@@ -83,7 +83,7 @@ CREATE TABLE prompt_response (
   prompt_id smallint unsigned NOT NULL,
   user_id smallint(6) unsigned NOT NULL,
   campaign_id smallint(4) unsigned NOT NULL,
-  parent_prompt_id smallint unsigned,
+  parent_prompt_id smallint(4) unsigned,
   group_id bigint unsigned NOT NULL,
   utc_time_stamp timestamp NOT NULL,
   utc_epoch_millis bigint unsigned NOT NULL, 
