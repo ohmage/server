@@ -65,7 +65,9 @@ CREATE TABLE user_role_campaign (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- --------------------------------------------------------------------
--- Prompt information. For now, just a label.
+-- Prompt information. For now, just an id and a label. Later we can 
+-- use this table to fully define prompts (limits, response data types, 
+-- etc).
 -- --------------------------------------------------------------------
 CREATE TABLE prompt (
   id smallint unsigned NOT NULL auto_increment, 
@@ -81,6 +83,8 @@ CREATE TABLE prompt_response (
   prompt_id smallint unsigned NOT NULL,
   user_id smallint(6) unsigned NOT NULL,
   campaign_id smallint(4) unsigned NOT NULL,
+  parent_prompt_id smallint unsigned,
+  group_id bigint unsigned NOT NULL,
   utc_time_stamp timestamp NOT NULL,
   utc_epoch_millis bigint unsigned NOT NULL, 
   phone_timezone varchar (32) NOT NULL,
