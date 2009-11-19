@@ -34,9 +34,9 @@ CREATE TABLE campaign (
 -- ---------------------------------------------------------------------
 CREATE TABLE user (
   id smallint(6) unsigned NOT NULL auto_increment,
-  email_address varchar(320)
+  email_address varchar(320),
   json_data text,
-  PRIMARY KEY (id),
+  PRIMARY KEY (id)
   -- we will have to check the uniqueness of new email addresses within the application itself because 
   -- the length of the UTF-8 encoded email address exceeds the maximum size for indexing in MySQL.
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
@@ -123,7 +123,7 @@ CREATE TABLE mobility_mode_only_entry (
   longitude double NOT NULL,
   mode varchar(30) NOT NULL,
   PRIMARY KEY (id),
-  UNIQUE idx_epoch_user (user_id, epoch_millis),
+  UNIQUE idx_epoch_user (user_id, utc_epoch_millis),
   CONSTRAINT FOREIGN KEY (user_id) REFERENCES user (id) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
@@ -147,7 +147,7 @@ CREATE TABLE mobility_mode_features_entry (
                              -- into separate columns is because the data will not be used outside of a debugging scenario.
                              -- It is simply stored the way it is sent by the phone (minus the JSON array brackets). 
   PRIMARY KEY (id),
-  UNIQUE INDEX idx_epoch_user (user_id, epoch_millis),
+  UNIQUE INDEX idx_epoch_user (user_id, utc_epoch_millis),
   CONSTRAINT FOREIGN KEY (user_id) REFERENCES user (id) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
