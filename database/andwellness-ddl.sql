@@ -71,8 +71,10 @@ CREATE TABLE user_role_campaign (
 -- --------------------------------------------------------------------
 CREATE TABLE prompt (
   id smallint unsigned NOT NULL auto_increment, 
-  name tinytext CHARACTER SET latin1 COLLATE latin1_bin NOT NULL, -- internally used name, therefore latin1 encoding
-  PRIMARY KEY (id)
+  p_text tinytext NOT NULL, 
+  parent_id smallint unsigned,
+  PRIMARY KEY (id),
+  CONSTRAINT FOREIGN KEY (parent_id) REFERENCES prompt (id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- --------------------------------------------------------------------
@@ -179,5 +181,3 @@ CREATE TABLE mobility_entry_daily_summary (
   CONSTRAINT FOREIGN KEY (user_id) REFERENCES user (id) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
--- TODO
--- SQL to initialize
