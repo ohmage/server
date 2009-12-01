@@ -229,7 +229,7 @@ CREATE TABLE mobility_mode_only_entry (
 -- *not* linked to a campaign.
 -- --------------------------------------------------------------------
 CREATE TABLE mobility_mode_features_entry (
-  id bigint unsigned NOT NULL auto_increment,
+  id integer unsigned NOT NULL auto_increment,
   user_id smallint(6) unsigned NOT NULL,
   utc_time_stamp timestamp NOT NULL,
   utc_epoch_millis bigint unsigned NOT NULL,
@@ -253,7 +253,7 @@ CREATE TABLE mobility_mode_features_entry (
 -- mobility_mode_features_entry
 -- ---------------------------------------------------------------------------------
 CREATE TABLE mobility_entry_five_min_summary (
-  id bigint unsigned NOT NULL auto_increment,
+  id integer unsigned NOT NULL auto_increment,
   user_id smallint(6) unsigned NOT NULL,
   utc_time_stamp timestamp NOT NULL,
   phone_timezone varchar(32) NOT NULL,
@@ -268,7 +268,7 @@ CREATE TABLE mobility_entry_five_min_summary (
 -- mobility_mode_features_entry
 -- ---------------------------------------------------------------------------------
 CREATE TABLE mobility_entry_daily_summary (
-  id bigint unsigned NOT NULL auto_increment,
+  id integer unsigned NOT NULL auto_increment,
   user_id smallint(6) unsigned NOT NULL,
   entry_date date NOT NULL,
   mode varchar(30) NOT NULL,
@@ -282,7 +282,7 @@ CREATE TABLE mobility_entry_daily_summary (
 -- Weekly summary of prompt responses for visualization dashboards
 -- ---------------------------------------------------------------------------------
 CREATE TABLE prompt_response_weekly_summary (
-  id bigint unsigned NOT NULL auto_increment,
+  id integer unsigned NOT NULL auto_increment,
   prompt_id smallint(4) unsigned NOT NULL, 
   user_id smallint(6) unsigned NOT NULL,
   week_start date NOT NULL,
@@ -291,10 +291,7 @@ CREATE TABLE prompt_response_weekly_summary (
   UNIQUE INDEX (user_id, prompt_id, week_start),
   CONSTRAINT FOREIGN KEY (user_id) REFERENCES user (id) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT FOREIGN KEY (prompt_id) REFERENCES prompt(id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8; 
-
-
-
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 
 
