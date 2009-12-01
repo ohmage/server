@@ -96,8 +96,8 @@ CREATE TABLE user_role_campaign (
 -- --------------------------------------------------------------------
 CREATE TABLE campaign_prompt_group ( 
   campaign_id smallint(4) unsigned NOT NULL, 
-  group_id smallint(4) unsigned NOT NULL,
-  group_name tinytext NOT NULL,
+  group_id smallint(4) unsigned NOT NULL,     -- static id shared with phone configuration
+  group_name tinytext NOT NULL,               -- static id shared with phone configuration
   PRIMARY KEY (campaign_id, group_id),
   CONSTRAINT FOREIGN KEY (campaign_id) REFERENCES campaign (id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
@@ -277,4 +277,24 @@ CREATE TABLE mobility_entry_daily_summary (
   UNIQUE INDEX (user_id, entry_date),
   CONSTRAINT FOREIGN KEY (user_id) REFERENCES user (id) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+-- ---------------------------------------------------------------------------------
+-- Weekly summary of prompt responses for visualization dashboards
+-- ---------------------------------------------------------------------------------
+CREATE TABLE prompt_response_weekly_summary (
+  id bigint unsigned NOT NULL auto_increment,
+  prompt_id smallint(4) unsigned NOT NULL, 
+  user_id smallint(6) unsigned NOT NULL,
+  week_start date NOT NULL,
+  json_data text NOT NULL,
+  PRIMARY KEY (id),
+  UNIQUE INDEX (user_id, prompt_id, week_start),
+  CONSTRAINT FOREIGN KEY (user_id) REFERENCES user (id) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT FOREIGN KEY (prompt_id) REFERENCES prompt(id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8; 
+
+
+
+
+
 
