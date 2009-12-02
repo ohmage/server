@@ -102,10 +102,10 @@ CREATE TABLE campaign_prompt_version (
   CONSTRAINT FOREIGN KEY (campaign_id) REFERENCES campaign (id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
--- --------------------------------------------------------------------
+-- ----------------------------------------------------------------------
 -- Prompts may be grouped within a semantic space defined by the group 
--- name.
--- --------------------------------------------------------------------
+-- name. Groups have a version.
+-- ----------------------------------------------------------------------
 CREATE TABLE campaign_prompt_group ( 
   id smallint(4) unsigned NOT NULL auto_increment,
   campaign_id smallint(4) unsigned NOT NULL, 
