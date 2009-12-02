@@ -91,15 +91,31 @@ CREATE TABLE user_role_campaign (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- --------------------------------------------------------------------
+-- The set of prompts for a campaign is versioned.
+-- --------------------------------------------------------------------
+CREATE TABLE campaign_prompt_version (
+  id smallint(4) unsigned NOT NULL auto_increment,
+  campaign_id smallint(4) unsigned NOT NULL,
+  version_id smallint(4) unsigned NOT NULL,     -- static id shared with phone configuration
+  PRIMARY KEY (id),
+  UNIQUE (campaign_id, version_id),
+  CONSTRAINT FOREIGN KEY (campaign_id) REFERENCES campaign (id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+-- --------------------------------------------------------------------
 -- Prompts may be grouped within a semantic space defined by the group 
 -- name.
 -- --------------------------------------------------------------------
 CREATE TABLE campaign_prompt_group ( 
+  id smallint(4) unsigned NOT NULL auto_increment,
   campaign_id smallint(4) unsigned NOT NULL, 
+  campaign_prompt_version_id smallint(4) unsigned NOT NULL,
   group_id smallint(4) unsigned NOT NULL,     -- static id shared with phone configuration
-  group_name tinytext NOT NULL,               -- static id shared with phone configuration
-  PRIMARY KEY (campaign_id, group_id),
-  CONSTRAINT FOREIGN KEY (campaign_id) REFERENCES campaign (id)
+  group_name tinytext NOT NULL,               -- static name shared with phone configuration
+  PRIMARY KEY (id),
+  UNIQUE (campaign_id, campaign_prompt_version_id, group_id),
+  CONSTRAINT FOREIGN KEY (campaign_id) REFERENCES campaign (id),
+  CONSTRAINT FOREIGN KEY (campaign_prompt_version_id) REFERENCES campaign_prompt_version (id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- --------------------------------------------------------------------
@@ -122,19 +138,17 @@ CREATE TABLE prompt_type (
 CREATE TABLE prompt (
   id smallint(4) unsigned NOT NULL auto_increment,
   prompt_type_id smallint(4) unsigned NOT NULL,
-  campaign_id smallint(4) unsigned NOT NULL,
-  version_id smallint(4) unsigned NOT NULL,       -- static id shared with phone configuration
-  group_id smallint(4) unsigned NOT NULL,         -- static id shared with phone configuration
+  campaign_prompt_group_id smallint(4) unsigned NOT NULL, 
+  campaign_prompt_version_id smallint(4) unsigned NOT NULL,
   prompt_config_id smallint(4) unsigned NOT NULL, -- static id shared with phone configuration
   parent_config_id smallint(4) unsigned,          -- static id shared with phone configuration
   prompt_text tinytext NOT NULL, 
   PRIMARY KEY (id),
-  UNIQUE (campaign_id, version_id, group_id),
-  UNIQUE (campaign_id, version_id, group_id, prompt_config_id),
+  UNIQUE (campaign_prompt_group_id, campaign_prompt_version_id, prompt_config_id),
   CONSTRAINT FOREIGN KEY (prompt_type_id) REFERENCES prompt_type (id),
-  CONSTRAINT FOREIGN KEY (campaign_id) REFERENCES campaign (id),
-  CONSTRAINT FOREIGN KEY (campaign_id, group_id) REFERENCES campaign_prompt_group (campaign_id, group_id),
-  CONSTRAINT FOREIGN KEY (campaign_id, version_id, group_id, parent_config_id) REFERENCES prompt (campaign_id, version_id, group_id, prompt_config_id)
+  CONSTRAINT FOREIGN KEY (campaign_prompt_group_id) REFERENCES campaign_prompt_group (id),
+  CONSTRAINT FOREIGN KEY (campaign_prompt_version_id) REFERENCES campaign_prompt_version (id),
+  CONSTRAINT FOREIGN KEY (campaign_prompt_group_id, campaign_prompt_version_id, parent_config_id) REFERENCES prompt (campaign_prompt_group_id, campaign_prompt_version_id, prompt_config_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- ----------------------------------
@@ -160,10 +174,10 @@ CREATE TABLE prompt (
 -- Store arbitrary tags.
 -- -------------------------------------------------------
  CREATE TABLE tag (
-    id integer unsigned NOT NULL auto_increment,
-    tag_name tinytext NOT NULL,
-    PRIMARY KEY (id),
-    UNIQUE (tag_name(255))
+  id integer unsigned NOT NULL auto_increment,
+  tag_name tinytext NOT NULL,
+  PRIMARY KEY (id),
+  UNIQUE (tag_name(255))
  ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
  
  -- ----------------------------------------------------------------------------
@@ -172,38 +186,36 @@ CREATE TABLE prompt (
 -- across all types of prompt responses so they have a natural structure.
 -- ----------------------------------------------------------------------------
  CREATE TABLE prompt_repsonse_tag (
-    id integer unsigned NOT NULL auto_increment, 
-	prompt_response_id integer unsigned NOT NULL,
-	tag_id integer unsigned NOT NULL,
-	PRIMARY KEY (id),
-    CONSTRAINT FOREIGN KEY (prompt_response_id) REFERENCES prompt_response (id),
-    CONSTRAINT FOREIGN KEY (tag_id) REFERENCES tag (id)
+  id integer unsigned NOT NULL auto_increment, 
+  prompt_response_id integer unsigned NOT NULL,
+  tag_id integer unsigned NOT NULL,
+  PRIMARY KEY (id),
+  CONSTRAINT FOREIGN KEY (prompt_response_id) REFERENCES prompt_response (id),
+  CONSTRAINT FOREIGN KEY (tag_id) REFERENCES tag (id)
  ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- -----------------------------------
 -- Link a tag to a prompt group.
 -- -----------------------------------
  CREATE TABLE prompt_group_tag (
-    id integer unsigned NOT NULL auto_increment,
-    campaign_id smallint(4) unsigned NOT NULL,
-    version_id smallint(4) unsigned NOT NULL,       
-    group_id smallint(4) unsigned NOT NULL,     
-    tag_id integer unsigned NOT NULL,
-    PRIMARY KEY (id),
-    CONSTRAINT FOREIGN KEY (campaign_id, version_id, group_id) REFERENCES prompt (campaign_id, version_id, group_id),
-    CONSTRAINT FOREIGN KEY (tag_id) REFERENCES tag (id)
+  id integer unsigned NOT NULL auto_increment,
+  campaign_prompt_group_id smallint(4) unsigned NOT NULL,
+  tag_id integer unsigned NOT NULL,
+  PRIMARY KEY (id),
+  CONSTRAINT FOREIGN KEY (campaign_prompt_group_id) REFERENCES campaign_prompt_group (id),
+  CONSTRAINT FOREIGN KEY (tag_id) REFERENCES tag (id)
  ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- ----------------------------------------------
 -- Link group tags to actual prompt responses. 
 -- ----------------------------------------------
 CREATE TABLE prompt_group_repsonse_tag (
-    id integer unsigned NOT NULL auto_increment,
-    prompt_response_id integer unsigned NOT NULL,
-    group_tag_id integer unsigned NOT NULL,
-    PRIMARY KEY (id),
-    CONSTRAINT FOREIGN KEY (prompt_response_id) REFERENCES prompt_response (id),
-    CONSTRAINT FOREIGN KEY (group_tag_id) REFERENCES prompt_group_tag (id)
+  id integer unsigned NOT NULL auto_increment,
+  prompt_response_id integer unsigned NOT NULL,
+  group_tag_id integer unsigned NOT NULL,
+  PRIMARY KEY (id),
+  CONSTRAINT FOREIGN KEY (prompt_response_id) REFERENCES prompt_response (id),
+  CONSTRAINT FOREIGN KEY (group_tag_id) REFERENCES prompt_group_tag (id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- --------------------------------------------------------------------
@@ -292,6 +304,4 @@ CREATE TABLE prompt_response_weekly_summary (
   CONSTRAINT FOREIGN KEY (user_id) REFERENCES user (id) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT FOREIGN KEY (prompt_id) REFERENCES prompt(id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-
-
 
