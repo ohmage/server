@@ -142,9 +142,11 @@ CREATE TABLE prompt (
   campaign_prompt_version_id smallint(4) unsigned NOT NULL,
   prompt_config_id smallint(4) unsigned NOT NULL, -- static id shared with phone configuration
   parent_config_id smallint(4) unsigned,          -- static id shared with phone configuration
-  prompt_text tinytext NOT NULL, 
+  question_text tinytext NOT NULL, 
+  legend_text tinytext NOT NULL,
   PRIMARY KEY (id),
   UNIQUE (campaign_prompt_group_id, campaign_prompt_version_id, prompt_config_id),
+  UNIQUE (legend_text(255)),
   CONSTRAINT FOREIGN KEY (prompt_type_id) REFERENCES prompt_type (id),
   CONSTRAINT FOREIGN KEY (campaign_prompt_group_id) REFERENCES campaign_prompt_group (id),
   CONSTRAINT FOREIGN KEY (campaign_prompt_version_id) REFERENCES campaign_prompt_version (id),
