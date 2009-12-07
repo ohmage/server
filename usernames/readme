@@ -1,0 +1,8 @@
+The file username-words.txt contains a sanitized word list that is used by the admin-only registration feature to 
+create usernames.
+
+The words in the file are either 4, 5, or 6 characters long. Two words from the list are chosen at random and 
+concatenated to form new usernames. 
+
+The words in the file are sourced from a master file called 2of12.txt which was retrieved from 
+http://wordlist.sourceforge.net/12dicts-readme.html.
