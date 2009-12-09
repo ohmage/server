@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app version="2.5" 
+         xmlns="http://java.sun.com/xml/ns/j2ee"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd">
+  
+  <!--  Filters -->
+  
+  <!-- Servlets.  Note that url-patterns are matched against initial (or re-dispatched) requests, not a possibly request modified
+       by filters.  -->
+
+  <servlet>
+    <servlet-name>static</servlet-name>
+    <description>
+      A default "catch all" servlet serving up static content.
+    </description>
+    <servlet-class>org.apache.catalina.servlets.DefaultServlet</servlet-class>
+    <init-param>
+      <param-name>debug</param-name>
+      <param-value>0</param-value>
+    </init-param>
+    <init-param>
+      <param-name>listings</param-name>
+      <param-value>false</param-value>
+    </init-param>
+    <init-param>
+      <param-name>fileEncoding</param-name>
+      <param-value>UTF-8</param-value>
+    </init-param>
+    <load-on-startup>3</load-on-startup>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>static</servlet-name>
+    <url-pattern>/*</url-pattern>
+  </servlet-mapping>
+  
+  <servlet>
+    <servlet-name>test</servlet-name>
+    <description>
+      Test
+    </description>
+    <servlet-class>edu.ucla.cens.awserver.jee.servlet.TestDbServlet</servlet-class>
+    <load-on-startup>3</load-on-startup>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>test</servlet-name>
+    <url-pattern>/test</url-pattern>
+  </servlet-mapping>
+  
+  
+  <!-- Parameter with comma separated list of files (or patterns) that tells Spring where to pick up bean configurations.  Note
+       that unless servlet beans are configured in one of the specified files, Spring will attempt to use the
+       file <servletName>-servlet.xml.  To avoid confusion include all XMLs under beans. -->
+  <context-param>
+    <param-name>contextConfigLocation</param-name>
+    <param-value>/WEB-INF/beans/*.xml</param-value>
+  </context-param>
+
+  <!-- Listeners.  These ServletContextListeners are hooks with access to the (webapp) context.  Although filters and servlets are
+       aware of the webapp context they are running in (by way of the filter's or servlet's init()) and can initialize themselves,
+       there are other business objects that are completely decoupled from the webapp world and that needs to be injected with
+       webapp centric settings (e.g. paths to where to store files).  This also applies to the beans initialized by Spring.  Note
+       that although the Spring beans can explicitly be made aware of Spring's WebApplicationContext (and hence get to the
+       webapp's ServletContext), that would mean the beans would have explicit dependencies on the spring framework (e.g. by
+       implementing InitializingBean, implementing ApplicationContextAware, or by explicit calls to
+       WebApplicationContextUtils.getWebApplicationContext(..)).  By letting a listener below inject the beans with the necessary
+       ServletContext-derived information, all business objects can be kept decoupled from both Spring and the servlet API.-->
+
+  <!-- Bootstrap listener to initialize Log4J.  Having this one here (before Spring is bootstrapped with its ContextLoaderListener)
+       ensures Log4J is configured before Spring spits out logging messages. -->
+  <listener>
+    <listener-class>org.springframework.web.util.Log4jConfigListener</listener-class>
+  </listener>
+
+  <!-- Bootstrap listener to start up Spring's root WebApplicationContext. Should be after the Log4jConfigListener if such is
+       used. -->
+  <listener>
+    <listener-class>org.springframework.web.context.ContextLoaderListener</listener-class>
+  </listener>
+
+  <!-- Sets the webapp's session timeout to 30 minutes. -->
+  <session-config>
+    <session-timeout>5</session-timeout>
+  </session-config>
+</web-app>
