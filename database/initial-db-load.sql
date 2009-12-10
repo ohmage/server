@@ -72,7 +72,7 @@ INSERT INTO prompt (prompt_type_id, campaign_prompt_group_id, campaign_prompt_ve
   (11, 4, 1, 9, NULL, "Did any of the following interfere with your plan to exercise today: lack of time? lack of self-discipline? fatigue? procrastination? lack of interest? family work or responsibilities?","exercise interference"),
   (9, 4, 1, 10, NULL, "How many cigarettes did you smoke today?","cigarettes"),
   (9, 4, 1, 11, NULL, "How many alcoholic beverages did you have today?","alcoholic beverages"),
-  (9, 4, 1, 12, NULL, "How many caffeinated beverages did you have today?","caffeninated beverages"),
+  (9, 4, 1, 12, NULL, "How many caffeinated beverages did you have today?","caffeinated beverages"),
   (9, 4, 1, 13, NULL, "Did you have any high sugar food or drinks today? (soft drinks, candy, etc)","sugar"),
   (9, 4, 1, 14, NULL, "Did anything happen today that was stressful or difficult for you?","stressful/difficult"),
   (6, 4, 1, 15, 14, "If so, how stressful was this?","how stressful"),
