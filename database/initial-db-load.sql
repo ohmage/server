@@ -21,7 +21,7 @@ INSERT INTO campaign_prompt_group (campaign_id, campaign_prompt_version_id, grou
   (1, 1, 0, "Saliva"),
   (1, 1, 1, "Sleep"),
   (1, 1, 2, "Emotional State"),
-  (1, 1, 3, "Activity");
+  (1, 1, 3, "Diary");
 
 INSERT INTO prompt_type (type, restriction) VALUES
   ("time_military", NULL),
@@ -29,12 +29,13 @@ INSERT INTO prompt_type (type, restriction) VALUES
   ("map", "{1:10,2:20,3:30,4:40,5:50,6:60+}"),
   ("integer", "0,24"),
   ("map", "{0:very bad,1:ok,2:good,3:very good}"),
-  ("map", "{0: not at all,1:slightly,2:more than slightly,3:moderately,4:more than moderately,5:extremely}"),
+  ("map", "{0:not at all,1:...,2:slightly,3:...,:moderately,5:...,6:extremely}"),
   ("map", "{0:never,1:almost never,2:sometimes,3:fairly often,4:very often}"),
   ("map", "{0:none,1:light,2:moderate,3:vigorous}"),
   ("map", "{0:1,1:2,2:3,3:4,4:5,5:6,6:7,7:8,8:9,9:10+}"),
-  ("map", "{1:yes,2:no}"),
-  ("array_boolean", "6");
+  ("map", "{1:yes,0:no}"),
+  ("array_boolean", "6"),;
+  ("null", NULL);
 
 INSERT INTO prompt (prompt_type_id, campaign_prompt_group_id, campaign_prompt_version_id, prompt_config_id, parent_config_id, question_text, legend_text) VALUES
   (1, 1, 1, 0, NULL, "Take a saliva sample now and enter time.", "saliva"),
