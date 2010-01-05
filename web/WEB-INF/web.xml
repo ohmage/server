@@ -1,19 +1,85 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<web-app version="2.5" 
-         xmlns="http://java.sun.com/xml/ns/j2ee"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd">
+<web-app xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xmlns="http://java.sun.com/xml/ns/javaee"
+         xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd" version="2.5">
   
-  <!--  Filters -->
+  <!--  Filters: executed in the order in which they are defined in this file, but specific to the filter-mappings -->
   
-  <!-- Servlets.  Note that url-patterns are matched against initial (or re-dispatched) requests, not a possibly request modified
+  <filter>
+    <filter-name>LogoutFilter</filter-name>
+    <filter-class>edu.ucla.cens.awserver.jee.filter.LogoutFilter</filter-class>
+  </filter>
+  
+  <filter-mapping>
+    <filter-name>LogoutFilter</filter-name>
+    <url-pattern>/logout</url-pattern>
+  </filter-mapping>
+  
+  <!--  Pushes the session id into the Log4J NDC for each request thread. The NDC is a Stack that is dumped to the log 
+        for all Log4J messages.
+  -->
+  <filter>
+    <filter-name>Log4jNdcFilter</filter-name>
+    <filter-class>edu.ucla.cens.awserver.jee.filter.Log4jNdcFilter</filter-class>
+  </filter>
+  <filter-mapping>
+    <filter-name>Log4jNdcFilter</filter-name>
+    <url-pattern>/*</url-pattern>
+  </filter-mapping> 
+  
+  <!--  Checks that a user is accessing a subdomain that represents a campaign which actually exists --> 
+  <filter>
+    <filter-name>CampaignExistenceFilter</filter-name>
+    <filter-class>edu.ucla.cens.awserver.jee.filter.CampaignExistsFilter</filter-class>
+     <init-param>
+      <param-name>controllerName</param-name>
+      <param-value>campaignExistsController</param-value>
+    </init-param>
+  </filter>
+  
+  <filter-mapping>
+    <filter-name>CampaignExistenceFilter</filter-name>
+    <servlet-name>TestDb</servlet-name>
+  </filter-mapping>
+  <filter-mapping>
+    <filter-name>CampaignExistenceFilter</filter-name>
+    <servlet-name>jsp</servlet-name>
+  </filter-mapping> 
+ 
+  <!--  Handles redirect back to login for an unauthenticated user accessing content that requires authentication -->
+  <filter>
+    <filter-name>AuthenticationFilter</filter-name>
+    <filter-class>edu.ucla.cens.awserver.jee.filter.AuthenticationFilter</filter-class>
+    <init-param>
+      <param-name>loginRedirectUrl</param-name>
+      <param-value>/app/login.jsp</param-value>
+    </init-param>
+    <init-param>
+      <param-name>loginServletUrl</param-name>
+      <param-value>/app/login</param-value>
+    </init-param>
+  </filter>
+  
+  <!--  Add filter mappings for whatever resources require authenticated access --> 
+  <filter-mapping>
+    <filter-name>AuthenticationFilter</filter-name>
+    <servlet-name>TestDb</servlet-name>
+  </filter-mapping>
+  <filter-mapping>
+    <filter-name>AuthenticationFilter</filter-name>
+    <servlet-name>jsp</servlet-name>
+  </filter-mapping>
+  
+  <!--  Filter TODO 
+        1. Enforce UTF-8
+  -->
+    
+  <!-- Servlets.  Note that url-patterns are matched against initial (or re-dispatched) requests, not a request possiblty modified
        by filters.  -->
 
+  <!--  The default Tomcat Servlet used to locate and serve static content -->
   <servlet>
-    <servlet-name>static</servlet-name>
-    <description>
-      A default "catch all" servlet serving up static content.
-    </description>
+    <servlet-name>default</servlet-name>
     <servlet-class>org.apache.catalina.servlets.DefaultServlet</servlet-class>
     <init-param>
       <param-name>debug</param-name>
@@ -23,48 +89,140 @@
       <param-name>listings</param-name>
       <param-value>false</param-value>
     </init-param>
-    <init-param>
-      <param-name>fileEncoding</param-name>
-      <param-value>UTF-8</param-value>
-    </init-param>
-    <load-on-startup>3</load-on-startup>
+    <load-on-startup>1</load-on-startup>
   </servlet>
+  
+  <!--  Add mappings for images, etc when necessary -->  
   <servlet-mapping>
-    <servlet-name>static</servlet-name>
-    <url-pattern>/*</url-pattern>
+    <servlet-name>default</servlet-name>
+    <url-pattern>*.html</url-pattern>
   </servlet-mapping>
   
+  <servlet-mapping>
+    <servlet-name>default</servlet-name>
+    <url-pattern>*.css</url-pattern>
+  </servlet-mapping>
+
+  <servlet-mapping>
+    <servlet-name>default</servlet-name>
+    <url-pattern>/logout</url-pattern>
+  </servlet-mapping>
+
+
+  <!-- The default Tomcat JSP Servlet. We re-dispatch to this Servlet for rendering JSP. -->
   <servlet>
-    <servlet-name>test</servlet-name>
-    <description>
-      Test
-    </description>
-    <servlet-class>edu.ucla.cens.awserver.jee.servlet.TestDbServlet</servlet-class>
-    <load-on-startup>3</load-on-startup>
+    <servlet-name>jsp</servlet-name>
+    <servlet-class>org.apache.jasper.servlet.JspServlet</servlet-class>
+    <init-param>
+      <param-name>fork</param-name>
+      <param-value>false</param-value>
+    </init-param>
+    <init-param>
+      <param-name>xpoweredBy</param-name>
+       <param-value>false</param-value>
+    </init-param>
+    <load-on-startup>1</load-on-startup>
   </servlet>
+  
   <servlet-mapping>
-    <servlet-name>test</servlet-name>
-    <url-pattern>/test</url-pattern>
+    <servlet-name>jsp</servlet-name>
+    <url-pattern>*.jsp</url-pattern>
   </servlet-mapping>
   
   
-  <!-- Parameter with comma separated list of files (or patterns) that tells Spring where to pick up bean configurations.  Note
-       that unless servlet beans are configured in one of the specified files, Spring will attempt to use the
-       file <servletName>-servlet.xml.  To avoid confusion include all XMLs under beans. -->
+  <!--  Custom AndWellness Servlets -->
+    
+  <servlet>
+    <description>
+      This is for playing around with design ideas and testing connectivity to the database. 
+    </description>
+    <servlet-name>TestDb</servlet-name>
+    <servlet-class>edu.ucla.cens.awserver.jee.servlet.AwJspServlet</servlet-class>
+    <init-param>
+      <param-name>successfulRequestRedirectUrl</param-name>
+      <param-value>/app/test/testDb.jsp</param-value>
+    </init-param>
+    
+    <!--  The following init-params are used to map the servlet to Spring-configured beans that ultimately service the request. 
+          The param-value elements are Spring bead ids.    
+    -->
+    <init-param>
+      <param-name>controllerName</param-name>
+      <param-value>testDbController</param-value>
+    </init-param>
+    <init-param>
+      <param-name>awRequestCreatorName</param-name>
+      <param-value>testDbAwRequestCreator</param-value>
+    </init-param>
+    <init-param>
+      <param-name>httpSessionModifierName</param-name>
+      <param-value>testDbHttpSessionModifier</param-value>
+    </init-param>
+    <load-on-startup>1</load-on-startup>
+  </servlet>
+  
+  <servlet-mapping>
+    <servlet-name>TestDb</servlet-name>
+    <url-pattern>/app/test</url-pattern>
+  </servlet-mapping>
+  
+  <!--  Login  -->
+  <servlet>
+    <description>
+      Logs a user into the system. 
+    </description>
+    <servlet-name>Login</servlet-name>
+    <servlet-class>edu.ucla.cens.awserver.jee.servlet.AwJspServlet</servlet-class>
+    <init-param>
+      <param-name>successfulRequestRedirectUrl</param-name>
+      <param-value>/app/viz.jsp</param-value>
+    </init-param>
+    <init-param>
+      <param-name>failedRequestRedirectUrl</param-name>
+      <param-value>/app/login.jsp</param-value>
+    </init-param>
+    <!--  The following init-params are used to map the servlet to Spring-configured beans that ultimately service the request. 
+          The param-value elements are Spring bead ids.    
+    -->
+    <init-param>
+      <param-name>controllerName</param-name>
+      <param-value>authenticationController</param-value>
+    </init-param>
+    <init-param>
+      <param-name>awRequestCreatorName</param-name>
+      <param-value>authenticationAwRequestCreator</param-value>
+    </init-param>
+    <init-param>
+      <param-name>httpSessionModifierName</param-name>
+      <param-value>authenticationHttpSessionModifier</param-value>
+    </init-param>
+    <load-on-startup>1</load-on-startup>
+  </servlet>
+  
+  <servlet-mapping>
+    <servlet-name>Login</servlet-name>
+    <url-pattern>/app/login</url-pattern>
+  </servlet-mapping>
+  
+  <welcome-file-list>
+    <welcome-file>index.html</welcome-file>
+  </welcome-file-list>
+   
+  <error-page>
+    <error-code>500</error-code>
+    <location>/app/server_error.jsp</location>
+  </error-page>
+   
+  <error-page>
+    <error-code>404</error-code>
+    <location>/app/file_not_found.html</location>
+  </error-page>   
+  
+  <!-- Parameter with comma separated list of files (or patterns) that tells Spring where to pick up bean configurations. -->
   <context-param>
     <param-name>contextConfigLocation</param-name>
-    <param-value>/WEB-INF/beans/*.xml</param-value>
+    <param-value>/WEB-INF/spring/*.xml</param-value>
   </context-param>
-
-  <!-- Listeners.  These ServletContextListeners are hooks with access to the (webapp) context.  Although filters and servlets are
-       aware of the webapp context they are running in (by way of the filter's or servlet's init()) and can initialize themselves,
-       there are other business objects that are completely decoupled from the webapp world and that needs to be injected with
-       webapp centric settings (e.g. paths to where to store files).  This also applies to the beans initialized by Spring.  Note
-       that although the Spring beans can explicitly be made aware of Spring's WebApplicationContext (and hence get to the
-       webapp's ServletContext), that would mean the beans would have explicit dependencies on the spring framework (e.g. by
-       implementing InitializingBean, implementing ApplicationContextAware, or by explicit calls to
-       WebApplicationContextUtils.getWebApplicationContext(..)).  By letting a listener below inject the beans with the necessary
-       ServletContext-derived information, all business objects can be kept decoupled from both Spring and the servlet API.-->
 
   <!-- Bootstrap listener to initialize Log4J.  Having this one here (before Spring is bootstrapped with its ContextLoaderListener)
        ensures Log4J is configured before Spring spits out logging messages. -->
@@ -78,8 +236,8 @@
     <listener-class>org.springframework.web.context.ContextLoaderListener</listener-class>
   </listener>
 
-  <!-- Sets the webapp's session timeout to 30 minutes. -->
+  <!-- Sets the webapp's session timeout (minutes). -->
   <session-config>
-    <session-timeout>5</session-timeout>
+    <session-timeout>30</session-timeout>
   </session-config>
 </web-app>
