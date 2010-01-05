@@ -1,0 +1,29 @@
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
+                           http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-2.5.xsd">
+
+  <bean id="authenticationUserNameValidator" class="edu.ucla.cens.awserver.validator.AwRequestUserNameValidator">
+      <constructor-arg index="0"><value>abcdefghijklmnopqrstuvwxyz.</value></constructor-arg>
+      <constructor-arg index="1"><ref bean="failedValidationAnnotateAwRequestStrategy" /></constructor-arg>
+  </bean>
+  
+  <bean id="emptySubdomainValidator" class="edu.ucla.cens.awserver.validator.NonEmptyStringValidator">
+      <constructor-arg index="0"><value>subdomain</value></constructor-arg>
+  </bean>
+  
+  <bean id="failedValidationAnnotateAwRequestStrategy" class="edu.ucla.cens.awserver.validator.FailedValidationAnnotationStrategy" /> 
+  
+</beans>
+
+
+
+
+
+
+
+
+
+
+
+

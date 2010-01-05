@@ -1,0 +1,42 @@
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
+                           http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-2.5.xsd">
+  <!--  
+     Spring ApplicationContext configuration for HTML form-based authentication 
+  -->
+  
+  <!-- Servlet-to-AW hooks -->
+  <!-- create AwRequest from data in the HttpServletRequest -->
+  <bean id="authenticationAwRequestCreator" class="edu.ucla.cens.awserver.jee.servlet.glue.AuthAwRequestCreator" />
+  <!--  copy data from the AwRequest to the HttpServletRequest -->
+  <bean id="authenticationHttpSessionModifier" class="edu.ucla.cens.awserver.jee.servlet.glue.AuthenticationHttpSessionModifier" />  
+    
+  <!-- Controller -->
+  <bean id="authenticationController" class="edu.ucla.cens.awserver.controller.ControllerImpl">
+      <constructor-arg index="0">
+        <list>
+          <ref bean="authenticationUserNameValidator" />
+          <ref bean="emptySubdomainValidator" />
+        </list>
+      </constructor-arg>
+      <constructor-arg index="1">
+        <list>
+          <ref bean="authenticationService" />
+        </list>
+      </constructor-arg>
+  </bean>
+  
+  <!-- Service the authentication request -->
+  <bean id="authenticationService" class="edu.ucla.cens.awserver.service.AuthenticationService">
+    <constructor-arg index="0">
+    	<ref bean="authenticationDao" />
+    </constructor-arg>
+  </bean>
+
+  <!-- Interact with database -->
+  <bean id="authenticationDao" class="edu.ucla.cens.awserver.dao.AuthenticationDao">
+    <constructor-arg index="0"><ref bean="dataSource" /></constructor-arg>
+  </bean>
+
+</beans>
