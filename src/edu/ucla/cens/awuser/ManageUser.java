@@ -345,7 +345,7 @@ public class ManageUser {
 				// violates business rule, there must be at least one row here
 				throw new IncorrectResultSizeDataAccessException("no rows found to delete in user_role_campaign for user id: " + userId, 1, 0);
 			}
-		    _logger.info(numberOfRows + " deleted from user_role_campaign for user " + props.getProperty("userName"));
+		    _logger.info("deleted " + numberOfRows + " row from user_role_campaign for user " + props.getProperty("userName"));
 		    totalNumberOfRowsRemoved += numberOfRows;
 		    
 		    //
@@ -356,7 +356,7 @@ public class ManageUser {
 		    	// violates business rule, there can be only one row here
 		    	throw new IncorrectResultSizeDataAccessException("no rows found to delete in user_user_personal for user id: " + userId, 1, 0);
 			}
-		    _logger.info(numberOfRows + " deleted from user_user_personal for user " + props.getProperty("userName"));
+		    _logger.info("deleted " + numberOfRows + " row from user_user_personal for user " + props.getProperty("userName"));
 		    totalNumberOfRowsRemoved += numberOfRows;
 		    
 		    //
@@ -376,7 +376,7 @@ public class ManageUser {
 		    _logger.info(totalNumberOfRowsRemoved + " deleted rows for user: " + props.getProperty("userName"));
 		    transactionManager.commit(status); // end transaction
  		    
-		} catch (DataAccessException dae) { // note: also catches any IncorrectResultSizeDataAccessException from the try block
+		} catch (DataAccessException dae) { // note: also catches any IncorrectResultSizeDataAccessExceptions from the try block
 			
 			_logger.error("Rolling back transaction!", dae);
 			transactionManager.rollback(status);
