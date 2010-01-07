@@ -42,7 +42,8 @@ public class ManageUser {
 	 *  @throws IllegalArgumentException if the userName is malformed (too short or contains illegal characters)
 	 *  @throws IOException if the input file does not exist or if there are any other IO problems
 	 *  @throws JSONException if the json property in the input file contains malformed JSON
-	 *  @throws DataAccessException if no campaign exists for the subdomain found in the properties file
+	 *  @throws DataAccessException for database access problems (see individual method calls below)
+	 *  @throws IncorrectResultSizeDataAccessException for logical database problems (see individual method calls below)
 	 */
 	public static void main(String args[]) throws IOException, JSONException {
 		// Configure log4j for Spring. (pointing to System.out)
@@ -143,6 +144,8 @@ public class ManageUser {
 	
 	/**
 	 * Adds a user to the database using the provided Properties.
+	 * 
+	 * @throws DataAccessException if any errors occur while interacting with the database
 	 */
 	private static void addUser(final Properties props) {
 		_logger.info("Adding user with the following properties: " + props);
@@ -422,7 +425,6 @@ public class ManageUser {
 		// commits are performed manually
 		dataSource.setDefaultAutoCommit(false);
 		// use the default MySQL isolation level: REPEATABLE READ
-		// dataSource.setDefaultTransactionIsolation(Connection.TRANSACTION_READ_COMMITTED);
 		
 		return dataSource;
 	}
@@ -445,16 +447,25 @@ public class ManageUser {
 	
 	private static String helpText = "\nThis is a program for adding or removing users from the AndWellness database.\n\n" +
 	                                 "Please use edu.ucla.cens.awuser.CreateUserName to create user names.\n\n" +
-	                                 "****\n Be careful when removing users. The idea behind remove is that it should _only_ serve " +
-	                                 "as an undo feature when a new user is accidentally added by this same program. " +
-	                                 "\n The remove feature removes the user entirely even if the user belongs to multiple campaigns." +
+	                                 "****\n Be careful when removing users. The idea behind remove is that it should\n" +
+	                                 " _only_ serve as an undo feature when a new user is accidentally added by this\n" +
+	                                 "same program. " +
+	                                 "\n The remove feature removes the user entirely even if the user belongs to\n" +
+	                                 "multiple campaigns. (i.e., if the user is represented by multiple rows in\n" +
+	                                 "user_role_campaign, they are all deleted.) However, the remove feature is also\n" +
+	                                 "strict in that it will flag logical data violations and exit. An AW user should\n" +
+	                                 "not have more than one row in each of the following tables: user, user_personal,\n" +
+	                                 "user_user_personal, and user_role_campaign. Mulitple rows in user_role_campaign are\n" +
+	                                 "tolerated for internal CENS use only, although in the future it's conceivable that\n" +
+	                                 "we will have live users who belong to mulitple campaigns." +
 	                                 "\n****\n\n" + 
 			                         "Usage:\n" +
 			                         "   java edu.ucla.cens.awuser.ManageUser [help] [quiet] <add>|<remove> file\n\n" +
-			                         "The file must contain data in java.util.Properties format i.e., newline separated " +
-			                         "key=value pairs. Please see awuser/adduser-template.properties for an example. All values " +
-			                         "defined in the template file are required.\n\n" +
-			                         "The following jars must be in the classpath: spring-2.5.6-SEC01.jar, " +
-			                         "mysql-connector-java-5.1.10-bin.jar, json-dot-org-2010-01-05.jar, commons-dbcp-1.2.2.jar, " +
-			                         "commons-pool-1.5.4.jar, commons-logging-1.1.1.jar, log4j-1.2.15.jar.";
+			                         "The file must contain data in java.util.Properties format i.e., newline\n" +
+			                         "separated key=value pairs. Please see awuser/adduser-template.properties for an\n" +
+			                         " example. All values defined in the template file are required.\n\n" +
+			                         "The following jars must be in the classpath: spring-2.5.6-SEC01.jar,\n" +
+			                         "mysql-connector-java-5.1.10-bin.jar, json-dot-org-2010-01-05.jar,\n" +
+			                         "commons-dbcp-1.2.2.jar, commons-pool-1.5.4.jar, commons-logging-1.1.1.jar,\n" +
+			                         "log4j-1.2.15.jar.";
 }
