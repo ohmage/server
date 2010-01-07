@@ -63,8 +63,8 @@ CREATE TABLE user_user_personal (
 	user_id smallint(6) unsigned NOT NULL,
 	user_personal_id smallint(6) unsigned NOT NULL,
 	PRIMARY KEY (user_id, user_personal_id),
-	CONSTRAINT FOREIGN KEY (user_id) REFERENCES user (id),
-	CONSTRAINT FOREIGN KEY (user_personal_id) REFERENCES user_personal (id)
+	CONSTRAINT FOREIGN KEY (user_id) REFERENCES user (id) ON DELETE CASCADE ON UPDATE CASCADE,
+	CONSTRAINT FOREIGN KEY (user_personal_id) REFERENCES user_personal (id) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- --------------------------------------------------------------------
@@ -87,7 +87,7 @@ CREATE TABLE user_role_campaign (
   PRIMARY KEY (id),
   CONSTRAINT FOREIGN KEY (user_id) REFERENCES user (id) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT FOREIGN KEY (campaign_id) REFERENCES campaign (id) ON DELETE CASCADE ON UPDATE CASCADE,
-  CONSTRAINT FOREIGN KEY (user_role_id) REFERENCES user_role (id)
+  CONSTRAINT FOREIGN KEY (user_role_id) REFERENCES user_role (id) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- --------------------------------------------------------------------
