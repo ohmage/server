@@ -34,7 +34,7 @@ INSERT INTO prompt_type (type, restriction) VALUES
   ("map", "{0:none,1:light,2:moderate,3:vigorous}"),
   ("map", "{0:1,1:2,2:3,3:4,4:5,5:6,6:7,7:8,8:9,9:10+}"),
   ("map", "{1:yes,0:no}"),
-  ("array_boolean", "6"),;
+  ("array_boolean", "6"),
   ("null", NULL);
 
 INSERT INTO prompt (prompt_type_id, campaign_prompt_group_id, campaign_prompt_version_id, prompt_config_id, parent_config_id, question_text, legend_text) VALUES
