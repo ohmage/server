@@ -7,14 +7,14 @@ import javax.servlet.http.HttpSession;
 import edu.ucla.cens.awserver.datatransfer.AwRequest;
 
 /**
- * Handles copying data for the test db function from an AwRequest into an HttpServletRequest for rendering by a JSP.
+ * Handles copying data from an AwRequest into the HttpSession for the test db function.
  * 
  * @author selsky
  */
 public class TestDbHttpSessionModifier implements HttpSessionModifier {
 
 	/**
-	 * Places the <code>results</code> List property from the AwRequest into the HttpServletRequest with the name <code>
+	 * Places the <code>results</code> List property from the AwRequest into the HttpSession with the name <code>
 	 * testResultList</code>.  
 	 */
 	public void modifySession(AwRequest awRequest, HttpSession httpSession) {
