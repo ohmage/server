@@ -14,6 +14,7 @@ import edu.ucla.cens.awserver.datatransfer.AwRequest;
 
 /**
  * DAO for checking campaign existence. The subdomain from the initial request URI is used to attempt lookup of a campaign id. 
+ * This class relies on Spring JDBC (specifically JdbcTemplate) to handle boilerplate JDBC activities.
  * 
  * @author selsky
  */
@@ -33,7 +34,9 @@ public class CampaignExistsDao extends AbstractDao {
 	 * If a user is found, the campaigns that user belongs to are placed in the AwRequest payload Map.
 	 */
 	public void execute(AwRequest request) {
-		_logger.info("executing campaign existence check against subdomain " + request.getPayload().get("subdomain"));
+		if(_logger.isDebugEnabled()) {
+			_logger.debug("executing campaign existence check against subdomain " + request.getPayload().get("subdomain"));
+		}
 		
 		JdbcTemplate template = new JdbcTemplate(getDataSource());
 		
