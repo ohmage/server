@@ -24,10 +24,10 @@ public class CreateUserName {
 	 * @throws IllegalArgumentException if the filename argument is missing from the command line
 	 */
 	public static void main(String args[]) throws IOException {
-		
-		if(args.length < 1) {
-			throw new IllegalArgumentException("a filename of a file containing the wordlist is required");
-		}
+        if(args.length == 0 || args[0].equals("help")) {
+        	System.out.println(_helpText);
+        	System.exit(0);
+        }
 		
 		String fileName = args[0];
 		BufferedReader in = new BufferedReader(new FileReader(fileName)); // this will throw an IOException if the file does not exist
@@ -37,6 +37,8 @@ public class CreateUserName {
 		
 		if(null == word) {
 			throw new IllegalArgumentException("there are no words in the file");
+		} else if(word.length() < 4 || word.length() > 6) {
+			throw new IllegalArgumentException("invalid dictionary file. The first line is : " + word);
 		}
 		
 		while(null != word) { // Lazily read the whole thing into memory
@@ -56,6 +58,10 @@ public class CreateUserName {
 		int indexB = Math.abs(random.nextInt() % size);
 		
 		System.out.println("The new user name is: " + words.get(indexA) + "." + words.get(indexB));
-		
 	}	
+	
+	private static String _helpText = "Given a file name containing a newline-separated list of words, return a\n" +
+	                            	  "dot-separated concatenation of two randomly chosen words from the file.\n" +
+	                            	  "Usage:\n" +
+	                            	  "    edu.ucla.cens.awuser.CreateUserName [help] fileName";
 }
