@@ -29,9 +29,13 @@
   </fileset>
 
   <fileset id="file-dependencies" dir="usernames">
-  	  <include name="**/adduser-template.properties" />
+  	  <include name="**/add-remove-user.properties" />
   	  <include name="**/username-words.txt" />
   </fileset>	
+
+  <path id="compile-classpath">
+    <fileset refid="compile-dependencies"/>
+  </path>
 	
   <target name="help-properties" description="Shows what properties you may want to override on the command line.">
     <echo message="-Dcomponent.repository=&lt;path&gt;  Where to search for dependencies/versioned components during build [${component.repository}]."/>
@@ -90,6 +94,7 @@
       <tarfileset dir="${dist}">
         <include name="classes/**"/>
         <include name="lib/**"/>
+      	<include name="data/**"/>
       </tarfileset>
     </tar>
   </target>
