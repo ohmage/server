@@ -138,7 +138,7 @@ public class ManageUser {
 			removeUser(props);			
 		}
 		
-		_logger.info("Done");
+		_logger.info("completed successfully");
 	}
 	
 	
@@ -460,10 +460,11 @@ public class ManageUser {
 	                                  "we will have live users who belong to mulitple campaigns." +
 	                                  "\n****\n\n" + 
 			                          "Usage:\n" +
-			                          "   java edu.ucla.cens.awuser.ManageUser [help] [quiet] <add>|<remove> file\n\n" +
+			                          "   java -classpath LIB_DIR:CLASS_DIR edu.ucla.cens.awuser.ManageUser [help] [quiet] <add>|<remove> file\n" +
+			                          "E.g. java -classpath lib/*:classes edu.ucla.cens.awuser.ManageUser add data/add-remove-user.properties\n\n" + 
 			                          "The file must contain data in java.util.Properties format i.e., newline\n" +
-			                          "separated key=value pairs. Please see awuser/adduser-template.properties for an\n" +
-			                          " example. All values defined in the template file are required.\n\n" +
+			                          "separated key=value pairs. Please see data/add-remove-user.properties for an\n" +
+			                          "example. All values defined in the template file are required.\n\n" +
 			                          "The following jars must be in the classpath: spring-2.5.6-SEC01.jar,\n" +
 			                          "mysql-connector-java-5.1.10-bin.jar, json-dot-org-2010-01-05.jar,\n" +
 			                          "commons-dbcp-1.2.2.jar, commons-pool-1.5.4.jar, commons-logging-1.1.1.jar,\n" +

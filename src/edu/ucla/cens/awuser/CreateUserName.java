@@ -61,7 +61,8 @@ public class CreateUserName {
 	}	
 	
 	private static String _helpText = "Given a file name containing a newline-separated list of words, return a\n" +
-	                            	  "dot-separated concatenation of two randomly chosen words from the file.\n" +
-	                            	  "Usage:\n" +
-	                            	  "    edu.ucla.cens.awuser.CreateUserName [help] fileName";
+	                            	  "dot-separated concatenation of two randomly chosen words from the file.\n\n" +
+	                            	  "Usage:\n\n" +
+	                            	  "    java -classpath CLASS_DIR edu.ucla.cens.awuser.CreateUserName [help] fileName\n" +
+	                            	  "E.g. java -classpath classes edu.ucla.cens.awuser.CreateUserName data/username-words.txt\n";
 }
