@@ -46,18 +46,18 @@ public class ManageUser {
 	 *  @throws IncorrectResultSizeDataAccessException for logical database problems (see individual method calls below)
 	 */
 	public static void main(String args[]) throws IOException, JSONException {
-		// Configure log4j for Spring. (pointing to System.out)
+		// Configure log4j. (pointing to System.out)
 		// All Spring messages are at the DEBUG level. They are extremely informative (and verbose).
 		BasicConfigurator.configure();
 		
-		if((args.length > 0  && args[0].contains("help"))) {
-			_logger.info(helpText);
+		if(args.length > 0  && args[0].equals("help")) {
+			_logger.info(_helpText);
 			System.exit(0);
 		}
 		
 		if(args.length < 2 || args.length > 3) {
 			_logger.info("Incorrect number of arguments");
-			_logger.info(helpText);
+			_logger.info(_helpText);
 			System.exit(0);
 		}
 		
@@ -74,13 +74,13 @@ public class ManageUser {
 		}
 		
 		if(args.length == 3) {
-			if(! ("q".equals(args[0]) || "quiet".equals(args[0]))) {
-				throw new IllegalArgumentException("add or remove is required as the first argument. You provided " + args[0]);
+			if(! ("quiet".equals(args[0]))) {
+				throw new IllegalArgumentException("quiet is required as the first argument. You provided " + args[0]);
 			} else {
 				quiet = true;
 			}
 			if(! ("add".equals(args[1]) || "remove".equals(args[1]))) {
-				throw new IllegalArgumentException("add or remove is required as the first argument. You provided " + args[0]);
+				throw new IllegalArgumentException("add or remove is required as the second argument. You provided " + args[1]);
 			}
 			
 			function = args[1];
@@ -282,7 +282,7 @@ public class ManageUser {
 			} 
 			catch(SQLException sqle) {
 				// not much that can be done so just log the error
-				sqle.printStackTrace();
+				_logger.error(sqle);
 				
 			}
 		}
@@ -393,7 +393,7 @@ public class ManageUser {
 			} 
 			catch(SQLException sqle) {
 				// not much that can be done so just log the error
-				sqle.printStackTrace();
+				_logger.error(sqle);
 				
 			}
 		}   		
@@ -445,27 +445,27 @@ public class ManageUser {
 		return null == string || "".equals(string.trim());
 	}
 	
-	private static String helpText = "\nThis is a program for adding or removing users from the AndWellness database.\n\n" +
-	                                 "Please use edu.ucla.cens.awuser.CreateUserName to create user names.\n\n" +
-	                                 "****\n Be careful when removing users. The idea behind remove is that it should\n" +
-	                                 " _only_ serve as an undo feature when a new user is accidentally added by this\n" +
-	                                 "same program. " +
-	                                 "\n The remove feature removes the user entirely even if the user belongs to\n" +
-	                                 "multiple campaigns. (i.e., if the user is represented by multiple rows in\n" +
-	                                 "user_role_campaign, they are all deleted.) However, the remove feature is also\n" +
-	                                 "strict in that it will flag logical data violations and exit. An AW user should\n" +
-	                                 "not have more than one row in each of the following tables: user, user_personal,\n" +
-	                                 "user_user_personal, and user_role_campaign. Mulitple rows in user_role_campaign are\n" +
-	                                 "tolerated for internal CENS use only, although in the future it's conceivable that\n" +
-	                                 "we will have live users who belong to mulitple campaigns." +
-	                                 "\n****\n\n" + 
-			                         "Usage:\n" +
-			                         "   java edu.ucla.cens.awuser.ManageUser [help] [quiet] <add>|<remove> file\n\n" +
-			                         "The file must contain data in java.util.Properties format i.e., newline\n" +
-			                         "separated key=value pairs. Please see awuser/adduser-template.properties for an\n" +
-			                         " example. All values defined in the template file are required.\n\n" +
-			                         "The following jars must be in the classpath: spring-2.5.6-SEC01.jar,\n" +
-			                         "mysql-connector-java-5.1.10-bin.jar, json-dot-org-2010-01-05.jar,\n" +
-			                         "commons-dbcp-1.2.2.jar, commons-pool-1.5.4.jar, commons-logging-1.1.1.jar,\n" +
-			                         "log4j-1.2.15.jar.";
+	private static String _helpText = "\nThis is a program for adding or removing users from the AndWellness database.\n\n" +
+	                                  "Please use edu.ucla.cens.awuser.CreateUserName to create user names.\n\n" +
+	                                  "****\n Be careful when removing users. The idea behind remove is that it should\n" +
+	                                  " _only_ serve as an undo feature when a new user is accidentally added by this\n" +
+	                                  "same program. " +
+	                                  "\n The remove feature removes the user entirely even if the user belongs to\n" +
+	                                  "multiple campaigns. (i.e., if the user is represented by multiple rows in\n" +
+	                                  "user_role_campaign, they are all deleted.) However, the remove feature is also\n" +
+	                                  "strict in that it will flag logical data violations and exit. An AW user should\n" +
+	                                  "not have more than one row in each of the following tables: user, user_personal,\n" +
+	                                  "user_user_personal, and user_role_campaign. Mulitple rows in user_role_campaign are\n" +
+	                                  "tolerated for internal CENS use only, although in the future it's conceivable that\n" +
+	                                  "we will have live users who belong to mulitple campaigns." +
+	                                  "\n****\n\n" + 
+			                          "Usage:\n" +
+			                          "   java edu.ucla.cens.awuser.ManageUser [help] [quiet] <add>|<remove> file\n\n" +
+			                          "The file must contain data in java.util.Properties format i.e., newline\n" +
+			                          "separated key=value pairs. Please see awuser/adduser-template.properties for an\n" +
+			                          " example. All values defined in the template file are required.\n\n" +
+			                          "The following jars must be in the classpath: spring-2.5.6-SEC01.jar,\n" +
+			                          "mysql-connector-java-5.1.10-bin.jar, json-dot-org-2010-01-05.jar,\n" +
+			                          "commons-dbcp-1.2.2.jar, commons-pool-1.5.4.jar, commons-logging-1.1.1.jar,\n" +
+			                          "log4j-1.2.15.jar.";
 }
