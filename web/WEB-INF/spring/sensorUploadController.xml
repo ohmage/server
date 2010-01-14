@@ -1,0 +1,13 @@
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
+                           http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-2.5.xsd">
+  <!--  
+     Spring ApplicationContext configuration for sensor (phone) data upload 
+  -->
+  
+  <!-- Servlet-to-AW hooks -->
+  <!-- create AwRequest from data in the HttpServletRequest -->
+  <bean id="sensorUploadAwRequestCreator" class="edu.ucla.cens.awserver.jee.servlet.glue.SensorUploadAwRequestCreator" />
+
+</beans>
