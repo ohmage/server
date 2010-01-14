@@ -17,6 +17,7 @@
   	  <include name="**/commons-logging-1.1.1.jar"/>
   	  <include name="**/commons-dbcp-1.2.2.jar"/>
   	  <include name="**/commons-pool-1.5.4.jar"/>
+  	  <include name="**/json-dot-org-2010-01-05.jar"/>
   </fileset>
 
   <fileset id="run-dependencies" dir="${component.repository}">
@@ -27,6 +28,7 @@
   	  <include name="**/commons-dbcp-1.2.2.jar"/>
   	  <include name="**/commons-pool-1.5.4.jar"/>
   	  <include name="**/jstl-1.2.jar"/>
+  	  <include name="**/json-dot-org-2010-01-05.jar"/>
   </fileset>
 
   <path id="compile-classpath">
