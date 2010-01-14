@@ -3,7 +3,7 @@ package edu.ucla.cens.awserver.validator;
 import edu.ucla.cens.awserver.datatransfer.AwRequest;
 
 /**
- * An implementation of AnnotateAwRequestStrategy for validation failures.
+ * An implementation of AwRequestAnnotator for validation failures.
  * 
  * @author selsky
  */
