@@ -26,6 +26,7 @@ CREATE TABLE campaign (
   configuration_id smallint(4) unsigned default NULL,
   PRIMARY KEY (id),
   UNIQUE KEY (subdomain),
+  UNIQUE KEY (name),
   CONSTRAINT FOREIGN KEY (configuration_id) REFERENCES configuration (id) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
@@ -72,7 +73,7 @@ CREATE TABLE user_user_personal (
 -- --------------------------------------------------------------------
 CREATE TABLE user_role (
   id tinyint(1) unsigned NOT NULL auto_increment,
-  label tinytext NOT NULL,
+  label varchar(50) NOT NULL,
   PRIMARY KEY (id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
@@ -111,9 +112,10 @@ CREATE TABLE campaign_prompt_group (
   campaign_id smallint(4) unsigned NOT NULL, 
   campaign_prompt_version_id smallint(4) unsigned NOT NULL,
   group_id smallint(4) unsigned NOT NULL,     -- static id shared with phone configuration
-  group_name tinytext NOT NULL,               -- static name shared with phone configuration
+  group_name varchar(100) NOT NULL,           -- static name shared with phone configuration
   PRIMARY KEY (id),
   UNIQUE (campaign_id, campaign_prompt_version_id, group_id),
+  UNIQUE (campaign_id, campaign_prompt_version_id, group_name),
   CONSTRAINT FOREIGN KEY (campaign_id) REFERENCES campaign (id) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT FOREIGN KEY (campaign_prompt_version_id) REFERENCES campaign_prompt_version (id) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
