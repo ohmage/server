@@ -7,6 +7,7 @@ import javax.servlet.FilterChain;
 import javax.servlet.FilterConfig;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
+import javax.servlet.ServletOutputStream;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
@@ -23,10 +24,8 @@ import edu.ucla.cens.awserver.datatransfer.AwRequestImpl;
 import edu.ucla.cens.awserver.util.StringUtils;
 
 /**
- * Filter for determining if a user is attempting to access a subdomain (request URI) that maps onto a campaign.
- * 
- * TODO - the controller stuff should be moved to something like a FilterToBeanProxy
- * 
+ * Filter for determining if a user or device is attempting to access a subdomain that maps onto a campaign.
+ *
  * @author selsky
  */
 public class CampaignExistsFilter implements Filter {
@@ -77,7 +76,9 @@ public class CampaignExistsFilter implements Filter {
 		throws ServletException, IOException {
 		
 		AwRequest awRequest = new AwRequestImpl();
-		String subdomain = StringUtils.retrieveSubdomainFromURLString(((HttpServletRequest) request).getRequestURL().toString());
+		String url = ((HttpServletRequest) request).getRequestURL().toString();
+		String uri = ((HttpServletRequest) request).getRequestURI();
+		String subdomain = StringUtils.retrieveSubdomainFromUrlString(url);
 		awRequest.getPayload().put("subdomain", subdomain);
 		
 		try {
@@ -88,10 +89,19 @@ public class CampaignExistsFilter implements Filter {
 				
 				chain.doFilter(request, response);
 				
-			} else { // a subdomain that is not bound to a campaign was found  - 404
+			} else { // a subdomain that is not bound to a campaign was found
 				
-				((HttpServletResponse) response).sendError(HttpServletResponse.SC_NOT_FOUND);
-				
+				if(uri.startsWith("/app/sensor")) { // a phone or device is attempting access
+					
+					String json = "[{\"error_code\":\"0102\",\"error_text\":\"subdomain does not exist\"}]";
+					ServletOutputStream outputStream = response.getOutputStream();
+					outputStream.print(json);
+					outputStream.flush();
+					
+				} else { // assume it's a browser. Tomcat will return a custom 404 page if configured to do so.
+					
+					((HttpServletResponse) response).sendError(HttpServletResponse.SC_NOT_FOUND);
+				}
 			}	
 		}
 		catch(ControllerException ce) {
