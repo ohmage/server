@@ -10,11 +10,10 @@ import edu.ucla.cens.awserver.datatransfer.AwRequest;
 public class FailedRequestAnnotator implements AwRequestAnnotator {
 
 	/**
-	 * Pushes the provided message into the payload of the AwRequest with the key <code>errorMessage</code>.
-	 * Also pushes <code>failedRequest</code> into the payload of the AwRequest with the value <code>true</code>. 
+     * Sets failed request properties on the AwRequest.
 	 */
 	public void annotate(AwRequest request, String message) {
-		request.setAttribute("errorMessage", message);
-		request.setAttribute("failedRequest", "true");
+		request.setFailedRequest(true);
+		request.setFailedRequestErrorMessage(message);
 	}
 }
