@@ -16,7 +16,7 @@
   <bean id="authenticationController" class="edu.ucla.cens.awserver.controller.ControllerImpl">
       <constructor-arg index="0">
         <list>
-          <ref bean="authenticationUserNameValidator" />
+          <ref bean="formBasedLoginUserNameValidator" />
           <ref bean="emptySubdomainValidator" />
         </list>
       </constructor-arg>
