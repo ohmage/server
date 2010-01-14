@@ -4,9 +4,6 @@
                            http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-2.5.xsd">
 
   <!--  Servlet-to-AW hooks -->
-  <!--  pre-process incoming data -->
-  
-  <!--  no post-processing of the AW Request (yet) -->
     
   <!--  Main Controller -->
   <bean id="campaignExistsController" class="edu.ucla.cens.awserver.controller.ControllerImpl">
