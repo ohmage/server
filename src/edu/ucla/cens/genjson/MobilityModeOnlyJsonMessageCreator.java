@@ -7,8 +7,10 @@ import org.json.JSONArray;
 import org.json.JSONException;
 
 /**
- * Creates <a href="http://www.lecs.cs.ucla.edu/wikis/andwellness/index.php/AndWellness-JSON"> mobility mode_only</a>
- * messages for testing. The messages are semantically fake, but syntactically correct.
+ * Simulator of phone/sensor messages that correspond to the mobility type and mode_only subtype.
+ * 
+ * See the <a href="http://www.lecs.cs.ucla.edu/wikis/andwellness/index.php/AndWellness-JSON">JSON Protocol documentation</a>
+ * on the wiki for details.
  * 
  * @author selsky
  */
