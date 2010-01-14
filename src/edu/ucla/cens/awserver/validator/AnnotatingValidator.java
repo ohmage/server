@@ -13,7 +13,7 @@ public abstract class AnnotatingValidator implements Validator {
 	 */
 	public AnnotatingValidator(AnnotateAwRequestStrategy annotatingValidationStrategy) {
 		if(null == annotatingValidationStrategy) {
-			throw new IllegalArgumentException("a AnnotateAwRequestStrategy is required");
+			throw new IllegalArgumentException("an AnnotateAwRequestStrategy is required");
 		}
 		
 		_annotatingValidationStrategy = annotatingValidationStrategy;
