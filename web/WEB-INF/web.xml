@@ -27,7 +27,7 @@
     <url-pattern>/*</url-pattern>
   </filter-mapping> 
   
-  <!--  Checks that a user is accessing a subdomain that represents a campaign which actually exists --> 
+  <!--  Checks that a user or device is accessing a subdomain which represents a campaign that actually exists --> 
   <filter>
     <filter-name>CampaignExistenceFilter</filter-name>
     <filter-class>edu.ucla.cens.awserver.jee.filter.CampaignExistsFilter</filter-class>
@@ -45,8 +45,13 @@
     <filter-name>CampaignExistenceFilter</filter-name>
     <servlet-name>jsp</servlet-name>
   </filter-mapping> 
+  <filter-mapping>
+    <filter-name>CampaignExistenceFilter</filter-name>
+    <url-pattern>/app/sensor/*</url-pattern>
+  </filter-mapping>
+  
  
-  <!--  Handles redirect back to login for an unauthenticated user accessing content that requires authentication -->
+  <!--  Handles redirect back to login for an unauthenticated user accessing content that requires stateful authentication -->
   <filter>
     <filter-name>AuthenticationFilter</filter-name>
     <filter-class>edu.ucla.cens.awserver.jee.filter.AuthenticationFilter</filter-class>
@@ -203,6 +208,38 @@
     <servlet-name>Login</servlet-name>
     <url-pattern>/app/login</url-pattern>
   </servlet-mapping>
+  
+  <servlet>
+    <description>
+      test 
+    </description>
+    <servlet-name>SensorUploadServlet</servlet-name>
+    <servlet-class>edu.ucla.cens.awserver.jee.servlet.SensorUploadServlet</servlet-class>
+    
+    <!--  The following init-params are used to map the servlet to Spring-configured beans that ultimately service the request. 
+          The param-value elements are Spring bead ids. -->  
+    
+    <init-param>
+      <param-name>awRequestCreatorName</param-name>
+      <param-value>testDbAwRequestCreator</param-value>
+    </init-param>
+    
+    <init-param>
+      <param-name>controllerName</param-name>
+      <param-value>testDbController</param-value>
+    </init-param>
+    <init-param>
+      <param-name>httpSessionModifierName</param-name>
+      <param-value>testDbHttpSessionModifier</param-value>
+    </init-param>
+    --><load-on-startup>1</load-on-startup>
+  </servlet>
+  
+  <servlet-mapping>
+    <servlet-name>SensorUploadServlet</servlet-name>
+    <url-pattern>/app/sensor/upload</url-pattern>
+  </servlet-mapping>
+  
   
   <welcome-file-list>
     <welcome-file>index.html</welcome-file>
