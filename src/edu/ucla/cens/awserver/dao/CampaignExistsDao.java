@@ -2,7 +2,6 @@ package edu.ucla.cens.awserver.dao;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.Map;
 
 import javax.sql.DataSource;
 
