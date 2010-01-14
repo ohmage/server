@@ -17,7 +17,7 @@ public class AwRequestUserNameValidator extends AnnotatingValidator {
 	 * @param allowedCharacters
 	 * @throws IllegalArgumentException if the passed in value for allowedCharacters is null, empty, or all whitespace
 	 */
-	public AwRequestUserNameValidator(String allowedCharacters, AnnotateAwRequestStrategy failedValidationStrategy) {
+	public AwRequestUserNameValidator(String allowedCharacters, AwRequestAnnotator failedValidationStrategy) {
 		super(failedValidationStrategy);
 		
 		if(StringUtils.isEmptyOrWhitespaceOnly(allowedCharacters)) {
