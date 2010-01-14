@@ -8,6 +8,13 @@ import java.util.Map;
 import org.json.JSONArray;
 import org.json.JSONException;
 
+/**
+ * Simulator of phone/sensor messages that correspond to the mobility type and mode_features subtype. 
+ * See the <a href="http://www.lecs.cs.ucla.edu/wikis/andwellness/index.php/AndWellness-JSON">JSON Protocol documentation</a>
+ * on the wiki for details.
+ * 
+ * @author selsky
+ */
 public class MobilityModeFeaturesJsonMessageCreator implements JsonMessageCreator {
 
 // Example message
@@ -29,6 +36,9 @@ public class MobilityModeFeaturesJsonMessageCreator implements JsonMessageCreato
 //        }
 //    },
 	
+	/**
+	 * Creates numberOfEntries messages and places them into the returned JSONArray.
+	 */
 	public JSONArray createMessage(int numberOfEntries) throws JSONException {
 		JSONArray jsonArray = new JSONArray();
 		String tz = ValueCreator.tz(); // use the same tz for all messages in the returned array (the most likely use case)
