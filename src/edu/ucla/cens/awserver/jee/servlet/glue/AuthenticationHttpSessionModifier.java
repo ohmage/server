@@ -17,7 +17,7 @@ public class AuthenticationHttpSessionModifier implements HttpSessionModifier {
 	 */
 	public void modifySession(AwRequest awRequest, HttpSession httpSession) {
 		
-		if(null != awRequest.getAttribute("failedRequest")) {
+		if(awRequest.isFailedRequest()) {
 			
 			httpSession.setAttribute("failedLogin", "true");
 			

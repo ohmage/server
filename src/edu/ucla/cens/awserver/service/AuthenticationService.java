@@ -52,8 +52,8 @@ public class AuthenticationService extends AbstractDaoService {
 				
 			} else { // no user found
 				
-				awRequest.setAttribute("failedRequest", "true");
-				awRequest.setAttribute("errorMessage", "user not found in db");
+				awRequest.setFailedRequest(true);
+				awRequest.setFailedRequestErrorMessage("user not found in db");
 			}
 			
 		} catch (DataAccessException dae) { 

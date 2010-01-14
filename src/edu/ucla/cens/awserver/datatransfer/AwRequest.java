@@ -11,7 +11,13 @@ import edu.ucla.cens.awserver.domain.User;
  * @author selsky
  */
 public interface AwRequest {
-
+	
+	public boolean isFailedRequest();
+	public void setFailedRequest(boolean failedRequest);
+		
+	public String getFailedRequestErrorMessage();
+	public void setFailedRequestErrorMessage(String message);
+	
 	public User getUser();
 	public void setUser(User user);
 
