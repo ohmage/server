@@ -151,9 +151,8 @@ public class AwJspServlet extends HttpServlet {
 			}
 			
 			// Redirect to JSP
-			boolean failedRequest = Boolean.valueOf(((String) awRequest.getAttribute("failedRequest")));
 			
-			if(failedRequest) {
+			if(awRequest.isFailedRequest()) {
 //				if(awRequest.getPayload().containsKey("errorMessage")) {
 //					_logger.info(awRequest.getPayload().get("errorMessage"));
 //				}
