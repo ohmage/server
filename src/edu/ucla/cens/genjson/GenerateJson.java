@@ -19,18 +19,18 @@ public class GenerateJson {
 	/**
 	 * Given a number of messages, a message type and a file name, generate messages and place them in the output file.
 	 * 
-	 * TODO add pretty-print and debug args
-	 * 
 	 * @throws IOException if any errors occur writing the output
+	 * @throws JSONException if any errors occur in creating and processing JSON (most likely due to a logical error)
 	 */
 	public static void main(String args[]) throws IOException, JSONException {
 		if(args.length < 3) {
-			System.out.println("Incorrect number of arguments.\n Run with help as the first argument to get a usage example.");
+			System.out.println("Error: incorrect number of arguments.");
+			System.out.println(_helpText);
 			System.exit(1);
 		}
 		
 		if("help".equals(args[0])) {
-			System.out.println(helpText);
+			System.out.println(_helpText);
 			System.exit(0);
 		}
 		
@@ -94,9 +94,12 @@ public class GenerateJson {
 		    || "prompt:3".equals(messageType);
 	}
 	
-	private static String helpText = "Given a number of messages, a message type and a file name, generate JSON messages and\n" +
+	private static String _helpText = "\nGiven a number of messages, a message type and a file name, generate JSON messages and\n" +
 			                         "place them in the output file.\n" +
+			                         "The allowed message types are: mobility:mode_only, mobility:mode_features, prompt:0,\n" +
+			                         "prompt:1, prompt:2, prompt:3.\n\n" +
 			                         "Usage:\n" +
-			                         "    java edu.ucla.cens.genjson.GenerateJson ";
+			                         "    java edu.ucla.cens.genjson.GenerateJson 10 mobility:mode_only out.txt\n\n" +
+			                         "If you would like to pretty-print the JSON output, check out edu.ucla.cens.genjson.TextToJson.";
 	
 }
