@@ -37,7 +37,7 @@ public final class StringUtils {
 	 * 
 	 * @throws IllegalArgumentException if a null or empty string is passed in
 	 */
-	public static String retrieveSubdomainFromURLString(String url) {
+	public static String retrieveSubdomainFromUrlString(String url) {
 		if(isEmptyOrWhitespaceOnly(url)) {
 			throw new IllegalArgumentException("cannot retrieve subdomain from a null URL String");
 		}
