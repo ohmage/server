@@ -18,8 +18,8 @@ public class CreateUserName {
 	 * Given a file name containing a newline-separated list of words, return a dot-separated concatenation of two randomly chosen
 	 * words from the file. 
 	 * 
-	 * @throws IOException if the first argument represents a file that does not exist
-	 * @throws IOException if there are any problems reading the input file
+	 * @throws IOException if the first argument represents a file that does not exist or if there are any problems reading the
+	 * input file 
 	 * @throws IllegalArgumentException if the input file is empty
 	 * @throws IllegalArgumentException if the filename argument is missing from the command line
 	 */
@@ -30,34 +30,43 @@ public class CreateUserName {
         }
 		
 		String fileName = args[0];
-		BufferedReader in = new BufferedReader(new FileReader(fileName)); // this will throw an IOException if the file does not exist
+		BufferedReader in = null; 
 		List<String> words = new ArrayList<String>();
 		
-		String word = in.readLine();
-		
-		if(null == word) {
-			throw new IllegalArgumentException("there are no words in the file");
-		} else if(word.length() < 4 || word.length() > 6) {
-			throw new IllegalArgumentException("invalid dictionary file. The first line is : " + word);
-		}
-		
-		while(null != word) { // Lazily read the whole thing into memory
-                    	 	  // The default file contains 9189 words
+		try {
+			in = new BufferedReader(new FileReader(fileName));
+			String word = in.readLine();
 			
-			words.add(word);
-			word = in.readLine();
+			if(null == word) {
+				throw new IllegalArgumentException("there are no words in the file");
+			} else if(word.length() < 4 || word.length() > 6) {
+				throw new IllegalArgumentException("invalid dictionary file. The first line is : " + word);
+			}
 			
+			while(null != word) { // Lazily read the whole thing into memory
+	                    	 	  // The default file contains 9189 words
+				
+				words.add(word);
+				word = in.readLine();
+				
+			}
+			
+			int size = words.size();
+			Random random = new Random();
+			
+			int indexA = Math.abs(random.nextInt() % size);
+			int indexB = Math.abs(random.nextInt() % size);
+			
+			System.out.println("The new user name is: " + words.get(indexA) + "." + words.get(indexB));
 		}
-		
-		in.close();
-		
-		int size = words.size();
-		Random random = new Random();
-		
-		int indexA = Math.abs(random.nextInt() % size);
-		int indexB = Math.abs(random.nextInt() % size);
-		
-		System.out.println("The new user name is: " + words.get(indexA) + "." + words.get(indexB));
+		finally {
+			
+			if(in != null) {
+			
+				in.close();
+				
+			}
+		}
 	}	
 	
 	private static String _helpText = "Given a file name containing a newline-separated list of words, return a\n" +
