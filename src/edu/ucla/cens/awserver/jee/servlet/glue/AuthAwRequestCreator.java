@@ -24,10 +24,10 @@ public class AuthAwRequestCreator implements AwRequestCreator {
 	
 	/**
 	 *  Pulls the u (userName) parameter and the subdomain out of the HttpServletRequest and places them in a new AwRequest.
-	 *  Validation of the data is performed within the controller.
+	 *  Validation of the data is performed within a controller.
 	 */
 	public AwRequest createFrom(HttpServletRequest request) {
-		String subdomain = StringUtils.retrieveSubdomainFromURLString(request.getRequestURL().toString());
+		String subdomain = StringUtils.retrieveSubdomainFromUrlString(request.getRequestURL().toString());
 //		_logger.info("found subdomain: " + subdomain + " from URL: " + request.getRequestURL());
 		
 		String userName = request.getParameter("u");
