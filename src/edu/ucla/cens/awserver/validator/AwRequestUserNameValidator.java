@@ -8,7 +8,7 @@ import edu.ucla.cens.awserver.util.StringUtils;
  * 
  * @author selsky
  */
-public class AwRequestUserNameValidator extends AnnotatingValidator {
+public class AwRequestUserNameValidator extends AbstractAnnotatingValidator {
 	private String _allowedCharacters;
 
 	/**

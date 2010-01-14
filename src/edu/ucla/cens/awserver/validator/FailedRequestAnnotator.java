@@ -14,7 +14,7 @@ public class FailedRequestAnnotator implements AwRequestAnnotator {
 	 * Also pushes <code>failedRequest</code> into the payload of the AwRequest with the value <code>true</code>. 
 	 */
 	public void annotate(AwRequest request, String message) {
-		request.getPayload().put("errorMessage", message);
-		request.getPayload().put("failedRequest", "true");
+		request.setAttribute("errorMessage", message);
+		request.setAttribute("failedRequest", "true");
 	}
 }

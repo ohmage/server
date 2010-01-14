@@ -18,7 +18,7 @@ public class TestDbHttpSessionModifier implements HttpSessionModifier {
 	 * testResultList</code>.  
 	 */
 	public void modifySession(AwRequest awRequest, HttpSession httpSession) {
-		List<?> results = (List<?>) awRequest.getPayload().get("results");
+		List<?> results = (List<?>) awRequest.getAttribute("results");
 	    httpSession.setAttribute("testResultList", results);
 	}
 

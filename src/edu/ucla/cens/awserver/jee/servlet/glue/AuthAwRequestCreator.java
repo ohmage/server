@@ -36,7 +36,7 @@ public class AuthAwRequestCreator implements AwRequestCreator {
 		
 		AwRequestImpl awRequest = new AwRequestImpl();
 		awRequest.setUser(user);
-		awRequest.getPayload().put("subdomain", subdomain);
+		awRequest.setAttribute("subdomain", subdomain);
 		
 		return awRequest;
 	}

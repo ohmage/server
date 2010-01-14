@@ -41,11 +41,11 @@ public class SensorUploadAwRequestCreator implements AwRequestCreator {
 		
 		AwRequestImpl awRequest = new AwRequestImpl();
 		awRequest.setUser(user);
-		awRequest.getPayload().put("subdomain", subdomain);
-		awRequest.getPayload().put("requestType", requestType);
-		awRequest.getPayload().put("phoneVersion", phoneVersion);
-		awRequest.getPayload().put("protocolVersion", protocolVersion);
-		awRequest.getPayload().put("jsonData", jsonData);
+		awRequest.setAttribute("subdomain", subdomain);
+		awRequest.setAttribute("requestType", requestType);
+		awRequest.setAttribute("phoneVersion", phoneVersion);
+		awRequest.setAttribute("protocolVersion", protocolVersion);
+		awRequest.setAttribute("jsonData", jsonData);
 		
 		return awRequest;
 	}

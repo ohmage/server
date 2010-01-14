@@ -38,8 +38,7 @@ public class TestDao extends AbstractDao {
 		
 		try {
 			
-			Map<String, Object> map = request.getPayload();
-			map.put("results", template.query(_testSelect, new QueryRowMapper()));
+			request.setAttribute("results", template.query(_testSelect, new QueryRowMapper()));
 			
 		} catch (org.springframework.dao.DataAccessException dae) {
 			

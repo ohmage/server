@@ -30,11 +30,11 @@ public class CampaignExistsService extends AbstractDaoService {
 		try {
 			
 			getDao().execute(request);
-			List<?> results = (List<?>) request.getPayload().get("results");
+			List<?> results = (List<?>) request.getAttribute("results");
 			
 			if(null != results &&  ! results.isEmpty()) { 
 				
-				request.getPayload().put("campaignExistsForSubdomain", "true");
+				request.setAttribute("campaignExistsForSubdomain", "true");
 				
 			}
 			

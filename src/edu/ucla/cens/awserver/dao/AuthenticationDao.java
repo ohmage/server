@@ -45,11 +45,10 @@ public class AuthenticationDao extends AbstractDao {
 		JdbcTemplate template = new JdbcTemplate(getDataSource());
 		
 		try {
-
-			Map<String, Object> map = request.getPayload();
-			map.put("results", template.query(_selectSql, 
-					                          new Object[]{request.getUser().getUserName(), map.get("subdomain")}, 
-					                          new QueryRowMapper()));
+			
+			request.setAttribute("results", template.query(_selectSql, 
+					             new Object[]{request.getUser().getUserName(), request.getAttribute("subdomain")}, 
+					             new QueryRowMapper()));
 			
 		} catch (org.springframework.dao.DataAccessException dae) {
 			

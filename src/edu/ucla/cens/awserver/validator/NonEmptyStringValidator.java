@@ -33,6 +33,6 @@ public class NonEmptyStringValidator implements Validator {
 	 * @return true otherwise
 	 */
 	public boolean validate(AwRequest awRequest) {
-		return ! (StringUtils.isEmptyOrWhitespaceOnly((String) awRequest.getPayload().get(_payloadItemName)));
+		return ! (StringUtils.isEmptyOrWhitespaceOnly((String) awRequest.getAttribute(_payloadItemName)));
 	}
 }

@@ -79,13 +79,13 @@ public class CampaignExistsFilter implements Filter {
 		String url = ((HttpServletRequest) request).getRequestURL().toString();
 		String uri = ((HttpServletRequest) request).getRequestURI();
 		String subdomain = StringUtils.retrieveSubdomainFromUrlString(url);
-		awRequest.getPayload().put("subdomain", subdomain);
+		awRequest.setAttribute("subdomain", subdomain);
 		
 		try {
 		
 			_controller.execute(awRequest);
 			
-			if(Boolean.valueOf((String) awRequest.getPayload().get("campaignExistsForSubdomain"))) {
+			if(Boolean.valueOf((String) awRequest.getAttribute("campaignExistsForSubdomain"))) {
 				
 				chain.doFilter(request, response);
 				
@@ -93,7 +93,7 @@ public class CampaignExistsFilter implements Filter {
 				
 				if(uri.startsWith("/app/sensor")) { // a phone or device is attempting access
 					
-					String json = "[{\"error_code\":\"0102\",\"error_text\":\"subdomain does not exist\"}]";
+					String json = "[{\"error_code\":\"0102\",\"error_text\":\"subdomain does not exist\"}]"; // TODO - move to config file
 					ServletOutputStream outputStream = response.getOutputStream();
 					outputStream.print(json);
 					outputStream.flush();

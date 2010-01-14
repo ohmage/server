@@ -35,7 +35,7 @@ public class AuthenticationService extends AbstractDaoService {
 			getDao().execute(awRequest);
 			
 			// A List is returned from the DAO even though our login ids are unique in the db.
-			List<?> results = (List<?>) awRequest.getPayload().get("results");
+			List<?> results = (List<?>) awRequest.getAttribute("results");
 			
 			if(null != results && results.size() > 0) {
 			
@@ -52,8 +52,8 @@ public class AuthenticationService extends AbstractDaoService {
 				
 			} else { // no user found
 				
-				awRequest.getPayload().put("failedRequest", "true");
-				awRequest.getPayload().put("errorMessage", "user not found in db");
+				awRequest.setAttribute("failedRequest", "true");
+				awRequest.setAttribute("errorMessage", "user not found in db");
 			}
 			
 		} catch (DataAccessException dae) { 

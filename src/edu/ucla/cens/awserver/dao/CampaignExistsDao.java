@@ -35,17 +35,16 @@ public class CampaignExistsDao extends AbstractDao {
 	 */
 	public void execute(AwRequest request) {
 		if(_logger.isDebugEnabled()) {
-			_logger.debug("executing campaign existence check against subdomain " + request.getPayload().get("subdomain"));
+			_logger.debug("executing campaign existence check against subdomain " + request.getAttribute("subdomain"));
 		}
 		
 		JdbcTemplate template = new JdbcTemplate(getDataSource());
 		
 		try {
-
-			Map<String, Object> map = request.getPayload();
-			map.put("results", template.query(_selectSql, 
-					                          new Object[]{map.get("subdomain")}, 
-					                          new QueryRowMapper()));
+			
+			request.setAttribute("results", template.query(_selectSql, 
+					             new Object[]{ request.getAttribute("subdomain") }, 
+					             new QueryRowMapper()));
 			
 		} catch (org.springframework.dao.DataAccessException dae) {
 			
