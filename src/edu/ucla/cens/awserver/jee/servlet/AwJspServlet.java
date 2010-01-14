@@ -109,7 +109,7 @@ public class AwJspServlet extends HttpServlet {
 		
 		// OK, now get the beans out of the Spring ApplicationContext
 		// If the beans do not exist within the Spring configuration, Spring will throw a RuntimeException and initialization
-		// of this Servlet will fail. (check catalina.out)
+		// of this Servlet will fail. (check catalina.out in addition to aw.log)
 		ServletContext servletContext = config.getServletContext();
 		ApplicationContext applicationContext = WebApplicationContextUtils.getWebApplicationContext(servletContext);
 		
