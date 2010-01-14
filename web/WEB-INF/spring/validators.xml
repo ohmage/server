@@ -5,14 +5,14 @@
 
   <bean id="authenticationUserNameValidator" class="edu.ucla.cens.awserver.validator.AwRequestUserNameValidator">
       <constructor-arg index="0"><value>abcdefghijklmnopqrstuvwxyz.</value></constructor-arg>
-      <constructor-arg index="1"><ref bean="failedValidationAnnotateAwRequestStrategy" /></constructor-arg>
+      <constructor-arg index="1"><ref bean="failedRequestAnnotator" /></constructor-arg>
   </bean>
   
   <bean id="emptySubdomainValidator" class="edu.ucla.cens.awserver.validator.NonEmptyStringValidator">
       <constructor-arg index="0"><value>subdomain</value></constructor-arg>
   </bean>
   
-  <bean id="failedValidationAnnotateAwRequestStrategy" class="edu.ucla.cens.awserver.validator.FailedValidationAnnotationStrategy" /> 
+  <bean id="failedRequestAnnotator" class="edu.ucla.cens.awserver.validator.FailedRequestAnnotator" /> 
   
 </beans>
 
