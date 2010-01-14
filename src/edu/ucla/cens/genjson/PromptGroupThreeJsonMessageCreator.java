@@ -7,6 +7,14 @@ import java.util.Map;
 
 import org.json.JSONArray;
 
+/**
+ * Simulator of phone/sensor messages that correspond to the prompt type and the prompt group id three ("diary" group). 
+ * See the <a href="http://www.lecs.cs.ucla.edu/wikis/andwellness/index.php/AndWellness-JSON">JSON Protocol documentation</a>
+ * and the <a href="http://www.lecs.cs.ucla.edu/wikis/andwellness/index.php/AndWellness-Prompts">Prompt Spec</a> on the wiki for
+ * details.
+ * 
+ * @author selsky
+ */
 public class PromptGroupThreeJsonMessageCreator implements JsonMessageCreator {
 
 //	# Diary group
@@ -67,6 +75,9 @@ public class PromptGroupThreeJsonMessageCreator implements JsonMessageCreator {
 //	     ]
 //	}
 	
+	/**
+	 * Returns a JSONArray with numberOfEntries elements that are all of the prompt group id 3 type.
+	 */
 	public JSONArray createMessage(int numberOfEntries) {
 		JSONArray jsonArray = new JSONArray();
 		String tz = ValueCreator.tz(); // use the same tz for all messages in the returned array (the most likely use case)
@@ -101,7 +112,7 @@ public class PromptGroupThreeJsonMessageCreator implements JsonMessageCreator {
 			for(int j = 1; j < 4; j++) {
 				Map<String, Object> p = new HashMap<String, Object>();
 				p.put("prompt_id", j);
-				p.put("response", ValueCreator.randomBoolean() ? "1" : "0");
+				p.put("response", ValueCreator.randomBoolean() ? 1 : 0);
 				responses.add(p);
 			}
 			
@@ -115,7 +126,7 @@ public class PromptGroupThreeJsonMessageCreator implements JsonMessageCreator {
 			for(int j = 9; j < 12; j++) {
 				Map<String, Object> p = new HashMap<String, Object>();
 				p.put("prompt_id", j);
-				p.put("response", ValueCreator.randomBoolean() ? "1" : "0");
+				p.put("response", ValueCreator.randomBoolean() ? 1 : 0);
 				responses.add(p);
 			}
 			
@@ -143,7 +154,7 @@ public class PromptGroupThreeJsonMessageCreator implements JsonMessageCreator {
 			for(int j = 17; j < 19; j++) {
 				Map<String, Object> p = new HashMap<String, Object>();
 				p.put("prompt_id", j);
-				p.put("response", ValueCreator.randomBoolean() ? "1" : "0");
+				p.put("response", ValueCreator.randomBoolean() ? 1 : 0);
 				responses.add(p);
 			}
 			
@@ -154,7 +165,7 @@ public class PromptGroupThreeJsonMessageCreator implements JsonMessageCreator {
 			
 			Map<String, Object> p20 = new HashMap<String, Object>();
 			p20.put("prompt_id", 20);
-			p20.put("response", ValueCreator.randomBoolean() ? "1" : "0");
+			p20.put("response", ValueCreator.randomBoolean() ? 1 : 0);
 			responses.add(p20);
 			
 			Map<String, Object> p21 = new HashMap<String, Object>();
