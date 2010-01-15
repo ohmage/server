@@ -5,6 +5,7 @@ import java.io.IOException;
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
+import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -14,6 +15,8 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.web.context.support.WebApplicationContextUtils;
 
 import edu.ucla.cens.awserver.controller.Controller;
+import edu.ucla.cens.awserver.controller.ControllerException;
+import edu.ucla.cens.awserver.datatransfer.AwRequest;
 import edu.ucla.cens.awserver.jee.servlet.glue.AwRequestCreator;
 import edu.ucla.cens.awserver.util.StringUtils;
 
@@ -44,11 +47,17 @@ public class SensorUploadServlet extends HttpServlet {
 		String servletName = config.getServletName();
 		
 		String awRequestCreatorName = config.getInitParameter("awRequestCreatorName");
+		String controllerName = config.getInitParameter("controllerName");
 		
 		if(StringUtils.isEmptyOrWhitespaceOnly(awRequestCreatorName)) {
 			throw new ServletException("Invalid web.xml. Missing awRequestCreatorName init param. Servlet " + servletName +
 					" cannot be initialized and put into service.");
 		}
+		if(StringUtils.isEmptyOrWhitespaceOnly(controllerName)) {
+			throw new ServletException("Invalid web.xml. Missing controllerName init param. Servlet " + servletName +
+					" cannot be initialized and put into service.");
+		}
+		
 		
 		// OK, now get the beans out of the Spring ApplicationContext
 		// If the beans do not exist within the Spring configuration, Spring will throw a RuntimeException and initialization
@@ -57,8 +66,8 @@ public class SensorUploadServlet extends HttpServlet {
 		ApplicationContext applicationContext = WebApplicationContextUtils.getWebApplicationContext(servletContext);
 		
 		_awRequestCreator = (AwRequestCreator) applicationContext.getBean(awRequestCreatorName);
-		
-		
+		_controller = (Controller) applicationContext.getBean(controllerName);
+ 		
 	}
 	
 	/**
@@ -75,42 +84,33 @@ public class SensorUploadServlet extends HttpServlet {
 	protected void processRequest(HttpServletRequest request, HttpServletResponse response)
 		throws ServletException, IOException { // allow Tomcat to handle Servlet and IO Exceptions
 		
-//		// Map data from the inbound request to our internal format
-//		AwRequest awRequest = _awRequestCreator.createFrom(request);
-//	    
-//		try {
-//			// Execute feature-specific logic
-//			_controller.execute(awRequest);
-//		    
-//			// Map data from the request into the HttpSession for later use or for rendering within a JSP
-//			if(null != _httpSessionModifier) {
-//				_httpSessionModifier.modifySession(awRequest, request.getSession());
-//			}
-//			
-//			// Redirect to JSP
-//			boolean failedRequest = Boolean.valueOf(((String) awRequest.getPayload().get("failedRequest")));
-//			
-//			if(failedRequest) {
-////				if(awRequest.getPayload().containsKey("errorMessage")) {
-////					_logger.info(awRequest.getPayload().get("errorMessage"));
-////				}
-//				
-//				response.sendRedirect(_failedRequestRedirectUrl);
-//				
-//			} else {
-//				
-//				response.sendRedirect(_successfulRequestRedirectUrl);
-//				// getServletContext().getRequestDispatcher(_successfulRequestRedirectUrl).forward (request, response);
-//			}
-//		}
-//		
-//		catch(ControllerException ce) { 
-//			
-//			_logger.error("", ce); // make sure the stack trace gets into our app log
-//			throw ce; // re-throw and allow Tomcat to redirect to the configured error page. the stack trace will also end up
-//			          // in catalina.out
-//			
-//		}
+		// Map data from the inbound request to our internal format
+		AwRequest awRequest = _awRequestCreator.createFrom(request);
+	    
+		try {
+			// Execute feature-specific logic
+			_controller.execute(awRequest);
+		    
+			if(awRequest.isFailedRequest()) { 
+				
+				ServletOutputStream servletOutputStream = response.getOutputStream();
+				servletOutputStream.println(awRequest.getFailedRequestErrorMessage());
+				servletOutputStream.flush();
+				servletOutputStream.close();
+				
+			} 
+			
+			request.getSession().invalidate();
+			
+		}
+		
+		catch(ControllerException ce) { 
+			
+			_logger.error("", ce); // make sure the stack trace gets into our app log
+			throw ce; // re-throw and allow Tomcat to redirect to the configured error page. the stack trace will also end up
+			          // in catalina.out
+			
+		}
 	}
 	
 	/**
