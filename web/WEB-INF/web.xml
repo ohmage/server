@@ -211,7 +211,7 @@
   
   <servlet>
     <description>
-      test 
+      processes data uploads from a sensor (phone) 
     </description>
     <servlet-name>SensorUploadServlet</servlet-name>
     <servlet-class>edu.ucla.cens.awserver.jee.servlet.SensorUploadServlet</servlet-class>
@@ -221,14 +221,14 @@
     
     <init-param>
       <param-name>awRequestCreatorName</param-name>
-      <param-value>testDbAwRequestCreator</param-value>
+      <param-value>sensorUploadAwRequestCreator</param-value>
     </init-param>
     
     <init-param>
       <param-name>controllerName</param-name>
-      <param-value>testDbController</param-value>
-    </init-param>
-    <init-param>
+      <param-value>sensorUploadController</param-value>
+    </init-param><!--
+    <init-param> TODO - destroy the session on exit
       <param-name>httpSessionModifierName</param-name>
       <param-value>testDbHttpSessionModifier</param-value>
     </init-param>
