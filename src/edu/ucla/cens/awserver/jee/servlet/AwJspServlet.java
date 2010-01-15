@@ -151,12 +151,8 @@ public class AwJspServlet extends HttpServlet {
 			}
 			
 			// Redirect to JSP
-			
 			if(awRequest.isFailedRequest()) {
-//				if(awRequest.getPayload().containsKey("errorMessage")) {
-//					_logger.info(awRequest.getPayload().get("errorMessage"));
-//				}
-				
+
 				response.sendRedirect(_failedRequestRedirectUrl);
 				
 			} else {
