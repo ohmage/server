@@ -10,4 +10,34 @@
   <!-- create AwRequest from data in the HttpServletRequest -->
   <bean id="sensorUploadAwRequestCreator" class="edu.ucla.cens.awserver.jee.servlet.glue.SensorUploadAwRequestCreator" />
 
-</beans>
+  <!--  No data gets put back into the session for these "stateless" requests -->
+  <!--  TODO HttpSession.invalidate -->
+  
+   <!-- Controller -->
+  <bean id="sensorUploadController" class="edu.ucla.cens.awserver.controller.ControllerImpl">
+      <constructor-arg index="0">
+        <list>
+          <ref bean="sensorUploadUserNameValidator" />
+          <ref bean="emptySubdomainValidator" />
+        </list>
+      </constructor-arg>
+      <constructor-arg index="1">
+        <list>
+          <ref bean="authenticationService" />
+        </list>
+      </constructor-arg>
+  </bean>
+  
+  <!-- Service the authentication request -->
+  <bean id="sensorUploadService" class="edu.ucla.cens.awserver.service.SensorUploadService">
+    <constructor-arg index="0">
+    	<ref bean="authenticationDao" /> <!--  change this for the real impl! -->
+    </constructor-arg>
+  </bean>
+
+  <!-- Interact with database -->
+  <!--<bean id="authenticationDao" class="edu.ucla.cens.awserver.dao.AuthenticationDao">
+    <constructor-arg index="0"><ref bean="dataSource" /></constructor-arg>
+  </bean>
+  
+--></beans>
