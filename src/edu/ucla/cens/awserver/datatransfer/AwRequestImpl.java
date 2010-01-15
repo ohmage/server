@@ -17,8 +17,11 @@ public class AwRequestImpl implements AwRequest {
 	                                      // implemented. The more abstract the data in the payload is kept, the less impact it 
 	                                      // will have on the API coupling with the rest of the code. Conversely, returning Object
 	                                      // requires casting when specific data types are needed.
-	private boolean _failedRequest;
-	private String _failedRequestErrorMessage;
+	private boolean _failedRequest;             
+	private String _failedRequestErrorMessage;  // a general error message for logging or a specific JSON message, depending on the
+	                                            // context in which this class is used
+	
+//	private String _failedRequestErrorCode;     // an error code specific to JSON output
 		
 	/**
 	 * Creates an instance of this class using a HashMap for the payload.
@@ -58,4 +61,12 @@ public class AwRequestImpl implements AwRequest {
 	public void setFailedRequestErrorMessage(String message) {
 		_failedRequestErrorMessage = message;
 	}
+	
+//	public String getFailedRequestErrorCode() {
+//		return _failedRequestErrorCode;
+//	}
+//	
+//	public void setFailedRequestErrorCode(String errorCode) {
+//		_failedRequestErrorCode = errorCode;
+//	}
 }

@@ -18,6 +18,9 @@ public interface AwRequest {
 	public String getFailedRequestErrorMessage();
 	public void setFailedRequestErrorMessage(String message);
 	
+//	public String getFailedRequestErrorCode();
+//	public void setFailedRequestErrorCode(String errorCode);
+	
 	public User getUser();
 	public void setUser(User user);
 
