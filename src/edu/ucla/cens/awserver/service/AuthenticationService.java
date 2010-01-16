@@ -1,6 +1,5 @@
 package edu.ucla.cens.awserver.service;
 
-
 import java.util.List;
 
 import org.apache.log4j.Logger;
@@ -9,6 +8,7 @@ import edu.ucla.cens.awserver.dao.Dao;
 import edu.ucla.cens.awserver.dao.DataAccessException;
 import edu.ucla.cens.awserver.dao.AuthenticationDao.LoginResult;
 import edu.ucla.cens.awserver.datatransfer.AwRequest;
+import edu.ucla.cens.awserver.util.StringUtils;
 
 /**
  * Dispatches to a DAO to perform authentication checks.
@@ -17,16 +17,26 @@ import edu.ucla.cens.awserver.datatransfer.AwRequest;
  */
 public class AuthenticationService extends AbstractDaoService {
 	private static Logger _logger = Logger.getLogger(AuthenticationService.class);
+	private String _errorMessage;
 	
 	/**
 	 * Creates an instances of this class using the supplied DAO as the method of data access.
+	 * 
+	 * @throws IllegalArgumentException if errorMessage is null, empty, or all whitespace 
 	 */
-	public AuthenticationService(Dao dao) {
+	public AuthenticationService(Dao dao, String errorMessage) {
 		super(dao);
+		if(StringUtils.isEmptyOrWhitespaceOnly(errorMessage)) {
+			throw new IllegalArgumentException("an error message is required");
+		}
+		_errorMessage = errorMessage;
 	}
 	
 	/**
-	 *
+	 * If a user is found by the DAO, sets the id and the campaign id on the User in the AwRequest. If a user is not found, sets 
+	 * the failedRequest and failedRequestErrorMessage properties on the AwRequest.
+	 * 
+	 * @throws ServiceException if any DataAccessException occurs in the data layer
 	 */
 	public void execute(AwRequest awRequest) {
 		try {
@@ -47,13 +57,14 @@ public class AuthenticationService extends AbstractDaoService {
 				
 				LoginResult loginResult = (LoginResult) results.get(0);
 				awRequest.getUser().setCampaignId(loginResult.getCampaignId());
+				awRequest.getUser().setId(loginResult.getUserId());
 				
 				_logger.info("user " + awRequest.getUser().getUserName() + " successfully logged in");
 				
 			} else { // no user found
 				
 				awRequest.setFailedRequest(true);
-				awRequest.setFailedRequestErrorMessage("user not found in db");
+				awRequest.setFailedRequestErrorMessage(_errorMessage);
 			}
 			
 		} catch (DataAccessException dae) { 
