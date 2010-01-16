@@ -33,13 +33,13 @@ public class NonEmptyStringValidator implements Validator {
 	 * Using the key passed in on construction, retrieves a value from the payload Map from the passed in AwRequest and checks
 	 * whether it is empty.
      *
-	 * @return true if the value is a non-empty, non-all-whitespace string
+	 * @return true if the value is a non-null, non-empty, non-all-whitespace string
 	 * @throws ValidatorException if the retrieved value is null, empty, or all whitespace 
 	 */
 	public boolean validate(AwRequest awRequest) {
 		if(StringUtils.isEmptyOrWhitespaceOnly((String) awRequest.getAttribute(_awRequestAttributeName))) {
-			return true;
+			throw new ValidatorException("missing " + _awRequestAttributeName + " from AwRequest - cannot continue processing");
 		}
-		throw new ValidatorException("missing " + _awRequestAttributeName + " from AwRequest - cannot continue processing");
+		return true;
 	}
 }
