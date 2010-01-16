@@ -8,21 +8,72 @@
     <constructor-arg index="1"><ref bean="failedRequestAnnotator" /></constructor-arg>
   </bean>
   
-  <bean id="sensorUploadUserNameValidator" class="edu.ucla.cens.awserver.validator.AwRequestUserNameValidator">
-    <constructor-arg index="0"><value>abcdefghijklmnopqrstuvwxyz.</value></constructor-arg>
-    <constructor-arg index="1"><ref bean="userNameFailedJsonRequestAnnotator" /></constructor-arg>
-  </bean>
-  
   <bean id="emptySubdomainValidator" class="edu.ucla.cens.awserver.validator.NonEmptyStringValidator">
     <constructor-arg index="0"><value>subdomain</value></constructor-arg>
   </bean>
   
   <bean id="failedRequestAnnotator" class="edu.ucla.cens.awserver.validator.FailedRequestAnnotator" /> 
   
-  <bean id="userNameFailedJsonRequestAnnotator" class="edu.ucla.cens.awserver.validator.FailedJsonRequestAnnotator">
-    <constructor-arg index="0"><value>[{"error_code":"0200","error_text":"malformed username"}]</value></constructor-arg>
+  <bean id="sensorUploadUserNameValidator" class="edu.ucla.cens.awserver.validator.AwRequestUserNameValidator">
+    <constructor-arg index="0"><value>abcdefghijklmnopqrstuvwxyz.</value></constructor-arg>
+    <constructor-arg index="1"><ref bean="sensorUploadUserNameFailedJsonRequestAnnotator" /></constructor-arg>
   </bean>
   
+  <bean id="sensorUploadRequestTypeValidator" class="edu.ucla.cens.awserver.validator.RequiredStringAnnotatingValidator">
+    <constructor-arg index="0"><ref bean="sensorUploadRequestTypeFailedJsonRequestAnnotator" /></constructor-arg>
+    <constructor-arg index="1"><value>requestType</value></constructor-arg>
+    <constructor-arg index="2">
+      <list>
+        <value>mobility</value>
+        <value>prompt</value>
+      </list>
+    </constructor-arg>
+  </bean>
+  
+  <bean id="sensorUploadPhoneVersionValidator" class="edu.ucla.cens.awserver.validator.RequiredStringAnnotatingValidator">
+    <constructor-arg index="0"><ref bean="sensorUploadPhoneVersionFailedJsonRequestAnnotator" /></constructor-arg>
+    <constructor-arg index="1"><value>phoneVersion</value></constructor-arg>
+    <constructor-arg index="2">
+      <list>
+        <value>0.9</value>
+      </list>
+    </constructor-arg>
+  </bean>
+  
+  <bean id="sensorUploadProtocolVersionValidator" class="edu.ucla.cens.awserver.validator.RequiredStringAnnotatingValidator">
+    <constructor-arg index="0"><ref bean="sensorUploadProtocolVersionFailedJsonRequestAnnotator" /></constructor-arg>
+    <constructor-arg index="1"><value>protocolVersion</value></constructor-arg>
+    <constructor-arg index="2">
+      <list>
+        <value>0.9</value>
+      </list>
+    </constructor-arg>
+  </bean>
+  
+  <bean id="sensorUploadJsonDataExistsValidator" class="edu.ucla.cens.awserver.validator.NonEmptyStringAnnotatingValidator">
+    <constructor-arg index="0"><ref bean="sensorUploadJsonDataFailedJsonRequestAnnotator" /></constructor-arg>
+    <constructor-arg index="1"><value>jsonData</value></constructor-arg>
+  </bean>
+  
+  <bean id="sensorUploadUserNameFailedJsonRequestAnnotator" class="edu.ucla.cens.awserver.validator.FailedJsonRequestAnnotator">
+    <constructor-arg index="0"><value>[{"error_code":"0200","error_text":"unknown user"}]</value></constructor-arg>
+  </bean>
+  
+  <bean id="sensorUploadRequestTypeFailedJsonRequestAnnotator" class="edu.ucla.cens.awserver.validator.FailedJsonRequestAnnotator">
+    <constructor-arg index="0"><value>[{"error_code":"0301","error_text":"missing or unknown request type"}]</value></constructor-arg>
+  </bean>
+  
+  <bean id="sensorUploadPhoneVersionFailedJsonRequestAnnotator" class="edu.ucla.cens.awserver.validator.FailedJsonRequestAnnotator">
+    <constructor-arg index="0"><value>[{"error_code":"0302","error_text":"missing or unknown phone version"}]</value></constructor-arg>
+  </bean>
+
+  <bean id="sensorUploadProtocolVersionFailedJsonRequestAnnotator" class="edu.ucla.cens.awserver.validator.FailedJsonRequestAnnotator">
+    <constructor-arg index="0"><value>[{"error_code":"0303","error_text":"missing or unknown protocol version"}]</value></constructor-arg>
+  </bean>
+  
+  <bean id="sensorUploadJsonDataFailedJsonRequestAnnotator" class="edu.ucla.cens.awserver.validator.FailedJsonRequestAnnotator">
+    <constructor-arg index="0"><value>[{"error_code":"0300","error_text":"missing json data"}]</value></constructor-arg>
+  </bean>
   
 </beans>
 
