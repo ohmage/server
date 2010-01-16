@@ -7,10 +7,19 @@ package edu.ucla.cens.awserver.domain;
  * @author selsky
  */
 public class UserImpl implements User {
+	private int _id;
 	private String  _userName;
     private int _campaignId;
 //	private boolean _loggedIn;
 	
+    public int getId() {
+    	return _id;
+    }
+    
+    public void setId(int id) {
+    	_id = id;
+    }
+    
 	public int getCampaignId() {
 		return _campaignId;
 	}

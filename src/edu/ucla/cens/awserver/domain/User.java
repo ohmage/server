@@ -8,6 +8,9 @@ package edu.ucla.cens.awserver.domain;
  */
 public interface User {
 
+	public int getId();
+	public void setId(int id);
+	
 	public String getUserName();
 	public void setUserName(String string);
 
