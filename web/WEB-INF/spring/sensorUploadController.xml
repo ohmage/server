@@ -9,32 +9,40 @@
   <!-- Servlet-to-AW hooks -->
   <!-- create AwRequest from data in the HttpServletRequest -->
   <bean id="sensorUploadAwRequestCreator" class="edu.ucla.cens.awserver.jee.servlet.glue.SensorUploadAwRequestCreator" />
-
-  <!--  No data gets put back into the session for these "stateless" requests -->
-  <!--  TODO HttpSession.invalidate -->
   
-   <!-- Controller -->
+  <!-- Controller -->
   <bean id="sensorUploadController" class="edu.ucla.cens.awserver.controller.ControllerImpl">
-      <constructor-arg index="0">
-        <list>
-          <ref bean="sensorUploadUserNameValidator" />
-          <ref bean="emptySubdomainValidator" />
-        </list>
-      </constructor-arg>
-      <constructor-arg index="1">
-        <list>
-          <ref bean="authenticationService" />
-        </list>
-      </constructor-arg>
-  </bean>
-  
-  <!-- Service the authentication request -->
-  <bean id="sensorUploadService" class="edu.ucla.cens.awserver.service.SensorUploadService">
     <constructor-arg index="0">
-    	<ref bean="authenticationDao" /> <!--  change this for the real impl! -->
+      <list>
+        <ref bean="emptySubdomainValidator" />
+        <ref bean="sensorUploadUserNameValidator" />
+        <ref bean="sensorUploadRequestTypeValidator" />
+        <ref bean="sensorUploadPhoneVersionValidator" />
+        <ref bean="sensorUploadProtocolVersionValidator" />
+        <ref bean="sensorUploadJsonDataExistsValidator" />
+      </list>
+    </constructor-arg>
+    <constructor-arg index="1">
+      <list>
+        <ref bean="sensorUploadAuthenticationService" />
+        <ref bean="jsonMessageSyntaxValidationService" />
+        <!--<ref bean="jsonMessageContentValidationService" />-->
+      </list>
     </constructor-arg>
   </bean>
-
+  
+  <!-- Service the upload request -->
+  <bean id="sensorUploadAuthenticationService" class="edu.ucla.cens.awserver.service.AuthenticationService">
+    <constructor-arg index="0">
+      <ref bean="authenticationDao" />
+    </constructor-arg>
+    <constructor-arg index="1"><value>[{"error_code":"0200","error_text":"unknown username"}]</value></constructor-arg>
+  </bean>
+  
+  <bean id="jsonMessageSyntaxValidationService" class="edu.ucla.cens.awserver.service.JsonMessageSyntaxValidationService">
+      <constructor-arg index="0"><value>[{"error_code":"0101","error_text":"JSON syntax error"}]</value></constructor-arg>
+  </bean>
+    
   <!-- Interact with database -->
   <!--<bean id="authenticationDao" class="edu.ucla.cens.awserver.dao.AuthenticationDao">
     <constructor-arg index="0"><ref bean="dataSource" /></constructor-arg>
