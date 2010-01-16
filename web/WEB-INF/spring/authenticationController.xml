@@ -14,24 +14,25 @@
     
   <!-- Controller -->
   <bean id="authenticationController" class="edu.ucla.cens.awserver.controller.ControllerImpl">
-      <constructor-arg index="0">
-        <list>
-          <ref bean="formBasedLoginUserNameValidator" />
-          <ref bean="emptySubdomainValidator" />
-        </list>
-      </constructor-arg>
-      <constructor-arg index="1">
-        <list>
-          <ref bean="authenticationService" />
-        </list>
-      </constructor-arg>
+    <constructor-arg index="0">
+      <list>
+        <ref bean="formBasedLoginUserNameValidator" />
+        <ref bean="emptySubdomainValidator" />
+      </list>
+    </constructor-arg>
+    <constructor-arg index="1">
+      <list>
+        <ref bean="authenticationService" />
+      </list>
+    </constructor-arg>
   </bean>
   
   <!-- Service the authentication request -->
   <bean id="authenticationService" class="edu.ucla.cens.awserver.service.AuthenticationService">
     <constructor-arg index="0">
-    	<ref bean="authenticationDao" />
+      <ref bean="authenticationDao" />
     </constructor-arg>
+    <constructor-arg index="1"><value>user not found</value></constructor-arg>
   </bean>
 
   <!-- Interact with database -->
