@@ -48,6 +48,11 @@ public class ControllerImpl implements Controller {
 			for(Service service : _services) {
 				
 				service.execute(awRequest);
+				
+			    if(awRequest.isFailedRequest()) { // bail out because the request could not be completed successfully
+					
+					break;
+				}
 			}
 			
 		}
