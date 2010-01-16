@@ -37,7 +37,10 @@ public class AwRequestImpl implements AwRequest {
 	public User getUser() {
 		return _user;
 	}
-
+	
+	/**
+	 * If a value already exists for <code>name</code>, it is simply overwritten with the new value.
+	 */
 	public void setAttribute(String name, Object value) {
 		_payload.put(name, value);
 	}
