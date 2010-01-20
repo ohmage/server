@@ -25,6 +25,7 @@
     <constructor-arg index="1">
       <list>
         <ref bean="sensorUploadAuthenticationService" />
+        <ref bean="jsonMessageSourceInfoService" />
         <ref bean="jsonMessageSyntaxValidationService" />
         <!--<ref bean="jsonMessageContentValidationService" />-->
       </list>
@@ -36,12 +37,15 @@
     <constructor-arg index="0">
       <ref bean="authenticationDao" />
     </constructor-arg>
-    <constructor-arg index="1"><value>[{"error_code":"0200","error_text":"unknown username"}]</value></constructor-arg>
+    <constructor-arg index="1"><value>{"errors":[{"error_code":"0200","error_text":"unknown username"}]}</value></constructor-arg>
+    <constructor-arg index="2"><value>{"errors":[{"error_code":"0199","error_text":"disabled user"}]}</value></constructor-arg>
   </bean>
   
   <bean id="jsonMessageSyntaxValidationService" class="edu.ucla.cens.awserver.service.JsonMessageSyntaxValidationService">
-      <constructor-arg index="0"><value>[{"error_code":"0101","error_text":"JSON syntax error"}]</value></constructor-arg>
+      <constructor-arg index="0"><value>{"errors":[{"error_code":"0101","error_text":"JSON syntax error"}]}</value></constructor-arg>
   </bean>
+  
+  <bean id="jsonMessageSourceInfoService" class="edu.ucla.cens.awserver.service.JsonMessageSourceInfoService" />
     
   <!-- Interact with database -->
   <!--<bean id="authenticationDao" class="edu.ucla.cens.awserver.dao.AuthenticationDao">
