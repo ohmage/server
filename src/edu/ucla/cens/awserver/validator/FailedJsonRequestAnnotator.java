@@ -1,8 +1,8 @@
 package edu.ucla.cens.awserver.validator;
 
 import org.apache.log4j.Logger;
-import org.json.JSONArray;
 import org.json.JSONException;
+import org.json.JSONObject;
 
 import edu.ucla.cens.awserver.datatransfer.AwRequest;
 
@@ -26,10 +26,10 @@ public class FailedJsonRequestAnnotator implements AwRequestAnnotator {
 			throw new IllegalArgumentException("a null jsonErrorObject string is not allowed");
 		}
 		try {
-			new JSONArray(jsonErrorMessage); // No variable assignment because all that's needed is the parse implicit in the 
-			                                 // constructor. Unfortunately, this particular JSON API does not contain static 
-			                                 // methods such as JSONArray.isValid(String jsonString) so the constructor is abused
-			                                 // instead.
+			new JSONObject(jsonErrorMessage); // No variable assignment because all that's needed is the parse implicit in the 
+			                                  // constructor. Unfortunately, this particular JSON API does not contain static 
+			                                  // methods such as JSONObject.isValid(String jsonString) so the constructor is abused
+			                                  // instead.
 		} catch (JSONException jsonException) {
 			throw new IllegalArgumentException("the jsonErrorObject is invalid JSON");
 		}
@@ -42,11 +42,24 @@ public class FailedJsonRequestAnnotator implements AwRequestAnnotator {
 	 */
 	public void annotate(AwRequest request, String message) {
 		request.setFailedRequest(true);
-		request.setFailedRequestErrorMessage(_jsonErrorMessage);
+		JSONObject jsonObject = null;
+		
+		try {
+			
+			jsonObject = new JSONObject(_jsonErrorMessage);
+			// now add the original request URL and the original JSON input message to the error output
+			jsonObject.put("request_url", request.getAttribute("requestUrl"));
+			jsonObject.put("request_json", request.getAttribute("jsonData"));
+		
+		} catch(JSONException jsone) {  
+		
+			throw new IllegalStateException(jsone);
+		}
+		
+		request.setFailedRequestErrorMessage(jsonObject.toString());
 				
 		if(logger.isDebugEnabled()) {
 			logger.debug(message);
 		}
-		
 	}
 }
