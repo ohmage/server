@@ -112,6 +112,7 @@ public class ManageUser {
 			throw new IllegalArgumentException("userName must be longer than eight characters");
 		}
 		
+		// TODO - this should be done with a regexp
 		String validChars = "abcdefghijklmnopqrstuvwxyz.";
 		
 		for(int i = 0; i < userName.length(); i++) {
