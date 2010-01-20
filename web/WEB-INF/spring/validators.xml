@@ -56,23 +56,23 @@
   </bean>
   
   <bean id="sensorUploadUserNameFailedJsonRequestAnnotator" class="edu.ucla.cens.awserver.validator.FailedJsonRequestAnnotator">
-    <constructor-arg index="0"><value>[{"error_code":"0200","error_text":"unknown user"}]</value></constructor-arg>
+    <constructor-arg index="0"><value>{"errors":[{"code":"0200","message":"unknown user"}]}</value></constructor-arg>
   </bean>
   
   <bean id="sensorUploadRequestTypeFailedJsonRequestAnnotator" class="edu.ucla.cens.awserver.validator.FailedJsonRequestAnnotator">
-    <constructor-arg index="0"><value>[{"error_code":"0301","error_text":"missing or unknown request type"}]</value></constructor-arg>
+    <constructor-arg index="0"><value>{"errors":[{"code":"0301","message":"missing or unknown request type"}]}</value></constructor-arg>
   </bean>
   
   <bean id="sensorUploadPhoneVersionFailedJsonRequestAnnotator" class="edu.ucla.cens.awserver.validator.FailedJsonRequestAnnotator">
-    <constructor-arg index="0"><value>[{"error_code":"0302","error_text":"missing or unknown phone version"}]</value></constructor-arg>
+    <constructor-arg index="0"><value>{"errors":[{"code":"0302","message":"missing or unknown phone version"}]}</value></constructor-arg>
   </bean>
 
   <bean id="sensorUploadProtocolVersionFailedJsonRequestAnnotator" class="edu.ucla.cens.awserver.validator.FailedJsonRequestAnnotator">
-    <constructor-arg index="0"><value>[{"error_code":"0303","error_text":"missing or unknown protocol version"}]</value></constructor-arg>
+    <constructor-arg index="0"><value>{"errors":[{"code":"0303","message":"missing or unknown protocol version"}]}</value></constructor-arg>
   </bean>
   
   <bean id="sensorUploadJsonDataFailedJsonRequestAnnotator" class="edu.ucla.cens.awserver.validator.FailedJsonRequestAnnotator">
-    <constructor-arg index="0"><value>[{"error_code":"0300","error_text":"missing json data"}]</value></constructor-arg>
+    <constructor-arg index="0"><value>{"errors":[{"code":"0300","message":"missing json data"}]}</value></constructor-arg>
   </bean>
   
 </beans>
