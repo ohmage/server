@@ -18,18 +18,26 @@ import edu.ucla.cens.awserver.util.StringUtils;
 public class AuthenticationService extends AbstractDaoService {
 	private static Logger _logger = Logger.getLogger(AuthenticationService.class);
 	private String _errorMessage;
+	private String _disabledMessage;
 	
 	/**
-	 * Creates an instances of this class using the supplied DAO as the method of data access.
+	 * Creates an instance of this class using the supplied DAO as the method of data access. The error message and the data 
+	 * message are set through this constructor in order to customize the output depending on the context in which this 
+	 * component is used (i.e., is the response being sent to a web page or a phone). 
 	 * 
 	 * @throws IllegalArgumentException if errorMessage is null, empty, or all whitespace 
+	 * @throws IllegalArgumentException if disabledMessage is null, empty, or all whitespace
 	 */
-	public AuthenticationService(Dao dao, String errorMessage) {
+	public AuthenticationService(Dao dao, String errorMessage, String disabledMessage) {
 		super(dao);
 		if(StringUtils.isEmptyOrWhitespaceOnly(errorMessage)) {
 			throw new IllegalArgumentException("an error message is required");
 		}
+		if(StringUtils.isEmptyOrWhitespaceOnly(disabledMessage)) {
+			throw new IllegalArgumentException("a disabled message is required");
+		}
 		_errorMessage = errorMessage;
+		_disabledMessage = disabledMessage;
 	}
 	
 	/**
@@ -49,22 +57,33 @@ public class AuthenticationService extends AbstractDaoService {
 			
 			if(null != results && results.size() > 0) {
 			
-				// This check is perfunctory, but indicates a serious problem because the condition 
-				// can only occur if we have more than one user with the same id, which is something enforced in the data world.
+				// This check is perfunctory, but indicates a serious problem because the condition can only occur if there is more 
+				// than one user with the same id, which is something enforced in the data world.
 				if(results.size() > 1) {
 					throw new ServiceException("more than one user returned for id " + awRequest.getUser().getUserName());
 				}
 				
 				LoginResult loginResult = (LoginResult) results.get(0);
-				awRequest.getUser().setCampaignId(loginResult.getCampaignId());
-				awRequest.getUser().setId(loginResult.getUserId());
 				
-				_logger.info("user " + awRequest.getUser().getUserName() + " successfully logged in");
+				// Determine if the user is enabled (i.e., allowed to access the application)
+				if(loginResult.isEnabled()) {
+					
+					awRequest.getUser().setCampaignId(loginResult.getCampaignId());
+					awRequest.getUser().setId(loginResult.getUserId());
+					_logger.info("user " + awRequest.getUser().getUserName() + " successfully logged in");
+				
+				} else {
+					
+					awRequest.setFailedRequest(true);
+					awRequest.setFailedRequestErrorMessage(_disabledMessage);
+					_logger.info("user " + awRequest.getUser().getUserName() + " is not enabled for access");
+				}
 				
 			} else { // no user found
 				
 				awRequest.setFailedRequest(true);
 				awRequest.setFailedRequestErrorMessage(_errorMessage);
+				_logger.info("user " + awRequest.getUser().getUserName() + " not found");
 			}
 			
 		} catch (DataAccessException dae) { 
