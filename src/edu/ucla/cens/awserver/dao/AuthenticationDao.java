@@ -22,7 +22,7 @@ public class AuthenticationDao extends AbstractDao {
 	// Note that the user role is not checked - future feature
 	// Also, in the future, we may have users that belong to multiple campaigns in which case
 	// the authentication flow will have to be rethought a bit.
-	private static final String _selectSql = "select user.id, campaign.id from user, user_role_campaign, campaign " +
+	private static final String _selectSql = "select user.id, user.enabled, campaign.id from user, user_role_campaign, campaign " +
 			                                 "where user.login_id = ? " +
 			                                     "and user.id = user_role_campaign.user_id " +
 			                                     "and user_role_campaign.id = campaign.id " +
@@ -68,7 +68,8 @@ public class AuthenticationDao extends AbstractDao {
 			                                                                 // in a Spring DataAccessException
 			LoginResult lr = new LoginResult();
 			lr.setUserId(rs.getInt(1));
-			lr.setCampaignId(rs.getInt(2));
+			lr.setEnabled(rs.getBoolean(2));
+			lr.setCampaignId(rs.getInt(3));
 			return lr;
 		}
 	}
@@ -81,6 +82,7 @@ public class AuthenticationDao extends AbstractDao {
 	public class LoginResult {
 		private int _campaignId;
 		private int _userId;
+		private boolean _enabled;
 		
 		public int getCampaignId() {
 			return _campaignId;
@@ -93,6 +95,12 @@ public class AuthenticationDao extends AbstractDao {
 		}
 		public void setUserId(int userId) {
 			_userId = userId;
+		}
+		public boolean isEnabled() {
+			return _enabled;
+		}
+		public void setEnabled(boolean enabled) {
+			_enabled = enabled;
 		}
 	}
 }
