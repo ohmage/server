@@ -7,7 +7,7 @@ INSERT INTO campaign (name, label, subdomain, configuration_id) VALUES ('ganz', 
 
 INSERT INTO user_role (label) VALUES ('admin'), ('participant'), ('health worker');
 
-INSERT INTO user (login_id) VALUES ("abbe.zoom"); -- login ids are generated from a dictionary file
+INSERT INTO user (login_id, enabled) VALUES ("abbe.zoom", true); -- login ids are programmatically generated from a dictionary file
 
 INSERT INTO user_personal (email_address, json_data) VALUES ('selsky@cens.ucla.edu', '{"first_name":"Joshua","last_name":"Selsky"}');
 

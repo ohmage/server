@@ -37,6 +37,7 @@ CREATE TABLE campaign (
 CREATE TABLE user (
   id smallint(6) unsigned NOT NULL auto_increment,
   login_id varchar(15) NOT NULL,
+  enabled bit NOT NULL,
   PRIMARY KEY (id),
   UNIQUE (login_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
