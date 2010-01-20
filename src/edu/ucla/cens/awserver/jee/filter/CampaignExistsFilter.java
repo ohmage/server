@@ -93,7 +93,7 @@ public class CampaignExistsFilter implements Filter {
 				
 				if(uri.startsWith("/app/sensor")) { // a phone or device is attempting access
 					
-					String json = "[{\"error_code\":\"0102\",\"error_text\":\"subdomain does not exist\"}]"; // TODO - move to config file
+					String json = "{\"errors\":[{\"error_code\":\"0100\",\"error_text\":\"subdomain does not exist\"}]}"; // TODO - move to config file
 					ServletOutputStream outputStream = response.getOutputStream();
 					outputStream.print(json);
 					outputStream.flush();
