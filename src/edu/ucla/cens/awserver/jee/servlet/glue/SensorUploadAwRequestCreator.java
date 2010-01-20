@@ -47,6 +47,8 @@ public class SensorUploadAwRequestCreator implements AwRequestCreator {
 		awRequest.setAttribute("protocolVersion", protocolVersion);
 		awRequest.setAttribute("jsonData", jsonData);
 		
+		awRequest.setAttribute("requestUrl", request.getRequestURL().toString() + "?" +  request.getQueryString()); // output in reponse in case of error
+		
 		return awRequest;
 	}
 }
