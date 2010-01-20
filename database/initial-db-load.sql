@@ -26,17 +26,17 @@ INSERT INTO campaign_prompt_group (campaign_id, campaign_prompt_version_id, grou
 INSERT INTO prompt_type (type, restriction) VALUES
   ("time_military", NULL),
   ("array_boolean", "3"),
-  ("map", "{0:10,1:20,2:30,3:40,4:50,5:60+}"),
-  ("map", "{0:<4,1:5,2:6,3:7,4:8,5:>8}"),
-  ("map", "{0:very bad,1:,2:,3:very good}"),
-  ("map", "{0:not at all,1:,2:slightly,3:,:moderately,5:,6:extremely}"),
-  ("map", "{0:never,1:almost never,2:sometimes,3:fairly often,4:very often}"),
-  ("map", "{0:none,1:light,2:moderate,3:vigorous}"),
-  ("map", "{0:1,1:2,2:3,3:4,4:5,5:6,6:7,7:8,8:9,9:10+}"),
-  ("map", "{1:Yes,0:No}"),
+  ("map", '{0:"10",1:"20",2:"30",3:"40",4:"50",5:"60+"}'),
+  ("map", '{0:"<4",1:"5",2:"6",3:"7",4:"8",5:">8"}'),
+  ("map", '{0:"very bad",1:,2:,3:"very good"}'),
+  ("map", '{0:"not at all",1:,2:"slightly",3:,4:"moderately",5:,6:"extremely"}'),
+  ("map", '{0:"never",1:"almost never",2:"sometimes",3:"fairly often",4:"very often"}'),
+  ("map", '{0:"none",1:"light",2:"moderate",3:"vigorous"}'),
+  ("map", '{0:"1",1:"2",2:"3",3:"4",4:"5",5:"6",6:"7",7:"8",8:"9",9:"10+"}'),
+  ("map", '{1:"Yes",0:"No"}'),
   ("array_boolean", "6"),
   ("null", NULL),
-  ("map", "{0:10,1:20,2:30,3:40,4:50,5:60+,6:N/A}");
+  ("map", '{0:"10",1:"20",2:"30",3:"40",4:"50",5:"60+",6:"N/A"}');
 
 INSERT INTO prompt (prompt_type_id, campaign_prompt_group_id, campaign_prompt_version_id, prompt_config_id, parent_config_id, question_text, legend_text) VALUES
   (1, 1, 1, 0, NULL, "Take a saliva sample now and enter time.", "saliva"),
