@@ -32,8 +32,8 @@ public class DateUtils {
 		}
 		
 		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-		sdf.setTimeZone(TimeZone.getTimeZone(timezone));
-		sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
+		sdf.setTimeZone(TimeZone.getTimeZone(timezone)); // create the date using the original timezone
+		sdf.setTimeZone(TimeZone.getTimeZone("UTC")); // this converts the date to UTC, updating the value in the process
 		
 		return sdf.format(date);
 	}
