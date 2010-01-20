@@ -174,9 +174,10 @@ public class ManageUser {
 					new PreparedStatementCreator() {
 						public PreparedStatement createPreparedStatement(Connection connection) throws SQLException {
 							PreparedStatement ps = connection.prepareStatement(
-								"insert into user (login_id) values(?)", new String[] {"id"}
+								"insert into user (login_id, enabled) values(?,?)", new String[] {"id"}
 							);
 							ps.setString(1, props.getProperty("userName"));
+							ps.setBoolean(2, true);
 							return ps;
 						}
 					},
