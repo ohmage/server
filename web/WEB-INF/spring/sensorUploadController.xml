@@ -68,13 +68,19 @@
   	      <list>
   	        <ref bean="jsonMsgMobilitySubtypeValidator" />
   	      </list>
-  	    </entry><!-- 
+  	    </entry> 
   	    <entry>
   	      <key><value>prompt</value></key>
   	      <list>
-  	        <ref bean="..." />
+  	        <ref bean="jsonMsgDateValidator" />
+            <ref bean="jsonMsgTimeValidator" />
+            <ref bean="jsonMsgTimezoneValidator" />
+            <ref bean="jsonMsgLocationValidator" />
+            <ref bean="jsonMsgLatitudeValidator" />
+            <ref bean="jsonMsgLongitudeValidator" />
+            <ref bean="jsonMsgPromptVersionIdValidator" />
   	      </list>
-  	    </entry> -->
+  	    </entry>
   	  </map>
   	</constructor-arg>
     <constructor-arg index="1"><ref bean="jsonMsgEmptyArrayAnnotator" /></constructor-arg>
@@ -321,5 +327,22 @@
       </bean>
     </constructor-arg>
   </bean>
+  
+  <bean id="jsonMsgPromptVersionIdValidator" class="edu.ucla.cens.awserver.validator.JsonMsgPromptVersionIdValidator">
+    <constructor-arg index="0">
+      <bean class="edu.ucla.cens.awserver.validator.FailedJsonRequestAnnotator">
+        <constructor-arg index="0">
+          <value>{"errors":[{"error_code":"0601","error_text":"invalid fft array in mode_features message"}]}</value>
+        </constructor-arg>  
+      </bean>
+    </constructor-arg>
+    <constructor-arg index="1">
+      <ref bean="promptVersionIdDao" />
+    </constructor-arg>
+  </bean>
 
+  <bean id="promptVersionIdDao" class="edu.ucla.cens.awserver.dao.PromptVersionIdDao">
+    <constructor-arg index="0"><ref bean="dataSource" /></constructor-arg>
+  </bean>
+  
 </beans>
