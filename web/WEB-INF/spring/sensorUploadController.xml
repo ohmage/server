@@ -10,7 +10,7 @@
   <!-- create AwRequest from data in the HttpServletRequest -->
   <bean id="sensorUploadAwRequestCreator" class="edu.ucla.cens.awserver.jee.servlet.glue.SensorUploadAwRequestCreator" />
   
-  <!-- Controller -->
+  <!-- Controller - main workflow -->
   <bean id="sensorUploadController" class="edu.ucla.cens.awserver.controller.ControllerImpl">
     <constructor-arg index="0">
       <list>
@@ -27,7 +27,7 @@
         <ref bean="sensorUploadAuthenticationService" />
         <ref bean="jsonMessageSourceInfoService" />
         <ref bean="jsonMessageSyntaxValidationService" />
-        <!--<ref bean="jsonMessageContentValidationService" />-->
+        <ref bean="jsonMessageContentValidationService" />
       </list>
     </constructor-arg>
   </bean>
@@ -37,19 +37,119 @@
     <constructor-arg index="0">
       <ref bean="authenticationDao" />
     </constructor-arg>
-    <constructor-arg index="1"><value>{"errors":[{"error_code":"0200","error_text":"unknown username"}]}</value></constructor-arg>
-    <constructor-arg index="2"><value>{"errors":[{"error_code":"0199","error_text":"disabled user"}]}</value></constructor-arg>
+    <constructor-arg index="1">
+      <ref bean="sensorUploadFailedJsonRequestAnnotator" />
+    </constructor-arg>
+    <constructor-arg index="2"><value>{"errors":[{"error_code":"0200","error_text":"unknown username"}]}</value></constructor-arg>
+    <constructor-arg index="3"><value>{"errors":[{"error_code":"0199","error_text":"disabled user"}]}</value></constructor-arg>
   </bean>
   
   <bean id="jsonMessageSyntaxValidationService" class="edu.ucla.cens.awserver.service.JsonMessageSyntaxValidationService">
-      <constructor-arg index="0"><value>{"errors":[{"error_code":"0101","error_text":"JSON syntax error"}]}</value></constructor-arg>
+    <constructor-arg index="0">
+      <bean class="edu.ucla.cens.awserver.validator.FailedJsonRequestAnnotator">
+        <constructor-arg index="0">
+          <value>{"errors":[{"error_code":"0101","error_text":"JSON syntax error"}]}</value>
+        </constructor-arg>
+      </bean>
+    </constructor-arg>   
   </bean>
+  
+  <!--  Annotate the AwRequest in the case of failed authentication -->	
+  <bean id="sensorUploadFailedJsonRequestAnnotator" class="edu.ucla.cens.awserver.validator.FailedJsonSuppliedMessageRequestAnnotator" />
   
   <bean id="jsonMessageSourceInfoService" class="edu.ucla.cens.awserver.service.JsonMessageSourceInfoService" />
-    
-  <!-- Interact with database -->
-  <!--<bean id="authenticationDao" class="edu.ucla.cens.awserver.dao.AuthenticationDao">
-    <constructor-arg index="0"><ref bean="dataSource" /></constructor-arg>
+  
+  <bean id="jsonMessageContentValidationService" class="edu.ucla.cens.awserver.service.JsonMessageContentValidationService">
+  	<constructor-arg index="0">
+  	  <map>
+  	    <entry>
+  	      <key><value>mobility</value></key>
+  	      <list>
+  	        <ref bean="jsonMsgMobilitySubtypeValidator" />
+  	      </list>
+  	    </entry><!-- 
+  	    <entry>
+  	      <key><value>prompt</value></key>
+  	      <list>
+  	        <ref bean="..." />
+  	      </list>
+  	    </entry> -->
+  	  </map>
+  	</constructor-arg>
+    <constructor-arg index="1"><ref bean="jsonMsgEmptyArrayAnnotator" /></constructor-arg>
+    <constructor-arg index="2"><ref bean="jsonMsgIncorrectArrayAnnotator" /></constructor-arg>
   </bean>
   
---></beans>
+  <bean id="jsonMsgEmptyArrayAnnotator" class="edu.ucla.cens.awserver.validator.FailedJsonRequestAnnotator">
+    <constructor-arg index="0">
+      <value>{"errors":[{"error_code":"0102","error_text":"no data in message - empty JSON array"}]}</value>
+    </constructor-arg>   
+  </bean>
+   
+  <bean id="jsonMsgIncorrectArrayAnnotator" class="edu.ucla.cens.awserver.validator.FailedJsonRequestAnnotator">
+    <constructor-arg index="0">
+      <value>{"errors":[{"error_code":"0103","error_text":"incorrect array entry - not a JSON Object"}]}</value>
+    </constructor-arg>   
+  </bean>
+  
+  <bean id="jsonMsgMobilitySubtypeValidator" class="edu.ucla.cens.awserver.validator.JsonMsgMobilitySubtypeValidator">
+    <constructor-arg index="0">
+      <bean class="edu.ucla.cens.awserver.validator.FailedJsonRequestAnnotator">
+        <constructor-arg index="0">
+          <value>{"errors":[{"error_code":"0500","error_text":"missing or invalid subtype"}]}</value>
+        </constructor-arg>
+      </bean>
+    </constructor-arg>
+    <constructor-arg index="1">
+      <map>
+        <entry>
+          <key><value>mode_only</value></key>
+          <list>
+            <ref bean="jsonMsgDateValidator" />
+            <ref bean="jsonMsgTimeValidator" />
+            <ref bean="jsonMsgTimezoneValidator" />
+          </list>
+        </entry>
+        <entry>
+          <key><value>mode_features</value></key>
+          <list>
+            <ref bean="jsonMsgDateValidator" />
+            <ref bean="jsonMsgTimeValidator" />
+            <ref bean="jsonMsgTimezoneValidator" />
+          </list>
+        </entry>
+      </map>
+    </constructor-arg>
+  </bean>
+  
+  <bean id="jsonMsgDateValidator" class="edu.ucla.cens.awserver.validator.JsonMsgDateValidator">
+    <constructor-arg index="0">
+      <bean class="edu.ucla.cens.awserver.validator.FailedJsonRequestAnnotator">
+        <constructor-arg index="0">
+          <value>{"errors":[{"error_code":"0401","error_text":"missing or invalid date"}]}</value>
+        </constructor-arg>   
+      </bean>
+    </constructor-arg>
+  </bean>
+  
+  <bean id="jsonMsgTimeValidator" class="edu.ucla.cens.awserver.validator.JsonMsgTimeValidator">
+    <constructor-arg index="0">
+      <bean class="edu.ucla.cens.awserver.validator.FailedJsonRequestAnnotator">
+        <constructor-arg index="0">
+          <value>{"errors":[{"error_code":"0402","error_text":"missing or invalid time"}]}</value>
+        </constructor-arg>  
+      </bean>
+    </constructor-arg>
+  </bean>
+
+  <bean id="jsonMsgTimezoneValidator" class="edu.ucla.cens.awserver.validator.JsonMsgTimezoneValidator">
+    <constructor-arg index="0">
+      <bean class="edu.ucla.cens.awserver.validator.FailedJsonRequestAnnotator">
+        <constructor-arg index="0">
+          <value>{"errors":[{"error_code":"0403","error_text":"missing or invalid timezone"}]}</value>
+        </constructor-arg>  
+      </bean>
+    </constructor-arg>
+  </bean>
+  
+</beans>
