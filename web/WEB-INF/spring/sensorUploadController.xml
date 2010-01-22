@@ -13,6 +13,7 @@
   <!-- Controller - main workflow -->
   <bean id="sensorUploadController" class="edu.ucla.cens.awserver.controller.ControllerImpl">
     <constructor-arg index="0">
+    <!-- validate the upload request -->
       <list>
         <ref bean="emptySubdomainValidator" />
         <ref bean="sensorUploadUserNameValidator" />
@@ -23,6 +24,7 @@
       </list>
     </constructor-arg>
     <constructor-arg index="1">
+    <!-- service the upload request -->
       <list>
         <ref bean="sensorUploadAuthenticationService" />
         <ref bean="jsonMessageSourceInfoService" />
@@ -32,7 +34,6 @@
     </constructor-arg>
   </bean>
   
-  <!-- Service the upload request -->
   <bean id="sensorUploadAuthenticationService" class="edu.ucla.cens.awserver.service.AuthenticationService">
     <constructor-arg index="0">
       <ref bean="authenticationDao" />
@@ -108,6 +109,10 @@
             <ref bean="jsonMsgDateValidator" />
             <ref bean="jsonMsgTimeValidator" />
             <ref bean="jsonMsgTimezoneValidator" />
+            <ref bean="jsonMsgLocationValidator" />
+            <ref bean="jsonMsgLatitudeValidator" />
+            <ref bean="jsonMsgLongitudeValidator" />
+            <ref bean="jsonMsgModeOnlyModeValidator" />
           </list>
         </entry>
         <entry>
@@ -116,6 +121,16 @@
             <ref bean="jsonMsgDateValidator" />
             <ref bean="jsonMsgTimeValidator" />
             <ref bean="jsonMsgTimezoneValidator" />
+            <ref bean="jsonMsgLocationValidator" />
+            <ref bean="jsonMsgLatitudeValidator" />
+            <ref bean="jsonMsgLongitudeValidator" />
+            <ref bean="jsonMsgFeaturesExistValidator" />
+            <ref bean="jsonMsgModeFeaturesModeValidator" />
+            <ref bean="jsonMsgModeFeaturesSpeedValidator" />
+            <ref bean="jsonMsgModeFeaturesVarianceValidator" />
+            <ref bean="jsonMsgModeFeaturesAverageValidator" />
+            <ref bean="jsonMsgModeFeaturesFftArrayExistsValidator" />
+            <ref bean="jsonMsgModeFeaturesFftArrayValuesValidator" />
           </list>
         </entry>
       </map>
@@ -151,5 +166,160 @@
       </bean>
     </constructor-arg>
   </bean>
+
+  <bean id="jsonMsgLocationValidator" class="edu.ucla.cens.awserver.validator.JsonMsgNamedObjectValidator">
+    <constructor-arg index="0">
+      <bean class="edu.ucla.cens.awserver.validator.FailedJsonRequestAnnotator">
+        <constructor-arg index="0">
+          <value>{"errors":[{"error_code":"0404","error_text":"missing or invalid location"}]}</value>
+        </constructor-arg>  
+      </bean>
+    </constructor-arg>
+    <constructor-arg index="1">
+      <value>location</value>
+    </constructor-arg>
+  </bean>
+
+  <bean id="jsonMsgLatitudeValidator" class="edu.ucla.cens.awserver.validator.JsonMsgLatLongValidator">
+    <constructor-arg index="0">
+      <bean class="edu.ucla.cens.awserver.validator.FailedJsonRequestAnnotator">
+        <constructor-arg index="0">
+          <value>{"errors":[{"error_code":"0405","error_text":"missing or invalid latitude"}]}</value>
+        </constructor-arg>  
+      </bean>
+    </constructor-arg>
+    <constructor-arg>
+      <value>latitude</value>
+    </constructor-arg>
+  </bean>
+
+  <bean id="jsonMsgLongitudeValidator" class="edu.ucla.cens.awserver.validator.JsonMsgLatLongValidator">
+    <constructor-arg index="0">
+      <bean class="edu.ucla.cens.awserver.validator.FailedJsonRequestAnnotator">
+        <constructor-arg index="0">
+          <value>{"errors":[{"error_code":"0406","error_text":"missing or invalid longitude"}]}</value>
+        </constructor-arg>  
+      </bean>
+    </constructor-arg>
+    <constructor-arg>
+      <value>longitude</value>
+    </constructor-arg>
+  </bean>
+
+  <bean id="jsonMsgModeOnlyModeValidator" class="edu.ucla.cens.awserver.validator.JsonMsgMobilityModeValidator">
+    <constructor-arg index="0">
+      <bean class="edu.ucla.cens.awserver.validator.FailedJsonRequestAnnotator">
+        <constructor-arg index="0">
+          <value>{"errors":[{"error_code":"0501","error_text":"missing or invalid mode in mode_only message"}]}</value>
+        </constructor-arg>  
+      </bean>
+    </constructor-arg>
+    <constructor-arg index="1">
+      <list>
+        <value>still</value>
+        <value>walk</value>
+        <value>run</value>
+        <value>bike</value>
+        <value>drive</value>
+      </list>
+    </constructor-arg>
+    <constructor-arg index="2">
+      <value>false</value>
+    </constructor-arg>
+  </bean>
+
+  <bean id="jsonMsgFeaturesExistValidator" class="edu.ucla.cens.awserver.validator.JsonMsgNamedObjectValidator">
+    <constructor-arg index="0">
+      <bean class="edu.ucla.cens.awserver.validator.FailedJsonRequestAnnotator">
+        <constructor-arg index="0">
+          <value>{"errors":[{"error_code":"0506","error_text":"missing or invalid features"}]}</value>
+        </constructor-arg>  
+      </bean>
+    </constructor-arg>
+    <constructor-arg index="1">
+      <value>features</value>
+    </constructor-arg>
+  </bean>
   
+    <bean id="jsonMsgModeFeaturesModeValidator" class="edu.ucla.cens.awserver.validator.JsonMsgMobilityModeValidator">
+    <constructor-arg index="0">
+      <bean class="edu.ucla.cens.awserver.validator.FailedJsonRequestAnnotator">
+        <constructor-arg index="0">
+          <value>{"errors":[{"error_code":"0501","error_text":"missing or invalid mode in mode_features message"}]}</value>
+        </constructor-arg>  
+      </bean>
+    </constructor-arg>
+    <constructor-arg index="1">
+      <list>
+        <value>still</value>
+        <value>walk</value>
+        <value>run</value>
+        <value>bike</value>
+        <value>drive</value>
+      </list>
+    </constructor-arg>
+    <constructor-arg index="2">
+      <value>true</value>
+    </constructor-arg>
+  </bean>
+  
+  <bean id="jsonMsgModeFeaturesSpeedValidator" class="edu.ucla.cens.awserver.validator.JsonMsgFeaturesDoubleValidator">
+    <constructor-arg index="0">
+      <bean class="edu.ucla.cens.awserver.validator.FailedJsonRequestAnnotator">
+        <constructor-arg index="0">
+          <value>{"errors":[{"error_code":"0502","error_text":"missing or invalid speed in mode_features message"}]}</value>
+        </constructor-arg>  
+      </bean>
+    </constructor-arg>
+    <constructor-arg index="1">
+      <value>speed</value>
+    </constructor-arg>
+  </bean>
+
+  <bean id="jsonMsgModeFeaturesVarianceValidator" class="edu.ucla.cens.awserver.validator.JsonMsgFeaturesDoubleValidator">
+    <constructor-arg index="0">
+      <bean class="edu.ucla.cens.awserver.validator.FailedJsonRequestAnnotator">
+        <constructor-arg index="0">
+          <value>{"errors":[{"error_code":"0503","error_text":"missing or invalid variance in mode_features message"}]}</value>
+        </constructor-arg>  
+      </bean>
+    </constructor-arg>
+    <constructor-arg index="1">
+      <value>variance</value>
+    </constructor-arg>
+  </bean>
+
+  <bean id="jsonMsgModeFeaturesAverageValidator" class="edu.ucla.cens.awserver.validator.JsonMsgFeaturesDoubleValidator">
+    <constructor-arg index="0">
+      <bean class="edu.ucla.cens.awserver.validator.FailedJsonRequestAnnotator">
+        <constructor-arg index="0">
+          <value>{"errors":[{"error_code":"0504","error_text":"missing or invalid average in mode_features message"}]}</value>
+        </constructor-arg>  
+      </bean>
+    </constructor-arg>
+    <constructor-arg index="1">
+      <value>average</value>
+    </constructor-arg>
+  </bean>
+
+  <bean id="jsonMsgModeFeaturesFftArrayExistsValidator" class="edu.ucla.cens.awserver.validator.JsonMsgFeaturesFftArrayExistsValidator">
+    <constructor-arg index="0">
+      <bean class="edu.ucla.cens.awserver.validator.FailedJsonRequestAnnotator">
+        <constructor-arg index="0">
+          <value>{"errors":[{"error_code":"0505","error_text":"missing or invalid fft array in mode_features message"}]}</value>
+        </constructor-arg>  
+      </bean>
+    </constructor-arg>
+  </bean>
+
+  <bean id="jsonMsgModeFeaturesFftArrayValuesValidator" class="edu.ucla.cens.awserver.validator.JsonMsgFeaturesFftArrayValuesValidator">
+    <constructor-arg index="0">
+      <bean class="edu.ucla.cens.awserver.validator.FailedJsonRequestAnnotator">
+        <constructor-arg index="0">
+          <value>{"errors":[{"error_code":"0505","error_text":"invalid fft array in mode_features message"}]}</value>
+        </constructor-arg>  
+      </bean>
+    </constructor-arg>
+  </bean>
+
 </beans>
