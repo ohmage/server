@@ -1,10 +1,11 @@
 package edu.ucla.cens.awserver.service;
 
+import org.apache.log4j.Logger;
 import org.json.JSONArray;
 import org.json.JSONException;
 
 import edu.ucla.cens.awserver.datatransfer.AwRequest;
-import edu.ucla.cens.awserver.util.StringUtils;
+import edu.ucla.cens.awserver.validator.AwRequestAnnotator;
 
 /**
  * Service-level validation of in-bound JSON messages.
@@ -12,16 +13,17 @@ import edu.ucla.cens.awserver.util.StringUtils;
  * @author selsky
  */
 public class JsonMessageSyntaxValidationService implements Service {
-	private String _errorMessage;
+	private static Logger _logger = Logger.getLogger(JsonMessageSyntaxValidationService.class);
+	private AwRequestAnnotator _awRequestAnnotator;
 	
 	/**
 	 * @throws IllegalArgumentException if the provided message is null, empty, or all whitespace 
 	 */
-	public JsonMessageSyntaxValidationService(String errorMessage) {
-		if(StringUtils.isEmptyOrWhitespaceOnly(errorMessage)) {
-			throw new IllegalArgumentException("a non-empty error message is required");
+	public JsonMessageSyntaxValidationService(AwRequestAnnotator awRequestAnnotator) {
+		if(null == awRequestAnnotator) {
+			throw new IllegalArgumentException("a non-null AwRequestAnnotator is required");
 		}
-		_errorMessage = errorMessage;
+		_awRequestAnnotator = awRequestAnnotator;
 	}
 	
 	/**
@@ -36,13 +38,14 @@ public class JsonMessageSyntaxValidationService implements Service {
 		
 		try {
 			
+			_logger.info(awRequest.getAttribute("jsonData"));
+			
 			jsonArray = new JSONArray((String) awRequest.getAttribute("jsonData"));
 			awRequest.setAttribute("jsonData", jsonArray); // this overwrites the String retrieved with the previous call
 		
-		} catch(JSONException jsone) { // ok, the message is snot syntactically correct JSON
+		} catch(JSONException jsone) { // ok, the message is not syntactically correct JSON
 			
-			awRequest.setFailedRequest(true);
-			awRequest.setFailedRequestErrorMessage(_errorMessage);
+			_awRequestAnnotator.annotate(awRequest, "invalid JSON");
 			
 		}
 	}
