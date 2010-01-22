@@ -12,6 +12,8 @@ import edu.ucla.cens.awserver.domain.User;
  */
 public interface AwRequest {
 	
+	/* Handle processing state */
+	
 	public boolean isFailedRequest();
 	public void setFailedRequest(boolean failedRequest);
 		
@@ -20,13 +22,17 @@ public interface AwRequest {
 	
 //	public String getFailedRequestErrorCode();
 //	public void setFailedRequestErrorCode(String errorCode);
+
+	/* ------------------------ */
+	
+	/* Handle data state */
 	
 	public User getUser();
 	public void setUser(User user);
 
 	// TODO ? 
 	// Add getters and setters for Boolean, Object, String, List types? This would avoid clients having to cast, but is the 
-	// extra API complexity worth it? Would identical keys be allowed for objects of different types, etc, etc
+	// extra API complexity worth it? Would identical keys be allowed for objects of different types? etc, etc
 	
 	public Object getAttribute(String name);
 	public void setAttribute(String name, Object value);
