@@ -1,6 +1,7 @@
 package edu.ucla.cens.awserver.util;
 
 import org.apache.log4j.Logger;
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -16,7 +17,7 @@ public class JsonUtils {
 	private JsonUtils() { }
 	
 	/**
-	 * @return the String value found in the JSONObject retrieved using the provided key. If no value is found, null is returned. 
+	 * @return the String value found in the JSONObject using the provided key. If no value is found, null is returned. 
 	 */
 	public static String getStringFromJson(JSONObject jsonObject, String key) {
 		String value = null;
@@ -37,7 +38,7 @@ public class JsonUtils {
 	}
 	
 	/**
-	 * @return the Long value found in the JSONObject retrieved using the provided key. If no value is found, null is returned. 
+	 * @return the Long value found in the JSONObject using the provided key. If no value is found, null is returned. 
 	 */
 	public static Long getLongFromJson(JSONObject jsonObject, String key) {
 		Long value = null;
@@ -45,6 +46,90 @@ public class JsonUtils {
 		try {
 			
 			value = jsonObject.getLong(key); 
+			
+		} catch (JSONException jsone) {
+			
+			if(_logger.isDebugEnabled()) {
+				_logger.debug(jsone);
+			}
+			
+		}
+		
+		return value;
+	}
+	
+	/**
+	 * @return the JSONObject value found in the JSONObject using the provided key. If no value is found, null is returned. 
+	 */
+	public static JSONObject getObjectFromJson(JSONObject jsonObject, String key) {
+		JSONObject value = null;
+		
+		try {
+			
+			value = jsonObject.getJSONObject(key); 
+			
+		} catch (JSONException jsone) {
+			
+			if(_logger.isDebugEnabled()) {
+				_logger.debug(jsone);
+			}
+			
+		}
+		
+		return value;
+	}
+	
+	/**
+	 * @return the Double value found in the JSONObject using the provided key. If no value is found, null is returned. 
+	 */
+	public static Double getDoubleFromJson(JSONObject jsonObject, String key) {
+		Double value = null;
+		
+		try {
+			
+			value = jsonObject.getDouble(key); 
+			
+		} catch (JSONException jsone) {
+			
+			if(_logger.isDebugEnabled()) {
+				_logger.debug(jsone);
+			}
+			
+		}
+		
+		return value;
+	}
+	
+	/**
+	 * @return the JSONArray value found in the JSONObject using the provided key. If no value is found, null is returned. 
+	 */
+	public static JSONArray getJsonArrayFromJson(JSONObject jsonObject, String key) {
+		JSONArray array = null;
+		
+		try {
+			
+			array = jsonObject.getJSONArray(key); 
+			
+		} catch (JSONException jsone) {
+			
+			if(_logger.isDebugEnabled()) {
+				_logger.debug(jsone);
+			}
+			
+		}
+		
+		return array;
+	}
+		
+	/**
+	 * @return the JSONArray value found in the JSONArray using the provided index. If no value is found, null is returned. 
+	 */
+	public static Double getDoubleFromJsonArray(JSONArray array, int index) {
+		Double value = null;
+		
+		try {
+			
+			value = array.getDouble(index); 
 			
 		} catch (JSONException jsone) {
 			
