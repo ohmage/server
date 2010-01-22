@@ -32,13 +32,19 @@
     <constructor-arg index="0">
       <ref bean="authenticationDao" />
     </constructor-arg>
-    <constructor-arg index="1"><value>user not found</value></constructor-arg>
-    <constructor-arg index="2"><value>disabled user</value></constructor-arg>
+    <constructor-arg index="1">
+      <ref bean="authenticationFailedRequestAnnotator" />
+    </constructor-arg>
+    <constructor-arg index="2"><value>user not found</value></constructor-arg>
+    <constructor-arg index="3"><value>disabled user</value></constructor-arg>
   </bean>
 
   <!-- Interact with database -->
   <bean id="authenticationDao" class="edu.ucla.cens.awserver.dao.AuthenticationDao">
     <constructor-arg index="0"><ref bean="dataSource" /></constructor-arg>
   </bean>
+	
+  <!--  Annotate the AwRequest in the case of failed authentication -->	
+  <bean id="authenticationFailedRequestAnnotator" class="edu.ucla.cens.awserver.validator.FailedRequestAnnotator" />
 
 </beans>
