@@ -75,17 +75,23 @@ public class CampaignExistsFilter implements Filter {
 	public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) 
 		throws ServletException, IOException {
 		
+		// this belongs in an AwRequestCreator
+		
 		AwRequest awRequest = new AwRequestImpl();
 		String url = ((HttpServletRequest) request).getRequestURL().toString();
 		String uri = ((HttpServletRequest) request).getRequestURI();
 		String subdomain = StringUtils.retrieveSubdomainFromUrlString(url);
 		awRequest.setAttribute("subdomain", subdomain);
+		awRequest.setAttribute("requestUrl", ((HttpServletRequest) request).getRequestURL().toString() + "?" +  ((HttpServletRequest) request).getQueryString());
+		awRequest.setAttribute("jsonData", request.getParameter("d"));
+		
+		// -------
 		
 		try {
 		
 			_controller.execute(awRequest);
 			
-			if(Boolean.valueOf((String) awRequest.getAttribute("campaignExistsForSubdomain"))) {
+			if(! awRequest.isFailedRequest()) {
 				
 				chain.doFilter(request, response);
 				
@@ -93,9 +99,8 @@ public class CampaignExistsFilter implements Filter {
 				
 				if(uri.startsWith("/app/sensor")) { // a phone or device is attempting access
 					
-					String json = "{\"errors\":[{\"error_code\":\"0100\",\"error_text\":\"subdomain does not exist\"}]}"; // TODO - move to config file
 					ServletOutputStream outputStream = response.getOutputStream();
-					outputStream.print(json);
+					outputStream.print(awRequest.getFailedRequestErrorMessage());
 					outputStream.flush();
 					
 				} else { // assume it's a browser. Tomcat will return a custom 404 page if configured to do so.
