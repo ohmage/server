@@ -9,13 +9,14 @@ import edu.ucla.cens.awserver.dao.DataAccessException;
 import edu.ucla.cens.awserver.dao.AuthenticationDao.LoginResult;
 import edu.ucla.cens.awserver.datatransfer.AwRequest;
 import edu.ucla.cens.awserver.util.StringUtils;
+import edu.ucla.cens.awserver.validator.AwRequestAnnotator;
 
 /**
  * Dispatches to a DAO to perform authentication checks.
  * 
  * @author selsky
  */
-public class AuthenticationService extends AbstractDaoService {
+public class AuthenticationService extends AbstractAnnotatingDaoService {
 	private static Logger _logger = Logger.getLogger(AuthenticationService.class);
 	private String _errorMessage;
 	private String _disabledMessage;
@@ -28,8 +29,8 @@ public class AuthenticationService extends AbstractDaoService {
 	 * @throws IllegalArgumentException if errorMessage is null, empty, or all whitespace 
 	 * @throws IllegalArgumentException if disabledMessage is null, empty, or all whitespace
 	 */
-	public AuthenticationService(Dao dao, String errorMessage, String disabledMessage) {
-		super(dao);
+	public AuthenticationService(Dao dao, AwRequestAnnotator awRequestAnnotator, String errorMessage, String disabledMessage) {
+		super(dao, awRequestAnnotator);
 		if(StringUtils.isEmptyOrWhitespaceOnly(errorMessage)) {
 			throw new IllegalArgumentException("an error message is required");
 		}
@@ -74,15 +75,13 @@ public class AuthenticationService extends AbstractDaoService {
 				
 				} else {
 					
-					awRequest.setFailedRequest(true);
-					awRequest.setFailedRequestErrorMessage(_disabledMessage);
+					getAnnotator().annotate(awRequest, _disabledMessage);
 					_logger.info("user " + awRequest.getUser().getUserName() + " is not enabled for access");
 				}
 				
 			} else { // no user found
 				
-				awRequest.setFailedRequest(true);
-				awRequest.setFailedRequestErrorMessage(_errorMessage);
+				getAnnotator().annotate(awRequest, _errorMessage);
 				_logger.info("user " + awRequest.getUser().getUserName() + " not found");
 			}
 			
