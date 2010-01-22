@@ -38,7 +38,7 @@ public class DateUtils {
 		return sdf.format(date);
 	}
 	
-	private static boolean isValidTimezone(String tz) {
+	public static boolean isValidTimezone(String tz) {
 		if(null != tz) {
 			String[] ids = TimeZone.getAvailableIDs();
 			for(String id : ids) {
