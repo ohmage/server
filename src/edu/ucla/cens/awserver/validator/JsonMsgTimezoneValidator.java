@@ -22,7 +22,7 @@ public class JsonMsgTimezoneValidator extends AbstractAnnotatingJsonObjectValida
 	}
 	
 	/**
-	 * @return true if the value returned from the AwRequest for the key "timezone" exists and is a valid timezone.
+	 * @return true if the value returned from the JSONObject for the key "timezone" exists and is a valid timezone.
 	 * @return false otherwise
 	 */
 	public boolean validate(AwRequest request, JSONObject jsonObject) {		 
