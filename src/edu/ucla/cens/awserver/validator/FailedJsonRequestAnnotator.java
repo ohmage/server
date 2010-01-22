@@ -67,7 +67,7 @@ public class FailedJsonRequestAnnotator implements AwRequestAnnotator {
 			jsonObject.put("request_url", request.getAttribute("requestUrl"));
 			jsonObject.put("request_json", request.getAttribute("jsonData"));
 		
-		} catch(JSONException jsone) {  
+		} catch(JSONException jsone) {  // invalid JSON at this point is a logical error
 		
 			throw new IllegalStateException(jsone);
 		}
