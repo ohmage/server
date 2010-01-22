@@ -32,14 +32,14 @@ public class ControllerImpl implements Controller {
 	
 	public void execute(AwRequest awRequest) {
 		try {
-		
-			if(null != _validators) {
+
+			if(null != _validators) { // for some requests input validation is optional
 				
 				for(Validator validator : _validators) {
 				
 					if(! validator.validate(awRequest)) {
 						
-						return; // exit due to validation failure 
+						return; // exit because top-level validation failed
 						
 					}
 				}	
@@ -54,7 +54,6 @@ public class ControllerImpl implements Controller {
 					break;
 				}
 			}
-			
 		}
 		
 		catch(ValidatorException ve) { // an unrecoverable logical or system-level error has occurred
@@ -66,6 +65,12 @@ public class ControllerImpl implements Controller {
 		catch (ServiceException se) { // an unrecoverable logical or system-level error has occurred
 		
 			throw new ControllerException(se);	
+		}
+		
+		finally {
+
+			// log input and output
+			
 		}
 	}
 }
