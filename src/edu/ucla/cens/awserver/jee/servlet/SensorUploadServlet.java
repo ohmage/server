@@ -82,7 +82,7 @@ public class SensorUploadServlet extends HttpServlet {
 	 * </ol>
 	 */
 	protected void processRequest(HttpServletRequest request, HttpServletResponse response)
-		throws ServletException, IOException { // allow Tomcat to handle Servlet and IO Exceptions
+		throws ServletException, IOException { 
 		
 		// Map data from the inbound request to our internal format
 		AwRequest awRequest = _awRequestCreator.createFrom(request);
@@ -100,7 +100,7 @@ public class SensorUploadServlet extends HttpServlet {
 				
 			} 
 			
-			request.getSession().invalidate();
+			request.getSession().invalidate(); // sensor data uploads only have state for the duration of a particular request
 			
 		}
 		
