@@ -17,6 +17,8 @@ public class FailedJsonRequestAnnotator implements AwRequestAnnotator {
 	private String _jsonErrorMessage;
 	
 	/**
+	 * The provided error message will be used as JSON output and must be a syntactically valid JSON Object.
+	 * 
 	 * @throws IllegalArgumentException if jsonErrorMessage is null
 	 * @throws IllegalArgumentException if jsonErrorMessage string cannot be parsed to syntactically correct JSON (it must be a 
 	 * valid JSON array.)
@@ -38,7 +40,21 @@ public class FailedJsonRequestAnnotator implements AwRequestAnnotator {
 	}
 	
 	/**
-     * Sets failed request properties on the AwRequest.
+     * Annotates the request with a failed error message using JSON syntax. The JSON message is of the form: 
+     * <pre>
+     *   {
+     *     "request_url":"user's request url",
+     *     "request_json":"the original JSON sent with the request",
+     *     "errors":[
+     *       {
+     *          A JSON Object that is represented by the message supplied on construction of this class. 
+     *       }
+     *     ]
+     *   }
+     * </pre>
+     * 
+     * The message passed in is used for debug output only. For cases where the JSONObject representing the error output message 
+     * must be passed into this method, @see FailedJsonSuppliedMessageRequestAnnotator.
 	 */
 	public void annotate(AwRequest request, String message) {
 		request.setFailedRequest(true);
@@ -58,8 +74,8 @@ public class FailedJsonRequestAnnotator implements AwRequestAnnotator {
 		
 		request.setFailedRequestErrorMessage(jsonObject.toString());
 				
-		if(logger.isDebugEnabled()) {
-			logger.debug(message);
-		}
+//		if(logger.isDebugEnabled()) {
+			logger.info(message);
+//		}
 	}
 }
