@@ -79,6 +79,7 @@
             <ref bean="jsonMsgLatitudeValidator" />
             <ref bean="jsonMsgLongitudeValidator" />
             <ref bean="jsonMsgPromptVersionIdValidator" />
+            <ref bean="jsonMsgPromptGroupIdValidator" />
   	      </list>
   	    </entry>
   	  </map>
@@ -332,7 +333,7 @@
     <constructor-arg index="0">
       <bean class="edu.ucla.cens.awserver.validator.FailedJsonRequestAnnotator">
         <constructor-arg index="0">
-          <value>{"errors":[{"error_code":"0601","error_text":"invalid fft array in mode_features message"}]}</value>
+          <value>{"errors":[{"error_code":"0601","error_text":"invalid version_id in prompt message"}]}</value>
         </constructor-arg>  
       </bean>
     </constructor-arg>
@@ -344,5 +345,22 @@
   <bean id="promptVersionIdDao" class="edu.ucla.cens.awserver.dao.PromptVersionIdDao">
     <constructor-arg index="0"><ref bean="dataSource" /></constructor-arg>
   </bean>
-  
+
+  <bean id="jsonMsgPromptGroupIdValidator" class="edu.ucla.cens.awserver.validator.JsonMsgPromptGroupIdValidator">
+    <constructor-arg index="0">
+      <bean class="edu.ucla.cens.awserver.validator.FailedJsonRequestAnnotator">
+        <constructor-arg index="0">
+          <value>{"errors":[{"error_code":"0602","error_text":"invalid group_id in prompt message"}]}</value>
+        </constructor-arg>  
+      </bean>
+    </constructor-arg>
+    <constructor-arg index="1">
+      <ref bean="promptGroupIdDao" />
+    </constructor-arg>
+  </bean>
+
+  <bean id="promptGroupIdDao" class="edu.ucla.cens.awserver.dao.PromptGroupIdDao">
+    <constructor-arg index="0"><ref bean="dataSource" /></constructor-arg>
+  </bean>
+
 </beans>
