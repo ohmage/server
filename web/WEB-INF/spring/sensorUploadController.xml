@@ -80,6 +80,9 @@
             <ref bean="jsonMsgLongitudeValidator" />
             <ref bean="jsonMsgPromptVersionIdValidator" />
             <ref bean="jsonMsgPromptGroupIdValidator" />
+            <!--  the tags array is ignored for now -->
+            <ref bean="jsonMsgPromptResponsesExistValidator" />
+            <ref bean="jsonMsgPromptResponsesValidator" />
   	      </list>
   	    </entry>
   	  </map>
@@ -360,6 +363,33 @@
   </bean>
 
   <bean id="promptGroupIdDao" class="edu.ucla.cens.awserver.dao.PromptGroupIdDao">
+    <constructor-arg index="0"><ref bean="dataSource" /></constructor-arg>
+  </bean>
+  
+  <bean id="jsonMsgPromptResponsesExistValidator" class="edu.ucla.cens.awserver.validator.JsonMsgPromptResponsesExistValidator">
+    <constructor-arg index="0">
+      <bean class="edu.ucla.cens.awserver.validator.FailedJsonRequestAnnotator">
+        <constructor-arg index="0">
+          <value>{"errors":[{"error_code":"0603","error_text":"missing responses in prompt message"}]}</value>
+        </constructor-arg>  
+      </bean>
+    </constructor-arg>
+  </bean>
+  
+  <bean id="jsonMsgPromptResponsesValidator" class="edu.ucla.cens.awserver.validator.JsonMsgPromptResponsesValidator">
+    <constructor-arg index="0">
+      <bean class="edu.ucla.cens.awserver.validator.FailedJsonRequestAnnotator">
+        <constructor-arg index="0">
+          <value>{"errors":[{"error_code":"0604","error_text":"invalid prompt response"}]}</value>
+        </constructor-arg>  
+      </bean>
+    </constructor-arg>
+    <constructor-arg index="1">
+      <ref bean="promptResponseGroupDao" />
+    </constructor-arg>
+  </bean>
+
+  <bean id="promptResponseGroupDao" class="edu.ucla.cens.awserver.dao.PromptResponseGroupDao">
     <constructor-arg index="0"><ref bean="dataSource" /></constructor-arg>
   </bean>
 
