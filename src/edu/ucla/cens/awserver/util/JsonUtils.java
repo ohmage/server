@@ -38,6 +38,27 @@ public class JsonUtils {
 	}
 	
 	/**
+	 * @return the Integer value found in the JSONObject using the provided key. If no value is found, null is returned. 
+	 */
+	public static Integer getIntegerFromJson(JSONObject jsonObject, String key) {
+		Integer value = null;
+		
+		try {
+			
+			value = jsonObject.getInt(key); 
+			
+		} catch (JSONException jsone) {
+			
+			if(_logger.isDebugEnabled()) {
+				_logger.debug(jsone);
+			}
+			
+		}
+		
+		return value;
+	}
+	
+	/**
 	 * @return the Long value found in the JSONObject using the provided key. If no value is found, null is returned. 
 	 */
 	public static Long getLongFromJson(JSONObject jsonObject, String key) {
@@ -122,7 +143,7 @@ public class JsonUtils {
 	}
 		
 	/**
-	 * @return the JSONArray value found in the JSONArray using the provided index. If no value is found, null is returned. 
+	 * @return the Double value found in the JSONArray using the provided index. If no value is found, null is returned. 
 	 */
 	public static Double getDoubleFromJsonArray(JSONArray array, int index) {
 		Double value = null;
@@ -130,6 +151,27 @@ public class JsonUtils {
 		try {
 			
 			value = array.getDouble(index); 
+			
+		} catch (JSONException jsone) {
+			
+			if(_logger.isDebugEnabled()) {
+				_logger.debug(jsone);
+			}
+			
+		}
+		
+		return value;
+	}
+	
+	/**
+	 * @return the JSONObject value found in the JSONArray using the provided index. If no value is found, null is returned. 
+	 */
+	public static JSONObject getJsonObjectFromJsonArray(JSONArray array, int index) {
+		JSONObject value = null;
+		
+		try {
+			
+			value = array.getJSONObject(index); 
 			
 		} catch (JSONException jsone) {
 			
