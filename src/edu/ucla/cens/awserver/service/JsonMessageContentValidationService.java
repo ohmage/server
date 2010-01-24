@@ -82,10 +82,11 @@ public class JsonMessageContentValidationService implements Service {
 			
 		}
 		
-		for(int i = 0; i < length; i++) {
+		for(int i = 0; i < length; i++) { // TODO the index of the message should be passed through the system for logging purposes
 			
 			JSONObject jsonObject = null;
 			
+			// TODO use JsonUtils here 
 			try {
 		
 				jsonObject = jsonArray.getJSONObject(0);
