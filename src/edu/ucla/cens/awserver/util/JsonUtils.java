@@ -184,4 +184,67 @@ public class JsonUtils {
 		return value;
 	}
 	
+	/**
+	 * @return the JSONArray representation of the provided string or null if the string is unparseable as JSON
+	 */
+	public static JSONArray getJsonArrayFromString(String string) {
+		JSONArray array = null;
+		
+		try {
+			
+			array = new JSONArray(string);
+			
+		} catch (JSONException jsone) {
+			
+			if(_logger.isDebugEnabled()) {
+				_logger.debug(jsone);
+			}
+		}
+		
+		return array;
+	}
+	
+	/**
+	 * @return the string found at the provided index or null if no value could be found 
+	 */
+	public static String getStringFromJsonArray(JSONArray array, int index) {
+		String value = null;
+		
+		try {
+			
+			value = array.getString(index);
+		
+		} catch (JSONException jsone) {
+			
+			if(_logger.isDebugEnabled()) {
+				_logger.debug(jsone);
+			}
+			
+		}
+		
+		return value;
+	}
+	
+	/**
+	 * @return the JSONObject representation of the provided string or null if the string is not a parseable JSONObject.
+	 */
+	public static JSONObject getJsonObjectFromString(String string) {
+		JSONObject value = null;
+		
+		try {
+			
+			value = new JSONObject(string);
+		
+		} catch (JSONException jsone) {
+			
+			if(_logger.isDebugEnabled()) {
+				_logger.debug(jsone);
+			}
+			
+		}
+		
+		return value;
+		
+	}
+	
 }
