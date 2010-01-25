@@ -21,11 +21,6 @@ public class TimeMilitaryValidator extends NullValidator {
 		
 		if(! StringUtils.isEmptyOrWhitespaceOnly(response)) {
 			
-			if(response.toCharArray().length != 5) {
-				_logger.info("time military value is of incorrect length");
-				return false;
-			}
-			
 			String[] pieces = response.split(":");
 			
 			if(pieces.length != 2) {
