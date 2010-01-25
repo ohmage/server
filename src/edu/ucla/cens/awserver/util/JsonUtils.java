@@ -29,6 +29,7 @@ public class JsonUtils {
 		} catch (JSONException jsone) {
 			
 			if(_logger.isDebugEnabled()) {
+				_logger.debug("failed attempt to retrieve " + key + " from JSON object " + jsonObject);
 				_logger.debug(jsone);
 			}
 			
@@ -50,6 +51,7 @@ public class JsonUtils {
 		} catch (JSONException jsone) {
 			
 			if(_logger.isDebugEnabled()) {
+				_logger.debug("failed attempt to retrieve " + key + " from JSON object " + jsonObject);
 				_logger.debug(jsone);
 			}
 			
@@ -71,6 +73,7 @@ public class JsonUtils {
 		} catch (JSONException jsone) {
 			
 			if(_logger.isDebugEnabled()) {
+				_logger.debug("failed attempt to retrieve " + key + " from JSON object " + jsonObject);
 				_logger.debug(jsone);
 			}
 			
@@ -92,6 +95,7 @@ public class JsonUtils {
 		} catch (JSONException jsone) {
 			
 			if(_logger.isDebugEnabled()) {
+				_logger.debug("failed attempt to retrieve " + key + " from JSON object " + jsonObject);
 				_logger.debug(jsone);
 			}
 			
@@ -113,6 +117,7 @@ public class JsonUtils {
 		} catch (JSONException jsone) {
 			
 			if(_logger.isDebugEnabled()) {
+				_logger.debug("failed attempt to retrieve " + key + " from JSON object " + jsonObject);
 				_logger.debug(jsone);
 			}
 			
@@ -134,6 +139,7 @@ public class JsonUtils {
 		} catch (JSONException jsone) {
 			
 			if(_logger.isDebugEnabled()) {
+				_logger.debug("failed attempt to retrieve " + key + " from JSON object " + jsonObject);
 				_logger.debug(jsone);
 			}
 			
@@ -155,6 +161,7 @@ public class JsonUtils {
 		} catch (JSONException jsone) {
 			
 			if(_logger.isDebugEnabled()) {
+				_logger.debug("failed attempt to retrieve index " + index + " from JSON array " + array);
 				_logger.debug(jsone);
 			}
 			
@@ -176,6 +183,7 @@ public class JsonUtils {
 		} catch (JSONException jsone) {
 			
 			if(_logger.isDebugEnabled()) {
+				_logger.debug("failed attempt to retrieve index " + index + " from JSON array " + array);
 				_logger.debug(jsone);
 			}
 			
@@ -197,6 +205,7 @@ public class JsonUtils {
 		} catch (JSONException jsone) {
 			
 			if(_logger.isDebugEnabled()) {
+				_logger.debug("failed attempt to convert string \"" + string + "\" to a JSON array");
 				_logger.debug(jsone);
 			}
 		}
@@ -217,6 +226,7 @@ public class JsonUtils {
 		} catch (JSONException jsone) {
 			
 			if(_logger.isDebugEnabled()) {
+				_logger.debug("failed attempt to retrieve index " + index + " from JSON array " + array);
 				_logger.debug(jsone);
 			}
 			
@@ -238,6 +248,7 @@ public class JsonUtils {
 		} catch (JSONException jsone) {
 			
 			if(_logger.isDebugEnabled()) {
+				_logger.debug("failed attempt to convert string \"" + string + "\" to a JSON object");
 				_logger.debug(jsone);
 			}
 			
