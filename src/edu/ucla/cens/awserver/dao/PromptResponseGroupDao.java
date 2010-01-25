@@ -27,9 +27,11 @@ import edu.ucla.cens.awserver.util.StringUtils;
 public class PromptResponseGroupDao extends AbstractDao {
 	private static Logger _logger = Logger.getLogger(PromptGroupIdDao.class);
 	
-	private final String _countSql = "select count(*) from prompt " +
-									 " where campaign_prompt_group_id = ?" +
-									 " and campaign_prompt_version_id = ?";
+	private final String _countSql = "select count(*) from prompt, prompt_type " +
+									 " where prompt.campaign_prompt_group_id = ?" +
+									 " and prompt.campaign_prompt_version_id = ?" +
+									 " and prompt.prompt_type_id = prompt_type.id" +
+									 " and prompt_type.type != 'null'";
 	
 	// This query has a custom substitution (the {$..} strings) because using variables in both the WHERE and IN clauses
 	// causes the PreparedStatement implementation in the MySQL JDBC connector to throw exceptions (BadGrammarException) 
@@ -39,6 +41,7 @@ public class PromptResponseGroupDao extends AbstractDao {
 			                    " where prompt.campaign_prompt_group_id = {$campaignPromptGroupId}" +
 	                            " and prompt.campaign_prompt_version_id = {$campaignPromptVersionId}" +
 	                            " and prompt.prompt_type_id = prompt_type.id" + 
+	                            " and prompt_type.type != 'null'" +
 	                            " and prompt.prompt_config_id in"; // the IN clause is dynamic depending on the prompts 
                                                                    // in the response
 	private String _orderBy = "order by prompt_config_id";
