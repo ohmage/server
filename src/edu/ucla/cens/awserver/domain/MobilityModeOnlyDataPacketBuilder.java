@@ -1,5 +1,6 @@
 package edu.ucla.cens.awserver.domain;
 
+import org.json.JSONException;
 import org.json.JSONObject;
 
 /**
@@ -33,11 +34,32 @@ public class MobilityModeOnlyDataPacketBuilder implements DataPacketBuilder {
 		}
 		
 		JSONObject json = (JSONObject) source;		
-		DataPacket packet = new MobilityModeOnlyDataPacket();
+		MobilityModeOnlyDataPacket packet = new MobilityModeOnlyDataPacket();
 		
-		// TODO
+		String date = null; 
+		long time = 0;
+		String timezone = null;
+		String subtype = null;
+		JSONObject location = null;
+		double latitude = 0.0;
+		double longitude = 0.0;
 		
+		try {
 		
+			date = json.getString("date"); 
+			time = json.getLong("time");
+			timezone = json.getString("timezone");
+			subtype = json.getString("subtype");
+			location = json.getJSONObject("location");
+			latitude = json.getDouble("latitude");
+			longitude = json.getDouble("longitude");
+			
+		} catch (JSONException jsone) { // a JSONException is thrown if a value cannot be found for a key or if the value 
+			                            // is of an incorrect type
+			
+			
+			
+		}
 		
 		return packet;
 	}

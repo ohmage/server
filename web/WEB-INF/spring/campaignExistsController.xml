@@ -33,7 +33,7 @@
     <constructor-arg index="0"><ref bean="dataSource" /></constructor-arg>
   </bean>
 
-  <bean id="campaignExistsFailedRequestAnnotator" class="edu.ucla.cens.awserver.validator.FailedJsonRequestAnnotator">
+  <bean id="campaignExistsFailedRequestAnnotator" class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
     <constructor-arg index="0">
       <value>{"errors":[{"error_code":"0100","error_text":"subdomain does not exist"}]}</value>
     </constructor-arg>

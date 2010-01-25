@@ -8,7 +8,7 @@ import org.json.JSONObject;
 
 import edu.ucla.cens.awserver.datatransfer.AwRequest;
 import edu.ucla.cens.awserver.validator.AwRequestAnnotator;
-import edu.ucla.cens.awserver.validator.JsonObjectValidator;
+import edu.ucla.cens.awserver.validator.json.JsonObjectValidator;
 
 /**
  * A service for validating the contents of JSON messages. The messages are sent to AW as a JSON Array where each element in the 
