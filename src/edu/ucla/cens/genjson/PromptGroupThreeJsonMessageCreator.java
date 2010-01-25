@@ -123,16 +123,21 @@ public class PromptGroupThreeJsonMessageCreator implements JsonMessageCreator {
 				responses.add(p);
 			}
 			
-			for(int j = 9; j < 12; j++) {
+			for(int j = 9; j < 11; j++) {
 				Map<String, Object> p = new HashMap<String, Object>();
 				p.put("prompt_id", j);
 				p.put("response", ValueCreator.randomBoolean() ? 1 : 0);
 				responses.add(p);
 			}
 			
+			Map<String, Object> p11 = new HashMap<String, Object>();
+			p11.put("prompt_id", 11);
+			p11.put("response", ValueCreator.randomPositiveIntModulus(3));
+			responses.add(p11);
+			
 			Map<String, Object> p12 = new HashMap<String, Object>();
 			p12.put("prompt_id", 12);
-			p12.put("response", ValueCreator.randomPositiveIntModulus(7));
+			p12.put("response", ValueCreator.randomPositiveIntModulus(6));
 			responses.add(p12);
 			
 			List<String> booleans = new ArrayList<String>();
