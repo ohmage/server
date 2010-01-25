@@ -2,6 +2,7 @@ package edu.ucla.cens.awserver.service;
 
 import java.util.Map;
 
+import org.apache.log4j.Logger;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -19,7 +20,7 @@ import edu.ucla.cens.awserver.validator.json.JsonObjectValidator;
  * @author selsky
  */
 public class JsonMessageContentValidationService implements Service {
-//	private static Logger _logger = Logger.getLogger(JsonMessageContentValidationService.class);
+	private static Logger _logger = Logger.getLogger(JsonMessageContentValidationService.class);
 	private Map<String, JsonObjectValidator[]> _validatorMap;
 	private AwRequestAnnotator _noDataAnnotator;
 	private AwRequestAnnotator _incorrectEntryAnnotator;;
@@ -72,6 +73,8 @@ public class JsonMessageContentValidationService implements Service {
 //		  - validation for prompt-specific messages
 //		  -- each prompt type has a data type in the db (therefore an inferrable validation rule)
 		
+		_logger.info("beginning JSON message content validation");
+		
 		JSONArray jsonArray = (JSONArray) awRequest.getAttribute("jsonData");
 		int length = jsonArray.length();
 		
@@ -106,10 +109,13 @@ public class JsonMessageContentValidationService implements Service {
 				
 				if(! validator.validate(awRequest, jsonObject)) {
 					
-					return; // bail out because somewhere within a message there is a validation failure 
+					return; // Bail out because somewhere within a message there is a validation failure 
+					        // The failed validator handles annotating the request  
 					
 				}
 			}
+			
+			_logger.info("JSON message successfully validated");
 		}	
 	}
 }
