@@ -75,8 +75,8 @@ public class FailedJsonRequestAnnotator implements AwRequestAnnotator {
 		
 		request.setFailedRequestErrorMessage(jsonObject.toString());
 				
-//		if(logger.isDebugEnabled()) {
-			logger.info(message);
-//		}
+		if(logger.isDebugEnabled()) {
+			logger.debug(message);
+		}
 	}
 }
