@@ -68,7 +68,7 @@ public class PromptGroupTwoJsonMessageCreator implements JsonMessageCreator {
 		JSONArray jsonArray = new JSONArray();
 		String tz = ValueCreator.tz(); // use the same tz for all messages in the returned array (the most likely use case)
 		int versionId = 1;
-		int groupId = 1;
+		int groupId = 2;
 		List<String> tags = new ArrayList<String>();
 	
 		for(int i = 0; i < numberOfEntries; i++) {
