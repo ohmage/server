@@ -34,13 +34,15 @@ public class PromptResponseGroupDao extends AbstractDao {
 	// This query has a custom substitution (the {$..} strings) because using variables in both the WHERE and IN clauses
 	// causes the PreparedStatement implementation in the MySQL JDBC connector to throw exceptions (BadGrammarException) 
 	// after the bind variables are set.
-	private String _selectSql = "select prompt_type.type, prompt_type.restriction from prompt, prompt_type" +
+	private String _selectSql = "select prompt.prompt_config_id, prompt_type.type, prompt_type.restriction " +
+			                    " from prompt, prompt_type" +
 			                    " where prompt.campaign_prompt_group_id = {$campaignPromptGroupId}" +
 	                            " and prompt.campaign_prompt_version_id = {$campaignPromptVersionId}" +
 	                            " and prompt.prompt_type_id = prompt_type.id" + 
 	                            " and prompt.prompt_config_id in"; // the IN clause is dynamic depending on the prompts 
                                                                    // in the response
-
+	private String _orderBy = "order by prompt_config_id";
+	
 	/**
 	 * Creates an instance of this class that will use the supplied DataSource for data retrieval.
 	 */
@@ -54,17 +56,19 @@ public class PromptResponseGroupDao extends AbstractDao {
 	public void execute(AwRequest request) {
 		_logger.info("looking up prompt restrictions for prompts " + 
 			StringUtils.intArrayToString((int[]) request.getAttribute("promptIdArray")) + " for campaign " + 
-			request.getAttribute("subdomain")
+			request.getAttribute("subdomain") + ", campaign prompt group " + request.getAttribute("campaignPromptGroupId") +
+			", and campaign prompt version " + request.getAttribute("campaignPromptVersionId")
 		);
 		
 		// TODO -- this new call only needs to be done once, not for every execute() method invocation
+		// All DAOs will need this change
 		JdbcTemplate template = new JdbcTemplate(getDataSource());
 		
 		try {
 			int promptGroupId = (Integer) request.getAttribute("campaignPromptGroupId");
 			int promptVersionId = (Integer) request.getAttribute("campaignPromptVersionId");
 			
-			_logger.info("pgid=" + promptGroupId + " pvid=" + promptVersionId);
+			// _logger.info("pgid=" + promptGroupId + " pvid=" + promptVersionId);
 			
 			// dynamically generate the SQL in clause based on the idArray
 			final int[] idArray = (int[]) request.getAttribute("promptIdArray");
@@ -88,13 +92,15 @@ public class PromptResponseGroupDao extends AbstractDao {
 					builder.append(",");
 				}
 			}
-			builder.append(")");
+			builder.append(") ");
+			builder.append(_orderBy);
 			
-			final String sql = builder.toString()
-				.replace("{$campaignPromptGroupId}", String.valueOf(promptGroupId))
-				.replace("{$campaignPromptVersionId}", String.valueOf(promptVersionId));
+			final String sql = 
+				builder.toString()
+				  .replace("{$campaignPromptGroupId}", String.valueOf(promptGroupId))
+                  .replace("{$campaignPromptVersionId}", String.valueOf(promptVersionId));
 						
-			_logger.info(sql);
+			_logger.info("about to run SQL: " + sql);
 			
 			List<?> list = template.query( 
 				new PreparedStatementCreator() {
@@ -109,8 +115,9 @@ public class PromptResponseGroupDao extends AbstractDao {
 				new RowMapper() {
 					public Object mapRow(ResultSet rs, int rowNum) throws SQLException {
 						PromptType pt = new PromptType();
-						pt.setType(rs.getString(1));
-						pt.setRestriction(rs.getString(2));
+						pt.setPromptConfigId(rs.getInt(1));
+						pt.setType(rs.getString(2));
+						pt.setRestriction(rs.getString(3));
 						return pt;
 					}
 				}
