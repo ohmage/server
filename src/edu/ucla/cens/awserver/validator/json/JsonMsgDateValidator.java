@@ -31,7 +31,7 @@ public class JsonMsgDateValidator extends AbstractAnnotatingJsonObjectValidator 
 	 * TODO - validation parameters for date value sanity (e.g. date should not be in the past or even too far in the future?)
 	 */
 	public boolean validate(AwRequest request, JSONObject jsonObject) {
-		String date = JsonUtils.getStringFromJson(jsonObject, _key);
+		String date = JsonUtils.getStringFromJsonObject(jsonObject, _key);
 		
 		if(null == date) {
 			getAnnotator().annotate(request, "date in message is null");

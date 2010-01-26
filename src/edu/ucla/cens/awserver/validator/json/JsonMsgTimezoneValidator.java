@@ -27,7 +27,7 @@ public class JsonMsgTimezoneValidator extends AbstractAnnotatingJsonObjectValida
 	 * @return false otherwise
 	 */
 	public boolean validate(AwRequest request, JSONObject jsonObject) {		 
-		String tz = JsonUtils.getStringFromJson(jsonObject, _key);
+		String tz = JsonUtils.getStringFromJsonObject(jsonObject, _key);
 		
 		if(null == tz) {
 			getAnnotator().annotate(request, "timezone in message is null");

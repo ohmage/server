@@ -26,8 +26,8 @@ public class JsonMsgFeaturesFftArrayValuesValidator extends AbstractAnnotatingJs
 	 * @return false otherwise
 	 */
 	public boolean validate(AwRequest request, JSONObject jsonObject) {		
-		JSONObject object = JsonUtils.getObjectFromJson(jsonObject, "features");
-		JSONArray array = JsonUtils.getJsonArrayFromJson(object, _key);
+		JSONObject object = JsonUtils.getJsonObjectFromJsonObject(jsonObject, "features");
+		JSONArray array = JsonUtils.getJsonArrayFromJsonObject(object, _key);
 		
 		int length = array.length();
 		

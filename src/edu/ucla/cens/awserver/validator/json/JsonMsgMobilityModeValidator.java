@@ -43,12 +43,12 @@ public class JsonMsgMobilityModeValidator extends AbstractAnnotatingJsonObjectVa
 		
 		if(! _doFeaturesValidation) {
 			
-			mode = JsonUtils.getStringFromJson(jsonObject, _key);
+			mode = JsonUtils.getStringFromJsonObject(jsonObject, _key);
 			
 		} else { 
 			
-			JSONObject object = JsonUtils.getObjectFromJson(jsonObject, "features");
-			mode = JsonUtils.getStringFromJson(object, _key);
+			JSONObject object = JsonUtils.getJsonObjectFromJsonObject(jsonObject, "features");
+			mode = JsonUtils.getStringFromJsonObject(object, _key);
 			
 		}	
 		

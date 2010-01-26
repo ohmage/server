@@ -26,8 +26,8 @@ public class JsonMsgFeaturesFftArrayExistsValidator extends AbstractAnnotatingJs
 	 * @return false otherwise
 	 */
 	public boolean validate(AwRequest request, JSONObject jsonObject) {		
-		JSONObject object = JsonUtils.getObjectFromJson(jsonObject, "features");
-		JSONArray array = JsonUtils.getJsonArrayFromJson(object, _key);
+		JSONObject object = JsonUtils.getJsonObjectFromJsonObject(jsonObject, "features");
+		JSONArray array = JsonUtils.getJsonArrayFromJsonObject(object, _key);
 		
 		if(null == array) {
 			getAnnotator().annotate(request, _key + " array from features object in message is null or invalid");

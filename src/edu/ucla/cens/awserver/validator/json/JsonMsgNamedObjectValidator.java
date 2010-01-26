@@ -31,7 +31,7 @@ public class JsonMsgNamedObjectValidator extends AbstractAnnotatingJsonObjectVal
 	 * @return false otherwise
 	 */
 	public boolean validate(AwRequest request, JSONObject jsonObject) {		 
-		JSONObject object = JsonUtils.getObjectFromJson(jsonObject, _key);
+		JSONObject object = JsonUtils.getJsonObjectFromJsonObject(jsonObject, _key);
 		
 		if(null == object) {
 			getAnnotator().annotate(request, _key + " object in message is null");

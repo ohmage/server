@@ -29,7 +29,7 @@ public class JsonMsgPromptGroupIdValidator extends AbstractDaoAnnotatingJsonObje
 	 * @return false otherwise
 	 */
 	public boolean validate(AwRequest request, JSONObject jsonObject) {		 
-		String groupId = JsonUtils.getStringFromJson(jsonObject, _key);
+		String groupId = JsonUtils.getStringFromJsonObject(jsonObject, _key);
 		
 		if(null == groupId) {
 			getAnnotator().annotate(request, "group_id in message is null or invalid");

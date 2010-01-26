@@ -27,7 +27,7 @@ public class JsonMsgPromptVersionIdValidator extends AbstractDaoAnnotatingJsonOb
 	 * @return false otherwise
 	 */
 	public boolean validate(AwRequest request, JSONObject jsonObject) {		 
-		String versionId = JsonUtils.getStringFromJson(jsonObject, _key);
+		String versionId = JsonUtils.getStringFromJsonObject(jsonObject, _key);
 		
 		if(null == versionId) {
 			getAnnotator().annotate(request, "version_id in message is null or invalid");

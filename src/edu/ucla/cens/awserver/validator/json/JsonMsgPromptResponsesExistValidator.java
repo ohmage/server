@@ -24,7 +24,7 @@ public class JsonMsgPromptResponsesExistValidator extends AbstractAnnotatingJson
 	 * @return false otherwise
 	 */
 	public boolean validate(AwRequest request, JSONObject jsonObject) {
-		JSONArray array = JsonUtils.getJsonArrayFromJson(jsonObject, _key);
+		JSONArray array = JsonUtils.getJsonArrayFromJsonObject(jsonObject, _key);
 		
 		if(null == array || array.length() == 0) {
 			getAnnotator().annotate(request, "responses array from prompt message is null or empty");

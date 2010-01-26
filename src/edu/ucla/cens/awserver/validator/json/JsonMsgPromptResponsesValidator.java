@@ -38,7 +38,7 @@ public class JsonMsgPromptResponsesValidator extends AbstractDaoAnnotatingJsonOb
 	 * @return false otherwise
 	 */
 	public boolean validate(AwRequest request, JSONObject jsonObject) {		 
-		JSONArray jsonArray = JsonUtils.getJsonArrayFromJson(jsonObject, _key);
+		JSONArray jsonArray = JsonUtils.getJsonArrayFromJsonObject(jsonObject, _key);
 		
 		// Each element in the array must contain a prompt_id and a response element
 		// The response element is allowed to be null signifying "no response"
@@ -55,7 +55,7 @@ public class JsonMsgPromptResponsesValidator extends AbstractDaoAnnotatingJsonOb
 				return false;
 			}
 			
-			Integer id = JsonUtils.getIntegerFromJson(object, "prompt_id");
+			Integer id = JsonUtils.getIntegerFromJsonObject(object, "prompt_id");
 			
 			if(null == id) {
 				getAnnotator().annotate(request, "missing or invalid prompt_id for prompt responses array at responses index " + i);
@@ -115,9 +115,9 @@ public class JsonMsgPromptResponsesValidator extends AbstractDaoAnnotatingJsonOb
 			JSONObject promptResponse = JsonUtils.getJsonObjectFromJsonArray(jsonArray, i);
 			
 			PromptType promptType = getPromptTypeForPromptConfigId(promptTypeList, 
-					JsonUtils.getIntegerFromJson(promptResponse, "prompt_id"));
+					JsonUtils.getIntegerFromJsonObject(promptResponse, "prompt_id"));
 			
-			String response = JsonUtils.getStringFromJson(promptResponse, "response");
+			String response = JsonUtils.getStringFromJsonObject(promptResponse, "response");
 			
 			PromptResponseValidator validator = PromptResponseValidatorFactory.make(promptType);
 			

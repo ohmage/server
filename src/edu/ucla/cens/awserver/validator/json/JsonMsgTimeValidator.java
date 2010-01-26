@@ -26,7 +26,7 @@ public class JsonMsgTimeValidator extends AbstractAnnotatingJsonObjectValidator 
 	 * @return false otherwise
 	 */
 	public boolean validate(AwRequest request, JSONObject jsonObject) {
-		Long epoch = JsonUtils.getLongFromJson(jsonObject, _key);
+		Long epoch = JsonUtils.getLongFromJsonObject(jsonObject, _key);
 		
 		if(null == epoch) {
 			getAnnotator().annotate(request, "time in message is null");

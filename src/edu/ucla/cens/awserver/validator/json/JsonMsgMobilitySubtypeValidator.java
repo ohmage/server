@@ -38,7 +38,7 @@ public class JsonMsgMobilitySubtypeValidator extends AbstractAnnotatingJsonObjec
 	 */
 	public boolean validate(AwRequest request, JSONObject jsonObject) {
 		// First, check the subtype because nothing can be done without it
-		String subtype = JsonUtils.getStringFromJson(jsonObject, _key);
+		String subtype = JsonUtils.getStringFromJsonObject(jsonObject, _key);
 		
 		if(null == subtype) {
 			getAnnotator().annotate(request, "subtype in mobility message is null");
