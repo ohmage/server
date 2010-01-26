@@ -30,6 +30,7 @@
         <ref bean="jsonMessageSourceInfoService" />
         <ref bean="jsonMessageSyntaxValidationService" />
         <ref bean="jsonMessageContentValidationService" />
+        <ref bean="dataPacketBuilderService" />
       </list>
     </constructor-arg>
   </bean>
@@ -80,7 +81,7 @@
             <ref bean="jsonMsgLongitudeValidator" />
             <ref bean="jsonMsgPromptVersionIdValidator" />
             <ref bean="jsonMsgPromptGroupIdValidator" />
-            <!--  the tags array is ignored for now -->
+            <!--  the empty tags array is ignored for now -->
             <ref bean="jsonMsgPromptResponsesExistValidator" />
             <ref bean="jsonMsgPromptResponsesValidator" />
   	      </list>
@@ -392,5 +393,24 @@
   <bean id="promptResponseGroupDao" class="edu.ucla.cens.awserver.dao.PromptResponseGroupDao">
     <constructor-arg index="0"><ref bean="dataSource" /></constructor-arg>
   </bean>
-
+  
+   <bean id="dataPacketBuilderService" class="edu.ucla.cens.awserver.service.DataPacketBuilderService">
+    <constructor-arg index="0">
+      <map>
+        <entry>
+          <key><value>mobility-mode_only</value></key>
+          <bean class="edu.ucla.cens.awserver.domain.MobilityModeOnlyDataPacketBuilder" />
+        </entry>
+         <entry>
+          <key><value>mobility-mode_features</value></key>
+          <bean class="edu.ucla.cens.awserver.domain.MobilityModeFeaturesDataPacketBuilder"></bean>
+        </entry>
+        <entry>
+          <key><value>prompt</value></key>
+          <bean class="edu.ucla.cens.awserver.domain.PromptDataPacketBuilder"></bean>
+        </entry>
+      </map>
+    </constructor-arg>   
+  </bean>
+  
 </beans>
