@@ -1,5 +1,7 @@
 package edu.ucla.cens.awserver.domain;
 
+import org.json.JSONObject;
+
 /**
  * Use the builder pattern to create data packets.
  * 
@@ -7,6 +9,6 @@ package edu.ucla.cens.awserver.domain;
  */
 public interface DataPacketBuilder {
 	
-	public DataPacket createDataPacketFrom(Object source);
+	public DataPacket createDataPacketFrom(JSONObject source);
 	
 }
