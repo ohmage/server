@@ -5,7 +5,7 @@ package edu.ucla.cens.awserver.domain;
  * 
  * @author selsky
  */
-public class MobilityModeOnlyDataPacket extends DataPacket {
+public class MobilityModeOnlyDataPacket extends MetadataDataPacket {
 	private String _mode;
 	
 	public MobilityModeOnlyDataPacket() {
@@ -18,6 +18,11 @@ public class MobilityModeOnlyDataPacket extends DataPacket {
 
 	public void setMode(String mode) {
 		_mode = mode;
+	}
+
+	@Override
+	public String toString() {
+		return "MobilityModeOnlyDataPacket [_mode=" + _mode + " " + super.toString() + "]";
 	}
 	
 }
