@@ -4,10 +4,10 @@ import java.util.Map;
 
 import org.apache.log4j.Logger;
 import org.json.JSONArray;
-import org.json.JSONException;
 import org.json.JSONObject;
 
 import edu.ucla.cens.awserver.datatransfer.AwRequest;
+import edu.ucla.cens.awserver.util.JsonUtils;
 import edu.ucla.cens.awserver.validator.AwRequestAnnotator;
 import edu.ucla.cens.awserver.validator.json.JsonObjectValidator;
 
@@ -66,13 +66,6 @@ public class JsonMessageContentValidationService implements Service {
 	 * A syntactically valid JSON Array that is found in the AwRequest using the key <code>jsonData</code> is required.
 	 */
 	public void execute(AwRequest awRequest) {
-		  
-//		  - validation for elements which must occur in all packets
-//		  -- handle Double.NaN for latitude and longitude (MySQL will insert 0 so make it null instead) 
-//		  - validation for mobility-specific messages (mode_only & mode_features)
-//		  - validation for prompt-specific messages
-//		  -- each prompt type has a data type in the db (therefore an inferrable validation rule)
-		
 		_logger.info("beginning JSON message content validation");
 		
 		JSONArray jsonArray = (JSONArray) awRequest.getAttribute("jsonData");
@@ -87,18 +80,12 @@ public class JsonMessageContentValidationService implements Service {
 		
 		for(int i = 0; i < length; i++) { // TODO the index of the message should be passed through the system for logging purposes
 			
-			JSONObject jsonObject = null;
+			JSONObject jsonObject = JsonUtils.getJsonObjectFromJsonArray(jsonArray, i); // each array entry is a JSON Object
+			                                                                            // representing an upload data packet
 			
-			// TODO use JsonUtils here 
-			try {
-		
-				jsonObject = jsonArray.getJSONObject(0);
-				
-			} catch (JSONException jsone) {
-				
-				_incorrectEntryAnnotator.annotate(awRequest, "missing top-level JSON object in data packet");
+			if(null == jsonObject) {
+				_incorrectEntryAnnotator.annotate(awRequest, "missing data packet");
 				return;
-				
 			}
 			
 			// Given the request type, retrieve the validator array to execute for the particular type
