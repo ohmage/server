@@ -19,7 +19,7 @@ public class JsonUtils {
 	/**
 	 * @return the String value found in the JSONObject using the provided key. If no value is found, null is returned. 
 	 */
-	public static String getStringFromJson(JSONObject jsonObject, String key) {
+	public static String getStringFromJsonObject(JSONObject jsonObject, String key) {
 		String value = null;
 		
 		try {
@@ -41,7 +41,7 @@ public class JsonUtils {
 	/**
 	 * @return the Integer value found in the JSONObject using the provided key. If no value is found, null is returned. 
 	 */
-	public static Integer getIntegerFromJson(JSONObject jsonObject, String key) {
+	public static Integer getIntegerFromJsonObject(JSONObject jsonObject, String key) {
 		Integer value = null;
 		
 		try {
@@ -63,7 +63,7 @@ public class JsonUtils {
 	/**
 	 * @return the Long value found in the JSONObject using the provided key. If no value is found, null is returned. 
 	 */
-	public static Long getLongFromJson(JSONObject jsonObject, String key) {
+	public static Long getLongFromJsonObject(JSONObject jsonObject, String key) {
 		Long value = null;
 		
 		try {
@@ -85,7 +85,7 @@ public class JsonUtils {
 	/**
 	 * @return the JSONObject value found in the JSONObject using the provided key. If no value is found, null is returned. 
 	 */
-	public static JSONObject getObjectFromJson(JSONObject jsonObject, String key) {
+	public static JSONObject getJsonObjectFromJsonObject(JSONObject jsonObject, String key) {
 		JSONObject value = null;
 		
 		try {
@@ -107,7 +107,7 @@ public class JsonUtils {
 	/**
 	 * @return the Double value found in the JSONObject using the provided key. If no value is found, null is returned. 
 	 */
-	public static Double getDoubleFromJson(JSONObject jsonObject, String key) {
+	public static Double getDoubleFromJsonObject(JSONObject jsonObject, String key) {
 		Double value = null;
 		
 		try {
@@ -129,7 +129,7 @@ public class JsonUtils {
 	/**
 	 * @return the JSONArray value found in the JSONObject using the provided key. If no value is found, null is returned. 
 	 */
-	public static JSONArray getJsonArrayFromJson(JSONObject jsonObject, String key) {
+	public static JSONArray getJsonArrayFromJsonObject(JSONObject jsonObject, String key) {
 		JSONArray array = null;
 		
 		try {
@@ -249,6 +249,30 @@ public class JsonUtils {
 			
 			if(_logger.isDebugEnabled()) {
 				_logger.debug("failed attempt to convert string \"" + string + "\" to a JSON object");
+				_logger.debug(jsone);
+			}
+			
+		}
+		
+		return value;
+		
+	}
+	
+	/**
+	 * @return the Object found within the provided JSONObject using the provided key or null if nothing could be found using the 
+	 * key. 
+	 */
+	public static Object getObjectFromJsonObject(JSONObject jsonObject, String key) {
+		Object value = null;
+		
+		try {
+			
+			value = jsonObject.get(key); 
+		
+		} catch (JSONException jsone) {
+			
+			if(_logger.isDebugEnabled()) {
+				_logger.debug("failed attempt to retrieve " + key + " from JSON object " + jsonObject);
 				_logger.debug(jsone);
 			}
 			
