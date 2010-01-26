@@ -259,7 +259,7 @@ CREATE TABLE mobility_mode_features_entry (
   average double NOT NULL,
   fft varchar(300) NOT NULL, -- A comma separated list of 10 FFT floating-point values. The reason the array is not unpacked  
                              -- into separate columns is because the data will not be used outside of a debugging scenario.
-                             -- It is simply stored the way it is sent by the phone (minus the JSON array brackets). 
+                             -- It is simply stored the way it is sent by the phone (as a JSON array). 
   PRIMARY KEY (id),
   UNIQUE INDEX (user_id, utc_epoch_millis),
   CONSTRAINT FOREIGN KEY (user_id) REFERENCES user (id) ON DELETE CASCADE ON UPDATE CASCADE
