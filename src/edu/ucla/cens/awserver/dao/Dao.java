@@ -2,8 +2,9 @@ package edu.ucla.cens.awserver.dao;
 
 import edu.ucla.cens.awserver.datatransfer.AwRequest;
 
+
 /**
- * Dao - Data Access Object: interact with the database. 
+ * Data Access Object: interact with the datastore. 
  * 
  * @author selsky
  */
