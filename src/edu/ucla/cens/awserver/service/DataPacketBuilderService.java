@@ -47,8 +47,9 @@ public class DataPacketBuilderService implements Service {
 		String requestType = (String) awRequest.getAttribute("requestType");
 		
 		// TODO eventually this could be made smarter (more generic) - it should just be able to loop through the map without
-		// needing to know actual key values
+		// needing to know actual key values. 
 		for(int i = 0; i < length; i++) {
+			
 			String builderName = "prompt";
 			 
 			if("mobility".equals(requestType)) {
@@ -71,7 +72,12 @@ public class DataPacketBuilderService implements Service {
 			
 			DataPacket dataPacket = 
 				_builderMap.get(builderName).createDataPacketFrom(JsonUtils.getJsonObjectFromJsonArray(jsonArray, i));
-			_logger.info(dataPacket.toString());
+			
+			
+			if(_logger.isDebugEnabled()) {
+				_logger.debug(dataPacket.toString());
+			}
+			
 			dataPackets.add(dataPacket);
 			
 		}
