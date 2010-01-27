@@ -10,13 +10,13 @@ import java.util.List;
  */
 public class PromptDataPacket extends MetadataDataPacket {
 	
-	private List<DataPacket> _responses;
+	private List<PromptResponseDataPacket> _responses;
 	
-	public List<DataPacket> getResponses() {
+	public List<PromptResponseDataPacket> getResponses() {
 		return _responses;
 	}
 
-	public void setResponses(List<DataPacket> responses) {
+	public void setResponses(List<PromptResponseDataPacket> responses) {
 		_responses = responses;
 	}
 	
