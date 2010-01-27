@@ -171,6 +171,7 @@ CREATE TABLE prompt (
   json_data text NOT NULL, -- the structure of the json_data is dependent on the prompt_type
   PRIMARY KEY (id),
   INDEX (user_id),
+  UNIQUE (user_id, prompt_id, utc_epoch_millis, json_data(25)), -- the number 25 is not arbitrary; it is the size of the longest JSON response we currently have
   CONSTRAINT FOREIGN KEY (prompt_id) REFERENCES prompt (id) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT FOREIGN KEY (user_id) REFERENCES user (id) ON DELETE CASCADE ON UPDATE CASCADE
  ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
