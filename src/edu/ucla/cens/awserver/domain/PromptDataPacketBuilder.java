@@ -26,7 +26,7 @@ public class PromptDataPacketBuilder extends AbstractDataPacketBuilder {
 	public DataPacket createDataPacketFrom(JSONObject source) {
 		PromptDataPacket promptDataPacket = new PromptDataPacket();
 		createCommonFields(source, promptDataPacket);
-		List<DataPacket> _responsePackets = new ArrayList<DataPacket>();
+		List<PromptResponseDataPacket> _responsePackets = new ArrayList<PromptResponseDataPacket>();
 		 
 		JSONArray responses = JsonUtils.getJsonArrayFromJsonObject(source, "responses");
 		int arrayLength = responses.length();	
