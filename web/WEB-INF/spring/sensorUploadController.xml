@@ -31,6 +31,7 @@
         <ref bean="jsonMessageSyntaxValidationService" />
         <ref bean="jsonMessageContentValidationService" />
         <ref bean="dataPacketBuilderService" />
+        <ref bean="uploadService" />
       </list>
     </constructor-arg>
   </bean>
@@ -411,6 +412,25 @@
         </entry>
       </map>
     </constructor-arg>   
+  </bean>
+  
+  <bean id="uploadService" class="edu.ucla.cens.awserver.service.UploadService" >
+  	<constructor-arg index="0">
+      <map>
+        <entry>
+          <key><value>mobility</value></key>
+          <bean class="edu.ucla.cens.awserver.dao.MobilityUploadDao">
+            <constructor-arg index="0"><ref bean="dataSource" /></constructor-arg>
+          </bean>
+        </entry>
+        <entry>
+          <key><value>prompt</value></key>
+          <bean class="edu.ucla.cens.awserver.dao.PromptUploadDao">
+            <constructor-arg index="0"><ref bean="dataSource" /></constructor-arg>
+          </bean>
+        </entry>
+      </map>
+    </constructor-arg>
   </bean>
   
 </beans>
