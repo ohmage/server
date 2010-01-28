@@ -11,7 +11,6 @@ import javax.sql.DataSource;
 import org.apache.log4j.Logger;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.IncorrectResultSizeDataAccessException;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.PreparedStatementCreator;
 
 import edu.ucla.cens.awserver.datatransfer.AwRequest;
@@ -66,8 +65,6 @@ public class PromptUploadDao extends AbstractUploadDao {
 			List<PromptResponseDataPacket> promptResponses = promptDataPacket.getResponses();
 			int numberOfResponses = promptResponses.size();
 			
-			JdbcTemplate template = new JdbcTemplate(getDataSource());
-			
 			for(int j = 0; j < numberOfResponses; j++) {
 				
 				final PromptResponseDataPacket response = promptResponses.get(j);
@@ -76,7 +73,7 @@ public class PromptUploadDao extends AbstractUploadDao {
 				try { // get the internal prompt_id -- the device uploading the data has it's own local configuration 
 					  // (prompt_config_id) which has to be mapped to the prompt's "real" primary key
 				
-					 promptId = template.queryForInt(
+					 promptId = getJdbcTemplate().queryForInt(
 						_selectSql, new Object[]{request.getAttribute("campaignPromptGroupId"), 
 								                 request.getAttribute("campaignPromptVersionId"), 
 								                 response.getPromptConfigId()}
@@ -97,7 +94,7 @@ public class PromptUploadDao extends AbstractUploadDao {
 				 
 				try { // Now insert the response -- auto committed by MySQL (the default setting)
 					
-					int numberOfRowsUpdated = template.update( 
+					int numberOfRowsUpdated = getJdbcTemplate().update( 
 						new PreparedStatementCreator() {
 							public PreparedStatement createPreparedStatement(Connection connection) throws SQLException {
 								PreparedStatement ps = connection.prepareStatement(_insertSql);

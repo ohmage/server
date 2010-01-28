@@ -4,7 +4,6 @@ import javax.sql.DataSource;
 
 import org.apache.log4j.Logger;
 import org.springframework.dao.IncorrectResultSizeDataAccessException;
-import org.springframework.jdbc.core.JdbcTemplate;
 
 import edu.ucla.cens.awserver.datatransfer.AwRequest;
 
@@ -35,11 +34,9 @@ public class PromptGroupIdDao extends AbstractDao {
 		_logger.info("looking up prompt group_id for phone group id " + request.getAttribute("groupId") + " in campaign " +
 				request.getAttribute("subdomain"));
 		
-		JdbcTemplate template = new JdbcTemplate(getDataSource());
-		
 		try {
 			
-			int campaignPromptGroupId = template.queryForInt(
+			int campaignPromptGroupId = getJdbcTemplate().queryForInt(
 				_selectSql, new Object[]{request.getAttribute("groupId"), 
 						                 request.getAttribute("campaignPromptVersionId"), 
 						                 request.getAttribute("subdomain")}

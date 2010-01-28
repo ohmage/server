@@ -6,7 +6,6 @@ import java.sql.SQLException;
 import javax.sql.DataSource;
 
 import org.apache.log4j.Logger;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 
 import edu.ucla.cens.awserver.datatransfer.AwRequest;
@@ -33,11 +32,10 @@ public class TestDao extends AbstractDao {
 	 */
 	public void execute(AwRequest request) {
 		_logger.info("executing test query");
-		JdbcTemplate template = new JdbcTemplate(getDataSource());
 		
 		try {
 			
-			request.setAttribute("results", template.query(_testSelect, new QueryRowMapper()));
+			request.setAttribute("results", getJdbcTemplate().query(_testSelect, new QueryRowMapper()));
 			
 		} catch (org.springframework.dao.DataAccessException dae) {
 			

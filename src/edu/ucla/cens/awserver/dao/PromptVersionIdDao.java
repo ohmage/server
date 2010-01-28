@@ -4,7 +4,6 @@ import javax.sql.DataSource;
 
 import org.apache.log4j.Logger;
 import org.springframework.dao.IncorrectResultSizeDataAccessException;
-import org.springframework.jdbc.core.JdbcTemplate;
 
 import edu.ucla.cens.awserver.datatransfer.AwRequest;
 
@@ -34,12 +33,10 @@ public class PromptVersionIdDao extends AbstractDao {
 	public void execute(AwRequest request) {
 		_logger.info("looking up prompt version_id for phone version id " + request.getAttribute("versionId") + " in campaign " +
 				request.getAttribute("subdomain"));
-		
-		JdbcTemplate template = new JdbcTemplate(getDataSource());
-		
+				
 		try {
 			
-			int campaignPromptVersionId = template.queryForInt(
+			int campaignPromptVersionId = getJdbcTemplate().queryForInt(
 				_selectSql, new Object[]{request.getAttribute("versionId"), request.getAttribute("subdomain")}
 		    );
 			// Push the id into the request because it will be used by future queries

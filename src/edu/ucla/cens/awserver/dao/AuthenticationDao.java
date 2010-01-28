@@ -6,7 +6,6 @@ import java.sql.SQLException;
 import javax.sql.DataSource;
 
 import org.apache.log4j.Logger;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 
 import edu.ucla.cens.awserver.datatransfer.AwRequest;
@@ -41,11 +40,9 @@ public class AuthenticationDao extends AbstractDao {
 	public void execute(AwRequest request) {
 		_logger.info("attempting login for user " + request.getUser().getUserName());
 		
-		JdbcTemplate template = new JdbcTemplate(getDataSource());
-		
 		try {
 			
-			request.setAttribute("results", template.query(_selectSql, 
+			request.setAttribute("results", getJdbcTemplate().query(_selectSql, 
 					             new Object[]{request.getUser().getUserName(), request.getAttribute("subdomain")}, 
 					             new QueryRowMapper()));
 			

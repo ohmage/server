@@ -9,7 +9,6 @@ import java.util.List;
 import javax.sql.DataSource;
 
 import org.apache.log4j.Logger;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.PreparedStatementCreator;
 import org.springframework.jdbc.core.RowMapper;
 
@@ -63,10 +62,6 @@ public class PromptResponseGroupDao extends AbstractDao {
 			", and campaign prompt version " + request.getAttribute("campaignPromptVersionId")
 		);
 		
-		// TODO -- this new call only needs to be done once, not for every execute() method invocation
-		// All DAOs will need this change
-		JdbcTemplate template = new JdbcTemplate(getDataSource());
-		
 		try {
 			
 			int promptGroupId = (Integer) request.getAttribute("campaignPromptGroupId");
@@ -79,7 +74,7 @@ public class PromptResponseGroupDao extends AbstractDao {
 			int size = idArray.length;
 			
 			// First, check whether the number of entries in the array represents the correct number of prompts for the group
-			int numberOfPromptsInGroup = template.queryForInt(_countSql, new Object[]{promptGroupId, promptVersionId});
+			int numberOfPromptsInGroup = getJdbcTemplate().queryForInt(_countSql, new Object[]{promptGroupId, promptVersionId});
 			
 			if(size != numberOfPromptsInGroup) {
 				_logger.info("incorrect number of prompts for group. prompts received = " + size + ". prompts expected = " 
@@ -106,7 +101,7 @@ public class PromptResponseGroupDao extends AbstractDao {
 						
 			_logger.info("about to run SQL: " + sql);
 			
-			List<?> list = template.query( 
+			List<?> list = getJdbcTemplate().query( 
 				new PreparedStatementCreator() {
 					public PreparedStatement createPreparedStatement(Connection connection) throws SQLException {
 						PreparedStatement ps = connection.prepareStatement(sql);

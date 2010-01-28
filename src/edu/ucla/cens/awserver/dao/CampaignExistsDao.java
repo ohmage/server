@@ -6,7 +6,6 @@ import java.sql.SQLException;
 import javax.sql.DataSource;
 
 import org.apache.log4j.Logger;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 
 import edu.ucla.cens.awserver.datatransfer.AwRequest;
@@ -37,11 +36,9 @@ public class CampaignExistsDao extends AbstractDao {
 			_logger.debug("executing campaign existence check against subdomain " + request.getAttribute("subdomain"));
 		}
 		
-		JdbcTemplate template = new JdbcTemplate(getDataSource());
-		
 		try {
 			
-			request.setAttribute("results", template.query(_selectSql, 
+			request.setAttribute("results", getJdbcTemplate().query(_selectSql, 
 					             new Object[]{ request.getAttribute("subdomain") }, 
 					             new QueryRowMapper()));
 			

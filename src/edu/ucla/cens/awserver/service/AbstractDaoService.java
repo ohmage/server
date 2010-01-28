@@ -18,7 +18,7 @@ public abstract class AbstractDaoService implements Service {
 	 */
 	public AbstractDaoService(Dao dao) {
 		if(null == dao) {
-			throw new IllegalArgumentException("Cannot set a null DAO");
+			throw new IllegalArgumentException("a DAO is required");
 		}
 		_dao = dao;
 	}
