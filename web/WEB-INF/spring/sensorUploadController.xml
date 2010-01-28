@@ -27,11 +27,11 @@
     <!-- service the upload request -->
       <list>
         <ref bean="sensorUploadAuthenticationService" />
-        <ref bean="jsonMessageSourceInfoService" />
         <ref bean="jsonMessageSyntaxValidationService" />
         <ref bean="jsonMessageContentValidationService" />
         <ref bean="dataPacketBuilderService" />
         <ref bean="uploadService" />
+        <ref bean="messageLoggerService" />
       </list>
     </constructor-arg>
   </bean>
@@ -60,7 +60,7 @@
   <!--  Annotate the AwRequest in the case of failed authentication -->	
   <bean id="sensorUploadFailedJsonRequestAnnotator" class="edu.ucla.cens.awserver.validator.json.FailedJsonSuppliedMessageRequestAnnotator" />
   
-  <bean id="jsonMessageSourceInfoService" class="edu.ucla.cens.awserver.service.JsonMessageSourceInfoService" />
+  <bean id="messageLoggerService" class="edu.ucla.cens.awserver.service.MessageLoggerService" />
   
   <bean id="jsonMessageContentValidationService" class="edu.ucla.cens.awserver.service.JsonMessageContentValidationService">
   	<constructor-arg index="0">
