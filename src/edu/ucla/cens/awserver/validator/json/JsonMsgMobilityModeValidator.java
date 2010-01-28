@@ -38,7 +38,7 @@ public class JsonMsgMobilityModeValidator extends AbstractAnnotatingJsonObjectVa
 	 * @return true if the value returned from the AwRequest for the key "mode" exists and is a valid mode
 	 * @return false otherwise
 	 */
-	public boolean validate(AwRequest request, JSONObject jsonObject) {		 
+	public boolean validate(AwRequest awRequest, JSONObject jsonObject) {		 
 		String mode = null; 
 		
 		if(! _doFeaturesValidation) {
@@ -53,12 +53,12 @@ public class JsonMsgMobilityModeValidator extends AbstractAnnotatingJsonObjectVa
 		}	
 		
 		if(null == mode) {
-			getAnnotator().annotate(request, "mode in message is null");
+			getAnnotator().annotate(awRequest, "mode in message is null");
 			return false;
 		}
 		
 		if(! _allowedValues.contains(mode)) {
-			getAnnotator().annotate(request, "invalid mode: " + mode);
+			getAnnotator().annotate(awRequest, "invalid mode: " + mode);
 			return false;
 		}
 		

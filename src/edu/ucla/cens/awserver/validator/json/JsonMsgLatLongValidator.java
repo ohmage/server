@@ -32,7 +32,7 @@ public class JsonMsgLatLongValidator extends AbstractAnnotatingJsonObjectValidat
 	 * @return true if the value returned from the AwRequest for the lat or long exists and is a valid double
 	 * @return false otherwise
 	 */
-	public boolean validate(AwRequest request, JSONObject jsonObject) {		 
+	public boolean validate(AwRequest awRequest, JSONObject jsonObject) {		 
 		JSONObject object = JsonUtils.getJsonObjectFromJsonObject(jsonObject, "location");
 		
 		// first, look for a double
@@ -43,7 +43,7 @@ public class JsonMsgLatLongValidator extends AbstractAnnotatingJsonObjectValidat
 			String stringLatLong = JsonUtils.getStringFromJsonObject(object, _key);
 			
 			if(null == stringLatLong || ! "Double.NaN".equals(stringLatLong)) {
-				getAnnotator().annotate(request, _key + " in message is null or invalid. value: " + stringLatLong);
+				getAnnotator().annotate(awRequest, _key + " in message is null or invalid. value: " + stringLatLong);
 				return false;
 			}
 		}

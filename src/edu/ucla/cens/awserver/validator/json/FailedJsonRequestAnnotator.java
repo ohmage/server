@@ -57,23 +57,23 @@ public class FailedJsonRequestAnnotator implements AwRequestAnnotator {
      * The message passed in is used for debug output only. For cases where the JSONObject representing the error output message 
      * must be passed into this method, @see FailedJsonSuppliedMessageRequestAnnotator.
 	 */
-	public void annotate(AwRequest request, String message) {
-		request.setFailedRequest(true);
+	public void annotate(AwRequest awRequest, String message) {
+		awRequest.setFailedRequest(true);
 		JSONObject jsonObject = null;
 		
 		try {
 			
 			jsonObject = new JSONObject(_jsonErrorMessage);
 			// now add the original request URL and the original JSON input message to the error output
-			jsonObject.put("request_url", request.getAttribute("requestUrl"));
-			jsonObject.put("request_json", request.getAttribute("jsonData"));
+			jsonObject.put("request_url", awRequest.getAttribute("requestUrl"));
+			jsonObject.put("request_json", awRequest.getAttribute("jsonData"));
 		
 		} catch(JSONException jsone) {  // invalid JSON at this point is a logical error
 		
 			throw new IllegalStateException(jsone);
 		}
 		
-		request.setFailedRequestErrorMessage(jsonObject.toString());
+		awRequest.setFailedRequestErrorMessage(jsonObject.toString());
 				
 		if(logger.isDebugEnabled()) {
 			logger.debug(message);

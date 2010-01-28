@@ -36,18 +36,18 @@ public class JsonMsgMobilitySubtypeValidator extends AbstractAnnotatingJsonObjec
 	 * @return false if the subtype is invalid or if the any of the subtype's specific message elements are invalid
 	 * @return true otherwise
 	 */
-	public boolean validate(AwRequest request, JSONObject jsonObject) {
+	public boolean validate(AwRequest awRequest, JSONObject jsonObject) {
 		// First, check the subtype because nothing can be done without it
 		String subtype = JsonUtils.getStringFromJsonObject(jsonObject, _key);
 		
 		if(null == subtype) {
-			getAnnotator().annotate(request, "subtype in mobility message is null");
+			getAnnotator().annotate(awRequest, "subtype in mobility message is null");
 			return false;
 		}
 		
 		Set<String> keySet = _validatorMap.keySet();
 		if(! keySet.contains(subtype)) {
-			getAnnotator().annotate(request, "unknown subtype in mobility message: " + subtype);
+			getAnnotator().annotate(awRequest, "unknown subtype in mobility message: " + subtype);
 			return false;
 		}
 		
@@ -55,7 +55,7 @@ public class JsonMsgMobilitySubtypeValidator extends AbstractAnnotatingJsonObjec
 		JsonObjectValidator[] validators = _validatorMap.get(subtype);
 		for(JsonObjectValidator validator : validators) {
 			
-			if(! validator.validate(request, jsonObject)) {
+			if(! validator.validate(awRequest, jsonObject)) {
 				return false;
 			}
 			

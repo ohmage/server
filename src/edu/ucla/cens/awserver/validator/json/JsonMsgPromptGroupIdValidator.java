@@ -28,27 +28,27 @@ public class JsonMsgPromptGroupIdValidator extends AbstractDaoAnnotatingJsonObje
 	 * campaign found in the AwRequest.
 	 * @return false otherwise
 	 */
-	public boolean validate(AwRequest request, JSONObject jsonObject) {		 
+	public boolean validate(AwRequest awRequest, JSONObject jsonObject) {		 
 		String groupId = JsonUtils.getStringFromJsonObject(jsonObject, _key);
 		
 		if(null == groupId) {
-			getAnnotator().annotate(request, "group_id in message is null or invalid");
+			getAnnotator().annotate(awRequest, "group_id in message is null or invalid");
 			return false;
 		}
 		
-		request.setAttribute("groupId", groupId);
+		awRequest.setAttribute("groupId", groupId);
 		
 		try {
 		
-			getDao().execute(request);
+			getDao().execute(awRequest);
 			
 		} catch(DataAccessException daoe) { // unrecoverable error, just rethrow
 			
 			throw new ValidatorException(daoe);
 		}
 		
-		if(request.isFailedRequest()) {
-			getAnnotator().annotate(request, "prompt group_id " + groupId + " not found for campaign " + request.getAttribute("subdomain"));
+		if(awRequest.isFailedRequest()) {
+			getAnnotator().annotate(awRequest, "prompt group_id " + groupId + " not found for campaign " + awRequest.getAttribute("subdomain"));
 			return false;
 		}
 		

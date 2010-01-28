@@ -26,16 +26,16 @@ public class JsonMsgTimezoneValidator extends AbstractAnnotatingJsonObjectValida
 	 * @return true if the value returned from the JSONObject for the key "timezone" exists and is a valid timezone.
 	 * @return false otherwise
 	 */
-	public boolean validate(AwRequest request, JSONObject jsonObject) {		 
+	public boolean validate(AwRequest awRequest, JSONObject jsonObject) {		 
 		String tz = JsonUtils.getStringFromJsonObject(jsonObject, _key);
 		
 		if(null == tz) {
-			getAnnotator().annotate(request, "timezone in message is null");
+			getAnnotator().annotate(awRequest, "timezone in message is null");
 			return false;
 		}
 		
 		if(! DateUtils.isValidTimezone(tz)) {
-			getAnnotator().annotate(request, "invalid timezone: " + tz);
+			getAnnotator().annotate(awRequest, "invalid timezone: " + tz);
 			return false;
 		}
 		

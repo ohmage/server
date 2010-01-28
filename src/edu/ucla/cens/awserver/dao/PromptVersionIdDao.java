@@ -30,22 +30,22 @@ public class PromptVersionIdDao extends AbstractDao {
 		super(dataSource);
 	}
 	
-	public void execute(AwRequest request) {
-		_logger.info("looking up prompt version_id for phone version id " + request.getAttribute("versionId") + " in campaign " +
-				request.getAttribute("subdomain"));
+	public void execute(AwRequest awRequest) {
+		_logger.info("looking up prompt version_id for phone version id " + awRequest.getAttribute("versionId") + " in campaign " +
+				awRequest.getAttribute("subdomain"));
 				
 		try {
 			
 			int campaignPromptVersionId = getJdbcTemplate().queryForInt(
-				_selectSql, new Object[]{request.getAttribute("versionId"), request.getAttribute("subdomain")}
+				_selectSql, new Object[]{awRequest.getAttribute("versionId"), awRequest.getAttribute("subdomain")}
 		    );
 			// Push the id into the request because it will be used by future queries
-			request.setAttribute("campaignPromptVersionId", campaignPromptVersionId);
+			awRequest.setAttribute("campaignPromptVersionId", campaignPromptVersionId);
 			
 		} catch (IncorrectResultSizeDataAccessException irse) { // this exception is thrown if the queryForInt call returns
 			                                                    // anything else but one row
 			
-			request.setFailedRequest(true);
+			awRequest.setFailedRequest(true);
 			
 		} catch (org.springframework.dao.DataAccessException dae) {
 			

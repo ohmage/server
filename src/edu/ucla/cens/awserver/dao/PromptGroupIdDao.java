@@ -30,25 +30,25 @@ public class PromptGroupIdDao extends AbstractDao {
 		super(dataSource);
 	}
 	
-	public void execute(AwRequest request) {
-		_logger.info("looking up prompt group_id for phone group id " + request.getAttribute("groupId") + " in campaign " +
-				request.getAttribute("subdomain"));
+	public void execute(AwRequest awRequest) {
+		_logger.info("looking up prompt group_id for phone group id " + awRequest.getAttribute("groupId") + " in campaign " +
+				awRequest.getAttribute("subdomain"));
 		
 		try {
 			
 			int campaignPromptGroupId = getJdbcTemplate().queryForInt(
-				_selectSql, new Object[]{request.getAttribute("groupId"), 
-						                 request.getAttribute("campaignPromptVersionId"), 
-						                 request.getAttribute("subdomain")}
+				_selectSql, new Object[]{awRequest.getAttribute("groupId"), 
+						                 awRequest.getAttribute("campaignPromptVersionId"), 
+						                 awRequest.getAttribute("subdomain")}
 		    );
 
 			// Push the id into the request because it will be used by future queries
-			request.setAttribute("campaignPromptGroupId", campaignPromptGroupId);
+			awRequest.setAttribute("campaignPromptGroupId", campaignPromptGroupId);
 			
 		} catch (IncorrectResultSizeDataAccessException irse) { // this exception is thrown if the queryForInt call returns
 			                                                    // anything else but one row
 			
-			request.setFailedRequest(true);
+			awRequest.setFailedRequest(true);
 			
 		} catch (org.springframework.dao.DataAccessException dae) {
 			

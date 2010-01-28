@@ -10,6 +10,6 @@ import edu.ucla.cens.awserver.datatransfer.AwRequest;
  */
 public interface Dao {
 
-	public void execute(AwRequest request);
+	public void execute(AwRequest awRequest);
 	
 }

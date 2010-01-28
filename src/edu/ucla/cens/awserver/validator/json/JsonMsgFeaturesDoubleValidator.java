@@ -33,12 +33,12 @@ public class JsonMsgFeaturesDoubleValidator extends AbstractAnnotatingJsonObject
 	 * the features object and a valid double
 	 * @return false otherwise
 	 */
-	public boolean validate(AwRequest request, JSONObject jsonObject) {		
+	public boolean validate(AwRequest awRequest, JSONObject jsonObject) {		
 		JSONObject object = JsonUtils.getJsonObjectFromJsonObject(jsonObject, "features");
 		Double value = JsonUtils.getDoubleFromJsonObject(object, _key);
 		
 		if(null == value) {
-			getAnnotator().annotate(request, _key + " double from features object in message is null or invalid");
+			getAnnotator().annotate(awRequest, _key + " double from features object in message is null or invalid");
 			return false;
 		}
 		

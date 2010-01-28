@@ -26,27 +26,27 @@ public class JsonMsgPromptVersionIdValidator extends AbstractDaoAnnotatingJsonOb
 	 * campaign found in the AwRequest.
 	 * @return false otherwise
 	 */
-	public boolean validate(AwRequest request, JSONObject jsonObject) {		 
+	public boolean validate(AwRequest awRequest, JSONObject jsonObject) {		 
 		String versionId = JsonUtils.getStringFromJsonObject(jsonObject, _key);
 		
 		if(null == versionId) {
-			getAnnotator().annotate(request, "version_id in message is null or invalid");
+			getAnnotator().annotate(awRequest, "version_id in message is null or invalid");
 			return false;
 		}
 		
-		request.setAttribute("versionId", versionId);
+		awRequest.setAttribute("versionId", versionId);
 		
 		try {
 		
-			getDao().execute(request);
+			getDao().execute(awRequest);
 			
 		} catch(DataAccessException daoe) { // unrecoverable error, just rethrow
 			
 			throw new ValidatorException(daoe);
 		}
 		
-		if(request.isFailedRequest()) {
-			getAnnotator().annotate(request, "prompt version_id " + versionId + " not found for campaign " + request.getAttribute("subdomain"));
+		if(awRequest.isFailedRequest()) {
+			getAnnotator().annotate(awRequest, "prompt version_id " + versionId + " not found for campaign " + awRequest.getAttribute("subdomain"));
 			return false;
 		}
 		

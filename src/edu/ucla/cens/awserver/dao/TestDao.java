@@ -30,12 +30,12 @@ public class TestDao extends AbstractDao {
 	/**
 	 * Runs the test query and places the results in the passed-in Map.
 	 */
-	public void execute(AwRequest request) {
+	public void execute(AwRequest awRequest) {
 		_logger.info("executing test query");
 		
 		try {
 			
-			request.setAttribute("results", getJdbcTemplate().query(_testSelect, new QueryRowMapper()));
+			awRequest.setAttribute("results", getJdbcTemplate().query(_testSelect, new QueryRowMapper()));
 			
 		} catch (org.springframework.dao.DataAccessException dae) {
 			

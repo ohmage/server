@@ -25,14 +25,14 @@ public class JsonMsgFeaturesFftArrayValuesValidator extends AbstractAnnotatingJs
 	 * @return true if the array contains ten valid doubles
 	 * @return false otherwise
 	 */
-	public boolean validate(AwRequest request, JSONObject jsonObject) {		
+	public boolean validate(AwRequest awRequest, JSONObject jsonObject) {		
 		JSONObject object = JsonUtils.getJsonObjectFromJsonObject(jsonObject, "features");
 		JSONArray array = JsonUtils.getJsonArrayFromJsonObject(object, _key);
 		
 		int length = array.length();
 		
 		if(length != 10) {
-			getAnnotator().annotate(request, "fft array contains an invalid number of entries: " + length);
+			getAnnotator().annotate(awRequest, "fft array contains an invalid number of entries: " + length);
 			return false;	
 		}
 		
@@ -42,7 +42,7 @@ public class JsonMsgFeaturesFftArrayValuesValidator extends AbstractAnnotatingJs
 			
 			if(null == value) {
 				
-				getAnnotator().annotate(request, "fft array contains an invalid double at index " + i);
+				getAnnotator().annotate(awRequest, "fft array contains an invalid double at index " + i);
 				return false;
 			}
 		}

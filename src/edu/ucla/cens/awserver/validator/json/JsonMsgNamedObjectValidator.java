@@ -30,11 +30,11 @@ public class JsonMsgNamedObjectValidator extends AbstractAnnotatingJsonObjectVal
 	 * @return true if the value returned from the AwRequest for the key set on construction returns a value that is a JSON Object
 	 * @return false otherwise
 	 */
-	public boolean validate(AwRequest request, JSONObject jsonObject) {		 
+	public boolean validate(AwRequest awRequest, JSONObject jsonObject) {		 
 		JSONObject object = JsonUtils.getJsonObjectFromJsonObject(jsonObject, _key);
 		
 		if(null == object) {
-			getAnnotator().annotate(request, _key + " object in message is null");
+			getAnnotator().annotate(awRequest, _key + " object in message is null");
 			return false;
 		}
 		

@@ -12,8 +12,8 @@ public interface Controller {
 	/**
 	 * Executes feature-specific logic using the incoming request.
 	 * 
-	 * @param request - feature parameters and user specific data 
+	 * @param awRequest - feature parameters and user specific data 
 	 */
-	public void execute(AwRequest request);
+	public void execute(AwRequest awRequest);
 	
 }

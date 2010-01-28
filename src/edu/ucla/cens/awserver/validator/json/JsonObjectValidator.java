@@ -12,6 +12,6 @@ import edu.ucla.cens.awserver.datatransfer.AwRequest;
  */
 public interface JsonObjectValidator {
 
-	public boolean validate(AwRequest request, JSONObject object);
+	public boolean validate(AwRequest awRequest, JSONObject object);
 	
 }

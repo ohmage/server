@@ -37,15 +37,15 @@ public class CampaignExistsService extends AbstractAnnotatingDaoService {
 	 * Uses the subdomain from the user's original request URI to determine whether the subdomain is mapped to an actual 
 	 * AndWellness campaign. 
 	 */
-	public void execute(AwRequest request) {
+	public void execute(AwRequest awRequest) {
 		try {
 			
-			getDao().execute(request);
-			List<?> results = (List<?>) request.getAttribute("results");
+			getDao().execute(awRequest);
+			List<?> results = (List<?>) awRequest.getAttribute("results");
 			
 			if(null == results || results.isEmpty()) { 
 				
-				getAnnotator().annotate(request, _errorMessage);
+				getAnnotator().annotate(awRequest, _errorMessage);
 				
 			}
 			

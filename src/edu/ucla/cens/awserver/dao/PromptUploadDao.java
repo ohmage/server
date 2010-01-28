@@ -46,16 +46,16 @@ public class PromptUploadDao extends AbstractUploadDao {
 	 * 
 	 * @throws IllegalArgumentException if the AwRequest does not contain an attribute called dataPackets
 	 */
-	public void execute(AwRequest request) {
+	public void execute(AwRequest awRequest) {
 		_logger.info("beginning prompt response persistence");
 		
-		List<DataPacket> dataPackets = (List<DataPacket>) request.getAttribute("dataPackets");
+		List<DataPacket> dataPackets = (List<DataPacket>) awRequest.getAttribute("dataPackets");
 		if(null == dataPackets) {
 			throw new IllegalArgumentException("no DataPackets found in the AwRequest");
 		}
 		
 		int numberOfPackets = dataPackets.size();
-		final int userId = request.getUser().getId();
+		final int userId = awRequest.getUser().getId();
 		
 		
 		for(int i = 0; i < numberOfPackets; i++) {
@@ -73,8 +73,8 @@ public class PromptUploadDao extends AbstractUploadDao {
 					  // (prompt_config_id) which has to be mapped to the prompt's "real" primary key
 				
 					 promptId = getJdbcTemplate().queryForInt(
-						_selectSql, new Object[]{request.getAttribute("campaignPromptGroupId"), 
-								                 request.getAttribute("campaignPromptVersionId"), 
+						_selectSql, new Object[]{awRequest.getAttribute("campaignPromptGroupId"), 
+								                 awRequest.getAttribute("campaignPromptVersionId"), 
 								                 response.getPromptConfigId()}
 				    );
 					
@@ -119,7 +119,7 @@ public class PromptUploadDao extends AbstractUploadDao {
 					if(isDuplicate(dive)) {
 						
 						_logger.info("found duplicate prompt response message");
-						handleDuplicate(request, i);
+						handleDuplicate(awRequest, i);
 						
 					} else {
 					

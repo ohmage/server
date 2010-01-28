@@ -16,9 +16,9 @@ public class FailedRequestAnnotator implements AwRequestAnnotator {
      * On the AwRequest, sets both the failedRequest property to true and the failedRequestErrorMessage property to the passed-in
      * message. 
 	 */
-	public void annotate(AwRequest request, String message) {
-		request.setFailedRequest(true);
-		request.setFailedRequestErrorMessage(message);
+	public void annotate(AwRequest awRequest, String message) {
+		awRequest.setFailedRequest(true);
+		awRequest.setFailedRequestErrorMessage(message);
 		
 		if(_logger.isDebugEnabled()) {
 			_logger.debug(message);

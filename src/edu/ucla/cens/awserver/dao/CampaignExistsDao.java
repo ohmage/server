@@ -31,15 +31,15 @@ public class CampaignExistsDao extends AbstractDao {
 	 * Checks the db for the existence of a user represented by a user name and a subdomain found in the AwRequest.
 	 * If a user is found, the campaigns that user belongs to are placed in the AwRequest payload Map.
 	 */
-	public void execute(AwRequest request) {
+	public void execute(AwRequest awRequest) {
 		if(_logger.isDebugEnabled()) {
-			_logger.debug("executing campaign existence check against subdomain " + request.getAttribute("subdomain"));
+			_logger.debug("executing campaign existence check against subdomain " + awRequest.getAttribute("subdomain"));
 		}
 		
 		try {
 			
-			request.setAttribute("results", getJdbcTemplate().query(_selectSql, 
-					             new Object[]{ request.getAttribute("subdomain") }, 
+			awRequest.setAttribute("results", getJdbcTemplate().query(_selectSql, 
+					             new Object[]{ awRequest.getAttribute("subdomain") }, 
 					             new QueryRowMapper()));
 			
 		} catch (org.springframework.dao.DataAccessException dae) {

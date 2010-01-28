@@ -25,16 +25,16 @@ public class JsonMsgTimeValidator extends AbstractAnnotatingJsonObjectValidator 
 	 * @return true if the value returned from the AwRequest for the key "time" exists and is > 0.
 	 * @return false otherwise
 	 */
-	public boolean validate(AwRequest request, JSONObject jsonObject) {
+	public boolean validate(AwRequest awRequest, JSONObject jsonObject) {
 		Long epoch = JsonUtils.getLongFromJsonObject(jsonObject, _key);
 		
 		if(null == epoch) {
-			getAnnotator().annotate(request, "time in message is null");
+			getAnnotator().annotate(awRequest, "time in message is null");
 			return false;
 		}
 		
 		if(epoch.longValue() < 0) { // before 1/1/1970
-			getAnnotator().annotate(request, "epoch time < 0");
+			getAnnotator().annotate(awRequest, "epoch time < 0");
 			return false;
 		}
 		

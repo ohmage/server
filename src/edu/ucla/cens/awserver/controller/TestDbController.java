@@ -34,7 +34,7 @@ public class TestDbController implements Controller {
     /**
      * Dispatch to instance variable DAO to run a test query.
      */
-	public void execute(AwRequest request) {
-		_dao.execute(request);
+	public void execute(AwRequest awRequest) {
+		_dao.execute(awRequest);
 	}
 }

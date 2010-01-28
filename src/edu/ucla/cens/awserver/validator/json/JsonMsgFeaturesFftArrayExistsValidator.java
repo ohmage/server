@@ -25,12 +25,12 @@ public class JsonMsgFeaturesFftArrayExistsValidator extends AbstractAnnotatingJs
 	 * @return true if the array contains ten valid doubles
 	 * @return false otherwise
 	 */
-	public boolean validate(AwRequest request, JSONObject jsonObject) {		
+	public boolean validate(AwRequest awRequest, JSONObject jsonObject) {		
 		JSONObject object = JsonUtils.getJsonObjectFromJsonObject(jsonObject, "features");
 		JSONArray array = JsonUtils.getJsonArrayFromJsonObject(object, _key);
 		
 		if(null == array) {
-			getAnnotator().annotate(request, _key + " array from features object in message is null or invalid");
+			getAnnotator().annotate(awRequest, _key + " array from features object in message is null or invalid");
 			return false;
 		}
 		

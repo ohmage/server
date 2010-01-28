@@ -23,22 +23,22 @@ public class FailedJsonSuppliedMessageRequestAnnotator implements AwRequestAnnot
      * 
      * @see FailedJsonRequestAnnotator.annotate for the JSON output message syntax
 	 */
-	public void annotate(AwRequest request, String message) {
-		request.setFailedRequest(true);
+	public void annotate(AwRequest awRequest, String message) {
+		awRequest.setFailedRequest(true);
 		JSONObject jsonObject = null;
 		
 		try {
 			
 			jsonObject = new JSONObject(message);
 			// now add the original request URL and the original JSON input message to the error output
-			jsonObject.put("request_url", request.getAttribute("requestUrl"));
-			jsonObject.put("request_json", request.getAttribute("jsonData"));
+			jsonObject.put("request_url", awRequest.getAttribute("requestUrl"));
+			jsonObject.put("request_json", awRequest.getAttribute("jsonData"));
 		
 		} catch(JSONException jsone) {  
 		
 			throw new IllegalStateException(jsone);
 		}
 		
-		request.setFailedRequestErrorMessage(jsonObject.toString());
+		awRequest.setFailedRequestErrorMessage(jsonObject.toString());
 	}
 }

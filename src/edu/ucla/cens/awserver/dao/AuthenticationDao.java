@@ -37,13 +37,13 @@ public class AuthenticationDao extends AbstractDao {
 	 * Checks the db for the existence of a user represented by a user name and a subdomain found in the AwRequest. Places the 
 	 * query results into LoginResult objects.
 	 */
-	public void execute(AwRequest request) {
-		_logger.info("attempting login for user " + request.getUser().getUserName());
+	public void execute(AwRequest awRequest) {
+		_logger.info("attempting login for user " + awRequest.getUser().getUserName());
 		
 		try {
 			
-			request.setAttribute("results", getJdbcTemplate().query(_selectSql, 
-					             new Object[]{request.getUser().getUserName(), request.getAttribute("subdomain")}, 
+			awRequest.setAttribute("results", getJdbcTemplate().query(_selectSql, 
+					             new Object[]{awRequest.getUser().getUserName(), awRequest.getAttribute("subdomain")}, 
 					             new QueryRowMapper()));
 			
 		} catch (org.springframework.dao.DataAccessException dae) {

@@ -32,11 +32,11 @@ public abstract class AbstractUploadDao extends AbstractDao {
 	/**
 	 * Logs a duplicate record index to the AwRequest. 
 	 */
-	public void handleDuplicate(AwRequest request, int duplicateIndex) {
-		List<Integer> duplicateIndexList = (List<Integer>) request.getAttribute("duplicateIndexList");
+	public void handleDuplicate(AwRequest awRequest, int duplicateIndex) {
+		List<Integer> duplicateIndexList = (List<Integer>) awRequest.getAttribute("duplicateIndexList");
 		if(null == duplicateIndexList) {
 			duplicateIndexList = new ArrayList<Integer>();
-			request.setAttribute("duplicateIndexList", duplicateIndexList);
+			awRequest.setAttribute("duplicateIndexList", duplicateIndexList);
 		}
 		duplicateIndexList.add(duplicateIndex);
 	}

@@ -55,22 +55,22 @@ public class PromptResponseGroupDao extends AbstractDao {
 	/**
 	 * Retrieves the prompt type and restrictions on the type based on the promptIdArray attribute found in the AwRequest.
 	 */
-	public void execute(AwRequest request) {
+	public void execute(AwRequest awRequest) {
 		_logger.info("looking up prompt restrictions for prompts " + 
-			StringUtils.intArrayToString((int[]) request.getAttribute("promptIdArray")) + " for campaign " + 
-			request.getAttribute("subdomain") + ", campaign prompt group " + request.getAttribute("campaignPromptGroupId") +
-			", and campaign prompt version " + request.getAttribute("campaignPromptVersionId")
+			StringUtils.intArrayToString((int[]) awRequest.getAttribute("promptIdArray")) + " for campaign " + 
+			awRequest.getAttribute("subdomain") + ", campaign prompt group " + awRequest.getAttribute("campaignPromptGroupId") +
+			", and campaign prompt version " + awRequest.getAttribute("campaignPromptVersionId")
 		);
 		
 		try {
 			
-			int promptGroupId = (Integer) request.getAttribute("campaignPromptGroupId");
-			int promptVersionId = (Integer) request.getAttribute("campaignPromptVersionId");
+			int promptGroupId = (Integer) awRequest.getAttribute("campaignPromptGroupId");
+			int promptVersionId = (Integer) awRequest.getAttribute("campaignPromptVersionId");
 			
 			// _logger.info("pgid=" + promptGroupId + " pvid=" + promptVersionId);
 			
 			// dynamically generate the SQL in clause based on the idArray
-			final int[] idArray = (int[]) request.getAttribute("promptIdArray");
+			final int[] idArray = (int[]) awRequest.getAttribute("promptIdArray");
 			int size = idArray.length;
 			
 			// First, check whether the number of entries in the array represents the correct number of prompts for the group
@@ -79,7 +79,7 @@ public class PromptResponseGroupDao extends AbstractDao {
 			if(size != numberOfPromptsInGroup) {
 				_logger.info("incorrect number of prompts for group. prompts received = " + size + ". prompts expected = " 
 					+ numberOfPromptsInGroup);
-				request.setFailedRequest(true);
+				awRequest.setFailedRequest(true);
 				return;
 			}
 			
@@ -122,7 +122,7 @@ public class PromptResponseGroupDao extends AbstractDao {
 				}
 			);
 					
-			request.setAttribute("promptRestrictions", list);
+			awRequest.setAttribute("promptRestrictions", list);
 			
 		}  catch (org.springframework.dao.DataAccessException dae) {
 			
