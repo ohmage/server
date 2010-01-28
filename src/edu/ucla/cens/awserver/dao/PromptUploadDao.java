@@ -9,6 +9,7 @@ import java.util.List;
 import javax.sql.DataSource;
 
 import org.apache.log4j.Logger;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.PreparedStatementCreator;
@@ -24,8 +25,9 @@ import edu.ucla.cens.awserver.domain.PromptDataPacket.PromptResponseDataPacket;
  * 
  * @author selsky
  */
-public class PromptUploadDao extends AbstractDao {
+public class PromptUploadDao extends AbstractUploadDao {
 	private static Logger _logger = Logger.getLogger(PromptUploadDao.class);
+	// TODO custom logger for logging dupes
 	
 	private final String _selectSql = "select id from prompt" +
 			                          " where campaign_prompt_group_id = ?" +
@@ -42,15 +44,19 @@ public class PromptUploadDao extends AbstractDao {
 	}
 	
 	/**
-	 * Inserts prompt upload DataPackets into the DB. 
+	 * Inserts prompt upload DataPackets into the DB.
+	 * 
+	 * @throws IllegalArgumentException if the AwRequest does not contain an attribute called dataPackets
 	 */
 	public void execute(AwRequest request) {
-		_logger.info("beginning prompt upload persistence");
+		_logger.info("beginning prompt response persistence");
 		
 		List<DataPacket> dataPackets = (List<DataPacket>) request.getAttribute("dataPackets");
-		int numberOfPackets = dataPackets.size();
+		if(null == dataPackets) {
+			throw new IllegalArgumentException("no DataPackets found in the AwRequest");
+		}
 		
-		_logger.info("found " + numberOfPackets + " packets");
+		int numberOfPackets = dataPackets.size();
 		
 		final int userId = request.getUser().getId();
 		
@@ -60,30 +66,36 @@ public class PromptUploadDao extends AbstractDao {
 			List<PromptResponseDataPacket> promptResponses = promptDataPacket.getResponses();
 			int numberOfResponses = promptResponses.size();
 			
-			_logger.info("found " + numberOfResponses + " responses");
-			
 			JdbcTemplate template = new JdbcTemplate(getDataSource());
 			
 			for(int j = 0; j < numberOfResponses; j++) {
 				
-				_logger.info("in loop at index " + j);
-				
 				final PromptResponseDataPacket response = promptResponses.get(j);
+				final int promptId;
 				
-				try {
+				try { // get the internal prompt_id -- the device uploading the data has it's own local configuration 
+					  // (prompt_config_id) which has to be mapped to the prompt's "real" primary key
 				
-					final int promptId = template.queryForInt(
+					 promptId = template.queryForInt(
 						_selectSql, new Object[]{request.getAttribute("campaignPromptGroupId"), 
 								                 request.getAttribute("campaignPromptVersionId"), 
 								                 response.getPromptConfigId()}
 				    );
 					
-					_logger.info("found prompt id  " + promptId);
+				} catch(IncorrectResultSizeDataAccessException irsdae) { // the query did not return one row, a bad data problem.
+					                                                     // it means that the device uploading data has multiple
+					                                                     // prompts mapped to one prompt_config_id-group_id-version_id
+					                                                     // combination
 					
-					// Now insert the response 
+					throw new DataAccessException(irsdae);
 					
-					// TODO -- check for duplicates for any exception thrown, log duplicates
-					// exception handling
+				}
+				catch(org.springframework.dao.DataAccessException dae) { // serious db problem (connectivity, config, etc)
+					 
+					throw new DataAccessException(dae);
+				}
+				 
+				try { // Now insert the response -- auto committed by MySQL (the default setting)
 					
 					int numberOfRowsUpdated = template.update( 
 						new PreparedStatementCreator() {
@@ -105,17 +117,32 @@ public class PromptUploadDao extends AbstractDao {
 					
 					_logger.info("number of rows updated = " + numberOfRowsUpdated);
 					
-				
-				} catch(IncorrectResultSizeDataAccessException irsdae) { // the _selectSql query did not return one row, a bad data problem.
+				}
+				catch(DataIntegrityViolationException dive) { 
 					
-					throw new DataAccessException(irsdae);
+					if(isDuplicate(dive)) {
+						
+						_logger.info("found duplicate");
+						handleDuplicate();
+						
+					} else {
 					
-				} catch(org.springframework.dao.DataAccessException dae) {
+						// some other integrity violation occurred - bad!! All of the data to be inserted must be validated
+						// before this DAO runs so there is either missing validation or somehow an auto_incremented key
+						// has been duplicated
+						throw new DataAccessException(dive);
+					}
 					
+				}
+				catch(org.springframework.dao.DataAccessException dae) { // some other bad db problem occurred that prevented the
+					                                                     // SQL from completing normally 
+					 
 					throw new DataAccessException(dae);
 				}
-				
 			}
 		}
+		
+		_logger.info("successully persisted prompt response");
+		
 	}
 }
