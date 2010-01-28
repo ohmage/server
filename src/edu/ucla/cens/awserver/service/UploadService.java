@@ -33,7 +33,7 @@ public class UploadService implements Service {
 	}
 	
 	/**
-	 * 
+	 * Dispatches to a DAO depending on the request type.
 	 */
 	public void execute(AwRequest awRequest) {
 		try {
