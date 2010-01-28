@@ -53,6 +53,9 @@ public class SensorUploadAwRequestCreator implements AwRequestCreator {
 		user.setUserName(userName);
 		
 		AwRequestImpl awRequest = new AwRequestImpl();
+		
+		awRequest.setAttribute("startTime", System.currentTimeMillis());
+		
 		awRequest.setUser(user);
 		awRequest.setAttribute("subdomain", subdomain);
 		awRequest.setAttribute("requestType", requestType);
