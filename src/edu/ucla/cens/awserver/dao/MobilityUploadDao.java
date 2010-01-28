@@ -57,20 +57,23 @@ public class MobilityUploadDao extends AbstractUploadDao {
 		}
 		
 		int userId = awRequest.getUser().getId();
+		int index = -1;
 		
 		for(DataPacket dataPacket : dataPackets) {
 			
 			try {
+				index++;
 				int numberOfRowsUpdated = 0;
+				boolean modeFeatures = false;
 				
 				if(dataPacket instanceof MobilityModeFeaturesDataPacket) { // the order of these instanceofs is important because
 					                                                       // a MobilityModeFeaturesDataPacket is a 
 					                                                       // MobilityModeOnlyDataPacket -- need to check for the 
 					                                                       // superclass first -- maybe move away from instanceof?
-					
+					modeFeatures = true;
 					numberOfRowsUpdated = insertMobilityModeFeatures((MobilityModeFeaturesDataPacket)dataPacket, userId);
 					
-				} else if (dataPacket instanceof MobilityModeOnlyDataPacket){ // dataPacket instanceof MobilityModeOnlyDataPacket
+				} else if (dataPacket instanceof MobilityModeOnlyDataPacket){
 					
 					numberOfRowsUpdated = insertMobilityModeOnly((MobilityModeOnlyDataPacket)dataPacket, userId);
 					
@@ -81,15 +84,15 @@ public class MobilityUploadDao extends AbstractUploadDao {
 				
 				if(1 != numberOfRowsUpdated) {
 					throw new DataAccessException("inserted multiple rows even though one row was intended. sql: " 
-							+ _insertMobilityModeOnlySql); 
+							+  (modeFeatures ? _insertMobilityModeFeaturesSql : _insertMobilityModeOnlySql)); 
 				}
 			
 			} catch (DataIntegrityViolationException dive) { 
 				
 				if(isDuplicate(dive)) {
 					
-					_logger.info("found duplicate");
-					handleDuplicate();
+					_logger.info("found a duplicate mobility message");
+					handleDuplicate(awRequest, index);
 					
 				} else {
 				
@@ -107,7 +110,7 @@ public class MobilityUploadDao extends AbstractUploadDao {
 			}
 		}
 		
-		_logger.info("successfully persisted mobility messages");
+		_logger.info("completed mobility message persistence");
 	}
 	
 	/**
