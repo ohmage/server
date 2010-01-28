@@ -41,7 +41,7 @@ public class JsonMsgPromptResponsesValidator extends AbstractDaoAnnotatingJsonOb
 		JSONArray jsonArray = JsonUtils.getJsonArrayFromJsonObject(jsonObject, _key);
 		
 		// Each element in the array must contain a prompt_id and a response element
-		// The response element is allowed to be null signifying "no response"
+		// The response element is allowed to be "null" or "response skipped"
 		int jsonArrayLength = jsonArray.length();
 		int[] idArray = new int[jsonArrayLength];
 		
@@ -50,14 +50,14 @@ public class JsonMsgPromptResponsesValidator extends AbstractDaoAnnotatingJsonOb
 		
 			JSONObject object = JsonUtils.getJsonObjectFromJsonArray(jsonArray, i);
 			
-			if(null == object) {
+			if(null == object) { // invalid data from phone
 				getAnnotator().annotate(request, "null object for prompt responses array at responses index " + i);
 				return false;
 			}
 			
 			Integer id = JsonUtils.getIntegerFromJsonObject(object, "prompt_id");
 			
-			if(null == id) {
+			if(null == id) { // invalid data from phone
 				getAnnotator().annotate(request, "missing or invalid prompt_id for prompt responses array at responses index " + i);
 				return false;
 			}
@@ -67,8 +67,6 @@ public class JsonMsgPromptResponsesValidator extends AbstractDaoAnnotatingJsonOb
 		
 		// Now check the DAO for prompt existence (the entire group) and grab the validation restrictions
 		
-		// TODO should really have another abstraction here to pass to the DAO (transfer object) rather than 
-		// abusing the AwRequest
 		request.setAttribute("promptIdArray", idArray); // Prep request for DAO
 		
 		try {
@@ -87,6 +85,8 @@ public class JsonMsgPromptResponsesValidator extends AbstractDaoAnnotatingJsonOb
 		
 		List<?> promptTypeList = (List<?>) request.getAttribute("promptRestrictions");
 		
+		// TODO - both of these errors are due to the phone sending data that does not match what is 
+		// in the db so there is a serious configuration problem
 		if(null == promptTypeList || promptTypeList.isEmpty()) {
 			getAnnotator().annotate(request, "prompt type restrictions not found");
 			return false;
@@ -119,15 +119,19 @@ public class JsonMsgPromptResponsesValidator extends AbstractDaoAnnotatingJsonOb
 			
 			String response = JsonUtils.getStringFromJsonObject(promptResponse, "response");
 			
-			PromptResponseValidator validator = PromptResponseValidatorFactory.make(promptType);
-			
-			if(_logger.isDebugEnabled()) {
-				_logger.info("validating response value " + response + " using " + promptType);
-			}
-			
-			if(! validator.validate(response)) {
-				getAnnotator().annotate(request, "invalid prompt response");
-				return false;
+			if(! ("null".equals(response) || "response skipped".equals(response))) { // 'null' or 'response skipped' is a valid response
+				                                                                     // for any prompt
+				
+				PromptResponseValidator validator = PromptResponseValidatorFactory.make(promptType);
+				
+				if(_logger.isDebugEnabled()) {
+					_logger.info("validating response value " + response + " using " + promptType);
+				}
+				
+				if(! validator.validate(response)) {
+					getAnnotator().annotate(request, "invalid prompt response");
+					return false;
+				}
 			}
 		}
 		
