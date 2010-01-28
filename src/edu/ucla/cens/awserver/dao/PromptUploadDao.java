@@ -26,7 +26,6 @@ import edu.ucla.cens.awserver.domain.PromptDataPacket.PromptResponseDataPacket;
  */
 public class PromptUploadDao extends AbstractUploadDao {
 	private static Logger _logger = Logger.getLogger(PromptUploadDao.class);
-	// TODO custom logger for logging dupes
 	
 	private final String _selectSql = "select id from prompt" +
 			                          " where campaign_prompt_group_id = ?" +
@@ -56,8 +55,8 @@ public class PromptUploadDao extends AbstractUploadDao {
 		}
 		
 		int numberOfPackets = dataPackets.size();
-		
 		final int userId = request.getUser().getId();
+		
 		
 		for(int i = 0; i < numberOfPackets; i++) {
 			
@@ -119,8 +118,8 @@ public class PromptUploadDao extends AbstractUploadDao {
 					
 					if(isDuplicate(dive)) {
 						
-						_logger.info("found duplicate");
-						handleDuplicate();
+						_logger.info("found duplicate prompt response message");
+						handleDuplicate(request, i);
 						
 					} else {
 					
