@@ -1,8 +1,12 @@
 package edu.ucla.cens.awserver.dao;
 
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.sql.DataSource;
+
+import edu.ucla.cens.awserver.datatransfer.AwRequest;
 
 
 /**
@@ -11,8 +15,6 @@ import javax.sql.DataSource;
  * @author selsky
  */
 public abstract class AbstractUploadDao extends AbstractDao {
-	
-	
 	
 	public AbstractUploadDao(DataSource datasource) {
 		super(datasource);
@@ -28,11 +30,14 @@ public abstract class AbstractUploadDao extends AbstractDao {
 	}
 	
 	/**
-	 * 
+	 * Logs a duplicate record index to the AwRequest. 
 	 */
-	public void handleDuplicate() {
-		
-		
+	public void handleDuplicate(AwRequest request, int duplicateIndex) {
+		List<Integer> duplicateIndexList = (List<Integer>) request.getAttribute("duplicateIndexList");
+		if(null == duplicateIndexList) {
+			duplicateIndexList = new ArrayList<Integer>();
+			request.setAttribute("duplicateIndexList", duplicateIndexList);
+		}
+		duplicateIndexList.add(duplicateIndex);
 	}
-	
 }
