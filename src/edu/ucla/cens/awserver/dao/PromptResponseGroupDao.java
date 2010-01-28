@@ -68,6 +68,7 @@ public class PromptResponseGroupDao extends AbstractDao {
 		JdbcTemplate template = new JdbcTemplate(getDataSource());
 		
 		try {
+			
 			int promptGroupId = (Integer) request.getAttribute("campaignPromptGroupId");
 			int promptVersionId = (Integer) request.getAttribute("campaignPromptVersionId");
 			
