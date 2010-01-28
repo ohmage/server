@@ -107,6 +107,9 @@ public class SensorUploadServlet extends HttpServlet {
 		catch(ControllerException ce) { 
 			
 			_logger.error("", ce); // make sure the stack trace gets into our app log
+			
+			// TODO - send back a JSON error response 
+			
 			throw ce; // re-throw and allow Tomcat to redirect to the configured error page. the stack trace will also end up
 			          // in catalina.out
 			
