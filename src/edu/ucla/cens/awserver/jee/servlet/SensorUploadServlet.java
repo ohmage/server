@@ -100,7 +100,7 @@ public class SensorUploadServlet extends HttpServlet {
 				
 			} 
 			
-			request.getSession().invalidate(); // sensor data uploads only have state for the duration of a particular request
+			request.getSession().invalidate(); // sensor data uploads only have state for the duration of a request
 			
 		}
 		
