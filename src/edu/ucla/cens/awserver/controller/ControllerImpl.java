@@ -1,5 +1,7 @@
 package edu.ucla.cens.awserver.controller;
 
+import org.apache.log4j.Logger;
+
 import edu.ucla.cens.awserver.datatransfer.AwRequest;
 import edu.ucla.cens.awserver.service.Service;
 import edu.ucla.cens.awserver.service.ServiceException;
@@ -12,8 +14,11 @@ import edu.ucla.cens.awserver.validator.ValidatorException;
  * @author selsky
  */
 public class ControllerImpl implements Controller {
+	private static Logger _logger = Logger.getLogger(ControllerImpl.class);
+	
 	private Validator[] _validators;
 	private Service[]   _services;
+	private Service _postProcessingService;
 	
 	/**
 	 * Instantiates this class with the passed-in Validator and Service arrays. An array of Services is required for this 
@@ -21,42 +26,51 @@ public class ControllerImpl implements Controller {
 	 * 
 	 * @throws IllegalArgumentException if an empty or null array of Services is passed in.  
 	 */
-	public ControllerImpl(Validator[] validators, Service[] services) {
+	public ControllerImpl(Service[] services) {
 		if(null == services || services.length == 0) {
 			throw new IllegalArgumentException("a null or zero-length array of Services is not allowed");
 		}
-		
-		_validators = validators; // TODO validators should be setter-injected if they are not required
 		_services = services;
 	}
 	
+	/**
+	 * 
+	 */
 	public void execute(AwRequest awRequest) {
 		try {
-
+			boolean continueProcessing = true;
+			
 			if(null != _validators) { // for some requests input validation is optional
+				
+				_logger.info("validating request");
 				
 				for(Validator validator : _validators) {
 				
 					if(! validator.validate(awRequest)) {
 						
-						return; // exit because top-level validation failed
+						continueProcessing = false;
 						
 					}
 				}	
 			}
 			
-			for(Service service : _services) {
+			if(continueProcessing) {
 				
-				service.execute(awRequest);
+				_logger.info("servicing request");
 				
-			    if(awRequest.isFailedRequest()) { // bail out because the request could not be completed successfully
+				for(Service service : _services) {
 					
-					break;
+					service.execute(awRequest);
+					
+				    if(awRequest.isFailedRequest()) { // bail out because the request could not be completed successfully
+						
+						break;
+					}
 				}
 			}
 		}
 		
-		catch(ValidatorException ve) { // an unrecoverable logical or system-level error has occurred
+		catch(ValidatorException ve) { // an unrecoverable logical error has occurred
 
 			throw new ControllerException(ve);	
 			
@@ -69,8 +83,27 @@ public class ControllerImpl implements Controller {
 		
 		finally {
 
-			// log input and output
-			
+			if(_postProcessingService != null) {
+				
+				_postProcessingService.execute(awRequest);
+
+			}
 		}
 	}
+
+	public void setValidators(Validator[] validators) {
+		if(validators == null || validators.length == 0) {
+			throw new IllegalArgumentException("setValidators invoked with a null or zero-length array");
+		}
+		
+		_validators = validators;
+	}
+
+	public void setPostProcessingService(Service postProcessingService) {
+		if(null == postProcessingService) {
+			throw new IllegalStateException("setPostProcessingService invoked with a null Service");
+		}
+		_postProcessingService = postProcessingService;
+	}
+	
 }
