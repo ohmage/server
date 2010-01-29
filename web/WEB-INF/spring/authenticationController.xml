@@ -16,15 +16,15 @@
   <bean id="authenticationController" class="edu.ucla.cens.awserver.controller.ControllerImpl">
     <constructor-arg index="0">
       <list>
-        <ref bean="formBasedLoginUserNameValidator" />
-        <ref bean="emptySubdomainValidator" />
-      </list>
-    </constructor-arg>
-    <constructor-arg index="1">
-      <list>
         <ref bean="authenticationService" />
       </list>
     </constructor-arg>
+    <property name="validators">
+      <list>
+        <ref bean="formBasedLoginUserNameValidator" />
+        <ref bean="emptySubdomainValidator" />
+      </list>      
+    </property>
   </bean>
   
   <!-- Service the authentication request -->

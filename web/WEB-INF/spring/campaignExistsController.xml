@@ -8,9 +8,6 @@
   <!--  Main Controller -->
   <bean id="campaignExistsController" class="edu.ucla.cens.awserver.controller.ControllerImpl">
       <constructor-arg index="0">
-        <null />
-      </constructor-arg>
-      <constructor-arg index="1">
         <list>
           <ref bean="campaignExistsService" />
         </list>
