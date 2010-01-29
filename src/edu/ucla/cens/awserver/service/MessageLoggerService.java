@@ -36,20 +36,27 @@ public class MessageLoggerService implements Service {
 	}
 	
 	private void logUploadStats(AwRequest awRequest) {
-		JSONArray jsonArray = (JSONArray) awRequest.getAttribute("jsonData");
-		List<Integer> duplicateIndexList = (List<Integer>) awRequest.getAttribute("duplicateIndexList");
+		Object data = awRequest.getAttribute("jsonData");
+		String totalNumberOfMessages = "unknown";
+		String numberOfDuplicates = "unknown";
 		
-		int totalNumberOfMessages = jsonArray.length();
-		int numberOfDuplicates = 0;
-		if(null != duplicateIndexList && duplicateIndexList.size() > 0) {
-			numberOfDuplicates = duplicateIndexList.size(); 
-		}
-				
+		if(data instanceof JSONArray) {
+			totalNumberOfMessages = String.valueOf(((JSONArray) data).length());
+			
+			List<Integer> duplicateIndexList = (List<Integer>) awRequest.getAttribute("duplicateIndexList");
+			
+			if(null != duplicateIndexList && duplicateIndexList.size() > 0) {
+				numberOfDuplicates = String.valueOf(duplicateIndexList.size()); 
+			} else {
+				numberOfDuplicates = "0";
+			}
+		}	
+		
 		long processingTime = System.currentTimeMillis() - (Long) awRequest.getAttribute("startTime");
 		
 		StringBuilder builder = new StringBuilder();
 		
-		if( awRequest.isFailedRequest()) {
+		if(awRequest.isFailedRequest()) {
 			builder.append("failed_upload");
 		} else {
 			builder.append("successful_upload");
@@ -62,6 +69,7 @@ public class MessageLoggerService implements Service {
 		builder.append(" proccessingTimeMillis=" + processingTime);
 		
 		_uploadLogger.info(builder.toString());
+		
 	}
 
 	private void logUploadToFilesystem(AwRequest awRequest) {
@@ -69,17 +77,18 @@ public class MessageLoggerService implements Service {
 		SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMddHHmmssSSS");
 		String fileName = awRequest.getUser().getUserName() + "-" + sdf.format(new Date());
 		String catalinaBase = System.getProperty("catalina.base"); // need a system prop called upload-logging-directory or something like that
-
-		JSONArray jsonArray = (JSONArray) awRequest.getAttribute("jsonData");
+		
+		Object data = awRequest.getAttribute("jsonData"); // could either be a String or a JSONArray depending on where the main
+		                                                  // application processing ended
 		
 		try {
-			PrintWriter printWriter = new PrintWriter(new BufferedWriter(new FileWriter(new File(catalinaBase + "/uploads/" + fileName  + "-upload.json")))); 
-			printWriter.write(jsonArray.toString());
+			PrintWriter printWriter = new PrintWriter(new BufferedWriter(new FileWriter(new File(catalinaBase + "/uploads/" + fileName  + "-upload.json"))));
+			printWriter.write(data.toString());
 			close(printWriter);
 		
 			if(awRequest.isFailedRequest()) {
 				
-				printWriter = new PrintWriter(new BufferedWriter(new FileWriter(new File(catalinaBase + "/uploads/" + fileName  + "-upload-response.json")))); 
+				printWriter = new PrintWriter(new BufferedWriter(new FileWriter(new File(catalinaBase + "/uploads/" + fileName  + "-failed-upload-response.json")))); 
 				printWriter.write(awRequest.getFailedRequestErrorMessage());
 				close(printWriter);
 			}
@@ -90,7 +99,7 @@ public class MessageLoggerService implements Service {
 				printWriter = new PrintWriter(new BufferedWriter(new FileWriter(new File(catalinaBase + "/uploads/" + fileName  + "-upload-duplicates.json"))));
 				
 				for(Integer index : duplicateIndexList) {
-					printWriter.write(JsonUtils.getJsonObjectFromJsonArray(jsonArray, index).toString());
+					printWriter.write(JsonUtils.getJsonObjectFromJsonArray((JSONArray) data, index).toString());
 				}
 				
 				close(printWriter);
@@ -98,7 +107,7 @@ public class MessageLoggerService implements Service {
 		}
 		catch(IOException ioe) {
 	
-			_logger.warn("caught IOException when logger upload data to the filesystem. " + ioe.getMessage());
+			_logger.warn("caught IOException when logging upload data to the filesystem. " + ioe.getMessage());
 			throw new ServiceException(ioe);
 		}
 	}
