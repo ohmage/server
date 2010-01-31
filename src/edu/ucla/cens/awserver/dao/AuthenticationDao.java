@@ -21,11 +21,12 @@ public class AuthenticationDao extends AbstractDao {
 	// Note that the user role is not checked - future feature
 	// Also, in the future, we may have users that belong to multiple campaigns in which case
 	// the authentication flow will have to be rethought a bit.
-	private static final String _selectSql = "select user.id, user.enabled, campaign.id from user, user_role_campaign, campaign " +
+	private static final String _selectSql = "select user.id, user.enabled, campaign.id from campaign, user, user_role_campaign " +
 			                                 "where user.login_id = ? " +
 			                                     "and user.id = user_role_campaign.user_id " +
-			                                     "and user_role_campaign.id = campaign.id " +
-			                                     "and campaign.subdomain = ?";
+			                                     "and campaign.subdomain = ? " + 
+			                                     "and campaign.id = user_role_campaign.campaign_id";
+	
 	/**
 	 * Creates an instance of this class that will use the supplied DataSource for data retrieval.
 	 */
@@ -41,9 +42,8 @@ public class AuthenticationDao extends AbstractDao {
 		_logger.info("attempting login for user " + awRequest.getUser().getUserName());
 		
 		try {
-			
 			awRequest.setAttribute("results", getJdbcTemplate().query(_selectSql, 
-					             new Object[]{awRequest.getUser().getUserName(), awRequest.getAttribute("subdomain")}, 
+					             new String[]{awRequest.getUser().getUserName(), (String) awRequest.getAttribute("subdomain")}, 
 					             new QueryRowMapper()));
 			
 		} catch (org.springframework.dao.DataAccessException dae) {
