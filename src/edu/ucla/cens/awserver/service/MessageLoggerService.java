@@ -83,7 +83,11 @@ public class MessageLoggerService implements Service {
 		
 		try {
 			PrintWriter printWriter = new PrintWriter(new BufferedWriter(new FileWriter(new File(catalinaBase + "/uploads/" + fileName  + "-upload.json"))));
-			printWriter.write(data.toString());
+			if(null != data) {			
+				printWriter.write(data.toString());
+			} else {
+				printWriter.write("no data");
+			}
 			close(printWriter);
 		
 			if(awRequest.isFailedRequest()) {
