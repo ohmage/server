@@ -9,7 +9,7 @@ import edu.ucla.cens.awserver.util.JsonUtils;
 
 /**
  * Some JSON restrictions for prompt responses are defined by maps. The phone/device must send a valid key based on the restriction
- * for each particular map type. 
+ * for each particular map type. All map keys for prompt responses are defined to be integers.
  * 
  * @author selsky
  */
@@ -42,7 +42,7 @@ public class MapValidator extends NullValidator {
 	}
 	
 	/**
-	 * @return true if the response consists of a known key or is the string "null"
+	 * @return true if the response consists of a known integer key or is the string "null"
 	 * @return false otherwise
 	 */
 	public boolean validate(String response) {
@@ -50,7 +50,18 @@ public class MapValidator extends NullValidator {
 			return true;
 		}
 		
-		return _keyList.contains(Integer.parseInt(response));
+		int val = 0;
+		
+		try {
+			
+			val = Integer.parseInt(response);
+			
+		} catch(NumberFormatException nfe) {
+			
+			return false;
+		}
+		
+		return _keyList.contains(val);
 		
 	}
 
