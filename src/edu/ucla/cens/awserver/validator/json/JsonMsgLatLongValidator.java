@@ -46,6 +46,26 @@ public class JsonMsgLatLongValidator extends AbstractAnnotatingJsonObjectValidat
 				getAnnotator().annotate(awRequest, _key + " in message is null or invalid. value: " + stringLatLong);
 				return false;
 			}
+			
+		} else {
+			
+			if("latitude".equals(_key)) {
+				
+				double latitude = latlong.doubleValue();
+				if(latitude < -90d || latitude > 90d) {
+					getAnnotator().annotate(awRequest, _key + " is invalid. value: " + latitude);
+					return false;
+				}
+				
+			} else if ("longitude".equals(_key)) {
+				
+				double longitude = latlong.doubleValue();
+				if(longitude < -180d || longitude > 180d) {
+					getAnnotator().annotate(awRequest, _key + " is invalid. value: " + longitude);
+					return false;
+				}
+				
+			}
 		}
 		
 		return true;
