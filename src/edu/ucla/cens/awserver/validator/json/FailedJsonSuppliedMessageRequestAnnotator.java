@@ -10,10 +10,6 @@ import edu.ucla.cens.awserver.validator.AwRequestAnnotator;
  * An annotator to be used when a JSON-based request fails and the message is custom to each invocation of the annotate() method.
  * @see FailedJsonRequestAnnotator
  * 
- * 
- * This class is so dumb - there should just be a setter on FailedJsonRequestAnnotator
- * 
- * 
  * @author selsky
  */
 public class FailedJsonSuppliedMessageRequestAnnotator implements AwRequestAnnotator {
