@@ -87,6 +87,7 @@ public class JsonMsgPromptResponsesValidator extends AbstractDaoAnnotatingJsonOb
 		
 		// TODO - both of these errors are due to the phone sending data that does not match what is 
 		// in the db so there is a serious configuration problem
+		// An exception needs to be thrown ...
 		if(null == promptTypeList || promptTypeList.isEmpty()) {
 			getAnnotator().annotate(awRequest, "prompt type restrictions not found");
 			return false;
@@ -128,6 +129,8 @@ public class JsonMsgPromptResponsesValidator extends AbstractDaoAnnotatingJsonOb
 					_logger.info("validating response value " + response + " using " + promptType);
 				}
 				
+				awRequest.setAttribute("currentPromptId", JsonUtils.getIntegerFromJsonObject(promptResponse, "prompt_id"));
+								
 				if(! validator.validate(response)) {
 					getAnnotator().annotate(awRequest, "invalid prompt response");
 					return false;
