@@ -149,7 +149,7 @@
     </init-param>
     
     <!--  The following init-params are used to map the servlet to Spring-configured beans that ultimately service the request. 
-          The param-value elements are Spring bead ids.    
+          The param-value elements are Spring bean ids.    
     -->
     <init-param>
       <param-name>controllerName</param-name>
@@ -187,7 +187,7 @@
       <param-value>/app/login.jsp</param-value>
     </init-param>
     <!--  The following init-params are used to map the servlet to Spring-configured beans that ultimately service the request. 
-          The param-value elements are Spring bead ids.    
+          The param-value elements are Spring bean ids.    
     -->
     <init-param>
       <param-name>controllerName</param-name>
@@ -217,7 +217,7 @@
     <servlet-class>edu.ucla.cens.awserver.jee.servlet.SensorUploadServlet</servlet-class>
     
     <!--  The following init-params are used to map the servlet to Spring-configured beans that ultimately service the request. 
-          The param-value elements are Spring bead ids. -->  
+          The param-value elements are Spring bean ids. -->  
     
     <init-param>
       <param-name>awRequestCreatorName</param-name>
@@ -240,6 +240,35 @@
     <url-pattern>/app/sensor/upload</url-pattern>
   </servlet-mapping>
   
+  <!--  Handle EMA Visualization Queries  -->
+  <servlet>
+    <description>
+      Runs visualization queries for EMA (prompt/survey response) data. 
+    </description>
+    <servlet-name>EmaQuery</servlet-name>
+    <servlet-class>edu.ucla.cens.awserver.jee.servlet.VizServlet</servlet-class>
+    <init-param>
+      <param-name>redirectUrl</param-name>
+      <param-value>/app/viz.jsp</param-value>
+    </init-param>
+    <!--  The following init-params are used to map the servlet to Spring-configured beans that ultimately service the request. 
+          The param-value elements are Spring bean ids.    
+    -->
+    <init-param>
+      <param-name>controllerName</param-name>
+      <param-value>emaVizController</param-value>
+    </init-param>
+    <init-param>
+      <param-name>awRequestCreatorName</param-name>
+      <param-value>emaVizAwRequestCreator</param-value>
+    </init-param>
+    <load-on-startup>1</load-on-startup>
+  </servlet>
+  
+  <servlet-mapping>
+    <servlet-name>EmaQuery</servlet-name>
+    <url-pattern>/app/viz</url-pattern>
+  </servlet-mapping>
   
   <welcome-file-list>
     <welcome-file>index.html</welcome-file>
