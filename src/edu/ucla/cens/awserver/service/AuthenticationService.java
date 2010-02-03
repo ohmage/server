@@ -61,7 +61,7 @@ public class AuthenticationService extends AbstractAnnotatingDaoService {
 				// This check is perfunctory, but indicates a serious problem because the condition can only occur if there is more 
 				// than one user with the same id, which is something enforced in the data world.
 				if(results.size() > 1) {
-					throw new ServiceException("more than one user returned for id " + awRequest.getUser().getUserName());
+					throw new ServiceException("more than one user returned for user name (user.login_id) " + awRequest.getUser().getUserName());
 				}
 				
 				LoginResult loginResult = (LoginResult) results.get(0);
