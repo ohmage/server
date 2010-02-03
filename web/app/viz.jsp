@@ -31,8 +31,31 @@
   <div class="zp-wrapper">
     <div class="zp-90 content">
 	  <div class="padding">
-	    <h1>Welcome <c:out value="${sessionScope.userName}"></c:out>! </h1>
-  	    <h2>I am the future home of the viz dashboard.</h2>
+	    <h1>EMA Visualizations for <c:out value="${sessionScope.userName}"></c:out>.</h1>
+  	    
+  	     <form method="post" action="/app/viz">
+		   <fieldset>
+
+	         <c:if test="${sessionScope.failedVizValidation == true}">
+			   <div class="notification error"><c:out value="${sessionScope.failedVizValidationErrorText}"></c:out></div>
+			 </c:if>
+
+		     <div class="form-item">
+			   <label for="startDate">Start Date:</label>
+			   <input tabindex="1" id="startDate" type="text" name="s" />
+			 </div>	
+			 <div class="form-item">
+			   <label for="endDate">End Date:</label>
+			   <input tabindex="1" id="endDate" type="text" name="e" />
+			 </div>
+		     <button>Send</button>
+					
+		   </fieldset>
+		 </form>
+		 
+		 
+		 
+  	    
       </div>
     </div>
     <div class="zp-10 content">
