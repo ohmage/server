@@ -81,6 +81,8 @@ public final class StringUtils {
 	
 	/**
 	 * Converts an array of ints to a string of the form {n,n,n}. A null array will return the string null. 
+	 * 
+	 * TODO replace calls to this method with Arrays.toString()
 	 */
 	public static String intArrayToString(int[] array) {
 		StringBuilder builder = new StringBuilder();
