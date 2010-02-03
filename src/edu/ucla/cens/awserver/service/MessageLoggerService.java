@@ -92,8 +92,13 @@ public class MessageLoggerService implements Service {
 		
 			if(awRequest.isFailedRequest()) {
 				
-				printWriter = new PrintWriter(new BufferedWriter(new FileWriter(new File(catalinaBase + "/uploads/" + fileName  + "-failed-upload-response.json")))); 
-				printWriter.write(awRequest.getFailedRequestErrorMessage());
+				printWriter = new PrintWriter(new BufferedWriter(new FileWriter(new File(catalinaBase + "/uploads/" + fileName  + "-failed-upload-response.json"))));
+				String failedMessage = awRequest.getFailedRequestErrorMessage();
+				if(null != failedMessage) {
+					printWriter.write(failedMessage);
+				} else {
+					printWriter.write("no failed upload message found");
+				}
 				close(printWriter);
 			}
 			
