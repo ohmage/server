@@ -1,10 +1,12 @@
 package edu.ucla.cens.awserver.validator.json;
 
 import org.apache.log4j.Logger;
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import edu.ucla.cens.awserver.datatransfer.AwRequest;
+import edu.ucla.cens.awserver.util.JsonUtils;
 import edu.ucla.cens.awserver.validator.AwRequestAnnotator;
 
 /**
@@ -64,9 +66,23 @@ public class FailedJsonRequestAnnotator implements AwRequestAnnotator {
 		try {
 			
 			jsonObject = new JSONObject(_jsonErrorMessage);
+			
+			// this is ugly because it assumes the structure of the error message, the way errors should be configured is
+			// that error codes and text should be set instead of a JSON string TODO
+			JSONArray errorArray = JsonUtils.getJsonArrayFromJsonObject(jsonObject, "errors");
+			JSONObject errorObject = JsonUtils.getJsonObjectFromJsonArray(errorArray, 0);
+			
+			errorObject.put("at_record_number", (Integer) awRequest.getAttribute("currentMessageIndex"));
+			
+			if(null != awRequest.getAttribute("currentPromptId")) { // a prompt upload is being handled.
+				
+				errorObject.put("at_prompt_id", (Integer) awRequest.getAttribute("currentPromptId"));
+			}
+			
 			// now add the original request URL and the original JSON input message to the error output
 			jsonObject.put("request_url", awRequest.getAttribute("requestUrl"));
 			jsonObject.put("request_json", awRequest.getAttribute("jsonData"));
+						
 		
 		} catch(JSONException jsone) {  // invalid JSON at this point is a logical error
 		
