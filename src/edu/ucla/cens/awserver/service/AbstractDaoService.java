@@ -11,10 +11,9 @@ public abstract class AbstractDaoService implements Service {
 	private Dao _dao;
 	
 	/**
-	 * Creates an instance of this class using the supplied DAO.
+	 * Creates an instance of this class using the provided DAO.
 	 * 
-	 * @param dao
-	 * @throws IllegalArgumentException if the passed-in DAO is null
+	 * @throws IllegalArgumentException if the provided DAO is null
 	 */
 	public AbstractDaoService(Dao dao) {
 		if(null == dao) {
