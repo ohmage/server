@@ -1,0 +1,42 @@
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
+                           http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-2.5.xsd">
+  <!--  
+     Spring ApplicationContext configuration for HTML form-based prompt/survey response visualizations 
+  -->
+  
+  <!-- Servlet-to-AW hooks -->
+  <!-- create AwRequest from data in the HttpServletRequest -->
+  <bean id="emaVizAwRequestCreator" class="edu.ucla.cens.awserver.jee.servlet.glue.EmaVizAwRequestCreator" />
+    
+  <!-- Controller -->
+  <bean id="emaVizController" class="edu.ucla.cens.awserver.controller.ControllerImpl">
+    <constructor-arg index="0">
+      <list>
+        <ref bean="emaVizService" />
+      </list>
+    </constructor-arg><!--
+    <property name="validators">
+      <list>
+        
+      </list>      
+    </property>
+  --></bean>
+  
+  <!-- Service the visualization request -->
+  <bean id="emaVizService" class="edu.ucla.cens.awserver.service.SimpleQueryService">
+    <constructor-arg index="0">
+      <ref bean="emaQueryDao" />
+    </constructor-arg>
+  </bean>
+
+  <!-- Interact with database -->
+  <bean id="emaQueryDao" class="edu.ucla.cens.awserver.dao.EmaQueryDao">
+    <constructor-arg index="0"><ref bean="dataSource" /></constructor-arg>
+  </bean>
+	
+  <!--  Annotate the AwRequest in the case of failed visualization --><!--	
+  <bean id="visualizationFailedRequestAnnotator" class="edu.ucla.cens.awserver.validator.FailedRequestAnnotator" />
+
+--></beans>
