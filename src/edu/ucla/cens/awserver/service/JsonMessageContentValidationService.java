@@ -78,7 +78,7 @@ public class JsonMessageContentValidationService implements Service {
 			
 		}
 		
-		for(int i = 0; i < length; i++) { // TODO the index of the message should be passed through the system for logging purposes
+		for(int i = 0; i < length; i++) {
 			
 			JSONObject jsonObject = JsonUtils.getJsonObjectFromJsonArray(jsonArray, i); // each array entry is a JSON Object
 			                                                                            // representing an upload data packet
@@ -88,6 +88,8 @@ public class JsonMessageContentValidationService implements Service {
 				return;
 			}
 			
+			awRequest.setAttribute("currentMessageIndex", i);
+			
 			// Given the request type, retrieve the validator array to execute for the particular type
 
 			JsonObjectValidator[] validators = _validatorMap.get(awRequest.getAttribute("requestType"));
@@ -96,8 +98,8 @@ public class JsonMessageContentValidationService implements Service {
 				
 				if(! validator.validate(awRequest, jsonObject)) {
 					
-					return; // Bail out because somewhere within a message there is a validation failure 
-					        // The failed validator handles annotating the request  
+					return; // Bail out because somewhere within a message there is a validation failure. 
+					        // The failed validator handles annotating the request with the specific error.
 					
 				}
 			}
