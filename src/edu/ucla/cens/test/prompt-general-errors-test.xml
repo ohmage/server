@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
+<properties>
+  <comment>This file contains example JSON upload messages to be used for testing - the key for each entry describes the type of upload message.
+  The messages must be URL encoded before posting to the server. Any key containing the word invalid should gracefully fail with an error message from the server.
+  Any valid key should result in a successful insert of the message into the db. 
+  </comment>
+  <entry key="prompt-general-invalid-json">
+    "date":"2009-11-03 10:18:33","time":1257272467077,"timezone":"EST","location":{"latitude":75.5,"longitude":-77.0366},"version_id":1,"group_id":0,"responses":[{"prompt_id":0,"response":"12:00"},{"prompt_id":1,"response":["t","t","t"]}]}]
+  </entry>
+  <entry key="prompt-general-invalid-missing-date">
+    [{"time":1257272467077,"timezone":"EST","location":{"latitude":Double.NaN,"longitude":-77.0366},"version_id":1,"group_id":0,"responses":[{"prompt_id":0,"response":"12:00"},{"prompt_id":1,"response":["t","t","t"]}]}]
+  </entry>
+  <entry key="prompt-general-invalid-date">
+    [{"date":"x2009-11-03 10:18:33","time":1257272467077,"timezone":"EST","location":{"latitude":Double.NaN,"longitude":-77.0366},"version_id":1,"group_id":0,"responses":[{"prompt_id":0,"response":"12:00"},{"prompt_id":1,"response":["t","t","t"]}]}]
+  </entry>
+  <entry key="prompt-general-invalid-time">
+    [{"date":"2009-11-03 10:18:33","time":xxxxx1257272467077,"timezone":"EST","location":{"latitude":75.5,"longitude":-77.0366},"version_id":1,"group_id":0,"responses":[{"prompt_id":0,"response":"12:00"},{"prompt_id":1,"response":["t","t","t"]}]}]
+  </entry>
+  <entry key="prompt-general-invalid-timezone">
+    [{"date":"2009-11-03 10:18:33","time":1257272467077,"timezone":"xxxxxx","location":{"latitude":75.5,"longitude":-77.0366},"version_id":1,"group_id":0,"responses":[{"prompt_id":0,"response":"12:00"},{"prompt_id":1,"response":["t","t","t"]}]}]
+  </entry>
+  <entry key="prompt-general-invalid-missing-time">
+    [{"date":"2009-11-03 10:18:33","timezone":"EST","location":{"latitude":75.5,"longitude":-77.0366},"version_id":1,"group_id":0,"responses":[{"prompt_id":0,"response":"12:00"},{"prompt_id":1,"response":["t","t","t"]}]}]
+  </entry>
+  <entry key="prompt-general-invalid-missing-timezone">
+    [{"date":"2009-11-03 10:18:33","time":1257272467077,"location":{"latitude":75.5,"longitude":-77.0366},"version_id":1,"group_id":0,"responses":[{"prompt_id":0,"response":"12:00"},{"prompt_id":1,"response":["t","t","t"]}]}]
+  </entry>
+  <entry key="prompt-general-invalid-missing-location">
+    [{"date":"2009-11-03 10:18:33","time":1257272467077,"timezone":"EST","version_id":1,"group_id":0,"responses":[{"prompt_id":0,"response":"12:00"},{"prompt_id":1,"response":["t","t","t"]}]}]
+  </entry>
+  <entry key="prompt-general-invalid-latitude-gt">
+    [{"date":"2009-11-03 10:18:33","time":1257272467077,"timezone":"EST","location":{"latitude":99999,"longitude":-77.0366},"version_id":1,"group_id":0,"responses":[{"prompt_id":0,"response":"12:00"},{"prompt_id":1,"response":["t","t","t"]}]}]
+  </entry>
+  <entry key="prompt-general-invalid-latitude-lt">
+    [{"date":"2009-11-03 10:18:33","time":1257272467077,"timezone":"EST","location":{"latitude":-90.1,"longitude":-77.0366},"version_id":1,"group_id":0,"responses":[{"prompt_id":0,"response":"12:00"},{"prompt_id":1,"response":["t","t","t"]}]}]
+  </entry>
+  <entry key="prompt-general-invalid-null-latitude">
+    [{"date":"2009-11-03 10:18:33","time":2,"timezone":"EST","location":{"latitude":null,"longitude":-77.0366},"version_id":1,"group_id":0,"responses":[{"prompt_id":0,"response":"12:00"},{"prompt_id":1,"response":["t","t","t"]}]}]
+  </entry>
+  <entry key="prompt-general-invalid-null-longitude">
+    [{"date":"2009-11-03 10:18:33","time":3,"timezone":"EST","location":{"latitude":10.0,"longitude":null},"version_id":1,"group_id":0,"responses":[{"prompt_id":0,"response":"12:00"},{"prompt_id":1,"response":["t","t","t"]}]}]
+  </entry>
+  <entry key="prompt-general-invalid-longitude-gt">
+    [{"date":"2009-11-03 10:18:33","time":3,"timezone":"EST","location":{"latitude":10.0,"longitude":190},"version_id":1,"group_id":0,"responses":[{"prompt_id":0,"response":"12:00"},{"prompt_id":1,"response":["t","t","t"]}]}]
+  </entry>
+  <entry key="prompt-general-invalid-longitude-lt">
+    [{"date":"2009-11-03 10:18:33","time":3,"timezone":"EST","location":{"latitude":10.0,"longitude":-180.1},"version_id":1,"group_id":0,"responses":[{"prompt_id":0,"response":"12:00"},{"prompt_id":1,"response":["t","t","t"]}]}]
+  </entry>
+  <entry key="prompt-general-invalid-version_id">
+    [{"date":"2009-11-03 10:18:33","time":1257272467077,"timezone":"EST","location":{"latitude":75.5,"longitude":-77.0366},"version_id":10000,"group_id":0,"responses":[{"prompt_id":0,"response":"12:00"},{"prompt_id":1,"response":["t","t","t"]}]}]
+  </entry>
+  <entry key="prompt-general-invalid-missing-version_id">
+    [{"date":"2009-11-03 10:18:33","time":1257272467077,"timezone":"EST","location":{"latitude":75.5,"longitude":-77.0366},"group_id":0,"responses":[{"prompt_id":0,"response":"12:00"},{"prompt_id":1,"response":["t","t","t"]}]}]
+  </entry>
+  <entry key="prompt-general-invalid-group_id">
+    [{"date":"2009-11-03 10:18:33","time":1257272467077,"timezone":"EST","location":{"latitude":75.5,"longitude":-77.0366},"version_id":1,"group_id":10000,"responses":[{"prompt_id":0,"response":"12:00"},{"prompt_id":1,"response":["t","t","t"]}]}]
+  </entry>
+  <entry key="prompt-general-invalid-missing-group_id">
+    [{"date":"2009-11-03 10:18:33","time":1257272467077,"timezone":"EST","location":{"latitude":75.5,"longitude":-77.0366},"version_id":1,"responses":[{"prompt_id":0,"response":"12:00"},{"prompt_id":1,"response":["t","t","t"]}]}]
+  </entry>
+  <entry key="prompt-general-invalid-missing-responses">
+    [{"date":"2009-11-03 10:18:33","time":1257272467077,"timezone":"EST","location":{"latitude":75.5,"longitude":-77.0366},"version_id":1,"group_id":0}]
+  </entry>
+  </properties>

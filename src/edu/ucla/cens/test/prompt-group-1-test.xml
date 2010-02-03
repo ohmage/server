@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
+<properties>
+  <comment>This file contains example JSON upload messages to be used for testing - the key for each entry describes the type of upload message.
+  The messages must be URL encoded before posting to the server. Any key containing the word invalid should gracefully fail with an error message from the server.
+  Any valid key should result in a successful insert of the message into the db. 
+  </comment>
+  <entry key="prompt-group-1-valid">
+    [{"tags":[],"timezone":"CST","time":1265142692328,"location":{"longitude":166.11864275167167,"latitude":-14.423813570310955},"group_id":1,"version_id":1,"date":"2010-02-02 12:31:32","responses":[{"response":"23:16","prompt_id":0},{"response":3,"prompt_id":1},{"response":"1:43","prompt_id":2},{"response":0,"prompt_id":3},{"response":3,"prompt_id":4}]}]
+  </entry>
+  <entry key="prompt-group-1-invalid-missing-prompt-0">
+    [{"tags":[],"timezone":"CST","time":1265142692328,"location":{"longitude":166.11864275167167,"latitude":-14.423813570310955},"group_id":1,"version_id":1,"date":"2010-02-02 12:31:32","responses":[{"response":3,"prompt_id":1},{"response":"1:43","prompt_id":2},{"response":0,"prompt_id":3},{"response":3,"prompt_id":4}]}]
+  </entry>
+  <entry key="prompt-group-1-invalid-missing-prompt-1">
+    [{"tags":[],"timezone":"CST","time":1265142692328,"location":{"longitude":166.11864275167167,"latitude":-14.423813570310955},"group_id":1,"version_id":1,"date":"2010-02-02 12:31:32","responses":[{"response":"23:16","prompt_id":0},{"response":"1:43","prompt_id":2},{"response":0,"prompt_id":3},{"response":3,"prompt_id":4}]}]
+  </entry>
+  <entry key="prompt-group-1-invalid-missing-prompt-2">
+    [{"tags":[],"timezone":"CST","time":1265142692328,"location":{"longitude":166.11864275167167,"latitude":-14.423813570310955},"group_id":1,"version_id":1,"date":"2010-02-02 12:31:32","responses":[{"response":"23:16","prompt_id":0},{"response":3,"prompt_id":1},{"response":0,"prompt_id":3},{"response":3,"prompt_id":4}]}]
+  </entry>
+  <entry key="prompt-group-1-invalid-missing-prompt-3">
+    [{"tags":[],"timezone":"CST","time":1265142692328,"location":{"longitude":166.11864275167167,"latitude":-14.423813570310955},"group_id":1,"version_id":1,"date":"2010-02-02 12:31:32","responses":[{"response":"23:16","prompt_id":0},{"response":3,"prompt_id":1},{"response":"1:43","prompt_id":2},{"response":3,"prompt_id":4}]}]
+  </entry>
+  <entry key="prompt-group-1-invalid-missing-prompt-4">
+    [{"tags":[],"timezone":"CST","time":1265142692328,"location":{"longitude":166.11864275167167,"latitude":-14.423813570310955},"group_id":1,"version_id":1,"date":"2010-02-02 12:31:32","responses":[{"response":"23:16","prompt_id":0},{"response":3,"prompt_id":1},{"response":"1:43","prompt_id":2},{"response":0,"prompt_id":3}]}]
+  </entry>
+  <entry key="prompt-group-1-invalid-prompt-0">
+    [{"tags":[],"timezone":"CST","time":1265142692328,"location":{"longitude":166.11864275167167,"latitude":-14.423813570310955},"group_id":1,"version_id":1,"date":"2010-02-02 12:31:32","responses":[{"response":"error","prompt_id":0},{"response":3,"prompt_id":1},{"response":"1:43","prompt_id":2},{"response":0,"prompt_id":3},{"response":3,"prompt_id":4}]}]
+  </entry>
+  <entry key="prompt-group-1-invalid-prompt-1">
+    [{"tags":[],"timezone":"CST","time":1265142692328,"location":{"longitude":166.11864275167167,"latitude":-14.423813570310955},"group_id":1,"version_id":1,"date":"2010-02-02 12:31:32","responses":[{"response":"23:16","prompt_id":0},{"response":"error","prompt_id":1},{"response":"1:43","prompt_id":2},{"response":0,"prompt_id":3},{"response":3,"prompt_id":4}]}]
+  </entry>
+  <entry key="prompt-group-1-invalid-prompt-2">
+    [{"tags":[],"timezone":"CST","time":1265142692328,"location":{"longitude":166.11864275167167,"latitude":-14.423813570310955},"group_id":1,"version_id":1,"date":"2010-02-02 12:31:32","responses":[{"response":"23:16","prompt_id":0},{"response":3,"prompt_id":1},{"response":"12345","prompt_id":2},{"response":0,"prompt_id":3},{"response":3,"prompt_id":4}]}]
+  </entry>
+  <entry key="prompt-group-1-invalid-prompt-3">
+    [{"tags":[],"timezone":"CST","time":1265142692328,"location":{"longitude":166.11864275167167,"latitude":-14.423813570310955},"group_id":1,"version_id":1,"date":"2010-02-02 12:31:32","responses":[{"response":"23:16","prompt_id":0},{"response":3,"prompt_id":1},{"response":"1:43","prompt_id":2},{"response":999,"prompt_id":3},{"response":3,"prompt_id":4}]}]
+  </entry>
+  <entry key="prompt-group-1-invalid-prompt-4">
+    [{"tags":[],"timezone":"CST","time":1265142692328,"location":{"longitude":166.11864275167167,"latitude":-14.423813570310955},"group_id":1,"version_id":1,"date":"2010-02-02 12:31:32","responses":[{"response":"23:16","prompt_id":0},{"response":3,"prompt_id":1},{"response":"1:43","prompt_id":2},{"response":0,"prompt_id":3},{"response":-6,"prompt_id":4}]}]
+  </entry>
+</properties>
