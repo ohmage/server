@@ -82,7 +82,9 @@ public class ControllerImpl implements Controller {
 		}
 		
 		finally {
-
+			// Because post-processing Services can run in exceptional conditions, they
+			// must be coded very defensively. 
+			
 			if(_postProcessingService != null) {
 				
 				_postProcessingService.execute(awRequest);
