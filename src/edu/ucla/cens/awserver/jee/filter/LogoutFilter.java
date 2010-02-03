@@ -42,9 +42,10 @@ public class LogoutFilter implements Filter {
 		throws ServletException, IOException {	
 		
 		HttpSession session = ((HttpServletRequest) request).getSession(); 
-		String subdomain = (String) session.getAttribute("subdomain"); 
+		String subdomain = (String) session.getAttribute("subdomain");
+		String serverName = (String) session.getAttribute("serverName"); 
 		session.invalidate();
-		((HttpServletResponse) response).sendRedirect("http://" + subdomain + ".andwellness.cens.ucla.edu/app/login.jsp");
+		((HttpServletResponse) response).sendRedirect("http://" + subdomain + "." + serverName + ".cens.ucla.edu/app/login.jsp");
 		
 	}
 }
