@@ -28,7 +28,6 @@ public class AuthAwRequestCreator implements AwRequestCreator {
 	 */
 	public AwRequest createFrom(HttpServletRequest request) {
 		String subdomain = StringUtils.retrieveSubdomainFromUrlString(request.getRequestURL().toString());
-		String serverName = StringUtils.retrieveServerNameFromUrlString(request.getRequestURL().toString());
 //		_logger.info("found subdomain: " + subdomain + " from URL: " + request.getRequestURL());
 		
 		String userName = request.getParameter("u");
@@ -38,7 +37,6 @@ public class AuthAwRequestCreator implements AwRequestCreator {
 		AwRequestImpl awRequest = new AwRequestImpl();
 		awRequest.setUser(user);
 		awRequest.setAttribute("subdomain", subdomain);
-		awRequest.setAttribute("serverName", serverName);
 		
 		return awRequest;
 	}
