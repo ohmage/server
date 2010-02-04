@@ -43,7 +43,7 @@ public class SensorUploadAwRequestCreator implements AwRequestCreator {
 			String jd = request.getParameter("d");
 			
 			if(null != jd) {
-				jsonData = URLDecoder.decode(request.getParameter("d"), "UTF-8");
+				jsonData = URLDecoder.decode(jd, "UTF-8");
 			}
 			
 		} catch(UnsupportedEncodingException uee) { // if UTF-8 is not recognized we have big problems
