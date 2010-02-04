@@ -39,15 +39,7 @@
   
   <filter-mapping>
     <filter-name>CampaignExistenceFilter</filter-name>
-    <servlet-name>TestDb</servlet-name>
-  </filter-mapping>
-  <filter-mapping>
-    <filter-name>CampaignExistenceFilter</filter-name>
-    <servlet-name>jsp</servlet-name>
-  </filter-mapping> 
-  <filter-mapping>
-    <filter-name>CampaignExistenceFilter</filter-name>
-    <url-pattern>/app/sensor/*</url-pattern>
+    <url-pattern>/app/*</url-pattern>
   </filter-mapping>
   
  
@@ -68,7 +60,7 @@
   <!--  Add filter mappings for whatever resources require authenticated access --> 
   <filter-mapping>
     <filter-name>AuthenticationFilter</filter-name>
-    <servlet-name>TestDb</servlet-name>
+    <servlet-name>EmaVizServlet</servlet-name>
   </filter-mapping>
   <filter-mapping>
     <filter-name>AuthenticationFilter</filter-name>
@@ -133,44 +125,7 @@
     <servlet-name>jsp</servlet-name>
     <url-pattern>*.jsp</url-pattern>
   </servlet-mapping>
-  
-  
-  <!--  Custom AndWellness Servlets -->
     
-  <servlet>
-    <description>
-      This is for playing around with design ideas and testing connectivity to the database. 
-    </description>
-    <servlet-name>TestDb</servlet-name>
-    <servlet-class>edu.ucla.cens.awserver.jee.servlet.AwJspServlet</servlet-class>
-    <init-param>
-      <param-name>successfulRequestRedirectUrl</param-name>
-      <param-value>/app/test/testDb.jsp</param-value>
-    </init-param>
-    
-    <!--  The following init-params are used to map the servlet to Spring-configured beans that ultimately service the request. 
-          The param-value elements are Spring bean ids.    
-    -->
-    <init-param>
-      <param-name>controllerName</param-name>
-      <param-value>testDbController</param-value>
-    </init-param>
-    <init-param>
-      <param-name>awRequestCreatorName</param-name>
-      <param-value>testDbAwRequestCreator</param-value>
-    </init-param>
-    <init-param>
-      <param-name>httpSessionModifierName</param-name>
-      <param-value>testDbHttpSessionModifier</param-value>
-    </init-param>
-    <load-on-startup>1</load-on-startup>
-  </servlet>
-  
-  <servlet-mapping>
-    <servlet-name>TestDb</servlet-name>
-    <url-pattern>/app/test</url-pattern>
-  </servlet-mapping>
-  
   <!--  Login  -->
   <servlet>
     <description>
@@ -227,12 +182,8 @@
     <init-param>
       <param-name>controllerName</param-name>
       <param-value>sensorUploadController</param-value>
-    </init-param><!--
-    <init-param> TODO - destroy the session on exit
-      <param-name>httpSessionModifierName</param-name>
-      <param-value>testDbHttpSessionModifier</param-value>
     </init-param>
-    --><load-on-startup>1</load-on-startup>
+    <load-on-startup>1</load-on-startup>
   </servlet>
   
   <servlet-mapping>
