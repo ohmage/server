@@ -12,7 +12,7 @@
   
   <filter-mapping>
     <filter-name>LogoutFilter</filter-name>
-    <url-pattern>/logout</url-pattern>
+    <url-pattern>/app/logout</url-pattern>
   </filter-mapping>
   
   <!--  Pushes the session id into the Log4J NDC for each request thread. The NDC is a Stack that is dumped to the log 
@@ -110,7 +110,7 @@
 
   <servlet-mapping>
     <servlet-name>default</servlet-name>
-    <url-pattern>/logout</url-pattern>
+    <url-pattern>/app/logout</url-pattern>
   </servlet-mapping>
 
 
@@ -245,12 +245,8 @@
     <description>
       Runs visualization queries for EMA (prompt/survey response) data. 
     </description>
-    <servlet-name>EmaQuery</servlet-name>
-    <servlet-class>edu.ucla.cens.awserver.jee.servlet.VizServlet</servlet-class>
-    <init-param>
-      <param-name>redirectUrl</param-name>
-      <param-value>/app/viz.jsp</param-value>
-    </init-param>
+    <servlet-name>EmaVizServlet</servlet-name>
+    <servlet-class>edu.ucla.cens.awserver.jee.servlet.EmaVizServlet</servlet-class>
     <!--  The following init-params are used to map the servlet to Spring-configured beans that ultimately service the request. 
           The param-value elements are Spring bean ids.    
     -->
@@ -266,7 +262,7 @@
   </servlet>
   
   <servlet-mapping>
-    <servlet-name>EmaQuery</servlet-name>
+    <servlet-name>EmaVizServlet</servlet-name>
     <url-pattern>/app/viz</url-pattern>
   </servlet-mapping>
   
