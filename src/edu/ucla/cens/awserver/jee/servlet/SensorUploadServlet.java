@@ -84,8 +84,6 @@ public class SensorUploadServlet extends HttpServlet {
 	protected void processRequest(HttpServletRequest request, HttpServletResponse response)
 		throws ServletException, IOException { 
 		
-		request.setCharacterEncoding("UTF-8");
-		
 		// Map data from the inbound request to our internal format
 		AwRequest awRequest = _awRequestCreator.createFrom(request);
 	    
