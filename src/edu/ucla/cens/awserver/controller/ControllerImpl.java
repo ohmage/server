@@ -49,7 +49,7 @@ public class ControllerImpl implements Controller {
 					if(! validator.validate(awRequest)) {
 						
 						continueProcessing = false;
-						
+						break;
 					}
 				}	
 			}
