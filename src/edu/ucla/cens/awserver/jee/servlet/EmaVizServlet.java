@@ -1,13 +1,14 @@
 package edu.ucla.cens.awserver.jee.servlet;
 
+import java.io.BufferedWriter;
 import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.io.Writer;
 import java.util.List;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
-import javax.servlet.ServletOutputStream;
-import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -26,10 +27,12 @@ import edu.ucla.cens.awserver.jee.servlet.glue.AwRequestCreator;
 import edu.ucla.cens.awserver.util.StringUtils;
 
 /**
+ * Servlet for responding to requests for EMA visualization query execution.
+ * 
  * @author selsky
  */
 @SuppressWarnings("serial") 
-public class EmaVizServlet extends HttpServlet {
+public class EmaVizServlet extends AbstractAwHttpServlet {
 	private static Logger _logger = Logger.getLogger(EmaVizServlet.class);
 	private Controller _controller;
 	private AwRequestCreator _awRequestCreator;
@@ -83,16 +86,21 @@ public class EmaVizServlet extends HttpServlet {
 	protected void processRequest(HttpServletRequest request, HttpServletResponse response)
 		throws ServletException, IOException { // allow Tomcat to handle Servlet and IO Exceptions
 		
-		ServletOutputStream sos = null; 
-		
 		// Map data from the inbound request to our internal format
 		AwRequest awRequest = _awRequestCreator.createFrom(request);
-		
+		Writer writer = null;
 	    
 		try {
 			// Execute feature-specific logic
 			_controller.execute(awRequest);
 							
+			// Prepare for sending the response to the client
+			writer = new BufferedWriter(new OutputStreamWriter(getOutputStream(request, response)));
+			String responseText = null;
+			expireResponse(response);
+			response.setContentType("application/json");
+			
+			// Build the appropriate response 
 			if(! awRequest.isFailedRequest()) {
 				// Convert the results to JSON for output.
 				List<EmaQueryResult> results = (List<EmaQueryResult>) awRequest.getAttribute("emaQueryResults");
@@ -107,8 +115,7 @@ public class EmaVizServlet extends HttpServlet {
 						jsonArray.put(entry);
 					}
 					
-					sos = response.getOutputStream();
-					sos.print(jsonArray.toString(4));
+					responseText = jsonArray.toString();
 						
 				} catch(JSONException jsone) {
 					
@@ -116,9 +123,11 @@ public class EmaVizServlet extends HttpServlet {
 				}	
 			} else {
 				
-				sos = response.getOutputStream();
-				sos.print(awRequest.getFailedRequestErrorMessage());
+				responseText = awRequest.getFailedRequestErrorMessage();
 			}
+			
+			// Write the ouptut
+			writer.write(responseText);
 		}
 		
 		catch(ControllerException ce) { 
@@ -128,9 +137,9 @@ public class EmaVizServlet extends HttpServlet {
 			          // in catalina.out
 		} finally {
 			
-			if(null != sos) {
-				sos.flush();
-				sos.close();
+			if(null != writer) {
+				writer.flush();
+				writer.close();
 			}
 		}
 	}
