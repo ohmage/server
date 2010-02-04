@@ -1,11 +1,13 @@
 package edu.ucla.cens.awserver.jee.servlet;
 
+import java.io.BufferedWriter;
 import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.io.Writer;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
-import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -24,7 +26,7 @@ import edu.ucla.cens.awserver.util.StringUtils;
  * @author selsky
  */
 @SuppressWarnings("serial") 
-public class SensorUploadServlet extends HttpServlet {
+public class SensorUploadServlet extends AbstractAwHttpServlet {
 	private static Logger _logger = Logger.getLogger(SensorUploadServlet.class);
 	private Controller _controller;
 	private AwRequestCreator _awRequestCreator;
@@ -86,6 +88,8 @@ public class SensorUploadServlet extends HttpServlet {
 		
 		// Map data from the inbound request to our internal format
 		AwRequest awRequest = _awRequestCreator.createFrom(request);
+		
+		Writer writer = null;
 	    
 		try {
 			// Execute feature-specific logic
@@ -93,12 +97,11 @@ public class SensorUploadServlet extends HttpServlet {
 		    
 			if(awRequest.isFailedRequest()) { 
 				
-				ServletOutputStream servletOutputStream = response.getOutputStream();
-				servletOutputStream.println(awRequest.getFailedRequestErrorMessage());
-				servletOutputStream.flush();
-				servletOutputStream.close();
-				
+				response.setContentType("application/json");
+				writer = new BufferedWriter(new OutputStreamWriter(getOutputStream(request, response)));
+				writer.write(awRequest.getFailedRequestErrorMessage());
 			} 
+			// if the request is successful, just let Tomcat return a 200
 			
 			request.getSession().invalidate(); // sensor data uploads only have state for the duration of a request
 			
@@ -113,6 +116,16 @@ public class SensorUploadServlet extends HttpServlet {
 			throw ce; // re-throw and allow Tomcat to redirect to the configured error page. the stack trace will also end up
 			          // in catalina.out
 			
+		}
+		
+		finally {
+			
+			if(null != writer) {
+				
+				writer.flush();
+				writer.close();
+				
+			}
 		}
 	}
 	
