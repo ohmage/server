@@ -60,7 +60,7 @@
     </div>
     <div class="zp-10 content">
 	  <div class="padding">
-  	    <p><a href="http://<c:out value="${sessionScope.subdomain}"></c:out>.<c:out value="${sessionScope.serverName}"></c:out>.cens.ucla.edu/logout">Logout</a></p>
+  	    <p><a href="http://<c:out value="${sessionScope.subdomain}"></c:out>.<c:out value="${sessionScope.serverName}"></c:out>.cens.ucla.edu/app/logout">Logout</a></p>
       </div>
     </div>
   </div>
