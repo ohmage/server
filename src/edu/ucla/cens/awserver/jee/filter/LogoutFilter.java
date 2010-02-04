@@ -50,12 +50,9 @@ public class LogoutFilter implements Filter {
 	public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) 
 		throws ServletException, IOException {	
 		
-		HttpSession session = ((HttpServletRequest) request).getSession(); 
-		String subdomain = (String) session.getAttribute("subdomain");
-		String serverName = (String) session.getAttribute("serverName"); 
-		session.invalidate();
+		HttpSession session = ((HttpServletRequest) request).getSession();
 		
-		if(null == subdomain || null == serverName) {
+		if(session.isNew()) {
 			if(_logger.isDebugEnabled()) {
 				_logger.debug("non-logged in user or bot hitting /app/logout. redirecting to index.html");
 			}
@@ -64,8 +61,9 @@ public class LogoutFilter implements Filter {
 			
 		} else {
 			
-			((HttpServletResponse) response).sendRedirect("http://" + subdomain + "." + serverName + ".cens.ucla.edu/app/login.jsp");
+			session.invalidate();
+			((HttpServletResponse) response).sendRedirect("/app/login.jsp");
+			
 		}
-		
 	}
 }
