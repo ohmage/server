@@ -13,26 +13,25 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.web.context.support.WebApplicationContextUtils;
 
 import edu.ucla.cens.awserver.controller.Controller;
-import edu.ucla.cens.awserver.controller.ControllerException;
 import edu.ucla.cens.awserver.datatransfer.AwRequest;
 import edu.ucla.cens.awserver.jee.servlet.glue.AwRequestCreator;
 import edu.ucla.cens.awserver.jee.servlet.glue.HttpSessionModifier;
 import edu.ucla.cens.awserver.util.StringUtils;
 
 /**
- * Dispatch and handle requests which ultimately result in a final re-dispatch to a JSP for rendering. 
+ * Dispatch and handle requests which ultimately result in a final redirect to a JSP for rendering. 
  * 
  * This Servlet has four init-params that need to be defined in web.xml. The parameters define objects used by the service() 
  * method when handling user requests.
  * 
  * <ol>
  *   <li><code>controllerName</code> -- The Spring Bean id of the Controller to use.
- *   <li><code>httpToAwRequestTransformerName</code> -- The Spring Bean id of the HttpToAwRequestTransformer to use.
- *   <li><code>awToHttpRequestTransformerName</code> -- The Spring Bean id of the AwToHttpRequestTransformer to use. 
- *   <li><code>userSuccessForwardUrl</code> -- A relative (to WEB-INF) file URL to a JSP that will render the results of a successful
- *                                         request.  
- *   <li><code>userErrorForwardUrl</code> -- A relative (to WEB-INF) file URL to a JSP that will render the results of a failed
- *                                         request.  
+ *   <li><code>awRequestCreatorName</code> -- The Spring Bean id of the AwRequestCreator to use.
+ *   <li><code>httpSessionModifierName</code> -- The Spring Bean id of the optional HttpSessionModifier to use. 
+ *   <li><code>successfulRequestRedirectUrl</code> -- A relative (to WEB-INF) file URL to a JSP that will render the results of a 
+ * successful request.  
+ *   <li><code>failedRequestRedirectUrl</code> -- A relative (to WEB-INF) file URL to a JSP that will render the results of a failed
+ * request.  
  * </ol>
  * 
  * @see Controller
@@ -85,15 +84,6 @@ public class AwJspServlet extends AbstractAwHttpServlet {
 					" cannot be initialized and put into service.");
 		}
 		
-		// TODO --
-		// ***************************************************************
-		// This guy needs to be optional, or should that be another class? -- refactor - use strategy for init-params
-		// Implement the null check first and then refactor.
-//		if(StringUtils.isEmptyOrWhitespaceOnly(awToHttpRequestTransformerName)) {
-//			throw new ServletException("Invalid web.xml. Missing awRequestTransformerName init param. Servlet " + servletName +
-//					" cannot be initialized and put into service.");
-//		}
-		
 		if(StringUtils.isEmptyOrWhitespaceOnly(httpSessionModifierName)) {
 			_logger.info("Servet " + servletName + " configured without an AW to HTTP Request copier");
     	}
@@ -113,9 +103,7 @@ public class AwJspServlet extends AbstractAwHttpServlet {
 		ApplicationContext applicationContext = WebApplicationContextUtils.getWebApplicationContext(servletContext);
 		
 		_controller = (Controller) applicationContext.getBean(controllerName);
-		
 		_awRequestCreator = (AwRequestCreator) applicationContext.getBean(awRequestCreatorName);
-		
 		if(null != httpSessionModifierName) {
 			_httpSessionModifier = (HttpSessionModifier) applicationContext.getBean(httpSessionModifierName);
 		}
@@ -130,8 +118,8 @@ public class AwJspServlet extends AbstractAwHttpServlet {
 	 * <ol>
 	 * <li>Maps HTTP request parameters into an AwRequest.
 	 * <li>Passes the AwRequest to a Controller.
-	 * <li>Places the results of the controller action into the HTTP request.
-	 * <li>Forwards to a JSP for rendering of the feature results.
+	 * <li>Places the results of the controller action into the HTTP Session if the instance variable HttpSessionModifier exists.
+	 * <li>Redirects to a JSP for rendering of the feature results.
 	 * </ol>
 	 */
 	protected void processRequest(HttpServletRequest request, HttpServletResponse response)
@@ -157,15 +145,14 @@ public class AwJspServlet extends AbstractAwHttpServlet {
 			} else {
 				
 				response.sendRedirect(_successfulRequestRedirectUrl);
-				// getServletContext().getRequestDispatcher(_successfulRequestRedirectUrl).forward (request, response);
 			}
 		}
 		
-		catch(ControllerException ce) { 
+		catch(Throwable t) { 
 			
-			_logger.error("", ce); // make sure the stack trace gets into our app log
-			throw ce; // re-throw and allow Tomcat to redirect to the configured error page. the stack trace will also end up
-			          // in catalina.out
+			_logger.error("an unrecoverable error occurred", t); // make sure the stack trace gets into our app log
+			throw new ServletException(t); // Re-throw and allow Tomcat to redirect to the configured error page. 
+			                               // The stack trace will also end up in catalina.out
 			
 		}
 	}
