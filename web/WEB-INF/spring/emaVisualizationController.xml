@@ -16,13 +16,14 @@
       <list>
         <ref bean="emaVizService" />
       </list>
-    </constructor-arg><!--
+    </constructor-arg>
     <property name="validators">
       <list>
-        
+        <ref bean="startDateValidator" />
+        <ref bean="endDateValidator" />
       </list>      
     </property>
-  --></bean>
+  </bean>
   
   <!-- Service the visualization request -->
   <bean id="emaVizService" class="edu.ucla.cens.awserver.service.SimpleQueryService">
@@ -36,7 +37,37 @@
     <constructor-arg index="0"><ref bean="dataSource" /></constructor-arg>
   </bean>
 	
-  <!--  Annotate the AwRequest in the case of failed visualization --><!--	
-  <bean id="visualizationFailedRequestAnnotator" class="edu.ucla.cens.awserver.validator.FailedRequestAnnotator" />
+  <bean id="startDateValidator" class="edu.ucla.cens.awserver.validator.DateValidator">
+    <constructor-arg index="0">
+      <ref bean="emaVizFailedRequestAnnotator" />
+    </constructor-arg>
+    <constructor-arg index="1">
+      <value>startDate</value>
+    </constructor-arg>
+    <constructor-arg index="2">
+      <value>yyyy-MM-dd</value>
+    </constructor-arg>
+    <property name="errorMessage">
+      <value>{"error_code":"0700","error_text":"invalid start date"}</value>
+    </property>
+  </bean>	
 
---></beans>
+  <bean id="endDateValidator" class="edu.ucla.cens.awserver.validator.DateValidator">
+    <constructor-arg index="0">
+      <ref bean="emaVizFailedRequestAnnotator" />
+    </constructor-arg>
+    <constructor-arg index="1">
+      <value>endDate</value>
+    </constructor-arg>
+    <constructor-arg index="2">
+      <value>yyyy-MM-dd</value>
+    </constructor-arg>
+    <property name="errorMessage">
+      <value>{"error_code":"0700","error_text":"invalid end date"}</value>
+    </property>
+  </bean>	
+	
+  <!--  Annotate the AwRequest in the case of failed visualization -->	
+  <bean id="emaVizFailedRequestAnnotator" class="edu.ucla.cens.awserver.validator.FailedRequestAnnotator" />
+
+</beans>
