@@ -25,8 +25,6 @@ public class AuthenticationHttpSessionModifier implements HttpSessionModifier {
 			
 			httpSession.setAttribute("userName", awRequest.getUser().getUserName());
 			httpSession.setAttribute("isLoggedIn", "true");
-			httpSession.setAttribute("subdomain", awRequest.getAttribute("subdomain"));
-			httpSession.setAttribute("serverName", awRequest.getAttribute("serverName"));
 			
 			// remove previously failed login attempt -- removeAttribute() does nothing if no value is bound to the key
 			httpSession.removeAttribute("failedLogin");
