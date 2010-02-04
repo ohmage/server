@@ -12,7 +12,15 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
+import org.apache.log4j.Logger;
+
+/**
+ * Filter for logging out a user from AW. 
+ * 
+ * @author selsky
+ */
 public class LogoutFilter implements Filter {
+	private static Logger _logger = Logger.getLogger(LogoutFilter.class);
 	
 	/**
 	 * Default no-arg constructor.
@@ -36,7 +44,8 @@ public class LogoutFilter implements Filter {
 	}
 	
 	/**
-	 * Destroys the user's HttpSession and redirect them to the login page.
+	 * Destroys the user's HttpSession and redirect them to the login page. If a non-logged in user is attempting to logout, the
+	 * user is redirected to the index page. Does not invoke chain.doFilter(). 
 	 */
 	public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) 
 		throws ServletException, IOException {	
@@ -45,7 +54,18 @@ public class LogoutFilter implements Filter {
 		String subdomain = (String) session.getAttribute("subdomain");
 		String serverName = (String) session.getAttribute("serverName"); 
 		session.invalidate();
-		((HttpServletResponse) response).sendRedirect("http://" + subdomain + "." + serverName + ".cens.ucla.edu/app/login.jsp");
+		
+		if(null == subdomain || null == serverName) {
+			if(_logger.isDebugEnabled()) {
+				_logger.debug("non-logged in user or bot hitting /app/logout. redirecting to index.html");
+			}
+			
+			((HttpServletResponse) response).sendRedirect("/index.html");
+			
+		} else {
+			
+			((HttpServletResponse) response).sendRedirect("http://" + subdomain + "." + serverName + ".cens.ucla.edu/app/login.jsp");
+		}
 		
 	}
 }
