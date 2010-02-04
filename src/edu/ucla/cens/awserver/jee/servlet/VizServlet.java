@@ -93,42 +93,42 @@ public class VizServlet extends HttpServlet {
 	protected void processRequest(HttpServletRequest request, HttpServletResponse response)
 		throws ServletException, IOException { // allow Tomcat to handle Servlet and IO Exceptions
 		
+		ServletOutputStream sos = null; 
+		
 		// Map data from the inbound request to our internal format
 		AwRequest awRequest = _awRequestCreator.createFrom(request);
+		
 	    
 		try {
 			// Execute feature-specific logic
 			_controller.execute(awRequest);
 							
-			// Convert the results to JSON for output.
-			
-			// Need viz error codes
-			// invalid start date
-			// invalid end date
-			// end date before start date
-			// date must be formatted yyyy-mm-dd
-			
-			List<EmaQueryResult> results = (List<EmaQueryResult>) awRequest.getAttribute("emaQueryResults");
-			JSONArray jsonArray = new JSONArray();
-			try {
-				
-				for(EmaQueryResult result : results) {
-					JSONObject entry = new JSONObject();	
-					entry.put("response", new JSONObject(result.getJsonData()).get("response"));
-					entry.put("time", result.getTimestamp());
-					entry.put("timezone", result.getTimezone());
-					jsonArray.put(entry);
-				}
-				
-				ServletOutputStream sos = response.getOutputStream();
-				sos.print(jsonArray.toString(4));
-				sos.flush();
-				sos.close();
+			if(! awRequest.isFailedRequest()) {
+				// Convert the results to JSON for output.
+				List<EmaQueryResult> results = (List<EmaQueryResult>) awRequest.getAttribute("emaQueryResults");
+				JSONArray jsonArray = new JSONArray();
+				try {
 					
-			} catch(JSONException jsone) {
+					for(EmaQueryResult result : results) {
+						JSONObject entry = new JSONObject();	
+						entry.put("response", new JSONObject(result.getJsonData()).get("response"));
+						entry.put("time", result.getTimestamp());
+						entry.put("timezone", result.getTimezone());
+						jsonArray.put(entry);
+					}
+					
+					sos = response.getOutputStream();
+					sos.print(jsonArray.toString(4));
+						
+				} catch(JSONException jsone) {
+					
+					throw new ServletException(jsone);
+				}	
+			} else {
 				
-				throw new ServletException(jsone);
-			}	
+				sos = response.getOutputStream();
+				sos.print(awRequest.getFailedRequestErrorMessage());
+			}
 		}
 		
 		catch(ControllerException ce) { 
@@ -136,6 +136,12 @@ public class VizServlet extends HttpServlet {
 			_logger.error("", ce); // make sure the stack trace gets into our app log
 			throw ce; // re-throw and allow Tomcat to redirect to the configured error page. the stack trace will also end up
 			          // in catalina.out
+		} finally {
+			
+			if(null != sos) {
+				sos.flush();
+				sos.close();
+			}
 		}
 	}
 	
