@@ -2,6 +2,12 @@
 <%@page import="edu.ucla.cens.awserver.domain.User"%>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 
+<%
+   response.setHeader( "Pragma", "no-cache" );
+   response.setHeader( "Cache-Control", "no-cache" );
+   response.setDateHeader( "Expires", 0 );
+%>
+
 <html>
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
