@@ -8,7 +8,6 @@ import java.io.Writer;
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
-import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -17,12 +16,13 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.web.context.support.WebApplicationContextUtils;
 
 import edu.ucla.cens.awserver.controller.Controller;
-import edu.ucla.cens.awserver.controller.ControllerException;
 import edu.ucla.cens.awserver.datatransfer.AwRequest;
 import edu.ucla.cens.awserver.jee.servlet.glue.AwRequestCreator;
 import edu.ucla.cens.awserver.util.StringUtils;
 
 /**
+ * Servlet for processing sensor data uploads.
+ * 
  * @author selsky
  */
 @SuppressWarnings("serial") 
@@ -73,15 +73,8 @@ public class SensorUploadServlet extends AbstractAwHttpServlet {
 	}
 	
 	/**
-	 * Services the user requests to the URLs bound to this Servlet as configured in web.xml. 
-	 * 
-	 * Performs the following steps:
-	 * <ol>
-	 * <li>Maps HTTP request parameters into an AwRequest.
-	 * <li>Passes the AwRequest to a Controller.
-	 * <li>Places the results of the controller action into the HTTP request.
-	 * <li> ... TODO
-	 * </ol>
+	 * Dispatches to a Controller to perform sensor data upload. If the upload fails, an error message is persisted to the response.
+	 * If the request is successful, allow Tomcat to simply return HTTP 200.
 	 */
 	protected void processRequest(HttpServletRequest request, HttpServletResponse response)
 		throws ServletException, IOException { 
@@ -89,7 +82,7 @@ public class SensorUploadServlet extends AbstractAwHttpServlet {
 		// Map data from the inbound request to our internal format
 		AwRequest awRequest = _awRequestCreator.createFrom(request);
 		
-		Writer writer = null;
+		Writer writer = new BufferedWriter(new OutputStreamWriter(getOutputStream(request, response)));
 	    
 		try {
 			// Execute feature-specific logic
@@ -98,34 +91,25 @@ public class SensorUploadServlet extends AbstractAwHttpServlet {
 			if(awRequest.isFailedRequest()) { 
 				
 				response.setContentType("application/json");
-				writer = new BufferedWriter(new OutputStreamWriter(getOutputStream(request, response)));
 				writer.write(awRequest.getFailedRequestErrorMessage());
 			} 
 			// if the request is successful, just let Tomcat return a 200
-			
-			request.getSession().invalidate(); // sensor data uploads only have state for the duration of a request
-			
 		}
 		
-		catch(ControllerException ce) { 
+		catch(Throwable t) { 
 			
-			_logger.error("", ce); // make sure the stack trace gets into our app log
-			
-			// TODO - send back a JSON error response 
-			
-			throw ce; // re-throw and allow Tomcat to redirect to the configured error page. the stack trace will also end up
-			          // in catalina.out
-			
+			_logger.error("error occurred on sensor data upload", t);
+			writer.write("{\"error_code\":\"0103\",\"error_text\":\"" + t.getMessage() + "\"}");
 		}
 		
 		finally {
 			
 			if(null != writer) {
-				
 				writer.flush();
 				writer.close();
-				
 			}
+			
+			request.getSession().invalidate(); // sensor data uploads only have state for the duration of a request
 		}
 	}
 	
