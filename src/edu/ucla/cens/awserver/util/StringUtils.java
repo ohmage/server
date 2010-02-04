@@ -65,21 +65,6 @@ public final class StringUtils {
 	}	
 	
 	/**
-	 * Retrieves the "server name" from a URL String where the server name is defined as the text between the first dot following
-	 * the protocol and the next dot e.g. for the URL http://pilot.andwellness-dev.cens.ucla.edu, the server name 
-	 * that will be returned is andwellness-dev. 
-	 * 
-	 *  @throws IllegalArgumentException if a null or empty string is passed in
-	 */
-	public static String retrieveServerNameFromUrlString(String url) {
-		if(isEmptyOrWhitespaceOnly(url)) {
-			throw new IllegalArgumentException("cannot retrieve server name from a null or empty URL String");
-		}
-		
-		return url.split("\\.")[1];
-	}
-	
-	/**
 	 * Converts an array of ints to a string of the form {n,n,n}. A null array will return the string null. 
 	 * 
 	 * TODO replace calls to this method with Arrays.toString()
