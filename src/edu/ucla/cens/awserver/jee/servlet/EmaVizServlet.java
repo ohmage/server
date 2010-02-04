@@ -30,7 +30,7 @@ import edu.ucla.cens.awserver.util.StringUtils;
  */
 @SuppressWarnings("serial") 
 public class EmaVizServlet extends HttpServlet {
-	private static Logger _logger = Logger.getLogger(AwJspServlet.class);
+	private static Logger _logger = Logger.getLogger(EmaVizServlet.class);
 	private Controller _controller;
 	private AwRequestCreator _awRequestCreator;
 	
