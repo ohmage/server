@@ -105,22 +105,17 @@ public class EmaVizServlet extends AbstractAwHttpServlet {
 				// Convert the results to JSON for output.
 				List<EmaQueryResult> results = (List<EmaQueryResult>) awRequest.getAttribute("emaQueryResults");
 				JSONArray jsonArray = new JSONArray();
-				try {
 					
-					for(EmaQueryResult result : results) {
-						JSONObject entry = new JSONObject();	
-						entry.put("response", new JSONObject(result.getJsonData()).get("response"));
-						entry.put("time", result.getTimestamp());
-						entry.put("timezone", result.getTimezone());
-						jsonArray.put(entry);
-					}
-					
-					responseText = jsonArray.toString();
-						
-				} catch(JSONException jsone) {
-					
-					throw new ServletException(jsone);
-				}	
+				for(EmaQueryResult result : results) {
+					JSONObject entry = new JSONObject();	
+					entry.put("response", new JSONObject(result.getJsonData()).get("response"));
+					entry.put("time", result.getTimestamp());
+					entry.put("timezone", result.getTimezone());
+					jsonArray.put(entry);
+				}
+				
+				responseText = jsonArray.toString();
+				
 			} else {
 				
 				responseText = awRequest.getFailedRequestErrorMessage();
@@ -130,11 +125,11 @@ public class EmaVizServlet extends AbstractAwHttpServlet {
 			writer.write(responseText);
 		}
 		
-		catch(ControllerException ce) { 
+		catch(Throwable t) { 
 			
-			_logger.error("", ce); // make sure the stack trace gets into our app log
-			throw ce; // re-throw and allow Tomcat to redirect to the configured error page. the stack trace will also end up
-			          // in catalina.out
+			_logger.error("an error occurred running the EMA query", t);
+			writer.write("{\"error_code\":\"0103\",\"error_text\":\"" + t.getMessage() + "\"}");
+			
 		} finally {
 			
 			if(null != writer) {
