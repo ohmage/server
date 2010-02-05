@@ -6,6 +6,7 @@
     <title>AndWellness - 500 Server Error</title>
     
     <link href="/css/zp-compressed.css" type="text/css" media="screen, print" rel="stylesheet" />
+    <link href="http://andwellness.cens.ucla.edu/favicon.ico" rel="shortcut icon" type="image/x-icon">
     
     <!--[if IE]>
 	<link href="/css/zp-ie.css" type="text/css" media="screen" rel="stylesheet" />
