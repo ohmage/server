@@ -127,7 +127,7 @@ public class EmaVizServlet extends AbstractAwHttpServlet {
 		
 		catch(Throwable t) { 
 			
-			_logger.error("an error occurred running the EMA query", t);
+			_logger.error("an error occurred running an EMA query", t);
 			writer.write("{\"error_code\":\"0103\",\"error_text\":\"" + t.getMessage() + "\"}");
 			
 		} finally {
