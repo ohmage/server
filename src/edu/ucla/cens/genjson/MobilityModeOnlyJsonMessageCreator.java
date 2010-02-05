@@ -40,6 +40,7 @@ public class MobilityModeOnlyJsonMessageCreator implements JsonMessageCreator {
 		String subtype = "mode_only";
 		
 		for(int i = 0; i < numberOfEntries; i++) {
+			try { Thread.sleep(100); } catch (InterruptedException ie) { } // ensure variable dates
 			String date = ValueCreator.date();
 			double latitude = ValueCreator.latitude();
 			double longitude = ValueCreator.longitude();

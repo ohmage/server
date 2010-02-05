@@ -45,6 +45,8 @@ public class MobilityModeFeaturesJsonMessageCreator implements JsonMessageCreato
 		String subtype = "mode_features";
 	
 		for(int i = 0; i < numberOfEntries; i++) {
+			try { Thread.sleep(100); } catch (InterruptedException ie) { } // ensure variable dates
+			
 			String date = ValueCreator.date();
 			double latitude = ValueCreator.latitude();
 			double longitude = ValueCreator.longitude();

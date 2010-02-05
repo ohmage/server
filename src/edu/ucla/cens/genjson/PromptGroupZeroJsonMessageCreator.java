@@ -48,6 +48,7 @@ public class PromptGroupZeroJsonMessageCreator implements JsonMessageCreator {
 		List<String> tags = new ArrayList<String>();
 	
 		for(int i = 0; i < numberOfEntries; i++) {
+			try { Thread.sleep(100); } catch (InterruptedException ie) { } // ensure variable dates
 			String date = ValueCreator.date();
 			long epoch = ValueCreator.epoch();
 			double latitude = ValueCreator.latitude();
