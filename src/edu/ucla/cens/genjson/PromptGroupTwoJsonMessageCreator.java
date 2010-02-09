@@ -73,8 +73,8 @@ public class PromptGroupTwoJsonMessageCreator implements JsonMessageCreator {
 	
 		for(int i = 0; i < numberOfEntries; i++) {
 			try { Thread.sleep(100); } catch (InterruptedException ie) { } // ensure variable dates
-			String date = ValueCreator.date();
-			long epoch = ValueCreator.epoch();
+			String date = ValueCreator.date(i);
+			long epoch = ValueCreator.epoch(i);
 			double latitude = ValueCreator.latitude();
 			double longitude = ValueCreator.longitude();
 			
