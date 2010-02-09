@@ -62,7 +62,12 @@ public class MessageLoggerService implements Service {
 			builder.append("successful_upload");
 		}
 		
-		builder.append(" user=" + awRequest.getUser().getUserName());
+		String user = awRequest.getUser().getUserName();
+		if(null == user) {
+			user = "unknown.user";
+		}
+		
+		builder.append(" user=" + user);
 		builder.append(" requestType=" + (String) awRequest.getAttribute("requestType"));
 		builder.append(" numberOfRecords=" + totalNumberOfMessages);
 		builder.append(" numberOfDuplicates=" + numberOfDuplicates);
@@ -82,7 +87,7 @@ public class MessageLoggerService implements Service {
 		                                                  // application processing ended
 		
 		try {
-			PrintWriter printWriter = new PrintWriter(new BufferedWriter(new FileWriter(new File(catalinaBase + "/uploads/" + fileName  + "-upload.json"))));
+			PrintWriter printWriter = new PrintWriter(new BufferedWriter(new FileWriter(new File(catalinaBase + "/logs/uploads/" + fileName  + "-upload.json"))));
 			if(null != data) {			
 				printWriter.write(data.toString());
 			} else {
@@ -92,7 +97,7 @@ public class MessageLoggerService implements Service {
 		
 			if(awRequest.isFailedRequest()) {
 				
-				printWriter = new PrintWriter(new BufferedWriter(new FileWriter(new File(catalinaBase + "/uploads/" + fileName  + "-failed-upload-response.json"))));
+				printWriter = new PrintWriter(new BufferedWriter(new FileWriter(new File(catalinaBase + "/logs/uploads/" + fileName  + "-failed-upload-response.json"))));
 				String failedMessage = awRequest.getFailedRequestErrorMessage();
 				if(null != failedMessage) {
 					printWriter.write(failedMessage);
@@ -105,7 +110,7 @@ public class MessageLoggerService implements Service {
 			List<Integer> duplicateIndexList = (List<Integer>) awRequest.getAttribute("duplicateIndexList");
 			if(null != duplicateIndexList && duplicateIndexList.size() > 0) {
 				
-				printWriter = new PrintWriter(new BufferedWriter(new FileWriter(new File(catalinaBase + "/uploads/" + fileName  + "-upload-duplicates.json"))));
+				printWriter = new PrintWriter(new BufferedWriter(new FileWriter(new File(catalinaBase + "/logs/uploads/" + fileName  + "-upload-duplicates.json"))));
 				
 				for(Integer index : duplicateIndexList) {
 					printWriter.write(JsonUtils.getJsonObjectFromJsonArray((JSONArray) data, index).toString());
