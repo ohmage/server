@@ -27,6 +27,10 @@ public class ValueCreator {
 	public static long epoch() {
 		return System.currentTimeMillis();
 	}
+
+	public static long epoch(int days) {
+		return System.currentTimeMillis() + (86400000l * days);
+	}
 	
 	public static String tz() {
 		return _tzs[Math.abs(_random.nextInt()) % (_tzs.length)];
@@ -38,6 +42,14 @@ public class ValueCreator {
 // if specific timezones are added in the future, the epoch method will have to change so the value returned has the same tz
 //		sdf.setTimeZone(TimeZone.getTimeZone(tz));
 		return sdf.format(new Date());
+	}
+
+	public static String date(int days) {
+		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+// use the local timezone for now
+// if specific timezones are added in the future, the epoch method will have to change so the value returned has the same tz
+//		sdf.setTimeZone(TimeZone.getTimeZone(tz));
+		return sdf.format(new Date(epoch(days)));
 	}
 	
 	public static String mode() {
