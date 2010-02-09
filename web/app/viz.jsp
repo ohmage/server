@@ -43,10 +43,6 @@
   	     <form method="post" action="/app/viz">
 		   <fieldset>
 
-	         <c:if test="${sessionScope.failedVizValidation == true}">
-			   <div class="notification error"><c:out value="${sessionScope.failedVizValidationErrorText}"></c:out></div>
-			 </c:if>
-
 		     <div class="form-item">
 			   <label for="startDate">Start Date:</label>
 			   <input tabindex="1" id="startDate" type="text" name="s" />
