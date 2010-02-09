@@ -18,13 +18,21 @@ import edu.ucla.cens.awserver.datatransfer.AwRequest;
 public class EmaQueryDao extends AbstractDao {
 	private static Logger _logger = Logger.getLogger(EmaQueryDao.class);
 	
-	// if the User object was placed into the session, a join could be eliminated here
-	private String _selectSql = "select prompt_response.json_data, prompt_response.phone_timezone, prompt_response.utc_time_stamp" +
-			                    " from prompt_response, user" +
+	// If the User object was placed into the session, a join could be eliminated here
+	// 
+	// The visualizations use a js 'config' file for interpreting each prompt response's data 
+	// type. The type is identified by prompt.prompt_config_id (the phone's prompt id) and 
+	// campaign_prompt_group.group_id (the phone's group id).
+	private String _selectSql = "select prompt_response.json_data, prompt_response.phone_timezone," +
+			                    " prompt_response.utc_time_stamp, prompt.prompt_config_id, " +
+			                    " campaign_prompt_group.group_id" +
+			                    " from prompt_response, prompt, campaign_prompt_group, user" +
 			                    " where prompt_response.utc_time_stamp >= timestamp(?)" +
 			                    " and prompt_response.utc_time_stamp <= timestamp(?)" +
 			                    " and prompt_response.user_id = user.id" +
 			                    " and user.login_id = ?" +
+			                    " and prompt_response.prompt_id = prompt.id" +
+			                    " and prompt.campaign_prompt_group_id = campaign_prompt_group.id " +
 			                    " order by prompt_response.utc_time_stamp";
 	
 	/**
@@ -67,6 +75,8 @@ public class EmaQueryDao extends AbstractDao {
 			result.setJsonData(rs.getString(1));
 			result.setTimezone(rs.getString(2));
 			result.setTimestamp(rs.getTimestamp(3).toString());
+			result.setPromptConfigId(rs.getInt(4));
+			result.setPromptGroupId(rs.getInt(5));
 			return result;
 		}
 	}
@@ -75,7 +85,21 @@ public class EmaQueryDao extends AbstractDao {
 		private String _jsonData;
 		private String _timezone;
 		private String _timestamp;
+		private int _promptConfigId;
+		private int _promptGroupId;
 		
+		public int getPromptConfigId() {
+			return _promptConfigId;
+		}
+		public void setPromptConfigId(int promptConfigId) {
+			_promptConfigId = promptConfigId;
+		}
+		public int getPromptGroupId() {
+			return _promptGroupId;
+		}
+		public void setPromptGroupId(int promptGroupId) {
+			_promptGroupId = promptGroupId;
+		}
 		public String getJsonData() {
 			return _jsonData;
 		}
