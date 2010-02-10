@@ -4,6 +4,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Timestamp;
+import java.sql.Types;
 import java.util.List;
 
 import javax.sql.DataSource;
@@ -102,8 +103,21 @@ public class PromptUploadDao extends AbstractUploadDao {
 								ps.setTimestamp(3, Timestamp.valueOf(promptDataPacket.getUtcDate()));
 								ps.setLong(4, promptDataPacket.getUtcTime());
 								ps.setString(5, promptDataPacket.getTimezone());
-								ps.setDouble(6, promptDataPacket.getLatitude().equals(Double.NaN) ? null : promptDataPacket.getLatitude());
-								ps.setDouble(7, promptDataPacket.getLongitude().equals(Double.NaN) ? null : promptDataPacket.getLongitude());
+								
+								// MySQL will not accept Double.NaN so null is used in its place
+								
+								if(promptDataPacket.getLatitude().isNaN()) {
+									ps.setNull(6, Types.DOUBLE);
+								} else {
+									ps.setDouble(6, promptDataPacket.getLatitude());
+								}
+								
+								if(promptDataPacket.getLongitude().isNaN()) {
+									ps.setNull(7, Types.DOUBLE);
+								} else {
+									ps.setDouble(7, promptDataPacket.getLongitude());
+								}
+								
 								ps.setString(8, response.getResponse());
 								
 								return ps;
