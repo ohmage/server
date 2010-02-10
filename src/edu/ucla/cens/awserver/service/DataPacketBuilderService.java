@@ -74,9 +74,9 @@ public class DataPacketBuilderService implements Service {
 				_builderMap.get(builderName).createDataPacketFrom(JsonUtils.getJsonObjectFromJsonArray(jsonArray, i));
 			
 			
-			if(_logger.isDebugEnabled()) {
-				_logger.debug(dataPacket.toString());
-			}
+//			if(_logger.isDebugEnabled()) {
+//				_logger.debug(dataPacket.toString());
+//			}
 			
 			dataPackets.add(dataPacket);
 			
