@@ -120,8 +120,7 @@ public class JsonMsgPromptResponsesValidator extends AbstractDaoAnnotatingJsonOb
 			
 			String response = JsonUtils.getStringFromJsonObject(promptResponse, "response");
 			
-			if(! ("null".equals(response) || "RESPONSE_SKIPPED".equals(response))) { // 'null' or 'RESPONSE_SKIPPED' is a valid response
-				                                                                     // for any prompt
+			if(! "RESPONSE_SKIPPED".equals(response)) { // 'RESPONSE_SKIPPED' is a valid response for any prompt
 				
 				PromptResponseValidator validator = PromptResponseValidatorFactory.make(promptType);
 				
