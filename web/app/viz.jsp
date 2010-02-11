@@ -11,12 +11,32 @@
 <html>
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	
+	<!-- Force IE8 into IE7 mode for VML compatibility -->
+	<meta http-equiv="X-UA-Compatible" content="IE=EmulateIE7" />
+	
     <title>Data Visualizations</title>
     
     <link href="/css/zp-compressed.css" type="text/css" media="screen, print" rel="stylesheet" />
 	<link href="/css/zp-print.css" type="text/css" media="print" rel="stylesheet" />
 	<link href="http://andwellness.cens.ucla.edu/favicon.ico" rel="shortcut icon" type="image/x-icon">
     
+
+	<!-- A large number of javascript includes, will reduce -->
+	<!-- Main jQuery library -->
+    <script type="text/javascript" src="/js/lib/jquery/jquery-1.3.2.min.js"></script>
+    <!-- Protovis graphing library with hacked in IE support -->
+	<script type="text/javascript" src="/js/lib/Protovis/protovis-d3.1-ie.js"></script>
+	<!-- Useful additions to Javascript objects -->
+	<script type="text/javascript" src="/js/lib/misc/array_lib.js"></script>
+	<script type="text/javascript" src="/js/lib/misc/date_lib.js"></script>
+	<script type="text/javascript" src="/js/lib/misc/generate_data.js"></script>
+	<!-- Generates the different graph types -->
+	<script type="text/javascript" src="/js/lib/Graph/ProtoGraph.js"></script>
+	<!-- Contains the query response visualization types -->
+	<script type="text/javascript" src="/js/response_list.js"></script>
+    
+	
     <!--[if IE]>
 	<link href="/css/zp-ie.css" type="text/css" media="screen" rel="stylesheet" />
 	<![endif]-->
@@ -32,6 +52,80 @@
 		
 	</style>
     
+	
+	
+	<script type="text/javascript">
+	
+	// Globals for now for testing
+	var startDate = new Date(2010,1,1,0,0,0);
+	var numDays = 14;
+	var curGroupId = -1;
+	var graphList = [];	
+		
+	// Called when document is done loading
+    $(function() {
+		// Loop over the questions in the response list
+		response_list.forEach(handleResponse);
+	});
+	
+	
+	// test function to randomize the data in the displayed graphs
+	function randomizeData() {
+		graphList.forEach(function(graph) {
+			if (graph instanceof ProtoGraphTimeType) {
+			     var new_data = generateTimeData(startDate, numDays);
+			}
+			if (graph instanceof ProtoGraphTrueFalseArrayType) {
+                 var new_data = generateTrueFalseArrayData(startDate, numDays, graph.y_labels.length);
+            }
+			if (graph instanceof ProtoGraphIntegerType) {
+                 var new_data = generateIntegerData(startDate, numDays, graph.y_labels.length);
+            }
+			if (graph instanceof ProtoGraphYesNoType) {
+                 var new_data = generateIntegerData(startDate, numDays, 2);
+            }
+			
+			
+			// Apply data to the graph
+            graph.apply_data(new_data, 
+                             startDate, 
+                             numDays);
+							 
+		    // Re-render graphs with the new data
+			graph.render();
+		});
+	}
+	
+	// Handle a response by figuring out the response type and creating
+	// and appending a new graph to the DOM structure
+	function handleResponse(graph_description) {
+		// If we move to a new group of questions, print out a header
+		if (curGroupId != graph_description.group_id) {
+			$('#graph_insert').append('<h1>' + group_list[graph_description.group_id] + '</h1>');
+			curGroupId = graph_description.group_id;
+		}
+		
+	    // Create a unique div_id for each Graph
+        var new_div_id = 'ProtovisGraph_' + graph_description.group_id + '_' + graph_description.prompt_id;
+        // Append a new div on to the DOM for the new graph     
+        $('#graph_insert').append('<div id="' + new_div_id + '"></div>');    
+		
+		// Create a new graph object using the graph information
+		var new_graph = ProtoGraph.factory(graph_description, new_div_id);
+
+		// Render the blank graph
+		new_graph.render();
+		
+		// Add graph to the global list for now
+		graphList.push(new_graph);
+	}
+	
+    </script>
+	
+	
+	
+	
+	
   </head>
   <body>
   
@@ -67,6 +161,17 @@
       </div>
     </div>
   </div>
+  
+  
+  <!-- The graphs will be anchored onto this div -->
+  <div class="zp-wrapper">
+  	<div class="zp-100 content">
+  		<input type="button" value="Randomize" onclick="randomizeData()" />
+      <div id="graph_insert"></div>  	
+	</div>
+  </div>
+  
+  
   <div class="zp-wrapper">
     <div class="zp-100 content">
       <div class="padding">
