@@ -4,6 +4,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Arrays;
 import java.util.List;
 
 import javax.sql.DataSource;
@@ -14,7 +15,6 @@ import org.springframework.jdbc.core.RowMapper;
 
 import edu.ucla.cens.awserver.datatransfer.AwRequest;
 import edu.ucla.cens.awserver.domain.PromptType;
-import edu.ucla.cens.awserver.util.StringUtils;
 
 /**
  * DAO for returning prompt type validation restrictions for an uploaded response group. The SQL that runs here assumes that the 
@@ -24,7 +24,7 @@ import edu.ucla.cens.awserver.util.StringUtils;
  * @author selsky
  */
 public class PromptResponseGroupDao extends AbstractDao {
-	private static Logger _logger = Logger.getLogger(PromptGroupIdDao.class);
+	private static Logger _logger = Logger.getLogger(PromptResponseGroupDao.class);
 	
 	private final String _countSql = "select count(*) from prompt, prompt_type " +
 									 " where prompt.campaign_prompt_group_id = ?" +
@@ -57,7 +57,7 @@ public class PromptResponseGroupDao extends AbstractDao {
 	 */
 	public void execute(AwRequest awRequest) {
 		_logger.info("looking up prompt restrictions for prompts " + 
-			StringUtils.intArrayToString((int[]) awRequest.getAttribute("promptIdArray")) + " for campaign " + 
+			Arrays.toString((int[]) awRequest.getAttribute("promptIdArray")) + " for campaign " + 
 			awRequest.getAttribute("subdomain") + ", campaign prompt group " + awRequest.getAttribute("campaignPromptGroupId") +
 			", and campaign prompt version " + awRequest.getAttribute("campaignPromptVersionId")
 		);
@@ -99,7 +99,7 @@ public class PromptResponseGroupDao extends AbstractDao {
 				  .replace("{$campaignPromptGroupId}", String.valueOf(promptGroupId))
                   .replace("{$campaignPromptVersionId}", String.valueOf(promptVersionId));
 						
-			_logger.info("about to run SQL: " + sql);
+			// _logger.info("about to run SQL: " + sql);
 			
 			List<?> list = getJdbcTemplate().query( 
 				new PreparedStatementCreator() {
