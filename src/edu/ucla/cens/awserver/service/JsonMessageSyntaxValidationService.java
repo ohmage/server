@@ -1,6 +1,5 @@
 package edu.ucla.cens.awserver.service;
 
-import org.apache.log4j.Logger;
 import org.json.JSONArray;
 import org.json.JSONException;
 
@@ -13,7 +12,6 @@ import edu.ucla.cens.awserver.validator.AwRequestAnnotator;
  * @author selsky
  */
 public class JsonMessageSyntaxValidationService implements Service {
-	private static Logger _logger = Logger.getLogger(JsonMessageSyntaxValidationService.class);
 	private AwRequestAnnotator _awRequestAnnotator;
 	
 	/**
@@ -37,8 +35,6 @@ public class JsonMessageSyntaxValidationService implements Service {
 		JSONArray jsonArray =  null;
 		
 		try {
-			
-			_logger.info(awRequest.getAttribute("jsonData"));
 			
 			jsonArray = new JSONArray((String) awRequest.getAttribute("jsonData"));
 			awRequest.setAttribute("jsonData", jsonArray); // this overwrites the String retrieved with the previous call
