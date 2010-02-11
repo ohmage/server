@@ -92,7 +92,9 @@ public class MobilityUploadDao extends AbstractUploadDao {
 				
 				if(isDuplicate(dive)) {
 					
-					_logger.info("found a duplicate mobility message");
+					if(_logger.isDebugEnabled()) {
+						_logger.info("found a duplicate mobility message");
+					}
 					handleDuplicate(awRequest, index);
 					
 				} else {
