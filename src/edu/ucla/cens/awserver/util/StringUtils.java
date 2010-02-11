@@ -63,26 +63,4 @@ public final class StringUtils {
 		return subdomain;
 		
 	}	
-	
-	/**
-	 * Converts an array of ints to a string of the form {n,n,n}. A null array will return the string null. 
-	 * 
-	 * TODO replace calls to this method with Arrays.toString()
-	 */
-	public static String intArrayToString(int[] array) {
-		StringBuilder builder = new StringBuilder();
-		if(null == array) {
-			builder.append("null");
-		} else {
-			builder.append("{");
-			for(int i = 0; i < array.length; i++) {
-				builder.append(array[i]);
-				if(i < array.length - 1) {
-					builder.append(",");
-				}
-			}
-			builder.append("}");
-		}
-		return builder.toString();
-	}
 }
