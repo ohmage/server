@@ -4,6 +4,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Timestamp;
+import java.sql.Types;
 import java.util.List;
 
 import javax.sql.DataSource;
@@ -127,8 +128,19 @@ public class MobilityUploadDao extends AbstractUploadDao {
 					ps.setTimestamp(2, Timestamp.valueOf(dataPacket.getUtcDate()));
 					ps.setLong(3, dataPacket.getUtcTime());
 					ps.setString(4, dataPacket.getTimezone());
-					ps.setDouble(5, dataPacket.getLatitude().equals(Double.NaN) ? null : dataPacket.getLatitude());
-					ps.setDouble(6, dataPacket.getLongitude().equals(Double.NaN) ? null : dataPacket.getLongitude());
+					
+					if(dataPacket.getLatitude().isNaN()) {
+						ps.setNull(5, Types.DOUBLE);
+					} else {
+						ps.setDouble(5, dataPacket.getLatitude());
+					}
+					
+					if(dataPacket.getLatitude().isNaN()) { 
+						ps.setNull(6, Types.DOUBLE);
+					} else {
+						ps.setDouble(6, dataPacket.getLongitude());
+					}
+										
 					ps.setString(7, dataPacket.getMode());
 					
 					return ps;
