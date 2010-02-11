@@ -36,10 +36,6 @@ public class DataPacketBuilderService implements Service {
 	 */
 	public void execute(AwRequest awRequest) {
 		_logger.info("beginning to build data packets for db insertion");
-		
-        // Special Rules (implement in builders)
-		// convert dates to UTC 
-		// convert Double.NaN for lat-long values to null for db - perform this action in the DAO
 
 		JSONArray jsonArray = (JSONArray) awRequest.getAttribute("jsonData");
 		int length = jsonArray.length();
