@@ -35,6 +35,7 @@
     <property name="postProcessingService">
       <ref bean="messageLoggerService" />
     </property>
+    <property name="featureName"><value>sensor data upload</value></property>
   </bean>
   
   <bean id="sensorUploadAuthenticationService" class="edu.ucla.cens.awserver.service.AuthenticationService">

@@ -12,6 +12,7 @@
           <ref bean="campaignExistsService" />
         </list>
       </constructor-arg>
+       <property name="featureName"><value>campaign existence check</value></property>
   </bean>
   
   <bean id="campaignExistsService" class="edu.ucla.cens.awserver.service.CampaignExistsService">

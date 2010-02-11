@@ -25,6 +25,7 @@
         <ref bean="emptySubdomainValidator" />
       </list>      
     </property>
+    <property name="featureName"><value>authentication</value></property>
   </bean>
   
   <!-- Service the authentication request -->

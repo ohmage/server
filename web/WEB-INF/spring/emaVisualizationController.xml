@@ -23,6 +23,7 @@
         <ref bean="endDateValidator" />
       </list>      
     </property>
+     <property name="featureName"><value>EMA visualization query</value></property>
   </bean>
   
   <!-- Service the visualization request -->
