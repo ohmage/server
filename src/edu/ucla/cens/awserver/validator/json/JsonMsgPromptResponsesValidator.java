@@ -41,7 +41,6 @@ public class JsonMsgPromptResponsesValidator extends AbstractDaoAnnotatingJsonOb
 		JSONArray jsonArray = JsonUtils.getJsonArrayFromJsonObject(jsonObject, _key);
 		
 		// Each element in the array must contain a prompt_id and a response element
-		// The response element is allowed to be "null" or "RESPONSE_SKIPPED"
 		int jsonArrayLength = jsonArray.length();
 		int[] idArray = new int[jsonArrayLength];
 		
@@ -65,7 +64,7 @@ public class JsonMsgPromptResponsesValidator extends AbstractDaoAnnotatingJsonOb
 			idArray[i] = id;
 		}
 		
-		// Now check the DAO for prompt existence (the entire group) and grab the validation restrictions
+		// Now check the DAO for prompt existence (the entire group) and grab the validation restrictions (i.e., the prompt type)
 		
 		awRequest.setAttribute("promptIdArray", idArray); // Prep awRequest for DAO
 		
@@ -78,25 +77,13 @@ public class JsonMsgPromptResponsesValidator extends AbstractDaoAnnotatingJsonOb
 			throw new ValidatorException(daoe);
 		}
 		
+		// This error is due to the phone sending data that does not match what is in the db so there is a serious configuration 
+		// problem either on the client or in the server db.
 		if(awRequest.isFailedRequest()) {
-			getAnnotator().annotate(awRequest, "invalid number of prompts for prompt group");
-			return false;
+			throw new ValidatorException("cannot perform validation because an invalid number of prompts was sent in the request");
 		}
 		
 		List<?> promptTypeList = (List<?>) awRequest.getAttribute("promptRestrictions");
-		
-		// TODO - both of these errors are due to the phone sending data that does not match what is 
-		// in the db so there is a serious configuration problem
-		// An exception needs to be thrown ...
-		if(null == promptTypeList || promptTypeList.isEmpty()) {
-			getAnnotator().annotate(awRequest, "prompt type restrictions not found");
-			return false;
-		}
-		
-		if(promptTypeList.size() != jsonArrayLength) {
-			getAnnotator().annotate(awRequest, "incorrect number of prompt type restrictions found");
-			return false;
-		}
 		
 //		if(_logger.isDebugEnabled()) {
 //			StringBuilder builder = new StringBuilder();
@@ -125,9 +112,10 @@ public class JsonMsgPromptResponsesValidator extends AbstractDaoAnnotatingJsonOb
 				PromptResponseValidator validator = PromptResponseValidatorFactory.make(promptType);
 				
 				if(_logger.isDebugEnabled()) {
-					_logger.info("validating response value " + response + " using " + promptType);
+					_logger.debug("validating prompt response value " + response + " using " + promptType);
 				}
 				
+				// Set the currentPromptId in order for it to be sent back to the phone in the cause of validation failure
 				awRequest.setAttribute("currentPromptId", JsonUtils.getIntegerFromJsonObject(promptResponse, "prompt_id"));
 								
 				if(! validator.validate(response)) {
@@ -137,10 +125,7 @@ public class JsonMsgPromptResponsesValidator extends AbstractDaoAnnotatingJsonOb
 			}
 		}
 		
-		if(_logger.isDebugEnabled()) {
-			_logger.debug("successfully validated prompt responses");
-		}
-		
+		_logger.info("successfully validated prompt responses");
 		return true;
 	}
 	
