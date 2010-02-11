@@ -31,7 +31,7 @@ public class PromptGroupIdDao extends AbstractDao {
 	}
 	
 	public void execute(AwRequest awRequest) {
-		_logger.info("looking up prompt group_id for phone group id " + awRequest.getAttribute("groupId") + " in campaign " +
+		_logger.info("looking up prompt group_id for phone config group id " + awRequest.getAttribute("groupId") + " in campaign " +
 				awRequest.getAttribute("subdomain"));
 		
 		try {
