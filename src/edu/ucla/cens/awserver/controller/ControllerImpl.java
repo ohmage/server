@@ -5,6 +5,7 @@ import org.apache.log4j.Logger;
 import edu.ucla.cens.awserver.datatransfer.AwRequest;
 import edu.ucla.cens.awserver.service.Service;
 import edu.ucla.cens.awserver.service.ServiceException;
+import edu.ucla.cens.awserver.util.StringUtils;
 import edu.ucla.cens.awserver.validator.Validator;
 import edu.ucla.cens.awserver.validator.ValidatorException;
 
@@ -19,6 +20,7 @@ public class ControllerImpl implements Controller {
 	private Validator[] _validators;
 	private Service[]   _services;
 	private Service _postProcessingService;
+	private String _featureName; // used for logging messages
 	
 	/**
 	 * Instantiates this class with the passed-in Validator and Service arrays. An array of Services is required for this 
@@ -34,9 +36,16 @@ public class ControllerImpl implements Controller {
 	}
 	
 	/**
+	 * Executes main logic flow for various features. Validates incoming data (if the local instance array of Validators exists) 
+	 * and if the validation is successful, dispatches to the local instance array of Services. Runs a post-processing Service 
+	 * if the local instance exists. 
 	 * 
+	 * @throws ControllerException if any ValidationException or ServiceException occurs, generally in the case of unrecoverable
+	 * logic or system errors in the respective application layers.
 	 */
 	public void execute(AwRequest awRequest) {
+		_logger.info("handling request for feature: " + _featureName);
+		
 		try {
 			boolean continueProcessing = true;
 			
@@ -87,6 +96,8 @@ public class ControllerImpl implements Controller {
 			
 			if(_postProcessingService != null) {
 				
+				_logger.info("post-processing request");
+				
 				_postProcessingService.execute(awRequest);
 
 			}
@@ -108,4 +119,10 @@ public class ControllerImpl implements Controller {
 		_postProcessingService = postProcessingService;
 	}
 	
+	public void setFeatureName(String featureName) {
+		if(StringUtils.isEmptyOrWhitespaceOnly(featureName)) {
+			throw new IllegalArgumentException("feature name cannot be null or empty");
+		}
+		_featureName = featureName;
+	}	
 }
