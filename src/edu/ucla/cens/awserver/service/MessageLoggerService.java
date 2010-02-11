@@ -11,6 +11,8 @@ import java.util.List;
 
 import org.apache.log4j.Logger;
 import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import edu.ucla.cens.awserver.datatransfer.AwRequest;
 import edu.ucla.cens.awserver.util.JsonUtils;
@@ -80,14 +82,18 @@ public class MessageLoggerService implements Service {
 	private void logUploadToFilesystem(AwRequest awRequest) {
 		// Persist the devices's upload to the filesystem 		
 		SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMddHHmmssSSS");
-		String fileName = awRequest.getUser().getUserName() + "-" + sdf.format(new Date());
+		String userName = null == awRequest.getUser().getUserName() ? "unknown.user" : awRequest.getUser().getUserName(); 
+		
+		String fileName = userName + "-" + sdf.format(new Date());
+		
 		String catalinaBase = System.getProperty("catalina.base"); // need a system prop called upload-logging-directory or something like that
 		
 		Object data = awRequest.getAttribute("jsonData"); // could either be a String or a JSONArray depending on where the main
 		                                                  // application processing ended
+		PrintWriter printWriter = null;
 		
 		try {
-			PrintWriter printWriter = new PrintWriter(new BufferedWriter(new FileWriter(new File(catalinaBase + "/logs/uploads/" + fileName  + "-upload.json"))));
+			printWriter = new PrintWriter(new BufferedWriter(new FileWriter(new File(catalinaBase + "/logs/uploads/" + fileName  + "-upload.json"))));
 			if(null != data) {			
 				printWriter.write(data.toString());
 			} else {
@@ -99,11 +105,33 @@ public class MessageLoggerService implements Service {
 				
 				printWriter = new PrintWriter(new BufferedWriter(new FileWriter(new File(catalinaBase + "/logs/uploads/" + fileName  + "-failed-upload-response.json"))));
 				String failedMessage = awRequest.getFailedRequestErrorMessage();
+				
 				if(null != failedMessage) {
-					printWriter.write(failedMessage);
+					
+					JSONObject jsonObject = null;
+					
+					try {
+						
+						jsonObject = new JSONObject(failedMessage);
+						// Dump out the request params
+						jsonObject.put("requestType", awRequest.getAttribute("requestType"));
+						jsonObject.put("user", awRequest.getUser().getUserName());
+						jsonObject.put("phoneVersion", awRequest.getAttribute("phoneVersion"));
+						jsonObject.put("protocolVersion", awRequest.getAttribute("protocolVersion"));
+						
+					} catch (JSONException jsone) {
+						
+						throw new IllegalArgumentException("invalid JSON in failedRequestErrorMessage -- logical error! JSON: " + failedMessage);
+					}
+										
+					printWriter.write(jsonObject.toString());
+					
 				} else {
+					
 					printWriter.write("no failed upload message found");
+					
 				}
+				
 				close(printWriter);
 			}
 			
@@ -122,13 +150,17 @@ public class MessageLoggerService implements Service {
 		catch(IOException ioe) {
 	
 			_logger.warn("caught IOException when logging upload data to the filesystem. " + ioe.getMessage());
+			close(printWriter);
 			throw new ServiceException(ioe);
-		}
+		
+		} 
 	}
 
-	private void close(PrintWriter writer) throws IOException {
-		writer.flush();
-		writer.close();
-		writer = null;	
+	private void close(PrintWriter writer) {
+		if(null != writer) {
+			writer.flush();
+			writer.close();
+			writer = null;
+		}
 	}
 }
