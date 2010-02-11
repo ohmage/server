@@ -132,7 +132,9 @@ public class PromptUploadDao extends AbstractUploadDao {
 					
 					if(isDuplicate(dive)) {
 						
-						_logger.info("found duplicate prompt response message");
+						if(_logger.isDebugEnabled()) {
+							_logger.info("found duplicate prompt response message");
+						}
 						handleDuplicate(awRequest, i);
 						
 					} else {
