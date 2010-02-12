@@ -4,9 +4,9 @@ package edu.ucla.cens.awserver.datatransfer;
 import edu.ucla.cens.awserver.domain.User;
 
 /**
- * Container for transferring data throughout application layers. Instances of classes which implement this inferface are 
- * instended to be request-scoped (i.e., they are scoped to a unique JVM Thread most likely created by the container (app server)
- * and based on a user or device request to the server). 
+ * Container for transferring data throughout application layers. Instances of classes that implement this inferface are intended 
+ * to be request-scoped i.e., they are scoped to a unique app-server-created Thread and based on a user or device request
+ * to the server. 
  * 
  * @author selsky
  */
