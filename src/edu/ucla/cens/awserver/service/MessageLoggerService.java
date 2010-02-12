@@ -8,6 +8,7 @@ import java.io.PrintWriter;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.log4j.Logger;
 import org.json.JSONArray;
@@ -136,12 +137,41 @@ public class MessageLoggerService implements Service {
 			}
 			
 			List<Integer> duplicateIndexList = (List<Integer>) awRequest.getAttribute("duplicateIndexList");
+			Map<Integer, List<Integer>> duplicatePromptResponseMap 
+				= (Map<Integer, List<Integer>>) awRequest.getAttribute("duplicatePromptResponseMap");
+			
 			if(null != duplicateIndexList && duplicateIndexList.size() > 0) {
 				
+				int size = duplicateIndexList.size();
+				int lastDuplicateIndex = -1;
 				printWriter = new PrintWriter(new BufferedWriter(new FileWriter(new File(catalinaBase + "/logs/uploads/" + fileName  + "-upload-duplicates.json"))));
 				
-				for(Integer index : duplicateIndexList) {
-					printWriter.write(JsonUtils.getJsonObjectFromJsonArray((JSONArray) data, index).toString());
+				for(int i = 0; i < size; i++) {
+					
+					int duplicateIndex = duplicateIndexList.get(i);
+					
+					if("prompt".equals((String)awRequest.getAttribute("requestType"))) {
+
+						if(lastDuplicateIndex != duplicateIndex) {
+							List<Integer> list = duplicatePromptResponseMap.get(duplicateIndex);
+							JSONObject outputObject = new JSONObject();
+							JSONArray jsonArray = new JSONArray(list);
+							JSONObject dataPacket = JsonUtils.getJsonObjectFromJsonArray((JSONArray) data, duplicateIndex);
+							
+							try {
+								outputObject.put("duplicatePromptIds", jsonArray);
+								outputObject.put("dataPacket", dataPacket);
+							} catch (JSONException jsone) {
+								throw new IllegalStateException("attempt to add duplicateConfigIds array to data JSON Object for" +
+										" duplicate logging caused JSONException: " + jsone.getMessage());
+							}
+							lastDuplicateIndex = duplicateIndex;
+							printWriter.write(outputObject.toString());
+					    }
+					} else {
+						
+						printWriter.write(JsonUtils.getJsonObjectFromJsonArray((JSONArray) data, duplicateIndex).toString());
+					}
 				}
 				
 				close(printWriter);
