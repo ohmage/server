@@ -83,7 +83,7 @@ public class FailedJsonRequestAnnotator implements AwRequestAnnotator {
 			// If the JSON data is longer than 250 characters, an info message is sent back instead in order to 
 			// avoid echoing extremely large messages back to the client and into the server logs
 			jsonObject.put("request_url", awRequest.getAttribute("requestUrl"));
-			jsonObject.put("request_json", getDataTruncatedMessage((String) awRequest.getAttribute("jsonData")));
+			jsonObject.put("request_json", getDataTruncatedMessage(((JSONArray) awRequest.getAttribute("jsonData")).toString()));
 						
 		
 		} catch(JSONException jsone) {  // invalid JSON at this point is a logical error
@@ -104,7 +104,7 @@ public class FailedJsonRequestAnnotator implements AwRequestAnnotator {
 	private String getDataTruncatedMessage(String string) {
 		if(null != string) {
 			if(string.length() > 250) {
-				return "check server logs for input data";
+				return "check upload file dump for input data";
 			}
 		}
 		return string;
