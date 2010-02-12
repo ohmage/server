@@ -94,7 +94,9 @@ public class MessageLoggerService implements Service {
 		PrintWriter printWriter = null;
 		
 		try {
-			printWriter = new PrintWriter(new BufferedWriter(new FileWriter(new File(catalinaBase + "/logs/uploads/" + fileName  + "-upload.json"))));
+			
+			String uploadFileName = catalinaBase + "/logs/uploads/" + fileName  + "-upload.json";
+			printWriter = new PrintWriter(new BufferedWriter(new FileWriter(new File(uploadFileName))));
 			if(null != data) {			
 				printWriter.write(data.toString());
 			} else {
@@ -115,10 +117,11 @@ public class MessageLoggerService implements Service {
 						
 						jsonObject = new JSONObject(failedMessage);
 						// Dump out the request params
-						jsonObject.put("requestType", awRequest.getAttribute("requestType"));
+						jsonObject.put("request_type", awRequest.getAttribute("requestType"));
 						jsonObject.put("user", awRequest.getUser().getUserName());
-						jsonObject.put("phoneVersion", awRequest.getAttribute("phoneVersion"));
-						jsonObject.put("protocolVersion", awRequest.getAttribute("protocolVersion"));
+						jsonObject.put("phone_version", awRequest.getAttribute("phoneVersion"));
+						jsonObject.put("protocol_version", awRequest.getAttribute("protocolVersion"));
+						jsonObject.put("upload_file_name", uploadFileName);
 						
 					} catch (JSONException jsone) {
 						
