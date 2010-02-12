@@ -5,7 +5,10 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.sql.Types;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.sql.DataSource;
 
@@ -69,6 +72,7 @@ public class PromptUploadDao extends AbstractUploadDao {
 				
 				final PromptResponseDataPacket response = promptResponses.get(j);
 				final int promptId;
+				int currentPromptConfigId = response.getPromptConfigId(); // used for logging duplicates
 				
 				try { // get the internal prompt_id -- the device uploading the data has it's own local configuration 
 					  // (prompt_config_id) which has to be mapped to the prompt's "real" primary key
@@ -133,9 +137,9 @@ public class PromptUploadDao extends AbstractUploadDao {
 					if(isDuplicate(dive)) {
 						
 						if(_logger.isDebugEnabled()) {
-							_logger.info("found duplicate prompt response message");
+							_logger.debug("found duplicate prompt response message");
 						}
-						handleDuplicate(awRequest, i);
+						handleDuplicate(awRequest, i, currentPromptConfigId);
 						
 					} else {
 					
@@ -156,5 +160,26 @@ public class PromptUploadDao extends AbstractUploadDao {
 		
 		_logger.info("successully persisted prompt response");
 		
+	}
+	
+	private void handleDuplicate(AwRequest awRequest, int duplicateIndex, int duplicatePromptConfigId) {
+		handleDuplicate(awRequest, duplicateIndex);
+		
+		Map<Integer, List<Integer>> duplicatePromptResponseMap = (Map<Integer, List<Integer>>) awRequest.getAttribute("duplicatePromptResponseMap");
+		List<Integer> promptConfigIdList = null;
+		
+		if(null == duplicatePromptResponseMap) {
+			duplicatePromptResponseMap = new HashMap<Integer, List<Integer>>();
+			awRequest.setAttribute("duplicatePromptResponseMap", duplicatePromptResponseMap);
+		} else {
+			promptConfigIdList = duplicatePromptResponseMap.get(duplicateIndex);
+		}
+		
+		if(null == promptConfigIdList) {
+			promptConfigIdList = new ArrayList<Integer>();
+			duplicatePromptResponseMap.put(duplicateIndex, promptConfigIdList);
+		}
+		
+		promptConfigIdList.add(duplicatePromptConfigId);
 	}
 }
