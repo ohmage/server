@@ -99,7 +99,6 @@ public class SensorUploadServlet extends AbstractAwHttpServlet {
 		catch(Throwable t) { 
 			
 			_logger.error("an error occurred on sensor data upload", t);
-			writer.write("{\"error_code\":\"0103\",\"error_text\":\"" + t.getMessage() + "\"}");
 		}
 		
 		finally {
