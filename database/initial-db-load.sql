@@ -32,7 +32,7 @@ INSERT INTO prompt_type (type, restriction) VALUES
   ("map", '{0:"not at all",1:".",2:"slightly",3:".",4:"moderately",5:".",6:"extremely"}'),
   ("map", '{0:"never",1:"almost never",2:"sometimes",3:"fairly often",4:"very often"}'),
   ("map", '{0:"none",1:"light",2:"moderate",3:"vigorous"}'),
-  ("map", '{0:"1",1:"2",2:"3",3:"4",4:"5",5:"6",6:"7",7:"8",8:"9",9:"10+"}'),
+  ("map", '{0:"0",1:"1",2:"2",3:"3",4:"4",5:"5",6:"6",7:"7",8:"8",9:"9",10:"10+"}'),
   ("map", '{1:"Yes",0:"No"}'),
   ("array_boolean", "6"),
   ("null", NULL),
