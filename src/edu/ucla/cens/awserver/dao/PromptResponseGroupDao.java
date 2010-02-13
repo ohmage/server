@@ -10,6 +10,7 @@ import java.util.List;
 import javax.sql.DataSource;
 
 import org.apache.log4j.Logger;
+import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.jdbc.core.PreparedStatementCreator;
 import org.springframework.jdbc.core.RowMapper;
 
@@ -61,46 +62,65 @@ public class PromptResponseGroupDao extends AbstractDao {
 			awRequest.getAttribute("subdomain") + ", campaign prompt group " + awRequest.getAttribute("campaignPromptGroupId") +
 			", and campaign prompt version " + awRequest.getAttribute("campaignPromptVersionId")
 		);
+			
+		int promptGroupId = (Integer) awRequest.getAttribute("campaignPromptGroupId");
+		int promptVersionId = (Integer) awRequest.getAttribute("campaignPromptVersionId");
 		
+		// _logger.info("pgid=" + promptGroupId + " pvid=" + promptVersionId);
+		
+		// dynamically generate the SQL in clause based on the idArray
+		final int[] idArray = (int[]) awRequest.getAttribute("promptIdArray");
+		int size = idArray.length;
+		int numberOfPromptsInGroup = 0;
+		
+		// First, check whether the number of entries in the array represents the correct number of prompts for the group
 		try {
+		
+			numberOfPromptsInGroup = getJdbcTemplate().queryForInt(_countSql, new Object[]{promptGroupId, promptVersionId});
+		
+		}
+		catch (IncorrectResultSizeDataAccessException irse) {
 			
-			int promptGroupId = (Integer) awRequest.getAttribute("campaignPromptGroupId");
-			int promptVersionId = (Integer) awRequest.getAttribute("campaignPromptVersionId");
+			_logger.error("caught IncorrectResultSizeDataAccessException (one row expected, but " + irse.getActualSize() + 
+				" returned) when running SQL '" + _countSql + "' with the following parameters: " + promptGroupId + ", " + 
+				promptVersionId); 
 			
-			// _logger.info("pgid=" + promptGroupId + " pvid=" + promptVersionId);
+			throw new DataAccessException(irse);
 			
-			// dynamically generate the SQL in clause based on the idArray
-			final int[] idArray = (int[]) awRequest.getAttribute("promptIdArray");
-			int size = idArray.length;
+		}
+		catch (org.springframework.dao.DataAccessException dae) {
 			
-			// First, check whether the number of entries in the array represents the correct number of prompts for the group
-			int numberOfPromptsInGroup = getJdbcTemplate().queryForInt(_countSql, new Object[]{promptGroupId, promptVersionId});
+			_logger.error("caught DataAccessException when running SQL '" + _countSql + "' with the following paramters: " + 
+				promptGroupId + ", " + promptVersionId);
 			
-			if(size != numberOfPromptsInGroup) {
-				_logger.info("incorrect number of prompts for group. prompts received = " + size + ". prompts expected = " 
-					+ numberOfPromptsInGroup);
-				awRequest.setFailedRequest(true);
-				return;
+			throw new DataAccessException(dae);
+			
+		}
+		
+		if(size != numberOfPromptsInGroup) {
+			_logger.info("incorrect number of prompts for group. prompts received = " + size + ". prompts expected = " 
+				+ numberOfPromptsInGroup);
+			awRequest.setFailedRequest(true);
+			return;
+		}
+		
+		// If the number of prompt responses is correct for the group, grab the prompt restrictions
+		StringBuilder builder = new StringBuilder(_selectSql + " (");
+		for(int i = 0; i < size; i++) {
+			builder.append("?");
+			if(i < size - 1) {
+				builder.append(",");
 			}
-			
-			// If the number of prompt responses is correct for the group, grab the prompt restrictions
-			StringBuilder builder = new StringBuilder(_selectSql + " (");
-			for(int i = 0; i < size; i++) {
-				builder.append("?");
-				if(i < size - 1) {
-					builder.append(",");
-				}
-			}
-			builder.append(") ");
-			builder.append(_orderBy);
-			
-			final String sql = 
-				builder.toString()
-				  .replace("{$campaignPromptGroupId}", String.valueOf(promptGroupId))
-                  .replace("{$campaignPromptVersionId}", String.valueOf(promptVersionId));
-						
-			// _logger.info("about to run SQL: " + sql);
-			
+		}
+		builder.append(") ");
+		builder.append(_orderBy);
+		
+		final String sql = 
+			builder.toString()
+			  .replace("{$campaignPromptGroupId}", String.valueOf(promptGroupId))
+              .replace("{$campaignPromptVersionId}", String.valueOf(promptVersionId));
+		
+		try { 
 			List<?> list = getJdbcTemplate().query( 
 				new PreparedStatementCreator() {
 					public PreparedStatement createPreparedStatement(Connection connection) throws SQLException {
@@ -121,10 +141,13 @@ public class PromptResponseGroupDao extends AbstractDao {
 					}
 				}
 			);
-					
+		
 			awRequest.setAttribute("promptRestrictions", list);
 			
 		}  catch (org.springframework.dao.DataAccessException dae) {
+			
+			_logger.error("caught DataAccessException when running SQL + '" + sql + "' with the following parameters: " +
+				Arrays.toString(idArray));
 			
 			throw new DataAccessException(dae); // Wrap the Spring exception and re-throw in order to avoid outside dependencies
 			                                    // on the Spring Exception (in case Spring JDBC is replaced with another lib in 

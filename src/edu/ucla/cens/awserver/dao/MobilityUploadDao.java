@@ -59,19 +59,20 @@ public class MobilityUploadDao extends AbstractUploadDao {
 		
 		int userId = awRequest.getUser().getId();
 		int index = -1;
-		
+				
 		for(DataPacket dataPacket : dataPackets) {
+			
+			boolean isModeFeatures = false;
 			
 			try {
 				index++;
 				int numberOfRowsUpdated = 0;
-				boolean modeFeatures = false;
 				
 				if(dataPacket instanceof MobilityModeFeaturesDataPacket) { // the order of these instanceofs is important because
 					                                                       // a MobilityModeFeaturesDataPacket is a 
 					                                                       // MobilityModeOnlyDataPacket -- need to check for the 
 					                                                       // superclass first -- maybe move away from instanceof?
-					modeFeatures = true;
+					isModeFeatures = true;
 					numberOfRowsUpdated = insertMobilityModeFeatures((MobilityModeFeaturesDataPacket)dataPacket, userId);
 					
 				} else if (dataPacket instanceof MobilityModeOnlyDataPacket){
@@ -85,7 +86,7 @@ public class MobilityUploadDao extends AbstractUploadDao {
 				
 				if(1 != numberOfRowsUpdated) {
 					throw new DataAccessException("inserted multiple rows even though one row was intended. sql: " 
-							+  (modeFeatures ? _insertMobilityModeFeaturesSql : _insertMobilityModeOnlySql)); 
+							+  (isModeFeatures ? _insertMobilityModeFeaturesSql : _insertMobilityModeOnlySql)); 
 				}
 			
 			} catch (DataIntegrityViolationException dive) { 
@@ -102,12 +103,16 @@ public class MobilityUploadDao extends AbstractUploadDao {
 					// some other integrity violation occurred - bad!! All of the data to be inserted must be validated
 					// before this DAO runs so there is either missing validation or somehow an auto_incremented key
 					// has been duplicated
+					
+					logError(isModeFeatures, dataPacket, userId);
 					throw new DataAccessException(dive);
 				}
 				
 			} catch (org.springframework.dao.DataAccessException dae) { // some other database problem happened that prevented
 				                                                        // the SQL from completing normally
 				
+				
+				logError(isModeFeatures, dataPacket, userId);
 				throw new DataAccessException(dae);
 				
 			}
@@ -137,7 +142,7 @@ public class MobilityUploadDao extends AbstractUploadDao {
 						ps.setDouble(5, dataPacket.getLatitude());
 					}
 					
-					if(dataPacket.getLatitude().isNaN()) { 
+					if(dataPacket.getLongitude().isNaN()) { 
 						ps.setNull(6, Types.DOUBLE);
 					} else {
 						ps.setDouble(6, dataPacket.getLongitude());
@@ -165,8 +170,19 @@ public class MobilityUploadDao extends AbstractUploadDao {
 					ps.setTimestamp(2, Timestamp.valueOf(dataPacket.getUtcDate()));
 					ps.setLong(3, dataPacket.getUtcTime());
 					ps.setString(4, dataPacket.getTimezone());
-					ps.setDouble(5, dataPacket.getLatitude().equals(Double.NaN) ? null : dataPacket.getLatitude());
-					ps.setDouble(6, dataPacket.getLongitude().equals(Double.NaN) ? null : dataPacket.getLongitude());
+					
+					if(dataPacket.getLatitude().isNaN()) {
+						ps.setNull(5, Types.DOUBLE);
+					} else {
+						ps.setDouble(5, dataPacket.getLatitude());
+					}
+					
+					if(dataPacket.getLongitude().isNaN()) { 
+						ps.setNull(6, Types.DOUBLE);
+					} else {
+						ps.setDouble(6, dataPacket.getLongitude());
+					}
+					
 					ps.setString(7, dataPacket.getMode());
 					ps.setDouble(8, dataPacket.getSpeed());
 					ps.setDouble(9, dataPacket.getVariance());
@@ -177,5 +193,29 @@ public class MobilityUploadDao extends AbstractUploadDao {
 				}
 			}
 		);
+	}
+	
+	private void logError(boolean isModeFeatures, DataPacket dataPacket, int userId) {
+		
+		if(isModeFeatures) {
+			
+			MobilityModeFeaturesDataPacket mmfdp = (MobilityModeFeaturesDataPacket) dataPacket;
+			
+			_logger.error("caught DataAccessException when running SQL '" + _insertMobilityModeFeaturesSql + "' with the following" +
+				" parameters: " + userId + ", " + Timestamp.valueOf(mmfdp.getUtcDate()) + ", " + mmfdp.getUtcTime() + ", " +
+				mmfdp.getTimezone() + ", " + (mmfdp.getLatitude().equals(Double.NaN) ? "null" : mmfdp.getLatitude()) +  ", " + 
+			    (mmfdp.getLongitude().equals(Double.NaN) ? "null" : mmfdp.getLongitude()) + ", " + mmfdp.getMode() + ", " + 
+			    mmfdp.getSpeed() + ", " + mmfdp.getVariance() + ", " + mmfdp.getAverage() + ", " + mmfdp.getFftArray());
+			 
+		} else {
+			
+			MobilityModeOnlyDataPacket mmodp = (MobilityModeOnlyDataPacket) dataPacket;
+
+			_logger.error("caught DataAccessException when running SQL '" + _insertMobilityModeOnlySql +"' with the following " +
+				"parameters: " + userId + ", " + mmodp.getUtcDate() + ", " + mmodp.getUtcTime() + ", " + mmodp.getTimezone() + ", "
+				+ (mmodp.getLatitude().equals(Double.NaN) ? "null" : mmodp.getLatitude()) + ", " + 
+				(mmodp.getLongitude().equals(Double.NaN) ? "null" : mmodp.getLongitude()) + ", " + mmodp.getMode());
+			
+		}
 	}
 }

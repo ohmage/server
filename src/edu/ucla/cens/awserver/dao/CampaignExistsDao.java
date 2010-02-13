@@ -44,6 +44,9 @@ public class CampaignExistsDao extends AbstractDao {
 			
 		} catch (org.springframework.dao.DataAccessException dae) {
 			
+			_logger.error("caught DataAccessException when running SQL '" + _selectSql + "' with the following parameters: " + 
+					awRequest.getAttribute("subdomain"));
+			
 			throw new DataAccessException(dae); // wrap the Spring exception and re-throw in order to avoid dependencies
 			                                    // on the Spring Exception in case we want to replace the data layer
 		}

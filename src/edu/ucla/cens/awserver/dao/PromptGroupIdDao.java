@@ -48,9 +48,18 @@ public class PromptGroupIdDao extends AbstractDao {
 		} catch (IncorrectResultSizeDataAccessException irse) { // this exception is thrown if the queryForInt call returns
 			                                                    // anything else but one row
 			
-			awRequest.setFailedRequest(true);
+			_logger.error("caught IncorrectResultSizeDataAccessException (one row was expected to be returned, but the actual " +
+				"size was " + irse.getActualSize() + ") when running SQL '" +  _selectSql + "' with the following parameters: " +
+				awRequest.getAttribute("groupId") + ", " +  awRequest.getAttribute("campaignPromptVersionId")
+				+ ", " + awRequest.getAttribute("subdomain"));
+			
+			throw new DataAccessException(irse);
 			
 		} catch (org.springframework.dao.DataAccessException dae) {
+			
+			_logger.error("caught DataAccessException when running SQL '" +  _selectSql + "' with the following parameters: " +
+					awRequest.getAttribute("groupId") + ", " +  awRequest.getAttribute("campaignPromptVersionId")
+					+ ", " + awRequest.getAttribute("subdomain"));
 			
 			throw new DataAccessException(dae); // Wrap the Spring exception and re-throw in order to avoid outside dependencies
 			                                    // on the Spring Exception (in case Spring JDBC is replaced with another lib in 

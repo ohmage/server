@@ -83,16 +83,26 @@ public class PromptUploadDao extends AbstractUploadDao {
 								                 response.getPromptConfigId()}
 				    );
 					
-				} catch(IncorrectResultSizeDataAccessException irsdae) { // the query did not return one row, a bad data problem.
-					                                                     // it means that the device uploading data has multiple
-					                                                     // prompts mapped to one prompt_config_id-group_id-version_id
-					                                                     // combination
+				} catch(IncorrectResultSizeDataAccessException irse) { // the query did not return one row, a bad data problem.
+					                                                   // it means that the device uploading data has multiple
+					                                                   // prompts mapped to one prompt_config_id-group_id-version_id
+					                                                   // combination
+					_logger.error("caught IncorrectResultSizeDataAccessException (one row expected, but " + irse.getActualSize() +
+							" returned) when running SQL '" + _selectSql + "' with the following parameters: " + 
+							awRequest.getAttribute("campaignPromptGroupId") + ", " + 
+							awRequest.getAttribute("campaignPromptVersionId") + ", " +
+							response.getPromptConfigId()); 
 					
-					throw new DataAccessException(irsdae);
+					throw new DataAccessException(irse);
 					
 				}
 				catch(org.springframework.dao.DataAccessException dae) { // serious db problem (connectivity, config, etc)
-					 
+					
+					_logger.error("caught DataAccessException when running SQL '" + _selectSql + "' with the following " +
+						"parameters: " + awRequest.getAttribute("campaignPromptGroupId") + ", " + 
+						awRequest.getAttribute("campaignPromptVersionId") + ", " +
+						response.getPromptConfigId()); 
+					
 					throw new DataAccessException(dae);
 				}
 				 
@@ -146,6 +156,14 @@ public class PromptUploadDao extends AbstractUploadDao {
 						// some other integrity violation occurred - bad!! All of the data to be inserted must be validated
 						// before this DAO runs so there is either missing validation or somehow an auto_incremented key
 						// has been duplicated
+						
+						_logger.error("caught DataIntegrityViolationException when running SQL '" + _insertSql + "' with the " +
+							"following parameters: " + promptId + ", " + userId + ", " + promptDataPacket.getUtcDate() + ", " + 
+							promptDataPacket.getUtcTime() + ", " + promptDataPacket.getTimezone() + ", " +
+							(promptDataPacket.getLatitude().equals(Double.NaN) ? "null" : promptDataPacket.getLatitude()) +  ", " +
+							(promptDataPacket.getLongitude().equals(Double.NaN) ? "null" : promptDataPacket.getLongitude()) + ", " +
+							response.getResponse());
+						
 						throw new DataAccessException(dive);
 					}
 					
@@ -153,6 +171,13 @@ public class PromptUploadDao extends AbstractUploadDao {
 				catch(org.springframework.dao.DataAccessException dae) { // some other bad db problem occurred that prevented the
 					                                                     // SQL from completing normally 
 					 
+					_logger.error("caught DataAccessException when running SQL '" + _insertSql + "' with the " +
+							"following parameters: " + promptId + ", " + userId + ", " + promptDataPacket.getUtcDate() + ", " + 
+							promptDataPacket.getUtcTime() + ", " + promptDataPacket.getTimezone() + ", " +
+							(promptDataPacket.getLatitude().equals(Double.NaN) ? "null" : promptDataPacket.getLatitude()) +  ", " +
+							(promptDataPacket.getLongitude().equals(Double.NaN) ? "null" : promptDataPacket.getLongitude()) + ", " +
+							response.getResponse());
+						
 					throw new DataAccessException(dae);
 				}
 			}

@@ -47,11 +47,12 @@ public class EmaQueryDao extends AbstractDao {
 	 */
 	public void execute(AwRequest awRequest) {
 		_logger.info("executing ema viz query");
+		String s = null, e = null, u = null;
 		
 		try {
-			String s = (String) awRequest.getAttribute("startDate");
-			String e = (String) awRequest.getAttribute("endDate");
-			String u = awRequest.getUser().getUserName();
+			s = (String) awRequest.getAttribute("startDate");
+			e = (String) awRequest.getAttribute("endDate");
+			u = awRequest.getUser().getUserName();
 			
 			awRequest.setAttribute("emaQueryResults", 
 				getJdbcTemplate().query(
@@ -61,6 +62,9 @@ public class EmaQueryDao extends AbstractDao {
 			);
 			
 		} catch (org.springframework.dao.DataAccessException dae) {
+			
+			_logger.error("caught DataAccessException when running SQL '" + _selectSql + "' with the following parameters: " + 
+					s + ", " + e + ", " + u);
 			
 			throw new DataAccessException(dae); // wrap the Spring exception and re-throw in order to avoid outside dependencies
 			                                    // on the Spring Exception

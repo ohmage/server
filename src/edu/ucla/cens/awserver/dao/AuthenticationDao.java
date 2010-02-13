@@ -48,6 +48,9 @@ public class AuthenticationDao extends AbstractDao {
 			
 		} catch (org.springframework.dao.DataAccessException dae) {
 			
+			_logger.error("caught DataAccessException when running SQL '" + _selectSql + "' with the following paramters: " + 
+					awRequest.getUser().getUserName() + ", " + (String) awRequest.getAttribute("subdomain"));
+			
 			throw new DataAccessException(dae); // Wrap the Spring exception and re-throw in order to avoid outside dependencies
 			                                    // on the Spring Exception (in case Spring JDBC is replaced with another lib in 
 			                                    // the future).
