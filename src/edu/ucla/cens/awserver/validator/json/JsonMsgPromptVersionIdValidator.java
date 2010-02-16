@@ -45,11 +45,6 @@ public class JsonMsgPromptVersionIdValidator extends AbstractDaoAnnotatingJsonOb
 			throw new ValidatorException(daoe);
 		}
 		
-		if(awRequest.isFailedRequest()) {
-			getAnnotator().annotate(awRequest, "prompt version_id " + versionId + " not found for campaign " + awRequest.getAttribute("subdomain"));
-			return false;
-		}
-		
 		return true;
 	}
 }
