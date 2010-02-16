@@ -175,6 +175,8 @@ public class MessageLoggerService implements Service {
 						
 						printWriter.write(JsonUtils.getJsonObjectFromJsonArray((JSONArray) data, duplicateIndex).toString());
 					}
+					
+					printWriter.write("\n");
 				}
 				
 				close(printWriter);
