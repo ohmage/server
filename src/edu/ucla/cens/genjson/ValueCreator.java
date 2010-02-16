@@ -66,7 +66,9 @@ public class ValueCreator {
 	
 	public static String randomTime() {
 		String hours =  String.valueOf(Math.abs(_random.nextInt() % 24));
-		String minutes =  String.valueOf(Math.abs(_random.nextInt() % 60));
+		
+		int m = Math.abs(_random.nextInt() % 60);
+		String minutes = m < 10 ? "0" + m : String.valueOf(m);
 		
 		return hours + ":" + minutes; 
 	}
