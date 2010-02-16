@@ -46,12 +46,7 @@ public class JsonMsgPromptGroupIdValidator extends AbstractDaoAnnotatingJsonObje
 			
 			throw new ValidatorException(daoe);
 		}
-		
-		if(awRequest.isFailedRequest()) {
-			getAnnotator().annotate(awRequest, "prompt group_id " + groupId + " not found for campaign " + awRequest.getAttribute("subdomain"));
-			return false;
-		}
-		
+
 		return true;
 	}
 }
