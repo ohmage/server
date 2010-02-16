@@ -58,6 +58,10 @@ public class FailedJsonRequestAnnotator implements AwRequestAnnotator {
      * 
      * The message passed in is used for debug output only. For cases where the JSONObject representing the error output message 
      * must be passed into this method, @see FailedJsonSuppliedMessageRequestAnnotator.
+     * 
+     * Since the upload URL is public to the internet, there are cases where no data is posted because someone (malicious or not)
+     * is hitting the URL. In this case, only the request URL is logged. 
+     * 
 	 */
 	public void annotate(AwRequest awRequest, String message) {
 		awRequest.setFailedRequest(true);
@@ -69,10 +73,15 @@ public class FailedJsonRequestAnnotator implements AwRequestAnnotator {
 			
 			// this is ugly because it assumes the structure of the error message, the way errors should be configured is
 			// that error codes and text should be set instead of a JSON string TODO
+			
 			JSONArray errorArray = JsonUtils.getJsonArrayFromJsonObject(jsonObject, "errors");
 			JSONObject errorObject = JsonUtils.getJsonObjectFromJsonArray(errorArray, 0);
 			
-			errorObject.put("at_record_number", (Integer) awRequest.getAttribute("currentMessageIndex"));
+			if(null != awRequest.getAttribute("currentMessageIndex")) {			
+			
+				errorObject.put("at_record_number", (Integer) awRequest.getAttribute("currentMessageIndex"));
+			
+			}
 			
 			if(null != awRequest.getAttribute("currentPromptId")) { // a prompt upload is being handled.
 				
@@ -83,8 +92,13 @@ public class FailedJsonRequestAnnotator implements AwRequestAnnotator {
 			// If the JSON data is longer than 250 characters, an info message is sent back instead in order to 
 			// avoid echoing extremely large messages back to the client and into the server logs
 			jsonObject.put("request_url", awRequest.getAttribute("requestUrl"));
-			jsonObject.put("request_json", getDataTruncatedMessage(((JSONArray) awRequest.getAttribute("jsonData")).toString()));
-						
+			
+			Object data = awRequest.getAttribute("jsonData");
+			if(null != data) {
+				
+				jsonObject.put("request_json", getDataTruncatedMessage(((JSONArray) data).toString()));
+				
+			} 		
 		
 		} catch(JSONException jsone) {  // invalid JSON at this point is a logical error
 		
