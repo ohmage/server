@@ -36,7 +36,7 @@ public class TimeMilitaryValidator extends NullValidator {
 				hours = Integer.parseInt(pieces[0]);
 				
 				//_logger.info(hours);
-			
+				
 			} catch(NumberFormatException nfe) {
 				
 				_logger.info("time military value has an invalid hours element");
@@ -44,6 +44,11 @@ public class TimeMilitaryValidator extends NullValidator {
 			}
 			
 			try {
+				if(pieces[1].length() < 2) { // the minutes values that are < 10, must be two digits long otherwise 
+					                         // the interpretation of the values is ambiguous
+					_logger.info("time military minutes value is of incorrect length");
+					return false;
+				}
 				
 				minutes = Integer.parseInt(pieces[1]);
 			
