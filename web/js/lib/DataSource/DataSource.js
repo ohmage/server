@@ -64,8 +64,25 @@ function DataSourceRemoteJson() {
 // Inherit methods
 DataSourceRemoteJson.prototype = new DataSource();
 
-DataSourceRemoteJson.prototype.populate_data = function(start_date, num_days, remote_addr) {
+DataSourceRemoteJson.prototype.populate_data = function(start_date, end_date, url, callback) {
+	this.callback = callback;
 	
+    url += "?s=" + start_date + "&e=" + end_date;		
+		
+    $.getJSON(url, this.handle_json_data);
+}
+
+DataSourceRemoteJson.prototype.handle_json_data = function(json_data, text_status) {
+	// Do basic data filtering
+	
+	// Pull out the day into a Date for each data point
+    json_data.forEach(function(d) {
+        d.date = new Date(d.time).grabDate();
+    });
+	
+	this.current_data = json_data;
+	
+	this.callback();
 }
 
 /*
@@ -104,7 +121,7 @@ DataSourceRandomData.prototype.populate_data = function(start_date, num_days, gr
 		// This is a hack but imitates what is sent to us from an actual server
 		new_data.forEach(function(data) {
 			data.prompt_id = graph.prompt_id;
-            data.group_id = graph.group_id;
+            data.prompt_group_id = graph.group_id;
 		});
 		
 		
@@ -115,7 +132,7 @@ DataSourceRandomData.prototype.populate_data = function(start_date, num_days, gr
 
 DataSourceRandomData.prototype.grab_data = function(prompt_id, group_id) {
 	// Copy the arguments locally to be accessible from the closure below
-	var group_id = group_id;
+	var group_id = prompt_group_id;
 	var prompt_id = prompt_id;
 	// Filter the data according to the query and group id
 	return this.current_data.filter(function(data) {

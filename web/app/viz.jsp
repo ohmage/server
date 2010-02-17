@@ -29,6 +29,7 @@
 	<script type="text/javascript" src="/js/lib/Protovis/protovis-d3.1-ie.js"></script>
 	<!-- Useful additions to Javascript objects -->
 	<script type="text/javascript" src="/js/lib/misc/array_lib.js"></script>
+	<script type="text/javascript" src="/js/lib/misc/date-functions.js"></script>
 	<script type="text/javascript" src="/js/lib/misc/date_lib.js"></script>
 	<!-- Generates the different graph types -->
 	<script type="text/javascript" src="/js/lib/DataSource/DataSource.js"></script>
@@ -57,40 +58,69 @@
 	<script type="text/javascript">
 	
 	// Globals for now for testing
-	var startDate = new Date(2010,1,1,0,0,0);
-	var numDays = 14;
+	var startDate = new Date(2010,1,16,0,0,0);
+	var numDays = 12;
 	var curGroupId = -1;
 	var graphList = [];	
-	var dataSource = DataSource.factory(DataSource.data_source_type.RANDOM_DATA);
+	var dataSource = DataSource.factory(DataSource.data_source_type.REMOTE_JSON);
 		
 	// Called when document is done loading
     $(function() {
+		// Hide the graphs to start
+		$('#graph_insert').hide();
+		
 		// Loop over the questions in the response list
 		response_list.forEach(handleResponse);
 		
 		// Over-ride the default submit for the form to grab data
-		$("#grabDateForm").submit(function() {
-	        return false;
-        });
+		$("#grabDateForm").submit(send_json_request);
 	});
 	
+	// Create a JSON request to the sever using jQuery
+	function send_json_request(data) {
+		// Grab the URL from the form
+		var url = $("#grabDateForm").attr("action");
+		var start_date = $("#startDate").val();
+		var end_date = $("#endDate").val();
+		
+		// Set global start date
+		startDate = Date.parseDate(start_date, "Y-m-d");
+		numDays = startDate.difference_in_days(Date.parseDate(end_date, "Y-m-d"));
+		
+		url += "?s=" + start_date + "&e=" + end_date;     
+        
+        $.getJSON(url, populate_graphs_with_json);
+		
+		return false;
+	}
 	
-	// test function to randomize the data in the displayed graphs
-	function randomizeData() {
-		// Grab new data
-		dataSource.populate_data(startDate, numDays, response_list);
+	function populate_graphs_with_json(json_data, text_status) {
+		// Pull out the day into a Date for each data point
+	    json_data.forEach(function(d) {
+			var period = d.time.lastIndexOf('.');
+	        d.date = Date.parseDate(d.time.substring(0,period), "Y-m-d g:i:s").grabDate();
+	    });
 		
 		// Give the new data to the graphs
+		var data = json_data;
 		graphList.forEach(function(graph) {
-			var new_data = dataSource.grab_data(graph.prompt_id, graph.group_id);
+			var prompt_id = graph.prompt_id;
+			var group_id = graph.group_id;
+			
+			var new_data = data.filter(function(data_point) {
+		        return ((prompt_id == data_point.prompt_id) && (group_id == data_point.prompt_group_id));
+		    });
 			
 			// Apply data to the graph
             graph.apply_data(new_data, 
                              startDate, 
                              numDays);
+                             
+			// Show the graphs
+			$('#graph_insert').show();
 							 
-		    // Re-render graphs with the new data
-			graph.render();
+            // Re-render graphs with the new data
+            graph.render();
 		});
 	}
 	
@@ -111,7 +141,7 @@
 		// Create a new graph object using the graph information
 		var new_graph = ProtoGraph.factory(graph_description, new_div_id);
 
-        // Set group and prompt ID on each graph for later retreival
+        // Set group and prompt ID on each graph for later retrieval
 		new_graph.prompt_id = graph_description.prompt_id;
 		new_graph.group_id = graph_description.group_id;
 
@@ -124,9 +154,7 @@
 	
     </script>
 	
-	
-	
-	
+
 	
   </head>
   <body>
@@ -168,7 +196,6 @@
   <!-- The graphs will be anchored onto this div -->
   <div class="zp-wrapper">
   	<div class="zp-100 content">
-  		<input type="button" value="Randomize" onclick="randomizeData()" />
       <div id="graph_insert"></div>  	
 	</div>
   </div>

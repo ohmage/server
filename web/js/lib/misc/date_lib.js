@@ -1,13 +1,18 @@
 // Add a function to Date that will return a new Date
 // object incremented by x days
+
+// Set one day in milliseconds
+Date.prototype.one_day = 1000*60*60*24;
+
 Date.prototype.incrementDay = function(numDays) {
-    // Create a new copy of the date
-    var dateCopy = new Date(this.getTime());
-    // Increment the day
-    dateCopy.setDate(dateCopy.getDate() + numDays);
-    
-    return dateCopy;
+	return new Date(this.getTime() + this.one_day * numDays);
 };
+
+// Find the difference in days between this date and the
+// passed in date
+Date.prototype.difference_in_days = function(second_day) {
+	return Math.ceil((second_day.getTime()-this.getTime())/(this.one_day));
+}
 
 // Returns the month and day of the current date as a string
 Date.prototype.toStringMonthAndDay = function() {
@@ -30,19 +35,13 @@ Date.prototype.toStringMonthAndDay = function() {
     return months[this.getMonth()] + " " + this.getDate();
 }
 
-// Returns an object with the date param set to the date, and the time
-// param set to the time.  Generally used for graphing with the day on 
-// one axis and the time of day on the other.
-Date.prototype.splitDateTime = function() {
-	var datetime = new Object();
-	
-	datetime.time = new Date(0,0,0,this.getHours(),this.getMinutes(),this.getSeconds());
-	datetime.date = new Date(this.getFullYear(), this.getMonth(), this.getDate(),0,0,0);
-
-	return datetime;
-}
-
 // Return a date object of just the date (year/month/day)
 Date.prototype.grabDate = function() {
 	return new Date(this.getFullYear(), this.getMonth(), this.getDate(),0,0,0);
 }
+
+Date.prototype.grabTime = function() {
+	return new Date(0,0,0,this.getHours(),this.getMinutes(),this.getSeconds());
+}
+
+

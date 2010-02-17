@@ -87,7 +87,7 @@ ProtoGraph.graph_type = {
 }
 
 ProtoGraph.prototype.height = 120;
-ProtoGraph.prototype.width = 450;
+ProtoGraph.prototype.width = 550;
 ProtoGraph.prototype.leftMargin = 70;
 ProtoGraph.prototype.bottomMargin = 20;
 ProtoGraph.prototype.topMargin = 5;
@@ -167,11 +167,11 @@ ProtoGraph.prototype.add_average_line = function(average, y_scale, average_label
 	// to already instantiated average lines through closures
 	this.average = average;
     this.average_line_label = average_label;
+    this.average_line_scale = pv.Scale.linear(0,this.num_days).range(0, this.width);
 
 	// If the average line has not yet been created, create it now
 	// Else, do nothing as we have already updated the average data
 	if (this.has_average_line == false) {
-		x_line_scale = pv.Scale.linear(0,this.num_days).range(0, this.width);
 	    // Add the line to the graph
 	    var that = this;
 	    this.vis.add(pv.Line)
@@ -187,7 +187,7 @@ ProtoGraph.prototype.add_average_line = function(average, y_scale, average_label
 	            return y_scale(d);
 	        })
 	        .left(function() {
-	            return x_line_scale(this.index);
+	            return that.average_line_scale(this.index);
 	        })
 	        .strokeStyle("lightgray")
 	        .strokeDasharray('10,5')
@@ -264,12 +264,6 @@ ProtoGraphIntegerType.prototype.apply_data = function(data, start_date, num_days
 	// Replace the x labels with possible new labels
 	this.replace_x_labels(start_date, num_days);
 
-	// Separate the data by time and date
-	var datetime = [];
-	this.data.forEach(function(d) {
-		d.date = d.datetime.grabDate();
-	});
-
 	// Split the data into categories using Scale.ordinal
 	var dayArray = [];
 	for (var i = 0; i < this.num_days; i += 1) {
@@ -289,7 +283,9 @@ ProtoGraphIntegerType.prototype.apply_data = function(data, start_date, num_days
 	        .data(function() {
 				return that.data;
 			})
-	        .width(that.x_scale.range().band)
+	        .width(function(){
+				return that.x_scale.range().band;
+			})
 	        .height(function(d) {
 	            return that.y_scale(d.response) + 1;
 	        })
@@ -303,7 +299,7 @@ ProtoGraphIntegerType.prototype.apply_data = function(data, start_date, num_days
 	// Else we are just entering new data to the current graph, change
 	// the x_scale and redraw
 	else {
-		// TODO: Fix the x_scale here
+		this.x_scale = pv.Scale.ordinal(dayArray).splitBanded(0, this.width, this.barWidth);
 	}
 		  
 	// Overlay the average line
@@ -383,7 +379,11 @@ ProtoGraphTimeType.prototype.apply_data = function(data, start_date, num_days) {
 		  	 // Separate the data by time and date
 		    datetime = [];
 		    that.data.forEach(function(d) {
-		        datetime.push(d.splitDateTime());
+				var dt = new Object();
+				dt.date = d.date;
+                dt.time = Date.parseDate(d.response, "g:i").grabTime();
+				
+		        datetime.push(dt);
 		    });
 			
 			return datetime;
@@ -400,14 +400,15 @@ ProtoGraphTimeType.prototype.apply_data = function(data, start_date, num_days) {
 		this.has_data = true;
 	} 
 	else {
-		// TODO: rescale the x_scale if needed
+		this.x_scale = pv.Scale.ordinal(dayArray).split(0, this.width);
 	}
 		
 	// Average the data values for the average line
 	var totalTimeInMinutes = 0;
 	for (var i = 0; i < this.data.length; i++) {
-		totalTimeInMinutes += this.data[i].getHours() * 60;
-		totalTimeInMinutes += this.data[i].getMinutes();
+		var time = Date.parseDate(this.data[i].response, "g:i").grabTime();
+		totalTimeInMinutes += time.getHours() * 60;
+		totalTimeInMinutes += time.getMinutes();
 	}
 	totalTimeInMinutes /= this.data.length;
 	average = new Date(0,0,0,totalTimeInMinutes / 60, totalTimeInMinutes % 60);
@@ -464,12 +465,6 @@ ProtoGraphTrueFalseArrayType.prototype.apply_data = function(data, start_date, n
 	
 	// Replace the x labels
     this.replace_x_labels(start_date, num_days);
-	
-    // Separate the data by time and date
-	var datetime = [];
-	this.data.forEach(function(d) {
-		d.date = d.datetime.grabDate();
-	});
 
 	// Split the data into categories using Scale.ordinal
 	var dayArray = [];
@@ -498,12 +493,14 @@ ProtoGraphTrueFalseArrayType.prototype.apply_data = function(data, start_date, n
 		    transformed_data = [];
 		    that.data.forEach(function(data_point) {
 		        for(var i = 0; i < data_point.response.length; i++) {
-		            transformed_data.push([data_point.date, i, data_point.response[i]]);    
+		            transformed_data.push([data_point.date, i, data_point.response[i] == 't']);    
 		        }
 		    });
 			return transformed_data;
 		})
-		.width(that.x_scale.range().band)
+		.width(function(){
+			return that.x_scale.range().band;
+		})
 		.height(barHeight)	
 		// Move bar down if a negative response
 		.bottom(function(d) {
@@ -567,12 +564,6 @@ ProtoGraphYesNoType.prototype.apply_data = function(data, start_date, num_days) 
 
     // Replace the x labels
     this.replace_x_labels(start_date, num_days);
-
-    // Separate the data by time and date
-	var datetime = [];
-	this.data.forEach(function(d) {
-		d.date = d.datetime.grabDate();
-	});
 
 	// Split the data into categories using Scale.ordinal
 	var dayArray = [];
