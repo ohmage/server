@@ -30,8 +30,8 @@
 	<!-- Useful additions to Javascript objects -->
 	<script type="text/javascript" src="/js/lib/misc/array_lib.js"></script>
 	<script type="text/javascript" src="/js/lib/misc/date_lib.js"></script>
-	<script type="text/javascript" src="/js/lib/misc/generate_data.js"></script>
 	<!-- Generates the different graph types -->
+	<script type="text/javascript" src="/js/lib/DataSource/DataSource.js"></script>
 	<script type="text/javascript" src="/js/lib/Graph/ProtoGraph.js"></script>
 	<!-- Contains the query response visualization types -->
 	<script type="text/javascript" src="/js/response_list.js"></script>
@@ -61,6 +61,7 @@
 	var numDays = 14;
 	var curGroupId = -1;
 	var graphList = [];	
+	var dataSource = DataSource.factory(DataSource.data_source_type.RANDOM_DATA);
 		
 	// Called when document is done loading
     $(function() {
@@ -71,20 +72,12 @@
 	
 	// test function to randomize the data in the displayed graphs
 	function randomizeData() {
+		// Grab new data
+		dataSource.populate_data(startDate, numDays, response_list);
+		
+		// Give the new data to the graphs
 		graphList.forEach(function(graph) {
-			if (graph instanceof ProtoGraphTimeType) {
-			     var new_data = generateTimeData(startDate, numDays);
-			}
-			if (graph instanceof ProtoGraphTrueFalseArrayType) {
-                 var new_data = generateTrueFalseArrayData(startDate, numDays, graph.y_labels.length);
-            }
-			if (graph instanceof ProtoGraphIntegerType) {
-                 var new_data = generateIntegerData(startDate, numDays, graph.y_labels.length);
-            }
-			if (graph instanceof ProtoGraphYesNoType) {
-                 var new_data = generateIntegerData(startDate, numDays, 2);
-            }
-			
+			var new_data = dataSource.grab_data(graph.prompt_id, graph.group_id);
 			
 			// Apply data to the graph
             graph.apply_data(new_data, 
@@ -113,12 +106,21 @@
 		// Create a new graph object using the graph information
 		var new_graph = ProtoGraph.factory(graph_description, new_div_id);
 
+        // Set group and prompt ID on each graph for later retreival
+		new_graph.prompt_id = graph_description.prompt_id;
+		new_graph.group_id = graph_description.group_id;
+
 		// Render the blank graph
 		new_graph.render();
 		
 		// Add graph to the global list for now
 		graphList.push(new_graph);
 	}
+	
+	$("form").submit(function() {
+		alert("test");
+		return false;
+	});
 	
     </script>
 	
@@ -134,7 +136,7 @@
 	  <div class="padding">
 	    <h1>EMA Visualizations for <c:out value="${sessionScope.userName}"></c:out>.</h1>
   	    
-  	     <form method="post" action="/app/viz">
+  	     <form method="post" action="/app/viz" id="grabDateForm">
 		   <fieldset>
 
 		     <div class="form-item">
@@ -145,7 +147,7 @@
 			   <label for="endDate">End Date:</label>
 			   <input tabindex="1" id="endDate" type="text" name="e" />
 			 </div>
-		     <button>Send</button>
+		     <button type="submit">Send</button>
 					
 		   </fieldset>
 		 </form>

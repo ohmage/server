@@ -78,6 +78,14 @@ function ProtoGraph(div_id, title) {
 }
 
 // ProtoGraph constants, applies to all protographs
+ProtoGraph.graph_type = {
+    "PROTO_GRAPH_TIME_ONCE_TYPE":0,
+    "PROTO_GRAPH_TRUE_FALSE_ARRAY_TYPE":1,
+    "PROTO_GRAPH_INTEGER_TYPE":2,
+    "PROTO_GRAPH_YES_NO_TYPE":3,
+	"PROTO_GRAPH_TIME_MULTI_TYPE":4,
+}
+
 ProtoGraph.prototype.height = 120;
 ProtoGraph.prototype.width = 450;
 ProtoGraph.prototype.leftMargin = 70;
@@ -103,6 +111,7 @@ ProtoGraph.prototype.distanceFromCenter = .25;
 ProtoGraph.factory = function(graph_description, div_id) {
 	// Swith among all the graph types, don't know if this is the best
 	// method to do this but here goes anyway
+	
 	if (graph_description.type == 0) {
 		// Pass in the div_id and the title
 		var new_graph = new ProtoGraphTimeType(div_id, graph_description.text);
@@ -284,7 +293,7 @@ ProtoGraphIntegerType.prototype.apply_data = function(data, start_date, num_days
 	        .height(function(d) {
 	            return that.y_scale(d.response) + 1;
 	        })
-	        .bottom(0)
+	        .bottom(1)
 	        .left(function(d) {
 	            return that.x_scale(d.date);
 	        });
