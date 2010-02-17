@@ -1,5 +1,7 @@
 package edu.ucla.cens.awserver.validator;
 
+import java.util.regex.Pattern;
+
 import edu.ucla.cens.awserver.datatransfer.AwRequest;
 import edu.ucla.cens.awserver.util.StringUtils;
 
@@ -9,22 +11,23 @@ import edu.ucla.cens.awserver.util.StringUtils;
  * @author selsky
  */
 public class AwRequestUserNameValidator extends AbstractAnnotatingValidator {
-	private String _allowedCharacters;
+	// private String _allowedCharacters;
+	private Pattern _regexpPattern;
 
 	/**
 	 * Creates an instance of this class using allowedCharacters as the set of characters that userNames are validated against. 
-	 * 
-	 * @param allowedCharacters
-	 * @throws IllegalArgumentException if the passed in value for allowedCharacters is null, empty, or all whitespace
+	 *
+	 * @throws IllegalArgumentException if the passed in regexp is null, empty, or all whitespace
+	 * @throws PatternSyntaxException if the passed in regexp is invalid
 	 */
-	public AwRequestUserNameValidator(String allowedCharacters, AwRequestAnnotator failedValidationStrategy) {
+	public AwRequestUserNameValidator(String regexp, AwRequestAnnotator failedValidationStrategy) {
 		super(failedValidationStrategy);
 		
-		if(StringUtils.isEmptyOrWhitespaceOnly(allowedCharacters)) {
+		if(StringUtils.isEmptyOrWhitespaceOnly(regexp)) {
 			throw new IllegalArgumentException("a null, empty, or all-whitespace string is not allowed");
 		}
 		
-		_allowedCharacters = allowedCharacters;
+		_regexpPattern = Pattern.compile(regexp);
 	}
 	
 	/**
@@ -46,17 +49,11 @@ public class AwRequestUserNameValidator extends AbstractAnnotatingValidator {
 		}
 		
 		String userName = awRequest.getUser().getUserName();
-		int length = userName.length();
 		
-		for(int i = 0; i < length; i++) {
-			
-			CharSequence subSequence = userName.subSequence(i, i + 1);
-			
-			if(! _allowedCharacters.contains(subSequence)) {
-				
-				getAnnotator().annotate(awRequest, "incorrect character found in user name: " + subSequence);
-				return false;
-			}
+		if(! _regexpPattern.matcher(userName).matches()) {
+		
+			getAnnotator().annotate(awRequest, "incorrect character found in user name: " + userName);
+			return false;
 		}
 		
 		return true;
