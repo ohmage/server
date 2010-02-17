@@ -71,6 +71,8 @@ public class AuthenticationService extends AbstractAnnotatingDaoService {
 					
 					awRequest.getUser().setCampaignId(loginResult.getCampaignId());
 					awRequest.getUser().setId(loginResult.getUserId());
+					awRequest.getUser().setLoggedIn(true);
+					
 					_logger.info("user " + awRequest.getUser().getUserName() + " successfully logged in");
 				
 				} else {
