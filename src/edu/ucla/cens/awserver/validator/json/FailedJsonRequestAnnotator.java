@@ -96,8 +96,15 @@ public class FailedJsonRequestAnnotator implements AwRequestAnnotator {
 			Object data = awRequest.getAttribute("jsonData");
 			if(null != data) {
 				
-				jsonObject.put("request_json", getDataTruncatedMessage(((JSONArray) data).toString()));
+				if(data instanceof JSONArray) {
 				
+					jsonObject.put("request_json", getDataTruncatedMessage(((JSONArray) data).toString()));
+				
+				} else if (data instanceof String) {
+					
+					jsonObject.put("request_json", getDataTruncatedMessage((String) data));
+					
+				}				
 			} 		
 		
 		} catch(JSONException jsone) {  // invalid JSON at this point is a logical error
