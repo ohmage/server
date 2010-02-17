@@ -32,6 +32,7 @@ public class SensorUploadAwRequestCreator implements AwRequestCreator {
 	 */
 	public AwRequest createFrom(HttpServletRequest request) {
 		String subdomain = StringUtils.retrieveSubdomainFromUrlString(request.getRequestURL().toString());
+		String sessionId = request.getSession(false).getId(); // for upload logging to connect app logs to uploads
 		
 		String userName = request.getParameter("u");
 		String requestType = request.getParameter("t");
@@ -59,7 +60,7 @@ public class SensorUploadAwRequestCreator implements AwRequestCreator {
 		AwRequestImpl awRequest = new AwRequestImpl();
 		
 		awRequest.setAttribute("startTime", System.currentTimeMillis());
-		
+		awRequest.setAttribute("sessionId", sessionId);
 		awRequest.setUser(user);
 		awRequest.setAttribute("subdomain", subdomain);
 		awRequest.setAttribute("requestType", requestType);
