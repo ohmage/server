@@ -67,6 +67,11 @@
     $(function() {
 		// Loop over the questions in the response list
 		response_list.forEach(handleResponse);
+		
+		// Over-ride the default submit for the form to grab data
+		$("#grabDateForm").submit(function() {
+	        return false;
+        });
 	});
 	
 	
@@ -116,11 +121,6 @@
 		// Add graph to the global list for now
 		graphList.push(new_graph);
 	}
-	
-	$("form").submit(function() {
-		alert("test");
-		return false;
-	});
 	
     </script>
 	
