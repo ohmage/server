@@ -33,8 +33,13 @@ public class MessageLoggerService implements Service {
 	 */
 	public void execute(AwRequest awRequest) {
 		_logger.info("beginning to log files and stats about a device upload");
-		logUploadToFilesystem(awRequest);
+		
+		if(awRequest.getUser().isLoggedIn()) { // avoid filling the filesystem up with junk from non-logged in users
+			logUploadToFilesystem(awRequest);
+		}
+		
 		logUploadStats(awRequest);
+		
 		_logger.info("finished with logging files and stats about a device upload");
 	}
 	
@@ -42,6 +47,7 @@ public class MessageLoggerService implements Service {
 		Object data = awRequest.getAttribute("jsonData");
 		String totalNumberOfMessages = "unknown";
 		String numberOfDuplicates = "unknown";
+		String sessionId = (String) awRequest.getAttribute("sessionId");
 		
 		if(data instanceof JSONArray) {
 			totalNumberOfMessages = String.valueOf(((JSONArray) data).length());
@@ -71,6 +77,8 @@ public class MessageLoggerService implements Service {
 		}
 		
 		builder.append(" user=" + user);
+		builder.append(" isLoggedIn=" + awRequest.getUser().isLoggedIn());
+		builder.append(" sessionId=" + sessionId);
 		builder.append(" requestType=" + (String) awRequest.getAttribute("requestType"));
 		builder.append(" numberOfRecords=" + totalNumberOfMessages);
 		builder.append(" numberOfDuplicates=" + numberOfDuplicates);
@@ -81,7 +89,7 @@ public class MessageLoggerService implements Service {
 	}
 
 	private void logUploadToFilesystem(AwRequest awRequest) {
-		// Persist the devices's upload to the filesystem 		
+		String sessionId = (String) awRequest.getAttribute("sessionId");
 		SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMddHHmmssSSS");
 		String userName = null == awRequest.getUser().getUserName() ? "unknown.user" : awRequest.getUser().getUserName(); 
 		
@@ -97,7 +105,9 @@ public class MessageLoggerService implements Service {
 			
 			String uploadFileName = catalinaBase + "/logs/uploads/" + fileName  + "-upload.json";
 			printWriter = new PrintWriter(new BufferedWriter(new FileWriter(new File(uploadFileName))));
-			if(null != data) {			
+			printWriter.write("{\"sessionId\":\"" + sessionId + "\"}");
+			
+			if(null != data) {
 				printWriter.write(data.toString());
 			} else {
 				printWriter.write("no data");
@@ -117,6 +127,7 @@ public class MessageLoggerService implements Service {
 						
 						jsonObject = new JSONObject(failedMessage);
 						// Dump out the request params
+						jsonObject.put("session_id", sessionId);
 						jsonObject.put("request_type", awRequest.getAttribute("requestType"));
 						jsonObject.put("user", awRequest.getUser().getUserName());
 						jsonObject.put("phone_version", awRequest.getAttribute("phoneVersion"));
@@ -148,6 +159,7 @@ public class MessageLoggerService implements Service {
 				int size = duplicateIndexList.size();
 				int lastDuplicateIndex = -1;
 				printWriter = new PrintWriter(new BufferedWriter(new FileWriter(new File(catalinaBase + "/logs/uploads/" + fileName  + "-upload-duplicates.json"))));
+				printWriter.write("{\"sessionId\":\"" + sessionId + "\"}");
 				
 				for(int i = 0; i < size; i++) {
 					
