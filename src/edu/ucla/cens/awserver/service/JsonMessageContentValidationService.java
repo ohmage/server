@@ -103,8 +103,8 @@ public class JsonMessageContentValidationService implements Service {
 					
 				}
 			}
-			
-			_logger.info("JSON message successfully validated");
 		}	
+		
+		_logger.info("JSON message successfully validated");
 	}
 }
