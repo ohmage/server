@@ -10,7 +10,7 @@ public class UserImpl implements User {
 	private int _id;
 	private String  _userName;
     private int _campaignId;
-//	private boolean _loggedIn;
+	private boolean _loggedIn;
 	
     public int getId() {
     	return _id;
@@ -36,12 +36,12 @@ public class UserImpl implements User {
 		_userName = userName;
 	}
 	
-//	public boolean isLoggedIn() {
-//		return _loggedIn;
-//	}
-//	
-//	public void setLoggedIn(boolean loggedIn) {
-//		_loggedIn = loggedIn;
-//	}
+	public boolean isLoggedIn() {
+		return _loggedIn;
+	}
+	
+	public void setLoggedIn(boolean loggedIn) {
+		_loggedIn = loggedIn;
+	}
 	
 }
