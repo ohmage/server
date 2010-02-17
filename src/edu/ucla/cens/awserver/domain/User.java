@@ -21,6 +21,6 @@ public interface User {
 	public int getCampaignId();
 	public void setCampaignId(int id);
 	
-//	public boolean isLoggedIn();
-//	public void setLoggedIn(boolean b);
+	public boolean isLoggedIn();
+	public void setLoggedIn(boolean b);
 }
