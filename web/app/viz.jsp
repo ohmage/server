@@ -25,6 +25,8 @@
 	<!-- A large number of javascript includes, will reduce -->
 	<!-- Main jQuery library -->
     <script type="text/javascript" src="/js/lib/jquery/jquery-1.3.2.min.js"></script>
+	<!-- Support logging to server -->
+	<script type="text/javascript" src="/js/lib/misc/log4javascript.js"></script>
     <!-- Protovis graphing library with hacked in IE support -->
 	<script type="text/javascript" src="/js/lib/Protovis/protovis-d3.1-ie.js"></script>
 	<!-- Useful additions to Javascript objects -->
@@ -57,13 +59,23 @@
 	
 	<script type="text/javascript">
 	
-	// Globals for now for testing
-	var startDate = new Date(2010,1,16,0,0,0);
-	var numDays = 12;
+	// Holds the currently requested start date and end date
+	var startDate = new Date();
+	var endDate = new Date();
+	
+    // Used to setup the webpage with groups of prompt responses
+	// Get rid of this asap
 	var curGroupId = -1;
+	
+	// Stores all instantiated graphs on the webpage, leave here for now
 	var graphList = [];	
-	var dataSource = DataSource.factory(DataSource.data_source_type.REMOTE_JSON);
+	
+	// Handles retrieval and filtering of data
+	//var dataSource = new DataSourceJson('/app/viz');
 		
+	// Main logger
+	var log = log4javascript.getLogger();
+	
 	// Called when document is done loading
     $(function() {
 		// Hide the graphs to start
@@ -74,6 +86,11 @@
 		
 		// Over-ride the default submit for the form to grab data
 		$("#grabDateForm").submit(send_json_request);
+		
+        // Setup logging
+        var popupAppender = new log4javascript.PopUpAppender();
+		popupAppender.setThreshold(log4javascript.Level.DEBUG);
+		log.addAppender(popupAppender);
 	});
 	
 	// Create a JSON request to the sever using jQuery
@@ -85,7 +102,7 @@
 		
 		// Set global start date
 		startDate = Date.parseDate(start_date, "Y-m-d");
-		numDays = startDate.difference_in_days(Date.parseDate(end_date, "Y-m-d"));
+		endDate = Date.parseDate(end_date, "Y-m-d");
 		
 		url += "?s=" + start_date + "&e=" + end_date;     
         
@@ -114,7 +131,7 @@
 			// Apply data to the graph
             graph.apply_data(new_data, 
                              startDate, 
-                             numDays);
+                             startDate.difference_in_days(endDate));
                              
 			// Show the graphs
 			$('#graph_insert').show();

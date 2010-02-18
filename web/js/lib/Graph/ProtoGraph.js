@@ -87,7 +87,7 @@ ProtoGraph.graph_type = {
 }
 
 ProtoGraph.prototype.height = 120;
-ProtoGraph.prototype.width = 550;
+ProtoGraph.prototype.width = 600;
 ProtoGraph.prototype.leftMargin = 70;
 ProtoGraph.prototype.bottomMargin = 20;
 ProtoGraph.prototype.topMargin = 5;
@@ -269,13 +269,11 @@ ProtoGraphIntegerType.prototype.apply_data = function(data, start_date, num_days
 	for (var i = 0; i < this.num_days; i += 1) {
 		dayArray.push(start_date.incrementDay(i));
 	}
+	// Setup the X scale now
+    this.x_scale = pv.Scale.ordinal(dayArray).splitBanded(0, this.width, this.barWidth);
 	
 	// If there is no data yet, setup the display
 	if (this.has_data == false) {
-		// Setup the scales as required
-	    this.x_scale = pv.Scale.ordinal(dayArray).splitBanded(0, this.width, this.barWidth);
-	    this.y_scale = pv.Scale.linear(this.min_val,this.max_val).range(0, this.height);
-	
 	    // Add a bar for each response
         var that = this;
 	    this.vis.add(pv.Bar)
@@ -295,11 +293,6 @@ ProtoGraphIntegerType.prototype.apply_data = function(data, start_date, num_days
 	        });
 			
 		this.has_data = true;
-	}
-	// Else we are just entering new data to the current graph, change
-	// the x_scale and redraw
-	else {
-		this.x_scale = pv.Scale.ordinal(dayArray).splitBanded(0, this.width, this.barWidth);
 	}
 		  
 	// Overlay the average line
@@ -342,6 +335,9 @@ function ProtoGraphTimeType(div_id, title, data, start_date, num_days) {
         .textBaseline('top')
         .text('23:59')
         .font(this.labelStyle)
+		
+	// Setup the Y scale
+	this.y_scale = pv.Scale.linear(new Date(0, 0, 0, 0, 0, 0), new Date(0, 0, 0, 23, 59, 59)).range(0, this.height);
 }
 
 // Inherit methods from ProtoGraph
@@ -364,12 +360,11 @@ ProtoGraphTimeType.prototype.apply_data = function(data, start_date, num_days) {
 		dayArray.push(start_date.incrementDay(i));
 	}
 	
+	// Setup the X scale now
+	this.x_scale = pv.Scale.ordinal(dayArray).split(0, this.width);
+	
 	// If there is no data yet setup the graph
 	if (this.has_data == false) {
-		// Setup the scales as required
-		this.x_scale = pv.Scale.ordinal(dayArray).split(0, this.width);
-		this.y_scale = pv.Scale.linear(new Date(0, 0, 0, 0, 0, 0), new Date(0, 0, 0, 23, 59, 59)).range(0, this.height);
-		
         // Need "that" to access "this" inside the closures
 		var that = this;
 		
@@ -398,9 +393,6 @@ ProtoGraphTimeType.prototype.apply_data = function(data, start_date, num_days) {
 		.add(pv.Dot).fillStyle(that.defaultColor).size(3);
 		
 		this.has_data = true;
-	} 
-	else {
-		this.x_scale = pv.Scale.ordinal(dayArray).split(0, this.width);
 	}
 		
 	// Average the data values for the average line
@@ -472,9 +464,6 @@ ProtoGraphTrueFalseArrayType.prototype.apply_data = function(data, start_date, n
 		dayArray.push(start_date.incrementDay(i));
 	}
 	this.x_scale = pv.Scale.ordinal(dayArray).splitBanded(0, this.width, this.barWidth);
-	
-	// Split each true false into a category for the y axis
-	this.y_scale = pv.Scale.ordinal(this.y_labels).split(0, this.height)
 
 	// If we have no data yet, create the graph
 	if (this.has_data == false) {
@@ -493,24 +482,32 @@ ProtoGraphTrueFalseArrayType.prototype.apply_data = function(data, start_date, n
 		    transformed_data = [];
 		    that.data.forEach(function(data_point) {
 		        for(var i = 0; i < data_point.response.length; i++) {
-		            transformed_data.push([data_point.date, i, data_point.response[i] == 't']);    
+		            transformed_data.push([data_point.date, i, data_point.response[i]]);    
 		        }
 		    });
 			return transformed_data;
 		})
-		.width(function(){
+		.width(function() {
 			return that.x_scale.range().band;
 		})
 		.height(barHeight)	
 		// Move bar down if a negative response
 		.bottom(function(d) {
-			return d[2] ? that.y_scale(d[1]) + 1 : that.y_scale(d[1]) - barHeight - 1;
+			if (d[2] == 't') {
+				return that.y_scale(d[1]) + 1;
+			}
+			else if (d[2] == 'f') {
+				return that.y_scale(d[1]) - barHeight - 1;
+			}
+			else {
+				throw new Error('ProtoGraphTrueFalseArrayType: Bad resposne in data.');
+			}
 		})
 		  .left(function(d) {
 			return that.x_scale(d[0]);
 		})	// Color based on a negative or positive response
-		.fillStyle(function(d){
-			return d[2] ? that.trueColor : that.falseColor;
+		.fillStyle(function(d) {
+			return (d[2] == 't') ? that.trueColor : that.falseColor;
 		});
 		
 		this.has_data = true;
@@ -570,9 +567,7 @@ ProtoGraphYesNoType.prototype.apply_data = function(data, start_date, num_days) 
 	for (var i = 0; i < this.num_days; i += 1) {
 		dayArray.push(start_date.incrementDay(i));
 	}
-
 	this.x_scale = pv.Scale.ordinal(dayArray).split(0, this.width);
-	this.y_scale = pv.Scale.linear(0,1).range(0, this.height);
 	
 	// If no data yet, build the graph
 	if (this.has_data == false) {
