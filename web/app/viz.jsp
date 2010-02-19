@@ -78,6 +78,13 @@
 	
 	// Called when document is done loading
     $(function() {
+		// Setup logging
+        var popUpAppender = new log4javascript.PopUpAppender();
+        popUpAppender.setThreshold(log4javascript.Level.INFO);
+		var popUpLayout = new log4javascript.PatternLayout("%d{HH:mm:ss} %-5p - %m%n");
+        popUpAppender.setLayout(popUpLayout);
+        log.addAppender(popUpAppender);
+		
 		// Hide the graphs to start
 		$('#graph_insert').hide();
 		
@@ -86,11 +93,6 @@
 		
 		// Over-ride the default submit for the form to grab data
 		$("#grabDateForm").submit(send_json_request);
-		
-        // Setup logging
-        var popupAppender = new log4javascript.PopUpAppender();
-		popupAppender.setThreshold(log4javascript.Level.DEBUG);
-		log.addAppender(popupAppender);
 	});
 	
 	// Create a JSON request to the sever using jQuery
@@ -100,9 +102,13 @@
 		var start_date = $("#startDate").val();
 		var end_date = $("#endDate").val();
 		
+		log.info("Grabbing data from " + start_date + " to " + end_date);
+		
 		// Set global start date
 		startDate = Date.parseDate(start_date, "Y-m-d");
 		endDate = Date.parseDate(end_date, "Y-m-d");
+		
+		log.debug("Grabbing data from URL: " + url);
 		
 		url += "?s=" + start_date + "&e=" + end_date;     
         
@@ -148,6 +154,8 @@
 		if (curGroupId != graph_description.group_id) {
 			$('#graph_insert').append('<h1>' + group_list[graph_description.group_id] + '</h1>');
 			curGroupId = graph_description.group_id;
+			
+			log.info("Setting up a new response group " + group_list[graph_description.group_id]);
 		}
 		
 	    // Create a unique div_id for each Graph
