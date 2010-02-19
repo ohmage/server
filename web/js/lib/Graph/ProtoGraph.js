@@ -102,6 +102,9 @@ ProtoGraph.prototype.trueColor = 'green';
 ProtoGraph.prototype.falseColor = 'red';
 ProtoGraph.prototype.distanceFromCenter = .25;
 
+// Static logger for ProtoGraph
+var _logger = log4javascript.getLogger();
+
 /*
  * ProtoGraph factory to create a ProtoGraph based on JSON
  * describing the graph type.  Pass in a JSON object with
@@ -269,6 +272,7 @@ ProtoGraphIntegerType.prototype.apply_data = function(data, start_date, num_days
 	for (var i = 0; i < this.num_days; i += 1) {
 		dayArray.push(start_date.incrementDay(i));
 	}
+	
 	// Setup the X scale now
     this.x_scale = pv.Scale.ordinal(dayArray).splitBanded(0, this.width, this.barWidth);
 	
@@ -371,23 +375,17 @@ ProtoGraphTimeType.prototype.apply_data = function(data, start_date, num_days) {
 		// Add the line plot
 		this.vis.add(pv.Line)
 		  .data(function() {
-		  	 // Separate the data by time and date
-		    datetime = [];
-		    that.data.forEach(function(d) {
-				var dt = new Object();
-				dt.date = d.date;
-                dt.time = Date.parseDate(d.response, "g:i").grabTime();
-				
-		        datetime.push(dt);
-		    });
-			
-			return datetime;
+		    return that.data;
 		  })
 		  .left(function(d) {
+		     if(_logger.isDebugEnabled()) {
+		         _logger.debug("apply_data(): Placing dot at " + that.x_scale(d.date) + " for day " + d.date.toStringMonthAndDay());
+	         }
+		      
 			 return that.x_scale(d.date);
 		  })
 		  .bottom(function(d){
-			 return that.y_scale(d.time);
+			 return that.y_scale(Date.parseDate(d.response, "g:i").grabTime());
 		  })	
 		  // Add dots on the line
 		.add(pv.Dot).fillStyle(that.defaultColor).size(3);
