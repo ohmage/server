@@ -359,6 +359,37 @@ String.leftPad = function (val, size, ch) {
     return result;
 }
 
+Date.prototype.incrementDay = function(numDays) {
+    return new Date(this.getTime() + Date.one_day * numDays);
+};
+
+// Find the difference in days between this date and the
+// passed in date
+Date.prototype.difference_in_days = function(second_day) {
+    return Math.ceil((second_day.getTime()-this.getTime())/(Date.one_day));
+}
+
+// Returns the month and day of the current date as a string
+Date.prototype.toStringMonthAndDay = function() {
+    // return month name plus day
+    return Date.monthNamesShort[this.getMonth()] + " " + this.getDate();
+}
+
+// Return a date object of just the date (year/month/day)
+Date.prototype.grabDate = function() {
+    return new Date(this.getFullYear(), this.getMonth(), this.getDate(),0,0,0);
+}
+
+// Return a date object of just the time (hour/minute/second)
+Date.prototype.grabTime = function() {
+    return new Date(0,0,0,this.getHours(),this.getMinutes(),this.getSeconds());
+}
+
+
+
+// Set one day in milliseconds
+Date.one_day = 1000*60*60*24;
+
 Date.daysInMonth = [31,28,31,30,31,30,31,31,30,31,30,31];
 Date.monthNames =
    ["January",
@@ -373,6 +404,19 @@ Date.monthNames =
     "October",
     "November",
     "December"];
+Date.monthNamesShort = 
+    ["Jan",
+	"Feb",
+	"Mar",
+	"Apr",
+	"May",
+	"Jun",
+	"Jul",
+	"Aug",
+	"Sep",
+	"Oct",
+	"Nov",
+	"Dec"];
 Date.dayNames =
    ["Sunday",
     "Monday",
