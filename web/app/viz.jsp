@@ -64,6 +64,27 @@
 		   color: #BEBEBE;
 		}
 		
+		/* tab pane styling */
+		div.panes div {
+		    display:none;       
+		    padding:15px 10px;
+		    border:1px solid #999;
+		    border-top:0;
+		    width:830px;
+		    font-size:14px;
+		    background-color:#fff;
+		}
+		
+		ul.tabs {
+		    width:852px;
+		}
+		
+		body {
+		    padding:0px 10px;
+		}
+
+		
+		
 	</style>
     
 	
@@ -92,6 +113,9 @@
         popUpAppender.setLayout(popUpLayout);
         log.addAppender(popUpAppender);
 
+        // Uncomment the line below to disable logging
+        //log4javascript.setEnabled(false);
+
 		// Setup the datepickers for the two date input forms
 		$("#startDate").datepicker({dateFormat: 'yy-mm-dd'});
 		$("#endDate").datepicker({dateFormat: 'yy-mm-dd'});
@@ -112,21 +136,21 @@
 	 * Call this from the submit override before sending a request to the server.
 	 */
     function validateDateFormInputs() {
-    	// Start validation:
+    	// Start validation
         $.validity.start();
 
         // Validate the startDate field
         $("#startDate")
             .require("A starting date is required")
-            .assert(DateValidator.validate, "Date is not valid.");
+            .assert(DateValidator.validate, "Date is invalid.");
 
         // Validate the endDate field
         $("#endDate")
             .require("An ending date is required")
-            .assert(DateValidator.validate, "Date is not valid.");
+            .assert(DateValidator.validate, "Date is invalid.");
 
-        // All of the validator methods have been called:
-        // End the validation session:
+        // All of the validator methods have been called
+        // End the validation session
         var result = $.validity.end();
         
         // Return whether it's okay to proceed with the Ajax:

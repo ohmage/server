@@ -22,14 +22,14 @@ DateValidator._logger = log4javascript.getLogger();
 DateValidator.validate = function(dateElement) {
 	var stringDate = dateElement.value;
 	
-	if (_logger.isDebugEnabled()) {
-		_logger.debug("DateValidator: Validating date string: " + stringDate);
+	if (DateValidator._logger.isDebugEnabled()) {
+		DateValidator._logger.debug("DateValidator: Validating date string: " + stringDate);
 	}
 
     // Make sure the field is not empty
 	if (stringDate == null || stringDate == "") {
-		if(_logger.isDebugEnabled()) {
-            _logger.debug("DateValidator: Date is empty.")
+		if(DateValidator._logger.isDebugEnabled()) {
+            DateValidator._logger.debug("DateValidator: Date is empty.")
         }
 		
 		return false;
@@ -40,8 +40,8 @@ DateValidator.validate = function(dateElement) {
         var parsedDate = Date.parseDate(stringDate, DateValidator._date_format);
     }
     catch (error) {
-        if(_logger.isDebugEnabled()) {
-			_logger.debug("DateValidator: " + error)
+        if(DateValidator._logger.isDebugEnabled()) {
+			DateValidator._logger.debug("DateValidator: " + error)
         }
         
         return false;
@@ -49,14 +49,14 @@ DateValidator.validate = function(dateElement) {
 	
 	// Make sure the parsed date is not NULL
 	if (parsedDate == null) {
-		if(_logger.isDebugEnabled()) {
-            _logger.debug("DateValidator: Date did not parse correctly")
+		if(DateValidator._logger.isDebugEnabled()) {
+            DateValidator._logger.debug("DateValidator: Date did not parse correctly")
         }
 		return false;
 	}
 	
-	if(_logger.isDebugEnabled()) {
-        _logger.debug("DateValidator: Parsed date is: " + parsedDate)
+	if(DateValidator._logger.isDebugEnabled()) {
+        DateValidator._logger.debug("DateValidator: Parsed date is: " + parsedDate)
     }
     
     // Make sure the parsed date has the same month as the string date
@@ -65,8 +65,8 @@ DateValidator.validate = function(dateElement) {
 	
 	// If the string month is different from the date month, reject
 	if (parseInt(matchArray[2]) != parsedDate.getMonth() + 1) {
-		if(_logger.isDebugEnabled()) {
-	        _logger.debug("DateValidator: " + parseInt(matchArray[2]) + " does not equal " + parsedDate.getMonth() + 1);
+		if(DateValidator._logger.isDebugEnabled()) {
+	        DateValidator._logger.debug("DateValidator: " + parseInt(matchArray[2]) + " does not equal " + parsedDate.getMonth() + 1);
 	    }
     
 		return false;

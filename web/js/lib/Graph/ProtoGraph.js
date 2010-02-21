@@ -36,12 +36,12 @@ function ProtoGraph(div_id, title) {
 	
 	// Create a protovis Panel and attach to the div ID
 	this.vis = new pv.Panel()
-		.width(this.width)
-		.height(this.height)
-		.left(this.leftMargin)
-		.bottom(this.bottomMargin)
-		.top(this.topMargin)
-		.right(this.rightMargin)
+		.width(ProtoGraph.WIDTH)
+		.height(ProtoGraph.HEIGHT)
+		.left(ProtoGraph.LEFT_MARGIN)
+		.bottom(ProtoGraph.BOTTOM_MARGIN)
+		.top(ProtoGraph.TOP_MARGIN)
+		.right(ProtoGraph.RIGHT_MARGIN)
 		.canvas(this.div_id);
 		
 	// Add a line to the bottom of the graph
@@ -65,7 +65,7 @@ function ProtoGraph(div_id, title) {
         .text(function() {
 			return that.left_x_label;
 		})
-        .font(this.labelStyle);
+        .font(ProtoGraph.LABEL_STYLE);
     this.vis.add(pv.Label)
         .bottom(0)
         .right(0)
@@ -74,7 +74,7 @@ function ProtoGraph(div_id, title) {
         .text(function() {
 			return that.right_x_label;
 		})
-        .font(this.labelStyle);
+        .font(ProtoGraph.LABEL_STYLE);
 }
 
 // ProtoGraph constants, applies to all protographs
@@ -86,24 +86,24 @@ ProtoGraph.graph_type = {
 	"PROTO_GRAPH_TIME_MULTI_TYPE":4,
 }
 
-ProtoGraph.prototype.height = 120;
-ProtoGraph.prototype.width = 600;
-ProtoGraph.prototype.leftMargin = 70;
-ProtoGraph.prototype.bottomMargin = 20;
-ProtoGraph.prototype.topMargin = 5;
-ProtoGraph.prototype.rightMargin = 250;
-ProtoGraph.prototype.labelStyle = '13px sans-serif bolder';
-ProtoGraph.prototype.barWidth = 4/5;
-ProtoGraph.prototype.defaultColor = '#1f77b4';
+ProtoGraph.HEIGHT = 120;
+ProtoGraph.WIDTH = 600;
+ProtoGraph.LEFT_MARGIN = 70;
+ProtoGraph.BOTTOM_MARGIN = 20;
+ProtoGraph.TOP_MARGIN = 5;
+ProtoGraph.RIGHT_MARGIN = 250;
+ProtoGraph.LABEL_STYLE = '13px sans-serif bolder';
+ProtoGraph.BAR_WIDTH = 4/5;
+ProtoGraph.DEFAULT_COLOR = '#1f77b4';
 
 // TrueFalse constants
-ProtoGraph.prototype.categoryHeight = 40;
-ProtoGraph.prototype.trueColor = 'green';
-ProtoGraph.prototype.falseColor = 'red';
-ProtoGraph.prototype.distanceFromCenter = .25;
+ProtoGraph.CATEGORY_HEIGHT = 40;
+ProtoGraph.TRUE_COLOR = 'green';
+ProtoGraph.FALSE_COLOR = 'red';
+ProtoGraph.DISTANCE_FROM_CENTER = .25;
 
 // Static logger for ProtoGraph
-var _logger = log4javascript.getLogger();
+ProtoGraph._logger = log4javascript.getLogger();
 
 /*
  * ProtoGraph factory to create a ProtoGraph based on JSON
@@ -112,7 +112,7 @@ var _logger = log4javascript.getLogger();
  * subtype will be returned.
  */
 ProtoGraph.factory = function(graph_description, div_id) {
-	// Swith among all the graph types, don't know if this is the best
+	// Switch among all the graph types, don't know if this is the best
 	// method to do this but here goes anyway
 	
 	if (graph_description.type == 0) {
@@ -170,7 +170,7 @@ ProtoGraph.prototype.add_average_line = function(average, y_scale, average_label
 	// to already instantiated average lines through closures
 	this.average = average;
     this.average_line_label = average_label;
-    this.average_line_scale = pv.Scale.linear(0,this.num_days).range(0, this.width);
+    this.average_line_scale = pv.Scale.linear(0, this.num_days).range(0, ProtoGraph.WIDTH);
 
 	// If the average line has not yet been created, create it now
 	// Else, do nothing as we have already updated the average data
@@ -207,7 +207,7 @@ ProtoGraph.prototype.add_average_line = function(average, y_scale, average_label
 	        .text(function(){
 				return that.average_line_label;
 			})
-	        .font(this.labelStyle)
+	        .font(ProtoGraph.LABEL_STYLE)
 			
 		this.has_average_line = true;
 	} 
@@ -239,7 +239,7 @@ function ProtoGraphIntegerType(div_id, title, y_labels) {
 	this.y_labels = y_labels;
 	this.min_val = 0;  // Integer ranges always start at 0
 	this.max_val = this.y_labels.length - 1;
-	this.y_scale = pv.Scale.linear(this.min_val,this.max_val).range(0, this.height);
+	this.y_scale = pv.Scale.linear(this.min_val,this.max_val).range(0, ProtoGraph.HEIGHT);
 
     // The Y labels never change, add them now
 	var that = this;
@@ -274,7 +274,7 @@ ProtoGraphIntegerType.prototype.apply_data = function(data, start_date, num_days
 	}
 	
 	// Setup the X scale now
-    this.x_scale = pv.Scale.ordinal(dayArray).splitBanded(0, this.width, this.barWidth);
+    this.x_scale = pv.Scale.ordinal(dayArray).splitBanded(0, ProtoGraph.WIDTH, ProtoGraph.BAR_WIDTH);
 	
 	// If there is no data yet, setup the display
 	if (this.has_data == false) {
@@ -330,7 +330,7 @@ function ProtoGraphTimeType(div_id, title, data, start_date, num_days) {
         .textAlign('right')
         .textBaseline('bottom')
         .text('00:01')
-        .font(this.labelStyle)
+        .font(ProtoGraph.LABEL_STYLE)
         
     this.vis.add(pv.Label)
         .top(0)
@@ -338,10 +338,10 @@ function ProtoGraphTimeType(div_id, title, data, start_date, num_days) {
         .textAlign('right')
         .textBaseline('top')
         .text('23:59')
-        .font(this.labelStyle)
+        .font(ProtoGraph.LABEL_STYLE)
 		
 	// Setup the Y scale
-	this.y_scale = pv.Scale.linear(new Date(0, 0, 0, 0, 0, 0), new Date(0, 0, 0, 23, 59, 59)).range(0, this.height);
+	this.y_scale = pv.Scale.linear(new Date(0, 0, 0, 0, 0, 0), new Date(0, 0, 0, 23, 59, 59)).range(0, ProtoGraph.HEIGHT);
 }
 
 // Inherit methods from ProtoGraph
@@ -365,7 +365,7 @@ ProtoGraphTimeType.prototype.apply_data = function(data, start_date, num_days) {
 	}
 	
 	// Setup the X scale now
-	this.x_scale = pv.Scale.ordinal(dayArray).split(0, this.width);
+	this.x_scale = pv.Scale.ordinal(dayArray).split(0, ProtoGraph.WIDTH);
 	
 	// If there is no data yet setup the graph
 	if (this.has_data == false) {
@@ -378,8 +378,8 @@ ProtoGraphTimeType.prototype.apply_data = function(data, start_date, num_days) {
 		    return that.data;
 		  })
 		  .left(function(d) {
-		     if(_logger.isDebugEnabled()) {
-		         _logger.debug("apply_data(): Placing dot at " + that.x_scale(d.date) + " for day " + d.date.toStringMonthAndDay());
+		     if(ProtoGraph._logger.isDebugEnabled()) {
+		         ProtoGraph._logger.debug("apply_data(): Placing dot at " + that.x_scale(d.date) + " for day " + d.date.toStringMonthAndDay());
 	         }
 		      
 			 return that.x_scale(d.date);
@@ -425,7 +425,7 @@ function ProtoGraphTrueFalseArrayType(div_id, title, y_labels) {
 	
 	// Instead of the regular graph height, calculate height based on the 
 	// number of categories
-	this.height = this.categoryHeight * this.y_labels.length;
+	this.height = ProtoGraph.CATEGORY_HEIGHT * this.y_labels.length;
 	// Set new height in graph
 	this.vis.height(this.height);
 
@@ -440,7 +440,7 @@ function ProtoGraphTrueFalseArrayType(div_id, title, y_labels) {
       .add(pv.Label)
         .textAlign('left')
         .textBaseline('middle')
-        .font(this.labelStyle);
+        .font(ProtoGraph.LABEL_STYLE);
 }
 
 // Inherit methods from ProtoGraph
@@ -461,7 +461,33 @@ ProtoGraphTrueFalseArrayType.prototype.apply_data = function(data, start_date, n
 	for (var i = 0; i < this.num_days; i += 1) {
 		dayArray.push(start_date.incrementDay(i));
 	}
-	this.x_scale = pv.Scale.ordinal(dayArray).splitBanded(0, this.width, this.barWidth);
+	this.x_scale = pv.Scale.ordinal(dayArray).splitBanded(0, ProtoGraph.WIDTH, ProtoGraph.BAR_WIDTH);
+
+    // Pull out the response arrays for graphing
+	this.transformed_data = [];
+	var that = this;
+	this.data.forEach(function(data_point) {
+        for(var i = 0; i < data_point.response.length; i++) {
+			// Make a new data point for each response in the true/false array
+			var new_data_point = new Object();
+			new_data_point.date = data_point.date;
+			// Need to remember which question this response is for
+			new_data_point.question_id = i;
+			// Save true if the response is 't', false otherwise
+			if (data_point.response[i] == 't') {
+				new_data_point.response = true;
+			}
+			else if (data_point.response[i] == 'f') {
+				new_data_point.response = false;
+			}
+			else {
+				ProtoGraph._logger.error('ProtoGraphTrueFalseArrayType: Bad response ' + data_point.response[i] + ' in data for day ' + data_point.date);
+				break;
+			}
+			
+            that.transformed_data.push(new_data_point);    
+        }
+	});
 
 	// If we have no data yet, create the graph
 	if (this.has_data == false) {
@@ -475,15 +501,7 @@ ProtoGraphTrueFalseArrayType.prototype.apply_data = function(data, start_date, n
 		var that = this;
 		this.vis.add(pv.Bar)
 		.data(function() {
-			// Separate the data into a 2d array, with each row of the array being
-		    // the day label, the question label, and whether the response is true or false
-		    transformed_data = [];
-		    that.data.forEach(function(data_point) {
-		        for(var i = 0; i < data_point.response.length; i++) {
-		            transformed_data.push([data_point.date, i, data_point.response[i]]);    
-		        }
-		    });
-			return transformed_data;
+            return that.transformed_data;
 		})
 		.width(function() {
 			return that.x_scale.range().band;
@@ -491,21 +509,18 @@ ProtoGraphTrueFalseArrayType.prototype.apply_data = function(data, start_date, n
 		.height(barHeight)	
 		// Move bar down if a negative response
 		.bottom(function(d) {
-			if (d[2] == 't') {
-				return that.y_scale(d[1]) + 1;
-			}
-			else if (d[2] == 'f') {
-				return that.y_scale(d[1]) - barHeight - 1;
+			if (d.response) {
+				return that.y_scale(d.question_id) + 1;
 			}
 			else {
-				throw new Error('ProtoGraphTrueFalseArrayType: Bad resposne in data.');
+				return that.y_scale(d.question_id) - barHeight - 1;
 			}
 		})
-		  .left(function(d) {
-			return that.x_scale(d[0]);
+		.left(function(d) {
+			return that.x_scale(d.date);
 		})	// Color based on a negative or positive response
 		.fillStyle(function(d) {
-			return (d[2] == 't') ? that.trueColor : that.falseColor;
+			return (d.response) ? ProtoGraph.TRUE_COLOR : ProtoGraph.FALSE_COLOR;
 		});
 		
 		this.has_data = true;
@@ -525,7 +540,7 @@ function ProtoGraphYesNoType(div_id, title) {
     // Inherit properties
     ProtoGraph.call(this, div_id, title);
 
-    this.y_scale = pv.Scale.linear(0,1).range(0, this.height);
+    this.y_scale = pv.Scale.linear(0,1).range(0, ProtoGraph.HEIGHT);
     // Create a horizontal line to separate true from false
     this.vis.add(pv.Rule)
         .data(this.y_scale.range())
@@ -534,20 +549,20 @@ function ProtoGraphYesNoType(div_id, title) {
 
     // Y labels
     this.vis.add(pv.Label)
-        .bottom(this.y_scale((1 - this.distanceFromCenter)))
+        .bottom(this.y_scale((1 - ProtoGraph.DISTANCE_FROM_CENTER)))
         .left(0)
         .textAlign('right')
         .textBaseline('middle')
         .text('Yes')
-        .font(this.labelStyle)
+        .font(ProtoGraph.LABEL_STYLE)
         
     this.vis.add(pv.Label)
-        .bottom(this.y_scale(this.distanceFromCenter))
+        .bottom(this.y_scale(ProtoGraph.DISTANCE_FROM_CENTER))
         .left(0)
         .textAlign('right')
         .textBaseline('middle')
         .text('No')
-        .font(this.labelStyle)
+        .font(ProtoGraph.LABEL_STYLE)
 }
 
 // Inherit methods from ProtoGraph
@@ -565,7 +580,7 @@ ProtoGraphYesNoType.prototype.apply_data = function(data, start_date, num_days) 
 	for (var i = 0; i < this.num_days; i += 1) {
 		dayArray.push(start_date.incrementDay(i));
 	}
-	this.x_scale = pv.Scale.ordinal(dayArray).split(0, this.width);
+	this.x_scale = pv.Scale.ordinal(dayArray).split(0, ProtoGraph.WIDTH);
 	
 	// If no data yet, build the graph
 	if (this.has_data == false) {
@@ -583,11 +598,11 @@ ProtoGraphYesNoType.prototype.apply_data = function(data, start_date, num_days) 
 		  .bottom(function(d) {
 			// if a true response, move the dot up
 			if (d.response) {
-				return that.y_scale(1 - that.distanceFromCenter);
+				return that.y_scale(1 - ProtoGraph.DISTANCE_FROM_CENTER);
 			}
 			// if false move the dot down
 			else {
-				return that.y_scale(that.distanceFromCenter);
+				return that.y_scale(ProtoGraph.DISTANCE_FROM_CENTER);
 			}
 		})
 		.left(function(d) {
@@ -595,7 +610,7 @@ ProtoGraphYesNoType.prototype.apply_data = function(data, start_date, num_days) 
 		})
 		.strokeStyle(function(d) {
 			// If true response color true, else color false
-			return d.response ? that.trueColor : that.falseColor;
+			return d.response ? ProtoGraph.TRUE_COLOR : ProtoGraph.FALSE_COLOR;
 		});
 		
 		this.has_data = true;
@@ -608,7 +623,7 @@ ProtoGraphYesNoType.prototype.apply_data = function(data, start_date, num_days) 
 	});
 	average /= this.data.length;
 	
-	average_y_scale = pv.Scale.linear(0,1).range(this.height * this.distanceFromCenter, 
-												 this.height * (1 - this.distanceFromCenter));
+	average_y_scale = pv.Scale.linear(0,1).range(ProtoGraph.HEIGHT * ProtoGraph.DISTANCE_FROM_CENTER, 
+												 ProtoGraph.HEIGHT * (1 - ProtoGraph.DISTANCE_FROM_CENTER));
 	this.add_average_line(average, average_y_scale, average.toFixed(2));
 }
