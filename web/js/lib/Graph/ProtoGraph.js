@@ -403,7 +403,7 @@ ProtoGraphTimeType.prototype.apply_data = function(data, start_date, num_days) {
 	totalTimeInMinutes /= this.data.length;
 	average = new Date(0,0,0,totalTimeInMinutes / 60, totalTimeInMinutes % 60);
 	// Add the average line and label
-	this.add_average_line(average, this.y_scale, average.getHours() + ':' + average.getMinutes());
+	this.add_average_line(average, this.y_scale, average.toStringHourAndMinute());
 }
 
 

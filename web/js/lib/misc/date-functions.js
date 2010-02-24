@@ -371,8 +371,20 @@ Date.prototype.difference_in_days = function(second_day) {
 
 // Returns the month and day of the current date as a string
 Date.prototype.toStringMonthAndDay = function() {
-    // return month name plus day
     return Date.monthNamesShort[this.getMonth()] + " " + this.getDate();
+}
+
+// Returns the hour and minute of the day as a string
+Date.prototype.toStringHourAndMinute = function() {
+	// Format the minutes correctly
+	if (this.getMinutes() <= 9) {
+		var minute_string = "0" + this.getMinutes();
+	}
+	else {
+		var minute_string = this.getMinutes();
+	}
+	
+	return this.getHours() + ':' + minute_string;
 }
 
 // Return a date object of just the date (year/month/day)
