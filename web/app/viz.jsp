@@ -287,7 +287,7 @@
   <div class="zp-wrapper">
     <div class="zp-90 content">
 	  <div class="padding">
-	    <h1>EMA Visualizations for <c:out value="${sessionScope.userName}"></c:out>.</h1>
+	    <h1>EMA Visualizations for <c:out value="${sessionScope.user.userName}"></c:out>.</h1>
   	    
   	     <form method="post" action="/app/viz" id="grabDateForm">
 		   <fieldset>
