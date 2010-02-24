@@ -29,7 +29,7 @@ public class ValueCreator {
 	}
 
 	public static long epoch(int days) {
-		return System.currentTimeMillis() + (86400000l * days);
+		return System.currentTimeMillis() + (21600000l * days); 
 	}
 	
 	public static String tz() {
