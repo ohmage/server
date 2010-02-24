@@ -1,6 +1,6 @@
 package edu.ucla.cens.awserver.validator;
 
-import edu.ucla.cens.awserver.datatransfer.AwRequest;
+import edu.ucla.cens.awserver.request.AwRequest;
 
 /**
  * Implementations of this interface are intended to validate some portion of an AwRequest instance.

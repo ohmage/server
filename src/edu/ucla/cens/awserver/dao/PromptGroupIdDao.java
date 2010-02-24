@@ -5,7 +5,7 @@ import javax.sql.DataSource;
 import org.apache.log4j.Logger;
 import org.springframework.dao.IncorrectResultSizeDataAccessException;
 
-import edu.ucla.cens.awserver.datatransfer.AwRequest;
+import edu.ucla.cens.awserver.request.AwRequest;
 
 /**
  * Utility DAO for checking if a group_id exists for a campaign. The group_id is used to group prompts so campaigns may have 
@@ -31,35 +31,39 @@ public class PromptGroupIdDao extends AbstractDao {
 	}
 	
 	public void execute(AwRequest awRequest) {
-		_logger.info("looking up prompt group_id for phone config group id " + awRequest.getAttribute("groupId") + " in campaign " +
-				awRequest.getAttribute("subdomain"));
+		_logger.info("looking up prompt group_id for phone config group id " + awRequest.getGroupId() + " in campaign " +
+				awRequest.getSubdomain());
 		
 		try {
 			
+//			int campaignPromptGroupId = getJdbcTemplate().queryForInt(
+//				_selectSql, new Object[]{awRequest.getAttribute("groupId"), 
+//						                 awRequest.getAttribute("campaignPromptVersionId"), 
+//						                 awRequest.getAttribute("subdomain")}
+//		    );
+			
 			int campaignPromptGroupId = getJdbcTemplate().queryForInt(
-				_selectSql, new Object[]{awRequest.getAttribute("groupId"), 
-						                 awRequest.getAttribute("campaignPromptVersionId"), 
-						                 awRequest.getAttribute("subdomain")}
-		    );
+					_selectSql, new Object[]{awRequest.getGroupId(), 
+							                 awRequest.getCampaignPromptVersionId(), 
+							                 awRequest.getSubdomain()}
+			    );
 
 			// Push the id into the request because it will be used by future queries
-			awRequest.setAttribute("campaignPromptGroupId", campaignPromptGroupId);
+			awRequest.setCampaignPromptGroupId(campaignPromptGroupId);
 			
 		} catch (IncorrectResultSizeDataAccessException irse) { // this exception is thrown if the queryForInt call returns
 			                                                    // anything else but one row
 			
 			_logger.error("caught IncorrectResultSizeDataAccessException (one row was expected to be returned, but the actual " +
 				"size was " + irse.getActualSize() + ") when running SQL '" +  _selectSql + "' with the following parameters: " +
-				awRequest.getAttribute("groupId") + ", " +  awRequest.getAttribute("campaignPromptVersionId")
-				+ ", " + awRequest.getAttribute("subdomain"));
+				awRequest.getGroupId() + ", " +  awRequest.getCampaignPromptVersionId() + ", " + awRequest.getSubdomain());
 			
 			throw new DataAccessException(irse);
 			
 		} catch (org.springframework.dao.DataAccessException dae) {
 			
 			_logger.error("caught DataAccessException when running SQL '" +  _selectSql + "' with the following parameters: " +
-					awRequest.getAttribute("groupId") + ", " +  awRequest.getAttribute("campaignPromptVersionId")
-					+ ", " + awRequest.getAttribute("subdomain"));
+					awRequest.getGroupId() + ", " +  awRequest.getCampaignPromptVersionId() + ", " + awRequest.getSubdomain());
 			
 			throw new DataAccessException(dae); // Wrap the Spring exception and re-throw in order to avoid outside dependencies
 			                                    // on the Spring Exception (in case Spring JDBC is replaced with another lib in 

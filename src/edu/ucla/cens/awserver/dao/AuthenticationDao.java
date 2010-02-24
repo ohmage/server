@@ -8,7 +8,7 @@ import javax.sql.DataSource;
 import org.apache.log4j.Logger;
 import org.springframework.jdbc.core.RowMapper;
 
-import edu.ucla.cens.awserver.datatransfer.AwRequest;
+import edu.ucla.cens.awserver.request.AwRequest;
 
 /**
  * Performs a lookup against the database to check user existence within a particular campaign.
@@ -42,14 +42,14 @@ public class AuthenticationDao extends AbstractDao {
 		_logger.info("attempting login for user " + awRequest.getUser().getUserName());
 		
 		try {
-			awRequest.setAttribute("results", getJdbcTemplate().query(_selectSql, 
-					             new String[]{awRequest.getUser().getUserName(), (String) awRequest.getAttribute("subdomain")}, 
+			awRequest.setResultList(getJdbcTemplate().query(_selectSql, 
+					             new String[]{awRequest.getUser().getUserName(), awRequest.getSubdomain()}, 
 					             new QueryRowMapper()));
 			
 		} catch (org.springframework.dao.DataAccessException dae) {
 			
 			_logger.error("caught DataAccessException when running SQL '" + _selectSql + "' with the following paramters: " + 
-					awRequest.getUser().getUserName() + ", " + (String) awRequest.getAttribute("subdomain"));
+					awRequest.getUser().getUserName() + ", " + awRequest.getSubdomain());
 			
 			throw new DataAccessException(dae); // Wrap the Spring exception and re-throw in order to avoid outside dependencies
 			                                    // on the Spring Exception (in case Spring JDBC is replaced with another lib in 

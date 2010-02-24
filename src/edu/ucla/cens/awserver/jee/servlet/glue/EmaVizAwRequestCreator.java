@@ -3,9 +3,9 @@ package edu.ucla.cens.awserver.jee.servlet.glue;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
-import edu.ucla.cens.awserver.datatransfer.AwRequest;
-import edu.ucla.cens.awserver.datatransfer.AwRequestImpl;
 import edu.ucla.cens.awserver.domain.UserImpl;
+import edu.ucla.cens.awserver.request.AwRequest;
+import edu.ucla.cens.awserver.request.EmaVizQueryAwRequest;
 
 /**
  * Transformer for creating an AwRequest for EMA visualization.
@@ -35,10 +35,10 @@ public class EmaVizAwRequestCreator implements AwRequestCreator {
 		String startDate = request.getParameter("s");
 		String endDate = request.getParameter("e");
 		
-		AwRequestImpl awRequest = new AwRequestImpl();
+		AwRequest awRequest = new EmaVizQueryAwRequest();
 		awRequest.setUser(user);
-		awRequest.setAttribute("startDate", startDate);
-		awRequest.setAttribute("endDate", endDate);
+		awRequest.setStartDate(startDate);
+		awRequest.setEndDate(endDate);
 		
 		return awRequest;
 	}

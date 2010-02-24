@@ -7,7 +7,7 @@ import org.apache.log4j.Logger;
 import edu.ucla.cens.awserver.dao.Dao;
 import edu.ucla.cens.awserver.dao.DataAccessException;
 import edu.ucla.cens.awserver.dao.AuthenticationDao.LoginResult;
-import edu.ucla.cens.awserver.datatransfer.AwRequest;
+import edu.ucla.cens.awserver.request.AwRequest;
 import edu.ucla.cens.awserver.util.StringUtils;
 import edu.ucla.cens.awserver.validator.AwRequestAnnotator;
 
@@ -54,7 +54,8 @@ public class AuthenticationService extends AbstractAnnotatingDaoService {
 			getDao().execute(awRequest);
 			
 			// A List is returned from the DAO even though our login ids are unique in the db.
-			List<?> results = (List<?>) awRequest.getAttribute("results");
+			// List<?> results = (List<?>) awRequest.getAttribute("results");
+			List<?> results = awRequest.getResultList();
 			
 			if(null != results && results.size() > 0) {
 			

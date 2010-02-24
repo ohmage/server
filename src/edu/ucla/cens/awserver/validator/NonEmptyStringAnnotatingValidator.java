@@ -1,25 +1,31 @@
 package edu.ucla.cens.awserver.validator;
 
-import edu.ucla.cens.awserver.datatransfer.AwRequest;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+
+import edu.ucla.cens.awserver.request.AwRequest;
+import edu.ucla.cens.awserver.util.ReflectionUtils;
 import edu.ucla.cens.awserver.util.StringUtils;
 
 /**
- * Validator for checking the existence of AwRequest attributes.
+ * Validator for checking the existence of String values in an AwRequest.
  * 
  * @author selsky
  */
 public class NonEmptyStringAnnotatingValidator extends AbstractAnnotatingValidator {
 	private String _awRequestAttributeName;
+	private Method _stringAccessorMethod;
 	
 	/**
-	 * @throws IllegalArgumentException if the provided awRequestAttributeName is null
+	 * @throws IllegalArgumentException if the provided key is null, empty, or all whitespace
+	 * @see ReflectionUtils#getAccessorMethod(Class, String)
 	 */
-	public NonEmptyStringAnnotatingValidator(AwRequestAnnotator annotator, String awRequestAttributeName) {
+	public NonEmptyStringAnnotatingValidator(AwRequestAnnotator annotator, String key) {
 		super(annotator);
-		if(null == awRequestAttributeName) {
-			throw new IllegalArgumentException("a non-null awRequestAttributeName is required");
+		if(StringUtils.isEmptyOrWhitespaceOnly(key)) {
+			throw new IllegalArgumentException("a non-empty key is required");
 		}
-		_awRequestAttributeName = awRequestAttributeName;
+		_stringAccessorMethod = ReflectionUtils.getAccessorMethod(AwRequest.class, key);
 	}
 	
 	/**
@@ -27,11 +33,22 @@ public class NonEmptyStringAnnotatingValidator extends AbstractAnnotatingValidat
 	 * @return false otherwise 
 	 */
 	public boolean validate(AwRequest awRequest) {
-		if(StringUtils.isEmptyOrWhitespaceOnly((String) awRequest.getAttribute(_awRequestAttributeName))) {
-			getAnnotator().annotate(awRequest, "missing value in AwRequest for " + _awRequestAttributeName);
-			return false;
+		try {
+			
+			if(StringUtils.isEmptyOrWhitespaceOnly((String) _stringAccessorMethod.invoke(awRequest))) {
+				getAnnotator().annotate(awRequest, "missing value in AwRequest for " + _awRequestAttributeName);
+				return false;
+			}
+		
+			return true;
+			
+		} catch(InvocationTargetException ite) {
+			
+			throw new ValidatorException(ite);
+			
+		} catch(IllegalAccessException iae) {
+			
+			throw new ValidatorException(iae);
 		}
-		return true;
 	}
-
 }

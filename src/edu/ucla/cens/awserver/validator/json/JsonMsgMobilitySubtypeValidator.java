@@ -5,7 +5,7 @@ import java.util.Set;
 
 import org.json.JSONObject;
 
-import edu.ucla.cens.awserver.datatransfer.AwRequest;
+import edu.ucla.cens.awserver.request.AwRequest;
 import edu.ucla.cens.awserver.util.JsonUtils;
 import edu.ucla.cens.awserver.validator.AwRequestAnnotator;
 

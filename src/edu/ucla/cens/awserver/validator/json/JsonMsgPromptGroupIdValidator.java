@@ -4,7 +4,7 @@ import org.json.JSONObject;
 
 import edu.ucla.cens.awserver.dao.Dao;
 import edu.ucla.cens.awserver.dao.DataAccessException;
-import edu.ucla.cens.awserver.datatransfer.AwRequest;
+import edu.ucla.cens.awserver.request.AwRequest;
 import edu.ucla.cens.awserver.util.JsonUtils;
 import edu.ucla.cens.awserver.validator.AwRequestAnnotator;
 import edu.ucla.cens.awserver.validator.ValidatorException;
@@ -36,7 +36,7 @@ public class JsonMsgPromptGroupIdValidator extends AbstractDaoAnnotatingJsonObje
 			return false;
 		}
 		
-		awRequest.setAttribute("groupId", groupId);
+		awRequest.setGroupId(groupId);
 		
 		try {
 		

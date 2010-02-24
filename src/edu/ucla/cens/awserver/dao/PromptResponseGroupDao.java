@@ -14,7 +14,7 @@ import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.jdbc.core.PreparedStatementCreator;
 import org.springframework.jdbc.core.RowMapper;
 
-import edu.ucla.cens.awserver.datatransfer.AwRequest;
+import edu.ucla.cens.awserver.request.AwRequest;
 import edu.ucla.cens.awserver.domain.PromptType;
 
 /**
@@ -58,18 +58,18 @@ public class PromptResponseGroupDao extends AbstractDao {
 	 */
 	public void execute(AwRequest awRequest) {
 		_logger.info("looking up prompt restrictions for prompts " + 
-			Arrays.toString((int[]) awRequest.getAttribute("promptIdArray")) + " for campaign " + 
-			awRequest.getAttribute("subdomain") + ", campaign prompt group " + awRequest.getAttribute("campaignPromptGroupId") +
-			", and campaign prompt version " + awRequest.getAttribute("campaignPromptVersionId")
+			Arrays.toString(awRequest.getPromptIdArray()) + " for campaign " + 
+			awRequest.getSubdomain() + ", campaign prompt group " + awRequest.getCampaignPromptGroupId() +
+			", and campaign prompt version " + awRequest.getCampaignPromptVersionId()
 		);
 			
-		int promptGroupId = (Integer) awRequest.getAttribute("campaignPromptGroupId");
-		int promptVersionId = (Integer) awRequest.getAttribute("campaignPromptVersionId");
+		int promptGroupId = awRequest.getCampaignPromptGroupId();
+		int promptVersionId = awRequest.getCampaignPromptVersionId();
 		
 		// _logger.info("pgid=" + promptGroupId + " pvid=" + promptVersionId);
 		
 		// dynamically generate the SQL in clause based on the idArray
-		final int[] idArray = (int[]) awRequest.getAttribute("promptIdArray");
+		final int[] idArray = awRequest.getPromptIdArray();
 		int size = idArray.length;
 		int numberOfPromptsInGroup = 0;
 		
@@ -120,8 +120,9 @@ public class PromptResponseGroupDao extends AbstractDao {
 			  .replace("{$campaignPromptGroupId}", String.valueOf(promptGroupId))
               .replace("{$campaignPromptVersionId}", String.valueOf(promptVersionId));
 		
-		try { 
-			List<?> list = getJdbcTemplate().query( 
+		try {
+			@SuppressWarnings("unchecked") // the anonymous RowMapper below explicitly creates PromptType objects so this is safe
+			List<PromptType> list = getJdbcTemplate().query( 
 				new PreparedStatementCreator() {
 					public PreparedStatement createPreparedStatement(Connection connection) throws SQLException {
 						PreparedStatement ps = connection.prepareStatement(sql);
@@ -142,7 +143,7 @@ public class PromptResponseGroupDao extends AbstractDao {
 				}
 			);
 		
-			awRequest.setAttribute("promptRestrictions", list);
+			awRequest.setPromptTypeRestrictions(list);
 			
 		}  catch (org.springframework.dao.DataAccessException dae) {
 			

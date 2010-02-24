@@ -1,6 +1,6 @@
 package edu.ucla.cens.awserver.service;
 
-import edu.ucla.cens.awserver.datatransfer.AwRequest;
+import edu.ucla.cens.awserver.request.AwRequest;
 
 /**
  * A service performs a discrete piece of application logic.

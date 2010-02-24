@@ -3,7 +3,7 @@ package edu.ucla.cens.awserver.service;
 import org.json.JSONArray;
 import org.json.JSONException;
 
-import edu.ucla.cens.awserver.datatransfer.AwRequest;
+import edu.ucla.cens.awserver.request.AwRequest;
 import edu.ucla.cens.awserver.validator.AwRequestAnnotator;
 
 /**
@@ -35,11 +35,13 @@ public class JsonMessageSyntaxValidationService implements Service {
 		JSONArray jsonArray =  null;
 		
 		try {
-			
-			jsonArray = new JSONArray((String) awRequest.getAttribute("jsonData"));
-			awRequest.setAttribute("jsonData", jsonArray); // this overwrites the String retrieved with the previous call
+			String jsonDataString = awRequest.getJsonDataAsString();
+			jsonArray = new JSONArray(jsonDataString);
+			awRequest.setJsonDataAsString(null); // free the reference to the (potentially huge) string 
+			awRequest.setJsonDataAsJsonArray(jsonArray);
 		
-		} catch(JSONException jsone) { // ok, the message is not syntactically correct JSON
+		} catch(JSONException jsone) { // the message is not syntactically correct JSON (the new JSONArray() failed because of 
+			                           // a JSON syntax error)
 			
 			_awRequestAnnotator.annotate(awRequest, "invalid JSON");
 			

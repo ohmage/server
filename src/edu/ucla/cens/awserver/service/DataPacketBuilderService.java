@@ -7,7 +7,7 @@ import java.util.Map;
 import org.apache.log4j.Logger;
 import org.json.JSONArray;
 
-import edu.ucla.cens.awserver.datatransfer.AwRequest;
+import edu.ucla.cens.awserver.request.AwRequest;
 import edu.ucla.cens.awserver.domain.DataPacket;
 import edu.ucla.cens.awserver.domain.DataPacketBuilder;
 import edu.ucla.cens.awserver.util.JsonUtils;
@@ -37,10 +37,10 @@ public class DataPacketBuilderService implements Service {
 	public void execute(AwRequest awRequest) {
 		_logger.info("beginning to build data packets for db insertion");
 
-		JSONArray jsonArray = (JSONArray) awRequest.getAttribute("jsonData");
+		JSONArray jsonArray = awRequest.getJsonDataAsJsonArray();
 		int length = jsonArray.length();
 		List<DataPacket> dataPackets = new ArrayList<DataPacket>(length);
-		String requestType = (String) awRequest.getAttribute("requestType");
+		String requestType = awRequest.getRequestType();
 		
 		// TODO eventually this could be made smarter (more generic) - it should just be able to loop through the map without
 		// needing to know actual key values. 
@@ -78,7 +78,7 @@ public class DataPacketBuilderService implements Service {
 			
 		}
 		
-		awRequest.setAttribute("dataPackets", dataPackets);
+		awRequest.setDataPackets(dataPackets);
 		_logger.info("finished building data packets");
 	}
 }

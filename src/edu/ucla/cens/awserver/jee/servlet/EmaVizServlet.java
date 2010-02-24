@@ -14,16 +14,14 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.log4j.Logger;
 import org.json.JSONArray;
-import org.json.JSONException;
 import org.json.JSONObject;
 import org.springframework.context.ApplicationContext;
 import org.springframework.web.context.support.WebApplicationContextUtils;
 
 import edu.ucla.cens.awserver.controller.Controller;
-import edu.ucla.cens.awserver.controller.ControllerException;
 import edu.ucla.cens.awserver.dao.EmaQueryDao.EmaQueryResult;
-import edu.ucla.cens.awserver.datatransfer.AwRequest;
 import edu.ucla.cens.awserver.jee.servlet.glue.AwRequestCreator;
+import edu.ucla.cens.awserver.request.AwRequest;
 import edu.ucla.cens.awserver.util.StringUtils;
 
 /**
@@ -103,7 +101,7 @@ public class EmaVizServlet extends AbstractAwHttpServlet {
 			// Build the appropriate response 
 			if(! awRequest.isFailedRequest()) {
 				// Convert the results to JSON for output.
-				List<EmaQueryResult> results = (List<EmaQueryResult>) awRequest.getAttribute("emaQueryResults");
+				List<EmaQueryResult> results = (List<EmaQueryResult>) awRequest.getResultList();
 				JSONArray jsonArray = new JSONArray();
 					
 				for(EmaQueryResult result : results) {
@@ -122,6 +120,8 @@ public class EmaVizServlet extends AbstractAwHttpServlet {
 				
 				responseText = awRequest.getFailedRequestErrorMessage();
 			}
+			
+			_logger.info("finished processing and about to write output");
 			
 			// Write the ouptut
 			writer.write(responseText);

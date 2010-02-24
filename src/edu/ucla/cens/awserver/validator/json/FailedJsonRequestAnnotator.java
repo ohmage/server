@@ -5,7 +5,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import edu.ucla.cens.awserver.datatransfer.AwRequest;
+import edu.ucla.cens.awserver.request.AwRequest;
 import edu.ucla.cens.awserver.util.JsonUtils;
 import edu.ucla.cens.awserver.validator.AwRequestAnnotator;
 
@@ -77,35 +77,31 @@ public class FailedJsonRequestAnnotator implements AwRequestAnnotator {
 			JSONArray errorArray = JsonUtils.getJsonArrayFromJsonObject(jsonObject, "errors");
 			JSONObject errorObject = JsonUtils.getJsonObjectFromJsonArray(errorArray, 0);
 			
-			if(null != awRequest.getAttribute("currentMessageIndex")) {			
+			if(-1 != awRequest.getCurrentMessageIndex()) {			
 			
-				errorObject.put("at_record_number", (Integer) awRequest.getAttribute("currentMessageIndex"));
+				errorObject.put("at_record_number", awRequest.getCurrentMessageIndex());
 			
 			}
 			
-			if(null != awRequest.getAttribute("currentPromptId")) { // a prompt upload is being handled.
+			if(-1 != awRequest.getCurrentPromptId()) { // a prompt upload is being handled.
 				
-				errorObject.put("at_prompt_id", (Integer) awRequest.getAttribute("currentPromptId"));
+				errorObject.put("at_prompt_id", awRequest.getCurrentPromptId());
 			}
 			
 			// Now add the original request URL and the original JSON input message to the error output
 			// If the JSON data is longer than 250 characters, an info message is sent back instead in order to 
 			// avoid echoing extremely large messages back to the client and into the server logs
-			jsonObject.put("request_url", awRequest.getAttribute("requestUrl"));
+			jsonObject.put("request_url", awRequest.getRequestUrl());
 			
-			Object data = awRequest.getAttribute("jsonData");
+			String data = awRequest.getJsonDataAsString();
 			if(null != data) {
 				
-				if(data instanceof JSONArray) {
+				jsonObject.put("request_json", getDataTruncatedMessage(data));
+								
+			} else {
 				
-					jsonObject.put("request_json", getDataTruncatedMessage(((JSONArray) data).toString()));
-				
-				} else if (data instanceof String) {
-					
-					jsonObject.put("request_json", getDataTruncatedMessage((String) data));
-					
-				}				
-			} 		
+				jsonObject.put("request_json", getDataTruncatedMessage(awRequest.getJsonDataAsJsonArray().toString()));
+			}
 		
 		} catch(JSONException jsone) {  // invalid JSON at this point is a logical error
 		

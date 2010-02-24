@@ -13,7 +13,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.web.context.support.WebApplicationContextUtils;
 
 import edu.ucla.cens.awserver.controller.Controller;
-import edu.ucla.cens.awserver.datatransfer.AwRequest;
+import edu.ucla.cens.awserver.request.AwRequest;
 import edu.ucla.cens.awserver.jee.servlet.glue.AwRequestCreator;
 import edu.ucla.cens.awserver.jee.servlet.glue.HttpSessionModifier;
 import edu.ucla.cens.awserver.util.StringUtils;

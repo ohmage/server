@@ -3,7 +3,7 @@ package edu.ucla.cens.awserver.validator.json;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import edu.ucla.cens.awserver.datatransfer.AwRequest;
+import edu.ucla.cens.awserver.request.AwRequest;
 import edu.ucla.cens.awserver.validator.AwRequestAnnotator;
 
 /**
@@ -27,8 +27,8 @@ public class FailedJsonSuppliedMessageRequestAnnotator implements AwRequestAnnot
 			
 			jsonObject = new JSONObject(message);
 			// now add the original request URL and the original JSON input message to the error output
-			jsonObject.put("request_url", awRequest.getAttribute("requestUrl"));
-			jsonObject.put("request_json", awRequest.getAttribute("jsonData"));
+			jsonObject.put("request_url", awRequest.getRequestUrl());
+			jsonObject.put("request_json", awRequest.getJsonDataAsString());
 		
 		} catch(JSONException jsone) {  
 		

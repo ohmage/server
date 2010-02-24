@@ -17,7 +17,7 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.jdbc.core.PreparedStatementCreator;
 
-import edu.ucla.cens.awserver.datatransfer.AwRequest;
+import edu.ucla.cens.awserver.request.AwRequest;
 import edu.ucla.cens.awserver.domain.DataPacket;
 import edu.ucla.cens.awserver.domain.PromptDataPacket;
 import edu.ucla.cens.awserver.domain.PromptDataPacket.PromptResponseDataPacket;
@@ -53,7 +53,7 @@ public class PromptUploadDao extends AbstractUploadDao {
 	public void execute(AwRequest awRequest) {
 		_logger.info("beginning prompt response persistence");
 		
-		List<DataPacket> dataPackets = (List<DataPacket>) awRequest.getAttribute("dataPackets");
+		List<DataPacket> dataPackets = awRequest.getDataPackets();
 		if(null == dataPackets) {
 			throw new IllegalArgumentException("no DataPackets found in the AwRequest");
 		}
@@ -78,8 +78,8 @@ public class PromptUploadDao extends AbstractUploadDao {
 					  // (prompt_config_id) which has to be mapped to the prompt's "real" primary key
 				
 					 promptId = getJdbcTemplate().queryForInt(
-						_selectSql, new Object[]{awRequest.getAttribute("campaignPromptGroupId"), 
-								                 awRequest.getAttribute("campaignPromptVersionId"), 
+						_selectSql, new Object[]{awRequest.getCampaignPromptGroupId(), 
+								                 awRequest.getCampaignPromptVersionId(), 
 								                 response.getPromptConfigId()}
 				    );
 					
@@ -89,8 +89,8 @@ public class PromptUploadDao extends AbstractUploadDao {
 					                                                   // combination
 					_logger.error("caught IncorrectResultSizeDataAccessException (one row expected, but " + irse.getActualSize() +
 							" returned) when running SQL '" + _selectSql + "' with the following parameters: " + 
-							awRequest.getAttribute("campaignPromptGroupId") + ", " + 
-							awRequest.getAttribute("campaignPromptVersionId") + ", " +
+							awRequest.getCampaignPromptGroupId() + ", " + 
+							awRequest.getCampaignPromptVersionId() + ", " +
 							response.getPromptConfigId()); 
 					
 					throw new DataAccessException(irse);
@@ -99,8 +99,8 @@ public class PromptUploadDao extends AbstractUploadDao {
 				catch(org.springframework.dao.DataAccessException dae) { // serious db problem (connectivity, config, etc)
 					
 					_logger.error("caught DataAccessException when running SQL '" + _selectSql + "' with the following " +
-						"parameters: " + awRequest.getAttribute("campaignPromptGroupId") + ", " + 
-						awRequest.getAttribute("campaignPromptVersionId") + ", " +
+						"parameters: " + awRequest.getCampaignPromptGroupId() + ", " + 
+						awRequest.getCampaignPromptVersionId() + ", " +
 						response.getPromptConfigId()); 
 					
 					throw new DataAccessException(dae);
@@ -190,12 +190,12 @@ public class PromptUploadDao extends AbstractUploadDao {
 	private void handleDuplicate(AwRequest awRequest, int duplicateIndex, int duplicatePromptConfigId) {
 		handleDuplicate(awRequest, duplicateIndex);
 		
-		Map<Integer, List<Integer>> duplicatePromptResponseMap = (Map<Integer, List<Integer>>) awRequest.getAttribute("duplicatePromptResponseMap");
+		Map<Integer, List<Integer>> duplicatePromptResponseMap = awRequest.getDuplicatePromptResponseMap();
 		List<Integer> promptConfigIdList = null;
 		
 		if(null == duplicatePromptResponseMap) {
 			duplicatePromptResponseMap = new HashMap<Integer, List<Integer>>();
-			awRequest.setAttribute("duplicatePromptResponseMap", duplicatePromptResponseMap);
+			awRequest.setDuplicatePromptResponseMap(duplicatePromptResponseMap);
 		} else {
 			promptConfigIdList = duplicatePromptResponseMap.get(duplicateIndex);
 		}

@@ -13,7 +13,7 @@ import org.apache.log4j.Logger;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.jdbc.core.PreparedStatementCreator;
 
-import edu.ucla.cens.awserver.datatransfer.AwRequest;
+import edu.ucla.cens.awserver.request.AwRequest;
 import edu.ucla.cens.awserver.domain.DataPacket;
 import edu.ucla.cens.awserver.domain.MobilityModeFeaturesDataPacket;
 import edu.ucla.cens.awserver.domain.MobilityModeOnlyDataPacket;
@@ -51,7 +51,7 @@ public class MobilityUploadDao extends AbstractUploadDao {
 	public void execute(AwRequest awRequest) {
 		_logger.info("beginning to persist mobility messages");
 		
-		List<DataPacket> dataPackets = (List<DataPacket>) awRequest.getAttribute("dataPackets");
+		List<DataPacket> dataPackets = awRequest.getDataPackets();
 		
 		if(null == dataPackets) {
 			throw new IllegalArgumentException("no DataPackets found in the AwRequest");

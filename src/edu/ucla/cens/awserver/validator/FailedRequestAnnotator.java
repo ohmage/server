@@ -2,7 +2,7 @@ package edu.ucla.cens.awserver.validator;
 
 import org.apache.log4j.Logger;
 
-import edu.ucla.cens.awserver.datatransfer.AwRequest;
+import edu.ucla.cens.awserver.request.AwRequest;
 
 /**
  * An implementation of AwRequestAnnotator for general validation failures.

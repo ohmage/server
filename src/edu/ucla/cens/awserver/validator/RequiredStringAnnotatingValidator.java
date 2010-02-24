@@ -1,8 +1,11 @@
 package edu.ucla.cens.awserver.validator;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.List;
 
-import edu.ucla.cens.awserver.datatransfer.AwRequest;
+import edu.ucla.cens.awserver.request.AwRequest;
+import edu.ucla.cens.awserver.util.ReflectionUtils;
 import edu.ucla.cens.awserver.util.StringUtils;
 
 /**
@@ -11,22 +14,25 @@ import edu.ucla.cens.awserver.util.StringUtils;
  * @author selsky
  */
 public class RequiredStringAnnotatingValidator extends AbstractAnnotatingValidator {
-	private String _awRequestAttributeName;
+	private String _key;
+	private Method _stringAccessorMethod;
 	private List<String> _allowedValues;
 	
 	/**
 	 * @throws IllegalArgumentException if the awRequestAttributeName is null, empty, or all whitespace 
 	 * @throws IllegalArgumentException if the allowedValues List is null or empty
+	 * @see ReflectionUtils#getAccessorMethod(Class, String)
 	 */
-	public RequiredStringAnnotatingValidator(AwRequestAnnotator annotator, String awRequestAttributeName, List<String> allowedValues) {
+	public RequiredStringAnnotatingValidator(AwRequestAnnotator annotator, String key, List<String> allowedValues) {
 		super(annotator);
-		if(null == awRequestAttributeName) {
-			throw new IllegalArgumentException("missing awRequestAttributeName");
+		if(StringUtils.isEmptyOrWhitespaceOnly(key)) {
+			throw new IllegalArgumentException("a non-empty key is required");
 		}
 		if(null == allowedValues || allowedValues.isEmpty()){
 			throw new IllegalArgumentException("missing or empty allowedValues list");
 		}
-		_awRequestAttributeName = awRequestAttributeName;
+		_stringAccessorMethod = ReflectionUtils.getAccessorMethod(AwRequest.class, key);
+		_key = key;
 		_allowedValues = allowedValues;
 	}
 
@@ -35,18 +41,29 @@ public class RequiredStringAnnotatingValidator extends AbstractAnnotatingValidat
 	 * @return false otherwise 
 	 */
 	public boolean validate(AwRequest awRequest) {
-		String attrValue = (String) awRequest.getAttribute(_awRequestAttributeName);
-		if(! StringUtils.isEmptyOrWhitespaceOnly(attrValue)) {
 		
-			for(String allowedValue : _allowedValues) {
-				if(attrValue.equals(allowedValue)) {
-					return true;
+		try {
+			String attrValue = (String) _stringAccessorMethod.invoke(awRequest);
+			
+			if(! StringUtils.isEmptyOrWhitespaceOnly(attrValue)) {
+			
+				for(String allowedValue : _allowedValues) {
+					if(attrValue.equals(allowedValue)) {
+						return true;
+					}
 				}
 			}
+			
+			getAnnotator().annotate(awRequest, "invalid value found for " + _key + ". value:  " + attrValue);
+			return false;
 		}
+		catch(InvocationTargetException ite) {
+			
+	    	throw new ValidatorException(ite);
 		
-		getAnnotator().annotate(awRequest, "invalid value found for " + _awRequestAttributeName + ". value:  " + attrValue);
-		return false;
+		} catch(IllegalAccessException iae) {
+			
+			throw new ValidatorException(iae);
+		}
 	}
-	
 }

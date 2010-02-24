@@ -5,9 +5,9 @@ import java.net.URLDecoder;
 
 import javax.servlet.http.HttpServletRequest;
 
-import edu.ucla.cens.awserver.datatransfer.AwRequest;
-import edu.ucla.cens.awserver.datatransfer.AwRequestImpl;
 import edu.ucla.cens.awserver.domain.UserImpl;
+import edu.ucla.cens.awserver.request.AwRequest;
+import edu.ucla.cens.awserver.request.SensorUploadAwRequest;
 import edu.ucla.cens.awserver.util.StringUtils;
 
 /**
@@ -57,23 +57,24 @@ public class SensorUploadAwRequestCreator implements AwRequestCreator {
 		UserImpl user = new UserImpl();
 		user.setUserName(userName);
 		
-		AwRequestImpl awRequest = new AwRequestImpl();
-		
-		awRequest.setAttribute("startTime", System.currentTimeMillis());
-		awRequest.setAttribute("sessionId", sessionId);
+		AwRequest awRequest = new SensorUploadAwRequest();
+
+		awRequest.setStartTime(System.currentTimeMillis());
+		awRequest.setSessionId(sessionId);
 		awRequest.setUser(user);
-		awRequest.setAttribute("subdomain", subdomain);
-		awRequest.setAttribute("requestType", requestType);
-		awRequest.setAttribute("phoneVersion", phoneVersion);
-		awRequest.setAttribute("protocolVersion", protocolVersion);
-		awRequest.setAttribute("jsonData", jsonData);
+		awRequest.setSubdomain(subdomain);
+		awRequest.setRequestType(requestType);
+		awRequest.setPhoneVersion(phoneVersion);
+		awRequest.setProtocolVersion(protocolVersion);
+		awRequest.setJsonDataAsString(jsonData);
+		
 		
 		String requestUrl = request.getRequestURL().toString();
 		if(null != request.getQueryString()) {
 			requestUrl += "?" + request.getQueryString(); 
 		}
 		
-		awRequest.setAttribute("requestUrl", requestUrl); // output in reponse in case of error
+		awRequest.setRequestUrl(requestUrl); // output in reponse in case of error
 		
 		return awRequest;
 	}

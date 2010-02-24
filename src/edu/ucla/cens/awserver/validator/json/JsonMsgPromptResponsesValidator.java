@@ -8,7 +8,7 @@ import org.json.JSONObject;
 
 import edu.ucla.cens.awserver.dao.Dao;
 import edu.ucla.cens.awserver.dao.DataAccessException;
-import edu.ucla.cens.awserver.datatransfer.AwRequest;
+import edu.ucla.cens.awserver.request.AwRequest;
 import edu.ucla.cens.awserver.domain.PromptType;
 import edu.ucla.cens.awserver.util.JsonUtils;
 import edu.ucla.cens.awserver.validator.AwRequestAnnotator;
@@ -65,8 +65,8 @@ public class JsonMsgPromptResponsesValidator extends AbstractDaoAnnotatingJsonOb
 		}
 		
 		// Now check the DAO for prompt existence (the entire group) and grab the validation restrictions (i.e., the prompt type)
-		
-		awRequest.setAttribute("promptIdArray", idArray); // Prep awRequest for DAO
+				
+		awRequest.setPromptIdArray(idArray); // Prep awRequest for DAO
 		
 		try {
 			
@@ -83,7 +83,8 @@ public class JsonMsgPromptResponsesValidator extends AbstractDaoAnnotatingJsonOb
 			throw new ValidatorException("cannot perform validation because an invalid number of prompts was sent in the request");
 		}
 		
-		List<?> promptTypeList = (List<?>) awRequest.getAttribute("promptRestrictions");
+		// List<?> promptTypeList = (List<?>) awRequest.getAttribute("promptRestrictions");
+		List<PromptType> promptTypeList = awRequest.getPromptTypeRestrictions();
 		
 //		if(_logger.isDebugEnabled()) {
 //			StringBuilder builder = new StringBuilder();
@@ -116,7 +117,7 @@ public class JsonMsgPromptResponsesValidator extends AbstractDaoAnnotatingJsonOb
 				}
 				
 				// Set the currentPromptId in order for it to be sent back to the phone in the cause of validation failure
-				awRequest.setAttribute("currentPromptId", JsonUtils.getIntegerFromJsonObject(promptResponse, "prompt_id"));
+				awRequest.setCurrentPromptId(JsonUtils.getIntegerFromJsonObject(promptResponse, "prompt_id"));
 								
 				if(! validator.validate(response)) {
 					getAnnotator().annotate(awRequest, "invalid prompt response");

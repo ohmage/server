@@ -1,22 +1,25 @@
 package edu.ucla.cens.awserver.validator;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 
 import org.apache.log4j.Logger;
 
-import edu.ucla.cens.awserver.datatransfer.AwRequest;
+import edu.ucla.cens.awserver.request.AwRequest;
+import edu.ucla.cens.awserver.util.ReflectionUtils;
 import edu.ucla.cens.awserver.util.StringUtils;
 
 /**
- * Date validator for AwRequest attributes.
+ * Validator for AwRequest date attributes.
  * 
  * @author selsky
  * @see java.text.SimpleDateFormat
  */
 public class DateValidator extends AbstractAnnotatingValidator {
 	private static Logger _logger = Logger.getLogger(DateValidator.class);
-	private String _key;
+	private Method _dateAccessorMethod;
 	private SimpleDateFormat _dateFormat;
 	private String _errorMessage;
 	
@@ -24,6 +27,7 @@ public class DateValidator extends AbstractAnnotatingValidator {
 	 * @throws IllegalArgumentException if the provided key is null, empty, or all whitespace
 	 * @throws IllegalArgumentException if the provided format is null, empty, or all whitespace
 	 * @throws IllegalArgumentException if the provided format is not a valid SimpleDateFormat
+	 * @see ReflectionUtils#getAccessorMethod(Class, String)
 	 */
 	public DateValidator(AwRequestAnnotator annotator, String key, String format) {
 		super(annotator);
@@ -33,7 +37,8 @@ public class DateValidator extends AbstractAnnotatingValidator {
 		if(StringUtils.isEmptyOrWhitespaceOnly(format)) {
 			throw new IllegalArgumentException("a format is required");
 		}
-		_key = key;
+		
+		_dateAccessorMethod = ReflectionUtils.getAccessorMethod(AwRequest.class, key);
 		_dateFormat = new SimpleDateFormat(format);
 	}
 	
@@ -43,9 +48,25 @@ public class DateValidator extends AbstractAnnotatingValidator {
 	 * 
 	 * @return true if the date is valid for the format
 	 * @false otherwise
+	 * @throws ValidatorException if the accessor method invoked on the AwRequest throws an Exception
+	 * @throws ValidatorException if the accessor method enforces Java language access control and the underlying method is inaccessible 
 	 */
 	public boolean validate(AwRequest awRequest) {
-		String stringDate = (String) awRequest.getAttribute(_key);
+		String stringDate = null;
+		
+		try {
+			
+			stringDate = (String) _dateAccessorMethod.invoke(awRequest);
+			
+		} catch(InvocationTargetException ite) {
+			
+			throw new ValidatorException(ite);
+			
+		} catch(IllegalAccessException iae) {
+			
+			throw new ValidatorException(iae);
+		}
+		
 		try {
 			
 			_dateFormat.parse(stringDate);

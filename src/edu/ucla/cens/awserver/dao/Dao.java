@@ -1,6 +1,6 @@
 package edu.ucla.cens.awserver.dao;
 
-import edu.ucla.cens.awserver.datatransfer.AwRequest;
+import edu.ucla.cens.awserver.request.AwRequest;
 
 
 /**

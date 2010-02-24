@@ -2,9 +2,9 @@ package edu.ucla.cens.awserver.jee.servlet.glue;
 
 import javax.servlet.http.HttpServletRequest;
 
-import edu.ucla.cens.awserver.datatransfer.AwRequest;
-import edu.ucla.cens.awserver.datatransfer.AwRequestImpl;
 import edu.ucla.cens.awserver.domain.UserImpl;
+import edu.ucla.cens.awserver.request.AuthAwRequest;
+import edu.ucla.cens.awserver.request.AwRequest;
 import edu.ucla.cens.awserver.util.StringUtils;
 
 /**
@@ -34,9 +34,10 @@ public class AuthAwRequestCreator implements AwRequestCreator {
 		UserImpl user = new UserImpl();
 		user.setUserName(userName);
 		
-		AwRequestImpl awRequest = new AwRequestImpl();
+		AwRequest awRequest = new AuthAwRequest();
 		awRequest.setUser(user);
-		awRequest.setAttribute("subdomain", subdomain);
+		// awRequest.setAttribute("subdomain", subdomain);
+		awRequest.setSubdomain(subdomain);
 		
 		return awRequest;
 	}

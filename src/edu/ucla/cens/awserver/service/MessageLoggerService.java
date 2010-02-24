@@ -15,7 +15,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import edu.ucla.cens.awserver.datatransfer.AwRequest;
+import edu.ucla.cens.awserver.request.AwRequest;
 import edu.ucla.cens.awserver.util.JsonUtils;
 
 /**
@@ -44,15 +44,15 @@ public class MessageLoggerService implements Service {
 	}
 	
 	private void logUploadStats(AwRequest awRequest) {
-		Object data = awRequest.getAttribute("jsonData");
+		JSONArray data = awRequest.getJsonDataAsJsonArray();
 		String totalNumberOfMessages = "unknown";
 		String numberOfDuplicates = "unknown";
-		String sessionId = (String) awRequest.getAttribute("sessionId");
+		String sessionId = awRequest.getSessionId();
 		
 		if(data instanceof JSONArray) {
 			totalNumberOfMessages = String.valueOf(((JSONArray) data).length());
 			
-			List<Integer> duplicateIndexList = (List<Integer>) awRequest.getAttribute("duplicateIndexList");
+			List<Integer> duplicateIndexList = awRequest.getDuplicateIndexList();
 			
 			if(null != duplicateIndexList && duplicateIndexList.size() > 0) {
 				numberOfDuplicates = String.valueOf(duplicateIndexList.size()); 
@@ -61,7 +61,7 @@ public class MessageLoggerService implements Service {
 			}
 		}	
 		
-		long processingTime = System.currentTimeMillis() - (Long) awRequest.getAttribute("startTime");
+		long processingTime = System.currentTimeMillis() - awRequest.getStartTime();
 		
 		StringBuilder builder = new StringBuilder();
 		
@@ -79,7 +79,7 @@ public class MessageLoggerService implements Service {
 		builder.append(" user=" + user);
 		builder.append(" isLoggedIn=" + awRequest.getUser().isLoggedIn());
 		builder.append(" sessionId=" + sessionId);
-		builder.append(" requestType=" + (String) awRequest.getAttribute("requestType"));
+		builder.append(" requestType=" + awRequest.getRequestType());
 		builder.append(" numberOfRecords=" + totalNumberOfMessages);
 		builder.append(" numberOfDuplicates=" + numberOfDuplicates);
 		builder.append(" proccessingTimeMillis=" + processingTime);
@@ -89,7 +89,7 @@ public class MessageLoggerService implements Service {
 	}
 
 	private void logUploadToFilesystem(AwRequest awRequest) {
-		String sessionId = (String) awRequest.getAttribute("sessionId");
+		String sessionId = awRequest.getSessionId();
 		SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMddHHmmssSSS");
 		String userName = null == awRequest.getUser().getUserName() ? "unknown.user" : awRequest.getUser().getUserName(); 
 		
@@ -97,8 +97,7 @@ public class MessageLoggerService implements Service {
 		
 		String catalinaBase = System.getProperty("catalina.base"); // need a system prop called upload-logging-directory or something like that
 		
-		Object data = awRequest.getAttribute("jsonData"); // could either be a String or a JSONArray depending on where the main
-		                                                  // application processing ended
+		JSONArray data = awRequest.getJsonDataAsJsonArray(); 
 		PrintWriter printWriter = null;
 		
 		try {
@@ -110,7 +109,12 @@ public class MessageLoggerService implements Service {
 			if(null != data) {
 				printWriter.write(data.toString());
 			} else {
-				printWriter.write("no data");
+				String jsonString = awRequest.getJsonDataAsString();
+				if(null != jsonString) {
+					printWriter.write(jsonString);
+				} else {
+					printWriter.write("no data");
+				}
 			}
 			close(printWriter);
 		
@@ -128,10 +132,10 @@ public class MessageLoggerService implements Service {
 						jsonObject = new JSONObject(failedMessage);
 						// Dump out the request params
 						jsonObject.put("session_id", sessionId);
-						jsonObject.put("request_type", awRequest.getAttribute("requestType"));
+						jsonObject.put("request_type", awRequest.getRequestType());
 						jsonObject.put("user", awRequest.getUser().getUserName());
-						jsonObject.put("phone_version", awRequest.getAttribute("phoneVersion"));
-						jsonObject.put("protocol_version", awRequest.getAttribute("protocolVersion"));
+						jsonObject.put("phone_version", awRequest.getPhoneVersion());
+						jsonObject.put("protocol_version",awRequest.getProtocolVersion());
 						jsonObject.put("upload_file_name", uploadFileName);
 						
 					} catch (JSONException jsone) {
@@ -150,9 +154,8 @@ public class MessageLoggerService implements Service {
 				close(printWriter);
 			}
 			
-			List<Integer> duplicateIndexList = (List<Integer>) awRequest.getAttribute("duplicateIndexList");
-			Map<Integer, List<Integer>> duplicatePromptResponseMap 
-				= (Map<Integer, List<Integer>>) awRequest.getAttribute("duplicatePromptResponseMap");
+			List<Integer> duplicateIndexList = awRequest.getDuplicateIndexList();
+			Map<Integer, List<Integer>> duplicatePromptResponseMap = awRequest.getDuplicatePromptResponseMap();
 			
 			if(null != duplicateIndexList && duplicateIndexList.size() > 0) {
 				
@@ -165,7 +168,7 @@ public class MessageLoggerService implements Service {
 					
 					int duplicateIndex = duplicateIndexList.get(i);
 					
-					if("prompt".equals((String)awRequest.getAttribute("requestType"))) {
+					if("prompt".equals(awRequest.getRequestType())) {
 
 						if(lastDuplicateIndex != duplicateIndex) {
 							List<Integer> list = duplicatePromptResponseMap.get(duplicateIndex);

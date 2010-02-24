@@ -1,6 +1,6 @@
 package edu.ucla.cens.awserver.validator;
 
-import edu.ucla.cens.awserver.datatransfer.AwRequest;
+import edu.ucla.cens.awserver.request.AwRequest;
 
 /**
  * Handler for annotating an AwRequest when post-processing validation. 

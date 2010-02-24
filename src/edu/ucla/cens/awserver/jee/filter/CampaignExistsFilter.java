@@ -19,8 +19,8 @@ import org.springframework.web.context.support.WebApplicationContextUtils;
 
 import edu.ucla.cens.awserver.controller.Controller;
 import edu.ucla.cens.awserver.controller.ControllerException;
-import edu.ucla.cens.awserver.datatransfer.AwRequest;
-import edu.ucla.cens.awserver.datatransfer.AwRequestImpl;
+import edu.ucla.cens.awserver.request.AwRequest;
+import edu.ucla.cens.awserver.request.CampaignExistsAwRequest;
 import edu.ucla.cens.awserver.util.StringUtils;
 
 /**
@@ -75,17 +75,15 @@ public class CampaignExistsFilter implements Filter {
 	public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) 
 		throws ServletException, IOException {
 		
-		// this belongs in an AwRequestCreator
+		// ---- TODO this belongs in an AwRequestCreator
+		AwRequest awRequest = new CampaignExistsAwRequest();
 		
-		AwRequest awRequest = new AwRequestImpl();
 		String url = ((HttpServletRequest) request).getRequestURL().toString();
 		String uri = ((HttpServletRequest) request).getRequestURI();
 		String subdomain = StringUtils.retrieveSubdomainFromUrlString(url);
-		awRequest.setAttribute("subdomain", subdomain);
-		awRequest.setAttribute("requestUrl", ((HttpServletRequest) request).getRequestURL().toString() + "?" +  ((HttpServletRequest) request).getQueryString());
-		awRequest.setAttribute("jsonData", request.getParameter("d"));
-		
-		// -------
+		awRequest.setSubdomain(subdomain);
+		awRequest.setRequestUrl(url + "?" +  ((HttpServletRequest) request).getQueryString());
+		// ------- end TODO
 		
 		try {
 		

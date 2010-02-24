@@ -6,7 +6,7 @@ import org.apache.log4j.Logger;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-import edu.ucla.cens.awserver.datatransfer.AwRequest;
+import edu.ucla.cens.awserver.request.AwRequest;
 import edu.ucla.cens.awserver.util.JsonUtils;
 import edu.ucla.cens.awserver.validator.AwRequestAnnotator;
 import edu.ucla.cens.awserver.validator.json.JsonObjectValidator;
@@ -68,7 +68,7 @@ public class JsonMessageContentValidationService implements Service {
 	public void execute(AwRequest awRequest) {
 		_logger.info("beginning JSON message content validation");
 		
-		JSONArray jsonArray = (JSONArray) awRequest.getAttribute("jsonData");
+		JSONArray jsonArray = awRequest.getJsonDataAsJsonArray();
 		int length = jsonArray.length();
 		
 		if(0 == length) {
@@ -88,11 +88,11 @@ public class JsonMessageContentValidationService implements Service {
 				return;
 			}
 			
-			awRequest.setAttribute("currentMessageIndex", i);
+			awRequest.setCurrentMessageIndex(i);
 			
 			// Given the request type, retrieve the validator array to execute for the particular type
 
-			JsonObjectValidator[] validators = _validatorMap.get(awRequest.getAttribute("requestType"));
+			JsonObjectValidator[] validators = _validatorMap.get(awRequest.getRequestType());
 			
 			for(JsonObjectValidator validator : validators) {
 				

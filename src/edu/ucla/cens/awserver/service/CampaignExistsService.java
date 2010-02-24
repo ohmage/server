@@ -5,7 +5,7 @@ import java.util.List;
 
 import edu.ucla.cens.awserver.dao.Dao;
 import edu.ucla.cens.awserver.dao.DataAccessException;
-import edu.ucla.cens.awserver.datatransfer.AwRequest;
+import edu.ucla.cens.awserver.request.AwRequest;
 import edu.ucla.cens.awserver.util.StringUtils;
 import edu.ucla.cens.awserver.validator.AwRequestAnnotator;
 
@@ -34,14 +34,14 @@ public class CampaignExistsService extends AbstractAnnotatingDaoService {
 	}
 	
 	/**
-	 * Uses the subdomain from the user's original request URI to determine whether the subdomain is mapped to an actual 
-	 * AndWellness campaign. 
+	 * Dispatches tp a DAO to determine whether the campaign identified by the subdomain in the AwRequest represents a campaign
+	 * that actually exists.
 	 */
 	public void execute(AwRequest awRequest) {
 		try {
 			
 			getDao().execute(awRequest);
-			List<?> results = (List<?>) awRequest.getAttribute("results");
+			List<?> results = awRequest.getResultList();
 			
 			if(null == results || results.isEmpty()) { 
 				

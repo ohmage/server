@@ -2,13 +2,14 @@ package edu.ucla.cens.awserver.dao;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.List;
 
 import javax.sql.DataSource;
 
 import org.apache.log4j.Logger;
 import org.springframework.jdbc.core.RowMapper;
 
-import edu.ucla.cens.awserver.datatransfer.AwRequest;
+import edu.ucla.cens.awserver.request.AwRequest;
 
 /**
  * DAO for executing EMA (prompt/survey response) query for visualization.
@@ -23,6 +24,10 @@ public class EmaQueryDao extends AbstractDao {
 	// The visualizations use a js 'config' file for interpreting each prompt response's data 
 	// type. The type is identified by prompt.prompt_config_id (the phone's prompt id) and 
 	// campaign_prompt_group.group_id (the phone's group id).
+	
+	// ****
+	// FIXME - there is a logical error in this SQL - the campaign (subdomain) must be added  
+	// ****
 	private String _selectSql = "select prompt_response.json_data, prompt_response.phone_timezone," +
 			                    " prompt_response.utc_time_stamp, prompt.prompt_config_id, " +
 			                    " campaign_prompt_group.group_id" +
@@ -49,17 +54,22 @@ public class EmaQueryDao extends AbstractDao {
 		_logger.info("executing ema viz query");
 		String s = null, e = null, u = null;
 		
+		_logger.info(awRequest);
+		
+		
 		try {
-			s = (String) awRequest.getAttribute("startDate");
-			e = (String) awRequest.getAttribute("endDate");
+			s = awRequest.getStartDate();
+			e = awRequest.getEndDate();
 			u = awRequest.getUser().getUserName();
 			
-			awRequest.setAttribute("emaQueryResults", 
-				getJdbcTemplate().query(
+			List<?> l = getJdbcTemplate().query(
 					_selectSql, 
 					new Object[]{s, e, u},  	
-				    new EmaQueryRowMapper())
-			);
+				    new EmaQueryRowMapper());
+			
+			awRequest.setResultList(l);
+			
+			_logger.info(l.size());
 			
 		} catch (org.springframework.dao.DataAccessException dae) {
 			

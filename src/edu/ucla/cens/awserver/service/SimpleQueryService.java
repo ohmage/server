@@ -1,7 +1,7 @@
 package edu.ucla.cens.awserver.service;
 
 import edu.ucla.cens.awserver.dao.Dao;
-import edu.ucla.cens.awserver.datatransfer.AwRequest;
+import edu.ucla.cens.awserver.request.AwRequest;
 
 /**
  * Service that dispatches directly to a DAO without performing any pre- or post-processing.

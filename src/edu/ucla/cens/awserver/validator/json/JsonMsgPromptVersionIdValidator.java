@@ -4,7 +4,7 @@ import org.json.JSONObject;
 
 import edu.ucla.cens.awserver.dao.Dao;
 import edu.ucla.cens.awserver.dao.DataAccessException;
-import edu.ucla.cens.awserver.datatransfer.AwRequest;
+import edu.ucla.cens.awserver.request.AwRequest;
 import edu.ucla.cens.awserver.util.JsonUtils;
 import edu.ucla.cens.awserver.validator.AwRequestAnnotator;
 import edu.ucla.cens.awserver.validator.ValidatorException;
@@ -33,8 +33,8 @@ public class JsonMsgPromptVersionIdValidator extends AbstractDaoAnnotatingJsonOb
 			getAnnotator().annotate(awRequest, "version_id in message is null or invalid");
 			return false;
 		}
-		
-		awRequest.setAttribute("versionId", versionId);
+
+		awRequest.setVersionId(versionId);
 		
 		try {
 		

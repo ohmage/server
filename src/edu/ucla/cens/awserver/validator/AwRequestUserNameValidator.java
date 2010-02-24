@@ -2,7 +2,7 @@ package edu.ucla.cens.awserver.validator;
 
 import java.util.regex.Pattern;
 
-import edu.ucla.cens.awserver.datatransfer.AwRequest;
+import edu.ucla.cens.awserver.request.AwRequest;
 import edu.ucla.cens.awserver.util.StringUtils;
 
 /**

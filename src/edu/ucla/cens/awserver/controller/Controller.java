@@ -1,6 +1,6 @@
 package edu.ucla.cens.awserver.controller;
 
-import edu.ucla.cens.awserver.datatransfer.AwRequest;
+import edu.ucla.cens.awserver.request.AwRequest;
 
 /**
  * Controllers are the interface shown to the "outside world" (e.g., Servlets) for access to application features. 

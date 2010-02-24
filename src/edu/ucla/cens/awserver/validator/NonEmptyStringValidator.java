@@ -1,6 +1,10 @@
 package edu.ucla.cens.awserver.validator;
 
-import edu.ucla.cens.awserver.datatransfer.AwRequest;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+
+import edu.ucla.cens.awserver.request.AwRequest;
+import edu.ucla.cens.awserver.util.ReflectionUtils;
 import edu.ucla.cens.awserver.util.StringUtils;
 
 /**
@@ -13,20 +17,22 @@ import edu.ucla.cens.awserver.util.StringUtils;
  * @author selsky
  */
 public class NonEmptyStringValidator implements Validator {
-	private String _awRequestAttributeName;
+	private Method _stringAccessorMethod;
+	private String _key;
 
 	/**
 	 * Creates an instance of this class where the payloadItemName parameter is used as a key to retrieve the value that will be 
 	 * validated. The value will be retrieved from the payload Map in the AwRequest.
 	 * 
 	 * @throws IllegalArgumentException if the payloadItemName parameter is empty or null or all whitespace
+	 * @see ReflectionUtils#getAccessorMethod(Class, String)
 	 */
-	public NonEmptyStringValidator(String awRequestAttributeName) {
-		if(StringUtils.isEmptyOrWhitespaceOnly(awRequestAttributeName)) {
-			throw new IllegalArgumentException("cannot create class: empty awRequestAttributeName parameter.");
+	public NonEmptyStringValidator(String key) {
+		if(StringUtils.isEmptyOrWhitespaceOnly(key)) {
+			throw new IllegalArgumentException("a non-empty key is required");
 		}
-		
-		_awRequestAttributeName = awRequestAttributeName;
+		_key = key;
+		_stringAccessorMethod = ReflectionUtils.getAccessorMethod(AwRequest.class, key);
 	}
 	
 	/**
@@ -37,9 +43,20 @@ public class NonEmptyStringValidator implements Validator {
 	 * @throws ValidatorException if the retrieved value is null, empty, or all whitespace 
 	 */
 	public boolean validate(AwRequest awRequest) {
-		if(StringUtils.isEmptyOrWhitespaceOnly((String) awRequest.getAttribute(_awRequestAttributeName))) {
-			throw new ValidatorException("missing " + _awRequestAttributeName + " from AwRequest - cannot continue processing");
+		try {
+			if(StringUtils.isEmptyOrWhitespaceOnly((String) _stringAccessorMethod.invoke(awRequest))) {
+				throw new ValidatorException("missing " + _key + " from AwRequest - cannot continue processing");
+			}
+		
+			return true;
 		}
-		return true;
+	    catch(InvocationTargetException ite) {
+		
+	    	throw new ValidatorException(ite);
+		
+		} catch(IllegalAccessException iae) {
+			
+			throw new ValidatorException(iae);
+		}
 	}
 }

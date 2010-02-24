@@ -2,7 +2,7 @@ package edu.ucla.cens.awserver.controller;
 
 import org.apache.log4j.Logger;
 
-import edu.ucla.cens.awserver.datatransfer.AwRequest;
+import edu.ucla.cens.awserver.request.AwRequest;
 import edu.ucla.cens.awserver.service.Service;
 import edu.ucla.cens.awserver.service.ServiceException;
 import edu.ucla.cens.awserver.util.StringUtils;

@@ -4,7 +4,7 @@ import java.util.Map;
 
 import edu.ucla.cens.awserver.dao.Dao;
 import edu.ucla.cens.awserver.dao.DataAccessException;
-import edu.ucla.cens.awserver.datatransfer.AwRequest;
+import edu.ucla.cens.awserver.request.AwRequest;
 
 /**
  * Service a data upload for prompt responses or mobility data by dispatching to a DAO for persistence.
@@ -38,7 +38,7 @@ public class UploadService implements Service {
 	public void execute(AwRequest awRequest) {
 		try {
 		
-			_daoMap.get(awRequest.getAttribute("requestType")).execute(awRequest);
+			_daoMap.get(awRequest.getRequestType()).execute(awRequest);
 			
 		} catch(DataAccessException dae) {
 			
