@@ -52,7 +52,7 @@
   
   <bean id="sensorUploadJsonDataExistsValidator" class="edu.ucla.cens.awserver.validator.NonEmptyStringAnnotatingValidator">
     <constructor-arg index="0"><ref bean="sensorUploadJsonDataFailedJsonRequestAnnotator" /></constructor-arg>
-    <constructor-arg index="1"><value>jsonData</value></constructor-arg>
+    <constructor-arg index="1"><value>jsonDataAsString</value></constructor-arg>
   </bean>
   
   <bean id="sensorUploadUserNameFailedJsonRequestAnnotator" class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
