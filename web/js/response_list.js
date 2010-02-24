@@ -4,7 +4,7 @@
  */
 
  var response_list = [
- 	{group_id:0, prompt_id:0, text:'Saliva sample time', type:0},
+ 	{group_id:0, prompt_id:0, text:'Saliva sample time', type:4},
 	{group_id:0, prompt_id:1, text:'In the twenty minutes before this sample did you: brush your teeth, eat, and drink?', type:1, y_labels:['brush', 'eat', 'drink']},
 	{group_id:1, prompt_id:0, text:'What time did you go to bed last night?', type:0},
 	{group_id:1, prompt_id:1, text:'How long did it take you to fall asleep last night? (in minutes)', type:2, y_labels:['10','20','30','40','50','60+']},

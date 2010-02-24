@@ -181,13 +181,14 @@
 		if (log.isInfoEnabled()) {
 		    log.info("Grabbing data from " + start_date + " to " + end_date);
 		}
-		if (log.isDebugEnabled()) {
-			log.debug("Grabbing data from URL: " + url);
-		}
 
 		// Form the URL and send out
 		url += "?s=" + start_date + "&e=" + end_date;     
         $.getJSON(url, populate_graphs_with_json);
+
+        if (log.isDebugEnabled()) {
+            log.debug("Grabbing data from URL: " + url);
+        }
 
 		// Return false to cancel the usual submit functionality
 		return false;
@@ -198,6 +199,10 @@
 	 * to the graph.  Validate incoming JSON and make sure there were no server errors.
 	 */
 	function populate_graphs_with_json(json_data, text_status) {
+        if (log.isDebugEnabled()) {
+            log.debug("Received JSON data from server with status: " + text_status);
+        }		
+		
 	    // Validate incoming JSON data
 	    if (text_status != "success") {
 	        log.error("Bad status from server: " + text_status);
@@ -209,17 +214,24 @@
 	    // Run through possible error codes from server
 	    // TODO: Check for error codes in JSON
 		
+		// DATA PREPROCESSING, MOVE TO SERVER OR INTO A JS CLASS
+		
 		// Pull out the day into a Date for each data point
 	    json_data.forEach(function(d) {
 			var period = d.time.lastIndexOf('.');
 	        d.date = Date.parseDate(d.time.substring(0, period), "Y-m-d g:i:s").grabDate();
-	    });
+		});		
 		
 		// Give the new data to the graphs
 		var data = json_data;
 		graphList.forEach(function(graph) {
 			var prompt_id = graph.prompt_id;
 			var group_id = graph.group_id;
+			
+			if (log.isDebugEnabled()) {
+                log.debug("Rendering graph with prompt_id " + prompt_id + " group_id " + group_id);
+				var start_render_time = new Date().getTime();
+            }
 			
 			var new_data = data.filter(function(data_point) {
 		        return ((prompt_id == data_point.prompt_id) && (group_id == data_point.prompt_group_id));
@@ -236,6 +248,12 @@
 							 
             // Re-render graphs with the new data
             graph.render();
+			
+            if (log.isDebugEnabled()) {
+				var time_to_render = new Date().getTime() - start_render_time;
+				
+                log.debug("Time to render graph: " + time_to_render + " ms");
+            }				
 		});
 	}
 	

@@ -94,13 +94,22 @@ ProtoGraph.TOP_MARGIN = 5;
 ProtoGraph.RIGHT_MARGIN = 250;
 ProtoGraph.LABEL_STYLE = '13px sans-serif bolder';
 ProtoGraph.BAR_WIDTH = 4/5;
-ProtoGraph.DEFAULT_COLOR = '#1f77b4';
+ProtoGraph.DEFAULT_COLOR = '#1f89b0';
 
 // TrueFalse constants
 ProtoGraph.CATEGORY_HEIGHT = 40;
 ProtoGraph.TRUE_COLOR = 'green';
 ProtoGraph.FALSE_COLOR = 'red';
 ProtoGraph.DISTANCE_FROM_CENTER = .25;
+
+// Color constants for multiple responses per day
+ProtoGraph.DAY_COLOR = ['#1f89b0',
+                        '#00a6da',
+                        '#05c5c8',
+                        '#19823f',
+                        '#6e943f',
+                        '#a1a536',
+                        '#cfb82e'];
 
 // Static logger for ProtoGraph
 ProtoGraph._logger = log4javascript.getLogger();
@@ -117,7 +126,7 @@ ProtoGraph.factory = function(graph_description, div_id) {
 	
 	if (graph_description.type == 0) {
 		// Pass in the div_id and the title
-		var new_graph = new ProtoGraphTimeType(div_id, graph_description.text);
+		var new_graph = new ProtoGraphSingleTimeType(div_id, graph_description.text);
 	}
 	if (graph_description.type == 1) {
         // Pass in the div_id and the title
@@ -130,6 +139,10 @@ ProtoGraph.factory = function(graph_description, div_id) {
 	if (graph_description.type == 3) {
         // Pass in the div_id and the title
         var new_graph = new ProtoGraphYesNoType(div_id, graph_description.text);
+    }
+	if (graph_description.type == 4) {
+        // Pass in the div_id and the title
+        var new_graph = new ProtoGraphMultiTimeType(div_id, graph_description.text);
     }
 	
 	return new_graph;
@@ -149,7 +162,7 @@ ProtoGraph.prototype.get_div_id = function() {
 // the data types normally used to pass data to a graph
 ProtoGraph.prototype.replace_x_labels = function(start_date, num_days) {
     this.left_x_label = start_date.toStringMonthAndDay();
-    this.right_x_label = start_date.incrementDay(num_days).toStringMonthAndDay();	
+    this.right_x_label = start_date.incrementDay(num_days - 1).toStringMonthAndDay();	
 }
 
 
@@ -211,6 +224,39 @@ ProtoGraph.prototype.add_average_line = function(average, y_scale, average_label
 			
 		this.has_average_line = true;
 	} 
+}
+
+/*
+ * preprocess_add_day_counts() - Add the total number of data points per day,
+ * and which this current data point is, to every data point
+ */
+ProtoGraph.prototype.preprocess_add_day_counts = function(_data) {
+	// Initialize the counting variables
+	var cur_day = new Date(0,0,0,0,0,0);
+	var cur_day_count = 1;
+	var total_count_per_day = new Object();
+	
+	// First pass over the data to count the number of points per day
+	_data.forEach(function(d) {
+		// Check if this is a new day
+	    if (!d.date.equals(cur_day)) {
+	        // Reset the counting vars
+	        cur_day = d.date;
+	        cur_day_count = 1;
+		}
+	    else {
+	        cur_day_count += 1;
+	    }
+	    
+	    d.day_count = cur_day_count;
+        // Save the current day count for the second pass
+        total_count_per_day[cur_day] = cur_day_count;
+	});
+	
+	// Second pass to set total number of data points per day
+	_data.forEach(function(d) {
+	    d.total_day_count = total_count_per_day[d.date];
+	});
 }
 
 /*
@@ -276,6 +322,9 @@ ProtoGraphIntegerType.prototype.apply_data = function(data, start_date, num_days
 	// Setup the X scale now
     this.x_scale = pv.Scale.ordinal(dayArray).splitBanded(0, ProtoGraph.WIDTH, ProtoGraph.BAR_WIDTH);
 	
+    // Process the data as necessary
+    this.preprocess_add_day_counts(this.data);
+    
 	// If there is no data yet, setup the display
 	if (this.has_data == false) {
 	    // Add a bar for each response
@@ -285,15 +334,20 @@ ProtoGraphIntegerType.prototype.apply_data = function(data, start_date, num_days
 	        .data(function() {
 				return that.data;
 			})
-	        .width(function(){
-				return that.x_scale.range().band;
+	        .width(function(d) {
+	            // Shrink the bar width by the total number of responses per day
+				return that.x_scale.range().band / d.total_day_count;
 			})
 	        .height(function(d) {
 	            return that.y_scale(d.response) + 1;
 	        })
 	        .bottom(1)
 	        .left(function(d) {
-	            return that.x_scale(d.date);
+	            // Shift the bar left by which response per day this is
+	            return that.x_scale(d.date) + that.x_scale.range().band * ((d.day_count - 1) / d.total_day_count);
+	        })
+	        .fillStyle(function(d) {
+	            return ProtoGraph.DAY_COLOR[d.day_count];
 	        });
 			
 		this.has_data = true;
@@ -314,12 +368,12 @@ ProtoGraphIntegerType.prototype.apply_data = function(data, start_date, num_days
 
 
 /*
- * ProtoGraphTimeType - A subtype of the ProtoGraph class to 
+ * ProtoGraphSingleTimeType - A subtype of the ProtoGraph class to 
  * visualize time based response data.
  */
 
-// ProtoGraphTimeType constructor
-function ProtoGraphTimeType(div_id, title, data, start_date, num_days) {
+// ProtoGraphSingleTimeType constructor
+function ProtoGraphSingleTimeType(div_id, title, data, start_date, num_days) {
     // Inherit properties
     ProtoGraph.call(this, div_id, title);
 
@@ -345,12 +399,12 @@ function ProtoGraphTimeType(div_id, title, data, start_date, num_days) {
 }
 
 // Inherit methods from ProtoGraph
-ProtoGraphTimeType.prototype = new ProtoGraph();
+ProtoGraphSingleTimeType.prototype = new ProtoGraph();
 
 // Draws a sparkline graph using the passed in time data.  For now
 // assumes the data one time response per day.  Draws a scatter graph
 // along with an average line.
-ProtoGraphTimeType.prototype.apply_data = function(data, start_date, num_days) {
+ProtoGraphSingleTimeType.prototype.apply_data = function(data, start_date, num_days) {
     // Copy the new information
     this.data = data;
     this.num_days = num_days;
@@ -378,10 +432,6 @@ ProtoGraphTimeType.prototype.apply_data = function(data, start_date, num_days) {
 		    return that.data;
 		  })
 		  .left(function(d) {
-		     if(ProtoGraph._logger.isDebugEnabled()) {
-		         ProtoGraph._logger.debug("apply_data(): Placing dot at " + that.x_scale(d.date) + " for day " + d.date.toStringMonthAndDay());
-	         }
-		      
 			 return that.x_scale(d.date);
 		  })
 		  .bottom(function(d){
@@ -626,4 +676,101 @@ ProtoGraphYesNoType.prototype.apply_data = function(data, start_date, num_days) 
 	average_y_scale = pv.Scale.linear(0,1).range(ProtoGraph.HEIGHT * ProtoGraph.DISTANCE_FROM_CENTER, 
 												 ProtoGraph.HEIGHT * (1 - ProtoGraph.DISTANCE_FROM_CENTER));
 	this.add_average_line(average, average_y_scale, average.toFixed(2));
+}
+
+
+/*
+ * ProtoGraphMultiTimeType - A subtype of the ProtoGraph class to 
+ * visualize time based response data, when expecting multiple responses
+ * per day.
+ */
+
+// ProtoGraphMultiTimeType constructor
+function ProtoGraphMultiTimeType(div_id, title, data, start_date, num_days) {
+    // Inherit properties
+    ProtoGraph.call(this, div_id, title);
+
+    // Add the Y labels now
+    this.vis.add(pv.Label)
+        .bottom(0)
+        .left(0)
+        .textAlign('right')
+        .textBaseline('bottom')
+        .text('00:01')
+        .font(ProtoGraph.LABEL_STYLE)
+        
+    this.vis.add(pv.Label)
+        .top(0)
+        .left(0)
+        .textAlign('right')
+        .textBaseline('top')
+        .text('23:59')
+        .font(ProtoGraph.LABEL_STYLE)
+        
+    // Setup the Y scale
+    this.y_scale = pv.Scale.linear(new Date(0, 0, 0, 0, 0, 0), new Date(0, 0, 0, 23, 59, 59)).range(0, ProtoGraph.HEIGHT);
+}
+
+// Inherit methods from ProtoGraph
+ProtoGraphMultiTimeType.prototype = new ProtoGraph();
+
+// Draws a sparkline graph using the passed in time data.  For now
+// assumes the data one time response per day.  Draws a scatter graph
+// along with an average line.
+ProtoGraphMultiTimeType.prototype.apply_data = function(data, start_date, num_days) {
+    // Copy the new information
+    this.data = data;
+    this.num_days = num_days;
+    
+    // Replace the x labels
+    this.replace_x_labels(start_date, num_days);
+    
+    // Split the data into categories using Scale.ordinal
+    var dayArray = [];
+    for (var i = 0; i < this.num_days; i += 1) {
+        dayArray.push(start_date.incrementDay(i));
+    }
+    
+    // Setup the X scale now
+    this.x_scale = pv.Scale.ordinal(dayArray).split(0, ProtoGraph.WIDTH);
+    
+    // Preprocess the data to count the number of days
+    this.preprocess_add_day_counts(this.data);
+    
+    // If there is no data yet setup the graph
+    if (this.has_data == false) {
+        // Need "that" to access "this" inside the closures
+        var that = this;
+        
+        // Add the line plot
+        this.vis.add(pv.Dot)
+          .data(function() {
+            return that.data;
+          })
+          .left(function(d) {
+             return that.x_scale(d.date);
+          })
+          .bottom(function(d) {
+             return that.y_scale(Date.parseDate(d.response, "g:i").grabTime());
+          })
+          .strokeStyle(function(d) {
+             return ProtoGraph.DAY_COLOR[d.day_count]; 
+          })
+          .lineWidth(2)
+          .size(20);
+        
+        this.has_data = true;
+    }
+        
+    // Average the data values for the average line
+    var totalTimeInMinutes = 0;
+    for (var i = 0; i < this.data.length; i++) {
+        var time = Date.parseDate(this.data[i].response, "g:i").grabTime();
+        totalTimeInMinutes += time.getHours() * 60;
+        totalTimeInMinutes += time.getMinutes();
+    }
+    totalTimeInMinutes /= this.data.length;
+    average = new Date(0,0,0,totalTimeInMinutes / 60, totalTimeInMinutes % 60);
+    // Add the average line and label
+    this.add_average_line(average, this.y_scale, average.toStringHourAndMinute());
 }

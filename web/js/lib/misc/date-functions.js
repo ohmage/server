@@ -397,7 +397,10 @@ Date.prototype.grabTime = function() {
     return new Date(0,0,0,this.getHours(),this.getMinutes(),this.getSeconds());
 }
 
-
+// Returns true if the dates are equal, false otherwise
+Date.prototype.equals = function(_date) {
+    return this.getTime() == _date.getTime();
+}
 
 // Set one day in milliseconds
 Date.one_day = 1000*60*60*24;
