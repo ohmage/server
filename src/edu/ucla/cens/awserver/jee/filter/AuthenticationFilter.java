@@ -13,6 +13,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.log4j.Logger;
 
+import edu.ucla.cens.awserver.domain.User;
 import edu.ucla.cens.awserver.util.StringUtils;
 
 /**
@@ -69,9 +70,13 @@ public class AuthenticationFilter implements Filter {
 		throws ServletException, IOException {
 	    
 		// Check the HttpSession to see if a previous request already logged the current user in
-		String isLoggedIn = (String) ((HttpServletRequest) request).getSession().getAttribute("isLoggedIn");
+		boolean isLoggedIn = false;
+		User user = ((User) ((HttpServletRequest) request).getSession().getAttribute("user"));
+		if(null != user) {
+			isLoggedIn = user.isLoggedIn();
+		}
 		
-		if(! Boolean.valueOf(isLoggedIn)) {
+		if(! isLoggedIn) {
 			
 			if(_logger.isDebugEnabled()) {
 				_logger.debug("request path: " + ((HttpServletRequest) request).getRequestURI());
