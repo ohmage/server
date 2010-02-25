@@ -185,13 +185,13 @@ public class MessageLoggerService implements Service {
 							}
 							lastDuplicateIndex = duplicateIndex;
 							printWriter.write(outputObject.toString());
+							printWriter.write("\n");
 					    }
 					} else {
 						
 						printWriter.write(JsonUtils.getJsonObjectFromJsonArray((JSONArray) data, duplicateIndex).toString());
+						printWriter.write("\n");
 					}
-					
-					printWriter.write("\n");
 				}
 				
 				close(printWriter);
