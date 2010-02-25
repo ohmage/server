@@ -65,8 +65,6 @@ public class CampaignExistsFilter implements Filter {
 		ServletContext servletContext = config.getServletContext();
 		ApplicationContext applicationContext = WebApplicationContextUtils.getWebApplicationContext(servletContext);
 		_controller = (Controller) applicationContext.getBean(controllerName);
-		
-		_logger.info(filterName + " successfully put into service");
 	}
 	
 	/**

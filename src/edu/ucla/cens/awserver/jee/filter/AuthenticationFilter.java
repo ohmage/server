@@ -56,8 +56,6 @@ public class AuthenticationFilter implements Filter {
 		if(StringUtils.isEmptyOrWhitespaceOnly(_loginServletUrl)) {
 			throw new ServletException("loginServletUrl init-param is required. Filter " + filterName + " cannot be initialized.");
 		}
-		
-		_logger.info(filterName + " successfully put into service");
 	}
 	
 	/**

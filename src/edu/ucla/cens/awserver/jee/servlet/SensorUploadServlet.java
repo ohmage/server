@@ -69,7 +69,6 @@ public class SensorUploadServlet extends AbstractAwHttpServlet {
 		
 		_awRequestCreator = (AwRequestCreator) applicationContext.getBean(awRequestCreatorName);
 		_controller = (Controller) applicationContext.getBean(controllerName);
- 		
 	}
 	
 	/**

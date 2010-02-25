@@ -74,8 +74,6 @@ public class EmaVizServlet extends AbstractAwHttpServlet {
 		
 		_controller = (Controller) applicationContext.getBean(controllerName);
 		_awRequestCreator = (AwRequestCreator) applicationContext.getBean(awRequestCreatorName);
-		
-		_logger.info("Servlet " + servletName + " successfully put into service");
 	}
 	
 	/**

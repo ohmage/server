@@ -106,9 +106,7 @@ public class AwJspServlet extends AbstractAwHttpServlet {
 		_awRequestCreator = (AwRequestCreator) applicationContext.getBean(awRequestCreatorName);
 		if(null != httpSessionModifierName) {
 			_httpSessionModifier = (HttpSessionModifier) applicationContext.getBean(httpSessionModifierName);
-		}
-		
-		_logger.info("Servlet " + servletName + " successfully put into service");
+		}	
 	}
 	
 	/**

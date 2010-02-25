@@ -13,7 +13,6 @@ import edu.ucla.cens.awserver.util.StringUtils;
  * @author selsky
  */
 public class AuthAwRequestCreator implements AwRequestCreator {
-//	private static Logger _logger = Logger.getLogger(AuthAwRequestCreator.class);
 	
 	/**
 	 * Default no-arg constructor. Simply creates an instance of this class.
@@ -28,7 +27,6 @@ public class AuthAwRequestCreator implements AwRequestCreator {
 	 */
 	public AwRequest createFrom(HttpServletRequest request) {
 		String subdomain = StringUtils.retrieveSubdomainFromUrlString(request.getRequestURL().toString());
-//		_logger.info("found subdomain: " + subdomain + " from URL: " + request.getRequestURL());
 		
 		String userName = request.getParameter("u");
 		UserImpl user = new UserImpl();
@@ -36,7 +34,6 @@ public class AuthAwRequestCreator implements AwRequestCreator {
 		
 		AwRequest awRequest = new ResultListAwRequest();
 		awRequest.setUser(user);
-		// awRequest.setAttribute("subdomain", subdomain);
 		awRequest.setSubdomain(subdomain);
 		
 		return awRequest;
