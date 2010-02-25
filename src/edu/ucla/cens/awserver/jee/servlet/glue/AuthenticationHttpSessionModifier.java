@@ -22,11 +22,7 @@ public class AuthenticationHttpSessionModifier implements HttpSessionModifier {
 			httpSession.setAttribute("failedLogin", "true");
 			
 		} else {
-			
-			// TODO -- place the User object into the session?
-			
-			httpSession.setAttribute("userName", awRequest.getUser().getUserName());
-			httpSession.setAttribute("isLoggedIn", "true");
+			httpSession.setAttribute("user", awRequest.getUser());
 			
 			// remove previously failed login attempt -- removeAttribute() does nothing if no value is bound to the key
 			httpSession.removeAttribute("failedLogin");
