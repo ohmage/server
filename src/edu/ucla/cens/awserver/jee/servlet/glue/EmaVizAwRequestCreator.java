@@ -3,6 +3,7 @@ package edu.ucla.cens.awserver.jee.servlet.glue;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
+import edu.ucla.cens.awserver.domain.User;
 import edu.ucla.cens.awserver.domain.UserImpl;
 import edu.ucla.cens.awserver.request.AwRequest;
 import edu.ucla.cens.awserver.request.EmaVizQueryAwRequest;
@@ -28,9 +29,7 @@ public class EmaVizAwRequestCreator implements AwRequestCreator {
 	 */
 	public AwRequest createFrom(HttpServletRequest request) {
 		HttpSession session = request.getSession();
-		String userName = (String) session.getAttribute("userName");
-		UserImpl user = new UserImpl();
-		user.setUserName(userName);
+		User user = new UserImpl((User) session.getAttribute("user"));
 		
 		String startDate = request.getParameter("s");
 		String endDate = request.getParameter("e");
