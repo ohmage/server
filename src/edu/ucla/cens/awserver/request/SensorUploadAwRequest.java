@@ -13,7 +13,14 @@ import edu.ucla.cens.awserver.domain.PromptType;
  * 
  * @author selsky
  */
-public class SensorUploadAwRequest extends AbstractAwRequest {
+public class SensorUploadAwRequest extends ResultListAwRequest {
+	// Input
+	private String _requestType; 
+	private String _phoneVersion;
+	private String _protocolVersion;
+	private String _jsonDataAsString;
+	
+	// Message Processing
 	private List<Integer> _duplicateIndexList;
 	private int _campaignPromptGroupId;
 	private List<PromptType> _promptTypeRestrictions;
@@ -21,10 +28,6 @@ public class SensorUploadAwRequest extends AbstractAwRequest {
 	private int _campaignPromptVersionId;
 	private long _startTime;
 	private String _sessionId;
-	private String _requestType; 
-	private String _phoneVersion;
-	private String _protocolVersion;
-	private String _jsonDataAsString;
 	private List<DataPacket> _dataPackets;
 	private int _currentMessageIndex;
 	private JSONArray _jsonDataAsJsonArray;
@@ -32,6 +35,8 @@ public class SensorUploadAwRequest extends AbstractAwRequest {
 	private int[] _promptIdArray;
 	private String _versionId;
 	private int _currentPromptId;
+	
+	// Authentication
 	private List<?> _resultList;
 	
 	public SensorUploadAwRequest() {
@@ -212,5 +217,6 @@ public class SensorUploadAwRequest extends AbstractAwRequest {
 				+ ", _versionId=" + _versionId + ", toString()="
 				+ super.toString() + "]";
 	}
+
 }
 

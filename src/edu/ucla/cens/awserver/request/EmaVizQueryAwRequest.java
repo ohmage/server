@@ -9,6 +9,8 @@ import java.util.List;
 public class EmaVizQueryAwRequest extends AbstractAwRequest {
 	private String _startDate;
 	private String _endDate;
+	
+	
 	private List<?> _resultList;
 	
 	public String getStartDate() {
