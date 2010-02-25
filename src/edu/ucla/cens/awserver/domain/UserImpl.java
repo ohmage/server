@@ -12,6 +12,23 @@ public class UserImpl implements User {
     private int _campaignId;
 	private boolean _loggedIn;
 	
+	public UserImpl() {
+		
+	}
+	
+	/**
+	 * Copy constructor.
+	 */
+	public UserImpl(User user) {
+		if(null == user) {
+			throw new IllegalArgumentException("a null user is not allowed");
+		}
+		_id = user.getId();
+		_userName = user.getUserName();
+		_campaignId = user.getCampaignId();
+		_loggedIn = user.isLoggedIn();
+	}
+	
     public int getId() {
     	return _id;
     }
@@ -43,5 +60,10 @@ public class UserImpl implements User {
 	public void setLoggedIn(boolean loggedIn) {
 		_loggedIn = loggedIn;
 	}
-	
+
+	@Override
+	public String toString() {
+		return "UserImpl [_campaignId=" + _campaignId + ", _id=" + _id
+				+ ", _loggedIn=" + _loggedIn + ", _userName=" + _userName + "]";
+	}
 }
