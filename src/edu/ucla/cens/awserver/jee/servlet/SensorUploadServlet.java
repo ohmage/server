@@ -4,6 +4,11 @@ import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletContext;
@@ -16,8 +21,8 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.web.context.support.WebApplicationContextUtils;
 
 import edu.ucla.cens.awserver.controller.Controller;
-import edu.ucla.cens.awserver.request.AwRequest;
 import edu.ucla.cens.awserver.jee.servlet.glue.AwRequestCreator;
+import edu.ucla.cens.awserver.request.AwRequest;
 import edu.ucla.cens.awserver.util.StringUtils;
 
 /**
@@ -30,12 +35,13 @@ public class SensorUploadServlet extends AbstractAwHttpServlet {
 	private static Logger _logger = Logger.getLogger(SensorUploadServlet.class);
 	private Controller _controller;
 	private AwRequestCreator _awRequestCreator;
+	private List<String> _parameterList;
 	
 	/**
 	 * Default no-arg constructor.
 	 */
 	public SensorUploadServlet() {
-		
+		_parameterList = new ArrayList<String>(Arrays.asList(new String[]{"t","u","phv","prv","d"}));
 	}
 		
 	/**
@@ -60,7 +66,6 @@ public class SensorUploadServlet extends AbstractAwHttpServlet {
 					" cannot be initialized and put into service.");
 		}
 		
-		
 		// OK, now get the beans out of the Spring ApplicationContext
 		// If the beans do not exist within the Spring configuration, Spring will throw a RuntimeException and initialization
 		// of this Servlet will fail. (check catalina.out in addition to aw.log)
@@ -77,6 +82,13 @@ public class SensorUploadServlet extends AbstractAwHttpServlet {
 	 */
 	protected void processRequest(HttpServletRequest request, HttpServletResponse response)
 		throws ServletException, IOException { 
+		
+		// Top-level security validation
+		if(! prevalidate(request)) {
+			response.sendError(HttpServletResponse.SC_NOT_FOUND); // if some entity is doing strange stuff, just respond with a 404
+			                                                      // in order not to give away too much about app processing
+			return;
+		}
 		
 		// Map data from the inbound request to our internal format
 		AwRequest awRequest = _awRequestCreator.createFrom(request);
@@ -131,4 +143,76 @@ public class SensorUploadServlet extends AbstractAwHttpServlet {
 	
 	}
 	
+	/**
+	 * Pre-validate to avoid situations where someone is sending purposefully malicious data 
+	 */
+	private boolean prevalidate(HttpServletRequest request) {
+		Map<?,?> parameterMap = request.getParameterMap(); // String, String[]
+		
+		// Check for missing or extra parameters
+		
+		if(parameterMap.size() != 5) {
+			_logger.warn("an incorrect number of parameters was found on sensor upload: " + parameterMap.size());
+			return false;
+		}
+		
+		// Check for duplicate parameters
+		
+		Iterator<?> iterator = parameterMap.keySet().iterator();
+		
+		while(iterator.hasNext()) {
+			String key = (String) iterator.next();
+			String[] valuesForKey = (String[]) parameterMap.get(key);
+			
+			if(valuesForKey.length != 1) {
+				_logger.warn("an incorrect number of values (" + valuesForKey.length + ") was found for parameter " + key);
+				return false;
+			}
+		}
+		
+		// Check for parameters with unknown names
+		
+		iterator = parameterMap.keySet().iterator(); // there is no way to reset the iterator so just obtain a new one
+		
+		while(iterator.hasNext()) {
+			String name = (String) iterator.next();
+			if(! _parameterList.contains(name)) {
+			
+				_logger.warn("an incorrect parameter name was found: " + name);
+				return false;
+			}
+		}
+		
+		String u = (String) request.getParameter("u");
+		String t = (String) request.getParameter("t");
+		String phv = (String) request.getParameter("phv");
+		String prv = (String) request.getParameter("prv");
+		
+		// Check for abnormal lengths (buffer overflow attack)
+		// 50 is an arbitrary number, but for these parameters it would be very strange
+		
+		if(greaterThanLength("user", "u", u, 50)
+		   || greaterThanLength("request type", "t", t, 50)
+		   || greaterThanLength("phone version", "phv", phv, 50)
+		   || greaterThanLength("protocol version", "prv", prv, 50)
+		) {
+			return false;
+		}
+		
+		// the JSON data is not checked because its length is so variable and potentially huge (700000+ characters)
+		// it will be heavily validated once inside the main application validation layer
+		
+		return true;
+	}
+	
+	private boolean greaterThanLength(String longName, String name, String value, int length) {
+		
+		if(null != value && value.length() > length) {
+			
+			_logger.warn("a " + longName + "(request parameter " + name + ") of " + value.length() + " characters was found");
+			return true;
+		}
+		
+		return false;
+	}
 }
