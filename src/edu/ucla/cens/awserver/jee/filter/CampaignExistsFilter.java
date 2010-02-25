@@ -20,7 +20,7 @@ import org.springframework.web.context.support.WebApplicationContextUtils;
 import edu.ucla.cens.awserver.controller.Controller;
 import edu.ucla.cens.awserver.controller.ControllerException;
 import edu.ucla.cens.awserver.request.AwRequest;
-import edu.ucla.cens.awserver.request.CampaignExistsAwRequest;
+import edu.ucla.cens.awserver.request.ResultListAwRequest;
 import edu.ucla.cens.awserver.util.StringUtils;
 
 /**
@@ -76,7 +76,7 @@ public class CampaignExistsFilter implements Filter {
 		throws ServletException, IOException {
 		
 		// ---- TODO this belongs in an AwRequestCreator
-		AwRequest awRequest = new CampaignExistsAwRequest();
+		AwRequest awRequest = new ResultListAwRequest();
 		
 		String url = ((HttpServletRequest) request).getRequestURL().toString();
 		String uri = ((HttpServletRequest) request).getRequestURI();
