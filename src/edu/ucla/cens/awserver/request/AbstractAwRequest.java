@@ -10,13 +10,16 @@ import edu.ucla.cens.awserver.domain.PromptType;
 import edu.ucla.cens.awserver.domain.User;
 
 /**
- * AwRequest implementation for parameters that are common across features.
+ * State that is common across features.
  * 
  * @author selsky
  */
 public abstract class AbstractAwRequest implements AwRequest {
+	// Input state
 	private String _subdomain;
 	private String _requestUrl;
+	
+	// Processing state
 	private boolean _isFailedRequest;
 	private User _user;
 	private String _failedRequestErrorMessage;

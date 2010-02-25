@@ -10,12 +10,12 @@ import edu.ucla.cens.awserver.domain.PromptType;
 import edu.ucla.cens.awserver.domain.User;
 
 /**
- * Base interface for an AwRequest: a data transfer object for inbound, outbound and processing parameters specific
- * to an application feature. This interface contains all possible accessors and mutators for all AW features. The reason
- * for this design is that Java is not dynamically typed and the design of the main processing components (Services, Validators,
- * Controllers, DAOs) is greatly simplified by instances of those classes only needing an AwRequest without having to cast 
- * everytime and without simply passing a Map around as an alternative. Casts are ugly and error-prone and a Map does not offer 
- * enough control over what it can and cannot contain. It is up to instances of this interface to throw an
+ * Base interface for an AwRequest: a state object for inbound, outbound and processing parameters specific to an application 
+ * feature. This interface contains all possible accessors and mutators for all AW features. The reason for this design
+ * is that Java is not dynamically typed and the design of the main processing components (Services, Validators, Controllers, DAOs)
+ * is greatly simplified by instances of those classes only needing an AwRequest without having to cast every time and without 
+ * simply passing a Map around as an alternative. Casts are ugly and error-prone and a Map does not offer enough control (typing,  
+ * descriptiveness) over what it can and cannot contain. It is recommended that instances of this interface throw an 
  * UnsupportedOperationException for methods that aren't appropriate for their feature context. 
  * 
  * @author selsky

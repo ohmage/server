@@ -10,35 +10,48 @@ import edu.ucla.cens.awserver.domain.DataPacket;
 import edu.ucla.cens.awserver.domain.PromptType;
 
 /**
+ * Represents state for a sensor data upload.
  * 
  * @author selsky
  */
 public class SensorUploadAwRequest extends ResultListAwRequest {
-	// Input
+	// Input state // 
 	private String _requestType; 
 	private String _phoneVersion;
 	private String _protocolVersion;
 	private String _jsonDataAsString;
-	
-	// Message Processing
-	private List<Integer> _duplicateIndexList;
-	private int _campaignPromptGroupId;
-	private List<PromptType> _promptTypeRestrictions;
-	private Map<Integer, List<Integer>> _duplicatePromptResponseMap;
-	private int _campaignPromptVersionId;
-	private long _startTime;
 	private String _sessionId;
-	private List<DataPacket> _dataPackets;
-	private int _currentMessageIndex;
-	private JSONArray _jsonDataAsJsonArray;
-	private String _groupId;
-	private int[] _promptIdArray;
-	private String _versionId;
-	private int _currentPromptId;
 	
-	// Authentication
-	private List<?> _resultList;
+	// Processing state // 
+	private long _startTime;              // processing start time for logging
 	
+	private List<?> _resultList; 	      // used for authentication output
+	
+	private String _groupId;              // prompt group id sent from phone 
+	private int _campaignPromptGroupId;   // the internal primary key for group of prompts within a campaign. campaigns may have
+	                                      // many groups of prompts
+	
+	private String _versionId;            // prompt version id sent from phone
+	private int _campaignPromptVersionId; // the internal primary key for the campaign-prompt-version (the version id for an 
+	                                      // for an entire collection (possibly many groups) of prompts within a campaign
+	
+	private int[] _promptIdArray;         // prompt ids sent from phone (not the db primary keys)
+	private List<PromptType> _promptTypeRestrictions; // the prompt data restrictions for validating prompt uploads
+	
+	private List<Integer> _duplicateIndexList; // store the indexes of duplicate mobility or prompt responses for logging
+	private Map<Integer, List<Integer>> _duplicatePromptResponseMap; // prompts are uploaded in groups so a map stores
+	                                                                 // a list of duplicate prompt responses at key by their  
+	                                                                 // message index
+	
+	private int _currentMessageIndex; // used for logging errors based on the current invalid message
+	private int _currentPromptId;     // used for logging errors for invalid prompts
+	
+	private JSONArray _jsonDataAsJsonArray; // The input data array converted to an internal JSON representation
+	private List<DataPacket> _dataPackets;  // JSON data converted into an internal representation
+	
+	/**
+	 * Default no-arg constructor.	
+	 */
 	public SensorUploadAwRequest() {
 		_currentMessageIndex = -1;
 		_currentPromptId = -1;
@@ -217,6 +230,5 @@ public class SensorUploadAwRequest extends ResultListAwRequest {
 				+ ", _versionId=" + _versionId + ", toString()="
 				+ super.toString() + "]";
 	}
-
 }
 

@@ -3,9 +3,12 @@ package edu.ucla.cens.awserver.request;
 import java.util.List;
 
 /**
+ * State for requests that need use of a List (for query results, etc). 
+ * 
  * @author selsky
  */
 public class ResultListAwRequest extends AbstractAwRequest {
+	// Output State
 	private List<?> _resultList;
 
 	public List<?> getResultList() {
