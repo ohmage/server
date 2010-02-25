@@ -19,25 +19,20 @@ import edu.ucla.cens.awserver.request.AwRequest;
 public class EmaQueryDao extends AbstractDao {
 	private static Logger _logger = Logger.getLogger(EmaQueryDao.class);
 	
-	// If the User object was placed into the session, a join could be eliminated here
-	// 
 	// The visualizations use a js 'config' file for interpreting each prompt response's data 
 	// type. The type is identified by prompt.prompt_config_id (the phone's prompt id) and 
 	// campaign_prompt_group.group_id (the phone's group id).
-	
-	// ****
-	// FIXME - there is a logical error in this SQL - the campaign (subdomain) must be added  
-	// ****
 	private String _selectSql = "select prompt_response.json_data, prompt_response.phone_timezone," +
 			                    " prompt_response.utc_time_stamp, prompt.prompt_config_id, " +
 			                    " campaign_prompt_group.group_id" +
-			                    " from prompt_response, prompt, campaign_prompt_group, user" +
+			                    " from prompt_response, prompt, campaign_prompt_group, user, campaign" +
 			                    " where prompt_response.utc_time_stamp >= timestamp(?)" +
 			                    " and prompt_response.utc_time_stamp <= timestamp(?)" +
-			                    " and prompt_response.user_id = user.id" +
-			                    " and user.login_id = ?" +
+			                    " and prompt_response.user_id = ?" +
 			                    " and prompt_response.prompt_id = prompt.id" +
 			                    " and prompt.campaign_prompt_group_id = campaign_prompt_group.id " +
+			                    " and campaign_prompt_group.campaign_id = campaign.id" +
+			                    " and campaign.id = ?" +
 			                    " order by prompt_response.utc_time_stamp";
 	
 	/**
@@ -52,24 +47,23 @@ public class EmaQueryDao extends AbstractDao {
 	 */
 	public void execute(AwRequest awRequest) {
 		_logger.info("executing ema viz query");
-		String s = null, e = null, u = null;
-		
-		_logger.info(awRequest);
-		
+		String s = null, e = null;
+		int u = -1, c = -1;
 		
 		try {
 			s = awRequest.getStartDate();
 			e = awRequest.getEndDate();
-			u = awRequest.getUser().getUserName();
+			u = awRequest.getUser().getId();
+			c = awRequest.getUser().getCampaignId();
 			
 			List<?> l = getJdbcTemplate().query(
 					_selectSql, 
-					new Object[]{s, e, u},  	
+					new Object[]{s, e, u, c},  	
 				    new EmaQueryRowMapper());
 			
 			awRequest.setResultList(l);
 			
-			_logger.info(l.size());
+			_logger.info("found " + l.size() + " query results");
 			
 		} catch (org.springframework.dao.DataAccessException dae) {
 			
