@@ -9,7 +9,6 @@ import org.apache.log4j.Logger;
 import org.springframework.jdbc.core.RowMapper;
 
 import edu.ucla.cens.awserver.request.AwRequest;
-import edu.ucla.cens.awserver.request.CampaignExistsAwRequest;
 
 /**
  * DAO for checking campaign existence. The subdomain from the initial request URI is used to attempt lookup of a campaign id. 
@@ -33,28 +32,22 @@ public class CampaignExistsDao extends AbstractDao  {
 	 * If a user is found, the campaigns that user belongs to are placed in the AwRequest payload Map.
 	 */
 	public void execute(AwRequest awRequest) {
-		CampaignExistsAwRequest ceAwRequest = (CampaignExistsAwRequest) awRequest; // this cast is truly annoying and error-prone
-		
-		
-		
-		
-		
 		if(_logger.isDebugEnabled()) {
-			_logger.debug("executing campaign existence check against subdomain " + ceAwRequest.getSubdomain());
+			_logger.debug("executing campaign existence check against subdomain " + awRequest.getSubdomain());
 		}
 		
 		try {
 			
 			// TODO this should be queryForInt()
 			
-			ceAwRequest.setResultList(getJdbcTemplate().query(_selectSql, 
-					             new Object[]{ ceAwRequest.getSubdomain() }, 
+			awRequest.setResultList(getJdbcTemplate().query(_selectSql, 
+					             new Object[]{ awRequest.getSubdomain() }, 
 					             new QueryRowMapper()));
 			
 		} catch (org.springframework.dao.DataAccessException dae) {
 			
 			_logger.error("caught DataAccessException when running SQL '" + _selectSql + "' with the following parameters: " + 
-					ceAwRequest.getSubdomain());
+					awRequest.getSubdomain());
 			
 			throw new DataAccessException(dae); // wrap the Spring exception and re-throw in order to avoid dependencies
 			                                    // on the Spring Exception in case we want to replace the data layer
