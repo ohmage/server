@@ -484,7 +484,7 @@ ProtoGraphSingleTimeType.prototype.apply_data = function(data, start_date, num_d
 	this.add_average_line(average, this.y_scale, average.toStringHourAndMinute());
 	
 	// Add day demarcations
-	this.add_day_demarcations(dayArray);
+	//this.add_day_demarcations(dayArray);
 }
 
 
