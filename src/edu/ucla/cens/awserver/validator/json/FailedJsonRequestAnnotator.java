@@ -6,6 +6,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import edu.ucla.cens.awserver.request.AwRequest;
+import edu.ucla.cens.awserver.request.SensorUploadAwRequest;
 import edu.ucla.cens.awserver.util.JsonUtils;
 import edu.ucla.cens.awserver.validator.AwRequestAnnotator;
 
@@ -71,38 +72,42 @@ public class FailedJsonRequestAnnotator implements AwRequestAnnotator {
 			
 			jsonObject = new JSONObject(_jsonErrorMessage);
 			
-			// this is ugly because it assumes the structure of the error message, the way errors should be configured is
-			// that error codes and text should be set instead of a JSON string TODO
+			// TODO
+			// This is ugly because it assumes the structure of the error message. The way errors should be configured is
+			// that error codes and text should be configured instead of a JSON string
 			
 			JSONArray errorArray = JsonUtils.getJsonArrayFromJsonObject(jsonObject, "errors");
 			JSONObject errorObject = JsonUtils.getJsonObjectFromJsonArray(errorArray, 0);
 			
-			if(-1 != awRequest.getCurrentMessageIndex()) {			
+			if(awRequest instanceof SensorUploadAwRequest) { // hackeroo!
 			
-				errorObject.put("at_record_number", awRequest.getCurrentMessageIndex());
-			
+				if(-1 != awRequest.getCurrentMessageIndex()) {			
+				
+					errorObject.put("at_record_number", awRequest.getCurrentMessageIndex());
+				
+				}
+				
+				if(-1 != awRequest.getCurrentPromptId()) { // a prompt upload is being handled.
+					
+					errorObject.put("at_prompt_id", awRequest.getCurrentPromptId());
+				}
+				
+				// Now add the original request URL and the original JSON input message to the error output
+				// If the JSON data is longer than 250 characters, an info message is sent back instead in order to 
+				// avoid echoing extremely large messages back to the client and into the server logs
+				jsonObject.put("request_url", awRequest.getRequestUrl());
+				
+				String data = awRequest.getJsonDataAsString();
+				if(null != data) {
+					
+					jsonObject.put("request_json", getDataTruncatedMessage(data));
+									
+				} else {
+					
+					jsonObject.put("request_json", getDataTruncatedMessage(awRequest.getJsonDataAsJsonArray().toString()));
+				}
 			}
 			
-			if(-1 != awRequest.getCurrentPromptId()) { // a prompt upload is being handled.
-				
-				errorObject.put("at_prompt_id", awRequest.getCurrentPromptId());
-			}
-			
-			// Now add the original request URL and the original JSON input message to the error output
-			// If the JSON data is longer than 250 characters, an info message is sent back instead in order to 
-			// avoid echoing extremely large messages back to the client and into the server logs
-			jsonObject.put("request_url", awRequest.getRequestUrl());
-			
-			String data = awRequest.getJsonDataAsString();
-			if(null != data) {
-				
-				jsonObject.put("request_json", getDataTruncatedMessage(data));
-								
-			} else {
-				
-				jsonObject.put("request_json", getDataTruncatedMessage(awRequest.getJsonDataAsJsonArray().toString()));
-			}
-		
 		} catch(JSONException jsone) {  // invalid JSON at this point is a logical error
 		
 			throw new IllegalStateException(jsone);
