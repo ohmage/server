@@ -95,6 +95,7 @@ ProtoGraph.RIGHT_MARGIN = 250;
 ProtoGraph.LABEL_STYLE = '13px sans-serif bolder';
 ProtoGraph.BAR_WIDTH = 4/5;
 ProtoGraph.DEFAULT_COLOR = '#1f89b0';
+ProtoGraph.TICK_HEIGHT = 5;
 
 // TrueFalse constants
 ProtoGraph.CATEGORY_HEIGHT = 40;
@@ -179,7 +180,7 @@ ProtoGraph.prototype.build_div_structure = function() {
 //         y_scale - pv.scale to scale the average to the graph
 //         average_label - The average label to use
 ProtoGraph.prototype.add_average_line = function(average, y_scale, average_label) {
-    // Update the data for the average line, these will be propogated
+    // Update the data for the average line, these will be propagated
 	// to already instantiated average lines through closures
 	this.average = average;
     this.average_line_label = average_label;
@@ -224,6 +225,33 @@ ProtoGraph.prototype.add_average_line = function(average, y_scale, average_label
 			
 		this.has_average_line = true;
 	} 
+}
+
+// Add day demarcations to the bottom of the graph.
+ProtoGraph.prototype.add_day_demarcations = function(day_array) {
+    this.day_array = day_array;
+    this.x_scale_ticks = pv.Scale.ordinal(this.day_array).splitBanded(0, ProtoGraph.WIDTH, 1);
+    
+    var that = this;
+    // Add ticks between the days using the day array as alignment
+    that.vis.add(pv.Rule)
+        .data(function(d) {
+            return that.dayArray;
+        })
+        .left(function(d) {
+            return that.x_scale(d);
+        })
+        .bottom(0)
+        // Do not show the first mark
+        .height(function() {
+            if (this.index == 0) {
+                return 0;
+            }
+            else {
+                return ProtoGraph.TICK_HEIGHT;
+            }
+        })
+        .strokeStyle('black');
 }
 
 /*
@@ -413,7 +441,7 @@ ProtoGraphSingleTimeType.prototype.apply_data = function(data, start_date, num_d
     this.replace_x_labels(start_date, num_days);
     
 	// Split the data into categories using Scale.ordinal
-	var dayArray = [];
+	dayArray = [];
 	for (var i = 0; i < this.num_days; i += 1) {
 		dayArray.push(start_date.incrementDay(i));
 	}
@@ -454,6 +482,9 @@ ProtoGraphSingleTimeType.prototype.apply_data = function(data, start_date, num_d
 	average = new Date(0,0,0,totalTimeInMinutes / 60, totalTimeInMinutes % 60);
 	// Add the average line and label
 	this.add_average_line(average, this.y_scale, average.toStringHourAndMinute());
+	
+	// Add day demarcations
+	this.add_day_demarcations(dayArray);
 }
 
 
@@ -505,14 +536,21 @@ ProtoGraphTrueFalseArrayType.prototype.apply_data = function(data, start_date, n
 	
 	// Replace the x labels
     this.replace_x_labels(start_date, num_days);
-
+    
 	// Split the data into categories using Scale.ordinal
 	var dayArray = [];
 	for (var i = 0; i < this.num_days; i += 1) {
 		dayArray.push(start_date.incrementDay(i));
 	}
+	this.dayArray = dayArray;
 	this.x_scale = pv.Scale.ordinal(dayArray).splitBanded(0, ProtoGraph.WIDTH, ProtoGraph.BAR_WIDTH);
 
+	// Also create a linear scale to do day demarcations
+	this.x_scale_day = pv.Scale.ordinal(dayArray).splitFlush(0, ProtoGraph.WIDTH);
+
+    // Preprocess the data to count the number of days
+    this.preprocess_add_day_counts(this.data);
+	
     // Pull out the response arrays for graphing
 	this.transformed_data = [];
 	var that = this;
@@ -534,6 +572,9 @@ ProtoGraphTrueFalseArrayType.prototype.apply_data = function(data, start_date, n
 				ProtoGraph._logger.error('ProtoGraphTrueFalseArrayType: Bad response ' + data_point.response[i] + ' in data for day ' + data_point.date);
 				break;
 			}
+			// Save the data point count from preprocessing
+			new_data_point.day_count = data_point.day_count;
+			new_data_point.total_day_count = data_point.total_day_count;
 			
             that.transformed_data.push(new_data_point);    
         }
@@ -553,8 +594,9 @@ ProtoGraphTrueFalseArrayType.prototype.apply_data = function(data, start_date, n
 		.data(function() {
             return that.transformed_data;
 		})
-		.width(function() {
-			return that.x_scale.range().band;
+		.width(function(d) {
+            // Shrink the bar width by the total number of responses per day
+            return that.x_scale.range().band / d.total_day_count;
 		})
 		.height(barHeight)	
 		// Move bar down if a negative response
@@ -567,10 +609,39 @@ ProtoGraphTrueFalseArrayType.prototype.apply_data = function(data, start_date, n
 			}
 		})
 		.left(function(d) {
-			return that.x_scale(d.date);
+            // Shift the bar left by which response per day this is
+            return that.x_scale(d.date) + that.x_scale.range().band * ((d.day_count - 1) / d.total_day_count);
 		})	// Color based on a negative or positive response
 		.fillStyle(function(d) {
 			return (d.response) ? ProtoGraph.TRUE_COLOR : ProtoGraph.FALSE_COLOR;
+		});
+		
+
+		// Create day demarcations, one for each category
+		this.y_labels.forEach(function(label, index) {
+		    that.vis.add(pv.Rule)
+                .data(function(d) {
+                    return that.dayArray;
+                })
+                .left(function(d) {
+                    // Shift left just a bit to center between days
+                    return that.x_scale(d) - that.x_scale.range().band * (1 - ProtoGraph.BAR_WIDTH) * .5;
+                })
+                .bottom(function() {
+                    // Move down a bit to line up
+                    return that.y_scale(index) - ProtoGraph.TICK_HEIGHT;
+                })
+                // Do not show the first mark
+                .height(function() {
+                    if (this.index == 0) {
+                        return 0;
+                    }
+                    // Since the tick goes both up AND down, double the height
+                    else {
+                        return ProtoGraph.TICK_HEIGHT * 2;
+                    }
+                })
+                .strokeStyle('black');
 		});
 		
 		this.has_data = true;
@@ -761,16 +832,4 @@ ProtoGraphMultiTimeType.prototype.apply_data = function(data, start_date, num_da
         
         this.has_data = true;
     }
-        
-    // Average the data values for the average line
-    var totalTimeInMinutes = 0;
-    for (var i = 0; i < this.data.length; i++) {
-        var time = Date.parseDate(this.data[i].response, "g:i").grabTime();
-        totalTimeInMinutes += time.getHours() * 60;
-        totalTimeInMinutes += time.getMinutes();
-    }
-    totalTimeInMinutes /= this.data.length;
-    average = new Date(0,0,0,totalTimeInMinutes / 60, totalTimeInMinutes % 60);
-    // Add the average line and label
-    this.add_average_line(average, this.y_scale, average.toStringHourAndMinute());
 }

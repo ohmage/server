@@ -153,7 +153,7 @@
         // End the validation session
         var result = $.validity.end();
         
-        // Return whether it's okay to proceed with the Ajax:
+        // Return whether it's okay to proceed with the request
         return result.valid;
     }
 
@@ -174,7 +174,7 @@
 	        return false;	    	 
 	    }
 		
-		// Set global start date
+		// Set global start and end date
 		startDate = Date.parseDate(start_date, "Y-m-d");
 		endDate = Date.parseDate(end_date, "Y-m-d");
 
@@ -214,12 +214,19 @@
 	    // Run through possible error codes from server
 	    // TODO: Check for error codes in JSON
 		
-		// DATA PREPROCESSING, MOVE TO SERVER OR INTO A JS CLASS
+		// DATA PREPROCESSING, MOVE TO SERVER OR IN TO A JS CLASS
 		
 		// Pull out the day into a Date for each data point
 	    json_data.forEach(function(d) {
 			var period = d.time.lastIndexOf('.');
 	        d.date = Date.parseDate(d.time.substring(0, period), "Y-m-d g:i:s").grabDate();
+			
+			// Check if the date was parsed correctly
+			if (d.date == null) {
+				if (log.isErrorEnabled()) {
+					log.error("Date parsed incorrectly from: " + d.time);
+				}
+			}
 		});		
 		
 		// Give the new data to the graphs
