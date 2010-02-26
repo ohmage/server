@@ -86,7 +86,7 @@ public class SensorUploadServlet extends AbstractAwHttpServlet {
 		// Top-level security validation
 		if(! prevalidate(request)) {
 			response.sendError(HttpServletResponse.SC_NOT_FOUND); // if some entity is doing strange stuff, just respond with a 404
-			                                                      // in order not to give away too much about app processing
+			                                                      // in order not to give away too much about how the app works
 			return;
 		}
 		
@@ -199,8 +199,8 @@ public class SensorUploadServlet extends AbstractAwHttpServlet {
 			return false;
 		}
 		
-		// the JSON data is not checked because its length is so variable and potentially huge (700000+ characters)
-		// it will be heavily validated once inside the main application validation layer
+		// The JSON data is not checked because its length is so variable and potentially huge (some messages are 700000+ characters
+		// when URL-encoded). It will be heavily validated once inside the main application validation layer
 		
 		return true;
 	}
