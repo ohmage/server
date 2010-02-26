@@ -72,12 +72,12 @@ public abstract class AbstractAwRequest implements AwRequest {
 				+ ", _subdomain=" + _subdomain + ", _user=" + _user + "]";
 	}
 	
-	// ****
+	/****
 	
-	// Unsupported Operations -- it is up to subclasses to implement the desired functionality otherwise "unimplemented" methods
-	// will throw UnsupportedOperationException
+	Unsupported Operations -- it is up to subclasses to implement the desired functionality otherwise "unimplemented" methods
+	will throw an UnsupportedOperationException, which indicates a logical error in the calling code.
 	
-	// ****
+	****/
 	
 	public int getCampaignPromptGroupId() {
 		throw new UnsupportedOperationException("it is illegal to invoke getCampaignPromptGroupId() on this instance");
