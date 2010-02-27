@@ -110,7 +110,9 @@ ProtoGraph.DAY_COLOR = ['#1f89b0',
                         '#19823f',
                         '#6e943f',
                         '#a1a536',
-                        '#cfb82e'];
+                        '#cfb82e',
+						'#1f89b0',
+						'#00a6da'];
 
 // Static logger for ProtoGraph
 ProtoGraph._logger = log4javascript.getLogger();
