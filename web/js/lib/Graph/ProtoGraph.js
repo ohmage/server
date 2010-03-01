@@ -472,7 +472,7 @@ ProtoGraphSingleTimeType.prototype.apply_data = function(data, start_date, num_d
 	}
 	
 	// Setup the X scale now
-	this.x_scale = pv.Scale.ordinal(dayArray).split(0, ProtoGraph.WIDTH);
+	this.x_scale = pv.Scale.ordinal(dayArray).splitBanded(0, ProtoGraph.WIDTH, ProtoGraph.BAR_WIDTH);
 	
 	// If there is no data yet setup the graph
 	if (this.has_data == false) {
@@ -485,7 +485,9 @@ ProtoGraphSingleTimeType.prototype.apply_data = function(data, start_date, num_d
 		    return that.data;
 		  })
 		  .left(function(d) {
-			 return that.x_scale(d.date);
+		    // Shift the dot right by half a band to center it in the day
+            var position = that.x_scale(d.date) + that.x_scale.range().band / 2;
+            return position;
 		  })
 		  .bottom(function(d){
 			 return that.y_scale(Date.parseDate(d.response, "g:i").grabTime());
@@ -508,8 +510,12 @@ ProtoGraphSingleTimeType.prototype.apply_data = function(data, start_date, num_d
 	// Add the average line and label
 	this.add_average_line(average, this.y_scale, average.toStringHourAndMinute());
 	
+    // splitBanded adds a margin in to the scale.  Find the margin
+    // from the range
+    var range = this.x_scale.range();
+    var margin = range[0] / 2;
     // Only add ticks between days, so subtract one
-    this.add_day_demarcations(num_days - 1);
+    this.add_day_demarcations(num_days - 1, margin);
 }
 
 
@@ -730,7 +736,10 @@ ProtoGraphYesNoType.prototype.apply_data = function(data, start_date, num_days) 
 	for (var i = 0; i < this.num_days; i += 1) {
 		dayArray.push(start_date.incrementDay(i));
 	}
-	this.x_scale = pv.Scale.ordinal(dayArray).split(0, ProtoGraph.WIDTH);
+	this.x_scale = pv.Scale.ordinal(dayArray).splitBanded(0, ProtoGraph.WIDTH, ProtoGraph.BAR_WIDTH);
+	
+    // Preprocess the data to count the number of days
+    this.preprocess_add_day_counts(this.data);
 	
 	// If no data yet, build the graph
 	if (this.has_data == false) {
@@ -755,8 +764,12 @@ ProtoGraphYesNoType.prototype.apply_data = function(data, start_date, num_days) 
 				return that.y_scale(ProtoGraph.DISTANCE_FROM_CENTER);
 			}
 		})
+		// Shift the dot right by which response per day it is
 		.left(function(d) {
-			return that.x_scale(d.date);
+		    var position = that.x_scale(d.date) + that.x_scale.range().band * ((d.day_count - 1) / d.total_day_count);
+		    // Shift the dot further right to align with the "center" of the band
+		    position += that.x_scale.range().band / d.total_day_count / 2;
+		    return position;
 		})
 		.strokeStyle(function(d) {
 			// If true response color true, else color false
@@ -777,8 +790,12 @@ ProtoGraphYesNoType.prototype.apply_data = function(data, start_date, num_days) 
 												 ProtoGraph.HEIGHT * (1 - ProtoGraph.DISTANCE_FROM_CENTER));
 	this.add_average_line(average, average_y_scale, average.toFixed(2));
 	
+	// splitBanded adds a margin in to the scale.  Find the margin
+    // from the range
+    var range = this.x_scale.range();
+    var margin = range[0] / 2;
     // Only add ticks between days, so subtract one
-    this.add_day_demarcations(num_days - 1);
+    this.add_day_demarcations(num_days - 1, margin);
 }
 
 
@@ -835,7 +852,7 @@ ProtoGraphMultiTimeType.prototype.apply_data = function(data, start_date, num_da
     }
     
     // Setup the X scale now
-    this.x_scale = pv.Scale.ordinal(dayArray).split(0, ProtoGraph.WIDTH);
+    this.x_scale = pv.Scale.ordinal(dayArray).splitBanded(0, ProtoGraph.WIDTH, ProtoGraph.BAR_WIDTH);
     
     // Preprocess the data to count the number of days
     this.preprocess_add_day_counts(this.data);
@@ -851,7 +868,7 @@ ProtoGraphMultiTimeType.prototype.apply_data = function(data, start_date, num_da
             return that.data;
           })
           .left(function(d) {
-             return that.x_scale(d.date);
+             return that.x_scale(d.date) + that.x_scale.range().band / 2;
           })
           .bottom(function(d) {
              return that.y_scale(Date.parseDate(d.response, "g:i").grabTime());
@@ -865,8 +882,12 @@ ProtoGraphMultiTimeType.prototype.apply_data = function(data, start_date, num_da
         this.has_data = true;
     }
     
+    // splitBanded adds a margin in to the scale.  Find the margin
+    // from the range
+    var range = this.x_scale.range();
+    var margin = range[0] / 2;
     // Only add ticks between days, so subtract one
-    this.add_day_demarcations(num_days - 1);
+    this.add_day_demarcations(num_days - 1, margin);
 }
 
 
