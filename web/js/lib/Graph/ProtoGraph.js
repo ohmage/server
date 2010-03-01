@@ -26,7 +26,8 @@ function ProtoGraph(div_id, title) {
 	this.x_scale = null;
 	this.y_scale = null;
 	this.has_average_line = false;
-
+	this.has_day_demarcations = false;
+	
 	/*
 	 * Do basic graph panel setup, common to any type of graph
 	 */
@@ -230,30 +231,44 @@ ProtoGraph.prototype.add_average_line = function(average, y_scale, average_label
 }
 
 // Add day demarcations to the bottom of the graph.
-ProtoGraph.prototype.add_day_demarcations = function(day_array) {
-    this.day_array = day_array;
-    this.x_scale_ticks = pv.Scale.ordinal(this.day_array).splitBanded(0, ProtoGraph.WIDTH, 1);
+//
+// num_ticks - The number of ticks to show.
+// margin - Insert a margin into the x_scale, defaults to 0
+ProtoGraph.prototype.add_day_demarcations = function(num_ticks, margin) {
+    // Default margin to 0
+    if (arguments.length == 1) {
+        var margin = 0;  
+    }
     
-    var that = this;
-    // Add ticks between the days using the day array as alignment
-    that.vis.add(pv.Rule)
-        .data(function(d) {
-            return that.dayArray;
-        })
-        .left(function(d) {
-            return that.x_scale(d);
-        })
-        .bottom(0)
-        // Do not show the first mark
-        .height(function() {
-            if (this.index == 0) {
-                return 0;
-            }
-            else {
-                return ProtoGraph.TICK_HEIGHT;
-            }
-        })
-        .strokeStyle('black');
+    // Need to add 2 ticks, the first and last ones.  These will not be shown
+    this.tick_array = pv.range(0, num_ticks + 2, 1);
+    this.x_scale_ticks = pv.Scale.linear(this.tick_array).range(margin, ProtoGraph.WIDTH - margin);
+        
+    // Only create the pv.Rule once, just update the Rule in subsequent calls
+    if (this.has_day_demarcations == false) {
+        var that = this;
+        // Add ticks between the days using the day array as alignment
+        that.vis.add(pv.Rule)
+            .data(function(d) {
+                return that.tick_array;
+            })
+            .left(function(d) {
+                return that.x_scale_ticks(d);
+            })
+            .bottom(0)
+            // Do not show the first or last marks
+            .height(function() {
+                if ((this.index == 0) || (this.index == that.tick_array.length - 1)) {
+                    return 0;
+                }
+                else {
+                    return ProtoGraph.TICK_HEIGHT;
+                }
+            })
+            .strokeStyle('black');
+        
+        this.has_day_demarcations = true;
+    }
 }
 
 /*
@@ -366,7 +381,8 @@ ProtoGraphIntegerType.prototype.apply_data = function(data, start_date, num_days
 			})
 	        .width(function(d) {
 	            // Shrink the bar width by the total number of responses per day
-				return that.x_scale.range().band / d.total_day_count;
+	            // Add one to eliminate any spacing between bars
+				return that.x_scale.range().band / d.total_day_count + 1;
 			})
 	        .height(function(d) {
 	            return that.y_scale(d.response) + 1;
@@ -392,6 +408,13 @@ ProtoGraphIntegerType.prototype.apply_data = function(data, start_date, num_days
 	average /= this.data.length;
 	// Add the average line and label
 	this.add_average_line(average, this.y_scale, average.toFixed(1));
+	
+	// splitBanded adds a margin in to the scale.  Find the margin
+	// from the range
+	var range = this.x_scale.range();
+	var margin = range[0] / 2;
+	// Only add ticks between days, so subtract one
+    this.add_day_demarcations(num_days - 1, margin);
 }
 
 
@@ -485,8 +508,8 @@ ProtoGraphSingleTimeType.prototype.apply_data = function(data, start_date, num_d
 	// Add the average line and label
 	this.add_average_line(average, this.y_scale, average.toStringHourAndMinute());
 	
-	// Add day demarcations
-	//this.add_day_demarcations(dayArray);
+    // Only add ticks between days, so subtract one
+    this.add_day_demarcations(num_days - 1);
 }
 
 
@@ -548,7 +571,10 @@ ProtoGraphTrueFalseArrayType.prototype.apply_data = function(data, start_date, n
 	this.x_scale = pv.Scale.ordinal(dayArray).splitBanded(0, ProtoGraph.WIDTH, ProtoGraph.BAR_WIDTH);
 
 	// Also create a linear scale to do day demarcations
-	this.x_scale_day = pv.Scale.ordinal(dayArray).splitFlush(0, ProtoGraph.WIDTH);
+    var range = this.x_scale.range();
+    var margin = range[0] / 2;
+    this.tick_array = pv.range(0, num_days + 1, 1);
+    this.x_scale_ticks = pv.Scale.linear(this.tick_array).range(margin, ProtoGraph.WIDTH - margin);
 
     // Preprocess the data to count the number of days
     this.preprocess_add_day_counts(this.data);
@@ -597,8 +623,9 @@ ProtoGraphTrueFalseArrayType.prototype.apply_data = function(data, start_date, n
             return that.transformed_data;
 		})
 		.width(function(d) {
-            // Shrink the bar width by the total number of responses per day
-            return that.x_scale.range().band / d.total_day_count;
+            // Shrink the bar width by the total number of responses per day,
+		    // plus a bit more to add a space between bars
+            return that.x_scale.range().band / d.total_day_count - 2;
 		})
 		.height(barHeight)	
 		// Move bar down if a negative response
@@ -623,19 +650,19 @@ ProtoGraphTrueFalseArrayType.prototype.apply_data = function(data, start_date, n
 		this.y_labels.forEach(function(label, index) {
 		    that.vis.add(pv.Rule)
                 .data(function(d) {
-                    return that.dayArray;
+                    return that.tick_array;
                 })
                 .left(function(d) {
                     // Shift left just a bit to center between days
-                    return that.x_scale(d) - that.x_scale.range().band * (1 - ProtoGraph.BAR_WIDTH) * .5;
+                    return that.x_scale_ticks(d);
                 })
                 .bottom(function() {
                     // Move down a bit to line up
                     return that.y_scale(index) - ProtoGraph.TICK_HEIGHT;
                 })
-                // Do not show the first mark
+                // Do not show the first or last mark
                 .height(function() {
-                    if (this.index == 0) {
+                    if ((this.index == 0) || (this.index == that.tick_array.length - 1)) {
                         return 0;
                     }
                     // Since the tick goes both up AND down, double the height
@@ -749,6 +776,9 @@ ProtoGraphYesNoType.prototype.apply_data = function(data, start_date, num_days) 
 	average_y_scale = pv.Scale.linear(0,1).range(ProtoGraph.HEIGHT * ProtoGraph.DISTANCE_FROM_CENTER, 
 												 ProtoGraph.HEIGHT * (1 - ProtoGraph.DISTANCE_FROM_CENTER));
 	this.add_average_line(average, average_y_scale, average.toFixed(2));
+	
+    // Only add ticks between days, so subtract one
+    this.add_day_demarcations(num_days - 1);
 }
 
 
@@ -834,4 +864,9 @@ ProtoGraphMultiTimeType.prototype.apply_data = function(data, start_date, num_da
         
         this.has_data = true;
     }
+    
+    // Only add ticks between days, so subtract one
+    this.add_day_demarcations(num_days - 1);
 }
+
+
