@@ -58,7 +58,7 @@
     <style type="text/css">
 		
 		/* tab pane styling */
-		div.panes div {
+		div.panes > div {
 		    display:none;       
 		    padding:15px 10px;
 		    border:1px solid #999;
@@ -116,6 +116,14 @@
 		
 		#startDate:focus {
 			background-color: #FDD041;
+		}
+		
+		.loading {
+			background-image: url('/css/images/ajax-loader.gif');
+			background-repeat: no-repeat;
+			background-position: center top;
+			display: none;
+			height: 75px;
 		}
 		
 	</style>
@@ -208,7 +216,9 @@
 	    }
 		
 		// Hide the current graphs while the new ones load
-		$("div.panes .ProtoGraph").hide();
+		$(".ProtoGraph").hide();
+		// Show the loading graphic
+		$(".loading").show();
 		
 		// Set global start and number of days
 		startDate = Date.parseDate(start_date, "Y-m-d");
@@ -296,8 +306,10 @@
             }				
 		});
 		
+		// Hide the loading graphic
+		$(".loading").hide();
 		// Reshow the graphs
-		$("div.panes .ProtoGraph").show();
+		$(".ProtoGraph").show();
 	}
 	
 	/*
@@ -354,15 +366,15 @@
 	  <ul class="tabs"> 
 	    <li><a href="#saliva">Saliva</a></li> 
 	    <li><a href="#sleep">Sleep</a></li> 
-	    <li><a href="#emotional_state">Emtional State</a></li> 
+	    <li><a href="#emotional_state">Emtional State</a></li>
 	    <li><a href="#diary">Diary</a></li> 
 	  </ul> 
 	  
 	  <div class="panes"> 
-	    <div id="0"></div> 
-	    <div id="1"></div> 
-	    <div id="2"></div>
-	    <div id="3"></div>
+	    <div id="0"><div class="loading"></div></div>
+	    <div id="1"><div class="loading"></div></div> 
+	    <div id="2"><div class="loading"></div></div>
+	    <div id="3"><div class="loading"></div></div>
 	  </div>
   </dev>
   

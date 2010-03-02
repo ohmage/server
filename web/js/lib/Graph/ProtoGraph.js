@@ -173,8 +173,10 @@ ProtoGraph.prototype.replace_x_labels = function(start_date, num_days) {
 // build_div_structure - Builds a div structure through jQuery on
 // the root HTML page at the passed div ID
 ProtoGraph.prototype.build_div_structure = function() {
-	$('#' + this.div_id).replaceWith("<h3>" + this.title + "</h3>\n\
-            <span id=\"" + this.div_id + "\" class=\"ProtoGraph\">Loading...</span>");
+	$('#' + this.div_id).replaceWith("<div class=\"ProtoGraph\">\n\
+			<h3>" + this.title + "</h3>\n\
+            <span id=\"" + this.div_id + "\">Loading...</span>\n\
+            </div>");
 }
 
 // Add an average line to the graph
