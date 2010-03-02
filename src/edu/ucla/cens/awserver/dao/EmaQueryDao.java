@@ -8,7 +8,7 @@ import javax.sql.DataSource;
 
 import org.apache.log4j.Logger;
 import org.springframework.jdbc.core.RowMapper;
-
+ 
 import edu.ucla.cens.awserver.request.AwRequest;
 
 /**
@@ -25,14 +25,13 @@ public class EmaQueryDao extends AbstractDao {
 	private String _selectSql = "select prompt_response.json_data, prompt_response.phone_timezone," +
 			                    " prompt_response.utc_time_stamp, prompt.prompt_config_id, " +
 			                    " campaign_prompt_group.group_id" +
-			                    " from prompt_response, prompt, campaign_prompt_group, user, campaign" +
+			                    " from prompt_response, prompt, campaign_prompt_group, campaign" +
 			                    " where prompt_response.utc_time_stamp >= timestamp(?)" +
 			                    " and prompt_response.utc_time_stamp <= timestamp(?)" +
 			                    " and prompt_response.user_id = ?" +
 			                    " and prompt_response.prompt_id = prompt.id" +
 			                    " and prompt.campaign_prompt_group_id = campaign_prompt_group.id " +
-			                    " and campaign_prompt_group.campaign_id = campaign.id" +
-			                    " and campaign.id = ?" +
+			                    " and campaign_prompt_group.campaign_id = ?" +
 			                    " order by prompt_response.utc_time_stamp";
 	
 	/**
