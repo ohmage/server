@@ -77,6 +77,10 @@
 			width: 1000px;
 		}
 
+        #banner {
+        	padding: 10px;
+        }
+
 		#controls {
 			float: right;
 			width: 150px;
@@ -203,6 +207,9 @@
 	        return false;	    	 
 	    }
 		
+		// Hide the current graphs while the new ones load
+		$("div.panes .ProtoGraph").hide();
+		
 		// Set global start and number of days
 		startDate = Date.parseDate(start_date, "Y-m-d");
 		numDays = parseInt(num_days);
@@ -278,12 +285,8 @@
             graph.apply_data(new_data, 
                              startDate, 
                              numDays);
-                             
-			// Show the graphs
-			$("ul.tabs").show();
-			$("div.panes").show();
 							 
-            // Re-render graphs with the new data
+            // Re-render graph with the new data
             graph.render();
 			
             if (log.isDebugEnabled()) {
@@ -292,6 +295,9 @@
                 log.debug("Time to render graph: " + time_to_render + " ms");
             }				
 		});
+		
+		// Reshow the graphs
+		$("div.panes .ProtoGraph").show();
 	}
 	
 	/*
