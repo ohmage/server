@@ -241,7 +241,7 @@ ProtoGraph.prototype.add_day_demarcations = function(num_ticks, margin) {
     }
     
     // Need to add 2 ticks, the first and last ones.  These will not be shown
-    this.tick_array = pv.range(0, num_ticks + 2, 1);
+    this.tick_array = pv.range(num_ticks + 2);
     this.x_scale_ticks = pv.Scale.linear(this.tick_array).range(margin, ProtoGraph.WIDTH - margin);
         
     // Only create the pv.Rule once, just update the Rule in subsequent calls
@@ -579,7 +579,7 @@ ProtoGraphTrueFalseArrayType.prototype.apply_data = function(data, start_date, n
 	// Also create a linear scale to do day demarcations
     var range = this.x_scale.range();
     var margin = range[0] / 2;
-    this.tick_array = pv.range(0, num_days + 1, 1);
+    this.tick_array = pv.range(num_days + 1);
     this.x_scale_ticks = pv.Scale.linear(this.tick_array).range(margin, ProtoGraph.WIDTH - margin);
 
     // Preprocess the data to count the number of days

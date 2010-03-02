@@ -57,13 +57,6 @@
     
     <style type="text/css">
 		
-		.content .padding {
-			padding: 50px 50px 50px 50px;
-		}
-		.footer {
-		   color: #BEBEBE;
-		}
-		
 		/* tab pane styling */
 		div.panes div {
 		    display:none;       
@@ -80,10 +73,46 @@
 		}
 		
 		body {
-		    padding:0px 10px;
+		    margin:0px 10px;
+			width: 1000px;
 		}
 
+		#controls {
+			float: right;
+			width: 150px;
+		}
 		
+		#grabDateForm {
+			font-size: .8em;
+		}
+		
+		#grabDateForm .label {
+            float: left;
+            width: 60px;
+			margin-right: 5px;
+            text-align: right;
+            font-weight: bold;
+            clear: left;
+        }
+		
+		#submit {
+			margin-left: 65px;
+			margin-top: 2px;
+			background-color: #CBD893;
+			font-family: "Century Gothic", "Gill Sans", Arial, sans-serif;
+		}
+		
+		#startDate {
+		    background-color: #FBEF99;
+            font-family: "Century Gothic", "Gill Sans", Arial, sans-serif;
+			width: 85px;
+			height: 25px;
+			margin-top: -2px;
+		}
+		
+		#startDate:focus {
+			background-color: #FDD041;
+		}
 		
 	</style>
     
@@ -91,9 +120,9 @@
 	
 	<script type="text/javascript">
 	
-	// Holds the currently requested start date and end date
+	// Holds the currently requested start date and number of days
 	var startDate = new Date();
-	var endDate = new Date();
+	var numDays = 0;
 
 	// Stores all instantiated graphs on the webpage, leave here for now
 	var graphList = [];	
@@ -116,9 +145,8 @@
         // Uncomment the line below to disable logging
         //log4javascript.setEnabled(false);
 
-		// Setup the datepickers for the two date input forms
+		// Setup the datepickers for the date input box
 		$("#startDate").datepicker({dateFormat: 'yy-mm-dd'});
-		$("#endDate").datepicker({dateFormat: 'yy-mm-dd'});
 
 	    // Override the default submit function for the form
 	    $("#grabDateForm").submit(send_json_request);
@@ -127,8 +155,14 @@
         response_list.forEach(handleResponse);
 
         // setup ul.tabs to work as tabs for each div directly under div.panes 
-        $("ul.tabs").tabs("div.panes > div").hide();
-        $("div.panes").hide();
+        $("ul.tabs").tabs("div.panes > div");
+		
+		// Set initial start date to 2 weeks ago
+		var today = new Date().incrementDay(-13).dateFormat('Y-m-d');
+		$("#startDate").val(today);
+		
+		// Run the default query
+		send_json_request(null);
 	});
 
 	/*
@@ -142,11 +176,6 @@
         // Validate the startDate field
         $("#startDate")
             .require("A starting date is required")
-            .assert(DateValidator.validate, "Date is invalid.");
-
-        // Validate the endDate field
-        $("#endDate")
-            .require("An ending date is required")
             .assert(DateValidator.validate, "Date is invalid.");
 
         // All of the validator methods have been called
@@ -164,7 +193,7 @@
 		// Grab the URL from the form
 		var url = $("#grabDateForm").attr("action");
 		var start_date = $("#startDate").val();
-		var end_date = $("#endDate").val();
+		var num_days = $("#numDays").val();
 
 	    // Validate inputs
 	    if (!validateDateFormInputs()) {
@@ -174,10 +203,11 @@
 	        return false;	    	 
 	    }
 		
-		// Set global start and end date
+		// Set global start and number of days
 		startDate = Date.parseDate(start_date, "Y-m-d");
-		endDate = Date.parseDate(end_date, "Y-m-d");
+		numDays = parseInt(num_days);
 
+        var end_date = startDate.incrementDay(numDays).dateFormat("Y-m-d");
 		if (log.isInfoEnabled()) {
 		    log.info("Grabbing data from " + start_date + " to " + end_date);
 		}
@@ -247,7 +277,7 @@
 			// Apply data to the graph
             graph.apply_data(new_data, 
                              startDate, 
-                             startDate.difference_in_days(endDate));
+                             numDays);
                              
 			// Show the graphs
 			$("ul.tabs").show();
@@ -286,66 +316,58 @@
 	
     </script>
 	
-
-	
   </head>
   <body>
   
-  <div class="zp-wrapper">
-    <div class="zp-90 content">
-	  <div class="padding">
-	    <h1>EMA Visualizations for <c:out value="${sessionScope.user.userName}"></c:out>.</h1>
-  	    
-  	     <form method="post" action="/app/viz" id="grabDateForm">
-		   <fieldset>
-		     <div class="form-item">
-			   <label for="startDate">Start Date:</label>
-			   <input tabindex="1" id="startDate" type="text" name="s"/>
-			 </div>	
-			 <div class="form-item">
-			   <label for="endDate">End Date:</label>
-			   <input tabindex="1" id="endDate" type="text" name="e"/>
-			 </div>
-		     <button type="submit">Send</button>
-					
-		   </fieldset>
-		 </form>
-		 
-		 
-		 
-  	    
-      </div>
-    </div>
-    <div class="zp-10 content">
-	  <div class="padding">
-  	    <p><a href="/app/logout">Logout</a></p>
-      </div>
-    </div>
-  </div>
-
-  <!-- Let's try to setup some tabs manually -->
-  <ul class="tabs"> 
-    <li><a href="#saliva">Saliva</a></li> 
-    <li><a href="#sleep">Sleep</a></li> 
-    <li><a href="#emotional_state">Emtional State</a></li> 
-    <li><a href="#diary">Diary</a></li> 
-  </ul> 
   
-  <div class="panes"> 
-    <div id="0"></div> 
-    <div id="1"></div> 
-    <div id="2"></div>
-    <div id="3"></div>
+  <!-- Get some CSS layout going here -->
+  <div id="banner">
+	<h1>EMA Visualizations for <c:out value="${sessionScope.user.userName}"></c:out>.</h1>
   </div>
   
-  
-  <div class="zp-wrapper">
-    <div class="zp-100 content">
-      <div class="padding">
-        <p class="footer">Question? Comment? Problem? Email us at andwellness-info@cens.ucla.edu.</p>
-      </div>
-    </div>
+    <div id="controls">
+    	Choose a time period:
+		
+        <form method="post" action="/app/viz" id="grabDateForm">
+               <label for="startDate" class="label">Start Date:</label>
+               <input id="startDate" type="text"/>
+               <label for="numDays" class="label">Length:</label>
+               <select id="numDays">
+					<option value="7">1 week</option>
+					<option selected="selected" value="14">2 weeks</option>
+					<option value="21">3 weeks</option>
+					<option value="28">4 weeks</option>
+               </select>
+             <button type="submit" id="submit">Go</button>
+                    
+         </form>
   </div>
+  
+  <div id="main">
+	  <!-- Let's try to setup some tabs manually -->
+	  <ul class="tabs"> 
+	    <li><a href="#saliva">Saliva</a></li> 
+	    <li><a href="#sleep">Sleep</a></li> 
+	    <li><a href="#emotional_state">Emtional State</a></li> 
+	    <li><a href="#diary">Diary</a></li> 
+	  </ul> 
+	  
+	  <div class="panes"> 
+	    <div id="0"></div> 
+	    <div id="1"></div> 
+	    <div id="2"></div>
+	    <div id="3"></div>
+	  </div>
+  </dev>
+  
+  
+ <div id="map">
+ </div>
+ 
+ <div id="footer">
+ 	Question? Comment? Problem? Email us at andwellness-info@cens.ucla.edu.
+ </div>
+  
   
   </body>
 </html>
