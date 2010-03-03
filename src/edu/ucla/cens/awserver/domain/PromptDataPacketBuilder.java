@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.log4j.Logger;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -17,7 +18,7 @@ import edu.ucla.cens.awserver.util.JsonUtils;
  * @author selsky
  */
 public class PromptDataPacketBuilder extends AbstractDataPacketBuilder {
-//	private static Logger logger = Logger.getLogger(PromptDataPacketBuilder.class);
+	private static Logger _logger = Logger.getLogger(PromptDataPacketBuilder.class);
 	
 	/**
 	 * Creates a DataPacket for a prompt response upload. The DataPacket will contain the JSON message metadata and each prompt
@@ -26,6 +27,8 @@ public class PromptDataPacketBuilder extends AbstractDataPacketBuilder {
 	public DataPacket createDataPacketFrom(JSONObject source) {
 		PromptDataPacket promptDataPacket = new PromptDataPacket();
 		createCommonFields(source, promptDataPacket);
+		promptDataPacket.setGroupId(JsonUtils.getIntegerFromJsonObject(source, "group_id"));
+		
 		List<PromptResponseDataPacket> _responsePackets = new ArrayList<PromptResponseDataPacket>();
 		 
 		JSONArray responses = JsonUtils.getJsonArrayFromJsonObject(source, "responses");
@@ -34,7 +37,6 @@ public class PromptDataPacketBuilder extends AbstractDataPacketBuilder {
 		for(int i = 0; i < arrayLength; i++) {
 			PromptResponseDataPacket promptResponseDataPacket = promptDataPacket.new PromptResponseDataPacket();
 			JSONObject fullResponseObject = JsonUtils.getJsonObjectFromJsonArray(responses, i);
-			
 			promptResponseDataPacket.setPromptConfigId(JsonUtils.getIntegerFromJsonObject(fullResponseObject, "prompt_id"));
 			
 			Object response = JsonUtils.getObjectFromJsonObject(fullResponseObject, "response");
@@ -42,15 +44,17 @@ public class PromptDataPacketBuilder extends AbstractDataPacketBuilder {
 			// Create a new JSON object containing only the response. The data type of the response is variable.
 			Map<String, Object> responseOnlyMap = new HashMap<String, Object>();
 			responseOnlyMap.put("response", response);
+			
+			// _logger.info("JSON response: " + responseOnlyMap);
+			
 			JSONObject responseOnlyObject = new JSONObject(responseOnlyMap); 
 			promptResponseDataPacket.setResponse(responseOnlyObject.toString());
-			
-			// logger.info(promptResponseDataPacket);
 			
 	    	_responsePackets.add(promptResponseDataPacket);
 		}
 		
 		promptDataPacket.setResponses(_responsePackets);
+		_logger.info(promptDataPacket);
 		
 		return promptDataPacket;
 	}
