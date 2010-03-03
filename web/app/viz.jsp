@@ -160,7 +160,7 @@
         log.addAppender(popUpAppender);
 
         // Uncomment the line below to disable logging
-        log4javascript.setEnabled(false);
+        //log4javascript.setEnabled(false);
 
 		// Setup the datepickers for the date input box
 		$("#startDate").datepicker({dateFormat: 'yy-mm-dd'});
@@ -241,7 +241,7 @@
         if (log.isDebugEnabled()) {
             log.debug("Grabbing data from URL: " + url);
         }
-
+        
 		// Return false to cancel the usual submit functionality
 		return false;
 	}
@@ -264,7 +264,7 @@
 	    }
 		
 		// Make sure we found data
-		if (json_data == null || json_data.length == 0) {
+		if (json_data == null || json_data.length == 0 || !(json_data instanceof Array)) {
 			if (log.isWarnEnabled()) {
 				log.warn("No data found from server!");
 			}
