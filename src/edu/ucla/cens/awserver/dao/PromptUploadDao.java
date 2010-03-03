@@ -17,10 +17,10 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.jdbc.core.PreparedStatementCreator;
 
-import edu.ucla.cens.awserver.request.AwRequest;
 import edu.ucla.cens.awserver.domain.DataPacket;
 import edu.ucla.cens.awserver.domain.PromptDataPacket;
 import edu.ucla.cens.awserver.domain.PromptDataPacket.PromptResponseDataPacket;
+import edu.ucla.cens.awserver.request.AwRequest;
 
 
 /**
@@ -31,9 +31,12 @@ import edu.ucla.cens.awserver.domain.PromptDataPacket.PromptResponseDataPacket;
 public class PromptUploadDao extends AbstractUploadDao {
 	private static Logger _logger = Logger.getLogger(PromptUploadDao.class);
 	
-	private final String _selectSql = "select id from prompt" +
-			                          " where campaign_prompt_group_id = ?" +
-			                          " and campaign_prompt_version_id = ?" +
+	private final String _selectSql = "select prompt.id from prompt, campaign_prompt_group" +
+			                          " where prompt.campaign_prompt_version_id = ?" +
+			                          " and campaign_prompt_group.campaign_prompt_version_id = ?" +
+			                          " and campaign_prompt_group.group_id = ?" +
+			                          " and campaign_prompt_group.campaign_id = ?" +
+			                          " and campaign_prompt_group.id = prompt.campaign_prompt_group_id" +
 			                          " and prompt_config_id = ?";
 	
 	private final String _insertSql = "insert into prompt_response" +
@@ -61,7 +64,6 @@ public class PromptUploadDao extends AbstractUploadDao {
 		int numberOfPackets = dataPackets.size();
 		final int userId = awRequest.getUser().getId();
 		
-		
 		for(int i = 0; i < numberOfPackets; i++) {
 			
 			final PromptDataPacket promptDataPacket = (PromptDataPacket) dataPackets.get(i);
@@ -78,10 +80,12 @@ public class PromptUploadDao extends AbstractUploadDao {
 					  // (prompt_config_id) which has to be mapped to the prompt's "real" primary key
 				
 					 promptId = getJdbcTemplate().queryForInt(
-						_selectSql, new Object[]{awRequest.getCampaignPromptGroupId(), 
-								                 awRequest.getCampaignPromptVersionId(), 
-								                 response.getPromptConfigId()}
-				    );
+						_selectSql, new Object[]{ awRequest.getCampaignPromptVersionId(), 
+								                  awRequest.getCampaignPromptVersionId(), 
+								                  promptDataPacket.getGroupId(),
+								                  awRequest.getUser().getCampaignId(),
+								                  response.getPromptConfigId()}
+				     );
 					
 				} catch(IncorrectResultSizeDataAccessException irse) { // the query did not return one row, a bad data problem.
 					                                                   // it means that the device uploading data has multiple
@@ -89,9 +93,12 @@ public class PromptUploadDao extends AbstractUploadDao {
 					                                                   // combination
 					_logger.error("caught IncorrectResultSizeDataAccessException (one row expected, but " + irse.getActualSize() +
 							" returned) when running SQL '" + _selectSql + "' with the following parameters: " + 
-							awRequest.getCampaignPromptGroupId() + ", " + 
+							awRequest.getCampaignPromptVersionId() + ", " + 
 							awRequest.getCampaignPromptVersionId() + ", " +
-							response.getPromptConfigId()); 
+							promptDataPacket.getGroupId() + "," + 
+							awRequest.getUser().getCampaignId() +  "," + 
+							response.getPromptConfigId()
+					); 
 					
 					throw new DataAccessException(irse);
 					
