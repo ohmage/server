@@ -85,7 +85,7 @@ ProtoGraph.graph_type = {
     "PROTO_GRAPH_INTEGER_TYPE":2,
     "PROTO_GRAPH_YES_NO_TYPE":3,
 	"PROTO_GRAPH_TIME_MULTI_TYPE":4,
-}
+};
 
 ProtoGraph.HEIGHT = 120;
 ProtoGraph.WIDTH = 600;
