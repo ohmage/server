@@ -27,11 +27,9 @@
 
 	<!-- A large number of javascript includes, will reduce -->
 	<!-- Main jQuery library -->
-	<!-- 
-	   <script type="text/javascript" src="/js/lib/jquery/jquery-1.3.2.min.js"></script>
-	-->
-	<!-- jQuery UI toolkit, includes jQuery -->
-	<script src="http://cdn.jquerytools.org/1.1.2/jquery.tools.min.js"></script>
+    <script type="text/javascript" src="/js/lib/jquery/jquery-1.4.2.min.js"></script>
+	<!-- jQuery UI toolkit -->
+	<script type="text/javascript" src="/js/lib/jquery/jquery.tools.min.js"></script>
 	<!-- jQuery UI with Datepicker -->
 	<script type="text/javascript" src="/js/lib/jquery/jquery-ui-1.7.2.custom.min.js"></script>
 	<!-- Support logging -->
@@ -79,6 +77,13 @@
 
         #banner {
         	padding: 10px;
+			position: relative;
+        }
+		
+		#logout {
+			position: absolute;
+            right:0;
+			top:0;
         }
 
 		#controls {
@@ -155,7 +160,7 @@
         log.addAppender(popUpAppender);
 
         // Uncomment the line below to disable logging
-        log4javascript.setEnabled(false);
+        //log4javascript.setEnabled(false);
 
 		// Setup the datepickers for the date input box
 		$("#startDate").datepicker({dateFormat: 'yy-mm-dd'});
@@ -231,7 +236,7 @@
 
 		// Form the URL and send out
 		url += "?s=" + start_date + "&e=" + end_date;     
-        $.getJSON(url, populate_graphs_with_json);
+        $.get(url, populate_graphs_with_json);
 
         if (log.isDebugEnabled()) {
             log.debug("Grabbing data from URL: " + url);
@@ -242,22 +247,33 @@
 	}
 
 	/*
-	 * Iterate through each graph type, and add any data retruend from the server
+	 * Iterate through each graph type, and add any data returned from the server
 	 * to the graph.  Validate incoming JSON and make sure there were no server errors.
 	 */
-	function populate_graphs_with_json(json_data, text_status) {
-        if (log.isDebugEnabled()) {
-            log.debug("Received JSON data from server with status: " + text_status);
+	function populate_graphs_with_json(json_data, text_status, http_request) {
+        if (log.isInfoEnabled()) {
+            log.info("Received JSON data from server with status: " + text_status);
         }		
 		
-	    // Validate incoming JSON data
+	    // Did the request succeed?
 	    if (text_status != "success") {
-	        log.error("Bad status from server: " + text_status);
+			if (log.isErrorEnabled()) {
+			     log.error("Bad status from server: " + text_status);
+		    }
+			return;
 	    }
-
-	    // Check validity of the JSON
-	    // TODO: Make sure we received something that makes sense
-	    
+		
+		// Make sure we found data
+		if (json_data == null || json_data.length == 0) {
+			if (log.isWarnEnabled()) {
+				log.warn("No data found from server!");
+			}
+			
+			// Turn off the loading graphic
+			$(".loading").hide();
+			return;
+		}
+		
 	    // Run through possible error codes from server
 	    // TODO: Check for error codes in JSON
 		
@@ -291,6 +307,16 @@
 		        return ((prompt_id == data_point.prompt_id) && (group_id == data_point.prompt_group_id));
 		    });
 			
+			// Check if any data was found
+			if (new_data.length == 0) {
+				if (log.isInfoEnabled()) {
+					log.info("No data found for group_id " + group_id + " prompt_id " + prompt_id);
+				}
+				
+				// Hide the graph that has no data
+				$("#ProtoGraph_" + group_id + "_" + "prompt_id").hide();
+			}
+			
 			// Apply data to the graph
             graph.apply_data(new_data, 
                              startDate, 
@@ -298,6 +324,9 @@
 							 
             // Re-render graph with the new data
             graph.render();
+			
+			// Make sure the graph is shown
+			$("#ProtoGraph_" + group_id + "_" + "prompt_id").show();
 			
             if (log.isDebugEnabled()) {
 				var time_to_render = new Date().getTime() - start_render_time;
@@ -341,6 +370,7 @@
   <!-- Get some CSS layout going here -->
   <div id="banner">
 	<h1>EMA Visualizations for <c:out value="${sessionScope.user.userName}"></c:out>.</h1>
+	<div id="logout"><a href="/app/logout">Logout</a></div>
   </div>
   
     <div id="controls">
