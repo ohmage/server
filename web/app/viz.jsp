@@ -366,7 +366,7 @@
 	  <ul class="tabs"> 
 	    <li><a href="#saliva">Saliva</a></li> 
 	    <li><a href="#sleep">Sleep</a></li> 
-	    <li><a href="#emotional_state">Emtional State</a></li>
+	    <li><a href="#emotional_state">Emotional State</a></li>
 	    <li><a href="#diary">Diary</a></li> 
 	  </ul> 
 	  
