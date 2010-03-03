@@ -10,7 +10,7 @@ import edu.ucla.cens.awserver.request.AwRequest;
 /**
  * Utility DAO for checking if a group_id exists for a campaign. The group_id is used to group prompts so campaigns may have 
  * multiple packets of prompts uniquely represented by a group_id. Note that the group_id sent by the phone is not the primary
- * key on the campaign_prompt_group table. The group_id sent by the phone is shared with the phone's config file.
+ * key on the campaign_prompt_group table.
  * 
  * @author selsky
  */
@@ -31,7 +31,7 @@ public class PromptGroupIdDao extends AbstractDao {
 	}
 	
 	public void execute(AwRequest awRequest) {
-		_logger.info("looking up prompt group_id for phone config group id " + awRequest.getGroupId() + " in campaign " +
+		_logger.info("looking up campaign_prompt_group.id for phone config group id " + awRequest.getGroupId() + " in campaign " +
 				awRequest.getSubdomain());
 		
 		try {
@@ -46,7 +46,7 @@ public class PromptGroupIdDao extends AbstractDao {
 					_selectSql, new Object[]{awRequest.getGroupId(), 
 							                 awRequest.getCampaignPromptVersionId(), 
 							                 awRequest.getSubdomain()}
-			    );
+			);
 
 			// Push the id into the request because it will be used by future queries
 			awRequest.setCampaignPromptGroupId(campaignPromptGroupId);
