@@ -1,6 +1,10 @@
 package edu.ucla.cens.awserver.jee.filter;
 
+import java.io.BufferedWriter;
 import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.io.Writer;
+import java.util.Arrays;
 
 import javax.servlet.Filter;
 import javax.servlet.FilterChain;
@@ -24,7 +28,8 @@ import edu.ucla.cens.awserver.util.StringUtils;
 public class AuthenticationFilter implements Filter {
 	private static Logger _logger = Logger.getLogger(AuthenticationFilter.class);
 	private String _loginRedirectUrl;
-	private String _loginServletUrl; 
+	private String _loginServletUrl;
+	private String[] _ajaxUrls;
 	
 	/**
 	 * Default no-arg constructor. Simply creates an instance of this class.
@@ -46,6 +51,7 @@ public class AuthenticationFilter implements Filter {
 	public void init(FilterConfig config) throws ServletException {
 		_loginRedirectUrl = config.getInitParameter("loginRedirectUrl");
 		_loginServletUrl = config.getInitParameter("loginServletUrl");
+		String ajaxUrls = config.getInitParameter("ajaxUrls");
 		
 		String filterName = config.getFilterName();
 		
@@ -56,6 +62,13 @@ public class AuthenticationFilter implements Filter {
 		if(StringUtils.isEmptyOrWhitespaceOnly(_loginServletUrl)) {
 			throw new ServletException("loginServletUrl init-param is required. Filter " + filterName + " cannot be initialized.");
 		}
+		
+		if(StringUtils.isEmptyOrWhitespaceOnly(ajaxUrls)) {
+			throw new ServletException("ajaxUrls init-param is required. Filter " + filterName + " cannot be initialized.");
+		}
+		
+		_ajaxUrls = ajaxUrls.split(",");
+		Arrays.sort(_ajaxUrls);
 	}
 	
 	/**
@@ -84,8 +97,17 @@ public class AuthenticationFilter implements Filter {
 			if(! ((HttpServletRequest) request).getRequestURI().startsWith(_loginServletUrl)
 			    && ! ((HttpServletRequest) request).getRequestURI().startsWith(_loginRedirectUrl) ) { 
 				
-				_logger.info("redirecting user to login page for URL " + ((HttpServletRequest) request).getRequestURI());
-				((HttpServletResponse) response).sendRedirect(_loginRedirectUrl);
+				// Check to see if the URL represents an AJAX call 
+				if(-1 != Arrays.binarySearch(_ajaxUrls, ((HttpServletRequest) request).getRequestURI())) {
+					
+					Writer writer = new BufferedWriter(new OutputStreamWriter(response.getOutputStream()));
+					writer.write("{\"error_code\":\"0104\",\"error_text\":\"" + _loginRedirectUrl + "\"}");
+					
+				} else {
+					
+					_logger.info("redirecting user to login page for URL " + ((HttpServletRequest) request).getRequestURI());
+					((HttpServletResponse) response).sendRedirect(_loginRedirectUrl);
+				}
 				
 			} else {
 				
