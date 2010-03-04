@@ -65,6 +65,11 @@
       <param-name>loginServletUrl</param-name>
       <param-value>/app/login</param-value>
     </init-param>
+    <init-param>
+      <param-name>ajaxUrls</param-name>
+      <!--  To add a URL, make this a comma-separated list -->
+      <param-value>/app/viz</param-value>
+    </init-param>
   </filter>
   
   <!--  Add filter mappings for whatever resources require authenticated access --> 
