@@ -7,6 +7,9 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.Properties;
+import java.util.regex.Pattern;
+
+import jbcrypt.BCrypt;
 
 import org.apache.commons.dbcp.BasicDataSource;
 import org.apache.log4j.BasicConfigurator;
@@ -55,7 +58,7 @@ public class ManageUser {
 			System.exit(0);
 		}
 		
-		if(args.length < 2 || args.length > 3) {
+		if(args.length < 2 || args.length > 4) {
 			_logger.info("Incorrect number of arguments");
 			_logger.info(_helpText);
 			System.exit(0);
@@ -63,28 +66,40 @@ public class ManageUser {
 		
 		String fileName = null;
 		String function = null;
+		String salt = null;
 		boolean quiet = false;
 		
 		if(args.length == 2) {
-			if(! ("add".equals(args[0]) || "remove".equals(args[0]))) {
-				throw new IllegalArgumentException("add or remove is required as the first argument. You provided " + args[0]);
+			if(! "remove".equals(args[0])) {
+				throw new IllegalArgumentException("remove is required as the first argument. You provided " + args[0]);
 			}
 			function = args[0];
 			fileName = args[1];
 		}
 		
 		if(args.length == 3) {
+			if(! "add".equals(args[0])) {
+				throw new IllegalArgumentException("add is required as the first argument. You provided " + args[0]);
+			}
+			function = args[0];
+			fileName = args[1];
+			salt = args[2];
+			
+		}
+		
+		if(args.length == 4) {
 			if(! ("quiet".equals(args[0]))) {
 				throw new IllegalArgumentException("quiet is required as the first argument. You provided " + args[0]);
 			} else {
 				quiet = true;
 			}
-			if(! ("add".equals(args[1]) || "remove".equals(args[1]))) {
-				throw new IllegalArgumentException("add or remove is required as the second argument. You provided " + args[1]);
+			if(! "add".equals(args[1])) {
+				throw new IllegalArgumentException("add is required as the second argument. You provided " + args[1]);
 			}
 			
 			function = args[1];
 			fileName = args[2];
+			salt = args[3];
 		}
 		
 		if(quiet) {
@@ -97,6 +112,7 @@ public class ManageUser {
 		in.close();
 
 		checkProperty(props, "userName");
+		checkProperty(props, "password");
 		checkProperty(props, "subdomain");
 		checkProperty(props, "emailAddress");
 		checkProperty(props, "json");
@@ -105,34 +121,46 @@ public class ManageUser {
 		checkProperty(props, "dbDriver");
 		checkProperty(props, "dbJdbcUrl");
 		
-		// perform detailed check on userName
+		// perform detailed check on userName and password
 		String userName = props.getProperty("userName");
+		String password = props.getProperty("password");
 		
-		if(userName.length() < 9) {
-			throw new IllegalArgumentException("userName must be longer than eight characters");
+		
+//		if(userName.length() < 9) {
+//			throw new IllegalArgumentException("userName must be longer than eight characters");
+//		}
+		
+		Pattern pattern = Pattern.compile("[a-z\\.]{9,15}");
+		if(! pattern.matcher(userName).matches()) {
+			throw new IllegalArgumentException("user names can only be between 9 and 15 characters in length and can only contain" +
+			" letters and the dot character");
 		}
 		
-		// TODO - this should be done with a regexp
-		String validChars = "abcdefghijklmnopqrstuvwxyz.";
-		
-		for(int i = 0; i < userName.length(); i++) {
-			CharSequence subSequence = userName.subSequence(i, i + 1);
-			
-			if(! validChars.contains(subSequence)) {
-				throw new IllegalArgumentException("userName contains an illegal character: " + subSequence);
-			}
+		if(! pattern.matcher(password).matches()) {
+			throw new IllegalArgumentException("passwords can only be between 9 and 15 characters in length and can only contain" +
+			" letters and the dot character");
 		}
+		
+//		String validChars = "abcdefghijklmnopqrstuvwxyz.";
+//		
+//		for(int i = 0; i < userName.length(); i++) {
+//			CharSequence subSequence = userName.subSequence(i, i + 1);
+//			
+//			if(! validChars.contains(subSequence)) {
+//				throw new IllegalArgumentException("userName contains an illegal character: " + subSequence);
+//			}
+//		}
 		
 		JSONObject json = new JSONObject(props.getProperty("json"));
 		// these calls are analogous to checkProperty() above except JSONObject will throw a JSONException if the key 
 		// does not exist
-		json.getString("firstName");
-		json.getString("lastName");
+		json.getString("first_name");
+		json.getString("last_name");
 		
 		// ok, now some actual work can be done
 		if("add".equals(function)) {
 			
-			addUser(props);
+			addUser(props, salt);
 			
 		} else { 
 			
@@ -148,7 +176,7 @@ public class ManageUser {
 	 * 
 	 * @throws DataAccessException if any errors occur while interacting with the database
 	 */
-	private static void addUser(final Properties props) {
+	private static void addUser(final Properties props, final String salt) {
 		_logger.info("Adding user with the following properties: " + props);
 		
 		BasicDataSource dataSource = getDataSource(props);
@@ -167,18 +195,24 @@ public class ManageUser {
 			
 			try {
 				//
-				// 1. Insert user
+				// 1. Insert user with default password.
 				//
+				// 
+				// TODO For the first round of development, new_account is set to false. Once we implement password 
+				// creation from the phone, new_account must be set to true.
+				
 					
 				KeyHolder userIdKeyHolder = new GeneratedKeyHolder(); 
 				jdbcTemplate.update(
 					new PreparedStatementCreator() {
 						public PreparedStatement createPreparedStatement(Connection connection) throws SQLException {
 							PreparedStatement ps = connection.prepareStatement(
-								"insert into user (login_id, enabled) values(?,?)", new String[] {"id"}
+								"insert into user (login_id, enabled, password, new_account) values(?,?,?,?)", new String[] {"id"}
 							);
 							ps.setString(1, props.getProperty("userName"));
 							ps.setBoolean(2, true);
+							ps.setString(3, BCrypt.hashpw(props.getProperty("password"), salt));
+							ps.setBoolean(4, false);
 							return ps;
 						}
 					},
@@ -462,13 +496,13 @@ public class ManageUser {
 	                                  "we will have live users who belong to mulitple campaigns." +
 	                                  "\n****\n\n" + 
 			                          "Usage:\n" +
-			                          "   java -classpath LIB_DIR:CLASS_DIR edu.ucla.cens.awuser.ManageUser [help] [quiet] <add>|<remove> file\n" +
-			                          "E.g. java -classpath lib/*:classes edu.ucla.cens.awuser.ManageUser add data/add-remove-user.properties\n\n" + 
+			                          "   java -classpath LIB_DIR:CLASS_DIR edu.ucla.cens.awuser.ManageUser [help] [quiet] <add>|<remove> file salt\n" +
+			                          "E.g. java -classpath lib/*:classes edu.ucla.cens.awuser.ManageUser add data/add-remove-user.properties saltstring\n\n" + 
 			                          "The file must contain data in java.util.Properties format i.e., newline\n" +
 			                          "separated key=value pairs. Please see data/add-remove-user.properties for an\n" +
 			                          "example. All values defined in the template file are required.\n\n" +
 			                          "The following jars must be in the classpath: spring-2.5.6-SEC01.jar,\n" +
 			                          "mysql-connector-java-5.1.10-bin.jar, json-dot-org-2010-01-05.jar,\n" +
 			                          "commons-dbcp-1.2.2.jar, commons-pool-1.5.4.jar, commons-logging-1.1.1.jar,\n" +
-			                          "log4j-1.2.15.jar.";
+			                          "log4j-1.2.15.jar, jbcrypt-0.3.jar.";
 }
