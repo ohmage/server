@@ -157,7 +157,7 @@ public class AddHashedPwToUser {
 	}
 	
 	
-	private static String _helpText = "Usage: java -classpath LIB_DIR:CLASS_DIR edu.ucla.cens.awuser.AddHashedPwToUser [help] fileName salt\n\n" +
+	private static String _helpText = "\nUsage: java -classpath LIB_DIR:CLASS_DIR edu.ucla.cens.awuser.AddHashedPwToUser [help] fileName salt\n\n" +
 			                          "The following jars are required to be in the classpath: spring-2.5.6-SEC01.jar,\n" +
 			                          "mysql-connector-java-5.1.10-bin.jar, json-dot-org-2010-01-05.jar,\n" +
 			                          "commons-dbcp-1.2.2.jar, commons-pool-1.5.4.jar, commons-logging-1.1.1.jar,\n" +
