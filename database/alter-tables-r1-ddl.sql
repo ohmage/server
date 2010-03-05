@@ -5,5 +5,5 @@ USE andwellness;
 -- is_new_account bit not NULL
 ALTER TABLE user 
 ADD COLUMN password varchar(100) NOT NULL,
-ADD COLUMN is_new_account bit NOT NULL
+ADD COLUMN new_account bit NOT NULL
 
