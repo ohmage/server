@@ -11,24 +11,26 @@
   <property name="dist"  location="dist"/>
 
   <fileset id="compile-dependencies" dir="${component.repository}">
-      <include name="**/log4j-1.2.15.jar"/>
-      <include name="**/servlet-api-2.5.jar"/>
-      <include name="**/spring-2.5.6-SEC01.jar"/>
-  	  <include name="**/commons-logging-1.1.1.jar"/>
-  	  <include name="**/commons-dbcp-1.2.2.jar"/>
-  	  <include name="**/commons-pool-1.5.4.jar"/>
-  	  <include name="**/json-dot-org-2010-01-05.jar"/>
+    <include name="**/log4j-1.2.15.jar"/>
+    <include name="**/servlet-api-2.5.jar"/>
+    <include name="**/spring-2.5.6-SEC01.jar"/>
+  	<include name="**/commons-logging-1.1.1.jar"/>
+  	<include name="**/commons-dbcp-1.2.2.jar"/>
+  	<include name="**/commons-pool-1.5.4.jar"/>
+  	<include name="**/json-dot-org-2010-01-05.jar"/>
+  	<include name="**/jbcrypt-0.3.jar"/>
   </fileset>
 
   <fileset id="run-dependencies" dir="${component.repository}">
-      <include name="**/log4j-1.2.15.jar"/>
-  	  <include name="**/spring-2.5.6-SEC01.jar"/>
-  	  <include name="**/commons-logging-1.1.1.jar"/>
-  	  <include name="**/mysql-connector-java-5.1.10-bin.jar"/>
-  	  <include name="**/commons-dbcp-1.2.2.jar"/>
-  	  <include name="**/commons-pool-1.5.4.jar"/>
-  	  <include name="**/jstl-1.2.jar"/>
-  	  <include name="**/json-dot-org-2010-01-05.jar"/>
+    <include name="**/log4j-1.2.15.jar"/>
+    <include name="**/spring-2.5.6-SEC01.jar"/>
+    <include name="**/commons-logging-1.1.1.jar"/>
+  	<include name="**/mysql-connector-java-5.1.10-bin.jar"/>
+  	<include name="**/commons-dbcp-1.2.2.jar"/>
+  	<include name="**/commons-pool-1.5.4.jar"/>
+  	<include name="**/jstl-1.2.jar"/>
+  	<include name="**/json-dot-org-2010-01-05.jar"/>
+  	<include name="**/jbcrypt-0.3.jar"/>
   </fileset>
 
   <path id="compile-classpath">
