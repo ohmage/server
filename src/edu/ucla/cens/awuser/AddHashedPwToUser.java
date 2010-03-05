@@ -83,12 +83,15 @@ public class AddHashedPwToUser {
 	private static void run(Properties props, String salt) {
 		_logger.info("Adding a password to a user with the following properties: " + props);
 		
-		String hashedPw = BCrypt.hashpw(props.getProperty("password"), salt);
+		String hashedPw = BCrypt.hashpw(props.getProperty("password"), salt); // if the salt is not in a format that BCrypt 
+		                                                                      // understands (i.e., if the salt was not created
+		                                                                      // using BCrypt), it will complain loudly and exit
+		                                                                      // with a RuntimeException
 		
 		String updateSql = "UPDATE user" +
 				           " SET password = '" + hashedPw + "', " +
-				           " new_account = b'0'" +   // setting new_account to false for now, will need to be set to true for 
-				                                           // creation of passwords from phone
+				           " new_account = b'0'" +   // setting new_account to false for now. it will need to be set to true for 
+				                                     // creation of passwords from phone
 				           
 		                   " WHERE login_id = '" + props.getProperty("userName") + "'";
 		

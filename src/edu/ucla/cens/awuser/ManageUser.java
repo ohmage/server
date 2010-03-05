@@ -211,7 +211,10 @@ public class ManageUser {
 							);
 							ps.setString(1, props.getProperty("userName"));
 							ps.setBoolean(2, true);
-							ps.setString(3, BCrypt.hashpw(props.getProperty("password"), salt));
+							ps.setString(3, BCrypt.hashpw(props.getProperty("password"), salt)); // if the salt is not in a format
+							                                                                     // that BCrypt understands, it will
+							                                                                     // complain loudly and exit with a 
+							                                                                     // RuntimeException
 							ps.setBoolean(4, false);
 							return ps;
 						}
