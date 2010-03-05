@@ -102,6 +102,9 @@ public class AuthenticationFilter implements Filter {
 					
 					Writer writer = new BufferedWriter(new OutputStreamWriter(response.getOutputStream()));
 					writer.write("{\"error_code\":\"0104\",\"error_text\":\"" + _loginRedirectUrl + "\"}");
+					writer.flush();
+					writer.close();
+					writer = null;
 					
 				} else {
 					
