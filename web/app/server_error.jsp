@@ -1,5 +1,6 @@
 <%@ page contentType="text/html; charset=UTF-8" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
+<%@ page isErrorPage="true" %>
 <html>
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
@@ -20,13 +21,20 @@
 		.top-padding {
 		    padding: 50px 0px 0px 0px;
 		}
-		.footer {
-		   color: #BEBEBE;
-		}
 		.errorText {
 		   color: #FF0000;
 		   font-family: Courier;
 		   margin: 0 0 0 0; 
+		}
+		.h {
+		  font-size: 36px;   	
+	      line-height: 36px;
+	      font-weight: normal;
+		}
+		.m {
+		  font-size: 18px;   	
+	      line-height: 20px;
+	      font-weight: normal;
 		}
 	</style>
   </head>
@@ -36,22 +44,14 @@
   <div class="zp-wrapper">
     <div class="zp-100 content">
 	  <div class="padding">
-  		<h1>AndWellness - 500 Server Error.</h1>
-        <p>We have encountered an error while attempting to process your request.</p>
+  		<p class="h">Server Error</p>
+        <p class="m">Sorry, an error occurred while processing your request. If you'd like to copy and 
+        paste the red text below into an email and send it to andwellness-info@cens.ucla.edu along with a description of what you 
+        were attempting to do, the AndWellness team would greatly appreciate it!</p>
         
-        <p class="errorText"><c:out value="${sessionScope.exception.message}"></c:out></p>
-        <c:forEach items="${sessionScope.exception.stackTrace}" var="st">
-  			<p class="errorText"><c:out value="${st}"></c:out></p>
-        </c:forEach>
-        
-    </div>
-  </div>
-  
-  <div class="zp-wrapper">
-    <div class="zp-100 content">
-      <div class="padding">
-        <p class="footer">Question? Comment? Problem? Email us at andwellness-info@cens.ucla.edu.</p>
-      </div>
+        <p class="errorText"><% out.println(exception.getMessage() == null ? "" : exception.getMessage()); %></p>
+  		<p class="errorText"><% exception.printStackTrace(new java.io.PrintWriter(out)); %></p>
+        </div> 
     </div>
   </div>
     

@@ -1,0 +1,77 @@
+<?xml version="1.0"?>
+<!-- This is a template for a rather minimal AS (Apache Tomcat 5.5.x server) configuration.  An installer is supposed to do a
+     text-replacement on the following substitution variables/parameters upon installing a web application.
+
+     Substitution variables (all on the form _X_<variable>_):
+     AS_ID            AS specific identifier appended to generated session IDs.
+     AS_HTTP_PORT
+     AS_HTTPS_PORT    (Not yet used)
+     AS_SHUTDOWN_PORT
+-->
+<Server port="18080" shutdown="SHUTDOWN">
+  <Listener className="org.apache.catalina.core.JasperListener" />
+
+  <Service name="Catalina">
+
+    <!-- Notes:
+         1) To disable connection timeouts, set connectionTimeout value to 0.
+         2) For redirect port, use the one the client sees, not the one server listens to.
+      -->
+    <Connector port="80" 
+               redirectPort="443" 
+               acceptCount="100"
+               connectionTimeout="20000"
+               maxThreads="500"
+               minSpareThreads="5"
+               maxSpareThreads="50"
+               enableLookups="false" 
+               URIEncoding="UTF-8"
+               maxHttpHeaderSize="8192"
+               disableUploadTimeout="true"
+               emptySessionPath="true"/>
+<!--
+    <Connector port="8443"
+               keystoreFile="conf/keystore"
+               keystorePass="serverkey"
+               maxHttpHeaderSize="8192"
+               maxThreads="150"
+               minSpareThreads="25"
+               maxSpareThreads="75"
+               enableLookups="false"
+               disableUploadTimeout="true"
+               acceptCount="100"
+               scheme="https"
+               secure="true"
+               clientAuth="false"
+               sslProtocol="TLS" />
+-->
+    <!-- The jvmRoute is and identifier to append the session ID.  Since the session ID shows up as a cookie in the user's
+    browser, having a useful value for the jvmRoute may help significantly during troubleshooting on a multiple machine
+    setup.  -->
+    <Engine name="Catalina" defaultHost="localhost" jvmRoute="">
+      <!-- Define the default virtual host -->
+      <Host name="localhost" 
+            appBase="webapps"
+            unpackWARs="true" 
+            autoDeploy="true"
+            xmlValidation="false"
+            xmlNamespaceAware="false">
+        
+        <!-- Debugging.  Enable this valve and Tomcat will dump info about every request -->
+        <!--
+        <Valve className="org.apache.catalina.valves.RequestDumperValve"/>
+        -->
+
+        <!-- System monitoring.  Record Apache-style access logs by Tomcat. -->
+        <!--
+        <Valve className="org.apache.catalina.valves.FastCommonAccessLogValve"
+               directory="logs" 
+               prefix="localhost_access_log."
+               suffix=".log"
+               pattern="common"
+               resolveHosts="false" />
+        -->
+      </Host>
+    </Engine>
+  </Service>
+</Server>

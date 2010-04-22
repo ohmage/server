@@ -20,7 +20,7 @@ public class PromptGroupIdDao extends AbstractDao {
 	private final String _selectSql = "select campaign_prompt_group.id from campaign_prompt_group, campaign" +
 			                          " where campaign_prompt_group.group_id = ?" +
 			                          " and campaign_prompt_group.campaign_prompt_version_id = ?" +
-			                          " and campaign.subdomain = ? " +
+			                          " and campaign.id = ? " +
 			                          " and campaign.id = campaign_prompt_group.campaign_id;";
 	
 	/**
@@ -32,7 +32,7 @@ public class PromptGroupIdDao extends AbstractDao {
 	
 	public void execute(AwRequest awRequest) {
 		_logger.info("looking up campaign_prompt_group.id for phone config group id " + awRequest.getGroupId() + " in campaign " +
-				awRequest.getSubdomain());
+				awRequest.getUser().getCurrentCampaignId());
 		
 		try {
 			
@@ -45,7 +45,7 @@ public class PromptGroupIdDao extends AbstractDao {
 			int campaignPromptGroupId = getJdbcTemplate().queryForInt(
 					_selectSql, new Object[]{awRequest.getGroupId(), 
 							                 awRequest.getCampaignPromptVersionId(), 
-							                 awRequest.getSubdomain()}
+							                 awRequest.getUser().getCurrentCampaignId()}
 			);
 
 			// Push the id into the request because it will be used by future queries
@@ -56,14 +56,16 @@ public class PromptGroupIdDao extends AbstractDao {
 			
 			_logger.error("caught IncorrectResultSizeDataAccessException (one row was expected to be returned, but the actual " +
 				"size was " + irse.getActualSize() + ") when running SQL '" +  _selectSql + "' with the following parameters: " +
-				awRequest.getGroupId() + ", " +  awRequest.getCampaignPromptVersionId() + ", " + awRequest.getSubdomain());
+				awRequest.getGroupId() + ", " +  awRequest.getCampaignPromptVersionId() + ", " + 
+				awRequest.getUser().getCurrentCampaignId());
 			
 			throw new DataAccessException(irse);
 			
 		} catch (org.springframework.dao.DataAccessException dae) {
 			
 			_logger.error("caught DataAccessException when running SQL '" +  _selectSql + "' with the following parameters: " +
-					awRequest.getGroupId() + ", " +  awRequest.getCampaignPromptVersionId() + ", " + awRequest.getSubdomain());
+				awRequest.getGroupId() + ", " +  awRequest.getCampaignPromptVersionId() + ", " + 
+				awRequest.getUser().getCurrentCampaignId());
 			
 			throw new DataAccessException(dae); // Wrap the Spring exception and re-throw in order to avoid outside dependencies
 			                                    // on the Spring Exception (in case Spring JDBC is replaced with another lib in 

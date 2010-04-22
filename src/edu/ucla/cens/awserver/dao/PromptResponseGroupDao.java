@@ -59,7 +59,7 @@ public class PromptResponseGroupDao extends AbstractDao {
 	public void execute(AwRequest awRequest) {
 		_logger.info("looking up prompt restrictions for prompts " + 
 			Arrays.toString(awRequest.getPromptIdArray()) + " for campaign " + 
-			awRequest.getSubdomain() + ", campaign prompt group " + awRequest.getCampaignPromptGroupId() +
+			awRequest.getUser().getCurrentCampaignId() + ", campaign prompt group " + awRequest.getCampaignPromptGroupId() +
 			", and campaign prompt version " + awRequest.getCampaignPromptVersionId()
 		);
 			

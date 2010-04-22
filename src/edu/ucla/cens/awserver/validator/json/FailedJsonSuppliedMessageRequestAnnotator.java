@@ -26,9 +26,6 @@ public class FailedJsonSuppliedMessageRequestAnnotator implements AwRequestAnnot
 		try {
 			
 			jsonObject = new JSONObject(message);
-			// now add the original request URL and the original JSON input message to the error output
-			jsonObject.put("request_url", awRequest.getRequestUrl());
-			jsonObject.put("request_json", awRequest.getJsonDataAsString());
 		
 		} catch(JSONException jsone) {  
 		

@@ -10,8 +10,6 @@ import edu.ucla.cens.awserver.util.StringUtils;
 /**
  * Validator for *internally set* AwRequest attributes. This validator should only be used to check required values that are 
  * internally set by the HTTP layer (servlets, filters, AwRequestCreators) where it is a logical error for the value to be missing. 
- * E.g., most controllers in AW require a subdomain attribute in the AwRequest, but the subdomain value is set by parsing the  
- * URL string, not by a user-driven ("external") action. Put another way, it is a logical error for the subdomain to be missing.
  * For validation of user-driven data, use a subclass of AbstractAnnotatingValidator.
  * 
  * @author selsky

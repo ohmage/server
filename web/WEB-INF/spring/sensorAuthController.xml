@@ -1,0 +1,27 @@
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
+                           http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-2.5.xsd">
+  <!--  
+     Spring ApplicationContext configuration for phone JSON-over-HTTP authentication 
+  -->
+  
+  <!-- Servlet-to-AW hooks are shared with authenticationController i.e., bean id authenticationAwRequestCreator -->
+    
+  <!-- Controller - all components here are reused from sensorUploadController.xml -->
+  <bean id="sensorAuthController" class="edu.ucla.cens.awserver.controller.ControllerImpl">
+    <constructor-arg index="0">
+      <list>
+        <ref bean="sensorUploadAuthenticationService" />
+      </list>
+    </constructor-arg>
+    <property name="validators">
+      <list>
+        <ref bean="sensorUploadUserNameValidator" />
+        <ref bean="sensorUploadPasswordValidator" />
+      </list>      
+    </property>
+    <property name="featureName"><value>sensor authentication</value></property>
+  </bean>
+ 
+</beans>

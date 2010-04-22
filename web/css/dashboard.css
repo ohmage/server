@@ -1,0 +1,172 @@
+/* CSS reset */
+html, body, div, span, applet, object, iframe,
+h1, h2, h3, h4, h5, h6, p, blockquote, pre,
+a, abbr, acronym, address, big, cite, code,
+del, dfn, em, font, img, ins, kbd, q, s, samp,
+small, strike, strong, sub, sup, tt, var,
+b, u, i, center,
+dl, dt, dd, ol, ul, li,
+fieldset, form, label, legend,
+table, caption, tbody, tfoot, thead, tr, th, td {
+    margin: 0;
+    padding: 0;
+    border: 0;
+    outline: 0;
+    font-size: 100%;
+    vertical-align: baseline;
+    background: transparent;
+}
+
+
+/* tab pane styling */
+div.panes > div {
+    display:none;       
+    padding:10px 10px;
+    /*border:1px solid #999;*/
+    border-top:0;
+    font-size:14px;
+    background-color:#fff;
+}
+
+ul.tabs {
+}
+
+body {
+    background-color: #F8F8F8;
+    height:100%;
+}
+
+#wrapper {
+    width:1000px;
+    background-color: white;
+    border: 0;
+    font-size: .8em;
+}
+
+#banner {
+    position: relative;
+    padding: 15px;
+    margin-bottom: 10px;
+    border-bottom: 1px solid #C8C8C8;
+}
+
+#banner .user_id {
+  color: #002D4B; 
+}
+
+#banner .banner_text {
+  background-color: #CDE8FF;
+}
+
+#main {
+    padding-left: 5px;
+    padding-right: 5px;
+    margin-right: 155px;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 62.5%;
+}
+
+#main h1 {
+  font-family: "Arial Black", Arial, Helvetica, sans-serif;
+  font-size: 4em;
+}
+
+#main h2 {
+  font: bold;
+  color: #002D4B;
+  font-size: 3.5em;
+  margin-top: 25px;
+}
+
+#main h3 {
+  color: #002D4B;
+  font-size: 1.9em;
+  font-weight: bold;
+  text-transform: uppercase;
+  margin-top: 25px;
+  margin-bottom: 10px;
+  margin-left: 10px;
+}
+
+#main p {
+  font-size: 1.7em;
+  line-height: 150%;
+  margin-left: 100px;
+  margin-right: 50px;
+  margin-bottom: 10px;
+}
+
+#logout {
+    position: absolute;
+    right: 5px;
+    top: 0;
+}
+
+#controls {
+    padding-right: 5px;
+    float: right;
+    width: 150px;
+}
+
+#footer {
+    height:20px;
+    color:#505050;
+}
+
+#grabDateForm {
+    font-size: .8em;
+}
+
+#grabDateForm .label {
+    float: left;
+    width: 60px;
+    margin-right: 5px;
+    text-align: right;
+    font-weight: bold;
+    clear: left;
+}
+
+#grabDateForm #submit {
+    margin-left: 65px;
+    margin-top: 2px;
+}
+
+#grabDateForm #startDate {
+    width: 85px;
+    height: 22px;
+    margin-top: -2px;
+}
+
+#loginForm {
+  font-size: .9em;
+}
+
+#loginForm input {
+   width: 110px;
+   height: 22px;
+}
+
+#loginForm button {
+  margin-top: 3px; 
+}
+
+.graph_title {
+  font-size: 1.1em;
+  font-weight:bold;
+}
+
+.loading {
+    background-image: url('/css/images/ajax-loader.gif');
+    background-repeat: no-repeat;
+    background-position: center top;
+    display: none;
+    height: 75px;
+}
+.f {
+  font-family: Arial, sans-serif;
+}
+.h {
+  font-size: 36px;      
+  line-height: 36px;
+  font-weight: normal;
+}

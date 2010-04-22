@@ -43,7 +43,7 @@ public class AddHashedPwToUser {
 		
 		String fileName = args[0];
 		String salt = args[1];
-		
+				
 		BufferedReader in = new BufferedReader(new FileReader(fileName)); 
 		Properties props = new Properties();
 		props.load(in);
@@ -165,7 +165,8 @@ public class AddHashedPwToUser {
 			                          "mysql-connector-java-5.1.10-bin.jar, json-dot-org-2010-01-05.jar,\n" +
 			                          "commons-dbcp-1.2.2.jar, commons-pool-1.5.4.jar, commons-logging-1.1.1.jar,\n" +
 			                          "log4j-1.2.15.jar, jbcrypt-0.3.jar.\n" +
-			                          "The file represented by fileName must be a java Properties file with the following keys: \n" +
-			                          "userName, password, dbUserName, dbPassword, dbDriver, dbJdbcUrl";
+			                          "\nThe file represented by fileName must be a java Properties file with the following keys: \n" +
+			                          "userName, password, dbUserName, dbPassword, dbDriver, dbJdbcUrl" +
+			                          "\n\nYou must single-quote the salt in order to avoid shell parameter expansion.";
 	
 }

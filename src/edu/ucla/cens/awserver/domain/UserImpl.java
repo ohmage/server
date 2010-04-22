@@ -1,5 +1,10 @@
 package edu.ucla.cens.awserver.domain;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 
 /**
  * The default user implementation.
@@ -9,11 +14,13 @@ package edu.ucla.cens.awserver.domain;
 public class UserImpl implements User {
 	private int _id;
 	private String  _userName;
-    private int _campaignId;
+    private Map<Integer, List<Integer>> _campaignRoles;
 	private boolean _loggedIn;
+	private String _password;
+	private String _currentCampaignId;
 	
 	public UserImpl() {
-		
+		_id = -1;
 	}
 	
 	/**
@@ -25,8 +32,10 @@ public class UserImpl implements User {
 		}
 		_id = user.getId();
 		_userName = user.getUserName();
-		_campaignId = user.getCampaignId();
+		_campaignRoles = new HashMap<Integer, List<Integer>>();
+		_campaignRoles.putAll(user.getCampaignRoles()); // shallow copy ok because once a user is created it is read-only in practice 
 		_loggedIn = user.isLoggedIn();
+		_currentCampaignId = user.getCurrentCampaignId();
 	}
 	
     public int getId() {
@@ -37,12 +46,22 @@ public class UserImpl implements User {
     	_id = id;
     }
     
-	public int getCampaignId() {
-		return _campaignId;
+	public Map<Integer, List<Integer>> getCampaignRoles() {
+		return _campaignRoles;
 	}
 	
-	public void setCampaignId(int id) {
-		_campaignId = id;
+	public void addCampaignRole(Integer campaignId, Integer roleId) {
+		if(null == _campaignRoles) {
+			_campaignRoles = new HashMap<Integer, List<Integer>>();
+		}
+		
+		List<Integer> roles = _campaignRoles.get(campaignId);
+		if(null == roles) {
+			roles = new ArrayList<Integer>();
+			_campaignRoles.put(campaignId, roles);
+		}
+		
+		roles.add(roleId);
 	}
 	
 	public String getUserName() {
@@ -60,10 +79,27 @@ public class UserImpl implements User {
 	public void setLoggedIn(boolean loggedIn) {
 		_loggedIn = loggedIn;
 	}
+	
+	public void setPassword(String password) {
+		_password = password;
+	}
+
+	public String getPassword() {
+		return _password;
+	}
+	
+	public void setCurrentCampaignId(String id) {
+		_currentCampaignId = id;
+	}
+	
+	public String getCurrentCampaignId() {
+		return _currentCampaignId;
+	}
 
 	@Override
-	public String toString() {
-		return "UserImpl [_campaignId=" + _campaignId + ", _id=" + _id
+	public String toString() { // password is deliberately omitted
+		return "UserImpl [_campaignRoles=" + _campaignRoles
+				+ ", _currentCampaignId=" + _currentCampaignId + ", _id=" + _id
 				+ ", _loggedIn=" + _loggedIn + ", _userName=" + _userName + "]";
 	}
 }

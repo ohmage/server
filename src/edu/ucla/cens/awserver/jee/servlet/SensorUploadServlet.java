@@ -41,7 +41,7 @@ public class SensorUploadServlet extends AbstractAwHttpServlet {
 	 * Default no-arg constructor.
 	 */
 	public SensorUploadServlet() {
-		_parameterList = new ArrayList<String>(Arrays.asList(new String[]{"t","u","phv","prv","d"}));
+		_parameterList = new ArrayList<String>(Arrays.asList(new String[]{"t","u","phv","prv","d","p","c"}));
 	}
 		
 	/**
@@ -99,17 +99,27 @@ public class SensorUploadServlet extends AbstractAwHttpServlet {
 			// Execute feature-specific logic
 			_controller.execute(awRequest);
 		    
+			response.setContentType("application/json");
+			
 			if(awRequest.isFailedRequest()) { 
 				
-				response.setContentType("application/json");
 				writer.write(awRequest.getFailedRequestErrorMessage());
-			} 
-			// if the request is successful, just let Tomcat return a 200
+				
+			} else {
+				
+				writer.write("{\"result\":\"success\"}");
+			}
 		}
 		
-		catch(Throwable t) { 
+		catch(Exception e) { 
 			
-			_logger.error("an error occurred on sensor data upload", t);
+			_logger.error("an error occurred on sensor data upload", e);
+			// the exception is not wrapped inside a ServletException in order to avoid sending the Tomcat HTTP 500 error page 
+			// back to the client
+			
+			// instead of the exception being wrapped and re-thrown, send the error code for severe errors
+			writer.write("{\"errors\":[{\"code\":\"0103\",\"text\":\"server error\"}]}");
+			
 		}
 		
 		finally {
@@ -151,7 +161,7 @@ public class SensorUploadServlet extends AbstractAwHttpServlet {
 		
 		// Check for missing or extra parameters
 		
-		if(parameterMap.size() != 5) {
+		if(parameterMap.size() != 7) {
 			_logger.warn("an incorrect number of parameters was found on sensor upload: " + parameterMap.size());
 			return false;
 		}
@@ -184,35 +194,30 @@ public class SensorUploadServlet extends AbstractAwHttpServlet {
 		}
 		
 		String u = (String) request.getParameter("u");
+		String c = (String) request.getParameter("c");
+		String p = (String) request.getParameter("p");
 		String t = (String) request.getParameter("t");
 		String phv = (String) request.getParameter("phv");
 		String prv = (String) request.getParameter("prv");
 		
 		// Check for abnormal lengths (buffer overflow attack)
-		// 50 is an arbitrary number, but for these parameters it would be very strange
+		// 50 is an arbitrary number for length, but for these parameters it would be very strange
 		
 		if(greaterThanLength("user", "u", u, 50)
+		   || greaterThanLength("campaign", "c", c, 50)
 		   || greaterThanLength("request type", "t", t, 50)
 		   || greaterThanLength("phone version", "phv", phv, 50)
 		   || greaterThanLength("protocol version", "prv", prv, 50)
+		   || greaterThanLength("password", "p", p, 180) // handle up to 60 URL encoded characters
 		) {
 			return false;
 		}
 		
 		// The JSON data is not checked because its length is so variable and potentially huge (some messages are 700000+ characters
-		// when URL-encoded). It will be heavily validated once inside the main application validation layer
+		// when URL-encoded). It will be heavily validated once inside the main application validation layer.
+		
+		// The default setting for Tomcat is to disallow requests that are greater than 2MB
 		
 		return true;
-	}
-	
-	private boolean greaterThanLength(String longName, String name, String value, int length) {
-		
-		if(null != value && value.length() > length) {
-			
-			_logger.warn("a " + longName + "(request parameter " + name + ") of " + value.length() + " characters was found");
-			return true;
-		}
-		
-		return false;
 	}
 }

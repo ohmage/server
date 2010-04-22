@@ -20,7 +20,7 @@ public class PromptVersionIdDao extends AbstractDao {
 	
 	private final String _selectSql = "select campaign_prompt_version.id from campaign_prompt_version, campaign" +
 			                          " where campaign_prompt_version.version_id = ?" +
-			                          " and campaign.subdomain = ? " +
+			                          " and campaign.id = ? " +
 			                          " and campaign.id = campaign_prompt_version.campaign_id;";
 	
 	/**
@@ -32,12 +32,12 @@ public class PromptVersionIdDao extends AbstractDao {
 	
 	public void execute(AwRequest awRequest) {
 		_logger.info("looking up prompt version_id for phone version id " + awRequest.getVersionId() + " in campaign " +
-				awRequest.getSubdomain());
+				awRequest.getUser().getCurrentCampaignId());
 				
 		try {
 			
 			int campaignPromptVersionId = getJdbcTemplate().queryForInt(
-				_selectSql, new Object[]{awRequest.getVersionId(), awRequest.getSubdomain()}
+				_selectSql, new Object[]{awRequest.getVersionId(), awRequest.getUser().getCurrentCampaignId()}
 		    );
 			// Push the id into the request because it will be used by future queries
 			awRequest.setCampaignPromptVersionId(campaignPromptVersionId);
@@ -47,7 +47,7 @@ public class PromptVersionIdDao extends AbstractDao {
 			
 			_logger.error("caught IncorrectResultSizeDataAccessException (one row was expected to be returned, but the actual " +
 					"size was " + irse.getActualSize() + ") when running SQL '" +  _selectSql + "' with the following parameters: " +
-					awRequest.getVersionId() + ", " +  awRequest.getSubdomain());
+					awRequest.getVersionId() + ", " +  awRequest.getUser().getCurrentCampaignId());
 			
 			throw new DataAccessException(irse);
 			
@@ -55,7 +55,7 @@ public class PromptVersionIdDao extends AbstractDao {
 		} catch (org.springframework.dao.DataAccessException dae) {
 			
 			_logger.error("caught DataAccessException when running SQL '" +  _selectSql + "' with the following parameters: " +
-					awRequest.getVersionId() + ", " +  awRequest.getSubdomain());
+					awRequest.getVersionId() + ", " +  awRequest.getUser().getCurrentCampaignId());
 			
 			throw new DataAccessException(dae); // Wrap the Spring exception and re-throw in order to avoid outside dependencies
 			                                    // on the Spring Exception (in case Spring JDBC is replaced with another lib in 

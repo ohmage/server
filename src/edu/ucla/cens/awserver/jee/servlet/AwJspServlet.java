@@ -21,7 +21,7 @@ import edu.ucla.cens.awserver.util.StringUtils;
 /**
  * Dispatch and handle requests which ultimately result in a final redirect to a JSP for rendering. 
  * 
- * This Servlet has four init-params that need to be defined in web.xml. The parameters define objects used by the service() 
+ * This Servlet has four init-params that need to be defined in web.xml. The parameters define objects used by the processRequest() 
  * method when handling user requests.
  * 
  * <ol>
@@ -140,16 +140,20 @@ public class AwJspServlet extends AbstractAwHttpServlet {
 
 				response.sendRedirect(_failedRequestRedirectUrl);
 				
-			} else {
+			} else { // TODO some requests have more than one "success" page depending on server processing. Some kind of post-
+				     // processor is needed here. E.g., for now the authentication process simply redirects to viz.jsp, but in the
+				     // future, users who belong to multiple campaigns will need to choose their campaign before viewing any
+				     // visualizations. TBD. Users who manage other users (researchers, doctors) will probably also need a way
+				     // to choose users (participants) from a campaign in the dashboards themselves.
 				
 				response.sendRedirect(_successfulRequestRedirectUrl);
 			}
 		}
 		
-		catch(Throwable t) { 
+		catch(Exception e) { 
 			
-			_logger.error("an unrecoverable error occurred", t); // make sure the stack trace gets into our app log
-			throw new ServletException(t); // Re-throw and allow Tomcat to redirect to the configured error page. 
+			_logger.error("an unrecoverable exception occurred", e); // make sure the stack trace gets into our app log
+			throw new ServletException(e); // Re-throw and allow Tomcat to redirect to the configured error page. 
 			                               // The stack trace will also end up in catalina.out
 			
 		}

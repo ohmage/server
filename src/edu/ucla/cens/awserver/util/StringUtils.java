@@ -31,36 +31,36 @@ public final class StringUtils {
 		
 	}
 	
-	/**
-	 * Retrieves the subdomain from a URL String where the subdomain is defined as the text between the protocol (http://) and the
-	 * first occurence of a dot (.) (so technically this method does not return the full subdomain). 
-	 * 
-	 * @throws IllegalArgumentException if a null or empty string is passed in
-	 */
-	public static String retrieveSubdomainFromUrlString(String url) {
-		if(isEmptyOrWhitespaceOnly(url)) {
-			throw new IllegalArgumentException("cannot retrieve subdomain from a null or empty URL String");
-		}
-		
-		String urlStart = url.split("\\.")[0];
-		String subdomain = null;
-		
-		if(urlStart.startsWith("http://")) {
-			
-			subdomain = urlStart.substring(7);
-
-// enable https support when we enable it in the app server config			
-//		} else if(urlStart.startsWith("https://")) {
+//	/**
+//	 * Retrieves the subdomain from a URL String where the subdomain is defined as the text between the protocol (http://) and the
+//	 * first occurence of a dot (.) (so technically this method does not return the full subdomain). 
+//	 * 
+//	 * @throws IllegalArgumentException if a null or empty string is passed in
+//	 */
+//	public static String retrieveSubdomainFromUrlString(String url) {
+//		if(isEmptyOrWhitespaceOnly(url)) {
+//			throw new IllegalArgumentException("cannot retrieve subdomain from a null or empty URL String");
+//		}
+//		
+//		String urlStart = url.split("\\.")[0];
+//		String subdomain = null;
+//		
+//		if(urlStart.startsWith("http://")) {
+//			
+//			subdomain = urlStart.substring(7);
 //
-//			subdomain = urlStart.substring(8);
-			
-		} else { // if this happens, the application server is configured to support an unknown protocol 
-			     // and this method needs updating
-			
-			throw new IllegalArgumentException("unknown protocol: " + url);
-		}
-		
-		return subdomain;
-		
-	}	
+//// enable https support when we enable it in the app server config			
+////		} else if(urlStart.startsWith("https://")) {
+////
+////			subdomain = urlStart.substring(8);
+//			
+//		} else { // if this happens, the application server is configured to support an unknown protocol 
+//			     // and this method needs updating
+//			
+//			throw new IllegalArgumentException("unknown protocol: " + url);
+//		}
+//		
+//		return subdomain;
+//		
+//	}	
 }

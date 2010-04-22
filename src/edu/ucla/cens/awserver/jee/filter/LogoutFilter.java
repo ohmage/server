@@ -54,10 +54,10 @@ public class LogoutFilter implements Filter {
 		
 		if(session.isNew()) {
 			if(_logger.isDebugEnabled()) {
-				_logger.debug("non-logged in user or bot hitting /app/logout. redirecting to index.html");
+				_logger.debug("non-logged in user or bot hitting /app/logout. redirecting to /app/login.jsp");
 			}
 			
-			((HttpServletResponse) response).sendRedirect("/index.html");
+			((HttpServletResponse) response).sendRedirect("/app/login.jsp");
 			
 		} else {
 			

@@ -83,7 +83,7 @@ public class ControllerImpl implements Controller {
 		
 		catch(ValidatorException ve) { // an unrecoverable logical error has occurred
 			
-			awRequest.setFailedRequestErrorMessage("{\"error_code\":\"0103\",\"error_text\":\"" + ve.getMessage() + "\"}");
+			awRequest.setFailedRequestErrorMessage("{\"code\":\"0103\",\"text\":\"" + ve.getMessage() + "\"}");
 			awRequest.setFailedRequest(true);
 			
 			throw new ControllerException(ve);	
@@ -92,7 +92,7 @@ public class ControllerImpl implements Controller {
 		
 		catch (ServiceException se) { // an unrecoverable logical or system-level error has occurred
 
-			awRequest.setFailedRequestErrorMessage("{\"error_code\":\"0103\",\"error_text\":\"" + se.getMessage() + "\"}");
+			awRequest.setFailedRequestErrorMessage("{\"code\":\"0103\",\"text\":\"" + se.getMessage() + "\"}");
 			awRequest.setFailedRequest(true);
 
 			throw new ControllerException(se);	

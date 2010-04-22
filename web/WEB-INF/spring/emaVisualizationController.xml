@@ -40,7 +40,7 @@
 	
   <bean id="startDateValidator" class="edu.ucla.cens.awserver.validator.DateValidator">
     <constructor-arg index="0">
-      <ref bean="emaVizFailedRequestAnnotator" />
+      <ref bean="failedRequestAnnotator" />
     </constructor-arg>
     <constructor-arg index="1">
       <value>startDate</value>
@@ -49,13 +49,13 @@
       <value>yyyy-MM-dd</value>
     </constructor-arg>
     <property name="errorMessage">
-      <value>{"error_code":"0700","error_text":"invalid start date"}</value>
+      <value>{"code":"0700","text":"invalid start date"}</value>
     </property>
   </bean>	
 
   <bean id="endDateValidator" class="edu.ucla.cens.awserver.validator.DateValidator">
     <constructor-arg index="0">
-      <ref bean="emaVizFailedRequestAnnotator" />
+      <ref bean="failedRequestAnnotator" />
     </constructor-arg>
     <constructor-arg index="1">
       <value>endDate</value>
@@ -64,11 +64,8 @@
       <value>yyyy-MM-dd</value>
     </constructor-arg>
     <property name="errorMessage">
-      <value>{"error_code":"0700","error_text":"invalid end date"}</value>
+      <value>{"code":"0700","text":"invalid end date"}</value>
     </property>
   </bean>	
-	
-  <!--  Annotate the AwRequest in the case of failed visualization -->	
-  <bean id="emaVizFailedRequestAnnotator" class="edu.ucla.cens.awserver.validator.FailedRequestAnnotator" />
-
+  
 </beans>

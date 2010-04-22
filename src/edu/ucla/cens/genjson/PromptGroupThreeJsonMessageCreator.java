@@ -87,8 +87,8 @@ public class PromptGroupThreeJsonMessageCreator implements JsonMessageCreator {
 	
 		for(int i = 0; i < numberOfEntries; i++) {
 			try { Thread.sleep(100); } catch (InterruptedException ie) { } // ensure variable dates
-			String date = ValueCreator.date(i);
-			long epoch = ValueCreator.epoch(i);
+			String date = ValueCreator.date(i,4);
+			long epoch = ValueCreator.epoch(i,4);
 			double latitude = ValueCreator.latitude();
 			double longitude = ValueCreator.longitude();
 			
@@ -105,7 +105,6 @@ public class PromptGroupThreeJsonMessageCreator implements JsonMessageCreator {
 			location.put("longitude", longitude);
 			map.put("location", location);
 			
-			
 			List<Map<String, Object>> responses = new ArrayList<Map<String, Object>>();
 			
 			// p0 is simply a "parent" question
@@ -120,26 +119,46 @@ public class PromptGroupThreeJsonMessageCreator implements JsonMessageCreator {
 			for(int j = 4; j < 9; j++) {
 				Map<String, Object> p = new HashMap<String, Object>();
 				p.put("prompt_id", j);
-				p.put("response", ValueCreator.randomPositiveIntModulus(5));
+				p.put("response", ValueCreator.randomPositiveIntModulus(3));
 				responses.add(p);
 			}
 			
-			for(int j = 9; j < 11; j++) {
-				Map<String, Object> p = new HashMap<String, Object>();
-				p.put("prompt_id", j);
-				p.put("response", ValueCreator.randomBoolean() ? 1 : 0);
-				responses.add(p);
-			}
+			Map<String, Object> p9 = new HashMap<String, Object>();
+			p9.put("prompt_id", 9);
+			p9.put("response", ValueCreator.randomBoolean() ? 1 : 0);
+			responses.add(p9);
+			
+			Map<String, Object> p10 = new HashMap<String, Object>();
+			p10.put("prompt_id", 10);
+			p10.put("response", ValueCreator.randomPositiveIntModulus(3));
+			responses.add(p10);
 			
 			Map<String, Object> p11 = new HashMap<String, Object>();
 			p11.put("prompt_id", 11);
-			p11.put("response", ValueCreator.randomPositiveIntModulus(3));
+			p11.put("response", ValueCreator.randomPositiveIntModulus(6));
 			responses.add(p11);
 			
 			Map<String, Object> p12 = new HashMap<String, Object>();
 			p12.put("prompt_id", 12);
-			p12.put("response", ValueCreator.randomPositiveIntModulus(6));
+			p12.put("response", ValueCreator.randomPositiveIntModulus(3));
 			responses.add(p12);
+//						
+//			for(int j = 9; j < 11; j++) {
+//				Map<String, Object> p = new HashMap<String, Object>();
+//				p.put("prompt_id", j);
+//				p.put("response", ValueCreator.randomBoolean() ? 1 : 0);
+//				responses.add(p);
+//			}
+//			
+//			Map<String, Object> p11 = new HashMap<String, Object>();
+//			p11.put("prompt_id", 11);
+//			p11.put("response", ValueCreator.randomPositiveIntModulus(3));
+//			responses.add(p11);
+//			
+//			Map<String, Object> p12 = new HashMap<String, Object>();
+//			p12.put("prompt_id", 12);
+//			p12.put("response", ValueCreator.randomPositiveIntModulus(6));
+//			responses.add(p12);
 			
 			List<String> booleans = new ArrayList<String>();
 			for(int j = 0; j < 6; j++) {
@@ -150,34 +169,34 @@ public class PromptGroupThreeJsonMessageCreator implements JsonMessageCreator {
 			p13.put("response", booleans);
 			responses.add(p13);
 			
-			for(int j = 14; j < 17; j++) {
+			for(int j = 14; j < 16; j++) {
 				Map<String, Object> p = new HashMap<String, Object>();
 				p.put("prompt_id", j);
 				p.put("response", ValueCreator.randomPositiveIntModulus(10));
 				responses.add(p);
 			}
 			
-			for(int j = 17; j < 19; j++) {
+			for(int j = 16; j < 18; j++) {
 				Map<String, Object> p = new HashMap<String, Object>();
 				p.put("prompt_id", j);
 				p.put("response", ValueCreator.randomBoolean() ? 1 : 0);
 				responses.add(p);
 			}
 			
+			Map<String, Object> p18 = new HashMap<String, Object>();
+			p18.put("prompt_id", 18);
+			p18.put("response", ValueCreator.randomPositiveIntModulus(3));
+			responses.add(p18);
+			
 			Map<String, Object> p19 = new HashMap<String, Object>();
 			p19.put("prompt_id", 19);
-			p19.put("response", ValueCreator.randomPositiveIntModulus(7));
+			p19.put("response", ValueCreator.randomBoolean() ? 1 : 0);
 			responses.add(p19);
 			
 			Map<String, Object> p20 = new HashMap<String, Object>();
 			p20.put("prompt_id", 20);
-			p20.put("response", ValueCreator.randomBoolean() ? 1 : 0);
+			p20.put("response", ValueCreator.randomPositiveIntModulus(3));
 			responses.add(p20);
-			
-			Map<String, Object> p21 = new HashMap<String, Object>();
-			p21.put("prompt_id", 21);
-			p21.put("response", ValueCreator.randomPositiveIntModulus(7));
-			responses.add(p21);
 			
 			map.put("responses", responses);
 			

@@ -28,8 +28,8 @@ public class ValueCreator {
 		return System.currentTimeMillis();
 	}
 
-	public static long epoch(int days) {
-		return System.currentTimeMillis() + (21600000l * days); 
+	public static long epoch(int response_num, int responses_per_day) {
+		return System.currentTimeMillis() - 86400000l * 14 + (86400000l / responses_per_day * response_num); 
 	}
 	
 	public static String tz() {
@@ -44,12 +44,12 @@ public class ValueCreator {
 		return sdf.format(new Date());
 	}
 
-	public static String date(int days) {
+	public static String date(int response_num, int responses_per_day) {
 		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 // use the local timezone for now
 // if specific timezones are added in the future, the epoch method will have to change so the value returned has the same tz
 //		sdf.setTimeZone(TimeZone.getTimeZone(tz));
-		return sdf.format(new Date(epoch(days)));
+		return sdf.format(new Date(epoch(response_num, responses_per_day)));
 	}
 	
 	public static String mode() {
@@ -71,6 +71,18 @@ public class ValueCreator {
 		String minutes = m < 10 ? "0" + m : String.valueOf(m);
 		
 		return hours + ":" + minutes; 
+	}
+	
+	// Can pass an hour around which the returned times will be centered
+	// The data will be distributed uniformly over the range
+	public static String randomTime(int average_hour, int hour_range) {
+	    int h = Math.abs((average_hour + _random.nextInt(hour_range+1) - hour_range / 2) % 24);
+	    String hours = String.valueOf(h);
+	    
+	    int m = Math.abs(_random.nextInt() % 60);
+        String minutes = m < 10 ? "0" + m : String.valueOf(m);
+	    
+	    return hours + ":" + minutes;
 	}
 	
 	public static int randomPositiveIntModulus(int modulus) {

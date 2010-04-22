@@ -96,20 +96,22 @@ public class AuthenticationFilter implements Filter {
 			// expired session, redirect to login page unless the user is attempting to login
 			if(! ((HttpServletRequest) request).getRequestURI().startsWith(_loginServletUrl)
 			    && ! ((HttpServletRequest) request).getRequestURI().startsWith(_loginRedirectUrl) ) { 
-				
+								
 				// Check to see if the URL represents an AJAX call 
-				if(-1 != Arrays.binarySearch(_ajaxUrls, ((HttpServletRequest) request).getRequestURI())) {
-					
-					Writer writer = new BufferedWriter(new OutputStreamWriter(response.getOutputStream()));
-					writer.write("{\"error_code\":\"0104\",\"error_text\":\"" + _loginRedirectUrl + "\"}");
-					writer.flush();
-					writer.close();
-					writer = null;
-					
-				} else {
+				if(Arrays.binarySearch(_ajaxUrls, ((HttpServletRequest) request).getRequestURI()) <= -1) {
 					
 					_logger.info("redirecting user to login page for URL " + ((HttpServletRequest) request).getRequestURI());
 					((HttpServletResponse) response).sendRedirect(_loginRedirectUrl);
+					
+				} else {
+					
+					response.setContentType("application/json");
+					
+					Writer writer = new BufferedWriter(new OutputStreamWriter(response.getOutputStream()));
+					writer.write("{\"code\":\"0104\",\"text\":\"" + _loginRedirectUrl + "\"}");
+					writer.flush();
+					writer.close();
+					writer = null;
 				}
 				
 			} else {

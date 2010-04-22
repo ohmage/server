@@ -359,14 +359,48 @@ String.leftPad = function (val, size, ch) {
     return result;
 }
 
-Date.prototype.incrementDay = function(numDays) {
-    return new Date(this.getTime() + Date.one_day * numDays);
+/*
+ * Add the specified number of milliseconds to the Date.  Return a copy of the
+ * original date.  Account for daylight savings by adding or subtracting an hour
+ * as necessary.
+ */
+Date.prototype.addTime = function(num_milliseconds) {
+    var next_time = new Date(this.getTime() + num_milliseconds);
+    
+    // Check to see if there is a daylight savings shift between the two days
+    var original_time_offset = this.getTimezoneOffset();
+    var new_time_offset = next_time.getTimezoneOffset();
+    if (original_time_offset != new_time_offset) {
+        // Recreate the new day and fix the daylight savings shift
+        next_time = new Date(this.getTime() + 
+                            num_milliseconds +
+                            // getTimezoneOffset returns units in minutes
+                            (new_time_offset - original_time_offset) * Date.one_minute);
+    }
+    
+    return next_time;
+}
+
+Date.prototype.incrementMinute = function(num_minutes) {
+    return this.addTime(num_minutes * Date.one_minute);
+}
+
+Date.prototype.incrementHour = function(num_hours) {
+    return this.addTime(num_hours * Date.one_hour);
+}
+
+Date.prototype.incrementDay = function(num_days) {
+    return this.addTime(num_days * Date.one_day);
 };
 
 // Find the difference in days between this date and the
 // passed in date
 Date.prototype.difference_in_days = function(second_day) {
     return Math.ceil((second_day.getTime()-this.getTime())/(Date.one_day));
+}
+
+Date.prototype.difference_in_hours = function(second_day) {
+    return Math.ceil((second_day.getTime()-this.getTime())/(Date.one_hour));
 }
 
 // Returns the month and day of the current date as a string
@@ -387,6 +421,23 @@ Date.prototype.toStringHourAndMinute = function() {
 	return this.getHours() + ':' + minute_string;
 }
 
+// Round the time down to the closest hour
+Date.prototype.roundDownToHour = function() {
+    return new Date(this.getFullYear(), this.getMonth(), this.getDate(),this.getHours(),0,0);
+}
+
+// Round the time up to the closest hour
+Date.prototype.roundUpToHour = function() {
+    var date_plus_one_hour = this.incrementHour(1);
+    
+    return new Date(date_plus_one_hour.getFullYear(), 
+                    date_plus_one_hour.getMonth(), 
+                    date_plus_one_hour.getDate(),
+                    date_plus_one_hour.getHours(),
+                    0,
+                    0);
+}
+
 // Return a date object of just the date (year/month/day)
 Date.prototype.grabDate = function() {
     return new Date(this.getFullYear(), this.getMonth(), this.getDate(),0,0,0);
@@ -402,9 +453,12 @@ Date.prototype.equals = function(_date) {
     return this.getTime() == _date.getTime();
 }
 
-// Set one day in milliseconds
+// Constants to translate common time increments to milliseconds
+Date.one_minute = 1000*60;
+Date.one_hour = 1000*60*60;
 Date.one_day = 1000*60*60*24;
 
+// Keep track of number of days in each of the months
 Date.daysInMonth = [31,28,31,30,31,30,31,31,30,31,30,31];
 Date.monthNames =
    ["January",

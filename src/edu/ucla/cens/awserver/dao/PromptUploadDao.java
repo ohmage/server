@@ -83,7 +83,7 @@ public class PromptUploadDao extends AbstractUploadDao {
 						_selectSql, new Object[]{ awRequest.getCampaignPromptVersionId(), 
 								                  awRequest.getCampaignPromptVersionId(), 
 								                  promptDataPacket.getGroupId(),
-								                  awRequest.getUser().getCampaignId(),
+								                  awRequest.getUser().getCurrentCampaignId(),
 								                  response.getPromptConfigId()}
 				     );
 					
@@ -96,7 +96,7 @@ public class PromptUploadDao extends AbstractUploadDao {
 							awRequest.getCampaignPromptVersionId() + ", " + 
 							awRequest.getCampaignPromptVersionId() + ", " +
 							promptDataPacket.getGroupId() + "," + 
-							awRequest.getUser().getCampaignId() +  "," + 
+							awRequest.getUser().getCurrentCampaignId() +  "," + 
 							response.getPromptConfigId()
 					); 
 					

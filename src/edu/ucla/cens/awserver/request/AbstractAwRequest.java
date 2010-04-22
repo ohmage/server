@@ -16,21 +16,12 @@ import edu.ucla.cens.awserver.domain.User;
  */
 public abstract class AbstractAwRequest implements AwRequest {
 	// Input state
-	private String _subdomain;
 	private String _requestUrl;
 	
 	// Processing state
 	private boolean _isFailedRequest;
 	private User _user;
 	private String _failedRequestErrorMessage;
-	
-	public String getSubdomain() {
-		return _subdomain;
-	}
-	
-	public void setSubdomain(String subdomain) {
-		_subdomain = subdomain;
-	}
 	
 	public String getRequestUrl() {
 		return _requestUrl;
@@ -69,7 +60,7 @@ public abstract class AbstractAwRequest implements AwRequest {
 		return "AbstractAwRequest [_failedRequestErrorMessage="
 				+ _failedRequestErrorMessage + ", _isFailedRequest="
 				+ _isFailedRequest + ", _requestUrl=" + _requestUrl
-				+ ", _subdomain=" + _subdomain + ", _user=" + _user + "]";
+				+ ", _user=" + _user + "]";
 	}
 	
 	/****

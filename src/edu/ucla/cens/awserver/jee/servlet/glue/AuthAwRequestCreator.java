@@ -1,11 +1,13 @@
 package edu.ucla.cens.awserver.jee.servlet.glue;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
+
 import javax.servlet.http.HttpServletRequest;
 
 import edu.ucla.cens.awserver.domain.UserImpl;
 import edu.ucla.cens.awserver.request.AwRequest;
 import edu.ucla.cens.awserver.request.ResultListAwRequest;
-import edu.ucla.cens.awserver.util.StringUtils;
 
 /**
  * Transformer for creating an AwRequest for authentication.
@@ -26,15 +28,26 @@ public class AuthAwRequestCreator implements AwRequestCreator {
 	 *  Validation of the data is performed within a controller.
 	 */
 	public AwRequest createFrom(HttpServletRequest request) {
-		String subdomain = StringUtils.retrieveSubdomainFromUrlString(request.getRequestURL().toString());
-		
 		String userName = request.getParameter("u");
+		String password = null; 
+			
+		if(null != request.getParameter("p")) {
+			try {
+				
+				password = URLDecoder.decode(request.getParameter("p"), "UTF-8");
+			
+			} catch(UnsupportedEncodingException uee) { // if UTF-8 is not recognized we have big problems
+			
+				throw new IllegalStateException(uee);
+			}
+		}
+		
 		UserImpl user = new UserImpl();
 		user.setUserName(userName);
+		user.setPassword(password);
 		
 		AwRequest awRequest = new ResultListAwRequest();
 		awRequest.setUser(user);
-		awRequest.setSubdomain(subdomain);
 		
 		return awRequest;
 	}

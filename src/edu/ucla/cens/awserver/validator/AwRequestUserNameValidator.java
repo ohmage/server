@@ -1,7 +1,5 @@
 package edu.ucla.cens.awserver.validator;
 
-import java.util.regex.Pattern;
-
 import edu.ucla.cens.awserver.request.AwRequest;
 import edu.ucla.cens.awserver.util.StringUtils;
 
@@ -10,24 +8,10 @@ import edu.ucla.cens.awserver.util.StringUtils;
  * 
  * @author selsky
  */
-public class AwRequestUserNameValidator extends AbstractAnnotatingValidator {
-	// private String _allowedCharacters;
-	private Pattern _regexpPattern;
-
-	/**
-	 * Creates an instance of this class using allowedCharacters as the set of characters that userNames are validated against. 
-	 *
-	 * @throws IllegalArgumentException if the passed in regexp is null, empty, or all whitespace
-	 * @throws PatternSyntaxException if the passed in regexp is invalid
-	 */
-	public AwRequestUserNameValidator(String regexp, AwRequestAnnotator failedValidationStrategy) {
-		super(failedValidationStrategy);
-		
-		if(StringUtils.isEmptyOrWhitespaceOnly(regexp)) {
-			throw new IllegalArgumentException("a null, empty, or all-whitespace string is not allowed");
-		}
-		
-		_regexpPattern = Pattern.compile(regexp);
+public class AwRequestUserNameValidator extends AbstractAnnotatingRegexpValidator {
+	
+	public AwRequestUserNameValidator(String regexp, AwRequestAnnotator awRequestAnnotator) {
+		super(regexp, awRequestAnnotator);
 	}
 	
 	/**
@@ -52,7 +36,7 @@ public class AwRequestUserNameValidator extends AbstractAnnotatingValidator {
 		
 		if(! _regexpPattern.matcher(userName).matches()) {
 		
-			getAnnotator().annotate(awRequest, "incorrect character found in user name: " + userName);
+			getAnnotator().annotate(awRequest, "incorrect user name: " + userName);
 			return false;
 		}
 		

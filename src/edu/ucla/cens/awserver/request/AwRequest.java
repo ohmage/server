@@ -95,9 +95,6 @@ public interface AwRequest {
 	public User getUser();
 	public void setUser(User user);
 	
-	public String getSubdomain();
-	public void setSubdomain(String subdomain);
-	
 	public String getRequestUrl();
 	public void setRequestUrl(String requestUrl);
 

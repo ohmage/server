@@ -22,7 +22,7 @@ public abstract class AbstractAwHttpServlet extends HttpServlet {
 	/**
 	 * Sets the response headers to disallow client caching.
 	 */
-	public void expireResponse(HttpServletResponse response) {
+	protected void expireResponse(HttpServletResponse response) {
 		response.setHeader("Expires", "Fri, 5 May 1995 12:00:00 GMT");
         response.setHeader("Cache-Control", "no-store, no-cache, must-revalidate");
         response.setHeader("Pragma", "no-cache");
@@ -31,7 +31,7 @@ public abstract class AbstractAwHttpServlet extends HttpServlet {
 	/**
 	 * @return an OutputStream appropriate for the headers found in the request.
 	 */
-	public OutputStream getOutputStream(HttpServletRequest request, HttpServletResponse response) 
+	protected OutputStream getOutputStream(HttpServletRequest request, HttpServletResponse response) 
 		throws IOException {
 		
 		OutputStream os = null; 
@@ -58,5 +58,19 @@ public abstract class AbstractAwHttpServlet extends HttpServlet {
 		}
 		
 		return os;
+	}
+	
+	/**
+	 * @return true if the provided value is longer than the provided length and print an informative message to the log 
+	 */
+	protected boolean greaterThanLength(String longName, String name, String value, int length) {
+		
+		if(null != value && value.length() > length) {
+			
+			_logger.warn("a " + longName + "(request parameter " + name + ") of " + value.length() + " characters was found");
+			return true;
+		}
+		
+		return false;
 	}
 }

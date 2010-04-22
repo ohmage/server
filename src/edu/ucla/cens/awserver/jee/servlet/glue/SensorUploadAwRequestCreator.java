@@ -8,10 +8,9 @@ import javax.servlet.http.HttpServletRequest;
 import edu.ucla.cens.awserver.domain.UserImpl;
 import edu.ucla.cens.awserver.request.AwRequest;
 import edu.ucla.cens.awserver.request.SensorUploadAwRequest;
-import edu.ucla.cens.awserver.util.StringUtils;
 
 /**
- * Transformer for creating an AwRequest for authentication.
+ * Transformer for creating an AwRequest for the upload feature.
  * 
  * @author selsky
  */
@@ -31,10 +30,11 @@ public class SensorUploadAwRequestCreator implements AwRequestCreator {
 	 *  Validation of the data is performed within a controller.
 	 */
 	public AwRequest createFrom(HttpServletRequest request) {
-		String subdomain = StringUtils.retrieveSubdomainFromUrlString(request.getRequestURL().toString());
 		String sessionId = request.getSession(false).getId(); // for upload logging to connect app logs to uploads
 		
 		String userName = request.getParameter("u");
+		String campaignId = request.getParameter("c");
+		String password = request.getParameter("p");
 		String requestType = request.getParameter("t");
 		String phoneVersion = request.getParameter("phv");
 		String protocolVersion = request.getParameter("prv");
@@ -52,23 +52,21 @@ public class SensorUploadAwRequestCreator implements AwRequestCreator {
 			throw new IllegalStateException(uee);
 		}
 		
-		// _logger.info(jsonData);
-		
 		UserImpl user = new UserImpl();
 		user.setUserName(userName);
+		user.setPassword(password);
+		user.setCurrentCampaignId(campaignId);
 		
 		AwRequest awRequest = new SensorUploadAwRequest();
 
 		awRequest.setStartTime(System.currentTimeMillis());
 		awRequest.setSessionId(sessionId);
 		awRequest.setUser(user);
-		awRequest.setSubdomain(subdomain);
 		awRequest.setRequestType(requestType);
 		awRequest.setPhoneVersion(phoneVersion);
 		awRequest.setProtocolVersion(protocolVersion);
 		awRequest.setJsonDataAsString(jsonData);
-		
-		
+				
 		String requestUrl = request.getRequestURL().toString();
 		if(null != request.getQueryString()) {
 			requestUrl += "?" + request.getQueryString(); 

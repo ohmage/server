@@ -112,10 +112,13 @@ public class ManageUser {
 		in.close();
 
 		checkProperty(props, "userName");
-		checkProperty(props, "password");
-		checkProperty(props, "subdomain");
-		checkProperty(props, "emailAddress");
-		checkProperty(props, "json");
+		
+		if("add".equals(function)) {
+			checkProperty(props, "password");
+			checkProperty(props, "campaignId");
+			checkProperty(props, "emailAddress");
+			checkProperty(props, "json");
+		}
 		checkProperty(props, "dbUserName");
 		checkProperty(props, "dbPassword");
 		checkProperty(props, "dbDriver");
@@ -125,31 +128,18 @@ public class ManageUser {
 		String userName = props.getProperty("userName");
 		String password = props.getProperty("password");
 		
-		
-//		if(userName.length() < 9) {
-//			throw new IllegalArgumentException("userName must be longer than eight characters");
-//		}
-		
 		Pattern pattern = Pattern.compile("[a-z\\.]{9,15}");
 		if(! pattern.matcher(userName).matches()) {
 			throw new IllegalArgumentException("user names can only be between 9 and 15 characters in length and can only contain" +
 			" letters and the dot character");
 		}
 		
-		if(! pattern.matcher(password).matches()) {
-			throw new IllegalArgumentException("passwords can only be between 9 and 15 characters in length and can only contain" +
-			" letters and the dot character");
+		if("add".equals(function)) {
+			if(! pattern.matcher(password).matches()) {
+				throw new IllegalArgumentException("passwords can only be between 9 and 15 characters in length and can only contain" +
+				" letters and the dot character");
+			}
 		}
-		
-//		String validChars = "abcdefghijklmnopqrstuvwxyz.";
-//		
-//		for(int i = 0; i < userName.length(); i++) {
-//			CharSequence subSequence = userName.subSequence(i, i + 1);
-//			
-//			if(! validChars.contains(subSequence)) {
-//				throw new IllegalArgumentException("userName contains an illegal character: " + subSequence);
-//			}
-//		}
 		
 		JSONObject json = new JSONObject(props.getProperty("json"));
 		// these calls are analogous to checkProperty() above except JSONObject will throw a JSONException if the key 
@@ -183,8 +173,6 @@ public class ManageUser {
 		JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
 		
 		try { 
-			
-			final int campaignId = findCampaignForSubdomain(jdbcTemplate, props);
 			
 			// Execute the rest of the queries inside a transaction
 			DefaultTransactionDefinition def = new DefaultTransactionDefinition();
@@ -252,6 +240,7 @@ public class ManageUser {
 				
 				// these vars are final in order to allow them to be used in the anonymous inner class
 				// it's weird, but the compiler won't allow it any other way
+				final int campaignId = Integer.parseInt(props.getProperty("campaignId"));
 				final int userId = userIdKeyHolder.getKey().intValue();
 				final int userPersonalId = userPersonalIdKeyHolder.getKey().intValue();
 				
@@ -347,9 +336,6 @@ public class ManageUser {
 		//
 		// Check incoming data to make sure that the removal can be performed
 		//
-
-		findCampaignForSubdomain(jdbcTemplate, props); // throws an IncorrectResultSizeDataAccessException if the campaign cannot be
-		                                               // found 
 		
 		int userId = jdbcTemplate.queryForInt( // throws an IncorrectResultSizeDataAccessException if the user cannot be found
 			"select id from user where login_id = \"" + props.getProperty("userName") + "\""
@@ -358,8 +344,8 @@ public class ManageUser {
 		
 		// throws an IncorrectResultSizeDataAccessException if a row cannot be found or more than one row is found.
 		// Our DB schema allows for multiple rows per user in user_personal (due to IRB standards the data must be kept separate
-		// from login credentials), but the business rules disallow it e.g., why would a user have two sets of first name and last 
-		// name? 
+		// from login credentials), but the business rules disallow it i.e., why would a user have two sets of first name and last 
+		// name?
 		int userPersonalId = jdbcTemplate.queryForInt("select id from user_personal where id = (select user_personal_id from " +
 			"user_user_personal where user_id = " + userId + ")");
 		_logger.info("found user_personal.id " + userPersonalId + " for user " + props.getProperty("userName"));
@@ -436,17 +422,6 @@ public class ManageUser {
 				
 			}
 		}   		
-	}
-	
-	/**
-	 * @throws IncorrectResultSizeDataAccessException if no campaign could be found for the subdomain 
-	 */
-	private static int findCampaignForSubdomain(JdbcTemplate jdbcTemplate, Properties props) {
-		int campaignId = jdbcTemplate.queryForInt(
-			"select id from campaign where subdomain = \"" + props.getProperty("subdomain") + "\""
-		);
-		_logger.info("found campaign id " + campaignId + " for subdomain " + props.getProperty("subdomain"));
-		return campaignId;
 	}
 	
 	/**

@@ -53,12 +53,9 @@ public class EmaQueryDao extends AbstractDao {
 			s = awRequest.getStartDate();
 			e = awRequest.getEndDate();
 			u = awRequest.getUser().getId();
-			c = awRequest.getUser().getCampaignId();
+			c = Integer.parseInt(awRequest.getUser().getCurrentCampaignId());
 			
-			List<?> l = getJdbcTemplate().query(
-					_selectSql, 
-					new Object[]{s, e, u, c},  	
-				    new EmaQueryRowMapper());
+			List<?> l = getJdbcTemplate().query(_selectSql, new Object[]{s, e, u, c}, new EmaQueryRowMapper());
 			
 			awRequest.setResultList(l);
 			
@@ -67,7 +64,7 @@ public class EmaQueryDao extends AbstractDao {
 		} catch (org.springframework.dao.DataAccessException dae) {
 			
 			_logger.error("caught DataAccessException when running SQL '" + _selectSql + "' with the following parameters: " + 
-					s + ", " + e + ", " + u);
+					s + ", " + e + ", " + u + ", " + c);
 			
 			throw new DataAccessException(dae); // wrap the Spring exception and re-throw in order to avoid outside dependencies
 			                                    // on the Spring Exception

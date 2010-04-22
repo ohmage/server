@@ -73,8 +73,8 @@ public class PromptGroupTwoJsonMessageCreator implements JsonMessageCreator {
 	
 		for(int i = 0; i < numberOfEntries; i++) {
 			try { Thread.sleep(100); } catch (InterruptedException ie) { } // ensure variable dates
-			String date = ValueCreator.date(i);
-			long epoch = ValueCreator.epoch(i);
+			String date = ValueCreator.date(i,4);
+			long epoch = ValueCreator.epoch(i,4);
 			double latitude = ValueCreator.latitude();
 			double longitude = ValueCreator.longitude();
 			
@@ -96,10 +96,10 @@ public class PromptGroupTwoJsonMessageCreator implements JsonMessageCreator {
 			
 			// p0 is simply a "parent" question
 			
-			for(int j = 1; j < 15; j++) {
+			for(int j = 1; j < 10; j++) {
 				Map<String, Object> p = new HashMap<String, Object>();
 				p.put("prompt_id", j);
-				p.put("response", ValueCreator.randomPositiveIntModulus(7));
+				p.put("response", ValueCreator.randomPositiveIntModulus(4));
 				responses.add(p);
 			}
 			
