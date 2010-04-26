@@ -1092,8 +1092,8 @@ ProtoGraphCustomSleepType.prototype.apply_data = function(data, start_date, num_
         ProtoGraph._logger.debug("Setting new graph height to: " + new_graph_height);
     }
     
-    // Setup the y scale
-    this.y_scale = pv.Scale.linear(earliest_time_in_bed, latest_time_awake).range(0, new_graph_height);
+    // Setup the y scale: earliest time in bed should be on the top
+    this.y_scale = pv.Scale.linear(earliest_time_in_bed, latest_time_awake).range(new_graph_height, 0);
     
     // Setup a linear X scale to assist mapping the mouse position to day index
     this.x_scale_linear = pv.Scale.linear(0, this.num_days).range(0, this.width);
@@ -1190,7 +1190,7 @@ ProtoGraphCustomSleepType.prototype.apply_data = function(data, start_date, num_
                 return that.y_scale.ticks();
             })
             .top(function(d) {
-                return that.y_scale(d);
+                return that.panel.height() - that.y_scale(d);
             })
             .left(0)
             .width(5)
