@@ -23,16 +23,16 @@ public class EmaQueryDao extends AbstractDao {
 	// type. The type is identified by prompt.prompt_config_id (the phone's prompt id) and 
 	// campaign_prompt_group.group_id (the phone's group id).
 	private String _selectSql = "select prompt_response.json_data, prompt_response.phone_timezone," +
-			                    " prompt_response.utc_time_stamp, prompt.prompt_config_id, " +
+			                    " prompt_response.time_stamp, prompt.prompt_config_id, " +
 			                    " campaign_prompt_group.group_id" +
 			                    " from prompt_response, prompt, campaign_prompt_group, campaign" +
-			                    " where prompt_response.utc_time_stamp >= timestamp(?)" +
-			                    " and prompt_response.utc_time_stamp <= timestamp(?)" +
+			                    " where prompt_response.time_stamp >= timestamp(?)" +
+			                    " and prompt_response.time_stamp <= timestamp(?)" +
 			                    " and prompt_response.user_id = ?" +
 			                    " and prompt_response.prompt_id = prompt.id" +
 			                    " and prompt.campaign_prompt_group_id = campaign_prompt_group.id " +
 			                    " and campaign_prompt_group.campaign_id = ?" +
-			                    " order by prompt_response.utc_time_stamp";
+			                    " order by prompt_response.time_stamp";
 	
 	/**
 	 * Creates an instance of this class using the provided DataSource as the method of data access.

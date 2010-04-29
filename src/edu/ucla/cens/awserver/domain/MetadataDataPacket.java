@@ -7,27 +7,27 @@ package edu.ucla.cens.awserver.domain;
  * @author selsky
  */
 public abstract class MetadataDataPacket implements DataPacket {
-	private String _utcDate;
-	private long _utcTime;
+	private String _date;
+	private long _epochTime;
 	private String _timezone;
 	
 	private Double _latitude;
 	private Double _longitude;
 		
-	public String getUtcDate() {
-		return _utcDate;
+	public String getDate() {
+		return _date;
 	}
 
-	public void setUtcDate(String date) {
-		_utcDate = date;
+	public void setDate(String date) {
+		_date = date;
 	}
 
-	public long getUtcTime() {
-		return _utcTime;
+	public long getEpochTime() {
+		return _epochTime;
 	}
 
-	public void setUtcTime(long time) {
-		_utcTime = time;
+	public void setEpochTime(long time) {
+		_epochTime = time;
 	}
 
 	public String getTimezone() {
@@ -56,8 +56,8 @@ public abstract class MetadataDataPacket implements DataPacket {
 	
 	@Override
 	public String toString() {
-		return "MetadataDataPacket [_utcDate=" + _utcDate + ", _latitude=" + _latitude
-				+ ", _longitude=" + _longitude + ", _utcTime=" + _utcTime
+		return "MetadataDataPacket [_date=" + _date + ", _latitude=" + _latitude
+				+ ", _longitude=" + _longitude + ", _epochTime=" + _epochTime
 				+ ", _timezone=" + _timezone + "]";
 	}
 }

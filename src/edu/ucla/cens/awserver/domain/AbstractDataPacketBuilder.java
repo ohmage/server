@@ -2,7 +2,6 @@ package edu.ucla.cens.awserver.domain;
 
 import org.json.JSONObject;
 
-import edu.ucla.cens.awserver.util.DateUtils;
 import edu.ucla.cens.awserver.util.JsonUtils;
 
 /**
@@ -13,8 +12,7 @@ import edu.ucla.cens.awserver.util.JsonUtils;
 public abstract class AbstractDataPacketBuilder implements DataPacketBuilder {
 	
 	/**
-	 * Sets the values for the fields common to all packets: date, time (millis since epoch), timezone, latitude, longitude. 
-	 * Converts the date and the time to UTC values. Assumes all JSON data has been pre-validated. 
+	 * Sets the values for the fields common to all packets: date, time (millis since epoch), timezone, latitude, longitude.  
 	 */
 	public void createCommonFields(JSONObject source, MetadataDataPacket packet) {
 		String date = JsonUtils.getStringFromJsonObject(source, "date");
@@ -24,11 +22,13 @@ public abstract class AbstractDataPacketBuilder implements DataPacketBuilder {
 		Double latitude = checkForDoubleNaN(location, "latitude");
 		Double longitude = checkForDoubleNaN(location, "longitude");
 		
-		String stringUtcDate = DateUtils.convertDateToUtc(date, timezone);
-		long utcTime = DateUtils.convertTimeToUtc(time, timezone);
+//		String stringUtcDate = DateUtils.convertDateToUtc(date, timezone);
+//		long utcTime = DateUtils.convertTimeToUtc(time, timezone);
+//		packet.setDate(stringUtcDate);
+//		packet.setEpochTime(utcTime);
 		
-		packet.setUtcDate(stringUtcDate);
-		packet.setUtcTime(utcTime);
+		packet.setDate(date);
+		packet.setEpochTime(time);
 		packet.setTimezone(timezone);
 		packet.setLatitude(latitude);
 		packet.setLongitude(longitude);

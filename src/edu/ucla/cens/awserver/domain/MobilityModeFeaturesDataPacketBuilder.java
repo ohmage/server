@@ -20,7 +20,6 @@ public class MobilityModeFeaturesDataPacketBuilder extends AbstractDataPacketBui
 	 * 
 	 * Performs some conversions on the incoming data to get it ready for database insertion.
 	 * <ul>
-	 * <li> Converts dates (date and time elements from the JSON message) to UTC using the timezone provided in the source object
 	 * <li> Converts Double.NaN to null for latitude and longitude.
 	 * </ul>
      *

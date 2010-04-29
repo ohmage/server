@@ -40,7 +40,7 @@ public class PromptUploadDao extends AbstractUploadDao {
 			                          " and prompt_config_id = ?";
 	
 	private final String _insertSql = "insert into prompt_response" +
-	                                  " (prompt_id, user_id, utc_time_stamp, utc_epoch_millis, phone_timezone," +
+	                                  " (prompt_id, user_id, time_stamp, epoch_millis, phone_timezone," +
 	                                  " latitude, longitude, json_data) " +
 	                                  " values (?,?,?,?,?,?,?,?)";
 	
@@ -121,8 +121,8 @@ public class PromptUploadDao extends AbstractUploadDao {
 								PreparedStatement ps = connection.prepareStatement(_insertSql);
 								ps.setInt(1, promptId);
 								ps.setInt(2, userId);
-								ps.setTimestamp(3, Timestamp.valueOf(promptDataPacket.getUtcDate()));
-								ps.setLong(4, promptDataPacket.getUtcTime());
+								ps.setTimestamp(3, Timestamp.valueOf(promptDataPacket.getDate()));
+								ps.setLong(4, promptDataPacket.getEpochTime());
 								ps.setString(5, promptDataPacket.getTimezone());
 								
 								// MySQL will not accept Double.NaN so null is used in its place
@@ -165,8 +165,8 @@ public class PromptUploadDao extends AbstractUploadDao {
 						// has been duplicated
 						
 						_logger.error("caught DataIntegrityViolationException when running SQL '" + _insertSql + "' with the " +
-							"following parameters: " + promptId + ", " + userId + ", " + promptDataPacket.getUtcDate() + ", " + 
-							promptDataPacket.getUtcTime() + ", " + promptDataPacket.getTimezone() + ", " +
+							"following parameters: " + promptId + ", " + userId + ", " + promptDataPacket.getDate() + ", " + 
+							promptDataPacket.getEpochTime() + ", " + promptDataPacket.getTimezone() + ", " +
 							(promptDataPacket.getLatitude().equals(Double.NaN) ? "null" : promptDataPacket.getLatitude()) +  ", " +
 							(promptDataPacket.getLongitude().equals(Double.NaN) ? "null" : promptDataPacket.getLongitude()) + ", " +
 							response.getResponse());
@@ -179,8 +179,8 @@ public class PromptUploadDao extends AbstractUploadDao {
 					                                                     // SQL from completing normally 
 					 
 					_logger.error("caught DataAccessException when running SQL '" + _insertSql + "' with the " +
-							"following parameters: " + promptId + ", " + userId + ", " + promptDataPacket.getUtcDate() + ", " + 
-							promptDataPacket.getUtcTime() + ", " + promptDataPacket.getTimezone() + ", " +
+							"following parameters: " + promptId + ", " + userId + ", " + promptDataPacket.getDate() + ", " + 
+							promptDataPacket.getEpochTime() + ", " + promptDataPacket.getTimezone() + ", " +
 							(promptDataPacket.getLatitude().equals(Double.NaN) ? "null" : promptDataPacket.getLatitude()) +  ", " +
 							(promptDataPacket.getLongitude().equals(Double.NaN) ? "null" : promptDataPacket.getLongitude()) + ", " +
 							response.getResponse());

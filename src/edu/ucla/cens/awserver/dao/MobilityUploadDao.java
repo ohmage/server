@@ -28,11 +28,11 @@ public class MobilityUploadDao extends AbstractUploadDao {
 	private static Logger _logger = Logger.getLogger(MobilityUploadDao.class);
 
 	private final String _insertMobilityModeOnlySql = "insert into mobility_mode_only_entry" +
-	                                                  " (user_id, utc_time_stamp, utc_epoch_millis, phone_timezone, latitude," +
+	                                                  " (user_id, time_stamp, epoch_millis, phone_timezone, latitude," +
 	                                                  " longitude, mode) values (?,?,?,?,?,?,?) ";
 
 	private final String _insertMobilityModeFeaturesSql = "insert into mobility_mode_features_entry" +
-			                                              " (user_id, utc_time_stamp, utc_epoch_millis, phone_timezone, latitude," +
+			                                              " (user_id, time_stamp, epoch_millis, phone_timezone, latitude," +
 			                                              " longitude, mode, speed, variance, average, fft)" +
 			                                              " values (?,?,?,?,?,?,?,?,?,?,?)";
 	
@@ -132,8 +132,8 @@ public class MobilityUploadDao extends AbstractUploadDao {
 				public PreparedStatement createPreparedStatement(Connection connection) throws SQLException {
 					PreparedStatement ps = connection.prepareStatement(_insertMobilityModeOnlySql);
 					ps.setInt(1, userId);
-					ps.setTimestamp(2, Timestamp.valueOf(dataPacket.getUtcDate()));
-					ps.setLong(3, dataPacket.getUtcTime());
+					ps.setTimestamp(2, Timestamp.valueOf(dataPacket.getDate()));
+					ps.setLong(3, dataPacket.getEpochTime());
 					ps.setString(4, dataPacket.getTimezone());
 					
 					if(dataPacket.getLatitude().isNaN()) {
@@ -167,8 +167,8 @@ public class MobilityUploadDao extends AbstractUploadDao {
 				public PreparedStatement createPreparedStatement(Connection connection) throws SQLException {
 					PreparedStatement ps = connection.prepareStatement(_insertMobilityModeFeaturesSql);
 					ps.setInt(1, userId);
-					ps.setTimestamp(2, Timestamp.valueOf(dataPacket.getUtcDate()));
-					ps.setLong(3, dataPacket.getUtcTime());
+					ps.setTimestamp(2, Timestamp.valueOf(dataPacket.getDate()));
+					ps.setLong(3, dataPacket.getEpochTime());
 					ps.setString(4, dataPacket.getTimezone());
 					
 					if(dataPacket.getLatitude().isNaN()) {
@@ -202,7 +202,7 @@ public class MobilityUploadDao extends AbstractUploadDao {
 			MobilityModeFeaturesDataPacket mmfdp = (MobilityModeFeaturesDataPacket) dataPacket;
 			
 			_logger.error("caught DataAccessException when running SQL '" + _insertMobilityModeFeaturesSql + "' with the following" +
-				" parameters: " + userId + ", " + Timestamp.valueOf(mmfdp.getUtcDate()) + ", " + mmfdp.getUtcTime() + ", " +
+				" parameters: " + userId + ", " + Timestamp.valueOf(mmfdp.getDate()) + ", " + mmfdp.getEpochTime() + ", " +
 				mmfdp.getTimezone() + ", " + (mmfdp.getLatitude().equals(Double.NaN) ? "null" : mmfdp.getLatitude()) +  ", " + 
 			    (mmfdp.getLongitude().equals(Double.NaN) ? "null" : mmfdp.getLongitude()) + ", " + mmfdp.getMode() + ", " + 
 			    mmfdp.getSpeed() + ", " + mmfdp.getVariance() + ", " + mmfdp.getAverage() + ", " + mmfdp.getFftArray());
@@ -212,7 +212,7 @@ public class MobilityUploadDao extends AbstractUploadDao {
 			MobilityModeOnlyDataPacket mmodp = (MobilityModeOnlyDataPacket) dataPacket;
 
 			_logger.error("caught DataAccessException when running SQL '" + _insertMobilityModeOnlySql +"' with the following " +
-				"parameters: " + userId + ", " + mmodp.getUtcDate() + ", " + mmodp.getUtcTime() + ", " + mmodp.getTimezone() + ", "
+				"parameters: " + userId + ", " + mmodp.getDate() + ", " + mmodp.getEpochTime() + ", " + mmodp.getTimezone() + ", "
 				+ (mmodp.getLatitude().equals(Double.NaN) ? "null" : mmodp.getLatitude()) + ", " + 
 				(mmodp.getLongitude().equals(Double.NaN) ? "null" : mmodp.getLongitude()) + ", " + mmodp.getMode());
 			
