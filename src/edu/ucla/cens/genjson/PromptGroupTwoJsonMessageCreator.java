@@ -9,6 +9,7 @@ import org.json.JSONArray;
 
 /**
  * Simulator of phone/sensor messages that correspond to the prompt type and the prompt group id 2 ("emotional state" group). 
+ * 
  * See the <a href="http://www.lecs.cs.ucla.edu/wikis/andwellness/index.php/AndWellness-JSON">JSON Protocol documentation</a>
  * and the <a href="http://www.lecs.cs.ucla.edu/wikis/andwellness/index.php/AndWellness-Prompts">Prompt Spec</a> on the wiki for
  * details.
@@ -16,50 +17,6 @@ import org.json.JSONArray;
  * @author selsky
  */
 public class PromptGroupTwoJsonMessageCreator implements JsonMessageCreator {
-
-//	# Emotional State group
-//	{
-//	    "date":"2009-11-03 10:18:33",
-//	    "time":1257272467077,
-//	    "timezone":"EST",
-//	    "location": {
-//	        "latitude":38.8977,
-//	        "longitude":-77.0366
-//	    },
-//	    "version_id":1,
-//	    "group_id":2,
-//	    "tags": [],
-//	    "responses":[
-//	        {"prompt_id":1,
-//	         "response":0},
-//	        {"prompt_id":2,
-//	         "response":0},
-//	        {"prompt_id":3,
-//	         "response":0},
-//	        {"prompt_id":4,
-//	         "response":0},
-//	        {"prompt_id":5,
-//	         "response":0},
-//	        {"prompt_id":6,
-//	         "response":0},
-//	        {"prompt_id":7,
-//	         "response":0},
-//	        {"prompt_id":8,
-//	         "response":0},
-//	        {"prompt_id":9,
-//	         "response":0},
-//	        {"prompt_id":10,
-//	         "response":0},
-//	        {"prompt_id":11,
-//	         "response":0},
-//	        {"prompt_id":12,
-//	         "response":0},
-//	        {"prompt_id":13,
-//	         "response":0},
-//	        {"prompt_id":14,
-//	         "response":0}
-//	     ]
-//	}
 	
 	/**
 	 * Returns a JSONArray with numberOfEntries elements that are all of the prompt group id 2 type.
@@ -91,12 +48,11 @@ public class PromptGroupTwoJsonMessageCreator implements JsonMessageCreator {
 			location.put("longitude", longitude);
 			map.put("location", location);
 			
-			
 			List<Map<String, Object>> responses = new ArrayList<Map<String, Object>>();
 			
 			// p0 is simply a "parent" question
 			
-			for(int j = 1; j < 10; j++) {
+			for(int j = 1; j < 11; j++) {
 				Map<String, Object> p = new HashMap<String, Object>();
 				p.put("prompt_id", j);
 				p.put("response", ValueCreator.randomPositiveIntModulus(4));
