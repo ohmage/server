@@ -35,7 +35,7 @@ INSERT INTO prompt (prompt_type_id, campaign_prompt_group_id, campaign_prompt_ve
   -- new
   (6, 3, 1, 10, 0, "Enjoyment/fun","enjoyment/fun"),
   
-  -- new/reordered
+  -- new/reordered/removed
   (14, 4, 1, 0, NULL, "Overall, how stressed did you feel today?","how stressed"),
   (12, 4, 1, 1, NULL, "Did you experience any of the following today:","experiences"),
   (10, 4, 1, 2, 1, "Little interest or pleasure in doing things?","little interest or pleasure"),
