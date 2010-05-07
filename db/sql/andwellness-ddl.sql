@@ -149,7 +149,6 @@ CREATE TABLE prompt (
   legend_text tinytext NOT NULL,
   PRIMARY KEY (id),
   UNIQUE (campaign_prompt_group_id, campaign_prompt_version_id, prompt_config_id),
-  UNIQUE (legend_text(255)),
   CONSTRAINT FOREIGN KEY (prompt_type_id) REFERENCES prompt_type (id) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT FOREIGN KEY (campaign_prompt_group_id) REFERENCES campaign_prompt_group (id) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT FOREIGN KEY (campaign_prompt_version_id) REFERENCES campaign_prompt_version (id) ON DELETE CASCADE ON UPDATE CASCADE,
