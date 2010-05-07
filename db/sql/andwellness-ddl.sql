@@ -191,7 +191,7 @@ CREATE TABLE prompt (
 -- order to facilitate easier querying via tags and because tags are used 
 -- across all types of prompt responses so they have a natural structure.
 -- ----------------------------------------------------------------------------
- CREATE TABLE prompt_repsonse_tag (
+ CREATE TABLE prompt_response_tag (
   id integer unsigned NOT NULL auto_increment, 
   prompt_response_id integer unsigned NOT NULL,
   tag_id integer unsigned NOT NULL,
@@ -215,7 +215,7 @@ CREATE TABLE prompt (
 -- ----------------------------------------------
 -- Link group tags to actual prompt responses. 
 -- ----------------------------------------------
-CREATE TABLE prompt_group_repsonse_tag (
+CREATE TABLE prompt_group_response_tag (
   id integer unsigned NOT NULL auto_increment,
   prompt_response_id integer unsigned NOT NULL,
   group_tag_id integer unsigned NOT NULL,
