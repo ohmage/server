@@ -8,6 +8,8 @@ UPDATE prompt SET parent_config_id = null;
 
 DELETE from prompt;
 
+DROP index legend_text on prompt;
+
 INSERT INTO campaign_prompt_group (campaign_id, campaign_prompt_version_id, group_id, group_name) VALUES  (1, 1, 4, "Emotional State (End of Day)");
 
 INSERT INTO prompt (prompt_type_id, campaign_prompt_group_id, campaign_prompt_version_id, prompt_config_id, parent_config_id, question_text, legend_text) VALUES
