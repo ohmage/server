@@ -5,7 +5,7 @@ INSERT INTO configuration (json_data) VALUES ('{"name":"root"}');
 
 INSERT INTO campaign (name, label, configuration_id) VALUES ('ganz', 'Breast Cancer Survivor Study', 1);
 
-INSERT INTO user_role (label) VALUES ('admin'), ('participant'), ('health worker');
+INSERT INTO user_role (label) VALUES ('admin'), ('participant'), ('researcher');
 
 INSERT INTO campaign_prompt_version (campaign_id, version_id) VALUES (1, 1);
 
@@ -13,7 +13,8 @@ INSERT INTO campaign_prompt_group (campaign_id, campaign_prompt_version_id, grou
   (1, 1, 0, "Saliva"),
   (1, 1, 1, "Sleep"),
   (1, 1, 2, "Emotional State"),
-  (1, 1, 3, "Diary");
+  (1, 1, 3, "Diary"),
+  (1, 1, 4, "Emotional State (End of Day)");;
 
 INSERT INTO prompt_type (type, restriction) VALUES
   ("time_military", NULL),
@@ -41,7 +42,7 @@ INSERT INTO prompt (prompt_type_id, campaign_prompt_group_id, campaign_prompt_ve
   (4, 2, 1, 3, NULL, "How many hours of actual sleep did you get?","hours of sleep"),
   (5, 2, 1, 4, NULL, "How would you rate your sleep quality?","sleep quality"),
   
-  (12, 3, 1, 0, NULL, "For the following, please rate how much you are currently feeling:","currently feeling "),
+  (12, 3, 1, 0, NULL, "Please rate how much you are currently feeling:","currently feeling "),
   (6, 3, 1, 1, 0, "Sad","feeling sad"),
   (6, 3, 1, 2, 0, "Relaxed","feeling relaxed"),
   (6, 3, 1, 3, 0, "Anxious","feeling anxious"),
@@ -51,27 +52,31 @@ INSERT INTO prompt (prompt_type_id, campaign_prompt_group_id, campaign_prompt_ve
   (6, 3, 1, 7, 0, "Energetic","feeling energetic"),
   (6, 3, 1, 8, 0, "Irritable","feeling irritable"),
   (6, 3, 1, 9, 0, "Calm","feeling calm"),
+  (6, 3, 1, 10, 0, "Enjoyment/fun","enjoyment/fun"),
   
-  (12, 4, 1, 0, NULL, "Did you experience any of the following today:","experiences"),
-  (10, 4, 1, 1, 0, "Little interest or pleasure in doing things?","little interest or pleasure"),
-  (10, 4, 1, 2, 0, "Feeling down, depressed, or hopeless?","feeling down, depressed, or hopeless"),
-  (10, 4, 1, 3, 0, "Feeling bad about yourself, feeling that you are a failure, or feeling that you have let yourself or your family down?","feeling bad, like a failure, let family or friends down"),
-  (7, 4, 1, 4, NULL, "How often did you feel that you were unable to control the important things in your life today?","unable to control important things"),
-  (7, 4, 1, 5, NULL, "How often did you feel confident about your ability to handle your personal problems today?","confident in handling personal problems"),
-  (7, 4, 1, 6, NULL, "How often did you feel that things were going your way today?","things going your way"),
-  (7, 4, 1, 7, NULL, "How often did you find that you could not cope with all the things that you had to do today?","cope with things you had to do"),
-  (7, 4, 1, 8, NULL, "How often did you feel difficulties were piling up so high that you could not overcome them?","difficulties too high to overcome"),
-  (10, 4, 1, 9, NULL, "Did you exercise today?","did you exercise"),
-  (8, 4, 1, 10, 9, "If yes, what type of exercise did you today?","type of exercise"),
-  (13, 4, 1, 11, 9, "If you exercised, for how many minutes did you exercise?","how many minutes did you exercise"),
-  (14, 4, 1, 12, 9, "If you exercised, did you enjoy exercising?","exercise enjoyment"),
-  (11, 4, 1, 13, 9, "If you didn't exercise, why not? (lack of time, lack of self-discipline, fatigue, procrastination, lack of interest, family work or responsibilities,","exercise interference"),
+  (14, 4, 1, 0, NULL, "Overall, how stressed did you feel today?","how stressed"),
+  (12, 4, 1, 1, NULL, "Did you experience any of the following today:","experiences"),
+  (10, 4, 1, 2, 1, "Little interest or pleasure in doing things?","little interest or pleasure"),
+  (10, 4, 1, 3, 1, "Feeling down, depressed, or hopeless?","feeling down, depressed, or hopeless"),
+  (10, 4, 1, 4, 1, "Feeling bad about yourself, feeling that you are a failure, or feeling that you have let yourself or your family down?","feeling bad, like a failure, let family or friends down"),
+  (10, 4, 1, 5, NULL, "Did you exercise today?","did you exercise"),
+  (8, 4, 1, 6, 5, "If yes, what type of exercise did you today?","type of exercise"),
+  (13, 4, 1, 7, 5, "If you exercised, for how many minutes did you exercise?","how many minutes did you exercise"),
+  (14, 4, 1, 8, 5, "If you exercised, did you enjoy exercising?","exercise enjoyment"),
+  (11, 4, 1, 9, 5, "If you didn't exercise, why not? (lack of time, family work or responsibilities, fatigue, procrastination, lack of interest, lack of self-discipline","exercise interference"),
+  (9, 4, 1, 10, NULL, "How many alcoholic beverages did you have today?","number of alcoholic beverages"),
+  (9, 4, 1, 11, NULL, "How many caffeinated beverages did you have today?","number of caffeinated beverages"),
+  (10, 4, 1, 12, NULL, "Did you have any high sugar food or drinks today? (soft drinks, candy, etc)","sugary food or drinks"),
   
-  (9, 4, 1, 14, NULL, "How many alcoholic beverages did you have today?","number of alcoholic beverages"),
-  (9, 4, 1, 15, NULL, "How many caffeinated beverages did you have today?","number of caffeinated beverages"),
-  (10, 4, 1, 16, NULL, "Did you have any high sugar food or drinks today? (soft drinks, candy, etc)","sugary food or drinks"),
-  (10, 4, 1, 17, NULL, "Did anything happen today that was stressful or difficult for you?","did anything stressful happen"),
-  (14, 4, 1, 18, 17, "If so, how stressful was this?","how stressful"),
-  (10, 4, 1, 19, NULL, "Did anything happen today that was enjoyable or felt good to you?","did anything enjoyable happen"),
-  (14, 4, 1, 20, 19, "If so, how enjoyable was this?","how enjoyable");
+  (12, 5, 1, 0, NULL, "Please rate how much you felt each of the following today:","feeling today"),
+  (6, 5, 1, 1, 0, "Sad","feeling sad"),
+  (6, 5, 1, 2, 0, "Relaxed","feeling relaxed"),
+  (6, 5, 1, 3, 0, "Anxious","feeling anxious"),
+  (6, 5, 1, 4, 0, "Tired","feeling tired"),
+  (6, 5, 1, 5, 0, "Happy","feeling happy"),
+  (6, 5, 1, 6, 0, "Upset","feeling upset"),
+  (6, 5, 1, 7, 0, "Energetic","feeling energetic"),
+  (6, 5, 1, 8, 0, "Irritable","feeling irritable"),
+  (6, 5, 1, 9, 0, "Calm","feeling calm"),
+  (6, 5, 1, 10, 0, "Enjoyment/fun","enjoyment/fun");
   
