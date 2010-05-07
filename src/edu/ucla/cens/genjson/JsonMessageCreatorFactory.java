@@ -43,6 +43,10 @@ public class JsonMessageCreatorFactory {
 			
 			return new PromptGroupThreeJsonMessageCreator();
 			
+		} else if ("prompt:4".equals(messageCreatorName)) {
+			
+			return new PromptGroupFourJsonMessageCreator();
+			
 		} else {
 			
 			throw new IllegalArgumentException("cannot create JSON messages, invalid message type: " + messageCreatorName);
