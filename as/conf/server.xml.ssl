@@ -1,13 +1,5 @@
 <?xml version="1.0"?>
-<!-- This is a template for a rather minimal AS (Apache Tomcat 5.5.x server) configuration.  An installer is supposed to do a
-     text-replacement on the following substitution variables/parameters upon installing a web application.
 
-     Substitution variables (all on the form _X_<variable>_):
-     AS_ID            AS specific identifier appended to generated session IDs.
-     AS_HTTP_PORT
-     AS_HTTPS_PORT    (Not yet used)
-     AS_SHUTDOWN_PORT
--->
 <Server port="18080" shutdown="SHUTDOWN">
   <Listener className="org.apache.catalina.core.JasperListener" />
 
@@ -17,7 +9,7 @@
          1) To disable connection timeouts, set connectionTimeout value to 0.
          2) For redirect port, use the one the client sees, not the one server listens to.
       -->
-    <Connector port="80" 
+    <Connector port="8080" 
                redirectPort="443" 
                acceptCount="100"
                connectionTimeout="20000"
@@ -29,10 +21,14 @@
                maxHttpHeaderSize="8192"
                disableUploadTimeout="true"
                emptySessionPath="true"/>
-
-    <Connector port="443"
-               keystoreFile="conf/keystore"
-               keystorePass="changeit"
+    
+    <!--
+        Fill in keystorePass to make this usable
+    -->
+    <Connector port="8443"
+               keystoreFile="conf/andwellness.key"
+               keystorePass=""
+               keyAlias="www.andwellness.org"
                maxHttpHeaderSize="8192"
                maxThreads="150"
                minSpareThreads="25"
