@@ -91,7 +91,8 @@ public class GenerateJson {
 			|| "prompt:0".equals(messageType)
 			|| "prompt:1".equals(messageType)
 			|| "prompt:2".equals(messageType)
-		    || "prompt:3".equals(messageType);
+		    || "prompt:3".equals(messageType)
+		    || "prompt:4".equals(messageType);
 	}
 	
 	private static String _helpText = "\nGiven a number of messages, a message type and a file name, generate JSON messages and\n" +
