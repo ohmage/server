@@ -247,7 +247,7 @@
       Runs visualization queries for EMA (prompt/survey response) data. 
     </description>
     <servlet-name>EmaVizServlet</servlet-name>
-    <servlet-class>edu.ucla.cens.awserver.jee.servlet.EmaVizServlet</servlet-class>
+    <servlet-class>edu.ucla.cens.awserver.jee.servlet.AwDataServlet</servlet-class>
     <!--  The following init-params are used to map the servlet to Spring-configured beans that ultimately service the request. 
           The param-value elements are Spring bean ids.    
     -->
@@ -258,6 +258,14 @@
     <init-param>
       <param-name>awRequestCreatorName</param-name>
       <param-value>emaVizAwRequestCreator</param-value>
+    </init-param>
+    <init-param>
+      <param-name>httpServletRequestValidatorName</param-name>
+      <param-value>emaVizHttpServletRequestValidator</param-value>
+    </init-param>
+    <init-param>
+      <param-name>responseWriterName</param-name>
+      <param-value>emaVizResponseWriter</param-value>
     </init-param>
     <load-on-startup>1</load-on-startup>
   </servlet>
