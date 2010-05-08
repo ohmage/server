@@ -9,6 +9,10 @@
   <!-- Servlet-to-AW hooks -->
   <!-- create AwRequest from data in the HttpServletRequest -->
   <bean id="emaVizAwRequestCreator" class="edu.ucla.cens.awserver.jee.servlet.glue.EmaVizAwRequestCreator" />
+  <!-- "pre-validate" inbound data -->
+  <bean id="emaVizHttpServletRequestValidator" class="edu.ucla.cens.awserver.jee.servlet.validator.EmaVizValidator" />
+  <!-- write outbound data -->
+  <bean id="emaVizResponseWriter" class="edu.ucla.cens.awserver.jee.servlet.writer.EmaVizResponseWriter" />
     
   <!-- Controller -->
   <bean id="emaVizController" class="edu.ucla.cens.awserver.controller.ControllerImpl">
