@@ -53,14 +53,14 @@
     <init-param>
       <param-name>ajaxUrls</param-name>
       <!--  To add a URL, make this a comma-separated list -->
-      <param-value>/app/viz</param-value>
+      <param-value>/app/q/ema</param-value>
     </init-param>
   </filter>
   
   <!--  Add filter mappings for whatever resources require authenticated access --> 
   <filter-mapping>
     <filter-name>AuthenticationFilter</filter-name>
-    <servlet-name>EmaVizServlet</servlet-name>
+    <servlet-name>EmaQueryServlet</servlet-name>
   </filter-mapping>
   <filter-mapping>
     <filter-name>AuthenticationFilter</filter-name>
@@ -241,38 +241,38 @@
     <url-pattern>/app/sensor/login</url-pattern>
   </servlet-mapping>
   
-  <!--  Handle EMA Visualization Queries  -->
+  <!--  Handle EMA Queries  -->
   <servlet>
     <description>
-      Runs visualization queries for EMA (prompt/survey response) data. 
+      Runs queries for EMA (prompt response) data. 
     </description>
-    <servlet-name>EmaVizServlet</servlet-name>
+    <servlet-name>EmaQueryServlet</servlet-name>
     <servlet-class>edu.ucla.cens.awserver.jee.servlet.AwDataServlet</servlet-class>
     <!--  The following init-params are used to map the servlet to Spring-configured beans that ultimately service the request. 
           The param-value elements are Spring bean ids.    
     -->
     <init-param>
       <param-name>controllerName</param-name>
-      <param-value>emaVizController</param-value>
+      <param-value>emaQueryController</param-value>
     </init-param>
     <init-param>
       <param-name>awRequestCreatorName</param-name>
-      <param-value>emaVizAwRequestCreator</param-value>
+      <param-value>emaQueryAwRequestCreator</param-value>
     </init-param>
     <init-param>
       <param-name>httpServletRequestValidatorName</param-name>
-      <param-value>emaVizHttpServletRequestValidator</param-value>
+      <param-value>emaQueryHttpServletRequestValidator</param-value>
     </init-param>
     <init-param>
       <param-name>responseWriterName</param-name>
-      <param-value>emaVizResponseWriter</param-value>
+      <param-value>emaQueryResponseWriter</param-value>
     </init-param>
     <load-on-startup>1</load-on-startup>
   </servlet>
   
   <servlet-mapping>
-    <servlet-name>EmaVizServlet</servlet-name>
-    <url-pattern>/app/viz</url-pattern>
+    <servlet-name>EmaQueryServlet</servlet-name>
+    <url-pattern>/app/q/ema</url-pattern>
   </servlet-mapping>
   
   <welcome-file-list>
