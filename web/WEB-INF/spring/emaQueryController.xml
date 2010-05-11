@@ -1,0 +1,75 @@
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
+                           http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-2.5.xsd">
+  <!--  
+     Spring ApplicationContext configuration for HTML form-based prompt/survey response visualizations 
+  -->
+  
+  <!-- Servlet-to-AW hooks -->
+  <!-- create AwRequest from data in the HttpServletRequest -->
+  <bean id="emaQueryAwRequestCreator" class="edu.ucla.cens.awserver.jee.servlet.glue.EmaQueryAwRequestCreator" />
+  <!-- "pre-validate" inbound data -->
+  <bean id="emaQueryHttpServletRequestValidator" class="edu.ucla.cens.awserver.jee.servlet.validator.EmaQueryValidator" />
+  <!-- write outbound data -->
+  <bean id="emaQueryResponseWriter" class="edu.ucla.cens.awserver.jee.servlet.writer.EmaQueryResponseWriter" />
+    
+  <!-- Controller -->
+  <bean id="emaQueryController" class="edu.ucla.cens.awserver.controller.ControllerImpl">
+    <constructor-arg index="0">
+      <list>
+        <ref bean="emaQueryService" />
+      </list>
+    </constructor-arg>
+    <property name="validators">
+      <list>
+        <ref bean="startDateValidator" />
+        <ref bean="endDateValidator" />
+      </list>      
+    </property>
+     <property name="featureName"><value>EMA visualization query</value></property>
+  </bean>
+  
+  <!-- Service the visualization request -->
+  <bean id="emaQueryService" class="edu.ucla.cens.awserver.service.SimpleQueryService">
+    <constructor-arg index="0">
+      <ref bean="emaQueryDao" />
+    </constructor-arg>
+  </bean>
+
+  <!-- Interact with database -->
+  <bean id="emaQueryDao" class="edu.ucla.cens.awserver.dao.EmaQueryDao">
+    <constructor-arg index="0"><ref bean="dataSource" /></constructor-arg>
+  </bean>
+	
+  <bean id="startDateValidator" class="edu.ucla.cens.awserver.validator.DateValidator">
+    <constructor-arg index="0">
+      <ref bean="failedRequestAnnotator" />
+    </constructor-arg>
+    <constructor-arg index="1">
+      <value>startDate</value>
+    </constructor-arg>
+    <constructor-arg index="2">
+      <value>yyyy-MM-dd</value>
+    </constructor-arg>
+    <property name="errorMessage">
+      <value>{"code":"0700","text":"invalid start date"}</value>
+    </property>
+  </bean>	
+
+  <bean id="endDateValidator" class="edu.ucla.cens.awserver.validator.DateValidator">
+    <constructor-arg index="0">
+      <ref bean="failedRequestAnnotator" />
+    </constructor-arg>
+    <constructor-arg index="1">
+      <value>endDate</value>
+    </constructor-arg>
+    <constructor-arg index="2">
+      <value>yyyy-MM-dd</value>
+    </constructor-arg>
+    <property name="errorMessage">
+      <value>{"code":"0700","text":"invalid end date"}</value>
+    </property>
+  </bean>	
+  
+</beans>
