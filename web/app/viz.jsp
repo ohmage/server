@@ -71,7 +71,7 @@
     var dashBoard = null;
 	
     // Handles retrieval and filtering of data
-    var dataSource = new DataSourceJson('/app/viz');
+    var dataSource = new DataSourceJson('/app/q/ema');
 		
     // Main logger
     var log = log4javascript.getLogger();
@@ -202,7 +202,7 @@
   <div id="controls">
  	Choose a time period:
 
-    <form method="post" action="/app/viz" id="grabDateForm">
+    <form method="post" action="/app/q/ema" id="grabDateForm">
       <label for="startDate" class="label">Start Date:</label>
       <input id="startDate" type="text"/>
       <label for="numDays" class="label">Length:</label>
