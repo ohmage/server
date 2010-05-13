@@ -53,7 +53,7 @@
     <init-param>
       <param-name>ajaxUrls</param-name>
       <!--  To add a URL, make this a comma-separated list -->
-      <param-value>/app/q/ema</param-value>
+      <param-value>/app/q/ema,/app/q/percent-successful-location-updates</param-value>
     </init-param>
   </filter>
   
@@ -61,6 +61,10 @@
   <filter-mapping>
     <filter-name>AuthenticationFilter</filter-name>
     <servlet-name>EmaQueryServlet</servlet-name>
+  </filter-mapping>
+  <filter-mapping>
+    <filter-name>AuthenticationFilter</filter-name>
+    <servlet-name>SuccessfulLocationUpdatesQueryServlet</servlet-name>
   </filter-mapping>
   <filter-mapping>
     <filter-name>AuthenticationFilter</filter-name>
@@ -273,6 +277,37 @@
   <servlet-mapping>
     <servlet-name>EmaQueryServlet</servlet-name>
     <url-pattern>/app/q/ema</url-pattern>
+  </servlet-mapping>
+  
+  
+  <!--  Handle location update queries -->
+  <servlet>
+    <description>
+      Runs queries for the percentage of successful location updates per day. 
+    </description>
+    <servlet-name>SuccessfulLocationUpdatesQueryServlet</servlet-name>
+    <servlet-class>edu.ucla.cens.awserver.jee.servlet.AwDataServlet</servlet-class>
+    <!--  The following init-params are used to map the servlet to Spring-configured beans that ultimately service the request. 
+          The param-value elements are Spring bean ids.    
+    -->
+    <init-param>
+      <param-name>controllerName</param-name>
+      <param-value>successfulLocationUpdatesQueryController</param-value>
+    </init-param>
+    <init-param>
+      <param-name>awRequestCreatorName</param-name>
+      <param-value>userOnlyAwRequestCreator</param-value>
+    </init-param>
+    <init-param>
+      <param-name>responseWriterName</param-name>
+      <param-value>successfulLocationUpdatesQueryResponseWriter</param-value> 
+    </init-param>
+    <load-on-startup>1</load-on-startup>
+  </servlet>
+  
+  <servlet-mapping>
+    <servlet-name>SuccessfulLocationUpdatesQueryServlet</servlet-name>
+    <url-pattern>/app/q/percent-successful-location-updates</url-pattern>
   </servlet-mapping>
   
   <welcome-file-list>
