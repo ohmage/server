@@ -65,11 +65,6 @@ public class AwDataServlet extends AbstractAwHttpServlet {
 					" cannot be initialized and put into service.");
 		}
 		
-		if(StringUtils.isEmptyOrWhitespaceOnly(httpServletRequestValidatorName)) {
-			throw new ServletException("Invalid web.xml. Missing httpServletRequestValidatorName init param. Servlet " + 
-					servletName + " cannot be initialized and put into service.");
-		}
-		
 		if(StringUtils.isEmptyOrWhitespaceOnly(responseWriterName)) {
 			throw new ServletException("Invalid web.xml. Missing responseWriterName init param. Servlet " + 
 					servletName + " cannot be initialized and put into service.");
@@ -84,7 +79,10 @@ public class AwDataServlet extends AbstractAwHttpServlet {
 		
 		_controller = (Controller) applicationContext.getBean(controllerName);
 		_awRequestCreator = (AwRequestCreator) applicationContext.getBean(awRequestCreatorName);
-		_httpServletRequestValidator = (HttpServletRequestValidator) applicationContext.getBean(httpServletRequestValidatorName);
+		
+		if(null != httpServletRequestValidatorName) {
+			_httpServletRequestValidator = (HttpServletRequestValidator) applicationContext.getBean(httpServletRequestValidatorName);
+		}
 		_responseWriter = (ResponseWriter) applicationContext.getBean(responseWriterName);
 		
 	}
@@ -95,8 +93,8 @@ public class AwDataServlet extends AbstractAwHttpServlet {
 	protected void processRequest(HttpServletRequest request, HttpServletResponse response)
 		throws ServletException, IOException { // allow Tomcat to handle Servlet and IO Exceptions
 		
-		// Top-level security validation
-		if(! _httpServletRequestValidator.validate(request)) {
+		// Top-level security validation (if configured with a validator)
+		if(null != _httpServletRequestValidator && ! _httpServletRequestValidator.validate(request)) {
 			
 			response.sendError(HttpServletResponse.SC_NOT_FOUND); // if some entity is doing strange stuff, just respond with a 404
 			                                                      // in order not to give away too much about how the app works
