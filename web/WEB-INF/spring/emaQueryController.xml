@@ -7,11 +7,11 @@
   -->
   
   <!-- Servlet-to-AW hooks -->
-  <!-- create AwRequest from data in the HttpServletRequest -->
-  <bean id="emaQueryAwRequestCreator" class="edu.ucla.cens.awserver.jee.servlet.glue.EmaQueryAwRequestCreator" />
   <!-- "pre-validate" inbound data -->
   <bean id="emaQueryHttpServletRequestValidator" class="edu.ucla.cens.awserver.jee.servlet.validator.EmaQueryValidator" />
-  <!-- write outbound data -->
+  <!-- create AwRequest from data in the HttpServletRequest -->
+  <bean id="emaQueryAwRequestCreator" class="edu.ucla.cens.awserver.jee.servlet.glue.EmaQueryAwRequestCreator" />
+  <!-- write outbound data, post-controller -->
   <bean id="emaQueryResponseWriter" class="edu.ucla.cens.awserver.jee.servlet.writer.EmaQueryResponseWriter" />
     
   <!-- Controller -->
@@ -30,7 +30,7 @@
      <property name="featureName"><value>EMA visualization query</value></property>
   </bean>
   
-  <!-- Service the visualization request -->
+  <!-- Service the query request -->
   <bean id="emaQueryService" class="edu.ucla.cens.awserver.service.SimpleQueryService">
     <constructor-arg index="0">
       <ref bean="emaQueryDao" />
