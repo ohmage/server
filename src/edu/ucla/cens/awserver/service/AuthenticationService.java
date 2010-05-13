@@ -107,7 +107,7 @@ public class AuthenticationService extends AbstractDaoService {
 				}
 				
 				// Set the current campaign on the user if the user belongs to only one campaign. If the user belongs to more
-				// than one campaign, he or she will have to choose a campaign post-login.
+				// than one campaign, he or she will have to choose a campaign post-login (TODO campaign-chooser functionality)
 				if(userBelongsToOneCampaign(results)) {
 					awRequest.getUser().setCurrentCampaignId(String.valueOf(((LoginResult)results.get(0)).getCampaignId()));
 				}
