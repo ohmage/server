@@ -8,11 +8,15 @@ import javax.sql.DataSource;
 import org.apache.log4j.Logger;
 import org.springframework.dao.IncorrectResultSizeDataAccessException;
 
+import edu.ucla.cens.awserver.domain.UserPercentage;
 import edu.ucla.cens.awserver.request.AwRequest;
 
 /**
- * DAO for counting the number of successful location updates for the previous day for a particular user. A successful location
- * update is defined by non-null latitude and longitude values in the prompt_response and mobility_mode_only_entry tables.
+ * DAO for counting the number of successful location updates for the previous day for a particular user or a group of users if the 
+ * current application user is a researcher or admin. 
+ * 
+ * A successful location update is defined by non-null latitude and longitude values in the prompt_response and 
+ * mobility_mode_only_entry tables.
  * 
  * @author selsky
  */
@@ -44,7 +48,9 @@ public class SuccessfulLocationUpdatesQueryDao extends AbstractDao {
 			                                          " and date(time_stamp) between date(now() - 1) and date(now())";
 	
 	/**
-	 * Points this DAO at the provided DataSource. 
+	 * Points this DAO at the provided DataSource.
+	 * 
+	 * @throws IllegalArgumentException if the provided DataSource is null
 	 */
 	public SuccessfulLocationUpdatesQueryDao(DataSource dataSource) {
 		super(dataSource);
@@ -52,20 +58,25 @@ public class SuccessfulLocationUpdatesQueryDao extends AbstractDao {
 	
 	/**
 	 * Calculates the percentage of successful location updates for the user id found in the provided AwRequest.
-	 * 
-	 * TODO the percentage calculation should be moved into a service so this class contains db logic only
 	 */
 	@Override
 	public void execute(AwRequest awRequest) {
-		List<Double> percentList = new ArrayList<Double>();
+		List<UserPercentage> percentList = new ArrayList<UserPercentage>();
+		executeSqlForUser(awRequest.getUser().getId(), awRequest.getUser().getUserName(), percentList);
+		awRequest.setResultList(percentList);
+	}
+	
+	/**
+	 * TODO the in-line percentage calculation should be moved into a service so this class contains db logic only 
+	 */
+	protected void executeSqlForUser(int userId, String userName, List<UserPercentage> outputList) {
 		String currentSql = null;
-		int userId = awRequest.getUser().getId();
 		
 		try {
-			
 			double totalSuccess = 0d;
 			double total = 0d;
-			Object[] paramArray = {userId}; 
+			Object[] paramArray = {userId}; // JdbcTemplate.queryForInt requires an Object array for filling in the underlying
+			                                // PreparedStatement
 			
 			currentSql = singleUserMobilityTotalSql;
 			total += getJdbcTemplate().queryForInt(singleUserMobilityTotalSql, paramArray);
@@ -79,7 +90,7 @@ public class SuccessfulLocationUpdatesQueryDao extends AbstractDao {
 			
 			if(0 == total) {
 				
-				percentList.add(0d);
+				outputList.add(new UserPercentage(userName, 0d));
 				
 			} else  {
 			
@@ -93,16 +104,15 @@ public class SuccessfulLocationUpdatesQueryDao extends AbstractDao {
 					_logger.debug("totalSucess: " + totalSuccess);
 				}
 				
-				percentList.add(totalSuccess / total);
+				outputList.add(new UserPercentage(userName, (totalSuccess / total)));
 			}
 			
 			if(_logger.isDebugEnabled()) {
-				_logger.debug("percentage: " + percentList.get(0));
+				_logger.debug("percentage: " + outputList.get(0));
 			}
 			
-			awRequest.setResultList(percentList);
-			
-		} catch (IncorrectResultSizeDataAccessException irsdae) { // thrown if queryForInt returns more than one row
+		} catch (IncorrectResultSizeDataAccessException irsdae) { // thrown if queryForInt returns more than one row which means 
+			                                                      // there is a logical error in the SQL being run
 			
 			_logger.error("an incorrect number of rows was returned by '" + currentSql + "' with parameter " + userId);
 			throw new DataAccessException(irsdae);
