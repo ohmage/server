@@ -17,9 +17,8 @@ import edu.ucla.cens.awserver.domain.UserRole;
  * 
  * @author selsky
  */
-public class UserRoleCacheService implements CacheService {
+public class UserRoleCacheService extends AbstractCacheService {
 	private Map<Integer, UserRole> _cache;
-	private ParameterLessDao _dao;
 	private static final Logger _logger = Logger.getLogger(UserRoleCacheService.class);
 		
 	/**
@@ -28,11 +27,7 @@ public class UserRoleCacheService implements CacheService {
 	 * @throws IllegalArgumentException if the provided Dao is null
 	 */
 	public UserRoleCacheService(ParameterLessDao dao) {
-		if(null == dao) {
-			throw new IllegalArgumentException("a Dao is required");
-		}
-		
-		_dao = dao;
+		super(dao);
 		init();
 	}
 	
@@ -61,7 +56,7 @@ public class UserRoleCacheService implements CacheService {
 	 * @return the String representation of the user role defined by the provided key
 	 */
 	@Override
-	public String lookup(int key) {
+	public Object lookup(Object key) {
 		
 		return _cache.get(key).getName(); // no copy because Strings are immutable
 	}
