@@ -8,6 +8,6 @@ package edu.ucla.cens.awserver.cache;
  */
 public interface CacheService {
 	
-	public String lookup(int key);
+	public Object lookup(Object key);
 	
 }
