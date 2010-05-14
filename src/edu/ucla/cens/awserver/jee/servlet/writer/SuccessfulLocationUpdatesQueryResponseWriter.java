@@ -10,11 +10,15 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.log4j.Logger;
+import org.json.JSONArray;
 import org.json.JSONObject;
 
+import edu.ucla.cens.awserver.domain.UserPercentage;
 import edu.ucla.cens.awserver.request.AwRequest;
 
 /**
+ * Writer of JSON query output for the successful location updates query.
+ * 
  * @author selsky
  */
 public class SuccessfulLocationUpdatesQueryResponseWriter extends AbstractResponseWriter {
@@ -33,14 +37,20 @@ public class SuccessfulLocationUpdatesQueryResponseWriter extends AbstractRespon
 			
 			// Convert the results to JSON for output.
 			List<?> results =  awRequest.getResultList();
-		    
-			// The list returned for this feature has only one item, so no loop ...
+		    int size = results.size();
+			JSONArray jsonArray = new JSONArray();
 			
-			JSONObject jsonObject = new JSONObject();
-			jsonObject.put("user", awRequest.getUser().getUserName());
-			jsonObject.put("value", results.get(0));
+		    for(int i = 0; i < size; i++) {
+		    	JSONObject jsonObject = new JSONObject();
+		    	UserPercentage up = (UserPercentage) results.get(i);
 			
-			responseText = jsonObject.toString();
+		    	jsonObject.put("user", up.getUserName());
+				jsonObject.put("value", up.getPercentage());
+		    	
+				jsonArray.put(jsonObject);
+		    }
+			
+			responseText = jsonArray.toString();
 			
 			_logger.info("about to write output");
 			writer.write(responseText);
