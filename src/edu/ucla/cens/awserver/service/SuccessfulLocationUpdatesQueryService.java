@@ -54,7 +54,7 @@ public class SuccessfulLocationUpdatesQueryService implements Service {
 		
 		for(Integer i : list) {
 			
-			String role = _userRoleCacheService.lookup(i);
+			String role = (String) _userRoleCacheService.lookup(i);
 			
 			if("researcher".equals(role) || "admin".equals(role)) {
 				isAdminOrResearcher = true;
