@@ -24,14 +24,27 @@
   </bean>
   
   <!-- Service the query request -->
-  <bean id="successfulLocationUpdatesQueryService" class="edu.ucla.cens.awserver.service.SimpleQueryService">
+  <bean id="successfulLocationUpdatesQueryService" class="edu.ucla.cens.awserver.service.SuccessfulLocationUpdatesQueryService">
     <constructor-arg index="0">
-      <ref bean="successfulLocationUpdatesQueryDao" />
+      <ref bean="userRoleCacheService" />
+    </constructor-arg>
+    <constructor-arg index="1">
+      <ref bean="singleUserSuccessfulLocationUpdatesQueryDao" />
+    </constructor-arg>
+    <constructor-arg index="2">
+      <ref bean="multiUserSuccessfulLocationUpdatesQueryDao" />
     </constructor-arg>
   </bean>
 
   <!-- Interact with database -->
-  <bean id="successfulLocationUpdatesQueryDao" class="edu.ucla.cens.awserver.dao.SuccessfulLocationUpdatesQueryDao">
+  <bean id="singleUserSuccessfulLocationUpdatesQueryDao" class="edu.ucla.cens.awserver.dao.SuccessfulLocationUpdatesQueryDao">
+    <constructor-arg index="0"><ref bean="dataSource" /></constructor-arg>
+  </bean>
+  <bean id="multiUserSuccessfulLocationUpdatesQueryDao" class="edu.ucla.cens.awserver.dao.MultiUserSuccessfulLocationUpdatesQueryDao">
+    <constructor-arg index="0"><ref bean="dataSource" /></constructor-arg>
+    <constructor-arg index="1"><ref bean="findAllUsersForCampaignDao" /></constructor-arg>
+  </bean>
+  <bean id="findAllUsersForCampaignDao" class="edu.ucla.cens.awserver.dao.FindAllUsersForCampaignDao">
     <constructor-arg index="0"><ref bean="dataSource" /></constructor-arg>
   </bean>
   
