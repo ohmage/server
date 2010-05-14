@@ -1,0 +1,18 @@
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.5.xsd">
+
+  <!-- Cache campaign_id-group_id prompt counts and make them accessible to the rest of the app. -->
+
+  <bean id="campaignIdGroupIdCountCacheService" class="edu.ucla.cens.awserver.cache.CampaignPromptGroupItemCountCacheService">
+    <constructor-arg index="0">
+      <bean class="edu.ucla.cens.awserver.dao.CampaignPromptGroupItemCountDao">
+        <constructor-arg index="0">
+          <ref bean="dataSource" />
+        </constructor-arg>
+      </bean>
+    </constructor-arg>
+  
+  </bean>
+
+</beans>
