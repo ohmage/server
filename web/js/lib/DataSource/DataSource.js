@@ -8,30 +8,61 @@
  * a remote JSON source.
  */
 
-// DataSource constuctor
+// Generic DataSource constuctor
 function DataSourceJson(url) {
-	this.url = url;
 	this.current_data = [];
 	this.callback = null;
 	this.error_status = 0;
+	this.url=url;
 }
 
 // Constants
 DataSourceJson._logger = log4javascript.getLogger();
 
-// Possible error codes from server
+// Server error codes
 DataSourceJson.SUCCESS = 0;
 DataSourceJson.BAD_STATUS = 1;
 DataSourceJson.NO_DATA = 2;
 DataSourceJson.MALFORMED_DATA = 3;
 DataSourceJson.SESSION_EXPIRED = 4;
 
-// Possible error type for synchronous calls
+// Throwable DataSourceJson errors
 DataSourceJson.NoDataError = function(message) {
     this.name = "NoDataError";
     this.message = message;
 }
 DataSourceJson.NoDataError.prototype = new Error();
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 /*
  * Return data with the passed prompt_id and group_id

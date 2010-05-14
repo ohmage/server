@@ -50,6 +50,7 @@
     <script type="text/javascript" src="/js/lib/DataSource/DataSource.js"></script>
     <script type="text/javascript" src="/js/lib/Graph/ProtoGraph.js"></script>
     <script type="text/javascript" src="/js/lib/DashBoard/DashBoard.js"></script>
+    <script type="text/javascript" src="/js/lib/DashBoard/View.js"></script>
     <!-- Contains the query response visualization types -->
     <script type="text/javascript" src="/js/response_list.js"></script>
     <!-- Simple date formatting functions -->
@@ -86,7 +87,7 @@
         log.addAppender(popUpAppender);
 
         // Uncomment the line below to disable logging
-        log4javascript.setEnabled(false);
+        //log4javascript.setEnabled(false);
 
         // Setup the datepickers for the date input box
         $("#startDate").datepicker({dateFormat: 'yy-mm-dd'});
@@ -99,7 +100,9 @@
         $("#startDate").val(today);
 
         // Setup the dash board with the campaign configuration JSON
-        dashBoard = new DashBoard(response_list);
+        dashBoard = new DashBoard();
+		dashBoard.switch_view(DashBoard.view_type.VIEW_GRAPH);
+		dashBoard.configure_html(response_list);
 		
         // Run the default query
         send_json_request(null);
