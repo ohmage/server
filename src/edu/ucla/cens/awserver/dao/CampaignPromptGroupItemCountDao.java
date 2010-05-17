@@ -35,7 +35,6 @@ public class CampaignPromptGroupItemCountDao implements ParameterLessDao {
 	 */
 	@Override
 	public List<?> execute() {
-		
 		try {
 		
 			return _jdbcTemplate.query(_sql, new RowMapper() {
