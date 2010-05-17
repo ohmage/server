@@ -9,23 +9,53 @@ public class UserDate implements Comparable<UserDate> {
 	private String _userName;
 	private String _date;
 	
-	public String getUserName() {
-		return _userName;
+	public UserDate(String userName, String date) {
+		_userName = userName;
+		_date = date;
 	}
 	
-	public void setUserName(String userName) {
-		_userName = userName;
+	public String getUserName() {
+		return _userName;
 	}
 	
 	public String getDate() {
 		return _date;
 	}
 	
-	public void setDate(String date) {
-		_date = date;
-	}
-	
 	public int compareTo(UserDate userDate) {
 		return _userName.compareTo(userDate._userName);
 	}
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((_date == null) ? 0 : _date.hashCode());
+		result = prime * result
+				+ ((_userName == null) ? 0 : _userName.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		UserDate other = (UserDate) obj;
+		if (_date == null) {
+			if (other._date != null)
+				return false;
+		} else if (!_date.equals(other._date))
+			return false;
+		if (_userName == null) {
+			if (other._userName != null)
+				return false;
+		} else if (!_userName.equals(other._userName))
+			return false;
+		return true;
+	}
+	
 }
