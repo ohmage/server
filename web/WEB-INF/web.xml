@@ -53,7 +53,7 @@
     <init-param>
       <param-name>ajaxUrls</param-name>
       <!--  To add a URL, make this a comma-separated list -->
-      <param-value>/app/q/ema,/app/q/percent-successful-location-updates,/app/q/completed-surveys-per-day</param-value>
+      <param-value>/app/q/ema,/app/q/percent-successful-location-updates,/app/q/completed-surveys-per-day,/app/q/hours-since-last-survey</param-value>
     </init-param>
   </filter>
   
@@ -64,6 +64,7 @@
     <servlet-name>EmaQueryServlet</servlet-name>
     <servlet-name>SuccessfulLocationUpdatesQueryServlet</servlet-name>
     <servlet-name>PromptGroupCountQueryServlet</servlet-name>
+    <servlet-name>MostRecentSurveyQueryServlet</servlet-name>
   </filter-mapping>
     
   <!-- Servlets.  Note that url-patterns are matched against initial (or re-dispatched) requests, not a request possiblty modified
@@ -339,8 +340,35 @@
     <url-pattern>/app/q/completed-surveys-per-day</url-pattern>
   </servlet-mapping>
   
+  <!--  Handle most recent update queries -->
+  <servlet>
+    <description>
+      Runs queries to determine the hours since the last survey
+    </description>
+    <servlet-name>MostRecentSurveyQueryServlet</servlet-name>
+    <servlet-class>edu.ucla.cens.awserver.jee.servlet.AwDataServlet</servlet-class>
+    <!--  The following init-params are used to map the servlet to Spring-configured beans that ultimately service the request. 
+          The param-value elements are Spring bean ids.    
+    -->
+    <init-param>
+      <param-name>controllerName</param-name>
+      <param-value>mostRecentSurveyQueryController</param-value>
+    </init-param>
+     <init-param>
+      <param-name>awRequestCreatorName</param-name> <!-- note: shared with successful location updates query -->
+      <param-value>userOnlyAwRequestCreator</param-value>
+    </init-param>
+    <init-param>
+      <param-name>responseWriterName</param-name>
+      <param-value>mostRecentSurveyQueryResponseWriter</param-value> 
+    </init-param>
+    <load-on-startup>1</load-on-startup>
+  </servlet>
   
-  
+  <servlet-mapping>
+    <servlet-name>MostRecentSurveyQueryServlet</servlet-name>
+    <url-pattern>/app/q/hours-since-last-survey</url-pattern>
+  </servlet-mapping>
   
   <welcome-file-list>
     <welcome-file>/app/login.jsp</welcome-file>
