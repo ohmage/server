@@ -1,6 +1,9 @@
 package edu.ucla.cens.awserver.util;
 
+import java.util.Calendar;
 import java.util.TimeZone;
+
+import org.apache.log4j.Logger;
 
 /**
  * A collection of static methods for working with dates.
@@ -8,7 +11,7 @@ import java.util.TimeZone;
  * @author selsky
  */
 public class DateUtils {
-//	private static Logger _logger = Logger.getLogger(DateUtils.class);
+	private static Logger _logger = Logger.getLogger(DateUtils.class);
 	
 	/**
 	 * Private constructor as this class is a collection of static methods.
@@ -78,6 +81,30 @@ public class DateUtils {
 //		return utcTime.getTimeInMillis();
 //	}
 	
+	/**
+	 * Returns the millisecond offset between the system timezone and the provided timezone.   
+	 */
+	public static long systemTimezoneOffset(String timezone) {
+		if(! isValidTimezone(timezone)) {
+			throw new IllegalArgumentException("a valid timezone is required");
+		}
+		
+		TimeZone systemTimeZone = TimeZone.getDefault();
+		
+		if(_logger.isDebugEnabled()) {
+			_logger.debug("system tz: " + systemTimeZone.getID());
+		}
+		
+		TimeZone dataTimeZone = TimeZone.getTimeZone(timezone);
+		
+		long now = System.currentTimeMillis();
+		
+		if(_logger.isDebugEnabled()) {
+			_logger.debug("returning " + (systemTimeZone.getOffset(now) - dataTimeZone.getOffset(now))  + " for tz " + timezone);
+		}
+		
+		return systemTimeZone.getOffset(now) - dataTimeZone.getOffset(now);
+	}
 	
 	public static boolean isValidTimezone(String tz) {
 		if(null != tz) {
