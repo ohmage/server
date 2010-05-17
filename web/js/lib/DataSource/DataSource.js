@@ -33,31 +33,10 @@ DataSourceJson.NoDataError = function(message) {
 }
 DataSourceJson.NoDataError.prototype = new Error();
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+// AndWellness server API URLs
+DataSourceJson.URL_EMA = '/app/q/ema';
+DataSourceJson.URL_SURVEYS_PER_DAY = '/app/q/completed-surveys-per-day';
+DataSourceJson.URL_LOCATION_UPDATES = '/app/q/percent-successful-location-updates';
 
 
 
