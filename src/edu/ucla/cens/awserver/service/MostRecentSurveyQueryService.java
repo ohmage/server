@@ -81,7 +81,7 @@ public class MostRecentSurveyQueryService implements Service {
 			
 			long updateTime = result.getTimestamp().getTime() + DateUtils.systemTimezoneOffset(result.getTimezone());
 			
-			// This calculation would horribly break if we had dates before the epoch
+			// Dates before the epoch will break this calculation 
 			double difference = System.currentTimeMillis() - updateTime;
 			
 			// convert to hours
