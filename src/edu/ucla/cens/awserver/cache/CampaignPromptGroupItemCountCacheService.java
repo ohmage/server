@@ -11,7 +11,8 @@ import edu.ucla.cens.awserver.domain.CampaignPromptGroup;
 import edu.ucla.cens.awserver.domain.CampaignPromptGroupItemCount;
 
 /**
- * Unsynchronized cache of campaign_id-group_id combinations and the number of prompts located at each campaign_id-group_id. 
+ * Unsynchronized (i.e., read only) cache of campaign_id-group_id combinations and the number of prompts located at each 
+ * campaign_id-group_id. 
  * 
  * @author selsky
  */
