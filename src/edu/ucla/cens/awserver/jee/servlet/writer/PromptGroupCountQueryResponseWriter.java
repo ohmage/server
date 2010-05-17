@@ -21,22 +21,26 @@ public class PromptGroupCountQueryResponseWriter extends AbstractResponseWriter 
 	private static Logger _logger = Logger.getLogger(PromptGroupCountQueryResponseWriter.class);
 	
 	@Override
-	public void write(HttpServletRequest request, HttpServletResponse response,
-			AwRequest awRequest) {
+	public void write(HttpServletRequest request, HttpServletResponse response, AwRequest awRequest) {
 		
 		Writer writer = null;
 		
 		try {
 			// Prepare for sending the response to the client
+			
 			writer = new BufferedWriter(new OutputStreamWriter(getOutputStream(request, response)));
 			String responseText = null;
 			expireResponse(response);
 			response.setContentType("application/json");
 			
+			// Process query results and convert to JSON
+			
 			List<?> results = awRequest.getResultList();
 			int size = results.size();
 			
-			_logger.info(size);
+			if(_logger.isDebugEnabled()) {
+				_logger.debug("converting " + size + " results to JSON");
+			}
 			
 			if(0 != size)  {
 				JSONArray jsonArray = new JSONArray();
@@ -74,7 +78,7 @@ public class PromptGroupCountQueryResponseWriter extends AbstractResponseWriter 
 							compareUserDate = new UserDate(result.getUser(), result.getDate());
 							
 							if(! compareUserDate.equals(currentUserDate)) { // make sure not to skip the first 
-								                                            // result of the next group
+								                                            // result of the next group in the outer loop
 								i--;
 								break;
 							}
