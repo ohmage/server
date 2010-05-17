@@ -8,7 +8,7 @@ import javax.sql.DataSource;
 import org.apache.log4j.Logger;
 import org.springframework.jdbc.core.RowMapper;
 
-import edu.ucla.cens.awserver.domain.MostRecentActivityQueryResult;
+import edu.ucla.cens.awserver.domain.MostRecentSurveyActivityQueryResult;
 import edu.ucla.cens.awserver.request.AwRequest;
 
 /**
@@ -41,7 +41,7 @@ public class MultiUserMostRecentSurveyQueryDao extends AbstractDao {
 				getJdbcTemplate().query(_sql, new Object[] {c}, new RowMapper() {
 					public Object mapRow(ResultSet rs, int rowNum) throws SQLException {
 						
-						MostRecentActivityQueryResult result = new MostRecentActivityQueryResult(); 
+						MostRecentSurveyActivityQueryResult result = new MostRecentSurveyActivityQueryResult(); 
 						result.setUserName(rs.getString(1));
 						result.setTimestamp(rs.getTimestamp(2));
 						result.setTimezone(rs.getString(3));
