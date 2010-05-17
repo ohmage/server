@@ -38,19 +38,26 @@ public class SuccessfulLocationUpdatesQueryResponseWriter extends AbstractRespon
 			// Convert the results to JSON for output.
 			List<?> results =  awRequest.getResultList();
 		    int size = results.size();
-			JSONArray jsonArray = new JSONArray();
-			
-		    for(int i = 0; i < size; i++) {
-		    	JSONObject jsonObject = new JSONObject();
-		    	UserPercentage up = (UserPercentage) results.get(i);
-			
-		    	jsonObject.put("user", up.getUserName());
-				jsonObject.put("value", up.getPercentage());
+		    
+		    if(size > 0) { 
+				JSONArray jsonArray = new JSONArray();
+				
+			    for(int i = 0; i < size; i++) {
+			    	JSONObject jsonObject = new JSONObject();
+			    	UserPercentage up = (UserPercentage) results.get(i);
+				
+			    	jsonObject.put("user", up.getUserName());
+					jsonObject.put("value", up.getPercentage());
+			    	
+					jsonArray.put(jsonObject);
+			    }
+				
+				responseText = jsonArray.toString();
+				
+		    } else {
 		    	
-				jsonArray.put(jsonObject);
+		    	responseText = "[]";
 		    }
-			
-			responseText = jsonArray.toString();
 			
 			_logger.info("about to write output");
 			writer.write(responseText);
