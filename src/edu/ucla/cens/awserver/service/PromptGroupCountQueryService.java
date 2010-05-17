@@ -1,13 +1,11 @@
 package edu.ucla.cens.awserver.service;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
 
 import edu.ucla.cens.awserver.cache.CacheService;
 import edu.ucla.cens.awserver.dao.Dao;
-import edu.ucla.cens.awserver.domain.UserDate;
+import edu.ucla.cens.awserver.domain.CampaignPromptGroup;
+import edu.ucla.cens.awserver.domain.PromptGroupCountQueryResult;
 import edu.ucla.cens.awserver.request.AwRequest;
 
 /**
@@ -26,15 +24,15 @@ public class PromptGroupCountQueryService implements Service {
      * 
      *  @throws IllegalArgumentException if the provided CacheService is null
      */
-    public PromptGroupCountQueryService(CacheService userRoleCacheService, /*CacheService campaignPromptGroupItemCountCacheService,*/
+    public PromptGroupCountQueryService(CacheService userRoleCacheService, CacheService campaignPromptGroupItemCountCacheService,
     	Dao singleUserDao, Dao multiUserDao) {
     	
     	if(null == userRoleCacheService) {
     		throw new IllegalArgumentException("a userRoleCacheService is required");    		
     	}
-//    	if(null == campaignPromptGroupItemCountCacheService) {
-//    		throw new IllegalArgumentException("a campaignPromptCountCacheService is required");    		
-//    	}
+    	if(null == campaignPromptGroupItemCountCacheService) {
+    		throw new IllegalArgumentException("a campaignPromptCountCacheService is required");    		
+    	}
     	if(null == singleUserDao) {
     		throw new IllegalArgumentException("a singleUserDao is required");    		
     	}
@@ -43,7 +41,7 @@ public class PromptGroupCountQueryService implements Service {
     	}
     	
     	_userRoleCacheService = userRoleCacheService;
-//    	_campaignPromptGroupItemCountCacheService = campaignPromptGroupItemCountCacheService;
+    	_campaignPromptGroupItemCountCacheService = campaignPromptGroupItemCountCacheService;
     	
     	_singleUserDao = singleUserDao;
     	_multiUserDao = multiUserDao;
@@ -81,7 +79,23 @@ public class PromptGroupCountQueryService implements Service {
 		
 		// -- end duplicate logic with SuccessfulLocationUpdatesQueryService
 		
-		//TODO - add count calculation..
-
+		// Use a strategy instead for logic below 
+		
+		List<?> results = awRequest.getResultList();
+		int size = results.size();
+		int currentCampaignId = Integer.parseInt(awRequest.getUser().getCurrentCampaignId());
+		
+		// Convert the number of prompt responses completed to the number of prompt groups completed 
+		for(int i = 0; i < size; i++) {
+			
+			PromptGroupCountQueryResult result = (PromptGroupCountQueryResult) results.get(i);
+			int count = result.getCount();
+			
+			Integer promptsPerGroup = (Integer) _campaignPromptGroupItemCountCacheService.lookup(
+				new CampaignPromptGroup(currentCampaignId, result.getCampaignPromptGroupId())
+			);
+			
+			result.setCount(count/promptsPerGroup);
+		}
 	}
 }
