@@ -4,7 +4,7 @@ import java.util.List;
 
 import edu.ucla.cens.awserver.cache.CacheService;
 import edu.ucla.cens.awserver.dao.Dao;
-import edu.ucla.cens.awserver.domain.MostRecentActivityQueryResult;
+import edu.ucla.cens.awserver.domain.MostRecentSurveyActivityQueryResult;
 import edu.ucla.cens.awserver.request.AwRequest;
 import edu.ucla.cens.awserver.util.DateUtils;
 
@@ -77,7 +77,7 @@ public class MostRecentSurveyQueryService implements Service {
 		
 		for(int i = 0; i < size; i++) {
 			
-			MostRecentActivityQueryResult result = (MostRecentActivityQueryResult) results.get(i);
+			MostRecentSurveyActivityQueryResult result = (MostRecentSurveyActivityQueryResult) results.get(i);
 			
 			long updateTime = result.getTimestamp().getTime() + DateUtils.systemTimezoneOffset(result.getTimezone());
 			
