@@ -4,12 +4,17 @@ import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
+import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.log4j.Logger;
+import org.json.JSONArray;
+import org.json.JSONObject;
 
+import edu.ucla.cens.awserver.domain.PromptGroupCountQueryResult;
+import edu.ucla.cens.awserver.domain.UserDate;
 import edu.ucla.cens.awserver.request.AwRequest;
 
 public class PromptGroupCountQueryResponseWriter extends AbstractResponseWriter {
@@ -28,52 +33,63 @@ public class PromptGroupCountQueryResponseWriter extends AbstractResponseWriter 
 			expireResponse(response);
 			response.setContentType("application/json");
 			
-//			// Convert the results to JSON for output.
-//			List<?> results =  awRequest.getResultList();
-//		    int size = results.size();
-//			JSONArray jsonArray = new JSONArray();
-//			
-//		    for(int i = 0; i < size; i++) {
-//		    	JSONObject jsonObject = new JSONObject();
-//		    	UserPercentage up = (UserPercentage) results.get(i);
-//			
-//		    	jsonObject.put("user", up.getUserName());
-//				jsonObject.put("value", up.getPercentage());
-//		    	
-//				jsonArray.put(jsonObject);
-//		    }
-//			
-//			responseText = jsonArray.toString();
-		
+			List<?> results = awRequest.getResultList();
+			int size = results.size();
 			
+			_logger.info(size);
 			
-			
-			
-			
-//			List<?> results = awRequest.getResultList();
-//			int size = results.size();
-//			
-//			if(isAdminOrResearcher) {
-//				
-//				
-//				
-//			} else { // single user case
-//				
-//				Map<UserDate, List<Map<Integer, Integer>>> outerMap = new TreeMap<UserDate, List<Map<Integer,Integer>>>();
-//				List<Map<Integer, Integer>> _list = new ArrayList<Map<Integer, Integer>>();
-//				
-//				
-//				// Map<UserDate, List<Map<Integer, Integer>>>() outputMapping = new TreeMap<UserDate, >
-//				
-//				for(int i = 0; i < size; i++) {
-//					
-//				}
-//				
-//				
-//			}
-			
-			
-			responseText = "[nothing here yet]";
+			if(0 != size)  {
+				JSONArray jsonArray = new JSONArray();
+				
+				UserDate currentUserDate = null;
+				
+				for(int i = 0; i < size; i++) {
+					PromptGroupCountQueryResult result = (PromptGroupCountQueryResult) results.get(i);
+					UserDate compareUserDate = new UserDate(result.getUser(), result.getDate());
+					
+					if(! compareUserDate.equals(currentUserDate)) {
+						
+						currentUserDate = compareUserDate;
+						
+						JSONObject userObject = new JSONObject(); 
+						userObject.put("user", result.getUser());
+						userObject.put("date", result.getDate());
+						
+						JSONArray groupArray = new JSONArray();
+						userObject.put("groups", groupArray);
+						
+						while(true) {
+							
+							JSONObject groupObject = new JSONObject();
+							groupObject.put("group_id", result.getCampaignPromptGroupId());
+							groupObject.put("value", result.getCount());
+							groupArray.put(groupObject);
+							
+							i++;
+							if(i == size) {
+								break;
+							}
+							
+							result = (PromptGroupCountQueryResult) results.get(i);
+							compareUserDate = new UserDate(result.getUser(), result.getDate());
+							
+							if(! compareUserDate.equals(currentUserDate)) { // make sure not to skip the first 
+								                                            // result of the next group
+								i--;
+								break;
+							}
+						}
+						
+						jsonArray.put(userObject);
+					}
+				}	
+				
+				responseText = jsonArray.toString();
+				
+			} else {
+				
+				responseText = "[]";
+			}
 			
 			_logger.info("about to write output");
 			writer.write(responseText);
