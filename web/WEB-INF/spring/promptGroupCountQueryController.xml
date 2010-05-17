@@ -28,9 +28,12 @@
       <ref bean="userRoleCacheService" />
     </constructor-arg>
     <constructor-arg index="1">
-      <ref bean="singleUserPromptGroupCountQueryDao" />
+      <ref bean="campaignIdGroupIdCountCacheService" />
     </constructor-arg>
     <constructor-arg index="2">
+      <ref bean="singleUserPromptGroupCountQueryDao" />
+    </constructor-arg>
+    <constructor-arg index="3">
       <ref bean="multiUserPromptGroupCountQueryDao" />
     </constructor-arg>
   </bean>
