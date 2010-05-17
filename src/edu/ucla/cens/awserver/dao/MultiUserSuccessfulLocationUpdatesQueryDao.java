@@ -14,7 +14,7 @@ import edu.ucla.cens.awserver.request.AwRequest;
 /**
  * @author selsky
  */
-public class MultiUserSuccessfulLocationUpdatesQueryDao extends SuccessfulLocationUpdatesQueryDao {
+public class MultiUserSuccessfulLocationUpdatesQueryDao extends SingleUserSuccessfulLocationUpdatesQueryDao {
 	private static Logger _logger = Logger.getLogger(MultiUserSuccessfulLocationUpdatesQueryDao.class);
 	private Dao _findAllUsersForCampaignDao;
 	
