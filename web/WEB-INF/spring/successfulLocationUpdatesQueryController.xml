@@ -37,7 +37,7 @@
   </bean>
 
   <!-- Interact with database -->
-  <bean id="singleUserSuccessfulLocationUpdatesQueryDao" class="edu.ucla.cens.awserver.dao.SuccessfulLocationUpdatesQueryDao">
+  <bean id="singleUserSuccessfulLocationUpdatesQueryDao" class="edu.ucla.cens.awserver.dao.SingleUserSuccessfulLocationUpdatesQueryDao">
     <constructor-arg index="0"><ref bean="dataSource" /></constructor-arg>
   </bean>
   <bean id="multiUserSuccessfulLocationUpdatesQueryDao" class="edu.ucla.cens.awserver.dao.MultiUserSuccessfulLocationUpdatesQueryDao">
