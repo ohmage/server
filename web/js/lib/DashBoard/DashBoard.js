@@ -1,3 +1,4 @@
+
 /*
  * DashBoard handles the HTML and CSS setup of a users' dashboard.
  * The DashBoard reads in a local or remote JSON configuration, and
@@ -5,8 +6,9 @@
  */
 
 // DashBoard consturctor
-function DashBoard() {
+function DashBoard(user_type) {
 	this.cur_view = null;
+	this.user_type = user_type;
 }
 
 // Logger for the dashboard
@@ -55,13 +57,20 @@ DashBoard.prototype.configure_html = function(json_config) {
 	this.cur_view.configure_html(json_config);
 }
 
-// Load new data into the graphs and rerender
-DashBoard.prototype.load_data = function(data_source) {
-	// Be sure the View is loaded correctly
+// Load new data into the dashboard
+DashBoard.prototype.pass_data = function(aw_data) {
+	if (DashBoard._logger.isDebugEnabled()) {
+        DashBoard._logger.debug("DashBoard.pass_data(): Passed data of type: ");
+    }
+	
+	// Be sure a View is currently loaded
 	this.check_view();
 	
-	// Send the data source to the View
-	this.cur_view.load_data(data_source);
+	// Send the data to the view
+	this.cur_view.load_data(aw_data);
+	
+	// Turn off the views loading graphic if applicable
+	this.cur_view.loading(false);
 }
 
 // Enable/disable the loading graphic
@@ -69,7 +78,7 @@ DashBoard.prototype.loading = function(enable) {
 	// Be sure the View is loaded correctly
 	this.check_view();
 	
-	// Tell teh current view the new loading status
+	// Tell the current view the new loading status
 	this.cur_view.loading(enable);
 }
 

@@ -98,7 +98,7 @@ ViewGraph.prototype.configure_html = function(json_config) {
 }
 
 
-ViewGraph.prototype.load_data = function(data_source) {
+ViewGraph.prototype.load_data = function(aw_data) {
     // Iterate over every ProtoGraph class
     var that = this;
     $('div.ProtoGraph > div').each(function(index) {
@@ -117,14 +117,14 @@ ViewGraph.prototype.load_data = function(data_source) {
         try {
             // Hack in custom graphs here
             if (graph instanceof ProtoGraphCustomSleepType) {
-                var new_data = data_source.retrieve_data_sleep_time();
+                var new_data = aw_data.get_data_sleep_time();
             }
             else if (graph instanceof ProtoGraphMultiTimeType) {
-                var new_data = data_source.retreive_data_saliva();
+                var new_data = aw_data.get_data_saliva();
             }
             // No custom data processing
             else {
-                var new_data = data_source.retrieve_data(prompt_id, group_id);
+                var new_data = aw_data.get_data(prompt_id, group_id);
             }
             
             

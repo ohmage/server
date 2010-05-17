@@ -47,9 +47,11 @@
     <script type="text/javascript" src="/js/thirdparty/jquery/jquery.validity.min.js"></script>
     <script type="text/javascript" src="/js/lib/validator/DateValidator.js"></script>
     <!-- Generates the different graph types using Protovis -->
-    <script type="text/javascript" src="/js/lib/DataSource/DataSource.js"></script>
-    <script type="text/javascript" src="/js/lib/Graph/ProtoGraph.js"></script>
     <script type="text/javascript" src="/js/lib/DashBoard/DashBoard.js"></script>
+    <script type="text/javascript" src="/js/lib/DataSource/DataSource.js"></script>
+    <script type="text/javascript" src="/js/lib/DataSource/AwData.js"></script>
+    <script type="text/javascript" src="/js/lib/DataSource/AwDataCreator.js"></script>
+    <script type="text/javascript" src="/js/lib/Graph/ProtoGraph.js"></script>
     <script type="text/javascript" src="/js/lib/DashBoard/View.js"></script>
     <!-- Contains the query response visualization types -->
     <script type="text/javascript" src="/js/response_list.js"></script>
@@ -72,7 +74,7 @@
     var dashBoard = null;
 	
     // Handles retrieval and filtering of data
-    var dataSource = new DataSourceJson('/app/q/ema');
+    //var dataSource = new DataSourceJson('/app/q/ema');
 		
     // Main logger
     var log = log4javascript.getLogger();
@@ -87,7 +89,7 @@
         log.addAppender(popUpAppender);
 
         // Uncomment the line below to disable logging
-        //log4javascript.setEnabled(false);
+        log4javascript.setEnabled(false);
 
         // Setup the datepickers for the date input box
         $("#startDate").datepicker({dateFormat: 'yy-mm-dd'});
@@ -134,7 +136,7 @@
      */
     function send_json_request(data) {
         // Grab the URL from the form
-        var url = $("#grabDateForm").attr("action");
+        //var url = $("#grabDateForm").attr("action");
         var start_date = $("#startDate").val();
         var num_days = $("#numDays").val();
 
@@ -159,8 +161,14 @@
             log.info("Grabbing data from " + start_date + " to " + end_date);
         }
 
-        // Tell the dataSource to grab data from the server
-        dataSource.populate_data(start_date, end_date, send_json_request_callback);
+        // Setup params
+        var params = {
+        	    's': start_date,
+        	    'e': end_date
+        };
+        
+        // Grab data from the server and pass to the dashboard
+        DataSourceJson.request_data(DataSourceJson.DATA_EMA, params);
         
         // Return false to cancel the usual submit functionality
         return false;
