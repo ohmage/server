@@ -13,7 +13,7 @@ import org.apache.log4j.Logger;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-import edu.ucla.cens.awserver.domain.MostRecentActivityQueryResult;
+import edu.ucla.cens.awserver.domain.MostRecentSurveyActivityQueryResult;
 import edu.ucla.cens.awserver.request.AwRequest;
 
 /**
@@ -47,7 +47,7 @@ public class MostRecentSurveyQueryResponseWriter extends AbstractResponseWriter 
 				
 			    for(int i = 0; i < size; i++) {
 			    	JSONObject jsonObject = new JSONObject();
-			    	MostRecentActivityQueryResult result = (MostRecentActivityQueryResult) results.get(i);
+			    	MostRecentSurveyActivityQueryResult result = (MostRecentSurveyActivityQueryResult) results.get(i);
 				
 			    	jsonObject.put("user", result.getUserName());
 					jsonObject.put("value", result.getValue());
