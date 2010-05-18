@@ -6,9 +6,10 @@
  */
 
 // DashBoard consturctor
-function DashBoard(user_type) {
+function DashBoard() {
 	this.cur_view = null;
-	this.user_type = user_type;
+	this.userName = "";
+	this.userRole = 0;
 }
 
 // Logger for the dashboard
@@ -23,6 +24,10 @@ DashBoard.view_type = {
 
 // Dashboard functions
 
+DashBoard.prototype.set_user_name = function(userName) {
+	this.userName = userName;
+}
+
 // Switch dashboard view
 DashBoard.prototype.switch_view = function(new_view) {
 	// Check to be sure the new view exists
@@ -33,9 +38,15 @@ DashBoard.prototype.switch_view = function(new_view) {
 	// Clear out the old view and insert the new
 	this.unload_view();
 	
+	// Update the banner with the new view
+	this.switch_banner(new_view);
+	
 	switch (new_view) {
 	case DashBoard.view_type.VIEW_GRAPH:
 		this.cur_view = new ViewGraph();
+		break;
+	case DashBoard.view_type.VIEW_UPLOAD:
+		this.cur_view = new ViewUpload();
 		break;
 	}
 }
@@ -87,3 +98,16 @@ DashBoard.prototype.check_view = function() {
 		throw new Error('DashBoard: A view is not loaded.');
 	}
 }
+
+/*
+ * Functions to handle the Header.  Move these to their own module eventually.
+ */
+DashBoard.prototype.initialize_banner = function() {
+	$('#banner').append('<span class="h banner_text">EMA Visualizations for ' + this.userName + '.</span><br>')
+		        .append('<div id="logout"><a href="/app/logout">Logout</a></div>');
+}
+
+DashBoard.prototype.switch_banner = function(view_type) {
+	
+}
+

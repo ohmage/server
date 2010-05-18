@@ -42,8 +42,12 @@ ViewGraph.prototype = new View();
 
 // ViewGraph.configure_html - Give JSON that describes the surveys and prompts.
 ViewGraph.prototype.configure_html = function(json_config) {
-	// First setup the main panel
+	// Setup the tabs and panes
+	$('#main').append('<ul class="tabs"></ul> ')
+	 		       .append('<div class="panes"></div>');
 	
+	
+	// First setup the main panel
     var cur_group = -1;
     
     // Loop over each graph type

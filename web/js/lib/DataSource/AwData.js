@@ -9,11 +9,7 @@ AwData.NoDataError = function(message) {
     this.name = "NoDataError";
     this.message = message;
 }
-DataSourceJson.NoDataError.prototype = new Error();
-
-AwData.prototype.setData = function(json_data) {
-	throw new Error("setData is not implemented!");
-}
+AwData.NoDataError.prototype = new Error();
 
 
 function EmaAwData() {
@@ -23,7 +19,7 @@ function EmaAwData() {
 EmaAwData.prototype = new AwData();
 
 // EMA data setters
-EmaAwData.prototype.setData = function(json_data) {
+EmaAwData.prototype.set_data = function(json_data) {
 	// Preprocess the data to pull out the day into a Date
     json_data.forEach(function(d) {
         var period = d.time.lastIndexOf('.');
@@ -201,3 +197,15 @@ EmaAwData.prototype.get_data_saliva = function() {
     
     return data_array;
 }
+
+
+
+function HoursSinceLastUpdateAwData() {
+	this.current_data = null;
+}
+HoursSinceLastUpdateAwData.prototype = new AwData();
+
+HoursSinceLastUpdateAwData.prototype.set_data = function(json_data) {
+	this.current_data = json_data;
+}
+

@@ -10,10 +10,7 @@
 
 // Generic DataSource constuctor
 function DataSourceJson() {
-	//this.current_data = [];
-	//this.callback = null;
-	//this.error_status = 0;
-	//this.url=url;
+
 }
 
 // Constants
@@ -37,6 +34,8 @@ DataSourceJson.NoDataError.prototype = new Error();
 DataSourceJson.DATA_EMA = '/app/q/ema';
 DataSourceJson.DATA_SURVEYS_PER_DAY = '/app/q/completed-surveys-per-day';
 DataSourceJson.DATA_LOCATION_UPDATES = '/app/q/percent-successful-location-updates';
+DataSourceJson.DATA_HOURS_SINCE_LAST_UPDATE = '/app/q/hours-since-last-update';
+DataSourceJson.DATA_HOURS_SINCE_LAST_SURVEY = '/app/q/hours-since-last-survey';
 
 
 
@@ -46,15 +45,30 @@ DataSourceJson.DATA_LOCATION_UPDATES = '/app/q/percent-successful-location-updat
  */
 DataSourceJson.request_data = function(data_type, params) {
     if (DataSourceJson._logger.isDebugEnabled()) {
-        DataSourceJson._logger.debug("Grabbing data from URL: " + data_type);
+        DataSourceJson._logger.debug("Grabbing data type: " + data_type);
     }
 
     // Send out the JSON request depending on the data type
 	try {
 	    switch (data_type) {
 	    case DataSourceJson.DATA_EMA:
-	        $.getJSON(data_type, params, DataSourceJson.receive_data_ema)
-	    }		
+	        $.getJSON(data_type, params, DataSourceJson.receive_data_ema);
+	        break;
+	    case DataSourceJson.DATA_SURVEYS_PER_DAY:
+	        $.getJSON(data_type, params, DataSourceJson.receive_data_surveys_per_day);
+	        break;
+	    case DataSourceJson.DATA_LOCATION_UPDATES :
+	        $.getJSON(data_type, params, DataSourceJson.receive_data_location_updates);
+	        break;
+	    case DataSourcejson.DATA_HOURS_SINCE_LAST_UPDATE:
+	    	$.getJSON(data_type, params, DataSourcejson.receive_data_hours_since_last_update);
+	    	break;
+	    case DataSourceJson.DATA_HOURS_SINCE_LAST_SURVEY:
+	        $.getJSON(data_type, params, DataSourceJson.receive_data_hours_since_last_survey);
+	        break;
+	    default:
+	    	throw new Error("Unknown data type: " + data_type);
+	    }
 	}
     catch (error) {
         throw new Error("populate_data(): Problem retrieving JSON from the server.");
@@ -62,16 +76,43 @@ DataSourceJson.request_data = function(data_type, params) {
 }
 
 /*
- * Handles incoming EMA data from the server.  Create a new EmaAwData object and
- * pass to the dashboard.
+ * Create an EmaDataCreator and pass into the standard incoming data function
  */
-DataSourceJson.receive_data_ema = function(json_data, text_status) {                 
-    var error = 0;
-    
+DataSourceJson.receive_data_ema = function(json_data, text_status) {    
     if (DataSourceJson._logger.isInfoEnabled()) {
-        DataSourceJson._logger.info("Received EMA data from server with status: " + text_status);
+        DataSourceJson._logger.info("Received EMA data from server.");
     }    
     
+    // Create the EMA data object creator
+	var awDataCreator = new EmaAwDataCreator();
+	
+	// Pass the data to the dashboard
+	DataSourceJson.receive_data(json_data, text_status, awDataCreator);
+}
+
+/*
+ * Create an HoursSinceLastUpdateAwDataCreator and pass into the standard incoming data function
+ */
+DataSourceJson.receive_data_hours_since_last_update = function(json_data, text_status) {
+    if (DataSourceJson._logger.isInfoEnabled()) {
+        DataSourceJson._logger.info("Received hours since last update data from server.");
+    }    
+    
+    // Create the EMA data object creator
+	var awDataCreator = new HoursSinceLastUpdateAwDataCreator();
+	
+	// Pass the data to the dashboard
+	DataSourceJson.receive_data(json_data, text_status, awDataCreator);	
+}
+
+
+/*
+ * All incoming data will come through this function.  Perform basic data validation,
+ * create an AwData object, and pass to the dashboard.
+ */
+DataSourceJson.receive_data = function(json_data, text_status, aw_data_creator) {                 
+    var error = 0;
+
     // Did the request succeed?
     if (text_status != "success") {
         if (DataSourceJson._logger.isErrorEnabled()) {
@@ -84,19 +125,17 @@ DataSourceJson.receive_data_ema = function(json_data, text_status) {
     error = DataSourceJson.validate_data(json_data);
     if (error > 0) {
         if (DataSourceJson._logger.isErrorEnabled()) {
-            DataSourceJson._logger.error("Incoming EMA data failed validation with error: " + error);
+            DataSourceJson._logger.error("Incoming data failed validation with error: " + error);
         }
         return;
     }
     
     // Create the EMA data object
-	var ema_data = AwDataCreator.create_ema_aw_data(json_data);
+	var awData = aw_data_creator.create_from(json_data);
 	
 	// Pass the data to the dashboard
-	dashBoard.pass_data(ema_data)
+	dashBoard.pass_data(awData)
 }
-
-
 
 /*
  * Basic data validation.  Make sure data exists and is not an error.

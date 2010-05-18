@@ -1,5 +1,5 @@
 <%@ page contentType="text/html; charset=UTF-8" %>
-<%@page import="edu.ucla.cens.awserver.domain.User"%>
+<%@ page import="edu.ucla.cens.awserver.domain.User" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 
 <%
@@ -62,6 +62,8 @@
 	<link href="/css/zp-ie.css" type="text/css" media="screen" rel="stylesheet" />
 	<![endif]-->
    
+    
+   
     <!-- Main page javascript.  Instantiates the dashboard and datasource.  Does
          basic form validation. -->
     <script type="text/javascript">
@@ -72,9 +74,13 @@
 
     // Holds the current page's DashBoard setup
     var dashBoard = null;
+
 	
     // Handles retrieval and filtering of data
     //var dataSource = new DataSourceJson('/app/q/ema');
+		
+	
+	var userName = "<c:out value="${sessionScope.user.userName}"></c:out>";
 		
     // Main logger
     var log = log4javascript.getLogger();
@@ -89,7 +95,7 @@
         log.addAppender(popUpAppender);
 
         // Uncomment the line below to disable logging
-        log4javascript.setEnabled(false);
+        //log4javascript.setEnabled(false);
 
         // Setup the datepickers for the date input box
         $("#startDate").datepicker({dateFormat: 'yy-mm-dd'});
@@ -103,6 +109,8 @@
 
         // Setup the dash board with the campaign configuration JSON
         dashBoard = new DashBoard();
+        dashBoard.set_user_name(userName);
+        dashBoard.initialize_banner();
 		dashBoard.switch_view(DashBoard.view_type.VIEW_GRAPH);
 		dashBoard.configure_html(response_list);
 		
@@ -206,8 +214,7 @@
   
   <!-- Dashboard banner -->
   <div id="banner">
-    <span class="h banner_text">EMA Visualizations for <span class="user_id"><c:out value="${sessionScope.user.userName}"></c:out>.</span></span>
-    <div id="logout"><a href="/app/logout">Logout</a></div>
+
   </div>
   
   <div id="controls">
@@ -229,8 +236,7 @@
   
   <!-- Main body of the dashboard -->
   <div id="main">
-    <ul class="tabs"></ul> 
-    <div class="panes"></div>
+
   </div>
   
   <!-- Dashboard footer -->
