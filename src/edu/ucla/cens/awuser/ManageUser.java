@@ -71,7 +71,7 @@ public class ManageUser {
 		
 		if(args.length == 2) {
 			if(! "remove".equals(args[0])) {
-				throw new IllegalArgumentException("remove is required as the first argument. You provided " + args[0]);
+				throw new IllegalArgumentException("remove is required as the first argument if two args are found. You provided " + args[0]);
 			}
 			function = args[0];
 			fileName = args[1];
@@ -118,6 +118,7 @@ public class ManageUser {
 			checkProperty(props, "campaignId");
 			checkProperty(props, "emailAddress");
 			checkProperty(props, "json");
+			checkProperty(props, "role");
 		}
 		checkProperty(props, "dbUserName");
 		checkProperty(props, "dbPassword");
@@ -263,9 +264,11 @@ public class ManageUser {
 				// 4. Find user_role.id for the role type of "participant"
 				//
 				
-				final int roleId = jdbcTemplate.queryForInt("select id from user_role where label = \"participant\"");
+				String role = props.getProperty("role");
 				
-				_logger.info("in user_role found role_id: " + roleId + " for role \"participant\"");
+				final int roleId = jdbcTemplate.queryForInt("select id from user_role where label = '" + role + "'");
+				
+				_logger.info("in user_role found role_id: " + roleId + " for role: " + role);
 				
 				//
 				// 5. Insert user_role_campaign
