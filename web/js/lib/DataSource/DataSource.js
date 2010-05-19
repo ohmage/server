@@ -33,6 +33,7 @@ DataSourceJson.NoDataError.prototype = new Error();
 // AndWellness server API URLs
 DataSourceJson.DATA_EMA = '/app/q/ema';
 DataSourceJson.DATA_SURVEYS_PER_DAY = '/app/q/completed-surveys-per-day';
+DataSourceJson.DATA_MOBILITY_MODE_PER_DAY = '/app/q/mobility-mode-per-day';
 DataSourceJson.DATA_LOCATION_UPDATES = '/app/q/percent-successful-location-updates';
 DataSourceJson.DATA_HOURS_SINCE_LAST_UPDATE = '/app/q/hours-since-last-update';
 DataSourceJson.DATA_HOURS_SINCE_LAST_SURVEY = '/app/q/hours-since-last-survey';
@@ -49,7 +50,7 @@ DataSourceJson.request_data = function(data_type, params) {
     }
 
     // Send out the JSON request depending on the data type
-	try {
+
 	    switch (data_type) {
 	    case DataSourceJson.DATA_EMA:
 	        $.getJSON(data_type, params, DataSourceJson.receive_data_ema);
@@ -57,22 +58,23 @@ DataSourceJson.request_data = function(data_type, params) {
 	    case DataSourceJson.DATA_SURVEYS_PER_DAY:
 	        $.getJSON(data_type, params, DataSourceJson.receive_data_surveys_per_day);
 	        break;
+	    case DataSourceJson.DATA_MOBILITY_MODE_PER_DAY:
+	    	$.getJSON(data_type, params, DataSourceJson.receive_mobility_mode_per_day);
+	    	break;
 	    case DataSourceJson.DATA_LOCATION_UPDATES :
 	        $.getJSON(data_type, params, DataSourceJson.receive_data_location_updates);
 	        break;
-	    case DataSourcejson.DATA_HOURS_SINCE_LAST_UPDATE:
-	    	$.getJSON(data_type, params, DataSourcejson.receive_data_hours_since_last_update);
+	    case DataSourceJson.DATA_HOURS_SINCE_LAST_UPDATE:
+	    	$.getJSON(data_type, DataSourcejson.receive_data_hours_since_last_update);
 	    	break;
 	    case DataSourceJson.DATA_HOURS_SINCE_LAST_SURVEY:
-	        $.getJSON(data_type, params, DataSourceJson.receive_data_hours_since_last_survey);
+	        $.getJSON(data_type, DataSourceJson.receive_data_hours_since_last_survey);
 	        break;
 	    default:
 	    	throw new Error("Unknown data type: " + data_type);
 	    }
-	}
-    catch (error) {
-        throw new Error("populate_data(): Problem retrieving JSON from the server.");
-    }
+	
+
 }
 
 /*
@@ -90,6 +92,33 @@ DataSourceJson.receive_data_ema = function(json_data, text_status) {
 	DataSourceJson.receive_data(json_data, text_status, awDataCreator);
 }
 
+
+DataSourceJson.receive_data_surveys_per_day = function(json_data, text_status) {
+    if (DataSourceJson._logger.isInfoEnabled()) {
+        DataSourceJson._logger.info("Received surveys per day data from server.");
+    }    
+    
+    // Create the EMA data object creator
+	var awDataCreator = new SurveysPerDayAwDataCreator();
+	
+	// Pass the data to the dashboard
+	DataSourceJson.receive_data(json_data, text_status, awDataCreator);	
+}
+
+DataSourceJson.receive_mobility_mode_per_day = function(json_data, text_status) {
+    if (DataSourceJson._logger.isInfoEnabled()) {
+        DataSourceJson._logger.info("Received mobilities per day data from server.");
+    }    
+    
+    // Create the EMA data object creator
+	var awDataCreator = new MobilitiyModesPerDayAwDataCreator();
+	
+	// Pass the data to the dashboard
+	DataSourceJson.receive_data(json_data, text_status, awDataCreator);	
+}
+
+
+
 /*
  * Create an HoursSinceLastUpdateAwDataCreator and pass into the standard incoming data function
  */
@@ -103,6 +132,18 @@ DataSourceJson.receive_data_hours_since_last_update = function(json_data, text_s
 	
 	// Pass the data to the dashboard
 	DataSourceJson.receive_data(json_data, text_status, awDataCreator);	
+}
+
+DataSourceJson.receive_data_hours_since_last_survey = function(json_data, text_status) {
+    if (DataSourceJson._logger.isInfoEnabled()) {
+        DataSourceJson._logger.info("Received hours since last survey data from server.");
+    }    
+    
+    // Create the EMA data object creator
+	var awDataCreator = new HoursSinceLastSurveyAwDataCreator();
+	
+	// Pass the data to the dashboard
+	DataSourceJson.receive_data(json_data, text_status, awDataCreator);		
 }
 
 

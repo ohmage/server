@@ -13,8 +13,6 @@ function DashBoard() {
 	
 	// List of views registered with the DashBoard.
 	this.view_list = [];
-	
-	// Load view_list with necessary views
 }
 
 // Logger for the dashboard
@@ -40,7 +38,7 @@ DashBoard.prototype.switch_view = function(new_view) {
 	//if (!new_view in DashBoard.view_type) {
 	//	throw new Error(new_view + ' is not a defined view type.');
 	//}
-	
+	/*
 	switch (new_view) {
 	case DashBoard.view_type.VIEW_GRAPH:
 		this.cur_view = new ViewGraph('ViewGraph');
@@ -49,6 +47,7 @@ DashBoard.prototype.switch_view = function(new_view) {
 		this.cur_view = new ViewUpload();
 		break;
 	}
+	*/
 }
 
 
@@ -71,26 +70,46 @@ DashBoard.prototype.configure_html = function(json_config) {
 // Load new data into the dashboard
 DashBoard.prototype.pass_data = function(aw_data) {
 	if (DashBoard._logger.isDebugEnabled()) {
-        DashBoard._logger.debug("DashBoard.pass_data(): Passed data of type: ");
+        DashBoard._logger.debug("DashBoard.pass_data(): Passed data of type: "  + typeof aw_data);
     }
 	
 	// Be sure a View is currently loaded
-	this.check_view();
+	//this.check_view();
 	
 	// Send the data to the view
-	this.cur_view.load_data(aw_data);
+	//this.cur_view.load_data(aw_data);
 	
-	// Turn off the views loading graphic if applicable
-	this.cur_view.loading(false);
+	// Send data to all views for now
+	//for (view in this.view_list) {
+	//	view.load_data(aw_data);
+	//	view.loading(false);
+	//}
+	
+	$.each(
+			this.view_list,
+			function( intIndex, objValue ) {
+				objValue.load_data(aw_data);
+				objValue.loading(false);
+			}
+	);
 }
 
 // Enable/disable the loading graphic
 DashBoard.prototype.loading = function(enable) {
 	// Be sure the View is loaded correctly
-	this.check_view();
+	//this.check_view();
 	
-	// Tell the current view the new loading status
-	this.cur_view.loading(enable);
+	// Enable loading on all views for now
+	//for (view in this.view_list) {
+	//	view.loading(enable);
+	//}
+	
+	$.each(
+			this.view_list,
+			function( intIndex, objValue ) {
+				objValue.loading(enable);
+			}
+	);
 }
 
 DashBoard.prototype.check_view = function() {
@@ -102,7 +121,7 @@ DashBoard.prototype.check_view = function() {
 /*
  * Functions to handle the Header.  Move these to their own module eventually.
  */
-DashBoard.prototype.initialize_banner = function() {
+DashBoard.prototype.initialize = function() {
 	$('#banner').append('<span class="h banner_text">EMA Visualizations for ' + this.userName + '.</span><br>')
 				.append('<ul class="tabs"></ul> ')
 		        .append('<div id="logout"><a href="/app/logout">Logout</a></div>');
@@ -117,6 +136,14 @@ DashBoard.prototype.initialize_banner = function() {
 	
 	// Setup tabs to work with the panes
 	$("#banner > ul.tabs").tabs("#main > div.panes > div");
+	
+	// Load view_list with necessary views
+	var viewGraph = new ViewGraph('ViewGraph');
+	viewGraph.configure_html(response_list);
+	this.view_list.push(viewGraph);
+	
+	var viewUpload = new ViewUpload('ViewUpload');
+	this.view_list.push(viewUpload);
 }
 
 

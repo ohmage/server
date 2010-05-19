@@ -115,7 +115,7 @@ body {
 }
 
 #grabDateForm {
-    font-size: .8em;
+/*    font-size: .8em;  */
 }
 
 #grabDateForm .label {
@@ -136,6 +136,7 @@ body {
     width: 85px;
     height: 22px;
     margin-top: -2px;
+    font-size: 1em;
 }
 
 #loginForm {

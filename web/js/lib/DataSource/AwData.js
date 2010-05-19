@@ -199,6 +199,25 @@ EmaAwData.prototype.get_data_saliva = function() {
 }
 
 
+function SurveysPerDayAwData() {
+	this.current_data = null;
+}
+SurveysPerDayAwData.prototype = new AwData();
+
+SurveysPerDayAwData.prototype.set_data = function(json_data) {
+	this.current_data = json_data;
+}
+
+
+function MobilitiyModesPerDayAwData() {
+	this.current_data = null;
+}
+MobilitiyModesPerDayAwData.prototype = new AwData();
+
+MobilitiyModesPerDayAwData.prototype.set_data = function(json_data) {
+	this.current_data = json_data;
+}
+
 
 function HoursSinceLastUpdateAwData() {
 	this.current_data = null;
@@ -206,6 +225,16 @@ function HoursSinceLastUpdateAwData() {
 HoursSinceLastUpdateAwData.prototype = new AwData();
 
 HoursSinceLastUpdateAwData.prototype.set_data = function(json_data) {
+	this.current_data = json_data;
+}
+
+
+function HoursSinceLastSurveyAwData() {
+	this.current_data = null;
+}
+HoursSinceLastSurveyAwData.prototype = new AwData();
+
+HoursSinceLastSurveyAwData.prototype.set_data = function(json_data) {
 	this.current_data = json_data;
 }
 

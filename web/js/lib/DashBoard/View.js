@@ -35,6 +35,9 @@ View.prototype.loading = function(enable) {
  */
 function ViewGraph(divId) {
 	this.divId = '#' + divId;
+	
+	// Setup basic View information
+	this.tabName = "EMA Graphs"
 }
 
 ViewGraph.prototype = new View();
@@ -102,6 +105,11 @@ ViewGraph.prototype.configure_html = function(json_config) {
 
 
 ViewGraph.prototype.load_data = function(aw_data) {
+	// Make sure the data is of type EmaAwData
+	if (!(aw_data instanceof EmaAwData)) {
+		return;
+	}
+	
     // Iterate over every ProtoGraph class
     var that = this;
     $(this.divId).find('div.ProtoGraph > div').each(function(index) {
@@ -199,4 +207,52 @@ ViewGraph.prototype.replace_with_no_data = function(div_to_replace) {
 ViewGraph.prototype.replace_with_graph = function(div_to_show) {
     div_to_show.next().remove();
     div_to_show.show();
+}
+
+
+/*
+ * ViewUpload - Setup and view upload statistics for a user or researcher
+ */
+function ViewUpload(divId) {
+	this.divId = '#' + divId;
+	
+	this.tabName = "Upload Stats";
+	this.configured = false;
+}
+
+ViewUpload.prototype = new View();
+
+// Configure the html according the the user list received from
+// time since last survey
+ViewUpload.prototype.configure_html = function(json_config) {
+	var that = this;
+    json_config.current_data.forEach(function(config) {
+    	if (View._logger.isDebugEnabled()) {        
+            View._logger.debug("ViewUpload: Setting up user: " + config.user);
+        }
+    	
+    	// Setup a wrapper div to hold information about the user
+    	$(that.divId).append('<div id="' + config.user + '" class="StatDisplay"></div>');
+    	$(that.divId).find('div#' + config.user.replace('.', '\\.')).append('<span class="stat_title">'+config.user+'</span><br>')
+    		.append("Last survey uploaded " + config.value + " hours ago.");
+    });
+	
+	this.configured = true;
+}
+
+// Load newly received data
+ViewUpload.prototype.load_data = function(json_data) {
+	// Check the incoming data type
+	if (json_data instanceof HoursSinceLastSurveyAwData) {
+		// Super hack, if first time we see this, configure the html
+		if (this.configured == false) {
+			this.configure_html(json_data);
+		}
+	}
+	
+}
+
+// Show the loading graphic when loading new data
+ViewUpload.prototype.loading = function(enable) {
+	
 }

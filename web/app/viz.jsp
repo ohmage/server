@@ -27,6 +27,8 @@
     <link type="text/css" href="/css/tabs.css" rel="stylesheet" />
     <!-- Custom CSS for the "dashboard" setup -->
     <link type="text/css" href="/css/dashboard.css" rel="stylesheet" />
+    <!-- dateinput styling -->
+	<link rel="stylesheet" type="text/css" href="/css/dateinput.css"/>
     
 
     <!-- A large number of javascript includes, will reduce -->
@@ -46,6 +48,8 @@
     <!-- Various validators to validate user input and server responses -->
     <script type="text/javascript" src="/js/thirdparty/jquery/jquery.validity.min.js"></script>
     <script type="text/javascript" src="/js/lib/validator/DateValidator.js"></script>
+    <!-- Contains the query response visualization types -->
+    <script type="text/javascript" src="/js/response_list.js"></script>
     <!-- Generates the different graph types using Protovis -->
     <script type="text/javascript" src="/js/lib/DashBoard/DashBoard.js"></script>
     <script type="text/javascript" src="/js/lib/DataSource/DataSource.js"></script>
@@ -53,8 +57,6 @@
     <script type="text/javascript" src="/js/lib/DataSource/AwDataCreator.js"></script>
     <script type="text/javascript" src="/js/lib/Graph/ProtoGraph.js"></script>
     <script type="text/javascript" src="/js/lib/DashBoard/View.js"></script>
-    <!-- Contains the query response visualization types -->
-    <script type="text/javascript" src="/js/response_list.js"></script>
     <!-- Simple date formatting functions -->
     <script type="text/javascript" src="/js/thirdparty/misc/date.format.js"></script>
 	
@@ -98,23 +100,26 @@
         //log4javascript.setEnabled(false);
 
         // Setup the datepickers for the date input box
-        $("#startDate").datepicker({dateFormat: 'yy-mm-dd'});
-
+        //$("#startDate").datepicker({dateFormat: 'yy-mm-dd'});
+ 
+ 		var today = new Date().incrementDay(-13);
+        $(":date").dateinput({
+        	format: 'yyyy-mm-dd',	// the format displayed for the user
+        	selectors: true,             	// whether month/year dropdowns are shown
+        })
+        .data("dateinput").setValue(today);
+        
         // Override the default submit function for the form
         $("#grabDateForm").submit(send_json_request);
-
-        // Set initial start date to 2 weeks ago
-        var today = new Date().incrementDay(-13).dateFormat('Y-m-d');
-        $("#startDate").val(today);
 
         // Setup the dash board with the campaign configuration JSON
         dashBoard = new DashBoard();
         dashBoard.set_user_name(userName);
-        dashBoard.initialize_banner();
-		dashBoard.switch_view(DashBoard.view_type.VIEW_GRAPH);
-		dashBoard.configure_html(response_list);
+        dashBoard.initialize();
+		//dashBoard.switch_view(DashBoard.view_type.VIEW_GRAPH);
+		//dashBoard.configure_html(response_list);
 		
-        // Run the default query
+        // Run requests for all data for now
         send_json_request(null);
     });
 
@@ -175,8 +180,18 @@
         	    'e': end_date
         };
         
-        // Grab data from the server and pass to the dashboard
+        // Grab EMA data from the server 
         DataSourceJson.request_data(DataSourceJson.DATA_EMA, params);
+
+		// Grab user survey information from the server
+		DataSourceJson.request_data(DataSourceJson.DATA_HOURS_SINCE_LAST_SURVEY);
+
+		// Grab number of completed surveys per day from server
+		DataSourceJson.request_data(DataSourceJson.DATA_SURVEYS_PER_DAY, params);
+
+		// Grab number of mobilities from the survey per day
+		DataSourceJson.request_data(DataSourceJson.DATA_MOBILITY_MODE_PER_DAY, params);
+		
         
         // Return false to cancel the usual submit functionality
         return false;
@@ -222,7 +237,8 @@
 
     <form method="post" action="/app/q/ema" id="grabDateForm">
       <label for="startDate" class="label">Start Date:</label>
-      <input id="startDate" type="text"/>
+      <!--<input id="startDate" type="text"/> -->
+      <input id="startDate" type="date" />
       <label for="numDays" class="label">Length:</label>
       <select id="numDays">
 	    <option value="7">1 week</option>
