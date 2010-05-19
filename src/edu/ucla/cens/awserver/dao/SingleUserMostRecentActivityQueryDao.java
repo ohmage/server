@@ -2,13 +2,18 @@ package edu.ucla.cens.awserver.dao;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.sql.DataSource;
 
 import org.apache.log4j.Logger;
 import org.springframework.jdbc.core.RowMapper;
 
+import edu.ucla.cens.awserver.domain.MobilityActivityQueryResult;
 import edu.ucla.cens.awserver.domain.MostRecentActivityQueryResult;
+import edu.ucla.cens.awserver.domain.PromptActivityQueryResult;
+import edu.ucla.cens.awserver.domain.User;
 import edu.ucla.cens.awserver.request.AwRequest;
 
 /**
@@ -19,16 +24,21 @@ import edu.ucla.cens.awserver.request.AwRequest;
 public class SingleUserMostRecentActivityQueryDao extends AbstractDao {
 	private static Logger _logger = Logger.getLogger(MultiUserMostRecentActivityQueryDao.class);
 	
-	private String _sql = "select login_id, max(prompt_response.time_stamp), prompt_response.phone_timezone," +
-			              " max(mobility_mode_only_entry.time_stamp), mobility_mode_only_entry.phone_timezone" +
-			              " from prompt_response, prompt, campaign_prompt_group, user, mobility_mode_only_entry" +
-			              " where prompt_response.prompt_id = prompt.id" +
-			              " and campaign_id = ?" +
-			              " and user_id = ?" +
-			              " and prompt_response.user_id = user.id" +
-			              " and mobility_mode_only_entry.user_id = user.id" +
-			              " group by prompt_response.user_id" +
-			              " order by prompt_response.user_id";
+	private String _promptResponseSql = "select max(prompt_response.time_stamp), prompt_response.phone_timezone" +
+									    " from prompt_response, prompt, campaign_prompt_group, user" +
+									    " where prompt_response.prompt_id = prompt.id" +
+									    " and campaign_id = ?" +
+									    " and user.id = ?" +
+									    " and prompt_response.user_id = user.id" +
+									    " group by prompt_response.user_id" +
+									    " order by prompt_response.user_id";
+	
+	private String _mobilityUploadSql = "select max(mobility_mode_only_entry.time_stamp), mobility_mode_only_entry.phone_timezone" +
+							            " from user, mobility_mode_only_entry" +
+							            " where user.id = ?" +
+							            " and mobility_mode_only_entry.user_id = user.id" +
+							            " group by user.id" +
+							            " order by user.id";
 	
 	public SingleUserMostRecentActivityQueryDao(DataSource dataSource) {
 		super(dataSource);
@@ -36,32 +46,70 @@ public class SingleUserMostRecentActivityQueryDao extends AbstractDao {
 	
 	@Override
 	public void execute(AwRequest awRequest) {
-		int u = -1, c = -1;
+		List<MostRecentActivityQueryResult> results = new ArrayList<MostRecentActivityQueryResult>();
+		User user = awRequest.getUser();
+		results.add(executeSqlForSingleUser(Integer.parseInt(user.getCurrentCampaignId()), user.getId(), user.getUserName()));
+		awRequest.setResultList(results);
+	}
+	
+	protected MostRecentActivityQueryResult executeSqlForSingleUser(int campaignId, int userId, String userName) {
+		String currentSql = null;
 		
 		try {
 			
-			c = Integer.parseInt(awRequest.getUser().getCurrentCampaignId());
-			u = awRequest.getUser().getId();
-
-			awRequest.setResultList(
-				getJdbcTemplate().query(_sql, new Object[] {c, u}, new RowMapper() {
+			MostRecentActivityQueryResult result = new MostRecentActivityQueryResult();
+			currentSql = _promptResponseSql;
+			
+			List<?> results = 
+				getJdbcTemplate().query(_promptResponseSql, new Object[] {campaignId, userId}, new RowMapper() {
 					public Object mapRow(ResultSet rs, int rowNum) throws SQLException {
 						
-						MostRecentActivityQueryResult result = new MostRecentActivityQueryResult(); 
+						PromptActivityQueryResult result = new PromptActivityQueryResult(); 
 						result.setUserName(rs.getString(1));
-						result.setPromptResponseTimestamp(rs.getTimestamp(2));
+						result.setPromptTimestamp(rs.getTimestamp(2));
 						result.setPromptTimezone(rs.getString(3));
-						result.setMobilityTimestamp(rs.getTimestamp(4));
-						result.setMobilityTimezone(rs.getString(5));
 						return result;
 						
 					}
-				})
+				}
 			);
+			
+			if(results.size() != 0) {
+				
+				result.setPromptActivityQueryResult((PromptActivityQueryResult) results.get(0));
+			}
+			
+			
+			currentSql = _mobilityUploadSql;
+			
+			results = getJdbcTemplate().query(_mobilityUploadSql, new Object[] {userId}, new RowMapper() {
+					public Object mapRow(ResultSet rs, int rowNum) throws SQLException {
+						
+						MobilityActivityQueryResult result = new MobilityActivityQueryResult(); 
+						result.setUserName(rs.getString(1));
+						result.setMobilityTimestamp(rs.getTimestamp(2));
+						result.setMobilityTimezone(rs.getString(3));
+						return result;
+						
+					}
+				}
+			);
+			
+			if(results.size() != 0) {
+				
+				result.setMobilityActivityQueryResult((MobilityActivityQueryResult) results.get(0));
+			}
+			
+			if(null == result.getMobilityActivityQueryResult() && null == result.getPromptActivityQueryResult()) {
+				result.setUserName(userName);
+			}
+			
+			return result;
+			
 			
 		} catch (org.springframework.dao.DataAccessException dae) {
 			
-			_logger.error(dae.getMessage() + " SQL: '" + _sql + "' Param: " + c);
+			_logger.error(dae.getMessage() + " SQL: '" + currentSql + "' Params: " + campaignId + ", " + userId);
 			throw new DataAccessException(dae.getMessage());
 			
 		}
