@@ -29,26 +29,29 @@ public class MultiUserSuccessfulLocationUpdatesQueryDao extends SingleUserSucces
 	}
 	
 	/**
-	 * 
+	 * Finds all users for the current campaign, calculates the percentage of successful location updates for each user, and 
+	 * places the resulting UserPercentages into the AwRequest.resultList.
 	 */
 	@Override
 	public void execute(AwRequest awRequest) {
 		_findAllUsersForCampaignDao.execute(awRequest);
 		
 		List<?> userList = awRequest.getResultList();
-		List<UserPercentage> percentList = new ArrayList<UserPercentage>();
+		List<UserPercentage> userPercentages = new ArrayList<UserPercentage>();
 		
 		int size = userList.size();
 		
-		_logger.info(size);
+ 		if(_logger.isDebugEnabled()) {
+ 			_logger.debug("about to run queries for " + size + " users");
+ 		}
 		
 		for(int i = 0; i < size; i++) {
 			
 			SimpleUser su = (SimpleUser) userList.get(i);
-			executeSqlForUser(su.getId(), su.getUserName(), percentList);
-			
+			UserPercentage userPercentage = executeSqlForUser(su.getId(), su.getUserName());
+			userPercentages.add(userPercentage);
 		}
 		
-		awRequest.setResultList(percentList);
+		awRequest.setResultList(userPercentages);
 	}
 }
