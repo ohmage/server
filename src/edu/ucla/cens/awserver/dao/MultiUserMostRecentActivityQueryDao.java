@@ -1,14 +1,14 @@
 package edu.ucla.cens.awserver.dao;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.sql.DataSource;
 
 import org.apache.log4j.Logger;
-import org.springframework.jdbc.core.RowMapper;
 
 import edu.ucla.cens.awserver.domain.MostRecentActivityQueryResult;
+import edu.ucla.cens.awserver.domain.SimpleUser;
 import edu.ucla.cens.awserver.request.AwRequest;
 
 /**
@@ -16,52 +16,43 @@ import edu.ucla.cens.awserver.request.AwRequest;
  * 
  * @author selsky
  */
-public class MultiUserMostRecentActivityQueryDao extends AbstractDao {
+public class MultiUserMostRecentActivityQueryDao extends SingleUserMostRecentActivityQueryDao {
 	private static Logger _logger = Logger.getLogger(MultiUserMostRecentActivityQueryDao.class);
+	private Dao _findAllUsersForCampaignDao;
 	
-	private String _sql = "select login_id, max(prompt_response.time_stamp), prompt_response.phone_timezone," +
-			              " max(mobility_mode_only_entry.time_stamp), mobility_mode_only_entry.phone_timezone" +
-			              " from prompt_response, prompt, campaign_prompt_group, user, mobility_mode_only_entry" +
-			              " where prompt_response.prompt_id = prompt.id" +
-			              " and campaign_id = ?" +
-			              " and prompt_response.user_id = user.id" +
-			              " and mobility_mode_only_entry.user_id = user.id" +
-			              " group by prompt_response.user_id" +
-			              " order by prompt_response.user_id";
-	
-	public MultiUserMostRecentActivityQueryDao(DataSource dataSource) {
+	/**
+	 * 
+	 */
+	public MultiUserMostRecentActivityQueryDao(DataSource dataSource, Dao findAllUsersForCampaignDao) {
 		super(dataSource);
+		
+		if(null == findAllUsersForCampaignDao) {
+			throw new IllegalArgumentException("a non-null Dao is required");
+		}
+		
+		_findAllUsersForCampaignDao = findAllUsersForCampaignDao;
 	}
 	
 	@Override
 	public void execute(AwRequest awRequest) {
-		int c = -1;
+		_findAllUsersForCampaignDao.execute(awRequest);
 		
-		try {
+		List<?> userList = awRequest.getResultList();
+		List<MostRecentActivityQueryResult> results = new ArrayList<MostRecentActivityQueryResult>();
+		
+		int size = userList.size();
+		
+ 		if(_logger.isDebugEnabled()) {
+ 			_logger.debug("about to run queries for " + size + " users");
+ 		}
+		
+		for(int i = 0; i < size; i++) {
 			
-			c = Integer.parseInt(awRequest.getUser().getCurrentCampaignId());
-
-			awRequest.setResultList(
-				getJdbcTemplate().query(_sql, new Object[] {c}, new RowMapper() {
-					public Object mapRow(ResultSet rs, int rowNum) throws SQLException {
-						
-						MostRecentActivityQueryResult result = new MostRecentActivityQueryResult(); 
-						result.setUserName(rs.getString(1));
-						result.setPromptResponseTimestamp(rs.getTimestamp(2));
-						result.setPromptTimezone(rs.getString(3));
-						result.setMobilityTimestamp(rs.getTimestamp(4));
-						result.setMobilityTimezone(rs.getString(5));
-						return result;
-						
-					}
-				})
-			);
-			
-		} catch (org.springframework.dao.DataAccessException dae) {
-			
-			_logger.error(dae.getMessage() + " SQL: '" + _sql + "' Param: " + c);
-			throw new DataAccessException(dae.getMessage());
-			
+			SimpleUser su = (SimpleUser) userList.get(i);
+			MostRecentActivityQueryResult result = executeSqlForSingleUser(Integer.parseInt(awRequest.getUser().getCurrentCampaignId()), su.getId(), su.getUserName());
+			results.add(result);
 		}
+		
+		awRequest.setResultList(results);
 	}
 }
