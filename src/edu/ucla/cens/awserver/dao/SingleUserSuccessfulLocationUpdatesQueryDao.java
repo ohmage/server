@@ -61,16 +61,17 @@ public class SingleUserSuccessfulLocationUpdatesQueryDao extends AbstractDao {
 	 */
 	@Override
 	public void execute(AwRequest awRequest) {
-		List<UserPercentage> percentList = new ArrayList<UserPercentage>();
-		executeSqlForUser(awRequest.getUser().getId(), awRequest.getUser().getUserName(), percentList);
-		awRequest.setResultList(percentList);
+		List<UserPercentage> outputList = new ArrayList<UserPercentage>();
+		outputList.add(executeSqlForUser(awRequest.getUser().getId(), awRequest.getUser().getUserName()));
+		awRequest.setResultList(outputList);
 	}
 	
 	/**
 	 * TODO the in-line percentage calculation should be moved into a service so this class contains db logic only 
 	 */
-	protected void executeSqlForUser(int userId, String userName, List<UserPercentage> outputList) {
+	protected UserPercentage executeSqlForUser(int userId, String userName) {
 		String currentSql = null;
+		UserPercentage userPercentage = null;
 		
 		try {
 			double totalSuccess = 0d;
@@ -90,7 +91,7 @@ public class SingleUserSuccessfulLocationUpdatesQueryDao extends AbstractDao {
 			
 			if(0 == total) {
 				
-				outputList.add(new UserPercentage(userName, 0d));
+				userPercentage = new UserPercentage(userName, 0d);
 				
 			} else  {
 			
@@ -104,12 +105,14 @@ public class SingleUserSuccessfulLocationUpdatesQueryDao extends AbstractDao {
 					_logger.debug("totalSucess: " + totalSuccess);
 				}
 				
-				outputList.add(new UserPercentage(userName, (totalSuccess / total)));
+				userPercentage = new UserPercentage(userName, (totalSuccess / total));
 			}
 			
 			if(_logger.isDebugEnabled()) {
-				_logger.debug("percentage: " + outputList.get(0));
+				_logger.debug("user-percentage: " + userPercentage);
 			}
+			
+			return userPercentage;
 			
 		} catch (IncorrectResultSizeDataAccessException irsdae) { // thrown if queryForInt returns more than one row which means 
 			                                                      // there is a logical error in the SQL being run
