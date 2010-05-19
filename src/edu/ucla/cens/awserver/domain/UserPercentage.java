@@ -9,9 +9,6 @@ public class UserPercentage {
 	private String _userName;
 	private double _percentage;
 	
-	/**
-	 * 
-	 */
 	public UserPercentage(String userName, double percentage) {
 		_userName = userName;
 		_percentage = percentage;
@@ -21,15 +18,13 @@ public class UserPercentage {
 		return _userName;
 	}
 	
-//	public void setUserName(String userName) {
-//		_userName = userName;
-//	}
-	
 	public double getPercentage() {
 		return _percentage;
 	}
-	
-//	public void setSuccessPercentage(double successPercentage) {
-//		_successPercentage = successPercentage;
-//	}
+
+	@Override
+	public String toString() {
+		return "UserPercentage [_percentage=" + _percentage + ", _userName="
+				+ _userName + "]";
+	}
 }
