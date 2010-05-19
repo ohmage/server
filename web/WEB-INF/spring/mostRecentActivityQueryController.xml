@@ -10,7 +10,6 @@
   
   <!-- Write outbound data -->
   <bean id="mostRecentActivityQueryResponseWriter" class="edu.ucla.cens.awserver.jee.servlet.writer.MostRecentActivityQueryResponseWriter" />
-  
     
   <!-- Controller -->
   <bean id="mostRecentActivityQueryController" class="edu.ucla.cens.awserver.controller.ControllerImpl">
@@ -41,6 +40,7 @@
   </bean>
   <bean id="multiUserMostRecentActivityQueryDao" class="edu.ucla.cens.awserver.dao.MultiUserMostRecentActivityQueryDao">
     <constructor-arg index="0"><ref bean="dataSource" /></constructor-arg>
+    <constructor-arg index="1"><ref bean="findAllUsersForCampaignDao" /></constructor-arg>
   </bean>
   
 </beans>
