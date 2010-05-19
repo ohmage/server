@@ -4,7 +4,9 @@ import java.util.List;
 
 import edu.ucla.cens.awserver.cache.CacheService;
 import edu.ucla.cens.awserver.dao.Dao;
+import edu.ucla.cens.awserver.domain.MobilityActivityQueryResult;
 import edu.ucla.cens.awserver.domain.MostRecentActivityQueryResult;
+import edu.ucla.cens.awserver.domain.PromptActivityQueryResult;
 import edu.ucla.cens.awserver.request.AwRequest;
 import edu.ucla.cens.awserver.util.DateUtils;
 
@@ -78,27 +80,46 @@ public class MostRecentActivityQueryService implements Service {
 		for(int i = 0; i < size; i++) {
 			
 			MostRecentActivityQueryResult result = (MostRecentActivityQueryResult) results.get(i);
+			MobilityActivityQueryResult mobilityResult = result.getMobilityActivityQueryResult();
+			PromptActivityQueryResult promptResult = result.getPromptActivityQueryResult();
 			
 			// Normalize the timestamps in case they have different timezones
-			long mobilityTime 
-			    = result.getMobilityTimestamp().getTime() + DateUtils.systemTimezoneOffset(result.getMobilityTimezone());
-			long promptResponseTime 
-				= result.getPromptResponseTimestamp().getTime() + DateUtils.systemTimezoneOffset(result.getPromptTimezone());
+			long mobilityTime = 0L;
 			
-			double difference = 0d;
-			
-			if(mobilityTime > promptResponseTime) {
+			if(null != mobilityResult) {
 				
-				difference = System.currentTimeMillis() - mobilityTime;
-				result.setMaxFieldLabel("mobility");
-				
-			} else {
-				
-				difference = System.currentTimeMillis() - promptResponseTime;
-				result.setMaxFieldLabel("prompt");
+				mobilityTime = mobilityResult.getMobilityTimestamp().getTime() 
+					+ DateUtils.systemTimezoneOffset(mobilityResult.getMobilityTimezone()); 
 			}
 			
-			result.setValue(((difference / 1000) / 60) / 60);
+			long promptResponseTime = 0L;
+			
+			if(null != promptResult) {
+				promptResponseTime = promptResult.getPromptTimestamp().getTime() 
+					+ DateUtils.systemTimezoneOffset(promptResult.getPromptTimezone()); 
+			}
+						
+			double difference = 0d;
+			
+			if(promptResponseTime == 0 && mobilityTime == 0) {
+				
+				result.setHoursSinceLastActivity(0d);
+				
+			} else {
+			
+				if(mobilityTime > promptResponseTime) {
+					
+					difference = System.currentTimeMillis() - mobilityTime;
+					result.setMaxFieldLabel("mobility");
+					
+				} else {
+					
+					difference = System.currentTimeMillis() - promptResponseTime;
+					result.setMaxFieldLabel("prompt");
+				}
+				
+				result.setHoursSinceLastActivity(((difference / 1000) / 60) / 60);
+			}
 		}
 	}
 }
