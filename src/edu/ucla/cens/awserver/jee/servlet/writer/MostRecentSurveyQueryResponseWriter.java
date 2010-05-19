@@ -51,7 +51,7 @@ public class MostRecentSurveyQueryResponseWriter extends AbstractResponseWriter 
 				
 			    	jsonObject.put("user", result.getUserName());
 					jsonObject.put("value", result.getValue());
-					jsonObject.put("tz", result.getTimezone());
+					jsonObject.put("tz", result.getTimezone() == null ? "" : result.getTimezone());
 			    	
 					jsonArray.put(jsonObject);
 			    }

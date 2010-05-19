@@ -30,6 +30,9 @@ public class SingleUserSuccessfulLocationUpdatesQueryDao extends AbstractDao {
 			                              " and latitude is not NULL" +
 			                              " and longitude is not NULL";      
 	
+	// FIXME - both the prompt SQL statements have bugs: they need to use the campaign id in order to not 
+	// select prompt responses across multiple campaigns for one user
+	
 	private String _promptResponseSuccessSql = "select count(*)" +
 								               " from prompt_response" +
 									           " where user_id = ?" +

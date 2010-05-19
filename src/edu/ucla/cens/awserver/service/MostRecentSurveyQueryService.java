@@ -79,13 +79,19 @@ public class MostRecentSurveyQueryService implements Service {
 			
 			MostRecentSurveyActivityQueryResult result = (MostRecentSurveyActivityQueryResult) results.get(i);
 			
-			long updateTime = result.getTimestamp().getTime() + DateUtils.systemTimezoneOffset(result.getTimezone());
-			
-			// Dates before the epoch will break this calculation 
-			double difference = System.currentTimeMillis() - updateTime;
-			
-			// convert to hours
-			result.setValue(((difference / 1000) / 60) / 60);
+			if(result.getTimestamp() != null && result.getTimezone() != null) {
+				long updateTime = result.getTimestamp().getTime() + DateUtils.systemTimezoneOffset(result.getTimezone());
+				
+				// Dates before the epoch will break this calculation 
+				double difference = System.currentTimeMillis() - updateTime;
+				
+				// convert to hours
+				result.setValue(((difference / 1000) / 60) / 60);
+				
+			} else {
+				
+				result.setValue(0d);
+			}
 		}
 	}
 }
