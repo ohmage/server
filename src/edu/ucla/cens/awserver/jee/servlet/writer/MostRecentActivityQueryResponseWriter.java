@@ -48,16 +48,25 @@ public class MostRecentActivityQueryResponseWriter extends AbstractResponseWrite
 			    for(int i = 0; i < size; i++) {
 			    	JSONObject jsonObject = new JSONObject();
 			    	MostRecentActivityQueryResult result = (MostRecentActivityQueryResult) results.get(i);
-				
-			    	jsonObject.put("user", result.getUserName());
-					jsonObject.put("value", result.getValue());
-					
-					if("mobility".equals(result.getMaxFieldLabel())) {
-						jsonObject.put("tz", result.getMobilityTimezone());
-					} else {
-						jsonObject.put("tz", result.getPromptTimezone());
-					}
+			    	String type = result.getMaxFieldLabel();
 			    	
+			    	if("mobility".equals(type)) {
+			    		
+			    		jsonObject.put("user", result.getMobilityActivityQueryResult().getUserName());
+			    		jsonObject.put("tz", result.getMobilityActivityQueryResult().getMobilityTimezone());
+			    		
+			    	} else if("prompt".equals(type)) {
+			    		
+			    		jsonObject.put("user", result.getPromptActivityQueryResult().getUserName());
+			    		jsonObject.put("tz", result.getPromptActivityQueryResult().getPromptTimezone());
+			    		
+			    	} else {
+			    		
+			    		jsonObject.put("user", result.getUserName());
+			    		jsonObject.put("tz", "");
+			    	}
+			    	
+					jsonObject.put("value", result.getHoursSinceLastActivity());
 					jsonArray.put(jsonObject);
 			    }
 				
