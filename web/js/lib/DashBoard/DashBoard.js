@@ -10,6 +10,11 @@ function DashBoard() {
 	this.cur_view = null;
 	this.userName = "";
 	this.userRole = 0;
+	
+	// List of views registered with the DashBoard.
+	this.view_list = [];
+	
+	// Load view_list with necessary views
 }
 
 // Logger for the dashboard
@@ -19,7 +24,8 @@ DashBoard._logger = log4javascript.getLogger();
 DashBoard.view_type = {
     "VIEW_GRAPH":0,
     "VIEW_UPLOAD":1,
-    "VIEW_INFO":2
+    "VIEW_INFO":2,
+    "VIEW_MOBILITY":3
 };
 
 // Dashboard functions
@@ -35,15 +41,9 @@ DashBoard.prototype.switch_view = function(new_view) {
 	//	throw new Error(new_view + ' is not a defined view type.');
 	//}
 	
-	// Clear out the old view and insert the new
-	this.unload_view();
-	
-	// Update the banner with the new view
-	this.switch_banner(new_view);
-	
 	switch (new_view) {
 	case DashBoard.view_type.VIEW_GRAPH:
-		this.cur_view = new ViewGraph();
+		this.cur_view = new ViewGraph('ViewGraph');
 		break;
 	case DashBoard.view_type.VIEW_UPLOAD:
 		this.cur_view = new ViewUpload();
@@ -104,10 +104,19 @@ DashBoard.prototype.check_view = function() {
  */
 DashBoard.prototype.initialize_banner = function() {
 	$('#banner').append('<span class="h banner_text">EMA Visualizations for ' + this.userName + '.</span><br>')
+				.append('<ul class="tabs"></ul> ')
 		        .append('<div id="logout"><a href="/app/logout">Logout</a></div>');
+	
+	// Hack in the tabs now
+	$('#banner > ul.tabs').append('<li><a href="ViewGraph">EMA Graphs</a></li>')
+						  .append('<li><a class="w2" href="ViewUpload">Upload Stats</a></li>');
+	
+	$('#main').append('<div class="panes"></div>');
+	$('#main > div.panes').append('<div id="ViewGraph"></div>')
+					      .append('<div id="ViewUpload"></div>');
+	
+	// Setup tabs to work with the panes
+	$("#banner > ul.tabs").tabs("#main > div.panes > div");
 }
 
-DashBoard.prototype.switch_banner = function(view_type) {
-	
-}
 

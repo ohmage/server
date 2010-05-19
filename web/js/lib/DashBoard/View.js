@@ -33,24 +33,23 @@ View.prototype.loading = function(enable) {
 /*
  * ViewGraph - Create a View to show graphs of user data
  */
-function ViewGraph() {
-	
+function ViewGraph(divId) {
+	this.divId = '#' + divId;
 }
 
 ViewGraph.prototype = new View();
 
-
 // ViewGraph.configure_html - Give JSON that describes the surveys and prompts.
 ViewGraph.prototype.configure_html = function(json_config) {
 	// Setup the tabs and panes
-	$('#main').append('<ul class="tabs"></ul> ')
-	 		       .append('<div class="panes"></div>');
-	
+	$(this.divId).append('<ul class="tabs"></ul> ')
+	 		    .append('<div class="panes"></div>');
 	
 	// First setup the main panel
     var cur_group = -1;
     
     // Loop over each graph type
+    var that = this;
     json_config.forEach(function(config) {
         // If we are in a new group, add a new pane to the tabs
         if (cur_group != config.group_id) {
@@ -63,28 +62,28 @@ ViewGraph.prototype.configure_html = function(json_config) {
                 View._logger.debug("Creating group name: " + new_group_name + " with ref: " + new_group_name_ref);
             }
             
-            // Make this specific to the Main panel
-            $('.tabs').append('<li><a href="' + new_group_name_ref + '">' + new_group_name + '</a></li>');
-            $('.panes').append('<div id="group_' + config.group_id + '"></div>');
+            // Setup the tabs with the prompt groups
+            $(that.divId).find('.tabs').append('<li><a href="' + new_group_name_ref + '">' + new_group_name + '</a></li>');
+            $(that.divId).find('.panes').append('<div id="group_' + config.group_id + '"></div>');
             
             cur_group = config.group_id;
         }
         
         // Now append a new div into the panes for our new graph
-        $('.panes > #group_' + cur_group).append('<div class="ProtoGraph" id="prompt_' + config.prompt_id + '"></div>');
+        $(that.divId).find('.panes > #group_' + cur_group).append('<div class="ProtoGraph" id="prompt_' + config.prompt_id + '"></div>');
     
         // Create a unique div ID for Protovis to know where to attach the graph
         var div_id = 'ProtoGraph_' + cur_group + '_' + config.prompt_id;
         
         // Put the graph title and another div for the graph itself into this div
-        $('#group_' + cur_group + ' > #prompt_' + config.prompt_id)
+        $(that.divId).find('#group_' + cur_group + ' > #prompt_' + config.prompt_id)
             .append('<span class="graph_title">' + config.text + '</span>')
             .append('<div id="' + div_id + '"></div>');
         
         // Finally create a new graph and add it to the div
         // Make the graph have the width of the tab panes
         var new_graph = ProtoGraph.factory(config, div_id, $('div.panes').width());
-        $('#' + div_id)
+        $(that.divId).find('#' + div_id)
             .data('graph', new_graph)
             .data('prompt_id', config.prompt_id)
             .data('group_id', cur_group)
@@ -92,20 +91,20 @@ ViewGraph.prototype.configure_html = function(json_config) {
     });
     
     // setup ul.tabs to work as tabs for each div directly under div.panes 
-    $("ul.tabs").tabs("div.panes > div");
+    $(this.divId).find("ul.tabs").tabs(this.divId + " > div.panes > div");
     
     // Hide all the graphs for now
-    $('div.ProtoGraph').hide();
+    $(this.divId).find('div.ProtoGraph').hide();
     
     // Append a loading div in the pane
-    $('div.panes > div').append('<div class="loading"></div>');
+    $(this.divId).find('div.panes > div').append('<div class="loading"></div>');
 }
 
 
 ViewGraph.prototype.load_data = function(aw_data) {
     // Iterate over every ProtoGraph class
     var that = this;
-    $('div.ProtoGraph > div').each(function(index) {
+    $(this.divId).find('div.ProtoGraph > div').each(function(index) {
         // Grab the graph object attached to this div
         var graph = $(this).data('graph');
         var prompt_id = $(this).data('prompt_id');
@@ -178,15 +177,15 @@ ViewGraph.prototype.load_data = function(aw_data) {
 ViewGraph.prototype.loading = function(enable) {
     if (enable) {
         // Hide the graphs while loading
-        $("div.ProtoGraph").hide();
+    	$(this.divId).find("div.ProtoGraph").hide();
         // Show the loading graphic in the displayed pane
-        $('div.panes .loading').show();
+    	$(this.divId).find('div.panes .loading').show();
     }
     else {
         // Hide all the loading divs in the panes
-        $('div.panes .loading').hide();
+    	$(this.divId).find('div.panes .loading').hide();
         // And reshow the graphs
-        $("div.ProtoGraph").show();
+    	$(this.divId).find("div.ProtoGraph").show();
     }
 }
 

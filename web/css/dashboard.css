@@ -45,7 +45,7 @@ body {
 
 #banner {
     position: relative;
-    padding: 15px;
+    padding: 0px;
     margin-bottom: 10px;
     border-bottom: 1px solid #C8C8C8;
 }
@@ -56,6 +56,7 @@ body {
 
 #banner .banner_text {
   background-color: #CDE8FF;
+  margin: 5px;
 }
 
 #main {
@@ -105,7 +106,7 @@ body {
 #controls {
     padding-right: 5px;
     float: right;
-    width: 150px;
+    width: 155px;
 }
 
 #footer {
@@ -119,7 +120,7 @@ body {
 
 #grabDateForm .label {
     float: left;
-    width: 60px;
+    width: 65px;
     margin-right: 5px;
     text-align: right;
     font-weight: bold;
