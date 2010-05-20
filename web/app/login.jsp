@@ -48,9 +48,7 @@
   <!-- Dashboard banner -->
   <div id="banner">
     <span class="h banner_text">Welcome to AndWellness.</span>
-  </div>
-  
-  <div id="controls">
+    
     <form method="post" action="/app/login" id="loginForm">
       <c:if test="${sessionScope.failedLogin == true}">
         <div class="notification error">You have entered an incorrect user name or password.</div>
@@ -64,6 +62,10 @@
       
       <button type="submit" id="submit">Send</button>              
     </form>
+  </div>
+  
+  <div id="controls">
+
   </div>
   
   <!-- Main body of the dashboard -->

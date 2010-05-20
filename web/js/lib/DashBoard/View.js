@@ -160,7 +160,7 @@ ViewGraph.prototype.load_data = function(aw_data) {
         	View._logger.debug("Found " + new_data.length + " data points");
         }
         
-        // If the graph was hidden due to no data found, unhide
+        // If the graph was hidden due to no data found, un-hide
         if ($(this).data('hidden') == true) {
             that.replace_with_graph($(this));
             $(this).data('hidden', false);
@@ -178,7 +178,7 @@ ViewGraph.prototype.load_data = function(aw_data) {
         if (View._logger.isDebugEnabled()) {
             var time_to_render = new Date().getTime() - start_render_time;           
             View._logger.debug("Time to render graph: " + time_to_render + " ms");
-        }               
+        }     
     });
 }
 
@@ -233,8 +233,7 @@ ViewUpload.prototype.configure_html = function(json_config) {
     	
     	// Setup a wrapper div to hold information about the user
     	$(that.divId).append('<div id="' + config.user + '" class="StatDisplay"></div>');
-    	$(that.divId).find('div#' + config.user.replace('.', '\\.')).append('<span class="stat_title">'+config.user+'</span><br>')
-    		.append("Last survey uploaded " + config.value + " hours ago.");
+    	$(that.divId).find('div#' + config.user.replace('.', '\\.')).append('<span class="stat_title">'+config.user+':</span><br>');
     });
 	
 	this.configured = true;

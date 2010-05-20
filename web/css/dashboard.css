@@ -48,6 +48,7 @@ body {
     padding: 0px;
     margin-bottom: 10px;
     border-bottom: 1px solid #C8C8C8;
+    height: 90px;
 }
 
 #banner .user_id {
@@ -57,6 +58,8 @@ body {
 #banner .banner_text {
   background-color: #CDE8FF;
   margin: 5px;
+  position: relative;
+  top: 10px;
 }
 
 #main {
@@ -97,11 +100,18 @@ body {
   margin-bottom: 10px;
 }
 
-#logout {
+#banner #loggedInAs {
+	position: absolute;
+	right: 5px;
+	top: 0;	
+}
+
+#banner #logout {
     position: absolute;
     right: 5px;
-    top: 0;
+    top: 15px;
 }
+
 
 #controls {
     padding-right: 5px;
@@ -141,15 +151,31 @@ body {
 
 #loginForm {
   font-size: .9em;
+  float: right;
+  width: 222px;
+  padding: 5px;
 }
 
 #loginForm input {
-   width: 110px;
-   height: 22px;
+   margin-top:2px;
+   width: 120px;
+   float: right;
+   height: 28px;
 }
 
 #loginForm button {
-  margin-top: 3px; 
+  margin-top: 6px; 
+  position: absolute;
+  right: 0;
+  bottom: -12px;
+}
+
+#loginForm .label {
+  font-size: 14px;	
+  text-align:right;
+  padding-right:2px;
+  position: relative;
+  top: 7px;
 }
 
 .graph_title {

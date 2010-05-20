@@ -72,19 +72,8 @@ DashBoard.prototype.pass_data = function(aw_data) {
 	if (DashBoard._logger.isDebugEnabled()) {
         DashBoard._logger.debug("DashBoard.pass_data(): Passed data of type: "  + typeof aw_data);
     }
-	
-	// Be sure a View is currently loaded
-	//this.check_view();
-	
-	// Send the data to the view
-	//this.cur_view.load_data(aw_data);
-	
-	// Send data to all views for now
-	//for (view in this.view_list) {
-	//	view.load_data(aw_data);
-	//	view.loading(false);
-	//}
-	
+
+	// Send data to every View, they can decide whether or not they need it
 	$.each(
 			this.view_list,
 			function( intIndex, objValue ) {
@@ -119,20 +108,22 @@ DashBoard.prototype.check_view = function() {
 }
 
 /*
- * Functions to handle the Header.  Move these to their own module eventually.
+ * Initialize the dash board.  Separate this out eventually.  
  */
 DashBoard.prototype.initialize = function() {
-	$('#banner').append('<span class="h banner_text">EMA Visualizations for ' + this.userName + '.</span><br>')
+	$('#banner').append('<span class="h banner_text">Current Campaign: ABC Study</span><br>')
 				.append('<ul class="tabs"></ul> ')
+				.append('<span id="loggedInAs">Logged in as ' + this.userName + '</span>')
 		        .append('<div id="logout"><a href="/app/logout">Logout</a></div>');
 	
 	// Hack in the tabs now
-	$('#banner > ul.tabs').append('<li><a href="ViewGraph">EMA Graphs</a></li>')
-						  .append('<li><a class="w2" href="ViewUpload">Upload Stats</a></li>');
+	$('#banner > ul.tabs').append('<li><a class="w2" href="ViewUpload">Upload Stats</a></li>')
+	                      .append('<li><a href="ViewGraph">EMA Graphs</a></li>');
 	
 	$('#main').append('<div class="panes"></div>');
-	$('#main > div.panes').append('<div id="ViewGraph"></div>')
-					      .append('<div id="ViewUpload"></div>');
+	$('#main > div.panes').append('<div id="ViewUpload"></div>')
+						  .append('<div id="ViewGraph"></div>');
+					      
 	
 	// Setup tabs to work with the panes
 	$("#banner > ul.tabs").tabs("#main > div.panes > div");
