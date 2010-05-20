@@ -1,5 +1,6 @@
 package edu.ucla.cens.awserver.service;
 
+import java.util.Collections;
 import java.util.List;
 
 import edu.ucla.cens.awserver.cache.CacheService;
@@ -79,23 +80,29 @@ public class PromptGroupCountQueryService implements Service {
 		
 		// -- end duplicate logic with SuccessfulLocationUpdatesQueryService
 		
-		// Use a strategy instead for logic below 
+		//TODO Use a strategy instead for logic below? 
 		
-		List<?> results = awRequest.getResultList();
+		@SuppressWarnings("unchecked")
+		List<PromptGroupCountQueryResult> results = (List<PromptGroupCountQueryResult>) awRequest.getResultList();
+		Collections.sort(results);
+		
 		int size = results.size();
 		int currentCampaignId = Integer.parseInt(awRequest.getUser().getCurrentCampaignId());
 		
 		// Convert the number of prompt responses completed to the number of prompt groups completed 
 		for(int i = 0; i < size; i++) {
 			
-			PromptGroupCountQueryResult result = (PromptGroupCountQueryResult) results.get(i);
-			int count = result.getCount();
+			PromptGroupCountQueryResult result = results.get(i);
 			
-			Integer promptsPerGroup = (Integer) _campaignPromptGroupItemCountCacheService.lookup(
-				new CampaignPromptGroup(currentCampaignId, result.getCampaignPromptGroupId())
-			);
-			
-			result.setCount(count/promptsPerGroup);
+			if(! result.isEmpty()) {
+				int count = result.getCount();
+				
+				Integer promptsPerGroup = (Integer) _campaignPromptGroupItemCountCacheService.lookup(
+					new CampaignPromptGroup(currentCampaignId, result.getCampaignPromptGroupId())
+				);
+				
+				result.setCount(count/promptsPerGroup);
+			}
 		}
 	}
 }

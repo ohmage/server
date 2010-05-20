@@ -44,6 +44,7 @@
   </bean>
   <bean id="multiUserPromptGroupCountQueryDao" class="edu.ucla.cens.awserver.dao.MultiUserPromptGroupCountQueryDao">
     <constructor-arg index="0"><ref bean="dataSource" /></constructor-arg>
+    <constructor-arg index="1"><ref bean="findAllUsersForCampaignDao" /></constructor-arg>
   </bean>
   
 </beans>

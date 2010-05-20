@@ -57,30 +57,34 @@ public class PromptGroupCountQueryResponseWriter extends AbstractResponseWriter 
 						
 						JSONObject userObject = new JSONObject(); 
 						userObject.put("user", result.getUser());
-						userObject.put("date", result.getDate());
 						
-						JSONArray groupArray = new JSONArray();
-						userObject.put("groups", groupArray);
-						
-						while(true) {
+						if(! result.isEmpty()) {
 							
-							JSONObject groupObject = new JSONObject();
-							groupObject.put("group_id", result.getCampaignPromptGroupId());
-							groupObject.put("value", result.getCount());
-							groupArray.put(groupObject);
+							userObject.put("date", result.getDate());
 							
-							i++;
-							if(i == size) {
-								break;
-							}
+							JSONArray groupArray = new JSONArray();
+							userObject.put("groups", groupArray);
 							
-							result = (PromptGroupCountQueryResult) results.get(i);
-							compareUserDate = new UserDate(result.getUser(), result.getDate());
-							
-							if(! compareUserDate.equals(currentUserDate)) { // make sure not to skip the first 
-								                                            // result of the next group in the outer loop
-								i--;
-								break;
+							while(true) {
+								
+								JSONObject groupObject = new JSONObject();
+								groupObject.put("group_id", result.getCampaignPromptGroupId());
+								groupObject.put("value", result.getCount());
+								groupArray.put(groupObject);
+								
+								i++;
+								if(i == size) {
+									break;
+								}
+								
+								result = (PromptGroupCountQueryResult) results.get(i);
+								compareUserDate = new UserDate(result.getUser(), result.getDate());
+								
+								if(! compareUserDate.equals(currentUserDate)) { // make sure not to skip the first 
+									                                            // result of the next group in the outer loop
+									i--;
+									break;
+								}
 							}
 						}
 						

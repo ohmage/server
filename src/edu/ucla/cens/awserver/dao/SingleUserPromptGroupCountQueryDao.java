@@ -2,6 +2,7 @@ package edu.ucla.cens.awserver.dao;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.List;
 
 import javax.sql.DataSource;
 
@@ -9,6 +10,7 @@ import org.apache.log4j.Logger;
 import org.springframework.jdbc.core.RowMapper;
 
 import edu.ucla.cens.awserver.domain.PromptGroupCountQueryResult;
+import edu.ucla.cens.awserver.domain.User;
 import edu.ucla.cens.awserver.request.AwRequest;
 
 /**
@@ -17,7 +19,7 @@ import edu.ucla.cens.awserver.request.AwRequest;
 public class SingleUserPromptGroupCountQueryDao extends AbstractDao {
 	private static Logger _logger = Logger.getLogger(MultiUserPromptGroupCountQueryDao.class);
 	
-	private String _sql = "select login_id, campaign_prompt_group_id, date(time_stamp), count(*)" +
+	private String _sql = "select campaign_prompt_group_id, date(time_stamp), count(*)" +
 					      " from prompt_response, prompt, campaign_prompt_group, user" +
 						  " where prompt_response.prompt_id = prompt.id" +
 						  " and campaign_id = ?" +
@@ -26,7 +28,7 @@ public class SingleUserPromptGroupCountQueryDao extends AbstractDao {
 					      " and user.id = user_id" +
 					      " and date(time_stamp) between ? and ?" +
 					      " group by campaign_prompt_group_id, date(time_stamp)" +
-					      " order by login_id, date(timestamp), campaign_prompt_group_id";
+					      " order by login_id, date(time_stamp), campaign_prompt_group_id";
 	
 	public SingleUserPromptGroupCountQueryDao(DataSource dataSource) {
 		super(dataSource);
@@ -37,33 +39,51 @@ public class SingleUserPromptGroupCountQueryDao extends AbstractDao {
 	 */
 	@Override
 	public void execute(AwRequest awRequest) {
-		String s = null, e = null;
-		int u = -1, c = -1;
+		User user = awRequest.getUser();
+		
+		List<PromptGroupCountQueryResult> results 
+			= executeSqlForUser(Integer.parseInt(user.getCurrentCampaignId()),
+								user.getId(),
+					            user.getUserName(), 
+					            awRequest.getStartDate(), 
+					            awRequest.getEndDate());
+		
+		awRequest.setResultList(results);
+	}
+	
+	protected List<PromptGroupCountQueryResult> executeSqlForUser(int campaignId, int userId, final String userName, String startDate, String endDate) { 
 		
 		try {
-			s = awRequest.getStartDate();
-			e = awRequest.getEndDate();
-			u = awRequest.getUser().getId();
-			c = Integer.parseInt(awRequest.getUser().getCurrentCampaignId());
-
-			awRequest.setResultList(
-				getJdbcTemplate().query(_sql, new Object[] {c, u, s, e}, new RowMapper() {
+			
+			@SuppressWarnings("unchecked")
+			List<PromptGroupCountQueryResult> results = getJdbcTemplate().query(_sql, new Object[] {campaignId, userId, startDate, endDate}, new RowMapper() {
 					public Object mapRow(ResultSet rs, int rowNum) throws SQLException {
 						PromptGroupCountQueryResult result = new PromptGroupCountQueryResult();
-						result.setUser(rs.getString(1));
+						result.setUser(userName);
 						result.setCampaignPromptGroupId(rs.getInt(2));
 						result.setDate(rs.getDate(3).toString());
 						result.setCount(rs.getInt(4));
 						return result;
 					}
-				})
+				}
 			);
+			
+			if(results.size() == 0) {
+				
+				PromptGroupCountQueryResult result = new PromptGroupCountQueryResult();
+				result.setUser(userName);
+				result.setEmpty(true);
+				results.add(result);
+			} 
+			
+			return results;
 			
 		} catch (org.springframework.dao.DataAccessException dae) {
 			
-			_logger.error(dae.getMessage() + " SQL: '" + _sql + "' Params: " + c + ", " +  u + ", " + s + ", " + e);
+			_logger.error(dae.getMessage() + " SQL: '" + _sql + "' Params: " + campaignId + ", " +  userId + ", " + startDate + ", " + endDate);
 			throw new DataAccessException(dae.getMessage());
 			
 		}
+		
 	}
 }
