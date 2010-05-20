@@ -22,11 +22,11 @@ public class SingleUserMostRecentSurveyQueryDao extends AbstractDao {
 private static Logger _logger = Logger.getLogger(SingleUserMostRecentSurveyQueryDao.class);
 	
 	private String _sql = "select max(time_stamp), phone_timezone" +
-		                  " from prompt_response, prompt, campaign_prompt_group, user" +
+		                  " from prompt_response, prompt, campaign_prompt_group" +
 		                  " where prompt_response.prompt_id = prompt.id" +
+		                  " and prompt.campaign_prompt_group_id = campaign_prompt_group.id" +
 		                  " and campaign_id = ?" +
 		                  " and user_id = ?" +
-		                  " and prompt_response.user_id = user.id" +
 		                  " group by user_id";
 	
 	public SingleUserMostRecentSurveyQueryDao(DataSource dataSource) {
@@ -39,7 +39,7 @@ private static Logger _logger = Logger.getLogger(SingleUserMostRecentSurveyQuery
 		User user = awRequest.getUser();
 		results.add(executeSqlForUser(Integer.parseInt(user.getCurrentCampaignId()), user.getId(), user.getUserName()));
 		awRequest.setResultList(results);
-	}
+	}	
 	
 	protected MostRecentSurveyActivityQueryResult executeSqlForUser(int campaignId, int userId, final String userName) {
 		try {
