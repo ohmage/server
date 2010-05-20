@@ -3,65 +3,17 @@ ul.tabs a {
 	width: 111px;
 }
 
-/* SPECIFIC TO BANNER TABS */
-#banner ul.tabs {
-	list-style:none; 
-	margin:0 !important; 
-	padding:0;
-	height:30px;
-	position: absolute;
-	bottom: 0px;		
-}
-
-#banner ul.tabs li { 
-	float:left;	 
-	text-indent:0;
-	padding:0;
-	margin:0 !important;
-	list-style-image:none !important; 
-}
-
-#banner ul.tabs a { 
-	font-size:18px;
-	display:block; 
-	line-height:30px;
-	text-align:center;	
-	vertical-align: middle;
-	text-decoration:none;
-	color:#000;
-	padding:0px;
-	margin:0px;	
-	position:relative;
-}
-
-#banner ul.tabs a:active {
-	outline:none;		
-}
-
-/* when mouse enters the tab move the background image */
-#banner ul.tabs a:hover {
-	color:#0000CD;	
-}
-
-/* active tab uses a class name "current". it's highlight is also done by moving the background image. */
-#banner ul.tabs a.current, ul.tabs a.current:hover, ul.tabs li.current a {	
-	cursor:default !important; 
-	color:#000080 !important;
-}
-
-/* SPECIFIC TO VIEWGRAPH TABS */
-
 /* root element for tabs  */
-#ViewGraph ul.tabs { 
+ ul.tabs { 
 	list-style:none; 
 	margin:0 !important; 
-	padding:0;
 	height:30px;
-	border-bottom:1px solid #666;	
+	border-bottom:1px solid #C8C8C8;	
+	padding-left:15px;
 }
 
 /* single tab */
-#ViewGraph ul.tabs li { 
+ ul.tabs li { 
 	float:left;	 
 	text-indent:0;
 	padding:0;
@@ -70,9 +22,9 @@ ul.tabs a {
 }
 
 /* link inside the tab. uses a background image */
-#ViewGraph ul.tabs a { 
+ ul.tabs a { 
 	background: url(/css/images/tabs.png) no-repeat -652px 0;
-	font-size:11px;
+	font-size:12px;
 	display:block;
 	height: 30px;  
 	line-height:30px;
@@ -86,18 +38,18 @@ ul.tabs a {
 	top:1px;
 }
 
-#ViewGraph ul.tabs a:active {
+ ul.tabs a:active {
 	outline:none;		
 }
 
 /* when mouse enters the tab move the background image */
-#ViewGraph ul.tabs a:hover {
+ ul.tabs a:hover {
 	background-position: -652px -31px;	
 	color:#fff;	
 }
 
 /* active tab uses a class name "current". it's highlight is also done by moving the background image. */
-#ViewGraph ul.tabs a.current, ul.tabs a.current:hover, ul.tabs li.current a {
+ ul.tabs a.current, ul.tabs a.current:hover, ul.tabs li.current a {
 	background-position: -652px -62px;		
 	cursor:default !important; 
 	color:#000 !important;
@@ -133,3 +85,13 @@ div.panes div.pane {
 	display:none;		
 }
 
+
+/* SPECIFIC TO BANNER TABS */
+#banner ul.tabs { 
+	position:absolute;
+	bottom:-1px;;	
+}
+
+#banner ul.tabs a { 
+	font-size: 14px;
+}
