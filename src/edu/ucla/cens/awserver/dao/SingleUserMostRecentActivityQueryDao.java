@@ -24,20 +24,20 @@ import edu.ucla.cens.awserver.request.AwRequest;
 public class SingleUserMostRecentActivityQueryDao extends AbstractDao {
 	private static Logger _logger = Logger.getLogger(MultiUserMostRecentActivityQueryDao.class);
 	
-	private String _promptResponseSql = "select max(prompt_response.time_stamp), prompt_response.phone_timezone" +
-									    " from prompt_response, prompt, campaign_prompt_group" +
-									    " where prompt_response.prompt_id = prompt.id" +
-									    " and prompt.campaign_prompt_group_id = campaign_prompt_group.id" +
-									    " and campaign_id = ?" +
-									    " and prompt_response.user_id = ?" +
-									    " group by prompt_response.user_id" +
-									    " order by prompt_response.user_id";
+	private String _promptResponseSql = "SELECT DISTINCT time_stamp, prompt_response.phone_timezone" +
+									    " FROM prompt_response, prompt, campaign_prompt_group" +
+									    " WHERE prompt_response.prompt_id = prompt.id" +
+									    " AND prompt.campaign_prompt_group_id = campaign_prompt_group.id" +
+									    " AND campaign_id = ?" +
+									    " AND prompt_response.user_id = ?" +
+									    " AND prompt_response.time_stamp = " +
+									    "  (SELECT MAX(time_stamp) FROM prompt_response WHERE user_id = ?)";
 	
-	private String _mobilityUploadSql = "select max(time_stamp), phone_timezone" +
-							            " from mobility_mode_only_entry" +
-							            " where user_id = ?" +
-							            " group by user_id" +
-							            " order by user_id";
+	private String _mobilityUploadSql = "SELECT DISTINCT time_stamp, phone_timezone" +
+							            " FROM mobility_mode_only_entry" +
+							            " WHERE user_id = ?" +
+							            " AND time_stamp = " +
+							            "  (SELECT MAX(time_stamp) FROM mobility_mode_only_entry WHERE user_id = ?)";
 	
 	public SingleUserMostRecentActivityQueryDao(DataSource dataSource) {
 		super(dataSource);
@@ -60,7 +60,7 @@ public class SingleUserMostRecentActivityQueryDao extends AbstractDao {
 			currentSql = _promptResponseSql;
 			
 			List<?> results = 
-				getJdbcTemplate().query(_promptResponseSql, new Object[] {campaignId, userId}, new RowMapper() {
+				getJdbcTemplate().query(_promptResponseSql, new Object[] {campaignId, userId, userId}, new RowMapper() {
 					public Object mapRow(ResultSet rs, int rowNum) throws SQLException {
 						
 						PromptActivityQueryResult result = new PromptActivityQueryResult(); 
@@ -81,7 +81,7 @@ public class SingleUserMostRecentActivityQueryDao extends AbstractDao {
 			
 			currentSql = _mobilityUploadSql;
 			
-			results = getJdbcTemplate().query(_mobilityUploadSql, new Object[] {userId}, new RowMapper() {
+			results = getJdbcTemplate().query(_mobilityUploadSql, new Object[] {userId, userId}, new RowMapper() {
 					public Object mapRow(ResultSet rs, int rowNum) throws SQLException {
 						
 						MobilityActivityQueryResult result = new MobilityActivityQueryResult(); 
