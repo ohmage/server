@@ -50,8 +50,8 @@ private static Logger _logger = Logger.getLogger(SingleUserMostRecentSurveyQuery
 						
 						MostRecentSurveyActivityQueryResult result = new MostRecentSurveyActivityQueryResult(); 
 						result.setUserName(userName);
-						result.setTimestamp(rs.getTimestamp(2));
-						result.setTimezone(rs.getString(3));
+						result.setTimestamp(rs.getTimestamp(1));
+						result.setTimezone(rs.getString(2));
 						return result;
 					}
 			});

@@ -60,9 +60,9 @@ public class SingleUserPromptGroupCountQueryDao extends AbstractDao {
 					public Object mapRow(ResultSet rs, int rowNum) throws SQLException {
 						PromptGroupCountQueryResult result = new PromptGroupCountQueryResult();
 						result.setUser(userName);
-						result.setCampaignPromptGroupId(rs.getInt(2));
-						result.setDate(rs.getDate(3).toString());
-						result.setCount(rs.getInt(4));
+						result.setCampaignPromptGroupId(rs.getInt(1));
+						result.setDate(rs.getDate(2).toString());
+						result.setCount(rs.getInt(3));
 						return result;
 					}
 				}
