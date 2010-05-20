@@ -25,20 +25,19 @@ public class SingleUserMostRecentActivityQueryDao extends AbstractDao {
 	private static Logger _logger = Logger.getLogger(MultiUserMostRecentActivityQueryDao.class);
 	
 	private String _promptResponseSql = "select max(prompt_response.time_stamp), prompt_response.phone_timezone" +
-									    " from prompt_response, prompt, campaign_prompt_group, user" +
+									    " from prompt_response, prompt, campaign_prompt_group" +
 									    " where prompt_response.prompt_id = prompt.id" +
+									    " and prompt.campaign_prompt_group_id = campaign_prompt_group.id" +
 									    " and campaign_id = ?" +
-									    " and user.id = ?" +
-									    " and prompt_response.user_id = user.id" +
+									    " and prompt_response.user_id = ?" +
 									    " group by prompt_response.user_id" +
 									    " order by prompt_response.user_id";
 	
-	private String _mobilityUploadSql = "select max(mobility_mode_only_entry.time_stamp), mobility_mode_only_entry.phone_timezone" +
-							            " from user, mobility_mode_only_entry" +
-							            " where user.id = ?" +
-							            " and mobility_mode_only_entry.user_id = user.id" +
-							            " group by user.id" +
-							            " order by user.id";
+	private String _mobilityUploadSql = "select max(time_stamp), phone_timezone" +
+							            " from mobility_mode_only_entry" +
+							            " where user_id = ?" +
+							            " group by user_id" +
+							            " order by user_id";
 	
 	public SingleUserMostRecentActivityQueryDao(DataSource dataSource) {
 		super(dataSource);
@@ -52,7 +51,7 @@ public class SingleUserMostRecentActivityQueryDao extends AbstractDao {
 		awRequest.setResultList(results);
 	}
 	
-	protected MostRecentActivityQueryResult executeSqlForSingleUser(int campaignId, int userId, String userName) {
+	protected MostRecentActivityQueryResult executeSqlForSingleUser(int campaignId, int userId, final String userName) {
 		String currentSql = null;
 		
 		try {
@@ -65,7 +64,7 @@ public class SingleUserMostRecentActivityQueryDao extends AbstractDao {
 					public Object mapRow(ResultSet rs, int rowNum) throws SQLException {
 						
 						PromptActivityQueryResult result = new PromptActivityQueryResult(); 
-						result.setUserName(rs.getString(1));
+						result.setUserName(userName);
 						result.setPromptTimestamp(rs.getTimestamp(2));
 						result.setPromptTimezone(rs.getString(3));
 						return result;
@@ -86,7 +85,7 @@ public class SingleUserMostRecentActivityQueryDao extends AbstractDao {
 					public Object mapRow(ResultSet rs, int rowNum) throws SQLException {
 						
 						MobilityActivityQueryResult result = new MobilityActivityQueryResult(); 
-						result.setUserName(rs.getString(1));
+						result.setUserName(userName);
 						result.setMobilityTimestamp(rs.getTimestamp(2));
 						result.setMobilityTimezone(rs.getString(3));
 						return result;
