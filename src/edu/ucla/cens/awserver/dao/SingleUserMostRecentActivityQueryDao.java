@@ -65,8 +65,8 @@ public class SingleUserMostRecentActivityQueryDao extends AbstractDao {
 						
 						PromptActivityQueryResult result = new PromptActivityQueryResult(); 
 						result.setUserName(userName);
-						result.setPromptTimestamp(rs.getTimestamp(2));
-						result.setPromptTimezone(rs.getString(3));
+						result.setPromptTimestamp(rs.getTimestamp(1));
+						result.setPromptTimezone(rs.getString(2));
 						return result;
 						
 					}
@@ -86,8 +86,8 @@ public class SingleUserMostRecentActivityQueryDao extends AbstractDao {
 						
 						MobilityActivityQueryResult result = new MobilityActivityQueryResult(); 
 						result.setUserName(userName);
-						result.setMobilityTimestamp(rs.getTimestamp(2));
-						result.setMobilityTimezone(rs.getString(3));
+						result.setMobilityTimestamp(rs.getTimestamp(1));
+						result.setMobilityTimezone(rs.getString(2));
 						return result;
 						
 					}
