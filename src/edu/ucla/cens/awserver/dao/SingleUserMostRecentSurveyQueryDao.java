@@ -21,13 +21,13 @@ public class SingleUserMostRecentSurveyQueryDao extends AbstractDao {
 
 private static Logger _logger = Logger.getLogger(SingleUserMostRecentSurveyQueryDao.class);
 	
-	private String _sql = "select max(time_stamp), phone_timezone" +
-		                  " from prompt_response, prompt, campaign_prompt_group" +
-		                  " where prompt_response.prompt_id = prompt.id" +
-		                  " and prompt.campaign_prompt_group_id = campaign_prompt_group.id" +
-		                  " and campaign_id = ?" +
-		                  " and user_id = ?" +
-		                  " group by user_id";
+	private String _sql = "SELECT DISTINCT time_stamp, phone_timezone" +
+		                  " FROM prompt_response, prompt, campaign_prompt_group" +
+		                  " WHERE prompt_response.prompt_id = prompt.id" +
+		                  " AND prompt.campaign_prompt_group_id = campaign_prompt_group.id" +
+		                  " AND campaign_id = ?" +
+		                  " AND user_id = ?" +
+		                  " AND time_stamp = (SELECT MAX(time_stamp) FROM prompt_response WHERE user_id = ?)";
 	
 	public SingleUserMostRecentSurveyQueryDao(DataSource dataSource) {
 		super(dataSource);
@@ -45,7 +45,7 @@ private static Logger _logger = Logger.getLogger(SingleUserMostRecentSurveyQuery
 		try {
 				
 			List<?> results = 
-				getJdbcTemplate().query(_sql, new Object[] {campaignId, userId}, new RowMapper() {
+				getJdbcTemplate().query(_sql, new Object[] {campaignId, userId, userId}, new RowMapper() {
 					public Object mapRow(ResultSet rs, int rowNum) throws SQLException {
 						
 						MostRecentSurveyActivityQueryResult result = new MostRecentSurveyActivityQueryResult(); 
