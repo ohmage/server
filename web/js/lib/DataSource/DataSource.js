@@ -65,7 +65,7 @@ DataSourceJson.request_data = function(data_type, params) {
 	        $.getJSON(data_type, params, DataSourceJson.receive_data_location_updates);
 	        break;
 	    case DataSourceJson.DATA_HOURS_SINCE_LAST_UPDATE:
-	    	$.getJSON(data_type, DataSourcejson.receive_data_hours_since_last_update);
+	    	$.getJSON(data_type, DataSourceJson.receive_data_hours_since_last_update);
 	    	break;
 	    case DataSourceJson.DATA_HOURS_SINCE_LAST_SURVEY:
 	        $.getJSON(data_type, DataSourceJson.receive_data_hours_since_last_survey);
@@ -141,6 +141,18 @@ DataSourceJson.receive_data_hours_since_last_survey = function(json_data, text_s
     
     // Create the EMA data object creator
 	var awDataCreator = new HoursSinceLastSurveyAwDataCreator();
+	
+	// Pass the data to the dashboard
+	DataSourceJson.receive_data(json_data, text_status, awDataCreator);		
+}
+
+DataSourceJson.receive_data_location_updates = function(json_data, text_status) {
+    if (DataSourceJson._logger.isInfoEnabled()) {
+        DataSourceJson._logger.info("Received percentage good location updates in past day data from server.");
+    }    
+    
+    // Create the EMA data object creator
+	var awDataCreator = new LocationUpdatesAwDataCreator();
 	
 	// Pass the data to the dashboard
 	DataSourceJson.receive_data(json_data, text_status, awDataCreator);		

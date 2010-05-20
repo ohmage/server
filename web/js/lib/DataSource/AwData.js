@@ -238,3 +238,14 @@ HoursSinceLastSurveyAwData.prototype.set_data = function(json_data) {
 	this.current_data = json_data;
 }
 
+
+
+function LocationUpdatesAwData() {
+	this.current_data = null;
+}
+LocationUpdatesAwData.prototype = new AwData();
+
+LocationUpdatesAwData.prototype.set_data = function(json_data) {
+	this.current_data = json_data;
+}
+

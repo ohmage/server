@@ -70,3 +70,15 @@ HoursSinceLastSurveyAwDataCreator.prototype.create_from = function(json_data) {
 	awData.set_data(json_data);
 	return awData;
 }
+
+
+function LocationUpdatesAwDataCreator() {
+	
+}
+LocationUpdatesAwDataCreator.prototype = new AwDataCreator();
+
+LocationUpdatesAwDataCreator.prototype.create_from = function(json_data) {
+	var awData = new LocationUpdatesAwData();
+	awData.set_data(json_data);
+	return awData;
+}

@@ -81,7 +81,7 @@
     // Handles retrieval and filtering of data
     //var dataSource = new DataSourceJson('/app/q/ema');
 		
-	
+	// Grab the logged in user name from the jsp session
 	var userName = "<c:out value="${sessionScope.user.userName}"></c:out>";
 		
     // Main logger
@@ -116,8 +116,6 @@
         dashBoard = new DashBoard();
         dashBoard.set_user_name(userName);
         dashBoard.initialize();
-		//dashBoard.switch_view(DashBoard.view_type.VIEW_GRAPH);
-		//dashBoard.configure_html(response_list);
 		
         // Run requests for all data for now
         send_json_request(null);
@@ -183,14 +181,21 @@
         // Grab EMA data from the server 
         DataSourceJson.request_data(DataSourceJson.DATA_EMA, params);
 
-		// Grab user survey information from the server
+		// Grab hours since last survey information
 		DataSourceJson.request_data(DataSourceJson.DATA_HOURS_SINCE_LAST_SURVEY);
+
+		// Grab percentage good location updates
+		DataSourceJson.request_data(DataSourceJson.DATA_LOCATION_UPDATES);
+		
+		// Grab hours since last location update
+		DataSourceJson.request_data(DataSourceJson.DATA_HOURS_SINCE_LAST_UPDATE);
 
 		// Grab number of completed surveys per day from server
 		DataSourceJson.request_data(DataSourceJson.DATA_SURVEYS_PER_DAY, params);
 
 		// Grab number of mobilities from the survey per day
-		DataSourceJson.request_data(DataSourceJson.DATA_MOBILITY_MODE_PER_DAY, params);
+		// NOT YET IMPLEMENTED ON SERVER
+		//DataSourceJson.request_data(DataSourceJson.DATA_MOBILITY_MODE_PER_DAY, params);
 		
         
         // Return false to cancel the usual submit functionality
