@@ -48,7 +48,8 @@ public class MultiUserSuccessfulLocationUpdatesQueryDao extends SingleUserSucces
 		for(int i = 0; i < size; i++) {
 			
 			SimpleUser su = (SimpleUser) userList.get(i);
-			UserPercentage userPercentage = executeSqlForUser(su.getId(), su.getUserName());
+			UserPercentage userPercentage 
+				= executeSqlForUser(Integer.parseInt(awRequest.getUser().getCurrentCampaignId()), su.getId(), su.getUserName());
 			userPercentages.add(userPercentage);
 		}
 		

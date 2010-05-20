@@ -8,6 +8,7 @@ import javax.sql.DataSource;
 import org.apache.log4j.Logger;
 import org.springframework.dao.IncorrectResultSizeDataAccessException;
 
+import edu.ucla.cens.awserver.domain.User;
 import edu.ucla.cens.awserver.domain.UserPercentage;
 import edu.ucla.cens.awserver.request.AwRequest;
 
@@ -34,8 +35,11 @@ public class SingleUserSuccessfulLocationUpdatesQueryDao extends AbstractDao {
 	// select prompt responses across multiple campaigns for one user
 	
 	private String _promptResponseSuccessSql = "select count(*)" +
-								               " from prompt_response" +
+								               " from prompt_response, prompt, campaign_prompt_group" +
 									           " where user_id = ?" +
+									           " and campaign_id = ?" +
+									           " and prompt_response.prompt_id = prompt.id" +
+									           " and prompt.campaign_prompt_group_id = campaign_prompt_group.id" +
 									           " and date(time_stamp) between date(now() - 1) and date(now())" +
 									           " and latitude is not NULL" +
 									           " and longitude is not NULL";      
@@ -46,8 +50,11 @@ public class SingleUserSuccessfulLocationUpdatesQueryDao extends AbstractDao {
 							           " and date(time_stamp) between date(now() - 1) and date(now())";
 
 	private String _promptResponseTotalSql = "select count(*)" +
-                                             " from prompt_response" +
+                                             " from prompt_response, prompt, campaign_prompt_group" +
                                              " where user_id = ? " +
+                                             " and campaign_id = ?" +
+									         " and prompt_response.prompt_id = prompt.id" +
+									         " and prompt.campaign_prompt_group_id = campaign_prompt_group.id" +
                                              " and date(time_stamp) between date(now() - 1) and date(now())";
 	
 	/**
@@ -65,28 +72,30 @@ public class SingleUserSuccessfulLocationUpdatesQueryDao extends AbstractDao {
 	@Override
 	public void execute(AwRequest awRequest) {
 		List<UserPercentage> outputList = new ArrayList<UserPercentage>();
-		outputList.add(executeSqlForUser(awRequest.getUser().getId(), awRequest.getUser().getUserName()));
+		User user = awRequest.getUser();
+		outputList.add(executeSqlForUser(Integer.parseInt(user.getCurrentCampaignId()), user.getId(), user.getUserName()));
 		awRequest.setResultList(outputList);
 	}
 	
 	/**
 	 * TODO the in-line percentage calculation should be moved into a service so this class contains db logic only 
 	 */
-	protected UserPercentage executeSqlForUser(int userId, String userName) {
+	protected UserPercentage executeSqlForUser(int campaignId, int userId, String userName) {
 		String currentSql = null;
 		UserPercentage userPercentage = null;
 		
 		try {
 			double totalSuccess = 0d;
 			double total = 0d;
-			Object[] paramArray = {userId}; // JdbcTemplate.queryForInt requires an Object array for filling in the underlying
-			                                // PreparedStatement
+			Object[] mobilityParamArray = {userId}; // JdbcTemplate.queryForInt requires an Object array for filling in the underlying
+			                                        // PreparedStatement
+			Object[] promptParamArray = {userId, campaignId};
 			
 			currentSql = _mobilityTotalSql;
-			total += getJdbcTemplate().queryForInt(_mobilityTotalSql, paramArray);
+			total += getJdbcTemplate().queryForInt(_mobilityTotalSql, mobilityParamArray);
 			
 			currentSql = _promptResponseTotalSql;
-			total += getJdbcTemplate().queryForInt(_promptResponseTotalSql, paramArray); 
+			total += getJdbcTemplate().queryForInt(_promptResponseTotalSql, promptParamArray); 
 			
 			if(_logger.isDebugEnabled()) {
 				_logger.debug("total: " + total);
@@ -99,10 +108,10 @@ public class SingleUserSuccessfulLocationUpdatesQueryDao extends AbstractDao {
 			} else  {
 			
 				currentSql = _mobilitySuccessSql; 
-				totalSuccess += getJdbcTemplate().queryForInt(_mobilitySuccessSql, paramArray);
+				totalSuccess += getJdbcTemplate().queryForInt(_mobilitySuccessSql, mobilityParamArray);
 				
 				currentSql = _promptResponseSuccessSql;
-				totalSuccess += getJdbcTemplate().queryForInt(_promptResponseSuccessSql, paramArray);
+				totalSuccess += getJdbcTemplate().queryForInt(_promptResponseSuccessSql, promptParamArray);
 				
 				if(_logger.isDebugEnabled()) {
 					_logger.debug("totalSucess: " + totalSuccess);
