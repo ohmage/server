@@ -22,7 +22,7 @@ import edu.ucla.cens.awserver.request.AwRequest;
  * @author selsky
  */
 public class SingleUserMostRecentActivityQueryDao extends AbstractDao {
-	private static Logger _logger = Logger.getLogger(MultiUserMostRecentActivityQueryDao.class);
+	private static Logger _logger = Logger.getLogger(SingleUserMostRecentActivityQueryDao.class);
 	
 	private String _promptResponseSql = "SELECT DISTINCT time_stamp, prompt_response.phone_timezone" +
 									    " FROM prompt_response, prompt, campaign_prompt_group" +
@@ -43,6 +43,9 @@ public class SingleUserMostRecentActivityQueryDao extends AbstractDao {
 		super(dataSource);
 	}
 	
+	/**
+	 * Finds the currently logged-in user and dispatches to executeSqlForSingleUser().
+	 */
 	@Override
 	public void execute(AwRequest awRequest) {
 		List<MostRecentActivityQueryResult> results = new ArrayList<MostRecentActivityQueryResult>();
@@ -51,8 +54,11 @@ public class SingleUserMostRecentActivityQueryDao extends AbstractDao {
 		awRequest.setResultList(results);
 	}
 	
+	/**
+	 * Runs queries for find the most recent prompt and mobility activities for the user described by the provided parameters. 
+	 */
 	protected MostRecentActivityQueryResult executeSqlForSingleUser(int campaignId, int userId, final String userName) {
-		String currentSql = null;
+		String currentSql = null; // used for logging messages
 		
 		try {
 			
