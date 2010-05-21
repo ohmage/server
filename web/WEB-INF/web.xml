@@ -437,8 +437,7 @@
   <session-config>
     <session-timeout>30</session-timeout>
   </session-config>
-  
-  <!--  Turning off site-wide SSL because it causes problems with phones logging in over Edge    
+     
   <security-constraint>
     <web-resource-collection>
       <web-resource-name>Restricted URLs</web-resource-name>
@@ -448,6 +447,5 @@
       <transport-guarantee>CONFIDENTIAL</transport-guarantee>
     </user-data-constraint>
   </security-constraint>
-  -->
   
 </web-app>
