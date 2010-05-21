@@ -15,6 +15,8 @@ import edu.ucla.cens.awserver.domain.User;
 import edu.ucla.cens.awserver.request.AwRequest;
 
 /**
+ * DAO for finding the most recent survey for a particular user.
+ * 
  * @author selsky
  */
 public class SingleUserMostRecentSurveyQueryDao extends AbstractDao {
