@@ -14,28 +14,30 @@ import edu.ucla.cens.awserver.domain.User;
 import edu.ucla.cens.awserver.request.AwRequest;
 
 /**
+ * DAO for finding the number of prompt groups uploaded by a particular user within a time frame.
+ * 
  * @author selsky
  */
 public class SingleUserPromptGroupCountQueryDao extends AbstractDao {
-	private static Logger _logger = Logger.getLogger(MultiUserPromptGroupCountQueryDao.class);
+	private static Logger _logger = Logger.getLogger(SingleUserPromptGroupCountQueryDao.class);
 	
-	private String _sql = "select campaign_prompt_group_id, date(time_stamp), count(*)" +
-					      " from prompt_response, prompt, campaign_prompt_group, user" +
-						  " where prompt_response.prompt_id = prompt.id" +
-						  " and campaign_id = ?" +
-						  " and prompt.campaign_prompt_group_id = campaign_prompt_group.id" +
-					      " and user_id = ?" +
-					      " and user.id = user_id" +
-					      " and date(time_stamp) between ? and ?" +
-					      " group by campaign_prompt_group_id, date(time_stamp)" +
-					      " order by login_id, date(time_stamp), campaign_prompt_group_id";
+	private String _sql = "SELECT campaign_prompt_group_id, DATE(time_stamp), COUNT(*)" +
+					      " FROM prompt_response, prompt, campaign_prompt_group, user" +
+						  " WHERE prompt_response.prompt_id = prompt.id" +
+						  " AND campaign_id = ?" +
+						  " AND prompt.campaign_prompt_group_id = campaign_prompt_group.id" +
+					      " AND user_id = ?" +
+					      " AND user.id = user_id" +
+					      " AND DATE(time_stamp) BETWEEN ? and ?" +
+					      " GROUP BY campaign_prompt_group_id, DATE(time_stamp)" +
+					      " ORDER BY login_id, DATE(time_stamp), campaign_prompt_group_id";
 	
 	public SingleUserPromptGroupCountQueryDao(DataSource dataSource) {
 		super(dataSource);
 	}
 	
 	/**
-	 * 
+	 * For the user found in the provided AwRequest, dispatch to executeSqlForUser().
 	 */
 	@Override
 	public void execute(AwRequest awRequest) {
@@ -51,6 +53,9 @@ public class SingleUserPromptGroupCountQueryDao extends AbstractDao {
 		awRequest.setResultList(results);
 	}
 	
+	/**
+	 * Runs SQL to find the prompt group counts based on the provided parameters.
+	 */
 	protected List<PromptGroupCountQueryResult> executeSqlForUser(int campaignId, int userId, final String userName, String startDate, String endDate) { 
 		
 		try {
