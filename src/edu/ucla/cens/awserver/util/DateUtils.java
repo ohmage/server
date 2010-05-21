@@ -1,6 +1,5 @@
 package edu.ucla.cens.awserver.util;
 
-import java.util.Calendar;
 import java.util.TimeZone;
 
 import org.apache.log4j.Logger;
