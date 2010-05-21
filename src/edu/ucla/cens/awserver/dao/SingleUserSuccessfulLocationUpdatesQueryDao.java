@@ -13,8 +13,8 @@ import edu.ucla.cens.awserver.domain.UserPercentage;
 import edu.ucla.cens.awserver.request.AwRequest;
 
 /**
- * DAO for counting the number of successful location updates for the previous day for a particular user or a group of users if the 
- * current application user is a researcher or admin. 
+ * DAO for counting the number of successful location updates for the previous 24 hours (based on server-time) for a particular
+ * user or a group of users. 
  * 
  * A successful location update is defined by non-null latitude and longitude values in the prompt_response and 
  * mobility_mode_only_entry tables.
@@ -24,43 +24,38 @@ import edu.ucla.cens.awserver.request.AwRequest;
 public class SingleUserSuccessfulLocationUpdatesQueryDao extends AbstractDao {
 	private static Logger _logger = Logger.getLogger(SingleUserSuccessfulLocationUpdatesQueryDao.class);
 	
-	private String _mobilitySuccessSql = "select count(*)" +
-			                              " from mobility_mode_only_entry" +
-			                              " where user_id = ?" +
-			                              " and date(time_stamp) between date((now() - 1)) and date(now())" +
-			                              " and latitude is not NULL" +
-			                              " and longitude is not NULL";      
+	private String _mobilitySuccessSql = "SELECT COUNT(*)" +
+			                              " FROM mobility_mode_only_entry" +
+			                              " WHERE user_id = ?" +
+			                              " AND DATE(time_stamp) BETWEEN DATE((now() - 1)) and DATE(now())" +
+			                              " AND latitude is not NULL" +
+			                              " AND longitude is not NULL";      
 	
-	// FIXME - both the prompt SQL statements have bugs: they need to use the campaign id in order to not 
-	// select prompt responses across multiple campaigns for one user
+	private String _promptResponseSuccessSql = "SELECT COUNT(*)" +
+								               " FROM prompt_response, prompt, campaign_prompt_group" +
+									           " WHERE user_id = ?" +
+									           " AND campaign_id = ?" +
+									           " AND prompt_response.prompt_id = prompt.id" +
+									           " AND prompt.campaign_prompt_group_id = campaign_prompt_group.id" +
+									           " AND date(time_stamp) BETWEEN DATE(now() - 1) and DATE(now())" +
+									           " AND latitude is not NULL" +
+									           " AND longitude is not NULL";      
 	
-	private String _promptResponseSuccessSql = "select count(*)" +
-								               " from prompt_response, prompt, campaign_prompt_group" +
-									           " where user_id = ?" +
-									           " and campaign_id = ?" +
-									           " and prompt_response.prompt_id = prompt.id" +
-									           " and prompt.campaign_prompt_group_id = campaign_prompt_group.id" +
-									           " and date(time_stamp) between date(now() - 1) and date(now())" +
-									           " and latitude is not NULL" +
-									           " and longitude is not NULL";      
-	
-	private String _mobilityTotalSql = "select count(*)" +
-				                       " from mobility_mode_only_entry" +
-							           " where user_id = ? " +
-							           " and date(time_stamp) between date(now() - 1) and date(now())";
+	private String _mobilityTotalSql = "SELECT COUNT(*)" +
+				                       " FROM mobility_mode_only_entry" +
+							           " WHERE user_id = ? " +
+							           " AND DATE(time_stamp) BETWEEN DATE(now() - 1) and DATE(now())";
 
-	private String _promptResponseTotalSql = "select count(*)" +
-                                             " from prompt_response, prompt, campaign_prompt_group" +
-                                             " where user_id = ? " +
-                                             " and campaign_id = ?" +
-									         " and prompt_response.prompt_id = prompt.id" +
-									         " and prompt.campaign_prompt_group_id = campaign_prompt_group.id" +
-                                             " and date(time_stamp) between date(now() - 1) and date(now())";
+	private String _promptResponseTotalSql = "SELECT COUNT(*)" +
+                                             " FROM prompt_response, prompt, campaign_prompt_group" +
+                                             " WHERE user_id = ? " +
+                                             " AND campaign_id = ?" +
+									         " AND prompt_response.prompt_id = prompt.id" +
+									         " AND prompt.campaign_prompt_group_id = campaign_prompt_group.id" +
+                                             " AND DATE(time_stamp) BETWEEN DATE(now() - 1) and DATE(now())";
 	
 	/**
-	 * Points this DAO at the provided DataSource.
-	 * 
-	 * @throws IllegalArgumentException if the provided DataSource is null
+	 * Points this DAO at the provided DataSource by passing into the super class.
 	 */
 	public SingleUserSuccessfulLocationUpdatesQueryDao(DataSource dataSource) {
 		super(dataSource);
@@ -78,6 +73,8 @@ public class SingleUserSuccessfulLocationUpdatesQueryDao extends AbstractDao {
 	}
 	
 	/**
+	 * Finds the percentage of successful location updates for the user described by the provided parameters.
+	 * 
 	 * TODO the in-line percentage calculation should be moved into a service so this class contains db logic only 
 	 */
 	protected UserPercentage executeSqlForUser(int campaignId, int userId, String userName) {
@@ -87,8 +84,9 @@ public class SingleUserSuccessfulLocationUpdatesQueryDao extends AbstractDao {
 		try {
 			double totalSuccess = 0d;
 			double total = 0d;
-			Object[] mobilityParamArray = {userId}; // JdbcTemplate.queryForInt requires an Object array for filling in the underlying
-			                                        // PreparedStatement
+			
+			// PreparedStatement params
+			Object[] mobilityParamArray = {userId}; 
 			Object[] promptParamArray = {userId, campaignId};
 			
 			currentSql = _mobilityTotalSql;
