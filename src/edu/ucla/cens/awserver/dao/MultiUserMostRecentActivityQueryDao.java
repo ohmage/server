@@ -12,7 +12,7 @@ import edu.ucla.cens.awserver.domain.SimpleUser;
 import edu.ucla.cens.awserver.request.AwRequest;
 
 /**
- * DAO for looking up the most recent prompt response and mobility uploads.
+ * DAO for looking up the most recent prompt response and mobility uploads for multiple users.
  * 
  * @author selsky
  */
@@ -21,7 +21,10 @@ public class MultiUserMostRecentActivityQueryDao extends SingleUserMostRecentAct
 	private Dao _findAllUsersForCampaignDao;
 	
 	/**
+     * @param dataSource the method of data access
+     * @param findAllUsersForCampaignDao a DAO for looking up the users in a particular campaign
 	 * 
+	 * @throws IllegalArgumentException if the provided DAO is null
 	 */
 	public MultiUserMostRecentActivityQueryDao(DataSource dataSource, Dao findAllUsersForCampaignDao) {
 		super(dataSource);
@@ -33,6 +36,9 @@ public class MultiUserMostRecentActivityQueryDao extends SingleUserMostRecentAct
 		_findAllUsersForCampaignDao = findAllUsersForCampaignDao;
 	}
 	
+	/**
+	 * Finds all users for the campaign in the provided AwRequest and dispatches to executeSqlForSingleUser for each user.
+	 */
 	@Override
 	public void execute(AwRequest awRequest) {
 		_findAllUsersForCampaignDao.execute(awRequest);
