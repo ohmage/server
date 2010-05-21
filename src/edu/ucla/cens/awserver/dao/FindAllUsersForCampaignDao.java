@@ -12,16 +12,19 @@ import edu.ucla.cens.awserver.domain.SimpleUser;
 import edu.ucla.cens.awserver.request.AwRequest;
 
 /**
+ * DAO for finding all of the users in a paricular campaign.
+ * 
+ * TODO - only return enabled users?
  * 
  * @author selsky
  */
 public class FindAllUsersForCampaignDao extends AbstractDao {
 	private static Logger _logger = Logger.getLogger(FindAllUsersForCampaignDao.class);
 	
-	private String findAllUsersForCampaignSql = "select distinct user_id, login_id" + // distinct is used here in order to avoid 
-												" from user_role_campaign, user" +    // multiple rows returned for users with 
- 												" where campaign_id = ? " +           // multiple roles
-												" and user_id = user.id";
+	private String findAllUsersForCampaignSql = "SELECT DISTINCT user_id, login_id" + // distinct is used here in order to avoid 
+												" FROM user_role_campaign, user" +    // multiple rows returned for users with 
+ 												" WHERE campaign_id = ? " +           // multiple roles
+												" AND user_id = user.id";
 	
 	public FindAllUsersForCampaignDao(DataSource dataSource) {
 		super(dataSource);
