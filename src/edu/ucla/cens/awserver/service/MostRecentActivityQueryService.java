@@ -11,7 +11,10 @@ import edu.ucla.cens.awserver.request.AwRequest;
 import edu.ucla.cens.awserver.util.DateUtils;
 
 /**
- * Service that dispatches directly to a DAO without performing any pre- or post-processing.
+ * Service for finding the timestamp of the most recent activity (either mobility uploads or prompt response uploads). If the 
+ * currently logged-in user is a researcher or an admin, this service will return the timestamp of the most recent activity for 
+ * all of the users in a campaign. If an activity is found, the timestamp is normalized to the server timezone and the difference in
+ * hours is calculated.  
  * 
  * @author selsky
  */
@@ -21,10 +24,12 @@ public class MostRecentActivityQueryService implements Service {
 	private Dao _multiUserQueryDao;
 	
 	/**
-     * Creates and instance of this class and passes dao to the super class constructor.
+     * @param userRoleCacheService a lookup cache for determining user roles
+     * @param singleUserQueryDao retrieve most recent activity query results for a single user
+     * @param multiUserQueryDao retrieve most recent activity query results for multiple users
      * 
-     *   @throws IllegalArgumentException if the provided CacheService is null
-     *   @throws IllegalArgumentException if either of the provided Daos are null
+     * @throws IllegalArgumentException if the provided CacheService is null
+     * @throws IllegalArgumentException if either of the provided DAOs are null
      */
     public MostRecentActivityQueryService(CacheService userRoleCacheService, Dao singleUserQueryDao, Dao multiUserQueryDao) {
     	if(null == userRoleCacheService) {
@@ -43,7 +48,9 @@ public class MostRecentActivityQueryService implements Service {
     }
 	
     /**
-     * TODO document me
+     * Retrieves the currently logged in user from the provided AwRequest and dispatches to the appropriate DAO depending on the 
+     * role of the currently logged in user. Retrieves the query results from the AwRequest, normalizes the timezone to the server
+     * timezone, and calculates the hours since the most recent activity.
      */
 	public void execute(AwRequest awRequest) {
 		
@@ -72,18 +79,18 @@ public class MostRecentActivityQueryService implements Service {
 			_singleUserQueryDao.execute(awRequest);
 		}
 		
-		// Calculate the hours since the last update
-		
 		List<?> results = awRequest.getResultList();
 		int size = results.size();
 		
+		
+		// For each result, find the most recent upload type and calculate the hours since the last update 
 		for(int i = 0; i < size; i++) {
 			
 			MostRecentActivityQueryResult result = (MostRecentActivityQueryResult) results.get(i);
 			MobilityActivityQueryResult mobilityResult = result.getMobilityActivityQueryResult();
 			PromptActivityQueryResult promptResult = result.getPromptActivityQueryResult();
 			
-			// Normalize the timestamps in case they have different timezones
+			// Normalize the timestamps to the server timezone in case they have different timezones
 			long mobilityTime = 0L;
 			
 			if(null != mobilityResult) {
@@ -101,7 +108,7 @@ public class MostRecentActivityQueryService implements Service {
 						
 			double difference = 0d;
 			
-			if(promptResponseTime == 0 && mobilityTime == 0) {
+			if(promptResponseTime == 0 && mobilityTime == 0) { // No uploads found for this particular user
 				
 				result.setHoursSinceLastActivity(0d);
 				
@@ -118,7 +125,7 @@ public class MostRecentActivityQueryService implements Service {
 					result.setMaxFieldLabel("prompt");
 				}
 				
-				result.setHoursSinceLastActivity(((difference / 1000) / 60) / 60);
+				result.setHoursSinceLastActivity(((difference / 1000) / 60) / 60); // milliseconds to hours
 			}
 		}
 	}
