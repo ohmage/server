@@ -12,12 +12,19 @@ import edu.ucla.cens.awserver.domain.UserPercentage;
 import edu.ucla.cens.awserver.request.AwRequest;
 
 /**
+ * DAO for finding the number of successful location updates (for both mobility and prompt response uploads) for each user in a
+ * campaign.
+ * 
  * @author selsky
  */
 public class MultiUserSuccessfulLocationUpdatesQueryDao extends SingleUserSuccessfulLocationUpdatesQueryDao {
 	private static Logger _logger = Logger.getLogger(MultiUserSuccessfulLocationUpdatesQueryDao.class);
 	private Dao _findAllUsersForCampaignDao;
 	
+	/**
+	 * @param dataSource the method of data access
+	 * @param findAllUsersForCampaignDao a user lookup utility
+	 */
 	public MultiUserSuccessfulLocationUpdatesQueryDao(DataSource dataSource, Dao findAllUsersForCampaignDao) {
 		super(dataSource);
 		
