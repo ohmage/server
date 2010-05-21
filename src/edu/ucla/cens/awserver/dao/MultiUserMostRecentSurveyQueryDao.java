@@ -12,19 +12,13 @@ import edu.ucla.cens.awserver.domain.SimpleUser;
 import edu.ucla.cens.awserver.request.AwRequest;
 
 /**
+ * DAO for looking up the most recent prompt response uploads for multiple users.
+ *  
  * @author selsky
  */
 public class MultiUserMostRecentSurveyQueryDao extends SingleUserMostRecentSurveyQueryDao {
 	private static Logger _logger = Logger.getLogger(MultiUserMostRecentSurveyQueryDao.class);
 	private Dao _findAllUsersForCampaignDao;
-	
-//	private String _sql = "select login_id, max(time_stamp), phone_timezone" +
-//		                  " from prompt_response, prompt, campaign_prompt_group, user" +
-//		                  " where prompt_response.prompt_id = prompt.id" +
-//		                  " and campaign_id = ? " +
-//		                  " and prompt_response.user_id = user.id " +
-//		                  " group by user_id " +
-//		                  " order by user_id";
 	
 	public MultiUserMostRecentSurveyQueryDao(DataSource dataSource,  Dao findAllUsersForCampaignDao) {
 		super(dataSource);
@@ -36,6 +30,9 @@ public class MultiUserMostRecentSurveyQueryDao extends SingleUserMostRecentSurve
 		_findAllUsersForCampaignDao = findAllUsersForCampaignDao;
 	}
 	
+	/**
+	 * Finds all of the users for the current campaign and dispatchers to executeSqlForUser() for each user. 
+	 */
 	@Override
 	public void execute(AwRequest awRequest) {
 		_findAllUsersForCampaignDao.execute(awRequest);
@@ -59,6 +56,5 @@ public class MultiUserMostRecentSurveyQueryDao extends SingleUserMostRecentSurve
 		}
 		
 		awRequest.setResultList(results);
-		
 	}
 }
