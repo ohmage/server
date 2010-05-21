@@ -13,23 +13,19 @@ import edu.ucla.cens.awserver.domain.User;
 import edu.ucla.cens.awserver.request.AwRequest;
 
 /**
+ * DAO for finding the number of prompt groups uploaded for each user in a campaign.
+ * 
  * @author selsky
  */
 public class MultiUserPromptGroupCountQueryDao extends SingleUserPromptGroupCountQueryDao {
 	private static Logger _logger = Logger.getLogger(MultiUserPromptGroupCountQueryDao.class);
-	
 	private Dao _findAllUsersForCampaignDao;
-	
-//	private String _sql = "select login_id, campaign_prompt_group_id, date(time_stamp), count(*)" +
-//			              " from prompt_response, prompt, user, campaign_prompt_group" +
-//	                      " where prompt_response.prompt_id = prompt.id" +
-//	                      " and campaign_id = ?" +
-//	                      " and prompt.campaign_prompt_group_id = campaign_prompt_group.id" +
-//	                      " and time_stamp between ? and ?" +
-//	                      " and user.id = user_id" +
-//	                      " group by login_id, campaign_prompt_group_id, date(time_stamp)" +
-//	                      " order by login_id, date(time_stamp), campaign_prompt_group_id";
 
+	/**
+	 * 
+	 * @param dataSource
+	 * @param findAllUsersForCampaignDao
+	 */
 	public MultiUserPromptGroupCountQueryDao(DataSource dataSource, Dao findAllUsersForCampaignDao) {
 		super(dataSource);
 		
@@ -40,6 +36,10 @@ public class MultiUserPromptGroupCountQueryDao extends SingleUserPromptGroupCoun
 		_findAllUsersForCampaignDao = findAllUsersForCampaignDao;
 	}
 	
+	/**
+	 * Finds all of the users in the current campaign for the User in the provided AwRequest and dispatches to
+	 * executeSqlForUser() for each of those users.
+	 */
 	@Override
 	public void execute(AwRequest awRequest) {
 		
