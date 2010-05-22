@@ -205,7 +205,52 @@ function SurveysPerDayAwData() {
 SurveysPerDayAwData.prototype = new AwData();
 
 SurveysPerDayAwData.prototype.set_data = function(json_data) {
-	this.current_data = json_data;
+    // Preprocess the data to pull out the day into a Date
+    json_data.forEach(function(d) {
+        //var period = d.date.lastIndexOf('.');
+        //d.date = Date.parseDate(d.date.substring(0, period), "Y-m-d g:i:s").grabDate();
+        d.date = Date.parseDate(d.date, "Y-m-d").grabDate();
+		
+		
+        // Check if the date was parsed correctly
+        if (d.date == null) {
+            if (AwData._logger.isErrorEnabled()) {
+                AwData._logger.error("Date parsed incorrectly.");
+            }
+        }
+    });	
+	
+	// Additional preprocessing to make the data easier to graph
+	var separated_data = [];
+    // Separate out each multi day data point into separate points, with day counts
+    json_data.forEach(function(d) {
+        // This is extremely hard coded but will be changed later when server
+		// changes its grouping code...will fix it then
+		// There are five possible groups for this campaign, the server only returns a count if
+		// the value is non-zero.  Add in the 0 counts for graphing
+		var new_groups = [];
+		for (var i = 0; i < 5; i += 1) {
+			var data_point = new Object();
+			data_point.date = d.date;
+			data_point.user = d.user;
+			data_point.day_count = i;
+			data_point.total_day_count = 5;
+			data_point.response = 0;
+			new_groups.push(data_point);
+		}
+		
+		// Now run through the data and increment the response as necessary
+		d.groups.forEach(function(group) {
+			new_groups[group.group_id-1].response = group.value;
+		});
+		
+		// Finally, append the new data_points into the final array
+		new_groups.forEach(function(d) {
+			separated_data.push(d);
+		});		
+    });
+	
+	this.current_data = separated_data;
 }
 
 

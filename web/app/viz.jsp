@@ -76,11 +76,7 @@
 
     // Holds the current page's DashBoard setup
     var dashBoard = null;
-
 	
-    // Handles retrieval and filtering of data
-    //var dataSource = new DataSourceJson('/app/q/ema');
-		
 	// Grab the logged in user name from the jsp session
 	var userName = "<c:out value="${sessionScope.user.userName}"></c:out>";
 		
@@ -100,13 +96,15 @@
         //log4javascript.setEnabled(false);
 
         // Setup the datepickers for the date input box
+        // old datepicker
         //$("#startDate").datepicker({dateFormat: 'yy-mm-dd'});
  
  		var today = new Date().incrementDay(-13);
         $(":date").dateinput({
         	format: 'yyyy-mm-dd',	// the format displayed for the user
-        	selectors: true,             	// whether month/year dropdowns are shown
+        	selectors: true,        // whether month/year dropdowns are shown
         })
+        // Initially set to 13 days ago
         .data("dateinput").setValue(today);
         
         // Override the default submit function for the form
@@ -177,9 +175,7 @@
         	    's': start_date,
         	    'e': end_date
         };
-        
-        // Grab EMA data from the server 
-        DataSourceJson.request_data(DataSourceJson.DATA_EMA, params);
+       
 
 		// Grab hours since last survey information
 		DataSourceJson.request_data(DataSourceJson.DATA_HOURS_SINCE_LAST_SURVEY);
@@ -193,6 +189,9 @@
 		// Grab number of completed surveys per day from server
 		DataSourceJson.request_data(DataSourceJson.DATA_SURVEYS_PER_DAY, params);
 
+        // Grab EMA data from the server 
+        DataSourceJson.request_data(DataSourceJson.DATA_EMA, params);
+        
 		// Grab number of mobilities from the survey per day
 		// NOT YET IMPLEMENTED ON SERVER
 		//DataSourceJson.request_data(DataSourceJson.DATA_MOBILITY_MODE_PER_DAY, params);
@@ -202,28 +201,6 @@
         return false;
     }
 
-    /*
-     * Handle any possible errors from the server.
-     * Pass the data to the dashboard and do any cleanup.
-     */
-    function send_json_request_callback(error) {
-        if (log.isInfoEnabled()) {
-            log.info("JSON callback called with error: " + error);
-        }
-         
-        // Check for error status
-        //DataSourceJson.SUCCESS = 0;
-        //DataSourceJson.BAD_STATUS = 1;
-        //DataSourceJson.NO_DATA = 2;
-        //DataSourceJson.MALFORMED_DATA = 3;
-        //DataSourceJson.SESSION_EXPIRED = 4;
-         
-        // Load the data into the dashboard
-        dashBoard.load_data(dataSource);
- 		
-        // Switch off the loading graphic
-        dashBoard.loading(false);       
-    }
 	
     </script>
 	

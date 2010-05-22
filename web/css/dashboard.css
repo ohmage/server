@@ -125,11 +125,12 @@ body {
 
 #grabDateForm {
 /*    font-size: .8em;  */
+  width: 160px;
 }
 
 #grabDateForm .label {
     float: left;
-    width: 65px;
+    width: 67px;
     margin-right: 5px;
     text-align: right;
     font-weight: bold;
@@ -194,4 +195,24 @@ body {
   font-size: 36px;      
   line-height: 36px;
   font-weight: normal;
+}
+
+
+/* ViewUpload specific styling */
+#ViewUpload span.stat_title {
+	float: left;
+	font-size: 1.7em;
+}
+
+#ViewUpload div.UserInfo {
+  margin-left: 180px;
+  font-size: 1.1em;
+}
+
+#ViewUpload .ProtoGraph {
+	margin-top: 10px;
+}
+
+#ViewUpload {
+	padding-bottom: 50px;
 }

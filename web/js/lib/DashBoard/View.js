@@ -232,23 +232,112 @@ ViewUpload.prototype.configure_html = function(json_config) {
         }
     	
     	// Setup a wrapper div to hold information about the user
-    	$(that.divId).append('<div id="' + config.user + '" class="StatDisplay"></div>');
-    	$(that.divId).find('div#' + config.user.replace('.', '\\.')).append('<span class="stat_title">'+config.user+':</span><br>');
+    	$(that.divId).append('<div id="' + config.user.replace('.', '_') + '" class="StatDisplay"></div>');
+		
+		// Setup the title
+    	$(that.divId).find('div#' + config.user.replace('.', '_')).append('<span class="stat_title">'+config.user+':   </span>');
+		
+		// Setup a div to hold the user information
+        var divIdUser = "UserInfo_" + config.user.replace('.', '_');
+        $(that.divId).find('div#' + config.user.replace('.', '_'))
+              .append('<div class="UserInfo" id="' + divIdUser + '"></div>');
+        var newUserInfo = new UserInfo(divIdUser, config.user);
+        $(that.divId).find('#' + divIdUser)
+            .data('userInfo', newUserInfo);
+		
+		// Setup the ProtoGraph to view the surveys per day data
+        var div_id = 'ProtoGraph_' + config.user.replace('.', '_');
+        $(that.divId).find('div#' + config.user.replace('.', '_'))
+            .append('<div class="ProtoGraph" id="' + div_id + '"></div>');
+			
+        // Create a new ProtoGraph and add it to the div
+		var graph_config = new Object();
+		graph_config.type = ProtoGraph.graph_type.PROTO_GRAPH_ALL_INTEGER_TYPE;
+		graph_config.text = "Surveys returned per day";
+		
+		var graph_width = $(that.divId).width();
+        var new_graph = ProtoGraph.factory(graph_config, div_id, graph_width);
+        $(that.divId).find('#' + div_id)
+            .data('graph', new_graph);
+		
+		// Render the graph for testing
+		new_graph.render();
+	
     });
 	
 	this.configured = true;
+}
+
+
+function UserInfo(divId, userName) {
+	this.divId = '#' + divId;
+	this.userName = userName;
+	
+	// Initialize with default values
+	$(this.divId).append('<span class="TimeSinceUserSurvey">Test1</span>')
+	   .append('<span class="TimeSinceUserLocation">Test2</span>')
+	   .append('<span class="PercentageGoodUploads">Test3</span>');
+}
+
+// Update the hours since the last survey for this user
+UserInfo.prototype.update_hours_since_last_survey = function(value) {
+	$(this.divId + " > .TimeSinceUserSurvey").text("Last survey: " + value.toFixed(1) + " hours ago.");
+}
+
+// Update the time since the last good user GPS reading
+UserInfo.prototype.update_time_since_user_location = function(value) {
+    $(this.divId + " > .TimeSinceUserLocation").text("  Last good GPS " + value.toFixed(1) + " hours ago.");
+}
+
+// Update the percentage of good GPS readings
+UserInfo.prototype.update_percentage_good_uploads = function(value) {
+    $(this.divId + " > .PercentageGoodUploads").text(" Percentage good GPS: " + value);
 }
 
 // Load newly received data
 ViewUpload.prototype.load_data = function(json_data) {
 	// Check the incoming data type
 	if (json_data instanceof HoursSinceLastSurveyAwData) {
+		if (View._logger.isDebugEnabled()) {
+            View._logger.debug("ViewUpload received data of type HouseSinceLastSurveyAwData.");
+        }
+	
 		// Super hack, if first time we see this, configure the html
 		if (this.configured == false) {
 			this.configure_html(json_data);
 		}
+		
+		// Load the new information into the div for each response
+		var that = this;
+		json_data.current_data.forEach(function(data) {
+			// Grab the UserInfo object
+			var userInfoDivId = "#UserInfo_" + data.user.replace('.', '_');
+			var userInfo = $(that.divId).find(userInfoDivId).data('userInfo');
+			userInfo.update_hours_since_last_survey(data.value);
+		});
 	}
 	
+	if (json_data instanceof HoursSinceLastUpdateAwData) {
+	    // Load the new information into the div for each response
+        var that = this;
+        json_data.current_data.forEach(function(data) {
+            // Grab the UserInfo object
+            var userInfoDivId = "#UserInfo_" + data.user.replace('.', '_');
+            var userInfo = $(that.divId).find(userInfoDivId).data('userInfo');
+            userInfo.update_time_since_user_location(data.value);
+        });
+	}
+	
+	if (json_data instanceof LocationUpdatesAwData) {
+	    // Load the new information into the div for each response
+        var that = this;
+        json_data.current_data.forEach(function(data) {
+            // Grab the UserInfo object
+            var userInfoDivId = "#UserInfo_" + data.user.replace('.', '_');
+            var userInfo = $(that.divId).find(userInfoDivId).data('userInfo');
+            userInfo.update_percentage_good_uploads(data.value);
+        });
+	}
 }
 
 // Show the loading graphic when loading new data
