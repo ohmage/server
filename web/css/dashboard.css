@@ -138,7 +138,7 @@ body {
 }
 
 #grabDateForm #submit {
-    margin-left: 70px;
+    margin-left: 72px;
     margin-top: 2px;
 }
 
@@ -199,18 +199,79 @@ body {
 
 
 /* ViewUpload specific styling */
-#ViewUpload span.stat_title {
-	float: left;
-	font-size: 1.7em;
+
+/* ViewUpload header */
+#ViewUpload .ViewUploadHeader {
+	font-size: 1.5em;	
+	position: relative;
+	height: 30px;
 }
 
-#ViewUpload div.UserInfo {
-  margin-left: 180px;
-  font-size: 1.1em;
+#ViewUpload #ViewUploadHeader1 {
+	position: absolute;
+	top: 0;
+	left: 200px;
+}
+
+#ViewUpload #ViewUploadHeader2 {
+	position: absolute;
+	top: 0;
+	left: 400px;
+}
+
+#ViewUpload #ViewUploadHeader3 {
+	position: absolute;
+	top: 0;
+	left: 600px;
+}
+
+#ViewUpload .StatDisplay {
+	width:100%;	
+}
+
+#ViewUpload .StatTitle {
+	background-color:lightgrey;
+	border:1px solid darkgray;
+	float:left;
+	font-size:1.7em;
+	height:30px;
+	line-height:30px;
+	position:relative;
+	width:100%;
+	text-align: right;
+}
+
+#ViewUpload .UserName {
+	float: left;
+	margin-left: 2px;
+}
+
+#ViewUpload .TimeSinceUserSurvey {
+	position: absolute;
+	left: 105px;
+	top: 0;
+	width: 200px;
+}
+
+#ViewUpload .TimeSinceUserLocation {
+	position: absolute;
+	left: 320px;
+	top: 0;
+	width: 200px;
+}
+
+#ViewUpload .PercentageGoodUploads {
+	position: absolute;
+	left: 520px;
+	top: 0;
+	width: 200px;
 }
 
 #ViewUpload .ProtoGraph {
-	margin-top: 10px;
+	margin-top: -1px;
+	padding-top: 5px;
+	width:100%;
+	border: 1px solid darkgrey;
 }
 
 #ViewUpload {

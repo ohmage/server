@@ -225,6 +225,12 @@ ViewUpload.prototype = new View();
 // Configure the html according the the user list received from
 // time since last survey
 ViewUpload.prototype.configure_html = function(json_config) {
+	// First setup a static title
+	$(this.divId).append('<div class="ViewUploadHeader"></div>');
+	$(this.divId).find('.ViewUploadHeader').append('<span id="ViewUploadHeader1">Last Survey</span>')
+		.append('<span id="ViewUploadHeader2">Last Location</span>')
+		.append('<span id="ViewUploadHeader3">% Good Location</span>');
+	
 	var that = this;
     json_config.current_data.forEach(function(config) {
     	if (View._logger.isDebugEnabled()) {        
@@ -235,15 +241,21 @@ ViewUpload.prototype.configure_html = function(json_config) {
     	$(that.divId).append('<div id="' + config.user.replace('.', '_') + '" class="StatDisplay"></div>');
 		
 		// Setup the title
-    	$(that.divId).find('div#' + config.user.replace('.', '_')).append('<span class="stat_title">'+config.user+':   </span>');
+    	var statTitleDivId = "StatTitle_" + config.user.replace('.', '_');
+    	$(that.divId).find('div#' + config.user.replace('.', '_'))
+    		.append('<div class="StatTitle" id="' + statTitleDivId + '"></div>');
+    	
+    	// Attach a user object to the div
+    	var newUserInfo = new UserInfo(statTitleDivId, config.user);
+    	$(that.divId).find('#' + statTitleDivId).data('userInfo', newUserInfo);
 		
 		// Setup a div to hold the user information
-        var divIdUser = "UserInfo_" + config.user.replace('.', '_');
-        $(that.divId).find('div#' + config.user.replace('.', '_'))
-              .append('<div class="UserInfo" id="' + divIdUser + '"></div>');
-        var newUserInfo = new UserInfo(divIdUser, config.user);
-        $(that.divId).find('#' + divIdUser)
-            .data('userInfo', newUserInfo);
+        //var divIdUser = "UserInfo_" + config.user.replace('.', '_');
+        //$(that.divId).find('div#' + config.user.replace('.', '_'))
+        //      .append('<div class="UserInfo" id="' + divIdUser + '"></div>');
+        //var newUserInfo = new UserInfo(divIdUser, config.user);
+        //$(that.divId).find('#' + divIdUser)
+        //   .data('userInfo', newUserInfo);
 		
 		// Setup the ProtoGraph to view the surveys per day data
         var div_id = 'ProtoGraph_' + config.user.replace('.', '_');
@@ -274,24 +286,25 @@ function UserInfo(divId, userName) {
 	this.userName = userName;
 	
 	// Initialize with default values
-	$(this.divId).append('<span class="TimeSinceUserSurvey">Test1</span>')
-	   .append('<span class="TimeSinceUserLocation">Test2</span>')
-	   .append('<span class="PercentageGoodUploads">Test3</span>');
+	$(this.divId).append('<span class="UserName">' + userName + ':</span>')
+	   .append('<span class="TimeSinceUserSurvey">Loading</span>')
+	   .append('<span class="TimeSinceUserLocation">Loading</span>')
+	   .append('<span class="PercentageGoodUploads">Loading</span>');
 }
 
 // Update the hours since the last survey for this user
 UserInfo.prototype.update_hours_since_last_survey = function(value) {
-	$(this.divId + " > .TimeSinceUserSurvey").text("Last survey: " + value.toFixed(1) + " hours ago.");
+	$(this.divId + " > .TimeSinceUserSurvey").text(value.toFixed(1) + " hrs");
 }
 
 // Update the time since the last good user GPS reading
 UserInfo.prototype.update_time_since_user_location = function(value) {
-    $(this.divId + " > .TimeSinceUserLocation").text("  Last good GPS " + value.toFixed(1) + " hours ago.");
+    $(this.divId + " > .TimeSinceUserLocation").text(value.toFixed(1) + " hrs");
 }
 
 // Update the percentage of good GPS readings
 UserInfo.prototype.update_percentage_good_uploads = function(value) {
-    $(this.divId + " > .PercentageGoodUploads").text(" Percentage good GPS: " + value);
+    $(this.divId + " > .PercentageGoodUploads").text(value + "%");
 }
 
 // Load newly received data
@@ -311,9 +324,10 @@ ViewUpload.prototype.load_data = function(json_data) {
 		var that = this;
 		json_data.current_data.forEach(function(data) {
 			// Grab the UserInfo object
-			var userInfoDivId = "#UserInfo_" + data.user.replace('.', '_');
+			var userInfoDivId = "#StatTitle_" + data.user.replace('.', '_');
 			var userInfo = $(that.divId).find(userInfoDivId).data('userInfo');
-			userInfo.update_hours_since_last_survey(data.value);
+			if (userInfo != null)
+				userInfo.update_hours_since_last_survey(data.value);
 		});
 	}
 	
@@ -322,9 +336,10 @@ ViewUpload.prototype.load_data = function(json_data) {
         var that = this;
         json_data.current_data.forEach(function(data) {
             // Grab the UserInfo object
-            var userInfoDivId = "#UserInfo_" + data.user.replace('.', '_');
+            var userInfoDivId = "#StatTitle_" + data.user.replace('.', '_');
             var userInfo = $(that.divId).find(userInfoDivId).data('userInfo');
-            userInfo.update_time_since_user_location(data.value);
+            if (userInfo != null)
+            	userInfo.update_time_since_user_location(data.value);
         });
 	}
 	
@@ -333,9 +348,10 @@ ViewUpload.prototype.load_data = function(json_data) {
         var that = this;
         json_data.current_data.forEach(function(data) {
             // Grab the UserInfo object
-            var userInfoDivId = "#UserInfo_" + data.user.replace('.', '_');
+            var userInfoDivId = "#StatTitle_" + data.user.replace('.', '_');
             var userInfo = $(that.divId).find(userInfoDivId).data('userInfo');
-            userInfo.update_percentage_good_uploads(data.value);
+            if (userInfo != null)
+            	userInfo.update_percentage_good_uploads(data.value);
         });
 	}
 }
