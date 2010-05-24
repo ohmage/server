@@ -205,13 +205,10 @@ function SurveysPerDayAwData() {
 SurveysPerDayAwData.prototype = new AwData();
 
 SurveysPerDayAwData.prototype.set_data = function(json_data) {
-    // Preprocess the data to pull out the day into a Date
+    // Preprocess the data to pull out the day into a Date object
     json_data.forEach(function(d) {
-        //var period = d.date.lastIndexOf('.');
-        //d.date = Date.parseDate(d.date.substring(0, period), "Y-m-d g:i:s").grabDate();
         d.date = Date.parseDate(d.date, "Y-m-d").grabDate();
-		
-		
+				
         // Check if the date was parsed correctly
         if (d.date == null) {
             if (AwData._logger.isErrorEnabled()) {
@@ -220,35 +217,47 @@ SurveysPerDayAwData.prototype.set_data = function(json_data) {
         }
     });	
 	
-	// Additional preprocessing to make the data easier to graph
-	var separated_data = [];
-    // Separate out each multi day data point into separate points, with day counts
+    // Create an object to hold user_name -> data key/value pairs
+    var userName = new Object();
+    // Setup the object by adding each data point's user name to the keys.
+    // Then, add the date into the user name
+    // Finally, create an array of 5 representing the 5 group IDs that can be returned
+    // (Super hard coded and weirdness to deal with format of returned server data)
     json_data.forEach(function(d) {
-        // This is extremely hard coded but will be changed later when server
-		// changes its grouping code...will fix it then
-		// There are five possible groups for this campaign, the server only returns a count if
-		// the value is non-zero.  Add in the 0 counts for graphing
-		var new_groups = [];
-		for (var i = 0; i < 5; i += 1) {
-			var data_point = new Object();
-			data_point.date = d.date;
-			data_point.user = d.user;
-			data_point.day_count = i;
-			data_point.total_day_count = 5;
-			data_point.response = 0;
-			new_groups.push(data_point);
-		}
-		
-		// Now run through the data and increment the response as necessary
-		d.groups.forEach(function(group) {
-			new_groups[group.group_id-1].response = group.value;
-		});
-		
-		// Finally, append the new data_points into the final array
-		new_groups.forEach(function(d) {
-			separated_data.push(d);
-		});		
+    	// If the user does not exist yet, add it now
+    	if (!(userName.hasOwnProperty(d.user))) {
+    		userName[d.user] = new Object;
+    	}
+    	
+    	// If the date does not yet exist in the user, add it now
+    	if (!(userName[d.user].hasOwnProperty(d.date))) {
+    		userName[d.user][d.date] = new Array(0,0,0,0,0);
+    	}
+    	
+    	// Finally, add the value into the group_id array
+    	userName[d.user][d.date][d.groups[0].group_id - 1] = d.groups[0].value;
     });
+
+    
+	// Now, separate everything out into an object of users, each with an array of date/group_id pairs
+	var separated_data = new Object();
+	for (var user in userName) {
+		separated_data[user] = [];
+		
+		for (var date in userName[user]) {
+			for (var i = 0; i < 5; i++) {
+				var newDataPoint = new Object();
+				newDataPoint.date = date;
+				newDataPoint.group_id = i;
+				newDataPoint.response = userName[user][date][i];
+				newDataPoint.day_count = i;
+				newDataPoint.total_day_count = 5;
+				
+				// Append new data point to the separated data
+				separated_data[user].push(newDataPoint);
+			}
+		}
+	}
 	
 	this.current_data = separated_data;
 }

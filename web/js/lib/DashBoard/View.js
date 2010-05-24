@@ -270,10 +270,10 @@ ViewUpload.prototype.configure_html = function(json_config) {
 		var graph_width = $(that.divId).width();
         var new_graph = ProtoGraph.factory(graph_config, div_id, graph_width);
         $(that.divId).find('#' + div_id)
-            .data('graph', new_graph);
+            .data('ProtoGraph', new_graph);
 		
 		// Render the graph for testing
-		new_graph.render();
+		//new_graph.render();
 	
     });
 	
@@ -287,9 +287,9 @@ function UserInfo(divId, userName) {
 	
 	// Initialize with default values
 	$(this.divId).append('<span class="UserName">' + userName + ':</span>')
-	   .append('<span class="TimeSinceUserSurvey">Loading</span>')
-	   .append('<span class="TimeSinceUserLocation">Loading</span>')
-	   .append('<span class="PercentageGoodUploads">Loading</span>');
+	   .append('<span class="TimeSinceUserSurvey">No Data</span>')
+	   .append('<span class="TimeSinceUserLocation">No Data</span>')
+	   .append('<span class="PercentageGoodUploads">No Data</span>');
 }
 
 // Update the hours since the last survey for this user
@@ -304,7 +304,7 @@ UserInfo.prototype.update_time_since_user_location = function(value) {
 
 // Update the percentage of good GPS readings
 UserInfo.prototype.update_percentage_good_uploads = function(value) {
-    $(this.divId + " > .PercentageGoodUploads").text(value + "%");
+    $(this.divId + " > .PercentageGoodUploads").text((value * 100) + "%");
 }
 
 // Load newly received data
@@ -353,6 +353,28 @@ ViewUpload.prototype.load_data = function(json_data) {
             if (userInfo != null)
             	userInfo.update_percentage_good_uploads(data.value);
         });
+	}
+	
+	// Load the new SurveysPerDayAwData information
+	if (json_data instanceof SurveysPerDayAwData) {
+		var that = this;
+		// The data should be separated by user
+		for (user in json_data.current_data) {
+			// Graph the ProtoGraph object
+			var protoGraphDivId = "#ProtoGraph_" + user.replace('.', '_');
+			var protoGraph = $(that.divId).find(protoGraphDivId).data('ProtoGraph');
+			// If the graph exists, load the new data
+			if (protoGraph != null) {
+	            if (View._logger.isDebugEnabled()) {
+	                View._logger.debug("Sending new data to ProtoGraph: " + protoGraphDivId);
+	            }
+				
+				protoGraph.apply_data(json_data.current_data[user], startDate, numDays);
+				// Render the graph with the new data
+				protoGraph.render();
+			}
+			
+		}
 	}
 }
 

@@ -1359,6 +1359,21 @@ function ProtoGraphAllIntegerType(div_id, title, graph_width) {
     this.min_val = 0;  // Integer ranges always start at 0
     this.max_val = 10;
     this.y_scale = pv.Scale.linear(this.min_val,this.max_val).range(0, ProtoGraph.HEIGHT);
+    
+    // The Y labels never change, add them now
+    var that = this;
+    this.vis.add(pv.Label)
+        .data(this.y_scale.ticks())
+        .left(0)
+        .bottom(function(d) {
+            return that.y_scale(d);
+        })
+        .visible(function(d) {
+        	return (d % 2) == 0;
+        })
+        .textAlign('right')
+        .textBaseline('middle');
+    
 }
 
 // Inherit methods from ProtoGraph
@@ -1409,7 +1424,7 @@ ProtoGraphAllIntegerType.prototype.apply_data = function(data, start_date, num_d
             .bottom(1)
             .left(function(d) {
                 // Shift the bar left by which response per day this is
-                return that.x_scale(d.date) + that.x_scale.range().band * ((d.day_count - 1) / d.total_day_count);
+                return that.x_scale(d.date) + that.x_scale.range().band * ((d.day_count) / d.total_day_count);
             })
             .fillStyle(function(d) {
                 return ProtoGraph.DAY_COLOR[d.day_count];
