@@ -30,8 +30,8 @@ public class SingleUserPromptGroupCountQueryDao extends AbstractDao {
 					      " AND user.id = user_id" +
 					      " AND DATE(time_stamp) >= ? " +
 					      " AND DATE(time_stamp) < ?" +
-					      " GROUP BY campaign_prompt_group_id, DATE(time_stamp)" +
-					      " ORDER BY login_id, DATE(time_stamp), campaign_prompt_group_id";
+					      " GROUP BY DATE(time_stamp), campaign_prompt_group_id" +
+					      " ORDER BY DATE(time_stamp)";
 	
 	public SingleUserPromptGroupCountQueryDao(DataSource dataSource) {
 		super(dataSource);
