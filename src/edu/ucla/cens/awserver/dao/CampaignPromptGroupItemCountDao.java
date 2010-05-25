@@ -19,8 +19,10 @@ public class CampaignPromptGroupItemCountDao implements ParameterLessDao {
 	private static Logger _logger = Logger.getLogger(CampaignPromptGroupItemCountDao.class);
 	private JdbcTemplate _jdbcTemplate;
 	private String _sql = "select campaign_id, campaign_prompt_group.id, count(*)" +
-			              " from prompt, campaign_prompt_group" +
-			              " where prompt.campaign_prompt_group_id = campaign_prompt_group.id" +
+			              " from prompt, campaign_prompt_group, prompt_type" +
+			              " where prompt_type.type != 'null'" +
+			              " and prompt.prompt_type_id = prompt_type.id" + 
+			              " and prompt.campaign_prompt_group_id = campaign_prompt_group.id" +
 			              " group by campaign_prompt_group_id;";
 	
 	/**
