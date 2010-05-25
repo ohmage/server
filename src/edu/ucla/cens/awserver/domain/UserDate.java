@@ -37,6 +37,11 @@ public class UserDate implements Comparable<UserDate> {
 	}
 
 	@Override
+	public String toString() {
+		return "UserDate [_date=" + _date + ", _userName=" + _userName + "]";
+	}
+
+	@Override
 	public boolean equals(Object obj) {
 		if (this == obj)
 			return true;
