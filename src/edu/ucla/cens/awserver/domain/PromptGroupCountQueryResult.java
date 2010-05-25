@@ -60,5 +60,12 @@ public class PromptGroupCountQueryResult implements Comparable<PromptGroupCountQ
 		} 
 		
 		return userCompare;
-	}	
+	}
+	
+	@Override
+	public String toString() {
+		return "PromptGroupCountQueryResult [_campaignPromptGroupId="
+				+ _campaignPromptGroupId + ", _count=" + _count + ", _date="
+				+ _date + ", _empty=" + _empty + ", _user=" + _user + "]";
+	}
 }
