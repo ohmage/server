@@ -46,17 +46,18 @@ public class PromptGroupOneJsonMessageCreator implements JsonMessageCreator {
 	/**
 	 * Returns a JSONArray with numberOfEntries elements that are all of the prompt group id 1 type.
 	 */
-	public JSONArray createMessage(int numberOfEntries) {
+	public JSONArray createMessage(int numberOfDays) {
 		JSONArray jsonArray = new JSONArray();
 		String tz = ValueCreator.tz(); // use the same tz for all messages in the returned array (the most likely use case)
 		int versionId = 1;
 		int groupId = 1;
 		List<String> tags = new ArrayList<String>();
 	
-		for(int i = 0; i < numberOfEntries; i++) {
+		// Create data starting numberOfDays - 1 days ago
+		for(int i = numberOfDays - 1 ; i >= 0; i--) {
 			try { Thread.sleep(100); } catch (InterruptedException ie) { } // ensure variable dates
-			String date = ValueCreator.date(i,1);
-			long epoch = ValueCreator.epoch(i,1);
+			String date = ValueCreator.date(i);
+			long epoch = ValueCreator.epoch(i);
 			double latitude = ValueCreator.latitude();
 			double longitude = ValueCreator.longitude();
 			

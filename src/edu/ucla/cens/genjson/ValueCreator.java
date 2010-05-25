@@ -28,8 +28,8 @@ public class ValueCreator {
 		return System.currentTimeMillis();
 	}
 
-	public static long epoch(int response_num, int responses_per_day) {
-		return System.currentTimeMillis() - 86400000l * 14 + (86400000l / responses_per_day * response_num); 
+	public static long epoch(int num_days_ago) {
+		return System.currentTimeMillis() - 86400000l * num_days_ago; 
 	}
 	
 	public static String tz() {
@@ -44,12 +44,12 @@ public class ValueCreator {
 		return sdf.format(new Date());
 	}
 
-	public static String date(int response_num, int responses_per_day) {
+	public static String date(int num_days_ago) {
 		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 // use the local timezone for now
 // if specific timezones are added in the future, the epoch method will have to change so the value returned has the same tz
 //		sdf.setTimeZone(TimeZone.getTimeZone(tz));
-		return sdf.format(new Date(epoch(response_num, responses_per_day)));
+		return sdf.format(new Date(epoch(num_days_ago)));
 	}
 	
 	public static String mode() {

@@ -34,13 +34,13 @@ public class GenerateJson {
 			System.exit(0);
 		}
 		
-		int numberOfMessages = 0;
+		int numberOfDays = 0;
 		String messageType = null;
 		String fileName = null;
 		
 		try {
 			
-			numberOfMessages = Integer.parseInt(args[0]);
+			numberOfDays = Integer.parseInt(args[0]);
 			
 		} catch (NumberFormatException nfe) {
 			
@@ -57,7 +57,7 @@ public class GenerateJson {
 		fileName = args[2];
 		
 		JsonMessageCreator jsonMessageCreator = JsonMessageCreatorFactory.make(messageType);
-		JSONArray jsonArray = jsonMessageCreator.createMessage(numberOfMessages);
+		JSONArray jsonArray = jsonMessageCreator.createMessage(numberOfDays);
 		
 		Writer out = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(fileName)));
 		
@@ -95,12 +95,12 @@ public class GenerateJson {
 		    || "prompt:4".equals(messageType);
 	}
 	
-	private static String _helpText = "\nGiven a number of messages, a message type and a file name, generate JSON messages and\n" +
-			                         "place them in the output file.\n" +
+	private static String _helpText = "\nGiven a number of days, a message type and a file name, generate JSON messages from\n" +
+		                             "num days ago to today and place them in the output file.\n" +
 			                         "The allowed message types are: mobility:mode_only, mobility:mode_features, prompt:0,\n" +
 			                         "prompt:1, prompt:2, prompt:3.\n\n" +
 			                         "Usage:\n" +
-			                         "    java edu.ucla.cens.genjson.GenerateJson 10 mobility:mode_only out.txt\n\n" +
+			                         "    java edu.ucla.cens.genjson.GenerateJson 14 mobility:mode_only out.txt\n\n" +
 			                         "If you would like to pretty-print the JSON output, check out edu.ucla.cens.genjson.TextToJson.";
 	
 }
