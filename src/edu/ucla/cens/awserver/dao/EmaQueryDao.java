@@ -26,8 +26,8 @@ public class EmaQueryDao extends AbstractDao {
 			                    " prompt_response.time_stamp, prompt.prompt_config_id, " +
 			                    " campaign_prompt_group.group_id" +
 			                    " from prompt_response, prompt, campaign_prompt_group, campaign" +
-			                    " where prompt_response.time_stamp >= timestamp(?)" +
-			                    " and prompt_response.time_stamp <= timestamp(?)" +
+			                    " where date(prompt_response.time_stamp) >= ?" +
+			                    " and date(prompt_response.time_stamp) < ?" +
 			                    " and prompt_response.user_id = ?" +
 			                    " and prompt_response.prompt_id = prompt.id" +
 			                    " and prompt.campaign_prompt_group_id = campaign_prompt_group.id " +
