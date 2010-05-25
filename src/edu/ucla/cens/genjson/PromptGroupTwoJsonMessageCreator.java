@@ -57,7 +57,7 @@ public class PromptGroupTwoJsonMessageCreator implements JsonMessageCreator {
 				
 				for(int k = 1; k < 11; k++) {
 					Map<String, Object> p = new HashMap<String, Object>();
-					p.put("prompt_id", j);
+					p.put("prompt_id", k);
 					p.put("response", ValueCreator.randomPositiveIntModulus(4));
 					responses.add(p);
 				}
