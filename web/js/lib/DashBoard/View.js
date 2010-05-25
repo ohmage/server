@@ -249,14 +249,6 @@ ViewUpload.prototype.configure_html = function(json_config) {
     	var newUserInfo = new UserInfo(statTitleDivId, config.user);
     	$(that.divId).find('#' + statTitleDivId).data('userInfo', newUserInfo);
 		
-		// Setup a div to hold the user information
-        //var divIdUser = "UserInfo_" + config.user.replace('.', '_');
-        //$(that.divId).find('div#' + config.user.replace('.', '_'))
-        //      .append('<div class="UserInfo" id="' + divIdUser + '"></div>');
-        //var newUserInfo = new UserInfo(divIdUser, config.user);
-        //$(that.divId).find('#' + divIdUser)
-        //   .data('userInfo', newUserInfo);
-		
 		// Setup the ProtoGraph to view the surveys per day data
         var div_id = 'ProtoGraph_' + config.user.replace('.', '_');
         $(that.divId).find('div#' + config.user.replace('.', '_'))
@@ -271,9 +263,6 @@ ViewUpload.prototype.configure_html = function(json_config) {
         var new_graph = ProtoGraph.factory(graph_config, div_id, graph_width);
         $(that.divId).find('#' + div_id)
             .data('ProtoGraph', new_graph);
-		
-		// Render the graph for testing
-		//new_graph.render();
 	
     });
 	
@@ -327,9 +316,14 @@ ViewUpload.prototype.load_data = function(json_data) {
             View._logger.debug("ViewUpload received data of type HouseSinceLastSurveyAwData.");
         }
 	
-		// Super hack, if first time we see this, configure the html
+		// Super hack, if first time we see this, configure the html, then ask for real data
+		// FIX THIS, NOT A GOOD PLACE HERE
 		if (this.configured == false) {
 			this.configure_html(json_data);
+			
+			send_json_request(null);
+			
+			return;
 		}
 		
 		// Load the new information into the div for each response

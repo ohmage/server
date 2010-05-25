@@ -115,8 +115,9 @@
         dashBoard.set_user_name(userName);
         dashBoard.initialize();
 		
-        // Run requests for all data for now
-        send_json_request(null);
+        // Initialize the page by grabbing config information from server
+        send_json_request_init();
+        //send_json_request(null);
     });
 
     /*
@@ -138,6 +139,17 @@
         
         // Return whether it's okay to proceed with the request
         return result.valid;
+    }
+
+    /*
+     * Ask for enough info to initialize the webpage
+     */
+    function send_json_request_init() {
+    	// Switch on the loading graphic
+        dashBoard.loading(true);
+
+		// This will initialize the main user upload page
+		DataSourceJson.request_data(DataSourceJson.DATA_HOURS_SINCE_LAST_SURVEY);
     }
 
     /*
