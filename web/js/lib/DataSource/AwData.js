@@ -207,12 +207,12 @@ SurveysPerDayAwData.prototype = new AwData();
 SurveysPerDayAwData.prototype.set_data = function(json_data) {
     // Preprocess the data to pull out the day into a Date object
 	// Push into another array to remove users with NO dates
-	var noDatesRemoved = [];
+	//var noDatesRemoved = [];
     json_data.forEach(function(d) {
     	try {
     		if (d.hasOwnProperty("date")) {
     			d.date = Date.parseDate(d.date, "Y-m-d").grabDate();
-    			noDatesRemoved.push(d);
+    			//noDatesRemoved.push(d);
     		}
     	}
     	catch (err) {
@@ -228,10 +228,15 @@ SurveysPerDayAwData.prototype.set_data = function(json_data) {
     // Then, add the date into the user name
     // Finally, create an array of 5 representing the 5 group IDs that can be returned
     // (Super hard coded and weirdness to deal with format of returned server data)
-    noDatesRemoved.forEach(function(d) {
+    json_data.forEach(function(d) {
     	// If the user does not exist yet, add it now
     	if (!(userName.hasOwnProperty(d.user))) {
     		userName[d.user] = new Object;
+    	}
+    	
+    	// If this user has no data, stop here and move on to the next data point
+    	if (!(d.hasOwnProperty("date"))) {
+    		return;
     	}
     	
     	// If the date does not yet exist in the user, add it now

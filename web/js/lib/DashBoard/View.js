@@ -375,10 +375,19 @@ ViewUpload.prototype.load_data = function(json_data) {
 	            if (View._logger.isDebugEnabled()) {
 	                View._logger.debug("Sending new data to ProtoGraph: " + protoGraphDivId);
 	            }
-				
+	            
 				protoGraph.apply_data(json_data.current_data[user], startDate, numDays);
 				// Render the graph with the new data
 				protoGraph.render();
+				
+	            // If there is no data for the user, hide the graph
+	            if (json_data.current_data[user].length == 0) {
+	            	$(that.divId).find(protoGraphDivId).hide();
+	            }
+	            // else show the graph
+	            else {
+	            	$(that.divId).find(protoGraphDivId).show();
+	            }
 			}		
 		}
 	}
