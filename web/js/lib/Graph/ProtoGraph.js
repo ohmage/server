@@ -1357,7 +1357,7 @@ function ProtoGraphAllIntegerType(div_id, title, graph_width) {
 
     // new properties
     this.min_val = 0;  // Integer ranges always start at 0
-    this.max_val = 10;
+    this.max_val = 6;
     this.y_scale = pv.Scale.linear(this.min_val,this.max_val).range(0, ProtoGraph.HEIGHT);
     
     // The Y labels never change, add them now

@@ -239,8 +239,12 @@ SurveysPerDayAwData.prototype.set_data = function(json_data) {
     		userName[d.user][d.date] = new Array(0,0,0,0,0);
     	}
     	
-    	// Finally, add the value into the group_id array
-    	userName[d.user][d.date][d.groups[0].group_id - 1] = d.groups[0].value;
+    	// Finally, add the values
+    	for (var group in d.groups) {
+    		var group_id = d.groups[group].group_id;
+    		var value = d.groups[group].value;
+    		userName[d.user][d.date][group_id - 1] = value;
+    	}
     });
 
     
