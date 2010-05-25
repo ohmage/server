@@ -227,6 +227,8 @@ body {
 
 #ViewUpload .StatDisplay {
 	width:100%;	
+	min-height: 33px;
+	margin-bottom: -1px;
 }
 
 #ViewUpload .StatTitle {
@@ -269,6 +271,7 @@ body {
 
 #ViewUpload .ProtoGraph {
 	margin-top: -1px;
+	margin-bottom: 1px;
 	padding-top: 5px;
 	width:100%;
 	border: 1px solid darkgrey;
