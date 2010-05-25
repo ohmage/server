@@ -87,7 +87,8 @@ public class PromptGroupCountQueryService implements Service {
 		
 		@SuppressWarnings("unchecked")
 		List<PromptGroupCountQueryResult> results = (List<PromptGroupCountQueryResult>) awRequest.getResultList();
-		Collections.sort(results);
+		
+		// Collections.sort(results);
 		
 		int size = results.size();
 		int currentCampaignId = Integer.parseInt(awRequest.getUser().getCurrentCampaignId());
