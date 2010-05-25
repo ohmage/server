@@ -3,6 +3,8 @@ package edu.ucla.cens.awserver.service;
 import java.util.Collections;
 import java.util.List;
 
+import org.apache.log4j.Logger;
+
 import edu.ucla.cens.awserver.cache.CacheService;
 import edu.ucla.cens.awserver.dao.Dao;
 import edu.ucla.cens.awserver.domain.CampaignPromptGroup;
@@ -15,6 +17,7 @@ import edu.ucla.cens.awserver.request.AwRequest;
  * @author selsky
  */
 public class PromptGroupCountQueryService implements Service {
+	private static Logger _logger = Logger.getLogger(PromptGroupCountQueryService.class);
 	private CacheService _campaignPromptGroupItemCountCacheService;
 	private CacheService _userRoleCacheService;
 	private Dao _singleUserDao;
@@ -100,6 +103,10 @@ public class PromptGroupCountQueryService implements Service {
 				Integer promptsPerGroup = (Integer) _campaignPromptGroupItemCountCacheService.lookup(
 					new CampaignPromptGroup(currentCampaignId, result.getCampaignPromptGroupId())
 				);
+				
+				if(_logger.isDebugEnabled()) {
+					_logger.debug("campaign_prompt_group.id " + result.getCampaignPromptGroupId() + " count: " + count + " promptsPerGroup: " + promptsPerGroup);
+				}
 				
 				result.setCount(count/promptsPerGroup);
 			}
