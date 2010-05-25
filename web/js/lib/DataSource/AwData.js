@@ -206,15 +206,20 @@ SurveysPerDayAwData.prototype = new AwData();
 
 SurveysPerDayAwData.prototype.set_data = function(json_data) {
     // Preprocess the data to pull out the day into a Date object
+	// Push into another array to remove users with NO dates
+	var noDatesRemoved = [];
     json_data.forEach(function(d) {
-        d.date = Date.parseDate(d.date, "Y-m-d").grabDate();
-				
-        // Check if the date was parsed correctly
-        if (d.date == null) {
-            if (AwData._logger.isErrorEnabled()) {
-                AwData._logger.error("Date parsed incorrectly.");
+    	try {
+    		if (d.hasOwnProperty("date")) {
+    			d.date = Date.parseDate(d.date, "Y-m-d").grabDate();
+    			noDatesRemoved.push(d);
+    		}
+    	}
+    	catch (err) {
+    		if (AwData._logger.isErrorEnabled()) {
+                AwData._logger.error("Date parsed incorrectly: " + d.date);
             }
-        }
+    	}
     });	
 	
     // Create an object to hold user_name -> data key/value pairs
@@ -223,7 +228,7 @@ SurveysPerDayAwData.prototype.set_data = function(json_data) {
     // Then, add the date into the user name
     // Finally, create an array of 5 representing the 5 group IDs that can be returned
     // (Super hard coded and weirdness to deal with format of returned server data)
-    json_data.forEach(function(d) {
+    noDatesRemoved.forEach(function(d) {
     	// If the user does not exist yet, add it now
     	if (!(userName.hasOwnProperty(d.user))) {
     		userName[d.user] = new Object;
@@ -279,7 +284,15 @@ function HoursSinceLastUpdateAwData() {
 HoursSinceLastUpdateAwData.prototype = new AwData();
 
 HoursSinceLastUpdateAwData.prototype.set_data = function(json_data) {
-	this.current_data = json_data;
+	// Run through data, remove any 0s, assume no data returned
+	var removedZeros = [];
+	json_data.forEach(function(d) {
+		if (d.value != 0) {
+			removedZeros.push(d);
+		}
+	});
+	
+	this.current_data = removedZeros;
 }
 
 

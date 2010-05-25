@@ -294,12 +294,24 @@ function UserInfo(divId, userName) {
 
 // Update the hours since the last survey for this user
 UserInfo.prototype.update_hours_since_last_survey = function(value) {
-	$(this.divId + " > .TimeSinceUserSurvey").text(value.toFixed(1) + " hrs");
+	// Hack this in, if the value is 0 assume no data found
+	if (value == 0) {
+		$(this.divId + " > .TimeSinceUserSurvey").text("No Data");
+	}
+	else {
+		$(this.divId + " > .TimeSinceUserSurvey").text(value.toFixed(1) + " hrs");
+	}
 }
 
 // Update the time since the last good user GPS reading
 UserInfo.prototype.update_time_since_user_location = function(value) {
-    $(this.divId + " > .TimeSinceUserLocation").text(value.toFixed(1) + " hrs");
+	// Hack this in, if the value is 0 assume no data found
+	if (value == 0) {
+		$(this.divId + " > .TimeSinceUserLocation").text("No Data");
+	}
+	else {
+		$(this.divId + " > .TimeSinceUserLocation").text(value.toFixed(1) + " hrs");
+	}
 }
 
 // Update the percentage of good GPS readings
@@ -359,7 +371,7 @@ ViewUpload.prototype.load_data = function(json_data) {
 	if (json_data instanceof SurveysPerDayAwData) {
 		var that = this;
 		// The data should be separated by user
-		for (user in json_data.current_data) {
+		for (var user in json_data.current_data) {
 			// Graph the ProtoGraph object
 			var protoGraphDivId = "#ProtoGraph_" + user.replace('.', '_');
 			var protoGraph = $(that.divId).find(protoGraphDivId).data('ProtoGraph');
@@ -372,8 +384,7 @@ ViewUpload.prototype.load_data = function(json_data) {
 				protoGraph.apply_data(json_data.current_data[user], startDate, numDays);
 				// Render the graph with the new data
 				protoGraph.render();
-			}
-			
+			}		
 		}
 	}
 }
