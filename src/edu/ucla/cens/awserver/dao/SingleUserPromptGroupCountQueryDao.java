@@ -69,6 +69,11 @@ public class SingleUserPromptGroupCountQueryDao extends AbstractDao {
 						result.setCampaignPromptGroupId(rs.getInt(1));
 						result.setDate(rs.getDate(2).toString());
 						result.setCount(rs.getInt(3));
+						
+						if(_logger.isDebugEnabled()) {
+							_logger.debug(result);
+						}
+						
 						return result;
 					}
 				}
