@@ -258,6 +258,7 @@ ViewUpload.prototype.configure_html = function(json_config) {
 		var graph_config = new Object();
 		graph_config.type = ProtoGraph.graph_type.PROTO_GRAPH_ALL_INTEGER_TYPE;
 		graph_config.text = "Surveys returned per day";
+		graph_config.x_labels = group_list;
 		
 		var graph_width = $(that.divId).width();
         var new_graph = ProtoGraph.factory(graph_config, div_id, graph_width);

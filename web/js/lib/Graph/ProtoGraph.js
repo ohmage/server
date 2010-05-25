@@ -140,7 +140,7 @@ ProtoGraph.factory = function(graph_description, div_id, graph_width) {
         var new_graph = new ProtoGraphCustomSleepType(div_id, graph_description.text, graph_width, graph_description.sleep_labels);
     }
 	else if (graph_description.type == ProtoGraph.graph_type.PROTO_GRAPH_ALL_INTEGER_TYPE) {
-        var new_graph = new ProtoGraphAllIntegerType(div_id, graph_description.text, graph_width);
+        var new_graph = new ProtoGraphAllIntegerType(div_id, graph_description.text, graph_width, graph_description.x_labels);
     }
     else {
         throw new TypeError("ProtoGraph.factory(): Unknown graph type in JSON.");
@@ -1351,7 +1351,8 @@ ProtoGraphCustomSleepType.prototype.apply_data = function(data, start_date, num_
 // ProtoGraphAllIntegerType constructor
 // div_id - ID of the div element on which to create the graph
 // title - The title of the graph
-function ProtoGraphAllIntegerType(div_id, title, graph_width) {
+// x_labels - Labels for the different bars on the x axis
+function ProtoGraphAllIntegerType(div_id, title, graph_width, x_labels) {
     // Inherit properties
     ProtoGraph.call(this, div_id, title, graph_width);
 
@@ -1359,6 +1360,7 @@ function ProtoGraphAllIntegerType(div_id, title, graph_width) {
     this.min_val = 0;  // Integer ranges always start at 0
     this.max_val = 6;
     this.y_scale = pv.Scale.linear(this.min_val,this.max_val).range(0, ProtoGraph.HEIGHT);
+    this.x_labels = x_labels;
     
     // The Y labels never change, add them now
     var that = this;
@@ -1431,6 +1433,31 @@ ProtoGraphAllIntegerType.prototype.apply_data = function(data, start_date, num_d
                 // Always use the same color for now
                 //return ProtoGraph.DAY_COLOR[0];
             });
+        
+        // Add a legend if x_labels exist
+        if (this.x_labels != null) {
+        	// Use i to count what index we are at when we iterate
+        	var i = 0;
+        	var that = this;
+        	this.x_labels.forEach(function(label) {
+        		// Add a color box to show what color this is
+        		that.vis.add(pv.Bar)
+        			.right(-5)
+        			.top(i*10)
+        			.height(5)
+        			.width(5)
+        			.strokeStyle(ProtoGraph.DAY_COLOR[i])
+        			.fillStyle(ProtoGraph.DAY_COLOR[i])
+        		.anchor("right")
+        			.add(pv.Label)
+        			.text(": " + label)
+        			.textAlign('left')
+        			.textBaseline('middle');
+        		
+        		// Move to next label
+        		i += 1;
+        	});
+        }
             
         this.has_data = true;
     }
