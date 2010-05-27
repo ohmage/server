@@ -298,7 +298,7 @@ body {
 .tooltip {
 	display:none;
 	background:transparent url(/css/images/black_arrow.png);
-	font-size:12px;
+	font-size:15px;
 	height:70px;
 	width:160px;
 	padding:25px;
