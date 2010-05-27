@@ -253,10 +253,12 @@ SurveysPerDayAwData.prototype.set_data = function(json_data) {
     });
 
     
-	// Now, separate everything out into an object of users, each with an array of date/group_id pairs
-	var separated_data = new Object();
+	// Now, separate everything out into an array of users, each with an array of date/group_id pairs
+	var separated_data = [];
 	for (var user in userName) {
-		separated_data[user] = [];
+		var userObject = new Object();
+		userObject.user = user;
+		userObject.data = [];
 		
 		for (var date in userName[user]) {
 			for (var i = 0; i < 5; i++) {
@@ -268,9 +270,11 @@ SurveysPerDayAwData.prototype.set_data = function(json_data) {
 				newDataPoint.total_day_count = 5;
 				
 				// Append new data point to the separated data
-				separated_data[user].push(newDataPoint);
+				userObject.data.push(newDataPoint);
 			}
 		}
+		
+		separated_data.push(userObject);
 	}
 	
 	this.current_data = separated_data;

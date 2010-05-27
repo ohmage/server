@@ -438,6 +438,7 @@
     <session-timeout>30</session-timeout>
   </session-config>
   
+  <!--
   <security-constraint>
     <web-resource-collection>
       <web-resource-name>Restricted URLs</web-resource-name>
@@ -447,5 +448,6 @@
       <transport-guarantee>CONFIDENTIAL</transport-guarantee>
     </user-data-constraint>
   </security-constraint>
+  -->
   
 </web-app>

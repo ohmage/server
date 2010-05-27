@@ -56,6 +56,7 @@
     <script type="text/javascript" src="/js/lib/DataSource/AwData.js"></script>
     <script type="text/javascript" src="/js/lib/DataSource/AwDataCreator.js"></script>
     <script type="text/javascript" src="/js/lib/Graph/ProtoGraph.js"></script>
+    <script type="text/javascript" src="/js/lib/DashBoard/StatDisplay.js"></script>
     <script type="text/javascript" src="/js/lib/DashBoard/View.js"></script>
     <!-- Simple date formatting functions -->
     <script type="text/javascript" src="/js/thirdparty/misc/date.format.js"></script>
@@ -93,7 +94,7 @@
         log.addAppender(popUpAppender);
 
         // Uncomment the line below to disable logging
-        log4javascript.setEnabled(false);
+        //log4javascript.setEnabled(false);
 
         // Setup the datepickers for the date input box
         // old datepicker

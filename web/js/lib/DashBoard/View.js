@@ -12,6 +12,11 @@ function View() {
 // Logger for the View
 View._logger = log4javascript.getLogger();
 
+// check_datatype - Check if this View can handle the incoming data type.
+// Return true if we can, false if we cannot
+View.prototype.check_datatype = function(awData) {
+	throw new Error('View.check_datatype is not defined!');
+}
 
 // configure_html - Read in JSON describing each specific view.  Build
 // the banner, controls, main and footer.  Assume no data has yet been loaded.
@@ -222,14 +227,41 @@ function ViewUpload(divId) {
 
 ViewUpload.prototype = new View();
 
+// Check if we can handle the incoming AwData
+ViewUpload.prototype.check_datatype = function(awData) {
+	var goodData = false;
+	
+	if (awData instanceof HoursSinceLastSurveyAwData ||
+		awData instanceof HoursSinceLastUpdateAwData ||
+		awData instanceof LocationUpdatesAwData ||
+		awData instanceof SurveysPerDayAwData) {
+		goodData = true;
+	}
+	else {
+		if (View._logger.isDebugEnabled()) {        
+            View._logger.debug("ViewUpload.check_datatype: Cannot load datatype.");
+        }
+	}
+	
+	return goodData;
+}
+
 // Configure the html according the the user list received from
 // time since last survey
 ViewUpload.prototype.configure_html = function(json_config) {
 	// First setup a static title
+	// texts for the tooltips
+	var lastSurveyTooltip = 'Displays the time since the user last completed a survey in hours.';
+	var lastLocationTooltip = 'Displays the time since the user last had a good GPS fix in hours.';
+	var goodLocationTooltip = 'Displays the percent of good GPS data in the last 24 hours.';
+	
 	$(this.divId).append('<div class="ViewUploadHeader"></div>');
-	$(this.divId).find('.ViewUploadHeader').append('<span id="ViewUploadHeader1">Last Survey</span>')
-		.append('<span id="ViewUploadHeader2">Last Location</span>')
-		.append('<span id="ViewUploadHeader3">% Good Location</span>');
+	$(this.divId).find('.ViewUploadHeader').append('<span id="ViewUploadHeader1" title="' + lastSurveyTooltip + '">Last Survey</span>')
+		.append('<span id="ViewUploadHeader2" title="' + lastLocationTooltip + '">Last Location</span>')
+		.append('<span id="ViewUploadHeader3" title="' + goodLocationTooltip + '">% Good Location</span>');
+	
+	// Setup the tooltips using the jQuery tooltip plugin
+	$(".ViewUploadHeader span[title]").tooltip();
 	
 	var that = this;
     json_config.current_data.forEach(function(config) {
@@ -238,120 +270,72 @@ ViewUpload.prototype.configure_html = function(json_config) {
         }
     	
     	// Setup a wrapper div to hold information about the user
-    	$(that.divId).append('<div id="' + config.user.replace('.', '_') + '" class="StatDisplay"></div>');
-		
-		// Setup the title
-    	var statTitleDivId = "StatTitle_" + config.user.replace('.', '_');
-    	$(that.divId).find('div#' + config.user.replace('.', '_'))
-    		.append('<div class="StatTitle" id="' + statTitleDivId + '"></div>');
+    	var statDisplayDivId = 'StatDisplay_' + config.user.replace('.', '_');
+    	$(that.divId).append('<div id="' + statDisplayDivId + '" class="StatDisplay"></div>');
     	
-    	// Attach a user object to the div
-    	var newUserInfo = new UserInfo(statTitleDivId, config.user);
-    	$(that.divId).find('#' + statTitleDivId).data('userInfo', newUserInfo);
-		
-		// Setup the ProtoGraph to view the surveys per day data
-        var div_id = 'ProtoGraph_' + config.user.replace('.', '_');
-        $(that.divId).find('div#' + config.user.replace('.', '_'))
-            .append('<div class="ProtoGraph" id="' + div_id + '"></div>');
-			
-        // Create a new ProtoGraph and add it to the div
-		var graph_config = new Object();
-		graph_config.type = ProtoGraph.graph_type.PROTO_GRAPH_ALL_INTEGER_TYPE;
-		graph_config.text = "Surveys returned per day";
-		graph_config.x_labels = group_list;
-		
-		var graph_width = $(that.divId).width();
-        var new_graph = ProtoGraph.factory(graph_config, div_id, graph_width);
-        $(that.divId).find('#' + div_id)
-            .data('ProtoGraph', new_graph);
-	
+    	// Create a new StatDisplay and attach to the div
+    	var newStatDisplay = new StatDisplay(statDisplayDivId, config.user);
+    	$(that.divId).find('#' + statDisplayDivId).data('StatDisplay', newStatDisplay);
     });
-	
-	this.configured = true;
 }
 
 // Load newly received data
 ViewUpload.prototype.load_data = function(json_data) {
-	// Check the incoming data type
-	if (json_data instanceof HoursSinceLastSurveyAwData) {
+	// Make sure we can handle the incoming data type, silently do nothing and
+	// return if we cannot
+	if (this.check_datatype(json_data) == false) {
+		return;
+	}
+	
+	// Super hack, if first time we see this, configure the html, then ask for real data
+	// FIX THIS, NOT A GOOD PLACE HERE
+	if (json_data instanceof HoursSinceLastSurveyAwData && this.configured == false) {
 		if (View._logger.isDebugEnabled()) {
-            View._logger.debug("ViewUpload received data of type HouseSinceLastSurveyAwData.");
+            View._logger.debug("ViewUpload received configuration data.");
         }
 	
-		// Super hack, if first time we see this, configure the html, then ask for real data
-		// FIX THIS, NOT A GOOD PLACE HERE
-		if (this.configured == false) {
-			this.configure_html(json_data);
-			
-			send_json_request(null);
-			
-			return;
-		}
+		this.configure_html(json_data);
+		this.configured = true;
 		
-		// Load the new information into the div for each response
-		var that = this;
-		json_data.current_data.forEach(function(data) {
-			// Grab the UserInfo object
-			var userInfoDivId = "#StatTitle_" + data.user.replace('.', '_');
-			var userInfo = $(that.divId).find(userInfoDivId).data('userInfo');
-			if (userInfo != null)
-				userInfo.update_hours_since_last_survey(data.value);
-		});
+		// Ask for real data, also not a good place to do this
+		send_json_request(null);
+		
+		return;
 	}
 	
-	if (json_data instanceof HoursSinceLastUpdateAwData) {
-	    // Load the new information into the div for each response
-        var that = this;
-        json_data.current_data.forEach(function(data) {
-            // Grab the UserInfo object
-            var userInfoDivId = "#StatTitle_" + data.user.replace('.', '_');
-            var userInfo = $(that.divId).find(userInfoDivId).data('userInfo');
-            if (userInfo != null)
-            	userInfo.update_time_since_user_location(data.value);
-        });
-	}
-	
-	if (json_data instanceof LocationUpdatesAwData) {
-	    // Load the new information into the div for each response
-        var that = this;
-        json_data.current_data.forEach(function(data) {
-            // Grab the UserInfo object
-            var userInfoDivId = "#StatTitle_" + data.user.replace('.', '_');
-            var userInfo = $(that.divId).find(userInfoDivId).data('userInfo');
-            if (userInfo != null)
-            	userInfo.update_percentage_good_uploads(data.value);
-        });
-	}
-	
-	// Load the new SurveysPerDayAwData information
-	if (json_data instanceof SurveysPerDayAwData) {
-		var that = this;
-		// The data should be separated by user
-		for (var user in json_data.current_data) {
-			// Graph the ProtoGraph object
-			var protoGraphDivId = "#ProtoGraph_" + user.replace('.', '_');
-			var protoGraph = $(that.divId).find(protoGraphDivId).data('ProtoGraph');
-			// If the graph exists, load the new data
-			if (protoGraph != null) {
-	            if (View._logger.isDebugEnabled()) {
-	                View._logger.debug("Sending new data to ProtoGraph: " + protoGraphDivId);
-	            }
-	            
-				protoGraph.apply_data(json_data.current_data[user], startDate, numDays);
-				// Render the graph with the new data
-				protoGraph.render();
-				
-	            // If there is no data for the user, hide the graph
-	            if (json_data.current_data[user].length == 0) {
-	            	$(that.divId).find(protoGraphDivId).hide();
-	            }
-	            // else show the graph
-	            else {
-	            	$(that.divId).find(protoGraphDivId).show();
-	            }
-			}		
+	// Each data point is labeled with its user name.  Find the div, grab the StatDisplay, and
+	// load the data.
+	var that = this;
+	json_data.current_data.forEach(function(data) {
+		// Grab the corresponding StatDisplay and load the new data
+		var statDisplayDivId = "#StatDisplay_" + data.user.replace('.', '_');
+		var statDisplay = $(that.divId).find(statDisplayDivId).data('StatDisplay');
+		
+		// Call various loading functions depending on the type of data
+		if (statDisplay != null) {
+			if (json_data instanceof HoursSinceLastSurveyAwData) {
+				statDisplay.update_hours_since_last_survey(data.value);
+			}
+			
+			if (json_data instanceof HoursSinceLastUpdateAwData) {
+				statDisplay.update_time_since_user_location(data.value);
+			}
+			
+			if (json_data instanceof LocationUpdatesAwData) {
+				// Translate from ratio into percentage
+				statDisplay.update_percentage_good_uploads(data.value * 100);
+			}
+			
+			if (json_data instanceof SurveysPerDayAwData) {
+				statDisplay.update_surveys_per_day(data);
+			}
 		}
-	}
+		else {
+			if (View._logger.isErrorEnabled()) {
+                View._logger.error("Could not find a StatDisplay for user: " + data.user);
+            }
+		}		
+	});
 }
 
 // Show the loading graphic when loading new data
