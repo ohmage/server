@@ -10,7 +10,7 @@ function StatDisplay(divId, userName) {
 	this.userName = userName;
 
 	// Initialize default data
-	this.graphsHidden = true;
+	this.graphsEnabled = false;
 	this.hoursSinceLastSurvey = 0.0;
 	this.hoursSinceLastLocationUpdate = 0.0
 	this.percentageGoodLocationUpdate = 0;
@@ -25,11 +25,16 @@ function StatDisplay(divId, userName) {
 	   .append('<span class="PercentageGoodUploads">No Data</span>')
 	   // Button to show/hide the user's graphs
 	   .append('<div class="GraphEnableButton"></div>');
+	   
+	// Attach a function to handle a button click
+	$(this.divId).find('.GraphEnableButton').click(jQuery.proxy(this.button_clicked, this));
 	
 	// Add a ProtoGraph to display surveys per day to the div
 	// Setup the ProtoGraph to view the surveys per day data
     var protoGraphDivId = 'ProtoGraph_' + this.userName.replace('.', '_');
     $(this.divId).append('<div class="ProtoGraph" id="' + protoGraphDivId + '"></div>');
+	// Hide the div to start while loading
+	$(this.divId).find('.ProtoGraph').hide();
 		
     // Create a new ProtoGraph and add it to the div
 	var graph_config = new Object();
@@ -46,30 +51,6 @@ function StatDisplay(divId, userName) {
 // Logger for the StatDisplay
 StatDisplay._logger = log4javascript.getLogger();
 
-
-// Load new data into the StatDisplay.  Can be any AwData that the
-// StatDisplay can handle.
-//
-// Input: AwData data - Data to load into the display.
-StatDisplay.prototype.load_data = function(data) {
-	// Handle various types of AwData as necessary
-	if (data instanceof HoursSinceLastSurveyAwData) {
-		this.update_hours_since_last_survey(data.value);
-	}
-	
-	if (data instanceof HoursSinceLastUpdateAwData) {
-		this.update_time_since_user_location(data.value);
-	}
-	
-	if (data instanceof LocationUpdatesAwData) {
-		// Translate from ratio into percentage
-		this.update_percentage_good_uploads(data.value * 100);
-	}
-	
-	if (data instanceof SurveysPerDayAwData) {
-		this.update_surveys_per_day(data);
-	}
-}
 
 // Update the hours since the last survey for this user
 StatDisplay.prototype.update_hours_since_last_survey = function(value) {
@@ -104,29 +85,59 @@ StatDisplay.prototype.update_surveys_per_day = function(data) {
 	// Render the graph with the new data
 	this.surveysPerDayProtoGraph.render();
 	
-    // If there is no data for the user, hide the graph
-    if (data.data.length == 0) {
-    	$(this.divId).find(".ProtoGraph").hide();
-    }
-    // else show the graph if they are not hidden
-    else {
-    	if (this.graphHidden = false)
-    		$(this.divId).find(".ProtoGraph").show();
-    }
+	// Hide the div for now
+	$(this.divId).find('.ProtoGraph').hide();
+	
+	// Update the graph/button state
+	this.update_state();
+}
+
+// Whenever the graph status button is clicked, switch the enabled state
+StatDisplay.prototype.button_clicked = function() {
+	if (this.graphsEnabled) {
+		this.enable_graphs(false);
+	}
+	else {
+		this.enable_graphs(true);
+	}
+}
+
+// update_state - logic to update the hide/show status of the graphs, 
+// and the class of the dropdown button
+StatDisplay.prototype.update_state = function() {
+	// If the graph is empty, hide it and set the button disabled
+	if (this.surveysPerDayProtoGraph.is_empty()) {
+	   $(this.divId).find(".ProtoGraph").hide();
+	   $(this.divId).find('.GraphEnableButton').removeClass('graphsEnabled graphsDisabled').addClass('disabled');
+	   this.graphsEnabled = false;
+	   return;
+	}
+	
+	// If the graph is not empty, and the graphs are NOT enabled, hide the graphs and
+	// set the button to graphsDisabled
+	if (!this.graphsEnabled) {
+		$(this.divId).find(".ProtoGraph").slideUp('fast');
+        $(this.divId).find('.GraphEnableButton').removeClass('graphsEnabled disabled').addClass('graphsDisabled');
+		return;
+	}
+	
+	// If the graph is not empty, and the graphs ARE enabled, show the graphs
+	// and set the button to graphsEnabled
+	if (this.graphsEnabled) {
+		$(this.divId).find(".ProtoGraph").slideDown('fast');
+		$(this.divId).find('.GraphEnableButton').removeClass('graphsDisabled disabled').addClass('graphsEnabled');
+        return;
+	}
+	
 }
 
 
-
-// Show or hide the graphs for the user
+// Show or hide the graphs for the user, also updates the button state
 StatDisplay.prototype.enable_graphs = function(enable) {
-	if (enable == true) {
-		this.graphsHidden = false;
-		$(this.divId).find('.ProtoGraph').show();
-	}
-	else {
-		this.graphsHidden = true;
-		$(this.divId).find('.ProtoGraph').hide();
-	}
+	this.graphsEnabled = enable;
+	
+	// Update the graph and button state
+	this.update_state();
 }
 
 

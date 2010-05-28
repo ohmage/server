@@ -231,6 +231,20 @@ body {
 	margin-bottom: -1px;
 }
 
+#ViewUpload span#enableAllGraphs {
+	font-size: 10px;
+	font-weight: bold;
+	position: absolute;
+	right: 0;
+	bottom: 3px;
+	color: red;
+	cursor: pointer;
+}
+
+#ViewUpload span#enableAllGraphs:hover {
+    background-color: lightgrey;
+}
+
 #ViewUpload .StatTitle {
 	background-color:lightgrey;
 	border:1px solid darkgrey;
@@ -268,15 +282,24 @@ body {
 	width: 200px;
 }
 
-#ViewUpload .GraphEnableButton {
+#ViewUpload div.GraphEnableButton {
 	width: 20px;
 	height: 20px;
 	position: absolute;
 	right: 10px;
 	top: 5px;	
-	background-image: url('/css/images/down_arrow.png');
     background-repeat: no-repeat;
     background-position: center;
+}
+
+#ViewUpload div.graphsDisabled {
+    background-image: url('/css/images/down_arrow.png');
+}
+#ViewUpload div.graphsEnabled {
+    background-image: url('/css/images/up_arrow.png');
+}
+#ViewUpload div.disabled {
+    background-image: url('/css/images/redx.png');
 }
 
 #ViewUpload div.GraphEnableButton:hover {

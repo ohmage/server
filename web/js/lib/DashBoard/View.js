@@ -223,6 +223,8 @@ function ViewUpload(divId) {
 	
 	this.tabName = "Upload Stats";
 	this.configured = false;
+	
+	this.graphsEnabled = false;
 }
 
 ViewUpload.prototype = new View();
@@ -258,11 +260,16 @@ ViewUpload.prototype.configure_html = function(json_config) {
 	$(this.divId).append('<div class="ViewUploadHeader"></div>');
 	$(this.divId).find('.ViewUploadHeader').append('<span id="ViewUploadHeader1" title="' + lastSurveyTooltip + '">Last Survey</span>')
 		.append('<span id="ViewUploadHeader2" title="' + lastLocationTooltip + '">Last Location</span>')
-		.append('<span id="ViewUploadHeader3" title="' + goodLocationTooltip + '">% Good Location</span>');
+		.append('<span id="ViewUploadHeader3" title="' + goodLocationTooltip + '">% Good Location</span>')
+		.append('<span id="enableAllGraphs">Show all</span>');
 	
 	// Setup the tooltips using the jQuery tooltip plugin
 	$(".ViewUploadHeader span[title]").tooltip();
 	
+	// Attach a function to hangle a click on enableAllGraphs
+	$(this.divId).find('#enableAllGraphs').click(jQuery.proxy(this.enable_all_graphs, this));
+	
+	// Setup each user in the configuration
 	var that = this;
     json_config.current_data.forEach(function(config) {
     	if (View._logger.isDebugEnabled()) {        
@@ -335,6 +342,26 @@ ViewUpload.prototype.load_data = function(json_data) {
                 View._logger.error("Could not find a StatDisplay for user: " + data.user);
             }
 		}		
+	});
+}
+
+ViewUpload.prototype.enable_all_graphs = function() {
+	// Switch the graphsEnabled/graphsDisabled
+	if (this.graphsEnabled) {
+	   this.graphsEnabled = false;
+	   $(this.divId).find('#enableAllGraphs').text('Show all');
+	}
+	else {
+		this.graphsEnabled = true;
+		$(this.divId).find('#enableAllGraphs').text('Hide all');
+	}
+	
+	var that = this;
+	$(this.divId).find('.StatDisplay').each(function() {
+		// Grab the stat display graph attached
+		var statDisplay = $(this).data('StatDisplay');
+		// Enable or disable the graphs
+		statDisplay.enable_graphs(that.graphsEnabled);
 	});
 }
 

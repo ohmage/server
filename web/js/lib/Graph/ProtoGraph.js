@@ -159,6 +159,15 @@ ProtoGraph.prototype.get_div_id = function() {
     return this.div_id;
 }
 
+// Check if the graph has no data
+ProtoGraph.prototype.is_empty = function() {
+	if (this.data.length == 0) {
+		return true;
+	}
+	
+	return false;
+}
+
 // Helper function to replace X labels with day values, given
 // the data types normally used to pass data to a graph
 ProtoGraph.prototype.replace_x_labels = function(start_date, num_days) {
