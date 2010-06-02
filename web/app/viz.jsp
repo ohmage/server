@@ -38,6 +38,8 @@
     <script type="text/javascript" src="/js/thirdparty/jquery/jquery.tools.min.js"></script>
     <!-- jQuery UI for Datepicker -->
     <script type="text/javascript" src="/js/thirdparty/jquery/jquery-ui-1.7.2.custom.min.js"></script>
+    <!-- jQuery TinySort plugin, to sort DIVs by their attributes -->
+    <script type="text/javascript" src="/js/thirdparty/jquery/jquery.tinysort.min.js"></script>
     <!-- log4java like logging -->
     <script type="text/javascript" src="/js/lib/misc/log4javascript.js"></script>
     <!-- Protovis graphing library with hacked in IE support -->

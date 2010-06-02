@@ -207,19 +207,28 @@ body {
 	height: 30px;
 }
 
-#ViewUpload #ViewUploadHeader1 {
+/* Indicate these are buttons by changing the cursor to a pointer */
+#ViewUpload .DisplayColumnHeader {
+	cursor: pointer;
+}
+/* Indicate these are buttons by changing the text color when hovered */
+#ViewUpload span.DisplayColumnHeader:hover {
+	color: darkgrey;
+}
+
+#ViewUpload #LastSurvey {
 	position: absolute;
 	top: 0;
 	left: 200px;
 }
 
-#ViewUpload #ViewUploadHeader2 {
+#ViewUpload #LastLocation {
 	position: absolute;
 	top: 0;
 	left: 400px;
 }
 
-#ViewUpload #ViewUploadHeader3 {
+#ViewUpload #GoodLocation {
 	position: absolute;
 	top: 0;
 	left: 600px;
@@ -280,6 +289,11 @@ body {
 	left: 520px;
 	top: 0;
 	width: 200px;
+}
+
+#ViewUpload .SortButton {
+	width: 20px;
+	height: 20px;	
 }
 
 #ViewUpload div.GraphEnableButton {

@@ -258,15 +258,23 @@ ViewUpload.prototype.configure_html = function(json_config) {
 	var goodLocationTooltip = 'Displays the percent of good GPS data in the last 24 hours.';
 	
 	$(this.divId).append('<div class="ViewUploadHeader"></div>');
-	$(this.divId).find('.ViewUploadHeader').append('<span id="ViewUploadHeader1" title="' + lastSurveyTooltip + '">Last Survey</span>')
-		.append('<span id="ViewUploadHeader2" title="' + lastLocationTooltip + '">Last Location</span>')
-		.append('<span id="ViewUploadHeader3" title="' + goodLocationTooltip + '">% Good Location</span>')
-		.append('<span id="enableAllGraphs">Show all</span>');
+	$(this.divId).find('.ViewUploadHeader')
+	    .append('<span id="Name" class="DisplayColumnHeader">Name:</span>')
+	    .append('<span id="LastSurvey" class="DisplayColumnHeader" title="' + lastSurveyTooltip + '">Last Survey</span>')
+	    .append('<span id="LastLocation" class="DisplayColumnHeader" title="' + lastLocationTooltip + '">Last Location</span>')
+	    .append('<span id="GoodLocation" class="DisplayColumnHeader" title="' + goodLocationTooltip + '">% Good Location</span>')
+	    .append('<span id="enableAllGraphs">Show all</span>');
 	
 	// Setup the tooltips using the jQuery tooltip plugin
-	$(".ViewUploadHeader span[title]").tooltip();
+	//$(".ViewUploadHeader span[title]").tooltip();
 	
-	// Attach a function to hangle a click on enableAllGraphs
+	// Attach a function to the headers to sort when clicked
+	$(this.divId).find('#Name').click(jQuery.proxy(this.sort_by_name_click, this));
+	$(this.divId).find('#LastSurvey').click(jQuery.proxy(this.sort_by_last_survey_click, this));
+	$(this.divId).find('#LastLocation').click(jQuery.proxy(this.sort_by_last_location_click, this));
+	$(this.divId).find('#GoodLocation').click(jQuery.proxy(this.sort_by_percentage_location_click, this));
+	
+	// Attach a function to handle a click on enableAllGraphs
 	$(this.divId).find('#enableAllGraphs').click(jQuery.proxy(this.enable_all_graphs, this));
 	
 	// Setup each user in the configuration
@@ -284,6 +292,9 @@ ViewUpload.prototype.configure_html = function(json_config) {
     	var newStatDisplay = new StatDisplay(statDisplayDivId, config.user);
     	$(that.divId).find('#' + statDisplayDivId).data('StatDisplay', newStatDisplay);
     });
+    
+    // Now sort everything by name to start
+    this.sort_column('Name');
 }
 
 // Load newly received data
@@ -343,6 +354,42 @@ ViewUpload.prototype.load_data = function(json_data) {
             }
 		}		
 	});
+}
+
+// Functions to attach to any dom object to sort by various columns
+ViewUpload.prototype.sort_by_name_click = function() {
+	this.sort_column("Name");
+}
+
+ViewUpload.prototype.sort_by_last_survey_click = function() {
+	this.sort_column("LastSurvey");
+}
+
+ViewUpload.prototype.sort_by_last_location_click = function() {
+	this.sort_column("LastLocation");
+}
+
+ViewUpload.prototype.sort_by_good_location_click = function() {
+	this.sort_column("GoodLocation");
+}
+
+// Sort any column based on it's name
+// This function also needs each DIV in the column to have the same
+// attribute name with the value to sort by
+ViewUpload.prototype.sort_column = function(columnName) {
+	var sortOrder = "";
+	// Decide whether to sort ascending or descending
+	if ($(this.divId + ' #' + columnName).hasClass("desc")) {
+		$(this.divId + ' #' + columnName).removeClass("desc").addClass("asc");
+		sortOrder = "desc";
+	}
+	else {
+		$(this.divId + ' #' + columnName).removeClass("asc").addClass("desc");
+		sortOrder = "asc";
+	}
+	
+	// Use the tiny sort jquery plugin to sort by selector and attribute
+	$(this.divId + ' .StatDisplay').tsort("",{order:sortOrder,attr:columnName});	
 }
 
 ViewUpload.prototype.enable_all_graphs = function() {

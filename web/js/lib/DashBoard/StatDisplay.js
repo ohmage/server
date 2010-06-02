@@ -16,6 +16,9 @@ function StatDisplay(divId, userName) {
 	this.percentageGoodLocationUpdate = 0;
 	this.surveysPerDayProtoGraph = null;
 	
+	// Add user name to the div for later sorting
+	$(this.divId).attr('Name', this.userName.replace('.', '_'));
+	
 	// Add user upload information to the DIV
 	$(this.divId).append('<div class="StatTitle"></div>');
 	
@@ -46,6 +49,11 @@ function StatDisplay(divId, userName) {
 	var graph_width = $(this.divId).width();
     var new_graph = ProtoGraph.factory(graph_config, protoGraphDivId, graph_width);
     this.surveysPerDayProtoGraph = new_graph;
+    
+    // Annoying hack, add default "column values"
+    $(this.divId).attr("LastSurvey", 0.0);
+    $(this.divId).attr("LastLocation", 0.0);
+    $(this.divId).attr("GoodLocation", 0.0);
 }
 
 // Logger for the StatDisplay
@@ -61,6 +69,9 @@ StatDisplay.prototype.update_hours_since_last_survey = function(value) {
 	else {
 		$(this.divId + " .TimeSinceUserSurvey").text(value.toFixed(1) + " hrs");
 	}
+	
+	// Attach this value to the div for later sorting
+	$(this.divId).attr("LastSurvey", value);
 }
 
 // Update the time since the last good user GPS reading
@@ -72,11 +83,17 @@ StatDisplay.prototype.update_time_since_user_location = function(value) {
 	else {
 		$(this.divId + " .TimeSinceUserLocation").text(value.toFixed(1) + " hrs");
 	}
+	
+	// Attach this value to the div for later sorting
+	$(this.divId).attr("LastLocation", value);
 }
 
 // Update the percentage of good GPS readings
 StatDisplay.prototype.update_percentage_good_uploads = function(value) {
     $(this.divId + " .PercentageGoodUploads").text(value + "%");
+    
+ // Attach this value to the div for later sorting
+	$(this.divId).attr("GoodLocation", value);
 }
 
 StatDisplay.prototype.update_surveys_per_day = function(data) {
