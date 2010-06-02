@@ -90,7 +90,7 @@ StatDisplay.prototype.update_time_since_user_location = function(value) {
 
 // Update the percentage of good GPS readings
 StatDisplay.prototype.update_percentage_good_uploads = function(value) {
-    $(this.divId + " .PercentageGoodUploads").text(value + "%");
+    $(this.divId + " .PercentageGoodUploads").text(value.toFixed(1) + "%");
     
  // Attach this value to the div for later sorting
 	$(this.divId).attr("GoodLocation", value);
@@ -126,7 +126,6 @@ StatDisplay.prototype.update_state = function() {
 	if (this.surveysPerDayProtoGraph.is_empty()) {
 	   $(this.divId).find(".ProtoGraph").hide();
 	   $(this.divId).find('.GraphEnableButton').removeClass('graphsEnabled graphsDisabled').addClass('disabled');
-	   this.graphsEnabled = false;
 	   return;
 	}
 	
