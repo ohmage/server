@@ -96,7 +96,7 @@
         log.addAppender(popUpAppender);
 
         // Uncomment the line below to disable logging
-        //log4javascript.setEnabled(false);
+        log4javascript.setEnabled(false);
 
         // Setup the datepickers for the date input box
         // old datepicker
