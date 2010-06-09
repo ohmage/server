@@ -312,12 +312,15 @@ body {
 #ViewUpload div.graphsEnabled {
     background-image: url('/css/images/up_arrow.png');
 }
-#ViewUpload div.disabled {
-    background-image: url('/css/images/redx.png');
-}
 
 #ViewUpload div.GraphEnableButton:hover {
 	background-color: darkgrey;
+}
+
+/* !important background-color to override the hover */
+#ViewUpload div.disabled {
+    background-image: none;
+    background-color: lightgrey !important;
 }
 
 #ViewUpload .ProtoGraph {
