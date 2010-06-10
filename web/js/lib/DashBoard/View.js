@@ -272,7 +272,7 @@ ViewUpload.prototype.configure_html = function(json_config) {
 	$(this.divId).find('#Name').click(jQuery.proxy(this.sort_by_name_click, this));
 	$(this.divId).find('#LastSurvey').click(jQuery.proxy(this.sort_by_last_survey_click, this));
 	$(this.divId).find('#LastLocation').click(jQuery.proxy(this.sort_by_last_location_click, this));
-	$(this.divId).find('#GoodLocation').click(jQuery.proxy(this.sort_by_percentage_location_click, this));
+	$(this.divId).find('#GoodLocation').click(jQuery.proxy(this.sort_by_good_location_click, this));
 	
 	// Attach a function to handle a click on enableAllGraphs
 	$(this.divId).find('#enableAllGraphs').click(jQuery.proxy(this.enable_all_graphs, this));
