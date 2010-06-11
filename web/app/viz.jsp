@@ -120,7 +120,6 @@
 		
         // Initialize the page by grabbing config information from server
         send_json_request_init();
-        //send_json_request(null);
     });
 
     /*

@@ -57,8 +57,8 @@ body {
 #banner .banner_text {
   background-color: #CDE8FF;
   margin: 5px;
-  position: relative;
-  top: 10px;
+  padding: 2px;
+  float: left;
 }
 
 #main {
@@ -124,33 +124,47 @@ body {
 }
 
 #grabDateForm {
-/*    font-size: .8em;  */
-  width: 160px;
+  width: 100%;
+  height: 100px;
 }
 
 #grabDateForm .label {
-    float: left;
-    width: 67px;
-    margin-right: 5px;
     text-align: right;
     font-weight: bold;
-    clear: left;
+    height: 25px;
+    line-height: 25px;
+    width: 75px;
+    float: left;
 }
 
+#grabDateForm input, #grabDateForm > select {
+	float: right;
+	height: 23px;
+	width: 78px;
+	font-size: inherit;
+	padding: 0px;
+	margin-top: 2px;
+}
+
+
 #grabDateForm #submit {
-    margin-left: 72px;
+    margin-left: 78px;
     margin-top: 2px;
 }
 
+
+
+/*
 #grabDateForm #startDate {
     width: 85px;
     height: 22px;
     margin-top: -2px;
     font-size: 12px;
-}
+}*/
 
 #loginForm {
   font-size: .9em;
+  font-weight: bold;
   float: right;
   width: 222px;
   padding: 5px;
