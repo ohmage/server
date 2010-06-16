@@ -1,0 +1,67 @@
+The app directory contains jsp files that contain the necessary html
+and javascript to display the AndWellness server side web interface.
+login.jsp is the the page a visitor accesses and gives a basic
+description of the AndWellness project along with a login box to allow
+users to login.  viz.jsp is the main dashboard webpage and contains
+javascript to allow the user to view and interact with their data.
+The final pages are miscellaneous webpages to cleanly display errors
+as they come up (404, etc).
+
+
+login.jsp 
+
+Imports the main css code in dashboard.css.  Has a banner, main,
+control, and footer div.  Has a short description of the AndWellness
+application and has a login form that sends login information to
+'/app/login'
+
+
+viz.jsp
+
+The main dashboard page for AndWellness.  Uses the same banner, main,
+control, and footer div layout as login.jsp.  Imports a number of
+thirdparty and custom css and javascript pages for various dashboard
+creation and formatting.
+
+
+GLOBALS: 
+
+startDate - A global Date to hold the requested start date.  Only
+  modified from the send_json_request function which gets the data
+  from the input in the grabDateForm.  Accessed in various places for
+  formatting and display reasons.
+
+numDays - A global int to hold the number of days of data to display.
+  Only modified from the send_json_reqest function which gets the data
+  from the input in grabDateForm.  Access in various places for data
+  display.
+
+dashBoard - A global DashBoard to hold the main DashBoard class.
+  Coordinates actions by requesting data in response to user input,
+  and coordinating the return of data.  Should be a Singleton.
+
+userName - A global string set by JSP to hold the name of the logged
+  in user.  Is passed to the global DashBoard, then never access or
+  changed again.
+
+log - The log used by viz.jsp.  Initialized by calling log4javascript.
+
+
+IMPORTANT FUNCTIONS:
+
+$() - Called by jQuery after the initial document is done loading.
+  All initialization of the webpage is done here.  This function sets
+  up the logger for debugging, sets up the datepicker calendar in the
+  controls (should be moved into the dashboard), and sends the initial
+  request for data (so the dashboard is not blank).
+
+send_json_request_init() - Sends the initial request for data to
+  initialize the dashboard with the users from which we can grab data.
+
+send_json_request() - Linked to the grabDateForm form.  Grabs the
+  inputted data from grabDateForm, validates, then sends out a request
+  for all types of data.  Modifies both the startDate and numDays
+  globals.
+  
+
+
