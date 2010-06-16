@@ -18,35 +18,49 @@
     <title>Data Visualizations</title>
     
     
-    <!-- CSS includes for various formatting -->
+    
     <link href="/css/zp-compressed.css" type="text/css" media="screen, print" rel="stylesheet" />
     <link href="/css/zp-print.css" type="text/css" media="print" rel="stylesheet" />
     <link href="http://andwellness.cens.ucla.edu/favicon.ico" rel="shortcut icon" type="image/x-icon">
-    <link type="text/css" href="/css/jquery-ui-1.7.2.custom.css" rel="stylesheet" />
-    <link type="text/css" href="/css/jquery-validity.css" rel="stylesheet" />
-    <link type="text/css" href="/css/tabs.css" rel="stylesheet" />
-    <!-- Custom CSS for the "dashboard" setup -->
-    <link type="text/css" href="/css/dashboard.css" rel="stylesheet" />
-    <!-- dateinput styling -->
-	<link rel="stylesheet" type="text/css" href="/css/dateinput.css"/>
-    
 
+    
+    
+       
+    
+    
+    <!-- dateinput styling -->
+    <!-- MOVED TO USING JQUERY TOOLS FOR THE DATEINPUT -->
+    <!-- 
+	<link rel="stylesheet" type="text/css" href="/css/dateinput.css"/>
+    -->
+
+	<!-- CSS includes for various formatting -->
+	<!-- Custom CSS for the "dashboard" setup -->
+    <link type="text/css" href="/css/dashboard.css" rel="stylesheet" />  
+    <!-- Formats the tabs for jquery.tools -->
+	<link type="text/css" href="/css/tabs.css" rel="stylesheet" />
+	<!-- Custom css specifically for the jqueryui -->
+	<link type="text/css" href="/css/jquery-ui-1.7.2.custom.css" rel="stylesheet" />
+	<link type="text/css" href="/css/jquery-validity.css" rel="stylesheet" /> 
+    
+    
     <!-- A large number of javascript includes, will reduce -->
-    <!-- Main jQuery library -->
-    <script type="text/javascript" src="/js/thirdparty/jquery/jquery-1.4.2.min.js"></script>
+	<!-- Main jQuery library -->
+    <script type="text/javascript" src="/js/thirdparty/jquery/jquery-1.4.2.min.js"></script>  
     <!-- jQuery UI toolkit for tabs -->
-    <script type="text/javascript" src="/js/thirdparty/jquery/jquery.tools.min.js"></script>
+    <script type="text/javascript" src="/js/thirdparty/jquery/jquery.tools.min.js"></script>   
     <!-- jQuery UI for Datepicker -->
     <script type="text/javascript" src="/js/thirdparty/jquery/jquery-ui-1.7.2.custom.min.js"></script>
     <!-- jQuery TinySort plugin, to sort DIVs by their attributes -->
     <script type="text/javascript" src="/js/thirdparty/jquery/jquery.tinysort.min.js"></script>
     <!-- log4java like logging -->
     <script type="text/javascript" src="/js/lib/misc/log4javascript.js"></script>
-    <!-- Protovis graphing library with hacked in IE support -->
+    <!-- Protovis graphing library -->
     <script type="text/javascript" src="/js/thirdparty/Protovis/protovis-d3.2.js"></script>
     <!-- Useful additions to Javascript objects -->
     <script type="text/javascript" src="/js/lib/misc/array_lib.js"></script>
     <script type="text/javascript" src="/js/lib/misc/date-functions.js"></script>
+    <script type="text/javascript" src="/js/thirdparty/misc/date.format.js"></script>
     <!-- Various validators to validate user input and server responses -->
     <script type="text/javascript" src="/js/thirdparty/jquery/jquery.validity.min.js"></script>
     <script type="text/javascript" src="/js/lib/validator/DateValidator.js"></script>
@@ -60,8 +74,7 @@
     <script type="text/javascript" src="/js/lib/Graph/ProtoGraph.js"></script>
     <script type="text/javascript" src="/js/lib/DashBoard/StatDisplay.js"></script>
     <script type="text/javascript" src="/js/lib/DashBoard/View.js"></script>
-    <!-- Simple date formatting functions -->
-    <script type="text/javascript" src="/js/thirdparty/misc/date.format.js"></script>
+    
 	
     <!--[if IE]>
 	<link href="/css/zp-ie.css" type="text/css" media="screen" rel="stylesheet" />
@@ -148,7 +161,8 @@
      */
     function send_json_request_init() {
     	// Switch on the loading graphic
-        dashBoard.loading(true);
+    	// currently broken, comes back on before the data is actually loaded into the graphs.
+        //dashBoard.loading(true);
 
 		// This will initialize the main user upload page
 		DataSourceJson.request_data(DataSourceJson.DATA_HOURS_SINCE_LAST_SURVEY);
@@ -157,9 +171,8 @@
     /*
      * Grab the form inputs, validate, and send a request to the server for data.
      */
-    function send_json_request(data) {
+    function send_json_request() {
         // Grab the URL from the form
-        //var url = $("#grabDateForm").attr("action");
         var start_date = $("#startDate").val();
         var num_days = $("#numDays").val();
 
