@@ -1,6 +1,5 @@
 package edu.ucla.cens.awserver.service;
 
-import java.util.Collections;
 import java.util.List;
 
 import org.apache.log4j.Logger;
@@ -87,8 +86,6 @@ public class PromptGroupCountQueryService implements Service {
 		
 		@SuppressWarnings("unchecked")
 		List<PromptGroupCountQueryResult> results = (List<PromptGroupCountQueryResult>) awRequest.getResultList();
-		
-		// Collections.sort(results);
 		
 		int size = results.size();
 		int currentCampaignId = Integer.parseInt(awRequest.getUser().getCurrentCampaignId());
