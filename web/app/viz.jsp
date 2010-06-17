@@ -25,14 +25,6 @@
 
     
     
-       
-    
-    
-    <!-- dateinput styling -->
-    <!-- MOVED TO USING JQUERY TOOLS FOR THE DATEINPUT -->
-    <!-- 
-	<link rel="stylesheet" type="text/css" href="/css/dateinput.css"/>
-    -->
 
 	<!-- CSS includes for various formatting -->
 	<!-- Custom CSS for the "dashboard" setup -->
@@ -42,7 +34,7 @@
 	<!-- Custom css specifically for the jqueryui -->
 	<link type="text/css" href="/css/jquery-ui-1.7.2.custom.css" rel="stylesheet" />
 	<link type="text/css" href="/css/jquery-validity.css" rel="stylesheet" /> 
-    
+    <link rel="stylesheet" type="text/css" href="/css/dateinput.css"/>
     
     <!-- A large number of javascript includes, will reduce -->
 	<!-- Main jQuery library -->

@@ -23,7 +23,8 @@ public class EmaQueryDao extends AbstractDao {
 	// type. The type is identified by prompt.prompt_config_id (the phone's prompt id) and 
 	// campaign_prompt_group.group_id (the phone's group id).
 	private String _selectSql = "select prompt_response.json_data, prompt_response.phone_timezone," +
-			                    " prompt_response.time_stamp, prompt.prompt_config_id, " +
+			                    " prompt_response.time_stamp, prompt_response.latitude," +
+			                    " prompt_response.longitude, prompt.prompt_config_id, " +
 			                    " campaign_prompt_group.group_id" +
 			                    " from prompt_response, prompt, campaign_prompt_group, campaign" +
 			                    " where date(prompt_response.time_stamp) >= ?" +
@@ -79,8 +80,10 @@ public class EmaQueryDao extends AbstractDao {
 			result.setJsonData(rs.getString(1));
 			result.setTimezone(rs.getString(2));
 			result.setTimestamp(rs.getTimestamp(3).toString());
-			result.setPromptConfigId(rs.getInt(4));
-			result.setPromptGroupId(rs.getInt(5));
+			result.setLatitude(rs.getDouble(4));
+			result.setLongitude(rs.getDouble(5));
+			result.setPromptConfigId(rs.getInt(6));
+			result.setPromptGroupId(rs.getInt(7));
 			return result;
 		}
 	}
@@ -89,9 +92,23 @@ public class EmaQueryDao extends AbstractDao {
 		private String _jsonData;
 		private String _timezone;
 		private String _timestamp;
+		private double _latitude;
+		private double _longitude;
 		private int _promptConfigId;
 		private int _promptGroupId;
 		
+		public double getLatitude() {
+			return _latitude;
+		}
+		public void setLatitude(double latitude) {
+			_latitude = latitude;
+		}
+		public double getLongitude() {
+			return _longitude;
+		}
+		public void setLongitude(double longitude) {
+			_longitude = longitude;
+		}
 		public int getPromptConfigId() {
 			return _promptConfigId;
 		}

@@ -416,3 +416,102 @@ ViewUpload.prototype.enable_all_graphs = function() {
 ViewUpload.prototype.loading = function(enable) {
 	
 }
+
+
+/*
+ * ViewSurveyMap - Shows a map of all the surveys taken
+ */
+function ViewSurveyMap(divId) {
+	this.divId = '#' + divId;
+	
+	this.tabName = "Survey map";
+	this.configured = false;
+	
+	this.graphsEnabled = false;
+}
+
+ViewSurveyMap.prototype = new View();
+
+//check_datatype - Check if this View can handle the incoming data type.
+//Return true if we can, false if we cannot
+ViewSurveyMap.prototype.check_datatype = function(awData) {
+	var goodData = false;
+	
+	if (awData instanceof EmaAwData) {
+		goodData = true;
+	}
+	else {
+		if (View._logger.isDebugEnabled()) {        
+            View._logger.debug("ViewUpload.check_datatype: Cannot load datatype.");
+        }
+	}
+	
+	return goodData;
+}
+
+//configure_html - Read in JSON describing each specific view.  Build
+//the banner, controls, main and footer.  Assume no data has yet been loaded.
+ViewSurveyMap.prototype.configure_html = function(json_config) {
+	// Add an img tag for the incoming image
+	$(this.divId).append('<img></img>');
+}
+
+//load_data - Loads in a new DataSource with which to display data
+ViewSurveyMap.prototype.load_data = function(json_data) {
+	// Make sure we can handle the incoming data type, silently do nothing and
+	// return if we cannot
+	if (this.check_datatype(json_data) == false) {
+		return;
+	}
+	
+	var googleApiUrl = 'http://maps.google.com/maps/api/staticmap?';
+	
+	// Setup the list of params to send to the google API
+	var params = {size:'512x512',
+				  maptype:'roadmap',
+				  sensor:'true',
+				  markers:[]};
+	
+	// Now run through the passed data, adding any durvey lat/lon to the map
+	data_count = 0;
+	json_data.get_data_filtered().forEach(function(data_point) {
+		// Check to be sure either lat or long is not null
+		if (data_point.latitude == 0 || data_point.longitude == 0) {
+			return;
+		}
+		
+		// Check if the lat/long is already in the markers list
+		found_string = false;
+		string_to_find = data_point.latitude + ',' + data_point.longitude;
+		params.markers.forEach(function(marker) {
+			// Check for the string
+			if (marker.indexOf(string_to_find) > -1) {
+				found_string = true;
+			}
+		});
+			
+		// If we found the string already, move on
+		if (found_string == true) {
+			return;
+		}
+		
+		// Add point to param list
+		params.markers.push('label:' + data_count + '|' + data_point.latitude + 
+							',' + data_point.longitude);
+		data_count += 1;
+	});
+	
+	
+	// Pull out the params into URL encoding, use the traditional param encoding
+	var param_string = decodeURIComponent($.param(params, true));
+	
+	// Replace the img with the new image
+	$(this.divId).find('img').attr('src', googleApiUrl + param_string);
+	//$(this.divId).find('img').attr('src', 'http://maps.google.com/maps/api/staticmap?center=Brooklyn+Bridge,New+York,NY&zoom=13&size=512x512&maptype=roadmap&markers=color:blue|label:S|40.702147,-74.015794&markers=color:green|label:G|40.711614,-74.012318&markers=color:red|color:red|label:C|40.718217,-73.998284&sensor=false');
+	
+}
+
+//loading - Pass true/false to enable/disable the View's loading graphic
+ViewSurveyMap.prototype.loading = function(enable) {
+	
+}

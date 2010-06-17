@@ -40,6 +40,17 @@ EmaAwData.prototype.set_data = function(json_data) {
 
 // EMA data getters
 
+/*
+ * Return data with basic filtering
+ */
+EmaAwData.prototype.get_data_filtered = function() {
+	// Filter out RESPONSE_SKIPPED for now
+    var filtered_data = this.current_data.filter(function(data_point) {
+        return ((data_point.response != "RESPONSE_SKIPPED"));
+    });
+    
+    return filtered_data;
+}
 
 /*
  * Return data with the passed prompt_id and group_id
