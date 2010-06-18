@@ -22,7 +22,7 @@ public class EmaQueryValidator extends AbstractHttpServletRequestValidator {
 	/**
 	 */
 	public EmaQueryValidator() {
-		_parameterList = new ArrayList<String>(Arrays.asList(new String[]{"s","e"}));
+		_parameterList = new ArrayList<String>(Arrays.asList(new String[]{"s","e","u"}));
 	}
 	
 	/**
@@ -34,7 +34,7 @@ public class EmaQueryValidator extends AbstractHttpServletRequestValidator {
 		
 		// Check for missing or extra parameters
 		
-		if(parameterMap.size() != _parameterList.size()) {
+		if((parameterMap.size() != _parameterList.size()) && (parameterMap.size() != _parameterList.size() - 1)) {
 			_logger.warn("an incorrect number of parameters was found for an EMA viz query: " + parameterMap.size());
 			return false;
 		}
@@ -68,16 +68,18 @@ public class EmaQueryValidator extends AbstractHttpServletRequestValidator {
 		
 		String s = (String) httpServletRequest.getParameter("s");
 		String e = (String) httpServletRequest.getParameter("e");
+		String u = (String) httpServletRequest.getParameter("u");
 		
 		// Check for abnormal lengths (buffer overflow attack)
 		// 50 is an arbitrary number for the length, but it would be very strange
 		
-		if(greaterThanLength("startDate", "s", s, 50) || greaterThanLength("endDate", "e", e, 50)) { 
+		if(greaterThanLength("startDate", "s", s, 50) 
+		   || greaterThanLength("endDate", "e", e, 50)
+		   || greaterThanLength("userName", "u", u, 50)) {
+			
 			return false;
 		}
 		
 		return true;
-		
 	}
-	
 }

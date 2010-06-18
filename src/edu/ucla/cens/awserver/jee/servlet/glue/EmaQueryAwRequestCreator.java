@@ -23,9 +23,10 @@ public class EmaQueryAwRequestCreator implements AwRequestCreator {
 	}
 	
 	/**
-	 *  Pulls the s (startDate) parameter and the e (endDate) parameter out of the request and places them in a new AwRequest.
+	 *  Pulls the s (startDate) parameter, the e (endDate) parameter, and the u (userName) parameter out of the request and places
+	 *  them in a new AwRequest.
 	 *  Pulls the userName out of the HttpSession and places in in the AwRequest.
-	 *  Validation of the data is performed within a controller.
+	 *  Strict validation of the data is performed within a controller.
 	 */
 	public AwRequest createFrom(HttpServletRequest request) {
 		HttpSession session = request.getSession();
@@ -33,11 +34,13 @@ public class EmaQueryAwRequestCreator implements AwRequestCreator {
 		
 		String startDate = request.getParameter("s");
 		String endDate = request.getParameter("e");
+		String userNameRequestParam = request.getParameter("u"); // researchers are allowed to pass an optional user name
 		
 		AwRequest awRequest = new EmaVizQueryAwRequest();
 		awRequest.setUser(user);
 		awRequest.setStartDate(startDate);
 		awRequest.setEndDate(endDate);
+		awRequest.setUserNameRequestParam(userNameRequestParam);
 		
 		return awRequest;
 	}

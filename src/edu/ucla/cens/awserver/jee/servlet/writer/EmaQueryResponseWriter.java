@@ -13,7 +13,7 @@ import org.apache.log4j.Logger;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-import edu.ucla.cens.awserver.dao.EmaQueryDao.EmaQueryResult;
+import edu.ucla.cens.awserver.domain.EmaQueryResult;
 import edu.ucla.cens.awserver.request.AwRequest;
 
 /**

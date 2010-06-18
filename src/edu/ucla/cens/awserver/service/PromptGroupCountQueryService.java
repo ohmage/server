@@ -11,8 +11,6 @@ import edu.ucla.cens.awserver.domain.PromptGroupCountQueryResult;
 import edu.ucla.cens.awserver.request.AwRequest;
 
 /**
- * Service that dispatches directly to a DAO without performing any pre- or post-processing.
- * 
  * @author selsky
  */
 public class PromptGroupCountQueryService implements Service {
@@ -23,9 +21,7 @@ public class PromptGroupCountQueryService implements Service {
 	private Dao _multiUserDao;
 	
 	/**
-     * Creates and instance of this class and passes dao to the super class constructor.
-     * 
-     *  @throws IllegalArgumentException if the provided CacheService is null
+     *  @throws IllegalArgumentException if the provided CacheServices or Daos are null
      */
     public PromptGroupCountQueryService(CacheService userRoleCacheService, CacheService campaignPromptGroupItemCountCacheService,
     	Dao singleUserDao, Dao multiUserDao) {

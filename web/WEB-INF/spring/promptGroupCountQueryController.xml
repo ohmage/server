@@ -7,7 +7,8 @@
   -->
   
   <!-- Servlet-to-AW hooks -->
-  <!-- AwRequestCreator and "pre"-Validator shared with emaQueryController.xml -->
+  <!-- "pre-validate" inbound data -->
+  <bean id="startAndEndDateHttpServletRequestValidator" class="edu.ucla.cens.awserver.jee.servlet.validator.StartAndEndDateValidator" />
   
   <!-- Write outbound data -->
   <bean id="promptGroupCountQueryResponseWriter" class="edu.ucla.cens.awserver.jee.servlet.writer.PromptGroupCountQueryResponseWriter" />
@@ -46,5 +47,10 @@
     <constructor-arg index="0"><ref bean="dataSource" /></constructor-arg>
     <constructor-arg index="1"><ref bean="findAllUsersForCampaignDao" /></constructor-arg>
   </bean>
+  
+  <!-- validation -->
+  
+  
+  
   
 </beans>

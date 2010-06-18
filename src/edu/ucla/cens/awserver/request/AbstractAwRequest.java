@@ -149,6 +149,11 @@ public abstract class AbstractAwRequest implements AwRequest {
 	public long getStartTime() {
 		throw new UnsupportedOperationException("it is illegal to invoke getStartTime() on this instance");
 	}
+	
+	public String getUserNameRequestParam() {
+		throw new UnsupportedOperationException("it is illegal to invoke getUserNameRequestParam() on this instance");
+	}
+
 
 	public String getVersionId() {
 		throw new UnsupportedOperationException("it is illegal to invoke getVersionId() on this instance");
@@ -236,5 +241,9 @@ public abstract class AbstractAwRequest implements AwRequest {
 
 	public void setVersionId(String versionId) {
 		throw new UnsupportedOperationException("it is illegal to invoke setVersionId() on this instance");
+	}
+	
+	public void setUserNameRequestParam(String userNameRequestParam) {
+		throw new UnsupportedOperationException("it is illegal to invoke setUserNameRequestParam() on this instance");
 	}
 }

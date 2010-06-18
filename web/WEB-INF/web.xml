@@ -326,8 +326,8 @@
       <param-value>emaQueryAwRequestCreator</param-value>
     </init-param>
     <init-param>
-      <param-name>httpServletRequestValidatorName</param-name> <!-- note: shared with EMA query -->
-      <param-value>emaQueryHttpServletRequestValidator</param-value>
+      <param-name>httpServletRequestValidatorName</param-name>
+      <param-value>startAndEndDateHttpServletRequestValidator</param-value>
     </init-param>
     <init-param>
       <param-name>responseWriterName</param-name>
