@@ -146,7 +146,9 @@ public class PromptUploadDao extends AbstractUploadDao {
 						}
 				    );
 					
-					_logger.info("number of rows updated = " + numberOfRowsUpdated);
+					if(_logger.isDebugEnabled()) {
+						_logger.debug("number of rows updated = " + numberOfRowsUpdated);
+					}
 					
 				}
 				catch(DataIntegrityViolationException dive) { 
