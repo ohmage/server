@@ -53,7 +53,7 @@
     <init-param>
       <param-name>ajaxUrls</param-name>
       <!--  To add a URL, make this a comma-separated list -->
-      <param-value>/app/q/ema,/app/q/percent-successful-location-updates,/app/q/completed-surveys-per-day,/app/q/hours-since-last-survey,/app/q/hours-since-last-update</param-value>
+      <param-value>/app/q/ema,/app/q/percent-successful-location-updates,/app/q/completed-surveys-per-day,/app/q/mobility-modes-per-day,/app/q/hours-since-last-survey,/app/q/hours-since-last-update</param-value>
     </init-param>
   </filter>
   
@@ -64,6 +64,7 @@
     <servlet-name>EmaQueryServlet</servlet-name>
     <servlet-name>SuccessfulLocationUpdatesQueryServlet</servlet-name>
     <servlet-name>PromptGroupCountQueryServlet</servlet-name>
+    <servlet-name>MobilityModeCountQueryServlet</servlet-name>
     <servlet-name>MostRecentSurveyQueryServlet</servlet-name>
     <servlet-name>MostRecentActivityQueryServlet</servlet-name>
   </filter-mapping>
@@ -339,6 +340,40 @@
   <servlet-mapping>
     <servlet-name>PromptGroupCountQueryServlet</servlet-name>
     <url-pattern>/app/q/completed-surveys-per-day</url-pattern>
+  </servlet-mapping>
+  
+  <!--  Handle mobility mode count queries -->
+  <servlet>
+    <description>
+      Runs queries for the aggregate number of mobility modes per day 
+    </description>
+    <servlet-name>MobilityModeCountQueryServlet</servlet-name>
+    <servlet-class>edu.ucla.cens.awserver.jee.servlet.AwDataServlet</servlet-class>
+    <!--  The following init-params are used to map the servlet to Spring-configured beans that ultimately service the request. 
+          The param-value elements are Spring bean ids.    
+    -->
+    <init-param>
+      <param-name>controllerName</param-name>
+      <param-value>mobilityModeCountQueryController</param-value>
+    </init-param>
+     <init-param>
+      <param-name>awRequestCreatorName</param-name> <!-- note: shared with EMA query -->
+      <param-value>emaQueryAwRequestCreator</param-value>
+    </init-param>
+    <init-param>
+      <param-name>httpServletRequestValidatorName</param-name>
+      <param-value>startAndEndDateHttpServletRequestValidator</param-value>
+    </init-param>
+    <init-param>
+      <param-name>responseWriterName</param-name>
+      <param-value>mobilityModeCountQueryResponseWriter</param-value> 
+    </init-param>
+    <load-on-startup>1</load-on-startup>
+  </servlet>
+  
+  <servlet-mapping>
+    <servlet-name>MobilityModeCountQueryServlet</servlet-name>
+    <url-pattern>/app/q/mobility-modes-per-day</url-pattern>
   </servlet-mapping>
   
   <!--  Handle hours since last survey queries -->
