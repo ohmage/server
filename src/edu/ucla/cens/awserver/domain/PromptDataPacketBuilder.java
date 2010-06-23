@@ -54,7 +54,10 @@ public class PromptDataPacketBuilder extends AbstractDataPacketBuilder {
 		}
 		
 		promptDataPacket.setResponses(_responsePackets);
-		_logger.info(promptDataPacket);
+		
+		if(_logger.isDebugEnabled()) {
+			_logger.debug(promptDataPacket);
+		}
 		
 		return promptDataPacket;
 	}
