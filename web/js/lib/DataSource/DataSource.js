@@ -111,7 +111,7 @@ DataSourceJson.receive_mobility_mode_per_day = function(json_data, text_status) 
     }    
     
     // Create the EMA data object creator
-	var awDataCreator = new MobilitiyModesPerDayAwDataCreator();
+	var awDataCreator = new MobilityPerDayAwDataCreator();
 	
 	// Pass the data to the dashboard
 	DataSourceJson.receive_data(json_data, text_status, awDataCreator);	

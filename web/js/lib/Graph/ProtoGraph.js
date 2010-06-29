@@ -79,7 +79,8 @@ ProtoGraph.graph_type = {
     "PROTO_GRAPH_YES_NO_TYPE":3,
     "PROTO_GRAPH_MULTI_TIME_TYPE":4,
     "PROTO_GRAPH_CUSTOM_SLEEP_TYPE":5,
-	"PROTO_GRAPH_ALL_INTEGER_TYPE":6
+	"PROTO_GRAPH_ALL_INTEGER_TYPE":6,
+	"PROTO_GRAPH_STACKED_BAR_TYPE":7
 };
 
 ProtoGraph.HEIGHT = 120;
@@ -141,6 +142,9 @@ ProtoGraph.factory = function(graph_description, div_id, graph_width) {
     }
 	else if (graph_description.type == ProtoGraph.graph_type.PROTO_GRAPH_ALL_INTEGER_TYPE) {
         var new_graph = new ProtoGraphAllIntegerType(div_id, graph_description.text, graph_width, graph_description.x_labels);
+    }
+	else if (graph_description.type == ProtoGraph.graph_type.PROTO_GRAPH_STACKED_BAR_TYPE) {
+        var new_graph = new ProtoGraphStackedBarType(div_id, graph_description.text, graph_width, graph_description.bar_labels);
     }
     else {
         throw new TypeError("ProtoGraph.factory(): Unknown graph type in JSON.");
@@ -1470,6 +1474,129 @@ ProtoGraphAllIntegerType.prototype.apply_data = function(data, start_date, num_d
             
         this.has_data = true;
     }
+    
+    // splitBanded adds a margin in to the scale.  Find the margin
+    // from the range
+    var range = this.x_scale.range();
+    var margin = range[0] / 2;
+    // Only add ticks between days, so subtract one
+    this.add_day_demarcations(num_days - 1, margin);
+}
+
+
+/*
+ * ProtoGraphStackedBarType - Show a stack of bars, one stack per day.  The X axis is
+ * days, the y axis ranges from 0 to 1.  Each bar represents a percentage of something
+ * per day.  The data should an array of objects, each object should have a data key that is an
+ * array of one or more data points.  The points should not add up to over 1 (they are normalized).
+ * Each object's data array should have the same number of points.
+ * 
+ * Input:
+ *   div_id - The div_id on which to display the graph
+ *   title - The title of the graph
+ *   graph_width - The width of the protovis graph
+ *   bar_labels - Labels for each of the passed data points
+ */
+
+function ProtoGraphStackedBarType(div_id, title, graph_width, bar_labels) {
+    // Inherit properties
+    ProtoGraph.call(this, div_id, title, graph_width);
+
+    // new properties
+    this.min_val = 0;
+    this.max_val = 1;
+    this.y_scale = pv.Scale.linear(this.min_val,this.max_val).range(0, ProtoGraph.HEIGHT);
+    this.bar_labels = bar_labels;
+    
+    // Add a 0 and 1 label to the Y axis
+    var that = this;
+    this.vis.add(pv.Label)
+        .data(this.y_scale.ticks())
+        .left(0)
+        .bottom(function(d) {
+            return that.y_scale(d);
+        })
+        .visible(function(d) {
+        	// Only show labels 0 and 1
+        	return d == 0 || d == 1;
+        })
+        .textAlign('right')
+        .textBaseline('middle');	
+}
+ProtoGraphStackedBarType.prototype = new ProtoGraph();
+
+ProtoGraphStackedBarType.prototype.apply_data = function(data, start_date, num_days) {
+	// Copy the new information
+    this.data = data;
+    this.num_days = num_days;
+    
+    // Replace the x labels with possible new labels
+    this.replace_x_labels(start_date, num_days);
+
+    // Split the data into categories using Scale.ordinal
+    var dayArray = [];
+    for (var i = 0; i < this.num_days; i += 1) {
+        var next_day = start_date.incrementDay(i);
+        dayArray.push(next_day);
+    }
+    
+    // Setup the X scale now
+    this.x_scale = pv.Scale.ordinal(dayArray).splitBanded(0, this.width, ProtoGraph.BAR_WIDTH);
+    
+    // If there is no data yet, setup the display
+    if (this.has_data == false) {
+    	var that = this;
+    	
+    	/* The stack layout. */
+    	this.vis.add(pv.Layout.Stack)
+    	    .layers(function() {
+    	    	return that.data;
+    	    })
+    	    .x(function(d) {
+    	    	return that.x_scale(d.date);
+    	    })
+    	    .y(function(d) {
+    	    	return that.y_scale(d.data);
+    	    })
+    	.layer.add(pv.Bar)
+    	  	.width(function(d) {
+    	  		return that.x_scale.range().band;
+    	  	})
+    	  	.fillStyle(function(d) {
+                return ProtoGraph.DAY_COLOR[d.index];
+            });
+    	
+    	// Add a legend if bar_labels exist
+        if (this.bar_labels != null) {
+        	// Use i to count what index we are at when we iterate
+        	var i = 0;
+        	var that = this;
+        	this.bar_labels.forEach(function(label) {
+        		// Add a color box to show what color this is
+        		that.vis.add(pv.Bar)
+        			.right(-5)
+        			// Reverse the legend order
+        			.top((that.bar_labels.length - i - 1) * 10)
+        			.height(5)
+        			.width(5)
+        			.strokeStyle(ProtoGraph.DAY_COLOR[i])
+        			.fillStyle(ProtoGraph.DAY_COLOR[i])
+        		.anchor("right")
+        			.add(pv.Label)
+        			.text(": " + label)
+        			.textAlign('left')
+        			.textBaseline('middle');
+        		
+        		// Move to next label
+        		i += 1;
+        	});
+        }
+        
+    	
+    	
+    	this.has_data = true;
+    }
+    
     
     // splitBanded adds a margin in to the scale.  Find the margin
     // from the range

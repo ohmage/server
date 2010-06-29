@@ -212,8 +212,7 @@
         DataSourceJson.request_data(DataSourceJson.DATA_EMA, params);
         
 		// Grab number of mobilities from the survey per day
-		// NOT YET IMPLEMENTED ON SERVER
-		//DataSourceJson.request_data(DataSourceJson.DATA_MOBILITY_MODE_PER_DAY, params);
+		DataSourceJson.request_data(DataSourceJson.DATA_MOBILITY_MODE_PER_DAY, params);
 		
         
         // Return false to cancel the usual submit functionality

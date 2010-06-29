@@ -236,7 +236,8 @@ ViewUpload.prototype.check_datatype = function(awData) {
 	if (awData instanceof HoursSinceLastSurveyAwData ||
 		awData instanceof HoursSinceLastUpdateAwData ||
 		awData instanceof LocationUpdatesAwData ||
-		awData instanceof SurveysPerDayAwData) {
+		awData instanceof SurveysPerDayAwData ||
+		awData instanceof MobilityPerDayAwData) {
 		goodData = true;
 	}
 	else {
@@ -346,6 +347,10 @@ ViewUpload.prototype.load_data = function(json_data) {
 			
 			if (json_data instanceof SurveysPerDayAwData) {
 				statDisplay.update_surveys_per_day(data);
+			}
+			
+			if (json_data instanceof MobilityPerDayAwData) {
+				statDisplay.update_mobility_per_day(data);
 			}
 		}
 		else {

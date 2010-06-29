@@ -34,13 +34,13 @@ SurveysPerDayAwDataCreator.prototype.create_from = function(json_data) {
 }
 
 
-function MobilitiyModesPerDayAwDataCreator() {
+function MobilityPerDayAwDataCreator() {
 	
 }
-MobilitiyModesPerDayAwDataCreatorprototype = new AwDataCreator();
+MobilityPerDayAwDataCreatorprototype = new AwDataCreator();
 
-MobilitiyModesPerDayAwDataCreator.prototype.create_from = function(json_data) {
-	var awData = new MobilitiyModesPerDayAwData();
+MobilityPerDayAwDataCreator.prototype.create_from = function(json_data) {
+	var awData = new MobilityPerDayAwData();
 	awData.set_data(json_data);
 	return awData;
 }

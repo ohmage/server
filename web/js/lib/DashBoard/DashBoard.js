@@ -85,14 +85,6 @@ DashBoard.prototype.pass_data = function(aw_data) {
 
 // Enable/disable the loading graphic
 DashBoard.prototype.loading = function(enable) {
-	// Be sure the View is loaded correctly
-	//this.check_view();
-	
-	// Enable loading on all views for now
-	//for (view in this.view_list) {
-	//	view.loading(enable);
-	//}
-	
 	$.each(
 			this.view_list,
 			function( intIndex, objValue ) {

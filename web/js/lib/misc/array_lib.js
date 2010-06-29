@@ -34,3 +34,15 @@ Array.prototype.min = function () {
 	
 	return cur_min;
 }
+
+/* Find the first index of the passed value in the array */
+Array.prototype.find_index = function(value) {
+	var ctr = "";
+	for (var i=0; i < this.length; i++) {
+		// use === to check for Matches. ie., identical (===), ;
+		if (this[i] == value) {
+			return i;
+		}
+	}
+	return ctr;
+};
