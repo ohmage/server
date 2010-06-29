@@ -12,7 +12,8 @@ import java.util.Random;
 public class ValueCreator {
 	private static Random _random = new Random(); 
 	private static String[] _tzs = {"EST", "CST", "MST", "PST"}; // American timezone hegemony ;)
-	private static String[] _modes = {"still", "walk", "run", "bike", "drive"};
+	// Favor still for testing
+	private static String[] _modes = {"still", "still", "still", "walk", "run", "bike", "drive"};
 	
 	private ValueCreator() { };
 	
