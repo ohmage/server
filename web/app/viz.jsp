@@ -87,7 +87,8 @@
 	
 	// Grab the logged in user name from the jsp session
 	var userName = "<c:out value="${sessionScope.user.userName}"></c:out>";
-		
+	var isResearcher = "<c:out value="${sessionScope.user.isResearcherOrAdmin}"></c:out>";
+	
     // Main logger
     var log = log4javascript.getLogger();
 	
