@@ -1508,20 +1508,27 @@ function ProtoGraphStackedBarType(div_id, title, graph_width, bar_labels) {
     this.y_scale = pv.Scale.linear(this.min_val,this.max_val).range(0, ProtoGraph.HEIGHT);
     this.bar_labels = bar_labels;
     
-    // Add a 0 and 1 label to the Y axis
+    // Y labels
     var that = this;
     this.vis.add(pv.Label)
-        .data(this.y_scale.ticks())
+        .bottom(0)
         .left(0)
-        .bottom(function(d) {
-            return that.y_scale(d);
-        })
-        .visible(function(d) {
-        	// Only show labels 0 and 1
-        	return d == 0 || d == 1;
-        })
         .textAlign('right')
-        .textBaseline('middle');	
+        .textBaseline('middle')
+        .text(function() {
+        	return that.min_val;
+        })
+        .font(ProtoGraph.LABEL_STYLE)
+        
+    this.vis.add(pv.Label)
+        .top(0)
+        .left(0)
+        .textAlign('right')
+        .textBaseline('middle')
+        .text(function() {
+        	return that.max_val;
+        })
+        .font(ProtoGraph.LABEL_STYLE)
 }
 ProtoGraphStackedBarType.prototype = new ProtoGraph();
 
@@ -1542,6 +1549,24 @@ ProtoGraphStackedBarType.prototype.apply_data = function(data, start_date, num_d
     
     // Setup the X scale now
     this.x_scale = pv.Scale.ordinal(dayArray).splitBanded(0, this.width, ProtoGraph.BAR_WIDTH);
+    
+    // Setup the new max value.  This requires running through the data, collapsing
+    // the arrays into a single array, then finding the max of that.
+    var new_max = 0;
+    for (var i = 0; i < this.data[0].length; i++) {
+    	var test_max = 0;
+    	for (var j = 0; j < this.data.length; j++) {
+    		test_max += this.data[j][i].data;
+    	}
+    	// Now see if this is a new max
+    	if (test_max > new_max) {
+    		new_max = test_max;
+    	}
+    }
+
+    this.max_val = new_max;
+    this.y_scale = pv.Scale.linear(this.min_val,this.max_val).range(0, ProtoGraph.HEIGHT);
+    
     
     // If there is no data yet, setup the display
     if (this.has_data == false) {
@@ -1575,7 +1600,7 @@ ProtoGraphStackedBarType.prototype.apply_data = function(data, start_date, num_d
         		// Add a color box to show what color this is
         		that.vis.add(pv.Bar)
         			.right(-5)
-        			// Reverse the legend order
+        			// Reverse the legend order to match the order of bars
         			.top((that.bar_labels.length - i - 1) * 10)
         			.height(5)
         			.width(5)

@@ -383,12 +383,6 @@ MobilityPerDayAwData.prototype.set_data = function(json_data) {
 			userName[d.user][d.date][mode_index] += mode.value;
 			
 		});
-    	
-		// And normalize
-		var sum = userName[d.user][d.date].sum();
-			userName[d.user][d.date] = userName[d.user][d.date].map(function(d) {
-			return d / sum;
-    	});
     });   
     
 
