@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified">
+  <xs:element name="campaign">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="surveys"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="surveys">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element maxOccurs="unbounded" ref="survey"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="survey">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="id"/>
+        <xs:element ref="title"/>
+        <xs:element ref="description"/>
+        <xs:element ref="intro_text"/>
+        <xs:element ref="submit_text"/>
+        <xs:element ref="show_summary"/>
+        <xs:element ref="edit_summary"/>
+        <xs:element ref="summary_text"/>
+        <xs:element ref="anytime"/>
+        <xs:element ref="content_list"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="title" type="xs:string"/>
+  <xs:element name="description" type="xs:string"/>
+  <xs:element name="intro_text" type="xs:string"/>
+  <xs:element name="submit_text" type="xs:string"/>
+  <xs:element name="show_summary" type="xs:boolean"/>
+  <xs:element name="edit_summary" type="xs:boolean"/>
+  <xs:element name="summary_text" type="xs:string"/>
+  <xs:element name="anytime" type="xs:boolean"/>
+  <xs:element name="content_list">
+    <xs:complexType>
+      <xs:choice maxOccurs="unbounded">
+        <xs:element ref="prompt"/>
+        <xs:element ref="group"/>
+      </xs:choice>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="group">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="id"/>
+        <xs:element ref="repeats"/>
+        <xs:element ref="header_text"/>
+        <xs:element ref="termination_question"/>
+        <xs:element ref="condition"/>
+        <xs:element ref="prompts"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="repeats" type="xs:boolean"/>
+  <xs:element name="header_text" type="xs:string"/>
+  <xs:element name="termination_question" type="xs:string"/>
+  <xs:element name="prompts">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element maxOccurs="unbounded" ref="prompt"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="id" type="xs:NMTOKEN"/>
+  <xs:element name="prompt">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="id"/>
+        <xs:element ref="text"/>
+        <xs:element ref="short_text"/>
+        <xs:element ref="long_text"/>
+        <xs:element ref="type"/>
+        <xs:element ref="properties"/>
+        <xs:element ref="default"/>
+        <xs:element ref="condition"/>
+        <xs:element ref="skippable"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="text" type="xs:string"/>
+  <xs:element name="short_text">
+    <xs:complexType/>
+  </xs:element>
+  <xs:element name="long_text">
+    <xs:complexType/>
+  </xs:element>
+  <xs:element name="type" type="xs:NCName"/>
+  <xs:element name="properties">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element minOccurs="0" maxOccurs="unbounded" ref="p"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="p">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="k"/>
+        <xs:element ref="v"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="k" type="xs:NMTOKEN"/>
+  <xs:element name="v" type="xs:string"/>
+  <xs:element name="default" type="xs:string"/>
+  <xs:element name="skippable" type="xs:boolean"/>
+  <xs:element name="condition" type="xs:string"/>
+</xs:schema>

@@ -1,0 +1,18 @@
+PARSER_BEGIN( ConditionParser )
+package edu.ucla.cens.javacc.parse;
+public class ConditionParser {}
+PARSER_END( ConditionParser )
+
+void sentence() : {} { "(" value() condition() value() ")" ( conjunction() sentence() )* <EOF> }
+
+void value() : { Token t; } { t=<TEXT> 
+                         { System.out.println("text = "+t.image); }}
+                         
+void condition() : {} { "==" | "!=" | "<" | ">" | "<=" | ">=" }
+
+void conjunction() : {} { "and" | "or" }
+
+SKIP    : { " " | "\t" | "\n" | "\r" }
+TOKEN   : { < TEXT : ( ["a" - "z"] ["A" - "Z"] ["0" - "9"] )+ > }
+
+
