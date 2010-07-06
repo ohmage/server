@@ -13,11 +13,12 @@ import edu.ucla.cens.awserver.domain.EmaQueryResult;
 import edu.ucla.cens.awserver.request.AwRequest;
 
 /**
- * DAO for executing EMA (prompt/survey response) query for visualization.
+ * DAO for executing EMA (prompt/survey response) queries on behalf of researchers. The difference between this class and 
+ * EmaQueryDao is that researchers are allowed to pass in a user name.
  * 
  * @author selsky
  */
-public class EmaQueryDao extends AbstractDao {
+public class ResearcherEmaQueryDao extends AbstractDao {
 	private static Logger _logger = Logger.getLogger(EmaQueryDao.class);
 	
 	// The visualizations use a js 'config' file for interpreting each prompt response's data 
@@ -27,10 +28,11 @@ public class EmaQueryDao extends AbstractDao {
 			                    " prompt_response.time_stamp, prompt_response.latitude," +
 			                    " prompt_response.longitude, prompt.prompt_config_id, " +
 			                    " campaign_prompt_group.group_id" +
-			                    " from prompt_response, prompt, campaign_prompt_group, campaign" +
+			                    " from prompt_response, prompt, campaign_prompt_group, campaign, user" +
 			                    " where date(prompt_response.time_stamp) >= ?" +
 			                    " and date(prompt_response.time_stamp) < ?" +
-			                    " and prompt_response.user_id = ?" +
+			                    " and user.login_id = ?" +
+			                    " and prompt_response.user_id = user.id " +
 			                    " and prompt_response.prompt_id = prompt.id" +
 			                    " and prompt.campaign_prompt_group_id = campaign_prompt_group.id " +
 			                    " and campaign_prompt_group.campaign_id = ?" +
@@ -39,7 +41,7 @@ public class EmaQueryDao extends AbstractDao {
 	/**
 	 * Creates an instance of this class using the provided DataSource as the method of data access.
 	 */
-	public EmaQueryDao(DataSource dataSource) {
+	public ResearcherEmaQueryDao(DataSource dataSource) {
 		super(dataSource);
 	}
 	
@@ -48,13 +50,13 @@ public class EmaQueryDao extends AbstractDao {
 	 */
 	public void execute(AwRequest awRequest) {
 		_logger.info("executing ema viz query");
-		String s = null, e = null;
-		int u = -1, c = -1;
+		String s = null, e = null, u = null;
+		int c = -1;
 		
 		try {
 			s = awRequest.getStartDate();
 			e = awRequest.getEndDate();
-			u = awRequest.getUser().getId();
+			u = awRequest.getUserNameRequestParam();
 			c = Integer.parseInt(awRequest.getUser().getCurrentCampaignId());
 			
 			List<?> l = getJdbcTemplate().query(_selectSql, new Object[]{s, e, u, c}, new EmaQueryRowMapper());

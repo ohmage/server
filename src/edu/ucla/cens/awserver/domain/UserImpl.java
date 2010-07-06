@@ -96,6 +96,21 @@ public class UserImpl implements User {
 		return _currentCampaignId;
 	}
 
+	public boolean getIsResearcherOrAdmin() {
+		boolean isResearcherOrAdmin = false;
+		List<Integer> list = getCampaignRoles().get(Integer.valueOf(getCurrentCampaignId()));
+		
+		for(Integer i : list) {
+			// 1 is admin, 3 is researcher (hard coded for now)
+			if(i == 1 || i == 3) {
+				isResearcherOrAdmin = true;
+				break;
+			}
+		}
+		
+		return isResearcherOrAdmin;
+	}
+	
 	@Override
 	public String toString() { // password is deliberately omitted
 		return "UserImpl [_campaignRoles=" + _campaignRoles

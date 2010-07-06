@@ -31,9 +31,15 @@
   </bean>
   
   <!-- Service the query request -->
-  <bean id="emaQueryService" class="edu.ucla.cens.awserver.service.SimpleQueryService">
-    <constructor-arg index="0">
+  <bean id="emaQueryService" class="edu.ucla.cens.awserver.service.EmaQueryService">
+   <constructor-arg index="0">
+      <ref bean="userRoleCacheService" />
+    </constructor-arg>
+    <constructor-arg index="1">
       <ref bean="emaQueryDao" />
+    </constructor-arg>
+    <constructor-arg index="2">
+      <ref bean="researcherEmaQueryDao" />
     </constructor-arg>
   </bean>
 
@@ -41,6 +47,11 @@
   <bean id="emaQueryDao" class="edu.ucla.cens.awserver.dao.EmaQueryDao">
     <constructor-arg index="0"><ref bean="dataSource" /></constructor-arg>
   </bean>
+  
+  <bean id="researcherEmaQueryDao" class="edu.ucla.cens.awserver.dao.ResearcherEmaQueryDao">
+    <constructor-arg index="0"><ref bean="dataSource" /></constructor-arg>
+  </bean>
+  
 	
   <bean id="startDateValidator" class="edu.ucla.cens.awserver.validator.DateValidator">
     <constructor-arg index="0">

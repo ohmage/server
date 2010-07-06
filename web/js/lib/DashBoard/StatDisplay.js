@@ -1,6 +1,6 @@
 /*
  * StatDisplay - Handles the overall display of user upload information.
- * Setup with a divId and a user name.  Will add a UserInfo and a 
+ * Setup with a divId and a user name.  Will add basic user information and a 
  * number of ProtoGraphs to display any passed information.  Can be used to
  * sort by any information about the user.
  */
@@ -50,7 +50,22 @@ function StatDisplay(divId, userName) {
     var new_graph = ProtoGraph.factory(graph_config, protoGraphDivId, graph_width);
     this.surveysPerDayProtoGraph = new_graph;
     
-    // Annoying hack, add default "column values"
+    
+    // Add another ProtoGraph to display mobility per day summaries
+    var protoGraphMobilityPerDayDivId = 'ProtoGraphMobility_' + this.userName.replace('.', '_');
+    $(this.divId).append('<div class="ProtoGraph" id="' + protoGraphMobilityPerDayDivId + '"></div>');
+	// Hide the div to start while loading
+	$(this.divId).find('.ProtoGraph').hide();
+	
+	var mobility_graph_config = new Object();
+	mobility_graph_config.type = ProtoGraph.graph_type.PROTO_GRAPH_STACKED_BAR_TYPE;
+	mobility_graph_config.text = "Daily mobility summaries per day"
+	// Grab the mobility labels from somewhere
+	mobility_graph_config.bar_labels = mobility_modes;
+	var new_mobility_graph = ProtoGraph.factory(mobility_graph_config, protoGraphMobilityPerDayDivId, graph_width);
+    this.mobilityPerDayProtoGraph = new_mobility_graph;
+    
+    // Add default "column values"
     $(this.divId).attr("LastSurvey", 0.0);
     $(this.divId).attr("LastLocation", 0.0);
     $(this.divId).attr("GoodLocation", 0.0);
@@ -101,6 +116,17 @@ StatDisplay.prototype.update_surveys_per_day = function(data) {
 	this.surveysPerDayProtoGraph.apply_data(data.data, startDate, numDays);
 	// Render the graph with the new data
 	this.surveysPerDayProtoGraph.render();
+	
+	// Hide the div for now
+	$(this.divId).find('.ProtoGraph').hide();
+	
+	// Update the graph/button state
+	this.update_state();
+}
+
+StatDisplay.prototype.update_mobility_per_day = function(data) {
+	this.mobilityPerDayProtoGraph.apply_data(data.data, startDate, numDays);
+	this.mobilityPerDayProtoGraph.render();
 	
 	// Hide the div for now
 	$(this.divId).find('.ProtoGraph').hide();

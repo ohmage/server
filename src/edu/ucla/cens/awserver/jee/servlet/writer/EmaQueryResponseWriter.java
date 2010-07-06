@@ -13,7 +13,7 @@ import org.apache.log4j.Logger;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-import edu.ucla.cens.awserver.dao.EmaQueryDao.EmaQueryResult;
+import edu.ucla.cens.awserver.domain.EmaQueryResult;
 import edu.ucla.cens.awserver.request.AwRequest;
 
 /**
@@ -45,6 +45,8 @@ public class EmaQueryResponseWriter extends AbstractResponseWriter {
 					entry.put("response", new JSONObject(result.getJsonData()).get("response"));
 					entry.put("time", result.getTimestamp());
 					entry.put("timezone", result.getTimezone());
+					entry.put("latitude", result.getLatitude());
+					entry.put("longitude", result.getLongitude());
 					entry.put("prompt_id", result.getPromptConfigId());
 					entry.put("prompt_group_id", result.getPromptGroupId());
 					jsonArray.put(entry);

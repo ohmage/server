@@ -28,4 +28,6 @@ public interface User {
 	
 	public void setCurrentCampaignId(String id);
 	public String getCurrentCampaignId();
+	
+	public boolean getIsResearcherOrAdmin();
 }

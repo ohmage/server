@@ -48,3 +48,10 @@ var group_list = [
 	'Emotional State'
 ];
 
+var mobility_modes = [
+	'still',
+	'walk',
+	'run',
+	'bike',
+	'drive'];
+

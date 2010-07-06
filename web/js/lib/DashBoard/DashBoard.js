@@ -85,14 +85,6 @@ DashBoard.prototype.pass_data = function(aw_data) {
 
 // Enable/disable the loading graphic
 DashBoard.prototype.loading = function(enable) {
-	// Be sure the View is loaded correctly
-	//this.check_view();
-	
-	// Enable loading on all views for now
-	//for (view in this.view_list) {
-	//	view.loading(enable);
-	//}
-	
 	$.each(
 			this.view_list,
 			function( intIndex, objValue ) {
@@ -118,11 +110,13 @@ DashBoard.prototype.initialize = function() {
 	
 	// Hack in the tabs now
 	$('#banner > ul.tabs').append('<li><a class="w2" href="ViewUpload">Upload Stats</a></li>')
-	                      .append('<li><a href="ViewGraph">EMA Graphs</a></li>');
+	                      .append('<li><a href="ViewGraph">EMA Graphs</a></li>')
+	                      .append('<li><a href="ViewSurveyMap">Survey Map</a></li>');
 	
 	$('#main').append('<div class="panes"></div>');
 	$('#main > div.panes').append('<div id="ViewUpload"></div>')
-						  .append('<div id="ViewGraph"></div>');
+						  .append('<div id="ViewGraph"></div>')
+						  .append('<div id="ViewSurveyMap"></div>');
 					      
 	
 	// Setup tabs to work with the panes
@@ -135,6 +129,10 @@ DashBoard.prototype.initialize = function() {
 	
 	var viewUpload = new ViewUpload('ViewUpload');
 	this.view_list.push(viewUpload);
+	
+	var viewSurveyMap = new ViewSurveyMap('ViewSurveyMap');
+	viewSurveyMap.configure_html();
+	this.view_list.push(viewSurveyMap);
 }
 
 

@@ -40,6 +40,17 @@ EmaAwData.prototype.set_data = function(json_data) {
 
 // EMA data getters
 
+/*
+ * Return data with basic filtering
+ */
+EmaAwData.prototype.get_data_filtered = function() {
+	// Filter out RESPONSE_SKIPPED for now
+    var filtered_data = this.current_data.filter(function(data_point) {
+        return ((data_point.response != "RESPONSE_SKIPPED"));
+    });
+    
+    return filtered_data;
+}
 
 /*
  * Return data with the passed prompt_id and group_id
@@ -206,8 +217,6 @@ SurveysPerDayAwData.prototype = new AwData();
 
 SurveysPerDayAwData.prototype.set_data = function(json_data) {
     // Preprocess the data to pull out the day into a Date object
-	// Push into another array to remove users with NO dates
-	//var noDatesRemoved = [];
     json_data.forEach(function(d) {
     	try {
     		if (d.hasOwnProperty("date")) {
@@ -281,15 +290,6 @@ SurveysPerDayAwData.prototype.set_data = function(json_data) {
 }
 
 
-function MobilitiyModesPerDayAwData() {
-	this.current_data = null;
-}
-MobilitiyModesPerDayAwData.prototype = new AwData();
-
-MobilitiyModesPerDayAwData.prototype.set_data = function(json_data) {
-	this.current_data = json_data;
-}
-
 
 function HoursSinceLastUpdateAwData() {
 	this.current_data = null;
@@ -327,5 +327,87 @@ LocationUpdatesAwData.prototype = new AwData();
 
 LocationUpdatesAwData.prototype.set_data = function(json_data) {
 	this.current_data = json_data;
+}
+
+
+/*
+ * MobilityPerDayAwData - Holds data to describe the amount of each activity
+ * completed per day.  Translate into an array of data points, each with an array
+ * of activities per day.  Normalize to 1.
+ */
+function MobilityPerDayAwData() {
+	this.current_data = null;
+}
+MobilityPerDayAwData.prototype = new AwData();
+
+MobilityPerDayAwData.prototype.set_data = function(json_data) {
+    // Pre-process the data to pull out the day into a Date object
+    json_data.forEach(function(d) {
+    	try {
+    		if (d.hasOwnProperty("date")) {
+    			d.date = Date.parseDate(d.date, "Y-m-d").grabDate();
+    		}
+    	}
+    	catch (err) {
+    		if (AwData._logger.isErrorEnabled()) {
+                AwData._logger.error("Date parsed incorrectly: " + d.date);
+            }
+    	}
+    });	
+    
+    // Create an object to hold user_name -> data key/value pairs
+    var userName = new Object();
+    // Setup the object by adding each data point's user name to the keys.
+    // Then, add the date into the user name
+    // Finally, create an array of 5 representing the 5 modes that can be returned
+    // (Super hard coded and weirdness to deal with format of returned server data)
+    json_data.forEach(function(d) {
+    	// If the user does not exist yet, add it now
+    	if (!(userName.hasOwnProperty(d.user))) {
+    		userName[d.user] = new Object;
+    	}
+    	
+    	// If this user has no data, stop here and move on to the next data point
+    	if (!(d.hasOwnProperty("date"))) {
+    		return;
+    	}
+    	
+    	// If the date does not yet exist in the user, add it now
+    	if (!(userName[d.user].hasOwnProperty(d.date))) {
+    		userName[d.user][d.date] = new Array(0,0,0,0,0);
+    	}
+    	
+    	// Finally, add the values
+    	d.modes.forEach(function(mode) {
+    		var mode_index = mobility_modes.find_index(mode.mode);
+			userName[d.user][d.date][mode_index] += mode.value;
+			
+		});
+    });   
+    
+
+    // Now, separate everything out into an array of users, each with an 
+    // array of objects with a date/array pair
+	var separated_data = [];
+	for (var user in userName) {
+		var userObject = new Object();
+		userObject.user = user;
+		userObject.data = new Array([], [], [], [] ,[]);
+		
+		for (var date in userName[user]) {
+			for (var i = 0; i < userName[user][date].length; i += 1) {
+				var newDataPoint = new Object();
+				newDataPoint.date = date;
+				newDataPoint.data = userName[user][date][i];
+				// So we can color by index in the graphs later
+				newDataPoint.index = i;
+				userObject.data[i].push(newDataPoint)
+			}
+		}
+		
+		separated_data.push(userObject);
+	}
+	
+	this.current_data = separated_data;    
 }
 

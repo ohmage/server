@@ -33,7 +33,7 @@ DataSourceJson.NoDataError.prototype = new Error();
 // AndWellness server API URLs
 DataSourceJson.DATA_EMA = '/app/q/ema';
 DataSourceJson.DATA_SURVEYS_PER_DAY = '/app/q/completed-surveys-per-day';
-DataSourceJson.DATA_MOBILITY_MODE_PER_DAY = '/app/q/mobility-mode-per-day';
+DataSourceJson.DATA_MOBILITY_MODE_PER_DAY = '/app/q/mobility-modes-per-day';
 DataSourceJson.DATA_LOCATION_UPDATES = '/app/q/percent-successful-location-updates';
 DataSourceJson.DATA_HOURS_SINCE_LAST_UPDATE = '/app/q/hours-since-last-update';
 DataSourceJson.DATA_HOURS_SINCE_LAST_SURVEY = '/app/q/hours-since-last-survey';
@@ -111,7 +111,7 @@ DataSourceJson.receive_mobility_mode_per_day = function(json_data, text_status) 
     }    
     
     // Create the EMA data object creator
-	var awDataCreator = new MobilitiyModesPerDayAwDataCreator();
+	var awDataCreator = new MobilityPerDayAwDataCreator();
 	
 	// Pass the data to the dashboard
 	DataSourceJson.receive_data(json_data, text_status, awDataCreator);	

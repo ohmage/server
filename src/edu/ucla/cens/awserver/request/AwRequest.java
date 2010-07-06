@@ -97,5 +97,8 @@ public interface AwRequest {
 	
 	public String getRequestUrl();
 	public void setRequestUrl(String requestUrl);
+	
+	public String getUserNameRequestParam();
+	public void setUserNameRequestParam(String requestUrl);
 
 }

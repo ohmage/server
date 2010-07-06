@@ -25,14 +25,6 @@
 
     
     
-       
-    
-    
-    <!-- dateinput styling -->
-    <!-- MOVED TO USING JQUERY TOOLS FOR THE DATEINPUT -->
-    <!-- 
-	<link rel="stylesheet" type="text/css" href="/css/dateinput.css"/>
-    -->
 
 	<!-- CSS includes for various formatting -->
 	<!-- Custom CSS for the "dashboard" setup -->
@@ -42,7 +34,7 @@
 	<!-- Custom css specifically for the jqueryui -->
 	<link type="text/css" href="/css/jquery-ui-1.7.2.custom.css" rel="stylesheet" />
 	<link type="text/css" href="/css/jquery-validity.css" rel="stylesheet" /> 
-    
+    <link rel="stylesheet" type="text/css" href="/css/dateinput.css"/>
     
     <!-- A large number of javascript includes, will reduce -->
 	<!-- Main jQuery library -->
@@ -95,7 +87,8 @@
 	
 	// Grab the logged in user name from the jsp session
 	var userName = "<c:out value="${sessionScope.user.userName}"></c:out>";
-		
+	var isResearcher = "<c:out value="${sessionScope.user.isResearcherOrAdmin}"></c:out>";
+	
     // Main logger
     var log = log4javascript.getLogger();
 	
@@ -220,8 +213,7 @@
         DataSourceJson.request_data(DataSourceJson.DATA_EMA, params);
         
 		// Grab number of mobilities from the survey per day
-		// NOT YET IMPLEMENTED ON SERVER
-		//DataSourceJson.request_data(DataSourceJson.DATA_MOBILITY_MODE_PER_DAY, params);
+		DataSourceJson.request_data(DataSourceJson.DATA_MOBILITY_MODE_PER_DAY, params);
 		
         
         // Return false to cancel the usual submit functionality

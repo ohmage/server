@@ -1,0 +1,6 @@
+This web/js/ directory contains all JavaScript that is imported by the main
+*.jsp webpages.  The code is split into two directories: lib/ and thirdparty/.
+The thirdparty/ directory contains all downloaded libraries such as jQuery,
+jQuery UI, and Protovis.  lib/ contains all custom in house javascript.
+
+For any questions or concerns please email johnhicks@gmail.com.
