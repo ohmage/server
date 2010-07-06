@@ -1087,8 +1087,8 @@ ProtoGraphCustomSleepType.prototype.loadData = function(data, startDate, numDays
     var latestTimeAwake = new Date(0,0,0,0,0,0);
  
     this.data.forEach(function(dataPoint) {
-        if (dataPoint.timeInbed < earliestTimeInBed) {
-            earliestTimeInBed = dataPoint.timeInbed;
+        if (dataPoint.timeInBed < earliestTimeInBed) {
+            earliestTimeInBed = dataPoint.timeInBed;
         }
      
         if (dataPoint.timeAwake > latestTimeAwake) {
@@ -1140,7 +1140,7 @@ ProtoGraphCustomSleepType.prototype.loadData = function(data, startDate, numDays
                 return position;
             })
             .bottom(function(d) {
-                return that.yScale(d.timeInbed);
+                return that.yScale(d.timeInBed);
             })    
             .strokeStyle(ProtoGraph.DEFAULT_COLOR)
             // Add dots on the line
@@ -1152,7 +1152,7 @@ ProtoGraphCustomSleepType.prototype.loadData = function(data, startDate, numDays
             .anchor("center")
             .add(pv.Rule)
             .height(function(d) {
-                return that.yScale(d.timeInbed) -
+                return that.yScale(d.timeInBed) -
                        that.yScale(d.timeAwake);
             })
             .strokeStyle("lightgray")
@@ -1179,7 +1179,7 @@ ProtoGraphCustomSleepType.prototype.loadData = function(data, startDate, numDays
                 return position;
             })
             .bottom(function() {
-                return that.yScale(that.data[that.panel.i()].timeInbed);
+                return that.yScale(that.data[that.panel.i()].timeInBed);
             })
             .fillStyle("red")
             .strokeStyle("red")
@@ -1188,7 +1188,7 @@ ProtoGraphCustomSleepType.prototype.loadData = function(data, startDate, numDays
             .anchor("center")
             .add(pv.Rule)
             .height(function() {
-                return that.yScale(that.data[that.panel.i()].timeInbed) -
+                return that.yScale(that.data[that.panel.i()].timeInBed) -
                        that.yScale(that.data[that.panel.i()].timeAwake);
             })
             .strokeStyle("black")
@@ -1244,7 +1244,7 @@ ProtoGraphCustomSleepType.prototype.loadData = function(data, startDate, numDays
             })
             .text(function() {
                 if (that.panel.i() >= 0) {
-                    return "Time to bed: " + that.data[that.panel.i()].timeInbed.format('h:MM tt');
+                    return "Time to bed: " + that.data[that.panel.i()].timeInBed.format('h:MM tt');
                 }
             });
          
@@ -1303,7 +1303,7 @@ ProtoGraphCustomSleepType.prototype.loadData = function(data, startDate, numDays
                     // Time to sleep in milliseconds
                     var time_to_sleep = that.data[that.panel.i()].timeToFallAsleep * 10 * 60 * 1000;
                     var millisecondsAsleep = that.data[that.panel.i()].timeAwake.getTime() -
-                                              that.data[that.panel.i()].timeInbed.getTime() -
+                                              that.data[that.panel.i()].timeInBed.getTime() -
                                               time_to_sleep;
                  
                     // Calculate a time string based on this

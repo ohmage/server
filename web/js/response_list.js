@@ -5,7 +5,7 @@
 
  var responseList = [
  	{groupId:0, promptId:0, text:'Take a saliva sample now and enter time.', type:4},
-	{groupId:1, promptId:0, text:'Sleep', type:5, sleep_labels:['<10 minutes', '10-20 minutes', '20-30 minutes', '30-40 minutes', '40-50 minutes', '50+ minutes']},
+	{groupId:1, promptId:0, text:'Sleep', type:5, sleepLabels:['<10 minutes', '10-20 minutes', '20-30 minutes', '30-40 minutes', '40-50 minutes', '50+ minutes']},
 	{groupId:2, promptId:1, text:'Sad', type:2, yLabels:['(Not at all) 0','(Slightly) 1','(Moderately) 2','(Extremely) 3']},
 	{groupId:2, promptId:2, text:'Relaxed', type:2, yLabels:['(Not at all) 0','(Slightly) 1','(Moderately) 2','(Extremely) 3']},
 	{groupId:2, promptId:3, text:'Anxious', type:2, yLabels:['(Not at all) 0','(Slightly) 1','(Moderately) 2','(Extremely) 3']},

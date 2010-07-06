@@ -91,9 +91,9 @@ ViewGraph.prototype.configureHtml = function(config) {
         
         // Finally create a new graph and add it to the div
         // Make the graph have the width of the tab panes
-        var new_graph = ProtoGraph.factory(config, divId, $('div.panes').width());
+        var newGraph = ProtoGraph.factory(config, divId, $('div.panes').width());
         $(that.divId).find('#' + divId)
-            .data('graph', new_graph)
+            .data('graph', newGraph)
             .data('promptId', config.promptId)
             .data('groupId', curGroup)
             .data('hidden', false);
@@ -127,21 +127,21 @@ ViewGraph.prototype.loadData = function(dataSource) {
         // Time the rendering of the graph
         if (View._logger.isDebugEnabled()) {
         	View._logger.debug("Rendering graph with promptId " + promptId + " groupId " + groupId);
-            var start_render_time = new Date().getTime();
+            var startRenderTime = new Date().getTime();
         }
         
         // Grab data for the specified prompt/group
         try {
             // Hack in custom graphs here
             if (graph instanceof ProtoGraphCustomSleepType) {
-                var new_data = dataSource.getDataSleepTime();
+                var newData = dataSource.getDataSleepTime();
             }
             else if (graph instanceof ProtoGraphMultiTimeType) {
-                var new_data = dataSource.getDataSaliva();
+                var newData = dataSource.getDataSaliva();
             }
             // No custom data processing
             else {
-                var new_data = dataSource.getData(promptId, groupId);
+                var newData = dataSource.getData(promptId, groupId);
             }
             
             
@@ -154,7 +154,7 @@ ViewGraph.prototype.loadData = function(dataSource) {
                 
                 // Replace graph with no data found warning
                 if ($(this).data('hidden') == false) {
-                    that.replace_with_no_data($(this));
+                    that.replaceWithNoData($(this));
                     $(this).data('hidden', true);
                 }
             }
@@ -163,17 +163,17 @@ ViewGraph.prototype.loadData = function(dataSource) {
         }
         
         if (View._logger.isDebugEnabled()) {
-        	View._logger.debug("Found " + new_data.length + " data points");
+        	View._logger.debug("Found " + newData.length + " data points");
         }
         
         // If the graph was hidden due to no data found, un-hide
         if ($(this).data('hidden') == true) {
-            that.replace_with_graph($(this));
+            that.replaceWithGraph($(this));
             $(this).data('hidden', false);
         }
         
         // Apply data to the graph
-        graph.loadData(new_data, 
+        graph.loadData(newData, 
                        dashBoard.startDate, 
                        dashBoard.numDays);
         
@@ -182,8 +182,8 @@ ViewGraph.prototype.loadData = function(dataSource) {
         
         
         if (View._logger.isDebugEnabled()) {
-            var time_to_render = new Date().getTime() - start_render_time;           
-            View._logger.debug("Time to render graph: " + time_to_render + " ms");
+            var timeToRender = new Date().getTime() - startRenderTime;           
+            View._logger.debug("Time to render graph: " + timeToRender + " ms");
         }     
     });
 }
@@ -204,15 +204,15 @@ ViewGraph.prototype.loading = function(enable) {
 }
 
 // Hide the passed div and add a no data found
-ViewGraph.prototype.replace_with_no_data = function(div_to_replace) {
-    div_to_replace.after("<span>No data found</span>");
-    div_to_replace.hide();
+ViewGraph.prototype.replaceWithNoData = function(divToReplace) {
+    divToReplace.after("<span>No data found</span>");
+    divToReplace.hide();
 }
 
 // Show the passed div and remove the next sibling
-ViewGraph.prototype.replace_with_graph = function(div_to_show) {
-    div_to_show.next().remove();
-    div_to_show.show();
+ViewGraph.prototype.replaceWithGraph = function(divToShow) {
+    divToShow.next().remove();
+    divToShow.show();
 }
 
 
