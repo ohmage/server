@@ -44,7 +44,7 @@ function StatDisplay(divId, userName) {
 	graphConfig.type = ProtoGraph.graph_type.PROTO_GRAPH_ALL_INTEGER_TYPE;
 	graphConfig.text = "Surveys returned per day";
 	// Grab the global "groupList" from response_list.js for now
-	graphConfig.x_labels = groupList;
+	graphConfig.xLabels = groupList;
 	
 	var graphWidth = $(this.divId).width();
     var newGraph = ProtoGraph.factory(graphConfig, protoGraphDivId, graphWidth);

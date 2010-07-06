@@ -120,31 +120,31 @@ ProtoGraph._logger = log4javascript.getLogger();
  * the defined graph description, an initialized ProtoGraph
  * subtype will be returned.
  */
-ProtoGraph.factory = function(graph_description, divId, graphWidth) {
+ProtoGraph.factory = function(graphDescription, divId, graphWidth) {
     // Switch among all the graph types
-    if (graph_description.type == ProtoGraph.graph_type.PROTO_GRAPH_SINGLE_TIME_TYPE) {
-        var newGraph = new ProtoGraphSingleTimeType(divId, graph_description.text, graphWidth);
+    if (graphDescription.type == ProtoGraph.graph_type.PROTO_GRAPH_SINGLE_TIME_TYPE) {
+        var newGraph = new ProtoGraphSingleTimeType(divId, graphDescription.text, graphWidth);
     }
-    else if (graph_description.type == ProtoGraph.graph_type.PROTO_GRAPH_TRUE_FALSE_ARRAY_TYPE) {
-        var newGraph = new ProtoGraphTrueFalseArrayType(divId, graph_description.text, graphWidth, graph_description.yLabels);
+    else if (graphDescription.type == ProtoGraph.graph_type.PROTO_GRAPH_TRUE_FALSE_ARRAY_TYPE) {
+        var newGraph = new ProtoGraphTrueFalseArrayType(divId, graphDescription.text, graphWidth, graphDescription.yLabels);
     }
-    else if (graph_description.type == ProtoGraph.graph_type.PROTO_GRAPH_INTEGER_TYPE) {
-        var newGraph = new ProtoGraphIntegerType(divId, graph_description.text, graphWidth, graph_description.yLabels);
+    else if (graphDescription.type == ProtoGraph.graph_type.PROTO_GRAPH_INTEGER_TYPE) {
+        var newGraph = new ProtoGraphIntegerType(divId, graphDescription.text, graphWidth, graphDescription.yLabels);
     }
-    else if (graph_description.type == ProtoGraph.graph_type.PROTO_GRAPH_YES_NO_TYPE) {
-        var newGraph = new ProtoGraphYesNoType(divId, graph_description.text, graphWidth);
+    else if (graphDescription.type == ProtoGraph.graph_type.PROTO_GRAPH_YES_NO_TYPE) {
+        var newGraph = new ProtoGraphYesNoType(divId, graphDescription.text, graphWidth);
     }
-    else if (graph_description.type == ProtoGraph.graph_type.PROTO_GRAPH_MULTI_TIME_TYPE) {
-        var newGraph = new ProtoGraphMultiTimeType(divId, graph_description.text, graphWidth);
+    else if (graphDescription.type == ProtoGraph.graph_type.PROTO_GRAPH_MULTI_TIME_TYPE) {
+        var newGraph = new ProtoGraphMultiTimeType(divId, graphDescription.text, graphWidth);
     }
-    else if (graph_description.type == ProtoGraph.graph_type.PROTO_GRAPH_CUSTOM_SLEEP_TYPE) {
-        var newGraph = new ProtoGraphCustomSleepType(divId, graph_description.text, graphWidth, graph_description.sleepLabels);
+    else if (graphDescription.type == ProtoGraph.graph_type.PROTO_GRAPH_CUSTOM_SLEEP_TYPE) {
+        var newGraph = new ProtoGraphCustomSleepType(divId, graphDescription.text, graphWidth, graphDescription.sleepLabels);
     }
-	else if (graph_description.type == ProtoGraph.graph_type.PROTO_GRAPH_ALL_INTEGER_TYPE) {
-        var newGraph = new ProtoGraphAllIntegerType(divId, graph_description.text, graphWidth, graph_description.x_labels);
+	else if (graphDescription.type == ProtoGraph.graph_type.PROTO_GRAPH_ALL_INTEGER_TYPE) {
+        var newGraph = new ProtoGraphAllIntegerType(divId, graphDescription.text, graphWidth, graphDescription.xLabels);
     }
-	else if (graph_description.type == ProtoGraph.graph_type.PROTO_GRAPH_STACKED_BAR_TYPE) {
-        var newGraph = new ProtoGraphStackedBarType(divId, graph_description.text, graphWidth, graph_description.barLabels);
+	else if (graphDescription.type == ProtoGraph.graph_type.PROTO_GRAPH_STACKED_BAR_TYPE) {
+        var newGraph = new ProtoGraphStackedBarType(divId, graphDescription.text, graphWidth, graphDescription.barLabels);
     }
     else {
         throw new TypeError("ProtoGraph.factory(): Unknown graph type in JSON.");
@@ -1301,10 +1301,10 @@ ProtoGraphCustomSleepType.prototype.loadData = function(data, startDate, numDays
                     // and finding time to timeAwake
                  
                     // Time to sleep in milliseconds
-                    var time_to_sleep = that.data[that.panel.i()].timeToFallAsleep * 10 * 60 * 1000;
+                    var timeToSleep = that.data[that.panel.i()].timeToFallAsleep * 10 * 60 * 1000;
                     var millisecondsAsleep = that.data[that.panel.i()].timeAwake.getTime() -
                                               that.data[that.panel.i()].timeInBed.getTime() -
-                                              time_to_sleep;
+                                              timeToSleep;
                  
                     // Calculate a time string based on this
                     var hours = Math.floor(millisecondsAsleep / 1000 / 60 / 60);
@@ -1364,8 +1364,8 @@ ProtoGraphCustomSleepType.prototype.loadData = function(data, startDate, numDays
 // ProtoGraphAllIntegerType constructor
 // divId - ID of the div element on which to create the graph
 // title - The title of the graph
-// x_labels - Labels for the different bars on the x axis
-function ProtoGraphAllIntegerType(divId, title, graphWidth, x_labels) {
+// xLabels - Labels for the different bars on the x axis
+function ProtoGraphAllIntegerType(divId, title, graphWidth, xLabels) {
     // Inherit properties
     ProtoGraph.call(this, divId, title, graphWidth);
 
@@ -1373,7 +1373,7 @@ function ProtoGraphAllIntegerType(divId, title, graphWidth, x_labels) {
     this.minVal = 0;  // Integer ranges always start at 0
     this.maxVal = 6;
     this.yScale = pv.Scale.linear(this.minVal,this.maxVal).range(0, ProtoGraph.HEIGHT);
-    this.x_labels = x_labels;
+    this.xLabels = xLabels;
     
     // The Y labels never change, add them now
     var that = this;
@@ -1447,12 +1447,12 @@ ProtoGraphAllIntegerType.prototype.loadData = function(data, startDate, numDays)
                 //return ProtoGraph.DAY_COLOR[0];
             });
         
-        // Add a legend if x_labels exist
-        if (this.x_labels != null) {
+        // Add a legend if xLabels exist
+        if (this.xLabels != null) {
         	// Use i to count what index we are at when we iterate
         	var i = 0;
         	var that = this;
-        	this.x_labels.forEach(function(label) {
+        	this.xLabels.forEach(function(label) {
         		// Add a color box to show what color this is
         		that.vis.add(pv.Bar)
         			.right(-5)
