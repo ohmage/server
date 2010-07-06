@@ -5,14 +5,17 @@
  * loads a dashboard based on the contents of the configuration.
  */
 
-// DashBoard consturctor
+// DashBoard constructor
 function DashBoard() {
-	this.cur_view = null;
-	this.userName = "";
-	this.userRole = 0;
+	this.userName = ""; // The user name of the logged in user
+	this.userRole = 0; // The role of the logged in user
 	
 	// List of views registered with the DashBoard.
-	this.view_list = [];
+	this.viewList = [];
+	
+	// Use these as globals for now
+	this.startDate = new Date();
+	this.numDays = 0;
 }
 
 // Logger for the dashboard
@@ -28,75 +31,47 @@ DashBoard.view_type = {
 
 // Dashboard functions
 
-DashBoard.prototype.set_user_name = function(userName) {
+DashBoard.prototype.setUserName = function(userName) {
 	this.userName = userName;
 }
 
-// Switch dashboard view
-DashBoard.prototype.switch_view = function(new_view) {
-	// Check to be sure the new view exists
-	//if (!new_view in DashBoard.view_type) {
-	//	throw new Error(new_view + ' is not a defined view type.');
-	//}
-	/*
-	switch (new_view) {
-	case DashBoard.view_type.VIEW_GRAPH:
-		this.cur_view = new ViewGraph('ViewGraph');
-		break;
-	case DashBoard.view_type.VIEW_UPLOAD:
-		this.cur_view = new ViewUpload();
-		break;
-	}
-	*/
-}
-
-
-// Unload a view and return the dashboard to a default state
-DashBoard.prototype.unload_view = function() {
-	// Implement this
-	
-	this.cur_view = null;
-}
 
 // Setup the HTML and CSS according to the configuration JSON.
-DashBoard.prototype.configure_html = function(json_config) {
-	// Be sure the View is loaded correctly
-	this.check_view();
-	
+DashBoard.prototype.configureHtml = function(jsonConfig) {
 	// Send the json_config to the view
-	this.cur_view.configure_html(json_config);
+	this.curView.configureHtml(jsonConfig);
 }
 
 // Load new data into the dashboard
-DashBoard.prototype.pass_data = function(aw_data) {
+DashBoard.prototype.passData = function(awData) {
 	if (DashBoard._logger.isDebugEnabled()) {
-        DashBoard._logger.debug("DashBoard.pass_data(): Passed data of type: "  + typeof aw_data);
+        DashBoard._logger.debug("DashBoard.passData(): Passed data of type: "  + typeof awData);
     }
 
 	// Send data to every View, they can decide whether or not they need it
 	$.each(
-			this.view_list,
+			this.viewList,
 			function( intIndex, objValue ) {
-				objValue.load_data(aw_data);
+				objValue.loadData(awData);
 				objValue.loading(false);
 			}
 	);
 }
 
+// Handles updating the state of the views.  Will pass the state change to all
+// registered Views, which can either ignore it or take action.
+DashBoard.prototype.updateState = function(stateChange) {
+    
+}
+
 // Enable/disable the loading graphic
 DashBoard.prototype.loading = function(enable) {
 	$.each(
-			this.view_list,
+			this.viewList,
 			function( intIndex, objValue ) {
 				objValue.loading(enable);
 			}
 	);
-}
-
-DashBoard.prototype.check_view = function() {
-	if (this.cur_view == null) {
-		throw new Error('DashBoard: A view is not loaded.');
-	}
 }
 
 /*
@@ -122,17 +97,17 @@ DashBoard.prototype.initialize = function() {
 	// Setup tabs to work with the panes
 	$("#banner > ul.tabs").tabs("#main > div.panes > div");
 	
-	// Load view_list with necessary views
+	// Load viewList with necessary views
 	var viewGraph = new ViewGraph('ViewGraph');
-	viewGraph.configure_html(response_list);
-	this.view_list.push(viewGraph);
+	viewGraph.configureHtml(responseList);
+	this.viewList.push(viewGraph);
 	
 	var viewUpload = new ViewUpload('ViewUpload');
-	this.view_list.push(viewUpload);
+	this.viewList.push(viewUpload);
 	
 	var viewSurveyMap = new ViewSurveyMap('ViewSurveyMap');
-	viewSurveyMap.configure_html();
-	this.view_list.push(viewSurveyMap);
+	viewSurveyMap.configureHtml();
+	this.viewList.push(viewSurveyMap);
 }
 
 

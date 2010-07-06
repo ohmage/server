@@ -13,15 +13,15 @@ AwData.NoDataError.prototype = new Error();
 
 
 function EmaAwData() {
-    this.current_data = null;
+    this.currentData = null;
 }
 
 EmaAwData.prototype = new AwData();
 
 // EMA data setters
-EmaAwData.prototype.set_data = function(json_data) {
+EmaAwData.prototype.setData = function(jsonData) {
 	// Preprocess the data to pull out the day into a Date
-    json_data.forEach(function(d) {
+    jsonData.forEach(function(d) {
         var period = d.time.lastIndexOf('.');
         d.date = Date.parseDate(d.time.substring(0, period), "Y-m-d g:i:s").grabDate();
         
@@ -34,7 +34,7 @@ EmaAwData.prototype.set_data = function(json_data) {
     });
 	
 	// Save the data
-	this.current_data = json_data;
+	this.currentData = jsonData;
 }
 
 
@@ -43,33 +43,33 @@ EmaAwData.prototype.set_data = function(json_data) {
 /*
  * Return data with basic filtering
  */
-EmaAwData.prototype.get_data_filtered = function() {
+EmaAwData.prototype.getDataFiltered = function() {
 	// Filter out RESPONSE_SKIPPED for now
-    var filtered_data = this.current_data.filter(function(data_point) {
-        return ((data_point.response != "RESPONSE_SKIPPED"));
+    var filteredData = this.currentData.filter(function(dataPoint) {
+        return ((dataPoint.response != "RESPONSE_SKIPPED"));
     });
     
-    return filtered_data;
+    return filteredData;
 }
 
 /*
- * Return data with the passed prompt_id and group_id
+ * Return data with the passed promptId and groupId
  */
-EmaAwData.prototype.get_data = function(prompt_id, group_id) {
+EmaAwData.prototype.getData = function(promptId, groupId) {
     // Filter out the needed data and remove RESPONSE_SKIPPED for now
-    var filtered_data = this.current_data.filter(function(data_point) {
-        return ((prompt_id == data_point.prompt_id) && 
-                (group_id == data_point.prompt_group_id) &&
-                (data_point.response != "RESPONSE_SKIPPED"));
+    var filteredData = this.currentData.filter(function(dataPoint) {
+        return ((promptId == dataPoint.prompt_id) && 
+                (groupId == dataPoint.prompt_group_id) &&
+                (dataPoint.response != "RESPONSE_SKIPPED"));
     });
     
     // Do some sanity checking on the filtered data
     // If no data found
-    if (filtered_data.length == 0) {
-        throw new AwData.NoDataError("get_data(): Found no data for prompt_id " + prompt_id + " and group_id " + group_id);
+    if (filteredData.length == 0) {
+        throw new AwData.NoDataError("getData(): Found no data for promptId " + promptId + " and groupId " + groupId);
     }
     
-    return filtered_data;
+    return filteredData;
 }
 
 
@@ -80,144 +80,144 @@ EmaAwData.prototype.get_data = function(prompt_id, group_id) {
  * 
  * Tons of magic numbers and hacks for now
  */
-EmaAwData.prototype.get_data_sleep_time = function() {
-    var time_in_bed = this.current_data.filter(function(data_point) {
-        return ((data_point.prompt_id == 0) && 
-                (data_point.prompt_group_id == 1));
+EmaAwData.prototype.getDataSleepTime = function() {
+    var timeInBed = this.currentData.filter(function(dataPoint) {
+        return ((dataPoint.prompt_id == 0) && 
+                (dataPoint.prompt_group_id == 1));
     });
     
-    var time_to_fall_asleep = this.current_data.filter(function(data_point) {
-        return ((data_point.prompt_id == 1) && 
-                (data_point.prompt_group_id == 1));
+    var timeToFallAsleep = this.currentData.filter(function(dataPoint) {
+        return ((dataPoint.prompt_id == 1) && 
+                (dataPoint.prompt_group_id == 1));
     });
     
-    var time_awake = this.current_data.filter(function(data_point) {
-        return ((data_point.prompt_id == 2) && 
-                (data_point.prompt_group_id == 1));
+    var timeAwake = this.currentData.filter(function(dataPoint) {
+        return ((dataPoint.prompt_id == 2) && 
+                (dataPoint.prompt_group_id == 1));
     });
     
-    var reported_hours_asleep = this.current_data.filter(function(data_point) {
-        return ((data_point.prompt_id == 3) && 
-                (data_point.prompt_group_id == 1));
+    var reportedHoursAsleep = this.currentData.filter(function(dataPoint) {
+        return ((dataPoint.prompt_id == 3) && 
+                (dataPoint.prompt_group_id == 1));
     });
     
-    var reported_sleep_quality = this.current_data.filter(function(data_point) {
-        return ((data_point.prompt_id == 4) && 
-                (data_point.prompt_group_id == 1));
+    var reportedSleepQuality = this.currentData.filter(function(dataPoint) {
+        return ((dataPoint.prompt_id == 4) && 
+                (dataPoint.prompt_group_id == 1));
     });
     
     
     // Used to store all the data needed for the sleep graph
-    var data_array = [];
-    var previous_day = null;
+    var dataArray = [];
+    var previousDay = null;
     
     // Run over each data point
-    for (var i = 0; i < time_in_bed.length; i += 1) {
+    for (var i = 0; i < timeInBed.length; i += 1) {
         // Check to see if anything is RESPOSNE_SKIPPED, skip whole data point if so
-        if (time_in_bed[i].response == 'RESPONSE_SKIPPED' ||
-            time_to_fall_asleep[i].response == 'RESPONSE_SKIPPED' ||
-            time_awake[i].response == 'RESPONSE_SKIPPED' ||
-            reported_hours_asleep[i].response == 'RESPONSE_SKIPPED' ||
-            reported_sleep_quality[i].response == 'RESPONSE_SKIPPED') {
+        if (timeInBed[i].response == 'RESPONSE_SKIPPED' ||
+            timeToFallAsleep[i].response == 'RESPONSE_SKIPPED' ||
+            timeAwake[i].response == 'RESPONSE_SKIPPED' ||
+            reportedHoursAsleep[i].response == 'RESPONSE_SKIPPED' ||
+            reportedSleepQuality[i].response == 'RESPONSE_SKIPPED') {
             continue;
         }
         
-        var cur_day = time_in_bed[i].date;
+        var curDay = timeInBed[i].date;
         
         // Make sure this is a new day of data
-        if (cur_day == previous_day) {
+        if (curDay == previousDay) {
             continue;
         }
         else {
-            previous_day = cur_day;
+            previousDay = curDay;
         }
         
         // Create a new data point
-        var data_point = new Object();
-        data_point.date = cur_day;
-        data_point.time_in_bed = Date.parseDate(time_in_bed[i].response, "g:i").grabTime();
+        var dataPoint = {};
+        dataPoint.date = curDay;
+        dataPoint.timeInBed = Date.parseDate(timeInBed[i].response, "g:i").grabTime();
         
-        // Check if "time_in_bed" is yesterday (before midnight) or today (after midnight)
-        if (data_point.time_in_bed < new Date(0,0,0,15,0,0)) {
-            data_point.time_in_bed = data_point.time_in_bed.incrementDay(1);
+        // Check if "timeInBed" is yesterday (before midnight) or today (after midnight)
+        if (dataPoint.timeInBed < new Date(0,0,0,15,0,0)) {
+            dataPoint.timeInBed = dataPoint.timeInBed.incrementDay(1);
         }
-        data_point.time_to_fall_asleep = parseInt(time_to_fall_asleep[i].response);
+        dataPoint.timeToFallAsleep = parseInt(timeToFallAsleep[i].response);
         
         // Increment day by 1 to move awake time to "today"
-        data_point.time_awake = Date.parseDate(time_awake[i].response, "g:i").grabTime().incrementDay(1);
+        dataPoint.timeAwake = Date.parseDate(timeAwake[i].response, "g:i").grabTime().incrementDay(1);
         
-        data_point.reported_hours_asleep = parseInt(reported_hours_asleep[i].response);
-        data_point.reported_sleep_quality = parseInt(reported_sleep_quality[i].response);
+        dataPoint.reportedHoursAsleep = parseInt(reportedHoursAsleep[i].response);
+        dataPoint.reportedSleepQuality = parseInt(reportedSleepQuality[i].response);
         
         // Push data point onto the data array
-        data_array.push(data_point);
+        dataArray.push(dataPoint);
     }
     
     // be sure we have some data
-    if (data_array.length == 0) {
-        throw new AwData.NoDataError("get_data_sleep_time(): Found no data.");   
+    if (dataArray.length == 0) {
+        throw new AwData.NoDataError("getDataSleepTime(): Found no data.");   
     }
     
-    return data_array;
+    return dataArray;
 }
 
 /*
  * Return data for the saliva data type.  This is an example of "meta tagging"
  * data that should be done on the server-side.
  */
-EmaAwData.prototype.get_data_saliva = function() {
-    var saliva_sample_time = this.current_data.filter(function(data_point) {
-        return (data_point.prompt_id == 0 &&
-                data_point.prompt_group_id == 0);
+EmaAwData.prototype.getDataSaliva = function() {
+    var salivaSampleTime = this.currentData.filter(function(dataPoint) {
+        return (dataPoint.prompt_id == 0 &&
+                dataPoint.prompt_group_id == 0);
     });
     
-    var saliva_meta_data = this.current_data.filter(function(data_point) {
-        return (data_point.prompt_id == 1 &&
-                data_point.prompt_group_id == 0);
+    var salivaMetaData = this.currentData.filter(function(dataPoint) {
+        return (dataPoint.prompt_id == 1 &&
+                dataPoint.prompt_group_id == 0);
     });
     
     // be sure we have some data
-    if (saliva_sample_time == null || saliva_sample_time.length == 0) {
-        throw new DataSourceJson.NoDataError("retreive_data_saliva(): Found no data.");   
+    if (salivaSampleTime == null || salivaSampleTime.length == 0) {
+        throw new DataSourceJson.NoDataError("getDataSaliva(): Found no data.");   
     }
     
     // Used to store all the data needed for the saliva graph
-    var data_array = [];
+    var dataArray = [];
     
     // Run over each data point
-    for (var i = 0; i < saliva_sample_time.length; i += 1) {
+    for (var i = 0; i < salivaSampleTime.length; i += 1) {
         // Check for RESPONSE_SKIPPED, skip whole data point if so
-        if (saliva_sample_time[i].response == 'RESPONSE_SKIPPED' ||
-            saliva_meta_data[i].response == 'RESPONSE_SKIPPED') {
+        if (salivaSampleTime[i].response == 'RESPONSE_SKIPPED' ||
+            salivaMetaData[i].response == 'RESPONSE_SKIPPED') {
             continue;
         }
         
         // Create a new data point
-        var data_point = new Object();
-        data_point.date = saliva_sample_time[i].date;
-        data_point.response = saliva_sample_time[i].response;
-        data_point.meta_data = saliva_meta_data[i].response;
+        var dataPoint = {};
+        dataPoint.date = salivaSampleTime[i].date;
+        dataPoint.response = salivaSampleTime[i].response;
+        dataPoint.metaData = salivaMetaData[i].response;
         
-        data_array.push(data_point);
+        dataArray.push(dataPoint);
     }
     
     // be sure we have some data
-    if (data_array.length == 0) {
-        throw new AwData.NoDataError("get_data_sleep_time(): Found no data.");   
+    if (dataArray.length == 0) {
+        throw new AwData.NoDataError("getDataSleepTime(): Found no data.");   
     }
     
-    return data_array;
+    return dataArray;
 }
 
 
 function SurveysPerDayAwData() {
-	this.current_data = null;
+	this.currentData = null;
 }
 SurveysPerDayAwData.prototype = new AwData();
 
-SurveysPerDayAwData.prototype.set_data = function(json_data) {
+SurveysPerDayAwData.prototype.setData = function(jsonData) {
     // Preprocess the data to pull out the day into a Date object
-    json_data.forEach(function(d) {
+    jsonData.forEach(function(d) {
     	try {
     		if (d.hasOwnProperty("date")) {
     			d.date = Date.parseDate(d.date, "Y-m-d").grabDate();
@@ -232,12 +232,12 @@ SurveysPerDayAwData.prototype.set_data = function(json_data) {
     });	
 	
     // Create an object to hold user_name -> data key/value pairs
-    var userName = new Object();
+    var userName = {};
     // Setup the object by adding each data point's user name to the keys.
     // Then, add the date into the user name
     // Finally, create an array of 5 representing the 5 group IDs that can be returned
     // (Super hard coded and weirdness to deal with format of returned server data)
-    json_data.forEach(function(d) {
+    jsonData.forEach(function(d) {
     	// If the user does not exist yet, add it now
     	if (!(userName.hasOwnProperty(d.user))) {
     		userName[d.user] = new Object;
@@ -255,78 +255,78 @@ SurveysPerDayAwData.prototype.set_data = function(json_data) {
     	
     	// Finally, add the values
     	for (var group in d.groups) {
-    		var group_id = d.groups[group].group_id;
+    		var groupId = d.groups[group].group_id;
     		var value = d.groups[group].value;
-    		userName[d.user][d.date][group_id - 1] = value;
+    		userName[d.user][d.date][groupId - 1] = value;
     	}
     });
 
     
 	// Now, separate everything out into an array of users, each with an array of date/group_id pairs
-	var separated_data = [];
+	var separatedData = [];
 	for (var user in userName) {
-		var userObject = new Object();
+		var userObject = {};
 		userObject.user = user;
 		userObject.data = [];
 		
 		for (var date in userName[user]) {
 			for (var i = 0; i < 5; i++) {
-				var newDataPoint = new Object();
+				var newDataPoint = {};
 				newDataPoint.date = date;
-				newDataPoint.group_id = i;
+				newDataPoint.groupId = i;
 				newDataPoint.response = userName[user][date][i];
-				newDataPoint.day_count = i;
-				newDataPoint.total_day_count = 5;
+				newDataPoint.dayCount = i;
+				newDataPoint.totalDayCount = 5;
 				
 				// Append new data point to the separated data
 				userObject.data.push(newDataPoint);
 			}
 		}
 		
-		separated_data.push(userObject);
+		separatedData.push(userObject);
 	}
 	
-	this.current_data = separated_data;
+	this.currentData = separatedData;
 }
 
 
 
 function HoursSinceLastUpdateAwData() {
-	this.current_data = null;
+	this.currentData = null;
 }
 HoursSinceLastUpdateAwData.prototype = new AwData();
 
-HoursSinceLastUpdateAwData.prototype.set_data = function(json_data) {
+HoursSinceLastUpdateAwData.prototype.setData = function(jsonData) {
 	// Run through data, remove any 0s, assume no data returned
 	var removedZeros = [];
-	json_data.forEach(function(d) {
+	jsonData.forEach(function(d) {
 		if (d.value != 0) {
 			removedZeros.push(d);
 		}
 	});
 	
-	this.current_data = removedZeros;
+	this.currentData = removedZeros;
 }
 
 
 function HoursSinceLastSurveyAwData() {
-	this.current_data = null;
+	this.currentData = null;
 }
 HoursSinceLastSurveyAwData.prototype = new AwData();
 
-HoursSinceLastSurveyAwData.prototype.set_data = function(json_data) {
-	this.current_data = json_data;
+HoursSinceLastSurveyAwData.prototype.setData = function(jsonData) {
+	this.currentData = jsonData;
 }
 
 
 
 function LocationUpdatesAwData() {
-	this.current_data = null;
+	this.currentData = null;
 }
 LocationUpdatesAwData.prototype = new AwData();
 
-LocationUpdatesAwData.prototype.set_data = function(json_data) {
-	this.current_data = json_data;
+LocationUpdatesAwData.prototype.setData = function(jsonData) {
+	this.currentData = jsonData;
 }
 
 
@@ -336,13 +336,13 @@ LocationUpdatesAwData.prototype.set_data = function(json_data) {
  * of activities per day.  Normalize to 1.
  */
 function MobilityPerDayAwData() {
-	this.current_data = null;
+	this.currentData = null;
 }
 MobilityPerDayAwData.prototype = new AwData();
 
-MobilityPerDayAwData.prototype.set_data = function(json_data) {
+MobilityPerDayAwData.prototype.setData = function(jsonData) {
     // Pre-process the data to pull out the day into a Date object
-    json_data.forEach(function(d) {
+    jsonData.forEach(function(d) {
     	try {
     		if (d.hasOwnProperty("date")) {
     			d.date = Date.parseDate(d.date, "Y-m-d").grabDate();
@@ -356,12 +356,12 @@ MobilityPerDayAwData.prototype.set_data = function(json_data) {
     });	
     
     // Create an object to hold user_name -> data key/value pairs
-    var userName = new Object();
+    var userName = {};
     // Setup the object by adding each data point's user name to the keys.
     // Then, add the date into the user name
     // Finally, create an array of 5 representing the 5 modes that can be returned
     // (Super hard coded and weirdness to deal with format of returned server data)
-    json_data.forEach(function(d) {
+    jsonData.forEach(function(d) {
     	// If the user does not exist yet, add it now
     	if (!(userName.hasOwnProperty(d.user))) {
     		userName[d.user] = new Object;
@@ -379,8 +379,8 @@ MobilityPerDayAwData.prototype.set_data = function(json_data) {
     	
     	// Finally, add the values
     	d.modes.forEach(function(mode) {
-    		var mode_index = mobility_modes.find_index(mode.mode);
-			userName[d.user][d.date][mode_index] += mode.value;
+    		var modeIndex = mobilityModes.findIndex(mode.mode);
+			userName[d.user][d.date][modeIndex] += mode.value;
 			
 		});
     });   
@@ -388,15 +388,15 @@ MobilityPerDayAwData.prototype.set_data = function(json_data) {
 
     // Now, separate everything out into an array of users, each with an 
     // array of objects with a date/array pair
-	var separated_data = [];
+	var separatedData = [];
 	for (var user in userName) {
-		var userObject = new Object();
+		var userObject = {};
 		userObject.user = user;
 		userObject.data = new Array([], [], [], [] ,[]);
 		
 		for (var date in userName[user]) {
 			for (var i = 0; i < userName[user][date].length; i += 1) {
-				var newDataPoint = new Object();
+				var newDataPoint = {};
 				newDataPoint.date = date;
 				newDataPoint.data = userName[user][date][i];
 				// So we can color by index in the graphs later
@@ -405,9 +405,9 @@ MobilityPerDayAwData.prototype.set_data = function(json_data) {
 			}
 		}
 		
-		separated_data.push(userObject);
+		separatedData.push(userObject);
 	}
 	
-	this.current_data = separated_data;    
+	this.currentData = separatedData;    
 }
 

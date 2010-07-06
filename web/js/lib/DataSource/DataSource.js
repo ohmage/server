@@ -44,34 +44,34 @@ DataSourceJson.DATA_HOURS_SINCE_LAST_SURVEY = '/app/q/hours-since-last-survey';
  * Send a request for data to the server.  Takes in an dict of parameters
  * and a request URL.  The data will return to the specific receive function.
  */
-DataSourceJson.request_data = function(data_type, params) {
+DataSourceJson.requestData = function(dataType, params) {
     if (DataSourceJson._logger.isDebugEnabled()) {
-        DataSourceJson._logger.debug("Grabbing data type: " + data_type);
+        DataSourceJson._logger.debug("Grabbing data type: " + dataType);
     }
 
     // Send out the JSON request depending on the data type
 
-	    switch (data_type) {
+	    switch (dataType) {
 	    case DataSourceJson.DATA_EMA:
-	        $.getJSON(data_type, params, DataSourceJson.receive_data_ema);
+	        $.getJSON(dataType, params, DataSourceJson.receiveEmaData);
 	        break;
 	    case DataSourceJson.DATA_SURVEYS_PER_DAY:
-	        $.getJSON(data_type, params, DataSourceJson.receive_data_surveys_per_day);
+	        $.getJSON(dataType, params, DataSourceJson.receiveDataSurveysPerDay);
 	        break;
 	    case DataSourceJson.DATA_MOBILITY_MODE_PER_DAY:
-	    	$.getJSON(data_type, params, DataSourceJson.receive_mobility_mode_per_day);
+	    	$.getJSON(dataType, params, DataSourceJson.receiveMobilityModePerDay);
 	    	break;
 	    case DataSourceJson.DATA_LOCATION_UPDATES :
-	        $.getJSON(data_type, params, DataSourceJson.receive_data_location_updates);
+	        $.getJSON(dataType, params, DataSourceJson.receiveDataLocationUpdates);
 	        break;
 	    case DataSourceJson.DATA_HOURS_SINCE_LAST_UPDATE:
-	    	$.getJSON(data_type, DataSourceJson.receive_data_hours_since_last_update);
+	    	$.getJSON(dataType, DataSourceJson.receiveDataHoursSinceLastUpdate);
 	    	break;
 	    case DataSourceJson.DATA_HOURS_SINCE_LAST_SURVEY:
-	        $.getJSON(data_type, DataSourceJson.receive_data_hours_since_last_survey);
+	        $.getJSON(dataType, DataSourceJson.receiveDataHoursSinceLastSurvey);
 	        break;
 	    default:
-	    	throw new Error("Unknown data type: " + data_type);
+	    	throw new Error("Unknown data type: " + dataType);
 	    }
 	
 
@@ -80,7 +80,7 @@ DataSourceJson.request_data = function(data_type, params) {
 /*
  * Create an EmaDataCreator and pass into the standard incoming data function
  */
-DataSourceJson.receive_data_ema = function(json_data, text_status) {    
+DataSourceJson.receiveEmaData = function(jsonData, textStatus) {    
     if (DataSourceJson._logger.isInfoEnabled()) {
         DataSourceJson._logger.info("Received EMA data from server.");
     }    
@@ -89,11 +89,11 @@ DataSourceJson.receive_data_ema = function(json_data, text_status) {
 	var awDataCreator = new EmaAwDataCreator();
 	
 	// Pass the data to the dashboard
-	DataSourceJson.receive_data(json_data, text_status, awDataCreator);
+	DataSourceJson.receiveData(jsonData, textStatus, awDataCreator);
 }
 
 
-DataSourceJson.receive_data_surveys_per_day = function(json_data, text_status) {
+DataSourceJson.receiveDataSurveysPerDay = function(jsonData, textStatus) {
     if (DataSourceJson._logger.isInfoEnabled()) {
         DataSourceJson._logger.info("Received surveys per day data from server.");
     }    
@@ -102,10 +102,10 @@ DataSourceJson.receive_data_surveys_per_day = function(json_data, text_status) {
 	var awDataCreator = new SurveysPerDayAwDataCreator();
 	
 	// Pass the data to the dashboard
-	DataSourceJson.receive_data(json_data, text_status, awDataCreator);	
+	DataSourceJson.receiveData(jsonData, textStatus, awDataCreator);	
 }
 
-DataSourceJson.receive_mobility_mode_per_day = function(json_data, text_status) {
+DataSourceJson.receiveMobilityModePerDay = function(jsonData, textStatus) {
     if (DataSourceJson._logger.isInfoEnabled()) {
         DataSourceJson._logger.info("Received mobilities per day data from server.");
     }    
@@ -114,7 +114,7 @@ DataSourceJson.receive_mobility_mode_per_day = function(json_data, text_status) 
 	var awDataCreator = new MobilityPerDayAwDataCreator();
 	
 	// Pass the data to the dashboard
-	DataSourceJson.receive_data(json_data, text_status, awDataCreator);	
+	DataSourceJson.receiveData(jsonData, textStatus, awDataCreator);	
 }
 
 
@@ -122,7 +122,7 @@ DataSourceJson.receive_mobility_mode_per_day = function(json_data, text_status) 
 /*
  * Create an HoursSinceLastUpdateAwDataCreator and pass into the standard incoming data function
  */
-DataSourceJson.receive_data_hours_since_last_update = function(json_data, text_status) {
+DataSourceJson.receiveDataHoursSinceLastUpdate = function(jsonData, textStatus) {
     if (DataSourceJson._logger.isInfoEnabled()) {
         DataSourceJson._logger.info("Received hours since last update data from server.");
     }    
@@ -131,10 +131,10 @@ DataSourceJson.receive_data_hours_since_last_update = function(json_data, text_s
 	var awDataCreator = new HoursSinceLastUpdateAwDataCreator();
 	
 	// Pass the data to the dashboard
-	DataSourceJson.receive_data(json_data, text_status, awDataCreator);	
+	DataSourceJson.receiveData(jsonData, textStatus, awDataCreator);	
 }
 
-DataSourceJson.receive_data_hours_since_last_survey = function(json_data, text_status) {
+DataSourceJson.receiveDataHoursSinceLastSurvey = function(jsonData, textStatus) {
     if (DataSourceJson._logger.isInfoEnabled()) {
         DataSourceJson._logger.info("Received hours since last survey data from server.");
     }    
@@ -143,10 +143,10 @@ DataSourceJson.receive_data_hours_since_last_survey = function(json_data, text_s
 	var awDataCreator = new HoursSinceLastSurveyAwDataCreator();
 	
 	// Pass the data to the dashboard
-	DataSourceJson.receive_data(json_data, text_status, awDataCreator);		
+	DataSourceJson.receiveData(jsonData, textStatus, awDataCreator);		
 }
 
-DataSourceJson.receive_data_location_updates = function(json_data, text_status) {
+DataSourceJson.receiveDataLocationUpdates = function(jsonData, textStatus) {
     if (DataSourceJson._logger.isInfoEnabled()) {
         DataSourceJson._logger.info("Received percentage good location updates in past day data from server.");
     }    
@@ -155,7 +155,7 @@ DataSourceJson.receive_data_location_updates = function(json_data, text_status) 
 	var awDataCreator = new LocationUpdatesAwDataCreator();
 	
 	// Pass the data to the dashboard
-	DataSourceJson.receive_data(json_data, text_status, awDataCreator);		
+	DataSourceJson.receiveData(jsonData, textStatus, awDataCreator);		
 }
 
 
@@ -163,19 +163,19 @@ DataSourceJson.receive_data_location_updates = function(json_data, text_status) 
  * All incoming data will come through this function.  Perform basic data validation,
  * create an AwData object, and pass to the dashboard.
  */
-DataSourceJson.receive_data = function(json_data, text_status, aw_data_creator) {                 
+DataSourceJson.receiveData = function(jsonData, textStatus, awDataCreator) {                 
     var error = 0;
 
     // Did the request succeed?
-    if (text_status != "success") {
+    if (textStatus != "success") {
         if (DataSourceJson._logger.isErrorEnabled()) {
-            DataSourceJson._logger.error("Bad status from server: " + text_status);
+            DataSourceJson._logger.error("Bad status from server: " + textStatus);
         }
 		return;
     }
     
     // Basic data validation
-    error = DataSourceJson.validate_data(json_data);
+    error = DataSourceJson.validate_data(jsonData);
     if (error > 0) {
         if (DataSourceJson._logger.isErrorEnabled()) {
             DataSourceJson._logger.error("Incoming data failed validation with error: " + error);
@@ -184,10 +184,10 @@ DataSourceJson.receive_data = function(json_data, text_status, aw_data_creator) 
     }
     
     // Create the EMA data object
-	var awData = aw_data_creator.create_from(json_data);
+	var awData = awDataCreator.createFrom(jsonData);
 	
 	// Pass the data to the dashboard
-	dashBoard.pass_data(awData)
+	dashBoard.passData(awData)
 }
 
 /*
@@ -195,9 +195,9 @@ DataSourceJson.receive_data = function(json_data, text_status, aw_data_creator) 
  * Errors are usually either the server is down or the user has been
  * idle for too long and their session has expired.
  */
-DataSourceJson.validate_data = function(json_data) {   
+DataSourceJson.validate_data = function(jsonData) {   
     // Make sure we found JSON
-    if (json_data == null) {
+    if (jsonData == null) {
         if (DataSourceJson._logger.isWarnEnabled()) {
             DataSourceJson._logger.warn("Bad response from server!");
         }
@@ -208,19 +208,19 @@ DataSourceJson.validate_data = function(json_data) {
     // Run through possible error codes from server
     
     // 0104 is session expired, redirect to the passed URL
-    if (json_data.code != null && json_data.code == "0104") {
+    if (jsonData.code != null && jsonData.code == "0104") {
         if (DataSourceJson._logger.isInfoEnabled()) {
-            DataSourceJson._logger.info("Session expired, redirecting to: " + json_data.text);
+            DataSourceJson._logger.info("Session expired, redirecting to: " + jsonData.text);
         }
         
         // Should handle this at a higher layer, not here
-        window.location = json_data.text;
+        window.location = jsonData.text;
         
         return DataSourceJson.SESSION_EXPIRED;
     }
     
     // Make sure we have an array of data points
-    if (!json_data instanceof Array || json_data.length == 0) {
+    if (!jsonData instanceof Array || jsonData.length == 0) {
         if (DataSourceJson._logger.isWarnEnabled()) {
             DataSourceJson._logger.warn("No data found from server!");
         }
