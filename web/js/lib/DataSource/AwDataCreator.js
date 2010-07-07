@@ -15,9 +15,9 @@ function EmaAwDataCreator() {
 }
 EmaAwDataCreator.prototype = new AwDataCreator();
 
-EmaAwDataCreator.prototype.create_from = function(json_data) {
+EmaAwDataCreator.prototype.createFrom = function(jsonData) {
 	var awData = new EmaAwData();
-	awData.set_data(json_data);
+	awData.setData(jsonData);
 	return awData;
 }
 
@@ -27,9 +27,9 @@ function SurveysPerDayAwDataCreator() {
 }
 SurveysPerDayAwDataCreator.prototype = new AwDataCreator();
 
-SurveysPerDayAwDataCreator.prototype.create_from = function(json_data) {
+SurveysPerDayAwDataCreator.prototype.createFrom = function(jsonData) {
 	var awData = new SurveysPerDayAwData();
-	awData.set_data(json_data);
+	awData.setData(jsonData);
 	return awData;
 }
 
@@ -39,9 +39,9 @@ function MobilityPerDayAwDataCreator() {
 }
 MobilityPerDayAwDataCreatorprototype = new AwDataCreator();
 
-MobilityPerDayAwDataCreator.prototype.create_from = function(json_data) {
+MobilityPerDayAwDataCreator.prototype.createFrom = function(jsonData) {
 	var awData = new MobilityPerDayAwData();
-	awData.set_data(json_data);
+	awData.setData(jsonData);
 	return awData;
 }
 
@@ -52,9 +52,9 @@ function HoursSinceLastUpdateAwDataCreator() {
 }
 HoursSinceLastUpdateAwDataCreator.prototype = new AwDataCreator();
 
-HoursSinceLastUpdateAwDataCreator.prototype.create_from = function(json_data) {
+HoursSinceLastUpdateAwDataCreator.prototype.createFrom = function(jsonData) {
 	var awData = new HoursSinceLastUpdateAwData();
-	awData.set_data(json_data);
+	awData.setData(jsonData);
 	return awData;
 }
 
@@ -65,9 +65,9 @@ function HoursSinceLastSurveyAwDataCreator() {
 }
 HoursSinceLastSurveyAwDataCreator.prototype = new AwDataCreator();
 
-HoursSinceLastSurveyAwDataCreator.prototype.create_from = function(json_data) {
+HoursSinceLastSurveyAwDataCreator.prototype.createFrom = function(jsonData) {
 	var awData = new HoursSinceLastSurveyAwData();
-	awData.set_data(json_data);
+	awData.setData(jsonData);
 	return awData;
 }
 
@@ -77,8 +77,8 @@ function LocationUpdatesAwDataCreator() {
 }
 LocationUpdatesAwDataCreator.prototype = new AwDataCreator();
 
-LocationUpdatesAwDataCreator.prototype.create_from = function(json_data) {
+LocationUpdatesAwDataCreator.prototype.createFrom = function(jsonData) {
 	var awData = new LocationUpdatesAwData();
-	awData.set_data(json_data);
+	awData.setData(jsonData);
 	return awData;
 }

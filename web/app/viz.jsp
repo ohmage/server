@@ -79,8 +79,8 @@
     <script type="text/javascript">
 	
     // Holds the currently requested start date and number of days
-    var startDate = new Date();
-    var numDays = 0;
+    //var startDate = new Date();
+    //var numDays = 0;
 
     // Holds the current page's DashBoard setup
     var dashBoard = null;
@@ -117,15 +117,15 @@
         .data("dateinput").setValue(today);
         
         // Override the default submit function for the form
-        $("#grabDateForm").submit(send_json_request);
+        $("#grabDateForm").submit(sendJsonRequest);
 
         // Setup the dash board with the campaign configuration JSON
         dashBoard = new DashBoard();
-        dashBoard.set_user_name(userName);
+        dashBoard.setUserName(userName);
         dashBoard.initialize();
 		
         // Initialize the page by grabbing config information from server
-        send_json_request_init();
+        sendJsonRequestInit();
     });
 
     /*
@@ -152,70 +152,68 @@
     /*
      * Ask for enough info to initialize the webpage
      */
-    function send_json_request_init() {
+    function sendJsonRequestInit() {
     	// Switch on the loading graphic
     	// currently broken, comes back on before the data is actually loaded into the graphs.
         //dashBoard.loading(true);
 
 		// This will initialize the main user upload page
-		DataSourceJson.request_data(DataSourceJson.DATA_HOURS_SINCE_LAST_SURVEY);
+		DataSourceJson.requestData(DataSourceJson.DATA_HOURS_SINCE_LAST_SURVEY);
     }
 
     /*
      * Grab the form inputs, validate, and send a request to the server for data.
      */
-    function send_json_request() {
-        // Grab the URL from the form
-        var start_date = $("#startDate").val();
-        var num_days = $("#numDays").val();
-
-        // Validate inputs
+    function sendJsonRequest() {
+      // Validate inputs
         if (!validateDateFormInputs()) {
             if (log.isWarnEnabled()) {
                 log.warn("Validation failed!");
             }
             return false;	    	 
         }
-		
-        // Switch on the loading graphic
-        dashBoard.loading(true);
-		
-        // Set global start and number of days
-        startDate = Date.parseDate(start_date, "Y-m-d");
-        numDays = parseInt(num_days);
 
-        var end_date = startDate.incrementDay(numDays).dateFormat("Y-m-d");
-        
-        if (log.isInfoEnabled()) {
-            log.info("Grabbing data from " + start_date + " to " + end_date);
-        }
+        // Switch on the loading graphic
+        //dashBoard.loading(true);
+		
+        // Grab the URL from the form
+        var startDateString = $("#startDate").val();
+        var numDaysString = $("#numDays").val();
+		
+        // Parse out the forms
+        // Hack these into the dashBoard for now
+        dashBoard.startDate = Date.parseDate(startDateString, "Y-m-d");
+        dashBoard.numDays = parseInt(numDaysString);
 
         // Setup params
+        var endDateString = dashBoard.startDate.incrementDay(dashBoard.numDays).dateFormat("Y-m-d");
         var params = {
-        	    's': start_date,
-        	    'e': end_date
-        };
-       
+        	    's': startDateString,
+        	    'e': endDateString
+        }; 
 
+        if (log.isInfoEnabled()) {
+            log.info("Grabbing data from " + startDateString + " to " + endDateString);
+        }
+        
 		// Grab hours since last survey information
-		DataSourceJson.request_data(DataSourceJson.DATA_HOURS_SINCE_LAST_SURVEY);
+	 	DataSourceJson.requestData(DataSourceJson.DATA_HOURS_SINCE_LAST_SURVEY);
 
 		// Grab percentage good location updates
-		DataSourceJson.request_data(DataSourceJson.DATA_LOCATION_UPDATES);
+		DataSourceJson.requestData(DataSourceJson.DATA_LOCATION_UPDATES);
 		
 		// Grab hours since last location update
-		DataSourceJson.request_data(DataSourceJson.DATA_HOURS_SINCE_LAST_UPDATE);
+		DataSourceJson.requestData(DataSourceJson.DATA_HOURS_SINCE_LAST_UPDATE);
 
 		// Grab number of completed surveys per day from server
-		DataSourceJson.request_data(DataSourceJson.DATA_SURVEYS_PER_DAY, params);
+		DataSourceJson.requestData(DataSourceJson.DATA_SURVEYS_PER_DAY, params);
 
         // Grab EMA data from the server 
-        DataSourceJson.request_data(DataSourceJson.DATA_EMA, params);
+        DataSourceJson.requestData(DataSourceJson.DATA_EMA, params);
         
 		// Grab number of mobilities from the survey per day
-		DataSourceJson.request_data(DataSourceJson.DATA_MOBILITY_MODE_PER_DAY, params);
-		
-        
+		DataSourceJson.requestData(DataSourceJson.DATA_MOBILITY_MODE_PER_DAY, params);
+		  
         // Return false to cancel the usual submit functionality
         return false;
     }

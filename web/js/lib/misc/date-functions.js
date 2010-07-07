@@ -395,11 +395,11 @@ Date.prototype.incrementDay = function(num_days) {
 
 // Find the difference in days between this date and the
 // passed in date
-Date.prototype.difference_in_days = function(second_day) {
+Date.prototype.differenceInDays = function(second_day) {
     return Math.ceil((second_day.getTime()-this.getTime())/(Date.one_day));
 }
 
-Date.prototype.difference_in_hours = function(second_day) {
+Date.prototype.differenceInHours = function(second_day) {
     return Math.ceil((second_day.getTime()-this.getTime())/(Date.one_hour));
 }
 

@@ -30,7 +30,7 @@ function StatDisplay(divId, userName) {
 	   .append('<div class="GraphEnableButton"></div>');
 	   
 	// Attach a function to handle a button click
-	$(this.divId).find('.GraphEnableButton').click(jQuery.proxy(this.button_clicked, this));
+	$(this.divId).find('.GraphEnableButton').click(jQuery.proxy(this.buttonClicked, this));
 	
 	// Add a ProtoGraph to display surveys per day to the div
 	// Setup the ProtoGraph to view the surveys per day data
@@ -40,15 +40,15 @@ function StatDisplay(divId, userName) {
 	$(this.divId).find('.ProtoGraph').hide();
 		
     // Create a new ProtoGraph and add it to the div
-	var graph_config = new Object();
-	graph_config.type = ProtoGraph.graph_type.PROTO_GRAPH_ALL_INTEGER_TYPE;
-	graph_config.text = "Surveys returned per day";
-	// Grab the global "group_list" from response_list.js for now
-	graph_config.x_labels = group_list;
+	var graphConfig = {};
+	graphConfig.type = ProtoGraph.graph_type.PROTO_GRAPH_ALL_INTEGER_TYPE;
+	graphConfig.text = "Surveys returned per day";
+	// Grab the global "groupList" from response_list.js for now
+	graphConfig.xLabels = groupList;
 	
-	var graph_width = $(this.divId).width();
-    var new_graph = ProtoGraph.factory(graph_config, protoGraphDivId, graph_width);
-    this.surveysPerDayProtoGraph = new_graph;
+	var graphWidth = $(this.divId).width();
+    var newGraph = ProtoGraph.factory(graphConfig, protoGraphDivId, graphWidth);
+    this.surveysPerDayProtoGraph = newGraph;
     
     
     // Add another ProtoGraph to display mobility per day summaries
@@ -57,13 +57,13 @@ function StatDisplay(divId, userName) {
 	// Hide the div to start while loading
 	$(this.divId).find('.ProtoGraph').hide();
 	
-	var mobility_graph_config = new Object();
-	mobility_graph_config.type = ProtoGraph.graph_type.PROTO_GRAPH_STACKED_BAR_TYPE;
-	mobility_graph_config.text = "Daily mobility summaries per day"
+	var mobilityGraphConfig = {};
+	mobilityGraphConfig.type = ProtoGraph.graph_type.PROTO_GRAPH_STACKED_BAR_TYPE;
+	mobilityGraphConfig.text = "Daily mobility summaries per day"
 	// Grab the mobility labels from somewhere
-	mobility_graph_config.bar_labels = mobility_modes;
-	var new_mobility_graph = ProtoGraph.factory(mobility_graph_config, protoGraphMobilityPerDayDivId, graph_width);
-    this.mobilityPerDayProtoGraph = new_mobility_graph;
+	mobilityGraphConfig.barLabels = mobilityModes;
+	var newMobilityGraph = ProtoGraph.factory(mobilityGraphConfig, protoGraphMobilityPerDayDivId, graphWidth);
+    this.mobilityPerDayProtoGraph = newMobilityGraph;
     
     // Add default "column values"
     $(this.divId).attr("LastSurvey", 0.0);
@@ -76,7 +76,7 @@ StatDisplay._logger = log4javascript.getLogger();
 
 
 // Update the hours since the last survey for this user
-StatDisplay.prototype.update_hours_since_last_survey = function(value) {
+StatDisplay.prototype.updateHoursSinceLastSurvey = function(value) {
 	// Hack this in, if the value is 0 assume no data found
 	if (value == 0) {
 		$(this.divId + " .TimeSinceUserSurvey").text("No Data");
@@ -90,7 +90,7 @@ StatDisplay.prototype.update_hours_since_last_survey = function(value) {
 }
 
 // Update the time since the last good user GPS reading
-StatDisplay.prototype.update_time_since_user_location = function(value) {
+StatDisplay.prototype.updateTimeSinceUserLocation = function(value) {
 	// Hack this in, if the value is 0 assume no data found
 	if (value == 0) {
 		$(this.divId + " .TimeSinceUserLocation").text("No Data");
@@ -104,16 +104,16 @@ StatDisplay.prototype.update_time_since_user_location = function(value) {
 }
 
 // Update the percentage of good GPS readings
-StatDisplay.prototype.update_percentage_good_uploads = function(value) {
+StatDisplay.prototype.updatePercentageGoodUploads = function(value) {
     $(this.divId + " .PercentageGoodUploads").text(value.toFixed(1) + "%");
     
  // Attach this value to the div for later sorting
 	$(this.divId).attr("GoodLocation", value);
 }
 
-StatDisplay.prototype.update_surveys_per_day = function(data) {
+StatDisplay.prototype.updateSurveysPerDay = function(data) {
 	// Grab the global startDate and numDays for now, fix later
-	this.surveysPerDayProtoGraph.apply_data(data.data, startDate, numDays);
+	this.surveysPerDayProtoGraph.loadData(data.data, dashBoard.startDate, dashBoard.numDays);
 	// Render the graph with the new data
 	this.surveysPerDayProtoGraph.render();
 	
@@ -121,35 +121,35 @@ StatDisplay.prototype.update_surveys_per_day = function(data) {
 	$(this.divId).find('.ProtoGraph').hide();
 	
 	// Update the graph/button state
-	this.update_state();
+	this.updateState();
 }
 
-StatDisplay.prototype.update_mobility_per_day = function(data) {
-	this.mobilityPerDayProtoGraph.apply_data(data.data, startDate, numDays);
+StatDisplay.prototype.updateMobilityPerDay = function(data) {
+	this.mobilityPerDayProtoGraph.loadData(data.data, dashBoard.startDate, dashBoard.numDays);
 	this.mobilityPerDayProtoGraph.render();
 	
 	// Hide the div for now
 	$(this.divId).find('.ProtoGraph').hide();
 	
 	// Update the graph/button state
-	this.update_state();
+	this.updateState();
 }
 
 // Whenever the graph status button is clicked, switch the enabled state
-StatDisplay.prototype.button_clicked = function() {
+StatDisplay.prototype.buttonClicked = function() {
 	if (this.graphsEnabled) {
-		this.enable_graphs(false);
+		this.enableGraphs(false);
 	}
 	else {
-		this.enable_graphs(true);
+		this.enableGraphs(true);
 	}
 }
 
-// update_state - logic to update the hide/show status of the graphs, 
+// updateState - logic to update the hide/show status of the graphs, 
 // and the class of the dropdown button
-StatDisplay.prototype.update_state = function() {
+StatDisplay.prototype.updateState = function() {
 	// If the graph is empty, hide it and set the button disabled
-	if (this.surveysPerDayProtoGraph.is_empty()) {
+	if (this.surveysPerDayProtoGraph.isEmpty()) {
 	   $(this.divId).find(".ProtoGraph").hide();
 	   $(this.divId).find('.GraphEnableButton').removeClass('graphsEnabled graphsDisabled').addClass('disabled');
 	   return;
@@ -175,11 +175,11 @@ StatDisplay.prototype.update_state = function() {
 
 
 // Show or hide the graphs for the user, also updates the button state
-StatDisplay.prototype.enable_graphs = function(enable) {
+StatDisplay.prototype.enableGraphs = function(enable) {
 	this.graphsEnabled = enable;
 	
 	// Update the graph and button state
-	this.update_state();
+	this.updateState();
 }
 
 

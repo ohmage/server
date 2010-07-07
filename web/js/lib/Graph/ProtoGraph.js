@@ -7,26 +7,26 @@
 
  
 // ProtoGraph constructor:
-//   div_id: The ID of the html element to graphize
+//   divId: The ID of the html element to graphize
 //   title: The title to display for the graph
-//   graph_width: Total width of the graph in pixels
-function ProtoGraph(div_id, title, graph_width) {
-    this.div_id = div_id;
+//   graphWidth: Total width of the graph in pixels
+function ProtoGraph(divId, title, graphWidth) {
+    this.divId = divId;
     this.title = title;
 	
     // Default values before data exists
-    this.left_x_label = "Undef";
-    this.right_x_label = "Undef";
-    this.top_y_label = "Undef";
-    this.bottom_y_label = "Undef";
-    this.num_days = 0;
+    this.leftXLabel = "Undef";
+    this.rightXLabel = "Undef";
+    this.topYLabel = "Undef";
+    this.bottomylabel = "Undef";
+    this.numDays = 0;
     this.data = [];
-    this.has_data = false;
-    this.x_scale = null;
-    this.y_scale = null;
-    this.has_average_line = false;
-    this.has_day_demarcations = false;
-    this.width = graph_width - ProtoGraph.LEFT_MARGIN - ProtoGraph.RIGHT_MARGIN;
+    this.hasData = false;
+    this.xScale = null;
+    this.yScale = null;
+    this.hasAverageLine = false;
+    this.hasDayDemarcations = false;
+    this.width = graphWidth - ProtoGraph.LEFT_MARGIN - ProtoGraph.RIGHT_MARGIN;
 	
     // Create a protovis Panel and attach to the div ID
     this.vis = new pv.Panel()
@@ -36,7 +36,7 @@ function ProtoGraph(div_id, title, graph_width) {
         .bottom(ProtoGraph.BOTTOM_MARGIN)
         .top(ProtoGraph.TOP_MARGIN)
         .right(ProtoGraph.RIGHT_MARGIN)
-        .canvas(this.div_id);
+        .canvas(this.divId);
 		
     // Add a line to the bottom of the graph
     this.vis.add(pv.Rule)
@@ -46,7 +46,7 @@ function ProtoGraph(div_id, title, graph_width) {
         .left(0);
 		
     // Add X labels to the graph, use closures to refer to
-    // this.left_x_label and this.right_x_label so that later
+    // this.leftXLabel and this.rightXLabel so that later
     // we can simply change those values and re-render the graph
     // to change the X labels, instead of deleting and adding new
     // pv.Labels
@@ -57,7 +57,7 @@ function ProtoGraph(div_id, title, graph_width) {
         .textAlign('left')
         .textBaseline('top')
         .text(function() {
-            return that.left_x_label;
+            return that.leftXLabel;
         })
         .font(ProtoGraph.LABEL_STYLE);
     this.vis.add(pv.Label)
@@ -66,7 +66,7 @@ function ProtoGraph(div_id, title, graph_width) {
         .textAlign('right')
         .textBaseline('top')
         .text(function() {
-            return that.right_x_label;
+            return that.rightXLabel;
         })
         .font(ProtoGraph.LABEL_STYLE);
 }
@@ -120,37 +120,37 @@ ProtoGraph._logger = log4javascript.getLogger();
  * the defined graph description, an initialized ProtoGraph
  * subtype will be returned.
  */
-ProtoGraph.factory = function(graph_description, div_id, graph_width) {
+ProtoGraph.factory = function(graphDescription, divId, graphWidth) {
     // Switch among all the graph types
-    if (graph_description.type == ProtoGraph.graph_type.PROTO_GRAPH_SINGLE_TIME_TYPE) {
-        var new_graph = new ProtoGraphSingleTimeType(div_id, graph_description.text, graph_width);
+    if (graphDescription.type == ProtoGraph.graph_type.PROTO_GRAPH_SINGLE_TIME_TYPE) {
+        var newGraph = new ProtoGraphSingleTimeType(divId, graphDescription.text, graphWidth);
     }
-    else if (graph_description.type == ProtoGraph.graph_type.PROTO_GRAPH_TRUE_FALSE_ARRAY_TYPE) {
-        var new_graph = new ProtoGraphTrueFalseArrayType(div_id, graph_description.text, graph_width, graph_description.y_labels);
+    else if (graphDescription.type == ProtoGraph.graph_type.PROTO_GRAPH_TRUE_FALSE_ARRAY_TYPE) {
+        var newGraph = new ProtoGraphTrueFalseArrayType(divId, graphDescription.text, graphWidth, graphDescription.yLabels);
     }
-    else if (graph_description.type == ProtoGraph.graph_type.PROTO_GRAPH_INTEGER_TYPE) {
-        var new_graph = new ProtoGraphIntegerType(div_id, graph_description.text, graph_width, graph_description.y_labels);
+    else if (graphDescription.type == ProtoGraph.graph_type.PROTO_GRAPH_INTEGER_TYPE) {
+        var newGraph = new ProtoGraphIntegerType(divId, graphDescription.text, graphWidth, graphDescription.yLabels);
     }
-    else if (graph_description.type == ProtoGraph.graph_type.PROTO_GRAPH_YES_NO_TYPE) {
-        var new_graph = new ProtoGraphYesNoType(div_id, graph_description.text, graph_width);
+    else if (graphDescription.type == ProtoGraph.graph_type.PROTO_GRAPH_YES_NO_TYPE) {
+        var newGraph = new ProtoGraphYesNoType(divId, graphDescription.text, graphWidth);
     }
-    else if (graph_description.type == ProtoGraph.graph_type.PROTO_GRAPH_MULTI_TIME_TYPE) {
-        var new_graph = new ProtoGraphMultiTimeType(div_id, graph_description.text, graph_width);
+    else if (graphDescription.type == ProtoGraph.graph_type.PROTO_GRAPH_MULTI_TIME_TYPE) {
+        var newGraph = new ProtoGraphMultiTimeType(divId, graphDescription.text, graphWidth);
     }
-    else if (graph_description.type == ProtoGraph.graph_type.PROTO_GRAPH_CUSTOM_SLEEP_TYPE) {
-        var new_graph = new ProtoGraphCustomSleepType(div_id, graph_description.text, graph_width, graph_description.sleep_labels);
+    else if (graphDescription.type == ProtoGraph.graph_type.PROTO_GRAPH_CUSTOM_SLEEP_TYPE) {
+        var newGraph = new ProtoGraphCustomSleepType(divId, graphDescription.text, graphWidth, graphDescription.sleepLabels);
     }
-	else if (graph_description.type == ProtoGraph.graph_type.PROTO_GRAPH_ALL_INTEGER_TYPE) {
-        var new_graph = new ProtoGraphAllIntegerType(div_id, graph_description.text, graph_width, graph_description.x_labels);
+	else if (graphDescription.type == ProtoGraph.graph_type.PROTO_GRAPH_ALL_INTEGER_TYPE) {
+        var newGraph = new ProtoGraphAllIntegerType(divId, graphDescription.text, graphWidth, graphDescription.xLabels);
     }
-	else if (graph_description.type == ProtoGraph.graph_type.PROTO_GRAPH_STACKED_BAR_TYPE) {
-        var new_graph = new ProtoGraphStackedBarType(div_id, graph_description.text, graph_width, graph_description.bar_labels);
+	else if (graphDescription.type == ProtoGraph.graph_type.PROTO_GRAPH_STACKED_BAR_TYPE) {
+        var newGraph = new ProtoGraphStackedBarType(divId, graphDescription.text, graphWidth, graphDescription.barLabels);
     }
     else {
         throw new TypeError("ProtoGraph.factory(): Unknown graph type in JSON.");
     }
 	
-    return new_graph;
+    return newGraph;
 }
 
 
@@ -159,12 +159,12 @@ ProtoGraph.factory = function(graph_description, div_id, graph_width) {
  */ 
 
 // Accessors
-ProtoGraph.prototype.get_div_id = function() {
-    return this.div_id;
+ProtoGraph.prototype.getDivId = function() {
+    return this.divId;
 }
 
 // Check if the graph has no data
-ProtoGraph.prototype.is_empty = function() {
+ProtoGraph.prototype.isEmpty = function() {
 	if (this.data.length == 0) {
 		return true;
 	}
@@ -174,48 +174,48 @@ ProtoGraph.prototype.is_empty = function() {
 
 // Helper function to replace X labels with day values, given
 // the data types normally used to pass data to a graph
-ProtoGraph.prototype.replace_x_labels = function(start_date, num_days) {
-    this.left_x_label = start_date.toStringMonthAndDay();
-    this.right_x_label = start_date.incrementDay(num_days - 1).toStringMonthAndDay();	
+ProtoGraph.prototype.replaceXLabels = function(startDate, numDays) {
+    this.leftXLabel = startDate.toStringMonthAndDay();
+    this.rightXLabel = startDate.incrementDay(numDays - 1).toStringMonthAndDay();	
 }
 
 // Helper function to replace Y labels with day values
-ProtoGraph.prototype.replace_y_labels = function(bottom_y_label, top_y_label) {
-    this.bottom_y_label = bottom_y_label;
-    this.top_y_label = top_y_label;
+ProtoGraph.prototype.replaceYLabels = function(bottomylabel, topYLabel) {
+    this.bottomylabel = bottomylabel;
+    this.topYLabel = topYLabel;
 }
 
 // Add an average line to the graph
 //
 // Input:  average - The float height for the average array
-//         y_scale - pv.scale to scale the average to the graph
-//         average_label - The average label to use
-ProtoGraph.prototype.add_average_line = function(average, y_scale, average_label) {
+//         yScale - pv.scale to scale the average to the graph
+//         averageLabel - The average label to use
+ProtoGraph.prototype.addAverageLine = function(average, yScale, averageLabel) {
     // Update the data for the average line, these will be propagated
     // to already instantiated average lines through closures
     this.average = average;
-    this.average_line_label = average_label;
-    this.average_line_scale = pv.Scale.linear(0, this.num_days).range(0, this.width);
+    this.averageLineLabel = averageLabel;
+    this.averageLineScale = pv.Scale.linear(0, this.numDays).range(0, this.width);
 
     // If the average line has not yet been created, create it now
     // Else, do nothing as we have already updated the average data
-    if (this.has_average_line == false) {
+    if (this.hasAverageLine == false) {
         // Add the line to the graph
         var that = this;
         this.vis.add(pv.Line)
             // Calculate an array of average values of length numDays+1
             .data(function() {
                 averageLine = [];
-                for (var i = 0; i < that.num_days+1; i++) {
+                for (var i = 0; i < that.numDays+1; i++) {
                     averageLine.push(that.average);
                 }
                 return averageLine;
             })
             .bottom(function(d) {
-                return y_scale(d);
+                return yScale(d);
             })
             .left(function() {
-                return that.average_line_scale(this.index);
+                return that.averageLineScale(this.index);
             })
             .strokeStyle("lightgray")
             .strokeDasharray('10,5')
@@ -225,48 +225,48 @@ ProtoGraph.prototype.add_average_line = function(average, y_scale, average_label
         this.vis.add(pv.Label)
             .right(0)
             .bottom(function() {
-                return y_scale(that.average);
+                return yScale(that.average);
             })
             .textAlign('left')
             .textBaseline('middle')
             .text(function(){
-                return that.average_line_label;
+                return that.averageLineLabel;
             })
             .font(ProtoGraph.LABEL_STYLE);
             
-        this.has_average_line = true;
+        this.hasAverageLine = true;
     } 
 }
 
 // Add day demarcations to the bottom of the graph.
 //
-// num_ticks - The number of ticks to show.
-// margin - Insert a margin into the x_scale, defaults to 0
-ProtoGraph.prototype.add_day_demarcations = function(num_ticks, margin) {
+// numTicks - The number of ticks to show.
+// margin - Insert a margin into the xScale, defaults to 0
+ProtoGraph.prototype.addDayDemarcations = function(numTicks, margin) {
     // Default margin to 0
     if (arguments.length == 1) {
         var margin = 0;  
     }
     
     // Need to add 2 ticks, the first and last ones.  These will not be shown
-    this.tick_array = pv.range(num_ticks + 2);
-    this.x_scale_ticks = pv.Scale.linear(this.tick_array).range(margin, this.width - margin);
+    this.tickArray = pv.range(numTicks + 2);
+    this.xScaleTicks = pv.Scale.linear(this.tickArray).range(margin, this.width - margin);
         
     // Only create the pv.Rule once, just update the Rule in subsequent calls
-    if (this.has_day_demarcations == false) {
+    if (this.hasDayDemarcations == false) {
         var that = this;
         // Add ticks between the days using the day array as alignment
         that.vis.add(pv.Rule)
             .data(function(d) {
-                return that.tick_array;
+                return that.tickArray;
             })
             .left(function(d) {
-                return that.x_scale_ticks(d);
+                return that.xScaleTicks(d);
             })
             .bottom(0)
             // Do not show the first or last marks
             .height(function() {
-                if ((this.index == 0) || (this.index == that.tick_array.length - 1)) {
+                if ((this.index == 0) || (this.index == that.tickArray.length - 1)) {
                     return 0;
                 }
                 else {
@@ -275,40 +275,40 @@ ProtoGraph.prototype.add_day_demarcations = function(num_ticks, margin) {
             })
             .strokeStyle('black');
         
-        this.has_day_demarcations = true;
+        this.hasDayDemarcations = true;
     }
 }
 
 /*
- * preprocess_add_day_counts() - Add the total number of data points per day,
+ * preprocessAddDayCounts() - Add the total number of data points per day,
  * and which this current data point is, to every data point
  */
-ProtoGraph.prototype.preprocess_add_day_counts = function(_data) {
+ProtoGraph.prototype.preprocessAddDayCounts = function(data) {
     // Initialize the counting variables
-    var cur_day = new Date(0,0,0,0,0,0);
-    var cur_day_count = 1;
-    var total_count_per_day = new Object();
+    var curDay = new Date(0,0,0,0,0,0);
+    var curDayCount = 1;
+    var totalCountPerDay = new Object();
 	
     // First pass over the data to count the number of points per day
-    _data.forEach(function(d) {
+    data.forEach(function(d) {
         // Check if this is a new day
-        if (!d.date.equals(cur_day)) {
+        if (!d.date.equals(curDay)) {
             // Reset the counting vars
-            cur_day = d.date;
-            cur_day_count = 1;
+            curDay = d.date;
+            curDayCount = 1;
         }
         else {
-            cur_day_count += 1;
+            curDayCount += 1;
         }
 	    
-        d.day_count = cur_day_count;
+        d.dayCount = curDayCount;
         // Save the current day count for the second pass
-        total_count_per_day[cur_day] = cur_day_count;
+        totalCountPerDay[curDay] = curDayCount;
     });
 	
     // Second pass to set total number of data points per day
-    _data.forEach(function(d) {
-        d.total_day_count = total_count_per_day[d.date];
+    data.forEach(function(d) {
+        d.totalDayCount = totalCountPerDay[d.date];
     });
 }
 
@@ -327,26 +327,26 @@ ProtoGraph.prototype.render = function() {
  */
 
 // ProtoGraphIntegerType constructor
-// div_id - ID of the div element on which to create the graph
+// divId - ID of the div element on which to create the graph
 // title - The title of the graph
-// y_labels - How to label the graph
-function ProtoGraphIntegerType(div_id, title, graph_width, y_labels) {
+// yLabels - How to label the graph
+function ProtoGraphIntegerType(divId, title, graphWidth, yLabels) {
     // Inherit properties
-    ProtoGraph.call(this, div_id, title, graph_width);
+    ProtoGraph.call(this, divId, title, graphWidth);
 
     // new properties
-    this.y_labels = y_labels;
-    this.min_val = 0;  // Integer ranges always start at 0
-    this.max_val = this.y_labels.length - 1;
-    this.y_scale = pv.Scale.linear(this.min_val,this.max_val).range(0, ProtoGraph.HEIGHT);
+    this.yLabels = yLabels;
+    this.minVal = 0;  // Integer ranges always start at 0
+    this.maxVal = this.yLabels.length - 1;
+    this.yScale = pv.Scale.linear(this.minVal,this.maxVal).range(0, ProtoGraph.HEIGHT);
 
     // The Y labels never change, add them now
     var that = this;
     this.vis.add(pv.Label)
-        .data(this.y_labels)
+        .data(this.yLabels)
         .left(0)
         .bottom(function() {
-            return that.y_scale(this.index);
+            return that.yScale(this.index);
         })
         .textAlign('right')
         .textBaseline('middle');
@@ -358,29 +358,29 @@ ProtoGraphIntegerType.prototype = new ProtoGraph();
 // Draws a sparkline graph using the passed in integer data.  For now
 // assumes the data one integer response per day.  Draws a bar graph
 // along with an average line.
-ProtoGraphIntegerType.prototype.apply_data = function(data, start_date, num_days) {
+ProtoGraphIntegerType.prototype.loadData = function(data, startDate, numDays) {
     // Copy the new information
     this.data = data;
-    this.num_days = num_days;
+    this.numDays = numDays;
 	
     // Replace the x labels with possible new labels
-    this.replace_x_labels(start_date, num_days);
+    this.replaceXLabels(startDate, numDays);
 
     // Split the data into categories using Scale.ordinal
     var dayArray = [];
-    for (var i = 0; i < this.num_days; i += 1) {
-        var next_day = start_date.incrementDay(i);
-        dayArray.push(next_day);
+    for (var i = 0; i < this.numDays; i += 1) {
+        var nextDay = startDate.incrementDay(i);
+        dayArray.push(nextDay);
     }
 	
     // Setup the X scale now
-    this.x_scale = pv.Scale.ordinal(dayArray).splitBanded(0, this.width, ProtoGraph.BAR_WIDTH);
+    this.xScale = pv.Scale.ordinal(dayArray).splitBanded(0, this.width, ProtoGraph.BAR_WIDTH);
 	
     // Process the data as necessary
-    this.preprocess_add_day_counts(this.data);
+    this.preprocessAddDayCounts(this.data);
     
     // If there is no data yet, setup the display
-    if (this.has_data == false) {
+    if (this.hasData == false) {
         // Add a bar for each response
         var that = this;
         this.vis.add(pv.Bar)
@@ -391,23 +391,23 @@ ProtoGraphIntegerType.prototype.apply_data = function(data, start_date, num_days
             .width(function(d) {
                 // Shrink the bar width by the total number of responses per day
                 // Subtract one to be sure there is a space between bars
-                return that.x_scale.range().band / d.total_day_count - 1;
+                return that.xScale.range().band / d.totalDayCount - 1;
             })
             .height(function(d) {
-                return that.y_scale(d.response) + 1;
+                return that.yScale(d.response) + 1;
             })
             .bottom(1)
             .left(function(d) {
                 // Shift the bar left by which response per day this is
-                return that.x_scale(d.date) + that.x_scale.range().band * ((d.day_count - 1) / d.total_day_count);
+                return that.xScale(d.date) + that.xScale.range().band * ((d.dayCount - 1) / d.totalDayCount);
             })
             .fillStyle(function(d) {
-                //return ProtoGraph.DAY_COLOR[d.day_count];
+                //return ProtoGraph.DAY_COLOR[d.dayCount];
                 // Always use the same color for now
                 return ProtoGraph.DAY_COLOR[0];
             });
 			
-        this.has_data = true;
+        this.hasData = true;
     }
 		  
     // Overlay the average line
@@ -418,14 +418,14 @@ ProtoGraphIntegerType.prototype.apply_data = function(data, start_date, num_days
     }
     average /= this.data.length;
     // Add the average line and label
-    this.add_average_line(average, this.y_scale, average.toFixed(1));
+    this.addAverageLine(average, this.yScale, average.toFixed(1));
 	
     // splitBanded adds a margin in to the scale.  Find the margin
     // from the range
-    var range = this.x_scale.range();
+    var range = this.xScale.range();
     var margin = range[0] / 2;
     // Only add ticks between days, so subtract one
-    this.add_day_demarcations(num_days - 1, margin);
+    this.addDayDemarcations(numDays - 1, margin);
 }
 
 
@@ -437,9 +437,9 @@ ProtoGraphIntegerType.prototype.apply_data = function(data, start_date, num_days
  */
 
 // ProtoGraphSingleTimeType constructor
-function ProtoGraphSingleTimeType(div_id, title, graph_width) {
+function ProtoGraphSingleTimeType(divId, title, graphWidth) {
     // Inherit properties
-    ProtoGraph.call(this, div_id, title, graph_width);
+    ProtoGraph.call(this, divId, title, graphWidth);
 
     // Add the Y labels now
     this.vis.add(pv.Label)
@@ -459,7 +459,7 @@ function ProtoGraphSingleTimeType(div_id, title, graph_width) {
         .font(ProtoGraph.LABEL_STYLE);
 		
     // Setup the Y scale
-    this.y_scale = pv.Scale.linear(new Date(0, 0, 0, 0, 0, 0), new Date(0, 0, 0, 23, 59, 59))
+    this.yScale = pv.Scale.linear(new Date(0, 0, 0, 0, 0, 0), new Date(0, 0, 0, 23, 59, 59))
                        .range(0, ProtoGraph.HEIGHT);
 }
 
@@ -469,26 +469,26 @@ ProtoGraphSingleTimeType.prototype = new ProtoGraph();
 // Draws a sparkline graph using the passed in time data.  For now
 // assumes the data one time response per day.  Draws a scatter graph
 // along with an average line.
-ProtoGraphSingleTimeType.prototype.apply_data = function(data, start_date, num_days) {
+ProtoGraphSingleTimeType.prototype.loadData = function(data, startDate, numDays) {
     // Copy the new information
     this.data = data;
-    this.num_days = num_days;
+    this.numDays = numDays;
     
     // Replace the x labels
-    this.replace_x_labels(start_date, num_days);
+    this.replaceXLabels(startDate, numDays);
     
 	// Split the data into categories using Scale.ordinal
 	dayArray = [];
-	for (var i = 0; i < this.num_days; i += 1) {
-	    var next_day = start_date.incrementDay(i);
-		dayArray.push(next_day);
+	for (var i = 0; i < this.numDays; i += 1) {
+	    var nextDay = startDate.incrementDay(i);
+		dayArray.push(nextDay);
 	}
 	
 	// Setup the X scale now
-	this.x_scale = pv.Scale.ordinal(dayArray).splitBanded(0, this.width, ProtoGraph.BAR_WIDTH);
+	this.xScale = pv.Scale.ordinal(dayArray).splitBanded(0, this.width, ProtoGraph.BAR_WIDTH);
 	
 	// If there is no data yet setup the graph
-	if (this.has_data == false) {
+	if (this.hasData == false) {
         // Need "that" to access "this" inside the closures
 		var that = this;
 		
@@ -499,18 +499,18 @@ ProtoGraphSingleTimeType.prototype.apply_data = function(data, start_date, num_d
 		  })
 		  .left(function(d) {
 		    // Shift the dot right by half a band to center it in the day
-		    var date_position = that.x_scale(d.date);
+		    var date_position = that.xScale(d.date);
 		      
-            var position = that.x_scale(d.date) + that.x_scale.range().band / 2;
+            var position = that.xScale(d.date) + that.xScale.range().band / 2;
             return position;
 		  })
 		  .bottom(function(d){
-			 return that.y_scale(Date.parseDate(d.response, "g:i").grabTime());
+			 return that.yScale(Date.parseDate(d.response, "g:i").grabTime());
 		  })	
 		  // Add dots on the line
 		.add(pv.Dot).fillStyle(that.defaultColor).size(3);
 		
-		this.has_data = true;
+		this.hasData = true;
 	}
 		
 	// Average the data values for the average line
@@ -523,14 +523,14 @@ ProtoGraphSingleTimeType.prototype.apply_data = function(data, start_date, num_d
 	totalTimeInMinutes /= this.data.length;
 	average = new Date(0,0,0,totalTimeInMinutes / 60, totalTimeInMinutes % 60);
 	// Add the average line and label
-	this.add_average_line(average, this.y_scale, average.toStringHourAndMinute());
+	this.addAverageLine(average, this.yScale, average.toStringHourAndMinute());
 	
     // splitBanded adds a margin in to the scale.  Find the margin
     // from the range
-    var range = this.x_scale.range();
+    var range = this.xScale.range();
     var margin = range[0] / 2;
     // Only add ticks between days, so subtract one
-    this.add_day_demarcations(num_days - 1, margin);
+    this.addDayDemarcations(numDays - 1, margin);
 }
 
 
@@ -543,25 +543,25 @@ ProtoGraphSingleTimeType.prototype.apply_data = function(data, start_date, num_d
  */
 
 // ProtoGraphTrueFalseArrayType constructor
-function ProtoGraphTrueFalseArrayType(div_id, title, graph_width, y_labels) {
+function ProtoGraphTrueFalseArrayType(divId, title, graphWidth, yLabels) {
     // Inherit properties
-    ProtoGraph.call(this, div_id, title, graph_width);
+    ProtoGraph.call(this, divId, title, graphWidth);
 
 	// An array to label the y axis with question types
-	this.y_labels = y_labels;
+	this.yLabels = yLabels;
 	
 	// Instead of the regular graph height, calculate height based on the 
 	// number of categories
-	this.height = ProtoGraph.CATEGORY_HEIGHT * this.y_labels.length;
+	this.height = ProtoGraph.CATEGORY_HEIGHT * this.yLabels.length;
 	// Set new height in graph
 	this.vis.height(this.height);
 
     // Create a horizontal line to separate true from false, also throw
     // labels in for good measure
-	this.y_scale = pv.Scale.ordinal(this.y_labels).split(0, this.height);
+	this.yScale = pv.Scale.ordinal(this.yLabels).split(0, this.height);
     this.vis.add(pv.Rule)
-        .data(this.y_labels)
-        .bottom(this.y_scale)
+        .data(this.yLabels)
+        .bottom(this.yScale)
         .strokeStyle('black')
         .anchor('right')
       .add(pv.Label)
@@ -576,92 +576,92 @@ ProtoGraphTrueFalseArrayType.prototype = new ProtoGraph();
 // Draws a sparkline graph using the passed in arrays of true/false
 // data.  Time is along the x axis, the questions are along the y axis.
 // A box going down is false, a box going up is true.
-ProtoGraphTrueFalseArrayType.prototype.apply_data = function(data, start_date, num_days) {
+ProtoGraphTrueFalseArrayType.prototype.loadData = function(data, startDate, numDays) {
 	this.data = data;
-	this.num_days = num_days;
+	this.numDays = numDays;
 	
 	// Replace the x labels
-    this.replace_x_labels(start_date, num_days);
+    this.replaceXLabels(startDate, numDays);
     
 	// Split the data into categories using Scale.ordinal
 	var dayArray = [];
-	for (var i = 0; i < this.num_days; i += 1) {
-	    var next_day = start_date.incrementDay(i);
-        dayArray.push(next_day);
+	for (var i = 0; i < this.numDays; i += 1) {
+	    var nextDay = startDate.incrementDay(i);
+        dayArray.push(nextDay);
 	}
 	this.dayArray = dayArray;
-	this.x_scale = pv.Scale.ordinal(dayArray).splitBanded(0, this.width, ProtoGraph.BAR_WIDTH);
+	this.xScale = pv.Scale.ordinal(dayArray).splitBanded(0, this.width, ProtoGraph.BAR_WIDTH);
 
 	// Also create a linear scale to do day demarcations
-    var range = this.x_scale.range();
+    var range = this.xScale.range();
     var margin = range[0] / 2;
-    this.tick_array = pv.range(num_days + 1);
-    this.x_scale_ticks = pv.Scale.linear(this.tick_array).range(margin, this.width - margin);
+    this.tickArray = pv.range(numDays + 1);
+    this.xScaleTicks = pv.Scale.linear(this.tickArray).range(margin, this.width - margin);
 
     // Preprocess the data to count the number of days
-    this.preprocess_add_day_counts(this.data);
+    this.preprocessAddDayCounts(this.data);
 	
     // Pull out the response arrays for graphing
-	this.transformed_data = [];
+	this.transformedData = [];
 	var that = this;
-	this.data.forEach(function(data_point) {
-        for(var i = 0; i < data_point.response.length; i++) {
+	this.data.forEach(function(dataPoint) {
+        for(var i = 0; i < dataPoint.response.length; i++) {
 			// Make a new data point for each response in the true/false array
-			var new_data_point = new Object();
-			new_data_point.date = data_point.date;
+			var newDataPoint = new Object();
+			newDataPoint.date = dataPoint.date;
 			// Need to remember which question this response is for
-			new_data_point.question_id = i;
+			newDataPoint.questionId = i;
 			// Save true if the response is 't', false otherwise
-			if (data_point.response[i] == 't') {
-				new_data_point.response = true;
+			if (dataPoint.response[i] == 't') {
+				newDataPoint.response = true;
 			}
-			else if (data_point.response[i] == 'f') {
-				new_data_point.response = false;
+			else if (dataPoint.response[i] == 'f') {
+				newDataPoint.response = false;
 			}
 			else {
-				ProtoGraph._logger.error('ProtoGraphTrueFalseArrayType: Bad response ' + data_point.response[i] + ' in data for day ' + data_point.date);
+				ProtoGraph._logger.error('ProtoGraphTrueFalseArrayType: Bad response ' + dataPoint.response[i] + ' in data for day ' + dataPoint.date);
 				break;
 			}
 			// Save the data point count from preprocessing
-			new_data_point.day_count = data_point.day_count;
-			new_data_point.total_day_count = data_point.total_day_count;
+			newDataPoint.dayCount = dataPoint.dayCount;
+			newDataPoint.totalDayCount = dataPoint.totalDayCount;
 			
-            that.transformed_data.push(new_data_point);    
+            that.transformedData.push(newDataPoint);    
         }
 	});
 
 	// If we have no data yet, create the graph
-	if (this.has_data == false) {
+	if (this.hasData == false) {
 		// Create the bars.  If the response is 't', the bar will go up
 		// to represent true.  If the response is 'f' the bar will go
 		// down to represent false.
 		
 		// The height of each bar should be proportional to the overall
 		// graph height and the number of questions in the graph
-		var barHeight = this.height / this.y_labels.length / 2.5;
+		var barHeight = this.height / this.yLabels.length / 2.5;
 		var that = this;
 		this.vis.add(pv.Bar)
 		.data(function() {
-            return that.transformed_data;
+            return that.transformedData;
 		})
 		.width(function(d) {
             // Shrink the bar width by the total number of responses per day,
 		    // plus a bit more to add a space between bars
-            return that.x_scale.range().band / d.total_day_count - 2;
+            return that.xScale.range().band / d.totalDayCount - 2;
 		})
 		.height(barHeight)	
 		// Move bar down if a negative response
 		.bottom(function(d) {
 			if (d.response) {
-				return that.y_scale(d.question_id) + 1;
+				return that.yScale(d.questionId) + 1;
 			}
 			else {
-				return that.y_scale(d.question_id) - barHeight - 1;
+				return that.yScale(d.questionId) - barHeight - 1;
 			}
 		})
 		.left(function(d) {
             // Shift the bar left by which response per day this is
-            return that.x_scale(d.date) + that.x_scale.range().band * ((d.day_count - 1) / d.total_day_count);
+            return that.xScale(d.date) + that.xScale.range().band * ((d.dayCount - 1) / d.totalDayCount);
 		})	// Color based on a negative or positive response
 		.fillStyle(function(d) {
 			return (d.response) ? ProtoGraph.TRUE_COLOR : ProtoGraph.FALSE_COLOR;
@@ -669,22 +669,22 @@ ProtoGraphTrueFalseArrayType.prototype.apply_data = function(data, start_date, n
 		
 
 		// Create day demarcations, one for each category
-		this.y_labels.forEach(function(label, index) {
+		this.yLabels.forEach(function(label, index) {
 		    that.vis.add(pv.Rule)
                 .data(function(d) {
-                    return that.tick_array;
+                    return that.tickArray;
                 })
                 .left(function(d) {
                     // Shift left just a bit to center between days
-                    return that.x_scale_ticks(d);
+                    return that.xScaleTicks(d);
                 })
                 .bottom(function() {
                     // Move down a bit to line up
-                    return that.y_scale(index) - ProtoGraph.TICK_HEIGHT;
+                    return that.yScale(index) - ProtoGraph.TICK_HEIGHT;
                 })
                 // Do not show the first or last mark
                 .height(function() {
-                    if ((this.index == 0) || (this.index == that.tick_array.length - 1)) {
+                    if ((this.index == 0) || (this.index == that.tickArray.length - 1)) {
                         return 0;
                     }
                     // Since the tick goes both up AND down, double the height
@@ -695,7 +695,7 @@ ProtoGraphTrueFalseArrayType.prototype.apply_data = function(data, start_date, n
                 .strokeStyle('black');
 		});
 		
-		this.has_data = true;
+		this.hasData = true;
 	};
 }
 
@@ -708,20 +708,20 @@ ProtoGraphTrueFalseArrayType.prototype.apply_data = function(data, start_date, n
  */
 
 // ProtoGraphYesNoType constructor
-function ProtoGraphYesNoType(div_id, title, graph_width) {
+function ProtoGraphYesNoType(divId, title, graphWidth) {
     // Inherit properties
-    ProtoGraph.call(this, div_id, title, graph_width);
+    ProtoGraph.call(this, divId, title, graphWidth);
 
-    this.y_scale = pv.Scale.linear(0,1).range(0, ProtoGraph.HEIGHT);
+    this.yScale = pv.Scale.linear(0,1).range(0, ProtoGraph.HEIGHT);
     // Create a horizontal line to separate true from false
     this.vis.add(pv.Rule)
-        .data(this.y_scale.range())
-        .bottom(this.y_scale(.5))
+        .data(this.yScale.range())
+        .bottom(this.yScale(.5))
         .strokeStyle('black');
 
     // Y labels
     this.vis.add(pv.Label)
-        .bottom(this.y_scale((1 - ProtoGraph.DISTANCE_FROM_CENTER)))
+        .bottom(this.yScale((1 - ProtoGraph.DISTANCE_FROM_CENTER)))
         .left(0)
         .textAlign('right')
         .textBaseline('middle')
@@ -729,7 +729,7 @@ function ProtoGraphYesNoType(div_id, title, graph_width) {
         .font(ProtoGraph.LABEL_STYLE)
         
     this.vis.add(pv.Label)
-        .bottom(this.y_scale(ProtoGraph.DISTANCE_FROM_CENTER))
+        .bottom(this.yScale(ProtoGraph.DISTANCE_FROM_CENTER))
         .left(0)
         .textAlign('right')
         .textBaseline('middle')
@@ -740,26 +740,26 @@ function ProtoGraphYesNoType(div_id, title, graph_width) {
 // Inherit methods from ProtoGraph
 ProtoGraphYesNoType.prototype = new ProtoGraph();
 
-ProtoGraphYesNoType.prototype.apply_data = function(data, start_date, num_days) {
+ProtoGraphYesNoType.prototype.loadData = function(data, startDate, numDays) {
     this.data = data;
-	this.num_days = num_days;
+	this.numDays = numDays;
 
     // Replace the x labels
-    this.replace_x_labels(start_date, num_days);
+    this.replaceXLabels(startDate, numDays);
 
 	// Split the data into categories using Scale.ordinal
 	var dayArray = [];
-	for (var i = 0; i < this.num_days; i += 1) {
-	    var next_day = start_date.incrementDay(i);
-        dayArray.push(next_day);
+	for (var i = 0; i < this.numDays; i += 1) {
+	    var nextDay = startDate.incrementDay(i);
+        dayArray.push(nextDay);
 	}
-	this.x_scale = pv.Scale.ordinal(dayArray).splitBanded(0, this.width, ProtoGraph.BAR_WIDTH);
+	this.xScale = pv.Scale.ordinal(dayArray).splitBanded(0, this.width, ProtoGraph.BAR_WIDTH);
 	
     // Preprocess the data to count the number of days
-    this.preprocess_add_day_counts(this.data);
+    this.preprocessAddDayCounts(this.data);
 	
 	// If no data yet, build the graph
-	if (this.has_data == false) {
+	if (this.hasData == false) {
 		// Save this so we can access the constants in the anonymous
 		// functions below
 		var that = this;
@@ -774,18 +774,18 @@ ProtoGraphYesNoType.prototype.apply_data = function(data, start_date, num_days) 
 		  .bottom(function(d) {
 			// if a true response, move the dot up
 			if (d.response) {
-				return that.y_scale(1 - ProtoGraph.DISTANCE_FROM_CENTER);
+				return that.yScale(1 - ProtoGraph.DISTANCE_FROM_CENTER);
 			}
 			// if false move the dot down
 			else {
-				return that.y_scale(ProtoGraph.DISTANCE_FROM_CENTER);
+				return that.yScale(ProtoGraph.DISTANCE_FROM_CENTER);
 			}
 		})
 		// Shift the dot right by which response per day it is
 		.left(function(d) {
-		    var position = that.x_scale(d.date) + that.x_scale.range().band * ((d.day_count - 1) / d.total_day_count);
+		    var position = that.xScale(d.date) + that.xScale.range().band * ((d.dayCount - 1) / d.totalDayCount);
 		    // Shift the dot further right to align with the "center" of the band
-		    position += that.x_scale.range().band / d.total_day_count / 2;
+		    position += that.xScale.range().band / d.totalDayCount / 2;
 		    return position;
 		})
 		.strokeStyle(function(d) {
@@ -793,7 +793,7 @@ ProtoGraphYesNoType.prototype.apply_data = function(data, start_date, num_days) 
 			return d.response ? ProtoGraph.TRUE_COLOR : ProtoGraph.FALSE_COLOR;
 		});
 		
-		this.has_data = true;
+		this.hasData = true;
 	}
 		
 	// Add an average line
@@ -803,16 +803,16 @@ ProtoGraphYesNoType.prototype.apply_data = function(data, start_date, num_days) 
 	});
 	average /= this.data.length;
 	
-	average_y_scale = pv.Scale.linear(0,1).range(ProtoGraph.HEIGHT * ProtoGraph.DISTANCE_FROM_CENTER, 
+	averageYScale = pv.Scale.linear(0,1).range(ProtoGraph.HEIGHT * ProtoGraph.DISTANCE_FROM_CENTER, 
 												 ProtoGraph.HEIGHT * (1 - ProtoGraph.DISTANCE_FROM_CENTER));
-	this.add_average_line(average, average_y_scale, average.toFixed(2));
+	this.addAverageLine(average, averageYScale, average.toFixed(2));
 	
 	// splitBanded adds a margin in to the scale.  Find the margin
     // from the range
-    var range = this.x_scale.range();
+    var range = this.xScale.range();
     var margin = range[0] / 2;
     // Only add ticks between days, so subtract one
-    this.add_day_demarcations(num_days - 1, margin);
+    this.addDayDemarcations(numDays - 1, margin);
 }
 
 
@@ -823,9 +823,9 @@ ProtoGraphYesNoType.prototype.apply_data = function(data, start_date, num_days) 
  */
 
 // ProtoGraphMultiTimeType constructor
-function ProtoGraphMultiTimeType(div_id, title, graph_width) {
+function ProtoGraphMultiTimeType(divId, title, graphWidth) {
     // Inherit properties
-    ProtoGraph.call(this, div_id, title, graph_width);
+    ProtoGraph.call(this, divId, title, graphWidth);
 
     // Add the Y labels now
     this.vis.add(pv.Label)
@@ -845,7 +845,7 @@ function ProtoGraphMultiTimeType(div_id, title, graph_width) {
         .font(ProtoGraph.LABEL_STYLE)
         
     // Setup the Y scale
-    this.y_scale = pv.Scale.linear(new Date(0, 0, 0, 0, 0, 0), new Date(0, 0, 0, 23, 59, 59)).range(0, ProtoGraph.HEIGHT);
+    this.yScale = pv.Scale.linear(new Date(0, 0, 0, 0, 0, 0), new Date(0, 0, 0, 23, 59, 59)).range(0, ProtoGraph.HEIGHT);
 }
 
 // Inherit methods from ProtoGraph
@@ -854,29 +854,29 @@ ProtoGraphMultiTimeType.prototype = new ProtoGraph();
 // Draws a sparkline graph using the passed in time data.  For now
 // assumes the data one time response per day.  Draws a scatter graph
 // along with an average line.
-ProtoGraphMultiTimeType.prototype.apply_data = function(data, start_date, num_days) {
+ProtoGraphMultiTimeType.prototype.loadData = function(data, startDate, numDays) {
     // Copy the new information
     this.data = data;
-    this.num_days = num_days;
+    this.numDays = numDays;
     
     // Replace the x labels
-    this.replace_x_labels(start_date, num_days);
+    this.replaceXLabels(startDate, numDays);
     
     // Split the data into categories using Scale.ordinal
     var dayArray = [];
-    for (var i = 0; i < this.num_days; i += 1) {
-        var next_day = start_date.incrementDay(i);
-        dayArray.push(next_day);
+    for (var i = 0; i < this.numDays; i += 1) {
+        var nextDay = startDate.incrementDay(i);
+        dayArray.push(nextDay);
     }
     
     // Setup the X scale now
-    this.x_scale = pv.Scale.ordinal(dayArray).splitBanded(0, this.width, ProtoGraph.BAR_WIDTH);
+    this.xScale = pv.Scale.ordinal(dayArray).splitBanded(0, this.width, ProtoGraph.BAR_WIDTH);
     
     // Preprocess the data to count the number of days
-    this.preprocess_add_day_counts(this.data);
+    this.preprocessAddDayCounts(this.data);
     
     // If there is no data yet setup the graph
-    if (this.has_data == false) {
+    if (this.hasData == false) {
         // Need "that" to access "this" inside the closures
         var that = this;
         
@@ -891,10 +891,10 @@ ProtoGraphMultiTimeType.prototype.apply_data = function(data, start_date, num_da
             return that.data;
           })
           .left(function(d) {
-             return that.x_scale(d.date) + that.x_scale.range().band / 2;
+             return that.xScale(d.date) + that.xScale.range().band / 2;
           })
           .bottom(function(d) {
-             return that.y_scale(Date.parseDate(d.response, "g:i").grabTime());
+             return that.yScale(Date.parseDate(d.response, "g:i").grabTime());
           })
           .strokeStyle(function(d) {
               // first check if the mouse is over this dot
@@ -902,14 +902,14 @@ ProtoGraphMultiTimeType.prototype.apply_data = function(data, start_date, num_da
                   return "black";
               }
 
-              var meta_data = d.meta_data;
-              var color_to_return = ProtoGraph.DAY_COLOR[0]; 
+              var metaData = d.metaData;
+              var colorToReturn = ProtoGraph.DAY_COLOR[0]; 
               // If any of the meta data responses are true, make the dot red
-              meta_data.forEach(function(d) {
+              metaData.forEach(function(d) {
                   if (d == 't')
-                      color_to_return = "red";
+                      colorToReturn = "red";
               });
-              return color_to_return;
+              return colorToReturn;
           })
           .lineWidth(2)
           .size(5)
@@ -945,7 +945,7 @@ ProtoGraphMultiTimeType.prototype.apply_data = function(data, start_date, num_da
             .add(pv.Label)
             .text(": 0 responses true.");
         
-        // Mouse over legend to display meta_data
+        // Mouse over legend to display metaData
         this.panel.add(pv.Label)
             .top(10)
             .right(0)
@@ -955,10 +955,10 @@ ProtoGraphMultiTimeType.prototype.apply_data = function(data, start_date, num_da
             })
             .text(function() {
                 if (that.panel.i() >= 0) {
-                    var cur_day = that.data[that.panel.i()].date.toStringMonthAndDay();
-                    var cur_time = Date.parseDate(that.data[that.panel.i()].response, "g:i").format('h:MM tt');
+                    var curDay = that.data[that.panel.i()].date.toStringMonthAndDay();
+                    var curTime = Date.parseDate(that.data[that.panel.i()].response, "g:i").format('h:MM tt');
                     
-                    return cur_day + ", " + cur_time;
+                    return curDay + ", " + curTime;
                 }
             });
         
@@ -973,7 +973,7 @@ ProtoGraphMultiTimeType.prototype.apply_data = function(data, start_date, num_da
                 if (that.panel.i() >= 0) {
                     var text = "Brushed? "
                     
-                    if (that.data[that.panel.i()].meta_data[0] == 't')
+                    if (that.data[that.panel.i()].metaData[0] == 't')
                         text += "Yes";
                     else
                         text += "No";
@@ -993,7 +993,7 @@ ProtoGraphMultiTimeType.prototype.apply_data = function(data, start_date, num_da
                 if (that.panel.i() >= 0) {
                     var text = "Ate? "
                     
-                    if (that.data[that.panel.i()].meta_data[1] == 't')
+                    if (that.data[that.panel.i()].metaData[1] == 't')
                         text += "Yes";
                     else
                         text += "No";
@@ -1013,7 +1013,7 @@ ProtoGraphMultiTimeType.prototype.apply_data = function(data, start_date, num_da
                 if (that.panel.i() >= 0) {
                     var text = "Drank? "
                     
-                    if (that.data[that.panel.i()].meta_data[2] == 't')
+                    if (that.data[that.panel.i()].metaData[2] == 't')
                         text += "Yes";
                     else
                         text += "No";
@@ -1022,103 +1022,103 @@ ProtoGraphMultiTimeType.prototype.apply_data = function(data, start_date, num_da
                 }
             });
         
-        this.has_data = true;
+        this.hasData = true;
     }
     
     
     // splitBanded adds a margin in to the scale.  Find the margin
     // from the range
-    var range = this.x_scale.range();
+    var range = this.xScale.range();
     var margin = range[0] / 2;
     // Only add ticks between days, so subtract one
-    this.add_day_demarcations(num_days - 1, margin);
+    this.addDayDemarcations(numDays - 1, margin);
 }
 
 /*
  * Custom type to combine multiple sleep responses into one graph
  */
-function ProtoGraphCustomSleepType(div_id, title, graph_width, sleep_labels) {
+function ProtoGraphCustomSleepType(divId, title, graphWidth, sleepLabels) {
     // Inherit properties
-    ProtoGraph.call(this, div_id, title, graph_width);
+    ProtoGraph.call(this, divId, title, graphWidth);
 
-    this.sleep_labels = sleep_labels;
+    this.sleepLabels = sleepLabels;
 }
 
 // Inherit methods from ProtoGraph
 ProtoGraphCustomSleepType.prototype = new ProtoGraph();
 
-ProtoGraphCustomSleepType.prototype.apply_data = function(data, start_date, num_days) {
+ProtoGraphCustomSleepType.prototype.loadData = function(data, startDate, numDays) {
     // Copy the new information for later usage by the graphs
     this.data = data;
-    this.num_days = num_days;
-    this.start_date = start_date;
+    this.numDays = numDays;
+    this.startDate = startDate;
  
     // Replace the x labels
-    this.replace_x_labels(start_date, num_days);
+    this.replaceXLabels(startDate, numDays);
  
     // Split the data into categories using Scale.ordinal
     var dayArray = [];
-    for (var i = 0; i < this.num_days; i += 1) {
-        var next_day = start_date.incrementDay(i);
-        dayArray.push(next_day);
+    for (var i = 0; i < this.numDays; i += 1) {
+        var nextDay = startDate.incrementDay(i);
+        dayArray.push(nextDay);
     }
  
     // Setup the X scale now
-    this.x_scale = pv.Scale.ordinal(dayArray).splitBanded(0, this.width, ProtoGraph.BAR_WIDTH);
+    this.xScale = pv.Scale.ordinal(dayArray).splitBanded(0, this.width, ProtoGraph.BAR_WIDTH);
 
     // Create a map from X position in the X scale to the corresponding day in the data array
-    this.x_scale_map = [];
+    this.xScaleMap = [];
     var that = this;
-    dayArray.forEach(function(data_point) {
-        var location_in_data = -1;
+    dayArray.forEach(function(dataPoint) {
+        var locationInData = -1;
         // Run through every day in the data to see if we find a match
         for (var i = 0; i < that.data.length; i += 1) {
             // Check if the days are the same
-            if (that.data[i].date.difference_in_days(data_point) == 0) {
-                location_in_data = i;
+            if (that.data[i].date.differenceInDays(dataPoint) == 0) {
+                locationInData = i;
             }
         }
         // Now set the found location (-1 if not found)
-        that.x_scale_map.push(location_in_data);
+        that.xScaleMap.push(locationInData);
     });
     
     // Find the earliest in bed and latest awake point for the Y scale and labels
-    var earliest_time_in_bed = new Date(0,0,2,0,0,0);
-    var latest_time_awake = new Date(0,0,0,0,0,0);
+    var earliestTimeInBed = new Date(0,0,2,0,0,0);
+    var latestTimeAwake = new Date(0,0,0,0,0,0);
  
-    this.data.forEach(function(data_point) {
-        if (data_point.time_in_bed < earliest_time_in_bed) {
-            earliest_time_in_bed = data_point.time_in_bed;
+    this.data.forEach(function(dataPoint) {
+        if (dataPoint.timeInBed < earliestTimeInBed) {
+            earliestTimeInBed = dataPoint.timeInBed;
         }
      
-        if (data_point.time_awake > latest_time_awake) {
-            latest_time_awake = data_point.time_awake;
+        if (dataPoint.timeAwake > latestTimeAwake) {
+            latestTimeAwake = dataPoint.timeAwake;
         }
     });
 
     // Give an hour margin on top and bottom to make graph look nicer
-    earliest_time_in_bed = earliest_time_in_bed.incrementHour(-1).roundDownToHour();
-    latest_time_awake = latest_time_awake.incrementHour(1).roundUpToHour();
+    earliestTimeInBed = earliestTimeInBed.incrementHour(-1).roundDownToHour();
+    latestTimeAwake = latestTimeAwake.incrementHour(1).roundUpToHour();
  
     // Change the height of the graph to match the number of hours in the scale, that is
     // find the difference in hours and multiple by the number of pixels per hour
-    var new_graph_height = earliest_time_in_bed.difference_in_hours(latest_time_awake) * 20;
-    this.vis.height(new_graph_height);
+    var newGraphHeight = earliestTimeInBed.differenceInHours(latestTimeAwake) * 20;
+    this.vis.height(newGraphHeight);
     
     if (ProtoGraph._logger.isDebugEnabled()) {
-        ProtoGraph._logger.debug("Setting new graph height to: " + new_graph_height);
+        ProtoGraph._logger.debug("Setting new graph height to: " + newGraphHeight);
     }
     
     // Setup the y scale: earliest time in bed should be on the top
-    this.y_scale = pv.Scale.linear(earliest_time_in_bed, latest_time_awake).range(new_graph_height, 0);
+    this.yScale = pv.Scale.linear(earliestTimeInBed, latestTimeAwake).range(newGraphHeight, 0);
     
     // Setup a linear X scale to assist mapping the mouse position to day index
-    this.x_scale_linear = pv.Scale.linear(0, this.num_days).range(0, this.width);
+    this.xScaleLinear = pv.Scale.linear(0, this.numDays).range(0, this.width);
 
     
     
     // Setup the plots if there is no data yet
-    if (this.has_data == false) {
+    if (this.hasData == false) {
         // Need "that" to access "this" inside the closures
         var that = this;  
         
@@ -1134,13 +1134,13 @@ ProtoGraphCustomSleepType.prototype.apply_data = function(data, start_date, num_
             })
             .left(function(d) {
                 // Shift the dot right by half a band to center it in the day
-                var date_position = that.x_scale(d.date);
+                var date_position = that.xScale(d.date);
            
-                var position = that.x_scale(d.date) + that.x_scale.range().band / 2;
+                var position = that.xScale(d.date) + that.xScale.range().band / 2;
                 return position;
             })
             .bottom(function(d) {
-                return that.y_scale(d.time_in_bed);
+                return that.yScale(d.timeInBed);
             })    
             .strokeStyle(ProtoGraph.DEFAULT_COLOR)
             // Add dots on the line
@@ -1152,8 +1152,8 @@ ProtoGraphCustomSleepType.prototype.apply_data = function(data, start_date, num_
             .anchor("center")
             .add(pv.Rule)
             .height(function(d) {
-                return that.y_scale(d.time_in_bed) -
-                       that.y_scale(d.time_awake);
+                return that.yScale(d.timeInBed) -
+                       that.yScale(d.timeAwake);
             })
             .strokeStyle("lightgray")
             .strokeDasharray('10,5')
@@ -1173,13 +1173,13 @@ ProtoGraphCustomSleepType.prototype.apply_data = function(data, start_date, num_
             })
             .left(function() {
                 // Shift the dot right by half a band to center it in the day
-                var date_position = that.x_scale(that.data[that.panel.i()].date);
+                var date_position = that.xScale(that.data[that.panel.i()].date);
                 
-                var position = that.x_scale(that.data[that.panel.i()].date) + that.x_scale.range().band / 2;
+                var position = that.xScale(that.data[that.panel.i()].date) + that.xScale.range().band / 2;
                 return position;
             })
             .bottom(function() {
-                return that.y_scale(that.data[that.panel.i()].time_in_bed);
+                return that.yScale(that.data[that.panel.i()].timeInBed);
             })
             .fillStyle("red")
             .strokeStyle("red")
@@ -1188,8 +1188,8 @@ ProtoGraphCustomSleepType.prototype.apply_data = function(data, start_date, num_
             .anchor("center")
             .add(pv.Rule)
             .height(function() {
-                return that.y_scale(that.data[that.panel.i()].time_in_bed) -
-                       that.y_scale(that.data[that.panel.i()].time_awake);
+                return that.yScale(that.data[that.panel.i()].timeInBed) -
+                       that.yScale(that.data[that.panel.i()].timeAwake);
             })
             .strokeStyle("black")
             .strokeDasharray('10,5')
@@ -1204,10 +1204,10 @@ ProtoGraphCustomSleepType.prototype.apply_data = function(data, start_date, num_
         // Add Y ticks and labels
         this.panel.add(pv.Rule)
             .data(function() {
-                return that.y_scale.ticks();
+                return that.yScale.ticks();
             })
             .top(function(d) {
-                return that.panel.height() - that.y_scale(d);
+                return that.panel.height() - that.yScale(d);
             })
             .left(0)
             .width(5)
@@ -1244,7 +1244,7 @@ ProtoGraphCustomSleepType.prototype.apply_data = function(data, start_date, num_
             })
             .text(function() {
                 if (that.panel.i() >= 0) {
-                    return "Time to bed: " + that.data[that.panel.i()].time_in_bed.format('h:MM tt');
+                    return "Time to bed: " + that.data[that.panel.i()].timeInBed.format('h:MM tt');
                 }
             });
          
@@ -1259,7 +1259,7 @@ ProtoGraphCustomSleepType.prototype.apply_data = function(data, start_date, num_
             })
             .text(function() {
                 if (that.panel.i() >= 0) {
-                    return "Fell asleep in: " + that.sleep_labels[that.data[that.panel.i()].time_to_fall_asleep];
+                    return "Fell asleep in: " + that.sleepLabels[that.data[that.panel.i()].timeToFallAsleep];
                 }
             });
          
@@ -1273,7 +1273,7 @@ ProtoGraphCustomSleepType.prototype.apply_data = function(data, start_date, num_
             })
             .text(function() {
                 if (that.panel.i() >= 0) {
-                    return "Woke up at: " + that.data[that.panel.i()].time_awake.format('h:MM tt');
+                    return "Woke up at: " + that.data[that.panel.i()].timeAwake.format('h:MM tt');
                 }
             });
      
@@ -1298,17 +1298,17 @@ ProtoGraphCustomSleepType.prototype.apply_data = function(data, start_date, num_
             .text(function() {
                 if (that.panel.i() >= 0) {
                     // Calculate time asleep by taking the time in bed, adding time to fall asleep,
-                    // and finding time to time_awake
+                    // and finding time to timeAwake
                  
                     // Time to sleep in milliseconds
-                    var time_to_sleep = that.data[that.panel.i()].time_to_fall_asleep * 10 * 60 * 1000;
-                    var milliseconds_asleep = that.data[that.panel.i()].time_awake.getTime() -
-                                              that.data[that.panel.i()].time_in_bed.getTime() -
-                                              time_to_sleep;
+                    var timeToSleep = that.data[that.panel.i()].timeToFallAsleep * 10 * 60 * 1000;
+                    var millisecondsAsleep = that.data[that.panel.i()].timeAwake.getTime() -
+                                              that.data[that.panel.i()].timeInBed.getTime() -
+                                              timeToSleep;
                  
                     // Calculate a time string based on this
-                    var hours = Math.floor(milliseconds_asleep / 1000 / 60 / 60);
-                    var minutes = Math.floor(milliseconds_asleep / 1000 / 60 - hours * 60);
+                    var hours = Math.floor(millisecondsAsleep / 1000 / 60 / 60);
+                    var minutes = Math.floor(millisecondsAsleep / 1000 / 60 - hours * 60);
                     
                     // Add a leading zero is minutes < 10 for formatting
                     if (minutes < 10) {
@@ -1331,27 +1331,27 @@ ProtoGraphCustomSleepType.prototype.apply_data = function(data, start_date, num_
                 // Grab the current x position of the mouse
                 var mouse_pos = that.panel.mouse().x;
                 // Find the day index under the mouse pointer
-                var day_index = Math.floor(that.x_scale_linear.invert(mouse_pos));
+                var dayIndex = Math.floor(that.xScaleLinear.invert(mouse_pos));
                 // Now map to the location in the data_array
-                var data_index = that.x_scale_map[day_index];
+                var dataIndex = that.xScaleMap[dayIndex];
              
                 // If the index has changed, update the graph
-                if (that.panel.i() != data_index) {
-                    return that.panel.i(data_index);
+                if (that.panel.i() != dataIndex) {
+                    return that.panel.i(dataIndex);
                 }
             });
      
         // If we add new data, only update the data, do not recreate the
         // graph marks
-        this.has_data = true;
+        this.hasData = true;
     }
  
     // splitBanded adds a margin in to the scale.  Find the margin
     // from the range
-    var range = this.x_scale.range();
+    var range = this.xScale.range();
     var margin = range[0] / 2;
     // Only add ticks between days, so subtract one
-    this.add_day_demarcations(num_days - 1, margin);
+    this.addDayDemarcations(numDays - 1, margin);
 }
 
 
@@ -1362,26 +1362,26 @@ ProtoGraphCustomSleepType.prototype.apply_data = function(data, start_date, num_
  */
 
 // ProtoGraphAllIntegerType constructor
-// div_id - ID of the div element on which to create the graph
+// divId - ID of the div element on which to create the graph
 // title - The title of the graph
-// x_labels - Labels for the different bars on the x axis
-function ProtoGraphAllIntegerType(div_id, title, graph_width, x_labels) {
+// xLabels - Labels for the different bars on the x axis
+function ProtoGraphAllIntegerType(divId, title, graphWidth, xLabels) {
     // Inherit properties
-    ProtoGraph.call(this, div_id, title, graph_width);
+    ProtoGraph.call(this, divId, title, graphWidth);
 
     // new properties
-    this.min_val = 0;  // Integer ranges always start at 0
-    this.max_val = 6;
-    this.y_scale = pv.Scale.linear(this.min_val,this.max_val).range(0, ProtoGraph.HEIGHT);
-    this.x_labels = x_labels;
+    this.minVal = 0;  // Integer ranges always start at 0
+    this.maxVal = 6;
+    this.yScale = pv.Scale.linear(this.minVal,this.maxVal).range(0, ProtoGraph.HEIGHT);
+    this.xLabels = xLabels;
     
     // The Y labels never change, add them now
     var that = this;
     this.vis.add(pv.Label)
-        .data(this.y_scale.ticks())
+        .data(this.yScale.ticks())
         .left(0)
         .bottom(function(d) {
-            return that.y_scale(d);
+            return that.yScale(d);
         })
         .visible(function(d) {
         	return (d % 2) == 0;
@@ -1397,30 +1397,30 @@ ProtoGraphAllIntegerType.prototype = new ProtoGraph();
 // Draws a sparkline graph using the passed in integer data.  For now
 // assumes the data one integer response per day.  Draws a bar graph
 // along with an average line.
-ProtoGraphAllIntegerType.prototype.apply_data = function(data, start_date, num_days) {
+ProtoGraphAllIntegerType.prototype.loadData = function(data, startDate, numDays) {
     // Copy the new information
     this.data = data;
-    this.num_days = num_days;
+    this.numDays = numDays;
     
     // Replace the x labels with possible new labels
-    this.replace_x_labels(start_date, num_days);
+    this.replaceXLabels(startDate, numDays);
 
     // Split the data into categories using Scale.ordinal
     var dayArray = [];
-    for (var i = 0; i < this.num_days; i += 1) {
-        var next_day = start_date.incrementDay(i);
-        dayArray.push(next_day);
+    for (var i = 0; i < this.numDays; i += 1) {
+        var nextDay = startDate.incrementDay(i);
+        dayArray.push(nextDay);
     }
     
     // Setup the X scale now
-    this.x_scale = pv.Scale.ordinal(dayArray).splitBanded(0, this.width, ProtoGraph.BAR_WIDTH);
+    this.xScale = pv.Scale.ordinal(dayArray).splitBanded(0, this.width, ProtoGraph.BAR_WIDTH);
     
     // Process the data as necessary
 	// THIS SHOULD NOW BE DONE IN AwData.create_from!
-    //this.preprocess_add_day_counts(this.data);
+    //this.preprocessAddDayCounts(this.data);
     
     // If there is no data yet, setup the display
-    if (this.has_data == false) {
+    if (this.hasData == false) {
         // Add a bar for each response
         var that = this;
         this.vis.add(pv.Bar)
@@ -1431,28 +1431,28 @@ ProtoGraphAllIntegerType.prototype.apply_data = function(data, start_date, num_d
             .width(function(d) {
                 // Shrink the bar width by the total number of responses per day
                 // Subtract one to be sure there is a space between bars
-                return that.x_scale.range().band / d.total_day_count - 1;
+                return that.xScale.range().band / d.totalDayCount - 1;
             })
             .height(function(d) {
-                return that.y_scale(d.response) + 1;
+                return that.yScale(d.response) + 1;
             })
             .bottom(1)
             .left(function(d) {
                 // Shift the bar left by which response per day this is
-                return that.x_scale(d.date) + that.x_scale.range().band * ((d.day_count) / d.total_day_count);
+                return that.xScale(d.date) + that.xScale.range().band * ((d.dayCount) / d.totalDayCount);
             })
             .fillStyle(function(d) {
-                return ProtoGraph.DAY_COLOR[d.day_count];
+                return ProtoGraph.DAY_COLOR[d.dayCount];
                 // Always use the same color for now
                 //return ProtoGraph.DAY_COLOR[0];
             });
         
-        // Add a legend if x_labels exist
-        if (this.x_labels != null) {
+        // Add a legend if xLabels exist
+        if (this.xLabels != null) {
         	// Use i to count what index we are at when we iterate
         	var i = 0;
         	var that = this;
-        	this.x_labels.forEach(function(label) {
+        	this.xLabels.forEach(function(label) {
         		// Add a color box to show what color this is
         		that.vis.add(pv.Bar)
         			.right(-5)
@@ -1472,15 +1472,15 @@ ProtoGraphAllIntegerType.prototype.apply_data = function(data, start_date, num_d
         	});
         }
             
-        this.has_data = true;
+        this.hasData = true;
     }
     
     // splitBanded adds a margin in to the scale.  Find the margin
     // from the range
-    var range = this.x_scale.range();
+    var range = this.xScale.range();
     var margin = range[0] / 2;
     // Only add ticks between days, so subtract one
-    this.add_day_demarcations(num_days - 1, margin);
+    this.addDayDemarcations(numDays - 1, margin);
 }
 
 
@@ -1492,21 +1492,21 @@ ProtoGraphAllIntegerType.prototype.apply_data = function(data, start_date, num_d
  * Each object's data array should have the same number of points.
  * 
  * Input:
- *   div_id - The div_id on which to display the graph
+ *   divId - The divId on which to display the graph
  *   title - The title of the graph
- *   graph_width - The width of the protovis graph
- *   bar_labels - Labels for each of the passed data points
+ *   graphWidth - The width of the protovis graph
+ *   barLabels - Labels for each of the passed data points
  */
 
-function ProtoGraphStackedBarType(div_id, title, graph_width, bar_labels) {
+function ProtoGraphStackedBarType(divId, title, graphWidth, barLabels) {
     // Inherit properties
-    ProtoGraph.call(this, div_id, title, graph_width);
+    ProtoGraph.call(this, divId, title, graphWidth);
 
     // new properties
-    this.min_val = 0;
-    this.max_val = 1;
-    this.y_scale = pv.Scale.linear(this.min_val,this.max_val).range(0, ProtoGraph.HEIGHT);
-    this.bar_labels = bar_labels;
+    this.minVal = 0;
+    this.maxVal = 1;
+    this.yScale = pv.Scale.linear(this.minVal,this.maxVal).range(0, ProtoGraph.HEIGHT);
+    this.barLabels = barLabels;
     
     // Y labels
     var that = this;
@@ -1516,7 +1516,7 @@ function ProtoGraphStackedBarType(div_id, title, graph_width, bar_labels) {
         .textAlign('right')
         .textBaseline('middle')
         .text(function() {
-        	return that.min_val;
+        	return that.minVal;
         })
         .font(ProtoGraph.LABEL_STYLE)
         
@@ -1526,50 +1526,50 @@ function ProtoGraphStackedBarType(div_id, title, graph_width, bar_labels) {
         .textAlign('right')
         .textBaseline('middle')
         .text(function() {
-        	return that.max_val;
+        	return that.maxVal;
         })
         .font(ProtoGraph.LABEL_STYLE)
 }
 ProtoGraphStackedBarType.prototype = new ProtoGraph();
 
-ProtoGraphStackedBarType.prototype.apply_data = function(data, start_date, num_days) {
+ProtoGraphStackedBarType.prototype.loadData = function(data, startDate, numDays) {
 	// Copy the new information
     this.data = data;
-    this.num_days = num_days;
+    this.numDays = numDays;
     
     // Replace the x labels with possible new labels
-    this.replace_x_labels(start_date, num_days);
+    this.replaceXLabels(startDate, numDays);
 
     // Split the data into categories using Scale.ordinal
     var dayArray = [];
-    for (var i = 0; i < this.num_days; i += 1) {
-        var next_day = start_date.incrementDay(i);
-        dayArray.push(next_day);
+    for (var i = 0; i < this.numDays; i += 1) {
+        var nextDay = startDate.incrementDay(i);
+        dayArray.push(nextDay);
     }
     
     // Setup the X scale now
-    this.x_scale = pv.Scale.ordinal(dayArray).splitBanded(0, this.width, ProtoGraph.BAR_WIDTH);
+    this.xScale = pv.Scale.ordinal(dayArray).splitBanded(0, this.width, ProtoGraph.BAR_WIDTH);
     
     // Setup the new max value.  This requires running through the data, collapsing
     // the arrays into a single array, then finding the max of that.
-    var new_max = 0;
+    var newMax = 0;
     for (var i = 0; i < this.data[0].length; i++) {
-    	var test_max = 0;
+    	var testMax = 0;
     	for (var j = 0; j < this.data.length; j++) {
-    		test_max += this.data[j][i].data;
+    		testMax += this.data[j][i].data;
     	}
     	// Now see if this is a new max
-    	if (test_max > new_max) {
-    		new_max = test_max;
+    	if (testMax > newMax) {
+    		newMax = testMax;
     	}
     }
 
-    this.max_val = new_max;
-    this.y_scale = pv.Scale.linear(this.min_val,this.max_val).range(0, ProtoGraph.HEIGHT);
+    this.maxVal = newMax;
+    this.yScale = pv.Scale.linear(this.minVal,this.maxVal).range(0, ProtoGraph.HEIGHT);
     
     
     // If there is no data yet, setup the display
-    if (this.has_data == false) {
+    if (this.hasData == false) {
     	var that = this;
     	
     	/* The stack layout. */
@@ -1578,30 +1578,30 @@ ProtoGraphStackedBarType.prototype.apply_data = function(data, start_date, num_d
     	    	return that.data;
     	    })
     	    .x(function(d) {
-    	    	return that.x_scale(d.date);
+    	    	return that.xScale(d.date);
     	    })
     	    .y(function(d) {
-    	    	return that.y_scale(d.data);
+    	    	return that.yScale(d.data);
     	    })
     	.layer.add(pv.Bar)
     	  	.width(function(d) {
-    	  		return that.x_scale.range().band;
+    	  		return that.xScale.range().band;
     	  	})
     	  	.fillStyle(function(d) {
                 return ProtoGraph.DAY_COLOR[d.index];
             });
     	
-    	// Add a legend if bar_labels exist
-        if (this.bar_labels != null) {
+    	// Add a legend if barLabels exist
+        if (this.barLabels != null) {
         	// Use i to count what index we are at when we iterate
         	var i = 0;
         	var that = this;
-        	this.bar_labels.forEach(function(label) {
+        	this.barLabels.forEach(function(label) {
         		// Add a color box to show what color this is
         		that.vis.add(pv.Bar)
         			.right(-5)
         			// Reverse the legend order to match the order of bars
-        			.top((that.bar_labels.length - i - 1) * 10)
+        			.top((that.barLabels.length - i - 1) * 10)
         			.height(5)
         			.width(5)
         			.strokeStyle(ProtoGraph.DAY_COLOR[i])
@@ -1619,14 +1619,14 @@ ProtoGraphStackedBarType.prototype.apply_data = function(data, start_date, num_d
         
     	
     	
-    	this.has_data = true;
+    	this.hasData = true;
     }
     
     
     // splitBanded adds a margin in to the scale.  Find the margin
     // from the range
-    var range = this.x_scale.range();
+    var range = this.xScale.range();
     var margin = range[0] / 2;
     // Only add ticks between days, so subtract one
-    this.add_day_demarcations(num_days - 1, margin);
+    this.addDayDemarcations(numDays - 1, margin);
 }

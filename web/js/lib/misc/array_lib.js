@@ -36,7 +36,7 @@ Array.prototype.min = function () {
 }
 
 /* Find the first index of the passed value in the array */
-Array.prototype.find_index = function(value) {
+Array.prototype.findIndex = function(value) {
 	var ctr = "";
 	for (var i=0; i < this.length; i++) {
 		// use === to check for Matches. ie., identical (===), ;
