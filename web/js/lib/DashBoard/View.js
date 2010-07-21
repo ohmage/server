@@ -120,7 +120,7 @@ ViewGraph.prototype.loadData = function(dataSource) {
 	}
 	
 	// Update the title with the new userName
-	$(this.divId).find("#ViewGraph_title").text("Showing data for " + dashBoard.userName + ":");
+	$(this.divId).find("#ViewGraph_title").text("Showing data for " + dashBoard.userName);
 	
     // Iterate over every ProtoGraph class
     var that = this;
