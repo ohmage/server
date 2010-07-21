@@ -14,7 +14,7 @@ function StatDisplay(divId, userName) {
 	this.hoursSinceLastSurvey = 0.0;
 	this.hoursSinceLastLocationUpdate = 0.0
 	this.percentageGoodLocationUpdate = 0;
-	this.surveysPerDayProtoGraph = null;
+	this.surveysPerDayProtoGraphGraph = null;
 	
 	// Add user name to the div for later sorting
 	$(this.divId).attr('Name', this.userName.replace('.', '_'));
@@ -116,7 +116,7 @@ StatDisplay.prototype.updateSurveysPerDay = function(data) {
 	this.surveysPerDayProtoGraph.loadData(data.data, dashBoard.startDate, dashBoard.numDays);
 	// Render the graph with the new data
 	this.surveysPerDayProtoGraph.render();
-	
+
 	// Hide the div for now
 	$(this.divId).find('.ProtoGraph').hide();
 	

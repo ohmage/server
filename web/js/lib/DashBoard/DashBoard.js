@@ -85,13 +85,11 @@ DashBoard.prototype.initialize = function() {
 	
 	// Hack in the tabs now
 	$('#banner > ul.tabs').append('<li><a class="w2" href="ViewUpload">Upload Stats</a></li>')
-	                      .append('<li><a href="ViewGraph">EMA Graphs</a></li>')
-	                      .append('<li><a href="ViewSurveyMap">Survey Map</a></li>');
+	                      .append('<li><a href="ViewGraph">EMA Graphs</a></li>');
 	
 	$('#main').append('<div class="panes"></div>');
 	$('#main > div.panes').append('<div id="ViewUpload"></div>')
-						  .append('<div id="ViewGraph"></div>')
-						  .append('<div id="ViewSurveyMap"></div>');
+						  .append('<div id="ViewGraph"></div>');
 					      
 	
 	// Setup tabs to work with the panes
@@ -105,9 +103,23 @@ DashBoard.prototype.initialize = function() {
 	var viewUpload = new ViewUpload('ViewUpload');
 	this.viewList.push(viewUpload);
 	
-	var viewSurveyMap = new ViewSurveyMap('ViewSurveyMap');
-	viewSurveyMap.configureHtml();
-	this.viewList.push(viewSurveyMap);
+	//var viewSurveyMap = new ViewSurveyMap('ViewSurveyMap');
+	//viewSurveyMap.configureHtml();
+	//this.viewList.push(viewSurveyMap);
+	
+	
+	// get handle to the api (must have been constructed before this call
+	var api = $("#banner > ul.tabs").tabs();
+	// Link tab clicks to fire GWT events
+	api.onClick(function(event, index) {
+	    if (index == 0) {
+	        switchToUploadViewEvent();
+	    }
+	    if (index == 1) {
+	        switchToGraphViewEvent();
+	    }
+	});
+
 }
 
 

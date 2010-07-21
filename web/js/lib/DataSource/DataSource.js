@@ -180,7 +180,7 @@ DataSourceJson.receiveData = function(jsonData, textStatus, awDataCreator) {
         if (DataSourceJson._logger.isErrorEnabled()) {
             DataSourceJson._logger.error("Incoming data failed validation with error: " + error);
         }
-        return;
+        //return;
     }
     
     // Create the EMA data object

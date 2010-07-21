@@ -178,7 +178,7 @@ EmaAwData.prototype.getDataSaliva = function() {
     
     // be sure we have some data
     if (salivaSampleTime == null || salivaSampleTime.length == 0) {
-        throw new DataSourceJson.NoDataError("getDataSaliva(): Found no data.");   
+        throw new AwData.NoDataError("getDataSaliva(): Found no data.");   
     }
     
     // Used to store all the data needed for the saliva graph

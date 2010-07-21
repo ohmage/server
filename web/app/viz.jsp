@@ -35,6 +35,7 @@
 	<link type="text/css" href="/css/jquery-ui-1.7.2.custom.css" rel="stylesheet" />
 	<link type="text/css" href="/css/jquery-validity.css" rel="stylesheet" /> 
     <link rel="stylesheet" type="text/css" href="/css/dateinput.css"/>
+    <link type="text/css" href="/css/gwt/standard.css" rel="stylesheet" /> 
     
     <!-- A large number of javascript includes, will reduce -->
 	<!-- Main jQuery library -->
@@ -66,6 +67,9 @@
     <script type="text/javascript" src="/js/lib/Graph/ProtoGraph.js"></script>
     <script type="text/javascript" src="/js/lib/DashBoard/StatDisplay.js"></script>
     <script type="text/javascript" src="/js/lib/DashBoard/View.js"></script>
+    
+    <!-- Compiled GWT javascript -->
+    <script type="text/javascript" src="/js/gwt/andwellnessvisualizations.nocache.js"></script>
     
 	
     <!--[if IE]>
@@ -108,6 +112,7 @@
         // old datepicker
         //$("#startDate").datepicker({dateFormat: 'yy-mm-dd'});
  
+ 		
  		var today = new Date().incrementDay(-13);
         $(":date").dateinput({
         	format: 'yyyy-mm-dd',	// the format displayed for the user
@@ -118,7 +123,8 @@
         
         // Override the default submit function for the form
         $("#grabDateForm").submit(sendJsonRequest);
-
+		
+        
         // Setup the dash board with the campaign configuration JSON
         dashBoard = new DashBoard();
         dashBoard.setUserName(userName);
@@ -233,10 +239,8 @@
   
   <div id="controls">
  	Choose a time period:
-
     <form method="post" action="/app/q/ema" id="grabDateForm">
       <label for="startDate" class="label">Start Date:</label>
-      <!--<input id="startDate" type="text"/> -->
       <input id="startDate" type="date" />
       <label for="numDays" class="label">Length:</label>
       <select id="numDays">
@@ -247,6 +251,8 @@
       </select>
       <button type="submit" id="submit">Go</button>                
     </form>
+    
+    <div id="gwt_test"></div>
   </div>
   
   <!-- Main body of the dashboard -->

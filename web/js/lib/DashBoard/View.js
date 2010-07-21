@@ -50,6 +50,9 @@ ViewGraph.prototype = new View();
 
 // ViewGraph.configureHtml - Give JSON that describes the surveys and prompts.
 ViewGraph.prototype.configureHtml = function(config) {
+    // Add a title to display the user
+    $(this.divId).append('<div id="ViewGraph_title"></div>')
+    
 	// Setup the tabs and panes
 	$(this.divId).append('<ul class="tabs"></ul> ')
 	 		     .append('<div class="panes"></div>');
@@ -116,6 +119,9 @@ ViewGraph.prototype.loadData = function(dataSource) {
 		return;
 	}
 	
+	// Update the title with the new userName
+	$(this.divId).find("#ViewGraph_title").text("Showing data for " + dashBoard.userName + ":");
+	
     // Iterate over every ProtoGraph class
     var that = this;
     $(this.divId).find('div.ProtoGraph > div').each(function(index) {
@@ -147,7 +153,7 @@ ViewGraph.prototype.loadData = function(dataSource) {
             
         }
         catch (error) {
-            if (error instanceof DataSourceJson.NoDataError) {
+            if (error instanceof AwData.NoDataError) {
                 if (View._logger.isInfoEnabled()) {
                 	View._logger.info(error.message);
                 }
@@ -205,7 +211,7 @@ ViewGraph.prototype.loading = function(enable) {
 
 // Hide the passed div and add a no data found
 ViewGraph.prototype.replaceWithNoData = function(divToReplace) {
-    divToReplace.after("<span>No data found</span>");
+    divToReplace.after("<span><br>No data found</span>");
     divToReplace.hide();
 }
 
