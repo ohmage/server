@@ -1,0 +1,92 @@
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
+                           http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-2.5.xsd">
+  <!--  
+     Spring ApplicationContext configuration the image query API 
+  -->
+  
+  <!-- Servlet-to-AW hooks -->
+  <!-- "pre-validate" inbound data -->
+  <bean id="imageQueryHttpServletRequestValidator" class="edu.ucla.cens.awserver.jee.servlet.validator.ImageQueryValidator" />
+  <!-- create AwRequest from data in the HttpServletRequest -->
+  <bean id="imageQueryAwRequestCreator" class="edu.ucla.cens.awserver.jee.servlet.glue.ImageQueryAwRequestCreator" />
+  <!-- write outbound data, post-controller -->
+  <bean id="imageQueryResponseWriter" class="edu.ucla.cens.awserver.jee.servlet.writer.ImageQueryResponseWriter">
+    <constructor-arg index="0"><ref bean="severeErrorResponse" /></constructor-arg>
+  </bean>
+  
+    
+  <!-- Controller -->
+  <bean id="imageQueryController" class="edu.ucla.cens.awserver.controller.ControllerImpl">
+    <constructor-arg index="0">
+      <list>
+        <ref bean="tokenBasedAuthenticationService" />
+        <ref bean="campaignAccessCheckService" />
+        <ref bean="userRoleCheckService" />
+        <ref bean="campaignUserCheckService" />
+        <ref bean="findCampaignForMediaIdService" />
+        <ref bean="findUrlForMediaIdService" />
+      </list>
+    </constructor-arg>
+    <constructor-arg index="1">
+      <ref bean="serverErrorRequestAnnotator" />
+    </constructor-arg>
+    <property name="validators">
+      <list>
+        <ref bean="userTokenValidator" />
+      </list>      
+    </property>
+    <property name="featureName"><value>image query</value></property>
+  </bean>
+  
+  <bean id="findCampaignForMediaIdService" class="edu.ucla.cens.awserver.service.FindCampaignForMediaIdService">
+    <constructor-arg index="0">
+      <bean class="edu.ucla.cens.awserver.dao.FindCampaignForMediaIdDao">
+        <constructor-arg index="0"><ref bean="dataSource"/></constructor-arg>
+      </bean>
+    </constructor-arg>
+    <constructor-arg index="1">
+      <bean class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
+        <constructor-arg index="0">
+          <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
+            <property name="code" value="0900" />
+            <property name="text" value="no image found" />
+          </bean>
+        </constructor-arg>
+      </bean>
+    </constructor-arg>
+    <constructor-arg index="2">
+      <bean class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
+        <constructor-arg index="0">
+          <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
+            <property name="code" value="0901" />
+            <property name="text" value="image does not belong to campaign" />
+          </bean>
+        </constructor-arg>
+      </bean>
+    </constructor-arg>
+  </bean>
+  
+    <bean id="findUrlForMediaIdService" class="edu.ucla.cens.awserver.service.FindUrlForMediaIdService">
+    <constructor-arg index="0">
+      <bean class="edu.ucla.cens.awserver.dao.FindUrlForMediaIdDao">
+        <constructor-arg index="0"><ref bean="dataSource"/></constructor-arg>
+      </bean>
+    </constructor-arg>
+    <constructor-arg index="1">
+      <bean class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
+        <constructor-arg index="0">
+          <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
+            <property name="code" value="0900" />
+            <property name="text" value="no image found" />
+          </bean>
+        </constructor-arg>
+      </bean>
+    </constructor-arg>
+    <constructor-arg index="2">
+      <ref bean="severeErrorJsonRequestAnnotator" />
+    </constructor-arg>
+  </bean>
+  
+</beans>

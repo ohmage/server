@@ -1,0 +1,84 @@
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
+                           http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-2.5.xsd">
+  <!--  
+     Spring ApplicationContext configuration for configuration retrieval queries 
+  -->
+  
+  <!-- Servlet-to-AW hooks -->
+  <!-- create request object -->
+  <bean id="retrieveConfigAwRequestCreator" class="edu.ucla.cens.awserver.jee.servlet.glue.RetrieveConfigAwRequestCreator" />
+  <!-- validate input data (sanity check) -->
+  <bean id="retrieveConfigHttpServletRequestValidator" class="edu.ucla.cens.awserver.jee.servlet.validator.RetrieveConfigValidator" />
+  <!-- write output -->
+  <bean id="retrieveConfigResponseWriter" class="edu.ucla.cens.awserver.jee.servlet.writer.RetrieveConfigResponseWriter">
+    <constructor-arg index="0">
+      <ref bean="dataPointFunctionQueryFunctionNames" />
+    </constructor-arg>
+    <constructor-arg index="1"><ref bean="severeErrorResponse" /></constructor-arg>
+  </bean>  
+    
+  <!-- Controller -->
+  <bean id="retrieveConfigurationController" class="edu.ucla.cens.awserver.controller.ControllerImpl">
+    <constructor-arg index="0">
+      <list>
+        <ref bean="tokenBasedAuthenticationService" />
+        <ref bean="retrieveConfigurationService" />
+      </list>
+    </constructor-arg>
+    <constructor-arg index="1">
+      <ref bean="serverErrorRequestAnnotator" />
+    </constructor-arg>
+    <!-- all validation is handled in the servlet layer because it is simple sanity-check validation -->
+    <property name="featureName"><value>configuration retrieval</value></property>
+  </bean>
+  
+  <!-- Authentication -->
+  <bean id="tokenBasedAuthenticationService" class="edu.ucla.cens.awserver.service.TokenBasedAuthenticationService">
+    <constructor-arg index="0">
+      <ref bean="userBin" />
+    </constructor-arg>
+    <constructor-arg index="1">
+      <bean class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
+        <constructor-arg index="0"> 
+          <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
+            <property name="code" value="0200" />
+            <property name="text" value="authentication failed" />
+          </bean>
+        </constructor-arg>
+      </bean>
+    </constructor-arg>
+  </bean>
+	
+  <bean id="retrieveConfigurationService" class="edu.ucla.cens.awserver.service.ConfigurationRetrievalService">
+    <constructor-arg index="0">
+      <bean class="edu.ucla.cens.awserver.dao.FindAllCampaignsForUserDao">
+        <constructor-arg index="0"><ref bean="dataSource"/></constructor-arg>
+        <constructor-arg index="1"><value>true</value></constructor-arg>
+      </bean>
+    </constructor-arg>
+    <constructor-arg index="1">
+      <bean class="edu.ucla.cens.awserver.dao.FindAllUsersForCampaignDao">
+        <constructor-arg index="0"><ref bean="dataSource"/></constructor-arg>        
+      </bean>
+    </constructor-arg>
+    <constructor-arg index="2">
+      <bean class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
+        <constructor-arg index="0"> 
+          <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
+            <property name="code" value="0800" />
+            <property name="text" value="no configurations found" />
+          </bean>
+        </constructor-arg>
+      </bean>
+    </constructor-arg>
+    <constructor-arg index="3">
+      <ref bean="configurationCacheService" />
+    </constructor-arg>
+    <constructor-arg index="4">
+      <ref bean="userRoleCacheService" />
+    </constructor-arg>
+  </bean>
+  
+</beans>

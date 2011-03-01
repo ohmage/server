@@ -36,7 +36,7 @@ public class AwRequestPasswordValidator extends AbstractAnnotatingRegexpValidato
 		
 		if(! _regexpPattern.matcher(password).matches()) {
 		
-			getAnnotator().annotate(awRequest, "incorrect character found in password");
+			getAnnotator().annotate(awRequest, "incorrect password");
 			return false;
 		}
 		

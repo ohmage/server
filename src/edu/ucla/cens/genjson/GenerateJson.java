@@ -87,12 +87,7 @@ public class GenerateJson {
 	private static boolean validMessageType(String messageType) {
 		
 		return "mobility:mode_only".equals(messageType) 
-			|| "mobility:mode_features".equals(messageType)
-			|| "prompt:0".equals(messageType)
-			|| "prompt:1".equals(messageType)
-			|| "prompt:2".equals(messageType)
-		    || "prompt:3".equals(messageType)
-		    || "prompt:4".equals(messageType);
+			|| "mobility:mode_extended".equals(messageType);
 	}
 	
 	private static String _helpText = "\nGiven a number of days, a message type and a file name, generate JSON messages from\n" +

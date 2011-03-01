@@ -1,0 +1,293 @@
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:util="http://www.springframework.org/schema/util"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
+                           http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-2.5.xsd">
+  <!--  
+     Spring ApplicationContext configuration for survey data upload 
+  -->
+  
+  <!-- Servlet-to-AW hooks -->
+  <!-- create AwRequest from data in the HttpServletRequest -->
+  <bean id="surveyUploadAwRequestCreator" class="edu.ucla.cens.awserver.jee.servlet.glue.SurveyUploadAwRequestCreator" />
+  <!-- validate parameters in the http request -->
+  <bean id="surveyUploadHttpServletRequestValidator" class="edu.ucla.cens.awserver.jee.servlet.validator.SurveyUploadValidator" />
+  <!-- the response writer is shared with mobilityUploadController.xml -->
+  
+  <!-- 
+    Controller - main workflow: authentication, deep message validation, tranformation of uploaded JSON and prep for database,
+    insertion into database.
+  -->
+  <bean id="surveyUploadController" class="edu.ucla.cens.awserver.controller.ControllerImpl">
+    <constructor-arg index="0">
+    <!-- service the upload request -->
+      <list>
+        <!-- authenticate -->
+        <ref bean="authWithHashedPasswordService" />
+        <!-- authorize -->
+        <ref bean="userCampaignValidationService" />
+        <!-- validate their upload -->
+        <!-- JSON validation: deep specification validation -->
+        <ref bean="jsonMessageSyntaxValidationService" />
+        <ref bean="surveyMessageContentValidationService" />
+        <!-- convert JSON into DataPackets -->
+        <ref bean="surveyDataPacketBuilderService" />
+        <!-- persist DataPackets into db -->
+        <ref bean="surveyDataStorageService" />
+      </list>
+    </constructor-arg>
+    <constructor-arg index="1">
+      <ref bean="serverErrorRequestAnnotator" />
+    </constructor-arg>
+    <property name="validators">
+      <list>
+        <ref bean="userNameValidator" />
+        <ref bean="hashedPasswordValidator" />
+        <ref bean="campaignNameVersionValidator" />
+        <!-- any validator that simply checked for a empty string has been removed because it was redundant with 
+             validation performed in the servlet world -->
+      </list>
+    </property>
+    <property name="postProcessingService">
+      <!-- log upload stats, the upload itself, any failed upload info, and duplicates to the filesystem -->  
+      <bean id="messageLoggerService" class="edu.ucla.cens.awserver.service.MessageLoggerService">
+        <constructor-arg index="0">
+          <value>survey</value>
+        </constructor-arg>
+      </bean>
+    </property>
+    <property name="featureName"><value>survey upload</value></property>
+  </bean>
+  
+  <bean id="userCampaignValidationService" class="edu.ucla.cens.awserver.service.UserCampaignValidationService">
+     <constructor-arg index="0">
+      <bean class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
+        <constructor-arg index="0">
+           <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
+            <property name="code" value="0200" />
+            <property name="text" value="user not in campaign" />
+          </bean>
+        </constructor-arg>
+      </bean>
+    </constructor-arg>
+  </bean>
+  
+  <!-- Validate JSON content according to app business rules -->
+  <bean id="surveyMessageContentValidationService" class="edu.ucla.cens.awserver.service.JsonMessageContentValidationService">
+    <constructor-arg index="0">
+      <list>
+        <ref bean="jsonMsgDateValidator" />
+        <ref bean="jsonMsgTimeValidator" />
+        <ref bean="jsonMsgTimezoneValidator" />
+        <ref bean="jsonMsgLocationStatusValidator" />
+        <ref bean="jsonMsgLocationValidator" />
+        <ref bean="jsonMsgSurveyIdValidator" />
+        <ref bean="jsonMsgSurveyResponsesExistValidator" />
+        <ref bean="jsonMsgSurveyLaunchContextValidator" />
+        <ref bean="jsonMsgSurveyResponsesValidator" />
+      </list>
+    </constructor-arg>
+    <constructor-arg index="1"><ref bean="jsonMsgEmptyArrayAnnotator" /></constructor-arg>
+    <constructor-arg index="2"><ref bean="jsonMsgIncorrectArrayAnnotator" /></constructor-arg>
+  </bean>
+  
+  <bean id="campaignNameVersionValidator" class="edu.ucla.cens.awserver.validator.survey.CampaignNameVersionValidator">
+     <constructor-arg index="0">
+      <bean class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
+        <constructor-arg index="0">
+           <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
+            <property name="code" value="0604" />
+            <property name="text" value="invalid campaign name-version" />
+          </bean>
+        </constructor-arg>
+      </bean>
+    </constructor-arg>
+    <constructor-arg index="1">
+      <ref bean="configurationCacheService" />
+    </constructor-arg>
+  </bean>
+  
+  <bean id="jsonMsgSurveyIdValidator" class="edu.ucla.cens.awserver.validator.survey.JsonMsgSurveyIdValidator">
+    <constructor-arg index="0">
+      <bean class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
+        <constructor-arg index="0">
+          <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
+            <property name="code" value="0605" />
+            <property name="text" value="missing or invalid survey_id in message" />
+          </bean>
+        </constructor-arg>  
+      </bean>
+    </constructor-arg>
+    <constructor-arg index="1">
+     <ref bean="configurationCacheService" />
+    </constructor-arg>
+  </bean>
+  
+  <bean id="jsonMsgSurveyResponsesExistValidator" class="edu.ucla.cens.awserver.validator.survey.JsonMsgSurveyResponsesExistValidator">
+    <constructor-arg index="0">
+      <bean class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
+        <constructor-arg index="0">
+          <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
+            <property name="code" value="0602" />
+            <property name="text" value="missing responses in survey message" />
+          </bean>
+        </constructor-arg>  
+      </bean>
+    </constructor-arg>
+  </bean>
+  
+  <bean id="jsonMsgSurveyResponsesValidator" class="edu.ucla.cens.awserver.validator.survey.JsonMsgSurveyResponsesValidator">
+    <constructor-arg index="0">
+      <bean class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
+        <constructor-arg index="0">
+          <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
+            <property name="code" value="0603" />
+            <property name="text" value="invalid prompt response" />
+          </bean>
+        </constructor-arg>  
+      </bean>
+    </constructor-arg>
+    <constructor-arg index="1">
+      <ref bean="configurationCacheService" />
+    </constructor-arg>
+    <constructor-arg index="2">
+      <ref bean="promptValidatorCache" />
+    </constructor-arg>
+  </bean>
+  
+  <bean id="jsonMsgSurveyLaunchContextValidator" class="edu.ucla.cens.awserver.validator.survey.JsonMsgSurveyLaunchContextValidator">
+    <constructor-arg index="0">
+      <bean class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
+        <constructor-arg index="0">
+          <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
+            <property name="code" value="0606" />
+            <property name="text" value="missing or incorrect survey_launch_context in survey message" />
+          </bean>
+        </constructor-arg>  
+      </bean>
+    </constructor-arg>
+  </bean>
+  
+  <bean id="jsonMsgLocationStatusValidator" class="edu.ucla.cens.awserver.validator.json.JsonMsgValueInListValidator">
+    <constructor-arg index="0">
+      <bean class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
+        <constructor-arg index="0">
+          <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
+            <property name="code" value="0408" />
+            <property name="text" value="invalid location status" />
+          </bean>
+        </constructor-arg>  
+      </bean>
+    </constructor-arg>
+    <constructor-arg index="1">
+      <value>location_status</value>
+    </constructor-arg>
+    <constructor-arg index="2">
+      <ref bean="locationStatuses" />
+    </constructor-arg>
+  </bean>
+  
+   <util:list id="locationStatuses">
+    <value>unavailable</value>
+    <value>valid</value>
+    <value>inaccurate</value>
+    <value>stale</value>
+  </util:list>
+  
+  <bean id="jsonMsgLocationValidator" class="edu.ucla.cens.awserver.validator.survey.JsonMsgLocationValidator">
+    <constructor-arg index="0">
+      <bean class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
+        <constructor-arg index="0">
+          <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
+            <property name="code" value="0409" />
+            <property name="text" value="location existence problem" />
+          </bean>
+        </constructor-arg>  
+      </bean>
+    </constructor-arg>
+    <constructor-arg index="1">
+      <list>
+        <ref bean="jsonMsgLatitudeValidator" />
+        <ref bean="jsonMsgLongitudeValidator" />
+        <ref bean="jsonMsgLocationAccuracyValidator" />
+        <ref bean="jsonMsgLocationProviderValidator" />
+        <ref bean="jsonMsgLocationTimestampValidator" />
+      </list>
+    </constructor-arg>
+  </bean>      
+  
+  <bean id="jsonMsgLocationTimestampValidator" class="edu.ucla.cens.awserver.validator.json.JsonMsgLocationTimestampValidator">
+    <constructor-arg index="0">
+      <bean class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
+        <constructor-arg index="0">
+          <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
+            <property name="code" value="0410" />
+            <property name="text" value="missing or invalid timestamp" />
+          </bean>
+        </constructor-arg>  
+      </bean>
+    </constructor-arg>
+  </bean>
+  
+  <bean id="promptValidatorCache" class="edu.ucla.cens.awserver.validator.prompt.PromptValidatorCache">
+    <constructor-arg index="0">
+      <map>
+        <entry>
+          <key><value>hours_before_now</value></key>
+          <bean class="edu.ucla.cens.awserver.validator.prompt.RangeBoundNumberPromptValidator" />
+        </entry>
+        <entry>
+          <key><value>number</value></key>
+          <bean class="edu.ucla.cens.awserver.validator.prompt.RangeBoundNumberPromptValidator" />
+        </entry>
+        <entry>
+          <key><value>timestamp</value></key>
+          <bean class="edu.ucla.cens.awserver.validator.prompt.TimestampPromptValidator" />
+        </entry>
+        <entry>
+          <key><value>text</value></key>
+          <bean class="edu.ucla.cens.awserver.validator.prompt.TextWithinRangePromptValidator" />
+        </entry>
+        <entry>
+          <key><value>multi_choice</value></key>
+          <bean class="edu.ucla.cens.awserver.validator.prompt.MultiChoicePromptValidator" />
+        </entry>
+        <entry>
+          <key><value>multi_choice_custom</value></key>
+          <bean class="edu.ucla.cens.awserver.validator.prompt.MultiChoiceCustomPromptValidator" />
+        </entry>
+        <entry>
+          <key><value>single_choice</value></key>
+          <bean class="edu.ucla.cens.awserver.validator.prompt.SingleChoicePromptValidator" />
+        </entry>
+        <entry>
+          <key><value>single_choice_custom</value></key>
+          <bean class="edu.ucla.cens.awserver.validator.prompt.SingleChoiceCustomPromptValidator" />
+        </entry>
+        <entry>
+          <key><value>photo</value></key>
+          <bean class="edu.ucla.cens.awserver.validator.prompt.UUIDPromptValidator" />
+        </entry>
+      </map>
+    </constructor-arg>
+  </bean>
+  
+  <bean id="surveyDataPacketBuilderService" class="edu.ucla.cens.awserver.service.SurveyDataPacketBuilderService">
+    <constructor-arg index="0">
+      <bean class="edu.ucla.cens.awserver.domain.SurveyDataPacketBuilder">
+        <constructor-arg index="0">
+          <ref bean="configurationCacheService" />
+        </constructor-arg>
+      </bean>
+    </constructor-arg>
+  </bean>
+  
+  <bean id="surveyDataStorageService" class="edu.ucla.cens.awserver.service.DaoService" >
+    <constructor-arg index="0">
+      <bean class="edu.ucla.cens.awserver.dao.SurveyUploadDao">
+        <constructor-arg index="0"><ref bean="dataSource" /></constructor-arg>
+      </bean>
+    </constructor-arg>
+  </bean>
+  
+</beans>

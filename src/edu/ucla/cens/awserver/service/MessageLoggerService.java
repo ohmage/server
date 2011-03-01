@@ -8,7 +8,6 @@ import java.io.PrintWriter;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
-import java.util.Map;
 
 import org.apache.log4j.Logger;
 import org.json.JSONArray;
@@ -17,9 +16,12 @@ import org.json.JSONObject;
 
 import edu.ucla.cens.awserver.request.AwRequest;
 import edu.ucla.cens.awserver.util.JsonUtils;
+import edu.ucla.cens.awserver.util.StringUtils;
 
 /**
  * Service for logging details about data uploads.
+ * 
+ * TODO - update when all new upload types are finished
  * 
  * @author selsky
  */
@@ -27,12 +29,22 @@ public class MessageLoggerService implements Service {
 	private static Logger _uploadLogger = Logger.getLogger("uploadLogger");
 	private static Logger _logger = Logger.getLogger(MessageLoggerService.class);
 	
+	private String _requestType;
+	
+	public MessageLoggerService(String requestType) {
+		if(StringUtils.isEmptyOrWhitespaceOnly(requestType)) {
+			throw new IllegalArgumentException("a requestType is required");
+		}
+		_requestType = requestType;
+	}
+	 
+	
 	/**
 	 * Performs the following tasks: logs the user's upload to the filesystem, logs the failed response message to the filesystem
 	 * (if the request failed), and logs a statistic message to the upload logger. 
 	 */
 	public void execute(AwRequest awRequest) {
-		_logger.info("beginning to log files and stats about a device upload");
+		_logger.info("beginning to log files and stats about an upload");
 		
 		if(awRequest.getUser().isLoggedIn()) { // avoid filling the filesystem up with junk from non-logged in users
 			logUploadToFilesystem(awRequest);
@@ -40,7 +52,7 @@ public class MessageLoggerService implements Service {
 		
 		logUploadStats(awRequest);
 		
-		_logger.info("finished with logging files and stats about a device upload");
+		_logger.info("finished with logging files and stats about an upload");
 	}
 	
 	private void logUploadStats(AwRequest awRequest) {
@@ -49,7 +61,7 @@ public class MessageLoggerService implements Service {
 		String numberOfDuplicates = "unknown";
 		String sessionId = awRequest.getSessionId();
 		
-		if(data instanceof JSONArray) {
+		if(null != data) {
 			totalNumberOfMessages = String.valueOf(((JSONArray) data).length());
 			
 			List<Integer> duplicateIndexList = awRequest.getDuplicateIndexList();
@@ -79,28 +91,29 @@ public class MessageLoggerService implements Service {
 		builder.append(" user=" + user);
 		builder.append(" isLoggedIn=" + awRequest.getUser().isLoggedIn());
 		builder.append(" sessionId=" + sessionId);
-		builder.append(" requestType=" + awRequest.getRequestType());
+		builder.append(" requestType=" + _requestType);
 		builder.append(" numberOfRecords=" + totalNumberOfMessages);
 		builder.append(" numberOfDuplicates=" + numberOfDuplicates);
 		builder.append(" proccessingTimeMillis=" + processingTime);
 		
 		_uploadLogger.info(builder.toString());
-		
 	}
 
 	private void logUploadToFilesystem(AwRequest awRequest) {
 		String sessionId = awRequest.getSessionId();
 		SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMddHHmmssSSS");
-		String userName = null == awRequest.getUser().getUserName() ? "unknown.user" : awRequest.getUser().getUserName(); 
+		String userName = awRequest.getUser().getUserName(); 
 		
 		String fileName = userName + "-" + sdf.format(new Date());
 		
-		String catalinaBase = System.getProperty("catalina.base"); // need a system prop called upload-logging-directory or something like that
+		String catalinaBase = System.getProperty("catalina.base"); // TODO need a system prop called upload-logging-directory or something like that
 		
 		JSONArray data = awRequest.getJsonDataAsJsonArray(); 
 		PrintWriter printWriter = null;
 		
 		try {
+			
+			// First log the upload
 			
 			String uploadFileName = catalinaBase + "/logs/uploads/" + fileName  + "-upload.json";
 			printWriter = new PrintWriter(new BufferedWriter(new FileWriter(new File(uploadFileName))));
@@ -118,6 +131,8 @@ public class MessageLoggerService implements Service {
 			}
 			close(printWriter);
 		
+			// Now log the failed request
+			
 			if(awRequest.isFailedRequest()) {
 				
 				printWriter = new PrintWriter(new BufferedWriter(new FileWriter(new File(catalinaBase + "/logs/uploads/" + fileName  + "-failed-upload-response.json"))));
@@ -132,10 +147,9 @@ public class MessageLoggerService implements Service {
 						jsonObject = new JSONObject(failedMessage);
 						// Dump out the request params
 						jsonObject.put("session_id", sessionId);
-						jsonObject.put("request_type", awRequest.getRequestType());
+						jsonObject.put("request_type", _requestType);
 						jsonObject.put("user", awRequest.getUser().getUserName());
-						jsonObject.put("phone_version", awRequest.getPhoneVersion());
-						jsonObject.put("protocol_version",awRequest.getProtocolVersion());
+						jsonObject.put("client", awRequest.getClient());
 						jsonObject.put("upload_file_name", uploadFileName);
 						
 					} catch (JSONException jsone) {
@@ -154,44 +168,47 @@ public class MessageLoggerService implements Service {
 				close(printWriter);
 			}
 			
-			List<Integer> duplicateIndexList = awRequest.getDuplicateIndexList();
-			Map<Integer, List<Integer>> duplicatePromptResponseMap = awRequest.getDuplicatePromptResponseMap();
+			// Finally, log duplicates if there are any
 			
+			List<Integer> duplicateIndexList = awRequest.getDuplicateIndexList();
+						
 			if(null != duplicateIndexList && duplicateIndexList.size() > 0) {
 				
 				int size = duplicateIndexList.size();
-				int lastDuplicateIndex = -1;
+//				int lastDuplicateIndex = -1;
 				printWriter = new PrintWriter(new BufferedWriter(new FileWriter(new File(catalinaBase + "/logs/uploads/" + fileName  + "-upload-duplicates.json"))));
 				printWriter.write("{\"sessionId\":\"" + sessionId + "\"}");
 				
 				for(int i = 0; i < size; i++) {
 					
 					int duplicateIndex = duplicateIndexList.get(i);
-					
-					if("prompt".equals(awRequest.getRequestType())) {
-
-						if(lastDuplicateIndex != duplicateIndex) {
-							List<Integer> list = duplicatePromptResponseMap.get(duplicateIndex);
-							JSONObject outputObject = new JSONObject();
-							JSONArray jsonArray = new JSONArray(list);
-							JSONObject dataPacket = JsonUtils.getJsonObjectFromJsonArray((JSONArray) data, duplicateIndex);
-							
-							try {
-								outputObject.put("duplicatePromptIds", jsonArray);
-								outputObject.put("dataPacket", dataPacket);
-							} catch (JSONException jsone) {
-								throw new IllegalStateException("attempt to add duplicateConfigIds array to data JSON Object for" +
-										" duplicate logging caused JSONException: " + jsone.getMessage());
-							}
-							lastDuplicateIndex = duplicateIndex;
-							printWriter.write(outputObject.toString());
-							printWriter.write("\n");
-					    }
-					} else {
+//					
+//					// if("prompt".equals(awRequest.getRequestType())) {
+//					if(awRequest instanceof SurveyUploadAwRequest) {
+//
+//						if(lastDuplicateIndex != duplicateIndex) {
+//							List<Integer> list = duplicatePromptResponseMap.get(duplicateIndex);
+//							JSONObject outputObject = new JSONObject();
+//							JSONArray jsonArray = new JSONArray(list);
+//							JSONObject dataPacket = JsonUtils.getJsonObjectFromJsonArray((JSONArray) data, duplicateIndex);
+//							
+//							try {
+//								outputObject.put("duplicatePromptIds", jsonArray);
+//								outputObject.put("dataPacket", dataPacket);
+//							} catch (JSONException jsone) {
+//								throw new IllegalStateException("attempt to add duplicateConfigIds array to data JSON Object for" +
+//										" duplicate logging caused JSONException: " + jsone.getMessage());
+//							}
+//							lastDuplicateIndex = duplicateIndex;
+//							printWriter.write(outputObject.toString());
+//							printWriter.write("\n");
+//					    }
+//						
+//					} else { // it was a mobility upload
 						
 						printWriter.write(JsonUtils.getJsonObjectFromJsonArray((JSONArray) data, duplicateIndex).toString());
 						printWriter.write("\n");
-					}
+//					}
 				}
 				
 				close(printWriter);

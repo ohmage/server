@@ -19,7 +19,8 @@ public class AuthenticationResultRowMapper implements RowMapper {
 		lr.setEnabled(rs.getBoolean(2));
 		lr.setNew(rs.getBoolean(3));
 		lr.setCampaignId(rs.getInt(4));
-		lr.setUserRoleId(rs.getInt(5));
+		lr.setCampaignName(rs.getString(5));
+		lr.setUserRoleId(rs.getInt(6));
 		return lr;
 	}
 }

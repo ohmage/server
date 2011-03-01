@@ -8,6 +8,7 @@ import edu.ucla.cens.awserver.service.ServiceException;
 import edu.ucla.cens.awserver.util.StringUtils;
 import edu.ucla.cens.awserver.validator.Validator;
 import edu.ucla.cens.awserver.validator.ValidatorException;
+import edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator;
 
 /**
  * The default Controller implementation.
@@ -21,6 +22,7 @@ public class ControllerImpl implements Controller {
 	private Service[]   _services;
 	private Service _postProcessingService;
 	private String _featureName; // used for logging messages
+	private FailedJsonRequestAnnotator _failedRequestAnnotator; // annotate the request in the case of Validator or Service exceptions
 	
 	/**
 	 * Instantiates this class with the passed-in Validator and Service arrays. An array of Services is required for this 
@@ -28,11 +30,15 @@ public class ControllerImpl implements Controller {
 	 * 
 	 * @throws IllegalArgumentException if an empty or null array of Services is passed in.  
 	 */
-	public ControllerImpl(Service[] services) {
+	public ControllerImpl(Service[] services, FailedJsonRequestAnnotator failedRequestAnnotator) {
 		if(null == services || services.length == 0) {
 			throw new IllegalArgumentException("a null or zero-length array of Services is not allowed");
 		}
+		if(null == failedRequestAnnotator) {
+			throw new IllegalArgumentException("an errorResponse is required");
+		}
 		_services = services;
+		_failedRequestAnnotator = failedRequestAnnotator;
 	}
 	
 	/**
@@ -83,18 +89,14 @@ public class ControllerImpl implements Controller {
 		
 		catch(ValidatorException ve) { // an unrecoverable logical error has occurred
 			
-			awRequest.setFailedRequestErrorMessage("{\"code\":\"0103\",\"text\":\"" + ve.getMessage() + "\"}");
-			awRequest.setFailedRequest(true);
-			
+			_failedRequestAnnotator.annotate(awRequest, ve.getMessage());
 			throw new ControllerException(ve);	
 			
 		}
 		
 		catch (ServiceException se) { // an unrecoverable logical or system-level error has occurred
 
-			awRequest.setFailedRequestErrorMessage("{\"code\":\"0103\",\"text\":\"" + se.getMessage() + "\"}");
-			awRequest.setFailedRequest(true);
-
+			_failedRequestAnnotator.annotate(awRequest, se.getMessage());
 			throw new ControllerException(se);	
 		}
 		

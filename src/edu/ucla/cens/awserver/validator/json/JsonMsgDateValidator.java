@@ -27,8 +27,6 @@ public class JsonMsgDateValidator extends AbstractAnnotatingJsonObjectValidator 
 	/**
 	 * @return true if the value returned from the AwRequest for the key "date" exists and is of the form yyyy-MM-dd hh:mm:ss.
 	 * @return false otherwise
-	 * 
-	 * TODO - validation parameters for date value sanity (e.g. date should not be in the past or even too far in the future?)
 	 */
 	public boolean validate(AwRequest awRequest, JSONObject jsonObject) {
 		String date = JsonUtils.getStringFromJsonObject(jsonObject, _key);
@@ -38,9 +36,10 @@ public class JsonMsgDateValidator extends AbstractAnnotatingJsonObjectValidator 
 			return false;
 		}
 		
-		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
+		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+		sdf.setLenient(false); // enforce valid dates 
 		
-		try { // this only makes sure that the date is parseable, not that the value is a sane date
+		try {
 		
 			sdf.parse(date);
 			

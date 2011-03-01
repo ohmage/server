@@ -11,7 +11,7 @@ import edu.ucla.cens.awserver.validator.AwRequestAnnotator;
 
 /**
  * A validator of validators for handling the two different mobility subtypes: mode_features and mode_only.
- * 
+ *
  * @author selsky
  */
 public class JsonMsgMobilitySubtypeValidator extends AbstractAnnotatingJsonObjectValidator {

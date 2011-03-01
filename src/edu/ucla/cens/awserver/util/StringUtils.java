@@ -1,5 +1,8 @@
 package edu.ucla.cens.awserver.util;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
+
 
 /**
  * A collection of methods for manipulating or validating strings.
@@ -31,36 +34,31 @@ public final class StringUtils {
 		
 	}
 	
-//	/**
-//	 * Retrieves the subdomain from a URL String where the subdomain is defined as the text between the protocol (http://) and the
-//	 * first occurence of a dot (.) (so technically this method does not return the full subdomain). 
-//	 * 
-//	 * @throws IllegalArgumentException if a null or empty string is passed in
-//	 */
-//	public static String retrieveSubdomainFromUrlString(String url) {
-//		if(isEmptyOrWhitespaceOnly(url)) {
-//			throw new IllegalArgumentException("cannot retrieve subdomain from a null or empty URL String");
-//		}
-//		
-//		String urlStart = url.split("\\.")[0];
-//		String subdomain = null;
-//		
-//		if(urlStart.startsWith("http://")) {
-//			
-//			subdomain = urlStart.substring(7);
-//
-//// enable https support when we enable it in the app server config			
-////		} else if(urlStart.startsWith("https://")) {
-////
-////			subdomain = urlStart.substring(8);
-//			
-//		} else { // if this happens, the application server is configured to support an unknown protocol 
-//			     // and this method needs updating
-//			
-//			throw new IllegalArgumentException("unknown protocol: " + url);
-//		}
-//		
-//		return subdomain;
-//		
-//	}	
+	/**
+	 * @return true if the String is the value "true" or "false"
+	 *         false otherwise -- this method is more restrictive than Boolean.valueOf(String s)
+	 */
+	public static boolean isBooleanString(String string) {
+		
+		return "true".equals(string) || "false".equals(string);
+		
+	}
+	
+	/**
+	 * @return the URL decoded version of the provided string.
+	 */
+	public static String urlDecode(String string) {
+		if(null == string) {
+			return null;
+		}
+		
+		try {
+			
+			return URLDecoder.decode(string, "UTF-8");
+			
+		} catch (UnsupportedEncodingException uee) { // bad!! is the Java install corrupted?
+			
+			throw new IllegalStateException("cannot decode UTF-8 string: " + string);
+		}
+	}
 }

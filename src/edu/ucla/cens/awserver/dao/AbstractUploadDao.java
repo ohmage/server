@@ -30,7 +30,8 @@ public abstract class AbstractUploadDao extends AbstractDao {
 	}
 	
 	/**
-	 * Logs a duplicate record index to the AwRequest. 
+	 * Logs a duplicate record index to the AwRequest. An upload consists of many records in a JSON Array. A duplicate index is 
+	 * an index into that array.
 	 */
 	protected void handleDuplicate(AwRequest awRequest, int duplicateIndex) {
 		List<Integer> duplicateIndexList = awRequest.getDuplicateIndexList();

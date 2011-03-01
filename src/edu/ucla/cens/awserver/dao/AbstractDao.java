@@ -10,7 +10,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
  * @author selsky
  */
 public abstract class AbstractDao implements Dao {	
-	private DataSource _dataSource; // TODO drop this as it is unused -- all DataSource access is via JdbcTemplate
+	private DataSource _dataSource;
 	private JdbcTemplate _jdbcTemplate;
     
 	/**

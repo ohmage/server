@@ -21,4 +21,8 @@ public abstract class AbstractCacheService implements CacheService {
 		_dao = dao;
 	}
 	
+	public boolean containsKey(Object key) {
+		throw new UnsupportedOperationException("operation not allowed");
+	}
+	
 }

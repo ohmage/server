@@ -1,0 +1,93 @@
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:util="http://www.springframework.org/schema/util"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
+                           http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-2.5.xsd">
+  <!--  
+     Spring ApplicationContext configuration the data point function API 
+  -->
+  
+  <!-- The allowable functions to query against -->
+  <util:list id="dataPointFunctionQueryFunctionNames">
+    <value>completed_surveys</value>
+  </util:list>
+  
+  <bean id="completedSurveysMetadata" class="edu.ucla.cens.awserver.domain.DataPointFunctionQueryMetadata">
+    <property name="unit"><value>survey</value></property>
+    <property name="type"><value>event</value></property>
+    <property name="label"><value>completed_surveys</value></property>
+  </bean>
+  
+  <!-- Servlet-to-AW hooks -->
+  <!-- "pre-validate" inbound data -->
+  <bean id="dataPointFunctionQueryHttpServletRequestValidator" class="edu.ucla.cens.awserver.jee.servlet.validator.DataPointFunctionQueryValidator" />
+  <!-- create AwRequest from data in the HttpServletRequest -->
+  <bean id="dataPointFunctionQueryAwRequestCreator" class="edu.ucla.cens.awserver.jee.servlet.glue.DataPointFunctionQueryAwRequestCreator">
+    <constructor-arg index="0">
+      <ref bean="completedSurveysMetadata" />
+    </constructor-arg>
+  </bean>
+  <!-- write outbound data, post-controller -->
+  <bean id="dataPointFunctionQueryResponseWriter" class="edu.ucla.cens.awserver.jee.servlet.writer.DataPointFunctionQueryResponseWriter">
+    <constructor-arg index="0"><ref bean="severeErrorResponse" /></constructor-arg>
+  </bean>
+    
+  <!-- Controller -->
+  <bean id="dataPointFunctionQueryController" class="edu.ucla.cens.awserver.controller.ControllerImpl">
+    <constructor-arg index="0">
+      <list>
+        <ref bean="tokenBasedAuthenticationService" />
+        <ref bean="campaignAccessCheckService" />
+        <ref bean="userRoleCheckService" />
+        <ref bean="campaignUserCheckService" />
+        <ref bean="dataPointFunctionQueryService" />
+      </list>
+    </constructor-arg>
+    <constructor-arg index="1">
+      <ref bean="serverErrorRequestAnnotator" />
+    </constructor-arg>
+    <property name="validators">
+      <list>
+        <ref bean="startDateValidator" />
+        <ref bean="endDateValidator" />
+        <ref bean="userTokenValidator" />
+        <ref bean="dataPointFunctionQueryFunctionNameValidator" />
+      </list>      
+    </property>
+    <property name="featureName"><value>data point function query</value></property>
+  </bean>
+  
+  <bean id="dataPointFunctionQueryFunctionNameValidator" class="edu.ucla.cens.awserver.validator.DataPointFunctionQueryFunctionNameValidator">
+    <constructor-arg index="0">
+      <bean class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
+        <constructor-arg index="0">
+          <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
+            <property name="code" value="1100" />
+            <property name="text" value="unknown function name" />
+          </bean>
+        </constructor-arg>
+      </bean>
+    </constructor-arg>
+    <constructor-arg index="1">
+      <ref bean="dataPointFunctionQueryFunctionNames" />
+    </constructor-arg>
+  </bean>
+
+  <bean id="dataPointFunctionQueryService" class="edu.ucla.cens.awserver.service.DataPointFunctionQueryService">
+    <constructor-arg index="0">
+      <map>
+        <entry>
+          <key><value>completed_surveys</value></key>
+          <bean class="edu.ucla.cens.awserver.service.SimpleQueryService">
+            <constructor-arg index="0">
+              <bean class="edu.ucla.cens.awserver.dao.CompletedSurveysDao">
+                <constructor-arg index="0"><ref bean="dataSource" /></constructor-arg>
+              </bean>
+            </constructor-arg>
+          </bean>
+        </entry>
+      </map>
+    </constructor-arg>
+  </bean>
+  
+</beans>

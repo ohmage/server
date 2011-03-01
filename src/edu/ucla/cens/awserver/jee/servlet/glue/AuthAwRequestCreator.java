@@ -5,29 +5,28 @@ import java.net.URLDecoder;
 
 import javax.servlet.http.HttpServletRequest;
 
+import org.apache.log4j.NDC;
+
 import edu.ucla.cens.awserver.domain.UserImpl;
 import edu.ucla.cens.awserver.request.AwRequest;
-import edu.ucla.cens.awserver.request.ResultListAwRequest;
+import edu.ucla.cens.awserver.request.PhoneResultListAwRequest;
 
 /**
- * Transformer for creating an AwRequest for authentication.
+ * AwRequestCreator for phone authentication, which includes the extra phone version (phv) parameter.
  * 
  * @author selsky
  */
 public class AuthAwRequestCreator implements AwRequestCreator {
-	
-	/**
-	 * Default no-arg constructor. Simply creates an instance of this class.
-	 */
+
 	public AuthAwRequestCreator() {
 		
 	}
 	
 	/**
-	 *  Pulls the u (userName) parameter and the subdomain out of the HttpServletRequest and places them in a new AwRequest.
-	 *  Validation of the data is performed within a controller.
+	 * Pushes the phone version into the Log4J NDC and creates an AwRequest with the login information and phone version.
 	 */
 	public AwRequest createFrom(HttpServletRequest request) {
+		
 		String userName = request.getParameter("u");
 		String password = null; 
 			
@@ -46,8 +45,13 @@ public class AuthAwRequestCreator implements AwRequestCreator {
 		user.setUserName(userName);
 		user.setPassword(password);
 		
-		AwRequest awRequest = new ResultListAwRequest();
+		String ci = request.getParameter("ci"); 
+		NDC.push("ci=" + ci); // push the client string into the Log4J NDC for the currently executing thread - this means that it
+		                      // will be in every log message for the thread
+		
+		AwRequest awRequest = new PhoneResultListAwRequest();
 		awRequest.setUser(user);
+		awRequest.setClient(ci);
 		
 		return awRequest;
 	}

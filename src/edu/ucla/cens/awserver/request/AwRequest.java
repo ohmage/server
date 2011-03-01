@@ -1,12 +1,10 @@
 package edu.ucla.cens.awserver.request;
 
 import java.util.List;
-import java.util.Map;
 
 import org.json.JSONArray;
 
 import edu.ucla.cens.awserver.domain.DataPacket;
-import edu.ucla.cens.awserver.domain.PromptType;
 import edu.ucla.cens.awserver.domain.User;
 
 /**
@@ -21,84 +19,108 @@ import edu.ucla.cens.awserver.domain.User;
  * @author selsky
  * @see AbstractAwRequest
  */
-public interface AwRequest {
+ public interface AwRequest {
 
-	public boolean isFailedRequest();
-	public void setFailedRequest(boolean isFailedRequest);
+	 boolean isFailedRequest();
+	 void setFailedRequest(boolean isFailedRequest);
 	
-	public String getFailedRequestErrorMessage();
-	public void setFailedRequestErrorMessage(String errorMessage);
+	 String getFailedRequestErrorMessage();
+	 void setFailedRequestErrorMessage(String errorMessage);
 	
-	public String getStartDate();
-	public void setStartDate(String startDate);
+	 String getStartDate();
+	 void setStartDate(String startDate);
 	
-	public String getEndDate();
-	public void setEndDate(String endDate);
+	 String getEndDate();
+	 void setEndDate(String endDate);
 	
-	public List<?> getResultList();
-	public void setResultList(List<?> resultList);
+	 List<?> getResultList();
+	 void setResultList(List<?> resultList);
 
-	public List<Integer> getDuplicateIndexList();
-	public void setDuplicateIndexList(List<Integer> duplicateIndexList);
+	 List<Integer> getDuplicateIndexList();
+	 void setDuplicateIndexList(List<Integer> duplicateIndexList);
 	
-	public int getCampaignPromptGroupId();
-	public void setCampaignPromptGroupId(int campaignPromptGroupId);
+//	 int getCampaignPromptGroupId();
+//	 void setCampaignPromptGroupId(int campaignPromptGroupId);
 	
-	public List<PromptType> getPromptTypeRestrictions();
-	public void setPromptTypeRestrictions(List<PromptType> promptTypeRestrictions);
+//	 List<PromptType> getPromptTypeRestrictions();
+//	 void setPromptTypeRestrictions(List<PromptType> promptTypeRestrictions);
 	
-	public Map<Integer, List<Integer>> getDuplicatePromptResponseMap();
-	public void setDuplicatePromptResponseMap(Map<Integer, List<Integer>> duplicatePromptResponseMap);
+//	 Map<Integer, List<Integer>> getDuplicatePromptResponseMap();
+//	 void setDuplicatePromptResponseMap(Map<Integer, List<Integer>> duplicatePromptResponseMap);
 	
-	public int getCampaignPromptVersionId();
-	public void setCampaignPromptVersionId(int campaignPromptVersionId);
+//	 int getCampaignPromptVersionId();
+//	 void setCampaignPromptVersionId(int campaignPromptVersionId);
 	
-	public long getStartTime();
-	public void setStartTime(long startTime);
+	 long getStartTime();
+	 void setStartTime(long startTime);
 	
-	public String getSessionId();
-	public void setSessionId(String sessionId);
+	 String getSessionId();
+	 void setSessionId(String sessionId);
 	
-	public String getRequestType();
-	public void setRequestType(String requestType);
+//	 String getRequestType();
+//	 void setRequestType(String requestType);
 	
-	public String getPhoneVersion();
-	public void setPhoneVersion(String phoneVersion);
+	 String getClient();
+	 void setClient(String client);
 	
-	public String getProtocolVersion();
-	public void setProtocolVersion(String protocolVersion);
+//	 String getProtocolVersion();
+//	 void setProtocolVersion(String protocolVersion);
 	
-	public String getJsonDataAsString();
-	public void setJsonDataAsString(String jsonDataAsString);
+	 String getJsonDataAsString();
+	 void setJsonDataAsString(String jsonDataAsString);
 	
-	public List<DataPacket> getDataPackets();
-	public void setDataPackets(List<DataPacket> dataPackets);
+	 // A DataPacket is a single mobility record or a single survey response
+	 List<DataPacket> getDataPackets();
+	 void setDataPackets(List<DataPacket> dataPackets);
 	
-	public int getCurrentMessageIndex();
-	public void setCurrentMessageIndex(int currentMessageIndex);
+//	 List<SurveyDataPacket> getSurveys();
+//	 void setSurveys(List<SurveyDataPacket> surveys);
+	 
+	 int getCurrentMessageIndex();
+	 void setCurrentMessageIndex(int currentMessageIndex);
 	
-	public int getCurrentPromptId();
-	public void setCurrentPromptId(int currentPromptId);
+//	 int getCurrentPromptId();
+//	 void setCurrentPromptId(int currentPromptId);
 	
-	public JSONArray getJsonDataAsJsonArray();
-	public void setJsonDataAsJsonArray(JSONArray jsonDataAsJsonArray);
+	 JSONArray getJsonDataAsJsonArray();
+	 void setJsonDataAsJsonArray(JSONArray jsonDataAsJsonArray);
 	
-	public String getGroupId();
-	public void setGroupId(String groupId);
+//	 String getGroupId();
+//	 void setGroupId(String groupId);
+//	
+//	 int[] getPromptIdArray();
+//	 void setPromptIdArray(int[] promptIdArray);
+//	
+//	 String getVersionId();
+//	 void setVersionId(String versionId);
 	
-	public int[] getPromptIdArray();
-	public void setPromptIdArray(int[] promptIdArray);
+	 User getUser();
+	 void setUser(User user);
 	
-	public String getVersionId();
-	public void setVersionId(String versionId);
+	 String getUserToken();
+	 void setUserToken(String token);
+	 
+	 String getRequestUrl();
+	 void setRequestUrl(String requestUrl);
 	
-	public User getUser();
-	public void setUser(User user);
-	
-	public String getRequestUrl();
-	public void setRequestUrl(String requestUrl);
-	
-	public String getUserNameRequestParam();
-	public void setUserNameRequestParam(String requestUrl);
-
+	 String getUserNameRequestParam();
+	 void setUserNameRequestParam(String requestUrl);
+	 
+	 String getCampaignVersion();
+	 void setCampaignVersion(String campaignVersion);
+	 
+//	 List<DuplicateSurveyUpload> getDuplicateSurveyUploads();
+//	 void setDuplicateSurveyUploads(List<DuplicateSurveyUpload> duplicates);
+	 
+	 String getMediaId();
+	 void setMediaId(String id);
+	 
+	 byte[] getMedia();
+	 void setMedia(byte[] media);
+	 
+	 String getMediaType();
+	 void setMediaType(String id);
+	 
+	 String getCampaignName();
+	 void setCampaignName(String campaignName);
 }

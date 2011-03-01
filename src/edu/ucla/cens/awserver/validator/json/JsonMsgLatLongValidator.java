@@ -38,14 +38,11 @@ public class JsonMsgLatLongValidator extends AbstractAnnotatingJsonObjectValidat
 		// first, look for a double
 		Double latlong = JsonUtils.getDoubleFromJsonObject(object, _key);
 		
-		if(null == latlong) { // ok, check for Double.NaN as a JSON string (an allowed special case for lat-long values only)
+		if(null == latlong) { 
 			
-			String stringLatLong = JsonUtils.getStringFromJsonObject(object, _key);
-			
-			if(null == stringLatLong || ! "Double.NaN".equals(stringLatLong)) {
-				getAnnotator().annotate(awRequest, _key + " in message is null or invalid. value: " + stringLatLong);
-				return false;
-			}
+			getAnnotator().annotate(awRequest, _key + " in message is null");
+			return false;
+		
 			
 		} else {
 			

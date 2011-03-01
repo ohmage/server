@@ -22,13 +22,16 @@ public class MobilityModeOnlyJsonMessageCreator implements JsonMessageCreator {
 //	    "time":1257272467077,
 //	    "timezone":"EST",
 //	    "subtype":"mode_only",
+//      "location_status":"valid",	
 //	    "location": {
 //	        "latitude":38.8977,
-//	        "longitude":-77.0366
+//	        "longitude":-77.0366,
+//          "accuracy":0.9283213,
+//          "provider":"GPS",
+//          "timestamp":"2009-11-03 10:18:33"
 //	    },
 //	    "mode":"still" 
 //	}
-	
 	
 	/**
 	 * Returns a JSONArray containing <code>numberOfEntries</code> JSONObjects where each JSONObject is a mobility mode_only
@@ -46,6 +49,7 @@ public class MobilityModeOnlyJsonMessageCreator implements JsonMessageCreator {
 			double longitude = ValueCreator.longitude();
 			String mode = ValueCreator.mode();
 			long epoch = ValueCreator.epoch();
+			String locationStatus = ValueCreator.randomLocationStatus();
 			
 			Map<String, Object> map = new HashMap<String, Object>();
 			map.put("date", date);
@@ -53,12 +57,18 @@ public class MobilityModeOnlyJsonMessageCreator implements JsonMessageCreator {
 			map.put("timezone", tz);
 			map.put("subtype", subtype);
 			map.put("mode", mode);
+			map.put("location_status", locationStatus);
 			
-			Map<String, Object> location = new HashMap<String, Object>();
-			location.put("latitude", latitude);
-			location.put("longitude", longitude);
+			if(! "unavailable".equals(locationStatus)) {
+				Map<String, Object> location = new HashMap<String, Object>();
+				location.put("latitude", latitude);
+				location.put("longitude", longitude);
+				location.put("accuracy", ValueCreator.randomPositiveFloat());
+				location.put("provider", ValueCreator.randomProvider());
+				location.put("timestamp", ValueCreator.date());
+				map.put("location", location);
+			}
 			
-			map.put("location", location);
 			jsonArray.put(map);
 		}
 		

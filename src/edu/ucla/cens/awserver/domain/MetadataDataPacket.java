@@ -11,9 +11,9 @@ public abstract class MetadataDataPacket implements DataPacket {
 	private long _epochTime;
 	private String _timezone;
 	
-	private Double _latitude;
-	private Double _longitude;
-		
+	private String _locationStatus;
+	private String _location; // a JSON string
+	
 	public String getDate() {
 		return _date;
 	}
@@ -38,26 +38,19 @@ public abstract class MetadataDataPacket implements DataPacket {
 		_timezone = timezone;
 	}
 
-	public Double getLatitude() {
-		return _latitude;
+	public String getLocationStatus() {
+		return _locationStatus;
 	}
 
-	public void setLatitude(Double latitude) {
-		_latitude = latitude;
+	public void setLocationStatus(String locationStatus) {
+		_locationStatus = locationStatus;
 	}
 
-	public Double getLongitude() {
-		return _longitude;
+	public String getLocation() {
+		return _location;
 	}
 
-	public void setLongitude(Double longitude) {
-		_longitude = longitude;
-	}
-	
-	@Override
-	public String toString() {
-		return "MetadataDataPacket [_date=" + _date + ", _latitude=" + _latitude
-				+ ", _longitude=" + _longitude + ", _epochTime=" + _epochTime
-				+ ", _timezone=" + _timezone + "]";
+	public void setLocation(String location) {
+		_location = location;
 	}
 }

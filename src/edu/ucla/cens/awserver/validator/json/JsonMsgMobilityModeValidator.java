@@ -9,26 +9,24 @@ import edu.ucla.cens.awserver.util.JsonUtils;
 import edu.ucla.cens.awserver.validator.AwRequestAnnotator;
 
 /**
- * Validates the mode element from an AW JSON mode_only or mode_features message.
+ * Validates the mode element from an mode_only or mode_features mobility message.
  * 
  * @author selsky
  */
 public class JsonMsgMobilityModeValidator extends AbstractAnnotatingJsonObjectValidator {
 //	private static Logger _logger = Logger.getLogger(JsonMsgMobilityModeValidator.class);
-	private String _key = "mode";
-	private List<String> _allowedValues;
-	private boolean _doFeaturesValidation;
+	protected String _key = "mode";
+	protected List<String> _allowedValues;
 		
 	/**
      * @throws IllegalArgumentException if the provded list for allowed values is null or empty
 	 */
-	public JsonMsgMobilityModeValidator(AwRequestAnnotator awRequestAnnotator, List<String> allowedValues, boolean doFeaturesValidation) {
+	public JsonMsgMobilityModeValidator(AwRequestAnnotator awRequestAnnotator, List<String> allowedValues) {
 		super(awRequestAnnotator);
 		if(null == allowedValues || allowedValues.size() == 0) {
 			throw new IllegalArgumentException("a non-null non-empty array of allowed values is required");
 		}
 		_allowedValues = allowedValues;
-		_doFeaturesValidation = doFeaturesValidation;
 	}
 	
 	/**
@@ -39,19 +37,8 @@ public class JsonMsgMobilityModeValidator extends AbstractAnnotatingJsonObjectVa
 	 * @return false otherwise
 	 */
 	public boolean validate(AwRequest awRequest, JSONObject jsonObject) {		 
-		String mode = null; 
-		
-		if(! _doFeaturesValidation) {
-			
-			mode = JsonUtils.getStringFromJsonObject(jsonObject, _key);
-			
-		} else { 
-			
-			JSONObject object = JsonUtils.getJsonObjectFromJsonObject(jsonObject, "features");
-			mode = JsonUtils.getStringFromJsonObject(object, _key);
-			
-		}	
-		
+		String mode = JsonUtils.getStringFromJsonObject(jsonObject, _key);; 
+				
 		if(null == mode) {
 			getAnnotator().annotate(awRequest, "mode in message is null");
 			return false;

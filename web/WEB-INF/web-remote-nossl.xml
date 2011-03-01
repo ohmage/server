@@ -1,0 +1,568 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xmlns="http://java.sun.com/xml/ns/javaee"
+         xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd" version="2.5">
+         
+  <!--  Filters: executed in the order in which they are defined in this file, but specific to the filter-mappings -->
+  
+  <!--  Pushes the session id into the Log4J NDC for each request thread. The NDC is a Stack that is dumped to the log 
+        for all Log4J messages.
+  -->
+  <filter>
+    <filter-name>Log4jNdcFilter</filter-name>
+    <filter-class>edu.ucla.cens.awserver.jee.filter.Log4jNdcFilter</filter-class>
+  </filter>
+  <filter-mapping>
+    <filter-name>Log4jNdcFilter</filter-name>
+    <url-pattern>/*</url-pattern>
+  </filter-mapping> 
+  
+  <!--  Enforces UTF-8 character encoding on all requests. --> 
+  <filter>
+    <filter-name>Utf8RequestEncodingFilter</filter-name>
+    <filter-class>edu.ucla.cens.awserver.jee.filter.Utf8RequestEncodingFilter</filter-class>
+  </filter>
+  
+  <filter-mapping>
+    <filter-name>Utf8RequestEncodingFilter</filter-name>
+    <url-pattern>/*</url-pattern>
+  </filter-mapping>
+  
+  <!-- Servlets.  Note that url-patterns are matched against initial (or re-dispatched) requests, not a request possiblty modified
+       by filters.  -->
+
+  <!--  The default Tomcat Servlet used to locate and serve static content -->
+  <servlet>
+    <servlet-name>default</servlet-name>
+    <servlet-class>org.apache.catalina.servlets.DefaultServlet</servlet-class>
+    <init-param>
+      <param-name>debug</param-name>
+      <param-value>0</param-value>
+    </init-param>
+    <init-param>
+      <param-name>listings</param-name>
+      <param-value>false</param-value>
+    </init-param>
+    <load-on-startup>1</load-on-startup>
+  </servlet>
+  
+  <!--  Add mappings for images, etc when necessary -->  
+  <servlet-mapping>
+    <servlet-name>default</servlet-name>
+    <url-pattern>*.html</url-pattern>
+  </servlet-mapping>
+  
+  <servlet-mapping>
+    <servlet-name>default</servlet-name>
+    <url-pattern>*.css</url-pattern>
+  </servlet-mapping>
+
+  <servlet-mapping>
+    <servlet-name>default</servlet-name>
+    <url-pattern>*.js</url-pattern>
+  </servlet-mapping>
+  
+  <servlet-mapping>
+    <servlet-name>default</servlet-name>
+    <url-pattern>*.png</url-pattern>
+  </servlet-mapping>
+  
+  <servlet-mapping>
+    <servlet-name>default</servlet-name>
+    <url-pattern>*.gif</url-pattern>
+  </servlet-mapping>
+  
+  <servlet-mapping>
+    <servlet-name>default</servlet-name>
+    <url-pattern>*.jpg</url-pattern>
+  </servlet-mapping>
+
+  <servlet-mapping>
+    <servlet-name>default</servlet-name>
+    <url-pattern>/logout</url-pattern>
+  </servlet-mapping>
+  
+  <servlet-mapping>
+    <servlet-name>default</servlet-name>
+    <url-pattern>/favicon.ico</url-pattern>
+  </servlet-mapping>
+
+  <servlet-mapping>
+    <servlet-name>default</servlet-name>
+    <url-pattern>/robots.txt</url-pattern>
+  </servlet-mapping>
+
+  <!-- The default Tomcat JSP Servlet. Requests for a JSP are dispatched here. -->
+  <servlet>
+    <servlet-name>jsp</servlet-name>
+    <servlet-class>org.apache.jasper.servlet.JspServlet</servlet-class>
+    <init-param>
+      <param-name>fork</param-name>
+      <param-value>false</param-value>
+    </init-param>
+    <init-param>
+      <param-name>xpoweredBy</param-name>
+       <param-value>false</param-value>
+    </init-param>
+    <load-on-startup>1</load-on-startup>
+  </servlet>
+  
+  <servlet-mapping>
+    <servlet-name>jsp</servlet-name>
+    <url-pattern>*.jsp</url-pattern>
+  </servlet-mapping>
+
+  <!--  Mobility Data Upload -->
+  <servlet>
+    <description>
+      processes mobility data uploads from a client 
+    </description>
+    <servlet-name>MobilityUploadServlet</servlet-name>
+    <servlet-class>edu.ucla.cens.awserver.jee.servlet.AwDataServlet</servlet-class>
+    <init-param>
+      <param-name>awRequestCreatorName</param-name>
+      <param-value>mobilityUploadAwRequestCreator</param-value>
+    </init-param>
+    <init-param>
+      <param-name>controllerName</param-name>
+      <param-value>mobilityUploadController</param-value>
+    </init-param>
+    <init-param>
+      <param-name>httpServletRequestValidatorName</param-name>
+      <param-value>mobilityUploadHttpServletRequestValidator</param-value>
+    </init-param>
+    <init-param>
+      <param-name>responseWriterName</param-name>
+      <param-value>successOrFailResponseWriter</param-value>
+    </init-param>
+    <load-on-startup>1</load-on-startup>
+  </servlet>
+  
+  <servlet-mapping>
+    <servlet-name>MobilityUploadServlet</servlet-name>
+    <url-pattern>/u/mobility</url-pattern>
+  </servlet-mapping>
+ 
+ <!--  Survey Data Upload -->
+  <servlet>
+    <description>
+      processes survey data uploads from a client 
+    </description>
+    <servlet-name>SurveyUploadServlet</servlet-name>
+    <servlet-class>edu.ucla.cens.awserver.jee.servlet.AwDataServlet</servlet-class>
+    <init-param>
+      <param-name>awRequestCreatorName</param-name>
+      <param-value>surveyUploadAwRequestCreator</param-value>
+    </init-param>
+    <init-param>
+      <param-name>controllerName</param-name>
+      <param-value>surveyUploadController</param-value>
+    </init-param>
+    <init-param>
+      <param-name>httpServletRequestValidatorName</param-name>
+      <param-value>surveyUploadHttpServletRequestValidator</param-value>
+    </init-param>
+    <init-param>
+      <param-name>responseWriterName</param-name>
+      <param-value>successOrFailResponseWriter</param-value>
+    </init-param>
+    <load-on-startup>1</load-on-startup>
+  </servlet>
+  
+  <servlet-mapping>
+    <servlet-name>SurveyUploadServlet</servlet-name>
+    <url-pattern>/u/survey</url-pattern>
+  </servlet-mapping>
+  
+  <!--  Image Data Upload -->
+  <servlet>
+    <description>
+      processes image data uploads from a client 
+    </description>
+    <servlet-name>ImageUploadServlet</servlet-name>
+    <servlet-class>edu.ucla.cens.awserver.jee.servlet.AwDataServlet</servlet-class>
+    <init-param>
+      <param-name>awRequestCreatorName</param-name>
+      <param-value>imageUploadAwRequestCreator</param-value>
+    </init-param>
+    <init-param>
+      <param-name>controllerName</param-name>
+      <param-value>imageUploadController</param-value>
+    </init-param>
+    <init-param>
+      <param-name>httpServletRequestValidatorName</param-name>
+      <param-value>imageUploadHttpServletRequestValidator</param-value>
+    </init-param>
+    <init-param>
+      <param-name>responseWriterName</param-name>
+      <param-value>successOrFailResponseWriter</param-value>
+    </init-param>
+    <load-on-startup>1</load-on-startup>
+  </servlet>
+  
+  <servlet-mapping>
+    <servlet-name>ImageUploadServlet</servlet-name>
+    <url-pattern>/u/image</url-pattern>
+  </servlet-mapping>
+   
+  <!--  
+      Stateless Authentication  
+  -->
+  <servlet>
+    <description>
+     performs an authentication check for client login - the request is stateless so no token is returned
+    </description>
+    <servlet-name>AuthStatelessServlet</servlet-name>
+    <servlet-class>edu.ucla.cens.awserver.jee.servlet.AwDataServlet</servlet-class>
+    <!--  The following init-params are used to map the servlet to Spring-configured beans that ultimately service the request. 
+          The param-value elements are Spring bean ids. -->  
+    <init-param>
+      <param-name>awRequestCreatorName</param-name>
+      <param-value>authAwRequestCreator</param-value>
+    </init-param>
+    <init-param>
+      <param-name>httpServletRequestValidatorName</param-name>
+      <param-value>authHttpServletRequestValidator</param-value>
+    </init-param>
+    <init-param>
+      <param-name>controllerName</param-name>
+      <param-value>authStatelessController</param-value>
+    </init-param>
+    <init-param>
+      <param-name>responseWriterName</param-name>
+      <param-value>authStatelessResponseWriter</param-value>
+    </init-param>
+    <load-on-startup>1</load-on-startup>
+  </servlet>
+  
+  <servlet-mapping>
+    <servlet-name>AuthStatelessServlet</servlet-name>
+    <url-pattern>/auth</url-pattern>
+  </servlet-mapping>
+  
+  <!--  
+      Token-based Authentication  
+  -->
+  <servlet>
+    <description>
+     performs an authentication check for client login and returns a token and a list of campaigns for a successfully
+     authenticated user
+    </description>
+    <servlet-name>AuthTokenServlet</servlet-name>
+    <servlet-class>edu.ucla.cens.awserver.jee.servlet.AwDataServlet</servlet-class>
+    <!--  The following init-params are used to map the servlet to Spring-configured beans that ultimately service the request. 
+          The param-value elements are Spring bean ids. -->  
+    <init-param>
+      <param-name>awRequestCreatorName</param-name>
+      <param-value>authAwRequestCreator</param-value>
+    </init-param>
+    <init-param>
+      <param-name>httpServletRequestValidatorName</param-name>
+      <param-value>authHttpServletRequestValidator</param-value>
+    </init-param>
+    <init-param>
+      <param-name>controllerName</param-name>
+      <param-value>authTokenController</param-value>
+    </init-param>
+    <init-param>
+      <param-name>responseWriterName</param-name>
+      <param-value>authTokenResponseWriter</param-value>
+    </init-param>
+    
+    <load-on-startup>1</load-on-startup>
+  </servlet>
+  
+  <servlet-mapping>
+    <servlet-name>AuthTokenServlet</servlet-name>
+    <url-pattern>/auth_token</url-pattern>
+  </servlet-mapping>
+  
+  <!--  handle configuration queries  -->
+  <servlet>
+    <description>
+      returns campaign configurations and special ids (ids for queryable items that are not prompt ids) to logged-in users. also 
+      returns a list of users   
+    </description>
+    <servlet-name>ConfigRetrievalServlet</servlet-name>
+    <servlet-class>edu.ucla.cens.awserver.jee.servlet.AwDataServlet</servlet-class>
+    <!--  The following init-params are used to map the servlet to Spring-configured beans that ultimately service the request. 
+          The param-value elements are Spring bean ids.    
+    -->
+    <init-param>
+      <param-name>controllerName</param-name>
+      <param-value>retrieveConfigurationController</param-value>
+    </init-param>
+    <init-param>
+      <param-name>awRequestCreatorName</param-name>
+      <param-value>retrieveConfigAwRequestCreator</param-value>
+    </init-param>
+    <init-param>
+      <param-name>httpServletRequestValidatorName</param-name>
+      <param-value>retrieveConfigHttpServletRequestValidator</param-value>
+    </init-param>
+    <init-param>
+      <param-name>responseWriterName</param-name>
+      <param-value>retrieveConfigResponseWriter</param-value>
+    </init-param>
+    <load-on-startup>1</load-on-startup>
+  </servlet>
+  
+  <servlet-mapping>
+    <servlet-name>ConfigRetrievalServlet</servlet-name>
+    <url-pattern>/q/config</url-pattern>
+  </servlet-mapping>
+  
+  
+  <!--  Handle data point queries -->
+  <servlet>
+    <description>
+      runs data point queries (survey response data, mobility data) 
+    </description>
+    <servlet-name>DataPointQueryServlet</servlet-name>
+    <servlet-class>edu.ucla.cens.awserver.jee.servlet.AwDataServlet</servlet-class>
+    <!--  The following init-params are used to map the servlet to Spring-configured beans that ultimately service the request. 
+          The param-value elements are Spring bean ids.    
+    -->
+    <init-param>
+      <param-name>controllerName</param-name>
+      <param-value>dataPointQueryController</param-value>
+    </init-param>
+    <init-param>
+      <param-name>awRequestCreatorName</param-name>
+      <param-value>dataPointQueryAwRequestCreator</param-value>
+    </init-param>
+    <init-param>
+      <param-name>httpServletRequestValidatorName</param-name>
+      <param-value>dataPointQueryHttpServletRequestValidator</param-value>
+    </init-param>
+    <init-param>
+      <param-name>responseWriterName</param-name>
+      <param-value>dataPointQueryResponseWriter</param-value>
+    </init-param>
+    <load-on-startup>1</load-on-startup>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>DataPointQueryServlet</servlet-name>
+    <url-pattern>/q/dp</url-pattern>
+  </servlet-mapping>
+  
+  <!--  Handle user stat queries -->
+  <servlet>
+    <description>
+      runs user stats queries (successful location updates, most recent activity) 
+    </description>
+    <servlet-name>UserStatsQueryServlet</servlet-name>
+    <servlet-class>edu.ucla.cens.awserver.jee.servlet.AwDataServlet</servlet-class>
+    <!--  The following init-params are used to map the servlet to Spring-configured beans that ultimately service the request. 
+          The param-value elements are Spring bean ids.    
+    -->
+    <init-param>
+      <param-name>controllerName</param-name>
+      <param-value>userStatsQueryController</param-value>
+    </init-param>
+    <init-param>
+      <param-name>awRequestCreatorName</param-name>
+      <param-value>userStatsQueryAwRequestCreator</param-value>
+    </init-param>
+    <init-param>
+      <param-name>httpServletRequestValidatorName</param-name>
+      <param-value>userStatsQueryHttpServletRequestValidator</param-value>
+    </init-param>
+    <init-param>
+      <param-name>responseWriterName</param-name>
+      <param-value>userStatsQueryResponseWriter</param-value>
+    </init-param>
+    <load-on-startup>1</load-on-startup>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>UserStatsQueryServlet</servlet-name>
+    <url-pattern>/q/us</url-pattern>
+  </servlet-mapping>
+  
+   <!--  Handle image queries -->
+  <servlet>
+    <description>
+      runs image queries 
+    </description>
+    <servlet-name>ImageQueryServlet</servlet-name>
+    <servlet-class>edu.ucla.cens.awserver.jee.servlet.AwDataServlet</servlet-class>
+    <!--  The following init-params are used to map the servlet to Spring-configured beans that ultimately service the request. 
+          The param-value elements are Spring bean ids.    
+    -->
+    <init-param>
+      <param-name>controllerName</param-name>
+      <param-value>imageQueryController</param-value>
+    </init-param>
+    <init-param>
+      <param-name>awRequestCreatorName</param-name>
+      <param-value>imageQueryAwRequestCreator</param-value>
+    </init-param>
+    <init-param>
+      <param-name>httpServletRequestValidatorName</param-name>
+      <param-value>imageQueryHttpServletRequestValidator</param-value>
+    </init-param>
+    <init-param>
+      <param-name>responseWriterName</param-name>
+      <param-value>imageQueryResponseWriter</param-value>
+    </init-param>
+    <load-on-startup>1</load-on-startup>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>ImageQueryServlet</servlet-name>
+    <url-pattern>/q/i</url-pattern>
+  </servlet-mapping>
+  
+  <!--  Handle mobility queries -->
+  <servlet>
+    <description>
+      runs mobility queries 
+    </description>
+    <servlet-name>MobilityQueryServlet</servlet-name>
+    <servlet-class>edu.ucla.cens.awserver.jee.servlet.AwDataServlet</servlet-class>
+    <!--  The following init-params are used to map the servlet to Spring-configured beans that ultimately service the request. 
+          The param-value elements are Spring bean ids.    
+    -->
+    <init-param>
+      <param-name>controllerName</param-name>
+      <param-value>mobilityDataPointQueryController</param-value>
+    </init-param>
+    <init-param>
+      <param-name>awRequestCreatorName</param-name>
+      <param-value>mobilityQueryAwRequestCreator</param-value>
+    </init-param>
+    <init-param>
+      <param-name>httpServletRequestValidatorName</param-name>
+      <param-value>mobilityQueryHttpServletRequestValidator</param-value>
+    </init-param>
+    <init-param>
+      <param-name>responseWriterName</param-name>
+      <param-value>mobilityQueryResponseWriter</param-value>
+    </init-param>
+    <load-on-startup>1</load-on-startup>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>MobilityQueryServlet</servlet-name>
+    <url-pattern>/q/m</url-pattern>
+  </servlet-mapping>
+  
+  <!--  Handle "chunked" mobility queries -->
+  <servlet>
+    <description>
+      runs chunked mobility queries 
+    </description>
+    <servlet-name>ChunkedMobilityQueryServlet</servlet-name>
+    <servlet-class>edu.ucla.cens.awserver.jee.servlet.AwDataServlet</servlet-class>
+    <!--  The following init-params are used to map the servlet to Spring-configured beans that ultimately service the request. 
+          The param-value elements are Spring bean ids.    
+    -->
+    <init-param>
+      <param-name>controllerName</param-name>
+      <param-value>chunkedMobilityDataPointQueryController</param-value>
+    </init-param>
+    <init-param>
+      <param-name>awRequestCreatorName</param-name>
+      <param-value>chunkedMobilityQueryAwRequestCreator</param-value>
+    </init-param>
+    <init-param>
+      <param-name>httpServletRequestValidatorName</param-name>
+      <param-value>chunkedMobilityQueryHttpServletRequestValidator</param-value>
+    </init-param>
+    <init-param>
+      <param-name>responseWriterName</param-name>
+      <param-value>mobilityQueryResponseWriter</param-value>
+    </init-param>
+    <load-on-startup>1</load-on-startup>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>ChunkedMobilityQueryServlet</servlet-name>
+    <url-pattern>/q/mc</url-pattern>
+  </servlet-mapping>
+  
+  <!--  Handle data point function queries -->
+  <servlet>
+    <description>
+      runs data point function queries 
+    </description>
+    <servlet-name>DataPointFunctionQueryServlet</servlet-name>
+    <servlet-class>edu.ucla.cens.awserver.jee.servlet.AwDataServlet</servlet-class>
+    <!--  The following init-params are used to map the servlet to Spring-configured beans that ultimately service the request. 
+          The param-value elements are Spring bean ids.    
+    -->
+    <init-param>
+      <param-name>controllerName</param-name>
+      <param-value>dataPointFunctionQueryController</param-value>
+    </init-param>
+    <init-param>
+      <param-name>awRequestCreatorName</param-name>
+      <param-value>dataPointFunctionQueryAwRequestCreator</param-value>
+    </init-param>
+    <init-param>
+      <param-name>httpServletRequestValidatorName</param-name>
+      <param-value>dataPointFunctionQueryHttpServletRequestValidator</param-value>
+    </init-param>
+    <init-param>
+      <param-name>responseWriterName</param-name>
+      <param-value>successOrFailResponseWriter</param-value>
+    </init-param>
+    <load-on-startup>1</load-on-startup>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>DataPointFunctionQueryServlet</servlet-name>
+    <url-pattern>/q/dpf</url-pattern>
+  </servlet-mapping>
+  
+  <!-- For AW 2.x and up, the server app is effectively headless. There is probably a better way to return headers only.
+       empty.html is returned in order override the default Tomcat error pages. It is rarely a good idea to give away 
+       information about the app server and the Tomcat pages do just that. -->
+  <welcome-file-list>
+    <welcome-file>/empty.html</welcome-file>
+  </welcome-file-list>
+   
+  <error-page>
+    <error-code>500</error-code>
+    <location>/empty.html</location>
+  </error-page>
+   
+  <error-page>
+    <error-code>404</error-code>
+    <location>/empty.html</location>
+  </error-page>
+  
+  <error-page>
+    <error-code>405</error-code>
+    <location>/empty.html</location>
+  </error-page>   
+     
+  
+  <!-- Parameter with comma separated list of files (or patterns) that tells Spring where to pick up bean configurations. -->
+  <context-param>
+    <param-name>contextConfigLocation</param-name>
+    <param-value>/WEB-INF/spring/*.xml</param-value>
+  </context-param>
+
+  <!-- The order of the following listener components is important - ContextLoaderListener must be last. -->
+  
+  <!-- Bootstrap listener to initialize Log4J.  Having this one here (before Spring is bootstrapped with its ContextLoaderListener)
+       ensures Log4J is configured before Spring spits out logging messages. -->
+  <listener>
+    <listener-class>org.springframework.web.util.Log4jConfigListener</listener-class>
+  </listener>
+
+  <!-- Provide temp directory cleanup (for temp image storage) and ensure that the cleanup process terminates gracefully on 
+       app termination -->
+  <listener>
+    <listener-class>org.apache.commons.fileupload.servlet.FileCleanerCleanup</listener-class>
+  </listener>
+
+  <!-- Bootstrap listener to start up Spring's root WebApplicationContext. Should be after the Log4jConfigListener if such is
+       used. --> 
+  <listener>
+    <listener-class>org.springframework.web.context.ContextLoaderListener</listener-class>
+  </listener>
+
+  <!-- Sets the webapp's session timeout (minutes). -->
+  <session-config>
+    <session-timeout>1</session-timeout>
+  </session-config>
+  
+</web-app>

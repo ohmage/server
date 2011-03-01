@@ -1,0 +1,165 @@
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
+                           http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-2.5.xsd">
+  <!--  
+     Spring ApplicationContext configuration the data point API 
+  -->
+  
+  <!-- Servlet-to-AW hooks -->
+  <!-- "pre-validate" inbound data -->
+  <bean id="dataPointQueryHttpServletRequestValidator" class="edu.ucla.cens.awserver.jee.servlet.validator.DataPointQueryValidator" />
+  <!-- create AwRequest from data in the HttpServletRequest -->
+  <bean id="dataPointQueryAwRequestCreator" class="edu.ucla.cens.awserver.jee.servlet.glue.DataPointQueryAwRequestCreator" />
+  <!-- write outbound data, post-controller -->
+  <bean id="dataPointQueryResponseWriter" class="edu.ucla.cens.awserver.jee.servlet.writer.DataPointQueryResponseWriter">
+    <constructor-arg index="0"><ref bean="severeErrorResponse" /></constructor-arg>
+  </bean>
+    
+  <!-- Controller -->
+  <bean id="dataPointQueryController" class="edu.ucla.cens.awserver.controller.ControllerImpl">
+    <constructor-arg index="0">
+      <list>
+        <ref bean="tokenBasedAuthenticationService" />
+        <ref bean="campaignAccessCheckService" />
+        <ref bean="userRoleCheckService" />
+        <ref bean="campaignUserCheckService" />
+        <ref bean="queryPromptIdValidationService" />
+        <ref bean="dataPointQueryService" />
+      </list>
+    </constructor-arg>
+    <constructor-arg index="1">
+      <ref bean="serverErrorRequestAnnotator" />
+    </constructor-arg>
+    <property name="validators">
+      <list>
+        <ref bean="startDateValidator" />
+        <ref bean="endDateValidator" />
+        <ref bean="userTokenValidator" />
+      </list>      
+    </property>
+    <property name="featureName"><value>data point query</value></property>
+  </bean>
+  
+  <bean id="queryPromptIdValidationService" class="edu.ucla.cens.awserver.service.QueryPromptIdValidationService">
+    <constructor-arg index="0">
+      <bean class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
+        <constructor-arg index="0">
+          <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
+            <property name="code" value="0703" />
+            <property name="text" value="invalid promptId in query" />
+          </bean>
+        </constructor-arg>
+      </bean>
+    </constructor-arg>
+    <constructor-arg index="1">
+      <ref bean="configurationCacheService" />
+    </constructor-arg>
+  </bean>
+  
+  <bean id="campaignAccessCheckService" class="edu.ucla.cens.awserver.service.CampaignAccessCheckService">
+    <constructor-arg index="0">
+      <bean class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
+        <constructor-arg index="0">
+          <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
+            <property name="code" value="0702" />
+            <property name="text" value="invalid campaign in query" />
+          </bean>
+        </constructor-arg>
+      </bean>
+    </constructor-arg>
+  </bean>
+
+  <bean id="userRoleCheckService" class="edu.ucla.cens.awserver.service.UserRoleCheckService">
+    <constructor-arg index="0">
+      <bean class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
+        <constructor-arg index="0">
+          <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
+            <property name="code" value="0701" />
+            <property name="text" value="invalid user in query" />
+          </bean>
+        </constructor-arg>
+      </bean>
+    </constructor-arg>
+    <constructor-arg index="1">
+      <ref bean="userRoleCacheService" />
+    </constructor-arg>
+  </bean>
+  
+  <bean id="campaignUserCheckService" class="edu.ucla.cens.awserver.service.CampaignUserCheckService">
+    <constructor-arg index="0">
+      <bean class="edu.ucla.cens.awserver.dao.FindAllCampaignsForUserDao">
+        <constructor-arg index="0"><ref bean="dataSource"/></constructor-arg>
+        <constructor-arg index="1"><value>false</value></constructor-arg>
+      </bean>
+    </constructor-arg>
+    <constructor-arg index="1">
+      <bean class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
+        <constructor-arg index="0">
+          <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
+            <property name="code" value="0701" />
+            <property name="text" value="invalid user in query" />
+          </bean>
+        </constructor-arg>
+      </bean>
+    </constructor-arg>
+  </bean>
+  
+  <bean id="dataPointQueryService" class="edu.ucla.cens.awserver.service.DataPointQueryService">
+   <constructor-arg index="0">
+      <ref bean="dataPointQueryDao" />
+    </constructor-arg>
+    <constructor-arg index="1">
+      <ref bean="configurationCacheService" />
+    </constructor-arg>
+  </bean>
+  
+  <bean id="dataPointQueryDao" class="edu.ucla.cens.awserver.dao.DataPointQueryDao">
+    <constructor-arg index="0"><ref bean="dataSource" /></constructor-arg>
+  </bean>
+	
+  <bean id="startDateValidator" class="edu.ucla.cens.awserver.validator.DateValidator">
+    <constructor-arg index="0">
+      <bean class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
+        <constructor-arg index="0">
+          <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
+            <property name="code" value="0700" />
+            <property name="text" value="invalid start date" />
+          </bean>
+        </constructor-arg>
+      </bean>
+    </constructor-arg>
+    <constructor-arg index="1">
+      <value>startDate</value>
+    </constructor-arg>
+    <constructor-arg index="2">
+      <value>yyyy-MM-dd</value>
+    </constructor-arg>
+    <property name="errorMessage">
+      <value>invalid start date</value>
+    </property>
+  </bean>	
+
+  <bean id="endDateValidator" class="edu.ucla.cens.awserver.validator.DateValidator">
+    <constructor-arg index="0">
+      <bean class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
+        <constructor-arg index="0">
+          <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
+            <property name="code" value="0700" />
+            <property name="text" value="invalid end date" />
+          </bean>
+        </constructor-arg>
+      </bean>
+    </constructor-arg>
+    <constructor-arg index="1">
+      <value>endDate</value>
+    </constructor-arg>
+    <constructor-arg index="2">
+      <value>yyyy-MM-dd</value>
+    </constructor-arg>
+    <property name="errorMessage">
+      <value>invalid end date in request</value>
+    </property>
+  </bean>	
+  
+</beans>

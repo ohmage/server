@@ -1,0 +1,45 @@
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
+                           http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-2.5.xsd">
+  <!--  
+     Spring ApplicationContext configuration for the multi-day chunked mobility query 
+  -->
+  
+  <!-- Servlet-to-AW hooks -->
+  <!-- "pre-validate" inbound data -->
+  <bean id="chunkedMobilityQueryHttpServletRequestValidator" class="edu.ucla.cens.awserver.jee.servlet.validator.ChunkedMobilityQueryValidator" />
+  <!-- create AwRequest from data in the HttpServletRequest -->
+  <bean id="chunkedMobilityQueryAwRequestCreator" class="edu.ucla.cens.awserver.jee.servlet.glue.ChunkedMobilityQueryAwRequestCreator" />
+    
+  <!-- Controller - shared components with mobilityQueryController.xml and dataPointQueryController.xml -->
+  <bean id="chunkedMobilityDataPointQueryController" class="edu.ucla.cens.awserver.controller.ControllerImpl">
+    <constructor-arg index="0">
+      <list>
+        <ref bean="tokenBasedAuthenticationService" />
+        <ref bean="mobilityQueryUserCheckService" />
+        <ref bean="chunkedMobilityQueryService" />
+     </list>
+    </constructor-arg>
+    <constructor-arg index="1">
+      <ref bean="serverErrorRequestAnnotator" />
+    </constructor-arg>
+    <property name="validators">
+      <list>
+        <ref bean="startDateValidator" />
+        <ref bean="endDateValidator" />
+        <ref bean="userTokenValidator" />
+      </list>      
+    </property>
+    <property name="featureName"><value>chunked mobility query</value></property>
+  </bean>
+  
+  <bean id="chunkedMobilityQueryService" class="edu.ucla.cens.awserver.service.ChunkedMobilityQueryService">
+    <constructor-arg index="0">
+      <bean id="mobilityQueryDao" class="edu.ucla.cens.awserver.dao.MobilityDateRangeQueryDao">
+        <constructor-arg index="0"><ref bean="dataSource" /></constructor-arg>
+      </bean>
+    </constructor-arg>
+  </bean>
+  
+</beans>

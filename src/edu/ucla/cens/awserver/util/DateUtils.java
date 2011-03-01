@@ -1,5 +1,9 @@
 package edu.ucla.cens.awserver.util;
 
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.TimeZone;
 
 import org.apache.log4j.Logger;
@@ -115,5 +119,37 @@ public class DateUtils {
 			}
 		}
 		return false;
+	}
+	
+	/**
+	 * Converts the provided timestamp to a UTC value using the provided timezoneId. The timestamp must be in the format 
+	 * yyyy-MM-dd HH:mm:ss. If the provided timezoneId is not found by the server JVM, GMT is assumed. 
+	 */
+	public static String timestampStringToUtc(String timestamp, String timezoneId) {
+		final String dateFormatString = "yyyy-MM-dd HH:mm:ss";
+		
+		DateFormat inputDateFormat = new SimpleDateFormat(dateFormatString);
+		inputDateFormat.setLenient(false);
+		// if timezoneId is not understood, GMT will be returned by TimeZone.getTimeZone(timezoneId)
+		inputDateFormat.setTimeZone(TimeZone.getTimeZone(timezoneId)); 
+		Date inputDate = null;
+		
+		try {
+			
+			inputDate = inputDateFormat.parse(timestamp);
+			
+		} catch (ParseException pe) { // data that does not match the format
+			
+			_logger.warn("unparseable date");
+			throw new IllegalStateException("could not parse timestamp " + timestamp + " using format " + dateFormatString, pe);
+			
+		}
+		
+		// ok, now switch timezones to UTC
+		
+		DateFormat outputDateFormat = new SimpleDateFormat(dateFormatString);
+		outputDateFormat.setLenient(false);
+		outputDateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
+		return outputDateFormat.format(inputDate);
 	}
 }

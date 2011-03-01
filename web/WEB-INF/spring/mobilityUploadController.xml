@@ -1,0 +1,362 @@
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:util="http://www.springframework.org/schema/util"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
+                           http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-2.5.xsd">
+  <!--  
+     Spring ApplicationContext configuration for mobility data upload 
+  -->
+  
+  <!-- Servlet-to-AW hooks -->
+  <!-- pre-validate -->
+  <bean id="mobilityUploadHttpServletRequestValidator" class="edu.ucla.cens.awserver.jee.servlet.validator.MobilityUploadValidator" />
+  <!-- create AwRequest from data in the HttpServletRequest -->
+  <bean id="mobilityUploadAwRequestCreator" class="edu.ucla.cens.awserver.jee.servlet.glue.MobilityUploadAwRequestCreator" />
+  <!-- generate output - defined here and shared with surveyUpload (see web.xml) -->
+  <bean id="successOrFailResponseWriter" class="edu.ucla.cens.awserver.jee.servlet.writer.SuccessOrFailResponseWriter">
+    <constructor-arg index="0"><ref bean="severeErrorResponse" /></constructor-arg>
+  </bean>
+  
+  <!-- Controller - main workflow -->
+  <bean id="mobilityUploadController" class="edu.ucla.cens.awserver.controller.ControllerImpl">
+    <constructor-arg index="0">
+    <!-- service the upload request -->
+      <list>
+        <ref bean="authWithHashedPasswordService" />
+        <ref bean="jsonMessageSyntaxValidationService" />
+        <ref bean="mobilityMessageContentValidationService" />
+        <ref bean="mobilityDataPacketBuilderService" />
+        <ref bean="mobilityClassificationService" />
+        <ref bean="mobilityDataStorageService" />
+      </list>
+    </constructor-arg>
+    <constructor-arg index="1">
+      <ref bean="serverErrorRequestAnnotator" />
+    </constructor-arg>
+    <property name="validators">
+      <list>
+        <ref bean="userNameValidator" />
+        <ref bean="hashedPasswordValidator" />
+      </list>
+    </property>
+    <property name="postProcessingService">
+      <!-- log upload stats, the upload itself, any failed upload info, and duplicates to the filesystem -->  
+      <bean id="messageLoggerService" class="edu.ucla.cens.awserver.service.MessageLoggerService">
+        <constructor-arg index="0">
+          <value>mobility</value>
+        </constructor-arg>
+      </bean>
+    </property>
+    <property name="featureName"><value>mobility upload</value></property>
+  </bean>
+  
+  <!-- Validate JSON syntax -->
+  <bean id="jsonMessageSyntaxValidationService" class="edu.ucla.cens.awserver.service.JsonMessageSyntaxValidationService">
+    <constructor-arg index="0">
+      <bean class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
+        <constructor-arg index="0">
+          <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
+          	<property name="code" value="0101" />
+          	<property name="text" value="JSON syntax error" />
+          </bean>
+        </constructor-arg>
+      </bean>
+    </constructor-arg>   
+  </bean>
+  
+  <!-- Validate JSON content according to app business rules -->
+  <bean id="mobilityMessageContentValidationService" class="edu.ucla.cens.awserver.service.JsonMessageContentValidationService">
+  	<constructor-arg index="0">
+      <list>
+        <ref bean="jsonMsgMobilitySubtypeValidator" />
+      </list>
+  	</constructor-arg>
+    <constructor-arg index="1"><ref bean="jsonMsgEmptyArrayAnnotator" /></constructor-arg>
+    <constructor-arg index="2"><ref bean="jsonMsgIncorrectArrayAnnotator" /></constructor-arg>
+  </bean>
+  
+  <bean id="jsonMsgEmptyArrayAnnotator" class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
+    <constructor-arg index="0">
+      <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
+        <property name="code" value="0102" />
+        <property name="text" value="no data in message" />
+      </bean>
+    </constructor-arg>   
+  </bean>
+   
+  <bean id="jsonMsgIncorrectArrayAnnotator" class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
+    <constructor-arg index="0">
+      <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
+        <property name="code" value="0103" />
+        <property name="text" value="incorrect array entry (not a JSONObject)" />
+      </bean>
+    </constructor-arg>   
+  </bean>
+  
+  <bean id="jsonMsgMobilitySubtypeValidator" class="edu.ucla.cens.awserver.validator.json.JsonMsgMobilitySubtypeValidator">
+    <constructor-arg index="0">
+      <bean class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
+        <constructor-arg index="0">
+           <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
+          	<property name="code" value="0500" />
+          	<property name="text" value="missing or invalid subtype" />
+          </bean>
+        </constructor-arg>
+      </bean>
+    </constructor-arg>
+    <constructor-arg index="1">
+      <map>
+        <entry>
+          <key><value>mode_only</value></key>
+          <list>
+            <ref bean="jsonMsgDateValidator" />
+            <ref bean="jsonMsgTimeValidator" />
+            <ref bean="jsonMsgTimezoneValidator" />
+            <ref bean="jsonMsgLocationStatusValidator" />
+            <ref bean="jsonMsgLocationValidator" />
+            <ref bean="jsonMsgModeOnlyModeValidator" />
+          </list>
+        </entry>
+        <entry>
+          <key><value>sensor_data</value></key>
+          <list>
+            <ref bean="jsonMsgDateValidator" />
+            <ref bean="jsonMsgTimeValidator" />
+            <ref bean="jsonMsgTimezoneValidator" />
+            <ref bean="jsonMsgLocationStatusValidator" />
+            <ref bean="jsonMsgLocationValidator" />
+            <ref bean="jsonMsgSensorDataExistsValidator" />
+            <ref bean="jsonMsgSensorDataModeValidator" />
+            <ref bean="jsonMsgSensorDataSpeedValidator" />
+            <ref bean="jsonMsgSensorDataAccelDataValidator" />
+          </list>
+        </entry>
+      </map>
+    </constructor-arg>
+  </bean>
+  
+  <bean id="jsonMsgDateValidator" class="edu.ucla.cens.awserver.validator.json.JsonMsgDateValidator">
+    <constructor-arg index="0">
+      <bean class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
+        <constructor-arg index="0">
+           <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
+          	<property name="code" value="0400" />
+          	<property name="text" value="missing or invalid date" />
+          </bean>
+        </constructor-arg>   
+      </bean>
+    </constructor-arg>
+  </bean>
+  
+  <bean id="jsonMsgTimeValidator" class="edu.ucla.cens.awserver.validator.json.JsonMsgTimeValidator">
+    <constructor-arg index="0">
+      <bean class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
+        <constructor-arg index="0">
+          <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
+          	<property name="code" value="0401" />
+          	<property name="text" value="missing or invalid time" />
+          </bean>
+        </constructor-arg>  
+      </bean>
+    </constructor-arg>
+  </bean>
+
+  <bean id="jsonMsgTimezoneValidator" class="edu.ucla.cens.awserver.validator.json.JsonMsgTimezoneValidator">
+    <constructor-arg index="0">
+      <bean class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
+        <constructor-arg index="0">
+          <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
+          	<property name="code" value="0402" />
+          	<property name="text" value="missing or invalid timezone" />
+          </bean>
+        </constructor-arg>  
+      </bean>
+    </constructor-arg>
+  </bean>
+
+  <bean id="jsonMsgLocationValidator" class="edu.ucla.cens.awserver.validator.json.JsonMsgNamedObjectValidator">
+    <constructor-arg index="0">
+      <bean class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
+        <constructor-arg index="0">
+           <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
+          	<property name="code" value="0403" />
+          	<property name="text" value="missing or invalid location" />
+          </bean>
+        </constructor-arg>  
+      </bean>
+    </constructor-arg>
+    <constructor-arg index="1">
+      <value>location</value>
+    </constructor-arg>
+  </bean>
+
+  <bean id="jsonMsgLatitudeValidator" class="edu.ucla.cens.awserver.validator.json.JsonMsgLatLongValidator">
+    <constructor-arg index="0">
+      <bean class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
+        <constructor-arg index="0">
+          <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
+          	<property name="code" value="0404" />
+          	<property name="text" value="missing or invalid latitude" />
+          </bean>
+        </constructor-arg>  
+      </bean>
+    </constructor-arg>
+    <constructor-arg>
+      <value>latitude</value>
+    </constructor-arg>
+  </bean>
+
+  <bean id="jsonMsgLongitudeValidator" class="edu.ucla.cens.awserver.validator.json.JsonMsgLatLongValidator">
+    <constructor-arg index="0">
+      <bean class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
+        <constructor-arg index="0">
+          <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
+          	<property name="code" value="0405" />
+          	<property name="text" value="missing or invalid longitude" />
+          </bean>
+        </constructor-arg>  
+      </bean>
+    </constructor-arg>
+    <constructor-arg>
+      <value>longitude</value>
+    </constructor-arg>
+  </bean>
+  
+  <bean id="jsonMsgLocationAccuracyValidator" class="edu.ucla.cens.awserver.validator.json.JsonMsgLocationAccuracyValidator">
+    <constructor-arg index="0">
+      <bean class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
+        <constructor-arg index="0">
+          <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
+            <property name="code" value="0406" />
+            <property name="text" value="missing or invalid accuracy" />
+          </bean>
+        </constructor-arg>  
+      </bean>
+    </constructor-arg>
+  </bean>
+
+  <bean id="jsonMsgLocationProviderValidator" class="edu.ucla.cens.awserver.validator.json.JsonMsgLocationProviderValidator">
+    <constructor-arg index="0">
+      <bean class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
+        <constructor-arg index="0">
+          <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
+            <property name="code" value="0407" />
+            <property name="text" value="missing or invalid provider" />
+          </bean>
+        </constructor-arg>  
+      </bean>
+    </constructor-arg>
+  </bean>
+  
+  <util:list id="mobilityModes">
+    <value>still</value>
+    <value>walk</value>
+    <value>run</value>
+    <value>bike</value>
+    <value>drive</value>
+  </util:list>
+  
+  <bean id="jsonMsgModeOnlyModeValidator" class="edu.ucla.cens.awserver.validator.json.JsonMsgMobilityModeValidator">
+    <constructor-arg index="0">
+      <bean class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
+        <constructor-arg index="0">
+          <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
+          	<property name="code" value="0501" />
+          	<property name="text" value="missing or invalid mode in mobility message" />
+          </bean>
+        </constructor-arg>  
+      </bean>
+    </constructor-arg>
+    <constructor-arg index="1">
+      <ref bean="mobilityModes" />
+    </constructor-arg>
+  </bean>
+
+  <bean id="jsonMsgSensorDataExistsValidator" class="edu.ucla.cens.awserver.validator.json.JsonMsgNamedObjectValidator">
+    <constructor-arg index="0">
+      <bean class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
+        <constructor-arg index="0">
+          <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
+          	<property name="code" value="0506" />
+          	<property name="text" value="missing or invalid sensor data" />
+          </bean>
+        </constructor-arg>  
+      </bean>
+    </constructor-arg>
+    <constructor-arg index="1">
+      <value>data</value>
+    </constructor-arg>
+  </bean>
+
+  <bean id="jsonMsgSensorDataModeValidator" class="edu.ucla.cens.awserver.validator.json.JsonMsgSensorDataModeValidator">
+    <constructor-arg index="0">
+      <bean class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
+        <constructor-arg index="0">
+          <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
+            <property name="code" value="0501" />
+            <property name="text" value="missing or invalid mode in mobility message" />
+          </bean>
+        </constructor-arg>  
+      </bean>
+    </constructor-arg>
+    <constructor-arg index="1">
+      <ref bean="mobilityModes" />
+    </constructor-arg>
+  </bean>
+
+  <bean id="jsonMsgSensorDataSpeedValidator" class="edu.ucla.cens.awserver.validator.json.JsonMsgSensorDataSpeedValidator">
+    <constructor-arg index="0">
+      <bean class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
+        <constructor-arg index="0">
+          <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
+            <property name="code" value="0504" />
+            <property name="text" value="missing or invalid speed in mobility message" />
+          </bean>
+        </constructor-arg>  
+      </bean>
+    </constructor-arg>
+  </bean>
+
+  <bean id="jsonMsgSensorDataAccelDataValidator" class="edu.ucla.cens.awserver.validator.json.JsonMsgSensorDataAccelDataValidator">
+    <constructor-arg index="0">
+      <bean class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
+        <constructor-arg index="0">
+          <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
+            <property name="code" value="0503" />
+            <property name="text" value="missing or invalid accel_data in mobility message" />
+          </bean>
+        </constructor-arg>  
+      </bean>
+    </constructor-arg>
+  </bean>
+
+  <bean id="mobilityDataPacketBuilderService" class="edu.ucla.cens.awserver.service.MobilitySubtypeDataPacketBuilderService">
+    <constructor-arg index="0">
+      <map>
+        <entry>
+          <key><value>mobility-mode_only</value></key>
+          <bean class="edu.ucla.cens.awserver.domain.MobilityModeOnlyDataPacketBuilder" />
+        </entry>
+         <entry>
+          <key><value>mobility-sensor_data</value></key>
+          <bean class="edu.ucla.cens.awserver.domain.MobilityModeSensorDataPacketBuilder"></bean>
+        </entry>
+      </map>
+    </constructor-arg>   
+  </bean>
+
+  <bean id="mobilityClassificationService" class="edu.ucla.cens.awserver.service.MobilityClassificationService" >
+    <constructor-arg index="0">
+      <bean class="edu.ucla.cens.mobilityclassifier.MobilityClassifier" />
+    </constructor-arg>
+  </bean>
+  
+  <bean id="mobilityDataStorageService" class="edu.ucla.cens.awserver.service.DaoService" >
+  	<constructor-arg index="0">
+      <bean class="edu.ucla.cens.awserver.dao.MobilityUploadDao">
+        <constructor-arg index="0"><ref bean="dataSource" /></constructor-arg>
+      </bean>
+    </constructor-arg>
+  </bean>
+  
+</beans>

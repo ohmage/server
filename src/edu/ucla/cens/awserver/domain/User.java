@@ -20,14 +20,19 @@ public interface User {
 	public String getPassword();
 	public void setPassword(String string);
 	
-	public Map<Integer, List<Integer>> getCampaignRoles();
-	public void addCampaignRole(Integer campaignId, Integer roleId);
+	public Map<String, List<Integer>> getCampaignRoles();
+	public void addCampaignRole(String campaignName, Integer roleId);
 	
 	public boolean isLoggedIn();
 	public void setLoggedIn(boolean b);
 	
-	public void setCurrentCampaignId(String id);
-	public String getCurrentCampaignId();
+//	// TODO - these are actually not properties of the user - they are processing state on the *request*
+//	public void setCurrentCampaignId(String id);
+//	public String getCurrentCampaignId();
+//	
+//	public void setCurrentCampaignName(String name);
+//	public String getCurrentCampaignName();
+//	// -------
 	
-	public boolean getIsResearcherOrAdmin();
+	public boolean isResearcherOrAdmin(String campaignName);
 }

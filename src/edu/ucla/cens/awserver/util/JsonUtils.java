@@ -29,8 +29,7 @@ public class JsonUtils {
 		} catch (JSONException jsone) {
 			
 			if(_logger.isDebugEnabled()) {
-				_logger.debug("failed attempt to retrieve " + key + " from JSON object " + jsonObject);
-				_logger.debug(jsone);
+				_logger.debug("failed attempt to retrieve " + key + " from JSON object " + jsonObject, jsone);
 			}
 			
 		}
@@ -51,8 +50,7 @@ public class JsonUtils {
 		} catch (JSONException jsone) {
 			
 			if(_logger.isDebugEnabled()) {
-				_logger.debug("failed attempt to retrieve " + key + " from JSON object " + jsonObject);
-				_logger.debug(jsone);
+				_logger.debug("failed attempt to retrieve " + key + " from JSON object " + jsonObject, jsone);
 			}
 			
 		}
@@ -73,8 +71,7 @@ public class JsonUtils {
 		} catch (JSONException jsone) {
 			
 			if(_logger.isDebugEnabled()) {
-				_logger.debug("failed attempt to retrieve " + key + " from JSON object " + jsonObject);
-				_logger.debug(jsone);
+				_logger.debug("failed attempt to retrieve " + key + " from JSON object " + jsonObject, jsone);
 			}
 			
 		}
@@ -95,8 +92,7 @@ public class JsonUtils {
 		} catch (JSONException jsone) {
 			
 			if(_logger.isDebugEnabled()) {
-				_logger.debug("failed attempt to retrieve " + key + " from JSON object " + jsonObject);
-				_logger.debug(jsone);
+				_logger.debug("failed attempt to retrieve " + key + " from JSON object " + jsonObject, jsone);
 			}
 			
 		}
@@ -117,15 +113,14 @@ public class JsonUtils {
 		} catch (JSONException jsone) {
 			
 			if(_logger.isDebugEnabled()) {
-				_logger.debug("failed attempt to retrieve " + key + " from JSON object " + jsonObject);
-				_logger.debug(jsone);
+				_logger.debug("failed attempt to retrieve " + key + " from JSON object " + jsonObject, jsone);
 			}
 			
 		}
 		
 		return value;
 	}
-	
+		
 	/**
 	 * @return the JSONArray value found in the JSONObject using the provided key. If no value is found, null is returned. 
 	 */
@@ -139,8 +134,7 @@ public class JsonUtils {
 		} catch (JSONException jsone) {
 			
 			if(_logger.isDebugEnabled()) {
-				_logger.debug("failed attempt to retrieve " + key + " from JSON object " + jsonObject);
-				_logger.debug(jsone);
+				_logger.debug("failed attempt to retrieve " + key + " from JSON object " + jsonObject, jsone);
 			}
 			
 		}
@@ -161,13 +155,54 @@ public class JsonUtils {
 		} catch (JSONException jsone) {
 			
 			if(_logger.isDebugEnabled()) {
-				_logger.debug("failed attempt to retrieve index " + index + " from JSON array " + array);
-				_logger.debug(jsone);
+				_logger.debug("failed attempt to retrieve index " + index + " from JSON array " + array, jsone);
 			}
 			
 		}
 		
 		return value;
+	}
+	
+	/**
+	 * @return the Integer value found in the JSONArray using the provided index. If no value is found, null is returned. 
+	 */
+	public static Integer getIntegerFromJsonArray(JSONArray array, int index) {
+		Integer value = null;
+		
+		try {
+			
+			value = array.getInt(index); 
+			
+		} catch (JSONException jsone) {
+			
+			if(_logger.isDebugEnabled()) {
+				_logger.debug("failed attempt to retrieve index " + index + " from JSON array " + array, jsone);
+			}
+			
+		}
+		
+		return value;
+	}
+	
+	/**
+	 * @return the JSONArray value found in the JSONArray using the provided index. If no value is found, null is returned. 
+	 */
+	public static JSONArray getJsonArrayFromJsonArray(JSONArray array, int index) {
+		JSONArray a = null;
+		
+		try {
+			
+			a = array.getJSONArray(index); 
+			
+		} catch (JSONException jsone) {
+			
+			if(_logger.isDebugEnabled()) {
+				_logger.debug("failed attempt to retrieve index " + index + " from JSON array " + array, jsone);
+			}
+			
+		}
+		
+		return a;
 	}
 	
 	/**
@@ -183,8 +218,7 @@ public class JsonUtils {
 		} catch (JSONException jsone) {
 			
 			if(_logger.isDebugEnabled()) {
-				_logger.debug("failed attempt to retrieve index " + index + " from JSON array " + array);
-				_logger.debug(jsone);
+				_logger.debug("failed attempt to retrieve index " + index + " from JSON array " + array, jsone);
 			}
 			
 		}
@@ -205,8 +239,7 @@ public class JsonUtils {
 		} catch (JSONException jsone) {
 			
 			if(_logger.isDebugEnabled()) {
-				_logger.debug("failed attempt to convert string \"" + string + "\" to a JSON array");
-				_logger.debug(jsone);
+				_logger.debug("failed attempt to convert string \"" + string + "\" to a JSON array", jsone);
 			}
 		}
 		
@@ -226,8 +259,7 @@ public class JsonUtils {
 		} catch (JSONException jsone) {
 			
 			if(_logger.isDebugEnabled()) {
-				_logger.debug("failed attempt to retrieve index " + index + " from JSON array " + array);
-				_logger.debug(jsone);
+				_logger.debug("failed attempt to retrieve index " + index + " from JSON array " + array, jsone);
 			}
 			
 		}
@@ -248,8 +280,7 @@ public class JsonUtils {
 		} catch (JSONException jsone) {
 			
 			if(_logger.isDebugEnabled()) {
-				_logger.debug("failed attempt to convert string \"" + string + "\" to a JSON object");
-				_logger.debug(jsone);
+				_logger.debug("failed attempt to convert string \"" + string + "\" to a JSON object", jsone);
 			}
 			
 		}
@@ -272,8 +303,7 @@ public class JsonUtils {
 		} catch (JSONException jsone) {
 			
 			if(_logger.isDebugEnabled()) {
-				_logger.debug("failed attempt to retrieve " + key + " from JSON object " + jsonObject);
-				_logger.debug(jsone);
+				_logger.debug("failed attempt to retrieve " + key + " from JSON object " + jsonObject, jsone);
 			}
 			
 		}
@@ -282,4 +312,27 @@ public class JsonUtils {
 		
 	}
 	
+	/**
+	 * @return the Object found within the provided JSONArray at the provided index or null if the array is syntactically invalid
+	 * or nothing exists at the index
+	 */
+	public static Object getObjectFromJsonArray(JSONArray jsonArray, int index) {
+		Object value = null;
+		
+		try {
+			
+			value = jsonArray.get(index); 
+		
+		} catch (JSONException jsone) {
+			
+			if(_logger.isDebugEnabled()) {
+				_logger.debug("failed attempt to retrieve index " + index + " from JSON array " + jsonArray, jsone);
+			}
+			
+		}
+		
+		return value;
+		
+	}
+
 }

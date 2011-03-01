@@ -1,6 +1,5 @@
 package edu.ucla.cens.awserver.cache;
 
-
 /**
  * Provide data lookup functionality against a cache.
  * 
@@ -8,6 +7,8 @@ package edu.ucla.cens.awserver.cache;
  */
 public interface CacheService {
 	
-	public Object lookup(Object key);
+	Object lookup(Object key);
+	
+	boolean containsKey(Object key);
 	
 }

@@ -1,0 +1,84 @@
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
+                           http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-2.5.xsd">
+  <!--  
+     Spring ApplicationContext configuration the data point API 
+  -->
+  
+  <!-- Servlet-to-AW hooks -->
+  <!-- "pre-validate" inbound data -->
+  <bean id="userStatsQueryHttpServletRequestValidator" class="edu.ucla.cens.awserver.jee.servlet.validator.UserStatsQueryValidator" />
+  <!-- create AwRequest from data in the HttpServletRequest -->
+  <bean id="userStatsQueryAwRequestCreator" class="edu.ucla.cens.awserver.jee.servlet.glue.UserStatsQueryAwRequestCreator" />
+  <!-- write outbound data, post-controller -->
+  <bean id="userStatsQueryResponseWriter" class="edu.ucla.cens.awserver.jee.servlet.writer.UserStatsQueryResponseWriter">
+    <constructor-arg index="0"><ref bean="severeErrorResponse" /></constructor-arg>
+  </bean>
+    
+  <!-- Controller -->
+  <bean id="userStatsQueryController" class="edu.ucla.cens.awserver.controller.ControllerImpl">
+    <constructor-arg index="0">
+      <list>
+        <ref bean="tokenBasedAuthenticationService" />
+        <ref bean="campaignAccessCheckService" />
+        <ref bean="userRoleCheckService" />
+        <ref bean="campaignUserCheckService" />
+        <ref bean="mostRecentMobilityActivityQueryService" />
+        <ref bean="mostRecentSurveyActivityQueryService" />
+        <ref bean="pastDayMobilityLocationUpdatesQueryService" />
+        <ref bean="pastDaySurveyLocationUpdatesQueryService" />
+      </list>
+    </constructor-arg>
+    <constructor-arg index="1">
+      <ref bean="serverErrorRequestAnnotator" />
+    </constructor-arg>
+    <property name="validators">
+      <list>
+        <ref bean="userTokenValidator" />
+      </list>      
+    </property>
+    <property name="featureName"><value>user stats query</value></property>
+  </bean>
+  
+  <bean id="mostRecentMobilityActivityQueryService" class="edu.ucla.cens.awserver.service.SimpleQueryService">
+    <constructor-arg index="0">
+      <bean class="edu.ucla.cens.awserver.dao.MostRecentMobilityActivityDao">
+        <constructor-arg index="0">
+            <ref bean="dataSource" />
+        </constructor-arg>
+      </bean>
+    </constructor-arg>
+  </bean>
+
+  <bean id="mostRecentSurveyActivityQueryService" class="edu.ucla.cens.awserver.service.SimpleQueryService">
+    <constructor-arg index="0">
+      <bean class="edu.ucla.cens.awserver.dao.MostRecentSurveyActivityDao">
+        <constructor-arg index="0">
+            <ref bean="dataSource" />
+        </constructor-arg>
+      </bean>
+    </constructor-arg>
+  </bean>
+
+  <bean id="pastDayMobilityLocationUpdatesQueryService" class="edu.ucla.cens.awserver.service.SimpleQueryService">
+    <constructor-arg index="0">
+      <bean class="edu.ucla.cens.awserver.dao.PastDayMobilityLocationUpdatesQueryDao">
+        <constructor-arg index="0">
+            <ref bean="dataSource" />
+        </constructor-arg>
+      </bean>
+    </constructor-arg>
+  </bean>
+
+  <bean id="pastDaySurveyLocationUpdatesQueryService" class="edu.ucla.cens.awserver.service.SimpleQueryService">
+    <constructor-arg index="0">
+      <bean class="edu.ucla.cens.awserver.dao.PastDaySurveyLocationUpdatesQueryDao">
+        <constructor-arg index="0">
+            <ref bean="dataSource" />
+        </constructor-arg>
+      </bean>
+    </constructor-arg>
+  </bean>
+    
+</beans>

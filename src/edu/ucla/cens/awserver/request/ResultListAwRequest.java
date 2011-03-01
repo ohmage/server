@@ -8,7 +8,7 @@ import java.util.List;
  * @author selsky
  */
 public class ResultListAwRequest extends AbstractAwRequest {
-	// Output State
+	private String  _userToken;
 	private List<?> _resultList;
 
 	public List<?> getResultList() {
@@ -19,9 +19,17 @@ public class ResultListAwRequest extends AbstractAwRequest {
 		_resultList = resultList;
 	}
 
+	public String getUserToken() {
+		return _userToken;
+	}
+	
+	public void setUserToken(String userToken) {
+		_userToken = userToken;
+	}
+	
 	@Override
 	public String toString() {
-		return "CampaignExistsAwRequest [_resultList=" + _resultList
+		return "ResultsListAwRequest [_resultList=" + _resultList
 				+ ", toString()=" + super.toString() + "]";
 	}
 }

@@ -10,8 +10,7 @@ import edu.ucla.cens.awserver.request.AwRequest;
 import edu.ucla.cens.awserver.util.StringUtils;
 
 /**
- * DAO for performing user authentication. Incoming passwords are salted and hashed using bcrypt. The salt must be shared 
- * between the server and the phone.
+ * DAO for performing user authentication.
  * 
  * @author selsky
  */
@@ -20,13 +19,13 @@ public class AuthenticationDao extends AbstractDao {
 	private String _salt;
 	private boolean _performHash;
 	
-	private static final String _selectSql = "select user.id, user.enabled, user.new_account, campaign.id, " +
-			                                 "user_role_campaign.user_role_id " +
-			                                 "from campaign, user, user_role_campaign " +
-			                                 "where user.login_id = ? " +
-			                                     "and user.password = ? " + 
-			                                     "and user.id = user_role_campaign.user_id " +
-			                                     "and campaign.id = user_role_campaign.campaign_id";
+	private static final String _selectSql = "select user.id, user.enabled, user.new_account, campaign.id, campaign.name,"
+		                                     +     " user_role_campaign.user_role_id" 
+		                                     + " from campaign, user, user_role_campaign"
+		                                     + " where user.login_id = ?"
+		                                     +   " and user.password = ?"
+		                                     +   " and user.id = user_role_campaign.user_id"
+		                                     +   " and campaign.id = user_role_campaign.campaign_id";
 	
 	/**
 	 * @param dataSource the data source used to connect to the MySQL db
@@ -54,7 +53,7 @@ public class AuthenticationDao extends AbstractDao {
 	 * query results into LoginResult objects.
 	 */
 	public void execute(AwRequest awRequest) {
-		_logger.info("attempting login for user " + awRequest.getUser().getUserName());
+		// _logger.info("attempting login for user " + awRequest.getUser());
 		
 		try {
 			awRequest.setResultList(

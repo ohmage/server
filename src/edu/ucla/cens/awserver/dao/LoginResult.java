@@ -6,7 +6,8 @@ package edu.ucla.cens.awserver.dao;
  * @author selsky
  */
 public class LoginResult {
-	private int _campaignId;
+	private int _campaignId; // TODO - no longer needed?
+	private String _campaignName;
 	private int _userRoleId;
 	private int _userId;
 	private boolean _enabled;
@@ -41,5 +42,11 @@ public class LoginResult {
 	}
 	public void setUserRoleId(int userRoleId) {
 		_userRoleId = userRoleId;
+	}
+	public String getCampaignName() {
+		return _campaignName;
+	}
+	public void setCampaignName(String campaignName) {
+		_campaignName = campaignName;
 	}
 }

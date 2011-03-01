@@ -1,0 +1,85 @@
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
+                           http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-2.5.xsd">
+  <!--  
+     Spring ApplicationContext configuration for stateless JSON-over-HTTP authentication
+  -->
+  
+  <!-- Servlet-to-AW hooks -->
+  <!-- pre-validate -->
+  <bean id="authHttpServletRequestValidator" class="edu.ucla.cens.awserver.jee.servlet.validator.AuthValidator" />
+  <!-- create AW request -->
+  <bean id="authAwRequestCreator" class="edu.ucla.cens.awserver.jee.servlet.glue.AuthAwRequestCreator" />
+  <!-- generate output -->
+  <bean id="authStatelessResponseWriter" class="edu.ucla.cens.awserver.jee.servlet.writer.StatelessAuthResponseWriter">
+    <constructor-arg index="0"><ref bean="severeErrorResponse" /></constructor-arg>
+  </bean>
+    
+  <!-- Controller - all components here are reused from sensorUploadController.xml -->
+  <bean id="authStatelessController" class="edu.ucla.cens.awserver.controller.ControllerImpl">
+    <constructor-arg index="0">
+      <list>
+        <ref bean="authWithHashedPasswordService" />
+      </list>
+    </constructor-arg>
+    <constructor-arg index="1">
+      <ref bean="serverErrorRequestAnnotator" />
+    </constructor-arg>
+    <property name="validators">
+      <list>
+        <ref bean="userNameValidator" />
+        <ref bean="hashedPasswordValidator" />
+        <!-- any validator that simply checked for a empty string has been removed because it was redundant with 
+             validation performed in the servlet world -->
+      </list>      
+    </property>
+    <property name="featureName"><value>stateless authentication</value></property>
+  </bean>
+ 
+  <!-- Authentication -->
+  <bean id="authWithHashedPasswordService" class="edu.ucla.cens.awserver.service.AuthenticationService">
+    <constructor-arg index="0">
+      <ref bean="authWithHashedPasswordDao" />
+    </constructor-arg>
+    <constructor-arg index="1">
+      <bean class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
+        <constructor-arg index="0"> 
+          <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
+            <property name="code" value="0200" />
+            <property name="text" value="authentication failed" />
+          </bean>
+        </constructor-arg>
+      </bean>
+    </constructor-arg>
+    <constructor-arg index="2">
+      <bean class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
+        <constructor-arg index="0">
+          <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
+            <property name="code" value="0201" />
+            <property name="text" value="user not enabled for access" />
+          </bean>
+        </constructor-arg>
+      </bean>
+    </constructor-arg>
+    <constructor-arg index="3">
+      <bean class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
+        <constructor-arg index="0">
+          <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
+            <property name="code" value="0202" />
+            <property name="text" value="default password disallowed" />
+          </bean>
+        </constructor-arg>
+      </bean>
+    </constructor-arg>
+    <constructor-arg index="4"><value>false</value></constructor-arg> <!--  toggle whether new accounts are allowed access -->
+  </bean>
+  
+  <!-- Interact with database -->
+  <bean id="authWithHashedPasswordDao" class="edu.ucla.cens.awserver.dao.AuthenticationDao">
+    <constructor-arg index="0"><ref bean="dataSource" /></constructor-arg>
+    <constructor-arg index="1"><null /></constructor-arg>
+    <constructor-arg index="2"><value>false</value></constructor-arg>
+  </bean>
+  
+</beans>

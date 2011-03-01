@@ -1,6 +1,7 @@
 package edu.ucla.cens.awserver.service;
 
 import edu.ucla.cens.awserver.dao.Dao;
+import edu.ucla.cens.awserver.dao.DataAccessException;
 import edu.ucla.cens.awserver.request.AwRequest;
 
 /**
@@ -10,17 +11,20 @@ import edu.ucla.cens.awserver.request.AwRequest;
  */
 public class SimpleQueryService extends AbstractDaoService {
 
-	/**
-     * Creates and instance of this class and passes dao to the super class constructor.  
-     */
     public SimpleQueryService(Dao dao) {
     	super(dao);
     }
 	
-    /**
-     * Dispatches to DAO.
-     */
 	public void execute(AwRequest awRequest) {
-		getDao().execute(awRequest);
+		
+		try {
+		
+			getDao().execute(awRequest);
+			
+		} catch (DataAccessException dae) {
+			
+			throw new ServiceException(dae);
+			
+		}
 	}
 }

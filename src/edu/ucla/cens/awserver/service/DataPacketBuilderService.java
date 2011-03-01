@@ -20,7 +20,7 @@ import edu.ucla.cens.awserver.util.JsonUtils;
 public class DataPacketBuilderService implements Service {
 	private static Logger _logger = Logger.getLogger(DataPacketBuilderService.class);
 	private Map<String, DataPacketBuilder> _builderMap;
-	
+		
 	/**
 	 * @throws IllegalArgumentException if the provided Map is null or empty
 	 */
@@ -40,21 +40,24 @@ public class DataPacketBuilderService implements Service {
 		JSONArray jsonArray = awRequest.getJsonDataAsJsonArray();
 		int length = jsonArray.length();
 		List<DataPacket> dataPackets = new ArrayList<DataPacket>(length);
-		String requestType = awRequest.getRequestType();
+		String builderName = null;
 		
-		// TODO eventually this could be made smarter (more generic) - it should just be able to loop through the map without
-		// needing to know actual key values. 
+		// TODO mobility is hardcoded for now
+//		String requestType = "mobility"; // awRequest.getRequestType();
+//		
+//		// TODO eventually this could be made smarter (more generic) - it should just be able to loop through the map without
+//		// needing to know actual key values. 
 		for(int i = 0; i < length; i++) {
-			
-			String builderName = "prompt";
-			 
-			if("mobility".equals(requestType)) {
+//			
+//			String builderName = "prompt";
+//			 
+//			if(_createMobilityPackets) {
 				
 				String subtype = JsonUtils.getStringFromJsonObject(JsonUtils.getJsonObjectFromJsonArray(jsonArray, i), "subtype");
 				
-				if("mode_features".equals(subtype)) {
+				if("sensor_data".equals(subtype)) {
 					
-					builderName = "mobility-mode_features";
+					builderName = "mobility-sensor_data";
 					
 				} else if("mode_only".equals(subtype)) {
 					
@@ -64,10 +67,10 @@ public class DataPacketBuilderService implements Service {
 					
 					throw new IllegalStateException("illegal subtype found in mobility message");
 				}
-			} 
+//			} 
 			
 			DataPacket dataPacket = 
-				_builderMap.get(builderName).createDataPacketFrom(JsonUtils.getJsonObjectFromJsonArray(jsonArray, i));
+				_builderMap.get(builderName).createDataPacketFrom(JsonUtils.getJsonObjectFromJsonArray(jsonArray, i), awRequest);
 			
 			
 //			if(_logger.isDebugEnabled()) {

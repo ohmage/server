@@ -14,6 +14,10 @@ public class ValueCreator {
 	private static String[] _tzs = {"EST", "CST", "MST", "PST"}; // American timezone hegemony ;)
 	// Favor still for testing
 	private static String[] _modes = {"still", "still", "still", "walk", "run", "bike", "drive"};
+	private static String[] _providers = {"null", "GPS", "network"};
+	private static char[] chars = "abcdefghijklmnopqrstuvwxyz 0123456789".toCharArray();
+	private static String[] _locationStatuses = {"valid", "unavailable","inaccurate", "stale"};
+	private static char[] _hexChars = "0123456789ABCDEF".toCharArray(); 
 	
 	private ValueCreator() { };
 	
@@ -61,6 +65,10 @@ public class ValueCreator {
 		return Math.abs(_random.nextDouble());
 	}
 	
+	public static double randomDouble() {
+		return _random.nextDouble();
+	}
+	
 	public static boolean randomBoolean() {
 		return _random.nextBoolean(); 
 	}
@@ -88,5 +96,42 @@ public class ValueCreator {
 	
 	public static int randomPositiveIntModulus(int modulus) {
 		return Math.abs(_random.nextInt() % modulus);
+	}
+	
+	public static float randomPositiveFloat() {
+		return Math.abs(_random.nextFloat());
+	}
+	
+	public static String randomProvider() {
+		return _providers[randomPositiveIntModulus(2)];
+	}
+	
+	public static String randomString(int length) {
+    	StringBuilder builder = new StringBuilder();
+    	
+    	for(int i = 0; i < length; i++) {
+    		builder.append(chars[randomPositiveIntModulus(chars.length - 1)]);
+    	}
+    	
+    	return builder.toString();
+    }
+	
+	public static String randomLocationStatus() {
+		return _locationStatuses[randomPositiveIntModulus(3)];
+	}
+	
+	public static String randomMacAddress() {
+		StringBuilder builder = new StringBuilder();
+		
+		for(int i = 0; i < 6; i++) {
+			builder.append(_hexChars[randomPositiveIntModulus(_hexChars.length)])
+			   .append( _hexChars[randomPositiveIntModulus(_hexChars.length)]);
+			
+			if(i < 5) {
+				builder.append(":");
+			}
+		}
+		
+		return builder.toString();
 	}
 }
