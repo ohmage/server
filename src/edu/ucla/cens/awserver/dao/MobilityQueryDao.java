@@ -48,7 +48,7 @@ public class MobilityQueryDao extends AbstractDao {
 			MobilityQueryAwRequest req = (MobilityQueryAwRequest) awRequest;
 			
 			List<Object> params = new ArrayList<Object>();
-			params.add(req.getUser().getUserName());
+			params.add(req.getUserNameRequestParam());
 			params.add(req.getStartDate());
 			
 			List results = getJdbcTemplate().query(_modeOnlySql, params.toArray(), 

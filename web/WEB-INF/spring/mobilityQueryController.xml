@@ -49,7 +49,7 @@
       </bean>
     </constructor-arg>
     <constructor-arg index="1">
-      <bean class="edu.ucla.cens.awserver.dao.FindAllCampaignsForUserDao">
+      <bean class="edu.ucla.cens.awserver.dao.FindAllAdminCampaignsForUserDao">
         <constructor-arg index="0"><ref bean="dataSource"/></constructor-arg>
         <constructor-arg index="1"><value>true</value></constructor-arg>
       </bean>
