@@ -23,7 +23,6 @@
         <ref bean="tokenBasedAuthenticationService" />
         <ref bean="campaignAccessCheckService" />
         <ref bean="userRoleCheckService" />
-        <ref bean="campaignUserCheckService" />
         <ref bean="queryPromptIdValidationService" />
         <ref bean="dataPointQueryService" />
       </list>
@@ -83,25 +82,6 @@
     </constructor-arg>
     <constructor-arg index="1">
       <ref bean="userRoleCacheService" />
-    </constructor-arg>
-  </bean>
-  
-  <bean id="campaignUserCheckService" class="edu.ucla.cens.awserver.service.CampaignUserCheckService">
-    <constructor-arg index="0">
-      <bean class="edu.ucla.cens.awserver.dao.FindAllCampaignsForUserDao">
-        <constructor-arg index="0"><ref bean="dataSource"/></constructor-arg>
-        <constructor-arg index="1"><value>false</value></constructor-arg>
-      </bean>
-    </constructor-arg>
-    <constructor-arg index="1">
-      <bean class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
-        <constructor-arg index="0">
-          <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
-            <property name="code" value="0701" />
-            <property name="text" value="invalid user in query" />
-          </bean>
-        </constructor-arg>
-      </bean>
     </constructor-arg>
   </bean>
   

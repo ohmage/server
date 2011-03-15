@@ -1,0 +1,186 @@
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:util="http://www.springframework.org/schema/util"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
+                           http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-2.5.xsd">
+  <!--  
+     Spring ApplicationContext configuration for the new data point API 
+  -->
+  
+  <!-- Servlet-to-AW hooks -->
+  <!-- "pre-validate" inbound data -->
+  <bean id="newDataPointQueryHttpServletRequestValidator" class="edu.ucla.cens.awserver.jee.servlet.validator.NewDataPointQueryValidator" />
+  <!-- create AwRequest from data in the HttpServletRequest -->
+  <bean id="newDataPointQueryAwRequestCreator" class="edu.ucla.cens.awserver.jee.servlet.glue.NewDataPointQueryAwRequestCreator" />
+  <!-- write outbound data, post-controller 
+  <bean id="newDataPointQueryResponseWriter" class="edu.ucla.cens.awserver.jee.servlet.writer.DataPointQueryResponseWriter">
+    <constructor-arg index="0"><ref bean="severeErrorResponse" /></constructor-arg>
+  </bean>
+  -->
+    
+  <!-- Controller -->
+  <bean id="newDataPointQueryController" class="edu.ucla.cens.awserver.controller.ControllerImpl">
+    <constructor-arg index="0">
+      <list>
+        <ref bean="tokenBasedAuthenticationService" />
+        <ref bean="newDataPointQueryParamConverterService" />
+        <ref bean="campaignAccessCheckService" />
+        <ref bean="userRoleCheckService" />
+        <ref bean="campaignUserCheckService" />
+        <ref bean="newDataPointQueryPromptIdValidationService" />
+        <ref bean="newDataPointQuerySurveyIdValidationService" />
+        <!--
+        <ref bean="dataPointQueryService" />
+      --></list>
+    </constructor-arg>
+    <constructor-arg index="1">
+      <ref bean="serverErrorRequestAnnotator" />
+    </constructor-arg>
+    <property name="validators">
+      <list>
+        <ref bean="startDateValidator" />
+        <ref bean="endDateValidator" />
+        <ref bean="userTokenValidator" />
+        <ref bean="userListValidator" />
+        <ref bean="promptIdListSurveyIdListValidator" />
+        <ref bean="dateRangeValidator" />
+        <ref bean="columnListValidator" />
+      </list>      
+    </property>
+    <property name="featureName"><value>new data point query</value></property>
+  </bean>
+
+  <bean id="userListValidator" class="edu.ucla.cens.awserver.validator.UserListValidator">
+    <constructor-arg index="0"><value>[a-z\.]{9,15}</value></constructor-arg>
+    <constructor-arg index="1">
+      <bean class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
+        <constructor-arg index="0">
+          <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
+            <property name="code" value="0704" />
+            <property name="text" value="invalid user list in query" />
+          </bean>
+        </constructor-arg>
+      </bean>
+    </constructor-arg>
+  </bean>
+
+  <bean id="promptIdListSurveyIdListValidator" class="edu.ucla.cens.awserver.validator.PromptIdListSurveyIdListValidator">
+    <constructor-arg index="0"><value>[0-9a-zA-Z]{1,}</value></constructor-arg>
+    <constructor-arg index="1">
+      <bean class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
+        <constructor-arg index="0">
+          <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
+            <property name="code" value="0705" />
+            <property name="text" value="invalid prompt_id_list or survey_id_list" />
+          </bean>
+        </constructor-arg>
+      </bean>
+    </constructor-arg>
+  </bean>
+
+  <bean id="dateRangeValidator" class="edu.ucla.cens.awserver.validator.DateRangeValidator">
+    <constructor-arg index="0">
+      <bean class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
+        <constructor-arg index="0">
+          <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
+            <property name="code" value="0706" />
+            <property name="text" value="invalid date range" />
+          </bean>
+        </constructor-arg>
+      </bean>
+    </constructor-arg>
+    <constructor-arg index="1"><value>2592000000</value></constructor-arg>
+  </bean>
+  
+  <bean id="columnListValidator" class="edu.ucla.cens.awserver.validator.ColumnListValidator">
+    <constructor-arg index="0">
+      <bean class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
+        <constructor-arg index="0">
+          <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
+            <property name="code" value="0708" />
+            <property name="text" value="invalid column list" />
+          </bean>
+        </constructor-arg>
+      </bean>
+    </constructor-arg>
+    <constructor-arg index="1"><ref bean="dataPointQueryColumnUrns" /></constructor-arg>
+  </bean>
+  
+  <util:list id="dataPointQueryColumnUrns">
+    <value>urn:sys:upload:user</value>
+    <value>urn:sys:upload:client</value>
+    <value>urn:sys:upload:timestamp</value>
+    <value>urn:sys:upload:timezone</value>
+    <value>urn:sys:upload:utc_timestamp</value>
+    <value>urn:sys:upload:survey_launch_context</value>
+    <value>urn:sys:upload:location:latitude</value>
+    <value>urn:sys:upload:location:longitude</value>
+    <value>urn:sys:upload:location:timestamp</value>
+    <value>urn:sys:upload:location:accuracy</value>
+    <value>urn:sys:upload:location:provider</value>
+    <value>urn:sys:upload:campaign:name</value> <!-- TODO change to URN -->
+    <value>urn:sys:upload:campaign:version</value> <!-- TODO drop -->
+    <value>urn:sys:upload:class:urn</value>
+    <value>urn:sys:upload:survey:id</value>
+    <value>urn:sys:upload:survey:title</value>
+    <value>urn:sys:upload:repeatable_set:id</value>
+    <value>urn:sys:upload:repeatable_set:iteration</value>
+    <value>urn:sys:upload:prompt:id</value>
+    <value>urn:sys:upload:prompt:type</value>
+    <value>urn:sys:upload:prompt:display_type</value>
+    <value>urn:sys:upload:prompt:response</value>
+  </util:list>
+  
+ <bean id="newDataPointQueryParamConverterService" class="edu.ucla.cens.awserver.service.NewDataPointQueryParamConverterService" />
+  
+ <bean id="campaignUserCheckService" class="edu.ucla.cens.awserver.service.CampaignUserCheckService">
+    <constructor-arg index="0">
+      <bean class="edu.ucla.cens.awserver.dao.FindAllCampaignsForCurrentUserDao">
+        <constructor-arg index="0"><ref bean="dataSource"/></constructor-arg>
+      </bean>
+    </constructor-arg>
+    <constructor-arg index="1">
+      <bean class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
+        <constructor-arg index="0">
+          <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
+            <property name="code" value="0701" />
+            <property name="text" value="invalid user in query" />
+          </bean>
+        </constructor-arg>
+      </bean>
+    </constructor-arg>
+  </bean>
+  
+  <bean id="newDataPointQueryPromptIdValidationService" class="edu.ucla.cens.awserver.service.NewDataPointQueryPromptIdValidationService">
+    <constructor-arg index="0">
+      <bean class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
+        <constructor-arg index="0">
+          <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
+            <property name="code" value="0704" />
+            <property name="text" value="invalid prompt id in query" />
+          </bean>
+        </constructor-arg>
+      </bean>
+    </constructor-arg>
+    <constructor-arg index="1">
+      <ref bean="configurationCacheService" />
+    </constructor-arg>
+  </bean>
+
+  <bean id="newDataPointQuerySurveyIdValidationService" class="edu.ucla.cens.awserver.service.NewDataPointQuerySurveyIdValidationService">
+    <constructor-arg index="0">
+      <bean class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
+        <constructor-arg index="0">
+          <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
+            <property name="code" value="0707" />
+            <property name="text" value="invalid survey id in query" />
+          </bean>
+        </constructor-arg>
+      </bean>
+    </constructor-arg>
+    <constructor-arg index="1">
+      <ref bean="configurationCacheService" />
+    </constructor-arg>
+  </bean>
+
+</beans>

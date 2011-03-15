@@ -20,13 +20,14 @@ import edu.ucla.cens.awserver.util.StringUtils;
 public class DateValidator extends AbstractAnnotatingValidator {
 	private static Logger _logger = Logger.getLogger(DateValidator.class);
 	private Method _dateAccessorMethod;
-	private SimpleDateFormat _dateFormat;
+	private String _dateFormat;
 	private String _errorMessage;
 	
 	/**
 	 * @throws IllegalArgumentException if the provided key is null, empty, or all whitespace
 	 * @throws IllegalArgumentException if the provided format is null, empty, or all whitespace
 	 * @throws IllegalArgumentException if the provided format is not a valid SimpleDateFormat
+	 * @throws IllegalArgumentException if the key does not represent an AwRequest attribute
 	 * @see ReflectionUtils#getAccessorMethod(Class, String)
 	 */
 	public DateValidator(AwRequestAnnotator annotator, String key, String format) {
@@ -39,7 +40,11 @@ public class DateValidator extends AbstractAnnotatingValidator {
 		}
 		
 		_dateAccessorMethod = ReflectionUtils.getAccessorMethod(AwRequest.class, key);
-		_dateFormat = new SimpleDateFormat(format);
+		
+		// Create a new SimpleDateFormat to just throw it away
+		// The reason this is done is because SimpleDateFormat is not synchronized 
+		new SimpleDateFormat(format);
+		_dateFormat = format;
 	}
 	
 	/**
@@ -69,7 +74,9 @@ public class DateValidator extends AbstractAnnotatingValidator {
 		
 		try {
 			
-			_dateFormat.parse(stringDate);
+			SimpleDateFormat formatter = new SimpleDateFormat(_dateFormat);
+			formatter.setLenient(false);
+			formatter.parse(stringDate);
 			
 		} catch (ParseException pe) {
 			

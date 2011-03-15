@@ -61,4 +61,23 @@ public final class StringUtils {
 			throw new IllegalStateException("cannot decode UTF-8 string: " + string);
 		}
 	}
+	
+	/**
+	 * @return a parameter list of the form (?,...?) depending on the numberOfParameters  
+	 */
+	public static String generateStatementPList(int numberOfParameters) {
+		if(numberOfParameters < 1) {
+			throw new IllegalArgumentException("cannot generate a parameter list for less than one parameters");
+		}
+		
+		StringBuilder builder = new StringBuilder("(");
+		for(int i = 0; i < numberOfParameters; i++) {
+			builder.append("?");
+			if(i < numberOfParameters - 1) {
+				builder.append(",");
+			}	
+		}
+		builder.append(")");
+		return builder.toString();
+	}
 }

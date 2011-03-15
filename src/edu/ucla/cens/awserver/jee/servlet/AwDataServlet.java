@@ -137,12 +137,10 @@ public class AwDataServlet extends HttpServlet {
 		}
 		
 		// Invalidate the session
-		// TODO - is this the correct thing to do in all cases? Also, is this the correct place for this behavior? 
 		request.getSession().invalidate();
 		
 		// Write the output
 		_responseWriter.write(request, response, awRequest);
-							
 	}
 	
 	/**

@@ -19,7 +19,7 @@ public class CampaignAccessCheckService extends AbstractAnnotatingService {
 	
 	@Override
 	public void execute(AwRequest awRequest) {
-		// check whether the logged in user has access to the campaign in the query params
+		_logger.info("verifying that the logged-in user has access to the campaign specified in the query");
 		
 		if(! awRequest.getUser().getCampaignRoles().keySet().contains(awRequest.getCampaignName())) {
 			_logger.warn("user attempting to query against a campaign they do not belong to. user: " + 

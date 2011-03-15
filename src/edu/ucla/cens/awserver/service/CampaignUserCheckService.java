@@ -6,33 +6,52 @@ import org.apache.log4j.Logger;
 
 import edu.ucla.cens.awserver.dao.Dao;
 import edu.ucla.cens.awserver.request.AwRequest;
+import edu.ucla.cens.awserver.request.NewDataPointQueryAwRequest;
 import edu.ucla.cens.awserver.validator.AwRequestAnnotator;
 
 /**
- * Service that verifies that the campaign name in the AwRequest represents a campaign that the logged-in user has access to.
+ * Service that verifies that the each user in the user list ("new" data point API) belongs to the campaign in the query. 
  * 
  * @author selsky
  */
 public class CampaignUserCheckService extends AbstractAnnotatingDaoService {
 	private static Logger _logger = Logger.getLogger(CampaignUserCheckService.class);
 	
+	/**
+	 * The provided DAO must push a list of campaign names into AwRequest.setResultList. 
+	 */
 	public CampaignUserCheckService(Dao dao, AwRequestAnnotator annotator) {
 		super(dao, annotator);
 	}
 	
+	/**
+	 * Verifies that the query campaign name is present in each query user's campaign list.
+	 */
 	@Override
 	public void execute(AwRequest awRequest) {
+		_logger.info("validating that each user in the user list belongs to the campaign specified in the query");
 		
-		 // make sure the user query param represents a user that belongs to the campaign query param
+		NewDataPointQueryAwRequest req = (NewDataPointQueryAwRequest) awRequest;
+		
+		String userListString = req.getUserListString();
+		
+		if(! "urn:sys:special:all".equals(userListString)) {
 			
-		getDao().execute(awRequest);
-		
-		List<?> results = awRequest.getResultList();
-		if(! results.contains(awRequest.getCampaignName())) {
-			_logger.warn("logged in user attempting to query against a user who does not belong to the same campaign. " 
-				+ " logged in user: " +  awRequest.getUser().getUserName() + " query user: " 
-				+ awRequest.getUserNameRequestParam() + " query campaign: " + awRequest.getCampaignName());
-			getAnnotator().annotate(awRequest, "logged in user and query user do not belong to the same campaigns");
+			String[] users = req.getUserListArray();
+			
+			for(String user : users) {
+				
+				req.setCurrentUser(user);
+				
+				getDao().execute(awRequest);
+				
+				List<?> results = awRequest.getResultList();
+				
+				if(! results.contains(awRequest.getCampaignName())) {
+					_logger.warn("invalid campaign name in request: the query user does not belong to the campaign in the query.");
+					getAnnotator().annotate(awRequest, "the query user does not belong to the campaign in the query");
+				}
+			}
 		}
 	}
 }
