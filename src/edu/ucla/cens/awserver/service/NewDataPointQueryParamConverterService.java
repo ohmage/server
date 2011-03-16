@@ -1,5 +1,7 @@
 package edu.ucla.cens.awserver.service;
 
+import java.util.Arrays;
+
 import org.apache.log4j.Logger;
 
 import edu.ucla.cens.awserver.request.AwRequest;
@@ -12,7 +14,7 @@ public class NewDataPointQueryParamConverterService implements Service {
 	private static Logger _logger = Logger.getLogger(NewDataPointQueryParamConverterService.class);
 	
 	/**
-	 * Converts the String representations of survey id, prompt id, user and column lists into String arrays. Expects the awRequest
+	 * Converts the String representations of survey id, prompt id, user and column into Lists. Expects the awRequest
 	 * to be a NewDataPointQueryAwRequest. Assumes the values have already been validated and that the string representations are
 	 * comma-separated values.
 	 */
@@ -29,15 +31,15 @@ public class NewDataPointQueryParamConverterService implements Service {
 		
 		if(null == surveyIdListString) {
 			
-			req.setPromptIdListArray(split(promptIdListString));
+			req.setPromptIdList(Arrays.asList(split(promptIdListString)));
 			
 		} else {
 			
-			req.setSurveyIdListArray(split(surveyIdListString));
+			req.setSurveyIdList(Arrays.asList(split(surveyIdListString)));
 		}
 		
-		req.setColumnListArray(split(columnListString));
-		req.setUserListArray(split(userListString));
+		req.setColumnList(Arrays.asList(split(columnListString)));
+		req.setUserList(Arrays.asList(split(userListString)));
 	}
 
 	private String[] split(String string) {

@@ -29,9 +29,9 @@
         <ref bean="campaignUserCheckService" />
         <ref bean="newDataPointQueryPromptIdValidationService" />
         <ref bean="newDataPointQuerySurveyIdValidationService" />
-        <!--
-        <ref bean="dataPointQueryService" />
-      --></list>
+        <ref bean="findCampaignConfigurationService" />
+        <ref bean="newDataPointQueryService" />
+      </list>
     </constructor-arg>
     <constructor-arg index="1">
       <ref bean="serverErrorRequestAnnotator" />
@@ -120,7 +120,7 @@
     <value>urn:sys:upload:location:provider</value>
     <value>urn:sys:upload:campaign:name</value> <!-- TODO change to URN -->
     <value>urn:sys:upload:campaign:version</value> <!-- TODO drop -->
-    <value>urn:sys:upload:class:urn</value>
+    <!-- <value>urn:sys:upload:class:urn</value> later -->
     <value>urn:sys:upload:survey:id</value>
     <value>urn:sys:upload:survey:title</value>
     <value>urn:sys:upload:repeatable_set:id</value>
@@ -183,4 +183,23 @@
     </constructor-arg>
   </bean>
 
+  <bean id="findCampaignConfigurationService" class="edu.ucla.cens.awserver.service.FindCampaignConfigurationService">
+   <constructor-arg index="0">
+      <bean class="edu.ucla.cens.awserver.dao.FindCampaignConfigurationDao">
+        <constructor-arg index="0"><ref bean="dataSource" /></constructor-arg>
+        <constructor-arg index="1">
+          <bean class="edu.ucla.cens.awserver.domain.SurveyMapFromXmlBuilder" />
+        </constructor-arg>
+      </bean>
+    </constructor-arg>
+  </bean>
+
+  <bean id="newDataPointQueryService" class="edu.ucla.cens.awserver.service.NewDataPointQueryService">
+   <constructor-arg index="0">
+      <bean class="edu.ucla.cens.awserver.dao.NewDataPointQueryDao">
+        <constructor-arg index="0"><ref bean="dataSource" /></constructor-arg>
+      </bean>
+    </constructor-arg>
+  </bean>
+  
 </beans>

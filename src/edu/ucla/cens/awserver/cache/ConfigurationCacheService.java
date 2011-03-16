@@ -16,7 +16,10 @@ import edu.ucla.cens.awserver.domain.Configuration;
 /**
  * The default implementation of a ConfigurationCacheService. Contains Configurations accessible by campaign name-version pairs.
  * 
+ * Deprecated because this class is ultra-naive and requires an app restart to reload configurations. 
+ *  
  * @author selsky
+ * @deprecated
  */
 public class ConfigurationCacheService extends AbstractCacheService {
 	private static Logger _logger = Logger.getLogger(ConfigurationCacheService.class);

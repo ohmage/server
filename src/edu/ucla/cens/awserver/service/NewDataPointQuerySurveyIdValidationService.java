@@ -1,5 +1,7 @@
 package edu.ucla.cens.awserver.service;
 
+import java.util.List;
+
 import org.apache.log4j.Logger;
 
 import edu.ucla.cens.awserver.cache.ConfigurationCacheService;
@@ -34,11 +36,11 @@ public class NewDataPointQuerySurveyIdValidationService extends AbstractAnnotati
 		
 		NewDataPointQueryAwRequest req = (NewDataPointQueryAwRequest) awRequest;
 		
-		if((null != req.getSurveyIdListString()) && (0 != req.getSurveyIdListArray().length)) {
+		if((null != req.getSurveyIdListString()) && (0 != req.getSurveyIdList().size())) {
 			
 			if(! "urn:sys:special:all".equals(req.getSurveyIdListString())) {
 				
-				String[] surveyIds = req.getSurveyIdListArray(); 
+				List<String> surveyIds = req.getSurveyIdList(); 
 				String campaignName = req.getCampaignName();
 				String campaignVersion = req.getCampaignVersion();
 				

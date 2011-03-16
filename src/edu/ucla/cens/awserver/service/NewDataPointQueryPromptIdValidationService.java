@@ -1,5 +1,7 @@
 package edu.ucla.cens.awserver.service;
 
+import java.util.List;
+
 import org.apache.log4j.Logger;
 
 import edu.ucla.cens.awserver.cache.ConfigurationCacheService;
@@ -34,11 +36,11 @@ public class NewDataPointQueryPromptIdValidationService extends AbstractAnnotati
 		
 		NewDataPointQueryAwRequest req = (NewDataPointQueryAwRequest) awRequest;
 		
-		if((null != req.getPromptIdListString()) && (0 != req.getPromptIdListArray().length)) {
+		if((null != req.getPromptIdListString()) && (0 != req.getPromptIdList().size())) {
 			
 			if(! "urn:sys:special:all".equals(req.getPromptIdListString())) {
 				
-				String[] promptIds = req.getPromptIdListArray(); 
+				List<String> promptIds = req.getPromptIdList(); 
 				String campaignName = req.getCampaignName();
 				String campaignVersion = req.getCampaignVersion();
 				

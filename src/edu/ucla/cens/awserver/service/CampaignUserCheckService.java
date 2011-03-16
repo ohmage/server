@@ -37,7 +37,7 @@ public class CampaignUserCheckService extends AbstractAnnotatingDaoService {
 		
 		if(! "urn:sys:special:all".equals(userListString)) {
 			
-			String[] users = req.getUserListArray();
+			List<String> users = req.getUserList();
 			
 			for(String user : users) {
 				

@@ -1,5 +1,9 @@
 package edu.ucla.cens.awserver.request;
 
+import java.util.List;
+
+import edu.ucla.cens.awserver.domain.Configuration;
+
 /**
  * State for "new" data point API queries.
  * 
@@ -9,19 +13,33 @@ public class NewDataPointQueryAwRequest extends ResultListAwRequest {
 	private String _startDate;
 	private String _endDate;
 	private String _currentUser;
-	private String _userListString;
-	private String[] _userListArray;
-	private String _promptIdListString;
-	private String[] _promptIdListArray;
-	private String _surveyIdListString;
-	private String[] _surveyIdListArray;
 	private String _client;
 	private String _campaignName;
 	private String _campaignVersion;
+	
+	private String _userListString;
+	private List<String> _userList;
+	
+	private String _promptIdListString;
+	private List<String> _promptIdList;
+	
+	private String _surveyIdListString;
+	private List<String> _surveyIdList;
+	
 	private String _columnListString;
-	private String[] _columnListArray;
+	private List<String> _columnList;
+
+	private Configuration _configuration;
 	
 	// private String _authToken; see userToken in parent class
+
+	public Configuration getConfiguration() {
+		return _configuration;
+	}
+
+	public void setConfiguration(Configuration configuration) {
+		_configuration = configuration;
+	}
 	
 	public String getCurrentUser() {
 		return _currentUser;
@@ -70,10 +88,6 @@ public class NewDataPointQueryAwRequest extends ResultListAwRequest {
 	public void setCampaignVersion(String campaignVersion) {
 		_campaignVersion = campaignVersion;
 	}
-
-	public int getNumberOfUsersInQuery() {
-		return (null == _userListArray) ? 0 : _userListArray.length;
-	}
 	
 	public String getUserListString() {
 		return _userListString;
@@ -83,12 +97,12 @@ public class NewDataPointQueryAwRequest extends ResultListAwRequest {
 		_userListString = userListString;
 	}
 
-	public String[] getUserListArray() {
-		return _userListArray;
+	public List<String> getUserList() {
+		return _userList;
 	}
 
-	public void setUserListArray(String[] userListArray) {
-		_userListArray = userListArray;
+	public void setUserList(List<String> userList) {
+		_userList = userList;
 	}
 
 	public String getPromptIdListString() {
@@ -99,12 +113,12 @@ public class NewDataPointQueryAwRequest extends ResultListAwRequest {
 		_promptIdListString = promptIdListString;
 	}
 
-	public String[] getPromptIdListArray() {
-		return _promptIdListArray;
+	public List<String> getPromptIdList() {
+		return _promptIdList;
 	}
 
-	public void setPromptIdListArray(String[] promptIdListArray) {
-		_promptIdListArray = promptIdListArray;
+	public void setPromptIdList(List<String> promptIdList) {
+		_promptIdList = promptIdList;
 	}
 
 	public String getSurveyIdListString() {
@@ -115,12 +129,12 @@ public class NewDataPointQueryAwRequest extends ResultListAwRequest {
 		_surveyIdListString = surveyIdListString;
 	}
 
-	public String[] getSurveyIdListArray() {
-		return _surveyIdListArray;
+	public List<String> getSurveyIdList() {
+		return _surveyIdList;
 	}
 
-	public void setSurveyIdListArray(String[] surveyIdListArray) {
-		_surveyIdListArray = surveyIdListArray;
+	public void setSurveyIdList(List<String> surveyIdList) {
+		_surveyIdList = surveyIdList;
 	}
 
 	public String getColumnListString() {
@@ -131,11 +145,11 @@ public class NewDataPointQueryAwRequest extends ResultListAwRequest {
 		_columnListString = columnListString;
 	}
 
-	public String[] getColumnListArray() {
-		return _columnListArray;
+	public List<String> getColumnList() {
+		return _columnList;
 	}
 
-	public void setColumnListArray(String[] columnListArray) {
-		_columnListArray = columnListArray;
+	public void setColumnList(List<String> columnList) {
+		_columnList = columnList;
 	}
 }

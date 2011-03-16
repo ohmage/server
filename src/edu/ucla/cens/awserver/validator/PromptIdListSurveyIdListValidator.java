@@ -1,5 +1,10 @@
 package edu.ucla.cens.awserver.validator;
 
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
 import org.apache.log4j.Logger;
 
 import edu.ucla.cens.awserver.request.AwRequest;
@@ -56,18 +61,27 @@ public class PromptIdListSurveyIdListValidator extends AbstractAnnotatingRegexpV
 			
 		} else {
 			
-			String[] ids = listAsString.split(",");
+			List<String> ids = Arrays.asList(listAsString.split(","));
 			
-			if(ids.length > 10) {
+			if(ids.size() > 10) {
 				
 				getAnnotator().annotate(awRequest, "more than 10 ids in query: " + listAsString);
 				return false;
-				
+			
 			} else {
 				
-				for(int i = 0; i < ids.length; i++) {
-					if(! _regexpPattern.matcher(ids[i]).matches()) {
-						getAnnotator().annotate(awRequest, "malformed id: " + ids[i]);
+				Set<String> idSet = new HashSet<String>(ids);
+				
+				if(idSet.size() != ids.size()) {
+					
+					getAnnotator().annotate(awRequest, "found duplicate id in list: " + ids);
+					return false;
+					
+				}
+				
+				for(String id : ids) {
+					if(! _regexpPattern.matcher(id).matches()) {
+						getAnnotator().annotate(awRequest, "malformed id: " + id);
 						return false;
 					}
 				}

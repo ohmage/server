@@ -58,7 +58,7 @@ public class UserRoleCheckService extends AbstractAnnotatingService {
 				
 				NewDataPointQueryAwRequest req = (NewDataPointQueryAwRequest) awRequest;
 				
-				if(req.getNumberOfUsersInQuery() != 1) {
+				if(req.getUserList().size() != 1) {
 					
 					_logger.warn("logged in participant attempting to run query for another user. " 
 						+ " logged in user: " +  req.getUser().getUserName() + " query user: "
@@ -68,7 +68,7 @@ public class UserRoleCheckService extends AbstractAnnotatingService {
 					
 				} else {
 					
-					String u = req.getUserListArray()[0];
+					String u = req.getUserList().get(0);
 					
 					if(! req.getUser().getUserName().equals(u)) {
 						
