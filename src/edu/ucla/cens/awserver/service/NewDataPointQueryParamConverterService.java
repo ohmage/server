@@ -1,6 +1,8 @@
 package edu.ucla.cens.awserver.service;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 import org.apache.log4j.Logger;
 
@@ -20,7 +22,7 @@ public class NewDataPointQueryParamConverterService implements Service {
 	 */
 	@Override
 	public void execute(AwRequest awRequest) {
-		_logger.info("converting string parameters to arrays");
+		_logger.info("converting string parameters to lists");
 		
 		NewDataPointQueryAwRequest req = (NewDataPointQueryAwRequest) awRequest; 
 		
@@ -31,11 +33,25 @@ public class NewDataPointQueryParamConverterService implements Service {
 		
 		if(null == surveyIdListString) {
 			
-			req.setPromptIdList(Arrays.asList(split(promptIdListString)));
+			String[] splitList = split(promptIdListString);
+			List<String> ids = new ArrayList<String>();
+			
+			for(String entry : splitList) {
+				ids.add(entry.substring(0, "urn:sys:upload:data:prompt:id:".length()));
+			}
+			
+			req.setPromptIdList(ids);
 			
 		} else {
 			
-			req.setSurveyIdList(Arrays.asList(split(surveyIdListString)));
+			String[] splitList = split(promptIdListString);
+			List<String> ids = new ArrayList<String>();
+			
+			for(String entry : splitList) {
+				ids.add(entry.substring(0, "urn:sys:upload:data:survey:id:".length()));
+			}
+			
+			req.setSurveyIdList(ids);
 		}
 		
 		req.setColumnList(Arrays.asList(split(columnListString)));

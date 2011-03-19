@@ -1,12 +1,18 @@
 package edu.ucla.cens.awserver.dao;
 
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
 import javax.sql.DataSource;
 
 import org.apache.log4j.Logger;
+import org.springframework.jdbc.core.RowMapper;
 
+import edu.ucla.cens.awserver.domain.Configuration;
+import edu.ucla.cens.awserver.domain.ConfigurationValueMerger;
+import edu.ucla.cens.awserver.domain.NewDataPointQueryResult;
 import edu.ucla.cens.awserver.request.AwRequest;
 import edu.ucla.cens.awserver.request.NewDataPointQueryAwRequest;
 
@@ -15,6 +21,7 @@ import edu.ucla.cens.awserver.request.NewDataPointQueryAwRequest;
  */
 public class NewDataPointQueryDao extends AbstractDao {
 	private static Logger _logger = Logger.getLogger(NewDataPointQueryDao.class);
+	private ConfigurationValueMerger _configurationValueMerger;
 	
 	// TODO - later on the columns that are selected can be optimized to whatever columns are present in the query
 	// need a mapping from URN to column name?
@@ -36,17 +43,24 @@ public class NewDataPointQueryDao extends AbstractDao {
 	
 	private String _andSurveyIds = " AND sr.survey_id IN ";
 	
-	private String _orderBy = " ORDER BY u.login_id, sr.msg_timestamp, sr.survey_id, pr.prompt_id";
+	private String _orderBy = " ORDER BY u.login_id, sr.msg_timestamp, sr.survey_id, " +
+			                  "pr.repeatable_set_id, pr.repeatable_set_iteration, pr.prompt_id";
 	
-	public NewDataPointQueryDao(DataSource dataSource) {
+	public NewDataPointQueryDao(DataSource dataSource, ConfigurationValueMerger configurationValueMerger) {
 		super(dataSource);
+		if(null == configurationValueMerger) {
+			throw new IllegalArgumentException("a ConfigurationValueMerger is required");
+		}
+		_configurationValueMerger = configurationValueMerger;
 	}
 	
 	@Override
 	public void execute(AwRequest awRequest) {
+		_logger.info("running \"new\" data point query");
 		NewDataPointQueryAwRequest req = (NewDataPointQueryAwRequest) awRequest;
 		String sql = generateSql(req);
 		
+		final Configuration configuration = req.getConfiguration();
 		final List<Object> paramObjects = new ArrayList<Object>();
 		paramObjects.add(req.getCampaignName());
 		paramObjects.add(req.getCampaignVersion());
@@ -73,7 +87,38 @@ public class NewDataPointQueryDao extends AbstractDao {
 		
 		try {
 			
-			List<?> results = getJdbcTemplate().query(sql, paramObjects.toArray(), new DataPointQueryRowMapper());
+			List<?> results = getJdbcTemplate()
+				.query(sql, paramObjects.toArray(), new RowMapper() { 
+					public Object mapRow(ResultSet rs, int rowNum) throws SQLException {
+						NewDataPointQueryResult result = new NewDataPointQueryResult();
+						result.setPromptId(rs.getString(1));
+						result.setPromptType(rs.getString(2));
+						result.setResponse(rs.getObject(3));
+						
+						Object o = rs.getObject(4);
+						if(null == o) {
+							result.setRepeatableSetIteration(null);	
+						} else {
+							result.setRepeatableSetIteration(rs.getInt(4));
+						}
+						
+						result.setRepeatableSetId(rs.getString(5));
+						result.setTimestamp(rs.getString(6));
+						result.setTimezone(rs.getString(7));
+						result.setLocationStatus(rs.getString(8));
+						result.setLocation(rs.getString(9));
+						result.setSurveyId(rs.getString(10));
+						result.setLoginId(rs.getString(11));
+						result.setClient(rs.getString(12));
+						result.setLaunchContext(rs.getString(13));
+						
+						_configurationValueMerger.merge(result, configuration);
+						
+						return result;
+					}
+				}
+			);
+			
 			_logger.info("found " + results.size() + " query results");
 			req.setResultList(results);
 			

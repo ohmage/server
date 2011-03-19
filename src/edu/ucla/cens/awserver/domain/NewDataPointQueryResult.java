@@ -1,6 +1,9 @@
 package edu.ucla.cens.awserver.domain;
 
 /**
+ * Cf. DataPointQueryResult except this domain class handles results for multiple users and additional properties from 
+ * XML configurations.
+ * 
  * @author selsky
  */
 public class NewDataPointQueryResult {
@@ -14,7 +17,7 @@ public class NewDataPointQueryResult {
 	private String _promptId;
 	private String _promptType;
 	private String _repeatableSetId;
-	private boolean _isMetadata;
+	// private boolean _isMetadata;
 	private String _displayLabel;
 	private Object _displayValue;
 	private String _unit;
@@ -22,7 +25,7 @@ public class NewDataPointQueryResult {
 	private String _utcTimestamp;
 	private String _client;
 	private String _launchContext; // TODO should this be an object
-	private String _surveyTitle;
+	// private String _surveyTitle; leaving out for now because it is not available from the configuration class (SurveyMapBuilder)
 	private String _loginId;
 	
 	public String getLocationStatus() {
@@ -53,13 +56,13 @@ public class NewDataPointQueryResult {
 		return _response;
 	}
 	
-	public boolean isMetadata() {
-		return _isMetadata;
-	}
-
-	public void setIsMetadata(boolean isMetadata) {
-		_isMetadata = isMetadata;
-	}
+//	public boolean isMetadata() {
+//		return _isMetadata;
+//	}
+//
+//	public void setIsMetadata(boolean isMetadata) {
+//		_isMetadata = isMetadata;
+//	}
 
 	public void setResponse(Object response) {
 		_response = response;
@@ -173,13 +176,13 @@ public class NewDataPointQueryResult {
 		_launchContext = launchContext;
 	}
 
-	public String getSurveyTitle() {
-		return _surveyTitle;
-	}
-
-	public void setSurveyTitle(String surveyTitle) {
-		_surveyTitle = surveyTitle;
-	}
+//	public String getSurveyTitle() {
+//		return _surveyTitle;
+//	}
+//
+//	public void setSurveyTitle(String surveyTitle) {
+//		_surveyTitle = surveyTitle;
+//	}
 
 	public String getLoginId() {
 		return _loginId;
@@ -194,15 +197,14 @@ public class NewDataPointQueryResult {
 		return "NewDataPointQueryResult [_client=" + _client
 				+ ", _displayLabel=" + _displayLabel + ", _displayType="
 				+ _displayType + ", _displayValue=" + _displayValue
-				+ ", _isMetadata=" + _isMetadata + ", _launchContext="
-				+ _launchContext + ", _location=" + _location
-				+ ", _locationStatus=" + _locationStatus + ", _loginId="
-				+ _loginId + ", _promptId=" + _promptId + ", _promptType="
-				+ _promptType + ", _repeatableSetId=" + _repeatableSetId
-				+ ", _repeatableSetIteration=" + _repeatableSetIteration
-				+ ", _response=" + _response + ", _surveyId=" + _surveyId
-				+ ", _surveyTitle=" + _surveyTitle + ", _timestamp="
-				+ _timestamp + ", _timezone=" + _timezone + ", _unit=" + _unit
+				+ ", _launchContext=" + _launchContext + ", _location="
+				+ _location + ", _locationStatus=" + _locationStatus
+				+ ", _loginId=" + _loginId + ", _promptId=" + _promptId
+				+ ", _promptType=" + _promptType + ", _repeatableSetId="
+				+ _repeatableSetId + ", _repeatableSetIteration="
+				+ _repeatableSetIteration + ", _response=" + _response
+				+ ", _surveyId=" + _surveyId + ", _timestamp=" + _timestamp
+				+ ", _timezone=" + _timezone + ", _unit=" + _unit
 				+ ", _utcTimestamp=" + _utcTimestamp + "]";
 	}
 }

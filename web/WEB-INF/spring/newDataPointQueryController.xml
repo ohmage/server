@@ -107,28 +107,26 @@
   </bean>
   
   <util:list id="dataPointQueryColumnUrns">
-    <value>urn:sys:upload:user</value>
-    <value>urn:sys:upload:client</value>
-    <value>urn:sys:upload:timestamp</value>
-    <value>urn:sys:upload:timezone</value>
-    <value>urn:sys:upload:utc_timestamp</value>
-    <value>urn:sys:upload:survey_launch_context</value>
-    <value>urn:sys:upload:location:latitude</value>
-    <value>urn:sys:upload:location:longitude</value>
-    <value>urn:sys:upload:location:timestamp</value>
-    <value>urn:sys:upload:location:accuracy</value>
-    <value>urn:sys:upload:location:provider</value>
-    <value>urn:sys:upload:campaign:name</value> <!-- TODO change to URN -->
-    <value>urn:sys:upload:campaign:version</value> <!-- TODO drop -->
+    <value>urn:sys:upload:metadata:user</value>
+    <value>urn:sys:upload:metadata:client</value>
+    <value>urn:sys:upload:metadata:timestamp</value>
+    <value>urn:sys:upload:metadata:timezone</value>
+    <value>urn:sys:upload:metadata:utc_timestamp</value>
+    <value>urn:sys:upload:metadata:survey_launch_context</value> <!-- TODO break this up into separate columns -->
+    <value>urn:sys:upload:metadata:location:status</value>
+    <value>urn:sys:upload:metadata:location:latitude</value>
+    <value>urn:sys:upload:metadata:location:longitude</value>
+    <value>urn:sys:upload:metadata:location:timestamp</value>
+    <value>urn:sys:upload:metadata:location:accuracy</value>
+    <value>urn:sys:upload:metadata:location:provider</value>
+    <value>urn:sys:upload:metadata:campaign:name</value> <!-- TODO change to campaign:urn -->
+    <value>urn:sys:upload:metadata:campaign:version</value> <!-- TODO drop for new db -->
     <!-- <value>urn:sys:upload:class:urn</value> later -->
-    <value>urn:sys:upload:survey:id</value>
-    <value>urn:sys:upload:survey:title</value>
-    <value>urn:sys:upload:repeatable_set:id</value>
-    <value>urn:sys:upload:repeatable_set:iteration</value>
-    <value>urn:sys:upload:prompt:id</value>
-    <value>urn:sys:upload:prompt:type</value>
-    <value>urn:sys:upload:prompt:display_type</value>
-    <value>urn:sys:upload:prompt:response</value>
+    <!-- <value>urn:sys:upload:survey:title</value> later -->
+    <value>urn:sys:upload:data:repeatable_set:iteration</value>
+    <value>urn:sys:upload:data:prompt:type</value>
+    <value>urn:sys:upload:data:prompt:display_type</value>
+    <value>urn:sys:upload:data:prompt:response</value>
   </util:list>
   
  <bean id="newDataPointQueryParamConverterService" class="edu.ucla.cens.awserver.service.NewDataPointQueryParamConverterService" />
@@ -194,10 +192,11 @@
     </constructor-arg>
   </bean>
 
-  <bean id="newDataPointQueryService" class="edu.ucla.cens.awserver.service.NewDataPointQueryService">
+  <bean id="newDataPointQueryService" class="edu.ucla.cens.awserver.service.SimpleQueryService">
    <constructor-arg index="0">
       <bean class="edu.ucla.cens.awserver.dao.NewDataPointQueryDao">
         <constructor-arg index="0"><ref bean="dataSource" /></constructor-arg>
+        <constructor-arg index="1"><bean class="edu.ucla.cens.awserver.domain.ConfigurationValueMerger" /></constructor-arg>
       </bean>
     </constructor-arg>
   </bean>
