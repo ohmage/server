@@ -36,19 +36,27 @@ public class NewDataPointQueryParamConverterService implements Service {
 			String[] splitList = split(promptIdListString);
 			List<String> ids = new ArrayList<String>();
 			
-			for(String entry : splitList) {
-				ids.add(entry.substring(0, "urn:sys:upload:data:prompt:id:".length()));
+			if(splitList.length == 1 && "urn:sys:special:all".equals(splitList[0])) {
+				ids.add("urn:sys:special:all");
+			} else {
+				for(String entry : splitList) {
+					ids.add(entry.substring(0, "urn:sys:upload:data:prompt:id:".length()));
+				}
 			}
 			
 			req.setPromptIdList(ids);
 			
 		} else {
 			
-			String[] splitList = split(promptIdListString);
+			String[] splitList = split(surveyIdListString);
 			List<String> ids = new ArrayList<String>();
 			
-			for(String entry : splitList) {
-				ids.add(entry.substring(0, "urn:sys:upload:data:survey:id:".length()));
+			if(splitList.length == 1 && "urn:sys:special:all".equals(splitList[0])) {
+				ids.add("urn:sys:special:all");
+			} else {
+				for(String entry : splitList) {
+					ids.add(entry.substring(0, "urn:sys:upload:data:survey:id:".length()));
+				}
 			}
 			
 			req.setSurveyIdList(ids);

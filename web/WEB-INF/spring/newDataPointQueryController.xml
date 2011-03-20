@@ -12,11 +12,12 @@
   <bean id="newDataPointQueryHttpServletRequestValidator" class="edu.ucla.cens.awserver.jee.servlet.validator.NewDataPointQueryValidator" />
   <!-- create AwRequest from data in the HttpServletRequest -->
   <bean id="newDataPointQueryAwRequestCreator" class="edu.ucla.cens.awserver.jee.servlet.glue.NewDataPointQueryAwRequestCreator" />
-  <!-- write outbound data, post-controller 
-  <bean id="newDataPointQueryResponseWriter" class="edu.ucla.cens.awserver.jee.servlet.writer.DataPointQueryResponseWriter">
+  <!-- write outbound data, post-controller --> 
+  <bean id="newDataPointQueryResponseWriter" class="edu.ucla.cens.awserver.jee.servlet.writer.NewDataPointQueryResponseWriter">
     <constructor-arg index="0"><ref bean="severeErrorResponse" /></constructor-arg>
+    <constructor-arg index="1"><ref bean="dataPointQueryColumnUrns" /></constructor-arg>
   </bean>
-  -->
+  
     
   <!-- Controller -->
   <bean id="newDataPointQueryController" class="edu.ucla.cens.awserver.controller.ControllerImpl">

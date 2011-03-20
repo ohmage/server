@@ -15,6 +15,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.log4j.Logger;
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -101,6 +102,8 @@ public class NewDataPointQueryResponseWriter extends AbstractResponseWriter {
 					
 					if(0 != results.size()) {
 						for(NewDataPointQueryResult result : results) {
+							
+							_logger.info("urn:sys:upload:data:prompt:id:" + result.getPromptId());
 							promptIdSet.add("urn:sys:upload:data:prompt:id:" + result.getPromptId());
 						}
 						outputColumns.addAll(promptIdSet);
@@ -121,6 +124,8 @@ public class NewDataPointQueryResponseWriter extends AbstractResponseWriter {
 					columnMap.put(columnName, list);
 				}
 				
+				Set<String> keySet = columnMap.keySet();
+				
 				// TODO Convert all of the results to UTC first just in case they span timezones ?
 				
 				
@@ -135,18 +140,21 @@ public class NewDataPointQueryResponseWriter extends AbstractResponseWriter {
 					String currentSurveyId = results.get(0).getSurveyId();
 					String currentRepeatableSetId = results.get(0).getRepeatableSetId();
 					Integer currentRepeatableSetIteration = results.get(0).getRepeatableSetIteration();
-					NewDataPointQueryFormattedResult currentFormattedResult = null;
+					NewDataPointQueryFormattedResult currentFormattedResult = new NewDataPointQueryFormattedResult();
 					List<NewDataPointQueryFormattedResult> formattedResultList = new ArrayList<NewDataPointQueryFormattedResult>();
 					
 					copyToFormattedResult(results.get(0), currentFormattedResult, true);
+					formattedResultList.add(currentFormattedResult);
 					
 					for(NewDataPointQueryResult result : results) {
 							
 						if( ! currentLoginId.equals(result.getLoginId())
 							|| ! currentTimestamp.equals(result.getTimestamp())
 							|| ! currentSurveyId.equals(result.getSurveyId())
-							|| ! currentRepeatableSetId.equals(result.getRepeatableSetId())
-							|| ! currentRepeatableSetIteration.equals(result.getRepeatableSetIteration())) {
+							|| ((null == currentRepeatableSetId && result.getRepeatableSetId() != null) 
+								|| (currentRepeatableSetId != null && ! currentRepeatableSetId.equals(result.getRepeatableSetId())))
+							|| ((null == currentRepeatableSetIteration && result.getRepeatableSetIteration() != null) 
+								|| (currentRepeatableSetIteration != null && ! currentRepeatableSetIteration.equals(result.getRepeatableSetIteration())))) {
 						
 							currentFormattedResult = new NewDataPointQueryFormattedResult();
 							formattedResultList.add(currentFormattedResult);
@@ -158,9 +166,7 @@ public class NewDataPointQueryResponseWriter extends AbstractResponseWriter {
 						}
 					}
 					
-					Set<String> keySet = columnMap.keySet();
-					
-					// Column-ify the data
+					// Column-ify the data with only the columns that the user requested
 					for(NewDataPointQueryFormattedResult result : formattedResultList) {
 						for(String key : keySet) {
 							
@@ -169,17 +175,50 @@ public class NewDataPointQueryResponseWriter extends AbstractResponseWriter {
 					}
 					
 					// Build output
+					// hacky way to do this, but any list will do because they are all the same size
+					int listSize = columnMap.get(keySet.toArray()[0]).size();
+
+					JSONObject main = new JSONObject();
+					main.put("result", "success");
+					JSONObject metadata = new JSONObject();
+					metadata.put("number_of_results", listSize);
+					JSONArray items = new JSONArray();
 					for(String key : keySet) {
-						int listSize = columnMap.get(key).size();
-						for(int i = 0; i < listSize; i++) {
-							
-							
-						}
+						items.put(key);
 					}
+					metadata.put("items", items);
+					main.put("metadata", metadata);
+					
+					JSONArray data = new JSONArray();
+					main.put("data", data);
+					
+					for(String key : keySet) { // looping thru the keySet again ...
+						// this ignores the special prompt id context element for now
+						JSONObject column = new JSONObject();
+						column.put("values", columnMap.get(key));
+						JSONObject labelledColumn = new JSONObject();
+						labelledColumn.put(key, column);
+						data.put(labelledColumn);
+					}
+					
+					responseText = main.toString(4);
 					
 				} else { // no results
 					
-					
+					// Create metadata section anyway
+					JSONObject main = new JSONObject();
+					main.put("result", "success");
+					JSONObject metadata = new JSONObject();
+					metadata.put("number_of_results", 0);
+					JSONArray items = new JSONArray();
+					for(String key : keySet) {
+						items.put(key);
+					}
+					metadata.put("items", items);
+					main.put("metadata", metadata);
+					JSONArray data = new JSONArray();
+					main.put("data", data);
+					responseText = main.toString(4);
 				}
 				
 			} else {
@@ -226,6 +265,9 @@ public class NewDataPointQueryResponseWriter extends AbstractResponseWriter {
 		}
 	}
 	
+	/**
+	 *  
+	 */
 	private void addItemToList(String columnName, 
 			                   Map<String, List<Object>> columnMap,
 			                   NewDataPointQueryFormattedResult result,
@@ -291,11 +333,15 @@ public class NewDataPointQueryResponseWriter extends AbstractResponseWriter {
 			
 			columnMap.get(columnName).add(result.getRepeatableSetIteration());
 			
-		} else if ("urn:sys:upload:data:prompt:id:".startsWith(columnName)) {
+		} else if (columnName.startsWith("urn:sys:upload:data:prompt:id:")) {
 			
-			String promptId = columnName.substring("urn:sys:upload:data:prompt:id:".length() - 1);
-			
-			columnMap.get(columnName).add(result.getPromptOutputMap().get(promptId)); // TODO for null values, convert to "NA"?
+			String promptId = columnName.substring("urn:sys:upload:data:prompt:id:".length());
+			_logger.info(promptId);
+			if(null != result.getPromptOutputMap()) {
+				columnMap.get(columnName).add(result.getPromptOutputMap().get(promptId));
+			} else {
+				columnMap.get(columnName).add("NA"); 
+			}
 		}
 	}
 	
