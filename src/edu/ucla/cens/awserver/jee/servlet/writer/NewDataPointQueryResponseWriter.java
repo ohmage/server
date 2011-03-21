@@ -22,7 +22,7 @@ import org.json.JSONObject;
 import edu.ucla.cens.awserver.domain.ErrorResponse;
 import edu.ucla.cens.awserver.domain.NewDataPointQueryFormattedResult;
 import edu.ucla.cens.awserver.domain.NewDataPointQueryResult;
-import edu.ucla.cens.awserver.domain.PromptOutput;
+import edu.ucla.cens.awserver.domain.PromptContext;
 import edu.ucla.cens.awserver.request.AwRequest;
 import edu.ucla.cens.awserver.request.NewDataPointQueryAwRequest;
 import edu.ucla.cens.awserver.util.DateUtils;
@@ -88,13 +88,13 @@ public class NewDataPointQueryResponseWriter extends AbstractResponseWriter {
 				// Build the column headers
 				// Each column is a Map with a list containing the values for each row
 				
-				if("urn:sys:special:all".equals(columnList.get(0))) {
+				if("urn:awm:special:all".equals(columnList.get(0))) {
 					outputColumns.addAll(_columnNames);
 				} else {
 					outputColumns.addAll(columnList);
 				}
 				
-				if(null != req.getSurveyIdList() || "urn:sys:special:all".equals(req.getPromptIdList().get(0))) {
+				if(null != req.getSurveyIdList() || "urn:awm:special:all".equals(req.getPromptIdList().get(0))) {
 					// The logic here is that if the user is requesting results for survey ids, they want all of the prompts
 					// for those survey ids
 					// So, loop through the results and find all of the unique prompt ids by forcing them into a Set
@@ -103,8 +103,8 @@ public class NewDataPointQueryResponseWriter extends AbstractResponseWriter {
 					if(0 != results.size()) {
 						for(NewDataPointQueryResult result : results) {
 							
-							_logger.info("urn:sys:upload:data:prompt:id:" + result.getPromptId());
-							promptIdSet.add("urn:sys:upload:data:prompt:id:" + result.getPromptId());
+							// _logger.info("urn:sys:upload:data:prompt:id:" + result.getPromptId());
+							promptIdSet.add("urn:awm:prompt:id:" + result.getPromptId());
 						}
 						outputColumns.addAll(promptIdSet);
 					}
@@ -130,11 +130,12 @@ public class NewDataPointQueryResponseWriter extends AbstractResponseWriter {
 				
 				
 				// Now flip/squash the database rows into columns
-				// For each user-date-surveyId combination, the metadata will be the same
+				// For each user-date-surveyId-repeatableSetId-repeatableSetIteration combination, the metadata will be the same
 				// Assume that the results are ordered by user-date-surveyId-promptId (brittle dependency on SQL order by)
 				
 				if(0 != results.size()) {
 					
+					int totalNumberOfResults = results.size();
 					String currentLoginId = results.get(0).getLoginId();
 					String currentTimestamp = results.get(0).getTimestamp();
 					String currentSurveyId = results.get(0).getSurveyId();
@@ -142,9 +143,11 @@ public class NewDataPointQueryResponseWriter extends AbstractResponseWriter {
 					Integer currentRepeatableSetIteration = results.get(0).getRepeatableSetIteration();
 					NewDataPointQueryFormattedResult currentFormattedResult = new NewDataPointQueryFormattedResult();
 					List<NewDataPointQueryFormattedResult> formattedResultList = new ArrayList<NewDataPointQueryFormattedResult>();
+					Map<String, PromptContext> promptContextMap = new HashMap<String, PromptContext>();
 					
-					copyToFormattedResult(results.get(0), currentFormattedResult, true);
+					copyToFormattedResult(results.get(0), currentFormattedResult, true, promptContextMap);
 					formattedResultList.add(currentFormattedResult);
+					results.remove(0); // will this break the loop below if there is only one result?
 					
 					for(NewDataPointQueryResult result : results) {
 							
@@ -155,14 +158,19 @@ public class NewDataPointQueryResponseWriter extends AbstractResponseWriter {
 								|| (currentRepeatableSetId != null && ! currentRepeatableSetId.equals(result.getRepeatableSetId())))
 							|| ((null == currentRepeatableSetIteration && result.getRepeatableSetIteration() != null) 
 								|| (currentRepeatableSetIteration != null && ! currentRepeatableSetIteration.equals(result.getRepeatableSetIteration())))) {
-						
+							
 							currentFormattedResult = new NewDataPointQueryFormattedResult();
+							copyToFormattedResult(result, currentFormattedResult, true, promptContextMap);
 							formattedResultList.add(currentFormattedResult);
-							copyToFormattedResult(result, currentFormattedResult, true);
+							currentLoginId = currentFormattedResult.getLoginId();
+							currentSurveyId = currentFormattedResult.getSurveyId();
+							currentTimestamp = currentFormattedResult.getTimestamp();
+							currentRepeatableSetId = currentFormattedResult.getRepeatableSetId();
+							currentRepeatableSetIteration = currentFormattedResult.getRepeatableSetIteration();
 							
 						} else {
 							
-							copyToFormattedResult(result, currentFormattedResult, false);
+							copyToFormattedResult(result, currentFormattedResult, false, promptContextMap);
 						}
 					}
 					
@@ -175,13 +183,13 @@ public class NewDataPointQueryResponseWriter extends AbstractResponseWriter {
 					}
 					
 					// Build output
-					// hacky way to do this, but any list will do because they are all the same size
-					int listSize = columnMap.get(keySet.toArray()[0]).size();
-
+					
 					JSONObject main = new JSONObject();
 					main.put("result", "success");
 					JSONObject metadata = new JSONObject();
-					metadata.put("number_of_results", listSize);
+					metadata.put("number_of_prompts", totalNumberOfResults);
+					// hacky way to do this, but any list will do because they are all the same size
+					metadata.put("number_of_surveys", columnMap.get(keySet.toArray()[0]).size());
 					JSONArray items = new JSONArray();
 					for(String key : keySet) {
 						items.put(key);
@@ -193,12 +201,30 @@ public class NewDataPointQueryResponseWriter extends AbstractResponseWriter {
 					main.put("data", data);
 					
 					for(String key : keySet) { // looping thru the keySet again ...
-						// this ignores the special prompt id context element for now
-						JSONObject column = new JSONObject();
-						column.put("values", columnMap.get(key));
-						JSONObject labelledColumn = new JSONObject();
-						labelledColumn.put(key, column);
-						data.put(labelledColumn);
+						
+						if(key.startsWith("urn:sys:upload:data:prompt:id:")) {
+						
+							String promptId = key.substring("urn:sys:upload:data:prompt:id:".length());
+							JSONObject column = new JSONObject();
+							JSONObject context = new JSONObject();
+							context.put("unit", promptContextMap.get(promptId).getUnit());
+							context.put("prompt_type", promptContextMap.get(promptId).getType());
+							context.put("display_type", promptContextMap.get(promptId).getDisplayType());
+							context.put("display_label", promptContextMap.get(promptId).getDisplayLabel());
+							column.put("context", context);
+							column.put("values", columnMap.get(key));
+							JSONObject labelledColumn = new JSONObject();
+							labelledColumn.put(key, column);
+							data.put(labelledColumn);
+							
+						} else {
+						
+							JSONObject column = new JSONObject();
+							column.put("values", columnMap.get(key));
+							JSONObject labelledColumn = new JSONObject();
+							labelledColumn.put(key, column);
+							data.put(labelledColumn);
+						}
 					}
 					
 					responseText = main.toString(4);
@@ -209,7 +235,8 @@ public class NewDataPointQueryResponseWriter extends AbstractResponseWriter {
 					JSONObject main = new JSONObject();
 					main.put("result", "success");
 					JSONObject metadata = new JSONObject();
-					metadata.put("number_of_results", 0);
+					metadata.put("number_of_prompts", 0);
+					metadata.put("number_of_surveys", 0);
 					JSONArray items = new JSONArray();
 					for(String key : keySet) {
 						items.put(key);
@@ -273,72 +300,77 @@ public class NewDataPointQueryResponseWriter extends AbstractResponseWriter {
 			                   NewDataPointQueryFormattedResult result,
 			                   NewDataPointQueryAwRequest req) {
 		
-		if("urn:sys:upload:metadata:user".equals(columnName)) {
+		if("urn:awm:context:user".equals(columnName)) {
 			
 			columnMap.get(columnName).add(result.getLoginId());
 			
-		} else if("urn:sys:upload:metadata:client".equals(columnName)) {
+		} else if("urn:awm:context:client".equals(columnName)) {
 			
 			columnMap.get(columnName).add(result.getClient());
 			
-		} else if("urn:sys:upload:metadata:timestamp".equals(columnName)) {
+		} else if("urn:awm:context:timestamp".equals(columnName)) {
 			
 			columnMap.get(columnName).add(result.getTimestamp());
 			
-		} else if("urn:sys:upload:metadata:timezone".equals(columnName)) {
+		} else if("urn:awm:context:timezone".equals(columnName)) {
 			
 			columnMap.get(columnName).add(result.getTimezone());
 			
-		} else if("urn:sys:upload:metadata:utc_timestamp".equals(columnName)) {
+		} else if("urn:awm:context:utc_timestamp".equals(columnName)) {
 			
 			columnMap.get(columnName).add(result.getUtcTimestamp());
 			
-		} else if("urn:sys:upload:metadata:survey_launch_context".equals(columnName)) { // TODO need to flatten the launch context
+		} else if("urn:awm:context:survey_launch_context".equals(columnName)) { // TODO need to flatten the launch context
 			
 			columnMap.get(columnName).add(result.getLaunchContext());
 			
-		} else if("urn:sys:upload:metadata:location:status".equals(columnName)) {
+		} else if("urn:awm:context:location:status".equals(columnName)) {
 			
 			columnMap.get(columnName).add(result.getLocationStatus());
 			
-		} else if("urn:sys:upload:metadata:location:latitude".equals(columnName)) {
+		} else if("urn:awm:context:location:latitude".equals(columnName)) {
 			
 			columnMap.get(columnName).add(result.getLatitude());
 			
-		} else if("urn:sys:upload:metadata:location:longitude".equals(columnName)) {
+		} else if("urn:awm:context:location:longitude".equals(columnName)) {
 			
 			columnMap.get(columnName).add(result.getLongitude());
 			
-		} else if("urn:sys:upload:metadata:location:timestamp".equals(columnName)) {
+		} else if("urn:awm:context:location:timestamp".equals(columnName)) {
 			
 			columnMap.get(columnName).add(result.getLocationTimestamp());
 			
-		} else if("urn:sys:upload:metadata:location:accuracy".equals(columnName)) {
+		} else if("urn:awm:context:location:accuracy".equals(columnName)) {
 			
 			columnMap.get(columnName).add(result.getAccuracy());
 			
-		} else if("urn:sys:upload:metadata:location:provider".equals(columnName)) {
+		} else if("urn:awm:context:location:provider".equals(columnName)) {
 			
 			columnMap.get(columnName).add(result.getProvider());
 			
-		} else if("urn:sys:upload:metadata:campaign:name".equals(columnName)) {
+		} else if("urn:awm:context:campaign:name".equals(columnName)) {
 			
 			columnMap.get(columnName).add(req.getCampaignName());			
 			
-		} else if("urn:sys:upload:metadata:campaign:version".equals(columnName)) {
+		} else if("urn:awm:context:campaign:version".equals(columnName)) {
 			
 			columnMap.get(columnName).add(req.getCampaignVersion());
 			
-		} else if("urn:sys:upload:metadata:repeatable_set:iteration".equals(columnName)) {
+		} else if("urn:awm:context:repeatable_set:id".equals(columnName)) {
+			
+			columnMap.get(columnName).add(result.getRepeatableSetId());
+			
+		} else if("urn:awm:context:repeatable_set:iteration".equals(columnName)) {
 			
 			columnMap.get(columnName).add(result.getRepeatableSetIteration());
 			
-		} else if (columnName.startsWith("urn:sys:upload:data:prompt:id:")) {
+		} else if (columnName.startsWith("urn:awm:prompt:id:")) {
 			
-			String promptId = columnName.substring("urn:sys:upload:data:prompt:id:".length());
-			_logger.info(promptId);
-			if(null != result.getPromptOutputMap()) {
-				columnMap.get(columnName).add(result.getPromptOutputMap().get(promptId));
+			String promptId = columnName.substring("urn:awm:prompt:id:".length());
+			//_logger.info(promptId);
+			
+			if(null != result.getPromptDisplayValueMap().get(promptId)) {
+				columnMap.get(columnName).add(result.getPromptDisplayValueMap().get(promptId));
 			} else {
 				columnMap.get(columnName).add("NA"); 
 			}
@@ -354,7 +386,10 @@ public class NewDataPointQueryResponseWriter extends AbstractResponseWriter {
 	 *  
 	 * @throws JSONException if the location object (retrieved from the db) is invalid JSON - bad!!
 	 */
-	private void copyToFormattedResult(NewDataPointQueryResult result, NewDataPointQueryFormattedResult formattedResult, boolean isNewRow) 
+	private void copyToFormattedResult(NewDataPointQueryResult result,
+			                           NewDataPointQueryFormattedResult formattedResult,
+			                           boolean isNewRow,
+			                           Map<String, PromptContext> promptContextMap) 
 		throws JSONException {
 		
 		if(isNewRow) {
@@ -390,11 +425,14 @@ public class NewDataPointQueryResponseWriter extends AbstractResponseWriter {
 				}
 				
 				if(! "".equals(locationObject.optString("timestamp")) ) {
-					formattedResult.setTimestamp(locationObject.optString("timestamp"));
+					formattedResult.setLocationTimestamp(locationObject.optString("timestamp"));
 				} else {
 					formattedResult.setLocationTimestamp(null);
 				}
 			}
+			
+			// _logger.info("new formatted result key: " + result.getLoginId() + ":" + result.getTimestamp() + ":" + result.getSurveyId() + ":" 
+			//		+ result.getRepeatableSetId() + ":" + result.getRepeatableSetIteration());
 			
 			formattedResult.setLoginId(result.getLoginId());
 			formattedResult.setRepeatableSetId(result.getRepeatableSetId());
@@ -404,21 +442,26 @@ public class NewDataPointQueryResponseWriter extends AbstractResponseWriter {
 			formattedResult.setTimezone(result.getTimezone());
 			formattedResult.setUtcTimestamp(generateUtcTimestamp(result));
 		
-		} else { // a row with unchanged metadata, but a prompt response to add
+		} 
 			
-			Map<String, PromptOutput> promptOutputMap = formattedResult.getPromptOutputMap();
-			if(null == promptOutputMap) {
-				promptOutputMap = new HashMap<String, PromptOutput>();
-				formattedResult.setPromptOutputMap(promptOutputMap);
-			}
-			
-			PromptOutput po = new PromptOutput();
-			po.setDisplayLabel(result.getDisplayLabel());
-			po.setDisplayType(po.getDisplayType());
-			po.setDisplayValue(result.getDisplayValue());
-			po.setId(result.getPromptId());
-			po.setType(result.getPromptType());
-			promptOutputMap.put(result.getPromptId(), po);
+		Map<String, Object> promptDisplayValueMap = formattedResult.getPromptDisplayValueMap();
+		if(null == promptDisplayValueMap) {
+			promptDisplayValueMap = new HashMap<String, Object>();
+			formattedResult.setPromptDisplayValueMap(promptDisplayValueMap);
+		}
+		
+		// _logger.info("adding to displayValueMap: " + result.getPromptId() + ":" + result.getDisplayValue());
+		promptDisplayValueMap.put(result.getPromptId(), result.getDisplayValue());
+		
+		// Create the context object -- only need one for each prompt in the output
+		
+		if(null == promptContextMap.get(result.getPromptId())) {
+			PromptContext pc = new PromptContext();
+			pc.setDisplayLabel(result.getDisplayLabel());
+			pc.setDisplayType(pc.getDisplayType());
+			pc.setId(result.getPromptId());
+			pc.setType(result.getPromptType());
+			promptContextMap.put(result.getPromptId(), pc);
 		}
 	}
 }

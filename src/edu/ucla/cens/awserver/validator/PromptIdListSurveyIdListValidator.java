@@ -55,7 +55,7 @@ public class PromptIdListSurveyIdListValidator extends AbstractAnnotatingRegexpV
 	
 	private boolean checkList(AwRequest awRequest, String listAsString) {
 		// first check for the special value for retrieving all items
-		if("urn:sys:special:all".equals(listAsString)) {
+		if("urn:awm:special:all".equals(listAsString)) {
 			
 			return true;
 			

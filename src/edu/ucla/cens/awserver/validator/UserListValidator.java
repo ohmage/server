@@ -40,7 +40,7 @@ public class UserListValidator extends AbstractAnnotatingRegexpValidator {
 		}
 		
 		// first check for the special "all users" value
-		if("urn:sys:special:all".equals(userListString)) {
+		if("urn:awm:special:all".equals(userListString)) {
 			
 			return true;
 			

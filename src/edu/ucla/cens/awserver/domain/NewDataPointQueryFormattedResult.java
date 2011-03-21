@@ -34,7 +34,7 @@ public class NewDataPointQueryFormattedResult {
 	// ---------
 	
 	// Prompt data -----
-	private Map<String, PromptOutput> _promptOutputMap;
+	private Map<String, Object> _promptDisplayValueMap;
 
 	public String getClient() {
 		return _client;
@@ -156,12 +156,12 @@ public class NewDataPointQueryFormattedResult {
 		_repeatableSetIteration = repeatableSetIteration;
 	}
 
-	public Map<String, PromptOutput> getPromptOutputMap() {
-		return _promptOutputMap;
+	public Map<String,Object> getPromptDisplayValueMap() {
+		return _promptDisplayValueMap;
 	}
-
-	public void setPromptOutputMap(Map<String, PromptOutput> promptOutputMap) {
-		_promptOutputMap = promptOutputMap;
+	
+	public void setPromptDisplayValueMap(Map<String,Object> value) {
+		_promptDisplayValueMap = value;
 	}
 
 	@Override
@@ -171,8 +171,8 @@ public class NewDataPointQueryFormattedResult {
 				+ ", _launchContext=" + _launchContext + ", _locationStatus="
 				+ _locationStatus + ", _locationTimestamp="
 				+ _locationTimestamp + ", _loginId=" + _loginId
-				+ ", _longitude=" + _longitude + ", _promptResponseMap="
-				+ _promptOutputMap + ", _provider=" + _provider
+				+ ", _longitude=" + _longitude + ", _promptDisplayValueMap="
+				+ _promptDisplayValueMap + ", _provider=" + _provider
 				+ ", _repeatableSetId=" + _repeatableSetId
 				+ ", _repeatableSetIteration=" + _repeatableSetIteration
 				+ ", _surveyId=" + _surveyId + ", _timestamp=" + _timestamp

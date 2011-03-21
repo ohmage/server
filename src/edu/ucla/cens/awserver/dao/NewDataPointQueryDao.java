@@ -67,16 +67,16 @@ public class NewDataPointQueryDao extends AbstractDao {
 		paramObjects.add(req.getStartDate());
 		paramObjects.add(req.getEndDate());
 		
-		if(! "urn:sys:special:all".equals(req.getUserListString())) {
+		if(! "urn:awm:special:all".equals(req.getUserListString())) {
 			paramObjects.addAll(req.getUserList());
 		} 
 		
 		if(null != req.getPromptIdList()) {
-			if(! "urn:sys:special:all".equals(req.getPromptIdListString())) {
+			if(! "urn:awm:special:all".equals(req.getPromptIdListString())) {
 				paramObjects.addAll(req.getPromptIdList());
 			}
 		} else {
-			if(! "urn:sys:special:all".equals(req.getSurveyIdListString())) {
+			if(! "urn:awm:special:all".equals(req.getSurveyIdListString())) {
 				paramObjects.addAll(req.getSurveyIdList());
 			}
 		}
@@ -102,7 +102,13 @@ public class NewDataPointQueryDao extends AbstractDao {
 							result.setRepeatableSetIteration(rs.getInt(4));
 						}
 						
-						result.setRepeatableSetId(rs.getString(5));
+						o = rs.getObject(5);
+						if(null == o) {
+							result.setRepeatableSetId(null);
+						} else {
+							result.setRepeatableSetId(rs.getString(5));
+						}
+						
 						result.setTimestamp(rs.getString(6));
 						result.setTimezone(rs.getString(7));
 						result.setLocationStatus(rs.getString(8));
@@ -136,7 +142,7 @@ public class NewDataPointQueryDao extends AbstractDao {
 		
 		builder.append(_sql);
 		
-		if(! "urn:sys:special:all".equals(req.getUserListString())) {
+		if(! "urn:awm:special:all".equals(req.getUserListString())) {
 			
 			builder.append(_andUsers);
 			builder.append(generateParams(req.getUserList().size()));
@@ -144,7 +150,7 @@ public class NewDataPointQueryDao extends AbstractDao {
 		
 		if(null != req.getPromptIdList()) {
 			
-			if(! "urn:sys:special:all".equals(req.getPromptIdListString())) {
+			if(! "urn:awm:special:all".equals(req.getPromptIdListString())) {
 				
 				builder.append(_andPromptIds);
 				builder.append(generateParams(req.getPromptIdList().size()));
@@ -152,7 +158,7 @@ public class NewDataPointQueryDao extends AbstractDao {
 			
 		} else { // surveys
 			
-			if(! "urn:sys:special:all".equals(req.getSurveyIdListString())) {
+			if(! "urn:awm:special:all".equals(req.getSurveyIdListString())) {
 				
 				builder.append(_andSurveyIds);
 				builder.append(generateParams(req.getSurveyIdList().size()));

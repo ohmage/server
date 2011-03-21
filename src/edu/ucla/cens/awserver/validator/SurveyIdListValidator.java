@@ -26,10 +26,6 @@ public class SurveyIdListValidator extends AbstractAnnotatingRegexpValidator {
 		
 		String surveyIdListString = ((NewDataPointQueryAwRequest) awRequest).getSurveyIdListString();
 		
-		
-		
-		
-		
 		if(StringUtils.isEmptyOrWhitespaceOnly(surveyIdListString)) {
 			
 			getAnnotator().annotate(awRequest, "empty user survey id list found");
@@ -38,7 +34,7 @@ public class SurveyIdListValidator extends AbstractAnnotatingRegexpValidator {
 		}
 		
 		// first check for the special "all users" value
-		if("urn:sys:special:all".equals(surveyIdListString)) {
+		if("urn:awm:special:all".equals(surveyIdListString)) {
 			
 			return true;
 			

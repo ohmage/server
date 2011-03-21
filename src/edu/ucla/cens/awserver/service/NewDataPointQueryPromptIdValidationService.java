@@ -38,7 +38,7 @@ public class NewDataPointQueryPromptIdValidationService extends AbstractAnnotati
 		
 		if((null != req.getPromptIdListString()) && (0 != req.getPromptIdList().size())) {
 			
-			if(! "urn:sys:special:all".equals(req.getPromptIdListString())) {
+			if(! "urn:awm:special:all".equals(req.getPromptIdListString())) {
 				
 				List<String> promptIds = req.getPromptIdList(); 
 				String campaignName = req.getCampaignName();

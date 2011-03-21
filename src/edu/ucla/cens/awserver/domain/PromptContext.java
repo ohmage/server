@@ -1,20 +1,18 @@
 package edu.ucla.cens.awserver.domain;
 
+
 /**
  * Bag of prompt info for data point/export API.
  * 
  * @author selsky
  */
-public class PromptOutput {
+public class PromptContext {
 	
 	private String _id;
 	private String _type;
 	private String _displayLabel;
 	private String _displayType;
-	private Object _displayValue;
 	private String _unit;
-	
-	private Object _response; // unneeded?
 
 	public String getId() {
 		return _id;
@@ -48,14 +46,6 @@ public class PromptOutput {
 		_displayType = displayType;
 	}
 
-	public Object getDisplayValue() {
-		return _displayValue;
-	}
-
-	public void setDisplayValue(Object displayValue) {
-		_displayValue = displayValue;
-	}
-
 	public String getUnit() {
 		return _unit;
 	}
@@ -64,12 +54,10 @@ public class PromptOutput {
 		_unit = unit;
 	}
 
-	public Object getResponse() {
-		return _response;
+	@Override
+	public String toString() {
+		return "PromptContext [_displayLabel=" + _displayLabel
+				+ ", _displayType=" + _displayType + ", _id=" + _id
+				+ ", _type=" + _type + ", _unit=" + _unit + "]";
 	}
-
-	public void setResponse(Object response) {
-		_response = response;
-	}
-	
 }

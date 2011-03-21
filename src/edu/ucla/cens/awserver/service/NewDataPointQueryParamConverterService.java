@@ -36,11 +36,11 @@ public class NewDataPointQueryParamConverterService implements Service {
 			String[] splitList = split(promptIdListString);
 			List<String> ids = new ArrayList<String>();
 			
-			if(splitList.length == 1 && "urn:sys:special:all".equals(splitList[0])) {
-				ids.add("urn:sys:special:all");
+			if(splitList.length == 1 && "urn:awm:special:all".equals(splitList[0])) {
+				ids.add("urn:awm:special:all");
 			} else {
 				for(String entry : splitList) {
-					ids.add(entry.substring(0, "urn:sys:upload:data:prompt:id:".length()));
+					ids.add(entry.substring("urn:awm:prompt:id:".length()));
 				}
 			}
 			
@@ -51,11 +51,11 @@ public class NewDataPointQueryParamConverterService implements Service {
 			String[] splitList = split(surveyIdListString);
 			List<String> ids = new ArrayList<String>();
 			
-			if(splitList.length == 1 && "urn:sys:special:all".equals(splitList[0])) {
-				ids.add("urn:sys:special:all");
+			if(splitList.length == 1 && "urn:awm:special:all".equals(splitList[0])) {
+				ids.add("urn:awm:special:all");
 			} else {
 				for(String entry : splitList) {
-					ids.add(entry.substring(0, "urn:sys:upload:data:survey:id:".length()));
+					ids.add(entry.substring("urn:awm:survey:id:".length()));
 				}
 			}
 			

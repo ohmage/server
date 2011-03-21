@@ -38,7 +38,7 @@ public class NewDataPointQuerySurveyIdValidationService extends AbstractAnnotati
 		
 		if((null != req.getSurveyIdListString()) && (0 != req.getSurveyIdList().size())) {
 			
-			if(! "urn:sys:special:all".equals(req.getSurveyIdListString())) {
+			if(! "urn:awm:special:all".equals(req.getSurveyIdListString())) {
 				
 				List<String> surveyIds = req.getSurveyIdList(); 
 				String campaignName = req.getCampaignName();
