@@ -1,5 +1,7 @@
 package edu.ucla.cens.awserver.domain;
 
+import java.util.Map;
+
 /**
  * Cf. DataPointQueryResult except this domain class handles results for multiple users and additional properties from 
  * XML configurations.
@@ -10,23 +12,24 @@ public class NewDataPointQueryResult {
 	private Object _response;
 	private Integer _repeatableSetIteration;
 	private String _locationStatus;
-	private String _location; // TODO should this be an object
+	private String _location;
 	private String _timestamp;
 	private String _timezone;
 	private String _surveyId;
 	private String _promptId;
 	private String _promptType;
 	private String _repeatableSetId;
-	// private boolean _isMetadata;
 	private String _displayLabel;
 	private Object _displayValue;
 	private String _unit;
 	private String _displayType;
 	private String _utcTimestamp;
 	private String _client;
-	private String _launchContext; // TODO should this be an object
-	// private String _surveyTitle; leaving out for now because it is not available from the configuration class (SurveyMapBuilder)
+	private String _launchContext;
+	private String _surveyTitle;
+	private String _surveyDescription;
 	private String _loginId;
+	private Map<Object, Object> _choiceGlossary;
 	
 	public String getLocationStatus() {
 		return _locationStatus;
@@ -55,14 +58,6 @@ public class NewDataPointQueryResult {
 	public Object getResponse() {
 		return _response;
 	}
-	
-//	public boolean isMetadata() {
-//		return _isMetadata;
-//	}
-//
-//	public void setIsMetadata(boolean isMetadata) {
-//		_isMetadata = isMetadata;
-//	}
 
 	public void setResponse(Object response) {
 		_response = response;
@@ -176,14 +171,22 @@ public class NewDataPointQueryResult {
 		_launchContext = launchContext;
 	}
 
-//	public String getSurveyTitle() {
-//		return _surveyTitle;
-//	}
-//
-//	public void setSurveyTitle(String surveyTitle) {
-//		_surveyTitle = surveyTitle;
-//	}
+	public String getSurveyTitle() {
+		return _surveyTitle;
+	}
 
+	public void setSurveyTitle(String surveyTitle) {
+		_surveyTitle = surveyTitle;
+	}
+
+	public String getSurveyDescription() {
+		return _surveyDescription;
+	}
+
+	public void setSurveyDescription(String surveyDescription) {
+		_surveyDescription = surveyDescription;
+	}
+	
 	public String getLoginId() {
 		return _loginId;
 	}
@@ -191,20 +194,30 @@ public class NewDataPointQueryResult {
 	public void setLoginId(String loginId) {
 		_loginId = loginId;
 	}
+	
+	public Map<Object, Object> getChoiceGlossary() {
+		return _choiceGlossary;
+	}
+
+	public void setChoiceGlossary(Map<Object, Object> choiceGlossary) {
+		_choiceGlossary = choiceGlossary;
+	}
 
 	@Override
 	public String toString() {
-		return "NewDataPointQueryResult [_client=" + _client
-				+ ", _displayLabel=" + _displayLabel + ", _displayType="
-				+ _displayType + ", _displayValue=" + _displayValue
-				+ ", _launchContext=" + _launchContext + ", _location="
-				+ _location + ", _locationStatus=" + _locationStatus
-				+ ", _loginId=" + _loginId + ", _promptId=" + _promptId
-				+ ", _promptType=" + _promptType + ", _repeatableSetId="
-				+ _repeatableSetId + ", _repeatableSetIteration="
-				+ _repeatableSetIteration + ", _response=" + _response
-				+ ", _surveyId=" + _surveyId + ", _timestamp=" + _timestamp
-				+ ", _timezone=" + _timezone + ", _unit=" + _unit
+		return "NewDataPointQueryResult [_choiceGlossary=" + _choiceGlossary
+				+ ", _client=" + _client + ", _displayLabel=" + _displayLabel
+				+ ", _displayType=" + _displayType + ", _displayValue="
+				+ _displayValue + ", _launchContext=" + _launchContext
+				+ ", _location=" + _location + ", _locationStatus="
+				+ _locationStatus + ", _loginId=" + _loginId + ", _promptId="
+				+ _promptId + ", _promptType=" + _promptType
+				+ ", _repeatableSetId=" + _repeatableSetId
+				+ ", _repeatableSetIteration=" + _repeatableSetIteration
+				+ ", _response=" + _response + ", _surveyDescription="
+				+ _surveyDescription + ", _surveyId=" + _surveyId
+				+ ", _surveyTitle=" + _surveyTitle + ", _timestamp="
+				+ _timestamp + ", _timezone=" + _timezone + ", _unit=" + _unit
 				+ ", _utcTimestamp=" + _utcTimestamp + "]";
 	}
 }

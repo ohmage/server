@@ -2,6 +2,7 @@ package edu.ucla.cens.awserver.domain;
 
 import org.apache.log4j.Logger;
 import org.json.JSONArray;
+import org.json.JSONException;
 
 import edu.ucla.cens.awserver.service.DataPointQueryService;
 import edu.ucla.cens.awserver.util.JsonUtils;
@@ -19,6 +20,9 @@ public class ConfigurationValueMerger {
 	
 	public void merge(NewDataPointQueryResult result, Configuration configuration) {
 		
+		result.setSurveyTitle(configuration.getSurveyTitleFor(result.getSurveyId()));
+		result.setSurveyDescription(configuration.getSurveyDescriptionFor(result.getSurveyId()));
+		
 		if(result.isRepeatableSetResult()) {
 			
 			result.setUnit(configuration.getUnitFor(result.getSurveyId(), result.getRepeatableSetId(), result.getPromptId()));
@@ -31,15 +35,17 @@ public class ConfigurationValueMerger {
 			
 			if(PromptTypeUtils.isSingleChoiceType(result.getPromptType())) {
 				
+				result.setChoiceGlossary(configuration.getChoiceGlossaryFor(result.getSurveyId(), result.getRepeatableSetId(), result.getPromptId()));
 				setDisplayValueFromSingleChoice(result, configuration, true);	
 				
 			} else if(PromptTypeUtils.isMultiChoiceType(result.getPromptType())) {
 				
+				result.setChoiceGlossary(configuration.getChoiceGlossaryFor(result.getSurveyId(), result.getRepeatableSetId(), result.getPromptId()));
 				setDisplayValueFromMultiChoice(result, configuration, true);
 				
 			} else { 
-					
-				result.setDisplayValue(result.getResponse());
+
+				result.setDisplayValue(PromptTypeUtils.isNumberPromptType(result.getPromptType()) ? convertToNumber(result.getResponse()) : result.getResponse());
 			}
 			
 		} else {
@@ -49,16 +55,18 @@ public class ConfigurationValueMerger {
 			result.setDisplayType(configuration.getDisplayTypeFor(result.getSurveyId(), result.getPromptId()));
 			
 			if(PromptTypeUtils.isSingleChoiceType(result.getPromptType())) {
-			
+				
+				result.setChoiceGlossary(configuration.getChoiceGlossaryFor(result.getSurveyId(), result.getPromptId()));
 				setDisplayValueFromSingleChoice(result, configuration, false);
 			
 			} else if (PromptTypeUtils.isMultiChoiceType(result.getPromptType())) {
 				
+				result.setChoiceGlossary(configuration.getChoiceGlossaryFor(result.getSurveyId(), result.getPromptId()));
 				setDisplayValueFromMultiChoice(result, configuration, false);
 									
 			} else {
 				
-				result.setDisplayValue(result.getResponse());
+				result.setDisplayValue(PromptTypeUtils.isNumberPromptType(result.getPromptType()) ? convertToNumber(result.getResponse()) : result.getResponse());
 			}
 		}
 		
@@ -82,9 +90,9 @@ public class ConfigurationValueMerger {
 		}
 		
 		if(null != value) {
-			result.setDisplayValue(value);
+			result.setDisplayValue(convertToNumber(value));
 		} else {
-			result.setDisplayValue(result.getResponse());
+			result.setDisplayValue(convertToNumber(result.getResponse()));
 		}
 	}
 	
@@ -113,18 +121,47 @@ public class ConfigurationValueMerger {
 				if(null == value) {
 					break;
 				} else {
-					valueArray.put(value);
+					valueArray.put(convertToNumber(value));
 				}
 			}
 			
 			if(valueArray.length() == length) {
 				result.setDisplayValue(valueArray);
-			} else {				
-				result.setDisplayValue(result.getResponse());
+			} else {
+				try {
+					result.setDisplayValue(new JSONArray(String.valueOf(result.getResponse())));
+				} catch (JSONException je) {
+					_logger.warn("cannot convert multi-choice response value to JSON Array: " + result.getResponse());
+				}
 			}
 		
 		} else {
-			result.setDisplayValue(result.getResponse());
+			try {
+				result.setDisplayValue(new JSONArray(String.valueOf(result.getResponse())));
+			} catch (JSONException je) {
+				_logger.warn("cannot convert multi-choice response value to JSON Array: " + result.getResponse());
+			}
 		}
+	}
+	
+	/**
+	 * Lazy number conversion so the JSON lib serializes output properly. 
+	 */
+	private Object convertToNumber(Object value) {
+		try {
+			
+			return Integer.parseInt(String.valueOf(value));
+			
+		} catch (NumberFormatException a) { 
+			
+			try {
+				
+				return Double.parseDouble(String.valueOf(value));
+			
+			} catch (NumberFormatException b) {} // ignore because the value must be a string or some other number representation
+			                                     // that can be treated as a JSON string
+		}
+		
+		return value;
 	}
 }

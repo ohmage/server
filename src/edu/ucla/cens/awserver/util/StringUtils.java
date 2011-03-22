@@ -80,4 +80,18 @@ public final class StringUtils {
 		builder.append(")");
 		return builder.toString();
 	}
+	
+	/**
+	 * @return an Integer or a Double if the provided String is parseable to either
+	 */
+	public static Object stringToNumber(String value) {
+		try {
+			return Integer.parseInt(value);
+		} catch (NumberFormatException a) {
+			try {
+				return Double.parseDouble(value);
+			} catch (NumberFormatException b) {}  
+		}
+		return value;
+	}
 }

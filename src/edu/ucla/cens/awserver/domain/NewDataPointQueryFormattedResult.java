@@ -33,6 +33,9 @@ public class NewDataPointQueryFormattedResult {
 	private Integer _repeatableSetIteration;
 	// ---------
 	
+	private String _surveyTitle;
+	private String _surveyDescription;
+	
 	// Prompt data -----
 	private Map<String, Object> _promptDisplayValueMap;
 
@@ -163,6 +166,22 @@ public class NewDataPointQueryFormattedResult {
 	public void setPromptDisplayValueMap(Map<String,Object> value) {
 		_promptDisplayValueMap = value;
 	}
+	
+	public String getSurveyTitle() {
+		return _surveyTitle;
+	}
+
+	public void setSurveyTitle(String surveyTitle) {
+		_surveyTitle = surveyTitle;
+	}
+
+	public String getSurveyDescription() {
+		return _surveyDescription;
+	}
+
+	public void setSurveyDescription(String surveyDescription) {
+		_surveyDescription = surveyDescription;
+	}
 
 	@Override
 	public String toString() {
@@ -175,8 +194,9 @@ public class NewDataPointQueryFormattedResult {
 				+ _promptDisplayValueMap + ", _provider=" + _provider
 				+ ", _repeatableSetId=" + _repeatableSetId
 				+ ", _repeatableSetIteration=" + _repeatableSetIteration
-				+ ", _surveyId=" + _surveyId + ", _timestamp=" + _timestamp
-				+ ", _timezone=" + _timezone + ", _utcTimestamp="
-				+ _utcTimestamp + "]";
+				+ ", _surveyDescription=" + _surveyDescription + ", _surveyId="
+				+ _surveyId + ", _surveyTitle=" + _surveyTitle
+				+ ", _timestamp=" + _timestamp + ", _timezone=" + _timezone
+				+ ", _utcTimestamp=" + _utcTimestamp + "]";
 	}
 }

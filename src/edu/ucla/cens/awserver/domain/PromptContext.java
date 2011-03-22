@@ -1,5 +1,7 @@
 package edu.ucla.cens.awserver.domain;
 
+import java.util.Map;
+
 
 /**
  * Bag of prompt info for data point/export API.
@@ -13,7 +15,8 @@ public class PromptContext {
 	private String _displayLabel;
 	private String _displayType;
 	private String _unit;
-
+	private Map<Object, Object> _choiceGlossary; // if single_choice or multi_choice
+	
 	public String getId() {
 		return _id;
 	}
@@ -53,11 +56,20 @@ public class PromptContext {
 	public void setUnit(String unit) {
 		_unit = unit;
 	}
+	
+	public Map<Object, Object> getChoiceGlossary() {
+		return _choiceGlossary;
+	}
+
+	public void setChoiceGlossary(Map<Object, Object> choiceGlossary) {
+		_choiceGlossary = choiceGlossary;
+	}
 
 	@Override
 	public String toString() {
-		return "PromptContext [_displayLabel=" + _displayLabel
-				+ ", _displayType=" + _displayType + ", _id=" + _id
-				+ ", _type=" + _type + ", _unit=" + _unit + "]";
+		return "PromptContext [_choiceGlossary=" + _choiceGlossary
+				+ ", _displayLabel=" + _displayLabel + ", _displayType="
+				+ _displayType + ", _id=" + _id + ", _type=" + _type
+				+ ", _unit=" + _unit + "]";
 	}
 }

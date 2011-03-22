@@ -49,11 +49,11 @@ public class PromptIdListSurveyIdListValidator extends AbstractAnnotatingRegexpV
 			
 		}
 		
-		return checkList(awRequest, surveyIdListString == null ? promptIdListString : surveyIdListString);
+		return checkList(awRequest, surveyIdListString == null ? promptIdListString : surveyIdListString, surveyIdListString == null);
 		
 	}
 	
-	private boolean checkList(AwRequest awRequest, String listAsString) {
+	private boolean checkList(AwRequest awRequest, String listAsString, boolean isPrompt) {
 		// first check for the special value for retrieving all items
 		if("urn:awm:special:all".equals(listAsString)) {
 			
@@ -83,6 +83,23 @@ public class PromptIdListSurveyIdListValidator extends AbstractAnnotatingRegexpV
 					if(! _regexpPattern.matcher(id).matches()) {
 						getAnnotator().annotate(awRequest, "malformed id: " + id);
 						return false;
+					}
+					
+					if(isPrompt) {
+						
+						if(! id.startsWith("urn:awm:prompt:id")) {
+							_logger.info("id does not start with the correct URN: urn:awm:prompt:id");
+							getAnnotator().annotate(awRequest, "malformed id: " + id);
+							return false;
+						}
+						
+					} else {
+						
+						if(! id.startsWith("urn:awm:survey:id")) {
+							_logger.info("id does not start with the correct URN: urn:awm:survey:id");
+							getAnnotator().annotate(awRequest, "malformed id: " + id);
+							return false;
+						}
 					}
 				}
 			}

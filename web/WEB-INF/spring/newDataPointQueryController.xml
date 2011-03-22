@@ -107,13 +107,17 @@
     <constructor-arg index="1"><ref bean="dataPointQueryColumnUrns" /></constructor-arg>
   </bean>
   
+  <!-- 
+    The URNs for prompt ids and survey ids are handled separately because their values are dependent on campaign configurations. 
+  -->
   <util:list id="dataPointQueryColumnUrns">
     <value>urn:awm:context:user</value>
     <value>urn:awm:context:client</value>
     <value>urn:awm:context:timestamp</value>
     <value>urn:awm:context:timezone</value>
     <value>urn:awm:context:utc_timestamp</value>
-    <value>urn:awm:context:survey_launch_context</value> <!-- TODO break this up into separate columns -->
+    <value>urn:awm:context:launch_context_short</value>
+    <value>urn:awm:context:launch_context_long</value>
     <value>urn:awm:context:location:status</value>
     <value>urn:awm:context:location:latitude</value>
     <value>urn:awm:context:location:longitude</value>
@@ -126,6 +130,10 @@
     <!-- <value>urn:sys:upload:survey:title</value> later -->
     <value>urn:awm:context:repeatable_set:id</value>
     <value>urn:awm:context:repeatable_set:iteration</value>
+    <value>urn:awm:context:survey:id</value>
+    <value>urn:awm:context:survey:title</value>
+    <value>urn:awm:context:survey:description</value>
+    <value>urn:awm:prompt:response</value>
   </util:list>
   
  <bean id="newDataPointQueryParamConverterService" class="edu.ucla.cens.awserver.service.NewDataPointQueryParamConverterService" />

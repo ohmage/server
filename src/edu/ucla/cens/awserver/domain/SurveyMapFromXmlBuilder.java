@@ -48,6 +48,8 @@ public class SurveyMapFromXmlBuilder implements SurveyMapBuilder {
 			Map<String, SurveyItem> surveyItemMap = new HashMap<String, SurveyItem>();
 			
 			String surveyId = surveyNodes.get(i).query("id").get(0).getValue();
+			String surveyTitle = surveyNodes.get(i).query("title").get(0).getValue();
+			String surveyDescription = surveyNodes.get(i).query("description").get(0).getValue();
 			
 			// first, grab the prompts
 			Nodes nodes = surveyNodes.get(i).query("contentList/prompt | contentList/repeatableSet/prompts");
@@ -79,7 +81,7 @@ public class SurveyMapFromXmlBuilder implements SurveyMapBuilder {
 				}
 			}
 			
-			Survey survey = new Survey(surveyId, surveyItemMap);
+			Survey survey = new Survey(surveyId, surveyTitle, surveyDescription, surveyItemMap);
 			surveyMap.put(surveyId, survey);
 			// TODO make this a debug prop
 			// _logger.info(survey);

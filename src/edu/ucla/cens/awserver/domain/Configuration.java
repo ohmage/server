@@ -2,10 +2,13 @@ package edu.ucla.cens.awserver.domain;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
+import edu.ucla.cens.awserver.util.StringUtils;
 
 /**
  * Immutable bean-style wrapper for accessing and validating configuration properties.
@@ -53,6 +56,20 @@ public class Configuration {
 	
 	public boolean surveyIdExists(String surveyId) {
 		return _surveyMap.containsKey(surveyId);
+	}
+	
+	public String getSurveyTitleFor(String surveyId) {
+		if(surveyIdExists(surveyId)) {
+			return _surveyMap.get(surveyId).getTitle();
+		}
+		return null;
+	}
+	
+	public String getSurveyDescriptionFor(String surveyId) {
+		if(surveyIdExists(surveyId)) {
+			return _surveyMap.get(surveyId).getDescription();
+		}
+		return null;
 	}
 	
 	public boolean repeatableSetExists(String surveyId, String repeatableSetId) {
@@ -212,6 +229,23 @@ public class Configuration {
 			}
 		}
 		return value;
+	}
+	
+	public Map<Object, Object> getChoiceGlossaryFor(String surveyId, String repeatableSetId, String promptId) {
+		return getChoiceGlossaryFor(getPrompt(surveyId, repeatableSetId, promptId));
+	}
+	
+	public Map<Object, Object> getChoiceGlossaryFor(String surveyId, String promptId) {
+		return getChoiceGlossaryFor(getPrompt(surveyId, promptId));
+	}
+	
+	private Map<Object, Object> getChoiceGlossaryFor(Prompt prompt) {
+		Map<String, PromptProperty> props = prompt.getProperties();
+		Map<Object, Object> choiceGlossary = new HashMap<Object, Object>();
+		for(String key : props.keySet()) {
+			choiceGlossary.put(StringUtils.stringToNumber(props.get(key).getKey()), StringUtils.stringToNumber(props.get(key).getLabel()));
+		}
+		return choiceGlossary;
 	}
 	
 	public String getUnitFor(String surveyId, String promptId) {

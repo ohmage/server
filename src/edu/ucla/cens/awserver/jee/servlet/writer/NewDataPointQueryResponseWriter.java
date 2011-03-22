@@ -26,6 +26,7 @@ import edu.ucla.cens.awserver.domain.PromptContext;
 import edu.ucla.cens.awserver.request.AwRequest;
 import edu.ucla.cens.awserver.request.NewDataPointQueryAwRequest;
 import edu.ucla.cens.awserver.util.DateUtils;
+import edu.ucla.cens.awserver.util.JsonUtils;
 
 /** 
  * Giant writer for the new data point API. This class needs to be refactored so its constituent parts can be used in other 
@@ -62,28 +63,11 @@ public class NewDataPointQueryResponseWriter extends AbstractResponseWriter {
 			// Build the appropriate response 
 			if(! awRequest.isFailedRequest()) {
 				
-				// 1. Find the column headers
-				// a. all columns?
-				// 2. Results are already sorted by user, date, survey id, prompt id
-				// 3. Create map of JSONArrays with the column name as keys (urn - result getter mapping)
-				// 4. Loop over results:
-				// 5. Loop over columns: 
-				// For each column, add the appropriate value to the collection from the appropriate map. Missing columns get "NA".
-				
 				NewDataPointQueryAwRequest req = (NewDataPointQueryAwRequest) awRequest;
 				
 				List<String> columnList = req.getColumnList();
 				List<String> outputColumns = new ArrayList<String>();
 				List<NewDataPointQueryResult> results = (List<NewDataPointQueryResult>) req.getResultList();
-				
-				// TODO? Need to make sure that user, date, survey id, prompt id, and prompt response are
-				// always included?
-				
-				// TODO
-				// Build metadata section
-				// number of results, column headers
-				
-				
 				
 				// Build the column headers
 				// Each column is a Map with a list containing the values for each row
@@ -94,7 +78,7 @@ public class NewDataPointQueryResponseWriter extends AbstractResponseWriter {
 					outputColumns.addAll(columnList);
 				}
 				
-				if(null != req.getSurveyIdList() || "urn:awm:special:all".equals(req.getPromptIdList().get(0))) {
+				if(columnList.contains("urn:awm:prompt:response") || "urn:awm:special:all".equals(columnList.get(0))) {
 					// The logic here is that if the user is requesting results for survey ids, they want all of the prompts
 					// for those survey ids
 					// So, loop through the results and find all of the unique prompt ids by forcing them into a Set
@@ -103,16 +87,16 @@ public class NewDataPointQueryResponseWriter extends AbstractResponseWriter {
 					if(0 != results.size()) {
 						for(NewDataPointQueryResult result : results) {
 							
-							// _logger.info("urn:sys:upload:data:prompt:id:" + result.getPromptId());
+							// _logger.info("urn:awm:prompt:id:" + result.getPromptId());
 							promptIdSet.add("urn:awm:prompt:id:" + result.getPromptId());
 						}
 						outputColumns.addAll(promptIdSet);
 					}
-					
-				} else {
-					
-					outputColumns.addAll(req.getPromptIdList());
 				}
+				
+				// get rid of urn:awm:prompt:response because it has been replaced with specific prompt ids
+				// the list will be unchanged if it didn't already contain urn:awm:prompt:response 
+				outputColumns.remove("urn:awm:prompt:response");
 				
 				Map<String, List<Object>> columnMap = new HashMap<String, List<Object>> ();
 				
@@ -124,10 +108,11 @@ public class NewDataPointQueryResponseWriter extends AbstractResponseWriter {
 					columnMap.put(columnName, list);
 				}
 				
-				Set<String> keySet = columnMap.keySet();
+				Set<String> columnMapKeySet = columnMap.keySet();
 				
-				// TODO Convert all of the results to UTC first just in case they span timezones ?
-				
+				// TODO convert all of the results to UTC first just in case they span timezones
+				// this means there could be results that seem out of order if they actually do span timezones
+				// and it means the sort should occur here instead of the SQL
 				
 				// Now flip/squash the database rows into columns
 				// For each user-date-surveyId-repeatableSetId-repeatableSetIteration combination, the metadata will be the same
@@ -176,7 +161,7 @@ public class NewDataPointQueryResponseWriter extends AbstractResponseWriter {
 					
 					// Column-ify the data with only the columns that the user requested
 					for(NewDataPointQueryFormattedResult result : formattedResultList) {
-						for(String key : keySet) {
+						for(String key : columnMapKeySet) {
 							
 							addItemToList(key, columnMap, result, req);
 						}
@@ -189,9 +174,9 @@ public class NewDataPointQueryResponseWriter extends AbstractResponseWriter {
 					JSONObject metadata = new JSONObject();
 					metadata.put("number_of_prompts", totalNumberOfResults);
 					// hacky way to do this, but any list will do because they are all the same size
-					metadata.put("number_of_surveys", columnMap.get(keySet.toArray()[0]).size());
+					metadata.put("number_of_surveys", columnMap.get(columnMapKeySet.toArray()[0]).size());
 					JSONArray items = new JSONArray();
-					for(String key : keySet) {
+					for(String key : columnMapKeySet) {
 						items.put(key);
 					}
 					metadata.put("items", items);
@@ -200,17 +185,22 @@ public class NewDataPointQueryResponseWriter extends AbstractResponseWriter {
 					JSONArray data = new JSONArray();
 					main.put("data", data);
 					
-					for(String key : keySet) { // looping thru the keySet again ...
+					for(String key : columnMapKeySet) {
 						
-						if(key.startsWith("urn:sys:upload:data:prompt:id:")) {
+						if(key.startsWith("urn:awm:prompt:id:")) {
 						
-							String promptId = key.substring("urn:sys:upload:data:prompt:id:".length());
+							String promptId = key.substring("urn:awm:prompt:id:".length());
 							JSONObject column = new JSONObject();
 							JSONObject context = new JSONObject();
+							// The way the json.org JSON lib works is that if there is an attempt to put 
+							// a null value for a particular key, it removes the key if it exists.
 							context.put("unit", promptContextMap.get(promptId).getUnit());
 							context.put("prompt_type", promptContextMap.get(promptId).getType());
 							context.put("display_type", promptContextMap.get(promptId).getDisplayType());
 							context.put("display_label", promptContextMap.get(promptId).getDisplayLabel());
+							if(null != promptContextMap.get(promptId).getChoiceGlossary()) {
+								context.put("choice_glossary", promptContextMap.get(promptId).getChoiceGlossary());
+							}
 							column.put("context", context);
 							column.put("values", columnMap.get(key));
 							JSONObject labelledColumn = new JSONObject();
@@ -238,7 +228,7 @@ public class NewDataPointQueryResponseWriter extends AbstractResponseWriter {
 					metadata.put("number_of_prompts", 0);
 					metadata.put("number_of_surveys", 0);
 					JSONArray items = new JSONArray();
-					for(String key : keySet) {
+					for(String key : columnMapKeySet) {
 						items.put(key);
 					}
 					metadata.put("items", items);
@@ -264,28 +254,19 @@ public class NewDataPointQueryResponseWriter extends AbstractResponseWriter {
 		catch(Exception e) { // catch Exception in order to avoid redundant catch block functionality
 			
 			_logger.error("an unrecoverable exception occurred while generating a response", e);
-			
 			try {
-				
 				writer.write(generalJsonErrorMessage());
-				
 			} catch (Exception ee) {
-				
 				_logger.error("caught Exception when attempting to write to HTTP output stream", ee);
 			}
 			
 		} finally {
-			
 			if(null != writer) {
-				
 				try {
-					
 					writer.flush();
 					writer.close();
 					writer = null;
-					
 				} catch (IOException ioe) {
-					
 					_logger.error("caught IOException when attempting to free resources", ioe);
 				}
 			}
@@ -298,7 +279,7 @@ public class NewDataPointQueryResponseWriter extends AbstractResponseWriter {
 	private void addItemToList(String columnName, 
 			                   Map<String, List<Object>> columnMap,
 			                   NewDataPointQueryFormattedResult result,
-			                   NewDataPointQueryAwRequest req) {
+			                   NewDataPointQueryAwRequest req) throws JSONException { 
 		
 		if("urn:awm:context:user".equals(columnName)) {
 			
@@ -318,11 +299,16 @@ public class NewDataPointQueryResponseWriter extends AbstractResponseWriter {
 			
 		} else if("urn:awm:context:utc_timestamp".equals(columnName)) {
 			
-			columnMap.get(columnName).add(result.getUtcTimestamp());
+			columnMap.get(columnName).add(result.getUtcTimestamp() == null ? "NA" : result.getUtcTimestamp());
 			
-		} else if("urn:awm:context:survey_launch_context".equals(columnName)) { // TODO need to flatten the launch context
+		} else if("urn:awm:context:launch_context_long".equals(columnName)) {
 			
-			columnMap.get(columnName).add(result.getLaunchContext());
+			columnMap.get(columnName).add(result.getLaunchContext() == null ? "NA" : new JSONObject(result.getLaunchContext()));
+			
+		}
+		else if("urn:awm:context:launch_context_short".equals(columnName)) {
+			
+			columnMap.get(columnName).add(result.getLaunchContext() == null ? "NA" : shortLaunchContext(result.getLaunchContext()));
 			
 		} else if("urn:awm:context:location:status".equals(columnName)) {
 			
@@ -330,23 +316,23 @@ public class NewDataPointQueryResponseWriter extends AbstractResponseWriter {
 			
 		} else if("urn:awm:context:location:latitude".equals(columnName)) {
 			
-			columnMap.get(columnName).add(result.getLatitude());
+			columnMap.get(columnName).add(result.getLatitude() == null ? "NA" : result.getLatitude());
 			
 		} else if("urn:awm:context:location:longitude".equals(columnName)) {
 			
-			columnMap.get(columnName).add(result.getLongitude());
+			columnMap.get(columnName).add(result.getLongitude() == null ? "NA" : result.getLongitude());
 			
 		} else if("urn:awm:context:location:timestamp".equals(columnName)) {
 			
-			columnMap.get(columnName).add(result.getLocationTimestamp());
+			columnMap.get(columnName).add(result.getLocationTimestamp() == null ? "NA" : result.getLocationTimestamp());
 			
 		} else if("urn:awm:context:location:accuracy".equals(columnName)) {
 			
-			columnMap.get(columnName).add(result.getAccuracy());
+			columnMap.get(columnName).add(result.getAccuracy() == null ? "NA" : result.getAccuracy());
 			
 		} else if("urn:awm:context:location:provider".equals(columnName)) {
 			
-			columnMap.get(columnName).add(result.getProvider());
+			columnMap.get(columnName).add(result.getProvider() == null ? "NA" : result.getProvider());
 			
 		} else if("urn:awm:context:campaign:name".equals(columnName)) {
 			
@@ -355,19 +341,30 @@ public class NewDataPointQueryResponseWriter extends AbstractResponseWriter {
 		} else if("urn:awm:context:campaign:version".equals(columnName)) {
 			
 			columnMap.get(columnName).add(req.getCampaignVersion());
+		
+		} else if("urn:awm:context:survey:id".equals(columnName)) {
+			
+			columnMap.get(columnName).add(result.getSurveyId());
+			
+		} else if("urn:awm:context:survey:title".equals(columnName)) {
+			
+			columnMap.get(columnName).add(result.getSurveyTitle());
+		
+		} else if("urn:awm:context:survey:description".equals(columnName)) {
+			
+			columnMap.get(columnName).add(result.getSurveyDescription());
 			
 		} else if("urn:awm:context:repeatable_set:id".equals(columnName)) {
 			
-			columnMap.get(columnName).add(result.getRepeatableSetId());
+			columnMap.get(columnName).add(result.getRepeatableSetId() == null ? "NA" : result.getRepeatableSetId());
 			
 		} else if("urn:awm:context:repeatable_set:iteration".equals(columnName)) {
 			
-			columnMap.get(columnName).add(result.getRepeatableSetIteration());
+			columnMap.get(columnName).add(result.getRepeatableSetIteration() == null ? "NA" : result.getRepeatableSetIteration());
 			
 		} else if (columnName.startsWith("urn:awm:prompt:id:")) {
 			
 			String promptId = columnName.substring("urn:awm:prompt:id:".length());
-			//_logger.info(promptId);
 			
 			if(null != result.getPromptDisplayValueMap().get(promptId)) {
 				columnMap.get(columnName).add(result.getPromptDisplayValueMap().get(promptId));
@@ -438,10 +435,11 @@ public class NewDataPointQueryResponseWriter extends AbstractResponseWriter {
 			formattedResult.setRepeatableSetId(result.getRepeatableSetId());
 			formattedResult.setRepeatableSetIteration(result.getRepeatableSetIteration());
 			formattedResult.setSurveyId(result.getSurveyId());
+			formattedResult.setSurveyTitle(result.getSurveyTitle());
+			formattedResult.setSurveyDescription(result.getSurveyDescription());
 			formattedResult.setTimestamp(result.getTimestamp());
 			formattedResult.setTimezone(result.getTimezone());
 			formattedResult.setUtcTimestamp(generateUtcTimestamp(result));
-		
 		} 
 			
 		Map<String, Object> promptDisplayValueMap = formattedResult.getPromptDisplayValueMap();
@@ -450,10 +448,9 @@ public class NewDataPointQueryResponseWriter extends AbstractResponseWriter {
 			formattedResult.setPromptDisplayValueMap(promptDisplayValueMap);
 		}
 		
-		// _logger.info("adding to displayValueMap: " + result.getPromptId() + ":" + result.getDisplayValue());
 		promptDisplayValueMap.put(result.getPromptId(), result.getDisplayValue());
 		
-		// Create the context object -- only need one for each prompt in the output
+		// Create the context object - only need one for each prompt in the output
 		
 		if(null == promptContextMap.get(result.getPromptId())) {
 			PromptContext pc = new PromptContext();
@@ -461,7 +458,46 @@ public class NewDataPointQueryResponseWriter extends AbstractResponseWriter {
 			pc.setDisplayType(pc.getDisplayType());
 			pc.setId(result.getPromptId());
 			pc.setType(result.getPromptType());
+			pc.setChoiceGlossary(result.getChoiceGlossary());
 			promptContextMap.put(result.getPromptId(), pc);
 		}
+	}
+	
+	private JSONObject shortLaunchContext(String launchContext) throws JSONException {
+		JSONObject lc = new JSONObject(launchContext);
+		JSONObject shortLc = new JSONObject();
+		
+		String launchTime = JsonUtils.getStringFromJsonObject(lc, "launch_time");
+		if(null != launchTime) {
+			shortLc.put("launch_time", launchTime);
+		}
+		
+		JSONArray activeTriggers = JsonUtils.getJsonArrayFromJsonObject(lc, "active_triggers");
+		if(null != activeTriggers) {
+			JSONArray shortArray = new JSONArray();
+			for(int i = 0; i < activeTriggers.length(); i++) {
+				JSONObject shortArrayEntry = new JSONObject();
+				JSONObject longArrayEntry = JsonUtils.getJsonObjectFromJsonArray(activeTriggers, i);
+				if(null != longArrayEntry) {
+					String triggerType = JsonUtils.getStringFromJsonObject(longArrayEntry, "trigger_type");
+					if(null != triggerType) {
+						shortArrayEntry.put("trigger_type", triggerType);
+					}
+					JSONObject runtimeDescription = JsonUtils.getJsonObjectFromJsonObject(longArrayEntry, "runtime_description");
+					if(null != runtimeDescription) {
+						String triggerTime = JsonUtils.getStringFromJsonObject(runtimeDescription, "trigger_timestamp");
+						if(null != triggerTime) {
+							shortArrayEntry.put("trigger_timestamp", triggerTime);
+						}
+						String triggerTimezone = JsonUtils.getStringFromJsonObject(runtimeDescription, "trigger_timezone");
+						if(null != triggerTimezone) {
+							shortArrayEntry.put("trigger_timezone", triggerTimezone);
+						}
+					}
+				}
+				shortArray.put(shortArrayEntry);
+			}
+		}
+		return shortLc;
 	}
 }
