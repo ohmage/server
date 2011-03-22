@@ -85,6 +85,7 @@ public class ChunkedMobilityQueryService extends AbstractDaoService {
 					currentChunkedResult.setDuration(calcDuration(startTimestamp, currentChunkedResult.getTimestamp()));
 					chunkedResults.add(currentChunkedResult);
 					count = 0; still = 0; walk = 0; run = 0; bike = 0; drive = 0;
+					currentChunkedResult = new ChunkedMobilityQueryResult();
 				}
 			}
 			
