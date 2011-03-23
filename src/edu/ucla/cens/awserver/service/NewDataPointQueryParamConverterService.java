@@ -40,7 +40,7 @@ public class NewDataPointQueryParamConverterService implements Service {
 				ids.add("urn:awm:special:all");
 			} else {
 				for(String entry : splitList) {
-					ids.add(entry.substring("urn:awm:prompt:id:".length()));
+					ids.add(entry);
 				}
 			}
 			
@@ -55,7 +55,7 @@ public class NewDataPointQueryParamConverterService implements Service {
 				ids.add("urn:awm:special:all");
 			} else {
 				for(String entry : splitList) {
-					ids.add(entry.substring("urn:awm:survey:id:".length()));
+					ids.add(entry);
 				}
 			}
 			

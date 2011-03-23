@@ -172,6 +172,8 @@ public class NewDataPointQueryResponseWriter extends AbstractResponseWriter {
 					JSONObject main = new JSONObject();
 					main.put("result", "success");
 					JSONObject metadata = new JSONObject();
+					metadata.put("campaign_name", req.getCampaignName());
+					metadata.put("campaign_version", req.getCampaignVersion());
 					metadata.put("number_of_prompts", totalNumberOfResults);
 					// hacky way to do this, but any list will do because they are all the same size
 					metadata.put("number_of_surveys", columnMap.get(columnMapKeySet.toArray()[0]).size());
@@ -227,6 +229,8 @@ public class NewDataPointQueryResponseWriter extends AbstractResponseWriter {
 					JSONObject metadata = new JSONObject();
 					metadata.put("number_of_prompts", 0);
 					metadata.put("number_of_surveys", 0);
+					metadata.put("campaign_name", req.getCampaignName());
+					metadata.put("campaign_version", req.getCampaignVersion());
 					JSONArray items = new JSONArray();
 					for(String key : columnMapKeySet) {
 						items.put(key);
@@ -281,7 +285,7 @@ public class NewDataPointQueryResponseWriter extends AbstractResponseWriter {
 			                   NewDataPointQueryFormattedResult result,
 			                   NewDataPointQueryAwRequest req) throws JSONException { 
 		
-		if("urn:awm:context:user".equals(columnName)) {
+		if("urn:awm:user:id".equals(columnName)) {
 			
 			columnMap.get(columnName).add(result.getLoginId());
 			
@@ -333,32 +337,24 @@ public class NewDataPointQueryResponseWriter extends AbstractResponseWriter {
 		} else if("urn:awm:context:location:provider".equals(columnName)) {
 			
 			columnMap.get(columnName).add(result.getProvider() == null ? "NA" : result.getProvider());
-			
-		} else if("urn:awm:context:campaign:name".equals(columnName)) {
-			
-			columnMap.get(columnName).add(req.getCampaignName());			
-			
-		} else if("urn:awm:context:campaign:version".equals(columnName)) {
-			
-			columnMap.get(columnName).add(req.getCampaignVersion());
 		
-		} else if("urn:awm:context:survey:id".equals(columnName)) {
+		} else if("urn:awm:survey:id".equals(columnName)) {
 			
 			columnMap.get(columnName).add(result.getSurveyId());
 			
-		} else if("urn:awm:context:survey:title".equals(columnName)) {
+		} else if("urn:awm:survey:title".equals(columnName)) {
 			
 			columnMap.get(columnName).add(result.getSurveyTitle());
 		
-		} else if("urn:awm:context:survey:description".equals(columnName)) {
+		} else if("urn:awm:survey:description".equals(columnName)) {
 			
 			columnMap.get(columnName).add(result.getSurveyDescription());
 			
-		} else if("urn:awm:context:repeatable_set:id".equals(columnName)) {
+		} else if("urn:awm:repeatable_set:id".equals(columnName)) {
 			
 			columnMap.get(columnName).add(result.getRepeatableSetId() == null ? "NA" : result.getRepeatableSetId());
 			
-		} else if("urn:awm:context:repeatable_set:iteration".equals(columnName)) {
+		} else if("urn:awm:repeatable_set:iteration".equals(columnName)) {
 			
 			columnMap.get(columnName).add(result.getRepeatableSetIteration() == null ? "NA" : result.getRepeatableSetIteration());
 			

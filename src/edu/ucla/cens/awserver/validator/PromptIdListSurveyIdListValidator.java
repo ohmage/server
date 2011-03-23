@@ -84,23 +84,6 @@ public class PromptIdListSurveyIdListValidator extends AbstractAnnotatingRegexpV
 						getAnnotator().annotate(awRequest, "malformed id: " + id);
 						return false;
 					}
-					
-					if(isPrompt) {
-						
-						if(! id.startsWith("urn:awm:prompt:id")) {
-							_logger.info("id does not start with the correct URN: urn:awm:prompt:id");
-							getAnnotator().annotate(awRequest, "malformed id: " + id);
-							return false;
-						}
-						
-					} else {
-						
-						if(! id.startsWith("urn:awm:survey:id")) {
-							_logger.info("id does not start with the correct URN: urn:awm:survey:id");
-							getAnnotator().annotate(awRequest, "malformed id: " + id);
-							return false;
-						}
-					}
 				}
 			}
 		}
