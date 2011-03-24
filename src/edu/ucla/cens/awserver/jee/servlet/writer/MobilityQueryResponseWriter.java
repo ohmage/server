@@ -65,7 +65,7 @@ public class MobilityQueryResponseWriter extends AbstractResponseWriter {
 					}
 					
 					entry.put("ts", result.getTimestamp());
-					entry.put("tz", result.getUtcTimestamp());
+					entry.put("tz", result.getTimezone());
 					entry.put("ls", result.getLocationStatus());
 					if(! "unavailable".equals(result.getLocationStatus())) {
 						JSONObject location = new JSONObject(result.getLocation());
