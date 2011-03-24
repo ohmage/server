@@ -104,6 +104,5 @@ public class ChunkedMobilityQueryService extends AbstractDaoService {
 		
 		results.clear();
 		awRequest.setResultList(chunkedResults);
-			
 	}
 }
