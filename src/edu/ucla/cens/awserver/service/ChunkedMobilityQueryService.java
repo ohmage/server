@@ -59,12 +59,10 @@ public class ChunkedMobilityQueryService extends AbstractDaoService {
 		sdf.setLenient(false);
 		long currentStartDate = 0L;
 		long currentEndDate = 0L;
-		long originalStartDate = 0L;
 		long originalEndDate = 0L;
 		
 		try {
 			currentStartDate = sdf.parse(awRequest.getStartDate()).getTime();
-			originalStartDate = currentStartDate;
 			currentEndDate = sdf.parse(awRequest.getEndDate()).getTime();
 			originalEndDate = currentEndDate;
 		} catch(ParseException pe) { // if this occurs there is a logical error in the parameter validation code
@@ -73,7 +71,7 @@ public class ChunkedMobilityQueryService extends AbstractDaoService {
 			throw new ServiceException(pe);
 		}
 		
-		while(currentStartDate <= originalEndDate) {
+		while(currentStartDate < originalEndDate) {
 			ChunkedMobilityQueryResult cr = new ChunkedMobilityQueryResult();
 			cr.setDuration(600000L); // 10 minute chunks
 			cr.setTimestamp(new Timestamp(currentStartDate).toString());

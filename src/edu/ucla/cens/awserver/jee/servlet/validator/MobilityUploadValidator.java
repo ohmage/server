@@ -33,22 +33,18 @@ public class MobilityUploadValidator extends AbstractGzipHttpServletRequestValid
 		String u = (String) httpServletRequest.getParameter("u"); 
 		String p = (String) httpServletRequest.getParameter("p");
 		String ci = (String) httpServletRequest.getParameter("ci");
+		String d = (String) httpServletRequest.getParameter("d");
 		
 		// Check for abnormal lengths (buffer overflow attack)
 		// The max lengths are based on the column widths in the db
 		
 		if(greaterThanLength("user", "u", u, 15)
-		   || greaterThanLength("client", "ci", ci, 250)
-		   || greaterThanLength("password", "p", p, 100)
-		) {
-			_logger.warn("found an input parameter that exceeds its allowed length");
+		  || greaterThanLength("client", "ci", ci, 250) 
+		  || greaterThanLength("password", "p", p, 100)
+		  || greaterThanLength("mobility data message", "d", d, 65535)) {
+			_logger.warn("rejecting upload because parameter payload is too large");
 			return false;
 		}
-		
-		// The JSON data is not checked because its length is so variable and potentially huge (some messages are 700000+ characters
-		// when URL-encoded). It will be heavily validated once inside the main application validation layer.
-		
-		// The default setting for Tomcat is to disallow requests that are greater than 2MB
 		
 		httpServletRequest.setAttribute("validatedParameterMap", parameterMap);
 		
