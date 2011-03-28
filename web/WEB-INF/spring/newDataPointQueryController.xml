@@ -16,6 +16,7 @@
   <bean id="newDataPointQueryResponseWriter" class="edu.ucla.cens.awserver.jee.servlet.writer.NewDataPointQueryResponseWriter">
     <constructor-arg index="0"><ref bean="severeErrorResponse" /></constructor-arg>
     <constructor-arg index="1"><ref bean="dataPointQueryColumnUrns" /></constructor-arg>
+    <constructor-arg index="2"><bean class="edu.ucla.cens.awserver.jee.servlet.writer.NewDataPointQueryCsvColumnOutputBuilder"></bean></constructor-arg>
   </bean>
   
     

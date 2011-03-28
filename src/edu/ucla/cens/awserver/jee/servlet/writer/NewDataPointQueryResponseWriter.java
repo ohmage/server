@@ -32,20 +32,31 @@ import edu.ucla.cens.awserver.util.JsonUtils;
  * Giant writer for the new data point API. This class needs to be refactored so its constituent parts can be used in other 
  * output writers (e.g., csv).
  * 
+ * TODO - the *ResponseWriter classes do more than just write output. The creation of the formatted output should be separated
+ * out from any kind of I/O in order to allow refactoring to use different kinds of I/O e.g., streaming/comet.  
+ * 
  * @author selsky
  */
 public class NewDataPointQueryResponseWriter extends AbstractResponseWriter {
 	private static Logger _logger = Logger.getLogger(NewDataPointQueryResponseWriter.class);
+	NewDataPointQueryCsvColumnOutputBuilder _columnOutputBuilder;
 	private List<String> _columnNames;
 	
-	public NewDataPointQueryResponseWriter(ErrorResponse errorResponse, List<String> columnNames) {
+	public NewDataPointQueryResponseWriter(ErrorResponse errorResponse, List<String> columnNames, NewDataPointQueryCsvColumnOutputBuilder outputBuilder) {
 		super(errorResponse);
 		if(null == columnNames || columnNames.size() == 0) {
 			throw new IllegalArgumentException("a non-empty columnNames list is required");
 		}
+		if(null == outputBuilder) {
+			throw new IllegalArgumentException("a non-null output builder is required");
+		}
 		_columnNames = columnNames;
+		_columnOutputBuilder = outputBuilder;
 	}
 	
+	/**
+	 * Creates column-based output based on the user's query selections.
+	 */
 	@Override
 	public void write(HttpServletRequest request, HttpServletResponse response, AwRequest awRequest) {
 		Writer writer = null;
@@ -163,83 +174,15 @@ public class NewDataPointQueryResponseWriter extends AbstractResponseWriter {
 					for(NewDataPointQueryFormattedResult result : formattedResultList) {
 						for(String key : columnMapKeySet) {
 							
-							addItemToList(key, columnMap, result, req);
+							addItemToList(key, columnMap, result);
 						}
 					}
 					
-					// Build output
-					
-					JSONObject main = new JSONObject();
-					main.put("result", "success");
-					JSONObject metadata = new JSONObject();
-					metadata.put("campaign_name", req.getCampaignName());
-					metadata.put("campaign_version", req.getCampaignVersion());
-					metadata.put("number_of_prompts", totalNumberOfResults);
-					// hacky way to do this, but any list will do because they are all the same size
-					metadata.put("number_of_surveys", columnMap.get(columnMapKeySet.toArray()[0]).size());
-					JSONArray items = new JSONArray();
-					for(String key : columnMapKeySet) {
-						items.put(key);
-					}
-					metadata.put("items", items);
-					main.put("metadata", metadata);
-					
-					JSONArray data = new JSONArray();
-					main.put("data", data);
-					
-					for(String key : columnMapKeySet) {
-						
-						if(key.startsWith("urn:awm:prompt:id:")) {
-						
-							String promptId = key.substring("urn:awm:prompt:id:".length());
-							JSONObject column = new JSONObject();
-							JSONObject context = new JSONObject();
-							// The way the json.org JSON lib works is that if there is an attempt to put 
-							// a null value for a particular key, it removes the key if it exists.
-							context.put("unit", promptContextMap.get(promptId).getUnit());
-							context.put("prompt_type", promptContextMap.get(promptId).getType());
-							context.put("display_type", promptContextMap.get(promptId).getDisplayType());
-							context.put("display_label", promptContextMap.get(promptId).getDisplayLabel());
-							if(null != promptContextMap.get(promptId).getChoiceGlossary()) {
-								context.put("choice_glossary", promptContextMap.get(promptId).getChoiceGlossary());
-							}
-							column.put("context", context);
-							column.put("values", columnMap.get(key));
-							JSONObject labelledColumn = new JSONObject();
-							labelledColumn.put(key, column);
-							data.put(labelledColumn);
-							
-						} else {
-						
-							JSONObject column = new JSONObject();
-							column.put("values", columnMap.get(key));
-							JSONObject labelledColumn = new JSONObject();
-							labelledColumn.put(key, column);
-							data.put(labelledColumn);
-						}
-					}
-					
-					responseText = main.toString(4);
+					responseText = _columnOutputBuilder.createMultiResultOutput(totalNumberOfResults, req, promptContextMap, columnMap);
 					
 				} else { // no results
 					
-					// Create metadata section anyway
-					JSONObject main = new JSONObject();
-					main.put("result", "success");
-					JSONObject metadata = new JSONObject();
-					metadata.put("number_of_prompts", 0);
-					metadata.put("number_of_surveys", 0);
-					metadata.put("campaign_name", req.getCampaignName());
-					metadata.put("campaign_version", req.getCampaignVersion());
-					JSONArray items = new JSONArray();
-					for(String key : columnMapKeySet) {
-						items.put(key);
-					}
-					metadata.put("items", items);
-					main.put("metadata", metadata);
-					JSONArray data = new JSONArray();
-					main.put("data", data);
-					responseText = main.toString(4);
+					responseText = _columnOutputBuilder.createZeroResultOutput(req, columnMap);
 				}
 				
 			} else {
@@ -278,12 +221,11 @@ public class NewDataPointQueryResponseWriter extends AbstractResponseWriter {
 	}
 	
 	/**
-	 *  
+	 * Adds a value from the formatted result to the appropriate column list based on the column name. 
 	 */
 	private void addItemToList(String columnName, 
 			                   Map<String, List<Object>> columnMap,
-			                   NewDataPointQueryFormattedResult result,
-			                   NewDataPointQueryAwRequest req) throws JSONException { 
+			                   NewDataPointQueryFormattedResult result) throws JSONException { 
 		
 		if("urn:awm:user:id".equals(columnName)) {
 			
