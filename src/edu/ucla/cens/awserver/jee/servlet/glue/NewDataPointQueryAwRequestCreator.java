@@ -30,6 +30,9 @@ public class NewDataPointQueryAwRequestCreator implements AwRequestCreator {
 		String promptIdList = request.getParameter("prompt_id_list");
 		String surveyIdList = request.getParameter("survey_id_list");
 		String columnList = request.getParameter("column_list");
+		String outputFormat = request.getParameter("output_format");
+		String prettyPrint = request.getParameter("pretty_print");
+		String suppressMetadata = request.getParameter("suppress_metadata");
 		
 		NewDataPointQueryAwRequest awRequest = new NewDataPointQueryAwRequest();
 		
@@ -43,6 +46,9 @@ public class NewDataPointQueryAwRequestCreator implements AwRequestCreator {
 		awRequest.setPromptIdListString(promptIdList);
 		awRequest.setSurveyIdListString(surveyIdList);
 		awRequest.setColumnListString(columnList);
+		awRequest.setOutputFormat(outputFormat);
+		awRequest.setPrettyPrint(Boolean.valueOf(prettyPrint).booleanValue());
+		awRequest.setSuppressMetadata(Boolean.valueOf(suppressMetadata).booleanValue());
 		
         NDC.push("ci=" + client); // push the client string into the Log4J NDC for the currently executing thread _ this means that 
                                   // it will be in every log message for the current thread

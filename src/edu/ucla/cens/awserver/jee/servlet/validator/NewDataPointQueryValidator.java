@@ -19,8 +19,6 @@ public class NewDataPointQueryValidator extends AbstractHttpServletRequestValida
 	private static Logger _logger = Logger.getLogger(NewDataPointQueryValidator.class);
 	private List<String> _parameterList;
 	
-	/**
-	 */
 	public NewDataPointQueryValidator() {
 		_parameterList = new ArrayList<String>(Arrays.asList(new String[]{"start_date",
 				                                                          "end_date",
@@ -31,14 +29,20 @@ public class NewDataPointQueryValidator extends AbstractHttpServletRequestValida
 				                                                          "auth_token",
 				                                                          "campaign_version",
 				                                                          "survey_id_list",
-				                                                          "column_list"}));
+				                                                          "column_list",
+				                                                          "output_format",
+				                                                          "pretty_print",
+	    																  "suppress_metadata"}));
 	}
 	
 	public boolean validate(HttpServletRequest httpServletRequest) {
 		Map<String,String[]> parameterMap = getParameterMap(httpServletRequest); 
 		
 		// Check for missing or extra parameters
-		if(parameterMap.size() != (_parameterList.size() - 1)) { // either promt_ids or survey_ids is required, not both			
+		if((parameterMap.size() != (_parameterList.size() - 1))       // either prompt_ids or survey_ids is required, but not both,
+		    && (parameterMap.size() != (_parameterList.size() - 2))   // and pretty_print and suppress-metadata are optional
+			&& (parameterMap.size() != (_parameterList.size() - 3))) {
+			
 			_logger.warn("an incorrect number of parameters was found for a \"new\" data point query: " + parameterMap.size());
 			return false;
 		}
@@ -71,6 +75,9 @@ public class NewDataPointQueryValidator extends AbstractHttpServletRequestValida
 		String promptIds = (String) httpServletRequest.getParameter("prompt_id_list");
 		String surveyIds = (String) httpServletRequest.getParameter("survey_id_list");
 		String columns = (String) httpServletRequest.getParameter("column_list");
+		String outputFormat = (String) httpServletRequest.getParameter("output_format");
+		String prettyPrint = (String) httpServletRequest.getParameter("pretty_print");
+		String suppressMetadata = (String) httpServletRequest.getParameter("suppress_metadata");
 		
 		// Check for abnormal lengths (buffer overflow attack)
 		
@@ -83,7 +90,10 @@ public class NewDataPointQueryValidator extends AbstractHttpServletRequestValida
 		   || greaterThanLength("users", "user_list", users, 150) // allows up to 10 users
 		   || greaterThanLength("promptIdList", "prompt_id_list", promptIds, 2500)  // arbitrary, but longer than this would be abnormal
 		   || greaterThanLength("surveyIdlist", "survey_id_list", surveyIds, 2500)  // arbitrary, but longer than this would be abnormal 
-		   || greaterThanLength("columnList", "column_list", columns, 2500)) {      // arbitrary, but longer than this would be abnormal
+		   || greaterThanLength("columnList", "column_list", columns, 2500)         // arbitrary, but longer than this would be abnormal
+		   || greaterThanLength("outputFormat", "output_format", outputFormat, 12)  // longest value allowed is "json-columns" 
+		   || greaterThanLength("prettyPrint", "pretty_print", prettyPrint, 5)      // longest value allowed is "false"
+		   || greaterThanLength("suppressMetadata", "suppress_metadata", suppressMetadata, 5)) { // longest value allowed is "false"
 			
 			_logger.warn("found an input parameter that exceeds its allowed length");
 			return false;

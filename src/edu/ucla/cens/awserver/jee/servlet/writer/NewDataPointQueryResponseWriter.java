@@ -39,19 +39,21 @@ import edu.ucla.cens.awserver.util.JsonUtils;
  */
 public class NewDataPointQueryResponseWriter extends AbstractResponseWriter {
 	private static Logger _logger = Logger.getLogger(NewDataPointQueryResponseWriter.class);
-	NewDataPointQueryCsvColumnOutputBuilder _columnOutputBuilder;
+	private Map<String, NewDataPointQueryOutputBuilder> _outputBuilderMap;
 	private List<String> _columnNames;
 	
-	public NewDataPointQueryResponseWriter(ErrorResponse errorResponse, List<String> columnNames, NewDataPointQueryCsvColumnOutputBuilder outputBuilder) {
+	public NewDataPointQueryResponseWriter(ErrorResponse errorResponse, 
+			                               List<String> columnNames,
+			                               Map<String, NewDataPointQueryOutputBuilder> outputBuilderMap) {
 		super(errorResponse);
 		if(null == columnNames || columnNames.size() == 0) {
-			throw new IllegalArgumentException("a non-empty columnNames list is required");
+			throw new IllegalArgumentException("a non-null, non-empty columnNames list is required");
 		}
-		if(null == outputBuilder) {
-			throw new IllegalArgumentException("a non-null output builder is required");
+		if(null == outputBuilderMap || outputBuilderMap.isEmpty()) {
+			throw new IllegalArgumentException("a non-null, non-empty output builder map is required");
 		}
 		_columnNames = columnNames;
-		_columnOutputBuilder = outputBuilder;
+		_outputBuilderMap = outputBuilderMap;
 	}
 	
 	/**
@@ -60,6 +62,7 @@ public class NewDataPointQueryResponseWriter extends AbstractResponseWriter {
 	@Override
 	public void write(HttpServletRequest request, HttpServletResponse response, AwRequest awRequest) {
 		Writer writer = null;
+		NewDataPointQueryAwRequest req = (NewDataPointQueryAwRequest) awRequest;
 		
 		try {
 			// Prepare for sending the response to the client
@@ -69,12 +72,15 @@ public class NewDataPointQueryResponseWriter extends AbstractResponseWriter {
 			// Sets the HTTP headers to disable caching
 			expireResponse(response);
 			
-			response.setContentType("application/json");
+			// Set the content type
+			if("csv".equals(req.getOutputFormat())) {
+				response.setContentType("text/csv");
+			} else {
+				response.setContentType("application/json");
+			}
 			
 			// Build the appropriate response 
 			if(! awRequest.isFailedRequest()) {
-				
-				NewDataPointQueryAwRequest req = (NewDataPointQueryAwRequest) awRequest;
 				
 				List<String> columnList = req.getColumnList();
 				List<String> outputColumns = new ArrayList<String>();
@@ -178,14 +184,16 @@ public class NewDataPointQueryResponseWriter extends AbstractResponseWriter {
 						}
 					}
 					
-					responseText = _columnOutputBuilder.createMultiResultOutput(totalNumberOfResults, req, promptContextMap, columnMap);
+					responseText = _outputBuilderMap.get(req.getOutputFormat()).createMultiResultOutput(totalNumberOfResults, req, promptContextMap, columnMap);
 					
 				} else { // no results
 					
-					responseText = _columnOutputBuilder.createZeroResultOutput(req, columnMap);
+					responseText = _outputBuilderMap.get(req.getOutputFormat()).createZeroResultOutput(req, columnMap);
 				}
 				
 			} else {
+				
+				// Even for CSV output, the error messages remain JSON
 				
 				if(null != awRequest.getFailedRequestErrorMessage()) {
 					responseText = awRequest.getFailedRequestErrorMessage();

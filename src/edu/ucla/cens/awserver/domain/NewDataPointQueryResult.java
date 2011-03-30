@@ -29,7 +29,7 @@ public class NewDataPointQueryResult {
 	private String _surveyTitle;
 	private String _surveyDescription;
 	private String _loginId;
-	private Map<Object, Object> _choiceGlossary;
+	private Map<String, PromptProperty> _choiceGlossary;
 	
 	public String getLocationStatus() {
 		return _locationStatus;
@@ -195,11 +195,11 @@ public class NewDataPointQueryResult {
 		_loginId = loginId;
 	}
 	
-	public Map<Object, Object> getChoiceGlossary() {
+	public Map<String, PromptProperty> getChoiceGlossary() {
 		return _choiceGlossary;
 	}
 
-	public void setChoiceGlossary(Map<Object, Object> choiceGlossary) {
+	public void setChoiceGlossary(Map<String, PromptProperty> choiceGlossary) {
 		_choiceGlossary = choiceGlossary;
 	}
 

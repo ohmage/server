@@ -9,7 +9,7 @@ import edu.ucla.cens.awserver.request.NewDataPointQueryAwRequest;
 import edu.ucla.cens.awserver.util.StringUtils;
 
 /**
- * Validates the username list for a new data point query.
+ * Validates the column list for a new data point query.
  * 
  * @author selsky
  */

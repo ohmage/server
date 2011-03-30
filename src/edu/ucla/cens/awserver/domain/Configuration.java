@@ -231,21 +231,12 @@ public class Configuration {
 		return value;
 	}
 	
-	public Map<Object, Object> getChoiceGlossaryFor(String surveyId, String repeatableSetId, String promptId) {
-		return getChoiceGlossaryFor(getPrompt(surveyId, repeatableSetId, promptId));
+	public Map<String, PromptProperty> getChoiceGlossaryFor(String surveyId, String repeatableSetId, String promptId) {
+		return getPrompt(surveyId, repeatableSetId, promptId).getProperties();
 	}
 	
-	public Map<Object, Object> getChoiceGlossaryFor(String surveyId, String promptId) {
-		return getChoiceGlossaryFor(getPrompt(surveyId, promptId));
-	}
-	
-	private Map<Object, Object> getChoiceGlossaryFor(Prompt prompt) {
-		Map<String, PromptProperty> props = prompt.getProperties();
-		Map<Object, Object> choiceGlossary = new HashMap<Object, Object>();
-		for(String key : props.keySet()) {
-			choiceGlossary.put(StringUtils.stringToNumber(props.get(key).getKey()), StringUtils.stringToNumber(props.get(key).getLabel()));
-		}
-		return choiceGlossary;
+	public Map<String, PromptProperty> getChoiceGlossaryFor(String surveyId, String promptId) {
+		return getPrompt(surveyId, promptId).getProperties();
 	}
 	
 	public String getUnitFor(String surveyId, String promptId) {

@@ -16,7 +16,7 @@ import edu.ucla.cens.awserver.request.NewDataPointQueryAwRequest;
  * 
  * @author selsky
  */
-public class NewDataPointQueryJsonColumnOutputBuilder {
+public class NewDataPointQueryJsonColumnOutputBuilder implements NewDataPointQueryOutputBuilder {
 
 	public String createMultiResultOutput(int totalNumberOfResults,
 			                              NewDataPointQueryAwRequest req,
@@ -76,13 +76,11 @@ public class NewDataPointQueryJsonColumnOutputBuilder {
 			}
 		}
 		
-		return main.toString(4); // TODO need pretty print option on the query params
+		return req.isPrettyPrint() ? main.toString(4) : main.toString();
 	}
 	
 	public String createZeroResultOutput(NewDataPointQueryAwRequest req,
                                          Map<String, List<Object>> columnMap) throws JSONException {
-		
-		// Create metadata section anyway
 		
 		JSONObject main = new JSONObject();
 		main.put("result", "success");
@@ -100,6 +98,6 @@ public class NewDataPointQueryJsonColumnOutputBuilder {
 		JSONArray data = new JSONArray();
 		main.put("data", data);
 		
-		return main.toString(4); // TODO need pretty print option on the query params
+		return req.isPrettyPrint() ? main.toString(4) : main.toString();
 	}
 }

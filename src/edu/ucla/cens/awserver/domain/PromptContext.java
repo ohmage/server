@@ -15,7 +15,7 @@ public class PromptContext {
 	private String _displayLabel;
 	private String _displayType;
 	private String _unit;
-	private Map<Object, Object> _choiceGlossary; // if single_choice or multi_choice
+	private Map<String, PromptProperty> _choiceGlossary; // if single_choice or multi_choice
 	
 	public String getId() {
 		return _id;
@@ -57,11 +57,11 @@ public class PromptContext {
 		_unit = unit;
 	}
 	
-	public Map<Object, Object> getChoiceGlossary() {
+	public Map<String, PromptProperty> getChoiceGlossary() {
 		return _choiceGlossary;
 	}
 
-	public void setChoiceGlossary(Map<Object, Object> choiceGlossary) {
+	public void setChoiceGlossary(Map<String, PromptProperty> choiceGlossary) {
 		_choiceGlossary = choiceGlossary;
 	}
 

@@ -28,7 +28,15 @@ public class NewDataPointQueryAwRequest extends ResultListAwRequest {
 	
 	private String _columnListString;
 	private List<String> _columnList;
-
+	
+	private String _outputFormat;
+	
+	private String _sortOrderString;
+	private List<String> _sortOrderList;
+ 	
+	private boolean _prettyPrint;
+	private boolean _suppressMetadata;
+	
 	private Configuration _configuration;
 	
 	// private String _authToken; see userToken in parent class
@@ -151,5 +159,63 @@ public class NewDataPointQueryAwRequest extends ResultListAwRequest {
 
 	public void setColumnList(List<String> columnList) {
 		_columnList = columnList;
+	}
+	
+	public String getOutputFormat() {
+		return _outputFormat;
+	}
+
+	public void setOutputFormat(String outputFormat) {
+		_outputFormat = outputFormat;
+	}
+
+	public String getSortOrderString() {
+		return _sortOrderString;
+	}
+
+	public void setSortOrderString(String sortOrderString) {
+		_sortOrderString = sortOrderString;
+	}
+
+	public List<String> getSortOrderList() {
+		return _sortOrderList;
+	}
+
+	public void setSortOrderList(List<String> sortOrderList) {
+		_sortOrderList = sortOrderList;
+	}
+
+	public boolean isPrettyPrint() {
+		return _prettyPrint;
+	}
+
+	public void setPrettyPrint(boolean prettyPrint) {
+		_prettyPrint = prettyPrint;
+	}
+	
+	public boolean isSuppressMetadata() {
+		return _suppressMetadata;
+	}
+
+	public void setSuppressMetadata(boolean suppressMetadata) {
+		_suppressMetadata = suppressMetadata;
+	}
+
+	@Override
+	public String toString() {
+		return "NewDataPointQueryAwRequest [_campaignName=" + _campaignName
+				+ ", _campaignVersion=" + _campaignVersion + ", _client="
+				+ _client + ", _columnList=" + _columnList
+				+ ", _columnListString=" + _columnListString
+				+ ", _configuration=" + _configuration + ", _currentUser="
+				+ _currentUser + ", _endDate=" + _endDate + ", _outputFormat="
+				+ _outputFormat + ", _prettyPrint=" + _prettyPrint
+				+ ", _promptIdList=" + _promptIdList + ", _promptIdListString="
+				+ _promptIdListString + ", _sortOrderList=" + _sortOrderList
+				+ ", _sortOrderString=" + _sortOrderString + ", _startDate="
+				+ _startDate + ", _suppressMetadata=" + _suppressMetadata
+				+ ", _surveyIdList=" + _surveyIdList + ", _surveyIdListString="
+				+ _surveyIdListString + ", _userList=" + _userList
+				+ ", _userListString=" + _userListString + "]";
 	}
 }
