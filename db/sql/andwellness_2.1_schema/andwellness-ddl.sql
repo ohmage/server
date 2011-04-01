@@ -4,46 +4,28 @@ CREATE DATABASE andwellness CHARACTER SET utf8 COLLATE utf8_general_ci;
 USE andwellness;
 
 -- --------------------------------------------------------------------
--- The class concept comes from Mobilize, but it can be used for any
--- taxonomical grouping of users. 
--- --------------------------------------------------------------------
-CREATE TABLE class (
-  id int unsigned NOT NULL auto_increment,
-  urn varchar(255) NOT NULL,
-  name varchar(255) NOT NULL,
-  PRIMARY KEY (id),
-  UNIQUE (urn)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-
--- --------------------------------------------------------------------
 -- Campaign id and name. Allows users to be bound to a campaign without  
 -- having a campaign configuration in the system. 
 -- --------------------------------------------------------------------
 CREATE TABLE campaign (
   id int unsigned NOT NULL auto_increment,
-  urn varchar(255) NOT NULL,
-  name varchar(255) NOT NULL,
-  description text,
-  xml mediumtext NOT NULL,
-  running_state varchar(50) NOT NULL,
-  privacy_state varchar(50) NOT NULL,
-  creation_timestamp datetime NOT NULL,
+  name varchar(250) NOT NULL,
+  label varchar(500) default NULL, -- can be used as a separate display label
   PRIMARY KEY (id),
-  UNIQUE (urn)
--- create an index on name?
+  UNIQUE (name)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- --------------------------------------------------------------------
--- Bind campaigns to classes.
+-- Links surveys (stored in raw XML format) to a campaign. 
 -- --------------------------------------------------------------------
-CREATE TABLE campaign_class (
+CREATE TABLE campaign_configuration (
   id int unsigned NOT NULL auto_increment,
   campaign_id int unsigned NOT NULL,
-  class_id int unsigned NOT NULL,
+  version varchar(250) NOT NULL,
+  xml mediumtext NOT NULL, -- the max length for mediumtext is roughly 5.6 million UTF-8 chars
   PRIMARY KEY (id),
-  UNIQUE (campaign_id, class_id),
-  CONSTRAINT FOREIGN KEY (campaign_id) REFERENCES campaign (id) ON DELETE CASCADE ON UPDATE CASCADE,
-  CONSTRAINT FOREIGN KEY (class_id) REFERENCES class (id) ON DELETE CASCADE ON UPDATE CASCADE
+  UNIQUE (campaign_id, version),
+  CONSTRAINT FOREIGN KEY (campaign_id) REFERENCES campaign (id) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- -----------------------------------------------------------------------
@@ -54,8 +36,7 @@ CREATE TABLE user (
   login_id varchar(15) NOT NULL,
   password varchar(100) NOT NULL,
   enabled bit NOT NULL,
-  new_account bit NOT NULL
-  campaign_creation_privilege bit NOT NULL,
+  new_account bit NOT NULL,
   PRIMARY KEY (id),
   UNIQUE (login_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
@@ -90,11 +71,11 @@ CREATE TABLE user_user_personal (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- --------------------------------------------------------------------
--- User role lookup table.
+-- User roles.
 -- --------------------------------------------------------------------
 CREATE TABLE user_role (
   id tinyint unsigned NOT NULL auto_increment,
-  role varchar(50) NOT NULL,
+  label varchar(50) NOT NULL,
   PRIMARY KEY (id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
@@ -114,27 +95,12 @@ CREATE TABLE user_role_campaign (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- --------------------------------------------------------------------
--- Bind users to classes. 
--- --------------------------------------------------------------------
-
-CREATE TABLE user_class (
-  id int unsigned NOT NULL auto_increment,
-  user_id int unsigned NOT NULL,
-  class_id int unsigned NOT NULL,
-  class_role varchar(50) NOT NULL,
-  PRIMARY KEY (id),
-  UNIQUE (user_id, class_id),
-  CONSTRAINT FOREIGN KEY (user_id) REFERENCES user (id) ON DELETE CASCADE ON UPDATE CASCADE,
-  CONSTRAINT FOREIGN KEY (class_id) REFERENCES class (id) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-
--- --------------------------------------------------------------------
 -- Stores survey responses for a user in a campaign 
 -- --------------------------------------------------------------------
 CREATE TABLE survey_response (
   id int unsigned NOT NULL auto_increment,
   user_id int unsigned NOT NULL,
-  campaign_id int unsigned NOT NULL,
+  campaign_configuration_id int unsigned NOT NULL,
   client varchar(250) NOT NULL,
   msg_timestamp datetime NOT NULL,
   epoch_millis bigint unsigned NOT NULL, 
@@ -148,11 +114,11 @@ CREATE TABLE survey_response (
   audit_timestamp timestamp default current_timestamp on update current_timestamp,
   
   PRIMARY KEY (id),
-  INDEX (user_id, campaign_id),
+  INDEX (user_id, campaign_configuration_id),
   INDEX (user_id, upload_timestamp),
   UNIQUE (user_id, survey_id, epoch_millis), -- handle duplicate survey uploads
   CONSTRAINT FOREIGN KEY (user_id) REFERENCES user (id) ON DELETE CASCADE ON UPDATE CASCADE,    
-  CONSTRAINT FOREIGN KEY (campaign_id) REFERENCES campaign (id) ON DELETE CASCADE ON UPDATE CASCADE
+  CONSTRAINT FOREIGN KEY (campaign_configuration_id) REFERENCES campaign_configuration (id) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- --------------------------------------------------------------------
@@ -169,7 +135,6 @@ CREATE TABLE prompt_response (
   repeatable_set_iteration tinyint unsigned,
   response text NOT NULL,   -- the data format is defined by the prompt type: a string or a JSON string
   audit_timestamp timestamp default current_timestamp on update current_timestamp,
-  privacy_state varchar(50) NOT NULL,
   
   PRIMARY KEY (id),
   INDEX (survey_response_id),
