@@ -53,7 +53,7 @@ public class SurveyUploadAwRequestCreator implements AwRequestCreator {
         awRequest.setClient(client);
         awRequest.setJsonDataAsString(jsonData);
         awRequest.setCampaignVersion(campaignVersion);
-        awRequest.setCampaignName(campaignName);
+        awRequest.setCampaignUrn(campaignName);
 
         String requestUrl = request.getRequestURL().toString();
         if(null != request.getQueryString()) {

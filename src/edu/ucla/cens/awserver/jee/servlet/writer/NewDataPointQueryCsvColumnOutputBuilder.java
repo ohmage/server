@@ -35,8 +35,7 @@ public class NewDataPointQueryCsvColumnOutputBuilder implements NewDataPointQuer
 			
 			JSONObject jsonObject = new JSONObject();
 			jsonObject.put("result", "success");
-			jsonObject.put("campaign_name", req.getCampaignName());
-			jsonObject.put("campaign_version", req.getCampaignVersion());
+			jsonObject.put("campaign_urn", req.getCampaignUrn());
 			jsonObject.put("number_of_prompts", totalNumberOfResults);
 			jsonObject.put("number_of_surveys", columnMap.get(columnMapKeySet.toArray()[0]).size());
 			
@@ -125,8 +124,7 @@ public class NewDataPointQueryCsvColumnOutputBuilder implements NewDataPointQuer
 			jsonObject.put("result", "success");
 			jsonObject.put("number_of_prompts", 0);
 			jsonObject.put("number_of_surveys", 0);
-			jsonObject.put("campaign_name", req.getCampaignName());
-			jsonObject.put("campaign_version", req.getCampaignVersion());
+			jsonObject.put("campaign_urn", req.getCampaignUrn());
 			builder.append(jsonObject.toString().replace(",", ";")).append(newLine)
 			       .append("# end metadata").append(newLine)
 			       .append("# begin prompt contexts").append(newLine).append("# end prompt contexts").append(newLine)

@@ -2,7 +2,6 @@ package edu.ucla.cens.awserver.domain;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -11,49 +10,90 @@ import java.util.Set;
 import edu.ucla.cens.awserver.util.StringUtils;
 
 /**
- * Immutable bean-style wrapper for accessing and validating configuration properties.
+ * Immutable bean-style wrapper for accessing and validating campaign properties.
  * 
  * @author selsky
  */
 public class Configuration {
 	// private static Logger _logger = Logger.getLogger(Configuration.class);
-	private String _campaignName;
-	private String _campaignVersion;
+	private String _urn;
+	private String _name;
+	private String _description;
+	private String _runningState;
+	private String _privacyState;
+	private String _creationTimestamp;
 	private Map<String, Survey> _surveyMap;
 	private String _xml;
 	
-	public Configuration(String campaignName, String campaignVersion, Map<String, Survey> surveyMap, String xml) {
-		if(null == campaignName) {
-			throw new IllegalArgumentException("a campaignName is required");
+	public Configuration(String urn, String name, String description, String runningState, String privacyState, 
+			String creationTimestamp, Map<String, Survey> surveyMap, String xml) {
+		
+		// If any of these properties are missing, it means the db is in an inconsistent state!
+		if(StringUtils.isEmptyOrWhitespaceOnly(urn)) {
+			throw new IllegalArgumentException("a URN is required");
 		}
-		if(null == campaignVersion) {
-			throw new IllegalArgumentException("a campaignVersion is required");
+		if(StringUtils.isEmptyOrWhitespaceOnly(name)) {
+			throw new IllegalArgumentException("a name is required");
 		}
-		if(null == surveyMap) {
-			throw new IllegalArgumentException("a map of surveys is required");
+		// a null or empty description is allowed
+		if(StringUtils.isEmptyOrWhitespaceOnly(runningState)) {
+			throw new IllegalArgumentException("running state is required");
 		}
-		if(null == xml) {
+		if(StringUtils.isEmptyOrWhitespaceOnly(privacyState)) {
+			throw new IllegalArgumentException("privacy state is required");
+		}
+		if(StringUtils.isEmptyOrWhitespaceOnly(creationTimestamp)) {
+			throw new IllegalArgumentException("a creation timestamp is required");
+		}
+		if(StringUtils.isEmptyOrWhitespaceOnly(xml)) {
 			throw new IllegalArgumentException("xml is required");
 		}
+		if(null == surveyMap || surveyMap.isEmpty()) {
+			throw new IllegalArgumentException("a map of surveys is required");
+		}
 		
-		_campaignName = campaignName;
-		_campaignVersion = campaignVersion;
+		_urn = urn;
+		_name = name;
+		_description = description;
+		_runningState = runningState;
+		_privacyState = privacyState;
+		_creationTimestamp = creationTimestamp;
 		_surveyMap = surveyMap; // TODO deep copy?
 		_xml = xml;
 	}
 	
-	public String getCampaignName() {
-		return _campaignName;
-	}
-
-	public String getCampaignVersion() {
-		return _campaignVersion;
+	public String getUrn() {
+		return _urn;
 	}
 
 	public Map<String, Survey> getSurveys() {
 		return Collections.unmodifiableMap(_surveyMap);
 	}
 	
+	public String getXml() {
+		return _xml;
+	}
+
+	public String getName() {
+		return _name;
+	}
+	
+	public String getDescription() {
+		return _description;
+	}
+
+	public String getRunningState() {
+		return _runningState;
+	}
+
+	public String getPrivacyState() {
+		return _privacyState;
+	}
+
+	public String getCreationTimestamp() {
+		return _creationTimestamp;
+	}
+
 	public boolean surveyIdExists(String surveyId) {
 		return _surveyMap.containsKey(surveyId);
 	}
@@ -246,18 +286,4 @@ public class Configuration {
 	public String getUnitFor(String surveyId, String repeatableSetId, String promptId) {
 		return getPrompt(surveyId, repeatableSetId, promptId).getUnit();
 	}
-	
-	/**
-	 * Returns the "raw" configuration xml.
-	 */
-	public String getXml() {
-		return _xml;
-	}
-
-	@Override
-	public String toString() {
-		return "Configuration [_campaignName=" + _campaignName
-				+ ", _campaignVersion=" + _campaignVersion + ", _surveyMap="
-				+ _surveyMap + ", _xml=" + _xml + "]";
-	}	
 }

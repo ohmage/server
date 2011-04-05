@@ -20,7 +20,7 @@ import edu.ucla.cens.awserver.domain.UserRoleImpl;
  */
 public class UserRoleDao implements ParameterLessDao {
 	private JdbcTemplate _jdbcTemplate;
-	private String _sql = "select id, label from user_role";
+	private String _sql = "select id, role from user_role";
 	private static Logger logger = Logger.getLogger(UserRoleDao.class);
 	
 	/**
@@ -41,7 +41,7 @@ public class UserRoleDao implements ParameterLessDao {
 				public Object mapRow(ResultSet rs, int rowNum) throws SQLException {
 					UserRole userRole = new UserRoleImpl();
 					userRole.setId(rs.getInt(1));
-					userRole.setName(rs.getString(2));
+					userRole.setRole(rs.getString(2));
 					return userRole;
 				}
 			});

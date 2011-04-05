@@ -65,18 +65,19 @@ public class RetrieveConfigResponseWriter extends AbstractResponseWriter {
 				for(int i = 0; i < numberOfResults; i++) {
 					ConfigQueryResult result = (ConfigQueryResult) resultList.get(i);
 					JSONObject campaignObject = new JSONObject();
-					campaignObject.put("id", result.getCampaignName());
+					campaignObject.put("urn", result.getCampaignUrn());
 					campaignObject.put("user_role", result.getUserRole());
 					campaignObject.put("user_list", new JSONArray(result.getUserList()));
-					
-					JSONArray configArray = new JSONArray();
-					Map<String, String> versionXmlMap = result.getVersionXmlMap();
-					Iterator<String> mapIterator = versionXmlMap.keySet().iterator();
-					while(mapIterator.hasNext()) {
-						String k = mapIterator.next();
-						configArray.put(new JSONObject().put("version", k).put("configuration", versionXmlMap.get(k)));
-					}
-					campaignObject.put("configurations", configArray);
+					campaignObject.put("configuration", result.getXml());
+//					
+//					JSONArray configArray = new JSONArray();
+//					Map<String, String> versionXmlMap = result.getXml();
+//					Iterator<String> mapIterator = versionXmlMap.keySet().iterator();
+//					while(mapIterator.hasNext()) {
+//						String k = mapIterator.next();
+//						configArray.put(new JSONObject().put("version", k).put("configuration", versionXmlMap.get(k)));
+//					}
+//					campaignObject.put("configurations", configArray);
 					campaignArray.put(campaignObject);
 				}
 				

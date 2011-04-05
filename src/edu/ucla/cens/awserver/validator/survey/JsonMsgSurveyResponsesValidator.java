@@ -5,7 +5,6 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import edu.ucla.cens.awserver.cache.CacheService;
-import edu.ucla.cens.awserver.domain.CampaignNameVersion;
 import edu.ucla.cens.awserver.domain.Configuration;
 import edu.ucla.cens.awserver.domain.Prompt;
 import edu.ucla.cens.awserver.request.AwRequest;
@@ -58,9 +57,7 @@ public class JsonMsgSurveyResponsesValidator extends AbstractAnnotatingJsonObjec
 	public boolean validate(AwRequest awRequest, JSONObject jsonObject) {		 
 		JSONArray jsonArray = JsonUtils.getJsonArrayFromJsonObject(jsonObject, _key);
 		String surveyId = JsonUtils.getStringFromJsonObject(jsonObject, "survey_id");
-		Configuration configuration = 
-			(Configuration) _cacheService.lookup(new CampaignNameVersion(awRequest.getCampaignName(), 
-                                                                         awRequest.getCampaignVersion()));
+		Configuration configuration = (Configuration) _cacheService.lookup(awRequest.getCampaignUrn());
 		
 		int arraySize = jsonArray.length();
 	

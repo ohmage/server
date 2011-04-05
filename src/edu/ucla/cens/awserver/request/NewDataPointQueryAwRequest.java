@@ -14,8 +14,7 @@ public class NewDataPointQueryAwRequest extends ResultListAwRequest {
 	private String _endDate;
 	private String _currentUser;
 	private String _client;
-	private String _campaignName;
-	private String _campaignVersion;
+	private String _campaignUrn;
 	
 	private String _userListString;
 	private List<String> _userList;
@@ -81,20 +80,12 @@ public class NewDataPointQueryAwRequest extends ResultListAwRequest {
 		_client = client;
 	}
 
-	public String getCampaignName() {
-		return _campaignName;
+	public String getCampaignUrn() {
+		return _campaignUrn;
 	}
 
-	public void setCampaignName(String campaignName) {
-		_campaignName = campaignName;
-	}
-
-	public String getCampaignVersion() {
-		return _campaignVersion;
-	}
-
-	public void setCampaignVersion(String campaignVersion) {
-		_campaignVersion = campaignVersion;
+	public void setCampaignUrn(String campaignUrn) {
+		_campaignUrn = campaignUrn;
 	}
 	
 	public String getUserListString() {
@@ -203,9 +194,8 @@ public class NewDataPointQueryAwRequest extends ResultListAwRequest {
 
 	@Override
 	public String toString() {
-		return "NewDataPointQueryAwRequest [_campaignName=" + _campaignName
-				+ ", _campaignVersion=" + _campaignVersion + ", _client="
-				+ _client + ", _columnList=" + _columnList
+		return "NewDataPointQueryAwRequest [_campaignUrn=" + _campaignUrn
+				+ ", _client=" + _client + ", _columnList=" + _columnList
 				+ ", _columnListString=" + _columnListString
 				+ ", _configuration=" + _configuration + ", _currentUser="
 				+ _currentUser + ", _endDate=" + _endDate + ", _outputFormat="

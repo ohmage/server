@@ -28,7 +28,7 @@ public class RetrieveConfigAwRequestCreator implements AwRequestCreator {
 		                          // will be in every log message for the thread
 		
 		AwRequest awRequest = new RetrieveConfigAwRequest();
-		awRequest.setCampaignName(campaignName);
+		awRequest.setCampaignUrn(campaignName);
 		awRequest.setClient(client);
 		awRequest.setUserToken(userToken);
 				

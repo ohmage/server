@@ -114,7 +114,7 @@ public class MediaUploadValidator extends AbstractHttpServletRequestValidator {
 						return false;
 					}
 					
-					awRequest.setCampaignName(tmp);
+					awRequest.setCampaignUrn(tmp);
 				}
 				
 				if("ci".equals(name)) {

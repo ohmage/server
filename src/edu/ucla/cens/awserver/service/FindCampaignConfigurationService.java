@@ -28,24 +28,17 @@ public class FindCampaignConfigurationService extends AbstractDaoService {
 			@SuppressWarnings("unchecked")
 			List<Configuration> configurations = (List<Configuration>) awRequest.getResultList();
 			
-			if(null == configurations) { // logical error!
-				_logger.error("no configuration found for campaign: " + req.getCampaignName());
-				throw new ServiceException("no configuration found for campaign: " + req.getCampaignName());
+			if(null == configurations) { 
+				_logger.error("no configuration found for campaign: " + req.getCampaignUrn());
+				throw new ServiceException("no configuration found for campaign: " + req.getCampaignUrn());
 			} 
 			
-			// Now find the correct campaign for the version in the request
-			
-			for(Configuration c : configurations) {
-				
-				if(c.getCampaignVersion().equals(req.getCampaignVersion())) {
-					
-					req.setConfiguration(c);
-					req.setResultList(null); // clean up in case there are many versions for a campaign. This will go away soon.
-					return;
-				}
+			if(configurations.size() > 1) { // if this occurs, something broke the db constraints on URN uniqueness
+				_logger.error(configurations.size() + " configurations found for campaign: " + req.getCampaignUrn());
+				throw new ServiceException(configurations.size() + " configurations found for campaign: " + req.getCampaignUrn());
 			}
 			
-			_logger.error("no configuration found for campaign " + req.getCampaignName() + " version " + req.getCampaignVersion());
+			req.setConfiguration(configurations.get(0));
 			
 		} catch (DataAccessException dae) {
 			

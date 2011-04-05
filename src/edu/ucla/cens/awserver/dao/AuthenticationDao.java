@@ -53,7 +53,7 @@ public class AuthenticationDao extends AbstractDao {
 	 * query results into LoginResult objects.
 	 */
 	public void execute(AwRequest awRequest) {
-		// _logger.info("attempting login for user " + awRequest.getUser());
+		_logger.info("attempting login for user " + awRequest.getUser());
 		
 		try {
 			awRequest.setResultList(

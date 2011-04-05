@@ -23,11 +23,10 @@ public class MostRecentSurveyActivityDao extends AbstractDao {
 		                 + " FROM survey_response sr"
                          + " WHERE sr.upload_timestamp =" 
 						 + " (SELECT MAX(upload_timestamp)"
-						 +	" FROM survey_response sr, campaign_configuration cc, campaign c, user u"
+						 +	" FROM survey_response sr, campaign c, user u"
 						 +	" WHERE u.id = sr.user_id "
-						 +	 " AND sr.campaign_configuration_id = cc.id "
-						 +	 " AND cc.campaign_id = c.id "
-						 +   " AND c.name = ?"
+						 +	 " AND sr.campaign_id = c.id "
+						 +   " AND c.urn = ?"
 						 +   " AND u.login_id = ?)";
 	
 	public MostRecentSurveyActivityDao(DataSource dataSource) {
@@ -43,7 +42,7 @@ public class MostRecentSurveyActivityDao extends AbstractDao {
 		UserStatsQueryResult userStatsQueryResult = null;
 		
 		final String userId = req.getUserNameRequestParam();
-		final String campaignName = req.getCampaignName();
+		final String campaignUrn = req.getCampaignUrn();
 		
 		if(null == req.getUserStatsQueryResult()) {
 			userStatsQueryResult = new UserStatsQueryResult();
@@ -54,7 +53,7 @@ public class MostRecentSurveyActivityDao extends AbstractDao {
 		
 		try {
 			
-			List<?> results = getJdbcTemplate().query(_sql, new Object[] {campaignName, userId}, new RowMapper() {
+			List<?> results = getJdbcTemplate().query(_sql, new Object[] {campaignUrn, userId}, new RowMapper() {
 				public Object mapRow(ResultSet rs, int rowNum) throws SQLException {
 					return rs.getTimestamp(1).getTime();
 				}
@@ -66,7 +65,7 @@ public class MostRecentSurveyActivityDao extends AbstractDao {
 			
 		} catch (org.springframework.dao.DataAccessException dae) {
 			
-			_logger.error(dae.getMessage() + " SQL: '" + _sql + "' Params: " + campaignName + ", " +userId);
+			_logger.error(dae.getMessage() + " SQL: '" + _sql + "' Params: " + campaignUrn + ", " +userId);
 			throw new DataAccessException(dae.getMessage());
 		}
 	}

@@ -35,22 +35,24 @@ public class UserRoleCheckService extends AbstractAnnotatingService {
 	 */
 	@Override
 	public void execute(AwRequest awRequest) {
-		_logger.info("verifying the logged-in user's role and whether it has access to other user's data");
 		
-		List<Integer> list = awRequest.getUser().getCampaignRoles().get(awRequest.getCampaignName());
+		_logger.info("verifying the logged-in user's role and whether the role specifies access to other user's data");
 		
-		boolean isAdminOrResearcher = false;
+		List<Integer> list = awRequest.getUser().getCampaignRoles().get(awRequest.getCampaignUrn());
+		
+		// TODO for now, only supervisors have access to see other user's data
+		boolean supervisor = false;
 		
 		for(Integer i : list) {
 			String role = (String) _userRoleCacheService.lookup(i);
 			
-			if("researcher".equals(role) || "admin".equals(role)) {
-				isAdminOrResearcher = true;
+			if("supervisor".equals(role)) {
+				supervisor = true;
 				break;
 			}
 		}
 		
-		if(! isAdminOrResearcher) { // participants can only run queries for themselves
+		if(! supervisor) { // participants can only run queries for themselves
 			
 			// hackeroo - this should be a strategy or something like it
 			if(awRequest instanceof NewDataPointQueryAwRequest) {

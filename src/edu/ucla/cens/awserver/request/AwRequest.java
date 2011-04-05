@@ -39,32 +39,14 @@ import edu.ucla.cens.awserver.domain.User;
 	 List<Integer> getDuplicateIndexList();
 	 void setDuplicateIndexList(List<Integer> duplicateIndexList);
 	
-//	 int getCampaignPromptGroupId();
-//	 void setCampaignPromptGroupId(int campaignPromptGroupId);
-	
-//	 List<PromptType> getPromptTypeRestrictions();
-//	 void setPromptTypeRestrictions(List<PromptType> promptTypeRestrictions);
-	
-//	 Map<Integer, List<Integer>> getDuplicatePromptResponseMap();
-//	 void setDuplicatePromptResponseMap(Map<Integer, List<Integer>> duplicatePromptResponseMap);
-	
-//	 int getCampaignPromptVersionId();
-//	 void setCampaignPromptVersionId(int campaignPromptVersionId);
-	
 	 long getStartTime();
 	 void setStartTime(long startTime);
 	
 	 String getSessionId();
 	 void setSessionId(String sessionId);
 	
-//	 String getRequestType();
-//	 void setRequestType(String requestType);
-	
 	 String getClient();
 	 void setClient(String client);
-	
-//	 String getProtocolVersion();
-//	 void setProtocolVersion(String protocolVersion);
 	
 	 String getJsonDataAsString();
 	 void setJsonDataAsString(String jsonDataAsString);
@@ -72,28 +54,13 @@ import edu.ucla.cens.awserver.domain.User;
 	 // A DataPacket is a single mobility record or a single survey response
 	 List<DataPacket> getDataPackets();
 	 void setDataPackets(List<DataPacket> dataPackets);
-	
-//	 List<SurveyDataPacket> getSurveys();
-//	 void setSurveys(List<SurveyDataPacket> surveys);
 	 
 	 int getCurrentMessageIndex();
 	 void setCurrentMessageIndex(int currentMessageIndex);
 	
-//	 int getCurrentPromptId();
-//	 void setCurrentPromptId(int currentPromptId);
-	
 	 JSONArray getJsonDataAsJsonArray();
 	 void setJsonDataAsJsonArray(JSONArray jsonDataAsJsonArray);
-	
-//	 String getGroupId();
-//	 void setGroupId(String groupId);
-//	
-//	 int[] getPromptIdArray();
-//	 void setPromptIdArray(int[] promptIdArray);
-//	
-//	 String getVersionId();
-//	 void setVersionId(String versionId);
-	
+		
 	 User getUser();
 	 void setUser(User user);
 	
@@ -106,12 +73,6 @@ import edu.ucla.cens.awserver.domain.User;
 	 String getUserNameRequestParam();
 	 void setUserNameRequestParam(String requestUrl);
 	 
-	 String getCampaignVersion();
-	 void setCampaignVersion(String campaignVersion);
-	 
-//	 List<DuplicateSurveyUpload> getDuplicateSurveyUploads();
-//	 void setDuplicateSurveyUploads(List<DuplicateSurveyUpload> duplicates);
-	 
 	 String getMediaId();
 	 void setMediaId(String id);
 	 
@@ -121,6 +82,6 @@ import edu.ucla.cens.awserver.domain.User;
 	 String getMediaType();
 	 void setMediaType(String id);
 	 
-	 String getCampaignName();
-	 void setCampaignName(String campaignName);
+	 String getCampaignUrn();
+	 void setCampaignUrn(String campaignUrn);
 }

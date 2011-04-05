@@ -47,7 +47,7 @@ public class CampaignUserCheckService extends AbstractAnnotatingDaoService {
 				
 				List<?> results = awRequest.getResultList();
 				
-				if(! results.contains(awRequest.getCampaignName())) {
+				if(! results.contains(awRequest.getCampaignUrn())) {
 					_logger.warn("invalid campaign name in request: the query user does not belong to the campaign in the query.");
 					getAnnotator().annotate(awRequest, "the query user does not belong to the campaign in the query");
 				}

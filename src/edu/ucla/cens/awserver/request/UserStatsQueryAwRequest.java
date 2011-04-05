@@ -11,7 +11,7 @@ public class UserStatsQueryAwRequest extends ResultListAwRequest {
 	// input
 	private String _userNameRequestParam;
 	private String _client;
-	private String _campaignName;
+	private String _campaignUrn;
 	
 	// output
 	private UserStatsQueryResult _userStatsQueryResult;
@@ -32,12 +32,12 @@ public class UserStatsQueryAwRequest extends ResultListAwRequest {
 		_client = client;
 	}
 
-	public String getCampaignName() {
-		return _campaignName;
+	public String getCampaignUrn() {
+		return _campaignUrn;
 	}
 
-	public void setCampaignName(String campaignName) {
-		_campaignName = campaignName;
+	public void setCampaignUrn(String campaignUrn) {
+		_campaignUrn = campaignUrn;
 	}
 
 	public UserStatsQueryResult getUserStatsQueryResult() {

@@ -41,8 +41,8 @@ ALTER TABLE survey_response ADD INDEX (user_id, campaign_id);
 -- sharing of prompt responses
 ALTER TABLE prompt_response ADD COLUMN privacy_state varchar(50) NOT NULL;
 
-
--- PRIVILEGED users can create campaigns. Does this belong in user_class?
+-- Mobilize participants can create campaigns
+-- AndWellness participants cannot
 ALTER TABLE user ADD COLUMN campaign_creation_privilege bit NOT NULL;
 
 

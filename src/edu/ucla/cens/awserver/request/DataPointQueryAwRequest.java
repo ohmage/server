@@ -13,8 +13,7 @@ public class DataPointQueryAwRequest extends ResultListAwRequest {
 	private String _endDate;
 	private String _userNameRequestParam;
 	private String _client;
-	private String _campaignName;
-	private String _campaignVersion;
+	private String _campaignUrn;
 	
 	private String[] _dataPointIds;
 	// private String _authToken; see userToken in parent class
@@ -52,20 +51,12 @@ public class DataPointQueryAwRequest extends ResultListAwRequest {
 		_client = client;
 	}
 
-	public String getCampaignName() {
-		return _campaignName;
+	public String getCampaignUrn() {
+		return _campaignUrn;
 	}
 
-	public void setCampaignName(String campaignName) {
-		_campaignName = campaignName;
-	}
-
-	public String getCampaignVersion() {
-		return _campaignVersion;
-	}
-
-	public void setCampaignVersion(String campaignVersion) {
-		_campaignVersion = campaignVersion;
+	public void setCampaignUrn(String campaignUrn) {
+		_campaignUrn = campaignUrn;
 	}
 	
 	public String[] getDataPointIds() {

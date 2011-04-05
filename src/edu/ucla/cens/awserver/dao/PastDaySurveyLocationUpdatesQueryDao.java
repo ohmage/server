@@ -23,23 +23,21 @@ public class PastDaySurveyLocationUpdatesQueryDao extends AbstractDao {
 	private static Logger _logger = Logger.getLogger(PastDaySurveyLocationUpdatesQueryDao.class);
 
 	private String _nonNullPointsSql = "SELECT COUNT(*)"
-					                 + " FROM survey_response sr, campaign_configuration cc, campaign c, user u"
+					                 + " FROM survey_response sr, campaign c, user u"
 					                 + " WHERE u.login_id = ?"
 						             + " AND sr.user_id = u.id"
-						             + " AND sr.campaign_configuration_id = cc.id"
-						             + " AND cc.campaign_id = c.id"
-						             + " AND c.name = ?"
+						             + " AND sr.campaign_id = c.id"
+						             + " AND c.urn = ?"
 						             + " AND date(sr.upload_timestamp) BETWEEN date(now() - 1) and date(now())"
 						             + " AND sr.latitude is not NULL"
 						             + " AND sr.longitude is not NULL";      
 	
 	private String _totalPointsSql = "SELECT COUNT(*)"
-                                   + " FROM survey_response sr, campaign_configuration cc, campaign c, user u"
+                                   + " FROM survey_response sr, campaign c, user u"
                                    + " WHERE u.login_id = ?"
                                    + " AND sr.user_id = u.id"
-                                   + " AND sr.campaign_configuration_id = cc.id"
-                                   + " AND cc.campaign_id = c.id"
-                                   + " AND c.name = ?"
+                                   + " AND sr.campaign_id = c.id"
+                                   + " AND c.urn = ?"
                                    + " AND date(sr.upload_timestamp) BETWEEN date(now() - 1) and date(now())";
 	
 	public PastDaySurveyLocationUpdatesQueryDao(DataSource dataSource) {
@@ -53,7 +51,7 @@ public class PastDaySurveyLocationUpdatesQueryDao extends AbstractDao {
 	public void execute(AwRequest awRequest) {
 		UserStatsQueryAwRequest req = (UserStatsQueryAwRequest) awRequest; //TODO should do an instanceof check here
 		
-		Object[] paramArray = {req.getUserNameRequestParam(), req.getCampaignName()};
+		Object[] paramArray = {req.getUserNameRequestParam(), req.getCampaignUrn()};
 		double totalSuccess = 0d;
 		double total = 0d;
 		String currentSql =_totalPointsSql; 

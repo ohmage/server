@@ -8,7 +8,6 @@ import org.json.JSONArray;
 
 import edu.ucla.cens.awserver.cache.ConfigurationCacheService;
 import edu.ucla.cens.awserver.dao.Dao;
-import edu.ucla.cens.awserver.domain.CampaignNameVersion;
 import edu.ucla.cens.awserver.domain.Configuration;
 import edu.ucla.cens.awserver.domain.DataPointQueryResult;
 import edu.ucla.cens.awserver.domain.PromptTypeUtils;
@@ -39,11 +38,10 @@ public class DataPointQueryService extends AbstractDaoService {
 	@Override
 	public void execute(AwRequest awRequest) {
 		DataPointQueryAwRequest req = (DataPointQueryAwRequest) awRequest;
-		CampaignNameVersion cnv = new CampaignNameVersion(req.getCampaignName(), req.getCampaignVersion());
 		
 		// 1. Find the metadata data point ids: these are ids with a display type of metadata from the same survey as the prompt 
 		// ids that are being queried against. The metadata values are added to the results list as distinct query results.
-		Configuration config = (Configuration) _configurationCacheService.lookup(cnv);
+		Configuration config = (Configuration) _configurationCacheService.lookup(req.getCampaignUrn());
 		List<String> metadataPromptIds = new ArrayList<String>();
 		String[] dataPointIds = req.getDataPointIds();
 		

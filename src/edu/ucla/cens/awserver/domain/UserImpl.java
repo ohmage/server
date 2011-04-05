@@ -17,8 +17,6 @@ public class UserImpl implements User {
     private Map<String, List<Integer>> _campaignRoles;
 	private boolean _loggedIn;
 	private String _password;
-//	private String _currentCampaignId;
-//	private String _currentCampaignName;
 	
 	public UserImpl() {
 		_id = -1;
@@ -36,8 +34,6 @@ public class UserImpl implements User {
 		_campaignRoles = new HashMap<String, List<Integer>>();
 		_campaignRoles.putAll(user.getCampaignRoles()); // shallow copy ok because once a user is created it is read-only in practice 
 		_loggedIn = user.isLoggedIn();
-//		_currentCampaignId = user.getCurrentCampaignId();
-//		_currentCampaignName = user.getCurrentCampaignName();
 	}
 	
     public int getId() {
@@ -52,15 +48,15 @@ public class UserImpl implements User {
 		return _campaignRoles;
 	}
 	
-	public void addCampaignRole(String campaignName, Integer roleId) {
+	public void addCampaignRole(String campaignUrn, Integer roleId) {
 		if(null == _campaignRoles) {
 			_campaignRoles = new HashMap<String, List<Integer>>();
 		}
 		
-		List<Integer> roles = _campaignRoles.get(campaignName);
+		List<Integer> roles = _campaignRoles.get(campaignUrn);
 		if(null == roles) {
 			roles = new ArrayList<Integer>();
-			_campaignRoles.put(campaignName, roles);
+			_campaignRoles.put(campaignUrn, roles);
 		}
 		
 		roles.add(roleId);
@@ -89,37 +85,21 @@ public class UserImpl implements User {
 	public String getPassword() {
 		return _password;
 	}
-	
-//	public void setCurrentCampaignId(String id) {
-//		_currentCampaignId = id;
-//	}
-//	
-//	public String getCurrentCampaignId() {
-//		return _currentCampaignId;
-//	}
-//
-//	public void setCurrentCampaignName(String name) {
-//		_currentCampaignName = name;
-//	}
-//	
-//	public String getCurrentCampaignName() {
-//		return _currentCampaignName;
-//	}
-	
-	public boolean isResearcherOrAdmin(String campaignName) {
-		boolean isResearcherOrAdmin = false;
-		List<Integer> list = _campaignRoles.get(campaignName);
 		
-		for(Integer i : list) {
-			// 1 is admin, 3 is researcher (hard coded for now)
-			if(i == 1 || i == 3) {
-				isResearcherOrAdmin = true;
-				break;
-			}
-		}
-		
-		return isResearcherOrAdmin;
-	}
+//	public boolean isResearcherOrAdmin(String campaignName) {
+//		boolean isResearcherOrAdmin = false;
+//		List<Integer> list = _campaignRoles.get(campaignName);
+//		
+//		for(Integer i : list) {
+//			// 1 is admin, 3 is researcher (hard coded for now)
+//			if(i == 1 || i == 3) {
+//				isResearcherOrAdmin = true;
+//				break;
+//			}
+//		}
+//		
+//		return isResearcherOrAdmin;
+//	}
 
 	@Override
 	public int hashCode() {

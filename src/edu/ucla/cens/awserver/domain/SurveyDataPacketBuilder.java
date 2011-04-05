@@ -81,9 +81,7 @@ public class SurveyDataPacketBuilder implements DataPacketBuilder {
 						promptResponseDataPacket.setRepeatableSetId(repeatableSetId);
 						promptResponseDataPacket.setRepeatableSetIteration(j);
 						
-						Configuration configuration = (Configuration) _configurationCacheService.lookup(
-							new CampaignNameVersion(awRequest.getCampaignName(), awRequest.getCampaignVersion())
-						);
+						Configuration configuration = (Configuration) _configurationCacheService.lookup(awRequest.getCampaignUrn());
 						String promptType = configuration.getPromptType(surveyId, repeatableSetId, promptId);
 						promptResponseDataPacket.setType(promptType);
 						
@@ -99,9 +97,7 @@ public class SurveyDataPacketBuilder implements DataPacketBuilder {
 				String promptId = JsonUtils.getStringFromJsonObject(responseObject, "prompt_id");
 				promptResponseDataPacket.setPromptId(promptId);
 				promptResponseDataPacket.setRepeatableSetId(null);
-				Configuration configuration = (Configuration) _configurationCacheService.lookup(
-					new CampaignNameVersion(awRequest.getCampaignName(), awRequest.getCampaignVersion())
-				);
+				Configuration configuration = (Configuration) _configurationCacheService.lookup(awRequest.getCampaignUrn());
 				String promptType = configuration.getPromptType(surveyId, promptId); 
 				promptResponseDataPacket.setType(promptType);
 				handleDataPacketValue(promptResponseDataPacket, responseObject, promptType);

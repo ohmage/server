@@ -27,9 +27,9 @@ public class UserCampaignValidationService extends AbstractAnnotatingService {
 		
 		Set<String> allowedCampaigns = awRequest.getUser().getCampaignRoles().keySet();
 		
-		if(! allowedCampaigns.contains(awRequest.getCampaignName())) {
+		if(! allowedCampaigns.contains(awRequest.getCampaignUrn())) {
 			_logger.warn("user attempting to access a campaign they do not belong to. user: " + 
-				awRequest.getUser().getUserName() + " campaign: " + awRequest.getCampaignName());
+				awRequest.getUser().getUserName() + " campaign: " + awRequest.getCampaignUrn());
 			getAnnotator().annotate(awRequest, "user attempt to access a campaign they do not belong to");
 		}
 	}

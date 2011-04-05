@@ -35,14 +35,10 @@ import edu.ucla.cens.awserver.request.AwRequest;
 public class SurveyUploadDao extends AbstractUploadDao {
 	private static Logger _logger = Logger.getLogger(SurveyUploadDao.class);
 	
-	private final String _selectCampaignConfigId = "SELECT cc.id" +
-												   " FROM campaign_configuration cc, campaign c" +
-			                                       " WHERE cc.campaign_id = c.id" +
-			                                       " AND cc.version = ?" +
-			                                       " AND c.name = ?";
+	private final String _selectCampaignId = "SELECT id FROM campaign WHERE urn = ?";
 	
 	private final String _insertSurveyResponse = "INSERT into survey_response" +
-								           		 " (user_id, campaign_configuration_id, msg_timestamp, epoch_millis," +
+								           		 " (user_id, campaign_id, msg_timestamp, epoch_millis," +
 								           		 " phone_timezone, location_status, location, survey_id, survey," +
 								           		 " client, upload_timestamp, launch_context) " +
 										         " VALUES (?,?,?,?,?,?,?,?,?,?,?,?)";
@@ -67,24 +63,22 @@ public class SurveyUploadDao extends AbstractUploadDao {
 	 */
 	@Override
 	public void execute(AwRequest awRequest) {
-		final int campaignConfigurationId;
+		final int campaignId;
 		
-		// Get the campaign_configuration.id for linking a survey_response to the correct configuration
+		// Get the campaign.id for linking a survey_response to the correct configuration
+		// TODO this step could be omitted if the primary key was stored in the Configuration object
 		try {
-			campaignConfigurationId = getJdbcTemplate().queryForInt(
-				_selectCampaignConfigId, 
-				new Object[] {awRequest.getCampaignVersion(), awRequest.getCampaignName()}
-			);
+			campaignId = getJdbcTemplate().queryForInt(_selectCampaignId, new Object[] {awRequest.getCampaignUrn()});
 		}
 		catch (IncorrectResultSizeDataAccessException irsdae) { // this means that no rows were returned on the SQL returned more 
 			                                                    // than one column -- either way, there is a logical error
-			_logger.error("cannot retrieve campaign_configuration.id -- SQL [" + _selectCampaignConfigId 
+			_logger.error("cannot retrieve campaign.id -- SQL [" + _selectCampaignId 
 				+ "] returned no rows or multiple columns", irsdae);
 			throw new DataAccessException(irsdae);
 		}
 		catch(org.springframework.dao.DataAccessException dae) {
 		
-			_logger.error("error running SQL: " + _selectCampaignConfigId, dae);
+			_logger.error("error running SQL: " + _selectCampaignId, dae);
 			throw new DataAccessException(dae); 
 		}
 		
@@ -135,22 +129,10 @@ public class SurveyUploadDao extends AbstractUploadDao {
 								PreparedStatement ps 
 									= connection.prepareStatement(_insertSurveyResponse, Statement.RETURN_GENERATED_KEYS);
 								ps.setInt(1, userId);
-								ps.setInt(2, campaignConfigurationId);
+								ps.setInt(2, campaignId);
 								ps.setTimestamp(3, Timestamp.valueOf(surveyDataPacket.getDate()));
 								ps.setLong(4, surveyDataPacket.getEpochTime());
 								ps.setString(5, surveyDataPacket.getTimezone());
-//								if(surveyDataPacket.getLatitude().isNaN()) {
-//									ps.setNull(6, Types.DOUBLE);
-//								} else {
-//									ps.setDouble(6, surveyDataPacket.getLatitude());
-//								}
-//								if(surveyDataPacket.getLongitude().isNaN()) { 
-//									ps.setNull(7, Types.DOUBLE);
-//								} else {
-//									ps.setDouble(7, surveyDataPacket.getLongitude());
-//								}
-//								ps.setDouble(8, surveyDataPacket.getAccuracy());
-//								ps.setString(9, surveyDataPacket.getProvider());
 								ps.setString(6, surveyDataPacket.getLocationStatus());
 								ps.setString(7, surveyDataPacket.getLocation());
 								ps.setString(8, surveyDataPacket.getSurveyId());
@@ -216,8 +198,8 @@ public class SurveyUploadDao extends AbstractUploadDao {
 						// has been duplicated
 						
 						_logger.error("caught DataAccessException", dive);
-						logErrorDetails(currentSurveyDataPacket, userId, campaignConfigurationId, currentSurveyResponseId, client);
-						rollback(transactionManager, status, currentSurveyDataPacket, userId, campaignConfigurationId, currentSurveyResponseId, client);
+						logErrorDetails(currentSurveyDataPacket, userId, campaignId, currentSurveyResponseId, client);
+						rollback(transactionManager, status, currentSurveyDataPacket, userId, campaignId, currentSurveyResponseId, client);
 						throw new DataAccessException(dive);
 					}
 						
@@ -225,8 +207,8 @@ public class SurveyUploadDao extends AbstractUploadDao {
 					                                                        // the SQL from completing normally
 					
 					_logger.error("caught DataAccessException", dae);
-					logErrorDetails(currentPromptResponseDataPacket, userId, campaignConfigurationId, currentSurveyResponseId, client);
-					rollback(transactionManager, status, currentSurveyDataPacket, userId, campaignConfigurationId, currentSurveyResponseId, client);
+					logErrorDetails(currentPromptResponseDataPacket, userId, campaignId, currentSurveyResponseId, client);
+					rollback(transactionManager, status, currentSurveyDataPacket, userId, campaignId, currentSurveyResponseId, client);
 					throw new DataAccessException(dae);
 				}
 				
@@ -240,8 +222,8 @@ public class SurveyUploadDao extends AbstractUploadDao {
 		catch (TransactionException te) { 
 			
 			_logger.error("failed to commit survey upload transaction, attempting to rollback", te);
-			rollback(transactionManager, status, currentSurveyDataPacket, userId, campaignConfigurationId, currentSurveyResponseId, client);
-			logErrorDetails(currentSurveyDataPacket, userId, campaignConfigurationId, currentSurveyResponseId, client);
+			rollback(transactionManager, status, currentSurveyDataPacket, userId, campaignId, currentSurveyResponseId, client);
+			logErrorDetails(currentSurveyDataPacket, userId, campaignId, currentSurveyResponseId, client);
 			throw new DataAccessException(te);
 		}
 	}

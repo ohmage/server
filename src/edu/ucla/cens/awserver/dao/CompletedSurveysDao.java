@@ -20,13 +20,11 @@ public class CompletedSurveysDao extends AbstractDao {
 	private static Logger _logger = Logger.getLogger(CompletedSurveysDao.class);
 	
 	private String _sql = "SELECT sr.msg_timestamp, sr.phone_timezone, sr.location_status, sr.location, sr.survey_id "
-			              + "FROM survey_response sr, user u, campaign_configuration cc, campaign c "
+			              + "FROM survey_response sr, user u, campaign c "
                           + "WHERE sr.user_id = u.id "
                           + "AND u.login_id = ? "
-                          + "AND c.name = ? "
-                          + "AND c.id = cc.campaign_id "
-                          + "AND cc.version = ? "
-                          + "AND cc.id = sr.campaign_configuration_id "
+                          + "AND c.urn = ? "
+                          + "AND c.id = sr.campaign_id "
                           + "AND date(msg_timestamp) BETWEEN ? and ?";
 	 
 	public CompletedSurveysDao(DataSource dataSource) {
@@ -37,8 +35,7 @@ public class CompletedSurveysDao extends AbstractDao {
 	public void execute(AwRequest awRequest) {
 		List<Object> params = new ArrayList<Object>();
 		params.add(awRequest.getUserNameRequestParam());
-		params.add(awRequest.getCampaignName());
-		params.add(awRequest.getCampaignVersion());
+		params.add(awRequest.getCampaignUrn());
 		params.add(awRequest.getStartDate());
 		params.add(awRequest.getEndDate());
 		

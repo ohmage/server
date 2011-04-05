@@ -40,7 +40,7 @@ public class DataPointFunctionQueryAwRequestCreator implements AwRequestCreator 
 		awRequest.setUserNameRequestParam(userNameRequestParam);
 		awRequest.setUserToken(authToken);
 		awRequest.setClient(client);
-		awRequest.setCampaignName(campaignName);
+		awRequest.setCampaignUrn(campaignName);
 		awRequest.setFunctionName(functionName);
 		awRequest.setCampaignVersion(campaignVersion);
 		awRequest.setMetadata(_metadata);

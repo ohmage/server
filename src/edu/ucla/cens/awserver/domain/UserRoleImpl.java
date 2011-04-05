@@ -7,7 +7,7 @@ package edu.ucla.cens.awserver.domain;
  */
 public class UserRoleImpl implements UserRole {
 	private int _id;
-	private String _name;
+	private String _role;
 	
 	@Override
 	public int getId() {
@@ -15,8 +15,8 @@ public class UserRoleImpl implements UserRole {
 	}
 
 	@Override
-	public String getName() {
-		return _name;
+	public String getRole() {
+		return _role;
 	}
 
 	@Override
@@ -25,11 +25,11 @@ public class UserRoleImpl implements UserRole {
 	}
 
 	@Override
-	public void setName(String name) {
-		if(null == name) {
-			throw new IllegalArgumentException("a name is required");
+	public void setRole(String role) {
+		if(null == role) {
+			throw new IllegalArgumentException("a role is required");
 		}
 		
-		_name = name;
+		_role = role;
 	}
 }

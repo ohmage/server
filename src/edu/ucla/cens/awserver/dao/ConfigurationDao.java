@@ -13,16 +13,14 @@ import edu.ucla.cens.awserver.domain.Configuration;
 import edu.ucla.cens.awserver.domain.SurveyMapBuilder;
 
 /**
- * Configuration data access object: retrieves all configurations from the db.
+ * Configuration data access object: retrieves all configurations from the db for cacheing.
  * 
  * @author selsky
  */
 public class ConfigurationDao extends AbstractParameterLessDao {
 	private static Logger _logger = Logger.getLogger(ConfigurationDao.class);
 	private SurveyMapBuilder _surveyBuilder;
-	private String _sql = "select c.name, cc.version, cc.xml" +
-		                  " from campaign c, campaign_configuration cc" +
-		                  " where c.id = cc.campaign_id";
+	private String _sql = "SELECT urn, name, description, xml, running_state, privacy_state, creation_timestamp FROM campaign";
 	
 	public ConfigurationDao(DataSource dataSource, SurveyMapBuilder builder) {
 		super(dataSource);
@@ -40,10 +38,15 @@ public class ConfigurationDao extends AbstractParameterLessDao {
 		try {
 			return _jdbcTemplate.query(_sql, new RowMapper() {
 				public Object mapRow(ResultSet rs, int rowNum) throws SQLException {
-					String campaignName = rs.getString(1);
-					String campaignVersion = rs.getString(2);
-					String xml = rs.getString(3);
-					return new Configuration(campaignName, campaignVersion, _surveyBuilder.buildFrom(xml), xml);
+					String urn = rs.getString(1);
+					String name = rs.getString(2);
+					String description = rs.getString(3);
+					String xml = rs.getString(4);
+					String runningState = rs.getString(5);
+					String privacyState = rs.getString(6);
+					String timestamp = rs.getTimestamp(7).toString();
+					return new Configuration(urn, name, description, 
+							runningState, privacyState, timestamp, _surveyBuilder.buildFrom(xml), xml);
 				}
 		    });
 			

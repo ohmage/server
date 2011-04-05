@@ -14,12 +14,12 @@ public class FindAllAdminCampaignsForUserDao extends AbstractDao {
 	private static Logger _logger = Logger.getLogger(FindAllCampaignsForUserDao.class);
 	private boolean _useLoggedInUser;
 	
-	private String _sql = "SELECT DISTINCT c.name " +
+	private String _sql = "SELECT c.urn " +
 			              "FROM campaign c, user_role_campaign urc, user u, user_role ur " +
 			              "WHERE urc.campaign_id = c.id " +
 			              "AND urc.user_id = u.id AND u.login_id = ? " +
 			              "AND urc.user_role_id =  ur.id " +
-			              "AND ur.label in ('admin', 'researcher')";
+			              "AND ur.label in ('supervisor')"; // for now, assume supervisor.
 	
 	/**
 	 * @param useLoggedInUser if true, the logged in user's user name will be used in the query. if false, the user name request

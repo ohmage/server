@@ -10,10 +10,8 @@ import edu.ucla.cens.awserver.dao.ParameterLessDao;
 import edu.ucla.cens.awserver.domain.UserRole;
 
 /**
- * Simple cache for user roles. This class does not use synchronization as it is assumed that once the user roles are loaded, they
+ * Dumb cache for user roles. This class does not use synchronization as it is assumed that once the user roles are loaded, they
  * will not change.
- * 
- * TODO: add reload functionality (and synchronization) (new interface: ReloadableCacheService)
  * 
  * @author selsky
  */
@@ -58,6 +56,6 @@ public class UserRoleCacheService extends AbstractCacheService {
 	@Override
 	public Object lookup(Object key) {
 		
-		return _cache.get(key).getName(); // no copy because Strings are immutable
+		return _cache.get(key).getRole(); // no copy because Strings are immutable
 	}
 }

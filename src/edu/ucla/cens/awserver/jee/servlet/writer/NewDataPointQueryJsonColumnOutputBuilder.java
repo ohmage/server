@@ -28,8 +28,7 @@ public class NewDataPointQueryJsonColumnOutputBuilder implements NewDataPointQue
 		JSONObject main = new JSONObject();
 		main.put("result", "success");
 		JSONObject metadata = new JSONObject();
-		metadata.put("campaign_name", req.getCampaignName());
-		metadata.put("campaign_version", req.getCampaignVersion());
+		metadata.put("campaign_urn", req.getCampaignUrn());
 		metadata.put("number_of_prompts", totalNumberOfResults);
 		// hacky way to do this, but any list will do because they are all the same size
 		metadata.put("number_of_surveys", columnMap.get(columnMapKeySet.toArray()[0]).size());
@@ -87,8 +86,7 @@ public class NewDataPointQueryJsonColumnOutputBuilder implements NewDataPointQue
 		JSONObject metadata = new JSONObject();
 		metadata.put("number_of_prompts", 0);
 		metadata.put("number_of_surveys", 0);
-		metadata.put("campaign_name", req.getCampaignName());
-		metadata.put("campaign_version", req.getCampaignVersion());
+		metadata.put("campaign_urn", req.getCampaignUrn());
 		JSONArray items = new JSONArray();
 		for(String key : columnMap.keySet()) {
 			items.put(key);

@@ -16,8 +16,7 @@ CREATE TABLE class (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- --------------------------------------------------------------------
--- Campaign id and name. Allows users to be bound to a campaign without  
--- having a campaign configuration in the system. 
+-- A campaign and its associated XML configuration.
 -- --------------------------------------------------------------------
 CREATE TABLE campaign (
   id int unsigned NOT NULL auto_increment,

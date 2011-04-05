@@ -10,7 +10,6 @@ import java.util.TreeMap;
 import org.apache.log4j.Logger;
 
 import edu.ucla.cens.awserver.dao.ParameterLessDao;
-import edu.ucla.cens.awserver.domain.CampaignNameVersion;
 import edu.ucla.cens.awserver.domain.Configuration;
 
 /**
@@ -23,7 +22,7 @@ import edu.ucla.cens.awserver.domain.Configuration;
  */
 public class ConfigurationCacheService extends AbstractCacheService {
 	private static Logger _logger = Logger.getLogger(ConfigurationCacheService.class);
-	private Map<CampaignNameVersion, Configuration> _configurationMap;
+	private Map<String, Configuration> _configurationMap;
 	
 	/**
 	 * The provided DAO will be used to load the cache.
@@ -52,11 +51,10 @@ public class ConfigurationCacheService extends AbstractCacheService {
 //			}
 //		}
 		
-		_configurationMap = new HashMap<CampaignNameVersion, Configuration>();
+		_configurationMap = new HashMap<String, Configuration>();
 		
 		for(Configuration c : configurations) {
-			CampaignNameVersion cnv = new CampaignNameVersion(c.getCampaignName(), c.getCampaignVersion());
-			_configurationMap.put(cnv, c);
+			_configurationMap.put(c.getUrn(), c);
 		}
 	}
 
@@ -84,12 +82,12 @@ public class ConfigurationCacheService extends AbstractCacheService {
 	 * TODO the output list needs to be made Immutable as do the Configurations inside of the list
 	 * TODO this should be named something like findAllForList for a more generic API to push up to the Cache interface
 	 */
-	public SortedMap<CampaignNameVersion, Configuration> lookupByCampaigns(List<?> campaignNames) {
-		Set<CampaignNameVersion> keys = _configurationMap.keySet();
-		SortedMap<CampaignNameVersion, Configuration> configurations = new TreeMap<CampaignNameVersion, Configuration>();
+	public SortedMap<String, Configuration> lookupByCampaigns(List<?> campaignUrns) {
+		Set<String> keys = _configurationMap.keySet();
+		SortedMap<String, Configuration> configurations = new TreeMap<String, Configuration>();
 		
-		for(CampaignNameVersion key : keys) {
-			if(campaignNames.contains(key.getCampaignName())) {
+		for(String key : keys) {
+			if(campaignUrns.contains(key)) {
 				configurations.put(key, _configurationMap.get(key)); 
 			}
 		}

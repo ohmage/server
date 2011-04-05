@@ -91,7 +91,7 @@
     <constructor-arg index="2"><ref bean="jsonMsgIncorrectArrayAnnotator" /></constructor-arg>
   </bean>
   
-  <bean id="campaignNameVersionValidator" class="edu.ucla.cens.awserver.validator.survey.CampaignNameVersionValidator">
+  <bean id="campaignNameVersionValidator" class="edu.ucla.cens.awserver.validator.survey.CampaignUrnValidator">
      <constructor-arg index="0">
       <bean class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
         <constructor-arg index="0">

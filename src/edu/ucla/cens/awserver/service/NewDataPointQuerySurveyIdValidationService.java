@@ -5,7 +5,6 @@ import java.util.List;
 import org.apache.log4j.Logger;
 
 import edu.ucla.cens.awserver.cache.ConfigurationCacheService;
-import edu.ucla.cens.awserver.domain.CampaignNameVersion;
 import edu.ucla.cens.awserver.domain.Configuration;
 import edu.ucla.cens.awserver.request.AwRequest;
 import edu.ucla.cens.awserver.request.NewDataPointQueryAwRequest;
@@ -41,11 +40,8 @@ public class NewDataPointQuerySurveyIdValidationService extends AbstractAnnotati
 			if(! "urn:awm:special:all".equals(req.getSurveyIdListString())) {
 				
 				List<String> surveyIds = req.getSurveyIdList(); 
-				String campaignName = req.getCampaignName();
-				String campaignVersion = req.getCampaignVersion();
 				
-				Configuration config = 
-					(Configuration) _configurationCacheService.lookup(new CampaignNameVersion(campaignName, campaignVersion));
+				Configuration config = (Configuration) _configurationCacheService.lookup(req.getCampaignUrn());
 				
 				for(String surveyId : surveyIds) {
 					

@@ -68,23 +68,11 @@ public abstract class AbstractAwRequest implements AwRequest {
 	will throw an UnsupportedOperationException, which indicates a logical error in the calling code.
 	
 	****/
-	
-//	public int getCampaignPromptGroupId() {
-//		throw new UnsupportedOperationException("it is illegal to invoke getCampaignPromptGroupId() on this instance");
-//	}
-//
-//	public int getCampaignPromptVersionId() {
-//		 throw new UnsupportedOperationException("it is illegal to invoke getCampaignPromptVersionId() on this instance");	
-//	}
 
-	public String getCampaignName() {
+	public String getCampaignUrn() {
 		throw new UnsupportedOperationException("it is illegal to invoke getCampaignName() on this instance");	
 	}
 	
-	public String getCampaignVersion() {
-		throw new UnsupportedOperationException("it is illegal to invoke getCampaignVersion() on this instance");
-	}
-
 	public int getCurrentMessageIndex() {
 		throw new UnsupportedOperationException("it is illegal to invoke getCurrentMessageIndex() on this instance");
 	}
@@ -97,30 +85,13 @@ public abstract class AbstractAwRequest implements AwRequest {
 		throw new UnsupportedOperationException("it is illegal to invoke getDataPackets() on this instance");
 	}
 	
-//	public List<SurveyDataPacket> getSurveys() {
-//		throw new UnsupportedOperationException("it is illegal to invoke getSurveys() on this instance");
-//	}
-
 	public List<Integer> getDuplicateIndexList() {
 		throw new UnsupportedOperationException("it is illegal to invoke getDuplicateIndexList() on this instance");
 	}
 	
-//	public List<DuplicateSurveyUpload> getDuplicateSurveyUploads() {
-//		throw new UnsupportedOperationException("it is illegal to invoke getDuplicateSurveyUploads() on this instance");
-//	}
-	
-
-//	public Map<Integer, List<Integer>> getDuplicatePromptResponseMap() {
-//		throw new UnsupportedOperationException("it is illegal to invoke getDuplicatePromptResponseMap() on this instance");
-//	}
-
 	public String getEndDate() {
 		throw new UnsupportedOperationException("it is illegal to invoke getEndDate() on this instance");
 	}
-
-//	public String getGroupId() {
-//		throw new UnsupportedOperationException("it is illegal to invoke getGroupId() on this instance");
-//	}
 
 	public JSONArray getJsonDataAsJsonArray() {
 		throw new UnsupportedOperationException("it is illegal to invoke getJsonDataAsJsonArray() on this instance");
@@ -150,18 +121,6 @@ public abstract class AbstractAwRequest implements AwRequest {
 		throw new UnsupportedOperationException("it is illegal to invoke getPromptIdArray() on this instance");
 	}
 
-//	public List<PromptType> getPromptTypeRestrictions() {
-//		throw new UnsupportedOperationException("it is illegal to invoke getPromptTypeRestrictions() on this instance");
-//	}
-
-//	public String getProtocolVersion() {
-//		throw new UnsupportedOperationException("it is illegal to invoke getProtocolVersion() on this instance");
-//	}
-
-//	public String getRequestType() {
-//		throw new UnsupportedOperationException("it is illegal to invoke getRequestType() on this instance");
-//	}
-
 	public List<?> getResultList() {
 		throw new UnsupportedOperationException("it is illegal to invoke getResultList() on this instance");
 	}
@@ -186,11 +145,7 @@ public abstract class AbstractAwRequest implements AwRequest {
 		throw new UnsupportedOperationException("it is illegal to invoke getUserToken() on this instance");
 	}
 
-//	public String getVersionId() {
-//		throw new UnsupportedOperationException("it is illegal to invoke getVersionId() on this instance");
-//	}
-
-	public void setCampaignName(String campaignName) {
+	public void setCampaignUrn(String campaignName) {
 		throw new UnsupportedOperationException("it is illegal to invoke setCampaignName() on this instance");
 	}
 	
@@ -269,46 +224,4 @@ public abstract class AbstractAwRequest implements AwRequest {
 	public void setUserToken(String userToken) {
 		throw new UnsupportedOperationException("it is illegal to invoke setUserToken() on this instance");
 	}
-	
-//	public void setCampaignPromptGroupId(int campaignPromptGroupId) {
-//		throw new UnsupportedOperationException("it is illegal to invoke setCampaignPromptGroupId() on this instance");		
-//	}
-//
-//	public void setCampaignPromptVersionId(int campaignPromptVersionId) {
-//		throw new UnsupportedOperationException("it is illegal to invoke setCampaignPromptVersionId() on this instance");
-//	}
-
-//	public void setDuplicatePromptResponseMap(Map<Integer, List<Integer>> duplicatePromptResponseMap) {
-//		throw new UnsupportedOperationException("it is illegal to invoke setDuplicatePromptResponseMap() on this instance");		
-//	}
-	
-//	public void setDuplicateSurveyUploads(List<DuplicateSurveyUpload> duplicateSurveyUploads) {
-//		throw new UnsupportedOperationException("is is illegal to invoke setDuplicateSurveyUploads() on this instance");
-//	}
-
-
-//	public void setGroupId(String groupId) {
-//		throw new UnsupportedOperationException("it is illegal to invoke setGroupId() on this instance");	
-//	}
-
-//	public void setPromptIdArray(int[] promptIdArray) {
-//		throw new UnsupportedOperationException("it is illegal to invoke setPromptIdArray() on this instance");
-//	}
-
-//	public void setPromptTypeRestrictions(List<PromptType> promptTypeRestrictions) {
-//		throw new UnsupportedOperationException("it is illegal to invoke setPromptTypeRestrictions() on this instance");
-//	}
-
-//	public void setProtocolVersion(String protocolVersion) {
-//		throw new UnsupportedOperationException("it is illegal to invoke setProtocolVersion() on this instance");
-//	}
-
-//	public void setRequestType(String requestType) {
-//		throw new UnsupportedOperationException("it is illegal to invoke setRequestType() on this instance");
-//	}
-
-//	public void setVersionId(String versionId) {
-//		throw new UnsupportedOperationException("it is illegal to invoke setVersionId() on this instance");
-//	}
-
 }

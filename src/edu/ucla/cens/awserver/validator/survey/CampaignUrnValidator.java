@@ -1,7 +1,6 @@
 package edu.ucla.cens.awserver.validator.survey;
 
 import edu.ucla.cens.awserver.cache.CacheService;
-import edu.ucla.cens.awserver.domain.CampaignNameVersion;
 import edu.ucla.cens.awserver.request.AwRequest;
 import edu.ucla.cens.awserver.validator.AbstractAnnotatingValidator;
 import edu.ucla.cens.awserver.validator.AwRequestAnnotator;
@@ -12,10 +11,10 @@ import edu.ucla.cens.awserver.validator.AwRequestAnnotator;
  *
  * @author selsky
  */
-public class CampaignNameVersionValidator extends AbstractAnnotatingValidator {
+public class CampaignUrnValidator extends AbstractAnnotatingValidator {
 	private CacheService _cacheService;
 	
-	public CampaignNameVersionValidator(AwRequestAnnotator annotator, CacheService cacheService) {
+	public CampaignUrnValidator(AwRequestAnnotator annotator, CacheService cacheService) {
 		super(annotator);
 		if(null == cacheService) {
 			throw new IllegalArgumentException("a CacheService is required");
@@ -25,15 +24,10 @@ public class CampaignNameVersionValidator extends AbstractAnnotatingValidator {
 		
 	@Override
 	public boolean validate(AwRequest awRequest) {
-		String campaignName = awRequest.getCampaignName();
-		String campaignVersion = awRequest.getCampaignVersion();
-		
-		CampaignNameVersion campaignNameVersion = new CampaignNameVersion(campaignName, campaignVersion);
-		if(! _cacheService.containsKey(campaignNameVersion)) {
-			getAnnotator().annotate(awRequest, "campaign name-version is invalid. name=" + campaignName + " version=" + campaignVersion); 
+		if(! _cacheService.containsKey(awRequest.getCampaignUrn())) {
+			getAnnotator().annotate(awRequest, "campaign URN does not exist: " + awRequest.getCampaignUrn()); 
 			return false;
-		}
-				
+		}		
 		return true;
 	}
 }

@@ -20,9 +20,9 @@ import edu.ucla.cens.awserver.request.AwRequest;
 public class FindCampaignConfigurationDao extends AbstractDao {
 	private static Logger _logger = Logger.getLogger(FindCampaignConfigurationDao.class);
 	private SurveyMapBuilder _surveyBuilder;
-	private String _sql = "SELECT c.name, cc.version, cc.xml" +
-		                  " FROM campaign c, campaign_configuration cc" +
-		                  " WHERE c.name = ?";
+	private String _sql = "SELECT name, description, xml, running_state, privacy_state, creation_timestamp" +
+		                  " FROM campaign" +
+		                  " WHERE urn = ?";
 	
 	public FindCampaignConfigurationDao(DataSource dataSource, SurveyMapBuilder builder) {
 		super(dataSource);
@@ -33,17 +33,23 @@ public class FindCampaignConfigurationDao extends AbstractDao {
 	}
 	
 	/**
-	 * Returns a list of campaign configurations.
+	 * For the campaign URN found in the awRequest, performs a lookup of the associated campaign configuration from the campaign
+	 * table. If a configuration is found, a new Configuration object is set in the awRequest's result list.
 	 */
 	@Override
 	public void execute(AwRequest awRequest) {
+		final String urn = awRequest.getCampaignUrn();
 		try {
-			awRequest.setResultList(getJdbcTemplate().query(_sql, new Object[] {awRequest.getCampaignName()}, new RowMapper() {
+			awRequest.setResultList(getJdbcTemplate().query(_sql, new Object[] {awRequest.getCampaignUrn()}, new RowMapper() {
 				public Object mapRow(ResultSet rs, int rowNum) throws SQLException {
-					String campaignName = rs.getString(1);
-					String campaignVersion = rs.getString(2);
+					String name = rs.getString(1);
+					String description = rs.getString(2);
 					String xml = rs.getString(3);
-					return new Configuration(campaignName, campaignVersion, _surveyBuilder.buildFrom(xml), xml);
+					String runningState = rs.getString(4);
+					String privacyState = rs.getString(5);
+					String timestamp = rs.getTimestamp(6).toString();
+					return new Configuration(urn, name, description, 
+							runningState, privacyState, timestamp, _surveyBuilder.buildFrom(xml), xml);
 				}
 		    }));
 			

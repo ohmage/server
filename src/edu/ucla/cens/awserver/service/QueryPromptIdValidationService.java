@@ -3,7 +3,6 @@ package edu.ucla.cens.awserver.service;
 import java.util.List;
 
 import edu.ucla.cens.awserver.cache.ConfigurationCacheService;
-import edu.ucla.cens.awserver.domain.CampaignNameVersion;
 import edu.ucla.cens.awserver.domain.Configuration;
 import edu.ucla.cens.awserver.request.AwRequest;
 import edu.ucla.cens.awserver.request.DataPointQueryAwRequest;
@@ -38,10 +37,7 @@ public class QueryPromptIdValidationService extends AbstractAnnotatingService {
 		DataPointQueryAwRequest req = (DataPointQueryAwRequest) awRequest;
 		
 		String[] promptIds = req.getDataPointIds(); 
-		String campaignName = req.getCampaignName();
-		String campaignVersion = req.getCampaignVersion();
-		
-		Configuration config = (Configuration) _configurationCacheService.lookup(new CampaignNameVersion(campaignName, campaignVersion));
+		Configuration config = (Configuration) _configurationCacheService.lookup(req.getCampaignUrn());
 		
 		for(String promptId : promptIds) {
 			List<String> configMetadataPromptIds = config.getMetadataPromptIds(promptId);

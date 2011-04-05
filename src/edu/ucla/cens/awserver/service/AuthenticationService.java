@@ -89,10 +89,6 @@ public class AuthenticationService extends AbstractDaoService {
 						return;
 					}
 					
-					// -------
-					// TODO -- need to make sure that the user logging in has access to the campaign that was specified in the 
-					// HTTP parameters (c and cv, if survey upload) -- separate AuthenticationService ??
-					
 					if(0 == i) { // first time thru: grab the properties that are common across all LoginResults (i.e., data from
 						         // the user table)
 						

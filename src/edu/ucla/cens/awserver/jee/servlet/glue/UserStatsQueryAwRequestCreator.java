@@ -29,7 +29,7 @@ public class UserStatsQueryAwRequestCreator implements AwRequestCreator {
 		awRequest.setUserNameRequestParam(userNameRequestParam);
 		awRequest.setUserToken(authToken);
 		awRequest.setClient(client);
-		awRequest.setCampaignName(campaignName);
+		awRequest.setCampaignUrn(campaignName);
 		
 		return awRequest;
 	}

@@ -1,7 +1,6 @@
 package edu.ucla.cens.awserver.domain;
 
 import java.util.List;
-import java.util.Map;
 
 /**
  * Wrapper for the various items that form a result to the config query.
@@ -9,40 +8,31 @@ import java.util.Map;
  * @author selsky
  */
 public class ConfigQueryResult {
-	private String _campaignName;
+	private String _urn;
 	private String _userRole;
 	private List<String> _userList;
-	private Map<String, String> _versionXmlMap;
+	private String _xml;
 	
-	public String getCampaignName() {
-		return _campaignName;
+	public ConfigQueryResult(String urn, String userRole, List<String> userList, String xml) {
+		_urn = urn;
+		_userRole = userRole;
+		_userList = userList;
+		_xml = xml;
 	}
 	
-	public void setCampaignName(String campaignName) {
-		_campaignName = campaignName;
+	public String getCampaignUrn() {
+		return _urn;
 	}
 	
 	public String getUserRole() {
 		return _userRole;
 	}
 	
-	public void setUserRole(String userRole) {
-		_userRole = userRole;
-	}
-	
 	public List<String> getUserList() {
 		return _userList;
 	}
 	
-	public void setUserList(List<String> userList) {
-		_userList = userList;
-	}
-	
-	public Map<String, String> getVersionXmlMap() {
-		return _versionXmlMap;
-	}
-	
-	public void setVersionXmlMap(Map<String, String> versionXmlMap) {
-		_versionXmlMap = versionXmlMap;
+	public String getXml() {
+		return _xml;
 	}	
 }

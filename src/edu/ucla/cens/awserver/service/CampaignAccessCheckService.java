@@ -21,9 +21,9 @@ public class CampaignAccessCheckService extends AbstractAnnotatingService {
 	public void execute(AwRequest awRequest) {
 		_logger.info("verifying that the logged-in user has access to the campaign specified in the query");
 		
-		if(! awRequest.getUser().getCampaignRoles().keySet().contains(awRequest.getCampaignName())) {
+		if(! awRequest.getUser().getCampaignRoles().keySet().contains(awRequest.getCampaignUrn())) {
 			_logger.warn("user attempting to query against a campaign they do not belong to. user: " + 
-				awRequest.getUser().getUserName() + " campaign: " + awRequest.getCampaignName());
+				awRequest.getUser().getUserName() + " campaign: " + awRequest.getCampaignUrn());
 			getAnnotator().annotate(awRequest, "user attempt to query a campaign they do not belong to");
 		}
 	}

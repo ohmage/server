@@ -32,7 +32,7 @@ public class ImageQueryAwRequestCreator implements AwRequestCreator {
 		awRequest.setUserNameRequestParam(userNameRequestParam);
 		awRequest.setUserToken(authToken);
 		awRequest.setClient(client);
-		awRequest.setCampaignName(campaignName);
+		awRequest.setCampaignUrn(campaignName);
 		awRequest.setMediaId(imageId);
 		awRequest.setCampaignVersion(campaignVersion);
 		

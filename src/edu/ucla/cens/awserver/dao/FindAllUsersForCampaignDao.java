@@ -22,7 +22,7 @@ public class FindAllUsersForCampaignDao extends AbstractDao {
 												" FROM user_role_campaign urc, user u, campaign c" +  // avoid multiple rows returned for  
  												" WHERE urc.campaign_id = c.id " +                    // users with multiple roles
 												" AND urc.user_id = u.id" +
-												" AND c.name = ?";
+												" AND c.urn = ?";
 	
 	public FindAllUsersForCampaignDao(DataSource dataSource) {
 		super(dataSource);
@@ -38,23 +38,15 @@ public class FindAllUsersForCampaignDao extends AbstractDao {
 			awRequest.setResultList(
 				getJdbcTemplate().query(
 					findAllUsersForCampaignSql,
-					new Object[] {awRequest.getCampaignName()},
+					new Object[] {awRequest.getCampaignUrn()},
 					new SingleColumnRowMapper()
-//					new RowMapper() {
-//						public Object mapRow(ResultSet rs, int rowNum) throws SQLException {
-//							SimpleUser su = new SimpleUser();
-//							su.setId(rs.getInt(1));
-//							su.setUserName(rs.getString(2));
-//							return su;
-//						}
-//					}
 				)
 			);
 			
 		} catch (org.springframework.dao.DataAccessException dae) {
 			
 			_logger.error("an error occurred running the following SQL '" + findAllUsersForCampaignSql + "' with the parameter " + 
-				awRequest.getCampaignName() + ": " + dae.getMessage());
+				awRequest.getCampaignUrn() + ": " + dae.getMessage());
 			
 			throw new DataAccessException(dae);
 			

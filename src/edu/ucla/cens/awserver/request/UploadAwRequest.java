@@ -15,7 +15,7 @@ public class UploadAwRequest extends ResultListAwRequest {
 	// Input state //
 	private String _client;
 	private String _sessionId;
-	private String _campaignName;
+	private String _campaignUrn;
 	
 	// Processing state // 
 	private long _startTime;              // processing start time for logging
@@ -33,12 +33,12 @@ public class UploadAwRequest extends ResultListAwRequest {
 		_currentMessageIndex = -1;
 	}
 	
-	public String getCampaignName() {
-		return _campaignName;
+	public String getCampaignUrn() {
+		return _campaignUrn;
 	}
 	
-	public void setCampaignName(String campaignName) {
-		_campaignName = campaignName;
+	public void setCampaignUrn(String campaignUrn) {
+		_campaignUrn = campaignUrn;
 	}
 	
 	public long getStartTime() {
@@ -107,7 +107,7 @@ public class UploadAwRequest extends ResultListAwRequest {
 
 	@Override
 	public String toString() {
-		return "UploadAwRequest [_campaignName=" + _campaignName + ", _client="
+		return "UploadAwRequest [_campaignUrn=" + _campaignUrn + ", _client="
 				+ _client + ", _currentMessageIndex=" + _currentMessageIndex
 				+ ", _dataPackets=" + _dataPackets + ", _duplicateIndexList="
 				+ _duplicateIndexList + ", _jsonDataAsJsonArray="

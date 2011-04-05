@@ -3,7 +3,6 @@ package edu.ucla.cens.awserver.service;
 import java.util.List;
 
 import edu.ucla.cens.awserver.dao.Dao;
-import edu.ucla.cens.awserver.domain.CampaignNameVersion;
 import edu.ucla.cens.awserver.request.AwRequest;
 import edu.ucla.cens.awserver.request.MediaQueryAwRequest;
 import edu.ucla.cens.awserver.validator.AwRequestAnnotator;
@@ -35,18 +34,17 @@ public class FindCampaignForMediaIdService extends AbstractDaoService {
 		List<?> results = awRequest.getResultList();
 		if(0 == results.size()) {
 			
-			_noMediaAnnotator.annotate(awRequest, "no response found for media id");
+			_noMediaAnnotator.annotate(awRequest, "no response found for media id or campaign URN doesn't exist");
 			
 		} else {
 			
-			for(int i = 0; i < results.size(); i++) {
-				CampaignNameVersion cnv = (CampaignNameVersion) results.get(i);
-				if(cnv.getCampaignName().equals(req.getCampaignName()) && cnv.getCampaignVersion().equals(req.getCampaignVersion())) {
-					return;
-				}
-			}
+			if(results.size() > 1) { // logical error in the db on campaign URN uniqueness
+				throw new ServiceException("found more than one campaign for URN " + req.getCampaignUrn());
+			} 
 			
-			_invalidCampaignAnnotator.annotate(awRequest, "invalid campaign name-version in query");
+			if(! req.getCampaignUrn().equals(((String) results.get(0)))) {
+				_invalidCampaignAnnotator.annotate(awRequest, "invalid campaign urn in query");
+			}
 		}	
 	}
 }

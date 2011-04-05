@@ -18,14 +18,12 @@ public class DataPointQueryDao extends AbstractDao {
 	
 	private String _select = "SELECT pr.prompt_id, pr.prompt_type, pr.response, pr.repeatable_set_iteration, pr.repeatable_set_id,"
 			            + " sr.msg_timestamp, sr.phone_timezone, sr.location_status, sr.location, sr.survey_id"
-	                    + " FROM prompt_response pr, survey_response sr, user u, campaign_configuration cc, campaign c"
+	                    + " FROM prompt_response pr, survey_response sr, user u, campaign c"
 	                    + " WHERE pr.survey_response_id = sr.id"
 	                    + " AND u.login_id = ?"
 	                    + " AND sr.user_id = u.id"
-	                    + " AND c.name = ?"
-	                    + " AND cc.campaign_id = c.id"
-	                    + " AND cc.version = ?"
-	                    + " AND cc.id = sr.campaign_configuration_id"
+	                    + " AND c.urn = ?"
+	                    + " AND c.id = sr.campaign_id"
 	                    + " AND sr.msg_timestamp BETWEEN ? AND ?"
 	                    + " AND prompt_id in ";
 	
@@ -60,8 +58,7 @@ public class DataPointQueryDao extends AbstractDao {
 		
 		final List<Object> paramObjects = new ArrayList<Object>();
 		paramObjects.add(req.getUserNameRequestParam());
-		paramObjects.add(req.getCampaignName());
-		paramObjects.add(req.getCampaignVersion());
+		paramObjects.add(req.getCampaignUrn());
 		paramObjects.add(req.getStartDate());
 		paramObjects.add(req.getEndDate());
 		

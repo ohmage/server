@@ -1,9 +1,7 @@
 package edu.ucla.cens.awserver.service;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.SortedMap;
 
@@ -12,7 +10,6 @@ import org.apache.log4j.Logger;
 import edu.ucla.cens.awserver.cache.CacheService;
 import edu.ucla.cens.awserver.cache.ConfigurationCacheService;
 import edu.ucla.cens.awserver.dao.Dao;
-import edu.ucla.cens.awserver.domain.CampaignNameVersion;
 import edu.ucla.cens.awserver.domain.ConfigQueryResult;
 import edu.ucla.cens.awserver.domain.Configuration;
 import edu.ucla.cens.awserver.request.AwRequest;
@@ -63,61 +60,46 @@ public class ConfigurationRetrievalService extends AbstractAnnotatingService {
 	 */
 	@Override
 	public void execute(AwRequest awRequest) {
-		_findAllCampaignsForUserDao.execute(awRequest); // the DAO must set a list of strings (campaign names): AwRequest.setResultList
+		_findAllCampaignsForUserDao.execute(awRequest); // the DAO must set a list of strings (campaign URNs): AwRequest.setResultList
 		
-		SortedMap<CampaignNameVersion, Configuration> configurationMap 
-			= _configCacheService.lookupByCampaigns(awRequest.getResultList());
+		SortedMap<String, Configuration> configurationMap = _configCacheService.lookupByCampaigns(awRequest.getResultList());
 		
-		Set<CampaignNameVersion> configurationKeys = configurationMap.keySet();
+		Set<String> configurationKeys = configurationMap.keySet();
 		List<ConfigQueryResult> results = new ArrayList<ConfigQueryResult>();
 		
-		List<String> campaignNameList = new ArrayList<String>();
-		String currentCampaignName = null;
-		
-		// grab all of the unique campaigns from the configuration map
-		for(CampaignNameVersion key : configurationKeys) {
-			String name = key.getCampaignName();
-			if(! name.equals(currentCampaignName)) {
-				campaignNameList.add(name);
-				currentCampaignName = name;
-			}
-		}
-		
 		// build the output for each campaign
-		for(String campaignName : campaignNameList) {
+		for(String urn : configurationKeys) {
 			if(_logger.isDebugEnabled()) {
-				_logger.debug("building output for campaign: " + campaignName);
+				_logger.debug("building output for campaign: " + urn);
 			}
 			
-			ConfigQueryResult result = new ConfigQueryResult();
-			
-			result.setCampaignName(campaignName);
+			String role = null;
+			String xml = null;
+			List<String> userList = new ArrayList<String>();
 			
 			// determine the maximum user role for the current campaign and set it on the result
-			// TODO at some point the user role system needs to change; do users actually need more than one role?
-			List<Integer> list = awRequest.getUser().getCampaignRoles().get(campaignName);
+			// TODO drop the "maximum" restriction because users can have many roles and the roles provide access to non-overlapping
+			// functionality in the system
+			List<Integer> list = awRequest.getUser().getCampaignRoles().get(urn);
 			boolean isAdminOrResearcher = false;
 			
 			for(Integer i : list) {
-				String role = (String) _userRoleCacheService.lookup(i);
+				role = (String) _userRoleCacheService.lookup(i);
 				
-				if("researcher".equals(role) || "admin".equals(role)) {
+				if("supervisor".equals(role)) {
 					isAdminOrResearcher = true;
-					result.setUserRole(role);
 					break;
 				}
 			}
 			
 			if(! isAdminOrResearcher) {
-				result.setUserRole("participant");
+				role = "participant";
 			}
 			
 			// get all of the users for the current campaign if the current user is a researcher or admin
 			
-			List<String> userList = new ArrayList<String>();
-			
 			if(isAdminOrResearcher) {
-				awRequest.setCampaignName(campaignName);
+				awRequest.setCampaignUrn(urn);
 				
 				_findAllUsersForCampaignDao.execute(awRequest);
 				
@@ -137,20 +119,9 @@ public class ConfigurationRetrievalService extends AbstractAnnotatingService {
 				userList.add(awRequest.getUser().getUserName());
 			}
 			
-			result.setUserList(userList);
+			xml = configurationMap.get(urn).getXml().replaceAll("\\n", " ");
 			
-			// now get all of the configurations for the campaign
-			Map<String, String> versionXmlMap = new HashMap<String, String>();
-			
-			for(CampaignNameVersion key : configurationKeys) {
-				if(key.getCampaignName().equals(campaignName)) {                                  // strip newlines from the XML
-					versionXmlMap.put(key.getCampaignVersion(), configurationMap.get(key).getXml().replaceAll("\\n", " "));
-				}
-			}
-			
-			result.setVersionXmlMap(versionXmlMap);
-			
-			results.add(result);
+			results.add(new ConfigQueryResult(urn, role, userList, xml));
 		}
 		
 		awRequest.setResultList(results);

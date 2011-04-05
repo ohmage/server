@@ -40,7 +40,7 @@ public class NewDataPointQueryAwRequestCreator implements AwRequestCreator {
 		awRequest.setEndDate(endDate);
 		awRequest.setUserToken(authToken);
 		awRequest.setClient(client);
-		awRequest.setCampaignName(campaignName);
+		awRequest.setCampaignUrn(campaignName);
 		awRequest.setCampaignVersion(campaignVersion);
 		awRequest.setUserListString(userList);
 		awRequest.setPromptIdListString(promptIdList);

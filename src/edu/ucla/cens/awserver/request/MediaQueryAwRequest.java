@@ -8,8 +8,7 @@ package edu.ucla.cens.awserver.request;
 public class MediaQueryAwRequest extends ResultListAwRequest {
 	private String _userNameRequestParam;
 	private String _client;
-	private String _campaignName;
-	private String _campaignVersion;
+	private String _campaignUrn;
 	private String _mediaId;
 	private String _mediaUrl;
 	
@@ -29,20 +28,12 @@ public class MediaQueryAwRequest extends ResultListAwRequest {
 		_client = client;
 	}
 
-	public String getCampaignName() {
-		return _campaignName;
+	public String getCampaignUrn() {
+		return _campaignUrn;
 	}
 
-	public void setCampaignName(String campaignName) {
-		_campaignName = campaignName;
-	}
-
-	public String getCampaignVersion() {
-		return _campaignVersion;
-	}
-
-	public void setCampaignVersion(String campaignVersion) {
-		_campaignVersion = campaignVersion;
+	public void setCampaignUrn(String campaignUrn) {
+		_campaignUrn = campaignUrn;
 	}
 
 	public String getMediaId() {

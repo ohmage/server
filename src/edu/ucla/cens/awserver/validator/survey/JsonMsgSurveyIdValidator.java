@@ -3,7 +3,6 @@ package edu.ucla.cens.awserver.validator.survey;
 import org.json.JSONObject;
 
 import edu.ucla.cens.awserver.cache.CacheService;
-import edu.ucla.cens.awserver.domain.CampaignNameVersion;
 import edu.ucla.cens.awserver.domain.Configuration;
 import edu.ucla.cens.awserver.request.AwRequest;
 import edu.ucla.cens.awserver.util.JsonUtils;
@@ -43,15 +42,10 @@ public class JsonMsgSurveyIdValidator extends AbstractAnnotatingJsonObjectValida
 			return false;
 		}
 		
-		// validate against cache configuration
-		CampaignNameVersion cnv = new CampaignNameVersion(awRequest.getCampaignName(), 
-				                                          awRequest.getCampaignVersion());
-		
-		Configuration configuration = (Configuration) _cacheService.lookup(cnv);
+		Configuration configuration = (Configuration) _cacheService.lookup(awRequest.getCampaignUrn());
 		
 		if(null == configuration) { // this is bad because it means that previous validation failed or didn't run
-			throw new IllegalStateException("missing configuration for campaign name-version pair name=" 
-				+ awRequest.getCampaignName() + " version=" + awRequest.getCampaignVersion());
+			throw new IllegalStateException("missing configuration for campaign URN: " + awRequest.getCampaignUrn());
 		}
 		
 		if(! configuration.surveyIdExists(surveyId)) {
