@@ -106,6 +106,11 @@ public abstract class AbstractGzipHttpServletRequestValidator extends AbstractHt
 			_logger.error("error reading input stream", ioe);
 			throw new IllegalStateException(ioe);
 			
+		} catch (IndexOutOfBoundsException ioobe) {
+			
+			_logger.error("non-existant value for key", ioobe);
+			throw new IllegalStateException(ioobe);
+			
 		} finally {
 			
 			if(null != is) {
