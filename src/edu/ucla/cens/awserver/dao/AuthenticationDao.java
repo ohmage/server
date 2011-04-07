@@ -19,7 +19,7 @@ public class AuthenticationDao extends AbstractDao {
 	private String _salt;
 	private boolean _performHash;
 	
-	private static final String _selectSql = "select user.id, user.enabled, user.new_account, campaign.id, campaign.name,"
+	private static final String _selectSql = "select user.id, user.enabled, user.new_account, campaign.id, campaign.urn,"
 		                                     +     " user_role_campaign.user_role_id" 
 		                                     + " from campaign, user, user_role_campaign"
 		                                     + " where user.login_id = ?"

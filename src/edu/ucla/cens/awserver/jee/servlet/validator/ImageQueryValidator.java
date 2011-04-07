@@ -18,7 +18,7 @@ public class ImageQueryValidator extends AbstractHttpServletRequestValidator {
 	private List<String> _parameterList;
 	
 	public ImageQueryValidator() {
-		_parameterList = new ArrayList<String>(Arrays.asList(new String[]{"u","c","ci","i","t","cv"}));
+		_parameterList = new ArrayList<String>(Arrays.asList(new String[]{"u","c","ci","i","t"}));
 	}
 	
 	public boolean validate(HttpServletRequest httpServletRequest) {
@@ -30,13 +30,11 @@ public class ImageQueryValidator extends AbstractHttpServletRequestValidator {
 		String c = (String) httpServletRequest.getParameter("c");
 		String ci = (String) httpServletRequest.getParameter("ci");
 		String t = (String) httpServletRequest.getParameter("t");
-		String cv = (String) httpServletRequest.getParameter("cv");
 		String i = (String) httpServletRequest.getParameter("i");
 		
 		// Check for abnormal lengths (buffer overflow attack)
 		
 		if(greaterThanLength("campaignName", "c", c, 250)
-		   || greaterThanLength("campaignVersion", "cv", cv, 500)
 		   || greaterThanLength("client", "ci",ci, 250)		   
 		   || greaterThanLength("authToken", "t", t, 36)
 		   || greaterThanLength("userName", "u", u, 15)

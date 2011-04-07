@@ -22,7 +22,7 @@ public class DataPointQueryValidator extends AbstractHttpServletRequestValidator
 	/**
 	 */
 	public DataPointQueryValidator() {
-		_parameterList = new ArrayList<String>(Arrays.asList(new String[]{"s","e","u","c","ci","i","t","cv"}));
+		_parameterList = new ArrayList<String>(Arrays.asList(new String[]{"s","e","u","c","ci","i","t"}));
 	}
 	
 	public boolean validate(HttpServletRequest httpServletRequest) {
@@ -58,7 +58,6 @@ public class DataPointQueryValidator extends AbstractHttpServletRequestValidator
 		String c = (String) httpServletRequest.getParameter("c");
 		String ci = (String) httpServletRequest.getParameter("ci");
 		String t = (String) httpServletRequest.getParameter("t");
-		String cv = (String) httpServletRequest.getParameter("cv");
 		
 		String[] is = httpServletRequest.getParameterValues("i");
 		
@@ -67,7 +66,6 @@ public class DataPointQueryValidator extends AbstractHttpServletRequestValidator
 		if(greaterThanLength("startDate", "s", s, 10) 
 		   || greaterThanLength("endDate", "e", e, 10)
 		   || greaterThanLength("campaignName", "c", c, 250)
-		   || greaterThanLength("campaignVersion", "cv", cv, 500)
 		   || greaterThanLength("client", "ci",ci, 250)		   
 		   || greaterThanLength("authToken", "t", t, 36)
 		   || greaterThanLength("userName", "u", u, 15)) {

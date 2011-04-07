@@ -27,7 +27,6 @@ public class NewDataPointQueryValidator extends AbstractHttpServletRequestValida
 				                                                          "client",
 				                                                          "prompt_id_list",
 				                                                          "auth_token",
-				                                                          "campaign_version",
 				                                                          "survey_id_list",
 				                                                          "column_list",
 				                                                          "output_format",
@@ -71,7 +70,6 @@ public class NewDataPointQueryValidator extends AbstractHttpServletRequestValida
 		String campaignName = (String) httpServletRequest.getParameter("campaign_name");
 		String client = (String) httpServletRequest.getParameter("client");
 		String token = (String) httpServletRequest.getParameter("auth_token");
-		String campaignVersion = (String) httpServletRequest.getParameter("campaign_version");
 		String promptIds = (String) httpServletRequest.getParameter("prompt_id_list");
 		String surveyIds = (String) httpServletRequest.getParameter("survey_id_list");
 		String columns = (String) httpServletRequest.getParameter("column_list");
@@ -84,7 +82,6 @@ public class NewDataPointQueryValidator extends AbstractHttpServletRequestValida
 		if(greaterThanLength("startDate", "start_date", startDate, 10) 
 		   || greaterThanLength("endDate", "end_date", endDate, 10)
 		   || greaterThanLength("campaignName", "campaign_name", campaignName, 250)
-		   || greaterThanLength("campaignVersion", "campaign_version", campaignVersion, 500)
 		   || greaterThanLength("client", "client", client, 250)		   
 		   || greaterThanLength("authToken", "token", token, 36)
 		   || greaterThanLength("users", "user_list", users, 150) // allows up to 10 users

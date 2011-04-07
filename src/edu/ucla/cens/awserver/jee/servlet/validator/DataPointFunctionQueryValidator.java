@@ -23,7 +23,7 @@ public class DataPointFunctionQueryValidator extends AbstractHttpServletRequestV
 	/**
 	 */
 	public DataPointFunctionQueryValidator() {
-		_parameterList = new ArrayList<String>(Arrays.asList(new String[]{"s","e","u","c","ci","i","t","cv"}));
+		_parameterList = new ArrayList<String>(Arrays.asList(new String[]{"s","e","u","c","ci","i","t"}));
 	}
 	
 	public boolean validate(HttpServletRequest httpServletRequest) {
@@ -59,7 +59,6 @@ public class DataPointFunctionQueryValidator extends AbstractHttpServletRequestV
 		String c = (String) httpServletRequest.getParameter("c");
 		String ci = (String) httpServletRequest.getParameter("ci");
 		String t = (String) httpServletRequest.getParameter("t");
-		String cv = (String) httpServletRequest.getParameter("cv");
 		String i = (String) httpServletRequest.getParameter("i");
 		
 		// Check for abnormal lengths (buffer overflow attack)
@@ -67,7 +66,6 @@ public class DataPointFunctionQueryValidator extends AbstractHttpServletRequestV
 		if(greaterThanLength("startDate", "s", s, 10) 
 		   || greaterThanLength("endDate", "e", e, 10)
 		   || greaterThanLength("campaignName", "c", c, 250)
-		   || greaterThanLength("campaignVersion", "cv", cv, 500)
 		   || greaterThanLength("client", "ci",ci, 250)		   
 		   || greaterThanLength("authToken", "t", t, 36)
 		   || greaterThanLength("userName", "u", u, 15)

@@ -24,8 +24,7 @@ public class NewDataPointQueryAwRequestCreator implements AwRequestCreator {
 		String endDate = request.getParameter("end_date");
 		String userList = request.getParameter("user_list");
 		String client = request.getParameter("client");
-		String campaignName = request.getParameter("campaign_name");
-		String campaignVersion = request.getParameter("campaign_version");
+		String campaignUrn = request.getParameter("campaign_urn");
 		String authToken = request.getParameter("auth_token");
 		String promptIdList = request.getParameter("prompt_id_list");
 		String surveyIdList = request.getParameter("survey_id_list");
@@ -40,8 +39,7 @@ public class NewDataPointQueryAwRequestCreator implements AwRequestCreator {
 		awRequest.setEndDate(endDate);
 		awRequest.setUserToken(authToken);
 		awRequest.setClient(client);
-		awRequest.setCampaignUrn(campaignName);
-		awRequest.setCampaignVersion(campaignVersion);
+		awRequest.setCampaignUrn(campaignUrn);
 		awRequest.setUserListString(userList);
 		awRequest.setPromptIdListString(promptIdList);
 		awRequest.setSurveyIdListString(surveyIdList);

@@ -29,8 +29,7 @@ public class DataPointFunctionQueryAwRequestCreator implements AwRequestCreator 
 		String endDate = request.getParameter("e");
 		String userNameRequestParam = request.getParameter("u");
 		String client = request.getParameter("ci");
-		String campaignName = request.getParameter("c");
-		String campaignVersion = request.getParameter("cv");
+		String campaignUrn = request.getParameter("c");
 		String authToken = request.getParameter("t");
 		String functionName = request.getParameter("i");  
 		
@@ -40,9 +39,8 @@ public class DataPointFunctionQueryAwRequestCreator implements AwRequestCreator 
 		awRequest.setUserNameRequestParam(userNameRequestParam);
 		awRequest.setUserToken(authToken);
 		awRequest.setClient(client);
-		awRequest.setCampaignUrn(campaignName);
+		awRequest.setCampaignUrn(campaignUrn);
 		awRequest.setFunctionName(functionName);
-		awRequest.setCampaignVersion(campaignVersion);
 		awRequest.setMetadata(_metadata);
 		
         NDC.push("ci=" + client); // push the client string into the Log4J NDC for the currently executing thread - this means that 

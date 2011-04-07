@@ -148,10 +148,6 @@ public abstract class AbstractAwRequest implements AwRequest {
 	public void setCampaignUrn(String campaignName) {
 		throw new UnsupportedOperationException("it is illegal to invoke setCampaignName() on this instance");
 	}
-	
-	public void setCampaignVersion(String campaignVersion) {
-		throw new UnsupportedOperationException("it is illegal to invoke setCampaignVersion() on this instance");
-	}
 
 	public void setClient(String client) {
 		throw new UnsupportedOperationException("it is illegal to invoke setClient() on this instance");

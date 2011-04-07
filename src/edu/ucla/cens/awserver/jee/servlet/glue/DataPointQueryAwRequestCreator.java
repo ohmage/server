@@ -27,8 +27,7 @@ public class DataPointQueryAwRequestCreator implements AwRequestCreator {
 		String endDate = request.getParameter("e");
 		String userNameRequestParam = request.getParameter("u");
 		String client = request.getParameter("ci");
-		String campaignName = request.getParameter("c");
-		String campaignVersion = request.getParameter("cv");
+		String campaignUrn = request.getParameter("c");
 		String authToken = request.getParameter("t");
 		String[] dataPointIds = request.getParameterValues("i");  
 		
@@ -38,9 +37,8 @@ public class DataPointQueryAwRequestCreator implements AwRequestCreator {
 		awRequest.setUserNameRequestParam(userNameRequestParam);
 		awRequest.setUserToken(authToken);
 		awRequest.setClient(client);
-		awRequest.setCampaignUrn(campaignName);
+		awRequest.setCampaignUrn(campaignUrn);
 		awRequest.setDataPointIds(dataPointIds);
-		awRequest.setCampaignVersion(campaignVersion);
 		
         NDC.push("ci=" + client); // push the client string into the Log4J NDC for the currently executing thread - this means that 
                                   // it will be in every log message for the thread

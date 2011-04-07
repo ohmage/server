@@ -35,10 +35,9 @@ public class SurveyUploadAwRequestCreator implements AwRequestCreator {
         String sessionId = request.getSession(false).getId(); // for upload logging to connect app logs to uploads
         
         String userName = parameterMap.get("u")[0];
-        String campaignName = parameterMap.get("c")[0];
+        String campaignUrn = parameterMap.get("c")[0];
         String password = parameterMap.get("p")[0];
         String client = parameterMap.get("ci")[0];
-        String campaignVersion = parameterMap.get("cv")[0];
         String jsonData = parameterMap.get("d")[0]; 
         
         UserImpl user = new UserImpl();
@@ -52,8 +51,7 @@ public class SurveyUploadAwRequestCreator implements AwRequestCreator {
         awRequest.setUser(user);
         awRequest.setClient(client);
         awRequest.setJsonDataAsString(jsonData);
-        awRequest.setCampaignVersion(campaignVersion);
-        awRequest.setCampaignUrn(campaignName);
+        awRequest.setCampaignUrn(campaignUrn);
 
         String requestUrl = request.getRequestURL().toString();
         if(null != request.getQueryString()) {
