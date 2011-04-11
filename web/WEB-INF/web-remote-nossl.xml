@@ -377,7 +377,7 @@
   </servlet>
   <servlet-mapping>
     <servlet-name>UserInfoQueryServlet</servlet-name>
-    <url-pattern>/q/userInfo</url-pattern>
+    <url-pattern>/user/read</url-pattern>
   </servlet-mapping>
   
   <!--  Handle user stat queries -->
