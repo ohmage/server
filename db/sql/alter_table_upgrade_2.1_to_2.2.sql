@@ -18,6 +18,9 @@ ALTER TABLE survey_response DROP FOREIGN KEY survey_response_ibfk_2;
 ALTER TABLE survey_response DROP COLUMN campaign_configuration_id;
 DROP TABLE campaign_configuration;
 
+-- add sharing to survey_response
+ALTER TABLE survey_response ADD COLUMN privacy_state varchar(50) NOT NULL;
+
 
 -- campaign changes
 ALTER TABLE campaign DROP COLUMN label;
@@ -36,10 +39,6 @@ ALTER TABLE campaign ADD UNIQUE INDEX (urn);
 ALTER TABLE survey_response ADD COLUMN campaign_id int unsigned NOT NULL;
 ALTER TABLE survey_response ADD CONSTRAINT FOREIGN KEY (campaign_id) REFERENCES campaign (id) ON DELETE CASCADE ON UPDATE CASCADE;
 ALTER TABLE survey_response ADD INDEX (user_id, campaign_id);  
-
-
--- sharing of prompt responses
-ALTER TABLE prompt_response ADD COLUMN privacy_state varchar(50) NOT NULL;
 
 -- Mobilize participants can create campaigns
 -- AndWellness participants cannot
