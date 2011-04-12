@@ -25,13 +25,13 @@ public class AuthAwRequestCreator implements AwRequestCreator {
 	 */
 	public AwRequest createFrom(HttpServletRequest request) {
 		
-		String userName = request.getParameter("u");
+		String userName = request.getParameter("user");
 		String password = null; 
 			
-		if(null != request.getParameter("p")) {
+		if(null != request.getParameter("password")) {
 			try {
 				
-				password = URLDecoder.decode(request.getParameter("p"), "UTF-8");
+				password = URLDecoder.decode(request.getParameter("password"), "UTF-8");
 			
 			} catch(UnsupportedEncodingException uee) { // if UTF-8 is not recognized we have big problems
 			
@@ -43,13 +43,13 @@ public class AuthAwRequestCreator implements AwRequestCreator {
 		user.setUserName(userName);
 		user.setPassword(password);
 		
-		String ci = request.getParameter("ci"); 
-		NDC.push("ci=" + ci); // push the client string into the Log4J NDC for the currently executing thread - this means that it
-		                      // will be in every log message for the thread
+		String client = request.getParameter("client"); 
+		NDC.push("client=" + client); // push the client string into the Log4J NDC for the currently executing thread - 
+		                              // this means that it will be in every log message for the thread
 		
 		AwRequest awRequest = new PhoneResultListAwRequest();
 		awRequest.setUser(user);
-		awRequest.setClient(ci);
+		awRequest.setClient(client);
 		
 		return awRequest;
 	}
