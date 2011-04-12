@@ -96,9 +96,8 @@
       	<exclude name="web-remote-ssl.xml"/>
       	<exclude name="web-remote-nossl.xml"/>
       	<exclude name="spring/util-system-remote.xml"/>
-      	<exclude name="spring/util-system-local.xml"/> <!-- deprecated local system file -->
-      	<exclude name="spring/util-system-local-mobilize.xml"/>
-      	<exclude name="spring/util-system-local-andwellness-chipts.xml"/>
+      	<exclude name="spring/util-local-mobilize.xml"/>
+      	<exclude name="spring/util-local-andwellness-chipts.xml"/>
       </webinf>
       <metainf dir="${resources}/META-INF">
         <exclude name="MANIFEST.MF"/>

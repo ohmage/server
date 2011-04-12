@@ -38,7 +38,7 @@ public class MediaUploadValidator extends AbstractHttpServletRequestValidator {
 		_fileSizeMax = fileSizeMax;
 		
 		_parameterSet = new TreeSet<String>();
-		_parameterSet.addAll(Arrays.asList(new String[]{"c","ci","i","p","u"}));
+		_parameterSet.addAll(Arrays.asList(new String[]{"campaign_urn","client","id","password","user"}));
 	}
 	
 	/**
@@ -108,36 +108,36 @@ public class MediaUploadValidator extends AbstractHttpServletRequestValidator {
 				
 				tmp = StringUtils.urlDecode(fi.getString());
 				
-				if("c".equals(name)) {
+				if("campaign_urn".equals(name)) {
 					
-					if(greaterThanLength("campaign name", "c", tmp, 250)) {
+					if(greaterThanLength("campaign URN", "campaign_urn", tmp, 250)) {
 						return false;
 					}
 					
 					awRequest.setCampaignUrn(tmp);
 				}
 				
-				if("ci".equals(name)) {
+				if("client".equals(name)) {
 					
-					if(greaterThanLength("client", "ci", tmp, 250)) {
+					if(greaterThanLength("client", "client", tmp, 250)) {
 						return false;
 					}
 					
 					awRequest.setClient(tmp);
 				}
 				
-				if("i".equals(name)) {
+				if("id".equals(name)) {
 					
-					if(greaterThanLength("id", "i", tmp, 36)) {
+					if(greaterThanLength("id", "id", tmp, 36)) {
 						return false;
 					}
 					
 					awRequest.setMediaId(tmp);
 				}
 				
-				if("p".equals(name)) {
+				if("password".equals(name)) {
 					
-					if(greaterThanLength("password", "p", tmp, 100)) {
+					if(greaterThanLength("password", "password", tmp, 100)) {
 						return false;
 					}
 					
@@ -145,9 +145,9 @@ public class MediaUploadValidator extends AbstractHttpServletRequestValidator {
 				}
 				
 				
-				if("u".equals(name)) {
+				if("user".equals(name)) {
 					
-					if(greaterThanLength("user name", "u", tmp, 750)) {
+					if(greaterThanLength("user name", "user", tmp, 15)) {
 						return false;
 					}
 					

@@ -17,7 +17,7 @@ public class SurveyUploadValidator extends AbstractGzipHttpServletRequestValidat
 	 * 
 	 */
 	public SurveyUploadValidator() {
-		_parameterList = new ArrayList<String>(Arrays.asList(new String[]{"u","ci","d","p","c"}));
+		_parameterList = new ArrayList<String>(Arrays.asList(new String[]{"user","client","data","password","campaign_urn"}));
 	}
 	
 	
@@ -29,27 +29,24 @@ public class SurveyUploadValidator extends AbstractGzipHttpServletRequestValidat
 			return false;
 		}
 				
-		String u = parameterMap.get("u")[0];
-		String p = parameterMap.get("p")[0];
-		String ci = parameterMap.get("ci")[0];
-		String c = parameterMap.get("c")[0];
+		String user = parameterMap.get("user")[0];
+		String password = parameterMap.get("password")[0];
+		String client = parameterMap.get("client")[0];
+		String campaignUrn = parameterMap.get("campaign_urn")[0];
+		String data = parameterMap.get("data")[0];
 		
 		// Check for abnormal lengths (buffer overflow attack)
 		// The max lengths are based on the column widths in the db  
 		
-		if(greaterThanLength("user", "u", u, 15)
-		   || greaterThanLength("client", "ci", ci, 250)
-		   || greaterThanLength("campaign name", "c", c, 250)
-		   || greaterThanLength("password", "p", p, 100) 
-		) {
+		if(greaterThanLength("user", "user", user, 15)
+		   || greaterThanLength("client", "client", client, 250)
+		   || greaterThanLength("campaign URN", "campaign_urn", campaignUrn, 250)
+		   || greaterThanLength("password", "password", password, 100) 
+		   || greaterThanLength("survey data payload", "data", data, 65535)) {
+			
 			_logger.warn("found an input parameter that exceeds its allowed length");
 			return false;
 		}
-		
-		// The JSON data is not checked because its length is so variable and potentially huge (some messages are 700000+ characters
-		// when URL-encoded). It will be heavily validated once inside the main application validation layer.
-		
-		// The default setting for Tomcat is to disallow requests that are greater than 2MB
 		
 		httpServletRequest.setAttribute("validatedParameterMap", parameterMap);
 		

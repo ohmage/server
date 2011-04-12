@@ -4,6 +4,7 @@ import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 
+import org.apache.log4j.Logger;
 import org.apache.log4j.NDC;
 
 import edu.ucla.cens.awserver.domain.UserImpl;
@@ -16,7 +17,7 @@ import edu.ucla.cens.awserver.request.SurveyUploadAwRequest;
  * @author selsky
  */
 public class SurveyUploadAwRequestCreator implements AwRequestCreator {
-//  private static Logger _logger = Logger.getLogger(SensorUploadAwRequestCreator.class);
+  private static Logger _logger = Logger.getLogger(SurveyUploadAwRequestCreator.class);
     
     /**
      * Default no-arg constructor. Simply creates an instance of this class.
@@ -34,11 +35,11 @@ public class SurveyUploadAwRequestCreator implements AwRequestCreator {
 		
         String sessionId = request.getSession(false).getId(); // for upload logging to connect app logs to uploads
         
-        String userName = parameterMap.get("u")[0];
-        String campaignUrn = parameterMap.get("c")[0];
-        String password = parameterMap.get("p")[0];
-        String client = parameterMap.get("ci")[0];
-        String jsonData = parameterMap.get("d")[0]; 
+        String userName = parameterMap.get("user")[0];
+        String campaignUrn = parameterMap.get("campaign_urn")[0]; _logger.info(campaignUrn);
+        String password = parameterMap.get("password")[0];
+        String client = parameterMap.get("client")[0];
+        String jsonData = parameterMap.get("data")[0]; 
         
         UserImpl user = new UserImpl();
         user.setUserName(userName);
@@ -60,8 +61,8 @@ public class SurveyUploadAwRequestCreator implements AwRequestCreator {
         
         awRequest.setRequestUrl(requestUrl); // output in reponse in case of error, logged to filesystem
         
-        NDC.push("ci=" + client); // push the client string into the Log4J NDC for the currently executing thread - this means that 
-                                  // it will be in every log message for the thread
+        NDC.push("client=" + client); // push the client string into the Log4J NDC for the currently executing thread - this means that 
+                                      // it will be in every log message for the thread
         
         return awRequest;
     }

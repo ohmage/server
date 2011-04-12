@@ -17,7 +17,7 @@ public class MobilityUploadValidator extends AbstractGzipHttpServletRequestValid
 	private List<String> _parameterList;
 	
 	public MobilityUploadValidator() {
-		_parameterList = new ArrayList<String>(Arrays.asList(new String[]{"u","ci","d","p"}));
+		_parameterList = new ArrayList<String>(Arrays.asList(new String[]{"user","client","data","password"}));
 	}
 	
 	@Override
@@ -30,18 +30,18 @@ public class MobilityUploadValidator extends AbstractGzipHttpServletRequestValid
 		
 		// Tomcat will URL Decode the parameters 
 		
-		String u = (String) httpServletRequest.getParameter("u"); 
-		String p = (String) httpServletRequest.getParameter("p");
-		String ci = (String) httpServletRequest.getParameter("ci");
-		String d = (String) httpServletRequest.getParameter("d");
+		String user = (String) httpServletRequest.getParameter("user"); 
+		String password = (String) httpServletRequest.getParameter("password");
+		String client = (String) httpServletRequest.getParameter("client");
+		String data = (String) httpServletRequest.getParameter("data");
 		
 		// Check for abnormal lengths (buffer overflow attack)
 		// The max lengths are based on the column widths in the db
 		
-		if(greaterThanLength("user", "u", u, 15)
-		  || greaterThanLength("client", "ci", ci, 250) 
-		  || greaterThanLength("password", "p", p, 100)
-		  || greaterThanLength("mobility data message", "d", d, 65535)) {
+		if(greaterThanLength("user", "user", user, 15)
+		  || greaterThanLength("client", "client", client, 250) 
+		  || greaterThanLength("password", "password", password, 100)
+		  || greaterThanLength("mobility data payload", "data", data, 65535)) {
 			_logger.warn("rejecting upload because parameter payload is too large");
 			return false;
 		}

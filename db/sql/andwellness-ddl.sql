@@ -145,7 +145,7 @@ CREATE TABLE survey_response (
   location text,                      -- JSON location data: longitude, latitude, accuracy, provider
   upload_timestamp datetime NOT NULL, -- the upload time based on the server time and timezone  
   audit_timestamp timestamp default current_timestamp on update current_timestamp,
-  
+  privacy_state varchar(50) NOT NULL,
   PRIMARY KEY (id),
   INDEX (user_id, campaign_id),
   INDEX (user_id, upload_timestamp),
@@ -168,8 +168,6 @@ CREATE TABLE prompt_response (
   repeatable_set_iteration tinyint unsigned,
   response text NOT NULL,   -- the data format is defined by the prompt type: a string or a JSON string
   audit_timestamp timestamp default current_timestamp on update current_timestamp,
-  privacy_state varchar(50) NOT NULL,
-  
   PRIMARY KEY (id),
   INDEX (survey_response_id),
   INDEX (prompt_id),
