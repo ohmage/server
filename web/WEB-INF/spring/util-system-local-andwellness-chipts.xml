@@ -37,7 +37,7 @@
 
   <util:map id="systemProps">
     <entry key="system.imageDir" value="/Users/selsky/opt/aw2/userdata/images" />
-    <entry key="system.promptResponseSharingState" value="invisible" />
+    <entry key="system.surveyResponseSharingState" value="invisible" />
     <entry key="system.campaignCreationPrivilege" value="false" />
   </util:map>
   

@@ -171,7 +171,7 @@
   
   <servlet-mapping>
     <servlet-name>SurveyUploadServlet</servlet-name>
-    <url-pattern>/u/survey</url-pattern>
+    <url-pattern>/survey/upload</url-pattern>
   </servlet-mapping>
   
   <!--  Image Data Upload -->

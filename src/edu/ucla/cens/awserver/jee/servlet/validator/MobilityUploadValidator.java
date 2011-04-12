@@ -41,7 +41,7 @@ public class MobilityUploadValidator extends AbstractGzipHttpServletRequestValid
 		if(greaterThanLength("user", "user", user, 15)
 		  || greaterThanLength("client", "client", client, 250) 
 		  || greaterThanLength("password", "password", password, 100)
-		  || greaterThanLength("mobility data message", "data", data, 65535)) {
+		  || greaterThanLength("mobility data payload", "data", data, 65535)) {
 			_logger.warn("rejecting upload because parameter payload is too large");
 			return false;
 		}
