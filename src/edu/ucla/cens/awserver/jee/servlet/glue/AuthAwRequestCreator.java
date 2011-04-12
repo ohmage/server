@@ -12,8 +12,6 @@ import edu.ucla.cens.awserver.request.AwRequest;
 import edu.ucla.cens.awserver.request.PhoneResultListAwRequest;
 
 /**
- * AwRequestCreator for phone authentication, which includes the extra phone version (phv) parameter.
- * 
  * @author selsky
  */
 public class AuthAwRequestCreator implements AwRequestCreator {
@@ -23,7 +21,7 @@ public class AuthAwRequestCreator implements AwRequestCreator {
 	}
 	
 	/**
-	 * Pushes the phone version into the Log4J NDC and creates an AwRequest with the login information and phone version.
+	 * Pushes the client HTTP param into the Log4J NDC and creates an AwRequest with the login information.
 	 */
 	public AwRequest createFrom(HttpServletRequest request) {
 		

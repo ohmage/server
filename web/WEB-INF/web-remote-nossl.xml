@@ -115,7 +115,7 @@
   <!--  Mobility Data Upload -->
   <servlet>
     <description>
-      processes mobility data uploads from a client 
+      processes  data uploads from a client 
     </description>
     <servlet-name>MobilityUploadServlet</servlet-name>
     <servlet-class>edu.ucla.cens.awserver.jee.servlet.AwDataServlet</servlet-class>
@@ -140,7 +140,7 @@
   
   <servlet-mapping>
     <servlet-name>MobilityUploadServlet</servlet-name>
-    <url-pattern>/u/mobility</url-pattern>
+    <url-pattern>/mobility/upload</url-pattern>
   </servlet-mapping>
  
  <!--  Survey Data Upload -->
@@ -237,7 +237,7 @@
   
   <servlet-mapping>
     <servlet-name>AuthStatelessServlet</servlet-name>
-    <url-pattern>/auth</url-pattern>
+    <url-pattern>/user/auth</url-pattern>
   </servlet-mapping>
   
   <!--  
@@ -274,9 +274,9 @@
   
   <servlet-mapping>
     <servlet-name>AuthTokenServlet</servlet-name>
-    <url-pattern>/auth_token</url-pattern>
+    <url-pattern>/user/auth_token</url-pattern>
   </servlet-mapping>
-  
+    
   <!--  handle configuration queries  -->
   <servlet>
     <description>
