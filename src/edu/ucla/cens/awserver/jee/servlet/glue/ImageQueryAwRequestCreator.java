@@ -20,11 +20,11 @@ public class ImageQueryAwRequestCreator implements AwRequestCreator {
 	
 	public AwRequest createFrom(HttpServletRequest request) {
 		
-		String userNameRequestParam = request.getParameter("u");
-		String client = request.getParameter("ci");
-		String campaignUrn = request.getParameter("c");
-		String authToken = request.getParameter("t");
-		String imageId = request.getParameter("i");  
+		String userNameRequestParam = request.getParameter("user");
+		String client = request.getParameter("client");
+		String campaignUrn = request.getParameter("campaign_urn");
+		String authToken = request.getParameter("token");
+		String imageId = request.getParameter("id");  
 		
 		MediaQueryAwRequest awRequest = new MediaQueryAwRequest();
 
@@ -34,8 +34,8 @@ public class ImageQueryAwRequestCreator implements AwRequestCreator {
 		awRequest.setCampaignUrn(campaignUrn);
 		awRequest.setMediaId(imageId);
 		
-        NDC.push("ci=" + client); // push the client string into the Log4J NDC for the currently executing thread - this means that 
-                                  // it will be in every log message for the thread
+        NDC.push("client=" + client); // push the client string into the Log4J NDC for the currently executing thread - this means that 
+                                      // it will be in every log message for the thread
 		
 		return awRequest;
 	}
