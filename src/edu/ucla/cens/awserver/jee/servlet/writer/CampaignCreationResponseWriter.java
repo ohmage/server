@@ -9,12 +9,9 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.log4j.Logger;
-import org.json.JSONException;
-import org.json.JSONObject;
 
 import edu.ucla.cens.awserver.domain.ErrorResponse;
 import edu.ucla.cens.awserver.request.AwRequest;
-import edu.ucla.cens.awserver.request.CampaignCreationAwRequest;
 
 /**
  * Writer for the response to a campaign creation request.
@@ -55,48 +52,25 @@ public class CampaignCreationResponseWriter extends AbstractResponseWriter {
 		expireResponse(response);
 		response.setContentType("application/json");
 		
-		// This is called first. If it has failed in the past, we will just
-		// skip this part. If it hasn't failed before, we will begin writing
-		// the response, but if we fail along the way, we will switch it to a
-		// failed request and handle the response below.
-		if(! awRequest.isFailedRequest()) {
-			JSONObject jsonResponse = new JSONObject();
-			
-			try {
-				CampaignCreationAwRequest ccAwRequest = (CampaignCreationAwRequest) awRequest;
-				
-				jsonResponse.put("result", "success");
-				jsonResponse.put("id", ccAwRequest.getCampaignId());
-			}
-			catch(ClassCastException e) {
-				_logger.error("Using the CampaignCreationResponseWriter for a non-CampaignCreationAwRequest object. Wires crossed in the Spring XML config?");
-				awRequest.setFailedRequest(true);
-			}
-			catch(JSONException e) {
-				_logger.error("There was a problem building the response JSONObject.", e);
-				awRequest.setFailedRequest(true);
-			}
-		}
-		
-		// This is called after it is checked as a way to catch failed
-		// operations durring the actual writing of a response.
+		String responseText;
 		if(awRequest.isFailedRequest()) {
-			String responseText;
-			
 			if(awRequest.getFailedRequestErrorMessage() != null) {
 				responseText = awRequest.getFailedRequestErrorMessage();
 			}
 			else {
 				responseText = generalJsonErrorMessage();
 			}
-			
-			try {
-				writer.write(responseText); 
-			}
-			catch(IOException e) {
-				_logger.error("Unable to write failed response message. Aborting.", e);
-				return;
-			}
+		}
+		else {
+			responseText = generalJsonSuccessMessage();
+		}
+		
+		try {
+			writer.write(responseText); 
+		}
+		catch(IOException e) {
+			_logger.error("Unable to write failed response message. Aborting.", e);
+			return;
 		}
 		
 		try {

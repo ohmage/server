@@ -76,6 +76,7 @@ public class CampaignCreationValidator extends AbstractHttpServletRequestValidat
 		String privacyState = null;
 		String xml = null;
 		String classes = null;
+		String description = null;
 		for(int i = 0; i < numberOfUploadedItems; i++) {
 			FileItem fi = (FileItem) uploadedItems.get(i);
 			if(fi.isFormField()) {
@@ -111,6 +112,12 @@ public class CampaignCreationValidator extends AbstractHttpServletRequestValidat
 					}
 					classes = tmp;
 				}
+				else if("description".equals(name)) {
+					if(greaterThanLength("description", "description", tmp, 65535)) {
+						return false;
+					}
+					description = tmp;
+				}
 				
 			} else { // It's the attached file.
 				
@@ -131,7 +138,7 @@ public class CampaignCreationValidator extends AbstractHttpServletRequestValidat
 		
 		CampaignCreationAwRequest request;
 		try {
-			request = new CampaignCreationAwRequest(runningState, privacyState, xml, classes);
+			request = new CampaignCreationAwRequest(runningState, privacyState, xml, classes, description);
 		}
 		catch(InvalidParameterException e) {
 			_logger.error("Attempting to create a campaign with insufficient data after data presence has been checked.");

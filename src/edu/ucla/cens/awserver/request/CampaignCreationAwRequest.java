@@ -14,9 +14,7 @@ public class CampaignCreationAwRequest extends ResultListAwRequest {
 	private String _commaSeparatedListOfClasses;
 
 	private String _xml;
-	
-	// This won't be set until after it is inserted into the database.
-	private String _id;
+	private String _description;
 	
 	/**
 	 * Constructor that converts the requested parameters into an AndWellness
@@ -32,7 +30,7 @@ public class CampaignCreationAwRequest extends ResultListAwRequest {
 	 * @param commaSeparatedListOfClasses A list of classes for which this
 	 * 									  campaign will initially belong.
 	 */
-	public CampaignCreationAwRequest(String runningState, String privacyState, String campaignAsXml, String commaSeparatedListOfClasses) throws InvalidParameterException {
+	public CampaignCreationAwRequest(String runningState, String privacyState, String campaignAsXml, String commaSeparatedListOfClasses, String description) throws InvalidParameterException {
 		if(runningState == null) {
 			throw new InvalidParameterException("The initial running state cannot be null.");
 		}
@@ -45,13 +43,13 @@ public class CampaignCreationAwRequest extends ResultListAwRequest {
 		else if(commaSeparatedListOfClasses == null) {
 			throw new InvalidParameterException("The initial list of classes for a campaign cannot be null.");
 		}
+		
 		_runningState = runningState;
 		_privacyState = privacyState;
 		_commaSeparatedListOfClasses = commaSeparatedListOfClasses;
 		
 		_xml = campaignAsXml;
-		
-		_id = null;
+		_description = description;
 	}
 	
 	/**
@@ -93,27 +91,12 @@ public class CampaignCreationAwRequest extends ResultListAwRequest {
 	}
 	
 	/**
-	 * Sets the identifier for this campaign. Shouldn't be done until it is
-	 * being inserted into the database or shortly thereafter.
+	 * Returns the description for this campaign.
 	 * 
-	 * @param id The identifier for this campaign. Not valid until the XML is
-	 * 			 is validated and shortly before or after it is inserted into
-	 * 			 the database.
+	 * @return The description for this campaign.
 	 */
-	public void setCampaignId(String id) {
-		_id = id;
-	}
-	
-	/**
-	 * Gets the identifier for this campaign. This won't be set until after it
-	 * has been validated and is ready to be or has already been inserted into
-	 * the database.
-	 * 
-	 * @return The identifier for this campaign or null if it has not yet been
-	 * 		   set.
-	 */
-	public String getCampaignId() {
-		return _id;
+	public String getDesciption() {
+		return _description;
 	}
 	
 	/**
