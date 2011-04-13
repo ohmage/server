@@ -53,7 +53,7 @@ CREATE TABLE user (
   login_id varchar(15) NOT NULL,
   password varchar(100) NOT NULL,
   enabled bit NOT NULL,
-  new_account bit NOT NULL
+  new_account bit NOT NULL,
   campaign_creation_privilege bit NOT NULL,
   PRIMARY KEY (id),
   UNIQUE (login_id)

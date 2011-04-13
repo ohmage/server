@@ -6,6 +6,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
 import java.util.List;
+import java.util.Map;
 
 import javax.sql.DataSource;
 
@@ -34,22 +35,27 @@ import edu.ucla.cens.awserver.request.AwRequest;
  */
 public class SurveyUploadDao extends AbstractUploadDao {
 	private static Logger _logger = Logger.getLogger(SurveyUploadDao.class);
+	private static Map<String, String> _systemProps;
 	
 	private final String _selectCampaignId = "SELECT id FROM campaign WHERE urn = ?";
 	
 	private final String _insertSurveyResponse = "INSERT into survey_response" +
 								           		 " (user_id, campaign_id, msg_timestamp, epoch_millis," +
 								           		 " phone_timezone, location_status, location, survey_id, survey," +
-								           		 " client, upload_timestamp, launch_context) " +
-										         " VALUES (?,?,?,?,?,?,?,?,?,?,?,?)";
+								           		 " client, upload_timestamp, launch_context, privacy_state) " +
+										         " VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)";
 	
 	private final String _insertPromptResponse = "INSERT into prompt_response" +
 	                                             " (survey_response_id, repeatable_set_id, repeatable_set_iteration," +
 	                                             " prompt_type, prompt_id, response)" +
 	                                             " VALUES (?,?,?,?,?,?)";
 	
-	public SurveyUploadDao(DataSource dataSource) {
+	public SurveyUploadDao(DataSource dataSource, Map<String, String> systemProps) {
 		super(dataSource);
+		if(null == systemProps || systemProps.isEmpty()) {
+			throw new IllegalArgumentException("systemProps cannot be null or empty");
+		}
+		_systemProps = systemProps;
 	}
 	
 	/**
@@ -140,6 +146,11 @@ public class SurveyUploadDao extends AbstractUploadDao {
 								ps.setString(10, client);
 								ps.setTimestamp(11, new Timestamp(System.currentTimeMillis()));
 								ps.setString(12, surveyDataPacket.getLaunchContext());
+								if(_systemProps.containsKey("system.surveyResponseSharingState")) {
+									ps.setString(13, _systemProps.get("system.surveyResponseSharingState"));
+								} else { // default to private
+									ps.setString(13, "private");
+								}
 								return ps;
 							}
 						},

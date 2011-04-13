@@ -26,7 +26,7 @@ public class MobilityUploadAwRequestCreator implements AwRequestCreator {
 	}
 	
 	/**
-	 *  Pulls the u (userName), p (password), ci (client), and d (json data) parameters out of the HttpServletRequest
+	 *  Pulls the user, password, client, and data parameters out of the HttpServletRequest
 	 *  and places them in a new AwRequest. Assumes the parameters in the HttpServletRequest exist.
 	 */
 	public AwRequest createFrom(HttpServletRequest request) {
@@ -35,10 +35,10 @@ public class MobilityUploadAwRequestCreator implements AwRequestCreator {
 		
 		String sessionId = request.getSession(false).getId(); // for connecting app logs to upload logs
 		
-		String userName = parameterMap.get("u")[0];
-		String password = parameterMap.get("p")[0]; 
-		String ci = parameterMap.get("ci")[0];
-		String jsonData = parameterMap.get("d")[0];
+		String userName = parameterMap.get("user")[0];
+		String password = parameterMap.get("password")[0]; 
+		String client = parameterMap.get("client")[0];
+		String jsonData = parameterMap.get("data")[0];
 		
 		UserImpl user = new UserImpl();
 		user.setUserName(userName);
@@ -49,7 +49,7 @@ public class MobilityUploadAwRequestCreator implements AwRequestCreator {
 		awRequest.setStartTime(System.currentTimeMillis());
 		awRequest.setSessionId(sessionId);
 		awRequest.setUser(user);
-		awRequest.setClient(ci);
+		awRequest.setClient(client);
 		awRequest.setJsonDataAsString(jsonData);
 		
 		String requestUrl = request.getRequestURL().toString();
@@ -59,8 +59,8 @@ public class MobilityUploadAwRequestCreator implements AwRequestCreator {
 		
 		awRequest.setRequestUrl(requestUrl); // placed in the request for use in logging messages
 		
-		NDC.push("ci=" + ci); // push the client string into the Log4J NDC for the currently executing thread - this means that it 
-                              // will be in every log message for the thread
+		NDC.push("client=" + client); // push the client string into the Log4J NDC for the currently executing thread - this means that it 
+                                      // will be in every log message for the thread
 		
 		return awRequest;
 	}
