@@ -123,9 +123,7 @@ public class UserInfoAggregationDao extends AbstractDao {
 			JSONObject permissionsJson = new JSONObject();
 			try {
 				int canCreate = getJdbcTemplate().queryForInt(_sqlGetUserCreationPrivilege, new Object[] { usersBeingQueried[i] });
-				JSONObject canCreateJson = new JSONObject();
-				canCreateJson.put("cancreate", canCreate == 1);
-				permissionsJson.put("permissions", canCreateJson);	
+				permissionsJson.put("cancreate", canCreate == 1);	
 			}
 			catch(org.springframework.dao.DataAccessException dae) {
 				throw new DataAccessException("Problem calling SQL '" + _sqlGetUserCreationPrivilege + "' with parameter: " + usersBeingQueried[i], dae);
