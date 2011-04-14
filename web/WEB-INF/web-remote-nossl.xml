@@ -283,33 +283,33 @@
       returns campaign configurations and special ids (ids for queryable items that are not prompt ids) to logged-in users. also 
       returns a list of users   
     </description>
-    <servlet-name>ConfigRetrievalServlet</servlet-name>
+    <servlet-name>CampaignRetrievalServlet</servlet-name>
     <servlet-class>edu.ucla.cens.awserver.jee.servlet.AwDataServlet</servlet-class>
     <!--  The following init-params are used to map the servlet to Spring-configured beans that ultimately service the request. 
           The param-value elements are Spring bean ids.    
     -->
-    <init-param>
+   <init-param>
       <param-name>controllerName</param-name>
-      <param-value>retrieveConfigurationController</param-value>
+      <param-value>retrieveCampaignController</param-value>
     </init-param>
     <init-param>
       <param-name>awRequestCreatorName</param-name>
-      <param-value>retrieveConfigAwRequestCreator</param-value>
+      <param-value>retrieveCampaignAwRequestCreator</param-value>
     </init-param>
     <init-param>
       <param-name>httpServletRequestValidatorName</param-name>
-      <param-value>retrieveConfigHttpServletRequestValidator</param-value>
+      <param-value>retrieveCampaignHttpServletRequestValidator</param-value>
     </init-param>
     <init-param>
       <param-name>responseWriterName</param-name>
-      <param-value>retrieveConfigResponseWriter</param-value>
+      <param-value>retrieveCampaignResponseWriter</param-value>
     </init-param>
     <load-on-startup>1</load-on-startup>
   </servlet>
   
   <servlet-mapping>
-    <servlet-name>ConfigRetrievalServlet</servlet-name>
-    <url-pattern>/q/config</url-pattern>
+    <servlet-name>CampaignRetrievalServlet</servlet-name>
+    <url-pattern>/campaign/read</url-pattern>
   </servlet-mapping>
   
   

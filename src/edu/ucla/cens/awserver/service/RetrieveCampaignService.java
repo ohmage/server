@@ -20,14 +20,14 @@ import edu.ucla.cens.awserver.validator.AwRequestAnnotator;
  * 
  * @author selsky
  */
-public class ConfigurationRetrievalService extends AbstractAnnotatingService {
-	private static Logger _logger = Logger.getLogger(ConfigurationRetrievalService.class);
+public class RetrieveCampaignService extends AbstractAnnotatingService {
+	private static Logger _logger = Logger.getLogger(RetrieveCampaignService.class);
 	private ConfigurationCacheService _configCacheService;
 	private CacheService _userRoleCacheService;
 	private Dao _findAllCampaignsForUserDao;
 	private Dao _findAllUsersForCampaignDao;
 	
-	public ConfigurationRetrievalService(Dao findAllCampaignsForUserDao, Dao findAllUsersForCampaignDao, AwRequestAnnotator annotator, 
+	public RetrieveCampaignService(Dao findAllCampaignsForUserDao, Dao findAllUsersForCampaignDao, AwRequestAnnotator annotator, 
 		ConfigurationCacheService configurationCacheService, CacheService userRoleCacheService) {
 		
 		super(annotator);
