@@ -37,8 +37,8 @@
         <!-- Authenticate that the token the user is using is a valid token. -->
         <ref bean="tokenBasedAuthenticationService" />
         <ref bean="campaignCreationValidationService" />
-        <ref bean="campaignCreationContentsValidationService" />
         <ref bean="campaignCreationClassListValidationService" />
+        <ref bean="campaignCreationContentsValidationService" />
         <ref bean="campaignCreationService" />
       </list>
     </constructor-arg>
@@ -52,11 +52,11 @@
         <ref bean="userTokenValidator" />
         <ref bean="campaignCreationRunningStateValidator" />
         <ref bean="campaignCreationPrivacyStateValidator" />
-        <ref bean="campaignCreationCampaignValidator" />
         <ref bean="campaignCreationClassListValidator" />
+        <ref bean="campaignCreationCampaignValidator" />
       </list>
     </property>
-    <property name="featuresName"><value>campaign creation</value></property>
+    <property name="featureName"><value>campaign creation</value></property>
   </bean>
   
   <!-- Controller's Beans Definitions -->
@@ -72,7 +72,7 @@
       </bean>
     </constructor-arg>
     <constructor-arg index="1">
-      <ref bean="runningStates"/>
+      <ref bean="campaignRunningStates"/>
     </constructor-arg>
   </bean>
   
@@ -88,7 +88,7 @@
       </bean>
     </constructor-arg>
     <constructor-arg index="1">
-      <ref bean="privacyStates"/>
+      <ref bean="campaignPrivacyStates"/>
     </constructor-arg>
   </bean>
   
@@ -107,7 +107,7 @@
       <bean class="org.andwellness.config.xml.CampaignValidator" />
     </constructor-arg>
     <constructor-arg index="2">
-      <bean class=""
+      <value>/opt/aw/conf/configuration.xsd</value>
     </constructor-arg>
   </bean>
   
@@ -150,7 +150,7 @@
         <constructor-arg index="0">
           <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
             <property name="code" value="0804" />
-            <property name="text" value="Invalid XML contents." />
+            <property name="text" value="Campaign already exists." />
           </bean>
        </constructor-arg>
       </bean>
@@ -184,26 +184,14 @@
     </constructor-arg>
   </bean>
   
-  <bean id="campaignCreationService" class="edu.ucla.cens.awserver.service.SimpleDaoService">
+  <bean id="campaignCreationService" class="edu.ucla.cens.awserver.service.SimpleQueryService">
     <constructor-arg index="0">
       <bean class="edu.ucla.cens.awserver.dao.CampaignCreationDao">
         <constructor-arg index="0">
-          <ref bean="dataSource"/>
+          <ref bean="autocommitDataSource"/>
         </constructor-arg>
       </bean>
     </constructor-arg>
   </bean>
-  
-  <!-- Supplamental Constants -->
-  <util:list id="runningStates">
-    <value>active</value>
-    <value>inactive</value>
-  </util:list>
-  
-  <util:list id="privacyStates">
-    <value>public</value>
-    <value>private</value>
-    <value>invisible</value>
-  </util:list>
   
 </beans>

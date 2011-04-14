@@ -65,13 +65,14 @@ public class CampaignCreationValidator extends AbstractHttpServletRequestValidat
 		
 		// Check that the correct number of items were in the request.
 		int numberOfUploadedItems = uploadedItems.size();
-		if(numberOfUploadedItems != 5) {
-			_logger.warn("An incorrect number of parameters were found on a campaign creation attempt. 5 were expeced and " + numberOfUploadedItems
+		if((numberOfUploadedItems < 5) || (numberOfUploadedItems > 6)) {
+			_logger.warn("An incorrect number of parameters were found on a campaign creation attempt. 5 or 6 were expected and " + numberOfUploadedItems
 				+ " were received");
 			return false;
 		}
 		
 		// Parse the request for each of the parameters.
+		String token = null;
 		String runningState = null;
 		String privacyState = null;
 		String xml = null;
@@ -83,14 +84,22 @@ public class CampaignCreationValidator extends AbstractHttpServletRequestValidat
 				String name = fi.getFieldName();
 				String tmp = StringUtils.urlDecode(fi.getString());
 				
-				if(! _parameterList.contains(name)) {
-					_logger.warn("An unknown parameter was found in a media upload: " + name);
+				if("description".equals(name)) {
+					if(greaterThanLength("description", "description", tmp, 65535)) {
+						return false;
+					}
+					description = tmp;
+				}
+				else if(! _parameterList.contains(name)) {
+					_logger.warn("An unknown parameter was found in a campaign creation request: " + name);
 					return false;
 				}
 				else if("auth_token".equals(name)) {
 					if(greaterThanLength("authToken", "auth_token", tmp, 36)) {
 						return false;
 					}
+					token = tmp;
+					
 				}
 				else if("running_state".equals(name)) {
 					if(greaterThanLength("runningState", "running_state", tmp, 50)) {
@@ -112,12 +121,6 @@ public class CampaignCreationValidator extends AbstractHttpServletRequestValidat
 					}
 					classes = tmp;
 				}
-				else if("description".equals(name)) {
-					if(greaterThanLength("description", "description", tmp, 65535)) {
-						return false;
-					}
-					description = tmp;
-				}
 				
 			} else { // It's the attached file.
 				
@@ -130,9 +133,6 @@ public class CampaignCreationValidator extends AbstractHttpServletRequestValidat
 				}
 				
 				xml = new String(fi.get()); // Gets the XML file.
-				if(_logger.isDebugEnabled()) {
-					_logger.debug("Attempting upload of an XML file of " + xml.length() + " bytes: " + xml);
-				}
 			}
 		}
 		
@@ -144,6 +144,7 @@ public class CampaignCreationValidator extends AbstractHttpServletRequestValidat
 			_logger.error("Attempting to create a campaign with insufficient data after data presence has been checked.");
 			return false;
 		}
+		request.setUserToken(token);
 		httpRequest.setAttribute("awRequest", request);
 		
 		return true;

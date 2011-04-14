@@ -34,10 +34,14 @@ public class CampaignCreationValidationService extends AbstractAnnotatingDaoServ
 	 */
 	@Override
 	public void execute(AwRequest awRequest) {
-		_logger.info("Validating the contents of a campaign that is attempting to be created.");
+		_logger.info("Validating whether or not the user is allowed to create campaigns.");
 		
 		try {
 			getDao().execute(awRequest);
+			
+			if(awRequest.isFailedRequest()) {
+				getAnnotator().annotate(awRequest, "User doesn't have sufficient permissions to create a campaign.");
+			}
 		}
 		catch(DataAccessException dae) {
 			throw new ServiceException(dae);

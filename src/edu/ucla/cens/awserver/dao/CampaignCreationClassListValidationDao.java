@@ -6,7 +6,6 @@ import org.apache.log4j.Logger;
 
 import edu.ucla.cens.awserver.request.AwRequest;
 import edu.ucla.cens.awserver.request.CampaignCreationAwRequest;
-import edu.ucla.cens.awserver.service.ServiceException;
 
 /**
  * DAO for checking the list of classes associated with a campaign creation
@@ -52,7 +51,7 @@ public class CampaignCreationClassListValidationDao extends AbstractDao {
 		}
 		catch(ClassCastException e) {
 			_logger.error("Checking class list on a non-CampaignCreationAwRequest object.");
-			throw new ServiceException("Invalid request.");
+			throw new DataAccessException("Invalid request.");
 		}
 		
 		String[] classes = request.getCommaSeparatedListOfClasses().split(",");
@@ -61,10 +60,10 @@ public class CampaignCreationClassListValidationDao extends AbstractDao {
 			int numClasses = getJdbcTemplate().queryForInt(SQL_CLASS_COUNT, new Object[] { classes[i] });
 			int userBelongs = getJdbcTemplate().queryForInt(SQL_USER_IN_CLASS, new Object [] { classes[i], userLogin });
 			if(numClasses == 0) {
-				throw new DataAccessException("Class does not exist.");
+				awRequest.setFailedRequest(true);
 			}
 			else if(userBelongs == 0) {
-				throw new DataAccessException("User cannot associate campaign with class:" + classes[i]);
+				awRequest.setFailedRequest(true);
 			}
 		}
 	}

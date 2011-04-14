@@ -511,6 +511,36 @@
     <url-pattern>/q/mc</url-pattern>
   </servlet-mapping>
 
+  <!-- Handle campaign creation -->
+  <servlet>
+    <description>
+      Adds a campaign to the server.
+    </description>
+    <servlet-name>CampaignCreationServlet</servlet-name>
+    <servlet-class>edu.ucla.cens.awserver.jee.servlet.AwDataServlet</servlet-class>
+    <init-param>
+      <param-name>httpServletRequestValidatorName</param-name>
+      <param-value>campaignCreationHttpServletRequestValidator</param-value>
+    </init-param>
+    <init-param>
+      <param-name>awRequestCreatorName</param-name>
+      <param-value>campaignCreationAwRequestCreator</param-value>
+    </init-param>
+    <init-param>
+      <param-name>controllerName</param-name>
+      <param-value>campaignCreationController</param-value>
+    </init-param>
+    <init-param>
+      <param-name>responseWriterName</param-name>
+      <param-value>campaignCreationResponseWriter</param-value>
+    </init-param>
+    <load-on-startup>1</load-on-startup>
+  </servlet>
+  
+  <servlet-mapping>
+    <servlet-name>CampaignCreationServlet</servlet-name>
+    <url-pattern>/campaign/create</url-pattern>
+  </servlet-mapping>
 
   <!--  Handle data point function queries -->
   <servlet>

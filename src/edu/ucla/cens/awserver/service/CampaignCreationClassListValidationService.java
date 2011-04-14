@@ -39,6 +39,10 @@ public class CampaignCreationClassListValidationService extends AbstractAnnotati
 		
 		try {
 			getDao().execute(awRequest);
+			
+			if(awRequest.isFailedRequest()) {
+				getAnnotator().annotate(awRequest, "Problem with class in list.");
+			}
 		}
 		catch(DataAccessException dae) {
 			throw new ServiceException(dae);

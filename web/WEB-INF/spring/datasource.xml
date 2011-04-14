@@ -20,5 +20,22 @@
     <property name="timeBetweenEvictionRunsMillis" value="3600000" />
     <property name="minEvictableIdleTimeMillis" value="14400000" />
   </bean>
+  
+  <bean id="autocommitDataSource" destroy-method="close" class="org.apache.commons.dbcp.BasicDataSource">
+    <property name="driverClassName" value="${db.driver}"/>
+    <property name="url" value="${db.jdbcurl}"/>
+    <property name="username" value="${db.username}"/>
+    <property name="password" value="${db.password}"/>
+    <property name="defaultAutoCommit" value="true"/>
+    
+    <!-- connection pool props -->
+    <property name="initialSize" value="3"/>
+    <!-- <property name="maxActive" value="20"/> the default is 8, which should be enough for the initial release. -->
+    <!-- the following properties configure the connection pool for handling the freshness of the connections it returns -->
+    <property name="validationQuery" value="SELECT 1" />
+    <property name="testWhileIdle" value="true" />
+    <property name="timeBetweenEvictionRunsMillis" value="3600000" />
+    <property name="minEvictableIdleTimeMillis" value="14400000" />
+  </bean>
 
 </beans>

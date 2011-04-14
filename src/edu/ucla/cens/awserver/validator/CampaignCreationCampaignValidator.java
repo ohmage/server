@@ -38,7 +38,7 @@ public class CampaignCreationCampaignValidator extends AbstractAnnotatingValidat
 	 */
 	@Override
 	public boolean validate(AwRequest awRequest) {
-		_logger.info("Beginning campaign validation.");
+		_logger.info("Validating campaign XML.");
 		
 		CampaignCreationAwRequest request;
 		try {
@@ -46,6 +46,7 @@ public class CampaignCreationCampaignValidator extends AbstractAnnotatingValidat
 		}
 		catch(ClassCastException e) {
 			_logger.error("Attempting to validate a campaign with a non-CampaignCreationAwRequest.", e);
+			awRequest.setFailedRequest(true);
 			return false;
 		}
 
@@ -54,26 +55,37 @@ public class CampaignCreationCampaignValidator extends AbstractAnnotatingValidat
 		} 
 		catch(InvalidParameterException e) {
 			_logger.error("Internal error.");
+			awRequest.setFailedRequest(true);
 			return false;
 		} 
 		catch(ValidityException e) {
-			((FailedJsonRequestAnnotator) getAnnotator()).appendErrorText(" - " + e.getMessage());
+			awRequest.setFailedRequest(true);
+			((FailedJsonRequestAnnotator) getAnnotator()).appendErrorText(" " + e.getMessage());
+			getAnnotator().annotate(awRequest, e.getMessage());
 			return false;
 		} 
 		catch(SAXException e) {
-			((FailedJsonRequestAnnotator) getAnnotator()).appendErrorText(" - " + e.getMessage());
+			awRequest.setFailedRequest(true);
+			((FailedJsonRequestAnnotator) getAnnotator()).appendErrorText(" " + e.getMessage());
+			getAnnotator().annotate(awRequest, e.getMessage());
 			return false;
 		}
 		catch(ParsingException e) {
-			((FailedJsonRequestAnnotator) getAnnotator()).appendErrorText(" - " + e.getMessage());
+			awRequest.setFailedRequest(true);
+			((FailedJsonRequestAnnotator) getAnnotator()).appendErrorText(" " + e.getMessage());
+			getAnnotator().annotate(awRequest, e.getMessage());
 			return false;
 		}
 		catch(IllegalStateException e) {
-			((FailedJsonRequestAnnotator) getAnnotator()).appendErrorText(" - " + e.getMessage());
+			awRequest.setFailedRequest(true);
+			((FailedJsonRequestAnnotator) getAnnotator()).appendErrorText(" " + e.getMessage());
+			getAnnotator().annotate(awRequest, e.getMessage());
 			return false;
 		}
 		catch(IllegalArgumentException e) {
-			((FailedJsonRequestAnnotator) getAnnotator()).appendErrorText(" - " + e.getMessage());
+			awRequest.setFailedRequest(true);
+			((FailedJsonRequestAnnotator) getAnnotator()).appendErrorText(" " + e.getMessage());
+			getAnnotator().annotate(awRequest, e.getMessage());
 			return false;
 		}
 		

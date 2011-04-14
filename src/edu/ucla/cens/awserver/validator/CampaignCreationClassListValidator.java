@@ -42,18 +42,32 @@ public class CampaignCreationClassListValidator extends AbstractAnnotatingValida
 		
 		String classes = request.getCommaSeparatedListOfClasses();
 		if((classes == null) || ("".equals(classes))) {
+			awRequest.setFailedRequest(true);
+			getAnnotator().annotate(awRequest, "Class list is empty.");
 			return false;
 		}
 		
 		try {
 			String[] classList = classes.split(",");
+			if(classList.length == 0) {
+				awRequest.setFailedRequest(true);
+				getAnnotator().annotate(awRequest, "Class list is empty.");
+				return false;
+			}
+
 			for(int i = 0; i < classList.length; i++) {
-				classList[i].startsWith("urn:");
+				if(! classList[i].startsWith("urn:")) {
+					awRequest.setFailedRequest(true);
+					getAnnotator().annotate(awRequest, "Invalid URN in class list: " + classList[i]);
+					return false;
+				}
 			}
 		}
 		catch(NullPointerException e) {
 			// This may be because the last character is a comma, but for now
 			// we will lump this in with the rest and call it an error.
+			awRequest.setFailedRequest(true);
+			getAnnotator().annotate(awRequest, "Weird class list " + classes);
 			return false;
 		}
 		

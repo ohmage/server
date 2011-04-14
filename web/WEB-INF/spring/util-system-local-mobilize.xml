@@ -41,4 +41,13 @@
     <!-- using the default campaignCreationPrivilege, which is true -->
   </util:map>
   
+  <util:list id="campaignRunningStates">
+    <value>running</value>
+    <value>stopped</value>
+  </util:list>
+  
+  <util:list id="campaignPrivacyStates">
+    <value>shared</value>
+    <value>private</value>
+  </util:list>
 </beans>

@@ -37,6 +37,10 @@ public class CampaignCreationContentsValidationService extends AbstractAnnotatin
 		
 		try {
 			getDao().execute(awRequest);
+			
+			if(awRequest.isFailedRequest()) {
+				getAnnotator().annotate(awRequest, "Campaign with the same URN already exists.");
+			}
 		}
 		catch(DataAccessException dae) {
 			throw new ServiceException(dae);

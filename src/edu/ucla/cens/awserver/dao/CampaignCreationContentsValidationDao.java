@@ -15,7 +15,6 @@ import org.apache.log4j.Logger;
 
 import edu.ucla.cens.awserver.request.AwRequest;
 import edu.ucla.cens.awserver.request.CampaignCreationAwRequest;
-import edu.ucla.cens.awserver.service.ServiceException;
 
 public class CampaignCreationContentsValidationDao extends AbstractDao {
 	private static Logger _logger = Logger.getLogger(CampaignCreationContentsValidationDao.class);
@@ -45,7 +44,7 @@ public class CampaignCreationContentsValidationDao extends AbstractDao {
 		}
 		catch(ClassCastException e) {
 			_logger.error("Checking XML contents on a non-CampaignCreationAwRequest object.");
-			throw new ServiceException("Invalid request.");
+			throw new DataAccessException("Invalid request.");
 		}
 		
 		// Now use XOM to retrieve a Document and a root node for further processing. XOM is used because it has a 
@@ -58,17 +57,17 @@ public class CampaignCreationContentsValidationDao extends AbstractDao {
 			// The XML should already have been validated, so this should
 			// never happen.
 			_logger.error("Unable to read XML.", e);
-			throw new ServiceException("XML was unreadable.");
+			throw new DataAccessException("XML was unreadable.");
 		} catch (ValidityException e) {
 			// The XML should already have been validated, so this should
 			// never happen.
 			_logger.error("Invalid XML.", e);
-			throw new ServiceException("XML was invalid.");
+			throw new DataAccessException("XML was invalid.");
 		} catch (ParsingException e) {
 			// The XML should already have been validated, so this should
 			// never happen.
 			_logger.error("Unparcelable XML.", e);
-			throw new ServiceException("XML was unparcelable.");
+			throw new DataAccessException("XML was unparcelable.");
 		}
 		
 		Element root = document.getRootElement();
@@ -78,7 +77,7 @@ public class CampaignCreationContentsValidationDao extends AbstractDao {
 			int others = getJdbcTemplate().queryForInt(SQL, new Object[] { campaignUrn });
 			
 			if(others != 0) {
-				throw new DataAccessException("Campaign already exists.");
+				awRequest.setFailedRequest(true);
 			}
 		}
 		catch(org.springframework.dao.DataAccessException e) {

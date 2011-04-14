@@ -56,6 +56,8 @@ public class CampaignCreationRunningStateValidator extends AbstractAnnotatingVal
 			}
 		}
 		
+		awRequest.setFailedRequest(true);
+		getAnnotator().annotate(awRequest, "Invalid initial running state.");
 		return false;
 	}
 }

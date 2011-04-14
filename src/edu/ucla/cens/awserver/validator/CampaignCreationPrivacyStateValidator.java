@@ -47,6 +47,8 @@ public class CampaignCreationPrivacyStateValidator extends AbstractAnnotatingVal
 			}
 		}
 		
+		awRequest.setFailedRequest(true);
+		getAnnotator().annotate(awRequest, "Invalid initial privacy state.");
 		return false;
 	}
 }
