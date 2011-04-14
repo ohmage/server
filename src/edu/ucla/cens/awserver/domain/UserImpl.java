@@ -150,7 +150,7 @@ public class UserImpl implements User {
 	@Override
 	public String toString() {
 		return "UserImpl [_campaignRoles=" + _campaignRoles + ", _id=" + _id
-				+ ", _loggedIn=" + _loggedIn + ", _password=" + _password
+				+ ", _loggedIn=" + _loggedIn + ", _password=" + "omitted"
 				+ ", _userName=" + _userName + "]";
 	}
 }
