@@ -346,6 +346,40 @@
     <url-pattern>/q/dp</url-pattern>
   </servlet-mapping>
   
+    <!-- Handle user info queries -->
+  <servlet>
+  	<description>
+  	  runs user info queries on the current user or a list of users based on params
+  	</description>
+  	<servlet-name>UserInfoQueryServlet</servlet-name>
+  	<servlet-class>edu.ucla.cens.awserver.jee.servlet.AwDataServlet</servlet-class>
+  	<!-- 
+  		The following init-params are used to map the servlet to Spring-configured beans that ultimately service the request. 
+        The param-value elements are Spring bean ids.    
+    -->
+    <init-param>
+      <param-name>controllerName</param-name>
+      <param-value>userInfoQueryController</param-value>
+    </init-param>
+    <init-param>
+      <param-name>awRequestCreatorName</param-name>
+      <param-value>userInfoQueryAwRequestCreator</param-value>
+    </init-param>
+    <init-param>
+      <param-name>httpServletRequestValidatorName</param-name>
+      <param-value>userInfoQueryHttpServletRequestValidator</param-value>
+    </init-param>
+    <init-param>
+      <param-name>responseWriterName</param-name>
+      <param-value>userInfoQueryResponseWriter</param-value>
+    </init-param>
+    <load-on-startup>1</load-on-startup>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>UserInfoQueryServlet</servlet-name>
+    <url-pattern>/user/read</url-pattern>
+  </servlet-mapping>
+  
   <!--  Handle user stat queries -->
   <servlet>
     <description>

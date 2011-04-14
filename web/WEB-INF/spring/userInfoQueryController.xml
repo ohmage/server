@@ -1,0 +1,57 @@
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
+                           http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-2.5.xsd">
+  <!--  
+     Spring ApplicationContext configuration the data point API 
+  -->
+  
+  <!-- Servlet-to-AW hooks -->
+  <!-- "pre-validate" inbound data -->
+  <bean id="userInfoQueryHttpServletRequestValidator" class="edu.ucla.cens.awserver.jee.servlet.validator.UserInfoQueryValidator" />
+  <!-- create AwRequest from data in the HttpServletRequest -->
+  <bean id="userInfoQueryAwRequestCreator" class="edu.ucla.cens.awserver.jee.servlet.glue.UserInfoQueryAwRequestCreator" />
+  <!-- write outbound data, post-controller -->
+  <bean id="userInfoQueryResponseWriter" class="edu.ucla.cens.awserver.jee.servlet.writer.UserInfoQueryResponseWriter">
+    <constructor-arg index="0"><ref bean="severeErrorResponse" /></constructor-arg>
+  </bean>
+  
+  <!-- Controller -->
+  <bean id="userInfoQueryController" class="edu.ucla.cens.awserver.controller.ControllerImpl">
+    <constructor-arg index="0">
+      <list>
+        <ref bean="tokenBasedAuthenticationService" />
+        <ref bean="userInfoAggregationService" />
+      </list>
+    </constructor-arg>
+    <constructor-arg index="1">
+      <ref bean="serverErrorRequestAnnotator" />
+    </constructor-arg>
+    <property name="validators">
+      <list>
+        <ref bean="userTokenValidator" />
+      </list>      
+    </property>
+    <property name="featureName"><value>user info query</value></property>
+  </bean>
+  
+  <bean id="userInfoAggregationService" class="edu.ucla.cens.awserver.service.UserInfoAggregationService">
+    <constructor-arg index="0">
+      <bean class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
+        <constructor-arg index="0">
+          <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
+            <property name="code" value="0203" />
+            <property name="text" value="insufficient permissions" />
+          </bean>
+        </constructor-arg>
+      </bean>
+    </constructor-arg>
+    <constructor-arg index="1">
+  	  <bean class="edu.ucla.cens.awserver.dao.UserInfoAggregationDao">
+  	    <constructor-arg index="0">
+  	      <ref bean="dataSource"/>
+  	    </constructor-arg>
+  	  </bean>
+    </constructor-arg>
+  </bean>
+</beans>
