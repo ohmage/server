@@ -23,7 +23,7 @@ public class ImageQueryAwRequestCreator implements AwRequestCreator {
 		String userNameRequestParam = request.getParameter("user");
 		String client = request.getParameter("client");
 		String campaignUrn = request.getParameter("campaign_urn");
-		String authToken = request.getParameter("token");
+		String authToken = request.getParameter("auth_token");
 		String imageId = request.getParameter("id");  
 		
 		MediaQueryAwRequest awRequest = new MediaQueryAwRequest();

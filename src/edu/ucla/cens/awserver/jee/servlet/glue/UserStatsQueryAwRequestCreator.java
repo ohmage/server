@@ -20,10 +20,10 @@ public class UserStatsQueryAwRequestCreator implements AwRequestCreator {
 	 * 
 	 */
 	public AwRequest createFrom(HttpServletRequest request) {
-		String userNameRequestParam = request.getParameter("u");
-		String client = request.getParameter("ci");
-		String campaignName = request.getParameter("c");
-		String authToken = request.getParameter("t");
+		String userNameRequestParam = request.getParameter("user");
+		String client = request.getParameter("client");
+		String campaignName = request.getParameter("campaign_urn");
+		String authToken = request.getParameter("auth_token");
 		
 		UserStatsQueryAwRequest awRequest = new UserStatsQueryAwRequest();
 		awRequest.setUserNameRequestParam(userNameRequestParam);

@@ -23,11 +23,11 @@ public class ChunkedMobilityQueryAwRequestCreator implements AwRequestCreator {
 	 */
 	public AwRequest createFrom(HttpServletRequest request) {
 
-		String startDate = request.getParameter("s");
-		String endDate = request.getParameter("e");
-		String userNameRequestParam = request.getParameter("u");
-		String client = request.getParameter("ci");
-		String authToken = request.getParameter("t");
+		String startDate = request.getParameter("start_date");
+		String endDate = request.getParameter("end_date");
+		String userNameRequestParam = request.getParameter("user");
+		String client = request.getParameter("client");
+		String authToken = request.getParameter("auth_token");
 		  
 		
 		MobilityQueryAwRequest awRequest = new MobilityQueryAwRequest();
@@ -37,7 +37,7 @@ public class ChunkedMobilityQueryAwRequestCreator implements AwRequestCreator {
 		awRequest.setUserToken(authToken);
 		awRequest.setClient(client);
 		
-        NDC.push("ci=" + client); // push the client string into the Log4J NDC for the currently executing thread - this means that 
+        NDC.push("client=" + client); // push the client string into the Log4J NDC for the currently executing thread - this means that 
                                   // it will be in every log message for the thread
 
 		return awRequest;

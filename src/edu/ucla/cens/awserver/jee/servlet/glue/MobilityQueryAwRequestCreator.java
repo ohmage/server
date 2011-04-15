@@ -23,19 +23,19 @@ public class MobilityQueryAwRequestCreator implements AwRequestCreator {
 	 */
 	public AwRequest createFrom(HttpServletRequest request) {
 
-		String startDate = request.getParameter("s");
-		String userNameRequestParam = request.getParameter("u");
-		String client = request.getParameter("ci");
-		String authToken = request.getParameter("t");
+		String date = request.getParameter("date");
+		String userNameRequestParam = request.getParameter("user");
+		String client = request.getParameter("client");
+		String authToken = request.getParameter("auth_token");
 		  
 		
 		MobilityQueryAwRequest awRequest = new MobilityQueryAwRequest();
-		awRequest.setStartDate(startDate);
+		awRequest.setStartDate(date);
 		awRequest.setUserNameRequestParam(userNameRequestParam);
 		awRequest.setUserToken(authToken);
 		awRequest.setClient(client);
 		
-        NDC.push("ci=" + client); // push the client string into the Log4J NDC for the currently executing thread - this means that 
+        NDC.push("client=" + client); // push the client string into the Log4J NDC for the currently executing thread - this means that 
                                   // it will be in every log message for the thread
 
 		return awRequest;
