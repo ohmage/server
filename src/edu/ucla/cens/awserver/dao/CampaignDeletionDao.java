@@ -108,12 +108,16 @@ public class CampaignDeletionDao extends AbstractDao {
 		// Delete the campaign which will cause a cascade of deletes.
 		if(doIt) {
 			try {
+				_logger.info("Deleting campaign " + urn + ".");
 				getJdbcTemplate().update(SQL_DELETE_CAMPAIGN, new Object[] { urn });
 			}
 			catch(org.springframework.dao.DataAccessException dae) {
 				_logger.error("Error executing SQL '" + SQL_DELETE_CAMPAIGN + "' with parameterr: " + urn, dae);
 				throw new DataAccessException(dae);
 			}
+		}
+		else {
+			awRequest.setFailedRequest(true);
 		}
 	}
 }
