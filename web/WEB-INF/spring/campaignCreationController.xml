@@ -20,7 +20,9 @@
   
   <!-- Write the Response -->
   <bean id="campaignCreationResponseWriter" class="edu.ucla.cens.awserver.jee.servlet.writer.CampaignCreationResponseWriter">
-    <constructor-arg index="0"><ref bean="campaignCreationErrorResponse" /></constructor-arg>
+    <constructor-arg index="0">
+      <ref bean="campaignCreationErrorResponse" />
+    </constructor-arg>
   </bean>
   
   <!-- Specific Error Response to This Request -->

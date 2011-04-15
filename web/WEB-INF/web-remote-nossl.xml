@@ -509,6 +509,37 @@
     <url-pattern>/campaign/create</url-pattern>
   </servlet-mapping>
   
+  <!-- Handle campaign deletion -->
+  <servlet>
+    <description>
+      Deletes a campaign from the server.
+    </description>
+    <servlet-name>CampaignDeletionServlet</servlet-name>
+    <servlet-class>edu.ucla.cens.awserver.jee.servlet.AwDataServlet</servlet-class>
+    <init-param>
+      <param-name>httpServletRequestValidatorName</param-name>
+      <param-value>campaignDeletionHttpServletRequestValidator</param-value>
+    </init-param>
+    <init-param>
+      <param-name>awRequestCreatorName</param-name>
+      <param-value>campaignDeletionAwRequestCreator</param-value>
+    </init-param>
+    <init-param>
+      <param-name>controllerName</param-name>
+      <param-value>campaignDeletionController</param-value>
+    </init-param>
+    <init-param>
+      <param-name>responseWriterName</param-name>
+      <param-value>campaignDeletionResponseWriter</param-value>
+    </init-param>
+    <load-on-startup>1</load-on-startup>
+  </servlet>
+  
+  <servlet-mapping>
+    <servlet-name>CampaignDeletionServlet</servlet-name>
+    <url-pattern>/campaign/delete</url-pattern>
+  </servlet-mapping>
+  
   <!--  Handle data point function queries -->
   <servlet>
     <description>

@@ -17,16 +17,16 @@ import edu.ucla.cens.awserver.request.CampaignCreationAwRequest;
 public class CampaignCreationClassListValidationDao extends AbstractDao {
 	private static Logger _logger = Logger.getLogger(CampaignCreationClassListValidationDao.class);
 	
-	private static final String SQL_CLASS_COUNT = "SELECT count(*)" +
-												  " FROM class" +
-												  " WHERE urn=?";
+	private static final String SQL_CLASS_COUNT = "SELECT count(*) " +
+												  "FROM class " +
+												  "WHERE urn=?";
 	
-	private static final String SQL_USER_IN_CLASS = "SELECT count(*)" +
-													" FROM user u, class c, user_class uc" +
-													" WHERE c.urn=?" +
-													" AND u.login_id=?" +
-													" AND c.id = uc.class_id" +
-													" AND u.id = uc.user_id";
+	private static final String SQL_USER_IN_CLASS = "SELECT count(*) " +
+													"FROM user u, class c, user_class uc " +
+													"WHERE c.urn=? " +
+													"AND u.login_id=? " +
+													"AND c.id = uc.class_id " +
+													"AND u.id = uc.user_id";
 	
 	/**
 	 * Sets up the data source for this DAO.
@@ -57,12 +57,27 @@ public class CampaignCreationClassListValidationDao extends AbstractDao {
 		String[] classes = request.getCommaSeparatedListOfClasses().split(",");
 		String userLogin = request.getUser().getUserName();
 		for(int i = 0; i < classes.length; i++) {
-			int numClasses = getJdbcTemplate().queryForInt(SQL_CLASS_COUNT, new Object[] { classes[i] });
-			int userBelongs = getJdbcTemplate().queryForInt(SQL_USER_IN_CLASS, new Object [] { classes[i], userLogin });
+			int numClasses;
+			try {
+				numClasses = getJdbcTemplate().queryForInt(SQL_CLASS_COUNT, new Object[] { classes[i] });
+			}
+			catch(org.springframework.dao.DataAccessException dae) {
+				_logger.error("Error executing SQL '" + SQL_CLASS_COUNT + "' with parameter: " + classes[i], dae);
+				throw new DataAccessException(dae);
+			}
 			if(numClasses == 0) {
 				awRequest.setFailedRequest(true);
 			}
-			else if(userBelongs == 0) {
+			
+			int userBelongs;
+			try {
+				userBelongs = getJdbcTemplate().queryForInt(SQL_USER_IN_CLASS, new Object [] { classes[i], userLogin });
+			}
+			catch(org.springframework.dao.DataAccessException dae) {
+				_logger.error("Error executing SQL '" + SQL_USER_IN_CLASS + "' with parameters: " + classes[i] + ", " + userLogin, dae);
+				throw new DataAccessException(dae);
+			}
+			if(userBelongs == 0) {
 				awRequest.setFailedRequest(true);
 			}
 		}

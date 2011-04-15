@@ -4,6 +4,7 @@ import java.util.List;
 
 import javax.sql.DataSource;
 
+import org.apache.log4j.Logger;
 import org.springframework.jdbc.core.SingleColumnRowMapper;
 
 import edu.ucla.cens.awserver.request.AwRequest;
@@ -14,7 +15,7 @@ import edu.ucla.cens.awserver.request.AwRequest;
  * @author John Jenkins
  */
 public class CampaignCreationValidationDao extends AbstractDao {
-	//private static Logger _logger = Logger.getLogger(CampaignCreationValidationDao.class);
+	private static Logger _logger = Logger.getLogger(CampaignCreationValidationDao.class);
 	
 	private static final String SQL = "SELECT campaign_creation_privilege" +
 									  " FROM user" +
@@ -39,7 +40,14 @@ public class CampaignCreationValidationDao extends AbstractDao {
 		String username = awRequest.getUser().getUserName();
 
 		@SuppressWarnings("rawtypes")
-		List result = getJdbcTemplate().query(SQL, new Object[] { username }, new SingleColumnRowMapper());
+		List result;
+		try {
+			result = getJdbcTemplate().query(SQL, new Object[] { username }, new SingleColumnRowMapper());
+		}
+		catch(org.springframework.dao.DataAccessException dae) {
+			_logger.error("Error executing SQL '" + SQL + "' with parameter: " + username, dae);
+			throw new DataAccessException(dae);
+		}
 		
 		if(! ((Boolean) result.get(0))) {
 			awRequest.setFailedRequest(true);

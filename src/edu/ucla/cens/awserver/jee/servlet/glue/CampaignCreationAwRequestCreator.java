@@ -7,6 +7,12 @@ import org.apache.log4j.Logger;
 import edu.ucla.cens.awserver.request.AwRequest;
 import edu.ucla.cens.awserver.request.CampaignCreationAwRequest;
 
+/**
+ * Creates a new CampaignCreationAwRequest object for handling the rest of the
+ * request.
+ * 
+ * @author John Jenkins
+ */
 public class CampaignCreationAwRequestCreator implements AwRequestCreator {
 	private static Logger _logger = Logger.getLogger(CampaignCreationAwRequestCreator.class);
 
@@ -14,11 +20,13 @@ public class CampaignCreationAwRequestCreator implements AwRequestCreator {
 	 * Default constructor.
 	 */
 	public CampaignCreationAwRequestCreator() {
-		
+		// Does nothing.
 	}
 	
 	/**
-	 * 
+	 * Gets the CampaignCreationAwRequest object out of the request where it
+	 * was stashed during HTTP validation to prevent us from parsing the XML
+	 * twice.
 	 */
 	@Override
 	public AwRequest createFrom(HttpServletRequest request) {

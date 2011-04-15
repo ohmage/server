@@ -14,30 +14,32 @@ import edu.ucla.cens.awserver.domain.ErrorResponse;
 import edu.ucla.cens.awserver.request.AwRequest;
 
 /**
- * Writer for the response to a campaign creation request.
+ * Writes the response to the request.
  * 
  * @author John Jenkins
  */
-public class CampaignCreationResponseWriter extends AbstractResponseWriter {
-	private static Logger _logger = Logger.getLogger(CampaignCreationResponseWriter.class);
-	
-	/**
-	 * Sets up the writer with an error response if it fails.
-	 * 
-	 * @param errorResponse The response if there is a failure.
-	 */
-	public CampaignCreationResponseWriter(ErrorResponse errorResponse) {
-		super(errorResponse);
-	}
+public class CampaignDeletionResponseWriter extends AbstractResponseWriter {
+	private static Logger _logger = Logger.getLogger(CampaignDeletionResponseWriter.class);
 
 	/**
-	 * Writes out the response to the request. If there was a problem, it will
-	 * write out an error message. If everything succeeded, it will write out
-	 * the new campaign's identifier.
+	 * Basic constructor that sets up the default error response.
+	 * 
+	 * @param errorResponse The error response to signal if no other error
+	 * 						response is available.
+	 */
+	public CampaignDeletionResponseWriter(ErrorResponse errorResponse) {
+		super(errorResponse);
+	}
+	
+	/**
+	 * Writes the response. If successful, it will write the success message.
+	 * If it is a failure, it will check to see if a more specific message is
+	 * available. If so it will use that; otherwise it will use the one it got
+	 * from its constructor.
 	 */
 	@Override
 	public void write(HttpServletRequest request, HttpServletResponse response, AwRequest awRequest) {
-		_logger.info("Writing campaign creation response.");
+		_logger.info("Writing campaign deletion response.");
 		
 		Writer writer;
 		try {
