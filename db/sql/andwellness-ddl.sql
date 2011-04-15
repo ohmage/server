@@ -138,7 +138,7 @@ CREATE TABLE survey_response (
   msg_timestamp datetime NOT NULL,
   epoch_millis bigint unsigned NOT NULL, 
   phone_timezone varchar(32) NOT NULL,
-  survey_id varchar(250) NOT NULL,    -- a survey id as defined in a configuration at the XPath //surveyId
+  survey_id varchar(250) NOT NULL,    -- a survey id as defined in a campaign at the XPath //surveyId
   survey text NOT NULL,               -- the max length for text is 21843 UTF-8 chars
   launch_context text,                -- trigger and other data
   location_status tinytext NOT NULL,  -- one of: unavailable, valid, stale, inaccurate 
@@ -149,7 +149,7 @@ CREATE TABLE survey_response (
   PRIMARY KEY (id),
   INDEX (user_id, campaign_id),
   INDEX (user_id, upload_timestamp),
-  UNIQUE (user_id, survey_id, epoch_millis), -- handle duplicate survey uploads
+  UNIQUE (campaign_id, user_id, survey_id, epoch_millis), -- handle duplicate survey uploads
   CONSTRAINT FOREIGN KEY (user_id) REFERENCES user (id) ON DELETE CASCADE ON UPDATE CASCADE,    
   CONSTRAINT FOREIGN KEY (campaign_id) REFERENCES campaign (id) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
