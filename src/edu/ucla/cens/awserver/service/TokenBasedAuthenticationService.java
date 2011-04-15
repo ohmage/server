@@ -29,6 +29,8 @@ public class TokenBasedAuthenticationService extends AbstractAnnotatingService {
 	 */
 	@Override
 	public void execute(AwRequest awRequest) {
+		_logger.info("Attempting to authenticate token.");
+		
 		String token = awRequest.getUserToken();
 		User user =  _userBin.getUser(token);
 		

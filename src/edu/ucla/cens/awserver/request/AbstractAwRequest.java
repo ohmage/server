@@ -80,7 +80,7 @@ public abstract class AbstractAwRequest implements AwRequest {
 	****/
 
 	public String getCampaignUrn() {
-		throw new UnsupportedOperationException("it is illegal to invoke getCampaignName() on this instance");	
+		throw new UnsupportedOperationException("it is illegal to invoke getCampaignUrn() on this instance");	
 	}
 	
 	public int getCurrentMessageIndex() {

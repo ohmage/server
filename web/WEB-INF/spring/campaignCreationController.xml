@@ -1,0 +1,199 @@
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:util="http://www.springframework.org/schema/util"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
+                           http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-2.5.xsd">
+  <!--  
+     Spring ApplicationContext configuration for mobility data upload 
+  -->
+
+  <!-- Basic HTTP Validation -->
+  <bean id="campaignCreationHttpServletRequestValidator" class="edu.ucla.cens.awserver.jee.servlet.validator.CampaignCreationValidator">
+    <!-- Read the XML file. -->
+    <constructor-arg index="0"><ref bean="diskItemFileFactory" /></constructor-arg>
+    <!-- The maximum size in bytes of a request's file attachment. -->
+    <constructor-arg index="1"><value>2097152</value></constructor-arg>
+  </bean>
+  
+  <!-- Create the AwRequest Object -->
+  <bean id="campaignCreationAwRequestCreator" class="edu.ucla.cens.awserver.jee.servlet.glue.CampaignCreationAwRequestCreator" />
+  
+  <!-- Write the Response -->
+  <bean id="campaignCreationResponseWriter" class="edu.ucla.cens.awserver.jee.servlet.writer.CampaignCreationResponseWriter">
+    <constructor-arg index="0">
+      <ref bean="campaignCreationErrorResponse" />
+    </constructor-arg>
+  </bean>
+  
+  <!-- Specific Error Response to This Request -->
+  <bean id="campaignCreationErrorResponse" class="edu.ucla.cens.awserver.domain.ErrorResponse">
+    <property name="code" value="0801" />
+    <property name="text" value="Campaign creation failed." />
+  </bean>
+  
+  <!-- Controller Definition -->
+  <bean id="campaignCreationController" class="edu.ucla.cens.awserver.controller.ControllerImpl">
+    <constructor-arg index="0">
+      <!-- Services List (expected to be executed in-order) -->
+      <list>
+        <!-- Authenticate that the token the user is using is a valid token. -->
+        <ref bean="tokenBasedAuthenticationService" />
+        <ref bean="campaignCreationValidationService" />
+        <ref bean="campaignCreationClassListValidationService" />
+        <ref bean="campaignCreationContentsValidationService" />
+        <ref bean="campaignCreationService" />
+      </list>
+    </constructor-arg>
+    <constructor-arg index="1">
+      <!-- The annotator for when something fails after validation but before the writer. -->
+      <ref bean="serverErrorRequestAnnotator" />
+    </constructor-arg>
+    <property name="validators">
+      <!-- Validates the individual items in the request. -->
+      <list>
+        <ref bean="userTokenValidator" />
+        <ref bean="campaignCreationRunningStateValidator" />
+        <ref bean="campaignCreationPrivacyStateValidator" />
+        <ref bean="campaignCreationClassListValidator" />
+        <ref bean="campaignCreationCampaignValidator" />
+      </list>
+    </property>
+    <property name="featureName"><value>campaign creation</value></property>
+  </bean>
+  
+  <!-- Controller's Beans Definitions -->
+  <bean id="campaignCreationRunningStateValidator" class="edu.ucla.cens.awserver.validator.CampaignCreationRunningStateValidator">
+    <constructor-arg index="0">
+      <bean class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
+        <constructor-arg index="0">
+          <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
+            <property name="code" value="0802" />
+            <property name="text" value="Invalid initial running state." />
+          </bean>
+        </constructor-arg>
+      </bean>
+    </constructor-arg>
+    <constructor-arg index="1">
+      <ref bean="campaignRunningStates"/>
+    </constructor-arg>
+  </bean>
+  
+  <bean id="campaignCreationPrivacyStateValidator" class="edu.ucla.cens.awserver.validator.CampaignCreationPrivacyStateValidator">
+    <constructor-arg index="0">
+      <bean class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
+        <constructor-arg index="0">
+          <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
+            <property name="code" value="0803" />
+            <property name="text" value="Invalid initial privacy state." />
+          </bean>
+        </constructor-arg>
+      </bean>
+    </constructor-arg>
+    <constructor-arg index="1">
+      <ref bean="campaignPrivacyStates"/>
+    </constructor-arg>
+  </bean>
+  
+  <bean id="campaignCreationCampaignValidator" class="edu.ucla.cens.awserver.validator.CampaignCreationCampaignValidator">
+    <constructor-arg index="0">
+      <bean class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
+        <constructor-arg index="0">
+          <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
+            <property name="code" value="0804" />
+            <property name="text" value="Invalid campaign XML." />
+          </bean>
+        </constructor-arg>
+      </bean>
+    </constructor-arg>
+    <constructor-arg index="1">
+      <bean class="org.andwellness.config.xml.CampaignValidator" />
+    </constructor-arg>
+    <constructor-arg index="2">
+      <value>/opt/aw/conf/configuration.xsd</value>
+    </constructor-arg>
+  </bean>
+  
+  <bean id="campaignCreationClassListValidator" class="edu.ucla.cens.awserver.validator.CampaignCreationClassListValidator">
+    <constructor-arg index="0">
+      <bean class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
+        <constructor-arg index="0">
+          <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
+            <property name="code" value="0805" />
+            <property name="text" value="Invalid initial class list." />
+          </bean>
+       </constructor-arg>
+      </bean>
+    </constructor-arg>
+  </bean>
+  
+  <bean id="campaignCreationValidationService" class="edu.ucla.cens.awserver.service.CampaignCreationValidationService">
+    <constructor-arg index="0">
+      <bean class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
+        <constructor-arg index="0">
+          <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
+            <property name="code" value="0204" />
+            <property name="text" value="Insufficient permissions to create a campaign." />
+          </bean>
+       </constructor-arg>
+      </bean>
+    </constructor-arg>
+    <constructor-arg index="1">
+      <bean class="edu.ucla.cens.awserver.dao.CampaignCreationValidationDao">
+        <constructor-arg index="0">
+          <ref bean="dataSource"/>
+        </constructor-arg>
+      </bean>
+    </constructor-arg>
+  </bean>
+  
+  <bean id="campaignCreationContentsValidationService" class="edu.ucla.cens.awserver.service.CampaignCreationContentsValidationService">
+    <constructor-arg index="0">
+      <bean class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
+        <constructor-arg index="0">
+          <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
+            <property name="code" value="0804" />
+            <property name="text" value="Campaign already exists." />
+          </bean>
+       </constructor-arg>
+      </bean>
+    </constructor-arg>
+    <constructor-arg index="1">
+      <bean class="edu.ucla.cens.awserver.dao.CampaignCreationContentsValidationDao">
+        <constructor-arg index="0">
+          <ref bean="dataSource"/>
+        </constructor-arg>
+      </bean>
+    </constructor-arg>
+  </bean>
+  
+  <bean id="campaignCreationClassListValidationService" class="edu.ucla.cens.awserver.service.CampaignCreationClassListValidationService">
+    <constructor-arg index="0">
+      <bean class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
+        <constructor-arg index="0">
+          <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
+            <property name="code" value="0805" />
+            <property name="text" value="Invalid class list in campaign creation." />
+          </bean>
+       </constructor-arg>
+      </bean>
+    </constructor-arg>
+    <constructor-arg index="1">
+      <bean class="edu.ucla.cens.awserver.dao.CampaignCreationClassListValidationDao">
+        <constructor-arg index="0">
+          <ref bean="dataSource"/>
+        </constructor-arg>
+      </bean>
+    </constructor-arg>
+  </bean>
+  
+  <bean id="campaignCreationService" class="edu.ucla.cens.awserver.service.SimpleQueryService">
+    <constructor-arg index="0">
+      <bean class="edu.ucla.cens.awserver.dao.CampaignCreationDao">
+        <constructor-arg index="0">
+          <ref bean="autocommitDataSource"/>
+        </constructor-arg>
+      </bean>
+    </constructor-arg>
+  </bean>
+  
+</beans>

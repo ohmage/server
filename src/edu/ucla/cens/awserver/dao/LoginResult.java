@@ -7,8 +7,8 @@ package edu.ucla.cens.awserver.dao;
  */
 public class LoginResult {
 //	private int _campaignId;
-	private String _campaignUrn;
-	private int _userRoleId;
+//	private String _campaignUrn;
+//	private int _userRoleId;
 	private int _userId;
 	private boolean _enabled;
 	private boolean _new;
@@ -43,7 +43,7 @@ public class LoginResult {
 		_new = bnew;
 	}
 	
-	public int getUserRoleId() {
+/*	public int getUserRoleId() {
 		return _userRoleId;
 	}
 	
@@ -57,5 +57,5 @@ public class LoginResult {
 	
 	public void setCampaignUrn(String campaignUrn) {
 		_campaignUrn = campaignUrn;
-	}
+	}*/
 }

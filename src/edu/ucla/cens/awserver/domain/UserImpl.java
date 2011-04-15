@@ -20,6 +20,7 @@ public class UserImpl implements User {
 	
 	public UserImpl() {
 		_id = -1;
+		_campaignRoles = new HashMap<String, List<Integer>>();
 	}
 	
 	/**
@@ -32,7 +33,10 @@ public class UserImpl implements User {
 		_id = user.getId();
 		_userName = user.getUserName();
 		_campaignRoles = new HashMap<String, List<Integer>>();
-		_campaignRoles.putAll(user.getCampaignRoles()); // shallow copy ok because once a user is created it is read-only in practice 
+		// Authentication no longer sets the user roles on the user, so the users
+		// are added to the bin with no roles. It is the responsibility of application
+		// flows that require knowledge of the user's role to obtain them at runtime.
+		_campaignRoles.putAll(user.getCampaignRoles()); // shallow copy ok because once a user is created it is read-only in practice
 		_loggedIn = user.isLoggedIn();
 	}
 	

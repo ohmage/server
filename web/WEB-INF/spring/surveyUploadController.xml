@@ -25,6 +25,7 @@
         <!-- authenticate -->
         <ref bean="authWithHashedPasswordService" />
         <!-- authorize -->
+        <ref bean="userRoleCampaignPopulationService" />
         <ref bean="userCampaignValidationService" />
         <!-- validate their upload -->
         <!-- JSON validation: deep specification validation -->
@@ -57,6 +58,26 @@
       </bean>
     </property>
     <property name="featureName"><value>survey upload</value></property>
+  </bean>
+  
+  <bean id="userRoleCampaignPopulationService" class="edu.ucla.cens.awserver.service.UserRoleCampaignPopulationService">
+    <constructor-arg index="0">
+      <bean class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
+        <constructor-arg index="0">
+           <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
+            <property name="code" value="0205" />
+            <property name="text" value="User doesn't belong to any campaigns." />
+          </bean>
+        </constructor-arg>
+      </bean>
+    </constructor-arg>
+    <constructor-arg index="1">
+      <bean class="edu.ucla.cens.awserver.dao.UserRoleCampaignPopulationDao">
+        <constructor-arg index="0">
+          <ref bean="dataSource" />
+        </constructor-arg>
+      </bean>
+    </constructor-arg>
   </bean>
   
   <bean id="userCampaignValidationService" class="edu.ucla.cens.awserver.service.UserCampaignValidationService">
