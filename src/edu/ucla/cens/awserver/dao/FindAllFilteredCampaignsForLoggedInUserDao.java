@@ -10,7 +10,6 @@ import java.util.Map;
 import javax.sql.DataSource;
 
 import org.apache.log4j.Logger;
-import org.springframework.jdbc.core.SingleColumnRowMapper;
 
 import edu.ucla.cens.awserver.domain.CampaignUrnUserRole;
 import edu.ucla.cens.awserver.request.AwRequest;
@@ -64,16 +63,26 @@ public class FindAllFilteredCampaignsForLoggedInUserDao extends AbstractDao {
 			
 			for(CampaignUrnUserRole cuur : campaignUrnUserRoleList) {
 
-				if(! req.getCampaignUrnList().isEmpty() && ! req.getCampaignUrnList().contains(cuur.getUrn())) {
+				if(req.getCampaignUrnList().isEmpty() 
+					|| (! req.getCampaignUrnList().isEmpty() && ! req.getCampaignUrnList().contains(cuur.getUrn()))) {
 				
 					if(! urnRoleMap.containsKey(cuur.getUrn())) {
 						List<String> roleList = new ArrayList<String>();
-						if(null != req.getUserRole() && ! req.getUserRole().equals(cuur.getRole())) {
+						
+						if(null == req.getUserRole() 
+							|| (null != req.getUserRole() && ! req.getUserRole().equals(cuur.getRole()))) {
+							
+							_logger.info("adding to role list: " + cuur.getRole());
 							roleList.add(cuur.getRole());
 						}
+						
 						urnRoleMap.put(cuur.getUrn(), roleList);
+						
 					} else {
-						if(null != req.getUserRole() && ! req.getUserRole().equals(cuur.getRole())) {
+						
+						if(null == req.getUserRole() 
+							|| (null != req.getUserRole() && ! req.getUserRole().equals(cuur.getRole()))) {
+						
 							urnRoleMap.get(cuur.getUrn()).add(cuur.getRole());
 						}
 					}
@@ -88,13 +97,15 @@ public class FindAllFilteredCampaignsForLoggedInUserDao extends AbstractDao {
 					numberOfEmptyLists++;
 				}
 			}
-			if(numberOfEmptyLists == (urnRoleMap.size() - 1)) {
+			if(numberOfEmptyLists > 0 && numberOfEmptyLists == (urnRoleMap.size() - 1)) {
 				awRequest.setResultList(Collections.emptyList());
 				return;
 			}
 			
 			// Now generate the SQL based on each campaign URN and the user's most permissive role for that URN.
 			// For the purposes here, both author and supervisor have the maximum permission against running_state and privacy_state
+			// Should this logic be changed to a very simple SQL statement that retrieves all campaigns for the current user
+			// and then does an in-memory filter based on the params and logged-in user's role in each campaign returned?
 			
 			iterator = urnRoleMap.keySet().iterator();
 			while(iterator.hasNext()) {
@@ -131,7 +142,7 @@ public class FindAllFilteredCampaignsForLoggedInUserDao extends AbstractDao {
 					
 					if("stopped".equals(runningState)) {
 						// participants cannot view stopped campaigm
-						if(roles.contains("analyst") && roles.size() == 1) {
+						if(roles.contains("participant") && roles.size() == 1) {
 							continue;
 						}
 					}
@@ -151,13 +162,16 @@ public class FindAllFilteredCampaignsForLoggedInUserDao extends AbstractDao {
 					
 				}
 				
-				awRequest.setResultList(
-					getJdbcTemplate().query(
-						sql.toString(), 
-						new Object[] { awRequest.getUser().getUserName() },
-						new SingleColumnRowMapper()
-					)
-				);
+				_logger.info("about to run the following SQL: " + sql.toString());
+				_logger.info("with the following p list:" + pList);
+				
+//				awRequest.setResultList(
+//					getJdbcTemplate().query(
+//						sql.toString(), 
+//						new Object[] { awRequest.getUser().getUserName() },
+//						new SingleColumnRowMapper()
+//					)
+//				);
 			}
 			
 		}	

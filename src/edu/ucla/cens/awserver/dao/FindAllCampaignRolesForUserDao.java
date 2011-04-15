@@ -44,11 +44,11 @@ public class FindAllCampaignRolesForUserDao extends AbstractDao {
 									 : new Object[] { awRequest.getUserNameRequestParam() },
 					new RowMapper() { 
 						public Object mapRow(ResultSet rs, int rowNum) throws SQLException {
-							CampaignUrnUserRole cuuri = new CampaignUrnUserRole();
-							cuuri.setRole(rs.getString(1));
-							cuuri.setUrn(rs.getString(2));
-							_logger.info(cuuri);
-							return cuuri;
+							CampaignUrnUserRole cuur = new CampaignUrnUserRole();
+							cuur.setRole(rs.getString(1));
+							cuur.setUrn(rs.getString(2));
+							_logger.info(cuur);
+							return cuur;
 						}
 					}
 				)

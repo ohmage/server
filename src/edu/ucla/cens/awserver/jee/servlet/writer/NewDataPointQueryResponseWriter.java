@@ -75,6 +75,7 @@ public class NewDataPointQueryResponseWriter extends AbstractResponseWriter {
 			// Set the content type
 			if("csv".equals(req.getOutputFormat())) {
 				response.setContentType("text/csv");
+				response.setHeader("Content-Disposition", "attachment; f.txt");
 			} else {
 				response.setContentType("application/json");
 			}

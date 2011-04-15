@@ -1,7 +1,5 @@
 package edu.ucla.cens.awserver.validator;
 
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 
@@ -12,16 +10,18 @@ import edu.ucla.cens.awserver.util.ReflectionUtils;
 import edu.ucla.cens.awserver.util.StringUtils;
 
 /**
- * Reflection-based Validator for AwRequest date attributes.
+ * Poorly named class that uses the toValidate Map in the AwRequest to retrieve dates to validate.
  * 
  * @author selsky
  * @see java.text.SimpleDateFormat
+ * @see DateValidator
  */
-public class DateValidator extends AbstractAnnotatingValidator {
-	private static Logger _logger = Logger.getLogger(DateValidator.class);
-	private Method _dateAccessorMethod;
+public class DateInMapValidator extends AbstractAnnotatingValidator {
+	private static Logger _logger = Logger.getLogger(DateInMapValidator.class);
+	private String _key;
 	private String _dateFormat;
 	private String _errorMessage;
+	private boolean _required;
 	
 	/**
 	 * @throws IllegalArgumentException if the provided key is null, empty, or all whitespace
@@ -30,7 +30,7 @@ public class DateValidator extends AbstractAnnotatingValidator {
 	 * @throws IllegalArgumentException if the key does not represent an AwRequest attribute
 	 * @see ReflectionUtils#getAccessorMethod(Class, String)
 	 */
-	public DateValidator(AwRequestAnnotator annotator, String key, String format) {
+	public DateInMapValidator(AwRequestAnnotator annotator, String key, String format, boolean required) {
 		super(annotator);
 		if(StringUtils.isEmptyOrWhitespaceOnly(key)) {
 			throw new IllegalArgumentException("a key is required");
@@ -39,53 +39,49 @@ public class DateValidator extends AbstractAnnotatingValidator {
 			throw new IllegalArgumentException("a format is required");
 		}
 		
-		_dateAccessorMethod = ReflectionUtils.getAccessorMethod(AwRequest.class, key);
-		
 		// Create a new SimpleDateFormat to just throw it away
 		// The reason this is done is because SimpleDateFormat is not synchronized 
 		new SimpleDateFormat(format);
 		_dateFormat = format;
+		_key = key;
+		_required = required;
 	}
 	
 	/**
-	 * Uses the key provided on construction to retrieve a date value from the AwRequest. Uses the format (as a SimpleDateFormat)
-	 * to parse the date value.
-	 * 
 	 * @return true if the date is valid for the format
 	 * @false otherwise
-	 * @throws ValidatorException if the accessor method invoked on the AwRequest throws an Exception
-	 * @throws ValidatorException if the accessor method enforces Java language access control and the underlying method is inaccessible 
 	 */
 	public boolean validate(AwRequest awRequest) {
-		String stringDate = null;
-		
-		try {
-			
-			stringDate = (String) _dateAccessorMethod.invoke(awRequest);
-			
-		} catch(InvocationTargetException ite) {
-			
-			throw new ValidatorException(ite);
-			
-		} catch(IllegalAccessException iae) {
-			
-			throw new ValidatorException(iae);
+		if(null == awRequest.getToValidate()) {
+			throw new IllegalArgumentException("missing required toValidate Map in AwRequest");
 		}
 		
-		try {
+		String value = (String) awRequest.getToValidate().get(_key);
+		
+		if(_required) {
+			if(StringUtils.isEmptyOrWhitespaceOnly(value)) {
+				getAnnotator().annotate(awRequest, _errorMessage);
+				return false;
+			}	
+		}
+		
+		if(null != value) { // validate the content
 			
-			SimpleDateFormat formatter = new SimpleDateFormat(_dateFormat);
-			formatter.setLenient(false);
-			formatter.parse(stringDate);
-			
-		} catch (ParseException pe) {
-			
-			if(_logger.isDebugEnabled()) {
-				_logger.debug("invalid date: " + stringDate);
+			try {
+				
+				SimpleDateFormat formatter = new SimpleDateFormat(_dateFormat);
+				formatter.setLenient(false);
+				formatter.parse(value);
+				
+			} catch (ParseException pe) {
+				
+				if(_logger.isDebugEnabled()) {
+					_logger.debug("invalid date: " + value);
+				}
+				
+				getAnnotator().annotate(awRequest, _errorMessage);
+				return false;
 			}
-			
-			getAnnotator().annotate(awRequest, _errorMessage);
-			return false;
 		}
 		
 		return true;
