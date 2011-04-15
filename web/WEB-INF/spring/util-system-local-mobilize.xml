@@ -50,8 +50,6 @@
     <value>shared</value>
     <value>private</value>
   </util:list>
-<<<<<<< HEAD
-=======
   
   <!-- this is a temporary hack to allow validation of user roles that are sent as post query parameters -->
   <util:list id="userRoles">
@@ -61,5 +59,4 @@
     <value>supervisor</value>
   </util:list>
   
->>>>>>> andwellness-2.2
 </beans>
