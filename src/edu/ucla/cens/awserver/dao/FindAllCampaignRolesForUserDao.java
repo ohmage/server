@@ -36,6 +36,9 @@ public class FindAllCampaignRolesForUserDao extends AbstractDao {
 	
 	@Override
 	public void execute(AwRequest awRequest) {
+		_logger.info("lookup up campaign roles for " + 
+			(_useLoggedInUser ? awRequest.getUser().getUserName() : awRequest.getUserNameRequestParam()));
+		
 		try {
 			awRequest.setResultList(
 				getJdbcTemplate().query(
@@ -47,7 +50,7 @@ public class FindAllCampaignRolesForUserDao extends AbstractDao {
 							CampaignUrnUserRole cuur = new CampaignUrnUserRole();
 							cuur.setRole(rs.getString(1));
 							cuur.setUrn(rs.getString(2));
-							_logger.info(cuur);
+							// _logger.info(cuur);
 							return cuur;
 						}
 					}

@@ -1,5 +1,7 @@
 package edu.ucla.cens.awserver.dao;
 
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -10,7 +12,9 @@ import java.util.Map;
 import javax.sql.DataSource;
 
 import org.apache.log4j.Logger;
+import org.springframework.jdbc.core.RowMapper;
 
+import edu.ucla.cens.awserver.domain.CampaignQueryResult;
 import edu.ucla.cens.awserver.domain.CampaignUrnUserRole;
 import edu.ucla.cens.awserver.request.AwRequest;
 import edu.ucla.cens.awserver.request.RetrieveCampaignAwRequest;
@@ -23,17 +27,16 @@ import edu.ucla.cens.awserver.util.StringUtils;
  */
 public class FindAllFilteredCampaignsForLoggedInUserDao extends AbstractDao {
 	private static Logger _logger = Logger.getLogger(FindAllFilteredCampaignsForLoggedInUserDao.class);
-//	private boolean _useLoggedInUser;
+	
+//	private String _select = "SELECT urn, name, description, xml, running_state, privacy_state, creation_timestamp " +
+//			                 "FROM campaign " +
+//			                 "WHERE urn = ? ";
 	
 	private String _select = "SELECT urn, name, description, xml, running_state, privacy_state, creation_timestamp " +
-			                 "FROM campaign " +
-			                 "WHERE urn = ? ";
-	
-	private String _selectWithClass = "SELECT urn, name, description, xml, running_state, privacy_state, creation_timestamp " +
-                                      "FROM campaign c, campaign_class cc, class css" +
-                                      "WHERE cc.class_id = css.id " +
-                                      "AND cc.campaign_id = c.id " +
-                                      "AND campaign.urn = ? ";
+                              "FROM campaign c, campaign_class cc, class css" +
+                              "WHERE cc.class_id = css.id " +
+                              "AND cc.campaign_id = c.id " +
+                              "AND campaign.urn = ? ";
                                             
     private String _andClassUrnIn = "AND class.urn IN ";
 	
@@ -47,14 +50,18 @@ public class FindAllFilteredCampaignsForLoggedInUserDao extends AbstractDao {
 	}
 	
 	@Override
+	@SuppressWarnings("unchecked")
 	public void execute(AwRequest awRequest) {
+		_logger.info("about to generate SQL and run filtered campaign query");
+		
 		StringBuilder sql = new StringBuilder();
+		List<CampaignQueryResult> campaignList = new ArrayList<CampaignQueryResult>();
+		
 		try {
 			
 			// The venerable cast to the correct request type
 			RetrieveCampaignAwRequest req = (RetrieveCampaignAwRequest) awRequest;
 			
-			@SuppressWarnings("unchecked")
 			List<CampaignUrnUserRole> campaignUrnUserRoleList = (List<CampaignUrnUserRole>) req.getResultList(); 
 
 			// Convert to a Map for easier traversal and filtering based on whether the query params contain a user role and/or
@@ -102,6 +109,9 @@ public class FindAllFilteredCampaignsForLoggedInUserDao extends AbstractDao {
 				return;
 			}
 			
+			// clean out the result list before adding objects of a different type to it
+			req.getResultList().clear();
+			
 			// Now generate the SQL based on each campaign URN and the user's most permissive role for that URN.
 			// For the purposes here, both author and supervisor have the maximum permission against running_state and privacy_state
 			// Should this logic be changed to a very simple SQL statement that retrieves all campaigns for the current user
@@ -114,17 +124,17 @@ public class FindAllFilteredCampaignsForLoggedInUserDao extends AbstractDao {
 				List<Object> pList = new ArrayList<Object>();
 				pList.add(urn);
 				
+				sql.append(_select);
+				
 				// Check to see if the query is requesting specific classes
 				if(! req.getClassUrnList().isEmpty()) {
-					sql.append(_selectWithClass);
 					sql.append(_andClassUrnIn);
 					sql.append(StringUtils.generateStatementPList(req.getClassUrnList().size()));
 					pList.addAll(req.getClassUrnList());
-				} else {
-					sql.append(_select);	
-				}
+				} 
 				
-				List<String> roles = urnRoleMap.get(urn); 
+				final List<String> roles = urnRoleMap.get(urn); 
+				
 				if(null != req.getPrivacyState()) { // shared, private
 					String privacyState = req.getPrivacyState();
 					if("private".equals(privacyState)) {
@@ -135,11 +145,10 @@ public class FindAllFilteredCampaignsForLoggedInUserDao extends AbstractDao {
 					}
 					sql.append(_andPrivacyState);
 					pList.add(privacyState);
-						
 				}
+				
 				if(null != req.getRunningState()) { // running, stopped
 					String runningState = req.getRunningState();
-					
 					if("stopped".equals(runningState)) {
 						// participants cannot view stopped campaigm
 						if(roles.contains("participant") && roles.size() == 1) {
@@ -153,27 +162,41 @@ public class FindAllFilteredCampaignsForLoggedInUserDao extends AbstractDao {
 				if(null != req.getStartDate()) {
 					sql.append(_andStartDate);
 					pList.add(req.getStartDate());
-					
 				}
 				
 				if(null != req.getEndDate()) {
 					sql.append(_andEndDate);
 					pList.add(req.getEndDate());
-					
 				}
 				
-				_logger.info("about to run the following SQL: " + sql.toString());
-				_logger.info("with the following p list:" + pList);
+				_logger.info("about to run the following SQL: " + sql.toString() + " with the following p list:" + pList);
 				
-//				awRequest.setResultList(
-//					getJdbcTemplate().query(
-//						sql.toString(), 
-//						new Object[] { awRequest.getUser().getUserName() },
-//						new SingleColumnRowMapper()
-//					)
-//				);
+				campaignList.addAll( 
+					getJdbcTemplate().query(
+						sql.toString(), 
+						pList.toArray(),
+						new RowMapper() {
+							public Object mapRow(ResultSet rs, int rowNum) throws SQLException {
+								CampaignQueryResult result = new CampaignQueryResult();
+								result.setUrn(rs.getString(1));
+								result.setName(rs.getString(2));
+								result.setDescription(rs.getString(3));
+								result.setXml(rs.getString(4));
+								result.setRunningState(rs.getString(5));
+								result.setPrivacyState(rs.getString(6));
+								result.setCreationTimestamp(rs.getTimestamp(7).toString());
+								// the user roles come from the urnRoleMap above
+								result.setUserRoles(roles);
+								
+								return result;
+							}
+						}
+					)
+				);
 			}
 			
+			req.setResultList(campaignList);
+			_logger.info("found " + campaignList.size() + " query results");
 		}	
 		
 		catch (org.springframework.dao.DataAccessException dae) {

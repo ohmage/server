@@ -13,7 +13,7 @@ import org.apache.log4j.Logger;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-import edu.ucla.cens.awserver.domain.ConfigQueryResult;
+import edu.ucla.cens.awserver.domain.CampaignQueryResult;
 import edu.ucla.cens.awserver.domain.ErrorResponse;
 import edu.ucla.cens.awserver.request.AwRequest;
 
@@ -22,17 +22,9 @@ import edu.ucla.cens.awserver.request.AwRequest;
  */
 public class RetrieveCampaignResponseWriter extends AbstractResponseWriter {
 	private static Logger _logger = Logger.getLogger(RetrieveCampaignResponseWriter.class);
-	private List<String> _dataPointApiSpecialIds;
 	
-	public RetrieveCampaignResponseWriter(List<String> dataPointApiSpecialIds, ErrorResponse errorResponse) {
+	public RetrieveCampaignResponseWriter(ErrorResponse errorResponse) {
 		super(errorResponse);
-		if(null == dataPointApiSpecialIds) {
-			throw new IllegalArgumentException("a list of data point API special ids is required. An empty list is allowed.");
-		}
-		if(dataPointApiSpecialIds.isEmpty()) {
-			_logger.warn("no data point API special ids found");
-		}
-		_dataPointApiSpecialIds = dataPointApiSpecialIds;  
 	}
 	
 	@Override
@@ -51,36 +43,37 @@ public class RetrieveCampaignResponseWriter extends AbstractResponseWriter {
 			
 			// Build the appropriate response 
 			if(! awRequest.isFailedRequest()) {
-
-				JSONObject jsonObject 
-					= new JSONObject().put("result", "success")
-					                  .put("special_ids", new JSONArray(_dataPointApiSpecialIds));
 				
-				List<?> resultList = awRequest.getResultList();
-				int numberOfResults = resultList.size();
+				@SuppressWarnings("unchecked")
+				List<CampaignQueryResult> results = (List<CampaignQueryResult>) awRequest.getResultList();
+				int numberOfResults = results.size();
 				
-				JSONArray campaignArray = new JSONArray();
+				JSONObject rootObject = new JSONObject().put("result", "success");
+				JSONObject metadata = new JSONObject();
+				metadata.put("number_of_results", numberOfResults);
+				rootObject.put("metadata", metadata);
+				
+				JSONArray itemArray = new JSONArray();
+				metadata.put("items", itemArray);
+				JSONArray dataArray = new JSONArray();
+				rootObject.put("data", dataArray);
+				
+				// doing only short output_format for now
+				
 				for(int i = 0; i < numberOfResults; i++) {
-					ConfigQueryResult result = (ConfigQueryResult) resultList.get(i);
+					CampaignQueryResult result = results.get(i);
 					JSONObject campaignObject = new JSONObject();
-					campaignObject.put("urn", result.getCampaignUrn());
-					campaignObject.put("user_role", result.getUserRole());
-					campaignObject.put("user_list", new JSONArray(result.getUserList()));
-					campaignObject.put("configuration", result.getXml());
-//					
-//					JSONArray configArray = new JSONArray();
-//					Map<String, String> versionXmlMap = result.getXml();
-//					Iterator<String> mapIterator = versionXmlMap.keySet().iterator();
-//					while(mapIterator.hasNext()) {
-//						String k = mapIterator.next();
-//						configArray.put(new JSONObject().put("version", k).put("configuration", versionXmlMap.get(k)));
-//					}
-//					campaignObject.put("configurations", configArray);
-					campaignArray.put(campaignObject);
+					campaignObject.put("name", result.getName());
+					campaignObject.put("running_state", result.getRunningState());
+					campaignObject.put("privacy_state", result.getPrivacyState());
+					campaignObject.put("creation_timestamp", result.getCreationTimestamp());
+					campaignObject.put("user_roles", new JSONArray(result.getUserRoles()));
+					
+					dataArray.put(new JSONObject().put(result.getUrn(), campaignObject));
+					itemArray.put(result.getUrn());
 				}
 				
-				jsonObject.put("campaigns", campaignArray);
-				responseText = jsonObject.toString();
+				responseText = rootObject.toString();
 				
 			} else {
 				
