@@ -1,6 +1,7 @@
 package edu.ucla.cens.awserver.request;
 
 import java.util.List;
+import java.util.Map;
 
 import org.json.JSONArray;
 
@@ -84,4 +85,7 @@ import edu.ucla.cens.awserver.domain.User;
 	 
 	 String getCampaignUrn();
 	 void setCampaignUrn(String campaignUrn);
+	 
+	 Map<String, Object> getToValidate();
+	 void setToValidate(Map<String, Object> toValidate); 
 }

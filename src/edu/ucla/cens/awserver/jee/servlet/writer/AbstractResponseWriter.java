@@ -46,7 +46,7 @@ public abstract class AbstractResponseWriter implements ResponseWriter {
         
         // this is done to allow client content to be served up from from different domains than the server data
         // e.g., when you want to run a client in a local sandbox, but retrieve data from a remote server
-        // response.setHeader("Access-Control-Allow-Origin","*");
+        response.setHeader("Access-Control-Allow-Origin","*");
 	}
 	
 	/**

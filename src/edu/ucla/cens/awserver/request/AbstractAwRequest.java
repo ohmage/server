@@ -1,6 +1,7 @@
 package edu.ucla.cens.awserver.request;
 
 import java.util.List;
+import java.util.Map;
 
 import org.json.JSONArray;
 
@@ -21,6 +22,7 @@ public abstract class AbstractAwRequest implements AwRequest {
 	private boolean _isFailedRequest;
 	private User _user;
 	private String _failedRequestErrorMessage;
+	private Map<String, Object> _toValidate;
 	
 	public String getRequestUrl() {
 		return _requestUrl;
@@ -52,6 +54,14 @@ public abstract class AbstractAwRequest implements AwRequest {
 	
 	public void setFailedRequestErrorMessage(String failedRequestErrorMessage) {
 		_failedRequestErrorMessage = failedRequestErrorMessage;
+	}
+	
+	public Map<String, Object> getToValidate() {
+		return _toValidate;
+	}
+	
+	public void setToValidate(Map<String, Object> toValidate) {
+		_toValidate = toValidate;
 	}
 	
 	@Override

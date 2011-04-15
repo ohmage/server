@@ -2,6 +2,10 @@ package edu.ucla.cens.awserver.util;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.regex.Pattern;
 
 
 /**
@@ -10,6 +14,8 @@ import java.net.URLDecoder;
  * @author selsky
  */
 public final class StringUtils {
+	// private static Logger _logger = Logger.getLogger(StringUtils.class);
+	private static Pattern _urnPattern = Pattern.compile("[a-z0-9_]+");
 	
 	/**
 	 * It is illegal and unncessary to instantiate this class as it is a collection of static methods.
@@ -93,5 +99,48 @@ public final class StringUtils {
 			} catch (NumberFormatException b) {}  
 		}
 		return value;
+	}
+	
+	/**
+	 * @return true if the provided value is a valid URN, false otherwise
+	 */
+	public static boolean isValidUrn(String value) {
+		if(isEmptyOrWhitespaceOnly(value)) {
+			return false;
+		}
+		
+		String s = value.toLowerCase();
+		
+		if(! s.startsWith("urn:")) {
+			return false;
+		}
+		
+		if(s.length() < 7) { // disallow anything shorter than urn:a:a 
+			return false;
+		}
+		
+		String[] a = s.split(":");
+		
+		if(a.length < 3) { // require at least three colon-delimited sections
+			return false;
+		}
+		
+		for(int i = 1; i < a.length; i++) { // each section after the initial urn must match _urnPattern
+			if(! _urnPattern.matcher(a[i]).matches()) {
+				return false;
+			}
+		}
+		
+		return true;
+	}
+	
+	/**
+	 * @return an empty list, or if the provided string contained comma-separated values, a list containing each element
+	 */
+	public static List<String> splitCommaSeparatedString(String string) {
+		if(null == string) {
+			return Collections.emptyList();
+		} 
+		return Arrays.asList(string.split(","));
 	}
 }

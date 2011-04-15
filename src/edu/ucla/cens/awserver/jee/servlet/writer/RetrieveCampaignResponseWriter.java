@@ -4,9 +4,7 @@ import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -22,11 +20,11 @@ import edu.ucla.cens.awserver.request.AwRequest;
 /**
  * @author selsky
  */
-public class RetrieveConfigResponseWriter extends AbstractResponseWriter {
-	private static Logger _logger = Logger.getLogger(RetrieveConfigResponseWriter.class);
+public class RetrieveCampaignResponseWriter extends AbstractResponseWriter {
+	private static Logger _logger = Logger.getLogger(RetrieveCampaignResponseWriter.class);
 	private List<String> _dataPointApiSpecialIds;
 	
-	public RetrieveConfigResponseWriter(List<String> dataPointApiSpecialIds, ErrorResponse errorResponse) {
+	public RetrieveCampaignResponseWriter(List<String> dataPointApiSpecialIds, ErrorResponse errorResponse) {
 		super(errorResponse);
 		if(null == dataPointApiSpecialIds) {
 			throw new IllegalArgumentException("a list of data point API special ids is required. An empty list is allowed.");
