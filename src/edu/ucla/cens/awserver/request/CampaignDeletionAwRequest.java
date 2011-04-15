@@ -5,7 +5,7 @@ package edu.ucla.cens.awserver.request;
  * 
  * @author John Jenkins
  */
-public class CampaignDeletionAwRequest extends AbstractAwRequest {
+public class CampaignDeletionAwRequest extends ResultListAwRequest {
 	private String _urn;
 	
 	/**
@@ -31,7 +31,7 @@ public class CampaignDeletionAwRequest extends AbstractAwRequest {
 	 * 
 	 * @return The campaign URN that is attempting to be deleted.
 	 */
-	public String getUrn() {
+	public String getRequestUrn() {
 		return _urn;
 	}
 	

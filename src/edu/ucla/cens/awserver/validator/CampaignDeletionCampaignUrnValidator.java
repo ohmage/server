@@ -38,7 +38,7 @@ public class CampaignDeletionCampaignUrnValidator extends AbstractAnnotatingVali
 			throw new ValidatorException("Validator is specific to CampaignDeletionAwRequest objects.");
 		}
 		
-		String urn = cdAwRequest.getCampaignUrn();
+		String urn = cdAwRequest.getRequestUrn();
 		if(! urn.startsWith("urn:")) {
 			awRequest.setFailedRequest(true);
 			getAnnotator().annotate(awRequest, "Invalid URN.");
@@ -47,5 +47,4 @@ public class CampaignDeletionCampaignUrnValidator extends AbstractAnnotatingVali
 		
 		return true;
 	}
-
 }

@@ -26,6 +26,7 @@
         <!-- authenticate -->
         <ref bean="authWithHashedPasswordService" />
         <!-- authorize -->
+        <ref bean="userRoleCampaignPopulationService" />
         <ref bean="userCampaignValidationService" />
         <ref bean="imageUploadDaoService" />
       </list>

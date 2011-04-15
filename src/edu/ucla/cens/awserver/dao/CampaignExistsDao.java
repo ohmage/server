@@ -44,14 +44,14 @@ public class CampaignExistsDao extends AbstractDao {
 		}
 		
 		try {
-			int count = getJdbcTemplate().queryForInt(SQL, new Object[] { request.getCampaignUrn() });
+			int count = getJdbcTemplate().queryForInt(SQL, new Object[] { request.getRequestUrn() });
 			
 			if(count == 0) {
 				awRequest.setFailedRequest(true);
 			}
 		}
 		catch(org.springframework.dao.DataAccessException dae) {
-			_logger.error("Error executing SQL '" + SQL + "' with parameter: " + request.getCampaignUrn());
+			_logger.error("Error executing SQL '" + SQL + "' with parameter: " + request.getRequestUrn());
 			throw new DataAccessException(dae);
 		}
 	}

@@ -97,7 +97,7 @@ public class AuthenticationService extends AbstractDaoService {
 					}
 					
 					// set the campaigns and the roles within the campaigns that the user belongs to
-					awRequest.getUser().addCampaignRole(loginResult.getCampaignUrn(), loginResult.getUserRoleId());
+					//awRequest.getUser().addCampaignRole(loginResult.getCampaignUrn(), loginResult.getUserRoleId());
 				}
 				
 				_logger.info("user " + awRequest.getUser().getUserName() + " successfully logged in");

@@ -21,7 +21,8 @@
     <constructor-arg index="0">
       <list>
         <ref bean="tokenBasedAuthenticationService" />
-        <ref bean="campaignAccessCheckService" />
+        <ref bean="userRoleCampaignPopulationService" />
+        <ref bean="userCampaignValidationService" />
         <ref bean="userRoleCheckService" />
         <ref bean="queryPromptIdValidationService" />
         <ref bean="dataPointQueryService" />
@@ -53,19 +54,6 @@
     </constructor-arg>
     <constructor-arg index="1">
       <ref bean="configurationCacheService" />
-    </constructor-arg>
-  </bean>
-  
-  <bean id="campaignAccessCheckService" class="edu.ucla.cens.awserver.service.CampaignAccessCheckService">
-    <constructor-arg index="0">
-      <bean class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
-        <constructor-arg index="0">
-          <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
-            <property name="code" value="0702" />
-            <property name="text" value="invalid campaign in query" />
-          </bean>
-        </constructor-arg>
-      </bean>
     </constructor-arg>
   </bean>
 

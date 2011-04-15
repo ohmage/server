@@ -74,7 +74,7 @@ public class CampaignDeletionDao extends AbstractDao {
 			throw new DataAccessException(e);
 		}
 		
-		String urn = request.getCampaignUrn();
+		String urn = request.getRequestUrn();
 		boolean doIt = false;
 		
 		// If they are a supervisor then do it.
