@@ -632,7 +632,7 @@
     </init-param>
     <init-param>
       <param-name>responseWriterName</param-name>
-      <param-value>successOrFailResponseWriter</param-value>
+      <param-value>dataPointFunctionQueryResponseWriter</param-value>
     </init-param>
     <load-on-startup>1</load-on-startup>
   </servlet>
