@@ -7,6 +7,7 @@ import org.springframework.jdbc.core.SingleColumnRowMapper;
 
 import edu.ucla.cens.awserver.request.AwRequest;
 import edu.ucla.cens.awserver.request.DataPointFunctionQueryAwRequest;
+import edu.ucla.cens.awserver.request.MediaQueryAwRequest;
 import edu.ucla.cens.awserver.request.NewDataPointQueryAwRequest;
 import edu.ucla.cens.awserver.request.UserStatsQueryAwRequest;
 
@@ -38,6 +39,9 @@ public class FindAllCampaignsForCurrentUserDao extends AbstractDao {
 		}
 		else if(awRequest instanceof DataPointFunctionQueryAwRequest) {
 			user = ((DataPointFunctionQueryAwRequest) awRequest).getUserNameRequestParam();
+		}
+		else if(awRequest instanceof MediaQueryAwRequest) {
+			user = ((MediaQueryAwRequest) awRequest).getUserNameRequestParam();
 		}
 		else {
 			throw new DataAccessException("Invalid AwRequest for this DAO.");

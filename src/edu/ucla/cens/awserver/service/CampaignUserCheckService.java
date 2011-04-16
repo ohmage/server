@@ -7,6 +7,7 @@ import org.apache.log4j.Logger;
 import edu.ucla.cens.awserver.dao.Dao;
 import edu.ucla.cens.awserver.request.AwRequest;
 import edu.ucla.cens.awserver.request.DataPointFunctionQueryAwRequest;
+import edu.ucla.cens.awserver.request.MediaQueryAwRequest;
 import edu.ucla.cens.awserver.request.NewDataPointQueryAwRequest;
 import edu.ucla.cens.awserver.request.UserStatsQueryAwRequest;
 import edu.ucla.cens.awserver.validator.AwRequestAnnotator;
@@ -69,6 +70,16 @@ public class CampaignUserCheckService extends AbstractAnnotatingDaoService {
 			}
 		}
 		else if(awRequest instanceof DataPointFunctionQueryAwRequest) {
+			getDao().execute(awRequest);
+			
+			List<?> results = awRequest.getResultList();
+			
+			if(! results.contains(awRequest.getCampaignUrn())) {
+				_logger.warn("invalid campaign name in request: the query user does not belong to the campaign in the query.");
+				getAnnotator().annotate(awRequest, "the query user does not belong to the campaign in the query");
+			}
+		}
+		else if(awRequest instanceof MediaQueryAwRequest) {
 			getDao().execute(awRequest);
 			
 			List<?> results = awRequest.getResultList();
