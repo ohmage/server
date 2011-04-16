@@ -343,7 +343,7 @@
   </servlet>
   <servlet-mapping>
     <servlet-name>DataPointQueryServlet</servlet-name>
-    <url-pattern>/q/dp</url-pattern>
+    <url-pattern>/survey_response/read/old</url-pattern>
   </servlet-mapping>
 
   <!--  new data point API -->
@@ -443,7 +443,7 @@
   </servlet>
   <servlet-mapping>
     <servlet-name>UserStatsQueryServlet</servlet-name>
-    <url-pattern>/q/us</url-pattern>
+    <url-pattern>/user_stats/read</url-pattern>
   </servlet-mapping>
   
    <!--  Handle image queries -->
@@ -476,7 +476,7 @@
   </servlet>
   <servlet-mapping>
     <servlet-name>ImageQueryServlet</servlet-name>
-    <url-pattern>/q/i</url-pattern>
+    <url-pattern>/image/read</url-pattern>
   </servlet-mapping>
   
   <!--  Handle mobility queries -->
@@ -509,7 +509,7 @@
   </servlet>
   <servlet-mapping>
     <servlet-name>MobilityQueryServlet</servlet-name>
-    <url-pattern>/q/m</url-pattern>
+    <url-pattern>/mobility/read</url-pattern>
   </servlet-mapping>
 
   <!--  Handle "chunked" mobility queries -->
@@ -542,7 +542,7 @@
   </servlet>
   <servlet-mapping>
     <servlet-name>ChunkedMobilityQueryServlet</servlet-name>
-    <url-pattern>/q/mc</url-pattern>
+    <url-pattern>/mobility/read/chunked</url-pattern>
   </servlet-mapping>
 
   <!-- Handle campaign creation -->
@@ -606,7 +606,7 @@
   </servlet>
   <servlet-mapping>
     <servlet-name>DataPointFunctionQueryServlet</servlet-name>
-    <url-pattern>/q/dpf</url-pattern>
+    <url-pattern>/survey_response/function/read</url-pattern>
   </servlet-mapping>
   
   <!-- For AW 2.x and up, the server app is effectively headless. There is probably a better way to return headers only.
