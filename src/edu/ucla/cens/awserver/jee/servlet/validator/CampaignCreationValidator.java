@@ -47,6 +47,10 @@ public class CampaignCreationValidator extends AbstractHttpServletRequestValidat
 	 */
 	@Override
 	public boolean validate(HttpServletRequest httpRequest) {
+		// TODO: Check that the content header type is "multipart/form-data"
+		//		 or "multipart/mixed" stream, content header type.
+		// 		 For now, this is handled in the first try-catch below.
+		
 		// Create a new file upload handler
 		ServletFileUpload upload = new ServletFileUpload(_diskFileItemFactory);
 		upload.setHeaderEncoding("UTF-8");

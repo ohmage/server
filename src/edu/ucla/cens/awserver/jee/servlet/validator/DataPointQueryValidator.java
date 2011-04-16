@@ -22,7 +22,7 @@ public class DataPointQueryValidator extends AbstractHttpServletRequestValidator
 	/**
 	 */
 	public DataPointQueryValidator() {
-		_parameterList = new ArrayList<String>(Arrays.asList(new String[]{"s","e","u","c","ci","i","t"}));
+		_parameterList = new ArrayList<String>(Arrays.asList(new String[]{"start_date","end_date","user","campaign_urn","client","prompt_id","auth_token"}));
 	}
 	
 	public boolean validate(HttpServletRequest httpServletRequest) {
@@ -41,7 +41,7 @@ public class DataPointQueryValidator extends AbstractHttpServletRequestValidator
 			String key = (String) iterator.next();
 			String[] valuesForKey = (String[]) parameterMap.get(key);
 			
-			if(valuesForKey.length != 1 && ! "i".equals(key)) {
+			if(valuesForKey.length != 1 && ! "prompt_id".equals(key)) {
 				_logger.warn("an incorrect number of values (" + valuesForKey.length + ") was found for parameter " + key);
 				return false;
 			}
@@ -52,31 +52,31 @@ public class DataPointQueryValidator extends AbstractHttpServletRequestValidator
 			return false;
 		}
 		
-		String s = (String) httpServletRequest.getParameter("s");
-		String e = (String) httpServletRequest.getParameter("e");
-		String u = (String) httpServletRequest.getParameter("u");
-		String c = (String) httpServletRequest.getParameter("c");
-		String ci = (String) httpServletRequest.getParameter("ci");
-		String t = (String) httpServletRequest.getParameter("t");
+		String startDate = (String) httpServletRequest.getParameter("start_date");
+		String endDate = (String) httpServletRequest.getParameter("end_date");
+		String user = (String) httpServletRequest.getParameter("user");
+		String campaignUrn = (String) httpServletRequest.getParameter("campaign_urn");
+		String client = (String) httpServletRequest.getParameter("client");
+		String authToken = (String) httpServletRequest.getParameter("auth_token");
 		
-		String[] is = httpServletRequest.getParameterValues("i");
+		String[] promptIdArray = httpServletRequest.getParameterValues("prompt_id");
 		
 		// Check for abnormal lengths (buffer overflow attack)
 		
-		if(greaterThanLength("startDate", "s", s, 10) 
-		   || greaterThanLength("endDate", "e", e, 10)
-		   || greaterThanLength("campaignName", "c", c, 250)
-		   || greaterThanLength("client", "ci",ci, 250)		   
-		   || greaterThanLength("authToken", "t", t, 36)
-		   || greaterThanLength("userName", "u", u, 15)) {
+		if(greaterThanLength("startDate", "start_date", startDate, 10) 
+		   || greaterThanLength("endDate", "end_date", endDate, 10)
+		   || greaterThanLength("campaignUrn", "campaign_urn", campaignUrn, 250)
+		   || greaterThanLength("client", "client",client, 250)		   
+		   || greaterThanLength("authToken", "auth_token", authToken, 36)
+		   || greaterThanLength("userName", "user", user, 15)) {
 			
 			_logger.warn("found an input parameter that exceeds its allowed length");
 			return false;
 		}
 		
 		int x = 0;
-		for(String i : is) { 
-			if(greaterThanLength("dataPointId", "i[" + x + "]", i, 250)) {
+		for(String promptId : promptIdArray) { 
+			if(greaterThanLength("dataPointId", "prompt_id[" + x + "]", promptId, 250)) {
 				_logger.warn("found an input parameter that exceeds its allowed length");
 				return false;
 			}

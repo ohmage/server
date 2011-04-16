@@ -29,8 +29,7 @@ public class PastDaySurveyLocationUpdatesQueryDao extends AbstractDao {
 						             + " AND sr.campaign_id = c.id"
 						             + " AND c.urn = ?"
 						             + " AND date(sr.upload_timestamp) BETWEEN date(now() - 1) and date(now())"
-						             + " AND sr.latitude is not NULL"
-						             + " AND sr.longitude is not NULL";      
+						             + " AND sr.location is not NULL";      
 	
 	private String _totalPointsSql = "SELECT COUNT(*)"
                                    + " FROM survey_response sr, campaign c, user u"

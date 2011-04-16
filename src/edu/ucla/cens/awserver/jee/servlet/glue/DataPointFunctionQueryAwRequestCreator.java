@@ -25,13 +25,13 @@ public class DataPointFunctionQueryAwRequestCreator implements AwRequestCreator 
 	}
 	
 	public AwRequest createFrom(HttpServletRequest request) {
-		String startDate = request.getParameter("s");
-		String endDate = request.getParameter("e");
-		String userNameRequestParam = request.getParameter("u");
-		String client = request.getParameter("ci");
-		String campaignUrn = request.getParameter("c");
-		String authToken = request.getParameter("t");
-		String functionName = request.getParameter("i");  
+		String startDate = request.getParameter("start_date");
+		String endDate = request.getParameter("end_date");
+		String userNameRequestParam = request.getParameter("user");
+		String client = request.getParameter("client");
+		String campaignUrn = request.getParameter("campaign_urn");
+		String authToken = request.getParameter("auth_token");
+		String functionName = request.getParameter("id");  
 		
 		DataPointFunctionQueryAwRequest awRequest = new DataPointFunctionQueryAwRequest();
 		awRequest.setStartDate(startDate);
@@ -43,7 +43,7 @@ public class DataPointFunctionQueryAwRequestCreator implements AwRequestCreator 
 		awRequest.setFunctionName(functionName);
 		awRequest.setMetadata(_metadata);
 		
-        NDC.push("ci=" + client); // push the client string into the Log4J NDC for the currently executing thread - this means that 
+        NDC.push("client=" + client); // push the client string into the Log4J NDC for the currently executing thread - this means that 
                                   // it will be in every log message for the thread
 
 		return awRequest;

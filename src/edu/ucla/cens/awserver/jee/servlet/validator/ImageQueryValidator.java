@@ -18,7 +18,7 @@ public class ImageQueryValidator extends AbstractHttpServletRequestValidator {
 	private List<String> _parameterList;
 	
 	public ImageQueryValidator() {
-		_parameterList = new ArrayList<String>(Arrays.asList(new String[]{"u","c","ci","i","t"}));
+		_parameterList = new ArrayList<String>(Arrays.asList(new String[]{"user","campaign_urn","client","id","auth_token"}));
 	}
 	
 	public boolean validate(HttpServletRequest httpServletRequest) {
@@ -26,19 +26,19 @@ public class ImageQueryValidator extends AbstractHttpServletRequestValidator {
 			return false;
 		}
 		
-		String u = (String) httpServletRequest.getParameter("u");
-		String c = (String) httpServletRequest.getParameter("c");
-		String ci = (String) httpServletRequest.getParameter("ci");
-		String t = (String) httpServletRequest.getParameter("t");
-		String i = (String) httpServletRequest.getParameter("i");
+		String user = (String) httpServletRequest.getParameter("user");
+		String campaignUrn = (String) httpServletRequest.getParameter("campaign_urn");
+		String client = (String) httpServletRequest.getParameter("client");
+		String authToken = (String) httpServletRequest.getParameter("auth_token");
+		String id = (String) httpServletRequest.getParameter("id");
 		
 		// Check for abnormal lengths (buffer overflow attack)
 		
-		if(greaterThanLength("campaignName", "c", c, 250)
-		   || greaterThanLength("client", "ci",ci, 250)		   
-		   || greaterThanLength("authToken", "t", t, 36)
-		   || greaterThanLength("userName", "u", u, 15)
-		   || greaterThanLength("imageId", "i", i, 36)) {
+		if(greaterThanLength("campaignUrn", "campaign_urn", campaignUrn, 250)
+		   || greaterThanLength("client", "client",client, 250)		   
+		   || greaterThanLength("authToken", "auth_token", authToken, 36)
+		   || greaterThanLength("user", "user", user, 15)
+		   || greaterThanLength("imageId", "id", id, 36)) {
 			
 			_logger.warn("found an input parameter that exceeds its allowed length");
 			return false;

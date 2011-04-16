@@ -6,7 +6,9 @@ import org.apache.log4j.Logger;
 import org.springframework.jdbc.core.SingleColumnRowMapper;
 
 import edu.ucla.cens.awserver.request.AwRequest;
+import edu.ucla.cens.awserver.request.DataPointFunctionQueryAwRequest;
 import edu.ucla.cens.awserver.request.NewDataPointQueryAwRequest;
+import edu.ucla.cens.awserver.request.UserStatsQueryAwRequest;
 
 /**
  * Near duplicate of FindAllCampaignsForUserDao except this class is to be used in a multi-user (new data point query API) scenario. 
@@ -26,11 +28,26 @@ public class FindAllCampaignsForCurrentUserDao extends AbstractDao {
 	
 	@Override
 	public void execute(AwRequest awRequest) {
+		// Hack continued.
+		String user;
+		if(awRequest instanceof NewDataPointQueryAwRequest) {
+			user = ((NewDataPointQueryAwRequest) awRequest).getCurrentUser();
+		}
+		else if(awRequest instanceof UserStatsQueryAwRequest) {
+			user = ((UserStatsQueryAwRequest) awRequest).getUserNameRequestParam();
+		}
+		else if(awRequest instanceof DataPointFunctionQueryAwRequest) {
+			user = ((DataPointFunctionQueryAwRequest) awRequest).getUserNameRequestParam();
+		}
+		else {
+			throw new DataAccessException("Invalid AwRequest for this DAO.");
+		}
+		
 		try {
 			awRequest.setResultList(
 				getJdbcTemplate().query(
 					_sql, 
-					new Object[] { ((NewDataPointQueryAwRequest) awRequest).getCurrentUser() },
+					new Object[] { user },
 					new SingleColumnRowMapper())
 			);
 		}	

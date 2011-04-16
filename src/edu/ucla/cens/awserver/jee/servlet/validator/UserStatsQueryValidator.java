@@ -20,7 +20,7 @@ public class UserStatsQueryValidator extends AbstractGzipHttpServletRequestValid
 	/**
 	 */
 	public UserStatsQueryValidator() {
-		_parameterList = new ArrayList<String>(Arrays.asList(new String[]{"u","c","ci","t"}));
+		_parameterList = new ArrayList<String>(Arrays.asList(new String[]{"user","campaign_urn","client","auth_token"}));
 	}
 	
 	public boolean validate(HttpServletRequest httpServletRequest) {
@@ -28,17 +28,17 @@ public class UserStatsQueryValidator extends AbstractGzipHttpServletRequestValid
 			return false;
 		}
 		
-		String c = (String) httpServletRequest.getParameter("c");
-		String ci = (String) httpServletRequest.getParameter("ci");
-		String t = (String) httpServletRequest.getParameter("t");
-		String u = (String) httpServletRequest.getParameter("u");
+		String campaignUrn = (String) httpServletRequest.getParameter("campaign_urn");
+		String client = (String) httpServletRequest.getParameter("client");
+		String authToken = (String) httpServletRequest.getParameter("auth_token");
+		String user = (String) httpServletRequest.getParameter("user");
 		
 		// Check for abnormal lengths (buffer overflow attack)
 		
-		if(greaterThanLength("campaignName", "c", c, 250)
-		   || greaterThanLength("client", "ci",ci, 500)		   
-		   || greaterThanLength("authToken", "t", t, 36)
-		   || greaterThanLength("userName", "u", u, 15)) {
+		if(greaterThanLength("campaignUrn", "campaign_urn", campaignUrn, 250)
+		   || greaterThanLength("client", "client",client, 500)		   
+		   || greaterThanLength("authToken", "auth_token", authToken, 36)
+		   || greaterThanLength("userName", "user", user, 15)) {
 			
 			_logger.warn("found an input parameter that exceeds its allowed length");
 			return false;

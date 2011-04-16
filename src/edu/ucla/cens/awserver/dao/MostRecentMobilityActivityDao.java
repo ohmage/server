@@ -20,10 +20,10 @@ public class MostRecentMobilityActivityDao extends AbstractDao {
 	private static Logger _logger = Logger.getLogger(MostRecentMobilityActivityDao.class);
 	
 	private String _sql = "SELECT msg_timestamp, phone_timezone"
-					    + " FROM mobility_mode_only_entry"
+					    + " FROM mobility_mode_only"
 					    + " WHERE upload_timestamp ="
 						+  " (SELECT MAX(upload_timestamp)"
-						+     " FROM mobility_mode_only_entry m, user u"
+						+     " FROM mobility_mode_only m, user u"
 						+  	  " WHERE m.user_id = u.id AND u.login_id = ?)";
 	
 	public MostRecentMobilityActivityDao(DataSource dataSource) {

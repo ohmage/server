@@ -6,7 +6,9 @@ import org.apache.log4j.Logger;
 
 import edu.ucla.cens.awserver.dao.Dao;
 import edu.ucla.cens.awserver.request.AwRequest;
+import edu.ucla.cens.awserver.request.DataPointFunctionQueryAwRequest;
 import edu.ucla.cens.awserver.request.NewDataPointQueryAwRequest;
+import edu.ucla.cens.awserver.request.UserStatsQueryAwRequest;
 import edu.ucla.cens.awserver.validator.AwRequestAnnotator;
 
 /**
@@ -31,27 +33,54 @@ public class CampaignUserCheckService extends AbstractAnnotatingDaoService {
 	public void execute(AwRequest awRequest) {
 		_logger.info("validating that each user in the user list belongs to the campaign specified in the query");
 		
-		NewDataPointQueryAwRequest req = (NewDataPointQueryAwRequest) awRequest;
-		
-		String userListString = req.getUserListString();
-		
-		if(! "urn:awm:special:all".equals(userListString)) {
+		// FIXME: Hackalicious!
+		String userListString;
+		List<String> users;
+		if(awRequest instanceof NewDataPointQueryAwRequest) {
+			NewDataPointQueryAwRequest req = (NewDataPointQueryAwRequest) awRequest;
+			userListString = req.getUserListString();
+			users = req.getUserList();
 			
-			List<String> users = req.getUserList();
-			
-			for(String user : users) {
+			if(! "urn:awm:special:all".equals(userListString)) {
 				
-				req.setCurrentUser(user);
-				
-				getDao().execute(awRequest);
-				
-				List<?> results = awRequest.getResultList();
-				
-				if(! results.contains(awRequest.getCampaignUrn())) {
-					_logger.warn("invalid campaign name in request: the query user does not belong to the campaign in the query.");
-					getAnnotator().annotate(awRequest, "the query user does not belong to the campaign in the query");
+				for(String user : users) {
+					
+					req.setCurrentUser(user);
+					
+					getDao().execute(awRequest);
+					
+					List<?> results = awRequest.getResultList();
+					
+					if(! results.contains(awRequest.getCampaignUrn())) {
+						_logger.warn("invalid campaign name in request: the query user does not belong to the campaign in the query.");
+						getAnnotator().annotate(awRequest, "the query user does not belong to the campaign in the query");
+					}
 				}
 			}
+		}
+		else if(awRequest instanceof UserStatsQueryAwRequest) {
+			getDao().execute(awRequest);
+			
+			List<?> results = awRequest.getResultList();
+			
+			if(! results.contains(awRequest.getCampaignUrn())) {
+				_logger.warn("invalid campaign name in request: the query user does not belong to the campaign in the query.");
+				getAnnotator().annotate(awRequest, "the query user does not belong to the campaign in the query");
+			}
+		}
+		else if(awRequest instanceof DataPointFunctionQueryAwRequest) {
+			getDao().execute(awRequest);
+			
+			List<?> results = awRequest.getResultList();
+			
+			if(! results.contains(awRequest.getCampaignUrn())) {
+				_logger.warn("invalid campaign name in request: the query user does not belong to the campaign in the query.");
+				getAnnotator().annotate(awRequest, "the query user does not belong to the campaign in the query");
+			}
+		}
+		else {
+			awRequest.setFailedRequest(true);
+			throw new ServiceException("Invalid request for CampaignUserCheckService.");
 		}
 	}
 }

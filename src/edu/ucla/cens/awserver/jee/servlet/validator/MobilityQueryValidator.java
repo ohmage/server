@@ -20,7 +20,7 @@ public class MobilityQueryValidator extends AbstractHttpServletRequestValidator 
 	private List<String> _parameterList;
 	
 	public MobilityQueryValidator() {
-		_parameterList = new ArrayList<String>(Arrays.asList(new String[]{"s","u","ci","t"}));
+		_parameterList = new ArrayList<String>(Arrays.asList(new String[]{"date","user","client","auth_token"}));
 	}
 	
 	public boolean validate(HttpServletRequest httpServletRequest) {
@@ -50,17 +50,17 @@ public class MobilityQueryValidator extends AbstractHttpServletRequestValidator 
 			return false;
 		}
 		
-		String s = (String) httpServletRequest.getParameter("s");
-		String u = (String) httpServletRequest.getParameter("u");
-		String ci = (String) httpServletRequest.getParameter("ci");
-		String t = (String) httpServletRequest.getParameter("t");
+		String date = (String) httpServletRequest.getParameter("date");
+		String user = (String) httpServletRequest.getParameter("user");
+		String client = (String) httpServletRequest.getParameter("client");
+		String authToken = (String) httpServletRequest.getParameter("auth_token");
 		
 		// Check for abnormal lengths (buffer overflow attack)
 		
-		if(greaterThanLength("startDate", "s", s, 10) 
-		   || greaterThanLength("client", "ci",ci, 250)
-		   || greaterThanLength("userName", "u", u, 15)
-		   || greaterThanLength("authToken", "t", t, 36)) {
+		if(greaterThanLength("date", "date", date, 10) 
+		   || greaterThanLength("client", "client",client, 250)
+		   || greaterThanLength("user", "user", user, 15)
+		   || greaterThanLength("authToken", "auth_token", authToken, 36)) {
 			
 			_logger.warn("found an input parameter that exceeds its allowed length");
 			return false;
