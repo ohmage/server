@@ -32,18 +32,20 @@ public class FindAllFilteredCampaignsForLoggedInUserDao extends AbstractDao {
 //			                 "FROM campaign " +
 //			                 "WHERE urn = ? ";
 	
-	private String _select = "SELECT urn, name, description, xml, running_state, privacy_state, creation_timestamp " +
-                              "FROM campaign c, campaign_class cc, class css" +
+	private String _select = "SELECT c.urn, c.name, c.description, c.xml, c.running_state, c.privacy_state, c.creation_timestamp," +
+			                  " css.urn " +
+                              "FROM campaign c, campaign_class cc, class css " +
                               "WHERE cc.class_id = css.id " +
                               "AND cc.campaign_id = c.id " +
-                              "AND campaign.urn = ? ";
+                              "AND c.urn = ? ";
                                             
-    private String _andClassUrnIn = "AND class.urn IN ";
+    private String _andClassUrnIn = "AND css.urn IN ";
 	
 	private String _andPrivacyState = "AND privacy_state = ? ";
 	private String _andRunningState = "AND running_state = ? ";
 	private String _andStartDate = "AND creation_timestamp >= ? ";
-	private String _andEndDate = "AND creation_timestamp <= ?";
+	private String _andEndDate = "AND creation_timestamp <= ? ";
+	private String _orderBy = " ORDER BY c.urn";
 	
 	public FindAllFilteredCampaignsForLoggedInUserDao(DataSource dataSource) {
 		super(dataSource);
@@ -168,6 +170,8 @@ public class FindAllFilteredCampaignsForLoggedInUserDao extends AbstractDao {
 					sql.append(_andEndDate);
 					pList.add(req.getEndDate());
 				}
+				
+				sql.append(_orderBy);
 				
 				_logger.info("about to run the following SQL: " + sql.toString() + " with the following p list:" + pList);
 				

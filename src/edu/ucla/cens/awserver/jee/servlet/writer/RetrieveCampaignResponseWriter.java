@@ -4,7 +4,11 @@ import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -14,8 +18,11 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import edu.ucla.cens.awserver.domain.CampaignQueryResult;
+import edu.ucla.cens.awserver.domain.CampaignUrnClassUrn;
+import edu.ucla.cens.awserver.domain.CampaignUrnLoginIdUserRole;
 import edu.ucla.cens.awserver.domain.ErrorResponse;
 import edu.ucla.cens.awserver.request.AwRequest;
+import edu.ucla.cens.awserver.request.RetrieveCampaignAwRequest;
 
 /**
  * @author selsky
@@ -44,6 +51,8 @@ public class RetrieveCampaignResponseWriter extends AbstractResponseWriter {
 			// Build the appropriate response 
 			if(! awRequest.isFailedRequest()) {
 				
+				RetrieveCampaignAwRequest req = (RetrieveCampaignAwRequest) awRequest;
+				
 				@SuppressWarnings("unchecked")
 				List<CampaignQueryResult> results = (List<CampaignQueryResult>) awRequest.getResultList();
 				int numberOfResults = results.size();
@@ -58,8 +67,6 @@ public class RetrieveCampaignResponseWriter extends AbstractResponseWriter {
 				JSONArray dataArray = new JSONArray();
 				rootObject.put("data", dataArray);
 				
-				// doing only short output_format for now
-				
 				for(int i = 0; i < numberOfResults; i++) {
 					CampaignQueryResult result = results.get(i);
 					JSONObject campaignObject = new JSONObject();
@@ -68,6 +75,13 @@ public class RetrieveCampaignResponseWriter extends AbstractResponseWriter {
 					campaignObject.put("privacy_state", result.getPrivacyState());
 					campaignObject.put("creation_timestamp", result.getCreationTimestamp());
 					campaignObject.put("user_roles", new JSONArray(result.getUserRoles()));
+					
+					
+					if("long".equals(req.getOutputFormat())) {
+						campaignObject.put("xml", result.getXml().replaceAll("\\n",""));
+						campaignObject.put("classes", new JSONArray(generateClassList(req, result.getUrn())));
+						campaignObject.put("user_role_campaign", new JSONObject(generateUserRoleCampaign(req, result.getUrn())));
+					}
 					
 					dataArray.put(new JSONObject().put(result.getUrn(), campaignObject));
 					itemArray.put(result.getUrn());
@@ -118,4 +132,42 @@ public class RetrieveCampaignResponseWriter extends AbstractResponseWriter {
 			}
 		}
 	}
+	
+	private List<String> generateClassList(RetrieveCampaignAwRequest req, String campaignUrn) {
+		
+		if(! req.getClassUrnList().isEmpty()) {
+			return req.getClassUrnList();
+		} 
+		
+		List<CampaignUrnClassUrn> list = req.getCampaignUrnClassUrnList();
+		List<String> out = new ArrayList<String>();
+		for(CampaignUrnClassUrn cc : list) {
+			if(cc.getCampaignUrn().equals(campaignUrn)) {
+				out.add(cc.getClassUrn());
+			}
+		}
+		
+		return out;
+	}
+	
+	private Map<String, List<String>> generateUserRoleCampaign(RetrieveCampaignAwRequest req, String campaignUrn) {
+		if(req.getCampaignUrnLoginIdUserRoleList().isEmpty()) {
+			return Collections.emptyMap();
+		}
+		
+		Map<String, List<String>> out = new HashMap<String, List<String>>();
+		out.put("author", new ArrayList<String>());
+		out.put("analyst", new ArrayList<String>());
+		out.put("supervisor", new ArrayList<String>());
+		out.put("participant", new ArrayList<String>());
+		
+		List<CampaignUrnLoginIdUserRole> list = req.getCampaignUrnLoginIdUserRoleList();
+		for(CampaignUrnLoginIdUserRole clu : list) {
+			if(clu.getCampaignUrn().equals(campaignUrn)) {
+				out.get(clu.getRole()).add(clu.getLoginId());
+			}
+		}
+		
+		return out;
+	}	
 }

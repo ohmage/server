@@ -24,6 +24,8 @@
         <bean class="edu.ucla.cens.awserver.service.RetrieveCampaignStringToListParameterConverterService" />
         <ref bean="findCampaignRolesForUserService" />
         <ref bean="findAllFilteredCampaignsForLoggedInUserService" />
+        <ref bean="findAllUserRolesForCampaignUrnsService" />
+        <ref bean="findAllClassesForCampaignUrnsService" />
       </list>
     </constructor-arg>
     <constructor-arg index="1">
@@ -181,12 +183,29 @@
     </constructor-arg>
   </bean>
   
-  <bean id="findAllFilteredCampaignsForLoggedInUserService" class="edu.ucla.cens.awserver.service.FindAllFilteredCampaignsForLoggedInUserService">
+  <bean id="findAllFilteredCampaignsForLoggedInUserService" class="edu.ucla.cens.awserver.service.SimpleQueryService">
     <constructor-arg index="0">
       <bean class="edu.ucla.cens.awserver.dao.FindAllFilteredCampaignsForLoggedInUserDao">
         <constructor-arg index="0"><ref bean="dataSource"/></constructor-arg>
       </bean>
     </constructor-arg>
+  </bean>
+  
+  <bean id="findAllUserRolesForCampaignUrnsService" class="edu.ucla.cens.awserver.service.SimpleQueryService">
+    <constructor-arg index="0">
+      <bean class="edu.ucla.cens.awserver.dao.FindAllUserRolesForCampaignUrnsDao">
+        <constructor-arg index="0"><ref bean="dataSource"/></constructor-arg>
+      </bean>
+    </constructor-arg>
   </bean> 
+  
+  <bean id="findAllClassesForCampaignUrnsService" class="edu.ucla.cens.awserver.service.SimpleQueryService">
+    <constructor-arg index="0">
+      <bean class="edu.ucla.cens.awserver.dao.FindAllClassesForCampaignUrnsDao">
+        <constructor-arg index="0"><ref bean="dataSource"/></constructor-arg>
+      </bean>
+    </constructor-arg>
+  </bean>
+   
 
 </beans>

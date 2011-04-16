@@ -5,9 +5,10 @@ package edu.ucla.cens.awserver.domain;
  * 
  * @author selsky
  */
-public class LoginIdUserRole {
+public class CampaignUrnLoginIdUserRole {
 	private String _loginId;
 	private String _role;
+	private String _campaignUrn;
 	
 	public String getRole() {
 		return _role;
@@ -25,8 +26,17 @@ public class LoginIdUserRole {
 		_loginId = loginId;
 	}
 	
+	public String getCampaignUrn() {
+		return _campaignUrn;
+	}
+	
+	public void setCampaignUrn(String campaignUrn) {
+		_campaignUrn = campaignUrn;
+	}
+
 	@Override
 	public String toString() {
-		return "CampaignUrnUserRole [_role=" + _role + ", _urn=" + _loginId + "]";
+		return "CampaignUrnLoginIdUserRole [_campaignUrn=" + _campaignUrn
+				+ ", _loginId=" + _loginId + ", _role=" + _role + "]";
 	}
 }

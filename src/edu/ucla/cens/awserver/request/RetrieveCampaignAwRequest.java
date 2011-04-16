@@ -2,9 +2,10 @@ package edu.ucla.cens.awserver.request;
 
 import java.util.List;
 
+import edu.ucla.cens.awserver.domain.CampaignUrnClassUrn;
+import edu.ucla.cens.awserver.domain.CampaignUrnLoginIdUserRole;
+
 /**
- * TODO/FIXME this class should extend UploadAwRequest
- * 
  * @author selsky
  */
 public class RetrieveCampaignAwRequest extends UploadAwRequest {
@@ -20,6 +21,10 @@ public class RetrieveCampaignAwRequest extends UploadAwRequest {
 	private String _userRole;
 	private String _classUrnListAsString;
 	private List<String> _classUrnList;
+	
+	// Output
+	private List<CampaignUrnLoginIdUserRole> _campaignUrnLoginIdUserRoleList;
+	private List<CampaignUrnClassUrn> _campaignUrnClassUrnList;
 	
 	public String getOutputFormat() {
 		return _outputFormat;
@@ -99,5 +104,22 @@ public class RetrieveCampaignAwRequest extends UploadAwRequest {
 	
 	public void setClassUrnList(List<String> classList) {
 		_classUrnList = classList;
+	}
+	
+	// Query Output
+	public List<CampaignUrnLoginIdUserRole> getCampaignUrnLoginIdUserRoleList() {
+		return _campaignUrnLoginIdUserRoleList;
+	}
+	
+	public void setCampaignUrnLoginIdUserRoleList(List<CampaignUrnLoginIdUserRole> list) {
+		_campaignUrnLoginIdUserRoleList = list;
+	}
+	
+	public List<CampaignUrnClassUrn> getCampaignUrnClassUrnList() {
+		return _campaignUrnClassUrnList;
+	}
+	
+	public void setCampaignUrnClassUrnList(List<CampaignUrnClassUrn> list) {
+		_campaignUrnClassUrnList = list;
 	}
 }

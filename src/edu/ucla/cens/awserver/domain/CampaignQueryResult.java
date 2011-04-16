@@ -78,13 +78,4 @@ public class CampaignQueryResult {
 	public void setUserRoles(List<String> roles) {
 		_userRoles = roles;
 	}
-
-	@Override
-	public String toString() {
-		return "CampaignQueryResult [_creationTimestamp=" + _creationTimestamp
-				+ ", _description=" + _description + ", _name=" + _name
-				+ ", _privacyState=" + _privacyState + ", _runningState="
-				+ _runningState + ", _urn=" + _urn + ", _userRoles="
-				+ _userRoles + ", _xml=" + _xml + "]";
-	}
 }
