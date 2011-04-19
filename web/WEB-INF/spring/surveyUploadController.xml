@@ -44,7 +44,7 @@
       <list>
         <ref bean="userNameValidator" />
         <ref bean="hashedPasswordValidator" />
-        <ref bean="campaignUrnValidator" />
+        <ref bean="campaignUrnCacheValidator" />
         <!-- any validator that simply checked for a empty string has been removed because it was redundant with 
              validation performed in the servlet world -->
       </list>
@@ -112,7 +112,7 @@
     <constructor-arg index="2"><ref bean="jsonMsgIncorrectArrayAnnotator" /></constructor-arg>
   </bean>
   
-  <bean id="campaignUrnValidator" class="edu.ucla.cens.awserver.validator.survey.CampaignUrnValidator">
+  <bean id="campaignUrnCacheValidator" class="edu.ucla.cens.awserver.validator.survey.CampaignUrnCacheValidator">
      <constructor-arg index="0">
       <bean class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
         <constructor-arg index="0">

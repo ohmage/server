@@ -26,7 +26,7 @@ public class CampaignDeletionAwRequestCreator implements AwRequestCreator {
 	 * Creates a new CampaignDeletionAwRequest object and returns it.
 	 */
 	@Override
-	public AwRequest createFrom(HttpServletRequest request) { try{
+	public AwRequest createFrom(HttpServletRequest request) {
 		_logger.info("Creating new AwRequest object for deleting a campaign.");
 		
 		String token = request.getParameter("auth_token");
@@ -43,8 +43,5 @@ public class CampaignDeletionAwRequestCreator implements AwRequestCreator {
 		awRequest.setUserToken(token);
 		
 		return awRequest;
-		
-	}catch(Exception e) { _logger.error(e.toString()); return null; }
 	}
-
 }

@@ -13,8 +13,8 @@ import edu.ucla.cens.awserver.validator.AwRequestAnnotator;
  * 
  * @author John Jenkins
  */
-public class CampaignCreationContentsValidationService extends AbstractAnnotatingDaoService {
-	private static Logger _logger = Logger.getLogger(CampaignCreationContentsValidationService.class);
+public class CampaignContentsValidationService extends AbstractAnnotatingDaoService {
+	private static Logger _logger = Logger.getLogger(CampaignContentsValidationService.class);
 	
 	/**
 	 * Creates an annotating DAO object that will check the database for some
@@ -24,7 +24,7 @@ public class CampaignCreationContentsValidationService extends AbstractAnnotatin
 	 * 
 	 * @param dao The DAO to use to access the database.
 	 */
-	public CampaignCreationContentsValidationService(AwRequestAnnotator annotator, Dao dao) {
+	public CampaignContentsValidationService(AwRequestAnnotator annotator, Dao dao) {
 		super(dao, annotator);
 	}
 

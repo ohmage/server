@@ -45,14 +45,14 @@
       <!-- Validates the individual items in the request. -->
       <list>
         <ref bean="userTokenValidator" />
-		<ref bean="campaignDeletionCampaignUrnValidator" />
+		<ref bean="campaignUrnValidator" />
       </list>
     </property>
     <property name="featureName"><value>campaign deletion</value></property>
   </bean>
   
   <!-- Controller's Beans Definitions -->
-  <bean id="campaignDeletionCampaignUrnValidator" class="edu.ucla.cens.awserver.validator.CampaignDeletionCampaignUrnValidator">
+  <bean id="campaignUrnValidator" class="edu.ucla.cens.awserver.validator.CampaignUrnValidator">
     <constructor-arg index="0">
       <bean class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
         <constructor-arg index="0">

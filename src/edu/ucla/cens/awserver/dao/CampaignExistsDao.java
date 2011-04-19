@@ -34,24 +34,24 @@ public class CampaignExistsDao extends AbstractDao {
 	 */
 	@Override
 	public void execute(AwRequest awRequest) {
-		CampaignDeletionAwRequest request;
+		String campaignUrn;
 		try {
-			request = (CampaignDeletionAwRequest) awRequest;
+			campaignUrn = (String) awRequest.getToProcessValue(CampaignDeletionAwRequest.KEY_CAMPAIGN_URN);
 		}
-		catch(ClassCastException e) {
-			_logger.error("Checking campaign name on a non-CampaignDeletionAwRequest object.");
-			throw new DataAccessException("Invalid request.");
+		catch(IllegalArgumentException e) {
+			_logger.error("No campaign urn exists in the toProcess map.");
+			throw new DataAccessException(e);
 		}
 		
 		try {
-			int count = getJdbcTemplate().queryForInt(SQL, new Object[] { request.getRequestUrn() });
+			int count = getJdbcTemplate().queryForInt(SQL, new Object[] { campaignUrn });
 			
 			if(count == 0) {
 				awRequest.setFailedRequest(true);
 			}
 		}
 		catch(org.springframework.dao.DataAccessException dae) {
-			_logger.error("Error executing SQL '" + SQL + "' with parameter: " + request.getRequestUrn());
+			_logger.error("Error executing SQL '" + SQL + "' with parameter: " + campaignUrn, dae);
 			throw new DataAccessException(dae);
 		}
 	}

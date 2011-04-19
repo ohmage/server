@@ -16,8 +16,8 @@ import org.apache.log4j.Logger;
 import edu.ucla.cens.awserver.request.AwRequest;
 import edu.ucla.cens.awserver.request.CampaignCreationAwRequest;
 
-public class CampaignCreationContentsValidationDao extends AbstractDao {
-	private static Logger _logger = Logger.getLogger(CampaignCreationContentsValidationDao.class);
+public class CampaignContentsValidationDao extends AbstractDao {
+	private static Logger _logger = Logger.getLogger(CampaignContentsValidationDao.class);
 	
 	private static final String SQL = "SELECT count(*)" +
 									  " FROM campaign" +
@@ -29,7 +29,7 @@ public class CampaignCreationContentsValidationDao extends AbstractDao {
 	 * @param dataSource The data source that will be used to query the
 	 * 					 database for information.
 	 */
-	public CampaignCreationContentsValidationDao(DataSource dataSource) {
+	public CampaignContentsValidationDao(DataSource dataSource) {
 		super(dataSource);
 	}
 	
@@ -38,21 +38,14 @@ public class CampaignCreationContentsValidationDao extends AbstractDao {
 	 */
 	@Override
 	public void execute(AwRequest awRequest) {
-		CampaignCreationAwRequest request;
-		try {
-			request = (CampaignCreationAwRequest) awRequest;
-		}
-		catch(ClassCastException e) {
-			_logger.error("Checking XML contents on a non-CampaignCreationAwRequest object.");
-			throw new DataAccessException("Invalid request.");
-		}
+		String campaignXml = (String) awRequest.getToProcessValue(CampaignCreationAwRequest.KEY_XML);
 		
 		// Now use XOM to retrieve a Document and a root node for further processing. XOM is used because it has a 
 		// very simple XPath API	
 		Builder builder = new Builder();
 		Document document;
 		try {
-			document = builder.build(new StringReader(request.getCampaign()));
+			document = builder.build(new StringReader(campaignXml));
 		} catch (IOException e) {
 			// The XML should already have been validated, so this should
 			// never happen.

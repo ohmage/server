@@ -1,5 +1,6 @@
 package edu.ucla.cens.awserver.request;
 
+import java.util.LinkedList;
 import java.util.List;
 
 /**
@@ -10,6 +11,18 @@ import java.util.List;
 public class ResultListAwRequest extends AbstractAwRequest {
 	private String  _userToken;
 	private List<?> _resultList;
+	
+	/**
+	 * Basic constructor that sets the '_resultList' to an empty linked list.
+	 * This is done as it is believed to be better to return empty lists than
+	 * null.
+	 */
+	public ResultListAwRequest() {
+		super();
+		
+		_userToken = null;
+		_resultList = new LinkedList<Object>();
+	}
 
 	public List<?> getResultList() {
 		return _resultList;
@@ -30,6 +43,7 @@ public class ResultListAwRequest extends AbstractAwRequest {
 	@Override
 	public String toString() {
 		return "ResultsListAwRequest [_resultList=" + _resultList
-				+ ", toString()=" + super.toString() + "]";
+				+ ", toString()=" + super.toString()
+				+ "]";
 	}
 }

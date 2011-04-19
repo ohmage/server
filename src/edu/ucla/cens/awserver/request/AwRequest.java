@@ -88,4 +88,9 @@ import edu.ucla.cens.awserver.domain.User;
 	 
 	 Map<String, Object> getToValidate();
 	 void setToValidate(Map<String, Object> toValidate); 
+	 
+	 Map<String, Object> getToProcess();
+	 boolean existsInToProcess(String key);
+	 Object getToProcessValue(String key);
+	 void addToProcess(String key, Object value, boolean overwrite);
 }

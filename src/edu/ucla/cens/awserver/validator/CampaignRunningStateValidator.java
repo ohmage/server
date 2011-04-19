@@ -11,8 +11,8 @@ import edu.ucla.cens.awserver.request.CampaignCreationAwRequest;
  * 
  * @author John Jenkins
  */
-public class CampaignCreationRunningStateValidator extends AbstractAnnotatingValidator {
-	private static Logger _logger = Logger.getLogger(CampaignCreationRunningStateValidator.class);
+public class CampaignRunningStateValidator extends AbstractAnnotatingValidator {
+	private static Logger _logger = Logger.getLogger(CampaignRunningStateValidator.class);
 	
 	private String[] _states;
 	
@@ -24,34 +24,24 @@ public class CampaignCreationRunningStateValidator extends AbstractAnnotatingVal
 	 * 
 	 * @param states All possible initial states of a campaign.
 	 */
-	public CampaignCreationRunningStateValidator(AwRequestAnnotator annotator, String[] states) {
+	public CampaignRunningStateValidator(AwRequestAnnotator annotator, String[] states) {
 		super(annotator);
 		
 		_states = states;
 	}
 
 	/**
-	 * Checks that the running state in the request against all plausible
-	 * running states.
-	 * 
-	 * Note: Specific to CampaignCreationAwRequest objects.
+	 * Checks that there is a running state and that it is one of the running
+	 * states that this object knows about.
 	 */
 	@Override
 	public boolean validate(AwRequest awRequest) {
-		_logger.info("Validating initial running state.");
+		_logger.info("Validating running state.");
 		
-		CampaignCreationAwRequest ccAwRequest;
-		try {
-			ccAwRequest = (CampaignCreationAwRequest) awRequest;
-		}
-		catch(ClassCastException e) {
-			_logger.error("Attempting validation on a non-CampaignCreationAwRequest object.");
-			throw new ValidatorException("Validator is specific to CampaignCreationAwRequest objects.");
-		}
-		
-		String initialRunningState = ccAwRequest.getRunningState();
+		String initialRunningState = (String) awRequest.getToValidate().get(CampaignCreationAwRequest.KEY_RUNNING_STATE);
 		for(int i = 0; i < _states.length; i++) {
 			if(_states[i].equals(initialRunningState)) {
+				awRequest.addToProcess(CampaignCreationAwRequest.KEY_RUNNING_STATE, initialRunningState, true);
 				return true;
 			}
 		}

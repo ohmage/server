@@ -1,6 +1,7 @@
 package edu.ucla.cens.awserver.request;
 
 import java.security.InvalidParameterException;
+import java.util.Map;
 
 /**
  * Encapsulating class for all the information pertaining to creating a new
@@ -9,12 +10,12 @@ import java.security.InvalidParameterException;
  * @author John Jenkins
  */
 public class CampaignCreationAwRequest extends ResultListAwRequest {
-	private String _runningState;
-	private String _privacyState;
-	private String _commaSeparatedListOfClasses;
-
-	private String _xml;
-	private String _description;
+	public static final String KEY_RUNNING_STATE = "runningState";
+	public static final String KEY_PRIVACY_STATE = "privacyState";
+	public static final String KEY_LIST_OF_CLASSES_AS_STRING = "commaSeparatedListOfClasses";
+	
+	public static final String KEY_XML = "xml";
+	public static final String KEY_DESCRIPTION = "description";
 	
 	/**
 	 * Constructor that converts the requested parameters into an AndWellness
@@ -43,13 +44,17 @@ public class CampaignCreationAwRequest extends ResultListAwRequest {
 		else if(commaSeparatedListOfClasses == null) {
 			throw new InvalidParameterException("The initial list of classes for a campaign cannot be null.");
 		}
+
+		Map<String, Object> toValidate = getToValidate();
 		
-		_runningState = runningState;
-		_privacyState = privacyState;
-		_commaSeparatedListOfClasses = commaSeparatedListOfClasses;
+		toValidate.put(KEY_RUNNING_STATE, runningState);
+		toValidate.put(KEY_PRIVACY_STATE, privacyState);
+		toValidate.put(KEY_LIST_OF_CLASSES_AS_STRING, commaSeparatedListOfClasses);
 		
-		_xml = campaignAsXml;
-		_description = description;
+		toValidate.put(KEY_XML, campaignAsXml);
+		toValidate.put(KEY_DESCRIPTION, description);
+		
+		setToValidate(toValidate);
 	}
 	
 	/**
@@ -58,7 +63,7 @@ public class CampaignCreationAwRequest extends ResultListAwRequest {
 	 * @return The initial running state of this campaign.
 	 */
 	public String getRunningState() {
-		return _runningState;
+		return (String) getToValidate().get(KEY_RUNNING_STATE);
 	}
 	
 	/**
@@ -67,7 +72,7 @@ public class CampaignCreationAwRequest extends ResultListAwRequest {
 	 * @return The initial privacy state of this campaign.
 	 */
 	public String getPrivacyState() {
-		return _privacyState;
+		return (String) getToValidate().get(KEY_PRIVACY_STATE);
 	}
 	
 	/**
@@ -76,7 +81,7 @@ public class CampaignCreationAwRequest extends ResultListAwRequest {
 	 * @return The campaign as an XML file.
 	 */
 	public String getCampaign() {
-		return _xml;
+		return (String) getToValidate().get(KEY_XML);
 	}
 	
 	/**
@@ -87,7 +92,7 @@ public class CampaignCreationAwRequest extends ResultListAwRequest {
 	 * 		   associated with.
 	 */
 	public String getCommaSeparatedListOfClasses() {
-		return _commaSeparatedListOfClasses;
+		return (String) getToValidate().get(KEY_LIST_OF_CLASSES_AS_STRING);
 	}
 	
 	/**
@@ -95,8 +100,8 @@ public class CampaignCreationAwRequest extends ResultListAwRequest {
 	 * 
 	 * @return The description for this campaign.
 	 */
-	public String getDesciption() {
-		return _description;
+	public String getDescription() {
+		return (String) getToValidate().get(KEY_DESCRIPTION);
 	}
 	
 	/**
@@ -104,10 +109,11 @@ public class CampaignCreationAwRequest extends ResultListAwRequest {
 	 */
 	@Override
 	public String toString() {
-		return "CampaignCreationAwRequest [_runningState=" + _runningState
-				+ ", _privacyState=" + _privacyState
-				+ ", _xml=" + _xml
-				+ ", _commaSeparatedListOfClasses=" + _commaSeparatedListOfClasses
+		return "CampaignCreationAwRequest [_runningState=" + getRunningState()
+				+ ", _privacyState=" + getPrivacyState()
+				+ ", _xml=" + getCampaign()
+				+ ", _commaSeparatedListOfClasses=" + getCommaSeparatedListOfClasses()
+				+ ((getToValidate().containsKey(KEY_DESCRIPTION)) ? (", _description=" + getDescription()) : "" )
 				+ "], super.toString()=" + super.toString();
 	}
 }

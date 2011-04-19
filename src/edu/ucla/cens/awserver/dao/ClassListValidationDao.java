@@ -14,8 +14,8 @@ import edu.ucla.cens.awserver.request.CampaignCreationAwRequest;
  * 
  * @author John Jenkins
  */
-public class CampaignCreationClassListValidationDao extends AbstractDao {
-	private static Logger _logger = Logger.getLogger(CampaignCreationClassListValidationDao.class);
+public class ClassListValidationDao extends AbstractDao {
+	private static Logger _logger = Logger.getLogger(ClassListValidationDao.class);
 	
 	private static final String SQL_CLASS_COUNT = "SELECT count(*) " +
 												  "FROM class " +
@@ -34,7 +34,7 @@ public class CampaignCreationClassListValidationDao extends AbstractDao {
 	 * @param dataSource The data source that will be used to query the
 	 * 					 database for information.
 	 */
-	public CampaignCreationClassListValidationDao(DataSource dataSource) {
+	public ClassListValidationDao(DataSource dataSource) {
 		super(dataSource);
 	}
 
@@ -45,17 +45,13 @@ public class CampaignCreationClassListValidationDao extends AbstractDao {
 	 */
 	@Override
 	public void execute(AwRequest awRequest) {
-		CampaignCreationAwRequest request;
-		try {
-			request = (CampaignCreationAwRequest) awRequest;
-		}
-		catch(ClassCastException e) {
-			_logger.error("Checking class list on a non-CampaignCreationAwRequest object.");
-			throw new DataAccessException("Invalid request.");
+		String classesAsString = (String) awRequest.getToProcessValue(CampaignCreationAwRequest.KEY_LIST_OF_CLASSES_AS_STRING);
+		if(classesAsString == null) {
+			throw new DataAccessException("Missing list of classes in toProcess map.");
 		}
 		
-		String[] classes = request.getCommaSeparatedListOfClasses().split(",");
-		String userLogin = request.getUser().getUserName();
+		String[] classes = classesAsString.split(",");
+		String userLogin = awRequest.getUser().getUserName();
 		for(int i = 0; i < classes.length; i++) {
 			int numClasses;
 			try {

@@ -13,8 +13,8 @@ import edu.ucla.cens.awserver.request.AwRequest;
 import edu.ucla.cens.awserver.request.CampaignCreationAwRequest;
 import edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator;
 
-public class CampaignCreationCampaignValidator extends AbstractAnnotatingValidator {
-	private static Logger _logger = Logger.getLogger(CampaignCreationCampaignValidator.class);
+public class CampaignXmlValidator extends AbstractAnnotatingValidator {
+	private static Logger _logger = Logger.getLogger(CampaignXmlValidator.class);
 	
 	private CampaignValidator _validator;
 	private String _schemaFileName;
@@ -26,7 +26,7 @@ public class CampaignCreationCampaignValidator extends AbstractAnnotatingValidat
 	 * 
 	 * @param valiator The validator for the incomming XML file.
 	 */
-	public CampaignCreationCampaignValidator(AwRequestAnnotator annotator, CampaignValidator validator, String schemaFileName) {
+	public CampaignXmlValidator(AwRequestAnnotator annotator, CampaignValidator validator, String schemaFileName) {
 		super(annotator);
 		
 		_validator = validator;
@@ -39,19 +39,10 @@ public class CampaignCreationCampaignValidator extends AbstractAnnotatingValidat
 	@Override
 	public boolean validate(AwRequest awRequest) {
 		_logger.info("Validating campaign XML.");
-		
-		CampaignCreationAwRequest request;
-		try {
-			request = (CampaignCreationAwRequest) awRequest;
-		}
-		catch(ClassCastException e) {
-			_logger.error("Attempting to validate a campaign with a non-CampaignCreationAwRequest.", e);
-			awRequest.setFailedRequest(true);
-			return false;
-		}
 
+		String campaignXml = (String) awRequest.getToValidate().get(CampaignCreationAwRequest.KEY_XML);
 		try {
-			_validator.run(request.getCampaign(), _schemaFileName);
+			_validator.run(campaignXml, _schemaFileName);
 		} 
 		catch(InvalidParameterException e) {
 			_logger.error("Internal error.");
@@ -89,6 +80,7 @@ public class CampaignCreationCampaignValidator extends AbstractAnnotatingValidat
 			return false;
 		}
 		
+		awRequest.addToProcess(CampaignCreationAwRequest.KEY_XML, campaignXml, true);
 		return true;
 	}
 }

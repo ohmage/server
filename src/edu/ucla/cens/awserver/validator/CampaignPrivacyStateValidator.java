@@ -5,8 +5,14 @@ import org.apache.log4j.Logger;
 import edu.ucla.cens.awserver.request.AwRequest;
 import edu.ucla.cens.awserver.request.CampaignCreationAwRequest;
 
-public class CampaignCreationPrivacyStateValidator extends AbstractAnnotatingValidator {
-	private static Logger _logger = Logger.getLogger(CampaignCreationPrivacyStateValidator.class);
+/**
+ * Validates that the privacy state in the current request is one of the
+ * privacy states given when this class was created.
+ * 
+ * @author John Jenkins
+ */
+public class CampaignPrivacyStateValidator extends AbstractAnnotatingValidator {
+	private static Logger _logger = Logger.getLogger(CampaignPrivacyStateValidator.class);
 	
 	private String[] _states;
 	
@@ -17,7 +23,7 @@ public class CampaignCreationPrivacyStateValidator extends AbstractAnnotatingVal
 	 *  
 	 * @param states All possible initial privacy states.
 	 */
-	public CampaignCreationPrivacyStateValidator(AwRequestAnnotator annotator, String[] states) {
+	public CampaignPrivacyStateValidator(AwRequestAnnotator annotator, String[] states) {
 		super(annotator);
 		
 		_states = states;
@@ -25,24 +31,16 @@ public class CampaignCreationPrivacyStateValidator extends AbstractAnnotatingVal
 	
 	/**
 	 * Checks to ensure that the request contains a privacy state and that it
-	 * is one of the possible initial privacy states.
+	 * is one of the given privacy states that this object knows about.
 	 */
 	@Override
 	public boolean validate(AwRequest awRequest) {
-		_logger.info("Validating initial privacy state.");
+		_logger.info("Validating privacy state.");
 		
-		CampaignCreationAwRequest ccAwRequest;
-		try {
-			ccAwRequest = (CampaignCreationAwRequest) awRequest;
-		}
-		catch(ClassCastException e) {
-			_logger.error("Attempting validation on a non-CampaignCreationAwRequest object.");
-			throw new ValidatorException("Validator is specific to CampaignCreationAwRequest objects.");
-		}
-		
-		String initialPrivacyState = ccAwRequest.getPrivacyState();
+		String initialPrivacyState = (String) awRequest.getToValidate().get(CampaignCreationAwRequest.KEY_PRIVACY_STATE);
 		for(int i = 0; i < _states.length; i++) {
 			if(_states[i].equals(initialPrivacyState)) {
+				awRequest.addToProcess(CampaignCreationAwRequest.KEY_PRIVACY_STATE, initialPrivacyState, true);
 				return true;
 			}
 		}

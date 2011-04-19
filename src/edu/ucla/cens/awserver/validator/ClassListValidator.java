@@ -11,15 +11,15 @@ import edu.ucla.cens.awserver.request.CampaignCreationAwRequest;
  * 
  * @author John Jenkins
  */
-public class CampaignCreationClassListValidator extends AbstractAnnotatingValidator {
-	private static Logger _logger = Logger.getLogger(CampaignCreationClassListValidator.class);
+public class ClassListValidator extends AbstractAnnotatingValidator {
+	private static Logger _logger = Logger.getLogger(ClassListValidator.class);
 	
 	/**
 	 * Creates a new validator for the list of classes.
 	 * 
 	 * @param annotator The annotator should something fail.
 	 */
-	public CampaignCreationClassListValidator(AwRequestAnnotator annotator) {
+	public ClassListValidator(AwRequestAnnotator annotator) {
 		super(annotator);
 	}
 	
@@ -31,16 +31,7 @@ public class CampaignCreationClassListValidator extends AbstractAnnotatingValida
 	public boolean validate(AwRequest awRequest) {
 		_logger.info("Validating initial list of classes for new campaign.");
 		
-		CampaignCreationAwRequest request;
-		try {
-			request = (CampaignCreationAwRequest) awRequest;
-		}
-		catch(ClassCastException e) {
-			_logger.error("Attempting to validate classes on a non-CampaignCreationAwRequest object.");
-			return false;
-		}
-		
-		String classes = request.getCommaSeparatedListOfClasses();
+		String classes = (String) awRequest.getToValidate().get(CampaignCreationAwRequest.KEY_LIST_OF_CLASSES_AS_STRING);
 		if((classes == null) || ("".equals(classes))) {
 			awRequest.setFailedRequest(true);
 			getAnnotator().annotate(awRequest, "Class list is empty.");
@@ -69,6 +60,13 @@ public class CampaignCreationClassListValidator extends AbstractAnnotatingValida
 			awRequest.setFailedRequest(true);
 			getAnnotator().annotate(awRequest, "Weird class list " + classes);
 			return false;
+		}
+		
+		try {
+			awRequest.addToProcess(CampaignCreationAwRequest.KEY_LIST_OF_CLASSES_AS_STRING, classes, true);
+		}
+		catch(IllegalArgumentException e) {
+			throw new ValidatorException("Error while trying to add the list of classes to the toProcess map.", e);
 		}
 		
 		return true;

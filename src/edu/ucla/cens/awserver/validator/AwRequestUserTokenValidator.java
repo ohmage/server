@@ -1,5 +1,7 @@
 package edu.ucla.cens.awserver.validator;
 
+import org.apache.log4j.Logger;
+
 import edu.ucla.cens.awserver.request.AwRequest;
 import edu.ucla.cens.awserver.util.StringUtils;
 
@@ -9,7 +11,7 @@ import edu.ucla.cens.awserver.util.StringUtils;
  * @author selsky
  */
 public class AwRequestUserTokenValidator extends AbstractAnnotatingRegexpValidator {
-	//private static Logger _logger = Logger.getLogger(AwRequestUserTokenValidator.class);
+	private static Logger _logger = Logger.getLogger(AwRequestUserTokenValidator.class);
 	
 	public AwRequestUserTokenValidator(String regexp, AwRequestAnnotator awRequestAnnotator) {
 		super(regexp, awRequestAnnotator);
@@ -19,6 +21,7 @@ public class AwRequestUserTokenValidator extends AbstractAnnotatingRegexpValidat
 	 * @throws ValidatorException if a user token (a UUID) is not present in the AwRequest or is malformed.  
 	 */
 	public boolean validate(AwRequest awRequest) {
+		_logger.info("Validating that the user token follows out conventions.");
 		
 		if(StringUtils.isEmptyOrWhitespaceOnly(awRequest.getUserToken())) {
 			

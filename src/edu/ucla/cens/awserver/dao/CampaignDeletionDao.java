@@ -64,43 +64,41 @@ public class CampaignDeletionDao extends AbstractDao {
 	 * minimize the possibility of a concurrency issue.
 	 */
 	@Override
-	public void execute(AwRequest awRequest) {
-		CampaignDeletionAwRequest request;
+	public void execute(AwRequest awRequest) {		
+		String campaignUrn;
 		try {
-			request = (CampaignDeletionAwRequest) awRequest;
+			campaignUrn = (String) awRequest.getToProcessValue(CampaignDeletionAwRequest.KEY_CAMPAIGN_URN);
 		}
-		catch(ClassCastException e) {
-			_logger.error("Attempting to delete a campaign on a non-CampaignDeletionAwRequest object.");
+		catch(IllegalArgumentException e) {
+			_logger.error("Error retrieving request campaign URN from the toProcess map.");
 			throw new DataAccessException(e);
 		}
-		
-		String urn = request.getRequestUrn();
 		boolean doIt = false;
 		
 		// If they are a supervisor then do it.
 		try {
-			doIt = (getJdbcTemplate().queryForInt(SQL_GET_IS_SUPERVISOR, new Object[] { awRequest.getUser().getUserName(), urn }) == 1);
+			doIt = (getJdbcTemplate().queryForInt(SQL_GET_IS_SUPERVISOR, new Object[] { awRequest.getUser().getUserName(), campaignUrn }) != 0);
 		}
 		catch(org.springframework.dao.DataAccessException dae) {
-			_logger.error("Error executing SQL '" + SQL_GET_IS_SUPERVISOR + "' with parameters: " + awRequest.getUser().getUserName() + ", " + urn, dae);
+			_logger.error("Error executing SQL '" + SQL_GET_IS_SUPERVISOR + "' with parameters: " + awRequest.getUser().getUserName() + ", " + campaignUrn, dae);
 			throw new DataAccessException(dae);
 		}
 		
 		// If they are an author and there are no responses.
 		if(! doIt) {
 			try {
-				if(getJdbcTemplate().queryForInt(SQL_GET_IS_AUTHOR, new Object[] { awRequest.getUser().getUserName(), urn }) == 1) {
+				if(getJdbcTemplate().queryForInt(SQL_GET_IS_AUTHOR, new Object[] { awRequest.getUser().getUserName(), campaignUrn }) != 0) {
 					try {
-						doIt = (getJdbcTemplate().queryForInt(SQL_GET_RESPONSES_COUNT, new Object[] { urn }) == 0);
+						doIt = (getJdbcTemplate().queryForInt(SQL_GET_RESPONSES_COUNT, new Object[] { campaignUrn }) == 0);
 					}
 					catch(org.springframework.dao.DataAccessException dae) {
-						_logger.error("Error executing SQL '" + SQL_GET_RESPONSES_COUNT + "' with parameter: " + urn, dae);
+						_logger.error("Error executing SQL '" + SQL_GET_RESPONSES_COUNT + "' with parameter: " + campaignUrn, dae);
 						throw new DataAccessException(dae);
 					}
 				}
 			}
 			catch(org.springframework.dao.DataAccessException dae) {
-				_logger.error("Error executing SQL '" + SQL_GET_IS_AUTHOR + "' with parameters: " + awRequest.getUser().getUserName() + ", " + urn, dae);
+				_logger.error("Error executing SQL '" + SQL_GET_IS_AUTHOR + "' with parameters: " + awRequest.getUser().getUserName() + ", " + campaignUrn, dae);
 				throw new DataAccessException(dae);
 			}
 		}
@@ -108,11 +106,11 @@ public class CampaignDeletionDao extends AbstractDao {
 		// Delete the campaign which will cause a cascade of deletes.
 		if(doIt) {
 			try {
-				_logger.info("Deleting campaign " + urn + ".");
-				getJdbcTemplate().update(SQL_DELETE_CAMPAIGN, new Object[] { urn });
+				_logger.info("Deleting campaign " + campaignUrn + ".");
+				getJdbcTemplate().update(SQL_DELETE_CAMPAIGN, new Object[] { campaignUrn });
 			}
 			catch(org.springframework.dao.DataAccessException dae) {
-				_logger.error("Error executing SQL '" + SQL_DELETE_CAMPAIGN + "' with parameterr: " + urn, dae);
+				_logger.error("Error executing SQL '" + SQL_DELETE_CAMPAIGN + "' with parameterr: " + campaignUrn, dae);
 				throw new DataAccessException(dae);
 			}
 		}
