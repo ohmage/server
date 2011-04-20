@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<project name="andwellness-server" basedir="." default="dist-all">
+<project name="webapp-andwellness-chipts-no_ssl" basedir="." default="dist-all">
   <property file="build.properties"/>
   <property name="component.repository" location="${user.home}/.component-repository"/>
   <property name="version"  value="snapshot"/>
@@ -90,16 +90,14 @@
   <target name="dist" depends="javac" description="Compiles Java files and creates WAR.">
     <mkdir dir="${dist}"/>
     <echo message="Warning: Bundling of dependencies will not work if jars are organized in subdirs in component repository."/>
-    <war webxml="${resources}/WEB-INF/web-local.xml" destfile="${dist}/${ant.project.name}-${version}.war">
+    <war webxml="${resources}/WEB-INF/web-no_ssl.xml" destfile="${dist}/${ant.project.name}-${version}.war">
       <classes dir="${build}/classes"/>
       <lib refid="run-dependencies"/>
       <webinf dir="${resources}/WEB-INF">
-        <exclude name="web-local.xml"/>
-      	<exclude name="web-remote-ssl.xml"/>
-      	<exclude name="web-remote-nossl.xml"/>
-      	<exclude name="spring/util-system-remote.xml"/>
-      	<exclude name="spring/util-local-andwellness.xml"/>
-      	<exclude name="spring/util-local-mobilize.xml"/>
+      	<exclude name="web-no_ssl.xml"/>
+      	<exclude name="web-ssl.xml"/>
+        <exclude name="spring/util-system-mobilize.xml"/>
+        <exclude name="spring/util-system-andwellness.xml"/>
       </webinf>
       <metainf dir="${resources}/META-INF">
         <exclude name="MANIFEST.MF"/>
@@ -108,7 +106,6 @@
         <exclude name="META-INF/**"/>
         <exclude name="WEB-INF/**"/>
       </zipfileset>
-      <!-- <fileset dir="${resources}/jsp" /> -->
     </war>
   </target>
 
