@@ -25,6 +25,8 @@ public abstract class AbstractAwRequest implements AwRequest {
 	private boolean _isFailedRequest;
 	private String _failedRequestErrorMessage;
 	
+	private String _campaignUrn;
+	
 	private Map<String, Object> _toValidate;
 	private Map<String, Object> _toProcess;
 	
@@ -82,6 +84,14 @@ public abstract class AbstractAwRequest implements AwRequest {
 	
 	public Map<String, Object> getToProcess() {
 		return _toProcess;
+	}
+	
+	public String getCampaignUrn() {
+		return _campaignUrn;
+	}
+	
+	public void setCampaignUrn(String urn) {
+		_campaignUrn = urn;
 	}
 	
 	/**
@@ -169,10 +179,6 @@ public abstract class AbstractAwRequest implements AwRequest {
 	will throw an UnsupportedOperationException, which indicates a logical error in the calling code.
 	
 	****/
-
-	public String getCampaignUrn() {
-		throw new UnsupportedOperationException("it is illegal to invoke getCampaignUrn() on this instance");	
-	}
 	
 	public int getCurrentMessageIndex() {
 		throw new UnsupportedOperationException("it is illegal to invoke getCurrentMessageIndex() on this instance");
@@ -244,10 +250,6 @@ public abstract class AbstractAwRequest implements AwRequest {
 	
 	public String getUserToken() {
 		throw new UnsupportedOperationException("it is illegal to invoke getUserToken() on this instance");
-	}
-
-	public void setCampaignUrn(String campaignName) {
-		throw new UnsupportedOperationException("it is illegal to invoke setCampaignName() on this instance");
 	}
 
 	public void setClient(String client) {

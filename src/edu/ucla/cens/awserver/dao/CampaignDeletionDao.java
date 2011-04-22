@@ -5,7 +5,6 @@ import javax.sql.DataSource;
 import org.apache.log4j.Logger;
 
 import edu.ucla.cens.awserver.request.AwRequest;
-import edu.ucla.cens.awserver.request.CampaignDeletionAwRequest;
 
 /**
  * DAO to delete a campaign and all references to it. It will first check
@@ -64,16 +63,9 @@ public class CampaignDeletionDao extends AbstractDao {
 	 * minimize the possibility of a concurrency issue.
 	 */
 	@Override
-	public void execute(AwRequest awRequest) {		
-		String campaignUrn;
-		try {
-			campaignUrn = (String) awRequest.getToProcessValue(CampaignDeletionAwRequest.KEY_CAMPAIGN_URN);
-		}
-		catch(IllegalArgumentException e) {
-			_logger.error("Error retrieving request campaign URN from the toProcess map.");
-			throw new DataAccessException(e);
-		}
+	public void execute(AwRequest awRequest) {
 		boolean doIt = false;
+		String campaignUrn = awRequest.getCampaignUrn();
 		
 		// If they are a supervisor then do it.
 		try {

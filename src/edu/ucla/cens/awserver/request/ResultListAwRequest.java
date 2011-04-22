@@ -1,6 +1,6 @@
 package edu.ucla.cens.awserver.request;
 
-import java.util.LinkedList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -21,7 +21,7 @@ public class ResultListAwRequest extends AbstractAwRequest {
 		super();
 		
 		_userToken = null;
-		_resultList = new LinkedList<Object>();
+		_resultList = Collections.emptyList();
 	}
 
 	public List<?> getResultList() {

@@ -5,7 +5,7 @@ import javax.sql.DataSource;
 import org.apache.log4j.Logger;
 
 import edu.ucla.cens.awserver.request.AwRequest;
-import edu.ucla.cens.awserver.request.CampaignCreationAwRequest;
+import edu.ucla.cens.awserver.request.InputKeys;
 
 /**
  * DAO for checking the list of classes associated with a campaign creation
@@ -45,9 +45,13 @@ public class ClassListValidationDao extends AbstractDao {
 	 */
 	@Override
 	public void execute(AwRequest awRequest) {
-		String classesAsString = (String) awRequest.getToProcessValue(CampaignCreationAwRequest.KEY_LIST_OF_CLASSES_AS_STRING);
-		if(classesAsString == null) {
-			throw new DataAccessException("Missing list of classes in toProcess map.");
+		String classesAsString;
+		try {
+			classesAsString = (String) awRequest.getToProcessValue(InputKeys.CLASS_URN_LIST);
+		}
+		catch(IllegalArgumentException e) {
+			_logger.info("No class list in the toProcess map, so skipping service validation.");
+			return;
 		}
 		
 		String[] classes = classesAsString.split(",");

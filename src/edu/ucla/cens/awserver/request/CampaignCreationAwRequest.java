@@ -9,14 +9,7 @@ import java.util.Map;
  * 
  * @author John Jenkins
  */
-public class CampaignCreationAwRequest extends ResultListAwRequest {
-	public static final String KEY_RUNNING_STATE = "runningState";
-	public static final String KEY_PRIVACY_STATE = "privacyState";
-	public static final String KEY_LIST_OF_CLASSES_AS_STRING = "commaSeparatedListOfClasses";
-	
-	public static final String KEY_XML = "xml";
-	public static final String KEY_DESCRIPTION = "description";
-	
+public class CampaignCreationAwRequest extends ResultListAwRequest {	
 	/**
 	 * Constructor that converts the requested parameters into an AndWellness
 	 * request.
@@ -32,6 +25,8 @@ public class CampaignCreationAwRequest extends ResultListAwRequest {
 	 * 									  campaign will initially belong.
 	 */
 	public CampaignCreationAwRequest(String runningState, String privacyState, String campaignAsXml, String commaSeparatedListOfClasses, String description) throws InvalidParameterException {
+		super();
+		
 		if(runningState == null) {
 			throw new InvalidParameterException("The initial running state cannot be null.");
 		}
@@ -47,12 +42,12 @@ public class CampaignCreationAwRequest extends ResultListAwRequest {
 
 		Map<String, Object> toValidate = getToValidate();
 		
-		toValidate.put(KEY_RUNNING_STATE, runningState);
-		toValidate.put(KEY_PRIVACY_STATE, privacyState);
-		toValidate.put(KEY_LIST_OF_CLASSES_AS_STRING, commaSeparatedListOfClasses);
+		toValidate.put(InputKeys.RUNNING_STATE, runningState);
+		toValidate.put(InputKeys.PRIVACY_STATE, privacyState);
+		toValidate.put(InputKeys.CLASS_URN_LIST, commaSeparatedListOfClasses);
 		
-		toValidate.put(KEY_XML, campaignAsXml);
-		toValidate.put(KEY_DESCRIPTION, description);
+		toValidate.put(InputKeys.XML, campaignAsXml);
+		toValidate.put(InputKeys.DESCRIPTION, description);
 		
 		setToValidate(toValidate);
 	}
@@ -63,7 +58,7 @@ public class CampaignCreationAwRequest extends ResultListAwRequest {
 	 * @return The initial running state of this campaign.
 	 */
 	public String getRunningState() {
-		return (String) getToValidate().get(KEY_RUNNING_STATE);
+		return (String) getToValidate().get(InputKeys.RUNNING_STATE);
 	}
 	
 	/**
@@ -72,7 +67,7 @@ public class CampaignCreationAwRequest extends ResultListAwRequest {
 	 * @return The initial privacy state of this campaign.
 	 */
 	public String getPrivacyState() {
-		return (String) getToValidate().get(KEY_PRIVACY_STATE);
+		return (String) getToValidate().get(InputKeys.PRIVACY_STATE);
 	}
 	
 	/**
@@ -81,7 +76,7 @@ public class CampaignCreationAwRequest extends ResultListAwRequest {
 	 * @return The campaign as an XML file.
 	 */
 	public String getCampaign() {
-		return (String) getToValidate().get(KEY_XML);
+		return (String) getToValidate().get(InputKeys.XML);
 	}
 	
 	/**
@@ -92,7 +87,7 @@ public class CampaignCreationAwRequest extends ResultListAwRequest {
 	 * 		   associated with.
 	 */
 	public String getCommaSeparatedListOfClasses() {
-		return (String) getToValidate().get(KEY_LIST_OF_CLASSES_AS_STRING);
+		return (String) getToValidate().get(InputKeys.CLASS_URN_LIST);
 	}
 	
 	/**
@@ -101,7 +96,7 @@ public class CampaignCreationAwRequest extends ResultListAwRequest {
 	 * @return The description for this campaign.
 	 */
 	public String getDescription() {
-		return (String) getToValidate().get(KEY_DESCRIPTION);
+		return (String) getToValidate().get(InputKeys.DESCRIPTION);
 	}
 	
 	/**
@@ -113,7 +108,7 @@ public class CampaignCreationAwRequest extends ResultListAwRequest {
 				+ ", _privacyState=" + getPrivacyState()
 				+ ", _xml=" + getCampaign()
 				+ ", _commaSeparatedListOfClasses=" + getCommaSeparatedListOfClasses()
-				+ ((getToValidate().containsKey(KEY_DESCRIPTION)) ? (", _description=" + getDescription()) : "" )
+				+ ((getToValidate().containsKey(InputKeys.DESCRIPTION)) ? (", _description=" + getDescription()) : "" )
 				+ "], super.toString()=" + super.toString();
 	}
 }

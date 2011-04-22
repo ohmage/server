@@ -5,11 +5,11 @@ package edu.ucla.cens.awserver.request;
  * 
  * @author John Jenkins
  */
-public class Constants {
+public class InputKeys {
 	/**
 	 * Only constructor. Can never be instantiated.
 	 */
-	private Constants() {
+	private InputKeys() {
 		// Do nothing.
 	}
 	
@@ -35,11 +35,12 @@ public class Constants {
 	// Campaign Constants
 	public static final String CAMPAIGN_URN = "campaign_urn";
 	public static final String CAMPAIGN_URN_LIST = "campaign_urn_list";
+	public static final String DESCRIPTION = "description";
+	public static final String XML = "xml";
 	
 	// Class Constants
 	public static final String CLASS_URN = "class_urn";
 	public static final String CLASS_URN_LIST = "class_urn_list";
-	public static final String CLASSES = "classes"; // Should be removed in favor of CAMPAIGN_URN_LIST
 	
 	// Survey Constants
 	public static final String SURVEY_ID = "survey_id";

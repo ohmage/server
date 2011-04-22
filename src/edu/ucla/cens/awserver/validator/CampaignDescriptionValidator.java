@@ -2,9 +2,8 @@ package edu.ucla.cens.awserver.validator;
 
 import org.apache.log4j.Logger;
 
-import edu.ucla.cens.awserver.dao.DataAccessException;
 import edu.ucla.cens.awserver.request.AwRequest;
-import edu.ucla.cens.awserver.request.CampaignCreationAwRequest;
+import edu.ucla.cens.awserver.request.InputKeys;
 
 /**
  * Validates that the description of a campaign is valid.
@@ -14,13 +13,17 @@ import edu.ucla.cens.awserver.request.CampaignCreationAwRequest;
 public class CampaignDescriptionValidator extends AbstractAnnotatingValidator {
 	private static Logger _logger = Logger.getLogger(CampaignDescriptionValidator.class);
 	
+	private boolean _required;
+	
 	/**
 	 * Builds this validator with the annotator specified in the configuration.
 	 * 
 	 * @param annotator An annotator should this validation fail.
 	 */
-	public CampaignDescriptionValidator(AwRequestAnnotator annotator) {
+	public CampaignDescriptionValidator(AwRequestAnnotator annotator, boolean required) {
 		super(annotator);
+		
+		_required = required;
 	}
 
 	/**
@@ -31,13 +34,16 @@ public class CampaignDescriptionValidator extends AbstractAnnotatingValidator {
 	public boolean validate(AwRequest awRequest) {
 		_logger.info("Validating the campaign description.");
 		
-		try {
-			awRequest.addToProcess(CampaignCreationAwRequest.KEY_DESCRIPTION, awRequest.getToValidate().get(CampaignCreationAwRequest.KEY_DESCRIPTION), true);
+		String description = (String) awRequest.getToValidate().get(InputKeys.DESCRIPTION);
+		if(description == null) {
+			if(_required) {
+				_logger.error("Request reached the description validator without the required description parameter.");
+				throw new ValidatorException("Missing required description.");
+			}
+			return true;
 		}
-		catch(IllegalArgumentException e) {
-			throw new DataAccessException(e);
-		}
-
+		
+		awRequest.addToProcess(InputKeys.DESCRIPTION, description, true);
 		return true;
 	}
 }

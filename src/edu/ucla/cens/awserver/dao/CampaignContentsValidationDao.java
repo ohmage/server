@@ -14,8 +14,14 @@ import nu.xom.ValidityException;
 import org.apache.log4j.Logger;
 
 import edu.ucla.cens.awserver.request.AwRequest;
-import edu.ucla.cens.awserver.request.CampaignCreationAwRequest;
+import edu.ucla.cens.awserver.request.InputKeys;
 
+/**
+ * Validates the contents of the XML with regards to what is in the database 
+ * to ensure that not collisions will take place.
+ * 
+ * @author John Jenkins
+ */
 public class CampaignContentsValidationDao extends AbstractDao {
 	private static Logger _logger = Logger.getLogger(CampaignContentsValidationDao.class);
 	
@@ -34,11 +40,19 @@ public class CampaignContentsValidationDao extends AbstractDao {
 	}
 	
 	/**
-	 * Parses the XML for the campaign information and reports 
+	 * Parses the XML for the campaign information, checks it against the
+	 * database, and makes sure that no collisions will take place.
 	 */
 	@Override
 	public void execute(AwRequest awRequest) {
-		String campaignXml = (String) awRequest.getToProcessValue(CampaignCreationAwRequest.KEY_XML);
+		String campaignXml;
+		try {
+			campaignXml = (String) awRequest.getToProcessValue(InputKeys.XML);
+		}
+		catch(IllegalArgumentException e) {
+			_logger.info("No campaign XML in the toProcess map, so skipping service validation.");
+			return;
+		}
 		
 		// Now use XOM to retrieve a Document and a root node for further processing. XOM is used because it has a 
 		// very simple XPath API	

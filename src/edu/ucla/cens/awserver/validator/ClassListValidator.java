@@ -3,7 +3,7 @@ package edu.ucla.cens.awserver.validator;
 import org.apache.log4j.Logger;
 
 import edu.ucla.cens.awserver.request.AwRequest;
-import edu.ucla.cens.awserver.request.CampaignCreationAwRequest;
+import edu.ucla.cens.awserver.request.InputKeys;
 
 /**
  * Validates that the list of classes exist and is not empty, but it doesn't
@@ -14,13 +14,17 @@ import edu.ucla.cens.awserver.request.CampaignCreationAwRequest;
 public class ClassListValidator extends AbstractAnnotatingValidator {
 	private static Logger _logger = Logger.getLogger(ClassListValidator.class);
 	
+	private boolean _required;
+	
 	/**
 	 * Creates a new validator for the list of classes.
 	 * 
 	 * @param annotator The annotator should something fail.
 	 */
-	public ClassListValidator(AwRequestAnnotator annotator) {
+	public ClassListValidator(AwRequestAnnotator annotator, boolean required) {
 		super(annotator);
+		
+		_required = required;
 	}
 	
 	/**
@@ -31,11 +35,16 @@ public class ClassListValidator extends AbstractAnnotatingValidator {
 	public boolean validate(AwRequest awRequest) {
 		_logger.info("Validating initial list of classes for new campaign.");
 		
-		String classes = (String) awRequest.getToValidate().get(CampaignCreationAwRequest.KEY_LIST_OF_CLASSES_AS_STRING);
+		String classes = (String) awRequest.getToValidate().get(InputKeys.CLASS_URN_LIST);
 		if((classes == null) || ("".equals(classes))) {
-			awRequest.setFailedRequest(true);
-			getAnnotator().annotate(awRequest, "Class list is empty.");
-			return false;
+			if(_required) {
+				awRequest.setFailedRequest(true);
+				getAnnotator().annotate(awRequest, "Class list is empty.");
+				return false;
+			}
+			else {
+				return true;
+			}
 		}
 		
 		try {
@@ -63,7 +72,7 @@ public class ClassListValidator extends AbstractAnnotatingValidator {
 		}
 		
 		try {
-			awRequest.addToProcess(CampaignCreationAwRequest.KEY_LIST_OF_CLASSES_AS_STRING, classes, true);
+			awRequest.addToProcess(InputKeys.CLASS_URN_LIST, classes, true);
 		}
 		catch(IllegalArgumentException e) {
 			throw new ValidatorException("Error while trying to add the list of classes to the toProcess map.", e);

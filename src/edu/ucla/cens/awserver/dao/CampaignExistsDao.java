@@ -5,7 +5,6 @@ import javax.sql.DataSource;
 import org.apache.log4j.Logger;
 
 import edu.ucla.cens.awserver.request.AwRequest;
-import edu.ucla.cens.awserver.request.CampaignDeletionAwRequest;
 
 /**
  * Checks to make sure that the campaign exists.
@@ -34,14 +33,7 @@ public class CampaignExistsDao extends AbstractDao {
 	 */
 	@Override
 	public void execute(AwRequest awRequest) {
-		String campaignUrn;
-		try {
-			campaignUrn = (String) awRequest.getToProcessValue(CampaignDeletionAwRequest.KEY_CAMPAIGN_URN);
-		}
-		catch(IllegalArgumentException e) {
-			_logger.error("No campaign urn exists in the toProcess map.");
-			throw new DataAccessException(e);
-		}
+		String campaignUrn = awRequest.getCampaignUrn();
 		
 		try {
 			int count = getJdbcTemplate().queryForInt(SQL, new Object[] { campaignUrn });

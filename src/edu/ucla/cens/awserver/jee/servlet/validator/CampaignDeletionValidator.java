@@ -8,6 +8,8 @@ import javax.servlet.http.HttpServletRequest;
 
 import org.apache.log4j.Logger;
 
+import edu.ucla.cens.awserver.request.InputKeys;
+
 /**
  * Checks that all required parameters exist and that they aren't oversized.
  * 
@@ -21,7 +23,7 @@ public class CampaignDeletionValidator extends AbstractHttpServletRequestValidat
 	 * Basic constructor.
 	 */
 	public CampaignDeletionValidator() {
-		_parameterList = new ArrayList<String>(Arrays.asList(new String[] { "auth_token", "campaign_urn" }));
+		_parameterList = new ArrayList<String>(Arrays.asList(new String[] { InputKeys.AUTH_TOKEN, InputKeys.CAMPAIGN_URN }));
 	}
 	
 	/**
@@ -34,15 +36,15 @@ public class CampaignDeletionValidator extends AbstractHttpServletRequestValidat
 			return false;
 		}
 		
-		String token = httpRequest.getParameter("auth_token");
-		String urn = httpRequest.getParameter("campaign_urn");
+		String token = httpRequest.getParameter(InputKeys.AUTH_TOKEN);
+		String urn = httpRequest.getParameter(InputKeys.CAMPAIGN_URN);
 		
-		if(greaterThanLength("authToken", "auth_token", token, 36)) {
-			_logger.warn("auth_token is too long.");
+		if(greaterThanLength("authToken", InputKeys.AUTH_TOKEN, token, 36)) {
+			_logger.warn(InputKeys.AUTH_TOKEN + " is too long.");
 			return false;
 		}
-		else if(greaterThanLength("campaignUrn", "campaign_urn", urn, 255)) {
-			_logger.warn("campaign_urn is too long.");
+		else if(greaterThanLength("campaignUrn", InputKeys.CAMPAIGN_URN, urn, 255)) {
+			_logger.warn(InputKeys.CAMPAIGN_URN + " is too long.");
 			return false;
 		}
 		

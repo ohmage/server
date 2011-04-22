@@ -10,7 +10,7 @@ import org.apache.log4j.Logger;
 import org.xml.sax.SAXException;
 
 import edu.ucla.cens.awserver.request.AwRequest;
-import edu.ucla.cens.awserver.request.CampaignCreationAwRequest;
+import edu.ucla.cens.awserver.request.InputKeys;
 import edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator;
 
 public class CampaignXmlValidator extends AbstractAnnotatingValidator {
@@ -18,6 +18,7 @@ public class CampaignXmlValidator extends AbstractAnnotatingValidator {
 	
 	private CampaignValidator _validator;
 	private String _schemaFileName;
+	private boolean _required;
 	
 	/**
 	 * Creates a validator for the XML file that defines a campaign.
@@ -26,11 +27,12 @@ public class CampaignXmlValidator extends AbstractAnnotatingValidator {
 	 * 
 	 * @param valiator The validator for the incomming XML file.
 	 */
-	public CampaignXmlValidator(AwRequestAnnotator annotator, CampaignValidator validator, String schemaFileName) {
+	public CampaignXmlValidator(AwRequestAnnotator annotator, CampaignValidator validator, String schemaFileName, boolean required) {
 		super(annotator);
 		
 		_validator = validator;
 		_schemaFileName = schemaFileName;
+		_required = required;
 	}
 	
 	/**
@@ -40,7 +42,17 @@ public class CampaignXmlValidator extends AbstractAnnotatingValidator {
 	public boolean validate(AwRequest awRequest) {
 		_logger.info("Validating campaign XML.");
 
-		String campaignXml = (String) awRequest.getToValidate().get(CampaignCreationAwRequest.KEY_XML);
+		String campaignXml = (String) awRequest.getToValidate().get(InputKeys.XML);
+		if(campaignXml == null) {
+			if(_required) {
+				_logger.error("Request reached XML validation but is missing the required XML parameter.");
+				throw new ValidatorException("Missing XML in request.");
+			}
+			else {
+				return true;
+			}
+		}
+		
 		try {
 			_validator.run(campaignXml, _schemaFileName);
 		} 
@@ -80,7 +92,7 @@ public class CampaignXmlValidator extends AbstractAnnotatingValidator {
 			return false;
 		}
 		
-		awRequest.addToProcess(CampaignCreationAwRequest.KEY_XML, campaignXml, true);
+		awRequest.addToProcess(InputKeys.XML, campaignXml, true);
 		return true;
 	}
 }
