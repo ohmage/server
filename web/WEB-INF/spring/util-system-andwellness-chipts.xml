@@ -37,8 +37,10 @@
 
   <util:map id="systemProps">
     <entry key="system.imageDir" value="/opt/aw/userdata/images" />
+    <entry key="system.surveyResponseSharingState" value="invisible" />
+    <entry key="system.campaignCreationPrivilege" value="false" />
   </util:map>
-
+  
   <util:list id="campaignRunningStates">
     <value>running</value>
     <value>stopped</value>
@@ -47,13 +49,5 @@
   <util:list id="campaignPrivacyStates">
     <value>shared</value>
     <value>private</value>
-  </util:list>
-  
-  <!-- this is a temporary hack to allow validation of user roles that are sent as post query parameters -->
-  <util:list id="userRoles">
-    <value>author</value>
-    <value>analyst</value>
-    <value>participant</value>
-    <value>supervisor</value>
   </util:list>
 </beans>

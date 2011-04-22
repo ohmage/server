@@ -36,7 +36,7 @@
   </util:map>
     
   <util:map id="systemProps">
-    <entry key="system.imageDir" value="/Users/selsky/opt/aw2/userdata/images" />
+    <entry key="system.imageDir" value="/opt/aw/userdata/images" />
     <!-- using the default surveyResponseSharingState, which is private -->
     <!-- using the default campaignCreationPrivilege, which is true -->
   </util:map>
