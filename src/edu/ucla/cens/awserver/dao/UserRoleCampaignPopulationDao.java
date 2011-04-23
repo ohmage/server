@@ -12,15 +12,18 @@ import edu.ucla.cens.awserver.domain.UserRoleCampaignResult;
 import edu.ucla.cens.awserver.domain.UserRoleImpl;
 import edu.ucla.cens.awserver.request.AwRequest;
 
-// FIXME add the actual string roles to the SELECT
+/**
+ * @author joshua selsky
+ */
 public class UserRoleCampaignPopulationDao extends AbstractDao {
 	private static Logger _logger = Logger.getLogger(UserRoleCampaignPopulationDao.class);
 	
 	private static final String _selectSql = "SELECT campaign.urn, user_role_campaign.user_role_id, user_role.role" 
-        									 + " FROM campaign, user, user_role_campaign"
+        									 + " FROM campaign, user, user_role_campaign, user_role"
         									 + " WHERE user.login_id = ?"
         									 +   " AND user.id = user_role_campaign.user_id"
-        									 +   " AND campaign.id = user_role_campaign.campaign_id";
+        									 +   " AND campaign.id = user_role_campaign.campaign_id"
+        									 +   " AND user_role.id = user_role_campaign.user_role_id";
 
 	public UserRoleCampaignPopulationDao(DataSource dataSource) {
 		super(dataSource);
