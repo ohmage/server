@@ -11,6 +11,7 @@ CREATE TABLE class (
   id int unsigned NOT NULL auto_increment,
   urn varchar(255) NOT NULL,
   name varchar(255) NOT NULL,
+  description text,
   PRIMARY KEY (id),
   UNIQUE (urn)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
@@ -107,6 +108,7 @@ CREATE TABLE user_role_campaign (
   campaign_id int unsigned NOT NULL,
   user_role_id tinyint unsigned NOT NULL,
   PRIMARY KEY (id),
+  UNIQUE (user_id, campaign_id, user_role_id),
   CONSTRAINT FOREIGN KEY (user_id) REFERENCES user (id) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT FOREIGN KEY (campaign_id) REFERENCES campaign (id) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT FOREIGN KEY (user_role_id) REFERENCES user_role (id) ON DELETE CASCADE ON UPDATE CASCADE

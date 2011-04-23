@@ -8,8 +8,5 @@ package edu.ucla.cens.awserver.domain;
 public interface UserRole {
 
 	int getId();
-	void setId(int id);
-	
 	String getRole();
-	void setRole(String role);
 }

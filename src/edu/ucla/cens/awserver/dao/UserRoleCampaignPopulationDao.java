@@ -9,12 +9,14 @@ import org.apache.log4j.Logger;
 import org.springframework.jdbc.core.RowMapper;
 
 import edu.ucla.cens.awserver.domain.UserRoleCampaignResult;
+import edu.ucla.cens.awserver.domain.UserRoleImpl;
 import edu.ucla.cens.awserver.request.AwRequest;
 
+// FIXME add the actual string roles to the SELECT
 public class UserRoleCampaignPopulationDao extends AbstractDao {
 	private static Logger _logger = Logger.getLogger(UserRoleCampaignPopulationDao.class);
 	
-	private static final String _selectSql = "SELECT campaign.urn, user_role_campaign.user_role_id" 
+	private static final String _selectSql = "SELECT campaign.urn, user_role_campaign.user_role_id, user_role.role" 
         									 + " FROM campaign, user, user_role_campaign"
         									 + " WHERE user.login_id = ?"
         									 +   " AND user.id = user_role_campaign.user_id"
@@ -40,7 +42,7 @@ public class UserRoleCampaignPopulationDao extends AbstractDao {
 							UserRoleCampaignResult result = new UserRoleCampaignResult();
 							
 							result.setCampaignUrn(rs.getString(1));
-							result.setUserRoleId(rs.getInt(2));
+							result.setUserRole(new UserRoleImpl(rs.getInt(2), rs.getString(3)));
 							
 							return result;
 						}

@@ -10,6 +10,11 @@ import edu.ucla.cens.awserver.domain.UserRoleCampaignResult;
 import edu.ucla.cens.awserver.request.AwRequest;
 import edu.ucla.cens.awserver.validator.AwRequestAnnotator;
 
+/**
+ * 
+ * @author joshua selsky
+ * @author John Jenkins
+ */
 public class UserRoleCampaignPopulationService extends AbstractAnnotatingDaoService {
 	private static Logger _logger = Logger.getLogger(UserRoleCampaignPopulationService.class);
 	
@@ -25,7 +30,7 @@ public class UserRoleCampaignPopulationService extends AbstractAnnotatingDaoServ
 			
 			getDao().execute(awRequest);
 			
-			if(awRequest.getResultList().size() == 0) {
+			if(awRequest.getResultList().isEmpty()) {
 				awRequest.setFailedRequest(true);
 				getAnnotator().annotate(awRequest, "User doesn't belong to campaigns.");
 				return;
@@ -34,7 +39,7 @@ public class UserRoleCampaignPopulationService extends AbstractAnnotatingDaoServ
 			ListIterator<?> iter = awRequest.getResultList().listIterator();
 			while(iter.hasNext()) {
 				UserRoleCampaignResult currResult = (UserRoleCampaignResult) iter.next();
-				awRequest.getUser().addCampaignRole(currResult.getCampaignUrn(), currResult.getUserRoleId());
+				awRequest.getUser().addCampaignRole(currResult.getCampaignUrn(), currResult.getUserRole());
 			}
 			
 		} catch (DataAccessException dae) {
@@ -43,5 +48,4 @@ public class UserRoleCampaignPopulationService extends AbstractAnnotatingDaoServ
 			
 		}
 	}
-
 }

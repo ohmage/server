@@ -3,12 +3,9 @@ package edu.ucla.cens.awserver.domain;
 import java.util.List;
 import java.util.Map;
 
-
-
-
 /**
- * User properties for a valid, logged-in user.
- * 
+ * User properties.
+ *  
  * @author selsky
  */
 public interface User {
@@ -46,14 +43,14 @@ public interface User {
 	/**
 	 * @return a Map of campaign URNs and the allowed roles for this user.
 	 */
-	public Map<String, List<Integer>> getCampaignRoles();
+	public Map<String, List<UserRole>> getCampaignUserRoleMap();
 	
 	/**
 	 * Adds a role in a campaign URN for this user. Users can have multiple roles within a campaign.
 	 * @param campaignUrn
-	 * @param roleId
+	 * @param userRole
 	 */
-	public void addCampaignRole(String campaignUrn, Integer roleId);
+	public void addCampaignRole(String campaignUrn, UserRole userRole);
 	
 	/**
 	 * @return whether this user is logged in to the system. Flag for handling failed logins.
@@ -65,11 +62,4 @@ public interface User {
 	 * @param b
 	 */
 	public void setLoggedIn(boolean b);
-	
-//	/**
-//	 * 
-//	 * @param campaignName
-//	 * @return
-//	 */
-//	public boolean isResearcherOrAdmin(String campaignName);
 }

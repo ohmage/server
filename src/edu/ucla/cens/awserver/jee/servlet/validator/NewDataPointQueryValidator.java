@@ -23,7 +23,7 @@ public class NewDataPointQueryValidator extends AbstractHttpServletRequestValida
 		_parameterList = new ArrayList<String>(Arrays.asList(new String[]{"start_date",
 				                                                          "end_date",
 				                                                          "user_list",
-				                                                          "campaign_name",
+				                                                          "campaign_urn",
 				                                                          "client",
 				                                                          "prompt_id_list",
 				                                                          "auth_token",

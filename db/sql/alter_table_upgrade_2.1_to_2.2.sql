@@ -50,6 +50,7 @@ CREATE TABLE class (
   id int unsigned NOT NULL auto_increment,
   urn varchar(255) NOT NULL,
   name varchar(255) NOT NULL,
+  description text,
   PRIMARY KEY (id),
   UNIQUE (urn)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;

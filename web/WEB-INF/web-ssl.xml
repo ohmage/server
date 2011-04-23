@@ -376,7 +376,7 @@
   </servlet>
   <servlet-mapping>
     <servlet-name>NewDataPointQueryServlet</servlet-name>
-    <url-pattern>/datapoint/query</url-pattern>
+    <url-pattern>/survey_response/read</url-pattern>
   </servlet-mapping>
   
     <!-- Handle user info queries -->
