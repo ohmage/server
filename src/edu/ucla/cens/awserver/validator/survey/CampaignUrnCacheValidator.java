@@ -11,10 +11,10 @@ import edu.ucla.cens.awserver.validator.AwRequestAnnotator;
  *
  * @author selsky
  */
-public class CampaignUrnValidator extends AbstractAnnotatingValidator {
+public class CampaignUrnCacheValidator extends AbstractAnnotatingValidator {
 	private CacheService _cacheService;
 	
-	public CampaignUrnValidator(AwRequestAnnotator annotator, CacheService cacheService) {
+	public CampaignUrnCacheValidator(AwRequestAnnotator annotator, CacheService cacheService) {
 		super(annotator);
 		if(null == cacheService) {
 			throw new IllegalArgumentException("a CacheService is required");

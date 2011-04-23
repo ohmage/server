@@ -6,6 +6,7 @@ import org.apache.log4j.Logger;
 
 import edu.ucla.cens.awserver.request.AwRequest;
 import edu.ucla.cens.awserver.request.CampaignDeletionAwRequest;
+import edu.ucla.cens.awserver.request.InputKeys;
 
 /**
  * Creates a new CampaignDeletionAwRequest object.
@@ -26,25 +27,16 @@ public class CampaignDeletionAwRequestCreator implements AwRequestCreator {
 	 * Creates a new CampaignDeletionAwRequest object and returns it.
 	 */
 	@Override
-	public AwRequest createFrom(HttpServletRequest request) { try{
+	public AwRequest createFrom(HttpServletRequest request) {
 		_logger.info("Creating new AwRequest object for deleting a campaign.");
 		
-		String token = request.getParameter("auth_token");
-		String urn = request.getParameter("campaign_urn");
-		
-		CampaignDeletionAwRequest awRequest;
-		try {
-			awRequest = new CampaignDeletionAwRequest(urn);
-		}
-		catch(IllegalArgumentException e) {
-			_logger.info("Invalid parameter found.", e);
-			return null;
-		}
+		String token = request.getParameter(InputKeys.AUTH_TOKEN);
+		String urn = request.getParameter(InputKeys.CAMPAIGN_URN);
+
+		CampaignDeletionAwRequest awRequest = new CampaignDeletionAwRequest();
 		awRequest.setUserToken(token);
+		awRequest.setCampaignUrn(urn);
 		
 		return awRequest;
-		
-	}catch(Exception e) { _logger.error(e.toString()); return null; }
 	}
-
 }

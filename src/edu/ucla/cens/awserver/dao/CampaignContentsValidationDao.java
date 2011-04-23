@@ -14,10 +14,16 @@ import nu.xom.ValidityException;
 import org.apache.log4j.Logger;
 
 import edu.ucla.cens.awserver.request.AwRequest;
-import edu.ucla.cens.awserver.request.CampaignCreationAwRequest;
+import edu.ucla.cens.awserver.request.InputKeys;
 
-public class CampaignCreationContentsValidationDao extends AbstractDao {
-	private static Logger _logger = Logger.getLogger(CampaignCreationContentsValidationDao.class);
+/**
+ * Validates the contents of the XML with regards to what is in the database 
+ * to ensure that not collisions will take place.
+ * 
+ * @author John Jenkins
+ */
+public class CampaignContentsValidationDao extends AbstractDao {
+	private static Logger _logger = Logger.getLogger(CampaignContentsValidationDao.class);
 	
 	private static final String SQL = "SELECT count(*)" +
 									  " FROM campaign" +
@@ -29,22 +35,23 @@ public class CampaignCreationContentsValidationDao extends AbstractDao {
 	 * @param dataSource The data source that will be used to query the
 	 * 					 database for information.
 	 */
-	public CampaignCreationContentsValidationDao(DataSource dataSource) {
+	public CampaignContentsValidationDao(DataSource dataSource) {
 		super(dataSource);
 	}
 	
 	/**
-	 * Parses the XML for the campaign information and reports 
+	 * Parses the XML for the campaign information, checks it against the
+	 * database, and makes sure that no collisions will take place.
 	 */
 	@Override
 	public void execute(AwRequest awRequest) {
-		CampaignCreationAwRequest request;
+		String campaignXml;
 		try {
-			request = (CampaignCreationAwRequest) awRequest;
+			campaignXml = (String) awRequest.getToProcessValue(InputKeys.XML);
 		}
-		catch(ClassCastException e) {
-			_logger.error("Checking XML contents on a non-CampaignCreationAwRequest object.");
-			throw new DataAccessException("Invalid request.");
+		catch(IllegalArgumentException e) {
+			_logger.info("No campaign XML in the toProcess map, so skipping service validation.");
+			return;
 		}
 		
 		// Now use XOM to retrieve a Document and a root node for further processing. XOM is used because it has a 
@@ -52,7 +59,7 @@ public class CampaignCreationContentsValidationDao extends AbstractDao {
 		Builder builder = new Builder();
 		Document document;
 		try {
-			document = builder.build(new StringReader(request.getCampaign()));
+			document = builder.build(new StringReader(campaignXml));
 		} catch (IOException e) {
 			// The XML should already have been validated, so this should
 			// never happen.

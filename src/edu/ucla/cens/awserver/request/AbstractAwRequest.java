@@ -1,5 +1,6 @@
 package edu.ucla.cens.awserver.request;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -19,10 +20,27 @@ public abstract class AbstractAwRequest implements AwRequest {
 	private String _requestUrl;
 	
 	// Processing state
-	private boolean _isFailedRequest;
 	private User _user;
+	
+	private boolean _isFailedRequest;
 	private String _failedRequestErrorMessage;
+	
+	private String _campaignUrn;
+	
 	private Map<String, Object> _toValidate;
+	private Map<String, Object> _toProcess;
+	
+	protected AbstractAwRequest() {
+		_requestUrl = null;
+		
+		_user = null;
+		
+		_isFailedRequest = false;
+		_failedRequestErrorMessage = null;
+		
+		_toValidate = new HashMap<String, Object>();
+		_toProcess = new HashMap<String, Object>();
+	}
 	
 	public String getRequestUrl() {
 		return _requestUrl;
@@ -64,12 +82,95 @@ public abstract class AbstractAwRequest implements AwRequest {
 		_toValidate = toValidate;
 	}
 	
+	public Map<String, Object> getToProcess() {
+		return _toProcess;
+	}
+	
+	public String getCampaignUrn() {
+		return _campaignUrn;
+	}
+	
+	public void setCampaignUrn(String urn) {
+		_campaignUrn = urn;
+	}
+	
+	/**
+	 * Returns whether or not a key exists in the toProcess map.
+	 * 
+	 * @param key The key whose existance is to be checked.
+	 * 
+	 * @return True iff the key exists in the map; false, otherwise.
+	 */
+	public boolean existsInToProcess(String key) {
+		if(key == null) {
+			return false;
+		}
+		
+		return _toProcess.containsKey(key);
+	}
+	
+	/**
+	 * Returns the Object associated with the parameterized 'key' from the
+	 * toProcess map. If no such value exists, throw an 
+	 * IllegalArgumentException.
+	 * 
+	 * @throws IllegalArgumentException Thrown if no such key exists in the 
+	 * 									toProcess map or if the key is null.
+	 */
+	public Object getToProcessValue(String key) {
+		if(key == null) {
+			throw new IllegalArgumentException("Key is null and null keys are dissallowed.");
+		}
+		else if(! _toProcess.containsKey(key)) {
+			throw new IllegalArgumentException("Key not found in toProcess map.");
+		}
+		else {
+			return _toProcess.get(key);
+		}
+	}
+	
+	/**
+	 * Adds an item to the toProcess map. This is done as opposed to getting
+	 * the whole map, making local changes, and overwriting the whole map.
+	 * 
+	 * This allows us to put in place our own restrictions such as the
+	 * dissallowance of null keys or values.
+	 * 
+	 * @param key The key for the value that is attempting to be inserted.
+	 * 
+	 * @param value The value that is attempting to be inserted.
+	 * 
+	 * @param overwrite A flag to denote that if such a value already exists
+	 * 					that it should not be overwriten. If such a case were
+	 * 					to present itself, an IllegalArgumentException will be
+	 * 					thrown.
+	 * 
+	 * @throws IllegalArgumentException Thrown if key or value are null, or if
+	 * 									such a key already exists and
+	 * 									'overwrite' is set to false.
+	 */
+	public void addToProcess(String key, Object value, boolean overwrite) {
+		if(key == null) {
+			throw new IllegalArgumentException("Null keys are dissallowed.");
+		}
+		else if(value == null) {
+			throw new IllegalArgumentException("Null values are dissallowed.");
+		}
+		else if((! overwrite) && (! _toProcess.containsKey(key))) {
+			throw new IllegalArgumentException("The key '" + key + "' already exists but overwriting is disallowed.");
+		}
+		else {
+			_toProcess.put(key, value);
+		}
+	}
+	
 	@Override
 	public String toString() {
-		return "AbstractAwRequest [_failedRequestErrorMessage="
-				+ _failedRequestErrorMessage + ", _isFailedRequest="
-				+ _isFailedRequest + ", _requestUrl=" + _requestUrl
-				+ ", _user=" + _user + "]";
+		return "AbstractAwRequest [_isFailedRequest=" + isFailedRequest()
+				+ ", _failedRequestErrorMessage=" + getFailedRequestErrorMessage()
+				+ ", _requestUrl=" + _requestUrl
+				+ ", _user=" + _user
+				+ "]";
 	}
 	
 	/****
@@ -78,10 +179,6 @@ public abstract class AbstractAwRequest implements AwRequest {
 	will throw an UnsupportedOperationException, which indicates a logical error in the calling code.
 	
 	****/
-
-	public String getCampaignUrn() {
-		throw new UnsupportedOperationException("it is illegal to invoke getCampaignUrn() on this instance");	
-	}
 	
 	public int getCurrentMessageIndex() {
 		throw new UnsupportedOperationException("it is illegal to invoke getCurrentMessageIndex() on this instance");
@@ -153,10 +250,6 @@ public abstract class AbstractAwRequest implements AwRequest {
 	
 	public String getUserToken() {
 		throw new UnsupportedOperationException("it is illegal to invoke getUserToken() on this instance");
-	}
-
-	public void setCampaignUrn(String campaignName) {
-		throw new UnsupportedOperationException("it is illegal to invoke setCampaignName() on this instance");
 	}
 
 	public void setClient(String client) {

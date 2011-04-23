@@ -45,46 +45,13 @@
       <!-- Validates the individual items in the request. -->
       <list>
         <ref bean="userTokenValidator" />
-		<ref bean="campaignDeletionCampaignUrnValidator" />
+		<ref bean="campaignUrnValidator" />
       </list>
     </property>
     <property name="featureName"><value>campaign deletion</value></property>
   </bean>
   
   <!-- Controller's Beans Definitions -->
-  <bean id="campaignDeletionCampaignUrnValidator" class="edu.ucla.cens.awserver.validator.CampaignDeletionCampaignUrnValidator">
-    <constructor-arg index="0">
-      <bean class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
-        <constructor-arg index="0">
-          <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
-            <property name="code" value="0807" />
-            <property name="text" value="Invalid URN." />
-          </bean>
-        </constructor-arg>
-      </bean>
-    </constructor-arg>
-  </bean>
-  
-  <bean id="campaignExistsService" class="edu.ucla.cens.awserver.service.CampaignExistsService">
-    <constructor-arg index="0">
-      <bean class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
-        <constructor-arg index="0">
-          <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
-            <property name="code" value="0808" />
-            <property name="text" value="Campaign not found." />
-          </bean>
-        </constructor-arg>
-      </bean>
-    </constructor-arg>
-    <constructor-arg index="1">
-      <bean class="edu.ucla.cens.awserver.dao.CampaignExistsDao">
-        <constructor-arg index="0">
-          <ref bean="dataSource"/>
-        </constructor-arg>
-      </bean>
-    </constructor-arg>
-  </bean>
-  
   <bean id="campaignDeletionService" class="edu.ucla.cens.awserver.service.CampaignDeletionService">
     <constructor-arg index="0">
       <bean class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">

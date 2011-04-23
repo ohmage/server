@@ -88,14 +88,14 @@ public class ControllerImpl implements Controller {
 		}
 		
 		catch(ValidatorException ve) { // an unrecoverable logical error has occurred
-			
+			awRequest.setFailedRequest(true);
 			_failedRequestAnnotator.annotate(awRequest, ve.getMessage());
 			throw new ControllerException(ve);	
 			
 		}
 		
 		catch (ServiceException se) { // an unrecoverable logical or system-level error has occurred
-
+			awRequest.setFailedRequest(true);
 			_failedRequestAnnotator.annotate(awRequest, se.getMessage());
 			throw new ControllerException(se);	
 		}

@@ -1,5 +1,7 @@
 package edu.ucla.cens.awserver.validator;
 
+import org.apache.log4j.Logger;
+
 import edu.ucla.cens.awserver.request.AwRequest;
 import edu.ucla.cens.awserver.util.StringUtils;
 
@@ -9,6 +11,7 @@ import edu.ucla.cens.awserver.util.StringUtils;
  * @author selsky
  */
 public class AwRequestPasswordValidator extends AbstractAnnotatingRegexpValidator {
+	private static Logger _logger = Logger.getLogger(AwRequestPasswordValidator.class);
 	
 	public AwRequestPasswordValidator(String regexp, AwRequestAnnotator awRequestAnnotator) {
 		super(regexp, awRequestAnnotator);
@@ -19,6 +22,7 @@ public class AwRequestPasswordValidator extends AbstractAnnotatingRegexpValidato
 	 * whitespace, or if it contains numbers or special characters aside from ".".  
 	 */
 	public boolean validate(AwRequest awRequest) {
+		_logger.info("Validating that the user's password follows our convention.");
 		
 		if(null == awRequest.getUser()) { // logical error!
 			

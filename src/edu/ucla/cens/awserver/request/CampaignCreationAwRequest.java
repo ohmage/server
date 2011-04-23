@@ -1,6 +1,7 @@
 package edu.ucla.cens.awserver.request;
 
 import java.security.InvalidParameterException;
+import java.util.Map;
 
 /**
  * Encapsulating class for all the information pertaining to creating a new
@@ -8,14 +9,7 @@ import java.security.InvalidParameterException;
  * 
  * @author John Jenkins
  */
-public class CampaignCreationAwRequest extends ResultListAwRequest {
-	private String _runningState;
-	private String _privacyState;
-	private String _commaSeparatedListOfClasses;
-
-	private String _xml;
-	private String _description;
-	
+public class CampaignCreationAwRequest extends ResultListAwRequest {	
 	/**
 	 * Constructor that converts the requested parameters into an AndWellness
 	 * request.
@@ -31,6 +25,8 @@ public class CampaignCreationAwRequest extends ResultListAwRequest {
 	 * 									  campaign will initially belong.
 	 */
 	public CampaignCreationAwRequest(String runningState, String privacyState, String campaignAsXml, String commaSeparatedListOfClasses, String description) throws InvalidParameterException {
+		super();
+		
 		if(runningState == null) {
 			throw new InvalidParameterException("The initial running state cannot be null.");
 		}
@@ -43,13 +39,17 @@ public class CampaignCreationAwRequest extends ResultListAwRequest {
 		else if(commaSeparatedListOfClasses == null) {
 			throw new InvalidParameterException("The initial list of classes for a campaign cannot be null.");
 		}
+
+		Map<String, Object> toValidate = getToValidate();
 		
-		_runningState = runningState;
-		_privacyState = privacyState;
-		_commaSeparatedListOfClasses = commaSeparatedListOfClasses;
+		toValidate.put(InputKeys.RUNNING_STATE, runningState);
+		toValidate.put(InputKeys.PRIVACY_STATE, privacyState);
+		toValidate.put(InputKeys.CLASS_URN_LIST, commaSeparatedListOfClasses);
 		
-		_xml = campaignAsXml;
-		_description = description;
+		toValidate.put(InputKeys.XML, campaignAsXml);
+		toValidate.put(InputKeys.DESCRIPTION, description);
+		
+		setToValidate(toValidate);
 	}
 	
 	/**
@@ -58,7 +58,7 @@ public class CampaignCreationAwRequest extends ResultListAwRequest {
 	 * @return The initial running state of this campaign.
 	 */
 	public String getRunningState() {
-		return _runningState;
+		return (String) getToValidate().get(InputKeys.RUNNING_STATE);
 	}
 	
 	/**
@@ -67,7 +67,7 @@ public class CampaignCreationAwRequest extends ResultListAwRequest {
 	 * @return The initial privacy state of this campaign.
 	 */
 	public String getPrivacyState() {
-		return _privacyState;
+		return (String) getToValidate().get(InputKeys.PRIVACY_STATE);
 	}
 	
 	/**
@@ -76,7 +76,7 @@ public class CampaignCreationAwRequest extends ResultListAwRequest {
 	 * @return The campaign as an XML file.
 	 */
 	public String getCampaign() {
-		return _xml;
+		return (String) getToValidate().get(InputKeys.XML);
 	}
 	
 	/**
@@ -87,7 +87,7 @@ public class CampaignCreationAwRequest extends ResultListAwRequest {
 	 * 		   associated with.
 	 */
 	public String getCommaSeparatedListOfClasses() {
-		return _commaSeparatedListOfClasses;
+		return (String) getToValidate().get(InputKeys.CLASS_URN_LIST);
 	}
 	
 	/**
@@ -95,8 +95,8 @@ public class CampaignCreationAwRequest extends ResultListAwRequest {
 	 * 
 	 * @return The description for this campaign.
 	 */
-	public String getDesciption() {
-		return _description;
+	public String getDescription() {
+		return (String) getToValidate().get(InputKeys.DESCRIPTION);
 	}
 	
 	/**
@@ -104,10 +104,11 @@ public class CampaignCreationAwRequest extends ResultListAwRequest {
 	 */
 	@Override
 	public String toString() {
-		return "CampaignCreationAwRequest [_runningState=" + _runningState
-				+ ", _privacyState=" + _privacyState
-				+ ", _xml=" + _xml
-				+ ", _commaSeparatedListOfClasses=" + _commaSeparatedListOfClasses
+		return "CampaignCreationAwRequest [_runningState=" + getRunningState()
+				+ ", _privacyState=" + getPrivacyState()
+				+ ", _xml=" + getCampaign()
+				+ ", _commaSeparatedListOfClasses=" + getCommaSeparatedListOfClasses()
+				+ ((getToValidate().containsKey(InputKeys.DESCRIPTION)) ? (", _description=" + getDescription()) : "" )
 				+ "], super.toString()=" + super.toString();
 	}
 }

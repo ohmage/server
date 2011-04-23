@@ -14,8 +14,8 @@ import edu.ucla.cens.awserver.request.AwRequest;
  * 
  * @author John Jenkins
  */
-public class CampaignCreationValidationDao extends AbstractDao {
-	private static Logger _logger = Logger.getLogger(CampaignCreationValidationDao.class);
+public class UserCanCreateCampaignsValidationDao extends AbstractDao {
+	private static Logger _logger = Logger.getLogger(UserCanCreateCampaignsValidationDao.class);
 	
 	private static final String SQL = "SELECT campaign_creation_privilege" +
 									  " FROM user" +
@@ -27,7 +27,7 @@ public class CampaignCreationValidationDao extends AbstractDao {
 	 * 
 	 * @param dataSource The DataSource to run our queries against.
 	 */
-	public CampaignCreationValidationDao(DataSource dataSource) {
+	public UserCanCreateCampaignsValidationDao(DataSource dataSource) {
 		super(dataSource);
 	}
 	

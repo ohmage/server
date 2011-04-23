@@ -3,7 +3,7 @@ package edu.ucla.cens.awserver.validator;
 import org.apache.log4j.Logger;
 
 import edu.ucla.cens.awserver.request.AwRequest;
-import edu.ucla.cens.awserver.request.CampaignCreationAwRequest;
+import edu.ucla.cens.awserver.request.InputKeys;
 
 /**
  * Validates that the list of classes exist and is not empty, but it doesn't
@@ -11,16 +11,20 @@ import edu.ucla.cens.awserver.request.CampaignCreationAwRequest;
  * 
  * @author John Jenkins
  */
-public class CampaignCreationClassListValidator extends AbstractAnnotatingValidator {
-	private static Logger _logger = Logger.getLogger(CampaignCreationClassListValidator.class);
+public class ClassListValidator extends AbstractAnnotatingValidator {
+	private static Logger _logger = Logger.getLogger(ClassListValidator.class);
+	
+	private boolean _required;
 	
 	/**
 	 * Creates a new validator for the list of classes.
 	 * 
 	 * @param annotator The annotator should something fail.
 	 */
-	public CampaignCreationClassListValidator(AwRequestAnnotator annotator) {
+	public ClassListValidator(AwRequestAnnotator annotator, boolean required) {
 		super(annotator);
+		
+		_required = required;
 	}
 	
 	/**
@@ -31,20 +35,16 @@ public class CampaignCreationClassListValidator extends AbstractAnnotatingValida
 	public boolean validate(AwRequest awRequest) {
 		_logger.info("Validating initial list of classes for new campaign.");
 		
-		CampaignCreationAwRequest request;
-		try {
-			request = (CampaignCreationAwRequest) awRequest;
-		}
-		catch(ClassCastException e) {
-			_logger.error("Attempting to validate classes on a non-CampaignCreationAwRequest object.");
-			return false;
-		}
-		
-		String classes = request.getCommaSeparatedListOfClasses();
+		String classes = (String) awRequest.getToValidate().get(InputKeys.CLASS_URN_LIST);
 		if((classes == null) || ("".equals(classes))) {
-			awRequest.setFailedRequest(true);
-			getAnnotator().annotate(awRequest, "Class list is empty.");
-			return false;
+			if(_required) {
+				awRequest.setFailedRequest(true);
+				getAnnotator().annotate(awRequest, "Class list is empty.");
+				return false;
+			}
+			else {
+				return true;
+			}
 		}
 		
 		try {
@@ -69,6 +69,13 @@ public class CampaignCreationClassListValidator extends AbstractAnnotatingValida
 			awRequest.setFailedRequest(true);
 			getAnnotator().annotate(awRequest, "Weird class list " + classes);
 			return false;
+		}
+		
+		try {
+			awRequest.addToProcess(InputKeys.CLASS_URN_LIST, classes, true);
+		}
+		catch(IllegalArgumentException e) {
+			throw new ValidatorException("Error while trying to add the list of classes to the toProcess map.", e);
 		}
 		
 		return true;

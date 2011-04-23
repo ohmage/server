@@ -9,6 +9,7 @@ import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 
 import org.apache.log4j.Logger;
+import org.json.JSONObject;
 
 /**
  * Validator for inbound data to the "new" data point API.
@@ -67,7 +68,7 @@ public class NewDataPointQueryValidator extends AbstractHttpServletRequestValida
 		String startDate = (String) httpServletRequest.getParameter("start_date");
 		String endDate = (String) httpServletRequest.getParameter("end_date");
 		String users = (String) httpServletRequest.getParameter("user_list");
-		String campaignName = (String) httpServletRequest.getParameter("campaign_name");
+		String campaignUrn = (String) httpServletRequest.getParameter("campaign_urn");
 		String client = (String) httpServletRequest.getParameter("client");
 		String token = (String) httpServletRequest.getParameter("auth_token");
 		String promptIds = (String) httpServletRequest.getParameter("prompt_id_list");
@@ -81,7 +82,7 @@ public class NewDataPointQueryValidator extends AbstractHttpServletRequestValida
 		
 		if(greaterThanLength("startDate", "start_date", startDate, 10) 
 		   || greaterThanLength("endDate", "end_date", endDate, 10)
-		   || greaterThanLength("campaignName", "campaign_name", campaignName, 250)
+		   || greaterThanLength("campaignUrn", "campaign_urn", campaignUrn, 250)
 		   || greaterThanLength("client", "client", client, 250)		   
 		   || greaterThanLength("authToken", "token", token, 36)
 		   || greaterThanLength("users", "user_list", users, 150) // allows up to 10 users

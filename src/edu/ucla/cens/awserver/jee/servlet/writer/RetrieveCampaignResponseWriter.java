@@ -64,7 +64,7 @@ public class RetrieveCampaignResponseWriter extends AbstractResponseWriter {
 				
 				JSONArray itemArray = new JSONArray();
 				metadata.put("items", itemArray);
-				JSONArray dataArray = new JSONArray();
+				JSONObject dataArray = new JSONObject();
 				rootObject.put("data", dataArray);
 				
 				for(int i = 0; i < numberOfResults; i++) {
@@ -83,7 +83,7 @@ public class RetrieveCampaignResponseWriter extends AbstractResponseWriter {
 						campaignObject.put("user_role_campaign", new JSONObject(generateUserRoleCampaign(req, result.getUrn())));
 					}
 					
-					dataArray.put(new JSONObject().put(result.getUrn(), campaignObject));
+					dataArray.put(result.getUrn(), campaignObject);
 					itemArray.put(result.getUrn());
 				}
 				

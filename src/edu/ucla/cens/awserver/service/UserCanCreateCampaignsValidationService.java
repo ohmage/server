@@ -12,8 +12,8 @@ import edu.ucla.cens.awserver.validator.AwRequestAnnotator;
  * 
  * @author John Jenkins
  */
-public class CampaignCreationValidationService extends AbstractAnnotatingDaoService {
-	private static Logger _logger = Logger.getLogger(CampaignCreationValidationService.class);
+public class UserCanCreateCampaignsValidationService extends AbstractAnnotatingDaoService {
+	private static Logger _logger = Logger.getLogger(UserCanCreateCampaignsValidationService.class);
 	
 	/**
 	 * Creates a validation service to check if the user has sufficient
@@ -24,7 +24,7 @@ public class CampaignCreationValidationService extends AbstractAnnotatingDaoServ
 	 * 
 	 * @param dao The DAO to run our queries against.
 	 */
-	public CampaignCreationValidationService(AwRequestAnnotator annotator, Dao dao) {
+	public UserCanCreateCampaignsValidationService(AwRequestAnnotator annotator, Dao dao) {
 		super(dao, annotator);
 	}
 	

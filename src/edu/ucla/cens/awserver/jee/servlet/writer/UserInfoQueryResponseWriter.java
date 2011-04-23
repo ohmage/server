@@ -17,6 +17,14 @@ import edu.ucla.cens.awserver.domain.UserInfoQueryResult;
 import edu.ucla.cens.awserver.request.AwRequest;
 import edu.ucla.cens.awserver.request.UserInfoQueryAwRequest;
 
+/**
+ * Basic response writer that will write success and the user's info if the 
+ * request was successful or an informative message if one is available. In
+ * the worst case, it will simply output a generic failure message that this
+ * object was built with.
+ * 
+ * @author John Jenkins
+ */
 public class UserInfoQueryResponseWriter extends AbstractResponseWriter {
 	private static Logger _logger = Logger.getLogger(UserInfoQueryResponseWriter.class);
 
@@ -30,7 +38,7 @@ public class UserInfoQueryResponseWriter extends AbstractResponseWriter {
 	}
 	
 	/**
-	 * Writes the 
+	 * Writes the response to the request.
 	 */
 	@Override
 	public void write(HttpServletRequest request, HttpServletResponse response, AwRequest awRequest) {

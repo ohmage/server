@@ -56,7 +56,6 @@ public class FindAllFilteredCampaignsForLoggedInUserDao extends AbstractDao {
 	public void execute(AwRequest awRequest) {
 		_logger.info("about to generate SQL and run filtered campaign query");
 		
-		StringBuilder sql = new StringBuilder();
 		List<CampaignQueryResult> campaignList = new ArrayList<CampaignQueryResult>();
 		
 		try {
@@ -126,6 +125,7 @@ public class FindAllFilteredCampaignsForLoggedInUserDao extends AbstractDao {
 				List<Object> pList = new ArrayList<Object>();
 				pList.add(urn);
 				
+				StringBuilder sql = new StringBuilder();
 				sql.append(_select);
 				
 				// Check to see if the query is requesting specific classes
@@ -204,8 +204,7 @@ public class FindAllFilteredCampaignsForLoggedInUserDao extends AbstractDao {
 		}	
 		
 		catch (org.springframework.dao.DataAccessException dae) {
-			_logger.error("a DataAccessException occurred when running the following sql '" + sql + "' with the parameter"
-				+ (awRequest.getUser().getUserName()), dae);
+			_logger.error("a DataAccessException occurred when running the following some SQL.", dae);
 			throw new DataAccessException(dae);
 		}
 		

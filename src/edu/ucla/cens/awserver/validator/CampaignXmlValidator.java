@@ -10,14 +10,15 @@ import org.apache.log4j.Logger;
 import org.xml.sax.SAXException;
 
 import edu.ucla.cens.awserver.request.AwRequest;
-import edu.ucla.cens.awserver.request.CampaignCreationAwRequest;
+import edu.ucla.cens.awserver.request.InputKeys;
 import edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator;
 
-public class CampaignCreationCampaignValidator extends AbstractAnnotatingValidator {
-	private static Logger _logger = Logger.getLogger(CampaignCreationCampaignValidator.class);
+public class CampaignXmlValidator extends AbstractAnnotatingValidator {
+	private static Logger _logger = Logger.getLogger(CampaignXmlValidator.class);
 	
 	private CampaignValidator _validator;
 	private String _schemaFileName;
+	private boolean _required;
 	
 	/**
 	 * Creates a validator for the XML file that defines a campaign.
@@ -26,11 +27,12 @@ public class CampaignCreationCampaignValidator extends AbstractAnnotatingValidat
 	 * 
 	 * @param valiator The validator for the incomming XML file.
 	 */
-	public CampaignCreationCampaignValidator(AwRequestAnnotator annotator, CampaignValidator validator, String schemaFileName) {
+	public CampaignXmlValidator(AwRequestAnnotator annotator, CampaignValidator validator, String schemaFileName, boolean required) {
 		super(annotator);
 		
 		_validator = validator;
 		_schemaFileName = schemaFileName;
+		_required = required;
 	}
 	
 	/**
@@ -39,19 +41,20 @@ public class CampaignCreationCampaignValidator extends AbstractAnnotatingValidat
 	@Override
 	public boolean validate(AwRequest awRequest) {
 		_logger.info("Validating campaign XML.");
-		
-		CampaignCreationAwRequest request;
-		try {
-			request = (CampaignCreationAwRequest) awRequest;
-		}
-		catch(ClassCastException e) {
-			_logger.error("Attempting to validate a campaign with a non-CampaignCreationAwRequest.", e);
-			awRequest.setFailedRequest(true);
-			return false;
-		}
 
+		String campaignXml = (String) awRequest.getToValidate().get(InputKeys.XML);
+		if(campaignXml == null) {
+			if(_required) {
+				_logger.error("Request reached XML validation but is missing the required XML parameter.");
+				throw new ValidatorException("Missing XML in request.");
+			}
+			else {
+				return true;
+			}
+		}
+		
 		try {
-			_validator.run(request.getCampaign(), _schemaFileName);
+			_validator.run(campaignXml, _schemaFileName);
 		} 
 		catch(InvalidParameterException e) {
 			_logger.error("Internal error.");
@@ -89,6 +92,7 @@ public class CampaignCreationCampaignValidator extends AbstractAnnotatingValidat
 			return false;
 		}
 		
+		awRequest.addToProcess(InputKeys.XML, campaignXml, true);
 		return true;
 	}
 }

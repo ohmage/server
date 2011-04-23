@@ -5,7 +5,6 @@ import javax.sql.DataSource;
 import org.apache.log4j.Logger;
 
 import edu.ucla.cens.awserver.request.AwRequest;
-import edu.ucla.cens.awserver.request.CampaignDeletionAwRequest;
 
 /**
  * Checks to make sure that the campaign exists.
@@ -34,24 +33,17 @@ public class CampaignExistsDao extends AbstractDao {
 	 */
 	@Override
 	public void execute(AwRequest awRequest) {
-		CampaignDeletionAwRequest request;
-		try {
-			request = (CampaignDeletionAwRequest) awRequest;
-		}
-		catch(ClassCastException e) {
-			_logger.error("Checking campaign name on a non-CampaignDeletionAwRequest object.");
-			throw new DataAccessException("Invalid request.");
-		}
+		String campaignUrn = awRequest.getCampaignUrn();
 		
 		try {
-			int count = getJdbcTemplate().queryForInt(SQL, new Object[] { request.getRequestUrn() });
+			int count = getJdbcTemplate().queryForInt(SQL, new Object[] { campaignUrn });
 			
 			if(count == 0) {
 				awRequest.setFailedRequest(true);
 			}
 		}
 		catch(org.springframework.dao.DataAccessException dae) {
-			_logger.error("Error executing SQL '" + SQL + "' with parameter: " + request.getRequestUrn());
+			_logger.error("Error executing SQL '" + SQL + "' with parameter: " + campaignUrn, dae);
 			throw new DataAccessException(dae);
 		}
 	}

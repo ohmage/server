@@ -2,6 +2,8 @@ package edu.ucla.cens.awserver.validator;
 
 import java.util.List;
 
+import org.apache.log4j.Logger;
+
 import edu.ucla.cens.awserver.request.AwRequest;
 import edu.ucla.cens.awserver.util.StringUtils;
 
@@ -9,7 +11,8 @@ import edu.ucla.cens.awserver.util.StringUtils;
  * @author selsky
  */
 public class StringAllowedValuesValidator extends AbstractAnnotatingValidator {
-	//private Logger _logger = Logger.getLogger(StringAllowedValuesValidator.class);
+	private Logger _logger = Logger.getLogger(StringAllowedValuesValidator.class);
+	
 	private List<String> _allowedValues;
 	private String _key;
 	private boolean _required;
@@ -28,10 +31,8 @@ public class StringAllowedValuesValidator extends AbstractAnnotatingValidator {
 		_required = required;
 	}
 	
-	public boolean validate(AwRequest awRequest) {
-		if(null == awRequest.getToValidate()) {
-			throw new IllegalArgumentException("missing required toValidate Map in AwRequest");
-		}
+	public boolean validate(AwRequest awRequest) {		
+		_logger.info("Validating that a String value is one of the allowed values: " + _key);
 		
 		String value = (String) awRequest.getToValidate().get(_key);
 		
@@ -47,6 +48,8 @@ public class StringAllowedValuesValidator extends AbstractAnnotatingValidator {
 				getAnnotator().annotate(awRequest, "found disallowed value for " + _key + ". value: " + value);
 				return false;
 			}
+			
+			awRequest.addToProcess(_key, value, true);
 		}
 		
 		return true;

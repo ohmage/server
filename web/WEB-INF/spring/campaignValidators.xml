@@ -1,0 +1,127 @@
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
+                           http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-2.5.xsd">
+                           
+  <bean id="campaignUrnValidator" class="edu.ucla.cens.awserver.validator.CampaignUrnValidator">
+    <constructor-arg index="0">
+      <bean class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
+        <constructor-arg index="0">
+          <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
+            <property name="code" value="0807" />
+            <property name="text" value="Invalid URN." />
+          </bean>
+        </constructor-arg>
+      </bean>
+    </constructor-arg>
+  </bean>
+
+  <bean id="campaignDescriptionRequiredValidator" class="edu.ucla.cens.awserver.validator.CampaignDescriptionValidator">
+    <constructor-arg index="0">
+      <bean class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
+        <constructor-arg index="0">
+          <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
+            <property name="code" value="0814" />
+            <property name="text" value="Invalid campaign description." />
+          </bean>
+       </constructor-arg>
+      </bean>
+    </constructor-arg>
+    <constructor-arg index="1">
+      <value>true</value>
+    </constructor-arg>
+  </bean>
+  
+  <bean id="campaignDescriptionOptionalValidator" class="edu.ucla.cens.awserver.validator.CampaignDescriptionValidator">
+    <constructor-arg index="0">
+      <bean class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
+        <constructor-arg index="0">
+          <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
+            <property name="code" value="0814" />
+            <property name="text" value="Invalid campaign description." />
+          </bean>
+       </constructor-arg>
+      </bean>
+    </constructor-arg>
+    <constructor-arg index="1">
+      <value>false</value>
+    </constructor-arg>
+  </bean>
+  
+  <bean id="campaignPrivacyStateRequiredValidator" class="edu.ucla.cens.awserver.validator.StringAllowedValuesValidator">
+    <constructor-arg index="0">
+      <bean class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
+        <constructor-arg index="0"> 
+          <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
+            <property name="code" value="0811" />
+            <property name="text" value="invalid privacy state" />
+          </bean>
+        </constructor-arg>
+      </bean>
+    </constructor-arg>
+    <constructor-arg index="1"><value>privacy_state</value></constructor-arg>
+    <constructor-arg index="2"><ref bean="campaignPrivacyStates" /></constructor-arg>
+    <constructor-arg index="3"><value>true</value></constructor-arg>
+    <property name="errorMessage">
+      <value>invalid privacy state in request</value>
+    </property>
+  </bean>
+  
+  <bean id="campaignPrivacyStateOptionalValidator" class="edu.ucla.cens.awserver.validator.StringAllowedValuesValidator">
+    <constructor-arg index="0">
+      <bean class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
+        <constructor-arg index="0"> 
+          <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
+            <property name="code" value="0811" />
+            <property name="text" value="invalid privacy state" />
+          </bean>
+        </constructor-arg>
+      </bean>
+    </constructor-arg>
+    <constructor-arg index="1"><value>privacy_state</value></constructor-arg>
+    <constructor-arg index="2"><ref bean="campaignPrivacyStates" /></constructor-arg>
+    <constructor-arg index="3"><value>false</value></constructor-arg>
+    <property name="errorMessage">
+      <value>invalid privacy state in request</value>
+    </property>
+  </bean>
+
+  <bean id="campaignRunningStateRequiredValidator" class="edu.ucla.cens.awserver.validator.StringAllowedValuesValidator">
+    <constructor-arg index="0">
+      <bean class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
+        <constructor-arg index="0"> 
+          <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
+            <property name="code" value="0812" />
+            <property name="text" value="invalid running state" />
+          </bean>
+        </constructor-arg>
+      </bean>
+    </constructor-arg>
+    <constructor-arg index="1"><value>running_state</value></constructor-arg>
+    <constructor-arg index="2"><ref bean="campaignRunningStates" /></constructor-arg>
+    <constructor-arg index="3"><value>true</value></constructor-arg>
+    <property name="errorMessage">
+      <value>invalid running state in request</value>
+    </property>
+  </bean>
+  
+  <bean id="campaignRunningStateOptionalValidator" class="edu.ucla.cens.awserver.validator.StringAllowedValuesValidator">
+    <constructor-arg index="0">
+      <bean class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
+        <constructor-arg index="0"> 
+          <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
+            <property name="code" value="0812" />
+            <property name="text" value="invalid running state" />
+          </bean>
+        </constructor-arg>
+      </bean>
+    </constructor-arg>
+    <constructor-arg index="1"><value>running_state</value></constructor-arg>
+    <constructor-arg index="2"><ref bean="campaignRunningStates" /></constructor-arg>
+    <constructor-arg index="3"><value>false</value></constructor-arg>
+    <property name="errorMessage">
+      <value>invalid running state in request</value>
+    </property>
+  </bean>
+  
+</beans>
