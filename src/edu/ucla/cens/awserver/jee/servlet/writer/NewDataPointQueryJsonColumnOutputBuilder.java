@@ -44,9 +44,9 @@ public class NewDataPointQueryJsonColumnOutputBuilder implements NewDataPointQue
 		
 		for(String key : columnMapKeySet) {
 			
-			if(key.startsWith("urn:awm:prompt:id:")) {
+			if(key.startsWith("urn:ohmage:prompt:id:")) {
 			
-				String promptId = key.substring("urn:awm:prompt:id:".length());
+				String promptId = key.substring("urn:ohmage:prompt:id:".length());
 				JSONObject column = new JSONObject();
 				JSONObject context = new JSONObject();
 				context.put("unit", 

@@ -36,8 +36,8 @@ public class NewDataPointQueryParamConverterService implements Service {
 			String[] splitList = split(promptIdListString);
 			List<String> ids = new ArrayList<String>();
 			
-			if(splitList.length == 1 && "urn:awm:special:all".equals(splitList[0])) {
-				ids.add("urn:awm:special:all");
+			if(splitList.length == 1 && "urn:ohmage:special:all".equals(splitList[0])) {
+				ids.add("urn:ohmage:special:all");
 			} else {
 				for(String entry : splitList) {
 					ids.add(entry);
@@ -51,8 +51,8 @@ public class NewDataPointQueryParamConverterService implements Service {
 			String[] splitList = split(surveyIdListString);
 			List<String> ids = new ArrayList<String>();
 			
-			if(splitList.length == 1 && "urn:awm:special:all".equals(splitList[0])) {
-				ids.add("urn:awm:special:all");
+			if(splitList.length == 1 && "urn:ohmage:special:all".equals(splitList[0])) {
+				ids.add("urn:ohmage:special:all");
 			} else {
 				for(String entry : splitList) {
 					ids.add(entry);

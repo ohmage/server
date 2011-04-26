@@ -150,25 +150,25 @@
     The URNs for prompt ids and survey ids are handled separately because their values are dependent on campaign configurations. 
   -->
   <util:list id="dataPointQueryColumnUrns">
-    <value>urn:awm:context:client</value>
-    <value>urn:awm:context:timestamp</value>
-    <value>urn:awm:context:timezone</value>
-    <value>urn:awm:context:utc_timestamp</value>
-    <value>urn:awm:context:launch_context_short</value>
-    <value>urn:awm:context:launch_context_long</value>
-    <value>urn:awm:context:location:status</value>
-    <value>urn:awm:context:location:latitude</value>
-    <value>urn:awm:context:location:longitude</value>
-    <value>urn:awm:context:location:timestamp</value>
-    <value>urn:awm:context:location:accuracy</value>
-    <value>urn:awm:context:location:provider</value>
-    <value>urn:awm:user:id</value>
-    <value>urn:awm:survey:id</value>
-    <value>urn:awm:survey:title</value>
-    <value>urn:awm:survey:description</value>
-    <value>urn:awm:repeatable_set:id</value>
-    <value>urn:awm:repeatable_set:iteration</value>
-    <value>urn:awm:prompt:response</value>
+    <value>urn:ohmage:context:client</value>
+    <value>urn:ohmage:context:timestamp</value>
+    <value>urn:ohmage:context:timezone</value>
+    <value>urn:ohmage:context:utc_timestamp</value>
+    <value>urn:ohmage:context:launch_context_short</value>
+    <value>urn:ohmage:context:launch_context_long</value>
+    <value>urn:ohmage:context:location:status</value>
+    <value>urn:ohmage:context:location:latitude</value>
+    <value>urn:ohmage:context:location:longitude</value>
+    <value>urn:ohmage:context:location:timestamp</value>
+    <value>urn:ohmage:context:location:accuracy</value>
+    <value>urn:ohmage:context:location:provider</value>
+    <value>urn:ohmage:user:id</value>
+    <value>urn:ohmage:survey:id</value>
+    <value>urn:ohmage:survey:title</value>
+    <value>urn:ohmage:survey:description</value>
+    <value>urn:ohmage:repeatable_set:id</value>
+    <value>urn:ohmage:repeatable_set:iteration</value>
+    <value>urn:ohmage:prompt:response</value>
   </util:list>
   
   <util:list id="outputFormats">

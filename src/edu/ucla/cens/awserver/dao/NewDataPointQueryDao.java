@@ -64,16 +64,16 @@ public class NewDataPointQueryDao extends AbstractDao {
 		paramObjects.add(req.getStartDate());
 		paramObjects.add(req.getEndDate());
 		
-		if(! "urn:awm:special:all".equals(req.getUserListString())) {
+		if(! "urn:ohmage:special:all".equals(req.getUserListString())) {
 			paramObjects.addAll(req.getUserList());
 		} 
 		
 		if(null != req.getPromptIdList()) {
-			if(! "urn:awm:special:all".equals(req.getPromptIdListString())) {
+			if(! "urn:ohmage:special:all".equals(req.getPromptIdListString())) {
 				paramObjects.addAll(req.getPromptIdList());
 			}
 		} else {
-			if(! "urn:awm:special:all".equals(req.getSurveyIdListString())) {
+			if(! "urn:ohmage:special:all".equals(req.getSurveyIdListString())) {
 				paramObjects.addAll(req.getSurveyIdList());
 			}
 		}
@@ -139,7 +139,7 @@ public class NewDataPointQueryDao extends AbstractDao {
 		
 		builder.append(_sql);
 		
-		if(! "urn:awm:special:all".equals(req.getUserListString())) {
+		if(! "urn:ohmage:special:all".equals(req.getUserListString())) {
 			
 			builder.append(_andUsers);
 			builder.append(generateParams(req.getUserList().size()));
@@ -147,7 +147,7 @@ public class NewDataPointQueryDao extends AbstractDao {
 		
 		if(null != req.getPromptIdList()) {
 			
-			if(! "urn:awm:special:all".equals(req.getPromptIdListString())) {
+			if(! "urn:ohmage:special:all".equals(req.getPromptIdListString())) {
 				
 				builder.append(_andPromptIds);
 				builder.append(generateParams(req.getPromptIdList().size()));
@@ -155,7 +155,7 @@ public class NewDataPointQueryDao extends AbstractDao {
 			
 		} else { // surveys
 			
-			if(! "urn:awm:special:all".equals(req.getSurveyIdListString())) {
+			if(! "urn:ohmage:special:all".equals(req.getSurveyIdListString())) {
 				
 				builder.append(_andSurveyIds);
 				builder.append(generateParams(req.getSurveyIdList().size()));

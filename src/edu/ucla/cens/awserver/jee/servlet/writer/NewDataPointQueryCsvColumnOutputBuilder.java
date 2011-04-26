@@ -66,12 +66,12 @@ public class NewDataPointQueryCsvColumnOutputBuilder implements NewDataPointQuer
 		int i = 0;
 		for(String key : columnMapKeySet) {
 			String shortHeader = null;
-			if(key.startsWith("urn:awm:context")) {
-				shortHeader = key.replace("urn:awm:context", "sys");				
-			} else if(key.startsWith("urn:awm:prompt:id")) {
-				shortHeader = key.replace("urn:awm:prompt:id:", "");
-			} else if(key.startsWith("urn:awm")) {
-				shortHeader = key.replace("urn:awm:", "");
+			if(key.startsWith("urn:ohmage:context")) {
+				shortHeader = key.replace("urn:ohmage:context", "sys");				
+			} else if(key.startsWith("urn:ohmage:prompt:id")) {
+				shortHeader = key.replace("urn:ohmage:prompt:id:", "");
+			} else if(key.startsWith("urn:ohmage")) {
+				shortHeader = key.replace("urn:ohmage:", "");
 			}
 			builder.append(shortHeader);
 			if(i < s - 1) {
@@ -137,12 +137,12 @@ public class NewDataPointQueryCsvColumnOutputBuilder implements NewDataPointQuer
 		int i = 0;
 		for(String key : columnMap.keySet()) {
 			String shortHeader = null;
-			if(key.startsWith("urn:awm:context")) {
-				shortHeader = key.replace("urn:awm:context", "sys");				
-			} else if(key.startsWith("urn:awm:prompt:id")) {
-				shortHeader = key.replace("urn:awm:prompt:id:", "");
-			} else if(key.startsWith("urn:awm")) {
-				shortHeader = key.replace("urn:awm:", "");
+			if(key.startsWith("urn:ohmage:context")) {
+				shortHeader = key.replace("urn:ohmage:context", "sys");				
+			} else if(key.startsWith("urn:ohmage:prompt:id")) {
+				shortHeader = key.replace("urn:ohmage:prompt:id:", "");
+			} else if(key.startsWith("urn:ohmage")) {
+				shortHeader = key.replace("urn:ohmage:", "");
 			}
 			builder.append(shortHeader);
 			if(i < s - 1) {

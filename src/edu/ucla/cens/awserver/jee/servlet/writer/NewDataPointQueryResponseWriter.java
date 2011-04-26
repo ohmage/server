@@ -91,13 +91,13 @@ public class NewDataPointQueryResponseWriter extends AbstractResponseWriter {
 				// Build the column headers
 				// Each column is a Map with a list containing the values for each row
 				
-				if("urn:awm:special:all".equals(columnList.get(0))) {
+				if("urn:ohmage:special:all".equals(columnList.get(0))) {
 					outputColumns.addAll(_columnNames);
 				} else {
 					outputColumns.addAll(columnList);
 				}
 				
-				if(columnList.contains("urn:awm:prompt:response") || "urn:awm:special:all".equals(columnList.get(0))) {
+				if(columnList.contains("urn:ohmage:prompt:response") || "urn:ohmage:special:all".equals(columnList.get(0))) {
 					// The logic here is that if the user is requesting results for survey ids, they want all of the prompts
 					// for those survey ids
 					// So, loop through the results and find all of the unique prompt ids by forcing them into a Set
@@ -106,16 +106,16 @@ public class NewDataPointQueryResponseWriter extends AbstractResponseWriter {
 					if(0 != results.size()) {
 						for(NewDataPointQueryResult result : results) {
 							
-							// _logger.info("urn:awm:prompt:id:" + result.getPromptId());
-							promptIdSet.add("urn:awm:prompt:id:" + result.getPromptId());
+							// _logger.info("urn:ohmage:prompt:id:" + result.getPromptId());
+							promptIdSet.add("urn:ohmage:prompt:id:" + result.getPromptId());
 						}
 						outputColumns.addAll(promptIdSet);
 					}
 				}
 				
-				// get rid of urn:awm:prompt:response because it has been replaced with specific prompt ids
-				// the list will be unchanged if it didn't already contain urn:awm:prompt:response 
-				outputColumns.remove("urn:awm:prompt:response");
+				// get rid of urn:ohmage:prompt:response because it has been replaced with specific prompt ids
+				// the list will be unchanged if it didn't already contain urn:ohmage:prompt:response 
+				outputColumns.remove("urn:ohmage:prompt:response");
 				
 				Map<String, List<Object>> columnMap = new HashMap<String, List<Object>> ();
 				
@@ -237,82 +237,82 @@ public class NewDataPointQueryResponseWriter extends AbstractResponseWriter {
 			                   Map<String, List<Object>> columnMap,
 			                   NewDataPointQueryFormattedResult result) throws JSONException { 
 		
-		if("urn:awm:user:id".equals(columnName)) {
+		if("urn:ohmage:user:id".equals(columnName)) {
 			
 			columnMap.get(columnName).add(result.getLoginId());
 			
-		} else if("urn:awm:context:client".equals(columnName)) {
+		} else if("urn:ohmage:context:client".equals(columnName)) {
 			
 			columnMap.get(columnName).add(result.getClient());
 			
-		} else if("urn:awm:context:timestamp".equals(columnName)) {
+		} else if("urn:ohmage:context:timestamp".equals(columnName)) {
 			
 			columnMap.get(columnName).add(result.getTimestamp());
 			
-		} else if("urn:awm:context:timezone".equals(columnName)) {
+		} else if("urn:ohmage:context:timezone".equals(columnName)) {
 			
 			columnMap.get(columnName).add(result.getTimezone());
 			
-		} else if("urn:awm:context:utc_timestamp".equals(columnName)) {
+		} else if("urn:ohmage:context:utc_timestamp".equals(columnName)) {
 			
 			columnMap.get(columnName).add(result.getUtcTimestamp() == null ? "NA" : result.getUtcTimestamp());
 			
-		} else if("urn:awm:context:launch_context_long".equals(columnName)) {
+		} else if("urn:ohmage:context:launch_context_long".equals(columnName)) {
 			
 			columnMap.get(columnName).add(result.getLaunchContext() == null ? "NA" : new JSONObject(result.getLaunchContext()));
 			
 		}
-		else if("urn:awm:context:launch_context_short".equals(columnName)) {
+		else if("urn:ohmage:context:launch_context_short".equals(columnName)) {
 			
 			columnMap.get(columnName).add(result.getLaunchContext() == null ? "NA" : shortLaunchContext(result.getLaunchContext()));
 			
-		} else if("urn:awm:context:location:status".equals(columnName)) {
+		} else if("urn:ohmage:context:location:status".equals(columnName)) {
 			
 			columnMap.get(columnName).add(result.getLocationStatus());
 			
-		} else if("urn:awm:context:location:latitude".equals(columnName)) {
+		} else if("urn:ohmage:context:location:latitude".equals(columnName)) {
 			
 			columnMap.get(columnName).add(result.getLatitude() == null ? "NA" : result.getLatitude());
 			
-		} else if("urn:awm:context:location:longitude".equals(columnName)) {
+		} else if("urn:ohmage:context:location:longitude".equals(columnName)) {
 			
 			columnMap.get(columnName).add(result.getLongitude() == null ? "NA" : result.getLongitude());
 			
-		} else if("urn:awm:context:location:timestamp".equals(columnName)) {
+		} else if("urn:ohmage:context:location:timestamp".equals(columnName)) {
 			
 			columnMap.get(columnName).add(result.getLocationTimestamp() == null ? "NA" : result.getLocationTimestamp());
 			
-		} else if("urn:awm:context:location:accuracy".equals(columnName)) {
+		} else if("urn:ohmage:context:location:accuracy".equals(columnName)) {
 			
 			columnMap.get(columnName).add(result.getAccuracy() == null ? "NA" : result.getAccuracy());
 			
-		} else if("urn:awm:context:location:provider".equals(columnName)) {
+		} else if("urn:ohmage:context:location:provider".equals(columnName)) {
 			
 			columnMap.get(columnName).add(result.getProvider() == null ? "NA" : result.getProvider());
 		
-		} else if("urn:awm:survey:id".equals(columnName)) {
+		} else if("urn:ohmage:survey:id".equals(columnName)) {
 			
 			columnMap.get(columnName).add(result.getSurveyId());
 			
-		} else if("urn:awm:survey:title".equals(columnName)) {
+		} else if("urn:ohmage:survey:title".equals(columnName)) {
 			
 			columnMap.get(columnName).add(result.getSurveyTitle());
 		
-		} else if("urn:awm:survey:description".equals(columnName)) {
+		} else if("urn:ohmage:survey:description".equals(columnName)) {
 			
 			columnMap.get(columnName).add(result.getSurveyDescription());
 			
-		} else if("urn:awm:repeatable_set:id".equals(columnName)) {
+		} else if("urn:ohmage:repeatable_set:id".equals(columnName)) {
 			
 			columnMap.get(columnName).add(result.getRepeatableSetId() == null ? "NA" : result.getRepeatableSetId());
 			
-		} else if("urn:awm:repeatable_set:iteration".equals(columnName)) {
+		} else if("urn:ohmage:repeatable_set:iteration".equals(columnName)) {
 			
 			columnMap.get(columnName).add(result.getRepeatableSetIteration() == null ? "NA" : result.getRepeatableSetIteration());
 			
-		} else if (columnName.startsWith("urn:awm:prompt:id:")) {
+		} else if (columnName.startsWith("urn:ohmage:prompt:id:")) {
 			
-			String promptId = columnName.substring("urn:awm:prompt:id:".length());
+			String promptId = columnName.substring("urn:ohmage:prompt:id:".length());
 			
 			if(null != result.getPromptDisplayValueMap().get(promptId)) {
 				columnMap.get(columnName).add(result.getPromptDisplayValueMap().get(promptId));

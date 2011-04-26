@@ -34,7 +34,7 @@ public class SurveyIdListValidator extends AbstractAnnotatingRegexpValidator {
 		}
 		
 		// first check for the special "all users" value
-		if("urn:awm:special:all".equals(surveyIdListString)) {
+		if("urn:ohmage:special:all".equals(surveyIdListString)) {
 			
 			return true;
 			

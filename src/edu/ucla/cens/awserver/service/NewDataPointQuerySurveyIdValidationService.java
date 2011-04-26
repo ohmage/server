@@ -31,7 +31,7 @@ public class NewDataPointQuerySurveyIdValidationService extends AbstractAnnotati
 		
 		if((null != req.getSurveyIdListString()) && (0 != req.getSurveyIdList().size())) {
 			
-			if(! "urn:awm:special:all".equals(req.getSurveyIdListString())) {
+			if(! "urn:ohmage:special:all".equals(req.getSurveyIdListString())) {
 				
 				List<String> surveyIds = req.getSurveyIdList(); 
 				

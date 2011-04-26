@@ -45,7 +45,7 @@ public class ColumnListValidator extends AbstractAnnotatingValidator {
 		}
 		
 		// first check for the special "all users" value
-		if("urn:awm:special:all".equals(columnListString)) {
+		if("urn:ohmage:special:all".equals(columnListString)) {
 			
 			return true;
 			

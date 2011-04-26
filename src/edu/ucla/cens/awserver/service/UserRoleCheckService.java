@@ -64,7 +64,7 @@ public class UserRoleCheckService extends AbstractAnnotatingService {
 					String u = req.getUserList().get(0);
 					
 					if(! req.getUser().getUserName().equals(u)) { // this will also cover the case where the logged-in participant
-						                                          // is attemping to use urn:awm:special:all
+						                                          // is attemping to use urn:ohmage:special:all
 						
 						_logger.warn("logged in participant attempting to run query for another user. " 
 							+ " logged in user: " +  req.getUser().getUserName() + " query user: "
