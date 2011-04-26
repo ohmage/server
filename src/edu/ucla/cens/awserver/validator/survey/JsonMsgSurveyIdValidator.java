@@ -2,9 +2,9 @@ package edu.ucla.cens.awserver.validator.survey;
 
 import org.json.JSONObject;
 
-import edu.ucla.cens.awserver.cache.CacheService;
 import edu.ucla.cens.awserver.domain.Configuration;
 import edu.ucla.cens.awserver.request.AwRequest;
+import edu.ucla.cens.awserver.request.SurveyUploadAwRequest;
 import edu.ucla.cens.awserver.util.JsonUtils;
 import edu.ucla.cens.awserver.validator.AwRequestAnnotator;
 import edu.ucla.cens.awserver.validator.json.AbstractAnnotatingJsonObjectValidator;
@@ -16,17 +16,12 @@ import edu.ucla.cens.awserver.validator.json.AbstractAnnotatingJsonObjectValidat
  */
 public class JsonMsgSurveyIdValidator extends AbstractAnnotatingJsonObjectValidator {
 	private String _key = "survey_id";
-	private CacheService _cacheService;
 		
 	/**
      * @throws IllegalArgumentException if the provded AwRequestAnnotator is null
 	 */
-	public JsonMsgSurveyIdValidator(AwRequestAnnotator awRequestAnnotator, CacheService cacheService) {
+	public JsonMsgSurveyIdValidator(AwRequestAnnotator awRequestAnnotator) {
 		super(awRequestAnnotator);
-		if(null == cacheService) {
-			throw new IllegalArgumentException("a CacheService is required");
-		}
-		_cacheService = cacheService;
 	}
 	
 	/**
@@ -42,7 +37,8 @@ public class JsonMsgSurveyIdValidator extends AbstractAnnotatingJsonObjectValida
 			return false;
 		}
 		
-		Configuration configuration = (Configuration) _cacheService.lookup(awRequest.getCampaignUrn());
+		// FIXME - drop cast
+		Configuration configuration = ((SurveyUploadAwRequest) awRequest).getConfiguration();
 		
 		if(null == configuration) { // this is bad because it means that previous validation failed or didn't run
 			throw new IllegalStateException("missing configuration for campaign URN: " + awRequest.getCampaignUrn());

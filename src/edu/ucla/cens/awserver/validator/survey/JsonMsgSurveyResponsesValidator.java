@@ -4,10 +4,10 @@ import org.apache.log4j.Logger;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-import edu.ucla.cens.awserver.cache.CacheService;
 import edu.ucla.cens.awserver.domain.Configuration;
 import edu.ucla.cens.awserver.domain.Prompt;
 import edu.ucla.cens.awserver.request.AwRequest;
+import edu.ucla.cens.awserver.request.SurveyUploadAwRequest;
 import edu.ucla.cens.awserver.util.JsonUtils;
 import edu.ucla.cens.awserver.util.StringUtils;
 import edu.ucla.cens.awserver.validator.AwRequestAnnotator;
@@ -29,19 +29,13 @@ import edu.ucla.cens.awserver.validator.prompt.PromptValidatorCache;
 public class JsonMsgSurveyResponsesValidator extends AbstractAnnotatingJsonObjectValidator {
 	private static Logger _logger = Logger.getLogger(JsonMsgSurveyResponsesValidator.class);
 	private String _key = "responses";
-	private CacheService _cacheService;
 	private PromptValidatorCache _promptValidatorCache;
 		
-	public JsonMsgSurveyResponsesValidator(AwRequestAnnotator awRequestAnnotator, CacheService configurationCacheService, 
-			PromptValidatorCache pvCache) {
+	public JsonMsgSurveyResponsesValidator(AwRequestAnnotator awRequestAnnotator, PromptValidatorCache pvCache) {
 		super(awRequestAnnotator);
-		if(null == configurationCacheService) {
-			throw new IllegalArgumentException("a Configuration CacheService is required");
-		}
 		if(null == pvCache) {
 			throw new IllegalArgumentException("a PromptValidatorCache is required");
 		}
-		_cacheService = configurationCacheService;
 		_promptValidatorCache = pvCache;
 	}
 	
@@ -57,7 +51,9 @@ public class JsonMsgSurveyResponsesValidator extends AbstractAnnotatingJsonObjec
 	public boolean validate(AwRequest awRequest, JSONObject jsonObject) {		 
 		JSONArray jsonArray = JsonUtils.getJsonArrayFromJsonObject(jsonObject, _key);
 		String surveyId = JsonUtils.getStringFromJsonObject(jsonObject, "survey_id");
-		Configuration configuration = (Configuration) _cacheService.lookup(awRequest.getCampaignUrn());
+		
+		// FIXME - drop cast
+		Configuration configuration = ((SurveyUploadAwRequest) awRequest).getConfiguration();
 		
 		int arraySize = jsonArray.length();
 	

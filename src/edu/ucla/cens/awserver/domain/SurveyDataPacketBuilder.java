@@ -8,8 +8,8 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import edu.ucla.cens.awserver.cache.CacheService;
 import edu.ucla.cens.awserver.request.AwRequest;
+import edu.ucla.cens.awserver.request.SurveyUploadAwRequest;
 import edu.ucla.cens.awserver.service.ServiceException;
 import edu.ucla.cens.awserver.util.JsonUtils;
 
@@ -18,19 +18,19 @@ import edu.ucla.cens.awserver.util.JsonUtils;
  */
 public class SurveyDataPacketBuilder implements DataPacketBuilder {
 	private static Logger _logger = Logger.getLogger(SurveyDataPacketBuilder.class);
-	private CacheService _configurationCacheService;
 	
-	public SurveyDataPacketBuilder(CacheService configurationCacheService) {
-		if(null == configurationCacheService) {
-			throw new IllegalArgumentException("a configuration cache service is required");
-		}
-		_configurationCacheService = configurationCacheService;
+	public SurveyDataPacketBuilder() {
+		
 	}
 	
 	/**
 	 * Creates a SurveyDataPacket from a survey upload. Assumes that the upload message is valid.
 	 */
 	public DataPacket createDataPacketFrom(JSONObject source, AwRequest awRequest) {
+		
+		// FIXME - drop cast
+		Configuration configuration = ((SurveyUploadAwRequest) awRequest).getConfiguration();
+		
 		SurveyDataPacket surveyDataPacket = new SurveyDataPacket();
 		List<PromptResponseDataPacket> promptResponseDataPackets  = new ArrayList<PromptResponseDataPacket>();
 		
@@ -81,7 +81,7 @@ public class SurveyDataPacketBuilder implements DataPacketBuilder {
 						promptResponseDataPacket.setRepeatableSetId(repeatableSetId);
 						promptResponseDataPacket.setRepeatableSetIteration(j);
 						
-						Configuration configuration = (Configuration) _configurationCacheService.lookup(awRequest.getCampaignUrn());
+//						Configuration configuration = (Configuration) _configurationCacheService.lookup(awRequest.getCampaignUrn());
 						String promptType = configuration.getPromptType(surveyId, repeatableSetId, promptId);
 						promptResponseDataPacket.setType(promptType);
 						
@@ -97,7 +97,7 @@ public class SurveyDataPacketBuilder implements DataPacketBuilder {
 				String promptId = JsonUtils.getStringFromJsonObject(responseObject, "prompt_id");
 				promptResponseDataPacket.setPromptId(promptId);
 				promptResponseDataPacket.setRepeatableSetId(null);
-				Configuration configuration = (Configuration) _configurationCacheService.lookup(awRequest.getCampaignUrn());
+//				Configuration configuration = (Configuration) _configurationCacheService.lookup(awRequest.getCampaignUrn());
 				String promptType = configuration.getPromptType(surveyId, promptId); 
 				promptResponseDataPacket.setType(promptType);
 				handleDataPacketValue(promptResponseDataPacket, responseObject, promptType);

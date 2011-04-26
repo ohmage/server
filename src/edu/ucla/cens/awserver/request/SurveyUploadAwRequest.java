@@ -2,6 +2,8 @@ package edu.ucla.cens.awserver.request;
 
 import java.util.Map;
 
+import edu.ucla.cens.awserver.domain.Configuration;
+
 
 /**
  * Represents state for survey uploads.
@@ -11,6 +13,7 @@ import java.util.Map;
 public class SurveyUploadAwRequest extends UploadAwRequest {
 	private Map<String, String> _postParameters;
 	private String _campaignRunningState;
+	private Configuration _configuration; 
 
 	/**
 	 * Default no-arg constructor.	
@@ -18,7 +21,15 @@ public class SurveyUploadAwRequest extends UploadAwRequest {
 	public SurveyUploadAwRequest() {
 		super();
 	}
-		
+	
+	public Configuration getConfiguration() {
+		return _configuration;
+	}
+
+	public void setConfiguration(Configuration configuration) {
+		_configuration = configuration;
+	}
+
 	public Map<String, String> getPostParameters() {
 		return _postParameters;
 	}

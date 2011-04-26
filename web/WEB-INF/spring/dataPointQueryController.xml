@@ -24,6 +24,8 @@
         <ref bean="userRoleCampaignPopulationService" />
         <ref bean="userCampaignValidationService" />
         <ref bean="userRoleCheckService" />
+        <!-- grab the XML config from the db -->
+        <ref bean="findCampaignConfigurationService" />
         <ref bean="queryPromptIdValidationService" />
         <ref bean="dataPointQueryService" />
       </list>
@@ -52,9 +54,6 @@
         </constructor-arg>
       </bean>
     </constructor-arg>
-    <constructor-arg index="1">
-      <ref bean="configurationCacheService" />
-    </constructor-arg>
   </bean>
 
   <bean id="userRoleCheckService" class="edu.ucla.cens.awserver.service.UserRoleCheckService">
@@ -73,9 +72,6 @@
   <bean id="dataPointQueryService" class="edu.ucla.cens.awserver.service.DataPointQueryService">
    <constructor-arg index="0">
       <ref bean="dataPointQueryDao" />
-    </constructor-arg>
-    <constructor-arg index="1">
-      <ref bean="configurationCacheService" />
     </constructor-arg>
   </bean>
   
