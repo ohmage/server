@@ -177,10 +177,10 @@ public class CampaignCreationDao extends AbstractDao {
 		DefaultTransactionDefinition def = new DefaultTransactionDefinition();
 		def.setName("Campaign creation and user/class hookups.");
 		
-		PlatformTransactionManager transactionManager = new DataSourceTransactionManager(getDataSource());
-		TransactionStatus status = transactionManager.getTransaction(def);
-		
 		try {
+			PlatformTransactionManager transactionManager = new DataSourceTransactionManager(getDataSource());
+			TransactionStatus status = transactionManager.getTransaction(def);
+		
 			try {
 				getJdbcTemplate().update(SQL_INSERT_CAMPAIGN, 
 										 new Object[] { ((awRequest.existsInToProcess(InputKeys.DESCRIPTION)) ? awRequest.getToProcessValue(InputKeys.DESCRIPTION) : "" ), 
