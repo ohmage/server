@@ -4,7 +4,6 @@ import java.util.List;
 
 import org.apache.log4j.Logger;
 
-import edu.ucla.cens.awserver.cache.ConfigurationCacheService;
 import edu.ucla.cens.awserver.domain.Configuration;
 import edu.ucla.cens.awserver.request.AwRequest;
 import edu.ucla.cens.awserver.request.NewDataPointQueryAwRequest;
@@ -15,14 +14,9 @@ import edu.ucla.cens.awserver.validator.AwRequestAnnotator;
  */
 public class NewDataPointQuerySurveyIdValidationService extends AbstractAnnotatingService {
 	private static Logger _logger = Logger.getLogger(NewDataPointQuerySurveyIdValidationService.class);
-	private ConfigurationCacheService _configurationCacheService;
 	
-	public NewDataPointQuerySurveyIdValidationService(AwRequestAnnotator annotator, ConfigurationCacheService configurationCacheService) {
+	public NewDataPointQuerySurveyIdValidationService(AwRequestAnnotator annotator) {
 		super(annotator);
-		if(null == configurationCacheService) {
-			throw new IllegalArgumentException("a ConfigurationCacheService is required");
-		}
-		_configurationCacheService = configurationCacheService;
 	}
 	
 	/**
@@ -41,7 +35,7 @@ public class NewDataPointQuerySurveyIdValidationService extends AbstractAnnotati
 				
 				List<String> surveyIds = req.getSurveyIdList(); 
 				
-				Configuration config = (Configuration) _configurationCacheService.lookup(req.getCampaignUrn());
+				Configuration config = req.getConfiguration();
 				
 				for(String surveyId : surveyIds) {
 					

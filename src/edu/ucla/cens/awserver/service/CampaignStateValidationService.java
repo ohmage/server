@@ -49,9 +49,8 @@ public class CampaignStateValidationService extends AbstractAnnotatingDaoService
 		}
 		
 		if(! req.getCampaignRunningState().equals(_allowedState)) {
+			_failedRequestAnnotator.annotate(awRequest, "campaign " + awRequest.getCampaignUrn() + " is not " + _allowedState);
 			awRequest.setFailedRequest(true);
 		}
-		
-		_failedRequestAnnotator.annotate(awRequest, "campaign " + awRequest.getCampaignUrn() + " is not " + _allowedState);
 	}
 }

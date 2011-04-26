@@ -6,7 +6,6 @@ import java.util.List;
 import org.apache.log4j.Logger;
 import org.json.JSONArray;
 
-import edu.ucla.cens.awserver.cache.ConfigurationCacheService;
 import edu.ucla.cens.awserver.dao.Dao;
 import edu.ucla.cens.awserver.domain.Configuration;
 import edu.ucla.cens.awserver.domain.DataPointQueryResult;
@@ -20,14 +19,9 @@ import edu.ucla.cens.awserver.util.JsonUtils;
  */
 public class DataPointQueryService extends AbstractDaoService {
 	private static Logger _logger = Logger.getLogger(DataPointQueryService.class);
-	private ConfigurationCacheService _configurationCacheService;
 	
-	public DataPointQueryService(Dao dao, ConfigurationCacheService configurationCacheService) {
+	public DataPointQueryService(Dao dao) {
 		super(dao);
-		if(null == configurationCacheService) {
-			throw new IllegalArgumentException("a CacheService is required");
-		}
-		_configurationCacheService = configurationCacheService;
 	}
 	
 	/**
@@ -41,7 +35,7 @@ public class DataPointQueryService extends AbstractDaoService {
 		
 		// 1. Find the metadata data point ids: these are ids with a display type of metadata from the same survey as the prompt 
 		// ids that are being queried against. The metadata values are added to the results list as distinct query results.
-		Configuration config = (Configuration) _configurationCacheService.lookup(req.getCampaignUrn());
+		Configuration config = req.getConfiguration();
 		List<String> metadataPromptIds = new ArrayList<String>();
 		String[] dataPointIds = req.getDataPointIds();
 		

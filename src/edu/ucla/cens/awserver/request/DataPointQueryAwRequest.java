@@ -1,6 +1,9 @@
 package edu.ucla.cens.awserver.request;
 
+import java.util.Arrays;
 import java.util.List;
+
+import edu.ucla.cens.awserver.domain.Configuration;
 
 
 /**
@@ -14,10 +17,19 @@ public class DataPointQueryAwRequest extends ResultListAwRequest {
 	private String _userNameRequestParam;
 	private String _client;
 	private String _campaignUrn;
+	private Configuration _configuration;
 	
 	private String[] _dataPointIds;
 	// private String _authToken; see userToken in parent class
 	private List<String> _metadataPromptIds;
+	
+	public Configuration getConfiguration() {
+		return _configuration;
+	}
+
+	public void setConfiguration(Configuration configuration) {
+		_configuration = configuration;
+	}
 	
 	public String getStartDate() {
 		return _startDate;
@@ -73,5 +85,16 @@ public class DataPointQueryAwRequest extends ResultListAwRequest {
 
 	public void setMetadataPromptIds(List<String> metadataPromptIds) {
 		_metadataPromptIds = metadataPromptIds; 
+	}
+
+	@Override
+	public String toString() {
+		return "DataPointQueryAwRequest [_startDate=" + _startDate
+				+ ", _endDate=" + _endDate + ", _userNameRequestParam="
+				+ _userNameRequestParam + ", _client=" + _client
+				+ ", _campaignUrn=" + _campaignUrn + ", _configuration="
+				+ _configuration + ", _dataPointIds="
+				+ Arrays.toString(_dataPointIds) + ", _metadataPromptIds="
+				+ _metadataPromptIds + "]";
 	}
 }

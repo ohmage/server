@@ -32,16 +32,30 @@
   <bean id="newDataPointQueryController" class="edu.ucla.cens.awserver.controller.ControllerImpl">
     <constructor-arg index="0">
       <list>
+        <!-- authenticate -->
         <ref bean="tokenBasedAuthenticationService" />
+        
+        <!-- convert string list params to actual lists -->
         <ref bean="newDataPointQueryParamConverterService" />
+        
+        <!-- find the campaigns for the logged-in user -->
         <ref bean="userRoleCampaignPopulationService" />
+        
+        <!-- authorize -->
         <ref bean="userCampaignValidationService" />
         <ref bean="userRoleCheckService" />
         <ref bean="campaignUserCheckService" />
+        
+        <!-- grab the XML config from the db -->
+        <ref bean="findCampaignConfigurationService" />
+        
+        <!-- sanity check the query params against the config -->
         <ref bean="newDataPointQueryPromptIdValidationService" />
         <ref bean="newDataPointQuerySurveyIdValidationService" />
-        <ref bean="findCampaignConfigurationService" />
+        
+        <!-- run the query -->
         <ref bean="newDataPointQueryService" />
+        
       </list>
     </constructor-arg>
     <constructor-arg index="1">
@@ -194,9 +208,6 @@
         </constructor-arg>
       </bean>
     </constructor-arg>
-    <constructor-arg index="1">
-      <ref bean="configurationCacheService" />
-    </constructor-arg>
   </bean>
 
   <bean id="newDataPointQuerySurveyIdValidationService" class="edu.ucla.cens.awserver.service.NewDataPointQuerySurveyIdValidationService">
@@ -209,9 +220,6 @@
           </bean>
         </constructor-arg>
       </bean>
-    </constructor-arg>
-    <constructor-arg index="1">
-      <ref bean="configurationCacheService" />
     </constructor-arg>
   </bean>
 

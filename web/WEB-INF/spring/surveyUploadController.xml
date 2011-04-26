@@ -10,8 +10,10 @@
   <!-- Servlet-to-AW hooks -->
   <!-- create AwRequest from data in the HttpServletRequest -->
   <bean id="surveyUploadAwRequestCreator" class="edu.ucla.cens.awserver.jee.servlet.glue.SurveyUploadAwRequestCreator" />
+  
   <!-- validate parameters in the http request -->
   <bean id="surveyUploadHttpServletRequestValidator" class="edu.ucla.cens.awserver.jee.servlet.validator.SurveyUploadValidator" />
+  
   <!-- the response writer is shared with mobilityUploadController.xml -->
   
   <!-- 
@@ -31,6 +33,9 @@
         <ref bean="userCampaignValidationService" />
         <ref bean="participantUserRoleValidationService" />
         <ref bean="runningCampaignValidationService" />
+        
+        <!-- grab the XML config from the db -->
+        <ref bean="findCampaignConfigurationService" />
         
         <!-- validate the upload -->
         <!-- JSON validation: deep specification validation -->
@@ -52,9 +57,6 @@
       <list>
         <ref bean="userNameValidator" />
         <ref bean="hashedPasswordValidator" />
-        <ref bean="campaignUrnCacheValidator" />
-        <!-- any validator that simply checked for a empty string has been removed because it was redundant with 
-             validation performed in the servlet world -->
       </list>
     </property>
     <property name="postProcessingService">
@@ -161,22 +163,6 @@
     <constructor-arg index="2"><ref bean="jsonMsgIncorrectArrayAnnotator" /></constructor-arg>
   </bean>
   
-  <bean id="campaignUrnCacheValidator" class="edu.ucla.cens.awserver.validator.survey.CampaignUrnCacheValidator">
-     <constructor-arg index="0">
-      <bean class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
-        <constructor-arg index="0">
-           <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
-            <property name="code" value="0604" />
-            <property name="text" value="invalid campaign URN" />
-          </bean>
-        </constructor-arg>
-      </bean>
-    </constructor-arg>
-    <constructor-arg index="1">
-      <ref bean="configurationCacheService" />
-    </constructor-arg>
-  </bean>
-  
   <bean id="jsonMsgSurveyIdValidator" class="edu.ucla.cens.awserver.validator.survey.JsonMsgSurveyIdValidator">
     <constructor-arg index="0">
       <bean class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
@@ -187,9 +173,6 @@
           </bean>
         </constructor-arg>  
       </bean>
-    </constructor-arg>
-    <constructor-arg index="1">
-     <ref bean="configurationCacheService" />
     </constructor-arg>
   </bean>
   
@@ -218,9 +201,6 @@
       </bean>
     </constructor-arg>
     <constructor-arg index="1">
-      <ref bean="configurationCacheService" />
-    </constructor-arg>
-    <constructor-arg index="2">
       <ref bean="promptValidatorCache" />
     </constructor-arg>
   </bean>
@@ -344,11 +324,7 @@
   
   <bean id="surveyDataPacketBuilderService" class="edu.ucla.cens.awserver.service.SurveyDataPacketBuilderService">
     <constructor-arg index="0">
-      <bean class="edu.ucla.cens.awserver.domain.SurveyDataPacketBuilder">
-        <constructor-arg index="0">
-          <ref bean="configurationCacheService" />
-        </constructor-arg>
-      </bean>
+      <bean class="edu.ucla.cens.awserver.domain.SurveyDataPacketBuilder" />
     </constructor-arg>
   </bean>
   

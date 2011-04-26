@@ -85,6 +85,7 @@ public class NewDataPointQueryResponseWriter extends AbstractResponseWriter {
 				
 				List<String> columnList = req.getColumnList();
 				List<String> outputColumns = new ArrayList<String>();
+				@SuppressWarnings("unchecked")
 				List<NewDataPointQueryResult> results = (List<NewDataPointQueryResult>) req.getResultList();
 				
 				// Build the column headers
