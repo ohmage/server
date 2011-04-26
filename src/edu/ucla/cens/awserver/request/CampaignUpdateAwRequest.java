@@ -1,6 +1,6 @@
 package edu.ucla.cens.awserver.request;
 
-public class CampaignUpdateAwRequest extends AbstractAwRequest {
+public class CampaignUpdateAwRequest extends ResultListAwRequest {
 	/**
 	 * There are no required parameters specific to this request. 
 	 */

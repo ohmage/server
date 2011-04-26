@@ -107,24 +107,50 @@ CREATE TABLE user_role_campaign (
   campaign_id int unsigned NOT NULL,
   user_role_id tinyint unsigned NOT NULL,
   PRIMARY KEY (id),
+  UNIQUE (user_id, campaign_id, user_role_id)
   CONSTRAINT FOREIGN KEY (user_id) REFERENCES user (id) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT FOREIGN KEY (campaign_id) REFERENCES campaign (id) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT FOREIGN KEY (user_role_id) REFERENCES user_role (id) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- --------------------------------------------------------------------
+-- Roles for a user within a class.
+-- --------------------------------------------------------------------
+CREATE TABLE user_class_role (
+  id int unsigned NOT NULL auto_increment,
+  role varchar(50) NOT NULL,
+  PRIMARY KEY (id),
+  UNIQUE (role)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+-- --------------------------------------------------------------------
 -- Bind users to classes. 
 -- --------------------------------------------------------------------
-
 CREATE TABLE user_class (
   id int unsigned NOT NULL auto_increment,
   user_id int unsigned NOT NULL,
   class_id int unsigned NOT NULL,
-  class_role varchar(50) NOT NULL,
+  user_class_role_id int unsigned NOT NULL,
   PRIMARY KEY (id),
   UNIQUE (user_id, class_id),
   CONSTRAINT FOREIGN KEY (user_id) REFERENCES user (id) ON DELETE CASCADE ON UPDATE CASCADE,
-  CONSTRAINT FOREIGN KEY (class_id) REFERENCES class (id) ON DELETE CASCADE ON UPDATE CASCADE
+  CONSTRAINT FOREIGN KEY (class_id) REFERENCES class (id) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT FOREIGN KEY (user_class_role_id) REFERENCES user_class_role (id) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+-- --------------------------------------------------------------------
+-- Add a deafult role to campaign class relationships.
+-- --------------------------------------------------------------------
+CREATE TABLE campaign_class_default_role (
+  id int unsigned NOT NULL auto_increment,
+  campaign_class_id int unsigned NOT NULL,
+  user_class_role_id int unsigned NOT NULL,
+  user_role_id tinyint unsigned NOT NULL,
+  PRIMARY KEY (id),
+  UNIQUE (campaign_class_id, user_class_role_id, user_role_id),
+  CONSTRAINT FOREIGN KEY (campaign_class_id) REFERENCES campaign_class (id) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT FOREIGN KEY (user_class_role_id) REFERENCES user_class_role (id) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT FOREIGN KEY (user_role_id) REFERENCES user_role (id) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- --------------------------------------------------------------------

@@ -22,8 +22,8 @@ import edu.ucla.cens.awserver.request.InputKeys;
  * 
  * @author John Jenkins
  */
-public class CampaignContentsValidationDao extends AbstractDao {
-	private static Logger _logger = Logger.getLogger(CampaignContentsValidationDao.class);
+public class CampaignAlreadyExistsValidationDao extends AbstractDao {
+	private static Logger _logger = Logger.getLogger(CampaignAlreadyExistsValidationDao.class);
 	
 	private static final String SQL = "SELECT count(*)" +
 									  " FROM campaign" +
@@ -35,7 +35,7 @@ public class CampaignContentsValidationDao extends AbstractDao {
 	 * @param dataSource The data source that will be used to query the
 	 * 					 database for information.
 	 */
-	public CampaignContentsValidationDao(DataSource dataSource) {
+	public CampaignAlreadyExistsValidationDao(DataSource dataSource) {
 		super(dataSource);
 	}
 	
