@@ -49,7 +49,7 @@ public class StatelessAuthResponseWriter extends AbstractResponseWriter {
 				JSONObject jsonObject = new JSONObject();
 				jsonObject.put("result", "success");
 				
-				Set<String> keys = awRequest.getUser().getCampaignRoles().keySet();
+				Set<String> keys = awRequest.getUser().getCampaignUserRoleMap().keySet();
 				Iterator<String> iterator = keys.iterator();
 				
 				JSONArray jsonArray = new JSONArray();

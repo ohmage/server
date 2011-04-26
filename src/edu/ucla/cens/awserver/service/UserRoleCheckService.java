@@ -4,7 +4,7 @@ import java.util.List;
 
 import org.apache.log4j.Logger;
 
-import edu.ucla.cens.awserver.cache.CacheService;
+import edu.ucla.cens.awserver.domain.UserRole;
 import edu.ucla.cens.awserver.request.AwRequest;
 import edu.ucla.cens.awserver.request.NewDataPointQueryAwRequest;
 import edu.ucla.cens.awserver.validator.AwRequestAnnotator;
@@ -17,16 +17,9 @@ import edu.ucla.cens.awserver.validator.AwRequestAnnotator;
  */
 public class UserRoleCheckService extends AbstractAnnotatingService {
 	private static Logger _logger = Logger.getLogger(UserRoleCheckService.class);
-	private CacheService _userRoleCacheService;
 	
-	public UserRoleCheckService(AwRequestAnnotator annotator, CacheService userRoleCacheService) {
+	public UserRoleCheckService(AwRequestAnnotator annotator) {
 		super(annotator);
-		
-		if(null == userRoleCacheService) {
-			throw new IllegalArgumentException("a user role cache service is required");
-		}
-		
-		_userRoleCacheService = userRoleCacheService;
 	}
      
 	/**
@@ -38,15 +31,13 @@ public class UserRoleCheckService extends AbstractAnnotatingService {
 		
 		_logger.info("verifying the logged-in user's role and whether the role specifies access to other user's data");
 		
-		List<Integer> list = awRequest.getUser().getCampaignRoles().get(awRequest.getCampaignUrn());
+		List<UserRole> list = awRequest.getUser().getCampaignUserRoleMap().get(awRequest.getCampaignUrn());
 		
 		// TODO for now, only supervisors have access to see other user's data
 		boolean supervisor = false;
 		
-		for(Integer i : list) {
-			String role = (String) _userRoleCacheService.lookup(i);
-			
-			if("supervisor".equals(role)) {
+		for(UserRole ur : list) {
+			if("supervisor".equals(ur.getRole())) {
 				supervisor = true;
 				break;
 			}

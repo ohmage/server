@@ -22,19 +22,27 @@
     <constructor-arg index="0">
     <!-- service the upload request -->
       <list>
+      
         <!-- authenticate -->
         <ref bean="authWithHashedPasswordService" />
+        
         <!-- authorize -->
         <ref bean="userRoleCampaignPopulationService" />
         <ref bean="userCampaignValidationService" />
-        <!-- validate their upload -->
+        <ref bean="participantUserRoleValidationService" />
+        <ref bean="runningCampaignValidationService" />
+        
+        <!-- validate the upload -->
         <!-- JSON validation: deep specification validation -->
         <ref bean="jsonMessageSyntaxValidationService" />
         <ref bean="surveyMessageContentValidationService" />
+        
         <!-- convert JSON into DataPackets -->
         <ref bean="surveyDataPacketBuilderService" />
+        
         <!-- persist DataPackets into db -->
         <ref bean="surveyDataStorageService" />
+        
       </list>
     </constructor-arg>
     <constructor-arg index="1">
@@ -92,6 +100,47 @@
       </bean>
     </constructor-arg>
   </bean>
+
+  <bean id="participantUserRoleValidationService" class="edu.ucla.cens.awserver.service.UserRoleValidationService">
+     <constructor-arg index="0">
+      <bean class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
+        <constructor-arg index="0">
+           <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
+            <property name="code" value="0607" />
+            <property name="text" value="user has invalid role for this operation" />
+          </bean>
+        </constructor-arg>
+      </bean>
+    </constructor-arg>
+    <constructor-arg index="1">
+        <list><value>participant</value></list>
+    </constructor-arg>
+  </bean>
+  
+  <bean id="runningCampaignValidationService" class="edu.ucla.cens.awserver.service.CampaignStateValidationService">
+     <constructor-arg index="0">
+      <bean class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
+        <constructor-arg index="0">
+           <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
+            <property name="code" value="0608" />
+            <property name="text" value="campaign is not running so uploads cannot be accepted" />
+          </bean>
+        </constructor-arg>
+      </bean>
+    </constructor-arg>
+    <constructor-arg index="1">
+      <ref bean="campaignStateDao" />
+    </constructor-arg>
+    <constructor-arg index="2">
+        <value>running</value>
+    </constructor-arg>
+  </bean>
+  
+   <bean id="campaignStateDao" class="edu.ucla.cens.awserver.dao.CampaignStateDao">
+     <constructor-arg index="0">
+       <ref bean="dataSource" />
+     </constructor-arg>
+   </bean>
   
   <!-- Validate JSON content according to app business rules -->
   <bean id="surveyMessageContentValidationService" class="edu.ucla.cens.awserver.service.JsonMessageContentValidationService">

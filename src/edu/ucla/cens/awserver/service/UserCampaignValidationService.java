@@ -4,7 +4,6 @@ import java.util.Set;
 
 import org.apache.log4j.Logger;
 
-import edu.ucla.cens.awserver.dao.Dao;
 import edu.ucla.cens.awserver.request.AwRequest;
 import edu.ucla.cens.awserver.validator.AwRequestAnnotator;
 
@@ -25,7 +24,7 @@ public class UserCampaignValidationService extends AbstractAnnotatingService {
 	public void execute(AwRequest awRequest) {
 		// check whether the logged in user has access to the campaign in the query params
 		
-		Set<String> allowedCampaigns = awRequest.getUser().getCampaignRoles().keySet();
+		Set<String> allowedCampaigns = awRequest.getUser().getCampaignUserRoleMap().keySet();
 		
 		//_logger.warn("campaigns: " + allowedCampaigns);
 		

@@ -14,13 +14,13 @@ import java.util.Map;
 public class UserImpl implements User {
 	private int _id;
 	private String  _userName;
-    private Map<String, List<Integer>> _campaignRoles;
+    private Map<String, List<UserRole>> _campaignUserRoleMap; // a user can have many roles in one campaign
 	private boolean _loggedIn;
 	private String _password;
 	
 	public UserImpl() {
 		_id = -1;
-		_campaignRoles = new HashMap<String, List<Integer>>();
+		_campaignUserRoleMap = new HashMap<String, List<UserRole>>();
 	}
 	
 	/**
@@ -32,11 +32,11 @@ public class UserImpl implements User {
 		}
 		_id = user.getId();
 		_userName = user.getUserName();
-		_campaignRoles = new HashMap<String, List<Integer>>();
+		_campaignUserRoleMap = new HashMap<String, List<UserRole>>();
 		// Authentication no longer sets the user roles on the user, so the users
 		// are added to the bin with no roles. It is the responsibility of application
 		// flows that require knowledge of the user's role to obtain them at runtime.
-		_campaignRoles.putAll(user.getCampaignRoles()); // shallow copy ok because once a user is created it is read-only in practice
+		_campaignUserRoleMap.putAll(user.getCampaignUserRoleMap()); // shallow copy ok because once a user is created it is read-only in practice
 		_loggedIn = user.isLoggedIn();
 	}
 	
@@ -48,22 +48,22 @@ public class UserImpl implements User {
     	_id = id;
     }
     
-	public Map<String, List<Integer>> getCampaignRoles() {
-		return _campaignRoles;
+	public Map<String, List<UserRole>> getCampaignUserRoleMap() {
+		return _campaignUserRoleMap;
 	}
 	
-	public void addCampaignRole(String campaignUrn, Integer roleId) {
-		if(null == _campaignRoles) {
-			_campaignRoles = new HashMap<String, List<Integer>>();
+	public void addCampaignRole(String campaignUrn, UserRole userRole) {
+		if(null == _campaignUserRoleMap) {
+			_campaignUserRoleMap = new HashMap<String, List<UserRole>>();
 		}
 		
-		List<Integer> roles = _campaignRoles.get(campaignUrn);
+		List<UserRole> roles = _campaignUserRoleMap.get(campaignUrn);
 		if(null == roles) {
-			roles = new ArrayList<Integer>();
-			_campaignRoles.put(campaignUrn, roles);
+			roles = new ArrayList<UserRole>();
+			_campaignUserRoleMap.put(campaignUrn, roles);
 		}
 		
-		roles.add(roleId);
+		roles.add(userRole);
 	}
 	
 	public String getUserName() {
@@ -89,28 +89,15 @@ public class UserImpl implements User {
 	public String getPassword() {
 		return _password;
 	}
-		
-//	public boolean isResearcherOrAdmin(String campaignName) {
-//		boolean isResearcherOrAdmin = false;
-//		List<Integer> list = _campaignRoles.get(campaignName);
-//		
-//		for(Integer i : list) {
-//			// 1 is admin, 3 is researcher (hard coded for now)
-//			if(i == 1 || i == 3) {
-//				isResearcherOrAdmin = true;
-//				break;
-//			}
-//		}
-//		
-//		return isResearcherOrAdmin;
-//	}
 
 	@Override
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
-		result = prime * result
-				+ ((_campaignRoles == null) ? 0 : _campaignRoles.hashCode());
+		result = prime
+				* result
+				+ ((_campaignUserRoleMap == null) ? 0 : _campaignUserRoleMap
+						.hashCode());
 		result = prime * result + _id;
 		result = prime * result + (_loggedIn ? 1231 : 1237);
 		result = prime * result
@@ -129,10 +116,10 @@ public class UserImpl implements User {
 		if (getClass() != obj.getClass())
 			return false;
 		UserImpl other = (UserImpl) obj;
-		if (_campaignRoles == null) {
-			if (other._campaignRoles != null)
+		if (_campaignUserRoleMap == null) {
+			if (other._campaignUserRoleMap != null)
 				return false;
-		} else if (!_campaignRoles.equals(other._campaignRoles))
+		} else if (!_campaignUserRoleMap.equals(other._campaignUserRoleMap))
 			return false;
 		if (_id != other._id)
 			return false;
@@ -153,8 +140,8 @@ public class UserImpl implements User {
 
 	@Override
 	public String toString() {
-		return "UserImpl [_campaignRoles=" + _campaignRoles + ", _id=" + _id
-				+ ", _loggedIn=" + _loggedIn + ", _password=" + "omitted"
-				+ ", _userName=" + _userName + "]";
-	}
+		return "UserImpl [_id=" + _id + ", _userName=" + _userName
+				+ ", _campaignUserRoleMap=" + _campaignUserRoleMap
+				+ ", _loggedIn=" + _loggedIn + ", _password=" + _password + "]";
+	}	
 }

@@ -10,6 +10,7 @@ import java.util.Map;
  */
 public class SurveyUploadAwRequest extends UploadAwRequest {
 	private Map<String, String> _postParameters;
+	private String _campaignRunningState;
 
 	/**
 	 * Default no-arg constructor.	
@@ -24,6 +25,14 @@ public class SurveyUploadAwRequest extends UploadAwRequest {
 
 	public void setPostParameters(Map<String, String> postParameters) {
 		_postParameters = postParameters;
+	}
+	
+	public String getCampaignRunningState() {
+		return _campaignRunningState;
+	}
+	
+	public void setCampaignRunningState(String state) {
+		_campaignRunningState = state;
 	}
 }
 

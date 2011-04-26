@@ -10,7 +10,6 @@ import org.apache.log4j.Logger;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 
-import edu.ucla.cens.awserver.domain.UserRole;
 import edu.ucla.cens.awserver.domain.UserRoleImpl;
 
 /**
@@ -39,10 +38,7 @@ public class UserRoleDao implements ParameterLessDao {
 			
 			return _jdbcTemplate.query(_sql, new RowMapper() {
 				public Object mapRow(ResultSet rs, int rowNum) throws SQLException {
-					UserRole userRole = new UserRoleImpl();
-					userRole.setId(rs.getInt(1));
-					userRole.setRole(rs.getString(2));
-					return userRole;
+					return new UserRoleImpl(rs.getInt(1), rs.getString(2));
 				}
 			});
 			

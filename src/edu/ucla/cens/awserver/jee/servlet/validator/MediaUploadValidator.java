@@ -60,25 +60,9 @@ public class MediaUploadValidator extends AbstractHttpServletRequestValidator {
 		
 			uploadedItems = upload.parseRequest(request);
 		
-		} catch(FileUploadException fue) { // image too large; the parseRequest will likely fail fast
+		} catch(FileUploadException fue) { // image too large; the parseRequest will fail fast
 			
-			// Attach the user to the error message in order to find out who is uploading outsize images
-			StringBuilder builder = new StringBuilder();
-			if(null != uploadedItems) {
-				for(int i = 0; i < uploadedItems.size(); i++) {
-					FileItem fi = (FileItem) uploadedItems.get(i);
-					if("u".equals(fi.getFieldName())) {
-						builder.append(fi.toString());
-					}
-				}
-			} else {
-				_logger.warn("unable to retrieve items from request");
-			}
-			if(0 == builder.length()) { // no user in the request
-				builder.append("no user in request");
-			}
-			
-			_logger.error("caught FileUploadException for user: " + builder.toString(), fue);
+			_logger.warn("unable to retrieve items from request");
 			throw new IllegalStateException(fue);
 		}
 		

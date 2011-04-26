@@ -1,19 +1,25 @@
 package edu.ucla.cens.awserver.domain;
 
+/**
+ * @author joshua selsky
+ */
 public class UserRoleCampaignResult {
-	private String campaignUrn;
-	private int userRoleId;
+	private String _campaignUrn;
+	private UserRole _userRole;
 	
 	public String getCampaignUrn() {
-		return campaignUrn;
+		return _campaignUrn;
 	}
+
 	public void setCampaignUrn(String campaignUrn) {
-		this.campaignUrn = campaignUrn;
+		_campaignUrn = campaignUrn;
 	}
-	public int getUserRoleId() {
-		return userRoleId;
+	
+	public UserRole getUserRole() {
+		return _userRole;
 	}
-	public void setUserRoleId(int userRoleId) {
-		this.userRoleId = userRoleId;
+	
+	public void setUserRole(UserRole userRole) {
+		_userRole = userRole;
 	}
 }
