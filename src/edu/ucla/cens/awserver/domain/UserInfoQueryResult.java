@@ -27,7 +27,7 @@ public class UserInfoQueryResult {
 	private class UserInfo {
 		public String _username;
 		public JSONObject _permissions;
-		public JSONArray _classes;
+		public JSONObject _classes;
 		public JSONArray _roles;
 	};
 	List<UserInfo> _users;
@@ -43,7 +43,7 @@ public class UserInfoQueryResult {
 	 * Adds all the information for the new user to the local store of users
 	 * and information.
 	 */
-	public void addUser(String username, JSONObject permissions, JSONArray classes, JSONArray roles) {
+	public void addUser(String username, JSONObject permissions, JSONObject classes, JSONArray roles) {
 		UserInfo newUser = new UserInfo();
 		newUser._username = username;
 		newUser._permissions = permissions;

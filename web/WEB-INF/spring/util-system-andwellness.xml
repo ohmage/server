@@ -50,4 +50,13 @@
     <value>shared</value>
     <value>private</value>
   </util:list>
+  
+  <!-- this is a temporary hack to allow validation of user roles that are sent as post query parameters -->
+  <util:list id="userRoles">
+    <value>author</value>
+    <value>analyst</value>
+    <value>participant</value>
+    <value>supervisor</value>
+  </util:list>
+  
 </beans>

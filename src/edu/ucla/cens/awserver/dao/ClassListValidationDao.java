@@ -66,7 +66,9 @@ public class ClassListValidationDao extends AbstractDao {
 				throw new DataAccessException(dae);
 			}
 			if(numClasses == 0) {
+				_logger.info("Class does not exist: " + classes[i]);
 				awRequest.setFailedRequest(true);
+				return;
 			}
 			
 			int userBelongs;
@@ -78,7 +80,9 @@ public class ClassListValidationDao extends AbstractDao {
 				throw new DataAccessException(dae);
 			}
 			if(userBelongs == 0) {
+				_logger.error("User does not belong to this class: " + classes[i]);
 				awRequest.setFailedRequest(true);
+				return;
 			}
 		}
 	}

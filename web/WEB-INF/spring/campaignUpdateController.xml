@@ -37,7 +37,6 @@
         <ref bean="tokenBasedAuthenticationService" />
         <ref bean="campaignExistsService" />
         <ref bean="classListValidationService" />
-        <ref bean="campaignContentsValidationService" />
         <ref bean="campaignUpdateService" />
       </list>
     </constructor-arg>
