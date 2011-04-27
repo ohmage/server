@@ -318,6 +318,10 @@
           <key><value>photo</value></key>
           <bean class="edu.ucla.cens.awserver.validator.prompt.UUIDPromptValidator" />
         </entry>
+        <entry>
+          <key><value>remote_activity</value></key>
+          <bean class="edu.ucla.cens.awserver.validator.prompt.RemoteActivityPromptValidator" />
+        </entry>
       </map>
     </constructor-arg>
   </bean>
