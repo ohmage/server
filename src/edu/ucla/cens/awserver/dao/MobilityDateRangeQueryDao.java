@@ -49,7 +49,7 @@ public class MobilityDateRangeQueryDao extends AbstractDao {
 			params.add(req.getStartDate());
 			params.add(req.getEndDate());
 			
-			List results = getJdbcTemplate().query(_modeOnlySql, params.toArray(), 
+			List<?> results = getJdbcTemplate().query(_modeOnlySql, params.toArray(), 
 				new RowMapper() {
 					public Object mapRow(ResultSet rs, int rowNum) throws SQLException {
 						MobilityQueryResult result = new MobilityQueryResult();

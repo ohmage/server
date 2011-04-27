@@ -51,7 +51,7 @@ public class MobilityQueryDao extends AbstractDao {
 			params.add(req.getUserNameRequestParam());
 			params.add(req.getStartDate());
 			
-			List results = getJdbcTemplate().query(_modeOnlySql, params.toArray(), 
+			List<?> results = getJdbcTemplate().query(_modeOnlySql, params.toArray(), 
 				new RowMapper() {
 					public Object mapRow(ResultSet rs, int rowNum) throws SQLException {
 						MobilityQueryResult result = new MobilityQueryResult();
