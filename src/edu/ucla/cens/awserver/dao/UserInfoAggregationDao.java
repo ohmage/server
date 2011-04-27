@@ -2,7 +2,6 @@ package edu.ucla.cens.awserver.dao;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.ListIterator;
 
@@ -13,6 +12,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.springframework.jdbc.core.RowMapper;
+import org.springframework.jdbc.core.SingleColumnRowMapper;
 
 import edu.ucla.cens.awserver.domain.UserInfoQueryResult;
 import edu.ucla.cens.awserver.request.AwRequest;
@@ -101,13 +101,16 @@ public class UserInfoAggregationDao extends AbstractDao {
 		}
 		UserInfoQueryAwRequest request = (UserInfoQueryAwRequest) awRequest;
 		
-		List<LinkedHashMap<String, String>> privilegedClasses;
+		List<?> privilegedClasses;
 		try {
 			// Get all the classes for which the logged in user is a supervisor.
-			privilegedClasses = (List<LinkedHashMap<String, String>>) getJdbcTemplate().queryForList(SQL_GET_PRIVILEGED_CLASSES, new Object[] { request.getUser().getUserName() });
+			privilegedClasses = getJdbcTemplate().query(SQL_GET_PRIVILEGED_CLASSES, 
+														new Object[] { request.getUser().getUserName() },
+														new SingleColumnRowMapper());
 		}
 		catch(org.springframework.dao.DataAccessException dae) {
-			throw new DataAccessException("Problem calling SQL '" + SQL_GET_PRIVILEGED_CLASSES + "' with parameter: " + request.getUser().getUserName(), dae);
+			_logger.error("Error while calling SQL '" + SQL_GET_PRIVILEGED_CLASSES + "' with parameter: " + request.getUser().getUserName(), dae);
+			throw new DataAccessException(dae);
 		}
 				
 		String classes = null;
@@ -115,7 +118,7 @@ public class UserInfoAggregationDao extends AbstractDao {
 			classes = "''";
 		}
 		else {
-			ListIterator<LinkedHashMap<String, String>> privilegedClassesIter = privilegedClasses.listIterator();
+			ListIterator<?> privilegedClassesIter = privilegedClasses.listIterator();
 			while(privilegedClassesIter.hasNext()) {
 				if(classes == null) {
 					classes = "";
@@ -123,28 +126,31 @@ public class UserInfoAggregationDao extends AbstractDao {
 				else {
 					classes += ", ";
 				}
-				classes += "'" + privilegedClassesIter.next().get("name") + "'";
+				classes += "'" + ((String) privilegedClassesIter.next()) + "'";
 			}
 		}
 		classes += ")";
 		
 		// Check that all the users he is requesting information about are in one of those classes.
 		String sqlGetAllUsersForClasses = SQL_GET_ALL_USERS_FOR_CLASS_TEMPLATE + classes;
-		List<LinkedHashMap<String, String>> applicableUsers;
+		List<?> applicableUsers;
 		try {
-			applicableUsers = (List<LinkedHashMap<String, String>>) getJdbcTemplate().queryForList(sqlGetAllUsersForClasses);
+			applicableUsers = getJdbcTemplate().query(sqlGetAllUsersForClasses, new SingleColumnRowMapper());
 		}
 		catch(org.springframework.dao.DataAccessException dae) {
-			throw new DataAccessException("Problem calling SQL '" + sqlGetAllUsersForClasses + "'", dae);
+			_logger.error("Error while calling SQL '" + sqlGetAllUsersForClasses + "'", dae);
+			throw new DataAccessException(dae);
 		}
-				
+		
 		String[] usersBeingQueried = request.getUsernames();
 		for(int i = 0; i < usersBeingQueried.length; i++) {
 			if(! usersBeingQueried[i].equals(request.getUser().getUserName())) {
 				boolean userFound = false;
 				
-				for(int j = 0; j < applicableUsers.size(); j++) {
-					if(applicableUsers.get(j).get("login_id").equals(usersBeingQueried[i])) {
+				ListIterator<?> applicableUsersIter = applicableUsers.listIterator();
+				while(applicableUsersIter.hasNext()) {
+					String applicableUser = (String) applicableUsersIter.next();
+					if(applicableUser.equals(usersBeingQueried[i])) {
 						userFound = true;
 						break;
 					}
@@ -167,10 +173,12 @@ public class UserInfoAggregationDao extends AbstractDao {
 				permissionsJson.put("cancreate", canCreate == 1);	
 			}
 			catch(org.springframework.dao.DataAccessException dae) {
-				throw new DataAccessException("Problem calling SQL '" + SQL_GET_USER_CREATION_PRIVILEGE + "' with parameter: " + usersBeingQueried[i], dae);
+				_logger.error("Error while calling SQL '" + SQL_GET_USER_CREATION_PRIVILEGE + "' with parameter: " + usersBeingQueried[i], dae);
+				throw new DataAccessException(dae);
 			}
 			catch(JSONException e) {
-				throw new DataAccessException("Problem creating 'permissions' JSONObject.", e);
+				_logger.error("Problem creating 'permissions' JSONObject.", e);
+				throw new DataAccessException(e);
 			}
 			
 			// Get classes.
@@ -192,24 +200,28 @@ public class UserInfoAggregationDao extends AbstractDao {
 						classesJson.put(cau._urn, cau._name);
 					}
 					catch(JSONException e) {
-						throw new DataAccessException("Problem creating 'classes' JSONObject.", e);
+						_logger.error("Problem creating 'classes' JSONObject.", e);
+						throw new DataAccessException(e);
 					}
 				}
 			}
 			catch(org.springframework.dao.DataAccessException dae) {
-				throw new DataAccessException("Problem calling SQL '" + SQL_GET_USER_CLASSES + "' with parameter: " + usersBeingQueried[i], dae);
+				_logger.error("Error while calling SQL '" + SQL_GET_USER_CLASSES + "' with parameter: " + usersBeingQueried[i], dae);
+				throw new DataAccessException(dae);
 			}
 			
 			// Get roles.
 			JSONArray rolesJson = new JSONArray();
 			try {
-				List<LinkedHashMap<String, String>> rolesList = (List<LinkedHashMap<String, String>>) getJdbcTemplate().queryForList(SQL_GET_USER_ROLES, new Object[] { usersBeingQueried[i] });
-				for(int j = 0; j < rolesList.size(); j++) {
-					rolesJson.put(rolesList.get(j).get("roles"));
+				List<?> rolesList = getJdbcTemplate().query(SQL_GET_USER_ROLES, new Object[] { usersBeingQueried[i] }, new SingleColumnRowMapper());
+				ListIterator<?> rolesListIter = rolesList.listIterator();
+				while(rolesListIter.hasNext()) {
+					rolesJson.put((String) rolesListIter.next()); 
 				}
 			}
 			catch(org.springframework.dao.DataAccessException dae) {
-				throw new DataAccessException("Problem calling SQL '" + SQL_GET_USER_ROLES + "' with parameter: " + usersBeingQueried[i], dae);
+				_logger.error("Error while calling SQL '" + SQL_GET_USER_ROLES + "' with parameter: " + usersBeingQueried[i], dae);
+				throw new DataAccessException(dae);
 			}
 			
 			// Add user.
