@@ -32,8 +32,9 @@ public class NewDataPointQueryDao extends AbstractDao {
 	                   + " WHERE pr.survey_response_id = sr.id"
                        + " AND c.urn = ?"
                        + " AND c.id = sr.campaign_id"
-                       + " AND sr.msg_timestamp BETWEEN ? AND ?"
                        + " AND sr.user_id = u.id"; 
+	
+	private String _andDatesBetween = " AND sr.msg_timestamp BETWEEN ? AND ?";
 	
 	private String _andUsers = " AND u.login_id IN "; 
 	
@@ -54,19 +55,25 @@ public class NewDataPointQueryDao extends AbstractDao {
 	
 	@Override
 	public void execute(AwRequest awRequest) {
-		_logger.info("running \"new\" data point query");
+		_logger.info("about to construct and run a \"new\" data point query");
 		NewDataPointQueryAwRequest req = (NewDataPointQueryAwRequest) awRequest;
 		String sql = generateSql(req);
 		
 		final Configuration configuration = req.getConfiguration();
 		final List<Object> paramObjects = new ArrayList<Object>();
 		paramObjects.add(req.getCampaignUrn());
-		paramObjects.add(req.getStartDate());
-		paramObjects.add(req.getEndDate());
 		
 		if(! "urn:ohmage:special:all".equals(req.getUserListString())) {
 			paramObjects.addAll(req.getUserList());
-		} 
+		}
+		
+		if(null != req.getStartDate()) {
+			paramObjects.add(req.getStartDate());
+		}
+		
+		if(null != req.getEndDate()) {
+			paramObjects.add(req.getEndDate());
+		}
 		
 		if(null != req.getPromptIdList()) {
 			if(! "urn:ohmage:special:all".equals(req.getPromptIdListString())) {
@@ -160,6 +167,10 @@ public class NewDataPointQueryDao extends AbstractDao {
 				builder.append(_andSurveyIds);
 				builder.append(generateParams(req.getSurveyIdList().size()));
 			}
+		}
+		
+		if(null != req.getStartDate() && null != req.getEndDate()) {
+			builder.append(_andDatesBetween);
 		}
 		
 		builder.append(_orderBy);

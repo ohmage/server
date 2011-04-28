@@ -22,6 +22,7 @@ public class DateValidator extends AbstractAnnotatingValidator {
 	private Method _dateAccessorMethod;
 	private String _dateFormat;
 	private String _errorMessage;
+	private boolean _required;
 	
 	/**
 	 * @throws IllegalArgumentException if the provided key is null, empty, or all whitespace
@@ -30,7 +31,7 @@ public class DateValidator extends AbstractAnnotatingValidator {
 	 * @throws IllegalArgumentException if the key does not represent an AwRequest attribute
 	 * @see ReflectionUtils#getAccessorMethod(Class, String)
 	 */
-	public DateValidator(AwRequestAnnotator annotator, String key, String format) {
+	public DateValidator(AwRequestAnnotator annotator, String key, String format, boolean required) {
 		super(annotator);
 		if(StringUtils.isEmptyOrWhitespaceOnly(key)) {
 			throw new IllegalArgumentException("a key is required");
@@ -41,10 +42,12 @@ public class DateValidator extends AbstractAnnotatingValidator {
 		
 		_dateAccessorMethod = ReflectionUtils.getAccessorMethod(AwRequest.class, key);
 		
-		// Create a new SimpleDateFormat to just throw it away
+		// Create a new SimpleDateFormat to sanity check the format (pattern) and then just throw it away
 		// The reason this is done is because SimpleDateFormat is not synchronized 
 		new SimpleDateFormat(format);
 		_dateFormat = format;
+		
+		_required = required;
 	}
 	
 	/**
@@ -62,6 +65,10 @@ public class DateValidator extends AbstractAnnotatingValidator {
 		try {
 			
 			stringDate = (String) _dateAccessorMethod.invoke(awRequest);
+			
+			if(null == stringDate && ! _required) {
+				return true;
+			}
 			
 		} catch(InvocationTargetException ite) {
 			

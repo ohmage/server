@@ -125,6 +125,106 @@
     <property name="errorMessage">
       <value>invalid end date in request</value>
     </property>
-  </bean>   
+  </bean>
+  
+    <bean id="requiredStartDateValidator" class="edu.ucla.cens.awserver.validator.DateValidator">
+    <constructor-arg index="0">
+      <bean class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
+        <constructor-arg index="0">
+          <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
+            <property name="code" value="0700" />
+            <property name="text" value="invalid start date" />
+          </bean>
+        </constructor-arg>
+      </bean>
+    </constructor-arg>
+    <constructor-arg index="1">
+      <value>startDate</value>
+    </constructor-arg>
+    <constructor-arg index="2">
+      <value>yyyy-MM-dd</value>
+    </constructor-arg>
+    <constructor-arg index="3">
+      <value>true</value>
+    </constructor-arg>
+    <property name="errorMessage">
+      <value>invalid start date in request</value>
+    </property>
+  </bean>	
+
+  <bean id="requiredEndDateValidator" class="edu.ucla.cens.awserver.validator.DateValidator">
+    <constructor-arg index="0">
+      <bean class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
+        <constructor-arg index="0">
+          <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
+            <property name="code" value="0700" />
+            <property name="text" value="invalid end date" />
+          </bean>
+        </constructor-arg>
+      </bean>
+    </constructor-arg>
+    <constructor-arg index="1">
+      <value>endDate</value>
+    </constructor-arg>
+    <constructor-arg index="2">
+      <value>yyyy-MM-dd</value>
+    </constructor-arg>
+    <constructor-arg index="3">
+      <value>true</value>
+    </constructor-arg>
+    <property name="errorMessage">
+      <value>invalid end date in request</value>
+    </property>
+  </bean>
+  
+    <bean id="optionalStartDateValidator" class="edu.ucla.cens.awserver.validator.DateValidator">
+    <constructor-arg index="0">
+      <bean class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
+        <constructor-arg index="0">
+          <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
+            <property name="code" value="0700" />
+            <property name="text" value="invalid start date" />
+          </bean>
+        </constructor-arg>
+      </bean>
+    </constructor-arg>
+    <constructor-arg index="1">
+      <value>startDate</value>
+    </constructor-arg>
+    <constructor-arg index="2">
+      <value>yyyy-MM-dd</value>
+    </constructor-arg>
+    <constructor-arg index="3">
+      <value>false</value>
+    </constructor-arg>
+    <property name="errorMessage">
+      <value>invalid start date in request</value>
+    </property>
+  </bean>	
+
+  <bean id="optionalEndDateValidator" class="edu.ucla.cens.awserver.validator.DateValidator">
+    <constructor-arg index="0">
+      <bean class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
+        <constructor-arg index="0">
+          <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
+            <property name="code" value="0700" />
+            <property name="text" value="invalid end date" />
+          </bean>
+        </constructor-arg>
+      </bean>
+    </constructor-arg>
+    <constructor-arg index="1">
+      <value>endDate</value>
+    </constructor-arg>
+    <constructor-arg index="2">
+      <value>yyyy-MM-dd</value>
+    </constructor-arg>
+    <constructor-arg index="3">
+      <value>false</value>
+    </constructor-arg>
+    <property name="errorMessage">
+      <value>invalid end date in request</value>
+    </property>
+  </bean>
   
 </beans>

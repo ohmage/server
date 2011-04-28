@@ -56,6 +56,11 @@
         <!-- run the query -->
         <ref bean="newDataPointQueryService" />
         
+        <!-- filter the output based on the running_state and privacy_state of the campaign, the privacy_state of the response, and
+         the role of the currently logged-in user -->
+         
+         
+        
       </list>
     </constructor-arg>
     <constructor-arg index="1">
@@ -63,12 +68,12 @@
     </constructor-arg>
     <property name="validators">
       <list>
-        <ref bean="startDateValidator" />
-        <ref bean="endDateValidator" />
         <ref bean="userTokenValidator" />
+        <ref bean="optionalStartDateValidator" />
+        <ref bean="optionalEndDateValidator" />
+        <ref bean="startAndEndDateValidator" />
         <ref bean="userListValidator" />
         <ref bean="promptIdListSurveyIdListValidator" />
-        <ref bean="dateRangeValidator" />
         <ref bean="columnListValidator" />
         <ref bean="outputFormatValidator" />
       </list>      
@@ -222,7 +227,20 @@
       </bean>
     </constructor-arg>
   </bean>
-
+  
+  <bean id="startAndEndDateValidator" class="edu.ucla.cens.awserver.validator.SurveyResponseQueryStartAndEndDateValidator">
+    <constructor-arg index="0">
+      <bean class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
+        <constructor-arg index="0">
+          <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
+            <property name="code" value="0711" />
+            <property name="text" value="both start date and end date must be present or they must both be not present" />
+          </bean>
+        </constructor-arg>
+      </bean>
+    </constructor-arg>
+  </bean>
+  
   <bean id="findCampaignConfigurationService" class="edu.ucla.cens.awserver.service.FindCampaignConfigurationService">
    <constructor-arg index="0">
       <bean class="edu.ucla.cens.awserver.dao.FindCampaignConfigurationDao">

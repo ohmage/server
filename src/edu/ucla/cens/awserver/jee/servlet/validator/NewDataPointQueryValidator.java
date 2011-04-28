@@ -9,7 +9,6 @@ import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 
 import org.apache.log4j.Logger;
-import org.json.JSONObject;
 
 /**
  * Validator for inbound data to the "new" data point API.
@@ -38,12 +37,16 @@ public class NewDataPointQueryValidator extends AbstractHttpServletRequestValida
 	public boolean validate(HttpServletRequest httpServletRequest) {
 		Map<String,String[]> parameterMap = getParameterMap(httpServletRequest); 
 		
+		int totalNumberOfParameters = _parameterList.size();
+		int numberOfQueryParameters = parameterMap.size();
+		
 		// Check for missing or extra parameters
-		if((parameterMap.size() != (_parameterList.size() - 1))       // either prompt_ids or survey_ids is required, but not both,
-		    && (parameterMap.size() != (_parameterList.size() - 2))   // and pretty_print and suppress-metadata are optional
-			&& (parameterMap.size() != (_parameterList.size() - 3))) {
+		if((numberOfQueryParameters != (totalNumberOfParameters - 1))       // either prompt_ids or survey_ids is required, but not both,
+		    && (numberOfQueryParameters != (totalNumberOfParameters - 2))   // and pretty_print, suppress-metadata, start_date, and end_date
+			&& (numberOfQueryParameters != (totalNumberOfParameters - 3))   // are optional
+			&& (numberOfQueryParameters != (totalNumberOfParameters - 5))) {
 			
-			_logger.warn("an incorrect number of parameters was found for a \"new\" data point query: " + parameterMap.size());
+			_logger.warn("an incorrect number of parameters was found for /app/survey_response/read: " + numberOfQueryParameters);
 			return false;
 		}
 		
