@@ -68,25 +68,16 @@ CREATE TABLE user (
 -- ---------------------------------------------------------------------
 CREATE TABLE user_personal (
   id int unsigned NOT NULL auto_increment,
+  user_id int unsigned NOT NULL,
+  first_name varchar(255) NOT NULL,
+  last_name varchar(255) NOT NULL,
+  organization varchar(255) NOT NULL,
+  personal_id varchar(255) NOT NULL,  -- this is e.g., the Mobilize student's student id
   email_address varchar(320),
   json_data text,
   PRIMARY KEY (id)
-  -- we will have to check the uniqueness of new email addresses within the application itself because 
-  -- the length of the UTF-8 encoded email address exceeds the maximum size for indexing in MySQL.
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-
-
--- ---------------------------------------------------------------------
--- Link user to user_personal. This is a one-to-one mapping managed by
--- the application i.e., a user cannot have more than one user_personal
--- entry.
--- ---------------------------------------------------------------------
-CREATE TABLE user_user_personal (
-	user_id int unsigned NOT NULL,
-	user_personal_id int unsigned NOT NULL,
-	PRIMARY KEY (user_id, user_personal_id),
-	CONSTRAINT FOREIGN KEY (user_id) REFERENCES user (id) ON DELETE CASCADE ON UPDATE CASCADE,
-	CONSTRAINT FOREIGN KEY (user_personal_id) REFERENCES user_personal (id) ON DELETE CASCADE ON UPDATE CASCADE
+  UNIQUE(first_name, last_name, organization, personal_id), 
+  CONSTRAINT FOREIGN KEY (user_id) REFERENCES user (id) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- --------------------------------------------------------------------
