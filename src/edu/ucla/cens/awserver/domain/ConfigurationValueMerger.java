@@ -3,6 +3,7 @@ package edu.ucla.cens.awserver.domain;
 import org.apache.log4j.Logger;
 import org.json.JSONArray;
 import org.json.JSONException;
+import org.json.JSONObject;
 
 import edu.ucla.cens.awserver.service.DataPointQueryService;
 import edu.ucla.cens.awserver.util.JsonUtils;
@@ -63,7 +64,11 @@ public class ConfigurationValueMerger {
 				
 				result.setChoiceGlossary(configuration.getChoiceGlossaryFor(result.getSurveyId(), result.getPromptId()));
 				setDisplayValueFromMultiChoice(result, configuration, false);
-									
+				
+			} else if (PromptTypeUtils.isRemoteActivityType(result.getPromptType())) {
+				
+				setDisplayValueFromRemoteActivity(result, configuration);
+				
 			} else {
 				
 				result.setDisplayValue(PromptTypeUtils.isNumberPromptType(result.getPromptType()) ? convertToNumber(result.getResponse()) : result.getResponse());
@@ -140,6 +145,56 @@ public class ConfigurationValueMerger {
 				result.setDisplayValue(new JSONArray(String.valueOf(result.getResponse())));
 			} catch (JSONException je) {
 				_logger.warn("cannot convert multi-choice response value to JSON Array: " + result.getResponse());
+			}
+		}
+	}
+	
+	private void setDisplayValueFromRemoteActivity(NewDataPointQueryResult result, Configuration config) {
+		JSONArray responseArray = JsonUtils.getJsonArrayFromString(String.valueOf(result.getResponse()));
+		
+		if(responseArray != null) {
+			JSONArray valueArray = new JSONArray();
+			
+			for(int i = 0; i < valueArray.length(); i++) {
+				JSONObject currRun;
+				try {
+					currRun = valueArray.getJSONObject(i);
+				}
+				catch(JSONException e) {
+					_logger.warn("Could not convert an individual run of a RemoteActivity response into JSONObjects.", e);
+					continue;
+				}
+				
+				double runResult;
+				try {
+					runResult = (Double) currRun.get("score");
+				}
+				catch(JSONException e) {
+					_logger.warn("Missing necessary key in RemoteActivity run.", e);
+					continue;
+				}
+				catch(NullPointerException e) {
+					_logger.warn("Missing necessary key in RemoteActivity run.", e);
+					continue;
+				}
+				
+				try {
+					valueArray.put(runResult);
+				}
+				catch(JSONException e) {
+					_logger.warn("Error constructing CSV response in RemoteActivity response merge.");
+					continue;
+				}
+			}
+			
+			result.setDisplayValue(valueArray);
+		}
+		else {
+			try {
+				result.setDisplayValue(new JSONArray(String.valueOf(result.getResponse())));
+			}
+			catch(JSONException e) {
+				_logger.warn("cannot convert RemoteActivity response value to JSONArray: " + result.getResponse(), e);
 			}
 		}
 	}

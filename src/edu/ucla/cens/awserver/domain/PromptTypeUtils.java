@@ -15,6 +15,10 @@ public class PromptTypeUtils {
 		return "multi_choice".equals(type);
 	}
 	
+	public static boolean isRemoteActivityType(String type) {
+		return "remote_activity".equals(type);
+	}
+	
 	public static boolean isJsonArray(String type) {
 		return "multi_choice".equals(type);
 	}
