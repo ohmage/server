@@ -8,7 +8,7 @@ import edu.ucla.cens.awserver.domain.CampaignUrnLoginIdUserRole;
 /**
  * @author selsky
  */
-public class RetrieveCampaignAwRequest extends UploadAwRequest {
+public class CampaignReadAwRequest extends UploadAwRequest {
 	
 	// Input
 	private String _outputFormat;

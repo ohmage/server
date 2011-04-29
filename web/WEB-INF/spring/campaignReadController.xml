@@ -8,16 +8,18 @@
   
   <!-- Servlet-to-AW hooks -->
   <!-- create request object -->
-  <bean id="retrieveCampaignAwRequestCreator" class="edu.ucla.cens.awserver.jee.servlet.glue.RetrieveCampaignAwRequestCreator" />
+  <bean id="campaignReadAwRequestCreator" class="edu.ucla.cens.awserver.jee.servlet.glue.CampaignReadAwRequestCreator" />
+  
   <!-- validate input data (sanity check) -->
-  <bean id="retrieveCampaignHttpServletRequestValidator" class="edu.ucla.cens.awserver.jee.servlet.validator.RetrieveCampaignValidator" />
+  <bean id="campaignReadHttpServletRequestValidator" class="edu.ucla.cens.awserver.jee.servlet.validator.CampaignReadValidator" />
+  
   <!-- write output --> 
-  <bean id="retrieveCampaignResponseWriter" class="edu.ucla.cens.awserver.jee.servlet.writer.RetrieveCampaignResponseWriter">
+  <bean id="campaignReadResponseWriter" class="edu.ucla.cens.awserver.jee.servlet.writer.CampaignReadResponseWriter">
     <constructor-arg index="0"><ref bean="severeErrorResponse" /></constructor-arg>
   </bean>
     
   <!-- Controller -->
-  <bean id="retrieveCampaignController" class="edu.ucla.cens.awserver.controller.ControllerImpl">
+  <bean id="campaignReadController" class="edu.ucla.cens.awserver.controller.ControllerImpl">
     <constructor-arg index="0">
       <list>
         <ref bean="tokenBasedAuthenticationService" />

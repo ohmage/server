@@ -13,7 +13,7 @@ import org.springframework.jdbc.core.RowMapper;
 import edu.ucla.cens.awserver.domain.CampaignQueryResult;
 import edu.ucla.cens.awserver.domain.CampaignUrnLoginIdUserRole;
 import edu.ucla.cens.awserver.request.AwRequest;
-import edu.ucla.cens.awserver.request.RetrieveCampaignAwRequest;
+import edu.ucla.cens.awserver.request.CampaignReadAwRequest;
 import edu.ucla.cens.awserver.util.StringUtils;
 
 /**
@@ -41,7 +41,7 @@ public class FindAllUserRolesForCampaignUrnsDao extends AbstractDao {
 	@SuppressWarnings("unchecked")
 	public void execute(AwRequest awRequest) {
 		_logger.info("looking up all users and their roles for campaign URNs");
-		RetrieveCampaignAwRequest req = (RetrieveCampaignAwRequest) awRequest; // ugly cast
+		CampaignReadAwRequest req = (CampaignReadAwRequest) awRequest; // ugly cast
 		StringBuilder builder = new StringBuilder();
 		
 		if("long".equals(req.getOutputFormat())) { // only need the roles if long output is selected

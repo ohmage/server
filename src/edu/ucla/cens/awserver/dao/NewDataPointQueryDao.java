@@ -27,7 +27,7 @@ public class NewDataPointQueryDao extends AbstractDao {
 	// need a mapping from URN to column name?
 	private String _sql = "SELECT pr.prompt_id, pr.prompt_type, pr.response, pr.repeatable_set_iteration, pr.repeatable_set_id,"
 			           + " sr.msg_timestamp, sr.phone_timezone, sr.location_status, sr.location, sr.survey_id, u.login_id," +
-			           		" sr.client, sr.launch_context"
+			           		" sr.client, sr.launch_context, sr.id"
 	                   + " FROM prompt_response pr, survey_response sr, user u, campaign c"
 	                   + " WHERE pr.survey_response_id = sr.id"
                        + " AND c.urn = ?"
@@ -121,6 +121,7 @@ public class NewDataPointQueryDao extends AbstractDao {
 						result.setLoginId(rs.getString(11));
 						result.setClient(rs.getString(12));
 						result.setLaunchContext(rs.getString(13));
+						result.setSurveyPrimaryKeyId(rs.getInt(14));
 						
 						_configurationValueMerger.merge(result, configuration);
 						

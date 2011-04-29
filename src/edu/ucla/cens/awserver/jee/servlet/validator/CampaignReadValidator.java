@@ -12,11 +12,11 @@ import org.apache.log4j.Logger;
 /**
  * @author selsky
  */
-public class RetrieveCampaignValidator extends AbstractHttpServletRequestValidator {
-	private static Logger _logger = Logger.getLogger(RetrieveCampaignValidator.class);
+public class CampaignReadValidator extends AbstractHttpServletRequestValidator {
+	private static Logger _logger = Logger.getLogger(CampaignReadValidator.class);
 	private List<String> _parameterList;
 	
-	public RetrieveCampaignValidator() {
+	public CampaignReadValidator() {
 		_parameterList = new ArrayList<String>(Arrays.asList(new String[]{"auth_token",
 		 		                                                          "client",
 		 		                                                          "output_format", 

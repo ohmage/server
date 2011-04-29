@@ -8,14 +8,14 @@ import javax.servlet.http.HttpServletRequest;
 import org.apache.log4j.NDC;
 
 import edu.ucla.cens.awserver.request.AwRequest;
-import edu.ucla.cens.awserver.request.RetrieveCampaignAwRequest;
+import edu.ucla.cens.awserver.request.CampaignReadAwRequest;
 
 /**
  * @author selsky
  */
-public class RetrieveCampaignAwRequestCreator implements AwRequestCreator {
+public class CampaignReadAwRequestCreator implements AwRequestCreator {
 
-	public RetrieveCampaignAwRequestCreator() {
+	public CampaignReadAwRequestCreator() {
 		
 	}
 	
@@ -37,7 +37,7 @@ public class RetrieveCampaignAwRequestCreator implements AwRequestCreator {
 		NDC.push("client=" + client); // push the client string into the Log4J NDC for the currently executing thread - this means that it
 		                              // will be in every log message for the thread
 		
-		RetrieveCampaignAwRequest awRequest = new RetrieveCampaignAwRequest();
+		CampaignReadAwRequest awRequest = new CampaignReadAwRequest();
 		awRequest.setClient(client);
 		awRequest.setUserToken(userToken);
 		awRequest.setOutputFormat(outputFormat);

@@ -22,15 +22,15 @@ import edu.ucla.cens.awserver.domain.CampaignUrnClassUrn;
 import edu.ucla.cens.awserver.domain.CampaignUrnLoginIdUserRole;
 import edu.ucla.cens.awserver.domain.ErrorResponse;
 import edu.ucla.cens.awserver.request.AwRequest;
-import edu.ucla.cens.awserver.request.RetrieveCampaignAwRequest;
+import edu.ucla.cens.awserver.request.CampaignReadAwRequest;
 
 /**
  * @author selsky
  */
-public class RetrieveCampaignResponseWriter extends AbstractResponseWriter {
-	private static Logger _logger = Logger.getLogger(RetrieveCampaignResponseWriter.class);
+public class CampaignReadResponseWriter extends AbstractResponseWriter {
+	private static Logger _logger = Logger.getLogger(CampaignReadResponseWriter.class);
 	
-	public RetrieveCampaignResponseWriter(ErrorResponse errorResponse) {
+	public CampaignReadResponseWriter(ErrorResponse errorResponse) {
 		super(errorResponse);
 	}
 	
@@ -51,7 +51,7 @@ public class RetrieveCampaignResponseWriter extends AbstractResponseWriter {
 			// Build the appropriate response 
 			if(! awRequest.isFailedRequest()) {
 				
-				RetrieveCampaignAwRequest req = (RetrieveCampaignAwRequest) awRequest;
+				CampaignReadAwRequest req = (CampaignReadAwRequest) awRequest;
 				
 				@SuppressWarnings("unchecked")
 				List<CampaignQueryResult> results = (List<CampaignQueryResult>) awRequest.getResultList();
@@ -133,7 +133,7 @@ public class RetrieveCampaignResponseWriter extends AbstractResponseWriter {
 		}
 	}
 	
-	private List<String> generateClassList(RetrieveCampaignAwRequest req, String campaignUrn) {
+	private List<String> generateClassList(CampaignReadAwRequest req, String campaignUrn) {
 		
 		if(! req.getClassUrnList().isEmpty()) {
 			return req.getClassUrnList();
@@ -150,7 +150,7 @@ public class RetrieveCampaignResponseWriter extends AbstractResponseWriter {
 		return out;
 	}
 	
-	private Map<String, List<String>> generateUserRoleCampaign(RetrieveCampaignAwRequest req, String campaignUrn) {
+	private Map<String, List<String>> generateUserRoleCampaign(CampaignReadAwRequest req, String campaignUrn) {
 		if(req.getCampaignUrnLoginIdUserRoleList().isEmpty()) {
 			return Collections.emptyMap();
 		}

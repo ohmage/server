@@ -17,7 +17,7 @@ import org.springframework.jdbc.core.RowMapper;
 import edu.ucla.cens.awserver.domain.CampaignQueryResult;
 import edu.ucla.cens.awserver.domain.CampaignUrnUserRole;
 import edu.ucla.cens.awserver.request.AwRequest;
-import edu.ucla.cens.awserver.request.RetrieveCampaignAwRequest;
+import edu.ucla.cens.awserver.request.CampaignReadAwRequest;
 import edu.ucla.cens.awserver.util.StringUtils;
 
 /**
@@ -61,7 +61,7 @@ public class FindAllFilteredCampaignsForLoggedInUserDao extends AbstractDao {
 		try {
 			
 			// The venerable cast to the correct request type
-			RetrieveCampaignAwRequest req = (RetrieveCampaignAwRequest) awRequest;
+			CampaignReadAwRequest req = (CampaignReadAwRequest) awRequest;
 			
 			List<CampaignUrnUserRole> campaignUrnUserRoleList = (List<CampaignUrnUserRole>) req.getResultList(); 
 

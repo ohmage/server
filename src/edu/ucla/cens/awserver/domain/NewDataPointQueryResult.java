@@ -30,6 +30,15 @@ public class NewDataPointQueryResult {
 	private String _surveyDescription;
 	private String _loginId;
 	private Map<String, PromptProperty> _choiceGlossary;
+	private int _surveyPrimaryKeyId;
+	
+	public int getSurveyPrimaryKeyId() {
+		return _surveyPrimaryKeyId;
+	}
+	
+	public void setSurveyPrimaryKeyId(int id) {
+		_surveyPrimaryKeyId = id;
+	}
 	
 	public String getLocationStatus() {
 		return _locationStatus;
@@ -205,19 +214,20 @@ public class NewDataPointQueryResult {
 
 	@Override
 	public String toString() {
-		return "NewDataPointQueryResult [_choiceGlossary=" + _choiceGlossary
-				+ ", _client=" + _client + ", _displayLabel=" + _displayLabel
-				+ ", _displayType=" + _displayType + ", _displayValue="
-				+ _displayValue + ", _launchContext=" + _launchContext
-				+ ", _location=" + _location + ", _locationStatus="
-				+ _locationStatus + ", _loginId=" + _loginId + ", _promptId="
-				+ _promptId + ", _promptType=" + _promptType
-				+ ", _repeatableSetId=" + _repeatableSetId
+		return "NewDataPointQueryResult [_response=" + _response
 				+ ", _repeatableSetIteration=" + _repeatableSetIteration
-				+ ", _response=" + _response + ", _surveyDescription="
-				+ _surveyDescription + ", _surveyId=" + _surveyId
-				+ ", _surveyTitle=" + _surveyTitle + ", _timestamp="
-				+ _timestamp + ", _timezone=" + _timezone + ", _unit=" + _unit
-				+ ", _utcTimestamp=" + _utcTimestamp + "]";
+				+ ", _locationStatus=" + _locationStatus + ", _location="
+				+ _location + ", _timestamp=" + _timestamp + ", _timezone="
+				+ _timezone + ", _surveyId=" + _surveyId + ", _promptId="
+				+ _promptId + ", _promptType=" + _promptType
+				+ ", _repeatableSetId=" + _repeatableSetId + ", _displayLabel="
+				+ _displayLabel + ", _displayValue=" + _displayValue
+				+ ", _unit=" + _unit + ", _displayType=" + _displayType
+				+ ", _utcTimestamp=" + _utcTimestamp + ", _client=" + _client
+				+ ", _launchContext=" + _launchContext + ", _surveyTitle="
+				+ _surveyTitle + ", _surveyDescription=" + _surveyDescription
+				+ ", _loginId=" + _loginId + ", _choiceGlossary="
+				+ _choiceGlossary + ", _surveyPrimaryKeyId="
+				+ _surveyPrimaryKeyId + "]";
 	}
 }
