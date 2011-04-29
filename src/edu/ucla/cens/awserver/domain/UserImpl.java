@@ -142,6 +142,6 @@ public class UserImpl implements User {
 	public String toString() {
 		return "UserImpl [_id=" + _id + ", _userName=" + _userName
 				+ ", _campaignUserRoleMap=" + _campaignUserRoleMap
-				+ ", _loggedIn=" + _loggedIn + ", _password=" + _password + "]";
+				+ ", _loggedIn=" + _loggedIn + ", _password=" + "(omitted)" + "]";
 	}	
 }

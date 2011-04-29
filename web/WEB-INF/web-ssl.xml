@@ -574,6 +574,99 @@
     <url-pattern>/campaign/create</url-pattern>
   </servlet-mapping>
   
+  <!-- Handle campaign deletion -->
+  <servlet>
+    <description>
+      Deletes a campaign from the server.
+    </description>
+    <servlet-name>CampaignDeletionServlet</servlet-name>
+    <servlet-class>edu.ucla.cens.awserver.jee.servlet.AwDataServlet</servlet-class>
+    <init-param>
+      <param-name>httpServletRequestValidatorName</param-name>
+      <param-value>campaignDeletionHttpServletRequestValidator</param-value>
+    </init-param>
+    <init-param>
+      <param-name>awRequestCreatorName</param-name>
+      <param-value>campaignDeletionAwRequestCreator</param-value>
+    </init-param>
+    <init-param>
+      <param-name>controllerName</param-name>
+      <param-value>campaignDeletionController</param-value>
+    </init-param>
+    <init-param>
+      <param-name>responseWriterName</param-name>
+      <param-value>campaignDeletionResponseWriter</param-value>
+    </init-param>
+    <load-on-startup>1</load-on-startup>
+  </servlet>
+  
+  <servlet-mapping>
+    <servlet-name>CampaignDeletionServlet</servlet-name>
+    <url-pattern>/campaign/delete</url-pattern>
+  </servlet-mapping>
+  
+  <!-- Handle campaign update -->
+  <servlet>
+    <description>
+      Updates a campaign.
+    </description>
+    <servlet-name>CampaignUpdateServlet</servlet-name>
+    <servlet-class>edu.ucla.cens.awserver.jee.servlet.AwDataServlet</servlet-class>
+    <init-param>
+      <param-name>httpServletRequestValidatorName</param-name>
+      <param-value>campaignUpdateHttpServletRequestValidator</param-value>
+    </init-param>
+    <init-param>
+      <param-name>awRequestCreatorName</param-name>
+      <param-value>campaignUpdateAwRequestCreator</param-value>
+    </init-param>
+    <init-param>
+      <param-name>controllerName</param-name>
+      <param-value>campaignUpdateController</param-value>
+    </init-param>
+    <init-param>
+      <param-name>responseWriterName</param-name>
+      <param-value>campaignUpdateResponseWriter</param-value>
+    </init-param>
+    <load-on-startup>1</load-on-startup>
+  </servlet>
+  
+  <servlet-mapping>
+    <servlet-name>CampaignUpdateServlet</servlet-name>
+    <url-pattern>/campaign/update</url-pattern>
+  </servlet-mapping>
+  
+  <!-- Handle class updates -->
+  <servlet>
+    <description>
+      Updates a class.
+    </description>
+    <servlet-name>ClassUpdateServlet</servlet-name>
+    <servlet-class>edu.ucla.cens.awserver.jee.servlet.AwDataServlet</servlet-class>
+    <init-param>
+      <param-name>httpServletRequestValidatorName</param-name>
+      <param-value>classUpdateHttpServletRequestValidator</param-value>
+    </init-param>
+    <init-param>
+      <param-name>awRequestCreatorName</param-name>
+      <param-value>classUpdateAwRequestCreator</param-value>
+    </init-param>
+    <init-param>
+      <param-name>controllerName</param-name>
+      <param-value>classUpdateController</param-value>
+    </init-param>
+    <init-param>
+      <param-name>responseWriterName</param-name>
+      <param-value>classUpdateResponseWriter</param-value>
+    </init-param>
+    <load-on-startup>1</load-on-startup>
+  </servlet>
+  
+  <servlet-mapping>
+    <servlet-name>ClassUpdateServlet</servlet-name>
+    <url-pattern>/class/update</url-pattern>
+  </servlet-mapping>
+  
   <!--  Handle data point function queries -->
   <servlet>
     <description>
