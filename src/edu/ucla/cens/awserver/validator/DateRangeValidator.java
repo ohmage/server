@@ -7,7 +7,7 @@ import java.util.Date;
 import org.apache.log4j.Logger;
 
 import edu.ucla.cens.awserver.request.AwRequest;
-import edu.ucla.cens.awserver.request.NewDataPointQueryAwRequest;
+import edu.ucla.cens.awserver.request.SurveyResponseReadAwRequest;
 
 /**
  * Compare the start and end dates for a new data point query to make sure they are not longer than a specified period. 
@@ -32,7 +32,7 @@ public class DateRangeValidator extends AbstractAnnotatingValidator {
 	public boolean validate(AwRequest awRequest) {
 		_logger.info("validating date range");
 		
-		NewDataPointQueryAwRequest req = (NewDataPointQueryAwRequest) awRequest; 
+		SurveyResponseReadAwRequest req = (SurveyResponseReadAwRequest) awRequest; 
 		SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
 		formatter.setLenient(false);
 		Date startDate = null;

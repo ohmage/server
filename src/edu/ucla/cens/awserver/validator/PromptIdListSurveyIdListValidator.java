@@ -8,7 +8,7 @@ import java.util.Set;
 import org.apache.log4j.Logger;
 
 import edu.ucla.cens.awserver.request.AwRequest;
-import edu.ucla.cens.awserver.request.NewDataPointQueryAwRequest;
+import edu.ucla.cens.awserver.request.SurveyResponseReadAwRequest;
 import edu.ucla.cens.awserver.util.StringUtils;
 
 /**
@@ -29,12 +29,12 @@ public class PromptIdListSurveyIdListValidator extends AbstractAnnotatingRegexpV
 	public boolean validate(AwRequest awRequest) {
 		_logger.info("validating prompt id list or survey id list");
 		
-		if(! (awRequest instanceof NewDataPointQueryAwRequest)) { // lame
+		if(! (awRequest instanceof SurveyResponseReadAwRequest)) { // lame
 			throw new ValidatorException("awRequest is not a NewDataPointQueryAwRequest: " + awRequest.getClass());
 		}
 		
-		String promptIdListString = ((NewDataPointQueryAwRequest) awRequest).getPromptIdListString();
-		String surveyIdListString = ((NewDataPointQueryAwRequest) awRequest).getSurveyIdListString();
+		String promptIdListString = ((SurveyResponseReadAwRequest) awRequest).getPromptIdListString();
+		String surveyIdListString = ((SurveyResponseReadAwRequest) awRequest).getSurveyIdListString();
 		
 		if(StringUtils.isEmptyOrWhitespaceOnly(promptIdListString) && StringUtils.isEmptyOrWhitespaceOnly(surveyIdListString)) {
 			

@@ -345,36 +345,36 @@
     <url-pattern>/survey_response/read/old</url-pattern>
   </servlet-mapping>
   
-    <!--  new data point API -->
+  <!-- Read survey responses   -->
   <servlet>
     <description>
-      runs data point queries (survey response data) 
+      allows users to query survey responses, returning output in a variety of formats 
     </description>
-    <servlet-name>NewDataPointQueryServlet</servlet-name>
+    <servlet-name>SurveyResponseReadServlet</servlet-name>
     <servlet-class>edu.ucla.cens.awserver.jee.servlet.AwDataServlet</servlet-class>
     <!--  The following init-params are used to map the servlet to Spring-configured beans that ultimately service the request. 
           The param-value elements are Spring bean ids.    
     -->
     <init-param>
       <param-name>controllerName</param-name>
-      <param-value>newDataPointQueryController</param-value>
+      <param-value>surveyResponseReadController</param-value>
     </init-param>
     <init-param>
       <param-name>awRequestCreatorName</param-name>
-      <param-value>newDataPointQueryAwRequestCreator</param-value>
+      <param-value>surveyResponseReadAwRequestCreator</param-value>
     </init-param>
     <init-param>
       <param-name>httpServletRequestValidatorName</param-name>
-      <param-value>newDataPointQueryHttpServletRequestValidator</param-value>
+      <param-value>surveyResponseReadHttpServletRequestValidator</param-value>
     </init-param>
     <init-param>
       <param-name>responseWriterName</param-name>
-      <param-value>newDataPointQueryResponseWriter</param-value>
+      <param-value>surveyResponseReadResponseWriter</param-value>
     </init-param>
     <load-on-startup>1</load-on-startup>
   </servlet>
   <servlet-mapping>
-    <servlet-name>NewDataPointQueryServlet</servlet-name>
+    <servlet-name>SurveyResponseReadServlet</servlet-name>
     <url-pattern>/survey_response/read</url-pattern>
   </servlet-mapping>
   

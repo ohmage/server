@@ -6,7 +6,7 @@ import org.apache.log4j.Logger;
 
 import edu.ucla.cens.awserver.domain.UserRole;
 import edu.ucla.cens.awserver.request.AwRequest;
-import edu.ucla.cens.awserver.request.NewDataPointQueryAwRequest;
+import edu.ucla.cens.awserver.request.SurveyResponseReadAwRequest;
 import edu.ucla.cens.awserver.validator.AwRequestAnnotator;
 
 /**
@@ -46,10 +46,10 @@ public class UserRoleCheckService extends AbstractAnnotatingService {
 		if(! supervisor) { // participants can only run queries for themselves
 			
 			// hackeroo - this should be a strategy or something like it
-			if(awRequest instanceof NewDataPointQueryAwRequest) {
+			if(awRequest instanceof SurveyResponseReadAwRequest) {
 				// assumes that the userNameList has been validated (i.e., that there is at least one user in the list) 
 				
-				NewDataPointQueryAwRequest req = (NewDataPointQueryAwRequest) awRequest;
+				SurveyResponseReadAwRequest req = (SurveyResponseReadAwRequest) awRequest;
 				
 				if(req.getUserList().size() != 1) {
 					

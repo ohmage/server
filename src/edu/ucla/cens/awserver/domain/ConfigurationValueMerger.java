@@ -19,7 +19,7 @@ import edu.ucla.cens.awserver.util.JsonUtils;
 public class ConfigurationValueMerger {
 	private static Logger _logger = Logger.getLogger(ConfigurationValueMerger.class);
 	
-	public void merge(NewDataPointQueryResult result, Configuration configuration) {
+	public void merge(SurveyResponseReadResult result, Configuration configuration) {
 		
 		result.setSurveyTitle(configuration.getSurveyTitleFor(result.getSurveyId()));
 		result.setSurveyDescription(configuration.getSurveyDescriptionFor(result.getSurveyId()));
@@ -81,7 +81,7 @@ public class ConfigurationValueMerger {
 		
 	}
 	
-	private void setDisplayValueFromSingleChoice(NewDataPointQueryResult result, Configuration config, boolean isRepeatableSetItem) {
+	private void setDisplayValueFromSingleChoice(SurveyResponseReadResult result, Configuration config, boolean isRepeatableSetItem) {
 		String value = null;
 		
 		if(isRepeatableSetItem) {
@@ -101,7 +101,7 @@ public class ConfigurationValueMerger {
 		}
 	}
 	
-	private void setDisplayValueFromMultiChoice(NewDataPointQueryResult result, Configuration config, boolean isRepeatableSetItem) {
+	private void setDisplayValueFromMultiChoice(SurveyResponseReadResult result, Configuration config, boolean isRepeatableSetItem) {
 	
 		JSONArray responseArray = JsonUtils.getJsonArrayFromString(String.valueOf(result.getResponse()));
 		
@@ -149,7 +149,7 @@ public class ConfigurationValueMerger {
 		}
 	}
 	
-	private void setDisplayValueFromRemoteActivity(NewDataPointQueryResult result, Configuration config) {
+	private void setDisplayValueFromRemoteActivity(SurveyResponseReadResult result, Configuration config) {
 		JSONArray responseArray = JsonUtils.getJsonArrayFromString(String.valueOf(result.getResponse()));
 		
 		if(responseArray != null) {

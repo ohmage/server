@@ -1,7 +1,7 @@
 package edu.ucla.cens.awserver.validator;
 
 import edu.ucla.cens.awserver.request.AwRequest;
-import edu.ucla.cens.awserver.request.NewDataPointQueryAwRequest;
+import edu.ucla.cens.awserver.request.SurveyResponseReadAwRequest;
 import edu.ucla.cens.awserver.util.StringUtils;
 
 /**
@@ -20,11 +20,11 @@ public class SurveyIdListValidator extends AbstractAnnotatingRegexpValidator {
 	 * @throws ValidatorException if the awRequest is not a NewDataPointQueryAwRequest
 	 */
 	public boolean validate(AwRequest awRequest) {
-		if(! (awRequest instanceof NewDataPointQueryAwRequest)) { // lame
+		if(! (awRequest instanceof SurveyResponseReadAwRequest)) { // lame
 			throw new ValidatorException("awRequest is not a NewDataPointQueryAwRequest: " + awRequest.getClass());
 		}
 		
-		String surveyIdListString = ((NewDataPointQueryAwRequest) awRequest).getSurveyIdListString();
+		String surveyIdListString = ((SurveyResponseReadAwRequest) awRequest).getSurveyIdListString();
 		
 		if(StringUtils.isEmptyOrWhitespaceOnly(surveyIdListString)) {
 			

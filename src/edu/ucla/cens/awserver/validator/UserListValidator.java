@@ -3,7 +3,7 @@ package edu.ucla.cens.awserver.validator;
 import org.apache.log4j.Logger;
 
 import edu.ucla.cens.awserver.request.AwRequest;
-import edu.ucla.cens.awserver.request.NewDataPointQueryAwRequest;
+import edu.ucla.cens.awserver.request.SurveyResponseReadAwRequest;
 import edu.ucla.cens.awserver.util.StringUtils;
 
 /**
@@ -24,11 +24,11 @@ public class UserListValidator extends AbstractAnnotatingRegexpValidator {
 	public boolean validate(AwRequest awRequest) {
 		_logger.info("validating user list");
 		
-		if(! (awRequest instanceof NewDataPointQueryAwRequest)) { // lame
+		if(! (awRequest instanceof SurveyResponseReadAwRequest)) { // lame
 			throw new ValidatorException("awRequest is not a NewDataPointQueryAwRequest: " + awRequest.getClass());
 		}
 		
-		String userListString = ((NewDataPointQueryAwRequest) awRequest).getUserListString();
+		String userListString = ((SurveyResponseReadAwRequest) awRequest).getUserListString();
 		
 		// _logger.info(userListString);
 		

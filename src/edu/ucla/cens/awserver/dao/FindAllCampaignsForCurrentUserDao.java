@@ -8,7 +8,7 @@ import org.springframework.jdbc.core.SingleColumnRowMapper;
 import edu.ucla.cens.awserver.request.AwRequest;
 import edu.ucla.cens.awserver.request.DataPointFunctionQueryAwRequest;
 import edu.ucla.cens.awserver.request.MediaQueryAwRequest;
-import edu.ucla.cens.awserver.request.NewDataPointQueryAwRequest;
+import edu.ucla.cens.awserver.request.SurveyResponseReadAwRequest;
 import edu.ucla.cens.awserver.request.UserStatsQueryAwRequest;
 
 /**
@@ -31,8 +31,8 @@ public class FindAllCampaignsForCurrentUserDao extends AbstractDao {
 	public void execute(AwRequest awRequest) {
 		// Hack continued.
 		String user;
-		if(awRequest instanceof NewDataPointQueryAwRequest) {
-			user = ((NewDataPointQueryAwRequest) awRequest).getCurrentUser();
+		if(awRequest instanceof SurveyResponseReadAwRequest) {
+			user = ((SurveyResponseReadAwRequest) awRequest).getCurrentUser();
 		}
 		else if(awRequest instanceof UserStatsQueryAwRequest) {
 			user = ((UserStatsQueryAwRequest) awRequest).getUserNameRequestParam();
@@ -57,7 +57,7 @@ public class FindAllCampaignsForCurrentUserDao extends AbstractDao {
 		}	
 		catch (org.springframework.dao.DataAccessException dae) {
 			_logger.error("a DataAccessException occurred when running the following sql '" + _sql + "' with the parameter"
-				+ ((NewDataPointQueryAwRequest) awRequest).getCurrentUser(), dae);
+				+ ((SurveyResponseReadAwRequest) awRequest).getCurrentUser(), dae);
 			throw new DataAccessException(dae);
 		}
 	}

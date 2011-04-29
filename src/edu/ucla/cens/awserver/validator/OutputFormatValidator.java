@@ -5,7 +5,7 @@ import java.util.List;
 import org.apache.log4j.Logger;
 
 import edu.ucla.cens.awserver.request.AwRequest;
-import edu.ucla.cens.awserver.request.NewDataPointQueryAwRequest;
+import edu.ucla.cens.awserver.request.SurveyResponseReadAwRequest;
 import edu.ucla.cens.awserver.util.StringUtils;
 
 /**
@@ -29,11 +29,11 @@ public class OutputFormatValidator extends AbstractAnnotatingValidator {
 	public boolean validate(AwRequest awRequest) {
 		_logger.info("validating output format");
 		
-		if(! (awRequest instanceof NewDataPointQueryAwRequest)) { // lame
+		if(! (awRequest instanceof SurveyResponseReadAwRequest)) { // lame
 			throw new ValidatorException("awRequest is not a NewDataPointQueryAwRequest: " + awRequest.getClass());
 		}
 		
-		String outputFormat = ((NewDataPointQueryAwRequest) awRequest).getOutputFormat();
+		String outputFormat = ((SurveyResponseReadAwRequest) awRequest).getOutputFormat();
 		
 		if(StringUtils.isEmptyOrWhitespaceOnly(outputFormat)) {
 			getAnnotator().annotate(awRequest, "empty output format found");

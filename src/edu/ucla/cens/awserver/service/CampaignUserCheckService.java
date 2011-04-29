@@ -8,7 +8,7 @@ import edu.ucla.cens.awserver.dao.Dao;
 import edu.ucla.cens.awserver.request.AwRequest;
 import edu.ucla.cens.awserver.request.DataPointFunctionQueryAwRequest;
 import edu.ucla.cens.awserver.request.MediaQueryAwRequest;
-import edu.ucla.cens.awserver.request.NewDataPointQueryAwRequest;
+import edu.ucla.cens.awserver.request.SurveyResponseReadAwRequest;
 import edu.ucla.cens.awserver.request.UserStatsQueryAwRequest;
 import edu.ucla.cens.awserver.validator.AwRequestAnnotator;
 
@@ -37,8 +37,8 @@ public class CampaignUserCheckService extends AbstractAnnotatingDaoService {
 		// FIXME: Hackalicious!
 		String userListString;
 		List<String> users;
-		if(awRequest instanceof NewDataPointQueryAwRequest) {
-			NewDataPointQueryAwRequest req = (NewDataPointQueryAwRequest) awRequest;
+		if(awRequest instanceof SurveyResponseReadAwRequest) {
+			SurveyResponseReadAwRequest req = (SurveyResponseReadAwRequest) awRequest;
 			userListString = req.getUserListString();
 			users = req.getUserList();
 			

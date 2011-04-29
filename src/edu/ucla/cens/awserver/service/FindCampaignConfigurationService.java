@@ -9,7 +9,7 @@ import edu.ucla.cens.awserver.dao.DataAccessException;
 import edu.ucla.cens.awserver.domain.Configuration;
 import edu.ucla.cens.awserver.request.AwRequest;
 import edu.ucla.cens.awserver.request.DataPointQueryAwRequest;
-import edu.ucla.cens.awserver.request.NewDataPointQueryAwRequest;
+import edu.ucla.cens.awserver.request.SurveyResponseReadAwRequest;
 import edu.ucla.cens.awserver.request.SurveyUploadAwRequest;
 
 /**
@@ -42,8 +42,8 @@ public class FindCampaignConfigurationService extends AbstractDaoService {
 			// hack 
 			// fix by making Configuration a 'first-class' instance variable in the AwRequest or by using the toProcess() method
 			
-			if(awRequest instanceof NewDataPointQueryAwRequest) {
-				((NewDataPointQueryAwRequest) awRequest).setConfiguration(configurations.get(0));
+			if(awRequest instanceof SurveyResponseReadAwRequest) {
+				((SurveyResponseReadAwRequest) awRequest).setConfiguration(configurations.get(0));
 			} else if (awRequest instanceof DataPointQueryAwRequest) {
 				((DataPointQueryAwRequest) awRequest).setConfiguration(configurations.get(0));
 			} else if (awRequest instanceof SurveyUploadAwRequest) {
