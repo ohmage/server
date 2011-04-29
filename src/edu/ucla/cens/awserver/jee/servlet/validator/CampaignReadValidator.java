@@ -26,7 +26,9 @@ public class CampaignReadValidator extends AbstractHttpServletRequestValidator {
 		 		                                                          "privacy_state",
 		 		                                                          "running_state",
 		 		                                                          "user_role",
-		 		                                                          "class_urn_list"}
+		 		                                                          "class_urn_list",
+		 		                                                          "user",
+		 		                                                          "password"}
 		));
 	}
 	
@@ -44,12 +46,7 @@ public class CampaignReadValidator extends AbstractHttpServletRequestValidator {
 			return false;
 		}
 		
-		// auth_token, client, and output_format are required. all of the other params are optional
-		String authToken = httpServletRequest.getParameter("auth_token");
-		if(null == authToken) {
-			_logger.info("missing auth_token parameter in request");
-			return false;
-		}
+		// Make sure required parameters exist
 		String client = httpServletRequest.getParameter("client");
 		if(null == client) {
 			_logger.info("missing client parameter in request");
@@ -62,6 +59,9 @@ public class CampaignReadValidator extends AbstractHttpServletRequestValidator {
 		}
 		
 		// perform sanity check on the optional params anyway
+		String authToken = httpServletRequest.getParameter("auth_token");
+		String user = httpServletRequest.getParameter("user");
+		String password = httpServletRequest.getParameter("password");
 		String campaignUrnList = httpServletRequest.getParameter("campaign_urn_list");
 		String startDate = httpServletRequest.getParameter("start_date");
 		String endDate = httpServletRequest.getParameter("end_date");
@@ -78,6 +78,8 @@ public class CampaignReadValidator extends AbstractHttpServletRequestValidator {
 		   || greaterThanLength("start date", "start_date", startDate, 10)
 		   || greaterThanLength("end date", "end_date", endDate, 10)
 		   || greaterThanLength("privacy state", "privacy_state", privacyState, 7)
+		   || greaterThanLength("user", "user", user, 15)
+		   || greaterThanLength("password", "password", password, 100)
 		   || greaterThanLength("running state", "running_state", runningState, 7)
 		   || greaterThanLength("user role", "user_role", userRole, 11)
 		   || greaterThanLength("class URN list", "class_urn_list", classUrnList, 2550) // max of 10 URNs as above for cmapaignUrnList

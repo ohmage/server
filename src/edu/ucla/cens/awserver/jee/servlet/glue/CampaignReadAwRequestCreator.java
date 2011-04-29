@@ -7,6 +7,7 @@ import javax.servlet.http.HttpServletRequest;
 
 import org.apache.log4j.NDC;
 
+import edu.ucla.cens.awserver.domain.UserImpl;
 import edu.ucla.cens.awserver.request.AwRequest;
 import edu.ucla.cens.awserver.request.CampaignReadAwRequest;
 
@@ -22,10 +23,12 @@ public class CampaignReadAwRequestCreator implements AwRequestCreator {
 	public AwRequest createFrom(HttpServletRequest request) {
 		// required
 		String client = request.getParameter("client");
-		String userToken = request.getParameter("auth_token");
 		String outputFormat = request.getParameter("output_format");
 		
 		// optional
+		String userToken = request.getParameter("auth_token");
+		String userName = request.getParameter("user");
+		String password = request.getParameter("password");
 		String campaignUrnListAsString = request.getParameter("campaign_urn_list");
 		String startDate = request.getParameter("start_date");
 		String endDate = request.getParameter("end_date");
@@ -48,8 +51,11 @@ public class CampaignReadAwRequestCreator implements AwRequestCreator {
 		awRequest.setRunningState(runningState);
 		awRequest.setUserRole(userRole);
 		awRequest.setClassUrnListAsString(classUrnListAsString);
-		
-		// Prep Validation -- trying out a new way to perform validation here
+		UserImpl user = new UserImpl();
+	    user.setUserName(userName);
+	    user.setPassword(password);
+	    awRequest.setUser(user);
+
 		Map<String, Object> toValidate = new HashMap<String, Object>();
 		toValidate.put("class_urn_list", classUrnListAsString);
 		toValidate.put("campaign_urn_list", campaignUrnListAsString);

@@ -22,7 +22,7 @@
   <bean id="campaignReadController" class="edu.ucla.cens.awserver.controller.ControllerImpl">
     <constructor-arg index="0">
       <list>
-        <ref bean="tokenBasedAuthenticationService" />
+        <ref bean="tokenOrUserPasswordAuthenticationService" />
         <bean class="edu.ucla.cens.awserver.service.RetrieveCampaignStringToListParameterConverterService" />
         <ref bean="findCampaignRolesForUserService" />
         <ref bean="findAllFilteredCampaignsForLoggedInUserService" />
@@ -35,7 +35,7 @@
     </constructor-arg>
     <property name="validators">
       <list>
-        <ref bean="userTokenValidator" />
+        <ref bean="tokenOrUserPasswordValidator" />
         <ref bean="classUrnListValidator" />
         <ref bean="campaignUrnListValidator" />
         <ref bean="startDateInMapValidator" />
@@ -46,6 +46,12 @@
       </list>
     </property>
     <property name="featureName"><value>campaign retrieval</value></property>
+  </bean>
+  
+  <bean id="tokenOrUserPasswordValidator" class="edu.ucla.cens.awserver.validator.TokenOrUserPasswordValidator">
+    <constructor-arg index="0"><ref bean="userTokenValidator" /></constructor-arg>
+    <constructor-arg index="1"><ref bean="userNameValidator" /></constructor-arg>
+    <constructor-arg index="2"><ref bean="hashedPasswordValidator" /></constructor-arg>
   </bean>
   
   <bean id="classUrnListValidator" class="edu.ucla.cens.awserver.validator.UrnListValidator">
@@ -123,6 +129,11 @@
   </bean>
   
   <!-- Authentication -->
+  <bean id="tokenOrUserPasswordAuthenticationService" class="edu.ucla.cens.awserver.service.TokenOrUserPasswordAuthenticationService">
+    <constructor-arg index="0"><ref bean="tokenBasedAuthenticationService" /></constructor-arg>
+    <constructor-arg index="1"><ref bean="authWithHashedPasswordService" /></constructor-arg>
+  </bean>
+  
   <bean id="tokenBasedAuthenticationService" class="edu.ucla.cens.awserver.service.TokenBasedAuthenticationService">
     <constructor-arg index="0">
       <ref bean="userBin" />
