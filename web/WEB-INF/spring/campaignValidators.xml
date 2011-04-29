@@ -3,20 +3,8 @@
        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
                            http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-2.5.xsd">
                            
-  <bean id="campaignUrnValidator" class="edu.ucla.cens.awserver.validator.CampaignUrnValidator">
-    <constructor-arg index="0">
-      <bean class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
-        <constructor-arg index="0">
-          <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
-            <property name="code" value="0807" />
-            <property name="text" value="Invalid URN." />
-          </bean>
-        </constructor-arg>
-      </bean>
-    </constructor-arg>
-  </bean>
-
-  <bean id="campaignDescriptionRequiredValidator" class="edu.ucla.cens.awserver.validator.CampaignDescriptionValidator">
+  <!-- These have been generalized and no longer belong here, but I am not sure where else to put them. -->
+  <bean id="descriptionRequiredValidator" class="edu.ucla.cens.awserver.validator.DescriptionValidator">
     <constructor-arg index="0">
       <bean class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
         <constructor-arg index="0">
@@ -32,7 +20,7 @@
     </constructor-arg>
   </bean>
   
-  <bean id="campaignDescriptionOptionalValidator" class="edu.ucla.cens.awserver.validator.CampaignDescriptionValidator">
+  <bean id="descriptionOptionalValidator" class="edu.ucla.cens.awserver.validator.DescriptionValidator">
     <constructor-arg index="0">
       <bean class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
         <constructor-arg index="0">
@@ -45,6 +33,20 @@
     </constructor-arg>
     <constructor-arg index="1">
       <value>false</value>
+    </constructor-arg>
+  </bean>
+         
+  <!-- Begin Campaign Validators -->                  
+  <bean id="campaignUrnValidator" class="edu.ucla.cens.awserver.validator.CampaignUrnValidator">
+    <constructor-arg index="0">
+      <bean class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
+        <constructor-arg index="0">
+          <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
+            <property name="code" value="0807" />
+            <property name="text" value="Invalid campaign URN." />
+          </bean>
+        </constructor-arg>
+      </bean>
     </constructor-arg>
   </bean>
   

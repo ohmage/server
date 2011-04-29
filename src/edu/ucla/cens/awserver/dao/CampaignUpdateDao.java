@@ -182,7 +182,9 @@ public class CampaignUpdateDao extends AbstractDao {
 	@Override
 	public void execute(AwRequest awRequest) {
 		if(! userCanModifyCampaign(awRequest)) {
-			throw new DataAccessException("User has insufficient permissions to modify this campaign.");
+			_logger.info("User has insufficient permissions to modify this campaign.");
+			awRequest.setFailedRequest(true);
+			return;
 		}
 		
 		// Begin transaction
@@ -204,10 +206,12 @@ public class CampaignUpdateDao extends AbstractDao {
 				// Rollback transaction and throw a DataAccessException.
 				_logger.error("Error while executing the update.", e);
 				transactionManager.rollback(status);
+				awRequest.setFailedRequest(true);
 				throw new DataAccessException(e);
 			}
 			catch(DataAccessException e) {
 				transactionManager.rollback(status);
+				awRequest.setFailedRequest(true);
 				throw new DataAccessException(e);
 			}
 			
@@ -216,6 +220,7 @@ public class CampaignUpdateDao extends AbstractDao {
 		}
 		catch(TransactionException e) {
 			_logger.error("Error while rolling back the transaction.", e);
+			awRequest.setFailedRequest(true);
 			throw new DataAccessException(e);
 		}
 	}

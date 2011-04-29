@@ -4,6 +4,7 @@ import org.apache.log4j.Logger;
 
 import edu.ucla.cens.awserver.request.AwRequest;
 import edu.ucla.cens.awserver.request.InputKeys;
+import edu.ucla.cens.awserver.util.StringUtils;
 
 /**
  * Validates that the list of classes exist and is not empty, but it doesn't
@@ -36,11 +37,10 @@ public class ClassListValidator extends AbstractAnnotatingValidator {
 		_logger.info("Validating initial list of classes for new campaign.");
 		
 		String classes = (String) awRequest.getToValidate().get(InputKeys.CLASS_URN_LIST);
-		if((classes == null) || ("".equals(classes))) {
+		if(StringUtils.isEmptyOrWhitespaceOnly(classes)) {
 			if(_required) {
-				awRequest.setFailedRequest(true);
-				getAnnotator().annotate(awRequest, "Class list is empty.");
-				return false;
+				_logger.error("Missing required class list parameter. This should have been caught before this.");
+				throw new ValidatorException("Missing required class list.");
 			}
 			else {
 				return true;

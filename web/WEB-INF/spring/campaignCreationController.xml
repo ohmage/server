@@ -53,7 +53,7 @@
         <ref bean="campaignPrivacyStateRequiredValidator" />
         <ref bean="classListRequiredValidator" />
         <ref bean="campaignXmlRequiredValidator" />
-        <ref bean="campaignDescriptionOptionalValidator" />
+        <ref bean="descriptionOptionalValidator" />
       </list>
     </property>
     <property name="featureName"><value>campaign creation</value></property>
