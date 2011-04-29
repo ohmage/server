@@ -88,6 +88,12 @@
         </constructor-arg>
       </bean>
     </constructor-arg>
+    <constructor-arg index="2">
+        <util:constant static-field="edu.ucla.cens.awserver.request.InputKeys.USER_LIST"/>
+    </constructor-arg>
+    <constructor-arg index="3">
+      <value>true</value>
+    </constructor-arg>
   </bean>
 
   <bean id="promptIdListSurveyIdListValidator" class="edu.ucla.cens.awserver.validator.PromptIdListSurveyIdListValidator">

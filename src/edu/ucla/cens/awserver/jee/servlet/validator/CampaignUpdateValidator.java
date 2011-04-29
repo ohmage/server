@@ -38,7 +38,7 @@ public class CampaignUpdateValidator extends AbstractHttpServletRequestValidator
 	@Override
 	public boolean validate(HttpServletRequest httpRequest) {
 		String requestType = httpRequest.getContentType();
-		_logger.debug("Request type: " + requestType); // TODO: Remove this.
+		
 		if(requestType.contains("multipart/form-data;") || requestType.contains("multipart/mixed;")) {
 			return validateMultipartRequest(httpRequest);
 		}

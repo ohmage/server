@@ -41,6 +41,7 @@ public class InputKeys {
 	// Class Constants
 	public static final String CLASS_URN = "class_urn";
 	public static final String CLASS_URN_LIST = "class_urn_list";
+	public static final String CLASS_NAME = "class_name";
 	
 	// Survey Constants
 	public static final String SURVEY_ID = "survey_id";
@@ -55,6 +56,9 @@ public class InputKeys {
 	// User Constants
 	public static final String USER = "user";
 	public static final String USER_LIST = "user_list";
+	public static final String USER_LIST_ADD = "user_list_add";
+	public static final String USER_LIST_REMOVE = "user_list_remove";
+	public static final String PRIVILEGED_USER_LIST_ADD = "privileged_user_list_add";
 	public static final String USER_ROLE = "user_role";
 	
 	// State Constants

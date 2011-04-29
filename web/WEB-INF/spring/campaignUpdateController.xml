@@ -21,7 +21,7 @@
   <!-- Write the Response -->
   <bean id="campaignUpdateResponseWriter" class="edu.ucla.cens.awserver.jee.servlet.writer.CampaignUpdateResponseWriter">
     <constructor-arg index="0">
-      <bean id="campaignCreationErrorResponse" class="edu.ucla.cens.awserver.domain.ErrorResponse">
+      <bean id="campaignUpdateErrorResponse" class="edu.ucla.cens.awserver.domain.ErrorResponse">
         <property name="code" value="0815" />
         <property name="text" value="Campaign update failed." />
       </bean>
@@ -53,7 +53,7 @@
         <ref bean="campaignPrivacyStateOptionalValidator" />
         <ref bean="classListOptionalValidator" />
         <ref bean="campaignXmlOptionalValidator" />
-        <ref bean="campaignDescriptionOptionalValidator" />
+        <ref bean="descriptionOptionalValidator" />
       </list>
     </property>
     <property name="featureName"><value>campaign update</value></property>
@@ -98,8 +98,18 @@
     </constructor-arg>
   </bean>
   
-  <bean id="campaignUpdateService" class="edu.ucla.cens.awserver.service.SimpleQueryService">
+  <bean id="campaignUpdateService" class="edu.ucla.cens.awserver.service.CampaignUpdateService">
     <constructor-arg index="0">
+      <bean class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
+        <constructor-arg index="0">
+          <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
+            <property name="code" value="0816" />
+            <property name="text" value="Insufficient role to modify campaign properties." />
+          </bean>
+        </constructor-arg>
+      </bean>
+    </constructor-arg>
+    <constructor-arg index="1">
       <bean class="edu.ucla.cens.awserver.dao.CampaignUpdateDao">
         <constructor-arg index="0">
           <ref bean="dataSource"/>

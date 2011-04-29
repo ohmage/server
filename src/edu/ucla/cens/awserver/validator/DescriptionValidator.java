@@ -10,8 +10,8 @@ import edu.ucla.cens.awserver.request.InputKeys;
  * 
  * @author John Jenkins
  */
-public class CampaignDescriptionValidator extends AbstractAnnotatingValidator {
-	private static Logger _logger = Logger.getLogger(CampaignDescriptionValidator.class);
+public class DescriptionValidator extends AbstractAnnotatingValidator {
+	private static Logger _logger = Logger.getLogger(DescriptionValidator.class);
 	
 	private boolean _required;
 	
@@ -20,7 +20,7 @@ public class CampaignDescriptionValidator extends AbstractAnnotatingValidator {
 	 * 
 	 * @param annotator An annotator should this validation fail.
 	 */
-	public CampaignDescriptionValidator(AwRequestAnnotator annotator, boolean required) {
+	public DescriptionValidator(AwRequestAnnotator annotator, boolean required) {
 		super(annotator);
 		
 		_required = required;
@@ -32,7 +32,7 @@ public class CampaignDescriptionValidator extends AbstractAnnotatingValidator {
 	 */
 	@Override
 	public boolean validate(AwRequest awRequest) {
-		_logger.info("Validating the campaign description.");
+		_logger.info("Validating the description.");
 		
 		String description = (String) awRequest.getToValidate().get(InputKeys.DESCRIPTION);
 		if(description == null) {
