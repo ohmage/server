@@ -40,7 +40,7 @@
         <ref bean="campaignUrnListValidator" />
         <ref bean="startDateInMapValidator" />
         <ref bean="endDateInMapValidator" />
-        <ref bean="retrieveCampaignOutputFormatValidator" />
+        <ref bean="campaignReadOutputFormatValidator" />
         <ref bean="campaignRunningStateOptionalValidator" />
         <ref bean="campaignPrivacyStateOptionalValidator" />
       </list>
@@ -78,7 +78,7 @@
     <constructor-arg index="2"><value>false</value></constructor-arg>
   </bean>
   
-  <bean id="retrieveCampaignOutputFormatValidator" class="edu.ucla.cens.awserver.validator.StringAllowedValuesValidator">
+  <bean id="campaignReadOutputFormatValidator" class="edu.ucla.cens.awserver.validator.StringAllowedValuesValidator">
     <constructor-arg index="0">
       <bean class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
         <constructor-arg index="0"> 
@@ -94,6 +94,7 @@
       <list>
         <value>short</value>
         <value>long</value>
+        <value>xml</value>
       </list>
     </constructor-arg>
     <constructor-arg index="3"><value>true</value></constructor-arg>

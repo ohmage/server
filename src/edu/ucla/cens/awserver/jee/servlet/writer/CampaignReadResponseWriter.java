@@ -58,24 +58,28 @@ public class CampaignReadResponseWriter extends AbstractResponseWriter {
 				int numberOfResults = results.size();
 				
 				JSONObject rootObject = new JSONObject().put("result", "success");
-				JSONObject metadata = new JSONObject();
-				metadata.put("number_of_results", numberOfResults);
-				rootObject.put("metadata", metadata);
-				
 				JSONArray itemArray = new JSONArray();
-				metadata.put("items", itemArray);
 				JSONObject dataArray = new JSONObject();
-				rootObject.put("data", dataArray);
 				
+				if(! "xml".equals(req.getOutputFormat())) {
+					JSONObject metadata = new JSONObject();
+					metadata.put("number_of_results", numberOfResults);
+					rootObject.put("metadata", metadata);
+					metadata.put("items", itemArray);
+					rootObject.put("data", dataArray);
+				}
+					
 				for(int i = 0; i < numberOfResults; i++) {
 					CampaignQueryResult result = results.get(i);
 					JSONObject campaignObject = new JSONObject();
-					campaignObject.put("name", result.getName());
-					campaignObject.put("running_state", result.getRunningState());
-					campaignObject.put("privacy_state", result.getPrivacyState());
-					campaignObject.put("creation_timestamp", result.getCreationTimestamp());
-					campaignObject.put("user_roles", new JSONArray(result.getUserRoles()));
 					
+					if(! "xml".equals(req.getOutputFormat())) {						
+						campaignObject.put("name", result.getName());
+						campaignObject.put("running_state", result.getRunningState());
+						campaignObject.put("privacy_state", result.getPrivacyState());
+						campaignObject.put("creation_timestamp", result.getCreationTimestamp());
+						campaignObject.put("user_roles", new JSONArray(result.getUserRoles()));
+					}
 					
 					if("long".equals(req.getOutputFormat())) {
 						campaignObject.put("xml", result.getXml().replaceAll("\\n",""));
@@ -83,9 +87,16 @@ public class CampaignReadResponseWriter extends AbstractResponseWriter {
 						campaignObject.put("user_role_campaign", new JSONObject(generateUserRoleCampaign(req, result.getUrn())));
 					}
 					
-					dataArray.put(result.getUrn(), campaignObject);
-					itemArray.put(result.getUrn());
-				}
+					if(! "xml".equals(req.getOutputFormat())) {
+						dataArray.put(result.getUrn(), campaignObject);
+						itemArray.put(result.getUrn());
+					} else {
+						JSONObject xmlOutput = new JSONObject();
+						xmlOutput.put("urn", result.getUrn());
+						xmlOutput.put("configuration", result.getXml());
+						rootObject.put("data", xmlOutput);
+					}
+				} 	
 				
 				responseText = rootObject.toString();
 				
