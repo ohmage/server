@@ -75,9 +75,9 @@ CREATE TABLE user_personal (
   personal_id varchar(255) NOT NULL,  -- this is e.g., the Mobilize student's student id
   email_address varchar(320),
   json_data text,
-  PRIMARY KEY (id)
-  UNIQUE (id, user_id),
-  UNIQUE(first_name, last_name, organization, personal_id), 
+  PRIMARY KEY (id),
+  UNIQUE (user_id),
+  UNIQUE (first_name, last_name, organization, personal_id), 
   CONSTRAINT FOREIGN KEY (user_id) REFERENCES user (id) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
