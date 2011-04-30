@@ -94,7 +94,7 @@ public class CampaignReadResponseWriter extends AbstractResponseWriter {
 						JSONObject xmlOutput = new JSONObject();
 						xmlOutput.put("urn", result.getUrn());
 						xmlOutput.put("configuration", result.getXml());
-						rootObject.put("data", xmlOutput);
+						rootObject.put("data", xmlOutput); // assuming only one result here ...
 					}
 				} 	
 				

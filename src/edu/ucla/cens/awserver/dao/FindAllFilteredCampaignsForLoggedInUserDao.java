@@ -18,7 +18,6 @@ import edu.ucla.cens.awserver.domain.CampaignQueryResult;
 import edu.ucla.cens.awserver.domain.CampaignUrnUserRole;
 import edu.ucla.cens.awserver.request.AwRequest;
 import edu.ucla.cens.awserver.request.CampaignReadAwRequest;
-import edu.ucla.cens.awserver.util.StringUtils;
 
 /**
  * Performs a filtered search on campaigns for the logged-in user based on the details of the 2.2+ Campaign Read API spec.
@@ -28,24 +27,24 @@ import edu.ucla.cens.awserver.util.StringUtils;
 public class FindAllFilteredCampaignsForLoggedInUserDao extends AbstractDao {
 	private static Logger _logger = Logger.getLogger(FindAllFilteredCampaignsForLoggedInUserDao.class);
 	
-//	private String _select = "SELECT urn, name, description, xml, running_state, privacy_state, creation_timestamp " +
-//			                 "FROM campaign " +
-//			                 "WHERE urn = ? ";
+	private String _select = "SELECT urn, name, description, xml, running_state, privacy_state, creation_timestamp " +
+			                 "FROM campaign " +
+			                 "WHERE urn = ? ";
 	
-	private String _select = "SELECT c.urn, c.name, c.description, c.xml, c.running_state, c.privacy_state, c.creation_timestamp," +
-			                  " css.urn " +
-                              "FROM campaign c, campaign_class cc, class css " +
-                              "WHERE cc.class_id = css.id " +
-                              "AND cc.campaign_id = c.id " +
-                              "AND c.urn = ? ";
-                                            
-    private String _andClassUrnIn = "AND css.urn IN ";
+//	private String _select = "SELECT c.urn, c.name, c.description, c.xml, c.running_state, c.privacy_state, c.creation_timestamp," +
+//			                  " css.urn " +
+//                              "FROM campaign c, campaign_class cc, class css " +
+//                              "WHERE cc.class_id = css.id " +
+//                              "AND cc.campaign_id = c.id " +
+//                              "AND c.urn = ? ";
+//                                            
+//    private String _andClassUrnIn = "AND css.urn IN ";
 	
 	private String _andPrivacyState = "AND privacy_state = ? ";
 	private String _andRunningState = "AND running_state = ? ";
 	private String _andStartDate = "AND creation_timestamp >= ? ";
 	private String _andEndDate = "AND creation_timestamp <= ? ";
-	private String _orderBy = " ORDER BY c.urn";
+	private String _orderBy = " ORDER BY urn";
 	
 	public FindAllFilteredCampaignsForLoggedInUserDao(DataSource dataSource) {
 		super(dataSource);
@@ -72,13 +71,13 @@ public class FindAllFilteredCampaignsForLoggedInUserDao extends AbstractDao {
 			for(CampaignUrnUserRole cuur : campaignUrnUserRoleList) {
 
 				if(req.getCampaignUrnList().isEmpty() 
-					|| (! req.getCampaignUrnList().isEmpty() && ! req.getCampaignUrnList().contains(cuur.getUrn()))) {
+					|| (! req.getCampaignUrnList().isEmpty() && req.getCampaignUrnList().contains(cuur.getUrn()))) {
 				
 					if(! urnRoleMap.containsKey(cuur.getUrn())) {
 						List<String> roleList = new ArrayList<String>();
 						
 						if(null == req.getUserRole() 
-							|| (null != req.getUserRole() && ! req.getUserRole().equals(cuur.getRole()))) {
+							|| (null != req.getUserRole() && req.getUserRole().equals(cuur.getRole()))) {
 							
 							_logger.info("adding to role list: " + cuur.getRole());
 							roleList.add(cuur.getRole());
@@ -128,13 +127,6 @@ public class FindAllFilteredCampaignsForLoggedInUserDao extends AbstractDao {
 				StringBuilder sql = new StringBuilder();
 				sql.append(_select);
 				
-				// Check to see if the query is requesting specific classes
-				if(! req.getClassUrnList().isEmpty()) {
-					sql.append(_andClassUrnIn);
-					sql.append(StringUtils.generateStatementPList(req.getClassUrnList().size()));
-					pList.addAll(req.getClassUrnList());
-				} 
-				
 				final List<String> roles = urnRoleMap.get(urn); 
 				
 				if(null != req.getPrivacyState()) { // shared, private
@@ -152,7 +144,7 @@ public class FindAllFilteredCampaignsForLoggedInUserDao extends AbstractDao {
 				if(null != req.getRunningState()) { // running, stopped
 					String runningState = req.getRunningState();
 					if("stopped".equals(runningState)) {
-						// participants cannot view stopped campaigm
+						// participants cannot view a stopped campaign
 						if(roles.contains("participant") && roles.size() == 1) {
 							continue;
 						}
