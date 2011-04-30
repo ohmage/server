@@ -132,7 +132,7 @@ CREATE TABLE user_class (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- --------------------------------------------------------------------
--- Add a deafult role to campaign class relationships.
+-- Add a default role to campaign class relationships.
 -- --------------------------------------------------------------------
 CREATE TABLE campaign_class_default_role (
   id int unsigned NOT NULL auto_increment,
@@ -197,7 +197,9 @@ CREATE TABLE prompt_response (
 
 -- --------------------------------------------------------------------
 -- Points a UUID to a URL of a media resource (such as an image). The  
--- UUID is an implicit link into the prompt_response table.
+-- UUID is an implicit link into the prompt_response table. The privacy
+-- for images is handled by the link up to the survey_response via
+-- prompt_response.
 -- --------------------------------------------------------------------
 CREATE TABLE url_based_resource (
     id int unsigned NOT NULL auto_increment,
