@@ -65,8 +65,8 @@ public class CampaignCreationValidator extends AbstractHttpServletRequestValidat
 		
 		// Check that the correct number of items were in the request.
 		int numberOfUploadedItems = uploadedItems.size();
-		if((numberOfUploadedItems < 5) || (numberOfUploadedItems > 6)) {
-			_logger.warn("An incorrect number of parameters were found on a campaign creation attempt. 5 or 6 were expected and " + numberOfUploadedItems
+		if(numberOfUploadedItems < 5) {
+			_logger.warn("An incorrect number of parameters were found on a campaign creation attempt. At least 5 were expected and " + numberOfUploadedItems
 				+ " were received");
 			return false;
 		}
