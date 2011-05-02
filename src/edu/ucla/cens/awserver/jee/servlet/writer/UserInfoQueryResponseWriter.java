@@ -42,11 +42,20 @@ public class UserInfoQueryResponseWriter extends AbstractResponseWriter {
 	 */
 	@Override
 	public void write(HttpServletRequest request, HttpServletResponse response, AwRequest awRequest) {
-		Writer writer = null;
-		
-		if(_logger.isDebugEnabled()) {
-			_logger.debug(((UserInfoQueryAwRequest) awRequest).getUserInfoQueryResult());
+		UserInfoQueryResult result = null;
+		try {
+			result = (UserInfoQueryResult) awRequest.getToProcessValue(UserInfoQueryAwRequest.RESULT);
 		}
+		catch(IllegalArgumentException e) {
+			_logger.error("There is no result object to return.");
+			awRequest.setFailedRequest(true);
+		}
+		catch(ClassCastException e) {
+			_logger.error("The resulting object is not the expected type of object: " + awRequest.getToProcessValue(UserInfoQueryAwRequest.RESULT).getClass());
+			awRequest.setFailedRequest(true);
+		}
+		
+		Writer writer = null;
 		
 		try {
 			// Prepare for sending the response to the client.
@@ -70,9 +79,8 @@ public class UserInfoQueryResponseWriter extends AbstractResponseWriter {
 				JSONObject responseJson = new JSONObject();
 				
 				responseJson.put("result", "success");
-				UserInfoQueryResult result = ((UserInfoQueryAwRequest) awRequest).getUserInfoQueryResult();
-				
 				responseJson.put("data", result.getUsersInfo());
+				
 				responseText = responseJson.toString();
 			}
 			catch(JSONException e) {

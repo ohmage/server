@@ -2,6 +2,7 @@ package edu.ucla.cens.awserver.dao;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.ListIterator;
 
@@ -16,6 +17,7 @@ import org.springframework.jdbc.core.SingleColumnRowMapper;
 
 import edu.ucla.cens.awserver.domain.UserInfoQueryResult;
 import edu.ucla.cens.awserver.request.AwRequest;
+import edu.ucla.cens.awserver.request.InputKeys;
 import edu.ucla.cens.awserver.request.UserInfoQueryAwRequest;
 
 /**
@@ -26,36 +28,41 @@ import edu.ucla.cens.awserver.request.UserInfoQueryAwRequest;
 public class UserInfoAggregationDao extends AbstractDao {
 	private static Logger _logger = Logger.getLogger(UserInfoAggregationDao.class);
 	
-	private static final String SQL_GET_PRIVILEGED_CLASSES = "SELECT distinct(c.name) " +
+	private static final String SQL_GET_PRIVILEGED_CLASSES = "SELECT c.urn " +
 											  			     "FROM class c, user u, user_class uc, user_class_role ucr " +
 											  			     "WHERE u.login_id = ? " +
 											  			     "AND u.id = uc.user_id " +
 											  			     "AND uc.class_id = c.id " +
+											  			     "AND uc.user_class_role_id = ucr.id " +
 											  			     "AND ucr.role = 'privileged'";
+	
+	private static final String SQL_GET_USER_LOGINS_FOR_CLASS = "SELECT u.login_id " +
+	      														"FROM class c, user u, user_class uc " +
+	      														"WHERE c.urn = ? " +
+	      														"AND c.id = uc.class_id " +
+	      														"AND uc.user_id = u.id";
 	
 	private static final String SQL_GET_USER_CREATION_PRIVILEGE = "SELECT campaign_creation_privilege " +
 															   	  "FROM user u " +
 															   	  "WHERE u.login_id = ?";
 	
-	private static final String SQL_GET_USER_CLASSES = "SELECT distinct(c.urn), c.name " +
+	private static final String SQL_GET_USER_CLASSES = "SELECT c.urn, c.name " +
 	  												   "FROM class c, user u, user_class uc " +
 	  												   "WHERE u.login_id = ? " +
 	  												   "AND u.id = uc.user_id " +
 	  												   "AND uc.class_id = c.id";
 	
-	private static final String SQL_GET_USER_ROLES = "SELECT distinct(ucr.role) " +
-												     "FROM user u, user_class uc, user_class_role ucr " +
-												     "WHERE u.login_id = ? " +
-												     "AND u.id = uc.user_id " +
-												     "AND uc.user_class_role_id = ucr.id";
+	private static final String SQL_GET_CLASS_ROLES = "SELECT distinct(ucr.role) " +
+												      "FROM user u, user_class uc, user_class_role ucr " +
+												      "WHERE u.login_id = ? " +
+												      "AND u.id = uc.user_id " +
+												      "AND uc.user_class_role_id = ucr.id";
 	
-	// This is acceptable to build on the fly, because we are getting input
-	// from the database and not from a user.
-	private String SQL_GET_ALL_USERS_FOR_CLASS_TEMPLATE = "SELECT distinct(u.login_id) " +
-											   		      "FROM class c, user u, user_class uc " +
-											   		      "WHERE c.id = uc.class_id " +
-											   		      "AND uc.user_id = u.id " +
-											   		      "AND c.name in (";
+	private final static String SQL_GET_CAMPAIGN_ROLES = "SELECT distinct(ur.role) " +
+													     "FROM user u, user_role ur, user_role_campaign urc " +
+													     "WHERE u.login_id = ? " +
+													     "AND u.id = urc.user_id " +
+													     "AND urc.user_role_id = ur.id";
 	
 	/**
 	 * Used when retrieving the user's class and the URN for that class.
@@ -73,7 +80,7 @@ public class UserInfoAggregationDao extends AbstractDao {
 		 * 
 		 * @param urn The URN of the class.
 		 */
-		public ClassAndUrn(String name, String urn) {
+		public ClassAndUrn(String urn, String name) {
 			_name = name;
 			_urn = urn;
 		}
@@ -95,61 +102,67 @@ public class UserInfoAggregationDao extends AbstractDao {
 	 */
 	@Override
 	public void execute(AwRequest awRequest) {
-		// TODO: Make this use the toValidate map.
-		if(! (awRequest instanceof UserInfoQueryAwRequest)) {
-			throw new DataAccessException("UserInfoAggregationDao's only accept UserInfoQueryAwRequest objects.");
+		// Get the list of usernames from the request.
+		String usernames;
+		try {
+			usernames = (String) awRequest.getToProcessValue(InputKeys.USER_LIST);
 		}
-		UserInfoQueryAwRequest request = (UserInfoQueryAwRequest) awRequest;
+		catch(IllegalArgumentException e) {
+			_logger.error("Missing user in list in request.");
+			throw new DataAccessException(e);
+		}
 		
+		// Get all the classes that this user is privileged in.
 		List<?> privilegedClasses;
 		try {
 			// Get all the classes for which the logged in user is a supervisor.
 			privilegedClasses = getJdbcTemplate().query(SQL_GET_PRIVILEGED_CLASSES, 
-														new Object[] { request.getUser().getUserName() },
+														new Object[] { awRequest.getUser().getUserName() },
 														new SingleColumnRowMapper());
 		}
 		catch(org.springframework.dao.DataAccessException dae) {
-			_logger.error("Error while calling SQL '" + SQL_GET_PRIVILEGED_CLASSES + "' with parameter: " + request.getUser().getUserName(), dae);
+			_logger.error("Error while calling SQL '" + SQL_GET_PRIVILEGED_CLASSES + "' with parameter: " + awRequest.getUser().getUserName(), dae);
 			throw new DataAccessException(dae);
 		}
+		
+		// Get a union of all the users in all of the privileged classes.
+		List<String> usersList = new LinkedList<String>();
+		ListIterator<?> privilegedClassesIter = privilegedClasses.listIterator();
+		while(privilegedClassesIter.hasNext()) {
+			String currClassUrn = (String) privilegedClassesIter.next();
+			
+			List<?> classUsers;
+			try {
+				classUsers = getJdbcTemplate().query(SQL_GET_USER_LOGINS_FOR_CLASS, 
+													 new Object[] { currClassUrn },
+													 new SingleColumnRowMapper());			
+			}
+			catch(org.springframework.dao.DataAccessException dae) {
+				_logger.error("Error while calling SQL '" + SQL_GET_USER_LOGINS_FOR_CLASS + "' with parameter: " + currClassUrn, dae);
+				throw new DataAccessException(dae);
+			}
+			
+			ListIterator<?> classUsersIter = classUsers.listIterator();
+			while(classUsersIter.hasNext()) {
+				String currClassUser = (String) classUsersIter.next();
 				
-		String classes = null;
-		if(privilegedClasses.size() == 0) {
-			classes = "''";
-		}
-		else {
-			ListIterator<?> privilegedClassesIter = privilegedClasses.listIterator();
-			while(privilegedClassesIter.hasNext()) {
-				if(classes == null) {
-					classes = "";
+				if(! usersList.contains(currClassUser)) {
+					usersList.add(currClassUser);
 				}
-				else {
-					classes += ", ";
-				}
-				classes += "'" + ((String) privilegedClassesIter.next()) + "'";
 			}
 		}
-		classes += ")";
 		
-		// Check that all the users he is requesting information about are in one of those classes.
-		String sqlGetAllUsersForClasses = SQL_GET_ALL_USERS_FOR_CLASS_TEMPLATE + classes;
-		List<?> applicableUsers;
-		try {
-			applicableUsers = getJdbcTemplate().query(sqlGetAllUsersForClasses, new SingleColumnRowMapper());
-		}
-		catch(org.springframework.dao.DataAccessException dae) {
-			_logger.error("Error while calling SQL '" + sqlGetAllUsersForClasses + "'", dae);
-			throw new DataAccessException(dae);
-		}
-		
-		String[] usersBeingQueried = request.getUsernames();
+		// Validate that the currently logged in user has the correct
+		// permissions to get information about each of the users in the
+		// query.
+		String[] usersBeingQueried = usernames.split(",");
 		for(int i = 0; i < usersBeingQueried.length; i++) {
-			if(! usersBeingQueried[i].equals(request.getUser().getUserName())) {
+			if(! usersBeingQueried[i].equals(awRequest.getUser().getUserName())) {
 				boolean userFound = false;
 				
-				ListIterator<?> applicableUsersIter = applicableUsers.listIterator();
-				while(applicableUsersIter.hasNext()) {
-					String applicableUser = (String) applicableUsersIter.next();
+				ListIterator<?> usersListIter = usersList.listIterator();
+				while(usersListIter.hasNext()) {
+					String applicableUser = (String) usersListIter.next();
 					if(applicableUser.equals(usersBeingQueried[i])) {
 						userFound = true;
 						break;
@@ -164,7 +177,7 @@ public class UserInfoAggregationDao extends AbstractDao {
 		}
 					
 		// Get information about each of the users.
-		UserInfoQueryResult queryResult = request.getUserInfoQueryResult();
+		UserInfoQueryResult queryResult = new UserInfoQueryResult();
 		for(int i = 0; i < usersBeingQueried.length; i++) {
 			// Get permissions.
 			JSONObject permissionsJson = new JSONObject();
@@ -210,22 +223,40 @@ public class UserInfoAggregationDao extends AbstractDao {
 				throw new DataAccessException(dae);
 			}
 			
-			// Get roles.
-			JSONArray rolesJson = new JSONArray();
+			// Get class roles.
+			JSONArray classRolesJson = new JSONArray();
 			try {
-				List<?> rolesList = getJdbcTemplate().query(SQL_GET_USER_ROLES, new Object[] { usersBeingQueried[i] }, new SingleColumnRowMapper());
-				ListIterator<?> rolesListIter = rolesList.listIterator();
-				while(rolesListIter.hasNext()) {
-					rolesJson.put((String) rolesListIter.next()); 
+				ListIterator<?> classRolesListIter = getJdbcTemplate().query(SQL_GET_CLASS_ROLES, 
+																 			 new Object[] { usersBeingQueried[i] }, 
+																 			 new SingleColumnRowMapper()).listIterator();
+				while(classRolesListIter.hasNext()) {
+					classRolesJson.put((String) classRolesListIter.next()); 
 				}
 			}
 			catch(org.springframework.dao.DataAccessException dae) {
-				_logger.error("Error while calling SQL '" + SQL_GET_USER_ROLES + "' with parameter: " + usersBeingQueried[i], dae);
+				_logger.error("Error while calling SQL '" + SQL_GET_CLASS_ROLES + "' with parameter: " + usersBeingQueried[i], dae);
+				throw new DataAccessException(dae);
+			}
+			
+			// Get campaign roles.
+			JSONArray campaignRolesJson = new JSONArray();
+			try {
+				ListIterator<?> campaignRolesListIter = getJdbcTemplate().query(SQL_GET_CAMPAIGN_ROLES, 
+																				new Object[] { usersBeingQueried[i] }, 
+																				new SingleColumnRowMapper()).listIterator();
+				while(campaignRolesListIter.hasNext()) {
+					campaignRolesJson.put((String) campaignRolesListIter.next());
+				}
+			}
+			catch(org.springframework.dao.DataAccessException dae) {
+				_logger.error("Error while calling SQL '" + SQL_GET_CAMPAIGN_ROLES + "' with parameter: " + usersBeingQueried[i], dae);
 				throw new DataAccessException(dae);
 			}
 			
 			// Add user.
-			queryResult.addUser(usersBeingQueried[i], permissionsJson, classesJson, rolesJson);
+			queryResult.addUser(usersBeingQueried[i], permissionsJson, classesJson, classRolesJson, campaignRolesJson);
 		}
+		
+		awRequest.addToProcess(UserInfoQueryAwRequest.RESULT, queryResult, true);
 	}
 }
