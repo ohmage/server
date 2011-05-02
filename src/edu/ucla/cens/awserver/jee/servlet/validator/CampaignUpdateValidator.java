@@ -189,22 +189,12 @@ public class CampaignUpdateValidator extends AbstractHttpServletRequestValidator
 					}
 					request.setCampaignUrn(tmp);
 				}
-				else {
-					_logger.warn("An unknown parameter was found in a campaign creation request: " + name);
-					return false;
-				}
 				
 			} else {
 				if(InputKeys.XML.equals(fi.getFieldName()))
 				{
 					// The XML data is not checked because its length is so variable and potentially huge.
-					// The default setting for Tomcat is to disallow requests that are greater than 2MB, which may have to change in the future
-					String contentType = fi.getContentType();
-					if(! "text/xml".equals(contentType)) {
-						_logger.warn("The data type must be text/xml but instead we got: " + contentType);
-						return false;
-					}
-					
+					// The default setting for Tomcat is to disallow requests that are greater than 2MB, which may have to change in the future					
 					request.setXmlAsByteArray(fi.get()); // Gets the XML file.
 				}
 				else {
