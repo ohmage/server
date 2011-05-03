@@ -4,14 +4,11 @@ import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
-import java.util.Iterator;
-import java.util.Set;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.log4j.Logger;
-import org.json.JSONArray;
 import org.json.JSONObject;
 
 import edu.ucla.cens.awserver.domain.ErrorResponse;
@@ -49,16 +46,7 @@ public class StatelessAuthResponseWriter extends AbstractResponseWriter {
 				JSONObject jsonObject = new JSONObject();
 				jsonObject.put("result", "success");
 				
-				Set<String> keys = awRequest.getUser().getCampaignUserRoleMap().keySet();
-				Iterator<String> iterator = keys.iterator();
-				
-				JSONArray jsonArray = new JSONArray();
-					
-				while(iterator.hasNext()) {
-					jsonArray.put(iterator.next());
-				}
-				
-				jsonObject.put("campaigns", jsonArray);
+				jsonObject.put("hashed_password", awRequest.getUser().getPassword());
 				
 				responseText = jsonObject.toString();
 				

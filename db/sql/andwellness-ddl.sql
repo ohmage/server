@@ -53,6 +53,7 @@ CREATE TABLE user (
   id int unsigned NOT NULL auto_increment,
   login_id varchar(15) NOT NULL,
   password varchar(100) NOT NULL,
+  creation_millis long NOT NULL,
   enabled bit NOT NULL,
   new_account bit NOT NULL,
   campaign_creation_privilege bit NOT NULL,

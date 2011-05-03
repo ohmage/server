@@ -28,7 +28,8 @@ public class UserInfoQueryResult {
 		public String _username;
 		public JSONObject _permissions;
 		public JSONObject _classes;
-		public JSONArray _roles;
+		public JSONArray _classRoles;
+		public JSONArray _campaignRoles;
 	};
 	List<UserInfo> _users;
 	
@@ -43,12 +44,13 @@ public class UserInfoQueryResult {
 	 * Adds all the information for the new user to the local store of users
 	 * and information.
 	 */
-	public void addUser(String username, JSONObject permissions, JSONObject classes, JSONArray roles) {
+	public void addUser(String username, JSONObject permissions, JSONObject classes, JSONArray classRoles, JSONArray campaignRoles) {
 		UserInfo newUser = new UserInfo();
 		newUser._username = username;
 		newUser._permissions = permissions;
 		newUser._classes = classes;
-		newUser._roles = roles;
+		newUser._classRoles = classRoles;
+		newUser._campaignRoles = campaignRoles;
 
 		_users.add(newUser);
 	}
@@ -98,7 +100,8 @@ public class UserInfoQueryResult {
 				JSONObject userInfo = new JSONObject();
 				userInfo.put("permissions", info._permissions);
 				userInfo.put("classes", info._classes);
-				userInfo.put("roles", info._roles);
+				userInfo.put("class_roles", info._classRoles);
+				userInfo.put("campaign_roles", info._campaignRoles);
 				
 				result.put(info._username, userInfo);
 			}

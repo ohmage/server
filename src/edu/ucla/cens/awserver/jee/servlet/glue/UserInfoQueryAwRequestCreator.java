@@ -3,6 +3,7 @@ package edu.ucla.cens.awserver.jee.servlet.glue;
 import javax.servlet.http.HttpServletRequest;
 
 import edu.ucla.cens.awserver.request.AwRequest;
+import edu.ucla.cens.awserver.request.InputKeys;
 import edu.ucla.cens.awserver.request.UserInfoQueryAwRequest;
 
 /**
@@ -11,7 +12,6 @@ import edu.ucla.cens.awserver.request.UserInfoQueryAwRequest;
  * @author John Jenkins
  */
 public class UserInfoQueryAwRequestCreator implements AwRequestCreator {
-	
 	/**
 	 * Default constructor.
 	 */
@@ -25,12 +25,11 @@ public class UserInfoQueryAwRequestCreator implements AwRequestCreator {
 	 */
 	@Override
 	public AwRequest createFrom(HttpServletRequest request) {
-		String token = request.getParameter("auth_token");
-		String commaSeparatedUsernames = request.getParameter("usernames");
+		String token = request.getParameter(InputKeys.AUTH_TOKEN);
+		String commaSeparatedUsernames = request.getParameter(InputKeys.USER_LIST);
 		
-		String[] usernames = commaSeparatedUsernames.split(",");
-		
-		UserInfoQueryAwRequest awRequest = new UserInfoQueryAwRequest(token, usernames);
+		UserInfoQueryAwRequest awRequest = new UserInfoQueryAwRequest(commaSeparatedUsernames);
+		awRequest.setUserToken(token);
 		
 		return awRequest;
 	}

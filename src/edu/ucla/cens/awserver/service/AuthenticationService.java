@@ -104,7 +104,7 @@ public class AuthenticationService extends AbstractDaoService {
 				
 			} else { // no user found or invalid password
 				
-				_errorAwRequestAnnotator.annotate(awRequest, "user not found");
+				_errorAwRequestAnnotator.annotate(awRequest, "user not found or invalid password");
 				_logger.info("user " + awRequest.getUser().getUserName() + " not found or invalid password was supplied");
 			}
 			

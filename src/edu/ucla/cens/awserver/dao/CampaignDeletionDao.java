@@ -3,6 +3,11 @@ package edu.ucla.cens.awserver.dao;
 import javax.sql.DataSource;
 
 import org.apache.log4j.Logger;
+import org.springframework.jdbc.datasource.DataSourceTransactionManager;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionException;
+import org.springframework.transaction.TransactionStatus;
+import org.springframework.transaction.support.DefaultTransactionDefinition;
 
 import edu.ucla.cens.awserver.request.AwRequest;
 
@@ -97,13 +102,31 @@ public class CampaignDeletionDao extends AbstractDao {
 		
 		// Delete the campaign which will cause a cascade of deletes.
 		if(doIt) {
+			// Begin transaction
+			DefaultTransactionDefinition def = new DefaultTransactionDefinition();
+			def.setName("Campaign deletion.");
+			
 			try {
-				_logger.info("Deleting campaign " + campaignUrn + ".");
-				getJdbcTemplate().update(SQL_DELETE_CAMPAIGN, new Object[] { campaignUrn });
+				PlatformTransactionManager transactionManager = new DataSourceTransactionManager(getDataSource());
+				TransactionStatus status = transactionManager.getTransaction(def);
+				
+				try {
+					_logger.info("Deleting campaign " + campaignUrn + ".");
+					getJdbcTemplate().update(SQL_DELETE_CAMPAIGN, new Object[] { campaignUrn });
+				}
+				catch(org.springframework.dao.DataAccessException dae) {
+					_logger.error("Error executing SQL '" + SQL_DELETE_CAMPAIGN + "' with parameterr: " + campaignUrn, dae);
+					transactionManager.rollback(status);
+					throw new DataAccessException(dae);
+				}
+				
+				// Commit transaction.
+				transactionManager.commit(status);
 			}
-			catch(org.springframework.dao.DataAccessException dae) {
-				_logger.error("Error executing SQL '" + SQL_DELETE_CAMPAIGN + "' with parameterr: " + campaignUrn, dae);
-				throw new DataAccessException(dae);
+			catch(TransactionException e) {
+				_logger.error("Error while rolling back the transaction.", e);
+				awRequest.setFailedRequest(true);
+				throw new DataAccessException(e);
 			}
 		}
 		else {

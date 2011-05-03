@@ -1,6 +1,6 @@
 package edu.ucla.cens.awserver.request;
 
-import edu.ucla.cens.awserver.domain.UserInfoQueryResult;
+import java.util.Map;
 
 /**
  * AndWellness request class for user info queries.
@@ -8,9 +8,9 @@ import edu.ucla.cens.awserver.domain.UserInfoQueryResult;
  * @author John Jenkins
  */
 public class UserInfoQueryAwRequest extends ResultListAwRequest {
-	private String[] _usernames;
+	public static final String RESULT = "UserInfoQueryResult";
 	
-	private UserInfoQueryResult _result;
+	private String _usernames;
 	
 	/**
 	 * Default constructor which takes in the token that was used to create
@@ -22,12 +22,16 @@ public class UserInfoQueryAwRequest extends ResultListAwRequest {
 	 * 
 	 * @param usernames The array of usernames in the request.
 	 */
-	public UserInfoQueryAwRequest(String token, String[] usernames) {
+	public UserInfoQueryAwRequest(String usernames) {
 		super();
 		
-		setUserToken(token);
-		_usernames = usernames;
-		_result = new UserInfoQueryResult();
+		if(usernames == null) {
+			throw new IllegalArgumentException("'usernames' is required.");
+		}
+		
+		Map<String, Object> toValidateMap = getToValidate();
+		toValidateMap.put(InputKeys.USER_LIST, usernames);
+		this.setToValidate(toValidateMap);
 	}
 	
 	/**
@@ -38,17 +42,16 @@ public class UserInfoQueryAwRequest extends ResultListAwRequest {
 	 * @return A non-empty array of username Strings whose information is
 	 * 		   being queried.
 	 */
-	public String[] getUsernames() {
+	public String getUsernames() {
 		return(_usernames);
 	}
 	
 	/**
-	 * Returns the result object that contains the results of the query.
-	 * 
-	 * @return An object containing all the information needed for the 
-	 * 		   request.
+	 * Outputs this object and then calls its super's toString().
 	 */
-	public UserInfoQueryResult getUserInfoQueryResult() {
-		return _result;
+	@Override
+	public String toString() {
+		return("UserInfoQueryAwRequest [_usernames = " + _usernames +
+			   "] super = " + super.toString());
 	}
 }

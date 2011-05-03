@@ -17,6 +17,11 @@
     <constructor-arg index="0"><value>[\w\.\$\/]{50,60}</value></constructor-arg>
     <constructor-arg index="1"><ref bean="passwordFailedJsonRequestAnnotator" /></constructor-arg>
   </bean>
+  
+  <bean id="passwordValidator" class="edu.ucla.cens.awserver.validator.AwRequestPasswordValidator">
+    <constructor-arg index="0"><value>[a-z\.]{9,15}</value></constructor-arg>
+    <constructor-arg index="1"><ref bean="passwordFailedJsonRequestAnnotator" /></constructor-arg>
+  </bean>
 
   <bean id="userTokenValidator" class="edu.ucla.cens.awserver.validator.AwRequestUserTokenValidator">
     <constructor-arg index="0"><value>[a-fA-F0-9]{8}\-[a-fA-F0-9]{4}\-[a-fA-F0-9]{4}\-[a-fA-F0-9]{4}\-[a-fA-F0-9]{12}</value></constructor-arg>
