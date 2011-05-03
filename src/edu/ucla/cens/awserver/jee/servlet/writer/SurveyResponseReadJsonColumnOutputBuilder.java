@@ -1,5 +1,6 @@
 package edu.ucla.cens.awserver.jee.servlet.writer;
 
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -9,6 +10,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import edu.ucla.cens.awserver.domain.PromptContext;
+import edu.ucla.cens.awserver.domain.PromptProperty;
 import edu.ucla.cens.awserver.request.SurveyResponseReadAwRequest;
 
 /**
@@ -16,7 +18,7 @@ import edu.ucla.cens.awserver.request.SurveyResponseReadAwRequest;
  * 
  * @author selsky
  */
-public class SurveyResponseReadJsonColumnOutputBuilder implements SurveyResponseReadOutputBuilder {
+public class SurveyResponseReadJsonColumnOutputBuilder implements SurveyResponseReadColumnOutputBuilder {
 
 	public String createMultiResultOutput(int totalNumberOfResults,
 			                              SurveyResponseReadAwRequest req,
@@ -50,14 +52,26 @@ public class SurveyResponseReadJsonColumnOutputBuilder implements SurveyResponse
 				JSONObject column = new JSONObject();
 				JSONObject context = new JSONObject();
 				context.put("unit", 
-						    promptContextMap.get(promptId).getUnit() == null ? "NA" : promptContextMap.get(promptId).getUnit());
+						    promptContextMap.get(promptId).getUnit() == null ? JSONObject.NULL : promptContextMap.get(promptId).getUnit());
 				context.put("prompt_type", promptContextMap.get(promptId).getType());
 				context.put("display_type", promptContextMap.get(promptId).getDisplayType());
 				context.put("display_label", promptContextMap.get(promptId).getDisplayLabel());
 				if(null != promptContextMap.get(promptId).getChoiceGlossary()) {
-					context.put("choice_glossary", promptContextMap.get(promptId).getChoiceGlossary());
+					JSONArray choiceGlossaryArray = new JSONArray();
+					Map<String, PromptProperty> choiceGlossary = promptContextMap.get(promptId).getChoiceGlossary();
+					Iterator<String> iterator = choiceGlossary.keySet().iterator();
+					while(iterator.hasNext()) {
+						PromptProperty pp = choiceGlossary.get(iterator.next());
+						JSONObject choice = new JSONObject();
+						choice.put("value", pp.getValue());
+						choice.put("label", pp.getLabel());
+						JSONObject outer = new JSONObject();
+						outer.put(pp.getKey(), choice);
+						choiceGlossaryArray.put(outer);
+					}
+					context.put("choice_glossary", choiceGlossaryArray);
 				} else {
-					context.put("choice_glossary", "NA");
+					context.put("choice_glossary", JSONObject.NULL);
 				}
 				column.put("context", context);
 				column.put("values", columnMap.get(key));

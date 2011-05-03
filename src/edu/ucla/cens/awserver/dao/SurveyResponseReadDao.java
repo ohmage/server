@@ -42,6 +42,7 @@ public class SurveyResponseReadDao extends AbstractDao {
 	
 	private String _andSurveyIds = " AND sr.survey_id IN ";
 	
+	// TODO need to dynamically generate this ORDER BY using the sort_order parameter
 	private String _orderBy = " ORDER BY u.login_id, sr.msg_timestamp, sr.survey_id, " +
 			                  "pr.repeatable_set_id, pr.repeatable_set_iteration, pr.prompt_id";
 	
@@ -55,7 +56,7 @@ public class SurveyResponseReadDao extends AbstractDao {
 	
 	@Override
 	public void execute(AwRequest awRequest) {
-		_logger.info("about to construct and run a \"new\" data point query");
+		_logger.info("about to construct and run a survey_response query");
 		SurveyResponseReadAwRequest req = (SurveyResponseReadAwRequest) awRequest;
 		String sql = generateSql(req);
 		
@@ -113,7 +114,23 @@ public class SurveyResponseReadDao extends AbstractDao {
 							result.setRepeatableSetId(rs.getString(5));
 						}
 						
-						result.setTimestamp(rs.getString(6));
+						String ts = rs.getString(6); // this will return the timestamp in JDBC escape format (ending with nanoseconds)
+						                             // and the nanoseconds value is not needed, so shave it off
+						                             // it is weird to be formatting the data inside the DAO here, but the nanaseconds
+						                             // aren't even *stored* in the db, they are appended to the string during
+						                             // whatever conversion JDBC does when it converts the MySQL timestamp to a 
+						                             // Java String.
+						
+						if(ts.contains(".")) {
+							
+							int indexOfDot = ts.indexOf(".");
+							result.setTimestamp(ts.substring(0, indexOfDot));
+							
+						} else {
+							
+							result.setTimestamp(ts);
+						}
+						
 						result.setTimezone(rs.getString(7));
 						result.setLocationStatus(rs.getString(8));
 						result.setLocation(rs.getString(9));

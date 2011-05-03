@@ -18,7 +18,7 @@ import edu.ucla.cens.awserver.request.SurveyResponseReadAwRequest;
  * 
  * @author selsky
  */
-public class SurveyResponseReadCsvColumnOutputBuilder implements SurveyResponseReadOutputBuilder {
+public class SurveyResponseReadCsvColumnOutputBuilder implements SurveyResponseReadColumnOutputBuilder {
 	private static String newLine = System.getProperty("line.separator");
 	
 	public String createMultiResultOutput(int totalNumberOfResults,
@@ -45,14 +45,14 @@ public class SurveyResponseReadCsvColumnOutputBuilder implements SurveyResponseR
 			for(String key : promptContextKeySet) {
 				JSONObject prompt = new JSONObject();
 				JSONObject context = new JSONObject();
-				context.put("unit", promptContextMap.get(key).getUnit() == null ? "NA" : promptContextMap.get(key).getUnit());
+				context.put("unit", promptContextMap.get(key).getUnit() == null ?  JSONObject.NULL : promptContextMap.get(key).getUnit());
 				context.put("prompt_type", promptContextMap.get(key).getType());
 				context.put("display_type", promptContextMap.get(key).getDisplayType());
 				context.put("display_label", promptContextMap.get(key).getDisplayLabel());
 				if(null != promptContextMap.get(key).getChoiceGlossary()) {	
 					context.put("choice_glossary", toJson(promptContextMap.get(key).getChoiceGlossary()));
 				} else {
-					context.put("choice_glossary", "NA");
+					context.put("choice_glossary", JSONObject.NULL);
 				}
 				prompt.put(key, context); 
 				builder.append(prompt.toString().replace(",", ";")).append(newLine);
@@ -88,7 +88,7 @@ public class SurveyResponseReadCsvColumnOutputBuilder implements SurveyResponseR
 			for(String key : columnMapKeySet) {
 				Object value = columnMap.get(key).get(i);
 				if(null == value) {
-					builder.append("NA");
+					builder.append("null");
 				} else {
 					if(value instanceof JSONObject) { //single_choice_custom, multi_choice_custom, launch_context 
 						builder.append(((JSONObject) value).toString().replace(",", ";"));

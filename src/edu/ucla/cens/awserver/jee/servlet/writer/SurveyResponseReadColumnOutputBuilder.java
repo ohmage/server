@@ -11,7 +11,7 @@ import edu.ucla.cens.awserver.request.SurveyResponseReadAwRequest;
 /**
  * @author selsky
  */
-public interface SurveyResponseReadOutputBuilder {
+public interface SurveyResponseReadColumnOutputBuilder {
 	
 	String createMultiResultOutput(int totalNumberOfResults, SurveyResponseReadAwRequest req, 
 			                       Map<String, PromptContext> promptContextMap, Map<String, List<Object>> columnMap)

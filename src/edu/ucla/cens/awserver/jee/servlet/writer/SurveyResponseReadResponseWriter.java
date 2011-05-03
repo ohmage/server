@@ -39,21 +39,28 @@ import edu.ucla.cens.awserver.util.JsonUtils;
  */
 public class SurveyResponseReadResponseWriter extends AbstractResponseWriter {
 	private static Logger _logger = Logger.getLogger(SurveyResponseReadResponseWriter.class);
-	private Map<String, SurveyResponseReadOutputBuilder> _outputBuilderMap;
+	private Map<String, SurveyResponseReadColumnOutputBuilder> _columnOutputBuilderMap;
+	private SurveyResponseReadJsonRowBasedOutputBuilder _rowBasedOutputBuilder;
+	
 	private List<String> _columnNames;
 	
 	public SurveyResponseReadResponseWriter(ErrorResponse errorResponse, 
 			                               List<String> columnNames,
-			                               Map<String, SurveyResponseReadOutputBuilder> outputBuilderMap) {
+			                               Map<String, SurveyResponseReadColumnOutputBuilder> columnOutputBuilderMap,
+			                               SurveyResponseReadJsonRowBasedOutputBuilder rowBasedOutputBuilder) {
 		super(errorResponse);
 		if(null == columnNames || columnNames.size() == 0) {
 			throw new IllegalArgumentException("a non-null, non-empty columnNames list is required");
 		}
-		if(null == outputBuilderMap || outputBuilderMap.isEmpty()) {
+		if(null == columnOutputBuilderMap || columnOutputBuilderMap.isEmpty()) {
 			throw new IllegalArgumentException("a non-null, non-empty output builder map is required");
 		}
+		if(null == rowBasedOutputBuilder) {
+			throw new IllegalArgumentException("a non-null row-based output builder is required");
+		}
 		_columnNames = columnNames;
-		_outputBuilderMap = outputBuilderMap;
+		_columnOutputBuilderMap = columnOutputBuilderMap;
+		_rowBasedOutputBuilder = rowBasedOutputBuilder;
 	}
 	
 	/**
@@ -117,80 +124,88 @@ public class SurveyResponseReadResponseWriter extends AbstractResponseWriter {
 				// the list will be unchanged if it didn't already contain urn:ohmage:prompt:response 
 				outputColumns.remove("urn:ohmage:prompt:response");
 				
-				Map<String, List<Object>> columnMap = new HashMap<String, List<Object>> ();
 				
-				// initialize the map with a bunch of empty lists in order to avoid a null list check when retrieving the 
-				// lists for each column below
+				if(! "json-rows".equals(req.getOutputFormat())) { 
 				
-				for(String columnName : outputColumns) {
-					List<Object> list = new ArrayList<Object>();
-					columnMap.put(columnName, list);
-				}
-				
-				Set<String> columnMapKeySet = columnMap.keySet();
-				
-				// TODO convert all of the results to UTC first just in case they span timezones
-				// this means there could be results that seem out of order if they actually do span timezones
-				// and it means the sort should occur here instead of the SQL
-				
-				// Now flip/squash the database rows into columns
-				// For each user-date-surveyId-repeatableSetId-repeatableSetIteration combination, the metadata will be the same
-				// Assume that the results are ordered by user-date-surveyId-promptId (brittle dependency on SQL order by)
-				
-				if(0 != results.size()) {
+					Map<String, List<Object>> columnMap = new HashMap<String, List<Object>> ();
 					
-					int totalNumberOfResults = results.size();
-					String currentLoginId = results.get(0).getLoginId();
-					String currentTimestamp = results.get(0).getTimestamp();
-					String currentSurveyId = results.get(0).getSurveyId();
-					String currentRepeatableSetId = results.get(0).getRepeatableSetId();
-					Integer currentRepeatableSetIteration = results.get(0).getRepeatableSetIteration();
-					SurveyResponseReadFormattedResult currentFormattedResult = new SurveyResponseReadFormattedResult();
-					List<SurveyResponseReadFormattedResult> formattedResultList = new ArrayList<SurveyResponseReadFormattedResult>();
-					Map<String, PromptContext> promptContextMap = new HashMap<String, PromptContext>();
+					// initialize the map with a bunch of empty lists in order to avoid a null list check when retrieving the 
+					// lists for each column below
 					
-					copyToFormattedResult(results.get(0), currentFormattedResult, true, promptContextMap);
-					formattedResultList.add(currentFormattedResult);
-					results.remove(0); // will this break the loop below if there is only one result?
-					
-					for(SurveyResponseReadResult result : results) {
-							
-						if( ! currentLoginId.equals(result.getLoginId())
-							|| ! currentTimestamp.equals(result.getTimestamp())
-							|| ! currentSurveyId.equals(result.getSurveyId())
-							|| ((null == currentRepeatableSetId && result.getRepeatableSetId() != null) 
-								|| (currentRepeatableSetId != null && ! currentRepeatableSetId.equals(result.getRepeatableSetId())))
-							|| ((null == currentRepeatableSetIteration && result.getRepeatableSetIteration() != null) 
-								|| (currentRepeatableSetIteration != null && ! currentRepeatableSetIteration.equals(result.getRepeatableSetIteration())))) {
-							
-							currentFormattedResult = new SurveyResponseReadFormattedResult();
-							copyToFormattedResult(result, currentFormattedResult, true, promptContextMap);
-							formattedResultList.add(currentFormattedResult);
-							currentLoginId = currentFormattedResult.getLoginId();
-							currentSurveyId = currentFormattedResult.getSurveyId();
-							currentTimestamp = currentFormattedResult.getTimestamp();
-							currentRepeatableSetId = currentFormattedResult.getRepeatableSetId();
-							currentRepeatableSetIteration = currentFormattedResult.getRepeatableSetIteration();
-							
-						} else {
-							
-							copyToFormattedResult(result, currentFormattedResult, false, promptContextMap);
-						}
+					for(String columnName : outputColumns) {
+						List<Object> list = new ArrayList<Object>();
+						columnMap.put(columnName, list);
 					}
 					
-					// Column-ify the data with only the columns that the user requested
-					for(SurveyResponseReadFormattedResult result : formattedResultList) {
-						for(String key : columnMapKeySet) {
-							
-							addItemToList(key, columnMap, result);
+					Set<String> columnMapKeySet = columnMap.keySet();
+					
+					// TODO convert all of the results to UTC first just in case they span timezones
+					// this means there could be results that seem out of order if they actually do span timezones
+					// and it means the sort should occur here instead of the SQL
+					
+					// Now flip/squash the database rows into columns
+					// For each user-date-surveyId-repeatableSetId-repeatableSetIteration combination, the metadata will be the same
+					// Assume that the results are ordered by user-date-surveyId-promptId (brittle dependency on SQL order by)
+					
+					if(0 != results.size()) {
+						
+						int totalNumberOfResults = results.size();
+						String currentLoginId = results.get(0).getLoginId();
+						String currentTimestamp = results.get(0).getTimestamp();
+						String currentSurveyId = results.get(0).getSurveyId();
+						String currentRepeatableSetId = results.get(0).getRepeatableSetId();
+						Integer currentRepeatableSetIteration = results.get(0).getRepeatableSetIteration();
+						SurveyResponseReadFormattedResult currentFormattedResult = new SurveyResponseReadFormattedResult();
+						List<SurveyResponseReadFormattedResult> formattedResultList = new ArrayList<SurveyResponseReadFormattedResult>();
+						Map<String, PromptContext> promptContextMap = new HashMap<String, PromptContext>();
+						
+						copyToFormattedResult(results.get(0), currentFormattedResult, true, promptContextMap);
+						formattedResultList.add(currentFormattedResult);
+						results.remove(0); // TODO will this break the loop below if there is only one result?
+						
+						for(SurveyResponseReadResult result : results) {
+								
+							if( ! currentLoginId.equals(result.getLoginId())
+								|| ! currentTimestamp.equals(result.getTimestamp())
+								|| ! currentSurveyId.equals(result.getSurveyId())
+								|| ((null == currentRepeatableSetId && result.getRepeatableSetId() != null) 
+									|| (currentRepeatableSetId != null && ! currentRepeatableSetId.equals(result.getRepeatableSetId())))
+								|| ((null == currentRepeatableSetIteration && result.getRepeatableSetIteration() != null) 
+									|| (currentRepeatableSetIteration != null && ! currentRepeatableSetIteration.equals(result.getRepeatableSetIteration())))) {
+								
+								currentFormattedResult = new SurveyResponseReadFormattedResult();
+								copyToFormattedResult(result, currentFormattedResult, true, promptContextMap);
+								formattedResultList.add(currentFormattedResult);
+								currentLoginId = currentFormattedResult.getLoginId();
+								currentSurveyId = currentFormattedResult.getSurveyId();
+								currentTimestamp = currentFormattedResult.getTimestamp();
+								currentRepeatableSetId = currentFormattedResult.getRepeatableSetId();
+								currentRepeatableSetIteration = currentFormattedResult.getRepeatableSetIteration();
+								
+							} else {
+								
+								copyToFormattedResult(result, currentFormattedResult, false, promptContextMap);
+							}
 						}
+						
+						// Column-ify the data with only the columns that the user requested
+						for(SurveyResponseReadFormattedResult result : formattedResultList) {
+							for(String key : columnMapKeySet) {
+								
+								addItemToList(key, columnMap, result);
+							}
+						}
+						
+						responseText = _columnOutputBuilderMap.get(req.getOutputFormat()).createMultiResultOutput(totalNumberOfResults, req, promptContextMap, columnMap);
+						
+					} else { // no results
+						
+						responseText = _columnOutputBuilderMap.get(req.getOutputFormat()).createZeroResultOutput(req, columnMap);
 					}
+				
+				} else { // the client wants row-based output
 					
-					responseText = _outputBuilderMap.get(req.getOutputFormat()).createMultiResultOutput(totalNumberOfResults, req, promptContextMap, columnMap);
-					
-				} else { // no results
-					
-					responseText = _outputBuilderMap.get(req.getOutputFormat()).createZeroResultOutput(req, columnMap);
+					responseText = _rowBasedOutputBuilder.buildOutput(req, results, outputColumns);
 				}
 				
 			} else {
@@ -255,16 +270,16 @@ public class SurveyResponseReadResponseWriter extends AbstractResponseWriter {
 			
 		} else if("urn:ohmage:context:utc_timestamp".equals(columnName)) {
 			
-			columnMap.get(columnName).add(result.getUtcTimestamp() == null ? "NA" : result.getUtcTimestamp());
+			columnMap.get(columnName).add(result.getUtcTimestamp());
 			
 		} else if("urn:ohmage:context:launch_context_long".equals(columnName)) {
 			
-			columnMap.get(columnName).add(result.getLaunchContext() == null ? "NA" : new JSONObject(result.getLaunchContext()));
+			columnMap.get(columnName).add(result.getLaunchContext() == null ? null : new JSONObject(result.getLaunchContext()));
 			
 		}
 		else if("urn:ohmage:context:launch_context_short".equals(columnName)) {
 			
-			columnMap.get(columnName).add(result.getLaunchContext() == null ? "NA" : shortLaunchContext(result.getLaunchContext()));
+			columnMap.get(columnName).add(result.getLaunchContext() == null ? null : shortLaunchContext(result.getLaunchContext()));
 			
 		} else if("urn:ohmage:context:location:status".equals(columnName)) {
 			
@@ -272,23 +287,23 @@ public class SurveyResponseReadResponseWriter extends AbstractResponseWriter {
 			
 		} else if("urn:ohmage:context:location:latitude".equals(columnName)) {
 			
-			columnMap.get(columnName).add(result.getLatitude() == null ? "NA" : result.getLatitude());
+			columnMap.get(columnName).add(result.getLatitude());
 			
 		} else if("urn:ohmage:context:location:longitude".equals(columnName)) {
 			
-			columnMap.get(columnName).add(result.getLongitude() == null ? "NA" : result.getLongitude());
+			columnMap.get(columnName).add(result.getLongitude());
 			
 		} else if("urn:ohmage:context:location:timestamp".equals(columnName)) {
 			
-			columnMap.get(columnName).add(result.getLocationTimestamp() == null ? "NA" : result.getLocationTimestamp());
+			columnMap.get(columnName).add(result.getLocationTimestamp());
 			
 		} else if("urn:ohmage:context:location:accuracy".equals(columnName)) {
 			
-			columnMap.get(columnName).add(result.getAccuracy() == null ? "NA" : result.getAccuracy());
+			columnMap.get(columnName).add(result.getAccuracy());
 			
 		} else if("urn:ohmage:context:location:provider".equals(columnName)) {
 			
-			columnMap.get(columnName).add(result.getProvider() == null ? "NA" : result.getProvider());
+			columnMap.get(columnName).add(result.getProvider());
 		
 		} else if("urn:ohmage:survey:id".equals(columnName)) {
 			
@@ -304,11 +319,11 @@ public class SurveyResponseReadResponseWriter extends AbstractResponseWriter {
 			
 		} else if("urn:ohmage:repeatable_set:id".equals(columnName)) {
 			
-			columnMap.get(columnName).add(result.getRepeatableSetId() == null ? "NA" : result.getRepeatableSetId());
+			columnMap.get(columnName).add(result.getRepeatableSetId());
 			
 		} else if("urn:ohmage:repeatable_set:iteration".equals(columnName)) {
 			
-			columnMap.get(columnName).add(result.getRepeatableSetIteration() == null ? "NA" : result.getRepeatableSetIteration());
+			columnMap.get(columnName).add(result.getRepeatableSetIteration());
 			
 		} else if (columnName.startsWith("urn:ohmage:prompt:id:")) {
 			
@@ -317,7 +332,7 @@ public class SurveyResponseReadResponseWriter extends AbstractResponseWriter {
 			if(null != result.getPromptDisplayValueMap().get(promptId)) {
 				columnMap.get(columnName).add(result.getPromptDisplayValueMap().get(promptId));
 			} else {
-				columnMap.get(columnName).add("NA"); 
+				columnMap.get(columnName).add(null); 
 			}
 		}
 	}
