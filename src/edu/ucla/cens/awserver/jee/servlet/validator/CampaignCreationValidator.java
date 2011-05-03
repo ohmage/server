@@ -65,8 +65,8 @@ public class CampaignCreationValidator extends AbstractHttpServletRequestValidat
 		
 		// Check that the correct number of items were in the request.
 		int numberOfUploadedItems = uploadedItems.size();
-		if((numberOfUploadedItems < 5) || (numberOfUploadedItems > 6)) {
-			_logger.warn("An incorrect number of parameters were found on a campaign creation attempt. 5 or 6 were expected and " + numberOfUploadedItems
+		if(numberOfUploadedItems < 5) {
+			_logger.warn("An incorrect number of parameters were found on a campaign creation attempt. At least 5 were expected and " + numberOfUploadedItems
 				+ " were received");
 			return false;
 		}
@@ -116,20 +116,8 @@ public class CampaignCreationValidator extends AbstractHttpServletRequestValidat
 					}
 					classes = tmp;
 				}
-				else {
-					_logger.warn("An unknown parameter was found in a campaign creation request: " + name);
-					return false;
-				}
 			} else {
-				if(InputKeys.XML.equals(fi.getFieldName())) {
-					// The XML data is not checked because its length is so variable and potentially huge.
-					// The default setting for Tomcat is to disallow requests that are greater than 2MB, which may have to change in the future
-					String contentType = fi.getContentType();
-					if(! "text/xml".equals(contentType)) {
-						_logger.warn("The data type must be text/xml but instead we got: " + contentType);
-						return false;
-					}
-					
+				if(InputKeys.XML.equals(fi.getFieldName())) {					
 					xml = new String(fi.get()); // Gets the XML file.
 				}
 			}

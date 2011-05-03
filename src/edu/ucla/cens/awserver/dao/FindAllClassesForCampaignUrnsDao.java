@@ -48,8 +48,13 @@ public class FindAllClassesForCampaignUrnsDao extends AbstractDao {
 			List<String> pList = new ArrayList<String>();
 			List<?> results = awRequest.getResultList();
 			int size = results.size();
+			
 			for(int i = 0; i < size; i++) {
-				pList.add(((CampaignQueryResult)results.get(i)).getUrn()); // another ugly cast ...
+				String urn = ((CampaignQueryResult)results.get(i)).getUrn(); // FIXME another ugly cast ...
+				
+				if(req.getClassUrnList().isEmpty() || req.getClassUrnList().contains(urn)) {
+					pList.add(urn); 	
+				}
 			}
 			
 			builder.append(_select);

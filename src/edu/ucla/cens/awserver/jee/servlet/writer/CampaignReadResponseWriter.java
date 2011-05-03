@@ -79,6 +79,7 @@ public class CampaignReadResponseWriter extends AbstractResponseWriter {
 						campaignObject.put("privacy_state", result.getPrivacyState());
 						campaignObject.put("creation_timestamp", result.getCreationTimestamp());
 						campaignObject.put("user_roles", new JSONArray(result.getUserRoles()));
+						campaignObject.put("description", result.getDescription());
 					}
 					
 					if("long".equals(req.getOutputFormat())) {
@@ -94,7 +95,7 @@ public class CampaignReadResponseWriter extends AbstractResponseWriter {
 						JSONObject xmlOutput = new JSONObject();
 						xmlOutput.put("urn", result.getUrn());
 						xmlOutput.put("configuration", result.getXml());
-						rootObject.put("data", xmlOutput);
+						rootObject.put("data", xmlOutput); // assuming only one result here ...
 					}
 				} 	
 				

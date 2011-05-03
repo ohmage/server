@@ -83,22 +83,22 @@ public class CampaignUpdateValidator extends AbstractHttpServletRequestValidator
 		request.setCampaignUrn(urn);
 		
 		String description = httpRequest.getParameter(InputKeys.DESCRIPTION);
-		if(description != null) {
+		if((description != null) && (! "".equals(description))) {
 			request.setDescription(description);
 		}
 		
 		String runningState = httpRequest.getParameter(InputKeys.RUNNING_STATE);
-		if(runningState != null) {
+		if((runningState != null) && (! "".equals(runningState))) {
 			request.setRunningState(runningState);
 		}
 		
 		String privacyState = httpRequest.getParameter(InputKeys.PRIVACY_STATE);
-		if(privacyState != null) {
+		if((privacyState != null) && (! "".equals(privacyState))) {
 			request.setPrivacyState(privacyState);
 		}
 		
 		String classUrnList = httpRequest.getParameter(InputKeys.CLASS_URN_LIST);
-		if(classUrnList != null) {
+		if((classUrnList != null) && (! "".equals(classUrnList))) {
 			request.setCommaSeparatedClasses(classUrnList);
 		}
 		
@@ -155,19 +155,25 @@ public class CampaignUpdateValidator extends AbstractHttpServletRequestValidator
 					if(greaterThanLength("description", InputKeys.DESCRIPTION, tmp, 65535)) {
 						return false;
 					}
-					request.setDescription(tmp);
+					else if(! "".equals(tmp)) {
+						request.setDescription(tmp);
+					}
 				}
 				else if(InputKeys.RUNNING_STATE.equals(name)) {
 					if(greaterThanLength("runningState", InputKeys.RUNNING_STATE, tmp, 50)) {
 						return false;
 					}
-					request.setRunningState(tmp);
+					else if(! "".equals(tmp)) {
+						request.setRunningState(tmp);
+					}
 				}
 				else if(InputKeys.PRIVACY_STATE.equals(name)) {
 					if(greaterThanLength("privacyState", InputKeys.PRIVACY_STATE, tmp, 50)) {
 						return false;
 					}
-					request.setPrivacyState(tmp);
+					else if(! "".equals(tmp)) {
+						request.setPrivacyState(tmp);
+					}
 				}
 				else if(InputKeys.CLASS_URN_LIST.equals(name)) {
 					// Note: This is based on the maximum size of a campaign
@@ -175,41 +181,33 @@ public class CampaignUpdateValidator extends AbstractHttpServletRequestValidator
 					if(greaterThanLength("classes", InputKeys.CLASS_URN_LIST, tmp, 25600)) {
 						return false;
 					}
-					request.setCommaSeparatedClasses(tmp);
+					else if(! "".equals(tmp)) {
+						request.setCommaSeparatedClasses(tmp);
+					}
 				}
 				else if(InputKeys.AUTH_TOKEN.equals(name)) {
 					if(greaterThanLength("authToken", InputKeys.AUTH_TOKEN, tmp, 36)) {
 						return false;
 					}
-					request.setUserToken(tmp);
+					else if(! "".equals(tmp)) {
+						request.setUserToken(tmp);
+					}
 				}
 				else if(InputKeys.CAMPAIGN_URN.equals(name)) {
 					if(greaterThanLength("campaignUrn", InputKeys.CAMPAIGN_URN, tmp, 255)) {
 						return false;
 					}
-					request.setCampaignUrn(tmp);
-				}
-				else {
-					_logger.warn("An unknown parameter was found in a campaign creation request: " + name);
-					return false;
+					else if(! "".equals(tmp)) {
+						request.setCampaignUrn(tmp);
+					}
 				}
 				
 			} else {
-				if(InputKeys.XML.equals(fi.getFieldName()))
-				{
-					// The XML data is not checked because its length is so variable and potentially huge.
-					// The default setting for Tomcat is to disallow requests that are greater than 2MB, which may have to change in the future
-					String contentType = fi.getContentType();
-					if(! "text/xml".equals(contentType)) {
-						_logger.warn("The data type must be text/xml but instead we got: " + contentType);
-						return false;
-					}
-					
-					request.setXmlAsByteArray(fi.get()); // Gets the XML file.
-				}
-				else {
-					_logger.warn("An unknown parameter was found in a campaign creation request: " + fi.getFieldName());
-					return false;
+				// The XML data is not checked because its length is so variable and potentially huge.
+				// The default setting for Tomcat is to disallow requests that are greater than 2MB, which may have to change in the future
+				byte[] xml = fi.get();
+				if(xml.length != 0) {
+					request.setXmlAsByteArray(xml); // Gets the XML file.
 				}
 			}
 		}
