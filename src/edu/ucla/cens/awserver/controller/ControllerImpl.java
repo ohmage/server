@@ -64,6 +64,7 @@ public class ControllerImpl implements Controller {
 					if(! validator.validate(awRequest)) {
 						
 						_logger.info("aborting request processing because top-level validation found an invalid request");
+						awRequest.setFailedRequest(true);
 						continueProcessing = false;
 						break;
 					}

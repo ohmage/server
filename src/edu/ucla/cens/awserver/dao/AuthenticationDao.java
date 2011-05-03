@@ -7,7 +7,6 @@ import jbcrypt.BCrypt;
 import org.apache.log4j.Logger;
 
 import edu.ucla.cens.awserver.request.AwRequest;
-import edu.ucla.cens.awserver.util.StringUtils;
 
 /**
  * DAO for performing user authentication.
@@ -16,13 +15,17 @@ import edu.ucla.cens.awserver.util.StringUtils;
  */
 public class AuthenticationDao extends AbstractDao {
 	private static Logger _logger = Logger.getLogger(AuthenticationDao.class);
-	private String _salt;
-	private boolean _performHash;
 	
 	private static final String _selectSql = "SELECT user.id, user.enabled, user.new_account" 
 		                                     + " FROM user"
 		                                     + " WHERE user.login_id = ?"
 		                                     +   " AND user.password = ?";
+	
+	private static final String SQL_GET_PASSWORD = "SELECT password " +
+												   "FROM user " +
+												   "WHERE login_id = ?";
+	
+	private boolean _performHash;
 	
 	/**
 	 * @param dataSource the data source used to connect to the MySQL db
@@ -32,16 +35,9 @@ public class AuthenticationDao extends AbstractDao {
 	 * 
 	 * @throws IllegalArgumentException if the provided salt is empty, null, or all whitespace and performHash is true
 	 */
-	public AuthenticationDao(DataSource dataSource, String salt, boolean performHash) {
+	public AuthenticationDao(DataSource dataSource, boolean performHash) {
 		super(dataSource);
 		
-		if(performHash) {
-			if(StringUtils.isEmptyOrWhitespaceOnly(salt)) {
-				throw new IllegalArgumentException("a salt value is required");
-			}
-		}
-		
-		_salt = salt;
 		_performHash = performHash;
 	}
 	
@@ -52,13 +48,41 @@ public class AuthenticationDao extends AbstractDao {
 	public void execute(AwRequest awRequest) {
 		_logger.info("attempting login for user " + awRequest.getUser());
 		
+		// If we are supposed to perform the hash, then we do so and update
+		// the request's user's password (which should be plaintext but could
+		// be anything) with a hash of that password and a salt of their 
+		// actual password salted. If their plaintext password is correct,
+		// this hashing will result in the same value as the salt (their
+		// plaintext password correctly hashed).
+		if(_performHash) {
+			try {
+				String password = (String) getJdbcTemplate().queryForObject(SQL_GET_PASSWORD, 
+																			new Object[] { awRequest.getUser().getUserName() },
+																			String.class);
+				awRequest.getUser().setPassword(BCrypt.hashpw(awRequest.getUser().getPassword(), password));
+			}
+			catch(org.springframework.dao.IncorrectResultSizeDataAccessException e) {
+				if(e.getActualSize() > 1) {
+					_logger.error("Data integrity issue on user table. More than one user with the same username.");
+					throw new DataAccessException(e);
+				}
+				// If there weren't any users, return and let the service
+				// handle the lack of results.
+				return;
+			}
+			catch(org.springframework.dao.DataAccessException e) {
+				_logger.error("Error while executing SQL '" + SQL_GET_PASSWORD + "' with parameter: " + awRequest.getUser().getPassword());
+				throw new DataAccessException(e);
+			}
+		}
+		
 		try {
 			awRequest.setResultList(
 				getJdbcTemplate().query(
 					_selectSql, 
 					new String[] {
 					    awRequest.getUser().getUserName(), 
-					    _performHash ? BCrypt.hashpw(awRequest.getUser().getPassword(), _salt) : awRequest.getUser().getPassword(), 
+					    awRequest.getUser().getPassword()
 					}, 
 					new AuthenticationResultRowMapper()
 				)

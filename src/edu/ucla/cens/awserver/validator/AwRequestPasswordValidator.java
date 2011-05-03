@@ -23,22 +23,24 @@ public class AwRequestPasswordValidator extends AbstractAnnotatingRegexpValidato
 	 */
 	public boolean validate(AwRequest awRequest) {
 		_logger.info("Validating that the user's password follows our convention.");
-		
+
 		if(null == awRequest.getUser()) { // logical error!
 			
 			throw new ValidatorException("User object not found in AwRequest");
 		}
-		
+
 		if(StringUtils.isEmptyOrWhitespaceOnly(awRequest.getUser().getPassword())) {
 			
 			getAnnotator().annotate(awRequest, "empty password found");
 			return false;
 		
 		}
-		
+
 		String password = awRequest.getUser().getPassword();
 		
 		if(! _regexpPattern.matcher(password).matches()) {
+			
+			_logger.info("Password: " + password);
 		
 			getAnnotator().annotate(awRequest, "incorrect password");
 			return false;

@@ -20,7 +20,7 @@
   <bean id="authStatelessController" class="edu.ucla.cens.awserver.controller.ControllerImpl">
     <constructor-arg index="0">
       <list>
-        <ref bean="authWithHashedPasswordService" />
+        <ref bean="authWithClearTextPasswordService" />
       </list>
     </constructor-arg>
     <constructor-arg index="1">
@@ -29,15 +29,15 @@
     <property name="validators">
       <list>
         <ref bean="userNameValidator" />
-        <ref bean="hashedPasswordValidator" />
+        <ref bean="passwordValidator" />
         <!-- any validator that simply checked for a empty string has been removed because it was redundant with 
              validation performed in the servlet world -->
       </list>      
     </property>
     <property name="featureName"><value>stateless authentication</value></property>
   </bean>
- 
-  <!-- Authentication -->
+  
+  <!-- Authentication with a Hashed Password -->
   <bean id="authWithHashedPasswordService" class="edu.ucla.cens.awserver.service.AuthenticationService">
     <constructor-arg index="0">
       <ref bean="authWithHashedPasswordDao" />
@@ -78,8 +78,7 @@
   <!-- Interact with database -->
   <bean id="authWithHashedPasswordDao" class="edu.ucla.cens.awserver.dao.AuthenticationDao">
     <constructor-arg index="0"><ref bean="dataSource" /></constructor-arg>
-    <constructor-arg index="1"><null /></constructor-arg>
-    <constructor-arg index="2"><value>false</value></constructor-arg>
+    <constructor-arg index="1"><value>false</value></constructor-arg>
   </bean>
   
 </beans>

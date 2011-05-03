@@ -137,7 +137,7 @@ public class CampaignUpdateValidator extends AbstractHttpServletRequestValidator
 		
 		// Check that the correct number of items were in the request.
 		int numberOfUploadedItems = uploadedItems.size();
-		if((numberOfUploadedItems < 3) || (numberOfUploadedItems > 6)) {
+		if((numberOfUploadedItems < 3) || (numberOfUploadedItems > 7)) {
 			_logger.warn("An incorrect number of parameters were found on a campaign update attempt. 3 through 7 were expected and " + numberOfUploadedItems
 				+ " were received");
 			return false;
