@@ -36,7 +36,7 @@
         <!-- Authenticate that the token the user is using is a valid token. -->
         <ref bean="tokenBasedAuthenticationService" />
         <ref bean="campaignExistsService" />
-        <ref bean="classListValidationService" />
+        <ref bean="classListOptionalValidationService" />
         <ref bean="campaignUpdateService" />
       </list>
     </constructor-arg>

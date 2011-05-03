@@ -1,0 +1,104 @@
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:util="http://www.springframework.org/schema/util"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
+                           http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-2.5.xsd">
+                           
+  <!--
+        Controller definition for class reads.
+   -->
+  <!-- Basic HTTP Validation -->
+  <bean id="classReadHttpServletRequestValidator" class="edu.ucla.cens.awserver.jee.servlet.validator.ClassReadValidator"/>
+  
+  <!-- Create the AwRequest Object -->
+  <bean id="classReadAwRequestCreator" class="edu.ucla.cens.awserver.jee.servlet.glue.ClassReadAwRequestCreator" />
+  
+  <!-- Write the Response -->
+  <bean id="classReadResponseWriter" class="edu.ucla.cens.awserver.jee.servlet.writer.ClassReadResponseWriter">
+    <constructor-arg index="0">
+      <bean id="classErrorResponse" class="edu.ucla.cens.awserver.domain.ErrorResponse">
+        <property name="code" value="1203" />
+        <property name="text" value="General class read error." />
+      </bean> 
+    </constructor-arg>
+  </bean>
+  
+  <!-- Controller Definition -->
+  <bean id="classReadController" class="edu.ucla.cens.awserver.controller.ControllerImpl">
+    <constructor-arg index="0">
+      <!-- Services to validate and populate information. -->
+      <list>
+        <!-- Validate the user's token and populate the request. -->
+        <ref bean="tokenBasedAuthenticationService" />
+        
+        <!-- Validate that the classes in the list exist. -->
+        <ref bean="classListRequiredValidationService" />
+        
+        <!-- Perform update. -->
+        <ref bean="classReadService" />
+      </list>
+    </constructor-arg>
+    <constructor-arg index="1">
+      <!-- The annotator for when something fails after validation but before the writer. -->
+      <ref bean="serverErrorRequestAnnotator" />
+    </constructor-arg>
+    <property name="validators">
+      <!-- Validates the individual items in the request. -->
+      <list>
+        <!-- Validate that the user's token is a valid token. -->
+        <ref bean="userTokenValidator" />
+        
+        <!-- Validate that the class's URNs are valid class URNs. -->
+        <ref bean="classListRequiredValidator" />
+      </list>
+    </property>
+    <property name="featureName"><value>class update</value></property>
+  </bean>
+  
+  <!-- Supplamental definitions for class read -->
+  <bean id="classListRequiredValidationService" class="edu.ucla.cens.awserver.service.ClassListValidationService">
+    <constructor-arg index="0">
+      <bean class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
+        <constructor-arg index="0">
+          <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
+            <property name="code" value="0805" />
+            <property name="text" value="Invalid class list in campaign creation." />
+          </bean>
+       </constructor-arg>
+      </bean>
+    </constructor-arg>
+    <constructor-arg index="1">
+      <ref bean="classListRequiredValidationDao" />
+    </constructor-arg>
+  </bean>
+  
+  <bean id="classListRequiredValidationDao" class="edu.ucla.cens.awserver.dao.ClassListValidationDao">
+    <constructor-arg index="0">
+      <ref bean="dataSource"/>
+    </constructor-arg>
+    <constructor-arg index="1">
+      <value>true</value>
+    </constructor-arg>
+  </bean>
+  
+  <bean id="classReadService" class="edu.ucla.cens.awserver.service.ClassReadService">
+    <constructor-arg index="0">
+      <bean class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
+        <constructor-arg index="0">
+          <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
+            <property name="code" value="1203" />
+            <property name="text" value="General class read error." />
+          </bean>
+        </constructor-arg>
+      </bean>
+    </constructor-arg>
+    <constructor-arg index="1">
+      <bean class="edu.ucla.cens.awserver.dao.ClassReadDao">
+        <constructor-arg index="0">
+          <ref bean="dataSource"/>
+        </constructor-arg>
+      </bean>
+    </constructor-arg>
+  </bean>
+  
+</beans>
