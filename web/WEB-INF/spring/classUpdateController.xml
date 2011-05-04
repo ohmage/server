@@ -60,9 +60,9 @@
         <ref bean="classUrnValidator" />
         
         <!-- Validate that the users in the lists are all valid usernames. -->
-        <ref bean="userListAddValidator" />
-        <ref bean="userListRemoveValidator" />
-        <ref bean="privilegedUserListAddValidator" />
+        <ref bean="userListAddOptionalValidator" />
+        <ref bean="userListRemoveOptionalValidator" />
+        <ref bean="privilegedUserListAddOptionalValidator" />
         
         <!-- Validate that none of the users in the lists are in any of the other lists. -->
         <ref bean="noDuplicateUsersInListsValidator" />
@@ -91,7 +91,7 @@
     </constructor-arg>
   </bean>
   
-  <bean id="userListAddValidator" class="edu.ucla.cens.awserver.validator.UserListValidator">
+  <bean id="userListAddOptionalValidator" class="edu.ucla.cens.awserver.validator.UserListValidator">
     <constructor-arg index="0"><value>[a-z\.]{9,15}</value></constructor-arg>
     <constructor-arg index="1">
       <bean class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
@@ -111,7 +111,7 @@
     </constructor-arg>
   </bean>
   
-  <bean id="userListRemoveValidator" class="edu.ucla.cens.awserver.validator.UserListValidator">
+  <bean id="userListRemoveOptionalValidator" class="edu.ucla.cens.awserver.validator.UserListValidator">
     <constructor-arg index="0"><value>[a-z\.]{9,15}</value></constructor-arg>
     <constructor-arg index="1">
       <bean class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
@@ -131,7 +131,7 @@
     </constructor-arg>
   </bean>
   
-  <bean id="privilegedUserListAddValidator" class="edu.ucla.cens.awserver.validator.UserListValidator">
+  <bean id="privilegedUserListAddOptionalValidator" class="edu.ucla.cens.awserver.validator.UserListValidator">
     <constructor-arg index="0"><value>[a-z\.]{9,15}</value></constructor-arg>
     <constructor-arg index="1">
       <bean class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
@@ -151,7 +151,7 @@
     </constructor-arg>
   </bean>
   
-  <bean id="noDuplicateUsersInListsValidator" class="edu.ucla.cens.awserver.validator.NoDuplicateUsersInListsValidator">
+  <bean id="noDuplicateUsersInListsValidator" class="edu.ucla.cens.awserver.validator.NoDuplicatesInListsValidator">
     <constructor-arg index="0">
       <bean class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
         <constructor-arg index="0">

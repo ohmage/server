@@ -60,6 +60,8 @@ public class InputKeys {
 	public static final String USER_LIST_REMOVE = "user_list_remove";
 	public static final String PRIVILEGED_USER_LIST_ADD = "privileged_user_list_add";
 	public static final String USER_ROLE = "user_role";
+	public static final String USER_ROLE_LIST_ADD = "user_role_list_add";
+	public static final String USER_ROLE_LIST_REMOVE = "user_role_list_remove";
 	
 	// State Constants
 	public static final String PRIVACY_STATE = "privacy_state";
