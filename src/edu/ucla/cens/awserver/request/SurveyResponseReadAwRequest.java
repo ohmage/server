@@ -5,7 +5,7 @@ import java.util.List;
 import edu.ucla.cens.awserver.domain.Configuration;
 
 /**
- * State for "new" data point API queries.
+ * State for /app/survey_response/read.
  * 
  * @author selsky
  */
@@ -34,7 +34,15 @@ public class SurveyResponseReadAwRequest extends ResultListAwRequest {
 	private List<String> _sortOrderList;
  	
 	private boolean _prettyPrint;
+	private String _prettyPrintAsString;
+	
 	private boolean _suppressMetadata;
+	private String _suppressMetadataAsString;
+	
+	private boolean _returnId;
+	private String _returnIdAsString;
+	
+	private String _privacyState;
 	
 	private Configuration _configuration;
 	
@@ -192,20 +200,65 @@ public class SurveyResponseReadAwRequest extends ResultListAwRequest {
 		_suppressMetadata = suppressMetadata;
 	}
 
+	public String getPrettyPrintAsString() {
+		return _prettyPrintAsString;
+	}
+
+	public void setPrettyPrintAsString(String prettyPrintAsString) {
+		_prettyPrintAsString = prettyPrintAsString;
+	}
+
+	public String getSuppressMetadataAsString() {
+		return _suppressMetadataAsString;
+	}
+
+	public void setSuppressMetadataAsString(String suppressMetadataAsString) {
+		_suppressMetadataAsString = suppressMetadataAsString;
+	}
+
+	public boolean performReturnId() {
+		return _returnId;
+	}
+
+	public void setReturnId(boolean returnId) {
+		_returnId = returnId;
+	}
+
+	public String getReturnIdAsString() {
+		return _returnIdAsString;
+	}
+
+	public void setReturnIdAsString(String returnIdAsString) {
+		_returnIdAsString = returnIdAsString;
+	}
+
+	public String getPrivacyState() {
+		return _privacyState;
+	}
+
+	public void setPrivacyState(String privacyState) {
+		_privacyState = privacyState;
+	}
+
 	@Override
 	public String toString() {
-		return "NewDataPointQueryAwRequest [_campaignUrn=" + _campaignUrn
-				+ ", _client=" + _client + ", _columnList=" + _columnList
-				+ ", _columnListString=" + _columnListString
-				+ ", _configuration=" + _configuration + ", _currentUser="
-				+ _currentUser + ", _endDate=" + _endDate + ", _outputFormat="
-				+ _outputFormat + ", _prettyPrint=" + _prettyPrint
-				+ ", _promptIdList=" + _promptIdList + ", _promptIdListString="
-				+ _promptIdListString + ", _sortOrderList=" + _sortOrderList
-				+ ", _sortOrderString=" + _sortOrderString + ", _startDate="
-				+ _startDate + ", _suppressMetadata=" + _suppressMetadata
-				+ ", _surveyIdList=" + _surveyIdList + ", _surveyIdListString="
-				+ _surveyIdListString + ", _userList=" + _userList
-				+ ", _userListString=" + _userListString + "]";
+		return "SurveyResponseReadAwRequest [_startDate=" + _startDate
+				+ ", _endDate=" + _endDate + ", _currentUser=" + _currentUser
+				+ ", _client=" + _client + ", _campaignUrn=" + _campaignUrn
+				+ ", _userListString=" + _userListString + ", _userList="
+				+ _userList + ", _promptIdListString=" + _promptIdListString
+				+ ", _promptIdList=" + _promptIdList + ", _surveyIdListString="
+				+ _surveyIdListString + ", _surveyIdList=" + _surveyIdList
+				+ ", _columnListString=" + _columnListString + ", _columnList="
+				+ _columnList + ", _outputFormat=" + _outputFormat
+				+ ", _sortOrderString=" + _sortOrderString
+				+ ", _sortOrderList=" + _sortOrderList + ", _prettyPrint="
+				+ _prettyPrint + ", _prettyPrintAsString="
+				+ _prettyPrintAsString + ", _suppressMetadata="
+				+ _suppressMetadata + ", _suppressMetadataAsString="
+				+ _suppressMetadataAsString + ", _returnId=" + _returnId
+				+ ", _returnIdAsString=" + _returnIdAsString
+				+ ", _privacyState=" + _privacyState + ", _configuration="
+				+ _configuration + "]";
 	}
 }

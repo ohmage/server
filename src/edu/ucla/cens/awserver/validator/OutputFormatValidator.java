@@ -24,13 +24,13 @@ public class OutputFormatValidator extends AbstractAnnotatingValidator {
 	}
 	
 	/**
-	 * @throws ValidatorException if the awRequest is not a NewDataPointQueryAwRequest
+	 * @throws ValidatorException if the awRequest is not a SurveyResponseReadAwRequest
 	 */
 	public boolean validate(AwRequest awRequest) {
 		_logger.info("validating output format");
 		
 		if(! (awRequest instanceof SurveyResponseReadAwRequest)) { // lame
-			throw new ValidatorException("awRequest is not a NewDataPointQueryAwRequest: " + awRequest.getClass());
+			throw new ValidatorException("awRequest is not a SurveyResponseReadAwRequest: " + awRequest.getClass());
 		}
 		
 		String outputFormat = ((SurveyResponseReadAwRequest) awRequest).getOutputFormat();

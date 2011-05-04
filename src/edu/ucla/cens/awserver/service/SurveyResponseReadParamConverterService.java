@@ -22,7 +22,7 @@ public class SurveyResponseReadParamConverterService implements Service {
 	 */
 	@Override
 	public void execute(AwRequest awRequest) {
-		_logger.info("converting string parameters to lists");
+		_logger.info("converting string parameters to lists or booleans where appropriate");
 		
 		SurveyResponseReadAwRequest req = (SurveyResponseReadAwRequest) awRequest; 
 		
@@ -30,6 +30,11 @@ public class SurveyResponseReadParamConverterService implements Service {
 		String promptIdListString = req	.getPromptIdListString();
 		String columnListString = req.getColumnListString();
 		String userListString = req.getUserListString();
+		
+		
+		req.setPrettyPrint(Boolean.valueOf(req.getPrettyPrintAsString()));
+		req	.setSuppressMetadata(Boolean.valueOf(req.getSuppressMetadataAsString()));
+		req.setReturnId(Boolean.valueOf(req.getReturnIdAsString()));
 		
 		if(null == surveyIdListString) {
 			

@@ -1,5 +1,8 @@
 package edu.ucla.cens.awserver.jee.servlet.glue;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import javax.servlet.http.HttpServletRequest;
 
 import org.apache.log4j.NDC;
@@ -8,7 +11,7 @@ import edu.ucla.cens.awserver.request.AwRequest;
 import edu.ucla.cens.awserver.request.SurveyResponseReadAwRequest;
 
 /**
- * Builds an AwRequest for the "new" data point API feature.
+ * Builds an AwRequest for /app/survey_response/read.
  * 
  * @author selsky
  */
@@ -32,6 +35,9 @@ public class SurveyResponseReadAwRequestCreator implements AwRequestCreator {
 		String outputFormat = request.getParameter("output_format");
 		String prettyPrint = request.getParameter("pretty_print");
 		String suppressMetadata = request.getParameter("suppress_metadata");
+		String privacyState = request.getParameter("privacy_state");
+		String returnId = request.getParameter("return_id");
+		String sortOrder = request.getParameter("sort_order");
 		
 		SurveyResponseReadAwRequest awRequest = new SurveyResponseReadAwRequest();
 		
@@ -45,8 +51,18 @@ public class SurveyResponseReadAwRequestCreator implements AwRequestCreator {
 		awRequest.setSurveyIdListString(surveyIdList);
 		awRequest.setColumnListString(columnList);
 		awRequest.setOutputFormat(outputFormat);
-		awRequest.setPrettyPrint(Boolean.valueOf(prettyPrint).booleanValue());
-		awRequest.setSuppressMetadata(Boolean.valueOf(suppressMetadata).booleanValue());
+		awRequest.setPrettyPrintAsString(prettyPrint);
+		awRequest.setSuppressMetadataAsString(suppressMetadata);
+		awRequest.setReturnIdAsString(returnId);
+		awRequest.setSortOrderString(sortOrder);
+		awRequest.setPrivacyState(privacyState);
+		
+		// temporarily using this frankenstein approach before migrating completely to toValidat()
+		Map<String, Object> toValidate = new HashMap<String, Object>();
+		toValidate.put("suppress_metadata", suppressMetadata);
+		toValidate.put("pretty_print", prettyPrint);
+		toValidate.put("return_id", returnId);
+		awRequest.setToValidate(toValidate);
 		
         NDC.push("ci=" + client); // push the client string into the Log4J NDC for the currently executing thread _ this means that 
                                   // it will be in every log message for the current thread

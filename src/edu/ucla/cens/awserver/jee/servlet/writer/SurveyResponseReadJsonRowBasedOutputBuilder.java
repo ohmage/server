@@ -53,7 +53,7 @@ public class SurveyResponseReadJsonRowBasedOutputBuilder {
 				
 				JSONObject record = new JSONObject();
 				
-				for(String rowItem : rowItems) { _logger.info(rowItem);
+				for(String rowItem : rowItems) {
 				
 					if("urn:ohmage:user:id".equals(rowItem)) {
 						
@@ -130,7 +130,7 @@ public class SurveyResponseReadJsonRowBasedOutputBuilder {
 				    		record.put("location_timestamp", JSONObject.NULL);
 				    	}
 				    	
-				    } else if("urn:ohmage:context:location:accuracy".equals(rowItems)) {
+				    } else if("urn:ohmage:context:location:accuracy".equals(rowItem)) {
 				    	
 				    	if(! "unavailable".equals(result.getLocationStatus())) {
 				    		
@@ -188,9 +188,13 @@ public class SurveyResponseReadJsonRowBasedOutputBuilder {
 						record.put("prompt_display_type", result.getDisplayType());
 						record.put("prompt_unit", result.getUnit());
 						record.put("prompt_type", result.getPromptType());
-						if(null != result.getChoiceGlossary()) { // only ouput for single_choice and multi_choice prompt types
+						if(null != result.getChoiceGlossary()) { // only output for single_choice and multi_choice prompt types
 							record.put("prompt_choice_glossary", toJson(result.getChoiceGlossary()));
 						}
+					}
+					
+					if(req.performReturnId()) { // only allowed for json-rows output
+						record.put("survey_key", result.getSurveyPrimaryKeyId());
 					}
 				}
 				

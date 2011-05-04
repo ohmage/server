@@ -79,6 +79,9 @@
         <ref bean="promptIdListSurveyIdListValidator" />
         <ref bean="columnListValidator" />
         <ref bean="outputFormatValidator" />
+        <ref bean="suppressMetadataValidator" />
+        <ref bean="prettyPrintValidator" />
+        <ref bean="returnIdValidator" />
       </list>      
     </property>
     <property name="featureName"><value>new data point query</value></property>
@@ -249,6 +252,79 @@
       </bean>
     </constructor-arg>
   </bean>
+  
+  <bean id="suppressMetadataValidator" class="edu.ucla.cens.awserver.validator.StringAllowedValuesValidator">
+    <constructor-arg index="0">
+      <bean class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
+        <constructor-arg index="0"> 
+          <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
+            <property name="code" value="0714" />
+            <property name="text" value="invalid suppress_metadata value" />
+          </bean>
+        </constructor-arg>
+      </bean>
+    </constructor-arg>
+    <constructor-arg index="1"><value>suppress_metadata</value></constructor-arg>
+    <constructor-arg index="2">
+      <list>
+        <value>true</value>
+        <value>false</value>
+      </list>
+    </constructor-arg>
+    <constructor-arg index="3"><value>false</value></constructor-arg>
+    <property name="errorMessage">
+      <value>invalid suppress metadata value found in request</value>
+    </property>
+  </bean>
+  
+  <bean id="prettyPrintValidator" class="edu.ucla.cens.awserver.validator.StringAllowedValuesValidator">
+    <constructor-arg index="0">
+      <bean class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
+        <constructor-arg index="0"> 
+          <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
+            <property name="code" value="0712" />
+            <property name="text" value="invalid pretty_print value" />
+          </bean>
+        </constructor-arg>
+      </bean>
+    </constructor-arg>
+    <constructor-arg index="1"><value>pretty_print</value></constructor-arg>
+    <constructor-arg index="2">
+      <list>
+        <value>true</value>
+        <value>false</value>
+      </list>
+    </constructor-arg>
+    <constructor-arg index="3"><value>false</value></constructor-arg>
+    <property name="errorMessage">
+      <value>invalid pretty print value in request</value>
+    </property>
+  </bean>
+  
+  <bean id="returnIdValidator" class="edu.ucla.cens.awserver.validator.StringAllowedValuesValidator">
+    <constructor-arg index="0">
+      <bean class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
+        <constructor-arg index="0"> 
+          <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
+            <property name="code" value="0713" />
+            <property name="text" value="invalid return_id value" />
+          </bean>
+        </constructor-arg>
+      </bean>
+    </constructor-arg>
+    <constructor-arg index="1"><value>return_id</value></constructor-arg>
+    <constructor-arg index="2">
+      <list>
+        <value>true</value>
+        <value>false</value>
+      </list>
+    </constructor-arg>
+    <constructor-arg index="3"><value>false</value></constructor-arg>
+    <property name="errorMessage">
+      <value>invalid return id value in request</value>
+    </property>
+  </bean>
+  
   
   <bean id="findCampaignConfigurationService" class="edu.ucla.cens.awserver.service.FindCampaignConfigurationService">
    <constructor-arg index="0">
