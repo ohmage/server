@@ -71,4 +71,5 @@ public class InputKeys {
 	public static final String SORT_ORDER = "sort_order";
 	public static final String SUPPRESS_METADATA = "suppress_metadata";
 	public static final String COLUMN_LIST = "column_list";
+	public static final String RETURN_ID = "return_id";
 }

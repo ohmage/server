@@ -30,8 +30,7 @@ public class SurveyResponseReadAwRequest extends ResultListAwRequest {
 	
 	private String _outputFormat;
 	
-	private String _sortOrderString;
-	private List<String> _sortOrderList;
+	private String _sortOrder;
  	
 	private boolean _prettyPrint;
 	private String _prettyPrintAsString;
@@ -168,20 +167,12 @@ public class SurveyResponseReadAwRequest extends ResultListAwRequest {
 		_outputFormat = outputFormat;
 	}
 
-	public String getSortOrderString() {
-		return _sortOrderString;
+	public String getSortOrder() {
+		return _sortOrder;
 	}
 
-	public void setSortOrderString(String sortOrderString) {
-		_sortOrderString = sortOrderString;
-	}
-
-	public List<String> getSortOrderList() {
-		return _sortOrderList;
-	}
-
-	public void setSortOrderList(List<String> sortOrderList) {
-		_sortOrderList = sortOrderList;
+	public void setSortOrder(String sortOrder) {
+		_sortOrder = sortOrder;
 	}
 
 	public boolean isPrettyPrint() {
@@ -251,8 +242,7 @@ public class SurveyResponseReadAwRequest extends ResultListAwRequest {
 				+ _surveyIdListString + ", _surveyIdList=" + _surveyIdList
 				+ ", _columnListString=" + _columnListString + ", _columnList="
 				+ _columnList + ", _outputFormat=" + _outputFormat
-				+ ", _sortOrderString=" + _sortOrderString
-				+ ", _sortOrderList=" + _sortOrderList + ", _prettyPrint="
+				+ ", _sortOrder=" + _sortOrder + ", _prettyPrint="
 				+ _prettyPrint + ", _prettyPrintAsString="
 				+ _prettyPrintAsString + ", _suppressMetadata="
 				+ _suppressMetadata + ", _suppressMetadataAsString="

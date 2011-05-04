@@ -17,14 +17,12 @@ import edu.ucla.cens.awserver.request.AwRequest;
 import edu.ucla.cens.awserver.request.SurveyResponseReadAwRequest;
 
 /**
- * @author selsky
+ * @author Joshua Selsky
  */
 public class SurveyResponseReadDao extends AbstractDao {
 	private static Logger _logger = Logger.getLogger(SurveyResponseReadDao.class);
 	private ConfigurationValueMerger _configurationValueMerger;
 	
-	// TODO - later on the columns that are selected can be optimized to whatever columns are present in the query
-	// need a mapping from URN to column name?
 	private String _sql = "SELECT pr.prompt_id, pr.prompt_type, pr.response, pr.repeatable_set_iteration, pr.repeatable_set_id,"
 			           + " sr.msg_timestamp, sr.phone_timezone, sr.location_status, sr.location, sr.survey_id, u.login_id," +
 			           		" sr.client, sr.launch_context, sr.id, sr.privacy_state"
@@ -41,10 +39,24 @@ public class SurveyResponseReadDao extends AbstractDao {
 	private String _andPromptIds = " AND pr.prompt_id IN ";  
 	
 	private String _andSurveyIds = " AND sr.survey_id IN ";
+
+	private String _orderByUserTimestampSurvey = " ORDER BY u.login_id, sr.msg_timestamp, sr.survey_id, " +
+			                                     "pr.repeatable_set_id, pr.repeatable_set_iteration, pr.prompt_id";
 	
-	// TODO need to dynamically generate this ORDER BY using the sort_order parameter
-	private String _orderBy = " ORDER BY u.login_id, sr.msg_timestamp, sr.survey_id, " +
-			                  "pr.repeatable_set_id, pr.repeatable_set_iteration, pr.prompt_id";
+	private String _orderByUserSurveyTimestamp = " ORDER BY u.login_id, sr.survey_id, " +
+                                                 "pr.repeatable_set_id, pr.repeatable_set_iteration, pr.prompt_id, sr.msg_timestamp";
+
+	private String _orderBySurveyUserTimestamp = " ORDER BY sr.survey_id, pr.repeatable_set_id, pr.repeatable_set_iteration, " +
+			                                     "pr.prompt_id, u.login_id, sr.msg_timestamp";
+	
+	private String _orderBySurveyTimestampUser = " ORDER BY sr.survey_id, pr.repeatable_set_id, pr.repeatable_set_iteration, " +
+			                                     "pr.prompt_id, sr.msg_timestamp, u.login_id";
+	
+	private String _orderByTimestampUserSurvey = " ORDER BY sr.msg_timestamp, u.login_id, sr.survey_id, " +
+                                                 "pr.repeatable_set_id, pr.repeatable_set_iteration, pr.prompt_id";
+
+	private String _orderByTimestampSurveyUser = " ORDER BY sr.msg_timestamp, sr.survey_id, pr.repeatable_set_id, " +
+			                                     "pr.repeatable_set_iteration, pr.prompt_id, u.login_id";	
 	
 	public SurveyResponseReadDao(DataSource dataSource, ConfigurationValueMerger configurationValueMerger) {
 		super(dataSource);
@@ -192,7 +204,32 @@ public class SurveyResponseReadDao extends AbstractDao {
 			builder.append(_andDatesBetween);
 		}
 		
-		builder.append(_orderBy);
+		// this is super-lame; it should be using an enum
+		
+		if("user,timestamp,survey".equals(req.getSortOrder())) {
+			
+			builder.append(_orderByUserTimestampSurvey);
+			
+		} else if("user,survey,timestamp".equals(req.getSortOrder())) {
+			
+			builder.append(_orderByUserSurveyTimestamp);
+			
+		} else if("survey,user,timestamp".equals(req.getSortOrder())) {
+			
+			builder.append(_orderBySurveyUserTimestamp);
+			
+		} else if("survey,timestamp,user".equals(req.getSortOrder())) {
+			
+			builder.append(_orderBySurveyTimestampUser);
+			
+		} else if("timestamp,survey,user".equals(req.getSortOrder())) {
+			
+			builder.append(_orderByTimestampSurveyUser);
+			
+		} else if("timestamp,user,survey".equals(req.getSortOrder())) {
+			
+			builder.append(_orderByTimestampUserSurvey);
+		}
 		
 		if(_logger.isDebugEnabled()) {
 			_logger.debug("generated sql: " + builder);

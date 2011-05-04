@@ -82,6 +82,7 @@
         <ref bean="suppressMetadataValidator" />
         <ref bean="prettyPrintValidator" />
         <ref bean="returnIdValidator" />
+        <ref bean="sortOrderValidator" />
       </list>      
     </property>
     <property name="featureName"><value>new data point query</value></property>
@@ -326,6 +327,18 @@
     </property>
   </bean>
   
+  <bean id="sortOrderValidator" class="edu.ucla.cens.awserver.validator.SortOrderValidator">
+    <constructor-arg index="0">
+      <bean class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
+        <constructor-arg index="0"> 
+          <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
+            <property name="code" value="0715" />
+            <property name="text" value="invalid sort_order" />
+          </bean>
+        </constructor-arg>
+      </bean>
+    </constructor-arg>
+  </bean>
   
   <bean id="findCampaignConfigurationService" class="edu.ucla.cens.awserver.service.FindCampaignConfigurationService">
    <constructor-arg index="0">
