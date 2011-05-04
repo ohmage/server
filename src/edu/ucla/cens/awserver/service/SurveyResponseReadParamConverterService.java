@@ -31,9 +31,8 @@ public class SurveyResponseReadParamConverterService implements Service {
 		String columnListString = req.getColumnListString();
 		String userListString = req.getUserListString();
 		
-		
 		req.setPrettyPrint(Boolean.valueOf(req.getPrettyPrintAsString()));
-		req	.setSuppressMetadata(Boolean.valueOf(req.getSuppressMetadataAsString()));
+		req.setSuppressMetadata(Boolean.valueOf(req.getSuppressMetadataAsString()));
 		req.setReturnId(Boolean.valueOf(req.getReturnIdAsString()));
 		
 		if(null == surveyIdListString) {

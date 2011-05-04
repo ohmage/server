@@ -35,6 +35,7 @@ public class SurveyResponseReadFormattedResult {
 	
 	private String _surveyTitle;
 	private String _surveyDescription;
+	private String _privacyState;
 	
 	// Prompt data -----
 	private Map<String, Object> _promptDisplayValueMap;
@@ -182,21 +183,30 @@ public class SurveyResponseReadFormattedResult {
 	public void setSurveyDescription(String surveyDescription) {
 		_surveyDescription = surveyDescription;
 	}
+	
+	public String getPrivacyState() {
+		return _privacyState;
+	}
+
+	public void setPrivacyState(String privacyState) {
+		_privacyState = privacyState;
+	}
 
 	@Override
 	public String toString() {
-		return "NewDataPointQueryFormattedResult [_accuracy=" + _accuracy
-				+ ", _client=" + _client + ", _latitude=" + _latitude
-				+ ", _launchContext=" + _launchContext + ", _locationStatus="
-				+ _locationStatus + ", _locationTimestamp="
-				+ _locationTimestamp + ", _loginId=" + _loginId
-				+ ", _longitude=" + _longitude + ", _promptDisplayValueMap="
-				+ _promptDisplayValueMap + ", _provider=" + _provider
-				+ ", _repeatableSetId=" + _repeatableSetId
-				+ ", _repeatableSetIteration=" + _repeatableSetIteration
-				+ ", _surveyDescription=" + _surveyDescription + ", _surveyId="
-				+ _surveyId + ", _surveyTitle=" + _surveyTitle
-				+ ", _timestamp=" + _timestamp + ", _timezone=" + _timezone
-				+ ", _utcTimestamp=" + _utcTimestamp + "]";
-	}
+		return "SurveyResponseReadFormattedResult [_client=" + _client
+				+ ", _locationStatus=" + _locationStatus + ", _latitude="
+				+ _latitude + ", _longitude=" + _longitude + ", _accuracy="
+				+ _accuracy + ", _provider=" + _provider
+				+ ", _locationTimestamp=" + _locationTimestamp
+				+ ", _launchContext=" + _launchContext + ", _loginId="
+				+ _loginId + ", _timestamp=" + _timestamp + ", _timezone="
+				+ _timezone + ", _utcTimestamp=" + _utcTimestamp
+				+ ", _surveyId=" + _surveyId + ", _repeatableSetId="
+				+ _repeatableSetId + ", _repeatableSetIteration="
+				+ _repeatableSetIteration + ", _surveyTitle=" + _surveyTitle
+				+ ", _surveyDescription=" + _surveyDescription
+				+ ", _privacyState=" + _privacyState
+				+ ", _promptDisplayValueMap=" + _promptDisplayValueMap + "]";
+	}	
 }

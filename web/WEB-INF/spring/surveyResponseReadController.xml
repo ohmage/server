@@ -183,6 +183,7 @@
     <value>urn:ohmage:survey:id</value>
     <value>urn:ohmage:survey:title</value>
     <value>urn:ohmage:survey:description</value>
+    <value>urn:ohmage:survey:privacy_state</value>
     <value>urn:ohmage:repeatable_set:id</value>
     <value>urn:ohmage:repeatable_set:iteration</value>
     <value>urn:ohmage:prompt:response</value>

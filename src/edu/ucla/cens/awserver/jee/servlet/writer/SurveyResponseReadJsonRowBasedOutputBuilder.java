@@ -171,6 +171,10 @@ public class SurveyResponseReadJsonRowBasedOutputBuilder {
 				    	
 				    	record.put("survey_description", result.getSurveyDescription());
 				    	
+				    } else if("urn:ohmage:survey:privacy_state".equals(rowItem)) {
+				    	
+				    	record.put("privacy_state", result.getPrivacyState());
+				    	
 				    } else if("urn:ohmage:repeatable_set:id".equals(rowItem)) {
 				    	
 				    	record.put("repeatable_set_id", 

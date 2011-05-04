@@ -316,6 +316,10 @@ public class SurveyResponseReadResponseWriter extends AbstractResponseWriter {
 		} else if("urn:ohmage:survey:description".equals(columnName)) {
 			
 			columnMap.get(columnName).add(result.getSurveyDescription());
+		
+		} else if("urn:ohmage:survey:privacy_state".equals(columnName)) {
+			
+			columnMap.get(columnName).add(result.getPrivacyState());
 			
 		} else if("urn:ohmage:repeatable_set:id".equals(columnName)) {
 			
@@ -403,6 +407,7 @@ public class SurveyResponseReadResponseWriter extends AbstractResponseWriter {
 			formattedResult.setTimestamp(result.getTimestamp());
 			formattedResult.setTimezone(result.getTimezone());
 			formattedResult.setUtcTimestamp(generateUtcTimestamp(result));
+			formattedResult.setPrivacyState(result.getPrivacyState());
 		} 
 			
 		Map<String, Object> promptDisplayValueMap = formattedResult.getPromptDisplayValueMap();

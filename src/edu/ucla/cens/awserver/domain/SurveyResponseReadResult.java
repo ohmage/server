@@ -31,6 +31,15 @@ public class SurveyResponseReadResult {
 	private String _loginId;
 	private Map<String, PromptProperty> _choiceGlossary;
 	private int _surveyPrimaryKeyId;
+	private String _privacyState;
+	
+	public String getPrivacyState() {
+		return _privacyState;
+	}
+	
+	public void setPrivacyState(String state) {
+		_privacyState = state;
+	}
 	
 	public int getSurveyPrimaryKeyId() {
 		return _surveyPrimaryKeyId;
