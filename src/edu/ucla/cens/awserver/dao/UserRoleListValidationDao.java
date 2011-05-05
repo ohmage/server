@@ -7,6 +7,7 @@ import javax.sql.DataSource;
 import org.apache.log4j.Logger;
 import org.springframework.jdbc.core.SingleColumnRowMapper;
 
+import edu.ucla.cens.awserver.cache.CampaignRoleCache;
 import edu.ucla.cens.awserver.request.AwRequest;
 import edu.ucla.cens.awserver.validator.AwRequestAnnotator;
 
@@ -128,8 +129,8 @@ public class UserRoleListValidationDao extends AbstractDao {
 			throw new DataAccessException(e);
 		}
 		
-		boolean addAnyRole = userRoles.contains("supervisor");
-		boolean addAuthors = userRoles.contains("author");
+		boolean addAnyRole = userRoles.contains(CampaignRoleCache.ROLE_SUPERVISOR);
+		boolean addAuthors = userRoles.contains(CampaignRoleCache.ROLE_AUTHOR);
 		if(!addAnyRole && !addAuthors) {
 			_insufficientPermissionsAnnotator.annotate(awRequest, "The user doesn't have sufficient permissions to add any users with roles.");
 			awRequest.setFailedRequest(true);
