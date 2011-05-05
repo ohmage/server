@@ -39,5 +39,4 @@ public class CampaignUpdateAwRequestCreator implements AwRequestCreator {
 		
 		return awRequest;
 	}
-
 }
