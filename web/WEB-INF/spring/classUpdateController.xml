@@ -4,7 +4,7 @@
        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
                            http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-2.5.xsd">
   <!--  
-     Spring ApplicationContext configuration for mobility data upload 
+     Spring ApplicationContext configuration for class updates 
   -->
   
   <!-- Basic HTTP Validation -->
@@ -16,14 +16,11 @@
   <!-- Write the Response -->
   <bean id="classUpdateResponseWriter" class="edu.ucla.cens.awserver.jee.servlet.writer.ClassUpdateResponseWriter">
     <constructor-arg index="0">
-      <ref bean="classErrorResponse"/>
+      <bean id="classErrorResponse" class="edu.ucla.cens.awserver.domain.ErrorResponse">
+        <property name="code" value="1200" />
+        <property name="text" value="General class manipulation error." />
+      </bean>
     </constructor-arg>
-  </bean>
-  
-  <!-- General Class Error -->
-  <bean id="classErrorResponse" class="edu.ucla.cens.awserver.domain.ErrorResponse">
-    <property name="code" value="1200" />
-    <property name="text" value="General class manipulation error." />
   </bean>
   
   <!-- Controller Definition -->
@@ -60,9 +57,9 @@
         <ref bean="classUrnValidator" />
         
         <!-- Validate that the users in the lists are all valid usernames. -->
-        <ref bean="userListAddValidator" />
-        <ref bean="userListRemoveValidator" />
-        <ref bean="privilegedUserListAddValidator" />
+        <ref bean="userListAddOptionalValidator" />
+        <ref bean="userListRemoveOptionalValidator" />
+        <ref bean="privilegedUserListAddOptionalValidator" />
         
         <!-- Validate that none of the users in the lists are in any of the other lists. -->
         <ref bean="noDuplicateUsersInListsValidator" />
@@ -91,7 +88,7 @@
     </constructor-arg>
   </bean>
   
-  <bean id="userListAddValidator" class="edu.ucla.cens.awserver.validator.UserListValidator">
+  <bean id="userListAddOptionalValidator" class="edu.ucla.cens.awserver.validator.UserListValidator">
     <constructor-arg index="0"><value>[a-z\.]{9,15}</value></constructor-arg>
     <constructor-arg index="1">
       <bean class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
@@ -111,7 +108,7 @@
     </constructor-arg>
   </bean>
   
-  <bean id="userListRemoveValidator" class="edu.ucla.cens.awserver.validator.UserListValidator">
+  <bean id="userListRemoveOptionalValidator" class="edu.ucla.cens.awserver.validator.UserListValidator">
     <constructor-arg index="0"><value>[a-z\.]{9,15}</value></constructor-arg>
     <constructor-arg index="1">
       <bean class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
@@ -131,7 +128,7 @@
     </constructor-arg>
   </bean>
   
-  <bean id="privilegedUserListAddValidator" class="edu.ucla.cens.awserver.validator.UserListValidator">
+  <bean id="privilegedUserListAddOptionalValidator" class="edu.ucla.cens.awserver.validator.UserListValidator">
     <constructor-arg index="0"><value>[a-z\.]{9,15}</value></constructor-arg>
     <constructor-arg index="1">
       <bean class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
@@ -151,7 +148,7 @@
     </constructor-arg>
   </bean>
   
-  <bean id="noDuplicateUsersInListsValidator" class="edu.ucla.cens.awserver.validator.NoDuplicateUsersInListsValidator">
+  <bean id="noDuplicateUsersInListsValidator" class="edu.ucla.cens.awserver.validator.NoDuplicatesInListsValidator">
     <constructor-arg index="0">
       <bean class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
         <constructor-arg index="0">

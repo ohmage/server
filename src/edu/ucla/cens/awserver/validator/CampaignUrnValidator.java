@@ -3,6 +3,7 @@ package edu.ucla.cens.awserver.validator;
 import org.apache.log4j.Logger;
 
 import edu.ucla.cens.awserver.request.AwRequest;
+import edu.ucla.cens.awserver.util.StringUtils;
 
 /**
  * Checks that the URN is a valid URN.
@@ -30,7 +31,7 @@ public class CampaignUrnValidator extends AbstractAnnotatingValidator {
 		_logger.info("Validating the campaign URN.");
 		
 		String urn = awRequest.getCampaignUrn();
-		if(! urn.startsWith("urn:")) {
+		if(! StringUtils.isValidUrn(urn)) {
 			awRequest.setFailedRequest(true);
 			getAnnotator().annotate(awRequest, "Invalid URN.");
 			return false;

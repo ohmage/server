@@ -36,7 +36,7 @@
         <!-- Authenticate that the token the user is using is a valid token. -->
         <ref bean="tokenBasedAuthenticationService" />
         <ref bean="userCanCreateCampaignsValidationService" />
-        <ref bean="classListValidationService" />
+        <ref bean="classListOptionalValidationService" />
         <ref bean="campaignAlreadyExistsValidationService" />
         <ref bean="campaignCreationService" />
       </list>
@@ -118,7 +118,7 @@
     </constructor-arg>
   </bean>
   
-  <bean id="classListValidationService" class="edu.ucla.cens.awserver.service.ClassListValidationService">
+  <bean id="classListOptionalValidationService" class="edu.ucla.cens.awserver.service.ClassListValidationService">
     <constructor-arg index="0">
       <bean class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
         <constructor-arg index="0">
@@ -130,11 +130,16 @@
       </bean>
     </constructor-arg>
     <constructor-arg index="1">
-      <bean class="edu.ucla.cens.awserver.dao.ClassListValidationDao">
-        <constructor-arg index="0">
-          <ref bean="dataSource"/>
-        </constructor-arg>
-      </bean>
+      <ref bean="classListOptionalValidationDao" />
+    </constructor-arg>
+  </bean>
+  
+  <bean id="classListOptionalValidationDao" class="edu.ucla.cens.awserver.dao.ClassListValidationDao">
+    <constructor-arg index="0">
+      <ref bean="dataSource"/>
+    </constructor-arg>
+    <constructor-arg index="1">
+      <value>false</value>
     </constructor-arg>
   </bean>
   

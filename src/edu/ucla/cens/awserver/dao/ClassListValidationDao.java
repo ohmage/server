@@ -28,14 +28,18 @@ public class ClassListValidationDao extends AbstractDao {
 													"AND c.id = uc.class_id " +
 													"AND u.id = uc.user_id";
 	
+	private boolean _required;
+	
 	/**
 	 * Sets up the data source for this DAO.
 	 * 
 	 * @param dataSource The data source that will be used to query the
 	 * 					 database for information.
 	 */
-	public ClassListValidationDao(DataSource dataSource) {
+	public ClassListValidationDao(DataSource dataSource, boolean required) {
 		super(dataSource);
+		
+		_required = required;
 	}
 
 	/**
@@ -50,8 +54,14 @@ public class ClassListValidationDao extends AbstractDao {
 			classesAsString = (String) awRequest.getToProcessValue(InputKeys.CLASS_URN_LIST);
 		}
 		catch(IllegalArgumentException e) {
-			_logger.info("No class list in the toProcess map, so skipping service validation.");
-			return;
+			if(_required) {
+				_logger.error("Missing required class URN list in toProcess map.");
+				throw new DataAccessException(e);
+			}
+			else {
+				_logger.info("No class list in the toProcess map, so skipping service validation.");
+				return;
+			}
 		}
 		
 		String[] classes = classesAsString.split(",");

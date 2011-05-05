@@ -40,6 +40,14 @@ public class CampaignUpdateDao extends AbstractDao {
 	private static final String SQL_GET_CLASS_ID = "SELECT id " +
 												   "FROM class " +
 												   "WHERE urn = ?";
+
+	private static final String SQL_GET_USER_ID = "SELECT id " +
+												  "FROM user " +
+												  "WHERE login_id = ?";
+	
+	private static final String SQL_GET_CLASS_ROLE_ID = "SELECT id " +
+														"FROM user_role " +
+														"WHERE role = ?";
 	
 	private static final String SQL_GET_CAMPAIGN_CLASS_ID = "SELECT id " +
 															"FROM campaign_class cc " +
@@ -182,6 +190,12 @@ public class CampaignUpdateDao extends AbstractDao {
 				updateDescription(awRequest);
 				updateXml(awRequest);
 				updateClassList(awRequest);
+				
+				// Be sure to do this specifically after adding the classes as
+				// it may be that they want to add a class and then
+				// immediately remove users from that class from the campaign.
+				updateUserRoleList(awRequest, InputKeys.USER_ROLE_LIST_ADD, true);
+				updateUserRoleList(awRequest, InputKeys.USER_ROLE_LIST_REMOVE, false);
 			}
 			catch(IllegalArgumentException e) {
 				// Rollback transaction and throw a DataAccessException.
@@ -193,7 +207,7 @@ public class CampaignUpdateDao extends AbstractDao {
 			catch(DataAccessException e) {
 				transactionManager.rollback(status);
 				awRequest.setFailedRequest(true);
-				throw new DataAccessException(e);
+				throw e;
 			}
 			
 			// Commit transaction.
@@ -386,6 +400,86 @@ public class CampaignUpdateDao extends AbstractDao {
 		catch(org.springframework.dao.DataAccessException e) {
 			_logger.error("Error executing SQL '" + SQL_UPDATE_XML + "' with parameters: " + xml + ", " + awRequest.getCampaignUrn(), e);
 			throw new DataAccessException(e);
+		}
+	}
+	
+	/**
+	 * Ensures that the currently logged in user can add users with the given
+	 * permissions to the campaign and, if so, adds the entries to the
+	 * database.
+	 * 
+	 * @param awRequest The request with the campaign's URN, the user's info
+	 * 					and the list of user-role combinations to add.
+	 */
+	private void updateUserRoleList(AwRequest awRequest, String key, boolean add) {
+		// Get the list of user-roles from the request if it exists.
+		String userRoleList;
+		try {
+			userRoleList = (String) awRequest.getToProcessValue(key);
+		}
+		catch(IllegalArgumentException e) {
+			// There was no userRoleAddList to update.
+			return;
+		}
+		
+		// Get the campaign ID for this request.
+		int campaignId;
+		try {
+			campaignId = getJdbcTemplate().queryForInt(SQL_GET_CAMPAIGN_ID, new Object[] { awRequest.getCampaignUrn() });
+		}
+		catch(org.springframework.dao.DataAccessException e) {
+			_logger.error("Error executing SQL '" + SQL_GET_CAMPAIGN_ID + "' with parameter: " + awRequest.getCampaignUrn(), e);
+			throw new DataAccessException(e);
+		}
+		
+		// Handle each user-role pair individually.
+		String[] userRoleArray = userRoleList.split(",");
+		for(int i = 0; i < userRoleArray.length; i++) {
+			String[] userAndRole = userRoleArray[i].split(":");
+			
+			// Get the user's ID for this particular pair.
+			int userId;
+			try {
+				userId = getJdbcTemplate().queryForInt(SQL_GET_USER_ID, new Object[] { userAndRole[0] });
+			}
+			catch(org.springframework.dao.DataAccessException e) {
+				_logger.error("Error executing SQL '" + SQL_GET_USER_ID + "' with parameter: " + userAndRole[0], e);
+				throw new DataAccessException(e);
+			}
+			
+			// Get the role for this particular pair.
+			// Here's a thought, we will be accessing the database many times
+			// to get the same information. We could instead just create a
+			// lookup table first and then get this information.
+			int roleId;
+			try {
+				roleId = getJdbcTemplate().queryForInt(SQL_GET_CLASS_ROLE_ID, new Object[] { userAndRole[1] });
+			}
+			catch(org.springframework.dao.DataAccessException e) {
+				_logger.error("Error executing SQL '" + SQL_GET_CLASS_ROLE_ID + "' with parameter: " + userAndRole[1], e);
+				throw new DataAccessException(e);
+			}
+			
+			// If this is an add request, add the user and role combination to
+			// the user_role_campaign table.
+			if(add) {
+				try {
+					getJdbcTemplate().update(SQL_INSERT_USER_ROLE_CAMPAIGN, new Object[] { userId, campaignId, roleId });
+				}
+				catch(org.springframework.dao.DataAccessException e) {
+					_logger.error("Error executing SQL '" + SQL_INSERT_USER_ROLE_CAMPAIGN + "' with parameters: " + userId + ", " + campaignId + ", " + roleId, e);
+				}
+			}
+			// If this is a remove request, attempt to remove the user-role
+			// combination from the user_role_campaign table.
+			else {
+				try {
+					getJdbcTemplate().update(SQL_DELETE_USER_ROLE_CAMPAIGN, new Object[] { userId, campaignId, roleId });
+				}
+				catch(org.springframework.dao.DataAccessException e) {
+					_logger.error("Error executing SQL '" + SQL_DELETE_USER_ROLE_CAMPAIGN + "' with parameters: " + userId + ", " + campaignId + ", " + roleId, e);
+				}
+			}
 		}
 	}
 	

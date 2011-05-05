@@ -8,6 +8,7 @@ import javax.servlet.http.HttpServletRequest;
 import org.apache.log4j.NDC;
 
 import edu.ucla.cens.awserver.request.AwRequest;
+import edu.ucla.cens.awserver.request.InputKeys;
 import edu.ucla.cens.awserver.request.SurveyResponseReadAwRequest;
 
 /**
@@ -54,14 +55,15 @@ public class SurveyResponseReadAwRequestCreator implements AwRequestCreator {
 		awRequest.setPrettyPrintAsString(prettyPrint);
 		awRequest.setSuppressMetadataAsString(suppressMetadata);
 		awRequest.setReturnIdAsString(returnId);
-		awRequest.setSortOrderString(sortOrder);
+		awRequest.setSortOrder(sortOrder);
 		awRequest.setPrivacyState(privacyState);
 		
-		// temporarily using this frankenstein approach before migrating completely to toValidat()
+		// temporarily using this frankenstein approach before migrating completely to toValidate()
 		Map<String, Object> toValidate = new HashMap<String, Object>();
-		toValidate.put("suppress_metadata", suppressMetadata);
-		toValidate.put("pretty_print", prettyPrint);
-		toValidate.put("return_id", returnId);
+		toValidate.put(InputKeys.SUPPRESS_METADATA, suppressMetadata);
+		toValidate.put(InputKeys.PRETTY_PRINT, prettyPrint);
+		toValidate.put(InputKeys.RETURN_ID, returnId);
+		toValidate.put(InputKeys.SORT_ORDER, sortOrder);
 		awRequest.setToValidate(toValidate);
 		
         NDC.push("ci=" + client); // push the client string into the Log4J NDC for the currently executing thread _ this means that 

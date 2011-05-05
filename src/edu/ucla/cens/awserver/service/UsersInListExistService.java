@@ -46,5 +46,4 @@ public class UsersInListExistService extends AbstractAnnotatingDaoService {
 			throw new ServiceException(dae);
 		}
 	}
-
 }

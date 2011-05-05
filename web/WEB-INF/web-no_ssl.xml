@@ -638,6 +638,37 @@
     <url-pattern>/campaign/update</url-pattern>
   </servlet-mapping>
   
+  <!-- Handle class reads -->
+  <servlet>
+    <description>
+      Reads data about a class.
+    </description>
+    <servlet-name>ClassReadServlet</servlet-name>
+    <servlet-class>edu.ucla.cens.awserver.jee.servlet.AwDataServlet</servlet-class>
+    <init-param>
+      <param-name>httpServletRequestValidatorName</param-name>
+      <param-value>classReadHttpServletRequestValidator</param-value>
+    </init-param>
+    <init-param>
+      <param-name>awRequestCreatorName</param-name>
+      <param-value>classReadAwRequestCreator</param-value>
+    </init-param>
+    <init-param>
+      <param-name>controllerName</param-name>
+      <param-value>classReadController</param-value>
+    </init-param>
+    <init-param>
+      <param-name>responseWriterName</param-name>
+      <param-value>classReadResponseWriter</param-value>
+    </init-param>
+    <load-on-startup>1</load-on-startup>
+  </servlet>
+  
+  <servlet-mapping>
+    <servlet-name>ClassReadServlet</servlet-name>
+    <url-pattern>/class/read</url-pattern>
+  </servlet-mapping>
+  
   <!-- Handle class updates -->
   <servlet>
     <description>

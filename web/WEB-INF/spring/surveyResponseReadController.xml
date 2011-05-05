@@ -48,8 +48,8 @@
         
         <!-- authorize -->
         <ref bean="userCampaignValidationService" />
-        <ref bean="userRoleCheckService" />
         <ref bean="campaignUserCheckService" />
+        <ref bean="participantCampaignRunningStateValidationService" />
         
         <!-- grab the XML config from the db -->
         <ref bean="findCampaignConfigurationService" />
@@ -82,9 +82,10 @@
         <ref bean="suppressMetadataValidator" />
         <ref bean="prettyPrintValidator" />
         <ref bean="returnIdValidator" />
+        <ref bean="sortOrderValidator" />
       </list>      
     </property>
-    <property name="featureName"><value>new data point query</value></property>
+    <property name="featureName"><value>survey response query</value></property>
   </bean>
 
   <bean id="userListValidator" class="edu.ucla.cens.awserver.validator.UserListValidator">
@@ -326,6 +327,18 @@
     </property>
   </bean>
   
+  <bean id="sortOrderValidator" class="edu.ucla.cens.awserver.validator.SortOrderValidator">
+    <constructor-arg index="0">
+      <bean class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
+        <constructor-arg index="0"> 
+          <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
+            <property name="code" value="0715" />
+            <property name="text" value="invalid sort_order" />
+          </bean>
+        </constructor-arg>
+      </bean>
+    </constructor-arg>
+  </bean>
   
   <bean id="findCampaignConfigurationService" class="edu.ucla.cens.awserver.service.FindCampaignConfigurationService">
    <constructor-arg index="0">
@@ -344,6 +357,32 @@
         <constructor-arg index="0"><ref bean="dataSource" /></constructor-arg>
         <constructor-arg index="1"><bean class="edu.ucla.cens.awserver.domain.ConfigurationValueMerger" /></constructor-arg>
       </bean>
+    </constructor-arg>
+  </bean>
+
+  <bean id="participantCampaignRunningStateValidationService" class="edu.ucla.cens.awserver.service.CampaignRunningStateUserRoleValidationService">
+   <constructor-arg index="0">
+      <bean class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
+        <constructor-arg index="0"> 
+          <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
+            <property name="code" value="0716" />
+            <property name="text" value="participants cannot query stopped campaigns" />
+          </bean>
+        </constructor-arg>
+      </bean>
+    </constructor-arg>
+    <constructor-arg index="1">
+      <bean class="edu.ucla.cens.awserver.dao.FindCampaignRunningStateDao">
+        <constructor-arg index="0"><ref bean="dataSource" /></constructor-arg>
+      </bean>
+    </constructor-arg>
+    <constructor-arg index="2"><value>stopped</value></constructor-arg>
+    <constructor-arg index="3">
+      <list>
+        <value>author</value>
+        <value>analyst</value>
+        <value>supervisor</value>
+      </list>
     </constructor-arg>
   </bean>
   
