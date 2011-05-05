@@ -29,6 +29,7 @@ public abstract class AbstractAwRequest implements AwRequest {
 	
 	private Map<String, Object> _toValidate;
 	private Map<String, Object> _toProcess;
+	private Map<String, Object> _toReturn;
 	
 	protected AbstractAwRequest() {
 		_requestUrl = null;
@@ -40,6 +41,7 @@ public abstract class AbstractAwRequest implements AwRequest {
 		
 		_toValidate = new HashMap<String, Object>();
 		_toProcess = new HashMap<String, Object>();
+		_toReturn = new HashMap<String, Object>();
 	}
 	
 	public String getRequestUrl() {
@@ -86,6 +88,10 @@ public abstract class AbstractAwRequest implements AwRequest {
 		return _toProcess;
 	}
 	
+	public Map<String, Object> getToReturn() {
+		return _toReturn;
+	}
+	
 	public String getCampaignUrn() {
 		return _campaignUrn;
 	}
@@ -110,9 +116,28 @@ public abstract class AbstractAwRequest implements AwRequest {
 	}
 	
 	/**
+	 * Checks if the key exists in the toReturn map.
+	 * 
+	 * @param key The key to check for in the toReturn map.
+	 * 
+	 * @return Returns true if the key exists, false otherwise.
+	 */
+	public boolean existsInToReturn(String key) {
+		if(key == null) {
+			return false;
+		}
+		
+		return _toReturn.containsKey(key);
+	}
+	
+	/**
 	 * Returns the Object associated with the parameterized 'key' from the
 	 * toProcess map. If no such value exists, throw an 
 	 * IllegalArgumentException.
+	 * 
+	 * @param key The key to use when looking in the toProcess map.
+	 * 
+	 * @return The value that the key points to in the toProcess map.
 	 * 
 	 * @throws IllegalArgumentException Thrown if no such key exists in the 
 	 * 									toProcess map or if the key is null.
@@ -126,6 +151,29 @@ public abstract class AbstractAwRequest implements AwRequest {
 		}
 		else {
 			return _toProcess.get(key);
+		}
+	}
+	
+	/**
+	 * Gets the value for the parameterized key from the toReturn map. If no
+	 * such key exists, it will throw an IllegalArgumentException. 
+	 * 
+	 * @param key The key to use when looking in the toReturn map.
+	 * 
+	 * @return The value that that the key points to in the toReturn map.
+	 * 
+	 * @throws IllegalArgumentException Thrown if the key is null or not found
+	 * 									in the toReturn map.
+	 */
+	public Object getToReturnValue(String key) {
+		if(key == null) {
+			throw new IllegalArgumentException("Key is null and null keys are dissallowed.");
+		}
+		else if(! _toReturn.containsKey(key)) {
+			throw new IllegalArgumentException("Key not found in the toReturn map.");
+		}
+		else {
+			return _toReturn.get(key);
 		}
 	}
 	
@@ -161,6 +209,39 @@ public abstract class AbstractAwRequest implements AwRequest {
 		}
 		else {
 			_toProcess.put(key, value);
+		}
+	}
+	
+	/**
+	 * Adds the parameterized value with the parameterized key to the toReturn
+	 * map. If 'overwrite' is set to true it will overwrite any existing
+	 * values; if it is set to false, and an entry with the same 'key' already
+	 * exists, it will throw an IllegalArgumentException indicating such.
+	 * 
+	 * @param key The key to use when adding this entry in the toReturn map.
+	 * 
+	 * @param value The value to use when adding this entry in the toReturn
+	 * 				map.
+	 * 
+	 * @param overwrite Whether or not to overwrite any existing entries in
+	 * 					the toReturn map that have the same key.
+	 * 
+	 * @throws IllegalArgumentException Thrown if the key or value are null or
+	 * 									if 'overwrite' is set to false and
+	 * 									such a key already exists.
+	 */
+	public void addToReturn(String key, Object value, boolean overwrite) {
+		if(key == null) {
+			throw new IllegalArgumentException("Null keys are dissallowed.");
+		}
+		else if(value == null) {
+			throw new IllegalArgumentException("Null values are dissallowed.");
+		}
+		else if((! overwrite) && (! _toReturn.containsKey(key))) {
+			throw new IllegalArgumentException("The key '" + key + "' already exists but overwriting is disallowed.");
+		}
+		else {
+			_toReturn.put(key, value);
 		}
 	}
 	

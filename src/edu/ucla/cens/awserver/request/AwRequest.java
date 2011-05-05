@@ -93,4 +93,9 @@ import edu.ucla.cens.awserver.domain.User;
 	 boolean existsInToProcess(String key);
 	 Object getToProcessValue(String key);
 	 void addToProcess(String key, Object value, boolean overwrite);
+	 
+	 Map<String, Object> getToReturn();
+	 boolean existsInToReturn(String key);
+	 Object getToReturnValue(String key);
+	 void addToReturn(String key, Object value, boolean overwrite);
 }
