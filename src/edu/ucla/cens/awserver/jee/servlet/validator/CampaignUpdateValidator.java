@@ -102,6 +102,16 @@ public class CampaignUpdateValidator extends AbstractHttpServletRequestValidator
 			request.setCommaSeparatedClasses(classUrnList);
 		}
 		
+		String userRolesListAdd = httpRequest.getParameter(InputKeys.USER_ROLE_LIST_ADD);
+		if((userRolesListAdd != null) && (! "".equals(userRolesListAdd))) {
+			request.setUserRoleListAdd(userRolesListAdd);
+		}
+		
+		String userRolesListRemove = httpRequest.getParameter(InputKeys.USER_ROLE_LIST_REMOVE);
+		if((userRolesListRemove != null) && (! "".equals(userRolesListRemove))) {
+			request.setUserRoleListRemove(userRolesListRemove);
+		}
+		
 		httpRequest.setAttribute("awRequest", request);
 		return true;
 	}
@@ -137,8 +147,8 @@ public class CampaignUpdateValidator extends AbstractHttpServletRequestValidator
 		
 		// Check that the correct number of items were in the request.
 		int numberOfUploadedItems = uploadedItems.size();
-		if((numberOfUploadedItems < 3) || (numberOfUploadedItems > 7)) {
-			_logger.warn("An incorrect number of parameters were found on a campaign update attempt. 3 through 7 were expected and " + numberOfUploadedItems
+		if(numberOfUploadedItems < 3) {
+			_logger.warn("An incorrect number of parameters were found on a campaign update attempt. At least 3 were expected and " + numberOfUploadedItems
 				+ " were received");
 			return false;
 		}
@@ -201,7 +211,22 @@ public class CampaignUpdateValidator extends AbstractHttpServletRequestValidator
 						request.setCampaignUrn(tmp);
 					}
 				}
-				
+				else if(InputKeys.USER_ROLE_LIST_ADD.equals(name)) {
+					if(greaterThanLength(InputKeys.USER_ROLE_LIST_ADD, InputKeys.USER_ROLE_LIST_ADD, tmp, 25600)) {
+						return false;
+					}
+					else if(! "".equals(tmp)) {
+						request.setUserRoleListAdd(tmp);
+					}
+				}
+				else if(InputKeys.USER_ROLE_LIST_REMOVE.equals(name)) {
+					if(greaterThanLength(InputKeys.USER_ROLE_LIST_REMOVE, InputKeys.USER_ROLE_LIST_REMOVE, tmp, 25600)) {
+						return false;
+					}
+					else if(! "".equals(tmp)) {
+						request.setUserRoleListRemove(tmp);
+					}
+				}
 			} else {
 				// The XML data is not checked because its length is so variable and potentially huge.
 				// The default setting for Tomcat is to disallow requests that are greater than 2MB, which may have to change in the future

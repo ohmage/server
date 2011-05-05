@@ -37,8 +37,8 @@ public class CampaignCreationDao extends AbstractDao {
 	private static Logger _logger = Logger.getLogger(CampaignCreationDao.class);
 	
 	private static final String SQL_GET_CAMPAIGN_ID = "SELECT id " +
-														  "FROM campaign " +
-														  "WHERE urn=?";
+													  "FROM campaign " +
+													  "WHERE urn=?";
 
 	private static final String SQL_GET_CLASS_ID = "SELECT id " +
 												   "FROM class " +

@@ -8,13 +8,13 @@ import org.apache.log4j.Logger;
 import edu.ucla.cens.awserver.request.AwRequest;
 
 /**
- * Validates that no duplicates exist amongst a list of users both withing the
- * list itself and against other lists.
+ * Validates that no duplicates exist amongst a list both within the list
+ * itself and against other lists.
  * 
  * @author John Jenkins
  */
-public class NoDuplicateUsersInListsValidator extends AbstractAnnotatingValidator {
-	private static Logger _logger = Logger.getLogger(NoDuplicateUsersInListsValidator.class);
+public class NoDuplicatesInListsValidator extends AbstractAnnotatingValidator {
+	private static Logger _logger = Logger.getLogger(NoDuplicatesInListsValidator.class);
 	
 	String[] _keys;
 	
@@ -27,7 +27,7 @@ public class NoDuplicateUsersInListsValidator extends AbstractAnnotatingValidato
 	 * @param keys The keys to use against the request object to get the lists
 	 * 			   of users.
 	 */
-	public NoDuplicateUsersInListsValidator(AwRequestAnnotator annotator, String[] keys) {
+	public NoDuplicatesInListsValidator(AwRequestAnnotator annotator, String[] keys) {
 		super(annotator);
 		
 		if((keys == null) || (keys.length == 0)) {
@@ -40,10 +40,10 @@ public class NoDuplicateUsersInListsValidator extends AbstractAnnotatingValidato
 	
 	/**
 	 * Gets the lists from the request based on the keys that this object was
-	 * created with. It then checks the lists to ensure that that user doesn't
-	 * exists again in its own list or in any other lists. It doesn't validate
-	 * or require that all of the lists exist, only that their contents don't
-	 * overlap. 
+	 * created with. It then checks the lists to ensure that that no
+	 * duplicates exist in its own list or in any other lists. It doesn't
+	 * validate or require that all of the lists exist, only that their
+	 * contents don't overlap. 
 	 * 
 	 * The complexity of this function is O(n^2) where n is the number of
 	 * names in all of the lists combined.
@@ -83,12 +83,12 @@ public class NoDuplicateUsersInListsValidator extends AbstractAnnotatingValidato
 		// Check for duplicates.
 		for(int i = 0; i < lists.length; i++) {
 			for(int j = 0; j < lists[i].length; j++) {
-				String currUser = lists[i][j];
+				String currItem = lists[i][j];
 				
 				// First, check that it doesn't exist in the rest of the list.
 				for(int x = j+1; x < lists[i].length; x++) {
-					if(currUser.equals(lists[i][x])) {
-						getAnnotator().annotate(awRequest, "Duplicate name found in list " + _keys[i] + " at index " + j + " and index " + x + ": " + currUser);
+					if(currItem.equals(lists[i][x])) {
+						getAnnotator().annotate(awRequest, "Duplicate entry found in list " + _keys[i] + " at index " + j + " and index " + x + ": " + currItem);
 						awRequest.setFailedRequest(true);
 						return false;
 					}
@@ -97,8 +97,8 @@ public class NoDuplicateUsersInListsValidator extends AbstractAnnotatingValidato
 				// Then, check that it doesn't exist in any of the other lists.
 				for(int k = i+1; k < lists.length; k++) {
 					for(int x = 0; x < lists[k].length; x++) {
-						if(currUser.equals(lists[k][x])) {
-							getAnnotator().annotate(awRequest, "Duplicate name found in list " + _keys[i] + " at index " + j + " and in list " + _keys[k] + " at index " + x + ": " + currUser);
+						if(currItem.equals(lists[k][x])) {
+							getAnnotator().annotate(awRequest, "Duplicate entry found in list " + _keys[i] + " at index " + j + " and in list " + _keys[k] + " at index " + x + ": " + currItem);
 							awRequest.setFailedRequest(true);
 							return false;
 						}
