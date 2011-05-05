@@ -12,7 +12,7 @@ import edu.ucla.cens.awserver.validator.AwRequestAnnotator;
 
 /**
  * 
- * @author joshua selsky
+ * @author Joshua Selsky
  * @author John Jenkins
  */
 public class UserRoleCampaignPopulationService extends AbstractAnnotatingDaoService {

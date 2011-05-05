@@ -128,10 +128,10 @@ public class SurveyResponseReadDao extends AbstractDao {
 						
 						String ts = rs.getString(6); // this will return the timestamp in JDBC escape format (ending with nanoseconds)
 						                             // and the nanoseconds value is not needed, so shave it off
-						                             // it is weird to be formatting the data inside the DAO here, but the nanaseconds
+						                             // it is weird to be formatting the data inside the DAO here, but the nanoseconds
 						                             // aren't even *stored* in the db, they are appended to the string during
-						                             // whatever conversion JDBC does when it converts the MySQL timestamp to a 
-						                             // Java String.
+						                             // whatever conversion the MySQL JDBC connector does when it converts the db's
+                               						 // timestamp to a Java String.
 						
 						if(ts.contains(".")) {
 							
