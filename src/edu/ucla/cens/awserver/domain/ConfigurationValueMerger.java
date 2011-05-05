@@ -75,9 +75,9 @@ public class ConfigurationValueMerger {
 			}
 		}
 		
-		if(_logger.isDebugEnabled()) {
-			_logger.debug(result);
-		}
+//		if(_logger.isDebugEnabled()) {
+//			_logger.debug(result);
+//		}
 		
 	}
 	
