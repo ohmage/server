@@ -22,6 +22,7 @@ import org.springframework.transaction.TransactionException;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.DefaultTransactionDefinition;
 
+import edu.ucla.cens.awserver.cache.SurveyResponsePrivacyStateCache;
 import edu.ucla.cens.awserver.domain.DataPacket;
 import edu.ucla.cens.awserver.domain.PromptResponseDataPacket;
 import edu.ucla.cens.awserver.domain.SurveyDataPacket;
@@ -42,7 +43,7 @@ public class SurveyUploadDao extends AbstractUploadDao {
 	private final String _insertSurveyResponse = "INSERT into survey_response" +
 								           		 " (user_id, campaign_id, msg_timestamp, epoch_millis," +
 								           		 " phone_timezone, location_status, location, survey_id, survey," +
-								           		 " client, upload_timestamp, launch_context, privacy_state) " +
+								           		 " client, upload_timestamp, launch_context, privacy_state_id) " +
 										         " VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)";
 	
 	private final String _insertPromptResponse = "INSERT into prompt_response" +
@@ -147,9 +148,9 @@ public class SurveyUploadDao extends AbstractUploadDao {
 								ps.setTimestamp(11, new Timestamp(System.currentTimeMillis()));
 								ps.setString(12, surveyDataPacket.getLaunchContext());
 								if(_systemProps.containsKey("system.surveyResponseSharingState")) {
-									ps.setString(13, _systemProps.get("system.surveyResponseSharingState"));
+									ps.setInt(13, SurveyResponsePrivacyStateCache.lookup(_systemProps.get("system.surveyResponseSharingState")));
 								} else { // default to private
-									ps.setString(13, "private");
+									ps.setInt(13, SurveyResponsePrivacyStateCache.lookup(SurveyResponsePrivacyStateCache.PRIVACY_STATE_PRIVATE));
 								}
 								return ps;
 							}
@@ -267,7 +268,10 @@ public class SurveyUploadDao extends AbstractUploadDao {
 			_logger.error("an error occurred when atempting to run this SQL '" + _insertSurveyResponse + "' with the following "
 				+ "parameters: " + userId + ", " + campaignConfigurationId + ", " + sdp.getDate() + " , " + sdp.getEpochTime()
 				+  ", " + sdp.getTimezone() + ", " + sdp.getLocationStatus() + ", " + sdp.getLocation() + ", " + sdp.getSurveyId() 
-				+ ", " + sdp.getSurvey() + ", " + client);
+				+ ", " + sdp.getSurvey() + ", " + client + ", " + new Timestamp(System.currentTimeMillis()) + ", " + sdp.getLaunchContext()
+				+ ", " + ((_systemProps.containsKey("system.surveyResponseSharingState")) ? 
+						SurveyResponsePrivacyStateCache.lookup(_systemProps.get("system.surveyResponseSharingState")) : 
+						SurveyResponsePrivacyStateCache.lookup(SurveyResponsePrivacyStateCache.PRIVACY_STATE_PRIVATE)));
 			
 		} else {
 			

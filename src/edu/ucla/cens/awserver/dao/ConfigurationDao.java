@@ -20,7 +20,11 @@ import edu.ucla.cens.awserver.domain.SurveyMapBuilder;
 public class ConfigurationDao extends AbstractParameterLessDao {
 	private static Logger _logger = Logger.getLogger(ConfigurationDao.class);
 	private SurveyMapBuilder _surveyBuilder;
-	private String _sql = "SELECT urn, name, description, xml, running_state, privacy_state, creation_timestamp FROM campaign";
+	
+	private static final String _sql = "SELECT c.urn, c.name, c.description, c.xml, crs.running_state, cps.privacy_state, c.creation_timestamp " +
+									   "FROM campaign c, campaign_running_state crs, campaign_privacy_state cps " +
+									   "WHERE c.running_state_id = crs.id " +
+									   "AND c.privacy_state_id = cps.id";
 	
 	public ConfigurationDao(DataSource dataSource, SurveyMapBuilder builder) {
 		super(dataSource);

@@ -16,7 +16,7 @@ public class CampaignExistsDao extends AbstractDao {
 	
 	private static final String SQL = "SELECT count(*) " +
 									  "FROM campaign " +
-									  "WHERE urn=?";
+									  "WHERE urn = ?";
 	
 	/**
 	 * Basic constructor.

@@ -1,5 +1,6 @@
 package edu.ucla.cens.awserver.dao;
 
+import java.security.InvalidParameterException;
 import java.util.List;
 import java.util.ListIterator;
 
@@ -13,6 +14,8 @@ import org.springframework.transaction.TransactionException;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.DefaultTransactionDefinition;
 
+import edu.ucla.cens.awserver.cache.CampaignRoleCache;
+import edu.ucla.cens.awserver.cache.ClassRoleCache;
 import edu.ucla.cens.awserver.request.AwRequest;
 import edu.ucla.cens.awserver.request.InputKeys;
 
@@ -24,24 +27,13 @@ import edu.ucla.cens.awserver.request.InputKeys;
 public class ClassUpdateDao extends AbstractDao {
 	private static Logger _logger = Logger.getLogger(ClassUpdateDao.class);
 	
-	private static final String PRIVILEGED_STRING = "privileged";
-	private static final String RESTRICTED_STRING = "restricted";
-	
 	private static final String SQL_GET_USER_ID = "SELECT id " +
 												  "FROM user " +
 												  "WHERE login_id = ?";
 	
-	private static final String SQL_GET_AUTHOR_ID = "SELECT id " +
-													"FROM user_role " +
-													"WHERE role='author'";
-	
 	private static final String SQL_GET_CLASS_ID = "SELECT id " +
 												   "FROM class " +
 												   "WHERE urn = ?";
-	
-	private static final String SQL_GET_USER_CLASS_ROLE_ID = "SELECT id " +
-															 "FROM user_class_role " +
-															 "WHERE role = ?";
 	
 	private static final String SQL_GET_CAMPAIGN_CLASS_ID = "SELECT id " +
 															"FROM campaign_class " +
@@ -116,9 +108,9 @@ public class ClassUpdateDao extends AbstractDao {
 			try {
 				updateName(awRequest);
 				updateDescription(awRequest);
-				updateUserListAdd(awRequest, InputKeys.USER_LIST_ADD, RESTRICTED_STRING);
+				updateUserListAdd(awRequest, InputKeys.USER_LIST_ADD, ClassRoleCache.ROLE_RESTRICTED);
 				updateUserListRemove(awRequest);
-				updateUserListAdd(awRequest, InputKeys.PRIVILEGED_USER_LIST_ADD, PRIVILEGED_STRING);
+				updateUserListAdd(awRequest, InputKeys.PRIVILEGED_USER_LIST_ADD, ClassRoleCache.ROLE_PRIVILEGED);
 			}
 			catch(IllegalArgumentException e) {
 				// Rollback the transaction and throw a DataAccessException.
@@ -229,8 +221,8 @@ public class ClassUpdateDao extends AbstractDao {
 		List<?> campaignIdList;
 		try {
 			campaignIdList = getJdbcTemplate().query(SQL_GET_CLASS_CAMPAIGNS,
-												   new Object[] { classId }, 
-												   new SingleColumnRowMapper());
+													 new Object[] { classId }, 
+													 new SingleColumnRowMapper());
 		}
 		catch(org.springframework.dao.DataAccessException e) {
 			_logger.error("Error while executing SQL '" + SQL_GET_CLASS_CAMPAIGNS + "' with parameter: " + classId, e);
@@ -253,10 +245,10 @@ public class ClassUpdateDao extends AbstractDao {
 			// Get the user's class-role ID.
 			int userClassRoleId;
 			try {
-				userClassRoleId = getJdbcTemplate().queryForInt(SQL_GET_USER_CLASS_ROLE_ID, new Object[] { userClassRole });
+				userClassRoleId = ClassRoleCache.lookup(userClassRole);
 			}
-			catch(org.springframework.dao.DataAccessException e) {
-				_logger.error("Error while executing SQL '" + SQL_GET_USER_CLASS_ROLE_ID + "' with parameters: " + "restricted", e);
+			catch(InvalidParameterException e) {
+				_logger.error("Cache didn't know about known role " + userClassRole, e);
 				throw new DataAccessException(e);
 			}
 			
@@ -346,10 +338,10 @@ public class ClassUpdateDao extends AbstractDao {
 		// Get the Author role ID.
 		int authorId;
 		try {
-			authorId = getJdbcTemplate().queryForInt(SQL_GET_AUTHOR_ID);
+			authorId = CampaignRoleCache.lookup(CampaignRoleCache.ROLE_AUTHOR);
 		}
-		catch(org.springframework.dao.DataAccessException dae) {
-			_logger.error("Error executing SQL '" + SQL_GET_AUTHOR_ID + "'", dae);
+		catch(InvalidParameterException dae) {
+			_logger.error("Cache doesn't know about known role " + CampaignRoleCache.ROLE_AUTHOR, dae);
 			throw new DataAccessException(dae);
 		}
 		

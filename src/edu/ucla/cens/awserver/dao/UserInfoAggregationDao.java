@@ -15,6 +15,7 @@ import org.json.JSONObject;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.SingleColumnRowMapper;
 
+import edu.ucla.cens.awserver.cache.ClassRoleCache;
 import edu.ucla.cens.awserver.domain.UserInfoQueryResult;
 import edu.ucla.cens.awserver.request.AwRequest;
 import edu.ucla.cens.awserver.request.InputKeys;
@@ -34,7 +35,7 @@ public class UserInfoAggregationDao extends AbstractDao {
 											  			     "AND u.id = uc.user_id " +
 											  			     "AND uc.class_id = c.id " +
 											  			     "AND uc.user_class_role_id = ucr.id " +
-											  			     "AND ucr.role = 'privileged'";
+											  			     "AND ucr.role = '" + ClassRoleCache.ROLE_PRIVILEGED + "'";
 	
 	private static final String SQL_GET_USER_LOGINS_FOR_CLASS = "SELECT u.login_id " +
 	      														"FROM class c, user u, user_class uc " +

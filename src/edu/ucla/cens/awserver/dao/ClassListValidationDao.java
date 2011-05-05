@@ -19,12 +19,12 @@ public class ClassListValidationDao extends AbstractDao {
 	
 	private static final String SQL_CLASS_COUNT = "SELECT count(*) " +
 												  "FROM class " +
-												  "WHERE urn=?";
+												  "WHERE urn = ?";
 	
 	private static final String SQL_USER_IN_CLASS = "SELECT count(*) " +
 													"FROM user u, class c, user_class uc " +
-													"WHERE c.urn=? " +
-													"AND u.login_id=? " +
+													"WHERE c.urn = ? " +
+													"AND u.login_id = ? " +
 													"AND c.id = uc.class_id " +
 													"AND u.id = uc.user_id";
 	

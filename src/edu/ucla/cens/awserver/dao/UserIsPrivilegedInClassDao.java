@@ -4,6 +4,7 @@ import javax.sql.DataSource;
 
 import org.apache.log4j.Logger;
 
+import edu.ucla.cens.awserver.cache.ClassRoleCache;
 import edu.ucla.cens.awserver.request.AwRequest;
 import edu.ucla.cens.awserver.request.InputKeys;
 
@@ -20,7 +21,7 @@ public class UserIsPrivilegedInClassDao extends AbstractDao {
 									  "WHERE u.login_id = ? " +
 									  "AND uc.user_id = u.id " +
 									  "AND ucr.id = uc.user_class_role_id " +
-									  "AND ucr.role = 'privileged' " +
+									  "AND ucr.role = '" + ClassRoleCache.ROLE_PRIVILEGED + "' " +
 									  "AND c.id = uc.class_id " +
 									  "AND c.urn = ?";
 	

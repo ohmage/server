@@ -1,5 +1,6 @@
 package edu.ucla.cens.awserver.dao;
 
+import java.security.InvalidParameterException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
@@ -16,6 +17,10 @@ import org.springframework.transaction.TransactionException;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.DefaultTransactionDefinition;
 
+import edu.ucla.cens.awserver.cache.CampaignPrivacyStateCache;
+import edu.ucla.cens.awserver.cache.CampaignRoleCache;
+import edu.ucla.cens.awserver.cache.CampaignRunningStateCache;
+import edu.ucla.cens.awserver.cache.ClassRoleCache;
 import edu.ucla.cens.awserver.request.AwRequest;
 import edu.ucla.cens.awserver.request.InputKeys;
 
@@ -36,30 +41,6 @@ public class CampaignUpdateDao extends AbstractDao {
 												   "FROM class " +
 												   "WHERE urn = ?";
 	
-	private static final String SQL_GET_SUPERVISOR_ID = "SELECT id " +
-														"FROM user_role " +
-														"WHERE role = 'supervisor'";
-	
-	private static final String SQL_GET_ANALYST_ID = "SELECT id " +
-													 "FROM user_role " +
-													 "WHERE role = 'analyst'";
-	
-	private static final String SQL_GET_AUTHOR_ID = "SELECT id " +
-													"FROM user_role " +
-													"WHERE role='author'";
-	
-	private static final String SQL_GET_PARTICIPANT_ID = "SELECT id " +
-														 "FROM user_role " +
-														 "WHERE role = 'participant'";
-	
-	private static final String SQL_GET_PRIVILEGED_ID = "SELECT id " +
-														"FROM user_class_role " +
-														"WHERE role = 'privileged'";
-
-	private static final String SQL_GET_RESTRICTED_ID = "SELECT id " +
-														"FROM user_class_role " +
-														"WHERE role = 'restricted'";
-	
 	private static final String SQL_GET_CAMPAIGN_CLASS_ID = "SELECT id " +
 															"FROM campaign_class cc " +
 															"WHERE campaign_id = ? " +
@@ -78,7 +59,7 @@ public class CampaignUpdateDao extends AbstractDao {
 														  "FROM user u, user_role ur, user_role_campaign urc, campaign c " +
 														  "WHERE u.login_id = ? " +
 														  "AND u.id = urc.user_id " +
-														  "AND ur.role in ('supervisor', 'author') " +
+														  "AND ur.role in ('" + CampaignRoleCache.ROLE_SUPERVISOR + "', '" + CampaignRoleCache.ROLE_AUTHOR + "') " +
 														  "AND ur.id = urc.user_role_id " +
 														  "AND c.urn = ? " +
 														  "AND c.id = urc.campaign_id";
@@ -116,11 +97,11 @@ public class CampaignUpdateDao extends AbstractDao {
 																				  ")";
 	
 	private static final String SQL_UPDATE_RUNNING_STATE = "UPDATE campaign " +
-														   "SET running_state = ? " +
+														   "SET running_state_id = ? " +
 														   "WHERE urn = ?";
 	
 	private static final String SQL_UPDATE_PRIVACY_STATE = "UPDATE campaign " +
-														   "SET privacy_state = ? " +
+														   "SET privacy_state_id = ? " +
 														   "WHERE urn = ?";
 	
 	private static final String SQL_UPDATE_DESCRIPTION = "UPDATE campaign " +
@@ -259,18 +240,18 @@ public class CampaignUpdateDao extends AbstractDao {
 		boolean userIsSupervisor = false;
 		try {
 			userIsSupervisor = (getJdbcTemplate().queryForInt(SQL_GET_IS_ROLE, 
-					new Object[] { awRequest.getUser().getUserName(), "supervisor", awRequest.getCampaignUrn() }) != 0);
+					new Object[] { awRequest.getUser().getUserName(), CampaignRoleCache.ROLE_SUPERVISOR, awRequest.getCampaignUrn() }) != 0);
 		}
 		catch(org.springframework.dao.DataAccessException e) {
 			_logger.error("Error executing SQL '" + SQL_GET_IS_ROLE + "' with parameters: " + 
-						  awRequest.getUser().getUserName() + ", supervisor, " + awRequest.getCampaignUrn(), e);
+						  awRequest.getUser().getUserName() + ", " + CampaignRoleCache.ROLE_SUPERVISOR + ", " + awRequest.getCampaignUrn(), e);
 			throw new DataAccessException(e);
 		}
 		
 		boolean userIsAuthorAndNoUploads = false;
 		try {
 			if(getJdbcTemplate().queryForInt(SQL_GET_IS_ROLE, 
-					new Object[] { awRequest.getUser().getUserName(), "author", awRequest.getCampaignUrn() }) != 0) {
+					new Object[] { awRequest.getUser().getUserName(), CampaignRoleCache.ROLE_AUTHOR, awRequest.getCampaignUrn() }) != 0) {
 				try {
 					userIsAuthorAndNoUploads = (getJdbcTemplate().queryForInt(SQL_GET_NUM_UPLOADS, 
 							new Object [] { awRequest.getCampaignUrn() }) == 0);
@@ -283,7 +264,7 @@ public class CampaignUpdateDao extends AbstractDao {
 		}
 		catch(org.springframework.dao.DataAccessException e) {
 			_logger.error("Error executing SQL '" + SQL_GET_IS_ROLE + "' with parameters: " + 
-						  awRequest.getUser().getUserName() + ", author, " + awRequest.getCampaignUrn(), e);
+						  awRequest.getUser().getUserName() + ", " + CampaignRoleCache.ROLE_AUTHOR + ", " + awRequest.getCampaignUrn(), e);
 			throw new DataAccessException(e);
 		}
 		
@@ -308,11 +289,15 @@ public class CampaignUpdateDao extends AbstractDao {
 		}
 		
 		try {
-			getJdbcTemplate().update(SQL_UPDATE_RUNNING_STATE, new Object[] { runningState, awRequest.getCampaignUrn() });
+			getJdbcTemplate().update(SQL_UPDATE_RUNNING_STATE, new Object[] { CampaignRunningStateCache.lookup(runningState), awRequest.getCampaignUrn() });
 		}
 		catch(org.springframework.dao.DataAccessException e) {
 			_logger.error("Error executing SQL '" + SQL_UPDATE_RUNNING_STATE + "' with parameters: " + 
-						  runningState + ", " + awRequest.getCampaignUrn(), e);
+					CampaignRunningStateCache.lookup(runningState) + ", " + awRequest.getCampaignUrn(), e);
+			throw new DataAccessException(e);
+		}
+		catch(InvalidParameterException e) {
+			_logger.error("Unknown campaign running state in cache: " + runningState, e);
 			throw new DataAccessException(e);
 		}
 	}
@@ -335,10 +320,15 @@ public class CampaignUpdateDao extends AbstractDao {
 		}
 		
 		try {
-			getJdbcTemplate().update(SQL_UPDATE_PRIVACY_STATE, new Object[] { privacyState, awRequest.getCampaignUrn() });
+			getJdbcTemplate().update(SQL_UPDATE_PRIVACY_STATE, new Object[] { CampaignPrivacyStateCache.lookup(privacyState), awRequest.getCampaignUrn() });
 		}
 		catch(org.springframework.dao.DataAccessException e) {
-			_logger.error("Error executing SQL '" + SQL_UPDATE_PRIVACY_STATE + "' with parameters: " + privacyState + ", " + awRequest.getCampaignUrn(), e);
+			_logger.error("Error executing SQL '" + SQL_UPDATE_PRIVACY_STATE + "' with parameters: " + 
+					CampaignPrivacyStateCache.lookup(privacyState) + ", " + awRequest.getCampaignUrn(), e);
+			throw new DataAccessException(e);
+		}
+		catch(InvalidParameterException e) {
+			_logger.error("Unknown campaign privacy state in cache: " + privacyState, e);
 			throw new DataAccessException(e);
 		}
 	}
@@ -453,60 +443,60 @@ public class CampaignUpdateDao extends AbstractDao {
 		// Get the campaign role supervisor's ID.
 		int supervisorId;
 		try {
-			supervisorId = getJdbcTemplate().queryForInt(SQL_GET_SUPERVISOR_ID);
+			supervisorId = CampaignRoleCache.lookup(CampaignRoleCache.ROLE_SUPERVISOR);
 		}
-		catch(org.springframework.dao.DataAccessException e) {
-			_logger.error("Error executing SQL '" + SQL_GET_SUPERVISOR_ID + "'", e);
+		catch(InvalidParameterException e) {
+			_logger.error("The cache doesn't know about known role " + CampaignRoleCache.ROLE_SUPERVISOR, e);
 			throw new DataAccessException(e);
 		}
 		
 		// Get the campaign role analyst's ID.
 		int analystId;
 		try {
-			analystId = getJdbcTemplate().queryForInt(SQL_GET_ANALYST_ID);
+			analystId = CampaignRoleCache.lookup(CampaignRoleCache.ROLE_ANALYST);
 		}
-		catch(org.springframework.dao.DataAccessException e) {
-			_logger.error("Error executing SQL '" + SQL_GET_ANALYST_ID + "'", e);
+		catch(InvalidParameterException e) {
+			_logger.error("The cache doesn't know about known role " + CampaignRoleCache.ROLE_ANALYST, e);
 			throw new DataAccessException(e);
 		}
 		
 		// Get the Author role ID.
 		int authorId;
 		try {
-			authorId = getJdbcTemplate().queryForInt(SQL_GET_AUTHOR_ID);
+			authorId = CampaignRoleCache.lookup(CampaignRoleCache.ROLE_AUTHOR);
 		}
-		catch(org.springframework.dao.DataAccessException dae) {
-			_logger.error("Error executing SQL '" + SQL_GET_AUTHOR_ID + "'", dae);
-			throw new DataAccessException(dae);
+		catch(InvalidParameterException e) {
+			_logger.error("The cache doesn't know about known role " + CampaignRoleCache.ROLE_AUTHOR, e);
+			throw new DataAccessException(e);
 		}
 		
 		// Get the campaign role participant's ID.
 		int participantId;
 		try {
-			participantId = getJdbcTemplate().queryForInt(SQL_GET_PARTICIPANT_ID);
+			participantId = CampaignRoleCache.lookup(CampaignRoleCache.ROLE_PARTICIPANT);
 		}
-		catch(org.springframework.dao.DataAccessException e) {
-			_logger.error("Error executing SQL '" + SQL_GET_PARTICIPANT_ID + "'", e);
+		catch(InvalidParameterException e) {
+			_logger.error("The cache doesn't know about known role " + CampaignRoleCache.ROLE_PARTICIPANT, e);
 			throw new DataAccessException(e);
 		}
 		
 		// Get the ID for privileged users.
 		int privilegedId;
 		try {
-			privilegedId = getJdbcTemplate().queryForInt(SQL_GET_PRIVILEGED_ID);
+			privilegedId = ClassRoleCache.lookup(ClassRoleCache.ROLE_PRIVILEGED);
 		}
-		catch(org.springframework.dao.DataAccessException e) {
-			_logger.error("Error executing SQL '" + SQL_GET_PRIVILEGED_ID + "'", e);
+		catch(InvalidParameterException e) {
+			_logger.error("The cache doesn't know about known role " + ClassRoleCache.ROLE_PRIVILEGED, e);
 			throw new DataAccessException(e);
 		}
 		
 		// Get the ID for restricted users.
 		int restrictedId;
 		try {
-			restrictedId = getJdbcTemplate().queryForInt(SQL_GET_RESTRICTED_ID);
+			restrictedId = ClassRoleCache.lookup(ClassRoleCache.ROLE_RESTRICTED);
 		}
-		catch(org.springframework.dao.DataAccessException e) {
-			_logger.error("Error executing SQL '" + SQL_GET_RESTRICTED_ID + "'", e);
+		catch(InvalidParameterException e) {
+			_logger.error("The cache doesn't know about known role " + ClassRoleCache.ROLE_RESTRICTED, e);
 			throw new DataAccessException(e);
 		}
 		
@@ -645,16 +635,7 @@ public class CampaignUpdateDao extends AbstractDao {
 			// Remove the item from the list so that after all this processing
 			// is done we know which classes are associated with this campaign
 			// but no longer should be.
-			try {
-				currentClassList.remove(newClassList[i]);
-			}
-			catch(UnsupportedOperationException e) {
-				// TODO: This can probably be removed if it hasn't happened
-				// yet. it was a safety check in case JdbcTemplate.query()
-				// returned an immutable list.
-				_logger.error("JdbcTemplate.query() returns an immutable list, so this class needs to be fixed ASAP.");
-				throw new DataAccessException(e);
-			}
+			currentClassList.remove(newClassList[i]);
 		}
 		
 		// Find the classes that have been removed and remove the association.

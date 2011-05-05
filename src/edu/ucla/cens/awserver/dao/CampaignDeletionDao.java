@@ -9,6 +9,7 @@ import org.springframework.transaction.TransactionException;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.DefaultTransactionDefinition;
 
+import edu.ucla.cens.awserver.cache.CampaignRoleCache;
 import edu.ucla.cens.awserver.request.AwRequest;
 
 /**
@@ -28,29 +29,29 @@ public class CampaignDeletionDao extends AbstractDao {
 	
 	private static final String SQL_GET_IS_AUTHOR = "SELECT count(*) " +
 													"FROM user u, user_role ur, user_role_campaign urc, campaign c " +
-													"WHERE u.login_id=? " +
-													"AND ur.role='author' " +
-													"AND c.urn=? " +
-													"AND u.id=urc.user_id " +
-													"AND ur.id=urc.user_role_id " +
-													"AND c.id=urc.campaign_id";
+													"WHERE u.login_id = ? " +
+													"AND ur.role = '" + CampaignRoleCache.ROLE_AUTHOR + "' " +
+													"AND c.urn = ? " +
+													"AND u.id = urc.user_id " +
+													"AND ur.id = urc.user_role_id " +
+													"AND c.id = urc.campaign_id";
 	
 	private static final String SQL_GET_IS_SUPERVISOR = "SELECT count(*) " +
 														"FROM user u, user_role ur, user_role_campaign urc, campaign c " +
-														"WHERE u.login_id=? " +
-														"AND ur.role='supervisor' " +
-														"AND c.urn=? " +
-														"AND u.id=urc.user_id " +
-														"AND ur.id=urc.user_role_id " +
-														"AND c.id=urc.campaign_id";
+														"WHERE u.login_id = ? " +
+														"AND ur.role = " + CampaignRoleCache.ROLE_SUPERVISOR + "' " +
+														"AND c.urn = ? " +
+														"AND u.id = urc.user_id " +
+														"AND ur.id = urc.user_role_id " +
+														"AND c.id = urc.campaign_id";
 	
 	private static final String SQL_GET_RESPONSES_COUNT = "SELECT count(*) " +
 														  "FROM campaign c, survey_response sr " +
-														  "WHERE c.urn=? " +
-														  "AND c.id=sr.campaign_id";
+														  "WHERE c.urn = ? " +
+														  "AND c.id = sr.campaign_id";
 	
 	private static final String SQL_DELETE_CAMPAIGN = "DELETE FROM campaign " +
-													  "WHERE urn=?";
+													  "WHERE urn = ?";
 	
 	/**
 	 * Basic constructor.

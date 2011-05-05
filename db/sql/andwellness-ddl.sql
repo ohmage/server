@@ -17,6 +17,26 @@ CREATE TABLE class (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- --------------------------------------------------------------------
+-- Lookup table for the running states of a campaign.
+-- --------------------------------------------------------------------
+CREATE TABLE campaign_running_state (
+  id int unsigned NOT NULL auto_increment,
+  running_state varchar(50) NOT NULL,
+  PRIMARY KEY (id),
+  UNIQUE (running_state)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+-- --------------------------------------------------------------------
+-- Lookup table for the privacy states of a campaign.
+-- --------------------------------------------------------------------
+CREATE TABLE campaign_privacy_state (
+  id int unsigned NOT NULL auto_increment,
+  privacy_state varchar(50) NOT NULL,
+  PRIMARY KEY (id),
+  UNIQUE (privacy_state)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+-- --------------------------------------------------------------------
 -- A campaign and its associated XML configuration.
 -- --------------------------------------------------------------------
 CREATE TABLE campaign (
@@ -25,11 +45,13 @@ CREATE TABLE campaign (
   name varchar(255) NOT NULL,
   description text,
   xml mediumtext NOT NULL,
-  running_state varchar(50) NOT NULL,
-  privacy_state varchar(50) NOT NULL,
+  running_state_id int unsigned NOT NULL,
+  privacy_state_id int unsigned NOT NULL,
   creation_timestamp datetime NOT NULL,
   PRIMARY KEY (id),
-  UNIQUE (urn)
+  UNIQUE (urn),
+  CONSTRAINT FOREIGN KEY (running_state_id) REFERENCES campaign_running_state (id) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT FOREIGN KEY (privacy_state_id) REFERENCES campaign_privacy_state (id) ON DELETE CASCADE ON UPDATE CASCADE
 -- create an index on name?
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
@@ -53,7 +75,6 @@ CREATE TABLE user (
   id int unsigned NOT NULL auto_increment,
   login_id varchar(15) NOT NULL,
   password varchar(100) NOT NULL,
-  creation_millis long NOT NULL,
   enabled bit NOT NULL,
   new_account bit NOT NULL,
   campaign_creation_privilege bit NOT NULL,
@@ -148,6 +169,16 @@ CREATE TABLE campaign_class_default_role (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- --------------------------------------------------------------------
+-- Survey response privacy states.
+-- --------------------------------------------------------------------
+CREATE TABLE survey_response_privacy_state (
+  id int unsigned NOT NULL auto_increment,
+  privacy_state varchar(50) NOT NULL,
+  PRIMARY KEY (id),
+  UNIQUE (privacy_state)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+-- --------------------------------------------------------------------
 -- Stores survey responses for a user in a campaign 
 -- --------------------------------------------------------------------
 CREATE TABLE survey_response (
@@ -165,13 +196,14 @@ CREATE TABLE survey_response (
   location text,                      -- JSON location data: longitude, latitude, accuracy, provider
   upload_timestamp datetime NOT NULL, -- the upload time based on the server time and timezone  
   audit_timestamp timestamp default current_timestamp on update current_timestamp,
-  privacy_state varchar(50) NOT NULL,
+  privacy_state_id int unsigned NOT NULL,
   PRIMARY KEY (id),
   INDEX (user_id, campaign_id),
   INDEX (user_id, upload_timestamp),
   UNIQUE (campaign_id, user_id, survey_id, epoch_millis), -- handle duplicate survey uploads
   CONSTRAINT FOREIGN KEY (user_id) REFERENCES user (id) ON DELETE CASCADE ON UPDATE CASCADE,    
-  CONSTRAINT FOREIGN KEY (campaign_id) REFERENCES campaign (id) ON DELETE CASCADE ON UPDATE CASCADE
+  CONSTRAINT FOREIGN KEY (campaign_id) REFERENCES campaign (id) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT FOREIGN KEY (privacy_state_id) REFERENCES survey_response_privacy_state (id) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- --------------------------------------------------------------------
@@ -216,6 +248,16 @@ CREATE TABLE url_based_resource (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- --------------------------------------------------------------------
+-- Mobility privacy states.
+-- --------------------------------------------------------------------
+CREATE TABLE mobility_privacy_state (
+  id int unsigned NOT NULL auto_increment,
+  privacy_state varchar(50) NOT NULL,
+  PRIMARY KEY (id),
+  UNIQUE (privacy_state)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+-- --------------------------------------------------------------------
 -- High-frequency "mode only" mobility data. Mobility data is *not*
 -- linked to a campaign.
 -- --------------------------------------------------------------------
@@ -231,11 +273,12 @@ CREATE TABLE mobility_mode_only (
   mode varchar(30) NOT NULL,
   upload_timestamp datetime NOT NULL, -- the upload time based on the server time and timezone
   audit_timestamp timestamp default current_timestamp on update current_timestamp,
-  
+  privacy_state_id int unsigned NOT NULL,
   PRIMARY KEY (id),
   INDEX (user_id, msg_timestamp),
   UNIQUE (user_id, epoch_millis), -- enforce no-duplicates rule at the table level
-  CONSTRAINT FOREIGN KEY (user_id) REFERENCES user (id) ON DELETE CASCADE ON UPDATE CASCADE
+  CONSTRAINT FOREIGN KEY (user_id) REFERENCES user (id) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT FOREIGN KEY (privacy_state_id) REFERENCES mobility_privacy_state (id) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- --------------------------------------------------------------------
@@ -257,9 +300,10 @@ CREATE TABLE mobility_extended (
   mode varchar(30) NOT NULL,
   upload_timestamp datetime NOT NULL, -- the upload time based on the server time and timezone
   audit_timestamp timestamp default current_timestamp on update current_timestamp,
-  
+  privacy_state_id int unsigned NOT NULL,
   PRIMARY KEY (id),
   INDEX (user_id, msg_timestamp),
   UNIQUE INDEX (user_id, epoch_millis),
-  CONSTRAINT FOREIGN KEY (user_id) REFERENCES user (id) ON DELETE CASCADE ON UPDATE CASCADE
+  CONSTRAINT FOREIGN KEY (user_id) REFERENCES user (id) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT FOREIGN KEY (privacy_state_id) REFERENCES mobility_privacy_state (id) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;

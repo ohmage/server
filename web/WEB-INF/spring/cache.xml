@@ -1,0 +1,37 @@
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.5.xsd">
+       
+  <!-- State Caches -->
+  <bean class="edu.ucla.cens.awserver.cache.CampaignPrivacyStateCache">
+    <property name="dataSource"><ref bean="dataSource" /></property>
+    <property name="updateFrequency" value="60000" />
+  </bean>
+  
+  <bean class="edu.ucla.cens.awserver.cache.CampaignRunningStateCache">
+    <property name="dataSource"><ref bean="dataSource" /></property>
+    <property name="updateFrequency" value="60000" />
+  </bean>
+  
+  <bean class="edu.ucla.cens.awserver.cache.MobilityPrivacyStateCache">
+    <property name="dataSource"><ref bean="dataSource" /></property>
+    <property name="updateFrequency" value="60000" />
+  </bean>
+  
+  <bean class="edu.ucla.cens.awserver.cache.SurveyResponsePrivacyStateCache">
+    <property name="dataSource"><ref bean="dataSource" /></property>
+    <property name="updateFrequency" value="60000" />
+  </bean>
+  
+  <!-- Role Caches -->
+  <bean class="edu.ucla.cens.awserver.cache.CampaignRoleCache">
+    <property name="dataSource"><ref bean="dataSource" /></property>
+    <property name="updateFrequency" value="60000" />
+  </bean>
+  
+  <bean class="edu.ucla.cens.awserver.cache.ClassRoleCache">
+    <property name="dataSource"><ref bean="dataSource" /></property>
+    <property name="updateFrequency" value="60000" />
+  </bean>
+  
+</beans>
