@@ -338,7 +338,7 @@ public class SurveyResponseReadResponseWriter extends AbstractResponseWriter {
 			} else {
 				columnMap.get(columnName).add(null); 
 			}
-		}
+		} 
 	}
 	
 	private String generateUtcTimestamp(SurveyResponseReadResult result) {
@@ -427,6 +427,7 @@ public class SurveyResponseReadResponseWriter extends AbstractResponseWriter {
 			pc.setId(result.getPromptId());
 			pc.setType(result.getPromptType());
 			pc.setChoiceGlossary(result.getChoiceGlossary());
+			pc.setText(result.getPromptText());
 			promptContextMap.put(result.getPromptId(), pc);
 		}
 	}

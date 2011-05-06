@@ -56,6 +56,7 @@ public class SurveyResponseReadJsonColumnOutputBuilder implements SurveyResponse
 				context.put("prompt_type", promptContextMap.get(promptId).getType());
 				context.put("display_type", promptContextMap.get(promptId).getDisplayType());
 				context.put("display_label", promptContextMap.get(promptId).getDisplayLabel());
+				context.put("text", promptContextMap.get(promptId).getText());
 				if(null != promptContextMap.get(promptId).getChoiceGlossary()) {
 					JSONArray choiceGlossaryArray = new JSONArray();
 					Map<String, PromptProperty> choiceGlossary = promptContextMap.get(promptId).getChoiceGlossary();

@@ -192,6 +192,7 @@ public class SurveyResponseReadJsonRowBasedOutputBuilder {
 						record.put("prompt_display_type", result.getDisplayType());
 						record.put("prompt_unit", result.getUnit());
 						record.put("prompt_type", result.getPromptType());
+						record.put("prompt_text", result.getPromptText());
 						if(null != result.getChoiceGlossary()) { // only output for single_choice and multi_choice prompt types
 							record.put("prompt_choice_glossary", toJson(result.getChoiceGlossary()));
 						}

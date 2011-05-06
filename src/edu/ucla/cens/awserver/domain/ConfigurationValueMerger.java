@@ -33,6 +33,7 @@ public class ConfigurationValueMerger {
 			result.setDisplayType(configuration.getDisplayTypeFor(
 				result.getSurveyId(), result.getRepeatableSetId(), result.getPromptId())
 			);
+			result.setPromptText(configuration.getPromptTextFor(result.getSurveyId(), result.getRepeatableSetId(), result.getPromptId()));
 			
 			if(PromptTypeUtils.isSingleChoiceType(result.getPromptType())) {
 				
@@ -54,6 +55,7 @@ public class ConfigurationValueMerger {
 			result.setUnit(configuration.getUnitFor(result.getSurveyId(), result.getPromptId()));
 			result.setDisplayLabel(configuration.getDisplayLabelFor(result.getSurveyId(), result.getPromptId()));
 			result.setDisplayType(configuration.getDisplayTypeFor(result.getSurveyId(), result.getPromptId()));
+			result.setPromptText(configuration.getPromptTextFor(result.getSurveyId(), result.getPromptId()));
 			
 			if(PromptTypeUtils.isSingleChoiceType(result.getPromptType())) {
 				

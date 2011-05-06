@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.log4j.Logger;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -19,6 +20,8 @@ import edu.ucla.cens.awserver.request.SurveyResponseReadAwRequest;
  * @author selsky
  */
 public class SurveyResponseReadCsvColumnOutputBuilder implements SurveyResponseReadColumnOutputBuilder {
+	private static Logger _logger = Logger.getLogger(SurveyResponseReadColumnOutputBuilder.class);
+	
 	private static String newLine = System.getProperty("line.separator");
 	
 	public String createMultiResultOutput(int totalNumberOfResults,
@@ -49,6 +52,7 @@ public class SurveyResponseReadCsvColumnOutputBuilder implements SurveyResponseR
 				context.put("prompt_type", promptContextMap.get(key).getType());
 				context.put("display_type", promptContextMap.get(key).getDisplayType());
 				context.put("display_label", promptContextMap.get(key).getDisplayLabel());
+				context.put("text", promptContextMap.get(key).getText());
 				if(null != promptContextMap.get(key).getChoiceGlossary()) {	
 					context.put("choice_glossary", toJson(promptContextMap.get(key).getChoiceGlossary()));
 				} else {
@@ -85,7 +89,7 @@ public class SurveyResponseReadCsvColumnOutputBuilder implements SurveyResponseR
 		int listSize = columnMap.get(columnMapKeySet.toArray()[0]).size();
 		for(i = 0; i < listSize; i++) {
 			int j = 0;
-			for(String key : columnMapKeySet) {
+			for(String key : columnMapKeySet) { _logger.info(key);
 				Object value = columnMap.get(key).get(i);
 				if(null == value) {
 					builder.append("null");

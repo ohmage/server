@@ -12,7 +12,7 @@ import edu.ucla.cens.awserver.util.StringUtils;
 /**
  * Immutable bean-style wrapper for accessing and validating campaign properties.
  * 
- * @author selsky
+ * @author Joshua Selsky
  */
 public class Configuration {
 	// private static Logger _logger = Logger.getLogger(Configuration.class);
@@ -216,7 +216,15 @@ public class Configuration {
 		}
 		return list;
 	}
+
+	public String getPromptTextFor(String surveyId, String promptId) {
+		return getPrompt(surveyId, promptId).getText();		
+	}
 	
+	public String getPromptTextFor(String surveyId, String repeatableSetId, String promptId) {
+		return getPrompt(surveyId, repeatableSetId, promptId).getText();
+	}
+
 	public String getDisplayTypeFor(String surveyId, String promptId) {
 		return getPrompt(surveyId, promptId).getDisplayType();		
 	}
