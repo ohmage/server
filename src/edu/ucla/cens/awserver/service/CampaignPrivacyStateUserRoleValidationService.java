@@ -10,7 +10,6 @@ import edu.ucla.cens.awserver.domain.UserRole;
 import edu.ucla.cens.awserver.request.AwRequest;
 import edu.ucla.cens.awserver.util.StringUtils;
 import edu.ucla.cens.awserver.validator.AwRequestAnnotator;
-import edu.ucla.cens.awserver.validator.ValidatorException;
 
 /**
  * Validation service for checking a campaign privacy state against a list of user roles that are allowed access.  
@@ -47,7 +46,7 @@ public class CampaignPrivacyStateUserRoleValidationService extends AbstractAnnot
 		List<?> results = awRequest.getResultList();
 		
 		if(results.size() != 1) {
-			throw new ValidatorException("expected 1 campaign to be found, but found " + results.size() + " instead");
+			throw new ServiceException("expected 1 campaign to be found, but found " + results.size() + " instead");
 		}
 		
 		String privacyState = (String) results.get(0);
@@ -63,7 +62,7 @@ public class CampaignPrivacyStateUserRoleValidationService extends AbstractAnnot
 		int numberOfAllowedUserRolesNotFound = 0;
 		
 		if(null == userRoles || userRoles.isEmpty()) {
-			throw new ValidatorException("expected to find user roles for campaign, but none were found");
+			throw new ServiceException("expected to find user roles for campaign, but none were found");
 		}
 		
 		if(privacyState.equals(_campaignPrivacyState)) {
