@@ -13,25 +13,25 @@ import edu.ucla.cens.awserver.validator.AwRequestAnnotator;
 import edu.ucla.cens.awserver.validator.ValidatorException;
 
 /**
- * Validation service for checking a campaign running state against a list of user roles that are allowed access.  
+ * Validation service for checking a campaign privacy state against a list of user roles that are allowed access.  
  * 
  * @author Joshua Selsky
  */
-public class CampaignRunningStateUserRoleValidationService extends AbstractAnnotatingDaoService {
-	private static Logger _logger = Logger.getLogger(CampaignRunningStateUserRoleValidationService.class);
-	private String _campaignRunningState;
+public class CampaignPrivacyStateUserRoleValidationService extends AbstractAnnotatingDaoService {
+	private static Logger _logger = Logger.getLogger(CampaignPrivacyStateUserRoleValidationService.class);
+	private String _campaignPrivacyState;
 	private List<String> _allowedUserRoles;
 	
-	public CampaignRunningStateUserRoleValidationService(AwRequestAnnotator annotator, Dao dao, String campaignRunningState, List<String> allowedUserRoles) {
+	public CampaignPrivacyStateUserRoleValidationService(AwRequestAnnotator annotator, Dao dao, String campaignPrivacyState, List<String> allowedUserRoles) {
 		super(dao, annotator);
-		if(StringUtils.isEmptyOrWhitespaceOnly(campaignRunningState)) {
+		if(StringUtils.isEmptyOrWhitespaceOnly(campaignPrivacyState)) {
 			throw new IllegalArgumentException("a campaignRunningState is required");
 		}
 		if(null == allowedUserRoles || allowedUserRoles.isEmpty()) {
 			throw new IllegalArgumentException("a list of allowed user roles is required");
 		}	
 		
-		_campaignRunningState = campaignRunningState;
+		_campaignPrivacyState = campaignPrivacyState;
 		_allowedUserRoles = allowedUserRoles;
 	}
 	
@@ -50,10 +50,10 @@ public class CampaignRunningStateUserRoleValidationService extends AbstractAnnot
 			throw new ValidatorException("expected 1 campaign to be found, but found " + results.size() + " instead");
 		}
 		
-		String runningState = (String) results.get(0);
+		String privacyState = (String) results.get(0);
 		
 		if(_logger.isDebugEnabled()) {
-			_logger.debug("found running_state " + runningState + " for campaign URN " + awRequest.getCampaignUrn());
+			_logger.debug("found privacy_state " + privacyState + " for campaign URN " + awRequest.getCampaignUrn());
 		}
 		
 		// Get the logged-in user's roles for the campaign in the request
@@ -66,7 +66,7 @@ public class CampaignRunningStateUserRoleValidationService extends AbstractAnnot
 			throw new ValidatorException("expected to find user roles for campaign, but none were found");
 		}
 		
-		if(runningState.equals(_campaignRunningState)) {
+		if(privacyState.equals(_campaignPrivacyState)) {
 			// now check the roles
 			for(UserRole ur : userRoles) {
 				if(! _allowedUserRoles.contains(ur.getRole())) {
@@ -75,7 +75,7 @@ public class CampaignRunningStateUserRoleValidationService extends AbstractAnnot
 			}
 			if(numberOfAllowedUserRolesNotFound == numberOfUserRoles) {
 				getAnnotator().annotate(awRequest, "user does not have sufficient privileges to access a campaign with a " +
-					"running_state of " + _campaignRunningState);
+					"privacy_state of " + _campaignPrivacyState);
 			}
 		}
 	}
