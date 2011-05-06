@@ -31,7 +31,7 @@ public class UserRoleCheckService extends AbstractAnnotatingService {
 		
 		_logger.info("verifying the logged-in user's role and whether the role specifies access to other user's data");
 		
-		List<UserRole> list = awRequest.getUser().getCampaignUserRoleMap().get(awRequest.getCampaignUrn());
+		List<UserRole> list = awRequest.getUser().getCampaignUserRoleMap().get(awRequest.getCampaignUrn()).getUserRoles();
 		
 		// TODO for now, only supervisors have access to see other user's data
 		boolean supervisor = false;

@@ -372,13 +372,8 @@
         </constructor-arg>
       </bean>
     </constructor-arg>
-    <constructor-arg index="1">
-      <bean class="edu.ucla.cens.awserver.dao.FindCampaignRunningStateDao">
-        <constructor-arg index="0"><ref bean="dataSource" /></constructor-arg>
-      </bean>
-    </constructor-arg>
-    <constructor-arg index="2"><value>stopped</value></constructor-arg>
-    <constructor-arg index="3">
+    <constructor-arg index="1"><value>stopped</value></constructor-arg>
+    <constructor-arg index="2">
       <list>
         <value>author</value>
         <value>analyst</value>
@@ -398,13 +393,8 @@
         </constructor-arg>
       </bean>
     </constructor-arg>
-    <constructor-arg index="1">
-      <bean class="edu.ucla.cens.awserver.dao.FindCampaignPrivacyStateDao">
-        <constructor-arg index="0"><ref bean="dataSource" /></constructor-arg>
-      </bean>
-    </constructor-arg>
-    <constructor-arg index="2"><value>private</value></constructor-arg>
-    <constructor-arg index="3">
+    <constructor-arg index="1"><value>private</value></constructor-arg>
+    <constructor-arg index="2">
       <list>
         <value>participant</value>
         <value>supervisor</value>

@@ -14,13 +14,13 @@ import java.util.Map;
 public class UserImpl implements User {
 	private int _id;
 	private String  _userName;
-    private Map<String, List<UserRole>> _campaignUserRoleMap; // a user can have many roles in one campaign
+	private Map<String, CampaignUserRoles> _campaignUserRoleMap; // a user can have many roles in one campaign 
 	private boolean _loggedIn;
 	private String _password;
 	
 	public UserImpl() {
 		_id = -1;
-		_campaignUserRoleMap = new HashMap<String, List<UserRole>>();
+		_campaignUserRoleMap = new HashMap<String, CampaignUserRoles>();
 	}
 	
 	/**
@@ -32,7 +32,7 @@ public class UserImpl implements User {
 		}
 		_id = user.getId();
 		_userName = user.getUserName();
-		_campaignUserRoleMap = new HashMap<String, List<UserRole>>();
+		_campaignUserRoleMap = new HashMap<String, CampaignUserRoles>();
 		// Authentication no longer sets the user roles on the user, so the users
 		// are added to the bin with no roles. It is the responsibility of application
 		// flows that require knowledge of the user's role to obtain them at runtime.
@@ -48,22 +48,26 @@ public class UserImpl implements User {
     	_id = id;
     }
     
-	public Map<String, List<UserRole>> getCampaignUserRoleMap() {
+	public Map<String, CampaignUserRoles> getCampaignUserRoleMap() {
 		return _campaignUserRoleMap;
 	}
 	
-	public void addCampaignRole(String campaignUrn, UserRole userRole) {
+	public void addCampaignRole(Campaign campaign, UserRole userRole) {
 		if(null == _campaignUserRoleMap) {
-			_campaignUserRoleMap = new HashMap<String, List<UserRole>>();
+			_campaignUserRoleMap = new HashMap<String, CampaignUserRoles>();
 		}
 		
-		List<UserRole> roles = _campaignUserRoleMap.get(campaignUrn);
-		if(null == roles) {
-			roles = new ArrayList<UserRole>();
-			_campaignUserRoleMap.put(campaignUrn, roles);
+		CampaignUserRoles campaignUserRoles = _campaignUserRoleMap.get(campaign.getUrn());
+		
+		if(null == campaignUserRoles) {
+			campaignUserRoles = new CampaignUserRoles();
+			campaignUserRoles.setCampaign(campaign);
+			List<UserRole> userRoles = new ArrayList<UserRole>();
+			campaignUserRoles.setUserRoles(userRoles);
+			_campaignUserRoleMap.put(campaign.getUrn(), campaignUserRoles);
 		}
 		
-		roles.add(userRole);
+		campaignUserRoles.addUserRole(userRole);
 	}
 	
 	public String getUserName() {
@@ -89,59 +93,4 @@ public class UserImpl implements User {
 	public String getPassword() {
 		return _password;
 	}
-
-	@Override
-	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = prime
-				* result
-				+ ((_campaignUserRoleMap == null) ? 0 : _campaignUserRoleMap
-						.hashCode());
-		result = prime * result + _id;
-		result = prime * result + (_loggedIn ? 1231 : 1237);
-		result = prime * result
-				+ ((_password == null) ? 0 : _password.hashCode());
-		result = prime * result
-				+ ((_userName == null) ? 0 : _userName.hashCode());
-		return result;
-	}
-
-	@Override
-	public boolean equals(Object obj) {
-		if (this == obj)
-			return true;
-		if (obj == null)
-			return false;
-		if (getClass() != obj.getClass())
-			return false;
-		UserImpl other = (UserImpl) obj;
-		if (_campaignUserRoleMap == null) {
-			if (other._campaignUserRoleMap != null)
-				return false;
-		} else if (!_campaignUserRoleMap.equals(other._campaignUserRoleMap))
-			return false;
-		if (_id != other._id)
-			return false;
-		if (_loggedIn != other._loggedIn)
-			return false;
-		if (_password == null) {
-			if (other._password != null)
-				return false;
-		} else if (!_password.equals(other._password))
-			return false;
-		if (_userName == null) {
-			if (other._userName != null)
-				return false;
-		} else if (!_userName.equals(other._userName))
-			return false;
-		return true;
-	}
-
-	@Override
-	public String toString() {
-		return "UserImpl [_id=" + _id + ", _userName=" + _userName
-				+ ", _campaignUserRoleMap=" + _campaignUserRoleMap
-				+ ", _loggedIn=" + _loggedIn + ", _password=" + "(omitted)" + "]";
-	}	
 }

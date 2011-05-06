@@ -16,8 +16,8 @@ import edu.ucla.cens.awserver.validator.AwRequestAnnotator;
  * 
  * @author joshua selsky
  */
-public class CampaignStateValidationService extends AbstractAnnotatingDaoService {
-	private static Logger _logger = Logger.getLogger(CampaignStateValidationService.class);
+public class CampaignRunningStateValidationService extends AbstractAnnotatingDaoService {
+	private static Logger _logger = Logger.getLogger(CampaignRunningStateValidationService.class);
 	private String _allowedState;
 	private AwRequestAnnotator _failedRequestAnnotator;
 	
@@ -27,7 +27,7 @@ public class CampaignStateValidationService extends AbstractAnnotatingDaoService
 	 * @param allowedState - required. The state to be validated against
 	 * @throws IllegalArgumentException if the annotator, userRoleCacheService, or roles are empty or null
 	 */
-	public CampaignStateValidationService(AwRequestAnnotator annotator, Dao dao, String allowedState) {
+	public CampaignRunningStateValidationService(AwRequestAnnotator annotator, Dao dao, String allowedState) {
 		super(dao, annotator);
 		if(StringUtils.isEmptyOrWhitespaceOnly(allowedState)) {
 			throw new IllegalArgumentException("an allowedState is required");

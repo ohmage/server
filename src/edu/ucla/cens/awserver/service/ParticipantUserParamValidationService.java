@@ -5,6 +5,7 @@ import java.util.Map;
 
 import org.apache.log4j.Logger;
 
+import edu.ucla.cens.awserver.domain.CampaignUserRoles;
 import edu.ucla.cens.awserver.domain.UserRole;
 import edu.ucla.cens.awserver.request.AwRequest;
 import edu.ucla.cens.awserver.request.SurveyResponseReadAwRequest;
@@ -30,11 +31,12 @@ public class ParticipantUserParamValidationService extends AbstractAnnotatingSer
 		// Hack FIXME
 		SurveyResponseReadAwRequest req = (SurveyResponseReadAwRequest) awRequest;
 		
-		Map<String, List<UserRole>> userRoleMap = req.getUser().getCampaignUserRoleMap();
-		List<UserRole> rolesInCampaign = userRoleMap.get(req.getCampaignUrn());
+		Map<String, CampaignUserRoles> userRoleMap = req.getUser().getCampaignUserRoleMap();
+		List<UserRole> rolesInCampaign = userRoleMap.get(req.getCampaignUrn()).getUserRoles();
 		
 		if(null == rolesInCampaign || rolesInCampaign.isEmpty()) {
-			throw new ServiceException("expected user roles to be found for campaign, but none were found");
+			throw new ServiceException("expected user roles to be found for campaign, but none were found -- was the user" +
+				" object properly populated?");
 		}
 		
 		if(rolesInCampaign.size() == 1 && "participant".equals(rolesInCampaign.get(0).getRole())) {

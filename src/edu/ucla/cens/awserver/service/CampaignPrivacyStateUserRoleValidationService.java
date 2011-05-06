@@ -5,7 +5,8 @@ import java.util.Map;
 
 import org.apache.log4j.Logger;
 
-import edu.ucla.cens.awserver.dao.Dao;
+import edu.ucla.cens.awserver.domain.Campaign;
+import edu.ucla.cens.awserver.domain.CampaignUserRoles;
 import edu.ucla.cens.awserver.domain.UserRole;
 import edu.ucla.cens.awserver.request.AwRequest;
 import edu.ucla.cens.awserver.util.StringUtils;
@@ -16,13 +17,13 @@ import edu.ucla.cens.awserver.validator.AwRequestAnnotator;
  * 
  * @author Joshua Selsky
  */
-public class CampaignPrivacyStateUserRoleValidationService extends AbstractAnnotatingDaoService {
+public class CampaignPrivacyStateUserRoleValidationService extends AbstractAnnotatingService {
 	private static Logger _logger = Logger.getLogger(CampaignPrivacyStateUserRoleValidationService.class);
 	private String _campaignPrivacyState;
 	private List<String> _allowedUserRoles;
 	
-	public CampaignPrivacyStateUserRoleValidationService(AwRequestAnnotator annotator, Dao dao, String campaignPrivacyState, List<String> allowedUserRoles) {
-		super(dao, annotator);
+	public CampaignPrivacyStateUserRoleValidationService(AwRequestAnnotator annotator, String campaignPrivacyState, List<String> allowedUserRoles) {
+		super(annotator);
 		if(StringUtils.isEmptyOrWhitespaceOnly(campaignPrivacyState)) {
 			throw new IllegalArgumentException("a campaignRunningState is required");
 		}
@@ -37,27 +38,17 @@ public class CampaignPrivacyStateUserRoleValidationService extends AbstractAnnot
 	@Override
 	public void execute(AwRequest awRequest) {
 		_logger.info("checking a user's role in campaign against the running state of that campaign");
-
-		// At this point in the flow, the campaign URN in the request must have been validated, so
-		// just grab the running state from the db.
 		
-		getDao().execute(awRequest);
+		Map<String, CampaignUserRoles> campaignUserRoleMap = awRequest.getUser().getCampaignUserRoleMap();
 		
-		List<?> results = awRequest.getResultList();
-		
-		if(results.size() != 1) {
-			throw new ServiceException("expected 1 campaign to be found, but found " + results.size() + " instead");
+		if(! campaignUserRoleMap.containsKey(awRequest.getCampaignUrn())) {
+			throw new ServiceException("could not locate campaign URN for user - was the user object properly populated with " +
+				"all of the user's campaigns?");
 		}
 		
-		String privacyState = (String) results.get(0);
+		List<UserRole> userRoles = campaignUserRoleMap.get(awRequest.getCampaignUrn()).getUserRoles();
+		Campaign campaign = campaignUserRoleMap.get(awRequest.getCampaignUrn()).getCampaign();
 		
-		if(_logger.isDebugEnabled()) {
-			_logger.debug("found privacy_state " + privacyState + " for campaign URN " + awRequest.getCampaignUrn());
-		}
-		
-		// Get the logged-in user's roles for the campaign in the request
-		Map<String, List<UserRole>> campaignUserRoleMap = awRequest.getUser().getCampaignUserRoleMap();
-		List<UserRole> userRoles = campaignUserRoleMap.get(awRequest.getCampaignUrn());
 		int numberOfUserRoles = userRoles.size();
 		int numberOfAllowedUserRolesNotFound = 0;
 		
@@ -65,7 +56,7 @@ public class CampaignPrivacyStateUserRoleValidationService extends AbstractAnnot
 			throw new ServiceException("expected to find user roles for campaign, but none were found");
 		}
 		
-		if(privacyState.equals(_campaignPrivacyState)) {
+		if(_campaignPrivacyState.equals(campaign.getPrivacyState())) {
 			// now check the roles
 			for(UserRole ur : userRoles) {
 				if(! _allowedUserRoles.contains(ur.getRole())) {
