@@ -245,7 +245,7 @@ public class ClassUpdateDao extends AbstractDao {
 			// Get the user's class-role ID.
 			int userClassRoleId;
 			try {
-				userClassRoleId = ClassRoleCache.lookup(userClassRole);
+				userClassRoleId = ClassRoleCache.instance().lookup(userClassRole);
 			}
 			catch(CacheMissException e) {
 				_logger.error("Cache didn't know about known role " + userClassRole, e);
@@ -338,7 +338,7 @@ public class ClassUpdateDao extends AbstractDao {
 		// Get the Author role ID.
 		int authorId;
 		try {
-			authorId = CampaignRoleCache.lookup(CampaignRoleCache.ROLE_AUTHOR);
+			authorId = CampaignRoleCache.instance().lookup(CampaignRoleCache.ROLE_AUTHOR);
 		}
 		catch(CacheMissException dae) {
 			_logger.error("Cache doesn't know about known role " + CampaignRoleCache.ROLE_AUTHOR, dae);

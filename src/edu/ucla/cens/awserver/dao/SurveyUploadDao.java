@@ -146,7 +146,7 @@ public class SurveyUploadDao extends AbstractUploadDao {
 								ps.setTimestamp(11, new Timestamp(System.currentTimeMillis()));
 								ps.setString(12, surveyDataPacket.getLaunchContext());
 								try {
-									ps.setInt(13, SurveyResponsePrivacyStateCache.lookup(PreferenceCache.lookup(PreferenceCache.KEY_DEFAULT_SURVEY_RESPONSE_SHARING_STATE)));
+									ps.setInt(13, SurveyResponsePrivacyStateCache.instance().lookup(PreferenceCache.instance().lookup(PreferenceCache.KEY_DEFAULT_SURVEY_RESPONSE_SHARING_STATE)));
 								} catch (CacheMissException e) {
 									_logger.error("Error reading from the cache.", e);
 									throw new SQLException(e);
@@ -273,7 +273,7 @@ public class SurveyUploadDao extends AbstractUploadDao {
 					+ "parameters: " + userId + ", " + campaignConfigurationId + ", " + sdp.getDate() + " , " + sdp.getEpochTime()
 					+  ", " + sdp.getTimezone() + ", " + sdp.getLocationStatus() + ", " + sdp.getLocation() + ", " + sdp.getSurveyId() 
 					+ ", " + sdp.getSurvey() + ", " + client + ", " + new Timestamp(System.currentTimeMillis()) + ", " + sdp.getLaunchContext()
-					+ ", " + SurveyResponsePrivacyStateCache.lookup(PreferenceCache.lookup(PreferenceCache.KEY_DEFAULT_SURVEY_RESPONSE_SHARING_STATE)));
+					+ ", " + SurveyResponsePrivacyStateCache.instance().lookup(PreferenceCache.instance().lookup(PreferenceCache.KEY_DEFAULT_SURVEY_RESPONSE_SHARING_STATE)));
 			} catch (CacheMissException e) {
 				_logger.error("Cache miss while trying to print debugging information.", e);
 				throw new DataAccessException(e);

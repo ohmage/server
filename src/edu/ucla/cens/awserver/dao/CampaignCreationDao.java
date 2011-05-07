@@ -166,8 +166,8 @@ public class CampaignCreationDao extends AbstractDao {
 				getJdbcTemplate().update(SQL_INSERT_CAMPAIGN, 
 										 new Object[] { ((awRequest.existsInToProcess(InputKeys.DESCRIPTION)) ? awRequest.getToProcessValue(InputKeys.DESCRIPTION) : "" ), 
 										 				awRequest.getToProcessValue(InputKeys.XML), 
-										 				CampaignRunningStateCache.lookup((String) awRequest.getToProcessValue(InputKeys.RUNNING_STATE)), 
-										 				CampaignPrivacyStateCache.lookup((String) awRequest.getToProcessValue(InputKeys.PRIVACY_STATE)), 
+										 				CampaignRunningStateCache.instance().lookup((String) awRequest.getToProcessValue(InputKeys.RUNNING_STATE)), 
+										 				CampaignPrivacyStateCache.instance().lookup((String) awRequest.getToProcessValue(InputKeys.PRIVACY_STATE)), 
 										 				campaignName,
 										 				campaignUrn,
 										 				nowFormatted});
@@ -207,7 +207,7 @@ public class CampaignCreationDao extends AbstractDao {
 			// Get the campaign role supervisor's ID.
 			int supervisorId;
 			try {
-				supervisorId = CampaignRoleCache.lookup(CampaignRoleCache.ROLE_SUPERVISOR);
+				supervisorId = CampaignRoleCache.instance().lookup(CampaignRoleCache.ROLE_SUPERVISOR);
 			}
 			catch(CacheMissException e) {
 				_logger.error("The cache doesn't know about known role " + CampaignRoleCache.ROLE_SUPERVISOR, e);
@@ -217,7 +217,7 @@ public class CampaignCreationDao extends AbstractDao {
 			// Get the campaign role analyst's ID.
 			int analystId;
 			try {
-				analystId = CampaignRoleCache.lookup(CampaignRoleCache.ROLE_ANALYST);
+				analystId = CampaignRoleCache.instance().lookup(CampaignRoleCache.ROLE_ANALYST);
 			}
 			catch(CacheMissException e) {
 				_logger.error("The cache doesn't know about known role " + CampaignRoleCache.ROLE_ANALYST, e);
@@ -227,7 +227,7 @@ public class CampaignCreationDao extends AbstractDao {
 			// Get the campaign role author's ID.
 			int authorId;
 			try {
-				authorId = CampaignRoleCache.lookup(CampaignRoleCache.ROLE_AUTHOR);
+				authorId = CampaignRoleCache.instance().lookup(CampaignRoleCache.ROLE_AUTHOR);
 			}
 			catch(CacheMissException dae) {
 				_logger.error("The cache doesn't know about known role " + CampaignRoleCache.ROLE_AUTHOR, dae);
@@ -238,7 +238,7 @@ public class CampaignCreationDao extends AbstractDao {
 			// Get the campaign role participant's ID.
 			int participantId;
 			try {
-				participantId = CampaignRoleCache.lookup(CampaignRoleCache.ROLE_PARTICIPANT);
+				participantId = CampaignRoleCache.instance().lookup(CampaignRoleCache.ROLE_PARTICIPANT);
 			}
 			catch(CacheMissException e) {
 				_logger.error("The cache doesn't know about known role " + CampaignRoleCache.ROLE_PARTICIPANT, e);
@@ -248,7 +248,7 @@ public class CampaignCreationDao extends AbstractDao {
 			// Get the ID for privileged users.
 			int privilegedId;
 			try {
-				privilegedId = ClassRoleCache.lookup(ClassRoleCache.ROLE_PRIVILEGED);
+				privilegedId = ClassRoleCache.instance().lookup(ClassRoleCache.ROLE_PRIVILEGED);
 			}
 			catch(CacheMissException e) {
 				_logger.error("The cache doesn't know about known role " + ClassRoleCache.ROLE_PRIVILEGED, e);
@@ -258,7 +258,7 @@ public class CampaignCreationDao extends AbstractDao {
 			// Get the ID for restricted users.
 			int restrictedId;
 			try {
-				restrictedId = ClassRoleCache.lookup(ClassRoleCache.ROLE_RESTRICTED);
+				restrictedId = ClassRoleCache.instance().lookup(ClassRoleCache.ROLE_RESTRICTED);
 			}
 			catch(CacheMissException e) {
 				_logger.error("The cache doesn't know about known role " + ClassRoleCache.ROLE_RESTRICTED, e);

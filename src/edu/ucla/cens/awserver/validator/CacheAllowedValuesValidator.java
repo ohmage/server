@@ -124,22 +124,22 @@ public class CacheAllowedValuesValidator extends AbstractAnnotatingValidator {
 	 */
 	private Set<String> getCacheKeyset() {
 		if(CampaignPrivacyStateCache.CACHE_KEY.equals(_cacheKey)) {
-			return CampaignPrivacyStateCache.getStates();
+			return CampaignPrivacyStateCache.instance().getStates();
 		}
 		else if(CampaignRoleCache.CACHE_KEY.equals(_cacheKey)) {
-			return CampaignRoleCache.getRoles();
+			return CampaignRoleCache.instance().getStates();
 		}
 		else if(CampaignRunningStateCache.CACHE_KEY.equals(_cacheKey)) {
-			return CampaignRunningStateCache.getStates();
+			return CampaignRunningStateCache.instance().getStates();
 		}
 		else if(ClassRoleCache.CACHE_KEY.equals(_cacheKey)) {
-			return ClassRoleCache.getRoles();
+			return ClassRoleCache.instance().getStates();
 		}
 		else if(MobilityPrivacyStateCache.CACHE_KEY.equals(_cacheKey)) {
-			return MobilityPrivacyStateCache.getStates();
+			return MobilityPrivacyStateCache.instance().getStates();
 		}
 		else if(SurveyResponsePrivacyStateCache.CACHE_KEY.equals(_cacheKey)) {
-			return SurveyResponsePrivacyStateCache.getStates();
+			return SurveyResponsePrivacyStateCache.instance().getStates();
 		}
 		else {
 			return null;

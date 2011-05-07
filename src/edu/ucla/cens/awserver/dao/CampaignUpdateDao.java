@@ -313,11 +313,11 @@ public class CampaignUpdateDao extends AbstractDao {
 		}
 		
 		try {
-			getJdbcTemplate().update(SQL_UPDATE_RUNNING_STATE, new Object[] { CampaignRunningStateCache.lookup(runningState), awRequest.getCampaignUrn() });
+			getJdbcTemplate().update(SQL_UPDATE_RUNNING_STATE, new Object[] { CampaignRunningStateCache.instance().lookup(runningState), awRequest.getCampaignUrn() });
 		}
 		catch(org.springframework.dao.DataAccessException e) {
 			_logger.error("Error executing SQL '" + SQL_UPDATE_RUNNING_STATE + "' with parameters: " + 
-					CampaignRunningStateCache.lookup(runningState) + ", " + awRequest.getCampaignUrn(), e);
+					CampaignRunningStateCache.instance().lookup(runningState) + ", " + awRequest.getCampaignUrn(), e);
 			throw new DataAccessException(e);
 		}
 		catch(InvalidParameterException e) {
@@ -347,11 +347,11 @@ public class CampaignUpdateDao extends AbstractDao {
 		}
 		
 		try {
-			getJdbcTemplate().update(SQL_UPDATE_PRIVACY_STATE, new Object[] { CampaignPrivacyStateCache.lookup(privacyState), awRequest.getCampaignUrn() });
+			getJdbcTemplate().update(SQL_UPDATE_PRIVACY_STATE, new Object[] { CampaignPrivacyStateCache.instance().lookup(privacyState), awRequest.getCampaignUrn() });
 		}
 		catch(org.springframework.dao.DataAccessException e) {
 			_logger.error("Error executing SQL '" + SQL_UPDATE_PRIVACY_STATE + "' with parameters: " + 
-					CampaignPrivacyStateCache.lookup(privacyState) + ", " + awRequest.getCampaignUrn(), e);
+					CampaignPrivacyStateCache.instance().lookup(privacyState) + ", " + awRequest.getCampaignUrn(), e);
 			throw new DataAccessException(e);
 		}
 		catch(InvalidParameterException e) {
@@ -550,7 +550,7 @@ public class CampaignUpdateDao extends AbstractDao {
 		// Get the campaign role supervisor's ID.
 		int supervisorId;
 		try {
-			supervisorId = CampaignRoleCache.lookup(CampaignRoleCache.ROLE_SUPERVISOR);
+			supervisorId = CampaignRoleCache.instance().lookup(CampaignRoleCache.ROLE_SUPERVISOR);
 		}
 		catch(CacheMissException e) {
 			_logger.error("The cache doesn't know about known role " + CampaignRoleCache.ROLE_SUPERVISOR, e);
@@ -560,7 +560,7 @@ public class CampaignUpdateDao extends AbstractDao {
 		// Get the campaign role analyst's ID.
 		int analystId;
 		try {
-			analystId = CampaignRoleCache.lookup(CampaignRoleCache.ROLE_ANALYST);
+			analystId = CampaignRoleCache.instance().lookup(CampaignRoleCache.ROLE_ANALYST);
 		}
 		catch(CacheMissException e) {
 			_logger.error("The cache doesn't know about known role " + CampaignRoleCache.ROLE_ANALYST, e);
@@ -570,7 +570,7 @@ public class CampaignUpdateDao extends AbstractDao {
 		// Get the Author role ID.
 		int authorId;
 		try {
-			authorId = CampaignRoleCache.lookup(CampaignRoleCache.ROLE_AUTHOR);
+			authorId = CampaignRoleCache.instance().lookup(CampaignRoleCache.ROLE_AUTHOR);
 		}
 		catch(CacheMissException e) {
 			_logger.error("The cache doesn't know about known role " + CampaignRoleCache.ROLE_AUTHOR, e);
@@ -580,7 +580,7 @@ public class CampaignUpdateDao extends AbstractDao {
 		// Get the campaign role participant's ID.
 		int participantId;
 		try {
-			participantId = CampaignRoleCache.lookup(CampaignRoleCache.ROLE_PARTICIPANT);
+			participantId = CampaignRoleCache.instance().lookup(CampaignRoleCache.ROLE_PARTICIPANT);
 		}
 		catch(CacheMissException e) {
 			_logger.error("The cache doesn't know about known role " + CampaignRoleCache.ROLE_PARTICIPANT, e);
@@ -590,7 +590,7 @@ public class CampaignUpdateDao extends AbstractDao {
 		// Get the ID for privileged users.
 		int privilegedId;
 		try {
-			privilegedId = ClassRoleCache.lookup(ClassRoleCache.ROLE_PRIVILEGED);
+			privilegedId = ClassRoleCache.instance().lookup(ClassRoleCache.ROLE_PRIVILEGED);
 		}
 		catch(CacheMissException e) {
 			_logger.error("The cache doesn't know about known role " + ClassRoleCache.ROLE_PRIVILEGED, e);
@@ -600,7 +600,7 @@ public class CampaignUpdateDao extends AbstractDao {
 		// Get the ID for restricted users.
 		int restrictedId;
 		try {
-			restrictedId = ClassRoleCache.lookup(ClassRoleCache.ROLE_RESTRICTED);
+			restrictedId = ClassRoleCache.instance().lookup(ClassRoleCache.ROLE_RESTRICTED);
 		}
 		catch(CacheMissException e) {
 			_logger.error("The cache doesn't know about known role " + ClassRoleCache.ROLE_RESTRICTED, e);

@@ -8,12 +8,25 @@ import javax.sql.DataSource;
  * 
  * @author John Jenkins
  */
-public abstract class Cache {
+public class Cache {
 	// The DataSource to use when querying the database.
-	protected static DataSource _dataSource;
+	protected DataSource _dataSource;
+	
+	// The last time we refreshed our cache in milliseconds since epoch.
+	protected long _lastUpdateTimestamp = -1;
+	// The number of milliseconds between refreshes of the local cache.
+	protected long _updateFrequency = -1;
 	
 	/**
-	 * Sets the dataSource for this object. This can only be called Spring on
+	 * Default constructor made protected so children can call it, but no one
+	 * else can.
+	 */
+	protected Cache() {
+		// Do nothing.
+	}
+	
+	/**
+	 * Sets the DataSource for this object. This can only be called Spring on
 	 * startup.
 	 * 
 	 * @complexity O(1)
@@ -32,5 +45,27 @@ public abstract class Cache {
 		} 
 		
 		_dataSource = dataSource;
+	}
+	
+	/**
+	 * Sets the initial update frequency for this object. This is only called
+	 * by Spring as it is a non-static call and this object can never be
+	 * instantiated in code. 
+	 * 
+	 * @complexity O(1)
+	 * 
+	 * @param frequencyInMilliseconds The frequency that updates should be
+	 * 								  checked for in milliseconds. The system
+	 * 								  will still only do updates when a 
+	 * 								  request is being made and the cache has
+	 * 								  expired to prevent unnecessary, 
+	 * 								  premature checks to the database.
+	 */
+	public synchronized void setUpdateFrequency(long frequencyInMilliseconds) {
+		if(frequencyInMilliseconds < 1000) {
+			throw new IllegalArgumentException("The update frequency must be a positive integer greater than or equal to 1000 milliseconds.");
+		}
+		
+		_updateFrequency = frequencyInMilliseconds;
 	}
 }

@@ -198,7 +198,7 @@ public class MobilityUploadDao extends AbstractUploadDao {
 					ps.setString(8, client);
 					ps.setTimestamp(9, new Timestamp(System.currentTimeMillis()));
 					try {
-						ps.setInt(10, MobilityPrivacyStateCache.lookup(MobilityPrivacyStateCache.PRIVACY_STATE_PRIVATE));
+						ps.setInt(10, MobilityPrivacyStateCache.instance().lookup(MobilityPrivacyStateCache.PRIVACY_STATE_PRIVATE));
 					} catch (CacheMissException e) {
 						_logger.error("Cache doesn't know about 'known' privacy state: " + MobilityPrivacyStateCache.PRIVACY_STATE_PRIVATE);
 						throw new SQLException(e);
@@ -232,7 +232,7 @@ public class MobilityUploadDao extends AbstractUploadDao {
 					ps.setString(11, client);
 					ps.setTimestamp(12, new Timestamp(System.currentTimeMillis()));
 					try {
-						ps.setInt(13, MobilityPrivacyStateCache.lookup(MobilityPrivacyStateCache.PRIVACY_STATE_PRIVATE));
+						ps.setInt(13, MobilityPrivacyStateCache.instance().lookup(MobilityPrivacyStateCache.PRIVACY_STATE_PRIVATE));
 					} catch (CacheMissException e) {
 						_logger.error("Cache doesn't know about 'known' privacy state: " + MobilityPrivacyStateCache.PRIVACY_STATE_PRIVATE);
 						throw new SQLException(e);
@@ -254,7 +254,7 @@ public class MobilityUploadDao extends AbstractUploadDao {
 					" parameters: " + userId + ", " + Timestamp.valueOf(mmfdp.getDate()) + ", " + mmfdp.getEpochTime() + ", " +
 					mmfdp.getTimezone() + ", " + mmfdp.getLocationStatus() + ", " + mmfdp.getLocation() + ", " + mmfdp.getMode() + ", " + 
 				    mmfdp.getSensorDataString() + ", " + mmfdp.getClassifierVersion() + ", " + mmfdp.getFeatures() + ", " + client + ", " +
-				    System.currentTimeMillis() + ", " + MobilityPrivacyStateCache.lookup(MobilityPrivacyStateCache.PRIVACY_STATE_PRIVATE));
+				    System.currentTimeMillis() + ", " + MobilityPrivacyStateCache.instance().lookup(MobilityPrivacyStateCache.PRIVACY_STATE_PRIVATE));
 			} catch (CacheMissException e) {
 				_logger.error("Cache doesn't know about 'known' privacy state: " + MobilityPrivacyStateCache.PRIVACY_STATE_PRIVATE);
 				throw new DataAccessException(e);
@@ -268,7 +268,7 @@ public class MobilityUploadDao extends AbstractUploadDao {
 				_logger.error("an error occurred when atempting to run this SQL '" + _insertMobilityModeOnlySql +"' with the following " +
 					"parameters: " + userId + ", " + mmodp.getDate() + ", " + mmodp.getEpochTime() + ", " + mmodp.getTimezone() + ", "
 					 + mmodp.getLocationStatus() + ", " + mmodp.getLocation() + " ," + mmodp.getMode() + ", " + client + ", " 
-					 + System.currentTimeMillis() + ", " + MobilityPrivacyStateCache.lookup(MobilityPrivacyStateCache.PRIVACY_STATE_PRIVATE));
+					 + System.currentTimeMillis() + ", " + MobilityPrivacyStateCache.instance().lookup(MobilityPrivacyStateCache.PRIVACY_STATE_PRIVATE));
 			} catch (CacheMissException e) {
 				_logger.error("Cache doesn't know about 'known' privacy state: " + MobilityPrivacyStateCache.PRIVACY_STATE_PRIVATE);
 				throw new DataAccessException(e);
