@@ -126,6 +126,9 @@ public class SurveyResponseReadDao extends AbstractDao {
 							result.setRepeatableSetId(rs.getString(5));
 						}
 						
+						// TODO -- the code below is duplicated in a bunch of DAO classes
+						// Move the functionality to StringUtils
+						
 						String ts = rs.getString(6); // this will return the timestamp in JDBC escape format (ending with nanoseconds)
 						                             // and the nanoseconds value is not needed, so shave it off
 						                             // it is weird to be formatting the data inside the DAO here, but the nanoseconds

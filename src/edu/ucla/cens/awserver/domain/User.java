@@ -12,53 +12,58 @@ public interface User {
 	/**
 	 * @return the database primary key for this user. 
 	 */
-	public int getId();
+	int getId();
 	
 	/**
 	 * @param id the database primary key for this user.
 	 */
-	public void setId(int id);
+	void setId(int id);
 	
 	/**
 	 * @return the user name from the db (user.login_id).
 	 */
-	public String getUserName();
+	String getUserName();
 	
 	/**
 	 * @param string the user name from the db for this user.
 	 */
-	public void setUserName(String string);
+	void setUserName(String string);
 
 	/**
 	 * @return the user's password.
 	 */
-	public String getPassword();
+	String getPassword();
 	
 	/**
 	 * @param string the password to be used for authentication.
 	 */
-	public void setPassword(String string);
+	void setPassword(String string);
 	
 	/**
 	 * @return a Map of campaign URNs to the campaign metadata and the allowed roles for this user.
 	 */
-	public Map<String, CampaignUserRoles> getCampaignUserRoleMap();
+	Map<String, CampaignUserRoles> getCampaignUserRoleMap();
 	
 	/**
 	 * Adds a role in a campaign URN for this user. Users can have multiple roles within a campaign.
 	 * @param campaign
 	 * @param userRole
 	 */
-	public void addCampaignRole(Campaign campaign, UserRole userRole);
+	void addCampaignRole(Campaign campaign, UserRole userRole);
 	
 	/**
 	 * @return whether this user is logged in to the system. Flag for handling failed logins.
 	 */
-	public boolean isLoggedIn();
+	boolean isLoggedIn();
 	
 	/**
 	 * Sets the login status for this user on successful or unsuccessful authentication.
 	 * @param b
 	 */
-	public void setLoggedIn(boolean b);
+	void setLoggedIn(boolean b);
+	
+	boolean isSupervisorInCampaign(String campaignUrn);
+	boolean isAuthorInCampaign(String campaignUrn);
+	boolean isAnalystInCampaign(String campaignUrn);
+	boolean isParticipantInCampaign(String campaignUrn);
 }

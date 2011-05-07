@@ -64,6 +64,7 @@
         <ref bean="surveyResponseReadService" />
         
         <!-- filter the output based on the the privacy_state of the response, and the role of the currently logged-in user -->
+        <bean class="edu.ucla.cens.awserver.service.SurveyResponsePrivacyFilterService" />
         
       </list>
     </constructor-arg>
@@ -414,5 +415,4 @@
       </bean>
     </constructor-arg>
   </bean>
-  
 </beans>

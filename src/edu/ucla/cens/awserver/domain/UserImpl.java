@@ -93,4 +93,40 @@ public class UserImpl implements User {
 	public String getPassword() {
 		return _password;
 	}
+	
+	public boolean isSupervisorInCampaign(String campaignUrn) {
+		CampaignUserRoles campaignUserRoles = _campaignUserRoleMap.get(campaignUrn);
+		if(null == campaignUserRoles) {
+			throw new IllegalArgumentException("user not in campaign");
+		}
+		// FIXME to use user role constants once John's 2.4 db changes are merged in
+		return campaignUserRoles.getUserRoleStrings().contains("supervisor");
+	}
+	
+	public boolean isAuthorInCampaign(String campaignUrn) {
+		CampaignUserRoles campaignUserRoles = _campaignUserRoleMap.get(campaignUrn);
+		if(null == campaignUserRoles) {
+			throw new IllegalArgumentException("user not in campaign");
+		}
+		// FIXME to use user role constants once John's 2.4 db changes are merged in
+		return campaignUserRoles.getUserRoleStrings().contains("author");
+	}
+	
+	public boolean isAnalystInCampaign(String campaignUrn) {
+		CampaignUserRoles campaignUserRoles = _campaignUserRoleMap.get(campaignUrn);
+		if(null == campaignUserRoles) {
+			throw new IllegalArgumentException("user not in campaign");
+		}
+		// FIXME to use user role constants once John's 2.4 db changes are merged in
+		return campaignUserRoles.getUserRoleStrings().contains("analyst");
+	}
+	
+	public boolean isParticipantInCampaign(String campaignUrn) {
+		CampaignUserRoles campaignUserRoles = _campaignUserRoleMap.get(campaignUrn);
+		if(null == campaignUserRoles) {
+			throw new IllegalArgumentException("user not in campaign");
+		}
+		// FIXME to use user role constants once John's 2.4 db changes are merged in
+		return campaignUserRoles.getUserRoleStrings().contains("participant");
+	}
 }
