@@ -180,7 +180,19 @@ public class FindAllFilteredCampaignsForLoggedInUserDao extends AbstractDao {
 								result.setXml(rs.getString(4));
 								result.setRunningState(rs.getString(5));
 								result.setPrivacyState(rs.getString(6));
-								result.setCreationTimestamp(rs.getTimestamp(7).toString());
+								
+								String ts = rs.getTimestamp(7).toString();
+								
+								if(ts.contains(".")) {
+									
+									int indexOfDot = ts.indexOf(".");
+									result.setCreationTimestamp(ts.substring(0, indexOfDot));
+									
+								} else {
+									
+									result.setCreationTimestamp(ts);
+								}
+								
 								// the user roles come from the urnRoleMap above
 								result.setUserRoles(roles);
 								

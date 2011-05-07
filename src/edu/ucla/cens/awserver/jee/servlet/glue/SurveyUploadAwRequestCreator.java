@@ -4,7 +4,6 @@ import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 
-import org.apache.log4j.Logger;
 import org.apache.log4j.NDC;
 
 import edu.ucla.cens.awserver.domain.UserImpl;
@@ -17,7 +16,7 @@ import edu.ucla.cens.awserver.request.SurveyUploadAwRequest;
  * @author selsky
  */
 public class SurveyUploadAwRequestCreator implements AwRequestCreator {
-  private static Logger _logger = Logger.getLogger(SurveyUploadAwRequestCreator.class);
+  //private static Logger _logger = Logger.getLogger(SurveyUploadAwRequestCreator.class);
     
     /**
      * Default no-arg constructor. Simply creates an instance of this class.
@@ -36,10 +35,11 @@ public class SurveyUploadAwRequestCreator implements AwRequestCreator {
         String sessionId = request.getSession(false).getId(); // for upload logging to connect app logs to uploads
         
         String userName = parameterMap.get("user")[0];
-        String campaignUrn = parameterMap.get("campaign_urn")[0]; _logger.info(campaignUrn);
+        String campaignUrn = parameterMap.get("campaign_urn")[0];
         String password = parameterMap.get("password")[0];
         String client = parameterMap.get("client")[0];
-        String jsonData = parameterMap.get("data")[0]; 
+        String jsonData = parameterMap.get("data")[0];
+        String campaignCreationTimestamp = parameterMap.get("campaign_creation_timestamp")[0]; 
         
         UserImpl user = new UserImpl();
         user.setUserName(userName);
@@ -53,6 +53,7 @@ public class SurveyUploadAwRequestCreator implements AwRequestCreator {
         awRequest.setClient(client);
         awRequest.setJsonDataAsString(jsonData);
         awRequest.setCampaignUrn(campaignUrn);
+        awRequest.setCampaignCreationTimestamp(campaignCreationTimestamp);
 
         String requestUrl = request.getRequestURL().toString();
         if(null != request.getQueryString()) {

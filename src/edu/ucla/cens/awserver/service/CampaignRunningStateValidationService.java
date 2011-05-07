@@ -14,19 +14,13 @@ import edu.ucla.cens.awserver.validator.AwRequestAnnotator;
  * checked against a specific state will find this class useful. The AwRequest will be marked as failed if the running_state of the 
  * campaign_urn does not match the running state provided upon construction. 
  * 
- * @author joshua selsky
+ * @author Joshua Selsky
  */
 public class CampaignRunningStateValidationService extends AbstractAnnotatingDaoService {
 	private static Logger _logger = Logger.getLogger(CampaignRunningStateValidationService.class);
 	private String _allowedState;
 	private AwRequestAnnotator _failedRequestAnnotator;
 	
-	/**
-	 * @param annotator - required and used to annotate the AwRequest instead of errors
-	 * @param userRoleCacheService - required and used to lookup String values of integer role ids
-	 * @param allowedState - required. The state to be validated against
-	 * @throws IllegalArgumentException if the annotator, userRoleCacheService, or roles are empty or null
-	 */
 	public CampaignRunningStateValidationService(AwRequestAnnotator annotator, Dao dao, String allowedState) {
 		super(dao, annotator);
 		if(StringUtils.isEmptyOrWhitespaceOnly(allowedState)) {
@@ -36,6 +30,7 @@ public class CampaignRunningStateValidationService extends AbstractAnnotatingDao
 	}
 	
 	@Override
+	// TODO -- fix this to avoid having to use the DAO - can it be made to just look at the CampaignUserRoleMap in the User object
 	public void execute(AwRequest awRequest) {
 		getDao().execute(awRequest);
 		
@@ -50,7 +45,6 @@ public class CampaignRunningStateValidationService extends AbstractAnnotatingDao
 		
 		if(! req.getCampaignRunningState().equals(_allowedState)) {
 			_failedRequestAnnotator.annotate(awRequest, "campaign " + awRequest.getCampaignUrn() + " is not " + _allowedState);
-			awRequest.setFailedRequest(true);
 		}
 	}
 }

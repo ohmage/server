@@ -13,6 +13,7 @@ import edu.ucla.cens.awserver.domain.Configuration;
 public class SurveyUploadAwRequest extends UploadAwRequest {
 	private Map<String, String> _postParameters;
 	private String _campaignRunningState;
+	private String _campaignCreationTimestamp;
 	private Configuration _configuration; 
 
 	/**
@@ -44,6 +45,14 @@ public class SurveyUploadAwRequest extends UploadAwRequest {
 	
 	public void setCampaignRunningState(String state) {
 		_campaignRunningState = state;
+	}
+	
+	public String getCampaignCreationTimestamp() {
+		return _campaignCreationTimestamp;
+	}
+	
+	public void setCampaignCreationTimestamp(String campaignCreationTimestamp) {
+		_campaignCreationTimestamp = campaignCreationTimestamp;
 	}
 }
 
