@@ -51,7 +51,7 @@
     </constructor-arg>
   </bean>
   
-  <bean id="campaignPrivacyStateRequiredValidator" class="edu.ucla.cens.awserver.validator.StringAllowedValuesValidator">
+  <bean id="campaignPrivacyStateRequiredValidator" class="edu.ucla.cens.awserver.validator.CacheAllowedValuesValidator">
     <constructor-arg index="0">
       <bean class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
         <constructor-arg index="0"> 
@@ -63,16 +63,15 @@
       </bean>
     </constructor-arg>
     <constructor-arg index="1">
+      <util:constant static-field="edu.ucla.cens.awserver.cache.CampaignPrivacyStateCache.CACHE_KEY"/>
+    </constructor-arg>
+    <constructor-arg index="2">
       <util:constant static-field="edu.ucla.cens.awserver.request.InputKeys.PRIVACY_STATE"/>
     </constructor-arg>
-    <constructor-arg index="2"><ref bean="campaignPrivacyStates" /></constructor-arg>
     <constructor-arg index="3"><value>true</value></constructor-arg>
-    <property name="errorMessage">
-      <value>invalid privacy state in request</value>
-    </property>
   </bean>
   
-  <bean id="campaignPrivacyStateOptionalValidator" class="edu.ucla.cens.awserver.validator.StringAllowedValuesValidator">
+  <bean id="campaignPrivacyStateOptionalValidator" class="edu.ucla.cens.awserver.validator.CacheAllowedValuesValidator">
     <constructor-arg index="0">
       <bean class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
         <constructor-arg index="0"> 
@@ -84,16 +83,15 @@
       </bean>
     </constructor-arg>
     <constructor-arg index="1">
+      <util:constant static-field="edu.ucla.cens.awserver.cache.CampaignPrivacyStateCache.CACHE_KEY"/>
+    </constructor-arg>
+    <constructor-arg index="2">
       <util:constant static-field="edu.ucla.cens.awserver.request.InputKeys.PRIVACY_STATE"/>
     </constructor-arg>
-    <constructor-arg index="2"><ref bean="campaignPrivacyStates" /></constructor-arg>
     <constructor-arg index="3"><value>false</value></constructor-arg>
-    <property name="errorMessage">
-      <value>invalid privacy state in request</value>
-    </property>
   </bean>
 
-  <bean id="campaignRunningStateRequiredValidator" class="edu.ucla.cens.awserver.validator.StringAllowedValuesValidator">
+  <bean id="campaignRunningStateRequiredValidator" class="edu.ucla.cens.awserver.validator.CacheAllowedValuesValidator">
     <constructor-arg index="0">
       <bean class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
         <constructor-arg index="0"> 
@@ -105,16 +103,15 @@
       </bean>
     </constructor-arg>
     <constructor-arg index="1">
+      <util:constant static-field="edu.ucla.cens.awserver.cache.CampaignRunningStateCache.CACHE_KEY"/>
+    </constructor-arg>
+    <constructor-arg index="2">
       <util:constant static-field="edu.ucla.cens.awserver.request.InputKeys.RUNNING_STATE"/>
     </constructor-arg>
-    <constructor-arg index="2"><ref bean="campaignRunningStates" /></constructor-arg>
     <constructor-arg index="3"><value>true</value></constructor-arg>
-    <property name="errorMessage">
-      <value>invalid running state in request</value>
-    </property>
   </bean>
   
-  <bean id="campaignRunningStateOptionalValidator" class="edu.ucla.cens.awserver.validator.StringAllowedValuesValidator">
+  <bean id="campaignRunningStateOptionalValidator" class="edu.ucla.cens.awserver.validator.CacheAllowedValuesValidator">
     <constructor-arg index="0">
       <bean class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
         <constructor-arg index="0"> 
@@ -126,13 +123,12 @@
       </bean>
     </constructor-arg>
     <constructor-arg index="1">
+      <util:constant static-field="edu.ucla.cens.awserver.cache.CampaignRunningStateCache.CACHE_KEY"/>
+    </constructor-arg>
+    <constructor-arg index="2">
       <util:constant static-field="edu.ucla.cens.awserver.request.InputKeys.RUNNING_STATE"/>
     </constructor-arg>
-    <constructor-arg index="2"><ref bean="campaignRunningStates" /></constructor-arg>
     <constructor-arg index="3"><value>false</value></constructor-arg>
-    <property name="errorMessage">
-      <value>invalid running state in request</value>
-    </property>
   </bean>
   
 </beans>

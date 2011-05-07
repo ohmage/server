@@ -13,32 +13,25 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 
 /**
- * Singleton lookup table for the indices and String values for campaign
- * privacy states. It will only refresh the map when a call is being made and
- * the lookup table has expired.
+ * Cache for the preferences in the database.
  * 
  * @author John Jenkins
  */
-public class CampaignPrivacyStateCache extends StringAndIdCache {
-	private static Logger _logger = Logger.getLogger(CampaignPrivacyStateCache.class);
+public class PreferenceCache extends KeyValueCache {
+	private static Logger _logger = Logger.getLogger(PreferenceCache.class);
 	
-	private static final String SQL_GET_CAMPAIGN_PRIVACY_STATES_AND_IDS = "SELECT id, privacy_state " +
-																		  "FROM campaign_privacy_state";
+	private static final String SQL_GET_CAMPAIGN_PRIVACY_STATES_AND_IDS = "SELECT p_key, p_value " +
+																		  "FROM preference";
 	
 	// When we are requesting a cache in the Spring files, we use this
 	// to reference which key we want.
-	public static final String CACHE_KEY = "campaignPrivacyStateCache";
+	public static final String CACHE_KEY = "preferenceCache";
 	
 	// Known campaign privacy states.
-	public static final String PRIVACY_STATE_PRIVATE = "private";
-	public static final String PRIVACY_STATE_SHARED = "shared";
+	public static final String KEY_DEFAULT_CAN_CREATE_PRIVILIEGE = "default_can_create_privilege";
+	public static final String KEY_DEFAULT_SURVEY_RESPONSE_SHARING_STATE = "default_survey_response_sharing_state";
 	
-	// The lookup tables for translating states to IDs and visa versa.
-	// At first this seemed like a waste, but no reversible map could be
-	// found. Instead, we maintain two lists to decrease lookup time at the
-	// cost of additional memory usage.
-	protected static Map<String, Integer> _stateToIdMap = new HashMap<String, Integer>();
-	protected static Map<Integer, String> _idToStateMap = new HashMap<Integer, String>();
+	protected static Map<String, String> _keyValueMap = new HashMap<String, String>();
 	
 	// The last time we refreshed our cache in milliseconds since epoch.
 	protected static long _lastUpdateTimestamp = -1;
@@ -48,7 +41,7 @@ public class CampaignPrivacyStateCache extends StringAndIdCache {
 	/**
 	 * Default constructor set private to make this a Singleton.
 	 */
-	private CampaignPrivacyStateCache() {
+	private PreferenceCache() {
 		// Does nothing.
 	}
 	
@@ -80,10 +73,10 @@ public class CampaignPrivacyStateCache extends StringAndIdCache {
 	 * attempt to update it and, if successful, we update the time of the last
 	 * update.
 	 * 
-	 * Then, we check to see if such a state exists in our cache. If not, we
-	 * throw an exception because, if someone is querying for a state that
+	 * Then, we check to see if such the key exists in our cache. If not, we
+	 * throw an exception because, if someone is querying for a key that 
 	 * doesn't exist, we need to bring it to their immediate attention rather
-	 * than return an incorrect value. Otherwise, the database ID is returned.
+	 * than return an incorrect value. Otherwise, the value is returned.
 	 * 
 	 * It is recommended but not required to use the PRIVACY_STATE_* constants
 	 * defined in this class when possible.
@@ -91,68 +84,32 @@ public class CampaignPrivacyStateCache extends StringAndIdCache {
 	 * @complexity O(n) if a refresh is required; otherwise, O(1) assuming the
 	 * 			   map can lookup at that complexity on the average case.
 	 * 
-	 * @param state A String representation of the state whose database ID is 
-	 * 				desired.
+	 * @param state The key to use to lookup the value.
 	 * 
-	 * @return The database ID for the given state.
+	 * @return The value stored with the parameterized key.
 	 * 
 	 * @throws CacheMissException Thrown if no such state exists.
 	 */
-	public static int lookup(String state) throws CacheMissException {		
+	public static String lookup(String key) throws CacheMissException {		
 		// If the lookup table is out-of-date, refresh it.
 		if((_lastUpdateTimestamp + _updateFrequency) <= System.currentTimeMillis()) {
 			refreshMap();
 		}
 		
-		// If the key exists in the lookup table, return its ID.
-		if(_stateToIdMap.containsKey(state)) {
-			return _stateToIdMap.get(state);
+		// If the key exists in the lookup table, return its value.
+		if(_keyValueMap.containsKey(key)) {
+			return _keyValueMap.get(key);
 		}
 		// Otherwise, throw an exception that it is an unknown state.
 		else {
-			throw new CacheMissException("Unknown state: " + state);
+			throw new CacheMissException("Unknown key: " + key);
 		}
 	}
 	
 	/**
-	 * Returns the String representation of the state in question based on the
-	 * parameterized 'id'. If no such ID is known, it throws an exception
-	 * because giving an incorrect ID should be brought to the system's 
-	 * immediate attention.
+	 * Returns all the known keys.
 	 * 
-	 * @complexity O(n) if a refresh is required; otherwise, O(1) assuming the
-	 * 			   map can lookup at that complexity on the average case.
-	 * 
-	 * @param id The ID of the state in question.
-	 * 
-	 * @return The String representation of the state based on the 
-	 * 		   parameterized 'id'.
-	 * 
-	 * @throws CacheMissException Thrown if the parameterized 'id' is unknown.
-	 * 							  This is done because if we are querying on
-	 * 							  unknown IDs it is probably indicative of a
-	 * 							  larger problem.
-	 */
-	public static String lookup(int id) throws CacheMissException {
-		// If the lookup table is out-of-date, refresh it.
-		if((_lastUpdateTimestamp + _updateFrequency) <= System.currentTimeMillis()) {
-			refreshMap();
-		}
-
-		// If the ID exists return the String-value representation.
-		if(_idToStateMap.containsValue(id)) {
-			return _idToStateMap.get(id);
-		}
-		// Otherwise, throw an exception that it is an unknown state.
-		else {
-			throw new CacheMissException("Unknown ID: " + id);
-		}
-	}
-	
-	/**
-	 * Returns all the known states.
-	 * 
-	 * @return All known states.
+	 * @return All known keys.
 	 */
 	public static Set<String> getStates() {
 		// If the lookup table is out-of-date, refresh it.
@@ -160,7 +117,7 @@ public class CampaignPrivacyStateCache extends StringAndIdCache {
 			refreshMap();
 		}
 		
-		return _stateToIdMap.keySet();
+		return _keyValueMap.keySet();
 	}
 	
 	/**
@@ -182,15 +139,14 @@ public class CampaignPrivacyStateCache extends StringAndIdCache {
 		// This is the JdbcTemplate we will use for our query.
 		JdbcTemplate jdbcTemplate = new JdbcTemplate(_dataSource);
 		
-		// Get all the states and their corresponding IDs. If there is an
-		// issue, just abort the whole update.
-		List<?> stateAndId;
+		// Get all the keys and their corresponding values.
+		List<?> keyAndValue;
 		try {
-			stateAndId = jdbcTemplate.query(SQL_GET_CAMPAIGN_PRIVACY_STATES_AND_IDS,
+			keyAndValue = jdbcTemplate.query(SQL_GET_CAMPAIGN_PRIVACY_STATES_AND_IDS,
 											new RowMapper() {
 												@Override
 												public Object mapRow(ResultSet rs, int row) throws SQLException {
-													return new StringAndId(rs.getInt("id"), rs.getString("privacy_state"));
+													return new KeyAndValue(rs.getString("p_key"), rs.getString("p_value"));
 												}
 											});
 		}
@@ -200,13 +156,11 @@ public class CampaignPrivacyStateCache extends StringAndIdCache {
 		}
 		
 		// Clear the list and begin populating it with the new information.
-		_stateToIdMap.clear();
-		_idToStateMap.clear();
-		ListIterator<?> stateAndIdIter = stateAndId.listIterator();
-		while(stateAndIdIter.hasNext()) {
-			StringAndId currStateAndId = (StringAndId) stateAndIdIter.next();
-			_stateToIdMap.put(currStateAndId._string, currStateAndId._id);
-			_idToStateMap.put(currStateAndId._id, currStateAndId._string);
+		_keyValueMap.clear();
+		ListIterator<?> keyAndValueIter = keyAndValue.listIterator();
+		while(keyAndValueIter.hasNext()) {
+			KeyAndValue currStateAndId = (KeyAndValue) keyAndValueIter.next();
+			_keyValueMap.put(currStateAndId._key, currStateAndId._value);
 		}
 		
 		_lastUpdateTimestamp = System.currentTimeMillis();

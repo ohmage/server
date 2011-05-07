@@ -6,7 +6,6 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
 import java.util.List;
-import java.util.Map;
 
 import javax.sql.DataSource;
 
@@ -22,6 +21,8 @@ import org.springframework.transaction.TransactionException;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.DefaultTransactionDefinition;
 
+import edu.ucla.cens.awserver.cache.CacheMissException;
+import edu.ucla.cens.awserver.cache.PreferenceCache;
 import edu.ucla.cens.awserver.cache.SurveyResponsePrivacyStateCache;
 import edu.ucla.cens.awserver.domain.DataPacket;
 import edu.ucla.cens.awserver.domain.PromptResponseDataPacket;
@@ -36,7 +37,6 @@ import edu.ucla.cens.awserver.request.AwRequest;
  */
 public class SurveyUploadDao extends AbstractUploadDao {
 	private static Logger _logger = Logger.getLogger(SurveyUploadDao.class);
-	private static Map<String, String> _systemProps;
 	
 	private final String _selectCampaignId = "SELECT id FROM campaign WHERE urn = ?";
 	
@@ -51,12 +51,8 @@ public class SurveyUploadDao extends AbstractUploadDao {
 	                                             " prompt_type, prompt_id, response)" +
 	                                             " VALUES (?,?,?,?,?,?)";
 	
-	public SurveyUploadDao(DataSource dataSource, Map<String, String> systemProps) {
+	public SurveyUploadDao(DataSource dataSource) {
 		super(dataSource);
-		if(null == systemProps || systemProps.isEmpty()) {
-			throw new IllegalArgumentException("systemProps cannot be null or empty");
-		}
-		_systemProps = systemProps;
 	}
 	
 	/**
@@ -70,6 +66,8 @@ public class SurveyUploadDao extends AbstractUploadDao {
 	 */
 	@Override
 	public void execute(AwRequest awRequest) {
+		_logger.info("Beginning inserting responses into the database.");
+		
 		final int campaignId;
 		
 		// Get the campaign.id for linking a survey_response to the correct configuration
@@ -147,10 +145,11 @@ public class SurveyUploadDao extends AbstractUploadDao {
 								ps.setString(10, client);
 								ps.setTimestamp(11, new Timestamp(System.currentTimeMillis()));
 								ps.setString(12, surveyDataPacket.getLaunchContext());
-								if(_systemProps.containsKey("system.surveyResponseSharingState")) {
-									ps.setInt(13, SurveyResponsePrivacyStateCache.lookup(_systemProps.get("system.surveyResponseSharingState")));
-								} else { // default to private
-									ps.setInt(13, SurveyResponsePrivacyStateCache.lookup(SurveyResponsePrivacyStateCache.PRIVACY_STATE_PRIVATE));
+								try {
+									ps.setInt(13, SurveyResponsePrivacyStateCache.lookup(PreferenceCache.lookup(PreferenceCache.KEY_DEFAULT_SURVEY_RESPONSE_SHARING_STATE)));
+								} catch (CacheMissException e) {
+									_logger.error("Error reading from the cache.", e);
+									throw new SQLException(e);
 								}
 								return ps;
 							}
@@ -193,7 +192,6 @@ public class SurveyUploadDao extends AbstractUploadDao {
 							}
 						);
 					}
-				
 				} catch (DataIntegrityViolationException dive) { // a unique index exists only on the survey_response table
 					
 					if(isDuplicate(dive)) {
@@ -222,7 +220,7 @@ public class SurveyUploadDao extends AbstractUploadDao {
 					logErrorDetails(currentPromptResponseDataPacket, userId, campaignId, currentSurveyResponseId, client);
 					rollback(transactionManager, status, currentSurveyDataPacket, userId, campaignId, currentSurveyResponseId, client);
 					throw new DataAccessException(dae);
-				}
+				} 
 				
 			}
 			
@@ -238,6 +236,8 @@ public class SurveyUploadDao extends AbstractUploadDao {
 			logErrorDetails(currentSurveyDataPacket, userId, campaignId, currentSurveyResponseId, client);
 			throw new DataAccessException(te);
 		}
+		
+		_logger.info("Finished inserting responses into the database.");
 	}
 	
 	/**
@@ -260,18 +260,24 @@ public class SurveyUploadDao extends AbstractUploadDao {
 	}
 	
 	private void logErrorDetails(DataPacket dp, int userId, int campaignConfigurationId, int surveyResponseId, String client) {
-
-		if(dp instanceof SurveyDataPacket) {
+		if(dp == null) {
+			_logger.error("An error occurred while running SQL. The DataPacket is null.");
+			return;
+		}
+		else if(dp instanceof SurveyDataPacket) {
 			
 			SurveyDataPacket sdp = (SurveyDataPacket) dp;
 			
-			_logger.error("an error occurred when atempting to run this SQL '" + _insertSurveyResponse + "' with the following "
-				+ "parameters: " + userId + ", " + campaignConfigurationId + ", " + sdp.getDate() + " , " + sdp.getEpochTime()
-				+  ", " + sdp.getTimezone() + ", " + sdp.getLocationStatus() + ", " + sdp.getLocation() + ", " + sdp.getSurveyId() 
-				+ ", " + sdp.getSurvey() + ", " + client + ", " + new Timestamp(System.currentTimeMillis()) + ", " + sdp.getLaunchContext()
-				+ ", " + ((_systemProps.containsKey("system.surveyResponseSharingState")) ? 
-						SurveyResponsePrivacyStateCache.lookup(_systemProps.get("system.surveyResponseSharingState")) : 
-						SurveyResponsePrivacyStateCache.lookup(SurveyResponsePrivacyStateCache.PRIVACY_STATE_PRIVATE)));
+			try {
+				_logger.error("an error occurred when atempting to run this SQL '" + _insertSurveyResponse + "' with the following "
+					+ "parameters: " + userId + ", " + campaignConfigurationId + ", " + sdp.getDate() + " , " + sdp.getEpochTime()
+					+  ", " + sdp.getTimezone() + ", " + sdp.getLocationStatus() + ", " + sdp.getLocation() + ", " + sdp.getSurveyId() 
+					+ ", " + sdp.getSurvey() + ", " + client + ", " + new Timestamp(System.currentTimeMillis()) + ", " + sdp.getLaunchContext()
+					+ ", " + SurveyResponsePrivacyStateCache.lookup(PreferenceCache.lookup(PreferenceCache.KEY_DEFAULT_SURVEY_RESPONSE_SHARING_STATE)));
+			} catch (CacheMissException e) {
+				_logger.error("Cache miss while trying to print debugging information.", e);
+				throw new DataAccessException(e);
+			}
 			
 		} else {
 			

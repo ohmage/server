@@ -1,12 +1,12 @@
 package edu.ucla.cens.awserver.cache;
 
-import java.security.InvalidParameterException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
+import java.util.Set;
 
 import org.apache.log4j.Logger;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -24,6 +24,10 @@ public class MobilityPrivacyStateCache extends StringAndIdCache {
 	
 	private static final String SQL_GET_MOBILITY_PRIVACY_STATES_AND_IDS = "SELECT id, privacy_state " +
 																		  "FROM mobility_privacy_state";
+	
+	// When we are requesting a cache in the Spring files, we use this
+	// to reference which key we want.
+	public static final String CACHE_KEY = "mobilityPrivacyStateCache";
 	
 	// Known Mobility privacy states.
 	public static final String PRIVACY_STATE_PRIVATE = "private";
@@ -76,10 +80,9 @@ public class MobilityPrivacyStateCache extends StringAndIdCache {
 	 * update.
 	 * 
 	 * Then, we check to see if such a state exists in our cache. If not, we
-	 * throw an InvalidParameterException because, if someone is querying for
-	 * a state that doesn't exist, we need to bring it to their immediate
-	 * attention rather than return an incorrect value. Otherwise, the
-	 * database ID is returned.
+	 * throw an exception because, if someone is querying for a state that
+	 * doesn't exist, we need to bring it to their immediate attention rather
+	 * than return an incorrect value. Otherwise, the database ID is returned.
 	 * 
 	 * It is recommended but not required to use the PRIVACY_STATE_* constants
 	 * defined in this class when possible.
@@ -92,9 +95,9 @@ public class MobilityPrivacyStateCache extends StringAndIdCache {
 	 * 
 	 * @return The database ID for the given state.
 	 * 
-	 * @throws InvalidParameterException Thrown if no such state exists.
+	 * @throws CacheMissException Thrown if no such state exists.
 	 */
-	public static int lookup(String state) throws InvalidParameterException {		
+	public static int lookup(String state) throws CacheMissException {		
 		// If the lookup table is out-of-date, refresh it.
 		if((_lastUpdateTimestamp + _updateFrequency) <= System.currentTimeMillis()) {
 			refreshMap();
@@ -106,15 +109,15 @@ public class MobilityPrivacyStateCache extends StringAndIdCache {
 		}
 		// Otherwise, throw an exception that it is an unknown state.
 		else {
-			throw new InvalidParameterException("Unknown state: " + state);
+			throw new CacheMissException("Unknown state: " + state);
 		}
 	}
 	
 	/**
 	 * Returns the String representation of the state in question based on the
-	 * parameterized 'id'. If no such ID is known, it throws an 
-	 * InvalidParameterException exception because giving an incorrect ID
-	 * should be brought to the system's immediate attention.
+	 * parameterized 'id'. If no such ID is known, it throws an exception
+	 * because giving an incorrect ID should be brought to the system's 
+	 * immediate attention.
 	 * 
 	 * @complexity O(n) if a refresh is required; otherwise, O(1) assuming the
 	 * 			   map can lookup at that complexity on the average case.
@@ -124,13 +127,12 @@ public class MobilityPrivacyStateCache extends StringAndIdCache {
 	 * @return The String representation of the state based on the 
 	 * 		   parameterized 'id'.
 	 * 
-	 * @throws InvalidParameterException Thrown if the parameterized 'id' is
-	 * 									 unknown. This is done because if we
-	 * 									 are querying on unknown IDs it is
-	 * 									 probably indicative of a larger
-	 * 									 problem.
+	 * @throws CacheMissException Thrown if the parameterized 'id' is unknown.
+	 * 							  This is done because if we are querying on
+	 * 							  unknown IDs it is probably indicative of a
+	 * 							  larger problem.
 	 */
-	public static String lookup(int id) throws InvalidParameterException {
+	public static String lookup(int id) throws CacheMissException {
 		// If the lookup table is out-of-date, refresh it.
 		if((_lastUpdateTimestamp + _updateFrequency) <= System.currentTimeMillis()) {
 			refreshMap();
@@ -142,8 +144,22 @@ public class MobilityPrivacyStateCache extends StringAndIdCache {
 		}
 		// Otherwise, throw an exception that it is an unknown state.
 		else {
-			throw new InvalidParameterException("Unknown ID: " + id);
+			throw new CacheMissException("Unknown ID: " + id);
 		}
+	}
+	
+	/**
+	 * Returns all the known states.
+	 * 
+	 * @return All known states.
+	 */
+	public static Set<String> getStates() {
+		// If the lookup table is out-of-date, refresh it.
+		if((_lastUpdateTimestamp + _updateFrequency) <= System.currentTimeMillis()) {
+			refreshMap();
+		}
+		
+		return _stateToIdMap.keySet();
 	}
 	
 	/**

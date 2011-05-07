@@ -307,3 +307,13 @@ CREATE TABLE mobility_extended (
   CONSTRAINT FOREIGN KEY (user_id) REFERENCES user (id) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT FOREIGN KEY (privacy_state_id) REFERENCES mobility_privacy_state (id) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+-- --------------------------------------------------------------------
+-- Preferences table to hold key-value pairs of items that need to be
+-- stored but we don't want to store in configuration files.
+-- --------------------------------------------------------------------
+CREATE TABLE preference (
+  p_key varchar(50) NOT NULL,
+  p_value varchar(255) NOT NULL,
+  UNIQUE (p_key, p_value)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;

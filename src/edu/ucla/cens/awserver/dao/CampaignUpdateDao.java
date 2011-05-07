@@ -17,6 +17,7 @@ import org.springframework.transaction.TransactionException;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.DefaultTransactionDefinition;
 
+import edu.ucla.cens.awserver.cache.CacheMissException;
 import edu.ucla.cens.awserver.cache.CampaignPrivacyStateCache;
 import edu.ucla.cens.awserver.cache.CampaignRoleCache;
 import edu.ucla.cens.awserver.cache.CampaignRunningStateCache;
@@ -175,7 +176,7 @@ public class CampaignUpdateDao extends AbstractDao {
 			awRequest.setFailedRequest(true);
 			return;
 		}
-		
+
 		// Begin transaction
 		DefaultTransactionDefinition def = new DefaultTransactionDefinition();
 		def.setName("Campaign update.");
@@ -200,6 +201,12 @@ public class CampaignUpdateDao extends AbstractDao {
 			catch(IllegalArgumentException e) {
 				// Rollback transaction and throw a DataAccessException.
 				_logger.error("Error while executing the update.", e);
+				transactionManager.rollback(status);
+				awRequest.setFailedRequest(true);
+				throw new DataAccessException(e);
+			}
+			catch(CacheMissException e) {
+				_logger.error("Error while reading from the cache.", e);
 				transactionManager.rollback(status);
 				awRequest.setFailedRequest(true);
 				throw new DataAccessException(e);
@@ -291,8 +298,11 @@ public class CampaignUpdateDao extends AbstractDao {
 	 * 
 	 * @param awRequest The request that potentially contains the new running
 	 * 					state.
+	 * 
+	 * @throws CacheMissException Thrown if there is an unknown running state
+	 * 							  in the request. 
 	 */
-	private void updateRunningState(AwRequest awRequest) {
+	private void updateRunningState(AwRequest awRequest) throws CacheMissException {
 		String runningState;
 		try {
 			runningState = (String) awRequest.getToProcessValue(InputKeys.RUNNING_STATE);
@@ -322,8 +332,11 @@ public class CampaignUpdateDao extends AbstractDao {
 	 * 
 	 * @param awRequest The request that potentially contains the new privacy
 	 * 					state.
+	 * 
+	 * @throws CacheMissException Thrown if there is an unknown privacy state
+	 * 							  in the request. 
 	 */
-	private void updatePrivacyState(AwRequest awRequest) {
+	private void updatePrivacyState(AwRequest awRequest) throws CacheMissException {
 		String privacyState;
 		try {
 			privacyState = (String) awRequest.getToProcessValue(InputKeys.PRIVACY_STATE);
@@ -539,7 +552,7 @@ public class CampaignUpdateDao extends AbstractDao {
 		try {
 			supervisorId = CampaignRoleCache.lookup(CampaignRoleCache.ROLE_SUPERVISOR);
 		}
-		catch(InvalidParameterException e) {
+		catch(CacheMissException e) {
 			_logger.error("The cache doesn't know about known role " + CampaignRoleCache.ROLE_SUPERVISOR, e);
 			throw new DataAccessException(e);
 		}
@@ -549,7 +562,7 @@ public class CampaignUpdateDao extends AbstractDao {
 		try {
 			analystId = CampaignRoleCache.lookup(CampaignRoleCache.ROLE_ANALYST);
 		}
-		catch(InvalidParameterException e) {
+		catch(CacheMissException e) {
 			_logger.error("The cache doesn't know about known role " + CampaignRoleCache.ROLE_ANALYST, e);
 			throw new DataAccessException(e);
 		}
@@ -559,7 +572,7 @@ public class CampaignUpdateDao extends AbstractDao {
 		try {
 			authorId = CampaignRoleCache.lookup(CampaignRoleCache.ROLE_AUTHOR);
 		}
-		catch(InvalidParameterException e) {
+		catch(CacheMissException e) {
 			_logger.error("The cache doesn't know about known role " + CampaignRoleCache.ROLE_AUTHOR, e);
 			throw new DataAccessException(e);
 		}
@@ -569,7 +582,7 @@ public class CampaignUpdateDao extends AbstractDao {
 		try {
 			participantId = CampaignRoleCache.lookup(CampaignRoleCache.ROLE_PARTICIPANT);
 		}
-		catch(InvalidParameterException e) {
+		catch(CacheMissException e) {
 			_logger.error("The cache doesn't know about known role " + CampaignRoleCache.ROLE_PARTICIPANT, e);
 			throw new DataAccessException(e);
 		}
@@ -579,7 +592,7 @@ public class CampaignUpdateDao extends AbstractDao {
 		try {
 			privilegedId = ClassRoleCache.lookup(ClassRoleCache.ROLE_PRIVILEGED);
 		}
-		catch(InvalidParameterException e) {
+		catch(CacheMissException e) {
 			_logger.error("The cache doesn't know about known role " + ClassRoleCache.ROLE_PRIVILEGED, e);
 			throw new DataAccessException(e);
 		}
@@ -589,7 +602,7 @@ public class CampaignUpdateDao extends AbstractDao {
 		try {
 			restrictedId = ClassRoleCache.lookup(ClassRoleCache.ROLE_RESTRICTED);
 		}
-		catch(InvalidParameterException e) {
+		catch(CacheMissException e) {
 			_logger.error("The cache doesn't know about known role " + ClassRoleCache.ROLE_RESTRICTED, e);
 			throw new DataAccessException(e);
 		}

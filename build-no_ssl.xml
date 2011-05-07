@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<project name="webapp-andwellness-chipts-no_ssl" basedir="." default="dist-all">
+<project name="webapp-ohmage-no_ssl" basedir="." default="dist-all">
   <property file="build.properties"/>
   <property name="component.repository" location="${user.home}/.component-repository"/>
   <property name="version"  value="snapshot"/>
@@ -96,8 +96,6 @@
       <webinf dir="${resources}/WEB-INF">
       	<exclude name="web-no_ssl.xml"/>
       	<exclude name="web-ssl.xml"/>
-        <exclude name="spring/util-system-mobilize.xml"/>
-        <exclude name="spring/util-system-andwellness.xml"/>
       </webinf>
       <metainf dir="${resources}/META-INF">
         <exclude name="MANIFEST.MF"/>

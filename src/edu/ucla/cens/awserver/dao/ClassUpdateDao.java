@@ -1,6 +1,5 @@
 package edu.ucla.cens.awserver.dao;
 
-import java.security.InvalidParameterException;
 import java.util.List;
 import java.util.ListIterator;
 
@@ -14,6 +13,7 @@ import org.springframework.transaction.TransactionException;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.DefaultTransactionDefinition;
 
+import edu.ucla.cens.awserver.cache.CacheMissException;
 import edu.ucla.cens.awserver.cache.CampaignRoleCache;
 import edu.ucla.cens.awserver.cache.ClassRoleCache;
 import edu.ucla.cens.awserver.request.AwRequest;
@@ -247,7 +247,7 @@ public class ClassUpdateDao extends AbstractDao {
 			try {
 				userClassRoleId = ClassRoleCache.lookup(userClassRole);
 			}
-			catch(InvalidParameterException e) {
+			catch(CacheMissException e) {
 				_logger.error("Cache didn't know about known role " + userClassRole, e);
 				throw new DataAccessException(e);
 			}
@@ -340,7 +340,7 @@ public class ClassUpdateDao extends AbstractDao {
 		try {
 			authorId = CampaignRoleCache.lookup(CampaignRoleCache.ROLE_AUTHOR);
 		}
-		catch(InvalidParameterException dae) {
+		catch(CacheMissException dae) {
 			_logger.error("Cache doesn't know about known role " + CampaignRoleCache.ROLE_AUTHOR, dae);
 			throw new DataAccessException(dae);
 		}

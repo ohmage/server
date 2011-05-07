@@ -2,7 +2,6 @@ package edu.ucla.cens.awserver.dao;
 
 import java.io.IOException;
 import java.io.StringReader;
-import java.security.InvalidParameterException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Calendar;
@@ -26,6 +25,7 @@ import org.springframework.transaction.TransactionException;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.DefaultTransactionDefinition;
 
+import edu.ucla.cens.awserver.cache.CacheMissException;
 import edu.ucla.cens.awserver.cache.CampaignPrivacyStateCache;
 import edu.ucla.cens.awserver.cache.CampaignRoleCache;
 import edu.ucla.cens.awserver.cache.CampaignRunningStateCache;
@@ -184,7 +184,7 @@ public class CampaignCreationDao extends AbstractDao {
 				transactionManager.rollback(status);
 				throw new DataAccessException(dae);
 			}
-			catch(InvalidParameterException e) {
+			catch(CacheMissException e) {
 				transactionManager.rollback(status);
 				throw new DataAccessException("Unknown running or privacy state in the cache.", e);
 			}
@@ -209,7 +209,7 @@ public class CampaignCreationDao extends AbstractDao {
 			try {
 				supervisorId = CampaignRoleCache.lookup(CampaignRoleCache.ROLE_SUPERVISOR);
 			}
-			catch(InvalidParameterException e) {
+			catch(CacheMissException e) {
 				_logger.error("The cache doesn't know about known role " + CampaignRoleCache.ROLE_SUPERVISOR, e);
 				throw new DataAccessException(e);
 			}
@@ -219,7 +219,7 @@ public class CampaignCreationDao extends AbstractDao {
 			try {
 				analystId = CampaignRoleCache.lookup(CampaignRoleCache.ROLE_ANALYST);
 			}
-			catch(InvalidParameterException e) {
+			catch(CacheMissException e) {
 				_logger.error("The cache doesn't know about known role " + CampaignRoleCache.ROLE_ANALYST, e);
 				throw new DataAccessException(e);
 			}
@@ -229,7 +229,7 @@ public class CampaignCreationDao extends AbstractDao {
 			try {
 				authorId = CampaignRoleCache.lookup(CampaignRoleCache.ROLE_AUTHOR);
 			}
-			catch(InvalidParameterException dae) {
+			catch(CacheMissException dae) {
 				_logger.error("The cache doesn't know about known role " + CampaignRoleCache.ROLE_AUTHOR, dae);
 				transactionManager.rollback(status);
 				throw new DataAccessException(dae);
@@ -240,7 +240,7 @@ public class CampaignCreationDao extends AbstractDao {
 			try {
 				participantId = CampaignRoleCache.lookup(CampaignRoleCache.ROLE_PARTICIPANT);
 			}
-			catch(InvalidParameterException e) {
+			catch(CacheMissException e) {
 				_logger.error("The cache doesn't know about known role " + CampaignRoleCache.ROLE_PARTICIPANT, e);
 				throw new DataAccessException(e);
 			}
@@ -250,7 +250,7 @@ public class CampaignCreationDao extends AbstractDao {
 			try {
 				privilegedId = ClassRoleCache.lookup(ClassRoleCache.ROLE_PRIVILEGED);
 			}
-			catch(InvalidParameterException e) {
+			catch(CacheMissException e) {
 				_logger.error("The cache doesn't know about known role " + ClassRoleCache.ROLE_PRIVILEGED, e);
 				throw new DataAccessException(e);
 			}
@@ -260,7 +260,7 @@ public class CampaignCreationDao extends AbstractDao {
 			try {
 				restrictedId = ClassRoleCache.lookup(ClassRoleCache.ROLE_RESTRICTED);
 			}
-			catch(InvalidParameterException e) {
+			catch(CacheMissException e) {
 				_logger.error("The cache doesn't know about known role " + ClassRoleCache.ROLE_RESTRICTED, e);
 				throw new DataAccessException(e);
 			}

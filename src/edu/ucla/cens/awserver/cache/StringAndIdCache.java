@@ -1,12 +1,15 @@
 package edu.ucla.cens.awserver.cache;
 
-import javax.sql.DataSource;
-
-public abstract class StringAndIdCache {
+/**
+ * A cache designed for String-ID relationships.
+ * 
+ * @author John Jenkins
+ */
+public abstract class StringAndIdCache extends Cache {
 	
 	/**
-	 * Inner class for handling the results of a query for the running states
-	 * and their respective IDs.
+	 * Inner class for handling the results of a query for the Strings and
+	 * their respective IDs.
 	 *  
 	 * @author John Jenkins
 	 */
@@ -18,30 +21,5 @@ public abstract class StringAndIdCache {
 			_id = id;
 			_string = string;
 		}
-	}
-	
-	// The DataSource to use when querying the database.
-	protected static DataSource _dataSource;
-	
-	/**
-	 * Sets the dataSource for this object. This can only be called Spring on
-	 * startup.
-	 * 
-	 * @complexity O(1)
-	 * 
-	 * @param dataSource The DataSource for this object to use when getting
-	 * 					 the list of running states and their IDs. Cannot be
-	 * 					 null.
-	 * 
-	 * @throws IllegalArgumentException Thrown if the dataSource has not yet
-	 * 									been set and someone has passed in a
-	 * 									null value.
-	 */
-	public synchronized void setDataSource(DataSource dataSource) {
-		if(dataSource == null) {
-			throw new IllegalArgumentException("A non-null DataSource is required.");
-		} 
-		
-		_dataSource = dataSource;
 	}
 }

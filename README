@@ -1,3 +1,21 @@
 The AndWellness server project. All server source code, scripts, database configuration files, thirdparty applications, and the visualizations live in this repo.
 
+To deploy the server application itself do the following:
+
+1) Build the server with ant.
+    "ant clean dist -f <build-no_ssl.xml | build-ssl.xml>"
+    
+2) Stop the server if it is currently running.
+    "/opt/aw/as/bin/asd.sh stop"
+
+3) Destroy the existing server app if it exists.
+    "rm -fv /opt/aw/as/webapps/app.war"
+    "rm -rfv /opt/aw/as/webapps/app/"
+
+4) Copy the newly built WAR file from the dist directory into the webapps directory.
+    "cp </server/project/directory/dist/newly-built-war-file.war> /opt/aw/as/webapps/app.war"
+    
+5) Start the server.
+    "/opt/aw/as/bin/asd.sh start"
+
 Please send questions to selsky@cens.ucla.edu.
