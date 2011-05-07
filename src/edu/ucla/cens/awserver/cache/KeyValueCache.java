@@ -13,7 +13,9 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 
 /**
- * The abstract class for caches that contain key-value pairs.
+ * The cache class for key-value pairs. No direct instance of this ever exists
+ * because all subclasses should be either abstracted (but not abstract) the
+ * same as this one, or should be concrete Singletons.
  * 
  * @author John Jenkins
  */
@@ -21,8 +23,8 @@ public class KeyValueCache extends Cache {
 	private static Logger _logger = Logger.getLogger(KeyValueCache.class);
 	
 	/**
-	 * Inner class for handling the results of a query for the Strings and
-	 * and their respective String values.
+	 * Inner class for handling the results of a query for the String keys and
+	 * their respective String values.
 	 *  
 	 * @author John Jenkins
 	 */
@@ -32,9 +34,9 @@ public class KeyValueCache extends Cache {
 		
 		/**
 		 * Creates a new object with the specified key and value. This is done
-		 * despite having a default constructor and directly setting the
+		 * instead of having a default constructor and directly setting the
 		 * values as a convenience to make creating a new object a one-liner
-		 * and to provide a, very, thing veil of encapsulation.
+		 * and to provide a thin veil of encapsulation.
 		 * 
 		 * @param key The key for this key-value pair.
 		 * 
@@ -53,6 +55,10 @@ public class KeyValueCache extends Cache {
 	// dictated by the private class KeyAndValue.
 	private String _sqlForRetrievingValues;
 	
+	// The column names for the key and value columns to be used with the SQL.
+	private String _keyColumn;
+	private String _valueColumn;
+	
 	/**
 	 * Default constructor that calls its parent and is protected to maintain
 	 * the Singleton-ness.
@@ -62,30 +68,36 @@ public class KeyValueCache extends Cache {
 		
 		_keyValueMap = new HashMap<String, String>();
 		_sqlForRetrievingValues = sqlForRetrievingValues;
+		
+		// Boot-time check that everything is working correctly. Given that
+		// the SQL and its parameters shouldn't change while the system is
+		// running, if this initial refresh succeeds then all subsequent
+		// refreshes should succeed.
+		refreshMap();
 	}
 	
 	/**
 	 * Compares the current timestamp with the last time we did an update plus
 	 * the amount of time between updates. If our cache has become stale, we
-	 * attempt to update it and, if successful, we update the time of the last
-	 * update.
+	 * attempt to update it.
 	 * 
-	 * Then, we check to see if such the key exists in our cache. If not, we
-	 * throw an exception because, if someone is querying for a key that 
+	 * Then, we check to see if such a key exists in our cache. If not, we
+	 * throw an exception because, if someone is querying for a key that
 	 * doesn't exist, we need to bring it to their immediate attention rather
-	 * than return an incorrect value. Otherwise, the value is returned.
+	 * than returning an "error" value. Otherwise, the corresponding integer
+	 * value is returned.
 	 * 
-	 * It is recommended but not required to use the PRIVACY_STATE_* constants
-	 * defined in this class when possible.
+	 * It is recommended, but not required, to use the constants declared in
+	 * the concrete cache class as the parameter.
 	 * 
-	 * @complexity O(n) if a refresh is required; otherwise, O(1) assuming the
-	 * 			   map can lookup at that complexity on the average case.
+	 * @complexity O(n) if a refresh is required; otherwise, the complexity of
+	 * 			   a Java Map object to lookup a key and return its value.
 	 * 
-	 * @param state The key to use to lookup the value.
+	 * @param key The key whose corresponding value is being requested.
 	 * 
-	 * @return The value stored with the parameterized key.
+	 * @return The corresponding value.
 	 * 
-	 * @throws CacheMissException Thrown if no such state exists.
+	 * @throws CacheMissException Thrown if no such key exists.
 	 */
 	public String lookup(String key) throws CacheMissException {		
 		// If the lookup table is out-of-date, refresh it.
@@ -108,7 +120,7 @@ public class KeyValueCache extends Cache {
 	 * 
 	 * @return All known keys.
 	 */
-	public Set<String> getStates() {
+	public Set<String> getKeys() {
 		// If the lookup table is out-of-date, refresh it.
 		if((_lastUpdateTimestamp + _updateFrequency) <= System.currentTimeMillis()) {
 			refreshMap();
@@ -123,7 +135,7 @@ public class KeyValueCache extends Cache {
 	 * reading the database, it will just remain with the current lookup table
 	 * it has.
 	 * 
-	 * @complexity O(n) where n is the number of states in the database.
+	 * @complexity O(n) where n is the number of keys in the database.
 	 */
 	private synchronized void refreshMap() {
 		// Only one thread should be updating this information at a time. Once
@@ -133,7 +145,8 @@ public class KeyValueCache extends Cache {
 			return;
 		}
 		
-		// This is the JdbcTemplate we will use for our query.
+		// This is the JdbcTemplate we will use for our query. If there is an
+		// issue report it and abort the update.
 		JdbcTemplate jdbcTemplate = new JdbcTemplate(_dataSource);
 		
 		// Get all the keys and their corresponding values.
@@ -143,7 +156,7 @@ public class KeyValueCache extends Cache {
 											new RowMapper() {
 												@Override
 												public Object mapRow(ResultSet rs, int row) throws SQLException {
-													return new KeyAndValue(rs.getString("p_key"), rs.getString("p_value"));
+													return new KeyAndValue(rs.getString(_keyColumn), rs.getString(_valueColumn));
 												}
 											});
 		}

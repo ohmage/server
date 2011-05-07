@@ -1,7 +1,8 @@
 package edu.ucla.cens.awserver.cache;
 
 /**
- * Cache for the preferences in the database.
+ * Singleton cache for the indices and String values for Mobility privacy
+ * states.
  * 
  * @author John Jenkins
  */
