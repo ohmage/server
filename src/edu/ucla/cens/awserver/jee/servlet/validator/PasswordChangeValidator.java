@@ -25,27 +25,22 @@ public class PasswordChangeValidator extends AbstractHttpServletRequestValidator
 		
 		if((authToken == null) && ((username == null) || (password == null))) {
 			// Invalid credentials.
-			_logger.debug("Invalid credentials.");
 			return false;
 		}
 		else if(greaterThanLength(InputKeys.AUTH_TOKEN, InputKeys.AUTH_TOKEN, authToken, 36)) {
 			// Auth token is of an invalid length.
-			_logger.debug("auth_token too large.");
 			return false;
 		}
 		else if(greaterThanLength(InputKeys.USERNAME, InputKeys.USERNAME, username, 15)) {
 			// Username isn't the right length.
-			_logger.debug("username too large.");
 			return false;
 		}
 		else if(greaterThanLength(InputKeys.PASSWORD, InputKeys.PASSWORD, password, 100)) {
 			// Password isn't the right length.
-			_logger.debug("password too large.");
 			return false;
 		}
 		else if(newPassword == null) {
 			// Missing required parameter.
-			_logger.debug("Missing new password.");
 			return false;
 		}
 		else if(greaterThanLength(InputKeys.NEW_PASSWORD, InputKeys.NEW_PASSWORD, newPassword, 15)) {
