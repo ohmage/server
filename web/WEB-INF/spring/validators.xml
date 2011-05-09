@@ -18,6 +18,11 @@
     <constructor-arg index="1"><ref bean="passwordFailedJsonRequestAnnotator" /></constructor-arg>
   </bean>
   
+  <bean id="newPasswordValidator" class="edu.ucla.cens.awserver.validator.NewPasswordValidator">
+    <constructor-arg index="0"><value>[a-z\.]{9,15}</value></constructor-arg>
+    <constructor-arg index="1"><ref bean="invalidNewPassword" /></constructor-arg>
+  </bean>
+  
   <bean id="passwordValidator" class="edu.ucla.cens.awserver.validator.AwRequestPasswordValidator">
     <constructor-arg index="0"><value>[a-z\.]{9,15}</value></constructor-arg>
     <constructor-arg index="1"><ref bean="passwordFailedJsonRequestAnnotator" /></constructor-arg>
@@ -42,6 +47,15 @@
       <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
         <property name="code" value="0200" />
         <property name="text" value="authentication failed" />
+      </bean>
+    </constructor-arg>
+  </bean>
+  
+  <bean id="invalidNewPassword" class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
+    <constructor-arg index="0">
+      <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
+        <property name="code" value="0207" />
+        <property name="text" value="Invalid new password" />
       </bean>
     </constructor-arg>
   </bean>
