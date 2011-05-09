@@ -165,13 +165,15 @@ public class KeyValueCache extends Cache {
 			return;
 		}
 		
-		// Clear the list and begin populating it with the new information.
-		_keyValueMap.clear();
+		// Create a new Map, populate it, and replace the old one. This allows
+		// for concurrent readying while the new Map is being created.
+		Map<String, String> keyValueMap = new HashMap<String, String>();
 		ListIterator<?> keyAndValueIter = keyAndValue.listIterator();
 		while(keyAndValueIter.hasNext()) {
 			KeyAndValue currStateAndId = (KeyAndValue) keyAndValueIter.next();
-			_keyValueMap.put(currStateAndId._key, currStateAndId._value);
+			keyValueMap.put(currStateAndId._key, currStateAndId._value);
 		}
+		_keyValueMap = keyValueMap;
 		
 		_lastUpdateTimestamp = System.currentTimeMillis();
 	}

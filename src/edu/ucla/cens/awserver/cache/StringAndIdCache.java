@@ -2,15 +2,15 @@ package edu.ucla.cens.awserver.cache;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.HashMap;
 import java.util.List;
 import java.util.ListIterator;
-import java.util.Map;
 import java.util.Set;
 
 import org.apache.log4j.Logger;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
+
+import edu.ucla.cens.awserver.domain.BidirectionalHashMap;
 
 /**
  * A cache designed for String-ID relationships. No direct instance of this
@@ -48,12 +48,8 @@ public class StringAndIdCache extends Cache {
 		}
 	}
 	
-	// The lookup tables for translating strings to IDs and visa versa.
-	// At first this seemed like a waste, but no reversible map could be
-	// found. Instead, we maintain two lists to decrease lookup time at the
-	// cost of additional memory usage.
-	protected static Map<String, Integer> _stateToIdMap;
-	protected static Map<Integer, String> _idToStateMap;
+	// The lookup table for translating strings to IDs and visa versa.
+	protected static BidirectionalHashMap<String, Integer> _stringAndIdMap;
 	
 	// The SQL to use to get the values which must return a String value and
 	// an integer value as dictated by the private class StringAndId.
@@ -70,8 +66,7 @@ public class StringAndIdCache extends Cache {
 	protected StringAndIdCache(String sqlForRetrievingValues, String integerColumn, String stringColumn) {
 		super();
 		
-		_stateToIdMap = new HashMap<String, Integer>();
-		_idToStateMap = new HashMap<Integer, String>();
+		_stringAndIdMap = new BidirectionalHashMap<String, Integer>();
 		
 		_sqlForRetrievingValues = sqlForRetrievingValues;
 		_integerColumn = integerColumn;
@@ -116,8 +111,8 @@ public class StringAndIdCache extends Cache {
 		
 		// If the key exists in the lookup table, return its integer 
 		// representation.
-		if(_stateToIdMap.containsKey(string)) {
-			return _stateToIdMap.get(string);
+		if(_stringAndIdMap.containsKey(string)) {
+			return _stringAndIdMap.getValue(string);
 		}
 		// Otherwise, throw an exception that it is an unknown key.
 		else {
@@ -152,8 +147,8 @@ public class StringAndIdCache extends Cache {
 		}
 
 		// If the ID exists return the String-value representation.
-		if(_idToStateMap.containsValue(id)) {
-			return _idToStateMap.get(id);
+		if(_stringAndIdMap.containsValue(id)) {
+			return _stringAndIdMap.getKey(id);
 		}
 		// Otherwise, throw an exception that it is an unknown ID.
 		else {
@@ -172,7 +167,7 @@ public class StringAndIdCache extends Cache {
 			refreshMap();
 		}
 		
-		return _stateToIdMap.keySet();
+		return _stringAndIdMap.keySet();
 	}
 	
 	/**
@@ -217,15 +212,16 @@ public class StringAndIdCache extends Cache {
 			return;
 		}
 		
-		// Clear the list and begin populating it with the new information.
-		_stateToIdMap.clear();
-		_idToStateMap.clear();
+		// Create a new map, populate it, and then completely replace the old
+		// one. This allows for concurrent reads while a new map is being
+		// generated.
+		BidirectionalHashMap<String, Integer> stringAndIdMap = new BidirectionalHashMap<String, Integer>();
 		ListIterator<?> stateAndIdIter = stateAndId.listIterator();
 		while(stateAndIdIter.hasNext()) {
 			StringAndId currStateAndId = (StringAndId) stateAndIdIter.next();
-			_stateToIdMap.put(currStateAndId._string, currStateAndId._id);
-			_idToStateMap.put(currStateAndId._id, currStateAndId._string);
+			stringAndIdMap.putKey(currStateAndId._string, currStateAndId._id);
 		}
+		_stringAndIdMap = stringAndIdMap;
 		
 		_lastUpdateTimestamp = System.currentTimeMillis();
 	}
