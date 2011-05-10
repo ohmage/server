@@ -21,7 +21,7 @@ public class AwRequestUserTokenValidator extends AbstractAnnotatingRegexpValidat
 	 * @throws ValidatorException if a user token (a UUID) is not present in the AwRequest or is malformed.  
 	 */
 	public boolean validate(AwRequest awRequest) {
-		_logger.info("Validating that the user token follows out conventions.");
+		_logger.info("Validating that the user token follows our conventions.");
 		
 		if(StringUtils.isEmptyOrWhitespaceOnly(awRequest.getUserToken())) {
 			

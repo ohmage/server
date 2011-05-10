@@ -1,5 +1,7 @@
 package edu.ucla.cens.awserver.cache;
 
+import java.security.InvalidParameterException;
+
 import javax.sql.DataSource;
 
 /**
@@ -30,9 +32,8 @@ public class Cache {
 	 * @complexity O(1)
 	 */
 	protected Cache() {
-		// This may not be necessary as this is probably what Java defaults
-		// to, but given that we require this in the setter I want to
-		// explicitly declare it here.
+		// This helps us guarantee that the DataSource starts off as null to
+		// help assure that it will only be set once.
 		_dataSource = null;
 		
 		// Initialize the refresh times to "invalid" values such that the
@@ -58,12 +59,12 @@ public class Cache {
 	 * 									reset.
 	 */
 	public synchronized void setDataSource(DataSource dataSource) throws IllegalArgumentException {
-		if(_dataSource != null) {
-			throw new IllegalArgumentException("The DataSource may only be set once.");
+		//if(_dataSource != null) {
+		//	throw new IllegalStateException("The DataSource may only be set once.");
+		//}
+		if(dataSource == null) {
+			throw new InvalidParameterException("The DataSource may not be null.");
 		}
-		else if(dataSource == null) {
-			throw new IllegalArgumentException("The DataSource may not be null.");
-		} 
 		
 		_dataSource = dataSource;
 	}
@@ -91,7 +92,7 @@ public class Cache {
 	 */
 	public synchronized void setUpdateFrequency(long frequencyInMilliseconds) throws IllegalArgumentException {
 		if(frequencyInMilliseconds < MIN_CACHE_REFRESH_MILLIS) {
-			throw new IllegalArgumentException("The update frequency must be a positive integer greater than or equal to " +
+			throw new InvalidParameterException("The update frequency must be a positive integer greater than or equal to " +
 					MIN_CACHE_REFRESH_MILLIS + " milliseconds.");
 		}
 		

@@ -3,33 +3,39 @@
        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.5.xsd">
        
   <!-- State Caches -->
-  <bean class="edu.ucla.cens.awserver.cache.CampaignPrivacyStateCache">
+  <bean class="edu.ucla.cens.awserver.cache.CampaignPrivacyStateCache" factory-method="instance">
     <property name="dataSource"><ref bean="dataSource" /></property>
     <property name="updateFrequency" value="60000" />
   </bean>
   
-  <bean class="edu.ucla.cens.awserver.cache.CampaignRunningStateCache">
+  <bean class="edu.ucla.cens.awserver.cache.CampaignRunningStateCache" factory-method="instance">
     <property name="dataSource"><ref bean="dataSource" /></property>
     <property name="updateFrequency" value="60000" />
   </bean>
   
-  <bean class="edu.ucla.cens.awserver.cache.MobilityPrivacyStateCache">
+  <bean class="edu.ucla.cens.awserver.cache.MobilityPrivacyStateCache" factory-method="instance">
     <property name="dataSource"><ref bean="dataSource" /></property>
     <property name="updateFrequency" value="60000" />
   </bean>
   
-  <bean class="edu.ucla.cens.awserver.cache.SurveyResponsePrivacyStateCache">
+  <bean class="edu.ucla.cens.awserver.cache.SurveyResponsePrivacyStateCache" factory-method="instance">
     <property name="dataSource"><ref bean="dataSource" /></property>
     <property name="updateFrequency" value="60000" />
   </bean>
   
   <!-- Role Caches -->
-  <bean class="edu.ucla.cens.awserver.cache.CampaignRoleCache">
+  <bean class="edu.ucla.cens.awserver.cache.CampaignRoleCache" factory-method="instance">
     <property name="dataSource"><ref bean="dataSource" /></property>
     <property name="updateFrequency" value="60000" />
   </bean>
   
-  <bean class="edu.ucla.cens.awserver.cache.ClassRoleCache">
+  <bean class="edu.ucla.cens.awserver.cache.ClassRoleCache" factory-method="instance">
+    <property name="dataSource"><ref bean="dataSource" /></property>
+    <property name="updateFrequency" value="60000" />
+  </bean>
+  
+  <!-- Preference Cache -->
+  <bean class="edu.ucla.cens.awserver.cache.PreferenceCache" factory-method="instance">
     <property name="dataSource"><ref bean="dataSource" /></property>
     <property name="updateFrequency" value="60000" />
   </bean>
