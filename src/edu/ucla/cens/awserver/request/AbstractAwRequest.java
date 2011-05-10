@@ -13,7 +13,8 @@ import edu.ucla.cens.awserver.domain.User;
 /**
  * State that is common across features.
  * 
- * @author selsky
+ * @author Joshua Selsky
+ * @author John Jenkins
  */
 public abstract class AbstractAwRequest implements AwRequest {
 	// Input state
@@ -204,7 +205,7 @@ public abstract class AbstractAwRequest implements AwRequest {
 		else if(value == null) {
 			throw new IllegalArgumentException("Null values are dissallowed.");
 		}
-		else if((! overwrite) && (! _toProcess.containsKey(key))) {
+		else if((! overwrite) && (_toProcess.containsKey(key))) {
 			throw new IllegalArgumentException("The key '" + key + "' already exists but overwriting is disallowed.");
 		}
 		else {
@@ -237,21 +238,12 @@ public abstract class AbstractAwRequest implements AwRequest {
 		else if(value == null) {
 			throw new IllegalArgumentException("Null values are dissallowed.");
 		}
-		else if((! overwrite) && (! _toReturn.containsKey(key))) {
+		else if((! overwrite) && (_toReturn.containsKey(key))) {
 			throw new IllegalArgumentException("The key '" + key + "' already exists but overwriting is disallowed.");
 		}
 		else {
 			_toReturn.put(key, value);
 		}
-	}
-	
-	@Override
-	public String toString() {
-		return "AbstractAwRequest [_isFailedRequest=" + isFailedRequest()
-				+ ", _failedRequestErrorMessage=" + getFailedRequestErrorMessage()
-				+ ", _requestUrl=" + _requestUrl
-				+ ", _user=" + _user
-				+ "]";
 	}
 	
 	/****
