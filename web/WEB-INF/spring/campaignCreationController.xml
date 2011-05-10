@@ -90,9 +90,7 @@
     <constructor-arg index="1">
       <bean class="org.andwellness.config.xml.CampaignValidator" />
     </constructor-arg>
-    <constructor-arg index="2">
-      <value>/opt/aw/conf/configuration.xsd</value>
-    </constructor-arg>
+    <constructor-arg index="2" value="${system.configurationXmlSchemaFile}"/>
     <constructor-arg index="3">
       <value>true</value>
     </constructor-arg>
