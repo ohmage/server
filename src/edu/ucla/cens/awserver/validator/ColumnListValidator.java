@@ -29,7 +29,7 @@ public class ColumnListValidator extends AbstractAnnotatingValidator {
 	 * @throws ValidatorException if the awRequest is not a NewDataPointQueryAwRequest
 	 */
 	public boolean validate(AwRequest awRequest) {
-		_logger.info("validating column list");
+		_logger.info("Validating column list");
 		
 		if(! (awRequest instanceof SurveyResponseReadAwRequest)) { // lame
 			throw new ValidatorException("awRequest is not a NewDataPointQueryAwRequest: " + awRequest.getClass());

@@ -26,7 +26,7 @@ public class ParticipantUserParamValidationService extends AbstractAnnotatingSer
 	
 	@Override
 	public void execute(AwRequest awRequest) {
-		_logger.info("checking to see if a participant is attempting to query another user's data");
+		_logger.info("Checking to see if a participant is attempting to query another user's data");
 		
 		// Hack FIXME
 		SurveyResponseReadAwRequest req = (SurveyResponseReadAwRequest) awRequest;

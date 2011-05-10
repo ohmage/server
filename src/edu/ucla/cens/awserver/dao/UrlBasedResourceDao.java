@@ -34,7 +34,7 @@ import edu.ucla.cens.awserver.util.StringUtils;
  * 
  * When this class creates directories, it relies on the OS for persmissions set up.
  * 
- * @author selsky
+ * @author Joshua Selsky
  */
 public class UrlBasedResourceDao extends AbstractUploadDao {
 	private static Logger _logger = Logger.getLogger(UrlBasedResourceDao.class);
@@ -104,7 +104,7 @@ public class UrlBasedResourceDao extends AbstractUploadDao {
 		synchronized(lock) { // synch the whole process to ensure each media file gets a unique URL
 		
 			if(_logger.isDebugEnabled()) {
-				_logger.debug("saving a media file to the filesystem and a reference to it in url_based_resource");
+				_logger.debug("Saving a media file to the filesystem and a reference to it in url_based_resource");
 			}
 			
 			final int userId = awRequest.getUser().getId();
@@ -154,7 +154,7 @@ public class UrlBasedResourceDao extends AbstractUploadDao {
 					                      // url_based_resource
 					rollback(transactionManager, status);
 					f = null;
-					throw new DataAccessException("file already exists: " + url); 
+					throw new DataAccessException("File already exists: " + url); 
 				}
 				
 				outputStream = new BufferedOutputStream(new FileOutputStream(f));
@@ -185,7 +185,7 @@ public class UrlBasedResourceDao extends AbstractUploadDao {
 				if(isDuplicate(dive)) {
 					
 					if(_logger.isDebugEnabled()) {
-						_logger.info("found a duplicate media upload message. uuid: " + uuid);
+						_logger.info("Found a duplicate media upload message. uuid: " + uuid);
 					}
 					
 					handleDuplicate(awRequest, 1); // 1 is passed here because there is only one media resource uploaded at a time
@@ -197,33 +197,33 @@ public class UrlBasedResourceDao extends AbstractUploadDao {
 					// before this DAO runs so there is either missing validation or somehow an auto_incremented key
 					// has been duplicated
 					
-					_logger.error("caught DataAccessException", dive);
+					_logger.error("Caught DataAccessException", dive);
 					rollback(transactionManager, status);
 					throw new DataAccessException(dive);
 				}
 				
 			} catch (org.springframework.dao.DataAccessException dae) {
 				
-				_logger.error("caught DataAccessException when attempting to run the SQL + '" + _insertSql + "' with the following "
+				_logger.error("Caught DataAccessException when attempting to run the SQL + '" + _insertSql + "' with the following "
 						+ "params: " + userId + ", " + uuid + ", " + url, dae);
 				rollback(transactionManager, status);
 				throw new DataAccessException(dae);
 	
 			} catch (IOException ioe) {
 				
-				_logger.error("caught IOException", ioe);
+				_logger.error("Caught IOException", ioe);
 				rollback(transactionManager, status);
 				throw new DataAccessException(ioe);
 
 			} catch (URISyntaxException use) {
 				
-				_logger.error("caught URISyntaxException", use);
+				_logger.error("Caught URISyntaxException", use);
 				rollback(transactionManager, status);
 				throw new DataAccessException(use);
 				
 			} catch(TransactionException te) {
 				
-				_logger.error("caught TransactionException when attempting to run the SQL + '" + _insertSql + "' with the following "
+				_logger.error("Caught TransactionException when attempting to run the SQL + '" + _insertSql + "' with the following "
 					+ "params: " + userId + ", " + uuid + ", " + url, te);
 				rollback(transactionManager, status); // attempt to rollback even though the exception was thrown at the transaction level
 				throw new DataAccessException(te);
@@ -238,7 +238,7 @@ public class UrlBasedResourceDao extends AbstractUploadDao {
 						
 					} catch (IOException ioe) {
 						
-						_logger.error("caught IOException trying to close an output stream", ioe);
+						_logger.error("Caught IOException trying to close an output stream", ioe);
 					}
 				}
 			}
@@ -252,12 +252,12 @@ public class UrlBasedResourceDao extends AbstractUploadDao {
 		
 		try {
 			
-			_logger.error("rolling back a failed media upload transaction");
+			_logger.error("Rolling back a failed media upload transaction");
 			transactionManager.rollback(transactionStatus);
 			
 		} catch (TransactionException te) {
 			
-			_logger.error("failed to rollback media upload transaction", te);
+			_logger.error("Failed to rollback media upload transaction", te);
 			throw new DataAccessException(te);
 		}
 	}
@@ -299,7 +299,7 @@ public class UrlBasedResourceDao extends AbstractUploadDao {
 				
 				if(! f.mkdirs()) { 
 					
-					throw new IllegalStateException("cannot create " + f.getAbsolutePath() 
+					throw new IllegalStateException("Cannot create " + f.getAbsolutePath() 
 						+ " some of the intermediate dirs may have been created");
 				}
 				
@@ -307,8 +307,8 @@ public class UrlBasedResourceDao extends AbstractUploadDao {
 				_currentFileName = _initialFileName;
 			}
 			
-			_logger.info("current write dir " + _currentWriteDir.getAbsolutePath());
-			_logger.info("current file name " + _currentFileName);
+			_logger.info("Current write dir " + _currentWriteDir.getAbsolutePath());
+			_logger.info("Current file name " + _currentFileName);
 			
 		}
 	}
@@ -335,8 +335,8 @@ public class UrlBasedResourceDao extends AbstractUploadDao {
 					// bad!!! the whole subtree is full. if this happens, it means there have been manual changes on the filesystem 
 					// or we have a serious amount of data (depending on maxNumberOfFiles and maxNumberOfDirs)
 					
-					_logger.fatal("media storage filesystem subtree is full!");
-					throw new IOException("media storage filesystem subtree is full!");
+					_logger.fatal("Media storage filesystem subtree is full!");
+					throw new IOException("Media storage filesystem subtree is full!");
 					
 				}
 				
@@ -385,7 +385,7 @@ public class UrlBasedResourceDao extends AbstractUploadDao {
 		File f = new File(path + name);
 		
 		if(! f.mkdir()) {
-			throw new IOException("cannot make directory or directory already exists: " + f.getAbsolutePath());
+			throw new IOException("Cannot make directory or directory already exists: " + f.getAbsolutePath());
 		}
 		return f;
 	}
@@ -406,7 +406,7 @@ public class UrlBasedResourceDao extends AbstractUploadDao {
 			if(f.mkdir()) {
 				return f;
 			} else {
-				throw new IllegalStateException("cannot mkdir " + path);
+				throw new IllegalStateException("Cannot mkdir " + path);
 			}
 		} else {
 			
@@ -418,8 +418,8 @@ public class UrlBasedResourceDao extends AbstractUploadDao {
 					
 					if(directoryHasMaxNumberOfSubdirectories(parentDir.getParentFile())) {
 						
-						_logger.fatal("media storage filesystem subtree is full!");
-						throw new IllegalStateException("media storage filesystem subtree is full!");
+						_logger.fatal("Media storage filesystem subtree is full!");
+						throw new IllegalStateException("Media storage filesystem subtree is full!");
 						
 					} else {
 						

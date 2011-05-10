@@ -31,7 +31,7 @@ public class SurveyResponseReadJsonRowBasedOutputBuilder {
 	public String buildOutput(SurveyResponseReadAwRequest req, List<SurveyResponseReadResult> results, List<String> rowItems) 
 		throws JSONException {
 		
-		_logger.info("about to generate row-based JSON output");
+		_logger.info("Generating row-based JSON output");
 		
 		JSONObject main = new JSONObject();
 		main.put("result", "success");

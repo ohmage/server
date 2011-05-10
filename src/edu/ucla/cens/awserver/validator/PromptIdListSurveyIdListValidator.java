@@ -27,7 +27,7 @@ public class PromptIdListSurveyIdListValidator extends AbstractAnnotatingRegexpV
 	 * @throws ValidatorException if the awRequest is not a NewDataPointQueryAwRequest
 	 */
 	public boolean validate(AwRequest awRequest) {
-		_logger.info("validating prompt id list or survey id list");
+		_logger.info("Validating prompt id list or survey id list");
 		
 		if(! (awRequest instanceof SurveyResponseReadAwRequest)) { // lame
 			throw new ValidatorException("awRequest is not a NewDataPointQueryAwRequest: " + awRequest.getClass());

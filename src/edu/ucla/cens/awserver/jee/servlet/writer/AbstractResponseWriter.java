@@ -64,7 +64,7 @@ public abstract class AbstractResponseWriter implements ResponseWriter {
 		if (encoding != null && encoding.indexOf("gzip") >= 0) {
             
 			if(_logger.isDebugEnabled()) {
-				_logger.debug("returning a GZIPOutputStream");
+				_logger.debug("Returning a GZIPOutputStream");
 			}
 			
             response.setHeader("Content-Encoding","gzip");
@@ -74,7 +74,7 @@ public abstract class AbstractResponseWriter implements ResponseWriter {
 		} else {
 			
 			if(_logger.isDebugEnabled()) {
-				_logger.debug("returning the default OutputStream");
+				_logger.debug("Returning the default OutputStream");
 			}
 			
 			os = response.getOutputStream();

@@ -29,6 +29,8 @@ public class SurveyResponseReadCsvColumnOutputBuilder implements SurveyResponseR
 			                              Map<String, PromptContext> promptContextMap,
 			                              Map<String, List<Object>> columnMap) throws JSONException {
 		
+		_logger.info("Generating multi-result CSV output");
+		
 		Set<String> columnMapKeySet = columnMap.keySet();
 		Set<String> promptContextKeySet = promptContextMap.keySet();
 		StringBuilder builder = new StringBuilder();
@@ -119,6 +121,8 @@ public class SurveyResponseReadCsvColumnOutputBuilder implements SurveyResponseR
 	
 	public String createZeroResultOutput(SurveyResponseReadAwRequest req, Map<String, List<Object>> columnMap) 
 		throws JSONException  {
+		
+		_logger.info("Generating zero-result CSV output");
 		
 		StringBuilder builder = new StringBuilder();
 		

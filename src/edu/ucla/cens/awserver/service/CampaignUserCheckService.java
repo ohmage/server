@@ -32,7 +32,7 @@ public class CampaignUserCheckService extends AbstractAnnotatingDaoService {
 	 */
 	@Override
 	public void execute(AwRequest awRequest) {
-		_logger.info("validating that each user in the user list belongs to the campaign specified in the query");
+		_logger.info("Validating that each user in the user list belongs to the campaign specified in the query");
 		
 		// FIXME: Hackalicious!
 		String userListString;
@@ -65,7 +65,7 @@ public class CampaignUserCheckService extends AbstractAnnotatingDaoService {
 			List<?> results = awRequest.getResultList();
 			
 			if(! results.contains(awRequest.getCampaignUrn())) {
-				_logger.warn("invalid campaign name in request: the query user does not belong to the campaign in the query.");
+				_logger.warn("Invalid campaign name in request: the query user does not belong to the campaign in the query.");
 				getAnnotator().annotate(awRequest, "the query user does not belong to the campaign in the query");
 			}
 		}
@@ -75,7 +75,7 @@ public class CampaignUserCheckService extends AbstractAnnotatingDaoService {
 			List<?> results = awRequest.getResultList();
 			
 			if(! results.contains(awRequest.getCampaignUrn())) {
-				_logger.warn("invalid campaign name in request: the query user does not belong to the campaign in the query.");
+				_logger.warn("Invalid campaign name in request: the query user does not belong to the campaign in the query.");
 				getAnnotator().annotate(awRequest, "the query user does not belong to the campaign in the query");
 			}
 		}
@@ -85,7 +85,7 @@ public class CampaignUserCheckService extends AbstractAnnotatingDaoService {
 			List<?> results = awRequest.getResultList();
 			
 			if(! results.contains(awRequest.getCampaignUrn())) {
-				_logger.warn("invalid campaign name in request: the query user does not belong to the campaign in the query.");
+				_logger.warn("Invalid campaign name in request: the query user does not belong to the campaign in the query.");
 				getAnnotator().annotate(awRequest, "the query user does not belong to the campaign in the query");
 			}
 		}

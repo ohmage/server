@@ -25,7 +25,7 @@ public class SurveyResponseReadSurveyIdValidationService extends AbstractAnnotat
 	 */
 	@Override
 	public void execute(AwRequest awRequest) {
-		_logger.info("validating survey ids against a campaign config");
+		_logger.info("Validating survey ids against a campaign config");
 		
 		SurveyResponseReadAwRequest req = (SurveyResponseReadAwRequest) awRequest;
 		

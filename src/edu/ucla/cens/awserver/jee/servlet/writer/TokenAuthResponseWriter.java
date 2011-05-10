@@ -58,7 +58,7 @@ public class TokenAuthResponseWriter extends AbstractResponseWriter {
 			}
 			
 			if(_logger.isDebugEnabled()) {
-				_logger.debug("about to write output");
+				_logger.debug("About to write output");
 			}
 			
 			writer.write(responseText);
@@ -67,7 +67,7 @@ public class TokenAuthResponseWriter extends AbstractResponseWriter {
 		catch(Exception e) { // catch Exception in order to avoid redundant catch block functionality (Java 7 will have 
 			                 // comma-separated catch clauses) 
 			
-			_logger.error("an unrecoverable exception occurred while attempting to serialize JSON", e);
+			_logger.error("An unrecoverable exception occurred while attempting to serialize JSON", e);
 			
 			try {
 				
@@ -75,7 +75,7 @@ public class TokenAuthResponseWriter extends AbstractResponseWriter {
 				
 			} catch (Exception ee) {
 				
-				_logger.error("caught Exception when attempting to write to HTTP output stream", ee);
+				_logger.error("Caught Exception when attempting to write to HTTP output stream", ee);
 			}
 			
 		} finally {
@@ -90,7 +90,7 @@ public class TokenAuthResponseWriter extends AbstractResponseWriter {
 					
 				} catch (IOException ioe) {
 					
-					_logger.error("caught IOException when attempting to free resources", ioe);
+					_logger.error("Caught IOException when attempting to free resources", ioe);
 				}
 			}
 		}

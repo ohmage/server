@@ -10,7 +10,9 @@ import edu.ucla.cens.awserver.request.AwRequest;
 import edu.ucla.cens.awserver.request.SurveyResponseReadAwRequest;
 
 /**
- * @author selsky
+ * TODO -- replace this class with data type conversions when the values are actually used? 
+ * 
+ * @author Joshua Selsky
  */
 public class SurveyResponseReadParamConverterService implements Service {
 	private static Logger _logger = Logger.getLogger(SurveyResponseReadParamConverterService.class);
@@ -22,7 +24,7 @@ public class SurveyResponseReadParamConverterService implements Service {
 	 */
 	@Override
 	public void execute(AwRequest awRequest) {
-		_logger.info("converting string parameters to lists or booleans where appropriate");
+		_logger.info("Converting string parameters to lists or booleans where appropriate");
 		
 		SurveyResponseReadAwRequest req = (SurveyResponseReadAwRequest) awRequest; 
 		

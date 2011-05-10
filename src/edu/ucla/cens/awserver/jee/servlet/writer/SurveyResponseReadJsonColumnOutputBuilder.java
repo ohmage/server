@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.log4j.Logger;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -19,11 +20,14 @@ import edu.ucla.cens.awserver.request.SurveyResponseReadAwRequest;
  * @author selsky
  */
 public class SurveyResponseReadJsonColumnOutputBuilder implements SurveyResponseReadColumnOutputBuilder {
+	private static Logger _logger = Logger.getLogger(SurveyResponseReadJsonColumnOutputBuilder.class);
 
 	public String createMultiResultOutput(int totalNumberOfResults,
 			                              SurveyResponseReadAwRequest req,
 			                              Map<String, PromptContext> promptContextMap,
 			                              Map<String, List<Object>> columnMap) throws JSONException {
+		
+		_logger.info("Generating multi-result column-based JSON output");
 		
 		Set<String> columnMapKeySet = columnMap.keySet();
 		
@@ -93,6 +97,8 @@ public class SurveyResponseReadJsonColumnOutputBuilder implements SurveyResponse
 	
 	public String createZeroResultOutput(SurveyResponseReadAwRequest req,
                                          Map<String, List<Object>> columnMap) throws JSONException {
+		
+		_logger.info("Generating zero-result column-based JSON output");
 		
 		JSONObject main = new JSONObject();
 		main.put("result", "success");

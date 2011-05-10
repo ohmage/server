@@ -14,7 +14,6 @@ import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import org.apache.log4j.Logger;
 
 import edu.ucla.cens.awserver.domain.User;
-import edu.ucla.cens.awserver.domain.User;
 import edu.ucla.cens.awserver.request.MediaUploadAwRequest;
 import edu.ucla.cens.awserver.util.StringUtils;
 

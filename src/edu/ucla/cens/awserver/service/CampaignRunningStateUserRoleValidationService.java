@@ -37,7 +37,7 @@ public class CampaignRunningStateUserRoleValidationService extends AbstractAnnot
 	
 	@Override
 	public void execute(AwRequest awRequest) {
-		_logger.info("checking a user's role in campaign against the running state of that campaign");
+		_logger.info("Checking the user's role in a campaign against the running state of that campaign");
 
 		Map<String, CampaignUserRoles> campaignUserRoleMap = awRequest.getUser().getCampaignUserRoleMap();
 		

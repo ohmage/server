@@ -39,13 +39,13 @@ public class AuthenticationService extends AbstractDaoService {
 		super(dao);
 		
 		if(null == errorAwRequestAnnotator) {
-			throw new IllegalArgumentException("an error AwRequestAnnotator is required");
+			throw new IllegalArgumentException("An error AwRequestAnnotator is required");
 		}
 		if(null == disabledAccountAwRequestAnnotator) {
-			throw new IllegalArgumentException("a disabled account AwRequestAnnotator is required");
+			throw new IllegalArgumentException("A disabled account AwRequestAnnotator is required");
 		}
 		if(null == newAccountAwRequestAnnotator) {
-			_logger.info("configured without a new account message");
+			_logger.info("Configured without a new account message");
 		}
 		
 		_errorAwRequestAnnotator = errorAwRequestAnnotator;
@@ -76,16 +76,16 @@ public class AuthenticationService extends AbstractDaoService {
 					
 					if(! _newAccountsAllowed && loginResult.isNew()) {
 						
-						_newAccountAwRequestAnnotator.annotate(awRequest, "new account disallowed access");
-						_logger.info("user " + awRequest.getUser().getUserName() + " is new and must change their password via " +
+						_newAccountAwRequestAnnotator.annotate(awRequest, "New account disallowed access.");
+						_logger.info("User " + awRequest.getUser().getUserName() + " is new and must change their password via " +
 							"phone before being granted access");
 						return;
 					}
 					
 					if(! loginResult.isEnabled()) {
 					
-						_disabledAccountAwRequestAnnotator.annotate(awRequest, "disabled user");
-						_logger.info("user " + awRequest.getUser().getUserName() + " is not enabled for access");
+						_disabledAccountAwRequestAnnotator.annotate(awRequest, "Disabled account.");
+						_logger.info("User " + awRequest.getUser().getUserName() + "'s account is disabled");
 						return;
 					}
 					
@@ -100,12 +100,12 @@ public class AuthenticationService extends AbstractDaoService {
 					//awRequest.getUser().addCampaignRole(loginResult.getCampaignUrn(), loginResult.getUserRoleId());
 				}
 				
-				_logger.info("user " + awRequest.getUser().getUserName() + " successfully logged in");
+				_logger.info("User " + awRequest.getUser().getUserName() + " successfully logged in");
 				
 			} else { // no user found or invalid password
 				
-				_errorAwRequestAnnotator.annotate(awRequest, "user not found or invalid password");
-				_logger.info("user " + awRequest.getUser().getUserName() + " not found or invalid password was supplied");
+				_errorAwRequestAnnotator.annotate(awRequest, "User not found or invalid password");
+				_logger.info("User " + awRequest.getUser().getUserName() + " not found or invalid password was supplied");
 			}
 			
 		} catch (DataAccessException dae) { 

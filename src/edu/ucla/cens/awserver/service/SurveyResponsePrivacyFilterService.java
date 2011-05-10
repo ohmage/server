@@ -24,7 +24,7 @@ public class SurveyResponsePrivacyFilterService implements Service {
 	 * user.
 	 */
 	public void execute(AwRequest awRequest) {
-		_logger.info("filtering survey response results according to our privacy rules");
+		_logger.info("Filtering survey response results according to our privacy rules.");
 		
 		List<?> results = awRequest.getResultList();
 		
