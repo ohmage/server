@@ -7,7 +7,7 @@ import javax.servlet.http.HttpServletRequest;
 
 import org.apache.log4j.NDC;
 
-import edu.ucla.cens.awserver.domain.UserImpl;
+import edu.ucla.cens.awserver.domain.User;
 import edu.ucla.cens.awserver.request.AwRequest;
 import edu.ucla.cens.awserver.request.CampaignReadAwRequest;
 
@@ -51,7 +51,7 @@ public class CampaignReadAwRequestCreator implements AwRequestCreator {
 		awRequest.setRunningState(runningState);
 		awRequest.setUserRole(userRole);
 		awRequest.setClassUrnListAsString(classUrnListAsString);
-		UserImpl user = new UserImpl();
+		User user = new User();
 	    user.setUserName(userName);
 	    user.setPassword(password);
 	    awRequest.setUser(user);

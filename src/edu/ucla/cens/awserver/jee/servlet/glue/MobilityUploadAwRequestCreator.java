@@ -6,7 +6,7 @@ import javax.servlet.http.HttpServletRequest;
 
 import org.apache.log4j.NDC;
 
-import edu.ucla.cens.awserver.domain.UserImpl;
+import edu.ucla.cens.awserver.domain.User;
 import edu.ucla.cens.awserver.request.AwRequest;
 import edu.ucla.cens.awserver.request.UploadAwRequest;
 
@@ -40,7 +40,7 @@ public class MobilityUploadAwRequestCreator implements AwRequestCreator {
 		String client = parameterMap.get("client")[0];
 		String jsonData = parameterMap.get("data")[0];
 		
-		UserImpl user = new UserImpl();
+		User user = new User();
 		user.setUserName(userName);
 		user.setPassword(password);
 		

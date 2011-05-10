@@ -6,7 +6,7 @@ import javax.servlet.http.HttpServletRequest;
 
 import org.apache.log4j.NDC;
 
-import edu.ucla.cens.awserver.domain.UserImpl;
+import edu.ucla.cens.awserver.domain.User;
 import edu.ucla.cens.awserver.request.AwRequest;
 import edu.ucla.cens.awserver.request.SurveyUploadAwRequest;
 
@@ -41,7 +41,7 @@ public class SurveyUploadAwRequestCreator implements AwRequestCreator {
         String jsonData = parameterMap.get("data")[0];
         String campaignCreationTimestamp = parameterMap.get("campaign_creation_timestamp")[0]; 
         
-        UserImpl user = new UserImpl();
+        User user = new User();
         user.setUserName(userName);
         user.setPassword(password);
                 

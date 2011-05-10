@@ -50,20 +50,20 @@ public class ControllerImpl implements Controller {
 	 * logic or system errors in the respective application layers.
 	 */
 	public void execute(AwRequest awRequest) {
-		_logger.info("handling request for feature: " + _featureName);
+		_logger.info("Handling request for feature: " + _featureName);
 		
 		try {
 			boolean continueProcessing = true;
 			
 			if(null != _validators) { // for some requests input validation is optional
 				
-				_logger.info("validating request for feature: " + _featureName);
+				_logger.info("Validating request for feature: " + _featureName);
 				
 				for(Validator validator : _validators) {
 				
 					if(! validator.validate(awRequest)) {
 						
-						_logger.info("aborting request processing because top-level validation found an invalid request");
+						_logger.info("Aborting request processing because top-level validation found an invalid request");
 						awRequest.setFailedRequest(true);
 						continueProcessing = false;
 						break;
@@ -73,7 +73,7 @@ public class ControllerImpl implements Controller {
 			
 			if(continueProcessing) {
 				
-				_logger.info("servicing request for feature: " + _featureName);
+				_logger.info("Servicing request for feature: " + _featureName);
 				
 				for(Service service : _services) {
 					
@@ -81,7 +81,7 @@ public class ControllerImpl implements Controller {
 					
 				    if(awRequest.isFailedRequest()) { // bail out because the request could not be completed successfully
 						
-				    	_logger.info("aborting request because service-level validation found an invalid request");
+				    	_logger.info("Aborting request because service-level validation found an invalid request");
 						break;
 					}
 				}
@@ -107,7 +107,7 @@ public class ControllerImpl implements Controller {
 			
 			if(_postProcessingService != null) {
 				
-				_logger.info("post-processing request for feature: " + _featureName);
+				_logger.info("Post-processing request for feature: " + _featureName);
 				
 				_postProcessingService.execute(awRequest);
 

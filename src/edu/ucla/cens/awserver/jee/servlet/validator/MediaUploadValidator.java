@@ -14,7 +14,7 @@ import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import org.apache.log4j.Logger;
 
 import edu.ucla.cens.awserver.domain.User;
-import edu.ucla.cens.awserver.domain.UserImpl;
+import edu.ucla.cens.awserver.domain.User;
 import edu.ucla.cens.awserver.request.MediaUploadAwRequest;
 import edu.ucla.cens.awserver.util.StringUtils;
 
@@ -79,7 +79,7 @@ public class MediaUploadValidator extends AbstractHttpServletRequestValidator {
 		}
 		
 		MediaUploadAwRequest awRequest = new MediaUploadAwRequest();
-		User user = new UserImpl();
+		User user = new User();
 		
 		for(int i = 0; i < numberOfUploadedItems; i++) {
 			FileItem fi = (FileItem) uploadedItems.get(i);

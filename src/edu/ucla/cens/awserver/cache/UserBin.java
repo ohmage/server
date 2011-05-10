@@ -11,7 +11,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.apache.log4j.Logger;
 
 import edu.ucla.cens.awserver.domain.User;
-import edu.ucla.cens.awserver.domain.UserImpl;
+import edu.ucla.cens.awserver.domain.User;
 import edu.ucla.cens.awserver.domain.UserTime;
 
 /**
@@ -79,7 +79,7 @@ public class UserBin extends TimerTask {
 			User u = ut.getUser();
 			if(null != u) {
 				ut.setTime(System.currentTimeMillis()); // refresh the time 
-				return new UserImpl(u); // lazy to assume that UserImpl is always what's needed, but it is the only User 
+				return new User(u); // lazy to assume that UserImpl is always what's needed, but it is the only User 
 				                        // implementation for now.
 			}
 		}
