@@ -1,7 +1,5 @@
 package edu.ucla.cens.awserver.cache;
 
-import java.security.InvalidParameterException;
-
 import javax.sql.DataSource;
 
 /**
@@ -59,11 +57,11 @@ public class Cache {
 	 * 									reset.
 	 */
 	public synchronized void setDataSource(DataSource dataSource) throws IllegalArgumentException {
-		//if(_dataSource != null) {
-		//	throw new IllegalStateException("The DataSource may only be set once.");
-		//}
+		if(_dataSource != null) {
+			throw new IllegalStateException("The DataSource may only be set once.");
+		}
 		if(dataSource == null) {
-			throw new InvalidParameterException("The DataSource may not be null.");
+			throw new IllegalArgumentException("The DataSource may not be null.");
 		}
 		
 		_dataSource = dataSource;
@@ -92,7 +90,7 @@ public class Cache {
 	 */
 	public synchronized void setUpdateFrequency(long frequencyInMilliseconds) throws IllegalArgumentException {
 		if(frequencyInMilliseconds < MIN_CACHE_REFRESH_MILLIS) {
-			throw new InvalidParameterException("The update frequency must be a positive integer greater than or equal to " +
+			throw new IllegalArgumentException("The update frequency must be a positive integer greater than or equal to " +
 					MIN_CACHE_REFRESH_MILLIS + " milliseconds.");
 		}
 		
