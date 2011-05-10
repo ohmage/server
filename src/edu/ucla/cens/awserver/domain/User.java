@@ -129,4 +129,12 @@ public class User {
 		// FIXME to use user role constants once John's 2.4 db changes are merged in
 		return campaignUserRoles.getUserRoleStrings().contains("participant");
 	}
+	
+	// NOTE: if you regenerate this toString() automatically in your IDE, please remember to omit the user's password!
+	@Override
+	public String toString() {
+		return "User [_id=" + _id + ", _userName=" + _userName
+				+ ", _campaignUserRoleMap=" + _campaignUserRoleMap
+				+ ", _loggedIn=" + _loggedIn + ", _password=omitted]";
+	}
 }
