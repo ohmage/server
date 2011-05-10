@@ -45,8 +45,10 @@ public class SurveyResponseReadAwRequest extends ResultListAwRequest {
 	
 	private Configuration _configuration;
 	
-	// private String _authToken; see userToken in parent class
-
+	public SurveyResponseReadAwRequest() {
+		super();
+	}
+	
 	public Configuration getConfiguration() {
 		return _configuration;
 	}

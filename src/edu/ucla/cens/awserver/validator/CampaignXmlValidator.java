@@ -1,7 +1,5 @@
 package edu.ucla.cens.awserver.validator;
 
-import java.security.InvalidParameterException;
-
 import nu.xom.ParsingException;
 import nu.xom.ValidityException;
 
@@ -55,12 +53,7 @@ public class CampaignXmlValidator extends AbstractAnnotatingValidator {
 		
 		try {
 			_validator.run(campaignXml, _schemaFileName);
-		} 
-		catch(InvalidParameterException e) {
-			_logger.error("Internal error.");
-			awRequest.setFailedRequest(true);
-			return false;
-		} 
+		}
 		catch(ValidityException e) {
 			awRequest.setFailedRequest(true);
 			((FailedJsonRequestAnnotator) getAnnotator()).appendErrorText(" " + e.getMessage());

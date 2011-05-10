@@ -1,8 +1,5 @@
 package edu.ucla.cens.awserver.jee.servlet.glue;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import javax.servlet.http.HttpServletRequest;
 
 import org.apache.log4j.NDC;
@@ -10,6 +7,7 @@ import org.apache.log4j.NDC;
 import edu.ucla.cens.awserver.domain.User;
 import edu.ucla.cens.awserver.request.AwRequest;
 import edu.ucla.cens.awserver.request.CampaignReadAwRequest;
+import edu.ucla.cens.awserver.request.InputKeys;
 
 /**
  * @author selsky
@@ -55,16 +53,15 @@ public class CampaignReadAwRequestCreator implements AwRequestCreator {
 	    user.setUserName(userName);
 	    user.setPassword(password);
 	    awRequest.setUser(user);
-
-		Map<String, Object> toValidate = new HashMap<String, Object>();
-		toValidate.put("class_urn_list", classUrnListAsString);
-		toValidate.put("campaign_urn_list", campaignUrnListAsString);
-		toValidate.put("start_date", startDate);
-		toValidate.put("end_date", endDate);
-		toValidate.put("output_format", outputFormat);
-		toValidate.put("running_state", runningState);
-		toValidate.put("privacy_state", privacyState);
-		awRequest.setToValidate(toValidate);
+	    
+	    
+	    awRequest.addToValidate(InputKeys.CLASS_URN_LIST, classUrnListAsString, true);
+	    awRequest.addToValidate(InputKeys.CAMPAIGN_URN_LIST, campaignUrnListAsString, true);
+	    awRequest.addToValidate(InputKeys.START_DATE, startDate, true);
+	    awRequest.addToValidate(InputKeys.END_DATE, endDate, true);
+	    awRequest.addToValidate(InputKeys.OUTPUT_FORMAT, outputFormat, true);
+	    awRequest.addToValidate(InputKeys.RUNNING_STATE, runningState, true);
+	    awRequest.addToValidate(InputKeys.PRIVACY_STATE, privacyState, true);
 				
 		return awRequest;
 	}

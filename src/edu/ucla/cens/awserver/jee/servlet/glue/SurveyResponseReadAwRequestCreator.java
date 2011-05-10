@@ -1,8 +1,5 @@
 package edu.ucla.cens.awserver.jee.servlet.glue;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import javax.servlet.http.HttpServletRequest;
 
 import org.apache.log4j.NDC;
@@ -59,12 +56,11 @@ public class SurveyResponseReadAwRequestCreator implements AwRequestCreator {
 		awRequest.setPrivacyState(privacyState);
 		
 		// temporarily using this frankenstein approach before migrating completely to toValidate()
-		Map<String, Object> toValidate = new HashMap<String, Object>();
-		toValidate.put(InputKeys.SUPPRESS_METADATA, suppressMetadata);
-		toValidate.put(InputKeys.PRETTY_PRINT, prettyPrint);
-		toValidate.put(InputKeys.RETURN_ID, returnId);
-		toValidate.put(InputKeys.SORT_ORDER, sortOrder);
-		awRequest.setToValidate(toValidate);
+		awRequest.addToValidate(InputKeys.SUPPRESS_METADATA, suppressMetadata, true);
+		awRequest.addToValidate(InputKeys.PRETTY_PRINT, prettyPrint, true);
+		awRequest.addToValidate(InputKeys.RETURN_ID, returnId, true);
+		awRequest.addToValidate(InputKeys.SORT_ORDER, sortOrder, true);
+		
 		
         NDC.push("ci=" + client); // push the client string into the Log4J NDC for the currently executing thread _ this means that 
                                   // it will be in every log message for the current thread

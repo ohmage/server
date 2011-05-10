@@ -1,7 +1,5 @@
 package edu.ucla.cens.awserver.request;
 
-import java.util.Map;
-
 import edu.ucla.cens.awserver.util.StringUtils;
 
 /**
@@ -25,30 +23,26 @@ public class ClassUpdateAwRequest extends ResultListAwRequest {
 	 * 						 the class.
 	 */
 	public ClassUpdateAwRequest(String classUrn, String name, String description, String userListAdd, String userListRemove, String privilegedUserListAdd) {
-		Map<String, Object> toValidate = getToValidate();
-		
-		toValidate.put(InputKeys.CLASS_URN, classUrn);
+		addToValidate(InputKeys.CLASS_URN, classUrn, true);
 		
 		if(! StringUtils.isEmptyOrWhitespaceOnly(name)) {
-			toValidate.put(InputKeys.CLASS_NAME, name);
+			addToValidate(InputKeys.CLASS_NAME, name, true);
 		}
 		
 		if(! StringUtils.isEmptyOrWhitespaceOnly(description)) {
-			toValidate.put(InputKeys.DESCRIPTION, description);
+			addToValidate(InputKeys.DESCRIPTION, description, true);
 		}
 		
 		if(! StringUtils.isEmptyOrWhitespaceOnly(userListAdd)) {
-			toValidate.put(InputKeys.USER_LIST_ADD, userListAdd);
+			addToValidate(InputKeys.USER_LIST_ADD, userListAdd, true);
 		}
 		
 		if(! StringUtils.isEmptyOrWhitespaceOnly(userListRemove)) {
-			toValidate.put(InputKeys.USER_LIST_REMOVE, userListRemove);
+			addToValidate(InputKeys.USER_LIST_REMOVE, userListRemove, true);
 		}
 		
 		if(! StringUtils.isEmptyOrWhitespaceOnly(privilegedUserListAdd)) {
-			toValidate.put(InputKeys.PRIVILEGED_USER_LIST_ADD, privilegedUserListAdd);
+			addToValidate(InputKeys.PRIVILEGED_USER_LIST_ADD, privilegedUserListAdd, true);
 		}
-		
-		setToValidate(toValidate);
 	}
 }

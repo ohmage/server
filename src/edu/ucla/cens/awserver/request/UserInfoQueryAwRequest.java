@@ -1,6 +1,5 @@
 package edu.ucla.cens.awserver.request;
 
-import java.util.Map;
 
 /**
  * AndWellness request class for user info queries.
@@ -29,9 +28,7 @@ public class UserInfoQueryAwRequest extends ResultListAwRequest {
 			throw new IllegalArgumentException("'usernames' is required.");
 		}
 		
-		Map<String, Object> toValidateMap = getToValidate();
-		toValidateMap.put(InputKeys.USER_LIST, usernames);
-		this.setToValidate(toValidateMap);
+		addToValidate(InputKeys.USER_LIST, usernames, true);
 	}
 	
 	/**

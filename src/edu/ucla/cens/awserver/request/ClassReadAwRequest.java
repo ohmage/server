@@ -1,6 +1,5 @@
 package edu.ucla.cens.awserver.request;
 
-import java.util.Map;
 
 /**
  * The internal representation of a class read request.
@@ -17,9 +16,7 @@ public class ClassReadAwRequest extends ResultListAwRequest {
 		if(classList == null) {
 			throw new IllegalArgumentException("Cannot have a null class list.");
 		}
-		
-		Map<String, Object> toValidate = getToValidate();
-		toValidate.put(InputKeys.CLASS_URN_LIST, classList);
-		setToValidate(toValidate);
+
+		addToValidate(InputKeys.CLASS_URN_LIST, classList, true);
 	}
 }
