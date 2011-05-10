@@ -52,7 +52,7 @@ public class RemoteActivityPromptValidator extends AbstractPromptValidator {
 			_logger.info("Too many responses in JSONArray for prompt: " + prompt.getId());
 		}
 		
-		for(int i = 0; i < numRetries; i++) {
+		for(int i = 0; i < responseJsonArray.length(); i++) {
 			try {
 				JSONObject currJsonObject = responseJsonArray.getJSONObject(i);
 				
