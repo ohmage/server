@@ -263,16 +263,14 @@ public class SurveyResponseReadJsonRowBasedOutputBuilder {
 
 	// FIXME this method is copied directly from the SurveyResponseReadCsvColumnOutputBuilder class
 	private Object toJson(Map<String, PromptProperty> ppMap) throws JSONException {
-		JSONArray main = new JSONArray();
+		JSONObject main = new JSONObject();
 		Iterator<String> it = ppMap.keySet().iterator();
 		while(it.hasNext()) {
 			PromptProperty pp = ppMap.get(it.next());
-			JSONObject outer = new JSONObject();
-			JSONObject inner = new JSONObject();
-			inner.put("value", pp.getValue());
-			inner.put("label", pp.getLabel());
-			outer.put(pp.getKey(), inner);
-			main.put(outer);
+			JSONObject item = new JSONObject();
+			item.put("value", pp.getValue());
+			item.put("label", pp.getLabel());
+			main.put(pp.getKey(), item);
 		}
 		return main;
 	}

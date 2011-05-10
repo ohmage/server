@@ -58,7 +58,7 @@ public class SurveyResponseReadJsonColumnOutputBuilder implements SurveyResponse
 				context.put("display_label", promptContextMap.get(promptId).getDisplayLabel());
 				context.put("text", promptContextMap.get(promptId).getText());
 				if(null != promptContextMap.get(promptId).getChoiceGlossary()) {
-					JSONArray choiceGlossaryArray = new JSONArray();
+					JSONObject choiceGlossaryObject = new JSONObject();
 					Map<String, PromptProperty> choiceGlossary = promptContextMap.get(promptId).getChoiceGlossary();
 					Iterator<String> iterator = choiceGlossary.keySet().iterator();
 					while(iterator.hasNext()) {
@@ -66,11 +66,9 @@ public class SurveyResponseReadJsonColumnOutputBuilder implements SurveyResponse
 						JSONObject choice = new JSONObject();
 						choice.put("value", pp.getValue());
 						choice.put("label", pp.getLabel());
-						JSONObject outer = new JSONObject();
-						outer.put(pp.getKey(), choice);
-						choiceGlossaryArray.put(outer);
+						choiceGlossaryObject.put(pp.getKey(), choice);
 					}
-					context.put("choice_glossary", choiceGlossaryArray);
+					context.put("choice_glossary", choiceGlossaryObject);
 				} else {
 					context.put("choice_glossary", JSONObject.NULL);
 				}
