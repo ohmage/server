@@ -20,7 +20,7 @@ import edu.ucla.cens.awserver.request.SurveyResponseReadAwRequest;
  * @author selsky
  */
 public class SurveyResponseReadCsvColumnOutputBuilder implements SurveyResponseReadColumnOutputBuilder {
-	private static Logger _logger = Logger.getLogger(SurveyResponseReadColumnOutputBuilder.class);
+	private static Logger _logger = Logger.getLogger(SurveyResponseReadCsvColumnOutputBuilder.class);
 	
 	private static String newLine = System.getProperty("line.separator");
 	
@@ -89,7 +89,7 @@ public class SurveyResponseReadCsvColumnOutputBuilder implements SurveyResponseR
 		int listSize = columnMap.get(columnMapKeySet.toArray()[0]).size();
 		for(i = 0; i < listSize; i++) {
 			int j = 0;
-			for(String key : columnMapKeySet) { _logger.info(key);
+			for(String key : columnMapKeySet) {
 				Object value = columnMap.get(key).get(i);
 				if(null == value) {
 					builder.append("null");
