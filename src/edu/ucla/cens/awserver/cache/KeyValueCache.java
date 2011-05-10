@@ -68,12 +68,6 @@ public class KeyValueCache extends Cache {
 		
 		_keyValueMap = new HashMap<String, String>();
 		_sqlForRetrievingValues = sqlForRetrievingValues;
-		
-		// Boot-time check that everything is working correctly. Given that
-		// the SQL and its parameters shouldn't change while the system is
-		// running, if this initial refresh succeeds then all subsequent
-		// refreshes should succeed.
-		refreshMap();
 	}
 	
 	/**

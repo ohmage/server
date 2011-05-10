@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<project name="webapp-ohmage-no_ssl" basedir="." default="dist-all">
+<project name="webapp-ohmage" basedir="." default="dist-all">
   <property file="build.properties"/>
   <property name="component.repository" location="${user.home}/.component-repository"/>
   <property name="version"  value="snapshot"/>
@@ -23,7 +23,7 @@
   	<include name="**/jbcrypt-0.3.jar"/>
   	<include name="**/xom-1.2.6.jar"/>
   	<include name="**/mobility-classifier-1.0.jar"/>
-  	<include name="**/andwellness-config-validator-2.2.jar"/>
+  	<include name="**/andwellness-config-validator-2.3.jar"/>
   </fileset>
 
   <fileset id="run-dependencies" dir="${component.repository}">
@@ -40,7 +40,7 @@
   	<include name="**/jbcrypt-0.3.jar"/>
   	<include name="**/xom-1.2.6.jar"/>
   	<include name="**/mobility-classifier-1.0.jar"/>
-  	<include name="**/andwellness-config-validator-2.2.jar"/>
+  	<include name="**/andwellness-config-validator-2.3.jar"/>
   </fileset>
 
   <path id="compile-classpath">
@@ -90,12 +90,32 @@
   <target name="dist" depends="javac" description="Compiles Java files and creates WAR.">
     <mkdir dir="${dist}"/>
     <echo message="Warning: Bundling of dependencies will not work if jars are organized in subdirs in component repository."/>
-    <war webxml="${resources}/WEB-INF/web-no_ssl.xml" destfile="${dist}/${ant.project.name}-${version}.war">
+    <war webxml="${resources}/WEB-INF/web-ssl.xml" destfile="${dist}/${ant.project.name}-${version}.war">
       <classes dir="${build}/classes"/>
       <lib refid="run-dependencies"/>
       <webinf dir="${resources}/WEB-INF">
       	<exclude name="web-no_ssl.xml"/>
       	<exclude name="web-ssl.xml"/>
+      </webinf>
+      <metainf dir="${resources}/META-INF">
+        <exclude name="MANIFEST.MF"/>
+      </metainf>
+      <zipfileset dir="${resources}">
+        <exclude name="META-INF/**"/>
+        <exclude name="WEB-INF/**"/>
+      </zipfileset>
+    </war>
+  </target>
+	
+  <target name="dist-no_ssl" depends="javac" description="Compiles Java files and creates WAR.">
+    <mkdir dir="${dist}"/>
+    <echo message="Warning: Bundling of dependencies will not work if jars are organized in subdirs in component repository."/>
+    <war webxml="${resources}/WEB-INF/web-no_ssl.xml" destfile="${dist}/${ant.project.name}-${version}-no_ssl.war">
+      <classes dir="${build}/classes"/>
+      <lib refid="run-dependencies"/>
+      <webinf dir="${resources}/WEB-INF">
+        <exclude name="web-no_ssl.xml"/>
+        <exclude name="web-ssl.xml"/>
       </webinf>
       <metainf dir="${resources}/META-INF">
         <exclude name="MANIFEST.MF"/>
@@ -114,6 +134,7 @@
   </target>
 
   <target name="dist-all" depends="dist,dist-docs" description="Creates full distribution (WAR and docs)."/>
+  <target name="dist-all-no_ssl" depends="dist-no_ssl,dist-docs" description="Creates full distribution (WAR and docs)."/>
 
   <target name="release" depends="dist" description="Releases the distribution by copying it to the component repository..">
     <copy file="${dist}/${ant.project.name}-${version}.war" todir="${component.repository}/."/>

@@ -71,12 +71,6 @@ public class StringAndIdCache extends Cache {
 		_sqlForRetrievingValues = sqlForRetrievingValues;
 		_integerColumn = integerColumn;
 		_stringColumn = stringColumn;
-		
-		// Boot-time check that everything is working correctly. Given that
-		// the SQL and its parameters shouldn't change while the system is
-		// running, if this initial refresh succeeds then all subsequent
-		// refreshes should succeed.
-		refreshMap();
 	}
 	
 	/**
