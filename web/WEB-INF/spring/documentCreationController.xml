@@ -1,0 +1,25 @@
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:util="http://www.springframework.org/schema/util"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
+                           http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-2.5.xsd">
+
+  <!-- Basic HTTP Validation -->
+  <bean id="documentCreationHttpServletRequestValidator" class="edu.ucla.cens.awserver.jee.servlet.validator.DocumentCreationValidator">
+    <!-- Read the XML file. -->
+    <constructor-arg index="0"><ref bean="diskItemFileFactory" /></constructor-arg>
+  </bean>
+  
+  <!-- Create the AwRequest Object -->
+  <bean id="documentCreationAwRequestCreator" class="edu.ucla.cens.awserver.jee.servlet.glue.DocumentCreationAwRequestCreator" />
+  
+  <!-- Write the Response -->
+  <bean id="documentCreationResponseWriter" class="edu.ucla.cens.awserver.jee.servlet.writer.DocumentCreationResponseWriter">
+    <constructor-arg index="0">
+      <bean id="documentCreationErrorResponse" class="edu.ucla.cens.awserver.domain.ErrorResponse">
+        <property name="code" value="1500" />
+        <property name="text" value="General document creation error." />
+      </bean>
+    </constructor-arg>
+  </bean>
+</beans>

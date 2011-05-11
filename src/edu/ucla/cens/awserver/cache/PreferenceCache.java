@@ -17,6 +17,8 @@ public class PreferenceCache extends KeyValueCache {
 	// Known campaign privacy states.
 	public static final String KEY_DEFAULT_CAN_CREATE_PRIVILIEGE = "default_can_create_privilege";
 	public static final String KEY_DEFAULT_SURVEY_RESPONSE_SHARING_STATE = "default_survey_response_sharing_state";
+	public static final String KEY_MAXIMUM_DOCUMENT_SIZE = "maximum_document_size";
+	public static final String KEY_DOCUMENT_DIRECTORY = "document_directory";
 	
 	// The reference to one's self to return to requesters.
 	private static PreferenceCache _self = new PreferenceCache();
