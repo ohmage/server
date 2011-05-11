@@ -20,7 +20,7 @@ public class SurveyResponseReadStartAndEndDateValidator extends AbstractAnnotati
 	 * 
 	 */
 	public boolean validate(AwRequest awRequest) {
-		_logger.info("validating that the start and end date both exist or both don't exist");
+		_logger.info("Validating that the start and end date both exist or both don't exist");
 		
 		String startDate = awRequest.getStartDate();
 		String endDate = awRequest.getEndDate();

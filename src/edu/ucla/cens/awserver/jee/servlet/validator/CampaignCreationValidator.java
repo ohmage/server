@@ -1,6 +1,5 @@
 package edu.ucla.cens.awserver.jee.servlet.validator;
 
-import java.security.InvalidParameterException;
 import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
@@ -124,8 +123,8 @@ public class CampaignCreationValidator extends AbstractHttpServletRequestValidat
 		try {
 			request = new CampaignCreationAwRequest(runningState, privacyState, xml, classes, description);
 		}
-		catch(InvalidParameterException e) {
-			_logger.error("Attempting to create a campaign with insufficient data after data presence has been checked.");
+		catch(IllegalArgumentException e) {
+			_logger.warn("Attempting to create a campaign with insufficient data after data presence has been checked: " + e.getMessage());
 			return false;
 		}
 		request.setUserToken(token);

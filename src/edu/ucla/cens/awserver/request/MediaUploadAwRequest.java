@@ -13,6 +13,7 @@ public class MediaUploadAwRequest extends ResultListAwRequest {
 	private String _client;
 	private String _sessionId;
 	private String _campaignUrn;
+	private String _campaignCreationTimestamp;
 	
 	private byte[] _media;
 	private String _mediaId;
@@ -91,14 +92,23 @@ public class MediaUploadAwRequest extends ResultListAwRequest {
 	public void setCampaignUrn(String campaignUrn) {
 		_campaignUrn = campaignUrn;
 	}
+	
+	public String getCampaignCreationTimestamp() {
+		return _campaignCreationTimestamp;
+	}
+	
+	public void setCampaignCreationTimestamp(String campaignCreationTimestamp) {
+		_campaignCreationTimestamp = campaignCreationTimestamp;
+	}
 
 	@Override
 	public String toString() {
-		return "MediaUploadAwRequest [_campaignUrn=" + _campaignUrn
-				+ ", _client=" + _client + ", _duplicateIndexList="
-				+ _duplicateIndexList + ", _media=" + Arrays.toString(_media)
-				+ ", _mediaId=" + _mediaId + ", _mediaType=" + _mediaType
-				+ ", _sessionId=" + _sessionId + ", _startTime=" + _startTime
+		return "MediaUploadAwRequest [_client=" + _client + ", _sessionId="
+				+ _sessionId + ", _campaignUrn=" + _campaignUrn
+				+ ", _campaignCreationTimestamp=" + _campaignCreationTimestamp
+				+ ", _media=" + Arrays.toString(_media) + ", _mediaId="
+				+ _mediaId + ", _mediaType=" + _mediaType + ", _startTime="
+				+ _startTime + ", _duplicateIndexList=" + _duplicateIndexList
 				+ "]";
 	}
 }

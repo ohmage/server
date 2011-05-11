@@ -1,7 +1,6 @@
 package edu.ucla.cens.awserver.request;
 
-import java.security.InvalidParameterException;
-import java.util.Map;
+import edu.ucla.cens.awserver.util.StringUtils;
 
 /**
  * Encapsulating class for all the information pertaining to creating a new
@@ -24,32 +23,31 @@ public class CampaignCreationAwRequest extends ResultListAwRequest {
 	 * @param commaSeparatedListOfClasses A list of classes for which this
 	 * 									  campaign will initially belong.
 	 */
-	public CampaignCreationAwRequest(String runningState, String privacyState, String campaignAsXml, String commaSeparatedListOfClasses, String description) throws InvalidParameterException {
+	public CampaignCreationAwRequest(String runningState, String privacyState, String campaignAsXml, String commaSeparatedListOfClasses, String description) throws IllegalArgumentException {
 		super();
 		
-		if(runningState == null) {
-			throw new InvalidParameterException("The initial running state cannot be null.");
+		if(StringUtils.isEmptyOrWhitespaceOnly(runningState)) {
+			throw new IllegalArgumentException("The initial running state is null or empty.");
 		}
-		else if(privacyState == null) {
-			throw new InvalidParameterException("The initial privacy state cannot be null.");
+		else if(StringUtils.isEmptyOrWhitespaceOnly(privacyState)) {
+			throw new IllegalArgumentException("The initial privacy state is null or empty.");
 		}
-		else if(campaignAsXml == null) {
-			throw new InvalidParameterException("The campaign XML cannot be null.");
+		else if(StringUtils.isEmptyOrWhitespaceOnly(campaignAsXml)) {
+			throw new IllegalArgumentException("The campaign XML is null or empty.");
 		}
-		else if(commaSeparatedListOfClasses == null) {
-			throw new InvalidParameterException("The initial list of classes for a campaign cannot be null.");
+		else if(StringUtils.isEmptyOrWhitespaceOnly(commaSeparatedListOfClasses)) {
+			throw new IllegalArgumentException("The initial list of classes for a campaign is null or empty.");
 		}
 
-		Map<String, Object> toValidate = getToValidate();
+		addToValidate(InputKeys.RUNNING_STATE, runningState, true);
+		addToValidate(InputKeys.PRIVACY_STATE, privacyState, true);
+		addToValidate(InputKeys.CLASS_URN_LIST, commaSeparatedListOfClasses, true);
 		
-		toValidate.put(InputKeys.RUNNING_STATE, runningState);
-		toValidate.put(InputKeys.PRIVACY_STATE, privacyState);
-		toValidate.put(InputKeys.CLASS_URN_LIST, commaSeparatedListOfClasses);
+		addToValidate(InputKeys.XML, campaignAsXml, true);
 		
-		toValidate.put(InputKeys.XML, campaignAsXml);
-		toValidate.put(InputKeys.DESCRIPTION, description);
-		
-		setToValidate(toValidate);
+		if(! StringUtils.isEmptyOrWhitespaceOnly(description)) {
+			addToValidate(InputKeys.DESCRIPTION, description, true);
+		}
 	}
 	
 	/**

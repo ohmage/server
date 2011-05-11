@@ -15,7 +15,16 @@ public class PromptContext {
 	private String _displayLabel;
 	private String _displayType;
 	private String _unit;
+	private String _text;
 	private Map<String, PromptProperty> _choiceGlossary; // if single_choice or multi_choice
+	
+	public String getText() {
+		return _text;
+	}
+	
+	public void setText(String text) {
+		_text = text;
+	}
 	
 	public String getId() {
 		return _id;

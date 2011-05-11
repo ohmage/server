@@ -32,7 +32,8 @@
         <ref bean="userRoleCampaignPopulationService" />
         <ref bean="userCampaignValidationService" />
         <ref bean="participantUserRoleValidationService" />
-        <ref bean="runningCampaignValidationService" />
+        <ref bean="campaignRunningStateValidationService" />
+        <ref bean="campaignCreationTimeValidationService" />
         
         <!-- grab the XML config from the db -->
         <ref bean="findCampaignConfigurationService" />
@@ -119,7 +120,7 @@
     </constructor-arg>
   </bean>
   
-  <bean id="runningCampaignValidationService" class="edu.ucla.cens.awserver.service.CampaignStateValidationService">
+  <bean id="campaignRunningStateValidationService" class="edu.ucla.cens.awserver.service.CampaignRunningStateValidationService">
      <constructor-arg index="0">
       <bean class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
         <constructor-arg index="0">
@@ -138,11 +139,24 @@
     </constructor-arg>
   </bean>
   
-   <bean id="campaignStateDao" class="edu.ucla.cens.awserver.dao.CampaignStateDao">
+  <bean id="campaignCreationTimeValidationService" class="edu.ucla.cens.awserver.service.CampaignCreationTimeValidationService">
+     <constructor-arg index="0">
+      <bean class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
+        <constructor-arg index="0">
+           <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
+            <property name="code" value="0609" />
+            <property name="text" value="campaign is out of date" />
+          </bean>
+        </constructor-arg>
+      </bean>
+    </constructor-arg>
+  </bean>
+  
+  <bean id="campaignStateDao" class="edu.ucla.cens.awserver.dao.CampaignStateDao">
      <constructor-arg index="0">
        <ref bean="dataSource" />
      </constructor-arg>
-   </bean>
+  </bean>
   
   <!-- Validate JSON content according to app business rules -->
   <bean id="surveyMessageContentValidationService" class="edu.ucla.cens.awserver.service.JsonMessageContentValidationService">

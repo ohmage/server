@@ -25,9 +25,13 @@
       <list>
         <!-- authenticate -->
         <ref bean="authWithHashedPasswordService" />
+        
         <!-- authorize -->
         <ref bean="userRoleCampaignPopulationService" />
         <ref bean="userCampaignValidationService" />
+        <ref bean="campaignCreationTimeValidationService" />
+        
+        <!-- save the image -->
         <ref bean="imageUploadDaoService" />
       </list>
     </constructor-arg>

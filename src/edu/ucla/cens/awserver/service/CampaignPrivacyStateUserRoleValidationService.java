@@ -13,32 +13,32 @@ import edu.ucla.cens.awserver.util.StringUtils;
 import edu.ucla.cens.awserver.validator.AwRequestAnnotator;
 
 /**
- * Validation service for checking a campaign running state against a list of user roles that are allowed access.  
+ * Validation service for checking a campaign privacy state against a list of user roles that are allowed access.  
  * 
  * @author Joshua Selsky
  */
-public class CampaignRunningStateUserRoleValidationService extends AbstractAnnotatingService {
-	private static Logger _logger = Logger.getLogger(CampaignRunningStateUserRoleValidationService.class);
-	private String _campaignRunningState;
+public class CampaignPrivacyStateUserRoleValidationService extends AbstractAnnotatingService {
+	private static Logger _logger = Logger.getLogger(CampaignPrivacyStateUserRoleValidationService.class);
+	private String _campaignPrivacyState;
 	private List<String> _allowedUserRoles;
 	
-	public CampaignRunningStateUserRoleValidationService(AwRequestAnnotator annotator, String campaignRunningState, List<String> allowedUserRoles) {
+	public CampaignPrivacyStateUserRoleValidationService(AwRequestAnnotator annotator, String campaignPrivacyState, List<String> allowedUserRoles) {
 		super(annotator);
-		if(StringUtils.isEmptyOrWhitespaceOnly(campaignRunningState)) {
+		if(StringUtils.isEmptyOrWhitespaceOnly(campaignPrivacyState)) {
 			throw new IllegalArgumentException("a campaignRunningState is required");
 		}
 		if(null == allowedUserRoles || allowedUserRoles.isEmpty()) {
 			throw new IllegalArgumentException("a list of allowed user roles is required");
 		}	
 		
-		_campaignRunningState = campaignRunningState;
+		_campaignPrivacyState = campaignPrivacyState;
 		_allowedUserRoles = allowedUserRoles;
 	}
 	
 	@Override
 	public void execute(AwRequest awRequest) {
-		_logger.info("Checking the user's role in a campaign against the running state of that campaign");
-
+		_logger.info("Checking the user's role in a campaign against the privacy state of that campaign");
+		
 		Map<String, CampaignUserRoles> campaignUserRoleMap = awRequest.getUser().getCampaignUserRoleMap();
 		
 		if(! campaignUserRoleMap.containsKey(awRequest.getCampaignUrn())) {
@@ -52,7 +52,11 @@ public class CampaignRunningStateUserRoleValidationService extends AbstractAnnot
 		int numberOfUserRoles = userRoles.size();
 		int numberOfAllowedUserRolesNotFound = 0;
 		
-		if(_campaignRunningState.equals(campaign.getRunningState())) {
+		if(null == userRoles || userRoles.isEmpty()) {
+			throw new ServiceException("expected to find user roles for campaign, but none were found");
+		}
+		
+		if(_campaignPrivacyState.equals(campaign.getPrivacyState())) {
 			// now check the roles
 			for(UserRole ur : userRoles) {
 				if(! _allowedUserRoles.contains(ur.getRole())) {
@@ -61,7 +65,7 @@ public class CampaignRunningStateUserRoleValidationService extends AbstractAnnot
 			}
 			if(numberOfAllowedUserRolesNotFound == numberOfUserRoles) {
 				getAnnotator().annotate(awRequest, "user does not have sufficient privileges to access a campaign with a " +
-					"running_state of " + _campaignRunningState);
+					"privacy_state of " + _campaignPrivacyState);
 			}
 		}
 	}

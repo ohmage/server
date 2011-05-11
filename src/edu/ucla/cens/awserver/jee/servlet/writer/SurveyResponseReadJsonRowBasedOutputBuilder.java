@@ -31,7 +31,7 @@ public class SurveyResponseReadJsonRowBasedOutputBuilder {
 	public String buildOutput(SurveyResponseReadAwRequest req, List<SurveyResponseReadResult> results, List<String> rowItems) 
 		throws JSONException {
 		
-		_logger.info("about to generate row-based JSON output");
+		_logger.info("Generating row-based JSON output");
 		
 		JSONObject main = new JSONObject();
 		main.put("result", "success");
@@ -192,6 +192,7 @@ public class SurveyResponseReadJsonRowBasedOutputBuilder {
 						record.put("prompt_display_type", result.getDisplayType());
 						record.put("prompt_unit", result.getUnit());
 						record.put("prompt_type", result.getPromptType());
+						record.put("prompt_text", result.getPromptText());
 						if(null != result.getChoiceGlossary()) { // only output for single_choice and multi_choice prompt types
 							record.put("prompt_choice_glossary", toJson(result.getChoiceGlossary()));
 						}
@@ -262,16 +263,14 @@ public class SurveyResponseReadJsonRowBasedOutputBuilder {
 
 	// FIXME this method is copied directly from the SurveyResponseReadCsvColumnOutputBuilder class
 	private Object toJson(Map<String, PromptProperty> ppMap) throws JSONException {
-		JSONArray main = new JSONArray();
+		JSONObject main = new JSONObject();
 		Iterator<String> it = ppMap.keySet().iterator();
 		while(it.hasNext()) {
 			PromptProperty pp = ppMap.get(it.next());
-			JSONObject outer = new JSONObject();
-			JSONObject inner = new JSONObject();
-			inner.put("value", pp.getValue());
-			inner.put("label", pp.getLabel());
-			outer.put(pp.getKey(), inner);
-			main.put(outer);
+			JSONObject item = new JSONObject();
+			item.put("value", pp.getValue());
+			item.put("label", pp.getLabel());
+			main.put(pp.getKey(), item);
 		}
 		return main;
 	}

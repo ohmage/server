@@ -13,7 +13,8 @@ import edu.ucla.cens.awserver.domain.User;
 /**
  * State that is common across features.
  * 
- * @author selsky
+ * @author Joshua Selsky
+ * @author John Jenkins
  */
 public abstract class AbstractAwRequest implements AwRequest {
 	// Input state
@@ -80,10 +81,6 @@ public abstract class AbstractAwRequest implements AwRequest {
 		return _toValidate;
 	}
 	
-	public void setToValidate(Map<String, Object> toValidate) {
-		_toValidate = toValidate;
-	}
-	
 	public Map<String, Object> getToProcess() {
 		return _toProcess;
 	}
@@ -128,6 +125,21 @@ public abstract class AbstractAwRequest implements AwRequest {
 		}
 		
 		return _toReturn.containsKey(key);
+	}
+	
+	/**
+	 * Checks if the key exists in the toValidate map.
+	 * 
+	 * @param key The key to check for in the toReturn map.
+	 * 
+	 * @return Returns true if the key exists, false otherwise.
+	 */
+	public boolean existsInToValidate(String key) {
+		if(key == null) {
+			return false;
+		}
+		
+		return _toValidate.containsKey(key);
 	}
 	
 	/**
@@ -176,7 +188,30 @@ public abstract class AbstractAwRequest implements AwRequest {
 			return _toReturn.get(key);
 		}
 	}
-	
+
+	/**
+	 * Gets the value for the parameterized key from the toValidate map. If no
+	 * such key exists, it will throw an IllegalArgumentException. 
+	 * 
+	 * @param key The key to use when looking in the toReturn map.
+	 * 
+	 * @return The value that that the key points to in the toReturn map.
+	 * 
+	 * @throws IllegalArgumentException Thrown if the key is null or not found
+	 * 									in the toReturn map.
+	 */
+	public Object getToValidateValue(String key) {
+		if(key == null) {
+			throw new IllegalArgumentException("Key is null and null keys are dissallowed.");
+		}
+		else if(! _toValidate.containsKey(key)) {
+			throw new IllegalArgumentException("Key not found in the toValidate map.");
+		}
+		else {
+			return _toValidate.get(key);
+		}
+	}
+
 	/**
 	 * Adds an item to the toProcess map. This is done as opposed to getting
 	 * the whole map, making local changes, and overwriting the whole map.
@@ -204,7 +239,7 @@ public abstract class AbstractAwRequest implements AwRequest {
 		else if(value == null) {
 			throw new IllegalArgumentException("Null values are dissallowed.");
 		}
-		else if((! overwrite) && (! _toProcess.containsKey(key))) {
+		else if((! overwrite) && (_toProcess.containsKey(key))) {
 			throw new IllegalArgumentException("The key '" + key + "' already exists but overwriting is disallowed.");
 		}
 		else {
@@ -237,23 +272,47 @@ public abstract class AbstractAwRequest implements AwRequest {
 		else if(value == null) {
 			throw new IllegalArgumentException("Null values are dissallowed.");
 		}
-		else if((! overwrite) && (! _toReturn.containsKey(key))) {
+		else if((! overwrite) && (_toReturn.containsKey(key))) {
 			throw new IllegalArgumentException("The key '" + key + "' already exists but overwriting is disallowed.");
 		}
 		else {
 			_toReturn.put(key, value);
 		}
 	}
-	
-	@Override
-	public String toString() {
-		return "AbstractAwRequest [_isFailedRequest=" + isFailedRequest()
-				+ ", _failedRequestErrorMessage=" + getFailedRequestErrorMessage()
-				+ ", _requestUrl=" + _requestUrl
-				+ ", _user=" + _user
-				+ "]";
+
+	/**
+	 * Adds the parameterized value with the parameterized key to the toValidate
+	 * map. If 'overwrite' is set to true it will overwrite any existing
+	 * values; if it is set to false, and an entry with the same 'key' already
+	 * exists, it will throw an IllegalArgumentException indicating such.
+	 * 
+	 * @param key The key to use when adding this entry in the toValidate map.
+	 * 
+	 * @param value The value to use when adding this entry in the toValidate
+	 * 				map.
+	 * 
+	 * @param overwrite Whether or not to overwrite any existing entries in
+	 * 					the toValidate map that have the same key.
+	 * 
+	 * @throws IllegalArgumentException Thrown if the key or value are null or
+	 * 									if 'overwrite' is set to false and
+	 * 									such a key already exists.
+	 */
+	public void addToValidate(String key, Object value, boolean overwrite) {
+		if(key == null) {
+			throw new IllegalArgumentException("Null keys are dissallowed.");
+		}
+		else if(value == null) {
+			throw new IllegalArgumentException("Null values are dissallowed.");
+		}
+		else if((! overwrite) && (_toValidate.containsKey(key))) {
+			throw new IllegalArgumentException("The key '" + key + "' already exists but overwriting is disallowed.");
+		}
+		else {
+			_toValidate.put(key, value);
+		}
 	}
-	
+
 	/****
 	
 	Unsupported Operations -- it is up to subclasses to implement the desired functionality otherwise "unimplemented" methods

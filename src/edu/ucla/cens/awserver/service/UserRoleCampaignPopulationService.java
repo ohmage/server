@@ -6,11 +6,13 @@ import org.apache.log4j.Logger;
 
 import edu.ucla.cens.awserver.dao.Dao;
 import edu.ucla.cens.awserver.dao.DataAccessException;
+import edu.ucla.cens.awserver.domain.Campaign;
 import edu.ucla.cens.awserver.domain.UserRoleCampaignResult;
 import edu.ucla.cens.awserver.request.AwRequest;
 import edu.ucla.cens.awserver.validator.AwRequestAnnotator;
 
 /**
+ * Service populating User objects with Campaign and User Role information.
  * 
  * @author Joshua Selsky
  * @author John Jenkins
@@ -31,15 +33,23 @@ public class UserRoleCampaignPopulationService extends AbstractAnnotatingDaoServ
 			getDao().execute(awRequest);
 			
 			if(awRequest.getResultList().isEmpty()) {
-				awRequest.setFailedRequest(true);
 				getAnnotator().annotate(awRequest, "User doesn't belong to campaigns.");
 				return;
 			}
 			
 			ListIterator<?> iter = awRequest.getResultList().listIterator();
+			
 			while(iter.hasNext()) {
 				UserRoleCampaignResult currResult = (UserRoleCampaignResult) iter.next();
-				awRequest.getUser().addCampaignRole(currResult.getCampaignUrn(), currResult.getUserRole());
+				Campaign campaign = new Campaign();
+				campaign.setCampaignCreationTimestamp(currResult.getCampaignCreationTimestamp());
+				campaign.setDescription(currResult.getCampaignDescription());
+				campaign.setName(currResult.getCampaignName());
+				campaign.setPrivacyState(currResult.getCampaignPrivacyState());
+				campaign.setRunningState(currResult.getCampaignRunningState());
+				campaign.setUrn(currResult.getCampaignUrn());
+				
+				awRequest.getUser().addCampaignRole(campaign, currResult.getUserRole());
 			}
 			
 		} catch (DataAccessException dae) {

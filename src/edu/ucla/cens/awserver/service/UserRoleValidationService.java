@@ -32,7 +32,7 @@ public class UserRoleValidationService extends AbstractAnnotatingService {
 	
 	@Override
 	public void execute(AwRequest awRequest) {
-		List<UserRole> userRoles = awRequest.getUser().getCampaignUserRoleMap().get(awRequest.getCampaignUrn());
+		List<UserRole> userRoles = awRequest.getUser().getCampaignUserRoleMap().get(awRequest.getCampaignUrn()).getUserRoles();
 		
 		for(UserRole ur : userRoles) {
 			if(_allowedRoles.contains(ur.getRole())) {

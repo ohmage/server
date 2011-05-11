@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.log4j.Logger;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -19,11 +20,14 @@ import edu.ucla.cens.awserver.request.SurveyResponseReadAwRequest;
  * @author selsky
  */
 public class SurveyResponseReadJsonColumnOutputBuilder implements SurveyResponseReadColumnOutputBuilder {
+	private static Logger _logger = Logger.getLogger(SurveyResponseReadJsonColumnOutputBuilder.class);
 
 	public String createMultiResultOutput(int totalNumberOfResults,
 			                              SurveyResponseReadAwRequest req,
 			                              Map<String, PromptContext> promptContextMap,
 			                              Map<String, List<Object>> columnMap) throws JSONException {
+		
+		_logger.info("Generating multi-result column-based JSON output");
 		
 		Set<String> columnMapKeySet = columnMap.keySet();
 		
@@ -56,8 +60,9 @@ public class SurveyResponseReadJsonColumnOutputBuilder implements SurveyResponse
 				context.put("prompt_type", promptContextMap.get(promptId).getType());
 				context.put("display_type", promptContextMap.get(promptId).getDisplayType());
 				context.put("display_label", promptContextMap.get(promptId).getDisplayLabel());
+				context.put("text", promptContextMap.get(promptId).getText());
 				if(null != promptContextMap.get(promptId).getChoiceGlossary()) {
-					JSONArray choiceGlossaryArray = new JSONArray();
+					JSONObject choiceGlossaryObject = new JSONObject();
 					Map<String, PromptProperty> choiceGlossary = promptContextMap.get(promptId).getChoiceGlossary();
 					Iterator<String> iterator = choiceGlossary.keySet().iterator();
 					while(iterator.hasNext()) {
@@ -65,11 +70,9 @@ public class SurveyResponseReadJsonColumnOutputBuilder implements SurveyResponse
 						JSONObject choice = new JSONObject();
 						choice.put("value", pp.getValue());
 						choice.put("label", pp.getLabel());
-						JSONObject outer = new JSONObject();
-						outer.put(pp.getKey(), choice);
-						choiceGlossaryArray.put(outer);
+						choiceGlossaryObject.put(pp.getKey(), choice);
 					}
-					context.put("choice_glossary", choiceGlossaryArray);
+					context.put("choice_glossary", choiceGlossaryObject);
 				} else {
 					context.put("choice_glossary", JSONObject.NULL);
 				}
@@ -94,6 +97,8 @@ public class SurveyResponseReadJsonColumnOutputBuilder implements SurveyResponse
 	
 	public String createZeroResultOutput(SurveyResponseReadAwRequest req,
                                          Map<String, List<Object>> columnMap) throws JSONException {
+		
+		_logger.info("Generating zero-result column-based JSON output");
 		
 		JSONObject main = new JSONObject();
 		main.put("result", "success");

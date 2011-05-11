@@ -1,65 +1,140 @@
 package edu.ucla.cens.awserver.domain;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+
 /**
- * User properties.
- *  
+ * The default user implementation.
+ * 
  * @author selsky
  */
-public interface User {
+public class User {
+	private int _id;
+	private String  _userName;
+	private Map<String, CampaignUserRoles> _campaignUserRoleMap; // a user can have many roles in one campaign 
+	private boolean _loggedIn;
+	private String _password;
+	
+	public User() {
+		_id = -1;
+		_campaignUserRoleMap = new HashMap<String, CampaignUserRoles>();
+	}
 	
 	/**
-	 * @return the database primary key for this user. 
+	 * Copy constructor.
 	 */
-	public int getId();
+	public User(User user) {
+		if(null == user) {
+			throw new IllegalArgumentException("a null user is not allowed");
+		}
+		_id = user.getId();
+		_userName = user.getUserName();
+		_campaignUserRoleMap = new HashMap<String, CampaignUserRoles>();
+		// Authentication no longer sets the user roles on the user, so the users
+		// are added to the bin with no roles. It is the responsibility of application
+		// flows that require knowledge of the user's role to obtain them at runtime.
+		_campaignUserRoleMap.putAll(user.getCampaignUserRoleMap()); // shallow copy ok because once a user is created it is read-only in practice
+		_loggedIn = user.isLoggedIn();
+	}
 	
-	/**
-	 * @param id the database primary key for this user.
-	 */
-	public void setId(int id);
+    public int getId() {
+    	return _id;
+    }
+    
+    public void setId(int id) {
+    	_id = id;
+    }
+    
+	public Map<String, CampaignUserRoles> getCampaignUserRoleMap() {
+		return _campaignUserRoleMap;
+	}
 	
-	/**
-	 * @return the user name from the db (user.login_id).
-	 */
-	public String getUserName();
+	public void addCampaignRole(Campaign campaign, UserRole userRole) {
+		if(null == _campaignUserRoleMap) {
+			_campaignUserRoleMap = new HashMap<String, CampaignUserRoles>();
+		}
+		
+		CampaignUserRoles campaignUserRoles = _campaignUserRoleMap.get(campaign.getUrn());
+		
+		if(null == campaignUserRoles) {
+			campaignUserRoles = new CampaignUserRoles();
+			campaignUserRoles.setCampaign(campaign);
+			List<UserRole> userRoles = new ArrayList<UserRole>();
+			campaignUserRoles.setUserRoles(userRoles);
+			_campaignUserRoleMap.put(campaign.getUrn(), campaignUserRoles);
+		}
+		
+		campaignUserRoles.addUserRole(userRole);
+	}
 	
-	/**
-	 * @param string the user name from the db for this user.
-	 */
-	public void setUserName(String string);
+	public String getUserName() {
+		return _userName;
+	}
 
-	/**
-	 * @return the user's password.
-	 */
-	public String getPassword();
+	public void setUserName(String userName) {
+		_userName = userName;
+	}
 	
-	/**
-	 * @param string the password to be used for authentication.
-	 */
-	public void setPassword(String string);
+	public boolean isLoggedIn() {
+		return _loggedIn;
+	}
 	
-	/**
-	 * @return a Map of campaign URNs and the allowed roles for this user.
-	 */
-	public Map<String, List<UserRole>> getCampaignUserRoleMap();
+	public void setLoggedIn(boolean loggedIn) {
+		_loggedIn = loggedIn;
+	}
 	
-	/**
-	 * Adds a role in a campaign URN for this user. Users can have multiple roles within a campaign.
-	 * @param campaignUrn
-	 * @param userRole
-	 */
-	public void addCampaignRole(String campaignUrn, UserRole userRole);
+	public void setPassword(String password) {
+		_password = password;
+	}
+
+	public String getPassword() {
+		return _password;
+	}
 	
-	/**
-	 * @return whether this user is logged in to the system. Flag for handling failed logins.
-	 */
-	public boolean isLoggedIn();
+	public boolean isSupervisorInCampaign(String campaignUrn) {
+		CampaignUserRoles campaignUserRoles = _campaignUserRoleMap.get(campaignUrn);
+		if(null == campaignUserRoles) {
+			throw new IllegalArgumentException("user not in campaign");
+		}
+		// FIXME to use user role constants once John's 2.4 db changes are merged in
+		return campaignUserRoles.getUserRoleStrings().contains("supervisor");
+	}
 	
-	/**
-	 * Sets the login status for this user on successful or unsuccessful authentication.
-	 * @param b
-	 */
-	public void setLoggedIn(boolean b);
+	public boolean isAuthorInCampaign(String campaignUrn) {
+		CampaignUserRoles campaignUserRoles = _campaignUserRoleMap.get(campaignUrn);
+		if(null == campaignUserRoles) {
+			throw new IllegalArgumentException("user not in campaign");
+		}
+		// FIXME to use user role constants once John's 2.4 db changes are merged in
+		return campaignUserRoles.getUserRoleStrings().contains("author");
+	}
+	
+	public boolean isAnalystInCampaign(String campaignUrn) {
+		CampaignUserRoles campaignUserRoles = _campaignUserRoleMap.get(campaignUrn);
+		if(null == campaignUserRoles) {
+			throw new IllegalArgumentException("user not in campaign");
+		}
+		// FIXME to use user role constants once John's 2.4 db changes are merged in
+		return campaignUserRoles.getUserRoleStrings().contains("analyst");
+	}
+	
+	public boolean isParticipantInCampaign(String campaignUrn) {
+		CampaignUserRoles campaignUserRoles = _campaignUserRoleMap.get(campaignUrn);
+		if(null == campaignUserRoles) {
+			throw new IllegalArgumentException("user not in campaign");
+		}
+		// FIXME to use user role constants once John's 2.4 db changes are merged in
+		return campaignUserRoles.getUserRoleStrings().contains("participant");
+	}
+	
+	// NOTE: if you regenerate this toString() automatically in your IDE, please remember to omit the user's password!
+	@Override
+	public String toString() {
+		return "User [_id=" + _id + ", _userName=" + _userName
+				+ ", _campaignUserRoleMap=" + _campaignUserRoleMap
+				+ ", _loggedIn=" + _loggedIn + ", _password=omitted]";
+	}
 }

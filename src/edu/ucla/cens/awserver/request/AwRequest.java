@@ -87,7 +87,9 @@ import edu.ucla.cens.awserver.domain.User;
 	 void setCampaignUrn(String campaignUrn);
 	 
 	 Map<String, Object> getToValidate();
-	 void setToValidate(Map<String, Object> toValidate); 
+	 boolean existsInToValidate(String key);
+	 Object getToValidateValue(String key);
+	 void addToValidate(String key, Object value, boolean overwrite); 
 	 
 	 Map<String, Object> getToProcess();
 	 boolean existsInToProcess(String key);

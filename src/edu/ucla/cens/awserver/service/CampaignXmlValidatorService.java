@@ -1,4 +1,4 @@
-package edu.ucla.cens.awserver.validator;
+package edu.ucla.cens.awserver.service;
 
 import nu.xom.ParsingException;
 import nu.xom.ValidityException;
@@ -9,83 +9,98 @@ import org.xml.sax.SAXException;
 
 import edu.ucla.cens.awserver.request.AwRequest;
 import edu.ucla.cens.awserver.request.InputKeys;
+import edu.ucla.cens.awserver.validator.AwRequestAnnotator;
 import edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator;
 
-public class CampaignXmlValidator extends AbstractAnnotatingValidator {
-	private static Logger _logger = Logger.getLogger(CampaignXmlValidator.class);
+/**
+ * Validates the campaign XML.
+ * 
+ * @author John Jenkins
+ */
+public class CampaignXmlValidatorService extends AbstractAnnotatingService {
+	private static Logger _logger = Logger.getLogger(CampaignXmlValidatorService.class);
 	
 	private CampaignValidator _validator;
 	private String _schemaFileName;
 	private boolean _required;
 	
 	/**
-	 * Creates a validator for the XML file that defines a campaign.
+	 * Sets up this campaign validator service.
 	 * 
-	 * @param annotator The annotator for the message if this should fail.
+	 * @param annotator The annotator to respond with if the XML is invalid.
 	 * 
-	 * @param valiator The validator for the incomming XML file.
+	 * @param validator The validator to use to do the validation.
+	 * 
+	 * @param schemaFileName The filename of the schema used for validation.
+	 * 
+	 * @param required Whether or not the XML file is required.
 	 */
-	public CampaignXmlValidator(AwRequestAnnotator annotator, CampaignValidator validator, String schemaFileName, boolean required) {
+	public CampaignXmlValidatorService(AwRequestAnnotator annotator, CampaignValidator validator, String schemaFileName, boolean required) {
 		super(annotator);
 		
 		_validator = validator;
 		_schemaFileName = schemaFileName;
 		_required = required;
 	}
-	
+
 	/**
-	 * Validates the XML and annotates if there is an error.
+	 * Validates the XML.
 	 */
 	@Override
-	public boolean validate(AwRequest awRequest) {
+	public void execute(AwRequest awRequest) {
 		_logger.info("Validating campaign XML.");
 
-		String campaignXml = (String) awRequest.getToValidate().get(InputKeys.XML);
-		if(campaignXml == null) {
-			if(_required) {
-				_logger.error("Request reached XML validation but is missing the required XML parameter.");
-				throw new ValidatorException("Missing XML in request.");
+		// Normally, in a service I would only check the toProcess map, but
+		// this is an optimization to allow us to validate the XML as a last
+		// step as it is the most expensive.
+		String campaignXml;
+		try {
+			campaignXml = (String) awRequest.getToProcessValue(InputKeys.XML);
+		}
+		catch(IllegalArgumentException outterException) {
+			try {
+				campaignXml = (String) awRequest.getToValidateValue(InputKeys.XML);
 			}
-			else {
-				return true;
+			catch(IllegalArgumentException innerException) {
+				if(_required) {
+					_logger.error("Request reached XML validation but is missing the required XML parameter.");
+					throw new ServiceException("Missing XML in request.");
+				}
+				else {
+					return;
+				}
 			}
 		}
 		
 		try {
 			_validator.run(campaignXml, _schemaFileName);
+			
+			awRequest.addToProcess(InputKeys.XML, campaignXml, true);
 		}
 		catch(ValidityException e) {
 			awRequest.setFailedRequest(true);
 			((FailedJsonRequestAnnotator) getAnnotator()).appendErrorText(" " + e.getMessage());
 			getAnnotator().annotate(awRequest, e.getMessage());
-			return false;
 		} 
 		catch(SAXException e) {
 			awRequest.setFailedRequest(true);
 			((FailedJsonRequestAnnotator) getAnnotator()).appendErrorText(" " + e.getMessage());
 			getAnnotator().annotate(awRequest, e.getMessage());
-			return false;
 		}
 		catch(ParsingException e) {
 			awRequest.setFailedRequest(true);
 			((FailedJsonRequestAnnotator) getAnnotator()).appendErrorText(" " + e.getMessage());
 			getAnnotator().annotate(awRequest, e.getMessage());
-			return false;
 		}
 		catch(IllegalStateException e) {
 			awRequest.setFailedRequest(true);
 			((FailedJsonRequestAnnotator) getAnnotator()).appendErrorText(" " + e.getMessage());
 			getAnnotator().annotate(awRequest, e.getMessage());
-			return false;
 		}
 		catch(IllegalArgumentException e) {
 			awRequest.setFailedRequest(true);
 			((FailedJsonRequestAnnotator) getAnnotator()).appendErrorText(" " + e.getMessage());
 			getAnnotator().annotate(awRequest, e.getMessage());
-			return false;
 		}
-		
-		awRequest.addToProcess(InputKeys.XML, campaignXml, true);
-		return true;
 	}
 }

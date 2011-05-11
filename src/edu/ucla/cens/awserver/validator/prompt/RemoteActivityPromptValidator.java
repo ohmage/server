@@ -52,11 +52,12 @@ public class RemoteActivityPromptValidator extends AbstractPromptValidator {
 			_logger.info("Too many responses in JSONArray for prompt: " + prompt.getId());
 		}
 		
-		for(int i = 0; i < numRetries; i++) {
+		for(int i = 0; i < responseJsonArray.length(); i++) {
 			try {
 				JSONObject currJsonObject = responseJsonArray.getJSONObject(i);
 				
-				Double currScore = (Double) currJsonObject.get(SINGLE_VALUE_KEY);
+				Double currScore = Double.valueOf(currJsonObject.get(SINGLE_VALUE_KEY).toString());
+				
 				if(currScore == null) {
 					_logger.info("Missing required return value: " + SINGLE_VALUE_KEY);
 					return false;
@@ -68,6 +69,10 @@ public class RemoteActivityPromptValidator extends AbstractPromptValidator {
 			}
 			catch(JSONException e) {
 				_logger.info("Error parsing JSONArray for JSONObject: " + responseJsonArray.toString(), e);
+				return false;
+			}
+			catch(ClassCastException e) {
+				_logger.info("Error converting the single-value score into a double.", e);
 				return false;
 			}
 		}

@@ -32,7 +32,7 @@ public class StringAllowedValuesValidator extends AbstractAnnotatingValidator {
 	}
 	
 	public boolean validate(AwRequest awRequest) {		
-		_logger.info("Validating that a String value is one of the allowed values: " + _key);
+		_logger.info("Validating that a String value is one of the allowed values for parameter: " + _key);
 		
 		String value = (String) awRequest.getToValidate().get(_key);
 		

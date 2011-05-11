@@ -13,12 +13,16 @@ import edu.ucla.cens.awserver.domain.UserRoleImpl;
 import edu.ucla.cens.awserver.request.AwRequest;
 
 /**
- * @author joshua selsky
+ * DAO for finding all of the user roles and campaign metadata for a particular user.
+ * 
+ * @author Joshua Selsky
  */
 public class UserRoleCampaignPopulationDao extends AbstractDao {
 	private static Logger _logger = Logger.getLogger(UserRoleCampaignPopulationDao.class);
 	
-	private static final String _selectSql = "SELECT campaign.urn, user_role_campaign.user_role_id, user_role.role" 
+	private static final String _selectSql = "SELECT campaign.urn, campaign.name, campaign.description, campaign.running_state,"
+			                                 + " campaign.privacy_state, campaign.creation_timestamp, user_role_campaign.user_role_id,"
+			                                 + " user_role.role"
         									 + " FROM campaign, user, user_role_campaign, user_role"
         									 + " WHERE user.login_id = ?"
         									 +   " AND user.id = user_role_campaign.user_id"
@@ -43,10 +47,30 @@ public class UserRoleCampaignPopulationDao extends AbstractDao {
 					new RowMapper() {
 						public Object mapRow(ResultSet rs, int rowNum) throws SQLException {
 							UserRoleCampaignResult result = new UserRoleCampaignResult();
-							
 							result.setCampaignUrn(rs.getString(1));
-							result.setUserRole(new UserRoleImpl(rs.getInt(2), rs.getString(3)));
+							result.setCampaignName(rs.getString(2));
+							result.setCampaignDescription(rs.getString(3));
+							result.setCampaignRunningState(rs.getString(4));
+							result.setCampaignPrivacyState(rs.getString(5));
 							
+							
+							String ts = rs.getString(6); // this will return the timestamp in JDBC escape format (ending with nanoseconds)
+                                                         // and the nanoseconds value is not needed, so shave it off
+                                                         // it is weird to be formatting the data inside the DAO here, but the nanoseconds
+                                                         // aren't even *stored* in the db, they are appended to the string during
+                                                         // whatever conversion the MySQL JDBC connector does when it converts the db's
+  	                                                     // timestamp to a Java String.
+							if(ts.contains(".")) {
+								
+								int indexOfDot = ts.indexOf(".");
+								result.setCampaignCreationTimestamp(ts.substring(0, indexOfDot));
+								
+							} else {
+								
+								result.setCampaignCreationTimestamp(ts);
+							}
+							
+							result.setUserRole(new UserRoleImpl(rs.getInt(7), rs.getString(8)));
 							return result;
 						}
 					}
@@ -63,5 +87,4 @@ public class UserRoleCampaignPopulationDao extends AbstractDao {
 			                                    // the future).
 		}
 	}
-
 }

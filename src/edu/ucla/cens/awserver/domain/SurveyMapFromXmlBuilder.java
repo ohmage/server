@@ -112,6 +112,7 @@ public class SurveyMapFromXmlBuilder implements SurveyMapBuilder {
 		String id = node.query("id").get(0).getValue();
 		String displayType = node.query("displayType").get(0).getValue();
 		String displayLabel = node.query("displayLabel").get(0).getValue();
+		String promptText = node.query("promptText").get(0).getValue();
 		String unit = null;
 		Nodes nodes = node.query("unit");
 		if(nodes.size() > 0) {
@@ -121,6 +122,6 @@ public class SurveyMapFromXmlBuilder implements SurveyMapBuilder {
 		String type = node.query("promptType").get(0).getValue();
 		boolean skippable = Boolean.valueOf(node.query("skippable").get(0).getValue());
 		
-		return new Prompt(id, displayType, type, ppMap, skippable, displayLabel, unit);
+		return new Prompt(id, displayType, type, ppMap, skippable, displayLabel, unit, promptText);
 	}
 }

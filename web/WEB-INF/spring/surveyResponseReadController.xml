@@ -49,7 +49,9 @@
         <!-- authorize -->
         <ref bean="userCampaignValidationService" />
         <ref bean="campaignUserCheckService" />
-        <ref bean="participantCampaignRunningStateValidationService" />
+        <ref bean="participantUserParamValidationService" />
+        <ref bean="surveyResponseReadCampaignRunningStateValidationService" />
+        <ref bean="surveyResponseReadCampaignPrivacyStateValidationService" />
         
         <!-- grab the XML config from the db -->
         <ref bean="findCampaignConfigurationService" />
@@ -61,8 +63,8 @@
         <!-- run the query -->
         <ref bean="surveyResponseReadService" />
         
-        <!-- filter the output based on the running_state and privacy_state of the campaign, the privacy_state of the response, and
-         the role of the currently logged-in user -->
+        <!-- filter the output based on the the privacy_state of the response, and the role of the currently logged-in user -->
+        <bean class="edu.ucla.cens.awserver.service.SurveyResponsePrivacyFilterService" />
         
       </list>
     </constructor-arg>
@@ -360,7 +362,7 @@
     </constructor-arg>
   </bean>
 
-  <bean id="participantCampaignRunningStateValidationService" class="edu.ucla.cens.awserver.service.CampaignRunningStateUserRoleValidationService">
+  <bean id="surveyResponseReadCampaignRunningStateValidationService" class="edu.ucla.cens.awserver.service.CampaignRunningStateUserRoleValidationService">
    <constructor-arg index="0">
       <bean class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
         <constructor-arg index="0"> 
@@ -371,13 +373,8 @@
         </constructor-arg>
       </bean>
     </constructor-arg>
-    <constructor-arg index="1">
-      <bean class="edu.ucla.cens.awserver.dao.FindCampaignRunningStateDao">
-        <constructor-arg index="0"><ref bean="dataSource" /></constructor-arg>
-      </bean>
-    </constructor-arg>
-    <constructor-arg index="2"><value>stopped</value></constructor-arg>
-    <constructor-arg index="3">
+    <constructor-arg index="1"><value>stopped</value></constructor-arg>
+    <constructor-arg index="2">
       <list>
         <value>author</value>
         <value>analyst</value>
@@ -385,5 +382,37 @@
       </list>
     </constructor-arg>
   </bean>
-  
+
+  <bean id="surveyResponseReadCampaignPrivacyStateValidationService" class="edu.ucla.cens.awserver.service.CampaignPrivacyStateUserRoleValidationService">
+   <constructor-arg index="0">
+      <bean class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
+        <constructor-arg index="0"> 
+          <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
+            <property name="code" value="0717" />
+            <property name="text" value="authors or analysts cannot query private campaigns" />
+          </bean>
+        </constructor-arg>
+      </bean>
+    </constructor-arg>
+    <constructor-arg index="1"><value>private</value></constructor-arg>
+    <constructor-arg index="2">
+      <list>
+        <value>participant</value>
+        <value>supervisor</value>
+      </list>
+    </constructor-arg>
+  </bean>
+
+  <bean id="participantUserParamValidationService" class="edu.ucla.cens.awserver.service.ParticipantUserParamValidationService">
+   <constructor-arg index="0">
+      <bean class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
+        <constructor-arg index="0"> 
+          <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
+            <property name="code" value="0718" />
+            <property name="text" value="a participant cannot query other user's data" />
+          </bean>
+        </constructor-arg>
+      </bean>
+    </constructor-arg>
+  </bean>
 </beans>

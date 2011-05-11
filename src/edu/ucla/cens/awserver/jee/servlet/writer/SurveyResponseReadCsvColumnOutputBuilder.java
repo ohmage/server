@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.log4j.Logger;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -19,12 +20,16 @@ import edu.ucla.cens.awserver.request.SurveyResponseReadAwRequest;
  * @author selsky
  */
 public class SurveyResponseReadCsvColumnOutputBuilder implements SurveyResponseReadColumnOutputBuilder {
+	private static Logger _logger = Logger.getLogger(SurveyResponseReadCsvColumnOutputBuilder.class);
+	
 	private static String newLine = System.getProperty("line.separator");
 	
 	public String createMultiResultOutput(int totalNumberOfResults,
 			                              SurveyResponseReadAwRequest req,
 			                              Map<String, PromptContext> promptContextMap,
 			                              Map<String, List<Object>> columnMap) throws JSONException {
+		
+		_logger.info("Generating multi-result CSV output");
 		
 		Set<String> columnMapKeySet = columnMap.keySet();
 		Set<String> promptContextKeySet = promptContextMap.keySet();
@@ -49,6 +54,7 @@ public class SurveyResponseReadCsvColumnOutputBuilder implements SurveyResponseR
 				context.put("prompt_type", promptContextMap.get(key).getType());
 				context.put("display_type", promptContextMap.get(key).getDisplayType());
 				context.put("display_label", promptContextMap.get(key).getDisplayLabel());
+				context.put("text", promptContextMap.get(key).getText());
 				if(null != promptContextMap.get(key).getChoiceGlossary()) {	
 					context.put("choice_glossary", toJson(promptContextMap.get(key).getChoiceGlossary()));
 				} else {
@@ -116,6 +122,8 @@ public class SurveyResponseReadCsvColumnOutputBuilder implements SurveyResponseR
 	public String createZeroResultOutput(SurveyResponseReadAwRequest req, Map<String, List<Object>> columnMap) 
 		throws JSONException  {
 		
+		_logger.info("Generating zero-result CSV output");
+		
 		StringBuilder builder = new StringBuilder();
 		
 		if(! req.isSuppressMetadata()) {
@@ -160,16 +168,14 @@ public class SurveyResponseReadCsvColumnOutputBuilder implements SurveyResponseR
 	}
 	
 	private Object toJson(Map<String, PromptProperty> ppMap) throws JSONException {
-		JSONArray main = new JSONArray();
+		JSONObject main = new JSONObject();
 		Iterator<String> it = ppMap.keySet().iterator();
 		while(it.hasNext()) {
 			PromptProperty pp = ppMap.get(it.next());
-			JSONObject outer = new JSONObject();
-			JSONObject inner = new JSONObject();
-			inner.put("value", pp.getValue());
-			inner.put("label", pp.getLabel());
-			outer.put(pp.getKey(), inner);
-			main.put(outer);
+			JSONObject item = new JSONObject();
+			item.put("value", pp.getValue());
+			item.put("label", pp.getLabel());
+			main.put(pp.getKey(), item);
 		}
 		return main;
 	}

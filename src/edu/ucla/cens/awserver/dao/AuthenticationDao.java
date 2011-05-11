@@ -11,7 +11,7 @@ import edu.ucla.cens.awserver.request.AwRequest;
 /**
  * DAO for performing user authentication.
  * 
- * @author selsky
+ * @author Joshua Selsky
  */
 public class AuthenticationDao extends AbstractDao {
 	private static Logger _logger = Logger.getLogger(AuthenticationDao.class);
@@ -46,7 +46,7 @@ public class AuthenticationDao extends AbstractDao {
 	 * query results into LoginResult objects.
 	 */
 	public void execute(AwRequest awRequest) {
-		_logger.info("attempting login for user " + awRequest.getUser());
+		_logger.info("Attempting login for user " + awRequest.getUser().getUserName());
 		
 		// If we are supposed to perform the hash, then we do so and update
 		// the request's user's password (which should be plaintext but could

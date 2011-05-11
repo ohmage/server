@@ -17,7 +17,12 @@ public class SurveyUploadValidator extends AbstractGzipHttpServletRequestValidat
 	 * 
 	 */
 	public SurveyUploadValidator() {
-		_parameterList = new ArrayList<String>(Arrays.asList(new String[]{"user","client","data","password","campaign_urn"}));
+		_parameterList = new ArrayList<String>(Arrays.asList(new String[]{"user",
+				                                                          "client",
+				                                                          "data",
+				                                                          "password",
+				                                                          "campaign_urn",
+				                                                          "campaign_creation_timestamp"}));
 	}
 	
 	
@@ -34,6 +39,7 @@ public class SurveyUploadValidator extends AbstractGzipHttpServletRequestValidat
 		String client = parameterMap.get("client")[0];
 		String campaignUrn = parameterMap.get("campaign_urn")[0];
 		String data = parameterMap.get("data")[0];
+		String campaignCreationTimestamp = parameterMap.get("campaign_creation_timestamp")[0];
 		
 		// Check for abnormal lengths (buffer overflow attack)
 		// The max lengths are based on the column widths in the db  
@@ -41,7 +47,8 @@ public class SurveyUploadValidator extends AbstractGzipHttpServletRequestValidat
 		if(greaterThanLength("user", "user", user, 15)
 		   || greaterThanLength("client", "client", client, 250)
 		   || greaterThanLength("campaign URN", "campaign_urn", campaignUrn, 250)
-		   || greaterThanLength("password", "password", password, 100) 
+		   || greaterThanLength("password", "password", password, 100)
+		   || greaterThanLength("campaignCreationTimestamp", "campaign_creation_timestamp", campaignCreationTimestamp, 19) 
 		   || greaterThanLength("survey data payload", "data", data, 65535)) {
 			
 			_logger.warn("found an input parameter that exceeds its allowed length");

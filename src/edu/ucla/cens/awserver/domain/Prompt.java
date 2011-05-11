@@ -15,9 +15,10 @@ public class Prompt extends AbstractSurveyItem {
 	private boolean _skippable;
 	private String _displayLabel;
 	private String _unit;
+	private String _text;
 
 	public Prompt(String id, String displayType, String type, Map<String, PromptProperty> props, boolean skippable, 
-			String displayLabel, String unit) {
+			String displayLabel, String unit, String text) {
 		
 		super(id);
 		_displayType = displayType;
@@ -26,8 +27,13 @@ public class Prompt extends AbstractSurveyItem {
 		_skippable = skippable;
 		_displayLabel = displayLabel;
 		_unit = unit;
+		_text = text;
 	}
 
+	public String getText() {
+		return _text;
+	}
+	
 	public String getDisplayType() {
 		return _displayType;
 	}
@@ -54,8 +60,9 @@ public class Prompt extends AbstractSurveyItem {
 
 	@Override
 	public String toString() {
-		return "Prompt [_displayType=" + _displayType + ", _properties="
-				+ _properties + ", _skippable=" + _skippable + ", _type="
-				+ _type + ", getId()=" + getId() + "]";
-	}
+		return "Prompt [_displayType=" + _displayType + ", _type=" + _type
+				+ ", _properties=" + _properties + ", _skippable=" + _skippable
+				+ ", _displayLabel=" + _displayLabel + ", _unit=" + _unit
+				+ ", _text=" + _text + "]";
+	}	
 }

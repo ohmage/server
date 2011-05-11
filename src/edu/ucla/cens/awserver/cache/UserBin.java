@@ -11,7 +11,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.apache.log4j.Logger;
 
 import edu.ucla.cens.awserver.domain.User;
-import edu.ucla.cens.awserver.domain.UserImpl;
 import edu.ucla.cens.awserver.domain.UserTime;
 
 /**
@@ -20,7 +19,7 @@ import edu.ucla.cens.awserver.domain.UserTime;
  * 
  * TODO private locking?
  * 
- * @author selsky
+ * @author Joshua Selsky
  */
 public class UserBin extends TimerTask {
 	private static Logger _logger = Logger.getLogger(UserBin.class);
@@ -36,7 +35,7 @@ public class UserBin extends TimerTask {
 	 * TODO Enforce period relative to lifetime?
 	 */
 	public UserBin(int lifetime, int executionPeriod) {
-		_logger.info("users will live for " + lifetime + " milliseconds and the executioner will run every " + executionPeriod 
+		_logger.info("Users will live for " + lifetime + " milliseconds and the executioner will run every " + executionPeriod 
 			+ " milliseconds");
 		_lifetime = lifetime;
 		_users = new ConcurrentHashMap<String, UserTime> ();
@@ -57,7 +56,7 @@ public class UserBin extends TimerTask {
 		if(null != id) { // user already exists in the bin
 			
 			if(_logger.isDebugEnabled()) {
-				_logger.debug("removing a user that already existed in the bin before adding them in again (login attempt for an "
+				_logger.debug("Removing a user that already existed in the bin before adding them in again (login attempt for an "
 					+ "already logged in user)");
 			}
 			
@@ -79,7 +78,7 @@ public class UserBin extends TimerTask {
 			User u = ut.getUser();
 			if(null != u) {
 				ut.setTime(System.currentTimeMillis()); // refresh the time 
-				return new UserImpl(u); // lazy to assume that UserImpl is always what's needed, but it is the only User 
+				return new User(u); // lazy to assume that UserImpl is always what's needed, but it is the only User 
 				                        // implementation for now.
 			}
 		}
@@ -99,13 +98,13 @@ public class UserBin extends TimerTask {
 	 */
 	private synchronized void expire() {
 		if(_logger.isDebugEnabled()) {
-			_logger.debug("beginning user expiration process");
+			_logger.debug("Beginning user expiration process");
 		}
 		
 		Set<String> keySet = _users.keySet();
 		
 		if(_logger.isDebugEnabled()) {
-			_logger.debug("number of users before expiration: " + keySet.size());
+			_logger.debug("Number of users before expiration: " + keySet.size());
 		}
 		
 		long currentTime = System.currentTimeMillis();
@@ -115,7 +114,7 @@ public class UserBin extends TimerTask {
 			if(currentTime - ut.getTime() > _lifetime) {
 			    	
 				if(_logger.isDebugEnabled()) {
-					_logger.debug("removing user with id " + key);
+					_logger.debug("Removing user with id " + key);
 				}
 				
 				_users.remove(key);
@@ -123,7 +122,7 @@ public class UserBin extends TimerTask {
 		}
 		
 		if(_logger.isDebugEnabled()) {
-			_logger.debug("number of users after expiration: " + _users.size());
+			_logger.debug("Number of users after expiration: " + _users.size());
 		}
 	}
 	

@@ -50,13 +50,13 @@ public class SurveyResponseReadResponseWriter extends AbstractResponseWriter {
 			                               SurveyResponseReadJsonRowBasedOutputBuilder rowBasedOutputBuilder) {
 		super(errorResponse);
 		if(null == columnNames || columnNames.size() == 0) {
-			throw new IllegalArgumentException("a non-null, non-empty columnNames list is required");
+			throw new IllegalArgumentException("A non-null, non-empty columnNames list is required");
 		}
 		if(null == columnOutputBuilderMap || columnOutputBuilderMap.isEmpty()) {
-			throw new IllegalArgumentException("a non-null, non-empty output builder map is required");
+			throw new IllegalArgumentException("A non-null, non-empty output builder map is required");
 		}
 		if(null == rowBasedOutputBuilder) {
-			throw new IllegalArgumentException("a non-null row-based output builder is required");
+			throw new IllegalArgumentException("A non-null row-based output builder is required");
 		}
 		_columnNames = columnNames;
 		_columnOutputBuilderMap = columnOutputBuilderMap;
@@ -219,17 +219,17 @@ public class SurveyResponseReadResponseWriter extends AbstractResponseWriter {
 				}
 			}
 			
-			_logger.info("about to write output");
+			_logger.info("About to write output");
 			writer.write(responseText);
 		}
 		
 		catch(Exception e) { // catch Exception in order to avoid redundant catch block functionality
 			
-			_logger.error("an unrecoverable exception occurred while generating a response", e);
+			_logger.error("An unrecoverable exception occurred while generating a response", e);
 			try {
 				writer.write(generalJsonErrorMessage());
 			} catch (Exception ee) {
-				_logger.error("caught Exception when attempting to write to HTTP output stream", ee);
+				_logger.error("Caught Exception when attempting to write to HTTP output stream", ee);
 			}
 			
 		} finally {
@@ -239,7 +239,7 @@ public class SurveyResponseReadResponseWriter extends AbstractResponseWriter {
 					writer.close();
 					writer = null;
 				} catch (IOException ioe) {
-					_logger.error("caught IOException when attempting to free resources", ioe);
+					_logger.error("Caught IOException when attempting to free resources", ioe);
 				}
 			}
 		}
@@ -338,7 +338,7 @@ public class SurveyResponseReadResponseWriter extends AbstractResponseWriter {
 			} else {
 				columnMap.get(columnName).add(null); 
 			}
-		}
+		} 
 	}
 	
 	private String generateUtcTimestamp(SurveyResponseReadResult result) {
@@ -427,6 +427,7 @@ public class SurveyResponseReadResponseWriter extends AbstractResponseWriter {
 			pc.setId(result.getPromptId());
 			pc.setType(result.getPromptType());
 			pc.setChoiceGlossary(result.getChoiceGlossary());
+			pc.setText(result.getPromptText());
 			promptContextMap.put(result.getPromptId(), pc);
 		}
 	}

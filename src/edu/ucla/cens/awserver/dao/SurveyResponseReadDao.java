@@ -69,7 +69,7 @@ public class SurveyResponseReadDao extends AbstractDao {
 	
 	@Override
 	public void execute(AwRequest awRequest) {
-		_logger.info("about to construct and run a survey_response query");
+		_logger.info("Generating SQL for a survey_response query");
 		SurveyResponseReadAwRequest req = (SurveyResponseReadAwRequest) awRequest;
 		String sql = generateSql(req);
 		
@@ -100,10 +100,12 @@ public class SurveyResponseReadDao extends AbstractDao {
 		}
 		
 		if(_logger.isDebugEnabled()) {
-			_logger.debug("sql params: " + paramObjects);
+			_logger.debug("SQL params: " + paramObjects);
 		}
 		
 		try {
+			
+			_logger.info("Running SQL for a survey_response query");
 			
 			List<?> results = getJdbcTemplate()
 				.query(sql, paramObjects.toArray(), new RowMapper() { 
@@ -126,6 +128,9 @@ public class SurveyResponseReadDao extends AbstractDao {
 						} else {
 							result.setRepeatableSetId(rs.getString(5));
 						}
+						
+						// TODO -- the code below is duplicated in a bunch of DAO classes
+						// Move the functionality to StringUtils
 						
 						String ts = rs.getString(6); // this will return the timestamp in JDBC escape format (ending with nanoseconds)
 						                             // and the nanoseconds value is not needed, so shave it off
@@ -161,12 +166,12 @@ public class SurveyResponseReadDao extends AbstractDao {
 				}
 			);
 			
-			_logger.info("found " + results.size() + " query results");
+			_logger.info("Found " + results.size() + " query results");
 			req.setResultList(results);
 			
 		} catch(org.springframework.dao.DataAccessException dae) {
 			
-			_logger.error("caught DataAccessException when running the following SQL '" + sql + "' with the parameters: " +
+			_logger.error("Caught DataAccessException when running the following SQL '" + sql + "' with the parameters: " +
 				paramObjects, dae);
 			
 			throw new DataAccessException(dae);
@@ -233,7 +238,7 @@ public class SurveyResponseReadDao extends AbstractDao {
 		}
 		
 		if(_logger.isDebugEnabled()) {
-			_logger.debug("generated sql: " + builder);
+			_logger.debug("Generated SQL: " + builder);
 		}
 		
 		return builder.toString();

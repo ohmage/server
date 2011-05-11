@@ -1,13 +1,12 @@
 package edu.ucla.cens.awserver.request;
 
-import java.util.Map;
 
 public class CampaignUpdateAwRequest extends ResultListAwRequest {
 	/**
 	 * There are no required parameters specific to this request. 
 	 */
 	public CampaignUpdateAwRequest() {
-		// Does nothing.
+		super();
 	}
 
 	/**
@@ -29,9 +28,7 @@ public class CampaignUpdateAwRequest extends ResultListAwRequest {
 	 * @throws IllegalArgumentException Thrown if 'description' is null.
 	 */
 	public void setDescription(String description) {
-		Map<String, Object> toValidate = getToValidate();
-		toValidate.put(InputKeys.DESCRIPTION, description);
-		setToValidate(toValidate);
+		addToValidate(InputKeys.DESCRIPTION, description, true);
 	}
 
 	/**
@@ -54,9 +51,7 @@ public class CampaignUpdateAwRequest extends ResultListAwRequest {
 	 * @throws IllegalArgumentException Thrown if 'runningState' is null.
 	 */
 	public void setRunningState(String runningState) {
-		Map<String, Object> toValidate = getToValidate();
-		toValidate.put(InputKeys.RUNNING_STATE, runningState);
-		setToValidate(toValidate);
+		addToValidate(InputKeys.RUNNING_STATE, runningState, true);
 	}
 
 	/**
@@ -79,9 +74,7 @@ public class CampaignUpdateAwRequest extends ResultListAwRequest {
 	 * @throws IllegalArgumentException Thrown if 'privacyState' is null.
 	 */
 	public void setPrivacyState(String privacyState) {
-		Map<String, Object> toValidate = getToValidate();
-		toValidate.put(InputKeys.PRIVACY_STATE, privacyState);
-		setToValidate(toValidate);
+		addToValidate(InputKeys.PRIVACY_STATE, privacyState, true);
 	}
 
 	/**
@@ -115,9 +108,7 @@ public class CampaignUpdateAwRequest extends ResultListAwRequest {
 	 * 
 	 */
 	public void setCommaSeparatedClasses(String commaSeparatedClasses) {
-		Map<String, Object> toValidate = getToValidate();
-		toValidate.put(InputKeys.CLASS_URN_LIST, commaSeparatedClasses);
-		setToValidate(toValidate);
+		addToValidate(InputKeys.CLASS_URN_LIST, commaSeparatedClasses, true);
 	}
 
 	/**
@@ -139,9 +130,7 @@ public class CampaignUpdateAwRequest extends ResultListAwRequest {
 	 * @throws IllegalArgumentException Thrown if 'xml' is null.
 	 */
 	public void setXml(String xml) {
-		Map<String, Object> toValidate = getToValidate();
-		toValidate.put(InputKeys.XML, xml);
-		setToValidate(toValidate);
+		addToValidate(InputKeys.XML, xml, true);
 	}
 	
 	/**
@@ -153,9 +142,7 @@ public class CampaignUpdateAwRequest extends ResultListAwRequest {
 	 * @throws IllegalArgumentException Thrown if 'xml' is null.
 	 */
 	public void setXmlAsByteArray(byte[] xml) {
-		Map<String, Object> toValidate = getToValidate();
-		toValidate.put(InputKeys.XML, new String(xml));
-		setToValidate(toValidate);
+		addToValidate(InputKeys.XML, new String(xml), true);
 	}
 	
 	/**
@@ -164,9 +151,7 @@ public class CampaignUpdateAwRequest extends ResultListAwRequest {
 	 * @param list The list of users and roles to add to a campaign.
 	 */
 	public void setUserRoleListAdd(String list) {
-		Map<String, Object> toValidate = getToValidate();
-		toValidate.put(InputKeys.USER_ROLE_LIST_ADD, list);
-		setToValidate(toValidate);
+		addToValidate(InputKeys.USER_ROLE_LIST_ADD, list, true);
 	}
 	
 	/**
@@ -175,8 +160,6 @@ public class CampaignUpdateAwRequest extends ResultListAwRequest {
 	 * @param list The list of users and roles to remove from the campaign.
 	 */
 	public void setUserRoleListRemove(String list) {
-		Map<String, Object> toValidate = getToValidate();
-		toValidate.put(InputKeys.USER_ROLE_LIST_REMOVE, list);
-		setToValidate(toValidate);
+		addToValidate(InputKeys.USER_ROLE_LIST_REMOVE, list, true);
 	}
 }

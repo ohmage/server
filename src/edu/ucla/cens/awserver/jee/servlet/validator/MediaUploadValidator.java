@@ -14,8 +14,6 @@ import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import org.apache.log4j.Logger;
 
 import edu.ucla.cens.awserver.domain.User;
-import edu.ucla.cens.awserver.domain.UserImpl;
-import edu.ucla.cens.awserver.request.AwRequest;
 import edu.ucla.cens.awserver.request.MediaUploadAwRequest;
 import edu.ucla.cens.awserver.util.StringUtils;
 
@@ -38,7 +36,12 @@ public class MediaUploadValidator extends AbstractHttpServletRequestValidator {
 		_fileSizeMax = fileSizeMax;
 		
 		_parameterSet = new TreeSet<String>();
-		_parameterSet.addAll(Arrays.asList(new String[]{"campaign_urn","client","id","password","user"}));
+		_parameterSet.addAll(Arrays.asList(new String[]{"campaign_urn",
+				                                        "client",
+				                                        "id",
+				                                        "password",
+				                                        "user",
+				                                        "campaign_creation_timestamp"}));
 	}
 	
 	/**
@@ -68,14 +71,14 @@ public class MediaUploadValidator extends AbstractHttpServletRequestValidator {
 		
 		int numberOfUploadedItems = uploadedItems.size();
 		
-		if(6 != numberOfUploadedItems) {
-			_logger.warn("an incorrect number of parameters was found on media upload. 6 were expeced and " + numberOfUploadedItems
+		if(7 != numberOfUploadedItems) {
+			_logger.warn("an incorrect number of parameters was found on media upload. 7 were expected and " + numberOfUploadedItems
 				+ " were received");
 			return false;
 		}
 		
-		AwRequest awRequest = new MediaUploadAwRequest();
-		User user = new UserImpl();
+		MediaUploadAwRequest awRequest = new MediaUploadAwRequest();
+		User user = new User();
 		
 		for(int i = 0; i < numberOfUploadedItems; i++) {
 			FileItem fi = (FileItem) uploadedItems.get(i);
@@ -136,6 +139,15 @@ public class MediaUploadValidator extends AbstractHttpServletRequestValidator {
 					}
 					
 					user.setUserName(tmp);
+				}
+				
+				if("campaign_creation_timestamp".equals(name)) {
+					
+					if(greaterThanLength("campaign creation timestamp", "campaign_creation_timestamp", tmp, 19)) {
+						return false;
+					}
+					
+					awRequest.setCampaignCreationTimestamp(tmp);
 				}
 				
 			} else { // it's an attached file 

@@ -32,6 +32,15 @@ public class SurveyResponseReadResult {
 	private Map<String, PromptProperty> _choiceGlossary;
 	private int _surveyPrimaryKeyId;
 	private String _privacyState;
+	private String _promptText;
+	
+	public String getPromptText() {
+		return _promptText;
+	}
+	
+	public void setPromptText(String promptText) {
+		_promptText = promptText;
+	}
 	
 	public String getPrivacyState() {
 		return _privacyState;
@@ -223,7 +232,7 @@ public class SurveyResponseReadResult {
 
 	@Override
 	public String toString() {
-		return "NewDataPointQueryResult [_response=" + _response
+		return "SurveyResponseReadResult [_response=" + _response
 				+ ", _repeatableSetIteration=" + _repeatableSetIteration
 				+ ", _locationStatus=" + _locationStatus + ", _location="
 				+ _location + ", _timestamp=" + _timestamp + ", _timezone="
@@ -237,6 +246,7 @@ public class SurveyResponseReadResult {
 				+ _surveyTitle + ", _surveyDescription=" + _surveyDescription
 				+ ", _loginId=" + _loginId + ", _choiceGlossary="
 				+ _choiceGlossary + ", _surveyPrimaryKeyId="
-				+ _surveyPrimaryKeyId + "]";
-	}
+				+ _surveyPrimaryKeyId + ", _privacyState=" + _privacyState
+				+ ", _promptText=" + _promptText + "]";
+	}	
 }

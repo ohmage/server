@@ -20,7 +20,7 @@ public class SortOrderValidator extends AbstractAnnotatingValidator {
 
 	@Override
 	public boolean validate(AwRequest awRequest) {
-		_logger.info("validating the sort_order parameter");
+		_logger.info("Validating the sort_order parameter");
 		
 		String sortOrder = (String) awRequest.getToValidate().get(InputKeys.SORT_ORDER);
 		
