@@ -26,17 +26,17 @@ public class CampaignCreationAwRequest extends ResultListAwRequest {
 	public CampaignCreationAwRequest(String runningState, String privacyState, String campaignAsXml, String commaSeparatedListOfClasses, String description) throws IllegalArgumentException {
 		super();
 		
-		if(runningState == null) {
-			throw new IllegalArgumentException("The initial running state cannot be null.");
+		if(StringUtils.isEmptyOrWhitespaceOnly(runningState)) {
+			throw new IllegalArgumentException("The initial running state is null or empty.");
 		}
-		else if(privacyState == null) {
-			throw new IllegalArgumentException("The initial privacy state cannot be null.");
+		else if(StringUtils.isEmptyOrWhitespaceOnly(privacyState)) {
+			throw new IllegalArgumentException("The initial privacy state is null or empty.");
 		}
-		else if(campaignAsXml == null) {
-			throw new IllegalArgumentException("The campaign XML cannot be null.");
+		else if(StringUtils.isEmptyOrWhitespaceOnly(campaignAsXml)) {
+			throw new IllegalArgumentException("The campaign XML is null or empty.");
 		}
-		else if(commaSeparatedListOfClasses == null) {
-			throw new IllegalArgumentException("The initial list of classes for a campaign cannot be null.");
+		else if(StringUtils.isEmptyOrWhitespaceOnly(commaSeparatedListOfClasses)) {
+			throw new IllegalArgumentException("The initial list of classes for a campaign is null or empty.");
 		}
 
 		addToValidate(InputKeys.RUNNING_STATE, runningState, true);

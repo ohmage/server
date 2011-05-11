@@ -38,6 +38,7 @@
         <ref bean="userCanCreateCampaignsValidationService" />
         <ref bean="classListOptionalValidationService" />
         <ref bean="campaignAlreadyExistsValidationService" />
+        <ref bean="campaignXmlRequiredValidationService" />
         <ref bean="campaignCreationService" />
       </list>
     </constructor-arg>
@@ -52,7 +53,6 @@
         <ref bean="campaignRunningStateRequiredValidator" />
         <ref bean="campaignPrivacyStateRequiredValidator" />
         <ref bean="classListRequiredValidator" />
-        <ref bean="campaignXmlRequiredValidator" />
         <ref bean="descriptionOptionalValidator" />
       </list>
     </property>

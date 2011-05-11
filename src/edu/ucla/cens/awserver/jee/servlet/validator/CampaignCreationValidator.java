@@ -127,7 +127,7 @@ public class CampaignCreationValidator extends AbstractHttpServletRequestValidat
 			request = new CampaignCreationAwRequest(runningState, privacyState, xml, classes, description);
 		}
 		catch(IllegalArgumentException e) {
-			_logger.error("Attempting to create a campaign with insufficient data after data presence has been checked.", e);
+			_logger.warn("Attempting to create a campaign with insufficient data after data presence has been checked: " + e.getMessage());
 			return false;
 		}
 		request.setUserToken(token);
