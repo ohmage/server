@@ -37,6 +37,7 @@
 
   <util:map id="systemProps">
     <entry key="system.imageDir" value="/opt/aw/userdata/images" />
+    <entry key="system.configurationXmlSchemaFile" value="/opt/aw/conf/configuration.xsd" />
   </util:map>
 
 </beans>

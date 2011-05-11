@@ -30,7 +30,7 @@ public class CampaignCreationAwRequestCreator implements AwRequestCreator {
 	 */
 	@Override
 	public AwRequest createFrom(HttpServletRequest request) {
-		_logger.info("Creating new AwRequest object for creating a new campaign.");
+		_logger.info("Creating new request object for creating a new campaign.");
 
 		CampaignCreationAwRequest awRequest;
 		try {
@@ -45,5 +45,4 @@ public class CampaignCreationAwRequestCreator implements AwRequestCreator {
 		
 		return awRequest;
 	}
-
 }

@@ -14,7 +14,7 @@
   <bean id="documentCreationAwRequestCreator" class="edu.ucla.cens.awserver.jee.servlet.glue.DocumentCreationAwRequestCreator" />
   
   <!-- Write the Response -->
-  <bean id="documentCreationResponseWriter" class="edu.ucla.cens.awserver.jee.servlet.writer.DocumentCreationResponseWriter">
+  <bean id="documentCreationResponseWriter" class="edu.ucla.cens.awserver.jee.servlet.writer.SuccessOrFailResponseWriter">
     <constructor-arg index="0">
       <bean id="documentCreationErrorResponse" class="edu.ucla.cens.awserver.domain.ErrorResponse">
         <property name="code" value="1500" />
@@ -22,4 +22,38 @@
       </bean>
     </constructor-arg>
   </bean>
+  
+  <!-- Controller Definition -->
+  <bean id="documentCreationController" class="edu.ucla.cens.awserver.controller.ControllerImpl">
+    <constructor-arg index="0">
+      <!-- Services List (expected to be executed in-order) -->
+      <list>
+        <!-- Authenticate that the token the user is using is a valid token. -->
+        <ref bean="tokenBasedAuthenticationService" />
+        <ref bean="userCanCreateCampaignsValidationService" />
+        <ref bean="classListOptionalValidationService" />
+        <ref bean="campaignAlreadyExistsValidationService" />
+        <ref bean="campaignXmlRequiredValidationService" />
+        <ref bean="campaignCreationService" />
+      </list>
+    </constructor-arg>
+    <constructor-arg index="1">
+      <!-- The annotator for when something fails after validation but before the writer. -->
+      <ref bean="serverErrorRequestAnnotator" />
+    </constructor-arg>
+    <property name="validators">
+      <!-- Validates the individual items in the request. -->
+      <list>
+        <ref bean="userTokenValidator" />
+        <ref bean="campaignRunningStateRequiredValidator" />
+        <ref bean="campaignPrivacyStateRequiredValidator" />
+        <ref bean="classListRequiredValidator" />
+        <ref bean="descriptionOptionalValidator" />
+      </list>
+    </property>
+    <property name="featureName"><value>document creation</value></property>
+  </bean>
+  
+  
+  
 </beans>

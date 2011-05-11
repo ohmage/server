@@ -17,11 +17,25 @@ import edu.ucla.cens.awserver.request.DocumentCreationAwRequest;
 import edu.ucla.cens.awserver.request.InputKeys;
 import edu.ucla.cens.awserver.util.StringUtils;
 
+/**
+ * Validates an incoming HTTP request to create a new document.
+ * 
+ * @author John Jenkins
+ */
 public class DocumentCreationValidator extends AbstractHttpServletRequestValidator {
 	private static Logger _logger = Logger.getLogger(DocumentCreationValidator.class);
 	
 	private DiskFileItemFactory _diskFileItemFactory;
 	
+	/**
+	 * Creates this validator with a DiskFileItemFactory which will regulate
+	 * when an item should be put on disk and when it should be left in
+	 * memory.
+	 * 
+	 * @param diskFileItemFactory The DiskFileItemFactory that will determine
+	 * 							  when an item should be put to disk and when
+	 * 							  it should be left in memory.
+	 */
 	public DocumentCreationValidator(DiskFileItemFactory diskFileItemFactory) {
 		if(diskFileItemFactory == null) {
 			throw new IllegalArgumentException("The disk file item factory cannot be null.");
@@ -30,6 +44,12 @@ public class DocumentCreationValidator extends AbstractHttpServletRequestValidat
 		_diskFileItemFactory = diskFileItemFactory;
 	}
 
+	/**
+	 * Checks that the document values are sane.
+	 * 
+	 * Also, it creates the request object and stores it back in the
+	 * 'httpRequest' to be grabbed by the glue.
+	 */
 	@Override
 	public boolean validate(HttpServletRequest httpRequest) {
 		// Create a new file upload handler
@@ -124,6 +144,13 @@ public class DocumentCreationValidator extends AbstractHttpServletRequestValidat
 			return false;
 		}
 		request.setUserToken(token);
+		
+		// This is done so we only need to read the request once as it may be
+		// a large amount of data. This does, however, break out model of
+		// checking the data first (here) and creating the the request later
+		// in a glue object. I put a higher priority on following the model
+		// than I do creating this here, but I am following conventions for
+		// now.
 		httpRequest.setAttribute("awRequest", request);
 		
 		return true;
