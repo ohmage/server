@@ -25,12 +25,13 @@ public class SurveyResponseReadDao extends AbstractDao {
 	
 	private String _sql = "SELECT pr.prompt_id, pr.prompt_type, pr.response, pr.repeatable_set_iteration, pr.repeatable_set_id,"
 			           + " sr.msg_timestamp, sr.phone_timezone, sr.location_status, sr.location, sr.survey_id, u.login_id," +
-			           		" sr.client, sr.launch_context, sr.id, sr.privacy_state"
-	                   + " FROM prompt_response pr, survey_response sr, user u, campaign c"
+			           		" sr.client, sr.launch_context, sr.id, srps.privacy_state"
+	                   + " FROM prompt_response pr, survey_response sr, user u, campaign c, survey_response_privacy_state srps"
 	                   + " WHERE pr.survey_response_id = sr.id"
                        + " AND c.urn = ?"
                        + " AND c.id = sr.campaign_id"
-                       + " AND sr.user_id = u.id"; 
+                       + " AND sr.user_id = u.id"
+                       + " AND sr.privacy_state_id = srps.id"; 
 	
 	private String _andDatesBetween = " AND sr.msg_timestamp BETWEEN ? AND ?";
 	

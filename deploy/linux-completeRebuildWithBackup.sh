@@ -2,15 +2,20 @@
 
 # The one parameter should be the .tar.gz that this build will be built from.
 if [ $# != 2 ]; then
-    echo "Parameters: <aw2.0 tarball with full path> <buildDatabase.sql with full path>"
-    exit
-else
-    if [ -d /opt/aw ]; then
-	echo "The person who runs this script must be the owner of /opt/aw."
-    else
-	echo "/opt/aw must exist even if it is empty."
-	exit
-    fi
+    echo "Usage: $0 <aw2.3 tarball with full path> <mobilize | andwellness | chipts>";
+    exit;
+elif [ ! -d /opt/aw ]; then
+    echo "/opt/aw/ must exist and be a directory even if it is empty.";
+    exit;
+elif [ ! -w /opt/aw ]; then
+    echo "You must be able to write to /opt/aw/ .";
+    exit;
+elif [ ! -r $1 ]; then
+    echo "Cannot read $1.";
+    exit;
+elif [ $2 != mobilize -a $2 != andwellness -a $2 != chipts ]; then
+    echo "Unknown mode $2.";
+    exit;
 fi
 
 # Save the current directory for restoration later
@@ -59,23 +64,42 @@ sleep 5
 # Check to make sure the database is running
 APACHE_SUCCESS="ready for connections"
 case `tail /opt/aw/dbs/logs/error.log` in
-    *"$APACHE_SUCCESS"*) echo Database is running;;
+    *"$APACHE_SUCCESS"*) 
+        echo Database is running;
+        ;;
 
-    *) echo Failed to start the database ; tail /opt/aw/dbs/logs/error.log; exit;;
+    *) echo 
+        Failed to start the database; 
+        tail /opt/aw/dbs/logs/error.log; 
+        exit;
+        ;;
 esac
 
 echo Initializing the database.
 
 # Initialize the database
-/opt/aw/thirdparty/mysql-5.1.41-linux-i686-icc-glibc23/bin/mysql -u andwellness -h localhost -P 3306 -S /opt/aw/dbs/logs/dbsd.sock -p <$2
+/opt/aw/thirdparty/mysql-5.1.41-linux-i686-icc-glibc23/bin/mysql --user=andwellness --password=\&\!sickly -h localhost -P 3306 -S /opt/aw/dbs/logs/dbsd.sock </opt/aw/dbs/conf/andwellness-ddl.sql
+/opt/aw/thirdparty/mysql-5.1.41-linux-i686-icc-glibc23/bin/mysql --user=andwellness --password=\&\!sickly -h localhost -P 3306 -S /opt/aw/dbs/logs/dbsd.sock andwellness </opt/aw/dbs/conf/campaign_privacy_states.sql
+/opt/aw/thirdparty/mysql-5.1.41-linux-i686-icc-glibc23/bin/mysql --user=andwellness --password=\&\!sickly -h localhost -P 3306 -S /opt/aw/dbs/logs/dbsd.sock andwellness </opt/aw/dbs/conf/campaign_running_states.sql
+/opt/aw/thirdparty/mysql-5.1.41-linux-i686-icc-glibc23/bin/mysql --user=andwellness --password=\&\!sickly -h localhost -P 3306 -S /opt/aw/dbs/logs/dbsd.sock andwellness </opt/aw/dbs/conf/campaign_roles.sql
+/opt/aw/thirdparty/mysql-5.1.41-linux-i686-icc-glibc23/bin/mysql --user=andwellness --password=\&\!sickly -h localhost -P 3306 -S /opt/aw/dbs/logs/dbsd.sock andwellness </opt/aw/dbs/conf/class_roles.sql
+/opt/aw/thirdparty/mysql-5.1.41-linux-i686-icc-glibc23/bin/mysql --user=andwellness --password=\&\!sickly -h localhost -P 3306 -S /opt/aw/dbs/logs/dbsd.sock andwellness </opt/aw/dbs/conf/mobility_privacy_states.sql
 
-echo Installing the configurations.
+if [$2 == chipts]; then
+	/opt/aw/thirdparty/mysql-5.1.40-osx10.5-x86_64/bin/mysql --user=andwellness --password=\&\!sickly -h localhost -P 3306 -S /opt/aw/dbs/logs/dbsd.sock andwellness </opt/aw/dbs/conf/survey_response_privacy_states-chipts.sql
+else
+	/opt/aw/thirdparty/mysql-5.1.40-osx10.5-x86_64/bin/mysql --user=andwellness --password=\&\!sickly -h localhost -P 3306 -S /opt/aw/dbs/logs/dbsd.sock andwellness </opt/aw/dbs/conf/survey_response_privacy_states.sql
+fi
 
-# Install the configurations
-/opt/aw/thirdparty/jre1.6.0_17/bin/java -jar /opt/aw/conf/andwellness-config-loader-1.0.jar /opt/aw/nih-all.xml /opt/aw/conf/loader.properties /opt/aw/conf/configuration-1.0.xsd
-/opt/aw/thirdparty/jre1.6.0_17/bin/java -jar /opt/aw/conf/andwellness-config-loader-1.0.jar /opt/aw/chipts-all-surveys.xml /opt/aw/conf/loader.properties /opt/aw/conf/configuration-1.0.xsd
+if [$2 == mobility]; then
+	/opt/aw/thirdparty/mysql-5.1.40-osx10.5-x86_64/bin/mysql --user=andwellness --password=\&\!sickly -h localhost -P 3306 -S /opt/aw/dbs/logs/dbsd.sock andwellness </opt/aw/dbs/conf/mobility_preferences.sql
+elif [$2 == chipts]; then
+        /opt/aw/thirdparty/mysql-5.1.40-osx10.5-x86_64/bin/mysql --user=andwellness --password=\&\!sickly -h localhost -P 3306 -S /opt/aw/dbs/logs/dbsd.sock andwellness </opt/aw/dbs/conf/chipts_preferences.sql
+else
+	/opt/aw/thirdparty/mysql-5.1.40-osx10.5-x86_64/bin/mysql --user=andwellness --password=\&\!sickly -h localhost -P 3306 -S /opt/aw/dbs/logs/dbsd.sock andwellness </opt/aw/dbs/conf/andwellness_preferences.sql
+fi
 
-echo Installing the web apps.
+echo Installing the web app.
 
 # Install the webapps
 cp /opt/aw/*war /opt/aw/as/webapps
@@ -92,10 +116,19 @@ sleep 5
 # Check to make sure Tomcat is running
 TOMCAT_SUCCESS="initialization completed in"
 case `tail /opt/aw/as/logs/aw.log` in
-    *"$TOMCAT_SUCCESS"*) echo Tomcat successfully started;;
+    *"$TOMCAT_SUCCESS"*) 
+        echo Tomcat successfully started;
+        ;;
 
-    *) echo Failed to start Tomcat;;
+    *) 
+        echo Failed to start Tomcat;
+        tail /opt/aw/as/logs/aw.log;
+        exit;
+        ;;
 esac
 
 # Go back to the original folder we were working in
 cd $ORIGINAL_DIR
+
+# Warn about changing the password on the database.
+echo It is highly recommended that you change the default MySQL password as it is located in every distribution of this package.

@@ -17,6 +17,8 @@ import org.springframework.transaction.TransactionException;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.DefaultTransactionDefinition;
 
+import edu.ucla.cens.awserver.cache.CacheMissException;
+import edu.ucla.cens.awserver.cache.MobilityPrivacyStateCache;
 import edu.ucla.cens.awserver.domain.DataPacket;
 import edu.ucla.cens.awserver.domain.MobilitySensorDataPacket;
 import edu.ucla.cens.awserver.domain.MobilityModeOnlyDataPacket;
@@ -33,13 +35,13 @@ public class MobilityUploadDao extends AbstractUploadDao {
 
 	private final String _insertMobilityModeOnlySql =   "INSERT INTO mobility_mode_only"
 	                                                  + " (user_id, msg_timestamp, epoch_millis, phone_timezone, location_status," 
-	                                                  + " location, mode, client, upload_timestamp)"
-	                                                  + " VALUES (?,?,?,?,?,?,?,?,?)";
+	                                                  + " location, mode, client, upload_timestamp, privacy_state_id)"
+	                                                  + " VALUES (?,?,?,?,?,?,?,?,?,?)";
 
 	private final String _insertMobilityModeFeaturesSql =   "INSERT INTO mobility_extended"
 			                                              + " (user_id, msg_timestamp, epoch_millis, phone_timezone,"
 			                                              +	" location_status, location, mode, sensor_data, classifier_version,"
-			                                              +	" features, client, upload_timestamp) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)";
+			                                              +	" features, client, upload_timestamp, privacy_state_id) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)";
 	
 	public MobilityUploadDao(DataSource datasource) {
 		super(datasource);
@@ -195,6 +197,12 @@ public class MobilityUploadDao extends AbstractUploadDao {
 					ps.setString(7, dataPacket.getMode());
 					ps.setString(8, client);
 					ps.setTimestamp(9, new Timestamp(System.currentTimeMillis()));
+					try {
+						ps.setInt(10, MobilityPrivacyStateCache.instance().lookup(MobilityPrivacyStateCache.PRIVACY_STATE_PRIVATE));
+					} catch (CacheMissException e) {
+						_logger.error("Cache doesn't know about 'known' privacy state: " + MobilityPrivacyStateCache.PRIVACY_STATE_PRIVATE);
+						throw new SQLException(e);
+					}
 					return ps;
 				}
 			}
@@ -223,7 +231,12 @@ public class MobilityUploadDao extends AbstractUploadDao {
 					ps.setString(10, dataPacket.getFeatures());
 					ps.setString(11, client);
 					ps.setTimestamp(12, new Timestamp(System.currentTimeMillis()));
-											
+					try {
+						ps.setInt(13, MobilityPrivacyStateCache.instance().lookup(MobilityPrivacyStateCache.PRIVACY_STATE_PRIVATE));
+					} catch (CacheMissException e) {
+						_logger.error("Cache doesn't know about 'known' privacy state: " + MobilityPrivacyStateCache.PRIVACY_STATE_PRIVATE);
+						throw new SQLException(e);
+					}
 					return ps;
 				}
 			}
@@ -236,18 +249,30 @@ public class MobilityUploadDao extends AbstractUploadDao {
 			
 			MobilitySensorDataPacket mmfdp = (MobilitySensorDataPacket) dataPacket;
 			
-			_logger.error("an error occurred when atempting to run this SQL '" + _insertMobilityModeFeaturesSql + "' with the following" +
-				" parameters: " + userId + ", " + Timestamp.valueOf(mmfdp.getDate()) + ", " + mmfdp.getEpochTime() + ", " +
-				mmfdp.getTimezone() + ", " + mmfdp.getLocationStatus() + ", " + mmfdp.getLocation() + ", " + ", " + 
-			    mmfdp.getSensorDataString() + ", " + client);
+			try {
+				_logger.error("an error occurred when atempting to run this SQL '" + _insertMobilityModeFeaturesSql + "' with the following" +
+					" parameters: " + userId + ", " + Timestamp.valueOf(mmfdp.getDate()) + ", " + mmfdp.getEpochTime() + ", " +
+					mmfdp.getTimezone() + ", " + mmfdp.getLocationStatus() + ", " + mmfdp.getLocation() + ", " + mmfdp.getMode() + ", " + 
+				    mmfdp.getSensorDataString() + ", " + mmfdp.getClassifierVersion() + ", " + mmfdp.getFeatures() + ", " + client + ", " +
+				    System.currentTimeMillis() + ", " + MobilityPrivacyStateCache.instance().lookup(MobilityPrivacyStateCache.PRIVACY_STATE_PRIVATE));
+			} catch (CacheMissException e) {
+				_logger.error("Cache doesn't know about 'known' privacy state: " + MobilityPrivacyStateCache.PRIVACY_STATE_PRIVATE);
+				throw new DataAccessException(e);
+			}
 			 
 		} else {
 			
 			MobilityModeOnlyDataPacket mmodp = (MobilityModeOnlyDataPacket) dataPacket;
 
-			_logger.error("an error occurred when atempting to run this SQL '" + _insertMobilityModeOnlySql +"' with the following " +
-				"parameters: " + userId + ", " + mmodp.getDate() + ", " + mmodp.getEpochTime() + ", " + mmodp.getTimezone() + ", "
-				 + mmodp.getLocationStatus() + ", " + mmodp.getLocation() + " ," + mmodp.getMode() + ", " + client);
+			try {
+				_logger.error("an error occurred when atempting to run this SQL '" + _insertMobilityModeOnlySql +"' with the following " +
+					"parameters: " + userId + ", " + mmodp.getDate() + ", " + mmodp.getEpochTime() + ", " + mmodp.getTimezone() + ", "
+					 + mmodp.getLocationStatus() + ", " + mmodp.getLocation() + " ," + mmodp.getMode() + ", " + client + ", " 
+					 + System.currentTimeMillis() + ", " + MobilityPrivacyStateCache.instance().lookup(MobilityPrivacyStateCache.PRIVACY_STATE_PRIVATE));
+			} catch (CacheMissException e) {
+				_logger.error("Cache doesn't know about 'known' privacy state: " + MobilityPrivacyStateCache.PRIVACY_STATE_PRIVATE);
+				throw new DataAccessException(e);
+			}
 		}
 	}
 }

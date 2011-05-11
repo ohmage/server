@@ -5,6 +5,7 @@ import javax.sql.DataSource;
 import org.apache.log4j.Logger;
 import org.springframework.jdbc.core.SingleColumnRowMapper;
 
+import edu.ucla.cens.awserver.cache.CampaignRoleCache;
 import edu.ucla.cens.awserver.request.AwRequest;
 
 /**
@@ -19,7 +20,7 @@ public class FindAllAdminCampaignsForUserDao extends AbstractDao {
 			              "WHERE urc.campaign_id = c.id " +
 			              "AND urc.user_id = u.id AND u.login_id = ? " +
 			              "AND urc.user_role_id =  ur.id " +
-			              "AND ur.label in ('supervisor')"; // for now, assume supervisor.
+			              "AND ur.role in ('" + CampaignRoleCache.ROLE_SUPERVISOR + "')"; // for now, assume supervisor.
 	
 	/**
 	 * @param useLoggedInUser if true, the logged in user's user name will be used in the query. if false, the user name request

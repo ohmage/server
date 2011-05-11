@@ -1,5 +1,6 @@
 <beans xmlns="http://www.springframework.org/schema/beans"
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:util="http://www.springframework.org/schema/util"
        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
                            http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-2.5.xsd">
   <!--  
@@ -109,7 +110,7 @@
     </property>
   </bean>
   
-  <bean id="userRoleValidator" class="edu.ucla.cens.awserver.validator.StringAllowedValuesValidator">
+  <bean id="userRoleValidator" class="edu.ucla.cens.awserver.validator.CacheAllowedValuesValidator">
     <constructor-arg index="0">
       <bean class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
         <constructor-arg index="0"> 
@@ -120,12 +121,15 @@
         </constructor-arg>
       </bean>
     </constructor-arg>
-    <constructor-arg index="1"><value>user_role</value></constructor-arg>
-    <constructor-arg index="2"><ref bean="userRoles" /></constructor-arg>
-    <constructor-arg index="3"><value>false</value></constructor-arg>
-    <property name="errorMessage">
-      <value>invalid user role in request</value>
-    </property>
+    <constructor-arg index="1">
+      <util:constant static-field="edu.ucla.cens.awserver.cache.CampaignRoleCache.CACHE_KEY"/>
+    </constructor-arg>
+    <constructor-arg index="2">
+      <util:constant static-field="edu.ucla.cens.awserver.request.InputKeys.USER_ROLE"/>
+    </constructor-arg>
+    <constructor-arg index="3">
+      <value>false</value>
+    </constructor-arg>
   </bean>
   
   <!-- Authentication -->

@@ -27,9 +27,11 @@ import edu.ucla.cens.awserver.request.CampaignReadAwRequest;
 public class FindAllFilteredCampaignsForLoggedInUserDao extends AbstractDao {
 	private static Logger _logger = Logger.getLogger(FindAllFilteredCampaignsForLoggedInUserDao.class);
 	
-	private String _select = "SELECT urn, name, description, xml, running_state, privacy_state, creation_timestamp " +
-			                 "FROM campaign " +
-			                 "WHERE urn = ? ";
+	private String _select = "SELECT c.urn, c.name, c.description, c.xml, crs.running_state, cps.privacy_state, c.creation_timestamp " +
+			                 "FROM campaign c, campaign_running_state crs, campaign_privacy_state cps " +
+			                 "WHERE c.urn = ? " +
+			                 "AND c.privacy_state_id = cps.id " +
+			                 "AND c.running_state_id = crs.id";
 	
 //	private String _select = "SELECT c.urn, c.name, c.description, c.xml, c.running_state, c.privacy_state, c.creation_timestamp," +
 //			                  " css.urn " +
@@ -40,11 +42,11 @@ public class FindAllFilteredCampaignsForLoggedInUserDao extends AbstractDao {
 //                                            
 //    private String _andClassUrnIn = "AND css.urn IN ";
 	
-	private String _andPrivacyState = "AND privacy_state = ? ";
-	private String _andRunningState = "AND running_state = ? ";
-	private String _andStartDate = "AND creation_timestamp >= ? ";
-	private String _andEndDate = "AND creation_timestamp <= ? ";
-	private String _orderBy = " ORDER BY urn";
+	private String _andPrivacyState = "AND cps.privacy_state = ? ";
+	private String _andRunningState = "AND crs.running_state = ? ";
+	private String _andStartDate = "AND c.creation_timestamp >= ? ";
+	private String _andEndDate = "AND c.creation_timestamp <= ? ";
+	private String _orderBy = " ORDER BY c.urn";
 	
 	public FindAllFilteredCampaignsForLoggedInUserDao(DataSource dataSource) {
 		super(dataSource);

@@ -25,9 +25,9 @@ import edu.ucla.cens.awserver.request.InputKeys;
 public class CampaignAlreadyExistsValidationDao extends AbstractDao {
 	private static Logger _logger = Logger.getLogger(CampaignAlreadyExistsValidationDao.class);
 	
-	private static final String SQL = "SELECT count(*)" +
-									  " FROM campaign" +
-									  " WHERE urn=?";
+	private static final String SQL = "SELECT count(*) " +
+									  "FROM campaign " +
+									  "WHERE urn = ?";
 
 	/**
 	 * Sets up the data source for this DAO.

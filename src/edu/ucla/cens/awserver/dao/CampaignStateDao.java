@@ -16,9 +16,10 @@ import edu.ucla.cens.awserver.request.SurveyUploadAwRequest;
 public class CampaignStateDao extends AbstractDao {
 	private static Logger _logger = Logger.getLogger(CampaignStateDao.class);
 	
-	private static final String SQL = "SELECT running_state " +
-									  "FROM campaign " +
-									  "WHERE urn=?";
+	private static final String SQL = "SELECT crs.running_state " +
+									  "FROM campaign c, campaign_running_state crs " +
+									  "WHERE c.urn = ? " +
+									  "AND c.running_state_id = crs.id";
 	
 	/**
 	 * Basic constructor.
