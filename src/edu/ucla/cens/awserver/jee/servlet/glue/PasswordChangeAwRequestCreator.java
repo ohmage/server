@@ -5,7 +5,6 @@ import javax.servlet.http.HttpServletRequest;
 import org.apache.log4j.Logger;
 
 import edu.ucla.cens.awserver.domain.User;
-import edu.ucla.cens.awserver.domain.UserImpl;
 import edu.ucla.cens.awserver.request.AwRequest;
 import edu.ucla.cens.awserver.request.InputKeys;
 import edu.ucla.cens.awserver.request.PasswordChangeAwRequest;
@@ -40,7 +39,7 @@ public class PasswordChangeAwRequestCreator implements AwRequestCreator {
 		String password = request.getParameter(InputKeys.PASSWORD);
 		String authToken = request.getParameter(InputKeys.AUTH_TOKEN);
 		if((username != null) && (password != null)) {
-			User user = new UserImpl();
+			User user = new User();
 			user.setUserName(username);
 			user.setPassword(password);
 			newRequest.setUser(user);
