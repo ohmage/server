@@ -302,9 +302,13 @@ public abstract class AbstractAwRequest implements AwRequest {
 		if(key == null) {
 			throw new IllegalArgumentException("Null keys are dissallowed.");
 		}
+		// TODO: While this should be true, it isn't being missused where 
+		// addToValidate is being used.
+		/*
 		else if(value == null) {
 			throw new IllegalArgumentException("Null values are dissallowed.");
 		}
+		*/
 		else if((! overwrite) && (_toValidate.containsKey(key))) {
 			throw new IllegalArgumentException("The key '" + key + "' already exists but overwriting is disallowed.");
 		}
