@@ -1,0 +1,62 @@
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:util="http://www.springframework.org/schema/util"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
+                           http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-2.5.xsd">
+
+  <!-- The errors associated with documents. -->
+  <bean id="documentManipulationError" class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
+    <constructor-arg>
+      <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
+        <property name="code" value="1500" />
+        <property name="text" value="Document manipulation error." />
+      </bean>
+    </constructor-arg>
+  </bean>
+  
+  <bean id="documentUrnInvalidError" class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
+    <constructor-arg>
+      <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
+        <property name="code" value="1501" />
+        <property name="text" value="Invalid document URN." />
+      </bean>
+    </constructor-arg>
+  </bean>
+  
+  <bean id="documentNameInvalidError" class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
+    <constructor-arg>
+      <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
+        <property name="code" value="1502" />
+        <property name="text" value="Invalid document name." />
+      </bean>
+    </constructor-arg>
+  </bean>
+  
+  <bean id="documentInvalidError" class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
+    <constructor-arg>
+      <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
+        <property name="code" value="1503" />
+        <property name="text" value="The document is invalid." />
+      </bean>
+    </constructor-arg>
+  </bean>
+  
+  <bean id="documentPrivacyStateError" class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
+    <constructor-arg>
+      <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
+        <property name="code" value="1504" />
+        <property name="text" value="The privacy state for the document is invalid." />
+      </bean>
+    </constructor-arg>
+  </bean>
+  
+  <bean id="documentUrnAlreadyExistsError" class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
+    <constructor-arg>
+      <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
+        <property name="code" value="1505" />
+        <property name="text" value="The document's URN already exists." />
+      </bean>
+    </constructor-arg>
+  </bean>
+
+</beans>

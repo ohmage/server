@@ -10,6 +10,8 @@ import edu.ucla.cens.awserver.util.StringUtils;
  * Validates a class URN.
  * 
  * @author John Jenkins
+ * 
+ * @deprecated The generic URN validator should be used instead.
  */
 public class ClassUrnValidator extends AbstractAnnotatingValidator {
 	private static final Logger _logger = Logger.getLogger(ClassUrnValidator.class);

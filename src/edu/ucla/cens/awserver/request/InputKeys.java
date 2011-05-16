@@ -54,6 +54,7 @@ public class InputKeys {
 	
 	// User Constants
 	public static final String USER = "user";
+	public static final String NEW_PASSWORD = "new_password";
 	public static final String USER_LIST = "user_list";
 	public static final String USER_LIST_ADD = "user_list_add";
 	public static final String USER_LIST_REMOVE = "user_list_remove";

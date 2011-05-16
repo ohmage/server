@@ -41,4 +41,12 @@ public class ClassRoleCache extends StringAndIdCache {
 	public static ClassRoleCache instance() {
 		return _self;
 	}
+	
+	/**
+	 * Returns a human-readable name for this cache.
+	 */
+	@Override
+	public String getName() {
+		return CACHE_KEY;
+	}
 }

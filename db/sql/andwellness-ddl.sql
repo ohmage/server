@@ -343,14 +343,16 @@ CREATE TABLE document_role (
 -- --------------------------------------------------------------------
 CREATE TABLE document (
   id int unsigned NOT NULL auto_increment,
-  urn varchar(255) NOT NULL,
+  uuid char(36) NOT NULL,
   name varchar(255) NOT NULL,
   description text,
+  extension varchar(50),
   url text NOT NULL,
+  size int unsigned NOT NULL,
   privacy_state_id int unsigned NOT NULL,
   last_modified_timestamp timestamp default current_timestamp on update current_timestamp,
   PRIMARY KEY (id),
-  UNIQUE (urn),
+  UNIQUE (uuid),
   CONSTRAINT FOREIGN KEY (privacy_state_id) REFERENCES document_privacy_state (id) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 

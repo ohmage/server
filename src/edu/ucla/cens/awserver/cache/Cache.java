@@ -1,5 +1,7 @@
 package edu.ucla.cens.awserver.cache;
 
+import java.util.Set;
+
 import javax.sql.DataSource;
 
 /**
@@ -9,7 +11,7 @@ import javax.sql.DataSource;
  * 
  * @author John Jenkins
  */
-public class Cache {
+public abstract class Cache {
 	/**
 	 * The minimum allowed frequency of cache refreshes with the database.
 	 */
@@ -30,9 +32,8 @@ public class Cache {
 	 * @complexity O(1)
 	 */
 	protected Cache() {
-		// This may not be necessary as this is probably what Java defaults
-		// to, but given that we require this in the setter I want to
-		// explicitly declare it here.
+		// This helps us guarantee that the DataSource starts off as null to
+		// help assure that it will only be set once.
 		_dataSource = null;
 		
 		// Initialize the refresh times to "invalid" values such that the
@@ -59,11 +60,11 @@ public class Cache {
 	 */
 	public synchronized void setDataSource(DataSource dataSource) throws IllegalArgumentException {
 		if(_dataSource != null) {
-			throw new IllegalArgumentException("The DataSource may only be set once.");
+			throw new IllegalStateException("The DataSource may only be set once.");
 		}
-		else if(dataSource == null) {
+		if(dataSource == null) {
 			throw new IllegalArgumentException("The DataSource may not be null.");
-		} 
+		}
 		
 		_dataSource = dataSource;
 	}
@@ -97,4 +98,19 @@ public class Cache {
 		
 		_updateFrequency = frequencyInMilliseconds;
 	}
+	
+	/**
+	 * Gets the known keys for the cache.
+	 * 
+	 * @return Returns a Set of all their known keys and, if no keys are
+	 * 		   known, should return an empty Set.
+	 */
+	public abstract Set<String> getKeys();
+	
+	/**
+	 * Returns a human-readable name for this cache.
+	 * 
+	 * @return Returns a human-readable name for this cache.
+	 */
+	public abstract String getName();
 }

@@ -19,6 +19,8 @@ public class PreferenceCache extends KeyValueCache {
 	public static final String KEY_DEFAULT_SURVEY_RESPONSE_SHARING_STATE = "default_survey_response_sharing_state";
 	public static final String KEY_MAXIMUM_DOCUMENT_SIZE = "maximum_document_size";
 	public static final String KEY_DOCUMENT_DIRECTORY = "document_directory";
+	public static final String KEY_MAXIMUM_NUMBER_OF_DOCUMENTS_PER_DIRECTORY = "maximum_num_docs_per_directory";
+	public static final String KEY_DOCUMENT_DEPTH = "document_depth";
 	
 	// The reference to one's self to return to requesters.
 	private static PreferenceCache _self = new PreferenceCache();
@@ -38,5 +40,13 @@ public class PreferenceCache extends KeyValueCache {
 	 */
 	public static PreferenceCache instance() {
 		return _self;
+	}
+	
+	/**
+	 * Returns a human-readable name for this cache.
+	 */
+	@Override
+	public String getName() {
+		return CACHE_KEY;
 	}
 }

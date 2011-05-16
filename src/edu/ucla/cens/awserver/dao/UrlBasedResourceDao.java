@@ -62,6 +62,10 @@ public class UrlBasedResourceDao extends AbstractUploadDao {
 	 * storage; fileExtension for naming saved files with the appropriate extension; maxNumberOfDirs for the maximum number of
 	 * storage subdirectories; and maxNumberOfFiles for the maximum number of files per directory. The rootDirectory is used to 
 	 * create the initial directory for storage e.g. rootDirectory/000/000/000. 
+	 * 
+	 * Note: I believe the file extension may not be necessary here if we are
+	 * going to try to make this generic to all URL-based resources. Instead,
+	 * I would simply save the file without an extension and only as a number.
 	 */
 	public UrlBasedResourceDao(DataSource dataSource, String rootDirectory, String fileExtension, 
 			int maxNumberOfDirs, int maxNumberOfFiles) {

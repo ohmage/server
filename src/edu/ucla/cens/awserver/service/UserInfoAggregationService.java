@@ -22,7 +22,7 @@ public class UserInfoAggregationService extends AbstractAnnotatingDaoService {
 			getDao().execute(awRequest);
 			
 			if(awRequest.isFailedRequest()) {
-				this.getAnnotator().annotate(awRequest, "logged-in user attempting to lookup information about another user to which he does not have permissions");
+				getAnnotator().annotate(awRequest, "logged-in user attempting to lookup information about another user to which he does not have permissions");
 			}
 		}
 		catch(DataAccessException dae) {

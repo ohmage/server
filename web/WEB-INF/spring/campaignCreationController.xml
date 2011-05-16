@@ -65,7 +65,7 @@
       <bean class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
         <constructor-arg index="0">
           <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
-            <property name="code" value="0805" />
+            <property name="code" value="1204" />
             <property name="text" value="Invalid initial class list." />
           </bean>
        </constructor-arg>
@@ -121,8 +121,8 @@
       <bean class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
         <constructor-arg index="0">
           <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
-            <property name="code" value="0805" />
-            <property name="text" value="Invalid class list in campaign creation." />
+            <property name="code" value="1205" />
+            <property name="text" value="A class in the class list is unknown to the user. It could not exist in the system or the user could not have permissions to access it." />
           </bean>
        </constructor-arg>
       </bean>

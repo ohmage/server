@@ -723,12 +723,42 @@
       <param-name>responseWriterName</param-name>
       <param-value>documentCreationResponseWriter</param-value>
     </init-param>
-    <load-on-startup>1</load-on-startup>
   </servlet>
   
   <servlet-mapping>
     <servlet-name>DocumentCreationServlet</servlet-name>
     <url-pattern>/document/create</url-pattern>
+  </servlet-mapping>
+
+  <!-- Handle Change Password Requests -->
+  <servlet>
+    <description>
+      Changes a user's password.
+    </description>
+    <servlet-name>PasswordChangeServlet</servlet-name>
+    <servlet-class>edu.ucla.cens.awserver.jee.servlet.AwDataServlet</servlet-class>
+    <init-param>
+      <param-name>httpServletRequestValidatorName</param-name>
+      <param-value>passwordChangeHttpServletRequestValidator</param-value>
+    </init-param>
+    <init-param>
+      <param-name>awRequestCreatorName</param-name>
+      <param-value>passwordChangeAwRequestCreator</param-value>
+    </init-param>
+    <init-param>
+      <param-name>controllerName</param-name>
+      <param-value>passwordChangeController</param-value>
+    </init-param>
+    <init-param>
+      <param-name>responseWriterName</param-name>
+      <param-value>passwordChangeResponseWriter</param-value>
+    </init-param>
+    <load-on-startup>1</load-on-startup>
+  </servlet>
+  
+  <servlet-mapping>
+    <servlet-name>PasswordChangeServlet</servlet-name>
+    <url-pattern>/user/change_password</url-pattern>
   </servlet-mapping>
   
   <!--  Handle data point function queries -->

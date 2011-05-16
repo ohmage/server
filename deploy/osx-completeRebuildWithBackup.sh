@@ -94,8 +94,8 @@ else
 fi
 
 /opt/aw/thirdparty/mysql-5.1.40-osx10.5-x86_64/bin/mysql --user=andwellness --password=\&\!sickly -h localhost -P 3306 -S /opt/aw/dbs/logs/dbsd.sock andwellness </opt/aw/dbs/conf/preferences.sql
-if [$2 == mobility]; then
-	/opt/aw/thirdparty/mysql-5.1.40-osx10.5-x86_64/bin/mysql --user=andwellness --password=\&\!sickly -h localhost -P 3306 -S /opt/aw/dbs/logs/dbsd.sock andwellness </opt/aw/dbs/conf/mobility_preferences.sql
+if [$2 == mobilize]; then
+	/opt/aw/thirdparty/mysql-5.1.40-osx10.5-x86_64/bin/mysql --user=andwellness --password=\&\!sickly -h localhost -P 3306 -S /opt/aw/dbs/logs/dbsd.sock andwellness </opt/aw/dbs/conf/mobilize_preferences.sql
 elif [$2 == chipts]; then
         /opt/aw/thirdparty/mysql-5.1.40-osx10.5-x86_64/bin/mysql --user=andwellness --password=\&\!sickly -h localhost -P 3306 -S /opt/aw/dbs/logs/dbsd.sock andwellness </opt/aw/dbs/conf/chipts_preferences.sql
 else
