@@ -47,6 +47,7 @@ public class InputKeys {
 	public static final String SURVEY_ID = "survey_id";
 	public static final String SURVEY_ID_LIST = "survey_id_list";
 	public static final String SURVEY_FUNCTION_ID = "id"; // This should probably be more descriptive.
+	public static final String SURVEY_KEY = "survey_key";
 	
 	// Prompt Constants
 	public static final String PROMPT_ID = "prompt_id";
@@ -72,6 +73,9 @@ public class InputKeys {
 	public static final String OUTPUT_FORMAT = "output_format";
 	public static final String PRETTY_PRINT = "pretty_print";
 	public static final String SORT_ORDER = "sort_order";
+	public static final String SORT_ORDER_USER = "user";
+	public static final String SORT_ORDER_TIMESTAMP = "timestamp";
+	public static final String SORT_ORDER_SURVEY = "survey";
 	public static final String SUPPRESS_METADATA = "suppress_metadata";
 	public static final String COLUMN_LIST = "column_list";
 	public static final String RETURN_ID = "return_id";

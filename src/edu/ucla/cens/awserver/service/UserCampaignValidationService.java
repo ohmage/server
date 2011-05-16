@@ -26,8 +26,6 @@ public class UserCampaignValidationService extends AbstractAnnotatingService {
 		
 		Set<String> allowedCampaigns = awRequest.getUser().getCampaignUserRoleMap().keySet();
 		
-		//_logger.warn("campaigns: " + allowedCampaigns);
-		
 		if(! allowedCampaigns.contains(awRequest.getCampaignUrn())) {
 			_logger.warn("user attempting to access a campaign they do not belong to. user: " + 
 				awRequest.getUser().getUserName() + " campaign: " + awRequest.getCampaignUrn());
