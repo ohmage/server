@@ -7,7 +7,12 @@ package edu.ucla.cens.awserver.cache;
  * @author John Jenkins
  */
 public class PreferenceCache extends KeyValueCache {
-	private static final String SQL_GET_KEYS_AND_VALUES = "SELECT p_key, p_value " +
+	// Column names for preference table.
+	private static final String KEY_COLUMN = "p_key";
+	private static final String VALUE_COLUMN = "p_value";
+	
+	// SQL to retrieve the values.
+	private static final String SQL_GET_KEYS_AND_VALUES = "SELECT " + KEY_COLUMN + ", " + VALUE_COLUMN + " " +
 														  "FROM preference";
 	
 	// When we are requesting a cache in the Spring files, we use this
@@ -29,7 +34,7 @@ public class PreferenceCache extends KeyValueCache {
 	 * Default constructor set private to make this a Singleton.
 	 */
 	protected PreferenceCache() {
-		super(SQL_GET_KEYS_AND_VALUES);
+		super(SQL_GET_KEYS_AND_VALUES, KEY_COLUMN, VALUE_COLUMN);
 	}
 	
 	/**

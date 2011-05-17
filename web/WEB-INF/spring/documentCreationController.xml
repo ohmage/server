@@ -62,14 +62,13 @@
       <ref bean="documentManipulationError" />
     </constructor-arg>
     <constructor-arg>
-      <bean class="edu.ucla.cens.awserver.dao.UrlBasedResourceDao">
+      <bean class="edu.ucla.cens.awserver.dao.DocumentCreationDao">
         <constructor-arg>
           <ref bean="dataSource"/>
         </constructor-arg>
-        <constructor-arg index="1" value="${system.imageDir}"/> <!-- root directory for storage -->
-        <constructor-arg index="2" value=".jpg" /> <!-- file extension -->
-        <constructor-arg index="3" value="1000" /> <!-- max number of dirs -->
-        <constructor-arg index="4" value="1000" /> <!-- max number of files -->
+        <constructor-arg>
+          <util:constant static-field="edu.ucla.cens.awserver.cache.PreferenceCache.KEY_DOCUMENT_DIRECTORY"/>
+        </constructor-arg>
       </bean>
     </constructor-arg>
   </bean>

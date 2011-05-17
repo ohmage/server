@@ -47,7 +47,7 @@ public abstract class StringAndIdCache extends Cache {
 	}
 	
 	// The lookup table for translating strings to IDs and visa versa.
-	protected static BidirectionalHashMap<String, Integer> _stringAndIdMap;
+	private BidirectionalHashMap<String, Integer> _stringAndIdMap;
 	
 	// The SQL to use to get the values which must return a String value and
 	// an integer value as dictated by the private class StringAndId.

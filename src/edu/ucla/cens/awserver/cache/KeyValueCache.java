@@ -61,11 +61,14 @@ public abstract class KeyValueCache extends Cache {
 	 * Default constructor that calls its parent and is protected to maintain
 	 * the Singleton-ness.
 	 */
-	protected KeyValueCache(String sqlForRetrievingValues) {
+	protected KeyValueCache(String sqlForRetrievingValues, String keyColumn, String valueColumn) {
 		super();
 		
 		_keyValueMap = new HashMap<String, String>();
 		_sqlForRetrievingValues = sqlForRetrievingValues;
+		
+		_keyColumn = keyColumn;
+		_valueColumn = valueColumn;
 	}
 	
 	/**

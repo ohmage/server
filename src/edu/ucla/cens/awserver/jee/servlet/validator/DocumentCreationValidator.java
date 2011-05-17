@@ -128,6 +128,7 @@ public class DocumentCreationValidator extends AbstractHttpServletRequestValidat
 					}
 					description = fieldValue;
 				}
+				
 			} else {
 				if(InputKeys.DOCUMENT.equals(fi.getFieldName())) {					
 					document = new String(fi.get()); // Gets the document.
