@@ -317,3 +317,97 @@ CREATE TABLE preference (
   p_value varchar(255) NOT NULL,
   UNIQUE (p_key, p_value)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+-- --------------------------------------------------------------------
+-- Lookup table for the privacy states of a document.
+-- --------------------------------------------------------------------
+CREATE TABLE document_privacy_state (
+  id int unsigned NOT NULL auto_increment,
+  privacy_state varchar(50) NOT NULL,
+  PRIMARY KEY (id),
+  UNIQUE (privacy_state)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+-- --------------------------------------------------------------------
+-- Lookup table for roles for a document.
+-- --------------------------------------------------------------------
+CREATE TABLE document_role (
+  id int unsigned NOT NULL auto_increment,
+  role varchar(50) NOT NULL,
+  PRIMARY KEY (id),
+  UNIQUE (role)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+-- --------------------------------------------------------------------
+-- Documents associated with a campaign.
+-- --------------------------------------------------------------------
+CREATE TABLE document (
+  id int unsigned NOT NULL auto_increment,
+  uuid char(36) NOT NULL,
+  name varchar(255) NOT NULL,
+  description text,
+  extension varchar(50),
+  url text NOT NULL,
+  size int unsigned NOT NULL,
+  privacy_state_id int unsigned NOT NULL,
+  last_modified_timestamp timestamp default current_timestamp on update current_timestamp,
+  PRIMARY KEY (id),
+  UNIQUE (uuid),
+  CONSTRAINT FOREIGN KEY (privacy_state_id) REFERENCES document_privacy_state (id) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+-- --------------------------------------------------------------------
+-- Link of documents to classes.
+-- --------------------------------------------------------------------
+CREATE TABLE document_class_role (
+  id int unsigned NOT NULL auto_increment,
+  document_id int unsigned NOT NULL,
+  class_id int unsigned NOT NULL,
+  document_role_id int unsigned NOT NULL,
+  PRIMARY KEY (id),
+  UNIQUE (document_id, class_id),
+  CONSTRAINT FOREIGN KEY (document_id) REFERENCES document (id) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT FOREIGN KEY (class_id) REFERENCES class (id) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+-- --------------------------------------------------------------------
+-- Link of documents to campaigns.
+-- --------------------------------------------------------------------
+CREATE TABLE document_campaign_role (
+  id int unsigned NOT NULL auto_increment,
+  document_id int unsigned NOT NULL,
+  campaign_id int unsigned NOT NULL,
+  document_role_id int unsigned NOT NULL,
+  PRIMARY KEY (id),
+  UNIQUE (document_id, campaign_id),
+  CONSTRAINT FOREIGN KEY (document_id) REFERENCES document (id) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT FOREIGN KEY (campaign_id) REFERENCES campaign (id) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+-- --------------------------------------------------------------------
+-- Link of documents to users.
+-- --------------------------------------------------------------------
+CREATE TABLE document_user_role (
+  id int unsigned NOT NULL auto_increment,
+  document_id int unsigned NOT NULL,
+  user_id int unsigned NOT NULL,
+  document_role_id int unsigned NOT NULL,
+  PRIMARY KEY (id),
+  UNIQUE (document_id, user_id),
+  CONSTRAINT FOREIGN KEY (document_id) REFERENCES document (id) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT FOREIGN KEY (user_id) REFERENCES user (id) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+-- --------------------------------------------------------------------
+-- Audit trail for who created which document
+-- --------------------------------------------------------------------
+CREATE TABLE document_user_creator (
+  id int unsigned NOT NULL auto_increment,
+  document_id int unsigned NOT NULL,
+  user_id int unsigned NOT NULL,
+  creation_timestamp datetime NOT NULL,
+  PRIMARY KEY (id),
+  UNIQUE (document_id),
+  CONSTRAINT FOREIGN KEY (document_id) REFERENCES document (id) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT FOREIGN KEY (user_id) REFERENCES user (id) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;

@@ -13,13 +13,11 @@ import org.springframework.jdbc.core.RowMapper;
 import edu.ucla.cens.awserver.domain.BidirectionalHashMap;
 
 /**
- * A cache designed for String-ID relationships. No direct instance of this
- * ever exists because all subclasses should be either abstracted (but not
- * abstract) the same as this one, or should be concrete Singletons.
+ * A abstract cache designed for String-ID relationships.
  * 
  * @author John Jenkins
  */
-public class StringAndIdCache extends Cache {
+public abstract class StringAndIdCache extends Cache {
 	private static Logger _logger = Logger.getLogger(StringAndIdCache.class);
 	
 	/**
@@ -28,7 +26,7 @@ public class StringAndIdCache extends Cache {
 	 *  
 	 * @author John Jenkins
 	 */
-	protected static class StringAndId {
+	private class StringAndId {
 		public int _id;
 		public String _string;
 		
@@ -49,7 +47,7 @@ public class StringAndIdCache extends Cache {
 	}
 	
 	// The lookup table for translating strings to IDs and visa versa.
-	protected static BidirectionalHashMap<String, Integer> _stringAndIdMap;
+	protected BidirectionalHashMap<String, Integer> _stringAndIdMap;
 	
 	// The SQL to use to get the values which must return a String value and
 	// an integer value as dictated by the private class StringAndId.
@@ -155,7 +153,8 @@ public class StringAndIdCache extends Cache {
 	 * 
 	 * @return All known strings.
 	 */
-	public Set<String> getStrings() {
+	@Override
+	public Set<String> getKeys() {
 		// If the lookup table is out-of-date, refresh it.
 		if((_lastUpdateTimestamp + _updateFrequency) <= System.currentTimeMillis()) {
 			refreshMap();
@@ -163,6 +162,14 @@ public class StringAndIdCache extends Cache {
 		
 		return _stringAndIdMap.keySet();
 	}
+	
+	/**
+	 * Gets a human-readable name for this cache.
+	 * 
+	 * @return Returns a human-readable name for their cache.
+	 */
+	@Override
+	public abstract String getName();
 	
 	/**
 	 * Reads the database for the information in the lookup table and

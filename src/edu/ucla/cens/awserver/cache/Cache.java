@@ -1,5 +1,7 @@
 package edu.ucla.cens.awserver.cache;
 
+import java.util.Set;
+
 import javax.sql.DataSource;
 
 /**
@@ -9,7 +11,7 @@ import javax.sql.DataSource;
  * 
  * @author John Jenkins
  */
-public class Cache {
+public abstract class Cache {
 	/**
 	 * The minimum allowed frequency of cache refreshes with the database.
 	 */
@@ -96,4 +98,19 @@ public class Cache {
 		
 		_updateFrequency = frequencyInMilliseconds;
 	}
+	
+	/**
+	 * Gets the known keys for the cache.
+	 * 
+	 * @return Returns a Set of all their known keys and, if no keys are
+	 * 		   known, should return an empty Set.
+	 */
+	public abstract Set<String> getKeys();
+	
+	/**
+	 * Returns a human-readable name for this cache.
+	 * 
+	 * @return Returns a human-readable name for this cache.
+	 */
+	public abstract String getName();
 }

@@ -63,7 +63,7 @@
       </bean>
     </constructor-arg>
     <constructor-arg index="1">
-      <util:constant static-field="edu.ucla.cens.awserver.cache.CampaignPrivacyStateCache.CACHE_KEY"/>
+      <ref bean="campaignPrivacyStateCache" />
     </constructor-arg>
     <constructor-arg index="2">
       <util:constant static-field="edu.ucla.cens.awserver.request.InputKeys.PRIVACY_STATE"/>
@@ -83,7 +83,7 @@
       </bean>
     </constructor-arg>
     <constructor-arg index="1">
-      <util:constant static-field="edu.ucla.cens.awserver.cache.CampaignPrivacyStateCache.CACHE_KEY"/>
+      <ref bean="campaignPrivacyStateCache" />
     </constructor-arg>
     <constructor-arg index="2">
       <util:constant static-field="edu.ucla.cens.awserver.request.InputKeys.PRIVACY_STATE"/>
@@ -103,7 +103,7 @@
       </bean>
     </constructor-arg>
     <constructor-arg index="1">
-      <util:constant static-field="edu.ucla.cens.awserver.cache.CampaignRunningStateCache.CACHE_KEY"/>
+      <ref bean="campaignRunningStateCache" />
     </constructor-arg>
     <constructor-arg index="2">
       <util:constant static-field="edu.ucla.cens.awserver.request.InputKeys.RUNNING_STATE"/>
@@ -123,7 +123,7 @@
       </bean>
     </constructor-arg>
     <constructor-arg index="1">
-      <util:constant static-field="edu.ucla.cens.awserver.cache.CampaignRunningStateCache.CACHE_KEY"/>
+      <ref bean="campaignRunningStateCache" />
     </constructor-arg>
     <constructor-arg index="2">
       <util:constant static-field="edu.ucla.cens.awserver.request.InputKeys.RUNNING_STATE"/>

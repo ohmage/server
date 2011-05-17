@@ -44,4 +44,12 @@ public class SurveyResponsePrivacyStateCache extends StringAndIdCache {
 	public static SurveyResponsePrivacyStateCache instance() {
 		return _self;
 	}
+	
+	/**
+	 * Returns a human-readable name for this cache.
+	 */
+	@Override
+	public String getName() {
+		return CACHE_KEY;
+	}
 }

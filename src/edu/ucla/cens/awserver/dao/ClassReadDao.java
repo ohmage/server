@@ -18,6 +18,15 @@ import edu.ucla.cens.awserver.request.InputKeys;
  * Reads the information about each of the classes in the list and sets the
  * appropriate values in the request.
  * 
+ * FIXME: This does no checking on the ACL, and needs to be updated to do so:
+ * 	- For each class in the list,
+ * 		- If the user is privileged and the user_personal=true flag is set, 
+ * 			return all of the users' class role, first name, last name,
+ * 			organization, personal ID, and email address.
+ * 		- If the user is restricted and the user_personal=true flag is set,
+ * 			return all of the users' class role, first name, last name,
+ * 			organization, and email address. 
+ * 
  * @author John Jenkins
  */
 public class ClassReadDao extends AbstractDao {

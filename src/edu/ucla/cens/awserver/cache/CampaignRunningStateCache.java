@@ -43,4 +43,12 @@ public class CampaignRunningStateCache extends StringAndIdCache{
 	public static CampaignRunningStateCache instance() {
 		return _self;
 	}
+	
+	/**
+	 * Returns a human-readable name for this cache.
+	 */
+	@Override
+	public String getName() {
+		return CACHE_KEY;
+	}
 }

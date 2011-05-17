@@ -20,14 +20,16 @@ import edu.ucla.cens.awserver.request.AwRequest;
 public class UserRoleCampaignPopulationDao extends AbstractDao {
 	private static Logger _logger = Logger.getLogger(UserRoleCampaignPopulationDao.class);
 	
-	private static final String _selectSql = "SELECT campaign.urn, campaign.name, campaign.description, campaign.running_state,"
-			                                 + " campaign.privacy_state, campaign.creation_timestamp, user_role_campaign.user_role_id,"
+	private static final String _selectSql = "SELECT campaign.urn, campaign.name, campaign.description, campaign_running_state.running_state,"
+			                                 + " campaign_privacy_state.privacy_state, campaign.creation_timestamp, user_role_campaign.user_role_id,"
 			                                 + " user_role.role"
-        									 + " FROM campaign, user, user_role_campaign, user_role"
+        									 + " FROM campaign, user, user_role_campaign, user_role, campaign_privacy_state, campaign_running_state"
         									 + " WHERE user.login_id = ?"
         									 +   " AND user.id = user_role_campaign.user_id"
         									 +   " AND campaign.id = user_role_campaign.campaign_id"
-        									 +   " AND user_role.id = user_role_campaign.user_role_id";
+        									 +   " AND user_role.id = user_role_campaign.user_role_id"
+        									 +	 " AND campaign_privacy_state.id = campaign.privacy_state_id"
+	                                         +	 " AND campaign_running_state.id = campaign.running_state_id";
 
 	public UserRoleCampaignPopulationDao(DataSource dataSource) {
 		super(dataSource);

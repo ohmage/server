@@ -35,7 +35,6 @@ public class InputKeys {
 	// Campaign Constants
 	public static final String CAMPAIGN_URN = "campaign_urn";
 	public static final String CAMPAIGN_URN_LIST = "campaign_urn_list";
-	public static final String DESCRIPTION = "description";
 	public static final String XML = "xml";
 	
 	// Class Constants
@@ -79,4 +78,12 @@ public class InputKeys {
 	public static final String SUPPRESS_METADATA = "suppress_metadata";
 	public static final String COLUMN_LIST = "column_list";
 	public static final String RETURN_ID = "return_id";
+	
+	// Shared Constants
+	public static final String DESCRIPTION = "description";
+	
+	// Document Constants
+	public static final String DOCUMENT = "document";
+	public static final String DOCUMENT_URN = "document_urn";
+	public static final String DOCUMENT_NAME = "document_name";
 }

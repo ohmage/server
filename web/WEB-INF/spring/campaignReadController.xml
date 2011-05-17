@@ -122,7 +122,7 @@
       </bean>
     </constructor-arg>
     <constructor-arg index="1">
-      <util:constant static-field="edu.ucla.cens.awserver.cache.CampaignRoleCache.CACHE_KEY"/>
+      <ref bean="campaignRoleCache" />
     </constructor-arg>
     <constructor-arg index="2">
       <util:constant static-field="edu.ucla.cens.awserver.request.InputKeys.USER_ROLE"/>

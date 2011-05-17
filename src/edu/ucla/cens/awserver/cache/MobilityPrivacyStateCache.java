@@ -41,4 +41,12 @@ public class MobilityPrivacyStateCache extends StringAndIdCache {
 	public static MobilityPrivacyStateCache instance() {
 		return _self;
 	}
+	
+	/**
+	 * Returns a human-readable name for this cache.
+	 */
+	@Override
+	public String getName() {
+		return CACHE_KEY;
+	}
 }

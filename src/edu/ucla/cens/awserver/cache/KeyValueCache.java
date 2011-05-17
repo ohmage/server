@@ -13,13 +13,11 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 
 /**
- * The cache class for key-value pairs. No direct instance of this ever exists
- * because all subclasses should be either abstracted (but not abstract) the
- * same as this one, or should be concrete Singletons.
+ * The abstract cache class for key-value pairs.
  * 
  * @author John Jenkins
  */
-public class KeyValueCache extends Cache {
+public abstract class KeyValueCache extends Cache {
 	private static Logger _logger = Logger.getLogger(KeyValueCache.class);
 	
 	/**
@@ -63,11 +61,14 @@ public class KeyValueCache extends Cache {
 	 * Default constructor that calls its parent and is protected to maintain
 	 * the Singleton-ness.
 	 */
-	protected KeyValueCache(String sqlForRetrievingValues) {
+	protected KeyValueCache(String sqlForRetrievingValues, String keyKey, String valueKey) {
 		super();
 		
 		_keyValueMap = new HashMap<String, String>();
 		_sqlForRetrievingValues = sqlForRetrievingValues;
+		
+		_keyColumn = keyKey;
+		_valueColumn = valueKey;
 	}
 	
 	/**
@@ -114,6 +115,7 @@ public class KeyValueCache extends Cache {
 	 * 
 	 * @return All known keys.
 	 */
+	@Override
 	public Set<String> getKeys() {
 		// If the lookup table is out-of-date, refresh it.
 		if((_lastUpdateTimestamp + _updateFrequency) <= System.currentTimeMillis()) {
@@ -122,6 +124,14 @@ public class KeyValueCache extends Cache {
 		
 		return _keyValueMap.keySet();
 	}
+	
+	/**
+	 * Gets a human-readable name for this cache.
+	 * 
+	 * @return Returns a human-readable name for their cache.
+	 */
+	@Override
+	public abstract String getName();
 	
 	/**
 	 * Reads the database for the information in the lookup table and

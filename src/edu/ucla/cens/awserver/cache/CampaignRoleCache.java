@@ -44,4 +44,12 @@ public class CampaignRoleCache extends StringAndIdCache {
 	public static CampaignRoleCache instance() {
 		return _self;
 	}
+	
+	/**
+	 * Returns a human-readable name for this cache.
+	 */
+	@Override
+	public String getName() {
+		return CACHE_KEY;
+	}
 }

@@ -49,6 +49,7 @@ public class ClassListValidationDao extends AbstractDao {
 	 */
 	@Override
 	public void execute(AwRequest awRequest) {
+		// Get the list of classes.
 		String classesAsString;
 		try {
 			classesAsString = (String) awRequest.getToProcessValue(InputKeys.CLASS_URN_LIST);
@@ -64,9 +65,11 @@ public class ClassListValidationDao extends AbstractDao {
 			}
 		}
 		
+		// For each class in the list,
 		String[] classes = classesAsString.split(",");
 		String userLogin = awRequest.getUser().getUserName();
 		for(int i = 0; i < classes.length; i++) {
+			// Ensure that the class exists.
 			int numClasses;
 			try {
 				numClasses = getJdbcTemplate().queryForInt(SQL_CLASS_COUNT, new Object[] { classes[i] });
@@ -81,6 +84,7 @@ public class ClassListValidationDao extends AbstractDao {
 				return;
 			}
 			
+			// Ensure that the user is in the class.
 			int userBelongs;
 			try {
 				userBelongs = getJdbcTemplate().queryForInt(SQL_USER_IN_CLASS, new Object [] { classes[i], userLogin });

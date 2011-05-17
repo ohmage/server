@@ -729,6 +729,36 @@
     <url-pattern>/class/update</url-pattern>
   </servlet-mapping>
   
+  <!-- Handle document creation -->
+  <servlet>
+    <description>
+      Creates a document
+    </description>
+    <servlet-name>DocumentCreationServlet</servlet-name>
+    <servlet-class>edu.ucla.cens.awserver.jee.servlet.AwDataServlet</servlet-class>
+    <init-param>
+      <param-name>httpServletRequestValidatorName</param-name>
+      <param-value>documentCreationHttpServletRequestValidator</param-value>
+    </init-param>
+    <init-param>
+      <param-name>awRequestCreatorName</param-name>
+      <param-value>documentCreationAwRequestCreator</param-value>
+    </init-param>
+    <init-param>
+      <param-name>controllerName</param-name>
+      <param-value>documentCreationController</param-value>
+    </init-param>
+    <init-param>
+      <param-name>responseWriterName</param-name>
+      <param-value>documentCreationResponseWriter</param-value>
+    </init-param>
+  </servlet>
+  
+  <servlet-mapping>
+    <servlet-name>DocumentCreationServlet</servlet-name>
+    <url-pattern>/document/create</url-pattern>
+  </servlet-mapping>
+
   <!-- Handle Change Password Requests -->
   <servlet>
     <description>

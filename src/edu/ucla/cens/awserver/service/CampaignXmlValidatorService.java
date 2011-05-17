@@ -57,7 +57,7 @@ public class CampaignXmlValidatorService extends AbstractAnnotatingService {
 		try {
 			campaignXml = (String) awRequest.getToProcessValue(InputKeys.XML);
 		}
-		catch(IllegalArgumentException outterException) {
+		catch(IllegalArgumentException outerException) {
 			try {
 				campaignXml = (String) awRequest.getToValidateValue(InputKeys.XML);
 			}
