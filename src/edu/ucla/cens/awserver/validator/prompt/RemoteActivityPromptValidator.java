@@ -29,17 +29,20 @@ public class RemoteActivityPromptValidator extends AbstractPromptValidator {
 	 */
 	@Override
 	public boolean validate(Prompt prompt, JSONObject promptResponse) {
-		_logger.debug("Recieved message");
+		// If it wasn't displayed then it is valid.
 		if(isNotDisplayed(prompt, promptResponse))
 		{
 			return true;
 		}
 		
+		// If it was skipped then just make sure it was skippable.
 		if(isSkipped(prompt, promptResponse))
 		{
 			return isValidSkipped(prompt, promptResponse);
 		}
 		
+		// Get the JSONArray that is the return value. This should always be
+		// something even if it is an empty array.
 		JSONArray responseJsonArray = JsonUtils.getJsonArrayFromJsonObject(promptResponse, "value");
 		if(responseJsonArray == null)
 		{
@@ -47,15 +50,29 @@ public class RemoteActivityPromptValidator extends AbstractPromptValidator {
 			return false;
 		}
 		
+		// Get the number of retries and ensure that they aren't reporting that
+		// they ran it more than that many times.
 		int numRetries = Integer.parseInt(prompt.getProperties().get("retries").getLabel());
 		if(responseJsonArray.length() > (numRetries + 1)) {
 			_logger.info("Too many responses in JSONArray for prompt: " + prompt.getId());
+			return false;
 		}
 		
+		// Get the minimum number of times that they were required to run it 
+		// and ensure that they ran it at least that many times.
+		int minRuns = Integer.parseInt(prompt.getProperties().get("minRuns").getLabel());
+		if(responseJsonArray.length() < minRuns) {
+			_logger.info("Not enough runs of the remote Activity. The XML requires " + minRuns + ", but we only received " + responseJsonArray.length() + ".");
+			return false;
+		}
+		
+		// For each of the individual runs,
 		for(int i = 0; i < responseJsonArray.length(); i++) {
 			try {
+				// Check that it is a valid JSONObject.
 				JSONObject currJsonObject = responseJsonArray.getJSONObject(i);
 				
+				// Check that the score exists and is a valid number.
 				Double currScore = Double.valueOf(currJsonObject.get(SINGLE_VALUE_KEY).toString());
 				
 				if(currScore == null) {
