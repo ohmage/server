@@ -32,10 +32,11 @@ public class SurveyResponseUpdateAwRequestCreator implements AwRequestCreator {
 		
 		SurveyResponseUpdateAwRequest internalRequest = 
 			new SurveyResponseUpdateAwRequest(request.getParameter(InputKeys.CAMPAIGN_URN),
-					                          request.getParameter(InputKeys.SURVEY_ID),
+					                          request.getParameter(InputKeys.SURVEY_KEY),
 					                          request.getParameter(InputKeys.PRIVACY_STATE));
 		
 		internalRequest.setUserToken(request.getParameter(InputKeys.AUTH_TOKEN));
+		internalRequest.setCampaignUrn(request.getParameter(InputKeys.CAMPAIGN_URN));
 		
 		return internalRequest;
 	}

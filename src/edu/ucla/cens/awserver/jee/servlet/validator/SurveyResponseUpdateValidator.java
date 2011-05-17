@@ -26,10 +26,10 @@ public class SurveyResponseUpdateValidator extends AbstractHttpServletRequestVal
 	 * Validates that the required parameters exist and represent sane values based on their lengths.
 	 */
 	@Override
-	public boolean validate(HttpServletRequest httpRequest) {		
+	public boolean validate(HttpServletRequest httpRequest) {		 
 		String token = httpRequest.getParameter(InputKeys.AUTH_TOKEN);
 		String campaignUrn = httpRequest.getParameter(InputKeys.CAMPAIGN_URN);
-		String surveyId = httpRequest.getParameter(InputKeys.SURVEY_ID);
+		String surveyKey = httpRequest.getParameter(InputKeys.SURVEY_KEY);
 		String privacyState = httpRequest.getParameter(InputKeys.PRIVACY_STATE);
 		
 		if(StringUtils.isEmptyOrWhitespaceOnly(token)) {
@@ -39,7 +39,7 @@ public class SurveyResponseUpdateValidator extends AbstractHttpServletRequestVal
 		else if(StringUtils.isEmptyOrWhitespaceOnly(campaignUrn)) {
 			return false;
 		} 
-		else if(StringUtils.isEmptyOrWhitespaceOnly(surveyId)) {
+		else if(StringUtils.isEmptyOrWhitespaceOnly(surveyKey)) {
 			return false;
 		}
 		else if(StringUtils.isEmptyOrWhitespaceOnly(privacyState)) {
@@ -54,8 +54,8 @@ public class SurveyResponseUpdateValidator extends AbstractHttpServletRequestVal
 			_logger.warn(InputKeys.CAMPAIGN_URN + " is too long.");
 			return false;
 		} 
-		else if(greaterThanLength(InputKeys.SURVEY_ID, InputKeys.SURVEY_ID, surveyId, 10)) {
-			_logger.warn(InputKeys.SURVEY_ID + " is too long.");
+		else if(greaterThanLength(InputKeys.SURVEY_KEY, InputKeys.SURVEY_KEY, surveyKey, 10)) {
+			_logger.warn(InputKeys.SURVEY_KEY + " is too long.");
 			return false;
 		}
 		else if(greaterThanLength(InputKeys.PRIVACY_STATE, InputKeys.PRIVACY_STATE, privacyState, 9)) {
