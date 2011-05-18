@@ -60,10 +60,16 @@ public class RemoteActivityPromptValidator extends AbstractPromptValidator {
 		
 		// Get the minimum number of times that they were required to run it 
 		// and ensure that they ran it at least that many times.
-		int minRuns = Integer.parseInt(prompt.getProperties().get("minRuns").getLabel());
-		if(responseJsonArray.length() < minRuns) {
-			_logger.info("Not enough runs of the remote Activity. The XML requires " + minRuns + ", but we only received " + responseJsonArray.length() + ".");
-			return false;
+		// FIXME: Remove try-catch once min_runs has become required.
+		if(prompt.getProperties().containsKey("min_runs")) {
+			int minRuns = Integer.parseInt(prompt.getProperties().get("min_runs").getLabel());
+			if(responseJsonArray.length() < minRuns) {
+				_logger.info("Not enough runs of the remote Activity. The XML requires " + minRuns + ", but we only received " + responseJsonArray.length() + ".");
+				return false;
+			}
+		}
+		else {
+			_logger.warn("Need to make the 'min_runs' property exist in all campaigns.");
 		}
 		
 		// For each of the individual runs,
