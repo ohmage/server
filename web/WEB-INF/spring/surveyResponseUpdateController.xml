@@ -25,10 +25,9 @@
         <ref bean="userCampaignValidationService" />
         <ref bean="surveyResponseSupervisorUpdateCampaignRunningStateValidationService" />
         <ref bean="surveyResponseParticipantUpdateCampaignRunningStateValidationService" />
-        
+        <ref bean="surveyKeyExistsService" />
         <!-- perform the update query -->
-        
-        
+        <ref bean="surveyResponseUpdateService" />
       </list>
     </constructor-arg>
     <constructor-arg index="1">
@@ -51,7 +50,7 @@
         <constructor-arg index="0"> 
           <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
             <property name="code" value="0716" />
-            <property name="text" value="participants cannot query stopped campaigns" />
+            <property name="text" value="participants, analysts, or authors cannot change survey response state in stopped campaigns" />
           </bean>
         </constructor-arg>
       </bean>
@@ -70,7 +69,7 @@
         <constructor-arg index="0"> 
           <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
             <property name="code" value="0716" />
-            <property name="text" value="participants cannot query stopped campaigns" />
+            <property name="text" value="analysts and authors cannot change survey response state in running campaigns" />
           </bean>
         </constructor-arg>
       </bean>
@@ -93,6 +92,36 @@
             <property name="code" value="0720" />
             <property name="text" value="invalid survey_key" />
           </bean>
+        </constructor-arg>
+      </bean>
+    </constructor-arg>
+  </bean>
+  
+  <bean id="surveyKeyExistsService" class="edu.ucla.cens.awserver.service.SurveyKeyExistsService">
+    <constructor-arg index="0">
+      <bean class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
+        <constructor-arg index="0"> 
+          <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
+            <property name="code" value="0720" />
+            <property name="text" value="invalid survey_key" />
+          </bean>
+        </constructor-arg>
+      </bean>
+    </constructor-arg>  
+    <constructor-arg index="1">
+      <bean class="edu.ucla.cens.awserver.dao.SurveyKeyExistsDao">
+        <constructor-arg index="0">
+          <ref bean="dataSource"/>
+        </constructor-arg>
+      </bean>
+    </constructor-arg>
+  </bean>
+  
+  <bean id="surveyResponseUpdateService" class="edu.ucla.cens.awserver.service.SimpleQueryService">
+    <constructor-arg index="0">
+      <bean class="edu.ucla.cens.awserver.dao.SurveyResponseUpdateDao">
+        <constructor-arg index="0">
+          <ref bean="dataSource"/>
         </constructor-arg>
       </bean>
     </constructor-arg>
