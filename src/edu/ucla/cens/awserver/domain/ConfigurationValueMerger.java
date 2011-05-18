@@ -184,7 +184,12 @@ public class ConfigurationValueMerger {
 				}
 			}
 			
-			result.setDisplayValue(total / responseArray.length());
+			if(responseArray.length() == 0) {
+				result.setDisplayValue(0.0);
+			}
+			else {
+				result.setDisplayValue(total / responseArray.length());
+			}
 		}
 		else {
 			result.setDisplayValue(String.valueOf(result.getResponse()));
