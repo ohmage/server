@@ -3,9 +3,9 @@
        xmlns:util="http://www.springframework.org/schema/util"
        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
                            http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-2.5.xsd">
-  <!--  
-     Spring ApplicationContext configuration for /app/survey_response/update
-  -->
+  
+  <!-- Spring ApplicationContext configuration for /app/survey_response/update -->
+  
   <!-- Servlet-to-AW hooks -->
   <!-- "pre-validate" inbound data -->
   <bean id="surveyResponseUpdateHttpServletRequestValidator" class="edu.ucla.cens.awserver.jee.servlet.validator.SurveyResponseUpdateValidator" />
@@ -19,15 +19,21 @@
       <list>
         <!-- authenticate -->
         <ref bean="tokenBasedAuthenticationService" />
+        
         <!-- find the campaigns for the logged-in user -->
         <ref bean="userRoleCampaignPopulationService" />
+        
         <!-- authorize -->
         <ref bean="userCampaignValidationService" />
         <ref bean="surveyResponseSupervisorUpdateCampaignRunningStateValidationService" />
         <ref bean="surveyResponseParticipantUpdateCampaignRunningStateValidationService" />
         <ref bean="surveyKeyExistsService" />
+        <!-- if the logged-in user is a participant, they can only update responses that they own -->
+        <ref bean="surveyKeyExistsForParticipantValidationService" />
+        
         <!-- perform the update query -->
         <ref bean="surveyResponseUpdateService" />
+        
       </list>
     </constructor-arg>
     <constructor-arg index="1">
@@ -97,7 +103,7 @@
     </constructor-arg>
   </bean>
   
-  <bean id="surveyKeyExistsService" class="edu.ucla.cens.awserver.service.SurveyKeyExistsService">
+  <bean id="surveyKeyExistsService" class="edu.ucla.cens.awserver.service.GenericAnnotatingDaoService">
     <constructor-arg index="0">
       <bean class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
         <constructor-arg index="0"> 
@@ -110,6 +116,28 @@
     </constructor-arg>  
     <constructor-arg index="1">
       <bean class="edu.ucla.cens.awserver.dao.SurveyKeyExistsDao">
+        <constructor-arg index="0">
+          <ref bean="dataSource"/>
+        </constructor-arg>
+      </bean>
+    </constructor-arg>
+    <constructor-arg index="2"><value>The survey key in question does not exist.</value></constructor-arg>
+    <constructor-arg index="3"><value>Checking whether the survey key exists.</value></constructor-arg>
+  </bean>
+  
+  <bean id="surveyKeyExistsForParticipantValidationService" class="edu.ucla.cens.awserver.service.SurveyKeyExistsForParticipantValidationService">
+    <constructor-arg index="0">
+      <bean class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
+        <constructor-arg index="0"> 
+          <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
+            <property name="code" value="0720" />
+            <property name="text" value="invalid survey_key" />
+          </bean>
+        </constructor-arg>
+      </bean>
+    </constructor-arg>  
+    <constructor-arg index="1">
+      <bean class="edu.ucla.cens.awserver.dao.SurveyKeyExistsForLoggedInUserDao">
         <constructor-arg index="0">
           <ref bean="dataSource"/>
         </constructor-arg>
