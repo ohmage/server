@@ -7,16 +7,23 @@ import edu.ucla.cens.awserver.request.AwRequest;
 /**
  * Service that dispatches directly to a DAO without performing any pre- or post-processing.
  * 
- * @author selsky
+ * @author Joshua Selsky
  */
 public class SimpleQueryService extends AbstractDaoService {
-
+	
+	/**
+	 * Basic constructor.
+	 * 
+	 * @param dao the DAO to be used for querying.
+	 */
     public SimpleQueryService(Dao dao) {
     	super(dao);
     }
 	
+    /**
+     * Simply dispatches to the DAO.
+     */
 	public void execute(AwRequest awRequest) {
-		
 		try {
 		
 			getDao().execute(awRequest);
