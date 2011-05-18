@@ -53,7 +53,7 @@ public class SuccessOrFailResponseWriter extends AbstractResponseWriter {
 				}
 			}
 			
-			_logger.info("about to write output");
+			_logger.info("Generating response output.");
 			writer.write(responseText);
 		}
 		
