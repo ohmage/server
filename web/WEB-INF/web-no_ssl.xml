@@ -27,7 +27,7 @@
     <url-pattern>/*</url-pattern>
   </filter-mapping>
   
-  <!-- Servlets.  Note that url-patterns are matched against initial (or re-dispatched) requests, not a request possiblty modified
+  <!-- Servlets.  Note that url-patterns are matched against initial (or re-dispatched) requests, not a request possibly modified
        by filters.  -->
 
   <!--  The default Tomcat Servlet used to locate and serve static content -->
@@ -44,6 +44,11 @@
     </init-param>
     <load-on-startup>1</load-on-startup>
   </servlet>
+  
+  <servlet-mapping>
+    <servlet-name>default</servlet-name>
+    <url-pattern>*.html</url-pattern>
+  </servlet-mapping>
 
   <!--  Mobility Data Upload -->
   <servlet>
@@ -198,7 +203,7 @@
     <url-pattern>/user/auth_token</url-pattern>
   </servlet-mapping>
     
-  <!--  handle campaign queries  -->
+  <!--  Handle campaign queries  -->
   <servlet>
     <description>
       returns campaigns with different output formats   
@@ -258,7 +263,7 @@
     <url-pattern>/survey_response/read/old</url-pattern>
   </servlet-mapping>
   
-  <!-- Read survey responses   -->
+  <!-- Read survey responses -->
   <servlet>
     <description>
       allows users to query survey responses, returning output in a variety of formats 
@@ -317,6 +322,37 @@
     <servlet-name>SurveyResponseUpdateServlet</servlet-name>
     <url-pattern>/survey_response/update</url-pattern>
   </servlet-mapping>
+
+  <!-- Delete survey responses -->
+  <servlet>
+    <description>
+      allows users to delete survey responses 
+    </description>
+    <servlet-name>SurveyResponseDeleteServlet</servlet-name>
+    <servlet-class>edu.ucla.cens.awserver.jee.servlet.AwDataServlet</servlet-class>
+    <init-param>
+      <param-name>controllerName</param-name>
+      <param-value>surveyResponseDeleteController</param-value>
+    </init-param>
+    <init-param>
+      <param-name>awRequestCreatorName</param-name>
+      <param-value>surveyResponseDeleteAwRequestCreator</param-value>
+    </init-param>
+    <init-param>
+      <param-name>httpServletRequestValidatorName</param-name>
+      <param-value>surveyResponseDeleteHttpServletRequestValidator</param-value>
+    </init-param>
+    <init-param>
+      <param-name>responseWriterName</param-name>
+      <param-value>successOrFailResponseWriter</param-value>
+    </init-param>
+    <load-on-startup>1</load-on-startup>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>SurveyResponseDeleteServlet</servlet-name>
+    <url-pattern>/survey_response/delete</url-pattern>
+  </servlet-mapping>
+
   
   <!-- Handle user info queries -->
   <servlet>
