@@ -3,6 +3,7 @@ package edu.ucla.cens.awserver.jee.servlet.glue;
 import javax.servlet.http.HttpServletRequest;
 
 import org.apache.log4j.Logger;
+import org.apache.log4j.NDC;
 
 import edu.ucla.cens.awserver.request.AwRequest;
 import edu.ucla.cens.awserver.request.InputKeys;
@@ -37,6 +38,10 @@ public class SurveyResponseUpdateAwRequestCreator implements AwRequestCreator {
 		
 		internalRequest.setUserToken(request.getParameter(InputKeys.AUTH_TOKEN));
 		internalRequest.setCampaignUrn(request.getParameter(InputKeys.CAMPAIGN_URN));
+		
+		NDC.push("client=" + request.getParameter(InputKeys.CLIENT)); // push the client string into the Log4J NDC for the currently  
+                                                                      // executing thread _ this means that it will be in every log
+                                                                      // message for the current thread		
 		
 		return internalRequest;
 	}

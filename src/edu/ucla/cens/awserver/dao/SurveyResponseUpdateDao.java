@@ -33,6 +33,8 @@ public class SurveyResponseUpdateDao extends AbstractDao {
 	
 	@Override
 	public void execute(AwRequest awRequest) {
+		_logger.info("Updating a survey response.");
+		
 		// Begin transaction
 		DefaultTransactionDefinition def = new DefaultTransactionDefinition();
 		def.setName("Survey response update.");

@@ -145,14 +145,26 @@
     </constructor-arg>
   </bean>
   
-  <bean id="surveyResponseUpdateService" class="edu.ucla.cens.awserver.service.SimpleQueryService">
+  <bean id="surveyResponseUpdateService" class="edu.ucla.cens.awserver.service.GenericAnnotatingDaoService">
     <constructor-arg index="0">
+      <bean class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
+        <constructor-arg index="0"> 
+          <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
+            <property name="code" value="0103" />
+            <property name="text" value="Could not successfully update a survey response." />
+          </bean>
+        </constructor-arg>
+      </bean>
+    </constructor-arg>
+    <constructor-arg index="1">
       <bean class="edu.ucla.cens.awserver.dao.SurveyResponseUpdateDao">
         <constructor-arg index="0">
           <ref bean="dataSource"/>
         </constructor-arg>
       </bean>
     </constructor-arg>
+    <constructor-arg index="2"><value>Could not successfully update a survey response due to a database problem.</value></constructor-arg>
+    <constructor-arg index="3"><value>Dispatching to DAO to update a survey response.</value></constructor-arg>
   </bean>
   
 </beans>
