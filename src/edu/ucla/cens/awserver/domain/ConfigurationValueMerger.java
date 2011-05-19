@@ -192,12 +192,7 @@ public class ConfigurationValueMerger {
 			result.setDisplayValue(valueArray);
 		}
 		else {
-			try {
-				result.setDisplayValue(new JSONArray(String.valueOf(result.getResponse())));
-			}
-			catch(JSONException e) {
-				_logger.warn("cannot convert RemoteActivity response value to JSONArray: " + result.getResponse(), e);
-			}
+			result.setDisplayValue(String.valueOf(result.getResponse()));
 		}
 	}
 	

@@ -26,8 +26,7 @@ public class PasswordChangeAwRequestCreator implements AwRequestCreator {
 
 	/**
 	 * Creates a new password change request where the credentials being used
-	 * to authenticate this user could either be the username and (hashed)
-	 * password or an authentication token.
+	 * to authenticate this user must be the username and hashed password.
 	 */
 	@Override
 	public AwRequest createFrom(HttpServletRequest request) {
@@ -37,22 +36,11 @@ public class PasswordChangeAwRequestCreator implements AwRequestCreator {
 		
 		String username = request.getParameter(InputKeys.USERNAME);
 		String password = request.getParameter(InputKeys.PASSWORD);
-		String authToken = request.getParameter(InputKeys.AUTH_TOKEN);
-		if((username != null) && (password != null)) {
-			User user = new User();
-			user.setUserName(username);
-			user.setPassword(password);
-			newRequest.setUser(user);
-		}
-		else if(authToken != null) {
-			newRequest.setUserToken(authToken);
-		}
-		else {
-			_logger.error("Missing login credentials.");
-			throw new IllegalArgumentException("Missing login credentials.");
-		}
+		User user = new User();
+		user.setUserName(username);
+		user.setPassword(password);
+		newRequest.setUser(user);
 		
 		return newRequest;
 	}
-
 }

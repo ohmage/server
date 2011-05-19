@@ -171,7 +171,7 @@ public class DocumentCreationDao extends AbstractDao {
 		}
 		
 		// Parse the name and get the extension.
-		String[] parsedName = name.split(".");
+		String[] parsedName = name.split("\\.");
 		String extension = null;
 		if((parsedName.length > 1) && (parsedName[parsedName.length - 1].length() <= MAX_EXTENSION_LENGTH)) {
 			extension = parsedName[parsedName.length - 1];
@@ -207,13 +207,13 @@ public class DocumentCreationDao extends AbstractDao {
 		// Get the campaign URN list and break it down into an array.
 		String campaignUrnRoleList = "";
 		try {
-			campaignUrnRoleList = (String) awRequest.getToProcessValue(InputKeys.CAMPAIGN_URN_LIST);
+			campaignUrnRoleList = (String) awRequest.getToProcessValue(InputKeys.DOCUMENT_CAMPAIGN_ROLE_LIST);
 		}
 		catch(IllegalArgumentException e) {
 			// Its acceptable if there are no initial campaigns with which to
 			// associate this document. 
 		}
-		String[] campaignUrnRoleArray = campaignUrnRoleList.split(",");
+		String[] campaignUrnRoleArray = campaignUrnRoleList.split(InputKeys.LIST_ITEM_SEPARATOR);
 		if((campaignUrnRoleArray.length == 1) && ("".equals(campaignUrnRoleArray[0]))) {
 			// This isn't required, but an empty String will always split into
 			// a 1-sized array with its only entry being an empty String.
@@ -224,13 +224,13 @@ public class DocumentCreationDao extends AbstractDao {
 		// Get the class URN list and break it down into an array.
 		String classUrnRoleList = "";
 		try {
-			classUrnRoleList = (String) awRequest.getToProcessValue(InputKeys.CLASS_URN_LIST);
+			classUrnRoleList = (String) awRequest.getToProcessValue(InputKeys.DOCUMENT_CLASS_ROLE_LIST);
 		}
 		catch(IllegalArgumentException e) {
 			// It is acceptable if there are no initial classes with which to
 			// associate this document.
 		}
-		String[] classUrnRoleArray = classUrnRoleList.split(",");
+		String[] classUrnRoleArray = classUrnRoleList.split(InputKeys.LIST_ITEM_SEPARATOR);
 		if((classUrnRoleArray.length == 1) && ("".equals(classUrnRoleArray[0]))) {
 			// This isn't required, but an empty String will always split into
 			// a 1-sized array with its only entry being an empty String.
@@ -259,7 +259,7 @@ public class DocumentCreationDao extends AbstractDao {
 			// Insert the file in the DB.
 			try {
 				getJdbcTemplate().update(SQL_INSERT_DOCUMENT, 
-						new Object[] { uuid, name, description, extension, url, fileLength, privacyStateId });
+						new Object[] { uuid.toString(), name, description, extension, url, fileLength, privacyStateId });
 			}
 			catch(org.springframework.dao.DataAccessException e) {
 				_logger.error("Error executing SQL '" + SQL_INSERT_DOCUMENT + "' with parameters: " + 
@@ -272,7 +272,7 @@ public class DocumentCreationDao extends AbstractDao {
 			// Get the new document's ID.
 			long documentId;
 			try {
-				documentId = getJdbcTemplate().queryForLong(SQL_GET_DOCUMENT_ID, new Object[] { uuid });
+				documentId = getJdbcTemplate().queryForLong(SQL_GET_DOCUMENT_ID, new Object[] { uuid.toString() });
 			}
 			catch(org.springframework.dao.DataAccessException e) {
 				_logger.error("Error executing SQL '" + SQL_GET_DOCUMENT_ID + "' with parameter: " + uuid, e);
@@ -313,7 +313,7 @@ public class DocumentCreationDao extends AbstractDao {
 			
 			// Insert any campaign associations in the DB.
 			for(int i = 0; i < campaignUrnRoleArray.length; i++) {
-				String[] campaignUrnRole = campaignUrnRoleArray[i].split(";");
+				String[] campaignUrnRole = campaignUrnRoleArray[i].split(InputKeys.URN_ROLE_SEPARATOR);
 				
 				// Get the campaign's ID.
 				long campaignId;
@@ -349,7 +349,7 @@ public class DocumentCreationDao extends AbstractDao {
 			
 			// Insert any class associations in the DB.
 			for(int i = 0; i < classUrnRoleArray.length; i++) {
-				String[] classUrnRole = campaignUrnRoleArray[i].split(";");
+				String[] classUrnRole = classUrnRoleArray[i].split(InputKeys.URN_ROLE_SEPARATOR);
 				
 				// Get the class' ID.
 				long classId;
@@ -593,7 +593,7 @@ public class DocumentCreationDao extends AbstractDao {
 			else if(! rootDirectory.isDirectory()) {
 				throw new DataAccessException("The root file isn't a directory.");
 			}
-			String absoluteRootFile = rootDirectory.getAbsolutePath();
+			String absoluteRootDirectory = rootDirectory.getAbsolutePath();
 			
 			// A filter when listing a set of directories for a file.
 			DirectoryFilter directoryFilter = new DirectoryFilter();
@@ -612,7 +612,21 @@ public class DocumentCreationDao extends AbstractDao {
 			while(lookingForDirectory) {
 				// Get the current directory's name which should be a Long
 				// value.
-				long currDirectoryName = Long.decode(newDirectory.getName());
+				long currDirectoryName;
+				try {
+					currDirectoryName = Long.decode(newDirectory.getName());
+				}
+				catch(NumberFormatException e) {
+					if(newDirectory.getAbsolutePath().equals(absoluteRootDirectory)) {
+						_logger.error("Document structure full!");
+						throw new DataAccessException("Document structure full!");
+					}
+					else {
+						_logger.error("WARNING: Potential breach of document strucutre. Someone may be attempting to retrieve files that are not in the document structure!");
+						throw new DataAccessException("Potential breach of document structure.");
+					}
+				}
+				
 				// Move the pointer up a directory.
 				newDirectory = new File(newDirectory.getParent());
 				// Get the list of files in the parent.
@@ -644,7 +658,7 @@ public class DocumentCreationDao extends AbstractDao {
 				// directory structure.
 				else
 				{
-					if(newDirectory.getAbsoluteFile().equals(absoluteRootFile)) {
+					if(newDirectory.getAbsoluteFile().equals(absoluteRootDirectory)) {
 						_logger.error("The end of the heirarchy was reached! We are out of space to save documents!");
 						throw new DataAccessException("Document structure full!");
 					}

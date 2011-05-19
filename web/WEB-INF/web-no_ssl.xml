@@ -377,7 +377,36 @@
     <servlet-name>SurveyResponseReadServlet</servlet-name>
     <url-pattern>/survey_response/read</url-pattern>
   </servlet-mapping>
-  
+
+  <!-- Update survey responses   -->
+  <servlet>
+    <description>
+      allows users to update the privacy state on survey responses 
+    </description>
+    <servlet-name>SurveyResponseUpdateServlet</servlet-name>
+    <servlet-class>edu.ucla.cens.awserver.jee.servlet.AwDataServlet</servlet-class>
+    <init-param>
+      <param-name>controllerName</param-name>
+      <param-value>surveyResponseUpdateController</param-value>
+    </init-param>
+    <init-param>
+      <param-name>awRequestCreatorName</param-name>
+      <param-value>surveyResponseUpdateAwRequestCreator</param-value>
+    </init-param>
+    <init-param>
+      <param-name>httpServletRequestValidatorName</param-name>
+      <param-value>surveyResponseUpdateHttpServletRequestValidator</param-value>
+    </init-param>
+    <init-param>
+      <param-name>responseWriterName</param-name>
+      <param-value>successOrFailResponseWriter</param-value>
+    </init-param>
+    <load-on-startup>1</load-on-startup>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>SurveyResponseUpdateServlet</servlet-name>
+    <url-pattern>/survey_response/update</url-pattern>
+  </servlet-mapping>
   
   <!-- Handle user info queries -->
   <servlet>

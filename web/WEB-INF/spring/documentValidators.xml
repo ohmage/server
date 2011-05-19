@@ -4,19 +4,7 @@
        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
                            http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-2.5.xsd">
 
-  <!-- Validators for document CRUDs -->
-  <bean id="documentUrnRequiredValidator" class="edu.ucla.cens.awserver.validator.GenericUrnValidator">
-    <constructor-arg>
-      <ref bean="documentUrnInvalidError" />
-    </constructor-arg>
-    <constructor-arg>
-      <util:constant static-field="edu.ucla.cens.awserver.request.InputKeys.DOCUMENT_URN"/>
-    </constructor-arg>
-    <constructor-arg>
-      <value>true</value>
-    </constructor-arg>
-  </bean>
-  
+  <!-- Validators for document CRUDs -->  
   <bean id="documentNameRequiredValidator" class="edu.ucla.cens.awserver.validator.GenericNameValidator">
     <constructor-arg>
       <ref bean="documentNameInvalidError" />
@@ -50,6 +38,48 @@
     </constructor-arg>
     <constructor-arg>
       <value>true</value>
+    </constructor-arg>
+  </bean>
+  
+  <bean id="documentCampaignRoleOptionalValidator" class="edu.ucla.cens.awserver.validator.UrnRoleValidator">
+    <constructor-arg>
+      <ref bean="documentCampaignRoleInvalidError" />
+    </constructor-arg>
+    <constructor-arg>
+      <util:constant static-field="edu.ucla.cens.awserver.request.InputKeys.DOCUMENT_CAMPAIGN_ROLE_LIST" />
+    </constructor-arg>
+    <constructor-arg>
+      <ref bean="documentRoleCache" />
+    </constructor-arg>
+    <constructor-arg>
+      <value>;</value>
+    </constructor-arg>
+    <constructor-arg>
+      <value>,</value>
+    </constructor-arg>
+    <constructor-arg>
+      <value>false</value>
+    </constructor-arg>
+  </bean>
+  
+  <bean id="documentClassRoleOptionalValidator" class="edu.ucla.cens.awserver.validator.UrnRoleValidator">
+    <constructor-arg>
+      <ref bean="documentClassRoleInvalidError" />
+    </constructor-arg>
+    <constructor-arg>
+      <util:constant static-field="edu.ucla.cens.awserver.request.InputKeys.DOCUMENT_CLASS_ROLE_LIST" />
+    </constructor-arg>
+    <constructor-arg>
+      <ref bean="documentRoleCache" />
+    </constructor-arg>
+    <constructor-arg>
+      <value>;</value>
+    </constructor-arg>
+    <constructor-arg>
+      <value>,</value>
+    </constructor-arg>
+    <constructor-arg>
+      <value>false</value>
     </constructor-arg>
   </bean>
 </beans>

@@ -36,7 +36,9 @@ public class SortOrderValidator extends AbstractAnnotatingValidator {
 			
 			for(String sortParameter : splitSortOrder) {
 				
-				if(! "user".equals(sortParameter) && ! "timestamp".equals(sortParameter) && ! "survey".equals(sortParameter)) {
+				if(! InputKeys.SORT_ORDER_USER.equals(sortParameter) 
+						&& ! InputKeys.SORT_ORDER_TIMESTAMP.equals(sortParameter) 
+						&& ! InputKeys.SORT_ORDER_SURVEY.equals(sortParameter)) {
 					
 					getAnnotator().annotate(awRequest, "sort_order contains an invalid sort parameter: " + sortParameter);
 					return false;

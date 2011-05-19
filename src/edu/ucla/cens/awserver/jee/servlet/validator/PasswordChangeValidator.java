@@ -18,17 +18,16 @@ public class PasswordChangeValidator extends AbstractHttpServletRequestValidator
 	
 	@Override
 	public boolean validate(HttpServletRequest httpRequest) {
-		String authToken = httpRequest.getParameter(InputKeys.AUTH_TOKEN);
 		String username = httpRequest.getParameter(InputKeys.USERNAME);
 		String password = httpRequest.getParameter(InputKeys.PASSWORD);
 		String newPassword = httpRequest.getParameter(InputKeys.NEW_PASSWORD);
 		
-		if((authToken == null) && ((username == null) || (password == null))) {
-			// Invalid credentials.
+		if(username == null) {
+			// Missing username.
 			return false;
 		}
-		else if(greaterThanLength(InputKeys.AUTH_TOKEN, InputKeys.AUTH_TOKEN, authToken, 36)) {
-			// Auth token is of an invalid length.
+		else if(password == null) {
+			// Missing password.
 			return false;
 		}
 		else if(greaterThanLength(InputKeys.USERNAME, InputKeys.USERNAME, username, 15)) {
@@ -45,7 +44,7 @@ public class PasswordChangeValidator extends AbstractHttpServletRequestValidator
 		}
 		else if(greaterThanLength(InputKeys.NEW_PASSWORD, InputKeys.NEW_PASSWORD, newPassword, 15)) {
 			// The new password isn't the right length.
-			_logger.warn("Attempting to update to a new password that is of an incorrect length: " + newPassword);
+			_logger.warn("Attempting to update to a new password that is of an incorrect length: " + newPassword.length());
 			return false;
 		}
 		

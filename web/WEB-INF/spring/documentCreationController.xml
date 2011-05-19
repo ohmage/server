@@ -31,8 +31,17 @@
         <!-- Authenticate that the token the user is using is a valid token. -->
         <ref bean="tokenBasedAuthenticationService" />
         
-        <!-- Ensure that the URN doesn't already exist. -->
-        <ref bean="documentUrnDoesntExistValidationService" />
+        <!-- Ensure that the classes and campaigns do exist. -->
+        <ref bean="campaignUrnsInDocumentRoleListExistOptionalService" />
+        <ref bean="classUrnsInDocumentRoleListExistOptionalService" />
+        
+        <!-- Ensure that the user has the appropriate roles in the campaign. -->
+        <ref bean="userRoleCampaignPopulationService" />
+        <ref bean="userCanAssociateDocumentsWithCampaignsInCampaignRoleListOptionalService" />
+        
+        <!--  Ensure that the user has the appropriate roles in the class. -->
+        <ref bean="userRoleClassPopulationService" />
+        <ref bean="userCanAssociateDocumentsWithClassesInClassRoleListOptionalService" />
         
         <!-- Insert the document. -->
         <ref bean="documentCreationService" />
@@ -47,10 +56,11 @@
       <list>
         <!-- Validate each of the items in the request. -->
         <ref bean="userTokenValidator" />
-        <ref bean="documentUrnRequiredValidator" />
         <ref bean="documentNameRequiredValidator" />
         <ref bean="documentRequiredValidator" />
         <ref bean="documentPrivacyStateRequiredValidator" />
+        <ref bean="documentCampaignRoleOptionalValidator" />
+        <ref bean="documentClassRoleOptionalValidator" />
         <ref bean="descriptionOptionalValidator" />
       </list>
     </property>

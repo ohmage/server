@@ -268,7 +268,7 @@
         </constructor-arg>
       </bean>
     </constructor-arg>
-    <constructor-arg index="1"><value>suppress_metadata</value></constructor-arg>
+    <constructor-arg index="1"><util:constant static-field="edu.ucla.cens.awserver.request.InputKeys.SUPPRESS_METADATA"/></constructor-arg>
     <constructor-arg index="2">
       <list>
         <value>true</value>
@@ -292,7 +292,7 @@
         </constructor-arg>
       </bean>
     </constructor-arg>
-    <constructor-arg index="1"><value>pretty_print</value></constructor-arg>
+    <constructor-arg index="1"><util:constant static-field="edu.ucla.cens.awserver.request.InputKeys.PRETTY_PRINT"/></constructor-arg>
     <constructor-arg index="2">
       <list>
         <value>true</value>
@@ -316,7 +316,7 @@
         </constructor-arg>
       </bean>
     </constructor-arg>
-    <constructor-arg index="1"><value>return_id</value></constructor-arg>
+    <constructor-arg index="1"><util:constant static-field="edu.ucla.cens.awserver.request.InputKeys.RETURN_ID"/></constructor-arg>
     <constructor-arg index="2">
       <list>
         <value>true</value>
@@ -373,12 +373,12 @@
         </constructor-arg>
       </bean>
     </constructor-arg>
-    <constructor-arg index="1"><value>stopped</value></constructor-arg>
+    <constructor-arg index="1"><util:constant static-field="edu.ucla.cens.awserver.cache.CampaignRunningStateCache.RUNNING_STATE_STOPPED"/></constructor-arg>
     <constructor-arg index="2">
       <list>
-        <value>author</value>
-        <value>analyst</value>
-        <value>supervisor</value>
+        <util:constant static-field="edu.ucla.cens.awserver.cache.CampaignRoleCache.ROLE_AUTHOR"/>
+        <util:constant static-field="edu.ucla.cens.awserver.cache.CampaignRoleCache.ROLE_ANALYST"/>
+        <util:constant static-field="edu.ucla.cens.awserver.cache.CampaignRoleCache.ROLE_SUPERVISOR"/>
       </list>
     </constructor-arg>
   </bean>
@@ -397,8 +397,8 @@
     <constructor-arg index="1"><value>private</value></constructor-arg>
     <constructor-arg index="2">
       <list>
-        <value>participant</value>
-        <value>supervisor</value>
+        <util:constant static-field="edu.ucla.cens.awserver.cache.CampaignRoleCache.ROLE_PARTICIPANT"/>
+        <util:constant static-field="edu.ucla.cens.awserver.cache.CampaignRoleCache.ROLE_SUPERVISOR"/>
       </list>
     </constructor-arg>
   </bean>

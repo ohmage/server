@@ -5,6 +5,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import edu.ucla.cens.awserver.cache.CampaignRoleCache;
+import edu.ucla.cens.awserver.cache.ClassRoleCache;
+
 
 /**
  * The default user implementation.
@@ -14,13 +17,15 @@ import java.util.Map;
 public class User {
 	private int _id;
 	private String  _userName;
-	private Map<String, CampaignUserRoles> _campaignUserRoleMap; // a user can have many roles in one campaign 
+	private Map<String, CampaignUserRoles> _campaignUserRoleMap; // a user can have many roles in one campaign
+	private Map<String, ClassUserRoles> _classUserRoleMap;
 	private boolean _loggedIn;
 	private String _password;
 	
 	public User() {
 		_id = -1;
 		_campaignUserRoleMap = new HashMap<String, CampaignUserRoles>();
+		_classUserRoleMap = new HashMap<String, ClassUserRoles>();
 	}
 	
 	/**
@@ -37,6 +42,8 @@ public class User {
 		// are added to the bin with no roles. It is the responsibility of application
 		// flows that require knowledge of the user's role to obtain them at runtime.
 		_campaignUserRoleMap.putAll(user.getCampaignUserRoleMap()); // shallow copy ok because once a user is created it is read-only in practice
+		_classUserRoleMap = new HashMap<String, ClassUserRoles>();
+		_classUserRoleMap.putAll(user._classUserRoleMap);
 		_loggedIn = user.isLoggedIn();
 	}
 	
@@ -70,6 +77,25 @@ public class User {
 		campaignUserRoles.addUserRole(userRole);
 	}
 	
+	/**
+	 * Adds the role to the class for this user.
+	 * 
+	 * @param classInfo A ClassDescription for which this role applies to this
+	 * 					user.
+	 * 
+	 * @param role The role to associate to this user for this class.
+	 */
+	public void addClassRole(ClassDescription classInfo, String role) {
+		ClassUserRoles classUserRoles = _classUserRoleMap.get(classInfo.getUrn());
+		
+		if(classUserRoles == null) {
+			classUserRoles = new ClassUserRoles(classInfo);
+			_classUserRoleMap.put(classInfo.getUrn(), classUserRoles);
+		}
+		
+		classUserRoles.addRole(role);
+	}
+	
 	public String getUserName() {
 		return _userName;
 	}
@@ -97,37 +123,73 @@ public class User {
 	public boolean isSupervisorInCampaign(String campaignUrn) {
 		CampaignUserRoles campaignUserRoles = _campaignUserRoleMap.get(campaignUrn);
 		if(null == campaignUserRoles) {
-			throw new IllegalArgumentException("user not in campaign");
+			return false;
 		}
-		// FIXME to use user role constants once John's 2.4 db changes are merged in
-		return campaignUserRoles.getUserRoleStrings().contains("supervisor");
+		
+		return campaignUserRoles.getUserRoleStrings().contains(CampaignRoleCache.ROLE_SUPERVISOR);
 	}
 	
 	public boolean isAuthorInCampaign(String campaignUrn) {
 		CampaignUserRoles campaignUserRoles = _campaignUserRoleMap.get(campaignUrn);
 		if(null == campaignUserRoles) {
-			throw new IllegalArgumentException("user not in campaign");
+			return false;
 		}
-		// FIXME to use user role constants once John's 2.4 db changes are merged in
-		return campaignUserRoles.getUserRoleStrings().contains("author");
+
+		return campaignUserRoles.getUserRoleStrings().contains(CampaignRoleCache.ROLE_AUTHOR);
 	}
 	
 	public boolean isAnalystInCampaign(String campaignUrn) {
 		CampaignUserRoles campaignUserRoles = _campaignUserRoleMap.get(campaignUrn);
 		if(null == campaignUserRoles) {
-			throw new IllegalArgumentException("user not in campaign");
+			return false;
 		}
-		// FIXME to use user role constants once John's 2.4 db changes are merged in
-		return campaignUserRoles.getUserRoleStrings().contains("analyst");
+
+		return campaignUserRoles.getUserRoleStrings().contains(CampaignRoleCache.ROLE_ANALYST);
 	}
 	
 	public boolean isParticipantInCampaign(String campaignUrn) {
 		CampaignUserRoles campaignUserRoles = _campaignUserRoleMap.get(campaignUrn);
 		if(null == campaignUserRoles) {
-			throw new IllegalArgumentException("user not in campaign");
+			return false;
 		}
-		// FIXME to use user role constants once John's 2.4 db changes are merged in
-		return campaignUserRoles.getUserRoleStrings().contains("participant");
+
+		return campaignUserRoles.getUserRoleStrings().contains(CampaignRoleCache.ROLE_PARTICIPANT);
+	}
+	
+	public boolean hasRoleInCampaign(String campaignUrn, String role) {
+		CampaignUserRoles campaignUserRoles = _campaignUserRoleMap.get(campaignUrn);
+		if(campaignUserRoles == null) {
+			return false;
+		}
+		
+		return campaignUserRoles.getUserRoleStrings().contains(role);
+	}
+	
+	public boolean isPrivilegedInClass(String classUrn) {
+		ClassUserRoles classUserRoles = _classUserRoleMap.get(classUrn);
+		if(classUserRoles == null) {
+			return false;
+		}
+		
+		return classUserRoles.getRoles().contains(ClassRoleCache.ROLE_PRIVILEGED);
+	}
+	
+	public boolean isRestrictedInClass(String classUrn) {
+		ClassUserRoles classUserRoles = _classUserRoleMap.get(classUrn);
+		if(classUserRoles == null) {
+			return false;
+		}
+		
+		return classUserRoles.getRoles().contains(ClassRoleCache.ROLE_RESTRICTED);
+	}
+	
+	public boolean hasRoleInClass(String classUrn, String role) {
+		ClassUserRoles classUserRoles = _classUserRoleMap.get(classUrn);
+		if(classUserRoles == null) {
+			return false;
+		}
+		
+		return classUserRoles.getRoles().contains(role);
 	}
 	
 	// NOTE: if you regenerate this toString() automatically in your IDE, please remember to omit the user's password!

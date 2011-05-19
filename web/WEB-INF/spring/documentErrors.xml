@@ -58,5 +58,41 @@
       </bean>
     </constructor-arg>
   </bean>
+  
+  <bean id="documentCampaignRoleInvalidError" class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
+    <constructor-arg>
+      <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
+        <property name="code" value="1506" />
+        <property name="text" value="A campaign URN or document role is invalid in the list." />
+      </bean>
+    </constructor-arg>
+  </bean>
+  
+  <bean id="documentClassRoleInvalidError" class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
+    <constructor-arg>
+      <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
+        <property name="code" value="1507" />
+        <property name="text" value="A class URN or document role is invalid in the list." />
+      </bean>
+    </constructor-arg>
+  </bean>
+  
+  <bean id="insufficientPermissionsToAssociateDocumentWithCampaignError" class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
+    <constructor-arg>
+      <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
+        <property name="code" value="1508" />
+        <property name="text" value="Insufficient permissions to associate a document with a campaign in the request." />
+      </bean>
+    </constructor-arg>
+  </bean>
+  
+  <bean id="insufficientPermissionsToAssociateDocumentWithClassError" class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
+    <constructor-arg>
+      <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
+        <property name="code" value="1508" />
+        <property name="text" value="Insufficient permissions to associate a document with a class in the request." />
+      </bean>
+    </constructor-arg>
+  </bean>
 
 </beans>

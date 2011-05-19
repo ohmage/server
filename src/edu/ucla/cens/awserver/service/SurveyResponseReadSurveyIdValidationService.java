@@ -10,7 +10,7 @@ import edu.ucla.cens.awserver.request.SurveyResponseReadAwRequest;
 import edu.ucla.cens.awserver.validator.AwRequestAnnotator;
 
 /**
- * @author selsky
+ * @author Joshua Selsky
  */
 public class SurveyResponseReadSurveyIdValidationService extends AbstractAnnotatingService {
 	private static Logger _logger = Logger.getLogger(SurveyResponseReadSurveyIdValidationService.class);
@@ -20,8 +20,7 @@ public class SurveyResponseReadSurveyIdValidationService extends AbstractAnnotat
 	}
 	
 	/**
-	 * Checks the survey ids from the query (if any survey ids exist) to make sure that they belong to the campaign name-version
-	 * in the query.
+	 * 
 	 */
 	@Override
 	public void execute(AwRequest awRequest) {

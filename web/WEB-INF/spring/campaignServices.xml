@@ -1,25 +1,44 @@
 <beans xmlns="http://www.springframework.org/schema/beans"
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:util="http://www.springframework.org/schema/util"
        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
                            http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-2.5.xsd">
+  
+  <bean id="campaignExistsDao" class="edu.ucla.cens.awserver.dao.CampaignExistsDao">
+    <constructor-arg index="0">
+      <ref bean="dataSource"/>
+    </constructor-arg>
+  </bean>
+  
+  <bean id="campaignFromKeyExistsRequiredDao" class="edu.ucla.cens.awserver.dao.CampaignFromKeyExistsDao">
+    <constructor-arg>
+      <ref bean="dataSource" />
+    </constructor-arg>
+    <constructor-arg>
+      <value>true</value>
+    </constructor-arg>
+  </bean>
+  
+  <bean id="campaignUrnListForDocumentCreationDao" class="edu.ucla.cens.awserver.dao.FindAllCampaignsForCurrentUserWithRolesDao">
+    <constructor-arg>
+      <ref bean="dataSource" />
+    </constructor-arg>
+    <constructor-arg>
+      <list>
+        <util:constant static-field="edu.ucla.cens.awserver.cache.CampaignRoleCache.ROLE_SUPERVISOR"/>
+        <util:constant static-field="edu.ucla.cens.awserver.cache.CampaignRoleCache.ROLE_AUTHOR"/>
+        <util:constant static-field="edu.ucla.cens.awserver.cache.CampaignRoleCache.ROLE_ANALYST"/>
+        <util:constant static-field="edu.ucla.cens.awserver.cache.CampaignRoleCache.ROLE_PARTICIPANT"/>
+      </list>
+    </constructor-arg>
+  </bean>
                            
   <bean id="campaignExistsService" class="edu.ucla.cens.awserver.service.CampaignExistsService">
     <constructor-arg index="0">
-      <bean class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
-        <constructor-arg index="0">
-          <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
-            <property name="code" value="0808" />
-            <property name="text" value="Campaign not found." />
-          </bean>
-        </constructor-arg>
-      </bean>
+      <ref bean="campaignNotFoundError" />
     </constructor-arg>
     <constructor-arg index="1">
-      <bean class="edu.ucla.cens.awserver.dao.CampaignExistsDao">
-        <constructor-arg index="0">
-          <ref bean="dataSource"/>
-        </constructor-arg>
-      </bean>
+      <ref bean="campaignExistsDao" />
     </constructor-arg>
   </bean>
   

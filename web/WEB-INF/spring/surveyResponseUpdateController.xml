@@ -1,0 +1,101 @@
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:util="http://www.springframework.org/schema/util"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
+                           http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-2.5.xsd">
+  <!--  
+     Spring ApplicationContext configuration for /app/survey_response/update
+  -->
+  <!-- Servlet-to-AW hooks -->
+  <!-- "pre-validate" inbound data -->
+  <bean id="surveyResponseUpdateHttpServletRequestValidator" class="edu.ucla.cens.awserver.jee.servlet.validator.SurveyResponseUpdateValidator" />
+  <!-- create AwRequest from data in the HttpServletRequest -->
+  <bean id="surveyResponseUpdateAwRequestCreator" class="edu.ucla.cens.awserver.jee.servlet.glue.SurveyResponseUpdateAwRequestCreator" />
+  <!-- the response writer used is the simple successOrFailResponseWriter -->
+  
+  <!-- Controller -->
+  <bean id="surveyResponseUpdateController" class="edu.ucla.cens.awserver.controller.ControllerImpl">
+    <constructor-arg index="0">
+      <list>
+        <!-- authenticate -->
+        <ref bean="tokenBasedAuthenticationService" />
+        <!-- find the campaigns for the logged-in user -->
+        <ref bean="userRoleCampaignPopulationService" />
+        <!-- authorize -->
+        <ref bean="userCampaignValidationService" />
+        <ref bean="surveyResponseSupervisorUpdateCampaignRunningStateValidationService" />
+        <ref bean="surveyResponseParticipantUpdateCampaignRunningStateValidationService" />
+        
+        <!-- perform the update query -->
+        
+        
+      </list>
+    </constructor-arg>
+    <constructor-arg index="1">
+      <ref bean="serverErrorRequestAnnotator" />
+    </constructor-arg>
+    <property name="validators">
+      <list>
+        <ref bean="userTokenValidator" />
+        <ref bean="campaignUrnValidator" />
+        <ref bean="campaignPrivacyStateRequiredValidator" />
+        <ref bean="surveyResponseUpdateSurveyKeyValidator" />
+      </list>      
+    </property>
+    <property name="featureName"><value>survey response update</value></property>
+  </bean>
+  
+  <bean id="surveyResponseSupervisorUpdateCampaignRunningStateValidationService" class="edu.ucla.cens.awserver.service.CampaignRunningStateUserRoleValidationService">
+   <constructor-arg index="0">
+      <bean class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
+        <constructor-arg index="0"> 
+          <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
+            <property name="code" value="0716" />
+            <property name="text" value="participants cannot query stopped campaigns" />
+          </bean>
+        </constructor-arg>
+      </bean>
+    </constructor-arg>
+    <constructor-arg index="1"><util:constant static-field="edu.ucla.cens.awserver.cache.CampaignRunningStateCache.RUNNING_STATE_STOPPED"/></constructor-arg>
+    <constructor-arg index="2">
+      <list>
+        <util:constant static-field="edu.ucla.cens.awserver.cache.CampaignRoleCache.ROLE_SUPERVISOR"/>
+      </list>
+    </constructor-arg>
+  </bean>
+  
+  <bean id="surveyResponseParticipantUpdateCampaignRunningStateValidationService" class="edu.ucla.cens.awserver.service.CampaignRunningStateUserRoleValidationService">
+   <constructor-arg index="0">
+      <bean class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
+        <constructor-arg index="0"> 
+          <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
+            <property name="code" value="0716" />
+            <property name="text" value="participants cannot query stopped campaigns" />
+          </bean>
+        </constructor-arg>
+      </bean>
+    </constructor-arg>
+    <constructor-arg index="1"><util:constant static-field="edu.ucla.cens.awserver.cache.CampaignRunningStateCache.RUNNING_STATE_RUNNING"/></constructor-arg>
+    <constructor-arg index="2">
+      <list>
+        <util:constant static-field="edu.ucla.cens.awserver.cache.CampaignRoleCache.ROLE_PARTICIPANT"/>
+        <util:constant static-field="edu.ucla.cens.awserver.cache.CampaignRoleCache.ROLE_SUPERVISOR"/>
+      </list>
+    </constructor-arg>
+  </bean>
+  
+  <bean id="surveyResponseUpdateSurveyKeyValidator" class="edu.ucla.cens.awserver.validator.InputKeyIsIntegerValidator">
+    <constructor-arg index="0"><util:constant static-field="edu.ucla.cens.awserver.request.InputKeys.SURVEY_KEY"/></constructor-arg>
+    <constructor-arg index="1">
+      <bean class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
+        <constructor-arg index="0"> 
+          <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
+            <property name="code" value="0720" />
+            <property name="text" value="invalid survey_key" />
+          </bean>
+        </constructor-arg>
+      </bean>
+    </constructor-arg>
+  </bean>
+  
+</beans>
