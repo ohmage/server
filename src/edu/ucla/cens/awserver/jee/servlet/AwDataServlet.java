@@ -148,10 +148,14 @@ public class AwDataServlet extends HttpServlet {
 	 */
 	@Override protected final void doGet(HttpServletRequest req, HttpServletResponse resp)
 		throws ServletException, IOException {
-
-		_logger.warn("GET attempted and denied.");
-		resp.sendError(HttpServletResponse.SC_METHOD_NOT_ALLOWED);
-
+		
+		if("/app/image/read".equals(req.getRequestURI())) {
+			processRequest(req, resp);
+		}
+		else {
+			_logger.warn("GET attempted and denied.");
+			resp.sendError(HttpServletResponse.SC_METHOD_NOT_ALLOWED);
+		}
 	}
 
 	/**
@@ -159,7 +163,7 @@ public class AwDataServlet extends HttpServlet {
 	 */
 	@Override protected final void doPost(HttpServletRequest req, HttpServletResponse resp)
 		throws ServletException, IOException {
-    
+		
 		processRequest(req, resp);
 	
 	}
