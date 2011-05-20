@@ -78,8 +78,7 @@ public class UserBin extends TimerTask {
 			User u = ut.getUser();
 			if(null != u) {
 				ut.setTime(System.currentTimeMillis()); // refresh the time 
-				return new User(u); // lazy to assume that UserImpl is always what's needed, but it is the only User 
-				                        // implementation for now.
+				return new User(u);
 			}
 		}
 		return null;

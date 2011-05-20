@@ -155,21 +155,20 @@ public class ConfigurationValueMerger {
 		JSONArray responseArray = JsonUtils.getJsonArrayFromString(String.valueOf(result.getResponse()));
 		
 		if(responseArray != null) {
-			JSONArray valueArray = new JSONArray();
+			double total = 0.0f;
 			
-			for(int i = 0; i < valueArray.length(); i++) {
+			for(int i = 0; i < responseArray.length(); i++) {
 				JSONObject currRun;
 				try {
-					currRun = valueArray.getJSONObject(i);
+					currRun = responseArray.getJSONObject(i);
 				}
 				catch(JSONException e) {
 					_logger.warn("Could not convert an individual run of a RemoteActivity response into JSONObjects.", e);
 					continue;
 				}
 				
-				double runResult;
 				try {
-					runResult = (Double) currRun.get("score");
+					total += Double.valueOf(currRun.get("score").toString());
 				}
 				catch(JSONException e) {
 					_logger.warn("Missing necessary key in RemoteActivity run.", e);
@@ -179,17 +178,18 @@ public class ConfigurationValueMerger {
 					_logger.warn("Missing necessary key in RemoteActivity run.", e);
 					continue;
 				}
-				
-				try {
-					valueArray.put(runResult);
-				}
-				catch(JSONException e) {
-					_logger.warn("Error constructing CSV response in RemoteActivity response merge.");
+				catch(ClassCastException e) {
+					_logger.warn("Cannot cast the score value into a double.");
 					continue;
 				}
 			}
 			
-			result.setDisplayValue(valueArray);
+			if(responseArray.length() == 0) {
+				result.setDisplayValue(0.0);
+			}
+			else {
+				result.setDisplayValue(total / responseArray.length());
+			}
 		}
 		else {
 			result.setDisplayValue(String.valueOf(result.getResponse()));

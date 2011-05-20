@@ -57,10 +57,7 @@ public class TokenAuthResponseWriter extends AbstractResponseWriter {
 				}
 			}
 			
-			if(_logger.isDebugEnabled()) {
-				_logger.debug("About to write output");
-			}
-			
+			_logger.info("Generating token-based authentication response output.");
 			writer.write(responseText);
 		}
 		

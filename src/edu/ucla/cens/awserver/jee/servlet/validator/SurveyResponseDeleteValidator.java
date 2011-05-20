@@ -8,17 +8,17 @@ import edu.ucla.cens.awserver.request.InputKeys;
 import edu.ucla.cens.awserver.util.StringUtils;
 
 /**
- * Validates an incoming survey update HTTP request.
+ * Validates an incoming survey deletion HTTP request.
  * 
  * @author Joshua Selsky
  */
-public class SurveyResponseUpdateValidator extends AbstractHttpServletRequestValidator {
-	private static Logger _logger = Logger.getLogger(SurveyResponseUpdateValidator.class);
+public class SurveyResponseDeleteValidator extends AbstractHttpServletRequestValidator {
+	private static Logger _logger = Logger.getLogger(SurveyResponseDeleteValidator.class);
 	
 	/**
 	 * Default constructor.
 	 */
-	public SurveyResponseUpdateValidator() {
+	public SurveyResponseDeleteValidator() {
 		// Do nothing.
 	}
 	
@@ -30,7 +30,6 @@ public class SurveyResponseUpdateValidator extends AbstractHttpServletRequestVal
 		String token = httpRequest.getParameter(InputKeys.AUTH_TOKEN);
 		String campaignUrn = httpRequest.getParameter(InputKeys.CAMPAIGN_URN);
 		String surveyKey = httpRequest.getParameter(InputKeys.SURVEY_KEY);
-		String privacyState = httpRequest.getParameter(InputKeys.PRIVACY_STATE);
 		String client = httpRequest.getParameter(InputKeys.CLIENT);
 		
 		if(StringUtils.isEmptyOrWhitespaceOnly(token)) {
@@ -41,9 +40,6 @@ public class SurveyResponseUpdateValidator extends AbstractHttpServletRequestVal
 			return false;
 		} 
 		else if(StringUtils.isEmptyOrWhitespaceOnly(surveyKey)) {
-			return false;
-		}
-		else if(StringUtils.isEmptyOrWhitespaceOnly(privacyState)) {
 			return false;
 		}
 		else if(StringUtils.isEmptyOrWhitespaceOnly(client)) {
@@ -60,10 +56,6 @@ public class SurveyResponseUpdateValidator extends AbstractHttpServletRequestVal
 		} 
 		else if(greaterThanLength(InputKeys.SURVEY_KEY, InputKeys.SURVEY_KEY, surveyKey, 10)) {
 			_logger.warn(InputKeys.SURVEY_KEY + " is too long.");
-			return false;
-		}
-		else if(greaterThanLength(InputKeys.PRIVACY_STATE, InputKeys.PRIVACY_STATE, privacyState, 9)) {
-			_logger.warn(InputKeys.PRIVACY_STATE + " is too long.");
 			return false;
 		}
 		else if(greaterThanLength(InputKeys.CLIENT, InputKeys.CLIENT, client, 250)) {

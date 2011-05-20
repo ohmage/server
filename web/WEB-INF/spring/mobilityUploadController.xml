@@ -112,7 +112,7 @@
             <ref bean="jsonMsgDateValidator" />
             <ref bean="jsonMsgTimeValidator" />
             <ref bean="jsonMsgTimezoneValidator" />
-            <ref bean="jsonMsgLocationStatusValidator" />
+            <ref bean="jsonMsgMobilityLocationStatusValidator" />
             <ref bean="jsonMsgLocationValidator" />
             <ref bean="jsonMsgModeOnlyModeValidator" />
           </list>
@@ -123,7 +123,7 @@
             <ref bean="jsonMsgDateValidator" />
             <ref bean="jsonMsgTimeValidator" />
             <ref bean="jsonMsgTimezoneValidator" />
-            <ref bean="jsonMsgLocationStatusValidator" />
+            <ref bean="jsonMsgMobilityLocationStatusValidator" />
             <ref bean="jsonMsgLocationValidator" />
             <ref bean="jsonMsgSensorDataExistsValidator" />
             <ref bean="jsonMsgSensorDataModeValidator" />
@@ -134,6 +134,33 @@
       </map>
     </constructor-arg>
   </bean>
+  
+  <bean id="jsonMsgMobilityLocationStatusValidator" class="edu.ucla.cens.awserver.validator.json.JsonMsgValueInListValidator">
+    <constructor-arg index="0">
+      <bean class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
+        <constructor-arg index="0">
+          <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
+            <property name="code" value="0408" />
+            <property name="text" value="invalid location status" />
+          </bean>
+        </constructor-arg>  
+      </bean>
+    </constructor-arg>
+    <constructor-arg index="1">
+      <value>location_status</value>
+    </constructor-arg>
+    <constructor-arg index="2">
+      <ref bean="locationStatuses" />
+    </constructor-arg>
+  </bean>
+  
+   <util:list id="locationStatuses">
+    <value>unavailable</value>
+    <value>valid</value>
+    <value>inaccurate</value>
+    <value>stale</value>
+    <value>network</value>
+  </util:list>
   
   <bean id="jsonMsgDateValidator" class="edu.ucla.cens.awserver.validator.json.JsonMsgDateValidator">
     <constructor-arg index="0">

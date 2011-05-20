@@ -42,7 +42,7 @@ public class MediaUploadAwRequestCreator implements AwRequestCreator {
 		
 		awRequest.setRequestUrl(requestUrl); // placed in the request for use in logging messages
 		
-		NDC.push("ci=" + client); // push the client string into the Log4J NDC for the currently executing thread - this means that it 
+		NDC.push("client=" + client); // push the client string into the Log4J NDC for the currently executing thread - this means that it 
                                   // will be in every log message for the thread
 		
 		return awRequest;

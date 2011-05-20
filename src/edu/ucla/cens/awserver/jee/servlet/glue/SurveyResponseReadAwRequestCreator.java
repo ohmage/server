@@ -62,8 +62,8 @@ public class SurveyResponseReadAwRequestCreator implements AwRequestCreator {
 		awRequest.addToValidate(InputKeys.SORT_ORDER, sortOrder, true);
 		
 		
-        NDC.push("ci=" + client); // push the client string into the Log4J NDC for the currently executing thread _ this means that 
-                                  // it will be in every log message for the current thread
+        NDC.push("client=" + client); // push the client string into the Log4J NDC for the currently executing thread _ this means that 
+                                     // it will be in every log message for the current thread
 		return awRequest;
 	}
 }

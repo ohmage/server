@@ -219,7 +219,7 @@ public class SurveyResponseReadResponseWriter extends AbstractResponseWriter {
 				}
 			}
 			
-			_logger.info("About to write output");
+			_logger.info("Generating survey response read output.");
 			writer.write(responseText);
 		}
 		
