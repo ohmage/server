@@ -31,7 +31,7 @@ public class FindAllFilteredCampaignsForLoggedInUserDao extends AbstractDao {
 			                 "FROM campaign c, campaign_running_state crs, campaign_privacy_state cps " +
 			                 "WHERE c.urn = ? " +
 			                 "AND c.privacy_state_id = cps.id " +
-			                 "AND c.running_state_id = crs.id";
+			                 "AND c.running_state_id = crs.id ";
 	
 //	private String _select = "SELECT c.urn, c.name, c.description, c.xml, c.running_state, c.privacy_state, c.creation_timestamp," +
 //			                  " css.urn " +
