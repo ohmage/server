@@ -50,8 +50,8 @@
         <ref bean="userCampaignValidationService" />
         <ref bean="campaignUserCheckService" />
         <ref bean="participantUserParamValidationService" />
-        <ref bean="surveyResponseReadCampaignRunningStateValidationService" />
-        <ref bean="surveyResponseReadCampaignPrivacyStateValidationService" />
+        <ref bean="readOperationCampaignRunningStateValidationService" />
+        <ref bean="readOperationCampaignPrivacyStateValidationService" />
         
         <!-- grab the XML config from the db -->
         <ref bean="findCampaignConfigurationService" />
@@ -362,7 +362,7 @@
     </constructor-arg>
   </bean>
 
-  <bean id="surveyResponseReadCampaignRunningStateValidationService" class="edu.ucla.cens.awserver.service.CampaignRunningStateUserRoleValidationService">
+  <bean id="readOperationCampaignRunningStateValidationService" class="edu.ucla.cens.awserver.service.CampaignRunningStateUserRoleValidationService">
    <constructor-arg index="0">
       <bean class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
         <constructor-arg index="0"> 
@@ -383,7 +383,7 @@
     </constructor-arg>
   </bean>
 
-  <bean id="surveyResponseReadCampaignPrivacyStateValidationService" class="edu.ucla.cens.awserver.service.CampaignPrivacyStateUserRoleValidationService">
+  <bean id="readOperationCampaignPrivacyStateValidationService" class="edu.ucla.cens.awserver.service.CampaignPrivacyStateUserRoleValidationService">
    <constructor-arg index="0">
       <bean class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
         <constructor-arg index="0"> 
@@ -394,10 +394,11 @@
         </constructor-arg>
       </bean>
     </constructor-arg>
-    <constructor-arg index="1"><value>private</value></constructor-arg>
+    <constructor-arg index="1"><util:constant static-field="edu.ucla.cens.awserver.cache.CampaignPrivacyStateCache.PRIVACY_STATE_PRIVATE"/></constructor-arg>
     <constructor-arg index="2">
       <list>
         <util:constant static-field="edu.ucla.cens.awserver.cache.CampaignRoleCache.ROLE_PARTICIPANT"/>
+        <util:constant static-field="edu.ucla.cens.awserver.cache.CampaignRoleCache.ROLE_AUTHOR"/>
         <util:constant static-field="edu.ucla.cens.awserver.cache.CampaignRoleCache.ROLE_SUPERVISOR"/>
       </list>
     </constructor-arg>

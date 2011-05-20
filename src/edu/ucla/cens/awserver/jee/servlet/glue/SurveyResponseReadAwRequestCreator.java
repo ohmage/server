@@ -60,6 +60,7 @@ public class SurveyResponseReadAwRequestCreator implements AwRequestCreator {
 		awRequest.addToValidate(InputKeys.PRETTY_PRINT, prettyPrint, true);
 		awRequest.addToValidate(InputKeys.RETURN_ID, returnId, true);
 		awRequest.addToValidate(InputKeys.SORT_ORDER, sortOrder, true);
+		awRequest.addToValidate(InputKeys.USER_LIST, userList, true);
 		
 		
         NDC.push("client=" + client); // push the client string into the Log4J NDC for the currently executing thread _ this means that 

@@ -21,13 +21,23 @@
   <bean id="imageQueryController" class="edu.ucla.cens.awserver.controller.ControllerImpl">
     <constructor-arg index="0">
       <list>
+        <!-- authenticate -->
         <ref bean="tokenBasedAuthenticationService" />
+        
+        <!-- load campaign and user role information for the logged-in user -->
         <ref bean="userRoleCampaignPopulationService" />
+        
+        <!-- authorize -->
         <ref bean="userCampaignValidationService" />
-        <ref bean="userRoleCheckService" />
         <ref bean="campaignUserCheckService" />
+        <ref bean="participantUserParamValidationService" />
+        <ref bean="readOperationCampaignRunningStateValidationService" />
+        <ref bean="readOperationCampaignPrivacyStateValidationService" />
         <ref bean="findCampaignForMediaIdService" />
+        
+        <!-- query and filter results by their privacy states and the logged-in user's user role -->
         <ref bean="findUrlForMediaIdService" />
+        
       </list>
     </constructor-arg>
     <constructor-arg index="1">

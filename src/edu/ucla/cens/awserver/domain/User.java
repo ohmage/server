@@ -130,6 +130,18 @@ public class User {
 		return campaignUserRoles.getUserRoleStrings().contains("participant");
 	}
 	
+	public boolean isOnlyAnalystOrAuthor(String campaignUrn) {
+		return (isAnalystInCampaign(campaignUrn) 
+				&& (getCampaignUserRoleMap().get(campaignUrn).getUserRoles().size() == 1))
+				
+			||  (isAuthorInCampaign(campaignUrn) 
+					&& (getCampaignUserRoleMap().get(campaignUrn).getUserRoles().size() == 1))
+					
+			|| (isAnalystInCampaign(campaignUrn) 
+			    	&& isAuthorInCampaign(campaignUrn) 
+			    	&& (getCampaignUserRoleMap().get(campaignUrn).getUserRoles().size() == 2));
+	}
+	
 	// NOTE: if you regenerate this toString() automatically in your IDE, please remember to omit the user's password!
 	@Override
 	public String toString() {
