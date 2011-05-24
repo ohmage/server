@@ -71,12 +71,9 @@ public class CacheAllowedValuesValidator extends AbstractAnnotatingValidator {
 			value = (String) awRequest.getToProcessValue(_requestKey);
 		}
 		catch(IllegalArgumentException outerException) {
-			try {
-				// It wasn't in the toProcess map, so check the toValidate
-				// map.
-				value = (String) awRequest.getToValidate().get(_requestKey);
-			}
-			catch(IllegalArgumentException innerException) {
+			value = (String) awRequest.getToValidate().get(_requestKey);
+			
+			if(value == null) {
 				if(_required) {
 					throw new ValidatorException("The required parameter " + _requestKey + " wasn't found in either the toProcess or toValidate maps.");
 				}

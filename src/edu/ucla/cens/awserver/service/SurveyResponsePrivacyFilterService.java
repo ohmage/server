@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.apache.log4j.Logger;
 
+import edu.ucla.cens.awserver.cache.SurveyResponsePrivacyStateCache;
 import edu.ucla.cens.awserver.domain.SurveyResponseReadResult;
 import edu.ucla.cens.awserver.domain.User;
 import edu.ucla.cens.awserver.request.AwRequest;
@@ -41,17 +42,17 @@ public class SurveyResponsePrivacyFilterService implements Service {
 					&& user.getCampaignUserRoleMap().get(campaignUrn).getUserRoles().size() == 1) {
 					
 					for(int i = 0; i < numberOfResults; i++) {
-						if(((SurveyResponseReadResult) results.get(i)).getPrivacyState().equals("invisible")) { // FIXME convert to constant
+						if(((SurveyResponseReadResult) results.get(i)).getPrivacyState().equals(SurveyResponsePrivacyStateCache.PRIVACY_STATE_INVISIBLE)) { 
 							results.remove(i);
 							i--;
 							numberOfResults--;
 						}
 					}
 					
-				} else if (isOnlyAnalystOrAuthor(user, campaignUrn)){
+				} else if (user.isOnlyAnalystOrAuthor(campaignUrn)){
 					
 					for(int i = 0; i < numberOfResults; i++) {
-						if(((SurveyResponseReadResult) results.get(i)).getPrivacyState().equals("private")) { // FIXME convert to constant
+						if(((SurveyResponseReadResult) results.get(i)).getPrivacyState().equals(SurveyResponsePrivacyStateCache.PRIVACY_STATE_PRIVATE)) { 
 							results.remove(i);
 							i--;
 							numberOfResults--;
@@ -62,17 +63,5 @@ public class SurveyResponsePrivacyFilterService implements Service {
 		}
 		
 		_logger.info(results.size() + " results after filtering");
-	}	
-	
-	private boolean isOnlyAnalystOrAuthor(User user, String campaignUrn) {
-		return (user.isAnalystInCampaign(campaignUrn) 
-				&& (user.getCampaignUserRoleMap().get(campaignUrn).getUserRoles().size() == 1))
-				
-			||  (user.isAuthorInCampaign(campaignUrn) 
-					&& (user.getCampaignUserRoleMap().get(campaignUrn).getUserRoles().size() == 1))
-					
-			|| (user.isAnalystInCampaign(campaignUrn) 
-			    	&& user.isAuthorInCampaign(campaignUrn) 
-			    	&& (user.getCampaignUserRoleMap().get(campaignUrn).getUserRoles().size() == 2));
 	}
 }

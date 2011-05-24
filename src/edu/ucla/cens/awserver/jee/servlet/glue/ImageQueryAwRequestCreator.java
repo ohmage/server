@@ -5,6 +5,7 @@ import javax.servlet.http.HttpServletRequest;
 import org.apache.log4j.NDC;
 
 import edu.ucla.cens.awserver.request.AwRequest;
+import edu.ucla.cens.awserver.request.InputKeys;
 import edu.ucla.cens.awserver.request.MediaQueryAwRequest;
 
 /**
@@ -37,6 +38,8 @@ public class ImageQueryAwRequestCreator implements AwRequestCreator {
         NDC.push("client=" + client); // push the client string into the Log4J NDC for the currently executing thread - this means that 
                                       // it will be in every log message for the thread
 		
+        awRequest.addToValidate(InputKeys.USER, userNameRequestParam, true);
+        
 		return awRequest;
 	}
 }

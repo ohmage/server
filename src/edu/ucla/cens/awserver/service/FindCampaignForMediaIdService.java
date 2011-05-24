@@ -8,7 +8,10 @@ import edu.ucla.cens.awserver.request.MediaQueryAwRequest;
 import edu.ucla.cens.awserver.validator.AwRequestAnnotator;
 
 /**
- * @author selsky
+ * Validation service for checking whether the campaign URN provided in the request represents the campaign the media id belongs
+ * to.
+ * 
+ * @author Joshua Selsky
  */
 public class FindCampaignForMediaIdService extends AbstractDaoService {
 	private AwRequestAnnotator _noMediaAnnotator;
