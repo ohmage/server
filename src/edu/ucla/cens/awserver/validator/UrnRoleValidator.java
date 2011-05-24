@@ -1,12 +1,10 @@
 package edu.ucla.cens.awserver.validator;
 
-import java.util.regex.Pattern;
-import java.util.regex.PatternSyntaxException;
-
 import org.apache.log4j.Logger;
 
 import edu.ucla.cens.awserver.cache.Cache;
 import edu.ucla.cens.awserver.request.AwRequest;
+import edu.ucla.cens.awserver.request.InputKeys;
 import edu.ucla.cens.awserver.util.StringUtils;
 
 /**
@@ -20,9 +18,6 @@ public class UrnRoleValidator extends AbstractAnnotatingValidator {
 	
 	String _key;
 	Cache _roleCache;
-	
-	String _pairSeparator;
-	String _listSeparator;
 	
 	boolean _required;
 	
@@ -42,7 +37,7 @@ public class UrnRoleValidator extends AbstractAnnotatingValidator {
 	 * 
 	 * @param required Whether or not this validation is required.
 	 */
-	public UrnRoleValidator(AwRequestAnnotator annotator, String key, Cache roleCache, String pairSeparator, String listSeparator, boolean required) {
+	public UrnRoleValidator(AwRequestAnnotator annotator, String key, Cache roleCache, boolean required) {
 		super(annotator);
 		
 		if(StringUtils.isEmptyOrWhitespaceOnly(key)) {
@@ -51,38 +46,9 @@ public class UrnRoleValidator extends AbstractAnnotatingValidator {
 		else if(roleCache == null) {
 			throw new IllegalArgumentException("The 'roleCache' cannot be null.");
 		}
-		// We only check for null here because we may decide that a space is a
-		// valid separator.
-		else if(pairSeparator == null) {
-			throw new IllegalArgumentException("The 'pairSeparator' cannot be null.");
-		}
-		// We only check for null here because we may decide that a space is a
-		// valid separator.
-		else if(listSeparator == null) {
-			throw new IllegalArgumentException("The 'listSeparator' cannot be null.");
-		}
-		
-		// Validate that the pair separator is a valid regular expression.
-		try {
-			Pattern.compile(pairSeparator);
-		}
-		catch(PatternSyntaxException e) {
-			throw new IllegalArgumentException("The 'pairSeparator' is not a valid regular expression with which to split a String: " + pairSeparator);
-		}
-		
-		// Validate that the list separator is a valid regular expression.
-		try {
-			Pattern.compile(listSeparator);
-		}
-		catch(PatternSyntaxException e) {
-			throw new IllegalArgumentException("The 'listSeparator' is not a valid regular expression with which to split a String: " + listSeparator);
-		}
 		
 		_key = key;
 		_roleCache = roleCache;
-		
-		_pairSeparator = pairSeparator;
-		_listSeparator = listSeparator;
 		
 		_required = required;
 	}
@@ -119,9 +85,9 @@ public class UrnRoleValidator extends AbstractAnnotatingValidator {
 		_logger.info("Validating the list for key '" + _key + "' against the cache '" + _roleCache.getName() + "'.");
 		
 		// Split the list to get each of the pairs.
-		String[] urnRoleArray = urnRoleList.split(_listSeparator);
+		String[] urnRoleArray = urnRoleList.split(InputKeys.LIST_ITEM_SEPARATOR);
 		for(int i = 0; i < urnRoleArray.length; i++) {
-			String[] urnRole = urnRoleArray[i].split(_pairSeparator);
+			String[] urnRole = urnRoleArray[i].split(InputKeys.URN_ROLE_SEPARATOR);
 			
 			// Make sure there is exactly two objects in the pair.
 			if(urnRole.length != 2) {

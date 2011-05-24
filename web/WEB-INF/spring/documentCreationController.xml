@@ -14,9 +14,9 @@
   <bean id="documentCreationAwRequestCreator" class="edu.ucla.cens.awserver.jee.servlet.glue.DocumentCreationAwRequestCreator" />
   
   <!-- Write the Response -->
-  <bean id="documentCreationResponseWriter" class="edu.ucla.cens.awserver.jee.servlet.writer.SuccessOrFailResponseWriter">
+  <bean id="documentCreationResponseWriter" class="edu.ucla.cens.awserver.jee.servlet.writer.DocumentCreationResponseWriter">
     <constructor-arg index="0">
-      <bean id="documentCreationErrorResponse" class="edu.ucla.cens.awserver.domain.ErrorResponse">
+      <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
         <property name="code" value="1500" />
         <property name="text" value="General document creation error." />
       </bean>

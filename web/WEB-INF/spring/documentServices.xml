@@ -58,5 +58,144 @@
       <value>false</value>
     </constructor-arg>
   </bean>
+  
+  <bean id="documentExistsService" class="edu.ucla.cens.awserver.service.GenericAnnotatingDaoService">
+    <constructor-arg>
+      <ref bean="documentDoesntExistError" />
+    </constructor-arg>
+    <constructor-arg>
+      <bean class="edu.ucla.cens.awserver.dao.DocumentExistsDao">
+        <constructor-arg>
+          <ref bean="dataSource"/>
+        </constructor-arg>
+        <constructor-arg>
+          <value>true</value>
+        </constructor-arg>
+      </bean>
+    </constructor-arg>
+    <constructor-arg>
+      <value>The document does not exist.</value>
+    </constructor-arg>
+    <constructor-arg>
+      <value>Validating that the document exists.</value>
+    </constructor-arg>
+  </bean>
 
+  <bean id="userCanDeleteDocumentService" class="edu.ucla.cens.awserver.service.UserHasPermissionForDocumentService">
+    <constructor-arg>
+      <ref bean="insufficientPermissionsToDeleteDocumentError" />
+    </constructor-arg>
+    <constructor-arg>
+      <bean class="edu.ucla.cens.awserver.dao.FindAllDocumentsForRequestingUserWithRolesDao">
+        <constructor-arg>
+          <ref bean="dataSource"/>
+        </constructor-arg>
+        <constructor-arg>
+          <list>
+            <util:constant static-field="edu.ucla.cens.awserver.cache.DocumentRoleCache.ROLE_OWNER"/>
+          </list>
+        </constructor-arg>
+      </bean>
+    </constructor-arg>
+    <constructor-arg>
+      <value>true</value>
+    </constructor-arg>
+  </bean>
+  
+  <bean id="userCanReadDocumentService" class="edu.ucla.cens.awserver.service.UserHasPermissionForDocumentService">
+    <constructor-arg>
+      <ref bean="insufficientPermissionsToReadDocumentError" />
+    </constructor-arg>
+    <constructor-arg>
+      <bean class="edu.ucla.cens.awserver.dao.FindAllDocumentsForRequestingUserWithRolesDao">
+        <constructor-arg>
+          <ref bean="dataSource"/>
+        </constructor-arg>
+        <constructor-arg>
+          <list>
+            <util:constant static-field="edu.ucla.cens.awserver.cache.DocumentRoleCache.ROLE_OWNER"/>
+            <util:constant static-field="edu.ucla.cens.awserver.cache.DocumentRoleCache.ROLE_WRITER"/>
+            <util:constant static-field="edu.ucla.cens.awserver.cache.DocumentRoleCache.ROLE_READER"/>
+          </list>
+        </constructor-arg>
+      </bean>
+    </constructor-arg>
+    <constructor-arg>
+      <value>true</value>
+    </constructor-arg>
+  </bean>
+  
+  <bean id="documentIdAggregationSpecificToRequestingUserRequiredService" class="edu.ucla.cens.awserver.service.DocumentIdAggregationForRequestingUserService">
+    <constructor-arg>
+      <ref bean="documentIdsSpecificToRequestingUserDao" />
+    </constructor-arg>
+    <constructor-arg>
+      <value>true</value>
+    </constructor-arg>
+  </bean>
+  
+  <bean id="documentIdAggregationFromCampaignListOptionalService" class="edu.ucla.cens.awserver.service.DocumentIdAggregationService">
+    <constructor-arg>
+      <ref bean="documentIdsFromCampaignListForRequestingUserDao" />
+    </constructor-arg>
+    <constructor-arg>
+      <util:constant static-field="edu.ucla.cens.awserver.request.InputKeys.CAMPAIGN_URN_LIST"/>
+    </constructor-arg>
+    <constructor-arg>
+      <value>false</value>
+    </constructor-arg>
+  </bean>
+  
+  <bean id="documentIdAggregationFromClassListOptionalService" class="edu.ucla.cens.awserver.service.DocumentIdAggregationService">
+    <constructor-arg>
+      <ref bean="documentIdsFromClassListForRequestingUserDao" />
+    </constructor-arg>
+    <constructor-arg>
+      <util:constant static-field="edu.ucla.cens.awserver.request.InputKeys.CLASS_URN_LIST"/>
+    </constructor-arg>
+    <constructor-arg>
+      <value>false</value>
+    </constructor-arg>
+  </bean>
+  
+  <!-- DAOs Pertaining to Documents -->
+  <bean id="documentIdsSpecificToRequestingUserDao" class="edu.ucla.cens.awserver.dao.FindAllDocumentsSpecificToRequestingUserWithRolesDao">
+    <constructor-arg>
+      <ref bean="dataSource" />
+    </constructor-arg>
+    <constructor-arg>
+      <list>
+        <util:constant static-field="edu.ucla.cens.awserver.cache.DocumentRoleCache.ROLE_READER"/>
+        <util:constant static-field="edu.ucla.cens.awserver.cache.DocumentRoleCache.ROLE_WRITER"/>
+        <util:constant static-field="edu.ucla.cens.awserver.cache.DocumentRoleCache.ROLE_OWNER"/>
+      </list>
+    </constructor-arg>
+  </bean>
+  
+  <bean id="documentIdsFromCampaignListForRequestingUserDao" class="edu.ucla.cens.awserver.dao.FindAllDocumentsForRequestingUserFromCampaignListWithRolesDao">
+    <constructor-arg>
+      <ref bean="dataSource" />
+    </constructor-arg>
+    <constructor-arg>
+      <list>
+        <util:constant static-field="edu.ucla.cens.awserver.cache.DocumentRoleCache.ROLE_READER"/>
+        <util:constant static-field="edu.ucla.cens.awserver.cache.DocumentRoleCache.ROLE_WRITER"/>
+        <util:constant static-field="edu.ucla.cens.awserver.cache.DocumentRoleCache.ROLE_OWNER"/>
+      </list>
+    </constructor-arg>
+  </bean>
+  
+  <bean id="documentIdsFromClassListForRequestingUserDao" class="edu.ucla.cens.awserver.dao.FindAllDocumentsForRequestingUserFromClassListWithRolesDao">
+    <constructor-arg>
+      <ref bean="dataSource" />
+    </constructor-arg>
+    <constructor-arg>
+      <list>
+        <util:constant static-field="edu.ucla.cens.awserver.cache.DocumentRoleCache.ROLE_READER"/>
+        <util:constant static-field="edu.ucla.cens.awserver.cache.DocumentRoleCache.ROLE_WRITER"/>
+        <util:constant static-field="edu.ucla.cens.awserver.cache.DocumentRoleCache.ROLE_OWNER"/>
+      </list>
+    </constructor-arg>
+  </bean>
+  
 </beans>

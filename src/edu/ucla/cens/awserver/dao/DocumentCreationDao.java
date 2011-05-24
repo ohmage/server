@@ -26,6 +26,7 @@ import edu.ucla.cens.awserver.cache.DocumentRoleCache;
 import edu.ucla.cens.awserver.cache.PreferenceCache;
 import edu.ucla.cens.awserver.request.AwRequest;
 import edu.ucla.cens.awserver.request.InputKeys;
+import edu.ucla.cens.awserver.request.ReturnKeys;
 import edu.ucla.cens.awserver.util.StringUtils;
 
 /**
@@ -386,6 +387,8 @@ public class DocumentCreationDao extends AbstractDao {
 			// Commit the transaction.
 			try {
 				transactionManager.commit(status);
+				
+				awRequest.addToReturn(ReturnKeys.DOCUMENT_ID, uuid.toString(), true);
 			}
 			catch(TransactionException e) {
 				_logger.error("Error while committing the transaction.", e);

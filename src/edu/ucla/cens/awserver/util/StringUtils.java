@@ -3,6 +3,7 @@ package edu.ucla.cens.awserver.util;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.regex.Pattern;
@@ -142,5 +143,35 @@ public final class StringUtils {
 			return Collections.emptyList();
 		} 
 		return Arrays.asList(string.split(","));
+	}
+	
+	/**
+	 * Creates a single String representation of the Collection where each item
+	 * is converted to a String via its toString() method and each item is
+	 * separated by the 'delimiter'.
+	 * 
+	 * @param collection The Collection of items to be aggregated into a single
+	 * 					 String.
+	 * 
+	 * @param delimiter The String to place between each item in the resulting
+	 * 					String.
+	 * 
+	 * @return A String representation of the Collection.
+	 */
+	public static String collectionToDelimitedString(Collection<?> collection, String delimiter) {
+		boolean firstPass = true;
+		StringBuilder builder = new StringBuilder();
+		for(Object item : collection) {
+			if(firstPass) {
+				firstPass = false;
+			}
+			else {
+				builder.append(delimiter);
+			}
+			
+			builder.append(item.toString());
+		}
+		
+		return builder.toString();
 	}
 }

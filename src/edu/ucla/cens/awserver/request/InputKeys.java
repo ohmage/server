@@ -84,11 +84,13 @@ public class InputKeys {
 	
 	// Document Constants
 	public static final String DOCUMENT = "document";
-	public static final String DOCUMENT_URN = "document_urn";
+	public static final String DOCUMENT_ID = "document_id";
+	public static final String DOCUMENT_ID_LIST = "document_id_list";
 	public static final String DOCUMENT_NAME = "document_name";
-	public static final String DOCUMENT_CAMPAIGN_ROLE_LIST = "campaign_role_list";
-	public static final String DOCUMENT_CLASS_ROLE_LIST = "class_role_list";
-	public static final String DOCUMENT_USER_ROLE_LIST = "user_role_list";
+	public static final String DOCUMENT_CAMPAIGN_ROLE_LIST = "document_campaign_role_list";
+	public static final String DOCUMENT_CLASS_ROLE_LIST = "document_class_role_list";
+	public static final String DOCUMENT_USER_ROLE_LIST = "document_user_role_list";
+	public static final String DOCUMENT_PERSONAL_DOCUMENTS = "personal_documents";
 	
 	// Separator Constants
 	public static final String LIST_ITEM_SEPARATOR = ",";

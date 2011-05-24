@@ -86,4 +86,33 @@
     </constructor-arg>
   </bean>
   
+  <bean id="campaignsInListExistAndRequestingUserBelongsOptionalService" class="edu.ucla.cens.awserver.service.GenericAnnotatingDaoService">
+    <constructor-arg>
+      <bean class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
+        <constructor-arg index="0">
+          <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
+            <property name="code" value="0808" />
+            <property name="text" value="Campaign in list doesn't exist." />
+          </bean>
+        </constructor-arg>
+      </bean>
+    </constructor-arg>
+    <constructor-arg>
+      <bean class="edu.ucla.cens.awserver.dao.CampaignListValidationDao">
+        <constructor-arg index="0">
+          <ref bean="dataSource"/>
+        </constructor-arg>
+        <constructor-arg>
+          <value>false</value>
+        </constructor-arg>
+      </bean>
+    </constructor-arg>
+    <constructor-arg>
+      <value>A campaign in the list does not exist.</value>
+    </constructor-arg>
+    <constructor-arg>
+      <value>Validating that all the campaigns in the campaign list parameter exist.</value>
+    </constructor-arg>
+  </bean>
+  
 </beans>

@@ -39,7 +39,7 @@
         <!-- Validate that the campaign being updated exists. -->
         <ref bean="campaignExistsService" />
 
-        <ref bean="classListOptionalValidationService" />
+        <ref bean="classesInListExistOptionalService" />
 
         <!-- Validate that all the users and roles in the user-role lists exist. -->
         <ref bean="userRoleListAddOptionalValidationService" />

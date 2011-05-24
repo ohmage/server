@@ -52,12 +52,6 @@
       <ref bean="documentRoleCache" />
     </constructor-arg>
     <constructor-arg>
-      <value>;</value>
-    </constructor-arg>
-    <constructor-arg>
-      <value>,</value>
-    </constructor-arg>
-    <constructor-arg>
       <value>false</value>
     </constructor-arg>
   </bean>
@@ -73,13 +67,46 @@
       <ref bean="documentRoleCache" />
     </constructor-arg>
     <constructor-arg>
-      <value>;</value>
-    </constructor-arg>
-    <constructor-arg>
-      <value>,</value>
-    </constructor-arg>
-    <constructor-arg>
       <value>false</value>
     </constructor-arg>
   </bean>
+  
+  <bean id="documentIdRequiredValidator" class="edu.ucla.cens.awserver.validator.UuidValidator">
+    <constructor-arg>
+      <bean class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
+        <constructor-arg>
+          <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
+            <property name="code" value="1600" />
+            <property name="text" value="Document UUID is not a valid UUID." />
+          </bean>
+        </constructor-arg>
+      </bean>
+    </constructor-arg>
+    <constructor-arg>
+      <util:constant static-field="edu.ucla.cens.awserver.request.InputKeys.DOCUMENT_ID"/>
+    </constructor-arg>
+    <constructor-arg>
+      <value>true</value>
+    </constructor-arg>
+  </bean>
+  
+  <bean id="documentPersonalDocumentsValueRequiredValidator" class="edu.ucla.cens.awserver.validator.BooleanValidator">
+    <constructor-arg>
+      <bean class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
+        <constructor-arg>
+          <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
+            <property name="code" value="1513" />
+            <property name="text" value="Invalid value for personal_documents." />
+          </bean>
+        </constructor-arg>
+      </bean>
+    </constructor-arg>
+    <constructor-arg>
+      <util:constant static-field="edu.ucla.cens.awserver.request.InputKeys.DOCUMENT_PERSONAL_DOCUMENTS"/>
+    </constructor-arg>
+    <constructor-arg>
+      <value>true</value>
+    </constructor-arg>
+  </bean>
+  
 </beans>

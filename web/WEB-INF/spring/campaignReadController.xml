@@ -38,7 +38,7 @@
       <list>
         <ref bean="tokenOrUserPasswordValidator" />
         <ref bean="classUrnListValidator" />
-        <ref bean="campaignUrnListValidator" />
+        <ref bean="campaignUrnListOptionalValidator" />
         <ref bean="startDateInMapValidator" />
         <ref bean="endDateInMapValidator" />
         <ref bean="campaignReadOutputFormatValidator" />
@@ -67,21 +67,6 @@
       </bean>
     </constructor-arg>
     <constructor-arg index="1"><value>class_urn_list</value></constructor-arg>
-    <constructor-arg index="2"><value>false</value></constructor-arg>
-  </bean>
-
-  <bean id="campaignUrnListValidator" class="edu.ucla.cens.awserver.validator.UrnListValidator">
-    <constructor-arg index="0">
-      <bean class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
-        <constructor-arg index="0"> 
-          <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
-            <property name="code" value="0807" />
-            <property name="text" value="invalid campaign URN list or invalid URN in list" />
-          </bean>
-        </constructor-arg>
-      </bean>
-    </constructor-arg>
-    <constructor-arg index="1"><value>campaign_urn_list</value></constructor-arg>
     <constructor-arg index="2"><value>false</value></constructor-arg>
   </bean>
   
