@@ -119,7 +119,7 @@ public class ClassInfo {
 			result.put("urn", _urn);
 		}
 		result.put("name", _name);
-		result.put("description", _description);
+		result.put("description", ((_description == null) ? "" : _description));
 		
 		JSONObject users = new JSONObject();
 		ListIterator<UserAndRole> usersIter = _users.listIterator();
