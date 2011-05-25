@@ -14,9 +14,9 @@
   <bean id="documentCreationAwRequestCreator" class="edu.ucla.cens.awserver.jee.servlet.glue.DocumentCreationAwRequestCreator" />
   
   <!-- Write the Response -->
-  <bean id="documentCreationResponseWriter" class="edu.ucla.cens.awserver.jee.servlet.writer.SuccessOrFailResponseWriter">
+  <bean id="documentCreationResponseWriter" class="edu.ucla.cens.awserver.jee.servlet.writer.DocumentCreationResponseWriter">
     <constructor-arg index="0">
-      <bean id="documentCreationErrorResponse" class="edu.ucla.cens.awserver.domain.ErrorResponse">
+      <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
         <property name="code" value="1500" />
         <property name="text" value="General document creation error." />
       </bean>
@@ -31,8 +31,17 @@
         <!-- Authenticate that the token the user is using is a valid token. -->
         <ref bean="tokenBasedAuthenticationService" />
         
-        <!-- Ensure that the URN doesn't already exist. -->
-        <ref bean="documentUrnDoesntExistValidationService" />
+        <!-- Ensure that the classes and campaigns do exist. -->
+        <ref bean="campaignUrnsInDocumentRoleListExistOptionalService" />
+        <ref bean="classUrnsInDocumentRoleListExistOptionalService" />
+        
+        <!-- Ensure that the user has the appropriate roles in the campaign. -->
+        <ref bean="userRoleCampaignPopulationService" />
+        <ref bean="userCanAssociateDocumentsWithCampaignsInCampaignRoleListOptionalService" />
+        
+        <!--  Ensure that the user has the appropriate roles in the class. -->
+        <ref bean="userRoleClassPopulationService" />
+        <ref bean="userCanAssociateDocumentsWithClassesInClassRoleListOptionalService" />
         
         <!-- Insert the document. -->
         <ref bean="documentCreationService" />
@@ -47,10 +56,11 @@
       <list>
         <!-- Validate each of the items in the request. -->
         <ref bean="userTokenValidator" />
-        <ref bean="documentUrnRequiredValidator" />
         <ref bean="documentNameRequiredValidator" />
         <ref bean="documentRequiredValidator" />
         <ref bean="documentPrivacyStateRequiredValidator" />
+        <ref bean="documentCampaignRoleOptionalValidator" />
+        <ref bean="documentClassRoleOptionalValidator" />
         <ref bean="descriptionOptionalValidator" />
       </list>
     </property>
@@ -62,14 +72,13 @@
       <ref bean="documentManipulationError" />
     </constructor-arg>
     <constructor-arg>
-      <bean class="edu.ucla.cens.awserver.dao.UrlBasedResourceDao">
+      <bean class="edu.ucla.cens.awserver.dao.DocumentCreationDao">
         <constructor-arg>
           <ref bean="dataSource"/>
         </constructor-arg>
-        <constructor-arg index="1" value="${system.imageDir}"/> <!-- root directory for storage -->
-        <constructor-arg index="2" value=".jpg" /> <!-- file extension -->
-        <constructor-arg index="3" value="1000" /> <!-- max number of dirs -->
-        <constructor-arg index="4" value="1000" /> <!-- max number of files -->
+        <constructor-arg>
+          <util:constant static-field="edu.ucla.cens.awserver.cache.PreferenceCache.KEY_DOCUMENT_DIRECTORY"/>
+        </constructor-arg>
       </bean>
     </constructor-arg>
   </bean>

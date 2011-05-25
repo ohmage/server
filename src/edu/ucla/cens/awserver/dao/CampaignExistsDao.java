@@ -14,9 +14,9 @@ import edu.ucla.cens.awserver.request.AwRequest;
 public class CampaignExistsDao extends AbstractDao {
 	private static Logger _logger = Logger.getLogger(CampaignExistsDao.class);
 	
-	private static final String SQL = "SELECT count(*) " +
+	private static final String SQL = "SELECT EXISTS(SELECT * " +
 									  "FROM campaign " +
-									  "WHERE urn = ?";
+									  "WHERE urn = ?)";
 	
 	/**
 	 * Basic constructor.
@@ -47,5 +47,4 @@ public class CampaignExistsDao extends AbstractDao {
 			throw new DataAccessException(dae);
 		}
 	}
-
 }

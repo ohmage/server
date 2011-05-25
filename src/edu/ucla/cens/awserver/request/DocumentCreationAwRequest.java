@@ -27,17 +27,14 @@ public class DocumentCreationAwRequest extends ResultListAwRequest {
 	 * 
 	 * @param description An optional description for this document.
 	 * 
-	 * @throws IllegalArgumentException Thrown if any of the required
-	 * 									parameters are null or whitespace
-	 * 									only.
+	 * @throws IllegalArgumentException Thrown if there is a problem creating
+	 * 									the request due to invalid parameters.
 	 */
-	public DocumentCreationAwRequest(String urn, String name, String document, String privacyState, String description) throws IllegalArgumentException {
+	public DocumentCreationAwRequest(String name, String document, String privacyState, 
+			String description, String campaignUrnRoleList, String classUrnRoleList) throws IllegalArgumentException {
 		super();
 		
-		if(StringUtils.isEmptyOrWhitespaceOnly(urn)) {
-			throw new IllegalArgumentException("The document's URN cannot be null or blank.");
-		}
-		else if(StringUtils.isEmptyOrWhitespaceOnly(name)) {
+		if(StringUtils.isEmptyOrWhitespaceOnly(name)) {
 			throw new IllegalArgumentException("The document's name cannot be null or blank.");
 		}
 		else if(StringUtils.isEmptyOrWhitespaceOnly(document)) {
@@ -46,11 +43,15 @@ public class DocumentCreationAwRequest extends ResultListAwRequest {
 		else if(StringUtils.isEmptyOrWhitespaceOnly(privacyState)) {
 			throw new IllegalArgumentException("The document's initial privacy state cannot be null or blank.");
 		}
+		else if(StringUtils.isEmptyOrWhitespaceOnly(campaignUrnRoleList) && StringUtils.isEmptyOrWhitespaceOnly(classUrnRoleList)) {
+			throw new IllegalArgumentException("The request must contain a list of campaigns and their roles, a list of classes and their roles, or both.");
+		}
 		
-		addToValidate(InputKeys.DOCUMENT_URN, urn, true);
 		addToValidate(InputKeys.DOCUMENT_NAME, name, true);
 		addToValidate(InputKeys.DOCUMENT, document, true);
 		addToValidate(InputKeys.PRIVACY_STATE, privacyState, true);
 		addToValidate(InputKeys.DESCRIPTION, description, true);
+		addToValidate(InputKeys.DOCUMENT_CAMPAIGN_ROLE_LIST, campaignUrnRoleList, true);
+		addToValidate(InputKeys.DOCUMENT_CLASS_ROLE_LIST, classUrnRoleList, true);
 	}
 }

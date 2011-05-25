@@ -131,4 +131,23 @@
     <constructor-arg index="3"><value>false</value></constructor-arg>
   </bean>
   
+  <bean id="campaignUrnListOptionalValidator" class="edu.ucla.cens.awserver.validator.UrnListValidator">
+    <constructor-arg>
+      <bean class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
+        <constructor-arg index="0"> 
+          <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
+            <property name="code" value="0807" />
+            <property name="text" value="invalid campaign URN list or invalid URN in list" />
+          </bean>
+        </constructor-arg>
+      </bean>
+    </constructor-arg>
+    <constructor-arg>
+      <util:constant static-field="edu.ucla.cens.awserver.request.InputKeys.CAMPAIGN_URN_LIST"/>
+    </constructor-arg>
+    <constructor-arg>
+      <value>false</value>
+    </constructor-arg>
+  </bean>
+  
 </beans>

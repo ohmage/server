@@ -1,0 +1,15 @@
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
+                           http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-2.5.xsd">
+
+  <bean id="classNotFoundError" class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
+    <constructor-arg index="0">
+      <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
+        <property name="code" value="1206" />
+        <property name="text" value="Class does not exist." />
+      </bean>
+    </constructor-arg>
+  </bean>
+
+</beans>

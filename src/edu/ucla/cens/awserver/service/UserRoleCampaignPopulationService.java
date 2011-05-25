@@ -32,11 +32,6 @@ public class UserRoleCampaignPopulationService extends AbstractAnnotatingDaoServ
 			
 			getDao().execute(awRequest);
 			
-			if(awRequest.getResultList().isEmpty()) {
-				getAnnotator().annotate(awRequest, "User doesn't belong to campaigns.");
-				return;
-			}
-			
 			ListIterator<?> iter = awRequest.getResultList().listIterator();
 			
 			while(iter.hasNext()) {

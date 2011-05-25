@@ -653,6 +653,126 @@
     <url-pattern>/class/update</url-pattern>
   </servlet-mapping>
   
+  <!-- Handle document creation -->
+  <servlet>
+    <description>
+      Creates a document
+    </description>
+    <servlet-name>DocumentCreationServlet</servlet-name>
+    <servlet-class>edu.ucla.cens.awserver.jee.servlet.AwDataServlet</servlet-class>
+    <init-param>
+      <param-name>httpServletRequestValidatorName</param-name>
+      <param-value>documentCreationHttpServletRequestValidator</param-value>
+    </init-param>
+    <init-param>
+      <param-name>awRequestCreatorName</param-name>
+      <param-value>documentCreationAwRequestCreator</param-value>
+    </init-param>
+    <init-param>
+      <param-name>controllerName</param-name>
+      <param-value>documentCreationController</param-value>
+    </init-param>
+    <init-param>
+      <param-name>responseWriterName</param-name>
+      <param-value>documentCreationResponseWriter</param-value>
+    </init-param>
+  </servlet>
+  
+  <servlet-mapping>
+    <servlet-name>DocumentCreationServlet</servlet-name>
+    <url-pattern>/document/create</url-pattern>
+  </servlet-mapping>
+  
+  <!-- Handle reading information about a document -->
+  <servlet>
+    <description>
+      Returns the document's information
+    </description>
+    <servlet-name>DocumentReadServlet</servlet-name>
+    <servlet-class>edu.ucla.cens.awserver.jee.servlet.AwDataServlet</servlet-class>
+    <init-param>
+      <param-name>httpServletRequestValidatorName</param-name>
+      <param-value>documentReadHttpServletRequestValidator</param-value>
+    </init-param>
+    <init-param>
+      <param-name>awRequestCreatorName</param-name>
+      <param-value>documentReadAwRequestCreator</param-value>
+    </init-param>
+    <init-param>
+      <param-name>controllerName</param-name>
+      <param-value>documentReadController</param-value>
+    </init-param>
+    <init-param>
+      <param-name>responseWriterName</param-name>
+      <param-value>documentReadResponseWriter</param-value>
+    </init-param>
+  </servlet>
+  
+  <servlet-mapping>
+    <servlet-name>DocumentReadServlet</servlet-name>
+    <url-pattern>/document/read</url-pattern>
+  </servlet-mapping>
+  
+  <!-- Handle reading the actual document -->
+  <servlet>
+    <description>
+      Returns the document's contents
+    </description>
+    <servlet-name>DocumentReadContentsServlet</servlet-name>
+    <servlet-class>edu.ucla.cens.awserver.jee.servlet.AwDataServlet</servlet-class>
+    <init-param>
+      <param-name>httpServletRequestValidatorName</param-name>
+      <param-value>documentReadContentsHttpServletRequestValidator</param-value>
+    </init-param>
+    <init-param>
+      <param-name>awRequestCreatorName</param-name>
+      <param-value>documentReadContentsAwRequestCreator</param-value>
+    </init-param>
+    <init-param>
+      <param-name>controllerName</param-name>
+      <param-value>documentReadContentsController</param-value>
+    </init-param>
+    <init-param>
+      <param-name>responseWriterName</param-name>
+      <param-value>documentReadContentsResponseWriter</param-value>
+    </init-param>
+  </servlet>
+  
+  <servlet-mapping>
+    <servlet-name>DocumentReadContentsServlet</servlet-name>
+    <url-pattern>/document/read/contents</url-pattern>
+  </servlet-mapping>
+  
+  <!-- Handle document deletion -->
+  <servlet>
+    <description>
+      Deletes a document
+    </description>
+    <servlet-name>DocumentDeletionServlet</servlet-name>
+    <servlet-class>edu.ucla.cens.awserver.jee.servlet.AwDataServlet</servlet-class>
+    <init-param>
+      <param-name>httpServletRequestValidatorName</param-name>
+      <param-value>documentDeletionHttpServletRequestValidator</param-value>
+    </init-param>
+    <init-param>
+      <param-name>awRequestCreatorName</param-name>
+      <param-value>documentDeletionAwRequestCreator</param-value>
+    </init-param>
+    <init-param>
+      <param-name>controllerName</param-name>
+      <param-value>documentDeletionController</param-value>
+    </init-param>
+    <init-param>
+      <param-name>responseWriterName</param-name>
+      <param-value>documentDeletionResponseWriter</param-value>
+    </init-param>
+  </servlet>
+  
+  <servlet-mapping>
+    <servlet-name>DocumentDeletionServlet</servlet-name>
+    <url-pattern>/document/delete</url-pattern>
+  </servlet-mapping>
+  
   <!-- Handle Change Password Requests -->
   <servlet>
     <description>

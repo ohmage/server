@@ -47,7 +47,7 @@ public class ClassListValidator extends AbstractAnnotatingValidator {
 			}
 		}
 
-		String[] classList = classes.split(",");
+		String[] classList = classes.split(InputKeys.LIST_ITEM_SEPARATOR);
 		for(int i = 0; i < classList.length; i++) {
 			if(! StringUtils.isValidUrn(classList[i])) {
 				awRequest.setFailedRequest(true);

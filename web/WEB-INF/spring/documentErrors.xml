@@ -14,15 +14,6 @@
     </constructor-arg>
   </bean>
   
-  <bean id="documentUrnInvalidError" class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
-    <constructor-arg>
-      <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
-        <property name="code" value="1501" />
-        <property name="text" value="Invalid document URN." />
-      </bean>
-    </constructor-arg>
-  </bean>
-  
   <bean id="documentNameInvalidError" class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
     <constructor-arg>
       <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
@@ -50,11 +41,65 @@
     </constructor-arg>
   </bean>
   
-  <bean id="documentUrnAlreadyExistsError" class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
+  <bean id="documentCampaignRoleInvalidError" class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
     <constructor-arg>
       <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
-        <property name="code" value="1505" />
-        <property name="text" value="The document's URN already exists." />
+        <property name="code" value="1506" />
+        <property name="text" value="A campaign URN or document role is invalid in the list." />
+      </bean>
+    </constructor-arg>
+  </bean>
+  
+  <bean id="documentClassRoleInvalidError" class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
+    <constructor-arg>
+      <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
+        <property name="code" value="1507" />
+        <property name="text" value="A class URN or document role is invalid in the list." />
+      </bean>
+    </constructor-arg>
+  </bean>
+  
+  <bean id="insufficientPermissionsToAssociateDocumentWithCampaignError" class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
+    <constructor-arg>
+      <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
+        <property name="code" value="1508" />
+        <property name="text" value="Insufficient permissions to associate a document with a campaign in the request." />
+      </bean>
+    </constructor-arg>
+  </bean>
+  
+  <bean id="insufficientPermissionsToAssociateDocumentWithClassError" class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
+    <constructor-arg>
+      <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
+        <property name="code" value="1508" />
+        <property name="text" value="Insufficient permissions to associate a document with a class in the request." />
+      </bean>
+    </constructor-arg>
+  </bean>
+  
+  <bean id="documentDoesntExistError" class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
+    <constructor-arg>
+      <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
+        <property name="code" value="1510" />
+        <property name="text" value="There is no such document with the given ID." />
+      </bean>
+    </constructor-arg>
+  </bean>
+  
+  <bean id="insufficientPermissionsToDeleteDocumentError" class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
+    <constructor-arg>
+      <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
+        <property name="code" value="1511" />
+        <property name="text" value="Insufficient permissions to delete the document." />
+      </bean>
+    </constructor-arg>
+  </bean>
+  
+  <bean id="insufficientPermissionsToReadDocumentError" class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
+    <constructor-arg>
+      <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
+        <property name="code" value="1512" />
+        <property name="text" value="Insufficient permissions to read the document." />
       </bean>
     </constructor-arg>
   </bean>

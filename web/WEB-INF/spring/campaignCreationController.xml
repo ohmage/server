@@ -36,7 +36,7 @@
         <!-- Authenticate that the token the user is using is a valid token. -->
         <ref bean="tokenBasedAuthenticationService" />
         <ref bean="userCanCreateCampaignsValidationService" />
-        <ref bean="classListOptionalValidationService" />
+        <ref bean="classesInListExistOptionalService" />
         <ref bean="campaignAlreadyExistsValidationService" />
         <ref bean="campaignXmlRequiredValidationService" />
         <ref bean="campaignCreationService" />
@@ -116,8 +116,8 @@
     </constructor-arg>
   </bean>
   
-  <bean id="classListOptionalValidationService" class="edu.ucla.cens.awserver.service.ClassListValidationService">
-    <constructor-arg index="0">
+  <bean id="classesInListExistOptionalService" class="edu.ucla.cens.awserver.service.GenericAnnotatingDaoService">
+    <constructor-arg>
       <bean class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
         <constructor-arg index="0">
           <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
@@ -127,17 +127,21 @@
        </constructor-arg>
       </bean>
     </constructor-arg>
-    <constructor-arg index="1">
-      <ref bean="classListOptionalValidationDao" />
+    <constructor-arg>
+      <bean class="edu.ucla.cens.awserver.dao.ClassListValidationDao">
+        <constructor-arg index="0">
+          <ref bean="dataSource"/>
+        </constructor-arg>
+        <constructor-arg index="1">
+          <value>false</value>
+        </constructor-arg>
+      </bean>
     </constructor-arg>
-  </bean>
-  
-  <bean id="classListOptionalValidationDao" class="edu.ucla.cens.awserver.dao.ClassListValidationDao">
-    <constructor-arg index="0">
-      <ref bean="dataSource"/>
+    <constructor-arg>
+      <value>Problem with class in list.</value>
     </constructor-arg>
-    <constructor-arg index="1">
-      <value>false</value>
+    <constructor-arg>
+      <value>Validating the class list for this campaign creation request.</value>
     </constructor-arg>
   </bean>
   
