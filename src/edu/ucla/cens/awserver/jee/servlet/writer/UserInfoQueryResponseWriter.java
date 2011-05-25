@@ -13,7 +13,6 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import edu.ucla.cens.awserver.domain.ErrorResponse;
-import edu.ucla.cens.awserver.domain.UserInfoQueryResult;
 import edu.ucla.cens.awserver.request.AwRequest;
 import edu.ucla.cens.awserver.request.UserInfoQueryAwRequest;
 
@@ -42,18 +41,7 @@ public class UserInfoQueryResponseWriter extends AbstractResponseWriter {
 	 */
 	@Override
 	public void write(HttpServletRequest request, HttpServletResponse response, AwRequest awRequest) {
-		UserInfoQueryResult result = null;
-		try {
-			result = (UserInfoQueryResult) awRequest.getToProcessValue(UserInfoQueryAwRequest.RESULT);
-		}
-		catch(IllegalArgumentException e) {
-			_logger.error("There is no result object to return.");
-			awRequest.setFailedRequest(true);
-		}
-		catch(ClassCastException e) {
-			_logger.error("The resulting object is not the expected type of object: " + awRequest.getToProcessValue(UserInfoQueryAwRequest.RESULT).getClass());
-			awRequest.setFailedRequest(true);
-		}
+		_logger.info("Writing the user info request response.");
 		
 		Writer writer = null;
 		
@@ -79,7 +67,7 @@ public class UserInfoQueryResponseWriter extends AbstractResponseWriter {
 				JSONObject responseJson = new JSONObject();
 				
 				responseJson.put("result", "success");
-				responseJson.put("data", result.getUsersInfo());
+				responseJson.put("data", awRequest.getToReturnValue(UserInfoQueryAwRequest.RESULT));
 				
 				responseText = responseJson.toString();
 			}

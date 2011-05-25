@@ -52,7 +52,7 @@
         <ref bean="classListRequiredValidator" />
       </list>
     </property>
-    <property name="featureName"><value>class update</value></property>
+    <property name="featureName"><value>class read</value></property>
   </bean>
   
   <!-- Supplamental definitions for class read -->
