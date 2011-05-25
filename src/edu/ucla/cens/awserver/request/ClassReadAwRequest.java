@@ -7,6 +7,8 @@ package edu.ucla.cens.awserver.request;
  * @author John Jenkins
  */
 public class ClassReadAwRequest extends ResultListAwRequest {
+	public static final String RETURN = "class_read_request_class_information";
+	
 	/**
 	 * Populates a class read request with the list of classes.
 	 * 

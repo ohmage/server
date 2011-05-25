@@ -2,6 +2,7 @@ package edu.ucla.cens.awserver.dao;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.ListIterator;
 
@@ -10,6 +11,7 @@ import javax.sql.DataSource;
 import org.apache.log4j.Logger;
 import org.springframework.jdbc.core.RowMapper;
 
+import edu.ucla.cens.awserver.cache.ClassRoleCache;
 import edu.ucla.cens.awserver.domain.ClassInfo;
 import edu.ucla.cens.awserver.request.AwRequest;
 import edu.ucla.cens.awserver.request.InputKeys;
@@ -18,23 +20,18 @@ import edu.ucla.cens.awserver.request.InputKeys;
  * Reads the information about each of the classes in the list and sets the
  * appropriate values in the request.
  * 
- * FIXME: This does no checking on the ACL, and needs to be updated to do so:
- * 	- For each class in the list,
- * 		- If the user is privileged and the user_personal=true flag is set, 
- * 			return all of the users' class role, first name, last name,
- * 			organization, personal ID, and email address.
- * 		- If the user is restricted and the user_personal=true flag is set,
- * 			return all of the users' class role, first name, last name,
- * 			organization, and email address. 
- * 
  * @author John Jenkins
  */
 public class ClassReadDao extends AbstractDao {
 	private static Logger _logger = Logger.getLogger(ClassReadDao.class);
 	
-	private static final String SQL_GET_CLASS_INFO = "SELECT name, description " +
-													 "FROM class " +
-													 "WHERE urn = ?";
+	private static final String SQL_GET_CLASS_INFO_AND_USER_ROLE = "SELECT c.name, c.description, ucr.role " +
+													 			   "FROM user u, class c, user_class uc, user_class_role ucr " +
+													 			   "WHERE c.urn = ? " +
+													 			   "AND c.id = uc.class_id " +
+													 			   "AND uc.user_id = u.id " +
+													 			   "AND u.login_id = ? " +
+													 			   "AND uc.user_class_role_id = ucr.id ";
 	
 	private static final String SQL_GET_USERS_AND_CLASS_ROLES = "SELECT u.login_id, ucr.role " +
 																"FROM user u, user_class uc, user_class_role ucr, class c " +
@@ -52,10 +49,12 @@ public class ClassReadDao extends AbstractDao {
 	private class ClassInformation {
 		public String _name;
 		public String _description;
+		public String _userRole;
 		
-		public ClassInformation(String name, String description) {
+		public ClassInformation(String name, String description, String role) {
 			_name = name;
 			_description = description;
+			_userRole = role;
 		}
 	}
 	
@@ -98,21 +97,26 @@ public class ClassReadDao extends AbstractDao {
 		
 		// Parse the class list into an array and traverse the array.
 		String[] classUrnArray = classUrnList.split(",");
+		List<ClassInfo> classInfoList = new LinkedList<ClassInfo>();
 		for(int i = 0; i < classUrnArray.length; i++) {
 			// Get the class' information.
 			ClassInformation classInformation;
 			try {
-				classInformation = (ClassInformation) getJdbcTemplate().queryForObject(SQL_GET_CLASS_INFO, 
-												new Object[] { classUrnArray[i] }, 
-												new RowMapper() {
-													@Override
-													public Object mapRow(ResultSet rs, int row) throws SQLException {
-														return new ClassInformation(rs.getString("name"), rs.getString("description"));
-													}
-												});
+				classInformation = (ClassInformation) getJdbcTemplate().queryForObject(SQL_GET_CLASS_INFO_AND_USER_ROLE, 
+						new Object[] { classUrnArray[i], awRequest.getUser().getUserName() }, 
+						new RowMapper() {
+							@Override
+							public Object mapRow(ResultSet rs, int row) throws SQLException {
+								return new ClassInformation(rs.getString("name"),
+															rs.getString("description"),
+															rs.getString("role"));
+							}
+						}
+				);
 			}
 			catch(org.springframework.dao.DataAccessException e){
-				_logger.error("Error executing SQL '" + SQL_GET_CLASS_INFO + "' with parameter: " + classUrnArray[i]);
+				_logger.error("Error executing SQL '" + SQL_GET_CLASS_INFO_AND_USER_ROLE + "' with parameters: " + 
+						classUrnArray[i] + ", " + awRequest.getUser().getUserName(), e);
 				awRequest.setFailedRequest(true);
 				throw new DataAccessException(e);
 			}
@@ -120,6 +124,7 @@ public class ClassReadDao extends AbstractDao {
 			// Create a new ClassInfo object that will be put into the
 			// toReturn map.
 			ClassInfo classInfo = new ClassInfo(classUrnArray[i], classInformation._name, classInformation._description);
+			boolean includeUserRoles = classInformation._userRole.equals(ClassRoleCache.ROLE_PRIVILEGED);
 			
 			// Get all the users in this class and their class role.
 			List<?> userAndRole;
@@ -144,11 +149,14 @@ public class ClassReadDao extends AbstractDao {
 			while(userAndRoleIter.hasNext()) {
 				UserInformation userInformation = (UserInformation) userAndRoleIter.next();
 				
-				classInfo.addUser(userInformation._loginId, userInformation._classRole);
+				classInfo.addUser(userInformation._loginId, ((includeUserRoles) ? userInformation._classRole : ""));
 			}
 			
-			// Add it to the toReturn map to be returned to the user.
-			awRequest.addToReturn(classUrnArray[i], classInfo, true);
+			// Add it to the list of classes to be returned.
+			classInfoList.add(classInfo);
 		}
+		
+		// Store the results as the result list.
+		awRequest.setResultList(classInfoList);
 	}
 }

@@ -12,10 +12,9 @@ import org.apache.log4j.Logger;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import edu.ucla.cens.awserver.domain.ClassInfo;
 import edu.ucla.cens.awserver.domain.ErrorResponse;
 import edu.ucla.cens.awserver.request.AwRequest;
-import edu.ucla.cens.awserver.request.InputKeys;
+import edu.ucla.cens.awserver.request.ClassReadAwRequest;
 
 /**
  * Writes the information about the classes being read unless there are errors
@@ -73,31 +72,10 @@ public class ClassReadResponseWriter extends AbstractResponseWriter {
 			}
 		}
 		else {
-			// Get the return values from the request.
-			String classUrnList;
 			try {
 				JSONObject requestResponse = new JSONObject();
 				requestResponse.put("result", "success");
-				
-				JSONObject dataResponse = new JSONObject();
-				classUrnList = (String) awRequest.getToProcessValue(InputKeys.CLASS_URN_LIST);
-				String[] classUrnArray = classUrnList.split(",");
-				for(int i = 0; i < classUrnArray.length; i++) {
-					try {
-						ClassInfo classInfo = (ClassInfo) awRequest.getToReturnValue(classUrnArray[i]);
-						
-						dataResponse.put(classUrnArray[i], classInfo.getJsonRepresentation(false));
-					}
-					catch(JSONException e) {
-						_logger.error("Error while building class information JSONObject.", e);
-						responseText = generalJsonErrorMessage();
-					}
-					catch(IllegalArgumentException e) {
-						_logger.error("Missing return value that is the URN for the class " + classUrnArray[i], e);
-						responseText = generalJsonErrorMessage();
-					}
-				}
-				requestResponse.put("data", dataResponse);
+				requestResponse.put("data", awRequest.getToReturnValue(ClassReadAwRequest.RETURN));
 				
 				responseText = requestResponse.toString();
 			}
