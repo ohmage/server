@@ -24,6 +24,8 @@ public class PreferenceCache extends KeyValueCache {
 	public static final String KEY_DOCUMENT_DIRECTORY = "document_directory";
 	public static final String KEY_MAXIMUM_NUMBER_OF_DOCUMENTS_PER_DIRECTORY = "maximum_num_docs_per_directory";
 	public static final String KEY_DOCUMENT_DEPTH = "document_depth";
+	public static final String KEY_APPLICATION_NAME = "application_name";
+	public static final String KEY_APPLICATION_VERSION = "application_version";
 	
 	// The reference to one's self to return to requesters.
 	private static PreferenceCache _self = new PreferenceCache();

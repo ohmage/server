@@ -152,6 +152,9 @@ public class AwDataServlet extends HttpServlet {
 		if("/app/image/read".equals(req.getRequestURI())) {
 			processRequest(req, resp);
 		}
+		else if("/app/document/read/contents".equals(req.getRequestURI())) {
+			processRequest(req, resp);
+		}
 		else {
 			_logger.warn("GET attempted and denied.");
 			resp.sendError(HttpServletResponse.SC_METHOD_NOT_ALLOWED);

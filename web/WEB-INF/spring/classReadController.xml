@@ -52,11 +52,11 @@
         <ref bean="classListRequiredValidator" />
       </list>
     </property>
-    <property name="featureName"><value>class update</value></property>
+    <property name="featureName"><value>class read</value></property>
   </bean>
   
   <!-- Supplamental definitions for class read -->
-  <bean id="classListRequiredValidationService" class="edu.ucla.cens.awserver.service.ClassListValidationService">
+  <bean id="classListRequiredValidationService" class="edu.ucla.cens.awserver.service.GenericAnnotatingDaoService">
     <constructor-arg index="0">
       <bean class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
         <constructor-arg index="0">
@@ -68,16 +68,20 @@
       </bean>
     </constructor-arg>
     <constructor-arg index="1">
-      <ref bean="classListRequiredValidationDao" />
+      <bean class="edu.ucla.cens.awserver.dao.ClassListValidationDao">
+        <constructor-arg index="0">
+          <ref bean="dataSource"/>
+        </constructor-arg>
+        <constructor-arg index="1">
+          <value>true</value>
+        </constructor-arg>
+      </bean>
     </constructor-arg>
-  </bean>
-  
-  <bean id="classListRequiredValidationDao" class="edu.ucla.cens.awserver.dao.ClassListValidationDao">
-    <constructor-arg index="0">
-      <ref bean="dataSource"/>
+    <constructor-arg>
+      <value>Problem with class in list.</value>
     </constructor-arg>
-    <constructor-arg index="1">
-      <value>true</value>
+    <constructor-arg>
+      <value>Validating the class list for this campaign creation request.</value>
     </constructor-arg>
   </bean>
   

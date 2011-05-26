@@ -26,9 +26,8 @@ public class UserInfoQueryAwRequestCreator implements AwRequestCreator {
 	@Override
 	public AwRequest createFrom(HttpServletRequest request) {
 		String token = request.getParameter(InputKeys.AUTH_TOKEN);
-		String commaSeparatedUsernames = request.getParameter(InputKeys.USER_LIST);
 		
-		UserInfoQueryAwRequest awRequest = new UserInfoQueryAwRequest(commaSeparatedUsernames);
+		UserInfoQueryAwRequest awRequest = new UserInfoQueryAwRequest();
 		awRequest.setUserToken(token);
 		
 		return awRequest;

@@ -39,7 +39,7 @@
         <!-- Validate that the campaign being updated exists. -->
         <ref bean="campaignExistsService" />
 
-        <ref bean="classListOptionalValidationService" />
+        <ref bean="classesInListExistOptionalService" />
 
         <!-- Validate that all the users and roles in the user-role lists exist. -->
         <ref bean="userRoleListAddOptionalValidationService" />
@@ -164,7 +164,14 @@
   
   <bean id="userRoleListAddOptionalValidator" class="edu.ucla.cens.awserver.validator.UserRoleListValidator">
     <constructor-arg index="0">
-      <ref bean="generalCampaignUpdateFailureAnnotator" />
+      <bean class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
+        <constructor-arg index="0">
+          <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
+            <property name="code" value="1307" />
+            <property name="text" value="Invalid user-role list." />
+          </bean>
+        </constructor-arg>
+      </bean>
     </constructor-arg>
     <constructor-arg index="1">
       <ref bean="invalidUsernameInRequestAnnotator" />
@@ -182,7 +189,14 @@
   
   <bean id="userRoleListRemoveOptionalValidator" class="edu.ucla.cens.awserver.validator.UserRoleListValidator">
     <constructor-arg index="0">
-      <ref bean="generalCampaignUpdateFailureAnnotator" />
+      <bean class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
+        <constructor-arg index="0">
+          <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
+            <property name="code" value="1307" />
+            <property name="text" value="Invalid user-role list." />
+          </bean>
+        </constructor-arg>
+      </bean>
     </constructor-arg>
     <constructor-arg index="1">
       <ref bean="invalidUsernameInRequestAnnotator" />

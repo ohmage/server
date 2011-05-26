@@ -1,6 +1,5 @@
 package edu.ucla.cens.awserver.jee.servlet.validator;
 
-import java.security.InvalidParameterException;
 import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
@@ -87,11 +86,12 @@ public class DocumentCreationValidator extends AbstractHttpServletRequestValidat
 		
 		// Parse the request for each of the parameters.
 		String token = null;
-		String urn = null;
 		String name = null;
 		String document = null;
 		String privacyState = null;
 		String description = null;
+		String campaignUrnRoleList = null;
+		String classUrnRoleList = null;
 		for(int i = 0; i < numberOfUploadedItems; i++) {
 			FileItem fi = (FileItem) uploadedItems.get(i);
 			if(fi.isFormField()) {
@@ -103,12 +103,6 @@ public class DocumentCreationValidator extends AbstractHttpServletRequestValidat
 						return false;
 					}
 					token = fieldValue;
-				}
-				else if(InputKeys.DOCUMENT_URN.equals(fieldName)) {
-					if(greaterThanLength(InputKeys.DOCUMENT_URN, InputKeys.DOCUMENT_URN, fieldValue, 255)) {
-						return false;
-					}
-					urn = fieldValue;
 				}
 				else if(InputKeys.DOCUMENT_NAME.equals(fieldName)) {
 					if(greaterThanLength(InputKeys.DOCUMENT_NAME, InputKeys.DOCUMENT_NAME, fieldValue, 255)) {
@@ -122,11 +116,29 @@ public class DocumentCreationValidator extends AbstractHttpServletRequestValidat
 					}
 					privacyState = fieldValue;
 				}
-				if(InputKeys.DESCRIPTION.equals(fieldName)) {
+				else if(InputKeys.DESCRIPTION.equals(fieldName)) {
+					// This requirement has more to do with the database than
+					// with anything else.
 					if(greaterThanLength(InputKeys.DESCRIPTION, InputKeys.DESCRIPTION, fieldValue, 65535)) {
 						return false;
 					}
 					description = fieldValue;
+				}
+				else if(InputKeys.DOCUMENT_CAMPAIGN_ROLE_LIST.equals(fieldName)) {
+					// This requirement has more to do with the database than
+					// with anything else.
+					if(greaterThanLength(InputKeys.DOCUMENT_CAMPAIGN_ROLE_LIST, InputKeys.DOCUMENT_CAMPAIGN_ROLE_LIST, fieldValue, 65535)) {
+						return false;
+					}
+					campaignUrnRoleList = fieldValue;
+				}
+				else if(InputKeys.DOCUMENT_CLASS_ROLE_LIST.equals(fieldName)) {
+					// This requirement has more to do with the database than
+					// with anything else.
+					if(greaterThanLength(InputKeys.DOCUMENT_CLASS_ROLE_LIST, InputKeys.DOCUMENT_CLASS_ROLE_LIST, fieldValue, 65535)) {
+						return false;
+					}
+					classUrnRoleList = fieldValue;
 				}
 			} else {
 				if(InputKeys.DOCUMENT.equals(fi.getFieldName())) {					
@@ -137,10 +149,10 @@ public class DocumentCreationValidator extends AbstractHttpServletRequestValidat
 		
 		DocumentCreationAwRequest request;
 		try {
-			request = new DocumentCreationAwRequest(urn, name, document, privacyState, description);
+			request = new DocumentCreationAwRequest(name, document, privacyState, description, campaignUrnRoleList, classUrnRoleList);
 		}
-		catch(InvalidParameterException e) {
-			_logger.error("Attempting to create a document with insufficient data after data presence has been checked.");
+		catch(IllegalArgumentException e) {
+			_logger.warn("Attempting to create a request with insufficient parameters: " + e.getMessage());
 			return false;
 		}
 		request.setUserToken(token);

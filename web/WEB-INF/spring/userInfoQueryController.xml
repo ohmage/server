@@ -22,7 +22,6 @@
     <constructor-arg index="0">
       <list>
         <ref bean="tokenBasedAuthenticationService" />
-        <ref bean="usersInListExistServiceFromUserList" />
         <ref bean="userInfoAggregationService" />
       </list>
     </constructor-arg>
@@ -32,40 +31,12 @@
     <property name="validators">
       <list>
         <ref bean="userTokenValidator" />
-        <ref bean="userListValidator" />
       </list>      
     </property>
     <property name="featureName"><value>user info query</value></property>
   </bean>
   
-  <!-- Service List -->
-  <bean id="usersInListExistServiceFromUserList" class="edu.ucla.cens.awserver.service.UsersInListExistService">
-    <constructor-arg index="0">
-      <bean class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
-        <constructor-arg index="0">
-          <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
-            <property name="code" value="1301" />
-            <property name="text" value="User in the list does not exist." />
-          </bean>
-        </constructor-arg>
-      </bean>
-    </constructor-arg>
-    <constructor-arg index="1">
-      <bean class="edu.ucla.cens.awserver.dao.UsersInListExistDao">
-        <constructor-arg index="0">
-          <ref bean="dataSource"/>
-        </constructor-arg>
-        <constructor-arg index="1">
-          <util:constant static-field="edu.ucla.cens.awserver.request.InputKeys.USER_LIST"/>
-        </constructor-arg>
-        <constructor-arg>
-          <value>true</value>
-        </constructor-arg>
-      </bean>
-    </constructor-arg>
-  </bean>
-  
-  <bean id="userInfoAggregationService" class="edu.ucla.cens.awserver.service.UserInfoAggregationService">
+  <bean id="userInfoAggregationService" class="edu.ucla.cens.awserver.service.GenericAnnotatingDaoService">
     <constructor-arg index="0">
       <bean class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
         <constructor-arg index="0">
@@ -82,6 +53,12 @@
   	      <ref bean="dataSource"/>
   	    </constructor-arg>
   	  </bean>
+    </constructor-arg>
+    <constructor-arg>
+      <value>An error occurred while attempting to gather information about the requesting user.</value>
+    </constructor-arg>
+    <constructor-arg>
+      <value>Gathering the information about the requesting user.</value>
     </constructor-arg>
   </bean>
 </beans>
