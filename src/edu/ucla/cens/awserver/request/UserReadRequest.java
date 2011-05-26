@@ -5,7 +5,7 @@ package edu.ucla.cens.awserver.request;
  * 
  * @author John Jenkins
  */
-public class UserReadRequest extends AbstractAwRequest {
+public class UserReadRequest extends ResultListAwRequest {
 	public static final String RESULT = "user_read_request_user_information";
 	
 	/**

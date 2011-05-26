@@ -79,6 +79,36 @@
     <servlet-name>ConfigReadServlet</servlet-name>
     <url-pattern>/config/read</url-pattern>
   </servlet-mapping>
+  
+  <!-- Read Personal Information About Users -->
+  <servlet>
+    <description>
+      Give personal information about other users. 
+    </description>
+    <servlet-name>UserReadServlet</servlet-name>
+    <servlet-class>edu.ucla.cens.awserver.jee.servlet.AwDataServlet</servlet-class>
+    <init-param>
+      <param-name>awRequestCreatorName</param-name>
+      <param-value>userReadAwRequestCreator</param-value>
+    </init-param>
+    <init-param>
+      <param-name>controllerName</param-name>
+      <param-value>userReadController</param-value>
+    </init-param>
+    <init-param>
+      <param-name>httpServletRequestValidatorName</param-name>
+      <param-value>userReadHttpServletRequestValidator</param-value>
+    </init-param>
+    <init-param>
+      <param-name>responseWriterName</param-name>
+      <param-value>userReadResponseWriter</param-value>
+    </init-param>
+    <load-on-startup>1</load-on-startup>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>UserReadServlet</servlet-name>
+    <url-pattern>/user/read</url-pattern>
+  </servlet-mapping>
 
   <!-- Mobility Data Upload -->
   <servlet>

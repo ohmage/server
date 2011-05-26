@@ -27,7 +27,18 @@
   <bean id="userReadController" class="edu.ucla.cens.awserver.controller.ControllerImpl">
     <constructor-arg>
       <!-- Services to validate and populate information. -->
-      <list>        
+      <list>
+        <!-- Validate the user's token and populate the request. -->
+        <ref bean="tokenBasedAuthenticationService" />
+        
+        <!-- Ensure that the user has the appropriate roles in the campaign. -->
+        <ref bean="userRoleCampaignPopulationService" />
+        <ref bean="userIsSupervisorInAllCampaignsInListOptionalService" />
+        
+        <!--  Ensure that the user has the appropriate roles in the class. -->
+        <ref bean="userRoleClassPopulationService" />
+        <ref bean="userIsPrivilegedInAllClassesInListOptionalService" />
+        
         <!-- Get the information. -->
         <ref bean="userReadService" />
       </list>
@@ -43,10 +54,10 @@
         <ref bean="userTokenValidator" />
         
         <!-- Validate that the campaign URNs are valid URNs. -->
-        <ref bean="campaignUrnListValidator" />
+        <ref bean="campaignUrnListOptionalValidator" />
         
         <!-- Validate that the class URNs are valid URNs. -->
-        <ref bean="classListRequiredValidator" />
+        <ref bean="classListOptionalValidator" />
       </list>
     </property>
     <property name="featureName">
@@ -56,12 +67,9 @@
   
   <bean id="userReadService" class="edu.ucla.cens.awserver.service.UserReadService">
     <constructor-arg>
-      <bean class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
-        <constructor-arg index="0">
-          <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
-            <property name="code" value="1306" />
-            <property name="text" value="General user read error." />
-          </bean>
+      <bean class="edu.ucla.cens.awserver.dao.UserReadDao">
+        <constructor-arg>
+          <ref bean="dataSource" />
         </constructor-arg>
       </bean>
     </constructor-arg>

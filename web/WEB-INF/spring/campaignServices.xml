@@ -115,4 +115,25 @@
     </constructor-arg>
   </bean>
   
+  <bean id="userIsSupervisorInAllCampaignsInListOptionalService" class="edu.ucla.cens.awserver.service.UserHasRolesInAllCampaignsInListService">
+    <constructor-arg>
+      <bean class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
+        <constructor-arg index="0">
+          <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
+            <property name="code" value="0816" />
+            <property name="text" value="User is not a supervisor in all the campaigns in the list." />
+          </bean>
+        </constructor-arg>
+      </bean>
+    </constructor-arg>
+    <constructor-arg>
+      <list>
+        <util:constant static-field="edu.ucla.cens.awserver.cache.CampaignRoleCache.ROLE_SUPERVISOR"/>
+      </list>
+    </constructor-arg>
+    <constructor-arg>
+      <value>false</value>
+    </constructor-arg>
+  </bean>
+  
 </beans>

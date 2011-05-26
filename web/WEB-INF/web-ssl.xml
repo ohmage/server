@@ -50,6 +50,36 @@
     <url-pattern>*.html</url-pattern>
   </servlet-mapping>
   
+  <!-- Server Configuration Information Read -->
+  <servlet>
+    <description>
+      Give information about the server. 
+    </description>
+    <servlet-name>ConfigReadServlet</servlet-name>
+    <servlet-class>edu.ucla.cens.awserver.jee.servlet.AwDataServlet</servlet-class>
+    <init-param>
+      <param-name>awRequestCreatorName</param-name>
+      <param-value>configReadAwRequestCreator</param-value>
+    </init-param>
+    <init-param>
+      <param-name>controllerName</param-name>
+      <param-value>configReadController</param-value>
+    </init-param>
+    <init-param>
+      <param-name>httpServletRequestValidatorName</param-name>
+      <param-value>configReadHttpServletRequestValidator</param-value>
+    </init-param>
+    <init-param>
+      <param-name>responseWriterName</param-name>
+      <param-value>configReadResponseWriter</param-value>
+    </init-param>
+    <load-on-startup>1</load-on-startup>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>ConfigReadServlet</servlet-name>
+    <url-pattern>/config/read</url-pattern>
+  </servlet-mapping>
+  
   <!--  Mobility Data Upload -->
   <servlet>
     <description>

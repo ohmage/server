@@ -14,4 +14,25 @@
     </constructor-arg>
   </bean>
   
+  <bean id="userIsPrivilegedInAllClassesInListOptionalService" class="edu.ucla.cens.awserver.service.UserHasRolesInAllClassesInListService">
+    <constructor-arg>
+      <bean class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
+        <constructor-arg index="0">
+          <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
+            <property name="code" value="1207" />
+            <property name="text" value="User is not privileged in all the campaigns in the list." />
+          </bean>
+        </constructor-arg>
+      </bean>
+    </constructor-arg>
+    <constructor-arg>
+      <list>
+        <util:constant static-field="edu.ucla.cens.awserver.cache.ClassRoleCache.ROLE_PRIVILEGED"/>
+      </list>
+    </constructor-arg>
+    <constructor-arg>
+      <value>false</value>
+    </constructor-arg>
+  </bean>
+  
 </beans>
