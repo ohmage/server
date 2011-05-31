@@ -68,8 +68,8 @@
         <ref bean="classListOptionalValidator" />
         <ref bean="campaignXmlOptionalValidator" />
         <ref bean="descriptionOptionalValidator" />
-        <ref bean="userRoleListAddOptionalValidator" />
-        <ref bean="userRoleListRemoveOptionalValidator" />
+        <ref bean="userCampaignRoleListAddOptionalValidator" />
+        <ref bean="userCampaignRoleListRemoveOptionalValidator" />
         
         <!-- Validate that there are no duplicates in any of the user-role lists. -->
         <ref bean="noDuplicateUserRolesInListsValidator" />
@@ -162,38 +162,52 @@
     </constructor-arg>
   </bean>
   
-  <bean id="userRoleListAddOptionalValidator" class="edu.ucla.cens.awserver.validator.UserRoleListValidator">
-    <constructor-arg index="0">
-      <ref bean="generalCampaignUpdateFailureAnnotator" />
+  <bean id="userCampaignRoleListAddOptionalValidator" class="edu.ucla.cens.awserver.validator.UserRoleListValidator">
+    <constructor-arg>
+      <bean class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
+        <constructor-arg>
+          <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
+            <property name="code" value="1601" />
+            <property name="text" value="Invalid value for user-role list." />
+          </bean>
+        </constructor-arg>
+      </bean>
     </constructor-arg>
-    <constructor-arg index="1">
-      <ref bean="invalidUsernameInRequestAnnotator" />
-    </constructor-arg>
-    <constructor-arg index="2">
+    <constructor-arg >
       <value>[a-z\.]{9,15}</value>
     </constructor-arg>
-    <constructor-arg index="3">
+    <constructor-arg>
       <util:constant static-field="edu.ucla.cens.awserver.request.InputKeys.USER_ROLE_LIST_ADD"/>
     </constructor-arg>
-    <constructor-arg index="4">
+    <constructor-arg>
+      <ref bean="campaignRoleCache" />
+    </constructor-arg>
+    <constructor-arg>
       <value>false</value>
     </constructor-arg>
   </bean>
   
-  <bean id="userRoleListRemoveOptionalValidator" class="edu.ucla.cens.awserver.validator.UserRoleListValidator">
-    <constructor-arg index="0">
-      <ref bean="generalCampaignUpdateFailureAnnotator" />
+  <bean id="userCampaignRoleListRemoveOptionalValidator" class="edu.ucla.cens.awserver.validator.UserRoleListValidator">
+    <constructor-arg>
+      <bean class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
+        <constructor-arg>
+          <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
+            <property name="code" value="1601" />
+            <property name="text" value="Invalid value for user-role list." />
+          </bean>
+        </constructor-arg>
+      </bean>
     </constructor-arg>
-    <constructor-arg index="1">
-      <ref bean="invalidUsernameInRequestAnnotator" />
-    </constructor-arg>
-    <constructor-arg index="2">
+    <constructor-arg>
       <value>[a-z\.]{9,15}</value>
     </constructor-arg>
-    <constructor-arg index="3">
+    <constructor-arg>
       <util:constant static-field="edu.ucla.cens.awserver.request.InputKeys.USER_ROLE_LIST_REMOVE"/>
     </constructor-arg>
-    <constructor-arg index="4">
+    <constructor-arg>
+      <ref bean="campaignRoleCache" />
+    </constructor-arg>
+    <constructor-arg>
       <value>false</value>
     </constructor-arg>
   </bean>

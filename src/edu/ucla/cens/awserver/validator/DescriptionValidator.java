@@ -32,16 +32,36 @@ public class DescriptionValidator extends AbstractAnnotatingValidator {
 	 */
 	@Override
 	public boolean validate(AwRequest awRequest) {
-		_logger.info("Validating the description.");
-		
-		String description = (String) awRequest.getToValidate().get(InputKeys.DESCRIPTION);
-		if(description == null) {
-			if(_required) {
-				_logger.error("Request reached the description validator without the required description parameter.");
-				throw new ValidatorException("Missing required description.");
-			}
-			return true;
+		String description;
+		try {
+			description = (String) awRequest.getToProcessValue(InputKeys.DESCRIPTION);
 		}
+		catch (IllegalArgumentException outerException) {
+			try {
+				description = (String) awRequest.getToValidateValue(InputKeys.DESCRIPTION);
+				
+				if(description == null) {
+					if(_required) {
+						_logger.error("Missing required key: " + InputKeys.DESCRIPTION);
+						throw new ValidatorException("Missing required description.");
+					}
+					else {
+						return true;
+					}
+				}
+			}
+			catch(IllegalArgumentException e) {
+				if(_required) {
+					_logger.error("Missing required key: " + InputKeys.DESCRIPTION);
+					throw new ValidatorException("Missing required description.");
+				}
+				else {
+					return true;
+				}
+			}
+		}
+		
+		_logger.info("Validating the description.");
 		
 		awRequest.addToProcess(InputKeys.DESCRIPTION, description, true);
 		return true;

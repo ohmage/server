@@ -25,7 +25,7 @@ import edu.ucla.cens.awserver.request.AwRequest;
 public class FindAllDocumentsForRequestingUserWithRolesDao extends AbstractDao {
 	private static Logger _logger = Logger.getLogger(FindAllDocumentsForRequestingUserWithRolesDao.class);
 	
-	private static final String SQL_GET_DOCUMENTS_FOR_USER_WITH_DOCUMENT_ROLE =
+	public static final String SQL_GET_DOCUMENTS_FOR_USER_WITH_DOCUMENT_ROLE =
 			"SELECT distinct(d.uuid) " +
 			"FROM user u, user_class uc, user_class_role ucr, user_role ur, user_role_campaign urc, " +
 				"document d, document_role dr, document_privacy_state dps, " +

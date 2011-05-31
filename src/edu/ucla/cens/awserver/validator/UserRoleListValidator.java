@@ -2,7 +2,10 @@ package edu.ucla.cens.awserver.validator;
 
 import org.apache.log4j.Logger;
 
+import edu.ucla.cens.awserver.cache.Cache;
 import edu.ucla.cens.awserver.request.AwRequest;
+import edu.ucla.cens.awserver.request.InputKeys;
+import edu.ucla.cens.awserver.util.StringUtils;
 
 /**
  * Validates that all the usernames and roles in the request are valid
@@ -13,10 +16,10 @@ import edu.ucla.cens.awserver.request.AwRequest;
 public class UserRoleListValidator extends AbstractAnnotatingRegexpValidator {
 	private static Logger _logger = Logger.getLogger(UserRoleListValidator.class);
 	
-	private AwRequestAnnotator _invalidUsernameAnnotator;
-	
 	private String _key;
 	private boolean _required;
+	
+	private Cache _roleCache;
 	
 	/**
 	 * Builds the validator with a general annotator if there is an unknown
@@ -42,20 +45,19 @@ public class UserRoleListValidator extends AbstractAnnotatingRegexpValidator {
 	 * @param required Whether or not this validation is required if the value
 	 * 				   doesn't exist in the map.
 	 */
-	public UserRoleListValidator(AwRequestAnnotator generalAnnotator, AwRequestAnnotator invalidUsernameAnnotator, String regexp, String key, boolean required) {
-		super(regexp, generalAnnotator);
+	public UserRoleListValidator(AwRequestAnnotator annotator, String regexp, String key, Cache roleCache, boolean required) {
+		super(regexp, annotator);
 		
-		if(invalidUsernameAnnotator == null) {
-			throw new IllegalArgumentException("An invalidUsername annotator is required.");
-		}
-		else if(key == null) {
+		if(StringUtils.isEmptyOrWhitespaceOnly(key)) {
 			throw new IllegalArgumentException("A key is required from the list of InputKeys.");
 		}
-		
-		_invalidUsernameAnnotator = invalidUsernameAnnotator;
+		else if(roleCache == null) {
+			throw new IllegalArgumentException("The role Cache cannot be null.");
+		}
 		
 		_key = key;
 		_required = required;
+		_roleCache = roleCache;
 	}
 
 	/**
@@ -64,8 +66,6 @@ public class UserRoleListValidator extends AbstractAnnotatingRegexpValidator {
 	 */
 	@Override
 	public boolean validate(AwRequest awRequest) {
-		_logger.info("Validating the list of users and their roles for key: " + _key);
-		
 		// Attempt to get the value.
 		String userAndRoleList;
 		try {
@@ -93,35 +93,42 @@ public class UserRoleListValidator extends AbstractAnnotatingRegexpValidator {
 			}
 		}
 		
+		_logger.info("Validating the list of users and their roles for key: " + _key);
+		
 		// Split all the username-role couples into their own entities.
-		String[] userAndRoleArray = userAndRoleList.split(",");
-		for(int i = 0; i < userAndRoleArray.length; i++) {
-			String userAndRole = userAndRoleArray[i];
-			
-			// Check that each entity contains exactly one user and exactly
-			// one role.
-			String[] userAndRoleSplit = userAndRole.split(":");
-			if(userAndRoleSplit.length != 2) {
-				getAnnotator().annotate(awRequest, "Invalid " + _key + " value at index: " + i);
-				awRequest.setFailedRequest(true);
-				return false;
+		if(! "".equals(userAndRoleList)) {
+			String[] userAndRoleArray = userAndRoleList.split(InputKeys.LIST_ITEM_SEPARATOR);
+			for(int i = 0; i < userAndRoleArray.length; i++) {
+				String userAndRole = userAndRoleArray[i];
+				
+				// Check that each entity contains exactly one user and exactly
+				// one role.
+				String[] userAndRoleSplit = userAndRole.split(InputKeys.ENTITY_ROLE_SEPARATOR);
+				if(userAndRoleSplit.length != 2) {
+					getAnnotator().annotate(awRequest, "Invalid " + _key + " value at index: " + i);
+					awRequest.setFailedRequest(true);
+					return false;
+				}
+				
+				// Validate user.
+				String user = userAndRoleSplit[0];
+				if(! _regexpPattern.matcher(user).matches()) {
+					getAnnotator().annotate(awRequest, "Invalid username in request at index: " + i);
+					awRequest.setFailedRequest(true);
+					return false;
+				}
+				
+				// Validate role.
+				if(! _roleCache.getKeys().contains(userAndRoleSplit[1])) {
+					getAnnotator().annotate(awRequest, "Invalid role in request at index: " + i);
+					awRequest.setFailedRequest(true);
+					return false;
+				}
 			}
 			
-			// Validate user.
-			String user = userAndRoleSplit[0];
-			if(! _regexpPattern.matcher(user).matches()) {
-				_invalidUsernameAnnotator.annotate(awRequest, "Invalid username in request at index: " + i);
-				awRequest.setFailedRequest(true);
-				return false;
-			}
-			
-			// Validate role.
-			// No validation on the role is done here. Instead we just ensure
-			// that the form of the requests makes sense and that the format
-			// of the usernames is acceptable.
+			awRequest.addToProcess(_key, userAndRoleList, true);
 		}
 		
-		awRequest.addToProcess(_key, userAndRoleList, true);
 		return true;
 	}
 }
