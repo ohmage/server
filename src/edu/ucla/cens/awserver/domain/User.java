@@ -9,6 +9,7 @@ import edu.ucla.cens.awserver.cache.CampaignRoleCache;
 import edu.ucla.cens.awserver.cache.ClassRoleCache;
 
 
+
 /**
  * The default user implementation.
  * 

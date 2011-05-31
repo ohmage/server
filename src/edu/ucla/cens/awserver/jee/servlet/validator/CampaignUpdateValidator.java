@@ -150,13 +150,8 @@ public class CampaignUpdateValidator extends AbstractHttpServletRequestValidator
 			throw new IllegalStateException(fue);
 		}
 		
-		// Check that the correct number of items were in the request.
+		// Get the number of items were in the request.
 		int numberOfUploadedItems = uploadedItems.size();
-		if(numberOfUploadedItems < 3) {
-			_logger.warn("An incorrect number of parameters were found on a campaign update attempt. At least 3 were expected and " + numberOfUploadedItems
-				+ " were received");
-			return false;
-		}
 		
 		// Parse the request for each of the parameters.
 		CampaignUpdateAwRequest request = new CampaignUpdateAwRequest();

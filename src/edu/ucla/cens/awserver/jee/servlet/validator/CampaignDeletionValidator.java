@@ -1,9 +1,5 @@
 package edu.ucla.cens.awserver.jee.servlet.validator;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
 import javax.servlet.http.HttpServletRequest;
 
 import org.apache.log4j.Logger;
@@ -17,13 +13,12 @@ import edu.ucla.cens.awserver.request.InputKeys;
  */
 public class CampaignDeletionValidator extends AbstractHttpServletRequestValidator {
 	private static Logger _logger = Logger.getLogger(CampaignDeletionValidator.class);
-	private List<String> _parameterList;
 	
 	/**
 	 * Basic constructor.
 	 */
 	public CampaignDeletionValidator() {
-		_parameterList = new ArrayList<String>(Arrays.asList(new String[] { InputKeys.AUTH_TOKEN, InputKeys.CAMPAIGN_URN }));
+		// Do nothing.
 	}
 	
 	/**
@@ -32,10 +27,6 @@ public class CampaignDeletionValidator extends AbstractHttpServletRequestValidat
 	 */
 	@Override
 	public boolean validate(HttpServletRequest httpRequest) {
-		if(! basicValidation(getParameterMap(httpRequest), _parameterList)) {
-			return false;
-		}
-		
 		String token = httpRequest.getParameter(InputKeys.AUTH_TOKEN);
 		String urn = httpRequest.getParameter(InputKeys.CAMPAIGN_URN);
 		String client = httpRequest.getParameter(InputKeys.CLIENT);

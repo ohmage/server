@@ -76,13 +76,8 @@ public class DocumentCreationValidator extends AbstractHttpServletRequestValidat
 			return false;
 		}
 		
-		// Check that the correct number of items were in the request.
+		// Get the number of items were in the request.
 		int numberOfUploadedItems = uploadedItems.size();
-		if(numberOfUploadedItems < 5) {
-			_logger.warn("An incorrect number of parameters were found on a campaign creation attempt. At least 5 were expected and " + numberOfUploadedItems
-				+ " were received");
-			return false;
-		}
 		
 		// Parse the request for each of the parameters.
 		String token = null;
