@@ -30,13 +30,18 @@ public class DocumentDeletionValidator extends AbstractHttpServletRequestValidat
 	public boolean validate(HttpServletRequest httpRequest) {
 		String authToken = httpRequest.getParameter(InputKeys.AUTH_TOKEN);
 		String documentId = httpRequest.getParameter(InputKeys.DOCUMENT_ID);
+		String client = httpRequest.getParameter(InputKeys.CLIENT);
 		
 		if((authToken == null) || (authToken.length() != 36)) {
-			_logger.info("The auth token is missing or the wrong length.");
+			_logger.warn("The auth token is missing or the wrong length.");
 			return false;
 		}
 		else if((documentId == null) || (documentId.length() != 36)) {
-			_logger.info("The document ID is null.");
+			_logger.warn("The document ID is null.");
+			return false;
+		}
+		else if(client == null) {
+			_logger.warn("The client is missing.");
 			return false;
 		}
 		

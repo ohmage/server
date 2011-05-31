@@ -18,11 +18,15 @@ public class PasswordChangeValidator extends AbstractHttpServletRequestValidator
 	
 	@Override
 	public boolean validate(HttpServletRequest httpRequest) {
+		String client = httpRequest.getParameter(InputKeys.CLIENT);
 		String username = httpRequest.getParameter(InputKeys.USERNAME);
 		String password = httpRequest.getParameter(InputKeys.PASSWORD);
 		String newPassword = httpRequest.getParameter(InputKeys.NEW_PASSWORD);
 		
-		if(username == null) {
+		if(client == null) {
+			return false;
+		}
+		else if(username == null) {
 			// Missing username.
 			return false;
 		}

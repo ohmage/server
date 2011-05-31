@@ -69,11 +69,15 @@ public class DocumentUpdateValidator extends AbstractHttpServletRequestValidator
 	private boolean validateRegularRequest(HttpServletRequest httpRequest) {
 		String authToken = httpRequest.getParameter(InputKeys.AUTH_TOKEN);
 		String documentId = httpRequest.getParameter(InputKeys.DOCUMENT_ID);
+		String client = httpRequest.getParameter(InputKeys.CLIENT);
 		
 		if((authToken == null) || (authToken.length() != 36)) {
 			return false;
 		}
 		else if((documentId == null) || greaterThanLength(InputKeys.DOCUMENT_ID, InputKeys.DOCUMENT_ID, documentId, 255)) {
+			return false;
+		}
+		else if(client == null) {
 			return false;
 		}
 		

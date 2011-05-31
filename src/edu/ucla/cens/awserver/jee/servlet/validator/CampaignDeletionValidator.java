@@ -38,6 +38,7 @@ public class CampaignDeletionValidator extends AbstractHttpServletRequestValidat
 		
 		String token = httpRequest.getParameter(InputKeys.AUTH_TOKEN);
 		String urn = httpRequest.getParameter(InputKeys.CAMPAIGN_URN);
+		String client = httpRequest.getParameter(InputKeys.CLIENT);
 		
 		if(greaterThanLength("authToken", InputKeys.AUTH_TOKEN, token, 36)) {
 			_logger.warn(InputKeys.AUTH_TOKEN + " is too long.");
@@ -45,6 +46,10 @@ public class CampaignDeletionValidator extends AbstractHttpServletRequestValidat
 		}
 		else if(greaterThanLength("campaignUrn", InputKeys.CAMPAIGN_URN, urn, 255)) {
 			_logger.warn(InputKeys.CAMPAIGN_URN + " is too long.");
+			return false;
+		}
+		else if(client == null) {
+			_logger.warn("Missing " + InputKeys.CLIENT);
 			return false;
 		}
 		

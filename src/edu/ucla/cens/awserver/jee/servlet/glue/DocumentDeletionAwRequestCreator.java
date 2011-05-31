@@ -3,6 +3,7 @@ package edu.ucla.cens.awserver.jee.servlet.glue;
 import javax.servlet.http.HttpServletRequest;
 
 import org.apache.log4j.Logger;
+import org.apache.log4j.NDC;
 
 import edu.ucla.cens.awserver.request.AwRequest;
 import edu.ucla.cens.awserver.request.DocumentDeletionAwRequest;
@@ -42,6 +43,8 @@ public class DocumentDeletionAwRequestCreator implements AwRequestCreator {
 			_logger.info("The document ID is invalid.");
 			throw e;
 		}
+		
+		NDC.push("client=" + request.getParameter(InputKeys.CLIENT));
 		
 		return documentDeletionRequest;
 	}

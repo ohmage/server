@@ -3,6 +3,7 @@ package edu.ucla.cens.awserver.jee.servlet.glue;
 import javax.servlet.http.HttpServletRequest;
 
 import org.apache.log4j.Logger;
+import org.apache.log4j.NDC;
 
 import edu.ucla.cens.awserver.request.AwRequest;
 import edu.ucla.cens.awserver.request.InputKeys;
@@ -36,6 +37,8 @@ public class UserReadAwRequestCreator implements AwRequestCreator {
 		
 		UserReadRequest request = new UserReadRequest(campaignUrnList, classUrnList);
 		request.setUserToken(authToken);
+		
+		NDC.push("client=" + httpRequest.getParameter(InputKeys.CLIENT));
 		
 		return request;
 	}

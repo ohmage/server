@@ -3,6 +3,7 @@ package edu.ucla.cens.awserver.jee.servlet.glue;
 import javax.servlet.http.HttpServletRequest;
 
 import org.apache.log4j.Logger;
+import org.apache.log4j.NDC;
 
 import edu.ucla.cens.awserver.domain.User;
 import edu.ucla.cens.awserver.request.AwRequest;
@@ -40,6 +41,8 @@ public class PasswordChangeAwRequestCreator implements AwRequestCreator {
 		user.setUserName(username);
 		user.setPassword(password);
 		newRequest.setUser(user);
+		
+		NDC.push("client=" + request.getParameter(InputKeys.CLIENT));
 		
 		return newRequest;
 	}

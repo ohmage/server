@@ -3,9 +3,11 @@ package edu.ucla.cens.awserver.jee.servlet.glue;
 import javax.servlet.http.HttpServletRequest;
 
 import org.apache.log4j.Logger;
+import org.apache.log4j.NDC;
 
 import edu.ucla.cens.awserver.request.AwRequest;
 import edu.ucla.cens.awserver.request.CampaignUpdateAwRequest;
+import edu.ucla.cens.awserver.request.InputKeys;
 
 /**
  * Creates an AwRequest object for updating a campaign.
@@ -36,6 +38,8 @@ public class CampaignUpdateAwRequestCreator implements AwRequestCreator {
 		if(awRequest == null) {
 			throw new IllegalStateException("Missing awRequest in HTTPServlet - Did the HTTPValidator run?");
 		}
+		
+		NDC.push("client=" + request.getParameter(InputKeys.CLIENT));
 		
 		return awRequest;
 	}

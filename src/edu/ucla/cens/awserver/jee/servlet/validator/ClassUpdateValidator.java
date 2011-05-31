@@ -32,12 +32,16 @@ public class ClassUpdateValidator extends AbstractHttpServletRequestValidator {
 	public boolean validate(HttpServletRequest httpRequest) {		
 		String token = httpRequest.getParameter(InputKeys.AUTH_TOKEN);
 		String classUrn = httpRequest.getParameter(InputKeys.CLASS_URN);
+		String client = httpRequest.getParameter(InputKeys.CLIENT);
 		
 		if(StringUtils.isEmptyOrWhitespaceOnly(token)) {
 			// Don't log this to avoid flooding the logs when an attack occurs.
 			return false;
 		}
 		else if(StringUtils.isEmptyOrWhitespaceOnly(classUrn)) {
+			return false;
+		}
+		else if(client == null) {
 			return false;
 		}
 		

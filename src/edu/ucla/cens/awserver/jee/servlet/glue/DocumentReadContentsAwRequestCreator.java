@@ -3,6 +3,7 @@ package edu.ucla.cens.awserver.jee.servlet.glue;
 import javax.servlet.http.HttpServletRequest;
 
 import org.apache.log4j.Logger;
+import org.apache.log4j.NDC;
 
 import edu.ucla.cens.awserver.request.AwRequest;
 import edu.ucla.cens.awserver.request.DocumentReadContentsAwRequest;
@@ -40,6 +41,8 @@ public class DocumentReadContentsAwRequestCreator implements AwRequestCreator {
 			_logger.error("The document ID is invalid, but passed HTTP validation.");
 			throw e;
 		}
+		
+		NDC.push("client=" + request.getParameter(InputKeys.CLIENT));
 		
 		return mRequest;
 	}

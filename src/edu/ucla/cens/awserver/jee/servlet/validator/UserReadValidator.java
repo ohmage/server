@@ -28,11 +28,15 @@ public class UserReadValidator extends AbstractHttpServletRequestValidator {
 	@Override
 	public boolean validate(HttpServletRequest httpRequest) {
 		String authToken = httpRequest.getParameter(InputKeys.AUTH_TOKEN);
+		String client = httpRequest.getParameter(InputKeys.CLIENT);
 		
 		if(StringUtils.isEmptyOrWhitespaceOnly(authToken)) {
 			return false;
 		}
 		else if(authToken.length() != 36) {
+			return false;
+		}
+		else if(client == null) {
 			return false;
 		}
 		

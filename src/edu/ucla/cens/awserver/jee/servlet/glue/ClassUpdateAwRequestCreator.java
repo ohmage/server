@@ -3,6 +3,7 @@ package edu.ucla.cens.awserver.jee.servlet.glue;
 import javax.servlet.http.HttpServletRequest;
 
 import org.apache.log4j.Logger;
+import org.apache.log4j.NDC;
 
 import edu.ucla.cens.awserver.request.AwRequest;
 import edu.ucla.cens.awserver.request.ClassUpdateAwRequest;
@@ -40,6 +41,8 @@ public class ClassUpdateAwRequestCreator implements AwRequestCreator {
 		
 		ClassUpdateAwRequest awRequest = new ClassUpdateAwRequest(classUrn, name, description, userListAdd, userListRemove, privilegedUserListAdd);
 		awRequest.setUserToken(token);
+		
+		NDC.push("client=" + request.getParameter(InputKeys.CLIENT));
 		
 		return awRequest;
 	}

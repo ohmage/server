@@ -1,4 +1,4 @@
-package edu.ucla.cens.awserver.jee.servlet.validator;
+ package edu.ucla.cens.awserver.jee.servlet.validator;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -29,6 +29,7 @@ public class DocumentReadContentsValidator extends AbstractHttpServletRequestVal
 	public boolean validate(HttpServletRequest httpRequest) {
 		String authToken = httpRequest.getParameter(InputKeys.AUTH_TOKEN);
 		String documentId = httpRequest.getParameter(InputKeys.DOCUMENT_ID);
+		String client = httpRequest.getParameter(InputKeys.CLIENT);
 		
 		if((authToken == null) || (authToken.length() != 36)) {
 			_logger.info("The auth token is missing or an incorrect size.");
@@ -36,6 +37,10 @@ public class DocumentReadContentsValidator extends AbstractHttpServletRequestVal
 		}
 		else if((documentId == null) || (documentId.length() != 36)) {
 			_logger.info("The document's ID is missing or an incorrect size.");
+			return false;
+		}
+		else if(client == null) {
+			_logger.warn("The client is missing.");
 			return false;
 		}
 		

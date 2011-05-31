@@ -29,11 +29,15 @@ public class ClassReadValidator extends AbstractHttpServletRequestValidator {
 	public boolean validate(HttpServletRequest httpRequest) {
 		String token = httpRequest.getParameter(InputKeys.AUTH_TOKEN);
 		String classList = httpRequest.getParameter(InputKeys.CLASS_URN_LIST);
+		String client = httpRequest.getParameter(InputKeys.CLIENT);
 		
 		if(token == null) {
 			return false;
 		}
 		else if(classList == null) {
+			return false;
+		}
+		else if(client == null) {
 			return false;
 		}
 		else if(greaterThanLength(InputKeys.AUTH_TOKEN, InputKeys.AUTH_TOKEN, token, 36)) {

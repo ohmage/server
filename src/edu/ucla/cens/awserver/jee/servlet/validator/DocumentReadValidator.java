@@ -30,13 +30,18 @@ public class DocumentReadValidator extends AbstractHttpServletRequestValidator {
 	public boolean validate(HttpServletRequest httpRequest) {
 		String authToken = httpRequest.getParameter(InputKeys.AUTH_TOKEN);
 		String personalDocuments = httpRequest.getParameter(InputKeys.DOCUMENT_PERSONAL_DOCUMENTS);
+		String client = httpRequest.getParameter(InputKeys.CLIENT);
 		
 		if((authToken == null) || (authToken.length() != 36)) {
-			_logger.error("The auth token is null or of the wrong length.");
+			_logger.warn("The auth token is null or of the wrong length.");
 			return false;
 		}
 		else if((personalDocuments == null) || StringUtils.isEmptyOrWhitespaceOnly(personalDocuments)) {
-			_logger.error("The personal documents boolean is missing or empty.");
+			_logger.warn("The personal documents boolean is missing or empty.");
+			return false;
+		}
+		else if(client == null) {
+			_logger.warn("The client is missing.");
 			return false;
 		}
 		

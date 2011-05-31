@@ -28,12 +28,17 @@ public class UserInfoQueryValidator extends AbstractGzipHttpServletRequestValida
 	@Override
 	public boolean validate(HttpServletRequest httpServletRequest) {		
 		String token = httpServletRequest.getParameter(InputKeys.AUTH_TOKEN);
+		String client = httpServletRequest.getParameter(InputKeys.CLIENT);
 		
 		if(token == null) {
 			return false;
 		}
 		else if(greaterThanLength(InputKeys.AUTH_TOKEN, InputKeys.AUTH_TOKEN, token, 36) || (token.length() < 36)) {
 			_logger.warn("Incorrectly sized " + InputKeys.AUTH_TOKEN);
+			return false;
+		}
+		else if(client == null) {
+			_logger.warn("Missing " + InputKeys.CLIENT);
 			return false;
 		}
 		

@@ -112,6 +112,11 @@ public class CampaignUpdateValidator extends AbstractHttpServletRequestValidator
 			request.setUserRoleListRemove(userRolesListRemove);
 		}
 		
+		String client = httpRequest.getParameter(InputKeys.CLIENT);
+		if(client == null) {
+			return false;
+		}
+		
 		httpRequest.setAttribute("awRequest", request);
 		return true;
 	}

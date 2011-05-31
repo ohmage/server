@@ -78,39 +78,39 @@ public class CampaignCreationValidator extends AbstractHttpServletRequestValidat
 			FileItem fi = (FileItem) uploadedItems.get(i);
 			if(fi.isFormField()) {
 				String name = fi.getFieldName();
-				String tmp = StringUtils.urlDecode(fi.getString());
+				String value = StringUtils.urlDecode(fi.getString());
 				
 				if(InputKeys.DESCRIPTION.equals(name)) {
-					if(greaterThanLength("description", InputKeys.DESCRIPTION, tmp, 65535)) {
+					if(greaterThanLength("description", InputKeys.DESCRIPTION, value, 65535)) {
 						return false;
 					}
-					description = tmp;
+					description = value;
 				}
 				else if(InputKeys.AUTH_TOKEN.equals(name)) {
-					if(greaterThanLength("authToken", InputKeys.AUTH_TOKEN, tmp, 36)) {
+					if(greaterThanLength("authToken", InputKeys.AUTH_TOKEN, value, 36)) {
 						return false;
 					}
-					token = tmp;
+					token = value;
 				}
 				else if(InputKeys.RUNNING_STATE.equals(name)) {
-					if(greaterThanLength("runningState", InputKeys.RUNNING_STATE, tmp, 50)) {
+					if(greaterThanLength("runningState", InputKeys.RUNNING_STATE, value, 50)) {
 						return false;
 					}
-					runningState = tmp;
+					runningState = value;
 				}
 				else if(InputKeys.PRIVACY_STATE.equals(name)) {
-					if(greaterThanLength("privacyState", InputKeys.PRIVACY_STATE, tmp, 50)) {
+					if(greaterThanLength("privacyState", InputKeys.PRIVACY_STATE, value, 50)) {
 						return false;
 					}
-					privacyState = tmp;
+					privacyState = value;
 				}
 				else if(InputKeys.CLASS_URN_LIST.equals(name)) {
 					// Note: This is based on the maximum size of a campaign
 					// times 100 plus 100 commas.
-					if(greaterThanLength("classes", InputKeys.CLASS_URN_LIST, tmp, 25600)) {
+					if(greaterThanLength("classes", InputKeys.CLASS_URN_LIST, value, 25600)) {
 						return false;
 					}
-					classes = tmp;
+					classes = value;
 				}
 			} else {
 				if(InputKeys.XML.equals(fi.getFieldName())) {					
