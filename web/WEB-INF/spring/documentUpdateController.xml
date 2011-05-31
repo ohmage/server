@@ -1,0 +1,126 @@
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:util="http://www.springframework.org/schema/util"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
+                           http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-2.5.xsd">
+
+  <!-- Basic HTTP Validation -->
+  <bean id="documentUpdateHttpServletRequestValidator" class="edu.ucla.cens.awserver.jee.servlet.validator.DocumentUpdateValidator">
+    <!-- Read the XML file. -->
+    <constructor-arg>
+      <ref bean="diskItemFileFactory" />
+    </constructor-arg>
+  </bean>
+  
+  <!-- Create the AwRequest Object -->
+  <bean id="documentUpdateAwRequestCreator" class="edu.ucla.cens.awserver.jee.servlet.glue.DocumentUpdateRequestCreator" />
+  
+  <!-- Write the Response -->
+  <bean id="documentUpdateResponseWriter" class="edu.ucla.cens.awserver.jee.servlet.writer.SuccessOrFailResponseWriter">
+    <constructor-arg>
+      <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
+        <property name="code" value="1500" />
+        <property name="text" value="General document update error." />
+      </bean>
+    </constructor-arg>
+  </bean>
+
+  <!-- Controller Definition -->
+  <bean id="documentUpdateController" class="edu.ucla.cens.awserver.controller.ControllerImpl">
+    <constructor-arg index="0">
+      <!-- Services List (expected to be executed in-order) -->
+      <list>
+        <!-- Authenticate that the token the user is using is a valid token. -->
+        <ref bean="tokenBasedAuthenticationService" />
+        
+        <!-- Ensure that the document exists. -->
+        <ref bean="documentExistsService" />
+        
+        <!-- Ensure that the user owns the document. -->
+        <ref bean="userCanModifyDocumentService" />
+        
+        <!-- Ensure that the user has the appropriate roles in the campaign. -->
+        <ref bean="userRoleCampaignPopulationService" />
+        <ref bean="userCanAssociateDocumentsWithCampaignsInCampaignRoleAddListOptionalService" />
+        
+        <!-- Ensure that the user has the appropriate roles in the class. -->
+        <ref bean="userRoleClassPopulationService" />
+        <ref bean="userCanAssociateDocumentsWithClassesInClassRoleListAddOptionalService" />
+        
+        <!-- User can associate the document with any other user? -->
+        
+        <!-- Document is associated with campaigns in remove list. -->
+        <ref bean="documentBelongsToCampaignsInListService" />
+        
+        <!-- Document is associated with classes in remove list. -->
+        <ref bean="documentBelongsToClassesInListService" />
+        
+        <!-- Document is associated with users in remove list. -->
+        <ref bean="documentBelongsToDirectUsersInListService" />
+        
+        <!-- Insert the document. -->
+        <ref bean="documentUpdateService" />
+      </list>
+    </constructor-arg>
+    <constructor-arg index="1">
+      <!-- The annotator for when something fails after validation but before the writer. -->
+      <ref bean="serverErrorRequestAnnotator" />
+    </constructor-arg>
+    <property name="validators">
+      <!-- Validates the individual items in the request. -->
+      <list>
+        <!-- Required parameters -->
+        <ref bean="userTokenValidator" />
+        <ref bean="documentIdRequiredValidator" />
+        
+        <!-- Optional parameters -->
+        <ref bean="documentNameOptionalValidator" />
+        <ref bean="descriptionOptionalValidator" />
+        <ref bean="documentPrivacyStateOptionalValidator" />
+        <ref bean="documentOptionalValidator" />
+
+        <!-- URN-Role validators -->
+        <ref bean="campaignDocumentRoleListOptionalValidator" />
+        <ref bean="classDocumentRoleListOptionalValidator" />
+        
+        <!-- User-Role validator -->
+        <ref bean="userDocumentRoleListOptionalValidator" />
+        
+        <!-- URN list validators -->
+        <ref bean="campaignUrnListRemoveOptionalValidator" />
+        <ref bean="classUrnListRemoveOptionalValidator" />
+        
+        <!-- User list validators -->
+        <ref bean="userListRemoveOptionalValidator" />
+      </list>
+    </property>
+    <property name="featureName"><value>document creation</value></property>
+  </bean>
+  
+  <bean id="documentUpdateService" class="edu.ucla.cens.awserver.service.GenericAnnotatingDaoService">
+    <constructor-arg>
+      <bean class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
+        <constructor-arg index="0">
+          <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
+            <property name="code" value="1500" />
+            <property name="text" value="General document update error." />
+          </bean>
+        </constructor-arg>
+      </bean>
+    </constructor-arg>
+    <constructor-arg>
+      <bean class="edu.ucla.cens.awserver.dao.DocumentUpdateDao">
+        <constructor-arg>
+          <ref bean="dataSource" />
+        </constructor-arg>
+      </bean>
+    </constructor-arg>
+    <constructor-arg>
+      <value>There was an error while updating the document.</value>
+    </constructor-arg>
+    <constructor-arg>
+      <value>Updating the document.</value>
+    </constructor-arg>
+  </bean>
+
+</beans>

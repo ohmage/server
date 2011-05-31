@@ -79,7 +79,7 @@ public class UrnsInUrnRoleListExistService extends AbstractAnnotatingDaoService 
 		
 		String[] urnRoleArray = urnRoleList.split(InputKeys.LIST_ITEM_SEPARATOR);
 		for(int i = 0; i < urnRoleArray.length; i++) {
-			String[] urnRole = urnRoleArray[i].split(InputKeys.URN_ROLE_SEPARATOR);
+			String[] urnRole = urnRoleArray[i].split(InputKeys.ENTITY_ROLE_SEPARATOR);
 			
 			awRequest.addToProcess(_daoKey, urnRole[0], true);
 			try {

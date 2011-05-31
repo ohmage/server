@@ -4,6 +4,7 @@ import org.apache.log4j.Logger;
 
 import edu.ucla.cens.awserver.request.AwRequest;
 import edu.ucla.cens.awserver.request.InputKeys;
+import edu.ucla.cens.awserver.util.StringUtils;
 import edu.ucla.cens.awserver.validator.AwRequestAnnotator;
 
 /**
@@ -13,8 +14,9 @@ import edu.ucla.cens.awserver.validator.AwRequestAnnotator;
  * @author John Jenkins
  */
 public class UserCanAssociateDocumentsWithCampaignsInCampaignRoleListService extends AbstractAnnotatingService {
-private static Logger _logger = Logger.getLogger(UserCanAssociateDocumentsWithCampaignsInCampaignRoleListService.class);
+	private static Logger _logger = Logger.getLogger(UserCanAssociateDocumentsWithCampaignsInCampaignRoleListService.class);
 
+	private String _key;
 	private boolean _required;
 	
 	/**
@@ -30,9 +32,14 @@ private static Logger _logger = Logger.getLogger(UserCanAssociateDocumentsWithCa
 	 * 									of the parameters that prevent this
 	 * 									service from being constructed.
 	 */
-	public UserCanAssociateDocumentsWithCampaignsInCampaignRoleListService(AwRequestAnnotator annotator, boolean required) throws IllegalArgumentException {
+	public UserCanAssociateDocumentsWithCampaignsInCampaignRoleListService(AwRequestAnnotator annotator, String key, boolean required) throws IllegalArgumentException {
 		super(annotator);
 		
+		if(StringUtils.isEmptyOrWhitespaceOnly(key)) {
+			throw new IllegalArgumentException("The key cannot be null or whitespace only.");
+		}
+		
+		_key = key;
 		_required = required;
 	}
 	
@@ -46,7 +53,7 @@ private static Logger _logger = Logger.getLogger(UserCanAssociateDocumentsWithCa
 		// Get the list of classes and roles.
 		String campaignRoleList;
 		try {
-			campaignRoleList = (String) awRequest.getToProcessValue(InputKeys.DOCUMENT_CAMPAIGN_ROLE_LIST);
+			campaignRoleList = (String) awRequest.getToProcessValue(_key);
 		}
 		catch(IllegalArgumentException e) {
 			if(_required) {
@@ -63,7 +70,7 @@ private static Logger _logger = Logger.getLogger(UserCanAssociateDocumentsWithCa
 		// classes.
 		String[] campaignRoleArray = campaignRoleList.split(InputKeys.LIST_ITEM_SEPARATOR);
 		for(int i = 0; i < campaignRoleArray.length; i++) {
-			String[] campaignRole = campaignRoleArray[i].split(InputKeys.URN_ROLE_SEPARATOR);
+			String[] campaignRole = campaignRoleArray[i].split(InputKeys.ENTITY_ROLE_SEPARATOR);
 			
 			if((! awRequest.getUser().isSupervisorInCampaign(campaignRole[0])) &&
 			   (! awRequest.getUser().isAuthorInCampaign(campaignRole[0])) &&

@@ -4,6 +4,7 @@ import org.apache.log4j.Logger;
 
 import edu.ucla.cens.awserver.request.AwRequest;
 import edu.ucla.cens.awserver.request.InputKeys;
+import edu.ucla.cens.awserver.util.StringUtils;
 import edu.ucla.cens.awserver.validator.AwRequestAnnotator;
 
 /**
@@ -15,6 +16,7 @@ import edu.ucla.cens.awserver.validator.AwRequestAnnotator;
 public class UserCanAssoicateDocumentsWithClassesInClassRoleListService extends AbstractAnnotatingService {
 	private static Logger _logger = Logger.getLogger(UserCanAssoicateDocumentsWithClassesInClassRoleListService.class);
 	
+	private String _key;
 	private boolean _required;
 	
 	/**
@@ -30,9 +32,14 @@ public class UserCanAssoicateDocumentsWithClassesInClassRoleListService extends 
 	 * 									of the parameters that prevent this
 	 * 									service from being constructed.
 	 */
-	public UserCanAssoicateDocumentsWithClassesInClassRoleListService(AwRequestAnnotator annotator, boolean required) throws IllegalArgumentException {
+	public UserCanAssoicateDocumentsWithClassesInClassRoleListService(AwRequestAnnotator annotator, String key, boolean required) throws IllegalArgumentException {
 		super(annotator);
 		
+		if(StringUtils.isEmptyOrWhitespaceOnly(key)) {
+			throw new IllegalArgumentException("The key cannot be null or whitespace only.");
+		}
+		
+		_key = key;
 		_required = required;
 	}
 	
@@ -46,11 +53,11 @@ public class UserCanAssoicateDocumentsWithClassesInClassRoleListService extends 
 		// Get the list of classes and roles.
 		String classRoleList;
 		try {
-			classRoleList = (String) awRequest.getToProcessValue(InputKeys.DOCUMENT_CLASS_ROLE_LIST);
+			classRoleList = (String) awRequest.getToProcessValue(_key);
 		}
 		catch(IllegalArgumentException e) {
 			if(_required) {
-				throw new ServiceException("Missing required key '" + InputKeys.DOCUMENT_CLASS_ROLE_LIST + "' in toProcess map.");
+				throw new ServiceException("Missing required key '" + _key + "' in toProcess map.");
 			}
 			else {
 				return;
@@ -63,7 +70,7 @@ public class UserCanAssoicateDocumentsWithClassesInClassRoleListService extends 
 		// classes.
 		String[] classRoleArray = classRoleList.split(InputKeys.LIST_ITEM_SEPARATOR);
 		for(int i = 0; i < classRoleArray.length; i++) {
-			String[] classRole = classRoleArray[i].split(InputKeys.URN_ROLE_SEPARATOR);
+			String[] classRole = classRoleArray[i].split(InputKeys.ENTITY_ROLE_SEPARATOR);
 			
 			if((! awRequest.getUser().isPrivilegedInClass(classRole[0])) &&
 			   (! awRequest.getUser().isRestrictedInClass(classRole[0]))) {

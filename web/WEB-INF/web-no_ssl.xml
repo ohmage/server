@@ -804,6 +804,36 @@
     <url-pattern>/document/read/contents</url-pattern>
   </servlet-mapping>
   
+  <!-- Handle updating the document -->
+  <servlet>
+    <description>
+      Updates the document.
+    </description>
+    <servlet-name>DocumentUpdateServlet</servlet-name>
+    <servlet-class>edu.ucla.cens.awserver.jee.servlet.AwDataServlet</servlet-class>
+    <init-param>
+      <param-name>httpServletRequestValidatorName</param-name>
+      <param-value>documentUpdateHttpServletRequestValidator</param-value>
+    </init-param>
+    <init-param>
+      <param-name>awRequestCreatorName</param-name>
+      <param-value>documentUpdateAwRequestCreator</param-value>
+    </init-param>
+    <init-param>
+      <param-name>controllerName</param-name>
+      <param-value>documentUpdateController</param-value>
+    </init-param>
+    <init-param>
+      <param-name>responseWriterName</param-name>
+      <param-value>documentUpdateResponseWriter</param-value>
+    </init-param>
+  </servlet>
+  
+  <servlet-mapping>
+    <servlet-name>DocumentUpdateServlet</servlet-name>
+    <url-pattern>/document/update</url-pattern>
+  </servlet-mapping>
+  
   <!-- Handle document deletion -->
   <servlet>
     <description>

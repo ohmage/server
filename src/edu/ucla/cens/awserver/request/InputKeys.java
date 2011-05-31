@@ -35,11 +35,15 @@ public class InputKeys {
 	// Campaign Constants
 	public static final String CAMPAIGN_URN = "campaign_urn";
 	public static final String CAMPAIGN_URN_LIST = "campaign_urn_list";
+	public static final String CAMPAIGN_ROLE_LIST_ADD = "campaign_role_list_add";
+	public static final String CAMPAIGN_LIST_REMOVE = "campaign_list_remove";
 	public static final String XML = "xml";
 	
 	// Class Constants
 	public static final String CLASS_URN = "class_urn";
 	public static final String CLASS_URN_LIST = "class_urn_list";
+	public static final String CLASS_ROLE_LIST_ADD = "class_role_list_add";
+	public static final String CLASS_LIST_REMOVE = "class_list_remove";
 	public static final String CLASS_NAME = "class_name";
 	
 	// Survey Constants
@@ -94,5 +98,5 @@ public class InputKeys {
 	
 	// Separator Constants
 	public static final String LIST_ITEM_SEPARATOR = ",";
-	public static final String URN_ROLE_SEPARATOR = ";";
+	public static final String ENTITY_ROLE_SEPARATOR = ";";
 }

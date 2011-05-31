@@ -69,9 +69,20 @@ public class UrnRoleValidator extends AbstractAnnotatingValidator {
 			urnRoleList = (String) awRequest.getToProcessValue(_key);
 		}
 		catch(IllegalArgumentException outerException) {
-			urnRoleList = (String) awRequest.getToValidateValue(_key);
-			
-			if(urnRoleList == null) {
+			try {
+				urnRoleList = (String) awRequest.getToValidateValue(_key);
+				
+				if(urnRoleList == null) {
+					if(_required) {
+						throw new ValidatorException("Missing required value for key '" + _key + "'. This should have been caught earlier.");
+					}
+					else {
+						// It isn't present nor is it required.
+						return true;
+					}
+				}
+			}
+			catch(IllegalArgumentException e) {
 				if(_required) {
 					throw new ValidatorException("Missing required value for key '" + _key + "'. This should have been caught earlier.");
 				}
@@ -87,7 +98,7 @@ public class UrnRoleValidator extends AbstractAnnotatingValidator {
 		// Split the list to get each of the pairs.
 		String[] urnRoleArray = urnRoleList.split(InputKeys.LIST_ITEM_SEPARATOR);
 		for(int i = 0; i < urnRoleArray.length; i++) {
-			String[] urnRole = urnRoleArray[i].split(InputKeys.URN_ROLE_SEPARATOR);
+			String[] urnRole = urnRoleArray[i].split(InputKeys.ENTITY_ROLE_SEPARATOR);
 			
 			// Make sure there is exactly two objects in the pair.
 			if(urnRole.length != 2) {

@@ -172,11 +172,7 @@ public class DocumentCreationDao extends AbstractDao {
 		}
 		
 		// Parse the name and get the extension.
-		String[] parsedName = name.split("\\.");
-		String extension = null;
-		if((parsedName.length > 1) && (parsedName[parsedName.length - 1].length() <= MAX_EXTENSION_LENGTH)) {
-			extension = parsedName[parsedName.length - 1];
-		}
+		String extension = getExtension(name);
 		
 		// Get the initial privacy state ID.
 		long privacyStateId;
@@ -314,7 +310,7 @@ public class DocumentCreationDao extends AbstractDao {
 			
 			// Insert any campaign associations in the DB.
 			for(int i = 0; i < campaignUrnRoleArray.length; i++) {
-				String[] campaignUrnRole = campaignUrnRoleArray[i].split(InputKeys.URN_ROLE_SEPARATOR);
+				String[] campaignUrnRole = campaignUrnRoleArray[i].split(InputKeys.ENTITY_ROLE_SEPARATOR);
 				
 				// Get the campaign's ID.
 				long campaignId;
@@ -350,7 +346,7 @@ public class DocumentCreationDao extends AbstractDao {
 			
 			// Insert any class associations in the DB.
 			for(int i = 0; i < classUrnRoleArray.length; i++) {
-				String[] classUrnRole = classUrnRoleArray[i].split(InputKeys.URN_ROLE_SEPARATOR);
+				String[] classUrnRole = classUrnRoleArray[i].split(InputKeys.ENTITY_ROLE_SEPARATOR);
 				
 				// Get the class' ID.
 				long classId;
@@ -402,6 +398,24 @@ public class DocumentCreationDao extends AbstractDao {
 			newFile.delete();
 			throw new DataAccessException(e);
 		}
+	}
+	
+	/**
+	 * Gets the extension on the file. To be used by other classes that want to
+	 * parse the extension from a filename.
+	 * 
+	 * @param name The name of the file including the extension.
+	 * 
+	 * @return The extension on the file with the name 'name'.
+	 */
+	public static String getExtension(String name) {
+		String[] parsedName = name.split("\\.");
+		String extension = null;
+		if((parsedName.length > 1) && (parsedName[parsedName.length - 1].length() <= MAX_EXTENSION_LENGTH)) {
+			extension = parsedName[parsedName.length - 1];
+		}
+		
+		return extension;
 	}
 	
 	/**
