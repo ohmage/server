@@ -9,10 +9,10 @@
   
   <!-- Servlet-to-AW hooks -->
   <!-- create AwRequest from data in the HttpServletRequest -->
-  <bean id="surveyUploadAwRequestCreator" class="edu.ucla.cens.awserver.jee.servlet.glue.SurveyUploadAwRequestCreator" />
+  <bean id="surveyUploadAwRequestCreator" class="org.ohmage.jee.servlet.glue.SurveyUploadAwRequestCreator" />
   
   <!-- validate parameters in the http request -->
-  <bean id="surveyUploadHttpServletRequestValidator" class="edu.ucla.cens.awserver.jee.servlet.validator.SurveyUploadValidator" />
+  <bean id="surveyUploadHttpServletRequestValidator" class="org.ohmage.jee.servlet.validator.SurveyUploadValidator" />
   
   <!-- the response writer is shared with mobilityUploadController.xml -->
   
@@ -20,7 +20,7 @@
     Controller - main workflow: authentication, deep message validation, tranformation of uploaded JSON and prep for database,
     insertion into database.
   -->
-  <bean id="surveyUploadController" class="edu.ucla.cens.awserver.controller.ControllerImpl">
+  <bean id="surveyUploadController" class="org.ohmage.controller.ControllerImpl">
     <constructor-arg index="0">
     <!-- service the upload request -->
       <list>
@@ -62,7 +62,7 @@
     </property>
     <property name="postProcessingService">
       <!-- log upload stats, the upload itself, any failed upload info, and duplicates to the filesystem -->  
-      <bean id="messageLoggerService" class="edu.ucla.cens.awserver.service.MessageLoggerService">
+      <bean id="messageLoggerService" class="org.ohmage.service.MessageLoggerService">
         <constructor-arg index="0">
           <value>survey</value>
         </constructor-arg>
@@ -71,11 +71,11 @@
     <property name="featureName"><value>survey upload</value></property>
   </bean>
   
-  <bean id="userRoleCampaignPopulationService" class="edu.ucla.cens.awserver.service.UserRoleCampaignPopulationService">
+  <bean id="userRoleCampaignPopulationService" class="org.ohmage.service.UserRoleCampaignPopulationService">
     <constructor-arg index="0">
-      <bean class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
+      <bean class="org.ohmage.validator.json.FailedJsonRequestAnnotator">
         <constructor-arg index="0">
-           <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
+           <bean class="org.ohmage.domain.ErrorResponse">
             <property name="code" value="0205" />
             <property name="text" value="User doesn't belong to any campaigns." />
           </bean>
@@ -83,7 +83,7 @@
       </bean>
     </constructor-arg>
     <constructor-arg index="1">
-      <bean class="edu.ucla.cens.awserver.dao.UserRoleCampaignPopulationDao">
+      <bean class="org.ohmage.dao.UserRoleCampaignPopulationDao">
         <constructor-arg index="0">
           <ref bean="dataSource" />
         </constructor-arg>
@@ -91,11 +91,11 @@
     </constructor-arg>
   </bean>
   
-  <bean id="userCampaignValidationService" class="edu.ucla.cens.awserver.service.UserCampaignValidationService">
+  <bean id="userCampaignValidationService" class="org.ohmage.service.UserCampaignValidationService">
      <constructor-arg index="0">
-      <bean class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
+      <bean class="org.ohmage.validator.json.FailedJsonRequestAnnotator">
         <constructor-arg index="0">
-           <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
+           <bean class="org.ohmage.domain.ErrorResponse">
             <property name="code" value="0200" />
             <property name="text" value="user not in campaign" />
           </bean>
@@ -104,11 +104,11 @@
     </constructor-arg>
   </bean>
 
-  <bean id="participantUserRoleValidationService" class="edu.ucla.cens.awserver.service.UserRoleValidationService">
+  <bean id="participantUserRoleValidationService" class="org.ohmage.service.UserRoleValidationService">
      <constructor-arg index="0">
-      <bean class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
+      <bean class="org.ohmage.validator.json.FailedJsonRequestAnnotator">
         <constructor-arg index="0">
-           <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
+           <bean class="org.ohmage.domain.ErrorResponse">
             <property name="code" value="0607" />
             <property name="text" value="user has invalid role for this operation" />
           </bean>
@@ -120,11 +120,11 @@
     </constructor-arg>
   </bean>
   
-  <bean id="campaignRunningStateValidationService" class="edu.ucla.cens.awserver.service.CampaignRunningStateValidationService">
+  <bean id="campaignRunningStateValidationService" class="org.ohmage.service.CampaignRunningStateValidationService">
      <constructor-arg index="0">
-      <bean class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
+      <bean class="org.ohmage.validator.json.FailedJsonRequestAnnotator">
         <constructor-arg index="0">
-           <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
+           <bean class="org.ohmage.domain.ErrorResponse">
             <property name="code" value="0608" />
             <property name="text" value="campaign is not running so uploads cannot be accepted" />
           </bean>
@@ -139,11 +139,11 @@
     </constructor-arg>
   </bean>
   
-  <bean id="campaignCreationTimeValidationService" class="edu.ucla.cens.awserver.service.CampaignCreationTimeValidationService">
+  <bean id="campaignCreationTimeValidationService" class="org.ohmage.service.CampaignCreationTimeValidationService">
      <constructor-arg index="0">
-      <bean class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
+      <bean class="org.ohmage.validator.json.FailedJsonRequestAnnotator">
         <constructor-arg index="0">
-           <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
+           <bean class="org.ohmage.domain.ErrorResponse">
             <property name="code" value="0609" />
             <property name="text" value="campaign is out of date" />
           </bean>
@@ -152,14 +152,14 @@
     </constructor-arg>
   </bean>
   
-  <bean id="campaignStateDao" class="edu.ucla.cens.awserver.dao.CampaignStateDao">
+  <bean id="campaignStateDao" class="org.ohmage.dao.CampaignStateDao">
      <constructor-arg index="0">
        <ref bean="dataSource" />
      </constructor-arg>
   </bean>
   
   <!-- Validate JSON content according to app business rules -->
-  <bean id="surveyMessageContentValidationService" class="edu.ucla.cens.awserver.service.JsonMessageContentValidationService">
+  <bean id="surveyMessageContentValidationService" class="org.ohmage.service.JsonMessageContentValidationService">
     <constructor-arg index="0">
       <list>
         <ref bean="jsonMsgDateValidator" />
@@ -177,11 +177,11 @@
     <constructor-arg index="2"><ref bean="jsonMsgIncorrectArrayAnnotator" /></constructor-arg>
   </bean>
   
-  <bean id="jsonMsgSurveyIdValidator" class="edu.ucla.cens.awserver.validator.survey.JsonMsgSurveyIdValidator">
+  <bean id="jsonMsgSurveyIdValidator" class="org.ohmage.validator.survey.JsonMsgSurveyIdValidator">
     <constructor-arg index="0">
-      <bean class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
+      <bean class="org.ohmage.validator.json.FailedJsonRequestAnnotator">
         <constructor-arg index="0">
-          <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
+          <bean class="org.ohmage.domain.ErrorResponse">
             <property name="code" value="0605" />
             <property name="text" value="missing or invalid survey_id in message" />
           </bean>
@@ -190,11 +190,11 @@
     </constructor-arg>
   </bean>
   
-  <bean id="jsonMsgSurveyResponsesExistValidator" class="edu.ucla.cens.awserver.validator.survey.JsonMsgSurveyResponsesExistValidator">
+  <bean id="jsonMsgSurveyResponsesExistValidator" class="org.ohmage.validator.survey.JsonMsgSurveyResponsesExistValidator">
     <constructor-arg index="0">
-      <bean class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
+      <bean class="org.ohmage.validator.json.FailedJsonRequestAnnotator">
         <constructor-arg index="0">
-          <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
+          <bean class="org.ohmage.domain.ErrorResponse">
             <property name="code" value="0602" />
             <property name="text" value="missing responses in survey message" />
           </bean>
@@ -203,11 +203,11 @@
     </constructor-arg>
   </bean>
   
-  <bean id="jsonMsgSurveyResponsesValidator" class="edu.ucla.cens.awserver.validator.survey.JsonMsgSurveyResponsesValidator">
+  <bean id="jsonMsgSurveyResponsesValidator" class="org.ohmage.validator.survey.JsonMsgSurveyResponsesValidator">
     <constructor-arg index="0">
-      <bean class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
+      <bean class="org.ohmage.validator.json.FailedJsonRequestAnnotator">
         <constructor-arg index="0">
-          <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
+          <bean class="org.ohmage.domain.ErrorResponse">
             <property name="code" value="0603" />
             <property name="text" value="invalid prompt response" />
           </bean>
@@ -219,11 +219,11 @@
     </constructor-arg>
   </bean>
   
-  <bean id="jsonMsgSurveyLaunchContextValidator" class="edu.ucla.cens.awserver.validator.survey.JsonMsgSurveyLaunchContextValidator">
+  <bean id="jsonMsgSurveyLaunchContextValidator" class="org.ohmage.validator.survey.JsonMsgSurveyLaunchContextValidator">
     <constructor-arg index="0">
-      <bean class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
+      <bean class="org.ohmage.validator.json.FailedJsonRequestAnnotator">
         <constructor-arg index="0">
-          <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
+          <bean class="org.ohmage.domain.ErrorResponse">
             <property name="code" value="0606" />
             <property name="text" value="missing or incorrect survey_launch_context in survey message" />
           </bean>
@@ -232,11 +232,11 @@
     </constructor-arg>
   </bean>
   
-  <bean id="jsonMsgLocationStatusValidator" class="edu.ucla.cens.awserver.validator.json.JsonMsgValueInListValidator">
+  <bean id="jsonMsgLocationStatusValidator" class="org.ohmage.validator.json.JsonMsgValueInListValidator">
     <constructor-arg index="0">
-      <bean class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
+      <bean class="org.ohmage.validator.json.FailedJsonRequestAnnotator">
         <constructor-arg index="0">
-          <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
+          <bean class="org.ohmage.domain.ErrorResponse">
             <property name="code" value="0408" />
             <property name="text" value="invalid location status" />
           </bean>
@@ -258,11 +258,11 @@
     <value>stale</value>
   </util:list>
   
-  <bean id="jsonMsgLocationValidator" class="edu.ucla.cens.awserver.validator.survey.JsonMsgLocationValidator">
+  <bean id="jsonMsgLocationValidator" class="org.ohmage.validator.survey.JsonMsgLocationValidator">
     <constructor-arg index="0">
-      <bean class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
+      <bean class="org.ohmage.validator.json.FailedJsonRequestAnnotator">
         <constructor-arg index="0">
-          <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
+          <bean class="org.ohmage.domain.ErrorResponse">
             <property name="code" value="0409" />
             <property name="text" value="location existence problem" />
           </bean>
@@ -280,11 +280,11 @@
     </constructor-arg>
   </bean>      
   
-  <bean id="jsonMsgLocationTimestampValidator" class="edu.ucla.cens.awserver.validator.json.JsonMsgLocationTimestampValidator">
+  <bean id="jsonMsgLocationTimestampValidator" class="org.ohmage.validator.json.JsonMsgLocationTimestampValidator">
     <constructor-arg index="0">
-      <bean class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
+      <bean class="org.ohmage.validator.json.FailedJsonRequestAnnotator">
         <constructor-arg index="0">
-          <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
+          <bean class="org.ohmage.domain.ErrorResponse">
             <property name="code" value="0410" />
             <property name="text" value="missing or invalid timestamp" />
           </bean>
@@ -293,62 +293,62 @@
     </constructor-arg>
   </bean>
   
-  <bean id="promptValidatorCache" class="edu.ucla.cens.awserver.validator.prompt.PromptValidatorCache">
+  <bean id="promptValidatorCache" class="org.ohmage.validator.prompt.PromptValidatorCache">
     <constructor-arg index="0">
       <map>
         <entry>
           <key><value>hours_before_now</value></key>
-          <bean class="edu.ucla.cens.awserver.validator.prompt.RangeBoundNumberPromptValidator" />
+          <bean class="org.ohmage.validator.prompt.RangeBoundNumberPromptValidator" />
         </entry>
         <entry>
           <key><value>number</value></key>
-          <bean class="edu.ucla.cens.awserver.validator.prompt.RangeBoundNumberPromptValidator" />
+          <bean class="org.ohmage.validator.prompt.RangeBoundNumberPromptValidator" />
         </entry>
         <entry>
           <key><value>timestamp</value></key>
-          <bean class="edu.ucla.cens.awserver.validator.prompt.TimestampPromptValidator" />
+          <bean class="org.ohmage.validator.prompt.TimestampPromptValidator" />
         </entry>
         <entry>
           <key><value>text</value></key>
-          <bean class="edu.ucla.cens.awserver.validator.prompt.TextWithinRangePromptValidator" />
+          <bean class="org.ohmage.validator.prompt.TextWithinRangePromptValidator" />
         </entry>
         <entry>
           <key><value>multi_choice</value></key>
-          <bean class="edu.ucla.cens.awserver.validator.prompt.MultiChoicePromptValidator" />
+          <bean class="org.ohmage.validator.prompt.MultiChoicePromptValidator" />
         </entry>
         <entry>
           <key><value>multi_choice_custom</value></key>
-          <bean class="edu.ucla.cens.awserver.validator.prompt.MultiChoiceCustomPromptValidator" />
+          <bean class="org.ohmage.validator.prompt.MultiChoiceCustomPromptValidator" />
         </entry>
         <entry>
           <key><value>single_choice</value></key>
-          <bean class="edu.ucla.cens.awserver.validator.prompt.SingleChoicePromptValidator" />
+          <bean class="org.ohmage.validator.prompt.SingleChoicePromptValidator" />
         </entry>
         <entry>
           <key><value>single_choice_custom</value></key>
-          <bean class="edu.ucla.cens.awserver.validator.prompt.SingleChoiceCustomPromptValidator" />
+          <bean class="org.ohmage.validator.prompt.SingleChoiceCustomPromptValidator" />
         </entry>
         <entry>
           <key><value>photo</value></key>
-          <bean class="edu.ucla.cens.awserver.validator.prompt.UUIDPromptValidator" />
+          <bean class="org.ohmage.validator.prompt.UUIDPromptValidator" />
         </entry>
         <entry>
           <key><value>remote_activity</value></key>
-          <bean class="edu.ucla.cens.awserver.validator.prompt.RemoteActivityPromptValidator" />
+          <bean class="org.ohmage.validator.prompt.RemoteActivityPromptValidator" />
         </entry>
       </map>
     </constructor-arg>
   </bean>
   
-  <bean id="surveyDataPacketBuilderService" class="edu.ucla.cens.awserver.service.SurveyDataPacketBuilderService">
+  <bean id="surveyDataPacketBuilderService" class="org.ohmage.service.SurveyDataPacketBuilderService">
     <constructor-arg index="0">
-      <bean class="edu.ucla.cens.awserver.domain.SurveyDataPacketBuilder" />
+      <bean class="org.ohmage.domain.SurveyDataPacketBuilder" />
     </constructor-arg>
   </bean>
   
-  <bean id="surveyDataStorageService" class="edu.ucla.cens.awserver.service.DaoService" >
+  <bean id="surveyDataStorageService" class="org.ohmage.service.DaoService" >
     <constructor-arg index="0">
-      <bean class="edu.ucla.cens.awserver.dao.SurveyUploadDao">
+      <bean class="org.ohmage.dao.SurveyUploadDao">
         <constructor-arg index="0"><ref bean="dataSource" /></constructor-arg>
       </bean>
     </constructor-arg>

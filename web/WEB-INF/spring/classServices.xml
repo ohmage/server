@@ -5,7 +5,7 @@
                            http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-2.5.xsd">
 
 
-  <bean id="classFromKeyExistsRequiredDao" class="edu.ucla.cens.awserver.dao.ClassFromKeyExistsDao">
+  <bean id="classFromKeyExistsRequiredDao" class="org.ohmage.dao.ClassFromKeyExistsDao">
     <constructor-arg>
       <ref bean="dataSource" />
     </constructor-arg>
@@ -14,11 +14,11 @@
     </constructor-arg>
   </bean>
   
-  <bean id="userIsPrivilegedInAllClassesInListOptionalService" class="edu.ucla.cens.awserver.service.UserHasRolesInAllClassesInListService">
+  <bean id="userIsPrivilegedInAllClassesInListOptionalService" class="org.ohmage.service.UserHasRolesInAllClassesInListService">
     <constructor-arg>
-      <bean class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
+      <bean class="org.ohmage.validator.json.FailedJsonRequestAnnotator">
         <constructor-arg index="0">
-          <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
+          <bean class="org.ohmage.domain.ErrorResponse">
             <property name="code" value="1207" />
             <property name="text" value="User is not privileged in all the campaigns in the list." />
           </bean>
@@ -27,7 +27,7 @@
     </constructor-arg>
     <constructor-arg>
       <list>
-        <util:constant static-field="edu.ucla.cens.awserver.cache.ClassRoleCache.ROLE_PRIVILEGED"/>
+        <util:constant static-field="org.ohmage.cache.ClassRoleCache.ROLE_PRIVILEGED"/>
       </list>
     </constructor-arg>
     <constructor-arg>

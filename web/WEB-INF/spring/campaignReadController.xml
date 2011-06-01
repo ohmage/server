@@ -9,22 +9,22 @@
   
   <!-- Servlet-to-AW hooks -->
   <!-- create request object -->
-  <bean id="campaignReadAwRequestCreator" class="edu.ucla.cens.awserver.jee.servlet.glue.CampaignReadAwRequestCreator" />
+  <bean id="campaignReadAwRequestCreator" class="org.ohmage.jee.servlet.glue.CampaignReadAwRequestCreator" />
   
   <!-- validate input data (sanity check) -->
-  <bean id="campaignReadHttpServletRequestValidator" class="edu.ucla.cens.awserver.jee.servlet.validator.CampaignReadValidator" />
+  <bean id="campaignReadHttpServletRequestValidator" class="org.ohmage.jee.servlet.validator.CampaignReadValidator" />
   
   <!-- write output --> 
-  <bean id="campaignReadResponseWriter" class="edu.ucla.cens.awserver.jee.servlet.writer.CampaignReadResponseWriter">
+  <bean id="campaignReadResponseWriter" class="org.ohmage.jee.servlet.writer.CampaignReadResponseWriter">
     <constructor-arg index="0"><ref bean="severeErrorResponse" /></constructor-arg>
   </bean>
     
   <!-- Controller -->
-  <bean id="campaignReadController" class="edu.ucla.cens.awserver.controller.ControllerImpl">
+  <bean id="campaignReadController" class="org.ohmage.controller.ControllerImpl">
     <constructor-arg index="0">
       <list>
         <ref bean="tokenOrUserPasswordAuthenticationService" />
-        <bean class="edu.ucla.cens.awserver.service.RetrieveCampaignStringToListParameterConverterService" />
+        <bean class="org.ohmage.service.RetrieveCampaignStringToListParameterConverterService" />
         <ref bean="findCampaignRolesForUserService" />
         <ref bean="findAllFilteredCampaignsForLoggedInUserService" />
         <ref bean="findAllUserRolesForCampaignUrnsService" />
@@ -49,17 +49,17 @@
     <property name="featureName"><value>campaign retrieval</value></property>
   </bean>
   
-  <bean id="tokenOrUserPasswordValidator" class="edu.ucla.cens.awserver.validator.TokenOrUserPasswordValidator">
+  <bean id="tokenOrUserPasswordValidator" class="org.ohmage.validator.TokenOrUserPasswordValidator">
     <constructor-arg index="0"><ref bean="userTokenValidator" /></constructor-arg>
     <constructor-arg index="1"><ref bean="userNameValidator" /></constructor-arg>
     <constructor-arg index="2"><ref bean="hashedPasswordValidator" /></constructor-arg>
   </bean>
   
-  <bean id="classUrnListValidator" class="edu.ucla.cens.awserver.validator.UrnListValidator">
+  <bean id="classUrnListValidator" class="org.ohmage.validator.UrnListValidator">
     <constructor-arg index="0">
-      <bean class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
+      <bean class="org.ohmage.validator.json.FailedJsonRequestAnnotator">
         <constructor-arg index="0"> 
-          <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
+          <bean class="org.ohmage.domain.ErrorResponse">
             <property name="code" value="0807" />
             <property name="text" value="invalid class URN list or invalid URN in list" />
           </bean>
@@ -70,11 +70,11 @@
     <constructor-arg index="2"><value>false</value></constructor-arg>
   </bean>
   
-  <bean id="campaignReadOutputFormatValidator" class="edu.ucla.cens.awserver.validator.StringAllowedValuesValidator">
+  <bean id="campaignReadOutputFormatValidator" class="org.ohmage.validator.StringAllowedValuesValidator">
     <constructor-arg index="0">
-      <bean class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
+      <bean class="org.ohmage.validator.json.FailedJsonRequestAnnotator">
         <constructor-arg index="0"> 
-          <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
+          <bean class="org.ohmage.domain.ErrorResponse">
             <property name="code" value="0810" />
             <property name="text" value="invalid output format" />
           </bean>
@@ -95,11 +95,11 @@
     </property>
   </bean>
   
-  <bean id="userRoleValidator" class="edu.ucla.cens.awserver.validator.CacheAllowedValuesValidator">
+  <bean id="userRoleValidator" class="org.ohmage.validator.CacheAllowedValuesValidator">
     <constructor-arg index="0">
-      <bean class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
+      <bean class="org.ohmage.validator.json.FailedJsonRequestAnnotator">
         <constructor-arg index="0"> 
-          <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
+          <bean class="org.ohmage.domain.ErrorResponse">
             <property name="code" value="0813" />
             <property name="text" value="invalid user role" />
           </bean>
@@ -110,7 +110,7 @@
       <ref bean="campaignRoleCache" />
     </constructor-arg>
     <constructor-arg index="2">
-      <util:constant static-field="edu.ucla.cens.awserver.request.InputKeys.USER_ROLE"/>
+      <util:constant static-field="org.ohmage.request.InputKeys.USER_ROLE"/>
     </constructor-arg>
     <constructor-arg index="3">
       <value>false</value>
@@ -118,19 +118,19 @@
   </bean>
   
   <!-- Authentication -->
-  <bean id="tokenOrUserPasswordAuthenticationService" class="edu.ucla.cens.awserver.service.TokenOrUserPasswordAuthenticationService">
+  <bean id="tokenOrUserPasswordAuthenticationService" class="org.ohmage.service.TokenOrUserPasswordAuthenticationService">
     <constructor-arg index="0"><ref bean="tokenBasedAuthenticationService" /></constructor-arg>
     <constructor-arg index="1"><ref bean="authWithHashedPasswordService" /></constructor-arg>
   </bean>
   
-  <bean id="tokenBasedAuthenticationService" class="edu.ucla.cens.awserver.service.TokenBasedAuthenticationService">
+  <bean id="tokenBasedAuthenticationService" class="org.ohmage.service.TokenBasedAuthenticationService">
     <constructor-arg index="0">
       <ref bean="userBin" />
     </constructor-arg>
     <constructor-arg index="1">
-      <bean class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
+      <bean class="org.ohmage.validator.json.FailedJsonRequestAnnotator">
         <constructor-arg index="0"> 
-          <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
+          <bean class="org.ohmage.domain.ErrorResponse">
             <property name="code" value="0200" />
             <property name="text" value="authentication failed" />
           </bean>
@@ -139,34 +139,34 @@
     </constructor-arg>
   </bean>
   
-  <bean id="findCampaignRolesForUserService" class="edu.ucla.cens.awserver.service.SimpleQueryService">
+  <bean id="findCampaignRolesForUserService" class="org.ohmage.service.SimpleQueryService">
     <constructor-arg index="0">
-      <bean class="edu.ucla.cens.awserver.dao.FindAllCampaignRolesForUserDao">
+      <bean class="org.ohmage.dao.FindAllCampaignRolesForUserDao">
         <constructor-arg index="0"><ref bean="dataSource"/></constructor-arg>
         <constructor-arg index="1"><value>true</value></constructor-arg>
       </bean>
     </constructor-arg>
   </bean>
   
-  <bean id="findAllFilteredCampaignsForLoggedInUserService" class="edu.ucla.cens.awserver.service.SimpleQueryService">
+  <bean id="findAllFilteredCampaignsForLoggedInUserService" class="org.ohmage.service.SimpleQueryService">
     <constructor-arg index="0">
-      <bean class="edu.ucla.cens.awserver.dao.FindAllFilteredCampaignsForLoggedInUserDao">
+      <bean class="org.ohmage.dao.FindAllFilteredCampaignsForLoggedInUserDao">
         <constructor-arg index="0"><ref bean="dataSource"/></constructor-arg>
       </bean>
     </constructor-arg>
   </bean>
   
-  <bean id="findAllUserRolesForCampaignUrnsService" class="edu.ucla.cens.awserver.service.SimpleQueryService">
+  <bean id="findAllUserRolesForCampaignUrnsService" class="org.ohmage.service.SimpleQueryService">
     <constructor-arg index="0">
-      <bean class="edu.ucla.cens.awserver.dao.FindAllUserRolesForCampaignUrnsDao">
+      <bean class="org.ohmage.dao.FindAllUserRolesForCampaignUrnsDao">
         <constructor-arg index="0"><ref bean="dataSource"/></constructor-arg>
       </bean>
     </constructor-arg>
   </bean> 
   
-  <bean id="findAllClassesForCampaignUrnsService" class="edu.ucla.cens.awserver.service.SimpleQueryService">
+  <bean id="findAllClassesForCampaignUrnsService" class="org.ohmage.service.SimpleQueryService">
     <constructor-arg index="0">
-      <bean class="edu.ucla.cens.awserver.dao.FindAllClassesForCampaignUrnsDao">
+      <bean class="org.ohmage.dao.FindAllClassesForCampaignUrnsDao">
         <constructor-arg index="0"><ref bean="dataSource"/></constructor-arg>
       </bean>
     </constructor-arg>

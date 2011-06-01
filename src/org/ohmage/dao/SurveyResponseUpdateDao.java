@@ -1,0 +1,106 @@
+/*******************************************************************************
+ * Copyright 2011 The Regents of the University of California
+ * 
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * 
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ ******************************************************************************/
+package org.ohmage.dao;
+
+import javax.sql.DataSource;
+
+import org.apache.log4j.Logger;
+import org.ohmage.cache.CacheMissException;
+import org.ohmage.cache.SurveyResponsePrivacyStateCache;
+import org.ohmage.request.AwRequest;
+import org.ohmage.request.InputKeys;
+import org.springframework.jdbc.datasource.DataSourceTransactionManager;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionException;
+import org.springframework.transaction.TransactionStatus;
+import org.springframework.transaction.support.DefaultTransactionDefinition;
+
+
+/**
+ * Performs the update operation on a specific survey response. The class is named generically, but all an end user can change
+ * is the privacy_state (for now).
+ * 
+ * @author Joshua Selsky
+ */
+public class SurveyResponseUpdateDao extends AbstractDao {
+	private static Logger _logger = Logger.getLogger(SurveyResponseUpdateDao.class);
+	
+	private String _updateSql = "UPDATE survey_response "
+		                        + " SET privacy_state_id = ? "
+		                        + " WHERE id = ?";
+	
+	public SurveyResponseUpdateDao(DataSource dataSource) {
+		super(dataSource);
+	}
+	
+	@Override
+	public void execute(AwRequest awRequest) {
+		_logger.info("Updating a survey response.");
+		
+		// Begin transaction
+		DefaultTransactionDefinition def = new DefaultTransactionDefinition();
+		def.setName("Survey response update.");
+		
+		try {
+			PlatformTransactionManager transactionManager = new DataSourceTransactionManager(getDataSource());
+			TransactionStatus status = transactionManager.getTransaction(def);
+			
+			try {
+				
+				int numberOfRowsUpdated = getJdbcTemplate().update(
+					_updateSql, 
+					new Object[] {
+						SurveyResponsePrivacyStateCache.instance().lookup((String) awRequest.getToValidate().get(InputKeys.PRIVACY_STATE)),
+						awRequest.getToValidate().get(InputKeys.SURVEY_KEY)}
+				);
+				
+				if(numberOfRowsUpdated != 1) {
+					_logger.error("expected to update only one row, but " + numberOfRowsUpdated + " were updated");
+					awRequest.setFailedRequest(true);
+					transactionManager.rollback(status);
+					throw new DataAccessException("attempt to update an incorrect number of rows");
+				}
+				
+				// Commit transaction.
+				transactionManager.commit(status);
+			
+			}	
+			catch (CacheMissException ce) {
+				_logger.error("Error while reading from the cache.", ce);
+				transactionManager.rollback(status);
+				awRequest.setFailedRequest(true);
+				throw new DataAccessException(ce);
+			}
+			
+			catch (org.springframework.dao.DataAccessException dae) {
+				
+				_logger.error("a DataAccessException occurred when running the following sql '" + _updateSql + "' with the parameters "
+					+ awRequest.getToValidate().get(InputKeys.PRIVACY_STATE) + ", " + awRequest.getToValidate().get(InputKeys.SURVEY_KEY), dae);
+				transactionManager.rollback(status);
+				throw new DataAccessException(dae);
+				
+			}
+		}
+	
+		catch(TransactionException e) {
+			
+			_logger.error("Error while rolling back the transaction.", e);
+			awRequest.setFailedRequest(true);
+			throw new DataAccessException(e);
+		
+		}
+	}
+}

@@ -5,18 +5,18 @@
                            http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-2.5.xsd">
 
   <!-- Basic HTTP Validation -->
-  <bean id="documentCreationHttpServletRequestValidator" class="edu.ucla.cens.awserver.jee.servlet.validator.DocumentCreationValidator">
+  <bean id="documentCreationHttpServletRequestValidator" class="org.ohmage.jee.servlet.validator.DocumentCreationValidator">
     <!-- Read the XML file. -->
     <constructor-arg index="0"><ref bean="diskItemFileFactory" /></constructor-arg>
   </bean>
   
   <!-- Create the AwRequest Object -->
-  <bean id="documentCreationAwRequestCreator" class="edu.ucla.cens.awserver.jee.servlet.glue.DocumentCreationAwRequestCreator" />
+  <bean id="documentCreationAwRequestCreator" class="org.ohmage.jee.servlet.glue.DocumentCreationAwRequestCreator" />
   
   <!-- Write the Response -->
-  <bean id="documentCreationResponseWriter" class="edu.ucla.cens.awserver.jee.servlet.writer.DocumentCreationResponseWriter">
+  <bean id="documentCreationResponseWriter" class="org.ohmage.jee.servlet.writer.DocumentCreationResponseWriter">
     <constructor-arg index="0">
-      <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
+      <bean class="org.ohmage.domain.ErrorResponse">
         <property name="code" value="1500" />
         <property name="text" value="General document creation error." />
       </bean>
@@ -24,7 +24,7 @@
   </bean>
   
   <!-- Controller Definition -->
-  <bean id="documentCreationController" class="edu.ucla.cens.awserver.controller.ControllerImpl">
+  <bean id="documentCreationController" class="org.ohmage.controller.ControllerImpl">
     <constructor-arg index="0">
       <!-- Services List (expected to be executed in-order) -->
       <list>
@@ -67,17 +67,17 @@
     <property name="featureName"><value>document creation</value></property>
   </bean>
   
-  <bean id="documentCreationService" class="edu.ucla.cens.awserver.service.DocumentCreationService">
+  <bean id="documentCreationService" class="org.ohmage.service.DocumentCreationService">
     <constructor-arg>
       <ref bean="documentManipulationError" />
     </constructor-arg>
     <constructor-arg>
-      <bean class="edu.ucla.cens.awserver.dao.DocumentCreationDao">
+      <bean class="org.ohmage.dao.DocumentCreationDao">
         <constructor-arg>
           <ref bean="dataSource"/>
         </constructor-arg>
         <constructor-arg>
-          <util:constant static-field="edu.ucla.cens.awserver.cache.PreferenceCache.KEY_DOCUMENT_DIRECTORY"/>
+          <util:constant static-field="org.ohmage.cache.PreferenceCache.KEY_DOCUMENT_DIRECTORY"/>
         </constructor-arg>
       </bean>
     </constructor-arg>

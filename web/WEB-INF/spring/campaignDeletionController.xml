@@ -8,26 +8,26 @@
   -->
   
   <!-- Basic HTTP Validation -->
-  <bean id="campaignDeletionHttpServletRequestValidator" class="edu.ucla.cens.awserver.jee.servlet.validator.CampaignDeletionValidator" />
+  <bean id="campaignDeletionHttpServletRequestValidator" class="org.ohmage.jee.servlet.validator.CampaignDeletionValidator" />
   
   <!-- Create the AwRequest Object -->
-  <bean id="campaignDeletionAwRequestCreator" class="edu.ucla.cens.awserver.jee.servlet.glue.CampaignDeletionAwRequestCreator" />
+  <bean id="campaignDeletionAwRequestCreator" class="org.ohmage.jee.servlet.glue.CampaignDeletionAwRequestCreator" />
   
   <!-- Write the Response -->
-  <bean id="campaignDeletionResponseWriter" class="edu.ucla.cens.awserver.jee.servlet.writer.CampaignDeletionResponseWriter">
+  <bean id="campaignDeletionResponseWriter" class="org.ohmage.jee.servlet.writer.CampaignDeletionResponseWriter">
     <constructor-arg index="0">
       <ref bean="campaignDeletionErrorResponse" />
     </constructor-arg>
   </bean>
   
   <!-- Specific Error Response to This Request -->
-  <bean id="campaignDeletionErrorResponse" class="edu.ucla.cens.awserver.domain.ErrorResponse">
+  <bean id="campaignDeletionErrorResponse" class="org.ohmage.domain.ErrorResponse">
     <property name="code" value="0801" />
     <property name="text" value="Campaign deletion failed." />
   </bean>
   
   <!-- Controller Definition -->
-  <bean id="campaignDeletionController" class="edu.ucla.cens.awserver.controller.ControllerImpl">
+  <bean id="campaignDeletionController" class="org.ohmage.controller.ControllerImpl">
     <constructor-arg index="0">
       <!-- Services List (expected to be executed in-order) -->
       <list>
@@ -52,11 +52,11 @@
   </bean>
   
   <!-- Controller's Beans Definitions -->
-  <bean id="campaignDeletionService" class="edu.ucla.cens.awserver.service.CampaignDeletionService">
+  <bean id="campaignDeletionService" class="org.ohmage.service.CampaignDeletionService">
     <constructor-arg index="0">
-      <bean class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
+      <bean class="org.ohmage.validator.json.FailedJsonRequestAnnotator">
         <constructor-arg index="0">
-          <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
+          <bean class="org.ohmage.domain.ErrorResponse">
             <property name="code" value="0809" />
             <property name="text" value="User not allowed to delete campaign." />
           </bean>
@@ -64,7 +64,7 @@
       </bean>
     </constructor-arg>
     <constructor-arg index="1">
-      <bean class="edu.ucla.cens.awserver.dao.CampaignDeletionDao">
+      <bean class="org.ohmage.dao.CampaignDeletionDao">
         <constructor-arg index="0">
           <ref bean="dataSource"/>
         </constructor-arg>

@@ -8,15 +8,15 @@
         Controller definition for config reads.
    -->
   <!-- Basic HTTP Validation -->
-  <bean id="configReadHttpServletRequestValidator" class="edu.ucla.cens.awserver.jee.servlet.validator.ConfigReadValidator"/>
+  <bean id="configReadHttpServletRequestValidator" class="org.ohmage.jee.servlet.validator.ConfigReadValidator"/>
   
   <!-- Create the AwRequest Object -->
-  <bean id="configReadAwRequestCreator" class="edu.ucla.cens.awserver.jee.servlet.glue.ConfigReadAwRequestCreator" />
+  <bean id="configReadAwRequestCreator" class="org.ohmage.jee.servlet.glue.ConfigReadAwRequestCreator" />
   
   <!-- Write the Response -->
-  <bean id="configReadResponseWriter" class="edu.ucla.cens.awserver.jee.servlet.writer.ConfigReadResponseWriter">
+  <bean id="configReadResponseWriter" class="org.ohmage.jee.servlet.writer.ConfigReadResponseWriter">
     <constructor-arg>
-      <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
+      <bean class="org.ohmage.domain.ErrorResponse">
         <property name="code" value="0103" />
         <property name="text" value="General config read error." />
       </bean> 
@@ -24,7 +24,7 @@
   </bean>
 
   <!-- Controller Definition -->
-  <bean id="configReadController" class="edu.ucla.cens.awserver.controller.ControllerImpl">
+  <bean id="configReadController" class="org.ohmage.controller.ControllerImpl">
     <constructor-arg>
       <!-- Services to validate and populate information. -->
       <list>        
@@ -41,11 +41,11 @@
     </property>
   </bean>
   
-  <bean id="configReadService" class="edu.ucla.cens.awserver.service.ConfigReadService">
+  <bean id="configReadService" class="org.ohmage.service.ConfigReadService">
     <constructor-arg>
-      <bean class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
+      <bean class="org.ohmage.validator.json.FailedJsonRequestAnnotator">
         <constructor-arg index="0">
-          <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
+          <bean class="org.ohmage.domain.ErrorResponse">
             <property name="code" value="0103" />
             <property name="text" value="General config read error." />
           </bean>

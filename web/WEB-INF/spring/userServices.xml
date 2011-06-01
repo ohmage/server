@@ -4,9 +4,9 @@
        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
                            http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-2.5.xsd">
 
-  <bean id="userRoleClassPopulationService" class="edu.ucla.cens.awserver.service.UserRoleClassPopulationService">
+  <bean id="userRoleClassPopulationService" class="org.ohmage.service.UserRoleClassPopulationService">
     <constructor-arg>
-      <bean class="edu.ucla.cens.awserver.dao.UserRoleClassPopulationDao">
+      <bean class="org.ohmage.dao.UserRoleClassPopulationDao">
         <constructor-arg>
           <ref bean="dataSource" />
         </constructor-arg>

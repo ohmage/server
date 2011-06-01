@@ -1,0 +1,77 @@
+/*******************************************************************************
+ * Copyright 2011 The Regents of the University of California
+ * 
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * 
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ ******************************************************************************/
+package org.ohmage.service;
+
+import java.util.List;
+
+import org.apache.log4j.Logger;
+import org.ohmage.dao.Dao;
+import org.ohmage.dao.DataAccessException;
+import org.ohmage.domain.Configuration;
+import org.ohmage.request.AwRequest;
+import org.ohmage.request.DataPointQueryAwRequest;
+import org.ohmage.request.SurveyResponseReadAwRequest;
+import org.ohmage.request.SurveyUploadAwRequest;
+
+
+/**
+ * @author selsky
+ */
+public class FindCampaignConfigurationService extends AbstractDaoService {
+	private static Logger _logger = Logger.getLogger(FindCampaignConfigurationService.class);
+	
+    public FindCampaignConfigurationService(Dao dao) {
+    	super(dao);
+    }
+	
+	public void execute(AwRequest awRequest) {
+		try {
+			
+			getDao().execute(awRequest);
+			@SuppressWarnings("unchecked")
+			List<Configuration> configurations = (List<Configuration>) awRequest.getResultList();
+			
+			if(null == configurations) { 
+				_logger.error("no configuration found for campaign: " + awRequest.getCampaignUrn());
+				throw new ServiceException("no configuration found for campaign: " + awRequest.getCampaignUrn());
+			} 
+			
+			if(configurations.size() > 1) { // if this occurs, something broke the db constraints on URN uniqueness
+				_logger.error(configurations.size() + " configurations found for campaign: " + awRequest.getCampaignUrn());
+				throw new ServiceException(configurations.size() + " configurations found for campaign: " + awRequest.getCampaignUrn());
+			}
+			
+			// hack 
+			// fix by making Configuration a 'first-class' instance variable in the AwRequest or by using the toProcess() method
+			
+			if(awRequest instanceof SurveyResponseReadAwRequest) {
+				((SurveyResponseReadAwRequest) awRequest).setConfiguration(configurations.get(0));
+			} else if (awRequest instanceof DataPointQueryAwRequest) {
+				((DataPointQueryAwRequest) awRequest).setConfiguration(configurations.get(0));
+			} else if (awRequest instanceof SurveyUploadAwRequest) {
+				((SurveyUploadAwRequest) awRequest).setConfiguration(configurations.get(0));
+			} else {
+				throw new ServiceException("cannot set a Configuration on the AwRequest because the AwRequest type is invalid: " + awRequest.getClass());
+			}
+			
+			
+		} catch (DataAccessException dae) {
+			
+			throw new ServiceException(dae);
+			
+		}
+	}
+}

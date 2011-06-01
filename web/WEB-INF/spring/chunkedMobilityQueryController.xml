@@ -8,12 +8,12 @@
   
   <!-- Servlet-to-AW hooks -->
   <!-- "pre-validate" inbound data -->
-  <bean id="chunkedMobilityQueryHttpServletRequestValidator" class="edu.ucla.cens.awserver.jee.servlet.validator.ChunkedMobilityQueryValidator" />
+  <bean id="chunkedMobilityQueryHttpServletRequestValidator" class="org.ohmage.jee.servlet.validator.ChunkedMobilityQueryValidator" />
   <!-- create AwRequest from data in the HttpServletRequest -->
-  <bean id="chunkedMobilityQueryAwRequestCreator" class="edu.ucla.cens.awserver.jee.servlet.glue.ChunkedMobilityQueryAwRequestCreator" />
+  <bean id="chunkedMobilityQueryAwRequestCreator" class="org.ohmage.jee.servlet.glue.ChunkedMobilityQueryAwRequestCreator" />
     
   <!-- Controller - shared components with mobilityQueryController.xml and dataPointQueryController.xml -->
-  <bean id="chunkedMobilityDataPointQueryController" class="edu.ucla.cens.awserver.controller.ControllerImpl">
+  <bean id="chunkedMobilityDataPointQueryController" class="org.ohmage.controller.ControllerImpl">
     <constructor-arg index="0">
       <list>
         <ref bean="tokenBasedAuthenticationService" />
@@ -34,9 +34,9 @@
     <property name="featureName"><value>chunked mobility query</value></property>
   </bean>
   
-  <bean id="chunkedMobilityQueryService" class="edu.ucla.cens.awserver.service.ChunkedMobilityQueryService">
+  <bean id="chunkedMobilityQueryService" class="org.ohmage.service.ChunkedMobilityQueryService">
     <constructor-arg index="0">
-      <bean id="mobilityQueryDao" class="edu.ucla.cens.awserver.dao.MobilityDateRangeQueryDao">
+      <bean id="mobilityQueryDao" class="org.ohmage.dao.MobilityDateRangeQueryDao">
         <constructor-arg index="0"><ref bean="dataSource" /></constructor-arg>
       </bean>
     </constructor-arg>

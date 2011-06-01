@@ -8,16 +8,16 @@
   
   <!-- Servlet-to-AW hooks -->
   <!-- pre-validate -->
-  <bean id="authHttpServletRequestValidator" class="edu.ucla.cens.awserver.jee.servlet.validator.AuthValidator" />
+  <bean id="authHttpServletRequestValidator" class="org.ohmage.jee.servlet.validator.AuthValidator" />
   <!-- create AW request -->
-  <bean id="authAwRequestCreator" class="edu.ucla.cens.awserver.jee.servlet.glue.AuthAwRequestCreator" />
+  <bean id="authAwRequestCreator" class="org.ohmage.jee.servlet.glue.AuthAwRequestCreator" />
   <!-- generate output -->
-  <bean id="authStatelessResponseWriter" class="edu.ucla.cens.awserver.jee.servlet.writer.StatelessAuthResponseWriter">
+  <bean id="authStatelessResponseWriter" class="org.ohmage.jee.servlet.writer.StatelessAuthResponseWriter">
     <constructor-arg index="0"><ref bean="severeErrorResponse" /></constructor-arg>
   </bean>
     
   <!-- Controller - all components here are reused from sensorUploadController.xml -->
-  <bean id="authStatelessController" class="edu.ucla.cens.awserver.controller.ControllerImpl">
+  <bean id="authStatelessController" class="org.ohmage.controller.ControllerImpl">
     <constructor-arg index="0">
       <list>
         <ref bean="authWithClearTextPasswordService" />
@@ -38,14 +38,14 @@
   </bean>
   
   <!-- Authentication with a Hashed Password -->
-  <bean id="authWithHashedPasswordService" class="edu.ucla.cens.awserver.service.AuthenticationService">
+  <bean id="authWithHashedPasswordService" class="org.ohmage.service.AuthenticationService">
     <constructor-arg index="0">
       <ref bean="authWithHashedPasswordDao" />
     </constructor-arg>
     <constructor-arg index="1">
-      <bean class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
+      <bean class="org.ohmage.validator.json.FailedJsonRequestAnnotator">
         <constructor-arg index="0"> 
-          <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
+          <bean class="org.ohmage.domain.ErrorResponse">
             <property name="code" value="0200" />
             <property name="text" value="authentication failed" />
           </bean>
@@ -53,9 +53,9 @@
       </bean>
     </constructor-arg>
     <constructor-arg index="2">
-      <bean class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
+      <bean class="org.ohmage.validator.json.FailedJsonRequestAnnotator">
         <constructor-arg index="0">
-          <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
+          <bean class="org.ohmage.domain.ErrorResponse">
             <property name="code" value="0201" />
             <property name="text" value="user not enabled for access" />
           </bean>
@@ -63,9 +63,9 @@
       </bean>
     </constructor-arg>
     <constructor-arg index="3">
-      <bean class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
+      <bean class="org.ohmage.validator.json.FailedJsonRequestAnnotator">
         <constructor-arg index="0">
-          <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
+          <bean class="org.ohmage.domain.ErrorResponse">
             <property name="code" value="0202" />
             <property name="text" value="default password disallowed" />
           </bean>
@@ -76,7 +76,7 @@
   </bean>
   
   <!-- Interact with database -->
-  <bean id="authWithHashedPasswordDao" class="edu.ucla.cens.awserver.dao.AuthenticationDao">
+  <bean id="authWithHashedPasswordDao" class="org.ohmage.dao.AuthenticationDao">
     <constructor-arg index="0"><ref bean="dataSource" /></constructor-arg>
     <constructor-arg index="1"><value>false</value></constructor-arg>
   </bean>

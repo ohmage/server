@@ -10,7 +10,7 @@
   -->
   <filter>
     <filter-name>Log4jNdcFilter</filter-name>
-    <filter-class>edu.ucla.cens.awserver.jee.filter.Log4jNdcFilter</filter-class>
+    <filter-class>org.ohmage.jee.filter.Log4jNdcFilter</filter-class>
   </filter>
   <filter-mapping>
     <filter-name>Log4jNdcFilter</filter-name>
@@ -20,7 +20,7 @@
   <!--  Enforces UTF-8 character encoding on all requests. --> 
   <filter>
     <filter-name>Utf8RequestEncodingFilter</filter-name>
-    <filter-class>edu.ucla.cens.awserver.jee.filter.Utf8RequestEncodingFilter</filter-class>
+    <filter-class>org.ohmage.jee.filter.Utf8RequestEncodingFilter</filter-class>
   </filter>
   <filter-mapping>
     <filter-name>Utf8RequestEncodingFilter</filter-name>
@@ -56,7 +56,7 @@
       Give information about the server. 
     </description>
     <servlet-name>ConfigReadServlet</servlet-name>
-    <servlet-class>edu.ucla.cens.awserver.jee.servlet.AwDataServlet</servlet-class>
+    <servlet-class>org.ohmage.jee.servlet.AwDataServlet</servlet-class>
     <init-param>
       <param-name>awRequestCreatorName</param-name>
       <param-value>configReadAwRequestCreator</param-value>
@@ -86,7 +86,7 @@
       Give personal information about other users. 
     </description>
     <servlet-name>UserReadServlet</servlet-name>
-    <servlet-class>edu.ucla.cens.awserver.jee.servlet.AwDataServlet</servlet-class>
+    <servlet-class>org.ohmage.jee.servlet.AwDataServlet</servlet-class>
     <init-param>
       <param-name>awRequestCreatorName</param-name>
       <param-value>userReadAwRequestCreator</param-value>
@@ -116,7 +116,7 @@
       processes mobility data uploads from a client 
     </description>
     <servlet-name>MobilityUploadServlet</servlet-name>
-    <servlet-class>edu.ucla.cens.awserver.jee.servlet.AwDataServlet</servlet-class>
+    <servlet-class>org.ohmage.jee.servlet.AwDataServlet</servlet-class>
     <!--  The following init-params are used to map the servlet to Spring-configured beans that ultimately service the request. 
           The param-value elements are Spring bean ids. All other AwDataServlets defined in this file use the same configuration style -->
     <init-param>
@@ -148,7 +148,7 @@
       processes survey data uploads from a client 
     </description>
     <servlet-name>SurveyUploadServlet</servlet-name>
-    <servlet-class>edu.ucla.cens.awserver.jee.servlet.AwDataServlet</servlet-class>
+    <servlet-class>org.ohmage.jee.servlet.AwDataServlet</servlet-class>
     <init-param>
       <param-name>awRequestCreatorName</param-name>
       <param-value>surveyUploadAwRequestCreator</param-value>
@@ -178,7 +178,7 @@
       processes image data uploads from a client 
     </description>
     <servlet-name>ImageUploadServlet</servlet-name>
-    <servlet-class>edu.ucla.cens.awserver.jee.servlet.AwDataServlet</servlet-class>
+    <servlet-class>org.ohmage.jee.servlet.AwDataServlet</servlet-class>
     <init-param>
       <param-name>awRequestCreatorName</param-name>
       <param-value>imageUploadAwRequestCreator</param-value>
@@ -208,7 +208,7 @@
      performs an authentication check for client login - the request is stateless so no token is returned
     </description>
     <servlet-name>AuthStatelessServlet</servlet-name>
-    <servlet-class>edu.ucla.cens.awserver.jee.servlet.AwDataServlet</servlet-class>
+    <servlet-class>org.ohmage.jee.servlet.AwDataServlet</servlet-class>
     <init-param>
       <param-name>awRequestCreatorName</param-name>
       <param-value>authAwRequestCreator</param-value>
@@ -239,7 +239,7 @@
      authenticated user
     </description>
     <servlet-name>AuthTokenServlet</servlet-name>
-    <servlet-class>edu.ucla.cens.awserver.jee.servlet.AwDataServlet</servlet-class>
+    <servlet-class>org.ohmage.jee.servlet.AwDataServlet</servlet-class>
     <init-param>
       <param-name>awRequestCreatorName</param-name>
       <param-value>authAwRequestCreator</param-value>
@@ -269,7 +269,7 @@
       returns campaigns with different output formats   
     </description>
     <servlet-name>CampaignReadServlet</servlet-name>
-    <servlet-class>edu.ucla.cens.awserver.jee.servlet.AwDataServlet</servlet-class>
+    <servlet-class>org.ohmage.jee.servlet.AwDataServlet</servlet-class>
     <init-param>
       <param-name>controllerName</param-name>
       <param-value>campaignReadController</param-value>
@@ -299,7 +299,7 @@
       runs data point queries (survey response data, mobility data) 
     </description>
     <servlet-name>DataPointQueryServlet</servlet-name>
-    <servlet-class>edu.ucla.cens.awserver.jee.servlet.AwDataServlet</servlet-class>
+    <servlet-class>org.ohmage.jee.servlet.AwDataServlet</servlet-class>
     <init-param>
       <param-name>controllerName</param-name>
       <param-value>dataPointQueryController</param-value>
@@ -329,7 +329,7 @@
       allows users to query survey responses, returning output in a variety of formats 
     </description>
     <servlet-name>SurveyResponseReadServlet</servlet-name>
-    <servlet-class>edu.ucla.cens.awserver.jee.servlet.AwDataServlet</servlet-class>
+    <servlet-class>org.ohmage.jee.servlet.AwDataServlet</servlet-class>
     <init-param>
       <param-name>controllerName</param-name>
       <param-value>surveyResponseReadController</param-value>
@@ -359,7 +359,7 @@
       allows users to update the privacy state on survey responses 
     </description>
     <servlet-name>SurveyResponseUpdateServlet</servlet-name>
-    <servlet-class>edu.ucla.cens.awserver.jee.servlet.AwDataServlet</servlet-class>
+    <servlet-class>org.ohmage.jee.servlet.AwDataServlet</servlet-class>
     <init-param>
       <param-name>controllerName</param-name>
       <param-value>surveyResponseUpdateController</param-value>
@@ -389,7 +389,7 @@
       allows users to delete survey responses 
     </description>
     <servlet-name>SurveyResponseDeleteServlet</servlet-name>
-    <servlet-class>edu.ucla.cens.awserver.jee.servlet.AwDataServlet</servlet-class>
+    <servlet-class>org.ohmage.jee.servlet.AwDataServlet</servlet-class>
     <init-param>
       <param-name>controllerName</param-name>
       <param-value>surveyResponseDeleteController</param-value>
@@ -420,7 +420,7 @@
   	  runs user info queries on the current user or a list of users based on params
   	</description>
   	<servlet-name>UserInfoQueryServlet</servlet-name>
-  	<servlet-class>edu.ucla.cens.awserver.jee.servlet.AwDataServlet</servlet-class>
+  	<servlet-class>org.ohmage.jee.servlet.AwDataServlet</servlet-class>
     <init-param>
       <param-name>controllerName</param-name>
       <param-value>userInfoQueryController</param-value>
@@ -450,7 +450,7 @@
       runs user stats queries (successful location updates, most recent activity) 
     </description>
     <servlet-name>UserStatsQueryServlet</servlet-name>
-    <servlet-class>edu.ucla.cens.awserver.jee.servlet.AwDataServlet</servlet-class>
+    <servlet-class>org.ohmage.jee.servlet.AwDataServlet</servlet-class>
     <init-param>
       <param-name>controllerName</param-name>
       <param-value>userStatsQueryController</param-value>
@@ -480,7 +480,7 @@
       runs image queries 
     </description>
     <servlet-name>ImageQueryServlet</servlet-name>
-    <servlet-class>edu.ucla.cens.awserver.jee.servlet.AwDataServlet</servlet-class>
+    <servlet-class>org.ohmage.jee.servlet.AwDataServlet</servlet-class>
     <init-param>
       <param-name>controllerName</param-name>
       <param-value>imageQueryController</param-value>
@@ -510,7 +510,7 @@
       runs mobility queries 
     </description>
     <servlet-name>MobilityQueryServlet</servlet-name>
-    <servlet-class>edu.ucla.cens.awserver.jee.servlet.AwDataServlet</servlet-class>
+    <servlet-class>org.ohmage.jee.servlet.AwDataServlet</servlet-class>
     <init-param>
       <param-name>controllerName</param-name>
       <param-value>mobilityDataPointQueryController</param-value>
@@ -540,7 +540,7 @@
       runs chunked mobility queries 
     </description>
     <servlet-name>ChunkedMobilityQueryServlet</servlet-name>
-    <servlet-class>edu.ucla.cens.awserver.jee.servlet.AwDataServlet</servlet-class>
+    <servlet-class>org.ohmage.jee.servlet.AwDataServlet</servlet-class>
     <init-param>
       <param-name>controllerName</param-name>
       <param-value>chunkedMobilityDataPointQueryController</param-value>
@@ -570,7 +570,7 @@
       Adds a campaign to the server.
     </description>
     <servlet-name>CampaignCreationServlet</servlet-name>
-    <servlet-class>edu.ucla.cens.awserver.jee.servlet.AwDataServlet</servlet-class>
+    <servlet-class>org.ohmage.jee.servlet.AwDataServlet</servlet-class>
     <init-param>
       <param-name>httpServletRequestValidatorName</param-name>
       <param-value>campaignCreationHttpServletRequestValidator</param-value>
@@ -600,7 +600,7 @@
       Deletes a campaign from the server.
     </description>
     <servlet-name>CampaignDeletionServlet</servlet-name>
-    <servlet-class>edu.ucla.cens.awserver.jee.servlet.AwDataServlet</servlet-class>
+    <servlet-class>org.ohmage.jee.servlet.AwDataServlet</servlet-class>
     <init-param>
       <param-name>httpServletRequestValidatorName</param-name>
       <param-value>campaignDeletionHttpServletRequestValidator</param-value>
@@ -630,7 +630,7 @@
       Updates a campaign.
     </description>
     <servlet-name>CampaignUpdateServlet</servlet-name>
-    <servlet-class>edu.ucla.cens.awserver.jee.servlet.AwDataServlet</servlet-class>
+    <servlet-class>org.ohmage.jee.servlet.AwDataServlet</servlet-class>
     <init-param>
       <param-name>httpServletRequestValidatorName</param-name>
       <param-value>campaignUpdateHttpServletRequestValidator</param-value>
@@ -660,7 +660,7 @@
       Reads data about a class.
     </description>
     <servlet-name>ClassReadServlet</servlet-name>
-    <servlet-class>edu.ucla.cens.awserver.jee.servlet.AwDataServlet</servlet-class>
+    <servlet-class>org.ohmage.jee.servlet.AwDataServlet</servlet-class>
     <init-param>
       <param-name>httpServletRequestValidatorName</param-name>
       <param-value>classReadHttpServletRequestValidator</param-value>
@@ -690,7 +690,7 @@
       Updates a class.
     </description>
     <servlet-name>ClassUpdateServlet</servlet-name>
-    <servlet-class>edu.ucla.cens.awserver.jee.servlet.AwDataServlet</servlet-class>
+    <servlet-class>org.ohmage.jee.servlet.AwDataServlet</servlet-class>
     <init-param>
       <param-name>httpServletRequestValidatorName</param-name>
       <param-value>classUpdateHttpServletRequestValidator</param-value>
@@ -720,7 +720,7 @@
       Creates a document
     </description>
     <servlet-name>DocumentCreationServlet</servlet-name>
-    <servlet-class>edu.ucla.cens.awserver.jee.servlet.AwDataServlet</servlet-class>
+    <servlet-class>org.ohmage.jee.servlet.AwDataServlet</servlet-class>
     <init-param>
       <param-name>httpServletRequestValidatorName</param-name>
       <param-value>documentCreationHttpServletRequestValidator</param-value>
@@ -750,7 +750,7 @@
       Returns the document's information
     </description>
     <servlet-name>DocumentReadServlet</servlet-name>
-    <servlet-class>edu.ucla.cens.awserver.jee.servlet.AwDataServlet</servlet-class>
+    <servlet-class>org.ohmage.jee.servlet.AwDataServlet</servlet-class>
     <init-param>
       <param-name>httpServletRequestValidatorName</param-name>
       <param-value>documentReadHttpServletRequestValidator</param-value>
@@ -780,7 +780,7 @@
       Returns the document's contents
     </description>
     <servlet-name>DocumentReadContentsServlet</servlet-name>
-    <servlet-class>edu.ucla.cens.awserver.jee.servlet.AwDataServlet</servlet-class>
+    <servlet-class>org.ohmage.jee.servlet.AwDataServlet</servlet-class>
     <init-param>
       <param-name>httpServletRequestValidatorName</param-name>
       <param-value>documentReadContentsHttpServletRequestValidator</param-value>
@@ -810,7 +810,7 @@
       Updates the document.
     </description>
     <servlet-name>DocumentUpdateServlet</servlet-name>
-    <servlet-class>edu.ucla.cens.awserver.jee.servlet.AwDataServlet</servlet-class>
+    <servlet-class>org.ohmage.jee.servlet.AwDataServlet</servlet-class>
     <init-param>
       <param-name>httpServletRequestValidatorName</param-name>
       <param-value>documentUpdateHttpServletRequestValidator</param-value>
@@ -840,7 +840,7 @@
       Deletes a document
     </description>
     <servlet-name>DocumentDeletionServlet</servlet-name>
-    <servlet-class>edu.ucla.cens.awserver.jee.servlet.AwDataServlet</servlet-class>
+    <servlet-class>org.ohmage.jee.servlet.AwDataServlet</servlet-class>
     <init-param>
       <param-name>httpServletRequestValidatorName</param-name>
       <param-value>documentDeletionHttpServletRequestValidator</param-value>
@@ -870,7 +870,7 @@
       Changes a user's password.
     </description>
     <servlet-name>PasswordChangeServlet</servlet-name>
-    <servlet-class>edu.ucla.cens.awserver.jee.servlet.AwDataServlet</servlet-class>
+    <servlet-class>org.ohmage.jee.servlet.AwDataServlet</servlet-class>
     <init-param>
       <param-name>httpServletRequestValidatorName</param-name>
       <param-value>passwordChangeHttpServletRequestValidator</param-value>
@@ -900,7 +900,7 @@
       runs data point function queries 
     </description>
     <servlet-name>DataPointFunctionQueryServlet</servlet-name>
-    <servlet-class>edu.ucla.cens.awserver.jee.servlet.AwDataServlet</servlet-class>
+    <servlet-class>org.ohmage.jee.servlet.AwDataServlet</servlet-class>
     <init-param>
       <param-name>controllerName</param-name>
       <param-value>dataPointFunctionQueryController</param-value>

@@ -3,49 +3,49 @@
        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.5.xsd">
        
   <!-- State Caches -->
-  <bean id="campaignPrivacyStateCache" class="edu.ucla.cens.awserver.cache.CampaignPrivacyStateCache" factory-method="instance">
+  <bean id="campaignPrivacyStateCache" class="org.ohmage.cache.CampaignPrivacyStateCache" factory-method="instance">
     <property name="dataSource"><ref bean="dataSource" /></property>
     <property name="updateFrequency" value="60000" />
   </bean>
   
-  <bean id="campaignRunningStateCache" class="edu.ucla.cens.awserver.cache.CampaignRunningStateCache" factory-method="instance">
+  <bean id="campaignRunningStateCache" class="org.ohmage.cache.CampaignRunningStateCache" factory-method="instance">
     <property name="dataSource"><ref bean="dataSource" /></property>
     <property name="updateFrequency" value="60000" />
   </bean>
   
-  <bean id="mobilityPrivacyStateCache" class="edu.ucla.cens.awserver.cache.MobilityPrivacyStateCache" factory-method="instance">
+  <bean id="mobilityPrivacyStateCache" class="org.ohmage.cache.MobilityPrivacyStateCache" factory-method="instance">
     <property name="dataSource"><ref bean="dataSource" /></property>
     <property name="updateFrequency" value="60000" />
   </bean>
   
-  <bean id="surveyResponsePrivacyStateCache" class="edu.ucla.cens.awserver.cache.SurveyResponsePrivacyStateCache" factory-method="instance">
+  <bean id="surveyResponsePrivacyStateCache" class="org.ohmage.cache.SurveyResponsePrivacyStateCache" factory-method="instance">
     <property name="dataSource"><ref bean="dataSource" /></property>
     <property name="updateFrequency" value="60000" />
   </bean>
   
-  <bean id="documentPrivacyStateCache" class="edu.ucla.cens.awserver.cache.DocumentPrivacyStateCache" factory-method="instance">
+  <bean id="documentPrivacyStateCache" class="org.ohmage.cache.DocumentPrivacyStateCache" factory-method="instance">
     <property name="dataSource"><ref bean="dataSource" /></property>
     <property name="updateFrequency" value="60000" />
   </bean>
   
   <!-- Role Caches -->
-  <bean id="campaignRoleCache" class="edu.ucla.cens.awserver.cache.CampaignRoleCache" factory-method="instance">
+  <bean id="campaignRoleCache" class="org.ohmage.cache.CampaignRoleCache" factory-method="instance">
     <property name="dataSource"><ref bean="dataSource" /></property>
     <property name="updateFrequency" value="60000" />
   </bean>
   
-  <bean id="classRoleCache" class="edu.ucla.cens.awserver.cache.ClassRoleCache" factory-method="instance">
+  <bean id="classRoleCache" class="org.ohmage.cache.ClassRoleCache" factory-method="instance">
     <property name="dataSource"><ref bean="dataSource" /></property>
     <property name="updateFrequency" value="60000" />
   </bean>
   
-  <bean id="documentRoleCache" class="edu.ucla.cens.awserver.cache.DocumentRoleCache" factory-method="instance">
+  <bean id="documentRoleCache" class="org.ohmage.cache.DocumentRoleCache" factory-method="instance">
     <property name="dataSource"><ref bean="dataSource" /></property>
     <property name="updateFrequency" value="60000" />
   </bean>
   
   <!-- Preference Cache -->
-  <bean id="preferenceCache" class="edu.ucla.cens.awserver.cache.PreferenceCache" factory-method="instance">
+  <bean id="preferenceCache" class="org.ohmage.cache.PreferenceCache" factory-method="instance">
     <property name="dataSource"><ref bean="dataSource" /></property>
     <property name="updateFrequency" value="60000" />
   </bean>

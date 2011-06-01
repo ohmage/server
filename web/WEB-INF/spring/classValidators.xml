@@ -4,11 +4,11 @@
        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
                            http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-2.5.xsd">
 
-  <bean id="classUrnListOptionalValidator" class="edu.ucla.cens.awserver.validator.UrnListValidator">
+  <bean id="classUrnListOptionalValidator" class="org.ohmage.validator.UrnListValidator">
     <constructor-arg>
-      <bean class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
+      <bean class="org.ohmage.validator.json.FailedJsonRequestAnnotator">
         <constructor-arg index="0"> 
-          <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
+          <bean class="org.ohmage.domain.ErrorResponse">
             <property name="code" value="1201" />
             <property name="text" value="Invalid class URN list or invalid URN in list." />
           </bean>
@@ -16,18 +16,18 @@
       </bean>
     </constructor-arg>
     <constructor-arg>
-      <util:constant static-field="edu.ucla.cens.awserver.request.InputKeys.CLASS_URN_LIST"/>
+      <util:constant static-field="org.ohmage.request.InputKeys.CLASS_URN_LIST"/>
     </constructor-arg>
     <constructor-arg>
       <value>false</value>
     </constructor-arg>
   </bean>
   
-  <bean id="classUrnListRemoveOptionalValidator" class="edu.ucla.cens.awserver.validator.UrnListValidator">
+  <bean id="classUrnListRemoveOptionalValidator" class="org.ohmage.validator.UrnListValidator">
     <constructor-arg>
-      <bean class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
+      <bean class="org.ohmage.validator.json.FailedJsonRequestAnnotator">
         <constructor-arg index="0"> 
-          <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
+          <bean class="org.ohmage.domain.ErrorResponse">
             <property name="code" value="1201" />
             <property name="text" value="Invalid class URN list or invalid URN in list." />
           </bean>
@@ -35,7 +35,7 @@
       </bean>
     </constructor-arg>
     <constructor-arg>
-      <util:constant static-field="edu.ucla.cens.awserver.request.InputKeys.CLASS_LIST_REMOVE"/>
+      <util:constant static-field="org.ohmage.request.InputKeys.CLASS_LIST_REMOVE"/>
     </constructor-arg>
     <constructor-arg>
       <value>false</value>

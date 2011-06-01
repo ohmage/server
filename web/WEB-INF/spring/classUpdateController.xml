@@ -8,15 +8,15 @@
   -->
   
   <!-- Basic HTTP Validation -->
-  <bean id="classUpdateHttpServletRequestValidator" class="edu.ucla.cens.awserver.jee.servlet.validator.ClassUpdateValidator"/>
+  <bean id="classUpdateHttpServletRequestValidator" class="org.ohmage.jee.servlet.validator.ClassUpdateValidator"/>
   
   <!-- Create the AwRequest Object -->
-  <bean id="classUpdateAwRequestCreator" class="edu.ucla.cens.awserver.jee.servlet.glue.ClassUpdateAwRequestCreator" />
+  <bean id="classUpdateAwRequestCreator" class="org.ohmage.jee.servlet.glue.ClassUpdateAwRequestCreator" />
   
   <!-- Write the Response -->
-  <bean id="classUpdateResponseWriter" class="edu.ucla.cens.awserver.jee.servlet.writer.ClassUpdateResponseWriter">
+  <bean id="classUpdateResponseWriter" class="org.ohmage.jee.servlet.writer.ClassUpdateResponseWriter">
     <constructor-arg index="0">
-      <bean id="classErrorResponse" class="edu.ucla.cens.awserver.domain.ErrorResponse">
+      <bean id="classErrorResponse" class="org.ohmage.domain.ErrorResponse">
         <property name="code" value="1200" />
         <property name="text" value="General class manipulation error." />
       </bean>
@@ -24,7 +24,7 @@
   </bean>
   
   <!-- Controller Definition -->
-  <bean id="classUpdateController" class="edu.ucla.cens.awserver.controller.ControllerImpl">
+  <bean id="classUpdateController" class="org.ohmage.controller.ControllerImpl">
     <constructor-arg index="0">
       <!-- Services to validate and populate information. -->
       <list>
@@ -75,11 +75,11 @@
   </bean>
   
   <!-- Supplamental Beans Definition -->
-  <bean id="classUrnValidator" class="edu.ucla.cens.awserver.validator.ClassUrnValidator">
+  <bean id="classUrnValidator" class="org.ohmage.validator.ClassUrnValidator">
     <constructor-arg index="0">
-      <bean class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
+      <bean class="org.ohmage.validator.json.FailedJsonRequestAnnotator">
         <constructor-arg index="0">
-          <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
+          <bean class="org.ohmage.domain.ErrorResponse">
             <property name="code" value="1201" />
             <property name="text" value="Invalid class URN." />
           </bean>
@@ -88,12 +88,12 @@
     </constructor-arg>
   </bean>
   
-  <bean id="userListAddOptionalValidator" class="edu.ucla.cens.awserver.validator.UserListValidator">
+  <bean id="userListAddOptionalValidator" class="org.ohmage.validator.UserListValidator">
     <constructor-arg index="0"><value>[a-z\.]{9,15}</value></constructor-arg>
     <constructor-arg index="1">
-      <bean class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
+      <bean class="org.ohmage.validator.json.FailedJsonRequestAnnotator">
         <constructor-arg index="0">
-          <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
+          <bean class="org.ohmage.domain.ErrorResponse">
             <property name="code" value="1300" />
             <property name="text" value="Invalid username in request." />
           </bean>
@@ -101,19 +101,19 @@
       </bean>
     </constructor-arg>
     <constructor-arg index="2">
-      <util:constant static-field="edu.ucla.cens.awserver.request.InputKeys.USER_LIST_ADD"/>
+      <util:constant static-field="org.ohmage.request.InputKeys.USER_LIST_ADD"/>
     </constructor-arg>
     <constructor-arg index="3">
       <value>false</value>
     </constructor-arg>
   </bean>
   
-  <bean id="userListRemoveOptionalValidator" class="edu.ucla.cens.awserver.validator.UserListValidator">
+  <bean id="userListRemoveOptionalValidator" class="org.ohmage.validator.UserListValidator">
     <constructor-arg index="0"><value>[a-z\.]{9,15}</value></constructor-arg>
     <constructor-arg index="1">
-      <bean class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
+      <bean class="org.ohmage.validator.json.FailedJsonRequestAnnotator">
         <constructor-arg index="0">
-          <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
+          <bean class="org.ohmage.domain.ErrorResponse">
             <property name="code" value="1300" />
             <property name="text" value="Invalid username in request." />
           </bean>
@@ -121,19 +121,19 @@
       </bean>
     </constructor-arg>
     <constructor-arg index="2">
-      <util:constant static-field="edu.ucla.cens.awserver.request.InputKeys.USER_LIST_REMOVE"/>
+      <util:constant static-field="org.ohmage.request.InputKeys.USER_LIST_REMOVE"/>
     </constructor-arg>
     <constructor-arg index="3">
       <value>false</value>
     </constructor-arg>
   </bean>
   
-  <bean id="privilegedUserListAddOptionalValidator" class="edu.ucla.cens.awserver.validator.UserListValidator">
+  <bean id="privilegedUserListAddOptionalValidator" class="org.ohmage.validator.UserListValidator">
     <constructor-arg index="0"><value>[a-z\.]{9,15}</value></constructor-arg>
     <constructor-arg index="1">
-      <bean class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
+      <bean class="org.ohmage.validator.json.FailedJsonRequestAnnotator">
         <constructor-arg index="0">
-          <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
+          <bean class="org.ohmage.domain.ErrorResponse">
             <property name="code" value="1300" />
             <property name="text" value="Invalid username in request." />
           </bean>
@@ -141,18 +141,18 @@
       </bean>
     </constructor-arg>
     <constructor-arg index="2">
-      <util:constant static-field="edu.ucla.cens.awserver.request.InputKeys.PRIVILEGED_USER_LIST_ADD"/>
+      <util:constant static-field="org.ohmage.request.InputKeys.PRIVILEGED_USER_LIST_ADD"/>
     </constructor-arg>
     <constructor-arg index="3">
       <value>false</value>
     </constructor-arg>
   </bean>
   
-  <bean id="noDuplicateUsersInListsValidator" class="edu.ucla.cens.awserver.validator.NoDuplicatesInListsValidator">
+  <bean id="noDuplicateUsersInListsValidator" class="org.ohmage.validator.NoDuplicatesInListsValidator">
     <constructor-arg index="0">
-      <bean class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
+      <bean class="org.ohmage.validator.json.FailedJsonRequestAnnotator">
         <constructor-arg index="0">
-          <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
+          <bean class="org.ohmage.domain.ErrorResponse">
             <property name="code" value="1302" />
             <property name="text" value="Duplicate user in list." />
           </bean>
@@ -161,18 +161,18 @@
     </constructor-arg>
     <constructor-arg index="1">
       <list>
-        <util:constant static-field="edu.ucla.cens.awserver.request.InputKeys.USER_LIST_ADD"/>
-        <util:constant static-field="edu.ucla.cens.awserver.request.InputKeys.USER_LIST_REMOVE"/>
-        <util:constant static-field="edu.ucla.cens.awserver.request.InputKeys.PRIVILEGED_USER_LIST_ADD"/>
+        <util:constant static-field="org.ohmage.request.InputKeys.USER_LIST_ADD"/>
+        <util:constant static-field="org.ohmage.request.InputKeys.USER_LIST_REMOVE"/>
+        <util:constant static-field="org.ohmage.request.InputKeys.PRIVILEGED_USER_LIST_ADD"/>
       </list>
     </constructor-arg>
   </bean>
   
-  <bean id="classNameRequiredValidator" class="edu.ucla.cens.awserver.validator.ClassNameValidator">
+  <bean id="classNameRequiredValidator" class="org.ohmage.validator.ClassNameValidator">
     <constructor-arg index="0">
-      <bean class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
+      <bean class="org.ohmage.validator.json.FailedJsonRequestAnnotator">
         <constructor-arg index="0">
-          <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
+          <bean class="org.ohmage.domain.ErrorResponse">
             <property name="code" value="1202" />
             <property name="text" value="Invalid class name." />
           </bean>
@@ -184,11 +184,11 @@
     </constructor-arg>
   </bean>
   
-  <bean id="classNameOptionalValidator" class="edu.ucla.cens.awserver.validator.ClassNameValidator">
+  <bean id="classNameOptionalValidator" class="org.ohmage.validator.ClassNameValidator">
     <constructor-arg index="0">
-      <bean class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
+      <bean class="org.ohmage.validator.json.FailedJsonRequestAnnotator">
         <constructor-arg index="0">
-          <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
+          <bean class="org.ohmage.domain.ErrorResponse">
             <property name="code" value="1202" />
             <property name="text" value="Invalid class name." />
           </bean>
@@ -200,11 +200,11 @@
     </constructor-arg>
   </bean>
   
-  <bean id="userIsPrivilegedInClassService" class="edu.ucla.cens.awserver.service.UserIsPrivilegedInClassService">
+  <bean id="userIsPrivilegedInClassService" class="org.ohmage.service.UserIsPrivilegedInClassService">
     <constructor-arg index="0">
-      <bean class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
+      <bean class="org.ohmage.validator.json.FailedJsonRequestAnnotator">
         <constructor-arg index="0">
-          <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
+          <bean class="org.ohmage.domain.ErrorResponse">
             <property name="code" value="0206" />
             <property name="text" value="User does not have permissions to modify this class." />
           </bean>
@@ -212,7 +212,7 @@
       </bean>
     </constructor-arg>
     <constructor-arg index="1">
-      <bean class="edu.ucla.cens.awserver.dao.UserIsPrivilegedInClassDao">
+      <bean class="org.ohmage.dao.UserIsPrivilegedInClassDao">
         <constructor-arg index="0">
           <ref bean="dataSource"/>
         </constructor-arg>
@@ -220,11 +220,11 @@
     </constructor-arg>
   </bean>
   
-  <bean id="usersInListExistServiceFromUserListAdd" class="edu.ucla.cens.awserver.service.UsersInListExistService">
+  <bean id="usersInListExistServiceFromUserListAdd" class="org.ohmage.service.UsersInListExistService">
     <constructor-arg index="0">
-      <bean class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
+      <bean class="org.ohmage.validator.json.FailedJsonRequestAnnotator">
         <constructor-arg index="0">
-          <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
+          <bean class="org.ohmage.domain.ErrorResponse">
             <property name="code" value="1301" />
             <property name="text" value="User in list of users to add does not exist." />
           </bean>
@@ -232,12 +232,12 @@
       </bean>
     </constructor-arg>
     <constructor-arg index="1">
-      <bean class="edu.ucla.cens.awserver.dao.UsersInListExistDao">
+      <bean class="org.ohmage.dao.UsersInListExistDao">
         <constructor-arg index="0">
           <ref bean="dataSource"/>
         </constructor-arg>
         <constructor-arg index="1">
-          <util:constant static-field="edu.ucla.cens.awserver.request.InputKeys.USER_LIST_ADD"/>
+          <util:constant static-field="org.ohmage.request.InputKeys.USER_LIST_ADD"/>
         </constructor-arg>
         <constructor-arg>
           <value>false</value>
@@ -246,11 +246,11 @@
     </constructor-arg>
   </bean>
   
-  <bean id="usersInListExistServiceFromUserListRemove" class="edu.ucla.cens.awserver.service.UsersInListExistService">
+  <bean id="usersInListExistServiceFromUserListRemove" class="org.ohmage.service.UsersInListExistService">
     <constructor-arg index="0">
-      <bean class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
+      <bean class="org.ohmage.validator.json.FailedJsonRequestAnnotator">
         <constructor-arg index="0">
-          <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
+          <bean class="org.ohmage.domain.ErrorResponse">
             <property name="code" value="1301" />
             <property name="text" value="User in list of users to remove does not exist." />
           </bean>
@@ -258,12 +258,12 @@
       </bean>
     </constructor-arg>
     <constructor-arg index="1">
-      <bean class="edu.ucla.cens.awserver.dao.UsersInListExistDao">
+      <bean class="org.ohmage.dao.UsersInListExistDao">
         <constructor-arg index="0">
           <ref bean="dataSource"/>
         </constructor-arg>
         <constructor-arg index="1">
-          <util:constant static-field="edu.ucla.cens.awserver.request.InputKeys.USER_LIST_REMOVE"/>
+          <util:constant static-field="org.ohmage.request.InputKeys.USER_LIST_REMOVE"/>
         </constructor-arg>
         <constructor-arg>
           <value>false</value>
@@ -272,11 +272,11 @@
     </constructor-arg>
   </bean>
   
-  <bean id="usersInListExistServiceFromPrivilegedUserListAdd" class="edu.ucla.cens.awserver.service.UsersInListExistService">
+  <bean id="usersInListExistServiceFromPrivilegedUserListAdd" class="org.ohmage.service.UsersInListExistService">
     <constructor-arg index="0">
-      <bean class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
+      <bean class="org.ohmage.validator.json.FailedJsonRequestAnnotator">
         <constructor-arg index="0">
-          <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
+          <bean class="org.ohmage.domain.ErrorResponse">
             <property name="code" value="1301" />
             <property name="text" value="User in list of privileged users to add does not exist." />
           </bean>
@@ -284,12 +284,12 @@
       </bean>
     </constructor-arg>
     <constructor-arg index="1">
-      <bean class="edu.ucla.cens.awserver.dao.UsersInListExistDao">
+      <bean class="org.ohmage.dao.UsersInListExistDao">
         <constructor-arg index="0">
           <ref bean="dataSource"/>
         </constructor-arg>
         <constructor-arg index="1">
-          <util:constant static-field="edu.ucla.cens.awserver.request.InputKeys.PRIVILEGED_USER_LIST_ADD"/>
+          <util:constant static-field="org.ohmage.request.InputKeys.PRIVILEGED_USER_LIST_ADD"/>
         </constructor-arg>
         <constructor-arg>
           <value>false</value>
@@ -298,11 +298,11 @@
     </constructor-arg>
   </bean>
   
-  <bean id="classUpdateService" class="edu.ucla.cens.awserver.service.ClassUpdateService">
+  <bean id="classUpdateService" class="org.ohmage.service.ClassUpdateService">
     <constructor-arg index="0">
-      <bean class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
+      <bean class="org.ohmage.validator.json.FailedJsonRequestAnnotator">
         <constructor-arg index="0">
-          <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
+          <bean class="org.ohmage.domain.ErrorResponse">
             <property name="code" value="1200" />
             <property name="text" value="Failed to update the class." />
           </bean>
@@ -310,7 +310,7 @@
       </bean>
     </constructor-arg>
     <constructor-arg index="1">
-      <bean class="edu.ucla.cens.awserver.dao.ClassUpdateDao">
+      <bean class="org.ohmage.dao.ClassUpdateDao">
         <constructor-arg index="0">
           <ref bean="dataSource"/>
         </constructor-arg>

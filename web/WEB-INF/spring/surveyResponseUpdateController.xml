@@ -8,13 +8,13 @@
   
   <!-- Servlet-to-AW hooks -->
   <!-- "pre-validate" inbound data -->
-  <bean id="surveyResponseUpdateHttpServletRequestValidator" class="edu.ucla.cens.awserver.jee.servlet.validator.SurveyResponseUpdateValidator" />
+  <bean id="surveyResponseUpdateHttpServletRequestValidator" class="org.ohmage.jee.servlet.validator.SurveyResponseUpdateValidator" />
   <!-- create AwRequest from data in the HttpServletRequest -->
-  <bean id="surveyResponseUpdateAwRequestCreator" class="edu.ucla.cens.awserver.jee.servlet.glue.SurveyResponseUpdateAwRequestCreator" />
+  <bean id="surveyResponseUpdateAwRequestCreator" class="org.ohmage.jee.servlet.glue.SurveyResponseUpdateAwRequestCreator" />
   <!-- the response writer used is the simple successOrFailResponseWriter -->
   
   <!-- Controller -->
-  <bean id="surveyResponseUpdateController" class="edu.ucla.cens.awserver.controller.ControllerImpl">
+  <bean id="surveyResponseUpdateController" class="org.ohmage.controller.ControllerImpl">
     <constructor-arg index="0">
       <list>
         <!-- authenticate -->
@@ -50,51 +50,51 @@
     <property name="featureName"><value>survey response update</value></property>
   </bean>
   
-  <bean id="surveyResponseSupervisorUpdateCampaignRunningStateValidationService" class="edu.ucla.cens.awserver.service.CampaignRunningStateUserRoleValidationService">
+  <bean id="surveyResponseSupervisorUpdateCampaignRunningStateValidationService" class="org.ohmage.service.CampaignRunningStateUserRoleValidationService">
    <constructor-arg index="0">
-      <bean class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
+      <bean class="org.ohmage.validator.json.FailedJsonRequestAnnotator">
         <constructor-arg index="0"> 
-          <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
+          <bean class="org.ohmage.domain.ErrorResponse">
             <property name="code" value="0716" />
             <property name="text" value="participants, analysts, or authors cannot change survey response state in stopped campaigns" />
           </bean>
         </constructor-arg>
       </bean>
     </constructor-arg>
-    <constructor-arg index="1"><util:constant static-field="edu.ucla.cens.awserver.cache.CampaignRunningStateCache.RUNNING_STATE_STOPPED"/></constructor-arg>
+    <constructor-arg index="1"><util:constant static-field="org.ohmage.cache.CampaignRunningStateCache.RUNNING_STATE_STOPPED"/></constructor-arg>
     <constructor-arg index="2">
       <list>
-        <util:constant static-field="edu.ucla.cens.awserver.cache.CampaignRoleCache.ROLE_SUPERVISOR"/>
+        <util:constant static-field="org.ohmage.cache.CampaignRoleCache.ROLE_SUPERVISOR"/>
       </list>
     </constructor-arg>
   </bean>
   
-  <bean id="surveyResponseParticipantUpdateCampaignRunningStateValidationService" class="edu.ucla.cens.awserver.service.CampaignRunningStateUserRoleValidationService">
+  <bean id="surveyResponseParticipantUpdateCampaignRunningStateValidationService" class="org.ohmage.service.CampaignRunningStateUserRoleValidationService">
    <constructor-arg index="0">
-      <bean class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
+      <bean class="org.ohmage.validator.json.FailedJsonRequestAnnotator">
         <constructor-arg index="0"> 
-          <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
+          <bean class="org.ohmage.domain.ErrorResponse">
             <property name="code" value="0716" />
             <property name="text" value="analysts and authors cannot change survey response state in running campaigns" />
           </bean>
         </constructor-arg>
       </bean>
     </constructor-arg>
-    <constructor-arg index="1"><util:constant static-field="edu.ucla.cens.awserver.cache.CampaignRunningStateCache.RUNNING_STATE_RUNNING"/></constructor-arg>
+    <constructor-arg index="1"><util:constant static-field="org.ohmage.cache.CampaignRunningStateCache.RUNNING_STATE_RUNNING"/></constructor-arg>
     <constructor-arg index="2">
       <list>
-        <util:constant static-field="edu.ucla.cens.awserver.cache.CampaignRoleCache.ROLE_PARTICIPANT"/>
-        <util:constant static-field="edu.ucla.cens.awserver.cache.CampaignRoleCache.ROLE_SUPERVISOR"/>
+        <util:constant static-field="org.ohmage.cache.CampaignRoleCache.ROLE_PARTICIPANT"/>
+        <util:constant static-field="org.ohmage.cache.CampaignRoleCache.ROLE_SUPERVISOR"/>
       </list>
     </constructor-arg>
   </bean>
   
-  <bean id="surveyResponseUpdateSurveyKeyValidator" class="edu.ucla.cens.awserver.validator.InputKeyIsIntegerValidator">
-    <constructor-arg index="0"><util:constant static-field="edu.ucla.cens.awserver.request.InputKeys.SURVEY_KEY"/></constructor-arg>
+  <bean id="surveyResponseUpdateSurveyKeyValidator" class="org.ohmage.validator.InputKeyIsIntegerValidator">
+    <constructor-arg index="0"><util:constant static-field="org.ohmage.request.InputKeys.SURVEY_KEY"/></constructor-arg>
     <constructor-arg index="1">
-      <bean class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
+      <bean class="org.ohmage.validator.json.FailedJsonRequestAnnotator">
         <constructor-arg index="0"> 
-          <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
+          <bean class="org.ohmage.domain.ErrorResponse">
             <property name="code" value="0720" />
             <property name="text" value="invalid survey_key" />
           </bean>
@@ -103,11 +103,11 @@
     </constructor-arg>
   </bean>
   
-  <bean id="surveyKeyExistsService" class="edu.ucla.cens.awserver.service.GenericAnnotatingDaoService">
+  <bean id="surveyKeyExistsService" class="org.ohmage.service.GenericAnnotatingDaoService">
     <constructor-arg index="0">
-      <bean class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
+      <bean class="org.ohmage.validator.json.FailedJsonRequestAnnotator">
         <constructor-arg index="0"> 
-          <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
+          <bean class="org.ohmage.domain.ErrorResponse">
             <property name="code" value="0720" />
             <property name="text" value="invalid survey_key" />
           </bean>
@@ -115,7 +115,7 @@
       </bean>
     </constructor-arg>  
     <constructor-arg index="1">
-      <bean class="edu.ucla.cens.awserver.dao.SurveyKeyExistsDao">
+      <bean class="org.ohmage.dao.SurveyKeyExistsDao">
         <constructor-arg index="0">
           <ref bean="dataSource"/>
         </constructor-arg>
@@ -125,11 +125,11 @@
     <constructor-arg index="3"><value>Checking whether the survey key exists.</value></constructor-arg>
   </bean>
   
-  <bean id="surveyKeyExistsForParticipantValidationService" class="edu.ucla.cens.awserver.service.SurveyKeyExistsForParticipantValidationService">
+  <bean id="surveyKeyExistsForParticipantValidationService" class="org.ohmage.service.SurveyKeyExistsForParticipantValidationService">
     <constructor-arg index="0">
-      <bean class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
+      <bean class="org.ohmage.validator.json.FailedJsonRequestAnnotator">
         <constructor-arg index="0"> 
-          <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
+          <bean class="org.ohmage.domain.ErrorResponse">
             <property name="code" value="0720" />
             <property name="text" value="invalid survey_key" />
           </bean>
@@ -137,7 +137,7 @@
       </bean>
     </constructor-arg>  
     <constructor-arg index="1">
-      <bean class="edu.ucla.cens.awserver.dao.SurveyKeyExistsForLoggedInUserDao">
+      <bean class="org.ohmage.dao.SurveyKeyExistsForLoggedInUserDao">
         <constructor-arg index="0">
           <ref bean="dataSource"/>
         </constructor-arg>
@@ -145,11 +145,11 @@
     </constructor-arg>
   </bean>
   
-  <bean id="surveyResponseUpdateService" class="edu.ucla.cens.awserver.service.GenericAnnotatingDaoService">
+  <bean id="surveyResponseUpdateService" class="org.ohmage.service.GenericAnnotatingDaoService">
     <constructor-arg index="0">
-      <bean class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
+      <bean class="org.ohmage.validator.json.FailedJsonRequestAnnotator">
         <constructor-arg index="0"> 
-          <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
+          <bean class="org.ohmage.domain.ErrorResponse">
             <property name="code" value="0103" />
             <property name="text" value="Could not successfully update a survey response." />
           </bean>
@@ -157,7 +157,7 @@
       </bean>
     </constructor-arg>
     <constructor-arg index="1">
-      <bean class="edu.ucla.cens.awserver.dao.SurveyResponseUpdateDao">
+      <bean class="org.ohmage.dao.SurveyResponseUpdateDao">
         <constructor-arg index="0">
           <ref bean="dataSource"/>
         </constructor-arg>

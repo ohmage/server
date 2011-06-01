@@ -12,7 +12,7 @@
     <value>completed_surveys</value>
   </util:list>
   
-  <bean id="completedSurveysMetadata" class="edu.ucla.cens.awserver.domain.DataPointFunctionQueryMetadata">
+  <bean id="completedSurveysMetadata" class="org.ohmage.domain.DataPointFunctionQueryMetadata">
     <property name="unit"><value>survey</value></property>
     <property name="type"><value>event</value></property>
     <property name="label"><value>completed_surveys</value></property>
@@ -20,20 +20,20 @@
   
   <!-- Servlet-to-AW hooks -->
   <!-- "pre-validate" inbound data -->
-  <bean id="dataPointFunctionQueryHttpServletRequestValidator" class="edu.ucla.cens.awserver.jee.servlet.validator.DataPointFunctionQueryValidator" />
+  <bean id="dataPointFunctionQueryHttpServletRequestValidator" class="org.ohmage.jee.servlet.validator.DataPointFunctionQueryValidator" />
   <!-- create AwRequest from data in the HttpServletRequest -->
-  <bean id="dataPointFunctionQueryAwRequestCreator" class="edu.ucla.cens.awserver.jee.servlet.glue.DataPointFunctionQueryAwRequestCreator">
+  <bean id="dataPointFunctionQueryAwRequestCreator" class="org.ohmage.jee.servlet.glue.DataPointFunctionQueryAwRequestCreator">
     <constructor-arg index="0">
       <ref bean="completedSurveysMetadata" />
     </constructor-arg>
   </bean>
   <!-- write outbound data, post-controller -->
-  <bean id="dataPointFunctionQueryResponseWriter" class="edu.ucla.cens.awserver.jee.servlet.writer.DataPointFunctionQueryResponseWriter">
+  <bean id="dataPointFunctionQueryResponseWriter" class="org.ohmage.jee.servlet.writer.DataPointFunctionQueryResponseWriter">
     <constructor-arg index="0"><ref bean="severeErrorResponse" /></constructor-arg>
   </bean>
     
   <!-- Controller -->
-  <bean id="dataPointFunctionQueryController" class="edu.ucla.cens.awserver.controller.ControllerImpl">
+  <bean id="dataPointFunctionQueryController" class="org.ohmage.controller.ControllerImpl">
     <constructor-arg index="0">
       <list>
         <ref bean="tokenBasedAuthenticationService" />
@@ -58,11 +58,11 @@
     <property name="featureName"><value>data point function query</value></property>
   </bean>
   
-  <bean id="dataPointFunctionQueryFunctionNameValidator" class="edu.ucla.cens.awserver.validator.DataPointFunctionQueryFunctionNameValidator">
+  <bean id="dataPointFunctionQueryFunctionNameValidator" class="org.ohmage.validator.DataPointFunctionQueryFunctionNameValidator">
     <constructor-arg index="0">
-      <bean class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
+      <bean class="org.ohmage.validator.json.FailedJsonRequestAnnotator">
         <constructor-arg index="0">
-          <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
+          <bean class="org.ohmage.domain.ErrorResponse">
             <property name="code" value="1100" />
             <property name="text" value="unknown function name" />
           </bean>
@@ -74,14 +74,14 @@
     </constructor-arg>
   </bean>
 
-  <bean id="dataPointFunctionQueryService" class="edu.ucla.cens.awserver.service.DataPointFunctionQueryService">
+  <bean id="dataPointFunctionQueryService" class="org.ohmage.service.DataPointFunctionQueryService">
     <constructor-arg index="0">
       <map>
         <entry>
           <key><value>completed_surveys</value></key>
-          <bean class="edu.ucla.cens.awserver.service.SimpleQueryService">
+          <bean class="org.ohmage.service.SimpleQueryService">
             <constructor-arg index="0">
-              <bean class="edu.ucla.cens.awserver.dao.CompletedSurveysDao">
+              <bean class="org.ohmage.dao.CompletedSurveysDao">
                 <constructor-arg index="0"><ref bean="dataSource" /></constructor-arg>
               </bean>
             </constructor-arg>

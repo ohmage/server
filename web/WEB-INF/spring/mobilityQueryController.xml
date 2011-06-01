@@ -8,16 +8,16 @@
   
   <!-- Servlet-to-AW hooks -->
   <!-- "pre-validate" inbound data -->
-  <bean id="mobilityQueryHttpServletRequestValidator" class="edu.ucla.cens.awserver.jee.servlet.validator.MobilityQueryValidator" />
+  <bean id="mobilityQueryHttpServletRequestValidator" class="org.ohmage.jee.servlet.validator.MobilityQueryValidator" />
   <!-- create AwRequest from data in the HttpServletRequest -->
-  <bean id="mobilityQueryAwRequestCreator" class="edu.ucla.cens.awserver.jee.servlet.glue.MobilityQueryAwRequestCreator" />
+  <bean id="mobilityQueryAwRequestCreator" class="org.ohmage.jee.servlet.glue.MobilityQueryAwRequestCreator" />
   <!-- write outbound data, post-controller --> 
-  <bean id="mobilityQueryResponseWriter" class="edu.ucla.cens.awserver.jee.servlet.writer.MobilityQueryResponseWriter">
+  <bean id="mobilityQueryResponseWriter" class="org.ohmage.jee.servlet.writer.MobilityQueryResponseWriter">
     <constructor-arg index="0"><ref bean="severeErrorResponse" /></constructor-arg>
   </bean>
     
   <!-- Controller - Many components used in the controller are shared with dataPointQueryController -->
-  <bean id="mobilityDataPointQueryController" class="edu.ucla.cens.awserver.controller.ControllerImpl">
+  <bean id="mobilityDataPointQueryController" class="org.ohmage.controller.ControllerImpl">
     <constructor-arg index="0">
       <list>
         <ref bean="tokenBasedAuthenticationService" />
@@ -37,11 +37,11 @@
     <property name="featureName"><value>mobility query</value></property>
   </bean>
     
-  <bean id="mobilityQueryUserCheckService" class="edu.ucla.cens.awserver.service.MobilityQueryUserCheckService">
+  <bean id="mobilityQueryUserCheckService" class="org.ohmage.service.MobilityQueryUserCheckService">
    <constructor-arg index="0">
-      <bean class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
+      <bean class="org.ohmage.validator.json.FailedJsonRequestAnnotator">
         <constructor-arg index="0">
-          <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
+          <bean class="org.ohmage.domain.ErrorResponse">
             <property name="code" value="1000" />
             <property name="text" value="invalid user in query" />
           </bean>
@@ -49,22 +49,22 @@
       </bean>
     </constructor-arg>
     <constructor-arg index="1">
-      <bean class="edu.ucla.cens.awserver.dao.FindAllAdminCampaignsForUserDao">
+      <bean class="org.ohmage.dao.FindAllAdminCampaignsForUserDao">
         <constructor-arg index="0"><ref bean="dataSource"/></constructor-arg>
         <constructor-arg index="1"><value>true</value></constructor-arg>
       </bean>
     </constructor-arg>
      <constructor-arg index="2">
-      <bean class="edu.ucla.cens.awserver.dao.FindAllCampaignsForUserDao">
+      <bean class="org.ohmage.dao.FindAllCampaignsForUserDao">
         <constructor-arg index="0"><ref bean="dataSource"/></constructor-arg>
         <constructor-arg index="1"><value>false</value></constructor-arg>
       </bean>
     </constructor-arg>
   </bean>
   
-  <bean id="mobilityQueryService" class="edu.ucla.cens.awserver.service.SimpleQueryService">
+  <bean id="mobilityQueryService" class="org.ohmage.service.SimpleQueryService">
     <constructor-arg index="0">
-      <bean id="mobilityQueryDao" class="edu.ucla.cens.awserver.dao.MobilityQueryDao">
+      <bean id="mobilityQueryDao" class="org.ohmage.dao.MobilityQueryDao">
         <constructor-arg index="0"><ref bean="dataSource" /></constructor-arg>
       </bean>
     </constructor-arg>

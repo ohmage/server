@@ -8,17 +8,17 @@
   
   <!-- Servlet-to-AW hooks -->
   <!-- "pre-validate" inbound data -->
-  <bean id="imageQueryHttpServletRequestValidator" class="edu.ucla.cens.awserver.jee.servlet.validator.ImageQueryValidator" />
+  <bean id="imageQueryHttpServletRequestValidator" class="org.ohmage.jee.servlet.validator.ImageQueryValidator" />
   <!-- create AwRequest from data in the HttpServletRequest -->
-  <bean id="imageQueryAwRequestCreator" class="edu.ucla.cens.awserver.jee.servlet.glue.ImageQueryAwRequestCreator" />
+  <bean id="imageQueryAwRequestCreator" class="org.ohmage.jee.servlet.glue.ImageQueryAwRequestCreator" />
   <!-- write outbound data, post-controller -->
-  <bean id="imageQueryResponseWriter" class="edu.ucla.cens.awserver.jee.servlet.writer.ImageQueryResponseWriter">
+  <bean id="imageQueryResponseWriter" class="org.ohmage.jee.servlet.writer.ImageQueryResponseWriter">
     <constructor-arg index="0"><ref bean="severeErrorResponse" /></constructor-arg>
   </bean>
   
     
   <!-- Controller -->
-  <bean id="imageQueryController" class="edu.ucla.cens.awserver.controller.ControllerImpl">
+  <bean id="imageQueryController" class="org.ohmage.controller.ControllerImpl">
     <constructor-arg index="0">
       <list>
         <!-- authenticate -->
@@ -51,16 +51,16 @@
     <property name="featureName"><value>image query</value></property>
   </bean>
   
-  <bean id="findCampaignForMediaIdService" class="edu.ucla.cens.awserver.service.FindCampaignForMediaIdService">
+  <bean id="findCampaignForMediaIdService" class="org.ohmage.service.FindCampaignForMediaIdService">
     <constructor-arg index="0">
-      <bean class="edu.ucla.cens.awserver.dao.FindCampaignForMediaIdDao">
+      <bean class="org.ohmage.dao.FindCampaignForMediaIdDao">
         <constructor-arg index="0"><ref bean="dataSource"/></constructor-arg>
       </bean>
     </constructor-arg>
     <constructor-arg index="1">
-      <bean class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
+      <bean class="org.ohmage.validator.json.FailedJsonRequestAnnotator">
         <constructor-arg index="0">
-          <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
+          <bean class="org.ohmage.domain.ErrorResponse">
             <property name="code" value="0900" />
             <property name="text" value="no image found" />
           </bean>
@@ -68,9 +68,9 @@
       </bean>
     </constructor-arg>
     <constructor-arg index="2">
-      <bean class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
+      <bean class="org.ohmage.validator.json.FailedJsonRequestAnnotator">
         <constructor-arg index="0">
-          <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
+          <bean class="org.ohmage.domain.ErrorResponse">
             <property name="code" value="0901" />
             <property name="text" value="image does not belong to campaign" />
           </bean>
@@ -79,16 +79,16 @@
     </constructor-arg>
   </bean>
   
-    <bean id="findUrlForMediaIdService" class="edu.ucla.cens.awserver.service.FindUrlForMediaIdService">
+    <bean id="findUrlForMediaIdService" class="org.ohmage.service.FindUrlForMediaIdService">
     <constructor-arg index="0">
-      <bean class="edu.ucla.cens.awserver.dao.FindUrlForMediaIdDao">
+      <bean class="org.ohmage.dao.FindUrlForMediaIdDao">
         <constructor-arg index="0"><ref bean="dataSource"/></constructor-arg>
       </bean>
     </constructor-arg>
     <constructor-arg index="1">
-      <bean class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
+      <bean class="org.ohmage.validator.json.FailedJsonRequestAnnotator">
         <constructor-arg index="0">
-          <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
+          <bean class="org.ohmage.domain.ErrorResponse">
             <property name="code" value="0900" />
             <property name="text" value="no image found" />
           </bean>

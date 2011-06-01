@@ -5,15 +5,15 @@
                            http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-2.5.xsd">
 
   <!-- Basic HTTP Validation -->
-  <bean id="documentDeletionHttpServletRequestValidator" class="edu.ucla.cens.awserver.jee.servlet.validator.DocumentDeletionValidator" />
+  <bean id="documentDeletionHttpServletRequestValidator" class="org.ohmage.jee.servlet.validator.DocumentDeletionValidator" />
   
   <!-- Create the AwRequest Object -->
-  <bean id="documentDeletionAwRequestCreator" class="edu.ucla.cens.awserver.jee.servlet.glue.DocumentDeletionAwRequestCreator" />
+  <bean id="documentDeletionAwRequestCreator" class="org.ohmage.jee.servlet.glue.DocumentDeletionAwRequestCreator" />
   
   <!-- Write the Response -->
-  <bean id="documentDeletionResponseWriter" class="edu.ucla.cens.awserver.jee.servlet.writer.SuccessOrFailResponseWriter">
+  <bean id="documentDeletionResponseWriter" class="org.ohmage.jee.servlet.writer.SuccessOrFailResponseWriter">
     <constructor-arg>
-      <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
+      <bean class="org.ohmage.domain.ErrorResponse">
         <property name="code" value="1500" />
         <property name="text" value="General document deletion error." />
       </bean>
@@ -21,7 +21,7 @@
   </bean>
   
   <!-- Controller Definition -->
-  <bean id="documentDeletionController" class="edu.ucla.cens.awserver.controller.ControllerImpl">
+  <bean id="documentDeletionController" class="org.ohmage.controller.ControllerImpl">
     <constructor-arg>
       <!-- Services List (expected to be executed in-order) -->
       <list>
@@ -54,12 +54,12 @@
   </bean>
   
   <!-- Service to Delete a Document -->
-  <bean id="documentDeletionService" class="edu.ucla.cens.awserver.service.GenericAnnotatingDaoService">
+  <bean id="documentDeletionService" class="org.ohmage.service.GenericAnnotatingDaoService">
     <constructor-arg>
       <ref bean="documentManipulationError" />
     </constructor-arg>
     <constructor-arg>
-      <bean class="edu.ucla.cens.awserver.dao.DocumentDeletionDao">
+      <bean class="org.ohmage.dao.DocumentDeletionDao">
         <constructor-arg>
           <ref bean="dataSource" />
         </constructor-arg>

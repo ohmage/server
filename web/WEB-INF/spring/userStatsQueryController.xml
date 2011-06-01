@@ -8,16 +8,16 @@
   
   <!-- Servlet-to-AW hooks -->
   <!-- "pre-validate" inbound data -->
-  <bean id="userStatsQueryHttpServletRequestValidator" class="edu.ucla.cens.awserver.jee.servlet.validator.UserStatsQueryValidator" />
+  <bean id="userStatsQueryHttpServletRequestValidator" class="org.ohmage.jee.servlet.validator.UserStatsQueryValidator" />
   <!-- create AwRequest from data in the HttpServletRequest -->
-  <bean id="userStatsQueryAwRequestCreator" class="edu.ucla.cens.awserver.jee.servlet.glue.UserStatsQueryAwRequestCreator" />
+  <bean id="userStatsQueryAwRequestCreator" class="org.ohmage.jee.servlet.glue.UserStatsQueryAwRequestCreator" />
   <!-- write outbound data, post-controller -->
-  <bean id="userStatsQueryResponseWriter" class="edu.ucla.cens.awserver.jee.servlet.writer.UserStatsQueryResponseWriter">
+  <bean id="userStatsQueryResponseWriter" class="org.ohmage.jee.servlet.writer.UserStatsQueryResponseWriter">
     <constructor-arg index="0"><ref bean="severeErrorResponse" /></constructor-arg>
   </bean>
     
   <!-- Controller -->
-  <bean id="userStatsQueryController" class="edu.ucla.cens.awserver.controller.ControllerImpl">
+  <bean id="userStatsQueryController" class="org.ohmage.controller.ControllerImpl">
     <constructor-arg index="0">
       <list>
         <ref bean="tokenBasedAuthenticationService" />
@@ -42,9 +42,9 @@
     <property name="featureName"><value>user stats query</value></property>
   </bean>
   
-  <bean id="mostRecentMobilityActivityQueryService" class="edu.ucla.cens.awserver.service.SimpleQueryService">
+  <bean id="mostRecentMobilityActivityQueryService" class="org.ohmage.service.SimpleQueryService">
     <constructor-arg index="0">
-      <bean class="edu.ucla.cens.awserver.dao.MostRecentMobilityActivityDao">
+      <bean class="org.ohmage.dao.MostRecentMobilityActivityDao">
         <constructor-arg index="0">
             <ref bean="dataSource" />
         </constructor-arg>
@@ -52,9 +52,9 @@
     </constructor-arg>
   </bean>
 
-  <bean id="mostRecentSurveyActivityQueryService" class="edu.ucla.cens.awserver.service.SimpleQueryService">
+  <bean id="mostRecentSurveyActivityQueryService" class="org.ohmage.service.SimpleQueryService">
     <constructor-arg index="0">
-      <bean class="edu.ucla.cens.awserver.dao.MostRecentSurveyActivityDao">
+      <bean class="org.ohmage.dao.MostRecentSurveyActivityDao">
         <constructor-arg index="0">
             <ref bean="dataSource" />
         </constructor-arg>
@@ -62,9 +62,9 @@
     </constructor-arg>
   </bean>
 
-  <bean id="pastDayMobilityLocationUpdatesQueryService" class="edu.ucla.cens.awserver.service.SimpleQueryService">
+  <bean id="pastDayMobilityLocationUpdatesQueryService" class="org.ohmage.service.SimpleQueryService">
     <constructor-arg index="0">
-      <bean class="edu.ucla.cens.awserver.dao.PastDayMobilityLocationUpdatesQueryDao">
+      <bean class="org.ohmage.dao.PastDayMobilityLocationUpdatesQueryDao">
         <constructor-arg index="0">
             <ref bean="dataSource" />
         </constructor-arg>
@@ -72,9 +72,9 @@
     </constructor-arg>
   </bean>
 
-  <bean id="pastDaySurveyLocationUpdatesQueryService" class="edu.ucla.cens.awserver.service.SimpleQueryService">
+  <bean id="pastDaySurveyLocationUpdatesQueryService" class="org.ohmage.service.SimpleQueryService">
     <constructor-arg index="0">
-      <bean class="edu.ucla.cens.awserver.dao.PastDaySurveyLocationUpdatesQueryDao">
+      <bean class="org.ohmage.dao.PastDaySurveyLocationUpdatesQueryDao">
         <constructor-arg index="0">
             <ref bean="dataSource" />
         </constructor-arg>

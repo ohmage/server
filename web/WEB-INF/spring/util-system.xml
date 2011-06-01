@@ -6,9 +6,9 @@
                            http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-2.5.xsd">
   
   <!-- this really belongs somewhere else -->
-  <bean id="serverErrorRequestAnnotator" class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
+  <bean id="serverErrorRequestAnnotator" class="org.ohmage.validator.json.FailedJsonRequestAnnotator">
     <constructor-arg index="0"> 
-      <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
+      <bean class="org.ohmage.domain.ErrorResponse">
         <property name="code" value="0103" />
         <property name="text" value="general error" />
       </bean>

@@ -4,7 +4,7 @@
 
   <!-- the user bin and its associated cleaning task -->
 
-  <bean id="userBin" class="edu.ucla.cens.awserver.cache.UserBin">
+  <bean id="userBin" class="org.ohmage.cache.UserBin">
     <!-- user lifetime in milliseconds -->
     <constructor-arg index="0"><value>1800000</value></constructor-arg>
     <!-- how often the execution thread runs (in milliseconds) -->

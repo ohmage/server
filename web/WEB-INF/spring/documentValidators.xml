@@ -5,31 +5,31 @@
                            http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-2.5.xsd">
 
   <!-- Validators for document CRUDs -->  
-  <bean id="documentNameRequiredValidator" class="edu.ucla.cens.awserver.validator.GenericNameValidator">
+  <bean id="documentNameRequiredValidator" class="org.ohmage.validator.GenericNameValidator">
     <constructor-arg>
       <ref bean="documentNameInvalidError" />
     </constructor-arg>
     <constructor-arg>
-      <util:constant static-field="edu.ucla.cens.awserver.request.InputKeys.DOCUMENT_NAME"/>
+      <util:constant static-field="org.ohmage.request.InputKeys.DOCUMENT_NAME"/>
     </constructor-arg>
     <constructor-arg>
       <value>true</value>
     </constructor-arg>
   </bean>
   
-  <bean id="documentNameOptionalValidator" class="edu.ucla.cens.awserver.validator.GenericNameValidator">
+  <bean id="documentNameOptionalValidator" class="org.ohmage.validator.GenericNameValidator">
     <constructor-arg>
       <ref bean="documentNameInvalidError" />
     </constructor-arg>
     <constructor-arg>
-      <util:constant static-field="edu.ucla.cens.awserver.request.InputKeys.DOCUMENT_NAME"/>
+      <util:constant static-field="org.ohmage.request.InputKeys.DOCUMENT_NAME"/>
     </constructor-arg>
     <constructor-arg>
       <value>false</value>
     </constructor-arg>
   </bean>
 
-  <bean id="documentRequiredValidator" class="edu.ucla.cens.awserver.validator.DocumentValidator">
+  <bean id="documentRequiredValidator" class="org.ohmage.validator.DocumentValidator">
     <constructor-arg>
       <ref bean="documentInvalidError" />
     </constructor-arg>
@@ -38,7 +38,7 @@
     </constructor-arg>
   </bean>
   
-  <bean id="documentOptionalValidator" class="edu.ucla.cens.awserver.validator.DocumentValidator">
+  <bean id="documentOptionalValidator" class="org.ohmage.validator.DocumentValidator">
     <constructor-arg>
       <ref bean="documentInvalidError" />
     </constructor-arg>
@@ -47,7 +47,7 @@
     </constructor-arg>
   </bean>
   
-  <bean id="documentPrivacyStateRequiredValidator" class="edu.ucla.cens.awserver.validator.CacheAllowedValuesValidator">
+  <bean id="documentPrivacyStateRequiredValidator" class="org.ohmage.validator.CacheAllowedValuesValidator">
     <constructor-arg>
       <ref bean="documentPrivacyStateError" />
     </constructor-arg>
@@ -55,14 +55,14 @@
       <ref bean="documentPrivacyStateCache" />
     </constructor-arg>
     <constructor-arg>
-      <util:constant static-field="edu.ucla.cens.awserver.request.InputKeys.PRIVACY_STATE"/>
+      <util:constant static-field="org.ohmage.request.InputKeys.PRIVACY_STATE"/>
     </constructor-arg>
     <constructor-arg>
       <value>true</value>
     </constructor-arg>
   </bean>
   
-  <bean id="documentPrivacyStateOptionalValidator" class="edu.ucla.cens.awserver.validator.CacheAllowedValuesValidator">
+  <bean id="documentPrivacyStateOptionalValidator" class="org.ohmage.validator.CacheAllowedValuesValidator">
     <constructor-arg>
       <ref bean="documentPrivacyStateError" />
     </constructor-arg>
@@ -70,19 +70,19 @@
       <ref bean="documentPrivacyStateCache" />
     </constructor-arg>
     <constructor-arg>
-      <util:constant static-field="edu.ucla.cens.awserver.request.InputKeys.PRIVACY_STATE"/>
+      <util:constant static-field="org.ohmage.request.InputKeys.PRIVACY_STATE"/>
     </constructor-arg>
     <constructor-arg>
       <value>false</value>
     </constructor-arg>
   </bean>
   
-  <bean id="documentCampaignRoleOptionalValidator" class="edu.ucla.cens.awserver.validator.UrnRoleValidator">
+  <bean id="documentCampaignRoleOptionalValidator" class="org.ohmage.validator.UrnRoleValidator">
     <constructor-arg>
       <ref bean="documentCampaignRoleInvalidError" />
     </constructor-arg>
     <constructor-arg>
-      <util:constant static-field="edu.ucla.cens.awserver.request.InputKeys.DOCUMENT_CAMPAIGN_ROLE_LIST" />
+      <util:constant static-field="org.ohmage.request.InputKeys.DOCUMENT_CAMPAIGN_ROLE_LIST" />
     </constructor-arg>
     <constructor-arg>
       <ref bean="documentRoleCache" />
@@ -92,12 +92,12 @@
     </constructor-arg>
   </bean>
   
-  <bean id="documentClassRoleOptionalValidator" class="edu.ucla.cens.awserver.validator.UrnRoleValidator">
+  <bean id="documentClassRoleOptionalValidator" class="org.ohmage.validator.UrnRoleValidator">
     <constructor-arg>
       <ref bean="documentClassRoleInvalidError" />
     </constructor-arg>
     <constructor-arg>
-      <util:constant static-field="edu.ucla.cens.awserver.request.InputKeys.DOCUMENT_CLASS_ROLE_LIST" />
+      <util:constant static-field="org.ohmage.request.InputKeys.DOCUMENT_CLASS_ROLE_LIST" />
     </constructor-arg>
     <constructor-arg>
       <ref bean="documentRoleCache" />
@@ -107,11 +107,11 @@
     </constructor-arg>
   </bean>
   
-  <bean id="documentIdRequiredValidator" class="edu.ucla.cens.awserver.validator.UuidValidator">
+  <bean id="documentIdRequiredValidator" class="org.ohmage.validator.UuidValidator">
     <constructor-arg>
-      <bean class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
+      <bean class="org.ohmage.validator.json.FailedJsonRequestAnnotator">
         <constructor-arg>
-          <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
+          <bean class="org.ohmage.domain.ErrorResponse">
             <property name="code" value="1600" />
             <property name="text" value="Document UUID is not a valid UUID." />
           </bean>
@@ -119,18 +119,18 @@
       </bean>
     </constructor-arg>
     <constructor-arg>
-      <util:constant static-field="edu.ucla.cens.awserver.request.InputKeys.DOCUMENT_ID"/>
+      <util:constant static-field="org.ohmage.request.InputKeys.DOCUMENT_ID"/>
     </constructor-arg>
     <constructor-arg>
       <value>true</value>
     </constructor-arg>
   </bean>
   
-  <bean id="documentPersonalDocumentsValueRequiredValidator" class="edu.ucla.cens.awserver.validator.BooleanValidator">
+  <bean id="documentPersonalDocumentsValueRequiredValidator" class="org.ohmage.validator.BooleanValidator">
     <constructor-arg>
-      <bean class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
+      <bean class="org.ohmage.validator.json.FailedJsonRequestAnnotator">
         <constructor-arg>
-          <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
+          <bean class="org.ohmage.domain.ErrorResponse">
             <property name="code" value="1513" />
             <property name="text" value="Invalid value for personal_documents." />
           </bean>
@@ -138,18 +138,18 @@
       </bean>
     </constructor-arg>
     <constructor-arg>
-      <util:constant static-field="edu.ucla.cens.awserver.request.InputKeys.DOCUMENT_PERSONAL_DOCUMENTS"/>
+      <util:constant static-field="org.ohmage.request.InputKeys.DOCUMENT_PERSONAL_DOCUMENTS"/>
     </constructor-arg>
     <constructor-arg>
       <value>true</value>
     </constructor-arg>
   </bean>
   
-  <bean id="campaignDocumentRoleListOptionalValidator" class="edu.ucla.cens.awserver.validator.UrnRoleValidator">
+  <bean id="campaignDocumentRoleListOptionalValidator" class="org.ohmage.validator.UrnRoleValidator">
     <constructor-arg>
-      <bean class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
+      <bean class="org.ohmage.validator.json.FailedJsonRequestAnnotator">
         <constructor-arg>
-          <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
+          <bean class="org.ohmage.domain.ErrorResponse">
             <property name="code" value="1601" />
             <property name="text" value="Invalid value for campaign-role list." />
           </bean>
@@ -157,7 +157,7 @@
       </bean>
     </constructor-arg>
     <constructor-arg>
-      <util:constant static-field="edu.ucla.cens.awserver.request.InputKeys.CAMPAIGN_ROLE_LIST_ADD"/>
+      <util:constant static-field="org.ohmage.request.InputKeys.CAMPAIGN_ROLE_LIST_ADD"/>
     </constructor-arg>
     <constructor-arg>
       <ref bean="documentRoleCache" />
@@ -167,11 +167,11 @@
     </constructor-arg>
   </bean>
   
-  <bean id="classDocumentRoleListOptionalValidator" class="edu.ucla.cens.awserver.validator.UrnRoleValidator">
+  <bean id="classDocumentRoleListOptionalValidator" class="org.ohmage.validator.UrnRoleValidator">
     <constructor-arg>
-      <bean class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
+      <bean class="org.ohmage.validator.json.FailedJsonRequestAnnotator">
         <constructor-arg>
-          <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
+          <bean class="org.ohmage.domain.ErrorResponse">
             <property name="code" value="1601" />
             <property name="text" value="Invalid value for class-role list." />
           </bean>
@@ -179,7 +179,7 @@
       </bean>
     </constructor-arg>
     <constructor-arg>
-      <util:constant static-field="edu.ucla.cens.awserver.request.InputKeys.CLASS_ROLE_LIST_ADD"/>
+      <util:constant static-field="org.ohmage.request.InputKeys.CLASS_ROLE_LIST_ADD"/>
     </constructor-arg>
     <constructor-arg>
       <ref bean="documentRoleCache" />
@@ -189,11 +189,11 @@
     </constructor-arg>
   </bean>
   
-  <bean id="userDocumentRoleListOptionalValidator" class="edu.ucla.cens.awserver.validator.UserRoleListValidator">
+  <bean id="userDocumentRoleListOptionalValidator" class="org.ohmage.validator.UserRoleListValidator">
     <constructor-arg>
-      <bean class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
+      <bean class="org.ohmage.validator.json.FailedJsonRequestAnnotator">
         <constructor-arg>
-          <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
+          <bean class="org.ohmage.domain.ErrorResponse">
             <property name="code" value="1601" />
             <property name="text" value="Invalid value for user-role list." />
           </bean>
@@ -204,7 +204,7 @@
       <value>[a-z\.]{9,15}</value>
     </constructor-arg>
     <constructor-arg>
-      <util:constant static-field="edu.ucla.cens.awserver.request.InputKeys.USER_ROLE_LIST_ADD"/>
+      <util:constant static-field="org.ohmage.request.InputKeys.USER_ROLE_LIST_ADD"/>
     </constructor-arg>
     <constructor-arg>
       <ref bean="documentRoleCache" />

@@ -8,15 +8,15 @@
         Controller definition for class reads.
    -->
   <!-- Basic HTTP Validation -->
-  <bean id="classReadHttpServletRequestValidator" class="edu.ucla.cens.awserver.jee.servlet.validator.ClassReadValidator"/>
+  <bean id="classReadHttpServletRequestValidator" class="org.ohmage.jee.servlet.validator.ClassReadValidator"/>
   
   <!-- Create the AwRequest Object -->
-  <bean id="classReadAwRequestCreator" class="edu.ucla.cens.awserver.jee.servlet.glue.ClassReadAwRequestCreator" />
+  <bean id="classReadAwRequestCreator" class="org.ohmage.jee.servlet.glue.ClassReadAwRequestCreator" />
   
   <!-- Write the Response -->
-  <bean id="classReadResponseWriter" class="edu.ucla.cens.awserver.jee.servlet.writer.ClassReadResponseWriter">
+  <bean id="classReadResponseWriter" class="org.ohmage.jee.servlet.writer.ClassReadResponseWriter">
     <constructor-arg index="0">
-      <bean id="classErrorResponse" class="edu.ucla.cens.awserver.domain.ErrorResponse">
+      <bean id="classErrorResponse" class="org.ohmage.domain.ErrorResponse">
         <property name="code" value="1203" />
         <property name="text" value="General class read error." />
       </bean> 
@@ -24,7 +24,7 @@
   </bean>
   
   <!-- Controller Definition -->
-  <bean id="classReadController" class="edu.ucla.cens.awserver.controller.ControllerImpl">
+  <bean id="classReadController" class="org.ohmage.controller.ControllerImpl">
     <constructor-arg index="0">
       <!-- Services to validate and populate information. -->
       <list>
@@ -56,11 +56,11 @@
   </bean>
   
   <!-- Supplamental definitions for class read -->
-  <bean id="classListRequiredValidationService" class="edu.ucla.cens.awserver.service.GenericAnnotatingDaoService">
+  <bean id="classListRequiredValidationService" class="org.ohmage.service.GenericAnnotatingDaoService">
     <constructor-arg index="0">
-      <bean class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
+      <bean class="org.ohmage.validator.json.FailedJsonRequestAnnotator">
         <constructor-arg index="0">
-          <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
+          <bean class="org.ohmage.domain.ErrorResponse">
             <property name="code" value="1205" />
             <property name="text" value="A class in the class list is unknown to the user. It could not exist in the system or the user could not have permissions to access it." />
           </bean>
@@ -68,7 +68,7 @@
       </bean>
     </constructor-arg>
     <constructor-arg index="1">
-      <bean class="edu.ucla.cens.awserver.dao.ClassListValidationDao">
+      <bean class="org.ohmage.dao.ClassListValidationDao">
         <constructor-arg index="0">
           <ref bean="dataSource"/>
         </constructor-arg>
@@ -85,11 +85,11 @@
     </constructor-arg>
   </bean>
   
-  <bean id="classReadService" class="edu.ucla.cens.awserver.service.ClassReadService">
+  <bean id="classReadService" class="org.ohmage.service.ClassReadService">
     <constructor-arg index="0">
-      <bean class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
+      <bean class="org.ohmage.validator.json.FailedJsonRequestAnnotator">
         <constructor-arg index="0">
-          <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
+          <bean class="org.ohmage.domain.ErrorResponse">
             <property name="code" value="1203" />
             <property name="text" value="General class read error." />
           </bean>
@@ -97,7 +97,7 @@
       </bean>
     </constructor-arg>
     <constructor-arg index="1">
-      <bean class="edu.ucla.cens.awserver.dao.ClassReadDao">
+      <bean class="org.ohmage.dao.ClassReadDao">
         <constructor-arg index="0">
           <ref bean="dataSource"/>
         </constructor-arg>

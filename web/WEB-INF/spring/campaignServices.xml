@@ -4,13 +4,13 @@
        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
                            http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-2.5.xsd">
   
-  <bean id="campaignExistsDao" class="edu.ucla.cens.awserver.dao.CampaignExistsDao">
+  <bean id="campaignExistsDao" class="org.ohmage.dao.CampaignExistsDao">
     <constructor-arg index="0">
       <ref bean="dataSource"/>
     </constructor-arg>
   </bean>
   
-  <bean id="campaignFromKeyExistsRequiredDao" class="edu.ucla.cens.awserver.dao.CampaignFromKeyExistsDao">
+  <bean id="campaignFromKeyExistsRequiredDao" class="org.ohmage.dao.CampaignFromKeyExistsDao">
     <constructor-arg>
       <ref bean="dataSource" />
     </constructor-arg>
@@ -19,21 +19,21 @@
     </constructor-arg>
   </bean>
   
-  <bean id="campaignUrnListForDocumentCreationDao" class="edu.ucla.cens.awserver.dao.FindAllCampaignsForCurrentUserWithRolesDao">
+  <bean id="campaignUrnListForDocumentCreationDao" class="org.ohmage.dao.FindAllCampaignsForCurrentUserWithRolesDao">
     <constructor-arg>
       <ref bean="dataSource" />
     </constructor-arg>
     <constructor-arg>
       <list>
-        <util:constant static-field="edu.ucla.cens.awserver.cache.CampaignRoleCache.ROLE_SUPERVISOR"/>
-        <util:constant static-field="edu.ucla.cens.awserver.cache.CampaignRoleCache.ROLE_AUTHOR"/>
-        <util:constant static-field="edu.ucla.cens.awserver.cache.CampaignRoleCache.ROLE_ANALYST"/>
-        <util:constant static-field="edu.ucla.cens.awserver.cache.CampaignRoleCache.ROLE_PARTICIPANT"/>
+        <util:constant static-field="org.ohmage.cache.CampaignRoleCache.ROLE_SUPERVISOR"/>
+        <util:constant static-field="org.ohmage.cache.CampaignRoleCache.ROLE_AUTHOR"/>
+        <util:constant static-field="org.ohmage.cache.CampaignRoleCache.ROLE_ANALYST"/>
+        <util:constant static-field="org.ohmage.cache.CampaignRoleCache.ROLE_PARTICIPANT"/>
       </list>
     </constructor-arg>
   </bean>
                            
-  <bean id="campaignExistsService" class="edu.ucla.cens.awserver.service.CampaignExistsService">
+  <bean id="campaignExistsService" class="org.ohmage.service.CampaignExistsService">
     <constructor-arg index="0">
       <ref bean="campaignNotFoundError" />
     </constructor-arg>
@@ -42,11 +42,11 @@
     </constructor-arg>
   </bean>
   
-  <bean id="campaignXmlRequiredValidationService" class="edu.ucla.cens.awserver.service.CampaignXmlValidatorService">
+  <bean id="campaignXmlRequiredValidationService" class="org.ohmage.service.CampaignXmlValidatorService">
     <constructor-arg index="0">
-      <bean class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
+      <bean class="org.ohmage.validator.json.FailedJsonRequestAnnotator">
         <constructor-arg index="0">
-          <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
+          <bean class="org.ohmage.domain.ErrorResponse">
             <property name="code" value="0804" />
             <property name="text" value="Invalid campaign XML." />
           </bean>
@@ -64,11 +64,11 @@
     </constructor-arg>
   </bean>
   
-  <bean id="campaignXmlOptionalValidationService" class="edu.ucla.cens.awserver.service.CampaignXmlValidatorService">
+  <bean id="campaignXmlOptionalValidationService" class="org.ohmage.service.CampaignXmlValidatorService">
     <constructor-arg index="0">
-      <bean class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
+      <bean class="org.ohmage.validator.json.FailedJsonRequestAnnotator">
         <constructor-arg index="0">
-          <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
+          <bean class="org.ohmage.domain.ErrorResponse">
             <property name="code" value="0804" />
             <property name="text" value="Invalid campaign XML." />
           </bean>
@@ -86,11 +86,11 @@
     </constructor-arg>
   </bean>
   
-  <bean id="campaignsInListExistAndRequestingUserBelongsOptionalService" class="edu.ucla.cens.awserver.service.GenericAnnotatingDaoService">
+  <bean id="campaignsInListExistAndRequestingUserBelongsOptionalService" class="org.ohmage.service.GenericAnnotatingDaoService">
     <constructor-arg>
-      <bean class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
+      <bean class="org.ohmage.validator.json.FailedJsonRequestAnnotator">
         <constructor-arg index="0">
-          <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
+          <bean class="org.ohmage.domain.ErrorResponse">
             <property name="code" value="0808" />
             <property name="text" value="Campaign in list doesn't exist." />
           </bean>
@@ -98,7 +98,7 @@
       </bean>
     </constructor-arg>
     <constructor-arg>
-      <bean class="edu.ucla.cens.awserver.dao.CampaignListValidationDao">
+      <bean class="org.ohmage.dao.CampaignListValidationDao">
         <constructor-arg index="0">
           <ref bean="dataSource"/>
         </constructor-arg>
@@ -115,11 +115,11 @@
     </constructor-arg>
   </bean>
   
-  <bean id="userIsSupervisorInAllCampaignsInListOptionalService" class="edu.ucla.cens.awserver.service.UserHasRolesInAllCampaignsInListService">
+  <bean id="userIsSupervisorInAllCampaignsInListOptionalService" class="org.ohmage.service.UserHasRolesInAllCampaignsInListService">
     <constructor-arg>
-      <bean class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
+      <bean class="org.ohmage.validator.json.FailedJsonRequestAnnotator">
         <constructor-arg index="0">
-          <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
+          <bean class="org.ohmage.domain.ErrorResponse">
             <property name="code" value="0816" />
             <property name="text" value="User is not a supervisor in all the campaigns in the list." />
           </bean>
@@ -128,7 +128,7 @@
     </constructor-arg>
     <constructor-arg>
       <list>
-        <util:constant static-field="edu.ucla.cens.awserver.cache.CampaignRoleCache.ROLE_SUPERVISOR"/>
+        <util:constant static-field="org.ohmage.cache.CampaignRoleCache.ROLE_SUPERVISOR"/>
       </list>
     </constructor-arg>
     <constructor-arg>

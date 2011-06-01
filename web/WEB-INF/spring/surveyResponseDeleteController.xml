@@ -8,13 +8,13 @@
   
   <!-- Servlet-to-AW hooks -->
   <!-- "pre-validate" inbound data -->
-  <bean id="surveyResponseDeleteHttpServletRequestValidator" class="edu.ucla.cens.awserver.jee.servlet.validator.SurveyResponseDeleteValidator" />
+  <bean id="surveyResponseDeleteHttpServletRequestValidator" class="org.ohmage.jee.servlet.validator.SurveyResponseDeleteValidator" />
   <!-- create AwRequest from data in the HttpServletRequest -->
-  <bean id="surveyResponseDeleteAwRequestCreator" class="edu.ucla.cens.awserver.jee.servlet.glue.SurveyResponseDeleteAwRequestCreator" />
+  <bean id="surveyResponseDeleteAwRequestCreator" class="org.ohmage.jee.servlet.glue.SurveyResponseDeleteAwRequestCreator" />
   <!-- the response writer used is the simple successOrFailResponseWriter -->
   
   <!-- Controller -->
-  <bean id="surveyResponseDeleteController" class="edu.ucla.cens.awserver.controller.ControllerImpl">
+  <bean id="surveyResponseDeleteController" class="org.ohmage.controller.ControllerImpl">
     <constructor-arg index="0">
       <list>
         <!-- authenticate -->
@@ -49,50 +49,50 @@
     <property name="featureName"><value>survey response delete</value></property>
   </bean>
   
-  <bean id="surveyResponseSupervisorDeleteCampaignRunningStateValidationService" class="edu.ucla.cens.awserver.service.CampaignRunningStateUserRoleValidationService">
+  <bean id="surveyResponseSupervisorDeleteCampaignRunningStateValidationService" class="org.ohmage.service.CampaignRunningStateUserRoleValidationService">
    <constructor-arg index="0">
-      <bean class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
+      <bean class="org.ohmage.validator.json.FailedJsonRequestAnnotator">
         <constructor-arg index="0"> 
-          <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
+          <bean class="org.ohmage.domain.ErrorResponse">
             <property name="code" value="0716" />
             <property name="text" value="participants, analysts, or authors cannot delete survey responses in stopped campaigns" />
           </bean>
         </constructor-arg>
       </bean>
     </constructor-arg>
-    <constructor-arg index="1"><util:constant static-field="edu.ucla.cens.awserver.cache.CampaignRunningStateCache.RUNNING_STATE_STOPPED"/></constructor-arg>
+    <constructor-arg index="1"><util:constant static-field="org.ohmage.cache.CampaignRunningStateCache.RUNNING_STATE_STOPPED"/></constructor-arg>
     <constructor-arg index="2">
       <list>
-        <util:constant static-field="edu.ucla.cens.awserver.cache.CampaignRoleCache.ROLE_SUPERVISOR"/>
+        <util:constant static-field="org.ohmage.cache.CampaignRoleCache.ROLE_SUPERVISOR"/>
       </list>
     </constructor-arg>
   </bean>
   
-  <bean id="surveyResponseParticipantDeleteCampaignRunningStateValidationService" class="edu.ucla.cens.awserver.service.CampaignRunningStateUserRoleValidationService">
+  <bean id="surveyResponseParticipantDeleteCampaignRunningStateValidationService" class="org.ohmage.service.CampaignRunningStateUserRoleValidationService">
    <constructor-arg index="0">
-      <bean class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
+      <bean class="org.ohmage.validator.json.FailedJsonRequestAnnotator">
         <constructor-arg index="0"> 
-          <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
+          <bean class="org.ohmage.domain.ErrorResponse">
             <property name="code" value="0716" />
             <property name="text" value="analysts and authors cannot delete survey responses" />
           </bean>
         </constructor-arg>
       </bean>
     </constructor-arg>
-    <constructor-arg index="1"><util:constant static-field="edu.ucla.cens.awserver.cache.CampaignRunningStateCache.RUNNING_STATE_RUNNING"/></constructor-arg>
+    <constructor-arg index="1"><util:constant static-field="org.ohmage.cache.CampaignRunningStateCache.RUNNING_STATE_RUNNING"/></constructor-arg>
     <constructor-arg index="2">
       <list>
-        <util:constant static-field="edu.ucla.cens.awserver.cache.CampaignRoleCache.ROLE_PARTICIPANT"/>
-        <util:constant static-field="edu.ucla.cens.awserver.cache.CampaignRoleCache.ROLE_SUPERVISOR"/>
+        <util:constant static-field="org.ohmage.cache.CampaignRoleCache.ROLE_PARTICIPANT"/>
+        <util:constant static-field="org.ohmage.cache.CampaignRoleCache.ROLE_SUPERVISOR"/>
       </list>
     </constructor-arg>
   </bean>
   
-  <bean id="surveyResponseDeleteService" class="edu.ucla.cens.awserver.service.GenericAnnotatingDaoService">
+  <bean id="surveyResponseDeleteService" class="org.ohmage.service.GenericAnnotatingDaoService">
     <constructor-arg index="0">
-      <bean class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
+      <bean class="org.ohmage.validator.json.FailedJsonRequestAnnotator">
         <constructor-arg index="0"> 
-          <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
+          <bean class="org.ohmage.domain.ErrorResponse">
             <property name="code" value="0103" />
             <property name="text" value="Could not successfully delete a survey response." />
           </bean>
@@ -100,7 +100,7 @@
       </bean>
     </constructor-arg>
     <constructor-arg index="1">
-      <bean class="edu.ucla.cens.awserver.dao.SurveyResponseDeleteDao">
+      <bean class="org.ohmage.dao.SurveyResponseDeleteDao">
         <constructor-arg index="0">
           <ref bean="dataSource"/>
         </constructor-arg>

@@ -8,7 +8,7 @@
   -->
   
   <!-- Basic HTTP Validation -->
-  <bean id="campaignUpdateHttpServletRequestValidator" class="edu.ucla.cens.awserver.jee.servlet.validator.CampaignUpdateValidator">
+  <bean id="campaignUpdateHttpServletRequestValidator" class="org.ohmage.jee.servlet.validator.CampaignUpdateValidator">
     <!-- Read the XML file. -->
     <constructor-arg index="0"><ref bean="diskItemFileFactory" /></constructor-arg>
     <!-- The maximum size in bytes of a request's file attachment. -->
@@ -16,12 +16,12 @@
   </bean>
   
   <!-- Create the AwRequest Object -->
-  <bean id="campaignUpdateAwRequestCreator" class="edu.ucla.cens.awserver.jee.servlet.glue.CampaignUpdateAwRequestCreator" />
+  <bean id="campaignUpdateAwRequestCreator" class="org.ohmage.jee.servlet.glue.CampaignUpdateAwRequestCreator" />
   
   <!-- Write the Response -->
-  <bean id="campaignUpdateResponseWriter" class="edu.ucla.cens.awserver.jee.servlet.writer.CampaignUpdateResponseWriter">
+  <bean id="campaignUpdateResponseWriter" class="org.ohmage.jee.servlet.writer.CampaignUpdateResponseWriter">
     <constructor-arg index="0">
-      <bean id="campaignUpdateErrorResponse" class="edu.ucla.cens.awserver.domain.ErrorResponse">
+      <bean id="campaignUpdateErrorResponse" class="org.ohmage.domain.ErrorResponse">
         <property name="code" value="0815" />
         <property name="text" value="Campaign update failed." />
       </bean>
@@ -29,7 +29,7 @@
   </bean>
   
   <!-- Controller Definition -->
-  <bean id="campaignUpdateController" class="edu.ucla.cens.awserver.controller.ControllerImpl">
+  <bean id="campaignUpdateController" class="org.ohmage.controller.ControllerImpl">
     <constructor-arg index="0">
       <!-- Services List (expected to be executed in-order) -->
       <list>
@@ -79,56 +79,56 @@
   </bean>
   
   <!-- Controller's Beans Definitions -->
-  <bean id="generalCampaignUpdateFailureAnnotator" class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
+  <bean id="generalCampaignUpdateFailureAnnotator" class="org.ohmage.validator.json.FailedJsonRequestAnnotator">
     <constructor-arg index="0">
-      <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
+      <bean class="org.ohmage.domain.ErrorResponse">
         <property name="code" value="0815" />
         <property name="text" value="Campaign update failure." />
       </bean>
     </constructor-arg>
   </bean>
   
-  <bean id="invalidUsernameInRequestAnnotator" class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
+  <bean id="invalidUsernameInRequestAnnotator" class="org.ohmage.validator.json.FailedJsonRequestAnnotator">
     <constructor-arg index="0">
-      <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
+      <bean class="org.ohmage.domain.ErrorResponse">
         <property name="code" value="1300" />
         <property name="text" value="Invalid username in request." />
       </bean>
     </constructor-arg>
   </bean>
  
-  <bean id="invalidRoleInRequestAnnotator" class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
+  <bean id="invalidRoleInRequestAnnotator" class="org.ohmage.validator.json.FailedJsonRequestAnnotator">
     <constructor-arg index="0">
-      <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
+      <bean class="org.ohmage.domain.ErrorResponse">
         <property name="code" value="1400" />
         <property name="text" value="Invalid role in request." />
       </bean>
     </constructor-arg>
   </bean>
   
-  <bean id="duplicateEntryInUserRoleListAnnotator" class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
+  <bean id="duplicateEntryInUserRoleListAnnotator" class="org.ohmage.validator.json.FailedJsonRequestAnnotator">
     <constructor-arg index="0">
-      <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
+      <bean class="org.ohmage.domain.ErrorResponse">
         <property name="code" value="1304" />
         <property name="text" value="Duplicate entry in user-role list." />
       </bean>
     </constructor-arg>
   </bean>
   
-  <bean id="insufficientPermissionsToModifyUsersRoleAnnotator" class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
+  <bean id="insufficientPermissionsToModifyUsersRoleAnnotator" class="org.ohmage.validator.json.FailedJsonRequestAnnotator">
     <constructor-arg index="0">
-      <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
+      <bean class="org.ohmage.domain.ErrorResponse">
         <property name="code" value="1303" />
         <property name="text" value="Insufficient permissions to modify user with the given role." />
       </bean>
     </constructor-arg>
   </bean>
   
-  <bean id="classListOptionalValidator" class="edu.ucla.cens.awserver.validator.ClassListValidator">
+  <bean id="classListOptionalValidator" class="org.ohmage.validator.ClassListValidator">
     <constructor-arg index="0">
-      <bean class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
+      <bean class="org.ohmage.validator.json.FailedJsonRequestAnnotator">
         <constructor-arg index="0">
-          <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
+          <bean class="org.ohmage.domain.ErrorResponse">
             <property name="code" value="1204" />
             <property name="text" value="Invalid initial class list." />
           </bean>
@@ -140,11 +140,11 @@
     </constructor-arg>
   </bean>
   
-  <bean id="campaignXmlOptionalValidator" class="edu.ucla.cens.awserver.validator.CampaignXmlValidator">
+  <bean id="campaignXmlOptionalValidator" class="org.ohmage.validator.CampaignXmlValidator">
     <constructor-arg index="0">
-      <bean class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
+      <bean class="org.ohmage.validator.json.FailedJsonRequestAnnotator">
         <constructor-arg index="0">
-          <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
+          <bean class="org.ohmage.domain.ErrorResponse">
             <property name="code" value="0804" />
             <property name="text" value="Invalid campaign XML." />
           </bean>
@@ -162,11 +162,11 @@
     </constructor-arg>
   </bean>
   
-  <bean id="userCampaignRoleListAddOptionalValidator" class="edu.ucla.cens.awserver.validator.UserRoleListValidator">
+  <bean id="userCampaignRoleListAddOptionalValidator" class="org.ohmage.validator.UserRoleListValidator">
     <constructor-arg>
-      <bean class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
+      <bean class="org.ohmage.validator.json.FailedJsonRequestAnnotator">
         <constructor-arg>
-          <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
+          <bean class="org.ohmage.domain.ErrorResponse">
             <property name="code" value="1601" />
             <property name="text" value="Invalid value for user-role list." />
           </bean>
@@ -177,7 +177,7 @@
       <value>[a-z\.]{9,15}</value>
     </constructor-arg>
     <constructor-arg>
-      <util:constant static-field="edu.ucla.cens.awserver.request.InputKeys.USER_ROLE_LIST_ADD"/>
+      <util:constant static-field="org.ohmage.request.InputKeys.USER_ROLE_LIST_ADD"/>
     </constructor-arg>
     <constructor-arg>
       <ref bean="campaignRoleCache" />
@@ -187,11 +187,11 @@
     </constructor-arg>
   </bean>
   
-  <bean id="userCampaignRoleListRemoveOptionalValidator" class="edu.ucla.cens.awserver.validator.UserRoleListValidator">
+  <bean id="userCampaignRoleListRemoveOptionalValidator" class="org.ohmage.validator.UserRoleListValidator">
     <constructor-arg>
-      <bean class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
+      <bean class="org.ohmage.validator.json.FailedJsonRequestAnnotator">
         <constructor-arg>
-          <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
+          <bean class="org.ohmage.domain.ErrorResponse">
             <property name="code" value="1601" />
             <property name="text" value="Invalid value for user-role list." />
           </bean>
@@ -202,7 +202,7 @@
       <value>[a-z\.]{9,15}</value>
     </constructor-arg>
     <constructor-arg>
-      <util:constant static-field="edu.ucla.cens.awserver.request.InputKeys.USER_ROLE_LIST_REMOVE"/>
+      <util:constant static-field="org.ohmage.request.InputKeys.USER_ROLE_LIST_REMOVE"/>
     </constructor-arg>
     <constructor-arg>
       <ref bean="campaignRoleCache" />
@@ -212,25 +212,25 @@
     </constructor-arg>
   </bean>
   
-  <bean id="noDuplicateUserRolesInListsValidator" class="edu.ucla.cens.awserver.validator.NoDuplicatesInListsValidator">
+  <bean id="noDuplicateUserRolesInListsValidator" class="org.ohmage.validator.NoDuplicatesInListsValidator">
     <constructor-arg index="0">
       <ref bean="duplicateEntryInUserRoleListAnnotator" />
     </constructor-arg>
     <constructor-arg index="1">
       <list>
-        <util:constant static-field="edu.ucla.cens.awserver.request.InputKeys.USER_ROLE_LIST_ADD"/>
-        <util:constant static-field="edu.ucla.cens.awserver.request.InputKeys.USER_ROLE_LIST_REMOVE"/>
+        <util:constant static-field="org.ohmage.request.InputKeys.USER_ROLE_LIST_ADD"/>
+        <util:constant static-field="org.ohmage.request.InputKeys.USER_ROLE_LIST_REMOVE"/>
       </list>
     </constructor-arg>
   </bean>
   
-  <bean id="userRoleListAddOptionalValidationService" class="edu.ucla.cens.awserver.service.UserRoleListValidationService">
+  <bean id="userRoleListAddOptionalValidationService" class="org.ohmage.service.UserRoleListValidationService">
     <constructor-arg index="0">
       <ref bean="userRoleListAddOptionalValidationDao"></ref>
     </constructor-arg>
   </bean>
   
-  <bean id="userRoleListAddOptionalValidationDao" class="edu.ucla.cens.awserver.dao.UserRoleListValidationDao">
+  <bean id="userRoleListAddOptionalValidationDao" class="org.ohmage.dao.UserRoleListValidationDao">
     <constructor-arg index="0">
       <ref bean="dataSource" />
     </constructor-arg>
@@ -244,20 +244,20 @@
       <ref bean="insufficientPermissionsToModifyUsersRoleAnnotator" />
     </constructor-arg>
     <constructor-arg index="4">
-      <util:constant static-field="edu.ucla.cens.awserver.request.InputKeys.USER_ROLE_LIST_ADD"/>
+      <util:constant static-field="org.ohmage.request.InputKeys.USER_ROLE_LIST_ADD"/>
     </constructor-arg>
     <constructor-arg index="5">
       <value>false</value>
     </constructor-arg>
   </bean>
   
-  <bean id="userRoleListRemoveOptionalValidationService" class="edu.ucla.cens.awserver.service.UserRoleListValidationService">
+  <bean id="userRoleListRemoveOptionalValidationService" class="org.ohmage.service.UserRoleListValidationService">
     <constructor-arg index="0">
       <ref bean="userRoleListRemoveOptionalValidationDao"></ref>
     </constructor-arg>
   </bean>
   
-  <bean id="userRoleListRemoveOptionalValidationDao" class="edu.ucla.cens.awserver.dao.UserRoleListValidationDao">
+  <bean id="userRoleListRemoveOptionalValidationDao" class="org.ohmage.dao.UserRoleListValidationDao">
     <constructor-arg index="0">
       <ref bean="dataSource" />
     </constructor-arg>
@@ -271,18 +271,18 @@
       <ref bean="insufficientPermissionsToModifyUsersRoleAnnotator" />
     </constructor-arg>
     <constructor-arg index="4">
-      <util:constant static-field="edu.ucla.cens.awserver.request.InputKeys.USER_ROLE_LIST_REMOVE"/>
+      <util:constant static-field="org.ohmage.request.InputKeys.USER_ROLE_LIST_REMOVE"/>
     </constructor-arg>
     <constructor-arg index="5">
       <value>false</value>
     </constructor-arg>
   </bean>
   
-  <bean id="campaignUpdateService" class="edu.ucla.cens.awserver.service.CampaignUpdateService">
+  <bean id="campaignUpdateService" class="org.ohmage.service.CampaignUpdateService">
     <constructor-arg index="0">
-      <bean class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
+      <bean class="org.ohmage.validator.json.FailedJsonRequestAnnotator">
         <constructor-arg index="0">
-          <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
+          <bean class="org.ohmage.domain.ErrorResponse">
             <property name="code" value="0816" />
             <property name="text" value="Insufficient role to modify campaign properties." />
           </bean>
@@ -290,7 +290,7 @@
       </bean>
     </constructor-arg>
     <constructor-arg index="1">
-      <bean class="edu.ucla.cens.awserver.dao.CampaignUpdateDao">
+      <bean class="org.ohmage.dao.CampaignUpdateDao">
         <constructor-arg index="0">
           <ref bean="dataSource"/>
         </constructor-arg>

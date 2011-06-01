@@ -8,16 +8,16 @@
   
   <!-- Servlet-to-AW hooks -->
   <!-- "pre-validate" inbound data -->
-  <bean id="dataPointQueryHttpServletRequestValidator" class="edu.ucla.cens.awserver.jee.servlet.validator.DataPointQueryValidator" />
+  <bean id="dataPointQueryHttpServletRequestValidator" class="org.ohmage.jee.servlet.validator.DataPointQueryValidator" />
   <!-- create AwRequest from data in the HttpServletRequest -->
-  <bean id="dataPointQueryAwRequestCreator" class="edu.ucla.cens.awserver.jee.servlet.glue.DataPointQueryAwRequestCreator" />
+  <bean id="dataPointQueryAwRequestCreator" class="org.ohmage.jee.servlet.glue.DataPointQueryAwRequestCreator" />
   <!-- write outbound data, post-controller -->
-  <bean id="dataPointQueryResponseWriter" class="edu.ucla.cens.awserver.jee.servlet.writer.DataPointQueryResponseWriter">
+  <bean id="dataPointQueryResponseWriter" class="org.ohmage.jee.servlet.writer.DataPointQueryResponseWriter">
     <constructor-arg index="0"><ref bean="severeErrorResponse" /></constructor-arg>
   </bean>
     
   <!-- Controller -->
-  <bean id="dataPointQueryController" class="edu.ucla.cens.awserver.controller.ControllerImpl">
+  <bean id="dataPointQueryController" class="org.ohmage.controller.ControllerImpl">
     <constructor-arg index="0">
       <list>
         <ref bean="tokenBasedAuthenticationService" />
@@ -43,11 +43,11 @@
     <property name="featureName"><value>data point query</value></property>
   </bean>
   
-  <bean id="queryPromptIdValidationService" class="edu.ucla.cens.awserver.service.QueryPromptIdValidationService">
+  <bean id="queryPromptIdValidationService" class="org.ohmage.service.QueryPromptIdValidationService">
     <constructor-arg index="0">
-      <bean class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
+      <bean class="org.ohmage.validator.json.FailedJsonRequestAnnotator">
         <constructor-arg index="0">
-          <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
+          <bean class="org.ohmage.domain.ErrorResponse">
             <property name="code" value="0703" />
             <property name="text" value="invalid promptId in query" />
           </bean>
@@ -56,11 +56,11 @@
     </constructor-arg>
   </bean>
 
-  <bean id="userRoleCheckService" class="edu.ucla.cens.awserver.service.UserRoleCheckService">
+  <bean id="userRoleCheckService" class="org.ohmage.service.UserRoleCheckService">
     <constructor-arg index="0">
-      <bean class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
+      <bean class="org.ohmage.validator.json.FailedJsonRequestAnnotator">
         <constructor-arg index="0">
-          <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
+          <bean class="org.ohmage.domain.ErrorResponse">
             <property name="code" value="0701" />
             <property name="text" value="invalid user in query" />
           </bean>
@@ -69,13 +69,13 @@
     </constructor-arg>
   </bean>
   
-  <bean id="dataPointQueryService" class="edu.ucla.cens.awserver.service.DataPointQueryService">
+  <bean id="dataPointQueryService" class="org.ohmage.service.DataPointQueryService">
    <constructor-arg index="0">
       <ref bean="dataPointQueryDao" />
     </constructor-arg>
   </bean>
   
-  <bean id="dataPointQueryDao" class="edu.ucla.cens.awserver.dao.DataPointQueryDao">
+  <bean id="dataPointQueryDao" class="org.ohmage.dao.DataPointQueryDao">
     <constructor-arg index="0"><ref bean="dataSource" /></constructor-arg>
   </bean>
   

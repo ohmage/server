@@ -5,15 +5,15 @@
                            http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-2.5.xsd">
 
   <!-- Basic HTTP Validation -->
-  <bean id="documentReadContentsHttpServletRequestValidator" class="edu.ucla.cens.awserver.jee.servlet.validator.DocumentReadContentsValidator" />
+  <bean id="documentReadContentsHttpServletRequestValidator" class="org.ohmage.jee.servlet.validator.DocumentReadContentsValidator" />
   
   <!-- Create the AwRequest Object -->
-  <bean id="documentReadContentsAwRequestCreator" class="edu.ucla.cens.awserver.jee.servlet.glue.DocumentReadContentsAwRequestCreator" />
+  <bean id="documentReadContentsAwRequestCreator" class="org.ohmage.jee.servlet.glue.DocumentReadContentsAwRequestCreator" />
   
   <!-- Write the Response -->
-  <bean id="documentReadContentsResponseWriter" class="edu.ucla.cens.awserver.jee.servlet.writer.DocumentReadContentsResponseWriter">
+  <bean id="documentReadContentsResponseWriter" class="org.ohmage.jee.servlet.writer.DocumentReadContentsResponseWriter">
     <constructor-arg>
-      <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
+      <bean class="org.ohmage.domain.ErrorResponse">
         <property name="code" value="1500" />
         <property name="text" value="General document read error." />
       </bean>
@@ -21,7 +21,7 @@
   </bean>
   
   <!-- Controller Definition -->
-  <bean id="documentReadContentsController" class="edu.ucla.cens.awserver.controller.ControllerImpl">
+  <bean id="documentReadContentsController" class="org.ohmage.controller.ControllerImpl">
     <constructor-arg>
       <!-- Services List (expected to be executed in-order) -->
       <list>
@@ -54,12 +54,12 @@
   </bean>
   
   <!-- Service to Delete a Document -->
-  <bean id="documentReadContentsService" class="edu.ucla.cens.awserver.service.GenericAnnotatingDaoService">
+  <bean id="documentReadContentsService" class="org.ohmage.service.GenericAnnotatingDaoService">
     <constructor-arg>
       <ref bean="documentManipulationError" />
     </constructor-arg>
     <constructor-arg>
-      <bean class="edu.ucla.cens.awserver.dao.DocumentReadContentsDao">
+      <bean class="org.ohmage.dao.DocumentReadContentsDao">
         <constructor-arg>
           <ref bean="dataSource" />
         </constructor-arg>

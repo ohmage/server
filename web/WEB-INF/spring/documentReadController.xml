@@ -5,15 +5,15 @@
                            http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-2.5.xsd">
 
   <!-- Basic HTTP Validation -->
-  <bean id="documentReadHttpServletRequestValidator" class="edu.ucla.cens.awserver.jee.servlet.validator.DocumentReadValidator" />
+  <bean id="documentReadHttpServletRequestValidator" class="org.ohmage.jee.servlet.validator.DocumentReadValidator" />
   
   <!-- Create the AwRequest Object -->
-  <bean id="documentReadAwRequestCreator" class="edu.ucla.cens.awserver.jee.servlet.glue.DocumentReadAwRequestCreator" />
+  <bean id="documentReadAwRequestCreator" class="org.ohmage.jee.servlet.glue.DocumentReadAwRequestCreator" />
   
   <!-- Write the Response -->
-  <bean id="documentReadResponseWriter" class="edu.ucla.cens.awserver.jee.servlet.writer.DocumentReadResponseWriter">
+  <bean id="documentReadResponseWriter" class="org.ohmage.jee.servlet.writer.DocumentReadResponseWriter">
     <constructor-arg>
-      <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
+      <bean class="org.ohmage.domain.ErrorResponse">
         <property name="code" value="1500" />
         <property name="text" value="General document read error." />
       </bean>
@@ -21,7 +21,7 @@
   </bean>
   
   <!-- Controller Definition -->
-  <bean id="documentReadController" class="edu.ucla.cens.awserver.controller.ControllerImpl">
+  <bean id="documentReadController" class="org.ohmage.controller.ControllerImpl">
     <constructor-arg>
       <!-- Services List (expected to be executed in-order) -->
       <list>
@@ -69,14 +69,14 @@
     <property name="featureName"><value>document read document</value></property>
   </bean>
   
-  <bean id="documentReadResponseBuilderService" class="edu.ucla.cens.awserver.service.DocumentReadResponseBuilderService">
+  <bean id="documentReadResponseBuilderService" class="org.ohmage.service.DocumentReadResponseBuilderService">
     <constructor-arg>
-      <bean class="edu.ucla.cens.awserver.dao.DocumentInformationAggregationDao">
+      <bean class="org.ohmage.dao.DocumentInformationAggregationDao">
         <constructor-arg>
           <ref bean="dataSource" />
         </constructor-arg>
         <constructor-arg>
-          <util:constant static-field="edu.ucla.cens.awserver.service.DocumentIdAggregationService.KEY_DOCUMENT_ID_AGGREGATION_SERVICE_RESULT"/>
+          <util:constant static-field="org.ohmage.service.DocumentIdAggregationService.KEY_DOCUMENT_ID_AGGREGATION_SERVICE_RESULT"/>
         </constructor-arg>
       </bean>
     </constructor-arg>

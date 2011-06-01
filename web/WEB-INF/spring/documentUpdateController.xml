@@ -5,7 +5,7 @@
                            http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-2.5.xsd">
 
   <!-- Basic HTTP Validation -->
-  <bean id="documentUpdateHttpServletRequestValidator" class="edu.ucla.cens.awserver.jee.servlet.validator.DocumentUpdateValidator">
+  <bean id="documentUpdateHttpServletRequestValidator" class="org.ohmage.jee.servlet.validator.DocumentUpdateValidator">
     <!-- Read the XML file. -->
     <constructor-arg>
       <ref bean="diskItemFileFactory" />
@@ -13,12 +13,12 @@
   </bean>
   
   <!-- Create the AwRequest Object -->
-  <bean id="documentUpdateAwRequestCreator" class="edu.ucla.cens.awserver.jee.servlet.glue.DocumentUpdateRequestCreator" />
+  <bean id="documentUpdateAwRequestCreator" class="org.ohmage.jee.servlet.glue.DocumentUpdateRequestCreator" />
   
   <!-- Write the Response -->
-  <bean id="documentUpdateResponseWriter" class="edu.ucla.cens.awserver.jee.servlet.writer.SuccessOrFailResponseWriter">
+  <bean id="documentUpdateResponseWriter" class="org.ohmage.jee.servlet.writer.SuccessOrFailResponseWriter">
     <constructor-arg>
-      <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
+      <bean class="org.ohmage.domain.ErrorResponse">
         <property name="code" value="1500" />
         <property name="text" value="General document update error." />
       </bean>
@@ -26,7 +26,7 @@
   </bean>
 
   <!-- Controller Definition -->
-  <bean id="documentUpdateController" class="edu.ucla.cens.awserver.controller.ControllerImpl">
+  <bean id="documentUpdateController" class="org.ohmage.controller.ControllerImpl">
     <constructor-arg index="0">
       <!-- Services List (expected to be executed in-order) -->
       <list>
@@ -97,11 +97,11 @@
     <property name="featureName"><value>document creation</value></property>
   </bean>
   
-  <bean id="documentUpdateService" class="edu.ucla.cens.awserver.service.GenericAnnotatingDaoService">
+  <bean id="documentUpdateService" class="org.ohmage.service.GenericAnnotatingDaoService">
     <constructor-arg>
-      <bean class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
+      <bean class="org.ohmage.validator.json.FailedJsonRequestAnnotator">
         <constructor-arg index="0">
-          <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
+          <bean class="org.ohmage.domain.ErrorResponse">
             <property name="code" value="1500" />
             <property name="text" value="General document update error." />
           </bean>
@@ -109,7 +109,7 @@
       </bean>
     </constructor-arg>
     <constructor-arg>
-      <bean class="edu.ucla.cens.awserver.dao.DocumentUpdateDao">
+      <bean class="org.ohmage.dao.DocumentUpdateDao">
         <constructor-arg>
           <ref bean="dataSource" />
         </constructor-arg>

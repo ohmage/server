@@ -8,7 +8,7 @@
   -->
 
   <!-- Basic HTTP Validation -->
-  <bean id="campaignCreationHttpServletRequestValidator" class="edu.ucla.cens.awserver.jee.servlet.validator.CampaignCreationValidator">
+  <bean id="campaignCreationHttpServletRequestValidator" class="org.ohmage.jee.servlet.validator.CampaignCreationValidator">
     <!-- Read the XML file. -->
     <constructor-arg index="0"><ref bean="diskItemFileFactory" /></constructor-arg>
     <!-- The maximum size in bytes of a request's file attachment. -->
@@ -16,12 +16,12 @@
   </bean>
   
   <!-- Create the AwRequest Object -->
-  <bean id="campaignCreationAwRequestCreator" class="edu.ucla.cens.awserver.jee.servlet.glue.CampaignCreationAwRequestCreator" />
+  <bean id="campaignCreationAwRequestCreator" class="org.ohmage.jee.servlet.glue.CampaignCreationAwRequestCreator" />
   
   <!-- Write the Response -->
-  <bean id="campaignCreationResponseWriter" class="edu.ucla.cens.awserver.jee.servlet.writer.CampaignCreationResponseWriter">
+  <bean id="campaignCreationResponseWriter" class="org.ohmage.jee.servlet.writer.CampaignCreationResponseWriter">
     <constructor-arg index="0">
-      <bean id="campaignCreationErrorResponse" class="edu.ucla.cens.awserver.domain.ErrorResponse">
+      <bean id="campaignCreationErrorResponse" class="org.ohmage.domain.ErrorResponse">
         <property name="code" value="0801" />
         <property name="text" value="Campaign creation failed." />
       </bean>
@@ -29,7 +29,7 @@
   </bean>
   
   <!-- Controller Definition -->
-  <bean id="campaignCreationController" class="edu.ucla.cens.awserver.controller.ControllerImpl">
+  <bean id="campaignCreationController" class="org.ohmage.controller.ControllerImpl">
     <constructor-arg index="0">
       <!-- Services List (expected to be executed in-order) -->
       <list>
@@ -60,11 +60,11 @@
   </bean>
   
   <!-- Controller's Beans Definitions -->  
-  <bean id="classListRequiredValidator" class="edu.ucla.cens.awserver.validator.ClassListValidator">
+  <bean id="classListRequiredValidator" class="org.ohmage.validator.ClassListValidator">
     <constructor-arg index="0">
-      <bean class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
+      <bean class="org.ohmage.validator.json.FailedJsonRequestAnnotator">
         <constructor-arg index="0">
-          <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
+          <bean class="org.ohmage.domain.ErrorResponse">
             <property name="code" value="1204" />
             <property name="text" value="Invalid initial class list." />
           </bean>
@@ -76,11 +76,11 @@
     </constructor-arg>
   </bean>
   
-  <bean id="campaignXmlRequiredValidator" class="edu.ucla.cens.awserver.validator.CampaignXmlValidator">
+  <bean id="campaignXmlRequiredValidator" class="org.ohmage.validator.CampaignXmlValidator">
     <constructor-arg index="0">
-      <bean class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
+      <bean class="org.ohmage.validator.json.FailedJsonRequestAnnotator">
         <constructor-arg index="0">
-          <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
+          <bean class="org.ohmage.domain.ErrorResponse">
             <property name="code" value="0804" />
             <property name="text" value="Invalid campaign XML." />
           </bean>
@@ -96,11 +96,11 @@
     </constructor-arg>
   </bean>
   
-  <bean id="userCanCreateCampaignsValidationService" class="edu.ucla.cens.awserver.service.UserCanCreateCampaignsValidationService">
+  <bean id="userCanCreateCampaignsValidationService" class="org.ohmage.service.UserCanCreateCampaignsValidationService">
     <constructor-arg index="0">
-      <bean class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
+      <bean class="org.ohmage.validator.json.FailedJsonRequestAnnotator">
         <constructor-arg index="0">
-          <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
+          <bean class="org.ohmage.domain.ErrorResponse">
             <property name="code" value="0204" />
             <property name="text" value="Insufficient permissions to create a campaign." />
           </bean>
@@ -108,7 +108,7 @@
       </bean>
     </constructor-arg>
     <constructor-arg index="1">
-      <bean class="edu.ucla.cens.awserver.dao.UserCanCreateCampaignsValidationDao">
+      <bean class="org.ohmage.dao.UserCanCreateCampaignsValidationDao">
         <constructor-arg index="0">
           <ref bean="dataSource"/>
         </constructor-arg>
@@ -116,11 +116,11 @@
     </constructor-arg>
   </bean>
   
-  <bean id="classesInListExistOptionalService" class="edu.ucla.cens.awserver.service.GenericAnnotatingDaoService">
+  <bean id="classesInListExistOptionalService" class="org.ohmage.service.GenericAnnotatingDaoService">
     <constructor-arg>
-      <bean class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
+      <bean class="org.ohmage.validator.json.FailedJsonRequestAnnotator">
         <constructor-arg index="0">
-          <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
+          <bean class="org.ohmage.domain.ErrorResponse">
             <property name="code" value="1205" />
             <property name="text" value="A class in the class list is unknown to the user. It could not exist in the system or the user could not have permissions to access it." />
           </bean>
@@ -128,7 +128,7 @@
       </bean>
     </constructor-arg>
     <constructor-arg>
-      <bean class="edu.ucla.cens.awserver.dao.ClassListValidationDao">
+      <bean class="org.ohmage.dao.ClassListValidationDao">
         <constructor-arg index="0">
           <ref bean="dataSource"/>
         </constructor-arg>
@@ -145,11 +145,11 @@
     </constructor-arg>
   </bean>
   
-  <bean id="campaignAlreadyExistsValidationService" class="edu.ucla.cens.awserver.service.CampaignAlreadyExistsValidationService">
+  <bean id="campaignAlreadyExistsValidationService" class="org.ohmage.service.CampaignAlreadyExistsValidationService">
     <constructor-arg index="0">
-      <bean class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
+      <bean class="org.ohmage.validator.json.FailedJsonRequestAnnotator">
         <constructor-arg index="0">
-          <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
+          <bean class="org.ohmage.domain.ErrorResponse">
             <property name="code" value="0804" />
             <property name="text" value="Campaign already exists." />
           </bean>
@@ -157,7 +157,7 @@
       </bean>
     </constructor-arg>
     <constructor-arg index="1">
-      <bean class="edu.ucla.cens.awserver.dao.CampaignAlreadyExistsValidationDao">
+      <bean class="org.ohmage.dao.CampaignAlreadyExistsValidationDao">
         <constructor-arg index="0">
           <ref bean="dataSource"/>
         </constructor-arg>
@@ -165,9 +165,9 @@
     </constructor-arg>
   </bean>
   
-  <bean id="campaignCreationService" class="edu.ucla.cens.awserver.service.SimpleQueryService">
+  <bean id="campaignCreationService" class="org.ohmage.service.SimpleQueryService">
     <constructor-arg index="0">
-      <bean class="edu.ucla.cens.awserver.dao.CampaignCreationDao">
+      <bean class="org.ohmage.dao.CampaignCreationDao">
         <constructor-arg index="0">
           <ref bean="dataSource"/>
         </constructor-arg>

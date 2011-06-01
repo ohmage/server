@@ -5,7 +5,7 @@
                            http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-2.5.xsd">
 
   <!-- Services for documents -->  
-  <bean id="campaignUrnsInDocumentRoleListExistOptionalService" class="edu.ucla.cens.awserver.service.UrnsInUrnRoleListExistService">
+  <bean id="campaignUrnsInDocumentRoleListExistOptionalService" class="org.ohmage.service.UrnsInUrnRoleListExistService">
     <constructor-arg>
       <ref bean="campaignNotFoundError" />
     </constructor-arg>
@@ -13,17 +13,17 @@
       <ref bean="campaignFromKeyExistsRequiredDao" />
     </constructor-arg>
     <constructor-arg>
-      <util:constant static-field="edu.ucla.cens.awserver.request.InputKeys.DOCUMENT_CAMPAIGN_ROLE_LIST" />
+      <util:constant static-field="org.ohmage.request.InputKeys.DOCUMENT_CAMPAIGN_ROLE_LIST" />
     </constructor-arg>
     <constructor-arg>
-      <util:constant static-field="edu.ucla.cens.awserver.dao.CampaignFromKeyExistsDao.KEY_CAMPAIGN_EXISTS_DAO"/>
+      <util:constant static-field="org.ohmage.dao.CampaignFromKeyExistsDao.KEY_CAMPAIGN_EXISTS_DAO"/>
     </constructor-arg>
     <constructor-arg>
       <value>false</value>
     </constructor-arg>
   </bean>
   
-  <bean id="classUrnsInDocumentRoleListExistOptionalService" class="edu.ucla.cens.awserver.service.UrnsInUrnRoleListExistService">
+  <bean id="classUrnsInDocumentRoleListExistOptionalService" class="org.ohmage.service.UrnsInUrnRoleListExistService">
     <constructor-arg>
       <ref bean="classNotFoundError" />
     </constructor-arg>
@@ -31,70 +31,70 @@
       <ref bean="classFromKeyExistsRequiredDao" />
     </constructor-arg>
     <constructor-arg>
-      <util:constant static-field="edu.ucla.cens.awserver.request.InputKeys.DOCUMENT_CLASS_ROLE_LIST" />
+      <util:constant static-field="org.ohmage.request.InputKeys.DOCUMENT_CLASS_ROLE_LIST" />
     </constructor-arg>
     <constructor-arg>
-      <util:constant static-field="edu.ucla.cens.awserver.dao.ClassFromKeyExistsDao.KEY_CLASS_EXISTS_DAO"/>
+      <util:constant static-field="org.ohmage.dao.ClassFromKeyExistsDao.KEY_CLASS_EXISTS_DAO"/>
     </constructor-arg>
     <constructor-arg>
       <value>false</value>
     </constructor-arg>
   </bean>
   
-  <bean id="userCanAssociateDocumentsWithCampaignsInCampaignRoleListOptionalService" class="edu.ucla.cens.awserver.service.UserCanAssociateDocumentsWithCampaignsInCampaignRoleListService">
+  <bean id="userCanAssociateDocumentsWithCampaignsInCampaignRoleListOptionalService" class="org.ohmage.service.UserCanAssociateDocumentsWithCampaignsInCampaignRoleListService">
     <constructor-arg>
       <ref bean="insufficientPermissionsToAssociateDocumentWithCampaignError" />
     </constructor-arg>
     <constructor-arg>
-      <util:constant static-field="edu.ucla.cens.awserver.request.InputKeys.DOCUMENT_CAMPAIGN_ROLE_LIST"/>
+      <util:constant static-field="org.ohmage.request.InputKeys.DOCUMENT_CAMPAIGN_ROLE_LIST"/>
     </constructor-arg>
     <constructor-arg>
       <value>false</value>
     </constructor-arg>
   </bean>
   
-  <bean id="userCanAssociateDocumentsWithCampaignsInCampaignRoleAddListOptionalService" class="edu.ucla.cens.awserver.service.UserCanAssociateDocumentsWithCampaignsInCampaignRoleListService">
+  <bean id="userCanAssociateDocumentsWithCampaignsInCampaignRoleAddListOptionalService" class="org.ohmage.service.UserCanAssociateDocumentsWithCampaignsInCampaignRoleListService">
     <constructor-arg>
       <ref bean="insufficientPermissionsToAssociateDocumentWithCampaignError" />
     </constructor-arg>
     <constructor-arg>
-      <util:constant static-field="edu.ucla.cens.awserver.request.InputKeys.CAMPAIGN_ROLE_LIST_ADD"/>
+      <util:constant static-field="org.ohmage.request.InputKeys.CAMPAIGN_ROLE_LIST_ADD"/>
     </constructor-arg>
     <constructor-arg>
       <value>false</value>
     </constructor-arg>
   </bean>
   
-  <bean id="userCanAssociateDocumentsWithClassesInClassRoleListOptionalService" class="edu.ucla.cens.awserver.service.UserCanAssoicateDocumentsWithClassesInClassRoleListService">
+  <bean id="userCanAssociateDocumentsWithClassesInClassRoleListOptionalService" class="org.ohmage.service.UserCanAssoicateDocumentsWithClassesInClassRoleListService">
     <constructor-arg>
       <ref bean="insufficientPermissionsToAssociateDocumentWithClassError" />
     </constructor-arg>
     <constructor-arg>
-      <util:constant static-field="edu.ucla.cens.awserver.request.InputKeys.DOCUMENT_CLASS_ROLE_LIST"/>
+      <util:constant static-field="org.ohmage.request.InputKeys.DOCUMENT_CLASS_ROLE_LIST"/>
     </constructor-arg>
     <constructor-arg>
       <value>false</value>
     </constructor-arg>
   </bean>
   
-  <bean id="userCanAssociateDocumentsWithClassesInClassRoleListAddOptionalService" class="edu.ucla.cens.awserver.service.UserCanAssoicateDocumentsWithClassesInClassRoleListService">
+  <bean id="userCanAssociateDocumentsWithClassesInClassRoleListAddOptionalService" class="org.ohmage.service.UserCanAssoicateDocumentsWithClassesInClassRoleListService">
     <constructor-arg>
       <ref bean="insufficientPermissionsToAssociateDocumentWithClassError" />
     </constructor-arg>
     <constructor-arg>
-      <util:constant static-field="edu.ucla.cens.awserver.request.InputKeys.CLASS_ROLE_LIST_ADD"/>
+      <util:constant static-field="org.ohmage.request.InputKeys.CLASS_ROLE_LIST_ADD"/>
     </constructor-arg>
     <constructor-arg>
       <value>false</value>
     </constructor-arg>
   </bean>
   
-  <bean id="documentExistsService" class="edu.ucla.cens.awserver.service.GenericAnnotatingDaoService">
+  <bean id="documentExistsService" class="org.ohmage.service.GenericAnnotatingDaoService">
     <constructor-arg>
       <ref bean="documentDoesntExistError" />
     </constructor-arg>
     <constructor-arg>
-      <bean class="edu.ucla.cens.awserver.dao.DocumentExistsDao">
+      <bean class="org.ohmage.dao.DocumentExistsDao">
         <constructor-arg>
           <ref bean="dataSource"/>
         </constructor-arg>
@@ -111,18 +111,18 @@
     </constructor-arg>
   </bean>
 
-  <bean id="userCanDeleteDocumentService" class="edu.ucla.cens.awserver.service.UserHasPermissionForDocumentService">
+  <bean id="userCanDeleteDocumentService" class="org.ohmage.service.UserHasPermissionForDocumentService">
     <constructor-arg>
       <ref bean="insufficientPermissionsToDeleteDocumentError" />
     </constructor-arg>
     <constructor-arg>
-      <bean class="edu.ucla.cens.awserver.dao.FindAllDocumentsForRequestingUserWithRolesDao">
+      <bean class="org.ohmage.dao.FindAllDocumentsForRequestingUserWithRolesDao">
         <constructor-arg>
           <ref bean="dataSource"/>
         </constructor-arg>
         <constructor-arg>
           <list>
-            <util:constant static-field="edu.ucla.cens.awserver.cache.DocumentRoleCache.ROLE_OWNER"/>
+            <util:constant static-field="org.ohmage.cache.DocumentRoleCache.ROLE_OWNER"/>
           </list>
         </constructor-arg>
       </bean>
@@ -132,11 +132,11 @@
     </constructor-arg>
   </bean>
   
-  <bean id="userCanModifyDocumentService" class="edu.ucla.cens.awserver.service.UserHasPermissionForDocumentService">
+  <bean id="userCanModifyDocumentService" class="org.ohmage.service.UserHasPermissionForDocumentService">
     <constructor-arg>
-      <bean class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
+      <bean class="org.ohmage.validator.json.FailedJsonRequestAnnotator">
         <constructor-arg index="0">
-          <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
+          <bean class="org.ohmage.domain.ErrorResponse">
             <property name="code" value="1514" />
             <property name="text" value="Insufficient permissions to modify the document." />
           </bean>
@@ -144,14 +144,14 @@
       </bean>
     </constructor-arg>
     <constructor-arg>
-      <bean class="edu.ucla.cens.awserver.dao.FindAllDocumentsForRequestingUserWithRolesDao">
+      <bean class="org.ohmage.dao.FindAllDocumentsForRequestingUserWithRolesDao">
         <constructor-arg>
           <ref bean="dataSource"/>
         </constructor-arg>
         <constructor-arg>
           <list>
-            <util:constant static-field="edu.ucla.cens.awserver.cache.DocumentRoleCache.ROLE_OWNER"/>
-            <util:constant static-field="edu.ucla.cens.awserver.cache.DocumentRoleCache.ROLE_WRITER"/>
+            <util:constant static-field="org.ohmage.cache.DocumentRoleCache.ROLE_OWNER"/>
+            <util:constant static-field="org.ohmage.cache.DocumentRoleCache.ROLE_WRITER"/>
           </list>
         </constructor-arg>
       </bean>
@@ -161,20 +161,20 @@
     </constructor-arg>
   </bean>
   
-  <bean id="userCanReadDocumentService" class="edu.ucla.cens.awserver.service.UserHasPermissionForDocumentService">
+  <bean id="userCanReadDocumentService" class="org.ohmage.service.UserHasPermissionForDocumentService">
     <constructor-arg>
       <ref bean="insufficientPermissionsToReadDocumentError" />
     </constructor-arg>
     <constructor-arg>
-      <bean class="edu.ucla.cens.awserver.dao.FindAllDocumentsForRequestingUserWithRolesDao">
+      <bean class="org.ohmage.dao.FindAllDocumentsForRequestingUserWithRolesDao">
         <constructor-arg>
           <ref bean="dataSource"/>
         </constructor-arg>
         <constructor-arg>
           <list>
-            <util:constant static-field="edu.ucla.cens.awserver.cache.DocumentRoleCache.ROLE_OWNER"/>
-            <util:constant static-field="edu.ucla.cens.awserver.cache.DocumentRoleCache.ROLE_WRITER"/>
-            <util:constant static-field="edu.ucla.cens.awserver.cache.DocumentRoleCache.ROLE_READER"/>
+            <util:constant static-field="org.ohmage.cache.DocumentRoleCache.ROLE_OWNER"/>
+            <util:constant static-field="org.ohmage.cache.DocumentRoleCache.ROLE_WRITER"/>
+            <util:constant static-field="org.ohmage.cache.DocumentRoleCache.ROLE_READER"/>
           </list>
         </constructor-arg>
       </bean>
@@ -184,7 +184,7 @@
     </constructor-arg>
   </bean>
   
-  <bean id="documentIdAggregationSpecificToRequestingUserRequiredService" class="edu.ucla.cens.awserver.service.DocumentIdAggregationForRequestingUserService">
+  <bean id="documentIdAggregationSpecificToRequestingUserRequiredService" class="org.ohmage.service.DocumentIdAggregationForRequestingUserService">
     <constructor-arg>
       <ref bean="documentIdsSpecificToRequestingUserDao" />
     </constructor-arg>
@@ -193,35 +193,35 @@
     </constructor-arg>
   </bean>
   
-  <bean id="documentIdAggregationFromCampaignListOptionalService" class="edu.ucla.cens.awserver.service.DocumentIdAggregationService">
+  <bean id="documentIdAggregationFromCampaignListOptionalService" class="org.ohmage.service.DocumentIdAggregationService">
     <constructor-arg>
       <ref bean="documentIdsFromCampaignListForRequestingUserDao" />
     </constructor-arg>
     <constructor-arg>
-      <util:constant static-field="edu.ucla.cens.awserver.request.InputKeys.CAMPAIGN_URN_LIST"/>
+      <util:constant static-field="org.ohmage.request.InputKeys.CAMPAIGN_URN_LIST"/>
     </constructor-arg>
     <constructor-arg>
       <value>false</value>
     </constructor-arg>
   </bean>
   
-  <bean id="documentIdAggregationFromClassListOptionalService" class="edu.ucla.cens.awserver.service.DocumentIdAggregationService">
+  <bean id="documentIdAggregationFromClassListOptionalService" class="org.ohmage.service.DocumentIdAggregationService">
     <constructor-arg>
       <ref bean="documentIdsFromClassListForRequestingUserDao" />
     </constructor-arg>
     <constructor-arg>
-      <util:constant static-field="edu.ucla.cens.awserver.request.InputKeys.CLASS_URN_LIST"/>
+      <util:constant static-field="org.ohmage.request.InputKeys.CLASS_URN_LIST"/>
     </constructor-arg>
     <constructor-arg>
       <value>false</value>
     </constructor-arg>
   </bean>
   
-  <bean id="documentBelongsToCampaignsInListService" class="edu.ucla.cens.awserver.service.ResultsFromDaoContainAllItemsInListService">
+  <bean id="documentBelongsToCampaignsInListService" class="org.ohmage.service.ResultsFromDaoContainAllItemsInListService">
     <constructor-arg>
-      <bean class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
+      <bean class="org.ohmage.validator.json.FailedJsonRequestAnnotator">
         <constructor-arg index="0">
-          <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
+          <bean class="org.ohmage.domain.ErrorResponse">
             <property name="code" value="1515" />
             <property name="text" value="Document doesn't belong to a campaign in the campaign list to remove." />
           </bean>
@@ -229,14 +229,14 @@
       </bean>
     </constructor-arg>
     <constructor-arg>
-      <bean class="edu.ucla.cens.awserver.dao.FindAllCampaignsToWhichDocumentBelongsDao">
+      <bean class="org.ohmage.dao.FindAllCampaignsToWhichDocumentBelongsDao">
         <constructor-arg>
           <ref bean="dataSource" />
         </constructor-arg>
       </bean>
     </constructor-arg>
     <constructor-arg>
-      <util:constant static-field="edu.ucla.cens.awserver.request.InputKeys.CAMPAIGN_LIST_REMOVE"/>
+      <util:constant static-field="org.ohmage.request.InputKeys.CAMPAIGN_LIST_REMOVE"/>
     </constructor-arg>
     <constructor-arg>
       <value>Validating that all of the campaigns in the campaign list to remove are associated with this document.</value>
@@ -249,11 +249,11 @@
     </constructor-arg>
   </bean>
   
-  <bean id="documentBelongsToClassesInListService" class="edu.ucla.cens.awserver.service.ResultsFromDaoContainAllItemsInListService">
+  <bean id="documentBelongsToClassesInListService" class="org.ohmage.service.ResultsFromDaoContainAllItemsInListService">
     <constructor-arg>
-      <bean class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
+      <bean class="org.ohmage.validator.json.FailedJsonRequestAnnotator">
         <constructor-arg index="0">
-          <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
+          <bean class="org.ohmage.domain.ErrorResponse">
             <property name="code" value="1515" />
             <property name="text" value="Document doesn't belong to a class in the class list to remove." />
           </bean>
@@ -261,14 +261,14 @@
       </bean>
     </constructor-arg>
     <constructor-arg>
-      <bean class="edu.ucla.cens.awserver.dao.FindAllClassesToWhichDocumentBelongsDao">
+      <bean class="org.ohmage.dao.FindAllClassesToWhichDocumentBelongsDao">
         <constructor-arg>
           <ref bean="dataSource" />
         </constructor-arg>
       </bean>
     </constructor-arg>
     <constructor-arg>
-      <util:constant static-field="edu.ucla.cens.awserver.request.InputKeys.CLASS_LIST_REMOVE"/>
+      <util:constant static-field="org.ohmage.request.InputKeys.CLASS_LIST_REMOVE"/>
     </constructor-arg>
     <constructor-arg>
       <value>Validating that all of the classes in the class list to remove are associated with this document.</value>
@@ -281,11 +281,11 @@
     </constructor-arg>
   </bean>
   
-  <bean id="documentBelongsToDirectUsersInListService" class="edu.ucla.cens.awserver.service.ResultsFromDaoContainAllItemsInListService">
+  <bean id="documentBelongsToDirectUsersInListService" class="org.ohmage.service.ResultsFromDaoContainAllItemsInListService">
     <constructor-arg>
-      <bean class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
+      <bean class="org.ohmage.validator.json.FailedJsonRequestAnnotator">
         <constructor-arg index="0">
-          <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
+          <bean class="org.ohmage.domain.ErrorResponse">
             <property name="code" value="1515" />
             <property name="text" value="Document doesn't directly belong to a user in the user list to remove." />
           </bean>
@@ -293,14 +293,14 @@
       </bean>
     </constructor-arg>
     <constructor-arg>
-      <bean class="edu.ucla.cens.awserver.dao.FindAllDirectUsersToWhichDocumentBelongsDao">
+      <bean class="org.ohmage.dao.FindAllDirectUsersToWhichDocumentBelongsDao">
         <constructor-arg>
           <ref bean="dataSource" />
         </constructor-arg>
       </bean>
     </constructor-arg>
     <constructor-arg>
-      <util:constant static-field="edu.ucla.cens.awserver.request.InputKeys.USER_LIST_REMOVE"/>
+      <util:constant static-field="org.ohmage.request.InputKeys.USER_LIST_REMOVE"/>
     </constructor-arg>
     <constructor-arg>
       <value>Validating that all of the users in the user list to remove are associated with this document.</value>
@@ -314,41 +314,41 @@
   </bean>
   
   <!-- DAOs Pertaining to Documents -->
-  <bean id="documentIdsSpecificToRequestingUserDao" class="edu.ucla.cens.awserver.dao.FindAllDocumentsSpecificToRequestingUserWithRolesDao">
+  <bean id="documentIdsSpecificToRequestingUserDao" class="org.ohmage.dao.FindAllDocumentsSpecificToRequestingUserWithRolesDao">
     <constructor-arg>
       <ref bean="dataSource" />
     </constructor-arg>
     <constructor-arg>
       <list>
-        <util:constant static-field="edu.ucla.cens.awserver.cache.DocumentRoleCache.ROLE_READER"/>
-        <util:constant static-field="edu.ucla.cens.awserver.cache.DocumentRoleCache.ROLE_WRITER"/>
-        <util:constant static-field="edu.ucla.cens.awserver.cache.DocumentRoleCache.ROLE_OWNER"/>
+        <util:constant static-field="org.ohmage.cache.DocumentRoleCache.ROLE_READER"/>
+        <util:constant static-field="org.ohmage.cache.DocumentRoleCache.ROLE_WRITER"/>
+        <util:constant static-field="org.ohmage.cache.DocumentRoleCache.ROLE_OWNER"/>
       </list>
     </constructor-arg>
   </bean>
   
-  <bean id="documentIdsFromCampaignListForRequestingUserDao" class="edu.ucla.cens.awserver.dao.FindAllDocumentsForRequestingUserFromCampaignListWithRolesDao">
+  <bean id="documentIdsFromCampaignListForRequestingUserDao" class="org.ohmage.dao.FindAllDocumentsForRequestingUserFromCampaignListWithRolesDao">
     <constructor-arg>
       <ref bean="dataSource" />
     </constructor-arg>
     <constructor-arg>
       <list>
-        <util:constant static-field="edu.ucla.cens.awserver.cache.DocumentRoleCache.ROLE_READER"/>
-        <util:constant static-field="edu.ucla.cens.awserver.cache.DocumentRoleCache.ROLE_WRITER"/>
-        <util:constant static-field="edu.ucla.cens.awserver.cache.DocumentRoleCache.ROLE_OWNER"/>
+        <util:constant static-field="org.ohmage.cache.DocumentRoleCache.ROLE_READER"/>
+        <util:constant static-field="org.ohmage.cache.DocumentRoleCache.ROLE_WRITER"/>
+        <util:constant static-field="org.ohmage.cache.DocumentRoleCache.ROLE_OWNER"/>
       </list>
     </constructor-arg>
   </bean>
   
-  <bean id="documentIdsFromClassListForRequestingUserDao" class="edu.ucla.cens.awserver.dao.FindAllDocumentsForRequestingUserFromClassListWithRolesDao">
+  <bean id="documentIdsFromClassListForRequestingUserDao" class="org.ohmage.dao.FindAllDocumentsForRequestingUserFromClassListWithRolesDao">
     <constructor-arg>
       <ref bean="dataSource" />
     </constructor-arg>
     <constructor-arg>
       <list>
-        <util:constant static-field="edu.ucla.cens.awserver.cache.DocumentRoleCache.ROLE_READER"/>
-        <util:constant static-field="edu.ucla.cens.awserver.cache.DocumentRoleCache.ROLE_WRITER"/>
-        <util:constant static-field="edu.ucla.cens.awserver.cache.DocumentRoleCache.ROLE_OWNER"/>
+        <util:constant static-field="org.ohmage.cache.DocumentRoleCache.ROLE_READER"/>
+        <util:constant static-field="org.ohmage.cache.DocumentRoleCache.ROLE_WRITER"/>
+        <util:constant static-field="org.ohmage.cache.DocumentRoleCache.ROLE_OWNER"/>
       </list>
     </constructor-arg>
   </bean>

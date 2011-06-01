@@ -3,104 +3,104 @@
        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
                            http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-2.5.xsd">
   
-  <bean id="clearTextPasswordValidator" class="edu.ucla.cens.awserver.validator.AwRequestPasswordValidator">
+  <bean id="clearTextPasswordValidator" class="org.ohmage.validator.AwRequestPasswordValidator">
     <constructor-arg index="0"><value>[a-z\.]{9,15}</value></constructor-arg>
     <constructor-arg index="1"><ref bean="passwordFailedJsonRequestAnnotator" /></constructor-arg>
   </bean>
   
-  <bean id="userNameValidator" class="edu.ucla.cens.awserver.validator.AwRequestUserNameValidator">
+  <bean id="userNameValidator" class="org.ohmage.validator.AwRequestUserNameValidator">
     <constructor-arg index="0"><value>[a-z\.]{9,15}</value></constructor-arg>
     <constructor-arg index="1"><ref bean="userNameFailedJsonRequestAnnotator" /></constructor-arg>
   </bean>
   
-  <bean id="hashedPasswordValidator" class="edu.ucla.cens.awserver.validator.AwRequestPasswordValidator">
+  <bean id="hashedPasswordValidator" class="org.ohmage.validator.AwRequestPasswordValidator">
     <constructor-arg index="0"><value>[\w\.\$\/]{50,60}</value></constructor-arg>
     <constructor-arg index="1"><ref bean="passwordFailedJsonRequestAnnotator" /></constructor-arg>
   </bean>
   
-  <bean id="newPasswordValidator" class="edu.ucla.cens.awserver.validator.NewPasswordValidator">
+  <bean id="newPasswordValidator" class="org.ohmage.validator.NewPasswordValidator">
     <constructor-arg index="0"><value>[a-z\.]{9,15}</value></constructor-arg>
     <constructor-arg index="1"><ref bean="invalidNewPassword" /></constructor-arg>
   </bean>
   
-  <bean id="passwordValidator" class="edu.ucla.cens.awserver.validator.AwRequestPasswordValidator">
+  <bean id="passwordValidator" class="org.ohmage.validator.AwRequestPasswordValidator">
     <constructor-arg index="0"><value>[a-z\.]{9,15}</value></constructor-arg>
     <constructor-arg index="1"><ref bean="passwordFailedJsonRequestAnnotator" /></constructor-arg>
   </bean>
 
-  <bean id="userTokenValidator" class="edu.ucla.cens.awserver.validator.AwRequestUserTokenValidator">
+  <bean id="userTokenValidator" class="org.ohmage.validator.AwRequestUserTokenValidator">
     <constructor-arg index="0"><value>[a-fA-F0-9]{8}\-[a-fA-F0-9]{4}\-[a-fA-F0-9]{4}\-[a-fA-F0-9]{4}\-[a-fA-F0-9]{12}</value></constructor-arg>
     <constructor-arg index="1"><ref bean="userNameFailedJsonRequestAnnotator" /></constructor-arg>
   </bean>
   
-  <bean id="userNameFailedJsonRequestAnnotator" class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
+  <bean id="userNameFailedJsonRequestAnnotator" class="org.ohmage.validator.json.FailedJsonRequestAnnotator">
     <constructor-arg index="0">
-      <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
+      <bean class="org.ohmage.domain.ErrorResponse">
         <property name="code" value="0200" />
         <property name="text" value="authentication failed" />
       </bean>
     </constructor-arg>
   </bean>
   
-  <bean id="passwordFailedJsonRequestAnnotator" class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
+  <bean id="passwordFailedJsonRequestAnnotator" class="org.ohmage.validator.json.FailedJsonRequestAnnotator">
     <constructor-arg index="0">
-      <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
+      <bean class="org.ohmage.domain.ErrorResponse">
         <property name="code" value="0200" />
         <property name="text" value="authentication failed" />
       </bean>
     </constructor-arg>
   </bean>
   
-  <bean id="invalidNewPassword" class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
+  <bean id="invalidNewPassword" class="org.ohmage.validator.json.FailedJsonRequestAnnotator">
     <constructor-arg index="0">
-      <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
+      <bean class="org.ohmage.domain.ErrorResponse">
         <property name="code" value="0207" />
         <property name="text" value="Invalid new password" />
       </bean>
     </constructor-arg>
   </bean>
   
-  <bean id="uploadClientFailedJsonRequestAnnotator" class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
+  <bean id="uploadClientFailedJsonRequestAnnotator" class="org.ohmage.validator.json.FailedJsonRequestAnnotator">
     <constructor-arg index="0">
-      <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
+      <bean class="org.ohmage.domain.ErrorResponse">
         <property name="code" value="0302" />
         <property name="text" value="missing or invalid client" />
       </bean>
     </constructor-arg>
   </bean>
   
-  <bean id="uploadJsonDataFailedJsonRequestAnnotator" class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
+  <bean id="uploadJsonDataFailedJsonRequestAnnotator" class="org.ohmage.validator.json.FailedJsonRequestAnnotator">
     <constructor-arg index="0">
-     <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
+     <bean class="org.ohmage.domain.ErrorResponse">
         <property name="code" value="0300" />
         <property name="text" value="missing json data" />
       </bean>
      </constructor-arg>
   </bean>
   
-  <bean id="uploadCampaignIdFailedJsonRequestAnnotator" class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
+  <bean id="uploadCampaignIdFailedJsonRequestAnnotator" class="org.ohmage.validator.json.FailedJsonRequestAnnotator">
     <constructor-arg index="0">
-      <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
+      <bean class="org.ohmage.domain.ErrorResponse">
         <property name="code" value="0304" />
         <property name="text" value="invalid campaign id" />
       </bean>
     </constructor-arg>
   </bean>
 
-  <bean id="severeErrorJsonRequestAnnotator" class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
+  <bean id="severeErrorJsonRequestAnnotator" class="org.ohmage.validator.json.FailedJsonRequestAnnotator">
     <constructor-arg index="0"><ref bean="severeErrorResponse" /></constructor-arg>
   </bean>
   
-  <bean id="severeErrorResponse" class="edu.ucla.cens.awserver.domain.ErrorResponse">
+  <bean id="severeErrorResponse" class="org.ohmage.domain.ErrorResponse">
     <property name="code" value="0103" />
     <property name="text" value="a general error occurred" />
   </bean>
   
-  <bean id="startDateInMapValidator" class="edu.ucla.cens.awserver.validator.DateInMapValidator">
+  <bean id="startDateInMapValidator" class="org.ohmage.validator.DateInMapValidator">
     <constructor-arg index="0">
-      <bean class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
+      <bean class="org.ohmage.validator.json.FailedJsonRequestAnnotator">
         <constructor-arg index="0">
-          <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
+          <bean class="org.ohmage.domain.ErrorResponse">
             <property name="code" value="0700" />
             <property name="text" value="invalid start date" />
           </bean>
@@ -121,11 +121,11 @@
     </property>
   </bean>   
 
-  <bean id="endDateInMapValidator" class="edu.ucla.cens.awserver.validator.DateInMapValidator">
+  <bean id="endDateInMapValidator" class="org.ohmage.validator.DateInMapValidator">
     <constructor-arg index="0">
-      <bean class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
+      <bean class="org.ohmage.validator.json.FailedJsonRequestAnnotator">
         <constructor-arg index="0">
-          <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
+          <bean class="org.ohmage.domain.ErrorResponse">
             <property name="code" value="0700" />
             <property name="text" value="invalid end date" />
           </bean>
@@ -146,11 +146,11 @@
     </property>
   </bean>
   
-    <bean id="requiredStartDateValidator" class="edu.ucla.cens.awserver.validator.DateValidator">
+    <bean id="requiredStartDateValidator" class="org.ohmage.validator.DateValidator">
     <constructor-arg index="0">
-      <bean class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
+      <bean class="org.ohmage.validator.json.FailedJsonRequestAnnotator">
         <constructor-arg index="0">
-          <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
+          <bean class="org.ohmage.domain.ErrorResponse">
             <property name="code" value="0700" />
             <property name="text" value="invalid start date" />
           </bean>
@@ -171,11 +171,11 @@
     </property>
   </bean>	
 
-  <bean id="requiredEndDateValidator" class="edu.ucla.cens.awserver.validator.DateValidator">
+  <bean id="requiredEndDateValidator" class="org.ohmage.validator.DateValidator">
     <constructor-arg index="0">
-      <bean class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
+      <bean class="org.ohmage.validator.json.FailedJsonRequestAnnotator">
         <constructor-arg index="0">
-          <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
+          <bean class="org.ohmage.domain.ErrorResponse">
             <property name="code" value="0700" />
             <property name="text" value="invalid end date" />
           </bean>
@@ -196,11 +196,11 @@
     </property>
   </bean>
   
-    <bean id="optionalStartDateValidator" class="edu.ucla.cens.awserver.validator.DateValidator">
+    <bean id="optionalStartDateValidator" class="org.ohmage.validator.DateValidator">
     <constructor-arg index="0">
-      <bean class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
+      <bean class="org.ohmage.validator.json.FailedJsonRequestAnnotator">
         <constructor-arg index="0">
-          <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
+          <bean class="org.ohmage.domain.ErrorResponse">
             <property name="code" value="0700" />
             <property name="text" value="invalid start date" />
           </bean>
@@ -221,11 +221,11 @@
     </property>
   </bean>	
 
-  <bean id="optionalEndDateValidator" class="edu.ucla.cens.awserver.validator.DateValidator">
+  <bean id="optionalEndDateValidator" class="org.ohmage.validator.DateValidator">
     <constructor-arg index="0">
-      <bean class="edu.ucla.cens.awserver.validator.json.FailedJsonRequestAnnotator">
+      <bean class="org.ohmage.validator.json.FailedJsonRequestAnnotator">
         <constructor-arg index="0">
-          <bean class="edu.ucla.cens.awserver.domain.ErrorResponse">
+          <bean class="org.ohmage.domain.ErrorResponse">
             <property name="code" value="0700" />
             <property name="text" value="invalid end date" />
           </bean>
