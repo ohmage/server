@@ -61,13 +61,13 @@ public class MobilityClassificationService implements Service {
 						Double n95Variance = c.getN95Variance();
 						Double variance = c.getVariance();
 						List<Double> fft = c.getFft();
-						List<Double> n95Fft = c.getN95Fft();
+						// List<Double> n95Fft = c.getN95Fft();
 						
 						o.put("average", average);
 						o.put("variance", variance);
 						o.put("N95Variance", n95Variance);
 						o.put("fft", fft);
-						o.put("N95Fft", n95Fft);
+						// o.put("N95Fft", n95Fft);
 							
 					} else {
 						

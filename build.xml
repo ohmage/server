@@ -22,7 +22,7 @@
   	<include name="**/json-dot-org-2010-01-05.jar"/>
   	<include name="**/jbcrypt-0.3.jar"/>
   	<include name="**/xom-1.2.6.jar"/>
-  	<include name="**/mobility-classifier-1.0.jar"/>
+  	<include name="**/mobility-classifier-1.1.jar"/>
   	<include name="**/andwellness-config-validator-2.3.jar"/>
   </fileset>
 
@@ -39,7 +39,7 @@
   	<include name="**/json-dot-org-2010-01-05.jar"/>
   	<include name="**/jbcrypt-0.3.jar"/>
   	<include name="**/xom-1.2.6.jar"/>
-  	<include name="**/mobility-classifier-1.0.jar"/>
+  	<include name="**/mobility-classifier-1.1.jar"/>
   	<include name="**/andwellness-config-validator-2.3.jar"/>
   </fileset>
 
