@@ -247,11 +247,11 @@
       <value>location_status</value>
     </constructor-arg>
     <constructor-arg index="2">
-      <ref bean="locationStatuses" />
+      <ref bean="surveyLocationStatuses" />
     </constructor-arg>
   </bean>
   
-   <util:list id="locationStatuses">
+   <util:list id="surveyLocationStatuses">
     <value>unavailable</value>
     <value>valid</value>
     <value>inaccurate</value>
