@@ -38,7 +38,7 @@ import org.springframework.jdbc.core.SingleColumnRowMapper;
  * @author John Jenkins
  */
 public class FindAllDocumentsForRequestingUserFromCampaignListWithRolesDao extends AbstractDao {
-	public static Logger _logger = Logger.getLogger(FindAllDocumentsForRequestingUserFromCampaignListWithRolesDao.class);
+	private static Logger _logger = Logger.getLogger(FindAllDocumentsForRequestingUserFromCampaignListWithRolesDao.class);
 	
 	private static final String SQL_GET_DOCUMENTS_SPECIFIC_TO_CAMPAIGN_FOR_REQUESTING_USER = 
 		"SELECT distinct(d.uuid) " +
@@ -56,11 +56,11 @@ public class FindAllDocumentsForRequestingUserFromCampaignListWithRolesDao exten
 		"AND (" +
 			"(d.privacy_state_id = dps.id " +
 			"AND dps.privacy_state = '" + DocumentPrivacyStateCache.PRIVACY_STATE_SHARED + "' " +
-			"AND " +
+			"AND (" +
 				"(ur.role = '" + CampaignRoleCache.ROLE_ANALYST + "')" +
 				" OR " +
 				"(ur.role = '" + CampaignRoleCache.ROLE_AUTHOR + "')" +
-			")" +
+			"))" +
 			" OR " +
 			"(ur.role = '" + CampaignRoleCache.ROLE_SUPERVISOR + "')" +
 		")";
