@@ -2,7 +2,7 @@
 
 # The one parameter should be the .tar.gz that this build will be built from.
 if [ $# != 2 ]; then
-    echo "Usage: $0 <aw2.3 tarball with full path> <mobilize | andwellness | chipts>";
+    echo "Usage: $0 <Ohmage tarball with full path> <mobilize | andwellness | chipts>";
     exit;
 elif [ ! -d /opt/aw ]; then
     echo "/opt/aw/ must exist and be a directory even if it is empty.";
@@ -39,18 +39,13 @@ echo Emptying /opt/aw and putting backup into /opt/aw.
 rm -rf /opt/aw/*
 mv $BACKUP /opt/aw/
 
-echo Unzipping the AndWellness tarball.
+echo Unzipping the server tarball.
 
 # Unzip and untar the folder into /opt/aw
-cp $1 /opt/aw/AndWellness.tar.gz
+cp $1 /opt/aw/Ohmage.tar.gz
 cd /opt/aw
-tar xf AndWellness.tar.gz
-rm AndWellness.tar.gz
-
-echo Unzipping the directory structure.
-
-# Unzip and untar the local file structure.
-tar -xf aw*.tar.gz
+tar xf Ohmage.tar.gz
+rm Ohmage.tar.gz
 
 echo Starting the database.
 
@@ -87,7 +82,7 @@ echo Initializing the database.
 /opt/aw/thirdparty/mysql-5.1.40-osx10.5-x86_64/bin/mysql --user=andwellness --password=\&\!sickly -h localhost -P 3306 -S /opt/aw/dbs/logs/dbsd.sock andwellness </opt/aw/dbs/conf/document_privacy_states.sql
 /opt/aw/thirdparty/mysql-5.1.40-osx10.5-x86_64/bin/mysql --user=andwellness --password=\&\!sickly -h localhost -P 3306 -S /opt/aw/dbs/logs/dbsd.sock andwellness </opt/aw/dbs/conf/document_roles.sql
 
-if [$2 == chipts]; then
+if [ $2 == chipts ]; then
 	/opt/aw/thirdparty/mysql-5.1.40-osx10.5-x86_64/bin/mysql --user=andwellness --password=\&\!sickly -h localhost -P 3306 -S /opt/aw/dbs/logs/dbsd.sock andwellness </opt/aw/dbs/conf/survey_response_privacy_states-chipts.sql
 else
 	/opt/aw/thirdparty/mysql-5.1.40-osx10.5-x86_64/bin/mysql --user=andwellness --password=\&\!sickly -h localhost -P 3306 -S /opt/aw/dbs/logs/dbsd.sock andwellness </opt/aw/dbs/conf/survey_response_privacy_states.sql
@@ -95,18 +90,13 @@ fi
 
 /opt/aw/thirdparty/mysql-5.1.40-osx10.5-x86_64/bin/mysql --user=andwellness --password=\&\!sickly -h localhost -P 3306 -S /opt/aw/dbs/logs/dbsd.sock andwellness </opt/aw/dbs/conf/preferences.sql
 
-if [$2 == mobilize]; then
+if [ $2 == mobilize ]; then
 	/opt/aw/thirdparty/mysql-5.1.40-osx10.5-x86_64/bin/mysql --user=andwellness --password=\&\!sickly -h localhost -P 3306 -S /opt/aw/dbs/logs/dbsd.sock andwellness </opt/aw/dbs/conf/mobilize_preferences.sql
-elif [$2 == chipts]; then
+elif [ $2 == chipts ]; then
         /opt/aw/thirdparty/mysql-5.1.40-osx10.5-x86_64/bin/mysql --user=andwellness --password=\&\!sickly -h localhost -P 3306 -S /opt/aw/dbs/logs/dbsd.sock andwellness </opt/aw/dbs/conf/chipts_preferences.sql
 else
 	/opt/aw/thirdparty/mysql-5.1.40-osx10.5-x86_64/bin/mysql --user=andwellness --password=\&\!sickly -h localhost -P 3306 -S /opt/aw/dbs/logs/dbsd.sock andwellness </opt/aw/dbs/conf/andwellness_preferences.sql
 fi
-
-echo Installing the web app.
-
-# Install the webapps
-cp /opt/aw/*war /opt/aw/as/webapps
 
 echo Starting Tomcat.
 
