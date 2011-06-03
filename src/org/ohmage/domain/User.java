@@ -270,11 +270,6 @@ public class User {
 			return false;
 		if (_loggedIn != other._loggedIn)
 			return false;
-		if (_password == null) {
-			if (other._password != null)
-				return false;
-		} else if (!_password.equals(other._password))
-			return false;
 		if (_userName == null) {
 			if (other._userName != null)
 				return false;

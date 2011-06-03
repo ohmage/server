@@ -461,9 +461,9 @@ public class CampaignUpdateDao extends AbstractDao {
 		}
 		
 		// Handle each user-role pair individually.
-		String[] userRoleArray = userRoleList.split(",");
+		String[] userRoleArray = userRoleList.split(InputKeys.LIST_ITEM_SEPARATOR);
 		for(int i = 0; i < userRoleArray.length; i++) {
-			String[] userAndRole = userRoleArray[i].split(":");
+			String[] userAndRole = userRoleArray[i].split(InputKeys.ENTITY_ROLE_SEPARATOR);
 			
 			// Get the user's ID for this particular pair.
 			int userId;
@@ -533,7 +533,7 @@ public class CampaignUpdateDao extends AbstractDao {
 		// The new list of classes.
 		String[] newClassList;
 		try {
-			newClassList = ((String) awRequest.getToProcessValue(InputKeys.CLASS_URN_LIST)).split(",");
+			newClassList = ((String) awRequest.getToProcessValue(InputKeys.CLASS_URN_LIST)).split(InputKeys.LIST_ITEM_SEPARATOR);
 		}
 		catch(IllegalArgumentException e) {
 			// There were no classes in the request.

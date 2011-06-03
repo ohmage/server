@@ -52,21 +52,37 @@ public class DocumentCreationAwRequest extends ResultListAwRequest {
 		if(StringUtils.isEmptyOrWhitespaceOnly(name)) {
 			throw new IllegalArgumentException("The document's name cannot be null or blank.");
 		}
-		else if(StringUtils.isEmptyOrWhitespaceOnly(document)) {
+		else {
+			addToValidate(InputKeys.DOCUMENT_NAME, name, true);
+		}
+		
+		if(StringUtils.isEmptyOrWhitespaceOnly(document)) {
 			throw new IllegalArgumentException("The document cannot be null or blank.");
 		}
-		else if(StringUtils.isEmptyOrWhitespaceOnly(privacyState)) {
+		else {
+			addToValidate(InputKeys.DOCUMENT, document, true);
+		}
+		
+		if(StringUtils.isEmptyOrWhitespaceOnly(privacyState)) {
 			throw new IllegalArgumentException("The document's initial privacy state cannot be null or blank.");
 		}
-		else if(StringUtils.isEmptyOrWhitespaceOnly(campaignUrnRoleList) && StringUtils.isEmptyOrWhitespaceOnly(classUrnRoleList)) {
+		else {
+			addToValidate(InputKeys.PRIVACY_STATE, privacyState, true);
+		}
+		
+		if(StringUtils.isEmptyOrWhitespaceOnly(campaignUrnRoleList) && StringUtils.isEmptyOrWhitespaceOnly(classUrnRoleList)) {
 			throw new IllegalArgumentException("The request must contain a list of campaigns and their roles, a list of classes and their roles, or both.");
 		}
 		
-		addToValidate(InputKeys.DOCUMENT_NAME, name, true);
-		addToValidate(InputKeys.DOCUMENT, document, true);
-		addToValidate(InputKeys.PRIVACY_STATE, privacyState, true);
-		addToValidate(InputKeys.DESCRIPTION, description, true);
-		addToValidate(InputKeys.DOCUMENT_CAMPAIGN_ROLE_LIST, campaignUrnRoleList, true);
-		addToValidate(InputKeys.DOCUMENT_CLASS_ROLE_LIST, classUrnRoleList, true);
+		if(! StringUtils.isEmptyOrWhitespaceOnly(campaignUrnRoleList)) {
+			addToValidate(InputKeys.DOCUMENT_CAMPAIGN_ROLE_LIST, campaignUrnRoleList, true);
+		}
+		if(! StringUtils.isEmptyOrWhitespaceOnly(classUrnRoleList)) {
+			addToValidate(InputKeys.DOCUMENT_CLASS_ROLE_LIST, classUrnRoleList, true);
+		}
+		
+		if(! StringUtils.isEmptyOrWhitespaceOnly(description)) {
+			addToValidate(InputKeys.DESCRIPTION, description, true);
+		}
 	}
 }
