@@ -23,6 +23,8 @@ import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 
 import org.apache.log4j.Logger;
+import org.ohmage.request.InputKeys;
+import org.ohmage.util.CookieUtils;
 
 /**
  * @author selsky
@@ -32,8 +34,7 @@ public class CampaignReadValidator extends AbstractHttpServletRequestValidator {
 	private List<String> _parameterList;
 	
 	public CampaignReadValidator() {
-		_parameterList = new ArrayList<String>(Arrays.asList(new String[]{"auth_token",
-		 		                                                          "client",
+		_parameterList = new ArrayList<String>(Arrays.asList(new String[]{"client",
 		 		                                                          "output_format", 
 		 		                                                          "campaign_urn_list",
 		 		                                                          "start_date",
@@ -48,8 +49,8 @@ public class CampaignReadValidator extends AbstractHttpServletRequestValidator {
 	}
 	
 	@Override
-	public boolean validate(HttpServletRequest httpServletRequest) {
-		Map<String, String[]> parameterMap = getParameterMap(httpServletRequest);
+	public boolean validate(HttpServletRequest httpRequest) throws MissingAuthTokenException {
+		Map<String, String[]> parameterMap = getParameterMap(httpRequest);
 		
 		// check for parameters with unknown names
 		if(containsUnknownParameter(parameterMap, _parameterList)) {
@@ -62,31 +63,45 @@ public class CampaignReadValidator extends AbstractHttpServletRequestValidator {
 		}
 		
 		// Make sure required parameters exist
-		String client = httpServletRequest.getParameter("client");
+		String client = httpRequest.getParameter("client");
 		if(null == client) {
 			_logger.info("missing client parameter in request");
 			return false;
 		}
-		String outputFormat = httpServletRequest.getParameter("output_format");
+		String outputFormat = httpRequest.getParameter("output_format");
 		if(null == outputFormat) {
 			_logger.info("missing output_format parameter in request");
 			return false;
 		}
 		
 		// perform sanity check on the optional params anyway
-		String authToken = httpServletRequest.getParameter("auth_token");
-		String user = httpServletRequest.getParameter("user");
-		String password = httpServletRequest.getParameter("password");
-		String campaignUrnList = httpServletRequest.getParameter("campaign_urn_list");
-		String startDate = httpServletRequest.getParameter("start_date");
-		String endDate = httpServletRequest.getParameter("end_date");
-		String privacyState = httpServletRequest.getParameter("privacy_state");
-		String runningState = httpServletRequest.getParameter("running_state");
-		String userRole = httpServletRequest.getParameter("user_role");
-		String classUrnList = httpServletRequest.getParameter("class_urn_list");
+		String user = httpRequest.getParameter("user");
+		String password = httpRequest.getParameter("password");
+		String campaignUrnList = httpRequest.getParameter("campaign_urn_list");
+		String startDate = httpRequest.getParameter("start_date");
+		String endDate = httpRequest.getParameter("end_date");
+		String privacyState = httpRequest.getParameter("privacy_state");
+		String runningState = httpRequest.getParameter("running_state");
+		String userRole = httpRequest.getParameter("user_role");
+		String classUrnList = httpRequest.getParameter("class_urn_list");
+		
+		// Get the authentication / session token from the header.
+		List<String> tokens = CookieUtils.getCookieValue(httpRequest.getCookies(), InputKeys.AUTH_TOKEN);
+		if(tokens.size() == 0) {
+			// Possible if user and password aren't null.
+			if((user == null) || (password == null)) {
+				if(_logger.isDebugEnabled()) {
+					_logger.debug("Missing authentication.");
+				}
+				
+				throw new MissingAuthTokenException("The required authentication / session token is missing.");
+			}
+		}
+		else if(tokens.size() > 1) {
+			throw new MissingAuthTokenException("More than one authentication / session token was found in the request.");
+		}
  		
-		if(greaterThanLength("auth token", "auth_token", authToken, 36)
-		   || greaterThanLength("client", "client", client, 250)
+		if(greaterThanLength("client", "client", client, 250)
 		   || greaterThanLength("output format", "output_format", outputFormat, 6)
 		   || greaterThanLength("campaign URN list", "cammpaign_urn_list", campaignUrnList, 2550) // max of 10 URNs (our db column 
 		                                                                                          // restriction is 255 chars)
@@ -97,7 +112,7 @@ public class CampaignReadValidator extends AbstractHttpServletRequestValidator {
 		   || greaterThanLength("password", "password", password, 100)
 		   || greaterThanLength("running state", "running_state", runningState, 7)
 		   || greaterThanLength("user role", "user_role", userRole, 11)
-		   || greaterThanLength("class URN list", "class_urn_list", classUrnList, 2550) // max of 10 URNs as above for cmapaignUrnList
+		   || greaterThanLength("class URN list", "class_urn_list", classUrnList, 2550) // max of 10 URNs as above for campaignUrnList
 		) {
 			_logger.warn("found an input parameter that exceeds its allowed length");
 			return false;

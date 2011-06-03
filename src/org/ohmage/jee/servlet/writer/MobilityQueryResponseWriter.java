@@ -31,6 +31,8 @@ import org.ohmage.domain.ChunkedMobilityQueryResult;
 import org.ohmage.domain.ErrorResponse;
 import org.ohmage.domain.MobilityQueryResult;
 import org.ohmage.request.AwRequest;
+import org.ohmage.request.InputKeys;
+import org.ohmage.util.CookieUtils;
 import org.ohmage.util.DateUtils;
 
 
@@ -99,7 +101,8 @@ public class MobilityQueryResponseWriter extends AbstractResponseWriter {
 					resultArray.put(entry);
 				}
 				
-				rootObject.put("data", resultArray);				
+				rootObject.put("data", resultArray);
+				CookieUtils.setCookieValue(response, InputKeys.AUTH_TOKEN, awRequest.getUserToken(), AUTH_TOKEN_COOKIE_LIFETIME_IN_SECONDS);
 				responseText = rootObject.toString();
 				
 			} else {

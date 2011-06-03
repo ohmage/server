@@ -36,6 +36,9 @@ import org.ohmage.domain.ErrorResponse;
  */
 public abstract class AbstractResponseWriter implements ResponseWriter {
 	private static Logger _logger = Logger.getLogger(AbstractResponseWriter.class);
+	
+	public static final int AUTH_TOKEN_COOKIE_LIFETIME_IN_SECONDS = 1800;
+	
 	private ErrorResponse _errorResponse;
 	private String _successJson;
 	
@@ -54,7 +57,7 @@ public abstract class AbstractResponseWriter implements ResponseWriter {
 	/**
 	 * Sets the response headers to disallow client caching.
 	 */
-	protected void expireResponse(HttpServletResponse response) {
+	public static void expireResponse(HttpServletResponse response) {
 		response.setHeader("Expires", "Fri, 5 May 1995 12:00:00 GMT");
         response.setHeader("Cache-Control", "no-store, no-cache, must-revalidate");
         response.setHeader("Pragma", "no-cache");
@@ -69,7 +72,7 @@ public abstract class AbstractResponseWriter implements ResponseWriter {
 	 * 
 	 * @return an OutputStream appropriate for the headers found in the request.
 	 */
-	protected OutputStream getOutputStream(HttpServletRequest request, HttpServletResponse response) 
+	public static OutputStream getOutputStream(HttpServletRequest request, HttpServletResponse response) 
 		throws IOException {
 		
 		OutputStream os = null; 

@@ -29,7 +29,9 @@ import org.json.JSONObject;
 import org.ohmage.domain.ErrorResponse;
 import org.ohmage.domain.UserStatsQueryResult;
 import org.ohmage.request.AwRequest;
+import org.ohmage.request.InputKeys;
 import org.ohmage.request.UserStatsQueryAwRequest;
+import org.ohmage.util.CookieUtils;
 
 
 /**
@@ -94,6 +96,7 @@ public class UserStatsQueryResponseWriter extends AbstractResponseWriter {
 				}
 				
 				jsonObject.put("stats", outerArray);
+				CookieUtils.setCookieValue(response, InputKeys.AUTH_TOKEN, awRequest.getUserToken(), AUTH_TOKEN_COOKIE_LIFETIME_IN_SECONDS);
 				responseText = jsonObject.toString();
 				
 			} else {

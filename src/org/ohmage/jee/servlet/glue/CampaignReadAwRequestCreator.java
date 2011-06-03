@@ -15,6 +15,8 @@
  ******************************************************************************/
 package org.ohmage.jee.servlet.glue;
 
+import java.util.List;
+
 import javax.servlet.http.HttpServletRequest;
 
 import org.apache.log4j.NDC;
@@ -22,6 +24,7 @@ import org.ohmage.domain.User;
 import org.ohmage.request.AwRequest;
 import org.ohmage.request.CampaignReadAwRequest;
 import org.ohmage.request.InputKeys;
+import org.ohmage.util.CookieUtils;
 
 
 /**
@@ -33,29 +36,30 @@ public class CampaignReadAwRequestCreator implements AwRequestCreator {
 		
 	}
 	
-	public AwRequest createFrom(HttpServletRequest request) {
+	public AwRequest createFrom(HttpServletRequest httpRequest) {
 		// required
-		String client = request.getParameter("client");
-		String outputFormat = request.getParameter("output_format");
+		String client = httpRequest.getParameter("client");
+		String outputFormat = httpRequest.getParameter("output_format");
 		
 		// optional
-		String userToken = request.getParameter("auth_token");
-		String userName = request.getParameter("user");
-		String password = request.getParameter("password");
-		String campaignUrnListAsString = request.getParameter("campaign_urn_list");
-		String startDate = request.getParameter("start_date");
-		String endDate = request.getParameter("end_date");
-		String privacyState = request.getParameter("privacy_state");
-		String runningState = request.getParameter("running_state");
-		String userRole = request.getParameter("user_role");
-		String classUrnListAsString = request.getParameter("class_urn_list");
+		List<String> tokens = CookieUtils.getCookieValue(httpRequest.getCookies(), InputKeys.AUTH_TOKEN);
+		String token = (tokens.size() == 1) ? tokens.get(0) : null;
+		String userName = httpRequest.getParameter("user");
+		String password = httpRequest.getParameter("password");
+		String campaignUrnListAsString = httpRequest.getParameter("campaign_urn_list");
+		String startDate = httpRequest.getParameter("start_date");
+		String endDate = httpRequest.getParameter("end_date");
+		String privacyState = httpRequest.getParameter("privacy_state");
+		String runningState = httpRequest.getParameter("running_state");
+		String userRole = httpRequest.getParameter("user_role");
+		String classUrnListAsString = httpRequest.getParameter("class_urn_list");
 		 
 		NDC.push("client=" + client); // push the client string into the Log4J NDC for the currently executing thread - this means that it
 		                              // will be in every log message for the thread
 		
 		CampaignReadAwRequest awRequest = new CampaignReadAwRequest();
 		awRequest.setClient(client);
-		awRequest.setUserToken(userToken);
+		awRequest.setUserToken(token);
 		awRequest.setOutputFormat(outputFormat);
 		awRequest.setCampaignUrnListAsString(campaignUrnListAsString);
 		awRequest.setStartDate(startDate);

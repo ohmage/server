@@ -20,6 +20,8 @@ import javax.servlet.http.HttpServletRequest;
 import org.apache.log4j.NDC;
 import org.ohmage.request.AwRequest;
 import org.ohmage.request.DataPointQueryAwRequest;
+import org.ohmage.request.InputKeys;
+import org.ohmage.util.CookieUtils;
 
 
 /**
@@ -36,21 +38,21 @@ public class DataPointQueryAwRequestCreator implements AwRequestCreator {
 	/**
 	 * 
 	 */
-	public AwRequest createFrom(HttpServletRequest request) {
+	public AwRequest createFrom(HttpServletRequest httpRequest) {
 
-		String startDate = request.getParameter("start_date");
-		String endDate = request.getParameter("end_date");
-		String userNameRequestParam = request.getParameter("user");
-		String client = request.getParameter("client");
-		String campaignUrn = request.getParameter("campaign_urn");
-		String authToken = request.getParameter("auth_token");
-		String[] dataPointIds = request.getParameterValues("prompt_id");  
+		String startDate = httpRequest.getParameter("start_date");
+		String endDate = httpRequest.getParameter("end_date");
+		String userNameRequestParam = httpRequest.getParameter("user");
+		String client = httpRequest.getParameter("client");
+		String campaignUrn = httpRequest.getParameter("campaign_urn");
+		String token = CookieUtils.getCookieValue(httpRequest.getCookies(), InputKeys.AUTH_TOKEN).get(0);
+		String[] dataPointIds = httpRequest.getParameterValues("prompt_id");  
 		
 		DataPointQueryAwRequest awRequest = new DataPointQueryAwRequest();
 		awRequest.setStartDate(startDate);
 		awRequest.setEndDate(endDate);
 		awRequest.setUserNameRequestParam(userNameRequestParam);
-		awRequest.setUserToken(authToken);
+		awRequest.setUserToken(token);
 		awRequest.setClient(client);
 		awRequest.setCampaignUrn(campaignUrn);
 		awRequest.setDataPointIds(dataPointIds);

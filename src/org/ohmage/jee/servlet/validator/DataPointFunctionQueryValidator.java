@@ -24,6 +24,8 @@ import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 
 import org.apache.log4j.Logger;
+import org.ohmage.request.InputKeys;
+import org.ohmage.util.CookieUtils;
 
 /**
  * Validator for inbound data to the data point function API. This class is exactly the same as DataPointQueryValidator except that
@@ -38,11 +40,20 @@ public class DataPointFunctionQueryValidator extends AbstractHttpServletRequestV
 	/**
 	 */
 	public DataPointFunctionQueryValidator() {
-		_parameterList = new ArrayList<String>(Arrays.asList(new String[]{"start_date","end_date","user","campaign_urn","client","id","auth_token"}));
+		_parameterList = new ArrayList<String>(Arrays.asList(new String[]{"start_date","end_date","user","campaign_urn","client","id"}));
 	}
 	
-	public boolean validate(HttpServletRequest httpServletRequest) {
-		Map<String,String[]> parameterMap = getParameterMap(httpServletRequest); 
+	public boolean validate(HttpServletRequest httpRequest) throws MissingAuthTokenException {
+		// Get the authentication / session token from the header.
+		List<String> tokens = CookieUtils.getCookieValue(httpRequest.getCookies(), InputKeys.AUTH_TOKEN);
+		if(tokens.size() == 0) {
+			throw new MissingAuthTokenException("The required authentication / session token is missing.");
+		}
+		else if(tokens.size() > 1) {
+			throw new MissingAuthTokenException("More than one authentication / session token was found in the request.");
+		}
+		
+		Map<String,String[]> parameterMap = getParameterMap(httpRequest); 
 		
 		// Check for missing or extra parameters
 		if(parameterMap.size() != _parameterList.size()) {				
@@ -68,21 +79,19 @@ public class DataPointFunctionQueryValidator extends AbstractHttpServletRequestV
 			return false;
 		}
 		
-		String startDate = (String) httpServletRequest.getParameter("start_date");
-		String endDate = (String) httpServletRequest.getParameter("end_date");
-		String userName = (String) httpServletRequest.getParameter("user");
-		String campaignUrn = (String) httpServletRequest.getParameter("campaign_urn");
-		String client = (String) httpServletRequest.getParameter("client");
-		String authToken = (String) httpServletRequest.getParameter("auth_token");
-		String id = (String) httpServletRequest.getParameter("id");
+		String startDate = (String) httpRequest.getParameter("start_date");
+		String endDate = (String) httpRequest.getParameter("end_date");
+		String userName = (String) httpRequest.getParameter("user");
+		String campaignUrn = (String) httpRequest.getParameter("campaign_urn");
+		String client = (String) httpRequest.getParameter("client");
+		String id = (String) httpRequest.getParameter("id");
 		
 		// Check for abnormal lengths (buffer overflow attack)
 		
 		if(greaterThanLength("startDate", "start_date", startDate, 10) 
 		   || greaterThanLength("endDate", "end_date", endDate, 10)
 		   || greaterThanLength("campaignUrn", "campaign_urn", campaignUrn, 250)
-		   || greaterThanLength("client", "client",client, 250)		   
-		   || greaterThanLength("authToken", "auth_token", authToken, 36)
+		   || greaterThanLength("client", "client",client, 250)
 		   || greaterThanLength("userName", "user", userName, 15)
 		   || greaterThanLength("id", "id", id, 250)) {
 			

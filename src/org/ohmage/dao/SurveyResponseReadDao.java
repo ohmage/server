@@ -104,7 +104,7 @@ public class SurveyResponseReadDao extends AbstractDao {
 			paramObjects.add(req.getEndDate());
 		}
 		
-		if(null != req.getPromptIdList()) {
+		if((null != req.getPromptIdList()) && (req.getPromptIdList().size() != 0)) {
 			if(! "urn:ohmage:special:all".equals(req.getPromptIdListString())) {
 				paramObjects.addAll(req.getPromptIdList());
 			}
@@ -204,7 +204,7 @@ public class SurveyResponseReadDao extends AbstractDao {
 			builder.append(generateParams(req.getUserList().size()));
 		} 
 		
-		if(null != req.getPromptIdList()) {
+		if((null != req.getPromptIdList()) && (req.getPromptIdList().size() != 0)) {
 			
 			if(! "urn:ohmage:special:all".equals(req.getPromptIdListString())) {
 				

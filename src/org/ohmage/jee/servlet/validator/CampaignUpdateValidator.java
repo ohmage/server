@@ -26,6 +26,7 @@ import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import org.apache.log4j.Logger;
 import org.ohmage.request.CampaignUpdateAwRequest;
 import org.ohmage.request.InputKeys;
+import org.ohmage.util.CookieUtils;
 import org.ohmage.util.StringUtils;
 
 
@@ -49,9 +50,12 @@ public class CampaignUpdateValidator extends AbstractHttpServletRequestValidator
 	/**
 	 * Ensures that all the required parameters exist and that each parameter
 	 * is of a sane length.
+	 * 
+	 * @throws MissingAuthTokenException Thrown if the authentication / session
+	 * 									 token is not in the HTTP header. 
 	 */
 	@Override
-	public boolean validate(HttpServletRequest httpRequest) {
+	public boolean validate(HttpServletRequest httpRequest) throws MissingAuthTokenException {
 		String requestType = httpRequest.getContentType();
 		
 		if(requestType.contains("multipart/form-data;") || requestType.contains("multipart/mixed;")) {
@@ -73,15 +77,27 @@ public class CampaignUpdateValidator extends AbstractHttpServletRequestValidator
 	 * @return True iff the validation completely passes and a new request
 	 * 		   object is generated and added to the 'httpRequest's list of
 	 * 		   parameters.
+	 * 
+	 * @throws MissingAuthTokenException Thrown if the authentication / session
+	 * 									 token is not in the HTTP header. 
 	 */
-	private boolean validateRegularRequest(HttpServletRequest httpRequest) {
-		String token = httpRequest.getParameter(InputKeys.AUTH_TOKEN);
+	private boolean validateRegularRequest(HttpServletRequest httpRequest) throws MissingAuthTokenException {
+		// Get the authentication / session token from the header.
+		String token;
+		List<String> tokens = CookieUtils.getCookieValue(httpRequest.getCookies(), InputKeys.AUTH_TOKEN);
+		if(tokens.size() == 0) {
+			throw new MissingAuthTokenException("The required authentication / session token is missing.");
+		}
+		else if(tokens.size() > 1) {
+			throw new MissingAuthTokenException("More than one authentication / session token was found in the request.");
+		}
+		else {
+			token = tokens.get(0);
+		}
+		
 		String urn = httpRequest.getParameter(InputKeys.CAMPAIGN_URN);
 		
-		if(token == null) {
-			_logger.warn("Missing " + InputKeys.AUTH_TOKEN);
-		}
-		else if(urn == null) {
+		if(urn == null) {
 			_logger.warn("Missing " + InputKeys.CAMPAIGN_URN);
 		}
 		else if(greaterThanLength("authToken", InputKeys.AUTH_TOKEN, token, 36)) {
@@ -147,8 +163,11 @@ public class CampaignUpdateValidator extends AbstractHttpServletRequestValidator
 	 * @return True iff the validation completely passes and a new request
 	 * 		   object is generated and added to the 'httpRequest's list of
 	 * 		   parameters.
+	 * 
+	 * @throws MissingAuthTokenException Thrown if the authentication / session
+	 * 									 token is not in the HTTP header. 
 	 */
-	private boolean validateMultipartRequest(HttpServletRequest httpRequest) {
+	private boolean validateMultipartRequest(HttpServletRequest httpRequest) throws MissingAuthTokenException {
 		// Create a new file upload handler
 		ServletFileUpload upload = new ServletFileUpload(_diskFileItemFactory);
 		upload.setHeaderEncoding("UTF-8");
@@ -167,9 +186,21 @@ public class CampaignUpdateValidator extends AbstractHttpServletRequestValidator
 		
 		// Get the number of items were in the request.
 		int numberOfUploadedItems = uploadedItems.size();
+		CampaignUpdateAwRequest request = new CampaignUpdateAwRequest();
+		
+		// Get the authentication / session token from the header.
+		List<String> tokens = CookieUtils.getCookieValue(httpRequest.getCookies(), InputKeys.AUTH_TOKEN);
+		if(tokens.size() == 0) {
+			throw new MissingAuthTokenException("The required authentication / session token is missing.");
+		}
+		else if(tokens.size() > 1) {
+			throw new MissingAuthTokenException("More than one authentication / session token was found in the request.");
+		}
+		else {
+			request.setUserToken(tokens.get(0));
+		}
 		
 		// Parse the request for each of the parameters.
-		CampaignUpdateAwRequest request = new CampaignUpdateAwRequest();
 		for(int i = 0; i < numberOfUploadedItems; i++) {
 			FileItem fi = (FileItem) uploadedItems.get(i);
 			if(fi.isFormField()) {
@@ -252,11 +283,7 @@ public class CampaignUpdateValidator extends AbstractHttpServletRequestValidator
 			}
 		}
 		
-		if(request.getUserToken() == null) {
-			_logger.warn("No token in the request.");
-			return false;
-		}
-		else if(request.getCampaignUrn() == null) {
+		if(request.getCampaignUrn() == null) {
 			_logger.warn("No campaign URN in the request.");
 			return false;
 		}

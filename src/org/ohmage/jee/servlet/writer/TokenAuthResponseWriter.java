@@ -27,7 +27,8 @@ import org.apache.log4j.Logger;
 import org.json.JSONObject;
 import org.ohmage.domain.ErrorResponse;
 import org.ohmage.request.AwRequest;
-
+import org.ohmage.request.InputKeys;
+import org.ohmage.util.CookieUtils;
 
 /**
  * @author selsky
@@ -60,9 +61,11 @@ public class TokenAuthResponseWriter extends AbstractResponseWriter {
 			if(! awRequest.isFailedRequest()) {
 				JSONObject jsonObject = new JSONObject();
 				jsonObject.put("result", "success");
-				jsonObject.put("token", awRequest.getUserToken()); // this one line is the only difference with StatelessAuthResponseWriter
-				responseText = jsonObject.toString();
 				
+				//jsonObject.put("token", awRequest.getUserToken()); // this one line is the only difference with StatelessAuthResponseWriter
+				CookieUtils.setCookieValue(response, InputKeys.AUTH_TOKEN, awRequest.getUserToken(), AUTH_TOKEN_COOKIE_LIFETIME_IN_SECONDS);
+				
+				responseText = jsonObject.toString();
 			} else {
 				
 				if(null != awRequest.getFailedRequestErrorMessage()) {

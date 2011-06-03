@@ -28,7 +28,9 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.ohmage.domain.ErrorResponse;
 import org.ohmage.request.AwRequest;
+import org.ohmage.request.InputKeys;
 import org.ohmage.request.ReturnKeys;
+import org.ohmage.util.CookieUtils;
 
 
 /**
@@ -84,6 +86,7 @@ public class DocumentCreationResponseWriter extends AbstractResponseWriter {
 				
 				jsonResponse.put(ReturnKeys.DOCUMENT_ID, documentId);
 				
+				CookieUtils.setCookieValue(response, InputKeys.AUTH_TOKEN, awRequest.getUserToken(), AUTH_TOKEN_COOKIE_LIFETIME_IN_SECONDS);
 				responseText = jsonResponse.toString();
 			}
 			catch(IllegalArgumentException e) {

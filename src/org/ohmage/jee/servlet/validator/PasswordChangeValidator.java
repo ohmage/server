@@ -32,14 +32,14 @@ public class PasswordChangeValidator extends AbstractHttpServletRequestValidator
 	}
 	
 	@Override
-	public boolean validate(HttpServletRequest httpRequest) {
+	public boolean validate(HttpServletRequest httpRequest) throws MissingAuthTokenException {
 		String client = httpRequest.getParameter(InputKeys.CLIENT);
 		String username = httpRequest.getParameter(InputKeys.USERNAME);
 		String password = httpRequest.getParameter(InputKeys.PASSWORD);
 		String newPassword = httpRequest.getParameter(InputKeys.NEW_PASSWORD);
 		
 		if(client == null) {
-			return false;
+			throw new MissingAuthTokenException("The required authentication / session token is missing.");
 		}
 		else if(username == null) {
 			// Missing username.

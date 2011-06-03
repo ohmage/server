@@ -21,6 +21,7 @@ import org.apache.log4j.NDC;
 import org.ohmage.request.AwRequest;
 import org.ohmage.request.InputKeys;
 import org.ohmage.request.UserInfoQueryAwRequest;
+import org.ohmage.util.CookieUtils;
 
 
 /**
@@ -41,13 +42,13 @@ public class UserInfoQueryAwRequestCreator implements AwRequestCreator {
 	 * parameter.
 	 */
 	@Override
-	public AwRequest createFrom(HttpServletRequest request) {
-		String token = request.getParameter(InputKeys.AUTH_TOKEN);
+	public AwRequest createFrom(HttpServletRequest httpRequest) {
+		String token = CookieUtils.getCookieValue(httpRequest.getCookies(), InputKeys.AUTH_TOKEN).get(0);
 		
 		UserInfoQueryAwRequest awRequest = new UserInfoQueryAwRequest();
 		awRequest.setUserToken(token);
 		
-		NDC.push("client=" + request.getParameter(InputKeys.CLIENT));
+		NDC.push("client=" + httpRequest.getParameter(InputKeys.CLIENT));
 		
 		return awRequest;
 	}

@@ -15,10 +15,13 @@
  ******************************************************************************/
 package org.ohmage.jee.servlet.validator;
 
+import java.util.List;
+
 import javax.servlet.http.HttpServletRequest;
 
 import org.apache.log4j.Logger;
 import org.ohmage.request.InputKeys;
+import org.ohmage.util.CookieUtils;
 
 
 /**
@@ -39,14 +42,29 @@ public class UserInfoQueryValidator extends AbstractGzipHttpServletRequestValida
 	/**
 	 * Validates that none of the parameters is not too long and that the list
 	 * of usernames contains at least one username. 
+	 * 
+	 * @throws MissingAuthTokenException Thrown if the authentication / session
+	 * 									 token is missing or invalid. 
 	 */
 	@Override
-	public boolean validate(HttpServletRequest httpServletRequest) {		
-		String token = httpServletRequest.getParameter(InputKeys.AUTH_TOKEN);
-		String client = httpServletRequest.getParameter(InputKeys.CLIENT);
+	public boolean validate(HttpServletRequest httpRequest) throws MissingAuthTokenException {
+		// Get the authentication / session token from the header.
+		String token;
+		List<String> tokens = CookieUtils.getCookieValue(httpRequest.getCookies(), InputKeys.AUTH_TOKEN);
+		if(tokens.size() == 0) {
+			throw new MissingAuthTokenException("The required authentication / session token is missing.");
+		}
+		else if(tokens.size() > 1) {
+			throw new MissingAuthTokenException("More than one authentication / session token was found in the request.");
+		}
+		else {
+			token = tokens.get(0);
+		}
+		
+		String client = httpRequest.getParameter(InputKeys.CLIENT);
 		
 		if(token == null) {
-			return false;
+			throw new MissingAuthTokenException("The required authentication / session token is missing.");
 		}
 		else if(greaterThanLength(InputKeys.AUTH_TOKEN, InputKeys.AUTH_TOKEN, token, 36) || (token.length() < 36)) {
 			_logger.warn("Incorrectly sized " + InputKeys.AUTH_TOKEN);

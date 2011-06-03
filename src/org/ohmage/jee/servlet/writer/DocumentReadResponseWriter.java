@@ -29,7 +29,9 @@ import org.json.JSONObject;
 import org.ohmage.domain.ErrorResponse;
 import org.ohmage.request.AwRequest;
 import org.ohmage.request.DocumentReadAwRequest;
+import org.ohmage.request.InputKeys;
 import org.ohmage.request.ReturnKeys;
+import org.ohmage.util.CookieUtils;
 
 
 public class DocumentReadResponseWriter extends AbstractResponseWriter {
@@ -74,6 +76,7 @@ public class DocumentReadResponseWriter extends AbstractResponseWriter {
 				JSONObject result = (JSONObject) awRequest.getToReturnValue(DocumentReadAwRequest.KEY_DOCUMENT_INFORMATION);
 				responseJson.put(ReturnKeys.DATA, result);
 				
+				CookieUtils.setCookieValue(response, InputKeys.AUTH_TOKEN, awRequest.getUserToken(), AUTH_TOKEN_COOKIE_LIFETIME_IN_SECONDS);
 				responseText = responseJson.toString();
 			}
 			catch(JSONException e) {

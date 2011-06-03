@@ -15,6 +15,7 @@
  ******************************************************************************/
 package org.ohmage.request;
 
+import java.util.LinkedList;
 import java.util.List;
 
 import org.ohmage.domain.Configuration;
@@ -63,6 +64,11 @@ public class SurveyResponseReadAwRequest extends ResultListAwRequest {
 	
 	public SurveyResponseReadAwRequest() {
 		super();
+		
+		_userList = new LinkedList<String>();
+		_promptIdList = new LinkedList<String>();
+		_surveyIdList = new LinkedList<String>();
+		_columnList = new LinkedList<String>();
 	}
 	
 	public Configuration getConfiguration() {

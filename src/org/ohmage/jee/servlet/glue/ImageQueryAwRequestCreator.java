@@ -21,6 +21,7 @@ import org.apache.log4j.NDC;
 import org.ohmage.request.AwRequest;
 import org.ohmage.request.InputKeys;
 import org.ohmage.request.MediaQueryAwRequest;
+import org.ohmage.util.CookieUtils;
 
 
 /**
@@ -34,18 +35,18 @@ public class ImageQueryAwRequestCreator implements AwRequestCreator {
 		
 	}
 	
-	public AwRequest createFrom(HttpServletRequest request) {
+	public AwRequest createFrom(HttpServletRequest httpRequest) {
 		
-		String userNameRequestParam = request.getParameter("user");
-		String client = request.getParameter("client");
-		String campaignUrn = request.getParameter("campaign_urn");
-		String authToken = request.getParameter("auth_token");
-		String imageId = request.getParameter("id");  
+		String userNameRequestParam = httpRequest.getParameter("user");
+		String client = httpRequest.getParameter("client");
+		String campaignUrn = httpRequest.getParameter("campaign_urn");
+		String token = CookieUtils.getCookieValue(httpRequest.getCookies(), InputKeys.AUTH_TOKEN).get(0);
+		String imageId = httpRequest.getParameter("id");  
 		
 		MediaQueryAwRequest awRequest = new MediaQueryAwRequest();
 
 		awRequest.setUserNameRequestParam(userNameRequestParam);
-		awRequest.setUserToken(authToken);
+		awRequest.setUserToken(token);
 		awRequest.setClient(client);
 		awRequest.setCampaignUrn(campaignUrn);
 		awRequest.setMediaId(imageId);

@@ -22,6 +22,8 @@ import java.util.List;
 import javax.servlet.http.HttpServletRequest;
 
 import org.apache.log4j.Logger;
+import org.ohmage.request.InputKeys;
+import org.ohmage.util.CookieUtils;
 
 /**
  * Validator for inbound data to the user stats API.
@@ -35,24 +37,36 @@ public class UserStatsQueryValidator extends AbstractGzipHttpServletRequestValid
 	/**
 	 */
 	public UserStatsQueryValidator() {
-		_parameterList = new ArrayList<String>(Arrays.asList(new String[]{"user","campaign_urn","client","auth_token"}));
+		_parameterList = new ArrayList<String>(Arrays.asList(new String[]{"user","campaign_urn","client"}));
 	}
 	
-	public boolean validate(HttpServletRequest httpServletRequest) {
-		if(! basicValidation(getParameterMap(httpServletRequest), _parameterList)) {
+	public boolean validate(HttpServletRequest httpRequest) throws MissingAuthTokenException {
+		// Get the authentication / session token from the header.
+		String token;
+		List<String> tokens = CookieUtils.getCookieValue(httpRequest.getCookies(), InputKeys.AUTH_TOKEN);
+		if(tokens.size() == 0) {
+			throw new MissingAuthTokenException("The required authentication / session token is missing.");
+		}
+		else if(tokens.size() > 1) {
+			throw new MissingAuthTokenException("More than one authentication / session token was found in the request.");
+		}
+		else {
+			token = tokens.get(0);
+		}
+		
+		if(! basicValidation(getParameterMap(httpRequest), _parameterList)) {
 			return false;
 		}
 		
-		String campaignUrn = (String) httpServletRequest.getParameter("campaign_urn");
-		String client = (String) httpServletRequest.getParameter("client");
-		String authToken = (String) httpServletRequest.getParameter("auth_token");
-		String user = (String) httpServletRequest.getParameter("user");
+		String campaignUrn = (String) httpRequest.getParameter("campaign_urn");
+		String client = (String) httpRequest.getParameter("client");
+		String user = (String) httpRequest.getParameter("user");
 		
 		// Check for abnormal lengths (buffer overflow attack)
 		
 		if(greaterThanLength("campaignUrn", "campaign_urn", campaignUrn, 250)
 		   || greaterThanLength("client", "client",client, 500)		   
-		   || greaterThanLength("authToken", "auth_token", authToken, 36)
+		   || greaterThanLength("authToken", "auth_token", token, 36)
 		   || greaterThanLength("userName", "user", user, 15)) {
 			
 			_logger.warn("found an input parameter that exceeds its allowed length");
