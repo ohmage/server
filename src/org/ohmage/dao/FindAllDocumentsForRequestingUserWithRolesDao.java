@@ -50,7 +50,7 @@ public class FindAllDocumentsForRequestingUserWithRolesDao extends AbstractDao {
 			"FROM (" +
 				// Get all of the documents that belong to classes to which the
 				// user also belongs.
-				"SELECT d.uuid, u.login_id, dr.role " +
+				"SELECT d.uuid, u.username, dr.role " +
 				"FROM user u, class c, user_class uc, user_class_role ucr, " +
 					"document d, document_role dr, document_privacy_state dps, document_class_role dclr " +
 				// Get all of the classes to which the user belongs.
@@ -78,7 +78,7 @@ public class FindAllDocumentsForRequestingUserWithRolesDao extends AbstractDao {
 				" UNION " +
 				// Get all of the documents that belong to campaigns to which
 				// the user also belongs.
-				"SELECT d.uuid, u.login_id, dr.role " +
+				"SELECT d.uuid, u.username, dr.role " +
 				"FROM user u, campaign c, user_role ur, user_role_campaign urc, " +
 					"document d, document_role dr, document_privacy_state dps, document_campaign_role dcar " +
 				// Get all of the campaigns to which the user belongs.
@@ -114,7 +114,7 @@ public class FindAllDocumentsForRequestingUserWithRolesDao extends AbstractDao {
 				" UNION " +
 				// Get all of the documents that are directly associated with
 				// the user.
-				"SELECT d.uuid, u.login_id, dr.role " +
+				"SELECT d.uuid, u.username, dr.role " +
 				"FROM user u, document d, document_role dr, document_privacy_state dps, document_user_role dur " +
 				// Get all of the documents that belong directly to the user.
 				"WHERE dur.document_id = d.id " +
@@ -128,14 +128,14 @@ public class FindAllDocumentsForRequestingUserWithRolesDao extends AbstractDao {
 					"(dr.role = '" + DocumentRoleCache.ROLE_OWNER + "')" +
 				")" +
 			// This is an aggregation of the form:
-			// 		document.uuid, user.login_id, document_role.role
+			// 		document.uuid, user.username, document_role.role
 			// There are no duplicate rows, but there may be duplicate document
 			// IDs as one user may have multiple roles with a single document
 			// via document-campaign, document-class, and document-user
 			// associations.
 			") AS allDocuments " +
 			// Switch on a single user.
-			"WHERE allDocuments.login_id = ?";
+			"WHERE allDocuments.username = ?";
 	
 	/**
 	 * Keeps track of the document ID and the associated role for the user on

@@ -59,7 +59,7 @@ public class CampaignUpdateDao extends AbstractDao {
 
 	private static final String SQL_GET_USER_ID = "SELECT id " +
 												  "FROM user " +
-												  "WHERE login_id = ?";
+												  "WHERE username = ?";
 	
 	private static final String SQL_GET_CLASS_ROLE_ID = "SELECT id " +
 														"FROM user_role " +
@@ -72,7 +72,7 @@ public class CampaignUpdateDao extends AbstractDao {
 	
 	private static final String SQL_GET_IS_ROLE = "SELECT count(*) " +
 												  "FROM user u, user_role ur, user_role_campaign urc, campaign c " +
-												  "WHERE u.login_id = ? " +
+												  "WHERE u.username = ? " +
 												  "AND u.id = urc.user_id " +
 												  "AND ur.role = ? " +
 												  "AND ur.id = urc.user_role_id " +
@@ -81,7 +81,7 @@ public class CampaignUpdateDao extends AbstractDao {
 	
 	private static final String SQL_GET_USER_CAN_MODIFY = "SELECT count(*) " +
 														  "FROM user u, user_role ur, user_role_campaign urc, campaign c " +
-														  "WHERE u.login_id = ? " +
+														  "WHERE u.username = ? " +
 														  "AND u.id = urc.user_id " +
 														  "AND ur.role in ('" + CampaignRoleCache.ROLE_SUPERVISOR + "', '" + CampaignRoleCache.ROLE_AUTHOR + "') " +
 														  "AND ur.id = urc.user_role_id " +

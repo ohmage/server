@@ -33,12 +33,12 @@ public class AuthenticationDao extends AbstractDao {
 	
 	private static final String _selectSql = "SELECT user.id, user.enabled, user.new_account" 
 		                                     + " FROM user"
-		                                     + " WHERE user.login_id = ?"
+		                                     + " WHERE user.username = ?"
 		                                     +   " AND user.password = ?";
 	
 	private static final String SQL_GET_PASSWORD = "SELECT password " +
 												   "FROM user " +
-												   "WHERE login_id = ?";
+												   "WHERE username = ?";
 	
 	private boolean _performHash;
 	

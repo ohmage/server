@@ -44,7 +44,7 @@ public class CampaignDeletionDao extends AbstractDao {
 	
 	private static final String SQL_GET_IS_AUTHOR = "SELECT count(*) " +
 													"FROM user u, user_role ur, user_role_campaign urc, campaign c " +
-													"WHERE u.login_id = ? " +
+													"WHERE u.username = ? " +
 													"AND ur.role = '" + CampaignRoleCache.ROLE_AUTHOR + "' " +
 													"AND c.urn = ? " +
 													"AND u.id = urc.user_id " +
@@ -53,7 +53,7 @@ public class CampaignDeletionDao extends AbstractDao {
 	
 	private static final String SQL_GET_IS_SUPERVISOR = "SELECT count(*) " +
 														"FROM user u, user_role ur, user_role_campaign urc, campaign c " +
-														"WHERE u.login_id = ? " +
+														"WHERE u.username = ? " +
 														"AND ur.role = '" + CampaignRoleCache.ROLE_SUPERVISOR + "' " +
 														"AND c.urn = ? " +
 														"AND u.id = urc.user_id " +

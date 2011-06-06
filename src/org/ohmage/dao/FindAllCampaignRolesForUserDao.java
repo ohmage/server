@@ -38,7 +38,7 @@ public class FindAllCampaignRolesForUserDao extends AbstractDao {
 			              "WHERE urc.campaign_id = c.id " +
 			                "AND urc.user_id = u.id " +
 			                "AND ur.id = urc.user_role_id " +
-			                "AND u.login_id = ?";
+			                "AND u.username = ?";
 	
 	/**
 	 * @param useLoggedInUser if true, the logged in user's user name will be used in the query. if false, the user name request

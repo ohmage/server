@@ -39,7 +39,7 @@ public class PasswordChangeDao extends AbstractDao {
 	
 	private static final String SQL = "UPDATE user " + 
 									  "SET password = ? " +
-									  "WHERE login_id = ?";
+									  "WHERE username = ?";
 	
 	/**
 	 * Sets the DataSource for this DAO to use when running its update.

@@ -66,7 +66,7 @@ public class CampaignCreationDao extends AbstractDao {
 	
 	private static final String SQL_GET_USER_ID = "SELECT id " +
 												  "FROM user " +
-												  "WHERE login_id = ?";
+												  "WHERE username = ?";
 	
 	private static final String SQL_GET_CAMPAIGN_CLASS_ID = "SELECT id " +
 															"FROM campaign_class cc " +

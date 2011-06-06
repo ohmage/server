@@ -37,7 +37,7 @@ public class UserRoleClassPopulationDao extends AbstractDao {
 	
 	private static final String SQL_GET_CLASSES_AND_ROLE = "SELECT c.urn, c.name, c.description, ucr.role " +
 														   "FROM user u, class c, user_class uc, user_class_role ucr " +
-														   "WHERE u.login_id = ? " +
+														   "WHERE u.username = ? " +
 														   "AND u.id = uc.user_id " +
 														   "AND c.id = uc.class_id " +
 														   "AND ucr.id = uc.user_class_role_id";

@@ -42,7 +42,7 @@ public class FindAllCampaignsForCurrentUserWithRolesDao extends AbstractDao {
     														   "FROM campaign c, user u, user_role ur, user_role_campaign urc " +
     														   "WHERE urc.campaign_id = c.id " +
     														   "AND urc.user_id = u.id " +
-    														   "AND u.login_id = ? " +
+    														   "AND u.username = ? " +
     														   "AND urc.user_role_id = ur.id " +
     														   "AND ur.role = ?";
 	

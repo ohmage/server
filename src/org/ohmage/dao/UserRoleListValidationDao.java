@@ -37,7 +37,7 @@ public class UserRoleListValidationDao extends AbstractDao {
 	
 	private static final String SQL_GET_USER_EXISTS = "SELECT count(*) " +
 													  "FROM user " +
-													  "WHERE login_id = ?";
+													  "WHERE username = ?";
 	
 	private static final String SQL_GET_CAMPAIGN_ROLE_EXISTS = "SELECT count(*) " +
 															   "FROM user_role " +
@@ -45,7 +45,7 @@ public class UserRoleListValidationDao extends AbstractDao {
 	
 	private static final String SQL_GET_USER_ROLES = "SELECT ur.role " +
 													 "FROM user u, user_role ur, user_role_campaign urc, campaign c " +
-													 "WHERE u.login_id = ?" +
+													 "WHERE u.username = ?" +
 													 "AND u.id = urc.user_id " +
 													 "AND c.urn = ? " +
 													 "AND c.id = urc.campaign_id " +

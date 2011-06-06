@@ -39,7 +39,7 @@ public class PastDaySurveyLocationUpdatesQueryDao extends AbstractDao {
 
 	private String _nonNullPointsSql = "SELECT COUNT(*)"
 					                 + " FROM survey_response sr, campaign c, user u"
-					                 + " WHERE u.login_id = ?"
+					                 + " WHERE u.username = ?"
 						             + " AND sr.user_id = u.id"
 						             + " AND sr.campaign_id = c.id"
 						             + " AND c.urn = ?"
@@ -48,7 +48,7 @@ public class PastDaySurveyLocationUpdatesQueryDao extends AbstractDao {
 	
 	private String _totalPointsSql = "SELECT COUNT(*)"
                                    + " FROM survey_response sr, campaign c, user u"
-                                   + " WHERE u.login_id = ?"
+                                   + " WHERE u.username = ?"
                                    + " AND sr.user_id = u.id"
                                    + " AND sr.campaign_id = c.id"
                                    + " AND c.urn = ?"

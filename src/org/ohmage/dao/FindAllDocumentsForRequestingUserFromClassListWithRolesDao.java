@@ -44,7 +44,7 @@ public class FindAllDocumentsForRequestingUserFromClassListWithRolesDao extends 
 		"SELECT distinct(d.uuid) " +
 		"FROM user u, class c, user_class uc, user_class_role ucr, " +
 			"document d, document_role dr, document_privacy_state dps, document_class_role dclr " +
-		"WHERE u.login_id = ? " +
+		"WHERE u.username = ? " +
 		"AND dr.role = ? " +
 		"AND c.urn = ? " +
 		"AND dclr.document_id = d.id " +

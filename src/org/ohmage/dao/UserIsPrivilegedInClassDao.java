@@ -33,7 +33,7 @@ public class UserIsPrivilegedInClassDao extends AbstractDao {
 	
 	private static final String SQL = "SELECT count(*) " +
 									  "FROM user u, class c, user_class uc, user_class_role ucr " +
-									  "WHERE u.login_id = ? " +
+									  "WHERE u.username = ? " +
 									  "AND uc.user_id = u.id " +
 									  "AND ucr.id = uc.user_class_role_id " +
 									  "AND ucr.role = '" + ClassRoleCache.ROLE_PRIVILEGED + "' " +

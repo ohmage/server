@@ -42,7 +42,7 @@ public class FindAllDocumentsSpecificToRequestingUserWithRolesDao extends Abstra
 	private static final String SQL_GET_DOCUMENTS_SPECIFIC_TO_REQUESTING_USER =
 		"SELECT distinct(d.uuid) " +
 		"FROM user u, document d, document_role dr, document_privacy_state dps, document_user_role dur " +
-		"WHERE u.login_id = ? " +
+		"WHERE u.username = ? " +
 		"AND dr.role = ? " +
 		"AND dur.document_id = d.id " +
 		"AND dur.document_role_id = dr.id " +

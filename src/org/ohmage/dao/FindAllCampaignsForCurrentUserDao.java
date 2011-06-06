@@ -36,7 +36,7 @@ public class FindAllCampaignsForCurrentUserDao extends AbstractDao {
 	
 	private String _sql = "SELECT c.urn " +
 			              "FROM campaign c, user_role_campaign urc, user u " +
-			              "WHERE urc.campaign_id = c.id AND urc.user_id = u.id AND u.login_id = ?";
+			              "WHERE urc.campaign_id = c.id AND urc.user_id = u.id AND u.username = ?";
 	
 	public FindAllCampaignsForCurrentUserDao(DataSource dataSource) {
 		super(dataSource);

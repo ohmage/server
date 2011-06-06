@@ -35,7 +35,7 @@ public class DataPointQueryDao extends AbstractDao {
 			            + " sr.msg_timestamp, sr.phone_timezone, sr.location_status, sr.location, sr.survey_id"
 	                    + " FROM prompt_response pr, survey_response sr, user u, campaign c"
 	                    + " WHERE pr.survey_response_id = sr.id"
-	                    + " AND u.login_id = ?"
+	                    + " AND u.username = ?"
 	                    + " AND sr.user_id = u.id"
 	                    + " AND c.urn = ?"
 	                    + " AND c.id = sr.campaign_id"

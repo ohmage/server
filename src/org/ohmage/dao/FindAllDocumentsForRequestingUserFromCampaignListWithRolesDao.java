@@ -44,7 +44,7 @@ public class FindAllDocumentsForRequestingUserFromCampaignListWithRolesDao exten
 		"SELECT distinct(d.uuid) " +
 		"FROM user u, campaign c, user_role ur, user_role_campaign urc, " +
 			"document d, document_role dr, document_privacy_state dps, document_campaign_role dcar " +
-		"WHERE u.login_id = ? " +
+		"WHERE u.username = ? " +
 		"AND dr.role = ? " +
 		"AND c.urn = ? " +
 		"AND dcar.document_id = d.id " +

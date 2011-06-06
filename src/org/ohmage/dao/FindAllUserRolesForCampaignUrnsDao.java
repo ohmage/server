@@ -39,14 +39,14 @@ import org.springframework.jdbc.core.RowMapper;
 public class FindAllUserRolesForCampaignUrnsDao extends AbstractDao {
 	private static Logger _logger = Logger.getLogger(FindAllUserRolesForCampaignUrnsDao.class);
 	
-	private String _select = "SELECT c.urn, ur.role, u.login_id" +                            
+	private String _select = "SELECT c.urn, ur.role, u.username" +                            
 					 		 " FROM user_role_campaign urc, user u, campaign c, user_role ur" +    
  					 		 " WHERE urc.campaign_id = c.id" +                    
 							 " AND urc.user_id = u.id" +
 							 " AND urc.user_role_id = ur.id" +
 							 " AND c.urn IN ";
 	
-    private String _orderBy = " ORDER BY c.urn, ur.role, u.login_id";
+    private String _orderBy = " ORDER BY c.urn, ur.role, u.username";
 	
 	public FindAllUserRolesForCampaignUrnsDao(DataSource dataSource) {
 		super(dataSource);

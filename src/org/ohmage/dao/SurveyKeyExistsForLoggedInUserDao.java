@@ -32,7 +32,7 @@ public class SurveyKeyExistsForLoggedInUserDao extends AbstractDao {
 	
 	private static final String SQL = "SELECT EXISTS (SELECT * " +
 									  "FROM survey_response, user " +
-									  "WHERE survey_response.id = ? AND user.login_id = ? AND survey_response.user_id = user.id)";
+									  "WHERE survey_response.id = ? AND user.username = ? AND survey_response.user_id = user.id)";
 	/**
 	 * Basic constructor.
 	 * 

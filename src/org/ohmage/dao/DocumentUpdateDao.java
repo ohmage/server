@@ -66,7 +66,7 @@ public class DocumentUpdateDao extends AbstractDao {
 	
 	private static final String SQL_GET_USER_ID = "SELECT id " +
 												  "FROM user " +
-												  "WHERE login_id = ?";
+												  "WHERE username = ?";
 	
 	private static final String SQL_GET_URL = "SELECT url " +
 											  "FROM document " +
