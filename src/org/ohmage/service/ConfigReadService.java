@@ -40,6 +40,7 @@ public class ConfigReadService extends AbstractAnnotatingService {
 	
 	private static final String KEY_APPLICATION_NAME = "application_name";
 	private static final String KEY_APPLICATION_VERSION = "application_version";
+	private static final String KEY_APPLICATION_BUILD = "application_build";
 	
 	/**
 	 * Builds this service.
@@ -84,6 +85,9 @@ public class ConfigReadService extends AbstractAnnotatingService {
 			
 			// Get the application's version.
 			response.put("application_version", properties.get(KEY_APPLICATION_VERSION));
+			
+			// Get the Git build hash.
+			response.put("application_build", properties.get(KEY_APPLICATION_BUILD));
 			
 			// Get the default survey response sharing state.
 			try {
