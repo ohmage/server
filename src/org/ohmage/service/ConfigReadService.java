@@ -15,6 +15,11 @@
  ******************************************************************************/
 package org.ohmage.service;
 
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Properties;
+
 import org.apache.log4j.Logger;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -33,6 +38,9 @@ import org.ohmage.validator.AwRequestAnnotator;
 public class ConfigReadService extends AbstractAnnotatingService {
 	private static Logger _logger = Logger.getLogger(ConfigReadService.class);
 	
+	private static final String KEY_APPLICATION_NAME = "application_name";
+	private static final String KEY_APPLICATION_VERSION = "application_version";
+	
 	/**
 	 * Builds this service.
 	 * 
@@ -44,7 +52,8 @@ public class ConfigReadService extends AbstractAnnotatingService {
 	}
 
 	/**
-	 * 
+	 * Gets the system properties and places them in the JSONObject to be
+	 * returned to the user.
 	 */
 	@Override
 	public void execute(AwRequest awRequest) {
@@ -55,23 +64,26 @@ public class ConfigReadService extends AbstractAnnotatingService {
 		try {
 			JSONObject response = new JSONObject();
 			
-			// Get the application's name.
+			Properties properties = new Properties();
 			try {
-				response.put("application_name", PreferenceCache.instance().lookup(PreferenceCache.KEY_APPLICATION_NAME));
+				InputStream in = new FileInputStream(PreferenceCache.instance().lookup(PreferenceCache.KEY_PROPERTIES_FILE));
+				properties.load(in);
+				in.close();
 			}
 			catch(CacheMissException e) {
-				_logger.error("Unknown value for 'known' key '" + PreferenceCache.KEY_APPLICATION_NAME + "'. Is the cache database missing a key-value pair?", e);
+				_logger.error("Unknown value for 'known' key '" + PreferenceCache.KEY_PROPERTIES_FILE + "'. Is the cache database missing a key-value pair?", e);
+				throw new ServiceException(e);
+			}
+			catch(IOException e) {
+				_logger.error("Missing the properties file that should have been built with the WAR file.", e);
 				throw new ServiceException(e);
 			}
 			
+			// Get the application's name.
+			response.put("application_name", properties.get(KEY_APPLICATION_NAME));
+			
 			// Get the application's version.
-			try {
-				response.put("application_version", PreferenceCache.instance().lookup(PreferenceCache.KEY_APPLICATION_VERSION));
-			}
-			catch(CacheMissException e) {
-				_logger.error("Unknown value for 'known' key '" + PreferenceCache.KEY_APPLICATION_NAME + "'. Is the cache database missing a key-value pair?", e);
-				throw new ServiceException(e);
-			}
+			response.put("application_version", properties.get(KEY_APPLICATION_VERSION));
 			
 			// Get the default survey response sharing state.
 			try {
