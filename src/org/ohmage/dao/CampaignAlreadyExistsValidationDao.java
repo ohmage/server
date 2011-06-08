@@ -60,6 +60,8 @@ public class CampaignAlreadyExistsValidationDao extends AbstractDao {
 	 */
 	@Override
 	public void execute(AwRequest awRequest) {
+		_logger.info("Ensuring that no other campaign with the same ID exists.");
+		
 		String campaignXml;
 		try {
 			campaignXml = (String) awRequest.getToProcessValue(InputKeys.XML);
@@ -96,6 +98,7 @@ public class CampaignAlreadyExistsValidationDao extends AbstractDao {
 		String campaignUrn = root.query("/campaign/campaignUrn").get(0).getValue();
 		
 		try {
+			_logger.debug("Campaign ID: " + campaignUrn);
 			int others = getJdbcTemplate().queryForInt(SQL, new Object[] { campaignUrn });
 			
 			if(others != 0) {
