@@ -16,7 +16,7 @@
   <bean id="documentUpdateAwRequestCreator" class="org.ohmage.jee.servlet.glue.DocumentUpdateRequestCreator" />
   
   <!-- Write the Response -->
-  <bean id="documentUpdateResponseWriter" class="org.ohmage.jee.servlet.writer.SuccessOrFailResponseWriter">
+  <bean id="documentUpdateResponseWriter" class="org.ohmage.jee.servlet.writer.DocumentUpdateResponseWriter">
     <constructor-arg>
       <bean class="org.ohmage.domain.ErrorResponse">
         <property name="code" value="1500" />

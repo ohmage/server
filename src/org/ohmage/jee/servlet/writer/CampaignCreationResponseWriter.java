@@ -65,7 +65,9 @@ public class CampaignCreationResponseWriter extends AbstractResponseWriter {
 		
 		// Sets the HTTP headers to disable caching
 		expireResponse(response);
-		response.setContentType("application/json");
+		// The response type will need to be text/html instead of application/
+		// json because, when uploading a file, browsers require this response.
+		response.setContentType("text/html");
 		
 		String responseText;
 		if(awRequest.isFailedRequest()) {
