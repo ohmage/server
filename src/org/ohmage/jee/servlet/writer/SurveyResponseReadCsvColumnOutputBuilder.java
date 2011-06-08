@@ -15,10 +15,12 @@
  ******************************************************************************/
 package org.ohmage.jee.servlet.writer;
 
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeSet;
 
 import org.apache.log4j.Logger;
 import org.json.JSONArray;
@@ -81,11 +83,75 @@ public class SurveyResponseReadCsvColumnOutputBuilder implements SurveyResponseR
 			builder.append("# end prompt contexts").append(newLine).append("# begin data").append(newLine);
 		}
 		
+		
+		// Sort the column map key set for predictable columnar output.
+		// In the future, there can be a column_order parameter to the API 
+		// For now, canonicalize into 'ohmage order': user, datetime, survey id, repeatable set id, repeatable set iteration,
+		// prompt id, and then 'context' columns and survey title and description
+		
+		// Note that not all columns are necessarily present. This is based on the column_list parameter passed to the API.
+	
+		TreeSet<String> sortedSet = new TreeSet<String>(columnMapKeySet);
+		ArrayList<String> canonicalColumnList = new ArrayList<String>();
+		
+		// TODO finish up handling of sortOrder with *all* combinations -- see the DAO 
+		// TODO need to group prompts alphabetically by the survey they belong to?
+		
+		String sortOrder = req.getSortOrder();
+		
+		if(null == sortOrder || sortOrder.equals("user,timestamp,survey")) {
+		
+			if(sortedSet.contains("urn:ohmage:user:id")) {
+				canonicalColumnList.add("urn:ohmage:user:id");
+				sortedSet.remove("urn:ohmage:user:id");
+			}
+			
+			if(sortedSet.contains("urn:ohmage:context:timestamp")) {
+				canonicalColumnList.add("urn:ohmage:context:timestamp");
+				sortedSet.remove("urn:ohmage.context.timestamp");
+			}
+			
+			if(sortedSet.contains("urn:ohmage:context:utc_timestamp")) {
+				canonicalColumnList.add("urn:ohmage:context:utc_timestamp");
+				sortedSet.remove("urn:ohmage:context:utc_timestamp");
+			}
+			
+			if(sortedSet.contains("urn:ohmage:survey:id")) {
+				canonicalColumnList.add("urn:ohmage:survey:id");
+				sortedSet.remove("urn:ohmage:survey:id");
+			}
+			
+			if(sortedSet.contains("urn:ohmage:repeatable_set:id")) {
+				canonicalColumnList.add("urn:ohmage:repeatable_set:id");
+				sortedSet.remove("urn:ohmage:repeatable_set:id");
+			}
+			
+			if(sortedSet.contains("urn:ohmage:repeatable_set:iteration")) {
+				canonicalColumnList.add("urn:ohmage:repeatable_set:iteration");
+				sortedSet.remove("urn:ohmage:repeatable_set:iteration");
+			}
+		
+			Iterator<String> sortedSetIterator = sortedSet.iterator();
+			while(sortedSetIterator.hasNext()) {
+				String columnName = sortedSetIterator.next();
+				if(columnName.contains("prompt:id")) {
+					canonicalColumnList.add(columnName);
+					sortedSetIterator.remove();
+				}
+			}
+		}
+		
+		canonicalColumnList.addAll(sortedSet);
+		sortedSet.clear();
+		
+		_logger.info(canonicalColumnList);
+		
 		// Build the column headers
-		// For the CSV output, user advocates have requested that the column names be made shorter 
-		int s = columnMapKeySet.size();
+		// For the CSV output, user advocates have requested that the column names be made shorter
+		
+		int s = canonicalColumnList.size();
 		int i = 0;
-		for(String key : columnMapKeySet) {
+		for(String key : canonicalColumnList) {
 			String shortHeader = null;
 			if(key.startsWith("urn:ohmage:context")) {
 				shortHeader = key.replace("urn:ohmage:context", "sys");				
@@ -104,24 +170,71 @@ public class SurveyResponseReadCsvColumnOutputBuilder implements SurveyResponseR
 		
 		// Build data output row by row
 		int listSize = columnMap.get(columnMapKeySet.toArray()[0]).size();
+		
 		for(i = 0; i < listSize; i++) {
+			
 			int j = 0;
-			for(String key : columnMapKeySet) {
+			
+			for(String key : canonicalColumnList) {
+				
 				Object value = columnMap.get(key).get(i);
+				
 				if(null == value) {
+					
 					builder.append("null");
-				} else {
-					if(value instanceof JSONObject) { //single_choice_custom, multi_choice_custom, launch_context 
+					
+				} 
+				else {
+				
+					if(value instanceof JSONObject) { // single_choice_custom, multi_choice_custom, launch_context 
 						builder.append(((JSONObject) value).toString().replace(",", ";"));
-					} else if(value instanceof JSONArray) { // multi_choice
+					} 
+					
+					else if(value instanceof JSONArray) { // multi_choice
 						builder.append(((JSONArray) value).toString().replace(",", ";"));
-					} else {
+					}
+					
+					else if (value instanceof String) { // clean up text for easier input into spreadsheets 
+						String string = (String) value;
+						
+						if(key.contains("prompt:id")) {
+							
+							// check to see if its a text prompt type, a survey title, or a survey description
+							if("text".equals(promptContextMap.get(key.substring(key.lastIndexOf(":") + 1)).getType())
+								|| "urn:ohmage:survey:description".equals(key)	
+								|| "urn:ohmage:survey:title".equals(key)) {
+								
+								// convert 'invisible' whitespace to single spaces
+								// and convert double quotes to single quotes 
+								string = string.replaceAll("\\s", " ").replaceAll("\"", "'");
+								
+								// finally, quote the whole string
+								builder.append("\"").append(string).append("\"");
+								
+							} else {
+								
+								builder.append(string);
+								
+							}
+							
+						} else {
+							
+							builder.append(string);
+						}
+						
+					}
+					
+					else {
+						
 						builder.append(value);
 					}
+					
 				}
+				
 				if(j < columnMapKeySet.size() - 1) {
 					builder.append(",");
 				}
+				
 				j++;
 			}
 			builder.append(newLine);
