@@ -16,6 +16,7 @@
 package org.ohmage.domain;
 
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.Map;
 
 /**
@@ -45,6 +46,22 @@ public class Survey extends AbstractSurveyItem {
 	
 	public String getDescription() {
 		return _description;
+	}
+	
+	public String getRepeatableSetIdForPromptId(String promptId) {
+		Iterator<String> iterator = _surveyItemMap.keySet().iterator();
+		while(iterator.hasNext()) {
+			SurveyItem si = _surveyItemMap.get(iterator.next());
+			if(si instanceof RepeatableSet) {
+				RepeatableSet repeatableSet = (RepeatableSet) si;
+				
+				if(repeatableSet.getPromptMap().containsKey(promptId)) {
+					return repeatableSet.getId();
+				}
+			}
+		}
+		
+		return null;
 	}
 
 	@Override

@@ -19,7 +19,6 @@ import org.apache.log4j.Logger;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.ohmage.service.DataPointQueryService;
 import org.ohmage.util.JsonUtils;
 
 
@@ -29,7 +28,6 @@ import org.ohmage.util.JsonUtils;
  * TODO convert to interface?
  * 
  * @author selsky
- * @see DataPointQueryService
  */
 public class ConfigurationValueMerger {
 	private static Logger _logger = Logger.getLogger(ConfigurationValueMerger.class);
