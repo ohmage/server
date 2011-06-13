@@ -82,7 +82,7 @@ public class SurveyMapFromXmlBuilder implements SurveyMapBuilder {
 					Map<String, Prompt> promptMap = new HashMap<String, Prompt>();
 					
 					for(int k = 0; k < numberOfPrompts; k++) {
-						Prompt p = getPromptFromNode(promptNodes.get(k));
+						Prompt p = getPromptFromNode(promptNodes.get(k), k);
 						promptMap.put(p.getId(), p);
 					}
 					
@@ -90,17 +90,13 @@ public class SurveyMapFromXmlBuilder implements SurveyMapBuilder {
 					surveyItemMap.put(repeatableSetId, rs);
 					
 				} else { // it's a single prompt
-					
-					Prompt p = getPromptFromNode(nodes.get(j));
+					Prompt p = getPromptFromNode(nodes.get(j), j);
 					surveyItemMap.put(p.getId(), p);
 				}
 			}
 			
 			Survey survey = new Survey(surveyId, surveyTitle, surveyDescription, surveyItemMap);
 			surveyMap.put(surveyId, survey);
-			// TODO make this a debug prop
-			// _logger.info(survey);
-			
 		}
 		
 		return surveyMap;
@@ -109,7 +105,7 @@ public class SurveyMapFromXmlBuilder implements SurveyMapBuilder {
 	/**
 	 * Converts the provided XOM Node object into a Prompt object.
 	 */
-	private Prompt getPromptFromNode(Node node) {
+	private Prompt getPromptFromNode(Node node, int index) {
 		Nodes propNodes = node.query("properties/property");
 		int numberOfPropNodes = propNodes.size();
 		Map<String , PromptProperty> ppMap = new HashMap<String, PromptProperty>();
@@ -137,6 +133,6 @@ public class SurveyMapFromXmlBuilder implements SurveyMapBuilder {
 		String type = node.query("promptType").get(0).getValue();
 		boolean skippable = Boolean.valueOf(node.query("skippable").get(0).getValue());
 		
-		return new Prompt(id, displayType, type, ppMap, skippable, displayLabel, unit, promptText);
+		return new Prompt(id, displayType, type, ppMap, skippable, displayLabel, unit, promptText, index);
 	}
 }
