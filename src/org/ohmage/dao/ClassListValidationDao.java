@@ -42,7 +42,7 @@ public class ClassListValidationDao extends AbstractDao {
 														"SELECT * " +
 														"FROM user u, class c, user_class uc " +
 														"WHERE c.urn = ? " +
-														"AND u.login_id = ? " +
+														"AND u.username = ? " +
 														"AND c.id = uc.class_id " +
 														"AND u.id = uc.user_id" +
 													")";

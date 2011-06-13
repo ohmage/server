@@ -39,7 +39,7 @@ public class UserRoleCampaignPopulationDao extends AbstractDao {
 			                                 + " campaign_privacy_state.privacy_state, campaign.creation_timestamp, user_role_campaign.user_role_id,"
 			                                 + " user_role.role"
         									 + " FROM campaign, user, user_role_campaign, user_role, campaign_privacy_state, campaign_running_state"
-        									 + " WHERE user.login_id = ?"
+        									 + " WHERE user.username = ?"
         									 +   " AND user.id = user_role_campaign.user_id"
         									 +   " AND campaign.id = user_role_campaign.campaign_id"
         									 +   " AND user_role.id = user_role_campaign.user_role_id"

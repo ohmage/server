@@ -1,18 +1,3 @@
-/*******************************************************************************
- * Copyright 2011 The Regents of the University of California
- * 
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- * 
- *   http://www.apache.org/licenses/LICENSE-2.0
- * 
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- ******************************************************************************/
 package org.ohmage.jee.servlet.writer;
 
 import java.io.BufferedWriter;
@@ -26,24 +11,16 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.log4j.Logger;
 import org.ohmage.domain.ErrorResponse;
 import org.ohmage.request.AwRequest;
-import org.ohmage.request.InputKeys;
-import org.ohmage.util.CookieUtils;
 
-
-/**
- * Writer for the responses from a campaign update request.
- * 
- * @author John Jenkins
- */
-public class CampaignUpdateResponseWriter extends AbstractResponseWriter {
-	private static Logger _logger = Logger.getLogger(CampaignUpdateResponseWriter.class);
+public class DocumentUpdateResponseWriter extends AbstractResponseWriter {
+private static Logger _logger = Logger.getLogger(DocumentUpdateResponseWriter.class);
 	
 	/**
 	 * Writer for a campaign update request.
 	 * 
 	 * @param errorResponse Default response if an unknown error occurrs.
 	 */
-	public CampaignUpdateResponseWriter(ErrorResponse errorResponse) {
+	public DocumentUpdateResponseWriter(ErrorResponse errorResponse) {
 		super(errorResponse);
 	}
 
@@ -52,7 +29,7 @@ public class CampaignUpdateResponseWriter extends AbstractResponseWriter {
 	 */
 	@Override
 	public void write(HttpServletRequest request, HttpServletResponse response, AwRequest awRequest) {
-		_logger.info("Writing campaign update response.");
+		_logger.info("Writing document update response.");
 		
 		Writer writer;
 		try {
@@ -79,7 +56,6 @@ public class CampaignUpdateResponseWriter extends AbstractResponseWriter {
 			}
 		}
 		else {
-			CookieUtils.setCookieValue(response, InputKeys.AUTH_TOKEN, awRequest.getUserToken(), AUTH_TOKEN_COOKIE_LIFETIME_IN_SECONDS);
 			responseText = generalJsonSuccessMessage();
 		}
 		
@@ -99,5 +75,4 @@ public class CampaignUpdateResponseWriter extends AbstractResponseWriter {
 			_logger.error("Unable to flush or close the writer.", e);
 		}
 	}
-
 }

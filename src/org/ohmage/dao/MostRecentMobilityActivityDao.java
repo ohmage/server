@@ -39,7 +39,7 @@ public class MostRecentMobilityActivityDao extends AbstractDao {
 					    + " WHERE upload_timestamp ="
 						+  " (SELECT MAX(upload_timestamp)"
 						+     " FROM mobility_mode_only m, user u"
-						+  	  " WHERE m.user_id = u.id AND u.login_id = ?)";
+						+  	  " WHERE m.user_id = u.id AND u.username = ?)";
 	
 	public MostRecentMobilityActivityDao(DataSource dataSource) {
 		super(dataSource);

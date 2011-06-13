@@ -39,7 +39,7 @@ public class SurveyResponseReadDao extends AbstractDao {
 	private ConfigurationValueMerger _configurationValueMerger;
 	
 	private String _sql = "SELECT pr.prompt_id, pr.prompt_type, pr.response, pr.repeatable_set_iteration, pr.repeatable_set_id,"
-			           + " sr.msg_timestamp, sr.phone_timezone, sr.location_status, sr.location, sr.survey_id, u.login_id," +
+			           + " sr.msg_timestamp, sr.phone_timezone, sr.location_status, sr.location, sr.survey_id, u.username," +
 			           		" sr.client, sr.launch_context, sr.id, srps.privacy_state"
 	                   + " FROM prompt_response pr, survey_response sr, user u, campaign c, survey_response_privacy_state srps"
 	                   + " WHERE pr.survey_response_id = sr.id"
@@ -50,29 +50,29 @@ public class SurveyResponseReadDao extends AbstractDao {
 	
 	private String _andDatesBetween = " AND sr.msg_timestamp BETWEEN ? AND ?";
 	
-	private String _andUsers = " AND u.login_id IN "; 
+	private String _andUsers = " AND u.username IN "; 
 	
 	private String _andPromptIds = " AND pr.prompt_id IN ";  
 	
 	private String _andSurveyIds = " AND sr.survey_id IN ";
 
-	private String _orderByUserTimestampSurvey = " ORDER BY u.login_id, sr.msg_timestamp, sr.survey_id, " +
+	private String _orderByUserTimestampSurvey = " ORDER BY u.username, sr.msg_timestamp, sr.survey_id, " +
 			                                     "pr.repeatable_set_id, pr.repeatable_set_iteration, pr.prompt_id";
 	
-	private String _orderByUserSurveyTimestamp = " ORDER BY u.login_id, sr.survey_id, " +
+	private String _orderByUserSurveyTimestamp = " ORDER BY u.username, sr.survey_id, " +
                                                  "pr.repeatable_set_id, pr.repeatable_set_iteration, pr.prompt_id, sr.msg_timestamp";
 
 	private String _orderBySurveyUserTimestamp = " ORDER BY sr.survey_id, pr.repeatable_set_id, pr.repeatable_set_iteration, " +
-			                                     "pr.prompt_id, u.login_id, sr.msg_timestamp";
+			                                     "pr.prompt_id, u.username, sr.msg_timestamp";
 	
 	private String _orderBySurveyTimestampUser = " ORDER BY sr.survey_id, pr.repeatable_set_id, pr.repeatable_set_iteration, " +
-			                                     "pr.prompt_id, sr.msg_timestamp, u.login_id";
+			                                     "pr.prompt_id, sr.msg_timestamp, u.username";
 	
-	private String _orderByTimestampUserSurvey = " ORDER BY sr.msg_timestamp, u.login_id, sr.survey_id, " +
+	private String _orderByTimestampUserSurvey = " ORDER BY sr.msg_timestamp, u.username, sr.survey_id, " +
                                                  "pr.repeatable_set_id, pr.repeatable_set_iteration, pr.prompt_id";
 
 	private String _orderByTimestampSurveyUser = " ORDER BY sr.msg_timestamp, sr.survey_id, pr.repeatable_set_id, " +
-			                                     "pr.repeatable_set_iteration, pr.prompt_id, u.login_id";	
+			                                     "pr.repeatable_set_iteration, pr.prompt_id, u.username";	
 	
 	public SurveyResponseReadDao(DataSource dataSource, ConfigurationValueMerger configurationValueMerger) {
 		super(dataSource);

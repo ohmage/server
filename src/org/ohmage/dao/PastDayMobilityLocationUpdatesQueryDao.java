@@ -40,7 +40,7 @@ public class PastDayMobilityLocationUpdatesQueryDao extends AbstractDao {
 	private String _nonNullPointsSql = "SELECT COUNT(*)" +
 			                           " FROM mobility_mode_only m, user u" +
 			                           " WHERE m.user_id = u.id" +
-			                           " AND u.login_id = ?" +
+			                           " AND u.username = ?" +
 			                           " AND date(upload_timestamp) BETWEEN date((now() - 1)) and date(now())" +
 			                           " AND latitude is not NULL" +
 			                           " AND longitude is not NULL";      
@@ -48,7 +48,7 @@ public class PastDayMobilityLocationUpdatesQueryDao extends AbstractDao {
 	private String _totalPointsSql = "SELECT COUNT(*)" +
 				                     " FROM mobility_mode_only m, user u" +
 						             " WHERE m.user_id = u.id" +
-						             " AND u.login_id = ?" +
+						             " AND u.username = ?" +
 						             " AND date(upload_timestamp) BETWEEN date(now() - 1) and date(now())";
 
 	public PastDayMobilityLocationUpdatesQueryDao(DataSource dataSource) {

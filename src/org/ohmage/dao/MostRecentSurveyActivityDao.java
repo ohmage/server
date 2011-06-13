@@ -42,7 +42,7 @@ public class MostRecentSurveyActivityDao extends AbstractDao {
 						 +	" WHERE u.id = sr.user_id "
 						 +	 " AND sr.campaign_id = c.id "
 						 +   " AND c.urn = ?"
-						 +   " AND u.login_id = ?)";
+						 +   " AND u.username = ?)";
 	
 	public MostRecentSurveyActivityDao(DataSource dataSource) {
 		super(dataSource);

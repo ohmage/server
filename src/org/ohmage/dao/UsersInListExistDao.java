@@ -33,7 +33,7 @@ public class UsersInListExistDao extends AbstractDao {
 	
 	private static final String SQL = "SELECT count(*) " +
 									  "FROM user " +
-									  "WHERE login_id = ?";
+									  "WHERE username = ?";
 	
 	private String _key;
 	private boolean _required;

@@ -262,37 +262,7 @@
     <servlet-name>CampaignReadServlet</servlet-name>
     <url-pattern>/campaign/read</url-pattern>
   </servlet-mapping>
-  
-  <!--  Handle data point queries -->
-  <servlet>
-    <description>
-      runs data point queries (survey response data, mobility data) 
-    </description>
-    <servlet-name>DataPointQueryServlet</servlet-name>
-    <servlet-class>org.ohmage.jee.servlet.AwDataServlet</servlet-class>
-    <init-param>
-      <param-name>controllerName</param-name>
-      <param-value>dataPointQueryController</param-value>
-    </init-param>
-    <init-param>
-      <param-name>awRequestCreatorName</param-name>
-      <param-value>dataPointQueryAwRequestCreator</param-value>
-    </init-param>
-    <init-param>
-      <param-name>httpServletRequestValidatorName</param-name>
-      <param-value>dataPointQueryHttpServletRequestValidator</param-value>
-    </init-param>
-    <init-param>
-      <param-name>responseWriterName</param-name>
-      <param-value>dataPointQueryResponseWriter</param-value>
-    </init-param>
-    <load-on-startup>1</load-on-startup>
-  </servlet>
-  <servlet-mapping>
-    <servlet-name>DataPointQueryServlet</servlet-name>
-    <url-pattern>/survey_response/read/old</url-pattern>
-  </servlet-mapping>
-  
+    
   <!-- Read survey responses   -->
   <servlet>
     <description>
@@ -771,6 +741,36 @@
   <servlet-mapping>
     <servlet-name>DocumentReadContentsServlet</servlet-name>
     <url-pattern>/document/read/contents</url-pattern>
+  </servlet-mapping>
+  
+  <!-- Handle updating the document -->
+  <servlet>
+    <description>
+      Updates the document.
+    </description>
+    <servlet-name>DocumentUpdateServlet</servlet-name>
+    <servlet-class>org.ohmage.jee.servlet.AwDataServlet</servlet-class>
+    <init-param>
+      <param-name>httpServletRequestValidatorName</param-name>
+      <param-value>documentUpdateHttpServletRequestValidator</param-value>
+    </init-param>
+    <init-param>
+      <param-name>awRequestCreatorName</param-name>
+      <param-value>documentUpdateAwRequestCreator</param-value>
+    </init-param>
+    <init-param>
+      <param-name>controllerName</param-name>
+      <param-value>documentUpdateController</param-value>
+    </init-param>
+    <init-param>
+      <param-name>responseWriterName</param-name>
+      <param-value>documentUpdateResponseWriter</param-value>
+    </init-param>
+  </servlet>
+  
+  <servlet-mapping>
+    <servlet-name>DocumentUpdateServlet</servlet-name>
+    <url-pattern>/document/update</url-pattern>
   </servlet-mapping>
   
   <!-- Handle document deletion -->

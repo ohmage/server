@@ -34,7 +34,7 @@ public class UserCanCreateCampaignsValidationDao extends AbstractDao {
 	
 	private static final String SQL = "SELECT campaign_creation_privilege" +
 									  " FROM user" +
-									  " WHERE login_id=?";
+									  " WHERE username=?";
 	
 	/**
 	 * Creates a new DAO to check if the user has permissions to create a new

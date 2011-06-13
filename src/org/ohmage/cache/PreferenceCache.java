@@ -41,6 +41,7 @@ public class PreferenceCache extends KeyValueCache {
 	public static final String KEY_DOCUMENT_DEPTH = "document_depth";
 	public static final String KEY_APPLICATION_NAME = "application_name";
 	public static final String KEY_APPLICATION_VERSION = "application_version";
+	public static final String KEY_PROPERTIES_FILE = "properties_file";
 	
 	// The reference to one's self to return to requesters.
 	private static PreferenceCache _self = new PreferenceCache();

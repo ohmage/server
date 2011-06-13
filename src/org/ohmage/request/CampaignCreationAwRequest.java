@@ -58,7 +58,9 @@ public class CampaignCreationAwRequest extends ResultListAwRequest {
 		addToValidate(InputKeys.PRIVACY_STATE, privacyState, true);
 		addToValidate(InputKeys.CLASS_URN_LIST, commaSeparatedListOfClasses, true);
 		
-		addToValidate(InputKeys.XML, campaignAsXml, true);
+		// This is done as a temporary hack to get the campaign XML to go 
+		// straight to service validation.
+		addToProcess(InputKeys.XML, campaignAsXml, true);
 		
 		if(! StringUtils.isEmptyOrWhitespaceOnly(description)) {
 			addToValidate(InputKeys.DESCRIPTION, description, true);

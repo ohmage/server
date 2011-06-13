@@ -39,14 +39,14 @@ public class MobilityQueryDao extends AbstractDao {
 	
 	private String _modeOnlySql = "SELECT msg_timestamp, phone_timezone, location_status, location, mode "
 		                          + "FROM mobility_mode_only m, user u " 
-		                          + "WHERE u.login_id = ? "
+		                          + "WHERE u.username = ? "
 		                          + "AND u.id = m.user_id "
 		                          + "AND date(msg_timestamp) = ? "
 		                          + "ORDER BY msg_timestamp";
 	
 	private String _extendedSql = "SELECT msg_timestamp, phone_timezone, location_status, location, mode "
                                   + "FROM mobility_extended m, user u " 
-                                  + "WHERE u.login_id = ? "
+                                  + "WHERE u.username = ? "
                                   + "AND u.id = m.user_id "
                                   + "AND date(msg_timestamp) = ? "
                                   + "ORDER BY msg_timestamp";

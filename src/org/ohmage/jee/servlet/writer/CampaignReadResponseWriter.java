@@ -109,16 +109,17 @@ public class CampaignReadResponseWriter extends AbstractResponseWriter {
 						dataArray.put(result.getUrn(), campaignObject);
 						itemArray.put(result.getUrn());
 					} else {
-						JSONObject xmlOutput = new JSONObject();
-						xmlOutput.put("urn", result.getUrn());
-						xmlOutput.put("configuration", result.getXml());
-						rootObject.put("data", xmlOutput); // assuming only one result here ...
+						response.setHeader("Content-Disposition", "attachment; filename=" + result.getName());
+						response.setContentType("text/xml");
+						responseText = result.getXml();
 					}
 				} 	
 				
 				CookieUtils.setCookieValue(response, InputKeys.AUTH_TOKEN, awRequest.getUserToken(), AUTH_TOKEN_COOKIE_LIFETIME_IN_SECONDS);
-				responseText = rootObject.toString();
-				
+
+				if(! "xml".equals(req.getOutputFormat())) {
+					responseText = rootObject.toString();
+				}
 			} else {
 				
 				if(null != awRequest.getFailedRequestErrorMessage()) {

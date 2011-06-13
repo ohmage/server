@@ -32,7 +32,7 @@ import org.springframework.jdbc.core.SingleColumnRowMapper;
 public class FindAllDirectUsersToWhichDocumentBelongsDao extends AbstractDao {
 	private static Logger _logger = Logger.getLogger(FindAllDirectUsersToWhichDocumentBelongsDao.class);
 	
-	private static final String SQL_GET_DIRECT_USERS_FOR_DOCUMENT = "SELECT u.login_id " +
+	private static final String SQL_GET_DIRECT_USERS_FOR_DOCUMENT = "SELECT u.username " +
 																	"FROM user u, document d, document_user_role dur " +
 																	"WHERE d.uuid = ? " +
 																	"AND d.id = dur.document_id " +

@@ -41,29 +41,29 @@ public class UserInfoAggregationDao extends AbstractDao {
 	
 	private static final String SQL_GET_USER_CREATION_PRIVILEGE = "SELECT campaign_creation_privilege " +
 															   	  "FROM user u " +
-															   	  "WHERE u.login_id = ?";
+															   	  "WHERE u.username = ?";
 	
 	private final static String SQL_GET_USER_CAMPAIGNS = "SELECT c.urn, c.name " +
 														 "FROM user u, campaign c, user_role_campaign urc " +
-														 "WHERE u.login_id = ? " +
+														 "WHERE u.username = ? " +
 														 "AND u.id = urc.user_id " +
 														 "AND urc.campaign_id = c.id";
 	
 	private final static String SQL_GET_CAMPAIGN_ROLES = "SELECT distinct(ur.role) " +
 														 "FROM user u, user_role ur, user_role_campaign urc " +
-														 "WHERE u.login_id = ? " +
+														 "WHERE u.username = ? " +
 														 "AND u.id = urc.user_id " +
 														 "AND urc.user_role_id = ur.id";
 	
 	private static final String SQL_GET_USER_CLASSES = "SELECT c.urn, c.name " +
 	  												   "FROM user u, class c, user_class uc " +
-	  												   "WHERE u.login_id = ? " +
+	  												   "WHERE u.username = ? " +
 	  												   "AND u.id = uc.user_id " +
 	  												   "AND uc.class_id = c.id";
 	
 	private static final String SQL_GET_CLASS_ROLES = "SELECT distinct(ucr.role) " +
 												      "FROM user u, user_class uc, user_class_role ucr " +
-												      "WHERE u.login_id = ? " +
+												      "WHERE u.username = ? " +
 												      "AND u.id = uc.user_id " +
 												      "AND uc.user_class_role_id = ucr.id";
 	

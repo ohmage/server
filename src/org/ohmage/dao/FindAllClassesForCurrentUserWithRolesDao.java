@@ -41,7 +41,7 @@ private static Logger _logger = Logger.getLogger(FindAllClassesForCurrentUserWit
     														 "FROM class c, user u, user_class uc, user_class_role ucr " +
     														 "WHERE uc.class_id = c.id " +
     														 "AND uc.user_id = u.id " +
-    														 "AND u.login_id = ? " +
+    														 "AND u.username = ? " +
     														 "AND uc.user_class_role_id = ucr.id " +
     														 "AND ucr.role = ?";
 	

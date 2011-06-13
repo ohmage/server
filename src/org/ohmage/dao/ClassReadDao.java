@@ -45,10 +45,10 @@ public class ClassReadDao extends AbstractDao {
 													 			   "WHERE c.urn = ? " +
 													 			   "AND c.id = uc.class_id " +
 													 			   "AND uc.user_id = u.id " +
-													 			   "AND u.login_id = ? " +
+													 			   "AND u.username = ? " +
 													 			   "AND uc.user_class_role_id = ucr.id ";
 	
-	private static final String SQL_GET_USERS_AND_CLASS_ROLES = "SELECT u.login_id, ucr.role " +
+	private static final String SQL_GET_USERS_AND_CLASS_ROLES = "SELECT u.username, ucr.role " +
 																"FROM user u, user_class uc, user_class_role ucr, class c " +
 																"WHERE u.id = uc.user_id " +
 																"AND c.id = uc.class_id " + 
@@ -149,7 +149,7 @@ public class ClassReadDao extends AbstractDao {
 														new RowMapper() {
 															@Override
 															public Object mapRow(ResultSet rs, int row) throws SQLException {
-																return new UserInformation(rs.getString("login_id"), rs.getString("role"));
+																return new UserInformation(rs.getString("username"), rs.getString("role"));
 															}
 														});
 			}

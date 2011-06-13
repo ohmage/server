@@ -33,7 +33,7 @@ public class FindAllAdminCampaignsForUserDao extends AbstractDao {
 	private String _sql = "SELECT c.urn " +
 			              "FROM campaign c, user_role_campaign urc, user u, user_role ur " +
 			              "WHERE urc.campaign_id = c.id " +
-			              "AND urc.user_id = u.id AND u.login_id = ? " +
+			              "AND urc.user_id = u.id AND u.username = ? " +
 			              "AND urc.user_role_id =  ur.id " +
 			              "AND ur.role in ('" + CampaignRoleCache.ROLE_SUPERVISOR + "')"; // for now, assume supervisor.
 	

@@ -22,7 +22,6 @@ import org.ohmage.dao.Dao;
 import org.ohmage.dao.DataAccessException;
 import org.ohmage.domain.Configuration;
 import org.ohmage.request.AwRequest;
-import org.ohmage.request.DataPointQueryAwRequest;
 import org.ohmage.request.SurveyResponseReadAwRequest;
 import org.ohmage.request.SurveyUploadAwRequest;
 
@@ -59,8 +58,6 @@ public class FindCampaignConfigurationService extends AbstractDaoService {
 			
 			if(awRequest instanceof SurveyResponseReadAwRequest) {
 				((SurveyResponseReadAwRequest) awRequest).setConfiguration(configurations.get(0));
-			} else if (awRequest instanceof DataPointQueryAwRequest) {
-				((DataPointQueryAwRequest) awRequest).setConfiguration(configurations.get(0));
 			} else if (awRequest instanceof SurveyUploadAwRequest) {
 				((SurveyUploadAwRequest) awRequest).setConfiguration(configurations.get(0));
 			} else {

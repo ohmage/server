@@ -53,7 +53,7 @@ public class DocumentInformationAggregationDao extends AbstractDao {
 															 "WHERE d.uuid = ? " +
 															 "AND d.id = dur.document_id " +
 															 "AND dur.user_id = u.id " +
-															 "AND u.login_id = ? " +
+															 "AND u.username = ? " +
 															 "AND dur.document_role_id = dr.id";
 	
 	private static final String SQL_GET_CAMPAIGNS_AND_DOCUMENT_ROLE = "SELECT c.urn, dr.role " +
@@ -65,7 +65,7 @@ public class DocumentInformationAggregationDao extends AbstractDao {
 																	  "AND dcr.campaign_id = c.id " +
 																	  "AND urc.campaign_id = c.id " +
 																	  "AND urc.user_id = u.id " +
-																	  "AND u.login_id = ?";
+																	  "AND u.username = ?";
 	
 	private static final String SQL_GET_CLASSES_AND_DOCUMENT_ROLE = "SELECT c.urn, dr.role " +
 																	"FROM class c, document d, document_role dr, document_class_role dcr, " +
@@ -76,7 +76,7 @@ public class DocumentInformationAggregationDao extends AbstractDao {
 																	"AND dcr.class_id = c.id " +
 																	"AND uc.class_id = c.id " +
 																	"AND uc.user_id = u.id " +
-																	"AND u.login_id = ?";
+																	"AND u.username = ?";
 	
 	public static final String KEY_DOCUMENT_INFORMATION_AGGREGATION_DAO_DOCUMENT_LIST = "document_information_aggregation_dao_document_list";
 	

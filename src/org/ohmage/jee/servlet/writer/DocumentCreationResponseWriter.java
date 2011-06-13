@@ -72,7 +72,7 @@ public class DocumentCreationResponseWriter extends AbstractResponseWriter {
 		
 		// Sets the HTTP headers to disable caching
 		expireResponse(response);
-		response.setContentType("application/json");
+		response.setContentType("text/html");
 		
 		String responseText = "";
 		// If the request hasn't failed, try to build a response and if there

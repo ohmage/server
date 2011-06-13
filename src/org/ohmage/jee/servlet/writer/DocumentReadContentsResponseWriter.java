@@ -81,12 +81,13 @@ public class DocumentReadContentsResponseWriter extends AbstractResponseWriter {
 		
 		// Sets the HTTP headers to disable caching
 		expireResponse(response);
-		response.setContentType("application/json");
 		
 		// If the request hasn't failed, attempt to write the file to the
 		// output stream. 
 		if(! awRequest.isFailedRequest()) {
 			try {
+				response.setContentType("application/json");
+				
 				// Get an input stream for the file.
 				File documentFile = new File(new URI((String) awRequest.getToReturnValue(org.ohmage.request.DocumentReadContentsAwRequest.KEY_DOCUMENT_FILE)));
 				DataInputStream is = new DataInputStream(new FileInputStream(documentFile));
@@ -132,6 +133,7 @@ public class DocumentReadContentsResponseWriter extends AbstractResponseWriter {
 		
 		// If the request ever failed, write an error message.
 		if(awRequest.isFailedRequest()) {
+			response.setContentType("text/html");
 			String responseText;
 			
 			// If a specific error message was annotated, use that. 

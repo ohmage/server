@@ -37,7 +37,7 @@ public class CompletedSurveysDao extends AbstractDao {
 	private String _sql = "SELECT sr.msg_timestamp, sr.phone_timezone, sr.location_status, sr.location, sr.survey_id "
 			              + "FROM survey_response sr, user u, campaign c "
                           + "WHERE sr.user_id = u.id "
-                          + "AND u.login_id = ? "
+                          + "AND u.username = ? "
                           + "AND c.urn = ? "
                           + "AND c.id = sr.campaign_id "
                           + "AND date(msg_timestamp) BETWEEN ? and ?";

@@ -43,13 +43,13 @@ import org.springframework.jdbc.core.RowMapper;
 public class UserReadDao extends AbstractDao {
 	private static Logger _logger = Logger.getLogger(UserReadDao.class);
 	
-	private static final String SQL_GET_USERS_FROM_CAMPAIGN = "SELECT u.login_id " +
+	private static final String SQL_GET_USERS_FROM_CAMPAIGN = "SELECT u.username " +
 															  "FROM user u, campaign c, user_role_campaign urc " +
 															  "WHERE c.urn = ? " +
 															  "AND c.id = urc.campaign_id " +
 															  "AND u.id = urc.user_id";
 	
-	private static final String SQL_GET_USERS_FROM_CLASS = "SELECT u.login_id " +
+	private static final String SQL_GET_USERS_FROM_CLASS = "SELECT u.username " +
 														   "FROM user u, class c, user_class uc " +
 														   "WHERE c.urn = ? " +
 														   "AND c.id = uc.class_id " +
@@ -57,7 +57,7 @@ public class UserReadDao extends AbstractDao {
 	
 	private static final String SQL_GET_USER_INFORMATION = "SELECT up.first_name, up.last_name, up.organization, up.personal_id, up.email_address, up.json_data " +
 														   "FROM user u, user_personal up " +
-														   "WHERE u.login_id = ? " +
+														   "WHERE u.username = ? " +
 														   "AND u.id = up.user_id";
 	
 	/**
@@ -100,7 +100,7 @@ public class UserReadDao extends AbstractDao {
 							new RowMapper() {
 								@Override
 								public Object mapRow(ResultSet rs, int rowNum) throws SQLException {
-									users.add(rs.getString("login_id"));
+									users.add(rs.getString("username"));
 									return null;
 								}
 							}
@@ -134,7 +134,7 @@ public class UserReadDao extends AbstractDao {
 							new RowMapper() {
 								@Override
 								public Object mapRow(ResultSet rs, int rowNum) throws SQLException {
-									users.add(rs.getString("login_id"));
+									users.add(rs.getString("username"));
 									return null;
 								}
 							}

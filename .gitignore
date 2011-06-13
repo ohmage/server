@@ -3,3 +3,4 @@ dist
 .classpath
 .project
 bin
+web/META-INF/system.properties

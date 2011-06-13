@@ -35,7 +35,7 @@ public class FindCampaignForMediaIdDao extends AbstractDao {
 		  	             + " AND pr.survey_response_id = sr.id" 
 		  	             + " AND sr.campaign_id = c.id"
 		  	             + " AND sr.user_id = u.id"
-		  	             + " AND u.login_id = ?";
+		  	             + " AND u.username = ?";
 	
 	public FindCampaignForMediaIdDao(DataSource dataSource) {
 		super(dataSource);

@@ -39,7 +39,7 @@ public class CampaignListValidationDao extends AbstractDao {
 	private static final String SQL_GET_USER_IN_CAMPAIGN_EXISTS = "SELECT EXISTS(" +
 																  	"SELECT * " +
 																  	"FROM user u, campaign c, user_role_campaign urc " +
-																  	"WHERE u.login_id = ? " +
+																  	"WHERE u.username = ? " +
 																  	"AND u.id = urc.user_id " +
 																  	"AND c.urn = ? " +
 																  	"AND c.id = urc.campaign_id " +
