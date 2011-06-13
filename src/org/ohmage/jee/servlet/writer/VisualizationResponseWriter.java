@@ -20,8 +20,8 @@ import org.ohmage.util.CookieUtils;
  * 
  * @author John Jenkins
  */
-public class VizResponseWriter extends AbstractResponseWriter {
-	private static final Logger _logger = Logger.getLogger(VizResponseWriter.class);
+public class VisualizationResponseWriter extends AbstractResponseWriter {
+	private static final Logger _logger = Logger.getLogger(VisualizationResponseWriter.class);
 	
 	/**
 	 * Builds a writer for this request with a default error response should
@@ -30,7 +30,7 @@ public class VizResponseWriter extends AbstractResponseWriter {
 	 * @param errorResponse The error response to use should the request have
 	 * 						failed and no other one is present.
 	 */
-	public VizResponseWriter(ErrorResponse errorResponse) {
+	public VisualizationResponseWriter(ErrorResponse errorResponse) {
 		super(errorResponse);
 	}
 

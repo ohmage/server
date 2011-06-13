@@ -15,9 +15,21 @@ import org.ohmage.request.InputKeys;
 import org.ohmage.request.VisualizationRequest;
 import org.ohmage.validator.AwRequestAnnotator;
 
+/**
+ * Calls the R visualization server with the parameters that we received in the
+ * request. Specifically, it calls the R survey response count API.
+ * 
+ * @author John Jenkins
+ */
 public class VizSurveyResponseCountService extends AbstractAnnotatingService {
 	private static final Logger _logger = Logger.getLogger(VizSurveyResponseCountService.class);
 	
+	/**
+	 * Builds this service.
+	 * 
+	 * @param annotator The annotator to use should the communication with the
+	 * 					server fails.
+	 */
 	public VizSurveyResponseCountService(AwRequestAnnotator annotator) {
 		super(annotator);
 	}
@@ -86,7 +98,7 @@ public class VizSurveyResponseCountService extends AbstractAnnotatingService {
 			if(urlConnection instanceof HttpURLConnection) {
 				HttpURLConnection httpUrlConnection = (HttpURLConnection) urlConnection;
 				if(httpUrlConnection.getResponseCode() != 200) {
-					throw new IOException("The response from the R server was not 200.");
+					getAnnotator().annotate(awRequest, "The server returned a non-200 response.");
 				}
 			}
 			

@@ -5,13 +5,13 @@
                            http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-2.5.xsd">
 
   <!-- Basic HTTP Validation -->
-  <bean id="vizSurveyResponseCountHttpServletRequestValidator" class="org.ohmage.jee.servlet.validator.VizSurveyResponseCountValidator" />
+  <bean id="vizPromptTimeseriesHttpServletRequestValidator" class="org.ohmage.jee.servlet.validator.VizPromptTimeseriesValidator" />
   
   <!-- Create the AwRequest Object -->
-  <bean id="vizSurveyResponseCountAwRequestCreator" class="org.ohmage.jee.servlet.glue.VizSurveyResponseCountRequestCreator" />
+  <bean id="vizPromptTimeseriesAwRequestCreator" class="org.ohmage.jee.servlet.glue.VizPromptTimeseriesRequestCreator" />
   
   <!-- Write the Response -->
-  <bean id="vizSurveyResponseCountResponseWriter" class="org.ohmage.jee.servlet.writer.VisualizationResponseWriter">
+  <bean id="vizPromptTimeseriesResponseWriter" class="org.ohmage.jee.servlet.writer.VisualizationResponseWriter">
     <constructor-arg>
       <bean class="org.ohmage.domain.ErrorResponse">
         <property name="code" value="1700" />
@@ -21,7 +21,7 @@
   </bean>
   
   <!-- Controller Definition -->
-  <bean id="vizSurveyResponseCountController" class="org.ohmage.controller.ControllerImpl">
+  <bean id="vizPromptTimeseriesController" class="org.ohmage.controller.ControllerImpl">
     <constructor-arg>
       <!-- Services List (expected to be executed in-order) -->
       <list>
@@ -31,8 +31,11 @@
         <!-- Send the request to the R-server. -->
         <ref bean="campaignExistsService" />
         
+        <!-- Prompt exists in campaign. -->
+        <ref bean="promptIdExistsService" />
+        
         <!-- Process the request -->
-        <ref bean="vizSurveyResponseCountService" />
+        <ref bean="vizPromptTimeseriesService" />
       </list>
     </constructor-arg>
     <constructor-arg index="1">
@@ -52,11 +55,11 @@
       </list>
     </property>
     <property name="featureName">
-      <value>Survey Response Count Visualization</value>
+      <value>Prompt Timeseries Visualization</value>
     </property>
   </bean>
   
-  <bean id="vizSurveyResponseCountService" class="org.ohmage.service.VizSurveyResponseCountService">
+  <bean id="vizPromptTimeseriesService" class="org.ohmage.service.VizPromptTimeseriesService">
     <constructor-arg>
       <bean class="org.ohmage.validator.json.FailedJsonRequestAnnotator">
         <constructor-arg> 
@@ -68,5 +71,4 @@
       </bean>
     </constructor-arg>
   </bean>
-  
 </beans>

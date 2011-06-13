@@ -1,13 +1,13 @@
 package org.ohmage.request;
 
 /**
- * Builds a survey response count visualization request.
+ * A survey response count visualization request.
  * 
  * @author John Jenkins
  */
 public class VizSurveyResponseCountRequest extends VisualizationRequest {
 	/**
-	 * Builds the request.
+	 * Builds the survey response count request.
 	 * 
 	 * @param token The authentication / session token.
 	 * 

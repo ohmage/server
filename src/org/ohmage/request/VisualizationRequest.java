@@ -1,5 +1,6 @@
 package org.ohmage.request;
 
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -33,6 +34,8 @@ public abstract class VisualizationRequest extends AbstractAwRequest {
 		addToValidate(InputKeys.VISUALIZATION_HEIGHT, height, true);
 		
 		setCampaignUrn(campaignId);
+		
+		_resultList = Collections.emptyList();
 	}
 	
 	/**

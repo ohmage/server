@@ -11,7 +11,7 @@
   <bean id="vizUserTimeseriesAwRequestCreator" class="org.ohmage.jee.servlet.glue.VizUserTimeseriesRequestCreator" />
   
   <!-- Write the Response -->
-  <bean id="vizUserTimeseriesResponseWriter" class="org.ohmage.jee.servlet.writer.VizResponseWriter">
+  <bean id="vizUserTimeseriesResponseWriter" class="org.ohmage.jee.servlet.writer.VisualizationResponseWriter">
     <constructor-arg>
       <bean class="org.ohmage.domain.ErrorResponse">
         <property name="code" value="1700" />
@@ -62,7 +62,7 @@
       </list>
     </property>
     <property name="featureName">
-      <value>Survey Response Count Visualization</value>
+      <value>Prompt Timeseries Visualization</value>
     </property>
   </bean>
   

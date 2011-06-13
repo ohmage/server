@@ -956,6 +956,126 @@
     <url-pattern>/viz/user_timeseries/read</url-pattern>
   </servlet-mapping>
   
+  <!-- Prompt Timeseries -->
+  <servlet>
+    <description>
+      Prompt Timeseries Visualization API 
+    </description>
+    <servlet-name>VizPromptTimeseriesServlet</servlet-name>
+    <servlet-class>org.ohmage.jee.servlet.AwDataServlet</servlet-class>
+    <init-param>
+      <param-name>controllerName</param-name>
+      <param-value>vizPromptTimeseriesController</param-value>
+    </init-param>
+    <init-param>
+      <param-name>awRequestCreatorName</param-name>
+      <param-value>vizPromptTimeseriesAwRequestCreator</param-value>
+    </init-param>
+    <init-param>
+      <param-name>httpServletRequestValidatorName</param-name>
+      <param-value>vizPromptTimeseriesHttpServletRequestValidator</param-value>
+    </init-param>
+    <init-param>
+      <param-name>responseWriterName</param-name>
+      <param-value>vizPromptTimeseriesResponseWriter</param-value>
+    </init-param>
+    <load-on-startup>1</load-on-startup>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>VizPromptTimeseriesServlet</servlet-name>
+    <url-pattern>/viz/prompt_timeseries/read</url-pattern>
+  </servlet-mapping>
+  
+  <!-- Prompt Timeseries -->
+  <servlet>
+    <description>
+      Prompt Distribution Visualization API 
+    </description>
+    <servlet-name>VizPromptDistributionServlet</servlet-name>
+    <servlet-class>org.ohmage.jee.servlet.AwDataServlet</servlet-class>
+    <init-param>
+      <param-name>controllerName</param-name>
+      <param-value>vizPromptDistributionController</param-value>
+    </init-param>
+    <init-param>
+      <param-name>awRequestCreatorName</param-name>
+      <param-value>vizPromptDistributionAwRequestCreator</param-value>
+    </init-param>
+    <init-param>
+      <param-name>httpServletRequestValidatorName</param-name>
+      <param-value>vizPromptDistributionHttpServletRequestValidator</param-value>
+    </init-param>
+    <init-param>
+      <param-name>responseWriterName</param-name>
+      <param-value>vizPromptDistributionResponseWriter</param-value>
+    </init-param>
+    <load-on-startup>1</load-on-startup>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>VizPromptDistributionServlet</servlet-name>
+    <url-pattern>/viz/prompt_distribution/read</url-pattern>
+  </servlet-mapping>
+  
+  <!-- Prompt Timeseries -->
+  <servlet>
+    <description>
+      Scatter Plot Visualization API 
+    </description>
+    <servlet-name>VizScatterPlotServlet</servlet-name>
+    <servlet-class>org.ohmage.jee.servlet.AwDataServlet</servlet-class>
+    <init-param>
+      <param-name>controllerName</param-name>
+      <param-value>vizScatterPlotController</param-value>
+    </init-param>
+    <init-param>
+      <param-name>awRequestCreatorName</param-name>
+      <param-value>vizScatterPlotAwRequestCreator</param-value>
+    </init-param>
+    <init-param>
+      <param-name>httpServletRequestValidatorName</param-name>
+      <param-value>vizScatterPlotHttpServletRequestValidator</param-value>
+    </init-param>
+    <init-param>
+      <param-name>responseWriterName</param-name>
+      <param-value>vizScatterPlotResponseWriter</param-value>
+    </init-param>
+    <load-on-startup>1</load-on-startup>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>VizScatterPlotServlet</servlet-name>
+    <url-pattern>/viz/scatter_plot/read</url-pattern>
+  </servlet-mapping>
+  
+  <!-- Prompt Timeseries -->
+  <servlet>
+    <description>
+      2D Density Visualization API 
+    </description>
+    <servlet-name>VizTwoDDensityServlet</servlet-name>
+    <servlet-class>org.ohmage.jee.servlet.AwDataServlet</servlet-class>
+    <init-param>
+      <param-name>controllerName</param-name>
+      <param-value>vizTwoDDensityController</param-value>
+    </init-param>
+    <init-param>
+      <param-name>awRequestCreatorName</param-name>
+      <param-value>vizTwoDDensityAwRequestCreator</param-value>
+    </init-param>
+    <init-param>
+      <param-name>httpServletRequestValidatorName</param-name>
+      <param-value>vizTwoDDensityHttpServletRequestValidator</param-value>
+    </init-param>
+    <init-param>
+      <param-name>responseWriterName</param-name>
+      <param-value>vizTwoDDensityResponseWriter</param-value>
+    </init-param>
+    <load-on-startup>1</load-on-startup>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>VizTwoDDensityServlet</servlet-name>
+    <url-pattern>/viz/2d_density/read</url-pattern>
+  </servlet-mapping>
+  
   <!-- End Visualization APIs -->
   
   <!-- For AW 2.x and up, the server app is effectively headless. There is probably a better way to return headers only.

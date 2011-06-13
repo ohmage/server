@@ -16,13 +16,13 @@ import org.ohmage.request.VisualizationRequest;
 import org.ohmage.validator.AwRequestAnnotator;
 
 /**
- * Calls the R visualization server with the parameters that we received in the
- * request. Specifically, it calls the R user timeseries API.
+ * Sends a request to the visualization server and then places the result in 
+ * the request to be returned to the user.
  * 
  * @author John Jenkins
  */
-public class VizUserTimeseriesService extends AbstractAnnotatingService {
-	private static final Logger _logger = Logger.getLogger(VizUserTimeseriesService.class);
+public class VizPromptDistributionService extends AbstractAnnotatingService {
+	private static final Logger _logger = Logger.getLogger(VizPromptDistributionService.class);
 	
 	/**
 	 * Builds this service.
@@ -30,7 +30,7 @@ public class VizUserTimeseriesService extends AbstractAnnotatingService {
 	 * @param annotator The annotator to use should the communication with the
 	 * 					server fails.
 	 */
-	public VizUserTimeseriesService(AwRequestAnnotator annotator) {
+	public VizPromptDistributionService(AwRequestAnnotator annotator) {
 		super(annotator);
 	}
 	
@@ -74,15 +74,6 @@ public class VizUserTimeseriesService extends AbstractAnnotatingService {
 			throw new ServiceException(e);
 		}
 		
-		String userId;
-		try {
-			userId = (String) awRequest.getToProcessValue(InputKeys.USER_ID);
-		}
-		catch(IllegalArgumentException e) {
-			_logger.error("Missing required parameter: " + InputKeys.USER_ID);
-			throw new ServiceException(e);
-		}
-		
 		// Build the request.
 		StringBuilder urlBuilder = new StringBuilder();
 		try {
@@ -97,14 +88,13 @@ public class VizUserTimeseriesService extends AbstractAnnotatingService {
 			_logger.error("Cache doesn't know about 'known' key: " + PreferenceCache.KEY_VISUALIZATION_SERVER);
 			throw new ServiceException(e);
 		}
-		urlBuilder.append("userplot?");
+		urlBuilder.append("distributionplot?");
 		
 		// Add the required parameters.
 		urlBuilder.append("token='").append(awRequest.getUserToken()).append("'");
 		urlBuilder.append("&server='").append("http://131.179.144.217/app").append("'");
 		urlBuilder.append("&campaign_urn='").append(campaignId).append("'");
 		urlBuilder.append("&prompt_id='").append(promptId).append("'");
-		urlBuilder.append("&user_id='").append(userId).append("'");
 		urlBuilder.append("&!width=").append(width);
 		urlBuilder.append("&!height=").append(height);
 		String urlString = urlBuilder.toString();

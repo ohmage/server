@@ -8,17 +8,17 @@ import org.ohmage.util.StringUtils;
 
 /**
  * Basic validation that the required parameters exist and are reasonable for a
- * user timeseries visualization request.
+ * prompt timeseries visualization request.
  * 
  * @author John Jenkins
  */
-public class VizUserTimeseriesValidator extends VisualizationValidator {
-	private static final Logger _logger = Logger.getLogger(VizUserTimeseriesValidator.class);
+public class VizPromptTimeseriesValidator extends VisualizationValidator {
+	private static final Logger _logger = Logger.getLogger(VizPromptTimeseriesValidator.class);
 	
 	/**
 	 * Default constructor
 	 */
-	public VizUserTimeseriesValidator() {
+	public VizPromptTimeseriesValidator() {
 		super();
 	}
 	
@@ -32,14 +32,9 @@ public class VizUserTimeseriesValidator extends VisualizationValidator {
 		}
 		
 		String promptId = httpRequest.getParameter(InputKeys.PROMPT_ID);
-		String userId = httpRequest.getParameter(InputKeys.USER_ID);
 		
 		if(StringUtils.isEmptyOrWhitespaceOnly(promptId)) {
 			_logger.warn("Missing required parameter: " + InputKeys.PROMPT_ID);
-			return false;
-		}
-		else if(StringUtils.isEmptyOrWhitespaceOnly(userId)) {
-			_logger.warn("Missing required parameter: " + InputKeys.USER_ID);
 			return false;
 		}
 		

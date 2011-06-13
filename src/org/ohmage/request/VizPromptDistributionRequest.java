@@ -1,14 +1,13 @@
 package org.ohmage.request;
 
 /**
- * A request for an image representation of a users responses to a prompt over
- * time.
+ * Request for a prompt distribution visualization.
  * 
  * @author John Jenkins
  */
-public class VizUserTimeseriesRequest extends VisualizationRequest {
+public class VizPromptDistributionRequest extends VisualizationRequest {
 	/**
-	 * Builds a new User Timeseries visualization request.
+	 * Builds a new prompt distribution visualization request.
 	 * 
 	 * @param token The authentication / session token from this request.
 	 * 
@@ -20,14 +19,10 @@ public class VizUserTimeseriesRequest extends VisualizationRequest {
 	 * 
 	 * @param promptId An ID for the prompt in the campaign whose results are
 	 * 				   desired.
-	 * 
-	 * @param userId The ID for the user from which the requester is attempting
-	 * 				 to generate information.
 	 */
-	public VizUserTimeseriesRequest(String token, String width, String height, String campaignId, String promptId, String userId) {
+	public VizPromptDistributionRequest(String token, String width, String height, String campaignId, String promptId) {
 		super(token, width, height, campaignId);
 		
 		addToProcess(InputKeys.PROMPT_ID, promptId, true);
-		addToProcess(InputKeys.USER_ID, userId, true);
 	}
 }

@@ -11,8 +11,8 @@ import org.ohmage.util.StringUtils;
  * 
  * @author John Jenkins
  */
-public abstract class VizValidator extends AbstractHttpServletRequestValidator {
-	private static final Logger _logger = Logger.getLogger(VizValidator.class);
+public abstract class VisualizationValidator extends AbstractHttpServletRequestValidator {
+	private static final Logger _logger = Logger.getLogger(VisualizationValidator.class);
 	
 	/**
 	 * Validates that the required parameters for every visualization request

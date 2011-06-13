@@ -69,6 +69,7 @@ public class InputKeys {
 	
 	// Prompt Constants
 	public static final String PROMPT_ID = "prompt_id";
+	public static final String PROMPT2_ID = "prompt2_id";
 	public static final String PROMPT_ID_LIST = "prompt_id_list";
 	public static final String IMAGE_ID = "image_id";
 	
