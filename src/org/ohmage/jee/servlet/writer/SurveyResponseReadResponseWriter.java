@@ -38,7 +38,9 @@ import org.ohmage.domain.PromptContext;
 import org.ohmage.domain.SurveyResponseReadFormattedResult;
 import org.ohmage.domain.SurveyResponseReadResult;
 import org.ohmage.request.AwRequest;
+import org.ohmage.request.InputKeys;
 import org.ohmage.request.SurveyResponseReadAwRequest;
+import org.ohmage.util.CookieUtils;
 import org.ohmage.util.DateUtils;
 import org.ohmage.util.JsonUtils;
 
@@ -93,6 +95,7 @@ public class SurveyResponseReadResponseWriter extends AbstractResponseWriter {
 			
 			// Sets the HTTP headers to disable caching
 			expireResponse(response);
+			CookieUtils.setCookieValue(response, InputKeys.AUTH_TOKEN, awRequest.getUserToken(), AUTH_TOKEN_COOKIE_LIFETIME_IN_SECONDS);
 			
 			// Set the content type
 			if("csv".equals(req.getOutputFormat())) {

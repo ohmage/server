@@ -894,6 +894,70 @@
     <url-pattern>/survey_response/function/read</url-pattern>
   </servlet-mapping>
   
+  <!-- Visualization APIs -->
+  
+  <!-- Survey Response Count -->
+  <servlet>
+    <description>
+      Survey Response Count Visualization API 
+    </description>
+    <servlet-name>VizSurveyResponseCountServlet</servlet-name>
+    <servlet-class>org.ohmage.jee.servlet.AwDataServlet</servlet-class>
+    <init-param>
+      <param-name>controllerName</param-name>
+      <param-value>vizSurveyResponseCountController</param-value>
+    </init-param>
+    <init-param>
+      <param-name>awRequestCreatorName</param-name>
+      <param-value>vizSurveyResponseCountAwRequestCreator</param-value>
+    </init-param>
+    <init-param>
+      <param-name>httpServletRequestValidatorName</param-name>
+      <param-value>vizSurveyResponseCountHttpServletRequestValidator</param-value>
+    </init-param>
+    <init-param>
+      <param-name>responseWriterName</param-name>
+      <param-value>vizSurveyResponseCountResponseWriter</param-value>
+    </init-param>
+    <load-on-startup>1</load-on-startup>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>VizSurveyResponseCountServlet</servlet-name>
+    <url-pattern>/viz/survey_response_count/read</url-pattern>
+  </servlet-mapping>
+  
+  <!-- User Timeseries -->
+  <servlet>
+    <description>
+      User Timeseries Visualization API 
+    </description>
+    <servlet-name>VizUserTimeseriesServlet</servlet-name>
+    <servlet-class>org.ohmage.jee.servlet.AwDataServlet</servlet-class>
+    <init-param>
+      <param-name>controllerName</param-name>
+      <param-value>vizUserTimeseriesController</param-value>
+    </init-param>
+    <init-param>
+      <param-name>awRequestCreatorName</param-name>
+      <param-value>vizUserTimeseriesAwRequestCreator</param-value>
+    </init-param>
+    <init-param>
+      <param-name>httpServletRequestValidatorName</param-name>
+      <param-value>vizUserTimeseriesHttpServletRequestValidator</param-value>
+    </init-param>
+    <init-param>
+      <param-name>responseWriterName</param-name>
+      <param-value>vizUserTimeseriesResponseWriter</param-value>
+    </init-param>
+    <load-on-startup>1</load-on-startup>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>VizUserTimeseriesServlet</servlet-name>
+    <url-pattern>/viz/user_timeseries/read</url-pattern>
+  </servlet-mapping>
+  
+  <!-- End Visualization APIs -->
+  
   <!-- For AW 2.x and up, the server app is effectively headless. There is probably a better way to return headers only.
        empty.html is returned in order override the default Tomcat error pages. It is rarely a good idea to give away 
        information about the app server and the Tomcat pages do just that. -->

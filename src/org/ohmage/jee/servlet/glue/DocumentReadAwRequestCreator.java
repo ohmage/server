@@ -22,6 +22,7 @@ import org.apache.log4j.NDC;
 import org.ohmage.request.AwRequest;
 import org.ohmage.request.DocumentReadAwRequest;
 import org.ohmage.request.InputKeys;
+import org.ohmage.util.CookieUtils;
 
 
 public class DocumentReadAwRequestCreator implements AwRequestCreator {
@@ -38,16 +39,16 @@ public class DocumentReadAwRequestCreator implements AwRequestCreator {
 	 * Creates a request for document creation 
 	 */
 	@Override
-	public AwRequest createFrom(HttpServletRequest request) {
+	public AwRequest createFrom(HttpServletRequest httpRequest) {
 		_logger.info("Creating request for document read.");
 		
 		try {
-			DocumentReadAwRequest mRequest = new DocumentReadAwRequest(request.getParameter(InputKeys.DOCUMENT_PERSONAL_DOCUMENTS),
-																	   request.getParameter(InputKeys.CAMPAIGN_URN_LIST),
-																	   request.getParameter(InputKeys.CLASS_URN_LIST));
-			mRequest.setUserToken(request.getParameter(InputKeys.AUTH_TOKEN));
+			DocumentReadAwRequest mRequest = new DocumentReadAwRequest(httpRequest.getParameter(InputKeys.DOCUMENT_PERSONAL_DOCUMENTS),
+																	   httpRequest.getParameter(InputKeys.CAMPAIGN_URN_LIST),
+																	   httpRequest.getParameter(InputKeys.CLASS_URN_LIST));
+			mRequest.setUserToken(CookieUtils.getCookieValue(httpRequest.getCookies(), InputKeys.AUTH_TOKEN).get(0));
 			
-			NDC.push("client=" + request.getParameter(InputKeys.CLIENT));
+			NDC.push("client=" + httpRequest.getParameter(InputKeys.CLIENT));
 			
 			return mRequest;
 		}

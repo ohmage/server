@@ -15,8 +15,6 @@
  ******************************************************************************/
 package org.ohmage.jee.servlet.validator;
 
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -24,6 +22,8 @@ import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 
 import org.apache.log4j.Logger;
+import org.ohmage.request.InputKeys;
+import org.ohmage.util.CookieUtils;
 import org.ohmage.util.StringUtils;
 
 
@@ -34,28 +34,31 @@ import org.ohmage.util.StringUtils;
  */
 public class SurveyResponseReadValidator extends AbstractHttpServletRequestValidator {
 	private static Logger _logger = Logger.getLogger(SurveyResponseReadValidator.class);
-	private List<String> _parameterList;
 	
 	public SurveyResponseReadValidator() {
-		_parameterList = new ArrayList<String>(Arrays.asList(new String[]{"start_date",
-				                                                          "end_date",
-				                                                          "user_list",
-				                                                          "campaign_urn",
-				                                                          "client",
-				                                                          "prompt_id_list",
-				                                                          "auth_token",
-				                                                          "survey_id_list",
-				                                                          "column_list",
-				                                                          "output_format",
-				                                                          "pretty_print",
-	    																  "suppress_metadata",
-	    																  "return_id",
-	    																  "privacy_state",
-	    																  "sort_order"}));
 	}
 	
-	public boolean validate(HttpServletRequest httpServletRequest) {
-		Map<String,String[]> parameterMap = getParameterMap(httpServletRequest); 
+	public boolean validate(HttpServletRequest httpRequest) throws MissingAuthTokenException {
+		// Get the authentication / session token from the header.
+		String token;
+		List<String> tokens = CookieUtils.getCookieValue(httpRequest.getCookies(), InputKeys.AUTH_TOKEN);
+		if(tokens.size() == 0) {
+			// DEBUG!!!
+			// This is a temporary hack to get Jeroen's stuff working.
+			token = httpRequest.getParameter(InputKeys.AUTH_TOKEN);
+			
+			if(token == null) {
+				throw new MissingAuthTokenException("The required authentication / session token is missing.");
+			}
+		}
+		else if(tokens.size() > 1) {
+			throw new MissingAuthTokenException("More than one authentication / session token was found in the request.");
+		}
+		else {
+			token = tokens.get(0);
+		}
+		
+		Map<String,String[]> parameterMap = getParameterMap(httpRequest); 
 
 // required parameters
 //		(r) auth_token
@@ -76,37 +79,35 @@ public class SurveyResponseReadValidator extends AbstractHttpServletRequestValid
 //		(o) suppress_metadata
 //		(o) survey_id_list
 		
-		String authToken = (String) httpServletRequest.getParameter("auth_token");
-		if(StringUtils.isEmptyOrWhitespaceOnly(authToken)) {
-			_logger.warn("missing auth_token parameter");
-			return false;
+		if(StringUtils.isEmptyOrWhitespaceOnly(token)) {
+			throw new MissingAuthTokenException("The required authentication / session token is missing or invalid.");
 		}
 		
-		String campaignUrn = (String) httpServletRequest.getParameter("campaign_urn");
+		String campaignUrn = (String) httpRequest.getParameter("campaign_urn");
 		if(StringUtils.isEmptyOrWhitespaceOnly(campaignUrn)) {
 			_logger.warn("missing campaign_urn parameter");
 			return false;
 		}
 		
-		String client = (String) httpServletRequest.getParameter("client");
+		String client = (String) httpRequest.getParameter("client");
 		if(StringUtils.isEmptyOrWhitespaceOnly(client)) {
 			_logger.warn("missing client parameter");
 			return false;
 		}
 		
-		String columnList = (String) httpServletRequest.getParameter("column_list");
+		String columnList = (String) httpRequest.getParameter("column_list");
 		if(StringUtils.isEmptyOrWhitespaceOnly(columnList)) {
 			_logger.warn("missing column_list parameter");
 			return false;
 		}
 		
-		String users = (String) httpServletRequest.getParameter("user_list");
+		String users = (String) httpRequest.getParameter("user_list");
 		if(StringUtils.isEmptyOrWhitespaceOnly(users)) {
 			_logger.warn("missing users parameter");
 			return false;
 		}
 		
-		String outputFormat = (String) httpServletRequest.getParameter("output_format");
+		String outputFormat = (String) httpRequest.getParameter("output_format");
 		if(StringUtils.isEmptyOrWhitespaceOnly(outputFormat)) {
 			_logger.warn("missing output_format parameter");
 			return false;
@@ -124,20 +125,15 @@ public class SurveyResponseReadValidator extends AbstractHttpServletRequestValid
 			}
 		}
 		
-		// Check for parameters with unknown names
-		if(containsUnknownParameter(parameterMap, _parameterList)) {
-			return false;
-		}
-		
-		String startDate = (String) httpServletRequest.getParameter("start_date");
-		String endDate = (String) httpServletRequest.getParameter("end_date");
-		String promptIds = (String) httpServletRequest.getParameter("prompt_id_list");
-		String surveyIds = (String) httpServletRequest.getParameter("survey_id_list");
-		String prettyPrint = (String) httpServletRequest.getParameter("pretty_print");
-		String suppressMetadata = (String) httpServletRequest.getParameter("suppress_metadata");
-		String returnId = (String) httpServletRequest.getParameter("return_id");
-		String sortOrder = (String) httpServletRequest.getParameter("sort_order");
-		String privacyState = (String) httpServletRequest.getParameter("privacy_state");
+		String startDate = (String) httpRequest.getParameter("start_date");
+		String endDate = (String) httpRequest.getParameter("end_date");
+		String promptIds = (String) httpRequest.getParameter("prompt_id_list");
+		String surveyIds = (String) httpRequest.getParameter("survey_id_list");
+		String prettyPrint = (String) httpRequest.getParameter("pretty_print");
+		String suppressMetadata = (String) httpRequest.getParameter("suppress_metadata");
+		String returnId = (String) httpRequest.getParameter("return_id");
+		String sortOrder = (String) httpRequest.getParameter("sort_order");
+		String privacyState = (String) httpRequest.getParameter("privacy_state");
 		
 		// Check for abnormal lengths (buffer overflow attack, sanity check)
 		
@@ -145,7 +141,7 @@ public class SurveyResponseReadValidator extends AbstractHttpServletRequestValid
 		   || greaterThanLength("endDate", "end_date", endDate, 10)                            // enforce "yyyy-mm-dd" length                                                 
 		   || greaterThanLength("campaignUrn", "campaign_urn", campaignUrn, 250)               // enforce the db column length  
 		   || greaterThanLength("client", "client", client, 250)	                           // enforce the db column length	   
-		   || greaterThanLength("authToken", "auth token", authToken, 36)                      // enforce the length of a UUID
+		   || greaterThanLength("authToken", "auth token", token, 36)                      	   // enforce the length of a UUID
 		   || greaterThanLength("users", "user_list", users, 150)                              // allows up to 10 users
 		   || greaterThanLength("promptIdList", "prompt_id_list", promptIds, 2500)             // arbitrary, but longer than this would be abnormal
 		   || greaterThanLength("surveyIdlist", "survey_id_list", surveyIds, 2500)             // arbitrary, but longer than this would be abnormal 

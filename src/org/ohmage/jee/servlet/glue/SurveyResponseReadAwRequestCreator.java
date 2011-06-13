@@ -21,6 +21,7 @@ import org.apache.log4j.NDC;
 import org.ohmage.request.AwRequest;
 import org.ohmage.request.InputKeys;
 import org.ohmage.request.SurveyResponseReadAwRequest;
+import org.ohmage.util.CookieUtils;
 
 
 /**
@@ -34,29 +35,41 @@ public class SurveyResponseReadAwRequestCreator implements AwRequestCreator {
 		
 	}
 	
-	public AwRequest createFrom(HttpServletRequest request) {
+	public AwRequest createFrom(HttpServletRequest httpRequest) {
 
-		String startDate = request.getParameter("start_date");
-		String endDate = request.getParameter("end_date");
-		String userList = request.getParameter("user_list");
-		String client = request.getParameter("client");
-		String campaignUrn = request.getParameter("campaign_urn");
-		String authToken = request.getParameter("auth_token");
-		String promptIdList = request.getParameter("prompt_id_list");
-		String surveyIdList = request.getParameter("survey_id_list");
-		String columnList = request.getParameter("column_list");
-		String outputFormat = request.getParameter("output_format");
-		String prettyPrint = request.getParameter("pretty_print");
-		String suppressMetadata = request.getParameter("suppress_metadata");
-		String privacyState = request.getParameter("privacy_state");
-		String returnId = request.getParameter("return_id");
-		String sortOrder = request.getParameter("sort_order");
+		String startDate = httpRequest.getParameter("start_date");
+		String endDate = httpRequest.getParameter("end_date");
+		String userList = httpRequest.getParameter("user_list");
+		String client = httpRequest.getParameter("client");
+		String campaignUrn = httpRequest.getParameter("campaign_urn");
+		
+		// DEBUG!!! 
+		// This is only be done temporarily to get around Jeroen's stuff not
+		// using the authentication token correctly.
+		String token;
+		try {
+			token = CookieUtils.getCookieValue(httpRequest.getCookies(), InputKeys.AUTH_TOKEN).get(0);
+		}
+		catch(IndexOutOfBoundsException e) {
+			token = httpRequest.getParameter(InputKeys.AUTH_TOKEN);
+		}
+
+		
+		String promptIdList = httpRequest.getParameter("prompt_id_list");
+		String surveyIdList = httpRequest.getParameter("survey_id_list");
+		String columnList = httpRequest.getParameter("column_list");
+		String outputFormat = httpRequest.getParameter("output_format");
+		String prettyPrint = httpRequest.getParameter("pretty_print");
+		String suppressMetadata = httpRequest.getParameter("suppress_metadata");
+		String privacyState = httpRequest.getParameter("privacy_state");
+		String returnId = httpRequest.getParameter("return_id");
+		String sortOrder = httpRequest.getParameter("sort_order");
 		
 		SurveyResponseReadAwRequest awRequest = new SurveyResponseReadAwRequest();
 		
 		awRequest.setStartDate(startDate);
 		awRequest.setEndDate(endDate);
-		awRequest.setUserToken(authToken);
+		awRequest.setUserToken(token);
 		awRequest.setClient(client);
 		awRequest.setCampaignUrn(campaignUrn);
 		awRequest.setUserListString(userList);

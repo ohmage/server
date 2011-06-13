@@ -31,6 +31,8 @@ import org.ohmage.domain.DataPointFunctionQueryResult;
 import org.ohmage.domain.ErrorResponse;
 import org.ohmage.request.AwRequest;
 import org.ohmage.request.DataPointFunctionQueryAwRequest;
+import org.ohmage.request.InputKeys;
+import org.ohmage.util.CookieUtils;
 import org.ohmage.util.DateUtils;
 
 
@@ -85,6 +87,7 @@ public class DataPointFunctionQueryResponseWriter extends AbstractResponseWriter
 				}
 				
 				rootObject.put("data", resultArray);
+				CookieUtils.setCookieValue(response, InputKeys.AUTH_TOKEN, awRequest.getUserToken(), AUTH_TOKEN_COOKIE_LIFETIME_IN_SECONDS);
 				responseText = rootObject.toString();
 				
 			} else {

@@ -22,6 +22,7 @@ import org.apache.log4j.NDC;
 import org.ohmage.request.AwRequest;
 import org.ohmage.request.DocumentReadContentsAwRequest;
 import org.ohmage.request.InputKeys;
+import org.ohmage.util.CookieUtils;
 
 
 /**
@@ -43,21 +44,21 @@ public class DocumentReadContentsAwRequestCreator implements AwRequestCreator {
 	 * Creates the document read request from the HTTP request.
 	 */
 	@Override
-	public AwRequest createFrom(HttpServletRequest request) {
-		String authToken = request.getParameter(InputKeys.AUTH_TOKEN);
-		String documentId = request.getParameter(InputKeys.DOCUMENT_ID);
+	public AwRequest createFrom(HttpServletRequest httpRequest) {
+		String token = CookieUtils.getCookieValue(httpRequest.getCookies(), InputKeys.AUTH_TOKEN).get(0);
+		String documentId = httpRequest.getParameter(InputKeys.DOCUMENT_ID);
 		
 		DocumentReadContentsAwRequest mRequest;
 		try {
 			mRequest = new DocumentReadContentsAwRequest(documentId);
-			mRequest.setUserToken(authToken);
+			mRequest.setUserToken(token);
 		}
 		catch(IllegalArgumentException e) {
 			_logger.error("The document ID is invalid, but passed HTTP validation.");
 			throw e;
 		}
 		
-		NDC.push("client=" + request.getParameter(InputKeys.CLIENT));
+		NDC.push("client=" + httpRequest.getParameter(InputKeys.CLIENT));
 		
 		return mRequest;
 	}

@@ -22,6 +22,7 @@ import org.apache.log4j.NDC;
 import org.ohmage.request.AwRequest;
 import org.ohmage.request.InputKeys;
 import org.ohmage.request.SurveyResponseDeleteAwRequest;
+import org.ohmage.util.CookieUtils;
 
 
 /**
@@ -43,17 +44,17 @@ public class SurveyResponseDeleteAwRequestCreator implements AwRequestCreator {
 	 * Creates a request object based on the parameters from the HTTP request.
 	 */
 	@Override
-	public AwRequest createFrom(HttpServletRequest request) {
+	public AwRequest createFrom(HttpServletRequest httpRequest) {
 		_logger.info("Creating survey response delete request.");
 		
 		SurveyResponseDeleteAwRequest internalRequest = 
-			new SurveyResponseDeleteAwRequest(request.getParameter(InputKeys.CAMPAIGN_URN),
-					                          request.getParameter(InputKeys.SURVEY_KEY));
+			new SurveyResponseDeleteAwRequest(httpRequest.getParameter(InputKeys.CAMPAIGN_URN),
+					                          httpRequest.getParameter(InputKeys.SURVEY_KEY));
 		
-		internalRequest.setUserToken(request.getParameter(InputKeys.AUTH_TOKEN));
-		internalRequest.setCampaignUrn(request.getParameter(InputKeys.CAMPAIGN_URN));
+		internalRequest.setUserToken(CookieUtils.getCookieValue(httpRequest.getCookies(), InputKeys.AUTH_TOKEN).get(0));
+		internalRequest.setCampaignUrn(httpRequest.getParameter(InputKeys.CAMPAIGN_URN));
 		
-		NDC.push("client=" + request.getParameter(InputKeys.CLIENT)); // push the client string into the Log4J NDC for the currently  
+		NDC.push("client=" + httpRequest.getParameter(InputKeys.CLIENT)); // push the client string into the Log4J NDC for the currently  
                                                                       // executing thread _ this means that it will be in every log
 		                                                              // message for the current thread
 		

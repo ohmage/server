@@ -33,6 +33,8 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.log4j.Logger;
 import org.ohmage.domain.ErrorResponse;
 import org.ohmage.request.AwRequest;
+import org.ohmage.request.InputKeys;
+import org.ohmage.util.CookieUtils;
 
 
 /**
@@ -106,6 +108,9 @@ public class DocumentReadContentsResponseWriter extends AbstractResponseWriter {
 				
 				os.flush();
 				os.close();
+				
+				response.setContentType("text/plain");
+				CookieUtils.setCookieValue(response, InputKeys.AUTH_TOKEN, awRequest.getUserToken(), AUTH_TOKEN_COOKIE_LIFETIME_IN_SECONDS);
 			}
 			// If the URI doesn't adhere to the correct syntax as a URI just 
 			// set the request as failed.
@@ -131,6 +136,7 @@ public class DocumentReadContentsResponseWriter extends AbstractResponseWriter {
 		if(awRequest.isFailedRequest()) {
 			response.setContentType("text/html");
 			String responseText;
+			response.setContentType("application/json");
 			
 			// If a specific error message was annotated, use that. 
 			if(awRequest.getFailedRequestErrorMessage() != null) {

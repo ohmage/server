@@ -15,10 +15,13 @@
  ******************************************************************************/
 package org.ohmage.jee.servlet.validator;
 
+import java.util.List;
+
 import javax.servlet.http.HttpServletRequest;
 
 import org.apache.log4j.Logger;
 import org.ohmage.request.InputKeys;
+import org.ohmage.util.CookieUtils;
 
 
 /**
@@ -39,35 +42,39 @@ public class ClassReadValidator extends AbstractHttpServletRequestValidator {
 	/**
 	 * Validates that all required parameters exist and that their size is not
 	 * excessive.
+	 * 
+	 * @throws MissingAuthTokenException Thrown if the authentication / session
+	 * 									 token is not in the HTTP header.
 	 */
 	@Override
-	public boolean validate(HttpServletRequest httpRequest) {
-		String token = httpRequest.getParameter(InputKeys.AUTH_TOKEN);
+	public boolean validate(HttpServletRequest httpRequest) throws MissingAuthTokenException {
+		// Get the authentication / session token from the header.
+		List<String> tokens = CookieUtils.getCookieValue(httpRequest.getCookies(), InputKeys.AUTH_TOKEN);
+		if(tokens.size() == 0) {
+			throw new MissingAuthTokenException("The required authentication / session token is missing.");
+		}
+		else if(tokens.size() > 1) {
+			throw new MissingAuthTokenException("More than one authentication / session token was found in the request.");
+		}
+		
 		String classList = httpRequest.getParameter(InputKeys.CLASS_URN_LIST);
 		String client = httpRequest.getParameter(InputKeys.CLIENT);
 		
-		if(token == null) {
-			return false;
-		}
-		else if(classList == null) {
+		if(classList == null) {
+			if(_logger.isDebugEnabled()) {
+				_logger.debug("The class list is missing in the request.");
+			}
+			
 			return false;
 		}
 		else if(client == null) {
-			return false;
-		}
-		else if(greaterThanLength(InputKeys.AUTH_TOKEN, InputKeys.AUTH_TOKEN, token, 36)) {
-			_logger.warn("Token of incorrect size.");
-			return false;
-		}
-		// Based on MAX_CLASS_URN_LENGTH * 100 (arbitrary); however the actual
-		// number of classes may be much greater than 100 as most won't be the
-		// entire MAX_CLASS_URN_LENGTH length. 
-		else if(greaterThanLength(InputKeys.CLASS_URN_LIST, InputKeys.CLASS_URN_LIST, classList, 25600)) {
-			_logger.warn("List of classes is too long.");
+			if(_logger.isDebugEnabled()) {
+				_logger.debug("The client parameter is missing in the request.");
+			}
+			
 			return false;
 		}
 		
 		return true;
 	}
-
 }

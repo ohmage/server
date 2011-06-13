@@ -114,7 +114,7 @@ public class UserBin extends TimerTask {
 			return null;
 		}
 		finally {
-			_usersLock.lock();
+			_usersLock.unlock();
 		}
 	}
 	

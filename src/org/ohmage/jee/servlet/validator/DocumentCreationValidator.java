@@ -28,6 +28,7 @@ import org.ohmage.cache.CacheMissException;
 import org.ohmage.cache.PreferenceCache;
 import org.ohmage.request.DocumentCreationAwRequest;
 import org.ohmage.request.InputKeys;
+import org.ohmage.util.CookieUtils;
 import org.ohmage.util.StringUtils;
 
 
@@ -63,12 +64,27 @@ public class DocumentCreationValidator extends AbstractHttpServletRequestValidat
 	 * 
 	 * Also, it creates the request object and stores it back in the
 	 * 'httpRequest' to be grabbed by the glue.
+	 * 
+	 * @throws MissingAuthTokenException Thrown if the authentication / session
+	 * 									 token is missing or whitespace only. 
 	 */
 	@Override
-	public boolean validate(HttpServletRequest httpRequest) {
+	public boolean validate(HttpServletRequest httpRequest) throws MissingAuthTokenException {
+		// Get the authentication / session token from the header.
+		String token;
+		List<String> tokens = CookieUtils.getCookieValue(httpRequest.getCookies(), InputKeys.AUTH_TOKEN);
+		if(tokens.size() == 0) {
+			throw new MissingAuthTokenException("The required authentication / session token is missing.");
+		}
+		else if(tokens.size() > 1) {
+			throw new MissingAuthTokenException("More than one authentication / session token was found in the request.");
+		}
+		else {
+			token = tokens.get(0);
+		}
+		
 		// Create a new file upload handler
 		ServletFileUpload upload = new ServletFileUpload(_diskFileItemFactory);
-		// TODO: Is this necessary? Should it even be done?
 		upload.setHeaderEncoding("UTF-8");
 		
 		// Set the maximum allowed size of a document.
@@ -95,7 +111,6 @@ public class DocumentCreationValidator extends AbstractHttpServletRequestValidat
 		int numberOfUploadedItems = uploadedItems.size();
 		
 		// Parse the request for each of the parameters.
-		String token = null;
 		String name = null;
 		String document = null;
 		String privacyState = null;
@@ -108,13 +123,7 @@ public class DocumentCreationValidator extends AbstractHttpServletRequestValidat
 				String fieldName = fi.getFieldName();
 				String fieldValue = StringUtils.urlDecode(fi.getString());
 				
-				if(InputKeys.AUTH_TOKEN.equals(fieldName)) {
-					if(greaterThanLength(InputKeys.AUTH_TOKEN, InputKeys.AUTH_TOKEN, fieldValue, 36)) {
-						return false;
-					}
-					token = fieldValue;
-				}
-				else if(InputKeys.DOCUMENT_NAME.equals(fieldName)) {
+				if(InputKeys.DOCUMENT_NAME.equals(fieldName)) {
 					if(greaterThanLength(InputKeys.DOCUMENT_NAME, InputKeys.DOCUMENT_NAME, fieldValue, 255)) {
 						return false;
 					}

@@ -26,6 +26,7 @@ import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import org.apache.log4j.Logger;
 import org.ohmage.request.CampaignCreationAwRequest;
 import org.ohmage.request.InputKeys;
+import org.ohmage.util.CookieUtils;
 import org.ohmage.util.StringUtils;
 
 
@@ -56,7 +57,7 @@ public class CampaignCreationValidator extends AbstractHttpServletRequestValidat
 	 * is of a sane length.
 	 */
 	@Override
-	public boolean validate(HttpServletRequest httpRequest) {
+	public boolean validate(HttpServletRequest httpRequest) throws MissingAuthTokenException {
 		
 		// Create a new file upload handler
 		ServletFileUpload upload = new ServletFileUpload(_diskFileItemFactory);
@@ -77,8 +78,20 @@ public class CampaignCreationValidator extends AbstractHttpServletRequestValidat
 		// Get the number of items were in the request.
 		int numberOfUploadedItems = uploadedItems.size();
 		
+		// Get the authentication / session token from the header.
+		String token;
+		List<String> tokens = CookieUtils.getCookieValue(httpRequest.getCookies(), InputKeys.AUTH_TOKEN);
+		if(tokens.size() == 0) {
+			throw new MissingAuthTokenException("The required authentication / session token is missing.");
+		}
+		else if(tokens.size() > 1) {
+			throw new MissingAuthTokenException("More than one authentication / session token was found in the request.");
+		}
+		else {
+			token = tokens.get(0);
+		}
+		
 		// Parse the request for each of the parameters.
-		String token = null;
 		String runningState = null;
 		String privacyState = null;
 		String xml = null;
@@ -95,12 +108,6 @@ public class CampaignCreationValidator extends AbstractHttpServletRequestValidat
 						return false;
 					}
 					description = value;
-				}
-				else if(InputKeys.AUTH_TOKEN.equals(name)) {
-					if(greaterThanLength("authToken", InputKeys.AUTH_TOKEN, value, 36)) {
-						return false;
-					}
-					token = value;
 				}
 				else if(InputKeys.RUNNING_STATE.equals(name)) {
 					if(greaterThanLength("runningState", InputKeys.RUNNING_STATE, value, 50)) {

@@ -22,7 +22,7 @@ import org.apache.log4j.NDC;
 import org.ohmage.request.AwRequest;
 import org.ohmage.request.ClassReadAwRequest;
 import org.ohmage.request.InputKeys;
-
+import org.ohmage.util.CookieUtils;
 
 /**
  * Creates an internal request for reading classes.
@@ -43,13 +43,13 @@ public class ClassReadAwRequestCreator implements AwRequestCreator {
 	 * Creates a request object based on the parameters from the HTTP request.
 	 */
 	@Override
-	public AwRequest createFrom(HttpServletRequest request) {
+	public AwRequest createFrom(HttpServletRequest httpRequest) {
 		_logger.info("Creating class read request.");
 		
-		ClassReadAwRequest internalRequest = new ClassReadAwRequest(request.getParameter(InputKeys.CLASS_URN_LIST));
-		internalRequest.setUserToken(request.getParameter(InputKeys.AUTH_TOKEN));
+		ClassReadAwRequest internalRequest = new ClassReadAwRequest(httpRequest.getParameter(InputKeys.CLASS_URN_LIST));
+		internalRequest.setUserToken(CookieUtils.getCookieValue(httpRequest.getCookies(), InputKeys.AUTH_TOKEN).get(0));
 		
-		NDC.push("client=" + request.getParameter(InputKeys.CLIENT));
+		NDC.push("client=" + httpRequest.getParameter(InputKeys.CLIENT));
 		
 		return internalRequest;
 	}

@@ -15,10 +15,13 @@
  ******************************************************************************/
 package org.ohmage.jee.servlet.validator;
 
+import java.util.List;
+
 import javax.servlet.http.HttpServletRequest;
 
 import org.apache.log4j.Logger;
 import org.ohmage.request.InputKeys;
+import org.ohmage.util.CookieUtils;
 
 
 /**
@@ -41,21 +44,28 @@ public class CampaignDeletionValidator extends AbstractHttpServletRequestValidat
 	 * rediculously sized.
 	 */
 	@Override
-	public boolean validate(HttpServletRequest httpRequest) {
-		String token = httpRequest.getParameter(InputKeys.AUTH_TOKEN);
-		String urn = httpRequest.getParameter(InputKeys.CAMPAIGN_URN);
-		String client = httpRequest.getParameter(InputKeys.CLIENT);
+	public boolean validate(HttpServletRequest httpRequest) throws MissingAuthTokenException {
+		// Get the authentication / session token from the header.
+		List<String> tokens = CookieUtils.getCookieValue(httpRequest.getCookies(), InputKeys.AUTH_TOKEN);
+		if(tokens.size() == 0) {
+			throw new MissingAuthTokenException("The required authentication / session token is missing.");
+		}
+		else if(tokens.size() > 1) {
+			throw new MissingAuthTokenException("More than one authentication / session token was found in the request.");
+		}
 		
-		if(greaterThanLength("authToken", InputKeys.AUTH_TOKEN, token, 36)) {
-			_logger.warn(InputKeys.AUTH_TOKEN + " is too long.");
+		if(httpRequest.getParameter(InputKeys.CAMPAIGN_URN) == null) {
+			if(_logger.isDebugEnabled()) {
+				_logger.debug("Missing required campaign URN parameter.");
+			}
+			
 			return false;
 		}
-		else if(greaterThanLength("campaignUrn", InputKeys.CAMPAIGN_URN, urn, 255)) {
-			_logger.warn(InputKeys.CAMPAIGN_URN + " is too long.");
-			return false;
-		}
-		else if(client == null) {
-			_logger.warn("Missing " + InputKeys.CLIENT);
+		else if(httpRequest.getParameter(InputKeys.CLIENT) == null) {
+			if(_logger.isDebugEnabled()) {
+				_logger.debug("Missing required client parameter.");
+			}
+			
 			return false;
 		}
 		

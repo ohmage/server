@@ -26,6 +26,8 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.log4j.Logger;
 import org.ohmage.domain.ErrorResponse;
 import org.ohmage.request.AwRequest;
+import org.ohmage.request.InputKeys;
+import org.ohmage.util.CookieUtils;
 
 
 /**
@@ -80,6 +82,7 @@ public class ClassUpdateResponseWriter extends AbstractResponseWriter {
 			}
 		}
 		else {
+			CookieUtils.setCookieValue(response, InputKeys.AUTH_TOKEN, awRequest.getUserToken(), AUTH_TOKEN_COOKIE_LIFETIME_IN_SECONDS);
 			responseText = generalJsonSuccessMessage();
 		}
 		

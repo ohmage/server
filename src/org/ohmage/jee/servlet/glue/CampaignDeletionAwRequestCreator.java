@@ -22,7 +22,7 @@ import org.apache.log4j.NDC;
 import org.ohmage.request.AwRequest;
 import org.ohmage.request.CampaignDeletionAwRequest;
 import org.ohmage.request.InputKeys;
-
+import org.ohmage.util.CookieUtils;
 
 /**
  * Creates a new CampaignDeletionAwRequest object.
@@ -43,17 +43,18 @@ public class CampaignDeletionAwRequestCreator implements AwRequestCreator {
 	 * Creates a new CampaignDeletionAwRequest object and returns it.
 	 */
 	@Override
-	public AwRequest createFrom(HttpServletRequest request) {
+	public AwRequest createFrom(HttpServletRequest httpRequest) {
 		_logger.info("Creating new AwRequest object for deleting a campaign.");
 		
-		String token = request.getParameter(InputKeys.AUTH_TOKEN);
-		String urn = request.getParameter(InputKeys.CAMPAIGN_URN);
+		// Get the authentication / session token from the header.
+		String token = CookieUtils.getCookieValue(httpRequest.getCookies(), InputKeys.AUTH_TOKEN).get(0);
+		String urn = httpRequest.getParameter(InputKeys.CAMPAIGN_URN);
 
 		CampaignDeletionAwRequest awRequest = new CampaignDeletionAwRequest();
 		awRequest.setUserToken(token);
 		awRequest.setCampaignUrn(urn);
 		
-		NDC.push("client=" + request.getParameter(InputKeys.CLIENT));
+		NDC.push("client=" + httpRequest.getParameter(InputKeys.CLIENT));
 		
 		return awRequest;
 	}

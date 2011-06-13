@@ -74,6 +74,7 @@ public class InputKeys {
 	
 	// User Constants
 	public static final String USER = "user";
+	public static final String USER_ID = "user_id";
 	public static final String NEW_PASSWORD = "new_password";
 	public static final String USER_LIST = "user_list";
 	public static final String USER_LIST_ADD = "user_list_add";
@@ -110,6 +111,10 @@ public class InputKeys {
 	public static final String DOCUMENT_CLASS_ROLE_LIST = "document_class_role_list";
 	public static final String DOCUMENT_USER_ROLE_LIST = "document_user_role_list";
 	public static final String DOCUMENT_PERSONAL_DOCUMENTS = "personal_documents";
+	
+	// Visualization Constants
+	public static final String VISUALIZATION_WIDTH = "!width";
+	public static final String VISUALIZATION_HEIGHT = "!height";
 	
 	// Separator Constants
 	public static final String LIST_ITEM_SEPARATOR = ",";

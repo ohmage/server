@@ -15,7 +15,10 @@
  ******************************************************************************/
 package org.ohmage.jee.servlet;
 
+import java.io.BufferedWriter;
 import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.io.Writer;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletContext;
@@ -27,11 +30,16 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.log4j.Logger;
 import org.ohmage.controller.Controller;
 import org.ohmage.controller.ControllerException;
+import org.ohmage.domain.ErrorResponse;
 import org.ohmage.jee.servlet.glue.AwRequestCreator;
 import org.ohmage.jee.servlet.validator.HttpServletRequestValidator;
+import org.ohmage.jee.servlet.validator.MissingAuthTokenException;
+import org.ohmage.jee.servlet.writer.AbstractResponseWriter;
 import org.ohmage.jee.servlet.writer.ResponseWriter;
 import org.ohmage.request.AwRequest;
+import org.ohmage.request.ResultListAwRequest;
 import org.ohmage.util.StringUtils;
+import org.ohmage.validator.json.FailedJsonRequestAnnotator;
 import org.springframework.context.ApplicationContext;
 import org.springframework.web.context.support.WebApplicationContextUtils;
 
@@ -117,10 +125,24 @@ public class AwDataServlet extends HttpServlet {
 		try {
 			
 			// Top-level security validation (if configured with a validator)
-			if(null != _httpServletRequestValidator && ! _httpServletRequestValidator.validate(request)) {
+			try {
+				if(null != _httpServletRequestValidator && ! _httpServletRequestValidator.validate(request)) {
+					
+					response.sendError(HttpServletResponse.SC_NOT_FOUND); // if some entity is doing strange stuff, just respond with a 404
+					                                                      // in order not to give away too much about how the app works
+					return;
+				}
+			}
+			catch(MissingAuthTokenException e) {
+				_logger.info("Error response: " + e.getMessage());
 				
-				response.sendError(HttpServletResponse.SC_NOT_FOUND); // if some entity is doing strange stuff, just respond with a 404
-				                                                      // in order not to give away too much about how the app works
+				ErrorResponse authenticationFailedError = new ErrorResponse();
+				authenticationFailedError.setCode("0200");
+				authenticationFailedError.setText("authentication failed");
+				
+				FailedJsonRequestAnnotator annotator = new FailedJsonRequestAnnotator(authenticationFailedError);
+				
+				writeAuthTokenMissingMessage(request, response, annotator);
 				return;
 			}
 			
@@ -184,5 +206,42 @@ public class AwDataServlet extends HttpServlet {
 		
 		processRequest(req, resp);
 	
+	}
+	
+	private void writeAuthTokenMissingMessage(HttpServletRequest request, HttpServletResponse response, FailedJsonRequestAnnotator annotator) {
+		_logger.info("Writing 'authentication token missing or invalid' response.");
+		
+		Writer writer;
+		try {
+			writer = new BufferedWriter(new OutputStreamWriter(AbstractResponseWriter.getOutputStream(request, response)));
+		}
+		catch(IOException e) {
+			_logger.error("Unable to create writer object. Aborting.", e);
+			return;
+		}
+		
+		// Sets the HTTP headers to disable caching
+		AbstractResponseWriter.expireResponse(response);
+		response.setContentType("application/json");
+		
+		AwRequest awRequest = new ResultListAwRequest();
+		annotator.annotate(awRequest, "Responding with an authentication failed message.");
+		String responseText = awRequest.getFailedRequestErrorMessage();
+		
+		try {
+			writer.write(responseText); 
+		}
+		catch(IOException e) {
+			_logger.error("Unable to write failed response message. Aborting.", e);
+			return;
+		}
+		
+		try {
+			writer.flush();
+			writer.close();
+		}
+		catch(IOException e) {
+			_logger.error("Unable to flush or close the writer.", e);
+		}
 	}
 }

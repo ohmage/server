@@ -28,6 +28,7 @@ import org.ohmage.cache.CacheMissException;
 import org.ohmage.cache.PreferenceCache;
 import org.ohmage.request.DocumentUpdateRequest;
 import org.ohmage.request.InputKeys;
+import org.ohmage.util.CookieUtils;
 import org.ohmage.util.StringUtils;
 
 
@@ -58,9 +59,12 @@ public class DocumentUpdateValidator extends AbstractHttpServletRequestValidator
 	 * Checks which type of request it is, one that contains a new document
 	 * stream and or not, and pushes the validation onto the appropriate 
 	 * validator.
+	 * 
+	 * @throws MissingAuthTokenException Thrown if the authentication / session
+	 * 									 token is missing or invalid. 
 	 */
 	@Override
-	public boolean validate(HttpServletRequest httpRequest) {
+	public boolean validate(HttpServletRequest httpRequest) throws MissingAuthTokenException {
 		String requestType = httpRequest.getContentType();
 		
 		if(requestType.contains("multipart/form-data;") || requestType.contains("multipart/mixed;")) {
@@ -80,14 +84,29 @@ public class DocumentUpdateValidator extends AbstractHttpServletRequestValidator
 	 * 
 	 * @return Returns true if it successfully validated and built the request
 	 * 		   and placed that request in the HTTP request.
+	 * 
+	 * @throws MissingAuthTokenException Thrown if the authentication / session
+	 * 									 token is missing or invalid. 
 	 */
-	private boolean validateRegularRequest(HttpServletRequest httpRequest) {
-		String authToken = httpRequest.getParameter(InputKeys.AUTH_TOKEN);
+	private boolean validateRegularRequest(HttpServletRequest httpRequest) throws MissingAuthTokenException {
+		// Get the authentication / session token from the header.
+		String token;
+		List<String> tokens = CookieUtils.getCookieValue(httpRequest.getCookies(), InputKeys.AUTH_TOKEN);
+		if(tokens.size() == 0) {
+			throw new MissingAuthTokenException("The required authentication / session token is missing.");
+		}
+		else if(tokens.size() > 1) {
+			throw new MissingAuthTokenException("More than one authentication / session token was found in the request.");
+		}
+		else {
+			token = tokens.get(0);
+		}
+		
 		String documentId = httpRequest.getParameter(InputKeys.DOCUMENT_ID);
 		String client = httpRequest.getParameter(InputKeys.CLIENT);
 		
-		if((authToken == null) || (authToken.length() != 36)) {
-			return false;
+		if((token == null) || (token.length() != 36)) {
+			throw new MissingAuthTokenException("The required authentication / session token is missing or invalid.");
 		}
 		else if((documentId == null) || greaterThanLength(InputKeys.DOCUMENT_ID, InputKeys.DOCUMENT_ID, documentId, 255)) {
 			return false;
@@ -109,7 +128,7 @@ public class DocumentUpdateValidator extends AbstractHttpServletRequestValidator
 		try {
 			DocumentUpdateRequest request = new DocumentUpdateRequest(documentId, name, description, privacyState, null,
 					campaignRoleListAdd, campaignListRemove, classRoleListAdd, classListRemove, userRoleListAdd, userListRemove);
-			request.setUserToken(authToken);
+			request.setUserToken(token);
 			
 			httpRequest.setAttribute("request", request);
 			return true;
@@ -130,8 +149,24 @@ public class DocumentUpdateValidator extends AbstractHttpServletRequestValidator
 	 * 
 	 * @return Returns true if it successfully validated and built the request
 	 * 		   and placed that request in the HTTP request.
+	 * 
+	 * @throws MissingAuthTokenException Thrown if the authentication / session
+	 * 									 token is not in the HTTP header. 
 	 */
-	private boolean validateMultipartRequest(HttpServletRequest httpRequest) {
+	private boolean validateMultipartRequest(HttpServletRequest httpRequest) throws MissingAuthTokenException {
+		// Get the authentication / session token from the header.
+		String token;
+		List<String> tokens = CookieUtils.getCookieValue(httpRequest.getCookies(), InputKeys.AUTH_TOKEN);
+		if(tokens.size() == 0) {
+			throw new MissingAuthTokenException("The required authentication / session token is missing.");
+		}
+		else if(tokens.size() > 1) {
+			throw new MissingAuthTokenException("More than one authentication / session token was found in the request.");
+		}
+		else {
+			token = tokens.get(0);
+		}
+		
 		ServletFileUpload upload = new ServletFileUpload(_diskFileItemFactory);
 		upload.setHeaderEncoding("UTF-8");
 
@@ -156,7 +191,6 @@ public class DocumentUpdateValidator extends AbstractHttpServletRequestValidator
 		}
 		
 		int numberOfParameters = uploadedItems.size();
-		String authToken = null;
 		String documentId = null;
 		String name = null;
 		String description = null;
@@ -174,13 +208,7 @@ public class DocumentUpdateValidator extends AbstractHttpServletRequestValidator
 				String fieldName = fi.getFieldName();
 				String fieldValue = StringUtils.urlDecode(fi.getString());
 				
-				if(InputKeys.AUTH_TOKEN.equals(fieldName)) {
-					if(fieldValue.length() != 36) {
-						return false;
-					}
-					authToken = fieldValue;
-				}
-				else if(InputKeys.DOCUMENT_ID.equals(fieldName)) {
+				if(InputKeys.DOCUMENT_ID.equals(fieldName)) {
 					if(greaterThanLength(InputKeys.DOCUMENT_ID, InputKeys.DOCUMENT_ID, fieldValue, 255)) {
 						return false;
 					}
@@ -224,7 +252,7 @@ public class DocumentUpdateValidator extends AbstractHttpServletRequestValidator
 		try {
 			DocumentUpdateRequest request = new DocumentUpdateRequest(documentId, name, description, privacyState, document,
 					campaignRoleListAdd, campaignListRemove, classRoleListAdd, classListRemove, userRoleListAdd, userListRemove);
-			request.setUserToken(authToken);
+			request.setUserToken(token);
 			
 			httpRequest.setAttribute("request", request);
 			return true;

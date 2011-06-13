@@ -15,10 +15,13 @@
  ******************************************************************************/
 package org.ohmage.jee.servlet.validator;
 
+import java.util.List;
+
 import javax.servlet.http.HttpServletRequest;
 
 import org.apache.log4j.Logger;
 import org.ohmage.request.InputKeys;
+import org.ohmage.util.CookieUtils;
 import org.ohmage.util.StringUtils;
 
 
@@ -39,18 +42,32 @@ public class SurveyResponseUpdateValidator extends AbstractHttpServletRequestVal
 	
 	/**
 	 * Validates that the required parameters exist and represent sane values based on their lengths.
+	 * 
+	 * @throws MissingAuthTokenException Thrown if the authentication / session
+	 * 									 token is missing or invalid. 
 	 */
 	@Override
-	public boolean validate(HttpServletRequest httpRequest) {		 
-		String token = httpRequest.getParameter(InputKeys.AUTH_TOKEN);
+	public boolean validate(HttpServletRequest httpRequest) throws MissingAuthTokenException {
+		// Get the authentication / session token from the header.
+		String token;
+		List<String> tokens = CookieUtils.getCookieValue(httpRequest.getCookies(), InputKeys.AUTH_TOKEN);
+		if(tokens.size() == 0) {
+			throw new MissingAuthTokenException("The required authentication / session token is missing.");
+		}
+		else if(tokens.size() > 1) {
+			throw new MissingAuthTokenException("More than one authentication / session token was found in the request.");
+		}
+		else {
+			token = tokens.get(0);
+		}
+		
 		String campaignUrn = httpRequest.getParameter(InputKeys.CAMPAIGN_URN);
 		String surveyKey = httpRequest.getParameter(InputKeys.SURVEY_KEY);
 		String privacyState = httpRequest.getParameter(InputKeys.PRIVACY_STATE);
 		String client = httpRequest.getParameter(InputKeys.CLIENT);
 		
 		if(StringUtils.isEmptyOrWhitespaceOnly(token)) {
-			// Don't log this to avoid flooding the logs when an attack occurs.
-			return false;
+			throw new MissingAuthTokenException("The required authentication / session token is missing or invalid.");
 		}
 		else if(StringUtils.isEmptyOrWhitespaceOnly(campaignUrn)) {
 			return false;

@@ -22,6 +22,7 @@ import org.apache.log4j.NDC;
 import org.ohmage.request.AwRequest;
 import org.ohmage.request.ClassUpdateAwRequest;
 import org.ohmage.request.InputKeys;
+import org.ohmage.util.CookieUtils;
 
 
 /**
@@ -43,21 +44,21 @@ public class ClassUpdateAwRequestCreator implements AwRequestCreator {
 	 * 
 	 */
 	@Override
-	public AwRequest createFrom(HttpServletRequest request) {
+	public AwRequest createFrom(HttpServletRequest httpRequest) {
 		_logger.info("Creating a new internal request object for updating a class.");
 		
-		String token = request.getParameter(InputKeys.AUTH_TOKEN);
-		String classUrn = request.getParameter(InputKeys.CLASS_URN);
-		String name = request.getParameter(InputKeys.CLASS_NAME);
-		String description = request.getParameter(InputKeys.DESCRIPTION);
-		String userListAdd = request.getParameter(InputKeys.USER_LIST_ADD);
-		String userListRemove = request.getParameter(InputKeys.USER_LIST_REMOVE);
-		String privilegedUserListAdd = request.getParameter(InputKeys.PRIVILEGED_USER_LIST_ADD);
+		String token = CookieUtils.getCookieValue(httpRequest.getCookies(), InputKeys.AUTH_TOKEN).get(0);
+		String classUrn = httpRequest.getParameter(InputKeys.CLASS_URN);
+		String name = httpRequest.getParameter(InputKeys.CLASS_NAME);
+		String description = httpRequest.getParameter(InputKeys.DESCRIPTION);
+		String userListAdd = httpRequest.getParameter(InputKeys.USER_LIST_ADD);
+		String userListRemove = httpRequest.getParameter(InputKeys.USER_LIST_REMOVE);
+		String privilegedUserListAdd = httpRequest.getParameter(InputKeys.PRIVILEGED_USER_LIST_ADD);
 		
 		ClassUpdateAwRequest awRequest = new ClassUpdateAwRequest(classUrn, name, description, userListAdd, userListRemove, privilegedUserListAdd);
 		awRequest.setUserToken(token);
 		
-		NDC.push("client=" + request.getParameter(InputKeys.CLIENT));
+		NDC.push("client=" + httpRequest.getParameter(InputKeys.CLIENT));
 		
 		return awRequest;
 	}

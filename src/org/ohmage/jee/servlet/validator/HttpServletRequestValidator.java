@@ -28,6 +28,6 @@ import javax.servlet.http.HttpServletRequest;
  */
 public interface HttpServletRequestValidator {
 
-	public boolean validate(HttpServletRequest httpRequest);
+	public boolean validate(HttpServletRequest httpRequest) throws MissingAuthTokenException;
 	
 }
