@@ -107,6 +107,7 @@ public class CampaignReadResponseWriter extends AbstractResponseWriter {
 						dataArray.put(result.getUrn(), campaignObject);
 						itemArray.put(result.getUrn());
 					} else {
+						response.setHeader("Content-Disposition", "attachment; filename=" + result.getName());
 						response.setContentType("text/xml");
 						responseText = result.getXml();
 					}
