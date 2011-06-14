@@ -62,7 +62,7 @@
       </list>
     </property>
     <property name="featureName">
-      <value>Prompt Timeseries Visualization</value>
+      <value>User Timeseries Visualization</value>
     </property>
   </bean>
   

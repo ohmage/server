@@ -24,9 +24,12 @@ public class VizPromptTimeseriesValidator extends VisualizationValidator {
 	
 	/**
 	 * Validates that all required parameters exist.
+	 * 
+	 * @throws MissingAuthTokenException Thrown if the authentication / session
+	 * 									 token is not in the header.
 	 */
 	@Override
-	public boolean validate(HttpServletRequest httpRequest) {
+	public boolean validate(HttpServletRequest httpRequest) throws MissingAuthTokenException {
 		if(! super.validate(httpRequest)) {
 			return false;
 		}

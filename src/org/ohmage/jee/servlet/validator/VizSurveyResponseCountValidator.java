@@ -18,9 +18,12 @@ public class VizSurveyResponseCountValidator extends VisualizationValidator {
 
 	/**
 	 * Validates that all required parameters exist.
+	 * 
+	 * @throws MissingAuthTokenException Thrown if the authentication / session
+	 * 									 token is not in the header.
 	 */
 	@Override
-	public boolean validate(HttpServletRequest httpRequest) {
+	public boolean validate(HttpServletRequest httpRequest) throws MissingAuthTokenException {
 		return super.validate(httpRequest);
 	}
 }

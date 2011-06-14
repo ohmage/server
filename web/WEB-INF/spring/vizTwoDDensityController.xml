@@ -56,7 +56,7 @@
       </list>
     </property>
     <property name="featureName">
-      <value>Scatter Plot Visualization</value>
+      <value>2D Plot Visualization</value>
     </property>
   </bean>
   
