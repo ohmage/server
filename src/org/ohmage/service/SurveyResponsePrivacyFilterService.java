@@ -22,6 +22,7 @@ import org.ohmage.cache.SurveyResponsePrivacyStateCache;
 import org.ohmage.domain.SurveyResponseReadResult;
 import org.ohmage.domain.User;
 import org.ohmage.request.AwRequest;
+import org.ohmage.request.SurveyResponseReadAwRequest;
 
 
 /**
@@ -72,6 +73,19 @@ public class SurveyResponsePrivacyFilterService implements Service {
 							i--;
 							numberOfResults--;
 						}
+					}
+				}
+			}
+			
+			// Now filter based on the privacy_state the logged-in user selected 
+			SurveyResponseReadAwRequest req = (SurveyResponseReadAwRequest) awRequest;
+			
+			if(null != req.getPrivacyState()) {
+				for(int i = 0; i < numberOfResults; i++) {
+					if(! ((SurveyResponseReadResult) results.get(i)).getPrivacyState().equals(req.getPrivacyState())) { 
+						results.remove(i);
+						i--;
+						numberOfResults--;
 					}
 				}
 			}
