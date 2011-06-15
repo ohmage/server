@@ -22,6 +22,7 @@ import javax.sql.DataSource;
 import org.apache.log4j.Logger;
 import org.ohmage.cache.CampaignRoleCache;
 import org.ohmage.request.AwRequest;
+import org.ohmage.request.InputKeys;
 import org.ohmage.validator.AwRequestAnnotator;
 import org.springframework.jdbc.core.SingleColumnRowMapper;
 
@@ -153,9 +154,9 @@ public class UserRoleListValidationDao extends AbstractDao {
 		}
 		
 		// Check each of the user-role pairs.
-		String[] userAndRoleArray = userAndRoleList.split(",");
+		String[] userAndRoleArray = userAndRoleList.split(InputKeys.LIST_ITEM_SEPARATOR);
 		for(int i = 0; i < userAndRoleArray.length; i++) {
-			String[] userAndRole = userAndRoleArray[i].split(":");
+			String[] userAndRole = userAndRoleArray[i].split(InputKeys.ENTITY_ROLE_SEPARATOR);
 			
 			String user = userAndRole[0];
 			String role = userAndRole[1];
