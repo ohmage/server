@@ -494,8 +494,12 @@ public class CampaignUpdateDao extends AbstractDao {
 				try {
 					getJdbcTemplate().update(SQL_INSERT_USER_ROLE_CAMPAIGN, new Object[] { userId, campaignId, roleId });
 				}
+				catch(org.springframework.dao.DataIntegrityViolationException e) {
+					_logger.info("The user already had the given role. Ignoring.");
+				}
 				catch(org.springframework.dao.DataAccessException e) {
 					_logger.error("Error executing SQL '" + SQL_INSERT_USER_ROLE_CAMPAIGN + "' with parameters: " + userId + ", " + campaignId + ", " + roleId, e);
+					throw new DataAccessException(e);
 				}
 			}
 			// If this is a remove request, attempt to remove the user-role
@@ -506,6 +510,7 @@ public class CampaignUpdateDao extends AbstractDao {
 				}
 				catch(org.springframework.dao.DataAccessException e) {
 					_logger.error("Error executing SQL '" + SQL_DELETE_USER_ROLE_CAMPAIGN + "' with parameters: " + userId + ", " + campaignId + ", " + roleId, e);
+					throw new DataAccessException(e);
 				}
 			}
 		}
