@@ -38,6 +38,11 @@
         
         <!-- Validate that the campaign being updated exists. -->
         <ref bean="campaignExistsService" />
+        
+        <ref bean="campaignXmlOptionalValidationService" />
+        
+        <!-- Ensure that the new XML's URN and such are the same as the old. -->
+        <ref bean="newAndOldXmlsHaveSameHeaderInfoOptionalService" />
 
         <ref bean="classesInListExistOptionalService" />
 
