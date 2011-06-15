@@ -111,7 +111,7 @@ public class ClassReadDao extends AbstractDao {
 		}
 		
 		// Parse the class list into an array and traverse the array.
-		String[] classUrnArray = classUrnList.split(",");
+		String[] classUrnArray = classUrnList.split(InputKeys.LIST_ITEM_SEPARATOR);
 		List<ClassInfo> classInfoList = new LinkedList<ClassInfo>();
 		for(int i = 0; i < classUrnArray.length; i++) {
 			// Get the class' information.

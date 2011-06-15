@@ -19,6 +19,7 @@ import java.util.List;
 
 import org.apache.log4j.Logger;
 import org.ohmage.request.AwRequest;
+import org.ohmage.request.InputKeys;
 import org.ohmage.request.SurveyResponseReadAwRequest;
 import org.ohmage.util.StringUtils;
 
@@ -66,7 +67,7 @@ public class ColumnListValidator extends AbstractAnnotatingValidator {
 			
 		} else {
 			
-			String[] columns = columnListString.split(",");
+			String[] columns = columnListString.split(InputKeys.LIST_ITEM_SEPARATOR);
 			
 			if(columns.length > _allowedColumnValues.size()) {
 				
