@@ -41,7 +41,7 @@ public class SortOrderValidator extends AbstractAnnotatingValidator {
 		
 		if(null != sortOrder) { // this parameter is always optional
 		
-			String[] splitSortOrder = sortOrder.split(",");
+			String[] splitSortOrder = sortOrder.split(InputKeys.LIST_ITEM_SEPARATOR);
 			
 			if(splitSortOrder.length != 3) {
 				

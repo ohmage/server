@@ -302,7 +302,7 @@ public class CampaignCreationDao extends AbstractDao {
 			}
 			
 			// Hookup to classes and users.
-			String[] classes = ((String) awRequest.getToProcessValue(InputKeys.CLASS_URN_LIST)).split(",");
+			String[] classes = ((String) awRequest.getToProcessValue(InputKeys.CLASS_URN_LIST)).split(InputKeys.LIST_ITEM_SEPARATOR);
 			for(int i = 0; i < classes.length; i++) {
 				// Get the current class' ID.
 				int classId;

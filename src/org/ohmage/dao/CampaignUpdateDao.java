@@ -461,9 +461,9 @@ public class CampaignUpdateDao extends AbstractDao {
 		}
 		
 		// Handle each user-role pair individually.
-		String[] userRoleArray = userRoleList.split(",");
+		String[] userRoleArray = userRoleList.split(InputKeys.LIST_ITEM_SEPARATOR);
 		for(int i = 0; i < userRoleArray.length; i++) {
-			String[] userAndRole = userRoleArray[i].split(":");
+			String[] userAndRole = userRoleArray[i].split(InputKeys.ENTITY_ROLE_SEPARATOR);
 			
 			// Get the user's ID for this particular pair.
 			int userId;
@@ -494,8 +494,12 @@ public class CampaignUpdateDao extends AbstractDao {
 				try {
 					getJdbcTemplate().update(SQL_INSERT_USER_ROLE_CAMPAIGN, new Object[] { userId, campaignId, roleId });
 				}
+				catch(org.springframework.dao.DataIntegrityViolationException e) {
+					_logger.info("The user already had the given role. Ignoring.");
+				}
 				catch(org.springframework.dao.DataAccessException e) {
 					_logger.error("Error executing SQL '" + SQL_INSERT_USER_ROLE_CAMPAIGN + "' with parameters: " + userId + ", " + campaignId + ", " + roleId, e);
+					throw new DataAccessException(e);
 				}
 			}
 			// If this is a remove request, attempt to remove the user-role
@@ -506,6 +510,7 @@ public class CampaignUpdateDao extends AbstractDao {
 				}
 				catch(org.springframework.dao.DataAccessException e) {
 					_logger.error("Error executing SQL '" + SQL_DELETE_USER_ROLE_CAMPAIGN + "' with parameters: " + userId + ", " + campaignId + ", " + roleId, e);
+					throw new DataAccessException(e);
 				}
 			}
 		}
@@ -533,7 +538,7 @@ public class CampaignUpdateDao extends AbstractDao {
 		// The new list of classes.
 		String[] newClassList;
 		try {
-			newClassList = ((String) awRequest.getToProcessValue(InputKeys.CLASS_URN_LIST)).split(",");
+			newClassList = ((String) awRequest.getToProcessValue(InputKeys.CLASS_URN_LIST)).split(InputKeys.LIST_ITEM_SEPARATOR);
 		}
 		catch(IllegalArgumentException e) {
 			// There were no classes in the request.

@@ -17,6 +17,7 @@ package org.ohmage.validator;
 
 import org.apache.log4j.Logger;
 import org.ohmage.request.AwRequest;
+import org.ohmage.request.InputKeys;
 import org.ohmage.request.SurveyResponseReadAwRequest;
 import org.ohmage.util.StringUtils;
 
@@ -75,7 +76,7 @@ public class UserListValidator extends AbstractAnnotatingRegexpValidator {
 				
 			} else {
 				
-				String[] users = userListString.split(",");
+				String[] users = userListString.split(InputKeys.LIST_ITEM_SEPARATOR);
 				
 				if(users.length > 10) {
 					
@@ -113,7 +114,7 @@ public class UserListValidator extends AbstractAnnotatingRegexpValidator {
 				return true;
 			}
 			else {
-				String[] users = userList.split(",");
+				String[] users = userList.split(InputKeys.LIST_ITEM_SEPARATOR);
 				
 				for(int i = 0; i < users.length; i++) {
 					if(! _regexpPattern.matcher(users[i]).matches()) {

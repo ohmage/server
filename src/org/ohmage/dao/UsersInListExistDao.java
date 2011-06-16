@@ -19,6 +19,7 @@ import javax.sql.DataSource;
 
 import org.apache.log4j.Logger;
 import org.ohmage.request.AwRequest;
+import org.ohmage.request.InputKeys;
 import org.ohmage.util.StringUtils;
 
 
@@ -77,7 +78,7 @@ public class UsersInListExistDao extends AbstractDao {
 			}
 		}
 		
-		String[] users = usersList.split(",");
+		String[] users = usersList.split(InputKeys.LIST_ITEM_SEPARATOR);
 		for(int i = 0; i < users.length; i++) {
 			try {
 				if(getJdbcTemplate().queryForInt(SQL, new Object[] { users[i] }) == 0) {

@@ -173,7 +173,7 @@
         <constructor-arg>
           <bean class="org.ohmage.domain.ErrorResponse">
             <property name="code" value="1601" />
-            <property name="text" value="Invalid value for user-role list." />
+            <property name="text" value="Invalid value for user-role add list." />
           </bean>
         </constructor-arg>
       </bean>
@@ -198,7 +198,7 @@
         <constructor-arg>
           <bean class="org.ohmage.domain.ErrorResponse">
             <property name="code" value="1601" />
-            <property name="text" value="Invalid value for user-role list." />
+            <property name="text" value="Invalid value for user-role remove list." />
           </bean>
         </constructor-arg>
       </bean>
