@@ -96,7 +96,7 @@
       <bean class="org.ohmage.validator.json.FailedJsonRequestAnnotator">
         <constructor-arg index="0">
            <bean class="org.ohmage.domain.ErrorResponse">
-            <property name="code" value="0200" />
+            <property name="code" value="0604" />
             <property name="text" value="user not in campaign" />
           </bean>
         </constructor-arg>
