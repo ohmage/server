@@ -9,7 +9,7 @@ import org.apache.log4j.Logger;
 import org.ohmage.request.AwRequest;
 
 /**
- * Gets the XML for the campaign in the request.
+ * Gets the campaign XML from the campaign parameter in the request.
  * 
  * @author John Jenkins
  */
@@ -31,23 +31,51 @@ public class FindCampaignXmlDao extends AbstractDao {
 	}
 
 	/**
-	 * Gets the XML and stores it in the request.
+	 * Gets the XML for the campaign whose ID was in the request.
 	 */
 	@Override
 	public void execute(AwRequest awRequest) {
+		// Get the ID for the campaign from the request.
+		String campaignId = awRequest.getCampaignUrn();
+		
+		// If it was never set, flag an error.
+		if(campaignId == null) {
+			_logger.error("The required campaign ID was not set in the request.");
+			throw new DataAccessException("The required campaign ID was not set in the request.");
+		}
+		
 		try {
-			// Get the XML from the database.
-			String xml = (String) getJdbcTemplate().queryForObject(SQL_GET_XML, new Object[] { awRequest.getCampaignUrn() }, String.class);
+			// Get the XML.
+			String xml = (String) getJdbcTemplate().queryForObject(
+					SQL_GET_XML, 
+					new Object [] { campaignId }, 
+					String.class);
 			
-			// Create the result list and put the XML in it.
+			// Create the result list and add the XML.
 			List<String> resultList = new LinkedList<String>();
 			resultList.add(xml);
 			
-			// Set the result list in the request.
+			// Add the result list to the request.
 			awRequest.setResultList(resultList);
 		}
+		catch(org.springframework.dao.IncorrectResultSizeDataAccessException e) {
+			int actualSize = e.getActualSize();
+			
+			if(actualSize == 0) {
+				_logger.error("No such campaign XML in the database.");
+				throw new DataAccessException(e);
+			}
+			else if(actualSize > 1) {
+				_logger.error("More than one campaign has the same URN.");
+				throw new DataAccessException(e);
+			}
+			else {
+				_logger.error("...wait, what?");
+				throw new DataAccessException(e);
+			}
+		}
 		catch(org.springframework.dao.DataAccessException e) {
-			_logger.error("Error executing SQL '" + SQL_GET_XML + "' with parameter: " + awRequest.getCampaignUrn(), e);
+			_logger.error("Error executing SQL '" + SQL_GET_XML + "' with parameter: " + campaignId, e);
 			throw new DataAccessException(e);
 		}
 	}

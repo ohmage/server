@@ -245,7 +245,7 @@ public class ClassUpdateDao extends AbstractDao {
 		}
 		
 		// For each of the users in the request,
-		String[] users = userList.split(",");
+		String[] users = userList.split(InputKeys.LIST_ITEM_SEPARATOR);
 		for(int i = 0; i < users.length; i++) {
 			// Get the current user's ID.
 			int userId;
@@ -373,7 +373,7 @@ public class ClassUpdateDao extends AbstractDao {
 		}
 		
 		// For each of the users in the request,
-		String[] users = userList.split(",");
+		String[] users = userList.split(InputKeys.LIST_ITEM_SEPARATOR);
 		for(int i = 0; i < users.length; i++) {
 			// Get the current user's ID.
 			int userId;

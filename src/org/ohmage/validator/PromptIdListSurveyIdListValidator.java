@@ -22,6 +22,7 @@ import java.util.Set;
 
 import org.apache.log4j.Logger;
 import org.ohmage.request.AwRequest;
+import org.ohmage.request.InputKeys;
 import org.ohmage.request.SurveyResponseReadAwRequest;
 import org.ohmage.util.StringUtils;
 
@@ -76,7 +77,7 @@ public class PromptIdListSurveyIdListValidator extends AbstractAnnotatingRegexpV
 			
 		} else {
 			
-			List<String> ids = Arrays.asList(listAsString.split(","));
+			List<String> ids = Arrays.asList(listAsString.split(InputKeys.LIST_ITEM_SEPARATOR));
 			
 			if(ids.size() > 10) {
 				

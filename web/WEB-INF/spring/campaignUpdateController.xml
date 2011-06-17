@@ -38,6 +38,11 @@
         
         <!-- Validate that the campaign being updated exists. -->
         <ref bean="campaignExistsService" />
+        
+        <ref bean="campaignXmlOptionalValidationService" />
+        
+        <!-- Ensure that the new XML's URN and such are the same as the old. -->
+        <ref bean="newAndOldXmlsHaveSameHeaderInfoOptionalService" />
 
         <ref bean="classesInListExistOptionalService" />
 
@@ -168,7 +173,7 @@
         <constructor-arg>
           <bean class="org.ohmage.domain.ErrorResponse">
             <property name="code" value="1601" />
-            <property name="text" value="Invalid value for user-role list." />
+            <property name="text" value="Invalid value for user-role add list." />
           </bean>
         </constructor-arg>
       </bean>
@@ -193,7 +198,7 @@
         <constructor-arg>
           <bean class="org.ohmage.domain.ErrorResponse">
             <property name="code" value="1601" />
-            <property name="text" value="Invalid value for user-role list." />
+            <property name="text" value="Invalid value for user-role remove list." />
           </bean>
         </constructor-arg>
       </bean>

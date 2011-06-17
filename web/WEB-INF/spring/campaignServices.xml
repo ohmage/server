@@ -56,9 +56,7 @@
     <constructor-arg index="1">
       <bean class="org.andwellness.config.xml.CampaignValidator" />
     </constructor-arg>
-    <constructor-arg index="2">
-      <value>/opt/aw/conf/configuration.xsd</value>
-    </constructor-arg>
+    <constructor-arg index="2" value="${system.configurationXmlSchemaFile}"/>
     <constructor-arg index="3">
       <value>true</value>
     </constructor-arg>
@@ -78,9 +76,7 @@
     <constructor-arg index="1">
       <bean class="org.andwellness.config.xml.CampaignValidator" />
     </constructor-arg>
-    <constructor-arg index="2">
-      <value>/opt/aw/conf/configuration.xsd</value>
-    </constructor-arg>
+    <constructor-arg index="2" value="${system.configurationXmlSchemaFile}"/>
     <constructor-arg index="3">
       <value>false</value>
     </constructor-arg>
@@ -137,7 +133,7 @@
   </bean>
   
   <bean id="requesterHasPermissionsToViewOtherUsersSurveyResponsesInCampaignService" class="org.ohmage.service.RequesterCanViewSurveyResponsesService">
-    <constructor-arg>
+  <constructor-arg>
       <bean class="org.ohmage.validator.json.FailedJsonRequestAnnotator">
         <constructor-arg index="0">
           <bean class="org.ohmage.domain.ErrorResponse">
@@ -148,14 +144,38 @@
       </bean>
     </constructor-arg>
     <constructor-arg>
-	  <bean class="org.ohmage.dao.FindCampaignPrivacyStateDao">
-	    <constructor-arg>
-	      <ref bean="dataSource" />
-	    </constructor-arg>
-	  </bean>
-	</constructor-arg>
+      <bean class="org.ohmage.dao.FindCampaignPrivacyStateDao">
+        <constructor-arg>
+          <ref bean="dataSource" />
+        </constructor-arg>
+      </bean>
+    </constructor-arg>
   </bean>
   
+  
+  <bean id="newAndOldXmlsHaveSameHeaderInfoOptionalService" class="org.ohmage.service.NewAndOldCampaignXmlsHaveSameHeaderInfoService">
+    <constructor-arg>
+      <bean class="org.ohmage.validator.json.FailedJsonRequestAnnotator">
+        <constructor-arg index="0">
+          <bean class="org.ohmage.domain.ErrorResponse">
+            <property name="code" value="0818" />
+            <property name="text" value="The new XML's URN and/or name don't match the current XML's URN and/or name." />
+          </bean>
+        </constructor-arg>
+      </bean>
+    </constructor-arg>
+    <constructor-arg>
+      <bean class="org.ohmage.dao.FindCampaignXmlDao">
+        <constructor-arg>
+          <ref bean="dataSource" />
+        </constructor-arg>
+      </bean>
+    </constructor-arg>
+    <constructor-arg>
+      <value>true</value>
+    </constructor-arg>
+  </bean>
+            
   <bean id="promptIdExistsService" class="org.ohmage.service.PromptExistsService">
     <constructor-arg>
       <bean class="org.ohmage.validator.json.FailedJsonRequestAnnotator">
