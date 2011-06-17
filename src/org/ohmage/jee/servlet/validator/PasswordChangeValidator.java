@@ -39,7 +39,8 @@ public class PasswordChangeValidator extends AbstractHttpServletRequestValidator
 		String newPassword = httpRequest.getParameter(InputKeys.NEW_PASSWORD);
 		
 		if(client == null) {
-			throw new MissingAuthTokenException("The required authentication / session token is missing.");
+			// Missing client parameter
+			return false;
 		}
 		else if(username == null) {
 			// Missing username.

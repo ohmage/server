@@ -28,4 +28,139 @@
     </constructor-arg>
   </bean>
   
+  <bean id="requesterIsAdminService" class="org.ohmage.service.RequesterIsAdminService">
+    <constructor-arg>
+      <bean class="org.ohmage.validator.json.FailedJsonRequestAnnotator">
+        <constructor-arg>
+          <bean class="org.ohmage.domain.ErrorResponse">
+            <property name="code" value="1314" />
+            <property name="text" value="Requester is not an admin." />
+          </bean>
+        </constructor-arg>
+      </bean>
+    </constructor-arg>
+    <constructor-arg>
+      <bean class="org.ohmage.dao.FindRequesterIsAdminDao">
+        <constructor-arg>
+          <ref bean="dataSource" />
+        </constructor-arg>
+      </bean>
+    </constructor-arg>
+  </bean>
+  
+  <bean id="newUsernameDoesNotExistService" class="org.ohmage.service.NewUsernameDoesNotExistService">
+    <constructor-arg>
+      <bean class="org.ohmage.validator.json.FailedJsonRequestAnnotator">
+        <constructor-arg>
+          <bean class="org.ohmage.domain.ErrorResponse">
+            <property name="code" value="1315" />
+            <property name="text" value="Username already exists." />
+          </bean>
+        </constructor-arg>
+      </bean>
+    </constructor-arg>
+    <constructor-arg>
+      <bean class="org.ohmage.dao.NewUsernameExistsDao">
+        <constructor-arg>
+          <ref bean="dataSource" />
+        </constructor-arg>
+      </bean>
+    </constructor-arg>
+  </bean>
+  
+  <bean id="usersInListExistService" class="org.ohmage.service.UsersInListExistService">
+    <constructor-arg index="0">
+      <bean class="org.ohmage.validator.json.FailedJsonRequestAnnotator">
+        <constructor-arg index="0">
+          <bean class="org.ohmage.domain.ErrorResponse">
+            <property name="code" value="1301" />
+            <property name="text" value="User in list of users to add does not exist." />
+          </bean>
+        </constructor-arg>
+      </bean>
+    </constructor-arg>
+    <constructor-arg index="1">
+      <bean class="org.ohmage.dao.UsersInListExistDao">
+        <constructor-arg index="0">
+          <ref bean="dataSource"/>
+        </constructor-arg>
+        <constructor-arg index="1">
+          <util:constant static-field="org.ohmage.request.InputKeys.USER_LIST"/>
+        </constructor-arg>
+        <constructor-arg>
+          <value>true</value>
+        </constructor-arg>
+      </bean>
+    </constructor-arg>
+  </bean>
+  
+  <bean id="requesterCanModifyUsersInListService" class="org.ohmage.service.RequesterCanModifyUsersInListService">
+    <constructor-arg>
+      <bean class="org.ohmage.validator.json.FailedJsonRequestAnnotator">
+        <constructor-arg index="0">
+          <bean class="org.ohmage.domain.ErrorResponse">
+            <property name="code" value="1318" />
+            <property name="text" value="Requester has insufficient permissions to modify the users in the parameterized user list." />
+          </bean>
+        </constructor-arg>
+      </bean>
+    </constructor-arg>
+    <constructor-arg>
+      <bean class="org.ohmage.dao.FindRequesterIsAdminDao">
+        <constructor-arg>
+          <ref bean="dataSource" />
+        </constructor-arg>
+      </bean>
+    </constructor-arg>
+    <constructor-arg>
+      <util:constant static-field="org.ohmage.request.InputKeys.USER_LIST" />
+    </constructor-arg>
+  </bean>
+  
+  <bean id="userExistsService" class="org.ohmage.service.GenericAnnotatingDaoService">
+    <constructor-arg>
+      <bean class="org.ohmage.validator.json.FailedJsonRequestAnnotator">
+        <constructor-arg index="0">
+          <bean class="org.ohmage.domain.ErrorResponse">
+            <property name="code" value="1308" />
+            <property name="text" value="User doesn't exist." />
+          </bean>
+        </constructor-arg>
+      </bean>
+    </constructor-arg>
+    <constructor-arg>
+      <bean class="org.ohmage.dao.UserExistsDao">
+        <constructor-arg>
+          <ref bean="dataSource" />
+        </constructor-arg>
+      </bean>
+    </constructor-arg>
+    <constructor-arg>
+      <value>The user in the request doesn't exist.</value>
+    </constructor-arg>
+    <constructor-arg>
+      <value>Verifying that the user in the request exists.</value>
+    </constructor-arg>
+  </bean>
+  
+  <bean id="userPersonalExistsOrAllRequiredUserPersonalFieldsExistService" class="org.ohmage.service.UserPersonalExistsService">
+    <constructor-arg>
+      <bean class="org.ohmage.validator.json.FailedJsonRequestAnnotator">
+        <constructor-arg index="0">
+          <bean class="org.ohmage.domain.ErrorResponse">
+            <property name="code" value="1326" />
+            <property name="text" value="The user doesn't have user personal information and some user personal information is missing from this user update." />
+          </bean>
+        </constructor-arg>
+      </bean>
+    </constructor-arg>
+    <constructor-arg>
+      <bean class="org.ohmage.dao.UserPersonalExistsDao">
+        <constructor-arg>
+          <ref bean="dataSource" />
+        </constructor-arg>
+      </bean>
+    </constructor-arg>
+  </bean>
+  
 </beans>

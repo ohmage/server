@@ -62,12 +62,22 @@ public class BooleanValidator extends AbstractAnnotatingValidator {
 		try {
 			booleanValue = (String) awRequest.getToProcessValue(_key);
 		}
-		catch(IllegalArgumentException e) {
-			booleanValue = (String) awRequest.getToValidateValue(_key);
-			
-			if(booleanValue == null) {
+		catch(IllegalArgumentException outerException) {
+			try {
+				booleanValue = (String) awRequest.getToValidateValue(_key);
+				
+				if(booleanValue == null) {
+					if(_required) {
+						throw new ValidatorException("Missing required key '" + _key + "'.");
+					}
+					else{
+						return true;
+					}
+				}
+			}
+			catch(IllegalArgumentException innerException) {
 				if(_required) {
-					throw new ValidatorException("Missing required key '" + _key + "'.");
+					throw new ValidatorException("Missing required key '" + _key + "'.", innerException);
 				}
 				else{
 					return true;

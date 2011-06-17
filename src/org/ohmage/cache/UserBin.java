@@ -32,9 +32,7 @@ import org.ohmage.domain.UserTime;
 
 /**
  * User storage. User objects are mapped to unique ids. Avoids dependencies on JEE session management. The lifetime param set on 
- * construction controls how long User objects stay active. 
- * 
- * TODO private locking?
+ * construction controls how long User objects stay active.
  * 
  * @author Joshua Selsky
  */
@@ -93,6 +91,32 @@ public class UserBin extends TimerTask {
 		}
 		finally {
 			_usersLock.unlock();
+		}
+	}
+	
+	/**
+	 * Removes a user from the token bin.
+	 * 
+	 * @param id The token for the user.
+	 * 
+	 * @return Returns true if a user was removed, false otherwise.
+	 */
+	public boolean removeUser(String id) {
+		_usersLock.lock();
+		
+		try {
+			if(_logger.isDebugEnabled()) {
+				_logger.debug("removing user from bin");
+			}
+			
+			return (_users.remove(id) != null);
+		}
+		catch(NullPointerException e) {
+			_logger.warn("The user's token was null.");
+			return false;
+		}
+		finally {
+			_usersLock.lock();
 		}
 	}
 	
