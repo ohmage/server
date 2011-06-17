@@ -56,7 +56,7 @@ public class CampaignReadResponseWriter extends AbstractResponseWriter {
 		try {
 			// Prepare for sending the response to the client
 			writer = new BufferedWriter(new OutputStreamWriter(getOutputStream(request, response)));
-			String responseText = null;
+			String responseText = "";
 			
 			// Sets the HTTP headers to disable caching
 			expireResponse(response);
@@ -107,7 +107,7 @@ public class CampaignReadResponseWriter extends AbstractResponseWriter {
 						dataArray.put(result.getUrn(), campaignObject);
 						itemArray.put(result.getUrn());
 					} else {
-						response.setHeader("Content-Disposition", "attachment; filename=" + result.getName());
+						response.setHeader("Content-Disposition", "attachment; filename=" + result.getName() + ".xml");
 						response.setContentType("text/xml");
 						responseText = result.getXml();
 					}
