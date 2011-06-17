@@ -18,6 +18,8 @@ package org.ohmage.dao;
 import java.security.InvalidParameterException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Timestamp;
+import java.util.Calendar;
 import java.util.List;
 import java.util.ListIterator;
 
@@ -38,7 +40,6 @@ import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionException;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.DefaultTransactionDefinition;
-
 
 /**
  * Updates a campaign's information. Certain aspects cannot be modified if the
@@ -70,14 +71,12 @@ public class CampaignUpdateDao extends AbstractDao {
 															"WHERE campaign_id = ? " +
 															"AND class_id = ?";
 	
-	private static final String SQL_GET_IS_ROLE = "SELECT count(*) " +
-												  "FROM user u, user_role ur, user_role_campaign urc, campaign c " +
-												  "WHERE u.login_id = ? " +
-												  "AND u.id = urc.user_id " +
-												  "AND ur.role = ? " +
-												  "AND ur.id = urc.user_role_id " +
-												  "AND c.urn = ? " +
-												  "AND c.id = urc.campaign_id";
+	private static final String SQL_GET_SURVEY_RESPONSES_EXIST = "SELECT EXISTS(" +
+																	"SELECT sr.id " +
+																	"FROM campaign c, survey_response sr " +
+																	"WHERE c.urn = ? " +
+																	"AND c.id = sr.campaign_id" +
+																")";
 	
 	private static final String SQL_GET_USER_CAN_MODIFY = "SELECT count(*) " +
 														  "FROM user u, user_role ur, user_role_campaign urc, campaign c " +
@@ -87,11 +86,6 @@ public class CampaignUpdateDao extends AbstractDao {
 														  "AND ur.id = urc.user_role_id " +
 														  "AND c.urn = ? " +
 														  "AND c.id = urc.campaign_id";
-	
-	private static final String SQL_GET_NUM_UPLOADS = "SELECT count(*) " +
-													  "FROM campaign c, survey_response sr " +
-													  "WHERE c.urn = ? " +
-													  "AND c.id = sr.campaign_id";
 	
 	private static final String SQL_GET_CLASSES_FROM_CAMPAIGN = "SELECT cl.urn " +
 																"FROM class cl, campaign ca, campaign_class cc " +
@@ -132,8 +126,8 @@ public class CampaignUpdateDao extends AbstractDao {
 														 "SET description = ? " +
 														 "WHERE urn = ?";
 	
-	private static final String SQL_UPDATE_XML = "UPDATE campaign " +
-												 "SET xml = ? " +
+	private static final String SQL_UPDATE_XML_AND_CREATION_TIMESTAMP = "UPDATE campaign " +
+												 "SET xml = ?, creation_timestamp = ? " +
 												 "WHERE urn = ?";
 	
 	private static final String SQL_INSERT_CAMPAIGN_CLASS = "INSERT INTO campaign_class(campaign_id, class_id) " +
@@ -273,38 +267,18 @@ public class CampaignUpdateDao extends AbstractDao {
 	 * @return True iff the user is allowed to modify the campaign's XML.
 	 */
 	private boolean userCanModifyCampaignXml(AwRequest awRequest) {
-		boolean userIsSupervisor = false;
 		try {
-			userIsSupervisor = (getJdbcTemplate().queryForInt(SQL_GET_IS_ROLE, 
-					new Object[] { awRequest.getUser().getUserName(), CampaignRoleCache.ROLE_SUPERVISOR, awRequest.getCampaignUrn() }) != 0);
-		}
-		catch(org.springframework.dao.DataAccessException e) {
-			_logger.error("Error executing SQL '" + SQL_GET_IS_ROLE + "' with parameters: " + 
-						  awRequest.getUser().getUserName() + ", " + CampaignRoleCache.ROLE_SUPERVISOR + ", " + awRequest.getCampaignUrn(), e);
-			throw new DataAccessException(e);
-		}
-		
-		boolean userIsAuthorAndNoUploads = false;
-		try {
-			if(getJdbcTemplate().queryForInt(SQL_GET_IS_ROLE, 
-					new Object[] { awRequest.getUser().getUserName(), CampaignRoleCache.ROLE_AUTHOR, awRequest.getCampaignUrn() }) != 0) {
-				try {
-					userIsAuthorAndNoUploads = (getJdbcTemplate().queryForInt(SQL_GET_NUM_UPLOADS, 
-							new Object [] { awRequest.getCampaignUrn() }) == 0);
-				}
-				catch(org.springframework.dao.DataAccessException e) {
-					_logger.error("Error executing SQL '" + SQL_GET_NUM_UPLOADS + "' with parameters: " + awRequest.getCampaignUrn(), e);
-					throw new DataAccessException(e);
-				}
+			if(getJdbcTemplate().queryForInt(SQL_GET_SURVEY_RESPONSES_EXIST, new Object[] { awRequest.getCampaignUrn() }) != 0) {
+				return false;
+			}
+			else {
+				return true;
 			}
 		}
 		catch(org.springframework.dao.DataAccessException e) {
-			_logger.error("Error executing SQL '" + SQL_GET_IS_ROLE + "' with parameters: " + 
-						  awRequest.getUser().getUserName() + ", " + CampaignRoleCache.ROLE_AUTHOR + ", " + awRequest.getCampaignUrn(), e);
+			_logger.error("Error executing SQL '" + SQL_GET_SURVEY_RESPONSES_EXIST + "' with parameters: " + awRequest.getCampaignUrn(), e);
 			throw new DataAccessException(e);
 		}
-		
-		return userIsSupervisor || userIsAuthorAndNoUploads;
 	}
 	
 	/**
@@ -410,7 +384,7 @@ public class CampaignUpdateDao extends AbstractDao {
 	 */
 	private void updateXml(AwRequest awRequest) {
 		if(! userCanModifyCampaignXml(awRequest)) {
-			throw new DataAccessException("User is only an author and responses exist; therefore, they are not allowed to modify the XML.");
+			throw new DataAccessException("Responses exist; therefore, the requester is not allowed to modify the XML.");
 		}
 		
 		String xml;
@@ -423,10 +397,10 @@ public class CampaignUpdateDao extends AbstractDao {
 		}
 		
 		try {
-			getJdbcTemplate().update(SQL_UPDATE_XML, new Object[] { xml, awRequest.getCampaignUrn() });
+			getJdbcTemplate().update(SQL_UPDATE_XML_AND_CREATION_TIMESTAMP, new Object[] { xml, new Timestamp(Calendar.getInstance().getTimeInMillis()), awRequest.getCampaignUrn() });
 		}
 		catch(org.springframework.dao.DataAccessException e) {
-			_logger.error("Error executing SQL '" + SQL_UPDATE_XML + "' with parameters: " + xml + ", " + awRequest.getCampaignUrn(), e);
+			_logger.error("Error executing SQL '" + SQL_UPDATE_XML_AND_CREATION_TIMESTAMP + "' with parameters: " + xml + ", " + awRequest.getCampaignUrn(), e);
 			throw new DataAccessException(e);
 		}
 	}

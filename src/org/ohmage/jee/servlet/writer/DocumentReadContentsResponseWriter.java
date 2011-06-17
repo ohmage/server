@@ -33,6 +33,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.log4j.Logger;
 import org.ohmage.domain.ErrorResponse;
 import org.ohmage.request.AwRequest;
+import org.ohmage.request.DocumentReadContentsAwRequest;
 
 
 /**
@@ -84,6 +85,7 @@ public class DocumentReadContentsResponseWriter extends AbstractResponseWriter {
 		// output stream. 
 		if(! awRequest.isFailedRequest()) {
 			try {
+				response.setHeader("Content-Disposition", "attachment; filename=" + ((String) awRequest.getToReturnValue(DocumentReadContentsAwRequest.KEY_DOCUMENT_FILENAME)));
 				response.setContentType("application/json");
 				
 				// Get an input stream for the file.

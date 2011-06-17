@@ -289,7 +289,7 @@
         <constructor-arg index="0">
           <bean class="org.ohmage.domain.ErrorResponse">
             <property name="code" value="0816" />
-            <property name="text" value="Insufficient role to modify campaign properties." />
+            <property name="text" value="Either the user doesn't have the permissions to modify the campaign or responses exist." />
           </bean>
         </constructor-arg>
       </bean>
