@@ -96,7 +96,7 @@ public class DocumentReadContentsResponseWriter extends AbstractResponseWriter {
 				DataInputStream is = new DataInputStream(new FileInputStream(documentFile));
 				
 				// Set the output stream to the response.
-				DataOutputStream dos = new DataOutputStream(getOutputStream(request, response));
+				DataOutputStream dos = new DataOutputStream(os);
 				
 				// Read the file in chuncks and write it to the output stream.
 				byte[] bytes = new byte[CHUNK_SIZE];
