@@ -97,71 +97,71 @@ public class ConfigurationValueMerger {
 	}
 	
 	private void setDisplayValueFromSingleChoice(SurveyResponseReadResult result, Configuration config, boolean isRepeatableSetItem) {
-		String value = null;
-		
-		if(isRepeatableSetItem) {
-			value = config.getValueForChoiceKey(
-				result.getSurveyId(), result.getRepeatableSetId(), result.getPromptId(), String.valueOf(result.getResponse())
-			);
-		} else {
-			value = config.getValueForChoiceKey(
-				result.getSurveyId(), result.getPromptId(), String.valueOf(result.getResponse())
-			);
-		}
-		
-		if(null != value) {
-			result.setDisplayValue(convertToNumber(value));
-		} else {
+//		String value = null;
+//		
+//		if(isRepeatableSetItem) {
+//			value = config.getValueForChoiceKey(
+//				result.getSurveyId(), result.getRepeatableSetId(), result.getPromptId(), String.valueOf(result.getResponse())
+//			);
+//		} else {
+//			value = config.getValueForChoiceKey(
+//				result.getSurveyId(), result.getPromptId(), String.valueOf(result.getResponse())
+//			);
+//		}
+//		
+//		if(null != value) {
+//			result.setDisplayValue(convertToNumber(value));
+//		} else {
 			result.setDisplayValue(convertToNumber(result.getResponse()));
-		}
+//		}
 	}
 	
 	private void setDisplayValueFromMultiChoice(SurveyResponseReadResult result, Configuration config, boolean isRepeatableSetItem) {
 	
-		JSONArray responseArray = JsonUtils.getJsonArrayFromString(String.valueOf(result.getResponse()));
-		
-		if(null != responseArray) {
-			JSONArray valueArray = new JSONArray();
-			int length = responseArray.length();
-			
-			for(int j = 0; j < length; j++) {
-				
-				Object value = null;
-				
-				if(isRepeatableSetItem) {
-					value = config.getValueForChoiceKey(result.getSurveyId(), result.getRepeatableSetId(), 
-						result.getPromptId(), JsonUtils.getStringFromJsonArray(responseArray, j)
-					);
-				} else {
-					value = config.getValueForChoiceKey(
-						result.getSurveyId(), result.getPromptId(), JsonUtils.getStringFromJsonArray(responseArray, j)
-					);
-				}
-				
-				if(null == value) {
-					break;
-				} else {
-					valueArray.put(convertToNumber(value));
-				}
-			}
-			
-			if(valueArray.length() == length) {
-				result.setDisplayValue(valueArray);
-			} else {
-				try {
-					result.setDisplayValue(new JSONArray(String.valueOf(result.getResponse())));
-				} catch (JSONException je) {
-					_logger.warn("cannot convert multi-choice response value to JSON Array: " + result.getResponse());
-				}
-			}
-		
-		} else {
+//		JSONArray responseArray = JsonUtils.getJsonArrayFromString(String.valueOf(result.getResponse()));
+//		
+//		if(null != responseArray) {
+//			JSONArray valueArray = new JSONArray();
+//			int length = responseArray.length();
+//			
+//			for(int j = 0; j < length; j++) {
+//				
+//				Object value = null;
+//				
+//				if(isRepeatableSetItem) {
+//					value = config.getValueForChoiceKey(result.getSurveyId(), result.getRepeatableSetId(), 
+//						result.getPromptId(), JsonUtils.getStringFromJsonArray(responseArray, j)
+//					);
+//				} else {
+//					value = config.getValueForChoiceKey(
+//						result.getSurveyId(), result.getPromptId(), JsonUtils.getStringFromJsonArray(responseArray, j)
+//					);
+//				}
+//				
+//				if(null == value) {
+//					break;
+//				} else {
+//					valueArray.put(convertToNumber(value));
+//				}
+//			}
+//			
+//			if(valueArray.length() == length) {
+//				result.setDisplayValue(valueArray);
+//			} else {
+//				try {
+//					result.setDisplayValue(new JSONArray(String.valueOf(result.getResponse())));
+//				} catch (JSONException je) {
+//					_logger.warn("cannot convert multi-choice response value to JSON Array: " + result.getResponse());
+//				}
+//			}
+//		
+//		} else {
 			try {
 				result.setDisplayValue(new JSONArray(String.valueOf(result.getResponse())));
 			} catch (JSONException je) {
 				_logger.warn("cannot convert multi-choice response value to JSON Array: " + result.getResponse());
 			}
-		}
+//		}
 	}
 	
 	private void setDisplayValueFromRemoteActivity(SurveyResponseReadResult result, Configuration config) {
