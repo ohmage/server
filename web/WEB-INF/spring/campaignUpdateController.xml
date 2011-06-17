@@ -38,6 +38,11 @@
         
         <!-- Validate that the campaign being updated exists. -->
         <ref bean="campaignExistsService" />
+        
+        <ref bean="campaignXmlOptionalValidationService" />
+        
+        <!-- Ensure that the new XML's URN and such are the same as the old. -->
+        <ref bean="newAndOldXmlsHaveSameHeaderInfoOptionalService" />
 
         <ref bean="classesInListExistOptionalService" />
 
@@ -66,7 +71,6 @@
         <ref bean="campaignRunningStateOptionalValidator" />
         <ref bean="campaignPrivacyStateOptionalValidator" />
         <ref bean="classListOptionalValidator" />
-        <ref bean="campaignXmlOptionalValidator" />
         <ref bean="descriptionOptionalValidator" />
         <ref bean="userCampaignRoleListAddOptionalValidator" />
         <ref bean="userCampaignRoleListRemoveOptionalValidator" />
@@ -140,35 +144,13 @@
     </constructor-arg>
   </bean>
   
-  <bean id="campaignXmlOptionalValidator" class="org.ohmage.validator.CampaignXmlValidator">
-    <constructor-arg index="0">
-      <bean class="org.ohmage.validator.json.FailedJsonRequestAnnotator">
-        <constructor-arg index="0">
-          <bean class="org.ohmage.domain.ErrorResponse">
-            <property name="code" value="0804" />
-            <property name="text" value="Invalid campaign XML." />
-          </bean>
-        </constructor-arg>
-      </bean>
-    </constructor-arg>
-    <constructor-arg index="1">
-      <bean class="org.andwellness.config.xml.CampaignValidator" />
-    </constructor-arg>
-    <constructor-arg index="2">
-      <value>/opt/aw/conf/configuration.xsd</value>
-    </constructor-arg>
-    <constructor-arg index="3">
-      <value>false</value>
-    </constructor-arg>
-  </bean>
-  
   <bean id="userCampaignRoleListAddOptionalValidator" class="org.ohmage.validator.UserRoleListValidator">
     <constructor-arg>
       <bean class="org.ohmage.validator.json.FailedJsonRequestAnnotator">
         <constructor-arg>
           <bean class="org.ohmage.domain.ErrorResponse">
             <property name="code" value="1601" />
-            <property name="text" value="Invalid value for user-role list." />
+            <property name="text" value="Invalid value for user-role add list." />
           </bean>
         </constructor-arg>
       </bean>
@@ -193,7 +175,7 @@
         <constructor-arg>
           <bean class="org.ohmage.domain.ErrorResponse">
             <property name="code" value="1601" />
-            <property name="text" value="Invalid value for user-role list." />
+            <property name="text" value="Invalid value for user-role remove list." />
           </bean>
         </constructor-arg>
       </bean>
@@ -284,7 +266,7 @@
         <constructor-arg index="0">
           <bean class="org.ohmage.domain.ErrorResponse">
             <property name="code" value="0816" />
-            <property name="text" value="Insufficient role to modify campaign properties." />
+            <property name="text" value="Either the user doesn't have the permissions to modify the campaign or responses exist." />
           </bean>
         </constructor-arg>
       </bean>

@@ -20,6 +20,7 @@ import java.util.List;
 
 import org.apache.log4j.Logger;
 import org.ohmage.request.AwRequest;
+import org.ohmage.request.InputKeys;
 
 
 /**
@@ -69,14 +70,14 @@ public class NoDuplicatesInListsValidator extends AbstractAnnotatingValidator {
 		List<String[]> listOfLists = new LinkedList<String[]>();
 		for(int i = 0; i < _keys.length; i++) {
 			try {
-				listOfLists.add(((String) awRequest.getToProcessValue(_keys[i])).split(","));
+				listOfLists.add(((String) awRequest.getToProcessValue(_keys[i])).split(InputKeys.LIST_ITEM_SEPARATOR));
 			}
 			catch(IllegalArgumentException iae) {
 				// If it wasn't in the toProcess map then maybe it hasn't had
 				// any validation done on it yet, so get it from the
 				// toValidate map.
 				try {
-					listOfLists.add(((String) awRequest.getToValidate().get(_keys[i])).split(","));
+					listOfLists.add(((String) awRequest.getToValidate().get(_keys[i])).split(InputKeys.LIST_ITEM_SEPARATOR));
 				}
 				catch(NullPointerException e) {
 					// This means it wasn't in either map which is acceptable

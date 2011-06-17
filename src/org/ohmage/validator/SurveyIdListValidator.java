@@ -16,6 +16,7 @@
 package org.ohmage.validator;
 
 import org.ohmage.request.AwRequest;
+import org.ohmage.request.InputKeys;
 import org.ohmage.request.SurveyResponseReadAwRequest;
 import org.ohmage.util.StringUtils;
 
@@ -56,7 +57,7 @@ public class SurveyIdListValidator extends AbstractAnnotatingRegexpValidator {
 			
 		} else {
 			
-			String[] surveyIds = surveyIdListString.split(",");
+			String[] surveyIds = surveyIdListString.split(InputKeys.LIST_ITEM_SEPARATOR);
 			
 			if(surveyIds.length > 10) {
 				
