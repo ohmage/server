@@ -106,28 +106,4 @@ public class FailedJsonRequestAnnotator implements AwRequestAnnotator {
 			throw new IllegalStateException(jsone);
 		}
 	}
-	
-	/**
-	 * No validation here as it is a bandaid. We need to move this to the
-	 * superclass or something.
-	 * 
-	 * Overwrites the existing text in the error message.
-	 * 
-	 * @param newText The new text for the error message.
-	 */
-	public void changeErrorText(String newText) {
-		_errorResponse.setText(newText);
-	}
-	
-	/**
-	 * No validation here as it is a bandaid. We need to move this to the
-	 * superclass or something.
-	 * 
-	 * Appends 'text' to the error response text.
-	 * 
-	 * @param text The text to be added to the current error message text.
-	 */
-	public void appendErrorText(String text) {
-		_errorResponse.setText(_errorResponse.getText() + text);
-	}
 }

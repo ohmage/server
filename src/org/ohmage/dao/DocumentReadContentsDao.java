@@ -39,6 +39,11 @@ public class DocumentReadContentsDao extends AbstractDao {
 													   "FROM document " +
 													   "WHERE uuid = ?";
 	
+	private static final String SQL_GET_DOCUMENT_NAME = 
+		"SELECT name " +
+		"FROM document " +
+		"WHERE uuid = ?";
+	
 	/**
 	 * Creates this service.
 	 * 
@@ -83,6 +88,16 @@ public class DocumentReadContentsDao extends AbstractDao {
 		else {
 			awRequest.addToReturn(DocumentReadContentsAwRequest.KEY_DOCUMENT_FILE, urlList.listIterator().next(), true);
 		}
+		
+		String name;
+		try {
+			name = (String) getJdbcTemplate().queryForObject(SQL_GET_DOCUMENT_NAME, new Object[] { documentId }, String.class);
+		}
+		catch(org.springframework.dao.DataAccessException e) {
+			_logger.error("Error executing SQL '" + SQL_GET_DOCUMENT_NAME + "' with paramter: " + documentId, e);
+			throw new DataAccessException(e);
+		}
+		
+		awRequest.addToReturn(DocumentReadContentsAwRequest.KEY_DOCUMENT_FILENAME, name, true);
 	}
-
 }

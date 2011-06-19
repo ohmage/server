@@ -22,6 +22,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.net.URI;
@@ -33,6 +34,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.log4j.Logger;
 import org.ohmage.domain.ErrorResponse;
 import org.ohmage.request.AwRequest;
+import org.ohmage.request.DocumentReadContentsAwRequest;
 
 
 /**
@@ -69,8 +71,10 @@ public class DocumentReadContentsResponseWriter extends AbstractResponseWriter {
 		
 		// Creates the writer that will write the response, success or fail.
 		Writer writer;
+		OutputStream os;
 		try {
-			writer = new BufferedWriter(new OutputStreamWriter(getOutputStream(request, response)));
+			os = getOutputStream(request, response);
+			writer = new BufferedWriter(new OutputStreamWriter(os));
 		}
 		catch(IOException e) {
 			_logger.error("Unable to create writer object. Aborting.", e);
@@ -84,28 +88,30 @@ public class DocumentReadContentsResponseWriter extends AbstractResponseWriter {
 		// output stream. 
 		if(! awRequest.isFailedRequest()) {
 			try {
-				response.setContentType("application/json");
+				response.setContentType("ohmage/document");
+				response.setHeader("Content-Disposition", "attachment; filename=" + ((String) awRequest.getToReturnValue(DocumentReadContentsAwRequest.KEY_DOCUMENT_FILENAME)));
 				
 				// Get an input stream for the file.
 				File documentFile = new File(new URI((String) awRequest.getToReturnValue(org.ohmage.request.DocumentReadContentsAwRequest.KEY_DOCUMENT_FILE)));
 				DataInputStream is = new DataInputStream(new FileInputStream(documentFile));
 				
 				// Set the output stream to the response.
-				DataOutputStream os = new DataOutputStream(getOutputStream(request, response));
+				DataOutputStream dos = new DataOutputStream(os);
 				
 				// Read the file in chuncks and write it to the output stream.
 				byte[] bytes = new byte[CHUNK_SIZE];
 				int read = 0;
 				int currRead = is.read(bytes);
 				while(currRead != -1) {
-					os.write(bytes, 0, currRead);
+					dos.write(bytes, 0, currRead);
 					read += currRead;
 					
 					currRead = is.read(bytes);
 				}
 				
-				os.flush();
-				os.close();
+				is.close();
+				dos.flush();
+				dos.close();
 			}
 			// If the URI doesn't adhere to the correct syntax as a URI just 
 			// set the request as failed.

@@ -71,7 +71,6 @@
         <ref bean="campaignRunningStateOptionalValidator" />
         <ref bean="campaignPrivacyStateOptionalValidator" />
         <ref bean="classListOptionalValidator" />
-        <ref bean="campaignXmlOptionalValidator" />
         <ref bean="descriptionOptionalValidator" />
         <ref bean="userCampaignRoleListAddOptionalValidator" />
         <ref bean="userCampaignRoleListRemoveOptionalValidator" />
@@ -141,28 +140,6 @@
       </bean>
     </constructor-arg>
     <constructor-arg index="1">
-      <value>false</value>
-    </constructor-arg>
-  </bean>
-  
-  <bean id="campaignXmlOptionalValidator" class="org.ohmage.validator.CampaignXmlValidator">
-    <constructor-arg index="0">
-      <bean class="org.ohmage.validator.json.FailedJsonRequestAnnotator">
-        <constructor-arg index="0">
-          <bean class="org.ohmage.domain.ErrorResponse">
-            <property name="code" value="0804" />
-            <property name="text" value="Invalid campaign XML." />
-          </bean>
-        </constructor-arg>
-      </bean>
-    </constructor-arg>
-    <constructor-arg index="1">
-      <bean class="org.andwellness.config.xml.CampaignValidator" />
-    </constructor-arg>
-    <constructor-arg index="2">
-      <value>/opt/aw/conf/configuration.xsd</value>
-    </constructor-arg>
-    <constructor-arg index="3">
       <value>false</value>
     </constructor-arg>
   </bean>
@@ -289,7 +266,7 @@
         <constructor-arg index="0">
           <bean class="org.ohmage.domain.ErrorResponse">
             <property name="code" value="0816" />
-            <property name="text" value="Insufficient role to modify campaign properties." />
+            <property name="text" value="Either the user doesn't have the permissions to modify the campaign or responses exist." />
           </bean>
         </constructor-arg>
       </bean>

@@ -23,7 +23,8 @@ import org.ohmage.util.StringUtils;
  * @author John Jenkins
  */
 public class DocumentReadContentsAwRequest extends ResultListAwRequest {
-	public static final String KEY_DOCUMENT_FILE = "document_read_docuemnt_key_document_file";
+	public static final String KEY_DOCUMENT_FILE = "document_read_contents_key_document_file";
+	public static final String KEY_DOCUMENT_FILENAME = "document_read_contents_key_document_filename";
 	
 	/**
 	 * Creates a request to read the contents of a document.
