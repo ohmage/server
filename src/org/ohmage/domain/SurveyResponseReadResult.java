@@ -18,10 +18,11 @@ package org.ohmage.domain;
 import java.util.Map;
 
 /**
- * Cf. DataPointQueryResult except this domain class handles results for multiple users and additional properties from 
- * XML configurations.
+ * Bean-style wrapper for query results for the /app/survey_response/read API call.
  * 
- * @author selsky
+ * TODO -- make this class immutable
+ * 
+ * @author Joshua Selsky
  */
 public class SurveyResponseReadResult {
 	private Object _response;
@@ -43,7 +44,7 @@ public class SurveyResponseReadResult {
 	private String _launchContext;
 	private String _surveyTitle;
 	private String _surveyDescription;
-	private String _loginId;
+	private String _username;
 	private Map<String, PromptProperty> _choiceGlossary;
 	private int _surveyPrimaryKeyId;
 	private String _privacyState;
@@ -229,12 +230,12 @@ public class SurveyResponseReadResult {
 		_surveyDescription = surveyDescription;
 	}
 	
-	public String getLoginId() {
-		return _loginId;
+	public String getUsername() {
+		return _username;
 	}
 
-	public void setLoginId(String loginId) {
-		_loginId = loginId;
+	public void setUsername(String username) {
+		_username = username;
 	}
 	
 	public Map<String, PromptProperty> getChoiceGlossary() {
@@ -259,7 +260,7 @@ public class SurveyResponseReadResult {
 				+ ", _utcTimestamp=" + _utcTimestamp + ", _client=" + _client
 				+ ", _launchContext=" + _launchContext + ", _surveyTitle="
 				+ _surveyTitle + ", _surveyDescription=" + _surveyDescription
-				+ ", _loginId=" + _loginId + ", _choiceGlossary="
+				+ ", _username=" + _username + ", _choiceGlossary="
 				+ _choiceGlossary + ", _surveyPrimaryKeyId="
 				+ _surveyPrimaryKeyId + ", _privacyState=" + _privacyState
 				+ ", _promptText=" + _promptText + "]";

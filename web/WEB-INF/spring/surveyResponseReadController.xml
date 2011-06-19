@@ -18,19 +18,9 @@
   <bean id="surveyResponseReadResponseWriter" class="org.ohmage.jee.servlet.writer.SurveyResponseReadResponseWriter">
     <constructor-arg index="0"><ref bean="severeErrorResponse" /></constructor-arg>
     <constructor-arg index="1"><ref bean="surveyResponseReadColumnUrns" /></constructor-arg>
-    <constructor-arg index="2">
-      <util:map>
-        <entry key="csv">
-          <bean class="org.ohmage.jee.servlet.writer.SurveyResponseReadCsvColumnOutputBuilder"/>
-        </entry>
-        <entry key="json-columns">
-          <bean class="org.ohmage.jee.servlet.writer.SurveyResponseReadJsonColumnOutputBuilder"/>
-        </entry>
-      </util:map>
-    </constructor-arg>
-    <constructor-arg index="3">
-      <bean class="org.ohmage.jee.servlet.writer.SurveyResponseReadJsonRowBasedOutputBuilder"/>
-    </constructor-arg>
+    <constructor-arg index="2"><bean class="org.ohmage.jee.servlet.writer.SurveyResponseReadJsonRowBasedOutputBuilder"/></constructor-arg>
+    <constructor-arg index="3"><bean class="org.ohmage.jee.servlet.writer.SurveyResponseReadJsonColumnOutputBuilder"/></constructor-arg>
+    <constructor-arg index="4"><bean class="org.ohmage.jee.servlet.writer.SurveyResponseReadCsvOutputBuilder"/></constructor-arg>
   </bean>
     
   <!-- Controller -->
