@@ -24,17 +24,16 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.ohmage.domain.PromptProperty;
-import org.ohmage.domain.SurveyResponseReadResult;
+import org.ohmage.domain.PromptResponseMetadata;
+import org.ohmage.domain.SurveyResponseReadIndexedResult;
 import org.ohmage.request.SurveyResponseReadAwRequest;
-import org.ohmage.util.DateUtils;
-import org.ohmage.util.JsonUtils;
 
 
 /** 
  * For row-based output, the survey response results are treated like traditional records in a flat file where each result is
- * converted to a JSON object that represents a "record". 
+ * converted to a JSON object that represents a record in the file. 
  * 
- * @author joshua selsky
+ * @author Joshua Selsky
  */
 public class SurveyResponseReadJsonRowBasedOutputBuilder {
 	private static Logger _logger = Logger.getLogger(SurveyResponseReadJsonRowBasedOutputBuilder.class);
@@ -43,7 +42,7 @@ public class SurveyResponseReadJsonRowBasedOutputBuilder {
 	 * Converts the provided results to JSON using the provided rowItems List as a filter on what belongs in each
 	 * row.
 	 */
-	public String buildOutput(SurveyResponseReadAwRequest req, List<SurveyResponseReadResult> results, List<String> rowItems) 
+	public String buildOutput(int numberOfSurveys, int numberOfPrompts, SurveyResponseReadAwRequest req, List<SurveyResponseReadIndexedResult> results, List<String> rowItems) 
 		throws JSONException {
 		
 		_logger.info("Generating row-based JSON output");
@@ -51,20 +50,12 @@ public class SurveyResponseReadJsonRowBasedOutputBuilder {
 		JSONObject main = new JSONObject();
 		main.put("result", "success");
 		
-		int numberOfSurveys = 0;
-		String currentSurveyId = null;
-		
 		if(results.size() > 0) {
 			
 			JSONArray dataArray = new JSONArray();
 			main.put("data", dataArray);
 			
-			for(SurveyResponseReadResult result : results) {
-			
-				if(! result.getSurveyId().equals(currentSurveyId)) {
-					numberOfSurveys++;
-					currentSurveyId = result.getSurveyId();
-				}
+			for(SurveyResponseReadIndexedResult result : results) {
 				
 				JSONObject record = new JSONObject();
 				
@@ -72,7 +63,7 @@ public class SurveyResponseReadJsonRowBasedOutputBuilder {
 				
 					if("urn:ohmage:user:id".equals(rowItem)) {
 						
-						record.put("user", result.getLoginId());
+						record.put("user", result.getUsername());
 						
 					} else if("urn:ohmage:context:client".equals(rowItem)) {
 						
@@ -88,7 +79,7 @@ public class SurveyResponseReadJsonRowBasedOutputBuilder {
 						
 					} else if("urn:ohmage:context:utc_timestamp".equals(rowItem)) {
 					
-						record.putOpt("utc_timestamp", generateUtcTimestamp(result));
+						record.putOpt("utc_timestamp", SurveyResponseReadWriterUtils.generateUtcTimestamp(result));
 					
 				    } else if("urn:ohmage:context:launch_context_long".equals(rowItem)) {
 				    	
@@ -96,7 +87,7 @@ public class SurveyResponseReadJsonRowBasedOutputBuilder {
 				    	
 				    } else if("urn:ohmage:context:launch_context_short".equals(rowItem)) {
 				    	
-				    	record.put("launch_context_short", result.getLaunchContext() == null ? null : shortLaunchContext(result.getLaunchContext()));
+				    	record.put("launch_context_short", result.getLaunchContext() == null ? null : SurveyResponseReadWriterUtils.shortLaunchContext(result.getLaunchContext()));
 				    	
 				    } else if("urn:ohmage:context:location:status".equals(rowItem)) {
 				    
@@ -201,16 +192,30 @@ public class SurveyResponseReadJsonRowBasedOutputBuilder {
 				    		result.getRepeatableSetIteration() == null ? JSONObject.NULL : result.getRepeatableSetIteration());
 				    
 					} else if (rowItem.startsWith("urn:ohmage:prompt:id:")) {
-
-						record.put("prompt_id", result.getPromptId());
-						record.put("prompt_response", result.getDisplayValue());
-						record.put("prompt_display_type", result.getDisplayType());
-						record.put("prompt_unit", result.getUnit());
-						record.put("prompt_type", result.getPromptType());
-						record.put("prompt_text", result.getPromptText());
-						if(null != result.getChoiceGlossary()) { // only output for single_choice and multi_choice prompt types
-							record.put("prompt_choice_glossary", toJson(result.getChoiceGlossary()));
+						
+						JSONObject promptObject = new JSONObject();
+						
+						Map<String, Map<String, PromptProperty>> choiceGlossaryMap = result.getChoiceGlossaryMap();
+						Map<String, PromptResponseMetadata> promptResponseMetadataMap = result.getPromptResponseMetadataMap();
+						Map<String, Object> promptResponseMap = result.getPromptResponseMap();
+						Iterator<String> responseIterator = promptResponseMap.keySet().iterator();
+						
+						while(responseIterator.hasNext()) {
+							String key = responseIterator.next();
+							JSONObject response = new JSONObject();
+							Map<String, PromptProperty> ppMap = choiceGlossaryMap.isEmpty() ? null : choiceGlossaryMap.get(key); 
+							if(null != ppMap) {
+								response.put("prompt_choice_glossary", SurveyResponseReadWriterUtils.choiceGlossaryToJson(ppMap));
+							}
+							response.put("prompt_response", promptResponseMap.get(key));
+							response.put("prompt_display_type", promptResponseMetadataMap.get(key).getDisplayType());
+							response.put("prompt_unit", promptResponseMetadataMap.get(key).getUnit());
+							response.put("prompt_type", promptResponseMetadataMap.get(key).getPromptType());
+							response.put("prompt_text", promptResponseMetadataMap.get(key).getPromptText());
+							promptObject.put(key, response); // the key here is the prompt_id from the XML config
 						}
+
+						record.put("responses", promptObject);
 					}
 					
 					if(req.performReturnId()) { // only allowed for json-rows output
@@ -224,69 +229,11 @@ public class SurveyResponseReadJsonRowBasedOutputBuilder {
 		
 		// build the metadata section last after calculating the number of surveys above
 		JSONObject metadata = new JSONObject();
-		metadata.put("number_of_prompts", results.size());
+		metadata.put("number_of_prompts", numberOfPrompts);
 		metadata.put("number_of_surveys", numberOfSurveys);
 		metadata.put("items", rowItems);
 		main.put("metadata", metadata);
 		
 		return req.isPrettyPrint() ? main.toString(4) : main.toString();
-	}
-	
-	// FIXME this method is copied directly from the SurveyResponseReadResponseWriter class
-	private JSONObject shortLaunchContext(String launchContext) throws JSONException {
-		JSONObject lc = new JSONObject(launchContext);
-		JSONObject shortLc = new JSONObject();
-		
-		String launchTime = JsonUtils.getStringFromJsonObject(lc, "launch_time");
-		if(null != launchTime) {
-			shortLc.put("launch_time", launchTime);
-		}
-		
-		JSONArray activeTriggers = JsonUtils.getJsonArrayFromJsonObject(lc, "active_triggers");
-		if(null != activeTriggers) {
-			JSONArray shortArray = new JSONArray();
-			for(int i = 0; i < activeTriggers.length(); i++) {
-				JSONObject shortArrayEntry = new JSONObject();
-				JSONObject longArrayEntry = JsonUtils.getJsonObjectFromJsonArray(activeTriggers, i);
-				if(null != longArrayEntry) {
-					String triggerType = JsonUtils.getStringFromJsonObject(longArrayEntry, "trigger_type");
-					if(null != triggerType) {
-						shortArrayEntry.put("trigger_type", triggerType);
-					}
-					JSONObject runtimeDescription = JsonUtils.getJsonObjectFromJsonObject(longArrayEntry, "runtime_description");
-					if(null != runtimeDescription) {
-						String triggerTime = JsonUtils.getStringFromJsonObject(runtimeDescription, "trigger_timestamp");
-						if(null != triggerTime) {
-							shortArrayEntry.put("trigger_timestamp", triggerTime);
-						}
-						String triggerTimezone = JsonUtils.getStringFromJsonObject(runtimeDescription, "trigger_timezone");
-						if(null != triggerTimezone) {
-							shortArrayEntry.put("trigger_timezone", triggerTimezone);
-						}
-					}
-				}
-				shortArray.put(shortArrayEntry);
-			}
-		}
-		return shortLc;
-	}
-	
-	// FIXME this method is copied directly from the SurveyResponseReadResponseWriter class
-	private String generateUtcTimestamp(SurveyResponseReadResult result) {
-		return DateUtils.timestampStringToUtc(result.getTimestamp(), result.getTimezone());
-	}	
-
-	// FIXME this method is copied directly from the SurveyResponseReadCsvColumnOutputBuilder class
-	private Object toJson(Map<String, PromptProperty> ppMap) throws JSONException {
-		JSONObject main = new JSONObject();
-		Iterator<String> it = ppMap.keySet().iterator();
-		while(it.hasNext()) {
-			PromptProperty pp = ppMap.get(it.next());
-			JSONObject item = new JSONObject();
-			item.put("value", pp.getValue());
-			item.put("label", pp.getLabel());
-			main.put(pp.getKey(), item);
-		}
-		return main;
 	}
 }
