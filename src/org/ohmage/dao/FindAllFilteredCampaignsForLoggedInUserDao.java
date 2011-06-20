@@ -96,7 +96,7 @@ public class FindAllFilteredCampaignsForLoggedInUserDao extends AbstractDao {
 						if(null == req.getUserRole() 
 							|| (null != req.getUserRole() && req.getUserRole().equals(cuur.getRole()))) {
 							
-							_logger.info("adding to role list: " + cuur.getRole());
+							// _logger.info("1. adding to role list: " + cuur.getRole());
 							roleList.add(cuur.getRole());
 						}
 						
@@ -106,12 +106,16 @@ public class FindAllFilteredCampaignsForLoggedInUserDao extends AbstractDao {
 						
 						if(null == req.getUserRole() 
 							|| (null != req.getUserRole() && req.getUserRole().equals(cuur.getRole()))) {
-						
+							
+							// _logger.info("adding to role list: " + cuur.getRole());
 							urnRoleMap.get(cuur.getUrn()).add(cuur.getRole());
 						}
 					}
 				}
 			}
+			
+			
+			// _logger.info(urnRoleMap);
 			
 			// Check if all of the lists in the map are empty because, if so, there is nothing to do
 			Iterator<String> iterator = urnRoleMap.keySet().iterator();
@@ -121,7 +125,7 @@ public class FindAllFilteredCampaignsForLoggedInUserDao extends AbstractDao {
 					numberOfEmptyLists++;
 				}
 			}
-			if(numberOfEmptyLists > 0 && numberOfEmptyLists == (urnRoleMap.size())) {
+			if(numberOfEmptyLists == (urnRoleMap.size())) {
 				awRequest.setResultList(Collections.emptyList());
 				return;
 			}
@@ -131,13 +135,19 @@ public class FindAllFilteredCampaignsForLoggedInUserDao extends AbstractDao {
 			
 			// Now generate the SQL based on each campaign URN and the user's most permissive role for that URN.
 			// For the purposes here, both author and supervisor have the maximum permission against running_state and privacy_state
-			// Should this logic be changed to a very simple SQL statement that retrieves all campaigns for the current user
+			// TODO Should this logic be changed to a very simple SQL statement that retrieves all campaigns for the current user
 			// and then does an in-memory filter based on the params and logged-in user's role in each campaign returned?
 			
 			iterator = urnRoleMap.keySet().iterator();
 			while(iterator.hasNext()) {
 				
 				String urn = iterator.next();
+				
+				if(urnRoleMap.get(urn).isEmpty()) { // if there are no roles for the current campaign based on the filtering
+					                                // above, there is no need to run a query for the current campaign
+					continue;
+				}
+				
 				List<Object> pList = new ArrayList<Object>();
 				pList.add(urn);
 				
@@ -190,6 +200,7 @@ public class FindAllFilteredCampaignsForLoggedInUserDao extends AbstractDao {
 						pList.toArray(),
 						new RowMapper() {
 							public Object mapRow(ResultSet rs, int rowNum) throws SQLException {
+								
 								CampaignQueryResult result = new CampaignQueryResult();
 								result.setUrn(rs.getString(1));
 								result.setName(rs.getString(2));

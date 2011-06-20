@@ -54,7 +54,7 @@ public class FindAllClassesForCampaignUrnsDao extends AbstractDao {
 	@Override
 	@SuppressWarnings("unchecked")
 	public void execute(AwRequest awRequest) {
-		_logger.info("looking up all users and their roles for campaign URNs");
+		_logger.info("looking up all users and their roles for class URNs");
 		CampaignReadAwRequest req = (CampaignReadAwRequest) awRequest; // ugly cast
 		StringBuilder builder = new StringBuilder();
 		
