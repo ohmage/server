@@ -31,7 +31,13 @@
         <!-- Authenticate that the token the user is using is a valid token. -->
         <ref bean="tokenBasedAuthenticationService" />
         <ref bean="usersInListExistService" />
-        <ref bean="requesterCanModifyUsersInListService" />
+        
+        <!-- NOTE: Exactly one of the two must be used. -->
+        <!-- This ensures that the requester is the only username in the list or that the user is an admin. -->
+        <!-- <ref bean="requesterCanModifyUsersInListService" /> -->
+        <!-- This ensures that the user is an admin. -->
+        <ref bean="requesterIsAdminService" />
+        
         <ref bean="userDeletionService" />
       </list>
     </constructor-arg>
