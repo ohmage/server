@@ -407,11 +407,6 @@ public class CampaignUpdateDao extends AbstractDao {
 	 * @param awRequest The request that potentially contains the new XML.
 	 */
 	private void updateXml(AwRequest awRequest) throws InsufficientPermissionsException {
-		if(! userCanModifyCampaignXml(awRequest)) {
-			_logger.info("Responses exist; therefore, the requester is not allowed to modify the XML.");
-			throw new InsufficientPermissionsException("Responses exist; therefore, the requester is not allowed to modify the XML.");
-		}
-		
 		String xml;
 		try {
 			xml = (String) awRequest.getToProcessValue(InputKeys.XML);
@@ -419,6 +414,11 @@ public class CampaignUpdateDao extends AbstractDao {
 		catch(IllegalArgumentException e) {
 			// There was no XML to update.
 			return;
+		}
+		
+		if(! userCanModifyCampaignXml(awRequest)) {
+			_logger.info("Responses exist; therefore, the requester is not allowed to modify the XML.");
+			throw new InsufficientPermissionsException("Responses exist; therefore, the requester is not allowed to modify the XML.");
 		}
 		
 		try {
