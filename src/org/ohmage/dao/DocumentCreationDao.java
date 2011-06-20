@@ -70,11 +70,11 @@ public class DocumentCreationDao extends AbstractDao {
 												   "FROM class " +
 												   "WHERE urn = ?";
 	
-	private static final String SQL_INSERT_DOCUMENT = "INSERT INTO document(uuid, name, description, extension, url, size, privacy_state_id) " +
-													  "VALUES (?,?,?,?,?,?,?)";
+	private static final String SQL_INSERT_DOCUMENT = "INSERT INTO document(uuid, name, description, extension, url, size, privacy_state_id, creation_timestamp) " +
+													  "VALUES (?,?,?,?,?,?,?,?)";
 	
-	private static final String SQL_INSERT_DOCUMENT_USER_CREATOR = "INSERT INTO document_user_creator(document_id, user_id, creation_timestamp) " +
-																   "VALUES (?,?,?)";
+	private static final String SQL_INSERT_DOCUMENT_USER_CREATOR = "INSERT INTO document_user_creator(document_id, username) " +
+																   "VALUES (?,?)";
 	
 	private static final String SQL_INSERT_DOCUMENT_USER_ROLE = "INSERT INTO document_user_role(document_id, user_id, document_role_id) " +
 																"VALUES (?,?,?)";
@@ -271,7 +271,7 @@ public class DocumentCreationDao extends AbstractDao {
 			// Insert the file in the DB.
 			try {
 				getJdbcTemplate().update(SQL_INSERT_DOCUMENT, 
-						new Object[] { uuid.toString(), name, description, extension, url, fileLength, privacyStateId });
+						new Object[] { uuid.toString(), name, description, extension, url, fileLength, privacyStateId, new Timestamp(System.currentTimeMillis()) });
 			}
 			catch(org.springframework.dao.DataAccessException e) {
 				_logger.error("Error executing SQL '" + SQL_INSERT_DOCUMENT + "' with parameters: " + 
@@ -295,7 +295,7 @@ public class DocumentCreationDao extends AbstractDao {
 			
 			// Insert the creator in the DB.
 			try {
-				getJdbcTemplate().update(SQL_INSERT_DOCUMENT_USER_CREATOR, new Object[] { documentId, userId, new Timestamp(System.currentTimeMillis()) });
+				getJdbcTemplate().update(SQL_INSERT_DOCUMENT_USER_CREATOR, new Object[] { documentId, awRequest.getUser().getUserName()  });
 			}
 			catch(org.springframework.dao.DataAccessException e) {
 				_logger.error("Error executing SQL '" + SQL_INSERT_DOCUMENT_USER_CREATOR + "' with parameters: " +

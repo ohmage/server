@@ -43,10 +43,11 @@ import org.springframework.jdbc.core.RowMapper;
 public class DocumentInformationAggregationDao extends AbstractDao {
 	private static Logger _logger = Logger.getLogger(DocumentInformationAggregationDao.class);
 	
-	private static final String SQL_GET_DOCUMENT_INFO = "SELECT d.uuid, d.name, d.description, dps.privacy_state, d.last_modified_timestamp, d.size " +
-														"FROM document d, document_privacy_state dps " +
+	private static final String SQL_GET_DOCUMENT_INFO = "SELECT d.uuid, d.name, d.description, dps.privacy_state, d.last_modified_timestamp, d.creation_timestamp, d.size, duc.username " +
+														"FROM document d, document_privacy_state dps, document_user_creator duc " +
 														"WHERE d.uuid = ? " +
-														"AND d.privacy_state_id = dps.id";
+														"AND d.privacy_state_id = dps.id " +
+														"AND d.id = duc.document_id";
 	
 	private static final String SQL_GET_USER_DOCUMENT_ROLE = "SELECT dr.role " +
 															 "FROM user u, document d, document_user_role dur, document_role dr " +
@@ -145,7 +146,9 @@ public class DocumentInformationAggregationDao extends AbstractDao {
 														rs.getString("description"),
 														rs.getString("privacy_state"),
 														rs.getTimestamp("last_modified_timestamp"),
-														rs.getInt("size"));
+														rs.getDate("creation_timestamp"),
+														rs.getInt("size"),
+														rs.getString("username"));
 								}
 							}
 					);
