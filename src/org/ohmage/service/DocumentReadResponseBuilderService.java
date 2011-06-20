@@ -65,7 +65,7 @@ public class DocumentReadResponseBuilderService extends AbstractDaoService {
 				result.put(currDocument.getDocumentId(), currDocument.toJsonObject());
 			}
 			catch(JSONException e) {
-				_logger.error("Error creating response object for document: " + currDocument.getDocumentId(), e);
+				_logger.error("Error placing the response object in the result: " + currDocument.getDocumentId(), e);
 			}
 		}
 		
