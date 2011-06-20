@@ -27,6 +27,9 @@ import java.util.Map;
 import javax.sql.DataSource;
 
 import org.apache.log4j.Logger;
+import org.ohmage.cache.CampaignPrivacyStateCache;
+import org.ohmage.cache.CampaignRoleCache;
+import org.ohmage.cache.CampaignRunningStateCache;
 import org.ohmage.domain.CampaignQueryResult;
 import org.ohmage.domain.CampaignUrnUserRole;
 import org.ohmage.request.AwRequest;
@@ -125,9 +128,9 @@ public class FindAllFilteredCampaignsForLoggedInUserDao extends AbstractDao {
 				
 				if(null != req.getPrivacyState()) { // shared, private
 					String privacyState = req.getPrivacyState();
-					if("private".equals(privacyState)) {
+					if(CampaignPrivacyStateCache.PRIVACY_STATE_PRIVATE.equals(privacyState)) {
 						// analysts cannot view
-						if(roles.contains("analyst") && roles.size() == 1) {
+						if(roles.contains(CampaignRoleCache.ROLE_ANALYST) && roles.size() == 1) {
 							continue;
 						}
 					}
@@ -137,9 +140,9 @@ public class FindAllFilteredCampaignsForLoggedInUserDao extends AbstractDao {
 				
 				if(null != req.getRunningState()) { // running, stopped
 					String runningState = req.getRunningState();
-					if("stopped".equals(runningState)) {
+					if(CampaignRunningStateCache.RUNNING_STATE_STOPPED.equals(runningState)) {
 						// participants cannot view a stopped campaign
-						if(roles.contains("participant") && roles.size() == 1) {
+						if(roles.contains(CampaignRoleCache.ROLE_PARTICIPANT) && roles.size() == 1) {
 							continue;
 						}
 					}
@@ -196,6 +199,33 @@ public class FindAllFilteredCampaignsForLoggedInUserDao extends AbstractDao {
 						}
 					)
 				);
+			}
+			
+			// Now filter out the campaign results according to the ACLs (also used above when privacy_state and running_state are 
+			// used as query parameters).
+
+			int numberOfResults = campaignList.size();
+			for(int i = 0; i < numberOfResults; i++) {
+				
+				CampaignQueryResult result = campaignList.get(i);
+				
+				if(CampaignPrivacyStateCache.PRIVACY_STATE_PRIVATE.equals(result.getPrivacyState())) {
+					// analysts cannot view
+					if(urnToRolesMap.get(result.getUrn()).contains(CampaignRoleCache.ROLE_ANALYST) 
+						&& urnToRolesMap.get(result.getUrn()).size() == 1) {
+						numberOfResults--;
+						campaignList.remove(i);
+					}
+				}
+			
+				if(CampaignRunningStateCache.RUNNING_STATE_STOPPED.equals(result.getRunningState())) {
+					// participants cannot view a stopped campaign
+					if(urnToRolesMap.get(result.getUrn()).contains(CampaignRoleCache.ROLE_PARTICIPANT) 
+						&& urnToRolesMap.get(result.getUrn()).size() == 1) {
+						numberOfResults--;
+						campaignList.remove(i);
+					}
+				}
 			}
 			
 			req.setResultList(campaignList);
