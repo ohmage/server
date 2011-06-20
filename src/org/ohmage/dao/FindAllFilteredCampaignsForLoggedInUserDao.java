@@ -105,7 +105,7 @@ public class FindAllFilteredCampaignsForLoggedInUserDao extends AbstractDao {
 					} else {
 						
 						if(null == req.getUserRole() 
-							|| (null != req.getUserRole() && ! req.getUserRole().equals(cuur.getRole()))) {
+							|| (null != req.getUserRole() && req.getUserRole().equals(cuur.getRole()))) {
 						
 							urnRoleMap.get(cuur.getUrn()).add(cuur.getRole());
 						}
@@ -121,7 +121,7 @@ public class FindAllFilteredCampaignsForLoggedInUserDao extends AbstractDao {
 					numberOfEmptyLists++;
 				}
 			}
-			if(numberOfEmptyLists > 0 && numberOfEmptyLists == (urnRoleMap.size() - 1)) {
+			if(numberOfEmptyLists > 0 && numberOfEmptyLists == (urnRoleMap.size())) {
 				awRequest.setResultList(Collections.emptyList());
 				return;
 			}
