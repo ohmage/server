@@ -163,8 +163,8 @@ public class CampaignCreationDao extends AbstractDao {
 		}
 		
 		Element root = document.getRootElement();
-		String campaignUrn = root.query("/campaign/campaignUrn").get(0).getValue();
-		String campaignName = root.query("/campaign/campaignName").get(0).getValue();
+		String campaignUrn = root.query("/campaign/campaignUrn").get(0).getValue().trim();
+		String campaignName = root.query("/campaign/campaignName").get(0).getValue().trim();
 		
 		Calendar now = Calendar.getInstance();
 		String nowFormatted = now.get(Calendar.YEAR) + "-" + now.get(Calendar.MONTH) + "-" + now.get(Calendar.DAY_OF_MONTH) + " " +
