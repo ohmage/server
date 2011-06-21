@@ -53,7 +53,6 @@ public class SurveyResponseReadCsvOutputBuilder  {
 		
 		_logger.info("Generating multi-result CSV output");
 		
-		
 		Map<String, Map<String, PromptProperty>> choiceGlossaryMap = new HashMap<String, Map<String, PromptProperty>>();
 		Map<String, PromptResponseMetadata> promptResponseMetadataMap = new HashMap<String, PromptResponseMetadata>();
 		
@@ -132,7 +131,7 @@ public class SurveyResponseReadCsvOutputBuilder  {
 		
 		if(sortedColumnMapKeySet.contains("urn:ohmage:context:timestamp")) {
 			canonicalColumnList.add("urn:ohmage:context:timestamp");
-			sortedColumnMapKeySet.remove("urn:ohmage.context.timestamp");
+			sortedColumnMapKeySet.remove("urn:ohmage:context:timestamp");
 		}
 		
 		if(sortedColumnMapKeySet.contains("urn:ohmage:context:utc_timestamp")) {
@@ -155,7 +154,7 @@ public class SurveyResponseReadCsvOutputBuilder  {
 			sortedColumnMapKeySet.remove("urn:ohmage:repeatable_set:iteration");
 		}
 		
-		// Need to group all of the prompts by survey
+		// Group all of the prompts in the order in which they appear in the survey XML
 		Configuration configuration = req.getConfiguration();
 		Map<String, List<Object>> surveyIdToPromptIdListMap = new HashMap<String, List<Object>>();
 		
@@ -340,6 +339,9 @@ public class SurveyResponseReadCsvOutputBuilder  {
 				else if("urn:ohmage:survey:description".equals(canonicalColumnId)) {
 					builder.append(cleanAndQuoteString(result.getSurveyDescription())).append(",");
 				}
+				else if("urn:ohmage:survey:privacy_state".equals(canonicalColumnId)) {
+					builder.append(result.getPrivacyState()).append(",");
+				}
 				else if(canonicalColumnId.contains("prompt:id")) {
 
 					Object value = result.getPromptResponseMap().get(canonicalColumnId.substring("urn:ohmage:prompt:id:".length()));
@@ -355,7 +357,6 @@ public class SurveyResponseReadCsvOutputBuilder  {
 					else if (value instanceof String) { // clean up text for easier input into spreadsheets 
 						String string = (String) value;
 						
-						// check to see if its a text prompt type, a survey title, or a survey description
 						if("text".equals(promptResponseMetadataMap.get(canonicalColumnId.substring("urn:ohmage:prompt:id:".length())).getPromptType())) {
 							builder.append(cleanAndQuoteString(string));
 						} else {
