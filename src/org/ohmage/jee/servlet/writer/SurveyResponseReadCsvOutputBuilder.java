@@ -154,7 +154,7 @@ public class SurveyResponseReadCsvOutputBuilder  {
 			sortedColumnMapKeySet.remove("urn:ohmage:repeatable_set:iteration");
 		}
 		
-		// Need to group all of the prompts by survey
+		// Group all of the prompts in the order in which they appear in the survey XML
 		Configuration configuration = req.getConfiguration();
 		Map<String, List<Object>> surveyIdToPromptIdListMap = new HashMap<String, List<Object>>();
 		

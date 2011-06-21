@@ -212,6 +212,7 @@ public class SurveyResponseReadJsonRowBasedOutputBuilder {
 							response.put("prompt_unit", promptResponseMetadataMap.get(key).getUnit());
 							response.put("prompt_type", promptResponseMetadataMap.get(key).getPromptType());
 							response.put("prompt_text", promptResponseMetadataMap.get(key).getPromptText());
+							response.put("prompt_index", req.getConfiguration().getIndexForPrompt(result.getSurveyId(), key));
 							promptObject.put(key, response); // the key here is the prompt_id from the XML config
 						}
 
