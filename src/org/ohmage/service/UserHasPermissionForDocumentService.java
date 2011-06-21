@@ -80,6 +80,7 @@ public class UserHasPermissionForDocumentService extends AbstractAnnotatingDaoSe
 		// Validate that the user can delete the document.
 		if(! awRequest.getResultList().contains(documentId)) {
 			getAnnotator().annotate(awRequest, "The requesting user doesn't have sufficient permissions to perform this action on the document.");
+			awRequest.setFailedRequest(true);
 		}
 	}
 }

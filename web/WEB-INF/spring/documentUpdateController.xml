@@ -36,8 +36,14 @@
         <!-- Ensure that the document exists. -->
         <ref bean="documentExistsService" />
         
+        <!-- Populate the user object with the user's role for this document. -->
+        <ref bean="populateRequestersDocumentRoleService"  />
+        
         <!-- Ensure that the user owns the document. -->
         <ref bean="userCanModifyDocumentService" />
+        
+        <!-- Ensure that the requester isn't giving someone else more permissions than they have. -->
+        <ref bean="userCanAddDocumentRolesService" />
         
         <!-- Ensure that the user has the appropriate roles in the campaign. -->
         <ref bean="userRoleCampaignPopulationService" />
@@ -48,15 +54,19 @@
         <ref bean="userCanAssociateDocumentsWithClassesInClassRoleListAddOptionalService" />
         
         <!-- User can associate the document with any other user? -->
+        <ref bean="usersInUserRoleAddListExistOptionalService" />
         
         <!-- Document is associated with campaigns in remove list. -->
         <ref bean="documentBelongsToCampaignsInListService" />
+        <ref bean="userCanRemoveCampaignsFromDocumentsService" />
         
         <!-- Document is associated with classes in remove list. -->
         <ref bean="documentBelongsToClassesInListService" />
+        <ref bean="userCanRemoveClassesFromDocumentsService" />
         
         <!-- Document is associated with users in remove list. -->
         <ref bean="documentBelongsToDirectUsersInListService" />
+        <ref bean="userCanRemoveUsersFromDocumentsService" />
         
         <!-- Insert the document. -->
         <ref bean="documentUpdateService" />
