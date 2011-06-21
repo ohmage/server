@@ -34,7 +34,6 @@ import org.ohmage.validator.AwRequestAnnotator;
 public class CampaignRunningStateValidationService extends AbstractAnnotatingDaoService {
 	private static Logger _logger = Logger.getLogger(CampaignRunningStateValidationService.class);
 	private String _allowedState;
-	private AwRequestAnnotator _failedRequestAnnotator;
 	
 	public CampaignRunningStateValidationService(AwRequestAnnotator annotator, Dao dao, String allowedState) {
 		super(dao, annotator);
@@ -59,7 +58,7 @@ public class CampaignRunningStateValidationService extends AbstractAnnotatingDao
 		}
 		
 		if(! req.getCampaignRunningState().equals(_allowedState)) {
-			_failedRequestAnnotator.annotate(awRequest, "campaign " + awRequest.getCampaignUrn() + " is not " + _allowedState);
+			getAnnotator().annotate(awRequest, "campaign " + awRequest.getCampaignUrn() + " is not " + _allowedState);
 		}
 	}
 }
