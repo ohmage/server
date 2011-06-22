@@ -89,18 +89,18 @@ public class AuthenticationService extends AbstractDaoService {
 				
 					LoginResult loginResult = (LoginResult) results.get(i);
 					
+					if(! loginResult.isEnabled()) {
+						
+						_disabledAccountAwRequestAnnotator.annotate(awRequest, "Disabled account.");
+						_logger.info("User " + awRequest.getUser().getUserName() + "'s account is disabled");
+						return;
+					}
+					
 					if(! _newAccountsAllowed && loginResult.isNew()) {
 						
 						_newAccountAwRequestAnnotator.annotate(awRequest, "New account disallowed access.");
 						_logger.info("User " + awRequest.getUser().getUserName() + " is new and must change their password via " +
 							"phone before being granted access");
-						return;
-					}
-					
-					if(! loginResult.isEnabled()) {
-					
-						_disabledAccountAwRequestAnnotator.annotate(awRequest, "Disabled account.");
-						_logger.info("User " + awRequest.getUser().getUserName() + "'s account is disabled");
 						return;
 					}
 					

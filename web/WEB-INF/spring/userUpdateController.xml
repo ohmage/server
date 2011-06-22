@@ -1,0 +1,88 @@
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:util="http://www.springframework.org/schema/util"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
+                           http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-2.5.xsd">
+  <!--  
+     Spring ApplicationContext configuration for mobility data upload 
+  -->
+
+  <!-- Basic HTTP Validation -->
+  <bean id="userUpdateHttpServletRequestValidator" class="org.ohmage.jee.servlet.validator.UserUpdateValidator" />
+  
+  <!-- Create the AwRequest Object -->
+  <bean id="userUpdateAwRequestCreator" class="org.ohmage.jee.servlet.glue.UserUpdateRequestCreator" />
+  
+  <!-- Write the Response -->
+  <bean id="userUpdateResponseWriter" class="org.ohmage.jee.servlet.writer.SuccessOrFailResponseWriter">
+    <constructor-arg index="0">
+      <bean id="campaignCreationErrorResponse" class="org.ohmage.domain.ErrorResponse">
+        <property name="code" value="1319" />
+        <property name="text" value="User update failed." />
+      </bean>
+    </constructor-arg>
+  </bean>
+  
+  <!-- Controller Definition -->
+  <bean id="userUpdateController" class="org.ohmage.controller.ControllerImpl">
+    <constructor-arg index="0">
+      <!-- Services List (expected to be executed in-order) -->
+      <list>
+        <!-- Authenticate that the token the user is using is a valid token. -->
+        <ref bean="tokenBasedAuthenticationService" />
+        
+        <!-- Validate that the requesting user is an admin or is changing their own data. -->
+        <ref bean="requesterIsAdminService" />
+        
+        <!-- Ensure that the user in the request exists. -->
+        <ref bean="userExistsService" />
+        
+        <!-- Ensure that if there isn't any personal info, that the necessary components exist. -->
+        <ref bean="userPersonalExistsOrAllRequiredUserPersonalFieldsExistService" />
+        
+        <!-- Add the user. -->
+        <ref bean="userUpdateService" />
+      </list>
+    </constructor-arg>
+    <constructor-arg index="1">
+      <!-- The annotator for when something fails after validation but before the writer. -->
+      <ref bean="serverErrorRequestAnnotator" />
+    </constructor-arg>
+    <property name="validators">
+      <!-- Validates the individual items in the request. -->
+      <list>
+        <ref bean="userTokenValidator" />
+        
+        <ref bean="userNameParamValidator" />
+        
+        <!-- Validate the user privileges. -->
+        <ref bean="enabledOptionalValidator" />
+        <ref bean="adminOptionalValidator" />
+        <ref bean="newAccountOptionalValidator" />
+        <ref bean="campaignCreationPrivilegeOptionalValidator" />
+        
+        <!-- Validate the user information -->
+        <ref bean="firstNameOptionalValidator" />
+        <ref bean="lastNameOptionalValidator" />
+        <ref bean="organizationOptionalValidator" />
+        <ref bean="personalIdOptionalValidator" />
+        <ref bean="emailAddressOptionalValidator" />
+        <ref bean="jsonDataOptionalValidator" />
+      </list>
+    </property>
+    <property name="featureName">
+      <value>user creation</value>
+    </property>
+  </bean>
+  
+  <bean id="userUpdateService" class="org.ohmage.service.SimpleQueryService">
+    <constructor-arg>
+      <bean class="org.ohmage.dao.UserUpdateDao">
+        <constructor-arg>
+          <ref bean="dataSource" />
+        </constructor-arg>
+      </bean>
+    </constructor-arg>
+  </bean>
+  
+</beans>

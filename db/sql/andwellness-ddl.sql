@@ -78,6 +78,7 @@ CREATE TABLE user (
   enabled bit NOT NULL,
   new_account bit NOT NULL,
   campaign_creation_privilege bit NOT NULL,
+  admin bit NOT NULL,
   PRIMARY KEY (id),
   UNIQUE (username)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;

@@ -32,9 +32,12 @@ import org.ohmage.util.StringUtils;
 public class UsersInListExistDao extends AbstractDao {
 	private static Logger _logger = Logger.getLogger(UsersInListExistDao.class);
 	
-	private static final String SQL = "SELECT count(*) " +
-									  "FROM user " +
-									  "WHERE username = ?";
+	private static final String SQL = 
+		"SELECT EXISTS(" +
+			"SELECT * " +
+			"FROM user " +
+			"WHERE username = ?" +
+		")";
 	
 	private String _key;
 	private boolean _required;

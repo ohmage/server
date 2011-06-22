@@ -1,0 +1,253 @@
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:util="http://www.springframework.org/schema/util"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
+                           http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-2.5.xsd">
+                           
+  <bean id="enabledRequiredValidator" class="org.ohmage.validator.BooleanValidator">
+    <constructor-arg>
+      <bean class="org.ohmage.validator.json.FailedJsonRequestAnnotator">
+        <constructor-arg index="0">
+          <bean class="org.ohmage.domain.ErrorResponse">
+            <property name="code" value="1310" />
+            <property name="text" value="Invalid 'enabled' value." />
+          </bean>
+        </constructor-arg>
+      </bean>
+    </constructor-arg>
+    <constructor-arg>
+      <util:constant static-field="org.ohmage.request.InputKeys.USER_ENABLED"/>
+    </constructor-arg>
+    <constructor-arg>
+      <value>true</value>
+    </constructor-arg>
+  </bean>
+  
+  <bean id="enabledOptionalValidator" class="org.ohmage.validator.BooleanValidator">
+    <constructor-arg>
+      <bean class="org.ohmage.validator.json.FailedJsonRequestAnnotator">
+        <constructor-arg index="0">
+          <bean class="org.ohmage.domain.ErrorResponse">
+            <property name="code" value="1310" />
+            <property name="text" value="Invalid 'enabled' value." />
+          </bean>
+        </constructor-arg>
+      </bean>
+    </constructor-arg>
+    <constructor-arg>
+      <util:constant static-field="org.ohmage.request.InputKeys.USER_ENABLED"/>
+    </constructor-arg>
+    <constructor-arg>
+      <value>false</value>
+    </constructor-arg>
+  </bean>
+  
+  <bean id="adminRequiredValidator" class="org.ohmage.validator.BooleanValidator">
+    <constructor-arg>
+      <bean class="org.ohmage.validator.json.FailedJsonRequestAnnotator">
+        <constructor-arg index="0">
+          <bean class="org.ohmage.domain.ErrorResponse">
+            <property name="code" value="1311" />
+            <property name="text" value="Invalid 'admin' value." />
+          </bean>
+        </constructor-arg>
+      </bean>
+    </constructor-arg>
+    <constructor-arg>
+      <util:constant static-field="org.ohmage.request.InputKeys.USER_ADMIN"/>
+    </constructor-arg>
+    <constructor-arg>
+      <value>true</value>
+    </constructor-arg>
+  </bean>
+  
+  <bean id="adminOptionalValidator" class="org.ohmage.validator.BooleanValidator">
+    <constructor-arg>
+      <bean class="org.ohmage.validator.json.FailedJsonRequestAnnotator">
+        <constructor-arg index="0">
+          <bean class="org.ohmage.domain.ErrorResponse">
+            <property name="code" value="1311" />
+            <property name="text" value="Invalid 'admin' value." />
+          </bean>
+        </constructor-arg>
+      </bean>
+    </constructor-arg>
+    <constructor-arg>
+      <util:constant static-field="org.ohmage.request.InputKeys.USER_ADMIN"/>
+    </constructor-arg>
+    <constructor-arg>
+      <value>false</value>
+    </constructor-arg>
+  </bean>
+  
+  <bean id="newAccountOptionalValidator" class="org.ohmage.validator.BooleanValidator">
+    <constructor-arg>
+      <bean class="org.ohmage.validator.json.FailedJsonRequestAnnotator">
+        <constructor-arg index="0">
+          <bean class="org.ohmage.domain.ErrorResponse">
+            <property name="code" value="1312" />
+            <property name="text" value="Invalid 'new account' value." />
+          </bean>
+        </constructor-arg>
+      </bean>
+    </constructor-arg>
+    <constructor-arg>
+      <util:constant static-field="org.ohmage.request.InputKeys.NEW_ACCOUNT"/>
+    </constructor-arg>
+    <constructor-arg>
+      <value>false</value>
+    </constructor-arg>
+  </bean>
+  
+  <bean id="campaignCreationPrivilegeOptionalValidator" class="org.ohmage.validator.BooleanValidator">
+    <constructor-arg>
+      <bean class="org.ohmage.validator.json.FailedJsonRequestAnnotator">
+        <constructor-arg index="0">
+          <bean class="org.ohmage.domain.ErrorResponse">
+            <property name="code" value="1313" />
+            <property name="text" value="Invalid 'campaign creation privilege' value." />
+          </bean>
+        </constructor-arg>
+      </bean>
+    </constructor-arg>
+    <constructor-arg>
+      <util:constant static-field="org.ohmage.request.InputKeys.CAMPAIGN_CREATION_PRIVILEGE"/>
+    </constructor-arg>
+    <constructor-arg>
+      <value>false</value>
+    </constructor-arg>
+  </bean>
+  
+  <bean id="firstNameOptionalValidator" class="org.ohmage.validator.StringValidator">
+    <constructor-arg>
+      <bean class="org.ohmage.validator.json.FailedJsonRequestAnnotator">
+        <constructor-arg index="0">
+          <bean class="org.ohmage.domain.ErrorResponse">
+            <property name="code" value="1320" />
+            <property name="text" value="Invalid first name value." />
+          </bean>
+        </constructor-arg>
+      </bean>
+    </constructor-arg>
+    <constructor-arg>
+      <util:constant static-field="org.ohmage.request.InputKeys.FIRST_NAME"/>
+    </constructor-arg>
+    <constructor-arg>
+      <value>false</value>
+    </constructor-arg>
+  </bean>
+  
+  <bean id="lastNameOptionalValidator" class="org.ohmage.validator.StringValidator">
+    <constructor-arg>
+      <bean class="org.ohmage.validator.json.FailedJsonRequestAnnotator">
+        <constructor-arg index="0">
+          <bean class="org.ohmage.domain.ErrorResponse">
+            <property name="code" value="1321" />
+            <property name="text" value="Invalid last name value." />
+          </bean>
+        </constructor-arg>
+      </bean>
+    </constructor-arg>
+    <constructor-arg>
+      <util:constant static-field="org.ohmage.request.InputKeys.LAST_NAME"/>
+    </constructor-arg>
+    <constructor-arg>
+      <value>false</value>
+    </constructor-arg>
+  </bean>
+  
+  <bean id="organizationOptionalValidator" class="org.ohmage.validator.StringValidator">
+    <constructor-arg>
+      <bean class="org.ohmage.validator.json.FailedJsonRequestAnnotator">
+        <constructor-arg index="0">
+          <bean class="org.ohmage.domain.ErrorResponse">
+            <property name="code" value="1322" />
+            <property name="text" value="Invalid organization value." />
+          </bean>
+        </constructor-arg>
+      </bean>
+    </constructor-arg>
+    <constructor-arg>
+      <util:constant static-field="org.ohmage.request.InputKeys.ORGANIZATION"/>
+    </constructor-arg>
+    <constructor-arg>
+      <value>false</value>
+    </constructor-arg>
+  </bean>
+  
+  <bean id="personalIdOptionalValidator" class="org.ohmage.validator.StringValidator">
+    <constructor-arg>
+      <bean class="org.ohmage.validator.json.FailedJsonRequestAnnotator">
+        <constructor-arg index="0">
+          <bean class="org.ohmage.domain.ErrorResponse">
+            <property name="code" value="1323" />
+            <property name="text" value="Invalid personal ID value." />
+          </bean>
+        </constructor-arg>
+      </bean>
+    </constructor-arg>
+    <constructor-arg>
+      <util:constant static-field="org.ohmage.request.InputKeys.PERSONAL_ID"/>
+    </constructor-arg>
+    <constructor-arg>
+      <value>false</value>
+    </constructor-arg>
+  </bean>
+  
+  <bean id="emailAddressOptionalValidator" class="org.ohmage.validator.EmailAddressValidator">
+    <constructor-arg>
+      <bean class="org.ohmage.validator.json.FailedJsonRequestAnnotator">
+        <constructor-arg index="0">
+          <bean class="org.ohmage.domain.ErrorResponse">
+            <property name="code" value="1324" />
+            <property name="text" value="Invalid email address value." />
+          </bean>
+        </constructor-arg>
+      </bean>
+    </constructor-arg>
+    <constructor-arg>
+      <value>^([_A-Za-z0-9-]+)(\.[_A-Za-z0-9-]+)*@[A-Za-z0-9]+(\.[A-Za-z0-9]+)*(\.[A-Za-z]{2,})$</value>
+    </constructor-arg>
+    <constructor-arg>
+      <util:constant static-field="org.ohmage.request.InputKeys.EMAIL_ADDRESS"/>
+    </constructor-arg>
+    <constructor-arg>
+      <value>false</value>
+    </constructor-arg>
+  </bean>
+  
+  <bean id="jsonDataOptionalValidator" class="org.ohmage.validator.JsonValidator">
+    <constructor-arg>
+      <bean class="org.ohmage.validator.json.FailedJsonRequestAnnotator">
+        <constructor-arg index="0">
+          <bean class="org.ohmage.domain.ErrorResponse">
+            <property name="code" value="1325" />
+            <property name="text" value="Invalid JSON value." />
+          </bean>
+        </constructor-arg>
+      </bean>
+    </constructor-arg>
+    <constructor-arg>
+      <util:constant static-field="org.ohmage.request.InputKeys.USER_JSON_DATA"/>
+    </constructor-arg>
+    <constructor-arg>
+      <value>false</value>
+    </constructor-arg>
+  </bean>
+  
+  <bean id="userNameParamValidator" class="org.ohmage.validator.UserNameParamValidator">
+    <constructor-arg index="0">
+      <value>[a-z\.]{9,15}</value>
+    </constructor-arg>
+    <constructor-arg index="1">
+      <ref bean="userNameFailedJsonRequestAnnotator" />
+    </constructor-arg>
+    <constructor-arg>
+      <util:constant static-field="org.ohmage.request.InputKeys.USER"/>
+    </constructor-arg>
+    <constructor-arg>
+      <value>true</value>
+    </constructor-arg>
+  </bean>
+  
+</beans>

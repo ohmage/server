@@ -1,8 +1,5 @@
 package org.ohmage.dao;
 
-import java.util.LinkedList;
-import java.util.List;
-
 import javax.sql.DataSource;
 
 import org.apache.log4j.Logger;
@@ -10,7 +7,7 @@ import org.ohmage.request.AwRequest;
 import org.ohmage.request.InputKeys;
 
 /**
- * Gets whether or not the user exists in the database.
+ * Checks that the user in the request exists.
  * 
  * @author John Jenkins
  */
@@ -32,23 +29,27 @@ public class UserExistsDao extends AbstractDao {
 	public UserExistsDao(DataSource dataSource) {
 		super(dataSource);
 	}
-	
+
 	/**
-	 * Gets whether or not the user exists and returns the result as the only
-	 * element in the result list in the request.
+	 * Checks if the user exists in the database.
 	 */
 	@Override
 	public void execute(AwRequest awRequest) {
+		String user;
 		try {
-			int intResult = getJdbcTemplate().queryForInt(SQL_GET_USER, new Object[] { awRequest.getToProcessValue(InputKeys.USER_ID) });
-			
-			List<Boolean> result = new LinkedList<Boolean>();
-			result.add(intResult != 0);
-			
-			awRequest.setResultList(result);
+			user = (String) awRequest.getToProcessValue(InputKeys.USER);
+		}
+		catch(IllegalArgumentException e) {
+			throw new DataAccessException("User is missing from the request.");
+		}
+		
+		try {
+			if(getJdbcTemplate().queryForInt(SQL_GET_USER, new Object[] { user }) == 0) {
+				awRequest.setFailedRequest(true);
+			}
 		}
 		catch(org.springframework.dao.DataAccessException e) {
-			_logger.error("Error executing SQL '" + SQL_GET_USER + "' with parameter: " + awRequest.getToProcessValue(InputKeys.USER_ID), e);
+			_logger.error("Error executing SQL '" + SQL_GET_USER + "' with parameter: " + user, e);
 			throw new DataAccessException(e);
 		}
 	}

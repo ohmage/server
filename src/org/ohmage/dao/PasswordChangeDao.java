@@ -38,7 +38,7 @@ public class PasswordChangeDao extends AbstractDao {
 	private static Logger _logger = Logger.getLogger(PasswordChangeDao.class);
 	
 	private static final String SQL = "UPDATE user " + 
-									  "SET password = ? " +
+									  "SET password = ?, new_account = (0) " +
 									  "WHERE username = ?";
 	
 	/**

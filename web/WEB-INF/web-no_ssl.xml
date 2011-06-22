@@ -80,6 +80,36 @@
     <url-pattern>/config/read</url-pattern>
   </servlet-mapping>
   
+  <!-- Create Users -->
+  <servlet>
+    <description>
+      Create a user. 
+    </description>
+    <servlet-name>UserCreationServlet</servlet-name>
+    <servlet-class>org.ohmage.jee.servlet.AwDataServlet</servlet-class>
+    <init-param>
+      <param-name>awRequestCreatorName</param-name>
+      <param-value>userCreationAwRequestCreator</param-value>
+    </init-param>
+    <init-param>
+      <param-name>controllerName</param-name>
+      <param-value>userCreationController</param-value>
+    </init-param>
+    <init-param>
+      <param-name>httpServletRequestValidatorName</param-name>
+      <param-value>userCreationHttpServletRequestValidator</param-value>
+    </init-param>
+    <init-param>
+      <param-name>responseWriterName</param-name>
+      <param-value>userCreationResponseWriter</param-value>
+    </init-param>
+    <load-on-startup>1</load-on-startup>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>UserCreationServlet</servlet-name>
+    <url-pattern>/user/create</url-pattern>
+  </servlet-mapping>
+  
   <!-- Read Personal Information About Users -->
   <servlet>
     <description>
@@ -108,6 +138,66 @@
   <servlet-mapping>
     <servlet-name>UserReadServlet</servlet-name>
     <url-pattern>/user/read</url-pattern>
+  </servlet-mapping>
+  
+  <!-- Update Users -->
+  <servlet>
+    <description>
+      Update a user. 
+    </description>
+    <servlet-name>UserUpdateServlet</servlet-name>
+    <servlet-class>org.ohmage.jee.servlet.AwDataServlet</servlet-class>
+    <init-param>
+      <param-name>awRequestCreatorName</param-name>
+      <param-value>userUpdateAwRequestCreator</param-value>
+    </init-param>
+    <init-param>
+      <param-name>controllerName</param-name>
+      <param-value>userUpdateController</param-value>
+    </init-param>
+    <init-param>
+      <param-name>httpServletRequestValidatorName</param-name>
+      <param-value>userUpdateHttpServletRequestValidator</param-value>
+    </init-param>
+    <init-param>
+      <param-name>responseWriterName</param-name>
+      <param-value>userUpdateResponseWriter</param-value>
+    </init-param>
+    <load-on-startup>1</load-on-startup>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>UserUpdateServlet</servlet-name>
+    <url-pattern>/user/update</url-pattern>
+  </servlet-mapping>
+  
+  <!-- Delete Users -->
+  <servlet>
+    <description>
+      Delete a user. 
+    </description>
+    <servlet-name>UserDeletionServlet</servlet-name>
+    <servlet-class>org.ohmage.jee.servlet.AwDataServlet</servlet-class>
+    <init-param>
+      <param-name>awRequestCreatorName</param-name>
+      <param-value>userDeletionAwRequestCreator</param-value>
+    </init-param>
+    <init-param>
+      <param-name>controllerName</param-name>
+      <param-value>userDeletionController</param-value>
+    </init-param>
+    <init-param>
+      <param-name>httpServletRequestValidatorName</param-name>
+      <param-value>userDeletionHttpServletRequestValidator</param-value>
+    </init-param>
+    <init-param>
+      <param-name>responseWriterName</param-name>
+      <param-value>userDeletionResponseWriter</param-value>
+    </init-param>
+    <load-on-startup>1</load-on-startup>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>UserDeletionServlet</servlet-name>
+    <url-pattern>/user/delete</url-pattern>
   </servlet-mapping>
 
   <!-- Mobility Data Upload -->
