@@ -88,15 +88,17 @@ public class DocumentReadContentsResponseWriter extends AbstractResponseWriter {
 		// output stream. 
 		if(! awRequest.isFailedRequest()) {
 			try {
-				response.setContentType("ohmage/document");
-				response.setHeader("Content-Disposition", "attachment; filename=" + ((String) awRequest.getToReturnValue(DocumentReadContentsAwRequest.KEY_DOCUMENT_FILENAME)));
-				
 				// Get an input stream for the file.
 				File documentFile = new File(new URI((String) awRequest.getToReturnValue(org.ohmage.request.DocumentReadContentsAwRequest.KEY_DOCUMENT_FILE)));
 				DataInputStream is = new DataInputStream(new FileInputStream(documentFile));
 				
 				// Set the output stream to the response.
 				DataOutputStream dos = new DataOutputStream(os);
+				
+				// Set the type and force the browser to download it as the 
+				// last step before beginning to stream the response.
+				response.setContentType("ohmage/document");
+				response.setHeader("Content-Disposition", "attachment; filename=" + ((String) awRequest.getToReturnValue(DocumentReadContentsAwRequest.KEY_DOCUMENT_FILENAME)));
 				
 				// Read the file in chuncks and write it to the output stream.
 				byte[] bytes = new byte[CHUNK_SIZE];

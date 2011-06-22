@@ -168,6 +168,7 @@ public class DocumentCreationDao extends AbstractDao {
 			FileWriter writer = new FileWriter(newFile);
 			writer.write(document);
 			writer.flush();
+			writer.close();
 		}
 		catch(IOException e) {
 			_logger.error("Error writing the new document to the system.", e);
