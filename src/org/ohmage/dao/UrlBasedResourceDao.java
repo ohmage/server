@@ -15,6 +15,8 @@
  ******************************************************************************/
 package org.ohmage.dao;
 
+import java.awt.Graphics2D;
+import java.awt.image.BufferedImage;
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -23,12 +25,14 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.URL;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.regex.Pattern;
 
+import javax.imageio.ImageIO;
 import javax.sql.DataSource;
 
 import org.apache.log4j.Logger;
@@ -47,7 +51,7 @@ import org.springframework.transaction.support.DefaultTransactionDefinition;
  * DAO for saving a media resource to the filesystem and inserting a row in the url_based_resource table that contains a URL to the 
  * resource.
  * 
- * When this class creates directories, it relies on the OS for persmissions set up.
+ * When this class creates directories, it relies on the OS for correct permissions' set up.
  * 
  * @author Joshua Selsky
  */
@@ -131,6 +135,7 @@ public class UrlBasedResourceDao extends AbstractUploadDao {
 			final String uuid = awRequest.getMediaId();
 			
 			final String url = "file://" + _currentWriteDir + "/" + _currentFileName + _fileExtension;
+			final String thumbUrl = "file://" + _currentWriteDir + "/" + _currentFileName + "-s" +_fileExtension;
 			
 			if(_logger.isDebugEnabled()) {
 				_logger.debug("url to file: " + url);
@@ -188,6 +193,34 @@ public class UrlBasedResourceDao extends AbstractUploadDao {
 					outputStream.write(bytes, offset, amountToWrite);
 					offset += amountToWrite;
 					total += writeLen;
+				}
+				
+				outputStream.close();
+				outputStream = null;
+				
+				// also save a thumbnail version of the image
+				// TODO consider using ImageIO for the above write as well?
+				BufferedImage originalImage = ImageIO.read(new URL(url));
+				if(null == originalImage) {
+					throw new IOException("could not convert " + url + " to a buffered image");
+				}
+				
+				int scaledWidth = originalImage.getWidth() / 4;
+				int scaledHeight = originalImage.getHeight() / 4;
+				BufferedImage scaledImage = new BufferedImage(scaledWidth, scaledHeight, originalImage.getType());
+
+				// this is slighty counter-intuitive: you have to use the Graphics2D object to "draw" the image even though
+				// it is only being saved to the filesystem
+				Graphics2D g = scaledImage.createGraphics();
+				g.drawImage(originalImage, 0, 0, scaledWidth, scaledHeight, null);
+				g.dispose();
+				
+				File thumb = new File(new URI(thumbUrl));
+				outputStream = new BufferedOutputStream(new FileOutputStream(thumb));
+				boolean foundWriter = ImageIO.write(scaledImage, "jpeg", outputStream); // the "jpeg" value here is arbitrary
+				
+				if(! foundWriter) {
+					throw new IOException("could not find an ImageWriter for " + originalImage.getType());
 				}
 				
 				outputStream.close();

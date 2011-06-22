@@ -46,9 +46,33 @@
     <property name="validators">
       <list>
         <ref bean="userTokenValidator" />
+        <ref bean="imageSizeValidator" />
       </list>      
     </property>
-    <property name="featureName"><value>image query</value></property>
+    <property name="featureName"><value>image read</value></property>
+  </bean>
+  
+  <bean id="imageSizeValidator" class="org.ohmage.validator.StringAllowedValuesValidator">
+    <constructor-arg index="0">
+      <bean class="org.ohmage.validator.json.FailedJsonRequestAnnotator">
+        <constructor-arg index="0"> 
+          <bean class="org.ohmage.domain.ErrorResponse">
+            <property name="code" value="0902" />
+            <property name="text" value="invalid size parameter" />
+          </bean>
+        </constructor-arg>
+      </bean>
+    </constructor-arg>
+    <constructor-arg index="1"><value>size</value></constructor-arg>
+    <constructor-arg index="2">
+      <list>
+        <value>small</value>
+      </list>
+    </constructor-arg>
+    <constructor-arg index="3"><value>false</value></constructor-arg>
+    <property name="errorMessage">
+      <value>invalid size in request - the only allowed value is small</value>
+    </property>
   </bean>
   
   <bean id="findCampaignForMediaIdService" class="org.ohmage.service.FindCampaignForMediaIdService">
