@@ -64,7 +64,7 @@ public class UsersInUserRoleAddListExistOptionalDao extends AbstractDao {
 		// database.
 		String[] userRoleListArray = userRoleListString.split(InputKeys.LIST_ITEM_SEPARATOR);
 		for(int i = 0; i < userRoleListArray.length; i++) {
-			String[] userRoleArray = userRoleListArray[i].split(InputKeys.LIST_ITEM_SEPARATOR);
+			String[] userRoleArray = userRoleListArray[i].split(InputKeys.ENTITY_ROLE_SEPARATOR);
 			
 			try {
 				if(getJdbcTemplate().queryForInt(SQL_GET_USER_EXISTS, new Object[] { userRoleArray[0] }) == 0) {

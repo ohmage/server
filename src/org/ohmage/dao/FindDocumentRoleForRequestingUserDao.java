@@ -173,16 +173,6 @@ public class FindDocumentRoleForRequestingUserDao extends AbstractDao {
 				awRequest.getUser().setDocumentRole(DocumentRoleCache.ROLE_READER);
 			}
 		}
-		catch(org.springframework.dao.IncorrectResultSizeDataAccessException e) {
-			if(e.getActualSize() == 0) {
-				_logger.error("The document doesn't exist or the user has no role with the document: " + documentId);
-				throw new DataAccessException(e);
-			}
-			else {
-				_logger.error("The user has more than one role with the document: " + documentId);
-				throw new DataAccessException(e);
-			}
-		}
 		catch(org.springframework.dao.DataAccessException e) {
 			_logger.error("Error executing SQL '" + SQL_GET_DOCUMENTS_FOR_USER_WITH_DOCUMENT_ROLE + "' with parameters: " +
 					awRequest.getUser().getUserName() + ", " + documentId, e);
