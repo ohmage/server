@@ -113,13 +113,14 @@ public class CampaignReadResponseWriter extends AbstractResponseWriter {
 						response.setContentType("text/xml");
 						responseText = result.getXml();
 					}
-				} 	
-				
-				CookieUtils.setCookieValue(response, InputKeys.AUTH_TOKEN, awRequest.getUserToken(), AUTH_TOKEN_COOKIE_LIFETIME_IN_SECONDS);
+				}
 
 				if(! "xml".equals(req.getOutputFormat())) {
 					responseText = rootObject.toString();
 				}
+
+				CookieUtils.setCookieValue(response, InputKeys.AUTH_TOKEN, awRequest.getUserToken(), AUTH_TOKEN_COOKIE_LIFETIME_IN_SECONDS);
+				
 			} else {
 				
 				if(null != awRequest.getFailedRequestErrorMessage()) {

@@ -15,8 +15,6 @@
  ******************************************************************************/
 package org.ohmage.jee.servlet.validator;
 
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -36,23 +34,8 @@ import org.ohmage.util.StringUtils;
  */
 public class SurveyResponseReadValidator extends AbstractHttpServletRequestValidator {
 	private static Logger _logger = Logger.getLogger(SurveyResponseReadValidator.class);
-	private List<String> _parameterList;
 	
 	public SurveyResponseReadValidator() {
-		_parameterList = new ArrayList<String>(Arrays.asList(new String[]{"start_date",
-				                                                          "end_date",
-				                                                          "user_list",
-				                                                          "campaign_urn",
-				                                                          "client",
-				                                                          "prompt_id_list",
-				                                                          "survey_id_list",
-				                                                          "column_list",
-				                                                          "output_format",
-				                                                          "pretty_print",
-	    																  "suppress_metadata",
-	    																  "return_id",
-	    																  "privacy_state",
-	    																  "sort_order"}));
 	}
 	
 	public boolean validate(HttpServletRequest httpRequest) throws MissingAuthTokenException {
@@ -139,12 +122,7 @@ public class SurveyResponseReadValidator extends AbstractHttpServletRequestValid
 				return false;
 			}
 		}
-		
-		// Check for parameters with unknown names
-		if(containsUnknownParameter(parameterMap, _parameterList)) {
-			return false;
-		}
-		
+
 		String startDate = (String) httpRequest.getParameter("start_date");
 		String endDate = (String) httpRequest.getParameter("end_date");
 		String promptIds = (String) httpRequest.getParameter("prompt_id_list");

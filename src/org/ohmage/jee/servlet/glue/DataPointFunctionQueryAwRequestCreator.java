@@ -49,7 +49,6 @@ public class DataPointFunctionQueryAwRequestCreator implements AwRequestCreator 
 		catch(IndexOutOfBoundsException e) {
 			token = httpRequest.getParameter(InputKeys.AUTH_TOKEN);
 		}
-		
 		String startDate = httpRequest.getParameter("start_date");
 		String endDate = httpRequest.getParameter("end_date");
 		String userNameRequestParam = httpRequest.getParameter("user");

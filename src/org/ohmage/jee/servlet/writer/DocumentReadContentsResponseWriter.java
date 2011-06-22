@@ -89,12 +89,15 @@ public class DocumentReadContentsResponseWriter extends AbstractResponseWriter {
 		// output stream. 
 		if(! awRequest.isFailedRequest()) {
 			try {
-				response.setContentType("ohmage/document");
-				response.setHeader("Content-Disposition", "attachment; filename=" + ((String) awRequest.getToReturnValue(DocumentReadContentsAwRequest.KEY_DOCUMENT_FILENAME)));
-				
 				// Get an input stream for the file.
 				File documentFile = new File(new URI((String) awRequest.getToReturnValue(org.ohmage.request.DocumentReadContentsAwRequest.KEY_DOCUMENT_FILE)));
 				DataInputStream is = new DataInputStream(new FileInputStream(documentFile));
+				
+				// Set the content type to something unknown and the content
+				// disposition to an attachment so the browser will try to
+				// download it.
+				response.setContentType("ohmage/document");
+				response.setHeader("Content-Disposition", "attachment; filename=" + ((String) awRequest.getToReturnValue(DocumentReadContentsAwRequest.KEY_DOCUMENT_FILENAME)));
 				
 				// Set the output stream to the response.
 				DataOutputStream dos = new DataOutputStream(os);
@@ -109,11 +112,20 @@ public class DocumentReadContentsResponseWriter extends AbstractResponseWriter {
 					
 					currRead = is.read(bytes);
 				}
-
+				
+				// Close the file-reading input stream.
 				is.close();
+				
+				// Flush and close the data output stream to which we were 
+				// writing.
 				dos.flush();
 				dos.close();
-
+				
+				// Flush and close the output stream that was used to generate
+				// the data output stream.
+				os.flush();
+				os.close();
+				
 				CookieUtils.setCookieValue(response, InputKeys.AUTH_TOKEN, awRequest.getUserToken(), AUTH_TOKEN_COOKIE_LIFETIME_IN_SECONDS);
 			}
 			// If the URI doesn't adhere to the correct syntax as a URI just 
@@ -140,6 +152,7 @@ public class DocumentReadContentsResponseWriter extends AbstractResponseWriter {
 		if(awRequest.isFailedRequest()) {
 			response.setContentType("text/html");
 			String responseText;
+			response.setContentType("application/json");
 			
 			// If a specific error message was annotated, use that. 
 			if(awRequest.getFailedRequestErrorMessage() != null) {

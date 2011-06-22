@@ -134,7 +134,7 @@ public class AwDataServlet extends HttpServlet {
 				}
 			}
 			catch(MissingAuthTokenException e) {
-				_logger.error("Error response: " + e.getMessage());
+				_logger.info("Error response: " + e.getMessage());
 				
 				ErrorResponse authenticationFailedError = new ErrorResponse();
 				authenticationFailedError.setCode("0200");
