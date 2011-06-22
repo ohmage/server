@@ -56,13 +56,13 @@ public class DocumentValidator extends AbstractAnnotatingValidator {
 	 */
 	@Override
 	public boolean validate(AwRequest awRequest) throws ValidatorException {
-		String document;
+		byte[] document;
 		try {
-			document = (String) awRequest.getToProcessValue(InputKeys.DOCUMENT);
+			document = (byte[]) awRequest.getToProcessValue(InputKeys.DOCUMENT);
 		}
 		catch(IllegalArgumentException outerException) {
 			try {
-				document = (String) awRequest.getToValidateValue(InputKeys.DOCUMENT);
+				document = (byte[]) awRequest.getToValidateValue(InputKeys.DOCUMENT);
 			}
 			catch(IllegalArgumentException innerException) {
 				if(_required) {

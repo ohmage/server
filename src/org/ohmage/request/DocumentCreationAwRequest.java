@@ -45,14 +45,14 @@ public class DocumentCreationAwRequest extends ResultListAwRequest {
 	 * @throws IllegalArgumentException Thrown if there is a problem creating
 	 * 									the request due to invalid parameters.
 	 */
-	public DocumentCreationAwRequest(String name, String document, String privacyState, 
+	public DocumentCreationAwRequest(String name, byte[] document, String privacyState, 
 			String description, String campaignUrnRoleList, String classUrnRoleList) throws IllegalArgumentException {
 		super();
 		
 		if(StringUtils.isEmptyOrWhitespaceOnly(name)) {
 			throw new IllegalArgumentException("The document's name cannot be null or blank.");
 		}
-		else if(StringUtils.isEmptyOrWhitespaceOnly(document)) {
+		else if((document == null) || (document.length == 0)) {
 			throw new IllegalArgumentException("The document cannot be null or blank.");
 		}
 		else if(StringUtils.isEmptyOrWhitespaceOnly(privacyState)) {
