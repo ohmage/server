@@ -165,6 +165,25 @@ public class CampaignUpdateDao extends AbstractDao {
 	}
 	
 	/**
+	 * Private exception just for this class to be thrown when a permission
+	 * check causes the request to fail.
+	 * 
+	 * @author John Jenkins
+	 */
+	private class InsufficientPermissionsException extends Exception {
+		private static final long serialVersionUID = 3928592835928L;
+		
+		/**
+		 * Sets the message for this exception.
+		 * 
+		 * @param message The message for why this exception is being thrown.
+		 */
+		InsufficientPermissionsException(String message) {
+			super(message);
+		}
+	}
+	
+	/**
 	 * Creates a DAO for updating an existing campaign.
 	 * 
 	 * @param dataSource
@@ -224,6 +243,11 @@ public class CampaignUpdateDao extends AbstractDao {
 				transactionManager.rollback(status);
 				awRequest.setFailedRequest(true);
 				throw e;
+			}
+			catch(InsufficientPermissionsException e) {
+				transactionManager.rollback(status);
+				awRequest.setFailedRequest(true);
+				return;
 			}
 			
 			// Commit transaction.
@@ -382,11 +406,7 @@ public class CampaignUpdateDao extends AbstractDao {
 	 * 
 	 * @param awRequest The request that potentially contains the new XML.
 	 */
-	private void updateXml(AwRequest awRequest) {
-		if(! userCanModifyCampaignXml(awRequest)) {
-			throw new DataAccessException("Responses exist; therefore, the requester is not allowed to modify the XML.");
-		}
-		
+	private void updateXml(AwRequest awRequest) throws InsufficientPermissionsException {
 		String xml;
 		try {
 			xml = (String) awRequest.getToProcessValue(InputKeys.XML);
@@ -394,6 +414,11 @@ public class CampaignUpdateDao extends AbstractDao {
 		catch(IllegalArgumentException e) {
 			// There was no XML to update.
 			return;
+		}
+		
+		if(! userCanModifyCampaignXml(awRequest)) {
+			_logger.info("Responses exist; therefore, the requester is not allowed to modify the XML.");
+			throw new InsufficientPermissionsException("Responses exist; therefore, the requester is not allowed to modify the XML.");
 		}
 		
 		try {

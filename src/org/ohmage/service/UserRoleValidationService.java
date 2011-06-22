@@ -31,7 +31,6 @@ import org.ohmage.validator.AwRequestAnnotator;
  */
 public class UserRoleValidationService extends AbstractAnnotatingService {
 	private List<String> _allowedRoles;
-	private AwRequestAnnotator _failedRequestAnnotator;
 	
 	/**
 	 * @param annotator - required and used to annotate the AwRequest instead of errors
@@ -56,7 +55,7 @@ public class UserRoleValidationService extends AbstractAnnotatingService {
 			}
 		}
 		
-		_failedRequestAnnotator.annotate(awRequest, "user " + awRequest.getUser().getUserName() + " is not one of the " +
+		getAnnotator().annotate(awRequest, "user " + awRequest.getUser().getUserName() + " is not one of the " +
 			"following roles: " + _allowedRoles);
 	}
 }

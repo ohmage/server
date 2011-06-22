@@ -96,6 +96,19 @@ public class SurveyResponseReadDao extends AbstractDao {
 			paramObjects.addAll(req.getUserList());
 		}
 		
+		// FIXME: Is this correct, or should it be:
+		if((null != req.getPromptIdList()) && (req.getPromptIdList().size() != 0)) {
+			if(! "urn:ohmage:special:all".equals(req.getPromptIdListString())) {
+				paramObjects.addAll(req.getPromptIdList());
+			}
+		} 
+		else {
+			if(! "urn:ohmage:special:all".equals(req.getSurveyIdListString())) {
+				paramObjects.addAll(req.getSurveyIdList());
+			}
+		}
+		
+		// FIXME: Do these two look correct? Is this where they should be?
 		if(null != req.getStartDate()) {
 			paramObjects.add(req.getStartDate());
 		}
@@ -104,15 +117,6 @@ public class SurveyResponseReadDao extends AbstractDao {
 			paramObjects.add(req.getEndDate());
 		}
 		
-		if((null != req.getPromptIdList()) && (req.getPromptIdList().size() != 0)) {
-			if(! "urn:ohmage:special:all".equals(req.getPromptIdListString())) {
-				paramObjects.addAll(req.getPromptIdList());
-			}
-		} else {
-			if(! "urn:ohmage:special:all".equals(req.getSurveyIdListString())) {
-				paramObjects.addAll(req.getSurveyIdList());
-			}
-		}
 		
 		if(_logger.isDebugEnabled()) {
 			_logger.debug("SQL params: " + paramObjects);
@@ -168,7 +172,7 @@ public class SurveyResponseReadDao extends AbstractDao {
 						result.setLocationStatus(rs.getString(8));
 						result.setLocation(rs.getString(9));
 						result.setSurveyId(rs.getString(10));
-						result.setLoginId(rs.getString(11));
+						result.setUsername(rs.getString(11));
 						result.setClient(rs.getString(12));
 						result.setLaunchContext(rs.getString(13));
 						result.setSurveyPrimaryKeyId(rs.getInt(14));
@@ -212,7 +216,8 @@ public class SurveyResponseReadDao extends AbstractDao {
 				builder.append(generateParams(req.getPromptIdList().size()));
 			}
 			
-		} else { // surveys
+		} 
+		else { // surveys
 			
 			if(! "urn:ohmage:special:all".equals(req.getSurveyIdListString())) {
 				

@@ -352,6 +352,7 @@ CREATE TABLE document (
   size int unsigned NOT NULL,
   privacy_state_id int unsigned NOT NULL,
   last_modified_timestamp timestamp default current_timestamp on update current_timestamp,
+  creation_timestamp datetime NOT NULL,
   PRIMARY KEY (id),
   UNIQUE (uuid),
   CONSTRAINT FOREIGN KEY (privacy_state_id) REFERENCES document_privacy_state (id) ON DELETE CASCADE ON UPDATE CASCADE
@@ -405,10 +406,8 @@ CREATE TABLE document_user_role (
 CREATE TABLE document_user_creator (
   id int unsigned NOT NULL auto_increment,
   document_id int unsigned NOT NULL,
-  user_id int unsigned NOT NULL,
-  creation_timestamp datetime NOT NULL,
+  username varchar(15) NOT NULL,
   PRIMARY KEY (id),
   UNIQUE (document_id),
-  CONSTRAINT FOREIGN KEY (document_id) REFERENCES document (id) ON DELETE CASCADE ON UPDATE CASCADE,
-  CONSTRAINT FOREIGN KEY (user_id) REFERENCES user (id) ON DELETE CASCADE ON UPDATE CASCADE
+  CONSTRAINT FOREIGN KEY (document_id) REFERENCES document (id) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;

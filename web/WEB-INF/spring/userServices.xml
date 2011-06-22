@@ -116,6 +116,35 @@
       <util:constant static-field="org.ohmage.request.InputKeys.USER_LIST" />
     </constructor-arg>
   </bean>
+
+  <bean id="usersInUserRoleAddListExistOptionalService" class="org.ohmage.service.GenericAnnotatingDaoService">
+    <constructor-arg>
+      <bean class="org.ohmage.validator.json.FailedJsonRequestAnnotator">
+        <constructor-arg index="0">
+          <bean class="org.ohmage.domain.ErrorResponse">
+            <property name="code" value="1301" />
+            <property name="text" value="User in user-role add list doesn't exist." />
+          </bean>
+        </constructor-arg>
+      </bean>
+    </constructor-arg>
+    <constructor-arg>
+      <bean class="org.ohmage.dao.UsersInUserRoleAddListExistOptionalDao">
+        <constructor-arg>
+          <ref bean="dataSource" />
+        </constructor-arg>
+        <constructor-arg>
+          <value>false</value>
+        </constructor-arg>
+      </bean>
+    </constructor-arg>
+    <constructor-arg>
+      <value>A user in the user-role add list doesn't exist.</value>
+    </constructor-arg>
+    <constructor-arg>
+      <value>Ensuring that all users in the user-role add list exist.</value>
+    </constructor-arg>
+  </bean>
   
   <bean id="userExistsService" class="org.ohmage.service.GenericAnnotatingDaoService">
     <constructor-arg>

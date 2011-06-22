@@ -22,6 +22,7 @@ import java.util.Map;
 
 import org.ohmage.cache.CampaignRoleCache;
 import org.ohmage.cache.ClassRoleCache;
+import org.ohmage.util.StringUtils;
 
 /**
  * The default user implementation.
@@ -35,6 +36,8 @@ public class User {
 	private Map<String, ClassUserRoles> _classUserRoleMap;
 	private boolean _loggedIn;
 	private String _password;
+	
+	private String _documentRole;
 	
 	public User() {
 		_id = -1;
@@ -59,6 +62,7 @@ public class User {
 		_classUserRoleMap = new HashMap<String, ClassUserRoles>();
 		_classUserRoleMap.putAll(user._classUserRoleMap);
 		_loggedIn = user.isLoggedIn();
+		_documentRole = user._documentRole;
 	}
 	
     public int getId() {
@@ -204,6 +208,18 @@ public class User {
 		}
 		
 		return classUserRoles.getRoles().contains(role);
+	}
+	
+	public void setDocumentRole(String role) {
+		if(StringUtils.isEmptyOrWhitespaceOnly(role)) {
+			throw new IllegalArgumentException("The role cannot be null or whitespace only.");
+		}
+		
+		_documentRole = role;
+	}
+	
+	public String getDocumentRole() {
+		return _documentRole;
 	}
 	
 	public boolean isOnlyAnalystOrAuthor(String campaignUrn) {

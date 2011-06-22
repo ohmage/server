@@ -18,6 +18,7 @@ package org.ohmage.jee.servlet.validator;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -35,7 +36,7 @@ public class ImageQueryValidator extends AbstractHttpServletRequestValidator {
 	private List<String> _parameterList;
 	
 	public ImageQueryValidator() {
-		_parameterList = new ArrayList<String>(Arrays.asList(new String[]{"user","campaign_urn","client","id"}));
+		_parameterList = new ArrayList<String>(Arrays.asList(new String[]{"user","campaign_urn","client","id","auth_token","size"}));
 	}
 	
 	public boolean validate(HttpServletRequest httpRequest) throws MissingAuthTokenException {
@@ -56,7 +57,20 @@ public class ImageQueryValidator extends AbstractHttpServletRequestValidator {
 			token = tokens.get(0);
 		}
 		
-		if(! basicValidation(getParameterMap(httpRequest), _parameterList)) {
+		Map<String, String[]> parameterMap = getParameterMap(httpRequest);
+		
+		if(parameterMap.size() != _parameterList.size() && parameterMap.size() != _parameterList.size() - 1) {
+			_logger.info("incorrect number of parameters found");
+			return false;
+		}
+		
+		// Check for duplicate parameters
+		if(containsDuplicateParameter(parameterMap, _parameterList)) {
+			return false;
+		}
+		
+		// Check for parameters with unknown names
+		if(containsUnknownParameter(parameterMap, _parameterList)) {
 			return false;
 		}
 		
@@ -64,6 +78,7 @@ public class ImageQueryValidator extends AbstractHttpServletRequestValidator {
 		String campaignUrn = (String) httpRequest.getParameter("campaign_urn");
 		String client = (String) httpRequest.getParameter("client");
 		String id = (String) httpRequest.getParameter("id");
+		String size = (String) httpRequest.getParameter("size");
 		
 		// Check for abnormal lengths (buffer overflow attack)
 		
@@ -71,7 +86,8 @@ public class ImageQueryValidator extends AbstractHttpServletRequestValidator {
 		   || greaterThanLength("client", "client",client, 250)		   
 		   || greaterThanLength("authToken", "auth_token", token, 36)
 		   || greaterThanLength("user", "user", user, 15)
-		   || greaterThanLength("imageId", "id", id, 36)) {
+		   || greaterThanLength("imageId", "id", id, 36)
+		   || greaterThanLength("size", "size", size, 5)) { // the only currently allowed value is "small"
 			
 			_logger.warn("found an input parameter that exceeds its allowed length");
 			return false;

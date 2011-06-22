@@ -116,19 +116,23 @@
       <ref bean="insufficientPermissionsToDeleteDocumentError" />
     </constructor-arg>
     <constructor-arg>
-      <bean class="org.ohmage.dao.FindAllDocumentsForRequestingUserWithRolesDao">
+      <bean class="org.ohmage.dao.FindAllCampaignsAndDocumentRoleForDocumentIdDao">
         <constructor-arg>
           <ref bean="dataSource"/>
-        </constructor-arg>
-        <constructor-arg>
-          <list>
-            <util:constant static-field="org.ohmage.cache.DocumentRoleCache.ROLE_OWNER"/>
-          </list>
         </constructor-arg>
       </bean>
     </constructor-arg>
     <constructor-arg>
-      <value>true</value>
+      <bean class="org.ohmage.dao.FindAllClassesAndDocumentRoleForRequestingUserAndDocumentIdDao">
+        <constructor-arg>
+          <ref bean="dataSource"/>
+        </constructor-arg>
+      </bean>
+    </constructor-arg>
+    <constructor-arg>
+      <list>
+        <util:constant static-field="org.ohmage.cache.DocumentRoleCache.ROLE_OWNER"/>
+      </list>
     </constructor-arg>
   </bean>
   
@@ -144,20 +148,24 @@
       </bean>
     </constructor-arg>
     <constructor-arg>
-      <bean class="org.ohmage.dao.FindAllDocumentsForRequestingUserWithRolesDao">
+      <bean class="org.ohmage.dao.FindAllCampaignsAndDocumentRoleForDocumentIdDao">
         <constructor-arg>
           <ref bean="dataSource"/>
-        </constructor-arg>
-        <constructor-arg>
-          <list>
-            <util:constant static-field="org.ohmage.cache.DocumentRoleCache.ROLE_OWNER"/>
-            <util:constant static-field="org.ohmage.cache.DocumentRoleCache.ROLE_WRITER"/>
-          </list>
         </constructor-arg>
       </bean>
     </constructor-arg>
     <constructor-arg>
-      <value>true</value>
+      <bean class="org.ohmage.dao.FindAllClassesAndDocumentRoleForRequestingUserAndDocumentIdDao">
+        <constructor-arg>
+          <ref bean="dataSource"/>
+        </constructor-arg>
+      </bean>
+    </constructor-arg>
+    <constructor-arg>
+      <list>
+        <util:constant static-field="org.ohmage.cache.DocumentRoleCache.ROLE_OWNER"/>
+        <util:constant static-field="org.ohmage.cache.DocumentRoleCache.ROLE_WRITER"/>
+      </list>
     </constructor-arg>
   </bean>
   
@@ -166,21 +174,126 @@
       <ref bean="insufficientPermissionsToReadDocumentError" />
     </constructor-arg>
     <constructor-arg>
-      <bean class="org.ohmage.dao.FindAllDocumentsForRequestingUserWithRolesDao">
+      <bean class="org.ohmage.dao.FindAllCampaignsAndDocumentRoleForDocumentIdDao">
         <constructor-arg>
           <ref bean="dataSource"/>
-        </constructor-arg>
-        <constructor-arg>
-          <list>
-            <util:constant static-field="org.ohmage.cache.DocumentRoleCache.ROLE_OWNER"/>
-            <util:constant static-field="org.ohmage.cache.DocumentRoleCache.ROLE_WRITER"/>
-            <util:constant static-field="org.ohmage.cache.DocumentRoleCache.ROLE_READER"/>
-          </list>
         </constructor-arg>
       </bean>
     </constructor-arg>
     <constructor-arg>
-      <value>true</value>
+      <bean class="org.ohmage.dao.FindAllClassesAndDocumentRoleForRequestingUserAndDocumentIdDao">
+        <constructor-arg>
+          <ref bean="dataSource"/>
+        </constructor-arg>
+      </bean>
+    </constructor-arg>
+    <constructor-arg>
+      <list>
+        <util:constant static-field="org.ohmage.cache.DocumentRoleCache.ROLE_OWNER"/>
+        <util:constant static-field="org.ohmage.cache.DocumentRoleCache.ROLE_WRITER"/>
+        <util:constant static-field="org.ohmage.cache.DocumentRoleCache.ROLE_READER"/>
+      </list>
+    </constructor-arg>
+  </bean>
+  
+  <bean id="populateRequestersHighestDocumentRoleService" class="org.ohmage.service.SimpleQueryService">
+    <constructor-arg>
+      <bean class="org.ohmage.dao.FindDocumentRoleForRequestingUserDao">
+        <constructor-arg>
+          <ref bean="dataSource"/>
+        </constructor-arg>
+      </bean>
+    </constructor-arg>
+  </bean>
+  
+  <bean id="userCanAddDocumentRolesService" class="org.ohmage.service.UserCanAddDocumentRolesService">
+    <constructor-arg>
+      <bean class="org.ohmage.validator.json.FailedJsonRequestAnnotator">
+        <constructor-arg index="0">
+          <bean class="org.ohmage.domain.ErrorResponse">
+            <property name="code" value="1516" />
+            <property name="text" value="User is attempting to give more permissions than they have." />
+          </bean>
+        </constructor-arg>
+      </bean>
+    </constructor-arg>
+  </bean>
+  
+  <bean id="userCanRemoveCampaignsFromDocumentsService" class="org.ohmage.service.UserCanRemoveDocumentFromEntitiesService">
+    <constructor-arg>
+      <bean class="org.ohmage.validator.json.FailedJsonRequestAnnotator">
+        <constructor-arg index="0">
+          <bean class="org.ohmage.domain.ErrorResponse">
+            <property name="code" value="1516" />
+            <property name="text" value="User is attempting to revoke more permissions than they have from a campaign." />
+          </bean>
+        </constructor-arg>
+      </bean>
+    </constructor-arg>
+    <constructor-arg>
+      <bean class="org.ohmage.dao.FindAllCampaignsAndDocumentRoleForDocumentIdDao">
+        <constructor-arg>
+          <ref bean="dataSource"/>
+        </constructor-arg>
+      </bean>
+    </constructor-arg>
+    <constructor-arg>
+      <util:constant static-field="org.ohmage.request.InputKeys.CAMPAIGN_LIST_REMOVE"/>
+    </constructor-arg>
+    <constructor-arg>
+      <value>false</value>
+    </constructor-arg>
+  </bean>
+  
+  <bean id="userCanRemoveClassesFromDocumentsService" class="org.ohmage.service.UserCanRemoveDocumentFromEntitiesService">
+    <constructor-arg>
+      <bean class="org.ohmage.validator.json.FailedJsonRequestAnnotator">
+        <constructor-arg index="0">
+          <bean class="org.ohmage.domain.ErrorResponse">
+            <property name="code" value="1516" />
+            <property name="text" value="User is attempting to revoke more permissions than they have from a class." />
+          </bean>
+        </constructor-arg>
+      </bean>
+    </constructor-arg>
+    <constructor-arg>
+      <bean class="org.ohmage.dao.FindAllClassesAndDocumentRoleForRequestingUserAndDocumentIdDao">
+        <constructor-arg>
+          <ref bean="dataSource"/>
+        </constructor-arg>
+      </bean>
+    </constructor-arg>
+    <constructor-arg>
+      <util:constant static-field="org.ohmage.request.InputKeys.CLASS_LIST_REMOVE"/>
+    </constructor-arg>
+    <constructor-arg>
+      <value>false</value>
+    </constructor-arg>
+  </bean>
+  
+  <bean id="userCanRemoveUsersFromDocumentsService" class="org.ohmage.service.UserCanRemoveDocumentFromEntitiesService">
+    <constructor-arg>
+      <bean class="org.ohmage.validator.json.FailedJsonRequestAnnotator">
+        <constructor-arg index="0">
+          <bean class="org.ohmage.domain.ErrorResponse">
+            <property name="code" value="1516" />
+            <property name="text" value="User is attempting to revoke more permissions than they have from another user." />
+          </bean>
+        </constructor-arg>
+      </bean>
+    </constructor-arg>
+    <constructor-arg>
+      <bean class="org.ohmage.dao.FindAllUsersAndDocumentRoleForDocumentIdDao">
+        <constructor-arg>
+          <ref bean="dataSource"/>
+        </constructor-arg>
+      </bean>
+    </constructor-arg>
+    <constructor-arg>
+      <util:constant static-field="org.ohmage.request.InputKeys.USER_LIST_REMOVE"/>
+    </constructor-arg>
+    <constructor-arg>
+      <value>false</value>
     </constructor-arg>
   </bean>
   

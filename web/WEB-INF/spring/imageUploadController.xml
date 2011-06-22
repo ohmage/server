@@ -29,6 +29,8 @@
         <!-- authorize -->
         <ref bean="userRoleCampaignPopulationService" />
         <ref bean="userCampaignValidationService" />
+        <ref bean="participantUserRoleValidationService" />
+        <ref bean="campaignRunningStateValidationService" />
         <ref bean="campaignCreationTimeValidationService" />
         
         <!-- save the image -->

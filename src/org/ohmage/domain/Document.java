@@ -41,7 +41,9 @@ public class Document {
 	private String _description;
 	private String _privacyState;
 	private Date _lastModified;
+	private Date _creationDate;
 	private int _size;
+	private String _creator;
 	
 	String _userRole;
 	Map<String, String> _campaignAndRole;
@@ -67,7 +69,8 @@ public class Document {
 	 * @throws IllegalArgumentException Thrown if any of the parameters are
 	 * 									null and/or invalid.
 	 */
-	public Document(String documentId, String name, String description, String privacyState, Date lastModified, int size) throws IllegalArgumentException {
+	public Document(String documentId, String name, String description, String privacyState, 
+			Date lastModified, Date creationDate, int size, String creator) throws IllegalArgumentException {
 		if(StringUtils.isEmptyOrWhitespaceOnly(documentId)) {
 			throw new IllegalArgumentException("The document's ID cannot be null or whitespace only.");
 		}
@@ -80,8 +83,14 @@ public class Document {
 		else if(lastModified == null) {
 			throw new IllegalArgumentException("The document's last modified value cannot be null.");
 		}
+		else if(creationDate == null) {
+			throw new IllegalArgumentException("The document's creation date cannot be null.");
+		}
 		else if(size < 0) {
 			throw new IllegalArgumentException("The document's size cannot be negative.");
+		}
+		else if(creator == null) {
+			throw new IllegalArgumentException("The document's creator is not null.");
 		}
 		
 		_documentId = documentId;
@@ -90,6 +99,7 @@ public class Document {
 		_privacyState = privacyState;
 		_lastModified = lastModified;
 		_size = size;
+		_creator = creator;
 
 		_campaignAndRole = new HashMap<String, String>();
 		_classAndRole = new HashMap<String, String>();
@@ -141,12 +151,30 @@ public class Document {
 	}
 	
 	/**
+	 * Returns a timestamp of when this document was created.
+	 * 
+	 * @return A timestamp of when this document was created.
+	 */
+	public Date getCreationDate() {
+		return _creationDate;
+	}
+	
+	/**
 	 * Returns the size of the document in bytes.
 	 * 
 	 * @return The size of the document in bytes.
 	 */
 	public int getSize() {
 		return _size;
+	}
+	
+	/**
+	 * Returns the username of the creator of this document.
+	 * 
+	 * @return The username of the creator of this document.
+	 */
+	public String getCreator() {
+		return _creator;
 	}
 	
 	/**
@@ -250,7 +278,13 @@ public class Document {
 		return _classAndRole;
 	}
 	
-	public JSONObject toJsonObject() throws JSONException {
+	/**
+	 * Creates a JSONObject representing this document's information.
+	 * 
+	 * @return A JSONObject representing this document's information or returns
+	 * 		   null if there was an error building the JSONObject.
+	 */
+	public JSONObject toJsonObject() {
 		try {
 			JSONObject result = new JSONObject();
 			
@@ -260,7 +294,9 @@ public class Document {
 			result.put("description", ((_description ==  null) ? "" : _description));
 			result.put("privacy_state", _privacyState);
 			result.put("last_modified", formatter.format(_lastModified));
+			result.put("creation_date", formatter.format(_lastModified));
 			result.put("size", _size);
+			result.put("creator", _creator);
 			
 			result.put("user_role", ((_userRole == null) ? "" : _userRole));
 			result.put("campaign_roles", new JSONObject(_campaignAndRole));
@@ -270,7 +306,7 @@ public class Document {
 		}
 		catch(JSONException e) {
 			_logger.error("Error creating a JSONObject for this object.", e);
-			throw e;
+			return null;
 		}
 	}
 }

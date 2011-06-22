@@ -43,7 +43,7 @@ import org.springframework.jdbc.core.RowMapper;
 public class FindAllDocumentsForRequestingUserWithRolesDao extends AbstractDao {
 	private static Logger _logger = Logger.getLogger(FindAllDocumentsForRequestingUserWithRolesDao.class);
 	
-	public static final String SQL_GET_DOCUMENTS_FOR_USER_WITH_DOCUMENT_ROLE =
+	private static final String SQL_GET_DOCUMENTS_FOR_USER_WITH_DOCUMENT_ROLE =
 			// The distinct here isn't actually necessary, but I am hoping it
 			// will speed up the execution.
 			"SELECT allDocuments.uuid, allDocuments.role " +

@@ -31,6 +31,12 @@
         <!-- Ensure the document exists. -->
         <ref bean="documentExistsService" />
         
+        <!-- Populate the user object with the user's highest role for this document, as well
+             as the campaigns and classes to which they belong and their respective roles. -->
+        <ref bean="populateRequestersHighestDocumentRoleService"  />
+        <ref bean="userRoleCampaignPopulationService" />
+        <ref bean="userRoleClassPopulationService" />
+        
         <!-- Ensure the user has the permissions to delete the document. -->
         <ref bean="userCanReadDocumentService" />
         

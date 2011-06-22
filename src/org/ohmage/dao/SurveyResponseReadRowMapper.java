@@ -46,7 +46,7 @@ public class SurveyResponseReadRowMapper implements RowMapper {
 		result.setLocationStatus(rs.getString(8));
 		result.setLocation(rs.getString(9));
 		result.setSurveyId(rs.getString(10));
-		result.setLoginId(rs.getString(11));
+		result.setUsername(rs.getString(11));
 		result.setClient(rs.getString(12));
 		result.setLaunchContext(rs.getString(13));
 		return result;

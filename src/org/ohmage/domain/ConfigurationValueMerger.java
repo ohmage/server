@@ -25,8 +25,6 @@ import org.ohmage.util.JsonUtils;
 /**
  * For the "new" data point API, merges values from a conifguration into DB result object.
  * 
- * TODO convert to interface?
- * 
  * @author selsky
  */
 public class ConfigurationValueMerger {

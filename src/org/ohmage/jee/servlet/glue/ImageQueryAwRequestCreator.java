@@ -43,11 +43,11 @@ public class ImageQueryAwRequestCreator implements AwRequestCreator {
 		catch(IndexOutOfBoundsException e) {
 			token = httpRequest.getParameter(InputKeys.AUTH_TOKEN);
 		}
-		
 		String userNameRequestParam = httpRequest.getParameter("user");
 		String client = httpRequest.getParameter("client");
 		String campaignUrn = httpRequest.getParameter("campaign_urn");
-		String imageId = httpRequest.getParameter("id");  
+		String imageId = httpRequest.getParameter("id");
+		String size = httpRequest.getParameter("size");
 		
 		MediaQueryAwRequest awRequest = new MediaQueryAwRequest();
 
@@ -56,6 +56,7 @@ public class ImageQueryAwRequestCreator implements AwRequestCreator {
 		awRequest.setClient(client);
 		awRequest.setCampaignUrn(campaignUrn);
 		awRequest.setMediaId(imageId);
+		awRequest.addToValidate("size", size, false);
 		
         NDC.push("client=" + client); // push the client string into the Log4J NDC for the currently executing thread - this means that 
                                       // it will be in every log message for the thread

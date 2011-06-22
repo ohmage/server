@@ -15,10 +15,9 @@
  ******************************************************************************/
 package org.ohmage.service;
 
-import org.apache.log4j.Logger;
 import org.ohmage.dao.Dao;
-import org.ohmage.dao.DataAccessException;
 import org.ohmage.request.AwRequest;
+import org.ohmage.request.MediaUploadAwRequest;
 import org.ohmage.request.SurveyUploadAwRequest;
 import org.ohmage.util.StringUtils;
 import org.ohmage.validator.AwRequestAnnotator;
@@ -32,9 +31,8 @@ import org.ohmage.validator.AwRequestAnnotator;
  * @author Joshua Selsky
  */
 public class CampaignRunningStateValidationService extends AbstractAnnotatingDaoService {
-	private static Logger _logger = Logger.getLogger(CampaignRunningStateValidationService.class);
+	//private static Logger _logger = Logger.getLogger(CampaignRunningStateValidationService.class);
 	private String _allowedState;
-	private AwRequestAnnotator _failedRequestAnnotator;
 	
 	public CampaignRunningStateValidationService(AwRequestAnnotator annotator, Dao dao, String allowedState) {
 		super(dao, annotator);
@@ -50,16 +48,22 @@ public class CampaignRunningStateValidationService extends AbstractAnnotatingDao
 		getDao().execute(awRequest);
 		
 		// hack for now until toProcess is utilized
-		SurveyUploadAwRequest req = null;
-		try {
-			req = (SurveyUploadAwRequest) awRequest;
-		} catch (ClassCastException e) {
-			_logger.error("Checking campaign running state on a non-SurveyUploadAwRequest object.");
-			throw new DataAccessException("Invalid request.");
-		}
 		
-		if(! req.getCampaignRunningState().equals(_allowedState)) {
-			_failedRequestAnnotator.annotate(awRequest, "campaign " + awRequest.getCampaignUrn() + " is not " + _allowedState);
+		if(awRequest instanceof SurveyUploadAwRequest) {
+			SurveyUploadAwRequest req = (SurveyUploadAwRequest) awRequest;
+			if(! req.getCampaignRunningState().equals(_allowedState)) {
+				getAnnotator().annotate(awRequest, "campaign " + awRequest.getCampaignUrn() + " is not " + _allowedState);
+			}
+		} 
+		else if (awRequest instanceof MediaUploadAwRequest) {
+			MediaUploadAwRequest req = (MediaUploadAwRequest) awRequest;
+			if(! req.getCampaignRunningState().equals(_allowedState)) {
+				getAnnotator().annotate(awRequest, "campaign " + awRequest.getCampaignUrn() + " is not " + _allowedState);
+			}
+		}
+		else {
+			throw new IllegalStateException("This request type unsupported: " + awRequest.getClass().getName());
+			
 		}
 	}
 }

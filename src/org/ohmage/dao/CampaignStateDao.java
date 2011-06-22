@@ -19,6 +19,7 @@ import javax.sql.DataSource;
 
 import org.apache.log4j.Logger;
 import org.ohmage.request.AwRequest;
+import org.ohmage.request.MediaUploadAwRequest;
 import org.ohmage.request.SurveyUploadAwRequest;
 import org.springframework.jdbc.core.SingleColumnRowMapper;
 
@@ -26,7 +27,7 @@ import org.springframework.jdbc.core.SingleColumnRowMapper;
 /**
  * Finds the running_state for a campaign.
  * 
- * @author joshua selsky
+ * @author Joshua Selsky
  */
 public class CampaignStateDao extends AbstractDao {
 	private static Logger _logger = Logger.getLogger(CampaignStateDao.class);
@@ -49,22 +50,27 @@ public class CampaignStateDao extends AbstractDao {
 	@Override
 	public void execute(AwRequest awRequest) {
 		// hack for now until toProcess is utilized
-		SurveyUploadAwRequest req = null;
+
 		try {
-			req = (SurveyUploadAwRequest) awRequest;
-		} catch (ClassCastException e) {
-			_logger.error("Checking campaign running state on a non-SurveyUploadAwRequest object.");
-			throw new DataAccessException("Invalid request.");
-		}
-		
-		try {
-			req.setCampaignRunningState(
-				(String) getJdbcTemplate().queryForObject(SQL, new Object[] { req.getCampaignUrn() }, new SingleColumnRowMapper()));
+			
+			if(awRequest instanceof SurveyUploadAwRequest) {
+				SurveyUploadAwRequest req = (SurveyUploadAwRequest) awRequest;
+				req.setCampaignRunningState(
+						(String) getJdbcTemplate().queryForObject(SQL, new Object[] { req.getCampaignUrn() }, new SingleColumnRowMapper()));
+			} 
+			else if (awRequest instanceof MediaUploadAwRequest) {
+				MediaUploadAwRequest req = (MediaUploadAwRequest) awRequest;
+				req.setCampaignRunningState(
+						(String) getJdbcTemplate().queryForObject(SQL, new Object[] { req.getCampaignUrn() }, new SingleColumnRowMapper()));
+			}
+			else {
+				throw new IllegalStateException("This request type is unsupported: " + awRequest.getClass().getName());
+				
+			}	
 		}
 		catch(org.springframework.dao.DataAccessException dae) {
-			_logger.error("Error executing SQL '" + SQL + "' with parameter: " + req.getCampaignUrn());
+			_logger.error("Error executing SQL '" + SQL + "' with parameter: " + awRequest.getCampaignUrn());
 			throw new DataAccessException(dae);
 		}
 	}
-
 }

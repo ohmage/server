@@ -26,6 +26,7 @@ public class MediaQueryAwRequest extends ResultListAwRequest {
 	private String _campaignUrn;
 	private String _mediaId;
 	private String _mediaUrl;
+	private String _size;
 	
 	public String getUserNameRequestParam() {
 		return _userNameRequestParam;
@@ -65,5 +66,13 @@ public class MediaQueryAwRequest extends ResultListAwRequest {
 
 	public void setMediaUrl(String mediaUrl) {
 		_mediaUrl = mediaUrl;
+	}
+	
+	public String getSize() {
+		return _size;
+	}
+
+	public void setSize(String size) {
+		_size = size;
 	}
 }

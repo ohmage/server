@@ -45,7 +45,7 @@ public class DocumentCreationAwRequest extends ResultListAwRequest {
 	 * @throws IllegalArgumentException Thrown if there is a problem creating
 	 * 									the request due to invalid parameters.
 	 */
-	public DocumentCreationAwRequest(String name, String document, String privacyState, 
+	public DocumentCreationAwRequest(String name, byte[] document, String privacyState, 
 			String description, String campaignUrnRoleList, String classUrnRoleList) throws IllegalArgumentException {
 		super();
 		
@@ -56,7 +56,7 @@ public class DocumentCreationAwRequest extends ResultListAwRequest {
 			addToValidate(InputKeys.DOCUMENT_NAME, name, true);
 		}
 		
-		if(StringUtils.isEmptyOrWhitespaceOnly(document)) {
+		if((document == null) || (document.length == 0)) {
 			throw new IllegalArgumentException("The document cannot be null or blank.");
 		}
 		else {
@@ -77,6 +77,7 @@ public class DocumentCreationAwRequest extends ResultListAwRequest {
 		if(! StringUtils.isEmptyOrWhitespaceOnly(campaignUrnRoleList)) {
 			addToValidate(InputKeys.DOCUMENT_CAMPAIGN_ROLE_LIST, campaignUrnRoleList, true);
 		}
+		
 		if(! StringUtils.isEmptyOrWhitespaceOnly(classUrnRoleList)) {
 			addToValidate(InputKeys.DOCUMENT_CLASS_ROLE_LIST, classUrnRoleList, true);
 		}

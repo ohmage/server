@@ -87,7 +87,8 @@ public class DocumentCreationValidator extends AbstractHttpServletRequestValidat
 		
 		// Create a new file upload handler
 		ServletFileUpload upload = new ServletFileUpload(_diskFileItemFactory);
-		upload.setHeaderEncoding("UTF-8");
+		// TODO: Is this necessary? Should it even be done?
+		//upload.setHeaderEncoding("UTF-8");
 		
 		// Set the maximum allowed size of a document.
 		try {
@@ -114,7 +115,7 @@ public class DocumentCreationValidator extends AbstractHttpServletRequestValidat
 		
 		// Parse the request for each of the parameters.
 		String name = null;
-		String document = null;
+		byte[] document = null;
 		String privacyState = null;
 		String description = null;
 		String campaignUrnRoleList = null;
@@ -169,7 +170,7 @@ public class DocumentCreationValidator extends AbstractHttpServletRequestValidat
 				}
 			} else {
 				if(InputKeys.DOCUMENT.equals(fi.getFieldName())) {					
-					document = new String(fi.get()); // Gets the document.
+					document = fi.get(); // Gets the document.
 				}
 			}
 		}
