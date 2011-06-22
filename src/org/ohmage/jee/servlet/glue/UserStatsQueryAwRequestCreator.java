@@ -41,7 +41,13 @@ public class UserStatsQueryAwRequestCreator implements AwRequestCreator {
 		String userNameRequestParam = httpRequest.getParameter("user");
 		String client = httpRequest.getParameter("client");
 		String campaignName = httpRequest.getParameter("campaign_urn");
-		String token = CookieUtils.getCookieValue(httpRequest.getCookies(), InputKeys.AUTH_TOKEN).get(0);
+		String token;
+		try {
+			token = CookieUtils.getCookieValue(httpRequest.getCookies(), InputKeys.AUTH_TOKEN).get(0);
+		}
+		catch(IndexOutOfBoundsException e) {
+			token = httpRequest.getParameter(InputKeys.AUTH_TOKEN);
+		}
 		
 		UserStatsQueryAwRequest awRequest = new UserStatsQueryAwRequest();
 		awRequest.setUserNameRequestParam(userNameRequestParam);

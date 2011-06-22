@@ -24,7 +24,6 @@ import org.ohmage.request.DocumentReadContentsAwRequest;
 import org.ohmage.request.InputKeys;
 import org.ohmage.util.CookieUtils;
 
-
 /**
  * Creates a request to read the contents of a document.
  * 
@@ -45,7 +44,13 @@ public class DocumentReadContentsAwRequestCreator implements AwRequestCreator {
 	 */
 	@Override
 	public AwRequest createFrom(HttpServletRequest httpRequest) {
-		String token = CookieUtils.getCookieValue(httpRequest.getCookies(), InputKeys.AUTH_TOKEN).get(0);
+		String token;
+		try {
+			token = CookieUtils.getCookieValue(httpRequest.getCookies(), InputKeys.AUTH_TOKEN).get(0);
+		}
+		catch(IndexOutOfBoundsException e) {
+			token = httpRequest.getParameter(InputKeys.AUTH_TOKEN);
+		}
 		String documentId = httpRequest.getParameter(InputKeys.DOCUMENT_ID);
 		
 		DocumentReadContentsAwRequest mRequest;
@@ -62,5 +67,4 @@ public class DocumentReadContentsAwRequestCreator implements AwRequestCreator {
 		
 		return mRequest;
 	}
-
 }

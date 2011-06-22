@@ -90,11 +90,9 @@ public class CampaignReadValidator extends AbstractHttpServletRequestValidator {
 		if(tokens.size() == 0) {
 			// Possible if user and password aren't null.
 			if((user == null) || (password == null)) {
-				if(_logger.isDebugEnabled()) {
-					_logger.debug("Missing authentication.");
+				if(httpRequest.getParameter(InputKeys.AUTH_TOKEN) == null) {
+					throw new MissingAuthTokenException("The required authentication / session token is missing.");
 				}
-				
-				throw new MissingAuthTokenException("The required authentication / session token is missing.");
 			}
 		}
 		else if(tokens.size() > 1) {

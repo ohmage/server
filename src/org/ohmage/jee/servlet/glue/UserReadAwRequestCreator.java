@@ -47,7 +47,13 @@ public class UserReadAwRequestCreator implements AwRequestCreator {
 	public AwRequest createFrom(HttpServletRequest httpRequest) {
 		_logger.info("Creating request for reading user information.");
 		
-		String token = CookieUtils.getCookieValue(httpRequest.getCookies(), InputKeys.AUTH_TOKEN).get(0);
+		String token;
+		try {
+			token = CookieUtils.getCookieValue(httpRequest.getCookies(), InputKeys.AUTH_TOKEN).get(0);
+		}
+		catch(IndexOutOfBoundsException e) {
+			token = httpRequest.getParameter(InputKeys.AUTH_TOKEN);
+		}
 		String campaignUrnList = httpRequest.getParameter(InputKeys.CAMPAIGN_URN_LIST);
 		String classUrnList = httpRequest.getParameter(InputKeys.CLASS_URN_LIST);
 		

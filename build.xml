@@ -24,7 +24,7 @@
   	<include name="**/jbcrypt-0.3.jar"/>
   	<include name="**/xom-1.2.6.jar"/>
   	<include name="**/mobility-classifier-1.1.jar"/>
-  	<include name="**/andwellness-config-validator-2.3.jar"/>
+  	<include name="**/andwellness-config-validator-2.4.jar"/>
   </fileset>
 
   <fileset id="run-dependencies" dir="${component.repository}">
@@ -41,7 +41,7 @@
   	<include name="**/jbcrypt-0.3.jar"/>
   	<include name="**/xom-1.2.6.jar"/>
   	<include name="**/mobility-classifier-1.1.jar"/>
-  	<include name="**/andwellness-config-validator-2.3.jar"/>
+  	<include name="**/andwellness-config-validator-2.4.jar"/>
   </fileset>
 
   <path id="compile-classpath">

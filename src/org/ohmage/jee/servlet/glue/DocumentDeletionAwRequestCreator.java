@@ -24,7 +24,6 @@ import org.ohmage.request.DocumentDeletionAwRequest;
 import org.ohmage.request.InputKeys;
 import org.ohmage.util.CookieUtils;
 
-
 /**
  * Creates the document deletion request.
  * 
@@ -47,7 +46,13 @@ public class DocumentDeletionAwRequestCreator implements AwRequestCreator {
 	public AwRequest createFrom(HttpServletRequest httpRequest) {
 		_logger.info("Creating the document deletion request.");
 		
-		String token = CookieUtils.getCookieValue(httpRequest.getCookies(), InputKeys.AUTH_TOKEN).get(0);
+		String token;
+		try {
+			token = CookieUtils.getCookieValue(httpRequest.getCookies(), InputKeys.AUTH_TOKEN).get(0);
+		}
+		catch(IndexOutOfBoundsException e) {
+			token = httpRequest.getParameter(InputKeys.AUTH_TOKEN);
+		}
 		String documentId = httpRequest.getParameter(InputKeys.DOCUMENT_ID);
 		
 		DocumentDeletionAwRequest documentDeletionRequest;

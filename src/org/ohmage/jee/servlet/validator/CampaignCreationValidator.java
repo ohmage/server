@@ -79,10 +79,12 @@ public class CampaignCreationValidator extends AbstractHttpServletRequestValidat
 		int numberOfUploadedItems = uploadedItems.size();
 		
 		// Get the authentication / session token from the header.
-		String token;
+		String token = null;
 		List<String> tokens = CookieUtils.getCookieValue(httpRequest.getCookies(), InputKeys.AUTH_TOKEN);
 		if(tokens.size() == 0) {
-			throw new MissingAuthTokenException("The required authentication / session token is missing.");
+			// Check if the token is a parameter. This is the temporary fix
+			// until we get Set-Cookie to work.
+			//throw new MissingAuthTokenException("The required authentication / session token is missing.");
 		}
 		else if(tokens.size() > 1) {
 			throw new MissingAuthTokenException("More than one authentication / session token was found in the request.");
@@ -129,11 +131,21 @@ public class CampaignCreationValidator extends AbstractHttpServletRequestValidat
 					}
 					classes = value;
 				}
+				else if(InputKeys.AUTH_TOKEN.equals(name)) {
+					if(greaterThanLength(InputKeys.AUTH_TOKEN, InputKeys.AUTH_TOKEN, value, 36)) {
+						throw new MissingAuthTokenException("The required authentication / session token is the wrong length.");
+					}
+					token = value;
+				}
 			} else {
 				if(InputKeys.XML.equals(fi.getFieldName())) {					
 					xml = new String(fi.get()); // Gets the XML file.
 				}
 			}
+		}
+		
+		if(token == null) {
+			throw new MissingAuthTokenException("The required authentication / session token is missing.");
 		}
 		
 		CampaignCreationAwRequest request;

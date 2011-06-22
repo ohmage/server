@@ -44,7 +44,13 @@ public class ChunkedMobilityQueryAwRequestCreator implements AwRequestCreator {
 		String endDate = httpRequest.getParameter("end_date");
 		String userNameRequestParam = httpRequest.getParameter("user");
 		String client = httpRequest.getParameter("client");
-		String token = CookieUtils.getCookieValue(httpRequest.getCookies(), InputKeys.AUTH_TOKEN).get(0);
+		String token;
+		try {
+			token = CookieUtils.getCookieValue(httpRequest.getCookies(), InputKeys.AUTH_TOKEN).get(0);
+		}
+		catch(IndexOutOfBoundsException e) {
+			token = httpRequest.getParameter(InputKeys.AUTH_TOKEN);
+		}
 		  
 		MobilityQueryAwRequest awRequest = new MobilityQueryAwRequest();
 		awRequest.setStartDate(startDate);

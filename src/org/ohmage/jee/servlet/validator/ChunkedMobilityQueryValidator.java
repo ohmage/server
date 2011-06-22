@@ -44,7 +44,9 @@ public class ChunkedMobilityQueryValidator extends AbstractHttpServletRequestVal
 		// Get the authentication / session token from the header.
 		List<String> tokens = CookieUtils.getCookieValue(httpRequest.getCookies(), InputKeys.AUTH_TOKEN);
 		if(tokens.size() == 0) {
-			throw new MissingAuthTokenException("The required authentication / session token is missing.");
+			if(httpRequest.getParameter(InputKeys.AUTH_TOKEN) == null) {
+				throw new MissingAuthTokenException("The required authentication / session token is missing.");
+			}
 		}
 		else if(tokens.size() > 1) {
 			throw new MissingAuthTokenException("More than one authentication / session token was found in the request.");

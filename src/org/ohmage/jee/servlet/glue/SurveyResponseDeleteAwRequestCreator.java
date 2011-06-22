@@ -51,7 +51,14 @@ public class SurveyResponseDeleteAwRequestCreator implements AwRequestCreator {
 			new SurveyResponseDeleteAwRequest(httpRequest.getParameter(InputKeys.CAMPAIGN_URN),
 					                          httpRequest.getParameter(InputKeys.SURVEY_KEY));
 		
-		internalRequest.setUserToken(CookieUtils.getCookieValue(httpRequest.getCookies(), InputKeys.AUTH_TOKEN).get(0));
+		String token;
+		try {
+			token = CookieUtils.getCookieValue(httpRequest.getCookies(), InputKeys.AUTH_TOKEN).get(0);
+		}
+		catch(IndexOutOfBoundsException e) {
+			token = httpRequest.getParameter(InputKeys.AUTH_TOKEN);
+		}
+		internalRequest.setUserToken(token);
 		internalRequest.setCampaignUrn(httpRequest.getParameter(InputKeys.CAMPAIGN_URN));
 		
 		NDC.push("client=" + httpRequest.getParameter(InputKeys.CLIENT)); // push the client string into the Log4J NDC for the currently  

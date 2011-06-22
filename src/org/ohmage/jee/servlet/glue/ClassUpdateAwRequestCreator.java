@@ -47,7 +47,13 @@ public class ClassUpdateAwRequestCreator implements AwRequestCreator {
 	public AwRequest createFrom(HttpServletRequest httpRequest) {
 		_logger.info("Creating a new internal request object for updating a class.");
 		
-		String token = CookieUtils.getCookieValue(httpRequest.getCookies(), InputKeys.AUTH_TOKEN).get(0);
+		String token;
+		try {
+			token = CookieUtils.getCookieValue(httpRequest.getCookies(), InputKeys.AUTH_TOKEN).get(0);
+		}
+		catch(IndexOutOfBoundsException e) {
+			token = httpRequest.getParameter(InputKeys.AUTH_TOKEN);
+		}
 		String classUrn = httpRequest.getParameter(InputKeys.CLASS_URN);
 		String name = httpRequest.getParameter(InputKeys.CLASS_NAME);
 		String description = httpRequest.getParameter(InputKeys.DESCRIPTION);

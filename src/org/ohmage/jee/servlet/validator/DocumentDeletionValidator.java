@@ -50,25 +50,20 @@ public class DocumentDeletionValidator extends AbstractHttpServletRequestValidat
 	@Override
 	public boolean validate(HttpServletRequest httpRequest) throws MissingAuthTokenException {
 		// Get the authentication / session token from the header.
-		String token;
 		List<String> tokens = CookieUtils.getCookieValue(httpRequest.getCookies(), InputKeys.AUTH_TOKEN);
 		if(tokens.size() == 0) {
-			throw new MissingAuthTokenException("The required authentication / session token is missing.");
+			if(httpRequest.getParameter(InputKeys.AUTH_TOKEN) == null) {
+				throw new MissingAuthTokenException("The required authentication / session token is missing.");
+			}
 		}
 		else if(tokens.size() > 1) {
 			throw new MissingAuthTokenException("More than one authentication / session token was found in the request.");
-		}
-		else {
-			token = tokens.get(0);
 		}
 		
 		String documentId = httpRequest.getParameter(InputKeys.DOCUMENT_ID);
 		String client = httpRequest.getParameter(InputKeys.CLIENT);
 		
-		if((token == null) || (token.length() != 36)) {
-			throw new MissingAuthTokenException("The required authentication / session token is missing or invalid.");
-		}
-		else if((documentId == null) || (documentId.length() != 36)) {
+		if((documentId == null) || (documentId.length() != 36)) {
 			_logger.warn("The document ID is null.");
 			return false;
 		}

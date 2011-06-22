@@ -86,7 +86,11 @@ public class CampaignUpdateValidator extends AbstractHttpServletRequestValidator
 		String token;
 		List<String> tokens = CookieUtils.getCookieValue(httpRequest.getCookies(), InputKeys.AUTH_TOKEN);
 		if(tokens.size() == 0) {
-			throw new MissingAuthTokenException("The required authentication / session token is missing.");
+			token = httpRequest.getParameter(InputKeys.AUTH_TOKEN);
+			
+			if(token == null) {
+				throw new MissingAuthTokenException("The required authentication / session token is missing.");
+			}
 		}
 		else if(tokens.size() > 1) {
 			throw new MissingAuthTokenException("More than one authentication / session token was found in the request.");
@@ -191,7 +195,9 @@ public class CampaignUpdateValidator extends AbstractHttpServletRequestValidator
 		// Get the authentication / session token from the header.
 		List<String> tokens = CookieUtils.getCookieValue(httpRequest.getCookies(), InputKeys.AUTH_TOKEN);
 		if(tokens.size() == 0) {
-			throw new MissingAuthTokenException("The required authentication / session token is missing.");
+			// This is the temporary fix to allow the token to be either in the
+			// header or as a parameter.
+			//throw new MissingAuthTokenException("The required authentication / session token is missing.");
 		}
 		else if(tokens.size() > 1) {
 			throw new MissingAuthTokenException("More than one authentication / session token was found in the request.");
@@ -241,14 +247,6 @@ public class CampaignUpdateValidator extends AbstractHttpServletRequestValidator
 						request.setCommaSeparatedClasses(tmp);
 					}
 				}
-				else if(InputKeys.AUTH_TOKEN.equals(name)) {
-					if(greaterThanLength("authToken", InputKeys.AUTH_TOKEN, tmp, 36)) {
-						return false;
-					}
-					else if(! "".equals(tmp)) {
-						request.setUserToken(tmp);
-					}
-				}
 				else if(InputKeys.CAMPAIGN_URN.equals(name)) {
 					if(greaterThanLength("campaignUrn", InputKeys.CAMPAIGN_URN, tmp, 255)) {
 						return false;
@@ -271,6 +269,14 @@ public class CampaignUpdateValidator extends AbstractHttpServletRequestValidator
 					}
 					else if(! "".equals(tmp)) {
 						request.setUserRoleListRemove(tmp);
+					}
+				}
+				else if(InputKeys.AUTH_TOKEN.equals(name)) {
+					if(greaterThanLength("authToken", InputKeys.AUTH_TOKEN, tmp, 36)) {
+						return false;
+					}
+					else if(! "".equals(tmp)) {
+						request.setUserToken(tmp);
 					}
 				}
 			} else {

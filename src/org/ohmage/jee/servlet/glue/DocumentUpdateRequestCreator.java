@@ -23,7 +23,6 @@ import org.ohmage.request.AwRequest;
 import org.ohmage.request.DocumentUpdateRequest;
 import org.ohmage.request.InputKeys;
 
-
 public class DocumentUpdateRequestCreator implements AwRequestCreator {
 	private static Logger _logger = Logger.getLogger(DocumentUpdateRequestCreator.class);
 	
@@ -34,7 +33,6 @@ public class DocumentUpdateRequestCreator implements AwRequestCreator {
 		// Do nothing.
 	}
 
-	
 	@Override
 	public AwRequest createFrom(HttpServletRequest httpRequest) {
 		_logger.info("Building document update request.");

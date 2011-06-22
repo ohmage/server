@@ -43,7 +43,13 @@ public class UserInfoQueryAwRequestCreator implements AwRequestCreator {
 	 */
 	@Override
 	public AwRequest createFrom(HttpServletRequest httpRequest) {
-		String token = CookieUtils.getCookieValue(httpRequest.getCookies(), InputKeys.AUTH_TOKEN).get(0);
+		String token;
+		try {
+			token = CookieUtils.getCookieValue(httpRequest.getCookies(), InputKeys.AUTH_TOKEN).get(0);
+		}
+		catch(IndexOutOfBoundsException e) {
+			token = httpRequest.getParameter(InputKeys.AUTH_TOKEN);
+		}
 		
 		UserInfoQueryAwRequest awRequest = new UserInfoQueryAwRequest();
 		awRequest.setUserToken(token);

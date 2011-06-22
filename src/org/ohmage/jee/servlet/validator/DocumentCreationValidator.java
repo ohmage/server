@@ -71,10 +71,12 @@ public class DocumentCreationValidator extends AbstractHttpServletRequestValidat
 	@Override
 	public boolean validate(HttpServletRequest httpRequest) throws MissingAuthTokenException {
 		// Get the authentication / session token from the header.
-		String token;
+		String token = null;
 		List<String> tokens = CookieUtils.getCookieValue(httpRequest.getCookies(), InputKeys.AUTH_TOKEN);
 		if(tokens.size() == 0) {
-			throw new MissingAuthTokenException("The required authentication / session token is missing.");
+			// This is the temporary fix where we are allowing the token to be
+			// either a cookie or a parameter.
+			//throw new MissingAuthTokenException("The required authentication / session token is missing.");
 		}
 		else if(tokens.size() > 1) {
 			throw new MissingAuthTokenException("More than one authentication / session token was found in the request.");
@@ -159,11 +161,21 @@ public class DocumentCreationValidator extends AbstractHttpServletRequestValidat
 					}
 					classUrnRoleList = fieldValue;
 				}
+				else if(InputKeys.AUTH_TOKEN.equals(fieldName)) {
+					if(greaterThanLength(InputKeys.AUTH_TOKEN, InputKeys.AUTH_TOKEN, fieldValue, 36)) {
+						return false;
+					}
+					token = fieldValue;
+				}
 			} else {
 				if(InputKeys.DOCUMENT.equals(fi.getFieldName())) {					
 					document = new String(fi.get()); // Gets the document.
 				}
 			}
+		}
+		
+		if(token == null) {
+			throw new MissingAuthTokenException("The required authentication / session token is missing.");
 		}
 		
 		DocumentCreationAwRequest request;

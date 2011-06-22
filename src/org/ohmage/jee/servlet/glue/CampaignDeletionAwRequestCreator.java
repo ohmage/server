@@ -47,7 +47,13 @@ public class CampaignDeletionAwRequestCreator implements AwRequestCreator {
 		_logger.info("Creating new AwRequest object for deleting a campaign.");
 		
 		// Get the authentication / session token from the header.
-		String token = CookieUtils.getCookieValue(httpRequest.getCookies(), InputKeys.AUTH_TOKEN).get(0);
+		String token;
+		try {
+			token = CookieUtils.getCookieValue(httpRequest.getCookies(), InputKeys.AUTH_TOKEN).get(0);
+		}
+		catch(IndexOutOfBoundsException e) {
+			token = httpRequest.getParameter(InputKeys.AUTH_TOKEN);
+		}
 		String urn = httpRequest.getParameter(InputKeys.CAMPAIGN_URN);
 
 		CampaignDeletionAwRequest awRequest = new CampaignDeletionAwRequest();

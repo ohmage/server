@@ -61,6 +61,7 @@ public class TokenAuthResponseWriter extends AbstractResponseWriter {
 			if(! awRequest.isFailedRequest()) {
 				JSONObject jsonObject = new JSONObject();
 				jsonObject.put("result", "success");
+				jsonObject.put("token", awRequest.getUserToken());
 				
 				//jsonObject.put("token", awRequest.getUserToken()); // this one line is the only difference with StatelessAuthResponseWriter
 				CookieUtils.setCookieValue(response, InputKeys.AUTH_TOKEN, awRequest.getUserToken(), AUTH_TOKEN_COOKIE_LIFETIME_IN_SECONDS);

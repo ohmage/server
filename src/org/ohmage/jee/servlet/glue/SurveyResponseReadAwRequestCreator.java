@@ -23,7 +23,6 @@ import org.ohmage.request.InputKeys;
 import org.ohmage.request.SurveyResponseReadAwRequest;
 import org.ohmage.util.CookieUtils;
 
-
 /**
  * Builds an AwRequest for /app/survey_response/read.
  * 
@@ -36,13 +35,19 @@ public class SurveyResponseReadAwRequestCreator implements AwRequestCreator {
 	}
 	
 	public AwRequest createFrom(HttpServletRequest httpRequest) {
+		String token;
+		try {
+			token = CookieUtils.getCookieValue(httpRequest.getCookies(), InputKeys.AUTH_TOKEN).get(0);
+		}
+		catch(IndexOutOfBoundsException e) {
+			token = httpRequest.getParameter(InputKeys.AUTH_TOKEN);
+		}
 
 		String startDate = httpRequest.getParameter("start_date");
 		String endDate = httpRequest.getParameter("end_date");
 		String userList = httpRequest.getParameter("user_list");
 		String client = httpRequest.getParameter("client");
 		String campaignUrn = httpRequest.getParameter("campaign_urn");
-		String token = CookieUtils.getCookieValue(httpRequest.getCookies(), InputKeys.AUTH_TOKEN).get(0);
 		String promptIdList = httpRequest.getParameter("prompt_id_list");
 		String surveyIdList = httpRequest.getParameter("survey_id_list");
 		String columnList = httpRequest.getParameter("column_list");

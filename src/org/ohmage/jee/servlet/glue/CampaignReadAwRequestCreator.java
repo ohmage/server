@@ -15,8 +15,6 @@
  ******************************************************************************/
 package org.ohmage.jee.servlet.glue;
 
-import java.util.List;
-
 import javax.servlet.http.HttpServletRequest;
 
 import org.apache.log4j.NDC;
@@ -41,9 +39,15 @@ public class CampaignReadAwRequestCreator implements AwRequestCreator {
 		String client = httpRequest.getParameter("client");
 		String outputFormat = httpRequest.getParameter("output_format");
 		
+		String token;
+		try {
+			token = CookieUtils.getCookieValue(httpRequest.getCookies(), InputKeys.AUTH_TOKEN).get(0);
+		}
+		catch(IndexOutOfBoundsException e) {
+			token = httpRequest.getParameter(InputKeys.AUTH_TOKEN);
+		}
+		
 		// optional
-		List<String> tokens = CookieUtils.getCookieValue(httpRequest.getCookies(), InputKeys.AUTH_TOKEN);
-		String token = (tokens.size() == 1) ? tokens.get(0) : null;
 		String userName = httpRequest.getParameter("user");
 		String password = httpRequest.getParameter("password");
 		String campaignUrnListAsString = httpRequest.getParameter("campaign_urn_list");

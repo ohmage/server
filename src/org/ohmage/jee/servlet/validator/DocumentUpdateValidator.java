@@ -93,7 +93,11 @@ public class DocumentUpdateValidator extends AbstractHttpServletRequestValidator
 		String token;
 		List<String> tokens = CookieUtils.getCookieValue(httpRequest.getCookies(), InputKeys.AUTH_TOKEN);
 		if(tokens.size() == 0) {
-			throw new MissingAuthTokenException("The required authentication / session token is missing.");
+			token = httpRequest.getParameter(InputKeys.AUTH_TOKEN);
+			
+			if(token == null) {
+				throw new MissingAuthTokenException("The required authentication / session token is missing.");
+			}
 		}
 		else if(tokens.size() > 1) {
 			throw new MissingAuthTokenException("More than one authentication / session token was found in the request.");
@@ -155,10 +159,11 @@ public class DocumentUpdateValidator extends AbstractHttpServletRequestValidator
 	 */
 	private boolean validateMultipartRequest(HttpServletRequest httpRequest) throws MissingAuthTokenException {
 		// Get the authentication / session token from the header.
-		String token;
+		String token = null;
 		List<String> tokens = CookieUtils.getCookieValue(httpRequest.getCookies(), InputKeys.AUTH_TOKEN);
 		if(tokens.size() == 0) {
-			throw new MissingAuthTokenException("The required authentication / session token is missing.");
+			// This is the fix to get the 
+			//throw new MissingAuthTokenException("The required authentication / session token is missing.");
 		}
 		else if(tokens.size() > 1) {
 			throw new MissingAuthTokenException("More than one authentication / session token was found in the request.");
@@ -241,12 +246,19 @@ public class DocumentUpdateValidator extends AbstractHttpServletRequestValidator
 				else if(InputKeys.USER_LIST_REMOVE.equals(fieldName)) {
 					userListRemove = fieldValue;
 				}
+				else if(InputKeys.AUTH_TOKEN.equals(fieldName)) {
+					token = fieldValue;
+				}
 			}
 			else {
 				if(InputKeys.DOCUMENT.equals(fi.getFieldName())) {
 					document = new String(fi.get());
 				}
 			}
+		}
+		
+		if(token == null) {
+			throw new MissingAuthTokenException("The required authentication / session token is missing.");
 		}
 		
 		try {

@@ -24,7 +24,6 @@ import org.ohmage.request.DocumentReadAwRequest;
 import org.ohmage.request.InputKeys;
 import org.ohmage.util.CookieUtils;
 
-
 public class DocumentReadAwRequestCreator implements AwRequestCreator {
 	private static Logger _logger = Logger.getLogger(DocumentReadAwRequestCreator.class);
 	
@@ -43,10 +42,18 @@ public class DocumentReadAwRequestCreator implements AwRequestCreator {
 		_logger.info("Creating request for document read.");
 		
 		try {
+			String token;
+			try {
+				token = CookieUtils.getCookieValue(httpRequest.getCookies(), InputKeys.AUTH_TOKEN).get(0);
+			}
+			catch(IndexOutOfBoundsException e) {
+				token = httpRequest.getParameter(InputKeys.AUTH_TOKEN);
+			}
+			
 			DocumentReadAwRequest mRequest = new DocumentReadAwRequest(httpRequest.getParameter(InputKeys.DOCUMENT_PERSONAL_DOCUMENTS),
 																	   httpRequest.getParameter(InputKeys.CAMPAIGN_URN_LIST),
 																	   httpRequest.getParameter(InputKeys.CLASS_URN_LIST));
-			mRequest.setUserToken(CookieUtils.getCookieValue(httpRequest.getCookies(), InputKeys.AUTH_TOKEN).get(0));
+			mRequest.setUserToken(token);
 			
 			NDC.push("client=" + httpRequest.getParameter(InputKeys.CLIENT));
 			
@@ -57,5 +64,4 @@ public class DocumentReadAwRequestCreator implements AwRequestCreator {
 			throw e;
 		}
 	}
-
 }

@@ -47,7 +47,15 @@ public class ClassReadAwRequestCreator implements AwRequestCreator {
 		_logger.info("Creating class read request.");
 		
 		ClassReadAwRequest internalRequest = new ClassReadAwRequest(httpRequest.getParameter(InputKeys.CLASS_URN_LIST));
-		internalRequest.setUserToken(CookieUtils.getCookieValue(httpRequest.getCookies(), InputKeys.AUTH_TOKEN).get(0));
+		
+		String token;
+		try {
+			token = CookieUtils.getCookieValue(httpRequest.getCookies(), InputKeys.AUTH_TOKEN).get(0);
+		}
+		catch(IndexOutOfBoundsException e) {
+			token = httpRequest.getParameter(InputKeys.AUTH_TOKEN);
+		}
+		internalRequest.setUserToken(token);
 		
 		NDC.push("client=" + httpRequest.getParameter(InputKeys.CLIENT));
 		

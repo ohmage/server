@@ -36,11 +36,17 @@ public class ImageQueryAwRequestCreator implements AwRequestCreator {
 	}
 	
 	public AwRequest createFrom(HttpServletRequest httpRequest) {
+		String token;
+		try {
+			token = CookieUtils.getCookieValue(httpRequest.getCookies(), InputKeys.AUTH_TOKEN).get(0);
+		}
+		catch(IndexOutOfBoundsException e) {
+			token = httpRequest.getParameter(InputKeys.AUTH_TOKEN);
+		}
 		
 		String userNameRequestParam = httpRequest.getParameter("user");
 		String client = httpRequest.getParameter("client");
 		String campaignUrn = httpRequest.getParameter("campaign_urn");
-		String token = CookieUtils.getCookieValue(httpRequest.getCookies(), InputKeys.AUTH_TOKEN).get(0);
 		String imageId = httpRequest.getParameter("id");  
 		
 		MediaQueryAwRequest awRequest = new MediaQueryAwRequest();
