@@ -49,6 +49,11 @@ public class SurveyResponseReadJsonRowBasedOutputBuilder {
 		
 		JSONObject main = new JSONObject();
 		main.put("result", "success");
+		JSONObject metadata = new JSONObject();
+		metadata.put("number_of_prompts", numberOfPrompts);
+		metadata.put("number_of_surveys", numberOfSurveys);
+		metadata.put("items", rowItems);
+		main.put("metadata", metadata);
 		
 		if(results.size() > 0) {
 			
@@ -227,13 +232,6 @@ public class SurveyResponseReadJsonRowBasedOutputBuilder {
 				dataArray.put(record);
 			}
 		}
-		
-		// build the metadata section last after calculating the number of surveys above
-		JSONObject metadata = new JSONObject();
-		metadata.put("number_of_prompts", numberOfPrompts);
-		metadata.put("number_of_surveys", numberOfSurveys);
-		metadata.put("items", rowItems);
-		main.put("metadata", metadata);
 		
 		return req.isPrettyPrint() ? main.toString(4) : main.toString();
 	}
