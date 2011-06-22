@@ -112,10 +112,30 @@ public class FindUrlForMediaIdService extends AbstractDaoService {
 			}
 			
 			File f = null;
+			String url = null;
 			
 			try {
 				
-				f = new File(new URI(urlPrivacyState.getUrl()));
+				String size = (String) awRequest.getToProcessValue("size");
+				
+				if(null == size) {
+					f = new File(new URI(urlPrivacyState.getUrl()));
+					url = urlPrivacyState.getUrl();
+				}
+				else if("small".equals(size)) {
+					StringBuilder builder = new StringBuilder();
+					url = urlPrivacyState.getUrl();
+					int indexOfDot = url.lastIndexOf('.');
+					builder.append(url.substring(0, indexOfDot)).append("-s").append(".jpg");			
+					url = builder.toString();
+					f = new File(new URI(url));
+					if(_logger.isDebugEnabled()) {
+						_logger.debug("Returning a thumbnail URL: " + url);
+					}
+				} 
+				else {
+					throw new IllegalStateException("invalid size parameter: " + size);
+				}
 				
 			} catch(URISyntaxException use) { // bad! this means there are malformed file:/// URLs in the db
 				                              // If HTTP URLs are added in the future, the URL class must be used instead of File
@@ -132,7 +152,8 @@ public class FindUrlForMediaIdService extends AbstractDaoService {
 				
 			} else {
 				
-				((MediaQueryAwRequest) awRequest).setMediaUrl(urlPrivacyState.getUrl());
+				// hacky cast
+				((MediaQueryAwRequest) awRequest).setMediaUrl(url);
 			}
 			
 			

@@ -40,7 +40,8 @@ public class ImageQueryAwRequestCreator implements AwRequestCreator {
 		String client = request.getParameter("client");
 		String campaignUrn = request.getParameter("campaign_urn");
 		String authToken = request.getParameter("auth_token");
-		String imageId = request.getParameter("id");  
+		String imageId = request.getParameter("id");
+		String size = request.getParameter("size");
 		
 		MediaQueryAwRequest awRequest = new MediaQueryAwRequest();
 
@@ -49,6 +50,7 @@ public class ImageQueryAwRequestCreator implements AwRequestCreator {
 		awRequest.setClient(client);
 		awRequest.setCampaignUrn(campaignUrn);
 		awRequest.setMediaId(imageId);
+		awRequest.addToValidate("size", size, false);
 		
         NDC.push("client=" + client); // push the client string into the Log4J NDC for the currently executing thread - this means that 
                                       // it will be in every log message for the thread
