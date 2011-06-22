@@ -48,7 +48,8 @@ public class DocumentReadAwRequest extends ResultListAwRequest {
 		if(! StringUtils.isEmptyOrWhitespaceOnly(campaignUrnList)) {
 			addToValidate(InputKeys.CAMPAIGN_URN_LIST, campaignUrnList, true);
 		}
-		else if(! StringUtils.isEmptyOrWhitespaceOnly(classUrnList)) {
+		
+		if(! StringUtils.isEmptyOrWhitespaceOnly(classUrnList)) {
 			addToValidate(InputKeys.CLASS_URN_LIST, classUrnList, true);
 		}
 	}
