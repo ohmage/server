@@ -16,9 +16,9 @@
 package org.ohmage.request;
 
 /**
- * State for image queries.
+ * State for media queries: currently only used for image/read.
  * 
- * @author selsky
+ * @author Joshua Selsky
  */
 public class MediaQueryAwRequest extends ResultListAwRequest {
 	private String _userNameRequestParam;
