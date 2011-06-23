@@ -124,6 +124,7 @@ public class UserCreationDao extends AbstractDao {
 				_logger.error("Error while executing SQL '" + SQL_INSERT_USER + "' with parameters: " +
 						username + ", " + password + ", " + admin + ", " + enabled + ", " + newAccount + ", " + campaignCreationPrivilege, e);
 				transactionManager.rollback(status);
+				throw new DataAccessException(e);
 			}
 			
 			// Commit the transaction.
