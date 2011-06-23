@@ -102,8 +102,9 @@ public class MobilityQueryResponseWriter extends AbstractResponseWriter {
 				}
 				
 				rootObject.put("data", resultArray);
-				CookieUtils.setCookieValue(response, InputKeys.AUTH_TOKEN, awRequest.getUserToken(), AUTH_TOKEN_COOKIE_LIFETIME_IN_SECONDS);
 				responseText = rootObject.toString();
+				
+				CookieUtils.setCookieValue(response, InputKeys.AUTH_TOKEN, awRequest.getUserToken(), AUTH_TOKEN_COOKIE_LIFETIME_IN_SECONDS);
 				
 			} else {
 				

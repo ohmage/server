@@ -86,8 +86,8 @@ public class DocumentCreationResponseWriter extends AbstractResponseWriter {
 				
 				jsonResponse.put(ReturnKeys.DOCUMENT_ID, documentId);
 				
-				CookieUtils.setCookieValue(response, InputKeys.AUTH_TOKEN, awRequest.getUserToken(), AUTH_TOKEN_COOKIE_LIFETIME_IN_SECONDS);
 				responseText = jsonResponse.toString();
+				CookieUtils.setCookieValue(response, InputKeys.AUTH_TOKEN, awRequest.getUserToken(), AUTH_TOKEN_COOKIE_LIFETIME_IN_SECONDS);
 			}
 			catch(IllegalArgumentException e) {
 				_logger.error("Missing return value in request.", e);

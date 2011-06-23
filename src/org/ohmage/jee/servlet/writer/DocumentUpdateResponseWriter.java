@@ -11,6 +11,8 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.log4j.Logger;
 import org.ohmage.domain.ErrorResponse;
 import org.ohmage.request.AwRequest;
+import org.ohmage.request.InputKeys;
+import org.ohmage.util.CookieUtils;
 
 public class DocumentUpdateResponseWriter extends AbstractResponseWriter {
 private static Logger _logger = Logger.getLogger(DocumentUpdateResponseWriter.class);
@@ -57,6 +59,7 @@ private static Logger _logger = Logger.getLogger(DocumentUpdateResponseWriter.cl
 		}
 		else {
 			responseText = generalJsonSuccessMessage();
+			CookieUtils.setCookieValue(response, InputKeys.AUTH_TOKEN, awRequest.getUserToken(), AUTH_TOKEN_COOKIE_LIFETIME_IN_SECONDS);
 		}
 		
 		try {

@@ -76,8 +76,8 @@ public class DocumentReadResponseWriter extends AbstractResponseWriter {
 				JSONObject result = (JSONObject) awRequest.getToReturnValue(DocumentReadAwRequest.KEY_DOCUMENT_INFORMATION);
 				responseJson.put(ReturnKeys.DATA, result);
 				
-				CookieUtils.setCookieValue(response, InputKeys.AUTH_TOKEN, awRequest.getUserToken(), AUTH_TOKEN_COOKIE_LIFETIME_IN_SECONDS);
 				responseText = responseJson.toString();
+				CookieUtils.setCookieValue(response, InputKeys.AUTH_TOKEN, awRequest.getUserToken(), AUTH_TOKEN_COOKIE_LIFETIME_IN_SECONDS);
 			}
 			catch(JSONException e) {
 				_logger.error("Error building JSON response.", e);

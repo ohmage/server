@@ -162,7 +162,8 @@ public class DocumentUpdateValidator extends AbstractHttpServletRequestValidator
 		String token = null;
 		List<String> tokens = CookieUtils.getCookieValue(httpRequest.getCookies(), InputKeys.AUTH_TOKEN);
 		if(tokens.size() == 0) {
-			// This is the fix to get the 
+			// This is the fix to get the authentication / session token to 
+			// work if the cookies aren't.
 			//throw new MissingAuthTokenException("The required authentication / session token is missing.");
 		}
 		else if(tokens.size() > 1) {

@@ -96,8 +96,9 @@ public class UserStatsQueryResponseWriter extends AbstractResponseWriter {
 				}
 				
 				jsonObject.put("stats", outerArray);
-				CookieUtils.setCookieValue(response, InputKeys.AUTH_TOKEN, awRequest.getUserToken(), AUTH_TOKEN_COOKIE_LIFETIME_IN_SECONDS);
 				responseText = jsonObject.toString();
+				
+				CookieUtils.setCookieValue(response, InputKeys.AUTH_TOKEN, awRequest.getUserToken(), AUTH_TOKEN_COOKIE_LIFETIME_IN_SECONDS);
 				
 			} else {
 				

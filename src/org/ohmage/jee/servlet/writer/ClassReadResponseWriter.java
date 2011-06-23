@@ -94,8 +94,8 @@ public class ClassReadResponseWriter extends AbstractResponseWriter {
 				requestResponse.put("result", "success");
 				requestResponse.put("data", awRequest.getToReturnValue(ClassReadAwRequest.RETURN));
 				
-				CookieUtils.setCookieValue(response, InputKeys.AUTH_TOKEN, awRequest.getUserToken(), AUTH_TOKEN_COOKIE_LIFETIME_IN_SECONDS);
 				responseText = requestResponse.toString();
+				CookieUtils.setCookieValue(response, InputKeys.AUTH_TOKEN, awRequest.getUserToken(), AUTH_TOKEN_COOKIE_LIFETIME_IN_SECONDS);
 			}
 			catch(JSONException e) {
 				_logger.error("JSONException while putting response.", e);

@@ -86,8 +86,9 @@ public class UserInfoQueryResponseWriter extends AbstractResponseWriter {
 				responseJson.put("result", "success");
 				responseJson.put("data", awRequest.getToReturnValue(UserInfoQueryAwRequest.RESULT));
 				
-				CookieUtils.setCookieValue(response, InputKeys.AUTH_TOKEN, awRequest.getUserToken(), AUTH_TOKEN_COOKIE_LIFETIME_IN_SECONDS);
 				responseText = responseJson.toString();
+				
+				CookieUtils.setCookieValue(response, InputKeys.AUTH_TOKEN, awRequest.getUserToken(), AUTH_TOKEN_COOKIE_LIFETIME_IN_SECONDS);
 			}
 			catch(IllegalArgumentException e) {
 				_logger.error("There is no result object to return.");

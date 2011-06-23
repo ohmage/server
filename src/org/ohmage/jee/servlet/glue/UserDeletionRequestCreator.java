@@ -27,11 +27,19 @@ public class UserDeletionRequestCreator implements AwRequestCreator {
 	 * Creates a user deletion request.
 	 */
 	@Override
-	public AwRequest createFrom(HttpServletRequest request) {
+	public AwRequest createFrom(HttpServletRequest httpRequest) {
 		_logger.info("Creating a new user deletion request.");
 		
+		String token;
+		try {
+			token = CookieUtils.getCookieValue(httpRequest.getCookies(), InputKeys.AUTH_TOKEN).get(0);
+		}
+		catch(IndexOutOfBoundsException e) {
+			token = httpRequest.getParameter(InputKeys.AUTH_TOKEN);
+		}
+		
 		return new UserDeletionRequest(
-				CookieUtils.getCookieValue(request.getCookies(), InputKeys.AUTH_TOKEN).get(0), 
-				request.getParameter(InputKeys.USER_LIST));
+				token, 
+				httpRequest.getParameter(InputKeys.USER_LIST));
 	}
 }

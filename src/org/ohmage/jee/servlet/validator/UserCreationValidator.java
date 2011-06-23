@@ -36,7 +36,11 @@ public class UserCreationValidator extends AbstractHttpServletRequestValidator {
 		String token;
 		List<String> tokens = CookieUtils.getCookieValue(httpRequest.getCookies(), InputKeys.AUTH_TOKEN);
 		if(tokens.size() == 0) {
-			throw new MissingAuthTokenException("The required authentication / session token is missing.");
+			token = httpRequest.getParameter(InputKeys.AUTH_TOKEN);
+			
+			if(token == null) {
+				throw new MissingAuthTokenException("The required authentication / session token is missing.");
+			}
 		}
 		else if(tokens.size() > 1) {
 			throw new MissingAuthTokenException("More than one authentication / session token was found in the request.");

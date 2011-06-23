@@ -27,21 +27,29 @@ public class UserUpdateRequestCreator implements AwRequestCreator {
 	 * Builds a new UserUpdateRequest.
 	 */
 	@Override
-	public AwRequest createFrom(HttpServletRequest request) {
+	public AwRequest createFrom(HttpServletRequest httpRequest) {
 		_logger.info("Creating a user update request.");
 		
+		String token;
+		try {
+			token = CookieUtils.getCookieValue(httpRequest.getCookies(), InputKeys.AUTH_TOKEN).get(0);
+		}
+		catch(IndexOutOfBoundsException e) {
+			token = httpRequest.getParameter(InputKeys.AUTH_TOKEN);
+		}
+		
 		return new UserUpdateRequest(
-				CookieUtils.getCookieValue(request.getCookies(), InputKeys.AUTH_TOKEN).get(0),
-				request.getParameter(InputKeys.USER),
-				request.getParameter(InputKeys.USER_ADMIN),
-				request.getParameter(InputKeys.USER_ENABLED),
-				request.getParameter(InputKeys.NEW_ACCOUNT),
-				request.getParameter(InputKeys.CAMPAIGN_CREATION_PRIVILEGE),
-				request.getParameter(InputKeys.FIRST_NAME),
-				request.getParameter(InputKeys.LAST_NAME),
-				request.getParameter(InputKeys.ORGANIZATION),
-				request.getParameter(InputKeys.PERSONAL_ID),
-				request.getParameter(InputKeys.EMAIL_ADDRESS),
-				request.getParameter(InputKeys.USER_JSON_DATA));
+				token,
+				httpRequest.getParameter(InputKeys.USER),
+				httpRequest.getParameter(InputKeys.USER_ADMIN),
+				httpRequest.getParameter(InputKeys.USER_ENABLED),
+				httpRequest.getParameter(InputKeys.NEW_ACCOUNT),
+				httpRequest.getParameter(InputKeys.CAMPAIGN_CREATION_PRIVILEGE),
+				httpRequest.getParameter(InputKeys.FIRST_NAME),
+				httpRequest.getParameter(InputKeys.LAST_NAME),
+				httpRequest.getParameter(InputKeys.ORGANIZATION),
+				httpRequest.getParameter(InputKeys.PERSONAL_ID),
+				httpRequest.getParameter(InputKeys.EMAIL_ADDRESS),
+				httpRequest.getParameter(InputKeys.USER_JSON_DATA));
 	}
 }

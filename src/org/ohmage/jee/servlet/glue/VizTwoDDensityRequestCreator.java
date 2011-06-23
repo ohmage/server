@@ -30,7 +30,13 @@ public class VizTwoDDensityRequestCreator implements AwRequestCreator {
 	public AwRequest createFrom(HttpServletRequest httpRequest) {
 		_logger.info("Creating 2D density visualization request.");
 		
-		String token = CookieUtils.getCookieValue(httpRequest.getCookies(), InputKeys.AUTH_TOKEN).get(0);
+		String token;
+		try {
+			token = CookieUtils.getCookieValue(httpRequest.getCookies(), InputKeys.AUTH_TOKEN).get(0);
+		}
+		catch(IndexOutOfBoundsException e) {
+			token = httpRequest.getParameter(InputKeys.AUTH_TOKEN);
+		}
 		
 		return new VizScatterPlotRequest(token, 
 				httpRequest.getParameter(InputKeys.VISUALIZATION_WIDTH), 

@@ -27,16 +27,24 @@ public class UserCreationRequestCreator implements AwRequestCreator {
 	 * Creates a new user creation request.
 	 */
 	@Override
-	public AwRequest createFrom(HttpServletRequest request) {
+	public AwRequest createFrom(HttpServletRequest httpRequest) {
 		_logger.info("Creating the user creation request.");
 		
+		String token;
+		try {
+			token = CookieUtils.getCookieValue(httpRequest.getCookies(), InputKeys.AUTH_TOKEN).get(0);
+		}
+		catch(IndexOutOfBoundsException e) {
+			token = httpRequest.getParameter(InputKeys.AUTH_TOKEN);
+		}
+		
 		return new UserCreationRequest(
-				CookieUtils.getCookieValue(request.getCookies(), InputKeys.AUTH_TOKEN).get(0),
-				request.getParameter(InputKeys.NEW_USERNAME),
-				request.getParameter(InputKeys.NEW_PASSWORD),
-				request.getParameter(InputKeys.USER_ADMIN),
-				request.getParameter(InputKeys.USER_ENABLED),
-				request.getParameter(InputKeys.NEW_ACCOUNT),
-				request.getParameter(InputKeys.CAMPAIGN_CREATION_PRIVILEGE));
+				token,
+				httpRequest.getParameter(InputKeys.NEW_USERNAME),
+				httpRequest.getParameter(InputKeys.NEW_PASSWORD),
+				httpRequest.getParameter(InputKeys.USER_ADMIN),
+				httpRequest.getParameter(InputKeys.USER_ENABLED),
+				httpRequest.getParameter(InputKeys.NEW_ACCOUNT),
+				httpRequest.getParameter(InputKeys.CAMPAIGN_CREATION_PRIVILEGE));
 	}
 }

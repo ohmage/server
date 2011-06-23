@@ -79,8 +79,8 @@ public class CampaignUpdateResponseWriter extends AbstractResponseWriter {
 			}
 		}
 		else {
-			CookieUtils.setCookieValue(response, InputKeys.AUTH_TOKEN, awRequest.getUserToken(), AUTH_TOKEN_COOKIE_LIFETIME_IN_SECONDS);
 			responseText = generalJsonSuccessMessage();
+			CookieUtils.setCookieValue(response, InputKeys.AUTH_TOKEN, awRequest.getUserToken(), AUTH_TOKEN_COOKIE_LIFETIME_IN_SECONDS);
 		}
 		
 		try {
