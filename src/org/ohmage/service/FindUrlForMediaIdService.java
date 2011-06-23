@@ -19,6 +19,7 @@ import java.io.File;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.log4j.Logger;
 import org.ohmage.cache.SurveyResponsePrivacyStateCache;
@@ -35,7 +36,6 @@ import org.ohmage.validator.AwRequestAnnotator;
  * 
  * 
  * @author Joshua Selsky
- * @see SurveyResponsePrivacyFilterService
  */
 public class FindUrlForMediaIdService extends AbstractDaoService {
 	private static Logger _logger = Logger.getLogger(FindUrlForMediaIdService.class);
@@ -116,7 +116,12 @@ public class FindUrlForMediaIdService extends AbstractDaoService {
 			
 			try {
 				
-				String size = (String) awRequest.getToProcessValue("size");
+				String size = null;
+				Map<String, Object> toProcessMap = awRequest.getToProcess();
+				
+				if(toProcessMap.containsKey("size")) {
+					size = (String) toProcessMap.get("size");
+				}
 				
 				if(null == size) {
 					f = new File(new URI(urlPrivacyState.getUrl()));
