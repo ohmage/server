@@ -1,0 +1,68 @@
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:util="http://www.springframework.org/schema/util"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
+                           http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-2.5.xsd">
+
+  <!-- The basic HTTP validator. -->
+  <bean id="classDeletionHttpServletRequestValidator" class="org.ohmage.jee.servlet.validator.ClassDeletionValidator" />
+
+  <!-- The request creator. -->
+  <bean id="classDeletionAwRequestCreator" class="org.ohmage.jee.servlet.glue.ClassDeletionRequestCreator" />
+  
+  <!-- The response writer. -->
+  <bean id="classDeletionResponseWriter" class="org.ohmage.jee.servlet.writer.SuccessOrFailResponseWriter">
+    <constructor-arg>
+      <bean id="campaignCreationErrorResponse" class="org.ohmage.domain.ErrorResponse">
+        <property name="code" value="1200" />
+        <property name="text" value="General class deletion error." />
+      </bean>
+    </constructor-arg>
+  </bean>
+
+  <!-- The controller that validates and executes the request. -->
+  <bean id="classDeletionController" class="org.ohmage.controller.ControllerImpl">
+    <constructor-arg index="0">
+      <!-- Services List (expected to be executed in-order) -->
+      <list>
+        <!-- Authenticate that the token the user is using is a valid token. -->
+        <ref bean="tokenBasedAuthenticationService" />
+        
+        <!-- User is admin. -->
+        <ref bean="requesterIsAdminService" />
+        
+        <!-- Class doesn't exist. -->
+        <ref bean="classExistsService" />
+        
+        <!-- Add the class. -->
+        <ref bean="classDeletionService" />
+      </list>
+    </constructor-arg>
+    <constructor-arg index="1">
+      <!-- The annotator for when something fails after validation but before the writer. -->
+      <ref bean="serverErrorRequestAnnotator" />
+    </constructor-arg>
+    <property name="validators">
+      <!-- Validates the individual items in the request. -->
+      <list>
+        <ref bean="userTokenValidator" />
+        <ref bean="classUrnValidator" />
+      </list>
+    </property>
+    <property name="featureName">
+      <value>class deletion</value>
+    </property>
+  </bean>
+  
+  <!-- The service that actually creates the class. -->
+  <bean id="classDeletionService" class="org.ohmage.service.SimpleQueryService">
+    <constructor-arg>
+      <bean class="org.ohmage.dao.ClassDeletionDao">
+        <constructor-arg index="0">
+          <ref bean="dataSource"/>
+        </constructor-arg>
+      </bean>
+    </constructor-arg>
+  </bean>
+
+</beans>

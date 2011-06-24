@@ -28,8 +28,8 @@ import org.ohmage.validator.AwRequestAnnotator;
  * 
  * @author John Jenkins
  */
-public class UserIsPrivilegedInClassService extends AbstractAnnotatingDaoService {
-	private static Logger _logger = Logger.getLogger(UserIsPrivilegedInClassService.class);
+public class UserIsAdminOrPrivilegedInClassService extends AbstractAnnotatingDaoService {
+	private static Logger _logger = Logger.getLogger(UserIsAdminOrPrivilegedInClassService.class);
 	
 	/**
 	 * Sets up the annotator and DAO for this service.
@@ -40,7 +40,7 @@ public class UserIsPrivilegedInClassService extends AbstractAnnotatingDaoService
 	 * @param dao The DataAccessObject that will be called to run the query
 	 * 			  against the database.
 	 */
-	public UserIsPrivilegedInClassService(AwRequestAnnotator annotator, Dao dao) {
+	public UserIsAdminOrPrivilegedInClassService(AwRequestAnnotator annotator, Dao dao) {
 		super(dao, annotator);
 	}
 
@@ -49,13 +49,13 @@ public class UserIsPrivilegedInClassService extends AbstractAnnotatingDaoService
 	 */
 	@Override
 	public void execute(AwRequest awRequest) {
-		_logger.info("Checking if the user is a privileged user in the class.");
+		_logger.info("Checking if the user is an admin or a privileged user in the class.");
 		
 		try {
 			getDao().execute(awRequest);
 			
 			if(awRequest.isFailedRequest()) {
-				getAnnotator().annotate(awRequest, "The user is not a privileged user in the class.");
+				getAnnotator().annotate(awRequest, "The user is not an admin or a privileged user in the class.");
 			}
 		}
 		catch(DataAccessException dae) {

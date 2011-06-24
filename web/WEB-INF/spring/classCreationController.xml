@@ -1,0 +1,70 @@
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:util="http://www.springframework.org/schema/util"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
+                           http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-2.5.xsd">
+
+  <!-- The basic HTTP validator. -->
+  <bean id="classCreationHttpServletRequestValidator" class="org.ohmage.jee.servlet.validator.ClassCreationValidator" />
+
+  <!-- The request creator. -->
+  <bean id="classCreationAwRequestCreator" class="org.ohmage.jee.servlet.glue.ClassCreationRequestCreator" />
+  
+  <!-- The response writer. -->
+  <bean id="classCreationResponseWriter" class="org.ohmage.jee.servlet.writer.SuccessOrFailResponseWriter">
+    <constructor-arg>
+      <bean id="campaignCreationErrorResponse" class="org.ohmage.domain.ErrorResponse">
+        <property name="code" value="1200" />
+        <property name="text" value="General class creation error." />
+      </bean>
+    </constructor-arg>
+  </bean>
+
+  <!-- The controller that validates and executes the request. -->
+  <bean id="classCreationController" class="org.ohmage.controller.ControllerImpl">
+    <constructor-arg index="0">
+      <!-- Services List (expected to be executed in-order) -->
+      <list>
+        <!-- Authenticate that the token the user is using is a valid token. -->
+        <ref bean="tokenBasedAuthenticationService" />
+        
+        <!-- User is admin. -->
+        <ref bean="requesterIsAdminService" />
+        
+        <!-- Class doesn't exist. -->
+        <ref bean="classDoesNotExistService" />
+        
+        <!-- Add the class. -->
+        <ref bean="classCreationService" />
+      </list>
+    </constructor-arg>
+    <constructor-arg index="1">
+      <!-- The annotator for when something fails after validation but before the writer. -->
+      <ref bean="serverErrorRequestAnnotator" />
+    </constructor-arg>
+    <property name="validators">
+      <!-- Validates the individual items in the request. -->
+      <list>
+        <ref bean="userTokenValidator" />
+        <ref bean="classUrnValidator" />
+        <ref bean="classNameRequiredValidator" />
+        <ref bean="descriptionOptionalValidator" />
+      </list>
+    </property>
+    <property name="featureName">
+      <value>class creation</value>
+    </property>
+  </bean>
+  
+  <!-- The service that actually creates the class. -->
+  <bean id="classCreationService" class="org.ohmage.service.SimpleQueryService">
+    <constructor-arg>
+      <bean class="org.ohmage.dao.ClassCreationDao">
+        <constructor-arg index="0">
+          <ref bean="dataSource"/>
+        </constructor-arg>
+      </bean>
+    </constructor-arg>
+  </bean>
+  
+</beans>

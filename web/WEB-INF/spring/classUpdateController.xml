@@ -32,7 +32,7 @@
         <ref bean="tokenBasedAuthenticationService" />
         
         <!-- Is the user privileged in the class. -->
-        <ref bean="userIsPrivilegedInClassService" />
+        <ref bean="userIsAdminOrPrivilegedInClassService" />
         
         <!-- Ensure that the users exist. -->
         <ref bean="usersInListExistServiceFromUserListAdd" />
@@ -200,7 +200,7 @@
     </constructor-arg>
   </bean>
   
-  <bean id="userIsPrivilegedInClassService" class="org.ohmage.service.UserIsPrivilegedInClassService">
+  <bean id="userIsAdminOrPrivilegedInClassService" class="org.ohmage.service.UserIsAdminOrPrivilegedInClassService">
     <constructor-arg index="0">
       <bean class="org.ohmage.validator.json.FailedJsonRequestAnnotator">
         <constructor-arg index="0">
@@ -212,7 +212,7 @@
       </bean>
     </constructor-arg>
     <constructor-arg index="1">
-      <bean class="org.ohmage.dao.UserIsPrivilegedInClassDao">
+      <bean class="org.ohmage.dao.UserIsAdminOrPrivilegedInClassDao">
         <constructor-arg index="0">
           <ref bean="dataSource"/>
         </constructor-arg>
