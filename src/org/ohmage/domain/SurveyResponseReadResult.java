@@ -38,6 +38,7 @@ public class SurveyResponseReadResult {
 	private String _displayLabel;
 	private Object _displayValue;
 	private Object _singleChoiceOrdinalValue;
+	private String _singleChoiceLabel; 
 	private String _unit;
 	private String _displayType;
 	private String _utcTimestamp;
@@ -245,6 +246,14 @@ public class SurveyResponseReadResult {
 
 	public void setSingleChoiceOrdinalValue(Object singleChoiceOrdinalValue) {
 		_singleChoiceOrdinalValue = singleChoiceOrdinalValue;
+	}
+	
+	public String getSingleChoiceLabel() {
+		return _singleChoiceLabel;
+	}
+
+	public void setSingleChoiceLabel(String singleChoiceLabel) {
+		_singleChoiceLabel = singleChoiceLabel;
 	}
 
 	public Map<String, PromptProperty> getChoiceGlossary() {

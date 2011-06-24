@@ -38,7 +38,7 @@ public class SurveyResponseReadIndexedResult {
 	// Keep the original result around for metadata/result context
 	private SurveyResponseReadResult _originalResult;
 	
-	public SurveyResponseReadIndexedResult(SurveyResponseReadResult result) {
+	public SurveyResponseReadIndexedResult(SurveyResponseReadResult result, boolean isCsv) {
 		_key = new SurveyResponseReadIndexedResultKey(result.getUsername(), result.getTimestamp(), 
 			result.getSurveyId(), result.getRepeatableSetId(), result.getRepeatableSetIteration());	
 		
@@ -50,10 +50,18 @@ public class SurveyResponseReadIndexedResult {
 					                     result.getPromptText(),
 					                     result.getPromptType(),
 					                     result.getUnit());
+		
 		_promptResponseMetadataMap = new HashMap<String, PromptResponseMetadata>();
 		_promptResponseMetadataMap.put(result.getPromptId(), promptResponseMetadata);
 		_promptResponseMap = new HashMap<String, Object>();
-		_promptResponseMap.put(result.getPromptId(), result.getDisplayValue());
+		
+		if("single_choice".equals(result.getPromptType()) && isCsv) {
+			_promptResponseMap.put(result.getPromptId(), new SingleChoicePromptValueAndLabel(result.getSingleChoiceOrdinalValue(), result.getSingleChoiceLabel()));
+		}
+		else {
+			_promptResponseMap.put(result.getPromptId(), result.getDisplayValue());
+		}
+		
 		_choiceGlossaryMap = new HashMap<String, Map<String, PromptProperty>>();
 		
 		if(null != result.getChoiceGlossary()) {
@@ -61,8 +69,13 @@ public class SurveyResponseReadIndexedResult {
 		}
 	}
 	
-	public void addPromptResponse(SurveyResponseReadResult result) {
-		_promptResponseMap.put(result.getPromptId(), result.getDisplayValue());
+	public void addPromptResponse(SurveyResponseReadResult result, boolean isCsv) {
+		if("single_choice".equals(result.getPromptType()) && isCsv) {
+			_promptResponseMap.put(result.getPromptId(), new SingleChoicePromptValueAndLabel(result.getSingleChoiceOrdinalValue(), result.getSingleChoiceLabel()));
+		}
+		else {
+			_promptResponseMap.put(result.getPromptId(), result.getDisplayValue());
+		}
 		
 		PromptResponseMetadata promptResponseMetadata 
 			= new PromptResponseMetadata(result.getDisplayLabel(),
@@ -125,6 +138,10 @@ public class SurveyResponseReadIndexedResult {
 	
 	public Object getSingleChoiceOrdinalValue() {
 		return _originalResult.getSingleChoiceOrdinalValue();
+	}
+	
+	public Object getSingleChoiceLabel() {
+		return _originalResult.getSingleChoiceLabel();
 	}
 	
 	public String getSurveyId() {

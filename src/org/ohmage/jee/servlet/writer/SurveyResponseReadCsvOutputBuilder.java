@@ -30,6 +30,7 @@ import org.json.JSONObject;
 import org.ohmage.domain.Configuration;
 import org.ohmage.domain.PromptProperty;
 import org.ohmage.domain.PromptResponseMetadata;
+import org.ohmage.domain.SingleChoicePromptValueAndLabel;
 import org.ohmage.domain.SurveyResponseReadIndexedResult;
 import org.ohmage.request.SurveyResponseReadAwRequest;
 
@@ -181,7 +182,7 @@ public class SurveyResponseReadCsvOutputBuilder  {
 			}
 		}
 		
-		_logger.info(surveyIdToPromptIdListMap);
+		//_logger.info(surveyIdToPromptIdListMap);
 		
 		Iterator<String> surveyIdToPromptIdListMapIterator = surveyIdToPromptIdListMap.keySet().iterator();
 		while(surveyIdToPromptIdListMapIterator.hasNext()) {
@@ -194,7 +195,7 @@ public class SurveyResponseReadCsvOutputBuilder  {
 		canonicalColumnList.addAll(sortedColumnMapKeySet);
 		sortedColumnMapKeySet.clear();
 		
-		_logger.info(canonicalColumnList);
+		//_logger.info(canonicalColumnList);
 		
 		// Build the column headers
 		// For the CSV output, user advocates have requested that the column names be made shorter and that single_choice
@@ -208,9 +209,12 @@ public class SurveyResponseReadCsvOutputBuilder  {
 			if(key.startsWith("urn:ohmage:context")) {
 				shortHeader = key.replace("urn:ohmage:context", "sys");				
 			} else if(key.startsWith("urn:ohmage:prompt:id")) {
-				String type = promptResponseMetadataMap.get(key.substring("urn:ohmage:prompt:id:".length())).getPromptType();
+				
+				String internalPromptId = key.substring("urn:ohmage:prompt:id:".length());
+				String type = promptResponseMetadataMap.get(internalPromptId).getPromptType();
+				
 				if("single_choice".equals(type)) {
-					shortHeader = key.replace("urn:ohmage:prompt:id:", "") + ":label," + key.replace("urn:ohmage:prompt:id:", "") + ":value";
+					shortHeader = internalPromptId + ":label," + internalPromptId + ":value";
 				} 
 				else {
 					shortHeader = key.replace("urn:ohmage:prompt:id:", "");
@@ -351,18 +355,22 @@ public class SurveyResponseReadCsvOutputBuilder  {
 					builder.append(result.getPrivacyState()).append(",");
 				}
 				else if(canonicalColumnId.contains("prompt:id")) {
-
-					Object value = result.getPromptResponseMap().get(canonicalColumnId.substring("urn:ohmage:prompt:id:".length()));
 					
-					PromptResponseMetadata promptResponseMetadata = promptResponseMetadataMap.get(canonicalColumnId.substring("urn:ohmage:prompt:id:".length())); 
+					String promptId = canonicalColumnId.substring("urn:ohmage:prompt:id:".length()); // _logger.info(promptId);
+					
+					PromptResponseMetadata promptResponseMetadata = promptResponseMetadataMap.get(promptId);
+					Map<String, Object> promptResponseMap = result.getPromptResponseMap();
 					
 					if("single_choice".equals(promptResponseMetadata.getPromptType())) {
-					
-						builder.append(promptResponseMetadata.getDisplayLabel()).append(",");
-						builder.append(result.getSingleChoiceOrdinalValue()).append(",");
+						
+						SingleChoicePromptValueAndLabel valueLabel = (SingleChoicePromptValueAndLabel) promptResponseMap.get(promptId);
+						
+						builder.append(valueLabel.getLabel()).append(",").append(valueLabel.getValue());
 						
 					}
 					else {
+						
+						Object value = promptResponseMap.get(promptId);
 						
 						if(value instanceof JSONObject) { // single_choice_custom, multi_choice_custom
 							builder.append(((JSONObject) value).toString().replace(",", ";"));
@@ -375,7 +383,7 @@ public class SurveyResponseReadCsvOutputBuilder  {
 						else if (value instanceof String) { // clean up text for easier input into spreadsheets 
 							String string = (String) value;
 							
-							if("text".equals(promptResponseMetadataMap.get(canonicalColumnId.substring("urn:ohmage:prompt:id:".length())).getPromptType())) {
+							if("text".equals(promptResponseMetadataMap.get(promptId).getPromptType())) {
 								builder.append(cleanAndQuoteString(string));
 							} else {
 								builder.append(string);
@@ -384,9 +392,9 @@ public class SurveyResponseReadCsvOutputBuilder  {
 						else {
 							builder.append(value);
 						}
-						
-						builder.append(",");
 					}
+					
+					builder.append(",");
 				}
 				
 			}
@@ -451,6 +459,9 @@ public class SurveyResponseReadCsvOutputBuilder  {
 	}
 		
 	private String cleanAndQuoteString(String string) {
-		return "\"" + string.replaceAll("\\s", " ").replaceAll("\"", "'") + "\"";
+		if(null != string) {
+			return "\"" + string.trim().replaceAll("\\s", " ").replaceAll("\"", "'") + "\"";
+		}
+		return null;
 	}
 }

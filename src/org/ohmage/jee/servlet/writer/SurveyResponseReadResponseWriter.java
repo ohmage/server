@@ -143,10 +143,12 @@ public class SurveyResponseReadResponseWriter extends AbstractResponseWriter {
 				// with their associated survey response and metadata. Each prompt response is returned from the db in its
 				// own row and the rows can have different sort orders.
 				
+				boolean isCsv = "csv".equals(req.getOutputFormat());
+				
 				for(SurveyResponseReadResult result : results) {
 					
 					if(indexedResults.isEmpty()) { // first time thru
-						indexedResults.add(new SurveyResponseReadIndexedResult(result));
+						indexedResults.add(new SurveyResponseReadIndexedResult(result, isCsv));
 					}
 					else {
 						int numberOfIndexedResults = indexedResults.size();
@@ -159,11 +161,11 @@ public class SurveyResponseReadResponseWriter extends AbstractResponseWriter {
 									                                       result.getRepeatableSetIteration())) {
 								
 								found = true; //_logger.info("found");
-								indexedResults.get(i).addPromptResponse(result);
+								indexedResults.get(i).addPromptResponse(result, isCsv);
 							}
 						}
 						if(! found) {
-							indexedResults.add(new SurveyResponseReadIndexedResult(result));
+							indexedResults.add(new SurveyResponseReadIndexedResult(result, isCsv));
 						}
 					}
 				}

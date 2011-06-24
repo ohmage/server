@@ -49,7 +49,8 @@ public class ConfigurationValueMerger {
 			if(PromptTypeUtils.isSingleChoiceType(result.getPromptType())) {
 				
 				result.setChoiceGlossary(configuration.getChoiceGlossaryFor(result.getSurveyId(), result.getRepeatableSetId(), result.getPromptId()));
-				result.setSingleChoiceOrdinalValue(configuration.getValueForChoiceKey(result.getSurveyId(), result.getRepeatableSetId(), result.getPromptId(), String.valueOf(result.getResponse())));
+				result.setSingleChoiceOrdinalValue(convertToNumber(configuration.getValueForChoiceKey(result.getSurveyId(), result.getRepeatableSetId(), result.getPromptId(), String.valueOf(result.getResponse()))));
+				result.setSingleChoiceLabel(configuration.getLabelForChoiceKey(result.getSurveyId(), result.getRepeatableSetId(), result.getPromptId(), String.valueOf(result.getResponse())));
 				setDisplayValueFromSingleChoice(result, configuration, true);	
 				
 			} else if(PromptTypeUtils.isMultiChoiceType(result.getPromptType())) {
@@ -72,7 +73,8 @@ public class ConfigurationValueMerger {
 			if(PromptTypeUtils.isSingleChoiceType(result.getPromptType())) {
 				
 				result.setChoiceGlossary(configuration.getChoiceGlossaryFor(result.getSurveyId(), result.getPromptId()));
-				result.setSingleChoiceOrdinalValue(configuration.getValueForChoiceKey(result.getSurveyId(), result.getPromptId(), String.valueOf(result.getResponse())));
+				result.setSingleChoiceOrdinalValue(convertToNumber(configuration.getValueForChoiceKey(result.getSurveyId(), result.getPromptId(), String.valueOf(result.getResponse()))));
+				result.setSingleChoiceLabel(configuration.getLabelForChoiceKey(result.getSurveyId(), result.getPromptId(), String.valueOf(result.getResponse())));
 				setDisplayValueFromSingleChoice(result, configuration, false);
 			
 			} else if (PromptTypeUtils.isMultiChoiceType(result.getPromptType())) {

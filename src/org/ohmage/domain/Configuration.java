@@ -179,6 +179,10 @@ public class Configuration {
 		
 		return ((Prompt) survey.getSurveyItemMap().get(promptId)).getIndex();
 	}
+	
+	public boolean isPromptInRepeatableSet(String surveyId, String promptId) {
+		return null != _surveyMap.get(surveyId).getRepeatableSetIdForPromptId(promptId);
+	}
 
 	public int getNumberOfPromptsInSurvey(String surveyId) {
 		return _surveyMap.get(surveyId).getSurveyItemMap().keySet().size();
