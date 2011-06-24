@@ -22,23 +22,30 @@ import org.ohmage.cache.ClassRoleCache;
 import org.ohmage.request.AwRequest;
 import org.ohmage.request.InputKeys;
 
-
 /**
  * Checks if a user is privileged in the single class in the request.
  * 
  * @author John Jenkins
  */
-public class UserIsPrivilegedInClassDao extends AbstractDao {
-	private static Logger _logger = Logger.getLogger(UserIsPrivilegedInClassDao.class);
+public class UserIsAdminOrPrivilegedInClassDao extends AbstractDao {
+	private static Logger _logger = Logger.getLogger(UserIsAdminOrPrivilegedInClassDao.class);
 	
-	private static final String SQL = "SELECT count(*) " +
-									  "FROM user u, class c, user_class uc, user_class_role ucr " +
-									  "WHERE u.username = ? " +
-									  "AND uc.user_id = u.id " +
-									  "AND ucr.id = uc.user_class_role_id " +
-									  "AND ucr.role = '" + ClassRoleCache.ROLE_PRIVILEGED + "' " +
-									  "AND c.id = uc.class_id " +
-									  "AND c.urn = ?";
+	private static final String SQL_GET_USER_IS_ADMIN =
+		"SELECT admin " +
+		"FROM user " +
+		"WHERE username = ?";
+	
+	private static final String SQL_GET_USER_IS_PRIVILEGED_IN_CLASS = 
+		"SELECT EXISTS(" +
+			"SELECT c.urn " +
+			"FROM user u, class c, user_class uc, user_class_role ucr " +
+			"WHERE u.username = ? " +
+			"AND uc.user_id = u.id " +
+			"AND ucr.id = uc.user_class_role_id " +
+			"AND ucr.role = '" + ClassRoleCache.ROLE_PRIVILEGED + "' " +
+			"AND c.id = uc.class_id " +
+			"AND c.urn = ?" +
+		")";
 	
 	/**
 	 * Default constructor that sets up the DataSource that queries against
@@ -46,7 +53,7 @@ public class UserIsPrivilegedInClassDao extends AbstractDao {
 	 * 
 	 * @param dataSource The DataSource used in queries against the database.
 	 */
-	public UserIsPrivilegedInClassDao(DataSource dataSource) {
+	public UserIsAdminOrPrivilegedInClassDao(DataSource dataSource) {
 		super(dataSource);
 	}
 
@@ -55,26 +62,42 @@ public class UserIsPrivilegedInClassDao extends AbstractDao {
 	 */
 	@Override
 	public void execute(AwRequest awRequest) {
+		// Get the requester's username.
+		String username = awRequest.getUser().getUserName();
+		
+		// Check if the user is an admin.
+		try {
+			// If the user is an admin, return.
+			if((Boolean) getJdbcTemplate().queryForObject(SQL_GET_USER_IS_ADMIN, new Object[] { username }, Boolean.class)) {
+				return;
+			}
+		}
+		catch(org.springframework.dao.DataAccessException e) {
+			_logger.error("Error executing SQL '" + SQL_GET_USER_IS_ADMIN + "' with parameter: " + username, e);
+			throw new DataAccessException(e);
+		}
+		
+		// Get the class' ID from the request.
 		String classUrn;
 		try {
 			classUrn = (String) awRequest.getToProcessValue(InputKeys.CLASS_URN);
 		}
 		catch(IllegalArgumentException e) {
-			_logger.error("Missing validated class URN in toProcess map.");
-			awRequest.setFailedRequest(true);
+			_logger.error("Missing validated class URN in toProcess map.", e);
 			throw new DataAccessException(e);
 		}
 		
+		// Check if the user is privileged in the class.
 		try {
-			if(getJdbcTemplate().queryForInt(SQL, new Object[] { awRequest.getUser().getUserName(), classUrn }) == 0) {
+			if(! (Boolean) getJdbcTemplate().queryForObject(SQL_GET_USER_IS_PRIVILEGED_IN_CLASS, new Object[] { username, classUrn }, Boolean.class)) {
 				awRequest.setFailedRequest(true);
 				return;
 			}
 		}
 		catch(org.springframework.dao.DataAccessException e) {
-			_logger.error("Error executing SQL '" + SQL + "' with parameters: " + awRequest.getUser().getUserName() + ", " + classUrn, e);
+			_logger.error("Error executing SQL_GET_USER_IS_PRIVILEGED_IN_CLASS '" + SQL_GET_USER_IS_PRIVILEGED_IN_CLASS + "' with parameters: " + 
+					username + ", " + classUrn, e);
 			throw new DataAccessException(e);
 		}
 	}
-
 }

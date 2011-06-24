@@ -714,6 +714,36 @@
     <url-pattern>/campaign/update</url-pattern>
   </servlet-mapping>
   
+  <!-- Handle class create -->
+  <servlet>
+    <description>
+      Creates a new class.
+    </description>
+    <servlet-name>ClassCreationServlet</servlet-name>
+    <servlet-class>org.ohmage.jee.servlet.AwDataServlet</servlet-class>
+    <init-param>
+      <param-name>httpServletRequestValidatorName</param-name>
+      <param-value>classCreationHttpServletRequestValidator</param-value>
+    </init-param>
+    <init-param>
+      <param-name>awRequestCreatorName</param-name>
+      <param-value>classCreationAwRequestCreator</param-value>
+    </init-param>
+    <init-param>
+      <param-name>controllerName</param-name>
+      <param-value>classCreationController</param-value>
+    </init-param>
+    <init-param>
+      <param-name>responseWriterName</param-name>
+      <param-value>classCreationResponseWriter</param-value>
+    </init-param>
+    <load-on-startup>1</load-on-startup>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>ClassCreationServlet</servlet-name>
+    <url-pattern>/class/create</url-pattern>
+  </servlet-mapping>
+  
   <!-- Handle class reads -->
   <servlet>
     <description>
@@ -772,6 +802,36 @@
   <servlet-mapping>
     <servlet-name>ClassUpdateServlet</servlet-name>
     <url-pattern>/class/update</url-pattern>
+  </servlet-mapping>
+  
+  <!-- Handle class deletion -->
+  <servlet>
+    <description>
+      Deletes a class.
+    </description>
+    <servlet-name>ClassDeletionServlet</servlet-name>
+    <servlet-class>org.ohmage.jee.servlet.AwDataServlet</servlet-class>
+    <init-param>
+      <param-name>httpServletRequestValidatorName</param-name>
+      <param-value>classDeletionHttpServletRequestValidator</param-value>
+    </init-param>
+    <init-param>
+      <param-name>awRequestCreatorName</param-name>
+      <param-value>classDeletionAwRequestCreator</param-value>
+    </init-param>
+    <init-param>
+      <param-name>controllerName</param-name>
+      <param-value>classDeletionController</param-value>
+    </init-param>
+    <init-param>
+      <param-name>responseWriterName</param-name>
+      <param-value>classDeletionResponseWriter</param-value>
+    </init-param>
+    <load-on-startup>1</load-on-startup>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>ClassDeletionServlet</servlet-name>
+    <url-pattern>/class/delete</url-pattern>
   </servlet-mapping>
   
   <!-- Handle document creation -->
