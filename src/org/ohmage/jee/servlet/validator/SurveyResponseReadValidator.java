@@ -51,7 +51,8 @@ public class SurveyResponseReadValidator extends AbstractHttpServletRequestValid
 	    																  "suppress_metadata",
 	    																  "return_id",
 	    																  "privacy_state",
-	    																  "sort_order"}));
+	    																  "sort_order",
+	    																  "collapse"}));
 	}
 	
 	public boolean validate(HttpServletRequest httpServletRequest) {
@@ -75,6 +76,7 @@ public class SurveyResponseReadValidator extends AbstractHttpServletRequestValid
 //		(o) start_date
 //		(o) suppress_metadata
 //		(o) survey_id_list
+//		(o) collapse
 		
 		String authToken = (String) httpServletRequest.getParameter("auth_token");
 		if(StringUtils.isEmptyOrWhitespaceOnly(authToken)) {
@@ -138,6 +140,7 @@ public class SurveyResponseReadValidator extends AbstractHttpServletRequestValid
 		String returnId = (String) httpServletRequest.getParameter("return_id");
 		String sortOrder = (String) httpServletRequest.getParameter("sort_order");
 		String privacyState = (String) httpServletRequest.getParameter("privacy_state");
+		String collapse = (String) httpServletRequest.getParameter("collapse");
 		
 		// Check for abnormal lengths (buffer overflow attack, sanity check)
 		
@@ -155,7 +158,8 @@ public class SurveyResponseReadValidator extends AbstractHttpServletRequestValid
 		   || greaterThanLength("suppressMetadata", "suppress_metadata", suppressMetadata, 5)  // longest value allowed is "false"
 		   || greaterThanLength("returnId", "return_id", returnId, 5)                          // longest value allowed is "false"
 		   || greaterThanLength("sortOrder", "sort_order", sortOrder, 21)                      // longest value allowed is "user,timestamp,survey"
-		   || greaterThanLength("privacyState", "privacy_state", privacyState, 7)) {           // longest value allowed is "private"
+		   || greaterThanLength("privacyState", "privacy_state", privacyState, 7)              // longest value allowed is "private"
+		   || greaterThanLength("collapse", "collapse", collapse, 5)) {                        // longest value allowed is "false"
 			
 			_logger.warn("found an input parameter that exceeds its allowed length");
 			return false;

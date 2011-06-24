@@ -97,6 +97,7 @@ public class InputKeys {
 	public static final String SUPPRESS_METADATA = "suppress_metadata";
 	public static final String COLUMN_LIST = "column_list";
 	public static final String RETURN_ID = "return_id";
+	public static final String COLLAPSE = "collapse";
 	
 	// Shared Constants
 	public static final String DESCRIPTION = "description";

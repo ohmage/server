@@ -75,6 +75,7 @@
         <ref bean="prettyPrintValidator" />
         <ref bean="returnIdValidator" />
         <ref bean="sortOrderValidator" />
+        <ref bean="collapseValidator" />
       </list>      
     </property>
     <property name="featureName"><value>survey response query</value></property>
@@ -247,7 +248,7 @@
     </constructor-arg>
   </bean>
   
-  <bean id="suppressMetadataValidator" class="org.ohmage.validator.StringAllowedValuesValidator">
+  <bean id="suppressMetadataValidator" class="org.ohmage.validator.BooleanValidator">
     <constructor-arg index="0">
       <bean class="org.ohmage.validator.json.FailedJsonRequestAnnotator">
         <constructor-arg index="0"> 
@@ -259,19 +260,10 @@
       </bean>
     </constructor-arg>
     <constructor-arg index="1"><util:constant static-field="org.ohmage.request.InputKeys.SUPPRESS_METADATA"/></constructor-arg>
-    <constructor-arg index="2">
-      <list>
-        <value>true</value>
-        <value>false</value>
-      </list>
-    </constructor-arg>
-    <constructor-arg index="3"><value>false</value></constructor-arg>
-    <property name="errorMessage">
-      <value>invalid suppress metadata value found in request</value>
-    </property>
+    <constructor-arg index="2"><value>false</value></constructor-arg>
   </bean>
   
-  <bean id="prettyPrintValidator" class="org.ohmage.validator.StringAllowedValuesValidator">
+  <bean id="prettyPrintValidator" class="org.ohmage.validator.BooleanValidator">
     <constructor-arg index="0">
       <bean class="org.ohmage.validator.json.FailedJsonRequestAnnotator">
         <constructor-arg index="0"> 
@@ -283,19 +275,10 @@
       </bean>
     </constructor-arg>
     <constructor-arg index="1"><util:constant static-field="org.ohmage.request.InputKeys.PRETTY_PRINT"/></constructor-arg>
-    <constructor-arg index="2">
-      <list>
-        <value>true</value>
-        <value>false</value>
-      </list>
-    </constructor-arg>
-    <constructor-arg index="3"><value>false</value></constructor-arg>
-    <property name="errorMessage">
-      <value>invalid pretty print value in request</value>
-    </property>
+    <constructor-arg index="2"><value>false</value></constructor-arg>
   </bean>
   
-  <bean id="returnIdValidator" class="org.ohmage.validator.StringAllowedValuesValidator">
+  <bean id="returnIdValidator" class="org.ohmage.validator.BooleanValidator">
     <constructor-arg index="0">
       <bean class="org.ohmage.validator.json.FailedJsonRequestAnnotator">
         <constructor-arg index="0"> 
@@ -307,16 +290,22 @@
       </bean>
     </constructor-arg>
     <constructor-arg index="1"><util:constant static-field="org.ohmage.request.InputKeys.RETURN_ID"/></constructor-arg>
-    <constructor-arg index="2">
-      <list>
-        <value>true</value>
-        <value>false</value>
-      </list>
+    <constructor-arg index="2"><value>false</value></constructor-arg>
+  </bean>
+  
+  <bean id="collapseValidator" class="org.ohmage.validator.BooleanValidator">
+    <constructor-arg index="0">
+      <bean class="org.ohmage.validator.json.FailedJsonRequestAnnotator">
+        <constructor-arg index="0"> 
+          <bean class="org.ohmage.domain.ErrorResponse">
+            <property name="code" value="0721" />
+            <property name="text" value="invalid collapse value" />
+          </bean>
+        </constructor-arg>
+      </bean>
     </constructor-arg>
-    <constructor-arg index="3"><value>false</value></constructor-arg>
-    <property name="errorMessage">
-      <value>invalid return id value in request</value>
-    </property>
+    <constructor-arg index="1"><util:constant static-field="org.ohmage.request.InputKeys.COLLAPSE"/></constructor-arg>
+    <constructor-arg index="2"><value>false</value></constructor-arg>
   </bean>
   
   <bean id="sortOrderValidator" class="org.ohmage.validator.SortOrderValidator">

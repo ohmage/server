@@ -15,9 +15,11 @@
  ******************************************************************************/
 package org.ohmage.jee.servlet.writer;
 
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.apache.log4j.Logger;
 import org.json.JSONArray;
@@ -58,7 +60,6 @@ public class SurveyResponseReadJsonRowBasedOutputBuilder {
 		if(results.size() > 0) {
 			
 			JSONArray dataArray = new JSONArray();
-			main.put("data", dataArray);
 			
 			for(SurveyResponseReadIndexedResult result : results) {
 				
@@ -231,6 +232,33 @@ public class SurveyResponseReadJsonRowBasedOutputBuilder {
 				
 				dataArray.put(record);
 			}
+			
+			// Some calls to the API will result in duplicate results so the collapse parameter can be used 
+			// as a distinct filter on the results
+			Map<String, Object> toProcessMap = req.getToProcess();
+			Set<String> tmpHashSet = new HashSet<String>();
+			
+			if(toProcessMap.containsKey("collapse")) {
+				
+				if(Boolean.valueOf((String) toProcessMap.get("collapse"))) {
+					int size = dataArray.length();
+					
+					_logger.info("Number of results before collapsing: " + size);
+					
+					for(int i = 0; i < size; i++) {
+						String string = dataArray.getJSONObject(i).toString();
+						if(! tmpHashSet.add(string)) {
+							dataArray.remove(i);
+							size--;
+							i--;
+						} 
+					}
+					
+					_logger.info("Number of results after collapsing: " + dataArray.length());
+				}
+			}
+			
+			main.put("data", dataArray);
 		}
 		
 		return req.isPrettyPrint() ? main.toString(4) : main.toString();
