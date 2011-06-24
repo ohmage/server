@@ -123,6 +123,10 @@ public class SurveyResponseReadIndexedResult {
 		return _key.getRepeatableSetIteration();
 	}
 	
+	public Object getSingleChoiceOrdinalValue() {
+		return _originalResult.getSingleChoiceOrdinalValue();
+	}
+	
 	public String getSurveyId() {
 		return _originalResult.getSurveyId();
 	}

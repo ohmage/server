@@ -117,7 +117,7 @@ public class SurveyResponseReadCsvOutputBuilder  {
 		// Sort the column map key set for predictable columnar output.
 		// In the future, there can be a column_order parameter to the API 
 		// For now, canonicalize into 'ohmage order': user, datetime, survey id, repeatable set id, repeatable set iteration,
-		// prompt id, and then 'context' columns and survey title and description
+		// prompt id, and then 'context' columns and survey title and description in alpha order
 		
 		// Note that not all columns are necessarily present. This is based on the column_list parameter passed to the API.
 	
@@ -197,7 +197,8 @@ public class SurveyResponseReadCsvOutputBuilder  {
 		_logger.info(canonicalColumnList);
 		
 		// Build the column headers
-		// For the CSV output, user advocates have requested that the column names be made shorter
+		// For the CSV output, user advocates have requested that the column names be made shorter and that single_choice
+		// prompts have both their label and value present in the output
 		List<String> copyOfCanonicalColumnList = new ArrayList<String> (canonicalColumnList); 
 		
 		int s = copyOfCanonicalColumnList.size();
@@ -207,7 +208,14 @@ public class SurveyResponseReadCsvOutputBuilder  {
 			if(key.startsWith("urn:ohmage:context")) {
 				shortHeader = key.replace("urn:ohmage:context", "sys");				
 			} else if(key.startsWith("urn:ohmage:prompt:id")) {
-				shortHeader = key.replace("urn:ohmage:prompt:id:", "");
+				String type = promptResponseMetadataMap.get(key.substring("urn:ohmage:prompt:id:".length())).getPromptType();
+				if("single_choice".equals(type)) {
+					shortHeader = key.replace("urn:ohmage:prompt:id:", "") + ":label," + key.replace("urn:ohmage:prompt:id:", "") + ":value";
+				} 
+				else {
+					shortHeader = key.replace("urn:ohmage:prompt:id:", "");
+				}
+				
 			} else if(key.startsWith("urn:ohmage")) {
 				shortHeader = key.replace("urn:ohmage:", "");
 			}
@@ -346,28 +354,39 @@ public class SurveyResponseReadCsvOutputBuilder  {
 
 					Object value = result.getPromptResponseMap().get(canonicalColumnId.substring("urn:ohmage:prompt:id:".length()));
 					
-					if(value instanceof JSONObject) { // single_choice_custom, multi_choice_custom
-						builder.append(((JSONObject) value).toString().replace(",", ";"));
-					} 
+					PromptResponseMetadata promptResponseMetadata = promptResponseMetadataMap.get(canonicalColumnId.substring("urn:ohmage:prompt:id:".length())); 
 					
-					else if(value instanceof JSONArray) { // multi_choice
-						builder.append(((JSONArray) value).toString().replace(",", ";"));
-					}
+					if("single_choice".equals(promptResponseMetadata.getPromptType())) {
 					
-					else if (value instanceof String) { // clean up text for easier input into spreadsheets 
-						String string = (String) value;
+						builder.append(promptResponseMetadata.getDisplayLabel()).append(",");
+						builder.append(result.getSingleChoiceOrdinalValue()).append(",");
 						
-						if("text".equals(promptResponseMetadataMap.get(canonicalColumnId.substring("urn:ohmage:prompt:id:".length())).getPromptType())) {
-							builder.append(cleanAndQuoteString(string));
-						} else {
-							builder.append(string);
-						}
-					}					
-					else {
-						builder.append(value);
 					}
-					
-					builder.append(",");
+					else {
+						
+						if(value instanceof JSONObject) { // single_choice_custom, multi_choice_custom
+							builder.append(((JSONObject) value).toString().replace(",", ";"));
+						} 
+						
+						else if(value instanceof JSONArray) { // multi_choice
+							builder.append(((JSONArray) value).toString().replace(",", ";"));
+						}
+						
+						else if (value instanceof String) { // clean up text for easier input into spreadsheets 
+							String string = (String) value;
+							
+							if("text".equals(promptResponseMetadataMap.get(canonicalColumnId.substring("urn:ohmage:prompt:id:".length())).getPromptType())) {
+								builder.append(cleanAndQuoteString(string));
+							} else {
+								builder.append(string);
+							}
+						}					
+						else {
+							builder.append(value);
+						}
+						
+						builder.append(",");
+					}
 				}
 				
 			}
