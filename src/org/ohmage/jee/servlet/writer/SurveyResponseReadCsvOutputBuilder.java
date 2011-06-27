@@ -200,7 +200,7 @@ public class SurveyResponseReadCsvOutputBuilder  {
 		// Build the column headers
 		// For the CSV output, user advocates have requested that the column names be made shorter and that single_choice
 		// prompts have both their label and value present in the output
-		List<String> copyOfCanonicalColumnList = new ArrayList<String> (canonicalColumnList); 
+		List<String> copyOfCanonicalColumnList = new ArrayList<String> (canonicalColumnList);
 		
 		int s = copyOfCanonicalColumnList.size();
 		int i = 0;
@@ -214,7 +214,13 @@ public class SurveyResponseReadCsvOutputBuilder  {
 				String type = promptResponseMetadataMap.get(internalPromptId).getPromptType();
 				
 				if("single_choice".equals(type)) {
-					shortHeader = internalPromptId + ":label," + internalPromptId + ":value";
+					Configuration config = req.getConfiguration();
+					if(config.promptContainsSingleChoiceValues(internalPromptId)) {
+						shortHeader = internalPromptId + ":label," + internalPromptId + ":value";
+					} 
+					else {
+						shortHeader = internalPromptId + ":label";
+					}
 				} 
 				else {
 					shortHeader = key.replace("urn:ohmage:prompt:id:", "");
@@ -365,8 +371,11 @@ public class SurveyResponseReadCsvOutputBuilder  {
 						
 						SingleChoicePromptValueAndLabel valueLabel = (SingleChoicePromptValueAndLabel) promptResponseMap.get(promptId);
 						
-						builder.append(valueLabel.getLabel()).append(",").append(valueLabel.getValue());
-						
+						if(null != valueLabel.getValue()) {
+							builder.append(valueLabel.getLabel()).append(",").append(valueLabel.getValue());
+						} else {
+							builder.append(valueLabel.getLabel());
+						}
 					}
 					else {
 						

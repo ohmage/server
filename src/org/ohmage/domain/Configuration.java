@@ -26,12 +26,14 @@ import org.ohmage.util.StringUtils;
 
 
 /**
- * Immutable bean-style wrapper for accessing and validating campaign properties.
+ * Immutable bean-style wrapper for accessing and validating campaign configuration properties. The methods in this class assume
+ * that the caller has validated that the parameters (i.e., prompt ids, survey ids, repeatable set ids) are valid for a 
+ * particular configuration instance.
  * 
  * @author Joshua Selsky
  */
 public class Configuration {
-	// private static Logger _logger = Logger.getLogger(Configuration.class);
+	//private static Logger _logger = Logger.getLogger(Configuration.class);
 	private String _urn;
 	private String _name;
 	private String _description;
@@ -169,11 +171,10 @@ public class Configuration {
 	}
 
 	public int getIndexForPrompt(String surveyId, String promptId) {
-		// Check to see if the prompt is in a repeatable set
 		Survey survey = _surveyMap.get(surveyId);
-		String repeatableSetId = survey.getRepeatableSetIdForPromptId(promptId); 
 		
-		if(null != repeatableSetId) {
+		if(isPromptInRepeatableSet(surveyId, promptId)) {
+			String repeatableSetId = survey.getRepeatableSetIdForPromptId(promptId);
 			return ((RepeatableSet) survey.getSurveyItemMap().get(repeatableSetId)).getPromptMap().get(promptId).getIndex();
 		}
 		
@@ -182,6 +183,26 @@ public class Configuration {
 	
 	public boolean isPromptInRepeatableSet(String surveyId, String promptId) {
 		return null != _surveyMap.get(surveyId).getRepeatableSetIdForPromptId(promptId);
+	}
+	
+	public boolean promptContainsSingleChoiceValues(String promptId) {
+		if(null != promptId) {
+			String surveyId = getSurveyIdForPromptId(promptId);
+			if(isPromptInRepeatableSet(surveyId, promptId)) {
+				String repeatableSetId = _surveyMap.get(surveyId).getRepeatableSetIdForPromptId(promptId);
+				Prompt p = ((RepeatableSet) _surveyMap.get(surveyId).getSurveyItemMap().get(repeatableSetId)).getPromptMap().get(promptId);
+				if("single_choice".equals(p.getType())) {
+					return p.getProperties().containsKey("value");
+				}
+			} else {
+				Prompt p = ((Prompt) _surveyMap.get(surveyId).getSurveyItemMap().get(promptId));
+				if("single_choice".equals(p.getType())) {
+					return p.getProperties().containsKey("value");
+				}
+			}
+		}
+		
+		return false;
 	}
 
 	public int getNumberOfPromptsInSurvey(String surveyId) {
