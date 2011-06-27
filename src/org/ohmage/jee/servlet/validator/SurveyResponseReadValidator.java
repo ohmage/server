@@ -15,6 +15,8 @@
  ******************************************************************************/
 package org.ohmage.jee.servlet.validator;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -34,8 +36,25 @@ import org.ohmage.util.StringUtils;
  */
 public class SurveyResponseReadValidator extends AbstractHttpServletRequestValidator {
 	private static Logger _logger = Logger.getLogger(SurveyResponseReadValidator.class);
+	private List<String> _parameterList;
 	
 	public SurveyResponseReadValidator() {
+		_parameterList = new ArrayList<String>(Arrays.asList(new String[]{"start_date",
+				                                                          "end_date",
+				                                                          "user_list",
+				                                                          "campaign_urn",
+				                                                          "client",
+				                                                          "prompt_id_list",
+				                                                          "auth_token",
+				                                                          "survey_id_list",
+				                                                          "column_list",
+				                                                          "output_format",
+				                                                          "pretty_print",
+	    																  "suppress_metadata",
+	    																  "return_id",
+	    																  "privacy_state",
+	    																  "sort_order",
+	    																  "collapse"}));
 	}
 	
 	public boolean validate(HttpServletRequest httpRequest) throws MissingAuthTokenException {
@@ -76,6 +95,7 @@ public class SurveyResponseReadValidator extends AbstractHttpServletRequestValid
 //		(o) start_date
 //		(o) suppress_metadata
 //		(o) survey_id_list
+//		(o) collapse
 		
 		if(StringUtils.isEmptyOrWhitespaceOnly(token)) {
 			throw new MissingAuthTokenException("The required authentication / session token is missing or invalid.");
@@ -132,6 +152,12 @@ public class SurveyResponseReadValidator extends AbstractHttpServletRequestValid
 		String returnId = (String) httpRequest.getParameter("return_id");
 		String sortOrder = (String) httpRequest.getParameter("sort_order");
 		String privacyState = (String) httpRequest.getParameter("privacy_state");
+		String collapse = (String) httpRequest.getParameter("collapse");
+		
+		// Check for parameters with unknown names
+		if(containsUnknownParameter(parameterMap, _parameterList)) {
+			return false;
+		}
 		
 		// Check for abnormal lengths (buffer overflow attack, sanity check)
 		
@@ -149,7 +175,8 @@ public class SurveyResponseReadValidator extends AbstractHttpServletRequestValid
 		   || greaterThanLength("suppressMetadata", "suppress_metadata", suppressMetadata, 5)  // longest value allowed is "false"
 		   || greaterThanLength("returnId", "return_id", returnId, 5)                          // longest value allowed is "false"
 		   || greaterThanLength("sortOrder", "sort_order", sortOrder, 21)                      // longest value allowed is "user,timestamp,survey"
-		   || greaterThanLength("privacyState", "privacy_state", privacyState, 7)) {           // longest value allowed is "private"
+		   || greaterThanLength("privacyState", "privacy_state", privacyState, 7)              // longest value allowed is "private"
+		   || greaterThanLength("collapse", "collapse", collapse, 5)) {                        // longest value allowed is "false"
 			
 			_logger.warn("found an input parameter that exceeds its allowed length");
 			return false;

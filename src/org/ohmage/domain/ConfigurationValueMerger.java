@@ -23,9 +23,9 @@ import org.ohmage.util.JsonUtils;
 
 
 /**
- * For the "new" data point API, merges values from a conifguration into DB result object.
+ * For survey_response/read, merges values from a campaign configuration with the query results. 
  * 
- * @author selsky
+ * @author Joshua Selsky
  */
 public class ConfigurationValueMerger {
 	private static Logger _logger = Logger.getLogger(ConfigurationValueMerger.class);
@@ -49,6 +49,8 @@ public class ConfigurationValueMerger {
 			if(PromptTypeUtils.isSingleChoiceType(result.getPromptType())) {
 				
 				result.setChoiceGlossary(configuration.getChoiceGlossaryFor(result.getSurveyId(), result.getRepeatableSetId(), result.getPromptId()));
+				result.setSingleChoiceOrdinalValue(convertToNumber(configuration.getValueForChoiceKey(result.getSurveyId(), result.getRepeatableSetId(), result.getPromptId(), String.valueOf(result.getResponse()))));
+				result.setSingleChoiceLabel(configuration.getLabelForChoiceKey(result.getSurveyId(), result.getRepeatableSetId(), result.getPromptId(), String.valueOf(result.getResponse())));
 				setDisplayValueFromSingleChoice(result, configuration, true);	
 				
 			} else if(PromptTypeUtils.isMultiChoiceType(result.getPromptType())) {
@@ -71,6 +73,8 @@ public class ConfigurationValueMerger {
 			if(PromptTypeUtils.isSingleChoiceType(result.getPromptType())) {
 				
 				result.setChoiceGlossary(configuration.getChoiceGlossaryFor(result.getSurveyId(), result.getPromptId()));
+				result.setSingleChoiceOrdinalValue(convertToNumber(configuration.getValueForChoiceKey(result.getSurveyId(), result.getPromptId(), String.valueOf(result.getResponse()))));
+				result.setSingleChoiceLabel(configuration.getLabelForChoiceKey(result.getSurveyId(), result.getPromptId(), String.valueOf(result.getResponse())));
 				setDisplayValueFromSingleChoice(result, configuration, false);
 			
 			} else if (PromptTypeUtils.isMultiChoiceType(result.getPromptType())) {
@@ -110,7 +114,7 @@ public class ConfigurationValueMerger {
 //		if(null != value) {
 //			result.setDisplayValue(convertToNumber(value));
 //		} else {
-			result.setDisplayValue(convertToNumber(result.getResponse()));
+			result.setDisplayValue(convertToNumber(result.getResponse())); // the response here is the *index* (key) of the single_choice response
 //		}
 	}
 	

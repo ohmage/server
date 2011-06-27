@@ -57,6 +57,7 @@ public class SurveyResponseReadAwRequestCreator implements AwRequestCreator {
 		String privacyState = httpRequest.getParameter("privacy_state");
 		String returnId = httpRequest.getParameter("return_id");
 		String sortOrder = httpRequest.getParameter("sort_order");
+		String collapse = httpRequest.getParameter("collapse");
 		
 		SurveyResponseReadAwRequest awRequest = new SurveyResponseReadAwRequest();
 		
@@ -82,6 +83,8 @@ public class SurveyResponseReadAwRequestCreator implements AwRequestCreator {
 		awRequest.addToValidate(InputKeys.RETURN_ID, returnId, true);
 		awRequest.addToValidate(InputKeys.SORT_ORDER, sortOrder, true);
 		awRequest.addToValidate(InputKeys.USER_LIST, userList, true);
+		awRequest.addToValidate(InputKeys.USER_LIST, userList, true);
+		awRequest.addToValidate(InputKeys.COLLAPSE, collapse, true);
 		
 		
         NDC.push("client=" + client); // push the client string into the Log4J NDC for the currently executing thread _ this means that 

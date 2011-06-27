@@ -103,7 +103,7 @@
     </constructor-arg>
   </bean>
   
-    <bean id="findUrlForMediaIdService" class="org.ohmage.service.FindUrlForMediaIdService">
+    <bean id="findUrlForMediaIdService" class="org.ohmage.service.FindUrlForImageIdService">
     <constructor-arg index="0">
       <bean class="org.ohmage.dao.FindUrlForMediaIdDao">
         <constructor-arg index="0"><ref bean="dataSource"/></constructor-arg>

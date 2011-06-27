@@ -37,6 +37,8 @@ public class SurveyResponseReadResult {
 	private String _repeatableSetId;
 	private String _displayLabel;
 	private Object _displayValue;
+	private Object _singleChoiceOrdinalValue;
+	private String _singleChoiceLabel; 
 	private String _unit;
 	private String _displayType;
 	private String _utcTimestamp;
@@ -237,7 +239,23 @@ public class SurveyResponseReadResult {
 	public void setUsername(String username) {
 		_username = username;
 	}
+
+	public Object getSingleChoiceOrdinalValue() {
+		return _singleChoiceOrdinalValue;
+	}
+
+	public void setSingleChoiceOrdinalValue(Object singleChoiceOrdinalValue) {
+		_singleChoiceOrdinalValue = singleChoiceOrdinalValue;
+	}
 	
+	public String getSingleChoiceLabel() {
+		return _singleChoiceLabel;
+	}
+
+	public void setSingleChoiceLabel(String singleChoiceLabel) {
+		_singleChoiceLabel = singleChoiceLabel;
+	}
+
 	public Map<String, PromptProperty> getChoiceGlossary() {
 		return _choiceGlossary;
 	}
@@ -256,6 +274,7 @@ public class SurveyResponseReadResult {
 				+ _promptId + ", _promptType=" + _promptType
 				+ ", _repeatableSetId=" + _repeatableSetId + ", _displayLabel="
 				+ _displayLabel + ", _displayValue=" + _displayValue
+				+ ", _singleChoiceOrdinalValue=" + _singleChoiceOrdinalValue
 				+ ", _unit=" + _unit + ", _displayType=" + _displayType
 				+ ", _utcTimestamp=" + _utcTimestamp + ", _client=" + _client
 				+ ", _launchContext=" + _launchContext + ", _surveyTitle="
@@ -264,5 +283,5 @@ public class SurveyResponseReadResult {
 				+ _choiceGlossary + ", _surveyPrimaryKeyId="
 				+ _surveyPrimaryKeyId + ", _privacyState=" + _privacyState
 				+ ", _promptText=" + _promptText + "]";
-	}	
+	}
 }

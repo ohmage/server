@@ -30,6 +30,7 @@ import org.json.JSONObject;
 import org.ohmage.domain.Configuration;
 import org.ohmage.domain.PromptProperty;
 import org.ohmage.domain.PromptResponseMetadata;
+import org.ohmage.domain.SingleChoicePromptValueAndLabel;
 import org.ohmage.domain.SurveyResponseReadIndexedResult;
 import org.ohmage.request.SurveyResponseReadAwRequest;
 
@@ -117,7 +118,7 @@ public class SurveyResponseReadCsvOutputBuilder  {
 		// Sort the column map key set for predictable columnar output.
 		// In the future, there can be a column_order parameter to the API 
 		// For now, canonicalize into 'ohmage order': user, datetime, survey id, repeatable set id, repeatable set iteration,
-		// prompt id, and then 'context' columns and survey title and description
+		// prompt id, and then 'context' columns and survey title and description in alpha order
 		
 		// Note that not all columns are necessarily present. This is based on the column_list parameter passed to the API.
 	
@@ -181,7 +182,7 @@ public class SurveyResponseReadCsvOutputBuilder  {
 			}
 		}
 		
-		_logger.info(surveyIdToPromptIdListMap);
+		//_logger.info(surveyIdToPromptIdListMap);
 		
 		Iterator<String> surveyIdToPromptIdListMapIterator = surveyIdToPromptIdListMap.keySet().iterator();
 		while(surveyIdToPromptIdListMapIterator.hasNext()) {
@@ -194,11 +195,12 @@ public class SurveyResponseReadCsvOutputBuilder  {
 		canonicalColumnList.addAll(sortedColumnMapKeySet);
 		sortedColumnMapKeySet.clear();
 		
-		_logger.info(canonicalColumnList);
+		//_logger.info(canonicalColumnList);
 		
 		// Build the column headers
-		// For the CSV output, user advocates have requested that the column names be made shorter
-		List<String> copyOfCanonicalColumnList = new ArrayList<String> (canonicalColumnList); 
+		// For the CSV output, user advocates have requested that the column names be made shorter and that single_choice
+		// prompts have both their label and value present in the output
+		List<String> copyOfCanonicalColumnList = new ArrayList<String> (canonicalColumnList);
 		
 		int s = copyOfCanonicalColumnList.size();
 		int i = 0;
@@ -207,7 +209,23 @@ public class SurveyResponseReadCsvOutputBuilder  {
 			if(key.startsWith("urn:ohmage:context")) {
 				shortHeader = key.replace("urn:ohmage:context", "sys");				
 			} else if(key.startsWith("urn:ohmage:prompt:id")) {
-				shortHeader = key.replace("urn:ohmage:prompt:id:", "");
+				
+				String internalPromptId = key.substring("urn:ohmage:prompt:id:".length());
+				String type = promptResponseMetadataMap.get(internalPromptId).getPromptType();
+				
+				if("single_choice".equals(type)) {
+					Configuration config = req.getConfiguration();
+					if(config.promptContainsSingleChoiceValues(internalPromptId)) {
+						shortHeader = internalPromptId + ":label," + internalPromptId + ":value";
+					} 
+					else {
+						shortHeader = internalPromptId + ":label";
+					}
+				} 
+				else {
+					shortHeader = key.replace("urn:ohmage:prompt:id:", "");
+				}
+				
 			} else if(key.startsWith("urn:ohmage")) {
 				shortHeader = key.replace("urn:ohmage:", "");
 			}
@@ -343,28 +361,46 @@ public class SurveyResponseReadCsvOutputBuilder  {
 					builder.append(result.getPrivacyState()).append(",");
 				}
 				else if(canonicalColumnId.contains("prompt:id")) {
-
-					Object value = result.getPromptResponseMap().get(canonicalColumnId.substring("urn:ohmage:prompt:id:".length()));
 					
-					if(value instanceof JSONObject) { // single_choice_custom, multi_choice_custom
-						builder.append(((JSONObject) value).toString().replace(",", ";"));
-					} 
+					String promptId = canonicalColumnId.substring("urn:ohmage:prompt:id:".length()); // _logger.info(promptId);
 					
-					else if(value instanceof JSONArray) { // multi_choice
-						builder.append(((JSONArray) value).toString().replace(",", ";"));
-					}
+					PromptResponseMetadata promptResponseMetadata = promptResponseMetadataMap.get(promptId);
+					Map<String, Object> promptResponseMap = result.getPromptResponseMap();
 					
-					else if (value instanceof String) { // clean up text for easier input into spreadsheets 
-						String string = (String) value;
+					if("single_choice".equals(promptResponseMetadata.getPromptType())) {
 						
-						if("text".equals(promptResponseMetadataMap.get(canonicalColumnId.substring("urn:ohmage:prompt:id:".length())).getPromptType())) {
-							builder.append(cleanAndQuoteString(string));
+						SingleChoicePromptValueAndLabel valueLabel = (SingleChoicePromptValueAndLabel) promptResponseMap.get(promptId);
+						
+						if(null != valueLabel.getValue()) {
+							builder.append(valueLabel.getLabel()).append(",").append(valueLabel.getValue());
 						} else {
-							builder.append(string);
+							builder.append(valueLabel.getLabel());
 						}
-					}					
+					}
 					else {
-						builder.append(value);
+						
+						Object value = promptResponseMap.get(promptId);
+						
+						if(value instanceof JSONObject) { // single_choice_custom, multi_choice_custom
+							builder.append(((JSONObject) value).toString().replace(",", ";"));
+						} 
+						
+						else if(value instanceof JSONArray) { // multi_choice
+							builder.append(((JSONArray) value).toString().replace(",", ";"));
+						}
+						
+						else if (value instanceof String) { // clean up text for easier input into spreadsheets 
+							String string = (String) value;
+							
+							if("text".equals(promptResponseMetadataMap.get(promptId).getPromptType())) {
+								builder.append(cleanAndQuoteString(string));
+							} else {
+								builder.append(string);
+							}
+						}					
+						else {
+							builder.append(value);
+						}
 					}
 					
 					builder.append(",");
@@ -432,6 +468,9 @@ public class SurveyResponseReadCsvOutputBuilder  {
 	}
 		
 	private String cleanAndQuoteString(String string) {
-		return "\"" + string.replaceAll("\\s", " ").replaceAll("\"", "'") + "\"";
+		if(null != string) {
+			return "\"" + string.trim().replaceAll("\\s", " ").replaceAll("\"", "'") + "\"";
+		}
+		return null;
 	}
 }
