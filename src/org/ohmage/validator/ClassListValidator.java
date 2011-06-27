@@ -49,7 +49,7 @@ public class ClassListValidator extends AbstractAnnotatingValidator {
 	 */
 	@Override
 	public boolean validate(AwRequest awRequest) {
-		_logger.info("Validating initial list of classes for new campaign.");
+		_logger.info("Validating a list of classes.");
 		
 		String classes = (String) awRequest.getToValidate().get(InputKeys.CLASS_URN_LIST);
 		if(classes == null) {

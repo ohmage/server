@@ -9,21 +9,23 @@ import org.ohmage.request.InputKeys;
 import org.ohmage.util.CookieUtils;
 import org.ohmage.util.StringUtils;
 
-public class UserDeletionValidator extends AbstractHttpServletRequestValidator {
-	private static final Logger _logger = Logger.getLogger(UserDeletionValidator.class);
+/**
+ * Basic validation for a class roster read request.
+ * 
+ * @author John Jenkins
+ */
+public class ClassRosterReadValidator extends AbstractHttpServletRequestValidator {
+	private static final Logger _logger = Logger.getLogger(ClassRosterReadValidator.class);
 	
 	/**
 	 * Default constructor.
 	 */
-	public UserDeletionValidator() {
+	public ClassRosterReadValidator() {
 		// Do nothing.
 	}
 
 	/**
-	 * Checks that all the required parameters exist and are reasonable.
-	 * 
-	 * @throws MissingAuthTokenException Thrown if the authentication / session
-	 * 									 token is no in the header.
+	 * Validates that the required parameters exist.
 	 */
 	@Override
 	public boolean validate(HttpServletRequest httpRequest) throws MissingAuthTokenException {
@@ -44,14 +46,14 @@ public class UserDeletionValidator extends AbstractHttpServletRequestValidator {
 			token = tokens.get(0);
 		}
 		
-		String userList = httpRequest.getParameter(InputKeys.USER_LIST);
+		String classList = httpRequest.getParameter(InputKeys.CLASS_URN_LIST);
 		
 		if(StringUtils.isEmptyOrWhitespaceOnly(token)) {
 			_logger.info("Required parameter is missing or invalid: " + InputKeys.AUTH_TOKEN);
 			return false;
 		}
-		else if(StringUtils.isEmptyOrWhitespaceOnly(userList)) {
-			_logger.info("Required parameter is missing or invalid: " + InputKeys.USER_LIST);
+		else if(classList == null) {
+			_logger.info("Required parameter is missing or invalid: " + InputKeys.CLASS_URN_LIST);
 			return false;
 		}
 

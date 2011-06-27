@@ -1,18 +1,3 @@
-/*******************************************************************************
- * Copyright 2011 The Regents of the University of California
- * 
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- * 
- *   http://www.apache.org/licenses/LICENSE-2.0
- * 
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- ******************************************************************************/
 package org.ohmage.jee.servlet.writer;
 
 import java.io.BufferedWriter;
@@ -28,37 +13,33 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.ohmage.domain.ErrorResponse;
 import org.ohmage.request.AwRequest;
+import org.ohmage.request.ClassRosterUpdateRequest;
 import org.ohmage.request.InputKeys;
 import org.ohmage.request.ReturnKeys;
 import org.ohmage.util.CookieUtils;
 
 /**
- * Writes the response of the document creation.
+ * Writes the result of the class roster update request.
  * 
  * @author John Jenkins
  */
-public class DocumentCreationResponseWriter extends AbstractResponseWriter {
-	private static Logger _logger = Logger.getLogger(DocumentCreationResponseWriter.class);
+public class ClassRosterUpdateResponseWriter extends AbstractResponseWriter {
+	private static final Logger _logger = Logger.getLogger(ClassRosterUpdateResponseWriter.class);
 	
 	/**
-	 * Creates this writer with a default error response.
-	 * 
-	 * @param errorResponse The ErrorResponse to respond with should all else
-	 * 						fail.
+	 * Builds the writer for a class roster update request with a default 
+	 * response should the request fail.
 	 */
-	public DocumentCreationResponseWriter(ErrorResponse errorResponse) {
+	public ClassRosterUpdateResponseWriter(ErrorResponse errorResponse) {
 		super(errorResponse);
 	}
-	
+
 	/**
-	 * If the request is successful, it writes the documents identifier in the
-	 * response and returns it. If creating the response fails, it will simply
-	 * abort. If creating the response text fails, it will fall back to
-	 * responding with a general error message.
+	 * Writes the result of this request.
 	 */
 	@Override
 	public void write(HttpServletRequest request, HttpServletResponse response, AwRequest awRequest) {
-		_logger.info("Writing document creation response.");
+		_logger.info("Writing class roster update response.");
 		
 		Writer writer;
 		try {
@@ -80,10 +61,7 @@ public class DocumentCreationResponseWriter extends AbstractResponseWriter {
 			try {
 				JSONObject jsonResponse = new JSONObject();
 				jsonResponse.put(ReturnKeys.RESULT, ReturnKeys.SUCCESS);
-			
-				String documentId = (String) awRequest.getToReturnValue(ReturnKeys.DOCUMENT_ID);
-				
-				jsonResponse.put(ReturnKeys.DOCUMENT_ID, documentId);
+				jsonResponse.put("warning_messages", awRequest.getToReturnValue(ClassRosterUpdateRequest.KEY_WARNING_MESSAGES));
 				
 				responseText = jsonResponse.toString();
 				CookieUtils.setCookieValue(response, InputKeys.AUTH_TOKEN, awRequest.getUserToken(), AUTH_TOKEN_COOKIE_LIFETIME_IN_SECONDS);
@@ -125,4 +103,5 @@ public class DocumentCreationResponseWriter extends AbstractResponseWriter {
 			_logger.error("Unable to flush or close the writer.", e);
 		}
 	}
+
 }
