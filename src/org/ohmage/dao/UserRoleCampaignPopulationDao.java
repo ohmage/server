@@ -24,11 +24,12 @@ import org.apache.log4j.Logger;
 import org.ohmage.domain.UserRoleCampaignResult;
 import org.ohmage.domain.UserRoleImpl;
 import org.ohmage.request.AwRequest;
+import org.ohmage.util.StringUtils;
 import org.springframework.jdbc.core.RowMapper;
 
 
 /**
- * DAO for finding all of the user roles and campaign metadata for a particular user.
+ * DAO for finding a user's campaign roles and campaign metadata for each campaign that a particular user belongs to.
  * 
  * @author Joshua Selsky
  */
@@ -69,24 +70,7 @@ public class UserRoleCampaignPopulationDao extends AbstractDao {
 							result.setCampaignDescription(rs.getString(3));
 							result.setCampaignRunningState(rs.getString(4));
 							result.setCampaignPrivacyState(rs.getString(5));
-							
-							
-							String ts = rs.getString(6); // this will return the timestamp in JDBC escape format (ending with nanoseconds)
-                                                         // and the nanoseconds value is not needed, so shave it off
-                                                         // it is weird to be formatting the data inside the DAO here, but the nanoseconds
-                                                         // aren't even *stored* in the db, they are appended to the string during
-                                                         // whatever conversion the MySQL JDBC connector does when it converts the db's
-  	                                                     // timestamp to a Java String.
-							if(ts.contains(".")) {
-								
-								int indexOfDot = ts.indexOf(".");
-								result.setCampaignCreationTimestamp(ts.substring(0, indexOfDot));
-								
-							} else {
-								
-								result.setCampaignCreationTimestamp(ts);
-							}
-							
+							result.setCampaignCreationTimestamp(StringUtils.stripMillisFromJdbcTimestampString(rs.getString(6)));
 							result.setUserRole(new UserRoleImpl(rs.getInt(7), rs.getString(8)));
 							return result;
 						}

@@ -28,6 +28,7 @@ import org.ohmage.domain.ConfigurationValueMerger;
 import org.ohmage.domain.SurveyResponseReadResult;
 import org.ohmage.request.AwRequest;
 import org.ohmage.request.SurveyResponseReadAwRequest;
+import org.ohmage.util.StringUtils;
 import org.springframework.jdbc.core.RowMapper;
 
 
@@ -148,26 +149,7 @@ public class SurveyResponseReadDao extends AbstractDao {
 							result.setRepeatableSetId(rs.getString(5));
 						}
 						
-						// TODO -- the code below is duplicated in a bunch of DAO classes
-						// Move the functionality to StringUtils
-						
-						String ts = rs.getString(6); // this will return the timestamp in JDBC escape format (ending with nanoseconds)
-						                             // and the nanoseconds value is not needed, so shave it off
-						                             // it is weird to be formatting the data inside the DAO here, but the nanoseconds
-						                             // aren't even *stored* in the db, they are appended to the string during
-						                             // whatever conversion the MySQL JDBC connector does when it converts the db's
-                               						 // timestamp to a Java String.
-						
-						if(ts.contains(".")) {
-							
-							int indexOfDot = ts.indexOf(".");
-							result.setTimestamp(ts.substring(0, indexOfDot));
-							
-						} else {
-							
-							result.setTimestamp(ts);
-						}
-						
+						result.setTimestamp(StringUtils.stripMillisFromJdbcTimestampString(rs.getString(6))); 
 						result.setTimezone(rs.getString(7));
 						result.setLocationStatus(rs.getString(8));
 						result.setLocation(rs.getString(9));
