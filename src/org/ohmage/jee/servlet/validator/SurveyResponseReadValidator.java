@@ -58,23 +58,6 @@ public class SurveyResponseReadValidator extends AbstractHttpServletRequestValid
 	}
 	
 	public boolean validate(HttpServletRequest httpRequest) throws MissingAuthTokenException {
-		// Get the authentication / session token from the header.
-		String token;
-		List<String> tokens = CookieUtils.getCookieValue(httpRequest.getCookies(), InputKeys.AUTH_TOKEN);
-		if(tokens.size() == 0) {
-			token = httpRequest.getParameter(InputKeys.AUTH_TOKEN);
-			
-			if(token == null) {
-				throw new MissingAuthTokenException("The required authentication / session token is missing.");
-			}
-		}
-		else if(tokens.size() > 1) {
-			throw new MissingAuthTokenException("More than one authentication / session token was found in the request.");
-		}
-		else {
-			token = tokens.get(0);
-		}
-		
 		Map<String,String[]> parameterMap = getParameterMap(httpRequest); 
 
 // required parameters
@@ -96,10 +79,6 @@ public class SurveyResponseReadValidator extends AbstractHttpServletRequestValid
 //		(o) suppress_metadata
 //		(o) survey_id_list
 //		(o) collapse
-		
-		if(StringUtils.isEmptyOrWhitespaceOnly(token)) {
-			throw new MissingAuthTokenException("The required authentication / session token is missing or invalid.");
-		}
 		
 		String campaignUrn = (String) httpRequest.getParameter("campaign_urn");
 		if(StringUtils.isEmptyOrWhitespaceOnly(campaignUrn)) {
@@ -165,7 +144,6 @@ public class SurveyResponseReadValidator extends AbstractHttpServletRequestValid
 		   || greaterThanLength("endDate", "end_date", endDate, 10)                            // enforce "yyyy-mm-dd" length                                                 
 		   || greaterThanLength("campaignUrn", "campaign_urn", campaignUrn, 250)               // enforce the db column length  
 		   || greaterThanLength("client", "client", client, 250)	                           // enforce the db column length	   
-		   || greaterThanLength("authToken", "auth token", token, 36)                      	   // enforce the length of a UUID
 		   || greaterThanLength("users", "user_list", users, 150)                              // allows up to 10 users
 		   || greaterThanLength("promptIdList", "prompt_id_list", promptIds, 2500)             // arbitrary, but longer than this would be abnormal
 		   || greaterThanLength("surveyIdlist", "survey_id_list", surveyIds, 2500)             // arbitrary, but longer than this would be abnormal 
@@ -180,6 +158,17 @@ public class SurveyResponseReadValidator extends AbstractHttpServletRequestValid
 			
 			_logger.warn("found an input parameter that exceeds its allowed length");
 			return false;
+		}
+		
+		// Get the authentication / session token from the header.
+		List<String> tokens = CookieUtils.getCookieValue(httpRequest.getCookies(), InputKeys.AUTH_TOKEN);
+		if(tokens.size() == 0) {
+			if(httpRequest.getParameter(InputKeys.AUTH_TOKEN) == null) {
+				throw new MissingAuthTokenException("The required authentication / session token is missing.");
+			}
+		}
+		else if(tokens.size() > 1) {
+			throw new MissingAuthTokenException("More than one authentication / session token was found in the request.");
 		}
 		
 		return true;

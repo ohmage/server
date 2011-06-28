@@ -29,31 +29,21 @@ public class ClassDeletionValidator extends AbstractHttpServletRequestValidator 
 	 */
 	@Override
 	public boolean validate(HttpServletRequest httpRequest) throws MissingAuthTokenException {
+		String classUrn = httpRequest.getParameter(InputKeys.CLASS_URN);
+
+		if(StringUtils.isEmptyOrWhitespaceOnly(classUrn)) {
+			_logger.warn("Missing required key: " + InputKeys.CLASS_URN);
+			return false;
+		}
+		
 		// Get the authentication / session token from the header.
-		String token;
 		List<String> tokens = CookieUtils.getCookieValue(httpRequest.getCookies(), InputKeys.AUTH_TOKEN);
 		if(tokens.size() == 0) {
-			token = httpRequest.getParameter(InputKeys.AUTH_TOKEN);
-			
-			if(token == null) {
+			if(httpRequest.getParameter(InputKeys.AUTH_TOKEN) == null) {
 				throw new MissingAuthTokenException("The required authentication / session token is missing.");
 			}		}
 		else if(tokens.size() > 1) {
 			throw new MissingAuthTokenException("More than one authentication / session token was found in the request.");
-		}
-		else {
-			token = tokens.get(0);
-		}
-		
-		String classUrn = httpRequest.getParameter(InputKeys.CLASS_URN);
-
-		if(StringUtils.isEmptyOrWhitespaceOnly(token)) {
-			_logger.warn("Missing required key: " + InputKeys.AUTH_TOKEN);
-			return false;
-		}
-		else if(StringUtils.isEmptyOrWhitespaceOnly(classUrn)) {
-			_logger.warn("Missing required key: " + InputKeys.CLASS_URN);
-			return false;
 		}
 		
 		return true;

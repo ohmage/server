@@ -27,32 +27,22 @@ public class UserDeletionValidator extends AbstractHttpServletRequestValidator {
 	 */
 	@Override
 	public boolean validate(HttpServletRequest httpRequest) throws MissingAuthTokenException {
+		String userList = httpRequest.getParameter(InputKeys.USER_LIST);
+		
+		if(StringUtils.isEmptyOrWhitespaceOnly(userList)) {
+			_logger.info("Required parameter is missing or invalid: " + InputKeys.USER_LIST);
+			return false;
+		}
+		
 		// Get the authentication / session token from the header.
-		String token;
 		List<String> tokens = CookieUtils.getCookieValue(httpRequest.getCookies(), InputKeys.AUTH_TOKEN);
 		if(tokens.size() == 0) {
-			token = httpRequest.getParameter(InputKeys.AUTH_TOKEN);
-			
-			if(token == null) {
+			if(httpRequest.getParameter(InputKeys.AUTH_TOKEN) == null) {
 				throw new MissingAuthTokenException("The required authentication / session token is missing.");
 			}
 		}
 		else if(tokens.size() > 1) {
 			throw new MissingAuthTokenException("More than one authentication / session token was found in the request.");
-		}
-		else {
-			token = tokens.get(0);
-		}
-		
-		String userList = httpRequest.getParameter(InputKeys.USER_LIST);
-		
-		if(StringUtils.isEmptyOrWhitespaceOnly(token)) {
-			_logger.info("Required parameter is missing or invalid: " + InputKeys.AUTH_TOKEN);
-			return false;
-		}
-		else if(StringUtils.isEmptyOrWhitespaceOnly(userList)) {
-			_logger.info("Required parameter is missing or invalid: " + InputKeys.USER_LIST);
-			return false;
 		}
 
 		return true;

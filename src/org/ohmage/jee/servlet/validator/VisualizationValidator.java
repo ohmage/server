@@ -26,32 +26,11 @@ public abstract class VisualizationValidator extends AbstractHttpServletRequestV
 	 */
 	@Override
 	public boolean validate(HttpServletRequest httpRequest) throws MissingAuthTokenException {
-		// Get the authentication / session token from the header.
-		String token;
-		List<String> tokens = CookieUtils.getCookieValue(httpRequest.getCookies(), InputKeys.AUTH_TOKEN);
-		if(tokens.size() == 0) {
-			token = httpRequest.getParameter(InputKeys.AUTH_TOKEN);
-			
-			if(token == null) {
-				throw new MissingAuthTokenException("The required authentication / session token is missing.");
-			}
-		}
-		else if(tokens.size() > 1) {
-			throw new MissingAuthTokenException("More than one authentication / session token was found in the request.");
-		}
-		else {
-			token = tokens.get(0);
-		}
-		
 		String width = httpRequest.getParameter(InputKeys.VISUALIZATION_WIDTH);
 		String height = httpRequest.getParameter(InputKeys.VISUALIZATION_HEIGHT);
 		String campaignId = httpRequest.getParameter(InputKeys.CAMPAIGN_URN);
 		
-		if((token == null) || (token.length() != 36)) {
-			_logger.warn("The token is missing or obviously invalid.");
-			return false;
-		}
-		else if(StringUtils.isEmptyOrWhitespaceOnly(width)) {
+		if(StringUtils.isEmptyOrWhitespaceOnly(width)) {
 			_logger.warn("Missing required parameter: " + InputKeys.VISUALIZATION_WIDTH);
 			return false;
 		}
@@ -62,6 +41,17 @@ public abstract class VisualizationValidator extends AbstractHttpServletRequestV
 		else if(StringUtils.isEmptyOrWhitespaceOnly(campaignId)) {
 			_logger.warn("Missing required parameter: " + InputKeys.CAMPAIGN_URN);
 			return false;
+		}
+		
+		// Get the authentication / session token from the header.
+		List<String> tokens = CookieUtils.getCookieValue(httpRequest.getCookies(), InputKeys.AUTH_TOKEN);
+		if(tokens.size() == 0) {
+			if(httpRequest.getParameter(InputKeys.AUTH_TOKEN) == null) {
+				throw new MissingAuthTokenException("The required authentication / session token is missing.");
+			}
+		}
+		else if(tokens.size() > 1) {
+			throw new MissingAuthTokenException("More than one authentication / session token was found in the request.");
 		}
 		
 		return true;

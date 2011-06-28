@@ -22,7 +22,6 @@ import javax.servlet.http.HttpServletRequest;
 import org.apache.log4j.Logger;
 import org.ohmage.request.InputKeys;
 import org.ohmage.util.CookieUtils;
-import org.ohmage.util.StringUtils;
 
 
 /**
@@ -48,33 +47,21 @@ public class UserReadValidator extends AbstractHttpServletRequestValidator {
 	 */
 	@Override
 	public boolean validate(HttpServletRequest httpRequest) throws MissingAuthTokenException {
+		String client = httpRequest.getParameter(InputKeys.CLIENT);
+		
+		if(client == null) {
+			return false;
+		}
+		
 		// Get the authentication / session token from the header.
-		String token;
 		List<String> tokens = CookieUtils.getCookieValue(httpRequest.getCookies(), InputKeys.AUTH_TOKEN);
 		if(tokens.size() == 0) {
-			token = httpRequest.getParameter(InputKeys.AUTH_TOKEN);
-			
-			if(token == null) {
+			if(httpRequest.getParameter(InputKeys.AUTH_TOKEN) == null) {
 				throw new MissingAuthTokenException("The required authentication / session token is missing.");
 			}
 		}
 		else if(tokens.size() > 1) {
 			throw new MissingAuthTokenException("More than one authentication / session token was found in the request.");
-		}
-		else {
-			token = tokens.get(0);
-		}
-		
-		String client = httpRequest.getParameter(InputKeys.CLIENT);
-		
-		if(StringUtils.isEmptyOrWhitespaceOnly(token)) {
-			throw new MissingAuthTokenException("The required authentication / session token is missing or invalid.");
-		}
-		else if(token.length() != 36) {
-			return false;
-		}
-		else if(client == null) {
-			return false;
 		}
 		
 		return true;

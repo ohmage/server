@@ -89,30 +89,10 @@ public class DocumentUpdateValidator extends AbstractHttpServletRequestValidator
 	 * 									 token is missing or invalid. 
 	 */
 	private boolean validateRegularRequest(HttpServletRequest httpRequest) throws MissingAuthTokenException {
-		// Get the authentication / session token from the header.
-		String token;
-		List<String> tokens = CookieUtils.getCookieValue(httpRequest.getCookies(), InputKeys.AUTH_TOKEN);
-		if(tokens.size() == 0) {
-			token = httpRequest.getParameter(InputKeys.AUTH_TOKEN);
-			
-			if(token == null) {
-				throw new MissingAuthTokenException("The required authentication / session token is missing.");
-			}
-		}
-		else if(tokens.size() > 1) {
-			throw new MissingAuthTokenException("More than one authentication / session token was found in the request.");
-		}
-		else {
-			token = tokens.get(0);
-		}
-		
 		String documentId = httpRequest.getParameter(InputKeys.DOCUMENT_ID);
 		String client = httpRequest.getParameter(InputKeys.CLIENT);
 		
-		if((token == null) || (token.length() != 36)) {
-			throw new MissingAuthTokenException("The required authentication / session token is missing or invalid.");
-		}
-		else if((documentId == null) || greaterThanLength(InputKeys.DOCUMENT_ID, InputKeys.DOCUMENT_ID, documentId, 255)) {
+		if((documentId == null) || greaterThanLength(InputKeys.DOCUMENT_ID, InputKeys.DOCUMENT_ID, documentId, 255)) {
 			return false;
 		}
 		else if(client == null) {
@@ -132,6 +112,23 @@ public class DocumentUpdateValidator extends AbstractHttpServletRequestValidator
 		try {
 			DocumentUpdateRequest request = new DocumentUpdateRequest(documentId, name, description, privacyState, null,
 					campaignRoleListAdd, campaignListRemove, classRoleListAdd, classListRemove, userRoleListAdd, userListRemove);
+			
+			// Get the authentication / session token from the header.
+			String token;
+			List<String> tokens = CookieUtils.getCookieValue(httpRequest.getCookies(), InputKeys.AUTH_TOKEN);
+			if(tokens.size() == 0) {
+				token = httpRequest.getParameter(InputKeys.AUTH_TOKEN);
+				
+				if(token == null) {
+					throw new MissingAuthTokenException("The required authentication / session token is missing.");
+				}
+			}
+			else if(tokens.size() > 1) {
+				throw new MissingAuthTokenException("More than one authentication / session token was found in the request.");
+			}
+			else {
+				token = tokens.get(0);
+			}
 			request.setUserToken(token);
 			
 			httpRequest.setAttribute("request", request);
@@ -158,21 +155,6 @@ public class DocumentUpdateValidator extends AbstractHttpServletRequestValidator
 	 * 									 token is not in the HTTP header. 
 	 */
 	private boolean validateMultipartRequest(HttpServletRequest httpRequest) throws MissingAuthTokenException {
-		// Get the authentication / session token from the header.
-		String token = null;
-		List<String> tokens = CookieUtils.getCookieValue(httpRequest.getCookies(), InputKeys.AUTH_TOKEN);
-		if(tokens.size() == 0) {
-			// This is the fix to get the authentication / session token to 
-			// work if the cookies aren't.
-			//throw new MissingAuthTokenException("The required authentication / session token is missing.");
-		}
-		else if(tokens.size() > 1) {
-			throw new MissingAuthTokenException("More than one authentication / session token was found in the request.");
-		}
-		else {
-			token = tokens.get(0);
-		}
-		
 		ServletFileUpload upload = new ServletFileUpload(_diskFileItemFactory);
 		upload.setHeaderEncoding("UTF-8");
 
@@ -197,6 +179,7 @@ public class DocumentUpdateValidator extends AbstractHttpServletRequestValidator
 		}
 		
 		int numberOfParameters = uploadedItems.size();
+		String token = null;
 		String documentId = null;
 		String name = null;
 		String description = null;
@@ -258,13 +241,23 @@ public class DocumentUpdateValidator extends AbstractHttpServletRequestValidator
 			}
 		}
 		
-		if(token == null) {
-			throw new MissingAuthTokenException("The required authentication / session token is missing.");
-		}
-		
 		try {
 			DocumentUpdateRequest request = new DocumentUpdateRequest(documentId, name, description, privacyState, document,
 					campaignRoleListAdd, campaignListRemove, classRoleListAdd, classListRemove, userRoleListAdd, userListRemove);
+			
+			// Get the authentication / session token from the header.
+			List<String> tokens = CookieUtils.getCookieValue(httpRequest.getCookies(), InputKeys.AUTH_TOKEN);
+			if(tokens.size() == 0) {
+				// This is the fix to get the authentication / session token to 
+				// work if the cookies aren't.
+				//throw new MissingAuthTokenException("The required authentication / session token is missing.");
+			}
+			else if(tokens.size() > 1) {
+				throw new MissingAuthTokenException("More than one authentication / session token was found in the request.");
+			}
+			else {
+				token = tokens.get(0);
+			}
 			request.setUserToken(token);
 			
 			httpRequest.setAttribute("request", request);

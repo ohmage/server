@@ -29,32 +29,22 @@ public class UserUpdateValidator extends AbstractHttpServletRequestValidator {
 	 */
 	@Override
 	public boolean validate(HttpServletRequest httpRequest) throws MissingAuthTokenException {
+		String user = httpRequest.getParameter(InputKeys.USER);
+		
+		if(StringUtils.isEmptyOrWhitespaceOnly(user)) {
+			_logger.info("Missing required parameter: " + InputKeys.USER);
+			return false;
+		}
+		
 		// Get the authentication / session token from the header.
-		String token;
 		List<String> tokens = CookieUtils.getCookieValue(httpRequest.getCookies(), InputKeys.AUTH_TOKEN);
 		if(tokens.size() == 0) {
-			token = httpRequest.getParameter(InputKeys.AUTH_TOKEN);
-			
-			if(token == null) {
+			if(httpRequest.getParameter(InputKeys.AUTH_TOKEN) == null) {
 				throw new MissingAuthTokenException("The required authentication / session token is missing.");
 			}
 		}
 		else if(tokens.size() > 1) {
 			throw new MissingAuthTokenException("More than one authentication / session token was found in the request.");
-		}
-		else {
-			token = tokens.get(0);
-		}
-		
-		String user = httpRequest.getParameter(InputKeys.USER);
-		
-		if(StringUtils.isEmptyOrWhitespaceOnly(token)) {
-			_logger.info("Missing the user token.");
-			return false;
-		}
-		else if(StringUtils.isEmptyOrWhitespaceOnly(user)) {
-			_logger.info("Missing required parameter: " + InputKeys.USER);
-			return false;
 		}
 		
 		return true;
