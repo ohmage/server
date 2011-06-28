@@ -32,6 +32,11 @@ import org.ohmage.request.InputKeys;
 public class ClassListValidationDao extends AbstractDao {
 	private static Logger _logger = Logger.getLogger(ClassListValidationDao.class);
 	
+	private static final String SQL_GET_USER_IS_ADMIN =
+		"SELECT admin " +
+		"FROM user " +
+		"WHERE username = ?";
+	
 	private static final String SQL_CLASS_COUNT = "SELECT EXISTS(" +
 												  	"SELECT * " +
 												  	"FROM class " +
@@ -84,9 +89,21 @@ public class ClassListValidationDao extends AbstractDao {
 			}
 		}
 		
+		// Check if the user is an admin.
+		final boolean admin;
+		String username = awRequest.getUser().getUserName();
+		try {
+			// If the user is an admin, return.
+			admin = (Boolean) getJdbcTemplate().queryForObject(SQL_GET_USER_IS_ADMIN, new Object[] { username }, Boolean.class);
+		}
+		catch(org.springframework.dao.DataAccessException e) {
+			_logger.error("Error executing SQL '" + SQL_GET_USER_IS_ADMIN + "' with parameter: " + username, e);
+			throw new DataAccessException(e);
+		}
+		
 		// For each class in the list,
 		String[] classes = classesAsString.split(InputKeys.LIST_ITEM_SEPARATOR);
-		String userLogin = awRequest.getUser().getUserName();
+		
 		for(int i = 0; i < classes.length; i++) {
 			// Ensure that the class exists.
 			try {
@@ -101,17 +118,19 @@ public class ClassListValidationDao extends AbstractDao {
 				throw new DataAccessException(dae);
 			}
 			
-			// Ensure that the user is in the class.
-			try {
-				if(getJdbcTemplate().queryForInt(SQL_USER_IN_CLASS, new Object [] { classes[i], userLogin }) == 0) {
-					_logger.error("User does not belong to this class: " + classes[i]);
-					awRequest.setFailedRequest(true);
-					return;
+			// If they aren't an admin, ensure that they are in the class.
+			if(! admin) {
+				try {
+					if(getJdbcTemplate().queryForInt(SQL_USER_IN_CLASS, new Object [] { classes[i], username }) == 0) {
+						_logger.error("User does not belong to this class: " + classes[i]);
+						awRequest.setFailedRequest(true);
+						return;
+					}
 				}
-			}
-			catch(org.springframework.dao.DataAccessException dae) {
-				_logger.error("Error executing SQL '" + SQL_USER_IN_CLASS + "' with parameters: " + classes[i] + ", " + userLogin, dae);
-				throw new DataAccessException(dae);
+				catch(org.springframework.dao.DataAccessException dae) {
+					_logger.error("Error executing SQL '" + SQL_USER_IN_CLASS + "' with parameters: " + classes[i] + ", " + username, dae);
+					throw new DataAccessException(dae);
+				}
 			}
 		}
 	}

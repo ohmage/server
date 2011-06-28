@@ -1,11 +1,14 @@
 package org.ohmage.service;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
+import java.net.InetAddress;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
+import java.net.UnknownHostException;
 
 import org.apache.log4j.Logger;
 import org.ohmage.cache.CacheMissException;
@@ -99,9 +102,20 @@ public class VizScatterPlotService extends AbstractAnnotatingService {
 		}
 		urlBuilder.append("scatterplot?");
 		
+		// Get this machine's hostname.
+		String hostname;
+		try {
+			hostname = InetAddress.getLocalHost().getHostName();
+		}
+		catch(UnknownHostException e) {
+			getAnnotator().annotate(awRequest, "The sky is falling! Oh, and our hostname is unknown.");
+			awRequest.setFailedRequest(true);
+			return;
+		}
+		
 		// Add the required parameters.
 		urlBuilder.append("token='").append(awRequest.getUserToken()).append("'");
-		urlBuilder.append("&server='").append("http://131.179.144.217/app").append("'");
+		urlBuilder.append("&server='").append("http://").append(hostname).append("/app").append("'");
 		urlBuilder.append("&campaign_urn='").append(campaignId).append("'");
 		urlBuilder.append("&prompt_id='").append(promptId).append("'");
 		urlBuilder.append("&prompt2_id='").append(prompt2Id).append("'");
@@ -125,15 +139,15 @@ public class VizScatterPlotService extends AbstractAnnotatingService {
 			// Build the response.
 			InputStream reader = urlConnection.getInputStream();
 			
-			StringBuilder builder = new StringBuilder();
+			ByteArrayOutputStream byteArrayStream = new ByteArrayOutputStream();
 			byte[] chunk = new byte[4096];
 			int amountRead = 0;
 			while((amountRead = reader.read(chunk)) != -1) {
-				builder.append(new String(chunk), 0, amountRead);
+				byteArrayStream.write(chunk, 0, amountRead);
 			}
 			
 			// Set the response in the request.
-			awRequest.addToReturn(VisualizationRequest.VISUALIZATION_REQUEST_RESULT, builder.toString(), true);
+			awRequest.addToReturn(VisualizationRequest.VISUALIZATION_REQUEST_RESULT, byteArrayStream.toByteArray(), true);
 		}
 		catch(MalformedURLException e) {
 			_logger.error("Built a malformed URL: " + urlString);

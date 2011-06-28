@@ -81,7 +81,7 @@
       <value>Problem with class in list.</value>
     </constructor-arg>
     <constructor-arg>
-      <value>Validating the class list for this campaign creation request.</value>
+      <value>Validating that the classes in the class list exist.</value>
     </constructor-arg>
   </bean>
   

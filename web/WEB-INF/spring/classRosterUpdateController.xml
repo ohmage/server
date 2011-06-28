@@ -1,0 +1,78 @@
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:util="http://www.springframework.org/schema/util"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
+                           http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-2.5.xsd">
+
+  <!-- Basic HTTP Validation -->
+  <bean id="classRosterUpdateHttpServletRequestValidator" class="org.ohmage.jee.servlet.validator.ClassRosterUpdateValidator">
+    <!-- Read the XML file. -->
+    <constructor-arg index="0"><ref bean="diskItemFileFactory" /></constructor-arg>
+    <!-- The maximum size in bytes of a request's file attachment. -->
+    <constructor-arg index="1"><value>104857600</value></constructor-arg>
+  </bean>
+  
+  <!-- Create the AwRequest Object -->
+  <bean id="classRosterUpdateAwRequestCreator" class="org.ohmage.jee.servlet.glue.ClassRosterUpdateRequestCreator" />
+  
+  <!-- Write the Response -->
+  <bean id="classRosterUpdateResponseWriter" class="org.ohmage.jee.servlet.writer.ClassRosterUpdateResponseWriter">
+    <constructor-arg index="0">
+      <bean class="org.ohmage.domain.ErrorResponse">
+        <property name="code" value="1200" />
+        <property name="text" value="Unknown error while attempting to update the class via a roster." />
+      </bean>
+    </constructor-arg>
+  </bean>
+  
+  <!-- The controller that validates and executes the request. -->
+  <bean id="classRosterUpdateController" class="org.ohmage.controller.ControllerImpl">
+    <constructor-arg index="0">
+      <!-- Services List (expected to be executed in-order) -->
+      <list>
+        <!-- Authenticate that the token the user is using is a valid token. -->
+        <ref bean="tokenBasedAuthenticationService" />
+
+        <!-- Validate that all of the classes in the roster exist. -->
+        <ref bean="classesInRosterExistRequiredService" />
+        
+        <!-- Ensure that the user is an admin or privileged in each of the classes. -->
+        <ref bean="userIsAdminOrPrivilegedInClassesInRosterService" />
+        
+        <!-- Validate that all of the users in the roster exist. -->
+        <ref bean="usersInRosterExistRequiredService" />
+        
+        <!-- Add the class. -->
+        <ref bean="classRosterUpdateService" />
+      </list>
+    </constructor-arg>
+    <constructor-arg index="1">
+      <!-- The annotator for when something fails after validation but before the writer. -->
+      <ref bean="serverErrorRequestAnnotator" />
+    </constructor-arg>
+    <property name="validators">
+      <!-- Validates the individual items in the request. -->
+      <list>
+        <ref bean="userTokenValidator" />
+        
+        <!-- Validate that the roster is not malformed and that the class roles are valid. -->
+        <ref bean="classRosterRequiredValidator" />
+      </list>
+    </property>
+    <property name="featureName">
+      <value>class roster update</value>
+    </property>
+  </bean>
+  
+  <!-- The service that adds the users to the class. -->
+  <bean id="classRosterUpdateService" class="org.ohmage.service.SimpleQueryService">
+    <constructor-arg>
+      <bean class="org.ohmage.dao.ClassRosterUpdateDao">
+        <constructor-arg index="0">
+          <ref bean="dataSource"/>
+        </constructor-arg>
+      </bean>
+    </constructor-arg>
+  </bean>
+
+</beans>
