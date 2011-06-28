@@ -1,5 +1,6 @@
 <beans xmlns="http://www.springframework.org/schema/beans"
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:util="http://www.springframework.org/schema/util"
        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
                            http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-2.5.xsd">
   <!--  
@@ -46,10 +47,30 @@
     <property name="validators">
       <list>
         <ref bean="userTokenValidator" />
+        <ref bean="imageIdRequiredValidator" />
         <ref bean="imageSizeValidator" />
       </list>      
     </property>
     <property name="featureName"><value>image read</value></property>
+  </bean>
+  
+  <bean id="imageIdRequiredValidator" class="org.ohmage.validator.UuidValidator">
+    <constructor-arg>
+      <bean class="org.ohmage.validator.json.FailedJsonRequestAnnotator">
+        <constructor-arg>
+          <bean class="org.ohmage.domain.ErrorResponse">
+            <property name="code" value="0903" />
+            <property name="text" value="Image id is not a valid UUID." />
+          </bean>
+        </constructor-arg>
+      </bean>
+    </constructor-arg>
+    <constructor-arg>
+      <util:constant static-field="org.ohmage.request.InputKeys.IMAGE_QUERY_ID"/>
+    </constructor-arg>
+    <constructor-arg>
+      <value>true</value>
+    </constructor-arg>
   </bean>
   
   <bean id="imageSizeValidator" class="org.ohmage.validator.StringAllowedValuesValidator">
