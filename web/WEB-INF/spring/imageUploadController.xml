@@ -65,7 +65,7 @@
     <constructor-arg index="0"><ref bean="imageUploadDao" /></constructor-arg>
   </bean> 
   
-  <bean id ="imageUploadDao" class="org.ohmage.dao.UrlBasedResourceDao">
+  <bean id ="imageUploadDao" class="org.ohmage.dao.ImageUploadDao">
     <constructor-arg index="0"><ref bean="dataSource" /></constructor-arg> <!-- database access -->
     <constructor-arg index="1" value="${system.imageDir}"/> <!-- root directory for storage -->
     <constructor-arg index="2" value=".jpg" /> <!-- file extension -->

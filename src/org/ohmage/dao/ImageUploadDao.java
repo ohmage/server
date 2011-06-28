@@ -48,15 +48,16 @@ import org.springframework.transaction.support.DefaultTransactionDefinition;
 
 
 /**
- * DAO for saving a media resource to the filesystem and inserting a row in the url_based_resource table that contains a URL to the 
- * resource.
+ * DAO for saving an image to the filesystem, saving a thumbnail version of that image, finally, inserting a row into
+ * url_based_resource that contains a URL to the (full-size) image. Thumbnails are named by adding a "-s" before the file 
+ * extension.
  * 
  * When this class creates directories, it relies on the OS for correct permissions' set up.
  * 
  * @author Joshua Selsky
  */
-public class UrlBasedResourceDao extends AbstractUploadDao {
-	private static Logger _logger = Logger.getLogger(UrlBasedResourceDao.class);
+public class ImageUploadDao extends AbstractUploadDao {
+	private static Logger _logger = Logger.getLogger(ImageUploadDao.class);
 	
 	private Object lock = new Object();
 	
@@ -74,19 +75,18 @@ public class UrlBasedResourceDao extends AbstractUploadDao {
 	private NumberFileNameFilter _numberFileNameFilter;
 	private DirectoryFilter _directoryFilter;
 	
+	private static final int SCALED_HEIGHT = 150;
+	private static final int SCALED_WIDTH = 150;
+	
 	private static final String _insertSql = "insert into url_based_resource (user_id, uuid, url, client) values (?,?,?,?)";
 	
 	/**
 	 * Creates an instance that uses the provided DataSource for database access; rootDirectory as the root for filesystem
 	 * storage; fileExtension for naming saved files with the appropriate extension; maxNumberOfDirs for the maximum number of
 	 * storage subdirectories; and maxNumberOfFiles for the maximum number of files per directory. The rootDirectory is used to 
-	 * create the initial directory for storage e.g. rootDirectory/000/000/000. 
-	 * 
-	 * Note: I believe the file extension may not be necessary here if we are
-	 * going to try to make this generic to all URL-based resources. Instead,
-	 * I would simply save the file without an extension and only as a number.
+	 * create the initial directory for storage e.g. rootDirectory/000/000/000.
 	 */
-	public UrlBasedResourceDao(DataSource dataSource, String rootDirectory, String fileExtension, 
+	public ImageUploadDao(DataSource dataSource, String rootDirectory, String fileExtension, 
 			int maxNumberOfDirs, int maxNumberOfFiles) {
 		
 		super(dataSource);
@@ -205,14 +205,14 @@ public class UrlBasedResourceDao extends AbstractUploadDao {
 					throw new IOException("could not convert " + url + " to a buffered image");
 				}
 				
-				int scaledWidth = originalImage.getWidth() / 4;
-				int scaledHeight = originalImage.getHeight() / 4;
-				BufferedImage scaledImage = new BufferedImage(scaledWidth, scaledHeight, originalImage.getType());
+//				int scaledWidth = originalImage.getWidth() / 4;
+//				int scaledHeight = originalImage.getHeight() / 4;
+				BufferedImage scaledImage = new BufferedImage(SCALED_WIDTH, SCALED_HEIGHT, originalImage.getType());
 
 				// this is slighty counter-intuitive: you have to use the Graphics2D object to "draw" the image even though
 				// it is only being saved to the filesystem
 				Graphics2D g = scaledImage.createGraphics();
-				g.drawImage(originalImage, 0, 0, scaledWidth, scaledHeight, null);
+				g.drawImage(originalImage, 0, 0, SCALED_WIDTH, SCALED_HEIGHT, null);
 				g.dispose();
 				
 				File thumb = new File(new URI(thumbUrl));

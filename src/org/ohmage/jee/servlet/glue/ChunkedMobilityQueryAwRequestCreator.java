@@ -42,7 +42,6 @@ public class ChunkedMobilityQueryAwRequestCreator implements AwRequestCreator {
 
 		String startDate = httpRequest.getParameter("start_date");
 		String endDate = httpRequest.getParameter("end_date");
-		String userNameRequestParam = httpRequest.getParameter("user");
 		String client = httpRequest.getParameter("client");
 		String token;
 		try {
@@ -55,7 +54,6 @@ public class ChunkedMobilityQueryAwRequestCreator implements AwRequestCreator {
 		MobilityQueryAwRequest awRequest = new MobilityQueryAwRequest();
 		awRequest.setStartDate(startDate);
 		awRequest.setEndDate(endDate);
-		awRequest.setUserNameRequestParam(userNameRequestParam);
 		awRequest.setUserToken(token);
 		awRequest.setClient(client);
 		

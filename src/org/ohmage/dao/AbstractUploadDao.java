@@ -28,7 +28,7 @@ import org.ohmage.request.AwRequest;
 /**
  * Abstract base class for DAOs that handle the upload feature. Handling duplicates is common across uploads so it is shared here.
  * 
- * @author selsky
+ * @author Joshua Selsky
  */
 public abstract class AbstractUploadDao extends AbstractDao {
 	

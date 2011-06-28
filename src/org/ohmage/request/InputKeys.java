@@ -68,6 +68,10 @@ public class InputKeys {
 	public static final String SURVEY_FUNCTION_ID = "id"; // This should probably be more descriptive.
 	public static final String SURVEY_KEY = "survey_key";
 	
+	// Image Query Constants
+	public static final String IMAGE_QUERY_ID = "id"; // This should probably be more descriptive.
+	public static final String IMAGE_QUERY_SIZE = "size"; // This should probably be more descriptive.
+	
 	// Prompt Constants
 	public static final String PROMPT_ID = "prompt_id";
 	public static final String PROMPT2_ID = "prompt2_id";

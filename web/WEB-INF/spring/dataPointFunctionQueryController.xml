@@ -37,10 +37,17 @@
     <constructor-arg index="0">
       <list>
         <ref bean="tokenBasedAuthenticationService" />
+        
+        <!-- find the campaigns for the logged-in user -->
         <ref bean="userRoleCampaignPopulationService" />
+        
+        <!-- authorize -->
         <ref bean="userCampaignValidationService" />
-        <ref bean="userRoleCheckService" />
         <ref bean="campaignUserCheckService" />
+        <ref bean="participantUserParamValidationService" />
+        <ref bean="readOperationCampaignRunningStateValidationService" />
+        <ref bean="readOperationCampaignPrivacyStateValidationService" />
+        
         <ref bean="dataPointFunctionQueryService" />
       </list>
     </constructor-arg>

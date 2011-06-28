@@ -16,8 +16,7 @@
   <bean id="chunkedMobilityDataPointQueryController" class="org.ohmage.controller.ControllerImpl">
     <constructor-arg index="0">
       <list>
-        <ref bean="tokenBasedAuthenticationService" />
-        <ref bean="mobilityQueryUserCheckService" />
+        <ref bean="tokenOrUserPasswordAuthenticationService" />
         <ref bean="chunkedMobilityQueryService" />
      </list>
     </constructor-arg>
