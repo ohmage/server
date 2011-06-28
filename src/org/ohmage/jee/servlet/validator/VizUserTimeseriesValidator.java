@@ -35,14 +35,14 @@ public class VizUserTimeseriesValidator extends VisualizationValidator {
 		}
 		
 		String promptId = httpRequest.getParameter(InputKeys.PROMPT_ID);
-		String userId = httpRequest.getParameter(InputKeys.USER_ID);
+		String userId = httpRequest.getParameter(InputKeys.USER);
 		
 		if(StringUtils.isEmptyOrWhitespaceOnly(promptId)) {
 			_logger.warn("Missing required parameter: " + InputKeys.PROMPT_ID);
 			return false;
 		}
 		else if(StringUtils.isEmptyOrWhitespaceOnly(userId)) {
-			_logger.warn("Missing required parameter: " + InputKeys.USER_ID);
+			_logger.warn("Missing required parameter: " + InputKeys.USER);
 			return false;
 		}
 		

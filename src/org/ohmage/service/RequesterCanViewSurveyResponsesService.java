@@ -38,7 +38,7 @@ public class RequesterCanViewSurveyResponsesService extends AbstractAnnotatingDa
 	public void execute(AwRequest awRequest) {
 		_logger.info("Checking that the user has the required roles in the parameterized campaign.");
 		
-		if(awRequest.getUser().getUserName().equals(awRequest.getToProcessValue(InputKeys.USER_ID))) {
+		if(awRequest.getUser().getUserName().equals(awRequest.getToProcessValue(InputKeys.USER))) {
 			return;
 		}
 		
