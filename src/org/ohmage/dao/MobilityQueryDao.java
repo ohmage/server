@@ -28,11 +28,10 @@ import org.ohmage.request.AwRequest;
 import org.ohmage.request.MobilityQueryAwRequest;
 import org.springframework.jdbc.core.RowMapper;
 
-
 /**
- * Queries the db for one day's worth of mobility data. 
+ * Queries the db for one day's worth of mobility data for the logged-in User
  * 
- * @author selsky
+ * @author Joshua Selsky
  */
 public class MobilityQueryDao extends AbstractDao {
 	private static Logger _logger = Logger.getLogger(MobilityQueryDao.class);
@@ -63,7 +62,7 @@ public class MobilityQueryDao extends AbstractDao {
 			MobilityQueryAwRequest req = (MobilityQueryAwRequest) awRequest;
 			
 			List<Object> params = new ArrayList<Object>();
-			params.add(req.getUserNameRequestParam());
+			params.add(req.getUser().getUserName());
 			params.add(req.getStartDate());
 			
 			List<?> results = getJdbcTemplate().query(_modeOnlySql, params.toArray(), 

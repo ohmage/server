@@ -30,14 +30,14 @@ import org.ohmage.util.CookieUtils;
 /**
  * Validator for inbound data to the mobility query.
  * 
- * @author selsky
+ * @author Joshua Selsky
  */
 public class MobilityQueryValidator extends AbstractHttpServletRequestValidator {
 	private static Logger _logger = Logger.getLogger(MobilityQueryValidator.class);
 	private List<String> _parameterList;
 	
 	public MobilityQueryValidator() {
-		_parameterList = new ArrayList<String>(Arrays.asList(new String[]{"date","user","client"}));
+		_parameterList = new ArrayList<String>(Arrays.asList(new String[]{"auth_token", "date","client"}));
 	}
 	
 	public boolean validate(HttpServletRequest httpRequest) throws MissingAuthTokenException {
@@ -85,14 +85,12 @@ public class MobilityQueryValidator extends AbstractHttpServletRequestValidator 
 		}
 		
 		String date = (String) httpRequest.getParameter("date");
-		String user = (String) httpRequest.getParameter("user");
 		String client = (String) httpRequest.getParameter("client");
 		
 		// Check for abnormal lengths (buffer overflow attack)
 		
 		if(greaterThanLength("date", "date", date, 10) 
 		   || greaterThanLength("client", "client",client, 250)
-		   || greaterThanLength("user", "user", user, 15)
 		   || greaterThanLength("authToken", "auth_token", token, 36)) {
 			
 			_logger.warn("found an input parameter that exceeds its allowed length");

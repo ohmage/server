@@ -60,7 +60,7 @@ public class MobilityDateRangeQueryDao extends AbstractDao {
 			MobilityQueryAwRequest req = (MobilityQueryAwRequest) awRequest;
 			
 			List<Object> params = new ArrayList<Object>();
-			params.add(req.getUserNameRequestParam());
+			params.add(req.getUser().getUserName());
 			params.add(req.getStartDate());
 			params.add(req.getEndDate());
 			

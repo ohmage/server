@@ -20,8 +20,7 @@
   <bean id="mobilityDataPointQueryController" class="org.ohmage.controller.ControllerImpl">
     <constructor-arg index="0">
       <list>
-        <ref bean="tokenBasedAuthenticationService" />
-        <ref bean="mobilityQueryUserCheckService" />
+        <ref bean="tokenOrUserPasswordAuthenticationService" />
         <ref bean="mobilityQueryService" />
      </list>
     </constructor-arg>
@@ -35,31 +34,6 @@
       </list>      
     </property>
     <property name="featureName"><value>mobility query</value></property>
-  </bean>
-    
-  <bean id="mobilityQueryUserCheckService" class="org.ohmage.service.MobilityQueryUserCheckService">
-   <constructor-arg index="0">
-      <bean class="org.ohmage.validator.json.FailedJsonRequestAnnotator">
-        <constructor-arg index="0">
-          <bean class="org.ohmage.domain.ErrorResponse">
-            <property name="code" value="1000" />
-            <property name="text" value="invalid user in query" />
-          </bean>
-        </constructor-arg>
-      </bean>
-    </constructor-arg>
-    <constructor-arg index="1">
-      <bean class="org.ohmage.dao.FindAllAdminCampaignsForUserDao">
-        <constructor-arg index="0"><ref bean="dataSource"/></constructor-arg>
-        <constructor-arg index="1"><value>true</value></constructor-arg>
-      </bean>
-    </constructor-arg>
-     <constructor-arg index="2">
-      <bean class="org.ohmage.dao.FindAllCampaignsForUserDao">
-        <constructor-arg index="0"><ref bean="dataSource"/></constructor-arg>
-        <constructor-arg index="1"><value>false</value></constructor-arg>
-      </bean>
-    </constructor-arg>
   </bean>
   
   <bean id="mobilityQueryService" class="org.ohmage.service.SimpleQueryService">

@@ -33,11 +33,11 @@ import org.ohmage.util.CookieUtils;
  * @author selsky
  */
 public class ChunkedMobilityQueryValidator extends AbstractHttpServletRequestValidator {
-	private static Logger _logger = Logger.getLogger(MobilityQueryValidator.class);
+	private static Logger _logger = Logger.getLogger(ChunkedMobilityQueryValidator.class);
 	private List<String> _parameterList;
 	
 	public ChunkedMobilityQueryValidator() {
-		_parameterList = new ArrayList<String>(Arrays.asList(new String[]{"end_date","start_date","user","client"}));
+		_parameterList = new ArrayList<String>(Arrays.asList(new String[]{"auth_token","end_date","start_date","client"}));
 	}
 	
 	public boolean validate(HttpServletRequest httpRequest) throws MissingAuthTokenException {
@@ -80,15 +80,13 @@ public class ChunkedMobilityQueryValidator extends AbstractHttpServletRequestVal
 		
 		String startDate = (String) httpRequest.getParameter("start_date");
 		String endDate = (String) httpRequest.getParameter("end_date");
-		String user = (String) httpRequest.getParameter("user");
 		String client = (String) httpRequest.getParameter("client");
 		
 		// Check for abnormal lengths (buffer overflow attack)
 		
 		if(greaterThanLength("startDate", "start_date", startDate, 10) 
 		   || greaterThanLength("endDate", "end_date", endDate, 10)		
-		   || greaterThanLength("client", "client",client, 250)
-		   || greaterThanLength("userName", "user", user, 15)) {
+		   || greaterThanLength("client", "client",client, 250)) {
 			
 			_logger.warn("found an input parameter that exceeds its allowed length");
 			return false;
