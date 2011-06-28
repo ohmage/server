@@ -79,7 +79,7 @@
     <servlet-name>ConfigReadServlet</servlet-name>
     <url-pattern>/config/read</url-pattern>
   </servlet-mapping>
-  
+
   <!-- Create Users -->
   <servlet>
     <description>
