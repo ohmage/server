@@ -56,7 +56,10 @@ public class ImageQueryAwRequestCreator implements AwRequestCreator {
 		awRequest.setClient(client);
 		awRequest.setCampaignUrn(campaignUrn);
 		awRequest.setMediaId(imageId);
-		awRequest.addToValidate("size", size, false);
+		
+		awRequest.addToValidate(InputKeys.IMAGE_QUERY_ID, imageId, true);
+		awRequest.addToValidate(InputKeys.IMAGE_QUERY_SIZE, size, true);
+		awRequest.addToValidate(InputKeys.USER, userNameRequestParam, true);
 		
         NDC.push("client=" + client); // push the client string into the Log4J NDC for the currently executing thread - this means that 
                                       // it will be in every log message for the thread

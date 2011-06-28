@@ -81,7 +81,7 @@ public class UuidValidator extends AbstractAnnotatingValidator {
 			UUID.fromString(uuid);
 		}
 		catch(IllegalArgumentException e) {
-			_logger.info("The given UUID isn't a valid UUID.");
+			getAnnotator().annotate(awRequest, "The given UUID isn't a valid UUID.");
 			return false;
 		}
 		
