@@ -41,7 +41,6 @@ public class MobilityQueryAwRequestCreator implements AwRequestCreator {
 	public AwRequest createFrom(HttpServletRequest httpRequest) {
 
 		String date = httpRequest.getParameter("date");
-		String userNameRequestParam = httpRequest.getParameter("user");
 		String client = httpRequest.getParameter("client");
 		String token;
 		try {
@@ -54,7 +53,6 @@ public class MobilityQueryAwRequestCreator implements AwRequestCreator {
 		
 		MobilityQueryAwRequest awRequest = new MobilityQueryAwRequest();
 		awRequest.setStartDate(date);
-		awRequest.setUserNameRequestParam(userNameRequestParam);
 		awRequest.setUserToken(token);
 		awRequest.setClient(client);
 		

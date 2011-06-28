@@ -33,7 +33,9 @@ import org.ohmage.request.AwRequest;
 
 
 /**
- * @author selsky
+ * Service for placing mobility query results into 10 minute buckets.
+ * 
+ * @author Joshua Selsky
  */
 public class ChunkedMobilityQueryService extends AbstractDaoService {
 	private static Logger _logger = Logger.getLogger(ChunkedMobilityQueryService.class);
@@ -64,7 +66,7 @@ public class ChunkedMobilityQueryService extends AbstractDaoService {
 		List<MobilityQueryResult> results = (List<MobilityQueryResult>) awRequest.getResultList();
 		List<ChunkedMobilityQueryResult> chunkedResults = new ArrayList<ChunkedMobilityQueryResult>();
 		
-		// TODO - make this more efficient and less brute force
+
 		// TODO - make this class timezone-aware in its date calculations/comparisons - currently it assumes all data is in 
 		// the same timezone as the running JVM and it also assumes that the data is all in the same timezone
 		
