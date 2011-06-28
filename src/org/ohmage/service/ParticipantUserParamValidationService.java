@@ -53,7 +53,14 @@ public class ParticipantUserParamValidationService extends AbstractAnnotatingSer
 		}
 		
 		if(rolesInCampaign.size() == 1 && CampaignRoleCache.ROLE_PARTICIPANT.equals(rolesInCampaign.get(0).getRole())) {
-			String userString = awRequest.getUserNameRequestParam();
+			String userString = null;
+			
+			try {
+				userString = awRequest.getUserNameRequestParam();
+			}
+			catch(UnsupportedOperationException e) {
+				// Ignore.
+			}
 			
 			if(userString == null) {
 				try {
