@@ -214,7 +214,7 @@
       <bean class="org.ohmage.validator.json.FailedJsonRequestAnnotator">
         <constructor-arg index="0">
           <bean class="org.ohmage.domain.ErrorResponse">
-            <property name="code" value="0704" />
+            <property name="code" value="0722" />
             <property name="text" value="invalid prompt id in query" />
           </bean>
         </constructor-arg>
