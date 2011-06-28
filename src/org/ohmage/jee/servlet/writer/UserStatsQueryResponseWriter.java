@@ -143,5 +143,4 @@ public class UserStatsQueryResponseWriter extends AbstractResponseWriter {
 			}
 		}
 	}
-
 }
