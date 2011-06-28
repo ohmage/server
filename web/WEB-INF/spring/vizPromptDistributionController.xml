@@ -28,8 +28,9 @@
         <!-- Authenticate that the token the user is using is a valid token. -->
         <ref bean="tokenBasedAuthenticationService" />
 
-        <!-- Send the request to the R-server. -->
-        <ref bean="campaignExistsService" />
+        <!-- Check that the user belongs to the campaign telling us it exists at the same time. -->
+        <ref bean="userRoleCampaignPopulationService" />
+        <ref bean="userBelongsToCampaignService" />
         
         <!-- Prompt exists in campaign. -->
         <ref bean="promptIdExistsService" />

@@ -48,6 +48,19 @@
     </constructor-arg>
   </bean>
   
+  <bean id="userBelongsToCampaignService" class="org.ohmage.service.UserBelongsToCampaignService">
+    <constructor-arg>
+      <bean class="org.ohmage.validator.json.FailedJsonRequestAnnotator">
+        <constructor-arg>
+          <bean class="org.ohmage.domain.ErrorResponse">
+            <property name="code" value="0819" />
+            <property name="text" value="The user doesn't belong to the campaign." />
+          </bean>
+        </constructor-arg>
+      </bean>
+    </constructor-arg>
+  </bean>
+  
   <bean id="newUsernameDoesNotExistService" class="org.ohmage.service.NewUsernameDoesNotExistService">
     <constructor-arg>
       <bean class="org.ohmage.validator.json.FailedJsonRequestAnnotator">

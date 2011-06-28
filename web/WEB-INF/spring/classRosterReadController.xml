@@ -1,0 +1,69 @@
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:util="http://www.springframework.org/schema/util"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
+                           http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-2.5.xsd">
+
+  <!-- Basic HTTP Validation -->
+  <bean id="classRosterReadHttpServletRequestValidator" class="org.ohmage.jee.servlet.validator.ClassRosterReadValidator" />
+  
+  <!-- Create the AwRequest Object -->
+  <bean id="classRosterReadAwRequestCreator" class="org.ohmage.jee.servlet.glue.ClassRosterReadRequestCreator" />
+  
+  <!-- Write the Response -->
+  <bean id="classRosterReadResponseWriter" class="org.ohmage.jee.servlet.writer.ClassRosterReadResponseWriter">
+    <constructor-arg index="0">
+      <bean class="org.ohmage.domain.ErrorResponse">
+        <property name="code" value="1200" />
+        <property name="text" value="Unknown error while attempting to create a class roster." />
+      </bean>
+    </constructor-arg>
+  </bean>
+  
+  <!-- Controller Definition -->
+  <bean id="classRosterReadController" class="org.ohmage.controller.ControllerImpl">
+    <constructor-arg index="0">
+      <!-- Services to validate and populate information. -->
+      <list>
+        <!-- Validate the user's token and populate the request. -->
+        <ref bean="tokenBasedAuthenticationService" />
+        
+        <!-- Validate that the classes in the list exist. -->
+        <ref bean="classListRequiredValidationService" />
+        
+        <!-- Requester is privileged in class. -->
+        <ref bean="userIsAdminOrPrivilegedInClassesInListService" />
+        
+        <!-- Perform update. -->
+        <ref bean="classRosterReadService" />
+      </list>
+    </constructor-arg>
+    <constructor-arg index="1">
+      <!-- The annotator for when something fails after validation but before the writer. -->
+      <ref bean="serverErrorRequestAnnotator" />
+    </constructor-arg>
+    <property name="validators">
+      <!-- Validates the individual items in the request. -->
+      <list>
+        <!-- Validate that the user's token is a valid token. -->
+        <ref bean="userTokenValidator" />
+        
+        <!-- Validate that the class's URNs are valid class URNs. -->
+        <ref bean="classListRequiredValidator" />
+      </list>
+    </property>
+    <property name="featureName"><value>class roster read</value></property>
+  </bean>
+  
+  <!-- The service that creates the class roster. -->
+  <bean id="classRosterReadService" class="org.ohmage.service.SimpleQueryService">
+    <constructor-arg>
+      <bean class="org.ohmage.dao.ClassRosterReadDao">
+        <constructor-arg index="0">
+          <ref bean="dataSource"/>
+        </constructor-arg>
+      </bean>
+    </constructor-arg>
+  </bean>
+  
+</beans>

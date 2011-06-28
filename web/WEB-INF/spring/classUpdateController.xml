@@ -220,6 +220,58 @@
     </constructor-arg>
   </bean>
   
+  <bean id="userIsAdminOrPrivilegedInClassesInListService" class="org.ohmage.service.GenericAnnotatingDaoService">
+    <constructor-arg index="0">
+      <bean class="org.ohmage.validator.json.FailedJsonRequestAnnotator">
+        <constructor-arg index="0">
+          <bean class="org.ohmage.domain.ErrorResponse">
+            <property name="code" value="0206" />
+            <property name="text" value="User does not have permissions to modify all of the classes in the roster." />
+          </bean>
+        </constructor-arg>
+      </bean>
+    </constructor-arg>
+    <constructor-arg index="1">
+      <bean class="org.ohmage.dao.UserIsAdminOrPrivilegedInClassesInListDao">
+        <constructor-arg index="0">
+          <ref bean="dataSource"/>
+        </constructor-arg>
+      </bean>
+    </constructor-arg>
+    <constructor-arg>
+      <value>The user isn't an admin and isn't privileged in all of the classes in the list.</value>
+    </constructor-arg>
+    <constructor-arg>
+      <value>Validating that the user is an admin or is privileged in all of the classes in the list.</value>
+    </constructor-arg>
+  </bean>
+  
+  <bean id="userIsAdminOrPrivilegedInClassesInRosterService" class="org.ohmage.service.GenericAnnotatingDaoService">
+    <constructor-arg index="0">
+      <bean class="org.ohmage.validator.json.FailedJsonRequestAnnotator">
+        <constructor-arg index="0">
+          <bean class="org.ohmage.domain.ErrorResponse">
+            <property name="code" value="0206" />
+            <property name="text" value="User does not have permissions to modify all of the classes in the roster." />
+          </bean>
+        </constructor-arg>
+      </bean>
+    </constructor-arg>
+    <constructor-arg index="1">
+      <bean class="org.ohmage.dao.UserIsAdminOrPrivilegedInClassesInRosterDao">
+        <constructor-arg index="0">
+          <ref bean="dataSource"/>
+        </constructor-arg>
+      </bean>
+    </constructor-arg>
+    <constructor-arg>
+      <value>The user isn't an admin and isn't privileged in all of the classes in the roster.</value>
+    </constructor-arg>
+    <constructor-arg>
+      <value>Validating that the user is an admin or is privileged in all of the classes in the roster.</value>
+    </constructor-arg>
+  </bean>
+  
   <bean id="usersInListExistServiceFromUserListAdd" class="org.ohmage.service.UsersInListExistService">
     <constructor-arg index="0">
       <bean class="org.ohmage.validator.json.FailedJsonRequestAnnotator">

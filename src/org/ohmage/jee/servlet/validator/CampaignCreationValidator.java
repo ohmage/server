@@ -161,5 +161,4 @@ public class CampaignCreationValidator extends AbstractHttpServletRequestValidat
 		
 		return true;
 	}
-
 }

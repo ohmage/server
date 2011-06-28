@@ -776,6 +776,36 @@
   <!-- Handle class updates -->
   <servlet>
     <description>
+      Returns the roster for a class.
+    </description>
+    <servlet-name>ClassRosterReadServlet</servlet-name>
+    <servlet-class>org.ohmage.jee.servlet.AwDataServlet</servlet-class>
+    <init-param>
+      <param-name>httpServletRequestValidatorName</param-name>
+      <param-value>classRosterReadHttpServletRequestValidator</param-value>
+    </init-param>
+    <init-param>
+      <param-name>awRequestCreatorName</param-name>
+      <param-value>classRosterReadAwRequestCreator</param-value>
+    </init-param>
+    <init-param>
+      <param-name>controllerName</param-name>
+      <param-value>classRosterReadController</param-value>
+    </init-param>
+    <init-param>
+      <param-name>responseWriterName</param-name>
+      <param-value>classRosterReadResponseWriter</param-value>
+    </init-param>
+    <load-on-startup>1</load-on-startup>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>ClassRosterReadServlet</servlet-name>
+    <url-pattern>/class/roster/read</url-pattern>
+  </servlet-mapping>
+  
+  <!-- Handle class updates -->
+  <servlet>
+    <description>
       Updates a class.
     </description>
     <servlet-name>ClassUpdateServlet</servlet-name>
@@ -801,6 +831,36 @@
   <servlet-mapping>
     <servlet-name>ClassUpdateServlet</servlet-name>
     <url-pattern>/class/update</url-pattern>
+  </servlet-mapping>
+  
+  <!-- Handle class updates -->
+  <servlet>
+    <description>
+      Updates a class via a roster.
+    </description>
+    <servlet-name>ClassRosterUpdateServlet</servlet-name>
+    <servlet-class>org.ohmage.jee.servlet.AwDataServlet</servlet-class>
+    <init-param>
+      <param-name>httpServletRequestValidatorName</param-name>
+      <param-value>classRosterUpdateHttpServletRequestValidator</param-value>
+    </init-param>
+    <init-param>
+      <param-name>awRequestCreatorName</param-name>
+      <param-value>classRosterUpdateAwRequestCreator</param-value>
+    </init-param>
+    <init-param>
+      <param-name>controllerName</param-name>
+      <param-value>classRosterUpdateController</param-value>
+    </init-param>
+    <init-param>
+      <param-name>responseWriterName</param-name>
+      <param-value>classRosterUpdateResponseWriter</param-value>
+    </init-param>
+    <load-on-startup>1</load-on-startup>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>ClassRosterUpdateServlet</servlet-name>
+    <url-pattern>/class/roster/update</url-pattern>
   </servlet-mapping>
   
   <!-- Handle class deletion -->

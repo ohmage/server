@@ -21,13 +21,13 @@ public class VizUserTimeseriesRequest extends VisualizationRequest {
 	 * @param promptId An ID for the prompt in the campaign whose results are
 	 * 				   desired.
 	 * 
-	 * @param userId The ID for the user from which the requester is attempting
-	 * 				 to generate information.
+	 * @param user The ID for the user from which the requester is attempting
+	 * 			   to generate information.
 	 */
-	public VizUserTimeseriesRequest(String token, String width, String height, String campaignId, String promptId, String userId) {
+	public VizUserTimeseriesRequest(String token, String width, String height, String campaignId, String promptId, String user) {
 		super(token, width, height, campaignId);
 		
 		addToProcess(InputKeys.PROMPT_ID, promptId, true);
-		addToProcess(InputKeys.USER_ID, userId, true);
+		addToProcess(InputKeys.USER, user, true);
 	}
 }
