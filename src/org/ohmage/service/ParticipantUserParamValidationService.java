@@ -53,20 +53,41 @@ public class ParticipantUserParamValidationService extends AbstractAnnotatingSer
 		}
 		
 		if(rolesInCampaign.size() == 1 && CampaignRoleCache.ROLE_PARTICIPANT.equals(rolesInCampaign.get(0).getRole())) {
-			String userString = null;
+			String userString = awRequest.getUserNameRequestParam();
 			
-			if(null != awRequest.getToValidateValue(InputKeys.USER_LIST)) {
-				
-				userString = (String) awRequest.getToValidateValue(InputKeys.USER_LIST);
-			}
-			else if(null != awRequest.getToValidateValue(InputKeys.USER)) {
-				
-				userString = (String) awRequest.getToValidateValue(InputKeys.USER);
-				
-			} else {
-				
-				throw new ServiceException("neither a " + InputKeys.USER_LIST + " nor a " + InputKeys.USER +  " parameter was found" +
-					" and one is requried");
+			if(userString == null) {
+				try {
+					if(null != awRequest.getToValidateValue(InputKeys.USER_LIST)) {
+						
+						userString = (String) awRequest.getToValidateValue(InputKeys.USER_LIST);
+					}
+					else if(null != awRequest.getToValidateValue(InputKeys.USER)) {
+						
+						userString = (String) awRequest.getToValidateValue(InputKeys.USER);
+						
+					} else {
+						
+						throw new ServiceException("neither a " + InputKeys.USER_LIST + " nor a " + InputKeys.USER +  " parameter was found" +
+							" and one is requried");
+					}
+				}
+				catch(IllegalArgumentException noUserList) {
+					try {
+						if(null != awRequest.getToValidateValue(InputKeys.USER)) {
+							
+							userString = (String) awRequest.getToValidateValue(InputKeys.USER);
+							
+						} else {
+							
+							throw new ServiceException("neither a " + InputKeys.USER_LIST + " nor a " + InputKeys.USER +  " parameter was found" +
+								" and one is requried");
+						}
+					}
+					catch(IllegalArgumentException noUser) {
+						throw new ServiceException("neither a " + InputKeys.USER_LIST + " nor a " + InputKeys.USER +  " parameter was found" +
+						" and one is requried");
+					}
+				}
 			}
 			
 			if(! awRequest.getUser().getUserName().equals(userString)) {
