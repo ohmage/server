@@ -15,10 +15,7 @@
  ******************************************************************************/
 package org.ohmage.jee.servlet.validator;
 
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -33,30 +30,12 @@ import org.ohmage.util.CookieUtils;
  */
 public class ImageQueryValidator extends AbstractHttpServletRequestValidator {
 	private static Logger _logger = Logger.getLogger(ImageQueryValidator.class);
-	private List<String> _parameterList;
 	
 	public ImageQueryValidator() {
-		_parameterList = new ArrayList<String>(Arrays.asList(new String[]{"user","campaign_urn","client","id","auth_token","size"}));
+		// Do nothing.
 	}
 	
 	public boolean validate(HttpServletRequest httpRequest) throws MissingAuthTokenException {
-		Map<String, String[]> parameterMap = getParameterMap(httpRequest);
-		
-		if(parameterMap.size() != _parameterList.size() && parameterMap.size() != _parameterList.size() - 1) {
-			_logger.info("incorrect number of parameters found");
-			return false;
-		}
-		
-		// Check for duplicate parameters
-		if(containsDuplicateParameter(parameterMap, _parameterList)) {
-			return false;
-		}
-		
-		// Check for parameters with unknown names
-		if(containsUnknownParameter(parameterMap, _parameterList)) {
-			return false;
-		}
-		
 		String user = (String) httpRequest.getParameter("user");
 		String campaignUrn = (String) httpRequest.getParameter("campaign_urn");
 		String client = (String) httpRequest.getParameter("client");

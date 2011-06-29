@@ -39,7 +39,7 @@ public class SortOrderValidator extends AbstractAnnotatingValidator {
 		
 		String sortOrder = (String) awRequest.getToValidate().get(InputKeys.SORT_ORDER);
 		
-		if(null != sortOrder) { // this parameter is always optional
+		if((null != sortOrder) && (! "".equals(sortOrder))) { // this parameter is always optional
 		
 			String[] splitSortOrder = sortOrder.split(InputKeys.LIST_ITEM_SEPARATOR);
 			

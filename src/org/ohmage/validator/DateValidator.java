@@ -81,7 +81,7 @@ public class DateValidator extends AbstractAnnotatingValidator {
 			
 			stringDate = (String) _dateAccessorMethod.invoke(awRequest);
 			
-			if(null == stringDate && ! _required) {
+			if(! _required && ((stringDate == null) || ("".equals(stringDate)))) {
 				return true;
 			}
 			

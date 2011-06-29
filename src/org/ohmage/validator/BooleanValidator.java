@@ -85,6 +85,15 @@ public class BooleanValidator extends AbstractAnnotatingValidator {
 			}
 		}
 		
+		if("".equals(booleanValue)) {
+			if(_required) {
+				throw new ValidatorException("Missing required key '" + _key + "'.");
+			}
+			else{
+				return true;
+			}
+		}
+		
 		_logger.info("Validating boolean value for key: " + _key);
 		
 		if((! booleanValue.equals("true")) && (! booleanValue.equals("false"))) {

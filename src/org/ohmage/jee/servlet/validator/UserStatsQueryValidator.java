@@ -15,8 +15,6 @@
  ******************************************************************************/
 package org.ohmage.jee.servlet.validator;
 
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
@@ -32,19 +30,14 @@ import org.ohmage.util.CookieUtils;
  */
 public class UserStatsQueryValidator extends AbstractGzipHttpServletRequestValidator {
  	private static Logger _logger = Logger.getLogger(UserStatsQueryValidator.class);
-	private List<String> _parameterList;
 	
 	/**
 	 */
 	public UserStatsQueryValidator() {
-		_parameterList = new ArrayList<String>(Arrays.asList(new String[]{"user","campaign_urn","client"}));
+		// Do nothing.
 	}
 	
 	public boolean validate(HttpServletRequest httpRequest) throws MissingAuthTokenException {
-		if(! basicValidation(getParameterMap(httpRequest), _parameterList)) {
-			return false;
-		}
-		
 		String campaignUrn = (String) httpRequest.getParameter("campaign_urn");
 		String client = (String) httpRequest.getParameter("client");
 		String user = (String) httpRequest.getParameter("user");

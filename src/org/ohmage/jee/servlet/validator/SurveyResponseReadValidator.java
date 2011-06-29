@@ -15,8 +15,6 @@
  ******************************************************************************/
 package org.ohmage.jee.servlet.validator;
 
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -36,25 +34,9 @@ import org.ohmage.util.StringUtils;
  */
 public class SurveyResponseReadValidator extends AbstractHttpServletRequestValidator {
 	private static Logger _logger = Logger.getLogger(SurveyResponseReadValidator.class);
-	private List<String> _parameterList;
 	
 	public SurveyResponseReadValidator() {
-		_parameterList = new ArrayList<String>(Arrays.asList(new String[]{"start_date",
-				                                                          "end_date",
-				                                                          "user_list",
-				                                                          "campaign_urn",
-				                                                          "client",
-				                                                          "prompt_id_list",
-				                                                          "auth_token",
-				                                                          "survey_id_list",
-				                                                          "column_list",
-				                                                          "output_format",
-				                                                          "pretty_print",
-	    																  "suppress_metadata",
-	    																  "return_id",
-	    																  "privacy_state",
-	    																  "sort_order",
-	    																  "collapse"}));
+		// Do nothing.
 	}
 	
 	public boolean validate(HttpServletRequest httpRequest) throws MissingAuthTokenException {
@@ -132,11 +114,6 @@ public class SurveyResponseReadValidator extends AbstractHttpServletRequestValid
 		String sortOrder = (String) httpRequest.getParameter("sort_order");
 		String privacyState = (String) httpRequest.getParameter("privacy_state");
 		String collapse = (String) httpRequest.getParameter("collapse");
-		
-		// Check for parameters with unknown names
-		if(containsUnknownParameter(parameterMap, _parameterList)) {
-			return false;
-		}
 		
 		// Check for abnormal lengths (buffer overflow attack, sanity check)
 		

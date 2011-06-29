@@ -19,7 +19,6 @@ import java.io.IOException;
 import java.io.StringReader;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.Calendar;
 import java.util.List;
 import java.util.ListIterator;
 
@@ -83,7 +82,7 @@ public class CampaignCreationDao extends AbstractDao {
 																	   "AND user_class_role_id = ?";
 	
 	private static final String SQL_INSERT_CAMPAIGN = "INSERT INTO campaign(description, xml, running_state_id, privacy_state_id, name, urn, creation_timestamp) " +
-											 		  "VALUES (?,?,?,?,?,?,?)";
+											 		  "VALUES (?,?,?,?,?,?, now())";
 	
 	private static final String SQL_INSERT_CAMPAIGN_CLASS = "INSERT INTO campaign_class(campaign_id, class_id) " +
 															"VALUES (?,?)";
@@ -165,10 +164,6 @@ public class CampaignCreationDao extends AbstractDao {
 		Element root = document.getRootElement();
 		String campaignUrn = root.query("/campaign/campaignUrn").get(0).getValue().trim();
 		String campaignName = root.query("/campaign/campaignName").get(0).getValue().trim();
-		
-		Calendar now = Calendar.getInstance();
-		String nowFormatted = now.get(Calendar.YEAR) + "-" + now.get(Calendar.MONTH) + "-" + now.get(Calendar.DAY_OF_MONTH) + " " +
-							  now.get(Calendar.HOUR_OF_DAY) + ":" + now.get(Calendar.MINUTE) + ":" + now.get(Calendar.SECOND);
 	
 		DefaultTransactionDefinition def = new DefaultTransactionDefinition();
 		def.setName("Campaign creation and user/class hookups.");
@@ -184,8 +179,7 @@ public class CampaignCreationDao extends AbstractDao {
 										 				CampaignRunningStateCache.instance().lookup((String) awRequest.getToProcessValue(InputKeys.RUNNING_STATE)), 
 										 				CampaignPrivacyStateCache.instance().lookup((String) awRequest.getToProcessValue(InputKeys.PRIVACY_STATE)), 
 										 				campaignName,
-										 				campaignUrn,
-										 				nowFormatted});
+										 				campaignUrn});
 			}
 			catch(org.springframework.dao.DataAccessException dae) {
 				_logger.error("Error executing SQL '" + SQL_INSERT_CAMPAIGN + "' with parameters: " +
@@ -194,8 +188,7 @@ public class CampaignCreationDao extends AbstractDao {
 							  awRequest.getToProcessValue(InputKeys.RUNNING_STATE) + ", " +
 							  awRequest.getToProcessValue(InputKeys.PRIVACY_STATE) + ", " +
 							  campaignName + ", " +
-							  campaignUrn + ", " +
-							  nowFormatted, dae);
+							  campaignUrn, dae);
 				transactionManager.rollback(status);
 				throw new DataAccessException(dae);
 			}

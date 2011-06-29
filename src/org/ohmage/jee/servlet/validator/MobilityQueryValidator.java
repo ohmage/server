@@ -15,8 +15,6 @@
  ******************************************************************************/
 package org.ohmage.jee.servlet.validator;
 
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -34,20 +32,13 @@ import org.ohmage.util.CookieUtils;
  */
 public class MobilityQueryValidator extends AbstractHttpServletRequestValidator {
 	private static Logger _logger = Logger.getLogger(MobilityQueryValidator.class);
-	private List<String> _parameterList;
 	
 	public MobilityQueryValidator() {
-		_parameterList = new ArrayList<String>(Arrays.asList(new String[]{"auth_token", "date","client"}));
+		// Do nothing.
 	}
 	
 	public boolean validate(HttpServletRequest httpRequest) throws MissingAuthTokenException {
 		Map<String,String[]> parameterMap = getParameterMap(httpRequest); 
-		
-		// Check for missing or extra parameters
-		if(parameterMap.size() != _parameterList.size()) {				
-			_logger.warn("an incorrect number of parameters was found for a mobility query: " + parameterMap.size());
-			return false;
-		}
 		
 		// Check for duplicate parameter values
 		Iterator<?> iterator = parameterMap.keySet().iterator();
@@ -60,11 +51,6 @@ public class MobilityQueryValidator extends AbstractHttpServletRequestValidator 
 				_logger.warn("an incorrect number of values (" + valuesForKey.length + ") was found for parameter " + key);
 				return false;
 			}
-		}
-		
-		// Check for parameters with unknown names
-		if(containsUnknownParameter(parameterMap, _parameterList)) {
-			return false;
 		}
 		
 		String date = (String) httpRequest.getParameter("date");

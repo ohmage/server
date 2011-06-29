@@ -15,10 +15,7 @@
  ******************************************************************************/
 package org.ohmage.jee.servlet.validator;
 
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -31,38 +28,13 @@ import org.ohmage.util.CookieUtils;
  */
 public class CampaignReadValidator extends AbstractHttpServletRequestValidator {
 	private static Logger _logger = Logger.getLogger(CampaignReadValidator.class);
-	private List<String> _parameterList;
 	
 	public CampaignReadValidator() {
-		_parameterList = new ArrayList<String>(Arrays.asList(new String[]{"auth_token",
-																		  "client",
-		 		                                                          "output_format", 
-		 		                                                          "campaign_urn_list",
-		 		                                                          "start_date",
-		 		                                                          "end_date",
-		 		                                                          "privacy_state",
-		 		                                                          "running_state",
-		 		                                                          "user_role",
-		 		                                                          "class_urn_list",
-		 		                                                          "user",
-		 		                                                          "password"}
-		));
+		// Do nothing.
 	}
 	
 	@Override
 	public boolean validate(HttpServletRequest httpRequest) throws MissingAuthTokenException {
-		Map<String, String[]> parameterMap = getParameterMap(httpRequest);
-		
-		// check for parameters with unknown names
-		if(containsUnknownParameter(parameterMap, _parameterList)) {
-			return false;
-		}
-		
-		// check for parameters with duplicate values
-		if(containsDuplicateParameter(parameterMap, _parameterList)) {
-			return false;
-		}
-		
 		// Make sure required parameters exist
 		String client = httpRequest.getParameter("client");
 		if(null == client) {

@@ -74,5 +74,4 @@ public class DocumentReadValidator extends AbstractHttpServletRequestValidator {
 		
 		return true;
 	}
-
 }

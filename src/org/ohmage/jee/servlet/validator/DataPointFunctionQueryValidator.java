@@ -15,8 +15,6 @@
  ******************************************************************************/
 package org.ohmage.jee.servlet.validator;
 
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -35,22 +33,15 @@ import org.ohmage.util.CookieUtils;
  */
 public class DataPointFunctionQueryValidator extends AbstractHttpServletRequestValidator {
 	private static Logger _logger = Logger.getLogger(DataPointFunctionQueryValidator.class);
-	private List<String> _parameterList;
 	
 	/**
 	 */
 	public DataPointFunctionQueryValidator() {
-		_parameterList = new ArrayList<String>(Arrays.asList(new String[]{"start_date","end_date","user","campaign_urn","client","id"}));
+		// Do nothing.
 	}
 	
 	public boolean validate(HttpServletRequest httpRequest) throws MissingAuthTokenException {
 		Map<String,String[]> parameterMap = getParameterMap(httpRequest); 
-		
-		// Check for missing or extra parameters
-		if(parameterMap.size() != _parameterList.size()) {				
-			_logger.warn("an incorrect number of parameters was found for an data point query: " + parameterMap.size());
-			return false;
-		}
 		
 		// Check for duplicate parameter values (except for "i")
 		Iterator<?> iterator = parameterMap.keySet().iterator();
@@ -59,15 +50,10 @@ public class DataPointFunctionQueryValidator extends AbstractHttpServletRequestV
 			String key = (String) iterator.next();
 			String[] valuesForKey = (String[]) parameterMap.get(key);
 			
-			if(valuesForKey.length != 1 && ! "id".equals(key)) {
+			if(valuesForKey.length != 1) {
 				_logger.warn("an incorrect number of values (" + valuesForKey.length + ") was found for parameter " + key);
 				return false;
 			}
-		}
-		
-		// Check for parameters with unknown names
-		if(containsUnknownParameter(parameterMap, _parameterList)) {
-			return false;
 		}
 		
 		String startDate = (String) httpRequest.getParameter("start_date");
