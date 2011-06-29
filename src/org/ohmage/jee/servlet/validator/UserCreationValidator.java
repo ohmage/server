@@ -32,33 +32,12 @@ public class UserCreationValidator extends AbstractHttpServletRequestValidator {
 	 */
 	@Override
 	public boolean validate(HttpServletRequest httpRequest) throws MissingAuthTokenException {
-		// Get the authentication / session token from the header.
-		String token;
-		List<String> tokens = CookieUtils.getCookieValue(httpRequest.getCookies(), InputKeys.AUTH_TOKEN);
-		if(tokens.size() == 0) {
-			token = httpRequest.getParameter(InputKeys.AUTH_TOKEN);
-			
-			if(token == null) {
-				throw new MissingAuthTokenException("The required authentication / session token is missing.");
-			}
-		}
-		else if(tokens.size() > 1) {
-			throw new MissingAuthTokenException("More than one authentication / session token was found in the request.");
-		}
-		else {
-			token = tokens.get(0);
-		}
-		
 		String username = httpRequest.getParameter(InputKeys.NEW_USERNAME);
 		String password = httpRequest.getParameter(InputKeys.NEW_PASSWORD);
 		String admin = httpRequest.getParameter(InputKeys.USER_ADMIN);
 		String enabled = httpRequest.getParameter(InputKeys.USER_ENABLED);
 
-		if(StringUtils.isEmptyOrWhitespaceOnly(token)) {
-			_logger.warn("Missing required key: " + InputKeys.AUTH_TOKEN);
-			return false;
-		}
-		else if(StringUtils.isEmptyOrWhitespaceOnly(username)) {
+		if(StringUtils.isEmptyOrWhitespaceOnly(username)) {
 			_logger.warn("Missing required key: " + InputKeys.NEW_USERNAME);
 			return false;
 		}
@@ -73,6 +52,17 @@ public class UserCreationValidator extends AbstractHttpServletRequestValidator {
 		else if(StringUtils.isEmptyOrWhitespaceOnly(enabled)) {
 			_logger.warn("Missing required key: " + InputKeys.USER_ENABLED);
 			return false;
+		}
+		
+		// Get the authentication / session token from the header.
+		List<String> tokens = CookieUtils.getCookieValue(httpRequest.getCookies(), InputKeys.AUTH_TOKEN);
+		if(tokens.size() == 0) {
+			if(httpRequest.getParameter(InputKeys.AUTH_TOKEN) == null) {
+				throw new MissingAuthTokenException("The required authentication / session token is missing.");
+			}
+		}
+		else if(tokens.size() > 1) {
+			throw new MissingAuthTokenException("More than one authentication / session token was found in the request.");
 		}
 		
 		return true;

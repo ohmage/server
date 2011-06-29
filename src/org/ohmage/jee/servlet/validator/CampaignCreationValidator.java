@@ -78,20 +78,8 @@ public class CampaignCreationValidator extends AbstractHttpServletRequestValidat
 		// Get the number of items were in the request.
 		int numberOfUploadedItems = uploadedItems.size();
 		
-		// Get the authentication / session token from the header.
+		// The authentication / session token.
 		String token = null;
-		List<String> tokens = CookieUtils.getCookieValue(httpRequest.getCookies(), InputKeys.AUTH_TOKEN);
-		if(tokens.size() == 0) {
-			// Check if the token is a parameter. This is the temporary fix
-			// until we get Set-Cookie to work.
-			//throw new MissingAuthTokenException("The required authentication / session token is missing.");
-		}
-		else if(tokens.size() > 1) {
-			throw new MissingAuthTokenException("More than one authentication / session token was found in the request.");
-		}
-		else {
-			token = tokens.get(0);
-		}
 		
 		// Parse the request for each of the parameters.
 		String runningState = null;
@@ -144,10 +132,6 @@ public class CampaignCreationValidator extends AbstractHttpServletRequestValidat
 			}
 		}
 		
-		if(token == null) {
-			throw new MissingAuthTokenException("The required authentication / session token is missing.");
-		}
-		
 		CampaignCreationAwRequest request;
 		try {
 			request = new CampaignCreationAwRequest(runningState, privacyState, xml, classes, description);
@@ -156,7 +140,30 @@ public class CampaignCreationValidator extends AbstractHttpServletRequestValidat
 			_logger.warn("Attempting to create a campaign with insufficient data after data presence has been checked: " + e.getMessage());
 			return false;
 		}
-		request.setUserToken(token);
+		
+		// If the token exists in the header, overwrite the one we received 
+		// from the parameters.
+		List<String> tokens = CookieUtils.getCookieValue(httpRequest.getCookies(), InputKeys.AUTH_TOKEN);
+		if(tokens.size() == 0) {
+			// Check if the token is a parameter. This is the temporary fix
+			// until we get Set-Cookie to work.
+			//throw new MissingAuthTokenException("The required authentication / session token is missing.");
+		}
+		else if(tokens.size() > 1) {
+			throw new MissingAuthTokenException("More than one authentication / session token was found in the request.");
+		}
+		else {
+			token = tokens.get(0);
+		}
+		
+		// If the header is still null, then it is missing.
+		if(token == null) {
+			throw new MissingAuthTokenException("The required authentication / session token is missing.");
+		}
+		else {
+			request.setUserToken(token);
+		}
+		
 		httpRequest.setAttribute("awRequest", request);
 		
 		return true;

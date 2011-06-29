@@ -41,23 +41,6 @@ public class UserStatsQueryValidator extends AbstractGzipHttpServletRequestValid
 	}
 	
 	public boolean validate(HttpServletRequest httpRequest) throws MissingAuthTokenException {
-		// Get the authentication / session token from the header.
-		String token;
-		List<String> tokens = CookieUtils.getCookieValue(httpRequest.getCookies(), InputKeys.AUTH_TOKEN);
-		if(tokens.size() == 0) {
-			token = httpRequest.getParameter(InputKeys.AUTH_TOKEN);
-			
-			if(token == null) {
-				throw new MissingAuthTokenException("The required authentication / session token is missing.");
-			}
-		}
-		else if(tokens.size() > 1) {
-			throw new MissingAuthTokenException("More than one authentication / session token was found in the request.");
-		}
-		else {
-			token = tokens.get(0);
-		}
-		
 		if(! basicValidation(getParameterMap(httpRequest), _parameterList)) {
 			return false;
 		}
@@ -70,11 +53,21 @@ public class UserStatsQueryValidator extends AbstractGzipHttpServletRequestValid
 		
 		if(greaterThanLength("campaignUrn", "campaign_urn", campaignUrn, 250)
 		   || greaterThanLength("client", "client",client, 500)		   
-		   || greaterThanLength("authToken", "auth_token", token, 36)
 		   || greaterThanLength("userName", "user", user, 15)) {
 			
 			_logger.warn("found an input parameter that exceeds its allowed length");
 			return false;
+		}
+		
+		// Get the authentication / session token from the header.
+		List<String> tokens = CookieUtils.getCookieValue(httpRequest.getCookies(), InputKeys.AUTH_TOKEN);
+		if(tokens.size() == 0) {
+			if(httpRequest.getParameter(InputKeys.AUTH_TOKEN) == null) {
+				throw new MissingAuthTokenException("The required authentication / session token is missing.");
+			}
+		}
+		else if(tokens.size() > 1) {
+			throw new MissingAuthTokenException("More than one authentication / session token was found in the request.");
 		}
 		
 		return true;

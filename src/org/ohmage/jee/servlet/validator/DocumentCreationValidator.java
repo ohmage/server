@@ -175,10 +175,6 @@ public class DocumentCreationValidator extends AbstractHttpServletRequestValidat
 			}
 		}
 		
-		if(token == null) {
-			throw new MissingAuthTokenException("The required authentication / session token is missing.");
-		}
-		
 		DocumentCreationAwRequest request;
 		try {
 			request = new DocumentCreationAwRequest(name, document, privacyState, description, campaignUrnRoleList, classUrnRoleList);
@@ -187,7 +183,13 @@ public class DocumentCreationValidator extends AbstractHttpServletRequestValidat
 			_logger.warn("Attempting to create a request with insufficient parameters: " + e.getMessage());
 			return false;
 		}
-		request.setUserToken(token);
+		
+		if(token == null) {
+			throw new MissingAuthTokenException("The required authentication / session token is missing.");
+		}
+		else {
+			request.setUserToken(token);
+		}
 		
 		// This is done so we only need to read the request once as it may be
 		// a large amount of data. This does, however, break out model of

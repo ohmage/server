@@ -109,10 +109,6 @@ public class ClassRosterUpdateValidator extends AbstractHttpServletRequestValida
 			}
 		}
 		
-		if(token == null) {
-			throw new MissingAuthTokenException("The required authentication / session token is missing.");
-		}
-		
 		ClassRosterUpdateRequest request;
 		try {
 			request = new ClassRosterUpdateRequest(token, roster);

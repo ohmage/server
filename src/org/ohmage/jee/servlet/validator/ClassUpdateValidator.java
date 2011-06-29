@@ -48,17 +48,6 @@ public class ClassUpdateValidator extends AbstractHttpServletRequestValidator {
 	 */
 	@Override
 	public boolean validate(HttpServletRequest httpRequest) throws MissingAuthTokenException {
-		// Get the authentication / session token from the header.
-		List<String> tokens = CookieUtils.getCookieValue(httpRequest.getCookies(), InputKeys.AUTH_TOKEN);
-		if(tokens.size() == 0) {
-			if(httpRequest.getParameter(InputKeys.AUTH_TOKEN) == null) {
-				throw new MissingAuthTokenException("The required authentication / session token is missing.");
-			}
-		}
-		else if(tokens.size() > 1) {
-			throw new MissingAuthTokenException("More than one authentication / session token was found in the request.");
-		}
-		
 		String classUrn = httpRequest.getParameter(InputKeys.CLASS_URN);
 		String client = httpRequest.getParameter(InputKeys.CLIENT);
 		
@@ -72,6 +61,17 @@ public class ClassUpdateValidator extends AbstractHttpServletRequestValidator {
 		if(greaterThanLength(InputKeys.CLASS_URN, InputKeys.CLASS_URN, classUrn, 255)) {
 			_logger.warn(InputKeys.CLASS_URN + " is too long.");
 			return false;
+		}
+		
+		// Get the authentication / session token from the header.
+		List<String> tokens = CookieUtils.getCookieValue(httpRequest.getCookies(), InputKeys.AUTH_TOKEN);
+		if(tokens.size() == 0) {
+			if(httpRequest.getParameter(InputKeys.AUTH_TOKEN) == null) {
+				throw new MissingAuthTokenException("The required authentication / session token is missing.");
+			}
+		}
+		else if(tokens.size() > 1) {
+			throw new MissingAuthTokenException("More than one authentication / session token was found in the request.");
 		}
 		
 		return true;

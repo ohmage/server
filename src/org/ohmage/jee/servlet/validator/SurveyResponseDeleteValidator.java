@@ -48,31 +48,11 @@ public class SurveyResponseDeleteValidator extends AbstractHttpServletRequestVal
 	 */
 	@Override
 	public boolean validate(HttpServletRequest httpRequest) throws MissingAuthTokenException {
-		// Get the authentication / session token from the header.
-		String token;
-		List<String> tokens = CookieUtils.getCookieValue(httpRequest.getCookies(), InputKeys.AUTH_TOKEN);
-		if(tokens.size() == 0) {
-			token = httpRequest.getParameter(InputKeys.AUTH_TOKEN);
-			
-			if(token == null) {
-				throw new MissingAuthTokenException("The required authentication / session token is missing.");
-			}
-		}
-		else if(tokens.size() > 1) {
-			throw new MissingAuthTokenException("More than one authentication / session token was found in the request.");
-		}
-		else {
-			token = tokens.get(0);
-		}
-		
 		String campaignUrn = httpRequest.getParameter(InputKeys.CAMPAIGN_URN);
 		String surveyKey = httpRequest.getParameter(InputKeys.SURVEY_KEY);
 		String client = httpRequest.getParameter(InputKeys.CLIENT);
 		
-		if(StringUtils.isEmptyOrWhitespaceOnly(token)) {
-			throw new MissingAuthTokenException("The required authentication / session token is missing or invalid.");
-		}
-		else if(StringUtils.isEmptyOrWhitespaceOnly(campaignUrn)) {
+		if(StringUtils.isEmptyOrWhitespaceOnly(campaignUrn)) {
 			return false;
 		} 
 		else if(StringUtils.isEmptyOrWhitespaceOnly(surveyKey)) {
@@ -82,11 +62,7 @@ public class SurveyResponseDeleteValidator extends AbstractHttpServletRequestVal
 			return false;
 		}
 		
-		if(greaterThanLength(InputKeys.AUTH_TOKEN, InputKeys.AUTH_TOKEN, token, 36)) {
-			_logger.warn(InputKeys.AUTH_TOKEN + " is too long.");
-			return false;
-		}
-		else if(greaterThanLength(InputKeys.CAMPAIGN_URN, InputKeys.CAMPAIGN_URN, campaignUrn, 255)) {
+		if(greaterThanLength(InputKeys.CAMPAIGN_URN, InputKeys.CAMPAIGN_URN, campaignUrn, 255)) {
 			_logger.warn(InputKeys.CAMPAIGN_URN + " is too long.");
 			return false;
 		} 
@@ -97,6 +73,17 @@ public class SurveyResponseDeleteValidator extends AbstractHttpServletRequestVal
 		else if(greaterThanLength(InputKeys.CLIENT, InputKeys.CLIENT, client, 250)) {
 			_logger.warn(InputKeys.CLIENT + " is too long.");
 			return false;
+		}
+		
+		// Get the authentication / session token from the header.
+		List<String> tokens = CookieUtils.getCookieValue(httpRequest.getCookies(), InputKeys.AUTH_TOKEN);
+		if(tokens.size() == 0) {
+			if(httpRequest.getParameter(InputKeys.AUTH_TOKEN) == null) {
+				throw new MissingAuthTokenException("The required authentication / session token is missing.");
+			}
+		}
+		else if(tokens.size() > 1) {
+			throw new MissingAuthTokenException("More than one authentication / session token was found in the request.");
 		}
 		
 		return true;

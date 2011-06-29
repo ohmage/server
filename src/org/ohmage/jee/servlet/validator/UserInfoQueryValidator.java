@@ -48,35 +48,22 @@ public class UserInfoQueryValidator extends AbstractGzipHttpServletRequestValida
 	 */
 	@Override
 	public boolean validate(HttpServletRequest httpRequest) throws MissingAuthTokenException {
+		String client = httpRequest.getParameter(InputKeys.CLIENT);
+		
+		if(client == null) {
+			_logger.warn("Missing " + InputKeys.CLIENT);
+			return false;
+		}
+		
 		// Get the authentication / session token from the header.
-		String token;
 		List<String> tokens = CookieUtils.getCookieValue(httpRequest.getCookies(), InputKeys.AUTH_TOKEN);
 		if(tokens.size() == 0) {
-			token = httpRequest.getParameter(InputKeys.AUTH_TOKEN);
-			
-			if(token == null) {
+			if(httpRequest.getParameter(InputKeys.AUTH_TOKEN) == null) {
 				throw new MissingAuthTokenException("The required authentication / session token is missing.");
 			}
 		}
 		else if(tokens.size() > 1) {
 			throw new MissingAuthTokenException("More than one authentication / session token was found in the request.");
-		}
-		else {
-			token = tokens.get(0);
-		}
-		
-		String client = httpRequest.getParameter(InputKeys.CLIENT);
-		
-		if(token == null) {
-			throw new MissingAuthTokenException("The required authentication / session token is missing.");
-		}
-		else if(greaterThanLength(InputKeys.AUTH_TOKEN, InputKeys.AUTH_TOKEN, token, 36) || (token.length() < 36)) {
-			_logger.warn("Incorrectly sized " + InputKeys.AUTH_TOKEN);
-			return false;
-		}
-		else if(client == null) {
-			_logger.warn("Missing " + InputKeys.CLIENT);
-			return false;
 		}
 		
 		return true;

@@ -34,7 +34,8 @@ public class CampaignReadValidator extends AbstractHttpServletRequestValidator {
 	private List<String> _parameterList;
 	
 	public CampaignReadValidator() {
-		_parameterList = new ArrayList<String>(Arrays.asList(new String[]{"client",
+		_parameterList = new ArrayList<String>(Arrays.asList(new String[]{"auth_token",
+																		  "client",
 		 		                                                          "output_format", 
 		 		                                                          "campaign_urn_list",
 		 		                                                          "start_date",
@@ -84,20 +85,6 @@ public class CampaignReadValidator extends AbstractHttpServletRequestValidator {
 		String runningState = httpRequest.getParameter("running_state");
 		String userRole = httpRequest.getParameter("user_role");
 		String classUrnList = httpRequest.getParameter("class_urn_list");
-		
-		// Get the authentication / session token from the header.
-		List<String> tokens = CookieUtils.getCookieValue(httpRequest.getCookies(), InputKeys.AUTH_TOKEN);
-		if(tokens.size() == 0) {
-			// Possible if user and password aren't null.
-			if((user == null) || (password == null)) {
-				if(httpRequest.getParameter(InputKeys.AUTH_TOKEN) == null) {
-					throw new MissingAuthTokenException("The required authentication / session token is missing.");
-				}
-			}
-		}
-		else if(tokens.size() > 1) {
-			throw new MissingAuthTokenException("More than one authentication / session token was found in the request.");
-		}
  		
 		if(greaterThanLength("client", "client", client, 250)
 		   || greaterThanLength("output format", "output_format", outputFormat, 6)
@@ -114,6 +101,20 @@ public class CampaignReadValidator extends AbstractHttpServletRequestValidator {
 		) {
 			_logger.warn("found an input parameter that exceeds its allowed length");
 			return false;
+		}
+		
+		// Get the authentication / session token from the header.
+		List<String> tokens = CookieUtils.getCookieValue(httpRequest.getCookies(), InputKeys.AUTH_TOKEN);
+		if(tokens.size() == 0) {
+			// Possible if user and password aren't null.
+			if((user == null) || (password == null)) {
+				if(httpRequest.getParameter(InputKeys.AUTH_TOKEN) == null) {
+					throw new MissingAuthTokenException("The required authentication / session token is missing.");
+				}
+			}
+		}
+		else if(tokens.size() > 1) {
+			throw new MissingAuthTokenException("More than one authentication / session token was found in the request.");
 		}
 		
 		return true;
