@@ -34,7 +34,8 @@ public class CampaignReadValidator extends AbstractHttpServletRequestValidator {
 	private List<String> _parameterList;
 	
 	public CampaignReadValidator() {
-		_parameterList = new ArrayList<String>(Arrays.asList(new String[]{"client",
+		_parameterList = new ArrayList<String>(Arrays.asList(new String[]{"auth_token",
+																		  "client",
 		 		                                                          "output_format", 
 		 		                                                          "campaign_urn_list",
 		 		                                                          "start_date",
