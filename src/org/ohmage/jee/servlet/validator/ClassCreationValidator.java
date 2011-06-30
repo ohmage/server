@@ -32,6 +32,7 @@ public class ClassCreationValidator extends AbstractHttpServletRequestValidator 
 	public boolean validate(HttpServletRequest httpRequest) throws MissingAuthTokenException {
 		String classUrn = httpRequest.getParameter(InputKeys.CLASS_URN);
 		String className = httpRequest.getParameter(InputKeys.CLASS_NAME);
+		String client = httpRequest.getParameter(InputKeys.CLIENT);
 
 		if(StringUtils.isEmptyOrWhitespaceOnly(classUrn)) {
 			_logger.warn("Missing required key: " + InputKeys.CLASS_URN);
@@ -39,6 +40,10 @@ public class ClassCreationValidator extends AbstractHttpServletRequestValidator 
 		}
 		else if(StringUtils.isEmptyOrWhitespaceOnly(className)) {
 			_logger.warn("Missing required key: " + InputKeys.CLASS_NAME);
+			return false;
+		}
+		else if((client == null) || (greaterThanLength(InputKeys.CLIENT, InputKeys.CLIENT, client, 255))) {
+			_logger.warn("The client parameter is missing or too long.");
 			return false;
 		}
 		

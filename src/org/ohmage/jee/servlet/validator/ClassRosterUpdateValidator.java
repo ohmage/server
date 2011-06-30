@@ -83,6 +83,7 @@ public class ClassRosterUpdateValidator extends AbstractHttpServletRequestValida
 		}
 		
 		// Parse the request for each of the parameters.
+		String client = null;
 		String roster = null;
 		for(int i = 0; i < numberOfUploadedItems; i++) {
 			FileItem fi = (FileItem) uploadedItems.get(i);
@@ -96,6 +97,13 @@ public class ClassRosterUpdateValidator extends AbstractHttpServletRequestValida
 					}
 					token = value;
 				}
+				else if(InputKeys.CLIENT.equals(name)) {
+					if(greaterThanLength(InputKeys.CLIENT, InputKeys.CLIENT, value, 255)) {
+						_logger.warn("The client parameter is too long.");
+						return false;
+					}
+					client = value;
+				}
 			} else {
 				if(InputKeys.ROSTER.equals(fi.getFieldName())) {
 					// Gets the class roster.
@@ -107,6 +115,11 @@ public class ClassRosterUpdateValidator extends AbstractHttpServletRequestValida
 					roster = roster.replace('\r', '\n');
 				}
 			}
+		}
+		
+		if(client == null) {
+			_logger.warn("Missing required parameter: " + InputKeys.CLIENT);
+			return false;
 		}
 		
 		ClassRosterUpdateRequest request;

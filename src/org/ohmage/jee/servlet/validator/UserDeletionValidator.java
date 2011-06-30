@@ -28,9 +28,14 @@ public class UserDeletionValidator extends AbstractHttpServletRequestValidator {
 	@Override
 	public boolean validate(HttpServletRequest httpRequest) throws MissingAuthTokenException {
 		String userList = httpRequest.getParameter(InputKeys.USER_LIST);
+		String client = httpRequest.getParameter(InputKeys.CLIENT);
 		
 		if(StringUtils.isEmptyOrWhitespaceOnly(userList)) {
 			_logger.info("Required parameter is missing or invalid: " + InputKeys.USER_LIST);
+			return false;
+		}
+		else if((client == null) || (greaterThanLength(InputKeys.CLIENT, InputKeys.CLIENT, client, 255))) {
+			_logger.info("The client parameter is missing or too long.");
 			return false;
 		}
 		

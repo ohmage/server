@@ -121,7 +121,7 @@ public class MediaUploadValidator extends AbstractHttpServletRequestValidator {
 				
 				if("client".equals(name)) {
 					
-					if(greaterThanLength("client", "client", tmp, 250)) {
+					if(greaterThanLength("client", "client", tmp, 255)) {
 						return false;
 					}
 					

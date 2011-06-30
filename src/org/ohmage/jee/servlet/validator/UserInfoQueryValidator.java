@@ -50,8 +50,8 @@ public class UserInfoQueryValidator extends AbstractGzipHttpServletRequestValida
 	public boolean validate(HttpServletRequest httpRequest) throws MissingAuthTokenException {
 		String client = httpRequest.getParameter(InputKeys.CLIENT);
 		
-		if(client == null) {
-			_logger.warn("Missing " + InputKeys.CLIENT);
+		if((client == null) || (greaterThanLength(InputKeys.CLIENT, InputKeys.CLIENT, client, 255))) {
+			_logger.info("The client parameter is missing or too long.");
 			return false;
 		}
 		

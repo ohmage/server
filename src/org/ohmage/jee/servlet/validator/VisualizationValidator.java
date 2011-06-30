@@ -29,6 +29,7 @@ public abstract class VisualizationValidator extends AbstractHttpServletRequestV
 		String width = httpRequest.getParameter(InputKeys.VISUALIZATION_WIDTH);
 		String height = httpRequest.getParameter(InputKeys.VISUALIZATION_HEIGHT);
 		String campaignId = httpRequest.getParameter(InputKeys.CAMPAIGN_URN);
+		String client = httpRequest.getParameter(InputKeys.CLIENT);
 		
 		if(StringUtils.isEmptyOrWhitespaceOnly(width)) {
 			_logger.warn("Missing required parameter: " + InputKeys.VISUALIZATION_WIDTH);
@@ -40,6 +41,14 @@ public abstract class VisualizationValidator extends AbstractHttpServletRequestV
 		}
 		else if(StringUtils.isEmptyOrWhitespaceOnly(campaignId)) {
 			_logger.warn("Missing required parameter: " + InputKeys.CAMPAIGN_URN);
+			return false;
+		}
+		else if(client == null) {
+			_logger.warn("Missing required parameter: " + InputKeys.CLIENT);
+			return false;
+		}
+		else if(greaterThanLength(InputKeys.CLIENT, InputKeys.CLIENT, client, 255)) {
+			_logger.warn("The client parameter is too long.");
 			return false;
 		}
 		

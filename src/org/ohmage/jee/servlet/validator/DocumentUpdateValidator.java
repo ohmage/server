@@ -95,7 +95,7 @@ public class DocumentUpdateValidator extends AbstractHttpServletRequestValidator
 		if((documentId == null) || greaterThanLength(InputKeys.DOCUMENT_ID, InputKeys.DOCUMENT_ID, documentId, 255)) {
 			return false;
 		}
-		else if(client == null) {
+		else if((client == null) || (greaterThanLength(InputKeys.CLIENT, InputKeys.CLIENT, client, 255))) {
 			return false;
 		}
 		

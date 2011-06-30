@@ -32,6 +32,7 @@ public class UserCreationValidator extends AbstractHttpServletRequestValidator {
 	 */
 	@Override
 	public boolean validate(HttpServletRequest httpRequest) throws MissingAuthTokenException {
+		String client = httpRequest.getParameter(InputKeys.CLIENT);
 		String username = httpRequest.getParameter(InputKeys.NEW_USERNAME);
 		String password = httpRequest.getParameter(InputKeys.NEW_PASSWORD);
 		String admin = httpRequest.getParameter(InputKeys.USER_ADMIN);
@@ -51,6 +52,10 @@ public class UserCreationValidator extends AbstractHttpServletRequestValidator {
 		}
 		else if(StringUtils.isEmptyOrWhitespaceOnly(enabled)) {
 			_logger.warn("Missing required key: " + InputKeys.USER_ENABLED);
+			return false;
+		}
+		else if((client == null) || (greaterThanLength(InputKeys.CLIENT, InputKeys.CLIENT, client, 255))) {
+			_logger.warn("The client is missing or too long.");
 			return false;
 		}
 		

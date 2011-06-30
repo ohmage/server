@@ -30,9 +30,14 @@ public class UserUpdateValidator extends AbstractHttpServletRequestValidator {
 	@Override
 	public boolean validate(HttpServletRequest httpRequest) throws MissingAuthTokenException {
 		String user = httpRequest.getParameter(InputKeys.USER);
+		String client = httpRequest.getParameter(InputKeys.CLIENT);
 		
 		if(StringUtils.isEmptyOrWhitespaceOnly(user)) {
 			_logger.info("Missing required parameter: " + InputKeys.USER);
+			return false;
+		}
+		else if((client == null) || (greaterThanLength(InputKeys.CLIENT, InputKeys.CLIENT, client, 255))) {
+			_logger.info("The client parameter is missing or too long.");
 			return false;
 		}
 		

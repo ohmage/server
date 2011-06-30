@@ -53,7 +53,7 @@ public class AuthValidator extends AbstractHttpServletRequestValidator {
 		
 		if(greaterThanLength(InputKeys.USER, InputKeys.USER, user, 15) 
 			|| greaterThanLength(InputKeys.PASSWORD, InputKeys.PASSWORD, password, 100) 
-			|| greaterThanLength(InputKeys.CLIENT, InputKeys.CLIENT, client, 250)) { 
+			|| greaterThanLength(InputKeys.CLIENT, InputKeys.CLIENT, client, 255)) { 
 			_logger.warn("found an input parameter that exceeds its allowed length");
 			return false;
 		}

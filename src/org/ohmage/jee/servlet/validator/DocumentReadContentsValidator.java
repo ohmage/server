@@ -55,8 +55,8 @@ public class DocumentReadContentsValidator extends AbstractHttpServletRequestVal
 			_logger.info("The document's ID is missing or an incorrect size.");
 			return false;
 		}
-		else if(client == null) {
-			_logger.warn("The client is missing.");
+		else if((client == null) || (greaterThanLength(InputKeys.CLIENT, InputKeys.CLIENT, client, 255))) {
+			_logger.warn("The client is missing or too long.");
 			return false;
 		}
 		

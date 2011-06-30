@@ -68,7 +68,7 @@ public class DataPointFunctionQueryValidator extends AbstractHttpServletRequestV
 		if(greaterThanLength("startDate", "start_date", startDate, 10) 
 		   || greaterThanLength("endDate", "end_date", endDate, 10)
 		   || greaterThanLength("campaignUrn", "campaign_urn", campaignUrn, 250)
-		   || greaterThanLength("client", "client",client, 250)
+		   || greaterThanLength("client", "client",client, 255)
 		   || greaterThanLength("userName", "user", userName, 15)
 		   || greaterThanLength("id", "id", id, 250)) {
 			

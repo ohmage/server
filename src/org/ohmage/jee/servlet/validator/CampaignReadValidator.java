@@ -58,7 +58,7 @@ public class CampaignReadValidator extends AbstractHttpServletRequestValidator {
 		String userRole = httpRequest.getParameter("user_role");
 		String classUrnList = httpRequest.getParameter("class_urn_list");
  		
-		if(greaterThanLength("client", "client", client, 250)
+		if(greaterThanLength("client", "client", client, 255)
 		   || greaterThanLength("output format", "output_format", outputFormat, 6)
 		   || greaterThanLength("campaign URN list", "cammpaign_urn_list", campaignUrnList, 2550) // max of 10 URNs (our db column 
 		                                                                                          // restriction is 255 chars)

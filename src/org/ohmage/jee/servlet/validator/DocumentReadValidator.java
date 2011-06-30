@@ -56,8 +56,8 @@ public class DocumentReadValidator extends AbstractHttpServletRequestValidator {
 			_logger.warn("The personal documents boolean is missing or empty.");
 			return false;
 		}
-		else if(client == null) {
-			_logger.warn("The client is missing.");
+		else if((client == null) || (greaterThanLength(InputKeys.CLIENT, InputKeys.CLIENT, client, 255))) {
+			_logger.warn("The client is missing or too long.");
 			return false;
 		}
 		

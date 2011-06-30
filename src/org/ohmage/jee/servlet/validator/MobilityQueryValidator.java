@@ -59,7 +59,7 @@ public class MobilityQueryValidator extends AbstractHttpServletRequestValidator 
 		// Check for abnormal lengths (buffer overflow attack)
 		
 		if(greaterThanLength("date", "date", date, 10) 
-		   || greaterThanLength("client", "client",client, 250)) {
+		   || greaterThanLength("client", "client",client, 255)) {
 			
 			_logger.warn("found an input parameter that exceeds its allowed length");
 			return false;

@@ -29,9 +29,14 @@ public class ClassRosterReadValidator extends AbstractHttpServletRequestValidato
 	@Override
 	public boolean validate(HttpServletRequest httpRequest) throws MissingAuthTokenException {
 		String classList = httpRequest.getParameter(InputKeys.CLASS_URN_LIST);
+		String client = httpRequest.getParameter(InputKeys.CLIENT);
 		
 		if(classList == null) {
 			_logger.info("Required parameter is missing or invalid: " + InputKeys.CLASS_URN_LIST);
+			return false;
+		}
+		else if((client == null) || (greaterThanLength(InputKeys.CLIENT, InputKeys.CLIENT, client, 255))) {
+			_logger.warn("The client parameter is missing or too long.");
 			return false;
 		}
 		

@@ -49,7 +49,8 @@ public class UserReadValidator extends AbstractHttpServletRequestValidator {
 	public boolean validate(HttpServletRequest httpRequest) throws MissingAuthTokenException {
 		String client = httpRequest.getParameter(InputKeys.CLIENT);
 		
-		if(client == null) {
+		if((client == null) || (greaterThanLength(InputKeys.CLIENT, InputKeys.CLIENT, client, 255))) {
+			_logger.info("The client parameter is missing or too long.");
 			return false;
 		}
 		

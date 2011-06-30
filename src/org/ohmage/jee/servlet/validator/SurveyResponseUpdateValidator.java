@@ -78,7 +78,7 @@ public class SurveyResponseUpdateValidator extends AbstractHttpServletRequestVal
 			_logger.warn(InputKeys.PRIVACY_STATE + " is too long.");
 			return false;
 		}
-		else if(greaterThanLength(InputKeys.CLIENT, InputKeys.CLIENT, client, 250)) {
+		else if(greaterThanLength(InputKeys.CLIENT, InputKeys.CLIENT, client, 255)) {
 			_logger.warn(InputKeys.CLIENT + " is too long.");
 			return false;
 		}

@@ -58,9 +58,9 @@ public class ClassReadValidator extends AbstractHttpServletRequestValidator {
 			
 			return false;
 		}
-		else if(client == null) {
+		else if((client == null) || (greaterThanLength(InputKeys.CLIENT, InputKeys.CLIENT, client, 255))) {
 			if(_logger.isDebugEnabled()) {
-				_logger.debug("The client parameter is missing in the request.");
+				_logger.debug("The client parameter is missing or too long.");
 			}
 			
 			return false;
