@@ -51,6 +51,10 @@
   <path id="run-classpath">
     <fileset refid="run-dependencies"/>
   </path>
+  
+  <taskdef uri="antlib:org.sonar.ant" resource="org/sonar/ant/antlib.xml">
+    <classpath path="{component.repository}/sonar-ant-task-1.1.jar" /> 
+  </taskdef>
 
   <target name="help-properties" description="Shows what properties you may want to override on the command line.">
     <echo message="-Dcomponent.repository=&lt;path&gt;  Where to search for dependencies/versioned components during build [${component.repository}]."/>
@@ -163,5 +167,15 @@
   <target name="release" depends="dist" description="Releases the distribution by copying it to the component repository..">
     <copy file="${dist}/${ant.project.name}-${app_version}.war" todir="${component.repository}/."/>
   </target>
-
- </project>
+  
+   <target name="sonar">
+     <sonar:sonar workDir="${user.home}/tmp" key="org.ohmage:example" version="2.5" xmlns:sonar="antlib:org.sonar.ant">
+       <sources>
+         <path location="${src}" />
+       </sources>
+       <property key="sonar.java.source" value="1.6" />
+       <property key="sonar.java.target" value="1.6" />
+     </sonar:sonar>
+   </target>
+  
+</project>
