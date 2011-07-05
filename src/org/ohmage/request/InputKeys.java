@@ -131,8 +131,8 @@ public class InputKeys {
 	public static final String DOCUMENT_PERSONAL_DOCUMENTS = "personal_documents";
 	
 	// Visualization Constants
-	public static final String VISUALIZATION_WIDTH = "!width";
-	public static final String VISUALIZATION_HEIGHT = "!height";
+	public static final String VISUALIZATION_WIDTH = "width";
+	public static final String VISUALIZATION_HEIGHT = "height";
 	
 	// Separator Constants
 	public static final String LIST_ITEM_SEPARATOR = ",";
