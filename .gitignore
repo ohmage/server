@@ -4,3 +4,4 @@ dist
 .project
 bin
 web/META-INF/system.properties
+.sonar

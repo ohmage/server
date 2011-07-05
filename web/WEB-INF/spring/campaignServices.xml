@@ -166,7 +166,7 @@
       </bean>
     </constructor-arg>
     <constructor-arg>
-      <value>true</value>
+      <value>false</value>
     </constructor-arg>
   </bean>
             
