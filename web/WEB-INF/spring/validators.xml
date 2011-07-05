@@ -68,7 +68,7 @@
   <bean id="invalidNewUsername" class="org.ohmage.validator.json.FailedJsonRequestAnnotator">
     <constructor-arg index="0">
       <bean class="org.ohmage.domain.ErrorResponse">
-        <property name="code" value="1309" />
+        <property name="code" value="1300" />
         <property name="text" value="Invalid new username" />
       </bean>
     </constructor-arg>
