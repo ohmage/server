@@ -87,6 +87,7 @@ public class CampaignCreationValidator extends AbstractHttpServletRequestValidat
 		String xml = null;
 		String classes = null;
 		String description = null;
+		String client = null;
 		for(int i = 0; i < numberOfUploadedItems; i++) {
 			FileItem fi = (FileItem) uploadedItems.get(i);
 			if(fi.isFormField()) {
@@ -125,11 +126,23 @@ public class CampaignCreationValidator extends AbstractHttpServletRequestValidat
 					}
 					token = value;
 				}
+				else if(InputKeys.CLIENT.equals(name)) {
+					if(greaterThanLength(InputKeys.CLIENT, InputKeys.CLIENT, value, 255)) {
+						_logger.info("The client paramter is too large.");
+						return false;
+					}
+					client = value;
+				}
 			} else {
 				if(InputKeys.XML.equals(fi.getFieldName())) {					
 					xml = new String(fi.get()); // Gets the XML file.
 				}
 			}
+		}
+		
+		if(client == null) {
+			_logger.info("Missing required parameter: " + InputKeys.CLIENT);
+			return false;
 		}
 		
 		CampaignCreationAwRequest request;

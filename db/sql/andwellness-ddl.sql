@@ -186,7 +186,7 @@ CREATE TABLE survey_response (
   id int unsigned NOT NULL auto_increment,
   user_id int unsigned NOT NULL,
   campaign_id int unsigned NOT NULL,
-  client varchar(250) NOT NULL,
+  client tinytext NOT NULL,
   msg_timestamp datetime NOT NULL,
   epoch_millis bigint unsigned NOT NULL, 
   phone_timezone varchar(32) NOT NULL,
@@ -238,7 +238,7 @@ CREATE TABLE prompt_response (
 CREATE TABLE url_based_resource (
     id int unsigned NOT NULL auto_increment,
     user_id int unsigned NOT NULL,
-    client varchar(250) NOT NULL,
+    client tinytext NOT NULL,
     uuid char (36) NOT NULL, -- joined with prompt_response.response to retrieve survey context for an item
     url text,
     audit_timestamp timestamp default current_timestamp on update current_timestamp,

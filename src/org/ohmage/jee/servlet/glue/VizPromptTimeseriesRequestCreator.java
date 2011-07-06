@@ -3,6 +3,7 @@ package org.ohmage.jee.servlet.glue;
 import javax.servlet.http.HttpServletRequest;
 
 import org.apache.log4j.Logger;
+import org.apache.log4j.NDC;
 import org.ohmage.request.AwRequest;
 import org.ohmage.request.InputKeys;
 import org.ohmage.request.VizPromptTimeseriesRequest;
@@ -37,6 +38,8 @@ public class VizPromptTimeseriesRequestCreator implements AwRequestCreator {
 		catch(IndexOutOfBoundsException e) {
 			token = httpRequest.getParameter(InputKeys.AUTH_TOKEN);
 		}
+		
+		NDC.push("client=" + httpRequest.getParameter(InputKeys.CLIENT));
 		
 		return new VizPromptTimeseriesRequest(token, 
 				httpRequest.getParameter(InputKeys.VISUALIZATION_WIDTH), 

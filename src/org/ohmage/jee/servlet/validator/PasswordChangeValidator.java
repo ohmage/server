@@ -42,6 +42,10 @@ public class PasswordChangeValidator extends AbstractHttpServletRequestValidator
 			// Missing client parameter
 			return false;
 		}
+		else if(greaterThanLength(InputKeys.CLIENT, InputKeys.CLIENT, client, 255)) {
+			// The client was too long.
+			return false;
+		}
 		else if(username == null) {
 			// Missing username.
 			return false;

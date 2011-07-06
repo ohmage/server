@@ -126,7 +126,7 @@ public class CampaignUpdateValidator extends AbstractHttpServletRequestValidator
 		}
 		
 		String client = httpRequest.getParameter(InputKeys.CLIENT);
-		if(client == null) {
+		if((client == null) || (greaterThanLength(InputKeys.CLIENT, InputKeys.CLIENT, client, 255))) {
 			return false;
 		}
 		
@@ -260,6 +260,11 @@ public class CampaignUpdateValidator extends AbstractHttpServletRequestValidator
 					}
 					else if(! "".equals(tmp)) {
 						token = tmp;
+					}
+				}
+				else if(InputKeys.CLIENT.equals(name)) {
+					if(greaterThanLength(InputKeys.CLIENT, InputKeys.CLIENT, tmp, 255)) {
+						return false;
 					}
 				}
 			} else {

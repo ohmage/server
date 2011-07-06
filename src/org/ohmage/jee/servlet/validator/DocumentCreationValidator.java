@@ -24,6 +24,7 @@ import org.apache.commons.fileupload.FileUploadException;
 import org.apache.commons.fileupload.disk.DiskFileItemFactory;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import org.apache.log4j.Logger;
+import org.apache.log4j.NDC;
 import org.ohmage.cache.CacheMissException;
 import org.ohmage.cache.PreferenceCache;
 import org.ohmage.request.DocumentCreationAwRequest;
@@ -114,6 +115,7 @@ public class DocumentCreationValidator extends AbstractHttpServletRequestValidat
 		int numberOfUploadedItems = uploadedItems.size();
 		
 		// Parse the request for each of the parameters.
+		String client = null;
 		String name = null;
 		byte[] document = null;
 		String privacyState = null;
@@ -168,11 +170,25 @@ public class DocumentCreationValidator extends AbstractHttpServletRequestValidat
 					}
 					token = fieldValue;
 				}
+				else if(InputKeys.CLIENT.equals(fieldName)) {
+					if(greaterThanLength(InputKeys.CLIENT, InputKeys.CLIENT, fieldValue, 255)) {
+						return false;
+					}
+					client = fieldValue;
+				}
 			} else {
 				if(InputKeys.DOCUMENT.equals(fi.getFieldName())) {					
 					document = fi.get(); // Gets the document.
 				}
 			}
+		}
+		
+		if(client == null) {
+			_logger.warn("Missing required parameter: " + InputKeys.CLIENT);
+			return false;
+		}
+		else {
+			NDC.push("client=" + httpRequest.getParameter(InputKeys.CLIENT));
 		}
 		
 		DocumentCreationAwRequest request;

@@ -120,7 +120,7 @@ public class SurveyResponseReadValidator extends AbstractHttpServletRequestValid
 		if(greaterThanLength("startDate", "start_date", startDate, 10)                         // enforce "yyyy-mm-dd" length 
 		   || greaterThanLength("endDate", "end_date", endDate, 10)                            // enforce "yyyy-mm-dd" length                                                 
 		   || greaterThanLength("campaignUrn", "campaign_urn", campaignUrn, 250)               // enforce the db column length  
-		   || greaterThanLength("client", "client", client, 250)	                           // enforce the db column length	   
+		   || greaterThanLength("client", "client", client, 255)	                           // enforce the db column length	   
 		   || greaterThanLength("users", "user_list", users, 150)                              // allows up to 10 users
 		   || greaterThanLength("promptIdList", "prompt_id_list", promptIds, 2500)             // arbitrary, but longer than this would be abnormal
 		   || greaterThanLength("surveyIdlist", "survey_id_list", surveyIds, 2500)             // arbitrary, but longer than this would be abnormal 

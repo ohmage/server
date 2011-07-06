@@ -3,6 +3,7 @@ package org.ohmage.jee.servlet.glue;
 import javax.servlet.http.HttpServletRequest;
 
 import org.apache.log4j.Logger;
+import org.apache.log4j.NDC;
 import org.ohmage.request.AwRequest;
 import org.ohmage.request.ClassRosterReadRequest;
 import org.ohmage.request.InputKeys;
@@ -37,6 +38,8 @@ public class ClassRosterReadRequestCreator implements AwRequestCreator {
 		catch(IndexOutOfBoundsException e) {
 			token = httpRequest.getParameter(InputKeys.AUTH_TOKEN);
 		}
+		
+		NDC.push("client=" + httpRequest.getParameter(InputKeys.CLIENT));
 		
 		return new ClassRosterReadRequest(token, httpRequest.getParameter(InputKeys.CLASS_URN_LIST));
 	}

@@ -52,9 +52,10 @@ public class CampaignDeletionValidator extends AbstractHttpServletRequestValidat
 			
 			return false;
 		}
-		else if(httpRequest.getParameter(InputKeys.CLIENT) == null) {
+		else if((httpRequest.getParameter(InputKeys.CLIENT) == null) || 
+				(greaterThanLength(InputKeys.CLIENT, InputKeys.CLIENT, httpRequest.getParameter(InputKeys.CLIENT), 255))) {
 			if(_logger.isDebugEnabled()) {
-				_logger.debug("Missing required client parameter.");
+				_logger.debug("The client parameter is missing or too long.");
 			}
 			
 			return false;

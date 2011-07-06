@@ -30,9 +30,14 @@ public class ClassDeletionValidator extends AbstractHttpServletRequestValidator 
 	@Override
 	public boolean validate(HttpServletRequest httpRequest) throws MissingAuthTokenException {
 		String classUrn = httpRequest.getParameter(InputKeys.CLASS_URN);
+		String client = httpRequest.getParameter(InputKeys.CLIENT);
 
 		if(StringUtils.isEmptyOrWhitespaceOnly(classUrn)) {
 			_logger.warn("Missing required key: " + InputKeys.CLASS_URN);
+			return false;
+		}
+		else if((client == null) || (greaterThanLength(InputKeys.CLIENT, InputKeys.CLIENT, client, 255))) {
+			_logger.warn("The client parameter is missing or too long.");
 			return false;
 		}
 		

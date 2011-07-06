@@ -45,7 +45,7 @@ public class UserStatsQueryValidator extends AbstractGzipHttpServletRequestValid
 		// Check for abnormal lengths (buffer overflow attack)
 		
 		if(greaterThanLength("campaignUrn", "campaign_urn", campaignUrn, 250)
-		   || greaterThanLength("client", "client",client, 500)		   
+		   || greaterThanLength("client", "client",client, 255)		   
 		   || greaterThanLength("userName", "user", user, 15)) {
 			
 			_logger.warn("found an input parameter that exceeds its allowed length");

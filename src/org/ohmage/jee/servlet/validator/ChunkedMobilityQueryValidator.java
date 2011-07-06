@@ -61,7 +61,7 @@ public class ChunkedMobilityQueryValidator extends AbstractHttpServletRequestVal
 		
 		if(greaterThanLength("startDate", "start_date", startDate, 10) 
 		   || greaterThanLength("endDate", "end_date", endDate, 10)		
-		   || greaterThanLength("client", "client",client, 250)) {
+		   || greaterThanLength("client", "client",client, 255)) {
 			
 			_logger.warn("found an input parameter that exceeds its allowed length");
 			return false;

@@ -45,7 +45,7 @@ public class ImageQueryValidator extends AbstractHttpServletRequestValidator {
 		// Check for abnormal lengths (buffer overflow attack)
 		
 		if(greaterThanLength("campaignUrn", "campaign_urn", campaignUrn, 250)
-		   || greaterThanLength("client", "client",client, 250)
+		   || greaterThanLength("client", "client",client, 255)
 		   || greaterThanLength("user", "user", user, 15)
 		   || greaterThanLength("imageId", "id", id, 36)
 		   || greaterThanLength("size", "size", size, 5)) { // the only currently allowed value is "small"
