@@ -208,7 +208,7 @@ public abstract class UserRequest extends Request {
 	 * @return The authentication / session token from this request or null if
 	 * 		   no such cookie or parameter exists.
 	 */
-	public String getToken(HttpServletRequest httpRequest) {
+	public static String getToken(HttpServletRequest httpRequest) {
 		String token;
 		
 		token = CookieUtils.getCookieValue(httpRequest.getCookies(), InputKeys.AUTH_TOKEN);
