@@ -21,14 +21,15 @@ package org.ohmage.cache;
  * 
  * @author John Jenkins
  */
-public class DocumentPrivacyStateCache extends StringAndIdCache {
+public final class DocumentPrivacyStateCache extends StringAndIdCache {
 	// The column IDs for the query.
 	private static final String ID_COLUMN = "id";
 	private static final String STATE_COLUMN = "privacy_state";
 	
 	// The SQL that will retrieve the desired values.
-	private static final String SQL_GET_DOCUMENT_PRIVACY_STATES_AND_IDS = "SELECT " + ID_COLUMN + ", " + STATE_COLUMN + " " +
-																		  "FROM document_privacy_state";
+	private static final String SQL_GET_DOCUMENT_PRIVACY_STATES_AND_IDS = 
+		"SELECT " + ID_COLUMN + ", " + STATE_COLUMN + " " +
+		"FROM document_privacy_state";
 	
 	// When we are requesting a cache in the Spring files, we use this
 	// to reference which cache we want.
@@ -40,13 +41,13 @@ public class DocumentPrivacyStateCache extends StringAndIdCache {
 	
 	// A reference to the only instance of this class for the Singleton
 	// pattern.
-	private static DocumentPrivacyStateCache _self = new DocumentPrivacyStateCache();
+	private static DocumentPrivacyStateCache instance = new DocumentPrivacyStateCache();
 	
 	/**
 	 * Default constructor set to protected to make this a Singleton, but
 	 * allow another cache to subclass it despite the likeliness of it.
 	 */
-	protected DocumentPrivacyStateCache() {
+	private DocumentPrivacyStateCache() {
 		super(SQL_GET_DOCUMENT_PRIVACY_STATES_AND_IDS, ID_COLUMN, STATE_COLUMN);
 	}
 	
@@ -57,7 +58,7 @@ public class DocumentPrivacyStateCache extends StringAndIdCache {
 	 * @return The only instance of this class.
 	 */
 	public static DocumentPrivacyStateCache instance() {
-		return _self;
+		return instance;
 	}
 	
 	/**

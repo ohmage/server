@@ -33,12 +33,12 @@ public abstract class Cache {
 	public static final long MIN_CACHE_REFRESH_MILLIS = 1000;
 	
 	// The DataSource to use when querying the database.
-	protected DataSource _dataSource;
+	protected DataSource dataSource;
 	
 	// The last time we refreshed our cache in milliseconds since epoch.
-	protected long _lastUpdateTimestamp;
+	protected long lastUpdateTimestamp;
 	// The number of milliseconds between refreshes of the local cache.
-	protected long _updateFrequency;
+	protected long updateFrequency;
 	
 	/**
 	 * Default constructor made protected so children can call it, but it is
@@ -49,20 +49,18 @@ public abstract class Cache {
 	protected Cache() {
 		// This helps us guarantee that the DataSource starts off as null to
 		// help assure that it will only be set once.
-		_dataSource = null;
+		dataSource = null;
 		
 		// Initialize the refresh times to "invalid" values such that the
 		// first run is guaranteed to refresh itself.
-		_lastUpdateTimestamp = -1;
-		_updateFrequency = -1;
+		lastUpdateTimestamp = -1;
+		updateFrequency = -1;
 	}
 	
 	/**
 	 * Sets the DataSource for this object. This can only be called once by
 	 * Spring on startup and subsequent calls will cause an 
 	 * IllegalArgumentException exception to be thrown.
-	 * 
-	 * @complexity O(1)
 	 * 
 	 * @param dataSource The DataSource for its children to use when querying
 	 * 					 the database.
@@ -73,23 +71,21 @@ public abstract class Cache {
 	 * 									been set and it is attempting to be
 	 * 									reset.
 	 */
-	public synchronized void setDataSource(DataSource dataSource) throws IllegalArgumentException {
-		if(_dataSource != null) {
+	public synchronized void setDataSource(DataSource dataSource) {
+		if(this.dataSource != null) {
 			throw new IllegalStateException("The DataSource may only be set once.");
 		}
 		if(dataSource == null) {
 			throw new IllegalArgumentException("The DataSource may not be null.");
 		}
 		
-		_dataSource = dataSource;
+		this.dataSource = dataSource;
 	}
 	
 	/**
 	 * Sets the initial update frequency for this object. This may be reset by
 	 * anyone at a later date to dynamically increase cache fidelity or to
 	 * lessen the load on the database.
-	 * 
-	 * @complexity O(1)
 	 * 
 	 * @param frequencyInMilliseconds The frequency that updates should be
 	 * 								  checked for in milliseconds. The system
@@ -103,15 +99,15 @@ public abstract class Cache {
 	 * 									the minimum allowed frequency, 
 	 * 									{@value #MIN_CACHE_REFRESH_MILLIS}.
 	 * 
-	 * @see {@link #MIN_CACHE_REFRESH_MILLIS}
+	 * @see #MIN_CACHE_REFRESH_MILLIS
 	 */
-	public synchronized void setUpdateFrequency(long frequencyInMilliseconds) throws IllegalArgumentException {
+	public synchronized void setUpdateFrequency(long frequencyInMilliseconds) {
 		if(frequencyInMilliseconds < MIN_CACHE_REFRESH_MILLIS) {
 			throw new IllegalArgumentException("The update frequency must be a positive integer greater than or equal to " +
 					MIN_CACHE_REFRESH_MILLIS + " milliseconds.");
 		}
 		
-		_updateFrequency = frequencyInMilliseconds;
+		updateFrequency = frequencyInMilliseconds;
 	}
 	
 	/**

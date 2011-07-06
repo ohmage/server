@@ -1,0 +1,79 @@
+package org.ohmage.request;
+
+import javax.servlet.http.HttpServletRequest;
+
+/**
+ * Request builder from an HTTP request.
+ * 
+ * @author John Jenkins
+ */
+public final class RequestBuilder {
+	/**
+	 * Default constructor. Made private because this class should never be
+	 * instantiated. Instead, the static builder methods should be called.
+	 */
+	private RequestBuilder() {}
+	
+	private static final String API_ROOT = "/app";
+	
+	// Config
+	private static final String API_CONFIG_READ = API_ROOT + "/config/read";
+	
+	// Authentication
+	private static final String API_USER_AUTH = API_ROOT + "/user/auth";
+	private static final String API_USER_AUTH_TOKEN = API_ROOT + "/user/auth_token";
+	
+	// Campaign
+	private static final String API_CAMPAIGN_CREATE = API_ROOT + "/campaign/create";
+	
+	// Class
+	private static final String API_CLASS_CREATE = API_ROOT + "/class/create";
+	private static final String API_CLASS_READ = API_ROOT + "/class/read";
+	private static final String API_CLASS_UPDATE = API_ROOT + "/class/update";
+	private static final String API_CLASS_DELETE = API_ROOT + "/class/delete";
+	
+	/**
+	 * Builds a new request based on the request's URI. This will always return
+	 * a request and will never return null. If the URI is unknown it will 
+	 * return a FailedRequest().
+	 * 
+	 * @param httpRequest The incoming HTTP request.
+	 * 
+	 * @return A new Request object based on the HTTP request's URI.
+	 */
+	public static Request buildRequest(HttpServletRequest httpRequest) {
+		String requestUri = httpRequest.getRequestURI();
+		
+		// Config
+		if(API_CONFIG_READ.equals(requestUri)) {
+			return new ConfigReadRequest();
+		}
+		// Authentication
+		else if(API_USER_AUTH.equals(requestUri)) {
+			return new AuthRequest(httpRequest);
+		}
+		else if(API_USER_AUTH_TOKEN.equals(requestUri)) {
+			return new AuthTokenRequest(httpRequest);
+		}
+		// Campaign
+		else if(API_CAMPAIGN_CREATE.equals(requestUri)) {
+			return new CampaignCreationRequest(httpRequest);
+		}
+		// Class
+		else if(API_CLASS_CREATE.equals(requestUri)) {
+			return new ClassCreationRequest(httpRequest);
+		}
+		else if(API_CLASS_READ.equals(requestUri)) {
+			return new ClassReadRequest(httpRequest);
+		}
+		else if(API_CLASS_UPDATE.equals(requestUri)) {
+			return new ClassUpdateRequest(httpRequest);
+		}
+		else if(API_CLASS_DELETE.equals(requestUri)) {
+			return new ClassDeletionRequest(httpRequest);
+		}
+		
+		// The URI is unknown.
+		return new FailedRequest();
+	}
+}

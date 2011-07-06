@@ -21,12 +21,13 @@ package org.ohmage.cache;
  * 
  * @author John Jenkins
  */
-public class PreferenceCache extends KeyValueCache {
+public final class PreferenceCache extends KeyValueCache {
 	private static final String SQL_KEY_KEY = "p_key";
 	private static final String SQL_VALUE_KEY = "p_value";
 	
-	private static final String SQL_GET_KEYS_AND_VALUES = "SELECT " + SQL_KEY_KEY + ", " + SQL_VALUE_KEY + " " +
-														  "FROM preference";
+	private static final String SQL_GET_KEYS_AND_VALUES = 
+		"SELECT " + SQL_KEY_KEY + ", " + SQL_VALUE_KEY + " " +
+		"FROM preference";
 	
 	// When we are requesting a cache in the Spring files, we use this
 	// to reference which key we want.
@@ -35,26 +36,20 @@ public class PreferenceCache extends KeyValueCache {
 	// Known campaign privacy states.
 	public static final String KEY_DEFAULT_CAN_CREATE_PRIVILIEGE = "default_can_create_privilege";
 	public static final String KEY_DEFAULT_SURVEY_RESPONSE_SHARING_STATE = "default_survey_response_sharing_state";
-	
 	public static final String KEY_MAXIMUM_DOCUMENT_SIZE = "maximum_document_size";
-	
 	public static final String KEY_DOCUMENT_DIRECTORY = "document_directory";
-	public static final String KEY_MAXIMUM_NUMBER_OF_DOCUMENTS_PER_DIRECTORY = "max_files_per_dir";
+	public static final String KEY_MAXIMUM_NUMBER_OF_DOCUMENTS_PER_DIRECTORY = "maximum_num_docs_per_directory";
 	public static final String KEY_DOCUMENT_DEPTH = "document_depth";
-	
 	public static final String KEY_APPLICATION_NAME = "application_name";
 	public static final String KEY_APPLICATION_VERSION = "application_version";
-	public static final String KEY_PROPERTIES_FILE = "properties_file";
-	
-	public static final String KEY_VISUALIZATION_SERVER = "visualization_server_address";
 	
 	// The reference to one's self to return to requesters.
-	private static PreferenceCache _self = new PreferenceCache();
+	private static PreferenceCache instance = new PreferenceCache();
 	
 	/**
 	 * Default constructor set private to make this a Singleton.
 	 */
-	protected PreferenceCache() {
+	private PreferenceCache() {
 		super(SQL_GET_KEYS_AND_VALUES, SQL_KEY_KEY, SQL_VALUE_KEY);
 	}
 	
@@ -65,7 +60,7 @@ public class PreferenceCache extends KeyValueCache {
 	 * 		   this cache should be made.
 	 */
 	public static PreferenceCache instance() {
-		return _self;
+		return instance;
 	}
 	
 	/**

@@ -23,15 +23,14 @@ import java.util.Collections;
 import java.util.List;
 import java.util.regex.Pattern;
 
-
 /**
  * A collection of methods for manipulating or validating strings.
  * 
  * @author selsky
  */
 public final class StringUtils {
-	// private static Logger _logger = Logger.getLogger(StringUtils.class);
-	private static Pattern _urnPattern = Pattern.compile("[a-z0-9_]+");
+	private static final int NUM_URN_SEGMENTS = 3;
+	private static final Pattern URN_PATTERN = Pattern.compile("[a-z0-9_]+");
 	
 	/**
 	 * It is illegal and unncessary to instantiate this class as it is a collection of static methods.
@@ -131,18 +130,14 @@ public final class StringUtils {
 			return false;
 		}
 		
-		if(s.length() < 7) { // disallow anything shorter than urn:a:a 
-			return false;
-		}
-		
 		String[] a = s.split(":");
 		
-		if(a.length < 3) { // require at least three colon-delimited sections
+		if(a.length < NUM_URN_SEGMENTS) { // require at least three colon-delimited sections
 			return false;
 		}
 		
-		for(int i = 1; i < a.length; i++) { // each section after the initial urn must match _urnPattern
-			if(! _urnPattern.matcher(a[i]).matches()) {
+		for(int i = 1; i < a.length; i++) { // each section after the initial urn must match URN_PATTERN
+			if(! URN_PATTERN.matcher(a[i]).matches()) {
 				return false;
 			}
 		}
@@ -189,24 +184,4 @@ public final class StringUtils {
 		
 		return builder.toString();
 	}
-	
-	/**
-	 * Strips off the millseconds value from a JDBC timestamp String returned from the MySQL JDBC connector.
-	 * 
-	 * @param timestamp The timestamp to strip the nanos from.
-	 * 
-	 * @return A newly formatted String in the format 'yyyy-MM-dd hh:mm:ss' or null if the provided String is null.
-	 */
-	public static String stripMillisFromJdbcTimestampString(String timestamp) {
-		if(null != timestamp) {
-			if(timestamp.contains(".")) {
-				return timestamp.substring(0, timestamp.lastIndexOf("."));
-			} 
-			else {
-				return timestamp;
-			}
-		}	
-		return null;
-	}
-	
 }

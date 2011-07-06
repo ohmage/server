@@ -21,13 +21,14 @@ package org.ohmage.cache;
  * 
  * @author John Jenkins
  */
-public class MobilityPrivacyStateCache extends StringAndIdCache {
+public final class MobilityPrivacyStateCache extends StringAndIdCache {
 	// The column IDs for the query.
 	private static final String ID_COLUMN = "id";
 	private static final String STATE_COLUMN = "privacy_state";
 	
-	private static final String SQL_GET_MOBILITY_PRIVACY_STATES_AND_IDS = "SELECT " + ID_COLUMN + ", " + STATE_COLUMN + " " +
-																		  "FROM mobility_privacy_state";
+	private static final String SQL_GET_MOBILITY_PRIVACY_STATES_AND_IDS = 
+		"SELECT " + ID_COLUMN + ", " + STATE_COLUMN + " " +
+		"FROM mobility_privacy_state";
 	
 	// When we are requesting a cache in the Spring files, we use this
 	// to reference which key we want.
@@ -38,7 +39,7 @@ public class MobilityPrivacyStateCache extends StringAndIdCache {
 	
 	// A reference to the only instance of this class for the Singleton
 	// pattern.
-	private static MobilityPrivacyStateCache _self = new MobilityPrivacyStateCache();
+	private static MobilityPrivacyStateCache instance = new MobilityPrivacyStateCache();
 
 	/**
 	 * Default constructor set private to make this a Singleton.
@@ -54,7 +55,7 @@ public class MobilityPrivacyStateCache extends StringAndIdCache {
 	 * @return The only instance of this class.
 	 */
 	public static MobilityPrivacyStateCache instance() {
-		return _self;
+		return instance;
 	}
 	
 	/**

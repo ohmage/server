@@ -19,7 +19,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.List;
-import java.util.ListIterator;
 import java.util.Map;
 import java.util.Set;
 
@@ -33,7 +32,7 @@ import org.springframework.jdbc.core.RowMapper;
  * @author John Jenkins
  */
 public abstract class KeyValueCache extends Cache {
-	private static Logger _logger = Logger.getLogger(KeyValueCache.class);
+	private static final Logger LOGGER = Logger.getLogger(KeyValueCache.class);
 	
 	/**
 	 * Inner class for handling the results of a query for the String keys and
@@ -41,9 +40,9 @@ public abstract class KeyValueCache extends Cache {
 	 *  
 	 * @author John Jenkins
 	 */
-	private class KeyAndValue {
-		public String _key;
-		public String _value;
+	private final class KeyAndValue {
+		private final String key;
+		private final String value;
 		
 		/**
 		 * Creates a new object with the specified key and value. This is done
@@ -55,22 +54,22 @@ public abstract class KeyValueCache extends Cache {
 		 * 
 		 * @param value The value for this key-value pair.
 		 */
-		public KeyAndValue(String key, String value) {
-			_key = key;
-			_value = value;
+		private KeyAndValue(String key, String value) {
+			this.key = key;
+			this.value = value;
 		}
 	}
 	
 	// The map of all the keys to their values.
-	private Map<String, String> _keyValueMap;
+	private Map<String, String> keyValueMap;
 	
 	// The SQL to use to get the values which must return two String values as
 	// dictated by the private class KeyAndValue.
-	private String _sqlForRetrievingValues;
+	private final String sqlForRetrievingValues;
 	
 	// The column names for the key and value columns to be used with the SQL.
-	private String _keyColumn;
-	private String _valueColumn;
+	private final String keyColumn;
+	private final String valueColumn;
 	
 	/**
 	 * Default constructor that calls its parent and is protected to maintain
@@ -79,11 +78,11 @@ public abstract class KeyValueCache extends Cache {
 	protected KeyValueCache(String sqlForRetrievingValues, String keyKey, String valueKey) {
 		super();
 		
-		_keyValueMap = new HashMap<String, String>();
-		_sqlForRetrievingValues = sqlForRetrievingValues;
+		keyValueMap = new HashMap<String, String>();
+		this.sqlForRetrievingValues = sqlForRetrievingValues;
 		
-		_keyColumn = keyKey;
-		_valueColumn = valueKey;
+		keyColumn = keyKey;
+		valueColumn = valueKey;
 	}
 	
 	/**
@@ -100,8 +99,8 @@ public abstract class KeyValueCache extends Cache {
 	 * It is recommended, but not required, to use the constants declared in
 	 * the concrete cache class as the parameter.
 	 * 
-	 * @complexity O(n) if a refresh is required; otherwise, the complexity of
-	 * 			   a Java Map object to lookup a key and return its value.
+	 * The complexity is O(n) if a refresh is required; otherwise, the 
+	 * complexity of a Java Map object to lookup a key and return its value.
 	 * 
 	 * @param key The key whose corresponding value is being requested.
 	 * 
@@ -111,13 +110,13 @@ public abstract class KeyValueCache extends Cache {
 	 */
 	public String lookup(String key) throws CacheMissException {		
 		// If the lookup table is out-of-date, refresh it.
-		if((_lastUpdateTimestamp + _updateFrequency) <= System.currentTimeMillis()) {
+		if((lastUpdateTimestamp + updateFrequency) <= System.currentTimeMillis()) {
 			refreshMap();
 		}
 		
 		// If the key exists in the lookup table, return its value.
-		if(_keyValueMap.containsKey(key)) {
-			return _keyValueMap.get(key);
+		if(keyValueMap.containsKey(key)) {
+			return keyValueMap.get(key);
 		}
 		// Otherwise, throw an exception that it is an unknown state.
 		else {
@@ -133,11 +132,11 @@ public abstract class KeyValueCache extends Cache {
 	@Override
 	public Set<String> getKeys() {
 		// If the lookup table is out-of-date, refresh it.
-		if((_lastUpdateTimestamp + _updateFrequency) <= System.currentTimeMillis()) {
+		if((lastUpdateTimestamp + updateFrequency) <= System.currentTimeMillis()) {
 			refreshMap();
 		}
 		
-		return _keyValueMap.keySet();
+		return keyValueMap.keySet();
 	}
 	
 	/**
@@ -160,40 +159,40 @@ public abstract class KeyValueCache extends Cache {
 		// Only one thread should be updating this information at a time. Once
 		// other threads enter, they should check to see if an update was just
 		// done and, if so, should abort a second update.
-		if((_lastUpdateTimestamp + _updateFrequency) > System.currentTimeMillis()) {
+		if((lastUpdateTimestamp + updateFrequency) > System.currentTimeMillis()) {
 			return;
 		}
 		
 		// This is the JdbcTemplate we will use for our query. If there is an
 		// issue report it and abort the update.
-		JdbcTemplate jdbcTemplate = new JdbcTemplate(_dataSource);
+		JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
 		
 		// Get all the keys and their corresponding values.
-		List<?> keyAndValue;
+		List<KeyAndValue> keyAndValue;
 		try {
-			keyAndValue = jdbcTemplate.query(_sqlForRetrievingValues,
-											new RowMapper() {
-												@Override
-												public Object mapRow(ResultSet rs, int row) throws SQLException {
-													return new KeyAndValue(rs.getString(_keyColumn), rs.getString(_valueColumn));
-												}
-											});
+			keyAndValue = jdbcTemplate.query(
+					sqlForRetrievingValues, 
+					new RowMapper<KeyAndValue>() {
+						@Override
+						public KeyAndValue mapRow(ResultSet rs, int row) throws SQLException {
+							return new KeyAndValue(rs.getString(keyColumn), rs.getString(valueColumn));
+						}
+					}
+				);
 		}
 		catch(org.springframework.dao.DataAccessException e) {
-			_logger.error("Error executing SQL '" + _sqlForRetrievingValues + "'. Aborting cache refresh.");
+			LOGGER.error("Error executing SQL '" + sqlForRetrievingValues + "'. Aborting cache refresh.");
 			return;
 		}
 		
 		// Create a new Map, populate it, and replace the old one. This allows
 		// for concurrent readying while the new Map is being created.
 		Map<String, String> keyValueMap = new HashMap<String, String>();
-		ListIterator<?> keyAndValueIter = keyAndValue.listIterator();
-		while(keyAndValueIter.hasNext()) {
-			KeyAndValue currStateAndId = (KeyAndValue) keyAndValueIter.next();
-			keyValueMap.put(currStateAndId._key, currStateAndId._value);
+		for(KeyAndValue currStateAndId : keyAndValue) {
+			keyValueMap.put(currStateAndId.key, currStateAndId.value);
 		}
-		_keyValueMap = keyValueMap;
+		this.keyValueMap = keyValueMap;
 		
-		_lastUpdateTimestamp = System.currentTimeMillis();
+		lastUpdateTimestamp = System.currentTimeMillis();
 	}
 }

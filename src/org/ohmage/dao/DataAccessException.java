@@ -20,8 +20,8 @@ package org.ohmage.dao;
  * 
  * @author selsky
  */
-@SuppressWarnings("serial") 
 public class DataAccessException extends RuntimeException {
+	private static final long serialVersionUID = 1L;
 
 	public DataAccessException(String message) {
 		super(message);

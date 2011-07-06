@@ -1,30 +1,52 @@
-/*******************************************************************************
- * Copyright 2011 The Regents of the University of California
- * 
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- * 
- *   http://www.apache.org/licenses/LICENSE-2.0
- * 
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- ******************************************************************************/
 package org.ohmage.dao;
 
-import org.ohmage.request.AwRequest;
+import javax.sql.DataSource;
 
+import org.springframework.jdbc.core.JdbcTemplate;
 
 /**
- * Data Access Object: interact with the datastore. 
+ * The superclass for all DAOs, this class contains the DataSource with which 
+ * it was built as well as a JDBC template which is the most common field that
+ * subclasses will use to access the database.
  * 
- * @author selsky
+ * All subclasses must be Singletons as subsequent invocations of a constructor
+ * will throw an IllegalStateException.
+ * 
+ * @author John Jenkins
  */
-public interface Dao {
-
-	public void execute(AwRequest awRequest);
+public abstract class Dao {
+	private boolean initialized = false;
 	
+	protected final DataSource dataSource;
+	protected final JdbcTemplate jdbcTemplate;
+	
+	/**
+	 * Builds this DAO by keeping track of the DataSource that was used to
+	 * create it and creates a JDBC template for subclasses to use when 
+	 * querying the database.
+	 * 
+	 * All subclasses must be Singletons in that all subsequent invocations of
+	 * this constructor will throw an IllegalStateException. 
+	 * 
+	 * @param dataSource The DataSource to use to query the database.
+	 * 
+	 * @throws IllegalArgumentException Thrown if the 'dataSource' is null.
+	 * 
+	 * @throws IllegalStateException Thrown if someone attempts to instantiate
+	 * 								 this class again. All subclasses must be
+	 * 								 Singletons.
+	 */
+	protected Dao(DataSource dataSource) {
+		if(dataSource == null) {
+			throw new IllegalArgumentException("The data source cannot be null.");
+		}
+		else if(initialized) {
+			throw new IllegalStateException("A DAO should be built exactly once by Spring when the server is initialized.");
+		}
+		
+		this.dataSource = dataSource;
+		jdbcTemplate = new JdbcTemplate(dataSource);
+		
+		initialized = true;
+	}
 }

@@ -1,44 +1,131 @@
 package org.ohmage.request;
 
-import org.ohmage.util.StringUtils;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.apache.log4j.Logger;
+import org.ohmage.service.ClassServices;
+import org.ohmage.service.ServiceException;
+import org.ohmage.service.UserServices;
+import org.ohmage.util.CookieUtils;
+import org.ohmage.validator.ClassValidators;
+import org.ohmage.validator.StringValidators;
+import org.ohmage.validator.ValidationException;
 
 /**
- * A request for class creation.
+ * <p>Creates a new class. The requester must be an admin.</p>
+ * <table border="1">
+ *   <tr>
+ *     <td>Parameter Name</td>
+ *     <td>Description</td>
+ *     <td>Required</td>
+ *   </tr>
+ *   <tr>
+ *     <td>{@value org.ohmage.request.InputKeys#CLIENT}</td>
+ *     <td>A string describing the client that is making this request.</td>
+ *     <td>true</td>
+ *   </tr>
+ *   <tr>
+ *     <td>{@value org.ohmage.request.InputKeys#CLASS_URN}</td>
+ *     <td>The URN of the new class.</td>
+ *     <td>true</td>
+ *   </tr>
+ *   <tr>
+ *     <td>{@value org.ohmage.request.InputKeys#CLASS_NAME}</td>
+ *     <td>The name of the new class</td>
+ *     <td>true</td>
+ *   </tr>
+ *   <tr>
+ *     <td>{@value org.ohmage.request.InputKeys#DESCRIPTION}</td>
+ *     <td>An optional description of the class.</td>
+ *     <td>false</td>
+ *   </tr>
+ * </table>
  * 
  * @author John Jenkins
  */
-public class ClassCreationRequest extends ResultListAwRequest {
+public class ClassCreationRequest extends UserRequest {
+	private static final Logger LOGGER = Logger.getLogger(ClassCreationRequest.class);
+	
+	private final String classId;
+	private final String className;
+	private final String classDescription;
+	
 	/**
-	 * Creates a new class creation request object.
+	 * Builds this request based on the information in the HTTP request.
 	 * 
-	 * @param token The requester's authentication / session token.
-	 * 
-	 * @param urn The URN of this new class.
-	 * 
-	 * @param name The name of this new class.
-	 * 
-	 * @param description An optional description for this new class.
-	 * 
-	 * @throws IllegalArgumentException Thrown if the token, urn, or name are 
-	 * 									null or whitespace only.
+	 * @param httpRequest A HttpServletRequest object that contains the
+	 * 					  parameters to and metadata for this request.
 	 */
-	public ClassCreationRequest(String token, String urn, String name, String description) throws IllegalArgumentException {
-		if(StringUtils.isEmptyOrWhitespaceOnly(token)) {
-			throw new IllegalArgumentException("The token cannot be null or whitespace only.");
-		}
-		else if(StringUtils.isEmptyOrWhitespaceOnly(urn)) {
-			throw new IllegalArgumentException("The URN cannot be null or whitespace only.");
-		}
-		else if(StringUtils.isEmptyOrWhitespaceOnly(name)) {
-			throw new IllegalArgumentException("The name cannot be null or whitespace only.");
+	public ClassCreationRequest(HttpServletRequest httpRequest) {
+		super(CookieUtils.getCookieValue(httpRequest.getCookies(), InputKeys.AUTH_TOKEN), httpRequest.getParameter(InputKeys.CLIENT));
+		
+		LOGGER.info("Creating a class creation request.");
+		
+		String tempClassId = null;
+		String tempClassName = null;
+		String tempClassDescription = null;
+		
+		if(! failed) {
+			try {
+				tempClassId = ClassValidators.validateClassId(this, httpRequest.getParameter(InputKeys.CLASS_URN));
+				if(tempClassId == null) {
+					setFailed("1212", "Missing required class URN.");
+					throw new ValidationException("Missing required class URN.");
+				}
+				
+				tempClassName = StringValidators.validateString(this, httpRequest.getParameter(InputKeys.CLASS_NAME));
+				if(tempClassName == null) {
+					setFailed("1213", "Missing required class name.");
+					throw new ValidationException("Missing required class name.");
+				}
+				
+				tempClassDescription = StringValidators.validateString(this, httpRequest.getParameter(InputKeys.DESCRIPTION));
+			}
+			catch(ValidationException e) {
+				LOGGER.info("Error while building the request.", e);
+			}
 		}
 		
-		setUserToken(token);
-		addToValidate(InputKeys.CLASS_URN, urn, true);
-		addToValidate(InputKeys.CLASS_NAME, name, true);
+		classId = tempClassId;
+		className = tempClassName;
+		classDescription = tempClassDescription;
+	}
+
+	/**
+	 * Ensures that the class doesn't already exists and, if not, creates it.
+	 */
+	@Override
+	public void service() {
+		LOGGER.info("Servicing a class creation request.");
 		
-		if(! StringUtils.isEmptyOrWhitespaceOnly(description)) {
-			addToValidate(InputKeys.DESCRIPTION, description, true);
+		if(! authenticate(false)) {
+			return;
 		}
+		
+		try {
+			// Check if the user is an administrator.
+			LOGGER.info("Checking that the user is an admin.");
+			UserServices.verifyUserIsAdmin(this, user.getUsername());
+			
+			// Check that the class doesn't already exist.
+			LOGGER.info("Checking that a class with the same ID doesn't already exist.");
+			ClassServices.checkClassExistence(this, classId, false);
+			
+			// Create the class.
+			LOGGER.info("Creating the class.");
+			ClassServices.createClass(this, classId, className, classDescription);
+		}
+		catch(ServiceException e) {
+			LOGGER.error("A Service threw an exception.", e);
+		}
+	}
+
+	/**
+	 * Responds with a success or failure message. T
+	 */
+	@Override
+	public void respond(HttpServletRequest httpRequest, HttpServletResponse httpResponse) {
+		super.respond(httpRequest, httpResponse, null);
 	}
 }

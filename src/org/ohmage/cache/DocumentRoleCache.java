@@ -15,14 +15,15 @@
  ******************************************************************************/
 package org.ohmage.cache;
 
-public class DocumentRoleCache extends StringAndIdCache {
+public final class DocumentRoleCache extends StringAndIdCache {
 	// The column IDs for the query.
 	private static final String ID_COLUMN = "id";
 	private static final String ROLE_COLUMN = "role";
 	
 	// The SQL that will retrieve the desired values.
-	private static final String SQL_GET_DOCUMENT_PRIVACY_STATES_AND_IDS = "SELECT " + ID_COLUMN + ", " + ROLE_COLUMN + " " +
-																		  "FROM document_role";
+	private static final String SQL_GET_DOCUMENT_PRIVACY_STATES_AND_IDS = 
+		"SELECT " + ID_COLUMN + ", " + ROLE_COLUMN + " " +
+		"FROM document_role";
 	
 	// When we are requesting a cache in the Spring files, we use this
 	// to reference which cache we want.
@@ -35,13 +36,13 @@ public class DocumentRoleCache extends StringAndIdCache {
 	
 	// A reference to the only instance of this class for the Singleton
 	// pattern.
-	private static DocumentRoleCache _self = new DocumentRoleCache();
+	private static DocumentRoleCache instance = new DocumentRoleCache();
 	
 	/**
 	 * Default constructor set to protected to make this a Singleton, but
 	 * allow another cache to subclass it despite the likeliness of it.
 	 */
-	protected DocumentRoleCache() {
+	private DocumentRoleCache() {
 		super(SQL_GET_DOCUMENT_PRIVACY_STATES_AND_IDS, ID_COLUMN, ROLE_COLUMN);
 	}
 	
@@ -52,7 +53,7 @@ public class DocumentRoleCache extends StringAndIdCache {
 	 * @return The only instance of this class.
 	 */
 	public static DocumentRoleCache instance() {
-		return _self;
+		return instance;
 	}
 	
 	/**

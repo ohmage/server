@@ -21,14 +21,15 @@ package org.ohmage.cache;
  * 
  * @author John Jenkins
  */
-public class SurveyResponsePrivacyStateCache extends StringAndIdCache {
+public final class SurveyResponsePrivacyStateCache extends StringAndIdCache {
 	// The column IDs for the query.
 	private static final String ID_COLUMN = "id";
 	private static final String STATE_COLUMN = "privacy_state";
 	
 	// The SQL that will retrieve the desired values.
-	private static final String SQL_GET_SURVEY_RESPONSE_PRIVACY_STATES_AND_IDS = "SELECT " + ID_COLUMN + ", " + STATE_COLUMN + " " +
-																		  		 "FROM survey_response_privacy_state";
+	private static final String SQL_GET_SURVEY_RESPONSE_PRIVACY_STATES_AND_IDS = 
+		"SELECT " + ID_COLUMN + ", " + STATE_COLUMN + " " +
+		"FROM survey_response_privacy_state";
 	
 	// When we are requesting a cache in the Spring files, we use this
 	// to reference which key we want.
@@ -41,7 +42,7 @@ public class SurveyResponsePrivacyStateCache extends StringAndIdCache {
 	
 	// A reference to the only instance of this class for the Singleton
 	// pattern.
-	private static SurveyResponsePrivacyStateCache _self = new SurveyResponsePrivacyStateCache();
+	private static SurveyResponsePrivacyStateCache instance = new SurveyResponsePrivacyStateCache();
 	
 	/**
 	 * Default constructor set private to make this a Singleton.
@@ -57,7 +58,7 @@ public class SurveyResponsePrivacyStateCache extends StringAndIdCache {
 	 * @return The only instance of this class.
 	 */
 	public static SurveyResponsePrivacyStateCache instance() {
-		return _self;
+		return instance;
 	}
 	
 	/**

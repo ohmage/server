@@ -11,7 +11,38 @@ import javax.servlet.http.HttpServletResponse;
  * 
  * @author John Jenkins
  */
-public class CookieUtils {
+public final class CookieUtils {
+	/**
+	 * Default constructor. Private so that it cannot be instantiated.
+	 */
+	private CookieUtils() {}
+	
+	/**
+	 * Takes an array of HTTP Cookies and the first occurrence of a cookie with
+	 * the name 'name'. If no such cookie exists, null is returned. It doesn't
+	 * check if multiple cookies with the same name exist. 
+	 *  
+	 * @param cookies An array of Cookies that are to be searched for the first 
+	 * 				  item with the name 'name'.
+	 * 
+	 * @param name The name, or key, to search for in the list of Cookies of
+	 * 			   which zero or more may be present.
+	 * 
+	 * @return Returns the first cookie found with the name 'name'. If no such
+	 * 		   cookie is found, null is returned.
+	 */
+	public static String getCookieValue(Cookie[] cookies, String name) {
+		if(cookies != null) {
+			for(int i = 0; i < cookies.length; i++) {
+				if(cookies[i].getName().equals(name)) {
+					return cookies[i].getValue();
+				}
+			}
+		}
+		
+		return null;
+	}
+	
 	/**
 	 * Takes an array of HTTP Cookies and returns a list of values for each of
 	 * the Cookie Objects whose name was 'name'.
@@ -25,7 +56,7 @@ public class CookieUtils {
 	 * @return Returns a list of values for the 'name' from the 'cookies'
 	 * 		   array.
 	 */
-	public static List<String> getCookieValue(Cookie[] cookies, String name) {
+	public static List<String> getCookieValues(Cookie[] cookies, String name) {
 		List<String> results = new LinkedList<String>();
 		
 		if(cookies != null) {
@@ -43,8 +74,8 @@ public class CookieUtils {
 	 * Adds a HTTP Cookie to the response with the given name and value and a
 	 * lifetime.
 	 *  
-	 * @param response The HttpServletResponse to which the Cookie should be
-	 * 				   added.
+	 * @param httpResponse The HttpServletResponse to which the Cookie should 
+	 * 					   be added.
 	 * 
 	 * @param name The name of the Cookie.
 	 * 
@@ -52,10 +83,10 @@ public class CookieUtils {
 	 * 
 	 * @param lifetimeInSeconds The lifetime of the Cookie in seconds.
 	 */
-	public static void setCookieValue(HttpServletResponse response, String name, String value, int lifetimeInSeconds) {
+	public static void setCookieValue(HttpServletResponse httpResponse, String name, String value, int lifetimeInSeconds) {
 		Cookie authTokenCookie = new Cookie(name, value);
 		authTokenCookie.setMaxAge(lifetimeInSeconds);
 		authTokenCookie.setPath("/app");
-		response.addCookie(authTokenCookie);
+		httpResponse.addCookie(authTokenCookie);
 	}
 }

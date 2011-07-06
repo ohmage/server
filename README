@@ -1,9 +1,9 @@
-The AndWellness server project. All server source code, scripts, database configuration files, thirdparty applications, and the visualizations live in this repo.
+The ohmage server project. All server source code and database configuration files live in this repo.
 
 To deploy the server application itself do the following:
 
 1) Build the server with ant.
-    "ant clean dist -f <build-no_ssl.xml | build-ssl.xml>"
+    "ant clean dist"
     
 2) Stop the server if it is currently running.
     "/opt/aw/as/bin/asd.sh stop"
@@ -13,7 +13,7 @@ To deploy the server application itself do the following:
     "rm -rfv /opt/aw/as/webapps/app/"
 
 4) Copy the newly built WAR file from the dist directory into the webapps directory.
-    "cp </server/project/directory/dist/newly-built-war-file.war> /opt/aw/as/webapps/app.war"
+    "cp dist/<WAR file> /opt/aw/as/webapps/app.war"
     
 5) Start the server.
     "/opt/aw/as/bin/asd.sh start"

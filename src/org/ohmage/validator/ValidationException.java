@@ -13,25 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  ******************************************************************************/
-package org.ohmage.service;
+package org.ohmage.validator;
 
 /**
- * Simple wrapper for Exceptions that are thrown from the service layer. 
+ * Simple wrapper for RuntimeExceptions that are thrown from the validation layer. 
  * 
  * @author selsky
  */
-public class ServiceException extends Exception {
+public class ValidationException extends Exception {
 	private static final long serialVersionUID = 1L;
 
-	public ServiceException(String message) {
+	public ValidationException(String message) {
 		super(message);
 	}
 	
-	public ServiceException(String message, Throwable cause) {
+	public ValidationException(String message, Throwable cause) {
 		super(message, cause);
 	}
 	
-	public ServiceException(Throwable cause) {
+	public ValidationException(Throwable cause) {
 		super(cause);
 	}
 }

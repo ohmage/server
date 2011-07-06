@@ -16,6 +16,7 @@
 package org.ohmage.domain;
 
 import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -33,23 +34,23 @@ import java.util.Set;
  * @param <V> The type of values to be referenced as valuse.
  */
 public class BidirectionalHashMap<K, V> {
-	private HashMap<K, V> _keyToValueMap;
-	private HashMap<V, K> _valueToKeyMap;
+	private final Map<K, V> keyToValueMap;
+	private final Map<V, K> valueToKeyMap;
 	
 	/**
 	 * Default constructor.
 	 */
 	public BidirectionalHashMap() {
-		_keyToValueMap = new HashMap<K, V>();
-		_valueToKeyMap = new HashMap<V, K>();
+		keyToValueMap = new HashMap<K, V>();
+		valueToKeyMap = new HashMap<V, K>();
 	}
 
 	/**
 	 * Clears the map of all keys and values.
 	 */
 	public void clear() {
-		_keyToValueMap.clear();
-		_valueToKeyMap.clear();
+		keyToValueMap.clear();
+		valueToKeyMap.clear();
 	}
 	
 	/**
@@ -60,7 +61,7 @@ public class BidirectionalHashMap<K, V> {
 	 * @return Whether or not 'key' exists in the map as a key.
 	 */
 	public boolean containsKey(K key) {
-		return _keyToValueMap.containsKey(key);
+		return keyToValueMap.containsKey(key);
 	}
 	
 	/**
@@ -71,7 +72,7 @@ public class BidirectionalHashMap<K, V> {
 	 * @return Whether or not 'value' exists in the map as a value.
 	 */
 	public boolean containsValue(V value) {
-		return _valueToKeyMap.containsKey(value);
+		return valueToKeyMap.containsKey(value);
 	}
 	
 	/**
@@ -83,7 +84,7 @@ public class BidirectionalHashMap<K, V> {
 	 * 		   returned.
 	 */
 	public V getValue(K key) {
-		return _keyToValueMap.get(key);
+		return keyToValueMap.get(key);
 	}
 	
 	/**
@@ -95,7 +96,7 @@ public class BidirectionalHashMap<K, V> {
 	 * 		   returned.
 	 */
 	public K getKey(V value) {
-		return _valueToKeyMap.get(value);
+		return valueToKeyMap.get(value);
 	}
 	
 	/**
@@ -119,13 +120,13 @@ public class BidirectionalHashMap<K, V> {
 	 * 		   such association already existed.
 	 */
 	public V putKey(K key, V value) {
-		K oldKey = _valueToKeyMap.put(value, key);
+		K oldKey = valueToKeyMap.put(value, key);
 		
 		if(oldKey != null) {
-			_keyToValueMap.remove(oldKey);
+			keyToValueMap.remove(oldKey);
 		}
 		
-		V oldValue = _keyToValueMap.put(key, value);
+		V oldValue = keyToValueMap.put(key, value);
 		
 		return oldValue;
 	}
@@ -151,13 +152,13 @@ public class BidirectionalHashMap<K, V> {
 	 * 		   no such association already existed.
 	 */
 	public K putValue(K key, V value) {
-		V oldValue = _keyToValueMap.put(key, value);
+		V oldValue = keyToValueMap.put(key, value);
 		
 		if(oldValue != null) {
-			_valueToKeyMap.remove(oldValue);
+			valueToKeyMap.remove(oldValue);
 		}
 		
-		K oldKey = _valueToKeyMap.put(value, key);
+		K oldKey = valueToKeyMap.put(value, key);
 		
 		return oldKey;
 	}
@@ -168,7 +169,7 @@ public class BidirectionalHashMap<K, V> {
 	 * @return All of the known keys.
 	 */
 	public Set<K> keySet() {
-		return _keyToValueMap.keySet();
+		return keyToValueMap.keySet();
 	}
 	
 	/**
@@ -177,6 +178,6 @@ public class BidirectionalHashMap<K, V> {
 	 * @return All of the known values.
 	 */
 	public Set<V> valueSet() {
-		return _valueToKeyMap.keySet();
+		return valueToKeyMap.keySet();
 	}
 }

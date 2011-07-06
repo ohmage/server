@@ -29,7 +29,7 @@ import org.apache.log4j.Logger;
 import org.apache.log4j.NDC;
 
 public class Log4jNdcFilter implements Filter {
-	private static Logger _logger = Logger.getLogger(Log4jNdcFilter.class);
+	private static final Logger LOGGER = Logger.getLogger(Log4jNdcFilter.class);
 	
 	/**
 	 * Default no-arg constructor.
@@ -61,8 +61,8 @@ public class Log4jNdcFilter implements Filter {
 		String sessionId = ((HttpServletRequest) request).getSession().getId(); // The getSession call will create a session
 		                                                                        // if one does not exist for the current thread.
 		
-		if(_logger.isDebugEnabled()) {
-			_logger.debug("found sessionId: " + sessionId);
+		if(LOGGER.isDebugEnabled()) {
+			LOGGER.debug("found sessionId: " + sessionId);
 		}
 		
 		NDC.push(sessionId);

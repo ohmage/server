@@ -18,7 +18,6 @@ package org.ohmage.cache;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
-import java.util.ListIterator;
 import java.util.Set;
 
 import org.apache.log4j.Logger;
@@ -26,14 +25,13 @@ import org.ohmage.domain.BidirectionalHashMap;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 
-
 /**
  * A abstract cache designed for String-ID relationships.
  * 
  * @author John Jenkins
  */
 public abstract class StringAndIdCache extends Cache {
-	private static Logger _logger = Logger.getLogger(StringAndIdCache.class);
+	private static final Logger LOGGER = Logger.getLogger(StringAndIdCache.class);
 	
 	/**
 	 * Inner class for handling the results of a query for the Strings and
@@ -41,9 +39,9 @@ public abstract class StringAndIdCache extends Cache {
 	 *  
 	 * @author John Jenkins
 	 */
-	private class StringAndId {
-		public int _id;
-		public String _string;
+	private final class StringAndId {
+		private final int id;
+		private final String string;
 		
 		/**
 		 * Creates a new object with the specified id and value. This is done
@@ -55,22 +53,22 @@ public abstract class StringAndIdCache extends Cache {
 		 * 
 		 * @param string The value for this key-value pair.
 		 */
-		public StringAndId(int id, String string) {
-			_id = id;
-			_string = string;
+		private StringAndId(int id, String string) {
+			this.id = id;
+			this.string = string;
 		}
 	}
 	
 	// The lookup table for translating strings to IDs and visa versa.
-	protected BidirectionalHashMap<String, Integer> _stringAndIdMap;
+	private BidirectionalHashMap<String, Integer> stringAndIdMap;
 	
 	// The SQL to use to get the values which must return a String value and
 	// an integer value as dictated by the private class StringAndId.
-	private String _sqlForRetrievingValues;
+	private final String sqlForRetrievingValues;
 	
 	// The names of the columns for which the data must be retrieved.
-	private String _integerColumn;
-	private String _stringColumn;
+	private final String integerColumn;
+	private final String stringColumn;
 	
 	/**
 	 * Default constructor that calls its parent and is protected to maintain
@@ -79,11 +77,11 @@ public abstract class StringAndIdCache extends Cache {
 	protected StringAndIdCache(String sqlForRetrievingValues, String integerColumn, String stringColumn) {
 		super();
 		
-		_stringAndIdMap = new BidirectionalHashMap<String, Integer>();
+		stringAndIdMap = new BidirectionalHashMap<String, Integer>();
 		
-		_sqlForRetrievingValues = sqlForRetrievingValues;
-		_integerColumn = integerColumn;
-		_stringColumn = stringColumn;
+		this.sqlForRetrievingValues = sqlForRetrievingValues;
+		this.integerColumn = integerColumn;
+		this.stringColumn = stringColumn;
 	}
 	
 	/**
@@ -100,8 +98,8 @@ public abstract class StringAndIdCache extends Cache {
 	 * It is recommended, but not required, to use the constants declared in
 	 * the concrete cache class as the parameter.
 	 * 
-	 * @complexity O(n) if a refresh is required; otherwise, the complexity of
-	 * 			   a Java Map object to lookup a key and return its value.
+	 * The complexity is O(n) if a refresh is required; otherwise, the 
+	 * complexity of a Java Map object to lookup a key and return its value.
 	 * 
 	 * @param string The String whose corresponding integer value is
 	 * 				 being requested.
@@ -112,14 +110,14 @@ public abstract class StringAndIdCache extends Cache {
 	 */
 	public int lookup(String string) throws CacheMissException {		
 		// If the lookup table is out-of-date, refresh it.
-		if((_lastUpdateTimestamp + _updateFrequency) <= System.currentTimeMillis()) {
+		if((lastUpdateTimestamp + updateFrequency) <= System.currentTimeMillis()) {
 			refreshMap();
 		}
 		
 		// If the key exists in the lookup table, return its integer 
 		// representation.
-		if(_stringAndIdMap.containsKey(string)) {
-			return _stringAndIdMap.getValue(string);
+		if(stringAndIdMap.containsKey(string)) {
+			return stringAndIdMap.getValue(string);
 		}
 		// Otherwise, throw an exception that it is an unknown key.
 		else {
@@ -135,8 +133,8 @@ public abstract class StringAndIdCache extends Cache {
 	 * Returns the String representation of the parameterized integer, 'id'.
 	 * If no such ID is known, an exception is thrown.
 	 * 
-	 * @complexity O(n) if a refresh is required; otherwise, the complexity of
-	 * 			   a Java Map object to lookup a key and return its value.
+	 * The complexity is O(n) if a refresh is required; otherwise, the 
+	 * complexity of a Java Map object to lookup a key and return its value.
 	 * 
 	 * @param id The ID whose String representation is desired.
 	 * 
@@ -149,13 +147,13 @@ public abstract class StringAndIdCache extends Cache {
 	 */
 	public String lookup(int id) throws CacheMissException {
 		// If the lookup table is out-of-date, refresh it.
-		if((_lastUpdateTimestamp + _updateFrequency) <= System.currentTimeMillis()) {
+		if((lastUpdateTimestamp + updateFrequency) <= System.currentTimeMillis()) {
 			refreshMap();
 		}
 
 		// If the ID exists return the String-value representation.
-		if(_stringAndIdMap.containsValue(id)) {
-			return _stringAndIdMap.getKey(id);
+		if(stringAndIdMap.containsValue(id)) {
+			return stringAndIdMap.getKey(id);
 		}
 		// Otherwise, throw an exception that it is an unknown ID.
 		else {
@@ -171,11 +169,11 @@ public abstract class StringAndIdCache extends Cache {
 	@Override
 	public Set<String> getKeys() {
 		// If the lookup table is out-of-date, refresh it.
-		if((_lastUpdateTimestamp + _updateFrequency) <= System.currentTimeMillis()) {
+		if((lastUpdateTimestamp + updateFrequency) <= System.currentTimeMillis()) {
 			refreshMap();
 		}
 		
-		return _stringAndIdMap.keySet();
+		return stringAndIdMap.keySet();
 	}
 	
 	/**
@@ -204,27 +202,29 @@ public abstract class StringAndIdCache extends Cache {
 		// Only one thread should be updating this information at a time. Once
 		// other threads enter, they should check to see if an update was just
 		// done and, if so, should abort a second update.
-		if((_lastUpdateTimestamp + _updateFrequency) > System.currentTimeMillis()) {
+		if((lastUpdateTimestamp + updateFrequency) > System.currentTimeMillis()) {
 			return;
 		}
 		
 		// This is the JdbcTemplate we will use for our query.
-		JdbcTemplate jdbcTemplate = new JdbcTemplate(_dataSource);
+		JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
 		
 		// Get all of the strings and their corresponding IDs. If there is an
 		// issue, report it and abort the update.
-		List<?> stateAndId;
+		List<StringAndId> stateAndId;
 		try {
-			stateAndId = jdbcTemplate.query(_sqlForRetrievingValues,
-											new RowMapper() {
-												@Override
-												public Object mapRow(ResultSet rs, int row) throws SQLException {
-													return new StringAndId(rs.getInt(_integerColumn), rs.getString(_stringColumn));
-												}
-											});
+			stateAndId = jdbcTemplate.query(
+					sqlForRetrievingValues,
+					new RowMapper<StringAndId>() {
+						@Override
+						public StringAndId mapRow(ResultSet rs, int row) throws SQLException {
+							return new StringAndId(rs.getInt(integerColumn), rs.getString(stringColumn));
+						}
+					}
+				);
 		}
 		catch(org.springframework.dao.DataAccessException e) {
-			_logger.error("Error executing SQL '" + _sqlForRetrievingValues + "'. Aborting cache refresh.");
+			LOGGER.error("Error executing SQL '" + sqlForRetrievingValues + "'. Aborting cache refresh.");
 			return;
 		}
 		
@@ -232,13 +232,11 @@ public abstract class StringAndIdCache extends Cache {
 		// one. This allows for concurrent reads while a new map is being
 		// generated.
 		BidirectionalHashMap<String, Integer> stringAndIdMap = new BidirectionalHashMap<String, Integer>();
-		ListIterator<?> stateAndIdIter = stateAndId.listIterator();
-		while(stateAndIdIter.hasNext()) {
-			StringAndId currStateAndId = (StringAndId) stateAndIdIter.next();
-			stringAndIdMap.putKey(currStateAndId._string, currStateAndId._id);
+		for(StringAndId currStateAndId : stateAndId) {
+			stringAndIdMap.putKey(currStateAndId.string, currStateAndId.id);
 		}
-		_stringAndIdMap = stringAndIdMap;
+		this.stringAndIdMap = stringAndIdMap;
 		
-		_lastUpdateTimestamp = System.currentTimeMillis();
+		lastUpdateTimestamp = System.currentTimeMillis();
 	}
 }

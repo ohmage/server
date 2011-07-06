@@ -20,13 +20,14 @@ package org.ohmage.cache;
  * 
  * @author John Jenkins
  */
-public class ClassRoleCache extends StringAndIdCache {
+public final class ClassRoleCache extends StringAndIdCache {
 	// The column IDs for the query.
 	private static final String ID_COLUMN = "id";
 	private static final String ROLE_COLUMN = "role";
 	
-	private static final String SQL_GET_CAMPAIGN_ROLES_AND_IDS = "SELECT " + ID_COLUMN + ", " + ROLE_COLUMN + " " +
-																 "FROM user_class_role";
+	private static final String SQL_GET_CAMPAIGN_ROLES_AND_IDS = 
+		"SELECT " + ID_COLUMN + ", " + ROLE_COLUMN + " " +
+		"FROM user_class_role";
 	
 	// When we are requesting a cache in the Spring files, we use this
 	// to reference which key we want.
@@ -38,7 +39,7 @@ public class ClassRoleCache extends StringAndIdCache {
 	
 	// A reference to the only instance of this class for the Singleton
 	// pattern.
-	private static ClassRoleCache _self = new ClassRoleCache();
+	private static ClassRoleCache instance = new ClassRoleCache();
 
 	/**
 	 * Default constructor set private to make this a Singleton.
@@ -54,7 +55,7 @@ public class ClassRoleCache extends StringAndIdCache {
 	 * @return The only instance of this class.
 	 */
 	public static ClassRoleCache instance() {
-		return _self;
+		return instance;
 	}
 	
 	/**

@@ -1,26 +1,85 @@
-/*******************************************************************************
- * Copyright 2011 The Regents of the University of California
- * 
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- * 
- *   http://www.apache.org/licenses/LICENSE-2.0
- * 
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- ******************************************************************************/
 package org.ohmage.request;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.apache.log4j.Logger;
+import org.json.JSONException;
+import org.json.JSONObject;
+import org.ohmage.cache.CacheMissException;
+import org.ohmage.cache.PreferenceCache;
+
 /**
- * Request for configuration reads. This request has nothing and does nothing
- * except contains a constant that references the result object in the request.
+ * <p>This class is responsible for updating a class.</p>
+ * <p>There are no required parameters for this call.</p>
  * 
  * @author John Jenkins
  */
-public class ConfigReadRequest extends ResultListAwRequest {
-	public static final String RESULT = "config_read_request_config_information";
+public class ConfigReadRequest extends Request {
+	private static final Logger LOGGER = Logger.getLogger(ConfigReadRequest.class);
+	
+	private final JSONObject result;
+	
+	/**
+	 * Default constructor.
+	 */
+	public ConfigReadRequest() {
+		super();
+		
+		result = new JSONObject();
+	}
+	
+	/**
+	 * Gathers the appropriate information and stores the result in the result
+	 * object.
+	 */
+	@Override
+	public void service() {
+		LOGGER.info("Gathering information about the system.");
+		
+		// Get the response values to be returned to the requestor and place
+		// them in the response.
+		try {
+			// Get the application's name.
+			try {
+				result.put("application_name", PreferenceCache.instance().lookup(PreferenceCache.KEY_APPLICATION_NAME));
+			}
+			catch(CacheMissException e) {
+				LOGGER.error("Unknown value for 'known' key '" + PreferenceCache.KEY_APPLICATION_NAME + "'. Is the cache database missing a key-value pair?", e);
+				failed = true;
+			}
+			
+			// Get the application's version.
+			try {
+				result.put("application_version", PreferenceCache.instance().lookup(PreferenceCache.KEY_APPLICATION_VERSION));
+			}
+			catch(CacheMissException e) {
+				LOGGER.error("Unknown value for 'known' key '" + PreferenceCache.KEY_APPLICATION_NAME + "'. Is the cache database missing a key-value pair?", e);
+				failed = true;
+			}
+			
+			// Get the default survey response sharing state.
+			try {
+				result.put("default_survey_response_sharing_state", PreferenceCache.instance().lookup(PreferenceCache.KEY_DEFAULT_SURVEY_RESPONSE_SHARING_STATE));
+			}
+			catch(CacheMissException e) {
+				LOGGER.error("Unknown value for 'known' key '" + PreferenceCache.KEY_DEFAULT_SURVEY_RESPONSE_SHARING_STATE + "'. Is the cache database missing a key-value pair?", e);
+				failed = true;
+			}
+		}
+		catch(JSONException e) {
+			setFailed();
+			LOGGER.error("Error creating response JSONObject.", e);
+		}
+	}
+	
+	/**
+	 * Writes the response to the client.
+	 */
+	@Override
+	public void respond(HttpServletRequest httpRequest, HttpServletResponse httpResponse) {
+		LOGGER.info("Writing configuration read response.");
+		
+		respond(httpRequest, httpResponse, result);
+	}
 }

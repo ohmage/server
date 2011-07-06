@@ -21,7 +21,7 @@ package org.ohmage.cache;
  * @author John Jenkins
  */
 public class CacheMissException extends Exception {
-	private static final long serialVersionUID = 87592345648758L;
+	private static final long serialVersionUID = 1L;
 	
 	/**
 	 * Sets the message of the exception.

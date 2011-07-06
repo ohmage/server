@@ -22,13 +22,9 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 
 import org.apache.log4j.Logger;
 import org.ohmage.domain.User;
-import org.ohmage.domain.UserTime;
-
 
 /**
  * User storage. User objects are mapped to unique ids. Avoids dependencies on JEE session management. The lifetime param set on 
@@ -36,109 +32,120 @@ import org.ohmage.domain.UserTime;
  * 
  * @author Joshua Selsky
  */
-public class UserBin extends TimerTask {
-	private static Logger _logger = Logger.getLogger(UserBin.class);
+public final class UserBin extends TimerTask {
+	private static final Logger LOGGER = Logger.getLogger(UserBin.class);
 	
-	private static final Lock _usersLock = new ReentrantLock(); 
-	private Map<String, UserTime> _users;
+	private static final int LIFETIME = 1800000;
+	private static final int EXECUTION_PERIOD = 60000;
 	
-	private int _lifetime;
-	private Timer _executioner;
+	/**
+	 * A class for associating USERS to the time their token expires.
+	 * 
+	 * @author John Jenkins
+	 */
+	private static final class UserTime {
+		private final User user;
+		private long time;
+		
+		/**
+		 * Convenience constructor.
+		 * 
+		 * @param user The user that is being stored in the cache.
+		 * 
+		 * @param time The last time this user was accessed in the cache.
+		 */
+		private UserTime(User user, long time) {
+			this.user = user;
+			this.time = time;
+		}
+	}
+	
+	// A map of tokens to USERS and the time that their token expires.
+	private static final Map<String, UserTime> USERS = new ConcurrentHashMap<String, UserTime>();
+	// An EXECUTIONER thread to purge those whose tokens have expired.
+	private static final Timer EXECUTIONER = new Timer("UserBin - User expiration process.", true);
+	
+	// Whether or not the constructor has run which will bootstrap this 
+	// Singleton class.
+	private static boolean initialized = false;
 		
 	/**
 	 * @param lifetime controls the number of milliseconds a User object will be permitted to be resident in the bin
-	 * @param executionPeriod controls how often the bin is checked for expired users
+	 * @param executionPeriod controls how often the bin is checked for expired USERS
 	 * 
 	 * TODO Enforce a max lifetime?
 	 * TODO Enforce period relative to lifetime?
 	 */
-	public UserBin(int lifetime, int executionPeriod) {
-		_logger.info("Users will live for " + lifetime + " milliseconds and the executioner will run every " + executionPeriod 
+	private UserBin() {
+		LOGGER.info("Users will live for " + LIFETIME + " milliseconds and the EXECUTIONER will run every " + EXECUTION_PERIOD 
 			+ " milliseconds");
-		_lifetime = lifetime;
-		_users = new ConcurrentHashMap<String, UserTime> ();
-		_executioner = new Timer("user bin user expiration process", true);
-		_executioner.schedule(this, executionPeriod * 2, executionPeriod);
+
+		EXECUTIONER.schedule(this, EXECUTION_PERIOD * 2, EXECUTION_PERIOD);
+		
+		initialized = true;
 	}
 	
 	/**
 	 * Adds a user to the bin and returns an id (token) representing that user. If the user is already resident in the bin, their
 	 * old token is removed and a new one is generated and returned. 
 	 */
-	public String addUser(User user) {
-		_usersLock.lock();
+	public static synchronized String addUser(User user) {
+		if(! initialized) {
+			new UserBin();
+		}
 		
-		try {
-			if(_logger.isDebugEnabled()) {
-				_logger.debug("adding user to bin");
-			}
-			
-			String id = findIdForUser(user); 
-			if(null != id) { // user already exists in the bin
-				
-				if(_logger.isDebugEnabled()) {
-					_logger.debug("Removing a user that already existed in the bin before adding them in again (login attempt for an "
-						+ "already logged in user)");
-				}
-				
-				_users.remove(id);
-			}
-			
-			String uuid = UUID.randomUUID().toString();
-			UserTime ut = new UserTime(user, System.currentTimeMillis());
-			_users.put(uuid, ut);
-			return uuid;
+		if(LOGGER.isDebugEnabled()) {
+			LOGGER.debug("adding user to bin");
 		}
-		finally {
-			_usersLock.unlock();
-		}
-	}
-	
-	/**
-	 * Removes a user from the token bin.
-	 * 
-	 * @param id The token for the user.
-	 * 
-	 * @return Returns true if a user was removed, false otherwise.
-	 */
-	public boolean removeUser(String id) {
-		_usersLock.lock();
 		
-		try {
-			if(_logger.isDebugEnabled()) {
-				_logger.debug("removing user from bin");
+		String id = findIdForUser(user); 
+		if(null != id) { // user already exists in the bin
+			
+			if(LOGGER.isDebugEnabled()) {
+				LOGGER.debug("Removing a user that already existed in the bin before adding them in again (login attempt for an "
+					+ "already logged in user)");
 			}
 			
-			return (_users.remove(id) != null);
+			USERS.remove(id);
 		}
-		catch(NullPointerException e) {
-			_logger.warn("The user's token was null.");
-			return false;
-		}
-		finally {
-			_usersLock.lock();
-		}
+		
+		String uuid = UUID.randomUUID().toString();
+		UserTime ut = new UserTime(user, System.currentTimeMillis());
+		user.setToken(uuid);
+		USERS.put(uuid, ut);
+		
+		return uuid;
 	}
 	
 	/**
 	 * Returns the User bound to the provided id or null if id does not exist in the bin. 
 	 */
-	public User getUser(String id) {
-		_usersLock.lock();
-		
-		try {
-			UserTime ut = _users.get(id);
-			if(null != ut) { 
-				User u = ut.getUser();
-				if(null != u) {
-					ut.setTime(System.currentTimeMillis()); // refresh the time 
-					return new User(u);
-				}
+	public static synchronized User getUser(String id) {
+		UserTime ut = USERS.get(id);
+		if(null != ut) { 
+			User u = ut.user;
+			if(null != u) {
+				ut.time = System.currentTimeMillis(); // refresh the time 
+				return new User(u);
 			}
-			return null;
 		}
-		finally {
-			_usersLock.unlock();
+		return null;
+	}
+	
+	/**
+	 * Gets the number of milliseconds until a token expires.
+	 * 
+	 * @param id The token.
+	 * 
+	 * @return The number of milliseconds until 'id' expires.
+	 */
+	public static synchronized long getTokenRemainingLifetimeInMillis(String id) {
+		UserTime ut = USERS.get(id);
+		if(ut == null) {
+			return 0;
+		}
+		else {
+			return Math.max((System.currentTimeMillis() + LIFETIME - ut.time), 0);
 		}
 	}
 	
@@ -153,52 +160,45 @@ public class UserBin extends TimerTask {
 	/**
 	 * Checks every bin location and removes Users whose tokens have expired.
 	 */
-	private synchronized void expire() {
-		_usersLock.lock();
+	private static synchronized void expire() {
+		if(LOGGER.isDebugEnabled()) {
+			LOGGER.debug("Beginning user expiration process");
+		}
 		
-		try {
-			if(_logger.isDebugEnabled()) {
-				_logger.debug("Beginning user expiration process");
-			}
-			
-			Set<String> keySet = _users.keySet();
-			
-			if(_logger.isDebugEnabled()) {
-				_logger.debug("Number of users before expiration: " + keySet.size());
-			}
-			
-			long currentTime = System.currentTimeMillis();
-			
-			for(String key : keySet) {
-				UserTime ut = _users.get(key);
-				if(currentTime - ut.getTime() > _lifetime) {
-				    	
-					if(_logger.isDebugEnabled()) {
-						_logger.debug("Removing user with id " + key);
-					}
-					
-					_users.remove(key);
+		Set<String> keySet = USERS.keySet();
+		
+		if(LOGGER.isDebugEnabled()) {
+			LOGGER.debug("Number of users before expiration: " + keySet.size());
+		}
+		
+		long currentTime = System.currentTimeMillis();
+		
+		for(String key : keySet) {
+			UserTime ut = USERS.get(key);
+			if(currentTime - ut.time > LIFETIME) {
+			    	
+				if(LOGGER.isDebugEnabled()) {
+					LOGGER.debug("Removing user with id " + key);
 				}
-			}
-			
-			if(_logger.isDebugEnabled()) {
-				_logger.debug("Number of users after expiration: " + _users.size());
+				
+				USERS.remove(key);
 			}
 		}
-		finally {
-			_usersLock.unlock();
+		
+		if(LOGGER.isDebugEnabled()) {
+			LOGGER.debug("Number of users after expiration: " + USERS.size());
 		}
 	}
 	
 	/**
 	 * Returns the id for the provided user.
 	 */
-	private String findIdForUser(User user) {
-		Iterator<String> iterator = _users.keySet().iterator();
+	private static synchronized String findIdForUser(User user) {
+		Iterator<String> iterator = USERS.keySet().iterator();
 		while(iterator.hasNext()) {
 			String key = iterator.next();
-			UserTime userTime = _users.get(key);
-			if(userTime.getUser().equals(user)) {
+			UserTime userTime = USERS.get(key);
+			if(userTime.user.equals(user)) {
 				return key;
 			}
 		}
