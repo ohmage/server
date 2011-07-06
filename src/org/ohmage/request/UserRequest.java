@@ -195,6 +195,29 @@ public abstract class UserRequest extends Request {
 	public final User getUser() {
 		return user;
 	}
+	
+	/**
+	 * Retrieves the authentication / session token from the request. It first
+	 * attempts to retrieve it as a cookie and, if it doesn't exist there,
+	 * attempts to retrieve it as a parameter. If it didn't exist there either,
+	 * null is returned.
+	 *  
+	 * @param httpRequest The request that contains the cookie in either its
+	 * 					  header or as a parameter.
+	 * 
+	 * @return The authentication / session token from this request or null if
+	 * 		   no such cookie or parameter exists.
+	 */
+	public String getToken(HttpServletRequest httpRequest) {
+		String token;
+		
+		token = CookieUtils.getCookieValue(httpRequest.getCookies(), InputKeys.AUTH_TOKEN);
+		if(token == null) {
+			token = httpRequest.getParameter(InputKeys.AUTH_TOKEN);
+		}
+		
+		return token;
+	}
 
 	/**
 	 * Authenticates the user in the request.
