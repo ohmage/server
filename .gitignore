@@ -5,3 +5,4 @@ dist
 bin
 web/META-INF/system.properties
 .sonar
+thirdparty
