@@ -192,6 +192,9 @@ public class AwDataServlet extends HttpServlet {
 		else if("/app/document/read/contents".equals(req.getRequestURI())) {
 			processRequest(req, resp);
 		}
+		else if(req.getRequestURI().startsWith("/app/viz/")) {
+			processRequest(req, resp);
+		}
 		else {
 			_logger.warn("GET attempted and denied.");
 			resp.sendError(HttpServletResponse.SC_METHOD_NOT_ALLOWED);
