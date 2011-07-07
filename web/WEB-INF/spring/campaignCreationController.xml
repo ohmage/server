@@ -37,8 +37,8 @@
         <ref bean="tokenBasedAuthenticationService" />
         <ref bean="userCanCreateCampaignsValidationService" />
         <ref bean="classesInListExistOptionalService" />
-        <ref bean="campaignAlreadyExistsValidationService" />
         <ref bean="campaignXmlRequiredValidationService" />
+        <ref bean="campaignAlreadyExistsValidationService" />
         <ref bean="campaignCreationService" />
       </list>
     </constructor-arg>
