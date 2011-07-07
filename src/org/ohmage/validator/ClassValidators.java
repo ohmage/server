@@ -1,9 +1,12 @@
 package org.ohmage.validator;
 
-import java.util.LinkedList;
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.apache.log4j.Logger;
+import org.ohmage.annotator.ErrorCodes;
 import org.ohmage.cache.CacheMissException;
 import org.ohmage.cache.ClassRoleCache;
 import org.ohmage.request.InputKeys;
@@ -57,7 +60,7 @@ public final class ClassValidators {
 		// URN, set the request as failed and throw a ValidationException to
 		// warn the caller.
 		else {
-			request.setFailed("1201", "The class identifier is invalid: " + classId);
+			request.setFailed(ErrorCodes.CLASS_INVALID_URN, "The class identifier is invalid: " + classId);
 			throw new ValidationException("The class identifier is invalid: " + classId);
 		}
 	}
@@ -95,30 +98,24 @@ public final class ClassValidators {
 		}
 		
 		// Create the list of class IDs to be returned to the caller.
-		List<String> classIdList = new LinkedList<String>();
+		Set<String> classIdList = new HashSet<String>();
 		
 		// Otherwise, attempt to parse the class list and evaluate each of the
 		// class IDs.
 		String[] classListArray = classIdListString.split(InputKeys.LIST_ITEM_SEPARATOR);
 		for(int i = 0; i < classListArray.length; i++) {
-			try {
-				// Validate the current class ID.
-				String currClassId = validateClassId(request, classListArray[i]);
-				
-				// If it returned null, then the current class ID in the array
-				// was probably whitespace only because the class list had two
-				// list item separators in a row.
-				if(currClassId != null) {
-					classIdList.add(currClassId);
-				}
-			}
-			catch(ValidationException e) {
-				request.setFailed("1204", "An invalid class identifier was found: " + classListArray[i]);
-				throw e;
+			// Validate the current class ID.
+			String currClassId = validateClassId(request, classListArray[i]);
+			
+			// If it returned null, then the current class ID in the array
+			// was probably whitespace only because the class list had two
+			// list item separators in a row.
+			if(currClassId != null) {
+				classIdList.add(currClassId);
 			}
 		}
 		
-		return classIdList;
+		return new ArrayList<String>(classIdList);
 	}
 	
 	/**
@@ -152,7 +149,7 @@ public final class ClassValidators {
 			return classRole;
 		}
 		catch(CacheMissException e) {
-			request.setFailed("1211", "Unknown class role: " + classRole);
+			request.setFailed(ErrorCodes.CLASS_UNKNOWN_ROLE, "Unknown class role: " + classRole);
 			throw new ValidationException("Unkown class role: " + classRole, e);
 		}
 	}

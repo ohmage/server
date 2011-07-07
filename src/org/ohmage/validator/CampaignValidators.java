@@ -1,5 +1,10 @@
 package org.ohmage.validator;
 
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
 import nu.xom.ParsingException;
 import nu.xom.ValidityException;
 
@@ -8,6 +13,7 @@ import org.apache.log4j.Logger;
 import org.ohmage.annotator.ErrorCodes;
 import org.ohmage.cache.CampaignPrivacyStateCache;
 import org.ohmage.cache.CampaignRunningStateCache;
+import org.ohmage.request.InputKeys;
 import org.ohmage.request.Request;
 import org.ohmage.util.StringUtils;
 import org.xml.sax.SAXException;
@@ -26,6 +32,84 @@ public final class CampaignValidators {
 	 * Default constructor. Made private to prevent instantiation.
 	 */
 	private CampaignValidators() {}
+	
+	/**
+	 * Validates that a campaign ID is a valid campaign identifier even if the
+	 * campaign may not exist.
+	 * 
+	 * @param request The request that is performing this validation.
+	 * 
+	 * @param campaignId The campaign identifier being validated.
+	 * 
+	 * @return If the campaign ID is null or whitespace, null is returned.
+	 * 		   Otherwise, the campaign ID is returned.
+	 * 
+	 * @throws ValidationException Thrown if the campaign ID is not null, not
+	 * 							   whitespace only, and not a valid campaign
+	 * 							   identifier.
+	 */
+	public static String validateCampaignId(Request request, String campaignId) throws ValidationException {
+		LOGGER.info("Validating a campaign ID.");
+		
+		// If the value is null or whitespace only, return null.
+		if(StringUtils.isEmptyOrWhitespaceOnly(campaignId)) {
+			return null;
+		}
+		
+		// If the value is a valid URN, meaning that it is a plausible campaign 
+		// ID, return the campaign ID back to the caller.
+		if(StringUtils.isValidUrn(campaignId)) {
+			return campaignId;
+		}
+		// If the campaign ID is not null, not whitespace only, and not a valid
+		// URN, set the request as failed and throw a ValidationException to
+		// warn the caller.
+		else {
+			request.setFailed(ErrorCodes.CAMPAIGN_INVALID_URN, "The campaign identifier is invalid: " + campaignId);
+			throw new ValidationException("The campaign identifier is invalid: " + campaignId);
+		}
+	}
+	
+	/**
+	 * Validates that a String list of campaign identifiers is a valid list and
+	 * each campaign identifier in the list is a valid identifier.
+	 * 
+	 * @param request The request that is performing this validation.
+	 * 
+	 * @param campaignIds A String list of campaign identifiers where each
+	 * 					  identifier is separated by a 
+	 * 					  {@value org.ohmage.request.InputKeys#LIST_ITEM_SEPARATOR}.
+	 * 
+	 * @return If the campaign IDs String list is null or whitespace only, null
+	 * 		   is returned. Otherwise, a List of Strings is returned where each
+	 * 		   String in the list represents a campaign identifier.
+	 * 
+	 * @throws ValidationException Thrown if the campaign ID list String is not
+	 * 							   null, not whitespace only, and either cannot
+	 * 							   be parced or can be parced but one of the 
+	 * 							   values in the list is not a valid campaign
+	 * 							   identifier. 
+	 */
+	public static List<String> validateCampaignIds(Request request, String campaignIds) throws ValidationException {
+		LOGGER.info("Validating a list of campaign identifiers.");
+		
+		if(StringUtils.isEmptyOrWhitespaceOnly(campaignIds)) {
+			return null;
+		}
+		
+		Set<String> resultSet = new HashSet<String>();
+		
+		String[] campaignIdArray = campaignIds.split(InputKeys.LIST_ITEM_SEPARATOR);
+		for(int i = 0; i < campaignIdArray.length; i++) {
+			String campaignId = validateCampaignId(request, campaignIdArray[i]);
+			
+			if(campaignId != null) {
+				resultSet.add(campaignId);
+			}
+		}
+		
+		return new ArrayList<String>(resultSet);
+	}
 	
 	/**
 	 * Checks that a running state is a valid campaign running state. If the 

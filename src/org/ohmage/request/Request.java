@@ -107,72 +107,7 @@ public abstract class Request {
 	 * 					   'data' portion of the object.
 	 */
 	protected void respond(HttpServletRequest httpRequest, HttpServletResponse httpResponse, JSONObject jsonResponse) {
-		// Create a writer for the HTTP response object.
-		Writer writer;
-		try {
-			writer = new BufferedWriter(new OutputStreamWriter(getOutputStream(httpRequest, httpResponse)));
-		}
-		catch(IOException e) {
-			LOGGER.error("Unable to create writer object. Aborting.", e);
-			return;
-		}
-		
-		// Sets the HTTP headers to disable caching.
-		expireResponse(httpResponse);
-		httpResponse.setContentType("application/json");
-		
-		String responseText = "";
-		// If the response hasn't failed yet, attempt to create and write the
-		// JSON response.
-		if(! failed) {
-			try {
-				JSONObject result = new JSONObject();
-				
-				result.put(JSON_KEY_RESULT, RESULT_SUCCESS);
-				result.put(JSON_KEY_DATA, jsonResponse);
-				
-				responseText = result.toString();
-			}
-			catch(JSONException e) {
-				// If anything fails, echo it in the logs and set the request
-				// as failed.
-				LOGGER.error("An error occurred while building the success JSON response.", e);
-				failed = true;
-			}
-		}
-		
-		// If the request failed, either during the build or while the response
-		// was being built, write a failure message.
-		if(failed) {
-			try {
-				// Use the annotator's message to build the response.
-				responseText = annotator.toJsonObject().toString();
-			}
-			catch(JSONException e) {
-				// If we can't even build the failure message, write a hand-
-				// written message as the response.
-				LOGGER.error("An error occurred while building the failure JSON response.", e);
-				responseText = "{\"" + JSON_KEY_RESULT + "\":\"" + RESULT_FAILURE + "\",\"" + JSON_KEY_ERRORS + 
-					"\":[{\"" + Annotator.JSON_KEY_CODE + "\":\"0103\",\"" + Annotator.JSON_KEY_TEXT + "\":\"An error occurred while building the JSON response.\"}]}";
-			}
-		}
-		
-		try {
-			writer.write(responseText); 
-		}
-		catch(IOException e) {
-			LOGGER.error("Unable to write failed response message. Aborting.", e);
-			return;
-		}
-		
-		try {
-			writer.flush();
-			writer.close();
-		}
-		catch(IOException e) {
-			LOGGER.error("Unable to flush or close the writer.", e);
-			return;
-		}
+		respond(httpRequest, httpResponse, JSON_KEY_DATA, jsonResponse);
 	}
 	
 	/**
@@ -191,7 +126,7 @@ public abstract class Request {
 	 * 
 	 * @param value The value to assign with the 'key'.
 	 */
-	protected void respond(HttpServletRequest httpRequest, HttpServletResponse httpResponse, String key, String value) {
+	protected void respond(HttpServletRequest httpRequest, HttpServletResponse httpResponse, String key, Object value) {
 		// Create a writer for the HTTP response object.
 		Writer writer;
 		try {
@@ -316,8 +251,9 @@ public abstract class Request {
 	 * 
 	 * @param key The key for the value we are after in the 'httpRequest'.
 	 * 
-	 * @return Returns null if there is no such key in the request. Otherwise,
-	 * 		   it returns the value associated with the key as a byte array.
+	 * @return Returns null if there is no such key in the request or if, 
+	 * 		   after reading the object, it has a length of 0. Otherwise, it
+	 * 		   returns the value associated with the key as a byte array.
 	 * 
 	 * @throws ServletException Thrown if the 'httpRequest' is not a 
 	 * 							"multipart/form-data" request.
@@ -334,7 +270,6 @@ public abstract class Request {
 	protected byte[] getMultipartValue(HttpServletRequest httpRequest, String key) throws ServletException, IOException {
 		Part part = httpRequest.getPart(key);
 		if(part == null) {
-			LOGGER.debug("Returning null.");
 			return null;
 		}
 		
@@ -346,7 +281,12 @@ public abstract class Request {
 			outputStream.write(chunk, 0, amountRead);
 		}
 		
-		return outputStream.toByteArray();
+		if(outputStream.size() == 0) {
+			return null;
+		}
+		else {
+			return outputStream.toByteArray();
+		}
 	}
 	/**************************************************************************
 	 *  End JEE Requirements

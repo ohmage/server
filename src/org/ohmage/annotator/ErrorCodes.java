@@ -176,9 +176,12 @@ public final class ErrorCodes {
 	public static final String DOCUMENT_INSUFFICIENT_PERMISSIONS = "1514";
 	public static final String DOCUMENT_DOES_NOT_BELONG_TO_ENTITY = "1515";
 	public static final String DOCUMENT_REQUESTER_GRANTING_MORE_PERMISSIONS_THAN_THEY_HAVE = "1516";
+	public static final String DOCUMENT_INVALID_ROLE = "1517";
+	public static final String DOCUMENT_MISSING_CAMPAIGN_AND_CLASS_ROLE_LISTS = "1518";
 	
 	public static final String MALFORMED_UUID = "1600";
 	public static final String MALFORMED_URN_ROLE_LIST = "1601";
+	public static final String INVALID_BOOLEAN_VALUE = "1602";
 	
 	public static final String VISUALIZATION_GENERAL_ERROR = "1700";
 	public static final String VISUALIZATION_INVALID_WIDTH_VALUE = "1701";

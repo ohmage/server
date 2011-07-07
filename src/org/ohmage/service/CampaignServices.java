@@ -121,7 +121,7 @@ public class CampaignServices {
 	 * 							exists and it shouldn't, or if the campaign
 	 * 							doesn't exist and it should.
 	 */
-	public static void checkCampaignExistance(Request request, String campaignId, boolean shouldExist) throws ServiceException {
+	public static void checkCampaignExistence(Request request, String campaignId, boolean shouldExist) throws ServiceException {
 		try {
 			if(CampaignDaos.getCampaignExists(campaignId)) {
 				if(! shouldExist) {
@@ -140,6 +140,31 @@ public class CampaignServices {
 			request.setFailed();
 			throw new ServiceException(e);
 		}
+	}
+	
+	/**
+	 * Checks if the existence of every campaign in a List of campaign IDs
+	 * matches the parameterized 'shouldExist'.
+	 * 
+	 * @param request The request that is performing this service.
+	 * 
+	 * @param campaignIds A List of campaign IDs to check.
+	 * 
+	 * @param shouldExist Whether or not every campaign in the List should 
+	 * 					  exist or not.
+	 * 
+	 * @throws ServiceException Thrown if any of the campaigns exist and they
+	 * 							shouldn't or if any of the campaigns don't 
+	 * 							exist and they should.
+	 */
+	public static void checkCampaignsExistence(Request request, List<String> campaignIds, boolean shouldExist) throws ServiceException {
+		for(String campaignId : campaignIds) {
+			checkCampaignExistence(request, campaignId, shouldExist);
+		}
+	}
+	
+	public static void checkUserCanAssociateDocumentsWithCampaign(Request request, String username, String campaign) throws ServiceException {
+		
 	}
 	
 	/**

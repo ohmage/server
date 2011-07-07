@@ -32,6 +32,9 @@ public final class RequestBuilder {
 	private static final String API_CLASS_UPDATE = API_ROOT + "/class/update";
 	private static final String API_CLASS_DELETE = API_ROOT + "/class/delete";
 	
+	// Document
+	private static final String API_DOCUMENT_CREATE = API_ROOT + "/document/create";
+	
 	/**
 	 * Builds a new request based on the request's URI. This will always return
 	 * a request and will never return null. If the URI is unknown it will 
@@ -71,6 +74,10 @@ public final class RequestBuilder {
 		}
 		else if(API_CLASS_DELETE.equals(requestUri)) {
 			return new ClassDeletionRequest(httpRequest);
+		}
+		// Document
+		else if(API_DOCUMENT_CREATE.equals(requestUri)) {
+			return new DocumentCreationRequest(httpRequest);
 		}
 		
 		// The URI is unknown.

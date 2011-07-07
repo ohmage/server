@@ -166,7 +166,7 @@ public class CampaignCreationRequest extends UserRequest {
 			CampaignIdAndName campaignInfo = CampaignServices.getCampaignUrnFromXml(this, xml);
 			
 			LOGGER.info("Verifying that the campaign doesn't already exist.");
-			CampaignServices.checkCampaignExistance(this, campaignInfo.getCampaignId(), false);
+			CampaignServices.checkCampaignExistence(this, campaignInfo.getCampaignId(), false);
 			
 			LOGGER.info("Creating the campaign.");
 			CampaignServices.createCampaign(this, campaignInfo.getCampaignId(), campaignInfo.getCampaignName(), 
