@@ -8,11 +8,11 @@ import java.util.Set;
 import nu.xom.ParsingException;
 import nu.xom.ValidityException;
 
+import org.andwellness.config.xml.CampaignValidator;
 import org.apache.log4j.Logger;
 import org.ohmage.annotator.ErrorCodes;
 import org.ohmage.cache.CampaignPrivacyStateCache;
 import org.ohmage.cache.CampaignRunningStateCache;
-import org.ohmage.config.validator.CampaignValidator;
 import org.ohmage.request.InputKeys;
 import org.ohmage.request.Request;
 import org.ohmage.util.StringUtils;

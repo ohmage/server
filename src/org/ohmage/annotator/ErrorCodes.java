@@ -178,6 +178,7 @@ public final class ErrorCodes {
 	public static final String DOCUMENT_REQUESTER_GRANTING_MORE_PERMISSIONS_THAN_THEY_HAVE = "1516";
 	public static final String DOCUMENT_INVALID_ROLE = "1517";
 	public static final String DOCUMENT_MISSING_CAMPAIGN_AND_CLASS_ROLE_LISTS = "1518";
+	public static final String DOCUMENT_MISSING_ID = "1519";
 	
 	public static final String MALFORMED_UUID = "1600";
 	public static final String MALFORMED_URN_ROLE_LIST = "1601";
