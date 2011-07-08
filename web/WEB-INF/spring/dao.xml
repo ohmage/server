@@ -34,6 +34,12 @@
       <ref bean="dataSource" />
     </constructor-arg>
   </bean>
+  
+  <bean class="org.ohmage.dao.UserCampaignDocumentDaos">
+    <constructor-arg>
+      <ref bean="dataSource" />
+    </constructor-arg>
+  </bean>
 
   <bean class="org.ohmage.dao.UserClassDaos">
     <constructor-arg>
@@ -41,7 +47,19 @@
     </constructor-arg>
   </bean>
   
+  <bean class="org.ohmage.dao.UserClassDocumentDaos">
+    <constructor-arg>
+      <ref bean="dataSource" />
+    </constructor-arg>
+  </bean>
+  
   <bean class="org.ohmage.dao.UserDaos">
+    <constructor-arg>
+      <ref bean="dataSource" />
+    </constructor-arg>
+  </bean>
+  
+  <bean class="org.ohmage.dao.UserDocumentDaos">
     <constructor-arg>
       <ref bean="dataSource" />
     </constructor-arg>

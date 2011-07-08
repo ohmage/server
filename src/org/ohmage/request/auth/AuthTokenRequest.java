@@ -1,10 +1,12 @@
-package org.ohmage.request;
+package org.ohmage.request.auth;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.log4j.Logger;
 import org.ohmage.cache.UserBin;
+import org.ohmage.request.InputKeys;
+import org.ohmage.request.UserRequest;
 
 /**
  * <p>Uses the username and password parameters to create a request for an

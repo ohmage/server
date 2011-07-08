@@ -2,6 +2,16 @@ package org.ohmage.request;
 
 import javax.servlet.http.HttpServletRequest;
 
+import org.ohmage.request.auth.AuthRequest;
+import org.ohmage.request.auth.AuthTokenRequest;
+import org.ohmage.request.campaign.CampaignCreationRequest;
+import org.ohmage.request.clazz.ClassCreationRequest;
+import org.ohmage.request.clazz.ClassDeletionRequest;
+import org.ohmage.request.clazz.ClassReadRequest;
+import org.ohmage.request.clazz.ClassUpdateRequest;
+import org.ohmage.request.document.DocumentCreationRequest;
+import org.ohmage.request.document.DocumentReadRequest;
+
 /**
  * Request builder from an HTTP request.
  * 
@@ -34,6 +44,7 @@ public final class RequestBuilder {
 	
 	// Document
 	private static final String API_DOCUMENT_CREATE = API_ROOT + "/document/create";
+	private static final String API_DOCUMENT_READ = API_ROOT + "/document/read";
 	
 	/**
 	 * Builds a new request based on the request's URI. This will always return
@@ -78,6 +89,9 @@ public final class RequestBuilder {
 		// Document
 		else if(API_DOCUMENT_CREATE.equals(requestUri)) {
 			return new DocumentCreationRequest(httpRequest);
+		}
+		else if(API_DOCUMENT_READ.equals(requestUri)) {
+			return new DocumentReadRequest(httpRequest);
 		}
 		
 		// The URI is unknown.

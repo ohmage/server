@@ -1,4 +1,4 @@
-package org.ohmage.request;
+package org.ohmage.request.clazz;
 
 import java.util.List;
 
@@ -7,6 +7,8 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.log4j.Logger;
 import org.ohmage.annotator.ErrorCodes;
+import org.ohmage.request.InputKeys;
+import org.ohmage.request.UserRequest;
 import org.ohmage.service.ClassServices;
 import org.ohmage.service.ServiceException;
 import org.ohmage.service.UserClassServices;
@@ -105,7 +107,7 @@ public class ClassUpdateRequest extends UserRequest {
 				tempUsersToRemove = UserClassValidators.validateUserAndClassRoleList(this, httpRequest.getParameter(InputKeys.USER_ROLE_LIST_REMOVE));
 			}
 			catch(ValidationException e) {
-				LOGGER.info("Error while building the request.", e);
+				LOGGER.info(e.toString());
 			}
 		}
 
@@ -140,7 +142,7 @@ public class ClassUpdateRequest extends UserRequest {
 			ClassServices.updateClass(this, classId, className, classDescription, usersToAdd, usersToRemove);
 		}
 		catch(ServiceException e) {
-			LOGGER.error("A Service threw an exception.", e);
+			e.logException(LOGGER);
 		}
 	}
 

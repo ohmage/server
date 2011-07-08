@@ -138,12 +138,11 @@ public class CampaignDaos extends Dao {
 	private static CampaignDaos instance;
 
 	/**
-	 * Sets up this DAO with a shared DataSource to use. This is called from
-	 * Spring and is an error to call within application code.
+	 * Creates this DAO.
 	 * 
 	 * @param dataSource A DataSource object to use when querying the database.
 	 */
-	public CampaignDaos(DataSource dataSource) {
+	private CampaignDaos(DataSource dataSource) {
 		super(dataSource);
 		
 		instance = this;

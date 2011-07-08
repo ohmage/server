@@ -1,10 +1,12 @@
-package org.ohmage.request;
+package org.ohmage.request.clazz;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.log4j.Logger;
 import org.ohmage.annotator.ErrorCodes;
+import org.ohmage.request.InputKeys;
+import org.ohmage.request.UserRequest;
 import org.ohmage.service.ClassServices;
 import org.ohmage.service.ServiceException;
 import org.ohmage.service.UserServices;
@@ -61,7 +63,7 @@ public class ClassDeletionRequest extends UserRequest {
 				}
 			}
 			catch(ValidationException e) {
-				LOGGER.info("One of the parameters was invalid.", e);
+				LOGGER.info(e.toString());
 			}
 		}
 		
@@ -90,7 +92,7 @@ public class ClassDeletionRequest extends UserRequest {
 			ClassServices.deleteClass(this, classId);
 		}
 		catch(ServiceException e) {
-			LOGGER.error("A Service threw an exception.", e);
+			e.logException(LOGGER);
 		}
 	}
 

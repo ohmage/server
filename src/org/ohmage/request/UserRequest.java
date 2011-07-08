@@ -65,7 +65,7 @@ public abstract class UserRequest extends Request {
 		}
 		// If there is a problem validating one of the parameters.
 		catch(ValidationException e) {
-			LOGGER.info("Error while validating one of the parameters.", e);
+			LOGGER.info(e.toString());
 		}
 		// If user creation failed, set the request as failed.
 		catch(IllegalArgumentException e) {
@@ -102,12 +102,12 @@ public abstract class UserRequest extends Request {
 			// If the bin doesn't know about the user, set the request as 
 			// failed.
 			if(tempUser == null) {
-				LOGGER.info("The user could not be created because the token was unknown.");
+				LOGGER.info("The user object could not be created because the token was unknown.");
 				setFailed(ErrorCodes.AUTHENTICATION_FAILED, "Unkown token.");
 			}
 		}
 		catch(ValidationException e) {
-			LOGGER.error("There was a problem validating the token.", e);
+			LOGGER.info(e.toString());
 		}
 		
 		user = tempUser;
@@ -158,7 +158,7 @@ public abstract class UserRequest extends Request {
 		}
 		// If there is a problem validating one of the parameters.
 		catch(ValidationException e) {
-			LOGGER.info("Error while validating one of the parameters.", e);
+			LOGGER.info(e.toString());
 		}
 		// If user creation failed, try to lookup a user with the token.
 		catch(IllegalArgumentException illegalArgumentException) {
@@ -178,8 +178,8 @@ public abstract class UserRequest extends Request {
 					setFailed(ErrorCodes.AUTHENTICATION_FAILED, "Unkown token.");
 				}
 			}
-			catch(ValidationException validationException) {
-				LOGGER.error("There was a problem validating the token.", validationException);
+			catch(ValidationException e) {
+				LOGGER.info(e.toString());
 			}
 		}
 		
@@ -232,7 +232,7 @@ public abstract class UserRequest extends Request {
 			return AuthenticationService.authenticate(this, newAccountsAllowed);
 		}
 		catch(ServiceException e) {
-			LOGGER.error("There is a bug in the system.", e);
+			e.logException(LOGGER);
 			return false;
 		}
 	}

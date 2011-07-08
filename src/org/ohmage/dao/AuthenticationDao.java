@@ -80,13 +80,11 @@ public class AuthenticationDao extends Dao{
 	private static AuthenticationDao instance;
 	
 	/**
-	 * This should never be called by anything except Spring. It will call it
-	 * when the server starts to setup the static fields and then all 
-	 * subsequent access should go through the static methods.
+	 * Creates this DAO.
 	 * 
 	 * @param dataSource The DataSource to use when querying the database.
 	 */
-	public AuthenticationDao(DataSource dataSource) {
+	private AuthenticationDao(DataSource dataSource) {
 		super(dataSource);
 		
 		instance = this;

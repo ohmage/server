@@ -1,4 +1,4 @@
-package org.ohmage.request;
+package org.ohmage.request.clazz;
 
 import java.util.List;
 
@@ -10,6 +10,8 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.ohmage.annotator.ErrorCodes;
 import org.ohmage.domain.ClassInformation;
+import org.ohmage.request.InputKeys;
+import org.ohmage.request.UserRequest;
 import org.ohmage.service.ClassServices;
 import org.ohmage.service.ServiceException;
 import org.ohmage.service.UserClassServices;
@@ -70,7 +72,7 @@ public class ClassReadRequest extends UserRequest {
 				}
 			}
 			catch(ValidationException e) {
-				LOGGER.info("Error while building the request.", e);
+				LOGGER.info(e.toString());
 			}
 		}
 		
@@ -114,7 +116,7 @@ public class ClassReadRequest extends UserRequest {
 			}
 		}
 		catch(ServiceException e) {
-			LOGGER.error("A Service threw an exception.", e);
+			e.logException(LOGGER);
 		}
 	}
 

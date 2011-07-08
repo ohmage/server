@@ -1,9 +1,11 @@
-package org.ohmage.request;
+package org.ohmage.request.clazz;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.log4j.Logger;
+import org.ohmage.request.InputKeys;
+import org.ohmage.request.UserRequest;
 import org.ohmage.service.ClassServices;
 import org.ohmage.service.ServiceException;
 import org.ohmage.service.UserServices;
@@ -83,7 +85,7 @@ public class ClassCreationRequest extends UserRequest {
 				tempClassDescription = StringValidators.validateString(this, httpRequest.getParameter(InputKeys.DESCRIPTION));
 			}
 			catch(ValidationException e) {
-				LOGGER.info("Error while building the request.", e);
+				LOGGER.info(e.toString());
 			}
 		}
 		
@@ -117,7 +119,7 @@ public class ClassCreationRequest extends UserRequest {
 			ClassServices.createClass(this, classId, className, classDescription);
 		}
 		catch(ServiceException e) {
-			LOGGER.error("A Service threw an exception.", e);
+			e.logException(LOGGER);
 		}
 	}
 

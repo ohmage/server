@@ -31,7 +31,7 @@ public class FailedRequest extends Request {
 	 */
 	@Override
 	public void service() {
-		return;
+		// Do nothing.
 	}
 
 	/**

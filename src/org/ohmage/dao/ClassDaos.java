@@ -167,12 +167,11 @@ public class ClassDaos extends Dao {
 	private static ClassDaos instance;
 	
 	/**
-	 * Sets up this DAO with a shared DataSource to use. This is called from
-	 * Spring and is an error to call within application code.
+	 * Creates this DAO.
 	 * 
 	 * @param dataSource A DataSource object to use when querying the database.
 	 */
-	public ClassDaos(DataSource dataSource) {
+	private ClassDaos(DataSource dataSource) {
 		super(dataSource);
 		
 		instance = this;

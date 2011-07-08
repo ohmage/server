@@ -1,4 +1,4 @@
-package org.ohmage.request;
+package org.ohmage.request.campaign;
 
 import java.io.IOException;
 import java.util.List;
@@ -9,12 +9,15 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.log4j.Logger;
 import org.ohmage.annotator.ErrorCodes;
+import org.ohmage.request.InputKeys;
+import org.ohmage.request.UserRequest;
 import org.ohmage.service.CampaignServices;
 import org.ohmage.service.CampaignServices.CampaignIdAndName;
 import org.ohmage.service.ServiceException;
 import org.ohmage.service.UserClassServices;
 import org.ohmage.service.UserServices;
 import org.ohmage.util.CookieUtils;
+import org.ohmage.util.StringUtils;
 import org.ohmage.validator.CampaignValidators;
 import org.ohmage.validator.ClassValidators;
 import org.ohmage.validator.StringValidators;
@@ -125,16 +128,16 @@ public class CampaignCreationRequest extends UserRequest {
 				throw new ValidationException("Missing required class ID list.");
 			}
 		}
-		catch(ValidationException e) {
-			LOGGER.info("A parameter did not pass validation.", e);
-		}
 		catch(ServletException e) {
+			LOGGER.error("This is not a multipart/form-data POST.", e);
 			setFailed(ErrorCodes.SYSTEM_SERVER_ERROR, "This is not a multipart/form-data POST which is what we expect for uploading campaign XMLs.");
-			LOGGER.info("This is not a multipart/form-data POST.", e);
 		}
 		catch(IOException e) {
-			setFailed(ErrorCodes.SYSTEM_SERVER_ERROR, "There was an error reading the request.");
-			LOGGER.info("There was an error reading part of the request.", e);
+			LOGGER.error("There was an error reading the message from the input stream.", e);
+			setFailed();
+		}
+		catch(ValidationException e) {
+			LOGGER.info(e.toString());
 		}
 		
 		xml = tempXml;
@@ -162,8 +165,13 @@ public class CampaignCreationRequest extends UserRequest {
 			LOGGER.info("Verifying that all of the classes in the campaign exist and that the user is enrolled in call of the classes.");
 			UserClassServices.classesExistAndUserBelongs(this, classIds, user.getUsername());
 			
-			// Get the campaign's URN from the XML.
-			CampaignIdAndName campaignInfo = CampaignServices.getCampaignUrnFromXml(this, xml);
+			// Get the campaign's URN and name from the XML.
+			CampaignIdAndName campaignInfo = CampaignServices.getCampaignUrnAndNameFromXml(this, xml);
+			
+			if(! StringUtils.isValidUrn(campaignInfo.getCampaignId())) {
+				setFailed(ErrorCodes.CAMPAIGN_INVALID_URN, "The campaign URN in the XML is invalid.");
+				throw new ServiceException("The campaign URN in the XML is invalid.");
+			}
 			
 			LOGGER.info("Verifying that the campaign doesn't already exist.");
 			CampaignServices.checkCampaignExistence(this, campaignInfo.getCampaignId(), false);
@@ -173,7 +181,7 @@ public class CampaignCreationRequest extends UserRequest {
 					xml, description, runningState, privacyState, classIds, user.getUsername());
 		}
 		catch(ServiceException e) {
-			LOGGER.error("A service threw an exception.", e);
+			e.logException(LOGGER);
 		}
 	}
 

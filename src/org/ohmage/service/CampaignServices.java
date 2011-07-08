@@ -176,13 +176,13 @@ public class CampaignServices {
 	 * 
 	 * @param xml The XML definition of this campaign.
 	 * 
-	 * @return A CampaignIdAndName object with the campaign's URN and name
+	 * @return A CampaignIdAndName object with the campaign's URN and name.
 	 * 
 	 * @throws ServiceException Thrown if there is an error parsing the XML. 
 	 * 							This should never happen as the XML should have
 	 * 							been validated before this call is made.
 	 */
-	public static CampaignIdAndName getCampaignUrnFromXml(Request request, String xml) throws ServiceException {
+	public static CampaignIdAndName getCampaignUrnAndNameFromXml(Request request, String xml) throws ServiceException {
 		// Generate a builder that will build the XML Document.
 		Builder builder;
 		try {

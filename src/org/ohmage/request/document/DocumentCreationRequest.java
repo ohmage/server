@@ -1,4 +1,4 @@
-package org.ohmage.request;
+package org.ohmage.request.document;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -11,6 +11,8 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.log4j.Logger;
 import org.ohmage.annotator.ErrorCodes;
+import org.ohmage.request.InputKeys;
+import org.ohmage.request.UserRequest;
 import org.ohmage.service.CampaignServices;
 import org.ohmage.service.ClassServices;
 import org.ohmage.service.DocumentServices;
@@ -151,16 +153,16 @@ public class DocumentCreationRequest extends UserRequest {
 			
 			tempDescription = StringValidators.validateString(this, httpRequest.getParameter(InputKeys.DESCRIPTION));
 		}
+		catch(ServletException e) {
+			LOGGER.error("This is not a multipart/form-data POST.", e);
+			setFailed(ErrorCodes.SYSTEM_SERVER_ERROR, "This is not a multipart/form-data POST which is what we expect for uploading campaign XMLs.");
+		}
 		catch(IOException e) {
 			LOGGER.error("There was an error reading the message from the input stream.", e);
 			setFailed();
 		}
-		catch(ServletException e) {
-			LOGGER.error("Not a multipart/form-data request as expected.", e);
-			setFailed();
-		}
 		catch(ValidationException e) {
-			LOGGER.info("Validation failed for some parameter.", e);
+			LOGGER.info(e.toString());
 		}
 		
 		document = tempDocument;
@@ -207,7 +209,7 @@ public class DocumentCreationRequest extends UserRequest {
 			documentId = DocumentServices.createDocument(this, document, name, description, privacyState, campaignRoleMap, classRoleMap, user.getUsername());
 		}
 		catch(ServiceException e) {
-			LOGGER.info("A service threw an exception.", e);
+			e.logException(LOGGER);
 		}
 	}
 

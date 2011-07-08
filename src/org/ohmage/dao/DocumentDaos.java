@@ -4,6 +4,8 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.FilenameFilter;
 import java.io.IOException;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.UUID;
@@ -17,6 +19,8 @@ import org.apache.log4j.Logger;
 import org.ohmage.cache.CacheMissException;
 import org.ohmage.cache.DocumentRoleCache;
 import org.ohmage.cache.PreferenceCache;
+import org.ohmage.domain.DocumentInformation;
+import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionException;
@@ -36,6 +40,14 @@ import org.springframework.transaction.support.DefaultTransactionDefinition;
  */
 public class DocumentDaos extends Dao {
 	private static final Logger LOGGER = Logger.getLogger(DocumentDaos.class);
+	
+	// Gets a document's information.
+	private static final String SQL_GET_DOCUMENT_INFO = 
+		"SELECT d.uuid, d.name, d.description, dps.privacy_state, d.last_modified_timestamp, d.creation_timestamp, d.size, duc.username " +
+		"FROM document d, document_privacy_state dps, document_user_creator duc " +
+		"WHERE d.uuid = ? " +
+		"AND d.privacy_state_id = dps.id " +
+		"AND d.id = duc.document_id";
 	
 	// Inserts the document into the database.
 	private static final String SQL_INSERT_DOCUMENT = 
@@ -135,12 +147,11 @@ public class DocumentDaos extends Dao {
 	private static DocumentDaos instance;
 	
 	/**
-	 * Sets up this DAO with a shared DataSource to use. This is called from
-	 * Spring and is an error to call within application code.
+	 * Creates this DAO.
 	 * 
 	 * @param dataSource A DataSource object to use when querying the database.
 	 */
-	public DocumentDaos(DataSource dataSource) {
+	private DocumentDaos(DataSource dataSource) {
 		super(dataSource);
 		
 		instance = this;
@@ -324,6 +335,41 @@ public class DocumentDaos extends Dao {
 	}
 	
 	/**
+	 * Retrieves the information about a document whose ID is 'documentId'.
+	 * 
+	 * @param documentId The unique document ID for the document whose 
+	 * 					 information is desired.
+	 *  
+	 * @return A DocumentInformation object representing the information about
+	 * 		   this document.
+	 */
+	public static DocumentInformation getDocumentInformation(String documentId) {
+		try {
+			return instance.jdbcTemplate.queryForObject(
+				SQL_GET_DOCUMENT_INFO, 
+				new Object[] { documentId }, 
+				new RowMapper<DocumentInformation>() {
+					@Override
+					public DocumentInformation mapRow(ResultSet rs, int rowNum) throws SQLException {
+						return new DocumentInformation(
+								rs.getString("uuid"),
+								rs.getString("name"),
+								rs.getString("description"),
+								rs.getString("privacy_state"),
+								rs.getDate("last_modified_timestamp"),
+								rs.getDate("creation_timestamp"),
+								rs.getInt("size"),
+								rs.getString("username"));
+					}
+				}
+			);
+		}
+		catch(org.springframework.dao.DataAccessException e) {
+			throw new DataAccessException("Error executing SQL '" + SQL_GET_DOCUMENT_INFO + "' with parameter: " + documentId, e);
+		}
+	}
+	
+	/**
 	 * Gets the extension on the file. To be used by other classes that want to
 	 * parse the extension from a filename.
 	 * 
@@ -331,7 +377,7 @@ public class DocumentDaos extends Dao {
 	 * 
 	 * @return The extension on the file with the name 'name'.
 	 */
-	public static String getExtension(String name) {
+	private static String getExtension(String name) {
 		String[] parsedName = name.split("\\.");
 		String extension = null;
 		if((parsedName.length > 1) && (parsedName[parsedName.length - 1].length() <= MAX_EXTENSION_LENGTH)) {

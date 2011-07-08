@@ -7,6 +7,11 @@ import org.ohmage.dao.DataAccessException;
 import org.ohmage.dao.UserCampaignDaos;
 import org.ohmage.request.Request;
 
+/**
+ * This class contains the services for user-campaign-document relationships.
+ * 
+ * @author John Jenkins
+ */
 public class UserCampaignDocumentServices {
 	/**
 	 * Default constructor. Private so that it cannot be instantiated.
