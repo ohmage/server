@@ -48,6 +48,8 @@ public class PreferenceCache extends KeyValueCache {
 	
 	public static final String KEY_VISUALIZATION_SERVER = "visualization_server_address";
 	
+	public static final String KEY_SSL_ENABLED = "ssl_enabled";
+	
 	// The reference to one's self to return to requesters.
 	private static PreferenceCache _self = new PreferenceCache();
 	

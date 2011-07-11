@@ -1,6 +1,7 @@
 package org.ohmage.service;
 
 import java.io.ByteArrayOutputStream;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
@@ -9,6 +10,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.net.UnknownHostException;
+import java.util.Properties;
 
 import org.apache.log4j.Logger;
 import org.ohmage.cache.CacheMissException;
@@ -104,9 +106,30 @@ public class VizPromptTimeseriesService extends AbstractAnnotatingService {
 			return;
 		}
 		
+		String httpString = "http";
+		try {
+			InputStream in = new FileInputStream(PreferenceCache.instance().lookup(PreferenceCache.KEY_PROPERTIES_FILE));
+			Properties properties = new Properties();
+			properties.load(in);
+			in.close();
+			
+			String sslEnabled = properties.getProperty(PreferenceCache.KEY_SSL_ENABLED);
+			if((sslEnabled != null) && (sslEnabled.equals("true"))) {
+				httpString = "https";
+			}
+		}
+		catch(CacheMissException e) {
+			_logger.error("Unknown value for 'known' key '" + PreferenceCache.KEY_PROPERTIES_FILE + "'. Is the cache database missing a key-value pair?", e);
+			throw new ServiceException(e);
+		}
+		catch(IOException e) {
+			_logger.error("Missing the properties file that should have been built with the WAR file.", e);
+			throw new ServiceException(e);
+		}
+		
 		// Add the required parameters.
 		urlBuilder.append("token='").append(awRequest.getUserToken()).append("'");
-		urlBuilder.append("&server='").append("http://").append(hostname).append("/app").append("'");
+		urlBuilder.append("&server='").append(httpString).append("://").append(hostname).append("/app").append("'");
 		urlBuilder.append("&campaign_urn='").append(campaignId).append("'");
 		urlBuilder.append("&prompt_id='").append(promptId).append("'");
 		urlBuilder.append("&!width=").append(width);

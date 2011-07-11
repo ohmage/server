@@ -151,7 +151,6 @@ public class DocumentReadContentsResponseWriter extends AbstractResponseWriter {
 		if(awRequest.isFailedRequest()) {
 			response.setContentType("text/html");
 			String responseText;
-			response.setContentType("application/json");
 			
 			// If a specific error message was annotated, use that. 
 			if(awRequest.getFailedRequestErrorMessage() != null) {
