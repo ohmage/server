@@ -11,6 +11,14 @@ import javax.sql.DataSource;
  * @author John Jenkins
  */
 public class UserDaos extends Dao {
+	// Returns a boolean representing whether or not a user exists
+	private static final String SQL_EXISTS_USER = 
+		"SELECT EXISTS(" +
+			"SELECT username " +
+			"FROM user " +
+			"WHERE username = ?" +
+		")";
+	
 	// Returns a boolean representing whether a user is an admin or not. If the
 	// user doesn't exist, false is returned.
 	private static final String SQL_EXISTS_USER_IS_ADMIN = 
@@ -47,6 +55,27 @@ public class UserDaos extends Dao {
 	}
 	
 	/**
+	 * Returns whether or not a user exists.
+	 * 
+	 * @param username The username for which to check.
+	 * 
+	 * @return Returns true if the user exists; false, otherwise.
+	 * 
+	 * @throws DataAccessException Thrown if there is an error.
+	 */
+	public static Boolean userExists(String username) throws DataAccessException {
+		try {
+			return instance.jdbcTemplate.queryForObject(
+					SQL_EXISTS_USER, 
+					new Object[] { username }, 
+					Boolean.class);
+		}
+		catch(org.springframework.dao.DataAccessException e) {
+			throw new DataAccessException("Error executing the following SQL '" + SQL_EXISTS_USER + "' with parameter: " + username, e);
+		}
+	}
+	
+	/**
 	 * Gets whether or not the user is an admin.
 	 * 
 	 * @param username The username to check.
@@ -58,7 +87,7 @@ public class UserDaos extends Dao {
 	 */
 	public static Boolean userIsAdmin(String username) throws DataAccessException {
 		try {
-			return (Boolean) instance.jdbcTemplate.queryForObject(
+			return instance.jdbcTemplate.queryForObject(
 					SQL_EXISTS_USER_IS_ADMIN, 
 					new String[] { username }, 
 					Boolean.class

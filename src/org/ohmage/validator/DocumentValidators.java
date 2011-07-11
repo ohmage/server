@@ -21,6 +21,24 @@ public class DocumentValidators {
 	private DocumentValidators() {}
 	
 	/**
+	 * Validates a document's unique identifier.
+	 * 
+	 * @param request The request that is performing this validation.
+	 * 
+	 * @param documentId The document ID in question.
+	 * 
+	 * @return Returns the document's ID if it is valid. Returns null if it is
+	 * 		   null or whitespace only.
+	 * 
+	 * @throws ValidationException Thrown if the document's ID is not null, not
+	 * 							   whitespace only, and not a valid document 
+	 * 							   ID.
+	 */
+	public static String validateDocumentId(Request request, String documentId) throws ValidationException {
+		return UuidValidators.validateUuid(request, documentId);
+	}
+	
+	/**
 	 * Validates that a document's privacy state is a known privacy state.
 	 * 
 	 * @param request The request that is having this privacy state validated.

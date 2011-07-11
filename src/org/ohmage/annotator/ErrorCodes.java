@@ -173,12 +173,13 @@ public final class ErrorCodes {
 	public static final String DOCUMENT_INSUFFICIENT_PERMISSIONS_TO_DELETE = "1511";
 	public static final String DOCUMENT_INSUFFICIENT_PERMISSIONS_TO_READ = "1512";
 	public static final String DOCUMENT_INVALID_PERSONAL_DOCUMENTS_VALUE = "1513";
-	public static final String DOCUMENT_INSUFFICIENT_PERMISSIONS = "1514";
+	public static final String DOCUMENT_INSUFFICIENT_PERMISSIONS_TO_MODIFY = "1514";
 	public static final String DOCUMENT_DOES_NOT_BELONG_TO_ENTITY = "1515";
 	public static final String DOCUMENT_REQUESTER_GRANTING_MORE_PERMISSIONS_THAN_THEY_HAVE = "1516";
 	public static final String DOCUMENT_INVALID_ROLE = "1517";
 	public static final String DOCUMENT_MISSING_CAMPAIGN_AND_CLASS_ROLE_LISTS = "1518";
 	public static final String DOCUMENT_MISSING_ID = "1519";
+	public static final String DOCUMENT_INVALID_USER_ROLE_LIST = "1520";
 	
 	public static final String MALFORMED_UUID = "1600";
 	public static final String MALFORMED_URN_ROLE_LIST = "1601";

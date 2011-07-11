@@ -1,11 +1,9 @@
 package org.ohmage.request.document;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -152,14 +150,6 @@ public class DocumentCreationRequest extends UserRequest {
 			}
 			
 			tempDescription = StringValidators.validateString(this, httpRequest.getParameter(InputKeys.DESCRIPTION));
-		}
-		catch(ServletException e) {
-			LOGGER.error("This is not a multipart/form-data POST.", e);
-			setFailed(ErrorCodes.SYSTEM_SERVER_ERROR, "This is not a multipart/form-data POST which is what we expect for uploading campaign XMLs.");
-		}
-		catch(IOException e) {
-			LOGGER.error("There was an error reading the message from the input stream.", e);
-			setFailed();
 		}
 		catch(ValidationException e) {
 			LOGGER.info(e.toString());

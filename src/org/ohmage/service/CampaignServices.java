@@ -2,6 +2,7 @@ package org.ohmage.service;
 
 import java.io.IOException;
 import java.io.StringReader;
+import java.util.Collection;
 import java.util.List;
 
 import nu.xom.Builder;
@@ -157,7 +158,7 @@ public class CampaignServices {
 	 * 							shouldn't or if any of the campaigns don't 
 	 * 							exist and they should.
 	 */
-	public static void checkCampaignsExistence(Request request, List<String> campaignIds, boolean shouldExist) throws ServiceException {
+	public static void checkCampaignsExistence(Request request, Collection<String> campaignIds, boolean shouldExist) throws ServiceException {
 		for(String campaignId : campaignIds) {
 			checkCampaignExistence(request, campaignId, shouldExist);
 		}

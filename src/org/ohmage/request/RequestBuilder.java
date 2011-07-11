@@ -10,7 +10,9 @@ import org.ohmage.request.clazz.ClassDeletionRequest;
 import org.ohmage.request.clazz.ClassReadRequest;
 import org.ohmage.request.clazz.ClassUpdateRequest;
 import org.ohmage.request.document.DocumentCreationRequest;
+import org.ohmage.request.document.DocumentReadContentsRequest;
 import org.ohmage.request.document.DocumentReadRequest;
+import org.ohmage.request.document.DocumentUpdateRequest;
 
 /**
  * Request builder from an HTTP request.
@@ -45,6 +47,8 @@ public final class RequestBuilder {
 	// Document
 	private static final String API_DOCUMENT_CREATE = API_ROOT + "/document/create";
 	private static final String API_DOCUMENT_READ = API_ROOT + "/document/read";
+	private static final String API_DOCUMENT_READ_CONTENTS = API_ROOT + "/document/read/contents";
+	private static final String API_DOCUMENT_UPDATE = API_ROOT + "/document/update";
 	
 	/**
 	 * Builds a new request based on the request's URI. This will always return
@@ -92,6 +96,12 @@ public final class RequestBuilder {
 		}
 		else if(API_DOCUMENT_READ.equals(requestUri)) {
 			return new DocumentReadRequest(httpRequest);
+		}
+		else if(API_DOCUMENT_READ_CONTENTS.equals(requestUri)) {
+			return new DocumentReadContentsRequest(httpRequest);
+		}
+		else if(API_DOCUMENT_UPDATE.equals(requestUri)) {
+			return new DocumentUpdateRequest(httpRequest);
 		}
 		
 		// The URI is unknown.

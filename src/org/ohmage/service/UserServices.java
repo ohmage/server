@@ -1,5 +1,7 @@
 package org.ohmage.service;
 
+import java.util.Collection;
+
 import org.ohmage.annotator.ErrorCodes;
 import org.ohmage.dao.DataAccessException;
 import org.ohmage.dao.UserDaos;
@@ -15,6 +17,45 @@ public final class UserServices {
 	 * Default constructor. Made private so that it cannot be instantiated.
 	 */
 	private UserServices() {}
+	
+	/**
+	 * Verifies that a user exists.
+	 * 
+	 * @param request The request that is performing this check.
+	 * 
+	 * @param username The username of the user in question.
+	 * 
+	 * @throws ServiceException Thrown if there was an error or if the user
+	 * 							does not exist.
+	 */
+	public static void verifyUserExists(Request request, String username) throws ServiceException {
+		try {
+			if(! UserDaos.userExists(username)) {
+				request.setFailed(ErrorCodes.USER_DOES_NOT_EXIST, "The following user does not exist: " + username);
+				throw new ServiceException("The following user does not exist: " + username);
+			}
+		}
+		catch(DataAccessException e) {
+			request.setFailed();
+			throw new ServiceException(e);
+		}
+	}
+	
+	/**
+	 * Verifies that a Collection of users exist.
+	 * 
+	 * @param request The Request that is performing this check.
+	 * 
+	 * @param usernames A Collection of usernames to check that each exists.
+	 * 
+	 * @throws ServiceException Thrown if there was an error or if one of the
+	 * 							usernames does not exist.
+	 */
+	public static void verifyUsersExist(Request request, Collection<String> usernames) throws ServiceException {
+		for(String username : usernames) {
+			verifyUserExists(request, username);
+		}
+	}
 	
 	/**
 	 * Checks if the user is an admin.

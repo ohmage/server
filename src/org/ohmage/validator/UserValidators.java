@@ -1,9 +1,14 @@
 package org.ohmage.validator;
 
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import java.util.regex.Pattern;
 
 import org.apache.log4j.Logger;
 import org.ohmage.annotator.ErrorCodes;
+import org.ohmage.request.InputKeys;
 import org.ohmage.request.Request;
 import org.ohmage.util.StringUtils;
 
@@ -65,6 +70,43 @@ public final class UserValidators {
 			request.setFailed(ErrorCodes.USER_INVALID_USERNAME, "The username is invalid.");
 			throw new ValidationException("The username is invalid: " + username);
 		}
+	}
+	
+	/**
+	 * Validates that a String representation of a list of usernames is well
+	 * formed and that each of the usernames follows our conventions. It then
+	 * returns the list of usernames as a List.
+	 * 
+	 * @param request The request that is performing this validation.
+	 * 
+	 * @param usernameList A String representation of a list of usernames where
+	 * 					   the usernames should be separated by
+	 * 					   {@value org.ohmage.request.InputKeys#LIST_ITEM_SEPARATOR}s.
+	 * 
+	 * @return Returns a, possibly empty, List of usernames without duplicates.
+	 * 
+	 * @throws ValidationException Thrown if the list is malformed or if any of
+	 * 							   the items in the list is malformed.
+	 */
+	public static List<String> validateUsernames(Request request, String usernameList) throws ValidationException {
+		LOGGER.info("Validating that a list of usernames follows our conventions.");
+		
+		if(StringUtils.isEmptyOrWhitespaceOnly(usernameList)) {
+			return null;
+		}
+		
+		Set<String> result = new HashSet<String>();
+		
+		String[] usernameArray = usernameList.split(InputKeys.LIST_ITEM_SEPARATOR);
+		for(int i = 0; i < usernameArray.length; i++) {
+			String username = validateUsername(request, usernameArray[i]);
+			
+			if(username != null) {
+				result.add(username);
+			}
+		}
+		
+		return new ArrayList<String>(result);
 	}
 	
 	/**

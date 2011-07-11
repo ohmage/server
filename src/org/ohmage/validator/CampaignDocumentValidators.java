@@ -9,6 +9,12 @@ import org.ohmage.request.InputKeys;
 import org.ohmage.request.Request;
 import org.ohmage.util.StringUtils;
 
+/**
+ * This class contains the functionality for validating campaign-document
+ * information.
+ * 
+ * @author John Jenkins
+ */
 public class CampaignDocumentValidators {
 	private static final Logger LOGGER = Logger.getLogger(CampaignDocumentValidators.class);
 	

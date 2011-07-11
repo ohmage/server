@@ -23,7 +23,7 @@ import org.ohmage.validator.ValidationException;
 public abstract class UserRequest extends Request {
 	private static final Logger LOGGER = Logger.getLogger(UserRequest.class);
 	
-	private static final long MILLIS_IN_A_SECOND = 1000;
+	public static final long MILLIS_IN_A_SECOND = 1000;
 	
 	protected final User user;
 	protected final String client;

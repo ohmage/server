@@ -14,10 +14,10 @@ import org.ohmage.annotator.ErrorCodes;
 import org.ohmage.domain.DocumentInformation;
 import org.ohmage.request.InputKeys;
 import org.ohmage.request.UserRequest;
-import org.ohmage.service.CampaignDocumentServices;
-import org.ohmage.service.ClassDocumentServices;
 import org.ohmage.service.ServiceException;
+import org.ohmage.service.UserCampaignDocumentServices;
 import org.ohmage.service.UserCampaignServices;
+import org.ohmage.service.UserClassDocumentServices;
 import org.ohmage.service.UserClassServices;
 import org.ohmage.service.UserDocumentServices;
 import org.ohmage.validator.BooleanValidators;
@@ -141,12 +141,12 @@ public class DocumentReadRequest extends UserRequest {
 			
 			if(campaignIds != null) {
 				LOGGER.info("Gathering information about the documents that are visible to this user in the parameterized campaigns.");
-				result.addAll(CampaignDocumentServices.getDocumentsSpecificToCampaigns(this, user.getUsername(), campaignIds));
+				result.addAll(UserCampaignDocumentServices.getVisibleDocumentsSpecificToCampaigns(this, user.getUsername(), campaignIds));
 			}
 		
 			if(classIds != null) {
 				LOGGER.info("Gathering information about the documents that are visible to this user in the parameterized classes.");
-				result.addAll(ClassDocumentServices.getDocumentsSpecificToClasses(this, user.getUsername(), classIds));
+				result.addAll(UserClassDocumentServices.getVisibleDocumentsSpecificToClasses(this, user.getUsername(), classIds));
 			}
 		}
 		catch(ServiceException e) {

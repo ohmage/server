@@ -1,5 +1,6 @@
 package org.ohmage.service;
 
+import java.util.Collection;
 import java.util.List;
 
 import org.ohmage.annotator.ErrorCodes;
@@ -102,7 +103,7 @@ public final class ClassServices {
 	 * 							classes exist and they shouldn't, or if any of
 	 * 							the classes don't exist and they should.
 	 */
-	public static void checkClassesExistence(Request request, List<String> classIds, boolean shouldExist) throws ServiceException {
+	public static void checkClassesExistence(Request request, Collection<String> classIds, boolean shouldExist) throws ServiceException {
 		for(String classId : classIds) {
 			checkClassExistence(request, classId, shouldExist);
 		}

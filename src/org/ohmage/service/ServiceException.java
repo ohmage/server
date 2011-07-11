@@ -81,7 +81,7 @@ public class ServiceException extends Exception {
 	 */
 	public void logException(Logger logger) {
 		if(isSerious) {
-			logger.error(this);
+			logger.error("Server error.", this);
 		}
 		else {
 			logger.info(toString());

@@ -9,8 +9,19 @@ import org.ohmage.request.InputKeys;
 import org.ohmage.request.Request;
 import org.ohmage.util.StringUtils;
 
-public class ClassDocumentValidators {
+/**
+ * This class contains the functionality for validating class-document
+ * information.
+ * 
+ * @author John Jenkins
+ */
+public final class ClassDocumentValidators {
 	private static final Logger LOGGER = Logger.getLogger(ClassDocumentValidators.class);
+	
+	/**
+	 * Default constructor. Private so that it cannot be instantiated.
+	 */
+	private ClassDocumentValidators() {};
 	
 	/**
 	 * Validates a list of class ID and document role pairs. 
