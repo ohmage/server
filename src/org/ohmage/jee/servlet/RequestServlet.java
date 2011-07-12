@@ -73,6 +73,8 @@ public class RequestServlet extends HttpServlet {
 	 * 					   once the request has been processed.
 	 */
 	protected void processRequest(HttpServletRequest httpRequest, HttpServletResponse httpResponse) {
+		long startTime = System.currentTimeMillis();
+		
 		Request request = RequestBuilder.buildRequest(httpRequest);
 		
 		if(! request.isFailed()) {
@@ -80,5 +82,7 @@ public class RequestServlet extends HttpServlet {
 		}
 		
 		request.respond(httpRequest, httpResponse);
+		
+		LOGGER.info("total request milliseconds to service " + httpRequest.getRequestURI() + " = "+ (System.currentTimeMillis() - startTime));
 	}
 }

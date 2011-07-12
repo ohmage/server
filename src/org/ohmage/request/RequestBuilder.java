@@ -11,6 +11,7 @@ import org.ohmage.request.clazz.ClassReadRequest;
 import org.ohmage.request.clazz.ClassUpdateRequest;
 import org.ohmage.request.document.DocumentCreationRequest;
 import org.ohmage.request.document.DocumentReadRequest;
+import org.ohmage.request.survey.SurveyUploadRequest;
 
 /**
  * Request builder from an HTTP request.
@@ -45,6 +46,9 @@ public final class RequestBuilder {
 	// Document
 	private static final String API_DOCUMENT_CREATE = API_ROOT + "/document/create";
 	private static final String API_DOCUMENT_READ = API_ROOT + "/document/read";
+	
+	// Survey
+	private static final String API_SURVEY_UPLOAD = API_ROOT + "/survey/upload";
 	
 	/**
 	 * Builds a new request based on the request's URI. This will always return
@@ -92,6 +96,9 @@ public final class RequestBuilder {
 		}
 		else if(API_DOCUMENT_READ.equals(requestUri)) {
 			return new DocumentReadRequest(httpRequest);
+		}
+		else if(API_SURVEY_UPLOAD.equals(requestUri)) {
+			return new SurveyUploadRequest(httpRequest);
 		}
 		
 		// The URI is unknown.

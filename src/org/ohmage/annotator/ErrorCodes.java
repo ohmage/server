@@ -49,20 +49,20 @@ public final class ErrorCodes {
 	public static final String MOBILITY_MISSING_ACCEL_DATA = "0503";
 	public static final String MOBILITY_MISSING_OR_INVALID_SPEED = "0504";
 	
-	public static final String SURVEY_UPDLOAD_MISSING_RESPONSES = "0602";
-	public static final String SURVEY_UPDLOAD_INVALID_RESPONSES = "0603";
-	public static final String SURVEY_UPDLOAD_INVALID_CAMPAIGN_ID = "0604";
-	public static final String SURVEY_UPDLOAD_MISSING_OR_INVALID_SURVEY_ID = "0605";
-	public static final String SURVEY_UPDLOAD_MISSING_OR_INVALID_SURVEY_LAUNCH_CONTEXT = "0606";
-	public static final String SURVEY_UPDLOAD_INVALID_USER_ROLE = "0607";
-	public static final String SURVEY_UPDLOAD_CAMPAIGN_STOPPED_REJECT_SURVEY = "0608";
-	public static final String SURVEY_UPDLOAD_CAMPAIGN_OUT_OF_DATE = "0609";
+	public static final String SURVEY_UPLOAD_MISSING_RESPONSES = "0602";
+	public static final String SURVEY_UPLOAD_INVALID_RESPONSES = "0603";
+	public static final String SURVEY_UPLOAD_INVALID_CAMPAIGN_ID = "0604";
+	public static final String SURVEY_UPLOAD_MISSING_OR_INVALID_SURVEY_ID = "0605";
+	public static final String SURVEY_UPLOAD_MISSING_OR_INVALID_SURVEY_LAUNCH_CONTEXT = "0606";
+	public static final String SURVEY_UPLOAD_INVALID_USER_ROLE = "0607";
+	public static final String SURVEY_UPLOAD_CAMPAIGN_STOPPED_REJECT_SURVEY = "0608";
+	public static final String SURVEY_UPLOAD_CAMPAIGN_OUT_OF_DATE = "0609";
+	public static final String SURVEY_UPLOAD_INVALID_CAMPAIGN_CREATION_DATETIME = "0610";
 	
-	public static final String DATA_POINT_QUERY_MISSING_OR_INVALID_DATE = "0700";
-	public static final String DATA_POINT_QUERY_INVALID_USER = "0701";
-	public static final String DATA_POINT_QUERY_INVALID_CAMPAIGN = "0702";
-	public static final String DATA_POINT_QUERY_INVALID_PROMPT_ID = "0703";
-	
+	public static final String SURVEY_RESPONSE_MISSING_OR_INVALID_DATE = "0700";
+	public static final String SURVEY_RESPONSE_INVALID_USER = "0701";
+	public static final String SURVEY_RESPONSE_INVALID_CAMPAIGN = "0702";
+	public static final String SURVEY_RESPONSE_INVALID_PROMPT_ID = "0703";
 	public static final String SURVEY_RESPONSE_INVALID_USER_LIST = "0704";
 	public static final String SURVEY_RESPONSE_PROMPT_OR_SURVEY_ID_LIST_ERROR = "0705";
 	public static final String SURVEY_RESPONSE_INVALID_SURVEY_ID = "0707";

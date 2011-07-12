@@ -1,14 +1,22 @@
 package org.ohmage.dao;
 
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.List;
 
 import javax.sql.DataSource;
+
+import org.ohmage.domain.User;
+import org.ohmage.domain.UserRoleCampaignInfo;
+import org.ohmage.util.StringUtils;
+import org.springframework.jdbc.core.RowMapper;
 
 /**
  * This class contains all of the functionality for reading and writing 
  * information specific to user-campaign relationships.
  * 
  * @author John Jenkins
+ * @author Joshua Selsky
  */
 public class UserCampaignDaos extends Dao {
 	// Retrieves whether or not a user has any role in a campaign.
@@ -31,6 +39,18 @@ public class UserCampaignDaos extends Dao {
 		"AND c.urn = ? " +
 		"AND c.id = urc.campaign_id " +
 		"AND urc.user_role_id = ur.id";
+	
+	// Retrieves the roles and all campaign information (minus the XML) for all of the campaigns a user belongs to.
+	private static final String SQL_GET_ALL_USER_CAMPAIGN_ROLES_AND_INFO = 
+		"SELECT campaign.urn, campaign.name, campaign.description, campaign_privacy_state.privacy_state, "
+         + " campaign_running_state.running_state, campaign.creation_timestamp, user_role.role"
+		 + " FROM campaign, user, user_role_campaign, user_role, campaign_privacy_state, campaign_running_state"
+		 + " WHERE user.username = ?"
+		 +   " AND user.id = user_role_campaign.user_id"
+		 +   " AND campaign.id = user_role_campaign.campaign_id"
+		 +   " AND user_role.id = user_role_campaign.user_role_id"
+		 +	 " AND campaign_privacy_state.id = campaign.privacy_state_id"
+         +	 " AND campaign_running_state.id = campaign.running_state_id";
 	
 	private static UserCampaignDaos instance;
 	
@@ -72,7 +92,7 @@ public class UserCampaignDaos extends Dao {
 	 * @param campaignId The campaign ID for the campaign that the user's roles
 	 * 					 are being requested.
 	 * 
-	 * @return A, possibly empty, List of roles for this user in this campaign.
+	 * @return A possibly empty List of roles for this user in this campaign.
 	 */
 	public static List<String> getUserCampaignRoles(String username, String campaignId) {
 		try {
@@ -84,6 +104,39 @@ public class UserCampaignDaos extends Dao {
 		catch(org.springframework.dao.DataAccessException e) {
 			throw new DataAccessException("Error executing SQL '" + SQL_GET_USER_CAMPAIGN_ROLES + "' with parameters: " + 
 					username + ", " + campaignId, e);
+		}
+	}
+	
+	/**
+	 * Retrieves all campaign info (minus the XML) and user roles for each 
+	 * campaign for the provided user.
+	 * 
+	 * @param user The user to retrieve campaign-role info for.
+	 * @return A possibly empty list of user role campaign info for the provided user. 
+	 */
+	public static List<UserRoleCampaignInfo> getAllCampaignRolesAndCampaignInfoForUser(User user) {
+		try {
+			return instance.jdbcTemplate.query(
+					SQL_GET_ALL_USER_CAMPAIGN_ROLES_AND_INFO,
+					new Object[] { user.getUsername() },
+					new RowMapper <UserRoleCampaignInfo> () {
+						public UserRoleCampaignInfo mapRow(ResultSet rs, int rowNum) throws SQLException {
+							UserRoleCampaignInfo result = new UserRoleCampaignInfo(
+								rs.getString(1),
+								rs.getString(2),
+								rs.getString(3),
+								rs.getString(4),
+								rs.getString(5),
+								StringUtils.stripMillisFromJdbcTimestampString(rs.getString(6)),
+								rs.getString(7)
+							);
+							return result;
+						}
+					});
+		}
+		catch(org.springframework.dao.DataAccessException e) {
+			throw new DataAccessException("Error executing SQL '" + SQL_GET_ALL_USER_CAMPAIGN_ROLES_AND_INFO 
+					+ "' with parameters: " + user.getUsername(), e);
 		}
 	}
 }

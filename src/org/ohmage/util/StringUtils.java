@@ -26,7 +26,7 @@ import java.util.regex.Pattern;
 /**
  * A collection of methods for manipulating or validating strings.
  * 
- * @author selsky
+ * @author Joshua Selsky
  */
 public final class StringUtils {
 	private static final int NUM_URN_SEGMENTS = 3;
@@ -183,5 +183,24 @@ public final class StringUtils {
 		}
 		
 		return builder.toString();
+	}
+	
+	/**
+	 * Strips off the millseconds value from a JDBC timestamp String returned from the MySQL JDBC connector.
+	 * 
+	 * @param timestamp The timestamp to strip the nanos from.
+	 * 
+	 * @return A newly formatted String in the format 'yyyy-MM-dd hh:mm:ss' or null if the provided String is null.
+	 */
+	public static String stripMillisFromJdbcTimestampString(String timestamp) {
+		if(null != timestamp) {
+			if(timestamp.contains(".")) {
+				return timestamp.substring(0, timestamp.lastIndexOf("."));
+			} 
+			else {
+				return timestamp;
+			}
+		}	
+		return null;
 	}
 }

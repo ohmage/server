@@ -2,17 +2,24 @@ package org.ohmage.service;
 
 import java.util.List;
 
+import org.apache.log4j.Logger;
 import org.ohmage.annotator.ErrorCodes;
 import org.ohmage.dao.DataAccessException;
 import org.ohmage.dao.UserCampaignDaos;
+import org.ohmage.domain.Campaign;
+import org.ohmage.domain.UserRoleCampaignInfo;
 import org.ohmage.request.Request;
+import org.ohmage.request.UserRequest;
 
 /**
  * This class contains the services for user-campaign relationships.
  * 
  * @author John Jenkins
+ * @author Joshua Selsky
  */
 public class UserCampaignServices {
+	private static Logger LOGGER = Logger.getLogger(UserCampaignServices.class);
+	
 	/**
 	 * Default constructor. Private so that it cannot be instantiated.
 	 */
@@ -29,7 +36,7 @@ public class UserCampaignServices {
 	 * @param username The username of the user that must belong to the 
 	 * 				   campaign.
 	 * 
-	 * @throws ServiceException Thrown if the campaign doesn't eixst, the user
+	 * @throws ServiceException Thrown if the campaign doesn't exist, the user
 	 * 							doesn't belong to the campaign, or if there is
 	 * 							an error.
 	 */
@@ -66,6 +73,44 @@ public class UserCampaignServices {
 	public static void campaignsExistAndUserBelongs(Request request, List<String> campaignIds, String username) throws ServiceException {
 		for(String campaignId : campaignIds) {
 			campaignExistsAndUserBelongs(request, campaignId, username);
+		}
+	}
+	
+	
+	/**
+	 * Populates the User in the Request with campaign information and the
+	 * User's associated roles for each campaign.
+	 * 
+	 * @param request The request to retrieve the User from.
+	 * 
+	 * @throws ServiceException Thrown if there is no user in the request, the
+	 * user does not belong to any campaigns, or if there is an error. 
+	 */
+	public static void populateUserWithCampaignRoleInfo(UserRequest request) throws ServiceException {
+		LOGGER.info("Populating the user in the request with campaign info and the user's roles for each campaign they belong to");
+		
+		if(null == request.getUser()) {
+			throw new ServiceException("no user found in request");
+		}
+		
+		try {
+			List<UserRoleCampaignInfo> userRoleCampaignInfoList 
+				= UserCampaignDaos.getAllCampaignRolesAndCampaignInfoForUser(request.getUser());
+			
+			for(UserRoleCampaignInfo info : userRoleCampaignInfoList) {
+				Campaign campaign = new Campaign();
+				campaign.setCampaignCreationTimestamp(info.getCampaignCreationTimestamp());
+				campaign.setDescription(info.getCampaignDescription());
+				campaign.setName(info.getCampaignName());
+				campaign.setPrivacyState(info.getCampaignPrivacyState());
+				campaign.setRunningState(info.getCampaignRunningState());
+				campaign.setUrn(info.getCampaignUrn());
+				request.getUser().addCampaignAndUserRole(campaign, info.getUserRole());
+			}
+		
+		} catch (DataAccessException e) {
+			request.setFailed();
+			throw new ServiceException(e);
 		}
 	}
 }
