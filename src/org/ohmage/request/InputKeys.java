@@ -60,6 +60,7 @@ public final class InputKeys {
 	public static final String CLASS_ROLE_LIST_ADD = "class_role_list_add";
 	public static final String CLASS_LIST_REMOVE = "class_list_remove";
 	public static final String CLASS_NAME = "class_name";
+	public static final String ROSTER = "roster";
 	
 	// Survey Constants
 	public static final String SURVEY_ID = "survey_id";
@@ -69,11 +70,13 @@ public final class InputKeys {
 	
 	// Prompt Constants
 	public static final String PROMPT_ID = "prompt_id";
+	public static final String PROMPT2_ID = "prompt2_id";
 	public static final String PROMPT_ID_LIST = "prompt_id_list";
 	public static final String IMAGE_ID = "image_id";
 	
 	// User Constants
 	public static final String USER = "user";
+	public static final String NEW_USERNAME = "new_username";
 	public static final String NEW_PASSWORD = "new_password";
 	public static final String USER_LIST = "user_list";
 	public static final String USER_LIST_ADD = "user_list_add";
@@ -82,6 +85,16 @@ public final class InputKeys {
 	public static final String USER_ROLE = "user_role";
 	public static final String USER_ROLE_LIST_ADD = "user_role_list_add";
 	public static final String USER_ROLE_LIST_REMOVE = "user_role_list_remove";
+	public static final String USER_ENABLED = "enabled";
+	public static final String USER_ADMIN = "admin";
+	public static final String NEW_ACCOUNT = "new_account";
+	public static final String CAMPAIGN_CREATION_PRIVILEGE = "campaign_creation_privilege";
+	public static final String FIRST_NAME = "first_name";
+	public static final String LAST_NAME = "last_name";
+	public static final String ORGANIZATION = "organization";
+	public static final String PERSONAL_ID = "personal_id";
+	public static final String EMAIL_ADDRESS = "email_address";
+	public static final String USER_JSON_DATA = "json_data"; 
 	
 	// State Constants
 	public static final String PRIVACY_STATE = "privacy_state";
@@ -110,6 +123,10 @@ public final class InputKeys {
 	public static final String DOCUMENT_CLASS_ROLE_LIST = "document_class_role_list";
 	public static final String DOCUMENT_USER_ROLE_LIST = "document_user_role_list";
 	public static final String DOCUMENT_PERSONAL_DOCUMENTS = "personal_documents";
+	
+	// Visualization Constants
+	public static final String VISUALIZATION_WIDTH = "width";
+	public static final String VISUALIZATION_HEIGHT = "height";
 	
 	// Separator Constants
 	public static final String LIST_ITEM_SEPARATOR = ",";

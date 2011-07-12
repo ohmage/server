@@ -5,6 +5,11 @@ import org.ohmage.annotator.ErrorCodes;
 import org.ohmage.request.Request;
 import org.ohmage.util.StringUtils;
 
+/**
+ * Contains all of the functionality for validating boolean values.
+ * 
+ * @author John Jenkins
+ */
 public final class BooleanValidators {
 	private static final Logger LOGGER = Logger.getLogger(BooleanValidators.class);
 	

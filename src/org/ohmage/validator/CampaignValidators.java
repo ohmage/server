@@ -224,4 +224,29 @@ public final class CampaignValidators {
 		
 		return xml;
 	}
+	
+	/**
+	 * Validates that a campaign's XML's prompt ID follows our conventions. It
+	 * does _not_ validate that the prompt ID is exists in the XML.
+	 * 
+	 * @param request The Request that is performing this validation.
+	 * 
+	 * @param promptId The prompt ID to be validated.
+	 * 
+	 * @return Returns null if the prompt ID is null or whitespace only; 
+	 * 		   otherwise, it returns the prompt ID.
+	 * 
+	 * @throws ValidationException Thrown if the prompt ID is not null, not
+	 * 							   whitespace only, and doesn't pass syntactic
+	 * 							   validation.
+	 */
+	public static String validatePromptId(Request request, String promptId) throws ValidationException {
+		LOGGER.info("Validating a campaign's prompt ID.");
+		
+		if(StringUtils.isEmptyOrWhitespaceOnly(promptId)) {
+			return null;
+		}
+		
+		return promptId;
+	}
 }

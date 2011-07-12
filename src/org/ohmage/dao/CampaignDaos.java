@@ -31,6 +31,26 @@ public class CampaignDaos extends Dao {
 			"WHERE urn = ?" +
 		")";
 	
+	// Returns the XML for a campaign.
+	private static final String SQL_GET_XML = 
+		"SELECT xml " +
+		"FROM campaign " +
+		"WHERE urn = ?";
+	
+	// Returns the running state String of a campaign.
+	private static final String SQL_GET_RUNNING_STATE =
+		"SELECT crs.running_state " +
+		"FROM campaign c, campaign_running_state crs " +
+		"WHERE c.urn = ? " +
+		"AND c.running_state_id = crs.id";
+	
+	// Returns the privacy state String of a campaign.
+	private static final String SQL_GET_PRIVACY_STATE = 
+		"SELECT cps.privacy_state " +
+		"FROM campaign c, campaign_privacy_state cps " +
+		"WHERE c.urn = ?" +
+		"AND c.privacy_state_id = cps.id";
+	
 	// Inserts a new campaign.
 	private static final String SQL_INSERT_CAMPAIGN = 
 		"INSERT INTO campaign(urn, name, xml, description, creation_timestamp, running_state_id, privacy_state_id) " +
@@ -326,7 +346,7 @@ public class CampaignDaos extends Dao {
 	 */
 	public static Boolean getCampaignExists(String campaignId) {
 		try {
-			return (Boolean) instance.jdbcTemplate.queryForObject(
+			return instance.jdbcTemplate.queryForObject(
 					SQL_EXISTS_CAMPAIGN, 
 					new Object[] { campaignId }, 
 					Boolean.class
@@ -334,6 +354,78 @@ public class CampaignDaos extends Dao {
 		}
 		catch(org.springframework.dao.DataAccessException e) {
 			throw new DataAccessException("Error executing SQL '" + SQL_EXISTS_CAMPAIGN + "' with parameter: " + campaignId, e);
+		}
+	}
+	
+	/**
+	 * Retrieves the campaign's XML.
+	 * 
+	 * @param campaignId A campaign's unique identifier.
+	 * 
+	 * @return If the campaign exists, its XML is returned; otherwise, null is
+	 * 		   returned.
+	 */
+	public static String getCampaignXml(String campaignId) {
+		try {
+			return instance.jdbcTemplate.queryForObject(SQL_GET_XML, new Object[] { campaignId }, String.class);
+		}
+		catch(org.springframework.dao.IncorrectResultSizeDataAccessException e) {
+			if(e.getActualSize() > 1) {
+				throw new DataAccessException("Multiple campaigns have the same unique identifier.");
+			}
+			
+			return null;
+		}
+		catch(org.springframework.dao.DataAccessException e) {
+			throw new DataAccessException("Error executing SQL '" + SQL_GET_XML + "' with parameter: " + campaignId, e);
+		}
+	}
+	
+	/**
+	 * Retrieves the campaign's privacy state.
+	 * 
+	 * @param campaignId A campaign's unique identifier.
+	 * 
+	 * @return If the campaign exists, its privacy state String is returned;
+	 * 		   otherwise, null is returned.
+	 */
+	public static String getCampaignPrivacyState(String campaignId) {
+		try {
+			return instance.jdbcTemplate.queryForObject(SQL_GET_PRIVACY_STATE, new Object[] { campaignId }, String.class);
+		}
+		catch(org.springframework.dao.IncorrectResultSizeDataAccessException e) {
+			if(e.getActualSize() > 1) {
+				throw new DataAccessException("Multiple campaigns have the same unique identifier.");
+			}
+			
+			return null;
+		}
+		catch(org.springframework.dao.DataAccessException e) {
+			throw new DataAccessException("Error executing SQL '" + SQL_GET_PRIVACY_STATE + "' with parameter: " + campaignId, e);
+		}
+	}
+	
+	/**
+	 * Retrieves the campaign's running state.
+	 * 
+	 * @param campaignId A campaign's unique identifier.
+	 * 
+	 * @return If the campaign exists, its running state String is returned;
+	 * 		   otherwise, null is returned.
+	 */
+	public static String getCampaignRunningState(String campaignId) {
+		try {
+			return instance.jdbcTemplate.queryForObject(SQL_GET_RUNNING_STATE, new Object[] { campaignId }, String.class);
+		}
+		catch(org.springframework.dao.IncorrectResultSizeDataAccessException e) {
+			if(e.getActualSize() > 1) {
+				throw new DataAccessException("Multiple campaigns have the same unique identifier.");
+			}
+			
+			return null;
+		}
+		catch(org.springframework.dao.DataAccessException e) {
+			throw new DataAccessException("Error executing SQL '" + SQL_GET_PRIVACY_STATE + "' with parameter: " + campaignId, e);
 		}
 	}
 }

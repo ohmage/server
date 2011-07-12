@@ -14,6 +14,12 @@ import org.ohmage.request.document.DocumentDeletionRequest;
 import org.ohmage.request.document.DocumentReadContentsRequest;
 import org.ohmage.request.document.DocumentReadRequest;
 import org.ohmage.request.document.DocumentUpdateRequest;
+import org.ohmage.request.visualization.VizPromptDistributionRequest;
+import org.ohmage.request.visualization.VizPromptTimeseriesRequest;
+import org.ohmage.request.visualization.VizScatterPlotRequest;
+import org.ohmage.request.visualization.VizSurveyResponseCountRequest;
+import org.ohmage.request.visualization.VizTwoDDensityRequest;
+import org.ohmage.request.visualization.VizUserTimeseriesRequest;
 
 /**
  * Request builder from an HTTP request.
@@ -51,6 +57,15 @@ public final class RequestBuilder {
 	private static final String API_DOCUMENT_READ_CONTENTS = API_ROOT + "/document/read/contents";
 	private static final String API_DOCUMENT_UPDATE = API_ROOT + "/document/update";
 	private static final String API_DOCUMENT_DELETE = API_ROOT + "/document/delete";
+	
+	// Visualization
+	private static final String API_VISUALIZATION = API_ROOT + "/viz";
+	private static final String API_VISUALIZATION_SURVEY_RESPONSE_COUNT = API_VISUALIZATION + "/survey_response_count/read";
+	private static final String API_VISUALIZATION_PROMPT_DISTRIBUTION = API_VISUALIZATION + "/prompt_distribution/read";
+	private static final String API_VISUALIZATION_PROMPT_TIMESERIES = API_VISUALIZATION + "/prompt_timeseries/read";
+	private static final String API_VISUALIZATION_USER_TIMESERIES = API_VISUALIZATION + "/user_timeseries/read";
+	private static final String API_VISUALIZATION_SCATTER_PLOT = API_VISUALIZATION + "/scatter_plot/read";
+	private static final String API_VISUALIZATION_2D_DENSITY = API_VISUALIZATION + "/2d_density/read";
 	
 	/**
 	 * Builds a new request based on the request's URI. This will always return
@@ -107,6 +122,25 @@ public final class RequestBuilder {
 		}
 		else if(API_DOCUMENT_DELETE.equals(requestUri)) {
 			return new DocumentDeletionRequest(httpRequest);
+		}
+		// Visualization
+		else if(API_VISUALIZATION_SURVEY_RESPONSE_COUNT.equals(requestUri)) {
+			return new VizSurveyResponseCountRequest(httpRequest);
+		}
+		else if(API_VISUALIZATION_PROMPT_DISTRIBUTION.equals(requestUri)) {
+			return new VizPromptDistributionRequest(httpRequest);
+		}
+		else if(API_VISUALIZATION_PROMPT_TIMESERIES.equals(requestUri)) {
+			return new VizPromptTimeseriesRequest(httpRequest);
+		}
+		else if(API_VISUALIZATION_USER_TIMESERIES.equals(requestUri)) {
+			return new VizUserTimeseriesRequest(httpRequest);
+		}
+		else if(API_VISUALIZATION_SCATTER_PLOT.equals(requestUri)) {
+			return new VizScatterPlotRequest(httpRequest);
+		}
+		else if(API_VISUALIZATION_2D_DENSITY.equals(requestUri)) {
+			return new VizTwoDDensityRequest(httpRequest);
 		}
 		
 		// The URI is unknown.

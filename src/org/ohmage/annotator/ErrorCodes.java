@@ -184,8 +184,11 @@ public final class ErrorCodes {
 	public static final String MALFORMED_UUID = "1600";
 	public static final String MALFORMED_URN_ROLE_LIST = "1601";
 	public static final String INVALID_BOOLEAN_VALUE = "1602";
+	public static final String INVALID_INTEGER_VALUE = "1603";
 	
 	public static final String VISUALIZATION_GENERAL_ERROR = "1700";
 	public static final String VISUALIZATION_INVALID_WIDTH_VALUE = "1701";
 	public static final String VISUALIZATION_INVALID_HEIGHT_VALUE = "1702";
+	public static final String VISUALIZATION_MISSING_PROMPT_ID = "1703";
+	public static final String VISUALIZATION_MISSING_USERNAME = "1704";
 }
