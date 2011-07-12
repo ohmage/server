@@ -65,7 +65,7 @@ public final class AuthenticationService {
 		}
 		// If the user is a new user and we aren't allowing new users for this
 		// call, update the annotator and set the request as failed.
-		else if(userInformation.getNewAccount() && (! newAccountsAllowed)) {
+		else if((! newAccountsAllowed) && userInformation.getNewAccount()) {
 			request.setFailed(ErrorCodes.AUTHENTICATION_FAILED, "New accounts aren't allowed to use this service.");
 			return false;
 		}
