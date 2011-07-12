@@ -112,6 +112,40 @@ public class UserDocumentServices {
 	}
 	
 	/**
+	 * Ensures that a user can delete a document.
+	 * 
+	 * @param request The request that is performing this service.
+	 * 
+	 * @param username The username of the user that is being checked that they
+	 * 				   can delete this document.
+	 * 
+	 * @param documentId The unique identifier for the document.
+	 * 
+	 * @throws ServiceException Thrown if the user cannot modify this document
+	 * 							or if there is an error.
+	 */
+	public static void userCanDeleteDocument(Request request, String username, String documentId) throws ServiceException {
+		try {
+			List<String> roles = UserDocumentDaos.getDocumentRolesForDocumentForUser(username, documentId);
+			
+			// To modify a document, the user must be a writer or owner or a
+			// supervisor in any of the campaigns to which the document is 
+			// associated or privileged in any of the classes to which the 
+			// document is associated.
+			if((! roles.contains(DocumentRoleCache.ROLE_OWNER)) &&
+			   (! UserCampaignDocumentServices.getUserIsSupervisorInAnyCampaignAssociatedWithDocument(request, username, documentId)) &&
+			   (! UserClassDocumentServices.getUserIsPrivilegedInAnyClassAssociatedWithDocument(request, username, documentId))) {
+				request.setFailed(ErrorCodes.DOCUMENT_INSUFFICIENT_PERMISSIONS_TO_DELETE, "The user does not have sufficient permissions to delete the document.");
+				throw new ServiceException("The user does not have sufficient permissions to delete the document.");
+			}
+		}
+		catch(DataAccessException e) {
+			request.setFailed();
+			throw new ServiceException(e);
+		}
+	}
+	
+	/**
 	 * Returns the highest role for a user for a document or null if the user 
 	 * is not associated with the document. This is across all possible 
 	 * relationships, campaign, class, and direct.

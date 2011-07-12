@@ -219,6 +219,10 @@ public class DocumentDaos extends Dao {
 			"FROM user " +
 			"WHERE username = ?" +
 		")";
+	
+	private static final String SQL_DELETE_DOCUMENT = 
+		"DELETE FROM document " +
+		"WHERE uuid = ?";
 
 	private static final String SQL_DELETE_CAMPAIGN_ROLE = 
 		"DELETE FROM document_campaign_role " +
@@ -563,6 +567,47 @@ public class DocumentDaos extends Dao {
 		}
 	}
 	
+	/**
+	 * Updates a document. The 'documentId' cannot be null as this is used to
+	 * indicate which document is being updated, but the remaining parameters
+	 * may all be null.
+	 * 
+	 * @param documentId The unique identifier for the document to be updated.
+	 * 
+	 * @param contents The new contents of the document.
+	 * 
+	 * @param name The new name of the document.
+	 * 
+	 * @param description The new description for the document.
+	 * 
+	 * @param privacyState The new privacy state for the document.
+	 * 
+	 * @param campaignAndRolesToAdd A Map of campaign IDs to document roles 
+	 * 								where the document should be associated to
+	 * 								the campaign with the given role or, if
+	 * 								already associated, should have its role
+	 * 								updated with the new role.
+	 * 
+	 * @param campaignsToRemove A List of campaign IDs that should no longer be
+	 * 							associated with this document.
+	 * 
+	 * @param classAndRolesToAdd A Map of class IDs to document roles where the
+	 * 							 document should be associated to the class 
+	 * 							 with the given role or, if already associated,
+	 * 							 should have its role updated with the new 
+	 * 							 role.
+	 * 
+	 * @param classesToRemove A List of class IDs that should no longer be
+	 * 						  associated with this document.
+	 * 
+	 * @param userAndRolesToAdd A Map of usernames to document roles where the
+	 * 							document should be associated to the user with
+	 * 							the given role or, if already associated, 
+	 * 							should have its role updated with the new role.
+	 * 
+	 * @param usersToRemove A List of usernames that should no longer be 
+	 * 						associated with this document.
+	 */
 	public static void updateDocument(String documentId, byte[] contents, String name, String description, String privacyState,
 			Map<String, String> campaignAndRolesToAdd, List<String> campaignsToRemove, 
 			Map<String, String> classAndRolesToAdd, List<String> classesToRemove, 
@@ -607,6 +652,56 @@ public class DocumentDaos extends Dao {
 			catch(DataAccessException e) {
 				transactionManager.rollback(status);
 				throw e;
+			}
+			
+			// Commit transaction.
+			try {
+				transactionManager.commit(status);
+			}
+			catch(TransactionException e) {
+				transactionManager.rollback(status);
+				throw new DataAccessException("Error while committing the transaction.", e);
+			}
+		}
+		catch(TransactionException e) {
+			throw new DataAccessException("Error while rolling back the transaction.", e);
+		}
+	}
+	
+	/**
+	 * Deletes a document.
+	 * 
+	 * @param documentId The unique identifier for the document to be deleted.
+	 */
+	public static void deleteDocument(String documentId) {
+		// Begin transaction
+		DefaultTransactionDefinition def = new DefaultTransactionDefinition();
+		def.setName("Document delete.");
+		
+		try {
+			PlatformTransactionManager transactionManager = new DataSourceTransactionManager(instance.dataSource);
+			TransactionStatus status = transactionManager.getTransaction(def);
+			
+			String documentUrl = getDocumentUrl(documentId);
+			
+			try {
+				instance.jdbcTemplate.update(SQL_DELETE_DOCUMENT, new Object[] { documentId });
+			}
+			catch(org.springframework.dao.DataAccessException e) {
+				transactionManager.rollback(status);
+				throw new DataAccessException("Error executing SQL '" + SQL_DELETE_DOCUMENT + "' with parameter: " + documentId, e);
+			}
+			
+			try {
+				if(! (new File((new URL(documentUrl)).getFile())).delete()) {
+					LOGGER.warn("The document no longer existed, so the deletion only removed the entry from the database.");
+				}
+			}
+			catch(MalformedURLException e) {
+				LOGGER.warn("The URL was malformed, meaning that we couldn't have referenced the file anyway. Cannot delete the file.", e);
+			}
+			catch(SecurityException e) {
+				LOGGER.warn("Failed to delete the file because the security manager stopped us. Are we attempting to delete a file that isn't part of the heirarchy?", e);
 			}
 			
 			// Commit transaction.

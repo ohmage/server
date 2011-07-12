@@ -256,4 +256,23 @@ public class DocumentServices {
 			throw new ServiceException(e);
 		}
 	}
+	
+	/**
+	 * Deletes a document.
+	 * 
+	 * @param request The request that is attempting to delete the document.
+	 * 
+	 * @param documentId The unique ID for the document to be deleted.
+	 * 
+	 * @throws ServiceException Thrown if there is an error.
+	 */
+	public static void deleteDocument(Request request, String documentId) throws ServiceException {
+		try {
+			DocumentDaos.deleteDocument(documentId);
+		}
+		catch(DataAccessException e) {
+			request.setFailed();
+			throw new ServiceException(e);
+		}
+	}
 }
