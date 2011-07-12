@@ -138,9 +138,14 @@ public final class SurveyUploadRequest extends UserRequest {
 			// 10. Stores the surveys in the db.
 			// 11. Logs the upload
 			
-			UserCampaignServices.populateUserWithCampaignRoleInfo(this);
+			UserCampaignServices.populateUserWithCampaignRoleInfo(this, this.getUser());
 			
-			LOGGER.info(getUser().getCampaignsAndRoles());
+			// LOGGER.info(getUser().getCampaignsAndRoles());
+			
+			if(! UserCampaignServices.campaignExistsAndUserBelongs(this, this.getUser(), campaignUrn)) {
+				setFailed(ErrorCodes.SURVEY_UPLOAD_INVALID_CAMPAIGN_ID, "User does not belong to campaign.");
+				return;
+			}
 		
 		}
 		catch(ServiceException e) {
