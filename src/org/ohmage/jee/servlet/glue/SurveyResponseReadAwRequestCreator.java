@@ -18,6 +18,7 @@ package org.ohmage.jee.servlet.glue;
 import javax.servlet.http.HttpServletRequest;
 
 import org.apache.log4j.NDC;
+import org.ohmage.domain.User;
 import org.ohmage.request.AwRequest;
 import org.ohmage.request.InputKeys;
 import org.ohmage.request.SurveyResponseReadAwRequest;
@@ -58,6 +59,8 @@ public class SurveyResponseReadAwRequestCreator implements AwRequestCreator {
 		String returnId = httpRequest.getParameter("return_id");
 		String sortOrder = httpRequest.getParameter("sort_order");
 		String collapse = httpRequest.getParameter("collapse");
+		String username = httpRequest.getParameter("user");
+		String password = httpRequest.getParameter("password");
 		
 		SurveyResponseReadAwRequest awRequest = new SurveyResponseReadAwRequest();
 		
@@ -76,6 +79,11 @@ public class SurveyResponseReadAwRequestCreator implements AwRequestCreator {
 		awRequest.setReturnIdAsString(returnId);
 		awRequest.setSortOrder(sortOrder);
 		awRequest.setPrivacyState(privacyState);
+		
+		User user = new User();
+		user.setUserName(username);
+		user.setPassword(password);
+		awRequest.setUser(user);
 		
 		// temporarily using this frankenstein approach before migrating completely to toValidate()
 		awRequest.addToValidate(InputKeys.SUPPRESS_METADATA, suppressMetadata, true);

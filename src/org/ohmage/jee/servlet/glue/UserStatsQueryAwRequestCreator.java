@@ -17,6 +17,7 @@ package org.ohmage.jee.servlet.glue;
 
 import javax.servlet.http.HttpServletRequest;
 
+import org.ohmage.domain.User;
 import org.ohmage.request.AwRequest;
 import org.ohmage.request.InputKeys;
 import org.ohmage.request.UserStatsQueryAwRequest;
@@ -38,9 +39,12 @@ public class UserStatsQueryAwRequestCreator implements AwRequestCreator {
 	 * 
 	 */
 	public AwRequest createFrom(HttpServletRequest httpRequest) {
-		String userNameRequestParam = httpRequest.getParameter("user");
+		String userNameRequestParam = httpRequest.getParameter("username");
 		String client = httpRequest.getParameter("client");
 		String campaignName = httpRequest.getParameter("campaign_urn");
+		String userName = httpRequest.getParameter("user");
+		String password = httpRequest.getParameter("password");
+		
 		String token;
 		try {
 			token = CookieUtils.getCookieValue(httpRequest.getCookies(), InputKeys.AUTH_TOKEN).get(0);
@@ -54,6 +58,10 @@ public class UserStatsQueryAwRequestCreator implements AwRequestCreator {
 		awRequest.setUserToken(token);
 		awRequest.setClient(client);
 		awRequest.setCampaignUrn(campaignName);
+		User user = new User();
+	    user.setUserName(userName);
+	    user.setPassword(password);
+	    awRequest.setUser(user);
 		
 		return awRequest;
 	}

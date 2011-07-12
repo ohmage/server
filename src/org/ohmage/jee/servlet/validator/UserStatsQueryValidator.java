@@ -40,13 +40,17 @@ public class UserStatsQueryValidator extends AbstractGzipHttpServletRequestValid
 	public boolean validate(HttpServletRequest httpRequest) throws MissingAuthTokenException {
 		String campaignUrn = (String) httpRequest.getParameter("campaign_urn");
 		String client = (String) httpRequest.getParameter("client");
-		String user = (String) httpRequest.getParameter("user");
+		String userName = (String) httpRequest.getParameter("username");
+		String user = httpRequest.getParameter("user");
+		String password = httpRequest.getParameter("password");
 		
 		// Check for abnormal lengths (buffer overflow attack)
 		
 		if(greaterThanLength("campaignUrn", "campaign_urn", campaignUrn, 250)
 		   || greaterThanLength("client", "client",client, 500)		   
-		   || greaterThanLength("userName", "user", user, 15)) {
+		   || greaterThanLength("userName", "userName", userName, 15)
+		   || greaterThanLength("user", "user", user, 15)
+		   || greaterThanLength("password", "password", password, 100)) {
 			
 			_logger.warn("found an input parameter that exceeds its allowed length");
 			return false;
@@ -55,8 +59,11 @@ public class UserStatsQueryValidator extends AbstractGzipHttpServletRequestValid
 		// Get the authentication / session token from the header.
 		List<String> tokens = CookieUtils.getCookieValue(httpRequest.getCookies(), InputKeys.AUTH_TOKEN);
 		if(tokens.size() == 0) {
-			if(httpRequest.getParameter(InputKeys.AUTH_TOKEN) == null) {
-				throw new MissingAuthTokenException("The required authentication / session token is missing.");
+			// Possible if user and password aren't null.
+			if((user == null) || (password == null)) {
+				if(httpRequest.getParameter(InputKeys.AUTH_TOKEN) == null) {
+					throw new MissingAuthTokenException("The required authentication / session token is missing.");
+				}
 			}
 		}
 		else if(tokens.size() > 1) {

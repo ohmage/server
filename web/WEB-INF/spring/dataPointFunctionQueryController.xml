@@ -56,9 +56,9 @@
     </constructor-arg>
     <property name="validators">
       <list>
+        <ref bean="tokenOrUserPasswordValidator" />
         <ref bean="requiredStartDateValidator" />
         <ref bean="requiredEndDateValidator" />
-        <ref bean="userTokenValidator" />
         <ref bean="dataPointFunctionQueryFunctionNameValidator" />
       </list>      
     </property>

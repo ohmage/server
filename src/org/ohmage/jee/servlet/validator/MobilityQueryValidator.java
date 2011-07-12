@@ -55,11 +55,15 @@ public class MobilityQueryValidator extends AbstractHttpServletRequestValidator 
 		
 		String date = (String) httpRequest.getParameter("date");
 		String client = (String) httpRequest.getParameter("client");
+		String user = (String) httpRequest.getParameter("user");
+		String password = (String) httpRequest.getParameter("password");
 		
 		// Check for abnormal lengths (buffer overflow attack)
 		
 		if(greaterThanLength("date", "date", date, 10) 
-		   || greaterThanLength("client", "client",client, 250)) {
+		   || greaterThanLength("client", "client",client, 250)
+		   || greaterThanLength("user", "user", user, 15)
+		   || greaterThanLength("password", "password", password, 100)) {
 			
 			_logger.warn("found an input parameter that exceeds its allowed length");
 			return false;

@@ -62,6 +62,8 @@ public class DataPointFunctionQueryValidator extends AbstractHttpServletRequestV
 		String campaignUrn = (String) httpRequest.getParameter("campaign_urn");
 		String client = (String) httpRequest.getParameter("client");
 		String id = (String) httpRequest.getParameter("id");
+		String user = httpRequest.getParameter("user");
+		String password = httpRequest.getParameter("password");
 		
 		// Check for abnormal lengths (buffer overflow attack)
 		
@@ -70,6 +72,8 @@ public class DataPointFunctionQueryValidator extends AbstractHttpServletRequestV
 		   || greaterThanLength("campaignUrn", "campaign_urn", campaignUrn, 250)
 		   || greaterThanLength("client", "client",client, 250)
 		   || greaterThanLength("userName", "user", userName, 15)
+		   || greaterThanLength("user", "user", user, 15)
+		   || greaterThanLength("password", "password", password, 100)
 		   || greaterThanLength("id", "id", id, 250)) {
 			
 			_logger.warn("found an input parameter that exceeds its allowed length");
@@ -79,8 +83,11 @@ public class DataPointFunctionQueryValidator extends AbstractHttpServletRequestV
 		// Get the authentication / session token from the header.
 		List<String> tokens = CookieUtils.getCookieValue(httpRequest.getCookies(), InputKeys.AUTH_TOKEN);
 		if(tokens.size() == 0) {
-			if(httpRequest.getParameter(InputKeys.AUTH_TOKEN) == null) {
-				throw new MissingAuthTokenException("The required authentication / session token is missing.");
+			// Possible if user and password aren't null.
+			if((user == null) || (password == null)) {
+				if(httpRequest.getParameter(InputKeys.AUTH_TOKEN) == null) {
+					throw new MissingAuthTokenException("The required authentication / session token is missing.");
+				}
 			}
 		}
 		else if(tokens.size() > 1) {

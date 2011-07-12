@@ -19,6 +19,7 @@ import javax.servlet.http.HttpServletRequest;
 
 import org.apache.log4j.NDC;
 import org.ohmage.domain.DataPointFunctionQueryMetadata;
+import org.ohmage.domain.User;
 import org.ohmage.request.AwRequest;
 import org.ohmage.request.DataPointFunctionQueryAwRequest;
 import org.ohmage.request.InputKeys;
@@ -54,7 +55,9 @@ public class DataPointFunctionQueryAwRequestCreator implements AwRequestCreator 
 		String userNameRequestParam = httpRequest.getParameter("user");
 		String client = httpRequest.getParameter("client");
 		String campaignUrn = httpRequest.getParameter("campaign_urn");
-		String functionName = httpRequest.getParameter("id");  
+		String functionName = httpRequest.getParameter("id");
+		String userName = httpRequest.getParameter("user");
+		String password = httpRequest.getParameter("password");
 		
 		DataPointFunctionQueryAwRequest awRequest = new DataPointFunctionQueryAwRequest();
 		awRequest.setStartDate(startDate);
@@ -65,6 +68,10 @@ public class DataPointFunctionQueryAwRequestCreator implements AwRequestCreator 
 		awRequest.setCampaignUrn(campaignUrn);
 		awRequest.setFunctionName(functionName);
 		awRequest.setMetadata(_metadata);
+		User user = new User();
+	    user.setUserName(userName);
+	    user.setPassword(password);
+	    awRequest.setUser(user);
 		
         NDC.push("client=" + client); // push the client string into the Log4J NDC for the currently executing thread - this means that 
                                   // it will be in every log message for the thread

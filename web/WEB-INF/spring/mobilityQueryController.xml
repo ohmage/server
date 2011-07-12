@@ -29,8 +29,8 @@
     </constructor-arg>
     <property name="validators">
       <list>
+        <ref bean="tokenOrUserPasswordValidator" />
         <ref bean="requiredStartDateValidator" />
-        <ref bean="userTokenValidator" />
       </list>      
     </property>
     <property name="featureName"><value>mobility query</value></property>

@@ -63,7 +63,7 @@
     </constructor-arg>
     <property name="validators">
       <list>
-        <ref bean="userTokenValidator" />
+        <ref bean="tokenOrUserPasswordValidator" />
         <ref bean="optionalStartDateValidator" />
         <ref bean="optionalEndDateValidator" />
         <ref bean="startAndEndDateValidator" />
