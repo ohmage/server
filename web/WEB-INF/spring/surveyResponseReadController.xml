@@ -28,7 +28,7 @@
     <constructor-arg index="0">
       <list>
         <!-- authenticate -->
-        <ref bean="tokenBasedAuthenticationService" />
+        <ref bean="tokenOrUserPasswordAuthenticationService" />
         
         <!-- convert string list params to actual lists -->
         <ref bean="surveyResponseReadParamConverterService" />

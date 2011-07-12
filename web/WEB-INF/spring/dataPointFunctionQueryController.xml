@@ -36,7 +36,7 @@
   <bean id="dataPointFunctionQueryController" class="org.ohmage.controller.ControllerImpl">
     <constructor-arg index="0">
       <list>
-        <ref bean="tokenBasedAuthenticationService" />
+        <ref bean="tokenOrUserPasswordAuthenticationService" />
         
         <!-- find the campaigns for the logged-in user -->
         <ref bean="userRoleCampaignPopulationService" />

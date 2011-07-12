@@ -20,7 +20,7 @@
   <bean id="userStatsQueryController" class="org.ohmage.controller.ControllerImpl">
     <constructor-arg index="0">
       <list>
-        <ref bean="tokenBasedAuthenticationService" />
+        <ref bean="tokenOrUserPasswordAuthenticationService" />
         <ref bean="userRoleCampaignPopulationService" />
         <ref bean="userCampaignValidationService" />
         <ref bean="userRoleCheckService" />
