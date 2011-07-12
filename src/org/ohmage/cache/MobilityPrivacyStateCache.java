@@ -15,6 +15,8 @@
  ******************************************************************************/
 package org.ohmage.cache;
 
+import javax.sql.DataSource;
+
 /**
  * Singleton cache for the indices and String values for Mobility privacy
  * states.
@@ -39,13 +41,15 @@ public final class MobilityPrivacyStateCache extends StringAndIdCache {
 	
 	// A reference to the only instance of this class for the Singleton
 	// pattern.
-	private static MobilityPrivacyStateCache instance = new MobilityPrivacyStateCache();
+	private static MobilityPrivacyStateCache instance;
 
 	/**
 	 * Default constructor set private to make this a Singleton.
 	 */
-	private MobilityPrivacyStateCache() {
-		super(SQL_GET_MOBILITY_PRIVACY_STATES_AND_IDS, ID_COLUMN, STATE_COLUMN);
+	private MobilityPrivacyStateCache(DataSource dataSource, long updateFrequency) {
+		super(dataSource, updateFrequency, SQL_GET_MOBILITY_PRIVACY_STATES_AND_IDS, ID_COLUMN, STATE_COLUMN);
+		
+		instance = this;
 	}
 	
 	/**

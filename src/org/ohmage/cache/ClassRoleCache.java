@@ -15,6 +15,8 @@
  ******************************************************************************/
 package org.ohmage.cache;
 
+import javax.sql.DataSource;
+
 /**
  * Singleton cache for the indices and String values for class roles.
  * 
@@ -39,13 +41,15 @@ public final class ClassRoleCache extends StringAndIdCache {
 	
 	// A reference to the only instance of this class for the Singleton
 	// pattern.
-	private static ClassRoleCache instance = new ClassRoleCache();
+	private static ClassRoleCache instance;
 
 	/**
 	 * Default constructor set private to make this a Singleton.
 	 */
-	private ClassRoleCache() {
-		super(SQL_GET_CAMPAIGN_ROLES_AND_IDS, ID_COLUMN, ROLE_COLUMN);
+	private ClassRoleCache(DataSource dataSource, long updateFrequency) {
+		super(dataSource, updateFrequency, SQL_GET_CAMPAIGN_ROLES_AND_IDS, ID_COLUMN, ROLE_COLUMN);
+		
+		instance = this;
 	}
 	
 	/**

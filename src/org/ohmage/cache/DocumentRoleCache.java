@@ -15,6 +15,8 @@
  ******************************************************************************/
 package org.ohmage.cache;
 
+import javax.sql.DataSource;
+
 public final class DocumentRoleCache extends StringAndIdCache {
 	// The column IDs for the query.
 	private static final String ID_COLUMN = "id";
@@ -36,14 +38,16 @@ public final class DocumentRoleCache extends StringAndIdCache {
 	
 	// A reference to the only instance of this class for the Singleton
 	// pattern.
-	private static DocumentRoleCache instance = new DocumentRoleCache();
+	private static DocumentRoleCache instance;
 	
 	/**
 	 * Default constructor set to protected to make this a Singleton, but
 	 * allow another cache to subclass it despite the likeliness of it.
 	 */
-	private DocumentRoleCache() {
-		super(SQL_GET_DOCUMENT_PRIVACY_STATES_AND_IDS, ID_COLUMN, ROLE_COLUMN);
+	private DocumentRoleCache(DataSource dataSource, long updateFrequency) {
+		super(dataSource, updateFrequency, SQL_GET_DOCUMENT_PRIVACY_STATES_AND_IDS, ID_COLUMN, ROLE_COLUMN);
+		
+		instance = this;
 	}
 	
 	/**

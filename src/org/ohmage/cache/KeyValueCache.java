@@ -22,6 +22,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import javax.sql.DataSource;
+
 import org.apache.log4j.Logger;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
@@ -75,8 +77,8 @@ public abstract class KeyValueCache extends Cache {
 	 * Default constructor that calls its parent and is protected to maintain
 	 * the Singleton-ness.
 	 */
-	protected KeyValueCache(String sqlForRetrievingValues, String keyKey, String valueKey) {
-		super();
+	protected KeyValueCache(DataSource dataSource, long updateFrequency, String sqlForRetrievingValues, String keyKey, String valueKey) {
+		super(dataSource, updateFrequency);
 		
 		keyValueMap = new HashMap<String, String>();
 		this.sqlForRetrievingValues = sqlForRetrievingValues;
@@ -155,7 +157,7 @@ public abstract class KeyValueCache extends Cache {
 	 * 
 	 * @complexity O(n) where n is the number of keys in the database.
 	 */
-	private synchronized void refreshMap() {
+	protected synchronized void refreshMap() {
 		// Only one thread should be updating this information at a time. Once
 		// other threads enter, they should check to see if an update was just
 		// done and, if so, should abort a second update.

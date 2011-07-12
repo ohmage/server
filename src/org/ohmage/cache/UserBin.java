@@ -77,7 +77,7 @@ public final class UserBin extends TimerTask {
 	 * TODO Enforce period relative to lifetime?
 	 */
 	private UserBin() {
-		LOGGER.info("Users will live for " + LIFETIME + " milliseconds and the EXECUTIONER will run every " + EXECUTION_PERIOD 
+		LOGGER.info("Users will live for " + LIFETIME + " milliseconds and the executioner will run every " + EXECUTION_PERIOD 
 			+ " milliseconds");
 
 		EXECUTIONER.schedule(this, EXECUTION_PERIOD * 2, EXECUTION_PERIOD);

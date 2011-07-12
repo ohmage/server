@@ -41,31 +41,20 @@ public class ConfigReadRequest extends Request {
 		// them in the response.
 		try {
 			// Get the application's name.
-			try {
-				result.put("application_name", PreferenceCache.instance().lookup(PreferenceCache.KEY_APPLICATION_NAME));
-			}
-			catch(CacheMissException e) {
-				LOGGER.error("Unknown value for 'known' key '" + PreferenceCache.KEY_APPLICATION_NAME + "'. Is the cache database missing a key-value pair?", e);
-				failed = true;
-			}
+			result.put("application_name", PreferenceCache.instance().lookup(PreferenceCache.KEY_APPLICATION_NAME));
 			
 			// Get the application's version.
-			try {
-				result.put("application_version", PreferenceCache.instance().lookup(PreferenceCache.KEY_APPLICATION_VERSION));
-			}
-			catch(CacheMissException e) {
-				LOGGER.error("Unknown value for 'known' key '" + PreferenceCache.KEY_APPLICATION_NAME + "'. Is the cache database missing a key-value pair?", e);
-				failed = true;
-			}
+			result.put("application_version", PreferenceCache.instance().lookup(PreferenceCache.KEY_APPLICATION_VERSION));
+			
+			// Get the Git build hash.
+			result.put("application_build", PreferenceCache.instance().lookup(PreferenceCache.KEY_APPLICATION_BUILD));
 			
 			// Get the default survey response sharing state.
-			try {
-				result.put("default_survey_response_sharing_state", PreferenceCache.instance().lookup(PreferenceCache.KEY_DEFAULT_SURVEY_RESPONSE_SHARING_STATE));
-			}
-			catch(CacheMissException e) {
-				LOGGER.error("Unknown value for 'known' key '" + PreferenceCache.KEY_DEFAULT_SURVEY_RESPONSE_SHARING_STATE + "'. Is the cache database missing a key-value pair?", e);
-				failed = true;
-			}
+			result.put("default_survey_response_sharing_state", PreferenceCache.instance().lookup(PreferenceCache.KEY_DEFAULT_SURVEY_RESPONSE_SHARING_STATE));
+		}
+		catch(CacheMissException e) {
+			setFailed();
+			LOGGER.error("Unknown value for 'known' key '" + PreferenceCache.KEY_DEFAULT_SURVEY_RESPONSE_SHARING_STATE + "'. Is the cache database missing a key-value pair?", e);
 		}
 		catch(JSONException e) {
 			setFailed();

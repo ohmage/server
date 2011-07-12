@@ -113,6 +113,7 @@
       <entry key="application_name" default="${app_name}"/>
       <entry key="application_version" default="${app_version}"/>
       <entry key="application_build" default="${git.revision}"/>
+      <entry key="ssl_enabled" default="true"/>
     </propertyfile>
     <move file="system.properties" todir="web/META-INF"/>
     <war webxml="${resources}/WEB-INF/web-ssl.xml" destfile="${dist}/${ant.project.name}-${app_version}.war">
@@ -144,6 +145,7 @@
       <entry key="application_name" default="${app_name}"/>
       <entry key="application_version" default="${app_version}"/>
       <entry key="application_build" default="${git.revision}"/>
+      <entry key="ssl_enabled" default="false"/>
     </propertyfile>
     <move file="system.properties" todir="web/META-INF"/>
     <war webxml="${resources}/WEB-INF/web-no_ssl.xml" destfile="${dist}/${ant.project.name}-${app_version}-no_ssl.war">

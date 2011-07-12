@@ -15,6 +15,8 @@
  ******************************************************************************/
 package org.ohmage.cache;
 
+import javax.sql.DataSource;
+
 /**
  * Singleton cache for the indices and String values for campaign running
  * states.
@@ -41,13 +43,15 @@ public final class CampaignRunningStateCache extends StringAndIdCache{
 
 	// A reference to the only instance of this class for the Singleton
 	// pattern.
-	private static CampaignRunningStateCache instance = new CampaignRunningStateCache();
+	private static CampaignRunningStateCache instance;
 	
 	/**
 	 * Default constructor set private to make this a Singleton.
 	 */
-	private CampaignRunningStateCache() {
-		super(SQL_GET_CAMPAIGN_RUNNING_STATES_AND_IDS, ID_COLUMN, STATE_COLUMN);
+	private CampaignRunningStateCache(DataSource dataSource, long updateFrequency) {
+		super(dataSource, updateFrequency, SQL_GET_CAMPAIGN_RUNNING_STATES_AND_IDS, ID_COLUMN, STATE_COLUMN);
+		
+		instance = this;
 	}
 	
 	/**
