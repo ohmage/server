@@ -28,9 +28,10 @@ import org.springframework.jdbc.core.SingleColumnRowMapper;
 public class FindCampaignPrivacyStateDao extends AbstractDao {
 	private static Logger _logger = Logger.getLogger(FindCampaignPrivacyStateDao.class);
 	
-	private String _sql = "SELECT privacy_state"
-		  	             + " FROM campaign c"
-		  	             + " WHERE urn = ?";
+	private String _sql = "SELECT cps.privacy_state"
+		  	             + " FROM campaign c, campaign_privacy_state cps"
+		  	             + " WHERE c.urn = ?"
+		  	             + " AND c.privacy_state_id = cps.id";
 	
 	public FindCampaignPrivacyStateDao(DataSource dataSource) {
 		super(dataSource);
