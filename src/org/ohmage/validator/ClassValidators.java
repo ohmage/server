@@ -1,8 +1,10 @@
 package org.ohmage.validator;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.apache.log4j.Logger;
@@ -51,10 +53,12 @@ public final class ClassValidators {
 			return null;
 		}
 		
+		String classIdTrimmed = classId.trim();
+		
 		// If the value is a valid URN, meaning that it is a plausible class 
 		// ID, return the class ID back to the caller.
-		if(StringUtils.isValidUrn(classId)) {
-			return classId;
+		if(StringUtils.isValidUrn(classIdTrimmed)) {
+			return classIdTrimmed;
 		}
 		// If the class ID is not null, not whitespace only, and not a valid
 		// URN, set the request as failed and throw a ValidationException to
@@ -141,16 +145,94 @@ public final class ClassValidators {
 			return null;
 		}
 		
+		String classRoleTrimmed = classRole.trim();
+		
 		try {
-			ClassRoleCache.instance().lookup(classRole);
+			ClassRoleCache.instance().lookup(classRoleTrimmed);
 			
 			// If the lookup doesn't throw an exception then the class role 
 			// must be known.
-			return classRole;
+			return classRoleTrimmed;
 		}
 		catch(CacheMissException e) {
 			request.setFailed(ErrorCodes.CLASS_UNKNOWN_ROLE, "Unknown class role: " + classRole);
 			throw new ValidationException("Unkown class role: " + classRole, e);
 		}
+	}
+	
+	/**
+	 * Validates that a byte array is a valid class roster. If it is null or 
+	 * has no length, null is returned. Otherwise, a Map of class IDs to Maps
+	 * of usernames to class roles is returned. If the roster is not a valid 
+	 * roster a ValidationException is thrown and the request is failed with 
+	 * the error code, {@value ErrorCodes.CLASS_INVALID_ROSTER}.
+	 * 
+	 * @param request The Request that is performing this validation.
+	 * 
+	 * @param roster The class roster as a byte array. This should a series of
+	 * 				 newline-deliminated rows where each row is a comma-
+	 * 				 separated list of class ID, username, and the user's role
+	 * 				 in the class. Excel for any OS, and many other Microsoft
+	 * 				 products, deliminate lines with a carriage return instead 
+	 * 				 of a newline; this is taken care of. 
+	 * 
+	 * @return Returns null if the roster is null or has a length of zero;
+	 * 		   otherwise, it returns a Map of class IDs to Maps of usernames to
+	 * 		   class roles.
+	 * 
+	 * @throws ValidationException Thrown if the roster is not a valid roster.
+	 */
+	public static Map<String, Map<String, String>> validateClassRoster(Request request, byte[] roster) throws ValidationException {
+		LOGGER.info("Validating a class roster.");
+		
+		if((roster == null) || (roster.length == 0)) {
+			return null;
+		}
+		
+		String rosterString = new String(roster);
+		
+		// Excel (and most of Microsoft) saves newlines as carriage returns 
+		// instead of newlines, so we substitute those here as we only deal 
+		// with newlines.
+		rosterString.replace('\r', '\n');
+		
+		Map<String, Map<String, String>> result = new HashMap<String, Map<String, String>>();
+		
+		String[] rosterLines = rosterString.split("\n");
+		for(int i = 0; i < rosterLines.length; i++) {
+			if(StringUtils.isEmptyOrWhitespaceOnly(rosterLines[i])) {
+				continue;
+			}
+			
+			String[] rosterLine = rosterLines[i].split(",");
+			
+			if(rosterLine.length != 3) {
+				request.setFailed(ErrorCodes.CLASS_INVALID_ROSTER, "The following line is malformed in the class roster.");
+				throw new ValidationException("The following line is malformed in the class roster.");
+			}
+			
+			String classId = ClassValidators.validateClassId(request, rosterLine[0]);
+			String username = UserValidators.validateUsername(request, rosterLine[1]);
+			String classRole = ClassValidators.validateClassRole(request, rosterLine[2]);
+			
+			Map<String, String> userRoleMap = result.get(classId);
+			if(userRoleMap == null) {
+				userRoleMap = new HashMap<String, String>();
+				result.put(classId, userRoleMap);
+			}
+			
+			String originalRole = userRoleMap.put(username, classRole);
+			// Add the role but keep track of whether or not a role already 
+			// existed for this user in this class. It is an error only if the
+			// two roles do not match.
+			if((originalRole != null) && (! originalRole.equals(classRole))) {
+				request.setFailed(ErrorCodes.CLASS_INVALID_ROSTER, "Two different roles were found for the same user in the same class. The user was '" + 
+						username + "' and the class was '" + classId + "'. The first role was '" + originalRole + "' and the second role was '" + classRole + "'");
+				throw new ValidationException("Two different roles were found for the same user in the same class. The user was '" + 
+						username + "' and the class was '" + classId + "'. The first role was '" + originalRole + "' and the second role was '" + classRole + "'");
+			}
+		}
+		
+		return result;
 	}
 }

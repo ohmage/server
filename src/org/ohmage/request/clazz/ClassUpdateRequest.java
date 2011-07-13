@@ -1,6 +1,7 @@
 package org.ohmage.request.clazz;
 
 import java.util.List;
+import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -16,11 +17,12 @@ import org.ohmage.util.CookieUtils;
 import org.ohmage.validator.ClassValidators;
 import org.ohmage.validator.StringValidators;
 import org.ohmage.validator.UserClassValidators;
-import org.ohmage.validator.UserClassValidators.UserAndRole;
+import org.ohmage.validator.UserValidators;
 import org.ohmage.validator.ValidationException;
 
 /**
- * <p>This class is responsible for updating a class.</p>
+ * <p>This class is responsible for updating a class. The requesting user must
+ * be privileged in the class or an admin.</p>
  * <table border="1">
  *   <tr>
  *     <td>Parameter Name</td>
@@ -75,8 +77,8 @@ public class ClassUpdateRequest extends UserRequest {
 	private final String classId;
 	private final String className;
 	private final String classDescription;
-	private final List<UserAndRole> usersToAdd;
-	private final List<UserAndRole> usersToRemove;
+	private final Map<String, String> usersToAdd;
+	private final List<String> usersToRemove;
 	
 	/**
 	 * Creates a new class update request.
@@ -90,8 +92,8 @@ public class ClassUpdateRequest extends UserRequest {
 		String tempClassId = null;
 		String tempClassName = null;
 		String tempClassDescription = null;
-		List<UserAndRole> tempUsersToAdd = null;
-		List<UserAndRole> tempUsersToRemove = null;
+		Map<String, String> tempUsersToAdd = null;
+		List<String> tempUsersToRemove = null;
 		
 		if(! failed) {
 			try {
@@ -104,7 +106,7 @@ public class ClassUpdateRequest extends UserRequest {
 				tempClassName = StringValidators.validateString(this, httpRequest.getParameter(InputKeys.CLASS_NAME));
 				tempClassDescription = StringValidators.validateString(this, httpRequest.getParameter(InputKeys.DESCRIPTION));
 				tempUsersToAdd = UserClassValidators.validateUserAndClassRoleList(this, httpRequest.getParameter(InputKeys.USER_ROLE_LIST_ADD));
-				tempUsersToRemove = UserClassValidators.validateUserAndClassRoleList(this, httpRequest.getParameter(InputKeys.USER_ROLE_LIST_REMOVE));
+				tempUsersToRemove = UserValidators.validateUsernames(this, httpRequest.getParameter(InputKeys.USER_LIST_REMOVE));
 			}
 			catch(ValidationException e) {
 				LOGGER.info(e.toString());

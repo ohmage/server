@@ -60,6 +60,7 @@ public final class InputKeys {
 	public static final String CLASS_ROLE_LIST_ADD = "class_role_list_add";
 	public static final String CLASS_LIST_REMOVE = "class_list_remove";
 	public static final String CLASS_NAME = "class_name";
+	public static final String ROSTER = "roster";
 	
 	// Survey Constants
 	public static final String SURVEY_ID = "survey_id";

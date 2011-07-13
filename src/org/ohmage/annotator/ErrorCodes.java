@@ -124,7 +124,7 @@ public final class ErrorCodes {
 	public static final String CLASS_INSUFFICIENT_PERMISSIONS = "1207";
 	public static final String CLASS_MISSING_CLASS_LIST = "1208";
 	public static final String CLASS_ALREADY_EXISTS = "1209";
-	public static final String CLASS_ROSTER_MALFORMED = "1210";
+	public static final String CLASS_INVALID_ROSTER = "1210";
 	public static final String CLASS_UNKNOWN_ROLE = "1211";
 	public static final String CLASS_MISSING_ID = "1212";
 	public static final String CLASS_MISSING_NAME_PARAMETER = "1213";

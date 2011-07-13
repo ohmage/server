@@ -8,6 +8,8 @@ import org.ohmage.request.campaign.CampaignCreationRequest;
 import org.ohmage.request.clazz.ClassCreationRequest;
 import org.ohmage.request.clazz.ClassDeletionRequest;
 import org.ohmage.request.clazz.ClassReadRequest;
+import org.ohmage.request.clazz.ClassRosterReadRequest;
+import org.ohmage.request.clazz.ClassRosterUpdateRequest;
 import org.ohmage.request.clazz.ClassUpdateRequest;
 import org.ohmage.request.document.DocumentCreationRequest;
 import org.ohmage.request.document.DocumentDeletionRequest;
@@ -42,7 +44,9 @@ public final class RequestBuilder {
 	// Class
 	private static final String API_CLASS_CREATE = API_ROOT + "/class/create";
 	private static final String API_CLASS_READ = API_ROOT + "/class/read";
+	private static final String API_CLASS_ROSTER_READ = API_ROOT + "/class/roster/read";
 	private static final String API_CLASS_UPDATE = API_ROOT + "/class/update";
+	private static final String API_CLASS_ROSTER_UPDATE = API_ROOT + "/class/roster/update";
 	private static final String API_CLASS_DELETE = API_ROOT + "/class/delete";
 	
 	// Document
@@ -86,8 +90,14 @@ public final class RequestBuilder {
 		else if(API_CLASS_READ.equals(requestUri)) {
 			return new ClassReadRequest(httpRequest);
 		}
+		else if(API_CLASS_ROSTER_READ.equals(requestUri)) {
+			return new ClassRosterReadRequest(httpRequest);
+		}
 		else if(API_CLASS_UPDATE.equals(requestUri)) {
 			return new ClassUpdateRequest(httpRequest);
+		}
+		else if(API_CLASS_ROSTER_UPDATE.equals(requestUri)) {
+			return new ClassRosterUpdateRequest(httpRequest);
 		}
 		else if(API_CLASS_DELETE.equals(requestUri)) {
 			return new ClassDeletionRequest(httpRequest);
