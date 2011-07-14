@@ -17,17 +17,21 @@ public final class BooleanValidators {
 	private BooleanValidators() {}
 	
 	/**
-	 * Validates that some String, 'value', is a valid boolean value. The 
-	 * String must be in all lower case and English.
+	 * Checks if some String, 'value', is a valid boolean value. The String 
+	 * must be in all lower case and English. See
+	 * {@link org.ohmage.util.StringUtils#decodeBoolean(String)} to find the
+	 * exact specifications on what we consider to be a boolean value.
 	 * 
 	 * @param value A String representation of a boolean value. This must be 
 	 * 				in English and all lower case.
 	 * 
 	 * @return Returns true if the value is null, whitespace only, or a valid
 	 * 		   boolean value; otherwise, false is returned.
+	 * 
+	 * @see org.ohmage.util.StringUtils#decodeBoolean(String)
 	 */
 	public static boolean validateBoolean(String value) {
-		LOGGER.info("Validating a boolean value.");
+		LOGGER.info("Validating whether a value is a boolean value or not.");
 		
 		if(StringUtils.isEmptyOrWhitespaceOnly(value)) {
 			return true;

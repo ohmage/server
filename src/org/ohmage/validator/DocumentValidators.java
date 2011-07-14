@@ -127,18 +127,12 @@ public class DocumentValidators {
 	public static Boolean validatePersonalDocuments(Request request, String value) throws ValidationException {
 		LOGGER.info("Validating a 'personal documents' value.");
 		
+		if(StringUtils.isEmptyOrWhitespaceOnly(value)) {
+			return null;
+		}
+		
 		if(BooleanValidators.validateBoolean(value)) {
-			if(StringUtils.isEmptyOrWhitespaceOnly(value)) {
-				return null;
-			}
-			else {
-				if("true".equals(value)) {
-					return true;
-				}
-				else {
-					return false;
-				}
-			}
+			return StringUtils.decodeBoolean(value);
 		}
 		else {
 			request.setFailed(ErrorCodes.DOCUMENT_INVALID_PERSONAL_DOCUMENTS_VALUE, "Invalid personal documents value: " + value);
