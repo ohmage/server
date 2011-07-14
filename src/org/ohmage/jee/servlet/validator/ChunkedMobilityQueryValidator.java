@@ -56,12 +56,16 @@ public class ChunkedMobilityQueryValidator extends AbstractHttpServletRequestVal
 		String startDate = (String) httpRequest.getParameter("start_date");
 		String endDate = (String) httpRequest.getParameter("end_date");
 		String client = (String) httpRequest.getParameter("client");
+		String user = httpRequest.getParameter("user");
+		String password = httpRequest.getParameter("password");
 		
 		// Check for abnormal lengths (buffer overflow attack)
 		
 		if(greaterThanLength("startDate", "start_date", startDate, 10) 
 		   || greaterThanLength("endDate", "end_date", endDate, 10)		
-		   || greaterThanLength("client", "client",client, 250)) {
+		   || greaterThanLength("client", "client",client, 250)
+		   || greaterThanLength("user", "user", user, 15)
+		   || greaterThanLength("password", "password", password, 100)) {
 			
 			_logger.warn("found an input parameter that exceeds its allowed length");
 			return false;
@@ -70,8 +74,11 @@ public class ChunkedMobilityQueryValidator extends AbstractHttpServletRequestVal
 		// Get the authentication / session token from the header.
 		List<String> tokens = CookieUtils.getCookieValue(httpRequest.getCookies(), InputKeys.AUTH_TOKEN);
 		if(tokens.size() == 0) {
-			if(httpRequest.getParameter(InputKeys.AUTH_TOKEN) == null) {
-				throw new MissingAuthTokenException("The required authentication / session token is missing.");
+			// Possible if user and password aren't null.
+			if((user == null) || (password == null)) {
+				if(httpRequest.getParameter(InputKeys.AUTH_TOKEN) == null) {
+					throw new MissingAuthTokenException("The required authentication / session token is missing.");
+				}
 			}
 		}
 		else if(tokens.size() > 1) {

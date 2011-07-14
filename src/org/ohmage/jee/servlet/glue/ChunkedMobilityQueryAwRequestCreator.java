@@ -18,6 +18,7 @@ package org.ohmage.jee.servlet.glue;
 import javax.servlet.http.HttpServletRequest;
 
 import org.apache.log4j.NDC;
+import org.ohmage.domain.User;
 import org.ohmage.request.AwRequest;
 import org.ohmage.request.InputKeys;
 import org.ohmage.request.MobilityQueryAwRequest;
@@ -43,6 +44,9 @@ public class ChunkedMobilityQueryAwRequestCreator implements AwRequestCreator {
 		String startDate = httpRequest.getParameter("start_date");
 		String endDate = httpRequest.getParameter("end_date");
 		String client = httpRequest.getParameter("client");
+		String username = httpRequest.getParameter("user");
+		String password = httpRequest.getParameter("password");
+		
 		String token;
 		try {
 			token = CookieUtils.getCookieValue(httpRequest.getCookies(), InputKeys.AUTH_TOKEN).get(0);
@@ -56,6 +60,10 @@ public class ChunkedMobilityQueryAwRequestCreator implements AwRequestCreator {
 		awRequest.setEndDate(endDate);
 		awRequest.setUserToken(token);
 		awRequest.setClient(client);
+		User user = new User();
+		user.setUserName(username);
+		user.setPassword(password);
+		awRequest.setUser(user);
 		
         NDC.push("client=" + client); // push the client string into the Log4J NDC for the currently executing thread - this means that 
                                   // it will be in every log message for the thread

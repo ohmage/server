@@ -28,7 +28,7 @@
     <constructor-arg index="0">
       <list>
         <!-- authenticate -->
-        <ref bean="tokenBasedAuthenticationService" />
+        <ref bean="tokenOrUserPasswordAuthenticationService" />
         
         <!-- convert string list params to actual lists -->
         <ref bean="surveyResponseReadParamConverterService" />
@@ -63,7 +63,7 @@
     </constructor-arg>
     <property name="validators">
       <list>
-        <ref bean="userTokenValidator" />
+        <ref bean="tokenOrUserPasswordValidator" />
         <ref bean="optionalStartDateValidator" />
         <ref bean="optionalEndDateValidator" />
         <ref bean="startAndEndDateValidator" />
@@ -115,20 +115,6 @@
     </constructor-arg>
   </bean>
 
-  <bean id="dateRangeValidator" class="org.ohmage.validator.DateRangeValidator">
-    <constructor-arg index="0">
-      <bean class="org.ohmage.validator.json.FailedJsonRequestAnnotator">
-        <constructor-arg index="0">
-          <bean class="org.ohmage.domain.ErrorResponse">
-            <property name="code" value="0706" />
-            <property name="text" value="invalid date range" />
-          </bean>
-        </constructor-arg>
-      </bean>
-    </constructor-arg>
-    <constructor-arg index="1"><value>2592000000</value></constructor-arg>
-  </bean>
-  
   <bean id="columnListValidator" class="org.ohmage.validator.ColumnListValidator">
     <constructor-arg index="0">
       <bean class="org.ohmage.validator.json.FailedJsonRequestAnnotator">

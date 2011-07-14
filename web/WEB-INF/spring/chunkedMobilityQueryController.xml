@@ -25,9 +25,9 @@
     </constructor-arg>
     <property name="validators">
       <list>
+        <ref bean="tokenOrUserPasswordValidator" />
         <ref bean="requiredStartDateValidator" />
         <ref bean="requiredEndDateValidator" />
-        <ref bean="userTokenValidator" />
       </list>      
     </property>
     <property name="featureName"><value>chunked mobility query</value></property>

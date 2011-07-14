@@ -103,7 +103,9 @@ public class SurveyResponseReadValidator extends AbstractHttpServletRequestValid
 				return false;
 			}
 		}
-
+		
+		String user = httpRequest.getParameter("user");
+		String password = httpRequest.getParameter("password");
 		String startDate = (String) httpRequest.getParameter("start_date");
 		String endDate = (String) httpRequest.getParameter("end_date");
 		String promptIds = (String) httpRequest.getParameter("prompt_id_list");
@@ -125,6 +127,8 @@ public class SurveyResponseReadValidator extends AbstractHttpServletRequestValid
 		   || greaterThanLength("promptIdList", "prompt_id_list", promptIds, 2500)             // arbitrary, but longer than this would be abnormal
 		   || greaterThanLength("surveyIdlist", "survey_id_list", surveyIds, 2500)             // arbitrary, but longer than this would be abnormal 
 		   || greaterThanLength("columnList", "column_list", columnList, 2500)                 // arbitrary, but longer than this would be abnormal
+		   || greaterThanLength("user", "user", user, 15)
+		   || greaterThanLength("password", "password", password, 100)
 		   || greaterThanLength("outputFormat", "output_format", outputFormat, 12)             // longest value allowed is "json-columns" 
 		   || greaterThanLength("prettyPrint", "pretty_print", prettyPrint, 5)                 // longest value allowed is "false"
 		   || greaterThanLength("suppressMetadata", "suppress_metadata", suppressMetadata, 5)  // longest value allowed is "false"
@@ -140,8 +144,11 @@ public class SurveyResponseReadValidator extends AbstractHttpServletRequestValid
 		// Get the authentication / session token from the header.
 		List<String> tokens = CookieUtils.getCookieValue(httpRequest.getCookies(), InputKeys.AUTH_TOKEN);
 		if(tokens.size() == 0) {
-			if(httpRequest.getParameter(InputKeys.AUTH_TOKEN) == null) {
-				throw new MissingAuthTokenException("The required authentication / session token is missing.");
+			// Possible if user and password aren't null.
+			if((user == null) || (password == null)) {
+				if(httpRequest.getParameter(InputKeys.AUTH_TOKEN) == null) {
+					throw new MissingAuthTokenException("The required authentication / session token is missing.");
+				}
 			}
 		}
 		else if(tokens.size() > 1) {
