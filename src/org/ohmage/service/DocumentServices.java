@@ -74,7 +74,7 @@ public class DocumentServices {
 	public static void ensureDocumentExistence(Request request, String documentId) throws ServiceException {
 		try {
 			if(! DocumentDaos.getDocumentExists(documentId)) {
-				request.setFailed(ErrorCodes.DOCUMENT_DOES_NOT_EXIST, "The document with the given document ID does not exist: " + documentId);
+				request.setFailed(ErrorCodes.DOCUMENT_INVALID_ID, "The document with the given document ID does not exist: " + documentId);
 				throw new ServiceException("The document with the given document ID does not exist: " + documentId);
 			}
 		}
@@ -136,25 +136,25 @@ public class DocumentServices {
 			return;
 		}
 		else if(roles.contains(DocumentRoleCache.ROLE_OWNER)) {
-			request.setFailed(ErrorCodes.DOCUMENT_REQUESTER_GRANTING_MORE_PERMISSIONS_THAN_THEY_HAVE, "The user is attempting to grant or revoke document ownership when they are not an owner themselves.");
+			request.setFailed(ErrorCodes.DOCUMENT_INSUFFICIENT_PERMISSIONS, "The user is attempting to grant or revoke document ownership when they are not an owner themselves.");
 			throw new ServiceException("The user is attempting to grant or revoke document ownership when they are not an owner themselves.");
 		}
 		else if(DocumentRoleCache.ROLE_WRITER.equals(role)) {
 			return;
 		}
 		else if(roles.contains(DocumentRoleCache.ROLE_WRITER)) {
-			request.setFailed(ErrorCodes.DOCUMENT_REQUESTER_GRANTING_MORE_PERMISSIONS_THAN_THEY_HAVE, "The user is attempting to grant or revoke the document write ability when they are not a document writer themselves.");
+			request.setFailed(ErrorCodes.DOCUMENT_INSUFFICIENT_PERMISSIONS, "The user is attempting to grant or revoke the document write ability when they are not a document writer themselves.");
 			throw new ServiceException("The user is attempting to grant or revoke the document write ability when they are not a document writer themselves.");
 		}
 		else if(DocumentRoleCache.ROLE_READER.equals(role)) {
 			return;
 		}
 		else if(role.contains(DocumentRoleCache.ROLE_READER)) {
-			request.setFailed(ErrorCodes.DOCUMENT_REQUESTER_GRANTING_MORE_PERMISSIONS_THAN_THEY_HAVE, "The user is attempting to grant or revoke the document read ability when they are not a document readers themselves.");
+			request.setFailed(ErrorCodes.DOCUMENT_INSUFFICIENT_PERMISSIONS, "The user is attempting to grant or revoke the document read ability when they are not a document readers themselves.");
 			throw new ServiceException("The user is attempting to grant or revoke the document read ability when they are not a document readers themselves.");
 		}
 		else if(roles.size() != 0) {
-			request.setFailed(ErrorCodes.DOCUMENT_REQUESTER_GRANTING_MORE_PERMISSIONS_THAN_THEY_HAVE, "The user is attempting to grant or revoke permissions when they are not associated with the document.");
+			request.setFailed(ErrorCodes.DOCUMENT_INSUFFICIENT_PERMISSIONS, "The user is attempting to grant or revoke permissions when they are not associated with the document.");
 			throw new ServiceException("The user is attempting to grant or revoke permissions when they are not associated with the document.");
 		}
 	}

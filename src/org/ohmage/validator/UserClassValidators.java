@@ -102,12 +102,15 @@ public final class UserClassValidators {
 			if(! "".equals(currUserAndRole)) {
 				String[] userAndRole = currUserAndRole.split(InputKeys.ENTITY_ROLE_SEPARATOR);
 				
+				String username;
 				if(userAndRole.length != 2) {
-					request.setFailed(ErrorCodes.CLASS_INVALID_USER_CLASS_ROLE_LIST, "The following user class-role item is invalid: " + currUserAndRole);
+					username = UserValidators.validateUsername(request, userAndRole[0]);
+					
+					request.setFailed(ErrorCodes.CLASS_INVALID_ROLE, "The class role is missing: " + currUserAndRole);
 					throw new ValidationException("The user class-role list at index " + i + " is invalid: " + currUserAndRole);
 				}
 				
-				String username = UserValidators.validateUsername(request, userAndRole[0]);
+				username = UserValidators.validateUsername(request, userAndRole[0]);
 				String role = ClassValidators.validateClassRole(request, userAndRole[1]);
 				
 				result.put(username, role);

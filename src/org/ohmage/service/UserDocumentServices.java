@@ -66,7 +66,7 @@ public class UserDocumentServices {
 			// To read a document, it simply has to be visible to the user in
 			// some capacity.
 			if(roles.size() == 0) {
-				request.setFailed(ErrorCodes.DOCUMENT_INSUFFICIENT_PERMISSIONS_TO_READ, "The user does not have sufficient permissions to read the document.");
+				request.setFailed(ErrorCodes.DOCUMENT_INSUFFICIENT_PERMISSIONS, "The user does not have sufficient permissions to read the document.");
 				throw new ServiceException("The user does not have sufficient permissions to read the document.");
 			}
 		}
@@ -101,7 +101,7 @@ public class UserDocumentServices {
 			   (! roles.contains(DocumentRoleCache.ROLE_WRITER)) &&
 			   (! UserCampaignDocumentServices.getUserIsSupervisorInAnyCampaignAssociatedWithDocument(request, username, documentId)) &&
 			   (! UserClassDocumentServices.getUserIsPrivilegedInAnyClassAssociatedWithDocument(request, username, documentId))) {
-				request.setFailed(ErrorCodes.DOCUMENT_INSUFFICIENT_PERMISSIONS_TO_MODIFY, "The user does not have sufficient permissions to modify the document.");
+				request.setFailed(ErrorCodes.DOCUMENT_INSUFFICIENT_PERMISSIONS, "The user does not have sufficient permissions to modify the document.");
 				throw new ServiceException("The user does not have sufficient permissions to modify the document.");
 			}
 		}
@@ -135,7 +135,7 @@ public class UserDocumentServices {
 			if((! roles.contains(DocumentRoleCache.ROLE_OWNER)) &&
 			   (! UserCampaignDocumentServices.getUserIsSupervisorInAnyCampaignAssociatedWithDocument(request, username, documentId)) &&
 			   (! UserClassDocumentServices.getUserIsPrivilegedInAnyClassAssociatedWithDocument(request, username, documentId))) {
-				request.setFailed(ErrorCodes.DOCUMENT_INSUFFICIENT_PERMISSIONS_TO_DELETE, "The user does not have sufficient permissions to delete the document.");
+				request.setFailed(ErrorCodes.DOCUMENT_INSUFFICIENT_PERMISSIONS, "The user does not have sufficient permissions to delete the document.");
 				throw new ServiceException("The user does not have sufficient permissions to delete the document.");
 			}
 		}

@@ -65,7 +65,7 @@ public final class CampaignValidators {
 		// URN, set the request as failed and throw a ValidationException to
 		// warn the caller.
 		else {
-			request.setFailed(ErrorCodes.CAMPAIGN_INVALID_URN, "The campaign identifier is invalid: " + campaignId);
+			request.setFailed(ErrorCodes.CAMPAIGN_INVALID_ID, "The campaign identifier is invalid: " + campaignId);
 			throw new ValidationException("The campaign identifier is invalid: " + campaignId);
 		}
 	}
@@ -138,7 +138,7 @@ public final class CampaignValidators {
 			return runningState;
 		}
 		else {
-			request.setFailed(ErrorCodes.CAMPAIGN_INVALID_INITIAL_RUNNING_STATE, "The running state is unknown.");
+			request.setFailed(ErrorCodes.CAMPAIGN_INVALID_RUNNING_STATE, "The running state is unknown.");
 			throw new ValidationException("The running state is unknown: " + runningState);
 		}
 	}
@@ -170,7 +170,7 @@ public final class CampaignValidators {
 			return privacyState;
 		}
 		else {
-			request.setFailed(ErrorCodes.CAMPAIGN_INVALID_INITIAL_PRIVACY_STATE, "The privacy state is unknown.");
+			request.setFailed(ErrorCodes.CAMPAIGN_INVALID_PRIVACY_STATE, "The privacy state is unknown.");
 			throw new ValidationException("The privacy state is unknown: " + privacyState);
 		}
 	}
@@ -202,23 +202,23 @@ public final class CampaignValidators {
 			(new CampaignValidator()).run(xml, CAMPAIGN_XML_SCHEMA_FILENAME);
 		}
 		catch(ValidityException e) {
-			request.setFailed(ErrorCodes.CAMPAIGN_INVALID_CAMPAIGN_XML, e.getMessage());
+			request.setFailed(ErrorCodes.CAMPAIGN_INVALID_XML, e.getMessage());
 			throw new ValidationException("The XML was invalid.", e);
 		} 
 		catch(SAXException e) {
-			request.setFailed(ErrorCodes.CAMPAIGN_INVALID_CAMPAIGN_XML, e.getMessage());
+			request.setFailed(ErrorCodes.CAMPAIGN_INVALID_XML, e.getMessage());
 			throw new ValidationException("The XML was invalid.", e);
 		}
 		catch(ParsingException e) {
-			request.setFailed(ErrorCodes.CAMPAIGN_INVALID_CAMPAIGN_XML, e.getMessage());
+			request.setFailed(ErrorCodes.CAMPAIGN_INVALID_XML, e.getMessage());
 			throw new ValidationException("The XML was invalid.", e);
 		}
 		catch(IllegalStateException e) {
-			request.setFailed(ErrorCodes.CAMPAIGN_INVALID_CAMPAIGN_XML, e.getMessage());
+			request.setFailed(ErrorCodes.CAMPAIGN_INVALID_XML, e.getMessage());
 			throw new ValidationException("The XML was invalid.", e);
 		}
 		catch(IllegalArgumentException e) {
-			request.setFailed(ErrorCodes.CAMPAIGN_INVALID_CAMPAIGN_XML, e.getMessage());
+			request.setFailed(ErrorCodes.CAMPAIGN_INVALID_XML, e.getMessage());
 			throw new ValidationException("The XML was invalid.", e);
 		}
 		

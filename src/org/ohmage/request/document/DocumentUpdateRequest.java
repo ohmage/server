@@ -173,7 +173,7 @@ public class DocumentUpdateRequest extends UserRequest {
 		try {
 			tDocumentId = DocumentValidators.validateDocumentId(this, httpRequest.getParameter(InputKeys.DOCUMENT_ID));
 			if(tDocumentId == null) {
-				setFailed(ErrorCodes.DOCUMENT_MISSING_ID, "The required document ID is missing.");
+				setFailed(ErrorCodes.DOCUMENT_INVALID_ID, "The required document ID is missing.");
 				throw new ValidationException("The required document ID is missing.");
 			}
 			

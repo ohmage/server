@@ -44,7 +44,7 @@ public class UserCampaignDocumentServices {
 			List<String> roles = UserCampaignDaos.getUserCampaignRoles(username, campaignId);
 			
 			if(roles.size() == 0) {
-				request.setFailed(ErrorCodes.DOCUMENT_INSUFFICIENT_PERMISSIONS_TO_ASSOCIATE_CAMPAIGN, "The user is not a member of the following campaign and, therefore, cannot associate documents with it: " + campaignId);
+				request.setFailed(ErrorCodes.DOCUMENT_INSUFFICIENT_PERMISSIONS, "The user is not a member of the following campaign and, therefore, cannot associate documents with it: " + campaignId);
 				throw new ServiceException("The user is not a member of the following campaign and, therefore, cannot associate documents with it: " + campaignId);
 			}
 		}
@@ -74,7 +74,7 @@ public class UserCampaignDocumentServices {
 			List<String> roles = UserCampaignDaos.getUserCampaignRoles(username, campaignId);
 			
 			if(roles.size() == 0) {
-				request.setFailed(ErrorCodes.DOCUMENT_INSUFFICIENT_PERMISSIONS_TO_ASSOCIATE_CAMPAIGN, "The user is not a member of the following campaign and, therefore, cannot disassociate documents from it: " + campaignId);
+				request.setFailed(ErrorCodes.DOCUMENT_INSUFFICIENT_PERMISSIONS, "The user is not a member of the following campaign and, therefore, cannot disassociate documents from it: " + campaignId);
 				throw new ServiceException("The user is not a member of the following campaign and, therefore, cannot disassociate documents from it: " + campaignId);
 			}
 		}

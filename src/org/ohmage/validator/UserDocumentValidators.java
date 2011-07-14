@@ -56,26 +56,21 @@ public class UserDocumentValidators {
 		
 		String[] usernameAndRoleArray = usernameAndRoleList.split(InputKeys.LIST_ITEM_SEPARATOR);
 		for(int i = 0; i < usernameAndRoleArray.length; i++) {
-			String[] usernameAndRole = usernameAndRoleArray[i].split(InputKeys.ENTITY_ROLE_SEPARATOR);
+			String usernameAndRoleString = usernameAndRoleArray[i]; 
 			
-			if(usernameAndRole.length != 2) {
-				request.setFailed(ErrorCodes.DOCUMENT_INVALID_USER_ROLE_LIST, "An invalid user-role pair was found: " + usernameAndRoleArray[i]);
-				throw new ValidationException("Invalid user-role pair found: " + usernameAndRoleArray[i]);
+			if(! "".equals(usernameAndRoleString.trim())) {
+				String[] usernameAndRole = usernameAndRoleString.split(InputKeys.ENTITY_ROLE_SEPARATOR);
+				
+				if(usernameAndRole.length != 2) {
+					request.setFailed(ErrorCodes.USER_INVALID_USERNAME, "The username, document role pair is invalid: " + usernameAndRoleArray[i]);
+					throw new ValidationException("The username, document role pair is invalid: " + usernameAndRoleArray[i]);
+				}
+				
+				String username = UserValidators.validateUsername(request, usernameAndRole[0]);
+				String documentRole = DocumentValidators.validateRole(request, usernameAndRole[1]);
+				
+				result.put(username, documentRole);
 			}
-			
-			String username = UserValidators.validateUsername(request, usernameAndRole[0]);
-			if(username == null) {
-				request.setFailed(ErrorCodes.DOCUMENT_INVALID_USER_ROLE_LIST, "Missing the username in a username, document role pair: " + usernameAndRoleArray[i]);
-				throw new ValidationException("Missing the username in a username, document role pair: " + usernameAndRoleArray[i]);
-			}
-			
-			String documentRole = DocumentValidators.validateRole(request, usernameAndRole[1]);
-			if(documentRole == null) {
-				request.setFailed(ErrorCodes.DOCUMENT_INVALID_CLASS_ROLE_LIST, "Missing the document role in a class ID, document role pair: " + usernameAndRole[i]);
-				throw new ValidationException("Missing the document role in a class ID, document role pair: " + usernameAndRole[i]);
-			}
-			
-			result.put(username, documentRole);
 		}
 		
 		return result;

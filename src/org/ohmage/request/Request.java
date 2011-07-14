@@ -299,7 +299,7 @@ public abstract class Request {
 		}
 		catch(ServletException e) {
 			LOGGER.error("This is not a multipart/form-data POST.", e);
-			setFailed(ErrorCodes.SYSTEM_SERVER_ERROR, "This is not a multipart/form-data POST which is what we expect for uploading campaign XMLs.");
+			setFailed(ErrorCodes.SYSTEM_GENERAL_ERROR, "This is not a multipart/form-data POST which is what we expect for uploading campaign XMLs.");
 			throw new ValidationException(e);
 		}
 		catch(IOException e) {

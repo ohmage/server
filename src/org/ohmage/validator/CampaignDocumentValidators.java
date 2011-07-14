@@ -56,26 +56,21 @@ public class CampaignDocumentValidators {
 		
 		String[] campaignAndRoleArray = campaignAndRoleList.split(InputKeys.LIST_ITEM_SEPARATOR);
 		for(int i = 0; i < campaignAndRoleArray.length; i++) {
-			String[] campaignAndRole = campaignAndRoleArray[i].split(InputKeys.ENTITY_ROLE_SEPARATOR);
+			String campaignAndRoleString = campaignAndRoleArray[i];
 			
-			if(campaignAndRole.length != 2) {
-				request.setFailed(ErrorCodes.DOCUMENT_INVALID_CAMPAIGN_ROLE_LIST, "An invalid campaign-role pair was found: " + campaignAndRoleArray[i]);
-				throw new ValidationException("An invalid campaign-role pair was found: " + campaignAndRoleArray[i]);
+			if(! "".equals(campaignAndRoleString.trim())) {
+				String[] campaignAndRole = campaignAndRoleString.split(InputKeys.ENTITY_ROLE_SEPARATOR);
+				
+				if(campaignAndRole.length != 2) {
+					request.setFailed(ErrorCodes.CAMPAIGN_INVALID_ID, "The campaign ID, document role pair is invalid: " + campaignAndRoleArray[i]);
+					throw new ValidationException("The campaign ID, document role pair is invalid: " + campaignAndRoleArray[i]);
+				}
+				
+				String campaignId = CampaignValidators.validateCampaignId(request, campaignAndRole[0]);
+				String documentRole = DocumentValidators.validateRole(request, campaignAndRole[1]);
+	
+				result.put(campaignId, documentRole);
 			}
-			
-			String campaignId = CampaignValidators.validateCampaignId(request, campaignAndRole[0]);
-			if(campaignId == null) {
-				request.setFailed(ErrorCodes.DOCUMENT_INVALID_CAMPAIGN_ROLE_LIST, "Missing the campaign ID in a campaign ID, document role pair: " + campaignAndRoleArray[i]);
-				throw new ValidationException("Missing the campaign ID in a campaign ID, document role pair: " + campaignAndRoleArray[i]);
-			}
-			
-			String documentRole = DocumentValidators.validateRole(request, campaignAndRole[1]);
-			if(documentRole == null) {
-				request.setFailed(ErrorCodes.DOCUMENT_INVALID_CAMPAIGN_ROLE_LIST, "Missing the document role in a class ID, document role pair: " + campaignAndRoleArray[i]);
-				throw new ValidationException("Missing the document role in a class ID, document role pair: " + campaignAndRoleArray[i]);
-			}
-
-			result.put(campaignId, documentRole);
 		}
 		
 		return result;

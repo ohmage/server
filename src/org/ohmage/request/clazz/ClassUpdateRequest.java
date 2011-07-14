@@ -99,7 +99,7 @@ public class ClassUpdateRequest extends UserRequest {
 			try {
 				tempClassId = ClassValidators.validateClassId(this, httpRequest.getParameter(InputKeys.CLASS_URN));
 				if(tempClassId == null) {
-					setFailed(ErrorCodes.CLASS_MISSING_ID, "The required class URN is missing or whitespace only.");
+					setFailed(ErrorCodes.CLASS_INVALID_ID, "The required class URN is missing or whitespace only.");
 					throw new ValidationException("Missing required parameter: " + InputKeys.CLASS_URN);
 				}
 				

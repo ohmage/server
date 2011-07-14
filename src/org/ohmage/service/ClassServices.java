@@ -70,13 +70,13 @@ public final class ClassServices {
 		try {
 			if((classId != null) && ClassDaos.getClassExists(classId)) {
 				if(! shouldExist) {
-					request.setFailed(ErrorCodes.CLASS_ALREADY_EXISTS, "The class already exists: " + classId);
+					request.setFailed(ErrorCodes.CLASS_INVALID_ID, "The class already exists: " + classId);
 					throw new ServiceException("The class already exists: " + classId);
 				}
 			}
 			else {
 				if(shouldExist) {
-					request.setFailed(ErrorCodes.CLASS_DOES_NOT_EXIST, "The class does not exist: " + classId);
+					request.setFailed(ErrorCodes.CLASS_INVALID_ID, "The class does not exist: " + classId);
 					throw new ServiceException("The class does not exist: " + classId);
 				}
 			}

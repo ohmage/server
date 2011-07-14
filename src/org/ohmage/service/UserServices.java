@@ -31,7 +31,7 @@ public final class UserServices {
 	public static void verifyUserExists(Request request, String username) throws ServiceException {
 		try {
 			if(! UserDaos.userExists(username)) {
-				request.setFailed(ErrorCodes.USER_DOES_NOT_EXIST, "The following user does not exist: " + username);
+				request.setFailed(ErrorCodes.USER_INVALID_USERNAME, "The following user does not exist: " + username);
 				throw new ServiceException("The following user does not exist: " + username);
 			}
 		}
@@ -74,7 +74,7 @@ public final class UserServices {
 	public static void verifyUserIsAdmin(Request request, String username) throws ServiceException {
 		try {
 			if(! UserDaos.userIsAdmin(username)) {
-				request.setFailed(ErrorCodes.USER_NOT_ADMIN, "The user is not an admin.");
+				request.setFailed(ErrorCodes.USER_INSUFFICIENT_PERMISSIONS, "The user is not an admin.");
 				throw new ServiceException("The user is not an admin.");
 			}
 		}
@@ -98,7 +98,7 @@ public final class UserServices {
 	public static void verifyUserCanCreateCampaigns(Request request, String username) throws ServiceException {
 		try {
 			if(! UserDaos.userCanCreateCampaigns(username)) {
-				request.setFailed(ErrorCodes.AUTHENTICATION_INSUFFICIENT_PERMISSIONS_TO_CREATE_CAMPAIGN, "The user does not have permission to create new campaigns.");
+				request.setFailed(ErrorCodes.CAMPAIGN_INSUFFICIENT_PERMISSIONS, "The user does not have permission to create new campaigns.");
 				throw new ServiceException("The user does not have permission to create new campaigns.");
 			}
 		}

@@ -58,7 +58,7 @@ public class ClassDeletionRequest extends UserRequest {
 			try {
 				tempClassId = ClassValidators.validateClassId(this, httpRequest.getParameter(InputKeys.CLASS_URN));
 				if(tempClassId == null) {
-					setFailed(ErrorCodes.CLASS_MISSING_ID, "Missing required class URN.");
+					setFailed(ErrorCodes.CLASS_INVALID_ID, "Missing required class URN.");
 					throw new ValidationException("Missing required key: " + InputKeys.CLASS_URN);
 				}
 			}

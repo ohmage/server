@@ -29,9 +29,6 @@ public final class UserValidators {
 	private static final String HASHED_PASSWORD_PATTERN_STRING = "[\\w\\.\\$\\/]{50,60}";
 	private static final Pattern HASHED_PASSWORD_PATTERN = Pattern.compile(HASHED_PASSWORD_PATTERN_STRING);
 	
-	private static final String TOKEN_PATTERN_STRING = "[a-fA-F0-9]{8}\\-[a-fA-F0-9]{4}\\-[a-fA-F0-9]{4}\\-[a-fA-F0-9]{4}\\-[a-fA-F0-9]{12}";
-	private static final Pattern TOKEN_PATTERN = Pattern.compile(TOKEN_PATTERN_STRING);
-	
 	/**
 	 * Default constructor. Private so that it cannot be instantiated.
 	 */
@@ -172,38 +169,6 @@ public final class UserValidators {
 		else {
 			request.setFailed(ErrorCodes.USER_INVALID_PASSWORD, "The password is invalid.");
 			throw new ValidationException("The hashed password is invalid.");
-		}
-	}
-	
-	/**
-	 * Validates that a given authentication / session token follows our 
-	 * conventions. If it is null or whitespace only, null is returned. If it
-	 * doesn't follow our conventions, a ValidationException is thrown. 
-	 * Otherwise, the token is passed back to the caller.
-	 * 
-	 * @param request The request that is having this token validated.
-	 * 
-	 * @param token The authentication / session token to validate.
-	 * 
-	 * @return Returns null if the token is null or whitespace only. Otherwise,
-	 * 		   it returns the token.
-	 * 
-	 * @throws ValidationException Thrown if the token isn't null or whitespace
-	 * 							   only and doesn't follow our conventions.
-	 */
-	public static String validateToken(Request request, String token) throws ValidationException {
-		LOGGER.info("Validating that the requester's authentication / session token follows our conventions.");
-		
-		if(StringUtils.isEmptyOrWhitespaceOnly(token)) {
-			return null;
-		}
-		
-		if(TOKEN_PATTERN.matcher(token).matches()) {
-			return token;
-		}
-		else {
-			request.setFailed(ErrorCodes.USER_INVALID_TOKEN, "The authentication / session token is invalid.");
-			throw new ValidationException("The authentication / session token is invalid.");
 		}
 	}
 }

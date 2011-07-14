@@ -38,7 +38,7 @@ public class UserCampaignServices {
 		
 		try {
 			if(! UserCampaignDaos.userBelongsToCampaign(username, campaignId)) {
-				request.setFailed(ErrorCodes.CAMPAIGN_USER_DOES_NOT_BELONG, "The user does not belong to the campaign: " + campaignId);
+				request.setFailed(ErrorCodes.CAMPAIGN_INSUFFICIENT_PERMISSIONS, "The user does not belong to the campaign: " + campaignId);
 				throw new ServiceException("The user does not belong to the campaign: " + campaignId);
 			}
 		}

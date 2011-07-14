@@ -67,7 +67,7 @@ public class ClassReadRequest extends UserRequest {
 			try {
 				tempClassIds = ClassValidators.validateClassIdList(this, httpRequest.getParameter(InputKeys.CLASS_URN_LIST));
 				if(tempClassIds == null) {
-					setFailed(ErrorCodes.CLASS_MISSING_CLASS_LIST, "Missing required class URN list.");
+					setFailed(ErrorCodes.CLASS_INVALID_ID, "Missing required class URN list.");
 					throw new ValidationException("Missing required class URN list.");
 				}
 			}

@@ -126,13 +126,13 @@ public class CampaignServices {
 		try {
 			if(CampaignDaos.getCampaignExists(campaignId)) {
 				if(! shouldExist) {
-					request.setFailed(ErrorCodes.CAMPAIGN_INVALID_CAMPAIGN_XML, "The campaign already exists: " + campaignId);
+					request.setFailed(ErrorCodes.CAMPAIGN_INVALID_XML, "The campaign already exists: " + campaignId);
 					throw new ServiceException("The campaign already exists.");
 				}
 			}
 			else {
 				if(shouldExist) {
-					request.setFailed(ErrorCodes.CAMPAIGN_NOT_FOUND, "The campaign does not exist: " + campaignId);
+					request.setFailed(ErrorCodes.CAMPAIGN_INVALID_ID, "The campaign does not exist: " + campaignId);
 					throw new ServiceException("The campaign does not exist.");
 				}
 			}

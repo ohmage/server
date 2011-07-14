@@ -72,7 +72,7 @@ public class ClassRosterReadRequest extends UserRequest {
 		try {
 			tClassIds = ClassValidators.validateClassIdList(this, httpRequest.getParameter(InputKeys.CLASS_URN_LIST));
 			if(tClassIds == null) {
-				setFailed(ErrorCodes.CLASS_MISSING_CLASS_LIST, "Missing the required class list: " + InputKeys.CLASS_URN_LIST);
+				setFailed(ErrorCodes.CLASS_INVALID_ID, "Missing the required class list: " + InputKeys.CLASS_URN_LIST);
 				throw new ValidationException("Missing the required class list: " + InputKeys.CLASS_URN_LIST);
 			}
 		}

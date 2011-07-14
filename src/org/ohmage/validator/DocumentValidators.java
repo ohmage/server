@@ -35,7 +35,20 @@ public class DocumentValidators {
 	 * 							   ID.
 	 */
 	public static String validateDocumentId(Request request, String documentId) throws ValidationException {
-		return UuidValidators.validateUuid(request, documentId);
+		LOGGER.info("Validating a document's ID.");
+		
+		if(UuidValidators.validateUuid(documentId)) {
+			if(StringUtils.isEmptyOrWhitespaceOnly(documentId)) {
+				return null;
+			}
+			else {
+				return documentId;
+			}
+		}
+		else {
+			request.setFailed(ErrorCodes.DOCUMENT_INVALID_ID, "The document ID is invalid: " + documentId);
+			throw new ValidationException("The document ID is invalid: " + documentId);
+		}
 	}
 	
 	/**
@@ -94,6 +107,42 @@ public class DocumentValidators {
 		else {
 			request.setFailed(ErrorCodes.DOCUMENT_INVALID_ROLE, "Invalid document role: " + role);
 			throw new ValidationException("Invalid document role: " + role);
+		}
+	}
+	
+	/**
+	 * Validates that a 'personal documents' value is a valid value. It should
+	 * be a boolean value.
+	 * 
+	 * @param request The Request that is performing this validation.
+	 * 
+	 * @param value The value is be validated.
+	 * 
+	 * @return If the value is null or whitespace only, null is returned; 
+	 * 		   otherwise, the value is returned.
+	 * 
+	 * @throws ValidationException Thrown if the value is not a valid 'personal
+	 * 							   documents' value.
+	 */
+	public static Boolean validatePersonalDocuments(Request request, String value) throws ValidationException {
+		LOGGER.info("Validating a 'personal documents' value.");
+		
+		if(BooleanValidators.validateBoolean(value)) {
+			if(StringUtils.isEmptyOrWhitespaceOnly(value)) {
+				return null;
+			}
+			else {
+				if("true".equals(value)) {
+					return true;
+				}
+				else {
+					return false;
+				}
+			}
+		}
+		else {
+			request.setFailed(ErrorCodes.DOCUMENT_INVALID_PERSONAL_DOCUMENTS_VALUE, "Invalid personal documents value: " + value);
+			throw new ValidationException("Invalid personal documents value: " + value);
 		}
 	}
 }

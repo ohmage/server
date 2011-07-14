@@ -40,7 +40,7 @@ public final class UserClassServices {
 		
 		try {
 			if(! UserClassDaos.userBelongsToClass(classId, username)) {
-				request.setFailed(ErrorCodes.CLASS_USER_DOES_NOT_BELONG, "The user does not belong to the class: " + classId);
+				request.setFailed(ErrorCodes.USER_INVALID_USERNAME, "The user does not belong to the class: " + classId);
 				throw new ServiceException("The user does not belong to the class: " + classId);
 			}
 		}

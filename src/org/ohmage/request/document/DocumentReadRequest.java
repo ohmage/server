@@ -20,9 +20,9 @@ import org.ohmage.service.UserCampaignServices;
 import org.ohmage.service.UserClassDocumentServices;
 import org.ohmage.service.UserClassServices;
 import org.ohmage.service.UserDocumentServices;
-import org.ohmage.validator.BooleanValidators;
 import org.ohmage.validator.CampaignValidators;
 import org.ohmage.validator.ClassValidators;
+import org.ohmage.validator.DocumentValidators;
 import org.ohmage.validator.ValidationException;
 
 /**
@@ -92,7 +92,7 @@ public class DocumentReadRequest extends UserRequest {
 		List<String> tempClassIds = null;
 		
 		try {
-			tempPersonalDocuments = BooleanValidators.validateBoolean(this, httpRequest.getParameter(InputKeys.DOCUMENT_PERSONAL_DOCUMENTS));
+			tempPersonalDocuments = DocumentValidators.validatePersonalDocuments(this, httpRequest.getParameter(InputKeys.DOCUMENT_PERSONAL_DOCUMENTS));
 			if(tempPersonalDocuments == null) {
 				setFailed(ErrorCodes.DOCUMENT_INVALID_PERSONAL_DOCUMENTS_VALUE, "Missing required key: " + InputKeys.DOCUMENT_PERSONAL_DOCUMENTS);
 				throw new ValidationException("Missing required key: " + InputKeys.DOCUMENT_PERSONAL_DOCUMENTS);

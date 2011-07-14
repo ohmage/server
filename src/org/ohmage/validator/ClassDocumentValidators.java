@@ -54,26 +54,21 @@ public final class ClassDocumentValidators {
 		
 		String[] classAndRoleArray = classAndRoleList.split(InputKeys.LIST_ITEM_SEPARATOR);
 		for(int i = 0; i < classAndRoleArray.length; i++) {
-			String[] classAndRole = classAndRoleArray[i].split(InputKeys.ENTITY_ROLE_SEPARATOR);
+			String classAndRoleString = classAndRoleArray[i];
 			
-			if(classAndRole.length != 2) {
-				request.setFailed(ErrorCodes.DOCUMENT_INVALID_CLASS_ROLE_LIST, "An invalid class-role pair was found: " + classAndRoleArray[i]);
-				throw new ValidationException("Invalid class-role pair found: " + classAndRoleArray[i]);
+			if(! "".equals(classAndRoleString.trim())) {
+				String[] classAndRole = classAndRoleString.split(InputKeys.ENTITY_ROLE_SEPARATOR);
+				
+				if(classAndRole.length != 2) {
+					request.setFailed(ErrorCodes.CLASS_INVALID_ID, "The class ID, document role pair is invalid: " + classAndRoleArray[i]);
+					throw new ValidationException("The class ID, document role pair is invalid: " + classAndRoleArray[i]);
+				}
+				
+				String classId = ClassValidators.validateClassId(request, classAndRole[0]);
+				String documentRole = DocumentValidators.validateRole(request, classAndRole[1]);
+				
+				result.put(classId, documentRole);
 			}
-			
-			String classId = ClassValidators.validateClassId(request, classAndRole[0]);
-			if(classId == null) {
-				request.setFailed(ErrorCodes.DOCUMENT_INVALID_CLASS_ROLE_LIST, "Missing the class ID in a class ID, document role pair: " + classAndRoleArray[i]);
-				throw new ValidationException("Missing the class ID in a class ID, document role pair: " + classAndRoleArray[i]);
-			}
-			
-			String documentRole = DocumentValidators.validateRole(request, classAndRole[1]);
-			if(documentRole == null) {
-				request.setFailed(ErrorCodes.DOCUMENT_INVALID_CLASS_ROLE_LIST, "Missing the document role in a class ID, document role pair: " + classAndRoleArray[i]);
-				throw new ValidationException("Missing the document role in a class ID, document role pair: " + classAndRoleArray[i]);
-			}
-			
-			result.put(classId, documentRole);
 		}
 		
 		return result;

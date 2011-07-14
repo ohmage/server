@@ -97,11 +97,11 @@ public class CampaignCreationRequest extends UserRequest {
 			catch(NullPointerException e) {
 				// If the getMultipartValue() returns null because the XML 
 				// didn't exist, a NullPointerException will be thrown.
-				setFailed(ErrorCodes.CAMPAIGN_MISSING_XML, "Missing required campaign XML.");
+				setFailed(ErrorCodes.CAMPAIGN_INVALID_XML, "Missing required campaign XML.");
 				throw new ValidationException("Missing required campaign XML.", e);
 			}
 			if(tempXml == null) {
-				setFailed(ErrorCodes.CAMPAIGN_MISSING_XML, "Missing required campaign XML.");
+				setFailed(ErrorCodes.CAMPAIGN_INVALID_XML, "Missing required campaign XML.");
 				throw new ValidationException("Missing required campaign XML.");
 			}
 			
@@ -109,19 +109,19 @@ public class CampaignCreationRequest extends UserRequest {
 			
 			tempRunningState = CampaignValidators.validateRunningState(this, httpRequest.getParameter(InputKeys.RUNNING_STATE));
 			if(tempRunningState == null) {
-				setFailed(ErrorCodes.CAMPAIGN_MISSING_RUNNING_STATE, "Missing the required initial running state.");
+				setFailed(ErrorCodes.CAMPAIGN_INVALID_RUNNING_STATE, "Missing the required initial running state.");
 				throw new ValidationException("Missing required running state.");
 			}
 			
 			tempPrivacyState = CampaignValidators.validatePrivacyState(this, httpRequest.getParameter(InputKeys.PRIVACY_STATE));
 			if(tempPrivacyState == null) {
-				setFailed(ErrorCodes.CAMPAIGN_MISSING_PRIVACY_STATE, "Missing the required initial privacy state.");
+				setFailed(ErrorCodes.CAMPAIGN_INVALID_PRIVACY_STATE, "Missing the required initial privacy state.");
 				throw new ValidationException("Missing required privacy state.");
 			}
 			
 			tempClassIds = ClassValidators.validateClassIdList(this, httpRequest.getParameter(InputKeys.CLASS_URN_LIST));
 			if((tempClassIds == null) || (tempClassIds.size() == 0)) {
-				setFailed(ErrorCodes.CAMPAIGN_MISSING_CLASS_ID_LIST, "Missing the required class ID list.");
+				setFailed(ErrorCodes.CLASS_INVALID_ID, "Missing the required class ID list.");
 				throw new ValidationException("Missing required class ID list.");
 			}
 		}

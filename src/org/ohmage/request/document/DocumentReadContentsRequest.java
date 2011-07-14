@@ -71,7 +71,7 @@ public class DocumentReadContentsRequest extends UserRequest {
 		try {
 			tempDocumentId = DocumentValidators.validateDocumentId(this, httpRequest.getParameter(InputKeys.DOCUMENT_ID));
 			if(tempDocumentId == null) {
-				setFailed(ErrorCodes.DOCUMENT_MISSING_ID, "The document ID is missing.");
+				setFailed(ErrorCodes.DOCUMENT_INVALID_ID, "The document ID is missing.");
 				throw new ValidationException("The document ID is missing.");
 			}
 		}

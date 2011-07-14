@@ -64,7 +64,7 @@ public final class ClassValidators {
 		// URN, set the request as failed and throw a ValidationException to
 		// warn the caller.
 		else {
-			request.setFailed(ErrorCodes.CLASS_INVALID_URN, "The class identifier is invalid: " + classId);
+			request.setFailed(ErrorCodes.CLASS_INVALID_ID, "The class identifier is invalid: " + classId);
 			throw new ValidationException("The class identifier is invalid: " + classId);
 		}
 	}
@@ -155,7 +155,7 @@ public final class ClassValidators {
 			return classRoleTrimmed;
 		}
 		catch(CacheMissException e) {
-			request.setFailed(ErrorCodes.CLASS_UNKNOWN_ROLE, "Unknown class role: " + classRole);
+			request.setFailed(ErrorCodes.CLASS_INVALID_ROLE, "Unknown class role: " + classRole);
 			throw new ValidationException("Unkown class role: " + classRole, e);
 		}
 	}
