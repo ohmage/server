@@ -25,8 +25,6 @@ import java.util.Set;
 import javax.sql.DataSource;
 
 import org.apache.log4j.Logger;
-import org.json.JSONException;
-import org.json.JSONObject;
 import org.ohmage.domain.UserInfo;
 import org.ohmage.request.AwRequest;
 import org.ohmage.request.InputKeys;
@@ -160,19 +158,13 @@ public class UserReadDao extends AbstractDao {
 						new RowMapper() {
 							@Override
 							public Object mapRow(ResultSet rs, int rowNum) throws SQLException {
-								try {
-									result.add(new UserInfo(user, 
-															rs.getString("first_name"),
-															rs.getString("last_name"),
-															rs.getString("organization"),
-															rs.getString("personal_id"),
-															rs.getString("email_address"),
-															new JSONObject(rs.getString("json_data"))));
-								}
-								catch(JSONException e) {
-									throw new SQLException("Failed to create JSONObject from JSONObject in the database.", e);
-								}
-								
+								result.add(new UserInfo(user, 
+														rs.getString("first_name"),
+														rs.getString("last_name"),
+														rs.getString("organization"),
+														rs.getString("personal_id"),
+														rs.getString("email_address"),
+														rs.getString("json_data")));
 								return null;
 							}
 						}

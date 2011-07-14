@@ -104,7 +104,6 @@ public class ClassRosterReadResponseWriter extends AbstractResponseWriter {
 		// If the request ever failed, write an error message.
 		if(awRequest.isFailedRequest()) {
 			response.setContentType("text/html");
-			response.setContentType("application/json");
 			
 			// If a specific error message was annotated, use that. 
 			if(awRequest.getFailedRequestErrorMessage() != null) {

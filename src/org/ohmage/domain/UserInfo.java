@@ -58,7 +58,7 @@ public class UserInfo {
 	 * 									identifier for this user are null or 
 	 * 									whitespace only.
 	 */
-	public UserInfo(String username, String firstName, String lastName, String organization, String personalId, String emailAddress, JSONObject jsonData) throws IllegalArgumentException {
+	public UserInfo(String username, String firstName, String lastName, String organization, String personalId, String emailAddress, String jsonData) throws IllegalArgumentException {
 		if(StringUtils.isEmptyOrWhitespaceOnly(username)) {
 			throw new IllegalArgumentException("The username cannot be null or whitespace only.");
 		}
@@ -78,7 +78,13 @@ public class UserInfo {
 		_organization = organization;
 		_personalId = personalId;
 		_emailAddress = emailAddress;
-		_jsonData = jsonData;
+		
+		try {
+			_jsonData = new JSONObject(jsonData);
+		}
+		catch(JSONException e) {
+			_jsonData = null;
+		}
 	}
 	
 	/**
