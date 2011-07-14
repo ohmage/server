@@ -83,24 +83,6 @@
     </constructor-arg>
   </bean>
   
-  <bean id="uploadJsonDataFailedJsonRequestAnnotator" class="org.ohmage.validator.json.FailedJsonRequestAnnotator">
-    <constructor-arg index="0">
-     <bean class="org.ohmage.domain.ErrorResponse">
-        <property name="code" value="0300" />
-        <property name="text" value="missing json data" />
-      </bean>
-     </constructor-arg>
-  </bean>
-  
-  <bean id="uploadCampaignIdFailedJsonRequestAnnotator" class="org.ohmage.validator.json.FailedJsonRequestAnnotator">
-    <constructor-arg index="0">
-      <bean class="org.ohmage.domain.ErrorResponse">
-        <property name="code" value="0304" />
-        <property name="text" value="invalid campaign id" />
-      </bean>
-    </constructor-arg>
-  </bean>
-
   <bean id="severeErrorJsonRequestAnnotator" class="org.ohmage.validator.json.FailedJsonRequestAnnotator">
     <constructor-arg index="0"><ref bean="severeErrorResponse" /></constructor-arg>
   </bean>
