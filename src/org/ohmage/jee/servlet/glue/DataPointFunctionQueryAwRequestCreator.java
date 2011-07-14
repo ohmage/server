@@ -27,10 +27,9 @@ import org.ohmage.util.CookieUtils;
 
 
 /**
- * Builds an AwRequest for the data point function query API feature. This class is identical to DataPointQueryAwRequestCreator
- * except that it only allows one "i" parameter value.
+ * Builds an AwRequest for the data point function query API feature. 
  * 
- * @author selsky
+ * @author Joshua Selsky
  */
 public class DataPointFunctionQueryAwRequestCreator implements AwRequestCreator {
 	private DataPointFunctionQueryMetadata _metadata;
@@ -52,7 +51,7 @@ public class DataPointFunctionQueryAwRequestCreator implements AwRequestCreator 
 		}
 		String startDate = httpRequest.getParameter("start_date");
 		String endDate = httpRequest.getParameter("end_date");
-		String userNameRequestParam = httpRequest.getParameter("user");
+		String userNameRequestParam = httpRequest.getParameter("owner");
 		String client = httpRequest.getParameter("client");
 		String campaignUrn = httpRequest.getParameter("campaign_urn");
 		String functionName = httpRequest.getParameter("id");

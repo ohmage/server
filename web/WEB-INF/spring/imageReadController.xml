@@ -23,7 +23,7 @@
     <constructor-arg index="0">
       <list>
         <!-- authenticate -->
-        <ref bean="tokenBasedAuthenticationService" />
+        <ref bean="tokenOrUserPasswordAuthenticationService" />
         
         <!-- load campaign and user role information for the logged-in user -->
         <ref bean="userRoleCampaignPopulationService" />
@@ -46,7 +46,7 @@
     </constructor-arg>
     <property name="validators">
       <list>
-        <ref bean="userTokenValidator" />
+        <ref bean="tokenOrUserPasswordValidator" />
         <ref bean="imageIdRequiredValidator" />
         <ref bean="imageSizeValidator" />
       </list>      

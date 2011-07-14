@@ -36,17 +36,21 @@ public class ImageQueryValidator extends AbstractHttpServletRequestValidator {
 	}
 	
 	public boolean validate(HttpServletRequest httpRequest) throws MissingAuthTokenException {
-		String user = (String) httpRequest.getParameter("user");
+		String owner = (String) httpRequest.getParameter("owner");
 		String campaignUrn = (String) httpRequest.getParameter("campaign_urn");
 		String client = (String) httpRequest.getParameter("client");
 		String id = (String) httpRequest.getParameter("id");
 		String size = (String) httpRequest.getParameter("size");
+		String user = httpRequest.getParameter("user");
+		String password = httpRequest.getParameter("password");
 		
 		// Check for abnormal lengths (buffer overflow attack)
 		
 		if(greaterThanLength("campaignUrn", "campaign_urn", campaignUrn, 250)
 		   || greaterThanLength("client", "client",client, 250)
 		   || greaterThanLength("user", "user", user, 15)
+		   || greaterThanLength("password", "password", password, 100)
+		   || greaterThanLength("owner", "owner", owner, 15)
 		   || greaterThanLength("imageId", "id", id, 36)
 		   || greaterThanLength("size", "size", size, 5)) { // the only currently allowed value is "small"
 			
@@ -57,8 +61,11 @@ public class ImageQueryValidator extends AbstractHttpServletRequestValidator {
 		// Get the authentication / session token from the header.
 		List<String> tokens = CookieUtils.getCookieValue(httpRequest.getCookies(), InputKeys.AUTH_TOKEN);
 		if(tokens.size() == 0) {
-			if(httpRequest.getParameter(InputKeys.AUTH_TOKEN) == null) {
-				throw new MissingAuthTokenException("The required authentication / session token is missing.");
+			// Possible if user and password aren't null.
+			if((user == null) || (password == null)) {
+				if(httpRequest.getParameter(InputKeys.AUTH_TOKEN) == null) {
+					throw new MissingAuthTokenException("The required authentication / session token is missing.");
+				}
 			}
 		}
 		else if(tokens.size() > 1) {
