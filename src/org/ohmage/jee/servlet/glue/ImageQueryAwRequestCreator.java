@@ -18,6 +18,7 @@ package org.ohmage.jee.servlet.glue;
 import javax.servlet.http.HttpServletRequest;
 
 import org.apache.log4j.NDC;
+import org.ohmage.domain.User;
 import org.ohmage.request.AwRequest;
 import org.ohmage.request.InputKeys;
 import org.ohmage.request.MediaQueryAwRequest;
@@ -43,11 +44,13 @@ public class ImageQueryAwRequestCreator implements AwRequestCreator {
 		catch(IndexOutOfBoundsException e) {
 			token = httpRequest.getParameter(InputKeys.AUTH_TOKEN);
 		}
-		String userNameRequestParam = httpRequest.getParameter("user");
+		String userNameRequestParam = httpRequest.getParameter("owner");
 		String client = httpRequest.getParameter("client");
 		String campaignUrn = httpRequest.getParameter("campaign_urn");
 		String imageId = httpRequest.getParameter("id");
 		String size = httpRequest.getParameter("size");
+		String username = httpRequest.getParameter("user");
+		String password = httpRequest.getParameter("password");
 		
 		MediaQueryAwRequest awRequest = new MediaQueryAwRequest();
 
@@ -56,6 +59,11 @@ public class ImageQueryAwRequestCreator implements AwRequestCreator {
 		awRequest.setClient(client);
 		awRequest.setCampaignUrn(campaignUrn);
 		awRequest.setMediaId(imageId);
+		
+		User user = new User();
+		user.setUserName(username);
+		user.setPassword(password);
+		awRequest.setUser(user);
 		
 		awRequest.addToValidate(InputKeys.IMAGE_QUERY_ID, imageId, true);
 		awRequest.addToValidate(InputKeys.IMAGE_QUERY_SIZE, size, true);

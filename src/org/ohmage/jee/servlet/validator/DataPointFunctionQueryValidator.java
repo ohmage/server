@@ -43,7 +43,6 @@ public class DataPointFunctionQueryValidator extends AbstractHttpServletRequestV
 	public boolean validate(HttpServletRequest httpRequest) throws MissingAuthTokenException {
 		Map<String,String[]> parameterMap = getParameterMap(httpRequest); 
 		
-		// Check for duplicate parameter values (except for "i")
 		Iterator<?> iterator = parameterMap.keySet().iterator();
 		
 		while(iterator.hasNext()) {
@@ -58,7 +57,7 @@ public class DataPointFunctionQueryValidator extends AbstractHttpServletRequestV
 		
 		String startDate = (String) httpRequest.getParameter("start_date");
 		String endDate = (String) httpRequest.getParameter("end_date");
-		String userName = (String) httpRequest.getParameter("user");
+		String owner = (String) httpRequest.getParameter("owner");
 		String campaignUrn = (String) httpRequest.getParameter("campaign_urn");
 		String client = (String) httpRequest.getParameter("client");
 		String id = (String) httpRequest.getParameter("id");
@@ -71,7 +70,7 @@ public class DataPointFunctionQueryValidator extends AbstractHttpServletRequestV
 		   || greaterThanLength("endDate", "end_date", endDate, 10)
 		   || greaterThanLength("campaignUrn", "campaign_urn", campaignUrn, 250)
 		   || greaterThanLength("client", "client",client, 250)
-		   || greaterThanLength("userName", "user", userName, 15)
+		   || greaterThanLength("owner", "owner", owner, 15)
 		   || greaterThanLength("user", "user", user, 15)
 		   || greaterThanLength("password", "password", password, 100)
 		   || greaterThanLength("id", "id", id, 250)) {
