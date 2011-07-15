@@ -61,6 +61,10 @@ public class ClassListValidator extends AbstractAnnotatingValidator {
 				return true;
 			}
 		}
+		
+		if("".equals(classes.trim())) {
+			return true;
+		}
 
 		String[] classList = classes.split(InputKeys.LIST_ITEM_SEPARATOR);
 		for(int i = 0; i < classList.length; i++) {

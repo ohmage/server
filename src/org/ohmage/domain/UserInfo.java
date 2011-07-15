@@ -79,10 +79,15 @@ public class UserInfo {
 		_personalId = personalId;
 		_emailAddress = emailAddress;
 		
-		try {
-			_jsonData = new JSONObject(jsonData);
+		if(jsonData != null) {
+			try {
+				_jsonData = new JSONObject(jsonData);
+			}
+			catch(JSONException e) {
+				_jsonData = null;
+			}
 		}
-		catch(JSONException e) {
+		else {
 			_jsonData = null;
 		}
 	}

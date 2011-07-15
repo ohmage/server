@@ -76,6 +76,10 @@ public class UserHasRolesInAllCampaignsInListService extends AbstractAnnotatingS
 			}
 		}
 		
+		if("".equals(campaignIdList.trim())) {
+			return;
+		}
+		
 		_logger.info("Validating the that user has the appropriate roles for each campaign in the campaign list.");
 		
 		String[] campaignIdArray = campaignIdList.split(InputKeys.LIST_ITEM_SEPARATOR);

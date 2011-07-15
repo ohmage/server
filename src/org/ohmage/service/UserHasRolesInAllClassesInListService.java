@@ -75,6 +75,10 @@ public class UserHasRolesInAllClassesInListService extends AbstractAnnotatingSer
 			}
 		}
 		
+		if("".equals(classIdList.trim())) {
+			return;
+		}
+		
 		_logger.info("Validating that the user has the specified roles for all the classes in the class list.");
 		
 		String[] classIdArray = classIdList.split(InputKeys.LIST_ITEM_SEPARATOR);
