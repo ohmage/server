@@ -4,6 +4,7 @@ import org.apache.log4j.Logger;
 import org.ohmage.annotator.ErrorCodes;
 import org.ohmage.cache.DocumentPrivacyStateCache;
 import org.ohmage.cache.DocumentRoleCache;
+import org.ohmage.exception.ValidationException;
 import org.ohmage.request.Request;
 import org.ohmage.util.StringUtils;
 
@@ -19,6 +20,37 @@ public class DocumentValidators {
 	 * Default constructor. Made private to prevent instantiation.
 	 */
 	private DocumentValidators() {}
+	
+	/**
+	 * Validates a document's unique identifier.
+	 * 
+	 * @param request The request that is performing this validation.
+	 * 
+	 * @param documentId The document ID in question.
+	 * 
+	 * @return Returns the document's ID if it is valid. Returns null if it is
+	 * 		   null or whitespace only.
+	 * 
+	 * @throws ValidationException Thrown if the document's ID is not null, not
+	 * 							   whitespace only, and not a valid document 
+	 * 							   ID.
+	 */
+	public static String validateDocumentId(Request request, String documentId) throws ValidationException {
+		LOGGER.info("Validating a document's ID.");
+		
+		if(UuidValidators.validateUuid(documentId)) {
+			if(StringUtils.isEmptyOrWhitespaceOnly(documentId)) {
+				return null;
+			}
+			else {
+				return documentId;
+			}
+		}
+		else {
+			request.setFailed(ErrorCodes.DOCUMENT_INVALID_ID, "The document ID is invalid: " + documentId);
+			throw new ValidationException("The document ID is invalid: " + documentId);
+		}
+	}
 	
 	/**
 	 * Validates that a document's privacy state is a known privacy state.
@@ -76,6 +108,36 @@ public class DocumentValidators {
 		else {
 			request.setFailed(ErrorCodes.DOCUMENT_INVALID_ROLE, "Invalid document role: " + role);
 			throw new ValidationException("Invalid document role: " + role);
+		}
+	}
+	
+	/**
+	 * Validates that a 'personal documents' value is a valid value. It should
+	 * be a boolean value.
+	 * 
+	 * @param request The Request that is performing this validation.
+	 * 
+	 * @param value The value is be validated.
+	 * 
+	 * @return If the value is null or whitespace only, null is returned; 
+	 * 		   otherwise, the value is returned.
+	 * 
+	 * @throws ValidationException Thrown if the value is not a valid 'personal
+	 * 							   documents' value.
+	 */
+	public static Boolean validatePersonalDocuments(Request request, String value) throws ValidationException {
+		LOGGER.info("Validating a 'personal documents' value.");
+		
+		if(StringUtils.isEmptyOrWhitespaceOnly(value)) {
+			return null;
+		}
+		
+		if(BooleanValidators.validateBoolean(value)) {
+			return StringUtils.decodeBoolean(value);
+		}
+		else {
+			request.setFailed(ErrorCodes.DOCUMENT_INVALID_PERSONAL_DOCUMENTS_VALUE, "Invalid personal documents value: " + value);
+			throw new ValidationException("Invalid personal documents value: " + value);
 		}
 	}
 }

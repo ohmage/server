@@ -12,18 +12,18 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.ohmage.annotator.ErrorCodes;
 import org.ohmage.domain.DocumentInformation;
+import org.ohmage.exception.ServiceException;
+import org.ohmage.exception.ValidationException;
 import org.ohmage.request.InputKeys;
 import org.ohmage.request.UserRequest;
-import org.ohmage.service.CampaignDocumentServices;
-import org.ohmage.service.ClassDocumentServices;
-import org.ohmage.service.ServiceException;
+import org.ohmage.service.UserCampaignDocumentServices;
 import org.ohmage.service.UserCampaignServices;
+import org.ohmage.service.UserClassDocumentServices;
 import org.ohmage.service.UserClassServices;
 import org.ohmage.service.UserDocumentServices;
-import org.ohmage.validator.BooleanValidators;
 import org.ohmage.validator.CampaignValidators;
 import org.ohmage.validator.ClassValidators;
-import org.ohmage.validator.ValidationException;
+import org.ohmage.validator.DocumentValidators;
 
 /**
  * <p>Creates a new class. The requester must be an admin.</p>
@@ -92,7 +92,7 @@ public class DocumentReadRequest extends UserRequest {
 		List<String> tempClassIds = null;
 		
 		try {
-			tempPersonalDocuments = BooleanValidators.validateBoolean(this, httpRequest.getParameter(InputKeys.DOCUMENT_PERSONAL_DOCUMENTS));
+			tempPersonalDocuments = DocumentValidators.validatePersonalDocuments(this, httpRequest.getParameter(InputKeys.DOCUMENT_PERSONAL_DOCUMENTS));
 			if(tempPersonalDocuments == null) {
 				setFailed(ErrorCodes.DOCUMENT_INVALID_PERSONAL_DOCUMENTS_VALUE, "Missing required key: " + InputKeys.DOCUMENT_PERSONAL_DOCUMENTS);
 				throw new ValidationException("Missing required key: " + InputKeys.DOCUMENT_PERSONAL_DOCUMENTS);
@@ -141,12 +141,12 @@ public class DocumentReadRequest extends UserRequest {
 			
 			if(campaignIds != null) {
 				LOGGER.info("Gathering information about the documents that are visible to this user in the parameterized campaigns.");
-				result.addAll(CampaignDocumentServices.getDocumentsSpecificToCampaigns(this, user.getUsername(), campaignIds));
+				result.addAll(UserCampaignDocumentServices.getVisibleDocumentsSpecificToCampaigns(this, user.getUsername(), campaignIds));
 			}
 		
 			if(classIds != null) {
 				LOGGER.info("Gathering information about the documents that are visible to this user in the parameterized classes.");
-				result.addAll(ClassDocumentServices.getDocumentsSpecificToClasses(this, user.getUsername(), classIds));
+				result.addAll(UserClassDocumentServices.getVisibleDocumentsSpecificToClasses(this, user.getUsername(), classIds));
 			}
 		}
 		catch(ServiceException e) {

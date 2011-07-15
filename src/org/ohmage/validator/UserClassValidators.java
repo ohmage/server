@@ -1,10 +1,11 @@
 package org.ohmage.validator;
 
-import java.util.LinkedList;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.apache.log4j.Logger;
 import org.ohmage.annotator.ErrorCodes;
+import org.ohmage.exception.ValidationException;
 import org.ohmage.request.InputKeys;
 import org.ohmage.request.Request;
 import org.ohmage.util.StringUtils;
@@ -67,8 +68,7 @@ public final class UserClassValidators {
 	 * the usernames are syntactically valid, and that all of the roles are 
 	 * valid. If the list String is null or whitespace only, null is returned.
 	 * If there is any error in validating the list, a ValidationException is
-	 * thrown. Otherwise, a List of UserAndRoleObjects is returned representing
-	 * the list String.
+	 * thrown. Otherwise, a Map of usernames to class roles is returned.
 	 *  
 	 * @param request The request that is having this list validated.
 	 * 
@@ -81,23 +81,21 @@ public final class UserClassValidators {
 	 * 							{@value org.ohmage.request.InputKeys#ENTITY_ROLE_SEPARATOR}.
 	 * 
 	 * @return Returns null if the list String is null or whitespace only. 
-	 * 		   Otherwise, it returns a List of UserAndRole objects where each
-	 * 		   UserAndRole object represents a username and class-role pair
-	 * 		   from the list String.
+	 * 		   Otherwise, it returns a Map of usernames to class roles.
 	 * 
 	 * @throws ValidationException Thrown if the list String or any of the 
 	 * 							   usernames in the list String are 
 	 * 							   syntactically invalid. Also, thrown if any
 	 * 							   of the roles in the list String are invalid.
 	 */
-	public static List<UserAndRole> validateUserAndClassRoleList(Request request, String userClassRoleList) throws ValidationException {
+	public static Map<String, String> validateUserAndClassRoleList(Request request, String userClassRoleList) throws ValidationException {
 		LOGGER.info("Validating the user and class role list.");
 		
 		if(StringUtils.isEmptyOrWhitespaceOnly(userClassRoleList)) {
 			return null;
 		}
 		
-		List<UserAndRole> result = new LinkedList<UserAndRole>();
+		Map<String, String> result = new HashMap<String, String>();
 		String[] userAndRoleArray = userClassRoleList.split(InputKeys.LIST_ITEM_SEPARATOR);
 		for(int i = 0; i < userAndRoleArray.length; i++) {
 			String currUserAndRole = userAndRoleArray[i];
@@ -105,15 +103,18 @@ public final class UserClassValidators {
 			if(! "".equals(currUserAndRole)) {
 				String[] userAndRole = currUserAndRole.split(InputKeys.ENTITY_ROLE_SEPARATOR);
 				
+				String username;
 				if(userAndRole.length != 2) {
-					request.setFailed(ErrorCodes.CLASS_INVALID_USER_CLASS_ROLE_LIST, "The following user class-role item is invalid: " + currUserAndRole);
+					username = UserValidators.validateUsername(request, userAndRole[0]);
+					
+					request.setFailed(ErrorCodes.CLASS_INVALID_ROLE, "The class role is missing: " + currUserAndRole);
 					throw new ValidationException("The user class-role list at index " + i + " is invalid: " + currUserAndRole);
 				}
 				
-				String username = UserValidators.validateUsername(request, userAndRole[0]);
+				username = UserValidators.validateUsername(request, userAndRole[0]);
 				String role = ClassValidators.validateClassRole(request, userAndRole[1]);
 				
-				result.add(new UserAndRole(username, role));
+				result.put(username, role);
 			}
 		}
 		

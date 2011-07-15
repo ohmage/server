@@ -1,13 +1,18 @@
 package org.ohmage.service;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.ohmage.annotator.ErrorCodes;
 import org.ohmage.dao.ClassDaos;
-import org.ohmage.dao.DataAccessException;
+import org.ohmage.dao.ClassDaos.UserAndClassRole;
 import org.ohmage.domain.ClassInformation;
+import org.ohmage.exception.DataAccessException;
+import org.ohmage.exception.ServiceException;
 import org.ohmage.request.Request;
-import org.ohmage.validator.UserClassValidators.UserAndRole;
 
 /**
  * This class contains the services that pertain to classes.
@@ -66,13 +71,13 @@ public final class ClassServices {
 		try {
 			if((classId != null) && ClassDaos.getClassExists(classId)) {
 				if(! shouldExist) {
-					request.setFailed(ErrorCodes.CLASS_ALREADY_EXISTS, "The class already exists: " + classId);
+					request.setFailed(ErrorCodes.CLASS_INVALID_ID, "The class already exists: " + classId);
 					throw new ServiceException("The class already exists: " + classId);
 				}
 			}
 			else {
 				if(shouldExist) {
-					request.setFailed(ErrorCodes.CLASS_DOES_NOT_EXIST, "The class does not exist: " + classId);
+					request.setFailed(ErrorCodes.CLASS_INVALID_ID, "The class does not exist: " + classId);
 					throw new ServiceException("The class does not exist: " + classId);
 				}
 			}
@@ -102,7 +107,7 @@ public final class ClassServices {
 	 * 							classes exist and they shouldn't, or if any of
 	 * 							the classes don't exist and they should.
 	 */
-	public static void checkClassesExistence(Request request, List<String> classIds, boolean shouldExist) throws ServiceException {
+	public static void checkClassesExistence(Request request, Collection<String> classIds, boolean shouldExist) throws ServiceException {
 		for(String classId : classIds) {
 			checkClassExistence(request, classId, shouldExist);
 		}
@@ -136,6 +141,36 @@ public final class ClassServices {
 			throw new ServiceException(e);
 		}
 	}
+	
+	/**
+	 * Generates a Map of class IDs to a List of users and their roles for a 
+	 * List of classes.
+	 * 
+	 * @param request The Request that is performing this service.
+	 * 
+	 * @param classIds A List of unique identifiers for the classes that should
+	 * 				   be added to the roster.
+	 * 
+	 * @return A Map of class IDs to a List of users and their roles in that
+	 * 		   class.
+	 * 
+	 * @throws ServiceException Thrown if there is an error.
+	 */
+	public static Map<String, List<UserAndClassRole>> generateClassRoster(Request request, List<String> classIds) throws ServiceException {
+		try {
+			Map<String, List<UserAndClassRole>> result = new HashMap<String, List<UserAndClassRole>>();
+			
+			for(String classId : classIds) {
+				result.put(classId, ClassDaos.getUserRolePairs(classId));
+			}
+			
+			return result;
+		}
+		catch(DataAccessException e) {
+			request.setFailed();
+			throw new ServiceException(e);
+		}
+	}
 
 	/**
 	 * Updates the class.
@@ -158,9 +193,34 @@ public final class ClassServices {
 	 * 
 	 * @throws ServiceException Thrown if there is an error.
 	 */
-	public static void updateClass(Request request, String classId, String className, String classDescription, List<UserAndRole> usersToAdd, List<UserAndRole> usersToRemove) throws ServiceException{
+	public static void updateClass(Request request, String classId, String className, String classDescription, Map<String, String> usersToAdd, List<String> usersToRemove) throws ServiceException{
 		try {
 			ClassDaos.updateClass(classId, className, classDescription, usersToAdd, usersToRemove);
+		}
+		catch(DataAccessException e) {
+			request.setFailed();
+			throw new ServiceException(e);
+		}
+	}
+	
+	/**
+	 * Updates the class via a class roster.
+	 * 
+	 * @param request The Request that is asking to have the class updated.
+	 * 
+	 * @param roster A Map of class IDs to Maps of usernames to class roles.
+	 * 
+	 * @throws ServiceException Thrown if there is an error.
+	 */
+	public static List<String> updateClassViaRoster(Request request, Map<String, Map<String, String>> roster) throws ServiceException {
+		try {
+			List<String> warningMessages = new ArrayList<String>();
+			
+			for(String classId : roster.keySet()) {
+				warningMessages.addAll(ClassDaos.updateClass(classId, null, null, roster.get(classId), null));
+			}
+			
+			return warningMessages;
 		}
 		catch(DataAccessException e) {
 			request.setFailed();

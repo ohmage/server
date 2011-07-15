@@ -2,6 +2,7 @@ package org.ohmage.dao;
 
 import javax.sql.DataSource;
 
+import org.ohmage.exception.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 /**
@@ -48,5 +49,30 @@ public abstract class Dao {
 		jdbcTemplate = new JdbcTemplate(dataSource);
 		
 		initialized = true;
+	}
+	
+	/**
+	 * Throws a new org.ohmage.dao.DataAccessException. This is what all Daos
+	 * should use when a generic org.springframework.dao.DataAccessException is
+	 * thrown.
+	 * 
+	 * @param sql The SQL that caused the 
+	 * 			  org.springframework.dao.DataAccessException.
+	 * 
+	 * @param e The org.springframework.dao.DataAccessException that was 
+	 * 			thrown.
+	 * 
+	 * @param params The parameters that were added to the SQL.
+	 * 
+	 * @throws DataAccessException The new 
+	 * 							   org.springframework.dao.DataAccessException
+	 * 							   that encapsulates the SQL, its arguments,
+	 * 							   and the 
+	 * 							   org.springframework.dao.DataAccessException.
+	 */
+	protected static void errorExecutingSql(String sql, org.springframework.dao.DataAccessException e, String... params) throws DataAccessException {
+		throw new DataAccessException(
+				"Error executing SQL '" + sql + "' " +
+				"with parameter(s): " + params, e);
 	}
 }

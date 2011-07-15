@@ -13,25 +13,43 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  ******************************************************************************/
-package org.ohmage.validator;
+package org.ohmage.exception;
 
 /**
- * Simple wrapper for RuntimeExceptions that are thrown from the validation layer. 
+ * Checked cache exception. Thrown when a cache miss occurs.
  * 
- * @author selsky
+ * @author John Jenkins
  */
-public class ValidationException extends Exception {
+public class CacheMissException extends Exception {
 	private static final long serialVersionUID = 1L;
-
-	public ValidationException(String message) {
+	
+	/**
+	 * Sets the message of the exception.
+	 * 
+	 * @param message The message being conveyed when this exception occurs.
+	 */
+	public CacheMissException(String message) {
 		super(message);
 	}
 	
-	public ValidationException(String message, Throwable cause) {
+	/**
+	 * Sets the message of the exception and the Throwable that caused this
+	 * exception to be reached.
+	 * 
+	 * @param message The message being conveyed when this exception occurs.
+	 * 
+	 * @param cause The Throwable that caused this exception to be reached.
+	 */
+	public CacheMissException(String message, Throwable cause) {
 		super(message, cause);
 	}
 	
-	public ValidationException(Throwable cause) {
+	/**
+	 * Sets the Throwable that caused this exception to be reached.
+	 * 
+	 * @param cause The Throwable that caused this exception to be reached.
+	 */
+	public CacheMissException(Throwable cause) {
 		super(cause);
 	}
 }

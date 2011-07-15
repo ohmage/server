@@ -18,6 +18,8 @@ import org.apache.log4j.Logger;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.ohmage.annotator.Annotator;
+import org.ohmage.annotator.ErrorCodes;
+import org.ohmage.exception.ValidationException;
 
 /**
  * Superclass for all requests. Defines the basic requirements for a request.
@@ -33,6 +35,13 @@ public abstract class Request {
 	
 	public static final String JSON_KEY_DATA = "data";
 	public static final String JSON_KEY_ERRORS = "errors";
+	
+	public static final String RESPONSE_ERROR_JSON_TEXT = 
+		"{\"" + JSON_KEY_RESULT + "\":\"" + RESULT_FAILURE + "\"," +
+		"\"" + JSON_KEY_ERRORS + "\":[" +
+			"{\"" + Annotator.JSON_KEY_CODE + "\":\"0103\"," +
+			"\"" + Annotator.JSON_KEY_TEXT + "\":\"An error occurred while building the JSON response.\"}" +
+		"]}";
 	
 	protected final Annotator annotator;
 	protected boolean failed;
@@ -172,8 +181,7 @@ public abstract class Request {
 				// If we can't even build the failure message, write a hand-
 				// written message as the response.
 				LOGGER.error("An error occurred while building the failure JSON response.", e);
-				responseText = "{\"" + JSON_KEY_RESULT + "\":\"" + RESULT_FAILURE + "\",\"" + JSON_KEY_ERRORS + 
-					"\":[{\"" + Annotator.JSON_KEY_CODE + "\":\"0103\",\"" + Annotator.JSON_KEY_TEXT + "\":\"An error occurred while building the JSON response.\"}]}";
+				responseText = RESPONSE_ERROR_JSON_TEXT;
 			}
 		}
 		
@@ -267,25 +275,37 @@ public abstract class Request {
 	 * 								 key is larger than the maximum allowed 
 	 * 								 size for a single value.
 	 */
-	protected byte[] getMultipartValue(HttpServletRequest httpRequest, String key) throws ServletException, IOException {
-		Part part = httpRequest.getPart(key);
-		if(part == null) {
-			return null;
+	protected byte[] getMultipartValue(HttpServletRequest httpRequest, String key) throws ValidationException {
+		try {
+			Part part = httpRequest.getPart(key);
+			if(part == null) {
+				return null;
+			}
+			
+			InputStream partInputStream = part.getInputStream();
+			ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+			byte[] chunk = new byte[4096];
+			int amountRead;
+			while((amountRead = partInputStream.read(chunk)) != -1) {
+				outputStream.write(chunk, 0, amountRead);
+			}
+			
+			if(outputStream.size() == 0) {
+				return null;
+			}
+			else {
+				return outputStream.toByteArray();
+			}
 		}
-		
-		InputStream partInputStream = part.getInputStream();
-		ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-		byte[] chunk = new byte[4096];
-		int amountRead;
-		while((amountRead = partInputStream.read(chunk)) != -1) {
-			outputStream.write(chunk, 0, amountRead);
+		catch(ServletException e) {
+			LOGGER.error("This is not a multipart/form-data POST.", e);
+			setFailed(ErrorCodes.SYSTEM_GENERAL_ERROR, "This is not a multipart/form-data POST which is what we expect for uploading campaign XMLs.");
+			throw new ValidationException(e);
 		}
-		
-		if(outputStream.size() == 0) {
-			return null;
-		}
-		else {
-			return outputStream.toByteArray();
+		catch(IOException e) {
+			LOGGER.error("There was an error reading the message from the input stream.", e);
+			setFailed();
+			throw new ValidationException(e);
 		}
 	}
 	/**************************************************************************

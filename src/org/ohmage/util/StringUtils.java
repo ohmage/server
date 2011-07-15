@@ -146,6 +146,29 @@ public final class StringUtils {
 	}
 	
 	/**
+	 * Takes a String value and decodes it into a boolean value. If the value
+	 * is not a valid boolean value, null is returned. All functions that 
+	 * decode boolean values should use this method, so it can be a central
+	 * location for how we define what we accept as boolean values.
+	 * 
+	 * @param value The String value to be decoded.
+	 * 
+	 * @return Returns true if it is evaluated to be true and returns false if 
+	 * 		   it is evaluated to be false, otherwise it returns null.
+	 */
+	public static Boolean decodeBoolean(String value) {
+		if("true".equals(value)) {
+			return true;
+		}
+		else if("false".equals(value)) {
+			return false;
+		}
+		else {
+			return null;
+		}
+	}
+	
+	/**
 	 * @return an empty list, or if the provided string contained comma-separated values, a list containing each element
 	 */
 	public static List<String> splitCommaSeparatedString(String string) {

@@ -3,7 +3,8 @@ package org.ohmage.service;
 import org.ohmage.annotator.ErrorCodes;
 import org.ohmage.dao.AuthenticationDao;
 import org.ohmage.dao.AuthenticationDao.UserInformation;
-import org.ohmage.dao.DataAccessException;
+import org.ohmage.exception.DataAccessException;
+import org.ohmage.exception.ServiceException;
 import org.ohmage.request.UserRequest;
 
 /**
@@ -65,7 +66,7 @@ public final class AuthenticationService {
 		}
 		// If the user is a new user and we aren't allowing new users for this
 		// call, update the annotator and set the request as failed.
-		else if(userInformation.getNewAccount() && (! newAccountsAllowed)) {
+		else if((! newAccountsAllowed) && userInformation.getNewAccount()) {
 			request.setFailed(ErrorCodes.AUTHENTICATION_FAILED, "New accounts aren't allowed to use this service.");
 			return false;
 		}

@@ -1,12 +1,17 @@
 package org.ohmage.dao;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FilenameFilter;
 import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Arrays;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.locks.Lock;
@@ -16,10 +21,11 @@ import java.util.regex.Pattern;
 import javax.sql.DataSource;
 
 import org.apache.log4j.Logger;
-import org.ohmage.cache.CacheMissException;
 import org.ohmage.cache.DocumentRoleCache;
 import org.ohmage.cache.PreferenceCache;
 import org.ohmage.domain.DocumentInformation;
+import org.ohmage.exception.CacheMissException;
+import org.ohmage.exception.DataAccessException;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.transaction.PlatformTransactionManager;
@@ -41,6 +47,27 @@ import org.springframework.transaction.support.DefaultTransactionDefinition;
 public class DocumentDaos extends Dao {
 	private static final Logger LOGGER = Logger.getLogger(DocumentDaos.class);
 	
+	// Retrieves a boolean representing whether or not a document exists in the
+	// database.
+	private static final String SQL_EXISTS_DOCUMENT =
+		"SELECT EXISTS(" +
+			"SELECT uuid " +
+			"FROM document " +
+			"WHERE uuid = ?" +
+		")";
+	
+	// Retrieves a document's URL.
+	private static final String SQL_GET_DOCUMENT_URL = 
+		"SELECT url " +
+		"FROM document " +
+		"WHERE uuid = ?";
+	
+	// Retrieves a document's name.
+	private static final String SQL_GET_DOCUMENT_NAME = 
+		"SELECT name " +
+		"FROM document " +
+		"WHERE uuid = ?";
+	
 	// Gets a document's information.
 	private static final String SQL_GET_DOCUMENT_INFO = 
 		"SELECT d.uuid, d.name, d.description, dps.privacy_state, d.last_modified_timestamp, d.creation_timestamp, d.size, duc.username " +
@@ -60,7 +87,7 @@ public class DocumentDaos extends Dao {
 		"VALUES ((SELECT id FROM document WHERE uuid = ?), ?)";
 	
 	// Associates a user with a document and gives them a specific role.
-	private static final String SQL_INSERT_DOCUMENT_USER_ROLE = 
+	private static final String SQL_INSERT_USER_ROLE = 
 		"INSERT INTO document_user_role(document_id, user_id, document_role_id) " +
 		"VALUES (" +
 			"(" +
@@ -79,7 +106,7 @@ public class DocumentDaos extends Dao {
 		")";
 	
 	// Associates a campaign with a document and gives it a specific role.
-	private static final String SQL_INSERT_DOCUMENT_CAMPAIGN_ROLE = 
+	private static final String SQL_INSERT_CAMPAIGN_ROLE = 
 		"INSERT INTO document_campaign_role(document_id, campaign_id, document_role_id) " +
 		"VALUES (" +
 			"(" +
@@ -98,7 +125,7 @@ public class DocumentDaos extends Dao {
 		")";
 	
 	// Associates a class with a document and gives it a specific role.
-	private static final String SQL_INSERT_DOCUMENT_CLASS_ROLE = 
+	private static final String SQL_INSERT_CLASS_ROLE = 
 		"INSERT INTO document_class_role(document_id, class_id, document_role_id) " +
 		"VALUES (" +
 			"(" +
@@ -114,6 +141,127 @@ public class DocumentDaos extends Dao {
 				"FROM document_role " +
 				"WHERE role = ?" +
 			")" +
+		")";
+
+	private static final String SQL_UPDATE_NAME = 
+		"UPDATE document " +
+		"SET name = ?, extension = ? " +
+		"WHERE uuid = ?";
+
+	private static final String SQL_UPDATE_DESCRIPTION = 
+		"UPDATE document " +
+		"SET description = ? " +
+		"WHERE uuid = ?";
+
+	private static final String SQL_UPDATE_PRIVACY_STATE = 
+		"UPDATE document " +
+		"SET privacy_state_id = (" +
+			"SELECT id " +
+			"FROM document_privacy_state " +
+			"WHERE privacy_state = ?" +
+		") " +
+		"WHERE uuid = ?";
+
+	private static final String SQL_UPDATE_SIZE = 
+		"UPDATE document " +
+		"SET size = ? " +
+		"WHERE uuid = ?";
+
+	private static final String SQL_UPDATE_CAMPAIGN_ROLE = 
+		"UPDATE document_campaign_role " +
+		"SET document_role_id = (" +
+			"SELECT id " +
+			"FROM document_role " +
+			"WHERE role = ?" +
+		") " +
+		"WHERE document_id = (" +
+			"SELECT id " +
+			"FROM document " +
+			"WHERE uuid = ?" +
+		") " +
+		"AND campaign_id = (" +
+			"SELECT id " +
+			"FROM campaign " +
+			"WHERE urn = ?" +
+		")";
+
+	private static final String SQL_UPDATE_CLASS_ROLE = 
+		"UPDATE document_class_role " +
+		"SET document_role_id = (" +
+			"SELECT id " +
+			"FROM document_role " +
+			"WHERE role = ?" +
+		") " +
+		"WHERE document_id = (" +
+			"SELECT id " +
+			"FROM document " +
+			"WHERE uuid = ?" +
+		") " +
+		"AND class_id = (" +
+			"SELECT id " +
+			"FROM class " +
+			"WHERE urn = ?" +
+		")";
+
+	private static final String SQL_UPDATE_USER_ROLE = 
+		"UPDATE document_user_role " +
+		"SET document_role_id = (" +
+			"SELECT id " +
+			"FROM document_role " +
+			"WHERE role = ?" +
+		") " +
+		"WHERE document_id = (" +
+			"SELECT id " +
+			"FROM document " +
+			"WHERE uuid = ?" +
+		") " +
+		"AND user_id = (" +
+			"SELECT id " +
+			"FROM user " +
+			"WHERE username = ?" +
+		")";
+	
+	private static final String SQL_DELETE_DOCUMENT = 
+		"DELETE FROM document " +
+		"WHERE uuid = ?";
+
+	private static final String SQL_DELETE_CAMPAIGN_ROLE = 
+		"DELETE FROM document_campaign_role " +
+		"WHERE document_id = (" +
+			"SELECT id " +
+			"FROM document " +
+			"WHERE uuid = ?" +
+		") " +
+		"AND campaign_id = (" +
+			"SELECT id " +
+			"FROM campaign " +
+			"WHERE urn = ?" +
+		")";
+
+	private static final String SQL_DELETE_CLASS_ROLE = 
+		"DELETE FROM document_class_role " +
+		"WHERE document_id = (" +
+			"SELECT id " +
+			"FROM document " +
+			"WHERE uuid = ?" +
+		") " +
+		"AND class_id = (" +
+			"SELECT id " +
+			"FROM class " +
+			"WHERE urn = ?" +
+		")";
+
+	private static final String SQL_DELETE_USER_ROLE = 
+		"DELETE FROM document_user_role " +
+		"WHERE document_id = (" +
+			"SELECT id " +
+			"FROM document " +
+			"WHERE uuid = ?" +
+		") " +
+		"AND user_id = (" +
+			"SELECT id " +
+			"FROM user " +
+			"WHERE username = ?" +
 		")";
 	
 	private static final String DOCUMENT_DIRECTORY_PATTERN_STRING = "[0-9]+";
@@ -180,7 +328,9 @@ public class DocumentDaos extends Dao {
 	 * @return Returns a unique identifier for this document.
 	 */
 	public static String createDocument(byte[] contents, String name, String description, String privacyState, 
-			Map<String, String> campaignRoleMap, Map<String, String> classRoleMap, String creatorUsername) {
+			Map<String, String> campaignRoleMap, Map<String, String> classRoleMap, String creatorUsername) 
+		throws DataAccessException {
+		
 		// Create a new, random UUID to use to save this file.
 		String uuid = UUID.randomUUID().toString();
 		
@@ -257,7 +407,7 @@ public class DocumentDaos extends Dao {
 			// Insert this user's user-role in the DB.
 			try {
 				instance.jdbcTemplate.update(
-						SQL_INSERT_DOCUMENT_USER_ROLE, 
+						SQL_INSERT_USER_ROLE, 
 						new Object[] { 
 								uuid, 
 								creatorUsername, 
@@ -268,7 +418,7 @@ public class DocumentDaos extends Dao {
 			catch(org.springframework.dao.DataAccessException e) {
 				newFile.delete();
 				transactionManager.rollback(status);
-				throw new DataAccessException("Error executing SQL '" + SQL_INSERT_DOCUMENT_USER_ROLE + "' with parameters: " +
+				throw new DataAccessException("Error executing SQL '" + SQL_INSERT_USER_ROLE + "' with parameters: " +
 						uuid + ", " + creatorUsername + ", " + DocumentRoleCache.ROLE_OWNER, e);
 			}
 			
@@ -278,7 +428,7 @@ public class DocumentDaos extends Dao {
 					// Attempt to insert it into the database.
 					try {
 						instance.jdbcTemplate.update(
-								SQL_INSERT_DOCUMENT_CAMPAIGN_ROLE, 
+								SQL_INSERT_CAMPAIGN_ROLE, 
 								new Object[] { 
 										uuid, 
 										campaignId, 
@@ -289,7 +439,7 @@ public class DocumentDaos extends Dao {
 					catch(org.springframework.dao.DataAccessException e) {
 						newFile.delete();
 						transactionManager.rollback(status);
-						throw new DataAccessException("Error executing SQL '" + SQL_INSERT_DOCUMENT_CAMPAIGN_ROLE + "' with parameters: " + 
+						throw new DataAccessException("Error executing SQL '" + SQL_INSERT_CAMPAIGN_ROLE + "' with parameters: " + 
 								uuid + ", " + campaignId + ", " + campaignRoleMap.get(campaignId), e);
 					}
 				}
@@ -301,7 +451,7 @@ public class DocumentDaos extends Dao {
 					// Attempt to insert it into the database.
 					try {
 						instance.jdbcTemplate.update(
-								SQL_INSERT_DOCUMENT_CLASS_ROLE, 
+								SQL_INSERT_CLASS_ROLE, 
 								new Object[] { 
 										uuid, 
 										classId, 
@@ -312,7 +462,7 @@ public class DocumentDaos extends Dao {
 					catch(org.springframework.dao.DataAccessException e) {
 						newFile.delete();
 						transactionManager.rollback(status);
-						throw new DataAccessException("Error executing SQL '" + SQL_INSERT_DOCUMENT_CLASS_ROLE + "' with parameters: " + 
+						throw new DataAccessException("Error executing SQL '" + SQL_INSERT_CLASS_ROLE + "' with parameters: " + 
 								uuid + ", " + classId + ", " + classRoleMap.get(classId), e);
 					}
 				}
@@ -335,6 +485,57 @@ public class DocumentDaos extends Dao {
 	}
 	
 	/**
+	 * Returns whether or not a document with the unique document identifier
+	 * 'documentId' exists.
+	 * 
+	 * @param documentId The unique document identifier of a document.
+	 * 
+	 * @return Returns true if the document exists and false otherwise.
+	 */
+	public static boolean getDocumentExists(String documentId) throws DataAccessException {
+		try {
+			return instance.jdbcTemplate.queryForObject(SQL_EXISTS_DOCUMENT, new Object[] { documentId }, Boolean.class);
+		}
+		catch(org.springframework.dao.DataAccessException e) {
+			throw new DataAccessException("Error executing SQL '" + SQL_EXISTS_DOCUMENT + "' with parameter: " + documentId, e);
+		}
+	}
+	
+	/**
+	 * Returns the URL of the document.
+	 * 
+	 * @param documentId The unique document identifier of the document in 
+	 * 					 question.
+	 * 
+	 * @return Returns the URL of the document.
+	 */
+	public static String getDocumentUrl(String documentId) throws DataAccessException {
+		try {
+			return instance.jdbcTemplate.queryForObject(SQL_GET_DOCUMENT_URL, new Object[] { documentId }, String.class);
+		}
+		catch(org.springframework.dao.DataAccessException e) {
+			throw new DataAccessException("Error executing SQL '" + SQL_GET_DOCUMENT_URL + "' with parameter: " + documentId, e);
+		}
+	}
+	
+	/**
+	 * Returns the name of the document.
+	 * 
+	 * @param documentId The unique document identifier of the document in 
+	 * 					 question.
+	 * 
+	 * @return Returns the name of the document.
+	 */
+	public static String getDocumentName(String documentId) throws DataAccessException {
+		try {
+			return instance.jdbcTemplate.queryForObject(SQL_GET_DOCUMENT_NAME, new Object[] { documentId }, String.class);
+		}
+		catch(org.springframework.dao.DataAccessException e) {
+			throw new DataAccessException("Error executing SQL '" + SQL_GET_DOCUMENT_NAME + "' with parameter: " + documentId, e);
+		}
+	}
+	
+	/**
 	 * Retrieves the information about a document whose ID is 'documentId'.
 	 * 
 	 * @param documentId The unique document ID for the document whose 
@@ -343,7 +544,7 @@ public class DocumentDaos extends Dao {
 	 * @return A DocumentInformation object representing the information about
 	 * 		   this document.
 	 */
-	public static DocumentInformation getDocumentInformation(String documentId) {
+	public static DocumentInformation getDocumentInformation(String documentId) throws DataAccessException {
 		try {
 			return instance.jdbcTemplate.queryForObject(
 				SQL_GET_DOCUMENT_INFO, 
@@ -366,6 +567,363 @@ public class DocumentDaos extends Dao {
 		}
 		catch(org.springframework.dao.DataAccessException e) {
 			throw new DataAccessException("Error executing SQL '" + SQL_GET_DOCUMENT_INFO + "' with parameter: " + documentId, e);
+		}
+	}
+	
+	/**
+	 * Updates a document. The 'documentId' cannot be null as this is used to
+	 * indicate which document is being updated, but the remaining parameters
+	 * may all be null.
+	 * 
+	 * @param documentId The unique identifier for the document to be updated.
+	 * 
+	 * @param contents The new contents of the document.
+	 * 
+	 * @param name The new name of the document.
+	 * 
+	 * @param description The new description for the document.
+	 * 
+	 * @param privacyState The new privacy state for the document.
+	 * 
+	 * @param campaignAndRolesToAdd A Map of campaign IDs to document roles 
+	 * 								where the document should be associated to
+	 * 								the campaign with the given role or, if
+	 * 								already associated, should have its role
+	 * 								updated with the new role.
+	 * 
+	 * @param campaignsToRemove A List of campaign IDs that should no longer be
+	 * 							associated with this document.
+	 * 
+	 * @param classAndRolesToAdd A Map of class IDs to document roles where the
+	 * 							 document should be associated to the class 
+	 * 							 with the given role or, if already associated,
+	 * 							 should have its role updated with the new 
+	 * 							 role.
+	 * 
+	 * @param classesToRemove A List of class IDs that should no longer be
+	 * 						  associated with this document.
+	 * 
+	 * @param userAndRolesToAdd A Map of usernames to document roles where the
+	 * 							document should be associated to the user with
+	 * 							the given role or, if already associated, 
+	 * 							should have its role updated with the new role.
+	 * 
+	 * @param usersToRemove A List of usernames that should no longer be 
+	 * 						associated with this document.
+	 */
+	public static void updateDocument(String documentId, byte[] contents, String name, String description, String privacyState,
+			Map<String, String> campaignAndRolesToAdd, List<String> campaignsToRemove, 
+			Map<String, String> classAndRolesToAdd, List<String> classesToRemove, 
+			Map<String, String> userAndRolesToAdd, List<String> usersToRemove) throws DataAccessException {
+		// Begin transaction
+		DefaultTransactionDefinition def = new DefaultTransactionDefinition();
+		def.setName("Document update.");
+		
+		try {
+			PlatformTransactionManager transactionManager = new DataSourceTransactionManager(instance.dataSource);
+			TransactionStatus status = transactionManager.getTransaction(def);
+			
+			try {
+				updateName(documentId, name);
+				updateDescription(documentId, description);
+				updatePrivacyState(documentId, privacyState);
+				
+				// Update the campaign-document roles.
+				updateEntityRoleList(documentId, campaignAndRolesToAdd, campaignsToRemove,
+						SQL_INSERT_CAMPAIGN_ROLE, SQL_UPDATE_CAMPAIGN_ROLE, SQL_DELETE_CAMPAIGN_ROLE);
+				// Update the class-document roles.
+				updateEntityRoleList(documentId, classAndRolesToAdd, classesToRemove, 
+						SQL_INSERT_CLASS_ROLE, SQL_UPDATE_CLASS_ROLE, SQL_DELETE_CLASS_ROLE);
+				// Update the user-document roles.
+				updateEntityRoleList(documentId, userAndRolesToAdd, usersToRemove,
+						SQL_INSERT_USER_ROLE, SQL_UPDATE_USER_ROLE, SQL_DELETE_USER_ROLE);
+				
+				// Update the contents last, so if there are any problems with
+				// the other actions, then we fail before we write to the 
+				// system.
+				updateContents(documentId, contents);
+			}
+			catch(IllegalArgumentException e) {
+				// Rollback transaction and throw a DataAccessException.
+				transactionManager.rollback(status);
+				throw new DataAccessException("Error while executing the update.", e);
+			}
+			catch(CacheMissException e) {
+				transactionManager.rollback(status);
+				throw new DataAccessException("Error while reading from the cache.", e);
+			}
+			catch(org.springframework.dao.DataAccessException e) {
+				transactionManager.rollback(status);
+				throw e;
+			}
+			
+			// Commit transaction.
+			try {
+				transactionManager.commit(status);
+			}
+			catch(TransactionException e) {
+				transactionManager.rollback(status);
+				throw new DataAccessException("Error while committing the transaction.", e);
+			}
+		}
+		catch(TransactionException e) {
+			throw new DataAccessException("Error while rolling back the transaction.", e);
+		}
+	}
+	
+	/**
+	 * Deletes a document.
+	 * 
+	 * @param documentId The unique identifier for the document to be deleted.
+	 */
+	public static void deleteDocument(String documentId) throws DataAccessException {
+		// Begin transaction
+		DefaultTransactionDefinition def = new DefaultTransactionDefinition();
+		def.setName("Document delete.");
+		
+		try {
+			PlatformTransactionManager transactionManager = new DataSourceTransactionManager(instance.dataSource);
+			TransactionStatus status = transactionManager.getTransaction(def);
+			
+			String documentUrl = getDocumentUrl(documentId);
+			
+			try {
+				instance.jdbcTemplate.update(SQL_DELETE_DOCUMENT, new Object[] { documentId });
+			}
+			catch(org.springframework.dao.DataAccessException e) {
+				transactionManager.rollback(status);
+				throw new DataAccessException("Error executing SQL '" + SQL_DELETE_DOCUMENT + "' with parameter: " + documentId, e);
+			}
+			
+			try {
+				if(! (new File((new URL(documentUrl)).getFile())).delete()) {
+					LOGGER.warn("The document no longer existed, so the deletion only removed the entry from the database.");
+				}
+			}
+			catch(MalformedURLException e) {
+				LOGGER.warn("The URL was malformed, meaning that we couldn't have referenced the file anyway. Cannot delete the file.", e);
+			}
+			catch(SecurityException e) {
+				LOGGER.warn("Failed to delete the file because the security manager stopped us. Are we attempting to delete a file that isn't part of the heirarchy?", e);
+			}
+			
+			// Commit transaction.
+			try {
+				transactionManager.commit(status);
+			}
+			catch(TransactionException e) {
+				transactionManager.rollback(status);
+				throw new DataAccessException("Error while committing the transaction.", e);
+			}
+		}
+		catch(TransactionException e) {
+			throw new DataAccessException("Error while rolling back the transaction.", e);
+		}
+	}
+	
+	/**
+	 * Updates the name associated with the document or does nothing if the
+	 * name is null. Also, updates the extension for the file.
+	 * 
+	 * @param documentId The unique identifier for the document whose name is
+	 * 					 being updated.
+	 * 
+	 * @param name The new name for the document with an extension.
+	 */
+	private static void updateName(String documentId, String name) throws DataAccessException {
+		if(name == null) {
+			return;
+		}
+		
+		// Update the document's name.
+		String extension = getExtension(name);
+		try {
+			instance.jdbcTemplate.update(SQL_UPDATE_NAME, new Object[] { name, extension, documentId });
+		}
+		catch(org.springframework.dao.DataAccessException e) {
+			errorExecutingSql(SQL_UPDATE_NAME, e, name, extension, documentId);
+		}
+	}
+	
+	/**
+	 * Updates the description of the document or does nothing if the 
+	 * description is null.
+	 * 
+	 * @param documentId The unique identifier for the document whose name is
+	 * 					 being updated.
+	 * 
+	 * @param description The new description for the document.
+	 */
+	private static void updateDescription(String documentId, String description) throws DataAccessException {
+		if(description == null) {
+			return;
+		}
+		
+		// Update the document's description.
+		try {
+			instance.jdbcTemplate.update(SQL_UPDATE_DESCRIPTION, new Object[] { description, documentId });
+		}
+		catch(org.springframework.dao.DataAccessException e) {
+			errorExecutingSql(SQL_UPDATE_DESCRIPTION, e, description, documentId);
+		}
+	}
+	
+	/**
+	 * Updates the privacy state of the document if one exists in the request.
+	 * 
+	 * @param request The request containing the new privacy state if one
+	 * 				  exists.
+	 * 
+	 * @throws CacheMissException The privacy state is unknown to the cache.
+	 * 							  This should never happen as it has already
+	 * 							  been validated.
+	 */
+	private static void updatePrivacyState(String documentId, String privacyState) throws CacheMissException, DataAccessException {
+		if(privacyState == null) {
+			return;
+		}
+		
+		// Update the document's privacy state.
+		try {
+			instance.jdbcTemplate.update(SQL_UPDATE_PRIVACY_STATE, new Object[] { privacyState, documentId });
+		}
+		catch(org.springframework.dao.DataAccessException e) {
+			throw new DataAccessException("Error executing SQL '" + SQL_UPDATE_PRIVACY_STATE + "' with parameters: " +
+					privacyState + ", " + documentId, e);
+		}
+	}
+	
+	/**
+	 * Updates the file's size in the database and updates the contents on the
+	 * disk. If the contents is null, nothing happens.
+	 * 
+	 * @param documentId The unique identifier for the document.
+	 * 
+	 * @param contents The new contents of the document.
+	 */
+	private static void updateContents(String documentId, byte[] contents) throws DataAccessException {
+		if(contents == null) {
+			return;
+		}
+		
+		// Lookup the document's URL.
+		String documentUrl = getDocumentUrl(documentId);
+		
+		// Update the size in the database.
+		try {
+			instance.jdbcTemplate.update(SQL_UPDATE_SIZE, new Object[] { contents.length, documentId });
+		}
+		catch(org.springframework.dao.DataAccessException e) {
+			throw new DataAccessException("Error executing SQL '" + SQL_UPDATE_SIZE + "' with parameters: " + contents.length + ", " + documentId, e);
+		}
+		
+		// Write the new contents to the document.
+		try {
+			// TODO: If we are really going to support any URL, then we need to
+			// find a way to be able to write to URLs as well. Currently, we 
+			// are only writing to files, so that is what is "hard coded." But,
+			// we really need to switch the writer based on the URL.
+			FileOutputStream fileOutputStream = new FileOutputStream(new URL(documentUrl).getFile());
+			fileOutputStream.write(contents);
+			fileOutputStream.flush();
+			fileOutputStream.close();
+		} 
+		catch(MalformedURLException e) {
+			throw new DataAccessException("The URL pointing to this resource is broken. This could be a major issue.", e);
+		} 
+		catch(FileNotFoundException e) {
+			throw new DataAccessException("The file that this URL points to is missing. This could be a major issue.", e);
+		}
+		catch(SecurityException e) {
+			throw new DataAccessException("We don't have permissions to open a connection or write to a document.", e);
+		}
+		catch (IOException e) {
+			throw new DataAccessException("There was an error writing to the URL.", e);
+		}
+	}
+	
+	/**
+	 * Updates the association between an group of entities and the document
+	 * that is being updated.
+	 * 
+	 * @param documentId The unique identifier for the document that is being
+	 * 					 updated.
+	 * 
+	 * @param entityAndRolesToAdd A Map of entity IDs to document roles that
+	 * 							  should be associated with the document or, if
+	 * 							  already associated should have their role
+	 * 							  updated. These entities should all be of the
+	 * 							  same type (user, class, campaign, etc.) and
+	 * 							  should be the same as the types in 
+	 * 							  'entitiesToRemove'.
+	 * 
+	 * @param entitiesToRemove A List of entity IDs that should no longer be
+	 * 						   associated with the campaign. These entities
+	 * 						   should all be of the same type (user, class,
+	 * 						   campaign, etc.) and should be the same as the
+	 * 						   types in 'entityAndRolesToAdd'.
+	 * 
+	 * @param sqlInsertEntity The SQL to use to add the entity's association
+	 * 						  into the database.
+	 * 
+	 * @param sqlUpdateEntity The SQL to use to update the entity's role with
+	 * 						  this role in the database.
+	 * 
+	 * @param sqlDeleteEntity The SQL to use to delete the entity's association
+	 * 						  with this document.
+	 * 
+	 * @throws CacheMissException Thrown if there is an issue getting the 
+	 * 							  database ID for the document.
+	 */
+	private static void updateEntityRoleList(String documentId, Map<String, String> entityAndRolesToAdd, List<String> entitiesToRemove, 
+			String sqlInsertEntity, String sqlUpdateEntity, String sqlDeleteEntity) throws CacheMissException, DataAccessException {
+
+		// Delete roles
+		if(entitiesToRemove != null) {
+			Iterator<String> removeListIter = entitiesToRemove.iterator();
+			while(removeListIter.hasNext()) {
+				// Get the campaign's String ID.
+				String entityId = removeListIter.next();
+				
+				// Delete the document-campaign role.
+				try {
+					instance.jdbcTemplate.update(sqlDeleteEntity, new Object[] { documentId, entityId });
+				}
+				catch(org.springframework.dao.DataAccessException e) {
+					throw new DataAccessException("Error executing SQL '" + sqlDeleteEntity + "' with parameters: " + documentId + ", " + entityId, e);
+				}
+			}
+		}
+		
+		// Add roles
+		if(entityAndRolesToAdd != null) {
+			Iterator<String> addMapIter = entityAndRolesToAdd.keySet().iterator();
+			while(addMapIter.hasNext()) {
+				// Get the campaign's String ID.
+				String entityId = addMapIter.next();
+				
+				// Add the document-entity role.
+				try {
+					instance.jdbcTemplate.update(sqlInsertEntity, 
+							new Object[] { documentId, entityId, entityAndRolesToAdd.get(entityId) });
+				}
+				catch(org.springframework.dao.DataIntegrityViolationException duplicateEntryException) {
+					// If the entity is already associated with the document, then
+					// they must be attempting an update.
+					try {
+						instance.jdbcTemplate.update(sqlUpdateEntity, 
+								new Object[] { entityAndRolesToAdd.get(entityId), documentId, entityId });
+					}
+					catch(org.springframework.dao.DataAccessException e) {
+						throw new DataAccessException("Error executing SQL '" + sqlUpdateEntity + "' with parameters: " + 
+								entityAndRolesToAdd.get(entityId) + ", " + documentId + ", " + entityId, e);
+					}
+				}
+				catch(org.springframework.dao.DataAccessException e) {
+					throw new DataAccessException("Error executing SQL '" + sqlInsertEntity + "' with parameters: " + 
+							documentId + ", " + entityId + ", " + entityAndRolesToAdd.get(entityId), e);
+				}
+			}
 		}
 	}
 	
@@ -395,7 +953,7 @@ public class DocumentDaos extends Dao {
 	 * 
 	 * @return A File object for where a document should be written.
 	 */
-	private static File getDirectory() {
+	private static File getDirectory() throws DataAccessException {
 		// Get the maximum number of items in a directory.
 		int numFilesPerDirectory;
 		try {
@@ -431,7 +989,7 @@ public class DocumentDaos extends Dao {
 	 * directory with each step choosing the directory with the largest
 	 * integer value.
 	 */
-	private static void init(int numFilesPerDirectory) {
+	private static void init(int numFilesPerDirectory) throws DataAccessException {
 		// Get the lock.
 		DIRECTORY_CREATION_LOCK.lock();
 		
@@ -544,7 +1102,7 @@ public class DocumentDaos extends Dao {
 	 * 							   leaf directory and the maximum allowed
 	 * 							   number of directories in the branches.
 	 */
-	private static void getNewDirectory(int numFilesPerDirectory) {
+	private static void getNewDirectory(int numFilesPerDirectory) throws DataAccessException {
 		// Get the lock.
 		DIRECTORY_CREATION_LOCK.lock();
 		

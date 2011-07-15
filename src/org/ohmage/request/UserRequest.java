@@ -8,11 +8,10 @@ import org.json.JSONObject;
 import org.ohmage.annotator.ErrorCodes;
 import org.ohmage.cache.UserBin;
 import org.ohmage.domain.User;
+import org.ohmage.exception.ServiceException;
 import org.ohmage.service.AuthenticationService;
-import org.ohmage.service.ServiceException;
 import org.ohmage.util.CookieUtils;
-import org.ohmage.validator.UserValidators;
-import org.ohmage.validator.ValidationException;
+
 
 /**
  * A request that contains a User object and a client String that represents
@@ -23,7 +22,7 @@ import org.ohmage.validator.ValidationException;
 public abstract class UserRequest extends Request {
 	private static final Logger LOGGER = Logger.getLogger(UserRequest.class);
 	
-	private static final long MILLIS_IN_A_SECOND = 1000;
+	public static final long MILLIS_IN_A_SECOND = 1000;
 	
 	protected final User user;
 	protected final String client;
@@ -47,27 +46,9 @@ public abstract class UserRequest extends Request {
 		User tempUser = null;
 		
 		try {
-			// Validate the username.
-			String tempUsername = UserValidators.validateUsername(this, username);
-			
-			// Validate the password using a validator based on whether or not
-			// the password needs to be hashed.
-			String tempPassword;
-			if(hashPassword) {
-				tempPassword = UserValidators.validatePlaintextPassword(this, password);
-			}
-			else {
-				tempPassword = UserValidators.validateHashedPassword(this, password);
-			}
-			
 			// Create the new User object for this request.
-			tempUser = new User(tempUsername, tempPassword, hashPassword);
+			tempUser = new User(username, password, hashPassword);
 		}
-		// If there is a problem validating one of the parameters.
-		catch(ValidationException e) {
-			LOGGER.info(e.toString());
-		}
-		// If user creation failed, set the request as failed.
 		catch(IllegalArgumentException e) {
 			LOGGER.info("The User could not be created because the username and/or password were missing.");
 			setFailed(ErrorCodes.AUTHENTICATION_FAILED, "Missing username and/or password.");
@@ -90,24 +71,15 @@ public abstract class UserRequest extends Request {
 		// have failed.
 		User tempUser = null;
 		
-		try {
-			// Validate the user's token.
-			String tempToken = UserValidators.validateToken(this, token);
-			
-			// Attempt to retrieve the user.
-			if(tempToken != null) {
-				tempUser = UserBin.getUser(tempToken);
-			}
-			
-			// If the bin doesn't know about the user, set the request as 
-			// failed.
-			if(tempUser == null) {
-				LOGGER.info("The user object could not be created because the token was unknown.");
-				setFailed(ErrorCodes.AUTHENTICATION_FAILED, "Unkown token.");
-			}
+		if(token != null) {
+			tempUser = UserBin.getUser(token);
 		}
-		catch(ValidationException e) {
-			LOGGER.info(e.toString());
+		
+		// If the bin doesn't know about the user, set the request as 
+		// failed.
+		if(tempUser == null) {
+			LOGGER.info("The user object could not be created because the token was unknown.");
+			setFailed(ErrorCodes.AUTHENTICATION_FAILED, "Unkown token.");
 		}
 		
 		user = tempUser;
@@ -140,46 +112,23 @@ public abstract class UserRequest extends Request {
 		User tempUser = null;
 		
 		try {
-			// Validate the username.
-			String tempUsername = UserValidators.validateUsername(this, username);
-			
-			// Validate the password using a validator based on whether or not
-			// the password needs to be hashed.
-			String tempPassword;
-			if(hashPassword) {
-				tempPassword = UserValidators.validatePlaintextPassword(this, password);
-			}
-			else {
-				tempPassword = UserValidators.validateHashedPassword(this, password);
-			}
-			
 			// Create the new User object for this request.
-			tempUser = new User(tempUsername, tempPassword, hashPassword);
-		}
-		// If there is a problem validating one of the parameters.
-		catch(ValidationException e) {
-			LOGGER.info(e.toString());
+			tempUser = new User(username, password, hashPassword);
 		}
 		// If user creation failed, try to lookup a user with the token.
-		catch(IllegalArgumentException illegalArgumentException) {
-			try {
-				LOGGER.info("The username and/or password were missing. Attempting to validate the user with a token.");
-				
-				// Validate the user's token.
-				String tempToken = UserValidators.validateToken(this, token);
-				
-				// Attempt to retrieve the user.
-				tempUser = UserBin.getUser(tempToken);
-				
-				// If the bin doesn't know about the user, set the request as 
-				// failed.
-				if(tempUser == null) {
-					LOGGER.info("The user could not be created because the token was unknown.");
-					setFailed(ErrorCodes.AUTHENTICATION_FAILED, "Unkown token.");
-				}
+		catch(IllegalArgumentException e) {
+			LOGGER.info("The username and/or password were missing. Attempting to validate the user with a token.");
+			
+			// Attempt to retrieve the user.
+			if(token != null) {
+				tempUser = UserBin.getUser(token);
 			}
-			catch(ValidationException e) {
-				LOGGER.info(e.toString());
+			
+			// If the bin doesn't know about the user, set the request as 
+			// failed.
+			if(tempUser == null) {
+				LOGGER.info("The username and/or password and the token were all invalid or missing.");
+				setFailed(ErrorCodes.AUTHENTICATION_FAILED, "Missing username and password and authentication token.");
 			}
 		}
 		

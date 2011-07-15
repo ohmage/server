@@ -1,12 +1,14 @@
 package org.ohmage.service;
 
+import java.util.Collection;
 import java.util.List;
 
 import org.ohmage.annotator.ErrorCodes;
 import org.ohmage.cache.ClassRoleCache;
-import org.ohmage.dao.DataAccessException;
 import org.ohmage.dao.UserClassDaos;
 import org.ohmage.dao.UserDaos;
+import org.ohmage.exception.DataAccessException;
+import org.ohmage.exception.ServiceException;
 import org.ohmage.request.Request;
 
 /**
@@ -39,7 +41,7 @@ public final class UserClassServices {
 		
 		try {
 			if(! UserClassDaos.userBelongsToClass(classId, username)) {
-				request.setFailed(ErrorCodes.CLASS_USER_DOES_NOT_BELONG, "The user does not belong to the class: " + classId);
+				request.setFailed(ErrorCodes.USER_INVALID_USERNAME, "The user does not belong to the class: " + classId);
 				throw new ServiceException("The user does not belong to the class: " + classId);
 			}
 		}
@@ -89,6 +91,43 @@ public final class UserClassServices {
 				if(! UserDaos.userIsAdmin(username)) {
 					request.setFailed(ErrorCodes.CLASS_INSUFFICIENT_PERMISSIONS, "The user is not privileged in the class.");
 					throw new ServiceException("The user is not privileged in the class.");
+				}
+			}
+		}
+		catch(DataAccessException e) {
+			request.setFailed();
+			throw new ServiceException(e);
+		}
+	}
+	
+	/**
+	 * Ensures that the user is an admin or that they are privileged in all of 
+	 * the classes in the class list.
+	 * 
+	 * @param request The request that performs this service.
+	 * 
+	 * @param username The username of the user that must be an admin or 
+	 * 				   privileged in all of the classes in the list.
+	 * 
+	 * @param classIds A List of class identifiers.
+	 * 
+	 * @throws ServiceException Thrown if the user isn't an admin and isn't 
+	 * 							privileged in one of the classes or there is an
+	 * 							error.
+	 */
+	public static void userIsAdminOrPrivilegedInAllClasses(Request request, String username, Collection<String> classIds) throws ServiceException {
+		try {
+			// If the user is an admin, return.
+			if(UserDaos.userIsAdmin(username)) {
+				return;
+			}
+			
+			// For each of the classes in the list, the user must be 
+			// privileged.
+			for(String classId : classIds) {
+				if(! ClassRoleCache.ROLE_PRIVILEGED.equals(UserClassDaos.userClassRole(classId, username))) {
+					request.setFailed(ErrorCodes.CLASS_INSUFFICIENT_PERMISSIONS, "The user is not and admin nor privileged in a class: " + classId);
+					throw new ServiceException("The user is not and admin nor privileged in a class: " + classId);
 				}
 			}
 		}

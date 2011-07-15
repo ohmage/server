@@ -2,6 +2,7 @@ package org.ohmage.service;
 
 import java.io.IOException;
 import java.io.StringReader;
+import java.util.Collection;
 import java.util.List;
 
 import nu.xom.Builder;
@@ -13,7 +14,8 @@ import nu.xom.XPathException;
 
 import org.ohmage.annotator.ErrorCodes;
 import org.ohmage.dao.CampaignDaos;
-import org.ohmage.dao.DataAccessException;
+import org.ohmage.exception.DataAccessException;
+import org.ohmage.exception.ServiceException;
 import org.ohmage.request.Request;
 
 /**
@@ -125,13 +127,13 @@ public class CampaignServices {
 		try {
 			if(CampaignDaos.getCampaignExists(campaignId)) {
 				if(! shouldExist) {
-					request.setFailed(ErrorCodes.CAMPAIGN_INVALID_CAMPAIGN_XML, "The campaign already exists: " + campaignId);
+					request.setFailed(ErrorCodes.CAMPAIGN_INVALID_XML, "The campaign already exists: " + campaignId);
 					throw new ServiceException("The campaign already exists.");
 				}
 			}
 			else {
 				if(shouldExist) {
-					request.setFailed(ErrorCodes.CAMPAIGN_NOT_FOUND, "The campaign does not exist: " + campaignId);
+					request.setFailed(ErrorCodes.CAMPAIGN_INVALID_ID, "The campaign does not exist: " + campaignId);
 					throw new ServiceException("The campaign does not exist.");
 				}
 			}
@@ -157,7 +159,7 @@ public class CampaignServices {
 	 * 							shouldn't or if any of the campaigns don't 
 	 * 							exist and they should.
 	 */
-	public static void checkCampaignsExistence(Request request, List<String> campaignIds, boolean shouldExist) throws ServiceException {
+	public static void checkCampaignsExistence(Request request, Collection<String> campaignIds, boolean shouldExist) throws ServiceException {
 		for(String campaignId : campaignIds) {
 			checkCampaignExistence(request, campaignId, shouldExist);
 		}
@@ -244,4 +246,44 @@ public class CampaignServices {
 		
 		return new CampaignIdAndName(campaignUrn, campaignName);
 	}
+	
+//	/**
+//	 * Looks up the running state for a particular campaign represented by the 
+//	 * provided campaignId.
+//	 * 
+//	 * @param request The request to mark as failed should an error occur.
+//	 * @param campaignId The campaign id to retrieve the running state for.
+//	 * @return The running state for the campaign id. 
+//	 * @throws ServiceException If an error occurs
+//	 */
+//	public static String findRunningStateForCampaign(Request request, String campaignId) throws ServiceException {
+//		try {
+//			return CampaignDaos.getRunningStateForCampaignId(campaignId);
+//		}
+//		catch(DataAccessException e) {
+//			request.setFailed();
+//			throw new ServiceException(e);
+//		}
+//	}
+//	
+//	/** 
+//	 * TODO - move this method into the SurveyUploadRequest
+//	 * 
+//	 * Verifies that the provided campaign creation timestamp is equal to the campaign creation timestamp for the 
+//	 * campaign stored with the User and represented by the provided campaignId.
+//	 * 
+//	 * @return true if the provided campaign creation timestamp is equal to the campaign creation timestamp stored in
+//	 * the User for the provided campaign id.
+//	 */
+//	public static boolean verifyCampaignCreationTimestamp(Request request, User user, String campaignId, Date campaignCreationTimestamp) 
+//		throws ServiceException {
+//		if(user.getCampaignsAndRoles() == null) { // logical error
+//			request.setFailed();
+//			throw new ServiceException("The User in the Request has not been populated with his or her associated campaigns and roles", true);
+//		}
+//		
+//		
+//		
+//		
+//	}
 }

@@ -4,11 +4,12 @@ import java.util.List;
 
 import org.apache.log4j.Logger;
 import org.ohmage.annotator.ErrorCodes;
-import org.ohmage.dao.DataAccessException;
 import org.ohmage.dao.UserCampaignDaos;
 import org.ohmage.domain.Campaign;
 import org.ohmage.domain.User;
 import org.ohmage.domain.UserRoleCampaignInfo;
+import org.ohmage.exception.DataAccessException;
+import org.ohmage.exception.ServiceException;
 import org.ohmage.request.Request;
 
 /**
@@ -45,7 +46,7 @@ public class UserCampaignServices {
 		
 		try {
 			if(! UserCampaignDaos.userBelongsToCampaign(username, campaignId)) {
-				request.setFailed(ErrorCodes.CAMPAIGN_USER_DOES_NOT_BELONG, "The user does not belong to the campaign: " + campaignId);
+				request.setFailed(ErrorCodes.CAMPAIGN_INSUFFICIENT_PERMISSIONS, "The user does not belong to the campaign: " + campaignId);
 				throw new ServiceException("The user does not belong to the campaign: " + campaignId);
 			}
 		}
@@ -54,29 +55,7 @@ public class UserCampaignServices {
 			throw new ServiceException(e);
 		}
 	}
-	
-	/**
-	 * Ensures that the user in the UserRequest belongs to the campaign
-	 * represented by the campaignId.
-	 *  
-	 * @param request The request that is performing this service.
-	 * 
-	 * @param campaignId The campaign ID for the campaign in question.
-	 * 
-	 * @throws ServiceException Thrown if the campaign doesn't exist or the user
-	 * 							doesn't belong to the campaign, or if there is
-	 * 							an error.
-	 */
-	public static boolean campaignExistsAndUserBelongs(Request request, User user, String campaignId) throws ServiceException {
-		if(user.getCampaignsAndRoles() == null) {
-			request.setFailed();
-			throw new ServiceException("The User in the Request has not been populated with his or her associated campaigns and roles");
-		}
 		
-		return user.getCampaignsAndRoles().keySet().contains(campaignId);
-	}
-
-	
 	/**
 	 * Ensures that all of the campaigns in a List exist and that the user 
 	 * belongs to each of them in some capacity.

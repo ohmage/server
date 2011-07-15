@@ -3,51 +3,51 @@
        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.5.xsd">
        
   <!-- State Caches -->
-  <bean class="org.ohmage.cache.CampaignPrivacyStateCache" factory-method="instance">
-    <property name="dataSource"><ref bean="dataSource" /></property>
-    <property name="updateFrequency" value="60000" />
+  <bean class="org.ohmage.cache.CampaignPrivacyStateCache">
+    <constructor-arg><ref bean="dataSource" /></constructor-arg>
+    <constructor-arg><value>60000</value></constructor-arg>
   </bean>
   
-  <bean class="org.ohmage.cache.CampaignRunningStateCache" factory-method="instance">
-    <property name="dataSource"><ref bean="dataSource" /></property>
-    <property name="updateFrequency" value="60000" />
+  <bean class="org.ohmage.cache.CampaignRunningStateCache">
+    <constructor-arg><ref bean="dataSource" /></constructor-arg>
+    <constructor-arg><value>60000</value></constructor-arg>
   </bean>
   
-  <bean class="org.ohmage.cache.MobilityPrivacyStateCache" factory-method="instance">
-    <property name="dataSource"><ref bean="dataSource" /></property>
-    <property name="updateFrequency" value="60000" />
+  <bean class="org.ohmage.cache.MobilityPrivacyStateCache">
+    <constructor-arg><ref bean="dataSource" /></constructor-arg>
+    <constructor-arg><value>60000</value></constructor-arg>
   </bean>
   
-  <bean class="org.ohmage.cache.SurveyResponsePrivacyStateCache" factory-method="instance">
-    <property name="dataSource"><ref bean="dataSource" /></property>
-    <property name="updateFrequency" value="60000" />
+  <bean class="org.ohmage.cache.SurveyResponsePrivacyStateCache">
+    <constructor-arg><ref bean="dataSource" /></constructor-arg>
+    <constructor-arg><value>60000</value></constructor-arg>
   </bean>
   
-  <bean class="org.ohmage.cache.DocumentPrivacyStateCache" factory-method="instance">
-    <property name="dataSource"><ref bean="dataSource" /></property>
-    <property name="updateFrequency" value="60000" />
+  <bean class="org.ohmage.cache.DocumentPrivacyStateCache">
+    <constructor-arg><ref bean="dataSource" /></constructor-arg>
+    <constructor-arg><value>60000</value></constructor-arg>
   </bean>
   
   <!-- Role Caches -->
-  <bean class="org.ohmage.cache.CampaignRoleCache" factory-method="instance">
-    <property name="dataSource"><ref bean="dataSource" /></property>
-    <property name="updateFrequency" value="60000" />
+  <bean class="org.ohmage.cache.CampaignRoleCache">
+    <constructor-arg><ref bean="dataSource" /></constructor-arg>
+    <constructor-arg><value>60000</value></constructor-arg>
   </bean>
   
-  <bean class="org.ohmage.cache.ClassRoleCache" factory-method="instance">
-    <property name="dataSource"><ref bean="dataSource" /></property>
-    <property name="updateFrequency" value="60000" />
+  <bean class="org.ohmage.cache.ClassRoleCache">
+    <constructor-arg><ref bean="dataSource" /></constructor-arg>
+    <constructor-arg><value>60000</value></constructor-arg>
   </bean>
   
-  <bean class="org.ohmage.cache.DocumentRoleCache" factory-method="instance">
-    <property name="dataSource"><ref bean="dataSource" /></property>
-    <property name="updateFrequency" value="60000" />
+  <bean class="org.ohmage.cache.DocumentRoleCache">
+    <constructor-arg><ref bean="dataSource" /></constructor-arg>
+    <constructor-arg><value>60000</value></constructor-arg>
   </bean>
   
   <!-- Preference Cache -->
-  <bean class="org.ohmage.cache.PreferenceCache" factory-method="instance">
-    <property name="dataSource"><ref bean="dataSource" /></property>
-    <property name="updateFrequency" value="60000" />
+  <bean class="org.ohmage.cache.PreferenceCache">
+    <constructor-arg><ref bean="dataSource" /></constructor-arg>
+    <constructor-arg><value>60000</value></constructor-arg>
   </bean>
   
   <!-- User Token Cache -->

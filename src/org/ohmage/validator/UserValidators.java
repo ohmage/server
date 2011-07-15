@@ -1,9 +1,15 @@
 package org.ohmage.validator;
 
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import java.util.regex.Pattern;
 
 import org.apache.log4j.Logger;
 import org.ohmage.annotator.ErrorCodes;
+import org.ohmage.exception.ValidationException;
+import org.ohmage.request.InputKeys;
 import org.ohmage.request.Request;
 import org.ohmage.util.StringUtils;
 
@@ -23,9 +29,6 @@ public final class UserValidators {
 	
 	private static final String HASHED_PASSWORD_PATTERN_STRING = "[\\w\\.\\$\\/]{50,60}";
 	private static final Pattern HASHED_PASSWORD_PATTERN = Pattern.compile(HASHED_PASSWORD_PATTERN_STRING);
-	
-	private static final String TOKEN_PATTERN_STRING = "[a-fA-F0-9]{8}\\-[a-fA-F0-9]{4}\\-[a-fA-F0-9]{4}\\-[a-fA-F0-9]{4}\\-[a-fA-F0-9]{12}";
-	private static final Pattern TOKEN_PATTERN = Pattern.compile(TOKEN_PATTERN_STRING);
 	
 	/**
 	 * Default constructor. Private so that it cannot be instantiated.
@@ -65,6 +68,43 @@ public final class UserValidators {
 			request.setFailed(ErrorCodes.USER_INVALID_USERNAME, "The username is invalid.");
 			throw new ValidationException("The username is invalid: " + username);
 		}
+	}
+	
+	/**
+	 * Validates that a String representation of a list of usernames is well
+	 * formed and that each of the usernames follows our conventions. It then
+	 * returns the list of usernames as a List.
+	 * 
+	 * @param request The request that is performing this validation.
+	 * 
+	 * @param usernameList A String representation of a list of usernames where
+	 * 					   the usernames should be separated by
+	 * 					   {@value org.ohmage.request.InputKeys#LIST_ITEM_SEPARATOR}s.
+	 * 
+	 * @return Returns a, possibly empty, List of usernames without duplicates.
+	 * 
+	 * @throws ValidationException Thrown if the list is malformed or if any of
+	 * 							   the items in the list is malformed.
+	 */
+	public static List<String> validateUsernames(Request request, String usernameList) throws ValidationException {
+		LOGGER.info("Validating that a list of usernames follows our conventions.");
+		
+		if(StringUtils.isEmptyOrWhitespaceOnly(usernameList)) {
+			return null;
+		}
+		
+		Set<String> result = new HashSet<String>();
+		
+		String[] usernameArray = usernameList.split(InputKeys.LIST_ITEM_SEPARATOR);
+		for(int i = 0; i < usernameArray.length; i++) {
+			String username = validateUsername(request, usernameArray[i]);
+			
+			if(username != null) {
+				result.add(username);
+			}
+		}
+		
+		return new ArrayList<String>(result);
 	}
 	
 	/**
@@ -130,38 +170,6 @@ public final class UserValidators {
 		else {
 			request.setFailed(ErrorCodes.USER_INVALID_PASSWORD, "The password is invalid.");
 			throw new ValidationException("The hashed password is invalid.");
-		}
-	}
-	
-	/**
-	 * Validates that a given authentication / session token follows our 
-	 * conventions. If it is null or whitespace only, null is returned. If it
-	 * doesn't follow our conventions, a ValidationException is thrown. 
-	 * Otherwise, the token is passed back to the caller.
-	 * 
-	 * @param request The request that is having this token validated.
-	 * 
-	 * @param token The authentication / session token to validate.
-	 * 
-	 * @return Returns null if the token is null or whitespace only. Otherwise,
-	 * 		   it returns the token.
-	 * 
-	 * @throws ValidationException Thrown if the token isn't null or whitespace
-	 * 							   only and doesn't follow our conventions.
-	 */
-	public static String validateToken(Request request, String token) throws ValidationException {
-		LOGGER.info("Validating that the requester's authentication / session token follows our conventions.");
-		
-		if(StringUtils.isEmptyOrWhitespaceOnly(token)) {
-			return null;
-		}
-		
-		if(TOKEN_PATTERN.matcher(token).matches()) {
-			return token;
-		}
-		else {
-			request.setFailed(ErrorCodes.USER_INVALID_TOKEN, "The authentication / session token is invalid.");
-			throw new ValidationException("The authentication / session token is invalid.");
 		}
 	}
 }

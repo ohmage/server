@@ -15,6 +15,8 @@
  ******************************************************************************/
 package org.ohmage.cache;
 
+import javax.sql.DataSource;
+
 /**
  * Singleton cache for the indices and String values for document privacy
  * states.
@@ -41,14 +43,16 @@ public final class DocumentPrivacyStateCache extends StringAndIdCache {
 	
 	// A reference to the only instance of this class for the Singleton
 	// pattern.
-	private static DocumentPrivacyStateCache instance = new DocumentPrivacyStateCache();
+	private static DocumentPrivacyStateCache instance;
 	
 	/**
 	 * Default constructor set to protected to make this a Singleton, but
 	 * allow another cache to subclass it despite the likeliness of it.
 	 */
-	private DocumentPrivacyStateCache() {
-		super(SQL_GET_DOCUMENT_PRIVACY_STATES_AND_IDS, ID_COLUMN, STATE_COLUMN);
+	private DocumentPrivacyStateCache(DataSource dataSource, long updateFrequency) {
+		super(dataSource, updateFrequency, SQL_GET_DOCUMENT_PRIVACY_STATES_AND_IDS, ID_COLUMN, STATE_COLUMN);
+		
+		instance = this;
 	}
 	
 	/**

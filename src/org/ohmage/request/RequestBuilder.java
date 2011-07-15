@@ -8,9 +8,14 @@ import org.ohmage.request.campaign.CampaignCreationRequest;
 import org.ohmage.request.clazz.ClassCreationRequest;
 import org.ohmage.request.clazz.ClassDeletionRequest;
 import org.ohmage.request.clazz.ClassReadRequest;
+import org.ohmage.request.clazz.ClassRosterReadRequest;
+import org.ohmage.request.clazz.ClassRosterUpdateRequest;
 import org.ohmage.request.clazz.ClassUpdateRequest;
 import org.ohmage.request.document.DocumentCreationRequest;
+import org.ohmage.request.document.DocumentDeletionRequest;
+import org.ohmage.request.document.DocumentReadContentsRequest;
 import org.ohmage.request.document.DocumentReadRequest;
+import org.ohmage.request.document.DocumentUpdateRequest;
 import org.ohmage.request.survey.SurveyUploadRequest;
 
 /**
@@ -40,12 +45,17 @@ public final class RequestBuilder {
 	// Class
 	private static final String API_CLASS_CREATE = API_ROOT + "/class/create";
 	private static final String API_CLASS_READ = API_ROOT + "/class/read";
+	private static final String API_CLASS_ROSTER_READ = API_ROOT + "/class/roster/read";
 	private static final String API_CLASS_UPDATE = API_ROOT + "/class/update";
+	private static final String API_CLASS_ROSTER_UPDATE = API_ROOT + "/class/roster/update";
 	private static final String API_CLASS_DELETE = API_ROOT + "/class/delete";
 	
 	// Document
 	private static final String API_DOCUMENT_CREATE = API_ROOT + "/document/create";
 	private static final String API_DOCUMENT_READ = API_ROOT + "/document/read";
+	private static final String API_DOCUMENT_READ_CONTENTS = API_ROOT + "/document/read/contents";
+	private static final String API_DOCUMENT_UPDATE = API_ROOT + "/document/update";
+	private static final String API_DOCUMENT_DELETE = API_ROOT + "/document/delete";
 	
 	// Survey
 	private static final String API_SURVEY_UPLOAD = API_ROOT + "/survey/upload";
@@ -84,8 +94,14 @@ public final class RequestBuilder {
 		else if(API_CLASS_READ.equals(requestUri)) {
 			return new ClassReadRequest(httpRequest);
 		}
+		else if(API_CLASS_ROSTER_READ.equals(requestUri)) {
+			return new ClassRosterReadRequest(httpRequest);
+		}
 		else if(API_CLASS_UPDATE.equals(requestUri)) {
 			return new ClassUpdateRequest(httpRequest);
+		}
+		else if(API_CLASS_ROSTER_UPDATE.equals(requestUri)) {
+			return new ClassRosterUpdateRequest(httpRequest);
 		}
 		else if(API_CLASS_DELETE.equals(requestUri)) {
 			return new ClassDeletionRequest(httpRequest);
@@ -97,6 +113,16 @@ public final class RequestBuilder {
 		else if(API_DOCUMENT_READ.equals(requestUri)) {
 			return new DocumentReadRequest(httpRequest);
 		}
+		else if(API_DOCUMENT_READ_CONTENTS.equals(requestUri)) {
+			return new DocumentReadContentsRequest(httpRequest);
+		}
+		else if(API_DOCUMENT_UPDATE.equals(requestUri)) {
+			return new DocumentUpdateRequest(httpRequest);
+		}
+		else if(API_DOCUMENT_DELETE.equals(requestUri)) {
+			return new DocumentDeletionRequest(httpRequest);
+		}
+		//Survey
 		else if(API_SURVEY_UPLOAD.equals(requestUri)) {
 			return new SurveyUploadRequest(httpRequest);
 		}

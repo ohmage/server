@@ -1,29 +1,27 @@
 package org.ohmage.request.document;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.log4j.Logger;
 import org.ohmage.annotator.ErrorCodes;
+import org.ohmage.exception.ServiceException;
+import org.ohmage.exception.ValidationException;
 import org.ohmage.request.InputKeys;
 import org.ohmage.request.UserRequest;
 import org.ohmage.service.CampaignServices;
 import org.ohmage.service.ClassServices;
 import org.ohmage.service.DocumentServices;
-import org.ohmage.service.ServiceException;
 import org.ohmage.service.UserCampaignDocumentServices;
 import org.ohmage.service.UserClassDocumentServices;
 import org.ohmage.validator.CampaignDocumentValidators;
 import org.ohmage.validator.ClassDocumentValidators;
 import org.ohmage.validator.DocumentValidators;
 import org.ohmage.validator.StringValidators;
-import org.ohmage.validator.ValidationException;
 
 /**
  * <p>Creates a document creation request. The document must be associated with
@@ -152,14 +150,6 @@ public class DocumentCreationRequest extends UserRequest {
 			}
 			
 			tempDescription = StringValidators.validateString(this, httpRequest.getParameter(InputKeys.DESCRIPTION));
-		}
-		catch(ServletException e) {
-			LOGGER.error("This is not a multipart/form-data POST.", e);
-			setFailed(ErrorCodes.SYSTEM_SERVER_ERROR, "This is not a multipart/form-data POST which is what we expect for uploading campaign XMLs.");
-		}
-		catch(IOException e) {
-			LOGGER.error("There was an error reading the message from the input stream.", e);
-			setFailed();
 		}
 		catch(ValidationException e) {
 			LOGGER.info(e.toString());

@@ -3,6 +3,7 @@ package org.ohmage.dao;
 import javax.sql.DataSource;
 
 import org.apache.log4j.Logger;
+import org.ohmage.exception.DataAccessException;
 
 /**
  * This class contains all of the functionality for creating, reading, 
@@ -61,7 +62,7 @@ public class UserClassDaos extends Dao {
 	 * 
 	 * @return Whether or not the user belongs to the class.
 	 */
-	public static Boolean userBelongsToClass(String classId, String username) {
+	public static Boolean userBelongsToClass(String classId, String username) throws DataAccessException {
 		try {
 			return (Boolean) instance.jdbcTemplate.queryForObject(SQL_EXISTS_USER_CLASS, new Object[] { username, classId }, Boolean.class);
 		}
@@ -81,7 +82,7 @@ public class UserClassDaos extends Dao {
 	 * @return Returns the user's role in the class unless they have no role in
 	 * 		   the class in which case null is returned.
 	 */
-	public static String userClassRole(String classId, String username) {
+	public static String userClassRole(String classId, String username) throws DataAccessException {
 		try {
 			return (String) instance.jdbcTemplate.queryForObject(SQL_GET_USER_ROLE, new Object[] { username, classId }, String.class);
 		}

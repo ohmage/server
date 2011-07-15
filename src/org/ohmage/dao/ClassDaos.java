@@ -4,13 +4,13 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 import javax.sql.DataSource;
 
-import org.apache.log4j.Logger;
 import org.ohmage.cache.ClassRoleCache;
 import org.ohmage.domain.ClassInformation;
-import org.ohmage.validator.UserClassValidators.UserAndRole;
+import org.ohmage.exception.DataAccessException;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.transaction.PlatformTransactionManager;
@@ -62,7 +62,7 @@ public class ClassDaos extends Dao {
 		"VALUES (?,?,?)";
 	
 	// Associates a user with a class.
-	private static final String SQL_INSERT_ADD_USER_TO_CLASS = 
+	private static final String SQL_INSERT_USER_CLASS = 
 		"INSERT INTO user_class(user_id, class_id, user_class_role_id) " +
 		"VALUES (" +
 			"(" +
@@ -92,13 +92,32 @@ public class ClassDaos extends Dao {
 		"SET description = ? " +
 		"WHERE urn = ?";
 	
+	// Updates a user's role in a class.
+	private static final String SQL_UPDATE_USER_CLASS =
+		"UPDATE user_class " +
+		"SET user_class_role_id = (" +
+			"SELECT id " +
+			"FROM user_class_role " +
+			"WHERE role = ?" +
+		")" +
+		"WHERE user_id = (" +
+			"SELECT id " +
+			"FROM user " +
+			"WHERE username = ?" +
+		")" +
+		"AND class_id = (" +
+			"SELECT id " +
+			"FROM class " +
+			"WHERE urn = ?" +
+		")";
+	
 	// Deletes a class.
 	private static final String SQL_DELETE_CLASS = 
 		"DELETE FROM class " + 
 		"WHERE urn = ?";
 	
 	// Deletes a user from a class if they have the specified role.
-	private static final String SQL_DELETE_USER_FROM_CLASS_WITH_ROLE =
+	private static final String SQL_DELETE_USER_FROM_CLASS =
 		"DELETE FROM user_class " +
 		"WHERE user_id = (" +
 			"SELECT id " +
@@ -109,11 +128,6 @@ public class ClassDaos extends Dao {
 			"SELECT id " +
 			"FROM class " +
 			"WHERE urn = ?" +
-		") " +
-		"AND user_class_role_id = (" +
-			"SELECT id " +
-			"FROM user_class_role " +
-			"WHERE role = ?" +
 		")";
 	
 	/**
@@ -145,7 +159,7 @@ public class ClassDaos extends Dao {
 	 * 
 	 * @author John Jenkins
 	 */
-	private static final class UserAndClassRole {
+	public static final class UserAndClassRole {
 		private final String username;
 		private final String role;
 		
@@ -156,9 +170,27 @@ public class ClassDaos extends Dao {
 		 * 
 		 * @param role The user's role in the class.
 		 */
-		private UserAndClassRole(String username, String role) {
+		public UserAndClassRole(String username, String role) {
 			this.username = username;
 			this.role = role;
+		}
+		
+		/**
+		 * Returns the user's username.
+		 * 
+		 * @return The user's username.
+		 */
+		public String getUsername() {
+			return username;
+		}
+		
+		/**
+		 * Returns the user's class role.
+		 * 
+		 * @return The user's class role.
+		 */
+		public String getRole() {
+			return role;
 		}
 	}
 
@@ -231,7 +263,7 @@ public class ClassDaos extends Dao {
 	 * 
 	 * @return Whether or not the class exists.
 	 */
-	public static Boolean getClassExists(String classId) {
+	public static Boolean getClassExists(String classId) throws DataAccessException {
 		try {
 			return (Boolean) instance.jdbcTemplate.queryForObject(SQL_EXISTS_CLASS, new Object[] { classId }, Boolean.class);
 		}
@@ -253,7 +285,7 @@ public class ClassDaos extends Dao {
 	 * 		   parameterized list of class IDs. This may be an empty list, but
 	 * 		   it will never be null.
 	 */
-	public static List<ClassInformation> getClassesInformation(List<String> classIds, String requester) {
+	public static List<ClassInformation> getClassesInformation(List<String> classIds, String requester) throws DataAccessException {
 		List<ClassInformation> result = new LinkedList<ClassInformation>();
 		
 		for(String classId : classIds) {
@@ -290,22 +322,7 @@ public class ClassDaos extends Dao {
 			boolean includeUserRoles = ClassRoleCache.ROLE_PRIVILEGED.equals(userRole);
 			
 			// Get all the users in this class and their class role.
-			List<UserAndClassRole> usersAndRole;
-			try {
-				usersAndRole = instance.jdbcTemplate.query(
-						SQL_GET_USERS_AND_CLASS_ROLES, 
-						new Object[] { classId }, 
-						new RowMapper<UserAndClassRole>() {
-							@Override
-							public UserAndClassRole mapRow(ResultSet rs, int row) throws SQLException {
-								return new UserAndClassRole(rs.getString("username"), rs.getString("role"));
-							}
-						}
-				);
-			}
-			catch(org.springframework.dao.DataAccessException e){
-				throw new DataAccessException("Error executing SQL_EXISTS_CLASS '" + SQL_GET_USERS_AND_CLASS_ROLES + "' with parameter: " + classId, e);
-			}
+			List<UserAndClassRole> usersAndRole = getUserRolePairs(classId);
 			
 			// For each of the users add them to the current classes 
 			// information object.
@@ -320,7 +337,30 @@ public class ClassDaos extends Dao {
 		return result;
 	}
 	
-	private final static Logger LOGGER = Logger.getLogger(ClassDaos.class);
+	/**
+	 * Retrieves a List of UserAndClassRole objects where each object is one of
+	 * the users in the class and their role.
+	 * 
+	 * @param classId The unique identifier for a class.
+	 * 
+	 * @return A List of UserAndClassRole objects.
+	 */
+	public static List<UserAndClassRole> getUserRolePairs(String classId) throws DataAccessException {
+		try {
+			return instance.jdbcTemplate.query(
+					SQL_GET_USERS_AND_CLASS_ROLES, 
+					new Object[] { classId }, 
+					new RowMapper<UserAndClassRole>() {
+						@Override
+						public UserAndClassRole mapRow(ResultSet rs, int row) throws SQLException {
+							return new UserAndClassRole(rs.getString("username"), rs.getString("role"));
+						}
+					});
+		}
+		catch(org.springframework.dao.DataAccessException e) {
+			throw new DataAccessException("Error executing SQL_EXISTS_CLASS '" + SQL_GET_USERS_AND_CLASS_ROLES + "' with parameter: " + classId, e);
+		}
+	}
 	
 	/**
 	 * Updates a class' information and adds and removes users from the class
@@ -335,13 +375,15 @@ public class ClassDaos extends Dao {
 	 * @param classDescription The class' new description or null in which case
 	 * 						   the description will not be updated.
 	 *  
-	 * @param usersToAdd A list of users and respective roles to associate with
-	 * 					 this class.
+	 * @param userAndRolesToAdd A list of users and respective roles to 
+	 * 							associate with this class.
 	 * 
 	 * @param usersToRemove A list of users and respective roles to remove from
 	 * 						this class.
 	 */
-	public static void updateClass(String classId, String className, String classDescription, List<UserAndRole> usersToAdd, List<UserAndRole> usersToRemove) {
+
+	public static List<String> updateClass(String classId, String className, String classDescription, Map<String, String> userAndRolesToAdd, List<String> usersToRemove)
+		throws DataAccessException {
 		// Create the transaction.
 		DefaultTransactionDefinition def = new DefaultTransactionDefinition();
 		def.setName("Creating a new class.");
@@ -378,45 +420,52 @@ public class ClassDaos extends Dao {
 			// Delete the users before adding the new ones. This facilitates
 			// upgrading a user from one role to another.
 			if(usersToRemove != null) {
-				for(UserAndRole userAndRole : usersToRemove) {
+				for(String username : usersToRemove) {
 					try {
-						instance.jdbcTemplate.update(
-								SQL_DELETE_USER_FROM_CLASS_WITH_ROLE, 
-								new Object[] { 
-									userAndRole.getUsername(), 
-									classId,
-									userAndRole.getRole() 
-									}
-								);
+						instance.jdbcTemplate.update(SQL_DELETE_USER_FROM_CLASS, new Object[] { username, classId });
 					}
 					catch(org.springframework.dao.DataAccessException e) {
 						transactionManager.rollback(status);
-						throw new DataAccessException("Error while executing SQL '" + SQL_DELETE_USER_FROM_CLASS_WITH_ROLE + "' with parameters: " + 
-								userAndRole.getUsername() + ", " + classId + ", " + userAndRole.getRole(), e);
+						throw new DataAccessException("Error while executing SQL '" + SQL_DELETE_USER_FROM_CLASS + "' with parameters: " + 
+								username + ", " + classId, e);
 					}
 				}
 			}
 			
+			// Create the list of warning messages to be returned to the 
+			// caller.
+			List<String> warningMessages = new LinkedList<String>();
+			
 			// Add the users to the class.
-			if(usersToAdd != null) {
-				for(UserAndRole userAndRole : usersToAdd) {
+			if(userAndRolesToAdd != null) {
+				for(String username : userAndRolesToAdd.keySet()) {
+					String role = userAndRolesToAdd.get(username);
+					
 					try {
-						instance.jdbcTemplate.update(
-								SQL_INSERT_ADD_USER_TO_CLASS,
-								new Object[] {
-									userAndRole.getUsername(),
-									classId,
-									userAndRole.getRole()
-								}
-							);
+						instance.jdbcTemplate.update(SQL_INSERT_USER_CLASS, new Object[] { username, classId, role } );
 					}
-					catch(org.springframework.dao.DataIntegrityViolationException e) {
-						LOGGER.warn("Attempting to add a user to the class to which they are already associated. The following user is already associated with the class: " + userAndRole.getUsername());
+					catch(org.springframework.dao.DataIntegrityViolationException duplicateException) {
+						String originalRole = UserClassDaos.userClassRole(classId, username);
+						if(! originalRole.equals(role)) {
+							try {
+								if(instance.jdbcTemplate.update(SQL_UPDATE_USER_CLASS, new Object[] { role, username, classId }) > 0) {
+									warningMessages.add("The user '" + username + 
+											"' was already associated with the class '" + classId + 
+											"'. Their role has been updated from '" + originalRole +
+											"' to '" + role + "'");
+								}
+							}
+							catch(org.springframework.dao.DataAccessException e) {
+								transactionManager.rollback(status);
+								throw new DataAccessException("Error while executing SQL '" + SQL_UPDATE_USER_CLASS + "' with parameters: " + 
+										role + ", " + username + ", " + classId, e);
+							}
+						}
 					}
 					catch(org.springframework.dao.DataAccessException e) {
 						transactionManager.rollback(status);
-						throw new DataAccessException("Error while executing SQL '" + SQL_INSERT_ADD_USER_TO_CLASS + "' with parameters: " + 
-								userAndRole.getUsername() + ", " + classId + ", " + userAndRole.getRole(), e);
+						throw new DataAccessException("Error while executing SQL '" + SQL_INSERT_USER_CLASS + "' with parameters: " + 
+								username + ", " + classId + ", " + role, e);
 					}
 				}
 			}
@@ -429,6 +478,8 @@ public class ClassDaos extends Dao {
 				transactionManager.rollback(status);
 				throw new DataAccessException("Error while committing the transaction.", e);
 			}
+			
+			return warningMessages;
 		}
 		catch(TransactionException e) {
 			throw new DataAccessException("Error while attempting to rollback the transaction.", e);
@@ -440,7 +491,7 @@ public class ClassDaos extends Dao {
 	 * 
 	 * @param classId The unique identifier for the class to be deleted.
 	 */
-	public static void deleteClass(String classId) {
+	public static void deleteClass(String classId) throws DataAccessException {
 		// Create the transaction.
 		DefaultTransactionDefinition def = new DefaultTransactionDefinition();
 		def.setName("Deleting a new class.");

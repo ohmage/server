@@ -85,6 +85,7 @@ public final class CookieUtils {
 	 */
 	public static void setCookieValue(HttpServletResponse httpResponse, String name, String value, int lifetimeInSeconds) {
 		Cookie authTokenCookie = new Cookie(name, value);
+		authTokenCookie.setHttpOnly(true);
 		authTokenCookie.setMaxAge(lifetimeInSeconds);
 		authTokenCookie.setPath("/app");
 		httpResponse.addCookie(authTokenCookie);

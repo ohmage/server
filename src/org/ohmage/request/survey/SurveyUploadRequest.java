@@ -1,16 +1,25 @@
 package org.ohmage.request.survey;
 
+import java.util.Arrays;
+import java.util.Date;
+import java.util.List;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.log4j.Logger;
 import org.ohmage.annotator.ErrorCodes;
+import org.ohmage.cache.CampaignRoleCache;
+import org.ohmage.cache.CampaignRunningStateCache;
+import org.ohmage.exception.ServiceException;
+import org.ohmage.exception.ValidationException;
 import org.ohmage.request.InputKeys;
 import org.ohmage.request.UserRequest;
-import org.ohmage.service.ServiceException;
 import org.ohmage.service.UserCampaignServices;
 import org.ohmage.util.StringUtils;
+import org.ohmage.validator.CampaignValidators;
 import org.ohmage.validator.DateValidators;
+import org.ohmage.validator.UserCampaignValidators;
 
 /**
  * <p>Uploads a survey.</p>
@@ -58,9 +67,15 @@ import org.ohmage.validator.DateValidators;
 public final class SurveyUploadRequest extends UserRequest {
 	private static final Logger LOGGER = Logger.getLogger(SurveyUploadRequest.class);
 	
-	private final String campaignCreationTimestamp;
+	private final Date campaignCreationTimestamp;
 	private final String campaignUrn;
 	private final String jsonData;
+	private static final List<String> allowedRoles;
+	private static final String allowedCampaignRunningState = CampaignRunningStateCache.RUNNING_STATE_RUNNING;
+	
+	static {
+		allowedRoles = Arrays.asList(new String[] {CampaignRoleCache.ROLE_PARTICIPANT});
+	}
 	
 	/**
 	 * Builds this request based on the information in the HTTP request.
@@ -80,32 +95,36 @@ public final class SurveyUploadRequest extends UserRequest {
 	public SurveyUploadRequest(HttpServletRequest httpRequest) {
 		super(httpRequest.getParameter(InputKeys.USER), httpRequest.getParameter(InputKeys.PASSWORD), false, httpRequest.getParameter(InputKeys.CLIENT));
 		
-		String tempCampaignCreationTimestamp = null;
+		Date tempCampaignCreationTimestamp = null;
 		String tempCampaignUrn = null;
 		String tempJsonData = null;
 		
 		if(! failed) {
 			LOGGER.info("Creating a survey upload request.");
-			
-			tempCampaignCreationTimestamp = httpRequest.getParameter(InputKeys.CAMPAIGN_CREATION_TIMESTAMP);
+			 
+			tempCampaignCreationTimestamp = null;
 			tempCampaignUrn = httpRequest.getParameter(InputKeys.CAMPAIGN_URN);
 			tempJsonData = httpRequest.getParameter(InputKeys.DATA);
 			
-			if(! DateValidators.validateISO8601DateTime(tempCampaignCreationTimestamp, true)) {
-				setFailed(ErrorCodes.SURVEY_UPLOAD_INVALID_CAMPAIGN_CREATION_DATETIME,
-					"Invalid campaign creation date: " + tempCampaignCreationTimestamp + " was provided.");
-			}
-			
-			if(! StringUtils.isValidUrn(tempCampaignUrn)) {
-				setFailed(ErrorCodes.SURVEY_UPLOAD_INVALID_CAMPAIGN_ID,
-				    "Invalid campaign id: " + tempCampaignUrn + " was provided.");
-			}
-			
-			if(! StringUtils.isEmptyOrWhitespaceOnly(tempJsonData)) {
-				setFailed(ErrorCodes.SURVEY_UPLOAD_MISSING_RESPONSES,
-				    "No value found for 'data' parameter.");
-			}
-		}
+//			try {
+//				tempCampaignCreationTimestamp = DateValidators.validateISO8601DateTime(httpRequest.getParameter(InputKeys.CAMPAIGN_CREATION_TIMESTAMP));
+//			}
+//			catch(ValidationException e) {
+//				setFailed(ErrorCodes.SURVEY_UPLOAD_INVALID_CAMPAIGN_CREATION_DATETIME, "Invalid " + InputKeys.CAMPAIGN_CREATION_TIMESTAMP);
+//			}
+//			
+//			if(this.campaignCreationTimestamp == null) {
+//				setFailed(ErrorCodes.SURVEY_UPLOAD_INVALID_CAMPAIGN_CREATION_DATETIME, "Missing " + InputKeys.CAMPAIGN_CREATION_TIMESTAMP);
+//			}
+//			
+//			if(! StringUtils.isValidUrn(tempCampaignUrn)) {
+//				setFailed(ErrorCodes.SURVEY_UPLOAD_INVALID_CAMPAIGN_ID, "Invalid campaign id: " + tempCampaignUrn + " was provided.");
+//			}
+//			
+//			if(! StringUtils.isEmptyOrWhitespaceOnly(tempJsonData)) {
+//				setFailed(ErrorCodes.SURVEY_UPLOAD_MISSING_RESPONSES, "No value found for 'data' parameter.");
+//			}
+		} 
 		
 		this.campaignCreationTimestamp = tempCampaignCreationTimestamp;
 		this.campaignUrn = tempCampaignUrn;
@@ -138,15 +157,20 @@ public final class SurveyUploadRequest extends UserRequest {
 			// 10. Stores the surveys in the db.
 			// 11. Logs the upload
 			
+			LOGGER.info("Populating the logged-in user with their associated campaigns and roles.");
 			UserCampaignServices.populateUserWithCampaignRoleInfo(this, this.getUser());
 			
-			// LOGGER.info(getUser().getCampaignsAndRoles());
+			LOGGER.info("Checking the user and campaign ID in order to make sure the user belongs to the campaign ID in the request");
+		    UserCampaignValidators.campaignExistsAndUserBelongs(this, this.getUser(), campaignUrn);
 			
-			if(! UserCampaignServices.campaignExistsAndUserBelongs(this, this.getUser(), campaignUrn)) {
-				setFailed(ErrorCodes.SURVEY_UPLOAD_INVALID_CAMPAIGN_ID, "User does not belong to campaign.");
-				return;
-			}
+			LOGGER.info("Checking the user and the campaign ID against the allowed roles for this request");
+			UserCampaignValidators.verifyAllowedUserRoleInCampaign(this, this.getUser(), this.campaignUrn, allowedRoles);
 		
+			LOGGER.info("Checking that the user is attempting to upload to a running campaign");
+			// CampaignValidators.verifyAllowedRunningState(this, this.getUser(), this.campaignUrn, allowedCampaignRunningState);
+		}
+		catch(ValidationException e) {
+			e.logException(LOGGER);
 		}
 		catch(ServiceException e) {
 			e.logException(LOGGER);
@@ -160,4 +184,5 @@ public final class SurveyUploadRequest extends UserRequest {
 	public void respond(HttpServletRequest httpRequest, HttpServletResponse httpResponse) {
 		super.respond(httpRequest, httpResponse, null);
 	}
+	
 }

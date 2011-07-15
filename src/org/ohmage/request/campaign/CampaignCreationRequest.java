@@ -1,27 +1,24 @@
 package org.ohmage.request.campaign;
 
-import java.io.IOException;
 import java.util.List;
 
-import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.log4j.Logger;
 import org.ohmage.annotator.ErrorCodes;
+import org.ohmage.exception.ServiceException;
+import org.ohmage.exception.ValidationException;
 import org.ohmage.request.InputKeys;
 import org.ohmage.request.UserRequest;
 import org.ohmage.service.CampaignServices;
 import org.ohmage.service.CampaignServices.CampaignIdAndName;
-import org.ohmage.service.ServiceException;
 import org.ohmage.service.UserClassServices;
 import org.ohmage.service.UserServices;
 import org.ohmage.util.CookieUtils;
-import org.ohmage.util.StringUtils;
 import org.ohmage.validator.CampaignValidators;
 import org.ohmage.validator.ClassValidators;
 import org.ohmage.validator.StringValidators;
-import org.ohmage.validator.ValidationException;
 
 /**
  * <p>A request to create a campaign. The creator must associate it with at 
@@ -100,11 +97,11 @@ public class CampaignCreationRequest extends UserRequest {
 			catch(NullPointerException e) {
 				// If the getMultipartValue() returns null because the XML 
 				// didn't exist, a NullPointerException will be thrown.
-				setFailed(ErrorCodes.CAMPAIGN_MISSING_XML, "Missing required campaign XML.");
+				setFailed(ErrorCodes.CAMPAIGN_INVALID_XML, "Missing required campaign XML.");
 				throw new ValidationException("Missing required campaign XML.", e);
 			}
 			if(tempXml == null) {
-				setFailed(ErrorCodes.CAMPAIGN_MISSING_XML, "Missing required campaign XML.");
+				setFailed(ErrorCodes.CAMPAIGN_INVALID_XML, "Missing required campaign XML.");
 				throw new ValidationException("Missing required campaign XML.");
 			}
 			
@@ -112,29 +109,21 @@ public class CampaignCreationRequest extends UserRequest {
 			
 			tempRunningState = CampaignValidators.validateRunningState(this, httpRequest.getParameter(InputKeys.RUNNING_STATE));
 			if(tempRunningState == null) {
-				setFailed(ErrorCodes.CAMPAIGN_MISSING_RUNNING_STATE, "Missing the required initial running state.");
+				setFailed(ErrorCodes.CAMPAIGN_INVALID_RUNNING_STATE, "Missing the required initial running state.");
 				throw new ValidationException("Missing required running state.");
 			}
 			
 			tempPrivacyState = CampaignValidators.validatePrivacyState(this, httpRequest.getParameter(InputKeys.PRIVACY_STATE));
 			if(tempPrivacyState == null) {
-				setFailed(ErrorCodes.CAMPAIGN_MISSING_PRIVACY_STATE, "Missing the required initial privacy state.");
+				setFailed(ErrorCodes.CAMPAIGN_INVALID_PRIVACY_STATE, "Missing the required initial privacy state.");
 				throw new ValidationException("Missing required privacy state.");
 			}
 			
 			tempClassIds = ClassValidators.validateClassIdList(this, httpRequest.getParameter(InputKeys.CLASS_URN_LIST));
 			if((tempClassIds == null) || (tempClassIds.size() == 0)) {
-				setFailed(ErrorCodes.CAMPAIGN_MISSING_CLASS_ID_LIST, "Missing the required class ID list.");
+				setFailed(ErrorCodes.CLASS_INVALID_ID, "Missing the required class ID list.");
 				throw new ValidationException("Missing required class ID list.");
 			}
-		}
-		catch(ServletException e) {
-			LOGGER.error("This is not a multipart/form-data POST.", e);
-			setFailed(ErrorCodes.SYSTEM_SERVER_ERROR, "This is not a multipart/form-data POST which is what we expect for uploading campaign XMLs.");
-		}
-		catch(IOException e) {
-			LOGGER.error("There was an error reading the message from the input stream.", e);
-			setFailed();
 		}
 		catch(ValidationException e) {
 			LOGGER.info(e.toString());
@@ -167,11 +156,6 @@ public class CampaignCreationRequest extends UserRequest {
 			
 			// Get the campaign's URN and name from the XML.
 			CampaignIdAndName campaignInfo = CampaignServices.getCampaignUrnAndNameFromXml(this, xml);
-			
-			if(! StringUtils.isValidUrn(campaignInfo.getCampaignId())) {
-				setFailed(ErrorCodes.CAMPAIGN_INVALID_URN, "The campaign URN in the XML is invalid.");
-				throw new ServiceException("The campaign URN in the XML is invalid.");
-			}
 			
 			LOGGER.info("Verifying that the campaign doesn't already exist.");
 			CampaignServices.checkCampaignExistence(this, campaignInfo.getCampaignId(), false);

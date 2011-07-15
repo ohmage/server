@@ -6,6 +6,7 @@ import javax.sql.DataSource;
 
 import org.ohmage.cache.CampaignRoleCache;
 import org.ohmage.cache.ClassRoleCache;
+import org.ohmage.exception.DataAccessException;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionException;
@@ -21,6 +22,7 @@ import org.springframework.transaction.support.DefaultTransactionDefinition;
  * in a class with this campaign in a single transaction.
  * 
  * @author John Jenkins
+ * @author Joshua Selsky
  */
 public class CampaignDaos extends Dao {
 	// Returns a boolean value of whether or not the campaign exists.
@@ -133,6 +135,13 @@ public class CampaignDaos extends Dao {
 			"AND uc.user_class_role_id = ccdr.user_class_role_id" +
 		")";
 	
+	// Finds the running state for a particular campaign
+	private static final String SQL_SELECT_CAMPAIGN_RUNNING_STATE = 
+		"SELECT crs.running_state " +
+		"FROM campaign c, campaign_running_state crs " +
+		"WHERE c.urn = ? " +
+		"AND c.running_state_id = crs.id";
+	
 	// The single instance of this class as the constructor should only ever be
 	// called once by Spring.
 	private static CampaignDaos instance;
@@ -169,7 +178,9 @@ public class CampaignDaos extends Dao {
 	 * @param creatorUsername The username of the creator of this campaign.
 	 */
 	public static void createCampaign(String campaignId, String name, String xml, String description, 
-			String runningState, String privacyState, List<String> classIds, String creatorUsername) {
+			String runningState, String privacyState, List<String> classIds, String creatorUsername) 
+		throws DataAccessException {
+		
 		// Create the transaction.
 		DefaultTransactionDefinition def = new DefaultTransactionDefinition();
 		def.setName("Creating a new campaign.");
@@ -324,9 +335,9 @@ public class CampaignDaos extends Dao {
 	 * 
 	 * @return Returns true if the campaign exists; false, otherwise.
 	 */
-	public static Boolean getCampaignExists(String campaignId) {
+	public static Boolean getCampaignExists(String campaignId) throws DataAccessException {
 		try {
-			return (Boolean) instance.jdbcTemplate.queryForObject(
+			return instance.jdbcTemplate.queryForObject(
 					SQL_EXISTS_CAMPAIGN, 
 					new Object[] { campaignId }, 
 					Boolean.class
@@ -334,6 +345,27 @@ public class CampaignDaos extends Dao {
 		}
 		catch(org.springframework.dao.DataAccessException e) {
 			throw new DataAccessException("Error executing SQL '" + SQL_EXISTS_CAMPAIGN + "' with parameter: " + campaignId, e);
+		}
+	}
+	
+	/**
+	 * Finds the running state for the provided campaign id.
+	 * 
+	 * @param campaignId The unique identifier for the campaign running
+	 *                   state in question.
+	 * @return A String identifying the campaign's running state.
+	 * @throws DataAccessException If an error occurs running the SQL.
+	 */
+	public static String getRunningStateForCampaignId(String campaignId) throws DataAccessException {
+		try {
+			return instance.jdbcTemplate.queryForObject(
+					SQL_SELECT_CAMPAIGN_RUNNING_STATE, 
+					new Object[] { campaignId }, 
+					String.class
+			);
+		} 
+		catch(org.springframework.dao.DataAccessException e) {
+			throw new DataAccessException("Error executing SQL '" + SQL_SELECT_CAMPAIGN_RUNNING_STATE + "' with parameter: " + campaignId, e);
 		}
 	}
 }

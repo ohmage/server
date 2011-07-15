@@ -46,15 +46,15 @@ public abstract class Cache {
 	 * 
 	 * @complexity O(1)
 	 */
-	protected Cache() {
+	protected Cache(DataSource dataSource, long updateFrequency) {
 		// This helps us guarantee that the DataSource starts off as null to
 		// help assure that it will only be set once.
-		dataSource = null;
+		this.dataSource = dataSource;
 		
 		// Initialize the refresh times to "invalid" values such that the
 		// first run is guaranteed to refresh itself.
 		lastUpdateTimestamp = -1;
-		updateFrequency = -1;
+		this.updateFrequency = updateFrequency;
 	}
 	
 	/**
@@ -70,7 +70,7 @@ public abstract class Cache {
 	 * 									null value or if the DataSource has
 	 * 									been set and it is attempting to be
 	 * 									reset.
-	 */
+	 *
 	public synchronized void setDataSource(DataSource dataSource) {
 		if(this.dataSource != null) {
 			throw new IllegalStateException("The DataSource may only be set once.");
@@ -80,7 +80,7 @@ public abstract class Cache {
 		}
 		
 		this.dataSource = dataSource;
-	}
+	}*/
 	
 	/**
 	 * Sets the initial update frequency for this object. This may be reset by
@@ -100,7 +100,7 @@ public abstract class Cache {
 	 * 									{@value #MIN_CACHE_REFRESH_MILLIS}.
 	 * 
 	 * @see #MIN_CACHE_REFRESH_MILLIS
-	 */
+	 *
 	public synchronized void setUpdateFrequency(long frequencyInMilliseconds) {
 		if(frequencyInMilliseconds < MIN_CACHE_REFRESH_MILLIS) {
 			throw new IllegalArgumentException("The update frequency must be a positive integer greater than or equal to " +
@@ -108,7 +108,7 @@ public abstract class Cache {
 		}
 		
 		updateFrequency = frequencyInMilliseconds;
-	}
+	}*/
 	
 	/**
 	 * Gets the known keys for the cache.

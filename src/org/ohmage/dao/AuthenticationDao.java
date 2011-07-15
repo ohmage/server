@@ -9,6 +9,7 @@ import jbcrypt.BCrypt;
 
 import org.ohmage.annotator.ErrorCodes;
 import org.ohmage.domain.User;
+import org.ohmage.exception.DataAccessException;
 import org.ohmage.request.UserRequest;
 import org.springframework.jdbc.core.RowMapper;
 
@@ -101,7 +102,7 @@ public class AuthenticationDao extends Dao{
 	 * 		   about the user, or null if the user isn't found or the password
 	 * 		   isn't correct.
 	 */
-	public static UserInformation execute(UserRequest userRequest) {
+	public static UserInformation execute(UserRequest userRequest) throws DataAccessException {
 		User user = userRequest.getUser();
 		String hashedPassword;
 		

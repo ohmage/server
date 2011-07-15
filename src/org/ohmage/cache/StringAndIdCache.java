@@ -20,8 +20,11 @@ import java.sql.SQLException;
 import java.util.List;
 import java.util.Set;
 
+import javax.sql.DataSource;
+
 import org.apache.log4j.Logger;
 import org.ohmage.domain.BidirectionalHashMap;
+import org.ohmage.exception.CacheMissException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 
@@ -74,8 +77,8 @@ public abstract class StringAndIdCache extends Cache {
 	 * Default constructor that calls its parent and is protected to maintain
 	 * the Singleton-ness.
 	 */
-	protected StringAndIdCache(String sqlForRetrievingValues, String integerColumn, String stringColumn) {
-		super();
+	protected StringAndIdCache(DataSource dataSource, long updateFrequency, String sqlForRetrievingValues, String integerColumn, String stringColumn) {
+		super(dataSource, updateFrequency);
 		
 		stringAndIdMap = new BidirectionalHashMap<String, Integer>();
 		

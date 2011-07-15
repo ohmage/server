@@ -8,6 +8,7 @@ import javax.sql.DataSource;
 
 import org.ohmage.domain.User;
 import org.ohmage.domain.UserRoleCampaignInfo;
+import org.ohmage.exception.DataAccessException;
 import org.ohmage.util.StringUtils;
 import org.springframework.jdbc.core.RowMapper;
 
@@ -74,7 +75,7 @@ public class UserCampaignDaos extends Dao {
 	 * 
 	 * @return Whether or not the user exists in a campaign.
 	 */
-	public static boolean userBelongsToCampaign(String username, String campaignId) {
+	public static boolean userBelongsToCampaign(String username, String campaignId) throws DataAccessException {
 		try {
 			return instance.jdbcTemplate.queryForObject(SQL_EXISTS_USER_CAMPAIGN, new Object[] { campaignId, username }, Boolean.class);
 		}
@@ -94,7 +95,7 @@ public class UserCampaignDaos extends Dao {
 	 * 
 	 * @return A possibly empty List of roles for this user in this campaign.
 	 */
-	public static List<String> getUserCampaignRoles(String username, String campaignId) {
+	public static List<String> getUserCampaignRoles(String username, String campaignId) throws DataAccessException {
 		try {
 			return instance.jdbcTemplate.queryForList(
 					SQL_GET_USER_CAMPAIGN_ROLES, 
@@ -114,7 +115,7 @@ public class UserCampaignDaos extends Dao {
 	 * @param user The user to retrieve campaign-role info for.
 	 * @return A possibly empty list of user role campaign info for the provided user. 
 	 */
-	public static List<UserRoleCampaignInfo> getAllCampaignRolesAndCampaignInfoForUser(User user) {
+	public static List<UserRoleCampaignInfo> getAllCampaignRolesAndCampaignInfoForUser(User user) throws DataAccessException {
 		try {
 			return instance.jdbcTemplate.query(
 					SQL_GET_ALL_USER_CAMPAIGN_ROLES_AND_INFO,

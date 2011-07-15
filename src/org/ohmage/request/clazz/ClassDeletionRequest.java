@@ -5,14 +5,14 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.log4j.Logger;
 import org.ohmage.annotator.ErrorCodes;
+import org.ohmage.exception.ServiceException;
+import org.ohmage.exception.ValidationException;
 import org.ohmage.request.InputKeys;
 import org.ohmage.request.UserRequest;
 import org.ohmage.service.ClassServices;
-import org.ohmage.service.ServiceException;
 import org.ohmage.service.UserServices;
 import org.ohmage.util.CookieUtils;
 import org.ohmage.validator.ClassValidators;
-import org.ohmage.validator.ValidationException;
 
 /**
  * <p>A request to delete a class. The requester must be an admin.</p>
@@ -58,7 +58,7 @@ public class ClassDeletionRequest extends UserRequest {
 			try {
 				tempClassId = ClassValidators.validateClassId(this, httpRequest.getParameter(InputKeys.CLASS_URN));
 				if(tempClassId == null) {
-					setFailed(ErrorCodes.CLASS_MISSING_ID, "Missing required class URN.");
+					setFailed(ErrorCodes.CLASS_INVALID_ID, "Missing required class URN.");
 					throw new ValidationException("Missing required key: " + InputKeys.CLASS_URN);
 				}
 			}
