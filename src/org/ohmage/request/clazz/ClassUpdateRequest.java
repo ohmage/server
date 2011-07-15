@@ -138,7 +138,7 @@ public class ClassUpdateRequest extends UserRequest {
 			ClassServices.checkClassExistence(this, classId, true);
 			
 			LOGGER.info("Checking that the user is privileged in the class or is an admin.");
-			UserClassServices.userIsPrivilegedOrAdmin(this, classId, user.getUsername());
+			UserClassServices.userIsAdminOrPrivileged(this, classId, user.getUsername());
 			
 			LOGGER.info("Updating the class.");
 			ClassServices.updateClass(this, classId, className, classDescription, usersToAdd, usersToRemove);

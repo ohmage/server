@@ -83,6 +83,16 @@ public final class InputKeys {
 	public static final String USER_ROLE = "user_role";
 	public static final String USER_ROLE_LIST_ADD = "user_role_list_add";
 	public static final String USER_ROLE_LIST_REMOVE = "user_role_list_remove";
+	public static final String USER_ENABLED = "enabled";
+	public static final String USER_ADMIN = "admin";
+	public static final String NEW_ACCOUNT = "new_account";
+	public static final String CAMPAIGN_CREATION_PRIVILEGE = "campaign_creation_privilege";
+	public static final String FIRST_NAME = "first_name";
+	public static final String LAST_NAME = "last_name";
+	public static final String ORGANIZATION = "organization";
+	public static final String PERSONAL_ID = "personal_id";
+	public static final String EMAIL_ADDRESS = "email_address";
+	public static final String USER_JSON_DATA = "json_data"; 
 	
 	// State Constants
 	public static final String PRIVACY_STATE = "privacy_state";

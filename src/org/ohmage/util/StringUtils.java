@@ -56,16 +56,6 @@ public final class StringUtils {
 	}
 	
 	/**
-	 * @return true if the String is the value "true" or "false"
-	 *         false otherwise -- this method is more restrictive than Boolean.valueOf(String s)
-	 */
-	public static boolean isBooleanString(String string) {
-		
-		return "true".equals(string) || "false".equals(string);
-		
-	}
-	
-	/**
 	 * @return the URL decoded version of the provided string.
 	 */
 	public static String urlDecode(String string) {
@@ -143,6 +133,32 @@ public final class StringUtils {
 		}
 		
 		return true;
+	}
+	
+	/**
+	 * Decodes a String value into its boolean representation. If it is not a 
+	 * valid boolean value, null is returned. This should be used anywhere 
+	 * boolean values are being decoded from Strings.
+	 * 
+	 * @param value The String value to be decoded.
+	 * 
+	 * @return Returns true if the value is a valid boolean value and 
+	 * 		   represents true. Returns false if the value is a valid boolean
+	 * 		   value and represents false. Returns null if the value is not a
+	 * 		   valid boolean value.
+	 */
+	public static Boolean decodeBoolean(String value) {
+		// If we are going to allow different values for true and false, this
+		// is where they should be included.
+		if("true".equals(value)) {
+			return true;
+		}
+		else if("false".equals(value)) {
+			return false;
+		}
+		else {
+			return null;
+		}
 	}
 	
 	/**

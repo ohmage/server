@@ -171,4 +171,142 @@ public final class UserValidators {
 			throw new ValidationException("The hashed password is invalid.");
 		}
 	}
+	
+	/**
+	 * Validates that a value is a valid admin value. If the value is null or 
+	 * whitespace only, null is returned. If the value is a valid admin value,
+	 * it is returned. If the value is not null, not whitespace only, and not a
+	 * valid admin value, a ValidationException is thrown.
+	 * 
+	 * @param request The Request that is performing this validation.
+	 * 
+	 * @param value The String representation of the admin value to be  
+	 * 				validated.
+	 * 
+	 * @return Returns null if the value is null or whitespace only; otherwise,
+	 * 		   the value is returned.
+	 * 
+	 * @throws ValidationException Thrown if the value is not null, not 
+	 * 							   whitespace only, and not a valid admin 
+	 * 							   value.
+	 */
+	public static Boolean validateAdminValue(Request request, String value) throws ValidationException {
+		LOGGER.info("Validating an admin value.");
+		
+		if(StringUtils.isEmptyOrWhitespaceOnly(value)) {
+			return null;
+		}
+		
+		if(BooleanValidators.validateBoolean(value)) {
+			return StringUtils.decodeBoolean(value);
+		}
+		else {
+			request.setFailed(ErrorCodes.USER_INVALID_ADMIN_VALUE, "The admin value is invalid: " + value);
+			throw new ValidationException("The admin value is invalid: " + value);
+		}
+	}
+	
+	/**
+	 * Validates that a value is a valid enabled value. If the value is null or
+	 * whitespace only, null is returned. If the value is a valid enabled 
+	 * value, it is returned. If the value is not null, not whitespace only, 
+	 * and not a valid enabled value, a ValidationException is thrown.
+	 * 
+	 * @param request The Request that is performing this validation.
+	 * 
+	 * @param value The String representation of the enabled value to be  
+	 * 				validated.
+	 * 
+	 * @return Returns null if the value is null or whitespace only; otherwise,
+	 * 		   the value is returned.
+	 * 
+	 * @throws ValidationException Thrown if the value is not null, not 
+	 * 							   whitespace only, and not a valid enabled 
+	 * 							   value.
+	 */
+	public static Boolean validateEnabledValue(Request request, String value) throws ValidationException {
+		LOGGER.info("Validating that a value is a valid enabled value.");
+		
+		if(StringUtils.isEmptyOrWhitespaceOnly(value)) {
+			return null;
+		}
+		
+		if(BooleanValidators.validateBoolean(value)) {
+			return StringUtils.decodeBoolean(value);
+		}
+		else {
+			request.setFailed(ErrorCodes.USER_INVALID_ENABLED_VALUE, "The enabled value is invalid: " + value);
+			throw new ValidationException("The enabled value is invalid: " + value);
+		}
+	}
+	
+	/**
+	 * Validates that a value is a valid new account value. If the value is 
+	 * null or whitespace only, null is returned. If the value is a valid new 
+	 * account value, it is returned. If the value is not null, not whitespace
+	 * only, and not a valid new account value, a ValidationException is 
+	 * thrown.
+	 * 
+	 * @param request The Request that is performing this validation.
+	 * 
+	 * @param value The String representation of the new account value to be  
+	 * 				validated.
+	 * 
+	 * @return Returns null if the value is null or whitespace only; otherwise,
+	 * 		   the value is returned.
+	 * 
+	 * @throws ValidationException Thrown if the value is not null, not 
+	 * 							   whitespace only, and not a valid new account 
+	 * 							   value.
+	 */
+	public static Boolean validateNewAccountValue(Request request, String value) throws ValidationException {
+		LOGGER.info("Validating that the value is a valid new account value.");
+		
+		if(StringUtils.isEmptyOrWhitespaceOnly(value)) {
+			return null;
+		}
+		
+		if(BooleanValidators.validateBoolean(value)) {
+			return StringUtils.decodeBoolean(value);
+		}
+		else {
+			request.setFailed(ErrorCodes.USER_INVALID_NEW_ACCOUNT_VALUE, "The new account value is invalid: " + value);
+			throw new ValidationException("The new account value is invalid: " + value);
+		}
+	}
+	
+	/**
+	 * Validates that a value is a valid campaign creation privilege value. If
+	 * the value is null or whitespace only, null is returned. If the value is
+	 * a valid campaign creation privilege value, it is returned. If the value
+	 * is not null, not whitespace only, and not a valid campaign creation 
+	 * privilege value, a ValidationException is thrown.
+	 * 
+	 * @param request The Request that is performing this validation.
+	 * 
+	 * @param value The String representation of the campaign creation 
+	 * 				privilege value to be validated.
+	 * 
+	 * @return Returns null if the value is null or whitespace only; otherwise,
+	 * 		   the value is returned.
+	 * 
+	 * @throws ValidationException Thrown if the value is not null, not 
+	 * 							   whitespace only, and not a valid campaign 
+	 * 							   creation privilege value.
+	 */
+	public static Boolean validateCampaignCreationPrivilegeValue(Request request, String value) throws ValidationException {
+		LOGGER.info("Validating that the value is a valid campaign creation privilege value.");
+		
+		if(StringUtils.isEmptyOrWhitespaceOnly(value)) {
+			return null;
+		}
+		
+		if(BooleanValidators.validateBoolean(value)) {
+			return StringUtils.decodeBoolean(value);
+		}
+		else {
+			request.setFailed(ErrorCodes.USER_INVALID_CAMPAIGN_CREATION_PRIVILEGE, "The campaign creation privilege value is invalid: " + value);
+			throw new ValidationException("The campaign creation privilege value is invalid: " + value);
+		}
+	}
 }

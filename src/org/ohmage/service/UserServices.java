@@ -19,20 +19,63 @@ public final class UserServices {
 	private UserServices() {}
 	
 	/**
-	 * Verifies that a user exists.
+	 * Creates a new user.
+	 * 
+	 * @param request The Request that is performing this service.
+	 * 
+	 * @param username The username for the new user.
+	 * 
+	 * @param password The password for the new user.
+	 * 
+	 * @param admin Whether or not the user should initially be an admin.
+	 * 
+	 * @param enabled Whether or not the user should initially be enabled.
+	 * 
+	 * @param newAccount Whether or not the new user must change their password
+	 * 					 before using any other APIs.
+	 * 
+	 * @param campaignCreationPrivilege Whether or not the new user is allowed
+	 * 									to create campaigns.
+	 * 
+	 * @throws ServiceException Thrown if there is an error.
+	 */
+	public static void createUser(Request request, String username, String password, 
+			Boolean admin, Boolean enabled, Boolean newAccount, Boolean campaignCreationPrivilege) throws ServiceException {
+		try {
+			UserDaos.createUser(username, password, admin, enabled, newAccount, campaignCreationPrivilege);
+		}
+		catch(DataAccessException e) {
+			request.setFailed();
+			throw new ServiceException(e);
+		}
+	}
+	
+	/**
+	 * Checks that a user's existence matches that of 'shouldExist'.
 	 * 
 	 * @param request The request that is performing this check.
 	 * 
 	 * @param username The username of the user in question.
 	 * 
-	 * @throws ServiceException Thrown if there was an error or if the user
-	 * 							does not exist.
+	 * @param shouldExist Whether or not the user should exist.
+	 * 
+	 * @throws ServiceException Thrown if there was an error, if the user 
+	 * 							exists but shouldn't, or if the user doesn't
+	 * 							exist but should.
 	 */
-	public static void verifyUserExists(Request request, String username) throws ServiceException {
+	public static void checkUserExistance(Request request, String username, boolean shouldExist) throws ServiceException {
 		try {
-			if(! UserDaos.userExists(username)) {
-				request.setFailed(ErrorCodes.USER_INVALID_USERNAME, "The following user does not exist: " + username);
-				throw new ServiceException("The following user does not exist: " + username);
+			if(UserDaos.userExists(username)) {
+				if(! shouldExist) {
+					request.setFailed(ErrorCodes.USER_INVALID_USERNAME, "The following user already exists: " + username);
+					throw new ServiceException("The following user already exists: " + username);
+				}
+			}
+			else {
+				if(shouldExist) {
+					request.setFailed(ErrorCodes.USER_INVALID_USERNAME, "The following user does not exist: " + username);
+					throw new ServiceException("The following user does not exist: " + username);
+				}
 			}
 		}
 		catch(DataAccessException e) {
@@ -42,18 +85,22 @@ public final class UserServices {
 	}
 	
 	/**
-	 * Verifies that a Collection of users exist.
+	 * Checks that a Collection of users' existence matches that of 
+	 * 'shouldExist'.
 	 * 
 	 * @param request The Request that is performing this check.
 	 * 
 	 * @param usernames A Collection of usernames to check that each exists.
 	 * 
-	 * @throws ServiceException Thrown if there was an error or if one of the
-	 * 							usernames does not exist.
+	 * @param shouldExist Whether or not all of the users should exist or not.
+	 * 
+	 * @throws ServiceException Thrown if there was an error, if one of the 
+	 * 							users should have existed and didn't, or if one 
+	 * 							of the users shouldn't exist but does.
 	 */
-	public static void verifyUsersExist(Request request, Collection<String> usernames) throws ServiceException {
+	public static void verifyUsersExist(Request request, Collection<String> usernames, boolean shouldExist) throws ServiceException {
 		for(String username : usernames) {
-			verifyUserExists(request, username);
+			checkUserExistance(request, username, shouldExist);
 		}
 	}
 	

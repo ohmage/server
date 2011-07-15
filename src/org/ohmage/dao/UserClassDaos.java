@@ -1,8 +1,11 @@
 package org.ohmage.dao;
 
+import java.util.List;
+
 import javax.sql.DataSource;
 
 import org.apache.log4j.Logger;
+import org.springframework.jdbc.core.SingleColumnRowMapper;
 
 /**
  * This class contains all of the functionality for creating, reading, 
@@ -26,6 +29,14 @@ public class UserClassDaos extends Dao {
 			"AND u.id = uc.user_id " +
 			"AND c.id = uc.class_id" +
 		")";
+	
+	// Returns all of the users in a class.
+	private static final String SQL_GET_USER_CLASS = 
+		"SELECT u.username " +
+		"FROM user u, class c, user_class uc " +
+		"WHERE c.urn = ? " +
+		"AND c.id = uc.class_id " +
+		"AND u.id = uc.user_id";
 	
 	// Returns the user's role in a class.
 	private static final String SQL_GET_USER_ROLE = 
@@ -71,6 +82,22 @@ public class UserClassDaos extends Dao {
 	}
 	
 	/**
+	 * Retrieves all of the users in a class.
+	 * 
+	 * @param classId The unique identifier for the class.
+	 * 
+	 * @return Returns a List of usernames of all of the users in a class.
+	 */
+	public static List<String> getUsersInClass(String classId) {
+		try {
+			return instance.jdbcTemplate.query(SQL_GET_USER_CLASS, new Object[] { classId }, new SingleColumnRowMapper<String>());
+		}
+		catch(org.springframework.dao.DataAccessException e) {
+			throw new DataAccessException("Error executing SQL '" + SQL_GET_USER_CLASS + "' with parameters: " + classId, e);
+		}
+	}
+	
+	/**
 	 * Querys the database to get the role of a user in a class. If a user 
 	 * doesn't have a role in a class, null is returned.
 	 * 
@@ -81,7 +108,7 @@ public class UserClassDaos extends Dao {
 	 * @return Returns the user's role in the class unless they have no role in
 	 * 		   the class in which case null is returned.
 	 */
-	public static String userClassRole(String classId, String username) {
+	public static String getUserClassRole(String classId, String username) {
 		try {
 			return (String) instance.jdbcTemplate.queryForObject(SQL_GET_USER_ROLE, new Object[] { username, classId }, String.class);
 		}

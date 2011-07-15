@@ -4,6 +4,8 @@ import java.util.List;
 
 import javax.sql.DataSource;
 
+import org.springframework.jdbc.core.SingleColumnRowMapper;
+
 /**
  * This class contains all of the functionality for reading and writing 
  * information specific to user-campaign relationships.
@@ -21,6 +23,14 @@ public class UserCampaignDaos extends Dao {
 			"AND c.id = urc.campaign_id " +
 			"AND u.id = urc.user_id" +
 		")";
+	
+	// Retrieves the users in a campaign.
+	private static final String SQL_GET_USERS_IN_CAMPAIGN = 
+		"SELECT u.username " +
+		"FROM user u, campaign c, user_role_campaign urc " +
+		"WHERE c.urn = ? " +
+		"AND urc.campaign_id = c.id " +
+		"AND urc.user_id = u.id";
 	
 	// Retrieves the roles for a user in a campaign.
 	private static final String SQL_GET_USER_CAMPAIGN_ROLES =
@@ -61,6 +71,23 @@ public class UserCampaignDaos extends Dao {
 		catch(org.springframework.dao.DataAccessException e) {
 			throw new DataAccessException("Error executing SQL '" + SQL_EXISTS_USER_CAMPAIGN + "' with parameters: " +
 					campaignId + ", " + username, e);
+		}
+	}
+	
+	/**
+	 * Retrieves all of the users from a campaign.
+	 * 
+	 * @param campaignId The unique identifier for the campaign.
+	 * 
+	 * @return A List of usernames for the users in the campaign.
+	 */
+	public static List<String> getUsersInCampaign(String campaignId) {
+		try {
+			return instance.jdbcTemplate.query(SQL_GET_USERS_IN_CAMPAIGN, new Object[] { campaignId }, new SingleColumnRowMapper<String>());
+		}
+		catch(org.springframework.dao.DataAccessException e) {
+			throw new DataAccessException("Error executing SQL '" + SQL_GET_USERS_IN_CAMPAIGN + "' with parameter: " +
+					campaignId, e);
 		}
 	}
 	

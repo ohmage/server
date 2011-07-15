@@ -280,7 +280,7 @@ public class DocumentUpdateRequest extends UserRequest {
 			
 			if(userAndRolesToAdd != null) {
 				LOGGER.info("Verifying that the users in the user-role list exist.");
-				UserServices.verifyUsersExist(this, userAndRolesToAdd.keySet());
+				UserServices.verifyUsersExist(this, userAndRolesToAdd.keySet(), true);
 				
 				LOGGER.info("Verifying that the user is not attempting to give more permissions to a user than they have.");
 				DocumentServices.ensureRoleNotLessThanRoles(this, highestRole, userAndRolesToAdd.values());

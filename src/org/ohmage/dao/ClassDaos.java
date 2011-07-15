@@ -442,7 +442,7 @@ public class ClassDaos extends Dao {
 						instance.jdbcTemplate.update(SQL_INSERT_USER_CLASS, new Object[] { username, classId, role } );
 					}
 					catch(org.springframework.dao.DataIntegrityViolationException duplicateException) {
-						String originalRole = UserClassDaos.userClassRole(classId, username);
+						String originalRole = UserClassDaos.getUserClassRole(classId, username);
 						if(! originalRole.equals(role)) {
 							try {
 								if(instance.jdbcTemplate.update(SQL_UPDATE_USER_CLASS, new Object[] { role, username, classId }) > 0) {
