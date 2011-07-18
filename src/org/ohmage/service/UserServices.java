@@ -1,10 +1,14 @@
 package org.ohmage.service;
 
 import java.util.Collection;
+import java.util.Map;
 
 import org.ohmage.annotator.ErrorCodes;
 import org.ohmage.dao.DataAccessException;
+import org.ohmage.dao.UserCampaignDaos;
+import org.ohmage.dao.UserClassDaos;
 import org.ohmage.dao.UserDaos;
+import org.ohmage.domain.UserInformation;
 import org.ohmage.request.Request;
 
 /**
@@ -148,6 +152,50 @@ public final class UserServices {
 				request.setFailed(ErrorCodes.CAMPAIGN_INSUFFICIENT_PERMISSIONS, "The user does not have permission to create new campaigns.");
 				throw new ServiceException("The user does not have permission to create new campaigns.");
 			}
+		}
+		catch(DataAccessException e) {
+			request.setFailed();
+			throw new ServiceException(e);
+		}
+	}
+	
+	/**
+	 * Gathers the personal information about a user.
+	 * 
+	 * @param request The Request that is performing this service.
+	 * 
+	 * @param username The username of the user whose information is being
+	 * 				   requested.
+	 * 
+	 * @return Returns a UserInformation object that contains the necessary
+	 * 		   information about a user.
+	 * 
+	 * @throws ServiceException Thrown if there is an error.
+	 */
+	public static UserInformation gatherUserInformation(Request request, String username) throws ServiceException {
+		try {
+			// Get campaign creation privilege.
+			UserInformation userInformation = new UserInformation(UserDaos.userCanCreateCampaigns(username));
+			
+			// Get the campaigns and their names for the requester.
+			Map<String, String> campaigns = UserCampaignDaos.getCampaignIdsAndNameForUser(username);
+			userInformation.addCampaigns(campaigns);
+			
+			// Get the requester's campaign roles for each of the campaigns.
+			for(String campaignId : campaigns.keySet()) {
+				userInformation.addCampaignRoles(UserCampaignDaos.getUserCampaignRoles(username, campaignId));
+			}
+			
+			// Get the classes and their names for the requester.
+			Map<String, String> classes = UserClassDaos.getClassIdsAndNameForUser(username);
+			userInformation.addClasses(classes);
+			
+			// Get the requester's class roles for each of the classes.
+			for(String classId : classes.keySet()) {
+				userInformation.addClassRole(UserClassDaos.getUserClassRole(classId, username));
+			}
+			
+			return userInformation;
 		}
 		catch(DataAccessException e) {
 			request.setFailed();

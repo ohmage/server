@@ -17,6 +17,7 @@ import org.ohmage.request.document.DocumentReadContentsRequest;
 import org.ohmage.request.document.DocumentReadRequest;
 import org.ohmage.request.document.DocumentUpdateRequest;
 import org.ohmage.request.user.UserCreationRequest;
+import org.ohmage.request.user.UserInfoReadRequest;
 import org.ohmage.request.user.UserReadRequest;
 
 /**
@@ -27,7 +28,7 @@ import org.ohmage.request.user.UserReadRequest;
 public final class RequestBuilder {
 	/**
 	 * Default constructor. Made private because this class should never be
-	 * instantiated. Instead, the static builder methods should be called.
+	 * instantiated. Instead, the static builder method should be called.
 	 */
 	private RequestBuilder() {}
 	
@@ -61,6 +62,7 @@ public final class RequestBuilder {
 	// User
 	private static final String API_USER_CREATE = API_ROOT + "/user/create";
 	private static final String API_USER_READ = API_ROOT + "/user/read";
+	private static final String API_USER_INFO_READ = API_ROOT + "/user_info/read";
 	
 	/**
 	 * Builds a new request based on the request's URI. This will always return
@@ -130,6 +132,9 @@ public final class RequestBuilder {
 		}
 		else if(API_USER_READ.equals(requestUri)) {
 			return new UserReadRequest(httpRequest);
+		}
+		else if(API_USER_INFO_READ.equals(requestUri)) {
+			return new UserInfoReadRequest(httpRequest);
 		}
 		
 		// The URI is unknown.
