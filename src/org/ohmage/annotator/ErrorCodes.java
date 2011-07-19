@@ -22,7 +22,7 @@ public final class ErrorCodes {
 	public static final String SERVER_INVALID_JSON = "0300";
 	public static final String SERVER_INVALID_CLIENT = "0301";
 	public static final String SERVER_INVALID_DATE = "0302";
-	public static final String SERVER_INVALID_CAMPAIGN_CREATION_TIMESTAMP = "0303";
+	public static final String SERVER_INVALID_TIMESTAMP = "0303";
 	
 	public static final String MOBILITY_INVALID_SUBTYPE = "0500";
 	public static final String MOBILITY_INVALID_MODE = "0501";
@@ -57,6 +57,7 @@ public final class ErrorCodes {
 	public static final String CAMPAIGN_INSUFFICIENT_PERMISSIONS = "0707";
 	public static final String CAMPAIGN_XML_HEADER_CHANGED = "0708";
 	public static final String CAMPAIGN_INVALID_DESCRIPTION = "0709";
+	public static final String CAMPAIGN_OUT_OF_DATE = "0710";
 	
 	public static final String IMAGE_INVALID_ID = "0800";
 	public static final String IMAGE_INVALID_SIZE = "0801";

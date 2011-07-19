@@ -14,6 +14,8 @@ import nu.xom.XPathException;
 
 import org.ohmage.annotator.ErrorCodes;
 import org.ohmage.dao.CampaignDaos;
+import org.ohmage.domain.User;
+import org.ohmage.domain.configuration.Configuration;
 import org.ohmage.exception.DataAccessException;
 import org.ohmage.exception.ServiceException;
 import org.ohmage.request.Request;
@@ -22,6 +24,7 @@ import org.ohmage.request.Request;
  * This class contains the services that pertain to campaigns.
  * 
  * @author John Jenkins
+ * @author Joshua Selsky
  */
 public class CampaignServices {
 	private static final String PATH_CAMPAIGN_URN = "/campaign/campaignUrn";
@@ -247,43 +250,89 @@ public class CampaignServices {
 		return new CampaignIdAndName(campaignUrn, campaignName);
 	}
 	
-//	/**
-//	 * Looks up the running state for a particular campaign represented by the 
-//	 * provided campaignId.
-//	 * 
-//	 * @param request The request to mark as failed should an error occur.
-//	 * @param campaignId The campaign id to retrieve the running state for.
-//	 * @return The running state for the campaign id. 
-//	 * @throws ServiceException If an error occurs
-//	 */
-//	public static String findRunningStateForCampaign(Request request, String campaignId) throws ServiceException {
-//		try {
-//			return CampaignDaos.getRunningStateForCampaignId(campaignId);
-//		}
-//		catch(DataAccessException e) {
-//			request.setFailed();
-//			throw new ServiceException(e);
-//		}
-//	}
-//	
-//	/** 
-//	 * TODO - move this method into the SurveyUploadRequest
-//	 * 
-//	 * Verifies that the provided campaign creation timestamp is equal to the campaign creation timestamp for the 
-//	 * campaign stored with the User and represented by the provided campaignId.
-//	 * 
-//	 * @return true if the provided campaign creation timestamp is equal to the campaign creation timestamp stored in
-//	 * the User for the provided campaign id.
-//	 */
-//	public static boolean verifyCampaignCreationTimestamp(Request request, User user, String campaignId, Date campaignCreationTimestamp) 
-//		throws ServiceException {
-//		if(user.getCampaignsAndRoles() == null) { // logical error
-//			request.setFailed();
-//			throw new ServiceException("The User in the Request has not been populated with his or her associated campaigns and roles", true);
-//		}
-//		
-//		
-//		
-//		
-//	}
+	/**
+	 * Verifies that the user belongs to a campaign specified by the campaign id and that the campaign referenced by the id 
+	 * has a value that matches the allowed running state.
+	 * 
+	 * @param request The request that will be failed if the validation does not pass.
+	 * @param user The user containing campaign and running state metadata to validate against.
+	 * @param campaignId The campaign id in question.
+	 * @param allowedRunningState The allowed running state for the above campaign.
+	 * @throws ServiceException
+	 */
+	public static void verifyAllowedRunningState(Request request, User user, String campaignId, String allowedRunningState)
+		throws ServiceException {
+		
+		if(user.getCampaignsAndRoles() == null) { // logical error
+			request.setFailed();
+			throw new ServiceException("The User in the Request has not been populated with his or her associated campaigns and roles", true);
+		}
+		
+		if(! user.getCampaignsAndRoles().containsKey(campaignId)) { // at this point (service-layer) this is also a logical error
+			request.setFailed(ErrorCodes.CAMPAIGN_INVALID_ID, "User does not belong to campaign.");
+			throw new ServiceException("The User in the Request does not belong to the campaign " + campaignId);
+		}
+		
+		if(! user.getCampaignsAndRoles().get(campaignId).getCampaign().getRunningState().equals(allowedRunningState)) {
+			request.setFailed(ErrorCodes.CAMPAIGN_INVALID_RUNNING_STATE, "Campaign does not have the allowed running state: " + allowedRunningState);
+			throw new ServiceException("Campaign does not have the allowed running state: " + allowedRunningState);
+		}
+	}
+	
+	/**
+	 * Verifies that the user belongs to a campaign specified by the campaign
+	 * id and that the campaign referenced by the id has a timestamp value 
+	 * that matches the campaign creation timestamp.
+	 * 
+	 * @param request The request that will be failed if the validation does
+	 * not pass.
+	 * @param user The user containing campaign and campaign creation timestmap
+	 * metadata to validate against.
+	 * @param campaignId The campaign id in question.
+	 * @param allowedRunningState The campaign creation timestamp provided to the
+	 * API call.
+	 * @throws ServiceException If the user does not contain a CampaignAndRoles
+	 * object, or if the user does not belong to the campaign, or the campaign
+	 * creation timestamp does not match what is currently stored for the 
+	 * campaign. 
+	 */
+	public static void verifyCampaignCreationTimestamp(Request request, User user, String campaignId, String campaignCreationTimestamp)
+		throws ServiceException {
+		
+		if(user.getCampaignsAndRoles() == null) { // logical error
+			request.setFailed();
+			throw new ServiceException("The User in the Request has not been populated with his or her associated campaigns and roles", true);
+		}
+		
+		if(! user.getCampaignsAndRoles().containsKey(campaignId)) { // at this point (service-layer) this is also a logical error
+			request.setFailed(ErrorCodes.CAMPAIGN_INVALID_ID, "User does not belong to campaign.");
+			throw new ServiceException("The User in the Request does not belong to the campaign " + campaignId);
+		}
+		
+		// equals() is used here because any timestamp that is not equal to the timestamp stored in the db is invalid
+		// e.g., if the timestamp provided to this method was newer than the timestamp stored with the campaign, it 
+		// would mean a logical error on the part of some client
+		if(! user.getCampaignsAndRoles().get(campaignId).getCampaign().getCampaignCreationTimestamp().equals(campaignCreationTimestamp)) {
+			request.setFailed(ErrorCodes.CAMPAIGN_OUT_OF_DATE, "Campaign does not have the timestamp: " + campaignCreationTimestamp);
+			throw new ServiceException("Campaign does not have the timestamp: " + campaignCreationTimestamp);
+		}
+	}
+	
+	/**
+	 * Finds the configuration for the campaign identified by the campaign id.
+	 * 
+	 * @param campaignId The campaign id to use for lookup.
+	 * @return a Configuration instance created from the XML for the campaign.
+	 * @throws ServiceException If an error occurred in the data layer.
+	 */
+	public static Configuration findCampaignConfiguration(Request request, String campaignId) throws ServiceException {
+		try {
+			
+			return CampaignDaos.findCampaignConfiguration(campaignId);
+			
+		} catch (DataAccessException e) {
+			request.setFailed();
+			throw new ServiceException(e);
+		}
+	}
 }

@@ -1,12 +1,18 @@
 package org.ohmage.dao;
 
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.List;
 
 import javax.sql.DataSource;
 
 import org.ohmage.cache.CampaignRoleCache;
 import org.ohmage.cache.ClassRoleCache;
+import org.ohmage.domain.configuration.Configuration;
+import org.ohmage.domain.configuration.SurveyMapFromXmlBuilder;
 import org.ohmage.exception.DataAccessException;
+import org.springframework.dao.IncorrectResultSizeDataAccessException;
+import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionException;
@@ -141,6 +147,14 @@ public class CampaignDaos extends Dao {
 		"FROM campaign c, campaign_running_state crs " +
 		"WHERE c.urn = ? " +
 		"AND c.running_state_id = crs.id";
+	
+	private static final String SQL_SELECT_CAMPAIGN_CONFIGURATION = 
+		"SELECT c.name, c.description, c.xml, crs.running_state, cps.privacy_state, c.creation_timestamp" +
+        " FROM campaign c, campaign_running_state crs, campaign_privacy_state cps" +
+        " WHERE urn = ?" +
+        " AND c.running_state_id = crs.id" +
+        " AND c.privacy_state_id = cps.id";
+	
 	
 	// The single instance of this class as the constructor should only ever be
 	// called once by Spring.
@@ -366,6 +380,37 @@ public class CampaignDaos extends Dao {
 		} 
 		catch(org.springframework.dao.DataAccessException e) {
 			throw new DataAccessException("Error executing SQL '" + SQL_SELECT_CAMPAIGN_RUNNING_STATE + "' with parameter: " + campaignId, e);
+		}
+	}
+	
+	/**
+	 * Finds the configuration for the provided campaign id.
+	 * 
+	 * @param campaignId The unique identifier for the campaign..
+	 * @throws DataAccessException If an error occurs running the SQL.
+	 */
+	public static Configuration findCampaignConfiguration(final String campaignId) throws DataAccessException {
+		try {
+			return instance.jdbcTemplate.queryForObject(
+					SQL_SELECT_CAMPAIGN_CONFIGURATION, 
+					new Object[] { campaignId }, 
+					new RowMapper<Configuration>() { public Configuration mapRow(ResultSet rs, int rowNum) throws SQLException {
+						String name = rs.getString(1);
+						String description = rs.getString(2);
+						String xml = rs.getString(3);
+						String runningState = rs.getString(4);
+						String privacyState = rs.getString(5);
+						String timestamp = rs.getTimestamp(6).toString();
+						return new Configuration(campaignId, name, description, 
+								runningState, privacyState, timestamp, SurveyMapFromXmlBuilder.buildFrom(xml), xml);
+					}}
+			);
+		}
+		catch(IncorrectResultSizeDataAccessException e) {
+			throw new DataAccessException("Found an incorrect number of results executing SQL '" + SQL_SELECT_CAMPAIGN_CONFIGURATION + "' with parameter: " + campaignId, e);
+		}
+		catch(org.springframework.dao.DataAccessException e) {
+			throw new DataAccessException("General error executing SQL '" + SQL_SELECT_CAMPAIGN_CONFIGURATION + "' with parameter: " + campaignId, e);
 		}
 	}
 }

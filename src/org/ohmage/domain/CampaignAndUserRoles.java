@@ -22,6 +22,8 @@ import java.util.List;
 /**
  * Storage class for mapping a Campaign to a List of user roles.
  * 
+ * TODO: make this a Map and store it directly in the User object?
+ * 
  * @author Joshua Selsky
  */
 public class CampaignAndUserRoles {
