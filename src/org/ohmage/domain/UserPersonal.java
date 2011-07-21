@@ -62,6 +62,101 @@ public class UserPersonal {
 	}
 	
 	/**
+	 * Creates a new object with the specified personal information about the 
+	 * user. Any data can be null.
+	 * 
+	 * @param firstName The first name of the user.
+	 * 
+	 * @param lastName The last name of the user.
+	 * 
+	 * @param organization The organization for the user.
+	 * 
+	 * @param personalId The personal identifier for the user.
+	 * 
+	 * @param emailAddress The email address for the user.
+	 * 
+	 * @param jsonData Additional information about the user as a JSONObject.
+	 */
+	public UserPersonal(String firstName, String lastName, String organization, String personalId, String emailAddress, JSONObject jsonData) {
+		this.firstName = firstName;
+		this.lastName = lastName;
+		this.organization = organization;
+		this.personalId = personalId;
+		this.emailAddress = emailAddress;
+		this.jsonData = jsonData;
+	}
+	
+	/**
+	 * Returns the user's first name or null if one doesn't exist.
+	 * 
+	 * @return the firstName
+	 */
+	public final String getFirstName() {
+		return firstName;
+	}
+
+	/**
+	 * Returns the user's last name or null if one doesn't exist.
+	 * 
+	 * @return the lastName
+	 */
+	public final String getLastName() {
+		return lastName;
+	}
+
+	/**
+	 * Returns the user's organization or null if one doesn't exist.
+	 * 
+	 * @return the organization
+	 */
+	public final String getOrganization() {
+		return organization;
+	}
+
+	/**
+	 * Returns the user's personal ID or null if one doesn't exist.
+	 * 
+	 * @return the personalId
+	 */
+	public final String getPersonalId() {
+		return personalId;
+	}
+
+	/**
+	 * Returns the user's email address or null if one doesn't exist.
+	 * 
+	 * @return the emailAddress
+	 */
+	public final String getEmailAddress() {
+		return emailAddress;
+	}
+
+	/**
+	 * Returns the additional information about the user as a JSONObject or 
+	 * null if one doesn't exist.
+	 * 
+	 * @return the jsonData
+	 */
+	public final JSONObject getJsonData() {
+		return jsonData;
+	}
+	
+	/**
+	 * Checks if there is any meaningful data in this object.
+	 * 
+	 * @return Returns true if all fields in this object are null; otherwise, 
+	 * 		   it returns false.
+	 */
+	public boolean isEmpty() {
+		return((firstName == null) &&
+			   (lastName == null) &&
+			   (organization == null) &&
+			   (personalId == null) &&
+			   (emailAddress == null) &&
+			   (jsonData == null));
+	}
+
+	/**
 	 * Creates a JSONObject that represents this user. Any fields that were set
 	 * to null will be missing an entry in this object.
 	 * 

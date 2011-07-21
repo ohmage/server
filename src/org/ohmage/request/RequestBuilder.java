@@ -19,6 +19,8 @@ import org.ohmage.request.document.DocumentUpdateRequest;
 import org.ohmage.request.user.UserCreationRequest;
 import org.ohmage.request.user.UserInfoReadRequest;
 import org.ohmage.request.user.UserReadRequest;
+import org.ohmage.request.user.UserStatsReadRequest;
+import org.ohmage.request.user.UserUpdateRequest;
 
 /**
  * Request builder from an HTTP request.
@@ -63,6 +65,8 @@ public final class RequestBuilder {
 	private static final String API_USER_CREATE = API_ROOT + "/user/create";
 	private static final String API_USER_READ = API_ROOT + "/user/read";
 	private static final String API_USER_INFO_READ = API_ROOT + "/user_info/read";
+	private static final String API_USER_STATS_READ = API_ROOT + "/user_stats/read";
+	private static final String API_USER_UPDATE = API_ROOT + "/user/update";
 	
 	/**
 	 * Builds a new request based on the request's URI. This will always return
@@ -135,6 +139,12 @@ public final class RequestBuilder {
 		}
 		else if(API_USER_INFO_READ.equals(requestUri)) {
 			return new UserInfoReadRequest(httpRequest);
+		}
+		else if(API_USER_STATS_READ.equals(requestUri)) {
+			return new UserStatsReadRequest(httpRequest);
+		}
+		else if(API_USER_UPDATE.equals(requestUri)) {
+			return new UserUpdateRequest(httpRequest);
 		}
 		
 		// The URI is unknown.

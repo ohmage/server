@@ -85,8 +85,8 @@ public class UserInfoReadRequest extends UserRequest {
 				jsonResult.put(user.getUsername(), result.toJsonObject());
 			}
 			catch(JSONException e) {
-				setFailed();
 				LOGGER.error("There was an error building the JSONObject result.", e);
+				setFailed();
 			}
 		}
 		

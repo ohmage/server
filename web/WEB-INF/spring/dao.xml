@@ -29,6 +29,12 @@
     </constructor-arg>
   </bean>
   
+  <bean class="org.ohmage.dao.UserMobilityDaos">
+    <constructor-arg>
+      <ref bean="dataSource" />
+    </constructor-arg>
+  </bean>
+  
   <bean class="org.ohmage.dao.UserCampaignDaos">
     <constructor-arg>
       <ref bean="dataSource" />
@@ -60,6 +66,12 @@
   </bean>
   
   <bean class="org.ohmage.dao.UserDocumentDaos">
+    <constructor-arg>
+      <ref bean="dataSource" />
+    </constructor-arg>
+  </bean>
+  
+  <bean class="org.ohmage.dao.UserSurveyDaos">
     <constructor-arg>
       <ref bean="dataSource" />
     </constructor-arg>

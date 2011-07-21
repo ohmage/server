@@ -9,6 +9,7 @@ import org.ohmage.dao.UserCampaignDaos;
 import org.ohmage.dao.UserClassDaos;
 import org.ohmage.dao.UserDaos;
 import org.ohmage.domain.UserInformation;
+import org.ohmage.domain.UserPersonal;
 import org.ohmage.request.Request;
 
 /**
@@ -158,6 +159,59 @@ public final class UserServices {
 			throw new ServiceException(e);
 		}
 	}
+
+	/**
+	 * Verifies that if the 'personalInfo' is not null nor empty, that either
+	 * there already exists a personal information entry for some user or that
+	 * there is sufficient information in the 'personalInfo' object to create a
+	 * new entry.
+	 * 
+	 * @param request The Request that is performing this service.
+	 * 
+	 * @param username The username of the user whose personal information is
+	 * 				   being queried.
+	 * 
+	 * @param personalInfo The personal information to use to populate the 
+	 * 					   user's personal information entry in the database
+	 * 					   should one not exist.
+	 * 
+	 * @throws ServiceException Thrown if the 'personalInfo' object is not null
+	 * 							nor is it empty, there is not a personal
+	 * 							information entry for this user in the 
+	 * 							database, and there is some required field 
+	 * 							missing in the 'personalInfo' object to create
+	 * 							a new personal information entry in the
+	 * 							database. Also, it is thrown if there is an 
+	 * 							error. 
+	 */
+	public static void verifyUserHasOrCanCreatePersonalInfo(Request request, String username, UserPersonal personalInfo) throws ServiceException {
+		if((personalInfo != null) && (! personalInfo.isEmpty())) {
+			try {
+				if(! UserDaos.userHasPersonalInfo(username)) {
+					if(personalInfo.getFirstName() == null) {
+						request.setFailed(ErrorCodes.USER_INVALID_FIRST_NAME_VALUE, "The user doesn't have personal information yet, and a first name is necessary to create one.");
+						throw new ServiceException("The user doesn't have personal information yet, and a first name is necessary to create one.");
+					}
+					else if(personalInfo.getLastName() == null) {
+						request.setFailed(ErrorCodes.USER_INVALID_LAST_NAME_VALUE, "The user doesn't have personal information yet, and a last name is necessary to create one.");
+						throw new ServiceException("The user doesn't have personal information yet, and a last name is necessary to create one.");
+					}
+					else if(personalInfo.getOrganization() == null) {
+						request.setFailed(ErrorCodes.USER_INVALID_ORGANIZATION_VALUE, "The user doesn't have personal information yet, and a organization is necessary to create one.");
+						throw new ServiceException("The user doesn't have personal information yet, and an organization is necessary to create one.");
+					}
+					else if(personalInfo.getPersonalId() == null) {
+						request.setFailed(ErrorCodes.USER_INVALID_PERSONAL_ID_VALUE, "The user doesn't have personal information yet, and a personal ID is necessary to create one.");
+						throw new ServiceException("The user doesn't have personal information yet, and a personal ID is necessary to create one.");
+					}
+				}
+			}
+			catch(DataAccessException e) {
+				request.setFailed();
+				throw new ServiceException(e);
+			}
+		}
+	}
 	
 	/**
 	 * Gathers the personal information about a user.
@@ -196,6 +250,49 @@ public final class UserServices {
 			}
 			
 			return userInformation;
+		}
+		catch(DataAccessException e) {
+			request.setFailed();
+			throw new ServiceException(e);
+		}
+	}
+	
+	/**
+	 * Updates a user's account information.
+	 * 
+	 * @param request The Request that is performing this service.
+	 * 
+	 * @param username The username of the user whose information is to be
+	 * 				   updated.
+	 * 
+	 * @param admin Whether or not the user should be an admin. A null value
+	 * 			    indicates that this field should not be updated.
+	 * 
+	 * @param enabled Whether or not the user's account should be enabled. A
+	 * 				  null value indicates that this field should not be
+	 * 				  updated.
+	 * 
+	 * @param newAccount Whether or not the user should be required to change
+	 * 					 their password. A null value indicates that this field
+	 * 					 should not be updated.
+	 * 
+	 * @param campaignCreationPrivilege Whether or not the user should be 
+	 * 									allowed to create campaigns. A null
+	 * 									value indicates that this field should
+	 * 									not be updated.
+	 * 
+	 * @param personalInfo Personal information about a user. If this is null,
+	 * 					   none of the user's personal information will be
+	 * 					   updated. If it is not null, all non-null values 
+	 * 					   inside this object will be used to update the user's
+	 * 					   personal information database record; all null 
+	 * 					   values will be ignored.
+	 * 
+	 * @throws ServiceException Thrown if there is an error.
+	 */
+	public static void updateUser(Request request, String username, Boolean admin, Boolean enabled, Boolean newAccount, Boolean campaignCreationPrivilege, UserPersonal personalInfo) throws ServiceException {
+		try {
+			UserDaos.updateUser(username, admin, enabled, newAccount, campaignCreationPrivilege, personalInfo);
 		}
 		catch(DataAccessException e) {
 			request.setFailed();

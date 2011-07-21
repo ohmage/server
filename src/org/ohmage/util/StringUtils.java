@@ -18,13 +18,12 @@ package org.ohmage.util;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.regex.Pattern;
 
 /**
- * A collection of methods for manipulating or validating strings.
+ * A collection of methods for manipulating or validating Strings.
  * 
  * @author selsky
  */
@@ -32,12 +31,13 @@ public final class StringUtils {
 	private static final int NUM_URN_SEGMENTS = 3;
 	private static final Pattern URN_PATTERN = Pattern.compile("[a-z0-9_]+");
 	
+	private static final Pattern EMAIL_PATTERN = Pattern.compile("^([_A-Za-z0-9-]+)(\\.[_A-Za-z0-9-]+)*@[A-Za-z0-9]+(\\.[A-Za-z0-9]+)*(\\.[A-Za-z]{2,})$");
+	
 	/**
-	 * It is illegal and unncessary to instantiate this class as it is a collection of static methods.
+	 * It is unncessary to instantiate this class as it is a collection of 
+	 * static methods.
 	 */
-	private StringUtils() {
-		
-	}
+	private StringUtils() {}
 	
 	/**
 	 * Checks for a null or empty (zero-length or all whitespace) String.
@@ -74,7 +74,9 @@ public final class StringUtils {
 	}
 	
 	/**
-	 * @return a parameter list of the form (?,...?) depending on the numberOfParameters  
+	 * @return a parameter list of the form (?,...?) depending on the numberOfParameters
+	 * 
+	 * @deprecated We are moving away from dynamically generated SQL.
 	 */
 	public static String generateStatementPList(int numberOfParameters) {
 		if(numberOfParameters < 1) {
@@ -94,6 +96,10 @@ public final class StringUtils {
 	
 	/**
 	 * @return an Integer or a Double if the provided String is parseable to either
+	 * 
+	 * @deprecated Use the respective X.parseX() functions to get exactly what
+	 * 			   you want, and, if it fails, add the exception to the one you
+	 * 			   will generate and throw.
 	 */
 	public static Object stringToNumber(String value) {
 		try {
@@ -107,6 +113,8 @@ public final class StringUtils {
 	}
 	
 	/**
+	 * Validates that a String value is a valid URN value.
+	 * 
 	 * @return true if the provided value is a valid URN, false otherwise
 	 */
 	public static boolean isValidUrn(String value) {
@@ -133,6 +141,22 @@ public final class StringUtils {
 		}
 		
 		return true;
+	}
+	
+	/**
+	 * Validates that an email address is a valid email address.
+	 * 
+	 * @param emailAddress The email address to be validated.
+	 * 
+	 * @return Returns false if the email address is null, whitespace only, or
+	 * 		   not a valid email address; otherwise, true is returned.
+	 */
+	public static boolean isValidEmailAddress(String emailAddress) {
+		if(isEmptyOrWhitespaceOnly(emailAddress)) {
+			return false;
+		}
+		
+		return EMAIL_PATTERN.matcher(emailAddress).matches();
 	}
 	
 	/**
@@ -163,41 +187,15 @@ public final class StringUtils {
 	
 	/**
 	 * @return an empty list, or if the provided string contained comma-separated values, a list containing each element
+	 * 
+	 * @deprecated Perform this operation in specific Validators. Be sure to
+	 * 			   check for empty Strings which will be returned as a List of
+	 * 			   size 1 where the only element is also an empty String.
 	 */
 	public static List<String> splitCommaSeparatedString(String string) {
 		if(null == string) {
 			return Collections.emptyList();
 		} 
 		return Arrays.asList(string.split(","));
-	}
-	
-	/**
-	 * Creates a single String representation of the Collection where each item
-	 * is converted to a String via its toString() method and each item is
-	 * separated by the 'delimiter'.
-	 * 
-	 * @param collection The Collection of items to be aggregated into a single
-	 * 					 String.
-	 * 
-	 * @param delimiter The String to place between each item in the resulting
-	 * 					String.
-	 * 
-	 * @return A String representation of the Collection.
-	 */
-	public static String collectionToDelimitedString(Collection<?> collection, String delimiter) {
-		boolean firstPass = true;
-		StringBuilder builder = new StringBuilder();
-		for(Object item : collection) {
-			if(firstPass) {
-				firstPass = false;
-			}
-			else {
-				builder.append(delimiter);
-			}
-			
-			builder.append(item.toString());
-		}
-		
-		return builder.toString();
 	}
 }
