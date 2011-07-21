@@ -204,7 +204,7 @@ public final class UserValidators {
 			return null;
 		}
 		
-		if(BooleanValidators.validateBoolean(value)) {
+		if(StringUtils.isValidBoolean(value)) {
 			return StringUtils.decodeBoolean(value);
 		}
 		else {
@@ -238,7 +238,7 @@ public final class UserValidators {
 			return null;
 		}
 		
-		if(BooleanValidators.validateBoolean(value)) {
+		if(StringUtils.isValidBoolean(value)) {
 			return StringUtils.decodeBoolean(value);
 		}
 		else {
@@ -273,7 +273,7 @@ public final class UserValidators {
 			return null;
 		}
 		
-		if(BooleanValidators.validateBoolean(value)) {
+		if(StringUtils.isValidBoolean(value)) {
 			return StringUtils.decodeBoolean(value);
 		}
 		else {
@@ -308,7 +308,7 @@ public final class UserValidators {
 			return null;
 		}
 		
-		if(BooleanValidators.validateBoolean(value)) {
+		if(StringUtils.isValidBoolean(value)) {
 			return StringUtils.decodeBoolean(value);
 		}
 		else {
@@ -339,11 +339,11 @@ public final class UserValidators {
 			return null;
 		}
 		
-		if(StringValidators.isProfane(value)) {
+		if(StringUtils.isProfane(value)) {
 			request.setFailed(ErrorCodes.USER_INVALID_FIRST_NAME_VALUE, "The first name value for the user contains profanity: " + value);
 			throw new ValidationException("The first name value for the user contains profanity: " + value);
 		}
-		else if(! StringValidators.lengthWithinLimits(value, 0, MAX_FIRST_NAME_LENGTH)) {
+		else if(! StringUtils.lengthWithinLimits(value, 0, MAX_FIRST_NAME_LENGTH)) {
 			request.setFailed(ErrorCodes.USER_INVALID_FIRST_NAME_VALUE, "The first name value for the user is too long. The limit is " + MAX_FIRST_NAME_LENGTH + " characters.");
 			throw new ValidationException("The first name value for the user is too long. The limit is " + MAX_FIRST_NAME_LENGTH + " characters.");
 		}
@@ -374,11 +374,11 @@ public final class UserValidators {
 			return null;
 		}
 		
-		if(StringValidators.isProfane(value)) {
+		if(StringUtils.isProfane(value)) {
 			request.setFailed(ErrorCodes.USER_INVALID_LAST_NAME_VALUE, "The last name value for the user contains profanity: " + value);
 			throw new ValidationException("The last name value for the user contains profanity: " + value);
 		}
-		else if(! StringValidators.lengthWithinLimits(value, 0, MAX_LAST_NAME_LENGTH)) {
+		else if(! StringUtils.lengthWithinLimits(value, 0, MAX_LAST_NAME_LENGTH)) {
 			request.setFailed(ErrorCodes.USER_INVALID_LAST_NAME_VALUE, "The last name value for the user is too long. The limit is " + MAX_LAST_NAME_LENGTH + " characters.");
 			throw new ValidationException("The last name value for the user is too long. The limit is " + MAX_LAST_NAME_LENGTH + " characters.");
 		}
@@ -409,11 +409,11 @@ public final class UserValidators {
 			return null;
 		}
 		
-		if(StringValidators.isProfane(value)) {
+		if(StringUtils.isProfane(value)) {
 			request.setFailed(ErrorCodes.USER_INVALID_ORGANIZATION_VALUE, "The organization value for the user contains profanity: " + value);
 			throw new ValidationException("The organization value for the user contains profanity: " + value);
 		}
-		else if(! StringValidators.lengthWithinLimits(value, 0, MAX_ORGANIZATION_LENGTH)) {
+		else if(! StringUtils.lengthWithinLimits(value, 0, MAX_ORGANIZATION_LENGTH)) {
 			request.setFailed(ErrorCodes.USER_INVALID_ORGANIZATION_VALUE, "The organization value for the user is too long. The limit is " + MAX_ORGANIZATION_LENGTH + " characters.");
 			throw new ValidationException("The organization value for the user is too long. The limit is " + MAX_ORGANIZATION_LENGTH + " characters.");
 		}
@@ -444,11 +444,11 @@ public final class UserValidators {
 			return null;
 		}
 		
-		if(StringValidators.isProfane(value)) {
+		if(StringUtils.isProfane(value)) {
 			request.setFailed(ErrorCodes.USER_INVALID_PERSONAL_ID_VALUE, "The personal ID value for the user contains profanity: " + value);
 			throw new ValidationException("The personal ID value for the user contains profanity: " + value);
 		}
-		else if(! StringValidators.lengthWithinLimits(value, 0, MAX_PERSONAL_ID_LENGTH)) {
+		else if(! StringUtils.lengthWithinLimits(value, 0, MAX_PERSONAL_ID_LENGTH)) {
 			request.setFailed(ErrorCodes.USER_INVALID_PERSONAL_ID_VALUE, "The personal ID value for the user is too long. The limit is " + MAX_PERSONAL_ID_LENGTH + " characters.");
 			throw new ValidationException("The personal ID value for the user is too long. The limit is " + MAX_PERSONAL_ID_LENGTH + " characters.");
 		}

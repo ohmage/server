@@ -17,9 +17,7 @@ package org.ohmage.util;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+import java.util.UUID;
 import java.util.regex.Pattern;
 
 /**
@@ -74,42 +72,50 @@ public final class StringUtils {
 	}
 	
 	/**
-	 * @return a parameter list of the form (?,...?) depending on the numberOfParameters
+	 * Checks if a String's length is greater than or equal to some 'min' 
+	 * value, and less than or equal to some 'max' value. The String should not
+	 * be null, but if it is, false is returned.
 	 * 
-	 * @deprecated We are moving away from dynamically generated SQL.
+	 * @param string The String value whose length is being checked.
+	 * 
+	 * @param min The minimum allowed value for the String.
+	 * 
+	 * @param max The maximum allowed value for the String.
+	 * 
+	 * @return Returns false if the String is null, 'min' is greater than 
+	 * 		   'max', or if the String's length is not within the bounds; 
+	 * 		   otherwise, true is returned.
 	 */
-	public static String generateStatementPList(int numberOfParameters) {
-		if(numberOfParameters < 1) {
-			throw new IllegalArgumentException("cannot generate a parameter list for less than one parameters");
+	public static boolean lengthWithinLimits(String string, int min, int max) {
+		if(string == null) {
+			return false;
 		}
 		
-		StringBuilder builder = new StringBuilder("(");
-		for(int i = 0; i < numberOfParameters; i++) {
-			builder.append("?");
-			if(i < numberOfParameters - 1) {
-				builder.append(",");
-			}	
+		if(min > max) {
+			return false;
 		}
-		builder.append(")");
-		return builder.toString();
+		
+		int stringLength = string.length();
+		return((stringLength >= min) && (stringLength <= max));
 	}
 	
 	/**
-	 * @return an Integer or a Double if the provided String is parseable to either
+	 * Check is a String contains any profanity or not. Note: This is not yet
+	 * implemented and will always return true!
+	 *  
+	 * @param string The String that is being checked for profanity.
 	 * 
-	 * @deprecated Use the respective X.parseX() functions to get exactly what
-	 * 			   you want, and, if it fails, add the exception to the one you
-	 * 			   will generate and throw.
+	 * @return Returns false if the String is null or contains no profanity;
+	 * 		   otherwise, it returns false.
 	 */
-	public static Object stringToNumber(String value) {
-		try {
-			return Integer.parseInt(value);
-		} catch (NumberFormatException a) {
-			try {
-				return Double.parseDouble(value);
-			} catch (NumberFormatException b) {}  
+	public static boolean isProfane(String string) {
+		if(string == null) {
+			return false;
 		}
-		return value;
+		
+		// TODO: Add a profanity filter.
+		
+		return false;
 	}
 	
 	/**
@@ -144,6 +150,29 @@ public final class StringUtils {
 	}
 	
 	/**
+	 * Validates that a UUID String is a valid UUID.
+	 * 
+	 * @param uuid The UUID as a String to validate.
+	 * 
+	 * @return Returns true if the String is not null, not whitespace only, and
+	 * 		   is a valid UUID.
+	 */
+	public static boolean isValidUuid(String uuid) {
+		if(StringUtils.isEmptyOrWhitespaceOnly(uuid)) {
+			return false;
+		}
+		
+		try {
+			UUID.fromString(uuid);
+			
+			return true;
+		}
+		catch(IllegalArgumentException e) {
+			return false;
+		}
+	}
+	
+	/**
 	 * Validates that an email address is a valid email address.
 	 * 
 	 * @param emailAddress The email address to be validated.
@@ -157,6 +186,29 @@ public final class StringUtils {
 		}
 		
 		return EMAIL_PATTERN.matcher(emailAddress).matches();
+	}
+	
+	/**
+	 * <p>Validates that some String, 'value', is a valid boolean value. The 
+	 * String must be in all lower case and English.</p>
+	 * <p>There is no special case for null. See {@link #decodeBoolean(String)}
+	 * to determine what is a valid boolean value.</p>
+	 * 
+	 * @param value A String representation of a boolean value. This must be 
+	 * 				in English and all lower case.
+	 * 
+	 * @return Returns true if the value is a valid boolean value; returns 
+	 * 		   false if it is not a valid boolean value.
+	 * 
+	 * @see org.ohmage.util.StringUtils#decodeBoolean(String)
+	 */
+	public static boolean isValidBoolean(String value) {
+		if(StringUtils.decodeBoolean(value) != null) {
+			return true;
+		}
+		else {
+			return false;
+		}
 	}
 	
 	/**
@@ -183,19 +235,5 @@ public final class StringUtils {
 		else {
 			return null;
 		}
-	}
-	
-	/**
-	 * @return an empty list, or if the provided string contained comma-separated values, a list containing each element
-	 * 
-	 * @deprecated Perform this operation in specific Validators. Be sure to
-	 * 			   check for empty Strings which will be returned as a List of
-	 * 			   size 1 where the only element is also an empty String.
-	 */
-	public static List<String> splitCommaSeparatedString(String string) {
-		if(null == string) {
-			return Collections.emptyList();
-		} 
-		return Arrays.asList(string.split(","));
 	}
 }
