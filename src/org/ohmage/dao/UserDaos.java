@@ -2,10 +2,9 @@ package org.ohmage.dao;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Collection;
 
 import javax.sql.DataSource;
-
-import jbcrypt.BCrypt;
 
 import org.apache.log4j.Logger;
 import org.json.JSONObject;
@@ -92,6 +91,12 @@ public class UserDaos extends Dao {
 			"WHERE username = ?" +
 		"),?,?,?,?)";
 	
+	// Updates the user's password.
+	private static final String SQL_UPDATE_PASSWORD = 
+		"UPDATE user " +
+		"SET password = ? " +
+		"WHERE username = ?";
+	
 	// Updates a user's admin value.
 	private static final String SQL_UPDATE_ADMIN =
 		"UPDATE user " +
@@ -176,6 +181,11 @@ public class UserDaos extends Dao {
 			"WHERE username = ?" +
 		")";
 	
+	// Deletes the user.
+	private static final String SQL_DELETE_USER = 
+		"DELETE FROM user " +
+		"WHERE username = ?";
+	
 	// The single instance of this class as the constructor should only ever be
 	// called once by Spring.
 	private static UserDaos instance;
@@ -196,7 +206,7 @@ public class UserDaos extends Dao {
 	 * 
 	 * @param username The username for the new user.
 	 * 
-	 * @param password The password for the user new user.
+	 * @param password The hashed password for the new user.
 	 * 
 	 * @param admin Whether or not the user should initially be an admin.
 	 * 
@@ -208,9 +218,7 @@ public class UserDaos extends Dao {
 	 * @param campaignCreationPrivilege Whether or not the new user is allowed
 	 * 									to create campaigns.
 	 */
-	public static void createUser(String username, String password, Boolean admin, Boolean enabled, Boolean newAccount, Boolean campaignCreationPrivilege) {
-		String hashedPassword = BCrypt.hashpw(password, BCrypt.gensalt(13));
-		
+	public static void createUser(String username, String hashedPassword, Boolean admin, Boolean enabled, Boolean newAccount, Boolean campaignCreationPrivilege) {
 		if(newAccount == null) {
 			newAccount = new Boolean("true");
 		}
@@ -599,6 +607,88 @@ public class UserDaos extends Dao {
 						throw new DataAccessException("Error executing the following SQL '" + SQL_UPDATE_JSON_DATA + "' with parameters: " + 
 								jsonData.toString() + ", " + username, e);
 					}
+				}
+			}
+			
+			// Commit the transaction.
+			try {
+				transactionManager.commit(status);
+			}
+			catch(TransactionException e) {
+				transactionManager.rollback(status);
+				throw new DataAccessException("Error while committing the transaction.", e);
+			}
+		}
+		catch(TransactionException e) {
+			throw new DataAccessException("Error while attempting to rollback the transaction.");
+		}
+	}
+	
+	/**
+	 * Updates a user's password.
+	 * 
+	 * @param username The username of the user to be updated.
+	 * 
+	 * @param hashedPassword The new, hashed password for the user.
+	 */
+	public static void updateUserPassword(String username, String hashedPassword) {
+		// Create the transaction.
+		DefaultTransactionDefinition def = new DefaultTransactionDefinition();
+		def.setName("Updating a user's password.");
+		
+		try {
+			// Begin the transaction.
+			PlatformTransactionManager transactionManager = new DataSourceTransactionManager(instance.dataSource);
+			TransactionStatus status = transactionManager.getTransaction(def);
+			
+			// Update the password.
+			try {
+				instance.jdbcTemplate.update(SQL_UPDATE_PASSWORD, hashedPassword, username);
+			}
+			catch(org.springframework.dao.DataAccessException e) {
+				transactionManager.rollback(status);
+				throw new DataAccessException("Error executing the following SQL '" + SQL_UPDATE_PASSWORD + "' with parameters: " + 
+						hashedPassword + ", " + username, e);
+			}
+			
+			// Commit the transaction.
+			try {
+				transactionManager.commit(status);
+			}
+			catch(TransactionException e) {
+				transactionManager.rollback(status);
+				throw new DataAccessException("Error while committing the transaction.", e);
+			}
+		}
+		catch(TransactionException e) {
+			throw new DataAccessException("Error while attempting to rollback the transaction.");
+		}
+	}
+	
+	/**
+	 * Deletes all of the users in a Collection.
+	 * 
+	 * @param usernames A Collection of usernames for the users to delete.
+	 */
+	public static void deleteUsers(Collection<String> usernames) {
+		// Create the transaction.
+		DefaultTransactionDefinition def = new DefaultTransactionDefinition();
+		def.setName("Deleting a user.");
+		
+		try {
+			// Begin the transaction.
+			PlatformTransactionManager transactionManager = new DataSourceTransactionManager(instance.dataSource);
+			TransactionStatus status = transactionManager.getTransaction(def);
+			
+			// Delete the users.
+			for(String username : usernames) {
+				try {
+					instance.jdbcTemplate.update(SQL_DELETE_USER, username);
+				}
+				catch(org.springframework.dao.DataAccessException e) {
+					transactionManager.rollback(status);
+					throw new DataAccessException("Error executing the following SQL '" + SQL_UPDATE_PASSWORD + "' with parameters: " + 
+							username, e);
 				}
 			}
 			

@@ -3,6 +3,8 @@ package org.ohmage.service;
 import java.util.Collection;
 import java.util.Map;
 
+import jbcrypt.BCrypt;
+
 import org.ohmage.annotator.ErrorCodes;
 import org.ohmage.dao.DataAccessException;
 import org.ohmage.dao.UserCampaignDaos;
@@ -47,7 +49,9 @@ public final class UserServices {
 	public static void createUser(Request request, String username, String password, 
 			Boolean admin, Boolean enabled, Boolean newAccount, Boolean campaignCreationPrivilege) throws ServiceException {
 		try {
-			UserDaos.createUser(username, password, admin, enabled, newAccount, campaignCreationPrivilege);
+			String hashedPassword = BCrypt.hashpw(password, BCrypt.gensalt(13));
+			
+			UserDaos.createUser(username, hashedPassword, admin, enabled, newAccount, campaignCreationPrivilege);
 		}
 		catch(DataAccessException e) {
 			request.setFailed();
@@ -293,6 +297,49 @@ public final class UserServices {
 	public static void updateUser(Request request, String username, Boolean admin, Boolean enabled, Boolean newAccount, Boolean campaignCreationPrivilege, UserPersonal personalInfo) throws ServiceException {
 		try {
 			UserDaos.updateUser(username, admin, enabled, newAccount, campaignCreationPrivilege, personalInfo);
+		}
+		catch(DataAccessException e) {
+			request.setFailed();
+			throw new ServiceException(e);
+		}
+	}
+	
+	/**
+	 * Updates the user's password.
+	 * 
+	 * @param request The Request that is performing this service.
+	 * 
+	 * @param username The username of the user whose password is being 
+	 * 				   updated.
+	 * 
+	 * @param plaintextPassword The plaintext password for the user.
+	 * 
+	 * @throws ServiceException Thrown if there is an error.
+	 */
+	public static void updatePassword(Request request, String username, String plaintextPassword) throws ServiceException {
+		try {
+			String hashedPassword = BCrypt.hashpw(plaintextPassword, BCrypt.gensalt(13));
+			
+			UserDaos.updateUserPassword(username, hashedPassword);
+		}
+		catch(DataAccessException e) {
+			request.setFailed();
+			throw new ServiceException(e);
+		}
+	}
+	
+	/**
+	 * Deletes all of the users from the Collection.
+	 * 
+	 * @param request The Request that is performing this service.
+	 * 
+	 * @param usernames A Collection of usernames of the users to delete.
+	 * 
+	 * @throws ServiceException Thrown if there is an error.
+	 */
+	public static void deleteUser(Request request, Collection<String> usernames) throws ServiceException {
+		try {
+			UserDaos.deleteUsers(usernames);
 		}
 		catch(DataAccessException e) {
 			request.setFailed();

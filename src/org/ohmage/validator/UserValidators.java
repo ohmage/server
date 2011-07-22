@@ -110,6 +110,10 @@ public final class UserValidators {
 			}
 		}
 		
+		if(result.size() == 0) {
+			return null;
+		}
+		
 		return new ArrayList<String>(result);
 	}
 	

@@ -14,6 +14,93 @@ import org.ohmage.service.UserServices;
 import org.ohmage.validator.UserValidators;
 import org.ohmage.validator.ValidationException;
 
+/**
+ * <p>Updates a user's information. Only an admin can update a user's 
+ * information.</p>
+ * <table border="1">
+ *   <tr>
+ *     <td>Parameter Name</td>
+ *     <td>Description</td>
+ *     <td>Required</td>
+ *   </tr>
+ *   <tr>
+ *     <td>{@value org.ohmage.request.InputKeys#CLIENT}</td>
+ *     <td>A string describing the client that is making this request.</td>
+ *     <td>true</td>
+ *   </tr>
+ *   <tr>
+ *     <td>{@value org.ohmage.request.InputKeys#USERNAME}</td>
+ *     <td>The username of the user to update.</td>
+ *     <td>true</td>
+ *   </tr>
+ *   <tr>
+ *     <td>{@value org.ohmage.request.InputKeys#USER_ADMIN}</td>
+ *     <td>Whether or not the user should be an admin.</td>
+ *     <td>false</td>
+ *   </tr>
+ *   <tr>
+ *     <td>{@value org.ohmage.request.InputKeys#USER_ENABLED}</td>
+ *     <td>Whether or not the user's account should be enabled.</td>
+ *     <td>false</td>
+ *   </tr>
+ *   <tr>
+ *     <td>{@value org.ohmage.request.InputKeys#NEW_ACCOUNT}</td>
+ *     <td>Whether or not the user needs to change their password the next time
+ *       the login.</td>
+ *     <td>false</td>
+ *   </tr>
+ *   <tr>
+ *     <td>{@value org.ohmage.request.InputKeys#CAMPAIGN_CREATION_PRIVILEGE}
+ *       </td>
+ *     <td>Whether or not the user is allowed to create campaigns.</td>
+ *     <td>false</td>
+ *   </tr>
+ *   <tr>
+ *     <td>{@value org.ohmage.request.InputKeys#FIRST_NAME}</td>
+ *     <td>The first name of the user.</td>
+ *     <td>false*</td>
+ *   </tr>
+ *   <tr>
+ *     <td>{@value org.ohmage.request.InputKeys#LAST_NAME}</td>
+ *     <td>The last name of the user.</td>
+ *     <td>false*</td>
+ *   </tr>
+ *   <tr>
+ *     <td>{@value org.ohmage.request.InputKeys#ORGANIZATION}</td>
+ *     <td>The organization to which the user belongs.</td>
+ *     <td>false*</td>
+ *   </tr>
+ *   <tr>
+ *     <td>{@value org.ohmage.request.InputKeys#PERSONAL_ID}</td>
+ *     <td>The personal identifier for the user.</td>
+ *     <td>false*</td>
+ *   </tr>
+ *   <tr>
+ *     <td>{@value org.ohmage.request.InputKeys#EMAIL_ADDRESS}</td>
+ *     <td>The user's email address.</td>
+ *     <td>false+</td>
+ *   </tr>
+ *   <tr>
+ *     <td>{@value org.ohmage.request.InputKeys#USER_JSON_DATA}</td>
+ *     <td>Additional data for the user as a JSONObject. Note: Uploading a new
+ *       JSONObject will erase the old one; therefore, if you want to add or
+ *       remove some information from the JSONObject, you should first query
+ *       for the current JSONObject, update that object, and send it back 
+ *       through this API.</td>
+ *     <td>false+</td>
+ *   </tr>
+ * </table>
+ * <br />
+ * * If a user does not already have a personal information entry in the 
+ * database, then all of these entries must be present in order to create a new
+ * one.<br />
+ * <br />
+ * + These are not required to create a new personal information entry in the
+ * database; however, if one does not exist, then adding this fields requires
+ * that the ones marked with "*" must be present to create the entry.<br />
+ * 
+ * @author John Jenkins
+ */
 public class UserUpdateRequest extends UserRequest {
 	private static final Logger LOGGER = Logger.getLogger(UserUpdateRequest.class);
 	
