@@ -21,7 +21,6 @@ import org.ohmage.service.UserClassDocumentServices;
 import org.ohmage.validator.CampaignDocumentValidators;
 import org.ohmage.validator.ClassDocumentValidators;
 import org.ohmage.validator.DocumentValidators;
-import org.ohmage.validator.StringValidators;
 
 /**
  * <p>Creates a document creation request. The document must be associated with
@@ -128,7 +127,7 @@ public class DocumentCreationRequest extends UserRequest {
 				throw new ValidationException("The document's contents were missing.");
 			}
 			
-			tempName = StringValidators.validateString(this, httpRequest.getParameter(InputKeys.DOCUMENT_NAME));
+			tempName = DocumentValidators.validateName(this, httpRequest.getParameter(InputKeys.DOCUMENT_NAME));
 			if(tempName == null) {
 				setFailed(ErrorCodes.DOCUMENT_INVALID_NAME, "The document's name is missing.");
 				throw new ValidationException("The document's name is missing.");
@@ -149,7 +148,7 @@ public class DocumentCreationRequest extends UserRequest {
 				throw new ValidationException("You must provide an initial campaign-role and/or class-role list.");
 			}
 			
-			tempDescription = StringValidators.validateString(this, httpRequest.getParameter(InputKeys.DESCRIPTION));
+			tempDescription = DocumentValidators.validateDescription(this, httpRequest.getParameter(InputKeys.DESCRIPTION));
 		}
 		catch(ValidationException e) {
 			LOGGER.info(e.toString());

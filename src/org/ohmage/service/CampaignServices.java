@@ -168,10 +168,6 @@ public class CampaignServices {
 		}
 	}
 	
-	public static void checkUserCanAssociateDocumentsWithCampaign(Request request, String username, String campaign) throws ServiceException {
-		
-	}
-	
 	/**
 	 * Gets the campaign's URN and name from the campaign XML.<br />
 	 * <br />

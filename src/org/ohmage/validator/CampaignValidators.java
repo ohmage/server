@@ -227,6 +227,7 @@ public final class CampaignValidators {
 		return xml;
 	}
 	
+
 	public boolean verifyAllowedRunningState(User user, String campaignId, String allowedCampaignRunningState) throws ValidationException {
 		if(user == null) {
 			throw new ValidationException("User object is null.", true);
@@ -236,5 +237,35 @@ public final class CampaignValidators {
 		}
 		
 		return user.getCampaignsAndRoles().get(campaignId).getCampaign().getRunningState().equals(allowedCampaignRunningState);
+	}
+
+	/**
+	 * Validates that a campaign description is valid by ensuring that it does
+	 * not contain any profanity.
+	 * 
+	 * @param request The Request that is performing this validation.
+	 * 
+	 * @param description The description to validate.
+	 * 
+	 * @return Returns null if the description is null or whitespace only;
+	 * 		   otherwise, it returns the description.
+	 * 
+	 * @throws ValidationException Thrown if the description contains 
+	 * 							   profanity.
+	 */
+	public static String validateDescription(Request request, String description) throws ValidationException {
+		LOGGER.info("Validating a campaign description.");
+		
+		if(StringUtils.isEmptyOrWhitespaceOnly(description)) {
+			return null;
+		}
+		
+		if(StringUtils.isProfane(description)) {
+			request.setFailed(ErrorCodes.CAMPAIGN_INVALID_DESCRIPTION, "The campaign description contains profanity: " + description);
+			throw new ValidationException("The campaign description contains profanity: " + description);
+		}
+		else {
+			return description;
+		}
 	}
 }

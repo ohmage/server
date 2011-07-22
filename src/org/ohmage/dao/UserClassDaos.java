@@ -1,9 +1,20 @@
 package org.ohmage.dao;
 
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import javax.sql.DataSource;
 
 import org.apache.log4j.Logger;
+
 import org.ohmage.exception.DataAccessException;
+
+import org.springframework.jdbc.core.RowMapper;
+import org.springframework.jdbc.core.SingleColumnRowMapper;
+
 
 /**
  * This class contains all of the functionality for creating, reading, 
@@ -28,6 +39,14 @@ public class UserClassDaos extends Dao {
 			"AND c.id = uc.class_id" +
 		")";
 	
+	// Returns all of the users in a class.
+	private static final String SQL_GET_USER_CLASS = 
+		"SELECT u.username " +
+		"FROM user u, class c, user_class uc " +
+		"WHERE c.urn = ? " +
+		"AND c.id = uc.class_id " +
+		"AND u.id = uc.user_id";
+	
 	// Returns the user's role in a class.
 	private static final String SQL_GET_USER_ROLE = 
 		"SELECT ucr.role " +
@@ -37,6 +56,14 @@ public class UserClassDaos extends Dao {
 		"AND u.id = uc.user_id " +
 		"AND c.id = uc.class_id " +
 		"AND uc.user_class_role_id = ucr.id";
+	
+	// Retrieves the ID and name of all of the classes to which a user belongs.
+	private static final String SQL_GET_CLASS_ID_AND_NAMES_FOR_USER =
+		"SELECT c.urn, c.name " +
+		"FROM user u, class c, user_class uc " +
+		"WHERE u.username = ? " +
+		"AND u.id = uc.user_id " +
+		"AND c.id = uc.class_id";
 	
 	// The single instance of this class as the constructor should only ever be
 	// called once by Spring.
@@ -72,6 +99,22 @@ public class UserClassDaos extends Dao {
 	}
 	
 	/**
+	 * Retrieves all of the users in a class.
+	 * 
+	 * @param classId The unique identifier for the class.
+	 * 
+	 * @return Returns a List of usernames of all of the users in a class.
+	 */
+	public static List<String> getUsersInClass(String classId) throws DataAccessException {
+		try {
+			return instance.jdbcTemplate.query(SQL_GET_USER_CLASS, new Object[] { classId }, new SingleColumnRowMapper<String>());
+		}
+		catch(org.springframework.dao.DataAccessException e) {
+			throw new DataAccessException("Error executing SQL '" + SQL_GET_USER_CLASS + "' with parameters: " + classId, e);
+		}
+	}
+	
+	/**
 	 * Querys the database to get the role of a user in a class. If a user 
 	 * doesn't have a role in a class, null is returned.
 	 * 
@@ -82,7 +125,7 @@ public class UserClassDaos extends Dao {
 	 * @return Returns the user's role in the class unless they have no role in
 	 * 		   the class in which case null is returned.
 	 */
-	public static String userClassRole(String classId, String username) throws DataAccessException {
+	public static String getUserClassRole(String classId, String username) throws DataAccessException {
 		try {
 			return (String) instance.jdbcTemplate.queryForObject(SQL_GET_USER_ROLE, new Object[] { username, classId }, String.class);
 		}
@@ -96,6 +139,29 @@ public class UserClassDaos extends Dao {
 		}
 		catch(org.springframework.dao.DataAccessException e) {
 			throw new DataAccessException("Error executing SQL '" + SQL_GET_USER_ROLE + "' with parameters: " + username + ", " + classId, e);
+		}
+	}
+	
+	public static Map<String, String> getClassIdsAndNameForUser(String username) throws DataAccessException {
+		try {
+			final Map<String, String> result = new HashMap<String, String>();
+			
+			instance.jdbcTemplate.query(
+					SQL_GET_CLASS_ID_AND_NAMES_FOR_USER, 
+					new Object[] { username }, 
+					new RowMapper<Object> () {
+						@Override
+						public Object mapRow(ResultSet rs, int rowNum) throws SQLException {
+							result.put(rs.getString("urn"), rs.getString("name"));
+							return null;
+						}
+					}
+				);
+			
+			return result;
+		}
+		catch(org.springframework.dao.DataAccessException e) {
+			throw new DataAccessException("Error executing SQL '" + SQL_GET_CLASS_ID_AND_NAMES_FOR_USER + "' with parameter: " + username, e);
 		}
 	}
 }

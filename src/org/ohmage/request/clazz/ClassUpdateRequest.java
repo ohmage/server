@@ -16,7 +16,6 @@ import org.ohmage.service.ClassServices;
 import org.ohmage.service.UserClassServices;
 import org.ohmage.util.CookieUtils;
 import org.ohmage.validator.ClassValidators;
-import org.ohmage.validator.StringValidators;
 import org.ohmage.validator.UserClassValidators;
 import org.ohmage.validator.UserValidators;
 
@@ -104,8 +103,8 @@ public class ClassUpdateRequest extends UserRequest {
 					throw new ValidationException("Missing required parameter: " + InputKeys.CLASS_URN);
 				}
 				
-				tempClassName = StringValidators.validateString(this, httpRequest.getParameter(InputKeys.CLASS_NAME));
-				tempClassDescription = StringValidators.validateString(this, httpRequest.getParameter(InputKeys.DESCRIPTION));
+				tempClassName = ClassValidators.validateName(this, httpRequest.getParameter(InputKeys.CLASS_NAME));
+				tempClassDescription = ClassValidators.validateDescription(this, httpRequest.getParameter(InputKeys.DESCRIPTION));
 				tempUsersToAdd = UserClassValidators.validateUserAndClassRoleList(this, httpRequest.getParameter(InputKeys.USER_ROLE_LIST_ADD));
 				tempUsersToRemove = UserValidators.validateUsernames(this, httpRequest.getParameter(InputKeys.USER_LIST_REMOVE));
 			}
@@ -139,7 +138,7 @@ public class ClassUpdateRequest extends UserRequest {
 			ClassServices.checkClassExistence(this, classId, true);
 			
 			LOGGER.info("Checking that the user is privileged in the class or is an admin.");
-			UserClassServices.userIsPrivilegedOrAdmin(this, classId, user.getUsername());
+			UserClassServices.userIsAdminOrPrivileged(this, classId, user.getUsername());
 			
 			LOGGER.info("Updating the class.");
 			ClassServices.updateClass(this, classId, className, classDescription, usersToAdd, usersToRemove);

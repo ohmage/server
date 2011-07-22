@@ -12,7 +12,7 @@ import org.ohmage.service.ClassServices;
 import org.ohmage.service.UserServices;
 import org.ohmage.util.CookieUtils;
 import org.ohmage.validator.ClassValidators;
-import org.ohmage.validator.StringValidators;
+
 
 /**
  * <p>Creates a new class. The requester must be an admin.</p>
@@ -76,13 +76,13 @@ public class ClassCreationRequest extends UserRequest {
 					throw new ValidationException("Missing required class URN.");
 				}
 				
-				tempClassName = StringValidators.validateString(this, httpRequest.getParameter(InputKeys.CLASS_NAME));
+				tempClassName = ClassValidators.validateName(this, httpRequest.getParameter(InputKeys.CLASS_NAME));
 				if(tempClassName == null) {
 					setFailed("1213", "Missing required class name.");
 					throw new ValidationException("Missing required class name.");
 				}
 				
-				tempClassDescription = StringValidators.validateString(this, httpRequest.getParameter(InputKeys.DESCRIPTION));
+				tempClassDescription = ClassValidators.validateDescription(this, httpRequest.getParameter(InputKeys.DESCRIPTION));
 			}
 			catch(ValidationException e) {
 				LOGGER.info(e.toString());

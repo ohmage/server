@@ -181,9 +181,9 @@ public final class SurveyUploadRequest extends UserRequest {
 			CampaignServices.findCampaignConfiguration(this, this.campaignUrn);
 			
 		}
-		catch(ValidationException e) {
-			e.logException(LOGGER);
-		}
+//		catch(ValidationException e) {
+//			e.logException(LOGGER);
+//		}
 		catch(ServiceException e) {
 			e.logException(LOGGER);
 		}

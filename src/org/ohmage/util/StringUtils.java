@@ -17,14 +17,11 @@ package org.ohmage.util;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
+import java.util.UUID;
 import java.util.regex.Pattern;
 
 /**
- * A collection of methods for manipulating or validating strings.
+ * A collection of methods for manipulating or validating Strings.
  * 
  * @author Joshua Selsky
  */
@@ -32,12 +29,13 @@ public final class StringUtils {
 	private static final int NUM_URN_SEGMENTS = 3;
 	private static final Pattern URN_PATTERN = Pattern.compile("[a-z0-9_]+");
 	
+	private static final Pattern EMAIL_PATTERN = Pattern.compile("^([_A-Za-z0-9-]+)(\\.[_A-Za-z0-9-]+)*@[A-Za-z0-9]+(\\.[A-Za-z0-9]+)*(\\.[A-Za-z]{2,})$");
+	
 	/**
-	 * It is illegal and unncessary to instantiate this class as it is a collection of static methods.
+	 * It is unncessary to instantiate this class as it is a collection of 
+	 * static methods.
 	 */
-	private StringUtils() {
-		
-	}
+	private StringUtils() {}
 	
 	/**
 	 * Checks for a null or empty (zero-length or all whitespace) String.
@@ -52,16 +50,6 @@ public final class StringUtils {
 	public static boolean isEmptyOrWhitespaceOnly(String string) {
 		
 		return null == string || "".equals(string.trim()); 
-		
-	}
-	
-	/**
-	 * @return true if the String is the value "true" or "false"
-	 *         false otherwise -- this method is more restrictive than Boolean.valueOf(String s)
-	 */
-	public static boolean isBooleanString(String string) {
-		
-		return "true".equals(string) || "false".equals(string);
 		
 	}
 	
@@ -84,39 +72,55 @@ public final class StringUtils {
 	}
 	
 	/**
-	 * @return a parameter list of the form (?,...?) depending on the numberOfParameters  
+	 * Checks if a String's length is greater than or equal to some 'min' 
+	 * value, and less than or equal to some 'max' value. The String should not
+	 * be null, but if it is, false is returned.
+	 * 
+	 * @param string The String value whose length is being checked.
+	 * 
+	 * @param min The minimum allowed value for the String.
+	 * 
+	 * @param max The maximum allowed value for the String.
+	 * 
+	 * @return Returns false if the String is null, 'min' is greater than 
+	 * 		   'max', or if the String's length is not within the bounds; 
+	 * 		   otherwise, true is returned.
 	 */
-	public static String generateStatementPList(int numberOfParameters) {
-		if(numberOfParameters < 1) {
-			throw new IllegalArgumentException("cannot generate a parameter list for less than one parameters");
+	public static boolean lengthWithinLimits(String string, int min, int max) {
+		if(string == null) {
+			return false;
 		}
 		
-		StringBuilder builder = new StringBuilder("(");
-		for(int i = 0; i < numberOfParameters; i++) {
-			builder.append("?");
-			if(i < numberOfParameters - 1) {
-				builder.append(",");
-			}	
+		if(min > max) {
+			return false;
 		}
-		builder.append(")");
-		return builder.toString();
+		
+		int stringLength = string.length();
+		return((stringLength >= min) && (stringLength <= max));
 	}
 	
 	/**
-	 * @return an Integer or a Double if the provided String is parseable to either
+	 * Check is a String contains any profanity or not. Note: This is not yet
+	 * implemented and will always return true!
+	 *  
+	 * @param string The String that is being checked for profanity.
+	 * 
+	 * @return Returns false if the String is null or contains no profanity;
+	 * 		   otherwise, it returns false.
 	 */
-	public static Object stringToNumber(String value) {
-		try {
-			return Integer.parseInt(value);
-		} catch (NumberFormatException a) {
-			try {
-				return Double.parseDouble(value);
-			} catch (NumberFormatException b) {}  
+	public static boolean isProfane(String string) {
+		if(string == null) {
+			return false;
 		}
-		return value;
+		
+		// TODO: Add a profanity filter.
+		
+		return false;
 	}
 	
 	/**
+	 * Validates that a String value is a valid URN value.
+	 * 
 	 * @return true if the provided value is a valid URN, false otherwise
 	 */
 	public static boolean isValidUrn(String value) {
@@ -146,17 +150,82 @@ public final class StringUtils {
 	}
 	
 	/**
-	 * Takes a String value and decodes it into a boolean value. If the value
-	 * is not a valid boolean value, null is returned. All functions that 
-	 * decode boolean values should use this method, so it can be a central
-	 * location for how we define what we accept as boolean values.
+	 * Validates that a UUID String is a valid UUID.
+	 * 
+	 * @param uuid The UUID as a String to validate.
+	 * 
+	 * @return Returns true if the String is not null, not whitespace only, and
+	 * 		   is a valid UUID.
+	 */
+	public static boolean isValidUuid(String uuid) {
+		if(StringUtils.isEmptyOrWhitespaceOnly(uuid)) {
+			return false;
+		}
+		
+		try {
+			UUID.fromString(uuid);
+			
+			return true;
+		}
+		catch(IllegalArgumentException e) {
+			return false;
+		}
+	}
+	
+	/**
+	 * Validates that an email address is a valid email address.
+	 * 
+	 * @param emailAddress The email address to be validated.
+	 * 
+	 * @return Returns false if the email address is null, whitespace only, or
+	 * 		   not a valid email address; otherwise, true is returned.
+	 */
+	public static boolean isValidEmailAddress(String emailAddress) {
+		if(isEmptyOrWhitespaceOnly(emailAddress)) {
+			return false;
+		}
+		
+		return EMAIL_PATTERN.matcher(emailAddress).matches();
+	}
+	
+	/**
+	 * <p>Validates that some String, 'value', is a valid boolean value. The 
+	 * String must be in all lower case and English.</p>
+	 * <p>There is no special case for null. See {@link #decodeBoolean(String)}
+	 * to determine what is a valid boolean value.</p>
+	 * 
+	 * @param value A String representation of a boolean value. This must be 
+	 * 				in English and all lower case.
+	 * 
+	 * @return Returns true if the value is a valid boolean value; returns 
+	 * 		   false if it is not a valid boolean value.
+	 * 
+	 * @see org.ohmage.util.StringUtils#decodeBoolean(String)
+	 */
+	public static boolean isValidBoolean(String value) {
+		if(StringUtils.decodeBoolean(value) != null) {
+			return true;
+		}
+		else {
+			return false;
+		}
+	}
+	
+	/**
+	 * Decodes a String value into its boolean representation. If it is not a 
+	 * valid boolean value, null is returned. This should be used anywhere 
+	 * boolean values are being decoded from Strings.
 	 * 
 	 * @param value The String value to be decoded.
 	 * 
-	 * @return Returns true if it is evaluated to be true and returns false if 
-	 * 		   it is evaluated to be false, otherwise it returns null.
+	 * @return Returns true if the value is a valid boolean value and 
+	 * 		   represents true. Returns false if the value is a valid boolean
+	 * 		   value and represents false. Returns null if the value is not a
+	 * 		   valid boolean value.
 	 */
 	public static Boolean decodeBoolean(String value) {
+		// If we are going to allow different values for true and false, this
+		// is where they should be included.
 		if("true".equals(value)) {
 			return true;
 		}
@@ -166,46 +235,6 @@ public final class StringUtils {
 		else {
 			return null;
 		}
-	}
-	
-	/**
-	 * @return an empty list, or if the provided string contained comma-separated values, a list containing each element
-	 */
-	public static List<String> splitCommaSeparatedString(String string) {
-		if(null == string) {
-			return Collections.emptyList();
-		} 
-		return Arrays.asList(string.split(","));
-	}
-	
-	/**
-	 * Creates a single String representation of the Collection where each item
-	 * is converted to a String via its toString() method and each item is
-	 * separated by the 'delimiter'.
-	 * 
-	 * @param collection The Collection of items to be aggregated into a single
-	 * 					 String.
-	 * 
-	 * @param delimiter The String to place between each item in the resulting
-	 * 					String.
-	 * 
-	 * @return A String representation of the Collection.
-	 */
-	public static String collectionToDelimitedString(Collection<?> collection, String delimiter) {
-		boolean firstPass = true;
-		StringBuilder builder = new StringBuilder();
-		for(Object item : collection) {
-			if(firstPass) {
-				firstPass = false;
-			}
-			else {
-				builder.append(delimiter);
-			}
-			
-			builder.append(item.toString());
-		}
-		
-		return builder.toString();
 	}
 	
 	/**

@@ -38,6 +38,14 @@ public final class MobilityPrivacyStateCache extends StringAndIdCache {
 	
 	// Known Mobility privacy states.
 	public static final String PRIVACY_STATE_PRIVATE = "private";
+	/**
+	 * This will probably be used somewhere down the road, but for now it 
+	 * shouldn't be used unless as an option in a WHERE clause where it will
+	 * always return null.
+	 * 
+	 * @deprecated
+	 */
+	public static final String PRIVACY_STATE_SHARED = "shared";
 	
 	// A reference to the only instance of this class for the Singleton
 	// pattern.

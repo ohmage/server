@@ -28,6 +28,7 @@ public final class ErrorCodes {
 	public static final String MOBILITY_INVALID_MODE = "0501";
 	public static final String MOBILITY_INVALID_ACCELEROMETER_DATA = "0502";
 	public static final String MOBILITY_INVALID_SPEED = "0503";
+	public static final String MOBILITY_INSUFFICIENT_PERMISSIONS = "0504";
 	
 	public static final String SURVEY_INVALID_RESPONSES = "0600";
 	public static final String SURVEY_INVALID_OUTPUT_FORMAT = "0601";
