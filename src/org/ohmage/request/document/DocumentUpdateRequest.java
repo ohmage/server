@@ -23,7 +23,6 @@ import org.ohmage.validator.CampaignValidators;
 import org.ohmage.validator.ClassDocumentValidators;
 import org.ohmage.validator.ClassValidators;
 import org.ohmage.validator.DocumentValidators;
-import org.ohmage.validator.StringValidators;
 import org.ohmage.validator.UserDocumentValidators;
 import org.ohmage.validator.UserValidators;
 import org.ohmage.validator.ValidationException;
@@ -178,8 +177,8 @@ public class DocumentUpdateRequest extends UserRequest {
 			}
 			
 			tNewContents = getMultipartValue(httpRequest, InputKeys.DOCUMENT);
-			tNewName = StringValidators.validateString(this, httpRequest.getParameter(InputKeys.DOCUMENT_NAME));
-			tNewDescription = StringValidators.validateString(this, httpRequest.getParameter(InputKeys.DESCRIPTION));
+			tNewName = DocumentValidators.validateName(this, httpRequest.getParameter(InputKeys.DOCUMENT_NAME));
+			tNewDescription = DocumentValidators.validateDescription(this, httpRequest.getParameter(InputKeys.DESCRIPTION));
 			tNewPrivacyState = DocumentValidators.validatePrivacyState(this, httpRequest.getParameter(InputKeys.PRIVACY_STATE));
 			
 			tCampaignAndRolesToAdd = CampaignDocumentValidators.validateCampaignIdAndDocumentRoleList(this, httpRequest.getParameter(InputKeys.CAMPAIGN_ROLE_LIST_ADD));
@@ -280,7 +279,7 @@ public class DocumentUpdateRequest extends UserRequest {
 			
 			if(userAndRolesToAdd != null) {
 				LOGGER.info("Verifying that the users in the user-role list exist.");
-				UserServices.verifyUsersExist(this, userAndRolesToAdd.keySet());
+				UserServices.verifyUsersExist(this, userAndRolesToAdd.keySet(), true);
 				
 				LOGGER.info("Verifying that the user is not attempting to give more permissions to a user than they have.");
 				DocumentServices.ensureRoleNotLessThanRoles(this, highestRole, userAndRolesToAdd.values());

@@ -17,7 +17,6 @@ import org.ohmage.service.UserServices;
 import org.ohmage.util.CookieUtils;
 import org.ohmage.validator.CampaignValidators;
 import org.ohmage.validator.ClassValidators;
-import org.ohmage.validator.StringValidators;
 import org.ohmage.validator.ValidationException;
 
 /**
@@ -105,7 +104,7 @@ public class CampaignCreationRequest extends UserRequest {
 				throw new ValidationException("Missing required campaign XML.");
 			}
 			
-			tempDescription = StringValidators.validateString(this, httpRequest.getParameter(InputKeys.DESCRIPTION));
+			tempDescription = CampaignValidators.validateDescription(this, httpRequest.getParameter(InputKeys.DESCRIPTION));
 			
 			tempRunningState = CampaignValidators.validateRunningState(this, httpRequest.getParameter(InputKeys.RUNNING_STATE));
 			if(tempRunningState == null) {

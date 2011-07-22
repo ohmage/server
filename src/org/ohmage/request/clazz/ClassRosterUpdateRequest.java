@@ -120,7 +120,7 @@ public class ClassRosterUpdateRequest extends UserRequest {
 			for(String classId : classIds) {
 				uniqueUsers.addAll(roster.get(classId).keySet());
 			}
-			UserServices.verifyUsersExist(this, uniqueUsers);
+			UserServices.verifyUsersExist(this, uniqueUsers, true);
 			
 			LOGGER.info("Updating the classes via the roster.");
 			warningMessages = ClassServices.updateClassViaRoster(this, roster);

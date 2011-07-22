@@ -35,7 +35,7 @@ public class UserClassDocumentServices {
 	 */
 	public static void userCanAssociateDocumentsWithClass(Request request, String username, String classId) throws ServiceException {
 		try {
-			String classRole = UserClassDaos.userClassRole(classId, username);
+			String classRole = UserClassDaos.getUserClassRole(classId, username);
 			
 			if(classRole == null) {
 				request.setFailed(ErrorCodes.DOCUMENT_INSUFFICIENT_PERMISSIONS, "The user is not a member of the following class and, therefore, cannot associate documents with it: " + classId);
@@ -64,7 +64,7 @@ public class UserClassDocumentServices {
 	 */
 	public static void userCanDisassociateDocumentsWithClass(Request request, String username, String classId) throws ServiceException {
 		try {
-			String classRole = UserClassDaos.userClassRole(classId, username);
+			String classRole = UserClassDaos.getUserClassRole(classId, username);
 			
 			if(classRole == null) {
 				request.setFailed(ErrorCodes.DOCUMENT_INSUFFICIENT_PERMISSIONS, "The user is not a member of the following class and, therefore, cannot disassociate documents from it: " + classId);

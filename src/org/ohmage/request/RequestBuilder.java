@@ -16,6 +16,13 @@ import org.ohmage.request.document.DocumentDeletionRequest;
 import org.ohmage.request.document.DocumentReadContentsRequest;
 import org.ohmage.request.document.DocumentReadRequest;
 import org.ohmage.request.document.DocumentUpdateRequest;
+import org.ohmage.request.user.UserChangePasswordRequest;
+import org.ohmage.request.user.UserCreationRequest;
+import org.ohmage.request.user.UserDeletionRequest;
+import org.ohmage.request.user.UserInfoReadRequest;
+import org.ohmage.request.user.UserReadRequest;
+import org.ohmage.request.user.UserStatsReadRequest;
+import org.ohmage.request.user.UserUpdateRequest;
 
 /**
  * Request builder from an HTTP request.
@@ -25,14 +32,11 @@ import org.ohmage.request.document.DocumentUpdateRequest;
 public final class RequestBuilder {
 	/**
 	 * Default constructor. Made private because this class should never be
-	 * instantiated. Instead, the static builder methods should be called.
+	 * instantiated. Instead, the static builder method should be called.
 	 */
 	private RequestBuilder() {}
 	
 	private static final String API_ROOT = "/app";
-	
-	// Config
-	private static final String API_CONFIG_READ = API_ROOT + "/config/read";
 	
 	// Authentication
 	private static final String API_USER_AUTH = API_ROOT + "/user/auth";
@@ -49,12 +53,24 @@ public final class RequestBuilder {
 	private static final String API_CLASS_ROSTER_UPDATE = API_ROOT + "/class/roster/update";
 	private static final String API_CLASS_DELETE = API_ROOT + "/class/delete";
 	
+	// Config
+	private static final String API_CONFIG_READ = API_ROOT + "/config/read";
+	
 	// Document
 	private static final String API_DOCUMENT_CREATE = API_ROOT + "/document/create";
 	private static final String API_DOCUMENT_READ = API_ROOT + "/document/read";
 	private static final String API_DOCUMENT_READ_CONTENTS = API_ROOT + "/document/read/contents";
 	private static final String API_DOCUMENT_UPDATE = API_ROOT + "/document/update";
 	private static final String API_DOCUMENT_DELETE = API_ROOT + "/document/delete";
+	
+	// User
+	private static final String API_USER_CREATE = API_ROOT + "/user/create";
+	private static final String API_USER_READ = API_ROOT + "/user/read";
+	private static final String API_USER_INFO_READ = API_ROOT + "/user_info/read";
+	private static final String API_USER_STATS_READ = API_ROOT + "/user_stats/read";
+	private static final String API_USER_UPDATE = API_ROOT + "/user/update";
+	private static final String API_USER_CHANGE_PASSWORD = API_ROOT + "/user/change_password";
+	private static final String API_USER_DELETE = API_ROOT + "/user/delete";
 	
 	/**
 	 * Builds a new request based on the request's URI. This will always return
@@ -117,6 +133,28 @@ public final class RequestBuilder {
 		}
 		else if(API_DOCUMENT_DELETE.equals(requestUri)) {
 			return new DocumentDeletionRequest(httpRequest);
+		}
+		// User
+		else if(API_USER_CREATE.equals(requestUri)) {
+			return new UserCreationRequest(httpRequest);
+		}
+		else if(API_USER_READ.equals(requestUri)) {
+			return new UserReadRequest(httpRequest);
+		}
+		else if(API_USER_INFO_READ.equals(requestUri)) {
+			return new UserInfoReadRequest(httpRequest);
+		}
+		else if(API_USER_STATS_READ.equals(requestUri)) {
+			return new UserStatsReadRequest(httpRequest);
+		}
+		else if(API_USER_UPDATE.equals(requestUri)) {
+			return new UserUpdateRequest(httpRequest);
+		}
+		else if(API_USER_CHANGE_PASSWORD.equals(requestUri)) {
+			return new UserChangePasswordRequest(httpRequest);
+		}
+		else if(API_USER_DELETE.equals(requestUri)) {
+			return new UserDeletionRequest(httpRequest);
 		}
 		
 		// The URI is unknown.

@@ -23,6 +23,8 @@ import org.ohmage.util.StringUtils;
 public final class ClassValidators {
 	private static final Logger LOGGER = Logger.getLogger(ClassValidators.class);
 	
+	private static final int MAX_NAME_LENGTH = 255;
+	
 	/**
 	 * Default constructor. Private so that no one can instantiate it.
 	 */
@@ -120,6 +122,69 @@ public final class ClassValidators {
 		}
 		
 		return new ArrayList<String>(classIdList);
+	}
+	
+	/**
+	 * Validates that a class name is a valid class name by ensuring that it is
+	 * not profane and not too long.
+	 * 
+	 * @param request The Request that is performing this validation.
+	 * 
+	 * @param name The name to validate.
+	 * 
+	 * @return Returns null if the name is null or whitespace only; otherwise,
+	 * 		   the name is returned.
+	 * 
+	 * @throws ValidationException Thrown if the name is profane or too long.
+	 */
+	public static String validateName(Request request, String name) throws ValidationException {
+		LOGGER.info("Validating a class name.");
+		
+		if(StringUtils.isEmptyOrWhitespaceOnly(name)) {
+			return null;
+		}
+		
+		if(StringUtils.isProfane(name)) {
+			request.setFailed(ErrorCodes.CLASS_INVALID_NAME, "The class name contains profanity: " + name);
+			throw new ValidationException("The class name contains profanity: " + name);
+		}
+		else if(StringUtils.lengthWithinLimits(name, 0, MAX_NAME_LENGTH)) {
+			request.setFailed(ErrorCodes.CLASS_INVALID_NAME, "The class name is too long. The maximum length of the class name is " + MAX_NAME_LENGTH + " characters");
+			throw new ValidationException("The class name is too long. The maximum length of the class name is " + MAX_NAME_LENGTH + " characters");
+		}
+		else {
+			return name;
+		}
+	}
+	
+	/**
+	 * Validates that a class description is a valid class description by 
+	 * ensuring that it doesn't contain profanity.
+	 * 
+	 * @param request The Request that is performing this validation.
+	 * 
+	 * @param description The description to be validated.
+	 * 
+	 * @return Returns null if the description is null or whitespace only;
+	 * 		   otherwise, it returns the description.
+	 * 
+	 * @throws ValidationException Thrown if the description contains 
+	 * 							   profanity.
+	 */
+	public static String validateDescription(Request request, String description) throws ValidationException {
+		LOGGER.info("Validating a class description.");
+		
+		if(StringUtils.isEmptyOrWhitespaceOnly(description)) {
+			return null;
+		}
+		
+		if(StringUtils.isProfane(description)) {
+			request.setFailed(ErrorCodes.CLASS_INVALID_DESCRIPTION, "The class description contains profanity: " + description);
+			throw new ValidationException("The class description contains profanity: " + description);
+		}
+		else {
+			return description;
+		}
 	}
 	
 	/**

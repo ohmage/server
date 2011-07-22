@@ -15,6 +15,8 @@ import org.ohmage.util.StringUtils;
 public class DocumentValidators {
 	private static final Logger LOGGER = Logger.getLogger(DocumentValidators.class);
 	
+	private static final int MAX_NAME_LENGTH = 255;
+	
 	/**
 	 * Default constructor. Made private to prevent instantiation.
 	 */
@@ -37,13 +39,12 @@ public class DocumentValidators {
 	public static String validateDocumentId(Request request, String documentId) throws ValidationException {
 		LOGGER.info("Validating a document's ID.");
 		
-		if(UuidValidators.validateUuid(documentId)) {
-			if(StringUtils.isEmptyOrWhitespaceOnly(documentId)) {
-				return null;
-			}
-			else {
-				return documentId;
-			}
+		if(StringUtils.isEmptyOrWhitespaceOnly(documentId)) {
+			return null;
+		}
+		
+		if(StringUtils.isValidUuid(documentId)) {
+			return documentId;
 		}
 		else {
 			request.setFailed(ErrorCodes.DOCUMENT_INVALID_ID, "The document ID is invalid: " + documentId);
@@ -131,12 +132,75 @@ public class DocumentValidators {
 			return null;
 		}
 		
-		if(BooleanValidators.validateBoolean(value)) {
+		if(StringUtils.isValidBoolean(value)) {
 			return StringUtils.decodeBoolean(value);
 		}
 		else {
 			request.setFailed(ErrorCodes.DOCUMENT_INVALID_PERSONAL_DOCUMENTS_VALUE, "Invalid personal documents value: " + value);
 			throw new ValidationException("Invalid personal documents value: " + value);
+		}
+	}
+	
+	/**
+	 * Validates that the name of the document is not profane and not longer 
+	 * than a set length.
+	 * 
+	 * @param request The Request that is performing this validation.
+	 * 
+	 * @param value The value to be validated.
+	 * 
+	 * @return Returns null if the name is null or whitespace only; otherwise,
+	 * 		   it returns the name.
+	 * 
+	 * @throws ValidationException Thrown if the name contains profanity or is
+	 * 							   too long.
+	 */
+	public static String validateName(Request request, String value) throws ValidationException {
+		LOGGER.info("Validating a document's name.");
+		
+		if(StringUtils.isEmptyOrWhitespaceOnly(value)) {
+			return null;
+		}
+		
+		if(StringUtils.isProfane(value)) {
+			request.setFailed(ErrorCodes.DOCUMENT_INVALID_NAME, "The name of this document contains profanity: " + value);
+			throw new ValidationException("The name of this document contains profanity: " + value);
+		}
+		else if(! StringUtils.lengthWithinLimits(value, 0, MAX_NAME_LENGTH)) {
+			request.setFailed(ErrorCodes.DOCUMENT_INVALID_NAME, "The name of this document is too long. The limit is " + MAX_NAME_LENGTH + " characters.");
+			throw new ValidationException("The name of this document is too long. The limit is " + MAX_NAME_LENGTH + " characters.");
+		}
+		else {
+			return value;
+		}
+	}
+	
+	/**
+	 * Validates that the description of a document does not contain profanity.
+	 * 
+	 * @param request The Request that is performing this validation.
+	 * 
+	 * @param value The value to be validated.
+	 * 
+	 * @return Returns null if the description is null or whitespace only;
+	 * 		   otherwise, it returns the description.
+	 * 
+	 * @throws ValidationException Thrown if the description contains 
+	 * 							   profanity.
+	 */
+	public static String validateDescription(Request request, String value) throws ValidationException {
+		LOGGER.info("Validating a document's description.");
+		
+		if(StringUtils.isEmptyOrWhitespaceOnly(value)) {
+			return null;
+		}
+		
+		if(StringUtils.isProfane(value)) {
+			request.setFailed(ErrorCodes.DOCUMENT_INVALID_DESCRIPTION, "The document's description contains profanity.");
+			throw new ValidationException("The document's description contains profanity.");
+		}
+		else {
+			return value;
 		}
 	}
 }
