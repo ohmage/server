@@ -35,12 +35,13 @@ import org.springframework.jdbc.core.RowMapper;
 public class FindUrlForMediaIdDao extends AbstractDao {
 	private static Logger _logger = Logger.getLogger(FindUrlForMediaIdDao.class);
 	
-	private String _sql = "SELECT url_based_resource.url, survey_response_privacy_state.privacy_state "
-			               + "FROM url_based_resource, survey_response, survey_response_privacy_state, prompt_response "
+	private String _sql = "SELECT url_based_resource.url, survey_response_privacy_state.privacy_state, user.username "
+			               + "FROM url_based_resource, survey_response, survey_response_privacy_state, prompt_response, user "
 			               + "WHERE url_based_resource.uuid = ? "
 			               + "AND prompt_response.response = url_based_resource.uuid "
 			               + "AND survey_response.privacy_state_id = survey_response_privacy_state.id "
-			               + "AND prompt_response.survey_response_id = survey_response.id";
+			               + "AND prompt_response.survey_response_id = survey_response.id " +
+			               	 "AND survey_response.user_id = user.id";
 	
 	public FindUrlForMediaIdDao(DataSource dataSource) {
 		super(dataSource);
@@ -56,7 +57,7 @@ public class FindUrlForMediaIdDao extends AbstractDao {
 					new Object[] { ((MediaQueryAwRequest) awRequest).getMediaId() }, // FIXME
 					new RowMapper() {
 					    public Object mapRow(ResultSet rs, int rowNum) throws SQLException {
-					    	return new UrlPrivacyState(rs.getString(1), rs.getString(2));
+					    	return new UrlPrivacyState(rs.getString(1), rs.getString(2), rs.getString(3));
 					    }
 					})
 			);

@@ -96,22 +96,9 @@ public class FindUrlForImageIdService extends AbstractDaoService {
 			
 			if(! user.isSupervisorInCampaign(campaignUrn)) { // supervisors can read all data, all the time
 				
-				if(user.isParticipantInCampaign(campaignUrn) 
-					&& user.getCampaignUserRoleMap().get(campaignUrn).getUserRoles().size() == 1) {	
-					
-					if(urlPrivacyState.getPrivacyState().equals(SurveyResponsePrivacyStateCache.PRIVACY_STATE_INVISIBLE)) { 
-						_logger.info("Removing an " + SurveyResponsePrivacyStateCache.PRIVACY_STATE_INVISIBLE + "image url from the query results");
-						results.remove(0);
-						return;
-					}
-					
-				} else if (user.isOnlyAnalystOrAuthor(campaignUrn)){
-					
-					if(urlPrivacyState.getPrivacyState().equals(SurveyResponsePrivacyStateCache.PRIVACY_STATE_PRIVATE)) {
-						_logger.info("Removing an " + SurveyResponsePrivacyStateCache.PRIVACY_STATE_PRIVATE + "image url from the query results");
-						results.remove(0);
-						return;
-					}
+				if(resultIsUnshared(urlPrivacyState) && ! urlPrivacyState.getUsername().equals((awRequest.getUser().getUserName()))) { 
+					results.remove(0);
+					return;
 				}
 			}
 			
@@ -178,5 +165,10 @@ public class FindUrlForImageIdService extends AbstractDaoService {
 			_severeAnnotator.annotate(awRequest, "More than one url found for image id " + ((MediaQueryAwRequest) awRequest).getMediaId());
 			
 		}
+	}
+	
+	private boolean resultIsUnshared(UrlPrivacyState ups) {
+		return ups.getPrivacyState().equals(SurveyResponsePrivacyStateCache.PRIVACY_STATE_PRIVATE) 
+			|| ups.getPrivacyState().equals(SurveyResponsePrivacyStateCache.PRIVACY_STATE_INVISIBLE); 
 	}
 }

@@ -51,34 +51,24 @@ public class SurveyResponsePrivacyFilterService implements Service {
 			
 			User user = awRequest.getUser();
 			String campaignUrn = awRequest.getCampaignUrn();
+			// Now filter based on the privacy_state the logged-in user selected 
+			SurveyResponseReadAwRequest req = (SurveyResponseReadAwRequest) awRequest;
 			
 			if(! user.isSupervisorInCampaign(campaignUrn)) { // supervisors can read all data, all the time
-				
-				if(user.isParticipantInCampaign(campaignUrn) 
-					&& user.getCampaignUserRoleMap().get(campaignUrn).getUserRoles().size() == 1) {
 					
-					for(int i = 0; i < numberOfResults; i++) {
-						if(((SurveyResponseReadResult) results.get(i)).getPrivacyState().equals(SurveyResponsePrivacyStateCache.PRIVACY_STATE_INVISIBLE)) { 
-							results.remove(i);
-							i--;
-							numberOfResults--;
-						}
-					}
+				for(int i = 0; i < numberOfResults; i++) {
 					
-				} else if (user.isOnlyAnalystOrAuthor(campaignUrn)){
+					SurveyResponseReadResult currentResult = (SurveyResponseReadResult) results.get(i);
 					
-					for(int i = 0; i < numberOfResults; i++) {
-						if(((SurveyResponseReadResult) results.get(i)).getPrivacyState().equals(SurveyResponsePrivacyStateCache.PRIVACY_STATE_PRIVATE)) { 
-							results.remove(i);
-							i--;
-							numberOfResults--;
-						}
+					_logger.info(currentResult.getPrivacyState());
+					
+					if(resultIsUnshared(currentResult) && ! currentResult.getUsername().equals(req.getUser().getUserName())) { 
+						results.remove(i);
+						i--;
+						numberOfResults--;
 					}
 				}
 			}
-			
-			// Now filter based on the privacy_state the logged-in user selected 
-			SurveyResponseReadAwRequest req = (SurveyResponseReadAwRequest) awRequest;
 			
 			if(null != req.getPrivacyState()) {
 				for(int i = 0; i < numberOfResults; i++) {
@@ -92,5 +82,10 @@ public class SurveyResponsePrivacyFilterService implements Service {
 		}
 		
 		_logger.info(results.size() + " results after filtering");
+	}
+	
+	private boolean resultIsUnshared(SurveyResponseReadResult result) {
+		return result.getPrivacyState().equals(SurveyResponsePrivacyStateCache.PRIVACY_STATE_PRIVATE) 
+			|| result.getPrivacyState().equals(SurveyResponsePrivacyStateCache.PRIVACY_STATE_INVISIBLE); 
 	}
 }

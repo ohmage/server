@@ -222,16 +222,20 @@ public class User {
 		return _documentRole;
 	}
 	
-	public boolean isOnlyAnalystOrAuthor(String campaignUrn) {
-		return (isAnalystInCampaign(campaignUrn) 
-				&& (getCampaignUserRoleMap().get(campaignUrn).getUserRoles().size() == 1))
-				
-			||  (isAuthorInCampaign(campaignUrn) 
-					&& (getCampaignUserRoleMap().get(campaignUrn).getUserRoles().size() == 1))
-					
-			|| (isAnalystInCampaign(campaignUrn) 
-			    	&& isAuthorInCampaign(campaignUrn) 
-			    	&& (getCampaignUserRoleMap().get(campaignUrn).getUserRoles().size() == 2));
+//	public boolean isOnlyAnalystOrAuthor(String campaignUrn) {
+//		return (isAnalystInCampaign(campaignUrn) 
+//				&& (getCampaignUserRoleMap().get(campaignUrn).getUserRoles().size() == 1))
+//				
+//			||  (isAuthorInCampaign(campaignUrn) 
+//					&& (getCampaignUserRoleMap().get(campaignUrn).getUserRoles().size() == 1))
+//					
+//			|| (isAnalystInCampaign(campaignUrn) 
+//			    	&& isAuthorInCampaign(campaignUrn) 
+//			    	&& (getCampaignUserRoleMap().get(campaignUrn).getUserRoles().size() == 2));
+//	}
+	
+	public boolean isOnlyParticipantInCampaign(String campaignUrn) {
+		return isParticipantInCampaign(campaignUrn) && (getCampaignUserRoleMap().get(campaignUrn).getUserRoles().size() == 1);
 	}
 	
 	// NOTE: if you regenerate this toString() automatically in your IDE, please remember to omit the user's password!

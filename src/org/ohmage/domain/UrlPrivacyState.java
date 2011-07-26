@@ -24,10 +24,12 @@ public class UrlPrivacyState {
 	
 	private String _privacyState;
 	private String _url;
+	private String _username;
 	
-	public UrlPrivacyState(String url, String privacyState) {
+	public UrlPrivacyState(String url, String privacyState, String username) {
 		_url = url;
 		_privacyState = privacyState;
+		_username = username;
 	}
 	
 	public String getPrivacyState() {
@@ -36,5 +38,9 @@ public class UrlPrivacyState {
 	
 	public String getUrl() {
 		return _url;
+	}
+	
+	public String getUsername() {
+		return _username;
 	}
 }
