@@ -23,6 +23,7 @@ import org.ohmage.request.AwRequest;
 import org.ohmage.request.InputKeys;
 import org.ohmage.request.SurveyResponseReadAwRequest;
 import org.ohmage.util.CookieUtils;
+import org.ohmage.util.StringUtils;
 
 /**
  * Builds an AwRequest for /app/survey_response/read.
@@ -45,7 +46,13 @@ public class SurveyResponseReadAwRequestCreator implements AwRequestCreator {
 		}
 
 		String startDate = httpRequest.getParameter("start_date");
+		if(StringUtils.isEmptyOrWhitespaceOnly(startDate)) {
+			startDate = null;
+		}
 		String endDate = httpRequest.getParameter("end_date");
+		if(StringUtils.isEmptyOrWhitespaceOnly(endDate)) {
+			endDate = null;
+		}
 		String userList = httpRequest.getParameter("user_list");
 		String client = httpRequest.getParameter("client");
 		String campaignUrn = httpRequest.getParameter("campaign_urn");
@@ -54,13 +61,37 @@ public class SurveyResponseReadAwRequestCreator implements AwRequestCreator {
 		String columnList = httpRequest.getParameter("column_list");
 		String outputFormat = httpRequest.getParameter("output_format");
 		String prettyPrint = httpRequest.getParameter("pretty_print");
+		if(StringUtils.isEmptyOrWhitespaceOnly(prettyPrint)) {
+			prettyPrint = null;
+		}
 		String suppressMetadata = httpRequest.getParameter("suppress_metadata");
+		if(StringUtils.isEmptyOrWhitespaceOnly(suppressMetadata)) {
+			suppressMetadata = null;
+		}
 		String privacyState = httpRequest.getParameter("privacy_state");
+		if(StringUtils.isEmptyOrWhitespaceOnly(privacyState)) {
+			privacyState = null;
+		}
 		String returnId = httpRequest.getParameter("return_id");
+		if(StringUtils.isEmptyOrWhitespaceOnly(returnId)) {
+			returnId = null;
+		}
 		String sortOrder = httpRequest.getParameter("sort_order");
+		if(StringUtils.isEmptyOrWhitespaceOnly(sortOrder)) {
+			sortOrder = null;
+		}
 		String collapse = httpRequest.getParameter("collapse");
+		if(StringUtils.isEmptyOrWhitespaceOnly(collapse)) {
+			collapse = null;
+		}
 		String username = httpRequest.getParameter("user");
+		if(StringUtils.isEmptyOrWhitespaceOnly(username)) {
+			username = null;
+		}
 		String password = httpRequest.getParameter("password");
+		if(StringUtils.isEmptyOrWhitespaceOnly(password)) {
+			password = null;
+		}
 		
 		SurveyResponseReadAwRequest awRequest = new SurveyResponseReadAwRequest();
 		
@@ -79,6 +110,8 @@ public class SurveyResponseReadAwRequestCreator implements AwRequestCreator {
 		awRequest.setReturnIdAsString(returnId);
 		awRequest.setSortOrder(sortOrder);
 		awRequest.setPrivacyState(privacyState);
+		
+		awRequest.addToValidate(InputKeys.PRIVACY_STATE, privacyState, true);
 		
 		User user = new User();
 		user.setUserName(username);
