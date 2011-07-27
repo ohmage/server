@@ -1104,7 +1104,6 @@
   </servlet-mapping>
   
   <!-- Visualization APIs -->
-  
   <!-- Survey Response Count -->
   <servlet>
     <description>
@@ -1133,6 +1132,66 @@
   <servlet-mapping>
     <servlet-name>VizSurveyResponseCountServlet</servlet-name>
     <url-pattern>/viz/survey_response_count/read</url-pattern>
+  </servlet-mapping>
+  
+  <!-- Survey Responses Privacy State -->
+  <servlet>
+    <description>
+      Survey Response Privacy State Visualization API 
+    </description>
+    <servlet-name>VizSurveyResponsesPrivacyStateServlet</servlet-name>
+    <servlet-class>org.ohmage.jee.servlet.AwDataServlet</servlet-class>
+    <init-param>
+      <param-name>controllerName</param-name>
+      <param-value>vizSurveyResponsesPrivacyStateController</param-value>
+    </init-param>
+    <init-param>
+      <param-name>awRequestCreatorName</param-name>
+      <param-value>vizSurveyResponsesPrivacyStateAwRequestCreator</param-value>
+    </init-param>
+    <init-param>
+      <param-name>httpServletRequestValidatorName</param-name>
+      <param-value>vizSurveyResponsesPrivacyStateHttpServletRequestValidator</param-value>
+    </init-param>
+    <init-param>
+      <param-name>responseWriterName</param-name>
+      <param-value>vizSurveyResponsesPrivacyStateResponseWriter</param-value>
+    </init-param>
+    <load-on-startup>1</load-on-startup>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>VizSurveyResponsesPrivacyStateServlet</servlet-name>
+    <url-pattern>/viz/survey_responses_privacy_state/read</url-pattern>
+  </servlet-mapping>
+  
+  <!-- Survey Responses Privacy State Over Time -->
+  <servlet>
+    <description>
+      Survey Response Privacy State Over Time Visualization API 
+    </description>
+    <servlet-name>VizSurveyResponsesPrivacyStateTimeServlet</servlet-name>
+    <servlet-class>org.ohmage.jee.servlet.AwDataServlet</servlet-class>
+    <init-param>
+      <param-name>controllerName</param-name>
+      <param-value>vizSurveyResponsesPrivacyStateTimeController</param-value>
+    </init-param>
+    <init-param>
+      <param-name>awRequestCreatorName</param-name>
+      <param-value>vizSurveyResponsesPrivacyStateTimeAwRequestCreator</param-value>
+    </init-param>
+    <init-param>
+      <param-name>httpServletRequestValidatorName</param-name>
+      <param-value>vizSurveyResponsesPrivacyStateTimeHttpServletRequestValidator</param-value>
+    </init-param>
+    <init-param>
+      <param-name>responseWriterName</param-name>
+      <param-value>vizSurveyResponsesPrivacyStateTimeResponseWriter</param-value>
+    </init-param>
+    <load-on-startup>1</load-on-startup>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>VizSurveyResponsesPrivacyStateTimeServlet</servlet-name>
+    <url-pattern>/viz/survey_responses_privacy_state_time/read</url-pattern>
   </servlet-mapping>
   
   <!-- User Timeseries -->
