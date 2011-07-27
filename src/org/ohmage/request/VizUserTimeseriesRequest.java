@@ -23,9 +23,18 @@ public class VizUserTimeseriesRequest extends VisualizationRequest {
 	 * 
 	 * @param user The ID for the user from which the requester is attempting
 	 * 			   to generate information.
+	 * 
+	 * @param privacyState The privacy state of the responses to be queried. If
+	 * 					   null, it will be ignored.
+	 * 
+	 * @param startDate The start date of all survey responses to be queried. 
+	 * 					If this is null, it will be ignored.
+	 * 
+	 * @param endDate The end date of all survey responses to be queried. If
+	 * 				  this is null, it will be ignored.
 	 */
-	public VizUserTimeseriesRequest(String token, String width, String height, String campaignId, String promptId, String user) {
-		super(token, width, height, campaignId);
+	public VizUserTimeseriesRequest(String token, String width, String height, String campaignId, String promptId, String user, String privacyState, String startDate, String endDate) {
+		super(token, width, height, campaignId, privacyState, startDate, endDate);
 		
 		addToProcess(InputKeys.PROMPT_ID, promptId, true);
 		addToProcess(InputKeys.USER, user, true);

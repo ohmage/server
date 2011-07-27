@@ -50,6 +50,12 @@
         <ref bean="vizHeightValidator" />
         
         <ref bean="campaignUrnValidator" />
+        
+        <ref bean="surveyPrivacyStateValidator" />
+        
+        <ref bean="optionalStartDateValidator" />
+        <ref bean="optionalEndDateValidator" />
+        <ref bean="startAndEndDateValidator" />
       </list>
     </property>
     <property name="featureName">

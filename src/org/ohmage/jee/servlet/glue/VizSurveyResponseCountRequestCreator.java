@@ -41,6 +41,9 @@ public class VizSurveyResponseCountRequestCreator implements AwRequestCreator {
 		return new VizSurveyResponseCountRequest(token, 
 				httpRequest.getParameter(InputKeys.VISUALIZATION_WIDTH), 
 				httpRequest.getParameter(InputKeys.VISUALIZATION_HEIGHT),
-				httpRequest.getParameter(InputKeys.CAMPAIGN_URN));
+				httpRequest.getParameter(InputKeys.CAMPAIGN_URN),
+				httpRequest.getParameter(InputKeys.PRIVACY_STATE),
+				httpRequest.getParameter(InputKeys.START_DATE),
+				httpRequest.getParameter(InputKeys.END_DATE));
 	}
 }

@@ -43,6 +43,9 @@ public class VizTwoDDensityRequestCreator implements AwRequestCreator {
 				httpRequest.getParameter(InputKeys.VISUALIZATION_HEIGHT),
 				httpRequest.getParameter(InputKeys.CAMPAIGN_URN),
 				httpRequest.getParameter(InputKeys.PROMPT_ID),
-				httpRequest.getParameter(InputKeys.PROMPT2_ID));
+				httpRequest.getParameter(InputKeys.PROMPT2_ID),
+				httpRequest.getParameter(InputKeys.PRIVACY_STATE),
+				httpRequest.getParameter(InputKeys.START_DATE),
+				httpRequest.getParameter(InputKeys.END_DATE));
 	}
 }

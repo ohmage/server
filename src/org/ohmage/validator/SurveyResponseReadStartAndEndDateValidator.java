@@ -40,6 +40,12 @@ public class SurveyResponseReadStartAndEndDateValidator extends AbstractAnnotati
 		String startDate = awRequest.getStartDate();
 		String endDate = awRequest.getEndDate();
 		
-		return (null != startDate && null != endDate) || (null == startDate && null == endDate);
+		if((null != startDate && null != endDate) || (null == startDate && null == endDate)) {
+			return true;
+		}
+		else {
+			getAnnotator().annotate(awRequest, "Both the start and end date must be present or omitted. One alone is not allowed.");
+			return false;
+		}
 	}
 }

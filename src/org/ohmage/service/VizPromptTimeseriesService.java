@@ -10,6 +10,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.net.UnknownHostException;
+import java.util.Calendar;
 import java.util.Properties;
 
 import org.apache.log4j.Logger;
@@ -69,6 +70,33 @@ public class VizPromptTimeseriesService extends AbstractAnnotatingService {
 		
 		// Get the campaign ID.
 		String campaignId = awRequest.getCampaignUrn();
+		
+		// Get the start date.
+		String startDate;
+		try {
+			startDate = (String) awRequest.getToProcessValue(InputKeys.START_DATE);
+		}
+		catch(IllegalArgumentException e) {
+			startDate = null;
+		}
+		
+		// Get the start date.
+		String endDate;
+		try {
+			endDate = (String) awRequest.getToProcessValue(InputKeys.END_DATE);
+		}
+		catch(IllegalArgumentException e) {
+			endDate = null;
+		}
+		
+		// Get the start date.
+		String privacyState;
+		try {
+			privacyState = (String) awRequest.getToProcessValue(InputKeys.PRIVACY_STATE);
+		}
+		catch(IllegalArgumentException e) {
+			privacyState = null;
+		}
 		
 		String promptId;
 		try {
@@ -134,9 +162,23 @@ public class VizPromptTimeseriesService extends AbstractAnnotatingService {
 		urlBuilder.append("&prompt_id='").append(promptId).append("'");
 		urlBuilder.append("&!width=").append(width);
 		urlBuilder.append("&!height=").append(height);
+		
+		// Add the optional parameters.
+		if(startDate != null) {
+			urlBuilder.append("&start_date='").append(startDate).append("'");
+		}
+		if(endDate != null) {
+			urlBuilder.append("&end_date='").append(endDate).append("'");
+		}
+		if(privacyState != null) {
+			urlBuilder.append("&privacy_state='").append(privacyState).append("'");
+		}
+		
 		String urlString = urlBuilder.toString();
 	
 		try {
+			long startTime = Calendar.getInstance().getTimeInMillis();
+			
 			// Connect to the visualization server.
 			URL url = new URL(urlString);
 			URLConnection urlConnection = url.openConnection();
@@ -149,6 +191,8 @@ public class VizPromptTimeseriesService extends AbstractAnnotatingService {
 				}
 			}
 			
+			long responseTime = Calendar.getInstance().getTimeInMillis();
+			
 			// Build the response.
 			InputStream reader = urlConnection.getInputStream();
 			
@@ -158,6 +202,12 @@ public class VizPromptTimeseriesService extends AbstractAnnotatingService {
 			while((amountRead = reader.read(chunk)) != -1) {
 				byteArrayStream.write(chunk, 0, amountRead);
 			}
+			
+			long downloadTime = Calendar.getInstance().getTimeInMillis();
+			
+			_logger.debug("It took " + (responseTime - startTime) + " milliseconds to hear back from the visualization server.");
+			_logger.debug("It took " + (downloadTime - responseTime) + " milliseconds to download the image.");
+			_logger.debug("Therefore, the entire request took " + (downloadTime - startTime) + " milliseconds.");
 			
 			// Set the response in the request.
 			awRequest.addToReturn(VisualizationRequest.VISUALIZATION_REQUEST_RESULT, byteArrayStream.toByteArray(), true);
