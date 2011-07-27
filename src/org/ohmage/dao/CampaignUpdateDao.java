@@ -719,9 +719,6 @@ public class CampaignUpdateDao extends AbstractDao {
 				while(usersIter.hasNext()) {
 					UserAndRole uar = (UserAndRole) usersIter.next();
 					
-					_logger.debug("User id: " + uar._userId);
-					_logger.debug("Role id: " + uar._roleId);
-					
 					// Get the list of default roles for a user in this class
 					// associated with this campaign.
 					List<?> defaultRoles;

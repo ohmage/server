@@ -271,6 +271,9 @@ public class ClassUpdateDao extends AbstractDao {
 			try {
 				getJdbcTemplate().update(SQL_INSERT_USER_CLASS, new Object[] { userId, classId, userClassRoleId });
 			}
+			catch(org.springframework.dao.DataIntegrityViolationException e) {
+				_logger.warn("A user already had the given role in the class. Continuing to add to the campaigns associated with the class.");
+			}
 			catch(org.springframework.dao.DataAccessException e) {
 				_logger.error("Error while executing SQL '" + SQL_INSERT_USER_CLASS + "' with parameters: " + userId + ", " + classId + ", " + userClassRoleId, e);
 				throw new DataAccessException(e);
@@ -312,6 +315,9 @@ public class ClassUpdateDao extends AbstractDao {
 					// default role.
 					try {
 						getJdbcTemplate().update(SQL_INSERT_USER_ROLE_CAMPAIGN,  new Object[] { userId, campaignId, userRoleId });
+					}
+					catch(org.springframework.dao.DataIntegrityViolationException e) {
+						_logger.info("Adding a user to a campaign with a role to which the user was already associated with the given role. Ignoring.");
 					}
 					catch(org.springframework.dao.DataAccessException e) {
 						_logger.error("Error while executing SQL '" + SQL_INSERT_USER_ROLE_CAMPAIGN + "' with parameters: " + userId + ", " + campaignId + ", " + userRoleId, e);
