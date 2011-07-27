@@ -173,8 +173,12 @@ public class AwDataServlet extends HttpServlet {
 			}
 		}
 		
+		// josh: commented this out because it was throwing IllegalStateExceptions in cases where a browser was 
+		// rapidly querying the server with the same session id. Our current timeout is one minute and we don't
+		// store anything in the session, so it is presumably safe to let Tomcat expire the session and then let
+		// the JVM garbage collect.
 		// Invalidate the session
-		request.getSession().invalidate();
+		// request.getSession().invalidate();
 		
 		// Write the output
 		_responseWriter.write(request, response, awRequest);
