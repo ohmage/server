@@ -53,11 +53,14 @@ public class RequesterCanViewSurveyResponsesService extends AbstractAnnotatingDa
 		
 		String campaignId = awRequest.getCampaignUrn();
 		
-		if(! awRequest.getUser().isSupervisorInCampaign(campaignId)) {
-			if((! awRequest.getUser().isAnalystInCampaign(campaignId)) || CampaignPrivacyStateCache.PRIVACY_STATE_SHARED.equals(privacyState)) {
-				getAnnotator().annotate(awRequest, "The user doesn't have the required permissions to view the survey responses of other users.");
-				awRequest.setFailedRequest(true);
-			}
+		// The user needs to be a supervisor or author of the campaign or they
+		// need to be an analyst and the campaign needs to be shared.
+		if((! awRequest.getUser().isSupervisorInCampaign(campaignId)) && 
+		   (! awRequest.getUser().isAuthorInCampaign(campaignId)) &&
+		   (! (awRequest.getUser().isAnalystInCampaign(campaignId) && CampaignPrivacyStateCache.PRIVACY_STATE_SHARED.equals(privacyState)))) {
+			
+			getAnnotator().annotate(awRequest, "The user doesn't have the required permissions to view the survey responses of other users.");
+			awRequest.setFailedRequest(true);
 		}
 	}
 }
