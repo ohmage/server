@@ -71,7 +71,7 @@
       <bean class="org.ohmage.validator.json.FailedJsonRequestAnnotator">
         <constructor-arg> 
           <bean class="org.ohmage.domain.ErrorResponse">
-            <property name="code" value="1703" />
+            <property name="code" value="1700" />
             <property name="text" value="Error communicating with visualization server." />
           </bean>
         </constructor-arg>

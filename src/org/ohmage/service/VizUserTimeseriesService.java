@@ -16,10 +16,12 @@ import java.util.Properties;
 import org.apache.log4j.Logger;
 import org.ohmage.cache.CacheMissException;
 import org.ohmage.cache.PreferenceCache;
+import org.ohmage.domain.ErrorResponse;
 import org.ohmage.request.AwRequest;
 import org.ohmage.request.InputKeys;
 import org.ohmage.request.VisualizationRequest;
 import org.ohmage.validator.AwRequestAnnotator;
+import org.ohmage.validator.json.FailedJsonRequestAnnotator;
 
 /**
  * Calls the R visualization server with the parameters that we received in the
@@ -196,8 +198,37 @@ public class VizUserTimeseriesService extends AbstractAnnotatingService {
 			// Check that the response code was 200.
 			if(urlConnection instanceof HttpURLConnection) {
 				HttpURLConnection httpUrlConnection = (HttpURLConnection) urlConnection;
+
+				// If a non-200 response was returned, get the text from the 
+				// response.
 				if(httpUrlConnection.getResponseCode() != 200) {
-					getAnnotator().annotate(awRequest, "The server returned a non-200 response.");
+					// Get the error text.
+					ByteArrayOutputStream errorByteStream = new ByteArrayOutputStream();
+					InputStream errorStream = httpUrlConnection.getErrorStream();
+					byte[] chunk = new byte[4096];
+					int amountRead;
+					while((amountRead = errorStream.read(chunk)) != -1) {
+						errorByteStream.write(chunk, 0, amountRead);
+					}
+					
+					// Trim the first line.
+					String[] errorContentArray = errorByteStream.toString().split("\n", 2);
+					
+					// If we didn't end up with two lines, then this is an 
+					// unknown error response.
+					if(errorContentArray.length == 2) {
+						ErrorResponse errorResponse = new ErrorResponse();
+						errorResponse.setCode("1700");
+						errorResponse.setText(errorContentArray[1].trim());
+						
+						FailedJsonRequestAnnotator annotator = new FailedJsonRequestAnnotator(errorResponse);
+						annotator.annotate(awRequest, "The server returned the HTTP error code '" + httpUrlConnection.getResponseCode() + 
+								"' with the error '" + errorContentArray[1].trim() + "'.");
+						return;
+					}
+					else {
+						getAnnotator().annotate(awRequest, "The server returned a non-200 response.");
+					}
 				}
 			}
 			
