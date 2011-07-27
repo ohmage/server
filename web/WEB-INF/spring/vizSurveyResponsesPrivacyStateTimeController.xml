@@ -1,0 +1,79 @@
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:util="http://www.springframework.org/schema/util"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
+                           http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-2.5.xsd">
+
+  <!-- Basic HTTP Validation -->
+  <bean id="vizSurveyResponsesPrivacyStateTimeHttpServletRequestValidator" class="org.ohmage.jee.servlet.validator.VizSurveyResponsesPrivacyStateTimeValidator" />
+  
+  <!-- Create the AwRequest Object -->
+  <bean id="vizSurveyResponsesPrivacyStateTimeAwRequestCreator" class="org.ohmage.jee.servlet.glue.VizSurveyResponsesPrivacyStateTimeRequestCreator" />
+  
+  <!-- Write the Response -->
+  <bean id="vizSurveyResponsesPrivacyStateTimeResponseWriter" class="org.ohmage.jee.servlet.writer.VisualizationResponseWriter">
+    <constructor-arg>
+      <bean class="org.ohmage.domain.ErrorResponse">
+        <property name="code" value="1700" />
+        <property name="text" value="General visualization creation error." />
+      </bean>
+    </constructor-arg>
+  </bean>
+  
+  <!-- Controller Definition -->
+  <bean id="vizSurveyResponsesPrivacyStateTimeController" class="org.ohmage.controller.ControllerImpl">
+    <constructor-arg>
+      <!-- Services List (expected to be executed in-order) -->
+      <list>
+        <!-- Authenticate that the token the user is using is a valid token. -->
+        <ref bean="tokenBasedAuthenticationService" />
+
+        <!-- Check that the user belongs to the campaign telling us it exists at the same time. -->
+        <ref bean="userRoleCampaignPopulationService" />
+        <ref bean="userBelongsToCampaignService" />
+        
+        <!-- Process the request -->
+        <ref bean="vizSurveyResponsesPrivacyStateTimeService" />
+      </list>
+    </constructor-arg>
+    <constructor-arg index="1">
+      <!-- The annotator for when something fails after validation but before the writer. -->
+      <ref bean="serverErrorRequestAnnotator" />
+    </constructor-arg>
+    <property name="validators">
+      <!-- Validates the individual items in the request. -->
+      <list>
+        <!-- Validate each of the items in the request. -->
+        <ref bean="userTokenValidator" />
+        
+        <ref bean="vizWidthValidator" />
+        <ref bean="vizHeightValidator" />
+        
+        <ref bean="campaignUrnValidator" />
+        
+        <ref bean="surveyPrivacyStateValidator" />
+        
+        <ref bean="optionalStartDateValidator" />
+        <ref bean="optionalEndDateValidator" />
+        <ref bean="startAndEndDateValidator" />
+      </list>
+    </property>
+    <property name="featureName">
+      <value>Survey Responses Privacy State Over Time Visualization</value>
+    </property>
+  </bean>
+  
+  <bean id="vizSurveyResponsesPrivacyStateTimeService" class="org.ohmage.service.VizSurveyResponsesPrivacyStateTimeService">
+    <constructor-arg>
+      <bean class="org.ohmage.validator.json.FailedJsonRequestAnnotator">
+        <constructor-arg> 
+          <bean class="org.ohmage.domain.ErrorResponse">
+            <property name="code" value="1703" />
+            <property name="text" value="Error communicating with visualization server." />
+          </bean>
+        </constructor-arg>
+      </bean>
+    </constructor-arg>
+  </bean>
+  
+</beans>
