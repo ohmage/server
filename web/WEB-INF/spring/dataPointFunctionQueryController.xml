@@ -45,7 +45,6 @@
         <ref bean="userCampaignValidationService" />
         <ref bean="campaignUserCheckService" />
         <ref bean="participantUserParamValidationService" />
-        <ref bean="readOperationCampaignRunningStateValidationService" />
         <ref bean="readOperationCampaignPrivacyStateValidationService" />
         
         <ref bean="dataPointFunctionQueryService" />

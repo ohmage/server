@@ -40,7 +40,6 @@
         <ref bean="userCampaignValidationService" />
         <ref bean="campaignUserCheckService" />
         <ref bean="participantUserParamValidationService" />
-        <ref bean="readOperationCampaignRunningStateValidationService" />
         <ref bean="readOperationCampaignPrivacyStateValidationService" />
         
         <!-- grab the XML config from the db -->
@@ -347,27 +346,6 @@
         <constructor-arg index="0"><ref bean="dataSource" /></constructor-arg>
         <constructor-arg index="1"><bean class="org.ohmage.domain.ConfigurationValueMerger" /></constructor-arg>
       </bean>
-    </constructor-arg>
-  </bean>
-
-  <bean id="readOperationCampaignRunningStateValidationService" class="org.ohmage.service.CampaignRunningStateUserRoleValidationService">
-   <constructor-arg index="0">
-      <bean class="org.ohmage.validator.json.FailedJsonRequestAnnotator">
-        <constructor-arg index="0"> 
-          <bean class="org.ohmage.domain.ErrorResponse">
-            <property name="code" value="0716" />
-            <property name="text" value="participants cannot query stopped campaigns" />
-          </bean>
-        </constructor-arg>
-      </bean>
-    </constructor-arg>
-    <constructor-arg index="1"><util:constant static-field="org.ohmage.cache.CampaignRunningStateCache.RUNNING_STATE_STOPPED"/></constructor-arg>
-    <constructor-arg index="2">
-      <list>
-        <util:constant static-field="org.ohmage.cache.CampaignRoleCache.ROLE_AUTHOR"/>
-        <util:constant static-field="org.ohmage.cache.CampaignRoleCache.ROLE_ANALYST"/>
-        <util:constant static-field="org.ohmage.cache.CampaignRoleCache.ROLE_SUPERVISOR"/>
-      </list>
     </constructor-arg>
   </bean>
 
