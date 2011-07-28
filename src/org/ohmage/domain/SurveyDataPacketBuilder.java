@@ -20,16 +20,14 @@ import java.util.List;
 
 import org.apache.log4j.Logger;
 import org.json.JSONArray;
-import org.json.JSONException;
 import org.json.JSONObject;
 import org.ohmage.request.AwRequest;
 import org.ohmage.request.SurveyUploadAwRequest;
-import org.ohmage.service.ServiceException;
 import org.ohmage.util.JsonUtils;
 
 
 /**
- * @author selsky
+ * @author Joshua Selsky
  */
 public class SurveyDataPacketBuilder implements DataPacketBuilder {
 	private static Logger _logger = Logger.getLogger(SurveyDataPacketBuilder.class);
@@ -77,14 +75,11 @@ public class SurveyDataPacketBuilder implements DataPacketBuilder {
 				// ok, grab the inner responses - repeatable sets are anonymous objects in an array of arrays
 				// get the outer array
 				JSONArray outerArray = JsonUtils.getJsonArrayFromJsonObject(responseObject, "responses");
-				//_logger.info("outerArray.length()=" + outerArray.length());
 				
 				// now each element in the array is also an array
 				for(int j = 0; j < outerArray.length(); j++) {
 					JSONArray repeatableSetResponses =  JsonUtils.getJsonArrayFromJsonArray(outerArray, j);
 					int numberOfRepeatableSetResponses = repeatableSetResponses.length();
-					
-					// _logger.info("numberOfRepeatableSetResponses=" + numberOfRepeatableSetResponses);
 					
 					for(int k = 0; k < numberOfRepeatableSetResponses; k++) { 
 						PromptResponseDataPacket promptResponseDataPacket = new PromptResponseDataPacket();
@@ -95,8 +90,7 @@ public class SurveyDataPacketBuilder implements DataPacketBuilder {
 						promptResponseDataPacket.setPromptId(promptId);
 						promptResponseDataPacket.setRepeatableSetId(repeatableSetId);
 						promptResponseDataPacket.setRepeatableSetIteration(j);
-						
-//						Configuration configuration = (Configuration) _configurationCacheService.lookup(awRequest.getCampaignUrn());
+
 						String promptType = configuration.getPromptType(surveyId, repeatableSetId, promptId);
 						promptResponseDataPacket.setType(promptType);
 						
@@ -112,7 +106,6 @@ public class SurveyDataPacketBuilder implements DataPacketBuilder {
 				String promptId = JsonUtils.getStringFromJsonObject(responseObject, "prompt_id");
 				promptResponseDataPacket.setPromptId(promptId);
 				promptResponseDataPacket.setRepeatableSetId(null);
-//				Configuration configuration = (Configuration) _configurationCacheService.lookup(awRequest.getCampaignUrn());
 				String promptType = configuration.getPromptType(surveyId, promptId); 
 				promptResponseDataPacket.setType(promptType);
 				handleDataPacketValue(promptResponseDataPacket, responseObject, promptType);
@@ -130,63 +123,14 @@ public class SurveyDataPacketBuilder implements DataPacketBuilder {
 	}
 	
 	/**
-	 * Creates a JSON object for insertion into the db for the custom prompt types.
-	 */
-	private String customChoicesJsonString(JSONObject responseObject, String promptType) {
-		JSONObject copyObject = new JSONObject();
-		
-		try {
-			
-			copyObject.put("custom_choices", JsonUtils.getJsonArrayFromJsonObject(responseObject, "custom_choices"));
-			
-			Object value = null;
-			
-			// handle number types explicitly so they aren't quoted like strings
-			if(isNumberType(promptType)) {
-				
-				copyObject.put("value", JsonUtils.getIntegerFromJsonObject(responseObject, "value"));
-				
-			} else if(isArrayType(promptType)){
-				
-				copyObject.put("value", JsonUtils.getJsonArrayFromJsonObject(responseObject, "value"));
-				
-			} else {
-		
-				copyObject.put("value", stripQuotes((String) value, promptType)); 
-			}
-			
-		} catch (JSONException jsone) {
-			
-			_logger.error("caught JSONException when attempting to build custom prompt response for db insertion", jsone);
-			throw new ServiceException(jsone);
-			
-		}
-		
-		return copyObject.toString();
-	}
-	
-	private boolean isNumberType(String promptType) {
-		return "number".equals(promptType) 
-			|| "hours_before_now".equals(promptType)
-			|| "single_choice".equals(promptType)
-			|| "single_choice_custom".equals(promptType);
-	}
-	
-	
-	private boolean isArrayType(String promptType) {
-		return "multi_choice".equals(promptType) 
-			|| "multi_choice_custom".equals(promptType);
-	}
-	
-	/**
 	 * Sets the value attribute on the dataPacket. The value will be a JSONObject if the promptType is one of the custom types.  
 	 */
 	private void handleDataPacketValue(PromptResponseDataPacket dataPacket, JSONObject response, String promptType) {
 		JSONArray customChoicesArray = JsonUtils.getJsonArrayFromJsonObject(response, "custom_choices");
 		
 		if(null != customChoicesArray) {
-			
-			dataPacket.setValue(customChoicesJsonString(response, promptType));
+			response.remove("prompt_id"); // the prompt id is stored in its own column so we don't need it in the response
+			dataPacket.setValue(response.toString());
 			
 		} else {
 			String value = JsonUtils.getStringFromJsonObject(response, "value");
@@ -200,7 +144,7 @@ public class SurveyDataPacketBuilder implements DataPacketBuilder {
 	 * Strip quotes from String-ified JSONArrays. The JSON library will auto-quote arrays if you ask for them as strings. 
 	 */
 	private String stripQuotes(String string, String promptType) {
-		if("multi_choice".equals(promptType) || "multi_choice_custom".equals(promptType)) {
+		if("multi_choice".equals(promptType)) {
 			return string.replace("\"", "");
 		}
 		return string;
