@@ -18,6 +18,7 @@ package org.ohmage.service;
 import java.util.List;
 
 import org.apache.log4j.Logger;
+import org.ohmage.cache.CampaignPrivacyStateCache;
 import org.ohmage.cache.SurveyResponsePrivacyStateCache;
 import org.ohmage.domain.SurveyResponseReadResult;
 import org.ohmage.domain.User;
@@ -62,7 +63,13 @@ public class SurveyResponsePrivacyFilterService implements Service {
 					
 					_logger.info(currentResult.getPrivacyState());
 					
-					if(resultIsUnshared(currentResult) && ! currentResult.getUsername().equals(req.getUser().getUserName())) { 
+					if( (resultIsUnshared(currentResult) && ! currentResult.getUsername().equals(req.getUser().getUserName())) 
+						|| 
+						(user.getCampaignUserRoleMap().get(campaignUrn).getCampaign().getPrivacyState().equals(CampaignPrivacyStateCache.PRIVACY_STATE_PRIVATE) 
+							&& currentResult.getPrivacyState().equals(SurveyResponsePrivacyStateCache.PRIVACY_STATE_SHARED) 
+							&& ! user.isAuthorInCampaign(campaignUrn) 
+							&& ! currentResult.getUsername().equals(req.getUser().getUserName()))) {
+						
 						results.remove(i);
 						i--;
 						numberOfResults--;
