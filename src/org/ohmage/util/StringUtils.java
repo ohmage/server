@@ -17,6 +17,10 @@ package org.ohmage.util;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.UUID;
 import java.util.regex.Pattern;
 
@@ -28,6 +32,9 @@ import java.util.regex.Pattern;
 public final class StringUtils {
 	private static final int NUM_URN_SEGMENTS = 3;
 	private static final Pattern URN_PATTERN = Pattern.compile("[a-z0-9_]+");
+
+	private static final DateFormat DATE_FORMAT_AMERICAN = new SimpleDateFormat("MM/dd/yyyy");
+	private static final DateFormat DATE_FORMAT_EVERYONE_ELSE = new SimpleDateFormat("yyyy-MM-dd");
 	
 	private static final Pattern EMAIL_PATTERN = Pattern.compile("^([_A-Za-z0-9-]+)(\\.[_A-Za-z0-9-]+)*@[A-Za-z0-9]+(\\.[A-Za-z0-9]+)*(\\.[A-Za-z]{2,})$");
 	
@@ -234,6 +241,38 @@ public final class StringUtils {
 		}
 		else {
 			return null;
+		}
+	}
+	
+	/**
+	 * Decodes a String representing a date and returns a resulting Date
+	 * object. The date may follow any of these formats:
+	 * <ul>
+	 *   <li>{@value #DATE_FORMAT_AMERICAN}</li>
+	 *   <li>{@value #DATE_FORMAT_EVERYONE_ELSE}</li>
+	 * </ul>
+	 * 
+	 * @param date The date as a String that is to be decoded.
+	 * 
+	 * @return Returns null if the date is null, whitespace only, or doesn't
+	 * 		   follow one of the given format patterns. Otherwise, a new Date
+	 * 		   object that represents the date is returned.
+	 */
+	public static Date decodeDate(String date) {
+		if(isEmptyOrWhitespaceOnly(date)) {
+			return null;
+		}
+		
+		try {
+			return DATE_FORMAT_AMERICAN.parse(date);
+		}
+		catch(ParseException americanException) {
+			try {
+				return DATE_FORMAT_EVERYONE_ELSE.parse(date);
+			}
+			catch(ParseException otherException) {
+				return null;
+			}
 		}
 	}
 }

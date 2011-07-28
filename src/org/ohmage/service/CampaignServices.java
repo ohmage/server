@@ -165,6 +165,50 @@ public class CampaignServices {
 	}
 	
 	/**
+	 * Retrieves the XML for a campaign.
+	 * 
+	 * @param request The Request that is performing this service.
+	 * 
+	 * @param campaignId The campaign's unique identifier.
+	 * 
+	 * @return Returns the XML for the campaign. If the campaign doens't exist,
+	 * 		   null is returned.
+	 * 
+	 * @throws ServiceException Thrown if there is an error.
+	 */
+	public static String getCampaignXml(Request request, String campaignId) throws ServiceException {
+		try {
+			return CampaignDaos.getXml(campaignId);
+		}
+		catch(DataAccessException e) {
+			request.setFailed();
+			throw new ServiceException(e);
+		}
+	}
+	
+	/**
+	 * Retrieves the name of a campaign.
+	 * 
+	 * @param request The Request performing this service.
+	 * 
+	 * @param campaignId The unique identifier for the campaign.
+	 * 
+	 * @return Returns the name of the campaign. If the campaign doesn't exist
+	 * 		   null is returned.
+	 * 
+	 * @throws ServiceException Thrown if there is an error.
+	 */
+	public static String getCampaignName(Request request, String campaignId) throws ServiceException {
+		try {
+			return CampaignDaos.getName(campaignId);
+		}
+		catch(DataAccessException e) {
+			request.setFailed();
+			throw new ServiceException(e);
+		}
+	}
+	
+	/**
 	 * Gets the campaign's URN and name from the campaign XML.<br />
 	 * <br />
 	 * Note: The campaign should have been validated before this point.
@@ -240,5 +284,24 @@ public class CampaignServices {
 		}
 		
 		return new CampaignIdAndName(campaignUrn, campaignName);
+	}
+	
+	/**
+	 * Deletes a campaign.
+	 * 
+	 * @param request The Request that is performing this service.
+	 * 
+	 * @param campaignId The unique identifier for the campaign.
+	 * 
+	 * @throws ServiceException Thrown if there is an error.
+	 */
+	public static void deleteCampaign(Request request, String campaignId) throws ServiceException {
+		try {
+			CampaignDaos.deleteCampaign(campaignId);
+		}
+		catch(DataAccessException e) {
+			request.setFailed();
+			throw new ServiceException(e);
+		}
 	}
 }

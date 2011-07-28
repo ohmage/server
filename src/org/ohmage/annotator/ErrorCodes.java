@@ -55,6 +55,7 @@ public final class ErrorCodes {
 	public static final String CAMPAIGN_INVALID_RUNNING_STATE = "0703";
 	public static final String CAMPAIGN_INVALID_PRIVACY_STATE = "0704";
 	public static final String CAMPAIGN_INVALID_OUTPUT_FORMAT = "0705";
+	public static final String CAMPAIGN_INVALID_ROLE = "0706";
 	public static final String CAMPAIGN_INSUFFICIENT_PERMISSIONS = "0707";
 	public static final String CAMPAIGN_XML_HEADER_CHANGED = "0708";
 	public static final String CAMPAIGN_INVALID_DESCRIPTION = "0709";

@@ -11,7 +11,19 @@
     </constructor-arg>
   </bean>
   
+  <bean class="org.ohmage.dao.CampaignClassDaos">
+    <constructor-arg>
+      <ref bean="dataSource" />
+    </constructor-arg>
+  </bean>
+  
   <bean class="org.ohmage.dao.CampaignDaos">
+    <constructor-arg>
+      <ref bean="dataSource" />
+    </constructor-arg>
+  </bean>
+  
+  <bean class="org.ohmage.dao.CampaignSurveyDaos">
     <constructor-arg>
       <ref bean="dataSource" />
     </constructor-arg>

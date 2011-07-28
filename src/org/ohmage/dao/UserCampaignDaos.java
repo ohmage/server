@@ -56,6 +56,17 @@ public class UserCampaignDaos extends Dao {
 		"AND u.id = urc.user_id " +
 		"AND c.id = urc.campaign_id";
 	
+	// Retrieves the list of campaign IDs for all campaigns associated with a
+	// user where the user has a specified role.
+	private static final String SQL_GET_CAMPAIGN_IDS_FOR_USER_WITH_ROLE = 
+		"SELECT c.urn " +
+		"FROM user u, campaign c, user_role ur, user_role_campaign urc " +
+		"WHERE u.username = ? " +
+		"AND u.id = urc.user_id " +
+		"AND ur.role = ? " +
+		"AND ur.id = urc.user_role_id " +
+		"AND c.id = urc.campaign_id";
+	
 	private static UserCampaignDaos instance;
 	
 	/**
@@ -157,6 +168,30 @@ public class UserCampaignDaos extends Dao {
 		}
 		catch(org.springframework.dao.DataAccessException e) {
 			throw new DataAccessException("Error executing SQL '" + SQL_GET_CAMPAIGN_ID_AND_NAMES_FOR_USER + "' with parameter: " + username, e);
+		}
+	}
+	
+	/**
+	 * Retrieves all of the campaign IDs that are associated with a user and
+	 * the user has a specific role.
+	 * 
+	 * @param username The username of the user.
+	 * 
+	 * @param role The campaign role that the user must have.
+	 * 
+	 * @return A List of unique identifiers for all campaigns with which the 
+	 * 		   user is associated and has the given role. 
+	 */
+	public static List<String> getCampaignIdsForUserWithRole(String username, String role) {
+		try {
+			return instance.jdbcTemplate.query(
+					SQL_GET_CAMPAIGN_IDS_FOR_USER_WITH_ROLE, 
+					new Object[] { username, role },
+					new SingleColumnRowMapper<String>());
+		}
+		catch(org.springframework.dao.DataAccessException e) {
+			throw new DataAccessException("Error executing SQL '" + SQL_GET_CAMPAIGN_IDS_FOR_USER_WITH_ROLE + "' with parameters: " + 
+					username + ", " + role, e);
 		}
 	}
 }
