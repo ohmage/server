@@ -64,6 +64,11 @@ public class FindAllClassesForCampaignUrnsDao extends AbstractDao {
 			List<?> results = awRequest.getResultList();
 			int size = results.size();
 			
+			// Quick fix for when there are no results to show.
+			if(size == 0) {
+				return;
+			}
+			
 			for(int i = 0; i < size; i++) {
 				String urn = ((CampaignQueryResult)results.get(i)).getUrn(); // FIXME another ugly cast ...
 				
