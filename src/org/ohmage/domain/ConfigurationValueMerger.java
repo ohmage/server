@@ -19,6 +19,7 @@ import org.apache.log4j.Logger;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.ohmage.dao.DataAccessException;
 import org.ohmage.util.JsonUtils;
 
 
@@ -77,14 +78,29 @@ public class ConfigurationValueMerger {
 				result.setSingleChoiceLabel(configuration.getLabelForChoiceKey(result.getSurveyId(), result.getPromptId(), String.valueOf(result.getResponse())));
 				setDisplayValueFromSingleChoice(result, configuration, false);
 			
-			} else if (PromptTypeUtils.isMultiChoiceType(result.getPromptType())) {
+			}
+			else if (PromptTypeUtils.isMultiChoiceType(result.getPromptType())) {
 				
 				result.setChoiceGlossary(configuration.getChoiceGlossaryFor(result.getSurveyId(), result.getPromptId()));
 				setDisplayValueFromMultiChoice(result, configuration, false);
 				
-			} else if (PromptTypeUtils.isRemoteActivityType(result.getPromptType())) {
+			} 
+			else if (PromptTypeUtils.isRemoteActivityType(result.getPromptType())) {
 				
 				setDisplayValueFromRemoteActivity(result, configuration);
+			}
+			else if(PromptTypeUtils.isJsonObject(result.getPromptType())) {
+				
+				try {
+					
+					result.setDisplayValue(new JSONObject((String) result.getResponse()));
+					
+				} catch (JSONException e) { // bad: this means we have malformed JSON in th db
+					
+					_logger.error("Could not create a JSONObject for a custom choice prompt response with the following response: "
+							+ result.getResponse());
+					throw new DataAccessException(e);
+				}
 				
 			} else {
 				
