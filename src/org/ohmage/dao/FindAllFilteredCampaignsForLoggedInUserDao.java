@@ -203,7 +203,8 @@ public class FindAllFilteredCampaignsForLoggedInUserDao extends AbstractDao {
 			
 			// Now filter out the campaign results according to the ACLs (also used above when privacy_state and running_state are 
 			// used as query parameters).
-
+			// Quick fix for Valerie 
+			/*
 			int numberOfResults = campaignList.size();
 			for(int i = 0; i < numberOfResults; i++) {
 				
@@ -227,6 +228,7 @@ public class FindAllFilteredCampaignsForLoggedInUserDao extends AbstractDao {
 					}
 				}
 			}
+			*/
 			
 			req.setResultList(campaignList);
 			_logger.info("found " + campaignList.size() + " query results");
