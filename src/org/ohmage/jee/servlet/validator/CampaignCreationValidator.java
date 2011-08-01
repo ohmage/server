@@ -195,7 +195,7 @@ public class CampaignCreationValidator extends AbstractHttpServletRequestValidat
 			// was probably whitespace only because the class list had two
 			// list item separators in a row.
 			if((classListArray[i] != null) && (! "".equals(classListArray[i]))) {
-				classIdList.add(classListArray[i]);
+				classIdList.add(classListArray[i].toLowerCase());
 			}
 		}
 		
@@ -204,10 +204,10 @@ public class CampaignCreationValidator extends AbstractHttpServletRequestValidat
 		}
 		else {
 			StringBuilder builder = new StringBuilder();
-			boolean firstPass = false;
+			boolean firstPass = true;
 			for(String classId : classIdList) {
 				if(firstPass) {
-					firstPass = true;
+					firstPass = false;
 				}
 				else {
 					builder.append(InputKeys.LIST_ITEM_SEPARATOR);
