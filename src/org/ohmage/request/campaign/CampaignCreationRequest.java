@@ -90,14 +90,13 @@ public class CampaignCreationRequest extends UserRequest {
 		List<String> tClassIds = null;
 		
 		try {
-			try {
-				tXml = CampaignValidators.validateXml(this, new String(getMultipartValue(httpRequest, InputKeys.XML)));
+			byte[] xml = getMultipartValue(httpRequest, InputKeys.XML);
+			if(xml == null) {
+				setFailed(ErrorCodes.CAMPAIGN_INVALID_XML, "Missing required campaign XML: " + InputKeys.XML);
+				throw new ValidationException("Missing required campaign XML.");
 			}
-			catch(NullPointerException e) {
-				// If the getMultipartValue() returns null because the XML 
-				// didn't exist, a NullPointerException will be thrown.
-				setFailed(ErrorCodes.CAMPAIGN_INVALID_XML, "Missing required campaign XML.");
-				throw new ValidationException("Missing required campaign XML.", e);
+			else {
+				tXml = CampaignValidators.validateXml(this, new String(xml));
 			}
 			if(tXml == null) {
 				setFailed(ErrorCodes.CAMPAIGN_INVALID_XML, "Missing required campaign XML.");

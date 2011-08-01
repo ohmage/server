@@ -71,7 +71,7 @@ public final class UserValidators {
 		else {
 			// TODO: This might be where we tell them what a username must look
 			// 		 like.
-			request.setFailed(ErrorCodes.USER_INVALID_USERNAME, "The username is invalid.");
+			request.setFailed(ErrorCodes.USER_INVALID_USERNAME, "The username is invalid: " + username);
 			throw new ValidationException("The username is invalid: " + username);
 		}
 	}

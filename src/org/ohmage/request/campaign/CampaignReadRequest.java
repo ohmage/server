@@ -31,6 +31,113 @@ import org.ohmage.validator.CampaignValidators.OutputFormat;
 import org.ohmage.validator.ClassValidators;
 import org.ohmage.validator.ValidationException;
 
+/**
+ * <p>A request to read information about a campaign or set of campaigns. The
+ * optional parameters will limit the resulting list based on their value. For
+ * example, if an initial list is given, a running state of running is given, 
+ * and a user role of supervisor is given, then the list of campaigns whose
+ * information is returned will be the ones from the initial list where the
+ * campaign is running and the user is a supervisor.</p>
+ * <table border="1">
+ *   <tr>
+ *     <td>Parameter Name</td>
+ *     <td>Description</td>
+ *     <td>Required</td>
+ *   </tr>
+ *   <tr>
+ *     <td>{@value org.ohmage.request.InputKeys#CLIENT}</td>
+ *     <td>A string describing the client that is making this request.</td>
+ *     <td>true</td>
+ *   </tr>
+ *   <tr>
+ *     <td>{@value org.ohmage.request.InputKeys#OUTPUT_FORMAT}</td>
+ *     <td>The output format for the resulting list of campaigns. The different
+ *       output formats are as follows:<br />
+ *       <ul>
+ *         <li>{@value org.ohmage.validator.CampaignValidators.OutputFormat.SHORT}
+ *           <ul>
+ *             <li>Name</li>
+ *             <li>Description</li>
+ *             <li>Running state</li>
+ *             <li>Privacy state</li>
+ *             <li>Creation time stamp</li>
+ *             <li>A list of the requesting user's campaign roles</li>
+ *           </ul>
+ *         </li>
+ *         <li>{@value org.ohmage.validator.CampaignValidators.OutputFormat.LONG}
+ *           <ul>
+ *             <li>Name</li>
+ *             <li>Description</li>
+ *             <li>Running state</li>
+ *             <li>Privacy state</li>
+ *             <li>Creation time stamp</li>
+ *             <li>A list of the requesting user's campaign roles</li>
+ *             <li>The classes to which this campaign is associated</li>
+ *             <li>A map of roles to lists of the users in the campaign with
+ *               those roles</li>
+ *             <li>XML</li>
+ *           </ul>
+ *         </li>
+ *         <li>{@value org.ohmage.validator.CampaignValidators.OutputFormat.XML}
+ *           <ul>
+ *             <li>The campaign's XML as a file attachment.</li>
+ *           </ul>
+ *         </li>
+ *       </ul></td>
+ *     <td>true</td>
+ *   </tr>
+ *   <tr>
+ *     <td>{@value org.ohmage.request.InputKeys#CAMPAIGN_URN_LIST}</td>
+ *     <td>A list of campaign identifiers to begin with. If this parameter is
+ *       omitted the initial list will be all of the campaigns to which the 
+ *       user is associated. The campaign identifiers should be separated by 
+ *       {@link org.ohmage.request.InputKeys#LIST_ITEM_SEPARATOR}s. The user
+ *       must be a member of each of the campaigns.</td>
+ *     <td>false</td>
+ *   </tr>
+ *   <tr>
+ *     <td>{@value org.ohmage.request.InputKeys#CLASS_URN_LIST}</td>
+ *     <td>A list of classes where any campaigns that aren't associated with 
+ *       all of these classes will be omitted from the result. The class 
+ *       identifiers should be separated by
+ *       {@link org.ohmage.request.InputKeys#LIST_ITEM_SEPARATOR}s. The user 
+ *       must be a member of each of the classes.</td>
+ *     <td>false</td>
+ *   </tr>
+ *   <tr>
+ *     <td>{@value org.ohmage.request.InputKeys#START_DATE}</td>
+ *     <td>This will remove all campaigns from the result whose creation 
+ *       timestamp is before this date.</td>
+ *     <td>false</td>
+ *   </tr>
+ *   <tr>
+ *     <td>{@value org.ohmage.request.InputKeys#END_DATE}</td>
+ *     <td>This will remove all campaigns from the result whose creation
+ *       timestamp is after this date.</td>
+ *     <td>false</td>
+ *   </tr>
+ *   <tr>
+ *     <td>{@value org.ohmage.request.InputKeys#PRIVACY_STATE}</td>
+ *     <td>This will remove all campaigns from the result whose privacy state 
+ *       is not this privacy state.</td>
+ *     <td>false</td>
+ *   </tr>
+ *   <tr>
+ *     <td>{@value org.ohmage.request.InputKeys#END_DATE}</td>
+ *     <td>This will remove all campaigns from the result whose running state
+ *       is not this running state.</td>
+ *     <td>false</td>
+ *   </tr>
+ *   <tr>
+ *     <td>{@value org.ohmage.request.InputKeys#USER_ROLE}</td>
+ *     <td>This will remove all campaigns from the result where the user does 
+ *       not have this role.</td>
+ *     <td>false</td>
+ *   </tr>
+ * </table>
+ * 
+ * @author John Jenkins
+ */
 public class CampaignReadRequest extends UserRequest {
 	private static final Logger LOGGER = Logger.getLogger(CampaignReadRequest.class);
 	

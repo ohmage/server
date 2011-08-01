@@ -53,6 +53,12 @@
     </constructor-arg>
   </bean>
   
+  <bean class="org.ohmage.dao.UserCampaignClassDaos">
+    <constructor-arg>
+      <ref bean="dataSource" />
+    </constructor-arg>
+  </bean>
+  
   <bean class="org.ohmage.dao.UserCampaignDocumentDaos">
     <constructor-arg>
       <ref bean="dataSource" />

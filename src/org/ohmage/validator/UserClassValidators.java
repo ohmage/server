@@ -10,52 +10,12 @@ import org.ohmage.request.Request;
 import org.ohmage.util.StringUtils;
 
 /**
- * Class for validating usernames and class pair values.
+ * Class for validating username and class pair values.
  * 
  * @author John Jenkins
  */
 public final class UserClassValidators {
 	private static final Logger LOGGER = Logger.getLogger(UserClassValidators.class);
-	
-	/**
-	 * Class for handling username and class-roles.
-	 * 
-	 * @author John Jenkins
-	 */
-	public static final class UserAndRole {
-		private final String username;
-		private final String role;
-		
-		/**
-		 * Creates a new username and class-role pair.
-		 * 
-		 * @param username The username in the pair.
-		 * 
-		 * @param role The class role in the pair.
-		 */
-		public UserAndRole(String username, String role) {
-			this.username = username;
-			this.role = role;
-		}
-		
-		/**
-		 * Returns the username.
-		 * 
-		 * @return The username
-		 */
-		public String getUsername() {
-			return username;
-		}
-		
-		/**
-		 * Returns the class role.
-		 * 
-		 * @return The class role.
-		 */
-		public String getRole() {
-			return role;
-		}
-	}
 	
 	/**
 	 * Default constructor. Private so that it cannot be instantiated.
@@ -79,8 +39,10 @@ public final class UserClassValidators {
 	 * 							separated by
 	 * 							{@value org.ohmage.request.InputKeys#ENTITY_ROLE_SEPARATOR}.
 	 * 
-	 * @return Returns null if the list String is null or whitespace only. 
-	 * 		   Otherwise, it returns a Map of usernames to class roles.
+	 * @return Returns null if the list string is null, whitespace only, or 
+	 * 		   only contains separators and no meaningful information. 
+	 * 		   Otherwise, a map of username to class roles is returned with at
+	 * 		   least one entry.
 	 * 
 	 * @throws ValidationException Thrown if the list String or any of the 
 	 * 							   usernames in the list String are 
@@ -102,21 +64,26 @@ public final class UserClassValidators {
 			if(! "".equals(currUserAndRole)) {
 				String[] userAndRole = currUserAndRole.split(InputKeys.ENTITY_ROLE_SEPARATOR);
 				
-				String username;
 				if(userAndRole.length != 2) {
-					username = UserValidators.validateUsername(request, userAndRole[0]);
-					
-					request.setFailed(ErrorCodes.CLASS_INVALID_ROLE, "The class role is missing: " + currUserAndRole);
+					request.setFailed(ErrorCodes.CLASS_INVALID_ROLE, "The username, class role is invalid: " + currUserAndRole);
 					throw new ValidationException("The user class-role list at index " + i + " is invalid: " + currUserAndRole);
 				}
 				
-				username = UserValidators.validateUsername(request, userAndRole[0]);
+				String username = UserValidators.validateUsername(request, userAndRole[0]);
 				String role = ClassValidators.validateClassRole(request, userAndRole[1]);
 				
+				// FIXME: This will silently accept a second username, role 
+				// pair and discard the previous one. This should instead at 
+				// least note that this is happening.
 				result.put(username, role);
 			}
 		}
 		
-		return result;
+		if(result.size() == 0) {
+			return null;
+		}
+		else {
+			return result;
+		}
 	}
 }

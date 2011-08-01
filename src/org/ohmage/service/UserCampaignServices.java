@@ -101,6 +101,18 @@ public class UserCampaignServices {
 	 * 
 	 * @throws ServiceException Thrown if the user is missing any of the roles
 	 * 							in the campaign or if there is an error.
+	 * 
+	 * @deprecated Instead, we should try to create functions like 
+	 * 			   "verifyUserCanReadCampaign" which will perform this action
+	 * 			   as well as any others that are necessary. The reason this is
+	 * 			   a bad idea is because it puts too much of the work on the 
+	 * 			   requests which must keep up with the ACLs and may lead to 
+	 * 			   multiple services to perform one logical service, i.e. call
+	 * 			   something like this then call a service that checks if the
+	 * 			   user is privileged in some class to which this campaign 
+	 * 			   belongs which is all one logical service that checks if a 
+	 * 			   user can read this campaign's metadata. If nothing else, it
+	 * 			   should be made private.
 	 */
 	public static void checkUserHasRolesInCampaign(Request request, String username, String campaignId, Collection<String> campaignRoles) throws ServiceException {
 		try {
@@ -131,10 +143,131 @@ public class UserCampaignServices {
 	 * @throws ServiceException Thrown if the user doesn't have any of the 
 	 * 							roles in one of the classes or if there is an
 	 * 							error.
+	 * 
+	 * @deprecated Instead, we should try to create functions like 
+	 * 			   "verifyUserCanReadCampaign" which will perform this action
+	 * 			   as well as any others that are necessary. The reason this is
+	 * 			   a bad idea is because it puts too much of the work on the 
+	 * 			   requests which must keep up with the ACLs and may lead to 
+	 * 			   multiple services to perform one logical service, i.e. call
+	 * 			   something like this then call a service that checks if the
+	 * 			   user is privileged in some class to which this campaign 
+	 * 			   belongs which is all one logical service that checks if a 
+	 * 			   user can read this campaign's metadata. If nothing else, it
+	 * 			   should be made private.
 	 */
 	public static void checkUserHasRolesInCampaigns(Request request, String username, Collection<String> campaignIds, Collection<String> campaignRoles) throws ServiceException {
 		for(String campaignId : campaignIds) {
 			checkUserHasRolesInCampaign(request, username, campaignId, campaignRoles);
+		}
+	}
+	
+	/**
+	 * Verifies that some user is allowed to update some campaign.
+	 * 
+	 * @param request The Request that is performing this service.
+	 * 
+	 * @param username The username of the user.
+	 * 
+	 * @param campaignId The unique identifier for the campaign.
+	 * 
+	 * @throws ServiceException Thrown if the user is not allowed to update 
+	 * 							this campaign or if there is an error.
+	 */
+	public static void verifyUserCanUpdateCampaign(Request request, String username, String campaignId) throws ServiceException {
+		try {
+			List<String> roles = UserCampaignDaos.getUserCampaignRoles(username, campaignId);
+			
+			if(roles.contains(CampaignRoleCache.ROLE_SUPERVISOR) ||
+			   roles.contains(CampaignRoleCache.ROLE_AUTHOR)) {
+				return;
+			}
+			
+			request.setFailed(ErrorCodes.CAMPAIGN_INSUFFICIENT_PERMISSIONS, "The user is not allowed to update the campaign.");
+			throw new ServiceException("The user is not allowed to update the campaign.");
+		}
+		catch(DataAccessException e) {
+			request.setFailed();
+			throw new ServiceException(e);
+		}
+	}
+	
+	/**
+	 * Verifies that a user is allowed to update a campaign's XML.
+	 *  
+	 * @param request The Request that is performing this service.
+	 * 
+	 * @param username The username of the user.
+	 * 
+	 * @param campaignId The campaign's unique identifier.
+	 * 
+	 * @throws ServiceException Thrown if the user isn't allowed to modify the
+	 * 							campaign, if the user is allowed to modify the
+	 * 							campaign but responses exist, or if there is an
+	 * 							error.
+	 */
+	public static void verifyUserCanUpdateCampaignXml(Request request, String username, String campaignId) throws ServiceException {
+		try {
+			List<String> roles = UserCampaignDaos.getUserCampaignRoles(username, campaignId);
+			
+			if(roles.contains(CampaignRoleCache.ROLE_SUPERVISOR) ||
+			   roles.contains(CampaignRoleCache.ROLE_AUTHOR)) {
+				if(CampaignSurveyDaos.getNumberOfSurveyResponsesForCampaign(campaignId) == 0) {
+					return;
+				}
+				
+				request.setFailed(ErrorCodes.CAMPAIGN_INSUFFICIENT_PERMISSIONS, "Survey responses exist; therefore the XML can no longer be modified.");
+				throw new ServiceException("Survey responses exist; therefore the XML can no longer be modified.");
+			}
+			
+			request.setFailed(ErrorCodes.CAMPAIGN_INSUFFICIENT_PERMISSIONS, "The user is not allowed to modify the campaign's XML.");
+			throw new ServiceException("The user is not allowed to modify the campaign's XML.");
+		}
+		catch(DataAccessException e) {
+			request.setFailed();
+			throw new ServiceException(e);
+		}
+	}
+	
+	/**
+	 * Verifies that the user is allowed to grant or revoke all of the roles in
+	 * the collection.
+	 * 
+	 * @param request The Request that is performing this service.
+	 * 
+	 * @param username The username of the user.
+	 * 
+	 * @param campaignId The unique identifier for the campaign where the user
+	 * 					 is attempting to add or revoke roles.
+	 * 
+	 * @param roles The roles to check if the user can grant or revoke.
+	 * 
+	 * @throws ServiceException Thrown if the user is not allowed to grant or
+	 * 							revoke some role or if there is an error.
+	 */
+	public static void verifyUserCanGrantOrRevokeRoles(Request request, String username, String campaignId, Collection<String> roles) throws ServiceException {
+		try {
+			List<String> usersRoles = UserCampaignDaos.getUserCampaignRoles(username, campaignId);
+			
+			if(usersRoles.contains(CampaignRoleCache.ROLE_SUPERVISOR)) {
+				return;
+			}
+			
+			if(usersRoles.contains(CampaignRoleCache.ROLE_AUTHOR)) {
+				if(! roles.contains(CampaignRoleCache.ROLE_SUPERVISOR)) {
+					return;
+				}
+				
+				request.setFailed(ErrorCodes.CAMPAIGN_INSUFFICIENT_PERMISSIONS, "The user is not allowed to grant the supervisor privilege.");
+				throw new ServiceException("The user is not allowed to grant the supervisor privilege.");
+			}
+			
+			request.setFailed(ErrorCodes.CAMPAIGN_INSUFFICIENT_PERMISSIONS, "The user is not allowed to grant privileges.");
+			throw new ServiceException("The user is not allowed to grant privileges.");
+		}
+		catch(DataAccessException e) {
+			request.setFailed();
+			throw new ServiceException(e);
 		}
 	}
 	

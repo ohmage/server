@@ -87,10 +87,9 @@ public final class ClassValidators {
 	 * 						  	{@value org.ohmage.request.InputKeys#LIST_ITEM_SEPARATOR}.
 	 * 
 	 * @return Returns a List of class identifiers from the 'classListString'
-	 * 		   or null if the class ID list String is null or whitespace only.
-	 * 		   The resulting list may not be null but may still be empty if 
-	 * 		   the class ID list String contains only separators and 
-	 * 		   whitespace.
+	 * 		   or null if the class ID list String is null, whitespace only, or
+	 * 		   would otherwise be empty because it doesn't contain any 
+	 * 		   meaningful data.
 	 * 
 	 * @throws ValidationException Thrown if the class Id list String contains a
 	 * 							  class ID that is an invalid class ID.
@@ -121,7 +120,12 @@ public final class ClassValidators {
 			}
 		}
 		
-		return new ArrayList<String>(classIdList);
+		if(classIdList.size() == 0) {
+			return null;
+		}
+		else {
+			return new ArrayList<String>(classIdList);
+		}
 	}
 	
 	/**
@@ -148,7 +152,7 @@ public final class ClassValidators {
 			request.setFailed(ErrorCodes.CLASS_INVALID_NAME, "The class name contains profanity: " + name);
 			throw new ValidationException("The class name contains profanity: " + name);
 		}
-		else if(StringUtils.lengthWithinLimits(name, 0, MAX_NAME_LENGTH)) {
+		else if(! StringUtils.lengthWithinLimits(name, 0, MAX_NAME_LENGTH)) {
 			request.setFailed(ErrorCodes.CLASS_INVALID_NAME, "The class name is too long. The maximum length of the class name is " + MAX_NAME_LENGTH + " characters");
 			throw new ValidationException("The class name is too long. The maximum length of the class name is " + MAX_NAME_LENGTH + " characters");
 		}
