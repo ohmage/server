@@ -163,6 +163,53 @@ public class UserCampaignServices {
 	}
 	
 	/**
+	 * Verifies that a user is allowed to read the personal information of all
+	 * of the users in a campaign.
+	 * 
+	 * @param request The Request that is performing this service.
+	 * 
+	 * @param username The username of the user.
+	 * 
+	 * @param campaignId The campaign's unique identifier.
+	 * 
+	 * @throws ServiceException Thrown if the user isn't allowed to view the
+	 * 							personal information about all of the users in
+	 * 							the class or if there is an error.
+	 */
+	public static void verifyUserCanReadUsersInfoInCampaign(Request request, String username, String campaignId) throws ServiceException  {
+		try {
+			if(! UserCampaignDaos.getUserCampaignRoles(username, campaignId).contains(CampaignRoleCache.ROLE_SUPERVISOR)) {
+				request.setFailed(ErrorCodes.CAMPAIGN_INSUFFICIENT_PERMISSIONS, "The user is not allowed to read the personal information of the users in the following campaign: " + campaignId);
+				throw new ServiceException("The user is not allowed to read the personal information of the users in the following campaign: " + campaignId);
+			}
+		}
+		catch(DataAccessException e) {
+			request.setFailed();
+			throw new ServiceException(e);
+		}
+	}
+	
+	/**
+	 * Verifies that a user is allowed to read the personal information of all
+	 * of the users in all of the campaigns.
+	 * 
+	 * @param request The Request that is performing this service.
+	 * 
+	 * @param username The username of the user.
+	 * 
+	 * @param campaignIds A Collection of unique identifiers for the campaigns.
+	 * 
+	 * @throws ServiceException Thrown if the user isn't allowed to read the
+	 * 							personal information of the users in one of the
+	 * 							classes or if there is an error.
+	 */
+	public static void verifyUserCanReadUsersInfoInCampaigns(Request request, String username, Collection<String> campaignIds) throws ServiceException {
+		for(String campaignId : campaignIds) {
+			verifyUserCanReadUsersInfoInCampaign(request, username, campaignId);
+		}
+	}
+	
+	/**
 	 * Verifies that some user is allowed to update some campaign.
 	 * 
 	 * @param request The Request that is performing this service.

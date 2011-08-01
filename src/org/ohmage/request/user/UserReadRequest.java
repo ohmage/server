@@ -1,7 +1,6 @@
 package org.ohmage.request.user;
 
 import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
@@ -11,7 +10,6 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.log4j.Logger;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.ohmage.cache.CampaignRoleCache;
 import org.ohmage.cache.ClassRoleCache;
 import org.ohmage.domain.UserPersonal;
 import org.ohmage.request.InputKeys;
@@ -107,10 +105,8 @@ public class UserReadRequest extends UserRequest {
 				LOGGER.info("Verifying that all of the campaigns in the list exist.");
 				CampaignServices.checkCampaignsExistence(this, campaignIds, true);
 				
-				LOGGER.info("Verifying that the requester is a supervisor in all of the campaigns.");
-				List<String> campaignRoles = new LinkedList<String>();
-				campaignRoles.add(CampaignRoleCache.ROLE_SUPERVISOR);
-				UserCampaignServices.checkUserHasRolesInCampaigns(this, user.getUsername(), campaignIds, campaignRoles);
+				LOGGER.info("Verifying that the requester may read the information about hte users in the campaigns.");
+				UserCampaignServices.verifyUserCanReadUsersInfoInCampaigns(this, user.getUsername(), campaignIds);
 				
 				LOGGER.info("Gathering the information about the users in the campaigns.");
 				result.putAll(UserCampaignServices.getPersonalInfoForUsersInCampaigns(this, campaignIds));
