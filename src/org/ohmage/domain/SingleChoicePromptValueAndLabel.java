@@ -38,4 +38,10 @@ public class SingleChoicePromptValueAndLabel {
 	public String getLabel() {
 		return _label;
 	}
+
+	@Override
+	public String toString() {
+		return "SingleChoicePromptValueAndLabel [_value=" + _value
+				+ ", _label=" + _label + "]";
+	}
 }

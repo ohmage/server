@@ -235,7 +235,7 @@ public class SurveyResponseReadCsvOutputBuilder  {
 			}
 			i++;
 		}
-		builder.append(newLine);
+		builder.append(newLine); int x = 0;
 		
 		for(SurveyResponseReadIndexedResult result : indexedResultList) {
 			
@@ -360,9 +360,9 @@ public class SurveyResponseReadCsvOutputBuilder  {
 				else if("urn:ohmage:survey:privacy_state".equals(canonicalColumnId)) {
 					builder.append(result.getPrivacyState()).append(",");
 				}
-				else if(canonicalColumnId.contains("prompt:id")) {
+				else if(canonicalColumnId.contains("prompt:id")) { 
 					
-					String promptId = canonicalColumnId.substring("urn:ohmage:prompt:id:".length()); // _logger.info(promptId);
+					String promptId = canonicalColumnId.substring("urn:ohmage:prompt:id:".length());
 					
 					PromptResponseMetadata promptResponseMetadata = promptResponseMetadataMap.get(promptId);
 					Map<String, Object> promptResponseMap = result.getPromptResponseMap();
@@ -371,10 +371,19 @@ public class SurveyResponseReadCsvOutputBuilder  {
 						
 						SingleChoicePromptValueAndLabel valueLabel = (SingleChoicePromptValueAndLabel) promptResponseMap.get(promptId);
 						
-						if(null != valueLabel.getValue()) {
-							builder.append(valueLabel.getLabel()).append(",").append(valueLabel.getValue());
-						} else {
-							builder.append(valueLabel.getLabel());
+						if(null != valueLabel) {
+							if(null != valueLabel.getValue()) {
+								builder.append(valueLabel.getLabel()).append(",").append(valueLabel.getValue());
+							} 
+							else {
+								builder.append(valueLabel.getLabel());
+							}
+						} 
+						else {
+							builder.append("null");
+							if(configuration.promptContainsSingleChoiceValues(promptId)) {
+								builder.append(",null");
+							}
 						}
 					}
 					else {
@@ -410,6 +419,8 @@ public class SurveyResponseReadCsvOutputBuilder  {
 			int lastCommaIndex = builder.lastIndexOf(",");
 			builder.replace(lastCommaIndex, lastCommaIndex + 1, "");
 			builder.append(newLine);
+			
+			x++;
 		}
 		
 		if(! req.isSuppressMetadata()) {

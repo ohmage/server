@@ -39,6 +39,7 @@ public class SurveyResponseReadIndexedResult {
 	private SurveyResponseReadResult _originalResult;
 	
 	public SurveyResponseReadIndexedResult(SurveyResponseReadResult result, boolean isCsv) {
+		
 		_key = new SurveyResponseReadIndexedResultKey(result.getUsername(), result.getTimestamp(), 
 			result.getSurveyId(), result.getRepeatableSetId(), result.getRepeatableSetIteration());	
 		
@@ -70,6 +71,7 @@ public class SurveyResponseReadIndexedResult {
 	}
 	
 	public void addPromptResponse(SurveyResponseReadResult result, boolean isCsv) {
+		
 		if("single_choice".equals(result.getPromptType()) && isCsv) {
 			_promptResponseMap.put(result.getPromptId(), new SingleChoicePromptValueAndLabel(result.getSingleChoiceOrdinalValue(), result.getSingleChoiceLabel()));
 		}
@@ -174,5 +176,14 @@ public class SurveyResponseReadIndexedResult {
 	
 	public String getUtcTimestamp() {
 		return _originalResult.getUtcTimestamp();
+	}
+
+	@Override
+	public String toString() {
+		return "SurveyResponseReadIndexedResult [_key=" + _key
+				+ ", _promptResponseMap=" + _promptResponseMap
+				+ ", _promptResponseMetadataMap=" + _promptResponseMetadataMap
+				+ ", _choiceGlossaryMap=" + _choiceGlossaryMap
+				+ ", _originalResult=" + _originalResult + "]";
 	}
 }

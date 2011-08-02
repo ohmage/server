@@ -150,7 +150,7 @@ public class SurveyResponseReadResponseWriter extends AbstractResponseWriter {
 				
 				for(SurveyResponseReadResult result : results) {
 					
-					if(indexedResults.isEmpty()) { // first time thru
+					if(indexedResults.isEmpty()) { // first time thru 
 						indexedResults.add(new SurveyResponseReadIndexedResult(result, isCsv));
 					}
 					else {

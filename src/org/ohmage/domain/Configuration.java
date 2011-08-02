@@ -196,8 +196,15 @@ public class Configuration {
 				}
 			} else {
 				Prompt p = ((Prompt) _surveyMap.get(surveyId).getSurveyItemMap().get(promptId));
-				if("single_choice".equals(p.getType())) {
-					return p.getProperties().containsKey("value");
+				if("single_choice".equals(p.getType())) { // if one PromptProperty contains a value node, they all must according
+					                                      // to our configuration validation rules
+					Iterator<String> keys = p.getProperties().keySet().iterator();
+					while(keys.hasNext()) {
+						PromptProperty pp = p.getProperties().get(keys.next());
+						if(null != pp.getValue()) {
+							return true;
+						}
+					}
 				}
 			}
 		}
