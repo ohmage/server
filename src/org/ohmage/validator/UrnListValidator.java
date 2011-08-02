@@ -15,6 +15,9 @@
  ******************************************************************************/
 package org.ohmage.validator;
 
+import java.util.LinkedList;
+import java.util.List;
+
 import org.apache.log4j.Logger;
 import org.ohmage.request.AwRequest;
 import org.ohmage.request.InputKeys;
@@ -73,14 +76,20 @@ public class UrnListValidator extends AbstractAnnotatingValidator {
 		_logger.info("Validating a URN list using property name " + _propertyName);
 		
 		String[] urns = urnList.split(InputKeys.LIST_ITEM_SEPARATOR);
+		List<String> result = new LinkedList<String>();
 		for(String urn : urns) {
-			if(! StringUtils.isValidUrn(urn)) {
-				getAnnotator().annotate(awRequest, "found invalid urn: " + urn);
-				return false;
+			if(! StringUtils.isEmptyOrWhitespaceOnly(urn)) {
+				if(! StringUtils.isValidUrn(urn)) {
+					getAnnotator().annotate(awRequest, "found invalid urn: " + urn);
+					return false;
+				}
+				else {
+					result.add(urn);
+				}
 			}
 		}
 		
-		awRequest.addToProcess(_propertyName, urnList, true);
+		awRequest.addToProcess(_propertyName, StringUtils.collectionToDelimitedString(result, InputKeys.LIST_ITEM_SEPARATOR), true);
 		return true;
 	}	
 }

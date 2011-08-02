@@ -15,6 +15,9 @@
  ******************************************************************************/
 package org.ohmage.validator;
 
+import java.util.LinkedList;
+import java.util.List;
+
 import org.apache.log4j.Logger;
 import org.ohmage.request.AwRequest;
 import org.ohmage.request.InputKeys;
@@ -68,16 +71,22 @@ public class ClassListValidator extends AbstractAnnotatingValidator {
 		
 		_logger.debug("Class list: " + classes);
 
+		List<String> classIds = new LinkedList<String>();
 		String[] classList = classes.split(InputKeys.LIST_ITEM_SEPARATOR);
 		for(int i = 0; i < classList.length; i++) {
-			if(! StringUtils.isValidUrn(classList[i])) {
-				awRequest.setFailedRequest(true);
-				getAnnotator().annotate(awRequest, "Invalid URN in class list: " + classList[i]);
-				return false;
+			if(! StringUtils.isEmptyOrWhitespaceOnly(classList[i])) {
+				if(! StringUtils.isValidUrn(classList[i])) {
+					awRequest.setFailedRequest(true);
+					getAnnotator().annotate(awRequest, "Invalid URN in class list: " + classList[i]);
+					return false;
+				}
+				else {
+					classIds.add(classList[i]);
+				}
 			}
 		}
 		
-		awRequest.addToProcess(InputKeys.CLASS_URN_LIST, classes, true);
+		awRequest.addToProcess(InputKeys.CLASS_URN_LIST, StringUtils.collectionToDelimitedString(classIds, ","), true);
 		return true;
 	}
 
