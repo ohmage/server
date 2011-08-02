@@ -265,7 +265,7 @@ public abstract class UserRequest extends Request {
 			}
 			// If there are multipile authentication token cookies, fail the
 			// request.
-			else {
+			else if(cookies.size() > 1) {
 				LOGGER.info("Multiple authentication token cookies were found.");
 				setFailed(ErrorCodes.AUTHENTICATION_FAILED, "Multiple authentication token cookies were found.");
 			}
@@ -293,7 +293,7 @@ public abstract class UserRequest extends Request {
 					setFailed(ErrorCodes.AUTHENTICATION_FAILED, "The token is unknown.");
 				}
 			}
-			else {
+			else if(tokens.length > 1){
 				LOGGER.info("Multiple authentication token parameters were found.");
 				setFailed(ErrorCodes.AUTHENTICATION_FAILED, "Multiple authentication token parameters were found.");
 			}
@@ -411,7 +411,7 @@ public abstract class UserRequest extends Request {
 				}
 				// If there are multipile authentication token cookies, fail the
 				// request.
-				else {
+				else if(cookies.size() > 1){
 					LOGGER.info("Multiple authentication token cookies were found.");
 					setFailed(ErrorCodes.AUTHENTICATION_FAILED, "Multiple authentication token cookies were found.");
 				}
@@ -439,7 +439,7 @@ public abstract class UserRequest extends Request {
 						setFailed(ErrorCodes.AUTHENTICATION_FAILED, "The token is unknown.");
 					}
 				}
-				else {
+				else if(tokens.length > 1) {
 					LOGGER.info("Multiple authentication token parameters were found.");
 					setFailed(ErrorCodes.AUTHENTICATION_FAILED, "Multiple authentication token parameters were found.");
 				}

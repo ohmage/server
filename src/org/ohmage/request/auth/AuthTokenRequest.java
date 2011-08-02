@@ -39,6 +39,8 @@ import org.ohmage.request.UserRequest;
 public class AuthTokenRequest extends UserRequest {
 	private static final Logger LOGGER = Logger.getLogger(AuthTokenRequest.class);
 	
+	private static final String KEY_AUTH_TOKEN = "token";
+	
 	/**
 	 * A request for an authentication token.
 	 * 
@@ -72,6 +74,6 @@ public class AuthTokenRequest extends UserRequest {
 	 */
 	@Override
 	public void respond(HttpServletRequest httpRequest, HttpServletResponse httpResponse) {
-		respond(httpRequest, httpResponse, null);
+		respond(httpRequest, httpResponse, KEY_AUTH_TOKEN, user.getToken());
 	}
 }
