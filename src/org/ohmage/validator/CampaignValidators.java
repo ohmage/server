@@ -292,7 +292,7 @@ public final class CampaignValidators {
 		}
 		catch(IllegalArgumentException e) {
 			request.setFailed(ErrorCodes.CAMPAIGN_INVALID_OUTPUT_FORMAT, "Unknown output format: " + outputFormat);
-			throw new ValidationException("Unknown output format: " + outputFormat);
+			throw new ValidationException("Unknown output format: " + outputFormat, e);
 		}
 	}
 	

@@ -12,7 +12,7 @@ import org.springframework.jdbc.core.SingleColumnRowMapper;
  * 
  * @author John Jenkins
  */
-public class CampaignDocumentDaos extends Dao {
+public final class CampaignDocumentDaos extends Dao {
 	private static final String SQL_GET_CAMPAIGNS_ASSOCIATED_WITH_DOCUMENT =
 		"SELECT c.urn " +
 		"FROM campaign c, document d, document_campaign_role dcr " +

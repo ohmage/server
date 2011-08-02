@@ -18,7 +18,7 @@ import org.springframework.jdbc.core.SingleColumnRowMapper;
  * 
  * @author John Jenkins
  */
-public class UserDocumentDaos extends Dao {
+public final class UserDocumentDaos extends Dao {
 	// Gets the list of documents visible and specific to a user.
 	private static final String SQL_GET_DOCUMENTS_SPECIFIC_TO_REQUESTING_USER =
 		"SELECT distinct(d.uuid) " +
@@ -222,7 +222,7 @@ public class UserDocumentDaos extends Dao {
 		}
 		catch(org.springframework.dao.IncorrectResultSizeDataAccessException e) {
 			if(e.getActualSize() > 1) {
-				throw new DataAccessException("A user has more than one role with a document.");
+				throw new DataAccessException("A user has more than one role with a document.", e);
 			}
 			
 			return null;

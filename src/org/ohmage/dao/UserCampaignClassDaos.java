@@ -8,7 +8,7 @@ import javax.sql.DataSource;
  * 
  * @author John Jenkins
  */
-public class UserCampaignClassDaos extends Dao {
+public final class UserCampaignClassDaos extends Dao {
 	// Retrieves the number of ways a user is associated with a campaign via
 	// their class relationships.
 	private static final String SQL_COUNT_USER_ASSOCIATED_WITH_CAMPAIGN_THROUGH_CLASSES =

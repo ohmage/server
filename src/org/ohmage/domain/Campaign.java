@@ -262,49 +262,74 @@ public class Campaign {
 	 */
 	@Override
 	public boolean equals(Object obj) {
-		if (this == obj)
+		if (this == obj) {
 			return true;
-		if (obj == null)
+		}
+		if (obj == null) {
 			return false;
-		if (getClass() != obj.getClass())
+		}
+		if (getClass() != obj.getClass()) {
 			return false;
+		}
+		
 		Campaign other = (Campaign) obj;
+		
 		if (campaignCreationTimestamp == null) {
-			if (other.campaignCreationTimestamp != null)
+			if (other.campaignCreationTimestamp != null) {
 				return false;
-		} else if (!campaignCreationTimestamp
-				.equals(other.campaignCreationTimestamp))
+			}
+		} else if (!campaignCreationTimestamp.equals(other.campaignCreationTimestamp)) {
 			return false;
+		}
+		
 		if (description == null) {
-			if (other.description != null)
+			if (other.description != null) {
 				return false;
-		} else if (!description.equals(other.description))
+			}
+		} else if (!description.equals(other.description)) {
 			return false;
+		}
+		
 		if (name == null) {
-			if (other.name != null)
+			if (other.name != null) {
 				return false;
-		} else if (!name.equals(other.name))
+			}
+		} else if (!name.equals(other.name)) {
 			return false;
+		}
+		
 		if (privacyState == null) {
-			if (other.privacyState != null)
+			if (other.privacyState != null) {
 				return false;
-		} else if (!privacyState.equals(other.privacyState))
+			}
+		} else if (!privacyState.equals(other.privacyState)) {
 			return false;
+		}
+		
 		if (runningState == null) {
-			if (other.runningState != null)
+			if (other.runningState != null) {
 				return false;
-		} else if (!runningState.equals(other.runningState))
+			}
+		} else if (!runningState.equals(other.runningState)) {
 			return false;
+		}
+		
 		if (urn == null) {
-			if (other.urn != null)
+			if (other.urn != null) {
 				return false;
-		} else if (!urn.equals(other.urn))
+			}
+		} else if (!urn.equals(other.urn)) {
 			return false;
+		}
+		
 		if (xml == null) {
-			if (other.xml != null)
+			if (other.xml != null) {
 				return false;
-		} else if (!xml.equals(other.xml))
+			}
+		} else if (!xml.equals(other.xml)) {
 			return false;
+		}
+		
 		return true;
 	}
 

@@ -133,9 +133,9 @@ public class CampaignUpdateRequest extends UserRequest {
 				throw new ValidationException("Multiple campaign IDs were found.");
 			}
 			
-			byte[] xml = getMultipartValue(httpRequest, InputKeys.XML);
-			if(xml != null) {
-				tXml = CampaignValidators.validateXml(this, new String(xml));
+			byte[] pXml = getMultipartValue(httpRequest, InputKeys.XML);
+			if(pXml != null) {
+				tXml = CampaignValidators.validateXml(this, new String(pXml));
 			}
 			
 			tDescription = CampaignValidators.validateDescription(this, httpRequest.getParameter(InputKeys.DESCRIPTION));

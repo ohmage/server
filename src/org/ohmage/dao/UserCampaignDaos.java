@@ -17,7 +17,7 @@ import org.springframework.jdbc.core.SingleColumnRowMapper;
  * 
  * @author John Jenkins
  */
-public class UserCampaignDaos extends Dao {
+public final class UserCampaignDaos extends Dao {
 	// Retrieves whether or not a user has any role in a campaign.
 	private static final String SQL_EXISTS_USER_CAMPAIGN =
 		"SELECT EXISTS(" +

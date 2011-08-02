@@ -20,7 +20,7 @@ import org.springframework.jdbc.core.SingleColumnRowMapper;
  * 
  * @author John Jenkins
  */
-public class UserClassDaos extends Dao {
+public final class UserClassDaos extends Dao {
 	private static final Logger LOGGER = Logger.getLogger(UserClassDaos.class);
 	
 	// Returns a boolean representing whether or not a user is associated with

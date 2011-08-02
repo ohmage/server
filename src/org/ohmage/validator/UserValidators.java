@@ -516,7 +516,7 @@ public final class UserValidators {
 		}
 		catch(JSONException e) {
 			request.setFailed(ErrorCodes.USER_INVALID_JSON_DATA, "The user's JSON data object is not a valid JSONObject: " + value);
-			throw new ValidationException("The user's JSON data object is not a valid JSONObject: " + value);
+			throw new ValidationException("The user's JSON data object is not a valid JSONObject: " + value, e);
 		}
 	}
 }

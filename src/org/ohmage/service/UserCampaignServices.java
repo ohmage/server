@@ -680,7 +680,7 @@ public class UserCampaignServices {
 				// timestamp object and be responsible for doing things like 
 				// this itself.
 				String creationTimestampString = creationTimestamp.toString();
-				String creationTimestampWithoutMillis = creationTimestampString.substring(0, creationTimestampString.indexOf("."));
+				String creationTimestampWithoutMillis = creationTimestampString.substring(0, creationTimestampString.indexOf('.'));
 				campaign.setCampaignCreationTimestamp(creationTimestampWithoutMillis);
 				
 				// If we are supposed to get the extra information as well.

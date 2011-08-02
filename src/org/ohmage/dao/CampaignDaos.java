@@ -12,7 +12,6 @@ import javax.sql.DataSource;
 
 import org.ohmage.cache.CampaignRoleCache;
 import org.ohmage.cache.ClassRoleCache;
-import org.ohmage.service.ServiceException;
 import org.springframework.jdbc.core.SingleColumnRowMapper;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.transaction.PlatformTransactionManager;
@@ -30,7 +29,7 @@ import org.springframework.transaction.support.DefaultTransactionDefinition;
  * 
  * @author John Jenkins
  */
-public class CampaignDaos extends Dao {
+public final class CampaignDaos extends Dao {
 	// Returns a boolean value of whether or not the campaign exists.
 	private static final String SQL_EXISTS_CAMPAIGN = 
 		"SELECT EXISTS(" +
@@ -398,7 +397,7 @@ public class CampaignDaos extends Dao {
 		}
 		catch(org.springframework.dao.IncorrectResultSizeDataAccessException e) {
 			if(e.getActualSize() > 1) {
-				throw new DataAccessException("Multiple campaigns have the same unique identifier.");
+				throw new DataAccessException("Multiple campaigns have the same unique identifier.", e);
 			}
 
 			return null;
@@ -422,7 +421,7 @@ public class CampaignDaos extends Dao {
 		}
 		catch(org.springframework.dao.IncorrectResultSizeDataAccessException e) {
 			if(e.getActualSize() > 1) {
-				throw new DataAccessException("Multiple campaigns have the same unique identifier.");
+				throw new DataAccessException("Multiple campaigns have the same unique identifier.", e);
 			}
 
 			return null;
@@ -446,7 +445,7 @@ public class CampaignDaos extends Dao {
 		}
 		catch(org.springframework.dao.IncorrectResultSizeDataAccessException e) {
 			if(e.getActualSize() > 1) {
-				throw new DataAccessException("Multiple campaigns have the same unique identifier.");
+				throw new DataAccessException("Multiple campaigns have the same unique identifier.", e);
 			}
 
 			return null;
@@ -470,7 +469,7 @@ public class CampaignDaos extends Dao {
 		}
 		catch(org.springframework.dao.IncorrectResultSizeDataAccessException e) {
 			if(e.getActualSize() > 1) {
-				throw new DataAccessException("Multiple campaigns have the same unique identifier.");
+				throw new DataAccessException("Multiple campaigns have the same unique identifier.", e);
 			}
 
 			return null;
@@ -494,7 +493,7 @@ public class CampaignDaos extends Dao {
 		}
 		catch(org.springframework.dao.IncorrectResultSizeDataAccessException e) {
 			if(e.getActualSize() > 1) {
-				throw new DataAccessException("Multiple campaigns have the same unique identifier.");
+				throw new DataAccessException("Multiple campaigns have the same unique identifier.", e);
 			}
 
 			return null;
@@ -518,7 +517,7 @@ public class CampaignDaos extends Dao {
 		}
 		catch(org.springframework.dao.IncorrectResultSizeDataAccessException e) {
 			if(e.getActualSize() > 1) {
-				throw new DataAccessException("Multiple campaigns have the same unique identifier.");
+				throw new DataAccessException("Multiple campaigns have the same unique identifier.", e);
 			}
 
 			return null;
@@ -649,8 +648,6 @@ public class CampaignDaos extends Dao {
 	 * 								should be revoked from the user in the
 	 * 								campaign or null if no users should have 
 	 * 								any of their roles revoked.
-	 * 
-	 * @throws ServiceException Thrown if there is an error.
 	 */
 	public static void updateCampaign(String campaignId, String xml, String description, String runningState, String privacyState, 
 			Collection<String> classIds, Map<String, Set<String>> usersAndRolesToAdd, Map<String, Set<String>> usersAndRolesToRemove) {

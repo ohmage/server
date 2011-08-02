@@ -219,16 +219,18 @@ public class UserDaos extends Dao {
 	 * 									to create campaigns.
 	 */
 	public static void createUser(String username, String hashedPassword, Boolean admin, Boolean enabled, Boolean newAccount, Boolean campaignCreationPrivilege) {
-		if(newAccount == null) {
-			newAccount = new Boolean("true");
+		Boolean tNewAccount = newAccount;
+		if(tNewAccount == null) {
+			tNewAccount = Boolean.TRUE;
 		}
 		
-		if(campaignCreationPrivilege == null) {
+		Boolean tCampaignCreationPrivilege = campaignCreationPrivilege;
+		if(tCampaignCreationPrivilege == null) {
 			try {
-				campaignCreationPrivilege = PreferenceCache.instance().lookup(PreferenceCache.KEY_DEFAULT_CAN_CREATE_PRIVILIEGE).equals("true");
+				tCampaignCreationPrivilege = PreferenceCache.instance().lookup(PreferenceCache.KEY_DEFAULT_CAN_CREATE_PRIVILIEGE).equals("true");
 			}
-			catch(CacheMissException cacheMissException) {
-				throw new DataAccessException("Cache doesn't know about 'known' value: " + PreferenceCache.KEY_DEFAULT_CAN_CREATE_PRIVILIEGE);
+			catch(CacheMissException e) {
+				throw new DataAccessException("Cache doesn't know about 'known' value: " + PreferenceCache.KEY_DEFAULT_CAN_CREATE_PRIVILIEGE, e);
 			}
 		}
 		
@@ -243,12 +245,12 @@ public class UserDaos extends Dao {
 			
 			// Insert the new user.
 			try {
-				instance.jdbcTemplate.update(SQL_INSERT_USER, new Object[] { username, hashedPassword, admin, enabled, newAccount, campaignCreationPrivilege });
+				instance.jdbcTemplate.update(SQL_INSERT_USER, new Object[] { username, hashedPassword, admin, enabled, tNewAccount, tCampaignCreationPrivilege });
 			}
 			catch(org.springframework.dao.DataAccessException e) {
 				transactionManager.rollback(status);
 				throw new DataAccessException("Error while executing SQL '" + SQL_INSERT_USER + "' with parameters: " +
-						username + ", " + hashedPassword + ", " + admin + ", " + enabled + ", " + newAccount + ", " + campaignCreationPrivilege, e);
+						username + ", " + hashedPassword + ", " + admin + ", " + enabled + ", " + tNewAccount + ", " + tCampaignCreationPrivilege, e);
 			}
 			
 			// Commit the transaction.
@@ -261,7 +263,7 @@ public class UserDaos extends Dao {
 			}
 		}
 		catch(TransactionException e) {
-			throw new DataAccessException("Error while attempting to rollback the transaction.");
+			throw new DataAccessException("Error while attempting to rollback the transaction.", e);
 		}
 	}
 	
@@ -391,7 +393,7 @@ public class UserDaos extends Dao {
 		}
 		catch(org.springframework.dao.IncorrectResultSizeDataAccessException e) {
 			if(e.getActualSize() > 1) {
-				throw new DataAccessException("There are multiple users with the same username.");
+				throw new DataAccessException("There are multiple users with the same username.", e);
 			}
 			
 			return null;
@@ -620,7 +622,7 @@ public class UserDaos extends Dao {
 			}
 		}
 		catch(TransactionException e) {
-			throw new DataAccessException("Error while attempting to rollback the transaction.");
+			throw new DataAccessException("Error while attempting to rollback the transaction.", e);
 		}
 	}
 	
@@ -661,7 +663,7 @@ public class UserDaos extends Dao {
 			}
 		}
 		catch(TransactionException e) {
-			throw new DataAccessException("Error while attempting to rollback the transaction.");
+			throw new DataAccessException("Error while attempting to rollback the transaction.", e);
 		}
 	}
 	
@@ -702,7 +704,7 @@ public class UserDaos extends Dao {
 			}
 		}
 		catch(TransactionException e) {
-			throw new DataAccessException("Error while attempting to rollback the transaction.");
+			throw new DataAccessException("Error while attempting to rollback the transaction.", e);
 		}
 	}
 }

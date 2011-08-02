@@ -178,14 +178,14 @@
     <copy file="${dist}/${ant.project.name}-${app_version}.war" todir="${component.repository}/."/>
   </target>
   
-   <target name="sonar">
-     <sonar:sonar workDir="${user.home}/tmp" key="org.ohmage:example" version="2.5" xmlns:sonar="antlib:org.sonar.ant">
-       <sources>
-         <path location="${src}" />
-       </sources>
-       <property key="sonar.java.source" value="1.6" />
-       <property key="sonar.java.target" value="1.6" />
-     </sonar:sonar>
-   </target>
+  <target name="sonar">
+    <sonar:sonar workDir="${user.home}/tmp" key="org.ohmage:example" version="2.5" xmlns:sonar="antlib:org.sonar.ant">
+      <sources>
+        <path location="${src}" />
+      </sources>
+      <property key="sonar.java.source" value="1.6" />
+      <property key="sonar.java.target" value="1.6" />
+    </sonar:sonar>
+  </target>
   
 </project>

@@ -263,7 +263,7 @@ public final class ClassValidators {
 		// Excel (and most of Microsoft) saves newlines as carriage returns 
 		// instead of newlines, so we substitute those here as we only deal 
 		// with newlines.
-		rosterString.replace('\r', '\n');
+		rosterString = rosterString.replace('\r', '\n');
 		
 		Map<String, Map<String, String>> result = new HashMap<String, Map<String, String>>();
 		

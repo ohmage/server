@@ -89,13 +89,13 @@ public class CampaignCreationRequest extends UserRequest {
 		List<String> tClassIds = null;
 		
 		try {
-			byte[] xml = getMultipartValue(httpRequest, InputKeys.XML);
-			if(xml == null) {
+			byte[] pXml = getMultipartValue(httpRequest, InputKeys.XML);
+			if(pXml == null) {
 				setFailed(ErrorCodes.CAMPAIGN_INVALID_XML, "Missing required campaign XML: " + InputKeys.XML);
 				throw new ValidationException("Missing required campaign XML.");
 			}
 			else {
-				tXml = CampaignValidators.validateXml(this, new String(xml));
+				tXml = CampaignValidators.validateXml(this, new String(pXml));
 			}
 			if(tXml == null) {
 				setFailed(ErrorCodes.CAMPAIGN_INVALID_XML, "Missing required campaign XML.");

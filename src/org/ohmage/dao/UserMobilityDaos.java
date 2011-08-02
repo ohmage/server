@@ -24,7 +24,9 @@ import org.springframework.jdbc.core.RowMapper;
  * 
  * @author John Jenkins
  */
-public class UserMobilityDaos extends Dao {
+public final class UserMobilityDaos extends Dao {
+	private static final int HOURS_IN_A_DAY = 24;
+	
 	// Retrieves all of the information about all of the mode-only Mobility 
 	// points that are visible to a requester about a user.
 	// Note: This query is slow (~50 ms for 1000 records) and large. However,
@@ -339,7 +341,7 @@ public class UserMobilityDaos extends Dao {
 		try {
 			// Get a time stamp from 24 hours ago.
 			Calendar dayAgo = Calendar.getInstance();
-			dayAgo.add(Calendar.HOUR_OF_DAY, -24);
+			dayAgo.add(Calendar.HOUR_OF_DAY, -HOURS_IN_A_DAY);
 			final Timestamp dayAgoTimestamp = new Timestamp(dayAgo.getTimeInMillis());
 			
 			final List<String> nonNullLocations = new LinkedList<String>();

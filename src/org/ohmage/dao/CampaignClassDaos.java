@@ -12,7 +12,7 @@ import org.springframework.jdbc.core.SingleColumnRowMapper;
  * 
  * @author John Jenkins
  */
-public class CampaignClassDaos extends Dao {
+public final class CampaignClassDaos extends Dao {
 	// Retrieves the IDs for all of the campaigns associated with a class.
 	private static final String SQL_GET_CAMPAIGNS_ASSOCIATED_WITH_CLASS =
 		"SELECT ca.urn " +
