@@ -109,7 +109,7 @@ public class CampaignUpdateRequest extends UserRequest {
 	 * 					  this request.
 	 */
 	public CampaignUpdateRequest(HttpServletRequest httpRequest) {
-		super(getToken(httpRequest), httpRequest.getParameter(InputKeys.CLIENT));
+		super(httpRequest, TokenLocation.PARAMETER);
 		
 		LOGGER.info("Creating a campaign update request.");
 		
@@ -128,6 +128,10 @@ public class CampaignUpdateRequest extends UserRequest {
 				setFailed(ErrorCodes.CAMPAIGN_INVALID_ID, "The campaign ID is required: " + InputKeys.CAMPAIGN_URN);
 				throw new ValidationException("The campaign ID is required: " + InputKeys.CAMPAIGN_URN);
 			}
+			else if(httpRequest.getParameterValues(InputKeys.CAMPAIGN_URN).length > 1) {
+				setFailed(ErrorCodes.CAMPAIGN_INVALID_ID, "Multiple campaign IDs were found.");
+				throw new ValidationException("Multiple campaign IDs were found.");
+			}
 			
 			byte[] xml = getMultipartValue(httpRequest, InputKeys.XML);
 			if(xml != null) {
@@ -135,9 +139,22 @@ public class CampaignUpdateRequest extends UserRequest {
 			}
 			
 			tDescription = CampaignValidators.validateDescription(this, httpRequest.getParameter(InputKeys.DESCRIPTION));
+			if((tDescription != null) && (httpRequest.getParameterValues(InputKeys.DESCRIPTION).length > 1)) {
+				setFailed(ErrorCodes.CLASS_INVALID_DESCRIPTION, "Multiple descriptions were found.");
+				throw new ValidationException("Multiple descriptions were found.");
+			}
 			
 			tRunningState = CampaignValidators.validateRunningState(this, httpRequest.getParameter(InputKeys.RUNNING_STATE));
+			if((tRunningState != null) && (httpRequest.getParameterValues(InputKeys.RUNNING_STATE).length > 1)) {
+				setFailed(ErrorCodes.CAMPAIGN_INVALID_RUNNING_STATE, "Multiple running states were found.");
+				throw new ValidationException("Multiple running states were found.");
+			}
+			
 			tPrivacyState = CampaignValidators.validatePrivacyState(this, httpRequest.getParameter(InputKeys.PRIVACY_STATE));
+			if((tPrivacyState != null) && (httpRequest.getParameterValues(InputKeys.PRIVACY_STATE).length > 1)) {
+				setFailed(ErrorCodes.CAMPAIGN_INVALID_PRIVACY_STATE, "Multiple privacy states were found.");
+				throw new ValidationException("Multiple privacy states were found.");
+			}
 
 			// TODO: We cannot allow a campaign to not have any classes  
 			// associated with it. Because this will return null if the class
@@ -148,9 +165,22 @@ public class CampaignUpdateRequest extends UserRequest {
 			// check to ensure that we are not disassociating all classes 
 			// without associating any new ones.
 			tClassIds = ClassValidators.validateClassIdList(this, httpRequest.getParameter(InputKeys.CLASS_URN_LIST));
+			if((tClassIds != null) && (httpRequest.getParameterValues(InputKeys.CLASS_URN_LIST).length > 1)) {
+				setFailed(ErrorCodes.CLASS_INVALID_ID, "Multiple class ID lists were found.");
+				throw new ValidationException("Multiple class ID lists were found.");
+			}
 			
-			tUsersAndRolesToAdd = UserCampaignValidators.validateUserAndClassRole(this, httpRequest.getParameter(InputKeys.USER_ROLE_LIST_ADD));
-			tUsersAndRolesToRemove = UserCampaignValidators.validateUserAndClassRole(this, httpRequest.getParameter(InputKeys.USER_ROLE_LIST_REMOVE));
+			tUsersAndRolesToAdd = UserCampaignValidators.validateUserAndCampaignRole(this, httpRequest.getParameter(InputKeys.USER_ROLE_LIST_ADD));
+			if((tUsersAndRolesToAdd != null) && (httpRequest.getParameterValues(InputKeys.USER_ROLE_LIST_ADD).length > 1)) {
+				setFailed(ErrorCodes.CAMPAIGN_INVALID_ROLE, "Multiple username, campaign role add lists were found.");
+				throw new ValidationException("Multiple username, campaign role lists were found.");
+			}
+			
+			tUsersAndRolesToRemove = UserCampaignValidators.validateUserAndCampaignRole(this, httpRequest.getParameter(InputKeys.USER_ROLE_LIST_REMOVE));
+			if((tUsersAndRolesToRemove != null) && (httpRequest.getParameterValues(InputKeys.USER_ROLE_LIST_REMOVE).length > 1)) {
+				setFailed(ErrorCodes.CAMPAIGN_INVALID_ROLE, "Multiple username, campaign role remove lists were found.");
+				throw new ValidationException("Multiple username, campaign role remove lists were found.");
+			}
 		}
 		catch(ValidationException e) {
 			LOGGER.info(e.toString());

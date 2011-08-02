@@ -41,7 +41,7 @@ public class CampaignDeletionRequest extends UserRequest {
 	private final String campaignId;
 	
 	public CampaignDeletionRequest(HttpServletRequest httpRequest) {
-		super(getToken(httpRequest), httpRequest.getParameter(InputKeys.CLIENT));
+		super(httpRequest, TokenLocation.PARAMETER);
 		
 		LOGGER.info("Creating a campaign deletion request.");
 		
@@ -52,6 +52,10 @@ public class CampaignDeletionRequest extends UserRequest {
 			if(tCampaignId == null) {
 				setFailed(ErrorCodes.CAMPAIGN_INVALID_ID, "A campaign identifier is required: " + InputKeys.CAMPAIGN_URN);
 				throw new ValidationException("A campaign identifier is required: " + InputKeys.CAMPAIGN_URN);
+			}
+			else if(httpRequest.getParameterValues(InputKeys.CAMPAIGN_URN).length > 1) {
+				setFailed(ErrorCodes.CAMPAIGN_INVALID_ID, "Multiple campaign IDs were found.");
+				throw new ValidationException("Multiple campaign IDs were found.");
 			}
 		}
 		catch(ValidationException e) {

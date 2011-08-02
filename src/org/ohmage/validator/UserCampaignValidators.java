@@ -49,7 +49,7 @@ public class UserCampaignValidators {
 	 * 							   pairs are invalid, or either the username or
 	 * 							   class role are invalid.
 	 */
-	public static Map<String, Set<String>> validateUserAndClassRole(Request request, String userAndCampaignRoleList) throws ValidationException {
+	public static Map<String, Set<String>> validateUserAndCampaignRole(Request request, String userAndCampaignRoleList) throws ValidationException {
 		LOGGER.info("Validating a list of user and class role pairs.");
 		
 		// If it's null or empty, return null.

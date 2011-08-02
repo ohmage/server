@@ -10,6 +10,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.log4j.Logger;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.ohmage.annotator.ErrorCodes;
 import org.ohmage.cache.ClassRoleCache;
 import org.ohmage.domain.UserPersonal;
 import org.ohmage.request.InputKeys;
@@ -68,7 +69,7 @@ public class UserReadRequest extends UserRequest {
 	 * @param httpRequest The HttpServletRequest with the required parameters.
 	 */
 	public UserReadRequest(HttpServletRequest httpRequest) {
-		super(getToken(httpRequest), httpRequest.getParameter(InputKeys.CLIENT));
+		super(httpRequest, TokenLocation.EITHER);
 		
 		LOGGER.info("Creating a user read request.");
 		
@@ -77,7 +78,16 @@ public class UserReadRequest extends UserRequest {
 		
 		try {
 			tCampaignIds = CampaignValidators.validateCampaignIds(this, httpRequest.getParameter(InputKeys.CAMPAIGN_URN_LIST));
+			if((tCampaignIds != null) && (httpRequest.getParameterValues(InputKeys.CAMPAIGN_URN_LIST).length > 1)) {
+				setFailed(ErrorCodes.CAMPAIGN_INVALID_ID, "Multiple campaign ID list parameters were found.");
+				throw new ValidationException("Multiple campaign ID list parameters were found.");
+			}
+			
 			tClassIds = ClassValidators.validateClassIdList(this, httpRequest.getParameter(InputKeys.CLASS_URN_LIST));
+			if((tClassIds != null) && (httpRequest.getParameterValues(InputKeys.CLASS_URN_LIST).length > 1)) {
+				setFailed(ErrorCodes.CLASS_INVALID_ID, "Multiple class ID list parameters were found.");
+				throw new ValidationException("Multiple class ID list parameters were found.");
+			}
 		}
 		catch(ValidationException e) {
 			LOGGER.info(e.toString());

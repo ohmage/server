@@ -4,6 +4,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.log4j.Logger;
+import org.ohmage.annotator.ErrorCodes;
 import org.ohmage.request.InputKeys;
 import org.ohmage.request.UserRequest;
 import org.ohmage.service.ServiceException;
@@ -47,7 +48,7 @@ public class UserChangePasswordRequest extends UserRequest {
 	 * 					  this request.
 	 */
 	public UserChangePasswordRequest(HttpServletRequest httpRequest) {
-		super(httpRequest.getParameter(InputKeys.USERNAME), httpRequest.getParameter(InputKeys.PASSWORD), true, httpRequest.getParameter(InputKeys.CLIENT));
+		super(httpRequest, true);
 		
 		LOGGER.info("Creating a user change password request.");
 		
@@ -55,6 +56,14 @@ public class UserChangePasswordRequest extends UserRequest {
 		
 		try {
 			tNewPassword = UserValidators.validatePlaintextPassword(this, httpRequest.getParameter(InputKeys.NEW_PASSWORD));
+			if(tNewPassword == null) {
+				setFailed(ErrorCodes.USER_INVALID_PASSWORD, "The new password is missing: " + InputKeys.NEW_PASSWORD);
+				throw new ValidationException("The new password is missing: " + InputKeys.NEW_PASSWORD);
+			}
+			else if(httpRequest.getParameterValues(InputKeys.NEW_PASSWORD).length > 1) {
+				setFailed(ErrorCodes.USER_INVALID_PASSWORD, "Multiple new password parameters were given.");
+				throw new ValidationException("Multiple new password parameters were given.");
+			}
 		}
 		catch(ValidationException e) {
 			LOGGER.info(e.toString());

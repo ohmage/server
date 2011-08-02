@@ -113,7 +113,12 @@ public final class CampaignValidators {
 			}
 		}
 		
-		return new ArrayList<String>(resultSet);
+		if(resultSet.size() == 0) {
+			return null;
+		}
+		else {
+			return new ArrayList<String>(resultSet);
+		}
 	}
 	
 	/**

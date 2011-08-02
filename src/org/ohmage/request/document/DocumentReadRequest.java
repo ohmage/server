@@ -83,7 +83,7 @@ public class DocumentReadRequest extends UserRequest {
 	 * 					  request.
 	 */
 	public DocumentReadRequest(HttpServletRequest httpRequest) {
-		super(getToken(httpRequest), httpRequest.getParameter(InputKeys.CLIENT));
+		super(httpRequest, TokenLocation.EITHER);
 		
 		LOGGER.info("Creating a document read request.");
 		
@@ -97,9 +97,22 @@ public class DocumentReadRequest extends UserRequest {
 				setFailed(ErrorCodes.DOCUMENT_INVALID_PERSONAL_DOCUMENTS_VALUE, "Missing required key: " + InputKeys.DOCUMENT_PERSONAL_DOCUMENTS);
 				throw new ValidationException("Missing required key: " + InputKeys.DOCUMENT_PERSONAL_DOCUMENTS);
 			}
+			else if(httpRequest.getParameterValues(InputKeys.DOCUMENT_PERSONAL_DOCUMENTS).length > 1) {
+				setFailed(ErrorCodes.DOCUMENT_INVALID_PERSONAL_DOCUMENTS_VALUE, "Multiple personal documents parameters were given.");
+				throw new ValidationException("Multiple personal documents parameters were given.");
+			}
 			
 			tempCampaignIds = CampaignValidators.validateCampaignIds(this, httpRequest.getParameter(InputKeys.CAMPAIGN_URN_LIST));
+			if((tempCampaignIds != null) && (httpRequest.getParameterValues(InputKeys.CAMPAIGN_URN_LIST).length > 1)) {
+				setFailed(ErrorCodes.CAMPAIGN_INVALID_ID, "Multiple campaign ID lists were given.");
+				throw new ValidationException("Multiple campaign ID lists were given.");
+			}
+			
 			tempClassIds = ClassValidators.validateClassIdList(this, httpRequest.getParameter(InputKeys.CLASS_URN_LIST));
+			if((tempClassIds != null) && (httpRequest.getParameterValues(InputKeys.CLASS_URN_LIST).length > 1)) {
+				setFailed(ErrorCodes.CLASS_INVALID_ID, "Multiple class ID lists were given.");
+				throw new ValidationException("Multiple class ID lists were given.");
+			}
 		}
 		catch(ValidationException e) {
 			LOGGER.info(e.toString());

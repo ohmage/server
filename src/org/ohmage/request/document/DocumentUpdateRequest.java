@@ -150,7 +150,7 @@ public class DocumentUpdateRequest extends UserRequest {
 	 * 					  information.
 	 */
 	public DocumentUpdateRequest(HttpServletRequest httpRequest) {
-		super(getToken(httpRequest), httpRequest.getParameter(InputKeys.CLIENT));
+		super(httpRequest, TokenLocation.PARAMETER);
 		
 		String tDocumentId = null;
 		
@@ -175,20 +175,66 @@ public class DocumentUpdateRequest extends UserRequest {
 				setFailed(ErrorCodes.DOCUMENT_INVALID_ID, "The required document ID is missing.");
 				throw new ValidationException("The required document ID is missing.");
 			}
+			else if(httpRequest.getParameterValues(InputKeys.DOCUMENT_ID).length > 1) {
+				setFailed(ErrorCodes.DOCUMENT_INVALID_ID, "Multiple document ID parameters were given.");
+				throw new ValidationException("Multiple document ID parameters were given.");
+			}
 			
 			tNewContents = getMultipartValue(httpRequest, InputKeys.DOCUMENT);
+			
 			tNewName = DocumentValidators.validateName(this, httpRequest.getParameter(InputKeys.DOCUMENT_NAME));
+			if((tNewName != null) && (httpRequest.getParameterValues(InputKeys.DOCUMENT_NAME).length > 1)) {
+				setFailed(ErrorCodes.DOCUMENT_INVALID_NAME, "Mutiple document name parameters were given.");
+				throw new ValidationException("Mutiple document name parameters were given.");
+			}
+			
 			tNewDescription = DocumentValidators.validateDescription(this, httpRequest.getParameter(InputKeys.DESCRIPTION));
+			if((tNewDescription != null) && (httpRequest.getParameterValues(InputKeys.DESCRIPTION).length > 1)) {
+				setFailed(ErrorCodes.DOCUMENT_INVALID_DESCRIPTION, "Mutiple description parameters were given.");
+				throw new ValidationException("Mutiple description parameters were given.");
+			}
+			
 			tNewPrivacyState = DocumentValidators.validatePrivacyState(this, httpRequest.getParameter(InputKeys.PRIVACY_STATE));
+			if((tNewPrivacyState != null) && (httpRequest.getParameterValues(InputKeys.PRIVACY_STATE).length > 1)) {
+				setFailed(ErrorCodes.DOCUMENT_INVALID_PRIVACY_STATE, "Mutiple privacy state parameters were given.");
+				throw new ValidationException("Mutiple privacy state parameters were given.");
+			}
 			
 			tCampaignAndRolesToAdd = CampaignDocumentValidators.validateCampaignIdAndDocumentRoleList(this, httpRequest.getParameter(InputKeys.CAMPAIGN_ROLE_LIST_ADD));
+			if((tCampaignAndRolesToAdd != null) && (httpRequest.getParameterValues(InputKeys.CAMPAIGN_ROLE_LIST_ADD).length > 1)) {
+				setFailed(ErrorCodes.CAMPAIGN_INVALID_ID, "Mutiple campaign ID, document role list parameters were given.");
+				throw new ValidationException("Mutiple campaign ID, document role list parameters were given.");
+			}
+			
 			tCampaignsToRemove = CampaignValidators.validateCampaignIds(this, httpRequest.getParameter(InputKeys.CAMPAIGN_LIST_REMOVE));
+			if((tCampaignsToRemove != null) && (httpRequest.getParameterValues(InputKeys.CAMPAIGN_LIST_REMOVE).length > 1)) {
+				setFailed(ErrorCodes.CAMPAIGN_INVALID_ID, "Mutiple campaign ID list parameters were given.");
+				throw new ValidationException("Mutiple campaign ID list parameters were given.");
+			}
 			
 			tClassAndRolesToAdd = ClassDocumentValidators.validateClassIdAndDocumentRoleList(this, httpRequest.getParameter(InputKeys.CLASS_ROLE_LIST_ADD));
+			if((tClassAndRolesToAdd != null) && (httpRequest.getParameterValues(InputKeys.CLASS_ROLE_LIST_ADD).length > 1)) {
+				setFailed(ErrorCodes.CLASS_INVALID_ID, "Mutiple class ID, document role list parameters were given.");
+				throw new ValidationException("Mutiple class ID, document role list parameters were given.");
+			}
+			
 			tClassesToRemove = ClassValidators.validateClassIdList(this, httpRequest.getParameter(InputKeys.CLASS_LIST_REMOVE));
+			if((tClassesToRemove != null) && (httpRequest.getParameterValues(InputKeys.CLASS_LIST_REMOVE).length > 1)) {
+				setFailed(ErrorCodes.CLASS_INVALID_ID, "Mutiple class ID list parameters were given.");
+				throw new ValidationException("Mutiple class ID list parameters were given.");
+			}
 			
 			tUserAndRolesToAdd = UserDocumentValidators.validateUsernameAndDocumentRoleList(this, httpRequest.getParameter(InputKeys.USER_ROLE_LIST_ADD));
+			if((tUserAndRolesToAdd != null) && (httpRequest.getParameterValues(InputKeys.USER_ROLE_LIST_ADD).length > 1)) {
+				setFailed(ErrorCodes.USER_INVALID_USERNAME, "Mutiple username, document role list parameters were given.");
+				throw new ValidationException("Mutiple username, document role list parameters were given.");
+			}
+			
 			tUsersToRemove = UserValidators.validateUsernames(this, httpRequest.getParameter(InputKeys.USER_LIST_REMOVE));
+			if((tUsersToRemove != null) && (httpRequest.getParameterValues(InputKeys.USER_LIST_REMOVE).length > 1)) {
+				setFailed(ErrorCodes.USER_INVALID_USERNAME, "Mutiple username list parameters were given.");
+				throw new ValidationException("Mutiple username list parameters were given.");
+			}
 		}
 		catch(ValidationException e) {
 			LOGGER.info(e.toString());

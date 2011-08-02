@@ -78,8 +78,7 @@ public class UserStatsReadRequest extends UserRequest {
 	 * 					  request.
 	 */
 	public UserStatsReadRequest(HttpServletRequest httpRequest) {
-		super(httpRequest.getParameter(InputKeys.USER), httpRequest.getParameter(InputKeys.PASSWORD), false,
-				getToken(httpRequest), httpRequest.getParameter(InputKeys.CLIENT));
+		super(httpRequest, TokenLocation.EITHER, false);
 		
 		LOGGER.info("Creating a user stats read request.");
 		
@@ -92,11 +91,19 @@ public class UserStatsReadRequest extends UserRequest {
 				setFailed(ErrorCodes.CAMPAIGN_INVALID_ID, "Missing the required campaign ID: " + InputKeys.CAMPAIGN_URN);
 				throw new ValidationException("Missing the required campaign ID: " + InputKeys.CAMPAIGN_URN);
 			}
+			else if(httpRequest.getParameterValues(InputKeys.CAMPAIGN_URN).length > 1) {
+				setFailed(ErrorCodes.CAMPAIGN_INVALID_ID, "Multiple campaign ID parameters were given.");
+				throw new ValidationException("Multiple campaign ID parameters were given.");
+			}
 			
 			tUsername = UserValidators.validateUsername(this, httpRequest.getParameter(InputKeys.USERNAME));
 			if(tUsername == null) {
 				setFailed(ErrorCodes.USER_INVALID_USERNAME, "Missing the required username: " + InputKeys.USERNAME);
 				throw new ValidationException("Missing the required username: " + InputKeys.USERNAME);
+			}
+			else if(httpRequest.getParameterValues(InputKeys.USERNAME).length > 1) {
+				setFailed(ErrorCodes.USER_INVALID_USERNAME, "Multiple username parameters were given.");
+				throw new ValidationException("Multiple username parameters were given.");
 			}
 		}
 		catch(ValidationException e) {

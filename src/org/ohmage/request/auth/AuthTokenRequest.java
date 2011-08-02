@@ -5,7 +5,6 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.log4j.Logger;
 import org.ohmage.cache.UserBin;
-import org.ohmage.request.InputKeys;
 import org.ohmage.request.UserRequest;
 
 /**
@@ -46,7 +45,7 @@ public class AuthTokenRequest extends UserRequest {
 	 * @param httpRequest The HTTP request containing the parameters.
 	 */
 	public AuthTokenRequest(HttpServletRequest httpRequest) {
-		super(httpRequest.getParameter(InputKeys.USER), httpRequest.getParameter(InputKeys.PASSWORD), true, httpRequest.getParameter(InputKeys.CLIENT));
+		super(httpRequest, true);
 		
 		LOGGER.info("Building an authentication token request.");
 	}

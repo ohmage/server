@@ -64,7 +64,7 @@ public class DocumentReadContentsRequest extends UserRequest {
 	 * 					  to build this request.
 	 */
 	public DocumentReadContentsRequest(HttpServletRequest httpRequest) {
-		super(getToken(httpRequest), httpRequest.getParameter(InputKeys.CLIENT));
+		super(httpRequest, TokenLocation.EITHER);
 		
 		String tempDocumentId = null;
 		
@@ -73,6 +73,10 @@ public class DocumentReadContentsRequest extends UserRequest {
 			if(tempDocumentId == null) {
 				setFailed(ErrorCodes.DOCUMENT_INVALID_ID, "The document ID is missing.");
 				throw new ValidationException("The document ID is missing.");
+			}
+			else if(httpRequest.getParameterValues(InputKeys.DOCUMENT_ID).length > 1) {
+				setFailed(ErrorCodes.DOCUMENT_INVALID_ID, "Multiple document IDs were given.");
+				throw new ValidationException("Multiple document IDs were given.");
 			}
 		}
 		catch(ValidationException e) {

@@ -4,7 +4,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.log4j.Logger;
-import org.ohmage.request.InputKeys;
 import org.ohmage.request.UserRequest;
 
 /**
@@ -49,7 +48,7 @@ public class AuthRequest extends UserRequest {
 	 * 					  this request.
 	 */
 	public AuthRequest(HttpServletRequest httpRequest) {
-		super(httpRequest.getParameter(InputKeys.USER), httpRequest.getParameter(InputKeys.PASSWORD), true, httpRequest.getParameter(InputKeys.CLIENT));
+		super(httpRequest, true);
 		
 		LOGGER.info("Building an username / password authentication request.");
 	}

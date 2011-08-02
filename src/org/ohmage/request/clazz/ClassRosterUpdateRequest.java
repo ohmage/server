@@ -74,7 +74,7 @@ public class ClassRosterUpdateRequest extends UserRequest {
 	 * 					  this request. 
 	 */
 	public ClassRosterUpdateRequest(HttpServletRequest httpRequest) {
-		super(getToken(httpRequest), httpRequest.getParameter(InputKeys.CLIENT));
+		super(httpRequest, TokenLocation.PARAMETER);
 		
 		LOGGER.info("Create a class roster update request.");
 		

@@ -15,7 +15,6 @@ import org.ohmage.request.UserRequest;
 import org.ohmage.service.ClassServices;
 import org.ohmage.service.ServiceException;
 import org.ohmage.service.UserClassServices;
-import org.ohmage.util.CookieUtils;
 import org.ohmage.validator.ClassValidators;
 import org.ohmage.validator.ValidationException;
 
@@ -57,7 +56,7 @@ public class ClassReadRequest extends UserRequest {
 	 * 					  parameters to and metadata for this request.
 	 */
 	public ClassReadRequest(HttpServletRequest httpRequest) {
-		super(CookieUtils.getCookieValue(httpRequest.getCookies(), InputKeys.AUTH_TOKEN), httpRequest.getParameter(InputKeys.CLIENT));
+		super(httpRequest, TokenLocation.EITHER);
 		
 		List<String> tempClassIds = null;
 		
@@ -67,8 +66,12 @@ public class ClassReadRequest extends UserRequest {
 			try {
 				tempClassIds = ClassValidators.validateClassIdList(this, httpRequest.getParameter(InputKeys.CLASS_URN_LIST));
 				if(tempClassIds == null) {
-					setFailed(ErrorCodes.CLASS_INVALID_ID, "Missing required class URN list.");
-					throw new ValidationException("Missing required class URN list.");
+					setFailed(ErrorCodes.CLASS_INVALID_ID, "Missing required class ID list: " + InputKeys.CLASS_URN_LIST);
+					throw new ValidationException("Missing required class ID list: " + InputKeys.CLASS_URN_LIST);
+				}
+				else if(httpRequest.getParameterValues(InputKeys.CLASS_URN_LIST).length > 1) {
+					setFailed(ErrorCodes.CLASS_INVALID_ID, "Multiple class ID lists were found.");
+					throw new ValidationException("Multiple class ID lists were found.");
 				}
 			}
 			catch(ValidationException e) {

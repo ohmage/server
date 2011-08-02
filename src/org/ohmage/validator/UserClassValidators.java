@@ -72,10 +72,11 @@ public final class UserClassValidators {
 				String username = UserValidators.validateUsername(request, userAndRole[0]);
 				String role = ClassValidators.validateClassRole(request, userAndRole[1]);
 				
-				// FIXME: This will silently accept a second username, role 
-				// pair and discard the previous one. This should instead at 
-				// least note that this is happening.
-				result.put(username, role);
+				String oldRole = result.put(username, role);
+				if((oldRole != null) && (! oldRole.equals(role))) {
+					request.setFailed(ErrorCodes.CLASS_INVALID_ROLE, "The username '" + username + "' contains multiple, different roles.");
+					throw new ValidationException("The username '" + username + "' contains multiple, different roles.");
+				}
 			}
 		}
 		

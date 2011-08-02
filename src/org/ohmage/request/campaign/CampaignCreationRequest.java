@@ -14,7 +14,6 @@ import org.ohmage.service.CampaignServices.CampaignIdAndName;
 import org.ohmage.service.ServiceException;
 import org.ohmage.service.UserClassServices;
 import org.ohmage.service.UserServices;
-import org.ohmage.util.CookieUtils;
 import org.ohmage.validator.CampaignValidators;
 import org.ohmage.validator.ClassValidators;
 import org.ohmage.validator.ValidationException;
@@ -79,7 +78,7 @@ public class CampaignCreationRequest extends UserRequest {
 	 * 					  necessary for servicing this request.
 	 */
 	public CampaignCreationRequest(HttpServletRequest httpRequest) {
-		super(CookieUtils.getCookieValue(httpRequest.getCookies(), InputKeys.AUTH_TOKEN), httpRequest.getParameter(InputKeys.CLIENT));
+		super(httpRequest, TokenLocation.PARAMETER);
 		
 		LOGGER.info("Creating a campaign creation request.");
 		
@@ -108,20 +107,36 @@ public class CampaignCreationRequest extends UserRequest {
 				setFailed(ErrorCodes.CAMPAIGN_INVALID_RUNNING_STATE, "Missing the required initial running state.");
 				throw new ValidationException("Missing required running state.");
 			}
+			else if(httpRequest.getParameterValues(InputKeys.RUNNING_STATE).length > 1) {
+				setFailed(ErrorCodes.CAMPAIGN_INVALID_RUNNING_STATE, "Multiple running states were found.");
+				throw new ValidationException("Multiple running states were found.");
+			}
 			
 			tPrivacyState = CampaignValidators.validatePrivacyState(this, httpRequest.getParameter(InputKeys.PRIVACY_STATE));
 			if(tPrivacyState == null) {
 				setFailed(ErrorCodes.CAMPAIGN_INVALID_PRIVACY_STATE, "Missing the required initial privacy state.");
 				throw new ValidationException("Missing required privacy state.");
 			}
+			else if(httpRequest.getParameterValues(InputKeys.PRIVACY_STATE).length > 1) {
+				setFailed(ErrorCodes.CAMPAIGN_INVALID_PRIVACY_STATE, "Multiple privacy states were found.");
+				throw new ValidationException("Multiple privacy states were found.");
+			}
 			
 			tClassIds = ClassValidators.validateClassIdList(this, httpRequest.getParameter(InputKeys.CLASS_URN_LIST));
-			if((tClassIds == null) || (tClassIds.size() == 0)) {
+			if(tClassIds == null) {
 				setFailed(ErrorCodes.CLASS_INVALID_ID, "Missing the required class ID list.");
 				throw new ValidationException("Missing required class ID list.");
 			}
+			else if(httpRequest.getParameterValues(InputKeys.CLASS_URN_LIST).length > 1) {
+				setFailed(ErrorCodes.CLASS_INVALID_ID, "Multiple class ID lists were found.");
+				throw new ValidationException("Multiple class ID lists were found.");
+			}
 			
 			tDescription = CampaignValidators.validateDescription(this, httpRequest.getParameter(InputKeys.DESCRIPTION));
+			if((tDescription != null) && (httpRequest.getParameterValues(InputKeys.DESCRIPTION).length > 1)) {
+				setFailed(ErrorCodes.CLASS_INVALID_DESCRIPTION, "Multiple descriptions were found.");
+				throw new ValidationException("Multiple descriptions were found.");
+			}
 		}
 		catch(ValidationException e) {
 			LOGGER.info(e.toString());

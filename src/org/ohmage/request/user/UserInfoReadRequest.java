@@ -7,7 +7,6 @@ import org.apache.log4j.Logger;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.ohmage.domain.UserInformation;
-import org.ohmage.request.InputKeys;
 import org.ohmage.request.UserRequest;
 import org.ohmage.service.ServiceException;
 import org.ohmage.service.UserServices;
@@ -43,7 +42,7 @@ public class UserInfoReadRequest extends UserRequest {
 	 * 					  request.
 	 */
 	public UserInfoReadRequest(HttpServletRequest httpRequest) {
-		super(getToken(httpRequest), httpRequest.getParameter(InputKeys.CLIENT));
+		super(httpRequest, TokenLocation.EITHER);
 		
 		LOGGER.info("Creating a user info read request.");
 		

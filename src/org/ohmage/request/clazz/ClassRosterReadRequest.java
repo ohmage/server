@@ -63,7 +63,7 @@ public class ClassRosterReadRequest extends UserRequest {
 	 * 					  from the requester.
 	 */
 	public ClassRosterReadRequest(HttpServletRequest httpRequest) {
-		super(getToken(httpRequest), httpRequest.getParameter(InputKeys.CLIENT));
+		super(httpRequest, TokenLocation.EITHER);
 		
 		LOGGER.info("Creating a class roster read request.");
 		
@@ -72,8 +72,12 @@ public class ClassRosterReadRequest extends UserRequest {
 		try {
 			tClassIds = ClassValidators.validateClassIdList(this, httpRequest.getParameter(InputKeys.CLASS_URN_LIST));
 			if(tClassIds == null) {
-				setFailed(ErrorCodes.CLASS_INVALID_ID, "Missing the required class list: " + InputKeys.CLASS_URN_LIST);
-				throw new ValidationException("Missing the required class list: " + InputKeys.CLASS_URN_LIST);
+				setFailed(ErrorCodes.CLASS_INVALID_ID, "Missing required class ID list: " + InputKeys.CLASS_URN_LIST);
+				throw new ValidationException("Missing required class ID list: " + InputKeys.CLASS_URN_LIST);
+			}
+			else if(httpRequest.getParameterValues(InputKeys.CLASS_URN_LIST).length > 1) {
+				setFailed(ErrorCodes.CLASS_INVALID_ID, "Multiple class ID lists were found.");
+				throw new ValidationException("Multiple class ID lists were found.");
 			}
 		}
 		catch(ValidationException e) {
