@@ -15,7 +15,9 @@
  ******************************************************************************/
 package org.ohmage.jee.servlet.validator;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -117,7 +119,7 @@ public class CampaignCreationValidator extends AbstractHttpServletRequestValidat
 					if(greaterThanLength("classes", InputKeys.CLASS_URN_LIST, value, 25600)) {
 						return false;
 					}
-					classes = value;
+					classes = parseClassIds(value);
 				}
 				else if(InputKeys.AUTH_TOKEN.equals(name)) {
 					if(greaterThanLength(InputKeys.AUTH_TOKEN, InputKeys.AUTH_TOKEN, value, 36)) {
@@ -167,5 +169,54 @@ public class CampaignCreationValidator extends AbstractHttpServletRequestValidat
 		httpRequest.setAttribute("awRequest", request);
 		
 		return true;
+	}
+	
+	/**
+	 * Parses the comma-separated list of class IDs.
+	 * 
+	 * @param classIdListString The user-supplied class ID list.
+	 * 
+	 * @return A clean class ID list without duplicates.
+	 */
+	private String parseClassIds(String classIdListString) {
+		// If the class list is an empty string, then we return null.
+		if(StringUtils.isEmptyOrWhitespaceOnly(classIdListString)) {
+			return null;
+		}
+		
+		// Create the list of class IDs to be returned to the caller.
+		Set<String> classIdList = new HashSet<String>();
+		
+		// Otherwise, attempt to parse the class list and evaluate each of the
+		// class IDs.
+		String[] classListArray = classIdListString.split(InputKeys.LIST_ITEM_SEPARATOR);
+		for(int i = 0; i < classListArray.length; i++) {
+			// If it returned null, then the current class ID in the array
+			// was probably whitespace only because the class list had two
+			// list item separators in a row.
+			if((classListArray[i] != null) && (! "".equals(classListArray[i]))) {
+				classIdList.add(classListArray[i].toLowerCase());
+			}
+		}
+		
+		if(classIdList.size() == 0) {
+			return null;
+		}
+		else {
+			StringBuilder builder = new StringBuilder();
+			boolean firstPass = true;
+			for(String classId : classIdList) {
+				if(firstPass) {
+					firstPass = false;
+				}
+				else {
+					builder.append(InputKeys.LIST_ITEM_SEPARATOR);
+				}
+				
+				builder.append(classId);
+			}
+			
+			return builder.toString();
+		}
 	}
 }

@@ -643,6 +643,11 @@ public class CampaignUpdateDao extends AbstractDao {
 				try {
 					getJdbcTemplate().update(SQL_INSERT_CAMPAIGN_CLASS, new Object[] { campaignId, classId });
 				}
+				catch(org.springframework.dao.DataIntegrityViolationException e) {
+					// If the campaign was already associated with the class,
+					// ignore the rest of this.
+					continue;
+				}
 				catch(org.springframework.dao.DataAccessException e) {
 					_logger.error("Error executing SQL '" + SQL_INSERT_CAMPAIGN_CLASS + "' with parameters: " + campaignId + ", " + classId, e);
 					throw new DataAccessException(e);
