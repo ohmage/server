@@ -146,8 +146,8 @@ public class UserRoleListValidationDao extends AbstractDao {
 		}
 		
 		boolean addAnyRole = userRoles.contains(CampaignRoleCache.ROLE_SUPERVISOR);
-		boolean addAuthors = userRoles.contains(CampaignRoleCache.ROLE_AUTHOR);
-		if(!addAnyRole && !addAuthors) {
+		boolean isAuthor = userRoles.contains(CampaignRoleCache.ROLE_AUTHOR);
+		if(!addAnyRole && !isAuthor) {
 			_insufficientPermissionsAnnotator.annotate(awRequest, "The user doesn't have sufficient permissions to add any users with roles.");
 			awRequest.setFailedRequest(true);
 			return;
@@ -187,10 +187,10 @@ public class UserRoleListValidationDao extends AbstractDao {
 				throw new DataAccessException(e);
 			}
 			
-			// If the user cannot add any role, then check that they can add
-			// authors and that this role is an author.
-			if(!addAnyRole) {
-				if(!addAuthors || !"author".equals(role)) {
+			// If the user cannot add any role, then make sure the role isn't 
+			// the role of supervisor.
+			if(! addAnyRole) {
+				if(CampaignRoleCache.ROLE_SUPERVISOR.equals(role)) {
 					_insufficientPermissionsAnnotator.annotate(awRequest, "The user is not allowed to add users with the role: " + role);
 					awRequest.setFailedRequest(true);
 					return;

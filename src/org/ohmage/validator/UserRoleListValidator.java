@@ -15,6 +15,9 @@
  ******************************************************************************/
 package org.ohmage.validator;
 
+import java.util.LinkedList;
+import java.util.List;
+
 import org.apache.log4j.Logger;
 import org.ohmage.cache.Cache;
 import org.ohmage.request.AwRequest;
@@ -98,7 +101,7 @@ public class UserRoleListValidator extends AbstractAnnotatingRegexpValidator {
 					// This is a logical error because we shouldn't have
 					// accepted the request without the parameter or we
 					// forgot to add it to the correct map.
-					throw new ValidatorException("Expcected value for key " + _key + " didn't exist in either the toProcess or toValidate maps.");
+					throw new ValidatorException("Expected value for key " + _key + " didn't exist in either the toProcess or toValidate maps.");
 				}
 				else
 				{
@@ -111,37 +114,43 @@ public class UserRoleListValidator extends AbstractAnnotatingRegexpValidator {
 		_logger.info("Validating the list of users and their roles for key: " + _key);
 		
 		// Split all the username-role couples into their own entities.
-		if(! "".equals(userAndRoleList)) {
+		if(! StringUtils.isEmptyOrWhitespaceOnly(userAndRoleList)) {
+			List<String> result = new LinkedList<String>();
+			
 			String[] userAndRoleArray = userAndRoleList.split(InputKeys.LIST_ITEM_SEPARATOR);
 			for(int i = 0; i < userAndRoleArray.length; i++) {
 				String userAndRole = userAndRoleArray[i];
 				
-				// Check that each entity contains exactly one user and exactly
-				// one role.
-				String[] userAndRoleSplit = userAndRole.split(InputKeys.ENTITY_ROLE_SEPARATOR);
-				if(userAndRoleSplit.length != 2) {
-					getAnnotator().annotate(awRequest, "Invalid " + _key + " value at index: " + i);
-					awRequest.setFailedRequest(true);
-					return false;
-				}
-				
-				// Validate user.
-				String user = userAndRoleSplit[0];
-				if(! _regexpPattern.matcher(user).matches()) {
-					getAnnotator().annotate(awRequest, "Invalid username in request at index: " + i);
-					awRequest.setFailedRequest(true);
-					return false;
-				}
-				
-				// Validate role.
-				if(! _roleCache.getKeys().contains(userAndRoleSplit[1])) {
-					getAnnotator().annotate(awRequest, "Invalid role in request at index: " + i);
-					awRequest.setFailedRequest(true);
-					return false;
+				if(! StringUtils.isEmptyOrWhitespaceOnly(userAndRole)) {
+					// Check that each entity contains exactly one user and exactly
+					// one role.
+					String[] userAndRoleSplit = userAndRole.split(InputKeys.ENTITY_ROLE_SEPARATOR);
+					if(userAndRoleSplit.length != 2) {
+						getAnnotator().annotate(awRequest, "Invalid " + _key + " value at index: " + i);
+						awRequest.setFailedRequest(true);
+						return false;
+					}
+					
+					// Validate user.
+					String user = userAndRoleSplit[0];
+					if(! _regexpPattern.matcher(user).matches()) {
+						getAnnotator().annotate(awRequest, "Invalid username in request at index: " + i);
+						awRequest.setFailedRequest(true);
+						return false;
+					}
+					
+					// Validate role.
+					if(! _roleCache.getKeys().contains(userAndRoleSplit[1])) {
+						getAnnotator().annotate(awRequest, "Invalid role in request at index: " + i);
+						awRequest.setFailedRequest(true);
+						return false;
+					}
+					
+					result.add(userAndRole);
 				}
 			}
 			
-			awRequest.addToProcess(_key, userAndRoleList, true);
+			awRequest.addToProcess(_key, StringUtils.collectionToDelimitedString(result, InputKeys.LIST_ITEM_SEPARATOR), true);
 		}
 		
 		return true;

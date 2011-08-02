@@ -64,8 +64,6 @@ public class CampaignXmlValidatorService extends AbstractAnnotatingService {
 	 */
 	@Override
 	public void execute(AwRequest awRequest) {
-		_logger.info("Validating campaign XML.");
-
 		// Normally, in a service I would only check the toProcess map, but
 		// this is an optimization to allow us to validate the XML as a last
 		// step as it is the most expensive.
@@ -87,6 +85,8 @@ public class CampaignXmlValidatorService extends AbstractAnnotatingService {
 				}
 			}
 		}
+		
+		_logger.info("Validating campaign XML.");
 		
 		ErrorResponse errorResponse = new ErrorResponse();
 		errorResponse.setCode("0804");
