@@ -68,7 +68,7 @@ public class UserCampaignValidators {
 			
 			// If the pair is empty, i.e. there were two list item separators
 			// in a row, then skip it.
-			if(! "".equals(currUserAndRole)) {
+			if(! StringUtils.isEmptyOrWhitespaceOnly(currUserAndRole)) {
 				String[] userAndRole = currUserAndRole.split(InputKeys.ENTITY_ROLE_SEPARATOR);
 				
 				// If the pair isn't actually a pair, fail with an invalid 
