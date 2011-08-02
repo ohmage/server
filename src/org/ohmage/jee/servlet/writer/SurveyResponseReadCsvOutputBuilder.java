@@ -235,7 +235,7 @@ public class SurveyResponseReadCsvOutputBuilder  {
 			}
 			i++;
 		}
-		builder.append(newLine); int x = 0;
+		builder.append(newLine);
 		
 		for(SurveyResponseReadIndexedResult result : indexedResultList) {
 			
@@ -419,8 +419,6 @@ public class SurveyResponseReadCsvOutputBuilder  {
 			int lastCommaIndex = builder.lastIndexOf(",");
 			builder.replace(lastCommaIndex, lastCommaIndex + 1, "");
 			builder.append(newLine);
-			
-			x++;
 		}
 		
 		if(! req.isSuppressMetadata()) {
