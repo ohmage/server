@@ -31,6 +31,9 @@
         <!-- Validate the user's token and populate the request. -->
         <ref bean="tokenBasedAuthenticationService" />
         
+        <!-- Class doesn't exist. -->
+        <ref bean="classExistsService" />
+        
         <!-- Is the user privileged in the class. -->
         <ref bean="userIsAdminOrPrivilegedInClassService" />
         
