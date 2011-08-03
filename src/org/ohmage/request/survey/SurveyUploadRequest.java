@@ -8,6 +8,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.log4j.Logger;
+import org.json.JSONArray;
 import org.ohmage.annotator.ErrorCodes;
 import org.ohmage.cache.CampaignRoleCache;
 import org.ohmage.cache.CampaignRunningStateCache;
@@ -17,6 +18,7 @@ import org.ohmage.exception.ValidationException;
 import org.ohmage.request.InputKeys;
 import org.ohmage.request.UserRequest;
 import org.ohmage.service.CampaignServices;
+import org.ohmage.service.SurveyUploadJsonServices;
 import org.ohmage.service.UserCampaignServices;
 import org.ohmage.util.StringUtils;
 import org.ohmage.validator.DateValidators;
@@ -70,13 +72,13 @@ public final class SurveyUploadRequest extends UserRequest {
 	// The campaign creation timestamp is stored as a String because it is never used in 
 	// any kind of date calculations.
 	private final String campaignCreationTimestamp;
-	
 	private final String campaignUrn;
-	private final String jsonData;
 	private static final List<String> allowedRoles;
 	private static final String allowedCampaignRunningState = CampaignRunningStateCache.RUNNING_STATE_RUNNING;
 	
 	private Configuration configuration;
+	private String jsonData;
+	private JSONArray jsonDataArray;
 	
 	static {
 		allowedRoles = Arrays.asList(new String[] {CampaignRoleCache.ROLE_PARTICIPANT});
@@ -178,7 +180,18 @@ public final class SurveyUploadRequest extends UserRequest {
 			CampaignServices.verifyCampaignCreationTimestamp(this, this.getUser(), this.campaignUrn, this.campaignCreationTimestamp);
 			
 			LOGGER.info("Retrieving campaign configuration.");
-			CampaignServices.findCampaignConfiguration(this, this.campaignUrn);
+			this.configuration = CampaignServices.findCampaignConfiguration(this, this.campaignUrn);
+			
+			LOGGER.info("Parsing JSON data upload.");
+			// Each survey in an upload is represented by a JSONObject within a JSONArray 
+			this.jsonDataArray = SurveyUploadJsonServices.stringToJsonArray(this, this.jsonData);
+			
+			// recycle the string because it's no longer needed
+			this.jsonData = null;
+			
+			LOGGER.info("Validating surveys.");
+			SurveyUploadJsonServices.validateSurveyUpload(this, jsonDataArray, configuration);
+			
 			
 		}
 //		catch(ValidationException e) {

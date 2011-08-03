@@ -18,11 +18,13 @@ public final class ErrorCodes {
 	public static final String AUTHENTICATION_FAILED = "0200";
 	public static final String AUTHENTICATION_ACCOUNT_DISABLED = "0201";
 	public static final String AUTHENTICATION_NEW_ACCOUNT = "0202";
-
+	
 	public static final String SERVER_INVALID_JSON = "0300";
-	public static final String SERVER_INVALID_CLIENT = "0301";
-	public static final String SERVER_INVALID_DATE = "0302";
-	public static final String SERVER_INVALID_TIMESTAMP = "0303";
+	public static final String SERVER_INVALID_CLIENT = "0302";
+	public static final String SERVER_INVALID_DATE = "0303";
+	public static final String SERVER_INVALID_TIMESTAMP = "0304";
+	public static final String SERVER_INVALID_TIME = "0305";
+	public static final String SERVER_INVALID_TIMEZONE = "0306";
 	
 	public static final String MOBILITY_INVALID_SUBTYPE = "0500";
 	public static final String MOBILITY_INVALID_MODE = "0501";
@@ -48,6 +50,8 @@ public final class ErrorCodes {
 	public static final String SURVEY_TOO_MANY_PROMPT_IDS = "0615";
 	public static final String SURVEY_TOO_MANY_SURVEY_IDS = "0616";
 	public static final String SURVEY_INSUFFICIENT_PERMISSIONS = "0617";
+	public static final String SURVEY_INVALID_LOCATION_STATUS = "0618";
+	public static final String SURVEY_INVALID_LOCATION = "0619";
 	
 	public static final String CAMPAIGN_INVALID_ID = "0700";
 	public static final String CAMPAIGN_INVALID_NAME = "0701";
