@@ -269,20 +269,20 @@ public final class UserServices {
 	 * @param username The username of the user whose information is to be
 	 * 				   updated.
 	 * 
-	 * @param admin Whether or not the user should be an admin. A null value
+	 * @param admin Whether or not the user should be an admin. A null Value
 	 * 			    indicates that this field should not be updated.
 	 * 
 	 * @param enabled Whether or not the user's account should be enabled. A
-	 * 				  null value indicates that this field should not be
+	 * 				  null Value indicates that this field should not be
 	 * 				  updated.
 	 * 
 	 * @param newAccount Whether or not the user should be required to change
-	 * 					 their password. A null value indicates that this field
+	 * 					 their password. A null Value indicates that this field
 	 * 					 should not be updated.
 	 * 
 	 * @param campaignCreationPrivilege Whether or not the user should be 
 	 * 									allowed to create campaigns. A null
-	 * 									value indicates that this field should
+	 * 									Value indicates that this field should
 	 * 									not be updated.
 	 * 
 	 * @param personalInfo Personal information about a user. If this is null,

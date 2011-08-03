@@ -28,41 +28,41 @@ import org.ohmage.validator.ValidationException;
  *     <td>Required</td>
  *   </tr>
  *   <tr>
- *     <td>{@value org.ohmage.request.InputKeys#CLASS_URN}</td>
+ *     <td>{@Value org.ohmage.request.InputKeys#CLASS_URN}</td>
  *     <td>The unique identifier for the class to be updated.</td>
  *     <td>true</td>
  *   </tr>
  *   <tr>
- *     <td>{@value org.ohmage.request.InputKeys#CLASS_NAME}</td>
+ *     <td>{@Value org.ohmage.request.InputKeys#CLASS_NAME}</td>
  *     <td>A new name for the class.</td>
  *     <td>false</td>
  *   </tr>
  *   <tr>
- *     <td>{@value org.ohmage.request.InputKeys#DESCRIPTION}</td>
+ *     <td>{@Value org.ohmage.request.InputKeys#DESCRIPTION}</td>
  *     <td>A new description for the class.</td>
  *     <td>false</td>
  *   </tr>
  *   <tr>
- *     <td>{@value org.ohmage.request.InputKeys#USER_ROLE_LIST_ADD}</td>
+ *     <td>{@Value org.ohmage.request.InputKeys#USER_ROLE_LIST_ADD}</td>
  *     <td>A list of users and respective roles to associate with this class.
  *       A user may only have one role with a class. To change a user's role,
  *       add their username and old role to the 
- *       {@value org.ohmage.request.InputKeys#USER_ROLE_LIST_REMOVE} parameter
- *       and their username and new role in this parameter. The value should be
+ *       {@Value org.ohmage.request.InputKeys#USER_ROLE_LIST_REMOVE} parameter
+ *       and their username and new role in this parameter. The Value should be
  *       formatted where each username is separated from its respective role 
- *       with a {@value org.ohmage.request.InputKeys#ENTITY_ROLE_SEPARATOR} and
+ *       with a {@Value org.ohmage.request.InputKeys#ENTITY_ROLE_SEPARATOR} and
  *       each username-role pair should be separated with a 
- *       {@value org.ohmage.request.InputKeys#LIST_ITEM_SEPARATOR}.</td>
+ *       {@Value org.ohmage.request.InputKeys#LIST_ITEM_SEPARATOR}.</td>
  *     <td>false</td>
  *   </tr>
  *   <tr>
- *     <td>{@value org.ohmage.request.InputKeys#USER_ROLE_LIST_REMOVE}</td>
+ *     <td>{@Value org.ohmage.request.InputKeys#USER_ROLE_LIST_REMOVE}</td>
  *     <td>A list of users and respective roles to disassociate with this 
- *       class. The value should be formatted where each username is separated
+ *       class. The Value should be formatted where each username is separated
  *       from its respective role with a 
- *       {@value org.ohmage.request.InputKeys#ENTITY_ROLE_SEPARATOR} and each
+ *       {@Value org.ohmage.request.InputKeys#ENTITY_ROLE_SEPARATOR} and each
  *       username-role pair should be separated with a 
- *       {@value org.ohmage.request.InputKeys#LIST_ITEM_SEPARATOR}.</td>
+ *       {@Value org.ohmage.request.InputKeys#LIST_ITEM_SEPARATOR}.</td>
  *     <td>false</td>
  *   </tr>
  * </table>

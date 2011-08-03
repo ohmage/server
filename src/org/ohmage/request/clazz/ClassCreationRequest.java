@@ -22,22 +22,22 @@ import org.ohmage.validator.ValidationException;
  *     <td>Required</td>
  *   </tr>
  *   <tr>
- *     <td>{@value org.ohmage.request.InputKeys#CLIENT}</td>
+ *     <td>{@Value org.ohmage.request.InputKeys#CLIENT}</td>
  *     <td>A string describing the client that is making this request.</td>
  *     <td>true</td>
  *   </tr>
  *   <tr>
- *     <td>{@value org.ohmage.request.InputKeys#CLASS_URN}</td>
+ *     <td>{@Value org.ohmage.request.InputKeys#CLASS_URN}</td>
  *     <td>The URN of the new class.</td>
  *     <td>true</td>
  *   </tr>
  *   <tr>
- *     <td>{@value org.ohmage.request.InputKeys#CLASS_NAME}</td>
+ *     <td>{@Value org.ohmage.request.InputKeys#CLASS_NAME}</td>
  *     <td>The name of the new class</td>
  *     <td>true</td>
  *   </tr>
  *   <tr>
- *     <td>{@value org.ohmage.request.InputKeys#DESCRIPTION}</td>
+ *     <td>{@Value org.ohmage.request.InputKeys#DESCRIPTION}</td>
  *     <td>An optional description of the class.</td>
  *     <td>false</td>
  *   </tr>

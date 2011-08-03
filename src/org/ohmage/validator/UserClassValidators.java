@@ -34,10 +34,10 @@ public final class UserClassValidators {
 	 * @param userClassRoleList A String representing a list of username and
 	 * 							class-role pairs. The pairs should be separated
 	 * 							by 
-	 * 							{@value org.ohmage.request.InputKeys#LIST_ITEM_SEPARATOR}
+	 * 							{@Value org.ohmage.request.InputKeys#LIST_ITEM_SEPARATOR}
 	 * 							and the username and class-role should be 
 	 * 							separated by
-	 * 							{@value org.ohmage.request.InputKeys#ENTITY_ROLE_SEPARATOR}.
+	 * 							{@Value org.ohmage.request.InputKeys#ENTITY_ROLE_SEPARATOR}.
 	 * 
 	 * @return Returns null if the list string is null, whitespace only, or 
 	 * 		   only contains separators and no meaningful information. 

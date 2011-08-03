@@ -78,27 +78,27 @@ public class DocumentDaos extends Dao {
 	// Inserts the document into the database.
 	private static final String SQL_INSERT_DOCUMENT = 
 		"INSERT INTO document(uuid, name, description, extension, url, size, privacy_state_id, creation_timestamp) " +
-		"VALUES (?, ?, ?, ?, ?, ?, (SELECT id FROM document_privacy_state WHERE privacy_state = ?), now())";
+		"VALUES (?, ?, ?, ?, ?, ?, (SELECT Id FROM document_privacy_state WHERE privacy_state = ?), now())";
 	
 	// Associates a static user string as the creator of a document.
 	private static final String SQL_INSERT_DOCUMENT_USER_CREATOR = 
 		"INSERT INTO document_user_creator(document_id, username) " +
-		"VALUES ((SELECT id FROM document WHERE uuid = ?), ?)";
+		"VALUES ((SELECT Id FROM document WHERE uuid = ?), ?)";
 	
 	// Associates a user with a document and gives them a specific role.
 	private static final String SQL_INSERT_USER_ROLE = 
 		"INSERT INTO document_user_role(document_id, user_id, document_role_id) " +
 		"VALUES (" +
 			"(" +
-				"SELECT id " +
+				"SELECT Id " +
 				"FROM document " +
 				"WHERE uuid = ?" +
 			"), (" +
-				"SELECT id " +
+				"SELECT Id " +
 				"FROM user " +
 				"WHERE username = ?" +
 			"), (" +
-				"SELECT id " +
+				"SELECT Id " +
 				"FROM document_role " +
 				"WHERE role = ?" +
 			")" +
@@ -109,15 +109,15 @@ public class DocumentDaos extends Dao {
 		"INSERT INTO document_campaign_role(document_id, campaign_id, document_role_id) " +
 		"VALUES (" +
 			"(" +
-				"SELECT id " +
+				"SELECT Id " +
 				"FROM document " +
 				"WHERE uuid = ?" +
 			"), (" +
-				"SELECT id " +
+				"SELECT Id " +
 				"FROM campaign " +
 				"WHERE urn = ?" +
 			"), (" +
-				"SELECT id " +
+				"SELECT Id " +
 				"FROM document_role " +
 				"WHERE role = ?" +
 			")" +
@@ -128,15 +128,15 @@ public class DocumentDaos extends Dao {
 		"INSERT INTO document_class_role(document_id, class_id, document_role_id) " +
 		"VALUES (" +
 			"(" +
-				"SELECT id " +
+				"SELECT Id " +
 				"FROM document " +
 				"WHERE uuid = ?" +
 			"), (" +
-				"SELECT id " +
+				"SELECT Id " +
 				"FROM class " +
 				"WHERE urn = ?" +
 			"), (" +
-				"SELECT id " +
+				"SELECT Id " +
 				"FROM document_role " +
 				"WHERE role = ?" +
 			")" +
@@ -155,7 +155,7 @@ public class DocumentDaos extends Dao {
 	private static final String SQL_UPDATE_PRIVACY_STATE = 
 		"UPDATE document " +
 		"SET privacy_state_id = (" +
-			"SELECT id " +
+			"SELECT Id " +
 			"FROM document_privacy_state " +
 			"WHERE privacy_state = ?" +
 		") " +
@@ -169,17 +169,17 @@ public class DocumentDaos extends Dao {
 	private static final String SQL_UPDATE_CAMPAIGN_ROLE = 
 		"UPDATE document_campaign_role " +
 		"SET document_role_id = (" +
-			"SELECT id " +
+			"SELECT Id " +
 			"FROM document_role " +
 			"WHERE role = ?" +
 		") " +
 		"WHERE document_id = (" +
-			"SELECT id " +
+			"SELECT Id " +
 			"FROM document " +
 			"WHERE uuid = ?" +
 		") " +
 		"AND campaign_id = (" +
-			"SELECT id " +
+			"SELECT Id " +
 			"FROM campaign " +
 			"WHERE urn = ?" +
 		")";
@@ -187,17 +187,17 @@ public class DocumentDaos extends Dao {
 	private static final String SQL_UPDATE_CLASS_ROLE = 
 		"UPDATE document_class_role " +
 		"SET document_role_id = (" +
-			"SELECT id " +
+			"SELECT Id " +
 			"FROM document_role " +
 			"WHERE role = ?" +
 		") " +
 		"WHERE document_id = (" +
-			"SELECT id " +
+			"SELECT Id " +
 			"FROM document " +
 			"WHERE uuid = ?" +
 		") " +
 		"AND class_id = (" +
-			"SELECT id " +
+			"SELECT Id " +
 			"FROM class " +
 			"WHERE urn = ?" +
 		")";
@@ -205,17 +205,17 @@ public class DocumentDaos extends Dao {
 	private static final String SQL_UPDATE_USER_ROLE = 
 		"UPDATE document_user_role " +
 		"SET document_role_id = (" +
-			"SELECT id " +
+			"SELECT Id " +
 			"FROM document_role " +
 			"WHERE role = ?" +
 		") " +
 		"WHERE document_id = (" +
-			"SELECT id " +
+			"SELECT Id " +
 			"FROM document " +
 			"WHERE uuid = ?" +
 		") " +
 		"AND user_id = (" +
-			"SELECT id " +
+			"SELECT Id " +
 			"FROM user " +
 			"WHERE username = ?" +
 		")";
@@ -227,12 +227,12 @@ public class DocumentDaos extends Dao {
 	private static final String SQL_DELETE_CAMPAIGN_ROLE = 
 		"DELETE FROM document_campaign_role " +
 		"WHERE document_id = (" +
-			"SELECT id " +
+			"SELECT Id " +
 			"FROM document " +
 			"WHERE uuid = ?" +
 		") " +
 		"AND campaign_id = (" +
-			"SELECT id " +
+			"SELECT Id " +
 			"FROM campaign " +
 			"WHERE urn = ?" +
 		")";
@@ -240,12 +240,12 @@ public class DocumentDaos extends Dao {
 	private static final String SQL_DELETE_CLASS_ROLE = 
 		"DELETE FROM document_class_role " +
 		"WHERE document_id = (" +
-			"SELECT id " +
+			"SELECT Id " +
 			"FROM document " +
 			"WHERE uuid = ?" +
 		") " +
 		"AND class_id = (" +
-			"SELECT id " +
+			"SELECT Id " +
 			"FROM class " +
 			"WHERE urn = ?" +
 		")";
@@ -253,12 +253,12 @@ public class DocumentDaos extends Dao {
 	private static final String SQL_DELETE_USER_ROLE = 
 		"DELETE FROM document_user_role " +
 		"WHERE document_id = (" +
-			"SELECT id " +
+			"SELECT Id " +
 			"FROM document " +
 			"WHERE uuid = ?" +
 		") " +
 		"AND user_id = (" +
-			"SELECT id " +
+			"SELECT Id " +
 			"FROM user " +
 			"WHERE username = ?" +
 		")";
@@ -962,7 +962,7 @@ public class DocumentDaos extends Dao {
 			throw new DataAccessException("Preference cache doesn't know about 'known' key: " + PreferenceCache.KEY_MAXIMUM_NUMBER_OF_DOCUMENTS_PER_DIRECTORY, e);
 		}
 		catch(NumberFormatException e) {
-			throw new DataAccessException("Stored value for key '" + PreferenceCache.KEY_MAXIMUM_NUMBER_OF_DOCUMENTS_PER_DIRECTORY + "' is not decodable as a number.", e);
+			throw new DataAccessException("Stored Value for key '" + PreferenceCache.KEY_MAXIMUM_NUMBER_OF_DOCUMENTS_PER_DIRECTORY + "' is not decodable as a number.", e);
 		}
 		
 		// If the leaf directory was never initialized, then we should do
@@ -986,7 +986,7 @@ public class DocumentDaos extends Dao {
 	/**
 	 * Initializes the directory structure by drilling down to the leaf
 	 * directory with each step choosing the directory with the largest
-	 * integer value.
+	 * integer Value.
 	 */
 	private static void init(int numFilesPerDirectory) {
 		// Get the lock.
@@ -1026,7 +1026,7 @@ public class DocumentDaos extends Dao {
 				throw new DataAccessException("Preference cache doesn't know about 'known' key: " + PreferenceCache.KEY_DOCUMENT_DEPTH, e);
 			}
 			catch(NumberFormatException e) {
-				throw new DataAccessException("Stored value for key '" + PreferenceCache.KEY_DOCUMENT_DEPTH + "' is not decodable as a number.", e);
+				throw new DataAccessException("Stored Value for key '" + PreferenceCache.KEY_DOCUMENT_DEPTH + "' is not decodable as a number.", e);
 			}
 			
 			DirectoryFilter directoryFilter = new DirectoryFilter();
@@ -1072,7 +1072,7 @@ public class DocumentDaos extends Dao {
 						currDirectory.mkdir();
 					}
 				}
-				// Drill down to the directory with the largest, numeric value.
+				// Drill down to the directory with the largest, numeric Value.
 				else {
 					currDirectory = getLargestSubfolder(currDirectories);
 				}
@@ -1148,7 +1148,7 @@ public class DocumentDaos extends Dao {
 			// While we are still looking for a suitable directory,
 			while(lookingForDirectory) {
 				// Get the current directory's name which should be a Long
-				// value.
+				// Value.
 				long currDirectoryName;
 				try {
 					currDirectoryName = Long.decode(newDirectory.getName());
@@ -1240,7 +1240,7 @@ public class DocumentDaos extends Dao {
 	}
 	
 	/**
-	 * Sorts the directories and returns the one whose alphanumeric value is
+	 * Sorts the directories and returns the one whose alphanumeric Value is
 	 * the greatest.
 	 * 
 	 * This will work with any naming for directories, so it is the caller's
@@ -1248,10 +1248,10 @@ public class DocumentDaos extends Dao {
 	 * want them to be.
 	 *  
 	 * @param directories The list of directories whose largest alphanumeric
-	 * 					  value is desired.
+	 * 					  Value is desired.
 	 * 
 	 * @return Returns the File whose path and name has the largest
-	 * 		   alphanumeric value.
+	 * 		   alphanumeric Value.
 	 */
 	private static File getLargestSubfolder(File[] directories) {
 		Arrays.sort(directories);

@@ -10,12 +10,13 @@ import java.util.Set;
 import nu.xom.ParsingException;
 import nu.xom.ValidityException;
 
-import org.andwellness.config.xml.CampaignValidator;
 import org.apache.log4j.Logger;
 import org.ohmage.annotator.ErrorCodes;
 import org.ohmage.cache.CampaignPrivacyStateCache;
 import org.ohmage.cache.CampaignRoleCache;
 import org.ohmage.cache.CampaignRunningStateCache;
+import org.ohmage.config.grammar.custom.ConditionParseException;
+import org.ohmage.config.xml.CampaignValidator;
 import org.ohmage.request.InputKeys;
 import org.ohmage.request.Request;
 import org.ohmage.util.StringUtils;
@@ -56,12 +57,12 @@ public final class CampaignValidators {
 	public static String validateCampaignId(Request request, String campaignId) throws ValidationException {
 		LOGGER.info("Validating a campaign ID.");
 		
-		// If the value is null or whitespace only, return null.
+		// If the Value is null or whitespace only, return null.
 		if(StringUtils.isEmptyOrWhitespaceOnly(campaignId)) {
 			return null;
 		}
 		
-		// If the value is a valid URN, meaning that it is a plausible campaign 
+		// If the Value is a valid URN, meaning that it is a plausible campaign 
 		// ID, return the campaign ID back to the caller.
 		if(StringUtils.isValidUrn(campaignId)) {
 			return campaignId;
@@ -83,7 +84,7 @@ public final class CampaignValidators {
 	 * 
 	 * @param campaignIds A String list of campaign identifiers where each
 	 * 					  identifier is separated by a 
-	 * 					  {@value org.ohmage.request.InputKeys#LIST_ITEM_SEPARATOR}.
+	 * 					  {@Value org.ohmage.request.InputKeys#LIST_ITEM_SEPARATOR}.
 	 * 
 	 * @return If the campaign IDs String list is null or whitespace only, null
 	 * 		   is returned. Otherwise, a List of Strings is returned where each
@@ -219,6 +220,10 @@ public final class CampaignValidators {
 			request.setFailed(ErrorCodes.CAMPAIGN_INVALID_XML, e.getMessage());
 			throw new ValidationException("The XML was invalid.", e);
 		}
+		catch(ConditionParseException e) {
+			request.setFailed(ErrorCodes.CAMPAIGN_INVALID_XML, e.getMessage());
+			throw new ValidationException("The XML was invalid.", e);
+		}
 		catch(ParsingException e) {
 			request.setFailed(ErrorCodes.CAMPAIGN_INVALID_XML, e.getMessage());
 			throw new ValidationException("The XML was invalid.", e);
@@ -297,21 +302,21 @@ public final class CampaignValidators {
 	}
 	
 	/**
-	 * Validates that a start date is a valid date and returns a Calendar 
+	 * Validates that a Start date is a valid date and returns a Calendar 
 	 * object representing that date.
 	 * 
 	 * @param request The Request that is performing this validation.
 	 * 
 	 * @param startDate The date to be validated.
 	 * 
-	 * @return Returns null if the start date is null or whitespace only;
-	 * 		   otherwise, it returns a Calendar representing the start date.
+	 * @return Returns null if the Start date is null or whitespace only;
+	 * 		   otherwise, it returns a Calendar representing the Start date.
 	 * 
-	 * @throws ValidationException Thrown if the start date isn't a decodable
+	 * @throws ValidationException Thrown if the Start date isn't a decodable
 	 * 							   date.
 	 */
 	public static Calendar validateStartDate(Request request, String startDate) throws ValidationException {
-		LOGGER.info("Validating a start date.");
+		LOGGER.info("Validating a Start date.");
 		
 		if(StringUtils.isEmptyOrWhitespaceOnly(startDate)) {
 			return null;
@@ -319,8 +324,8 @@ public final class CampaignValidators {
 		
 		Date date = StringUtils.decodeDate(startDate);
 		if(date == null) {
-			request.setFailed(ErrorCodes.SERVER_INVALID_DATE, "The start date is invalid: " + startDate);
-			throw new ValidationException("The start date is invalid: " + startDate);
+			request.setFailed(ErrorCodes.SERVER_INVALID_DATE, "The Start date is invalid: " + startDate);
+			throw new ValidationException("The Start date is invalid: " + startDate);
 		}
 		
 		Calendar calendar = Calendar.getInstance();

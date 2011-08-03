@@ -53,7 +53,7 @@ public class Log4jNdcFilter implements Filter {
 	}
 	
 	/**
-	 * Pushes the current thread's session id into the Log4J NDC.
+	 * Pushes the current thread's session Id into the Log4J NDC.
 	 */
 	public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) 
 		throws ServletException, IOException {	

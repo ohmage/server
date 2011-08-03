@@ -29,7 +29,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 
 /**
- * The abstract cache class for key-value pairs.
+ * The abstract cache class for key-Value pairs.
  * 
  * @author John Jenkins
  */
@@ -47,14 +47,14 @@ public abstract class KeyValueCache extends Cache {
 		private final String value;
 		
 		/**
-		 * Creates a new object with the specified key and value. This is done
+		 * Creates a new object with the specified key and Value. This is done
 		 * instead of having a default constructor and directly setting the
 		 * values as a convenience to make creating a new object a one-liner
 		 * and to provide a thin veil of encapsulation.
 		 * 
-		 * @param key The key for this key-value pair.
+		 * @param key The key for this key-Value pair.
 		 * 
-		 * @param value The value for this key-value pair.
+		 * @param Value The Value for this key-Value pair.
 		 */
 		private KeyAndValue(String key, String value) {
 			this.key = key;
@@ -69,7 +69,7 @@ public abstract class KeyValueCache extends Cache {
 	// dictated by the private class KeyAndValue.
 	private final String sqlForRetrievingValues;
 	
-	// The column names for the key and value columns to be used with the SQL.
+	// The column names for the key and Value columns to be used with the SQL.
 	private final String keyColumn;
 	private final String valueColumn;
 	
@@ -95,18 +95,18 @@ public abstract class KeyValueCache extends Cache {
 	 * Then, we check to see if such a key exists in our cache. If not, we
 	 * throw an exception because, if someone is querying for a key that
 	 * doesn't exist, we need to bring it to their immediate attention rather
-	 * than returning an "error" value. Otherwise, the corresponding integer
-	 * value is returned.
+	 * than returning an "error" Value. Otherwise, the corresponding integer
+	 * Value is returned.
 	 * 
 	 * It is recommended, but not required, to use the constants declared in
 	 * the concrete cache class as the parameter.
 	 * 
 	 * The complexity is O(n) if a refresh is required; otherwise, the 
-	 * complexity of a Java Map object to lookup a key and return its value.
+	 * complexity of a Java Map object to lookup a key and return its Value.
 	 * 
-	 * @param key The key whose corresponding value is being requested.
+	 * @param key The key whose corresponding Value is being requested.
 	 * 
-	 * @return The corresponding value.
+	 * @return The corresponding Value.
 	 * 
 	 * @throws CacheMissException Thrown if no such key exists.
 	 */
@@ -116,7 +116,7 @@ public abstract class KeyValueCache extends Cache {
 			refreshMap();
 		}
 		
-		// If the key exists in the lookup table, return its value.
+		// If the key exists in the lookup table, return its Value.
 		if(keyValueMap.containsKey(key)) {
 			return keyValueMap.get(key);
 		}

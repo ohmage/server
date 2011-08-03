@@ -30,7 +30,7 @@ import org.springframework.transaction.support.DefaultTransactionDefinition;
  * @author John Jenkins
  */
 public final class CampaignDaos extends Dao {
-	// Returns a boolean value of whether or not the campaign exists.
+	// Returns a boolean Value of whether or not the campaign exists.
 	private static final String SQL_EXISTS_CAMPAIGN = 
 		"SELECT EXISTS(" +
 			"SELECT urn " +
@@ -91,23 +91,23 @@ public final class CampaignDaos extends Dao {
 		"WHERE creation_timestamp <= ?";
 	
 	// Returns all of the IDs for all of the campaigns whose privacy state is
-	// some value.
+	// some Value.
 	private static final String SQL_GET_CAMPAIGNS_WITH_PRIVACY_STATE = 
 		"SELECT urn " +
 		"FROM campaign " +
 		"WHERE privacy_state_id = (" +
-			"SELECT id " +
+			"SELECT Id " +
 			"FROM campaign_privacy_state " +
 			"WHERE privacy_state = ?" +
 		")";
 	
 	// Returns all of the IDs for all of the campaigns whose running state is
-	// some value.
+	// some Value.
 	private static final String SQL_GET_CAMPAIGNS_WITH_RUNNING_STATE = 
 		"SELECT urn " +
 		"FROM campaign " +
 		"WHERE running_state_id = (" +
-			"SELECT id " +
+			"SELECT Id " +
 			"FROM campaign_running_state " +
 			"WHERE running_state = ?" +
 		")";
@@ -132,11 +132,11 @@ public final class CampaignDaos extends Dao {
 	private static final String SQL_INSERT_CAMPAIGN = 
 		"INSERT INTO campaign(urn, name, xml, description, creation_timestamp, running_state_id, privacy_state_id) " +
 		"VALUES (?, ?, ?, ?, now(), (" +
-				"SELECT id " +
+				"SELECT Id " +
 				"FROM campaign_running_state " +
 				"WHERE running_state = ?" +
 			"), (" +
-				"SELECT id " +
+				"SELECT Id " +
 				"FROM campaign_privacy_state " +
 				"WHERE privacy_state = ?" +
 			")" +
@@ -147,11 +147,11 @@ public final class CampaignDaos extends Dao {
 		"INSERT INTO campaign_class(campaign_id, class_id) " +
 		"VALUES (" +
 			"(" +
-				"SELECT id " +
+				"SELECT Id " +
 				"FROM campaign " +
 				"WHERE urn = ?" +
 			"), (" +
-				"SELECT id " +
+				"SELECT Id " +
 				"FROM class " +
 				"WHERE urn = ?" +
 			")" +
@@ -169,11 +169,11 @@ public final class CampaignDaos extends Dao {
 				"AND cl.urn = ? " +
 				"AND cl.id = cc.class_id" +
 			"), (" +
-				"SELECT id " +
+				"SELECT Id " +
 				"FROM user_class_role " +
 				"WHERE role = ?" +
 			"), (" +
-				"SELECT id " +
+				"SELECT Id " +
 				"FROM user_role " +
 				"WHERE role = ?" +
 			")" +
@@ -184,15 +184,15 @@ public final class CampaignDaos extends Dao {
 		"INSERT INTO user_role_campaign(user_id, campaign_id, user_role_id) " +
 		"VALUES (" +
 			"(" +
-				"SELECT id " +
+				"SELECT Id " +
 				"FROM user " +
 				"WHERE username = ?" +
 			"), (" +
-				"SELECT id " +
+				"SELECT Id " +
 				"FROM campaign " +
 				"WHERE urn = ?" +
 			"), (" +
-				"SELECT id " +
+				"SELECT Id " +
 				"FROM user_role " +
 				"WHERE role = ?" +
 			")" +
@@ -214,7 +214,7 @@ public final class CampaignDaos extends Dao {
 	private static final String SQL_UPDATE_PRIVACY_STATE =
 		"UPDATE campaign " +
 		"SET privacy_state_id = (" +
-			"SELECT id " +
+			"SELECT Id " +
 			"FROM campaign_privacy_state " +
 			"WHERE privacy_state = ?" +
 		") " +
@@ -224,7 +224,7 @@ public final class CampaignDaos extends Dao {
 	private static final String SQL_UPDATE_RUNNING_STATE =
 		"UPDATE campaign " +
 		"SET running_state_id = (" +
-			"SELECT id " +
+			"SELECT Id " +
 			"FROM campaign_running_state " +
 			"WHERE running_state = ?" +
 		") " +
@@ -239,12 +239,12 @@ public final class CampaignDaos extends Dao {
 	private static final String SQL_DELETE_CAMPAIGN_CLASS =
 		"DELETE FROM campaign_class " +
 		"WHERE campaign_id = (" +
-			"SELECT id " +
+			"SELECT Id " +
 			"FROM campaign " +
 			"WHERE urn = ?" +
 		") " +
 		"AND class_id = (" +
-			"SELECT id " +
+			"SELECT Id " +
 			"FROM class " +
 			"WHERE urn = ?" +
 		")";
@@ -253,17 +253,17 @@ public final class CampaignDaos extends Dao {
 	private static final String SQL_DELETE_USER_ROLE_CAMPAIGN =
 		"DELETE FROM user_role_campaign " +
 		"WHERE user_id = (" +
-			"SELECT id " +
+			"SELECT Id " +
 			"FROM user " +
 			"WHERE username = ?" +
 		") " +
 		"AND campaign_id = (" +
-			"SELECT id " +
+			"SELECT Id " +
 			"FROM campaign " +
 			"WHERE urn = ?" +
 		") " +
 		"AND user_role_id = (" +
-			"SELECT id " +
+			"SELECT Id " +
 			"FROM user_role " +
 			"WHERE role = ?" +
 		")";

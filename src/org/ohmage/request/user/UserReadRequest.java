@@ -35,20 +35,20 @@ import org.ohmage.validator.ValidationException;
  *     <td>Required</td>
  *   </tr>
  *   <tr>
- *     <td>{@value org.ohmage.request.InputKeys#CLIENT}</td>
+ *     <td>{@Value org.ohmage.request.InputKeys#CLIENT}</td>
  *     <td>A string describing the client that is making this request.</td>
  *     <td>true</td>
  *   </tr>
  *   <tr>
- *     <td>{@value org.ohmage.request.InputKeys#CAMPAIGN_URN_LIST}</td>
+ *     <td>{@Value org.ohmage.request.InputKeys#CAMPAIGN_URN_LIST}</td>
  *     <td>A list of campaign identifiers where the identifiers are separated 
- *       by {@value org.ohmage.request.InputKeys#LIST_ITEM_SEPARATOR}s.</td>
+ *       by {@Value org.ohmage.request.InputKeys#LIST_ITEM_SEPARATOR}s.</td>
  *     <td>false</td>
  *   </tr>
  *   <tr>
- *     <td>{@value org.ohmage.request.InputKeys#CLASS_URN_LIST}</td>
+ *     <td>{@Value org.ohmage.request.InputKeys#CLASS_URN_LIST}</td>
  *     <td>A list of class identifiers where the identifiers are separated by
- *       {@value org.ohmage.request.InputKeys#LIST_ITEM_SEPARATOR}s</td>
+ *       {@Value org.ohmage.request.InputKeys#LIST_ITEM_SEPARATOR}s</td>
  *     <td>false</td>
  *   </tr>
  * </table>

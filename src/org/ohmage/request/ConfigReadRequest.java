@@ -54,7 +54,7 @@ public class ConfigReadRequest extends Request {
 		}
 		catch(CacheMissException e) {
 			setFailed();
-			LOGGER.error("Unknown value for 'known' key '" + PreferenceCache.KEY_DEFAULT_SURVEY_RESPONSE_SHARING_STATE + "'. Is the cache database missing a key-value pair?", e);
+			LOGGER.error("Unknown Value for 'known' key '" + PreferenceCache.KEY_DEFAULT_SURVEY_RESPONSE_SHARING_STATE + "'. Is the cache database missing a key-Value pair?", e);
 		}
 		catch(JSONException e) {
 			setFailed();

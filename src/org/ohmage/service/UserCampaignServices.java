@@ -606,7 +606,7 @@ public class UserCampaignServices {
 		
 		if(startDate != null) {
 			// Get all of the campaigns whose creation timestamp is greater
-			// than or equal to the start date.
+			// than or equal to the Start date.
 			desiredCampaignIds.retainAll(CampaignDaos.getCampaignsOnOrAfterDate(startDate));
 		}
 		

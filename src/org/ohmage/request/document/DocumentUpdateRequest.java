@@ -41,81 +41,81 @@ import org.ohmage.validator.ValidationException;
  *     <td>Required</td>
  *   </tr>
  *   <tr>
- *     <td>{@value org.ohmage.request.InputKeys#CLIENT}</td>
+ *     <td>{@Value org.ohmage.request.InputKeys#CLIENT}</td>
  *     <td>A string describing the client that is making this request.</td>
  *     <td>true</td>
  *   </tr>
  *   <tr>
- *     <td>{@value org.ohmage.request.InputKeys#DOCUMENT_ID}</td>
+ *     <td>{@Value org.ohmage.request.InputKeys#DOCUMENT_ID}</td>
  *     <td>The unique identifier for the document to be updated.</td>
  *     <td>true</td>
  *   </tr>
  *   <tr>
- *     <td>{@value org.ohmage.request.InputKeys#DOCUMENT}</td>
+ *     <td>{@Value org.ohmage.request.InputKeys#DOCUMENT}</td>
  *     <td>New contents for the document.</td>
  *     <td>false</td>
  *   </tr>
  *   <tr>
- *     <td>{@value org.ohmage.request.InputKeys#DOCUMENT_NAME}</td>
+ *     <td>{@Value org.ohmage.request.InputKeys#DOCUMENT_NAME}</td>
  *     <td>A new name for the document.</td>
  *     <td>false</td>
  *   </tr>
  *   <tr>
- *     <td>{@value org.ohmage.request.InputKeys#DESCRIPTION}</td>
+ *     <td>{@Value org.ohmage.request.InputKeys#DESCRIPTION}</td>
  *     <td>A new description for the document.</td>
  *     <td>false</td>
  *   </tr>
  *   <tr>
- *     <td>{@value org.ohmage.request.InputKeys#PRIVACY_STATE}</td>
+ *     <td>{@Value org.ohmage.request.InputKeys#PRIVACY_STATE}</td>
  *     <td>The new privacy state of the document.</td>
  *     <td>false</td>
  *   </tr>
  *   <tr>
- *     <td>{@value org.ohmage.request.InputKeys#CAMPAIGN_ROLE_LIST_ADD}</td>
+ *     <td>{@Value org.ohmage.request.InputKeys#CAMPAIGN_ROLE_LIST_ADD}</td>
  *     <td>A list of campaign ID and document role pairs. The pairs should be
  *       separated by 
- *       {@value org.ohmage.request.InputKeys#LIST_ITEM_SEPARATOR}s and each
+ *       {@Value org.ohmage.request.InputKeys#LIST_ITEM_SEPARATOR}s and each
  *       campaign ID should be separated from its associated document role by a
- *       {@value org.ohmage.request.InputKeys#ENTITY_ROLE_SEPARATOR}.</td>
+ *       {@Value org.ohmage.request.InputKeys#ENTITY_ROLE_SEPARATOR}.</td>
  *     <td>false</td>
  *   </tr>
  *   <tr>
- *     <td>{@value org.ohmage.request.InputKeys#CAMPAIGN_LIST_REMOVE}</td>
+ *     <td>{@Value org.ohmage.request.InputKeys#CAMPAIGN_LIST_REMOVE}</td>
  *     <td>A list of campaign IDs for campaigns that should no longer be 
  *       associated with the document. The campaign IDs should be separated by
- *       {@value org.ohmage.request.InputKeys#LIST_ITEM_SEPARATOR}s.</td>
+ *       {@Value org.ohmage.request.InputKeys#LIST_ITEM_SEPARATOR}s.</td>
  *     <td>false</td>
  *   </tr>
  *   <tr>
- *     <td>{@value org.ohmage.request.InputKeys#CLASS_ROLE_LIST_ADD}</td>
+ *     <td>{@Value org.ohmage.request.InputKeys#CLASS_ROLE_LIST_ADD}</td>
  *     <td>A list of class ID and document role pairs. The pairs should be
  *       separated by 
- *       {@value org.ohmage.request.InputKeys#LIST_ITEM_SEPARATOR}s and each
+ *       {@Value org.ohmage.request.InputKeys#LIST_ITEM_SEPARATOR}s and each
  *       class ID should be separated from its associated document role by a
- *       {@value org.ohmage.request.InputKeys#ENTITY_ROLE_SEPARATOR}.</td>
+ *       {@Value org.ohmage.request.InputKeys#ENTITY_ROLE_SEPARATOR}.</td>
  *     <td>false</td>
  *   </tr>
  *   <tr>
- *     <td>{@value org.ohmage.request.InputKeys#CLASS_LIST_REMOVE}</td>
+ *     <td>{@Value org.ohmage.request.InputKeys#CLASS_LIST_REMOVE}</td>
  *     <td>A list of class IDs for classes that should no longer be 
  *       associated with the document. The class IDs should be separated by
- *       {@value org.ohmage.request.InputKeys#LIST_ITEM_SEPARATOR}s.</td>
+ *       {@Value org.ohmage.request.InputKeys#LIST_ITEM_SEPARATOR}s.</td>
  *     <td>false</td>
  *   </tr>
  *   <tr>
- *     <td>{@value org.ohmage.request.InputKeys#USER_ROLE_LIST_ADD}</td>
+ *     <td>{@Value org.ohmage.request.InputKeys#USER_ROLE_LIST_ADD}</td>
  *     <td>A list of username and document role pairs. The pairs should be
  *       separated by 
- *       {@value org.ohmage.request.InputKeys#LIST_ITEM_SEPARATOR}s and each
+ *       {@Value org.ohmage.request.InputKeys#LIST_ITEM_SEPARATOR}s and each
  *       username should be separated from its associated document role by a
- *       {@value org.ohmage.request.InputKeys#ENTITY_ROLE_SEPARATOR}.</td>
+ *       {@Value org.ohmage.request.InputKeys#ENTITY_ROLE_SEPARATOR}.</td>
  *     <td>false</td>
  *   </tr>
  *   <tr>
- *     <td>{@value org.ohmage.request.InputKeys#DESCRIPTION}</td>
+ *     <td>{@Value org.ohmage.request.InputKeys#DESCRIPTION}</td>
  *     <td>A list of usernames for users that should no longer be associated 
  *       with the document. The usernames should be separated by
- *       {@value org.ohmage.request.InputKeys#LIST_ITEM_SEPARATOR}s.</td>
+ *       {@Value org.ohmage.request.InputKeys#LIST_ITEM_SEPARATOR}s.</td>
  *     <td>false</td>
  *   </tr>
  * </table>

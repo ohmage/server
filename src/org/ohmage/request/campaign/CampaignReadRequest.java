@@ -33,7 +33,7 @@ import org.ohmage.validator.ValidationException;
 
 /**
  * <p>A request to read information about a campaign or set of campaigns. The
- * optional parameters will limit the resulting list based on their value. For
+ * optional parameters will limit the resulting list based on their Value. For
  * example, if an initial list is given, a running state of running is given, 
  * and a user role of supervisor is given, then the list of campaigns whose
  * information is returned will be the ones from the initial list where the
@@ -45,16 +45,16 @@ import org.ohmage.validator.ValidationException;
  *     <td>Required</td>
  *   </tr>
  *   <tr>
- *     <td>{@value org.ohmage.request.InputKeys#CLIENT}</td>
+ *     <td>{@Value org.ohmage.request.InputKeys#CLIENT}</td>
  *     <td>A string describing the client that is making this request.</td>
  *     <td>true</td>
  *   </tr>
  *   <tr>
- *     <td>{@value org.ohmage.request.InputKeys#OUTPUT_FORMAT}</td>
+ *     <td>{@Value org.ohmage.request.InputKeys#OUTPUT_FORMAT}</td>
  *     <td>The output format for the resulting list of campaigns. The different
  *       output formats are as follows:<br />
  *       <ul>
- *         <li>{@value org.ohmage.validator.CampaignValidators.OutputFormat.SHORT}
+ *         <li>{@Value org.ohmage.validator.CampaignValidators.OutputFormat.SHORT}
  *           <ul>
  *             <li>Name</li>
  *             <li>Description</li>
@@ -64,7 +64,7 @@ import org.ohmage.validator.ValidationException;
  *             <li>A list of the requesting user's campaign roles</li>
  *           </ul>
  *         </li>
- *         <li>{@value org.ohmage.validator.CampaignValidators.OutputFormat.LONG}
+ *         <li>{@Value org.ohmage.validator.CampaignValidators.OutputFormat.LONG}
  *           <ul>
  *             <li>Name</li>
  *             <li>Description</li>
@@ -78,7 +78,7 @@ import org.ohmage.validator.ValidationException;
  *             <li>XML</li>
  *           </ul>
  *         </li>
- *         <li>{@value org.ohmage.validator.CampaignValidators.OutputFormat.XML}
+ *         <li>{@Value org.ohmage.validator.CampaignValidators.OutputFormat.XML}
  *           <ul>
  *             <li>The campaign's XML as a file attachment.</li>
  *           </ul>
@@ -87,7 +87,7 @@ import org.ohmage.validator.ValidationException;
  *     <td>true</td>
  *   </tr>
  *   <tr>
- *     <td>{@value org.ohmage.request.InputKeys#CAMPAIGN_URN_LIST}</td>
+ *     <td>{@Value org.ohmage.request.InputKeys#CAMPAIGN_URN_LIST}</td>
  *     <td>A list of campaign identifiers to begin with. If this parameter is
  *       omitted the initial list will be all of the campaigns to which the 
  *       user is associated. The campaign identifiers should be separated by 
@@ -96,7 +96,7 @@ import org.ohmage.validator.ValidationException;
  *     <td>false</td>
  *   </tr>
  *   <tr>
- *     <td>{@value org.ohmage.request.InputKeys#CLASS_URN_LIST}</td>
+ *     <td>{@Value org.ohmage.request.InputKeys#CLASS_URN_LIST}</td>
  *     <td>A list of classes where any campaigns that aren't associated with 
  *       all of these classes will be omitted from the result. The class 
  *       identifiers should be separated by
@@ -105,31 +105,31 @@ import org.ohmage.validator.ValidationException;
  *     <td>false</td>
  *   </tr>
  *   <tr>
- *     <td>{@value org.ohmage.request.InputKeys#START_DATE}</td>
+ *     <td>{@Value org.ohmage.request.InputKeys#START_DATE}</td>
  *     <td>This will remove all campaigns from the result whose creation 
  *       timestamp is before this date.</td>
  *     <td>false</td>
  *   </tr>
  *   <tr>
- *     <td>{@value org.ohmage.request.InputKeys#END_DATE}</td>
+ *     <td>{@Value org.ohmage.request.InputKeys#END_DATE}</td>
  *     <td>This will remove all campaigns from the result whose creation
  *       timestamp is after this date.</td>
  *     <td>false</td>
  *   </tr>
  *   <tr>
- *     <td>{@value org.ohmage.request.InputKeys#PRIVACY_STATE}</td>
+ *     <td>{@Value org.ohmage.request.InputKeys#PRIVACY_STATE}</td>
  *     <td>This will remove all campaigns from the result whose privacy state 
  *       is not this privacy state.</td>
  *     <td>false</td>
  *   </tr>
  *   <tr>
- *     <td>{@value org.ohmage.request.InputKeys#END_DATE}</td>
+ *     <td>{@Value org.ohmage.request.InputKeys#END_DATE}</td>
  *     <td>This will remove all campaigns from the result whose running state
  *       is not this running state.</td>
  *     <td>false</td>
  *   </tr>
  *   <tr>
- *     <td>{@value org.ohmage.request.InputKeys#USER_ROLE}</td>
+ *     <td>{@Value org.ohmage.request.InputKeys#USER_ROLE}</td>
  *     <td>This will remove all campaigns from the result where the user does 
  *       not have this role.</td>
  *     <td>false</td>
@@ -207,8 +207,8 @@ public class CampaignReadRequest extends UserRequest {
 			
 			tStartDate = CampaignValidators.validateStartDate(this, httpRequest.getParameter(InputKeys.START_DATE));
 			if((tStartDate != null) && (httpRequest.getParameterValues(InputKeys.START_DATE).length > 1)) {
-				setFailed(ErrorCodes.SERVER_INVALID_DATE, "Multiple start dates were found.");
-				throw new ValidationException("Multiple start dates were found.");
+				setFailed(ErrorCodes.SERVER_INVALID_DATE, "Multiple Start dates were found.");
+				throw new ValidationException("Multiple Start dates were found.");
 			}
 			
 			tEndDate = CampaignValidators.validateEndDate(this, httpRequest.getParameter(InputKeys.END_DATE));
@@ -219,10 +219,10 @@ public class CampaignReadRequest extends UserRequest {
 			
 			// TODO: Should this really be an issue? Should we simply return
 			// nothing?
-			LOGGER.info("Verifying that if both the start date and end date are present that the start date isn't after the end date.");
+			LOGGER.info("Verifying that if both the Start date and end date are present that the Start date isn't after the end date.");
 			if((tStartDate != null) && (tEndDate != null) && (tStartDate.after(tEndDate))) {
-				setFailed(ErrorCodes.SERVER_INVALID_DATE, "The start date cannot be after the end date.");
-				throw new ValidationException("The start date cannot be after the end date.");
+				setFailed(ErrorCodes.SERVER_INVALID_DATE, "The Start date cannot be after the end date.");
+				throw new ValidationException("The Start date cannot be after the end date.");
 			}
 			
 			tCampaignIds = CampaignValidators.validateCampaignIds(this, httpRequest.getParameter(InputKeys.CAMPAIGN_URN_LIST));

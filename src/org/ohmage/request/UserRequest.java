@@ -546,7 +546,7 @@ public abstract class UserRequest extends Request {
 	
 	/**
 	 * Generates the success/fail response for the user with an additional key-
-	 * value pair. It also adds a Set-Cookie header in the response for the 
+	 * Value pair. It also adds a Set-Cookie header in the response for the 
 	 * authentication / session token if one exists.
 	 * 
 	 * @param httpRequest The HTTP request that began this exchange.
@@ -555,7 +555,7 @@ public abstract class UserRequest extends Request {
 	 * 
 	 * @param key The second to key to include when the request succeeds.
 	 * 
-	 * @param value the value to assign to the second key.
+	 * @param Value the Value to assign to the second key.
 	 * 
 	 * @param token The authentication / session token that is to be placed in
 	 * 				the HTTP response's header.

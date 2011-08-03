@@ -18,17 +18,17 @@ import org.ohmage.request.UserRequest;
  *     <td>Required</td>
  *   </tr>
  *   <tr>
- *     <td>{@value org.ohmage.request.InputKeys#USER}</td>
+ *     <td>{@Value org.ohmage.request.InputKeys#USER}</td>
  *     <td>The username of the user that is attempting to login.</td>
  *     <td>true</td>
  *   </tr>
  *   <tr>
- *     <td>{@value org.ohmage.request.InputKeys#PASSWORD}</td>
+ *     <td>{@Value org.ohmage.request.InputKeys#PASSWORD}</td>
  *     <td>The password of the user that is attempting to login.</td>
  *     <td>true</td>
  *   </tr>
  *   <tr>
- *     <td>{@value org.ohmage.request.InputKeys#CLIENT}</td>
+ *     <td>{@Value org.ohmage.request.InputKeys#CLIENT}</td>
  *     <td>A string describing the client that is making this request.</td>
  *     <td>true</td>
  *   </tr>

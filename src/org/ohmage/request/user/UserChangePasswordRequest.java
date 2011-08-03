@@ -23,12 +23,12 @@ import org.ohmage.validator.ValidationException;
  *     <td>Required</td>
  *   </tr>
  *   <tr>
- *     <td>{@value org.ohmage.request.InputKeys#CLIENT}</td>
+ *     <td>{@Value org.ohmage.request.InputKeys#CLIENT}</td>
  *     <td>A string describing the client that is making this request.</td>
  *     <td>true</td>
  *   </tr>
  *   <tr>
- *     <td>{@value org.ohmage.request.InputKeys#NEW_PASSWORD}</td>
+ *     <td>{@Value org.ohmage.request.InputKeys#NEW_PASSWORD}</td>
  *     <td>The user's new plaintext password.</td>
  *     <td>true</td>
  *   </tr>

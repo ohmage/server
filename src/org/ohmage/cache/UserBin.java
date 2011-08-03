@@ -86,7 +86,7 @@ public final class UserBin extends TimerTask {
 	}
 	
 	/**
-	 * Adds a user to the bin and returns an id (token) representing that user. If the user is already resident in the bin, their
+	 * Adds a user to the bin and returns an Id (token) representing that user. If the user is already resident in the bin, their
 	 * old token is removed and a new one is generated and returned. 
 	 */
 	public static synchronized String addUser(User user) {
@@ -118,7 +118,7 @@ public final class UserBin extends TimerTask {
 	}
 	
 	/**
-	 * Returns the User bound to the provided id or null if id does not exist in the bin. 
+	 * Returns the User bound to the provided Id or null if Id does not exist in the bin. 
 	 */
 	public static synchronized User getUser(String id) {
 		UserTime ut = USERS.get(id);
@@ -135,9 +135,9 @@ public final class UserBin extends TimerTask {
 	/**
 	 * Gets the number of milliseconds until a token expires.
 	 * 
-	 * @param id The token.
+	 * @param Id The token.
 	 * 
-	 * @return The number of milliseconds until 'id' expires.
+	 * @return The number of milliseconds until 'Id' expires.
 	 */
 	public static synchronized long getTokenRemainingLifetimeInMillis(String id) {
 		UserTime ut = USERS.get(id);
@@ -178,7 +178,7 @@ public final class UserBin extends TimerTask {
 			if(currentTime - ut.time > LIFETIME) {
 			    	
 				if(LOGGER.isDebugEnabled()) {
-					LOGGER.debug("Removing user with id " + key);
+					LOGGER.debug("Removing user with Id " + key);
 				}
 				
 				USERS.remove(key);
@@ -191,7 +191,7 @@ public final class UserBin extends TimerTask {
 	}
 	
 	/**
-	 * Returns the id for the provided user.
+	 * Returns the Id for the provided user.
 	 */
 	private static synchronized String findIdForUser(User user) {
 		Iterator<String> iterator = USERS.keySet().iterator();

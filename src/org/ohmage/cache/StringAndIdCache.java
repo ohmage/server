@@ -46,14 +46,14 @@ public abstract class StringAndIdCache extends Cache {
 		private final String string;
 		
 		/**
-		 * Creates a new object with the specified id and value. This is done
+		 * Creates a new object with the specified Id and Value. This is done
 		 * instead of having a default constructor and directly setting the
 		 * values as a convenience to make creating a new object a one-liner
 		 * and to provide a thin veil of encapsulation.
 		 * 
-		 * @param id The key for this key-value pair.
+		 * @param Id The key for this key-Value pair.
 		 * 
-		 * @param string The value for this key-value pair.
+		 * @param string The Value for this key-Value pair.
 		 */
 		private StringAndId(int id, String string) {
 			this.id = id;
@@ -64,8 +64,8 @@ public abstract class StringAndIdCache extends Cache {
 	// The lookup table for translating strings to IDs and visa versa.
 	private BidirectionalHashMap<String, Integer> stringAndIdMap;
 	
-	// The SQL to use to get the values which must return a String value and
-	// an integer value as dictated by the private class StringAndId.
+	// The SQL to use to get the values which must return a String Value and
+	// an integer Value as dictated by the private class StringAndId.
 	private final String sqlForRetrievingValues;
 	
 	// The names of the columns for which the data must be retrieved.
@@ -94,19 +94,19 @@ public abstract class StringAndIdCache extends Cache {
 	 * Then, we check to see if such a state exists in our cache. If not, we
 	 * throw an exception because, if someone is querying for a state that
 	 * doesn't exist, we need to bring it to their immediate attention rather
-	 * than returning an "error" value. Otherwise, the corresponding integer
-	 * value is returned.
+	 * than returning an "error" Value. Otherwise, the corresponding integer
+	 * Value is returned.
 	 * 
 	 * It is recommended, but not required, to use the constants declared in
 	 * the concrete cache class as the parameter.
 	 * 
 	 * The complexity is O(n) if a refresh is required; otherwise, the 
-	 * complexity of a Java Map object to lookup a key and return its value.
+	 * complexity of a Java Map object to lookup a key and return its Value.
 	 * 
-	 * @param string The String whose corresponding integer value is
+	 * @param string The String whose corresponding integer Value is
 	 * 				 being requested.
 	 * 
-	 * @return The corresponding integer value.
+	 * @return The corresponding integer Value.
 	 * 
 	 * @throws CacheMissException Thrown if no such state exists.
 	 */
@@ -132,17 +132,17 @@ public abstract class StringAndIdCache extends Cache {
 	 * the amount of time between updates. If our cache has become stale, we
 	 * attempt to update it.
 	 * 
-	 * Returns the String representation of the parameterized integer, 'id'.
+	 * Returns the String representation of the parameterized integer, 'Id'.
 	 * If no such ID is known, an exception is thrown.
 	 * 
 	 * The complexity is O(n) if a refresh is required; otherwise, the 
-	 * complexity of a Java Map object to lookup a key and return its value.
+	 * complexity of a Java Map object to lookup a key and return its Value.
 	 * 
-	 * @param id The ID whose String representation is desired.
+	 * @param Id The ID whose String representation is desired.
 	 * 
-	 * @return The String representation of the parameterized 'id'.
+	 * @return The String representation of the parameterized 'Id'.
 	 * 
-	 * @throws CacheMissException Thrown if the parameterized 'id' is unknown.
+	 * @throws CacheMissException Thrown if the parameterized 'Id' is unknown.
 	 * 							  This is done because if we are querying on
 	 * 							  unknown IDs it is probably indicative of a
 	 * 							  larger problem.
@@ -153,7 +153,7 @@ public abstract class StringAndIdCache extends Cache {
 			refreshMap();
 		}
 
-		// If the ID exists return the String-value representation.
+		// If the ID exists return the String-Value representation.
 		if(stringAndIdMap.containsValue(id)) {
 			return stringAndIdMap.getKey(id);
 		}

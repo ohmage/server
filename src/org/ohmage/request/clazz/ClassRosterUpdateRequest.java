@@ -34,20 +34,20 @@ import org.ohmage.validator.ValidationException;
  *     <td>Required</td>
  *   </tr>
  *   <tr>
- *     <td>{@value org.ohmage.request.InputKeys#CLIENT}</td>
+ *     <td>{@Value org.ohmage.request.InputKeys#CLIENT}</td>
  *     <td>A string describing the client that is making this request.</td>
  *     <td>true</td>
  *   </tr>
  *   <tr>
- *     <td>{@value org.ohmage.request.InputKeys#ROSTER}</td>
+ *     <td>{@Value org.ohmage.request.InputKeys#ROSTER}</td>
  *     <td>A file attachment that is a CSV file. This should consist of lines
  *     terminated by newline characters. In Excel, and most Microsoft products,
  *     carriage returns are used instead of newlines. Due to the likelihood of
  *     Excel being used to generated and/or modify the class roster, this is
  *     acceptable as well.
  *     <br />Each line should consist of three, comma-separated values. The 
- *     first value should be a unique class identifier. The second value should
- *     be the username of an existing user. The third value should be a valid 
+ *     first Value should be a unique class identifier. The second Value should
+ *     be the username of an existing user. The third Value should be a valid 
  *     class role. Each line specifies a single user's role in a single class.
  *     If multiple rows share the same class ID and username, the last row is
  *     the one that will take effect and there will be a warning message for

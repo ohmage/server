@@ -71,7 +71,7 @@ public final class CookieUtils {
 	}
 	
 	/**
-	 * Adds a HTTP Cookie to the response with the given name and value and a
+	 * Adds a HTTP Cookie to the response with the given name and Value and a
 	 * lifetime.
 	 *  
 	 * @param httpResponse The HttpServletResponse to which the Cookie should 
@@ -79,7 +79,7 @@ public final class CookieUtils {
 	 * 
 	 * @param name The name of the Cookie.
 	 * 
-	 * @param value The value for the Cookie.
+	 * @param Value The Value for the Cookie.
 	 * 
 	 * @param lifetimeInSeconds The lifetime of the Cookie in seconds.
 	 */

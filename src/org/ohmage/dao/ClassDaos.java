@@ -65,15 +65,15 @@ public class ClassDaos extends Dao {
 		"INSERT INTO user_class(user_id, class_id, user_class_role_id) " +
 		"VALUES (" +
 			"(" +
-				"SELECT id " +
+				"SELECT Id " +
 				"FROM user " +
 				"WHERE username = ?" +
 			"), (" +
-				"SELECT id " +
+				"SELECT Id " +
 				"FROM class " +
 				"WHERE urn = ?" +
 			"), (" +
-				"SELECT id " +
+				"SELECT Id " +
 				"FROM user_class_role " +
 				"WHERE role = ?" +
 			")" +
@@ -95,17 +95,17 @@ public class ClassDaos extends Dao {
 	private static final String SQL_UPDATE_USER_CLASS =
 		"UPDATE user_class " +
 		"SET user_class_role_id = (" +
-			"SELECT id " +
+			"SELECT Id " +
 			"FROM user_class_role " +
 			"WHERE role = ?" +
 		")" +
 		"WHERE user_id = (" +
-			"SELECT id " +
+			"SELECT Id " +
 			"FROM user " +
 			"WHERE username = ?" +
 		")" +
 		"AND class_id = (" +
-			"SELECT id " +
+			"SELECT Id " +
 			"FROM class " +
 			"WHERE urn = ?" +
 		")";
@@ -119,12 +119,12 @@ public class ClassDaos extends Dao {
 	private static final String SQL_DELETE_USER_FROM_CLASS =
 		"DELETE FROM user_class " +
 		"WHERE user_id = (" +
-			"SELECT id " +
+			"SELECT Id " +
 			"FROM user " +
 			"WHERE username = ?" +
 		") " +
 		"AND class_id = (" +
-			"SELECT id " +
+			"SELECT Id " +
 			"FROM class " +
 			"WHERE urn = ?" +
 		")";

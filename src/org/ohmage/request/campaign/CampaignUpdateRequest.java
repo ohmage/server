@@ -33,57 +33,57 @@ import org.ohmage.validator.ValidationException;
  *     <td>Required</td>
  *   </tr>
  *   <tr>
- *     <td>{@value org.ohmage.request.InputKeys#CLIENT}</td>
+ *     <td>{@Value org.ohmage.request.InputKeys#CLIENT}</td>
  *     <td>A string describing the client that is making this request.</td>
  *     <td>true</td>
  *   </tr>
  *   <tr>
- *     <td>{@value org.ohmage.request.InputKeys#CAMPAIGN_URN}</td>
+ *     <td>{@Value org.ohmage.request.InputKeys#CAMPAIGN_URN}</td>
  *     <td>The unique identifier for the campaign to be deleted.</td>
  *     <td>true</td>
  *   </tr>
  *   <tr>
- *     <td>{@value org.ohmage.request.InputKeys#XML}</td>
+ *     <td>{@Value org.ohmage.request.InputKeys#XML}</td>
  *     <td>The XML file describing this campaign.</td>
  *     <td>false</td>
  *   </tr>
  *   <tr>
- *     <td>{@value org.ohmage.request.InputKeys#RUNNING_STATE}</td>
+ *     <td>{@Value org.ohmage.request.InputKeys#RUNNING_STATE}</td>
  *     <td>The initial running state of this campaign.</td>
  *     <td>false</td>
  *   </tr>
  *   <tr>
- *     <td>{@value org.ohmage.request.InputKeys#PRIVACY_STATE}</td>
+ *     <td>{@Value org.ohmage.request.InputKeys#PRIVACY_STATE}</td>
  *     <td>The initial privacy state of this campaign.</td>
  *     <td>false</td>
  *   </tr>
  *   <tr>
- *     <td>{@value org.ohmage.request.InputKeys#CLASS_URN_LIST}</td>
+ *     <td>{@Value org.ohmage.request.InputKeys#CLASS_URN_LIST}</td>
  *     <td>A list of classes with which this campaign will initially be 
  *       associated.</td>
  *     <td>false</td>
  *   </tr>
  *   <tr>
- *     <td>{@value org.ohmage.request.InputKeys#DESCRIPTION}</td>
+ *     <td>{@Value org.ohmage.request.InputKeys#DESCRIPTION}</td>
  *     <td>An optional description of this campaign.</td>
  *     <td>false</td>
  *   </tr>
  *   <tr>
- *     <td>{@value org.ohmage.request.InputKeys#USER_ROLE_LIST_ADD}</td>
+ *     <td>{@Value org.ohmage.request.InputKeys#USER_ROLE_LIST_ADD}</td>
  *     <td>A list of users to be directly associated with the campaign. The 
  *       user-role pairs should separated by 
- *       {@value org.ohmage.request.InputKeys#LIST_ITEM_SEPARATOR}s and in each
+ *       {@Value org.ohmage.request.InputKeys#LIST_ITEM_SEPARATOR}s and in each
  *       pair the username should be separated from the campaign role by a
- *       {@value org.ohmage.request.InputKeys#ENTITY_ROLE_SEPARATOR}.</td>
+ *       {@Value org.ohmage.request.InputKeys#ENTITY_ROLE_SEPARATOR}.</td>
  *     <td>false</td>
  *   </tr>
  *   <tr>
- *     <td>{@value org.ohmage.request.InputKeys#USER_ROLE_LIST_REMOVE}</td>
+ *     <td>{@Value org.ohmage.request.InputKeys#USER_ROLE_LIST_REMOVE}</td>
  *     <td>A list of users whose association with the campaign should be  
  *       removed. The user-role pairs should separated by 
- *       {@value org.ohmage.request.InputKeys#LIST_ITEM_SEPARATOR}s and in each
+ *       {@Value org.ohmage.request.InputKeys#LIST_ITEM_SEPARATOR}s and in each
  *       pair the username should be separated from the campaign role by a
- *       {@value org.ohmage.request.InputKeys#ENTITY_ROLE_SEPARATOR}.</td>
+ *       {@Value org.ohmage.request.InputKeys#ENTITY_ROLE_SEPARATOR}.</td>
  *     <td>false</td>
  *   </tr>
  * </table>
@@ -158,7 +158,7 @@ public class CampaignUpdateRequest extends UserRequest {
 
 			// TODO: We cannot allow a campaign to not have any classes  
 			// associated with it. Because this will return null if the class
-			// list doesn't contain any meaningful class IDs and a null value
+			// list doesn't contain any meaningful class IDs and a null Value
 			// for this parameter means that the class associations for this
 			// campaign will not be modified, we are safe. However, if we 
 			// decide to split this into two parameters, we will want to add a

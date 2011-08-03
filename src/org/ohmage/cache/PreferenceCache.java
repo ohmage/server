@@ -77,7 +77,7 @@ public final class PreferenceCache extends KeyValueCache {
 			in.close();
 		}
 		catch(CacheMissException e) {
-			throw new IllegalStateException("Unknown value for 'known' key '" + PreferenceCache.KEY_PROPERTIES_FILE + "'. Is the cache database missing a key-value pair?", e);
+			throw new IllegalStateException("Unknown Value for 'known' key '" + PreferenceCache.KEY_PROPERTIES_FILE + "'. Is the cache database missing a key-Value pair?", e);
 		}
 		catch(IOException e) {
 			throw new IllegalStateException("Missing the properties file that should have been built with the WAR file.", e);
@@ -110,18 +110,18 @@ public final class PreferenceCache extends KeyValueCache {
 	 * Then, we check to see if such a key exists in our cache. If not, we
 	 * throw an exception because, if someone is querying for a key that
 	 * doesn't exist, we need to bring it to their immediate attention rather
-	 * than returning an "error" value. Otherwise, the corresponding integer
-	 * value is returned.
+	 * than returning an "error" Value. Otherwise, the corresponding integer
+	 * Value is returned.
 	 * 
 	 * It is recommended, but not required, to use the constants declared in
 	 * the concrete cache class as the parameter.
 	 * 
 	 * The complexity is O(n) if a refresh is required; otherwise, the 
-	 * complexity of a Java Map object to lookup a key and return its value.
+	 * complexity of a Java Map object to lookup a key and return its Value.
 	 * 
-	 * @param key The key whose corresponding value is being requested.
+	 * @param key The key whose corresponding Value is being requested.
 	 * 
-	 * @return The corresponding value.
+	 * @return The corresponding Value.
 	 * 
 	 * @throws CacheMissException Thrown if no such key exists.
 	 */
@@ -143,12 +143,12 @@ public final class PreferenceCache extends KeyValueCache {
 	}
 	
 	/**
-	 * Returns the value with the specified key from the system properties. If
+	 * Returns the Value with the specified key from the system properties. If
 	 * no such key exists, it will throw a CacheMissException.
 	 * 
-	 * @param key The key to use to retrieve the desired value.
+	 * @param key The key to use to retrieve the desired Value.
 	 * 
-	 * @return Returns the value indexed by the key in question.
+	 * @return Returns the Value indexed by the key in question.
 	 * 
 	 * @throws CacheMissException Thrown if the key is not known in the system
 	 * 							  properties.

@@ -13,23 +13,23 @@ import javax.sql.DataSource;
 public class CampaignSurveyDaos extends Dao {
 	// Retrieves the total number of survey responses for a campaign.
 	private static final String SQL_COUNT_SURVEY_RESPONSES =
-		"SELECT COUNT(id) " +
+		"SELECT COUNT(Id) " +
 		"FROM survey_response " +
 		"WHERE campaign_id = (" +
-			"SELECT id " +
+			"SELECT Id " +
 			"FROM campaign " +
 			"WHERE urn = ?" +
 		")";
 	
 	// Retrieves the total number of prompt responses for a campaign.
 	private static final String SQL_COUNT_PROMPT_RESPONSES = 
-		"SELECT COUNT(id) " +
+		"SELECT COUNT(Id) " +
 		"FROM prompt_response " +
 		"WHERE survey_response_id in (" +
-			"SELECT id " +
+			"SELECT Id " +
 			"FROM survey_response " +
 			"WHERE campaign_id = (" +
-				"SELECT id " +
+				"SELECT Id " +
 				"FROM campaign " +
 				"WHERE urn = ?" +
 			")" +

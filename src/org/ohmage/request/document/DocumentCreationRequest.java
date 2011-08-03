@@ -25,8 +25,8 @@ import org.ohmage.validator.ValidationException;
 /**
  * <p>Creates a document creation request. The document must be associated with
  * at least one campaign or class upon creation, therefore either
- * {@value org.ohmage.request.InputKeys#DOCUMENT_CAMPAIGN_ROLE_LIST} or
- * {@value org.ohmage.request.InputKeys#DOCUMENT_CLASS_ROLE_LIST} must be 
+ * {@Value org.ohmage.request.InputKeys#DOCUMENT_CAMPAIGN_ROLE_LIST} or
+ * {@Value org.ohmage.request.InputKeys#DOCUMENT_CLASS_ROLE_LIST} must be 
  * present.</p>
  * <table border="1">
  *   <tr>
@@ -35,49 +35,49 @@ import org.ohmage.validator.ValidationException;
  *     <td>Required</td>
  *   </tr>
  *   <tr>
- *     <td>{@value org.ohmage.request.InputKeys#CLIENT}</td>
+ *     <td>{@Value org.ohmage.request.InputKeys#CLIENT}</td>
  *     <td>A string describing the client that is making this request.</td>
  *     <td>true</td>
  *   </tr>
  *   <tr>
- *     <td>{@value org.ohmage.request.InputKeys#DOCUMENT}</td>
+ *     <td>{@Value org.ohmage.request.InputKeys#DOCUMENT}</td>
  *     <td>The contents of the new document.</td>
  *     <td>true</td>
  *   </tr>
  *   <tr>
- *     <td>{@value org.ohmage.request.InputKeys#DOCUMENT_NAME}</td>
+ *     <td>{@Value org.ohmage.request.InputKeys#DOCUMENT_NAME}</td>
  *     <td>The name of the new document including its extension.</td>
  *     <td>true</td>
  *   </tr>
  *   <tr>
- *     <td>{@value org.ohmage.request.InputKeys#PRIVACY_STATE}</td>
+ *     <td>{@Value org.ohmage.request.InputKeys#PRIVACY_STATE}</td>
  *     <td>The initial privacy state of the document.</td>
  *     <td>true</td>
  *   </tr>
  *   <tr>
- *     <td>{@value org.ohmage.request.InputKeys#DOCUMENT_CAMPAIGN_ROLE_LIST}</td>
+ *     <td>{@Value org.ohmage.request.InputKeys#DOCUMENT_CAMPAIGN_ROLE_LIST}</td>
  *     <td>A list of campaign ID and document role pairs. The pairs should be
  *       separated by 
- *       {@value org.ohmage.request.InputKeys#LIST_ITEM_SEPARATOR}s and each
+ *       {@Value org.ohmage.request.InputKeys#LIST_ITEM_SEPARATOR}s and each
  *       campaign ID should be separated from its associated document role by a
- *       {@value org.ohmage.request.InputKeys#ENTITY_ROLE_SEPARATOR}.</td>
+ *       {@Value org.ohmage.request.InputKeys#ENTITY_ROLE_SEPARATOR}.</td>
  *     <td>Either this or 
- *       {@value org.ohmage.request.InputKeys#DOCUMENT_CLASS_ROLE_LIST} or both
+ *       {@Value org.ohmage.request.InputKeys#DOCUMENT_CLASS_ROLE_LIST} or both
  *       must be present.</td>
  *   </tr>
  *   <tr>
- *     <td>{@value org.ohmage.request.InputKeys#DOCUMENT_CLASS_ROLE_LIST}</td>
+ *     <td>{@Value org.ohmage.request.InputKeys#DOCUMENT_CLASS_ROLE_LIST}</td>
  *     <td>A list of class ID and document role pairs. The pairs should be
  *       separated by 
- *       {@value org.ohmage.request.InputKeys#LIST_ITEM_SEPARATOR}s and each
+ *       {@Value org.ohmage.request.InputKeys#LIST_ITEM_SEPARATOR}s and each
  *       class ID should be separated from its associated document role by a
- *       {@value org.ohmage.request.InputKeys#ENTITY_ROLE_SEPARATOR}.</td>
+ *       {@Value org.ohmage.request.InputKeys#ENTITY_ROLE_SEPARATOR}.</td>
  *     <td>Either this or 
- *       {@value org.ohmage.request.InputKeys#DOCUMENT_CAMPAIGN_ROLE_LIST} or
+ *       {@Value org.ohmage.request.InputKeys#DOCUMENT_CAMPAIGN_ROLE_LIST} or
  *       both must be present.</td>
  *   </tr>
  *   <tr>
- *     <td>{@value org.ohmage.request.InputKeys#DESCRIPTION}</td>
+ *     <td>{@Value org.ohmage.request.InputKeys#DESCRIPTION}</td>
  *     <td>An optional description of the class.</td>
  *     <td>false</td>
  *   </tr>

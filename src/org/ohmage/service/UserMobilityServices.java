@@ -88,7 +88,7 @@ public class UserMobilityServices {
 	/**
 	 * Retrieves the number of hours since the last Mobility upload from a 
 	 * user. If the user has never uploaded any Mobility points, the maximum
-	 * value for a double is returned.
+	 * Value for a double is returned.
 	 * 
 	 * @param request The Request that is performing this service.
 	 * 
@@ -97,7 +97,7 @@ public class UserMobilityServices {
 	 * 
 	 * @param username The username of the user in question.
 	 * 
-	 * @return Returns a double value representing the number of hours since 
+	 * @return Returns a double Value representing the number of hours since 
 	 * 		   the last time that some user uploaded Mobility points.
 	 * 
 	 * @throws ServiceException Thrown if there is an error.
@@ -131,7 +131,7 @@ public class UserMobilityServices {
 	 * 
 	 * @param usersUsername The username of the user in question.
 	 * 
-	 * @return Returns a double value representing the percentage of non-null
+	 * @return Returns a double Value representing the percentage of non-null
 	 * 		   location values from all of the Mobility uploads in the last 24
 	 * 		   hours. If there were no Mobility uploads, -1.0 is returned.
 	 * 

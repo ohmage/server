@@ -48,12 +48,12 @@ public final class ClassServices {
 	}
 	
 	/**
-	 * Checks if a class exists and compares that value to whether or not it
+	 * Checks if a class exists and compares that Value to whether or not it
 	 * should exist. If they don't match or there is an error, it will set the
 	 * request as failed with an error message if the reason for failure is
 	 * known and throw a ServiceException.
 	 * 
-	 * Note: Passing in a value of null will always result in the class not
+	 * Note: Passing in a Value of null will always result in the class not
 	 * existing.
 	 * 
 	 * @param request The request that is validating this class' identifier.

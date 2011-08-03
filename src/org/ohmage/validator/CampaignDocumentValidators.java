@@ -31,10 +31,10 @@ public class CampaignDocumentValidators {
 	 * @param campaignAndRoleList A String representing the campaign ID,  
 	 * 							  document role pairs. The pairs should be 
 	 * 							  separated by
-	 * 							  {@value org.ohmage.request.InputKeys#LIST_ITEM_SEPARATOR}s 
+	 * 							  {@Value org.ohmage.request.InputKeys#LIST_ITEM_SEPARATOR}s 
 	 * 							  and each pair should have its class ID 
 	 * 							  separated from its document role by a 
-	 * 							  {@value org.ohmage.request.InputKeys#ENTITY_ROLE_SEPARATOR}.
+	 * 							  {@Value org.ohmage.request.InputKeys#ENTITY_ROLE_SEPARATOR}.
 	 * 
 	 * @return Returns a Map of campaign ID, document role pairs. If the 
 	 * 		   campaignAndRoleList is null or whitespace only, null is 

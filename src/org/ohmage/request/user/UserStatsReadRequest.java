@@ -31,18 +31,18 @@ import org.ohmage.validator.ValidationException;
  *     <td>Required</td>
  *   </tr>
  *   <tr>
- *     <td>{@value org.ohmage.request.InputKeys#CLIENT}</td>
+ *     <td>{@Value org.ohmage.request.InputKeys#CLIENT}</td>
  *     <td>A string describing the client that is making this request.</td>
  *     <td>true</td>
  *   </tr>
  *   <tr>
- *     <td>{@value org.ohmage.request.InputKeys#CAMPAIGN_URN}</td>
+ *     <td>{@Value org.ohmage.request.InputKeys#CAMPAIGN_URN}</td>
  *     <td>The unique identifier for the campaign to which the survey data will
  *       pertain.</td>
  *     <td>true</td>
  *   </tr>
  *   <tr>
- *     <td>{@value org.ohmage.request.InputKeys#USERNAME}</td>
+ *     <td>{@Value org.ohmage.request.InputKeys#USERNAME}</td>
  *     <td>The username of the user whose statistical information is desired.
  *       </td>
  *     <td>true</td>

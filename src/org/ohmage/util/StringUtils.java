@@ -80,14 +80,14 @@ public final class StringUtils {
 	
 	/**
 	 * Checks if a String's length is greater than or equal to some 'min' 
-	 * value, and less than or equal to some 'max' value. The String should not
+	 * Value, and less than or equal to some 'max' Value. The String should not
 	 * be null, but if it is, false is returned.
 	 * 
-	 * @param string The String value whose length is being checked.
+	 * @param string The String Value whose length is being checked.
 	 * 
-	 * @param min The minimum allowed value for the String.
+	 * @param min The minimum allowed Value for the String.
 	 * 
-	 * @param max The maximum allowed value for the String.
+	 * @param max The maximum allowed Value for the String.
 	 * 
 	 * @return Returns false if the String is null, 'min' is greater than 
 	 * 		   'max', or if the String's length is not within the bounds; 
@@ -126,9 +126,9 @@ public final class StringUtils {
 	}
 	
 	/**
-	 * Validates that a String value is a valid URN value.
+	 * Validates that a String Value is a valid URN Value.
 	 * 
-	 * @return true if the provided value is a valid URN, false otherwise
+	 * @return true if the provided Value is a valid URN, false otherwise
 	 */
 	public static boolean isValidUrn(String value) {
 		if(isEmptyOrWhitespaceOnly(value)) {
@@ -196,16 +196,16 @@ public final class StringUtils {
 	}
 	
 	/**
-	 * <p>Validates that some String, 'value', is a valid boolean value. The 
+	 * <p>Validates that some String, 'Value', is a valid boolean Value. The 
 	 * String must be in all lower case and English.</p>
 	 * <p>There is no special case for null. See {@link #decodeBoolean(String)}
-	 * to determine what is a valid boolean value.</p>
+	 * to determine what is a valid boolean Value.</p>
 	 * 
-	 * @param value A String representation of a boolean value. This must be 
+	 * @param Value A String representation of a boolean Value. This must be 
 	 * 				in English and all lower case.
 	 * 
-	 * @return Returns true if the value is a valid boolean value; returns 
-	 * 		   false if it is not a valid boolean value.
+	 * @return Returns true if the Value is a valid boolean Value; returns 
+	 * 		   false if it is not a valid boolean Value.
 	 * 
 	 * @see org.ohmage.util.StringUtils#decodeBoolean(String)
 	 */
@@ -214,16 +214,16 @@ public final class StringUtils {
 	}
 	
 	/**
-	 * Decodes a String value into its boolean representation. If it is not a 
-	 * valid boolean value, null is returned. This should be used anywhere 
+	 * Decodes a String Value into its boolean representation. If it is not a 
+	 * valid boolean Value, null is returned. This should be used anywhere 
 	 * boolean values are being decoded from Strings.
 	 * 
-	 * @param value The String value to be decoded.
+	 * @param Value The String Value to be decoded.
 	 * 
-	 * @return Returns true if the value is a valid boolean value and 
-	 * 		   represents true. Returns false if the value is a valid boolean
-	 * 		   value and represents false. Returns null if the value is not a
-	 * 		   valid boolean value.
+	 * @return Returns true if the Value is a valid boolean Value and 
+	 * 		   represents true. Returns false if the Value is a valid boolean
+	 * 		   Value and represents false. Returns null if the Value is not a
+	 * 		   valid boolean Value.
 	 */
 	public static Boolean decodeBoolean(String value) {
 		// If we are going to allow different values for true and false, this
@@ -243,8 +243,8 @@ public final class StringUtils {
 	 * Decodes a String representing a date and returns a resulting Date
 	 * object. The date may follow any of these formats:
 	 * <ul>
-	 *   <li>{@value #DATE_FORMAT_AMERICAN}</li>
-	 *   <li>{@value #DATE_FORMAT_EVERYONE_ELSE}</li>
+	 *   <li>{@Value #DATE_FORMAT_AMERICAN}</li>
+	 *   <li>{@Value #DATE_FORMAT_EVERYONE_ELSE}</li>
 	 * </ul>
 	 * 
 	 * @param date The date as a String that is to be decoded.

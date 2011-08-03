@@ -23,15 +23,15 @@ import org.ohmage.validator.ValidationException;
  *     <td>Required</td>
  *   </tr>
  *   <tr>
- *     <td>{@value org.ohmage.request.InputKeys#CLIENT}</td>
+ *     <td>{@Value org.ohmage.request.InputKeys#CLIENT}</td>
  *     <td>A string describing the client that is making this request.</td>
  *     <td>true</td>
  *   </tr>
  *   <tr>
- *     <td>{@value org.ohmage.request.InputKeys#USER_LIST}</td>
+ *     <td>{@Value org.ohmage.request.InputKeys#USER_LIST}</td>
  *     <td>A list of usernames of users to delete. The usernames should be 
  *       separated by 
- *       {@value org.ohmage.request.InputKeys#LIST_ITEM_SEPARATOR}s.</td>
+ *       {@Value org.ohmage.request.InputKeys#LIST_ITEM_SEPARATOR}s.</td>
  *     <td>true</td>
  *   </tr>
  * </table>

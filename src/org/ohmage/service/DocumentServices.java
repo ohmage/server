@@ -197,7 +197,7 @@ public class DocumentServices {
 	/**
 	 * Updates a document's information and/or contents. Except for the 
 	 * 'request' and the 'documentId', any parameter can be null indicating
-	 * that its value should not be updated.
+	 * that its Value should not be updated.
 	 * 
 	 * @param request The Request that is performing this update.
 	 * 

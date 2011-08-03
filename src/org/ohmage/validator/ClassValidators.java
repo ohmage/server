@@ -50,14 +50,14 @@ public final class ClassValidators {
 	public static String validateClassId(Request request, String classId) throws ValidationException {
 		LOGGER.info("Validating a class ID.");
 		
-		// If the value is null or whitespace only, return null.
+		// If the Value is null or whitespace only, return null.
 		if(StringUtils.isEmptyOrWhitespaceOnly(classId)) {
 			return null;
 		}
 		
 		String classIdTrimmed = classId.trim();
 		
-		// If the value is a valid URN, meaning that it is a plausible class 
+		// If the Value is a valid URN, meaning that it is a plausible class 
 		// ID, return the class ID back to the caller.
 		if(StringUtils.isValidUrn(classIdTrimmed)) {
 			return classIdTrimmed;
@@ -84,7 +84,7 @@ public final class ClassValidators {
 	 * 
 	 * @param classIdListString The class list as a String where each item is
 	 * 							separated by
-	 * 						  	{@value org.ohmage.request.InputKeys#LIST_ITEM_SEPARATOR}.
+	 * 						  	{@Value org.ohmage.request.InputKeys#LIST_ITEM_SEPARATOR}.
 	 * 
 	 * @return Returns a List of class identifiers from the 'classListString'
 	 * 		   or null if the class ID list String is null, whitespace only, or
@@ -234,7 +234,7 @@ public final class ClassValidators {
 	 * has no length, null is returned. Otherwise, a Map of class IDs to Maps
 	 * of usernames to class roles is returned. If the roster is not a valid 
 	 * roster a ValidationException is thrown and the request is failed with 
-	 * the error code, {@value ErrorCodes.CLASS_INVALID_ROSTER}.
+	 * the error code, {@Value ErrorCodes.CLASS_INVALID_ROSTER}.
 	 * 
 	 * @param request The Request that is performing this validation.
 	 * 

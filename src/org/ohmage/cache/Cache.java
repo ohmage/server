@@ -67,7 +67,7 @@ public abstract class Cache {
 	 * 
 	 * @throws IllegalArgumentException Thrown if the DataSource has not yet
 	 * 									been set and Spring has passed in a
-	 * 									null value or if the DataSource has
+	 * 									null Value or if the DataSource has
 	 * 									been set and it is attempting to be
 	 * 									reset.
 	 *
@@ -97,7 +97,7 @@ public abstract class Cache {
 	 * @throws IllegalArgumentException Thrown if the 
 	 * 									'frequencyInMilliseconds' is less than
 	 * 									the minimum allowed frequency, 
-	 * 									{@value #MIN_CACHE_REFRESH_MILLIS}.
+	 * 									{@Value #MIN_CACHE_REFRESH_MILLIS}.
 	 * 
 	 * @see #MIN_CACHE_REFRESH_MILLIS
 	 *

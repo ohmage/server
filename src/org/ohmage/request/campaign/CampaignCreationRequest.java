@@ -28,33 +28,33 @@ import org.ohmage.validator.ValidationException;
  *     <td>Required</td>
  *   </tr>
  *   <tr>
- *     <td>{@value org.ohmage.request.InputKeys#CLIENT}</td>
+ *     <td>{@Value org.ohmage.request.InputKeys#CLIENT}</td>
  *     <td>A string describing the client that is making this request.</td>
  *     <td>true</td>
  *   </tr>
  *   <tr>
- *     <td>{@value org.ohmage.request.InputKeys#XML}</td>
+ *     <td>{@Value org.ohmage.request.InputKeys#XML}</td>
  *     <td>The XML file describing this campaign.</td>
  *     <td>true</td>
  *   </tr>
  *   <tr>
- *     <td>{@value org.ohmage.request.InputKeys#RUNNING_STATE}</td>
+ *     <td>{@Value org.ohmage.request.InputKeys#RUNNING_STATE}</td>
  *     <td>The initial running state of this campaign.</td>
  *     <td>true</td>
  *   </tr>
  *   <tr>
- *     <td>{@value org.ohmage.request.InputKeys#PRIVACY_STATE}</td>
+ *     <td>{@Value org.ohmage.request.InputKeys#PRIVACY_STATE}</td>
  *     <td>The initial privacy state of this campaign.</td>
  *     <td>true</td>
  *   </tr>
  *   <tr>
- *     <td>{@value org.ohmage.request.InputKeys#CLASS_URN_LIST}</td>
+ *     <td>{@Value org.ohmage.request.InputKeys#CLASS_URN_LIST}</td>
  *     <td>A list of classes with which this campaign will initially be 
  *       associated.</td>
  *     <td>true</td>
  *   </tr>
  *   <tr>
- *     <td>{@value org.ohmage.request.InputKeys#DESCRIPTION}</td>
+ *     <td>{@Value org.ohmage.request.InputKeys#DESCRIPTION}</td>
  *     <td>An optional description of this campaign.</td>
  *     <td>false</td>
  *   </tr>

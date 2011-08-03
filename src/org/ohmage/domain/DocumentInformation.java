@@ -80,7 +80,7 @@ public class DocumentInformation {
 			throw new IllegalArgumentException("The document's privacy state cannot be null or whitespace only.");
 		}
 		else if(lastModified == null) {
-			throw new IllegalArgumentException("The document's last modified value cannot be null.");
+			throw new IllegalArgumentException("The document's last modified Value cannot be null.");
 		}
 		else if(creationDate == null) {
 			throw new IllegalArgumentException("The document's creation date cannot be null.");

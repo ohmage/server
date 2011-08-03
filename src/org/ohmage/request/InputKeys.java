@@ -65,7 +65,7 @@ public final class InputKeys {
 	// Survey Constants
 	public static final String SURVEY_ID = "survey_id";
 	public static final String SURVEY_ID_LIST = "survey_id_list";
-	public static final String SURVEY_FUNCTION_ID = "id"; // This should probably be more descriptive.
+	public static final String SURVEY_FUNCTION_ID = "Id"; // This should probably be more descriptive.
 	public static final String SURVEY_KEY = "survey_key";
 	
 	// Prompt Constants

@@ -25,7 +25,7 @@ import javax.sql.DataSource;
  */
 public final class MobilityPrivacyStateCache extends StringAndIdCache {
 	// The column IDs for the query.
-	private static final String ID_COLUMN = "id";
+	private static final String ID_COLUMN = "Id";
 	private static final String STATE_COLUMN = "privacy_state";
 	
 	private static final String SQL_GET_MOBILITY_PRIVACY_STATES_AND_IDS = 
