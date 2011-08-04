@@ -1,11 +1,14 @@
 package org.ohmage.request;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.log4j.Logger;
+import org.apache.log4j.NDC;
 import org.json.JSONObject;
 import org.ohmage.annotator.ErrorCodes;
 import org.ohmage.cache.UserBin;
@@ -219,7 +222,11 @@ public abstract class UserRequest extends Request {
 			setFailed(ErrorCodes.AUTHENTICATION_FAILED, "More than one client was given.");
 		}
 		else {
+			// Save the client.
 			tClient = clients[0];
+			
+			// Push the client into the logs.
+			NDC.push("client=" + tClient);
 		}
 		
 		user = tUser;
@@ -314,7 +321,11 @@ public abstract class UserRequest extends Request {
 			setFailed(ErrorCodes.AUTHENTICATION_FAILED, "More than one client was given.");
 		}
 		else {
+			// Save the client.
 			tClient = clients[0];
+			
+			// Push the client into the logs.
+			NDC.push("client=" + tClient);
 		}
 		
 		user = tUser;
@@ -461,7 +472,11 @@ public abstract class UserRequest extends Request {
 			setFailed(ErrorCodes.AUTHENTICATION_FAILED, "More than one client was given.");
 		}
 		else {
+			// Save the client.
 			tClient = clients[0];
+			
+			// Push the client into the logs.
+			NDC.push("client=" + tClient);
 		}
 		
 		user = tUser;
@@ -475,6 +490,15 @@ public abstract class UserRequest extends Request {
 	 */
 	public final User getUser() {
 		return user;
+	}
+	
+	/**
+	 * Returns the client parameter from the request.
+	 * 
+	 * @return The client parameter from the request.
+	 */
+	public final String getClient() {
+		return client;
 	}
 	
 	/**
@@ -516,6 +540,15 @@ public abstract class UserRequest extends Request {
 			e.logException(LOGGER);
 			return false;
 		}
+	}
+	
+	/**
+	 * Returns an empty map. This is for requests that don't have any specific
+	 * information to return.
+	 */
+	@Override
+	public Map<String, String[]> getAuditInformation() {
+		return new HashMap<String, String[]>();
 	}
 	
 	/**

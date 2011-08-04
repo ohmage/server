@@ -6,6 +6,7 @@ import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.util.Calendar;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
@@ -150,6 +151,8 @@ public class CampaignReadRequest extends UserRequest {
 	private static final String JSON_KEY_CLASSES = "classes";
 	private static final String JSON_KEY_USER_ROLES = "user_roles";
 	private static final String JSON_KEY_CAMPAIGN_ROLES_WITH_USERS = "user_role_campaign";
+	
+	private static final String AUDIT_KEY = "campaignRead:response:campaignId";
 	
 	private final CampaignValidators.OutputFormat outputFormat;
 	
@@ -336,6 +339,30 @@ public class CampaignReadRequest extends UserRequest {
 		catch(ServiceException e) {
 			e.logException(LOGGER);
 		}
+	}
+	
+	/**
+	 * Returns an empty map. This is for requests that don't have any specific
+	 * information to return.
+	 */
+	@Override
+	public Map<String, String[]> getAuditInformation() {
+		Map<String, String[]> result = new HashMap<String, String[]>();
+		
+		// Retrieve all of the campaign IDs from the result.
+		List<String> campaignIds = new LinkedList<String>();
+		for(Campaign campaign : shortOrLongResult.keySet()) {
+			campaignIds.add(campaign.getUrn());
+		}
+		
+		// If any campaign IDs were found, add an entry into the audit 
+		// information where the key distinguishes this as a result and the
+		// value is the listof campaign IDs.
+		if(campaignIds.size() > 0) {
+			result.put(AUDIT_KEY, campaignIds.toArray(new String[0]));
+		}
+		
+		return result;
 	}
 
 	/**

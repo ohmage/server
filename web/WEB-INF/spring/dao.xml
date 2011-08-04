@@ -5,6 +5,12 @@
        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
                            http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-2.5.xsd">
 
+  <bean class="org.ohmage.dao.AuditDaos">
+    <constructor-arg>
+      <ref bean="dataSource" />
+    </constructor-arg>
+  </bean>
+  
   <bean class="org.ohmage.dao.AuthenticationDao">
     <constructor-arg>
       <ref bean="dataSource" />

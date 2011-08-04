@@ -4,6 +4,83 @@ CREATE DATABASE andwellness CHARACTER SET utf8 COLLATE utf8_general_ci;
 USE andwellness;
 
 -- --------------------------------------------------------------------
+-- A lookup table for the types of HTTP requests. 
+-- --------------------------------------------------------------------
+CREATE TABLE audit_request_type (
+  -- A unique key to reference the different types.
+  id int unsigned NOT NULL auto_increment,
+  -- The value for the HTTP request types.
+  request_type varchar(8) NOT NULL,
+  PRIMARY KEY (id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+-- --------------------------------------------------------------------
+-- A table to audit all of the transactions with the server.
+-- --------------------------------------------------------------------
+CREATE TABLE audit (
+  -- A unique key for each request.
+  id int unsigned NOT NULL auto_increment,
+  -- A unique identifier for each record. This is used as a way to reobtain the
+  -- record's 'id' when inserting parameters.
+  uuid char(36) NOT NULL,
+  -- The type of request this was, GET, POST, etc.
+  request_type_id int unsigned NOT NULL,
+  -- The URI portion of the URL for the request. There will always be a URI.
+  uri text NOT NULL,
+  -- The client parameter. If it is missing, it will be null.
+  client text,
+  -- A specific identifier for devices.
+  device_id text,
+  -- The response we sent back to the client. If the request failed, we will
+  -- record the entire failure message. If the request succeeded, we will only
+  -- record "success".
+  response text NOT NULL,
+  -- A timestamp as recorded by a Calendar as soon as the request arrived.
+  received_millis long NOT NULL,
+  -- A timestamp as recorded by a Calendar as soon as the request was 
+  -- completely responded to.
+  respond_millis long NOT NULL,
+  -- A database timestamp about the time at which this record was made.
+  db_timestamp timestamp default current_timestamp NOT NULL,
+  PRIMARY KEY (id),
+  UNIQUE (uuid),
+  CONSTRAINT FOREIGN KEY (request_type_id) REFERENCES audit_request_type (id) ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+-- --------------------------------------------------------------------
+-- A mapping of extra keys to their values taken from the HTTP request
+-- headers.
+-- --------------------------------------------------------------------
+CREATE TABLE audit_extra (
+  -- A unique key for this parameter mapping.
+  id int unsigned NOT NULL auto_increment,
+  -- A reference to the audit to which this parameter was a member.
+  audit_id int unsigned NOT NULL,
+  -- The parameter's key.
+  extra_key text NOT NULL,
+  -- The parameter's value.
+  extra_value text NOT NULL,
+  PRIMARY KEY (id),
+  CONSTRAINT FOREIGN KEY (audit_id) REFERENCES audit (id) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+-- --------------------------------------------------------------------
+-- A mapping of parameter keys to their values linked to a request. 
+-- --------------------------------------------------------------------
+CREATE TABLE audit_parameter (
+  -- A unique key for this parameter mapping.
+  id int unsigned NOT NULL auto_increment,
+  -- A reference to the audit to which this parameter was a member.
+  audit_id int unsigned NOT NULL,
+  -- The parameter's key.
+  param_key text NOT NULL,
+  -- The parameter's value.
+  param_value text NOT NULL,
+  PRIMARY KEY (id),
+  CONSTRAINT FOREIGN KEY (audit_id) REFERENCES audit (id) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+-- --------------------------------------------------------------------
 -- The class concept comes from Mobilize, but it can be used for any
 -- taxonomical grouping of users. 
 -- --------------------------------------------------------------------
@@ -85,9 +162,7 @@ CREATE TABLE user (
 
 -- ---------------------------------------------------------------------
 -- Due to IRB standards, we store personally identifying information
--- separately from the user's login credentials. ** This table is currently
--- unused, but it is kept around in order to avoid changing the command
--- line registration process. **
+-- separately from the user's login credentials.
 -- ---------------------------------------------------------------------
 CREATE TABLE user_personal (
   id int unsigned NOT NULL auto_increment,
