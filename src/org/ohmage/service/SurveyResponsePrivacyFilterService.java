@@ -61,7 +61,7 @@ public class SurveyResponsePrivacyFilterService implements Service {
 					
 					SurveyResponseReadResult currentResult = (SurveyResponseReadResult) results.get(i);
 					
-					_logger.info(currentResult.getPrivacyState());
+					// _logger.info(currentResult.getPrivacyState());
 					
 					if( (resultIsUnshared(currentResult) && ! currentResult.getUsername().equals(req.getUser().getUserName())) 
 						|| 

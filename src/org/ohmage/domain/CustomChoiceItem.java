@@ -14,8 +14,7 @@ public class CustomChoiceItem {
 	private String _label;
 	private String _type;
 	
-	public CustomChoiceItem(int id, int originalId, String username, String label, String type) {
-		_id = id;
+	public CustomChoiceItem(int originalId, String username, String label, String type) {
 		_originalId = originalId;
 		_username = username;
 		_label = label;
@@ -90,5 +89,12 @@ public class CustomChoiceItem {
 		} else if (!_username.equals(other._username))
 			return false;
 		return true;
+	}
+
+	@Override
+	public String toString() {
+		return "CustomChoiceItem [_id=" + _id + ", _originalId=" + _originalId
+				+ ", _username=" + _username + ", _label=" + _label
+				+ ", _type=" + _type + "]";
 	}
 }

@@ -25,6 +25,7 @@ import org.apache.log4j.Logger;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.ohmage.domain.CustomChoiceItem;
 import org.ohmage.domain.PromptProperty;
 import org.ohmage.domain.PromptResponseMetadata;
 import org.ohmage.domain.SurveyResponseReadIndexedResult;
@@ -44,7 +45,12 @@ public class SurveyResponseReadJsonRowBasedOutputBuilder {
 	 * Converts the provided results to JSON using the provided rowItems List as a filter on what belongs in each
 	 * row.
 	 */
-	public String buildOutput(int numberOfSurveys, int numberOfPrompts, SurveyResponseReadAwRequest req, List<SurveyResponseReadIndexedResult> results, List<String> rowItems) 
+	public String buildOutput(int numberOfSurveys, 
+			                  int numberOfPrompts,
+			                  SurveyResponseReadAwRequest req,
+			                  List<SurveyResponseReadIndexedResult> results,
+			                  List<String> rowItems,
+			                  Map<String, List<CustomChoiceItem>> customChoiceMap) 
 		throws JSONException {
 		
 		_logger.info("Generating row-based JSON output");
@@ -209,10 +215,23 @@ public class SurveyResponseReadJsonRowBasedOutputBuilder {
 						while(responseIterator.hasNext()) {
 							String key = responseIterator.next();
 							JSONObject response = new JSONObject();
-							Map<String, PromptProperty> ppMap = choiceGlossaryMap.isEmpty() ? null : choiceGlossaryMap.get(key); 
+							Map<String, PromptProperty> ppMap = choiceGlossaryMap.isEmpty() ? null : choiceGlossaryMap.get(key);
+							List<CustomChoiceItem> customChoiceItemList = (null == customChoiceMap ? null : customChoiceMap.get(key));
+							
 							if(null != ppMap) {
 								response.put("prompt_choice_glossary", SurveyResponseReadWriterUtils.choiceGlossaryToJson(ppMap));
+							} 
+							else if(null != customChoiceItemList)  {
+								JSONObject choiceGlossaryObject = new JSONObject();
+								for(CustomChoiceItem cci : customChoiceItemList) {
+									JSONObject choice = new JSONObject();
+									choice.put("label", cci.getLabel());
+									choice.put("type", cci.getType());
+									choiceGlossaryObject.put(String.valueOf(cci.getId()), choice);
+								}
+								response.put("prompt_choice_glossary", choiceGlossaryObject);
 							}
+							
 							response.put("prompt_response", promptResponseMap.get(key));
 							response.put("prompt_display_type", promptResponseMetadataMap.get(key).getDisplayType());
 							response.put("prompt_unit", promptResponseMetadataMap.get(key).getUnit());
