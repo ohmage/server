@@ -52,14 +52,28 @@ public class RequestServlet extends HttpServlet {
 	 * @author John Jenkins
 	 */
 	private final class AuditThread extends Thread {
-		private final HttpServletRequest httpRequest;
+		private final RequestType requestType;
+		private final String uri;
 		
+		private final Map<String, String[]> parameterMap;
+		private final Map<String, String[]> headerMap;
+
 		private final long receivedTimestamp;
 		private final long respondTimestamp;
 		
 		/**
-		 * Builds a basic object to collect that data for when the thread is 
-		 * run.
+		 * Creates an object to hold the information necessary to create an
+		 * audit entry.
+		 * 
+		 * @param requestType The RequestType for the request being audited.
+		 * 
+		 * @param uri The URI of the request being audited.
+		 * 
+		 * @param parameterMap A map of parameter keys to all values given for
+		 * 					   all of the parameters passed into this request.
+		 * 
+		 * @param headerMap A map of all header keys to all values given for
+		 * 					all of the headers passed into this request.
 		 * 
 		 * @param receivedTimestamp The timestamp at which the request was 
 		 * 							received by the same measure as 
@@ -68,42 +82,31 @@ public class RequestServlet extends HttpServlet {
 		 * @param respondTimestamp The timestamp at which the request was fully
 		 * 						   responded to by the same measure as
 		 * 						   'receivedTimestamp'.
-		 * 
-		 * @param httpRequest The HttpServletRequest that was created by the
-		 * 					  JEE container for this request.
 		 */
 		public AuditThread(
-				final HttpServletRequest httpRequest,
+				final RequestType requestType,
+				final String uri,
+				final Map<String, String[]> parameterMap,
+				final Map<String, String[]> headerMap,
 				final long receivedTimestamp, 
 				final long respondTimestamp) {
 			
-			this.httpRequest = httpRequest;
+			this.requestType = requestType;
+			this.uri = uri;
+			
+			this.parameterMap = parameterMap;
+			this.headerMap = headerMap;
 			
 			this.receivedTimestamp = receivedTimestamp;
 			this.respondTimestamp = respondTimestamp;
 		}
 		
 		/**
-		 * Creates an audit entry.
+		 * Creates the entry in the audit table.
 		 */
 		@Override
 		public void run() {
 			try {
-				// Retrieve the type of request, GET, POST, etc.
-				RequestType requestType;
-				try {
-					requestType = RequestType.valueOf(httpRequest.getMethod());
-				}
-				catch(IllegalArgumentException e) {
-					requestType = RequestType.UNKNOWN;
-				}
-				
-				// Retrieve the request's URI.
-				String uri = httpRequest.getRequestURI();
-				
-				// Retrieve the request's parameter map.
-				Map<String, String[]> parameterMap = new HashMap<String, String[]>(httpRequest.getParameterMap());
-				
 				// Retrieve the client parameter should one exist. Otherwise,
 				// null is used.
 				String[] clientValues = parameterMap.get(InputKeys.CLIENT);
@@ -160,19 +163,7 @@ public class RequestServlet extends HttpServlet {
 				}
 				
 				// Generate an 'extras' Map based on the HTTP headers.
-				Map<String, String[]> extras = new HashMap<String, String[]>();
-				Enumeration<String> headers = httpRequest.getHeaderNames();
-				while(headers.hasMoreElements()) {
-					String header = headers.nextElement();
-					
-					List<String> valueList = new LinkedList<String>();
-					Enumeration<String> values = httpRequest.getHeaders(header);
-					while(values.hasMoreElements()) {
-						valueList.add(values.nextElement());
-					}
-					
-					extras.put(header, valueList.toArray(new String[0]));
-				}
+				Map<String, String[]> extras = headerMap;
 				
 				// Get any extras from the request.
 				if(request != null) {
@@ -218,15 +209,42 @@ public class RequestServlet extends HttpServlet {
 		
 		// Get the moment we have completed 
 		long respondedTimestamp = System.currentTimeMillis();
+		
+		// Get the information from the httpRequest.
+		
+		// Retrieve the type of request, GET, POST, etc.
+		RequestType requestType;
+		try {
+			requestType = RequestType.valueOf(httpRequest.getMethod());
+		}
+		catch(IllegalArgumentException e) {
+			requestType = RequestType.UNKNOWN;
+		}
+		
+		// Retrieve the request's URI.
+		String uri = httpRequest.getRequestURI();
+		
+		// Retrieve the request's parameter map.
+		Map<String, String[]> parameterMap = new HashMap<String, String[]>(httpRequest.getParameterMap());
+		
+		// Generate an 'extras' Map based on the HTTP headers.
+		Map<String, String[]> extras = new HashMap<String, String[]>();
+		Enumeration<String> headers = httpRequest.getHeaderNames();
+		while(headers.hasMoreElements()) {
+			String header = headers.nextElement();
+			
+			List<String> valueList = new LinkedList<String>();
+			Enumeration<String> values = httpRequest.getHeaders(header);
+			while(values.hasMoreElements()) {
+				valueList.add(values.nextElement());
+			}
+			
+			extras.put(header, valueList.toArray(new String[0]));
+		}
 
 		// Create a separate thread with the parameters and start that thread.
-		AuditThread auditThread = new AuditThread(httpRequest, receivedTimestamp, respondedTimestamp);
-		// FIXME: As soon as this function returns, Tomcat begins destroying 
-		// this object despite our still having a reference to it. For now, we
-		// run this in the main thread which allows everything to work, but we
-		// need to find a way to tell Tomcat to allow the GC to destroy the
-		// object and not take matters into their own hands.
-		auditThread.run();
+		AuditThread auditThread = new AuditThread(requestType, uri, parameterMap, extras, receivedTimestamp, respondedTimestamp);
+		auditThread.start();
 	}
 	
 	/**
