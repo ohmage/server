@@ -16,6 +16,7 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.Part;
 
 import org.apache.log4j.Logger;
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.ohmage.annotator.Annotator;
@@ -129,7 +130,16 @@ public abstract class Request {
 		String result;
 		try {
 			// Use the annotator's message to build the response.
-			result = annotator.toJsonObject().toString();
+			JSONObject resultJson = new JSONObject();
+			resultJson.put(JSON_KEY_RESULT, RESULT_FAILURE);
+			
+			// FIXME: We no longer have multiple error messages per failed
+			// response, so we need to get rid of this unnecessary array.
+			JSONArray jsonArray = new JSONArray();
+			jsonArray.put(annotator.toJsonObject());
+			
+			resultJson.put(JSON_KEY_ERRORS, jsonArray);
+			result = resultJson.toString();
 		}
 		catch(JSONException e) {
 			// If we can't even build the failure message, write a hand-
@@ -236,7 +246,7 @@ public abstract class Request {
 		// If the request failed, either during the build or while the response
 		// was being built, write a failure message.
 		if(failed) {
-			responseText = getFailureMessage().toString();
+			responseText = getFailureMessage();
 		}
 		
 		try {

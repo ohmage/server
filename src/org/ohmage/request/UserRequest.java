@@ -587,7 +587,7 @@ public abstract class UserRequest extends Request {
 	 * 
 	 * @param value The value to assign to the second key.
 	 */
-	protected void respond(HttpServletRequest httpRequest, HttpServletResponse httpResponse, String key, String value) {
+	protected void respond(HttpServletRequest httpRequest, HttpServletResponse httpResponse, String key, Object value) {
 		if(user != null) {
 			final String token = user.getToken(); 
 			if(token != null) {

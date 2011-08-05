@@ -2,6 +2,7 @@ package org.ohmage.request;
 
 import javax.servlet.http.HttpServletRequest;
 
+import org.ohmage.request.audit.AuditReadRequest;
 import org.ohmage.request.auth.AuthRequest;
 import org.ohmage.request.auth.AuthTokenRequest;
 import org.ohmage.request.campaign.CampaignCreationRequest;
@@ -40,6 +41,9 @@ public final class RequestBuilder {
 	private RequestBuilder() {}
 	
 	private static final String API_ROOT = "/app";
+	
+	// Audit
+	private static final String API_AUDIT_READ = API_ROOT + "/audit/read";
 	
 	// Authentication
 	private static final String API_USER_AUTH = API_ROOT + "/user/auth";
@@ -100,6 +104,10 @@ public final class RequestBuilder {
 		}
 		else if(API_USER_AUTH_TOKEN.equals(requestUri)) {
 			return new AuthTokenRequest(httpRequest);
+		}
+		// Audit
+		else if(API_AUDIT_READ.equals(requestUri)) {
+			return new AuditReadRequest(httpRequest);
 		}
 		// Campaign
 		else if(API_CAMPAIGN_CREATE.equals(requestUri)) {

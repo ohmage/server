@@ -20,9 +20,6 @@ CREATE TABLE audit_request_type (
 CREATE TABLE audit (
   -- A unique key for each request.
   id int unsigned NOT NULL auto_increment,
-  -- A unique identifier for each record. This is used as a way to reobtain the
-  -- record's 'id' when inserting parameters.
-  uuid char(36) NOT NULL,
   -- The type of request this was, GET, POST, etc.
   request_type_id int unsigned NOT NULL,
   -- The URI portion of the URL for the request. There will always be a URI.

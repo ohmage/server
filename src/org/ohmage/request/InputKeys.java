@@ -122,6 +122,16 @@ public final class InputKeys {
 	public static final String DOCUMENT_USER_ROLE_LIST = "document_user_role_list";
 	public static final String DOCUMENT_PERSONAL_DOCUMENTS = "personal_documents";
 	
+	// Audit Constants
+	public static final String AUDIT_REQUEST_TYPE = "request_type";
+	public static final String AUDIT_URI = "uri";
+	public static final String AUDIT_CLIENT = "client_value";
+	public static final String AUDIT_DEVICE_ID = "device_id_value";
+	public static final String AUDIT_RESPONSE_TYPE = "response_type";
+	public static final String AUDIT_ERROR_CODE = "error_code";
+	public static final String AUDIT_START_DATE = "start_date";
+	public static final String AUDIT_END_DATE = "end_date";
+	
 	// Separator Constants
 	public static final String LIST_ITEM_SEPARATOR = ",";
 	public static final String ENTITY_ROLE_SEPARATOR = ";";
