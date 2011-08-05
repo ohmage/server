@@ -22,6 +22,75 @@ import org.ohmage.validator.AuditValidators;
 import org.ohmage.validator.AuditValidators.ResponseType;
 import org.ohmage.validator.ValidationException;
 
+/**
+ * <p>Reads the audits from the system, based on the given parameters. If no
+ * parameters are given, all audits will be returned by the system, so be 
+ * careful! In order to read any audits the user must be an admin.</p>
+ * <table border="1">
+ *   <tr>
+ *     <td>Parameter Name</td>
+ *     <td>Description</td>
+ *     <td>Required</td>
+ *   </tr>
+ *   <tr>
+ *     <td>{@value org.ohmage.request.InputKeys#CLIENT}</td>
+ *     <td>A string describing the client that is making this request.</td>
+ *     <td>true</td>
+ *   </tr>
+ *   <tr>
+ *     <td>{@value org.ohmage.request.InputKeys#AUDIT_REQUEST_TYPE}</td>
+ *     <td>Limits the audits to only those with a specific request type. This 
+ *       must be one of 
+ *       {@link org.ohmage.jee.servlet.RequestServlet.RequestType}.</td>
+ *     <td>false</td>
+ *   </tr>
+ *   <tr>
+ *     <td>{@value org.ohmage.request.InputKeys#AUDIT_URI}</td>
+ *     <td>Limits the audits to only those with the given URI.</td>
+ *     <td>false</td>
+ *   </tr>
+ *   <tr>
+ *     <td>{@value org.ohmage.request.InputKeys#AUDIT_CLIENT}</td>
+ *     <td>Limits the audits to only those with the given client value.</td>
+ *     <td>false</td>
+ *   </tr>
+ *   <tr>
+ *     <td>{@value org.ohmage.request.InputKeys#AUDIT_DEVICE_ID}</td>
+ *     <td>Limits the audits to only those with the given device ID value.</td>
+ *     <td>false</td>
+ *   </tr>
+ *   <tr>
+ *     <td>{@value org.ohmage.request.InputKeys#AUDIT_RESPONSE_TYPE}</td>
+ *     <td>Limits the audits to only those with the given response type. This
+ *       must be one of
+ *       {@link org.ohmage.validator.AuditValidators.ResponseType}.</td>
+ *     <td>false</td>
+ *   </tr>
+ *   <tr>
+ *     <td>{@value org.ohmage.request.InputKeys#AUDIT_ERROR_CODE}</td>
+ *     <td>Limits the audits to only those with the given error code. This is
+ *       ignored unless the 
+ *       {@link org.ohmage.request.InputKeys#AUDIT_RESPONSE_TYPE} is 
+ *       {@link org.ohmage.validator.AuditValidators.ResponseType#FAILURE}.
+ *       </td>
+ *     <td>false</td>
+ *   </tr>
+ *   <tr>
+ *     <td>{@value org.ohmage.request.InputKeys#START_DATE}</td>
+ *     <td>Limits the audits to only those that were recorded on or after this
+ *       date. This may be either a date or a date-time.</td>
+ *     <td>false</td>
+ *   </tr>
+ *   <tr>
+ *     <td>{@value org.ohmage.request.InputKeys#END_DATE}</td>
+ *     <td>Limits the audits to only those that were recorded on or before this
+ *       date. This may be either a date or a date-time.</td>
+ *     <td>false</td>
+ *   </tr>
+ * </table>
+ * 
+ * @author John Jenkins
+ */
 public class AuditReadRequest extends UserRequest {
 	private static final Logger LOGGER = Logger.getLogger(AuditReadRequest.class);
 	

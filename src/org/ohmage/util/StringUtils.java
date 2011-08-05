@@ -36,10 +36,13 @@ public final class StringUtils {
 	private static final DateFormat DATE_FORMAT_AMERICAN = new SimpleDateFormat("MM/dd/yyyy");
 	private static final DateFormat DATE_FORMAT_EVERYONE_ELSE = new SimpleDateFormat("yyyy-MM-dd");
 	
+	private static final DateFormat DATE_TIME_FORMAT_AMERICAN = new SimpleDateFormat("M/d/yyyy h:m:s a");
+	private static final DateFormat DATE_TIME_FORMAT_EVERYONE_ELSE = new SimpleDateFormat("yyyy-M-d H:m:s");
+	
 	private static final Pattern EMAIL_PATTERN = Pattern.compile("^([_A-Za-z0-9-]+)(\\.[_A-Za-z0-9-]+)*@[A-Za-z0-9]+(\\.[A-Za-z0-9]+)*(\\.[A-Za-z]{2,})$");
 	
 	/**
-	 * It is unncessary to instantiate this class as it is a collection of 
+	 * It is unnecessary to instantiate this class as it is a collection of 
 	 * static methods.
 	 */
 	private StringUtils() {}
@@ -264,6 +267,38 @@ public final class StringUtils {
 		catch(ParseException americanException) {
 			try {
 				return DATE_FORMAT_EVERYONE_ELSE.parse(date);
+			}
+			catch(ParseException otherException) {
+				return null;
+			}
+		}
+	}
+	
+	/**
+	 * Decodes a String representing a date-time and returns a resulting Date
+	 * object. The date my follow any of these formats:
+	 * <ul>
+	 *   <li>{@value #DATE_TIME_FORMAT_AMERICAN}</li>
+	 *   <li>{@value #DATE_TIME_FORMAT_EVERYONE_ELSE}</li>
+	 * </ul>
+	 * 
+	 * @param dateTime The date-time as a String that is to be decoded.
+	 * 
+	 * @return Returns null if the date-time is null, whitespace only, or 
+	 * 		   doesn't follow one of the given format patterns. Otherwise, a 
+	 * 		   new Date object that represents the date is returned.
+	 */
+	public static Date decodeDateTime(String dateTime) {
+		if(isEmptyOrWhitespaceOnly(dateTime)) {
+			return null;
+		}
+		
+		try {
+			return DATE_TIME_FORMAT_AMERICAN.parse(dateTime);
+		}
+		catch(ParseException americanException) {
+			try {
+				return DATE_TIME_FORMAT_EVERYONE_ELSE.parse(dateTime);
 			}
 			catch(ParseException otherException) {
 				return null;

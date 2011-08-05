@@ -213,14 +213,19 @@ public class AuditValidators {
 			return null;
 		}
 		
-		Date date = StringUtils.decodeDate(startDate);
+		Date date = StringUtils.decodeDateTime(startDate);
 		if(date == null) {
-			request.setFailed(ErrorCodes.SERVER_INVALID_DATE, "The start date is invalid: " + startDate);
-			throw new ValidationException("The start date is invalid: " + startDate);
+			date = StringUtils.decodeDate(startDate);
+			
+			if(date == null) {
+				request.setFailed(ErrorCodes.SERVER_INVALID_DATE, "The start date is invalid: " + startDate);
+				throw new ValidationException("The start date is invalid: " + startDate);
+			}
 		}
-		else {
-			return date;
-		}
+		
+		LOGGER.debug("Returning: " + date.toString());
+		
+		return date;
 	}
 	
 	/**
@@ -237,19 +242,22 @@ public class AuditValidators {
 	 * 							   whitespace only, and not a valid date.
 	 */
 	public static Date validateEndDate(Request request, String endDate) throws ValidationException {
-		LOGGER.info("Validating a end date.");
+		LOGGER.info("Validating an end date.");
 		
 		if(StringUtils.isEmptyOrWhitespaceOnly(endDate)) {
 			return null;
 		}
 		
-		Date date = StringUtils.decodeDate(endDate);
+		Date date = StringUtils.decodeDateTime(endDate);
 		if(date == null) {
-			request.setFailed(ErrorCodes.SERVER_INVALID_DATE, "The end date is invalid: " + endDate);
-			throw new ValidationException("The end date is invalid: " + endDate);
+			date = StringUtils.decodeDate(endDate);
+			
+			if(date == null) {
+				request.setFailed(ErrorCodes.SERVER_INVALID_DATE, "The end date is invalid: " + endDate);
+				throw new ValidationException("The end date is invalid: " + endDate);
+			}
 		}
-		else {
-			return date;
-		}
+		
+		return date;
 	}
 }
