@@ -28,6 +28,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.ohmage.domain.Configuration;
+import org.ohmage.domain.CustomChoiceItem;
 import org.ohmage.domain.PromptProperty;
 import org.ohmage.domain.PromptResponseMetadata;
 import org.ohmage.domain.SingleChoicePromptValueAndLabel;
@@ -50,7 +51,8 @@ public class SurveyResponseReadCsvOutputBuilder  {
 										  int numberOfPrompts,
 			                              SurveyResponseReadAwRequest req,
 			                              List<SurveyResponseReadIndexedResult> indexedResultList,
-			                              List<String> outputColumns) throws JSONException {
+			                              List<String> outputColumns,
+			                              Map<String, List<CustomChoiceItem>> customChoiceItemMap) throws JSONException {
 		
 		_logger.info("Generating multi-result CSV output");
 		
@@ -105,7 +107,19 @@ public class SurveyResponseReadCsvOutputBuilder  {
 				context.put("text", promptResponseMetadataMap.get(key).getPromptText());
 				if(null != choiceGlossaryMap.get(key)) {	
 					context.put("choice_glossary", SurveyResponseReadWriterUtils.choiceGlossaryToJson(choiceGlossaryMap.get(key)));
-				} else {
+				} 
+				else if(null != customChoiceItemMap && customChoiceItemMap.containsKey(key)) {
+					JSONObject main = new JSONObject();
+					List<CustomChoiceItem> customChoiceItemList = customChoiceItemMap.get(key);
+					for(CustomChoiceItem cci : customChoiceItemList) {
+						JSONObject item = new JSONObject();
+						item.put("label", cci.getLabel());
+						item.put("type", cci.getType());
+						main.put(String.valueOf(cci.getId()), item);
+					} 
+					context.put("choice_glossary", main);
+				}
+				else {
 					context.put("choice_glossary", JSONObject.NULL);
 				}
 				prompt.put(key, context); 

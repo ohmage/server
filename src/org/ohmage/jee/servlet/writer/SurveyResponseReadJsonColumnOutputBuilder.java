@@ -25,6 +25,7 @@ import org.apache.log4j.Logger;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.ohmage.domain.CustomChoiceItem;
 import org.ohmage.domain.PromptProperty;
 import org.ohmage.domain.PromptResponseMetadata;
 import org.ohmage.domain.SurveyResponseReadIndexedResult;
@@ -42,7 +43,8 @@ public class SurveyResponseReadJsonColumnOutputBuilder  {
 			                              int numberOfPrompts,
 			                              SurveyResponseReadAwRequest req,
 			                              List<SurveyResponseReadIndexedResult> results,
-			                              List<String> outputColumns) throws JSONException {
+			                              List<String> outputColumns,
+			                              Map<String, List<CustomChoiceItem>> customChoiceMap) throws JSONException {
 		
 		_logger.info("Generating multi-result column-based JSON output");
 	
@@ -50,7 +52,8 @@ public class SurveyResponseReadJsonColumnOutputBuilder  {
 		Map<String, List<Object>> columnMap = new HashMap<String, List<Object>> ();
 		
 		// For prompt responses, the choice glossary and prompt metadata only needs to be set in the "column" once.
-		// Choice glossaries will only be present for single_choice and multi_choice prompt types.
+		// Choice glossaries will be present for all choice types. For the custom types the glossaries are 
+		// created by hand from the provided customChoiceMap.
 		
 		Map<String, Map<String, PromptProperty>> choiceGlossaryMap = new HashMap<String, Map<String, PromptProperty>>();
 		Map<String, PromptResponseMetadata> promptResponseMetadataMap = new HashMap<String, PromptResponseMetadata>();
@@ -70,7 +73,7 @@ public class SurveyResponseReadJsonColumnOutputBuilder  {
 				String key = iterator.next();
 				if(! promptResponseMetadataMap.containsKey(key)) {
 					promptResponseMetadataMap.put(key, result.getPromptResponseMetadataMap().get(key));
-				}
+				}	
 			}
 		}
 		
@@ -245,8 +248,11 @@ public class SurveyResponseReadJsonColumnOutputBuilder  {
 			
 			if(key.contains("prompt:id")) {
 				
-				Map<String, PromptProperty> choiceGlossary = choiceGlossaryMap.get(key.substring("urn:ohmage:prompt:id:".length()));
-				PromptResponseMetadata promptResponseMetadata = promptResponseMetadataMap.get(key.substring("urn:ohmage:prompt:id:".length()));
+				String promptId = key.substring("urn:ohmage:prompt:id:".length());
+				
+				Map<String, PromptProperty> choiceGlossary = choiceGlossaryMap.get(promptId);
+				PromptResponseMetadata promptResponseMetadata = promptResponseMetadataMap.get(promptId);
+				List<CustomChoiceItem> customChoiceItemList = (null == customChoiceMap ? null : customChoiceMap.get(promptId));  
 				
 				JSONObject column = new JSONObject();
 				JSONObject context = new JSONObject();
@@ -266,6 +272,16 @@ public class SurveyResponseReadJsonColumnOutputBuilder  {
 						choice.put("value", pp.getValue());
 						choice.put("label", pp.getLabel());
 						choiceGlossaryObject.put(pp.getKey(), choice);
+					}
+					context.put("choice_glossary", choiceGlossaryObject);
+				} 
+				else if(null != customChoiceItemList) {
+					JSONObject choiceGlossaryObject = new JSONObject();
+					for(CustomChoiceItem cci : customChoiceItemList) {
+						JSONObject choice = new JSONObject();
+						choice.put("label", cci.getLabel());
+						choice.put("type", cci.getType());
+						choiceGlossaryObject.put(String.valueOf(cci.getId()), choice);
 					}
 					context.put("choice_glossary", choiceGlossaryObject);
 				}

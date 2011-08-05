@@ -20,21 +20,29 @@ import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.log4j.Logger;
+import org.json.JSONArray;
+import org.json.JSONObject;
+import org.ohmage.domain.CustomChoiceItem;
 import org.ohmage.domain.ErrorResponse;
+import org.ohmage.domain.PromptResponseMetadata;
 import org.ohmage.domain.SurveyResponseReadIndexedResult;
 import org.ohmage.domain.SurveyResponseReadResult;
 import org.ohmage.request.AwRequest;
 import org.ohmage.request.InputKeys;
 import org.ohmage.request.SurveyResponseReadAwRequest;
 import org.ohmage.util.CookieUtils;
+import org.ohmage.util.JsonUtils;
 
 
 /** 
@@ -50,6 +58,8 @@ public class SurveyResponseReadResponseWriter extends AbstractResponseWriter {
 	private SurveyResponseReadJsonRowBasedOutputBuilder _jsonRowBasedOutputBuilder;
 	
 	private List<String> _columnNames;
+	
+	private static final int MAGIC_CUSTOM_CHOICE_INDEX = 100;
 	
 	public SurveyResponseReadResponseWriter(ErrorResponse errorResponse, 
 			                               List<String> columnNames,
@@ -173,6 +183,84 @@ public class SurveyResponseReadResponseWriter extends AbstractResponseWriter {
 					}
 				}
 				
+				// For csv and json-columns output, the custom choices need to be converted
+				// into unique-ified list in order for visualiztions and export to work
+				// properly. The key is the prompt id.
+				Map<String, List<CustomChoiceItem>> uniqueCustomChoiceMap = null; // will be converted into a choice glossary
+				                                                                  // for the custom types
+				Map<String, Integer> uniqueCustomChoiceIndexMap = null;
+				
+				// Now find the custom choice prompts (if there are any) and 
+				// unique-ify the entries for their choice glossaries.
+				if("csv".equals(req.getOutputFormat()) || "json-columns".equals(req.getOutputFormat())) {
+					
+					for(SurveyResponseReadIndexedResult result : indexedResults) {
+						Map<String, PromptResponseMetadata> promptResponseMetadataMap = result.getPromptResponseMetadataMap();
+						Iterator<String> responseMetadataKeyIterator = promptResponseMetadataMap.keySet().iterator();
+						
+						while(responseMetadataKeyIterator.hasNext()) {
+							String promptId = (responseMetadataKeyIterator.next());
+							PromptResponseMetadata metadata = promptResponseMetadataMap.get(promptId);
+							
+							if("single_choice_custom".equals(metadata.getPromptType()) || "multi_choice_custom".equals(metadata.getPromptType())) {
+								
+								List<CustomChoiceItem> customChoiceItems = null;
+								
+								if(null == uniqueCustomChoiceMap) { // lazily initialized in case there are no custom choices
+									uniqueCustomChoiceMap = new HashMap<String, List<CustomChoiceItem>>();
+								} 
+								
+								if(! uniqueCustomChoiceMap.containsKey(promptId)) {
+									customChoiceItems = new ArrayList<CustomChoiceItem>();
+									uniqueCustomChoiceMap.put(promptId, customChoiceItems);
+								} 
+								else {
+									customChoiceItems = uniqueCustomChoiceMap.get(promptId);
+								}
+								
+								// All of the data for the choice_glossary for custom types is stored in its JSON response
+								JSONObject customChoiceResponse = new JSONObject(result.getPromptResponseMap().get(promptId));
+								JSONArray customChoices = customChoiceResponse.getJSONArray("custom_choices");
+								for(int i = 0; i < customChoices.length(); i++) {
+									JSONObject choice = JsonUtils.getJsonObjectFromJsonArray(customChoices, i);
+									
+									if(null != choice) { // if there are no choices, it means the prompt was configured
+										                 // without any choices, the user did not create any custom choices,
+										                 // and the user skipped the prompt in the survey or the prompt was
+										                 // not displayed
+
+										// If the choice_id is >= 100, it means that is it a choice that the user added
+										// In the current system, users cannot remove choices
+										int originalId = choice.getInt("choice_id");
+										CustomChoiceItem cci = null;
+										if(originalId < MAGIC_CUSTOM_CHOICE_INDEX) {										
+											cci = new CustomChoiceItem(-1, originalId, result.getUsername(), choice.getString("choice_value"), "global");
+										} 
+										else {
+											cci = new CustomChoiceItem(-1, originalId, result.getUsername(), choice.getString("choice_value"), "custom");
+										}
+										
+										if(! customChoiceItems.contains(cci)) {
+											if(null == uniqueCustomChoiceIndexMap) {
+												uniqueCustomChoiceIndexMap = new HashMap<String, Integer>();												
+											}
+											
+											if(! uniqueCustomChoiceIndexMap.containsKey(promptId)) {
+												uniqueCustomChoiceIndexMap.put(promptId, MAGIC_CUSTOM_CHOICE_INDEX - 1);
+											}
+											
+											int uniqueId = uniqueCustomChoiceIndexMap.get(promptId) + 1;
+											cci.setId(uniqueId);
+											customChoiceItems.add(cci);
+											uniqueCustomChoiceIndexMap.put(promptId, uniqueId);
+										}	
+									}
+								}
+							}
+						}
+	 				}
+				}
+				
 				int numberOfSurveys = indexedResults.size();
 				int numberOfPrompts = results.size();
 				
@@ -187,14 +275,14 @@ public class SurveyResponseReadResponseWriter extends AbstractResponseWriter {
 					if(indexedResults.isEmpty()) {
 						responseText = _jsonColumnOutputBuilder.createZeroResultOutput(req, outputColumns);
 					} else {
-						responseText = _jsonColumnOutputBuilder.createMultiResultOutput(numberOfSurveys, numberOfPrompts, req, indexedResults, outputColumns);
+						responseText = _jsonColumnOutputBuilder.createMultiResultOutput(numberOfSurveys, numberOfPrompts, req, indexedResults, outputColumns, uniqueCustomChoiceMap);
 					}
 				}
 				else if("csv".equals(req.getOutputFormat())) {
 					if(indexedResults.isEmpty()) {
 						responseText = _csvOutputBuilder.createZeroResultOutput(req, outputColumns);
 					} else {
-						responseText = _csvOutputBuilder.createMultiResultOutput(numberOfSurveys, numberOfPrompts, req, indexedResults, outputColumns);
+						responseText = _csvOutputBuilder.createMultiResultOutput(numberOfSurveys, numberOfPrompts, req, indexedResults, outputColumns, uniqueCustomChoiceMap);
 					}
 				}
 			} 
