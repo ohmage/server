@@ -71,12 +71,6 @@ public class MultiChoiceCustomPromptValidator extends AbstractCustomChoicePrompt
 					+ j + "  for " + prompt.getId());
 				return false;
 			}
-			
-			if(! choiceSet.contains(value)) {
-				_logger.warn("Malformed multi_choice_custom message. Unknown choice value at value index " 
-						+ j + "  for " + prompt.getId());
-				return false;
-			}
 		}
 		
 		return true;

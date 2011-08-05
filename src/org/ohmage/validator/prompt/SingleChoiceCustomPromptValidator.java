@@ -66,13 +66,6 @@ public class SingleChoiceCustomPromptValidator extends AbstractCustomChoicePromp
 		if(null == choiceSet) {
 			return false;
 		}
-			
-		if(! choiceSet.contains(value)) {
-			if(_logger.isDebugEnabled()) {
-				_logger.debug("Malformed single_choice_custom message. Unknown choice value for " + prompt.getId());
-			}
-			return false;
-		}
 		
 		return true;
 	}
