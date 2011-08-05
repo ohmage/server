@@ -30,10 +30,10 @@ public final class ClassDocumentValidators {
 	 * 
 	 * @param classAndRoleList A String representing the class ID, document 
 	 * 						   role pairs. The pairs should be separated by 
-	 * 						   {@Value org.ohmage.request.InputKeys#LIST_ITEM_SEPARATOR}s 
+	 * 						   {@value org.ohmage.request.InputKeys#LIST_ITEM_SEPARATOR}s 
 	 * 						   and each pair should have its class ID separated
 	 * 						   from its document role by a 
-	 * 						   {@Value org.ohmage.request.InputKeys#ENTITY_ROLE_SEPARATOR}.
+	 * 						   {@value org.ohmage.request.InputKeys#ENTITY_ROLE_SEPARATOR}.
 	 * 
 	 * @return Returns a Map of class IDs to document roles. If the class role
 	 * 		   list is empty or whitespace only, null is returned.

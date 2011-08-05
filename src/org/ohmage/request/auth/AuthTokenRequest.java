@@ -18,17 +18,17 @@ import org.ohmage.request.UserRequest;
  *     <td>Required</td>
  *   </tr>
  *   <tr>
- *     <td>{@Value org.ohmage.request.InputKeys#USER}</td>
+ *     <td>{@value org.ohmage.request.InputKeys#USER}</td>
  *     <td>The username of the user that is attempting to login.</td>
  *     <td>true</td>
  *   </tr>
  *   <tr>
- *     <td>{@Value org.ohmage.request.InputKeys#PASSWORD}</td>
+ *     <td>{@value org.ohmage.request.InputKeys#PASSWORD}</td>
  *     <td>The password of the user that is attempting to login.</td>
  *     <td>true</td>
  *   </tr>
  *   <tr>
- *     <td>{@Value org.ohmage.request.InputKeys#CLIENT}</td>
+ *     <td>{@value org.ohmage.request.InputKeys#CLIENT}</td>
  *     <td>A string describing the client that is making this request.</td>
  *     <td>true</td>
  *   </tr>
@@ -65,7 +65,7 @@ public class AuthTokenRequest extends UserRequest {
 			return;
 		}
 		
-		UserBin.addUser(user);
+		UserBin.addUser(getUser());
 	}
 
 	/**
@@ -74,6 +74,6 @@ public class AuthTokenRequest extends UserRequest {
 	 */
 	@Override
 	public void respond(HttpServletRequest httpRequest, HttpServletResponse httpResponse) {
-		respond(httpRequest, httpResponse, KEY_AUTH_TOKEN, user.getToken());
+		respond(httpRequest, httpResponse, KEY_AUTH_TOKEN, getUser().getToken());
 	}
 }

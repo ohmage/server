@@ -420,7 +420,7 @@ public class SimpleCharStream
 	{
 		ReInit(dstream, startline, startcolumn, 4096);
 	}
-	/** Get token literal Value. */
+	/** Get token literal value. */
 	static public String GetImage()
 	{
 		if (bufpos >= tokenBegin)

@@ -35,20 +35,20 @@ import org.ohmage.validator.ValidationException;
  *     <td>Required</td>
  *   </tr>
  *   <tr>
- *     <td>{@Value org.ohmage.request.InputKeys#CLIENT}</td>
+ *     <td>{@value org.ohmage.request.InputKeys#CLIENT}</td>
  *     <td>A string describing the client that is making this request.</td>
  *     <td>true</td>
  *   </tr>
  *   <tr>
- *     <td>{@Value org.ohmage.request.InputKeys#CAMPAIGN_URN_LIST}</td>
+ *     <td>{@value org.ohmage.request.InputKeys#CAMPAIGN_URN_LIST}</td>
  *     <td>A list of campaign identifiers where the identifiers are separated 
- *       by {@Value org.ohmage.request.InputKeys#LIST_ITEM_SEPARATOR}s.</td>
+ *       by {@value org.ohmage.request.InputKeys#LIST_ITEM_SEPARATOR}s.</td>
  *     <td>false</td>
  *   </tr>
  *   <tr>
- *     <td>{@Value org.ohmage.request.InputKeys#CLASS_URN_LIST}</td>
+ *     <td>{@value org.ohmage.request.InputKeys#CLASS_URN_LIST}</td>
  *     <td>A list of class identifiers where the identifiers are separated by
- *       {@Value org.ohmage.request.InputKeys#LIST_ITEM_SEPARATOR}s</td>
+ *       {@value org.ohmage.request.InputKeys#LIST_ITEM_SEPARATOR}s</td>
  *     <td>false</td>
  *   </tr>
  * </table>
@@ -116,7 +116,7 @@ public class UserReadRequest extends UserRequest {
 				CampaignServices.checkCampaignsExistence(this, campaignIds, true);
 				
 				LOGGER.info("Verifying that the requester may read the information about hte users in the campaigns.");
-				UserCampaignServices.verifyUserCanReadUsersInfoInCampaigns(this, user.getUsername(), campaignIds);
+				UserCampaignServices.verifyUserCanReadUsersInfoInCampaigns(this, getUser().getUsername(), campaignIds);
 				
 				LOGGER.info("Gathering the information about the users in the campaigns.");
 				result.putAll(UserCampaignServices.getPersonalInfoForUsersInCampaigns(this, campaignIds));
@@ -127,7 +127,7 @@ public class UserReadRequest extends UserRequest {
 				ClassServices.checkClassesExistence(this, classIds, true);
 				
 				LOGGER.info("Verifying that the requester is privileged in all of the classes.");
-				UserClassServices.userHasRoleInClasses(this, user.getUsername(), classIds, ClassRoleCache.ROLE_PRIVILEGED);
+				UserClassServices.userHasRoleInClasses(this, getUser().getUsername(), classIds, ClassRoleCache.ROLE_PRIVILEGED);
 				
 				LOGGER.info("Gathering the information about the users in the classes.");
 				result.putAll(UserClassServices.getPersonalInfoForUsersInClasses(this, classIds));

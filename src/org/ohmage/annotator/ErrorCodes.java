@@ -97,4 +97,12 @@ public final class ErrorCodes {
 	
 	public static final String VISUALIZATION_INVALID_WIDTH_VALUE = "1200";
 	public static final String VISUALIZATION_INVALID_HEIGHT_VALUE = "1201";
+	
+	public static final String AUDIT_INSUFFICIENT_PERMISSIONS = "1300";
+	public static final String AUDIT_INVALID_REQUEST_TYPE = "1301";
+	public static final String AUDIT_INVALID_URI = "1302";
+	public static final String AUDIT_INVALID_CLIENT = "1303";
+	public static final String AUDIT_INVALID_DEVICE_ID = "1304";
+	public static final String AUDIT_INVALID_RESPONSE_TYPE = "1305";
+	public static final String AUDIT_INVALID_ERROR_CODE = "1306";
 }

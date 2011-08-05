@@ -30,8 +30,8 @@ public abstract class UserRequest extends Request {
 	
 	public static final long MILLIS_IN_A_SECOND = 1000;
 	
-	protected final User user;
-	protected final String client;
+	private final User user;
+	private final String client;
 	
 	/**
 	 * Builds a request that contains a user based on a username and password.
@@ -280,7 +280,7 @@ public abstract class UserRequest extends Request {
 		
 		// Now, if we haven't yet failed or authenticated the user, see if we
 		// allow the token to be a parameter.
-		if((tUser == null) && (! failed) &&
+		if((tUser == null) && (! isFailed()) &&
 		   (tokenLocation.equals(TokenLocation.PARAMETER) || tokenLocation.equals(TokenLocation.EITHER))) {
 			// Retrieve all of the authentication tokens that were parameters.
 			String[] tokens = httpRequest.getParameterValues(InputKeys.AUTH_TOKEN);
@@ -430,7 +430,7 @@ public abstract class UserRequest extends Request {
 			
 			// Now, if we haven't yet failed or authenticated the user, see if we
 			// allow the token to be a parameter.
-			if((tUser == null) && (! failed) &&
+			if((tUser == null) && (! isFailed()) &&
 			   (tokenLocation.equals(TokenLocation.PARAMETER) || tokenLocation.equals(TokenLocation.EITHER))) {
 				// Retrieve all of the authentication tokens that were parameters.
 				String[] tokens = httpRequest.getParameterValues(InputKeys.AUTH_TOKEN);
@@ -562,9 +562,6 @@ public abstract class UserRequest extends Request {
 	 * 
 	 * @param jsonResponse A JSONObject representing what should be sent as the
 	 * 					   data to the requester.
-	 * 
-	 * @param token The authentication / session token that is to be placed in
-	 * 				the HTTP response's header.
 	 */
 	protected void respond(HttpServletRequest httpRequest, HttpServletResponse httpResponse, JSONObject jsonResponse) {
 		if(user != null) {
@@ -579,7 +576,7 @@ public abstract class UserRequest extends Request {
 	
 	/**
 	 * Generates the success/fail response for the user with an additional key-
-	 * Value pair. It also adds a Set-Cookie header in the response for the 
+	 * value pair. It also adds a Set-Cookie header in the response for the 
 	 * authentication / session token if one exists.
 	 * 
 	 * @param httpRequest The HTTP request that began this exchange.
@@ -588,10 +585,7 @@ public abstract class UserRequest extends Request {
 	 * 
 	 * @param key The second to key to include when the request succeeds.
 	 * 
-	 * @param Value the Value to assign to the second key.
-	 * 
-	 * @param token The authentication / session token that is to be placed in
-	 * 				the HTTP response's header.
+	 * @param value The value to assign to the second key.
 	 */
 	protected void respond(HttpServletRequest httpRequest, HttpServletResponse httpResponse, String key, String value) {
 		if(user != null) {

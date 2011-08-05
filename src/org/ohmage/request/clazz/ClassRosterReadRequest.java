@@ -11,7 +11,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.log4j.Logger;
-import org.json.JSONException;
 import org.ohmage.annotator.ErrorCodes;
 import org.ohmage.cache.UserBin;
 import org.ohmage.dao.ClassDaos.UserAndClassRole;
@@ -35,14 +34,14 @@ import org.ohmage.validator.ValidationException;
  *     <td>Required</td>
  *   </tr>
  *   <tr>
- *     <td>{@Value org.ohmage.request.InputKeys#CLIENT}</td>
+ *     <td>{@value org.ohmage.request.InputKeys#CLIENT}</td>
  *     <td>A string describing the client that is making this request.</td>
  *     <td>true</td>
  *   </tr>
  *   <tr>
- *     <td>{@Value org.ohmage.request.InputKeys#CLASS_URN_LIST}</td>
+ *     <td>{@value org.ohmage.request.InputKeys#CLASS_URN_LIST}</td>
  *     <td>A list of classes identifiers (URNs) separated by
- *       {@Value org.ohmage.request.InputKeys#LIST_ITEM_SEPARATOR}s.</td>
+ *       {@value org.ohmage.request.InputKeys#LIST_ITEM_SEPARATOR}s.</td>
  *     <td>true</td>
  *   </tr>
  * </table>
@@ -104,7 +103,7 @@ public class ClassRosterReadRequest extends UserRequest {
 			ClassServices.checkClassesExistence(this, classIds, true);
 			
 			LOGGER.info("Verify that the user is an admin or that they are privileged in each of the classes in a list.");
-			UserClassServices.userIsAdminOrPrivilegedInAllClasses(this, user.getUsername(), classIds);
+			UserClassServices.userIsAdminOrPrivilegedInAllClasses(this, getUser().getUsername(), classIds);
 			
 			LOGGER.info("Generating the class roster.");
 			roster = ClassServices.generateClassRoster(this, classIds);
@@ -142,16 +141,8 @@ public class ClassRosterReadRequest extends UserRequest {
 		if(isFailed()) {
 			httpResponse.setContentType("text/html");
 			
-			try {
-				// Use the annotator's message to build the response.
-				responseText = annotator.toJsonObject().toString();
-			}
-			catch(JSONException e) {
-				// If we can't even build the failure message, write a hand-
-				// written message as the response.
-				LOGGER.error("An error occurred while building the failure JSON response.", e);
-				responseText = RESPONSE_ERROR_JSON_TEXT;
-			}
+			// Use the annotator's message to build the response.
+			responseText = getFailureMessage();
 		}
 		else {
 			// Set the type and force the browser to download it as the 
@@ -160,8 +151,8 @@ public class ClassRosterReadRequest extends UserRequest {
 			httpResponse.setHeader("Content-Disposition", "attachment; filename=roster.csv");
 			
 			// If available, set the token.
-			if(user != null) {
-				final String token = user.getToken(); 
+			if(getUser() != null) {
+				final String token = getUser().getToken(); 
 				if(token != null) {
 					CookieUtils.setCookieValue(httpResponse, InputKeys.AUTH_TOKEN, token, (int) (UserBin.getTokenRemainingLifetimeInMillis(token) / MILLIS_IN_A_SECOND));
 				}

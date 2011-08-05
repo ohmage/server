@@ -17,17 +17,17 @@ import org.ohmage.request.UserRequest;
  *     <td>Required</td>
  *   </tr>
  *   <tr>
- *     <td>{@Value org.ohmage.request.InputKeys#USER}</td>
+ *     <td>{@value org.ohmage.request.InputKeys#USER}</td>
  *     <td>The username of the requester.</td>
  *     <td>true</td>
  *   </tr>
  *   <tr>
- *     <td>{@Value org.ohmage.request.InputKeys#PASSWORD}</td>
+ *     <td>{@value org.ohmage.request.InputKeys#PASSWORD}</td>
  *     <td>The plaintext password of the requester.</td>
  *     <td>true</td>
  *   </tr>
  *   <tr>
- *     <td>{@Value org.ohmage.request.InputKeys#CLIENT}</td>
+ *     <td>{@value org.ohmage.request.InputKeys#CLIENT}</td>
  *     <td>A string describing the client that is making this request.</td>
  *     <td>true</td>
  *   </tr>
@@ -71,6 +71,6 @@ public class AuthRequest extends UserRequest {
 	public void respond(HttpServletRequest httpRequest, HttpServletResponse httpResponse) {
 		LOGGER.info("Responding to hte authentication request.");
 		
-		respond(httpRequest, httpResponse, KEY_HASHED_PASSWORD, (user == null) ? null : user.getPassword());
+		respond(httpRequest, httpResponse, KEY_HASHED_PASSWORD, (getUser() == null) ? null : getUser().getPassword());
 	}
 }

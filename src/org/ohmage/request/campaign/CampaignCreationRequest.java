@@ -28,33 +28,33 @@ import org.ohmage.validator.ValidationException;
  *     <td>Required</td>
  *   </tr>
  *   <tr>
- *     <td>{@Value org.ohmage.request.InputKeys#CLIENT}</td>
+ *     <td>{@value org.ohmage.request.InputKeys#CLIENT}</td>
  *     <td>A string describing the client that is making this request.</td>
  *     <td>true</td>
  *   </tr>
  *   <tr>
- *     <td>{@Value org.ohmage.request.InputKeys#XML}</td>
+ *     <td>{@value org.ohmage.request.InputKeys#XML}</td>
  *     <td>The XML file describing this campaign.</td>
  *     <td>true</td>
  *   </tr>
  *   <tr>
- *     <td>{@Value org.ohmage.request.InputKeys#RUNNING_STATE}</td>
+ *     <td>{@value org.ohmage.request.InputKeys#RUNNING_STATE}</td>
  *     <td>The initial running state of this campaign.</td>
  *     <td>true</td>
  *   </tr>
  *   <tr>
- *     <td>{@Value org.ohmage.request.InputKeys#PRIVACY_STATE}</td>
+ *     <td>{@value org.ohmage.request.InputKeys#PRIVACY_STATE}</td>
  *     <td>The initial privacy state of this campaign.</td>
  *     <td>true</td>
  *   </tr>
  *   <tr>
- *     <td>{@Value org.ohmage.request.InputKeys#CLASS_URN_LIST}</td>
+ *     <td>{@value org.ohmage.request.InputKeys#CLASS_URN_LIST}</td>
  *     <td>A list of classes with which this campaign will initially be 
  *       associated.</td>
  *     <td>true</td>
  *   </tr>
  *   <tr>
- *     <td>{@Value org.ohmage.request.InputKeys#DESCRIPTION}</td>
+ *     <td>{@value org.ohmage.request.InputKeys#DESCRIPTION}</td>
  *     <td>An optional description of this campaign.</td>
  *     <td>false</td>
  *   </tr>
@@ -168,14 +168,14 @@ public class CampaignCreationRequest extends UserRequest {
 			CampaignServices.checkCampaignExistence(this, campaignInfo.getCampaignId(), false);
 			
 			LOGGER.info("Verifying that the user is allowed to create campaigns.");
-			UserServices.verifyUserCanCreateCampaigns(this, user.getUsername());
+			UserServices.verifyUserCanCreateCampaigns(this, getUser().getUsername());
 			
 			LOGGER.info("Verifying that all of the classes and that the user is enrolled in call of the classes.");
-			UserClassServices.classesExistAndUserBelongs(this, classIds, user.getUsername());
+			UserClassServices.classesExistAndUserBelongs(this, classIds, getUser().getUsername());
 			
 			LOGGER.info("Creating the campaign.");
 			CampaignServices.createCampaign(this, campaignInfo.getCampaignId(), campaignInfo.getCampaignName(), 
-					xml, description, runningState, privacyState, classIds, user.getUsername());
+					xml, description, runningState, privacyState, classIds, getUser().getUsername());
 		}
 		catch(ServiceException e) {
 			e.logException(LOGGER);

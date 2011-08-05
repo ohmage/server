@@ -29,14 +29,14 @@ import org.ohmage.validator.ValidationException;
  *     <td>Required</td>
  *   </tr>
  *   <tr>
- *     <td>{@Value org.ohmage.request.InputKeys#CLIENT}</td>
+ *     <td>{@value org.ohmage.request.InputKeys#CLIENT}</td>
  *     <td>A string describing the client that is making this request.</td>
  *     <td>true</td>
  *   </tr>
  *   <tr>
- *     <td>{@Value org.ohmage.request.InputKeys#CLASS_URN_LIST}</td>
+ *     <td>{@value org.ohmage.request.InputKeys#CLASS_URN_LIST}</td>
  *     <td>A list of classes identifiers (URNs) separated by
- *       {@Value org.ohmage.request.InputKeys#LIST_ITEM_SEPARATOR}</td>
+ *       {@value org.ohmage.request.InputKeys#LIST_ITEM_SEPARATOR}</td>
  *     <td>true</td>
  *   </tr>
  * </table>
@@ -60,7 +60,7 @@ public class ClassReadRequest extends UserRequest {
 		
 		List<String> tempClassIds = null;
 		
-		if(! failed) {
+		if(! isFailed()) {
 			LOGGER.info("Creating a new class read request.");
 			
 			try {
@@ -99,11 +99,11 @@ public class ClassReadRequest extends UserRequest {
 			// Check that each of the classes in the list exist and that the 
 			// requester is a member of each class.
 			LOGGER.info("Checking that all of the classes in the class list exist.");
-			UserClassServices.classesExistAndUserBelongs(this, classIds, user.getUsername());
+			UserClassServices.classesExistAndUserBelongs(this, classIds, getUser().getUsername());
 			
 			// Get the information about the classes.
 			LOGGER.info("Gathering the information about the classes in the list.");
-			List<ClassInformation> informationAboutClasses = ClassServices.getClassesInformation(this, classIds, user.getUsername());
+			List<ClassInformation> informationAboutClasses = ClassServices.getClassesInformation(this, classIds, getUser().getUsername());
 			
 			// Populate our result JSONObject with class information.
 			LOGGER.info("Creating the result JSONObject with the information about the classes.");

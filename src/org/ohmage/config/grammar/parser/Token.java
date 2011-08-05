@@ -59,11 +59,11 @@ public class Token implements java.io.Serializable {
 	public Token specialToken;
 
 	/**
-	 * An optional attribute Value of the Token.
+	 * An optional attribute value of the Token.
 	 * Tokens which are not used as syntactic sugar will often contain
 	 * meaningful values that will be used later on by the compiler or
-	 * interpreter. This attribute Value is often different from the image.
-	 * Any subclass of Token that actually wants to return a non-null Value can
+	 * interpreter. This attribute value is often different from the image.
+	 * Any subclass of Token that actually wants to return a non-null value can
 	 * override this method as appropriate.
 	 */
 	public Object getValue() {
@@ -102,7 +102,7 @@ public class Token implements java.io.Serializable {
 
 	/**
 	 * Returns a new Token object, by default. However, if you want, you
-	 * can create and return subclass objects based on the Value of ofKind.
+	 * can create and return subclass objects based on the value of ofKind.
 	 * Simply add the cases to the switch for all those special cases.
 	 * For example, if you have a subclass of Token called IDToken that
 	 * you want to create if ofKind is ID, simply add something like :

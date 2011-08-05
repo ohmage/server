@@ -22,12 +22,12 @@ import org.ohmage.validator.ValidationException;
  *     <td>Required</td>
  *   </tr>
  *   <tr>
- *     <td>{@Value org.ohmage.request.InputKeys#CLIENT}</td>
+ *     <td>{@value org.ohmage.request.InputKeys#CLIENT}</td>
  *     <td>A string describing the client that is making this request.</td>
  *     <td>true</td>
  *   </tr>
  *   <tr>
- *     <td>{@Value org.ohmage.request.InputKeys#CAMPAIGN_URN}</td>
+ *     <td>{@value org.ohmage.request.InputKeys#CAMPAIGN_URN}</td>
  *     <td>The unique identifier for the campaign to be deleted.</td>
  *     <td>true</td>
  *   </tr>
@@ -81,7 +81,7 @@ public class CampaignDeletionRequest extends UserRequest {
 			CampaignServices.checkCampaignExistence(this, campaignId, true);
 			
 			LOGGER.info("Verifying that the requesting user is allowed to delete the campaign.");
-			UserCampaignServices.userCanDeleteCampaign(this, user.getUsername(), campaignId);
+			UserCampaignServices.userCanDeleteCampaign(this, getUser().getUsername(), campaignId);
 			
 			LOGGER.info("Deleting the campaign.");
 			CampaignServices.deleteCampaign(this, campaignId);

@@ -112,21 +112,21 @@ public class DocumentValidators {
 	}
 	
 	/**
-	 * Validates that a 'personal documents' Value is a valid Value. It should
-	 * be a boolean Value.
+	 * Validates that a 'personal documents' value is a valid value. It should
+	 * be a boolean value.
 	 * 
 	 * @param request The Request that is performing this validation.
 	 * 
-	 * @param Value The Value is be validated.
+	 * @param value The value is be validated.
 	 * 
-	 * @return If the Value is null or whitespace only, null is returned; 
-	 * 		   otherwise, the Value is returned.
+	 * @return If the value is null or whitespace only, null is returned; 
+	 * 		   otherwise, the value is returned.
 	 * 
-	 * @throws ValidationException Thrown if the Value is not a valid 'personal
-	 * 							   documents' Value.
+	 * @throws ValidationException Thrown if the value is not a valid 'personal
+	 * 							   documents' value.
 	 */
 	public static Boolean validatePersonalDocuments(Request request, String value) throws ValidationException {
-		LOGGER.info("Validating a 'personal documents' Value.");
+		LOGGER.info("Validating a 'personal documents' value.");
 		
 		if(StringUtils.isEmptyOrWhitespaceOnly(value)) {
 			return null;
@@ -136,8 +136,8 @@ public class DocumentValidators {
 			return StringUtils.decodeBoolean(value);
 		}
 		else {
-			request.setFailed(ErrorCodes.DOCUMENT_INVALID_PERSONAL_DOCUMENTS_VALUE, "Invalid personal documents Value: " + value);
-			throw new ValidationException("Invalid personal documents Value: " + value);
+			request.setFailed(ErrorCodes.DOCUMENT_INVALID_PERSONAL_DOCUMENTS_VALUE, "Invalid personal documents value: " + value);
+			throw new ValidationException("Invalid personal documents value: " + value);
 		}
 	}
 	
@@ -147,7 +147,7 @@ public class DocumentValidators {
 	 * 
 	 * @param request The Request that is performing this validation.
 	 * 
-	 * @param Value The Value to be validated.
+	 * @param value The value to be validated.
 	 * 
 	 * @return Returns null if the name is null or whitespace only; otherwise,
 	 * 		   it returns the name.
@@ -180,7 +180,7 @@ public class DocumentValidators {
 	 * 
 	 * @param request The Request that is performing this validation.
 	 * 
-	 * @param Value The Value to be validated.
+	 * @param value The value to be validated.
 	 * 
 	 * @return Returns null if the description is null or whitespace only;
 	 * 		   otherwise, it returns the description.

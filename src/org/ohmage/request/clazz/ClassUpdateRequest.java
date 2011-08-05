@@ -28,41 +28,41 @@ import org.ohmage.validator.ValidationException;
  *     <td>Required</td>
  *   </tr>
  *   <tr>
- *     <td>{@Value org.ohmage.request.InputKeys#CLASS_URN}</td>
+ *     <td>{@value org.ohmage.request.InputKeys#CLASS_URN}</td>
  *     <td>The unique identifier for the class to be updated.</td>
  *     <td>true</td>
  *   </tr>
  *   <tr>
- *     <td>{@Value org.ohmage.request.InputKeys#CLASS_NAME}</td>
+ *     <td>{@value org.ohmage.request.InputKeys#CLASS_NAME}</td>
  *     <td>A new name for the class.</td>
  *     <td>false</td>
  *   </tr>
  *   <tr>
- *     <td>{@Value org.ohmage.request.InputKeys#DESCRIPTION}</td>
+ *     <td>{@value org.ohmage.request.InputKeys#DESCRIPTION}</td>
  *     <td>A new description for the class.</td>
  *     <td>false</td>
  *   </tr>
  *   <tr>
- *     <td>{@Value org.ohmage.request.InputKeys#USER_ROLE_LIST_ADD}</td>
+ *     <td>{@value org.ohmage.request.InputKeys#USER_ROLE_LIST_ADD}</td>
  *     <td>A list of users and respective roles to associate with this class.
  *       A user may only have one role with a class. To change a user's role,
  *       add their username and old role to the 
- *       {@Value org.ohmage.request.InputKeys#USER_ROLE_LIST_REMOVE} parameter
- *       and their username and new role in this parameter. The Value should be
+ *       {@value org.ohmage.request.InputKeys#USER_ROLE_LIST_REMOVE} parameter
+ *       and their username and new role in this parameter. The value should be
  *       formatted where each username is separated from its respective role 
- *       with a {@Value org.ohmage.request.InputKeys#ENTITY_ROLE_SEPARATOR} and
+ *       with a {@value org.ohmage.request.InputKeys#ENTITY_ROLE_SEPARATOR} and
  *       each username-role pair should be separated with a 
- *       {@Value org.ohmage.request.InputKeys#LIST_ITEM_SEPARATOR}.</td>
+ *       {@value org.ohmage.request.InputKeys#LIST_ITEM_SEPARATOR}.</td>
  *     <td>false</td>
  *   </tr>
  *   <tr>
- *     <td>{@Value org.ohmage.request.InputKeys#USER_ROLE_LIST_REMOVE}</td>
+ *     <td>{@value org.ohmage.request.InputKeys#USER_ROLE_LIST_REMOVE}</td>
  *     <td>A list of users and respective roles to disassociate with this 
- *       class. The Value should be formatted where each username is separated
+ *       class. The value should be formatted where each username is separated
  *       from its respective role with a 
- *       {@Value org.ohmage.request.InputKeys#ENTITY_ROLE_SEPARATOR} and each
+ *       {@value org.ohmage.request.InputKeys#ENTITY_ROLE_SEPARATOR} and each
  *       username-role pair should be separated with a 
- *       {@Value org.ohmage.request.InputKeys#LIST_ITEM_SEPARATOR}.</td>
+ *       {@value org.ohmage.request.InputKeys#LIST_ITEM_SEPARATOR}.</td>
  *     <td>false</td>
  *   </tr>
  * </table>
@@ -93,7 +93,7 @@ public class ClassUpdateRequest extends UserRequest {
 		Map<String, String> tempUsersToAdd = null;
 		List<String> tempUsersToRemove = null;
 		
-		if(! failed) {
+		if(! isFailed()) {
 			try {
 				tempClassId = ClassValidators.validateClassId(this, httpRequest.getParameter(InputKeys.CLASS_URN));
 				if(tempClassId == null) {
@@ -159,7 +159,7 @@ public class ClassUpdateRequest extends UserRequest {
 			ClassServices.checkClassExistence(this, classId, true);
 			
 			LOGGER.info("Checking that the user is privileged in the class or is an admin.");
-			UserClassServices.userIsAdminOrPrivileged(this, classId, user.getUsername());
+			UserClassServices.userIsAdminOrPrivileged(this, classId, getUser().getUsername());
 			
 			LOGGER.info("Updating the class.");
 			ClassServices.updateClass(this, classId, className, classDescription, usersToAdd, usersToRemove);

@@ -56,7 +56,7 @@ public class BidirectionalHashMap<K, V> {
 	/**
 	 * Returns true if 'key' exists in the map as a key.
 	 * 
-	 * @param key The Value to check for as a key in the map.
+	 * @param key The value to check for as a key in the map.
 	 * 
 	 * @return Whether or not 'key' exists in the map as a key.
 	 */
@@ -65,22 +65,22 @@ public class BidirectionalHashMap<K, V> {
 	}
 	
 	/**
-	 * Returns true if 'Value' exists in the map as a Value.
+	 * Returns true if 'value' exists in the map as a value.
 	 * 
-	 * @param Value The Value to check for as a Value in the map.
+	 * @param value The value to check for as a value in the map.
 	 * 
-	 * @return Whether or not 'Value' exists in the map as a Value.
+	 * @return Whether or not 'value' exists in the map as a value.
 	 */
 	public boolean containsValue(V value) {
 		return valueToKeyMap.containsKey(value);
 	}
 	
 	/**
-	 * Gets the Value associated with 'key' if 'key' exists in the map.
+	 * Gets the value associated with 'key' if 'key' exists in the map.
 	 * 
 	 * @param key They key to search for within the map.
 	 * 
-	 * @return The Value with which 'key' is associated; otherwise, null is
+	 * @return The value with which 'key' is associated; otherwise, null is
 	 * 		   returned.
 	 */
 	public V getValue(K key) {
@@ -88,11 +88,11 @@ public class BidirectionalHashMap<K, V> {
 	}
 	
 	/**
-	 * Gets the key associated with 'Value' if 'Value' exists in the map.
+	 * Gets the key associated with 'value' if 'value' exists in the map.
 	 * 
-	 * @param Value They Value to search for within the map.
+	 * @param value They value to search for within the map.
 	 * 
-	 * @return The key with which 'Value' is associated; otherwise, null is
+	 * @return The key with which 'value' is associated; otherwise, null is
 	 * 		   returned.
 	 */
 	public K getKey(V value) {
@@ -100,23 +100,23 @@ public class BidirectionalHashMap<K, V> {
 	}
 	
 	/**
-	 * Creates an association between 'key' and 'Value' in the map. If a Value
-	 * is already associated with 'key', then it is returned. If 'Value'
+	 * Creates an association between 'key' and 'value' in the map. If a value
+	 * is already associated with 'key', then it is returned. If 'value'
 	 * already existed and was associated with another key, that association is
 	 * broken and replaced with this new association.
 	 * 
 	 * Functionally, this is the same as {@link #putValue(Object, Object)},
-	 * but it returns only the previous Value should one have already existed 
+	 * but it returns only the previous value should one have already existed 
 	 * or null if one didn't exist. To retrieve both the old key and the old 
-	 * Value, it is safer to first use both of the containsValue functions to 
+	 * value, it is safer to first use both of the containsvalue functions to 
 	 * determine if such associations already exist and then to use the 
-	 * getValue functions to retrieve those values.
+	 * getvalue functions to retrieve those values.
 	 *  
-	 * @param key The key to be associated with 'Value'.
+	 * @param key The key to be associated with 'value'.
 	 * 
-	 * @param Value The Value to be associated with 'key'.
+	 * @param value The value to be associated with 'key'.
 	 * 
-	 * @return The Value with which 'key' was already associated or null if no
+	 * @return The value with which 'key' was already associated or null if no
 	 * 		   such association already existed.
 	 */
 	public V putKey(K key, V value) {
@@ -132,23 +132,23 @@ public class BidirectionalHashMap<K, V> {
 	}
 	
 	/**
-	 * Creates an association between 'key' and 'Value' in the map. If a key
-	 * is already associated with 'Value', then it is returned. If 'key'
-	 * already existed and was associated with another Value, that association
+	 * Creates an association between 'key' and 'value' in the map. If a key
+	 * is already associated with 'value', then it is returned. If 'key'
+	 * already existed and was associated with another value, that association
 	 * is broken and replaced with this new association.
 	 * 
 	 * Functionally, this is the same as {@link #putKey(Object, Object)},
 	 * but it returns only the previous key should one have already existed, 
 	 * or null if one didn't exist. To retrieve both the old key and the old 
-	 * Value, it is safer to first use both of the containsValue functions to 
+	 * value, it is safer to first use both of the containsvalue functions to 
 	 * determine if such associations already exist and then to use the 
-	 * getValue functions to retrieve those values.
+	 * getvalue functions to retrieve those values.
 	 *  
-	 * @param key The key to be associated with 'Value'.
+	 * @param key The key to be associated with 'value'.
 	 * 
-	 * @param Value The Value to be associated with 'key'.
+	 * @param value The value to be associated with 'key'.
 	 * 
-	 * @return The key with which 'Value' was already associated or null if no
+	 * @return The key with which 'value' was already associated or null if no
 	 * 		   no such association already existed.
 	 */
 	public K putValue(K key, V value) {

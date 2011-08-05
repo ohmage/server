@@ -31,18 +31,18 @@ import org.ohmage.validator.ValidationException;
  *     <td>Required</td>
  *   </tr>
  *   <tr>
- *     <td>{@Value org.ohmage.request.InputKeys#CLIENT}</td>
+ *     <td>{@value org.ohmage.request.InputKeys#CLIENT}</td>
  *     <td>A string describing the client that is making this request.</td>
  *     <td>true</td>
  *   </tr>
  *   <tr>
- *     <td>{@Value org.ohmage.request.InputKeys#CAMPAIGN_URN}</td>
+ *     <td>{@value org.ohmage.request.InputKeys#CAMPAIGN_URN}</td>
  *     <td>The unique identifier for the campaign to which the survey data will
  *       pertain.</td>
  *     <td>true</td>
  *   </tr>
  *   <tr>
- *     <td>{@Value org.ohmage.request.InputKeys#USERNAME}</td>
+ *     <td>{@value org.ohmage.request.InputKeys#USERNAME}</td>
  *     <td>The username of the user whose statistical information is desired.
  *       </td>
  *     <td>true</td>
@@ -132,22 +132,22 @@ public class UserStatsReadRequest extends UserRequest {
 		
 		try {
 			LOGGER.info("Verifying that the requester has permissions to view the survey information.");
-			UserCampaignServices.requesterCanViewUsersSurveyResponses(this, campaignId, user.getUsername(), username);
+			UserCampaignServices.requesterCanViewUsersSurveyResponses(this, campaignId, getUser().getUsername(), username);
 			
 			LOGGER.info("Verifying that the requester has permissions to view the mobility information.");
-			UserMobilityServices.requesterCanViewUsersMobilityData(this, user.getUsername(), username);
+			UserMobilityServices.requesterCanViewUsersMobilityData(this, getUser().getUsername(), username);
 			
 			LOGGER.info("Gathering the number of hours since the last survey upload.");
-			hoursSinceLastSurveyUpload = UserSurveyServices.getHoursSinceLastSurveyUplaod(this, user.getUsername(), username);
+			hoursSinceLastSurveyUpload = UserSurveyServices.getHoursSinceLastSurveyUplaod(this, getUser().getUsername(), username);
 			
 			LOGGER.info("Gathering the number of hours since the last Mobility upload.");
-			hoursSinceLastMobilityUpload = UserMobilityServices.getHoursSinceLastMobilityUpload(this, user.getUsername(), username);
+			hoursSinceLastMobilityUpload = UserMobilityServices.getHoursSinceLastMobilityUpload(this, getUser().getUsername(), username);
 			
 			LOGGER.info("Gathering the percentage of successful location uploads from surveys in the last day.");
-			pastDaySuccessfulSurveyLocationUpdatesPercentage = UserSurveyServices.getPercentageOfNonNullLocationsOverPastDay(this, user.getUsername(), username);
+			pastDaySuccessfulSurveyLocationUpdatesPercentage = UserSurveyServices.getPercentageOfNonNullLocationsOverPastDay(this, getUser().getUsername(), username);
 			
 			LOGGER.info("Gathering the percentage of successful location updates from Mobility in the last day.");
-			pastDatSuccessfulMobilityLocationUpdatesPercentage = UserMobilityServices.getPercentageOfNonNullLocationsOverPastDay(this, user.getUsername(), username);
+			pastDatSuccessfulMobilityLocationUpdatesPercentage = UserMobilityServices.getPercentageOfNonNullLocationsOverPastDay(this, getUser().getUsername(), username);
 		}
 		catch(ServiceException e) {
 			e.logException(LOGGER);
@@ -161,7 +161,7 @@ public class UserStatsReadRequest extends UserRequest {
 	public void respond(HttpServletRequest httpRequest, HttpServletResponse httpResponse) {
 		JSONObject jsonResult = new JSONObject();
 		
-		if(! failed) {
+		if(! isFailed()) {
 			try {
 				jsonResult.put(JSON_KEY_HOURS_SINCE_LAST_SURVEY_UPLOAD, hoursSinceLastSurveyUpload);
 				jsonResult.put(JSON_KEY_HOURS_SINCE_LAST_MOBILITY_UPLOAD, hoursSinceLastMobilityUpload);

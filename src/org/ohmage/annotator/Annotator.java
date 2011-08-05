@@ -65,8 +65,8 @@ public class Annotator {
 	 * Creates a JSONObject that represents the error code and text.
 	 * 
 	 * @return A JSONObject that represents the error code and text. The key
-	 * 		   for the code is {@Value #JSON_KEY_CODE} and the key for the text
-	 * 		   is {@Value #JSON_KEY_TEXT}.
+	 * 		   for the code is {@value #JSON_KEY_CODE} and the key for the text
+	 * 		   is {@value #JSON_KEY_TEXT}.
 	 * 
 	 * @throws JSONException Thrown if there is an error building the 
 	 * 						 JSONObject.

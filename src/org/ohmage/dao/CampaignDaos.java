@@ -30,7 +30,7 @@ import org.springframework.transaction.support.DefaultTransactionDefinition;
  * @author John Jenkins
  */
 public final class CampaignDaos extends Dao {
-	// Returns a boolean Value of whether or not the campaign exists.
+	// Returns a boolean value of whether or not the campaign exists.
 	private static final String SQL_EXISTS_CAMPAIGN = 
 		"SELECT EXISTS(" +
 			"SELECT urn " +
@@ -91,7 +91,7 @@ public final class CampaignDaos extends Dao {
 		"WHERE creation_timestamp <= ?";
 	
 	// Returns all of the IDs for all of the campaigns whose privacy state is
-	// some Value.
+	// some value.
 	private static final String SQL_GET_CAMPAIGNS_WITH_PRIVACY_STATE = 
 		"SELECT urn " +
 		"FROM campaign " +
@@ -102,7 +102,7 @@ public final class CampaignDaos extends Dao {
 		")";
 	
 	// Returns all of the IDs for all of the campaigns whose running state is
-	// some Value.
+	// some value.
 	private static final String SQL_GET_CAMPAIGNS_WITH_RUNNING_STATE = 
 		"SELECT urn " +
 		"FROM campaign " +

@@ -97,19 +97,19 @@ public class UserDaos extends Dao {
 		"SET password = ? " +
 		"WHERE username = ?";
 	
-	// Updates a user's admin Value.
+	// Updates a user's admin value.
 	private static final String SQL_UPDATE_ADMIN =
 		"UPDATE user " +
 		"SET admin = ? " +
 		"WHERE username = ?";
 	
-	// Updates a user's enabled Value.
+	// Updates a user's enabled value.
 	private static final String SQL_UPDATE_ENABLED =
 		"UPDATE user " +
 		"SET enabled = ? " +
 		"WHERE username = ?";
 	
-	// Updates a user's new account Value.
+	// Updates a user's new account value.
 	private static final String SQL_UPDATE_NEW_ACCOUNT =
 		"UPDATE user " +
 		"SET new_account = ? " +
@@ -230,7 +230,7 @@ public class UserDaos extends Dao {
 				tCampaignCreationPrivilege = PreferenceCache.instance().lookup(PreferenceCache.KEY_DEFAULT_CAN_CREATE_PRIVILIEGE).equals("true");
 			}
 			catch(CacheMissException e) {
-				throw new DataAccessException("Cache doesn't know about 'known' Value: " + PreferenceCache.KEY_DEFAULT_CAN_CREATE_PRIVILIEGE, e);
+				throw new DataAccessException("Cache doesn't know about 'known' value: " + PreferenceCache.KEY_DEFAULT_CAN_CREATE_PRIVILIEGE, e);
 			}
 		}
 		
@@ -411,20 +411,20 @@ public class UserDaos extends Dao {
 	 * @param username The username of the user whose information is to be
 	 * 				   updated.
 	 * 
-	 * @param admin Whether or not the user should be an admin. A null Value
+	 * @param admin Whether or not the user should be an admin. A null value
 	 * 			    indicates that this field should not be updated.
 	 * 
 	 * @param enabled Whether or not the user's account should be enabled. A
-	 * 				  null Value indicates that this field should not be
+	 * 				  null value indicates that this field should not be
 	 * 				  updated.
 	 * 
 	 * @param newAccount Whether or not the user should be required to change
-	 * 					 their password. A null Value indicates that this field
+	 * 					 their password. A null value indicates that this field
 	 * 					 should not be updated.
 	 * 
 	 * @param campaignCreationPrivilege Whether or not the user should be 
 	 * 									allowed to create campaigns. A null
-	 * 									Value indicates that this field should
+	 * 									value indicates that this field should
 	 * 									not be updated.
 	 * 
 	 * @param personalInfo Personal information about a user. If this is null,
@@ -444,7 +444,7 @@ public class UserDaos extends Dao {
 			PlatformTransactionManager transactionManager = new DataSourceTransactionManager(instance.dataSource);
 			TransactionStatus status = transactionManager.getTransaction(def);
 			
-			// Update the admin Value if it's not null.
+			// Update the admin value if it's not null.
 			if(admin != null) {
 				try {
 					instance.jdbcTemplate.update(SQL_UPDATE_ADMIN, admin, username);
@@ -456,7 +456,7 @@ public class UserDaos extends Dao {
 				}
 			}
 			
-			// Update the enabled Value if it's not null.
+			// Update the enabled value if it's not null.
 			if(enabled != null) {
 				try {
 					instance.jdbcTemplate.update(SQL_UPDATE_ENABLED, enabled, username);
@@ -468,7 +468,7 @@ public class UserDaos extends Dao {
 				}
 			}
 			
-			// Update the new account Value if it's not null.
+			// Update the new account value if it's not null.
 			if(newAccount != null) {
 				try {
 					instance.jdbcTemplate.update(SQL_UPDATE_NEW_ACCOUNT, newAccount, username);
@@ -480,7 +480,7 @@ public class UserDaos extends Dao {
 				}
 			}
 			
-			// Update the campaign creation privilege Value if it's not null.
+			// Update the campaign creation privilege value if it's not null.
 			if(campaignCreationPrivilege != null) {
 				try {
 					instance.jdbcTemplate.update(SQL_UPDATE_CAMPAIGN_CREATION_PRIVILEGE, campaignCreationPrivilege, username);

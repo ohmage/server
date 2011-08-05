@@ -41,81 +41,81 @@ import org.ohmage.validator.ValidationException;
  *     <td>Required</td>
  *   </tr>
  *   <tr>
- *     <td>{@Value org.ohmage.request.InputKeys#CLIENT}</td>
+ *     <td>{@value org.ohmage.request.InputKeys#CLIENT}</td>
  *     <td>A string describing the client that is making this request.</td>
  *     <td>true</td>
  *   </tr>
  *   <tr>
- *     <td>{@Value org.ohmage.request.InputKeys#DOCUMENT_ID}</td>
+ *     <td>{@value org.ohmage.request.InputKeys#DOCUMENT_ID}</td>
  *     <td>The unique identifier for the document to be updated.</td>
  *     <td>true</td>
  *   </tr>
  *   <tr>
- *     <td>{@Value org.ohmage.request.InputKeys#DOCUMENT}</td>
+ *     <td>{@value org.ohmage.request.InputKeys#DOCUMENT}</td>
  *     <td>New contents for the document.</td>
  *     <td>false</td>
  *   </tr>
  *   <tr>
- *     <td>{@Value org.ohmage.request.InputKeys#DOCUMENT_NAME}</td>
+ *     <td>{@value org.ohmage.request.InputKeys#DOCUMENT_NAME}</td>
  *     <td>A new name for the document.</td>
  *     <td>false</td>
  *   </tr>
  *   <tr>
- *     <td>{@Value org.ohmage.request.InputKeys#DESCRIPTION}</td>
+ *     <td>{@value org.ohmage.request.InputKeys#DESCRIPTION}</td>
  *     <td>A new description for the document.</td>
  *     <td>false</td>
  *   </tr>
  *   <tr>
- *     <td>{@Value org.ohmage.request.InputKeys#PRIVACY_STATE}</td>
+ *     <td>{@value org.ohmage.request.InputKeys#PRIVACY_STATE}</td>
  *     <td>The new privacy state of the document.</td>
  *     <td>false</td>
  *   </tr>
  *   <tr>
- *     <td>{@Value org.ohmage.request.InputKeys#CAMPAIGN_ROLE_LIST_ADD}</td>
+ *     <td>{@value org.ohmage.request.InputKeys#CAMPAIGN_ROLE_LIST_ADD}</td>
  *     <td>A list of campaign ID and document role pairs. The pairs should be
  *       separated by 
- *       {@Value org.ohmage.request.InputKeys#LIST_ITEM_SEPARATOR}s and each
+ *       {@value org.ohmage.request.InputKeys#LIST_ITEM_SEPARATOR}s and each
  *       campaign ID should be separated from its associated document role by a
- *       {@Value org.ohmage.request.InputKeys#ENTITY_ROLE_SEPARATOR}.</td>
+ *       {@value org.ohmage.request.InputKeys#ENTITY_ROLE_SEPARATOR}.</td>
  *     <td>false</td>
  *   </tr>
  *   <tr>
- *     <td>{@Value org.ohmage.request.InputKeys#CAMPAIGN_LIST_REMOVE}</td>
+ *     <td>{@value org.ohmage.request.InputKeys#CAMPAIGN_LIST_REMOVE}</td>
  *     <td>A list of campaign IDs for campaigns that should no longer be 
  *       associated with the document. The campaign IDs should be separated by
- *       {@Value org.ohmage.request.InputKeys#LIST_ITEM_SEPARATOR}s.</td>
+ *       {@value org.ohmage.request.InputKeys#LIST_ITEM_SEPARATOR}s.</td>
  *     <td>false</td>
  *   </tr>
  *   <tr>
- *     <td>{@Value org.ohmage.request.InputKeys#CLASS_ROLE_LIST_ADD}</td>
+ *     <td>{@value org.ohmage.request.InputKeys#CLASS_ROLE_LIST_ADD}</td>
  *     <td>A list of class ID and document role pairs. The pairs should be
  *       separated by 
- *       {@Value org.ohmage.request.InputKeys#LIST_ITEM_SEPARATOR}s and each
+ *       {@value org.ohmage.request.InputKeys#LIST_ITEM_SEPARATOR}s and each
  *       class ID should be separated from its associated document role by a
- *       {@Value org.ohmage.request.InputKeys#ENTITY_ROLE_SEPARATOR}.</td>
+ *       {@value org.ohmage.request.InputKeys#ENTITY_ROLE_SEPARATOR}.</td>
  *     <td>false</td>
  *   </tr>
  *   <tr>
- *     <td>{@Value org.ohmage.request.InputKeys#CLASS_LIST_REMOVE}</td>
+ *     <td>{@value org.ohmage.request.InputKeys#CLASS_LIST_REMOVE}</td>
  *     <td>A list of class IDs for classes that should no longer be 
  *       associated with the document. The class IDs should be separated by
- *       {@Value org.ohmage.request.InputKeys#LIST_ITEM_SEPARATOR}s.</td>
+ *       {@value org.ohmage.request.InputKeys#LIST_ITEM_SEPARATOR}s.</td>
  *     <td>false</td>
  *   </tr>
  *   <tr>
- *     <td>{@Value org.ohmage.request.InputKeys#USER_ROLE_LIST_ADD}</td>
+ *     <td>{@value org.ohmage.request.InputKeys#USER_ROLE_LIST_ADD}</td>
  *     <td>A list of username and document role pairs. The pairs should be
  *       separated by 
- *       {@Value org.ohmage.request.InputKeys#LIST_ITEM_SEPARATOR}s and each
+ *       {@value org.ohmage.request.InputKeys#LIST_ITEM_SEPARATOR}s and each
  *       username should be separated from its associated document role by a
- *       {@Value org.ohmage.request.InputKeys#ENTITY_ROLE_SEPARATOR}.</td>
+ *       {@value org.ohmage.request.InputKeys#ENTITY_ROLE_SEPARATOR}.</td>
  *     <td>false</td>
  *   </tr>
  *   <tr>
- *     <td>{@Value org.ohmage.request.InputKeys#DESCRIPTION}</td>
+ *     <td>{@value org.ohmage.request.InputKeys#DESCRIPTION}</td>
  *     <td>A list of usernames for users that should no longer be associated 
  *       with the document. The usernames should be separated by
- *       {@Value org.ohmage.request.InputKeys#LIST_ITEM_SEPARATOR}s.</td>
+ *       {@value org.ohmage.request.InputKeys#LIST_ITEM_SEPARATOR}s.</td>
  *     <td>false</td>
  *   </tr>
  * </table>
@@ -274,17 +274,17 @@ public class DocumentUpdateRequest extends UserRequest {
 			DocumentServices.ensureDocumentExistence(this, documentId);
 			
 			LOGGER.info("Verifying that the user can modify the document.");
-			UserDocumentServices.userCanModifyDocument(this, user.getUsername(), documentId);
+			UserDocumentServices.userCanModifyDocument(this, getUser().getUsername(), documentId);
 			
 			LOGGER.info("Getting the user's highest role for the document.");
-			String highestRole = UserDocumentServices.getHighestDocumentRoleForUserForDocument(this, user.getUsername(), documentId);
+			String highestRole = UserDocumentServices.getHighestDocumentRoleForUserForDocument(this, getUser().getUsername(), documentId);
 			
 			if(campaignAndRolesToAdd != null) {
 				LOGGER.info("Verifying that the campaigns in the campaign-role list exist.");
 				CampaignServices.checkCampaignsExistence(this, campaignAndRolesToAdd.keySet(), true);
 				
 				LOGGER.info("Verifying that the user can associate the document with the campaigns in the campaign-role list.");
-				UserCampaignDocumentServices.userCanAssociateDocumentsWithCampaigns(this, user.getUsername(), campaignAndRolesToAdd.keySet());
+				UserCampaignDocumentServices.userCanAssociateDocumentsWithCampaigns(this, getUser().getUsername(), campaignAndRolesToAdd.keySet());
 				
 				LOGGER.info("Verifying that the user is not attempting to give more permissions to a campaign than they have.");
 				DocumentServices.ensureRoleNotLessThanRoles(this, highestRole, campaignAndRolesToAdd.values());
@@ -295,7 +295,7 @@ public class DocumentUpdateRequest extends UserRequest {
 				CampaignServices.checkCampaignsExistence(this, campaignsToRemove, true);
 				
 				LOGGER.info("Verifying that the user has enough permissions in the campaigns to disassociate them from the document.");
-				UserCampaignDocumentServices.userCanDisassociateDocumentsFromCampaigns(this, user.getUsername(), campaignsToRemove);
+				UserCampaignDocumentServices.userCanDisassociateDocumentsFromCampaigns(this, getUser().getUsername(), campaignsToRemove);
 				
 				LOGGER.info("Verifying that the user is not attempting to revoke more permissions from campaigns than they have.");
 				DocumentServices.ensureRoleNotLessThanRoles(this, highestRole, campaignsToRemove);
@@ -306,7 +306,7 @@ public class DocumentUpdateRequest extends UserRequest {
 				ClassServices.checkClassesExistence(this, classAndRolesToAdd.keySet(), true);
 				
 				LOGGER.info("Verifying that the user can associate the document with the classes in the class-role list.");
-				UserClassDocumentServices.userCanAssociateDocumentsWithClasses(this, user.getUsername(), classAndRolesToAdd.keySet());
+				UserClassDocumentServices.userCanAssociateDocumentsWithClasses(this, getUser().getUsername(), classAndRolesToAdd.keySet());
 				
 				LOGGER.info("Verifying that the user is not attempting to give more permissions to a class than they have.");
 				DocumentServices.ensureRoleNotLessThanRoles(this, highestRole, classAndRolesToAdd.values());
@@ -317,7 +317,7 @@ public class DocumentUpdateRequest extends UserRequest {
 				ClassServices.checkClassesExistence(this, classesToRemove, true);
 				
 				LOGGER.info("Verifying that the user has enough permissions in the classes to disassociate them from the document.");
-				UserClassDocumentServices.userCanDisassociateDocumentsWithClasses(this, user.getUsername(), classesToRemove);
+				UserClassDocumentServices.userCanDisassociateDocumentsWithClasses(this, getUser().getUsername(), classesToRemove);
 				
 				LOGGER.info("Verifying that the user is not attempting to revoke more permissions from classes than they have.");
 				DocumentServices.ensureRoleNotLessThanRoles(this, highestRole, classesToRemove);

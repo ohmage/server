@@ -23,12 +23,12 @@ import org.ohmage.validator.ValidationException;
  *     <td>Required</td>
  *   </tr>
  *   <tr>
- *     <td>{@Value org.ohmage.request.InputKeys#CLIENT}</td>
+ *     <td>{@value org.ohmage.request.InputKeys#CLIENT}</td>
  *     <td>A string describing the client that is making this request.</td>
  *     <td>true</td>
  *   </tr>
  *   <tr>
- *     <td>{@Value org.ohmage.request.InputKeys#NEW_PASSWORD}</td>
+ *     <td>{@value org.ohmage.request.InputKeys#NEW_PASSWORD}</td>
  *     <td>The user's new plaintext password.</td>
  *     <td>true</td>
  *   </tr>
@@ -85,7 +85,7 @@ public class UserChangePasswordRequest extends UserRequest {
 		
 		try {
 			LOGGER.info("Updating the user's password.");
-			UserServices.updatePassword(this, user.getUsername(), newPassword);
+			UserServices.updatePassword(this, getUser().getUsername(), newPassword);
 		}
 		catch(ServiceException e) {
 			e.logException(LOGGER);

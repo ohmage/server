@@ -22,12 +22,12 @@ import org.ohmage.validator.ValidationException;
  *     <td>Required</td>
  *   </tr>
  *   <tr>
- *     <td>{@Value org.ohmage.request.InputKeys#CLIENT}</td>
+ *     <td>{@value org.ohmage.request.InputKeys#CLIENT}</td>
  *     <td>A string describing the client that is making this request.</td>
  *     <td>true</td>
  *   </tr>
  *   <tr>
- *     <td>{@Value org.ohmage.request.InputKeys#CLASS_URN}</td>
+ *     <td>{@value org.ohmage.request.InputKeys#CLASS_URN}</td>
  *     <td>The unique identifier for the class to be deleted.</td>
  *     <td>true</td>
  *   </tr>
@@ -53,7 +53,7 @@ public class ClassDeletionRequest extends UserRequest {
 		
 		String tempClassId = null;
 		
-		if(! failed) {
+		if(! isFailed()) {
 			try {
 				tempClassId = ClassValidators.validateClassId(this, httpRequest.getParameter(InputKeys.CLASS_URN));
 				if(tempClassId == null) {
@@ -86,7 +86,7 @@ public class ClassDeletionRequest extends UserRequest {
 		
 		try {
 			LOGGER.info("Checking that the user is an admin.");
-			UserServices.verifyUserIsAdmin(this, user.getUsername());
+			UserServices.verifyUserIsAdmin(this, getUser().getUsername());
 			
 			LOGGER.info("Checking that the class exists.");
 			ClassServices.checkClassExistence(this, classId, true);

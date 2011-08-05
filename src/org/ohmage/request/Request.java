@@ -36,24 +36,24 @@ public abstract class Request {
 	 */
 	public static final String JSON_KEY_RESULT = "result";
 	/**
-	 * The Value to use for the {@link #JSON_KEY_RESULT} when the request is
+	 * The value to use for the {@link #JSON_KEY_RESULT} when the request is
 	 * successful.
 	 */
 	public static final String RESULT_SUCCESS = "success";
 	/**
-	 * The Value to use for the {@link #JSON_KEY_RESULT} when the request has
+	 * The value to use for the {@link #JSON_KEY_RESULT} when the request has
 	 * failed.
 	 */
 	public static final String RESULT_FAILURE = "failure";
 	
 	/**
 	 * The key to use when responding with a JSONObject where the request is
-	 * successful. The Value associated with this key is the requested data.
+	 * successful. The value associated with this key is the requested data.
 	 */
 	public static final String JSON_KEY_DATA = "data";
 	/**
 	 * The key to use when responding with a JSONOBject where the request has
-	 * failed. The Value associated with this key is the error code and error
+	 * failed. The value associated with this key is the error code and error
 	 * text describing why this request failed.
 	 */
 	public static final String JSON_KEY_ERRORS = "errors";
@@ -75,10 +75,8 @@ public abstract class Request {
 			"\"" + Annotator.JSON_KEY_TEXT + "\":\"An error occurred while building the JSON response.\"}" +
 		"]}";
 	
-	// TODO: Make this private and create an accessor.
-	protected final Annotator annotator;
-	// TODO: Make this private and create an accessor.
-	protected boolean failed;
+	private final Annotator annotator;
+	private boolean failed;
 	
 	/**
 	 * Default constructor. Creates a new, generic annotator for this object.
@@ -189,7 +187,7 @@ public abstract class Request {
 	 * when {@link #respond(HttpServletRequest, HttpServletResponse)} is called
 	 * given that most responses are in some sort of JSON format. This creates
 	 * a success/fail JSON response where, when the result is success, it will
-	 * also include a second key-Value pair which are the parameters to this
+	 * also include a second key-value pair which are the parameters to this
 	 * function.
 	 *  
 	 * @param httpRequest The initial HTTP request that we are processing.
@@ -198,7 +196,7 @@ public abstract class Request {
 	 * 
 	 * @param key The key to include along with {@link #JSON_KEY_RESULT}.
 	 * 
-	 * @param Value The Value to assign with the 'key'.
+	 * @param value The value to assign with the 'key'.
 	 */
 	protected void respond(HttpServletRequest httpRequest, HttpServletResponse httpResponse, String key, Object value) {
 		// Create a writer for the HTTP response object.
@@ -307,29 +305,29 @@ public abstract class Request {
 	}
 	
 	/**
-	 * Reads the HttpServletRequest for a key-Value pair and returns the Value
+	 * Reads the HttpServletRequest for a key-value pair and returns the value
 	 * where the key is equal to the given key.
 	 * 
 	 * @param httpRequest A "multipart/form-data" request that contains the 
-	 * 					  parameter that has a key Value 'key'.
+	 * 					  parameter that has a key value 'key'.
 	 * 
-	 * @param key The key for the Value we are after in the 'httpRequest'.
+	 * @param key The key for the value we are after in the 'httpRequest'.
 	 * 
 	 * @return Returns null if there is no such key in the request or if, 
 	 * 		   after reading the object, it has a length of 0. Otherwise, it
-	 * 		   returns the Value associated with the key as a byte array.
+	 * 		   returns the value associated with the key as a byte array.
 	 * 
 	 * @throws ServletException Thrown if the 'httpRequest' is not a 
 	 * 							"multipart/form-data" request.
 	 * 
-	 * @throws IOException Thrown if there is an error reading the Value from
+	 * @throws IOException Thrown if there is an error reading the value from
 	 * 					   the request's input stream.
 	 * 
 	 * @throws IllegalStateException Thrown if the entire request is larger
 	 * 								 than the maximum allowed size for a 
-	 * 								 request or if the Value of the requested
+	 * 								 request or if the value of the requested
 	 * 								 key is larger than the maximum allowed 
-	 * 								 size for a single Value.
+	 * 								 size for a single value.
 	 */
 	protected byte[] getMultipartValue(HttpServletRequest httpRequest, String key) throws ValidationException {
 		try {

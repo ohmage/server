@@ -962,7 +962,7 @@ public class DocumentDaos extends Dao {
 			throw new DataAccessException("Preference cache doesn't know about 'known' key: " + PreferenceCache.KEY_MAXIMUM_NUMBER_OF_DOCUMENTS_PER_DIRECTORY, e);
 		}
 		catch(NumberFormatException e) {
-			throw new DataAccessException("Stored Value for key '" + PreferenceCache.KEY_MAXIMUM_NUMBER_OF_DOCUMENTS_PER_DIRECTORY + "' is not decodable as a number.", e);
+			throw new DataAccessException("Stored value for key '" + PreferenceCache.KEY_MAXIMUM_NUMBER_OF_DOCUMENTS_PER_DIRECTORY + "' is not decodable as a number.", e);
 		}
 		
 		// If the leaf directory was never initialized, then we should do
@@ -986,7 +986,7 @@ public class DocumentDaos extends Dao {
 	/**
 	 * Initializes the directory structure by drilling down to the leaf
 	 * directory with each step choosing the directory with the largest
-	 * integer Value.
+	 * integer value.
 	 */
 	private static void init(int numFilesPerDirectory) {
 		// Get the lock.
@@ -1026,7 +1026,7 @@ public class DocumentDaos extends Dao {
 				throw new DataAccessException("Preference cache doesn't know about 'known' key: " + PreferenceCache.KEY_DOCUMENT_DEPTH, e);
 			}
 			catch(NumberFormatException e) {
-				throw new DataAccessException("Stored Value for key '" + PreferenceCache.KEY_DOCUMENT_DEPTH + "' is not decodable as a number.", e);
+				throw new DataAccessException("Stored value for key '" + PreferenceCache.KEY_DOCUMENT_DEPTH + "' is not decodable as a number.", e);
 			}
 			
 			DirectoryFilter directoryFilter = new DirectoryFilter();
@@ -1072,7 +1072,7 @@ public class DocumentDaos extends Dao {
 						currDirectory.mkdir();
 					}
 				}
-				// Drill down to the directory with the largest, numeric Value.
+				// Drill down to the directory with the largest, numeric value.
 				else {
 					currDirectory = getLargestSubfolder(currDirectories);
 				}
@@ -1148,7 +1148,7 @@ public class DocumentDaos extends Dao {
 			// While we are still looking for a suitable directory,
 			while(lookingForDirectory) {
 				// Get the current directory's name which should be a Long
-				// Value.
+				// Valvalueue.
 				long currDirectoryName;
 				try {
 					currDirectoryName = Long.decode(newDirectory.getName());
@@ -1240,7 +1240,7 @@ public class DocumentDaos extends Dao {
 	}
 	
 	/**
-	 * Sorts the directories and returns the one whose alphanumeric Value is
+	 * Sorts the directories and returns the one whose alphanumeric value is
 	 * the greatest.
 	 * 
 	 * This will work with any naming for directories, so it is the caller's
@@ -1248,10 +1248,10 @@ public class DocumentDaos extends Dao {
 	 * want them to be.
 	 *  
 	 * @param directories The list of directories whose largest alphanumeric
-	 * 					  Value is desired.
+	 * 					  value is desired.
 	 * 
 	 * @return Returns the File whose path and name has the largest
-	 * 		   alphanumeric Value.
+	 * 		   alphanumeric value.
 	 */
 	private static File getLargestSubfolder(File[] directories) {
 		Arrays.sort(directories);

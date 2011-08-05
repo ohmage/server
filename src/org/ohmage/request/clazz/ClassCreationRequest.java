@@ -22,22 +22,22 @@ import org.ohmage.validator.ValidationException;
  *     <td>Required</td>
  *   </tr>
  *   <tr>
- *     <td>{@Value org.ohmage.request.InputKeys#CLIENT}</td>
+ *     <td>{@value org.ohmage.request.InputKeys#CLIENT}</td>
  *     <td>A string describing the client that is making this request.</td>
  *     <td>true</td>
  *   </tr>
  *   <tr>
- *     <td>{@Value org.ohmage.request.InputKeys#CLASS_URN}</td>
+ *     <td>{@value org.ohmage.request.InputKeys#CLASS_URN}</td>
  *     <td>The URN of the new class.</td>
  *     <td>true</td>
  *   </tr>
  *   <tr>
- *     <td>{@Value org.ohmage.request.InputKeys#CLASS_NAME}</td>
+ *     <td>{@value org.ohmage.request.InputKeys#CLASS_NAME}</td>
  *     <td>The name of the new class</td>
  *     <td>true</td>
  *   </tr>
  *   <tr>
- *     <td>{@Value org.ohmage.request.InputKeys#DESCRIPTION}</td>
+ *     <td>{@value org.ohmage.request.InputKeys#DESCRIPTION}</td>
  *     <td>An optional description of the class.</td>
  *     <td>false</td>
  *   </tr>
@@ -67,7 +67,7 @@ public class ClassCreationRequest extends UserRequest {
 		String tempClassName = null;
 		String tempClassDescription = null;
 		
-		if(! failed) {
+		if(! isFailed()) {
 			try {
 				tempClassId = ClassValidators.validateClassId(this, httpRequest.getParameter(InputKeys.CLASS_URN));
 				if(tempClassId == null) {
@@ -119,7 +119,7 @@ public class ClassCreationRequest extends UserRequest {
 		try {
 			// Check if the user is an administrator.
 			LOGGER.info("Checking that the user is an admin.");
-			UserServices.verifyUserIsAdmin(this, user.getUsername());
+			UserServices.verifyUserIsAdmin(this, getUser().getUsername());
 			
 			// Check that the class doesn't already exist.
 			LOGGER.info("Checking that a class with the same ID doesn't already exist.");

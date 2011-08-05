@@ -34,7 +34,7 @@ import org.ohmage.validator.ValidationException;
 
 /**
  * <p>A request to read information about a campaign or set of campaigns. The
- * optional parameters will limit the resulting list based on their Value. For
+ * optional parameters will limit the resulting list based on their value. For
  * example, if an initial list is given, a running state of running is given, 
  * and a user role of supervisor is given, then the list of campaigns whose
  * information is returned will be the ones from the initial list where the
@@ -46,16 +46,16 @@ import org.ohmage.validator.ValidationException;
  *     <td>Required</td>
  *   </tr>
  *   <tr>
- *     <td>{@Value org.ohmage.request.InputKeys#CLIENT}</td>
+ *     <td>{@value org.ohmage.request.InputKeys#CLIENT}</td>
  *     <td>A string describing the client that is making this request.</td>
  *     <td>true</td>
  *   </tr>
  *   <tr>
- *     <td>{@Value org.ohmage.request.InputKeys#OUTPUT_FORMAT}</td>
+ *     <td>{@value org.ohmage.request.InputKeys#OUTPUT_FORMAT}</td>
  *     <td>The output format for the resulting list of campaigns. The different
  *       output formats are as follows:<br />
  *       <ul>
- *         <li>{@Value org.ohmage.validator.CampaignValidators.OutputFormat.SHORT}
+ *         <li>{@value org.ohmage.validator.CampaignValidators.OutputFormat.SHORT}
  *           <ul>
  *             <li>Name</li>
  *             <li>Description</li>
@@ -65,7 +65,7 @@ import org.ohmage.validator.ValidationException;
  *             <li>A list of the requesting user's campaign roles</li>
  *           </ul>
  *         </li>
- *         <li>{@Value org.ohmage.validator.CampaignValidators.OutputFormat.LONG}
+ *         <li>{@value org.ohmage.validator.CampaignValidators.OutputFormat.LONG}
  *           <ul>
  *             <li>Name</li>
  *             <li>Description</li>
@@ -79,7 +79,7 @@ import org.ohmage.validator.ValidationException;
  *             <li>XML</li>
  *           </ul>
  *         </li>
- *         <li>{@Value org.ohmage.validator.CampaignValidators.OutputFormat.XML}
+ *         <li>{@value org.ohmage.validator.CampaignValidators.OutputFormat.XML}
  *           <ul>
  *             <li>The campaign's XML as a file attachment.</li>
  *           </ul>
@@ -88,7 +88,7 @@ import org.ohmage.validator.ValidationException;
  *     <td>true</td>
  *   </tr>
  *   <tr>
- *     <td>{@Value org.ohmage.request.InputKeys#CAMPAIGN_URN_LIST}</td>
+ *     <td>{@value org.ohmage.request.InputKeys#CAMPAIGN_URN_LIST}</td>
  *     <td>A list of campaign identifiers to begin with. If this parameter is
  *       omitted the initial list will be all of the campaigns to which the 
  *       user is associated. The campaign identifiers should be separated by 
@@ -97,7 +97,7 @@ import org.ohmage.validator.ValidationException;
  *     <td>false</td>
  *   </tr>
  *   <tr>
- *     <td>{@Value org.ohmage.request.InputKeys#CLASS_URN_LIST}</td>
+ *     <td>{@value org.ohmage.request.InputKeys#CLASS_URN_LIST}</td>
  *     <td>A list of classes where any campaigns that aren't associated with 
  *       all of these classes will be omitted from the result. The class 
  *       identifiers should be separated by
@@ -106,31 +106,31 @@ import org.ohmage.validator.ValidationException;
  *     <td>false</td>
  *   </tr>
  *   <tr>
- *     <td>{@Value org.ohmage.request.InputKeys#START_DATE}</td>
+ *     <td>{@value org.ohmage.request.InputKeys#START_DATE}</td>
  *     <td>This will remove all campaigns from the result whose creation 
  *       timestamp is before this date.</td>
  *     <td>false</td>
  *   </tr>
  *   <tr>
- *     <td>{@Value org.ohmage.request.InputKeys#END_DATE}</td>
+ *     <td>{@value org.ohmage.request.InputKeys#END_DATE}</td>
  *     <td>This will remove all campaigns from the result whose creation
  *       timestamp is after this date.</td>
  *     <td>false</td>
  *   </tr>
  *   <tr>
- *     <td>{@Value org.ohmage.request.InputKeys#PRIVACY_STATE}</td>
+ *     <td>{@value org.ohmage.request.InputKeys#PRIVACY_STATE}</td>
  *     <td>This will remove all campaigns from the result whose privacy state 
  *       is not this privacy state.</td>
  *     <td>false</td>
  *   </tr>
  *   <tr>
- *     <td>{@Value org.ohmage.request.InputKeys#END_DATE}</td>
+ *     <td>{@value org.ohmage.request.InputKeys#END_DATE}</td>
  *     <td>This will remove all campaigns from the result whose running state
  *       is not this running state.</td>
  *     <td>false</td>
  *   </tr>
  *   <tr>
- *     <td>{@Value org.ohmage.request.InputKeys#USER_ROLE}</td>
+ *     <td>{@value org.ohmage.request.InputKeys#USER_ROLE}</td>
  *     <td>This will remove all campaigns from the result where the user does 
  *       not have this role.</td>
  *     <td>false</td>
@@ -304,29 +304,29 @@ public class CampaignReadRequest extends UserRequest {
 		try {
 			if(campaignIds != null) {
 				LOGGER.info("Verifying that all of the campaigns exist and that the user belongs to them in some capacity.");
-				UserCampaignServices.campaignsExistAndUserBelongs(this, campaignIds, user.getUsername());
+				UserCampaignServices.campaignsExistAndUserBelongs(this, campaignIds, getUser().getUsername());
 			}
 			
 			if(OutputFormat.SHORT.equals(outputFormat) || OutputFormat.LONG.equals(outputFormat)) {
 				if(classIds != null) {
 					LOGGER.info("Verifying that all of the classes exist and that the user belongs to them in some capacity.");
-					UserClassServices.classesExistAndUserBelongs(this, classIds, user.getUsername());
+					UserClassServices.classesExistAndUserBelongs(this, classIds, getUser().getUsername());
 				}
 				
 				LOGGER.info("Generating the list of campaign IDs based on the parameters.");
-				List<String> resultCampaignIds = UserCampaignServices.getCampaignsForUser(this, user.getUsername(), 
+				List<String> resultCampaignIds = UserCampaignServices.getCampaignsForUser(this, getUser().getUsername(), 
 						campaignIds, classIds, startDate, endDate, privacyState, runningState, role);
 				
 				if(OutputFormat.LONG.equals(outputFormat)) {
 					LOGGER.info("Verifying that the requesting user can read the users and their roles with the resulting campaigns.");
-					UserCampaignServices.verifyUserCanReadUsersInCampaigns(this, user.getUsername(), resultCampaignIds);
+					UserCampaignServices.verifyUserCanReadUsersInCampaigns(this, getUser().getUsername(), resultCampaignIds);
 					
 					LOGGER.info("Verifying that the requesting user can read the classes associated with the resulting campaigns.");
-					UserCampaignServices.verifyUserCanReadClassesAssociatedWithCampaigns(this, user.getUsername(), resultCampaignIds);
+					UserCampaignServices.verifyUserCanReadClassesAssociatedWithCampaigns(this, getUser().getUsername(), resultCampaignIds);
 				}
 				
 				LOGGER.info("Gathering the information about the campaigns.");
-				shortOrLongResult = UserCampaignServices.getCampaignAndUserRolesForCampaigns(this, user.getUsername(), resultCampaignIds, OutputFormat.LONG.equals(outputFormat));
+				shortOrLongResult = UserCampaignServices.getCampaignAndUserRolesForCampaigns(this, getUser().getUsername(), resultCampaignIds, OutputFormat.LONG.equals(outputFormat));
 			}
 			else if(OutputFormat.XML.equals(outputFormat)) {
 				LOGGER.info("Gathering the XML for the campaign.");
@@ -435,16 +435,8 @@ public class CampaignReadRequest extends UserRequest {
 				if(isFailed()) {
 					httpResponse.setContentType("text/html");
 					
-					try {
-						// Use the annotator's message to build the response.
-						responseText = annotator.toJsonObject().toString();
-					}
-					catch(JSONException e) {
-						// If we can't even build the failure message, write a hand-
-						// written message as the response.
-						LOGGER.error("An error occurred while building the failure JSON response.", e);
-						responseText = RESPONSE_ERROR_JSON_TEXT;
-					}
+					// Use the annotator's message to build the response.
+					responseText = getFailureMessage();
 				}
 				// Otherwise, write the response.
 				else {
@@ -456,8 +448,8 @@ public class CampaignReadRequest extends UserRequest {
 					responseText = xmlResult;
 					
 					// If available, update the token.
-					if(user != null) {
-						final String token = user.getToken(); 
+					if(getUser() != null) {
+						final String token = getUser().getToken(); 
 						if(token != null) {
 							CookieUtils.setCookieValue(httpResponse, InputKeys.AUTH_TOKEN, token, (int) (UserBin.getTokenRemainingLifetimeInMillis(token) / MILLIS_IN_A_SECOND));
 						}

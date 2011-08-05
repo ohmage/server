@@ -12,7 +12,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.log4j.Logger;
-import org.json.JSONException;
 import org.ohmage.annotator.ErrorCodes;
 import org.ohmage.cache.UserBin;
 import org.ohmage.request.InputKeys;
@@ -33,12 +32,12 @@ import org.ohmage.validator.ValidationException;
  *     <td>Required</td>
  *   </tr>
  *   <tr>
- *     <td>{@Value org.ohmage.request.InputKeys#CLIENT}</td>
+ *     <td>{@value org.ohmage.request.InputKeys#CLIENT}</td>
  *     <td>A string describing the client that is making this request.</td>
  *     <td>true</td>
  *   </tr>
  *   <tr>
- *     <td>{@Value org.ohmage.request.InputKeys#DOCUMENT_ID}</td>
+ *     <td>{@value org.ohmage.request.InputKeys#DOCUMENT_ID}</td>
  *     <td>The unique identifier for the document whose contents is 
  *       desired.</td>
  *     <td>true</td>
@@ -104,7 +103,7 @@ public class DocumentReadContentsRequest extends UserRequest {
 			DocumentServices.ensureDocumentExistence(this, documentId);
 			
 			LOGGER.info("Verifying that the requesting user can read the contents of this document.");
-			UserDocumentServices.userCanReadDocument(this, user.getUsername(), documentId);
+			UserDocumentServices.userCanReadDocument(this, getUser().getUsername(), documentId);
 			
 			LOGGER.info("Retrieving the document's name.");
 			documentName = DocumentServices.getDocumentName(this, documentId);
@@ -153,8 +152,8 @@ public class DocumentReadContentsRequest extends UserRequest {
 				httpResponse.setHeader("Content-Disposition", "attachment; filename=" + documentName);
 				
 				// If available, set the token.
-				if(user != null) {
-					final String token = user.getToken(); 
+				if(getUser() != null) {
+					final String token = getUser().getToken(); 
 					if(token != null) {
 						CookieUtils.setCookieValue(httpResponse, InputKeys.AUTH_TOKEN, token, (int) (UserBin.getTokenRemainingLifetimeInMillis(token) / MILLIS_IN_A_SECOND));
 					}
@@ -199,22 +198,10 @@ public class DocumentReadContentsRequest extends UserRequest {
 		// If the request ever failed, write an error message.
 		if(isFailed()) {
 			httpResponse.setContentType("text/html");
-			String responseText;
-			
-			try {
-				// Use the annotator's message to build the response.
-				responseText = annotator.toJsonObject().toString();
-			}
-			catch(JSONException e) {
-				// If we can't even build the failure message, write a hand-
-				// written message as the response.
-				LOGGER.error("An error occurred while building the failure JSON response.", e);
-				responseText = RESPONSE_ERROR_JSON_TEXT;
-			}
 			
 			// Write the error response.
 			try {
-				writer.write(responseText); 
+				writer.write(getFailureMessage()); 
 			}
 			catch(IOException e) {
 				LOGGER.error("Unable to write failed response message. Aborting.", e);

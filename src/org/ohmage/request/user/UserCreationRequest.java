@@ -21,40 +21,40 @@ import org.ohmage.validator.ValidationException;
  *     <td>Required</td>
  *   </tr>
  *   <tr>
- *     <td>{@Value org.ohmage.request.InputKeys#CLIENT}</td>
+ *     <td>{@value org.ohmage.request.InputKeys#CLIENT}</td>
  *     <td>A string describing the client that is making this request.</td>
  *     <td>true</td>
  *   </tr>
  *   <tr>
- *     <td>{@Value org.ohmage.request.InputKeys#USER}</td>
+ *     <td>{@value org.ohmage.request.InputKeys#USER}</td>
  *     <td>The username for the new user.</td>
  *     <td>true</td>
  *   </tr>
  *   <tr>
- *     <td>{@Value org.ohmage.request.InputKeys#PASSWORD}</td>
+ *     <td>{@value org.ohmage.request.InputKeys#PASSWORD}</td>
  *     <td>The password for the new user.</td>
  *     <td>true</td>
  *   </tr>
  *   <tr>
- *     <td>{@Value org.ohmage.request.InputKeys#USER_ADMIN}</td>
+ *     <td>{@value org.ohmage.request.InputKeys#USER_ADMIN}</td>
  *     <td>Whether or not the new user should be an admin.</td>
  *     <td>true</td>
  *   </tr>
  *   <tr>
- *     <td>{@Value org.ohmage.request.InputKeys#USER_ENABLED}</td>
+ *     <td>{@value org.ohmage.request.InputKeys#USER_ENABLED}</td>
  *     <td>Whether or not the new user's account should be enabled.</td>
  *     <td>true</td>
  *   </tr>
  *   <tr>
- *     <td>{@Value org.ohmage.request.InputKeys#NEW_ACCOUNT}</td>
+ *     <td>{@value org.ohmage.request.InputKeys#NEW_ACCOUNT}</td>
  *     <td>Whether or not the user must change their password before using any
- *       other APIs. The default Value is "true".</td>
+ *       other APIs. The default value is "true".</td>
  *     <td>true</td>
  *   </tr>
  *   <tr>
- *     <td>{@Value org.ohmage.request.InputKeys#CAMPAIGN_CREATION_PRIVILEGE}</td>
+ *     <td>{@value org.ohmage.request.InputKeys#CAMPAIGN_CREATION_PRIVILEGE}</td>
  *     <td>Whether or not the new user is allowed to create campaigns. The 
- *       default Value is based on the current system and can be discovered
+ *       default value is based on the current system and can be discovered
  *       through the /config/read API.</td>
  *     <td>true</td>
  *   </tr>
@@ -168,7 +168,7 @@ public class UserCreationRequest extends UserRequest {
 		
 		try {
 			LOGGER.info("Verifying that the requesting user is an admin.");
-			UserServices.verifyUserIsAdmin(this, user.getUsername());
+			UserServices.verifyUserIsAdmin(this, getUser().getUsername());
 			
 			LOGGER.info("Verifying that a user with the username doesn't already exist.");
 			UserServices.checkUserExistance(this, newUsername, false);

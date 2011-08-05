@@ -22,7 +22,7 @@ import org.ohmage.service.UserServices;
  *     <td>Required</td>
  *   </tr>
  *   <tr>
- *     <td>{@Value org.ohmage.request.InputKeys#CLIENT}</td>
+ *     <td>{@value org.ohmage.request.InputKeys#CLIENT}</td>
  *     <td>A string describing the client that is making this request.</td>
  *     <td>true</td>
  *   </tr>
@@ -62,7 +62,7 @@ public class UserInfoReadRequest extends UserRequest {
 		
 		try {
 			LOGGER.info("Gathering the information about the requesting user.");
-			result = UserServices.gatherUserInformation(this, user.getUsername());
+			result = UserServices.gatherUserInformation(this, getUser().getUsername());
 		}
 		catch(ServiceException e) {
 			e.logException(LOGGER);
@@ -81,7 +81,7 @@ public class UserInfoReadRequest extends UserRequest {
 		
 		if(result != null) {
 			try {
-				jsonResult.put(user.getUsername(), result.toJsonObject());
+				jsonResult.put(getUser().getUsername(), result.toJsonObject());
 			}
 			catch(JSONException e) {
 				LOGGER.error("There was an error building the JSONObject result.", e);

@@ -34,29 +34,29 @@ import org.ohmage.validator.ValidationException;
  *     <td>Required</td>
  *   </tr>
  *   <tr>
- *     <td>{@Value org.ohmage.request.InputKeys#CLIENT}</td>
+ *     <td>{@value org.ohmage.request.InputKeys#CLIENT}</td>
  *     <td>A string describing the client that is making this request.</td>
  *     <td>true</td>
  *   </tr>
  *   <tr>
- *     <td>{@Value org.ohmage.request.InputKeys#DOCUMENT_PERSONAL_DOCUMENTS}</td>
+ *     <td>{@value org.ohmage.request.InputKeys#DOCUMENT_PERSONAL_DOCUMENTS}</td>
  *     <td>Either "true" or "false" representing whether or not documents that
  *       are specific to the requesting user should be returned.</td>
  *     <td>true</td>
  *   </tr>
  *   <tr>
- *     <td>{@Value org.ohmage.request.InputKeys#CAMPAIGN_URN_LIST}</td>
+ *     <td>{@value org.ohmage.request.InputKeys#CAMPAIGN_URN_LIST}</td>
  *     <td>A list of campaign IDs where each ID is separated by a
- *       {@Value org.ohmage.request.InputKeys#LIST_ITEM_SEPARATOR}. The 
+ *       {@value org.ohmage.request.InputKeys#LIST_ITEM_SEPARATOR}. The 
  *       requesting user must belong to all of the campaigns in some capacity,
  *       and all documents visible to the requesting user in those campaigns
  *       will be returned.</td>
  *     <td>false</td>
  *   </tr>
  *   <tr>
- *     <td>{@Value org.ohmage.request.InputKeys#CLASS_URN_LIST}</td>
+ *     <td>{@value org.ohmage.request.InputKeys#CLASS_URN_LIST}</td>
  *     <td>A list of class IDs where each ID is separated by a 
- *       {@Value org.ohmage.request.InputKeys#LIST_ITEM_SEPARATOR}. The
+ *       {@value org.ohmage.request.InputKeys#LIST_ITEM_SEPARATOR}. The
  *       requesting user must belong to all of the classes in some capacity, 
  *       and all documents visible to the requesting user in those classes will
  *       be returned.</td>
@@ -139,27 +139,27 @@ public class DocumentReadRequest extends UserRequest {
 		try {
 			if(campaignIds != null) {
 				LOGGER.info("Verifying that the campaigns in the campaign list exist and that the user belongs.");
-				UserCampaignServices.campaignsExistAndUserBelongs(this, campaignIds, user.getUsername());
+				UserCampaignServices.campaignsExistAndUserBelongs(this, campaignIds, getUser().getUsername());
 			}
 			
 			if(classIds != null) {
 				LOGGER.info("Verifying that the classes in the class list exist and that the user belongs.");
-				UserClassServices.classesExistAndUserBelongs(this, classIds, user.getUsername());
+				UserClassServices.classesExistAndUserBelongs(this, classIds, getUser().getUsername());
 			}
 			
 			if(personalDocuments) {
 				LOGGER.info("Gathering information about the documents that are specific to this user.");
-				result.addAll(UserDocumentServices.getDocumentsSpecificToUser(this, user.getUsername())); 
+				result.addAll(UserDocumentServices.getDocumentsSpecificToUser(this, getUser().getUsername())); 
 			}
 			
 			if(campaignIds != null) {
 				LOGGER.info("Gathering information about the documents that are visible to this user in the parameterized campaigns.");
-				result.addAll(UserCampaignDocumentServices.getVisibleDocumentsSpecificToCampaigns(this, user.getUsername(), campaignIds));
+				result.addAll(UserCampaignDocumentServices.getVisibleDocumentsSpecificToCampaigns(this, getUser().getUsername(), campaignIds));
 			}
 		
 			if(classIds != null) {
 				LOGGER.info("Gathering information about the documents that are visible to this user in the parameterized classes.");
-				result.addAll(UserClassDocumentServices.getVisibleDocumentsSpecificToClasses(this, user.getUsername(), classIds));
+				result.addAll(UserClassDocumentServices.getVisibleDocumentsSpecificToClasses(this, getUser().getUsername(), classIds));
 			}
 		}
 		catch(ServiceException e) {

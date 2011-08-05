@@ -23,15 +23,15 @@ import org.ohmage.validator.ValidationException;
  *     <td>Required</td>
  *   </tr>
  *   <tr>
- *     <td>{@Value org.ohmage.request.InputKeys#CLIENT}</td>
+ *     <td>{@value org.ohmage.request.InputKeys#CLIENT}</td>
  *     <td>A string describing the client that is making this request.</td>
  *     <td>true</td>
  *   </tr>
  *   <tr>
- *     <td>{@Value org.ohmage.request.InputKeys#USER_LIST}</td>
+ *     <td>{@value org.ohmage.request.InputKeys#USER_LIST}</td>
  *     <td>A list of usernames of users to delete. The usernames should be 
  *       separated by 
- *       {@Value org.ohmage.request.InputKeys#LIST_ITEM_SEPARATOR}s.</td>
+ *       {@value org.ohmage.request.InputKeys#LIST_ITEM_SEPARATOR}s.</td>
  *     <td>true</td>
  *   </tr>
  * </table>
@@ -86,7 +86,7 @@ public class UserDeletionRequest extends UserRequest {
 		
 		try {
 			LOGGER.info("Verifying that the user is an admin.");
-			UserServices.verifyUserIsAdmin(this, user.getUsername());
+			UserServices.verifyUserIsAdmin(this, getUser().getUsername());
 			
 			LOGGER.info("Verifying that the users in the list exist.");
 			UserServices.verifyUsersExist(this, usernames, true);

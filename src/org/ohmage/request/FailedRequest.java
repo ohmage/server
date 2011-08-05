@@ -24,7 +24,7 @@ public class FailedRequest extends Request {
 	public FailedRequest() {
 		super();
 		
-		failed = true;
+		setFailed();
 	}
 
 	/**

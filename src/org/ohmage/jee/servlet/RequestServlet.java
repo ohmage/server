@@ -1,7 +1,6 @@
 package org.ohmage.jee.servlet;
 
 import java.io.IOException;
-import java.util.Calendar;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -212,13 +211,13 @@ public class RequestServlet extends HttpServlet {
 	@Override
 	protected final void service(HttpServletRequest httpRequest, HttpServletResponse httpResponse) throws ServletException, IOException {
 		// Get the moment we received the request.
-		long receivedTimestamp = Calendar.getInstance().getTimeInMillis();
+		long receivedTimestamp = System.currentTimeMillis();
 		
 		// Service the request by calling the appropriate getXXX() method.
 		super.service(httpRequest, httpResponse);
 		
 		// Get the moment we have completed 
-		long respondedTimestamp = Calendar.getInstance().getTimeInMillis();
+		long respondedTimestamp = System.currentTimeMillis();
 
 		// Create a separate thread with the parameters and start that thread.
 		AuditThread auditThread = new AuditThread(httpRequest, receivedTimestamp, respondedTimestamp);

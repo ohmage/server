@@ -24,64 +24,64 @@ import org.ohmage.validator.ValidationException;
  *     <td>Required</td>
  *   </tr>
  *   <tr>
- *     <td>{@Value org.ohmage.request.InputKeys#CLIENT}</td>
+ *     <td>{@value org.ohmage.request.InputKeys#CLIENT}</td>
  *     <td>A string describing the client that is making this request.</td>
  *     <td>true</td>
  *   </tr>
  *   <tr>
- *     <td>{@Value org.ohmage.request.InputKeys#USERNAME}</td>
+ *     <td>{@value org.ohmage.request.InputKeys#USERNAME}</td>
  *     <td>The username of the user to update.</td>
  *     <td>true</td>
  *   </tr>
  *   <tr>
- *     <td>{@Value org.ohmage.request.InputKeys#USER_ADMIN}</td>
+ *     <td>{@value org.ohmage.request.InputKeys#USER_ADMIN}</td>
  *     <td>Whether or not the user should be an admin.</td>
  *     <td>false</td>
  *   </tr>
  *   <tr>
- *     <td>{@Value org.ohmage.request.InputKeys#USER_ENABLED}</td>
+ *     <td>{@value org.ohmage.request.InputKeys#USER_ENABLED}</td>
  *     <td>Whether or not the user's account should be enabled.</td>
  *     <td>false</td>
  *   </tr>
  *   <tr>
- *     <td>{@Value org.ohmage.request.InputKeys#NEW_ACCOUNT}</td>
+ *     <td>{@value org.ohmage.request.InputKeys#NEW_ACCOUNT}</td>
  *     <td>Whether or not the user needs to change their password the next time
  *       the login.</td>
  *     <td>false</td>
  *   </tr>
  *   <tr>
- *     <td>{@Value org.ohmage.request.InputKeys#CAMPAIGN_CREATION_PRIVILEGE}
+ *     <td>{@value org.ohmage.request.InputKeys#CAMPAIGN_CREATION_PRIVILEGE}
  *       </td>
  *     <td>Whether or not the user is allowed to create campaigns.</td>
  *     <td>false</td>
  *   </tr>
  *   <tr>
- *     <td>{@Value org.ohmage.request.InputKeys#FIRST_NAME}</td>
+ *     <td>{@value org.ohmage.request.InputKeys#FIRST_NAME}</td>
  *     <td>The first name of the user.</td>
  *     <td>false*</td>
  *   </tr>
  *   <tr>
- *     <td>{@Value org.ohmage.request.InputKeys#LAST_NAME}</td>
+ *     <td>{@value org.ohmage.request.InputKeys#LAST_NAME}</td>
  *     <td>The last name of the user.</td>
  *     <td>false*</td>
  *   </tr>
  *   <tr>
- *     <td>{@Value org.ohmage.request.InputKeys#ORGANIZATION}</td>
+ *     <td>{@value org.ohmage.request.InputKeys#ORGANIZATION}</td>
  *     <td>The organization to which the user belongs.</td>
  *     <td>false*</td>
  *   </tr>
  *   <tr>
- *     <td>{@Value org.ohmage.request.InputKeys#PERSONAL_ID}</td>
+ *     <td>{@value org.ohmage.request.InputKeys#PERSONAL_ID}</td>
  *     <td>The personal identifier for the user.</td>
  *     <td>false*</td>
  *   </tr>
  *   <tr>
- *     <td>{@Value org.ohmage.request.InputKeys#EMAIL_ADDRESS}</td>
+ *     <td>{@value org.ohmage.request.InputKeys#EMAIL_ADDRESS}</td>
  *     <td>The user's email address.</td>
  *     <td>false+</td>
  *   </tr>
  *   <tr>
- *     <td>{@Value org.ohmage.request.InputKeys#USER_JSON_DATA}</td>
+ *     <td>{@value org.ohmage.request.InputKeys#USER_JSON_DATA}</td>
  *     <td>Additional data for the user as a JSONObject. Note: Uploading a new
  *       JSONObject will erase the old one; therefore, if you want to add or
  *       remove some information from the JSONObject, you should first query
@@ -236,7 +236,7 @@ public class UserUpdateRequest extends UserRequest {
 		
 		try {
 			LOGGER.info("Verifying that the requesting user is an admin.");
-			UserServices.verifyUserIsAdmin(this, user.getUsername());
+			UserServices.verifyUserIsAdmin(this, getUser().getUsername());
 			
 			LOGGER.info("Verifying that the user to be upaded exists.");
 			UserServices.checkUserExistance(this, username, true);

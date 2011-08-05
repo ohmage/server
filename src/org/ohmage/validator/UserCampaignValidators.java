@@ -35,10 +35,10 @@ public class UserCampaignValidators {
 	 * @param userAndCampaignRoleList A String representing a list of username
 	 * 								  and campaign role pairs. The pairs should
 	 * 								  be separated by 
-	 * 								  {@Value org.ohmage.request.InputKeys#LIST_ITEM_SEPARATOR}s
+	 * 								  {@value org.ohmage.request.InputKeys#LIST_ITEM_SEPARATOR}s
 	 * 								  and the username and campaign role should
 	 * 								  be separated by
-	 * 								  {@Value org.ohmage.request.InputKeys#ENTITY_ROLE_SEPARATOR}s.
+	 * 								  {@value org.ohmage.request.InputKeys#ENTITY_ROLE_SEPARATOR}s.
 	 * 
 	 * @return A Map of usernames to a list of the campaign roles associated 
 	 * 		   with them from the string list or null if the string is null,
@@ -59,7 +59,7 @@ public class UserCampaignValidators {
 		
 		// Create the resulting object which will initially be empty.
 		Map<String, Set<String>> result = new HashMap<String, Set<String>>();
-		// Split the parameterized Value into its pairs.
+		// Split the parameterized value into its pairs.
 		String[] userAndRoleArray = userAndCampaignRoleList.split(InputKeys.LIST_ITEM_SEPARATOR);
 		
 		// For each of these pairs,

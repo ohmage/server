@@ -57,12 +57,12 @@ public final class CampaignValidators {
 	public static String validateCampaignId(Request request, String campaignId) throws ValidationException {
 		LOGGER.info("Validating a campaign ID.");
 		
-		// If the Value is null or whitespace only, return null.
+		// If the value is null or whitespace only, return null.
 		if(StringUtils.isEmptyOrWhitespaceOnly(campaignId)) {
 			return null;
 		}
 		
-		// If the Value is a valid URN, meaning that it is a plausible campaign 
+		// If the value is a valid URN, meaning that it is a plausible campaign 
 		// ID, return the campaign ID back to the caller.
 		if(StringUtils.isValidUrn(campaignId)) {
 			return campaignId;
@@ -84,7 +84,7 @@ public final class CampaignValidators {
 	 * 
 	 * @param campaignIds A String list of campaign identifiers where each
 	 * 					  identifier is separated by a 
-	 * 					  {@Value org.ohmage.request.InputKeys#LIST_ITEM_SEPARATOR}.
+	 * 					  {@value org.ohmage.request.InputKeys#LIST_ITEM_SEPARATOR}.
 	 * 
 	 * @return If the campaign IDs String list is null or whitespace only, null
 	 * 		   is returned. Otherwise, a List of Strings is returned where each
