@@ -75,13 +75,6 @@ public final class AuditReporter {
 			endDate.set(Calendar.SECOND, 0);
 			endDate.set(Calendar.MILLISECOND, 0);
 			
-			try {
-				Thread.sleep(2000);
-			}
-			catch(InterruptedException e) {
-				LOGGER.debug("Interrupted.", e);
-			}
-			
 			// Use the service to aggregate the results.
 			List<AuditInformation> audits;
 			try {
