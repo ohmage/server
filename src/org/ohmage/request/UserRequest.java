@@ -211,22 +211,24 @@ public abstract class UserRequest extends Request {
 		String tClient = null;
 		String[] clients = httpRequest.getParameterValues(InputKeys.CLIENT);
 		
-		// If there is no client, throw an error.
-		if((clients == null) || (clients.length == 0)) {
-			LOGGER.info("The client is missing from the request.");
-			setFailed(ErrorCodes.AUTHENTICATION_FAILED, "Missing client.");
-		}
-		// If there are multiple clients, throw an error.
-		else if(clients.length > 1) {
-			LOGGER.info("More than one client was given.");
-			setFailed(ErrorCodes.AUTHENTICATION_FAILED, "More than one client was given.");
-		}
-		else {
-			// Save the client.
-			tClient = clients[0];
-			
-			// Push the client into the logs.
-			NDC.push("client=" + tClient);
+		if(! isFailed()) {
+			// If there is no client, throw an error.
+			if((clients == null) || (clients.length == 0)) {
+				LOGGER.info("The client is missing from the request.");
+				setFailed(ErrorCodes.AUTHENTICATION_FAILED, "Missing client.");
+			}
+			// If there are multiple clients, throw an error.
+			else if(clients.length > 1) {
+				LOGGER.info("More than one client was given.");
+				setFailed(ErrorCodes.AUTHENTICATION_FAILED, "More than one client was given.");
+			}
+			else {
+				// Save the client.
+				tClient = clients[0];
+				
+				// Push the client into the logs.
+				NDC.push("client=" + tClient);
+			}
 		}
 		
 		user = tUser;
@@ -309,23 +311,25 @@ public abstract class UserRequest extends Request {
 		// Retrieve the client parameter(s) from the request.
 		String tClient = null;
 		String[] clients = httpRequest.getParameterValues(InputKeys.CLIENT);
-		
-		// If there is no client, throw an error.
-		if((clients == null) || (clients.length == 0)) {
-			LOGGER.info("The client is missing from the request.");
-			setFailed(ErrorCodes.AUTHENTICATION_FAILED, "Missing client.");
-		}
-		// If there are multiple clients, throw an error.
-		else if(clients.length > 1) {
-			LOGGER.info("More than one client was given.");
-			setFailed(ErrorCodes.AUTHENTICATION_FAILED, "More than one client was given.");
-		}
-		else {
-			// Save the client.
-			tClient = clients[0];
-			
-			// Push the client into the logs.
-			NDC.push("client=" + tClient);
+
+		if(! isFailed()) {
+			// If there is no client, throw an error.
+			if((clients == null) || (clients.length == 0)) {
+				LOGGER.info("The client is missing from the request.");
+				setFailed(ErrorCodes.AUTHENTICATION_FAILED, "Missing client.");
+			}
+			// If there are multiple clients, throw an error.
+			else if(clients.length > 1) {
+				LOGGER.info("More than one client was given.");
+				setFailed(ErrorCodes.AUTHENTICATION_FAILED, "More than one client was given.");
+			}
+			else {
+				// Save the client.
+				tClient = clients[0];
+				
+				// Push the client into the logs.
+				NDC.push("client=" + tClient);
+			}
 		}
 		
 		user = tUser;
@@ -457,26 +461,29 @@ public abstract class UserRequest extends Request {
 			}
 		}
 		
+		
 		// Retrieve the client parameter(s) from the request.
 		String tClient = null;
 		String[] clients = httpRequest.getParameterValues(InputKeys.CLIENT);
-		
-		// If there is no client, throw an error.
-		if((clients == null) || (clients.length == 0)) {
-			LOGGER.info("The client is missing from the request.");
-			setFailed(ErrorCodes.AUTHENTICATION_FAILED, "Missing client.");
-		}
-		// If there are multiple clients, throw an error.
-		else if(clients.length > 1) {
-			LOGGER.info("More than one client was given.");
-			setFailed(ErrorCodes.AUTHENTICATION_FAILED, "More than one client was given.");
-		}
-		else {
-			// Save the client.
-			tClient = clients[0];
-			
-			// Push the client into the logs.
-			NDC.push("client=" + tClient);
+
+		if(! isFailed()) {
+			// If there is no client, throw an error.
+			if((clients == null) || (clients.length == 0)) {
+				LOGGER.info("The client is missing from the request.");
+				setFailed(ErrorCodes.AUTHENTICATION_FAILED, "Missing client.");
+			}
+			// If there are multiple clients, throw an error.
+			else if(clients.length > 1) {
+				LOGGER.info("More than one client was given.");
+				setFailed(ErrorCodes.AUTHENTICATION_FAILED, "More than one client was given.");
+			}
+			else {
+				// Save the client.
+				tClient = clients[0];
+				
+				// Push the client into the logs.
+				NDC.push("client=" + tClient);
+			}
 		}
 		
 		user = tUser;

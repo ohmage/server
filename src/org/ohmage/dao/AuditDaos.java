@@ -587,33 +587,43 @@ public class AuditDaos extends Dao {
 				}
 				
 				// Add all of the parameters.
-				final List<KeyValuePair> parameters = instance.jdbcTemplate.query(
-						SQL_GET_AUDIT_PARAMETERS, 
-						new Object[] { auditId }, 
-						new RowMapper<KeyValuePair>() {
-							@Override
-							public KeyValuePair mapRow(ResultSet rs, int rowNum) throws SQLException {
-								return new KeyValuePair(rs.getString("param_key"), rs.getString("param_value"));
+				try {
+					final List<KeyValuePair> parameters = instance.jdbcTemplate.query(
+							SQL_GET_AUDIT_PARAMETERS, 
+							new Object[] { auditId }, 
+							new RowMapper<KeyValuePair>() {
+								@Override
+								public KeyValuePair mapRow(ResultSet rs, int rowNum) throws SQLException {
+									return new KeyValuePair(rs.getString("param_key"), rs.getString("param_value"));
+								}
 							}
-						}
-				);
-				for(KeyValuePair parameter : parameters) {
-					auditInformation.addParameter(parameter.key, parameter.value);
+					);
+					for(KeyValuePair parameter : parameters) {
+						auditInformation.addParameter(parameter.key, parameter.value);
+					}
+				}
+				catch(org.springframework.dao.DataAccessException e) {
+					throw new DataAccessException("Error executing SQL '" + SQL_GET_AUDIT_PARAMETERS + "' with parameter: " + auditId, e);
 				}
 				
 				// Add all of the extras.
-				final List<KeyValuePair> extras = instance.jdbcTemplate.query(
-						SQL_GET_AUDIT_EXTRAS, 
-						new Object[] { auditId }, 
-						new RowMapper<KeyValuePair>() {
-							@Override
-							public KeyValuePair mapRow(ResultSet rs, int rowNum) throws SQLException {
-								return new KeyValuePair(rs.getString("extra_key"), rs.getString("extra_value"));
+				try {
+					final List<KeyValuePair> extras = instance.jdbcTemplate.query(
+							SQL_GET_AUDIT_EXTRAS, 
+							new Object[] { auditId }, 
+							new RowMapper<KeyValuePair>() {
+								@Override
+								public KeyValuePair mapRow(ResultSet rs, int rowNum) throws SQLException {
+									return new KeyValuePair(rs.getString("extra_key"), rs.getString("extra_value"));
+								}
 							}
-						}
-				);
-				for(KeyValuePair extra : extras) {
-					auditInformation.addParameter(extra.key, extra.value);
+					);
+					for(KeyValuePair extra : extras) {
+						auditInformation.addExtra(extra.key, extra.value);
+					}
+				}
+				catch(org.springframework.dao.DataAccessException e) {
+					throw new DataAccessException("Error executing SQL '" + SQL_GET_AUDIT_EXTRAS + "' with parameter: " + auditId, e);
 				}
 				
 				// Add the audit information to the result.

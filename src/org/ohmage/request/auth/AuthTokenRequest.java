@@ -74,6 +74,6 @@ public class AuthTokenRequest extends UserRequest {
 	 */
 	@Override
 	public void respond(HttpServletRequest httpRequest, HttpServletResponse httpResponse) {
-		respond(httpRequest, httpResponse, KEY_AUTH_TOKEN, getUser().getToken());
+		respond(httpRequest, httpResponse, KEY_AUTH_TOKEN, (getUser() == null) ? null : getUser().getToken());
 	}
 }

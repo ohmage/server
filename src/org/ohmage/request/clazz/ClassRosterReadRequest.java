@@ -4,6 +4,7 @@ import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -188,5 +189,19 @@ public class ClassRosterReadRequest extends UserRequest {
 		catch(IOException e) {
 			LOGGER.error("Unable to flush or close the writer.", e);
 		}
+	}
+	
+	/**
+	 * Returns the list of classes from the parameters.
+	 */
+	@Override
+	public Map<String, String[]> getAuditInformation() {
+		Map<String, String[]> result = new HashMap<String, String[]>();
+		
+		if(classIds != null) {
+			result.put(InputKeys.CLASS_URN, classIds.toArray(new String[0]));
+		}
+		
+		return result;
 	}
 }

@@ -43,44 +43,44 @@ public final class RequestBuilder {
 	private static final String API_ROOT = "/app";
 	
 	// Audit
-	private static final String API_AUDIT_READ = API_ROOT + "/audit/read";
+	public static final String API_AUDIT_READ = API_ROOT + "/audit/read";
 	
 	// Authentication
-	private static final String API_USER_AUTH = API_ROOT + "/user/auth";
-	private static final String API_USER_AUTH_TOKEN = API_ROOT + "/user/auth_token";
+	public static final String API_USER_AUTH = API_ROOT + "/user/auth";
+	public static final String API_USER_AUTH_TOKEN = API_ROOT + "/user/auth_token";
 	
 	// Campaign
-	private static final String API_CAMPAIGN_CREATE = API_ROOT + "/campaign/create";
-	private static final String API_CAMPAIGN_READ = API_ROOT + "/campaign/read";
-	private static final String API_CAMPAIGN_UPDATE = API_ROOT + "/campaign/update";
-	private static final String API_CAMPAIGN_DELETE = API_ROOT + "/campaign/delete";
+	public static final String API_CAMPAIGN_CREATE = API_ROOT + "/campaign/create";
+	public static final String API_CAMPAIGN_READ = API_ROOT + "/campaign/read";
+	public static final String API_CAMPAIGN_UPDATE = API_ROOT + "/campaign/update";
+	public static final String API_CAMPAIGN_DELETE = API_ROOT + "/campaign/delete";
 	
 	// Class
-	private static final String API_CLASS_CREATE = API_ROOT + "/class/create";
-	private static final String API_CLASS_READ = API_ROOT + "/class/read";
-	private static final String API_CLASS_ROSTER_READ = API_ROOT + "/class/roster/read";
-	private static final String API_CLASS_UPDATE = API_ROOT + "/class/update";
-	private static final String API_CLASS_ROSTER_UPDATE = API_ROOT + "/class/roster/update";
-	private static final String API_CLASS_DELETE = API_ROOT + "/class/delete";
+	public static final String API_CLASS_CREATE = API_ROOT + "/class/create";
+	public static final String API_CLASS_READ = API_ROOT + "/class/read";
+	public static final String API_CLASS_ROSTER_READ = API_ROOT + "/class/roster/read";
+	public static final String API_CLASS_UPDATE = API_ROOT + "/class/update";
+	public static final String API_CLASS_ROSTER_UPDATE = API_ROOT + "/class/roster/update";
+	public static final String API_CLASS_DELETE = API_ROOT + "/class/delete";
 	
 	// Config
-	private static final String API_CONFIG_READ = API_ROOT + "/config/read";
+	public static final String API_CONFIG_READ = API_ROOT + "/config/read";
 	
 	// Document
-	private static final String API_DOCUMENT_CREATE = API_ROOT + "/document/create";
-	private static final String API_DOCUMENT_READ = API_ROOT + "/document/read";
-	private static final String API_DOCUMENT_READ_CONTENTS = API_ROOT + "/document/read/contents";
-	private static final String API_DOCUMENT_UPDATE = API_ROOT + "/document/update";
-	private static final String API_DOCUMENT_DELETE = API_ROOT + "/document/delete";
+	public static final String API_DOCUMENT_CREATE = API_ROOT + "/document/create";
+	public static final String API_DOCUMENT_READ = API_ROOT + "/document/read";
+	public static final String API_DOCUMENT_READ_CONTENTS = API_ROOT + "/document/read/contents";
+	public static final String API_DOCUMENT_UPDATE = API_ROOT + "/document/update";
+	public static final String API_DOCUMENT_DELETE = API_ROOT + "/document/delete";
 	
 	// User
-	private static final String API_USER_CREATE = API_ROOT + "/user/create";
-	private static final String API_USER_READ = API_ROOT + "/user/read";
-	private static final String API_USER_INFO_READ = API_ROOT + "/user_info/read";
-	private static final String API_USER_STATS_READ = API_ROOT + "/user_stats/read";
-	private static final String API_USER_UPDATE = API_ROOT + "/user/update";
-	private static final String API_USER_CHANGE_PASSWORD = API_ROOT + "/user/change_password";
-	private static final String API_USER_DELETE = API_ROOT + "/user/delete";
+	public static final String API_USER_CREATE = API_ROOT + "/user/create";
+	public static final String API_USER_READ = API_ROOT + "/user/read";
+	public static final String API_USER_INFO_READ = API_ROOT + "/user_info/read";
+	public static final String API_USER_STATS_READ = API_ROOT + "/user_stats/read";
+	public static final String API_USER_UPDATE = API_ROOT + "/user/update";
+	public static final String API_USER_CHANGE_PASSWORD = API_ROOT + "/user/change_password";
+	public static final String API_USER_DELETE = API_ROOT + "/user/delete";
 	
 	/**
 	 * Builds a new request based on the request's URI. This will always return
@@ -182,5 +182,53 @@ public final class RequestBuilder {
 		
 		// The URI is unknown.
 		return new FailedRequest();
+	}
+	
+	/**
+	 * Returns whether or not some URI is known.
+	 * 
+	 * @param uri The URI to check.
+	 * 
+	 * @return Returns true if the URI is known; false, otherwise.
+	 */
+	public static boolean knownUri(String uri) {
+		// Config
+		if(API_CONFIG_READ.equals(uri) ||
+				// Authentication
+				API_USER_AUTH.equals(uri) ||
+				API_USER_AUTH_TOKEN.equals(uri) ||
+				// Audit
+				API_AUDIT_READ.equals(uri) ||
+				// Campaign
+				API_CAMPAIGN_CREATE.equals(uri) ||
+				API_CAMPAIGN_READ.equals(uri) ||
+				API_CAMPAIGN_UPDATE.equals(uri) ||
+				API_CAMPAIGN_DELETE.equals(uri) ||
+				// Class
+				API_CLASS_CREATE.equals(uri) ||
+				API_CLASS_READ.equals(uri) ||
+				API_CLASS_ROSTER_READ.equals(uri) ||
+				API_CLASS_UPDATE.equals(uri) ||
+				API_CLASS_ROSTER_UPDATE.equals(uri) ||
+				API_CLASS_DELETE.equals(uri) ||
+				// Document
+				API_DOCUMENT_CREATE.equals(uri) ||
+				API_DOCUMENT_READ.equals(uri) ||
+				API_DOCUMENT_READ_CONTENTS.equals(uri) ||
+				API_DOCUMENT_UPDATE.equals(uri) ||
+				API_DOCUMENT_DELETE.equals(uri) ||
+				// User
+				API_USER_CREATE.equals(uri) ||
+				API_USER_READ.equals(uri) ||
+				API_USER_INFO_READ.equals(uri) ||
+				API_USER_STATS_READ.equals(uri) ||
+				API_USER_UPDATE.equals(uri) ||
+				API_USER_CHANGE_PASSWORD.equals(uri) ||
+				API_USER_DELETE.equals(uri)) {
+			return true;
+		}
+		
+		// The URI is unknown.
+		return false;
 	}
 }

@@ -1,6 +1,8 @@
 package org.ohmage.request.clazz;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -131,5 +133,19 @@ public class ClassReadRequest extends UserRequest {
 		LOGGER.info("Writing the result to the user.");
 		
 		respond(httpRequest, httpResponse, result);
+	}
+	
+	/**
+	 * Returns the list of classes from the parameters.
+	 */
+	@Override
+	public Map<String, String[]> getAuditInformation() {
+		Map<String, String[]> result = new HashMap<String, String[]>();
+		
+		if(classIds != null) {
+			result.put(InputKeys.CLASS_URN, classIds.toArray(new String[0]));
+		}
+		
+		return result;
 	}
 }

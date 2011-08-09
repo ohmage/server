@@ -152,8 +152,6 @@ public class CampaignReadRequest extends UserRequest {
 	private static final String JSON_KEY_USER_ROLES = "user_roles";
 	private static final String JSON_KEY_CAMPAIGN_ROLES_WITH_USERS = "user_role_campaign";
 	
-	private static final String AUDIT_KEY = "campaignRead:response:campaignId";
-	
 	private final CampaignValidators.OutputFormat outputFormat;
 	
 	private final List<String> campaignIds;
@@ -359,7 +357,7 @@ public class CampaignReadRequest extends UserRequest {
 		// information where the key distinguishes this as a result and the
 		// value is the listof campaign IDs.
 		if(campaignIds.size() > 0) {
-			result.put(AUDIT_KEY, campaignIds.toArray(new String[0]));
+			result.put(InputKeys.CAMPAIGN_URN, campaignIds.toArray(new String[0]));
 		}
 		
 		return result;
