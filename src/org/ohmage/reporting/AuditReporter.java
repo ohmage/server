@@ -33,6 +33,9 @@ import org.ohmage.service.ServiceException;
 public final class AuditReporter {
 	private static final Logger LOGGER = Logger.getLogger(AuditReporter.class);
 	
+	// Used by the timer.
+	private static final int MILLIS_IN_A_DAY = 1000 * 60 * 60 * 24;
+	
 	// The number of idle threads ready to generate the report. Two reports 
 	// should never be generated at the same time, so we only need one thread
 	// to handle this.
@@ -54,6 +57,9 @@ public final class AuditReporter {
 	 * @author John Jenkins
 	 */
 	private final class GenerateReport implements Runnable {
+		/**
+		 * Generates a report for the previous day.
+		 */
 		@Override
 		public void run() {
 			// Generate a dummy, failed request in case something goes wrong in
@@ -277,18 +283,18 @@ public final class AuditReporter {
 		
 		// Generate the number of milliseconds until the first run.
 		Calendar firstRun = Calendar.getInstance();
+		// Fast-forward to the beginning of the next day.
+		firstRun.add(Calendar.DAY_OF_YEAR, 1);
 		// Reset the hours, minutes, seconds, and milliseconds.
 		firstRun.set(Calendar.HOUR_OF_DAY, 0);
 		firstRun.set(Calendar.MINUTE, 0);
 		firstRun.set(Calendar.SECOND, 0);
 		firstRun.set(Calendar.MILLISECOND, 0);
-		// Fast-forward to the beginning of the next day.
-		firstRun.add(Calendar.DAY_OF_YEAR, 1);
 		
 		// Calculate the time between now and when the task should first run.
 		long initialDelay = firstRun.getTimeInMillis() - Calendar.getInstance().getTimeInMillis();
 		
 		// Begin the task.
-		Executors.newScheduledThreadPool(THREAD_POOL_SIZE).scheduleAtFixedRate(new GenerateReport(), initialDelay, 1, TimeUnit.DAYS);
+		Executors.newScheduledThreadPool(THREAD_POOL_SIZE).scheduleAtFixedRate(new GenerateReport(), initialDelay, MILLIS_IN_A_DAY, TimeUnit.MILLISECONDS);
 	}
 }
