@@ -282,13 +282,6 @@ public final class AuditReporter {
 			throw new IllegalStateException("We are not allowed to read or write in the specified directory.", e);
 		}
 		
-		
-		
-		// DEBUG!!!
-		(new Thread(new GenerateReport())).start();
-		
-		
-		
 		// Generate the number of milliseconds until the first run.
 		Calendar firstRun = Calendar.getInstance();
 		// Reset the hours, minutes, seconds, and milliseconds.
