@@ -15,7 +15,6 @@ import org.ohmage.service.CampaignServices;
 import org.ohmage.service.CampaignServices.CampaignIdAndName;
 import org.ohmage.service.UserClassServices;
 import org.ohmage.service.UserServices;
-import org.ohmage.util.CookieUtils;
 import org.ohmage.validator.CampaignValidators;
 import org.ohmage.validator.ClassValidators;
 
@@ -79,60 +78,75 @@ public class CampaignCreationRequest extends UserRequest {
 	 * 					  necessary for servicing this request.
 	 */
 	public CampaignCreationRequest(HttpServletRequest httpRequest) {
-		super(CookieUtils.getCookieValue(httpRequest.getCookies(), InputKeys.AUTH_TOKEN), httpRequest.getParameter(InputKeys.CLIENT));
+		super(httpRequest, TokenLocation.PARAMETER);
 		
 		LOGGER.info("Creating a campaign creation request.");
 		
-		String tempXml = null;
-		String tempDescription = null;
-		String tempRunningState = null;
-		String tempPrivacyState = null;
-		List<String> tempClassIds = null;
+		String tXml = null;
+		String tDescription = null;
+		String tRunningState = null;
+		String tPrivacyState = null;
+		List<String> tClassIds = null;
 		
 		try {
-			try {
-				tempXml = CampaignValidators.validateXml(this, new String(getMultipartValue(httpRequest, InputKeys.XML)));
+			byte[] pXml = getMultipartValue(httpRequest, InputKeys.XML);
+			if(pXml == null) {
+				setFailed(ErrorCodes.CAMPAIGN_INVALID_XML, "Missing required campaign XML: " + InputKeys.XML);
+				throw new ValidationException("Missing required campaign XML.");
 			}
-			catch(NullPointerException e) {
-				// If the getMultipartValue() returns null because the XML 
-				// didn't exist, a NullPointerException will be thrown.
-				setFailed(ErrorCodes.CAMPAIGN_INVALID_XML, "Missing required campaign XML.");
-				throw new ValidationException("Missing required campaign XML.", e);
+			else {
+				tXml = CampaignValidators.validateXml(this, new String(pXml));
 			}
-			if(tempXml == null) {
+			if(tXml == null) {
 				setFailed(ErrorCodes.CAMPAIGN_INVALID_XML, "Missing required campaign XML.");
 				throw new ValidationException("Missing required campaign XML.");
 			}
 			
-			tempDescription = CampaignValidators.validateDescription(this, httpRequest.getParameter(InputKeys.DESCRIPTION));
-			
-			tempRunningState = CampaignValidators.validateRunningState(this, httpRequest.getParameter(InputKeys.RUNNING_STATE));
-			if(tempRunningState == null) {
+			tRunningState = CampaignValidators.validateRunningState(this, httpRequest.getParameter(InputKeys.RUNNING_STATE));
+			if(tRunningState == null) {
 				setFailed(ErrorCodes.CAMPAIGN_INVALID_RUNNING_STATE, "Missing the required initial running state.");
 				throw new ValidationException("Missing required running state.");
 			}
+			else if(httpRequest.getParameterValues(InputKeys.RUNNING_STATE).length > 1) {
+				setFailed(ErrorCodes.CAMPAIGN_INVALID_RUNNING_STATE, "Multiple running states were found.");
+				throw new ValidationException("Multiple running states were found.");
+			}
 			
-			tempPrivacyState = CampaignValidators.validatePrivacyState(this, httpRequest.getParameter(InputKeys.PRIVACY_STATE));
-			if(tempPrivacyState == null) {
+			tPrivacyState = CampaignValidators.validatePrivacyState(this, httpRequest.getParameter(InputKeys.PRIVACY_STATE));
+			if(tPrivacyState == null) {
 				setFailed(ErrorCodes.CAMPAIGN_INVALID_PRIVACY_STATE, "Missing the required initial privacy state.");
 				throw new ValidationException("Missing required privacy state.");
 			}
+			else if(httpRequest.getParameterValues(InputKeys.PRIVACY_STATE).length > 1) {
+				setFailed(ErrorCodes.CAMPAIGN_INVALID_PRIVACY_STATE, "Multiple privacy states were found.");
+				throw new ValidationException("Multiple privacy states were found.");
+			}
 			
-			tempClassIds = ClassValidators.validateClassIdList(this, httpRequest.getParameter(InputKeys.CLASS_URN_LIST));
-			if((tempClassIds == null) || (tempClassIds.size() == 0)) {
+			tClassIds = ClassValidators.validateClassIdList(this, httpRequest.getParameter(InputKeys.CLASS_URN_LIST));
+			if(tClassIds == null) {
 				setFailed(ErrorCodes.CLASS_INVALID_ID, "Missing the required class ID list.");
 				throw new ValidationException("Missing required class ID list.");
+			}
+			else if(httpRequest.getParameterValues(InputKeys.CLASS_URN_LIST).length > 1) {
+				setFailed(ErrorCodes.CLASS_INVALID_ID, "Multiple class ID lists were found.");
+				throw new ValidationException("Multiple class ID lists were found.");
+			}
+			
+			tDescription = CampaignValidators.validateDescription(this, httpRequest.getParameter(InputKeys.DESCRIPTION));
+			if((tDescription != null) && (httpRequest.getParameterValues(InputKeys.DESCRIPTION).length > 1)) {
+				setFailed(ErrorCodes.CLASS_INVALID_DESCRIPTION, "Multiple descriptions were found.");
+				throw new ValidationException("Multiple descriptions were found.");
 			}
 		}
 		catch(ValidationException e) {
 			LOGGER.info(e.toString());
 		}
 		
-		xml = tempXml;
-		description = tempDescription;
-		runningState = tempRunningState;
-		privacyState = tempPrivacyState;
-		classIds = tempClassIds;
+		xml = tXml;
+		description = tDescription;
+		runningState = tRunningState;
+		privacyState = tPrivacyState;
+		classIds = tClassIds;
 	}
 
 	/**
@@ -147,21 +161,21 @@ public class CampaignCreationRequest extends UserRequest {
 		}
 		
 		try {
-			LOGGER.info("Verifying that the user is allowed to create campaigns.");
-			UserServices.verifyUserCanCreateCampaigns(this, user.getUsername());
-			
-			LOGGER.info("Verifying that all of the classes in the campaign exist and that the user is enrolled in call of the classes.");
-			UserClassServices.classesExistAndUserBelongs(this, classIds, user.getUsername());
-			
 			// Get the campaign's URN and name from the XML.
 			CampaignIdAndName campaignInfo = CampaignServices.getCampaignUrnAndNameFromXml(this, xml);
 			
 			LOGGER.info("Verifying that the campaign doesn't already exist.");
 			CampaignServices.checkCampaignExistence(this, campaignInfo.getCampaignId(), false);
 			
+			LOGGER.info("Verifying that the user is allowed to create campaigns.");
+			UserServices.verifyUserCanCreateCampaigns(this, getUser().getUsername());
+			
+			LOGGER.info("Verifying that all of the classes and that the user is enrolled in call of the classes.");
+			UserClassServices.classesExistAndUserBelongs(this, classIds, getUser().getUsername());
+			
 			LOGGER.info("Creating the campaign.");
 			CampaignServices.createCampaign(this, campaignInfo.getCampaignId(), campaignInfo.getCampaignName(), 
-					xml, description, runningState, privacyState, classIds, user.getUsername());
+					xml, description, runningState, privacyState, classIds, getUser().getUsername());
 		}
 		catch(ServiceException e) {
 			e.logException(LOGGER);

@@ -74,7 +74,7 @@ public class ClassRosterUpdateRequest extends UserRequest {
 	 * 					  this request. 
 	 */
 	public ClassRosterUpdateRequest(HttpServletRequest httpRequest) {
-		super(getToken(httpRequest), httpRequest.getParameter(InputKeys.CLIENT));
+		super(httpRequest, TokenLocation.PARAMETER);
 		
 		LOGGER.info("Create a class roster update request.");
 		
@@ -113,7 +113,7 @@ public class ClassRosterUpdateRequest extends UserRequest {
 			ClassServices.checkClassesExistence(this, classIds, true);
 			
 			LOGGER.info("Verifying that the requester is an admin.");
-			UserServices.verifyUserIsAdmin(this, user.getUsername());
+			UserServices.verifyUserIsAdmin(this, getUser().getUsername());
 			
 			LOGGER.info("Verifying that the users in the roster exist.");
 			Set<String> uniqueUsers = new HashSet<String>();

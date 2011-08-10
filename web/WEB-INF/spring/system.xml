@@ -14,6 +14,7 @@
       <list>
         <ref bean="dbProps" />
         <ref bean="systemProps" />
+        <ref bean="auditProps" />
       </list>
     </property>
   </bean>
@@ -28,6 +29,10 @@
   <util:map id="systemProps">
     <entry key="system.imageDir" value="/opt/aw/userdata/images" />
     <entry key="system.configurationXmlSchemaFile" value="/opt/aw/conf/configuration.xsd" />
+  </util:map>
+  
+  <util:map id="auditProps">
+    <entry key="audit.location" value="/opt/aw/as/logs/audits" />
   </util:map>
 
 </beans>

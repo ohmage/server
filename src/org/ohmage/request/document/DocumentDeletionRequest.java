@@ -49,7 +49,7 @@ public class DocumentDeletionRequest extends UserRequest {
 	 * @param httpRequest The HttpServletRequest with the request's parameters.
 	 */
 	public DocumentDeletionRequest(HttpServletRequest httpRequest) {
-		super(getToken(httpRequest), httpRequest.getParameter(InputKeys.CLIENT));
+		super(httpRequest, TokenLocation.PARAMETER);
 		
 		String tempDocumentId = null;
 		
@@ -58,6 +58,10 @@ public class DocumentDeletionRequest extends UserRequest {
 			if(tempDocumentId == null) {
 				setFailed(ErrorCodes.DOCUMENT_INVALID_ID, "The document ID is missing.");
 				throw new ValidationException("The document ID is missing.");
+			}
+			else if(httpRequest.getParameterValues(InputKeys.DOCUMENT_ID).length > 1) {
+				setFailed(ErrorCodes.DOCUMENT_INVALID_ID, "Multiple document IDs were given.");
+				throw new ValidationException("Multiple document IDs were given.");
 			}
 		}
 		catch(ValidationException e) {
@@ -83,7 +87,7 @@ public class DocumentDeletionRequest extends UserRequest {
 			DocumentServices.ensureDocumentExistence(this, documentId);
 			
 			LOGGER.info("Verifying that the requesting user can delete this document.");
-			UserDocumentServices.userCanDeleteDocument(this, user.getUsername(), documentId);
+			UserDocumentServices.userCanDeleteDocument(this, getUser().getUsername(), documentId);
 			
 			LOGGER.info("Deleting the document.");
 			DocumentServices.deleteDocument(this, documentId);

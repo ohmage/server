@@ -26,10 +26,10 @@ import org.springframework.jdbc.core.RowMapper;
  * 
  * @author John Jenkins
  */
-public class UserSurveyDaos extends Dao {
+public final class UserSurveyDaos extends Dao {
 	// Retrieves all of the survey responses for a user that are visible to a
 	// requesting user.
-	public static final String SQL_GET_SURVEY_RESPONSES_FOR_USER_FOR_REQUESTER = 
+	private static final String SQL_GET_SURVEY_RESPONSES_FOR_USER_FOR_REQUESTER = 
 		"SELECT c.urn, sr.client, sr.epoch_millis, sr.msg_timestamp, sr.phone_timezone, sr.upload_timestamp, " +
 			"sr.survey_id, pr.prompt_id, pr.prompt_type, pr.repeatable_set_id, pr.repeatable_set_iteration, pr.response, " +
 			"sr.launch_context, sr.location_status, sr.location, srps.privacy_state, " +

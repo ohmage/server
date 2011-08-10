@@ -79,27 +79,27 @@ public class DocumentDaos extends Dao {
 	// Inserts the document into the database.
 	private static final String SQL_INSERT_DOCUMENT = 
 		"INSERT INTO document(uuid, name, description, extension, url, size, privacy_state_id, creation_timestamp) " +
-		"VALUES (?, ?, ?, ?, ?, ?, (SELECT id FROM document_privacy_state WHERE privacy_state = ?), now())";
+		"VALUES (?, ?, ?, ?, ?, ?, (SELECT Id FROM document_privacy_state WHERE privacy_state = ?), now())";
 	
 	// Associates a static user string as the creator of a document.
 	private static final String SQL_INSERT_DOCUMENT_USER_CREATOR = 
 		"INSERT INTO document_user_creator(document_id, username) " +
-		"VALUES ((SELECT id FROM document WHERE uuid = ?), ?)";
+		"VALUES ((SELECT Id FROM document WHERE uuid = ?), ?)";
 	
 	// Associates a user with a document and gives them a specific role.
 	private static final String SQL_INSERT_USER_ROLE = 
 		"INSERT INTO document_user_role(document_id, user_id, document_role_id) " +
 		"VALUES (" +
 			"(" +
-				"SELECT id " +
+				"SELECT Id " +
 				"FROM document " +
 				"WHERE uuid = ?" +
 			"), (" +
-				"SELECT id " +
+				"SELECT Id " +
 				"FROM user " +
 				"WHERE username = ?" +
 			"), (" +
-				"SELECT id " +
+				"SELECT Id " +
 				"FROM document_role " +
 				"WHERE role = ?" +
 			")" +
@@ -110,15 +110,15 @@ public class DocumentDaos extends Dao {
 		"INSERT INTO document_campaign_role(document_id, campaign_id, document_role_id) " +
 		"VALUES (" +
 			"(" +
-				"SELECT id " +
+				"SELECT Id " +
 				"FROM document " +
 				"WHERE uuid = ?" +
 			"), (" +
-				"SELECT id " +
+				"SELECT Id " +
 				"FROM campaign " +
 				"WHERE urn = ?" +
 			"), (" +
-				"SELECT id " +
+				"SELECT Id " +
 				"FROM document_role " +
 				"WHERE role = ?" +
 			")" +
@@ -129,15 +129,15 @@ public class DocumentDaos extends Dao {
 		"INSERT INTO document_class_role(document_id, class_id, document_role_id) " +
 		"VALUES (" +
 			"(" +
-				"SELECT id " +
+				"SELECT Id " +
 				"FROM document " +
 				"WHERE uuid = ?" +
 			"), (" +
-				"SELECT id " +
+				"SELECT Id " +
 				"FROM class " +
 				"WHERE urn = ?" +
 			"), (" +
-				"SELECT id " +
+				"SELECT Id " +
 				"FROM document_role " +
 				"WHERE role = ?" +
 			")" +
@@ -156,7 +156,7 @@ public class DocumentDaos extends Dao {
 	private static final String SQL_UPDATE_PRIVACY_STATE = 
 		"UPDATE document " +
 		"SET privacy_state_id = (" +
-			"SELECT id " +
+			"SELECT Id " +
 			"FROM document_privacy_state " +
 			"WHERE privacy_state = ?" +
 		") " +
@@ -170,17 +170,17 @@ public class DocumentDaos extends Dao {
 	private static final String SQL_UPDATE_CAMPAIGN_ROLE = 
 		"UPDATE document_campaign_role " +
 		"SET document_role_id = (" +
-			"SELECT id " +
+			"SELECT Id " +
 			"FROM document_role " +
 			"WHERE role = ?" +
 		") " +
 		"WHERE document_id = (" +
-			"SELECT id " +
+			"SELECT Id " +
 			"FROM document " +
 			"WHERE uuid = ?" +
 		") " +
 		"AND campaign_id = (" +
-			"SELECT id " +
+			"SELECT Id " +
 			"FROM campaign " +
 			"WHERE urn = ?" +
 		")";
@@ -188,17 +188,17 @@ public class DocumentDaos extends Dao {
 	private static final String SQL_UPDATE_CLASS_ROLE = 
 		"UPDATE document_class_role " +
 		"SET document_role_id = (" +
-			"SELECT id " +
+			"SELECT Id " +
 			"FROM document_role " +
 			"WHERE role = ?" +
 		") " +
 		"WHERE document_id = (" +
-			"SELECT id " +
+			"SELECT Id " +
 			"FROM document " +
 			"WHERE uuid = ?" +
 		") " +
 		"AND class_id = (" +
-			"SELECT id " +
+			"SELECT Id " +
 			"FROM class " +
 			"WHERE urn = ?" +
 		")";
@@ -206,17 +206,17 @@ public class DocumentDaos extends Dao {
 	private static final String SQL_UPDATE_USER_ROLE = 
 		"UPDATE document_user_role " +
 		"SET document_role_id = (" +
-			"SELECT id " +
+			"SELECT Id " +
 			"FROM document_role " +
 			"WHERE role = ?" +
 		") " +
 		"WHERE document_id = (" +
-			"SELECT id " +
+			"SELECT Id " +
 			"FROM document " +
 			"WHERE uuid = ?" +
 		") " +
 		"AND user_id = (" +
-			"SELECT id " +
+			"SELECT Id " +
 			"FROM user " +
 			"WHERE username = ?" +
 		")";
@@ -228,12 +228,12 @@ public class DocumentDaos extends Dao {
 	private static final String SQL_DELETE_CAMPAIGN_ROLE = 
 		"DELETE FROM document_campaign_role " +
 		"WHERE document_id = (" +
-			"SELECT id " +
+			"SELECT Id " +
 			"FROM document " +
 			"WHERE uuid = ?" +
 		") " +
 		"AND campaign_id = (" +
-			"SELECT id " +
+			"SELECT Id " +
 			"FROM campaign " +
 			"WHERE urn = ?" +
 		")";
@@ -241,12 +241,12 @@ public class DocumentDaos extends Dao {
 	private static final String SQL_DELETE_CLASS_ROLE = 
 		"DELETE FROM document_class_role " +
 		"WHERE document_id = (" +
-			"SELECT id " +
+			"SELECT Id " +
 			"FROM document " +
 			"WHERE uuid = ?" +
 		") " +
 		"AND class_id = (" +
-			"SELECT id " +
+			"SELECT Id " +
 			"FROM class " +
 			"WHERE urn = ?" +
 		")";
@@ -254,12 +254,12 @@ public class DocumentDaos extends Dao {
 	private static final String SQL_DELETE_USER_ROLE = 
 		"DELETE FROM document_user_role " +
 		"WHERE document_id = (" +
-			"SELECT id " +
+			"SELECT Id " +
 			"FROM document " +
 			"WHERE uuid = ?" +
 		") " +
 		"AND user_id = (" +
-			"SELECT id " +
+			"SELECT Id " +
 			"FROM user " +
 			"WHERE username = ?" +
 		")";
@@ -899,29 +899,31 @@ public class DocumentDaos extends Dao {
 		if(entityAndRolesToAdd != null) {
 			Iterator<String> addMapIter = entityAndRolesToAdd.keySet().iterator();
 			while(addMapIter.hasNext()) {
-				// Get the campaign's String ID.
+				// Get the entity's String ID.
 				String entityId = addMapIter.next();
+				
+				// Get the entity's role.
+				String role = entityAndRolesToAdd.get(entityId);
 				
 				// Add the document-entity role.
 				try {
 					instance.jdbcTemplate.update(sqlInsertEntity, 
-							new Object[] { documentId, entityId, entityAndRolesToAdd.get(entityId) });
+							new Object[] { documentId, entityId, role });
 				}
 				catch(org.springframework.dao.DataIntegrityViolationException duplicateEntryException) {
 					// If the entity is already associated with the document, then
 					// they must be attempting an update.
 					try {
-						instance.jdbcTemplate.update(sqlUpdateEntity, 
-								new Object[] { entityAndRolesToAdd.get(entityId), documentId, entityId });
+						instance.jdbcTemplate.update(sqlUpdateEntity, new Object[] { role, documentId, entityId });
 					}
 					catch(org.springframework.dao.DataAccessException e) {
 						throw new DataAccessException("Error executing SQL '" + sqlUpdateEntity + "' with parameters: " + 
-								entityAndRolesToAdd.get(entityId) + ", " + documentId + ", " + entityId, e);
+								role + ", " + documentId + ", " + entityId, e);
 					}
 				}
 				catch(org.springframework.dao.DataAccessException e) {
 					throw new DataAccessException("Error executing SQL '" + sqlInsertEntity + "' with parameters: " + 
-							documentId + ", " + entityId + ", " + entityAndRolesToAdd.get(entityId), e);
+							documentId + ", " + entityId + ", " + role, e);
 				}
 			}
 		}
@@ -1008,7 +1010,7 @@ public class DocumentDaos extends Dao {
 				rootFile = PreferenceCache.instance().lookup(PreferenceCache.KEY_DOCUMENT_DIRECTORY);
 			}
 			catch(CacheMissException e) {
-				throw new DataAccessException("Preference cache doesn't know about 'known' key: " + PreferenceCache.KEY_DOCUMENT_DIRECTORY);
+				throw new DataAccessException("Preference cache doesn't know about 'known' key: " + PreferenceCache.KEY_DOCUMENT_DIRECTORY, e);
 			}
 			File rootDirectory = new File(rootFile);
 			if(! rootDirectory.exists()) {
@@ -1122,7 +1124,7 @@ public class DocumentDaos extends Dao {
 				rootFile = PreferenceCache.instance().lookup(PreferenceCache.KEY_DOCUMENT_DIRECTORY);
 			}
 			catch(CacheMissException e) {
-				throw new DataAccessException("Preference cache doesn't know about 'known' key: " + PreferenceCache.KEY_DOCUMENT_DIRECTORY);
+				throw new DataAccessException("Preference cache doesn't know about 'known' key: " + PreferenceCache.KEY_DOCUMENT_DIRECTORY, e);
 			}
 			File rootDirectory = new File(rootFile);
 			if(! rootDirectory.exists()) {
@@ -1149,17 +1151,17 @@ public class DocumentDaos extends Dao {
 			// While we are still looking for a suitable directory,
 			while(lookingForDirectory) {
 				// Get the current directory's name which should be a Long
-				// value.
+				// Valvalueue.
 				long currDirectoryName;
 				try {
 					currDirectoryName = Long.decode(newDirectory.getName());
 				}
 				catch(NumberFormatException e) {
 					if(newDirectory.getAbsolutePath().equals(absoluteRootDirectory)) {
-						throw new DataAccessException("Document structure full!");
+						throw new DataAccessException("Document structure full!", e);
 					}
 					else {
-						throw new DataAccessException("Potential breach of document structure.");
+						throw new DataAccessException("Potential breach of document structure.", e);
 					}
 				}
 				

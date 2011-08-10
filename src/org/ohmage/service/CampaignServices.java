@@ -4,6 +4,8 @@ import java.io.IOException;
 import java.io.StringReader;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import nu.xom.Builder;
 import nu.xom.Document;
@@ -169,6 +171,50 @@ public class CampaignServices {
 	}
 	
 	/**
+	 * Retrieves the XML for a campaign.
+	 * 
+	 * @param request The Request that is performing this service.
+	 * 
+	 * @param campaignId The campaign's unique identifier.
+	 * 
+	 * @return Returns the XML for the campaign. If the campaign doens't exist,
+	 * 		   null is returned.
+	 * 
+	 * @throws ServiceException Thrown if there is an error.
+	 */
+	public static String getCampaignXml(Request request, String campaignId) throws ServiceException {
+		try {
+			return CampaignDaos.getXml(campaignId);
+		}
+		catch(DataAccessException e) {
+			request.setFailed();
+			throw new ServiceException(e);
+		}
+	}
+	
+	/**
+	 * Retrieves the name of a campaign.
+	 * 
+	 * @param request The Request performing this service.
+	 * 
+	 * @param campaignId The unique identifier for the campaign.
+	 * 
+	 * @return Returns the name of the campaign. If the campaign doesn't exist
+	 * 		   null is returned.
+	 * 
+	 * @throws ServiceException Thrown if there is an error.
+	 */
+	public static String getCampaignName(Request request, String campaignId) throws ServiceException {
+		try {
+			return CampaignDaos.getName(campaignId);
+		}
+		catch(DataAccessException e) {
+			request.setFailed();
+			throw new ServiceException(e);
+		}
+	}
+	
+	/**
 	 * Gets the campaign's URN and name from the campaign XML.<br />
 	 * <br />
 	 * Note: The campaign should have been validated before this point.
@@ -276,6 +322,48 @@ public class CampaignServices {
 	}
 	
 	/**
+	 * Verifies that the campaign ID and name in some XML file are the same as
+	 * the ones we have on record.
+	 * 
+	 * @param request The Request that is performing this service.
+	 * 
+	 * @param campaignId The unique identifier for the campaign whose XML is 
+	 * 					 being changed.
+	 * 
+	 * @param newXml The new XML that may replace the old XML for some 
+	 * 				 campaign.
+	 * 
+	 * @throws ServiceException Thrown if the ID or name are different than
+	 *		   what we currently have on record or if there is an error.
+	 */
+	public static void verifyTheNewXmlIdAndNameAreTheSameAsTheCurrentIdAndName(Request request, String campaignId, String newXml) throws ServiceException {
+		try {
+			// Retrieve the ID and name from the current XML.
+			CampaignIdAndName newCampaignIdAndName = getCampaignUrnAndNameFromXml(request, newXml);
+			
+			// We check the XML's ID against the given ID and the XML's name
+			// against what the DAO reports as the name. We do not check 
+			// against the actual saved XML as that would be less efficient. 
+			// The only time these would not be the same is when there was an
+			// integrity issue in the database.
+			if(! newCampaignIdAndName.getCampaignId().equals(campaignId)) {
+				request.setFailed(ErrorCodes.CAMPAIGN_XML_HEADER_CHANGED, "The campaign's ID in the new XML must be the same as the original XML.");
+				throw new ServiceException("The campaign's ID in the new XML must be the same as the original XML.");
+			}
+			
+			if(! newCampaignIdAndName.getCampaignName().equals(CampaignDaos.getName(campaignId))) {
+				request.setFailed(ErrorCodes.CAMPAIGN_XML_HEADER_CHANGED, "The campaign's name in the new XML must be the same as the original XML.");
+				throw new ServiceException("The campaign's name in the new XML must be the same as the original XML.");
+			}
+			
+		}
+		catch(DataAccessException e) {
+			request.setFailed();
+			throw new ServiceException(e);
+		}
+	}
+	
+	/**
 	 * Verifies that the user belongs to a campaign specified by the campaign
 	 * id and that the campaign referenced by the id has a timestamp value 
 	 * that matches the campaign creation timestamp.
@@ -315,6 +403,50 @@ public class CampaignServices {
 	}
 	
 	/**
+	 * Updates a campaign. The 'request' and 'campaignId' are required; 
+	 * however, the remaining parameters may be null indicating that they 
+	 * should not be updated.
+	 * 
+	 * @param request The Request that is performing this service.
+	 *  
+	 * @param campaignId The campaign's unique identifier.
+	 * 
+	 * @param xml The new XML for the campaign or null if the XML should not be
+	 * 			  updated.
+	 * 
+	 * @param description The new description for the campaign or null if the
+	 * 					  description should not be updated.
+	 * 
+	 * @param runningState The new running state for the campaign or null if 
+	 * 					   the running state should not be updated.
+	 * 
+	 * @param privacyState The new privacy state for the campaign or null if 
+	 * 					   the privacy state should not be updated.
+	 * 
+	 * @param usersAndRolesToAdd A map of usernames to a list of roles that the
+	 * 							 users should be granted in the campaign or 
+	 * 							 null if no users should be granted any new 
+	 * 							 roles.
+	 * 
+	 * @param usersAndRolesToRemove A map of usernames to a list of roles that
+	 * 								should be revoked from the user in the
+	 * 								campaign or null if no users should have 
+	 * 								any of their roles revoked.
+	 * 
+	 * @throws ServiceException Thrown if there is an error.
+	 */
+	public static void updateCampaign(Request request, String campaignId, String xml, String description, String runningState, String privacyState, 
+			Collection<String> classIds, Map<String, Set<String>> usersAndRolesToAdd, Map<String, Set<String>> usersAndRolesToRemove) throws ServiceException {
+		try {
+			CampaignDaos.updateCampaign(campaignId, xml, description, runningState, privacyState, classIds, usersAndRolesToAdd, usersAndRolesToRemove);
+		}
+		catch(DataAccessException e) {
+			request.setFailed();
+			throw new ServiceException(e);
+		}
+	}
+	
+	/**
 	 * Finds the configuration for the campaign identified by the campaign id.
 	 * 
 	 * @param campaignId The campaign id to use for lookup.
@@ -325,8 +457,27 @@ public class CampaignServices {
 		try {
 			
 			return CampaignDaos.findCampaignConfiguration(campaignId);
-			
-		} catch (DataAccessException e) {
+		}
+		catch(DataAccessException e) {
+				request.setFailed();
+				throw new ServiceException(e);
+		}
+	}
+		
+	/**
+	 * Deletes a campaign.
+	 * 
+	 * @param request The Request that is performing this service.
+	 * 
+	 * @param campaignId The unique identifier for the campaign.
+	 * 
+	 * @throws ServiceException Thrown if there is an error.
+	 */
+	public static void deleteCampaign(Request request, String campaignId) throws ServiceException {
+		try {
+			CampaignDaos.deleteCampaign(campaignId);
+		}
+		catch(DataAccessException e) {
 			request.setFailed();
 			throw new ServiceException(e);
 		}

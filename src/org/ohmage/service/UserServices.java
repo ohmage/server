@@ -283,7 +283,7 @@ public final class UserServices {
 	 * 
 	 * @param campaignCreationPrivilege Whether or not the user should be 
 	 * 									allowed to create campaigns. A null
-	 * 									value indicates that this field should
+	 * 									Value indicates that this field should
 	 * 									not be updated.
 	 * 
 	 * @param personalInfo Personal information about a user. If this is null,

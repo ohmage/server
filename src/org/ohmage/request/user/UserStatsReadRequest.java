@@ -78,8 +78,7 @@ public class UserStatsReadRequest extends UserRequest {
 	 * 					  request.
 	 */
 	public UserStatsReadRequest(HttpServletRequest httpRequest) {
-		super(httpRequest.getParameter(InputKeys.USER), httpRequest.getParameter(InputKeys.PASSWORD), false,
-				getToken(httpRequest), httpRequest.getParameter(InputKeys.CLIENT));
+		super(httpRequest, TokenLocation.EITHER, false);
 		
 		LOGGER.info("Creating a user stats read request.");
 		
@@ -92,11 +91,19 @@ public class UserStatsReadRequest extends UserRequest {
 				setFailed(ErrorCodes.CAMPAIGN_INVALID_ID, "Missing the required campaign ID: " + InputKeys.CAMPAIGN_URN);
 				throw new ValidationException("Missing the required campaign ID: " + InputKeys.CAMPAIGN_URN);
 			}
+			else if(httpRequest.getParameterValues(InputKeys.CAMPAIGN_URN).length > 1) {
+				setFailed(ErrorCodes.CAMPAIGN_INVALID_ID, "Multiple campaign ID parameters were given.");
+				throw new ValidationException("Multiple campaign ID parameters were given.");
+			}
 			
 			tUsername = UserValidators.validateUsername(this, httpRequest.getParameter(InputKeys.USERNAME));
 			if(tUsername == null) {
 				setFailed(ErrorCodes.USER_INVALID_USERNAME, "Missing the required username: " + InputKeys.USERNAME);
 				throw new ValidationException("Missing the required username: " + InputKeys.USERNAME);
+			}
+			else if(httpRequest.getParameterValues(InputKeys.USERNAME).length > 1) {
+				setFailed(ErrorCodes.USER_INVALID_USERNAME, "Multiple username parameters were given.");
+				throw new ValidationException("Multiple username parameters were given.");
 			}
 		}
 		catch(ValidationException e) {
@@ -125,22 +132,22 @@ public class UserStatsReadRequest extends UserRequest {
 		
 		try {
 			LOGGER.info("Verifying that the requester has permissions to view the survey information.");
-			UserCampaignServices.requesterCanViewUsersSurveyResponses(this, campaignId, user.getUsername(), username);
+			UserCampaignServices.requesterCanViewUsersSurveyResponses(this, campaignId, getUser().getUsername(), username);
 			
 			LOGGER.info("Verifying that the requester has permissions to view the mobility information.");
-			UserMobilityServices.requesterCanViewUsersMobilityData(this, user.getUsername(), username);
+			UserMobilityServices.requesterCanViewUsersMobilityData(this, getUser().getUsername(), username);
 			
 			LOGGER.info("Gathering the number of hours since the last survey upload.");
-			hoursSinceLastSurveyUpload = UserSurveyServices.getHoursSinceLastSurveyUplaod(this, user.getUsername(), username);
+			hoursSinceLastSurveyUpload = UserSurveyServices.getHoursSinceLastSurveyUplaod(this, getUser().getUsername(), username);
 			
 			LOGGER.info("Gathering the number of hours since the last Mobility upload.");
-			hoursSinceLastMobilityUpload = UserMobilityServices.getHoursSinceLastMobilityUpload(this, user.getUsername(), username);
+			hoursSinceLastMobilityUpload = UserMobilityServices.getHoursSinceLastMobilityUpload(this, getUser().getUsername(), username);
 			
 			LOGGER.info("Gathering the percentage of successful location uploads from surveys in the last day.");
-			pastDaySuccessfulSurveyLocationUpdatesPercentage = UserSurveyServices.getPercentageOfNonNullLocationsOverPastDay(this, user.getUsername(), username);
+			pastDaySuccessfulSurveyLocationUpdatesPercentage = UserSurveyServices.getPercentageOfNonNullLocationsOverPastDay(this, getUser().getUsername(), username);
 			
 			LOGGER.info("Gathering the percentage of successful location updates from Mobility in the last day.");
-			pastDatSuccessfulMobilityLocationUpdatesPercentage = UserMobilityServices.getPercentageOfNonNullLocationsOverPastDay(this, user.getUsername(), username);
+			pastDatSuccessfulMobilityLocationUpdatesPercentage = UserMobilityServices.getPercentageOfNonNullLocationsOverPastDay(this, getUser().getUsername(), username);
 		}
 		catch(ServiceException e) {
 			e.logException(LOGGER);
@@ -154,7 +161,7 @@ public class UserStatsReadRequest extends UserRequest {
 	public void respond(HttpServletRequest httpRequest, HttpServletResponse httpResponse) {
 		JSONObject jsonResult = new JSONObject();
 		
-		if(! failed) {
+		if(! isFailed()) {
 			try {
 				jsonResult.put(JSON_KEY_HOURS_SINCE_LAST_SURVEY_UPLOAD, hoursSinceLastSurveyUpload);
 				jsonResult.put(JSON_KEY_HOURS_SINCE_LAST_MOBILITY_UPLOAD, hoursSinceLastMobilityUpload);

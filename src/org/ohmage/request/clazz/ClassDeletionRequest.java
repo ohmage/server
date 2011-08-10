@@ -11,7 +11,6 @@ import org.ohmage.request.InputKeys;
 import org.ohmage.request.UserRequest;
 import org.ohmage.service.ClassServices;
 import org.ohmage.service.UserServices;
-import org.ohmage.util.CookieUtils;
 import org.ohmage.validator.ClassValidators;
 
 /**
@@ -48,18 +47,22 @@ public class ClassDeletionRequest extends UserRequest {
 	 * 					  parameters.
 	 */
 	public ClassDeletionRequest(HttpServletRequest httpRequest) {
-		super(CookieUtils.getCookieValue(httpRequest.getCookies(), InputKeys.AUTH_TOKEN), httpRequest.getParameter(InputKeys.CLIENT));
+		super(httpRequest, TokenLocation.PARAMETER);
 		
 		LOGGER.info("Creating a class deletion request.");
 		
 		String tempClassId = null;
 		
-		if(! failed) {
+		if(! isFailed()) {
 			try {
 				tempClassId = ClassValidators.validateClassId(this, httpRequest.getParameter(InputKeys.CLASS_URN));
 				if(tempClassId == null) {
-					setFailed(ErrorCodes.CLASS_INVALID_ID, "Missing required class URN.");
-					throw new ValidationException("Missing required key: " + InputKeys.CLASS_URN);
+					setFailed(ErrorCodes.CLASS_INVALID_ID, "Missing the required class ID: " + InputKeys.CLASS_URN);
+					throw new ValidationException("Missing the required class ID: " + InputKeys.CLASS_URN);
+				}
+				else if(httpRequest.getParameterValues(InputKeys.CLASS_URN).length > 1) {
+					setFailed(ErrorCodes.CLASS_INVALID_ID, "Multiple class ID parameters were found.");
+					throw new ValidationException("Multiple class ID parameters were found.");
 				}
 			}
 			catch(ValidationException e) {
@@ -83,7 +86,7 @@ public class ClassDeletionRequest extends UserRequest {
 		
 		try {
 			LOGGER.info("Checking that the user is an admin.");
-			UserServices.verifyUserIsAdmin(this, user.getUsername());
+			UserServices.verifyUserIsAdmin(this, getUser().getUsername());
 			
 			LOGGER.info("Checking that the class exists.");
 			ClassServices.checkClassExistence(this, classId, true);

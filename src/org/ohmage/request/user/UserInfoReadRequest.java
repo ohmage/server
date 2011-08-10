@@ -8,7 +8,6 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.ohmage.domain.UserInformation;
 import org.ohmage.exception.ServiceException;
-import org.ohmage.request.InputKeys;
 import org.ohmage.request.UserRequest;
 import org.ohmage.service.UserServices;
 
@@ -43,7 +42,7 @@ public class UserInfoReadRequest extends UserRequest {
 	 * 					  request.
 	 */
 	public UserInfoReadRequest(HttpServletRequest httpRequest) {
-		super(getToken(httpRequest), httpRequest.getParameter(InputKeys.CLIENT));
+		super(httpRequest, TokenLocation.EITHER);
 		
 		LOGGER.info("Creating a user info read request.");
 		
@@ -63,7 +62,7 @@ public class UserInfoReadRequest extends UserRequest {
 		
 		try {
 			LOGGER.info("Gathering the information about the requesting user.");
-			result = UserServices.gatherUserInformation(this, user.getUsername());
+			result = UserServices.gatherUserInformation(this, getUser().getUsername());
 		}
 		catch(ServiceException e) {
 			e.logException(LOGGER);
@@ -82,7 +81,7 @@ public class UserInfoReadRequest extends UserRequest {
 		
 		if(result != null) {
 			try {
-				jsonResult.put(user.getUsername(), result.toJsonObject());
+				jsonResult.put(getUser().getUsername(), result.toJsonObject());
 			}
 			catch(JSONException e) {
 				LOGGER.error("There was an error building the JSONObject result.", e);

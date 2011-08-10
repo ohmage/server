@@ -141,11 +141,10 @@ public final class UserClassServices {
 	 */
 	public static void userIsAdminOrPrivileged(Request request, String classId, String username) throws ServiceException {
 		try {
-			if(! ClassRoleCache.ROLE_PRIVILEGED.equals(UserClassDaos.getUserClassRole(classId, username))) {
-				if(! UserDaos.userIsAdmin(username)) {
-					request.setFailed(ErrorCodes.CLASS_INSUFFICIENT_PERMISSIONS, "The user is not privileged in the class.");
-					throw new ServiceException("The user is not privileged in the class.");
-				}
+			if((! ClassRoleCache.ROLE_PRIVILEGED.equals(UserClassDaos.getUserClassRole(classId, username))) &&
+			   (! UserDaos.userIsAdmin(username))) {
+				request.setFailed(ErrorCodes.CLASS_INSUFFICIENT_PERMISSIONS, "The user is not privileged in the class.");
+				throw new ServiceException("The user is not privileged in the class.");
 			}
 		}
 		catch(DataAccessException e) {

@@ -5,7 +5,6 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.log4j.Logger;
 import org.ohmage.cache.UserBin;
-import org.ohmage.request.InputKeys;
 import org.ohmage.request.UserRequest;
 
 /**
@@ -40,13 +39,15 @@ import org.ohmage.request.UserRequest;
 public class AuthTokenRequest extends UserRequest {
 	private static final Logger LOGGER = Logger.getLogger(AuthTokenRequest.class);
 	
+	private static final String KEY_AUTH_TOKEN = "token";
+	
 	/**
 	 * A request for an authentication token.
 	 * 
 	 * @param httpRequest The HTTP request containing the parameters.
 	 */
 	public AuthTokenRequest(HttpServletRequest httpRequest) {
-		super(httpRequest.getParameter(InputKeys.USER), httpRequest.getParameter(InputKeys.PASSWORD), true, httpRequest.getParameter(InputKeys.CLIENT));
+		super(httpRequest, true);
 		
 		LOGGER.info("Building an authentication token request.");
 	}
@@ -64,7 +65,7 @@ public class AuthTokenRequest extends UserRequest {
 			return;
 		}
 		
-		UserBin.addUser(user);
+		UserBin.addUser(getUser());
 	}
 
 	/**
@@ -73,6 +74,6 @@ public class AuthTokenRequest extends UserRequest {
 	 */
 	@Override
 	public void respond(HttpServletRequest httpRequest, HttpServletResponse httpResponse) {
-		respond(httpRequest, httpResponse, null);
+		respond(httpRequest, httpResponse, KEY_AUTH_TOKEN, (getUser() == null) ? null : getUser().getToken());
 	}
 }

@@ -14,7 +14,6 @@ import org.ohmage.request.InputKeys;
 import org.ohmage.request.UserRequest;
 import org.ohmage.service.ClassServices;
 import org.ohmage.service.UserClassServices;
-import org.ohmage.util.CookieUtils;
 import org.ohmage.validator.ClassValidators;
 import org.ohmage.validator.UserClassValidators;
 import org.ohmage.validator.UserValidators;
@@ -87,7 +86,7 @@ public class ClassUpdateRequest extends UserRequest {
 	 * 					  parameters for this request.
 	 */
 	public ClassUpdateRequest(HttpServletRequest httpRequest) {
-		super(CookieUtils.getCookieValue(httpRequest.getCookies(), InputKeys.AUTH_TOKEN), httpRequest.getParameter(InputKeys.CLIENT));
+		super(httpRequest, TokenLocation.PARAMETER);
 		
 		String tempClassId = null;
 		String tempClassName = null;
@@ -95,18 +94,41 @@ public class ClassUpdateRequest extends UserRequest {
 		Map<String, String> tempUsersToAdd = null;
 		List<String> tempUsersToRemove = null;
 		
-		if(! failed) {
+		if(! isFailed()) {
 			try {
 				tempClassId = ClassValidators.validateClassId(this, httpRequest.getParameter(InputKeys.CLASS_URN));
 				if(tempClassId == null) {
-					setFailed(ErrorCodes.CLASS_INVALID_ID, "The required class URN is missing or whitespace only.");
-					throw new ValidationException("Missing required parameter: " + InputKeys.CLASS_URN);
+					setFailed(ErrorCodes.CLASS_INVALID_ID, "Missing the class ID: " + InputKeys.CLASS_URN);
+					throw new ValidationException("Missing the class ID: " + InputKeys.CLASS_URN);
+				}
+				else if(httpRequest.getParameterValues(InputKeys.CLASS_URN).length > 1) {
+					setFailed(ErrorCodes.CLASS_INVALID_ID, "Multiple class IDs were found.");
+					throw new ValidationException("Multiple class IDs were found.");
 				}
 				
 				tempClassName = ClassValidators.validateName(this, httpRequest.getParameter(InputKeys.CLASS_NAME));
+				if((tempClassName != null) && (httpRequest.getParameterValues(InputKeys.CLASS_NAME).length > 1)) {
+					setFailed(ErrorCodes.CLASS_INVALID_NAME, "Multiple name parameters were found.");
+					throw new ValidationException("Multiple name parameters were found.");
+				}
+				
 				tempClassDescription = ClassValidators.validateDescription(this, httpRequest.getParameter(InputKeys.DESCRIPTION));
+				if((tempClassDescription != null) && (httpRequest.getParameterValues(InputKeys.DESCRIPTION).length > 1)) {
+					setFailed(ErrorCodes.CLASS_INVALID_DESCRIPTION, "Multiple description parameters were found.");
+					throw new ValidationException("Multiple description parameters were found.");
+				}
+				
 				tempUsersToAdd = UserClassValidators.validateUserAndClassRoleList(this, httpRequest.getParameter(InputKeys.USER_ROLE_LIST_ADD));
+				if((tempUsersToAdd != null) && (httpRequest.getParameterValues(InputKeys.USER_ROLE_LIST_ADD).length > 1)) {
+					setFailed(ErrorCodes.USER_INVALID_USERNAME, "Multiple username, campaign role add parameters were found.");
+					throw new ValidationException("Multiple username, campaign role add parameters were found.");
+				}
+				
 				tempUsersToRemove = UserValidators.validateUsernames(this, httpRequest.getParameter(InputKeys.USER_LIST_REMOVE));
+				if((tempUsersToRemove != null) && (httpRequest.getParameterValues(InputKeys.USER_LIST_REMOVE).length > 1)) {
+					setFailed(ErrorCodes.USER_INVALID_USERNAME, "Multiple username list parameters were found.");
+					throw new ValidationException("Multiple username list parameters were found.");
+				}
 			}
 			catch(ValidationException e) {
 				LOGGER.info(e.toString());
@@ -138,7 +160,7 @@ public class ClassUpdateRequest extends UserRequest {
 			ClassServices.checkClassExistence(this, classId, true);
 			
 			LOGGER.info("Checking that the user is privileged in the class or is an admin.");
-			UserClassServices.userIsAdminOrPrivileged(this, classId, user.getUsername());
+			UserClassServices.userIsAdminOrPrivileged(this, classId, getUser().getUsername());
 			
 			LOGGER.info("Updating the class.");
 			ClassServices.updateClass(this, classId, className, classDescription, usersToAdd, usersToRemove);

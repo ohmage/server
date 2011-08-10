@@ -72,7 +72,7 @@ public final class UserValidators {
 		else {
 			// TODO: This might be where we tell them what a username must look
 			// 		 like.
-			request.setFailed(ErrorCodes.USER_INVALID_USERNAME, "The username is invalid.");
+			request.setFailed(ErrorCodes.USER_INVALID_USERNAME, "The username is invalid: " + username);
 			throw new ValidationException("The username is invalid: " + username);
 		}
 	}
@@ -517,7 +517,7 @@ public final class UserValidators {
 		}
 		catch(JSONException e) {
 			request.setFailed(ErrorCodes.USER_INVALID_JSON_DATA, "The user's JSON data object is not a valid JSONObject: " + value);
-			throw new ValidationException("The user's JSON data object is not a valid JSONObject: " + value);
+			throw new ValidationException("The user's JSON data object is not a valid JSONObject: " + value, e);
 		}
 	}
 }

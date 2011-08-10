@@ -1,7 +1,6 @@
 package org.ohmage.request.user;
 
 import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
@@ -11,7 +10,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.log4j.Logger;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.ohmage.cache.CampaignRoleCache;
+import org.ohmage.annotator.ErrorCodes;
 import org.ohmage.cache.ClassRoleCache;
 import org.ohmage.domain.UserPersonal;
 import org.ohmage.exception.ServiceException;
@@ -70,7 +69,7 @@ public class UserReadRequest extends UserRequest {
 	 * @param httpRequest The HttpServletRequest with the required parameters.
 	 */
 	public UserReadRequest(HttpServletRequest httpRequest) {
-		super(getToken(httpRequest), httpRequest.getParameter(InputKeys.CLIENT));
+		super(httpRequest, TokenLocation.EITHER);
 		
 		LOGGER.info("Creating a user read request.");
 		
@@ -79,7 +78,16 @@ public class UserReadRequest extends UserRequest {
 		
 		try {
 			tCampaignIds = CampaignValidators.validateCampaignIds(this, httpRequest.getParameter(InputKeys.CAMPAIGN_URN_LIST));
+			if((tCampaignIds != null) && (httpRequest.getParameterValues(InputKeys.CAMPAIGN_URN_LIST).length > 1)) {
+				setFailed(ErrorCodes.CAMPAIGN_INVALID_ID, "Multiple campaign ID list parameters were found.");
+				throw new ValidationException("Multiple campaign ID list parameters were found.");
+			}
+			
 			tClassIds = ClassValidators.validateClassIdList(this, httpRequest.getParameter(InputKeys.CLASS_URN_LIST));
+			if((tClassIds != null) && (httpRequest.getParameterValues(InputKeys.CLASS_URN_LIST).length > 1)) {
+				setFailed(ErrorCodes.CLASS_INVALID_ID, "Multiple class ID list parameters were found.");
+				throw new ValidationException("Multiple class ID list parameters were found.");
+			}
 		}
 		catch(ValidationException e) {
 			LOGGER.info(e.toString());
@@ -107,10 +115,8 @@ public class UserReadRequest extends UserRequest {
 				LOGGER.info("Verifying that all of the campaigns in the list exist.");
 				CampaignServices.checkCampaignsExistence(this, campaignIds, true);
 				
-				LOGGER.info("Verifying that the requester is a supervisor in all of the campaigns.");
-				List<String> campaignRoles = new LinkedList<String>();
-				campaignRoles.add(CampaignRoleCache.ROLE_SUPERVISOR);
-				UserCampaignServices.checkUserHasRolesInCampaigns(this, user.getUsername(), campaignIds, campaignRoles);
+				LOGGER.info("Verifying that the requester may read the information about hte users in the campaigns.");
+				UserCampaignServices.verifyUserCanReadUsersInfoInCampaigns(this, getUser().getUsername(), campaignIds);
 				
 				LOGGER.info("Gathering the information about the users in the campaigns.");
 				result.putAll(UserCampaignServices.getPersonalInfoForUsersInCampaigns(this, campaignIds));
@@ -121,7 +127,7 @@ public class UserReadRequest extends UserRequest {
 				ClassServices.checkClassesExistence(this, classIds, true);
 				
 				LOGGER.info("Verifying that the requester is privileged in all of the classes.");
-				UserClassServices.userHasRoleInClasses(this, user.getUsername(), classIds, ClassRoleCache.ROLE_PRIVILEGED);
+				UserClassServices.userHasRoleInClasses(this, getUser().getUsername(), classIds, ClassRoleCache.ROLE_PRIVILEGED);
 				
 				LOGGER.info("Gathering the information about the users in the classes.");
 				result.putAll(UserClassServices.getPersonalInfoForUsersInClasses(this, classIds));

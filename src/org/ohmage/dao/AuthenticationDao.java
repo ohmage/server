@@ -18,7 +18,7 @@ import org.springframework.jdbc.core.RowMapper;
  * 
  * @author John Jenkins
  */
-public class AuthenticationDao extends Dao{
+public final class AuthenticationDao extends Dao{
 	// Gets the user's hashed password from the database.
 	private static final String SQL_GET_PASSWORD = 
 		"SELECT password " +

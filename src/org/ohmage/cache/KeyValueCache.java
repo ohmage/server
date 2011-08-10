@@ -30,7 +30,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 
 /**
- * The abstract cache class for key-value pairs.
+ * The abstract cache class for key-Value pairs.
  * 
  * @author John Jenkins
  */

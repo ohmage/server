@@ -47,12 +47,12 @@ public abstract class StringAndIdCache extends Cache {
 		private final String string;
 		
 		/**
-		 * Creates a new object with the specified id and value. This is done
+		 * Creates a new object with the specified ID and value. This is done
 		 * instead of having a default constructor and directly setting the
 		 * values as a convenience to make creating a new object a one-liner
 		 * and to provide a thin veil of encapsulation.
 		 * 
-		 * @param id The key for this key-value pair.
+		 * @param Id The key for this key-value pair.
 		 * 
 		 * @param string The value for this key-value pair.
 		 */
@@ -133,17 +133,17 @@ public abstract class StringAndIdCache extends Cache {
 	 * the amount of time between updates. If our cache has become stale, we
 	 * attempt to update it.
 	 * 
-	 * Returns the String representation of the parameterized integer, 'id'.
+	 * Returns the String representation of the parameterized integer, 'Id'.
 	 * If no such ID is known, an exception is thrown.
 	 * 
 	 * The complexity is O(n) if a refresh is required; otherwise, the 
 	 * complexity of a Java Map object to lookup a key and return its value.
 	 * 
-	 * @param id The ID whose String representation is desired.
+	 * @param Id The ID whose String representation is desired.
 	 * 
-	 * @return The String representation of the parameterized 'id'.
+	 * @return The String representation of the parameterized 'Id'.
 	 * 
-	 * @throws CacheMissException Thrown if the parameterized 'id' is unknown.
+	 * @throws CacheMissException Thrown if the parameterized 'Id' is unknown.
 	 * 							  This is done because if we are querying on
 	 * 							  unknown IDs it is probably indicative of a
 	 * 							  larger problem.

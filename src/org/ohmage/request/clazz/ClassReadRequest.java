@@ -1,6 +1,8 @@
 package org.ohmage.request.clazz;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -16,7 +18,6 @@ import org.ohmage.request.InputKeys;
 import org.ohmage.request.UserRequest;
 import org.ohmage.service.ClassServices;
 import org.ohmage.service.UserClassServices;
-import org.ohmage.util.CookieUtils;
 import org.ohmage.validator.ClassValidators;
 
 /**
@@ -57,18 +58,22 @@ public class ClassReadRequest extends UserRequest {
 	 * 					  parameters to and metadata for this request.
 	 */
 	public ClassReadRequest(HttpServletRequest httpRequest) {
-		super(CookieUtils.getCookieValue(httpRequest.getCookies(), InputKeys.AUTH_TOKEN), httpRequest.getParameter(InputKeys.CLIENT));
+		super(httpRequest, TokenLocation.EITHER);
 		
 		List<String> tempClassIds = null;
 		
-		if(! failed) {
+		if(! isFailed()) {
 			LOGGER.info("Creating a new class read request.");
 			
 			try {
 				tempClassIds = ClassValidators.validateClassIdList(this, httpRequest.getParameter(InputKeys.CLASS_URN_LIST));
 				if(tempClassIds == null) {
-					setFailed(ErrorCodes.CLASS_INVALID_ID, "Missing required class URN list.");
-					throw new ValidationException("Missing required class URN list.");
+					setFailed(ErrorCodes.CLASS_INVALID_ID, "Missing required class ID list: " + InputKeys.CLASS_URN_LIST);
+					throw new ValidationException("Missing required class ID list: " + InputKeys.CLASS_URN_LIST);
+				}
+				else if(httpRequest.getParameterValues(InputKeys.CLASS_URN_LIST).length > 1) {
+					setFailed(ErrorCodes.CLASS_INVALID_ID, "Multiple class ID lists were found.");
+					throw new ValidationException("Multiple class ID lists were found.");
 				}
 			}
 			catch(ValidationException e) {
@@ -96,11 +101,11 @@ public class ClassReadRequest extends UserRequest {
 			// Check that each of the classes in the list exist and that the 
 			// requester is a member of each class.
 			LOGGER.info("Checking that all of the classes in the class list exist.");
-			UserClassServices.classesExistAndUserBelongs(this, classIds, user.getUsername());
+			UserClassServices.classesExistAndUserBelongs(this, classIds, getUser().getUsername());
 			
 			// Get the information about the classes.
 			LOGGER.info("Gathering the information about the classes in the list.");
-			List<ClassInformation> informationAboutClasses = ClassServices.getClassesInformation(this, classIds, user.getUsername());
+			List<ClassInformation> informationAboutClasses = ClassServices.getClassesInformation(this, classIds, getUser().getUsername());
 			
 			// Populate our result JSONObject with class information.
 			LOGGER.info("Creating the result JSONObject with the information about the classes.");
@@ -128,5 +133,19 @@ public class ClassReadRequest extends UserRequest {
 		LOGGER.info("Writing the result to the user.");
 		
 		respond(httpRequest, httpResponse, result);
+	}
+	
+	/**
+	 * Returns the list of classes from the parameters.
+	 */
+	@Override
+	public Map<String, String[]> getAuditInformation() {
+		Map<String, String[]> result = new HashMap<String, String[]>();
+		
+		if(classIds != null) {
+			result.put(InputKeys.CLASS_URN, classIds.toArray(new String[0]));
+		}
+		
+		return result;
 	}
 }

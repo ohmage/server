@@ -26,7 +26,7 @@
     <include name="**/jbcrypt-0.3.jar"/>
     <include name="**/xom-1.2.6.jar"/>
     <include name="**/mobility-classifier-1.1.jar"/>
-  	<include name="**/andwellness-config-validator-2.5.jar"/>
+    <include name="**/xml-apis-xerces-2.11.0.jar"/>
   </fileset>
 
   <fileset id="run-dependencies" dir="${component.repository}">
@@ -51,7 +51,7 @@
     <include name="**/jbcrypt-0.3.jar"/>
     <include name="**/xom-1.2.6.jar"/>
     <include name="**/mobility-classifier-1.1.jar"/>
-  	<include name="**/andwellness-config-validator-2.5.jar"/>
+    <include name="**/xml-apis-xerces-2.11.0.jar"/>
   </fileset>
 
   <path id="compile-classpath">
@@ -80,9 +80,28 @@
   <target name="javac" description="Compiles Java files.">
     <mkdir dir="${build}/classes"/>
     <javac destdir="${build}/classes" source="1.6" target="1.6"
-           debug="true" deprecation="true" optimize="false" failonerror="true" encoding="UTF-8">
+          debug="true" deprecation="true" optimize="false" failonerror="true" 
+    	  encoding="UTF-8">
       <compilerarg value="-Xlint:unchecked"/>
       <src path="${src}"/>
+      <classpath refid="compile-classpath"/>
+    </javac>
+    <copy todir="${build}/classes">
+      <fileset dir="${src}">
+        <exclude name="**/*.java"/>
+      </fileset>
+    </copy>
+  </target>
+	
+  <target name="javac-validator" description="Compiles Java files to create the campaign validator.">
+    <mkdir dir="${build}/classes"/>
+    <javac destdir="${build}/classes" source="1.6" target="1.6"
+          debug="true" deprecation="true" optimize="false" failonerror="true" 
+    	  encoding="UTF-8">
+      <compilerarg value="-Xlint:unchecked"/>
+      <src path="${src}"/>
+      <include name="org/ohmage/config/**" />
+      <include name="org/ohmage/util/StringUtils.java" />
       <classpath refid="compile-classpath"/>
     </javac>
     <copy todir="${build}/classes">
@@ -166,6 +185,25 @@
       </zipfileset>
     </war>
   </target>
+	
+  <target name="dist-validator" depends="javac-validator" 
+  	    description="Compiles Java files and creates an executable jar file with the dependencies embedded.">
+    <mkdir dir="${dist}"/>
+    <echo message="Warning: Bundling of dependencies will not work if jars are organized in subdirs in component repository."/>
+    <jar destfile="${dist}/${app_name}-${app_version}-validator.jar">
+      <fileset dir="${build}/classes">
+        <include name="org/ohmage/config/**" />
+      	<include name="org/ohmage/util/StringUtils.class" />
+      </fileset>
+      <zipfileset src="${component.repository}/json-dot-org-2010-01-05.jar" excludes="META-INF/*" />
+      <zipfileset src="${component.repository}/log4j-1.2.15.jar" excludes="META-INF/*" />
+      <zipfileset src="${component.repository}/xom-1.2.6.jar" excludes="META-INF/*" />
+      <zipfileset src="${component.repository}/xercesImpl-2.11.0.jar" excludes="META-INF/*" />
+      <manifest>
+        <attribute name="Main-Class" value="org.ohmage.config.xml.CampaignValidator" />
+      </manifest>
+    </jar>
+  </target>
 
   <target name="dist-docs" depends="javadoc" description="Compiles Javadocs and creates gzipped tarball.">
     <mkdir dir="${dist}"/>
@@ -180,14 +218,14 @@
     <copy file="${dist}/${ant.project.name}-${app_version}.war" todir="${component.repository}/."/>
   </target>
   
-   <target name="sonar">
-     <sonar:sonar workDir="${user.home}/tmp" key="org.ohmage:example" version="2.5" xmlns:sonar="antlib:org.sonar.ant">
-       <sources>
-         <path location="${src}" />
-       </sources>
-       <property key="sonar.java.source" value="1.6" />
-       <property key="sonar.java.target" value="1.6" />
-     </sonar:sonar>
-   </target>
+  <target name="sonar">
+    <sonar:sonar workDir="${user.home}/tmp" key="org.ohmage:example" version="2.5" xmlns:sonar="antlib:org.sonar.ant">
+      <sources>
+        <path location="${src}" />
+      </sources>
+      <property key="sonar.java.source" value="1.6" />
+      <property key="sonar.java.target" value="1.6" />
+    </sonar:sonar>
+  </target>
   
 </project>

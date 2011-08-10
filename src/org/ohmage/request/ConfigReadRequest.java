@@ -1,5 +1,8 @@
 package org.ohmage.request;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -60,6 +63,15 @@ public class ConfigReadRequest extends Request {
 			setFailed();
 			LOGGER.error("Error creating response JSONObject.", e);
 		}
+	}
+	
+	/**
+	 * Returns an empty map. This is for requests that don't have any specific
+	 * information to return.
+	 */
+	@Override
+	public Map<String, String[]> getAuditInformation() {
+		return new HashMap<String, String[]>();
 	}
 	
 	/**

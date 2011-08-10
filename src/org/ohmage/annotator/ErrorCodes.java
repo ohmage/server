@@ -62,6 +62,7 @@ public final class ErrorCodes {
 	public static final String CAMPAIGN_INVALID_RUNNING_STATE = "0703";
 	public static final String CAMPAIGN_INVALID_PRIVACY_STATE = "0704";
 	public static final String CAMPAIGN_INVALID_OUTPUT_FORMAT = "0705";
+	public static final String CAMPAIGN_INVALID_ROLE = "0706";
 	public static final String CAMPAIGN_INSUFFICIENT_PERMISSIONS = "0707";
 	public static final String CAMPAIGN_XML_HEADER_CHANGED = "0708";
 	public static final String CAMPAIGN_INVALID_DESCRIPTION = "0709";
@@ -104,4 +105,12 @@ public final class ErrorCodes {
 	
 	public static final String VISUALIZATION_INVALID_WIDTH_VALUE = "1200";
 	public static final String VISUALIZATION_INVALID_HEIGHT_VALUE = "1201";
+	
+	public static final String AUDIT_INSUFFICIENT_PERMISSIONS = "1300";
+	public static final String AUDIT_INVALID_REQUEST_TYPE = "1301";
+	public static final String AUDIT_INVALID_URI = "1302";
+	public static final String AUDIT_INVALID_CLIENT = "1303";
+	public static final String AUDIT_INVALID_DEVICE_ID = "1304";
+	public static final String AUDIT_INVALID_RESPONSE_TYPE = "1305";
+	public static final String AUDIT_INVALID_ERROR_CODE = "1306";
 }

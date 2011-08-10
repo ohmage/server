@@ -100,13 +100,13 @@ public final class SurveyUploadRequest extends UserRequest {
 	 * 					  parameters to and metadata for this request.
 	 */
 	public SurveyUploadRequest(HttpServletRequest httpRequest) {
-		super(httpRequest.getParameter(InputKeys.USER), httpRequest.getParameter(InputKeys.PASSWORD), false, httpRequest.getParameter(InputKeys.CLIENT));
+		super(httpRequest, true);
 		
 		Date tempCampaignCreationTimestamp = null;
 		String tempCampaignUrn = null;
 		String tempJsonData = null;
 		
-		if(! failed) {
+		if(! isFailed()) {
 			LOGGER.info("Creating a survey upload request.");
 			 
 			tempCampaignCreationTimestamp = null;

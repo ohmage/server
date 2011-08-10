@@ -4,6 +4,7 @@ import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -11,7 +12,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.log4j.Logger;
-import org.json.JSONException;
 import org.ohmage.annotator.ErrorCodes;
 import org.ohmage.cache.UserBin;
 import org.ohmage.dao.ClassDaos.UserAndClassRole;
@@ -63,7 +63,7 @@ public class ClassRosterReadRequest extends UserRequest {
 	 * 					  from the requester.
 	 */
 	public ClassRosterReadRequest(HttpServletRequest httpRequest) {
-		super(getToken(httpRequest), httpRequest.getParameter(InputKeys.CLIENT));
+		super(httpRequest, TokenLocation.EITHER);
 		
 		LOGGER.info("Creating a class roster read request.");
 		
@@ -72,8 +72,12 @@ public class ClassRosterReadRequest extends UserRequest {
 		try {
 			tClassIds = ClassValidators.validateClassIdList(this, httpRequest.getParameter(InputKeys.CLASS_URN_LIST));
 			if(tClassIds == null) {
-				setFailed(ErrorCodes.CLASS_INVALID_ID, "Missing the required class list: " + InputKeys.CLASS_URN_LIST);
-				throw new ValidationException("Missing the required class list: " + InputKeys.CLASS_URN_LIST);
+				setFailed(ErrorCodes.CLASS_INVALID_ID, "Missing required class ID list: " + InputKeys.CLASS_URN_LIST);
+				throw new ValidationException("Missing required class ID list: " + InputKeys.CLASS_URN_LIST);
+			}
+			else if(httpRequest.getParameterValues(InputKeys.CLASS_URN_LIST).length > 1) {
+				setFailed(ErrorCodes.CLASS_INVALID_ID, "Multiple class ID lists were found.");
+				throw new ValidationException("Multiple class ID lists were found.");
 			}
 		}
 		catch(ValidationException e) {
@@ -100,7 +104,7 @@ public class ClassRosterReadRequest extends UserRequest {
 			ClassServices.checkClassesExistence(this, classIds, true);
 			
 			LOGGER.info("Verify that the user is an admin or that they are privileged in each of the classes in a list.");
-			UserClassServices.userIsAdminOrPrivilegedInAllClasses(this, user.getUsername(), classIds);
+			UserClassServices.userIsAdminOrPrivilegedInAllClasses(this, getUser().getUsername(), classIds);
 			
 			LOGGER.info("Generating the class roster.");
 			roster = ClassServices.generateClassRoster(this, classIds);
@@ -138,16 +142,8 @@ public class ClassRosterReadRequest extends UserRequest {
 		if(isFailed()) {
 			httpResponse.setContentType("text/html");
 			
-			try {
-				// Use the annotator's message to build the response.
-				responseText = annotator.toJsonObject().toString();
-			}
-			catch(JSONException e) {
-				// If we can't even build the failure message, write a hand-
-				// written message as the response.
-				LOGGER.error("An error occurred while building the failure JSON response.", e);
-				responseText = RESPONSE_ERROR_JSON_TEXT;
-			}
+			// Use the annotator's message to build the response.
+			responseText = getFailureMessage();
 		}
 		else {
 			// Set the type and force the browser to download it as the 
@@ -156,8 +152,8 @@ public class ClassRosterReadRequest extends UserRequest {
 			httpResponse.setHeader("Content-Disposition", "attachment; filename=roster.csv");
 			
 			// If available, set the token.
-			if(user != null) {
-				final String token = user.getToken(); 
+			if(getUser() != null) {
+				final String token = getUser().getToken(); 
 				if(token != null) {
 					CookieUtils.setCookieValue(httpResponse, InputKeys.AUTH_TOKEN, token, (int) (UserBin.getTokenRemainingLifetimeInMillis(token) / MILLIS_IN_A_SECOND));
 				}
@@ -193,5 +189,19 @@ public class ClassRosterReadRequest extends UserRequest {
 		catch(IOException e) {
 			LOGGER.error("Unable to flush or close the writer.", e);
 		}
+	}
+	
+	/**
+	 * Returns the list of classes from the parameters.
+	 */
+	@Override
+	public Map<String, String[]> getAuditInformation() {
+		Map<String, String[]> result = new HashMap<String, String[]>();
+		
+		if(classIds != null) {
+			result.put(InputKeys.CLASS_URN, classIds.toArray(new String[0]));
+		}
+		
+		return result;
 	}
 }

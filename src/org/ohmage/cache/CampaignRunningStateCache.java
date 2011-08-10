@@ -25,7 +25,7 @@ import javax.sql.DataSource;
  */
 public final class CampaignRunningStateCache extends StringAndIdCache{
 	// The column IDs for the query.
-	private static final String ID_COLUMN = "id";
+	private static final String ID_COLUMN = "Id";
 	private static final String STATE_COLUMN = "running_state";
 	
 	// The SQL that will retrieve the desired values.

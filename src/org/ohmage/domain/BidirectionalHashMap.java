@@ -108,9 +108,9 @@ public class BidirectionalHashMap<K, V> {
 	 * Functionally, this is the same as {@link #putValue(Object, Object)},
 	 * but it returns only the previous value should one have already existed 
 	 * or null if one didn't exist. To retrieve both the old key and the old 
-	 * value, it is safer to first use both of the containsValue functions to 
+	 * value, it is safer to first use both of the containsvalue functions to 
 	 * determine if such associations already exist and then to use the 
-	 * getValue functions to retrieve those values.
+	 * getvalue functions to retrieve those values.
 	 *  
 	 * @param key The key to be associated with 'value'.
 	 * 
@@ -140,9 +140,9 @@ public class BidirectionalHashMap<K, V> {
 	 * Functionally, this is the same as {@link #putKey(Object, Object)},
 	 * but it returns only the previous key should one have already existed, 
 	 * or null if one didn't exist. To retrieve both the old key and the old 
-	 * value, it is safer to first use both of the containsValue functions to 
+	 * value, it is safer to first use both of the containsvalue functions to 
 	 * determine if such associations already exist and then to use the 
-	 * getValue functions to retrieve those values.
+	 * getvalue functions to retrieve those values.
 	 *  
 	 * @param key The key to be associated with 'value'.
 	 * 

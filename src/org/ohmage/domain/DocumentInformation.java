@@ -33,7 +33,7 @@ import org.ohmage.util.StringUtils;
  * @author John Jenkins
  */
 public class DocumentInformation {	
-	private static Logger LOGGER = Logger.getLogger(DocumentInformation.class);
+	private static final Logger LOGGER = Logger.getLogger(DocumentInformation.class);
 	
 	private final String documentId;
 	private final String name;
@@ -69,7 +69,7 @@ public class DocumentInformation {
 	 * 									null and/or invalid.
 	 */
 	public DocumentInformation(String documentId, String name, String description, String privacyState, 
-			Date lastModified, Date creationDate, int size, String creator) throws IllegalArgumentException {
+			Date lastModified, Date creationDate, int size, String creator) {
 		if(StringUtils.isEmptyOrWhitespaceOnly(documentId)) {
 			throw new IllegalArgumentException("The document's ID cannot be null or whitespace only.");
 		}
@@ -216,7 +216,7 @@ public class DocumentInformation {
 	 * 									whitespace only or if the documentRole
 	 * 									is unknown.
 	 */
-	public String addCampaignRole(String campaignId, String documentRole) throws IllegalArgumentException {
+	public String addCampaignRole(String campaignId, String documentRole) {
 		if(StringUtils.isEmptyOrWhitespaceOnly(campaignId)) {
 			throw new IllegalArgumentException("The campaign ID cannot be null or whitespace only.");
 		}
@@ -255,7 +255,7 @@ public class DocumentInformation {
 	 * 									whitespace only or if the document role
 	 * 									is unknown.
 	 */
-	public String addClassRole(String classId, String documentRole) throws IllegalArgumentException {
+	public String addClassRole(String classId, String documentRole) {
 		if(StringUtils.isEmptyOrWhitespaceOnly(classId)) {
 			throw new IllegalArgumentException("The class ID cannot be null or whitespace only.");
 		}
@@ -342,65 +342,102 @@ public class DocumentInformation {
 	 */
 	@Override
 	public boolean equals(Object obj) {
-		if (this == obj)
+		if (this == obj) {
 			return true;
-		if (obj == null)
+		}
+		if (obj == null) {
 			return false;
-		if (getClass() != obj.getClass())
+		}
+		if (getClass() != obj.getClass()) {
 			return false;
+		}
+		
 		DocumentInformation other = (DocumentInformation) obj;
+		
 		if (campaignAndRole == null) {
-			if (other.campaignAndRole != null)
+			if (other.campaignAndRole != null) {
 				return false;
-		} else if (!campaignAndRole.equals(other.campaignAndRole))
+			}
+		} else if (!campaignAndRole.equals(other.campaignAndRole)) {
 			return false;
+		}
+		
 		if (classAndRole == null) {
-			if (other.classAndRole != null)
+			if (other.classAndRole != null) {
 				return false;
-		} else if (!classAndRole.equals(other.classAndRole))
+			}
+		} else if (!classAndRole.equals(other.classAndRole)) {
 			return false;
+		}
+		
 		if (creationDate == null) {
-			if (other.creationDate != null)
+			if (other.creationDate != null) {
 				return false;
-		} else if (!creationDate.equals(other.creationDate))
+			}
+		} else if (!creationDate.equals(other.creationDate)) {
 			return false;
+		}
+		
 		if (creator == null) {
-			if (other.creator != null)
+			if (other.creator != null) {
 				return false;
-		} else if (!creator.equals(other.creator))
+			}
+		} else if (!creator.equals(other.creator)) {
 			return false;
+		}
+		
 		if (description == null) {
-			if (other.description != null)
+			if (other.description != null) {
 				return false;
-		} else if (!description.equals(other.description))
+			}
+		} else if (!description.equals(other.description)) {
 			return false;
+		}
+		
 		if (documentId == null) {
-			if (other.documentId != null)
+			if (other.documentId != null) {
 				return false;
-		} else if (!documentId.equals(other.documentId))
+			}
+		} else if (!documentId.equals(other.documentId)) {
 			return false;
+		}
+		
 		if (lastModified == null) {
-			if (other.lastModified != null)
+			if (other.lastModified != null) {
 				return false;
-		} else if (!lastModified.equals(other.lastModified))
+			}
+		} else if (!lastModified.equals(other.lastModified)) {
 			return false;
+		}
+		
 		if (name == null) {
-			if (other.name != null)
+			if (other.name != null) {
 				return false;
-		} else if (!name.equals(other.name))
+			}
+		} else if (!name.equals(other.name)) {
 			return false;
+		}
+		
 		if (privacyState == null) {
-			if (other.privacyState != null)
+			if (other.privacyState != null) {
 				return false;
-		} else if (!privacyState.equals(other.privacyState))
+			}
+		} else if (!privacyState.equals(other.privacyState)) {
 			return false;
-		if (size != other.size)
+		}
+		
+		if (size != other.size) {
 			return false;
+		}
+		
 		if (userRole == null) {
-			if (other.userRole != null)
+			if (other.userRole != null) {
 				return false;
-		} else if (!userRole.equals(other.userRole))
+			}
+		} else if (!userRole.equals(other.userRole)) {
 			return false;
+		}
+		
 		return true;
 	}
 }

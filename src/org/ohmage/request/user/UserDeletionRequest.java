@@ -49,7 +49,7 @@ public class UserDeletionRequest extends UserRequest {
 	 * @param httpRequest The HttpServletRequest with the parameters.
 	 */
 	public UserDeletionRequest(HttpServletRequest httpRequest) {
-		super(getToken(httpRequest), httpRequest.getParameter(InputKeys.CLIENT));
+		super(httpRequest, TokenLocation.PARAMETER);
 		
 		LOGGER.info("Creating a user deletion request.");
 		
@@ -60,6 +60,10 @@ public class UserDeletionRequest extends UserRequest {
 			if(tUsernames == null) {
 				setFailed(ErrorCodes.USER_INVALID_USERNAME, "The list of usernames must contain at least one username.");
 				throw new ValidationException("The list of usernames must contain at least one username.");
+			}
+			else if(httpRequest.getParameterValues(InputKeys.USER_LIST).length > 1) {
+				setFailed(ErrorCodes.USER_INVALID_USERNAME, "Multiple username parameters were given.");
+				throw new ValidationException("Multiple username parameters were given.");
 			}
 		}
 		catch(ValidationException e) {
@@ -82,7 +86,7 @@ public class UserDeletionRequest extends UserRequest {
 		
 		try {
 			LOGGER.info("Verifying that the user is an admin.");
-			UserServices.verifyUserIsAdmin(this, user.getUsername());
+			UserServices.verifyUserIsAdmin(this, getUser().getUsername());
 			
 			LOGGER.info("Verifying that the users in the list exist.");
 			UserServices.verifyUsersExist(this, usernames, true);

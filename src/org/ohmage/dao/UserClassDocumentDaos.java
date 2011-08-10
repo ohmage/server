@@ -18,7 +18,7 @@ import org.springframework.jdbc.core.SingleColumnRowMapper;
  * 
  * @author John Jenkins
  */
-public class UserClassDocumentDaos extends Dao {
+public final class UserClassDocumentDaos extends Dao {
 	// Check if the user is a supervisor in any campaign with which the 
 	// document is associated.
 	private static final String SQL_EXISTS_USER_IS_PRIVILEGED_IN_ANY_CLASS_ASSOCIATED_WITH_DOCUMENT = 

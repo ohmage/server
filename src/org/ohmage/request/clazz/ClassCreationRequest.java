@@ -4,13 +4,13 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.log4j.Logger;
+import org.ohmage.annotator.ErrorCodes;
 import org.ohmage.exception.ServiceException;
 import org.ohmage.exception.ValidationException;
 import org.ohmage.request.InputKeys;
 import org.ohmage.request.UserRequest;
 import org.ohmage.service.ClassServices;
 import org.ohmage.service.UserServices;
-import org.ohmage.util.CookieUtils;
 import org.ohmage.validator.ClassValidators;
 
 
@@ -60,7 +60,7 @@ public class ClassCreationRequest extends UserRequest {
 	 * 					  parameters to and metadata for this request.
 	 */
 	public ClassCreationRequest(HttpServletRequest httpRequest) {
-		super(CookieUtils.getCookieValue(httpRequest.getCookies(), InputKeys.AUTH_TOKEN), httpRequest.getParameter(InputKeys.CLIENT));
+		super(httpRequest, TokenLocation.PARAMETER);
 		
 		LOGGER.info("Creating a class creation request.");
 		
@@ -68,21 +68,33 @@ public class ClassCreationRequest extends UserRequest {
 		String tempClassName = null;
 		String tempClassDescription = null;
 		
-		if(! failed) {
+		if(! isFailed()) {
 			try {
 				tempClassId = ClassValidators.validateClassId(this, httpRequest.getParameter(InputKeys.CLASS_URN));
 				if(tempClassId == null) {
-					setFailed("1212", "Missing required class URN.");
-					throw new ValidationException("Missing required class URN.");
+					setFailed(ErrorCodes.CLASS_INVALID_ID, "Missing the required class ID: " + InputKeys.CLASS_URN);
+					throw new ValidationException("Missing the required class ID: " + InputKeys.CLASS_URN);
+				}
+				else if(httpRequest.getParameterValues(InputKeys.CLASS_URN).length > 1) {
+					setFailed(ErrorCodes.CLASS_INVALID_ID, "Duplicate class IDs found.");
+					throw new ValidationException("Duplicate class IDs found.");
 				}
 				
 				tempClassName = ClassValidators.validateName(this, httpRequest.getParameter(InputKeys.CLASS_NAME));
 				if(tempClassName == null) {
-					setFailed("1213", "Missing required class name.");
-					throw new ValidationException("Missing required class name.");
+					setFailed(ErrorCodes.CLASS_INVALID_NAME, "Missing the required class name: " + InputKeys.CLASS_NAME);
+					throw new ValidationException("Missing the required class name: " + InputKeys.CLASS_NAME);
+				}
+				else if(httpRequest.getParameterValues(InputKeys.CLASS_NAME).length > 1) {
+					setFailed(ErrorCodes.CLASS_INVALID_NAME, "Multiple class name parameters found.");
+					throw new ValidationException("Multiple class name parameters found.");
 				}
 				
 				tempClassDescription = ClassValidators.validateDescription(this, httpRequest.getParameter(InputKeys.DESCRIPTION));
+				if((tempClassDescription != null) && (httpRequest.getParameterValues(InputKeys.DESCRIPTION).length > 1)) {
+					setFailed(ErrorCodes.CLASS_INVALID_DESCRIPTION, "Multiple class descriptions were found.");
+					throw new ValidationException("Multiple class descriptions were found.");
+				}
 			}
 			catch(ValidationException e) {
 				LOGGER.info(e.toString());
@@ -108,7 +120,7 @@ public class ClassCreationRequest extends UserRequest {
 		try {
 			// Check if the user is an administrator.
 			LOGGER.info("Checking that the user is an admin.");
-			UserServices.verifyUserIsAdmin(this, user.getUsername());
+			UserServices.verifyUserIsAdmin(this, getUser().getUsername());
 			
 			// Check that the class doesn't already exist.
 			LOGGER.info("Checking that a class with the same ID doesn't already exist.");

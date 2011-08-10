@@ -24,7 +24,7 @@ import javax.sql.DataSource;
  */
 public final class CampaignRoleCache extends StringAndIdCache {
 	// The column IDs for the query.
-	private static final String ID_COLUMN = "id";
+	private static final String ID_COLUMN = "Id";
 	private static final String ROLE_COLUMN = "role";
 	
 	// The SQL used to get at the cache's values.

@@ -109,7 +109,7 @@ public class DocumentCreationRequest extends UserRequest {
 	 * 					  information.
 	 */
 	public DocumentCreationRequest(HttpServletRequest httpRequest) {
-		super(getToken(httpRequest), httpRequest.getParameter(InputKeys.CLIENT));
+		super(httpRequest, TokenLocation.PARAMETER);
 		
 		LOGGER.info("Creating a new document creation request.");
 		
@@ -123,24 +123,41 @@ public class DocumentCreationRequest extends UserRequest {
 		try {
 			tempDocument = getMultipartValue(httpRequest, InputKeys.DOCUMENT);
 			if(tempDocument == null) {
-				setFailed(ErrorCodes.DOCUMENT_INVALID_CONTENTS, "The document is missing.");
+				setFailed(ErrorCodes.DOCUMENT_INVALID_CONTENTS, "The document's contents are missing: " + InputKeys.DOCUMENT);
 				throw new ValidationException("The document's contents were missing.");
 			}
 			
 			tempName = DocumentValidators.validateName(this, httpRequest.getParameter(InputKeys.DOCUMENT_NAME));
 			if(tempName == null) {
-				setFailed(ErrorCodes.DOCUMENT_INVALID_NAME, "The document's name is missing.");
+				setFailed(ErrorCodes.DOCUMENT_INVALID_NAME, "The document's name is missing: " + InputKeys.DOCUMENT_NAME);
+				throw new ValidationException("The document's name is missing: " + InputKeys.DOCUMENT_NAME);
+			}
+			else if(httpRequest.getParameterValues(InputKeys.DOCUMENT_NAME).length > 1) {
+				setFailed(ErrorCodes.DOCUMENT_INVALID_NAME, "Multiple document names were found.");
 				throw new ValidationException("The document's name is missing.");
 			}
 			
 			tempPrivacyState = DocumentValidators.validatePrivacyState(this, httpRequest.getParameter(InputKeys.PRIVACY_STATE));
 			if(tempPrivacyState == null) {
-				setFailed(ErrorCodes.DOCUMENT_INVALID_PRIVACY_STATE, "The document's privacy state is missing.");
-				throw new ValidationException("The document's privacy state is missing.");
+				setFailed(ErrorCodes.DOCUMENT_INVALID_PRIVACY_STATE, "The document's privacy state is missing: " + InputKeys.PRIVACY_STATE);
+				throw new ValidationException("The document's privacy state is missing: " + InputKeys.PRIVACY_STATE);
+			}
+			else if(httpRequest.getParameterValues(InputKeys.PRIVACY_STATE).length > 1) {
+				setFailed(ErrorCodes.DOCUMENT_INVALID_PRIVACY_STATE, "Multiple privacy state parameters were found.");
+				throw new ValidationException("Multiple privacy state parameters were found.");
 			}
 			
 			tempCampaignRoleList = CampaignDocumentValidators.validateCampaignIdAndDocumentRoleList(this, httpRequest.getParameter(InputKeys.DOCUMENT_CAMPAIGN_ROLE_LIST));
+			if((tempCampaignRoleList != null) && (httpRequest.getParameterValues(InputKeys.DOCUMENT_CAMPAIGN_ROLE_LIST).length > 1)) {
+				setFailed(ErrorCodes.DOCUMENT_INVALID_ID, "Multiple document, campaign role lists were found.");
+				throw new ValidationException("Multiple document, campaign role lists were found.");
+			}
+			
 			tempClassRoleList = ClassDocumentValidators.validateClassIdAndDocumentRoleList(this, httpRequest.getParameter(InputKeys.DOCUMENT_CLASS_ROLE_LIST));
+			if((tempClassRoleList != null) && (httpRequest.getParameterValues(InputKeys.DOCUMENT_CLASS_ROLE_LIST).length > 1)) {
+				setFailed(ErrorCodes.DOCUMENT_INVALID_ID, "Multiple document, class role lists were found.");
+				throw new ValidationException("Multiple document, class role lists were found.");
+			}
 			
 			if(((tempCampaignRoleList == null) || (tempCampaignRoleList.size() == 0)) &&
 			   ((tempClassRoleList == null) || (tempClassRoleList.size() == 0))) {
@@ -149,6 +166,10 @@ public class DocumentCreationRequest extends UserRequest {
 			}
 			
 			tempDescription = DocumentValidators.validateDescription(this, httpRequest.getParameter(InputKeys.DESCRIPTION));
+			if((tempDescription != null) && (httpRequest.getParameterValues(InputKeys.DESCRIPTION).length > 1)) {
+				setFailed(ErrorCodes.DOCUMENT_INVALID_DESCRIPTION, "Multiple document description parameters were found.");
+				throw new ValidationException("Multiple document description parameters were found.");
+			}
 		}
 		catch(ValidationException e) {
 			LOGGER.info(e.toString());
@@ -181,7 +202,7 @@ public class DocumentCreationRequest extends UserRequest {
 				CampaignServices.checkCampaignsExistence(this, campaignIds, true);
 				
 				LOGGER.info("Verifying that the user can associate documents with the campaigns in the campaign-role list.");
-				UserCampaignDocumentServices.userCanAssociateDocumentsWithCampaigns(this, user.getUsername(), campaignIds);
+				UserCampaignDocumentServices.userCanAssociateDocumentsWithCampaigns(this, getUser().getUsername(), campaignIds);
 			}
 			
 			if(classRoleMap != null) {
@@ -191,11 +212,11 @@ public class DocumentCreationRequest extends UserRequest {
 				ClassServices.checkClassesExistence(this, classIds, true);
 				
 				LOGGER.info("Verifying that the user can associate documents with the classes in the class-role list.");
-				UserClassDocumentServices.userCanAssociateDocumentsWithClasses(this, user.getUsername(), classIds);
+				UserClassDocumentServices.userCanAssociateDocumentsWithClasses(this, getUser().getUsername(), classIds);
 			}
 			
 			LOGGER.info("Creating the document.");
-			documentId = DocumentServices.createDocument(this, document, name, description, privacyState, campaignRoleMap, classRoleMap, user.getUsername());
+			documentId = DocumentServices.createDocument(this, document, name, description, privacyState, campaignRoleMap, classRoleMap, getUser().getUsername());
 		}
 		catch(ServiceException e) {
 			e.logException(LOGGER);

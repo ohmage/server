@@ -53,8 +53,8 @@ public final class CookieUtils {
 	 * @param name The name, or key, to search for in the list of Cookies of
 	 * 			   which more than one may be present.
 	 * 
-	 * @return Returns a list of values for the 'name' from the 'cookies'
-	 * 		   array.
+	 * @return Returns a possibly empty list of values for the 'name' from the
+	 * 		   'cookies' array.
 	 */
 	public static List<String> getCookieValues(Cookie[] cookies, String name) {
 		List<String> results = new LinkedList<String>();
