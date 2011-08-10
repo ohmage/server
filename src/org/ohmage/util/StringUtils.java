@@ -203,12 +203,7 @@ public final class StringUtils {
 	 * @see org.ohmage.util.StringUtils#decodeBoolean(String)
 	 */
 	public static boolean isValidBoolean(String value) {
-		if(StringUtils.decodeBoolean(value) != null) {
-			return true;
-		}
-		else {
-			return false;
-		}
+		return StringUtils.decodeBoolean(value) != null;
 	}
 	
 	/**

@@ -18,7 +18,7 @@ import org.ohmage.exception.ValidationException;
 import org.ohmage.request.InputKeys;
 import org.ohmage.request.UserRequest;
 import org.ohmage.service.CampaignServices;
-import org.ohmage.service.SurveyUploadJsonServices;
+import org.ohmage.service.SurveyUploadServices;
 import org.ohmage.service.UserCampaignServices;
 import org.ohmage.util.StringUtils;
 import org.ohmage.validator.DateValidators;
@@ -184,13 +184,13 @@ public final class SurveyUploadRequest extends UserRequest {
 			
 			LOGGER.info("Parsing JSON data upload.");
 			// Each survey in an upload is represented by a JSONObject within a JSONArray 
-			this.jsonDataArray = SurveyUploadJsonServices.stringToJsonArray(this, this.jsonData);
+			this.jsonDataArray = SurveyUploadServices.stringToJsonArray(this, this.jsonData);
 			
 			// recycle the string because it's no longer needed
 			this.jsonData = null;
 			
 			LOGGER.info("Validating surveys.");
-			SurveyUploadJsonServices.validateSurveyUpload(this, jsonDataArray, configuration);
+			SurveyUploadServices.validateSurveyUpload(this, jsonDataArray, configuration);
 			
 			
 		}

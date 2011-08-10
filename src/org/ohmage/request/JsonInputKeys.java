@@ -29,38 +29,45 @@ public final class JsonInputKeys {
 	}
 	
 	// Metadata
-	public static final String JSON_METADATA_DATE = "date";
-	public static final String JSON_METADATA_TIME = "time";
-	public static final String JSON_METADATA_TIMEZONE = "timezone";
-	public static final String JSON_METADATA_LOCATION = "location";
-	public static final String JSON_METADATA_LOCATION_LATITUDE = "latitude";
-	public static final String JSON_METADATA_LOCATION_LONGITUDE = "longitude";
-	public static final String JSON_METADATA_LOCATION_ACCURACY = "accuracy";
-	public static final String JSON_METADATA_LOCATION_PROVIDER = "provider";
-	public static final String JSON_METADATA_LOCATION_TIMESTAMP = "timestamp";
+	public static final String METADATA_DATE = "date";
+	public static final String METADATA_TIME = "time";
+	public static final String METADATA_TIMEZONE = "timezone";
+	public static final String METADATA_LOCATION_STATUS = "location_status";
+	public static final String METADATA_LOCATION = "location";
+	public static final String METADATA_LOCATION_LATITUDE = "latitude";
+	public static final String METADATA_LOCATION_LONGITUDE = "longitude";
+	public static final String METADATA_LOCATION_ACCURACY = "accuracy";
+	public static final String METADATA_LOCATION_PROVIDER = "provider";
+	public static final String METADATA_LOCATION_TIMESTAMP = "timestamp";
+	public static final String METADATA_LOCATION_STATUS_UNAVAILABLE = "unavailable";
+	public static final String METADATA_LOCATION_STATUS_INACCURATE = "inaccurate";
+	public static final String METADATA_LOCATION_STATUS_VALID = "valid";
+	public static final String METADATA_LOCATION_STATUS_STALE = "stale";
 	
 	// Surveys
-	public static final String JSON_SURVEY_ID = "survey_id";
-	public static final String JSON_SURVEY_RESPONSES = "responses";
-	public static final String JSON_SURVEY_LAUNCH_CONTEXT = "survey_launch_context";
-	public static final String JSON_SURVEY_LAUNCH_TIME = "launch_time";
-	public static final String JSON_SURVEY_REPEATABLE_SET_ID = "repeatable_set_id";
-	public static final String JSON_SURVEY_REPEATABLE_SET_SKIPPED = "skipped";
-	public static final String JSON_SURVEY_REPEATABLE_SET_NOT_DISPLAYED = "not_displayed";
-	public static final String JSON_SURVEY_PROMPT_ID = "prompt_id";
-	public static final String JSON_SURVEY_LOCATION_STATUS = "location_status";
-	public static final String JSON_SURVEY_LOCATION_STATUS_UNAVAILABLE = "unavailable";
-	public static final String JSON_SURVEY_LOCATION_STATUS_INACCURATE = "inaccurate";
-	public static final String JSON_SURVEY_LOCATION_STATUS_VALID = "valid";
-	public static final String JSON_SURVEY_LOCATION_STATUS_STALE = "stale";
-	public static final String JSON_SURVEY_LOCATION = "location";
+	public static final String SURVEY_ID = "survey_id";
+	public static final String SURVEY_RESPONSES = "responses";
+	public static final String SURVEY_LAUNCH_CONTEXT = "survey_launch_context";
+	public static final String SURVEY_LAUNCH_TIME = "launch_time";
+	public static final String SURVEY_REPEATABLE_SET_ID = "repeatable_set_id";
+	public static final String SURVEY_REPEATABLE_SET_SKIPPED = "skipped";
+	public static final String SURVEY_REPEATABLE_SET_NOT_DISPLAYED = "not_displayed";
+	public static final String SURVEY_PROMPT_ID = "prompt_id";
+	public static final String PROMPT_VALUE = "value";
+	public static final String PROMPT_SKIPPED = "SKIPPED";
+	public static final String PROMPT_NOT_DISPLAYED = "NOT_DISPLAYED";
+	public static final String PROMPT_PROPERTY_MIN = "min";
+	public static final String PROMPT_PROPERTY_MAX = "max";
+	public static final String PROMPT_REMOTE_ACTIVITY_SCORE = "score";
+	public static final String PROMPT_REMOTE_ACTIVITY_RETRIES = "retries";
+	public static final String PROMPT_REMOTE_ACTIVITY_MIN_RUNS = "min_runs";
+	public static final String PROMPT_CUSTOM_CHOICES = "custom_choices";
+	public static final String PROMPT_CUSTOM_CHOICE_ID = "choice_id";
+	public static final String PROMPT_CUSTOM_CHOICE_VALUE = "choice_value";
+	
+	
+	
 	
 	// Mobility
-	
-	
-	
-	
-	
-	
 	
 }
