@@ -305,4 +305,64 @@ public final class StringUtils {
 			}
 		}
 	}
+	
+	/**
+	 * Decodes a String into a Double and then verifies that it is a plausible
+	 * latitude value. If the String is null, whitespace only, or not a
+	 * plausible latitude value, null is returned; otherwise a Double 
+	 * representing the latitude value is returned.
+	 * 
+	 * @param latitude The String to be decoded.
+	 * 
+	 * @return Null if the String is null, whitespace only, not a number, or
+	 * 		   not a valid latitude value.
+	 */
+	public static Double decodeLatitude(String latitude) {
+		if(StringUtils.isEmptyOrWhitespaceOnly(latitude)) {
+			return null;
+		}
+		
+		try {
+			Double latitudeDouble = Double.parseDouble(latitude);
+			if((latitudeDouble < -90) || (latitudeDouble > 90)) {
+				return null;
+			}
+			else {
+				return latitudeDouble;
+			}
+		}
+		catch(NumberFormatException e) {
+			return null;
+		}
+	}
+	
+	/**
+	 * Decodes a String into a Double and then verifies that it is a plausible
+	 * longitude value. If the String is null, whitespace only, or not a
+	 * plausible longitude value, null is returned; otherwise a Double 
+	 * representing the longitude value is returned.
+	 * 
+	 * @param longitude The String to be decoded.
+	 * 
+	 * @return Null if the String is null, whitespace only, not a number, or
+	 * 		   not a valid longitude value.
+	 */
+	public static Double decodeLongitude(String longitude) {
+		if(StringUtils.isEmptyOrWhitespaceOnly(longitude)) {
+			return null;
+		}
+		
+		try {
+			Double latitudeDouble = Double.parseDouble(longitude);
+			if((latitudeDouble < -180) || (latitudeDouble > 180)) {
+				return null;
+			}
+			else {
+				return latitudeDouble;
+			}
+		}
+		catch(NumberFormatException e) {
+			return null;
+		}
+	}
 }
