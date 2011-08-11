@@ -21,10 +21,12 @@ import java.io.InputStream;
 import java.util.Properties;
 
 import org.apache.log4j.Logger;
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.ohmage.cache.CacheMissException;
 import org.ohmage.cache.PreferenceCache;
+import org.ohmage.cache.SurveyResponsePrivacyStateCache;
 import org.ohmage.request.AwRequest;
 import org.ohmage.request.ConfigReadRequest;
 import org.ohmage.validator.AwRequestAnnotator;
@@ -98,6 +100,9 @@ public class ConfigReadService extends AbstractAnnotatingService {
 				throw new ServiceException(e);
 			}
 			
+			// Get the actual privacy states.
+			response.put("survey_response_privacy_states", new JSONArray(SurveyResponsePrivacyStateCache.instance().getKeys()));
+
 			awRequest.addToReturn(ConfigReadRequest.RESULT, response, true);
 		}
 		catch(JSONException e) {
