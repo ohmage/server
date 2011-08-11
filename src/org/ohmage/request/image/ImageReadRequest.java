@@ -1,4 +1,4 @@
-package org.ohmage.request.document;
+package org.ohmage.request.image;
 
 import java.io.BufferedWriter;
 import java.io.DataOutputStream;
@@ -16,15 +16,19 @@ import org.ohmage.annotator.ErrorCodes;
 import org.ohmage.cache.UserBin;
 import org.ohmage.request.InputKeys;
 import org.ohmage.request.UserRequest;
-import org.ohmage.service.DocumentServices;
+import org.ohmage.service.ImageServices;
 import org.ohmage.service.ServiceException;
-import org.ohmage.service.UserDocumentServices;
+import org.ohmage.service.UserImageServices;
 import org.ohmage.util.CookieUtils;
-import org.ohmage.validator.DocumentValidators;
+import org.ohmage.validator.ImageValidators;
+import org.ohmage.validator.ImageValidators.ImageSize;
 import org.ohmage.validator.ValidationException;
 
 /**
- * <p>Creates a new class. The requester must be an admin.</p>
+ * <p>Returns an image based on the given ID. The requester must be requesting
+ * an image they created, a shared image in a campaign in which they are an
+ * author, or a shared image in a shared campaign in which they are an analyst.
+ * </p>
  * <table border="1">
  *   <tr>
  *     <td>Parameter Name</td>
@@ -37,79 +41,95 @@ import org.ohmage.validator.ValidationException;
  *     <td>true</td>
  *   </tr>
  *   <tr>
- *     <td>{@value org.ohmage.request.InputKeys#DOCUMENT_ID}</td>
- *     <td>The unique identifier for the document whose contents is 
- *       desired.</td>
+ *     <td>{@value org.ohmage.request.InputKeys#IMAGE_ID}</td>
+ *     <td>The image's unique identifier.</td>
  *     <td>true</td>
+ *   </tr>
+ *   <tr>
+ *     <td>{@value org.ohmage.request.InputKeys#IMAGE_SIZE}</td>
+ *     <td>If omitted, the originally uploaded image will be returned. If 
+ *       given, it will alter the image in some way based on the value given. 
+ *       It must be one of 
+ *       {@link org.ohmage.validator.ImageValidators.ImageSize}.</td>
+ *     <td>false</td>
  *   </tr>
  * </table>
  * 
  * @author John Jenkins
  */
-public class DocumentReadContentsRequest extends UserRequest {
-	private static final Logger LOGGER = Logger.getLogger(DocumentReadContentsRequest.class);
+public class ImageReadRequest extends UserRequest {
+	private static final Logger LOGGER = Logger.getLogger(ImageReadRequest.class);
 	
 	private static final int CHUNK_SIZE = 4096;
 	
-	private final String documentId;
+	private final String imageId;
+	private final ImageSize size;
 	
-	private String documentName;
-	private InputStream contentsStream;
+	private InputStream imageStream;
 	
 	/**
-	 * Creates a new request for reading a document's contents.
+	 * Creates a new image read request.
 	 * 
-	 * @param httpRequest The HttpServletRequest with the parameters necessary
-	 * 					  to build this request.
+	 * @param httpRequest The HttpServletRequest with all of the parameters to
+	 * 					  build this request.
 	 */
-	public DocumentReadContentsRequest(HttpServletRequest httpRequest) {
-		super(httpRequest, TokenLocation.EITHER);
+	public ImageReadRequest(HttpServletRequest httpRequest) {
+		super(httpRequest, TokenLocation.EITHER, false);
 		
-		String tempDocumentId = null;
+		LOGGER.info("Creating an image read request.");
 		
-		try {
-			tempDocumentId = DocumentValidators.validateDocumentId(this, httpRequest.getParameter(InputKeys.DOCUMENT_ID));
-			if(tempDocumentId == null) {
-				setFailed(ErrorCodes.DOCUMENT_INVALID_ID, "The document ID is missing.");
-				throw new ValidationException("The document ID is missing.");
+		String tImageId = null;
+		ImageSize tSize = null;
+		
+		if(! isFailed()) {
+			try {
+				tImageId = ImageValidators.validateId(this, httpRequest.getParameter(InputKeys.IMAGE_ID));
+				if(tImageId == null) {
+					setFailed(ErrorCodes.IMAGE_INVALID_ID, "The image ID is missing: " + InputKeys.IMAGE_ID);
+					throw new ValidationException("The image ID is missing: " + InputKeys.IMAGE_ID);
+				}
+				else if(httpRequest.getParameterValues(InputKeys.IMAGE_ID).length > 1) {
+					setFailed(ErrorCodes.IMAGE_INVALID_ID, "Multiple owner values were given: " + InputKeys.IMAGE_ID);
+					throw new ValidationException("Multiple owner values were given: " + InputKeys.IMAGE_ID);
+				}
+				
+				tSize = ImageValidators.validateImageSize(this, httpRequest.getParameter(InputKeys.IMAGE_SIZE));
+				if((tSize != null) && (httpRequest.getParameterValues(InputKeys.IMAGE_SIZE).length > 1)) {
+					setFailed(ErrorCodes.IMAGE_INVALID_SIZE, "Multiple image sizes were given: " + InputKeys.IMAGE_SIZE);
+					throw new ValidationException("Multiple image sizes were given: " + InputKeys.IMAGE_SIZE);
+				}
 			}
-			else if(httpRequest.getParameterValues(InputKeys.DOCUMENT_ID).length > 1) {
-				setFailed(ErrorCodes.DOCUMENT_INVALID_ID, "Multiple document IDs were given.");
-				throw new ValidationException("Multiple document IDs were given.");
+			catch(ValidationException e) {
+				
 			}
 		}
-		catch(ValidationException e) {
-			LOGGER.info(e.toString());
-		}
 		
-		documentId = tempDocumentId;
+		imageId = tImageId;
+		size = tSize;
 		
-		contentsStream = null;
+		imageStream = null;
 	}
-
+	
 	/**
-	 * Services this request.
+	 * Services the request.
 	 */
 	@Override
 	public void service() {
-		LOGGER.info("Servicing the document read contents request.");
+		LOGGER.info("Servicing image read request.");
 		
 		if(! authenticate(false)) {
 			return;
 		}
 		
 		try {
-			LOGGER.info("Verifying that the document exists.");
-			DocumentServices.ensureDocumentExistence(this, documentId);
+			LOGGER.info("Verifying that the image exists.");
+			ImageServices.verifyImageExists(this, imageId);
 			
-			LOGGER.info("Verifying that the requesting user can read the contents of this document.");
-			UserDocumentServices.userCanReadDocument(this, getUser().getUsername(), documentId);
+			LOGGER.info("Verifying that the user can read the image.");
+			UserImageServices.verifyUserCanReadImage(this, getUser().getUsername(), imageId);
 			
-			LOGGER.info("Retrieving the document's name.");
-			documentName = DocumentServices.getDocumentName(this, documentId);
-			
-			LOGGER.info("Retrieving the document's contents.");
-			contentsStream = DocumentServices.getDocumentInputStream(this, documentId);
+			LOGGER.info("Retreiving the image.");
+			imageStream = ImageServices.getImage(this, imageId, size);
 		}
 		catch(ServiceException e) {
 			e.logException(LOGGER);
@@ -117,15 +137,12 @@ public class DocumentReadContentsRequest extends UserRequest {
 	}
 
 	/**
-	 * If the request has succeeded, it attempts to create an OutputStream to
-	 * the response and pipe the contents of the document from the InputStream
-	 * to the OutputStream. If the request fails at any point, it will attempt
-	 * to return a JSON error message. If writing the response fails, an error
-	 * message is printed.
+	 * Responds to the request with an image if it was successful or JSON if it
+	 * was not.
 	 */
 	@Override
 	public void respond(HttpServletRequest httpRequest, HttpServletResponse httpResponse) {
-		LOGGER.info("Writing read document contents response.");
+		LOGGER.info("Writing image read response.");
 		
 		// Creates the writer that will write the response, success or fail.
 		Writer writer;
@@ -146,10 +163,11 @@ public class DocumentReadContentsRequest extends UserRequest {
 		// output stream. 
 		if(! isFailed()) {
 			try {
-				// Set the type and force the browser to download it as the 
-				// last step before beginning to stream the response.
-				httpResponse.setContentType("ohmage/document");
-				httpResponse.setHeader("Content-Disposition", "attachment; filename=" + documentName);
+				// Set the type as a JPEG.
+				// FIXME: This isn't necessarily the case. We might want to do
+				// some sort of image inspection to figure out what this should
+				// be.
+				httpResponse.setContentType("image/jpeg");
 				
 				// If available, set the token.
 				if(getUser() != null) {
@@ -165,16 +183,16 @@ public class DocumentReadContentsRequest extends UserRequest {
 				// Read the file in chunks and write it to the output stream.
 				byte[] bytes = new byte[CHUNK_SIZE];
 				int read = 0;
-				int currRead = contentsStream.read(bytes);
+				int currRead = imageStream.read(bytes);
 				while(currRead != -1) {
 					dos.write(bytes, 0, currRead);
 					read += currRead;
 					
-					currRead = contentsStream.read(bytes);
+					currRead = imageStream.read(bytes);
 				}
 				
-				// Close the document's InputStream.
-				contentsStream.close();
+				// Close the image's InputStream.
+				imageStream.close();
 				
 				// Flush and close the data output stream to which we were 
 				// writing.
@@ -196,6 +214,7 @@ public class DocumentReadContentsRequest extends UserRequest {
 		}
 		
 		// If the request ever failed, write an error message.
+		// FIXME: This should probably check if it's a GET and send a 404.
 		if(isFailed()) {
 			httpResponse.setContentType("text/html");
 			

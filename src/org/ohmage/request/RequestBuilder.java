@@ -20,6 +20,7 @@ import org.ohmage.request.document.DocumentDeletionRequest;
 import org.ohmage.request.document.DocumentReadContentsRequest;
 import org.ohmage.request.document.DocumentReadRequest;
 import org.ohmage.request.document.DocumentUpdateRequest;
+import org.ohmage.request.image.ImageReadRequest;
 import org.ohmage.request.user.UserChangePasswordRequest;
 import org.ohmage.request.user.UserCreationRequest;
 import org.ohmage.request.user.UserDeletionRequest;
@@ -72,6 +73,9 @@ public final class RequestBuilder {
 	public static final String API_DOCUMENT_READ_CONTENTS = API_ROOT + "/document/read/contents";
 	public static final String API_DOCUMENT_UPDATE = API_ROOT + "/document/update";
 	public static final String API_DOCUMENT_DELETE = API_ROOT + "/document/delete";
+	
+	// Image
+	public static final String API_IMAGE_READ = API_ROOT + "/image/read";
 	
 	// User
 	public static final String API_USER_CREATE = API_ROOT + "/user/create";
@@ -157,6 +161,9 @@ public final class RequestBuilder {
 		else if(API_DOCUMENT_DELETE.equals(requestUri)) {
 			return new DocumentDeletionRequest(httpRequest);
 		}
+		else if(API_IMAGE_READ.equals(requestUri)) {
+			return new ImageReadRequest(httpRequest);
+		}
 		// User
 		else if(API_USER_CREATE.equals(requestUri)) {
 			return new UserCreationRequest(httpRequest);
@@ -217,6 +224,8 @@ public final class RequestBuilder {
 				API_DOCUMENT_READ_CONTENTS.equals(uri) ||
 				API_DOCUMENT_UPDATE.equals(uri) ||
 				API_DOCUMENT_DELETE.equals(uri) ||
+				// Image
+				API_IMAGE_READ.equals(uri) ||
 				// User
 				API_USER_CREATE.equals(uri) ||
 				API_USER_READ.equals(uri) ||
