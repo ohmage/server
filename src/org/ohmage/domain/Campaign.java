@@ -1,3 +1,18 @@
+/*******************************************************************************
+ * Copyright 2011 The Regents of the University of California
+ * 
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * 
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ ******************************************************************************/
 package org.ohmage.domain;
 
 import java.util.ArrayList;
@@ -10,7 +25,7 @@ import java.util.Set;
 import org.ohmage.util.StringUtils;
 
 /**
- * Storage of everything defining a campaign.
+ * Storage of campaign metadata (basically everything except the XML).
  * 
  * @author Joshua Selsky
  */
@@ -20,6 +35,7 @@ public class Campaign {
 	private String description;
 	private String runningState;
 	private String privacyState;
+
 	/**
 	 * TODO: Make this a Timestamp or Calendar?
 	 */
@@ -79,7 +95,6 @@ public class Campaign {
 		this.runningState = campaign.runningState;
 		this.privacyState = campaign.privacyState;
 		this.campaignCreationTimestamp = campaign.campaignCreationTimestamp;
-		
 		classes = new HashSet<String>(campaign.classes);
 		
 		supervisors = new HashSet<String>(campaign.participants);
@@ -87,51 +102,55 @@ public class Campaign {
 		analysts = new HashSet<String>(campaign.participants);
 		participants = new HashSet<String>(campaign.participants);
 	}
-
+	
 	public String getUrn() {
 		return this.urn;
 	}
-
+	
 	public void setUrn(String urn) {
 		this.urn = urn;
 	}
-
+	
 	public String getName() {
 		return this.name;
 	}
-
+	
 	public void setName(String name) {
 		this.name = name;
 	}
-
+	
 	public String getDescription() {
 		return this.description;
 	}
-
+	
 	public void setDescription(String description) {
 		this.description = description;
 	}
-
+	
 	public String getRunningState() {
 		return this.runningState;
 	}
-
+	
 	public void setRunningState(String runningState) {
 		this.runningState = runningState;
 	}
-
+	
 	public String getPrivacyState() {
 		return this.privacyState;
 	}
-
+	
 	public void setPrivacyState(String privacyState) {
 		this.privacyState = privacyState;
 	}
-
+	
 	public String getCampaignCreationTimestamp() {
 		return this.campaignCreationTimestamp;
 	}
 	
+	public void setCampaignCreationTimestamp(String campaignCreationTimestamp) {
+		this.campaignCreationTimestamp = campaignCreationTimestamp;
+	}
+
 	public Calendar getCampaignCreationTimestampAsCalendar() {
 		if(campaignCreationTimestamp == null) {
 			return null;
@@ -140,10 +159,6 @@ public class Campaign {
 		Calendar result = Calendar.getInstance();
 		result.setTime(StringUtils.decodeDate(campaignCreationTimestamp));
 		return result;
-	}
-
-	public void setCampaignCreationTimestamp(String campaignCreationTimestamp) {
-		this.campaignCreationTimestamp = campaignCreationTimestamp;
 	}
 	
 	public void setXml(String xml) {
@@ -233,103 +248,105 @@ public class Campaign {
 	public List<String> getParticipants() {
 		return new ArrayList<String>(participants);
 	}
-
-	/* (non-Javadoc)
-	 * @see java.lang.Object#hashCode()
-	 */
+	
 	@Override
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
+		result = prime * result
+				+ ((analysts == null) ? 0 : analysts.hashCode());
+		result = prime * result + ((authors == null) ? 0 : authors.hashCode());
 		result = prime
 				* result
 				+ ((campaignCreationTimestamp == null) ? 0
 						: campaignCreationTimestamp.hashCode());
+		result = prime * result + ((classes == null) ? 0 : classes.hashCode());
 		result = prime * result
 				+ ((description == null) ? 0 : description.hashCode());
 		result = prime * result + ((name == null) ? 0 : name.hashCode());
 		result = prime * result
+				+ ((participants == null) ? 0 : participants.hashCode());
+		result = prime * result
 				+ ((privacyState == null) ? 0 : privacyState.hashCode());
 		result = prime * result
 				+ ((runningState == null) ? 0 : runningState.hashCode());
+		result = prime * result
+				+ ((supervisors == null) ? 0 : supervisors.hashCode());
 		result = prime * result + ((urn == null) ? 0 : urn.hashCode());
 		result = prime * result + ((xml == null) ? 0 : xml.hashCode());
 		return result;
 	}
 
-	/* (non-Javadoc)
-	 * @see java.lang.Object#equals(java.lang.Object)
-	 */
 	@Override
 	public boolean equals(Object obj) {
-		if (this == obj) {
+		if (this == obj)
 			return true;
-		}
-		if (obj == null) {
+		if (obj == null)
 			return false;
-		}
-		if (getClass() != obj.getClass()) {
+		if (getClass() != obj.getClass())
 			return false;
-		}
-		
 		Campaign other = (Campaign) obj;
-		
+		if (analysts == null) {
+			if (other.analysts != null)
+				return false;
+		} else if (!analysts.equals(other.analysts))
+			return false;
+		if (authors == null) {
+			if (other.authors != null)
+				return false;
+		} else if (!authors.equals(other.authors))
+			return false;
 		if (campaignCreationTimestamp == null) {
-			if (other.campaignCreationTimestamp != null) {
+			if (other.campaignCreationTimestamp != null)
 				return false;
-			}
-		} else if (!campaignCreationTimestamp.equals(other.campaignCreationTimestamp)) {
+		} else if (!campaignCreationTimestamp
+				.equals(other.campaignCreationTimestamp))
 			return false;
-		}
-		
+		if (classes == null) {
+			if (other.classes != null)
+				return false;
+		} else if (!classes.equals(other.classes))
+			return false;
 		if (description == null) {
-			if (other.description != null) {
+			if (other.description != null)
 				return false;
-			}
-		} else if (!description.equals(other.description)) {
+		} else if (!description.equals(other.description))
 			return false;
-		}
-		
 		if (name == null) {
-			if (other.name != null) {
+			if (other.name != null)
 				return false;
-			}
-		} else if (!name.equals(other.name)) {
+		} else if (!name.equals(other.name))
 			return false;
-		}
-		
+		if (participants == null) {
+			if (other.participants != null)
+				return false;
+		} else if (!participants.equals(other.participants))
+			return false;
 		if (privacyState == null) {
-			if (other.privacyState != null) {
+			if (other.privacyState != null)
 				return false;
-			}
-		} else if (!privacyState.equals(other.privacyState)) {
+		} else if (!privacyState.equals(other.privacyState))
 			return false;
-		}
-		
 		if (runningState == null) {
-			if (other.runningState != null) {
+			if (other.runningState != null)
 				return false;
-			}
-		} else if (!runningState.equals(other.runningState)) {
+		} else if (!runningState.equals(other.runningState))
 			return false;
-		}
-		
+		if (supervisors == null) {
+			if (other.supervisors != null)
+				return false;
+		} else if (!supervisors.equals(other.supervisors))
+			return false;
 		if (urn == null) {
-			if (other.urn != null) {
+			if (other.urn != null)
 				return false;
-			}
-		} else if (!urn.equals(other.urn)) {
+		} else if (!urn.equals(other.urn))
 			return false;
-		}
-		
 		if (xml == null) {
-			if (other.xml != null) {
+			if (other.xml != null)
 				return false;
-			}
-		} else if (!xml.equals(other.xml)) {
+		} else if (!xml.equals(other.xml))
 			return false;
-		}
-		
 		return true;
 	}
 

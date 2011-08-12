@@ -2,6 +2,8 @@ package org.ohmage.dao;
 
 import javax.sql.DataSource;
 
+import org.ohmage.exception.DataAccessException;
+
 /**
  * This class is responsible for all operations directly pertaining to images.
  * It may read information from other entities as required but the parameters
@@ -48,8 +50,10 @@ public final class ImageDaos extends Dao {
 	 * @param imageId The image's ID.
 	 * 
 	 * @return Returns true if the image exists; false, otherwise.
+	 * 
+	 * @throws DataAccessException Thrown if there is an error.
 	 */
-	public static Boolean getImageExists(String imageId) {
+	public static Boolean getImageExists(String imageId) throws DataAccessException {
 		try {
 			return instance.jdbcTemplate.queryForObject(SQL_EXISTS_IMAGE, new Object[] { imageId }, Boolean.class);
 		}
@@ -66,8 +70,10 @@ public final class ImageDaos extends Dao {
 	 * 
 	 * @return Returns the URL for the image if it exists; otherwise, null is
 	 * 		   returned.
+	 * 
+	 * @throws DataAccessException Thrown if there is an error.
 	 */
-	public static String getImageUrl(String imageId) {
+	public static String getImageUrl(String imageId) throws DataAccessException {
 		try {
 			return instance.jdbcTemplate.queryForObject(SQL_GET_IMAGE_URL, new Object[] { imageId }, String.class);
 		}

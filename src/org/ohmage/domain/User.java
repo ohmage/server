@@ -15,9 +15,7 @@
  ******************************************************************************/
 package org.ohmage.domain;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
@@ -44,7 +42,7 @@ public class User {
 	
 	private boolean loggedIn;
 	
-	private final Map<String, List<String>> campaignRoleMap; // A user can have multiple roles in the same campaign.
+	private final Map<String, CampaignAndUserRoles> campaignAndUserRolesMap; // A user can have multiple roles in the same campaign.
 	private final Map<String, String> classRoleMap;
 	
 	/**
@@ -76,7 +74,7 @@ public class User {
 		
 		loggedIn = false;
 		
-		campaignRoleMap = new HashMap<String, List<String>>();
+		campaignAndUserRolesMap = new HashMap<String, CampaignAndUserRoles>();
 		classRoleMap = new HashMap<String, String>();
 	}
 	
@@ -99,15 +97,10 @@ public class User {
 		loggedIn = user.loggedIn;
 		
 		// Create a new campaign-role map and copy everything over.
-		campaignRoleMap = new HashMap<String, List<String>>();
-		for(String campaignId : user.campaignRoleMap.keySet()) {
-			List<String> originalCampaignRoles = user.campaignRoleMap.get(campaignId);
-			List<String> campaignRoles = new ArrayList<String>(originalCampaignRoles.size());
-			for(String campaignRole : originalCampaignRoles) {
-				campaignRoles.add(campaignRole);
-			}
-			
-			campaignRoleMap.put(campaignId, campaignRoles);
+		campaignAndUserRolesMap = new HashMap<String, CampaignAndUserRoles>();
+		for(String campaignId : user.campaignAndUserRolesMap.keySet()) {
+			CampaignAndUserRoles originalCampaignRoles = user.campaignAndUserRolesMap.get(campaignId);
+			campaignAndUserRolesMap.put(campaignId, new CampaignAndUserRoles(originalCampaignRoles));
 		}
 		
 		// Create a new class-role map and copy everything over.
@@ -138,45 +131,28 @@ public class User {
 	/**
 	 * Associates a campaign and role in that campaign to this user.
 	 * 
-	 * @param campaignId A unique identifier for the campaign.
+	 * @param campaign A campaign that this user belongs to.
 	 * 
-	 * @param role The user's role in that campaign.
-	 * 
-	 * @throws IllegalArgumentException Thrown if the campaign ID or the user's
-	 * 									role are obviously invalid.
+	 * @param userRole The user's role in that campaign.
 	 */
-	public void addCampaignRole(String campaignId, String role) {
-		if(StringUtils.isEmptyOrWhitespaceOnly(campaignId)) {
-			throw new IllegalArgumentException("The campaign ID cannot be null or whitespace only.");
-		}
-		else if(StringUtils.isEmptyOrWhitespaceOnly(role)) {
-			throw new IllegalArgumentException("The campaign role cannot be null or whitespace only.");
-		}
-		
-		// Get the current list of roles for this user in this campaign. If no
-		// such association has been made, create a new List and associate it.
-		List<String> roles = campaignRoleMap.get(campaignId);
-		if(roles == null) {
-			roles = new LinkedList<String>();
-			campaignRoleMap.put(campaignId, roles);
+	public void addCampaignAndUserRole(Campaign campaign, String userRole) {
+		CampaignAndUserRoles campaignAndUserRoles = campaignAndUserRolesMap.get(campaign.getUrn());
+		if(campaignAndUserRoles == null) {
+			campaignAndUserRoles = new CampaignAndUserRoles();
+			campaignAndUserRoles.setCampaign(campaign);
+			campaignAndUserRolesMap.put(campaign.getUrn(), campaignAndUserRoles);
 		}
 		
-		// Add the role to the list if it doesn't already exist.
-		if(! roles.contains(role)) {
-			roles.add(role);
-		}
+		campaignAndUserRoles.addUserRoleString(userRole);
 	}
 	
 	/**
-	 * Gets the list of campaigns with which the user is associated and the  
-	 * user's roles in each campaign.
+	 * Gets the campaigns and user roles that this user is associated with.
 	 * 
-	 * @return A Map of the campaign IDs to a List of all the user's roles in
-	 * 		   the campaign. This may be null which may not be accurate if it
-	 * 		   has not yet been explicitly populated.
+	 * @return A Map of the campaign IDs to campaigns and user roles for this user. 
 	 */
-	public Map<String, List<String>> getCampaignsAndRoles() {
-		return campaignRoleMap;
+	public Map<String, CampaignAndUserRoles> getCampaignsAndRoles() {
+		return campaignAndUserRolesMap;
 	}
 	
 	/**
@@ -279,7 +255,7 @@ public class User {
 	 * 		   specified by the 'campaignId'.
 	 */
 	public boolean isSupervisorInCampaign(String campaignId) {
-		List<String> roles = campaignRoleMap.get(campaignId);
+		List<String> roles = campaignAndUserRolesMap.get(campaignId).getUserRoleStrings();
 		
 		if(roles == null) {
 			return false;
@@ -300,7 +276,7 @@ public class User {
 	 * 		   specified by the 'campaignId'.
 	 */
 	public boolean isAuthorInCampaign(String campaignId) {
-		List<String> roles = campaignRoleMap.get(campaignId);
+		List<String> roles = campaignAndUserRolesMap.get(campaignId).getUserRoleStrings();
 		
 		if(roles == null) {
 			return false;
@@ -321,7 +297,7 @@ public class User {
 	 * 		   specified by the 'campaignId'.
 	 */
 	public boolean isAnalystInCampaign(String campaignId) {
-		List<String> roles = campaignRoleMap.get(campaignId);
+		List<String> roles = campaignAndUserRolesMap.get(campaignId).getUserRoleStrings();
 		
 		if(roles == null) {
 			return false;
@@ -342,7 +318,7 @@ public class User {
 	 * 		   specified by the 'campaignId'.
 	 */
 	public boolean isParticipantInCampaign(String campaignId) {
-		List<String> roles = campaignRoleMap.get(campaignId);
+		List<String> roles = campaignAndUserRolesMap.get(campaignId).getUserRoleStrings();
 		
 		if(roles == null) {
 			return false;
@@ -365,7 +341,7 @@ public class User {
 	 * 		   specified by the 'campaignId'.
 	 */
 	public boolean hasRoleInCampaign(String campaignId, String role) {
-		List<String> roles = campaignRoleMap.get(campaignId);
+		List<String> roles = campaignAndUserRolesMap.get(campaignId).getUserRoleStrings();
 		
 		if(roles == null) {
 			return false;
@@ -444,7 +420,7 @@ public class User {
 	public String toString() {
 		return "User [username=" + username + ", _password=omitted"
 				+ ", loggedIn=" + loggedIn + ", campaignRoleMap="
-				+ campaignRoleMap + ", classRoleMap=" + classRoleMap + "]";
+				+ campaignAndUserRolesMap + ", classRoleMap=" + classRoleMap + "]";
 	}
 
 	/**
@@ -458,7 +434,7 @@ public class User {
 		int result = 1;
 		result = prime
 				* result
-				+ ((campaignRoleMap == null) ? 0 : campaignRoleMap.hashCode());
+				+ ((campaignAndUserRolesMap == null) ? 0 : campaignAndUserRolesMap.hashCode());
 		result = prime * result
 				+ ((classRoleMap == null) ? 0 : classRoleMap.hashCode());
 		result = prime * result + (loggedIn ? booleanTruePrime : booleanFalsePrime);
@@ -493,11 +469,11 @@ public class User {
 		User other = (User) object;
 		
 		// Ensure that the campaign-role map is equal.
-		if (campaignRoleMap == null) {
-			if (other.campaignRoleMap != null) {
+		if (campaignAndUserRolesMap == null) {
+			if (other.campaignAndUserRolesMap != null) {
 				return false;
 			}
-		} else if (!campaignRoleMap.equals(other.campaignRoleMap)) {
+		} else if (!campaignAndUserRolesMap.equals(other.campaignAndUserRolesMap)) {
 			return false;
 		}
 		

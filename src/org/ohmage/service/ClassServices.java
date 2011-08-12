@@ -9,8 +9,9 @@ import java.util.Map;
 import org.ohmage.annotator.ErrorCodes;
 import org.ohmage.dao.ClassDaos;
 import org.ohmage.dao.ClassDaos.UserAndClassRole;
-import org.ohmage.dao.DataAccessException;
 import org.ohmage.domain.ClassInformation;
+import org.ohmage.exception.DataAccessException;
+import org.ohmage.exception.ServiceException;
 import org.ohmage.request.Request;
 
 /**

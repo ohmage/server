@@ -9,8 +9,8 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.log4j.Logger;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.ohmage.cache.CacheMissException;
 import org.ohmage.cache.PreferenceCache;
+import org.ohmage.exception.CacheMissException;
 
 /**
  * <p>This class is responsible for updating a class.</p>

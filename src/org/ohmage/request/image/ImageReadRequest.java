@@ -14,15 +14,15 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.log4j.Logger;
 import org.ohmage.annotator.ErrorCodes;
 import org.ohmage.cache.UserBin;
+import org.ohmage.exception.ServiceException;
+import org.ohmage.exception.ValidationException;
 import org.ohmage.request.InputKeys;
 import org.ohmage.request.UserRequest;
 import org.ohmage.service.ImageServices;
-import org.ohmage.service.ServiceException;
 import org.ohmage.service.UserImageServices;
 import org.ohmage.util.CookieUtils;
 import org.ohmage.validator.ImageValidators;
 import org.ohmage.validator.ImageValidators.ImageSize;
-import org.ohmage.validator.ValidationException;
 
 /**
  * <p>Returns an image based on the given ID. The requester must be requesting

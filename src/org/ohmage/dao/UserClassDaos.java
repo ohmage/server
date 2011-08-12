@@ -9,8 +9,12 @@ import java.util.Map;
 import javax.sql.DataSource;
 
 import org.apache.log4j.Logger;
+
+import org.ohmage.exception.DataAccessException;
+
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.SingleColumnRowMapper;
+
 
 /**
  * This class contains all of the functionality for creating, reading, 
@@ -85,7 +89,7 @@ public final class UserClassDaos extends Dao {
 	 * 
 	 * @return Whether or not the user belongs to the class.
 	 */
-	public static Boolean userBelongsToClass(String classId, String username) {
+	public static Boolean userBelongsToClass(String classId, String username) throws DataAccessException {
 		try {
 			return (Boolean) instance.jdbcTemplate.queryForObject(SQL_EXISTS_USER_CLASS, new Object[] { username, classId }, Boolean.class);
 		}
@@ -101,7 +105,7 @@ public final class UserClassDaos extends Dao {
 	 * 
 	 * @return Returns a List of usernames of all of the users in a class.
 	 */
-	public static List<String> getUsersInClass(String classId) {
+	public static List<String> getUsersInClass(String classId) throws DataAccessException {
 		try {
 			return instance.jdbcTemplate.query(SQL_GET_USER_CLASS, new Object[] { classId }, new SingleColumnRowMapper<String>());
 		}
@@ -121,7 +125,7 @@ public final class UserClassDaos extends Dao {
 	 * @return Returns the user's role in the class unless they have no role in
 	 * 		   the class in which case null is returned.
 	 */
-	public static String getUserClassRole(String classId, String username) {
+	public static String getUserClassRole(String classId, String username) throws DataAccessException {
 		try {
 			return (String) instance.jdbcTemplate.queryForObject(SQL_GET_USER_ROLE, new Object[] { username, classId }, String.class);
 		}
@@ -138,7 +142,7 @@ public final class UserClassDaos extends Dao {
 		}
 	}
 	
-	public static Map<String, String> getClassIdsAndNameForUser(String username) {
+	public static Map<String, String> getClassIdsAndNameForUser(String username) throws DataAccessException {
 		try {
 			final Map<String, String> result = new HashMap<String, String>();
 			

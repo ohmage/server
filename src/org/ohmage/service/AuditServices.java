@@ -5,8 +5,9 @@ import java.util.List;
 import java.util.Map;
 
 import org.ohmage.dao.AuditDaos;
-import org.ohmage.dao.DataAccessException;
 import org.ohmage.domain.AuditInformation;
+import org.ohmage.exception.DataAccessException;
+import org.ohmage.exception.ServiceException;
 import org.ohmage.jee.servlet.RequestServlet;
 import org.ohmage.jee.servlet.RequestServlet.RequestType;
 import org.ohmage.request.Request;

@@ -13,16 +13,16 @@ import org.json.JSONObject;
 import org.ohmage.annotator.ErrorCodes;
 import org.ohmage.cache.ClassRoleCache;
 import org.ohmage.domain.UserPersonal;
+import org.ohmage.exception.ServiceException;
+import org.ohmage.exception.ValidationException;
 import org.ohmage.request.InputKeys;
 import org.ohmage.request.UserRequest;
 import org.ohmage.service.CampaignServices;
 import org.ohmage.service.ClassServices;
-import org.ohmage.service.ServiceException;
 import org.ohmage.service.UserCampaignServices;
 import org.ohmage.service.UserClassServices;
 import org.ohmage.validator.CampaignValidators;
 import org.ohmage.validator.ClassValidators;
-import org.ohmage.validator.ValidationException;
 
 /**
  * <p>Reads the information about all of the users in all of the campaigns and

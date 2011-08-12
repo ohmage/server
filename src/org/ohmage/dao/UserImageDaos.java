@@ -2,6 +2,8 @@ package org.ohmage.dao;
 
 import javax.sql.DataSource;
 
+import org.ohmage.exception.DataAccessException;
+
 /**
  * This class is responsible for the functionality to create, read, update, and
  * delete user-image assocations.
@@ -36,8 +38,10 @@ public final class UserImageDaos extends Dao {
 	 * 
 	 * @return Returns the creator of the image or null if the image doesn't
 	 * 		   exist.
+	 * 
+	 * @throws DataAccessException Thrown if there is an error.
 	 */
-	public static String getImageOwner(String imageId) {
+	public static String getImageOwner(String imageId) throws DataAccessException {
 		try {
 			return instance.jdbcTemplate.queryForObject(SQL_GET_IMAGE_OWNER, new Object[] { imageId }, String.class);
 		}

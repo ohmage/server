@@ -13,25 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  ******************************************************************************/
-package org.ohmage.dao;
+package org.ohmage.domain.configuration;
 
-/**
- * Simple wrapper for RuntimeExceptions that are thrown from the DAO layer. 
- * 
- * @author selsky
- */
-public class DataAccessException extends RuntimeException {
-	private static final long serialVersionUID = 1L;
 
-	public DataAccessException(String message) {
-		super(message);
+public abstract class AbstractSurveyItem implements SurveyItem {
+	protected String _id;
+	
+	public AbstractSurveyItem(String id) {
+		_id = id;
 	}
 	
-	public DataAccessException(String message, Throwable cause) {
-		super(message, cause);
-	}
-	
-	public DataAccessException(Throwable cause) {
-		super(cause);
+	@Override
+	public String getId() {
+		return _id;
 	}
 }

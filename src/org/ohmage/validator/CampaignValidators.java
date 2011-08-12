@@ -17,6 +17,8 @@ import org.ohmage.cache.CampaignRoleCache;
 import org.ohmage.cache.CampaignRunningStateCache;
 import org.ohmage.config.grammar.custom.ConditionParseException;
 import org.ohmage.config.xml.CampaignValidator;
+import org.ohmage.domain.User;
+import org.ohmage.exception.ValidationException;
 import org.ohmage.request.InputKeys;
 import org.ohmage.request.Request;
 import org.ohmage.util.StringUtils;
@@ -240,6 +242,18 @@ public final class CampaignValidators {
 		return xml;
 	}
 	
+
+	public boolean verifyAllowedRunningState(User user, String campaignId, String allowedCampaignRunningState) throws ValidationException {
+		if(user == null) {
+			throw new ValidationException("User object is null.", true);
+		}
+		if(! user.getCampaignsAndRoles().containsKey(campaignId)) {
+			throw new ValidationException("User is not in campaign " + campaignId, true);
+		}
+		
+		return user.getCampaignsAndRoles().get(campaignId).getCampaign().getRunningState().equals(allowedCampaignRunningState);
+	}
+
 	/**
 	 * Validates that a campaign description is valid by ensuring that it does
 	 * not contain any profanity.

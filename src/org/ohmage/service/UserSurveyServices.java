@@ -3,8 +3,9 @@ package org.ohmage.service;
 import java.sql.Timestamp;
 import java.util.Calendar;
 
-import org.ohmage.dao.DataAccessException;
 import org.ohmage.dao.UserSurveyDaos;
+import org.ohmage.exception.DataAccessException;
+import org.ohmage.exception.ServiceException;
 import org.ohmage.request.Request;
 
 /**

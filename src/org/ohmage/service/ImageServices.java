@@ -6,8 +6,9 @@ import java.net.MalformedURLException;
 import java.net.URL;
 
 import org.ohmage.annotator.ErrorCodes;
-import org.ohmage.dao.DataAccessException;
 import org.ohmage.dao.ImageDaos;
+import org.ohmage.exception.DataAccessException;
+import org.ohmage.exception.ServiceException;
 import org.ohmage.request.Request;
 import org.ohmage.validator.ImageValidators.ImageSize;
 

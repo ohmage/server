@@ -21,10 +21,11 @@ import java.util.regex.Pattern;
 import javax.sql.DataSource;
 
 import org.apache.log4j.Logger;
-import org.ohmage.cache.CacheMissException;
 import org.ohmage.cache.DocumentRoleCache;
 import org.ohmage.cache.PreferenceCache;
 import org.ohmage.domain.DocumentInformation;
+import org.ohmage.exception.CacheMissException;
+import org.ohmage.exception.DataAccessException;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.transaction.PlatformTransactionManager;
@@ -327,7 +328,9 @@ public class DocumentDaos extends Dao {
 	 * @return Returns a unique identifier for this document.
 	 */
 	public static String createDocument(byte[] contents, String name, String description, String privacyState, 
-			Map<String, String> campaignRoleMap, Map<String, String> classRoleMap, String creatorUsername) {
+			Map<String, String> campaignRoleMap, Map<String, String> classRoleMap, String creatorUsername) 
+		throws DataAccessException {
+		
 		// Create a new, random UUID to use to save this file.
 		String uuid = UUID.randomUUID().toString();
 		
@@ -489,7 +492,7 @@ public class DocumentDaos extends Dao {
 	 * 
 	 * @return Returns true if the document exists and false otherwise.
 	 */
-	public static boolean getDocumentExists(String documentId) {
+	public static boolean getDocumentExists(String documentId) throws DataAccessException {
 		try {
 			return instance.jdbcTemplate.queryForObject(SQL_EXISTS_DOCUMENT, new Object[] { documentId }, Boolean.class);
 		}
@@ -506,7 +509,7 @@ public class DocumentDaos extends Dao {
 	 * 
 	 * @return Returns the URL of the document.
 	 */
-	public static String getDocumentUrl(String documentId) {
+	public static String getDocumentUrl(String documentId) throws DataAccessException {
 		try {
 			return instance.jdbcTemplate.queryForObject(SQL_GET_DOCUMENT_URL, new Object[] { documentId }, String.class);
 		}
@@ -523,7 +526,7 @@ public class DocumentDaos extends Dao {
 	 * 
 	 * @return Returns the name of the document.
 	 */
-	public static String getDocumentName(String documentId) {
+	public static String getDocumentName(String documentId) throws DataAccessException {
 		try {
 			return instance.jdbcTemplate.queryForObject(SQL_GET_DOCUMENT_NAME, new Object[] { documentId }, String.class);
 		}
@@ -541,7 +544,7 @@ public class DocumentDaos extends Dao {
 	 * @return A DocumentInformation object representing the information about
 	 * 		   this document.
 	 */
-	public static DocumentInformation getDocumentInformation(String documentId) {
+	public static DocumentInformation getDocumentInformation(String documentId) throws DataAccessException {
 		try {
 			return instance.jdbcTemplate.queryForObject(
 				SQL_GET_DOCUMENT_INFO, 
@@ -611,7 +614,7 @@ public class DocumentDaos extends Dao {
 	public static void updateDocument(String documentId, byte[] contents, String name, String description, String privacyState,
 			Map<String, String> campaignAndRolesToAdd, List<String> campaignsToRemove, 
 			Map<String, String> classAndRolesToAdd, List<String> classesToRemove, 
-			Map<String, String> userAndRolesToAdd, List<String> usersToRemove) {
+			Map<String, String> userAndRolesToAdd, List<String> usersToRemove) throws DataAccessException {
 		// Begin transaction
 		DefaultTransactionDefinition def = new DefaultTransactionDefinition();
 		def.setName("Document update.");
@@ -649,7 +652,7 @@ public class DocumentDaos extends Dao {
 				transactionManager.rollback(status);
 				throw new DataAccessException("Error while reading from the cache.", e);
 			}
-			catch(DataAccessException e) {
+			catch(org.springframework.dao.DataAccessException e) {
 				transactionManager.rollback(status);
 				throw e;
 			}
@@ -673,7 +676,7 @@ public class DocumentDaos extends Dao {
 	 * 
 	 * @param documentId The unique identifier for the document to be deleted.
 	 */
-	public static void deleteDocument(String documentId) {
+	public static void deleteDocument(String documentId) throws DataAccessException {
 		// Begin transaction
 		DefaultTransactionDefinition def = new DefaultTransactionDefinition();
 		def.setName("Document delete.");
@@ -727,7 +730,7 @@ public class DocumentDaos extends Dao {
 	 * 
 	 * @param name The new name for the document with an extension.
 	 */
-	private static void updateName(String documentId, String name) {
+	private static void updateName(String documentId, String name) throws DataAccessException {
 		if(name == null) {
 			return;
 		}
@@ -751,7 +754,7 @@ public class DocumentDaos extends Dao {
 	 * 
 	 * @param description The new description for the document.
 	 */
-	private static void updateDescription(String documentId, String description) {
+	private static void updateDescription(String documentId, String description) throws DataAccessException {
 		if(description == null) {
 			return;
 		}
@@ -775,7 +778,7 @@ public class DocumentDaos extends Dao {
 	 * 							  This should never happen as it has already
 	 * 							  been validated.
 	 */
-	private static void updatePrivacyState(String documentId, String privacyState) throws CacheMissException {
+	private static void updatePrivacyState(String documentId, String privacyState) throws CacheMissException, DataAccessException {
 		if(privacyState == null) {
 			return;
 		}
@@ -798,7 +801,7 @@ public class DocumentDaos extends Dao {
 	 * 
 	 * @param contents The new contents of the document.
 	 */
-	private static void updateContents(String documentId, byte[] contents) {
+	private static void updateContents(String documentId, byte[] contents) throws DataAccessException {
 		if(contents == null) {
 			return;
 		}
@@ -873,7 +876,7 @@ public class DocumentDaos extends Dao {
 	 * 							  database ID for the document.
 	 */
 	private static void updateEntityRoleList(String documentId, Map<String, String> entityAndRolesToAdd, List<String> entitiesToRemove, 
-			String sqlInsertEntity, String sqlUpdateEntity, String sqlDeleteEntity) throws CacheMissException {
+			String sqlInsertEntity, String sqlUpdateEntity, String sqlDeleteEntity) throws CacheMissException, DataAccessException {
 
 		// Delete roles
 		if(entitiesToRemove != null) {
@@ -952,7 +955,7 @@ public class DocumentDaos extends Dao {
 	 * 
 	 * @return A File object for where a document should be written.
 	 */
-	private static File getDirectory() {
+	private static File getDirectory() throws DataAccessException {
 		// Get the maximum number of items in a directory.
 		int numFilesPerDirectory;
 		try {
@@ -988,7 +991,7 @@ public class DocumentDaos extends Dao {
 	 * directory with each step choosing the directory with the largest
 	 * integer value.
 	 */
-	private static void init(int numFilesPerDirectory) {
+	private static void init(int numFilesPerDirectory) throws DataAccessException {
 		// Get the lock.
 		DIRECTORY_CREATION_LOCK.lock();
 		
@@ -1101,7 +1104,7 @@ public class DocumentDaos extends Dao {
 	 * 							   leaf directory and the maximum allowed
 	 * 							   number of directories in the branches.
 	 */
-	private static void getNewDirectory(int numFilesPerDirectory) {
+	private static void getNewDirectory(int numFilesPerDirectory) throws DataAccessException {
 		// Get the lock.
 		DIRECTORY_CREATION_LOCK.lock();
 		

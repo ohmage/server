@@ -8,15 +8,17 @@ import javax.sql.DataSource;
 
 import org.apache.log4j.Logger;
 import org.json.JSONObject;
-import org.ohmage.cache.CacheMissException;
 import org.ohmage.cache.PreferenceCache;
 import org.ohmage.domain.UserPersonal;
+import org.ohmage.exception.CacheMissException;
+import org.ohmage.exception.DataAccessException;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionException;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.DefaultTransactionDefinition;
+
 
 /**
  * This class contains all of the functionality for creating, reading, 
@@ -218,7 +220,9 @@ public class UserDaos extends Dao {
 	 * @param campaignCreationPrivilege Whether or not the new user is allowed
 	 * 									to create campaigns.
 	 */
-	public static void createUser(String username, String hashedPassword, Boolean admin, Boolean enabled, Boolean newAccount, Boolean campaignCreationPrivilege) {
+	public static void createUser(String username, String hashedPassword, Boolean admin, Boolean enabled, Boolean newAccount, Boolean campaignCreationPrivilege) 
+		throws DataAccessException {
+		
 		Boolean tNewAccount = newAccount;
 		if(tNewAccount == null) {
 			tNewAccount = Boolean.TRUE;
@@ -434,7 +438,9 @@ public class UserDaos extends Dao {
 	 * 					   personal information database record; all null 
 	 * 					   values will be ignored.
 	 */
-	public static void updateUser(String username, Boolean admin, Boolean enabled, Boolean newAccount, Boolean campaignCreationPrivilege, UserPersonal personalInfo) {
+	public static void updateUser(String username, Boolean admin, Boolean enabled, Boolean newAccount, Boolean campaignCreationPrivilege, UserPersonal personalInfo) 
+		throws DataAccessException {
+		
 		// Create the transaction.
 		DefaultTransactionDefinition def = new DefaultTransactionDefinition();
 		def.setName("Updating a user's privileges and information.");
@@ -633,7 +639,7 @@ public class UserDaos extends Dao {
 	 * 
 	 * @param hashedPassword The new, hashed password for the user.
 	 */
-	public static void updateUserPassword(String username, String hashedPassword) {
+	public static void updateUserPassword(String username, String hashedPassword) throws DataAccessException {
 		// Create the transaction.
 		DefaultTransactionDefinition def = new DefaultTransactionDefinition();
 		def.setName("Updating a user's password.");
@@ -672,7 +678,7 @@ public class UserDaos extends Dao {
 	 * 
 	 * @param usernames A Collection of usernames for the users to delete.
 	 */
-	public static void deleteUsers(Collection<String> usernames) {
+	public static void deleteUsers(Collection<String> usernames) throws DataAccessException {
 		// Create the transaction.
 		DefaultTransactionDefinition def = new DefaultTransactionDefinition();
 		def.setName("Deleting a user.");

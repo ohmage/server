@@ -12,13 +12,13 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.ohmage.annotator.ErrorCodes;
 import org.ohmage.domain.ClassInformation;
+import org.ohmage.exception.ServiceException;
+import org.ohmage.exception.ValidationException;
 import org.ohmage.request.InputKeys;
 import org.ohmage.request.UserRequest;
 import org.ohmage.service.ClassServices;
-import org.ohmage.service.ServiceException;
 import org.ohmage.service.UserClassServices;
 import org.ohmage.validator.ClassValidators;
-import org.ohmage.validator.ValidationException;
 
 /**
  * <p>Request to read the information about a list of classes including the 

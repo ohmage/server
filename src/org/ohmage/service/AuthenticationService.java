@@ -3,7 +3,8 @@ package org.ohmage.service;
 import org.ohmage.annotator.ErrorCodes;
 import org.ohmage.dao.AuthenticationDao;
 import org.ohmage.dao.AuthenticationDao.UserInformation;
-import org.ohmage.dao.DataAccessException;
+import org.ohmage.exception.DataAccessException;
+import org.ohmage.exception.ServiceException;
 import org.ohmage.request.UserRequest;
 
 /**

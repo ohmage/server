@@ -20,17 +20,18 @@ import org.ohmage.annotator.ErrorCodes;
 import org.ohmage.cache.CampaignRoleCache;
 import org.ohmage.cache.UserBin;
 import org.ohmage.domain.Campaign;
+import org.ohmage.exception.DataAccessException;
+import org.ohmage.exception.ServiceException;
+import org.ohmage.exception.ValidationException;
 import org.ohmage.request.InputKeys;
 import org.ohmage.request.UserRequest;
 import org.ohmage.service.CampaignServices;
-import org.ohmage.service.ServiceException;
 import org.ohmage.service.UserCampaignServices;
 import org.ohmage.service.UserClassServices;
 import org.ohmage.util.CookieUtils;
 import org.ohmage.validator.CampaignValidators;
 import org.ohmage.validator.CampaignValidators.OutputFormat;
 import org.ohmage.validator.ClassValidators;
-import org.ohmage.validator.ValidationException;
 
 /**
  * <p>A request to read information about a campaign or set of campaigns. The
@@ -335,6 +336,9 @@ public class CampaignReadRequest extends UserRequest {
 			}
 		}
 		catch(ServiceException e) {
+			e.logException(LOGGER);
+		}
+		catch(DataAccessException e) {
 			e.logException(LOGGER);
 		}
 	}

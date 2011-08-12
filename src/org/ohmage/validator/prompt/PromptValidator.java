@@ -13,25 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  ******************************************************************************/
-package org.ohmage.validator;
+package org.ohmage.validator.prompt;
+
+import org.json.JSONObject;
+import org.ohmage.domain.configuration.Prompt;
+
 
 /**
- * Simple wrapper for RuntimeExceptions that are thrown from the validation layer. 
+ * A PromptValidator is responsible for validating a prompt response against
+ * its associated configuration.
  * 
- * @author selsky
+ * @author Joshua Selsky
  */
-public class ValidationException extends Exception {
-	private static final long serialVersionUID = 1L;
-
-	public ValidationException(String message) {
-		super(message);
-	}
+public interface PromptValidator {
 	
-	public ValidationException(String message, Throwable cause) {
-		super(message, cause);
-	}
-	
-	public ValidationException(Throwable cause) {
-		super(cause);
-	}
+	/**
+	 * Validates a prompt response against the syntax defined by the prompt type.
+	 * 
+	 * @param prompt  A prompt retrieved from a configuration for a particular
+	 * surveyId-promptId or surveyId-repeatableSetId-promptId combination.
+	 * @param promptResponse  The response to validate.
+	 * @return  False if the response is invalid, true if the response is valid.
+	 */
+	boolean validate(Prompt prompt, JSONObject promptResponse);
 }

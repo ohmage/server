@@ -11,16 +11,16 @@ import org.apache.log4j.Logger;
 import org.json.JSONArray;
 import org.ohmage.annotator.ErrorCodes;
 import org.ohmage.domain.AuditInformation;
+import org.ohmage.exception.ServiceException;
+import org.ohmage.exception.ValidationException;
 import org.ohmage.jee.servlet.RequestServlet;
 import org.ohmage.jee.servlet.RequestServlet.RequestType;
 import org.ohmage.request.InputKeys;
 import org.ohmage.request.UserRequest;
 import org.ohmage.service.AuditServices;
-import org.ohmage.service.ServiceException;
 import org.ohmage.service.UserServices;
 import org.ohmage.validator.AuditValidators;
 import org.ohmage.validator.AuditValidators.ResponseType;
-import org.ohmage.validator.ValidationException;
 
 /**
  * <p>Reads the audits from the system, based on the given parameters. If no

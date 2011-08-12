@@ -21,7 +21,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.ohmage.annotator.Annotator;
 import org.ohmage.annotator.ErrorCodes;
-import org.ohmage.validator.ValidationException;
+import org.ohmage.exception.ValidationException;
 
 /**
  * Superclass for all requests. Defines the basic requirements for a request.

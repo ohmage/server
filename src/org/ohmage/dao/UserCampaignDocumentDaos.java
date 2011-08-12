@@ -9,6 +9,7 @@ import org.ohmage.cache.CampaignRoleCache;
 import org.ohmage.cache.DocumentPrivacyStateCache;
 import org.ohmage.cache.DocumentRoleCache;
 import org.ohmage.domain.DocumentInformation;
+import org.ohmage.exception.DataAccessException;
 import org.springframework.jdbc.core.SingleColumnRowMapper;
 
 /**
@@ -86,7 +87,9 @@ public final class UserCampaignDocumentDaos extends Dao {
 	 * @return Returns a List of DocumentInformation objects where each object
 	 * 		   represents a document visible to the user in the campaign.
 	 */
-	public static List<DocumentInformation> getVisibleDocumentsToUserInCampaign(String username, String campaignId) {
+	public static List<DocumentInformation> getVisibleDocumentsToUserInCampaign(String username, String campaignId) 
+	 	throws DataAccessException {
+		
 		List<String> documentList;
 		try {
 			documentList = instance.jdbcTemplate.query(
@@ -119,7 +122,7 @@ public final class UserCampaignDocumentDaos extends Dao {
 	 * @return Returns true if the user is a supervisor in any of the classes
 	 * 		   to which the document is associated.
 	 */
-	public static Boolean getUserIsSupervisorInAnyCampaignAssociatedWithDocument(String username, String documentId) {
+	public static Boolean getUserIsSupervisorInAnyCampaignAssociatedWithDocument(String username, String documentId) throws DataAccessException {
 		try {
 			return instance.jdbcTemplate.queryForObject(
 					SQL_EXISTS_USER_IS_SUPERVISOR_IN_ANY_CAMPAIGN_ASSOCIATED_WITH_DOCUMENT, 

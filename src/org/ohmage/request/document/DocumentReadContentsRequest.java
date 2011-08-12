@@ -14,14 +14,14 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.log4j.Logger;
 import org.ohmage.annotator.ErrorCodes;
 import org.ohmage.cache.UserBin;
+import org.ohmage.exception.ServiceException;
+import org.ohmage.exception.ValidationException;
 import org.ohmage.request.InputKeys;
 import org.ohmage.request.UserRequest;
 import org.ohmage.service.DocumentServices;
-import org.ohmage.service.ServiceException;
 import org.ohmage.service.UserDocumentServices;
 import org.ohmage.util.CookieUtils;
 import org.ohmage.validator.DocumentValidators;
-import org.ohmage.validator.ValidationException;
 
 /**
  * <p>Creates a new class. The requester must be an admin.</p>

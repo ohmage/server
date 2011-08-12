@@ -2,6 +2,8 @@ package org.ohmage.dao;
 
 import javax.sql.DataSource;
 
+import org.ohmage.exception.DataAccessException;
+
 /**
  * This class contains all of the functionality for creating, reading, 
  * updating, and deleting campaign-survey relationships. While it may read 

@@ -14,11 +14,11 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.log4j.Logger;
+import org.ohmage.exception.ServiceException;
 import org.ohmage.request.InputKeys;
 import org.ohmage.request.Request;
 import org.ohmage.request.RequestBuilder;
 import org.ohmage.service.AuditServices;
-import org.ohmage.service.ServiceException;
 
 /**
  * Handler for all incoming HTTP requests.
@@ -307,12 +307,17 @@ public class RequestServlet extends HttpServlet {
 	 * 					   once the request has been processed.
 	 */
 	protected void processRequest(HttpServletRequest httpRequest, HttpServletResponse httpResponse) {
-		request = RequestBuilder.buildRequest(httpRequest);
+
+		long startTime = System.currentTimeMillis();
+		
+		Request request = RequestBuilder.buildRequest(httpRequest);
 		
 		if(! request.isFailed()) {
 			request.service();
 		}
 		
 		request.respond(httpRequest, httpResponse);
+		
+		LOGGER.info("total request milliseconds to service " + httpRequest.getRequestURI() + " = "+ (System.currentTimeMillis() - startTime));
 	}
 }

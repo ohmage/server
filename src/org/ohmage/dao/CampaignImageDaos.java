@@ -4,6 +4,7 @@ import java.util.List;
 
 import javax.sql.DataSource;
 
+import org.ohmage.exception.DataAccessException;
 import org.springframework.jdbc.core.SingleColumnRowMapper;
 
 /**
@@ -57,8 +58,10 @@ public final class CampaignImageDaos extends Dao {
 	 * @return Returns a list of campaign IDs for to the image is associated. 
 	 * 		   The list may be empty if the image doesn't exist or isn't
 	 * 		   associated with any campaigns, but it will never be null.
+	 * 
+	 * @throws DataAccessException Thrown if there is an error.
 	 */
-	public static List<String> getCampaignIdsForImageId(String imageId) {
+	public static List<String> getCampaignIdsForImageId(String imageId) throws DataAccessException {
 		try {
 			return instance.jdbcTemplate.query(
 					SQL_GET_CAMPAIGN_IDS_FOR_IMAGE, 
@@ -82,8 +85,10 @@ public final class CampaignImageDaos extends Dao {
 	 * @return Returns the privacy state of the image in the campaign. If the
 	 * 		   image and/or campaign don't exist or the image isn't associated
 	 * 		   with the campaign, null is returned.
+	 * 
+	 * @throws DataAccessException Thrown if there is an error.
 	 */
-	public static String getImagePrivacyStateInCampaign(String campaignId, String imageId) {
+	public static String getImagePrivacyStateInCampaign(String campaignId, String imageId) throws DataAccessException {
 		try {
 			return instance.jdbcTemplate.queryForObject(
 					SQL_GET_IMAGE_PRIVACY_STATE_IN_CAMPAIGN, 

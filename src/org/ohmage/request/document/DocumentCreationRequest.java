@@ -9,18 +9,18 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.log4j.Logger;
 import org.ohmage.annotator.ErrorCodes;
+import org.ohmage.exception.ServiceException;
+import org.ohmage.exception.ValidationException;
 import org.ohmage.request.InputKeys;
 import org.ohmage.request.UserRequest;
 import org.ohmage.service.CampaignServices;
 import org.ohmage.service.ClassServices;
 import org.ohmage.service.DocumentServices;
-import org.ohmage.service.ServiceException;
 import org.ohmage.service.UserCampaignDocumentServices;
 import org.ohmage.service.UserClassDocumentServices;
 import org.ohmage.validator.CampaignDocumentValidators;
 import org.ohmage.validator.ClassDocumentValidators;
 import org.ohmage.validator.DocumentValidators;
-import org.ohmage.validator.ValidationException;
 
 /**
  * <p>Creates a document creation request. The document must be associated with

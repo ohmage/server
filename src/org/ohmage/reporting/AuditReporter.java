@@ -18,11 +18,11 @@ import org.apache.log4j.Logger;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.ohmage.domain.AuditInformation;
+import org.ohmage.exception.ServiceException;
 import org.ohmage.request.FailedRequest;
 import org.ohmage.request.InputKeys;
 import org.ohmage.request.RequestBuilder;
 import org.ohmage.service.AuditServices;
-import org.ohmage.service.ServiceException;
 
 /**
  * Begins on server startup and creates a daily snapshot of some information
