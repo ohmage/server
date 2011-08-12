@@ -196,7 +196,7 @@
       	<include name="org/ohmage/util/StringUtils.class" />
       </fileset>
       <zipfileset src="${component.repository}/json-dot-org-2010-01-05.jar" excludes="META-INF/*" />
-      <zipfileset src="${component.repository}/log4j-1.2.15.jar" excludes="META-INF/*" />
+      <zipfileset src="${component.repository}/log4j-1.2.16.jar" excludes="META-INF/*" />
       <zipfileset src="${component.repository}/xom-1.2.6.jar" excludes="META-INF/*" />
       <zipfileset src="${component.repository}/xercesImpl-2.11.0.jar" excludes="META-INF/*" />
       <manifest>
