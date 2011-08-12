@@ -164,7 +164,7 @@ public final class SurveyUploadServices {
 				throw new ServiceException(SURVEY_LAUNCH_CONTEXT_MISSING);
 			}
 			
-			String launchTime = JsonUtils.getStringFromJsonObject(surveyObject, JsonInputKeys.SURVEY_LAUNCH_TIME);
+			String launchTime = JsonUtils.getStringFromJsonObject(surveyLaunchContext, JsonInputKeys.SURVEY_LAUNCH_TIME);
 			
 			if(StringUtils.isEmptyOrWhitespaceOnly(launchTime)) {
 				request.setFailed(ErrorCodes.SURVEY_INVALID_LAUNCH_TIME, SURVEY_LAUNCH_TIME_MISSING);

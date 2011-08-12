@@ -168,7 +168,7 @@ public final class UploadValidationServices {
     		);
 		}
 		
-		if(longitude.doubleValue() < 180d || longitude.doubleValue() > 180d) {
+		if(longitude.doubleValue() < -180d || longitude.doubleValue() > 180d) {
 			failRequestAndThrowServiceException(
 				request, 
 				ErrorCodes.SERVER_INVALID_LOCATION,
@@ -267,23 +267,25 @@ public final class UploadValidationServices {
 			throw new ServiceException(msg);
 		}
 		
-		if(location == null) {
+		if(! locationStatus.equals(JsonInputKeys.METADATA_LOCATION_STATUS_UNAVAILABLE) && location == null) {
 			String msg = "missing location object in upload message";
 			request.setFailed(ErrorCodes.SERVER_INVALID_LOCATION, msg);
 			throw new ServiceException(msg);
 		}
 		
-		UploadValidationServices.validateLatitude(request, JsonUtils.getDoubleFromJsonObject(location, JsonInputKeys.METADATA_LOCATION_LATITUDE));
-		UploadValidationServices.validateLongitude(request, JsonUtils.getDoubleFromJsonObject(location, JsonInputKeys.METADATA_LOCATION_LONGITUDE));
-		UploadValidationServices.validateAccuracy(request, JsonUtils.getStringFromJsonObject(location, JsonInputKeys.METADATA_LOCATION_ACCURACY));
-		UploadValidationServices.validateProvider(request, JsonUtils.getStringFromJsonObject(location, JsonInputKeys.METADATA_LOCATION_PROVIDER));
-		
-		UploadValidationServices.validateIso8601Timestamp(
-			request,
-			JsonUtils.getStringFromJsonObject(location, JsonInputKeys.METADATA_LOCATION_TIMESTAMP),
-			LOCATION_TIMESTAMP_ERROR_MESSAGE_NULL,
-			LOCATION_TIMESTAMP_ERROR_MESSAGE_INVALID
-		);
+		if(location != null) {
+			UploadValidationServices.validateLatitude(request, JsonUtils.getDoubleFromJsonObject(location, JsonInputKeys.METADATA_LOCATION_LATITUDE));
+			UploadValidationServices.validateLongitude(request, JsonUtils.getDoubleFromJsonObject(location, JsonInputKeys.METADATA_LOCATION_LONGITUDE));
+			UploadValidationServices.validateAccuracy(request, JsonUtils.getStringFromJsonObject(location, JsonInputKeys.METADATA_LOCATION_ACCURACY));
+			UploadValidationServices.validateProvider(request, JsonUtils.getStringFromJsonObject(location, JsonInputKeys.METADATA_LOCATION_PROVIDER));
+			
+			UploadValidationServices.validateIso8601Timestamp(
+				request,
+				JsonUtils.getStringFromJsonObject(location, JsonInputKeys.METADATA_LOCATION_TIMESTAMP),
+				LOCATION_TIMESTAMP_ERROR_MESSAGE_NULL,
+				LOCATION_TIMESTAMP_ERROR_MESSAGE_INVALID
+			);
+		}
 	}
 	
 	/**

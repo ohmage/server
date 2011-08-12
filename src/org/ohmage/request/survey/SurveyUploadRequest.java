@@ -1,5 +1,6 @@
 package org.ohmage.request.survey;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
@@ -12,7 +13,11 @@ import org.json.JSONArray;
 import org.ohmage.annotator.ErrorCodes;
 import org.ohmage.cache.CampaignRoleCache;
 import org.ohmage.cache.CampaignRunningStateCache;
+import org.ohmage.dao.SurveyUploadDao;
 import org.ohmage.domain.configuration.Configuration;
+import org.ohmage.domain.upload.SurveyResponse;
+import org.ohmage.domain.upload.SurveyUploadBuilder;
+import org.ohmage.exception.DataAccessException;
 import org.ohmage.exception.ServiceException;
 import org.ohmage.exception.ValidationException;
 import org.ohmage.request.InputKeys;
@@ -20,6 +25,7 @@ import org.ohmage.request.UserRequest;
 import org.ohmage.service.CampaignServices;
 import org.ohmage.service.SurveyUploadServices;
 import org.ohmage.service.UserCampaignServices;
+import org.ohmage.util.JsonUtils;
 import org.ohmage.util.StringUtils;
 import org.ohmage.validator.DateValidators;
 
@@ -69,8 +75,8 @@ import org.ohmage.validator.DateValidators;
 public final class SurveyUploadRequest extends UserRequest {
 	private static final Logger LOGGER = Logger.getLogger(SurveyUploadRequest.class);
 	
-	// The campaign creation timestamp is stored as a String because it is never used in 
-	// any kind of date calculations.
+	// The campaign creation timestamp is stored as a String because it is 
+	// never used in any kind of calculation.
 	private final String campaignCreationTimestamp;
 	private final String campaignUrn;
 	private static final List<String> allowedRoles;
@@ -100,7 +106,7 @@ public final class SurveyUploadRequest extends UserRequest {
 	 * 					  parameters to and metadata for this request.
 	 */
 	public SurveyUploadRequest(HttpServletRequest httpRequest) {
-		super(httpRequest, true);
+		super(httpRequest, false);
 		
 		Date tempCampaignCreationTimestamp = null;
 		String tempCampaignUrn = null;
@@ -128,7 +134,7 @@ public final class SurveyUploadRequest extends UserRequest {
 				setFailed(ErrorCodes.CAMPAIGN_INVALID_ID, "Invalid campaign id: " + tempCampaignUrn + " was provided.");
 			}
 			
-			if(! StringUtils.isEmptyOrWhitespaceOnly(tempJsonData)) {
+			if(StringUtils.isEmptyOrWhitespaceOnly(tempJsonData)) {
 				setFailed(ErrorCodes.SURVEY_INVALID_RESPONSES, "No value found for 'data' parameter.");
 			}
 		} 
@@ -183,21 +189,37 @@ public final class SurveyUploadRequest extends UserRequest {
 			this.configuration = CampaignServices.findCampaignConfiguration(this, this.campaignUrn);
 			
 			LOGGER.info("Parsing JSON data upload.");
-			// Each survey in an upload is represented by a JSONObject within a JSONArray 
+			// Each survey in an upload is represented by a JSONObject within
+			// a JSONArray 
 			this.jsonDataArray = SurveyUploadServices.stringToJsonArray(this, this.jsonData);
 			
-			// recycle the string because it's no longer needed
+			// Recycle the string because it's no longer needed and it's
+			// potentially quite large
 			this.jsonData = null;
 			
 			LOGGER.info("Validating surveys.");
 			SurveyUploadServices.validateSurveyUpload(this, jsonDataArray, configuration);
 			
+			LOGGER.info("Prepping surveys for db insertion.");
+			
+			int numberOfSurveyResponses = jsonDataArray.length();
+			List<SurveyResponse> surveyUploadList = new ArrayList<SurveyResponse>();
+			for(int i = 0; i < numberOfSurveyResponses; i++) {
+				surveyUploadList.add(SurveyUploadBuilder.createSurveyUploadFrom(configuration, JsonUtils.getJsonObjectFromJsonArray(jsonDataArray, i)));
+			}
+
+			LOGGER.info("Saving " + numberOfSurveyResponses + " surveys into the db.");
+			List<Integer> duplicateIndexList = SurveyUploadDao.insertSurveys(this, getUser(), getClient(), campaignUrn, surveyUploadList);
+			
+			// TODO - port the message logging later as part of 2.7
+			// We can use the Audit API for now
+			// LOGGER.info("Logging upload and upload stats to the filesystem.");
 			
 		}
-//		catch(ValidationException e) {
-//			e.logException(LOGGER);
-//		}
 		catch(ServiceException e) {
+			e.logException(LOGGER);
+		}
+		catch(DataAccessException e) {
 			e.logException(LOGGER);
 		}
 	}

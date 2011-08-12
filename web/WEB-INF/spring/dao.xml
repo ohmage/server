@@ -46,6 +46,12 @@
       <ref bean="dataSource" />
     </constructor-arg>
   </bean>
+
+  <bean class="org.ohmage.dao.SurveyUploadDao">
+    <constructor-arg>
+      <ref bean="dataSource" />
+    </constructor-arg>
+  </bean>
   
   <bean class="org.ohmage.dao.UserMobilityDaos">
     <constructor-arg>
