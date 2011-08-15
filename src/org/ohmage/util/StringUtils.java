@@ -17,7 +17,6 @@ package org.ohmage.util;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
-import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -33,11 +32,11 @@ public final class StringUtils {
 	private static final int NUM_URN_SEGMENTS = 3;
 	private static final Pattern URN_PATTERN = Pattern.compile("[a-z0-9_]+");
 
-	private static final DateFormat DATE_FORMAT_AMERICAN = new SimpleDateFormat("MM/dd/yyyy");
-	private static final DateFormat DATE_FORMAT_EVERYONE_ELSE = new SimpleDateFormat("yyyy-MM-dd");
+	private static final String FORMAT_DATE_AMERICAN = "MM/dd/yyyy";
+	private static final String FORMAT_DATE_EVERYONE_ELSE = "yyyy-MM-dd";
 	
-	private static final DateFormat DATE_TIME_FORMAT_AMERICAN = new SimpleDateFormat("M/d/yyyy h:m:s a");
-	private static final DateFormat DATE_TIME_FORMAT_EVERYONE_ELSE = new SimpleDateFormat("yyyy-M-d H:m:s");
+	private static final String FORMAT_DATE_TIME_AMERICAN = "M/d/yyyy h:m:s a";
+	private static final String FORMAT_DATE_TIME_EVERYONE_ELSE = "yyyy-M-d H:m:s";
 	
 	private static final Pattern EMAIL_PATTERN = Pattern.compile("^([_A-Za-z0-9-]+)(\\.[_A-Za-z0-9-]+)*@[A-Za-z0-9]+(\\.[A-Za-z0-9]+)*(\\.[A-Za-z]{2,})$");
 	
@@ -265,8 +264,8 @@ public final class StringUtils {
 	 * Decodes a String representing a date and returns a resulting Date
 	 * object. The date may follow any of these formats:
 	 * <ul>
-	 *   <li>{@value #DATE_FORMAT_AMERICAN}</li>
-	 *   <li>{@value #DATE_FORMAT_EVERYONE_ELSE}</li>
+	 *   <li>{@value #FORMAT_DATE_AMERICAN}</li>
+	 *   <li>{@value #FORMAT_DATE_EVERYONE_ELSE}</li>
 	 * </ul>
 	 * 
 	 * @param date The date as a String that is to be decoded.
@@ -281,11 +280,11 @@ public final class StringUtils {
 		}
 		
 		try {
-			return DATE_FORMAT_AMERICAN.parse(date);
+			return new SimpleDateFormat(FORMAT_DATE_AMERICAN).parse(date);
 		}
 		catch(ParseException americanException) {
 			try {
-				return DATE_FORMAT_EVERYONE_ELSE.parse(date);
+				return new SimpleDateFormat(FORMAT_DATE_EVERYONE_ELSE).parse(date);
 			}
 			catch(ParseException otherException) {
 				return null;
@@ -297,8 +296,8 @@ public final class StringUtils {
 	 * Decodes a String representing a date-time and returns a resulting Date
 	 * object. The date my follow any of these formats:
 	 * <ul>
-	 *   <li>{@value #DATE_TIME_FORMAT_AMERICAN}</li>
-	 *   <li>{@value #DATE_TIME_FORMAT_EVERYONE_ELSE}</li>
+	 *   <li>{@value #FORMAT_DATE_TIME_AMERICAN}</li>
+	 *   <li>{@value #FORMAT_DATE_TIME_EVERYONE_ELSE}</li>
 	 * </ul>
 	 * 
 	 * @param dateTime The date-time as a String that is to be decoded.
@@ -313,11 +312,11 @@ public final class StringUtils {
 		}
 		
 		try {
-			return DATE_TIME_FORMAT_AMERICAN.parse(dateTime);
+			return new SimpleDateFormat(FORMAT_DATE_TIME_AMERICAN).parse(dateTime);
 		}
 		catch(ParseException americanException) {
 			try {
-				return DATE_TIME_FORMAT_EVERYONE_ELSE.parse(dateTime);
+				return new SimpleDateFormat(FORMAT_DATE_TIME_EVERYONE_ELSE).parse(dateTime);
 			}
 			catch(ParseException otherException) {
 				return null;
