@@ -316,7 +316,7 @@ public final class CampaignValidators {
 	 * 							   date.
 	 */
 	public static Calendar validateStartDate(Request request, String startDate) throws ValidationException {
-		LOGGER.info("Validating a Start date.");
+		LOGGER.info("Validating a start date.");
 		
 		if(StringUtils.isEmptyOrWhitespaceOnly(startDate)) {
 			return null;

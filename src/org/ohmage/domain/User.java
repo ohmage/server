@@ -182,7 +182,7 @@ public class User {
 	/**
 	 * Associates a class and role in that class to this user.
 	 * 
-	 * @param classId A unique identifier fo the class. 
+	 * @param classId A unique identifier for the class. 
 	 * 
 	 * @param role The user's role in that class.
 	 * 

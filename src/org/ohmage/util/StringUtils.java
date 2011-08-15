@@ -34,10 +34,10 @@ public final class StringUtils {
 	private static final Pattern URN_PATTERN = Pattern.compile("[a-z0-9_]+");
 
 	private static final DateFormat DATE_FORMAT_AMERICAN = new SimpleDateFormat("MM/dd/yyyy");
-	private static final DateFormat DATE_FORMAT_EVERYONE_ELSE = new SimpleDateFormat("yyyy-MM-dd");
+	private static final DateFormat DATE_FORMAT_ISO8601 = new SimpleDateFormat("yyyy-MM-dd");
 	
 	private static final DateFormat DATE_TIME_FORMAT_AMERICAN = new SimpleDateFormat("M/d/yyyy h:m:s a");
-	private static final DateFormat DATE_TIME_FORMAT_EVERYONE_ELSE = new SimpleDateFormat("yyyy-M-d H:m:s");
+	private static final DateFormat DATE_TIME_FORMAT_ISO8601 = new SimpleDateFormat("yyyy-M-d H:m:s");
 	
 	private static final Pattern EMAIL_PATTERN = Pattern.compile("^([_A-Za-z0-9-]+)(\\.[_A-Za-z0-9-]+)*@[A-Za-z0-9]+(\\.[A-Za-z0-9]+)*(\\.[A-Za-z]{2,})$");
 	
@@ -247,7 +247,7 @@ public final class StringUtils {
 	 * object. The date may follow any of these formats:
 	 * <ul>
 	 *   <li>{@value #DATE_FORMAT_AMERICAN}</li>
-	 *   <li>{@value #DATE_FORMAT_EVERYONE_ELSE}</li>
+	 *   <li>{@value #DATE_FORMAT_ISO8601}</li>
 	 * </ul>
 	 * 
 	 * @param date The date as a String that is to be decoded.
@@ -266,9 +266,9 @@ public final class StringUtils {
 		}
 		catch(ParseException americanException) {
 			try {
-				return DATE_FORMAT_EVERYONE_ELSE.parse(date);
+				return DATE_FORMAT_ISO8601.parse(date);
 			}
-			catch(ParseException otherException) {
+			catch(ParseException iso8601Exception) {
 				return null;
 			}
 		}
@@ -279,7 +279,7 @@ public final class StringUtils {
 	 * object. The date my follow any of these formats:
 	 * <ul>
 	 *   <li>{@value #DATE_TIME_FORMAT_AMERICAN}</li>
-	 *   <li>{@value #DATE_TIME_FORMAT_EVERYONE_ELSE}</li>
+	 *   <li>{@value #DATE_TIME_FORMAT_ISO8601}</li>
 	 * </ul>
 	 * 
 	 * @param dateTime The date-time as a String that is to be decoded.
@@ -298,9 +298,9 @@ public final class StringUtils {
 		}
 		catch(ParseException americanException) {
 			try {
-				return DATE_TIME_FORMAT_EVERYONE_ELSE.parse(dateTime);
+				return DATE_TIME_FORMAT_ISO8601.parse(dateTime);
 			}
-			catch(ParseException otherException) {
+			catch(ParseException iso8601Exception) {
 				return null;
 			}
 		}

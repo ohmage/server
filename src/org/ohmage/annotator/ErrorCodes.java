@@ -22,13 +22,19 @@ public final class ErrorCodes {
 	public static final String SERVER_INVALID_JSON = "0300";
 	public static final String SERVER_INVALID_CLIENT = "0301";
 	public static final String SERVER_INVALID_DATE = "0302";
-	public static final String SERVER_INVALID_CAMPAIGN_CREATION_TIMESTAMP = "0303";
+	public static final String SERVER_INVALID_TIMESTAMP = "0303";
+	public static final String SERVER_INVALID_TIME = "0304";
+	public static final String SERVER_INVALID_TIMEZONE = "0305";
+	public static final String SERVER_INVALID_LOCATION_STATUS = "0306";
+	public static final String SERVER_INVALID_LOCATION = "0307";
 	
 	public static final String MOBILITY_INVALID_SUBTYPE = "0500";
 	public static final String MOBILITY_INVALID_MODE = "0501";
 	public static final String MOBILITY_INVALID_ACCELEROMETER_DATA = "0502";
 	public static final String MOBILITY_INVALID_SPEED = "0503";
 	public static final String MOBILITY_INSUFFICIENT_PERMISSIONS = "0504";
+	public static final String MOBILITY_INVALID_WIFI_DATA = "0505";
+	public static final String MOBILITY_INVALID_DATA = "0506";
 	
 	public static final String SURVEY_INVALID_RESPONSES = "0600";
 	public static final String SURVEY_INVALID_OUTPUT_FORMAT = "0601";
