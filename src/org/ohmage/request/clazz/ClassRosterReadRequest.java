@@ -15,14 +15,14 @@ import org.apache.log4j.Logger;
 import org.ohmage.annotator.ErrorCodes;
 import org.ohmage.cache.UserBin;
 import org.ohmage.dao.ClassDaos.UserAndClassRole;
+import org.ohmage.exception.ValidationException;
 import org.ohmage.request.InputKeys;
 import org.ohmage.request.UserRequest;
 import org.ohmage.service.ClassServices;
-import org.ohmage.service.ServiceException;
+import org.ohmage.exception.ServiceException;
 import org.ohmage.service.UserClassServices;
 import org.ohmage.util.CookieUtils;
 import org.ohmage.validator.ClassValidators;
-import org.ohmage.validator.ValidationException;
 
 /**
  * <p>Generates a class roster for an existing class. The user must be an admin

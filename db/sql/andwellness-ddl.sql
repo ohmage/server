@@ -40,7 +40,6 @@ CREATE TABLE audit (
   -- A database timestamp about the time at which this record was made.
   db_timestamp timestamp default current_timestamp NOT NULL,
   PRIMARY KEY (id),
-  UNIQUE (uuid),
   CONSTRAINT FOREIGN KEY (request_type_id) REFERENCES audit_request_type (id) ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 

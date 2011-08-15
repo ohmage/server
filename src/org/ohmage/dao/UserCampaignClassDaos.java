@@ -2,6 +2,8 @@ package org.ohmage.dao;
 
 import javax.sql.DataSource;
 
+import org.ohmage.exception.DataAccessException;
+
 /**
  * This class contains all of the functionality for reading information about
  * user-campaign-class relationships.
@@ -53,7 +55,7 @@ public final class UserCampaignClassDaos extends Dao {
 	 * @return The number of classes that are associated with the campaign and
 	 * 		   of which the user is a member.
 	 */
-	public static int getNumberOfClassesThroughWhichUserIsAssociatedWithCampaign(String username, String campaignId) {
+	public static int getNumberOfClassesThroughWhichUserIsAssociatedWithCampaign(String username, String campaignId) throws DataAccessException {
 		try {
 			return instance.jdbcTemplate.queryForInt(SQL_COUNT_USER_ASSOCIATED_WITH_CAMPAIGN_THROUGH_CLASSES, username, campaignId);
 		}

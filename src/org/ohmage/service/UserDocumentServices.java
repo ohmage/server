@@ -4,9 +4,10 @@ import java.util.List;
 
 import org.ohmage.annotator.ErrorCodes;
 import org.ohmage.cache.DocumentRoleCache;
-import org.ohmage.dao.DataAccessException;
 import org.ohmage.dao.UserDocumentDaos;
 import org.ohmage.domain.DocumentInformation;
+import org.ohmage.exception.DataAccessException;
+import org.ohmage.exception.ServiceException;
 import org.ohmage.request.Request;
 
 /**
@@ -181,7 +182,7 @@ public class UserDocumentServices {
 				return null;
 			}
 		}
-		catch(org.springframework.dao.DataAccessException e) {
+		catch(DataAccessException e) {
 			request.setFailed();
 			throw new ServiceException(e);
 		}

@@ -4,6 +4,7 @@ import java.util.List;
 
 import javax.sql.DataSource;
 
+import org.ohmage.exception.DataAccessException;
 import org.springframework.jdbc.core.SingleColumnRowMapper;
 
 /**
@@ -51,7 +52,7 @@ public final class CampaignClassDaos extends Dao {
 	 * @return A List of campaign identifiers for all of the campaigns 
 	 * 		   associated with this class.
 	 */
-	public static List<String> getCampaignsAssociatedWithClass(String classId) {
+	public static List<String> getCampaignsAssociatedWithClass(String classId) throws DataAccessException {
 		try {
 			return instance.jdbcTemplate.query(
 					SQL_GET_CAMPAIGNS_ASSOCIATED_WITH_CLASS,
@@ -72,7 +73,7 @@ public final class CampaignClassDaos extends Dao {
 	 * @return A list of class IDs for all of the classes associated with this
 	 * 		   campaign.
 	 */
-	public static List<String> getClassesAssociatedWithCampaign(String campaignId) {
+	public static List<String> getClassesAssociatedWithCampaign(String campaignId) throws DataAccessException {
 		try {
 			return instance.jdbcTemplate.query(
 					SQL_GET_CLASSES_ASSOCIATED_WITH_CAMPAIGN, 

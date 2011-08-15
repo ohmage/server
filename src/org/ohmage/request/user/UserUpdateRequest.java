@@ -7,12 +7,12 @@ import org.apache.log4j.Logger;
 import org.json.JSONObject;
 import org.ohmage.annotator.ErrorCodes;
 import org.ohmage.domain.UserPersonal;
+import org.ohmage.exception.ServiceException;
+import org.ohmage.exception.ValidationException;
 import org.ohmage.request.InputKeys;
 import org.ohmage.request.UserRequest;
-import org.ohmage.service.ServiceException;
 import org.ohmage.service.UserServices;
 import org.ohmage.validator.UserValidators;
-import org.ohmage.validator.ValidationException;
 
 /**
  * <p>Updates a user's information. Only an admin can update a user's 

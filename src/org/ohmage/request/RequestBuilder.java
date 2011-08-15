@@ -20,6 +20,9 @@ import org.ohmage.request.document.DocumentDeletionRequest;
 import org.ohmage.request.document.DocumentReadContentsRequest;
 import org.ohmage.request.document.DocumentReadRequest;
 import org.ohmage.request.document.DocumentUpdateRequest;
+import org.ohmage.request.image.ImageReadRequest;
+import org.ohmage.request.mobility.MobilityUploadRequest;
+import org.ohmage.request.survey.SurveyUploadRequest;
 import org.ohmage.request.user.UserChangePasswordRequest;
 import org.ohmage.request.user.UserCreationRequest;
 import org.ohmage.request.user.UserDeletionRequest;
@@ -27,6 +30,7 @@ import org.ohmage.request.user.UserInfoReadRequest;
 import org.ohmage.request.user.UserReadRequest;
 import org.ohmage.request.user.UserStatsReadRequest;
 import org.ohmage.request.user.UserUpdateRequest;
+
 
 /**
  * Request builder from an HTTP request.
@@ -72,7 +76,16 @@ public final class RequestBuilder {
 	public static final String API_DOCUMENT_READ_CONTENTS = API_ROOT + "/document/read/contents";
 	public static final String API_DOCUMENT_UPDATE = API_ROOT + "/document/update";
 	public static final String API_DOCUMENT_DELETE = API_ROOT + "/document/delete";
+
+	// Image
+	public static final String API_IMAGE_READ = API_ROOT + "/image/read";
 	
+	// Mobility
+	public static final String API_MOBILITY_UPLOAD = API_ROOT + "/mobility/upload";
+
+	// Survey
+	private static final String API_SURVEY_UPLOAD = API_ROOT + "/survey/upload";
+
 	// User
 	public static final String API_USER_CREATE = API_ROOT + "/user/create";
 	public static final String API_USER_READ = API_ROOT + "/user/read";
@@ -157,6 +170,17 @@ public final class RequestBuilder {
 		else if(API_DOCUMENT_DELETE.equals(requestUri)) {
 			return new DocumentDeletionRequest(httpRequest);
 		}
+		// Image
+		else if(API_IMAGE_READ.equals(requestUri)) {
+			return new ImageReadRequest(httpRequest);
+		}
+		else if(API_MOBILITY_UPLOAD.equals(requestUri)) {
+			return new MobilityUploadRequest(httpRequest);
+		}
+		//Survey
+		else if(API_SURVEY_UPLOAD.equals(requestUri)) {
+			return new SurveyUploadRequest(httpRequest);
+		}
 		// User
 		else if(API_USER_CREATE.equals(requestUri)) {
 			return new UserCreationRequest(httpRequest);
@@ -192,8 +216,9 @@ public final class RequestBuilder {
 	 * @return Returns true if the URI is known; false, otherwise.
 	 */
 	public static boolean knownUri(String uri) {
-		// Config
-		if(API_CONFIG_READ.equals(uri) ||
+		if(
+				// Config
+				API_CONFIG_READ.equals(uri) ||
 				// Authentication
 				API_USER_AUTH.equals(uri) ||
 				API_USER_AUTH_TOKEN.equals(uri) ||
@@ -217,6 +242,9 @@ public final class RequestBuilder {
 				API_DOCUMENT_READ_CONTENTS.equals(uri) ||
 				API_DOCUMENT_UPDATE.equals(uri) ||
 				API_DOCUMENT_DELETE.equals(uri) ||
+				// Image
+				API_IMAGE_READ.equals(uri) ||
+				API_MOBILITY_UPLOAD.equals(uri) ||
 				// User
 				API_USER_CREATE.equals(uri) ||
 				API_USER_READ.equals(uri) ||

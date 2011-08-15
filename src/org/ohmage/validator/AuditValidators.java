@@ -4,6 +4,7 @@ import java.util.Date;
 
 import org.apache.log4j.Logger;
 import org.ohmage.annotator.ErrorCodes;
+import org.ohmage.exception.ValidationException;
 import org.ohmage.jee.servlet.RequestServlet.RequestType;
 import org.ohmage.request.Request;
 import org.ohmage.util.StringUtils;

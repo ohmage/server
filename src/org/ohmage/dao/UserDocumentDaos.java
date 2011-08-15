@@ -10,6 +10,7 @@ import org.ohmage.cache.ClassRoleCache;
 import org.ohmage.cache.DocumentPrivacyStateCache;
 import org.ohmage.cache.DocumentRoleCache;
 import org.ohmage.domain.DocumentInformation;
+import org.ohmage.exception.DataAccessException;
 import org.springframework.jdbc.core.SingleColumnRowMapper;
 
 /**
@@ -174,7 +175,7 @@ public final class UserDocumentDaos extends Dao {
 	 * @return Returns a List of DocumentInformation objects for all of the
 	 * 		   documents that are visible to the user.
 	 */
-	public static List<DocumentInformation> getVisibleDocumentsSpecificToUser(String username) {
+	public static List<DocumentInformation> getVisibleDocumentsSpecificToUser(String username) throws DataAccessException {
 		// Get the list of documents specific to the user.
 		List<String> userDocuments;
 		try {
@@ -213,7 +214,7 @@ public final class UserDocumentDaos extends Dao {
 	 * 		   it, then their document role with said document is returned.
 	 * 		   Otherwise, null is returned.
 	 */
-	public static String getDocumentRoleForDocumentSpecificToUser(String username, String documentId) {
+	public static String getDocumentRoleForDocumentSpecificToUser(String username, String documentId) throws DataAccessException {
 		try {
 			return instance.jdbcTemplate.queryForObject(
 					SQL_GET_DOCUMENT_ROLES_FOR_DOCUMENT_SPECIFIC_TO_REQUESTING_USER, 
@@ -246,7 +247,7 @@ public final class UserDocumentDaos extends Dao {
 	 * @return Returns a, possibly empty, List of document roles for the user
 	 * 		   specific to the document.
 	 */
-	public static List<String> getDocumentRolesForDocumentForUser(String username, String documentId) {
+	public static List<String> getDocumentRolesForDocumentForUser(String username, String documentId) throws DataAccessException {
 		try {
 			return instance.jdbcTemplate.query(
 					SQL_GET_DOCUMENT_ROLES_FOR_DOCUMENT_FOR_USER, 

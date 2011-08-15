@@ -4,6 +4,7 @@ import org.apache.log4j.Logger;
 import org.ohmage.annotator.ErrorCodes;
 import org.ohmage.cache.DocumentPrivacyStateCache;
 import org.ohmage.cache.DocumentRoleCache;
+import org.ohmage.exception.ValidationException;
 import org.ohmage.request.Request;
 import org.ohmage.util.StringUtils;
 

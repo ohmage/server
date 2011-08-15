@@ -13,17 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  ******************************************************************************/
-package org.ohmage.service;
+package org.ohmage.exception;
 
 import org.apache.log4j.Logger;
 
 /**
- * Simple wrapper for Exceptions that are thrown from the service layer. 
+ * Abstract base class for checked Exceptions that may occur in various
+ * application workflows. 
  * 
- * @author selsky
+ * @author John Jenkins
+ * @author Joshua Selsky
  */
-public class ServiceException extends Exception {
-	private static final long serialVersionUID = 2L;
+public abstract class WorkflowException extends Exception {
+	private static final long serialVersionUID = 1L;
 	
 	// Keeps track of the seriousness of the exception. If it is created with a
 	// message then it is not considered serious as this is how services report
@@ -37,10 +39,24 @@ public class ServiceException extends Exception {
 	 * 
 	 * @param message A String explaining why this exception is being thrown.
 	 */
-	public ServiceException(String message) {
+	public WorkflowException(String message) {
 		super(message);
 		
 		isSerious = false;
+	}
+	
+	/**
+	 * Creates a new service exception with a message and an indicator
+	 * of the seriousness of the message.
+	 * 
+	 * @param message A String explaining why this exception is being thrown.
+	 * @param isSerious A boolean, that if true, marks this as an exception
+	 *                  that will be logged with the level ERROR.
+	 */
+	public WorkflowException(String message, boolean isSerious) {
+		super(message);
+		
+		this.isSerious = isSerious;
 	}
 	
 	/**
@@ -53,7 +69,7 @@ public class ServiceException extends Exception {
 	 * @param cause A Throwable that was caught and is associated with why this
 	 * 				exception is being thrown.
 	 */
-	public ServiceException(String message, Throwable cause) {
+	public WorkflowException(String message, Throwable cause) {
 		super(message, cause);
 		
 		isSerious = true;
@@ -65,7 +81,7 @@ public class ServiceException extends Exception {
 	 * @param cause A Throwable that was caught and is associated with why this
 	 * 				exception is being thrown.
 	 */
-	public ServiceException(Throwable cause) {
+	public WorkflowException(Throwable cause) {
 		super(cause);
 		
 		isSerious = true;
@@ -81,7 +97,7 @@ public class ServiceException extends Exception {
 	 */
 	public void logException(Logger logger) {
 		if(isSerious) {
-			logger.error("Server error.", this);
+			logger.error(this);
 		}
 		else {
 			logger.info(toString());

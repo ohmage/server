@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  ******************************************************************************/
-package org.ohmage.cache;
+package org.ohmage.exception;
 
 /**
  * Checked cache exception. Thrown when a cache miss occurs.

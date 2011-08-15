@@ -7,10 +7,11 @@ import java.util.List;
 import java.util.Set;
 
 import org.ohmage.annotator.ErrorCodes;
-import org.ohmage.dao.DataAccessException;
 import org.ohmage.dao.UserCampaignDaos;
 import org.ohmage.dao.UserCampaignDocumentDaos;
 import org.ohmage.domain.DocumentInformation;
+import org.ohmage.exception.DataAccessException;
+import org.ohmage.exception.ServiceException;
 import org.ohmage.request.Request;
 
 /**
@@ -200,7 +201,7 @@ public class UserCampaignDocumentServices {
 		try {
 			return UserCampaignDocumentDaos.getUserIsSupervisorInAnyCampaignAssociatedWithDocument(username, documentId);
 		}
-		catch(org.springframework.dao.DataAccessException e) {
+		catch(DataAccessException e) {
 			request.setFailed();
 			throw new ServiceException(e);
 		}

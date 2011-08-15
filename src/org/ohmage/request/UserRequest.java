@@ -13,9 +13,10 @@ import org.json.JSONObject;
 import org.ohmage.annotator.ErrorCodes;
 import org.ohmage.cache.UserBin;
 import org.ohmage.domain.User;
+import org.ohmage.exception.ServiceException;
 import org.ohmage.service.AuthenticationService;
-import org.ohmage.service.ServiceException;
 import org.ohmage.util.CookieUtils;
+
 
 /**
  * A request that contains a User object and a client String that represents

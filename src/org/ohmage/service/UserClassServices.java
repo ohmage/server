@@ -9,10 +9,11 @@ import java.util.Set;
 
 import org.ohmage.annotator.ErrorCodes;
 import org.ohmage.cache.ClassRoleCache;
-import org.ohmage.dao.DataAccessException;
 import org.ohmage.dao.UserClassDaos;
 import org.ohmage.dao.UserDaos;
 import org.ohmage.domain.UserPersonal;
+import org.ohmage.exception.DataAccessException;
+import org.ohmage.exception.ServiceException;
 import org.ohmage.request.Request;
 
 /**

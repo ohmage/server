@@ -4,6 +4,7 @@ import java.util.List;
 
 import javax.sql.DataSource;
 
+import org.ohmage.exception.DataAccessException;
 import org.springframework.jdbc.core.SingleColumnRowMapper;
 
 /**
@@ -41,7 +42,7 @@ public final class CampaignDocumentDaos extends Dao {
 	 * 
 	 * @return A List of campaign IDs with which this document is associated.
 	 */
-	public static List<String> getCampaignsAssociatedWithDocument(String documentId) {
+	public static List<String> getCampaignsAssociatedWithDocument(String documentId) throws DataAccessException {
 		try {
 			return instance.jdbcTemplate.query(
 					SQL_GET_CAMPAIGNS_ASSOCIATED_WITH_DOCUMENT, 

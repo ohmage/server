@@ -54,6 +54,9 @@ public final class ErrorCodes {
 	public static final String SURVEY_TOO_MANY_PROMPT_IDS = "0615";
 	public static final String SURVEY_TOO_MANY_SURVEY_IDS = "0616";
 	public static final String SURVEY_INSUFFICIENT_PERMISSIONS = "0617";
+	public static final String SURVEY_SURVEY_LIST_OR_PROMPT_LIST_ONLY = "0618";
+	public static final String SURVEY_INVALID_LAUNCH_CONTEXT = "0619";
+	public static final String SURVEY_INVALID_LAUNCH_TIME = "0620";
 	
 	public static final String CAMPAIGN_INVALID_ID = "0700";
 	public static final String CAMPAIGN_INVALID_NAME = "0701";
@@ -65,6 +68,7 @@ public final class ErrorCodes {
 	public static final String CAMPAIGN_INSUFFICIENT_PERMISSIONS = "0707";
 	public static final String CAMPAIGN_XML_HEADER_CHANGED = "0708";
 	public static final String CAMPAIGN_INVALID_DESCRIPTION = "0709";
+	public static final String CAMPAIGN_OUT_OF_DATE = "0710";
 	
 	public static final String IMAGE_INVALID_ID = "0800";
 	public static final String IMAGE_INVALID_SIZE = "0801";

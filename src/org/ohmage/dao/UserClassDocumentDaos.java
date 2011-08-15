@@ -9,6 +9,7 @@ import org.ohmage.cache.ClassRoleCache;
 import org.ohmage.cache.DocumentPrivacyStateCache;
 import org.ohmage.cache.DocumentRoleCache;
 import org.ohmage.domain.DocumentInformation;
+import org.ohmage.exception.DataAccessException;
 import org.springframework.jdbc.core.SingleColumnRowMapper;
 
 /**
@@ -85,7 +86,7 @@ public final class UserClassDocumentDaos extends Dao {
 	 * @return Returns a List of DocumentInformation objects where each object
 	 * 		   represents a document visible to the user in the class.
 	 */
-	public static List<DocumentInformation> getVisibleDocumentsToUserInClass(String username, String classId) {
+	public static List<DocumentInformation> getVisibleDocumentsToUserInClass(String username, String classId) throws DataAccessException {
 		List<String> documentList;
 		try {
 			documentList = instance.jdbcTemplate.query(
@@ -118,7 +119,7 @@ public final class UserClassDocumentDaos extends Dao {
 	 * @return Returns true if the user is privileged in any class that is 
 	 * 		   associated with the campaign.
 	 */
-	public static Boolean getUserIsPrivilegedInAnyClassAssociatedWithDocument(String username, String documentId) {
+	public static Boolean getUserIsPrivilegedInAnyClassAssociatedWithDocument(String username, String documentId) throws DataAccessException {
 		try {
 			return instance.jdbcTemplate.queryForObject(
 					SQL_EXISTS_USER_IS_PRIVILEGED_IN_ANY_CLASS_ASSOCIATED_WITH_DOCUMENT, 

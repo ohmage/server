@@ -5,13 +5,13 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.log4j.Logger;
 import org.ohmage.annotator.ErrorCodes;
+import org.ohmage.exception.ServiceException;
+import org.ohmage.exception.ValidationException;
 import org.ohmage.request.InputKeys;
 import org.ohmage.request.UserRequest;
 import org.ohmage.service.CampaignServices;
-import org.ohmage.service.ServiceException;
 import org.ohmage.service.UserCampaignServices;
 import org.ohmage.validator.CampaignValidators;
-import org.ohmage.validator.ValidationException;
 
 /**
  * <p>Deletes a campaign.</p>

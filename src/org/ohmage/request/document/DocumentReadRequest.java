@@ -12,9 +12,10 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.ohmage.annotator.ErrorCodes;
 import org.ohmage.domain.DocumentInformation;
+import org.ohmage.exception.ServiceException;
+import org.ohmage.exception.ValidationException;
 import org.ohmage.request.InputKeys;
 import org.ohmage.request.UserRequest;
-import org.ohmage.service.ServiceException;
 import org.ohmage.service.UserCampaignDocumentServices;
 import org.ohmage.service.UserCampaignServices;
 import org.ohmage.service.UserClassDocumentServices;
@@ -23,7 +24,6 @@ import org.ohmage.service.UserDocumentServices;
 import org.ohmage.validator.CampaignValidators;
 import org.ohmage.validator.ClassValidators;
 import org.ohmage.validator.DocumentValidators;
-import org.ohmage.validator.ValidationException;
 
 /**
  * <p>Creates a new class. The requester must be an admin.</p>

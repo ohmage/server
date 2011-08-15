@@ -17,6 +17,8 @@ import org.ohmage.cache.CampaignRoleCache;
 import org.ohmage.cache.CampaignRunningStateCache;
 import org.ohmage.config.grammar.custom.ConditionParseException;
 import org.ohmage.config.xml.CampaignValidator;
+import org.ohmage.domain.User;
+import org.ohmage.exception.ValidationException;
 import org.ohmage.request.InputKeys;
 import org.ohmage.request.Request;
 import org.ohmage.util.StringUtils;
@@ -240,6 +242,18 @@ public final class CampaignValidators {
 		return xml;
 	}
 	
+
+	public boolean verifyAllowedRunningState(User user, String campaignId, String allowedCampaignRunningState) throws ValidationException {
+		if(user == null) {
+			throw new ValidationException("User object is null.", true);
+		}
+		if(! user.getCampaignsAndRoles().containsKey(campaignId)) {
+			throw new ValidationException("User is not in campaign " + campaignId, true);
+		}
+		
+		return user.getCampaignsAndRoles().get(campaignId).getCampaign().getRunningState().equals(allowedCampaignRunningState);
+	}
+
 	/**
 	 * Validates that a campaign description is valid by ensuring that it does
 	 * not contain any profanity.
@@ -302,17 +316,17 @@ public final class CampaignValidators {
 	}
 	
 	/**
-	 * Validates that a Start date is a valid date and returns a Calendar 
+	 * Validates that a start date is a valid date and returns a Calendar 
 	 * object representing that date.
 	 * 
 	 * @param request The Request that is performing this validation.
 	 * 
 	 * @param startDate The date to be validated.
 	 * 
-	 * @return Returns null if the Start date is null or whitespace only;
-	 * 		   otherwise, it returns a Calendar representing the Start date.
+	 * @return Returns null if the start date is null or whitespace only;
+	 * 		   otherwise, it returns a Calendar representing the start date.
 	 * 
-	 * @throws ValidationException Thrown if the Start date isn't a decodable
+	 * @throws ValidationException Thrown if the start date isn't a decodable
 	 * 							   date.
 	 */
 	public static Calendar validateStartDate(Request request, String startDate) throws ValidationException {
@@ -324,8 +338,8 @@ public final class CampaignValidators {
 		
 		Date date = StringUtils.decodeDate(startDate);
 		if(date == null) {
-			request.setFailed(ErrorCodes.SERVER_INVALID_DATE, "The Start date is invalid: " + startDate);
-			throw new ValidationException("The Start date is invalid: " + startDate);
+			request.setFailed(ErrorCodes.SERVER_INVALID_DATE, "The start date is invalid: " + startDate);
+			throw new ValidationException("The start date is invalid: " + startDate);
 		}
 		
 		Calendar calendar = Calendar.getInstance();

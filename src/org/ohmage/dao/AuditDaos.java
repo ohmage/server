@@ -15,6 +15,7 @@ import javax.sql.DataSource;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.ohmage.domain.AuditInformation;
+import org.ohmage.exception.DataAccessException;
 import org.ohmage.jee.servlet.RequestServlet;
 import org.ohmage.jee.servlet.RequestServlet.RequestType;
 import org.ohmage.validator.AuditValidators.ResponseType;
@@ -209,7 +210,7 @@ public class AuditDaos extends Dao {
 			final Map<String, String[]> extras, 
 			final String response, 
 			final long receivedMillis, 
-			final long respondMillis) {
+			final long respondMillis) throws DataAccessException {
 		
 		if(requestType == null) {
 			throw new IllegalArgumentException("The request type is required and cannot be null.");
@@ -339,7 +340,7 @@ public class AuditDaos extends Dao {
 	 * 
 	 * @return A list of audit IDs.
 	 */
-	public static List<Long> getAllAudits() {
+	public static List<Long> getAllAudits() throws DataAccessException {
 		try {
 			return instance.jdbcTemplate.query(SQL_GET_AUDIT_IDS, new SingleColumnRowMapper<Long>());
 		}
@@ -357,7 +358,7 @@ public class AuditDaos extends Dao {
 	 * 
 	 * @return A list of audit IDs.
 	 */
-	public static List<Long> getAllAuditsWithRequestType(RequestServlet.RequestType requestType) {
+	public static List<Long> getAllAuditsWithRequestType(RequestServlet.RequestType requestType) throws DataAccessException {
 		try {
 			return instance.jdbcTemplate.query(SQL_GET_AUDIT_IDS_WITH_TYPE, new Object[] { requestType.name().toLowerCase() }, new SingleColumnRowMapper<Long>());
 		}
@@ -373,7 +374,7 @@ public class AuditDaos extends Dao {
 	 * 
 	 * @return A list of audit IDs.
 	 */
-	public static List<Long> getAllAuditsWithUri(String uri) {
+	public static List<Long> getAllAuditsWithUri(String uri) throws DataAccessException {
 		try {
 			return instance.jdbcTemplate.query(SQL_GET_AUDIT_IDS_WITH_URI, new Object[] { uri }, new SingleColumnRowMapper<Long>());
 		}
@@ -389,7 +390,7 @@ public class AuditDaos extends Dao {
 	 * 
 	 * @return A list of audit IDs.
 	 */
-	public static List<Long> getAllAuditsWithClient(String client) {
+	public static List<Long> getAllAuditsWithClient(String client) throws DataAccessException {
 		try {
 			return instance.jdbcTemplate.query(SQL_GET_AUDIT_IDS_WITH_CLIENT, new Object[] { client }, new SingleColumnRowMapper<Long>());
 		}
@@ -405,7 +406,7 @@ public class AuditDaos extends Dao {
 	 * 
 	 * @return A list of audit IDs.
 	 */
-	public static List<Long> getAllAuditsWithDeviceId(String deviceId) {
+	public static List<Long> getAllAuditsWithDeviceId(String deviceId) throws DataAccessException{
 		try {
 			return instance.jdbcTemplate.query(SQL_GET_AUDIT_IDS_WITH_DEVICE_ID, new Object[] { deviceId }, new SingleColumnRowMapper<Long>());
 		}
@@ -434,7 +435,7 @@ public class AuditDaos extends Dao {
 	 * 
 	 * @return A list of audit IDs.
 	 */
-	public static List<Long> getAllAuditsWithResponse(ResponseType responseType, final String errorCode) {
+	public static List<Long> getAllAuditsWithResponse(ResponseType responseType, final String errorCode) throws DataAccessException {
 		if(ResponseType.SUCCESS.equals(responseType)) {
 			try {
 				return instance.jdbcTemplate.query(SQL_GET_AUDIT_IDS_WITH_SUCCESS_RESPONSE, new SingleColumnRowMapper<Long>());
@@ -474,7 +475,7 @@ public class AuditDaos extends Dao {
 	 * 
 	 * @return A list of unique audit IDs.
 	 */
-	public static List<Long> getAllAuditsOnOrAfterDate(Date date) {
+	public static List<Long> getAllAuditsOnOrAfterDate(Date date) throws DataAccessException {
 		try {
 			return instance.jdbcTemplate.query(SQL_GET_AUDIT_IDS_ON_OR_AFTER_DATE, new Object[] { date }, new SingleColumnRowMapper<Long>());
 		}
@@ -491,7 +492,7 @@ public class AuditDaos extends Dao {
 	 * 
 	 * @return A list of unique audit IDs.
 	 */
-	public static List<Long> getAllAuditsOnOrBeforeDate(Date date) {
+	public static List<Long> getAllAuditsOnOrBeforeDate(Date date) throws DataAccessException {
 		try {
 			return instance.jdbcTemplate.query(SQL_GET_AUDIT_IDS_ON_OR_BEFORE_DATE, new Object[] { date }, new SingleColumnRowMapper<Long>());
 		}
@@ -512,7 +513,7 @@ public class AuditDaos extends Dao {
 	 * 
 	 * @return A list of unique audit IDs.
 	 */
-	public static List<Long> getAllAuditsOnOrBetweenDates(Date startDate, Date endDate) {
+	public static List<Long> getAllAuditsOnOrBetweenDates(Date startDate, Date endDate) throws DataAccessException {
 		try {
 			return instance.jdbcTemplate.query(SQL_GET_AUDIT_IDS_ON_OR_BETWEEN_DATES, new Object[] { startDate, endDate }, new SingleColumnRowMapper<Long>());
 		}
@@ -530,7 +531,7 @@ public class AuditDaos extends Dao {
 	 * @return Returns a list of AuditInformation objects, one for each audit
 	 * 		   ID.
 	 */
-	public static List<AuditInformation> readAuditInformation(final List<Long> auditIds) {
+	public static List<AuditInformation> readAuditInformation(final List<Long> auditIds) throws DataAccessException {
 		if(auditIds == null) {
 			return new LinkedList<AuditInformation>();
 		}

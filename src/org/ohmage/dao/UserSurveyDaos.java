@@ -15,6 +15,7 @@ import org.ohmage.cache.CampaignPrivacyStateCache;
 import org.ohmage.cache.CampaignRoleCache;
 import org.ohmage.cache.CampaignRunningStateCache;
 import org.ohmage.cache.SurveyResponsePrivacyStateCache;
+import org.ohmage.exception.DataAccessException;
 import org.springframework.jdbc.core.RowMapper;
 
 /**
@@ -122,7 +123,7 @@ public final class UserSurveyDaos extends Dao {
 	 * @return A Time stamp of the last update whose time zone is set to the 
 	 * 		   same one as reported by the uploader.
 	 */
-	public static Timestamp getLastUploadForUser(String requestersUsername, String usersUsername) {
+	public static Timestamp getLastUploadForUser(String requestersUsername, String usersUsername) throws DataAccessException {
 		try {
 			List<Timestamp> timestamps = instance.jdbcTemplate.query(
 					SQL_GET_SURVEY_RESPONSES_FOR_USER_FOR_REQUESTER,
@@ -181,7 +182,9 @@ public final class UserSurveyDaos extends Dao {
 	 * @return Returns the percentage of non-null location values from surveys
 	 * 		   over the last 'hours' or null if there were no surveys.
 	 */
-	public static Double getPercentageOfNonNullSurveyLocations(String requestersUsername, String usersUsername, int hours) {
+	public static Double getPercentageOfNonNullSurveyLocations(String requestersUsername, String usersUsername, int hours)
+		throws DataAccessException {
+		
 		long nonNullLocationsCount = 0;
 		long totalLocationsCount = 0;
 		

@@ -20,17 +20,18 @@ import org.ohmage.annotator.ErrorCodes;
 import org.ohmage.cache.CampaignRoleCache;
 import org.ohmage.cache.UserBin;
 import org.ohmage.domain.Campaign;
+import org.ohmage.exception.DataAccessException;
+import org.ohmage.exception.ServiceException;
+import org.ohmage.exception.ValidationException;
 import org.ohmage.request.InputKeys;
 import org.ohmage.request.UserRequest;
 import org.ohmage.service.CampaignServices;
-import org.ohmage.service.ServiceException;
 import org.ohmage.service.UserCampaignServices;
 import org.ohmage.service.UserClassServices;
 import org.ohmage.util.CookieUtils;
 import org.ohmage.validator.CampaignValidators;
 import org.ohmage.validator.CampaignValidators.OutputFormat;
 import org.ohmage.validator.ClassValidators;
-import org.ohmage.validator.ValidationException;
 
 /**
  * <p>A request to read information about a campaign or set of campaigns. The
@@ -208,8 +209,8 @@ public class CampaignReadRequest extends UserRequest {
 			
 			tStartDate = CampaignValidators.validateStartDate(this, httpRequest.getParameter(InputKeys.START_DATE));
 			if((tStartDate != null) && (httpRequest.getParameterValues(InputKeys.START_DATE).length > 1)) {
-				setFailed(ErrorCodes.SERVER_INVALID_DATE, "Multiple Start dates were found.");
-				throw new ValidationException("Multiple Start dates were found.");
+				setFailed(ErrorCodes.SERVER_INVALID_DATE, "Multiple start dates were found.");
+				throw new ValidationException("Multiple start dates were found.");
 			}
 			
 			tEndDate = CampaignValidators.validateEndDate(this, httpRequest.getParameter(InputKeys.END_DATE));
@@ -220,10 +221,10 @@ public class CampaignReadRequest extends UserRequest {
 			
 			// TODO: Should this really be an issue? Should we simply return
 			// nothing?
-			LOGGER.info("Verifying that if both the Start date and end date are present that the Start date isn't after the end date.");
+			LOGGER.info("Verifying that if both the start date and end date are present that the start date isn't after the end date.");
 			if((tStartDate != null) && (tEndDate != null) && (tStartDate.after(tEndDate))) {
-				setFailed(ErrorCodes.SERVER_INVALID_DATE, "The Start date cannot be after the end date.");
-				throw new ValidationException("The Start date cannot be after the end date.");
+				setFailed(ErrorCodes.SERVER_INVALID_DATE, "The start date cannot be after the end date.");
+				throw new ValidationException("The start date cannot be after the end date.");
 			}
 			
 			tCampaignIds = CampaignValidators.validateCampaignIds(this, httpRequest.getParameter(InputKeys.CAMPAIGN_URN_LIST));
@@ -337,6 +338,9 @@ public class CampaignReadRequest extends UserRequest {
 		catch(ServiceException e) {
 			e.logException(LOGGER);
 		}
+		catch(DataAccessException e) {
+			e.logException(LOGGER);
+		}
 	}
 	
 	/**
@@ -370,20 +374,59 @@ public class CampaignReadRequest extends UserRequest {
 	public void respond(HttpServletRequest httpRequest, HttpServletResponse httpResponse) {
 		LOGGER.info("Responding to the campaign read request.");
 		
+		// Creates the writer that will write the response, success or fail.
+		Writer writer;
+		try {
+			writer = new BufferedWriter(new OutputStreamWriter(getOutputStream(httpRequest, httpResponse)));
+		}
+		catch(IOException e) {
+			LOGGER.error("Unable to create writer object. Aborting.", e);
+			return;
+		}
+		
+		// Sets the HTTP headers to disable caching
+		expireResponse(httpResponse);
+		
+		// If available, update the token.
+		if(getUser() != null) {
+			final String token = getUser().getToken(); 
+			if(token != null) {
+				CookieUtils.setCookieValue(httpResponse, InputKeys.AUTH_TOKEN, token, (int) (UserBin.getTokenRemainingLifetimeInMillis(token) / MILLIS_IN_A_SECOND));
+			}
+		}
+		
+		String responseText;
 		if(isFailed()) {
-			super.respond(httpRequest, httpResponse, null);
+			// If it failed, get the failure message.
+			responseText = getFailureMessage();
 		}
 		else {
+			// If it has succeeded thus far, set the return value based on the
+			// type of request.
 			if(OutputFormat.SHORT.equals(outputFormat) || OutputFormat.LONG.equals(outputFormat)) {
 				try {
 					// Create the JSONObject with which to respond.
 					JSONObject result = new JSONObject();
 					
+					// Mark it as successful.
+					result.put(JSON_KEY_RESULT, RESULT_SUCCESS);
+					
+					// Create and add the metadata.
+					JSONObject metadata = new JSONObject();
+					metadata.put("number_of_results", shortOrLongResult.keySet().size());
+					List<String> resultCampaignIds = new LinkedList<String>();
+					for(Campaign campaign : shortOrLongResult.keySet()) {
+						resultCampaignIds.add(campaign.getUrn());
+					}
+					metadata.put("items", resultCampaignIds);
+					result.put("metadata", metadata);
+					
 					// Add the information for each of the campaigns into their own
 					// JSONObject and add that to the result.
+					JSONObject campaignInfo = new JSONObject();
 					for(Campaign campaign : shortOrLongResult.keySet()) {
 						JSONObject currResult = new JSONObject();
-						result.put(campaign.getUrn(), currResult);
+						campaignInfo.put(campaign.getUrn(), currResult);
 						
 						currResult.put(JSON_KEY_NAME, campaign.getName());
 						currResult.put(JSON_KEY_DESCRIPTION, campaign.getDescription());
@@ -404,74 +447,44 @@ public class CampaignReadRequest extends UserRequest {
 							currResult.put(JSON_KEY_CAMPAIGN_ROLES_WITH_USERS, campaignRoles);
 						}
 					}
+					result.put(JSON_KEY_DATA, campaignInfo);
 					
-					// Respond with the result.
-					super.respond(httpRequest, httpResponse, result);
+					responseText = result.toString();
 				}
 				catch(JSONException e) {
 					// If anything fails, return a failure message.
-					setFailed();
-					super.respond(httpRequest, httpResponse, null);
+					responseText = getFailureMessage();
 				}
 			}
 			else if(OutputFormat.XML.equals(outputFormat)) {
-				// Creates the writer that will write the response, success or fail.
-				Writer writer;
-				try {
-					writer = new BufferedWriter(new OutputStreamWriter(getOutputStream(httpRequest, httpResponse)));
-				}
-				catch(IOException e) {
-					LOGGER.error("Unable to create writer object. Aborting.", e);
-					return;
-				}
+				// Set the type and force the browser to download it as the 
+				// last step before beginning to stream the response.
+				httpResponse.setContentType("ohmage/campaign");
+				httpResponse.setHeader("Content-Disposition", "attachment; filename=" + campaignNameResult + ".xml");
 				
-				// Sets the HTTP headers to disable caching
-				expireResponse(httpResponse);
-				
-				// If the request ever failed, write an error message.
-				String responseText = "";
-				if(isFailed()) {
-					httpResponse.setContentType("text/html");
-					
-					// Use the annotator's message to build the response.
-					responseText = getFailureMessage();
-				}
-				// Otherwise, write the response.
-				else {
-					// Set the type and force the browser to download it as the 
-					// last step before beginning to stream the response.
-					httpResponse.setContentType("ohmage/campaign");
-					httpResponse.setHeader("Content-Disposition", "attachment; filename=" + campaignNameResult + ".xml");
-					
-					responseText = xmlResult;
-					
-					// If available, update the token.
-					if(getUser() != null) {
-						final String token = getUser().getToken(); 
-						if(token != null) {
-							CookieUtils.setCookieValue(httpResponse, InputKeys.AUTH_TOKEN, token, (int) (UserBin.getTokenRemainingLifetimeInMillis(token) / MILLIS_IN_A_SECOND));
-						}
-					}
-				}
-					
-				// Write the error response.
-				try {
-					writer.write(responseText); 
-				}
-				catch(IOException e) {
-					LOGGER.error("Unable to write failed response message. Aborting.", e);
-					return;
-				}
-				
-				// Flush it and close.
-				try {
-					writer.flush();
-					writer.close();
-				}
-				catch(IOException e) {
-					LOGGER.error("Unable to flush or close the writer.", e);
-				}
+				responseText = xmlResult;
 			}
+			else {
+				responseText = getFailureMessage();
+			}
+		}
+			
+		// Write the error response.
+		try {
+			writer.write(responseText); 
+		}
+		catch(IOException e) {
+			LOGGER.error("Unable to write failed response message. Aborting.", e);
+			return;
+		}
+		
+		// Flush it and close.
+		try {
+			writer.flush();
+			writer.close();
+		}
+		catch(IOException e) {
+			LOGGER.error("Unable to flush or close the writer.", e);
 		}
 	}
 }

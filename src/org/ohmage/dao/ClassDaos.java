@@ -10,6 +10,7 @@ import javax.sql.DataSource;
 
 import org.ohmage.cache.ClassRoleCache;
 import org.ohmage.domain.ClassInformation;
+import org.ohmage.exception.DataAccessException;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.transaction.PlatformTransactionManager;
@@ -262,7 +263,7 @@ public class ClassDaos extends Dao {
 	 * 
 	 * @return Whether or not the class exists.
 	 */
-	public static Boolean getClassExists(String classId) {
+	public static Boolean getClassExists(String classId) throws DataAccessException {
 		try {
 			return (Boolean) instance.jdbcTemplate.queryForObject(SQL_EXISTS_CLASS, new Object[] { classId }, Boolean.class);
 		}
@@ -284,7 +285,7 @@ public class ClassDaos extends Dao {
 	 * 		   parameterized list of class IDs. This may be an empty list, but
 	 * 		   it will never be null.
 	 */
-	public static List<ClassInformation> getClassesInformation(List<String> classIds, String requester) {
+	public static List<ClassInformation> getClassesInformation(List<String> classIds, String requester) throws DataAccessException {
 		List<ClassInformation> result = new LinkedList<ClassInformation>();
 		
 		for(String classId : classIds) {
@@ -344,7 +345,7 @@ public class ClassDaos extends Dao {
 	 * 
 	 * @return A List of UserAndClassRole objects.
 	 */
-	public static List<UserAndClassRole> getUserRolePairs(String classId) {
+	public static List<UserAndClassRole> getUserRolePairs(String classId) throws DataAccessException {
 		try {
 			return instance.jdbcTemplate.query(
 					SQL_GET_USERS_AND_CLASS_ROLES, 
@@ -356,7 +357,7 @@ public class ClassDaos extends Dao {
 						}
 					});
 		}
-		catch(DataAccessException e) {
+		catch(org.springframework.dao.DataAccessException e) {
 			throw new DataAccessException("Error executing SQL_EXISTS_CLASS '" + SQL_GET_USERS_AND_CLASS_ROLES + "' with parameter: " + classId, e);
 		}
 	}
@@ -380,7 +381,9 @@ public class ClassDaos extends Dao {
 	 * @param usersToRemove A list of users and respective roles to remove from
 	 * 						this class.
 	 */
-	public static List<String> updateClass(String classId, String className, String classDescription, Map<String, String> userAndRolesToAdd, List<String> usersToRemove) {
+
+	public static List<String> updateClass(String classId, String className, String classDescription, Map<String, String> userAndRolesToAdd, List<String> usersToRemove)
+		throws DataAccessException {
 		// Create the transaction.
 		DefaultTransactionDefinition def = new DefaultTransactionDefinition();
 		def.setName("Creating a new class.");
@@ -496,7 +499,7 @@ public class ClassDaos extends Dao {
 	 * 
 	 * @param classId The unique identifier for the class to be deleted.
 	 */
-	public static void deleteClass(String classId) {
+	public static void deleteClass(String classId) throws DataAccessException {
 		// Create the transaction.
 		DefaultTransactionDefinition def = new DefaultTransactionDefinition();
 		def.setName("Deleting a new class.");

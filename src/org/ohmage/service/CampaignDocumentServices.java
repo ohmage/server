@@ -3,8 +3,10 @@ package org.ohmage.service;
 import java.util.List;
 
 import org.ohmage.dao.CampaignDocumentDaos;
-import org.ohmage.dao.DataAccessException;
+import org.ohmage.exception.DataAccessException;
+import org.ohmage.exception.ServiceException;
 import org.ohmage.request.Request;
+
 
 /**
  * This class contains the services that pertain to campaign-document 

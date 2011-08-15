@@ -2,6 +2,7 @@ package org.ohmage.dao;
 
 import javax.sql.DataSource;
 
+import org.ohmage.exception.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 /**

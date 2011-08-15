@@ -14,14 +14,14 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.log4j.Logger;
 import org.ohmage.annotator.ErrorCodes;
 import org.ohmage.cache.UserBin;
+import org.ohmage.exception.ServiceException;
+import org.ohmage.exception.ValidationException;
 import org.ohmage.request.InputKeys;
 import org.ohmage.request.UserRequest;
 import org.ohmage.service.DocumentServices;
-import org.ohmage.service.ServiceException;
 import org.ohmage.service.UserDocumentServices;
 import org.ohmage.util.CookieUtils;
 import org.ohmage.validator.DocumentValidators;
-import org.ohmage.validator.ValidationException;
 
 /**
  * <p>Creates a new class. The requester must be an admin.</p>
@@ -162,7 +162,7 @@ public class DocumentReadContentsRequest extends UserRequest {
 				// Set the output stream to the response.
 				DataOutputStream dos = new DataOutputStream(os);
 				
-				// Read the file in chuncks and write it to the output stream.
+				// Read the file in chunks and write it to the output stream.
 				byte[] bytes = new byte[CHUNK_SIZE];
 				int read = 0;
 				int currRead = contentsStream.read(bytes);
@@ -186,7 +186,7 @@ public class DocumentReadContentsRequest extends UserRequest {
 				os.flush();
 				os.close();
 			}
-			// If the error occured while reading from the input stream or
+			// If the error occurred while reading from the input stream or
 			// writing to the output stream, abort the whole operation and
 			// return an error.
 			catch(IOException e) {

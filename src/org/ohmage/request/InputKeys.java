@@ -53,6 +53,7 @@ public final class InputKeys {
 	public static final String CAMPAIGN_ROLE_LIST_ADD = "campaign_role_list_add";
 	public static final String CAMPAIGN_LIST_REMOVE = "campaign_list_remove";
 	public static final String XML = "xml";
+	public static final String CAMPAIGN_CREATION_TIMESTAMP = "campaign_creation_timestamp";
 	
 	// Class Constants
 	public static final String CLASS_URN = "class_urn";
@@ -71,7 +72,11 @@ public final class InputKeys {
 	// Prompt Constants
 	public static final String PROMPT_ID = "prompt_id";
 	public static final String PROMPT_ID_LIST = "prompt_id_list";
-	public static final String IMAGE_ID = "image_id";
+	public static final String IMAGE_ID = "id";
+	
+	// Image Constants
+	public static final String IMAGE_OWNER = "owner";
+	public static final String IMAGE_SIZE = "size";
 	
 	// User Constants
 	public static final String USER = "user";

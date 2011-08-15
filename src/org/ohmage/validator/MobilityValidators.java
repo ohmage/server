@@ -9,6 +9,7 @@ import org.json.JSONException;
 import org.ohmage.annotator.ErrorCodes;
 import org.ohmage.domain.MobilityInformation;
 import org.ohmage.domain.MobilityInformation.MobilityException;
+import org.ohmage.exception.ValidationException;
 import org.ohmage.request.Request;
 import org.ohmage.util.StringUtils;
 

@@ -17,7 +17,6 @@ package org.ohmage.util;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
-import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -27,17 +26,17 @@ import java.util.regex.Pattern;
 /**
  * A collection of methods for manipulating or validating Strings.
  * 
- * @author selsky
+ * @author Joshua Selsky
  */
 public final class StringUtils {
 	private static final int NUM_URN_SEGMENTS = 3;
 	private static final Pattern URN_PATTERN = Pattern.compile("[a-z0-9_]+");
 
-	private static final DateFormat DATE_FORMAT_AMERICAN = new SimpleDateFormat("MM/dd/yyyy");
-	private static final DateFormat DATE_FORMAT_ISO8601 = new SimpleDateFormat("yyyy-MM-dd");
+	private static final String FORMAT_AMERICAN_DATE = "MM/dd/yyyy";
+	private static final String FORMAT_ISO_8601_DATE = "yyyy-MM-dd";
 	
-	private static final DateFormat DATE_TIME_FORMAT_AMERICAN = new SimpleDateFormat("M/d/yyyy h:m:s a");
-	private static final DateFormat DATE_TIME_FORMAT_ISO8601 = new SimpleDateFormat("yyyy-M-d H:m:s");
+	private static final String FORMAT_AMERICAN_DATE_TIME = "M/d/yyyy h:m:s a";
+	private static final String FORMAT_ISO_8601_DATE_TIME = "yyyy-M-d H:m:s";
 	
 	private static final Pattern EMAIL_PATTERN = Pattern.compile("^([_A-Za-z0-9-]+)(\\.[_A-Za-z0-9-]+)*@[A-Za-z0-9]+(\\.[A-Za-z0-9]+)*(\\.[A-Za-z]{2,})$");
 	
@@ -243,11 +242,30 @@ public final class StringUtils {
 	}
 	
 	/**
+	 * Strips off the millseconds value from a JDBC timestamp String returned from the MySQL JDBC connector.
+	 * 
+	 * @param timestamp The timestamp to strip the nanos from.
+	 * 
+	 * @return A newly formatted String in the format 'yyyy-MM-dd hh:mm:ss' or null if the provided String is null.
+	 */
+	public static String stripMillisFromJdbcTimestampString(String timestamp) {
+		if(null != timestamp) {
+			if(timestamp.contains(".")) {
+				return timestamp.substring(0, timestamp.lastIndexOf("."));
+			} 
+			else {
+				return timestamp;
+			}
+		}	
+		return null;
+	}
+	
+	/**
 	 * Decodes a String representing a date and returns a resulting Date
 	 * object. The date may follow any of these formats:
 	 * <ul>
-	 *   <li>{@value #DATE_FORMAT_AMERICAN}</li>
-	 *   <li>{@value #DATE_FORMAT_ISO8601}</li>
+	 *   <li>{@value #FORMAT_AMERICAN_DATE}</li>
+	 *   <li>{@value #FORMAT_ISO_8601_DATE}</li>
 	 * </ul>
 	 * 
 	 * @param date The date as a String that is to be decoded.
@@ -262,11 +280,11 @@ public final class StringUtils {
 		}
 		
 		try {
-			return DATE_FORMAT_AMERICAN.parse(date);
+			return new SimpleDateFormat(FORMAT_AMERICAN_DATE).parse(date);
 		}
 		catch(ParseException americanException) {
 			try {
-				return DATE_FORMAT_ISO8601.parse(date);
+				return new SimpleDateFormat(FORMAT_ISO_8601_DATE).parse(date);
 			}
 			catch(ParseException iso8601Exception) {
 				return null;
@@ -278,8 +296,8 @@ public final class StringUtils {
 	 * Decodes a String representing a date-time and returns a resulting Date
 	 * object. The date my follow any of these formats:
 	 * <ul>
-	 *   <li>{@value #DATE_TIME_FORMAT_AMERICAN}</li>
-	 *   <li>{@value #DATE_TIME_FORMAT_ISO8601}</li>
+	 *   <li>{@value #FORMAT_AMERICAN_DATE_TIME}</li>
+	 *   <li>{@value #FORMAT_ISO_8601_DATE_TIME}</li>
 	 * </ul>
 	 * 
 	 * @param dateTime The date-time as a String that is to be decoded.
@@ -294,11 +312,11 @@ public final class StringUtils {
 		}
 		
 		try {
-			return DATE_TIME_FORMAT_AMERICAN.parse(dateTime);
+			return new SimpleDateFormat(FORMAT_AMERICAN_DATE_TIME).parse(dateTime);
 		}
 		catch(ParseException americanException) {
 			try {
-				return DATE_TIME_FORMAT_ISO8601.parse(dateTime);
+				return new SimpleDateFormat(FORMAT_ISO_8601_DATE_TIME).parse(dateTime);
 			}
 			catch(ParseException iso8601Exception) {
 				return null;

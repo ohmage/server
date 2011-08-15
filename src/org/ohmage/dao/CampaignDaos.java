@@ -1,5 +1,8 @@
 package org.ohmage.dao;
 
+
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -12,6 +15,11 @@ import javax.sql.DataSource;
 
 import org.ohmage.cache.CampaignRoleCache;
 import org.ohmage.cache.ClassRoleCache;
+import org.ohmage.domain.configuration.Configuration;
+import org.ohmage.domain.configuration.SurveyMapFromXmlBuilder;
+import org.ohmage.exception.DataAccessException;
+import org.springframework.dao.IncorrectResultSizeDataAccessException;
+import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.SingleColumnRowMapper;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.transaction.PlatformTransactionManager;
@@ -28,6 +36,7 @@ import org.springframework.transaction.support.DefaultTransactionDefinition;
  * in a class with this campaign in a single transaction.
  * 
  * @author John Jenkins
+ * @author Joshua Selsky
  */
 public final class CampaignDaos extends Dao {
 	// Returns a boolean value of whether or not the campaign exists.
@@ -268,6 +277,21 @@ public final class CampaignDaos extends Dao {
 			"WHERE role = ?" +
 		")";
 	
+	// Finds the running state for a particular campaign
+	private static final String SQL_SELECT_CAMPAIGN_RUNNING_STATE = 
+		"SELECT crs.running_state " +
+		"FROM campaign c, campaign_running_state crs " +
+		"WHERE c.urn = ? " +
+		"AND c.running_state_id = crs.id";
+	
+	private static final String SQL_SELECT_CAMPAIGN_CONFIGURATION = 
+		"SELECT c.name, c.description, c.xml, crs.running_state, cps.privacy_state, c.creation_timestamp" +
+        " FROM campaign c, campaign_running_state crs, campaign_privacy_state cps" +
+        " WHERE urn = ?" +
+        " AND c.running_state_id = crs.id" +
+        " AND c.privacy_state_id = cps.id";
+	
+	
 	// The single instance of this class as the constructor should only ever be
 	// called once by Spring.
 	private static CampaignDaos instance;
@@ -304,7 +328,9 @@ public final class CampaignDaos extends Dao {
 	 * @param creatorUsername The username of the creator of this campaign.
 	 */
 	public static void createCampaign(String campaignId, String name, String xml, String description, 
-			String runningState, String privacyState, List<String> classIds, String creatorUsername) {
+			String runningState, String privacyState, List<String> classIds, String creatorUsername) 
+		throws DataAccessException {
+		
 		// Create the transaction.
 		DefaultTransactionDefinition def = new DefaultTransactionDefinition();
 		def.setName("Creating a new campaign.");
@@ -370,9 +396,9 @@ public final class CampaignDaos extends Dao {
 	 * 
 	 * @return Returns true if the campaign exists; false, otherwise.
 	 */
-	public static Boolean getCampaignExists(String campaignId) {
+	public static Boolean getCampaignExists(String campaignId) throws DataAccessException {
 		try {
-			return (Boolean) instance.jdbcTemplate.queryForObject(
+			return instance.jdbcTemplate.queryForObject(
 					SQL_EXISTS_CAMPAIGN, 
 					new Object[] { campaignId }, 
 					Boolean.class
@@ -384,6 +410,27 @@ public final class CampaignDaos extends Dao {
 	}
 	
 	/**
+	 * Finds the running state for the provided campaign id.
+	 * 
+	 * @param campaignId The unique identifier for the campaign running
+	 *                   state in question.
+	 * @return A String identifying the campaign's running state.
+	 * @throws DataAccessException If an error occurs running the SQL.
+	 */
+	public static String getRunningStateForCampaignId(String campaignId) throws DataAccessException {
+		try {
+			return instance.jdbcTemplate.queryForObject(
+					SQL_SELECT_CAMPAIGN_RUNNING_STATE, 
+					new Object[] { campaignId }, 
+					String.class
+			);
+		} 
+		catch(org.springframework.dao.DataAccessException e) {
+			throw new DataAccessException("Error executing SQL '" + SQL_SELECT_CAMPAIGN_RUNNING_STATE + "' with parameter: " + campaignId, e);
+		}
+	}
+	
+	/**
 	 * Retrieves a campaign's name.
 	 * 
 	 * @param campaignId The unique identifier for the campaign.
@@ -391,7 +438,7 @@ public final class CampaignDaos extends Dao {
 	 * @return If the campaign exists, its name is returned. Otherwise, null is
 	 * 		   returned.
 	 */
-	public static String getName(String campaignId) {
+	public static String getName(String campaignId) throws DataAccessException {
 		try {
 			return instance.jdbcTemplate.queryForObject(SQL_GET_NAME, new Object[] { campaignId }, String.class);
 		}
@@ -408,6 +455,37 @@ public final class CampaignDaos extends Dao {
 	}
 	
 	/**
+	 * Finds the configuration for the provided campaign id.
+	 * 
+	 * @param campaignId The unique identifier for the campaign..
+	 * @throws DataAccessException If an error occurs running the SQL.
+	 */
+	public static Configuration findCampaignConfiguration(final String campaignId) throws DataAccessException {
+		try {
+			return instance.jdbcTemplate.queryForObject(
+					SQL_SELECT_CAMPAIGN_CONFIGURATION, 
+					new Object[] { campaignId }, 
+					new RowMapper<Configuration>() { public Configuration mapRow(ResultSet rs, int rowNum) throws SQLException {
+						String name = rs.getString(1);
+						String description = rs.getString(2);
+						String xml = rs.getString(3);
+						String runningState = rs.getString(4);
+						String privacyState = rs.getString(5);
+						String timestamp = rs.getTimestamp(6).toString();
+						return new Configuration(campaignId, name, description, 
+								runningState, privacyState, timestamp, SurveyMapFromXmlBuilder.buildFrom(xml), xml);
+					}}
+			);
+		}
+		catch(IncorrectResultSizeDataAccessException e) {
+			throw new DataAccessException("Found an incorrect number of results executing SQL '" + SQL_SELECT_CAMPAIGN_CONFIGURATION + "' with parameter: " + campaignId, e);
+		}
+		catch(org.springframework.dao.DataAccessException e) {
+			throw new DataAccessException("General error executing SQL '" + SQL_SELECT_CAMPAIGN_CONFIGURATION + "' with parameter: " + campaignId, e);
+		}
+	}
+    
+	/**
 	 * Retrieves a campaign's description.
 	 * 
 	 * @param campaignId The unique identifier for the campaign.
@@ -415,7 +493,7 @@ public final class CampaignDaos extends Dao {
 	 * @return If the campaign exists, its description is returned. Otherwise, 
 	 * 		   null is returned.
 	 */
-	public static String getDescription(String campaignId) {
+	public static String getDescription(String campaignId) throws DataAccessException {
 		try {
 			return instance.jdbcTemplate.queryForObject(SQL_GET_DESCRIPTION, new Object[] { campaignId }, String.class);
 		}
@@ -439,7 +517,7 @@ public final class CampaignDaos extends Dao {
 	 * @return If the campaign exists, its privacy state String is returned;
 	 * 		   otherwise, null is returned.
 	 */
-	public static String getCampaignPrivacyState(String campaignId) {
+	public static String getCampaignPrivacyState(String campaignId) throws DataAccessException {
 		try {
 			return instance.jdbcTemplate.queryForObject(SQL_GET_PRIVACY_STATE, new Object[] { campaignId }, String.class);
 		}
@@ -463,7 +541,7 @@ public final class CampaignDaos extends Dao {
 	 * @return If the campaign exists, its running state String is returned;
 	 * 		   otherwise, null is returned.
 	 */
-	public static String getCampaignRunningState(String campaignId) {
+	public static String getCampaignRunningState(String campaignId) throws DataAccessException {
 		try {
 			return instance.jdbcTemplate.queryForObject(SQL_GET_RUNNING_STATE, new Object[] { campaignId }, String.class);
 		}
@@ -487,7 +565,7 @@ public final class CampaignDaos extends Dao {
 	 * @return If the campaign exists, its XML is returned. Otherwise, null is
 	 * 		   returned.
 	 */
-	public static String getXml(String campaignId) {
+	public static String getXml(String campaignId) throws DataAccessException {
 		try {
 			return instance.jdbcTemplate.queryForObject(SQL_GET_XML, new Object[] { campaignId }, String.class);
 		}
@@ -511,7 +589,7 @@ public final class CampaignDaos extends Dao {
 	 * @return If the campaign exists, its timestamp is returned; otherwise, 
 	 * 		   null is returned.
 	 */
-	public static Timestamp getCreationTimestamp(String campaignId) {
+	public static Timestamp getCreationTimestamp(String campaignId) throws DataAccessException {
 		try {
 			return instance.jdbcTemplate.queryForObject(SQL_GET_CREATION_TIMESTAMP, new Object[] { campaignId }, Timestamp.class);
 		}
@@ -535,7 +613,7 @@ public final class CampaignDaos extends Dao {
 	 * 
 	 * @return A List of campaign IDs. This will never be null.
 	 */
-	public static List<String> getCampaignsOnOrAfterDate(Calendar date) {
+	public static List<String> getCampaignsOnOrAfterDate(Calendar date) throws DataAccessException {
 		Timestamp dateAsTimestamp = new Timestamp(date.getTimeInMillis());
 		try {
 			return instance.jdbcTemplate.query(
@@ -556,7 +634,7 @@ public final class CampaignDaos extends Dao {
 	 * 
 	 * @return A List of campaign IDs. This will never be null.
 	 */
-	public static List<String> getCampaignsOnOrBeforeDate(Calendar date) {
+	public static List<String> getCampaignsOnOrBeforeDate(Calendar date) throws DataAccessException {
 		Timestamp dateAsTimestamp = new Timestamp(date.getTimeInMillis());
 		try {
 			return instance.jdbcTemplate.query(
@@ -578,7 +656,7 @@ public final class CampaignDaos extends Dao {
 	 * @return Returns a list of campaign IDs whose is privacy state is 
 	 * 		   'privacyState'.
 	 */
-	public static List<String> getCampaignsWithPrivacyState(String privacyState) {
+	public static List<String> getCampaignsWithPrivacyState(String privacyState) throws DataAccessException {
 		try {
 			return instance.jdbcTemplate.query(
 					SQL_GET_CAMPAIGNS_WITH_PRIVACY_STATE,
@@ -599,7 +677,7 @@ public final class CampaignDaos extends Dao {
 	 * @return Returns a list of campaign IDs whose is running state is 
 	 * 		   'runningState'.
 	 */
-	public static List<String> getCampaignsWithRunningState(String runningState) {
+	public static List<String> getCampaignsWithRunningState(String runningState) throws DataAccessException {
 		try {
 			return instance.jdbcTemplate.query(
 					SQL_GET_CAMPAIGNS_WITH_RUNNING_STATE,
@@ -650,7 +728,9 @@ public final class CampaignDaos extends Dao {
 	 * 								any of their roles revoked.
 	 */
 	public static void updateCampaign(String campaignId, String xml, String description, String runningState, String privacyState, 
-			Collection<String> classIds, Map<String, Set<String>> usersAndRolesToAdd, Map<String, Set<String>> usersAndRolesToRemove) {
+			Collection<String> classIds, Map<String, Set<String>> usersAndRolesToAdd, Map<String, Set<String>> usersAndRolesToRemove)
+		throws DataAccessException {
+		
 		// Create the transaction.
 		DefaultTransactionDefinition def = new DefaultTransactionDefinition();
 		def.setName("Updating a campaign.");
@@ -861,7 +941,7 @@ public final class CampaignDaos extends Dao {
 	 * 
 	 * @param campaignId The unique identifier of the campaign to be deleted.
 	 */
-	public static void deleteCampaign(String campaignId) {
+	public static void deleteCampaign(String campaignId) throws DataAccessException {
 		// Create the transaction.
 		DefaultTransactionDefinition def = new DefaultTransactionDefinition();
 		def.setName("Deleting a campaign.");
@@ -909,7 +989,9 @@ public final class CampaignDaos extends Dao {
 	 * 
 	 * @param classId The unique identifier for the class.
 	 */
-	private static void associateCampaignAndClass(PlatformTransactionManager transactionManager, TransactionStatus status, String campaignId, String classId) {
+	private static void associateCampaignAndClass(PlatformTransactionManager transactionManager, TransactionStatus status, String campaignId, String classId) 
+		throws DataAccessException {
+		
 		// Associate this class to the campaign.
 		try {
 			instance.jdbcTemplate.update(SQL_INSERT_CAMPAIGN_CLASS, new Object[] { campaignId, classId });

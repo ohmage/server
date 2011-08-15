@@ -4,10 +4,9 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Collection;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -18,11 +17,12 @@ import org.apache.log4j.Logger;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.ohmage.domain.AuditInformation;
+import org.ohmage.exception.ServiceException;
 import org.ohmage.request.FailedRequest;
 import org.ohmage.request.InputKeys;
 import org.ohmage.request.RequestBuilder;
 import org.ohmage.service.AuditServices;
-import org.ohmage.service.ServiceException;
+import org.ohmage.util.TimeUtils;
 
 /**
  * Begins on server startup and creates a daily snapshot of some information
@@ -44,9 +44,6 @@ public final class AuditReporter {
 	// The key to use to get the location of where to save the audit reports 
 	// from the constructor's map.
 	private static final String KEY_SAVE_LOCATION = "audit.location";
-	
-	// Formatter for creating the entries in the audit folder.
-	private static final DateFormat AUDIT_FILE_OUTPUT_FORMAT = new SimpleDateFormat("yyyy-MM-dd");
 	
 	// Where we will save the audit reports.
 	private static String saveLocation;
@@ -197,7 +194,7 @@ public final class AuditReporter {
 			
 			try {
 				// Retrieve the output file to write the results.
-				FileWriter fileWriter = new FileWriter(saveLocation + "/" + AUDIT_FILE_OUTPUT_FORMAT.format(startDate.getTime()));
+				FileWriter fileWriter = new FileWriter(saveLocation + "/" + TimeUtils.getIso8601DateTimeString(new Date(startDate.getTimeInMillis())));
 				BufferedWriter bufferedWriter = new BufferedWriter(fileWriter);
 				
 				bufferedWriter.write("invalid_requests=");

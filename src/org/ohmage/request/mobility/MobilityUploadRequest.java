@@ -8,12 +8,12 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.log4j.Logger;
 import org.ohmage.annotator.ErrorCodes;
 import org.ohmage.domain.MobilityInformation;
+import org.ohmage.exception.ServiceException;
+import org.ohmage.exception.ValidationException;
 import org.ohmage.request.InputKeys;
 import org.ohmage.request.UserRequest;
 import org.ohmage.service.MobilityServices;
-import org.ohmage.service.ServiceException;
 import org.ohmage.validator.MobilityValidators;
-import org.ohmage.validator.ValidationException;
 
 public class MobilityUploadRequest extends UserRequest {
 	private static final Logger LOGGER = Logger.getLogger(MobilityUploadRequest.class);

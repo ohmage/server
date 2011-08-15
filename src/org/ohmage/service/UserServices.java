@@ -6,12 +6,13 @@ import java.util.Map;
 import jbcrypt.BCrypt;
 
 import org.ohmage.annotator.ErrorCodes;
-import org.ohmage.dao.DataAccessException;
 import org.ohmage.dao.UserCampaignDaos;
 import org.ohmage.dao.UserClassDaos;
 import org.ohmage.dao.UserDaos;
 import org.ohmage.domain.UserInformation;
 import org.ohmage.domain.UserPersonal;
+import org.ohmage.exception.DataAccessException;
+import org.ohmage.exception.ServiceException;
 import org.ohmage.request.Request;
 
 /**

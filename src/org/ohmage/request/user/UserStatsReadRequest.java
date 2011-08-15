@@ -7,15 +7,15 @@ import org.apache.log4j.Logger;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.ohmage.annotator.ErrorCodes;
+import org.ohmage.exception.ServiceException;
+import org.ohmage.exception.ValidationException;
 import org.ohmage.request.InputKeys;
 import org.ohmage.request.UserRequest;
-import org.ohmage.service.ServiceException;
 import org.ohmage.service.UserCampaignServices;
 import org.ohmage.service.UserMobilityServices;
 import org.ohmage.service.UserSurveyServices;
 import org.ohmage.validator.CampaignValidators;
 import org.ohmage.validator.UserValidators;
-import org.ohmage.validator.ValidationException;
 
 /**
  * <p>Reads some statistical information about a user pertaining to the number

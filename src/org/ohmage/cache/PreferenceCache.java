@@ -22,6 +22,8 @@ import java.util.Properties;
 
 import javax.sql.DataSource;
 
+import org.ohmage.exception.CacheMissException;
+
 /**
  * Singleton cache for the indices and String values for Mobility privacy
  * states.

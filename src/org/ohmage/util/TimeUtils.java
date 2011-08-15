@@ -1,6 +1,5 @@
 package org.ohmage.util;
 
-import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
@@ -11,8 +10,8 @@ import java.util.Date;
  * @author John Jenkins
  */
 public final class TimeUtils {
-	private static final DateFormat DATE_FORMAT_ISO_8601_DATE = new SimpleDateFormat("yyyy-MM-dd");
-	private static final DateFormat DATE_FORMAT_ISO_8601_DATETIME = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+	private static final String FORMAT_ISO_8601_DATE = "yyyy-MM-dd";
+	private static final String FORMAT_ISO_8601_DATETIME = "yyyy-MM-dd HH:mm:ss";
 	
 	/**
 	 * Default constructor. Private so that it cannot be instantiated.
@@ -43,7 +42,7 @@ public final class TimeUtils {
 	 * @param date The date.
 	 * 
 	 * @return A string representing the date with the following format
-	 * 		   {@value #DATE_FORMAT_ISO_8601_DATE} or null if the date is null.
+	 * 		   {@value #FORMAT_ISO_8601_DATE} or null if the date is null.
 	 * 
 	 * @see #getIso8601DateTimeString(Date)
 	 */
@@ -51,8 +50,8 @@ public final class TimeUtils {
 		if(date == null) {
 			return null;
 		}
-		
-		return DATE_FORMAT_ISO_8601_DATE.format(date);
+
+		return new SimpleDateFormat(FORMAT_ISO_8601_DATE).format(date);
 	}
 	
 	/**
@@ -62,7 +61,7 @@ public final class TimeUtils {
 	 * @param date The date
 	 * 
 	 * @return A string representing the date with the following format
-	 * 		   {@value #DATE_FORMAT_ISO_8601_DATETIME} or null if the date is
+	 * 		   {@value #FORMAT_ISO_8601_DATETIME} or null if the date is
 	 * 		   null.
 	 * 
 	 * @see #getIso8601DateString(Date)
@@ -72,6 +71,6 @@ public final class TimeUtils {
 			return null;
 		}
 		
-		return DATE_FORMAT_ISO_8601_DATETIME.format(date);
+		return new SimpleDateFormat(FORMAT_ISO_8601_DATETIME).format(date);
 	}
 }

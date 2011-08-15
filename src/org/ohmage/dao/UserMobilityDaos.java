@@ -17,6 +17,7 @@ import org.ohmage.cache.CampaignPrivacyStateCache;
 import org.ohmage.cache.CampaignRoleCache;
 import org.ohmage.cache.MobilityPrivacyStateCache;
 import org.ohmage.domain.MobilityInformation.Mode;
+import org.ohmage.exception.DataAccessException;
 import org.springframework.jdbc.core.RowMapper;
 
 /**
@@ -384,7 +385,7 @@ public final class UserMobilityDaos extends Dao {
 	 * 		   Mobility upload from a user took place. If no Mobility data was
 	 * 		   ever uploaded, null is returned.
 	 */
-	public static Timestamp getLastUploadForUser(String requestersUsername, String usersUsername) {
+	public static Timestamp getLastUploadForUser(String requestersUsername, String usersUsername) throws DataAccessException {
 		// Retrieve a Timestamp of the most recent mode-only upload.
 		Timestamp lastModeOnlyUpload = null;
 		try {
@@ -498,7 +499,9 @@ public final class UserMobilityDaos extends Dao {
 	 * @return The percentage of non-null Mobility uploads or null if there
 	 * 		   were none. 
 	 */
-	public static Double getPercentageOfNonNullLocations(String requestersUsername, String usersUsername, int hours) {
+	public static Double getPercentageOfNonNullLocations(String requestersUsername, String usersUsername, int hours) 
+		throws DataAccessException {
+		
 		long nonNullLocationsCount = 0;
 		long totalLocationsCount = 0;
 		

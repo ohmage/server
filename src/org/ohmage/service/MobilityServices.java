@@ -2,10 +2,11 @@ package org.ohmage.service;
 
 import java.util.List;
 
-import org.ohmage.dao.DataAccessException;
 import org.ohmage.dao.UserMobilityDaos;
 import org.ohmage.domain.MobilityInformation;
 import org.ohmage.domain.MobilityInformation.SubType;
+import org.ohmage.exception.DataAccessException;
+import org.ohmage.exception.ServiceException;
 import org.ohmage.request.Request;
 
 import edu.ucla.cens.mobilityclassifier.Classification;
@@ -71,7 +72,8 @@ public final class MobilityServices {
 			}
 		}
 		catch(DataAccessException e) {
-			
+			request.setFailed();
+			throw new ServiceException(e);
 		}
 	}
 	

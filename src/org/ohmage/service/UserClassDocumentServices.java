@@ -7,11 +7,13 @@ import java.util.List;
 import java.util.Set;
 
 import org.ohmage.annotator.ErrorCodes;
-import org.ohmage.dao.DataAccessException;
 import org.ohmage.dao.UserClassDaos;
 import org.ohmage.dao.UserClassDocumentDaos;
 import org.ohmage.domain.DocumentInformation;
+import org.ohmage.exception.DataAccessException;
+import org.ohmage.exception.ServiceException;
 import org.ohmage.request.Request;
+
 
 public class UserClassDocumentServices {
 	/**
