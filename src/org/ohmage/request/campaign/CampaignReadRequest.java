@@ -209,8 +209,8 @@ public class CampaignReadRequest extends UserRequest {
 			
 			tStartDate = CampaignValidators.validateStartDate(this, httpRequest.getParameter(InputKeys.START_DATE));
 			if((tStartDate != null) && (httpRequest.getParameterValues(InputKeys.START_DATE).length > 1)) {
-				setFailed(ErrorCodes.SERVER_INVALID_DATE, "Multiple Start dates were found.");
-				throw new ValidationException("Multiple Start dates were found.");
+				setFailed(ErrorCodes.SERVER_INVALID_DATE, "Multiple start dates were found.");
+				throw new ValidationException("Multiple start dates were found.");
 			}
 			
 			tEndDate = CampaignValidators.validateEndDate(this, httpRequest.getParameter(InputKeys.END_DATE));
@@ -221,10 +221,10 @@ public class CampaignReadRequest extends UserRequest {
 			
 			// TODO: Should this really be an issue? Should we simply return
 			// nothing?
-			LOGGER.info("Verifying that if both the Start date and end date are present that the Start date isn't after the end date.");
+			LOGGER.info("Verifying that if both the start date and end date are present that the start date isn't after the end date.");
 			if((tStartDate != null) && (tEndDate != null) && (tStartDate.after(tEndDate))) {
-				setFailed(ErrorCodes.SERVER_INVALID_DATE, "The Start date cannot be after the end date.");
-				throw new ValidationException("The Start date cannot be after the end date.");
+				setFailed(ErrorCodes.SERVER_INVALID_DATE, "The start date cannot be after the end date.");
+				throw new ValidationException("The start date cannot be after the end date.");
 			}
 			
 			tCampaignIds = CampaignValidators.validateCampaignIds(this, httpRequest.getParameter(InputKeys.CAMPAIGN_URN_LIST));
