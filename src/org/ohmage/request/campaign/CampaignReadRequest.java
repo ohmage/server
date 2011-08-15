@@ -374,20 +374,59 @@ public class CampaignReadRequest extends UserRequest {
 	public void respond(HttpServletRequest httpRequest, HttpServletResponse httpResponse) {
 		LOGGER.info("Responding to the campaign read request.");
 		
+		// Creates the writer that will write the response, success or fail.
+		Writer writer;
+		try {
+			writer = new BufferedWriter(new OutputStreamWriter(getOutputStream(httpRequest, httpResponse)));
+		}
+		catch(IOException e) {
+			LOGGER.error("Unable to create writer object. Aborting.", e);
+			return;
+		}
+		
+		// Sets the HTTP headers to disable caching
+		expireResponse(httpResponse);
+		
+		// If available, update the token.
+		if(getUser() != null) {
+			final String token = getUser().getToken(); 
+			if(token != null) {
+				CookieUtils.setCookieValue(httpResponse, InputKeys.AUTH_TOKEN, token, (int) (UserBin.getTokenRemainingLifetimeInMillis(token) / MILLIS_IN_A_SECOND));
+			}
+		}
+		
+		String responseText;
 		if(isFailed()) {
-			super.respond(httpRequest, httpResponse, null);
+			// If it failed, get the failure message.
+			responseText = getFailureMessage();
 		}
 		else {
+			// If it has succeeded thus far, set the return value based on the
+			// type of request.
 			if(OutputFormat.SHORT.equals(outputFormat) || OutputFormat.LONG.equals(outputFormat)) {
 				try {
 					// Create the JSONObject with which to respond.
 					JSONObject result = new JSONObject();
 					
+					// Mark it as successful.
+					result.put(JSON_KEY_RESULT, RESULT_SUCCESS);
+					
+					// Create and add the metadata.
+					JSONObject metadata = new JSONObject();
+					metadata.put("number_of_results", shortOrLongResult.keySet().size());
+					List<String> resultCampaignIds = new LinkedList<String>();
+					for(Campaign campaign : shortOrLongResult.keySet()) {
+						resultCampaignIds.add(campaign.getUrn());
+					}
+					metadata.put("items", resultCampaignIds);
+					result.put("metadata", metadata);
+					
 					// Add the information for each of the campaigns into their own
 					// JSONObject and add that to the result.
+					JSONObject campaignInfo = new JSONObject();
 					for(Campaign campaign : shortOrLongResult.keySet()) {
 						JSONObject currResult = new JSONObject();
-						result.put(campaign.getUrn(), currResult);
+						campaignInfo.put(campaign.getUrn(), currResult);
 						
 						currResult.put(JSON_KEY_NAME, campaign.getName());
 						currResult.put(JSON_KEY_DESCRIPTION, campaign.getDescription());
@@ -408,74 +447,44 @@ public class CampaignReadRequest extends UserRequest {
 							currResult.put(JSON_KEY_CAMPAIGN_ROLES_WITH_USERS, campaignRoles);
 						}
 					}
+					result.put(JSON_KEY_DATA, campaignInfo);
 					
-					// Respond with the result.
-					super.respond(httpRequest, httpResponse, result);
+					responseText = result.toString();
 				}
 				catch(JSONException e) {
 					// If anything fails, return a failure message.
-					setFailed();
-					super.respond(httpRequest, httpResponse, null);
+					responseText = getFailureMessage();
 				}
 			}
 			else if(OutputFormat.XML.equals(outputFormat)) {
-				// Creates the writer that will write the response, success or fail.
-				Writer writer;
-				try {
-					writer = new BufferedWriter(new OutputStreamWriter(getOutputStream(httpRequest, httpResponse)));
-				}
-				catch(IOException e) {
-					LOGGER.error("Unable to create writer object. Aborting.", e);
-					return;
-				}
+				// Set the type and force the browser to download it as the 
+				// last step before beginning to stream the response.
+				httpResponse.setContentType("ohmage/campaign");
+				httpResponse.setHeader("Content-Disposition", "attachment; filename=" + campaignNameResult + ".xml");
 				
-				// Sets the HTTP headers to disable caching
-				expireResponse(httpResponse);
-				
-				// If the request ever failed, write an error message.
-				String responseText = "";
-				if(isFailed()) {
-					httpResponse.setContentType("text/html");
-					
-					// Use the annotator's message to build the response.
-					responseText = getFailureMessage();
-				}
-				// Otherwise, write the response.
-				else {
-					// Set the type and force the browser to download it as the 
-					// last step before beginning to stream the response.
-					httpResponse.setContentType("ohmage/campaign");
-					httpResponse.setHeader("Content-Disposition", "attachment; filename=" + campaignNameResult + ".xml");
-					
-					responseText = xmlResult;
-					
-					// If available, update the token.
-					if(getUser() != null) {
-						final String token = getUser().getToken(); 
-						if(token != null) {
-							CookieUtils.setCookieValue(httpResponse, InputKeys.AUTH_TOKEN, token, (int) (UserBin.getTokenRemainingLifetimeInMillis(token) / MILLIS_IN_A_SECOND));
-						}
-					}
-				}
-					
-				// Write the error response.
-				try {
-					writer.write(responseText); 
-				}
-				catch(IOException e) {
-					LOGGER.error("Unable to write failed response message. Aborting.", e);
-					return;
-				}
-				
-				// Flush it and close.
-				try {
-					writer.flush();
-					writer.close();
-				}
-				catch(IOException e) {
-					LOGGER.error("Unable to flush or close the writer.", e);
-				}
+				responseText = xmlResult;
 			}
+			else {
+				responseText = getFailureMessage();
+			}
+		}
+			
+		// Write the error response.
+		try {
+			writer.write(responseText); 
+		}
+		catch(IOException e) {
+			LOGGER.error("Unable to write failed response message. Aborting.", e);
+			return;
+		}
+		
+		// Flush it and close.
+		try {
+			writer.flush();
+			writer.close();
+		}
+		catch(IOException e) {
+			LOGGER.error("Unable to flush or close the writer.", e);
 		}
 	}
 }
