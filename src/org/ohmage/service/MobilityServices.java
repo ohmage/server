@@ -2,6 +2,8 @@ package org.ohmage.service;
 
 import java.util.List;
 
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.ohmage.dao.UserMobilityDaos;
 import org.ohmage.domain.MobilityInformation;
 import org.ohmage.domain.MobilityInformation.SubType;
@@ -52,7 +54,7 @@ public final class MobilityServices {
 							mobilityPoint.getTime(), 
 							mobilityPoint.getTimezone(), 
 							mobilityPoint.getLocationStatus(), 
-							mobilityPoint.getLocation().toJson(), 
+							(mobilityPoint.getLocation() == null) ? null : mobilityPoint.getLocation().toJson(), 
 							mobilityPoint.getMode());
 				}
 				else if(SubType.SENSOR_DATA.equals(mobilityPoint.getSubType())) {
@@ -63,13 +65,17 @@ public final class MobilityServices {
 							mobilityPoint.getTime(), 
 							mobilityPoint.getTimezone(), 
 							mobilityPoint.getLocationStatus(), 
-							mobilityPoint.getLocation().toJson(), 
+							(mobilityPoint.getLocation() == null) ? null : mobilityPoint.getLocation().toJson(), 
 							mobilityPoint.getMode(), 
 							mobilityPoint.getSensorData().toJson(), 
-							mobilityPoint.getClassifierData().toJson(), 
+							(mobilityPoint.getClassifierData() == null) ? new JSONObject("{}") : mobilityPoint.getClassifierData().toJson(), 
 							MobilityClassifier.getVersion());
 				}
 			}
+		}
+		catch(JSONException e) {
+			request.setFailed();
+			throw new ServiceException("There was an error building the empty JSONObject used to replace the missing classifier data.", e);
 		}
 		catch(DataAccessException e) {
 			request.setFailed();
@@ -93,14 +99,15 @@ public final class MobilityServices {
 		if(mobilityPoints == null) {
 			return;
 		}
+
+		// Create a new classifier.
+		MobilityClassifier classifier = new MobilityClassifier();
+		
 		
 		// For each of the Mobility points,
 		for(MobilityInformation mobilityPoint : mobilityPoints) {
 			// If the SubType is sensor data,
 			if(MobilityInformation.SubType.SENSOR_DATA.equals(mobilityPoint.getSubType())) {
-				// Create a new classifier.
-				MobilityClassifier classifier = new MobilityClassifier();
-				
 				// Classify the data.
 				Classification classification =
 					classifier.classify(mobilityPoint.getSamples(), mobilityPoint.getSensorData().getSpeed());
@@ -112,7 +119,7 @@ public final class MobilityServices {
 						mobilityPoint.setClassifierData(
 								classification.getFft(), 
 								classification.getVariance(), 
-								classification.getN95Fft(), 
+								//classification.getN95Fft(), 
 								classification.getVariance(), 
 								classification.getAverage(), 
 								MobilityInformation.Mode.valueOf(classification.getMode().toUpperCase()));
@@ -120,6 +127,17 @@ public final class MobilityServices {
 					catch(IllegalArgumentException e) {
 						request.setFailed();
 						throw new ServiceException("There was a problem reading the classification's information.");
+					}
+				}
+				// If the features don't exist, then create the classifier data
+				// with only the mode.
+				else {
+					try {
+						mobilityPoint.setClassifierModeOnly(MobilityInformation.Mode.valueOf(classification.getMode().toUpperCase()));
+					}
+					catch(IllegalArgumentException e) {
+						request.setFailed();
+						throw new ServiceException("There was a problem reading the classification's mode.");
 					}
 				}
 			}

@@ -210,7 +210,8 @@ public class RequestServlet extends HttpServlet {
 		// Get the moment we have completed 
 		long respondedTimestamp = System.currentTimeMillis();
 		
-		// Get the information from the httpRequest.
+		// Report how long the request took.
+		LOGGER.info("Time to process '" + httpRequest.getRequestURI() + "':"+ (respondedTimestamp - receivedTimestamp));
 		
 		// Retrieve the type of request, GET, POST, etc.
 		RequestType requestType;
@@ -224,7 +225,9 @@ public class RequestServlet extends HttpServlet {
 		// Retrieve the request's URI.
 		String uri = httpRequest.getRequestURI();
 		
-		// Retrieve the request's parameter map.
+		// Retrieve the request's parameter map. We must make a copy because as
+		// soon as this function exists Tomcat will begin destroying the  
+		// original parameter map.
 		Map<String, String[]> parameterMap = new HashMap<String, String[]>(httpRequest.getParameterMap());
 		
 		// Generate an 'extras' Map based on the HTTP headers.
@@ -307,9 +310,6 @@ public class RequestServlet extends HttpServlet {
 	 * 					   once the request has been processed.
 	 */
 	protected void processRequest(HttpServletRequest httpRequest, HttpServletResponse httpResponse) {
-
-		long startTime = System.currentTimeMillis();
-		
 		Request request = RequestBuilder.buildRequest(httpRequest);
 		
 		if(! request.isFailed()) {
@@ -317,7 +317,5 @@ public class RequestServlet extends HttpServlet {
 		}
 		
 		request.respond(httpRequest, httpResponse);
-		
-		LOGGER.info("total request milliseconds to service " + httpRequest.getRequestURI() + " = "+ (System.currentTimeMillis() - startTime));
 	}
 }

@@ -13,7 +13,6 @@ import org.ohmage.service.ClassServices;
 import org.ohmage.service.UserServices;
 import org.ohmage.validator.ClassValidators;
 
-
 /**
  * <p>Creates a new class. The requester must be an admin.</p>
  * <table border="1">

@@ -38,13 +38,13 @@ public class MobilityInformation {
 	// Sensor data
 	private static final String JSON_KEY_DATA = "data";
 	
-	public static enum Mode { STILL, WALK, RUN, BIKE, DRIVE };
-	
 	private final Date date;
 	private final long time;
 	private final TimeZone timezone;
 	
-	private final String locationStatus;
+	public static enum LocationStatus { VALID, NETWORK, INACCURATE, STALE, UNAVAILABLE };
+	private final LocationStatus locationStatus;
+	
 	/**
 	 * This class contains all of the information associated with a location
 	 * record.
@@ -188,6 +188,8 @@ public class MobilityInformation {
 
 	public static enum SubType { MODE_ONLY, SENSOR_DATA };
 	private final SubType subType;
+	
+	public static enum Mode { STILL, WALK, RUN, BIKE, DRIVE };
 	
 	// Mode-only
 	private final Mode mode;
@@ -594,7 +596,7 @@ public class MobilityInformation {
 		private static final String JSON_KEY_FFT = "fft";
 		private static final String JSON_KEY_VARIANCE = "variance";
 		
-		private static final String JSON_KEY_N95_FFT = "N95Fft";
+		//private static final String JSON_KEY_N95_FFT = "N95Fft";
 		private static final String JSON_KEY_N95_VARIANCE = "N95Variance";
 		
 		private static final String JSON_KEY_AVERAGE = "average";
@@ -603,11 +605,30 @@ public class MobilityInformation {
 		private final List<Double> fft;
 		private final Double variance;
 		
-		private final List<Double> n95Fft;
+		// This is no longer being collected, but it is being left here as a
+		// reminder in case it is added again.
+		//private final List<Double> n95Fft;
 		private final Double n95Variance;
 		
 		private final Double average;
 		private final Mode mode;
+		
+		/**
+		 * Creates a ClassifierData object that only contains a mode.
+		 * 
+		 * @param mode The Mode from the server-side classifier.
+		 */
+		private ClassifierData(Mode mode) {
+			if(mode == null) {
+				throw new IllegalArgumentException("The mode cannot be null.");
+			}
+			
+			this.fft = null;
+			this.variance = null;
+			this.n95Variance = null;
+			this.average = null;
+			this.mode = mode;
+		}
 		
 		/**
 		 * Builds a ClassifierData object from the given data.
@@ -615,9 +636,6 @@ public class MobilityInformation {
 		 * @param fft The FFT from the server's classifier.
 		 * 
 		 * @param variance The variance from the server's classifier.
-		 * 
-		 * @param n95Fft The FFT from the server's classifier from the N95 
-		 * 				 data.
 		 * 
 		 * @param n95Variance The variance from the server's classifier from 
 		 * 					  the N95 data.
@@ -630,16 +648,13 @@ public class MobilityInformation {
 		 * 									null.
 		 */
 		private ClassifierData(List<Double> fft, Double variance,
-				List<Double> n95Fft, Double n95Variance,
+				Double n95Variance,
 				Double average, Mode mode) {
 			if(fft == null) {
 				throw new IllegalArgumentException("The FFT cannot be null.");
 			}
 			else if(variance == null) {
 				throw new IllegalArgumentException("The variance cannot be null.");
-			}
-			else if(n95Fft == null) {
-				throw new IllegalArgumentException("The N95 FFT cannot be null.");
 			}
 			else if(n95Variance == null) {
 				throw new IllegalArgumentException("The N95 variance cannot be null.");
@@ -653,7 +668,6 @@ public class MobilityInformation {
 			
 			this.fft = fft;
 			this.variance = variance;
-			this.n95Fft = n95Fft;
 			this.n95Variance = n95Variance;
 			this.average = average;
 			this.mode = mode;
@@ -675,15 +689,6 @@ public class MobilityInformation {
 		 */
 		public final Double getVariance() {
 			return variance;
-		}
-
-		/**
-		 * Returns the N95 FFT.
-		 * 
-		 * @return The N95 FFT.
-		 */
-		public final List<Double> getN95Fft() {
-			return n95Fft;
 		}
 
 		/**
@@ -724,10 +729,13 @@ public class MobilityInformation {
 			try {
 				JSONObject result = new JSONObject();
 				
-				result.put(JSON_KEY_FFT, fft);
+				if(fft != null) {
+					result.put(JSON_KEY_FFT, fft);
+				}
 				result.put(JSON_KEY_VARIANCE, variance);
-				result.put(JSON_KEY_N95_FFT, n95Fft);
+				
 				result.put(JSON_KEY_N95_VARIANCE, n95Variance);
+				
 				result.put(JSON_KEY_AVERAGE, average);
 				result.put(JSON_KEY_MODE, mode.name().toLowerCase());
 				
@@ -805,7 +813,7 @@ public class MobilityInformation {
 		/**
 		 * Returns the error text that was used to create this exception.
 		 * 
-		 * @return The error text taht was used to create this exception.
+		 * @return The error text that was used to create this exception.
 		 */
 		public final String getErrorText() {
 			return errorText;
@@ -856,23 +864,36 @@ public class MobilityInformation {
 		
 		// Get the location status.
 		try {
-			locationStatus = mobilityPoint.getString(JSON_KEY_LOCATION_STATUS);
+			locationStatus = LocationStatus.valueOf(mobilityPoint.getString(JSON_KEY_LOCATION_STATUS).toUpperCase());
 		}
 		catch(JSONException e) {
 			throw new MobilityException(ErrorCodes.SERVER_INVALID_LOCATION_STATUS, "The location status is missing.", e);
 		}
+		catch(IllegalArgumentException e) {
+			throw new MobilityException(ErrorCodes.SERVER_INVALID_LOCATION_STATUS, "The location status is unknown.", e);
+		}
 		
 		// Get the location.
+		Location tLocation;
 		try {
-			location = new Location(mobilityPoint.getJSONObject(JSON_KEY_LOCATION));
+			tLocation = new Location(mobilityPoint.getJSONObject(JSON_KEY_LOCATION));
 		}
 		catch(JSONException e) {
-			throw new MobilityException(ErrorCodes.SERVER_INVALID_LOCATION, "The location is missing.", e);
+			// If there was no location information in the JSONObject, check to
+			// ensure that the location status was unavailable as that is the
+			// only time this is acceptable.
+			if(LocationStatus.UNAVAILABLE.equals(locationStatus)) {
+				tLocation = null;
+			}
+			else {
+				throw new MobilityException(ErrorCodes.SERVER_INVALID_LOCATION, "The location is missing.", e);
+			}
 		}
+		location = tLocation;
 		
 		// Get the subtype.
 		try {
-			subType = SubType.valueOf(mobilityPoint.getString(JSON_KEY_SUBTYPE));
+			subType = SubType.valueOf(mobilityPoint.getString(JSON_KEY_SUBTYPE).toUpperCase());
 		}
 		catch(JSONException e) {
 			throw new MobilityException(ErrorCodes.MOBILITY_INVALID_SUBTYPE, "The subtype is missing.", e);
@@ -919,7 +940,7 @@ public class MobilityInformation {
 			sensorData = null;
 		}
 		
-		// Set the server's classification as null.
+		// Set the server's classification to null.
 		classifierData = null;
 	}
 
@@ -961,7 +982,7 @@ public class MobilityInformation {
 	 * 
 	 * @see #getLocation()
 	 */
-	public final String getLocationStatus() {
+	public final LocationStatus getLocationStatus() {
 		return locationStatus;
 	}
 
@@ -1040,14 +1061,11 @@ public class MobilityInformation {
 	}
 	
 	/**
-	 * Sets this Mobilit point's classifier data from the server's classifier.
+	 * Sets this Mobility point's classifier data from the server's classifier.
 	 * 
 	 * @param fft The FFT from the server's classifier.
 	 * 
 	 * @param variance The variance from the server's classifier.
-	 * 
-	 * @param n95Fft The FFT from the server's classifier from the N95 
-	 * 				 data.
 	 * 
 	 * @param n95Variance The variance from the server's classifier from 
 	 * 					  the N95 data.
@@ -1060,10 +1078,20 @@ public class MobilityInformation {
 	 * 									null.
 	 */
 	public final void setClassifierData(List<Double> fft, Double variance,
-			List<Double> n95Fft, Double n95Variance,
+			Double n95Variance,
 			Double average, Mode mode) {
 			
-		classifierData = new ClassifierData(fft, variance, n95Fft, n95Variance, average, mode);
+		classifierData = new ClassifierData(fft, variance, n95Variance, average, mode);
+	}
+	
+	/**
+	 * Sets this Mobility point's classifier data from the server's classifier,
+	 * but it only sets the mode.
+	 * 
+	 * @param mode The mode that the classifier generated.
+	 */
+	public final void setClassifierModeOnly(Mode mode) {
+		classifierData = new ClassifierData(mode);
 	}
 	
 	/**

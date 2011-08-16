@@ -236,6 +236,79 @@ public abstract class UserRequest extends Request {
 		client = tClient;
 	}
 	
+	public UserRequest(Map<String, String[]> parameters, boolean hashPassword) {
+		super();
+		
+		User tUser = null;
+		
+		// Attempt to retrieve all usernames passed to the server.
+		String[] usernames = parameters.get(InputKeys.USER);
+		
+		// If it is missing, fail the request.
+		if((usernames == null) || (usernames.length == 0)) {
+			LOGGER.info("The username is missing from the request.");
+			setFailed(ErrorCodes.AUTHENTICATION_FAILED, "Missing username.");
+		}
+		// If there is more than one, fail the request.
+		else if(usernames.length > 1) {
+			LOGGER.info("More than one username was given.");
+			setFailed(ErrorCodes.AUTHENTICATION_FAILED, "More than one username was given.");
+		}
+		else {
+			// If exactly one username is found, attempt to retrieve all 
+			// paswords sent to the server.
+			String[] passwords = parameters.get(InputKeys.PASSWORD);
+			
+			// If it is missing, fail the request.
+			if((passwords == null) || (passwords.length == 0)) {
+				LOGGER.info("The password is missing from the request.");
+				setFailed(ErrorCodes.AUTHENTICATION_FAILED, "Missing password.");
+			}
+			// If there are more than one, fail the request.
+			else if(passwords.length > 1) {
+				LOGGER.info("More than one password was given.");
+				setFailed(ErrorCodes.AUTHENTICATION_FAILED, "More than one password was given.");
+			}
+			else {
+				// Attempt to create the new User object for this request.
+				try {
+					tUser = new User(usernames[0], passwords[0], hashPassword);
+				}
+				catch(IllegalArgumentException e) {
+					LOGGER.info("The username and/or password are invalid.");
+					setFailed(ErrorCodes.AUTHENTICATION_FAILED, "The username and/or password are invalid.");
+				}
+			}
+		}
+		
+		// Retrieve the client parameter(s) from the request.
+		String tClient = null;
+		String[] clients = parameters.get(InputKeys.CLIENT);
+		
+		if(! isFailed()) {
+			// If there is no client, throw an error.
+			if((clients == null) || (clients.length == 0)) {
+				LOGGER.info("The client is missing from the request.");
+				setFailed(ErrorCodes.AUTHENTICATION_FAILED, "Missing client.");
+			}
+			// If there are multiple clients, throw an error.
+			else if(clients.length > 1) {
+				LOGGER.info("More than one client was given.");
+				setFailed(ErrorCodes.AUTHENTICATION_FAILED, "More than one client was given.");
+			}
+			else {
+				// Save the client.
+				tClient = clients[0];
+				
+				// Push the client into the logs.
+				NDC.push("client=" + tClient);
+			}
+		}
+		
+		user = tUser;
+		client = tClient;
+	}
+	
 	/**
 	 * Creates a Request from an authentication token.
 	 * 

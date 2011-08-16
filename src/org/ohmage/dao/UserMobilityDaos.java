@@ -16,9 +16,16 @@ import org.json.JSONObject;
 import org.ohmage.cache.CampaignPrivacyStateCache;
 import org.ohmage.cache.CampaignRoleCache;
 import org.ohmage.cache.MobilityPrivacyStateCache;
+import org.ohmage.domain.MobilityInformation.LocationStatus;
 import org.ohmage.domain.MobilityInformation.Mode;
 import org.ohmage.exception.DataAccessException;
+import org.ohmage.util.TimeUtils;
 import org.springframework.jdbc.core.RowMapper;
+import org.springframework.jdbc.datasource.DataSourceTransactionManager;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionException;
+import org.springframework.transaction.TransactionStatus;
+import org.springframework.transaction.support.DefaultTransactionDefinition;
 
 /**
  * This class contains all of the functionality for creating, reading, 
@@ -57,7 +64,7 @@ public final class UserMobilityDaos extends Dao {
 	
 	// Inserts an extended entry into the database.
 	private static final String SQL_INSERT_EXTENDED =
-		"INSERT INTO mobility_extended(user_id, client, msg_timestamp, epoch_millis, phone_timezone, location_status, location, sensor_data, features, classifier_version, mode, upload_timestamp, privacy_state_id " +
+		"INSERT INTO mobility_extended(user_id, client, msg_timestamp, epoch_millis, phone_timezone, location_status, location, sensor_data, features, classifier_version, mode, upload_timestamp, privacy_state_id) " +
 		"VALUES (" +
 			"(" +		// user_id
 				"SELECT id " +
@@ -81,157 +88,6 @@ public final class UserMobilityDaos extends Dao {
 				"WHERE privacy_state = ?" +
 			")" +
 		")";
-	
-	/**
-	 * Creates a new Mobility mode-only entry.<br />
-	 * <br />
-	 * None of the parameters should be null as of 2.6 except location if the
-	 * 'locationStatus' allows for it.
-	 * 
-	 * @param username The username of the user who is creating this Mobility
-	 * 				   point.
-	 * 
-	 * @param client The client parameter that was passed in with this upload.
-	 * 
-	 * @param timestamp The timestamp on the user's device that created this
-	 * 					point. This should correlate with 'timezone'.
-	 * 
-	 * @param epochMillis The number of milliseconds since epoch according to
-	 * 					  the device when this point was created.
-	 * 
-	 * @param timezone The timezone of the device that created this point. This
-	 * 				   should correlate with 'timestamp'.
-	 * 
-	 * @param locationStatus The status of the location data. This should
-	 * 						 correlate with 'location'.
-	 * 
-	 * @param location A JSONObject with the location information that was 
-	 * 				   collected when the Mobility point was made.
-	 * 
-	 * @param mode The user's mode when this Mobility point was made.
-	 * 
-	 * @throws DataAccessException Thrown if there is an error, e.g. one of the
-	 * 							   parameters is null that isn't allowed to be
-	 * 							   null.
-	 */
-	public static void createModeOnlyEntry(String username, String client, 
-			Date timestamp, long epochMillis, TimeZone timezone, 
-			String locationStatus, JSONObject location, Mode mode) throws DataAccessException {
-		
-		try {
-			instance.jdbcTemplate.update(
-					SQL_INSERT_MODE_ONLY, 
-					new Object[] {
-							username,
-							client,
-							timestamp,
-							epochMillis,
-							(timezone == null) ? null : timezone.getDisplayName(),
-							locationStatus,
-							location,
-							(mode == null) ? null : mode.name().toLowerCase(),
-							MobilityPrivacyStateCache.PRIVACY_STATE_PRIVATE
-					});
-		}
-		catch(org.springframework.dao.DataAccessException e) {
-			throw new DataAccessException(
-				"Error executing SQL '" + SQL_INSERT_MODE_ONLY + "' with parameters: " +
-					username + ", " +
-					client + ", " +
-					timestamp + ", " +
-					epochMillis + ", " +
-					timezone.getDisplayName() + ", " +
-					locationStatus + ", " +
-					location + ", " +
-					mode.name().toLowerCase() + ", " +
-					MobilityPrivacyStateCache.PRIVACY_STATE_PRIVATE,
-				e);
-		}
-	}
-	
-	/**
-	 * Creates a new Mobility extended entry.<br />
-	 * <br />
-	 * None of the parameters should be null as of 2.6 except location if the
-	 * 'locationStatus' allows for it.
-	 * 
-	 * @param username The username of the user who is creating this Mobility
-	 * 				   point.
-	 * 
-	 * @param client The client parameter that was passed in with this upload.
-	 * 
-	 * @param timestamp The timestamp on the user's device that created this
-	 * 					point. This should correlate with 'timezone'.
-	 * 
-	 * @param epochMillis The number of milliseconds since epoch according to
-	 * 					  the device when this point was created.
-	 * 
-	 * @param timezone The timezone of the device that created this point. This
-	 * 				   should correlate with 'timestamp'.
-	 * 
-	 * @param locationStatus The status of the location data. This should
-	 * 						 correlate with 'location'.
-	 * 
-	 * @param location A JSONObject with the location information that was 
-	 * 				   collected when the Mobility point was made.
-	 * 
-	 * @param mode The user's mode as calculated by the server.
-	 * 
-	 * @param sensorData A JSONObject representing the sensor data collected on
-	 * 					 the user's device that was used to generate the mode.
-	 * 
-	 * @param features A JSONObject representing the features that were 
-	 * 				   calculated on the server side to better estimate the 
-	 * 				   mode.
-	 * 
-	 * @param classifierVersion The version of the classifier that was used to
-	 * 							calculate the mode on the server side.
-	 * 
-	 * @throws DataAccessException Thrown if there is an error, e.g. one of the
-	 * 							   parameters is null that isn't allowed to be
-	 * 							   null.
-	 */
-	public static void createExtendedEntry(String username, String client, 
-			Date timestamp, long epochMillis, TimeZone timezone, 
-			String locationStatus, JSONObject location, Mode mode,
-			JSONObject sensorData, JSONObject features, String classifierVersion) throws DataAccessException {
-		
-		try {
-			instance.jdbcTemplate.update(
-					SQL_INSERT_EXTENDED, 
-					new Object[] {
-							username,
-							client,
-							timestamp,
-							epochMillis,
-							(timezone == null) ? null : timezone.getDisplayName(),
-							locationStatus,
-							location,
-							sensorData,
-							features,
-							classifierVersion,
-							(mode == null) ? null : mode.name().toLowerCase(),
-							MobilityPrivacyStateCache.PRIVACY_STATE_PRIVATE
-					});
-		}
-		catch(org.springframework.dao.DataAccessException e) {
-			throw new DataAccessException(
-				"Error executing SQL '" + SQL_INSERT_EXTENDED + "' with parameters: " +
-					username + ", " +
-					client + ", " +
-					timestamp + ", " +
-					epochMillis + ", " +
-					timezone.getDisplayName() + ", " +
-					locationStatus + ", " +
-					location + ", " +
-					sensorData + ", " +
-					features + ", " +
-					classifierVersion + ", " +
-					mode.name().toLowerCase() + ", " +
-					MobilityPrivacyStateCache.PRIVACY_STATE_PRIVATE,
-				e);
-		}
-	}
 	
 	// Retrieves all of the information about all of the mode-only Mobility 
 	// points that are visible to a requester about a user.
@@ -370,6 +226,203 @@ public final class UserMobilityDaos extends Dao {
 		super(dataSource);
 		
 		instance = this;
+	}
+	
+	/**
+	 * Creates a new Mobility mode-only entry.<br />
+	 * <br />
+	 * None of the parameters should be null as of 2.6 except location if the
+	 * 'locationStatus' allows for it.
+	 * 
+	 * @param username The username of the user who is creating this Mobility
+	 * 				   point.
+	 * 
+	 * @param client The client parameter that was passed in with this upload.
+	 * 
+	 * @param timestamp The timestamp on the user's device that created this
+	 * 					point. This should correlate with 'timezone'.
+	 * 
+	 * @param epochMillis The number of milliseconds since epoch according to
+	 * 					  the device when this point was created.
+	 * 
+	 * @param timezone The timezone of the device that created this point. This
+	 * 				   should correlate with 'timestamp'.
+	 * 
+	 * @param locationStatus The status of the location data. This should
+	 * 						 correlate with 'location'.
+	 * 
+	 * @param location A JSONObject with the location information that was 
+	 * 				   collected when the Mobility point was made.
+	 * 
+	 * @param mode The user's mode when this Mobility point was made.
+	 * 
+	 * @throws DataAccessException Thrown if there is an error, e.g. one of the
+	 * 							   parameters is null that isn't allowed to be
+	 * 							   null.
+	 */
+	public static void createModeOnlyEntry(String username, String client, 
+			Date timestamp, long epochMillis, TimeZone timezone, 
+			LocationStatus locationStatus, JSONObject location, Mode mode) throws DataAccessException {
+		
+		// Create the transaction.
+		DefaultTransactionDefinition def = new DefaultTransactionDefinition();
+		def.setName("Creating a mode-only Mobility data point.");
+		
+		try {
+			// Begin the transaction.
+			PlatformTransactionManager transactionManager = new DataSourceTransactionManager(instance.dataSource);
+			TransactionStatus status = transactionManager.getTransaction(def);
+			
+			// Create the point.
+			try {
+				instance.jdbcTemplate.update(
+						SQL_INSERT_MODE_ONLY, 
+						new Object[] {
+								username,
+								client,
+								TimeUtils.getIso8601DateTimeString(timestamp),
+								epochMillis,
+								(timezone == null) ? null : timezone.getDisplayName(),
+								locationStatus.name().toLowerCase(),
+								(location == null) ? null : location.toString(),
+								(mode == null) ? null : mode.name().toLowerCase(),
+								MobilityPrivacyStateCache.PRIVACY_STATE_PRIVATE
+						});
+			}
+			catch(org.springframework.dao.DataAccessException e) {
+				throw new DataAccessException(
+					"Error executing SQL '" + SQL_INSERT_MODE_ONLY + "' with parameters: " +
+						username + ", " +
+						client + ", " +
+						TimeUtils.getIso8601DateTimeString(timestamp) + ", " +
+						epochMillis + ", " +
+						((timezone == null) ? null : timezone.getDisplayName()) + ", " +
+						locationStatus + ", " +
+						((location == null) ? null : location.toString()) + ", " +
+						((mode == null) ? null : mode.name().toLowerCase()) + ", " +
+						MobilityPrivacyStateCache.PRIVACY_STATE_PRIVATE,
+					e);
+			}
+			
+			// Commit the transaction.
+			try {
+				transactionManager.commit(status);
+			}
+			catch(TransactionException e) {
+				transactionManager.rollback(status);
+				throw new DataAccessException("Error while committing the transaction.", e);
+			}
+		}
+		catch(TransactionException e) {
+			throw new DataAccessException("Error while attempting to rollback the transaction.", e);
+		}
+	}
+	
+	/**
+	 * Creates a new Mobility extended entry.<br />
+	 * <br />
+	 * None of the parameters should be null as of 2.6 except location if the
+	 * 'locationStatus' allows for it.
+	 * 
+	 * @param username The username of the user who is creating this Mobility
+	 * 				   point.
+	 * 
+	 * @param client The client parameter that was passed in with this upload.
+	 * 
+	 * @param timestamp The timestamp on the user's device that created this
+	 * 					point. This should correlate with 'timezone'.
+	 * 
+	 * @param epochMillis The number of milliseconds since epoch according to
+	 * 					  the device when this point was created.
+	 * 
+	 * @param timezone The timezone of the device that created this point. This
+	 * 				   should correlate with 'timestamp'.
+	 * 
+	 * @param locationStatus The status of the location data. This should
+	 * 						 correlate with 'location'.
+	 * 
+	 * @param location A JSONObject with the location information that was 
+	 * 				   collected when the Mobility point was made.
+	 * 
+	 * @param mode The user's mode as calculated by the server.
+	 * 
+	 * @param sensorData A JSONObject representing the sensor data collected on
+	 * 					 the user's device that was used to generate the mode.
+	 * 
+	 * @param features A JSONObject representing the features that were 
+	 * 				   calculated on the server side to better estimate the 
+	 * 				   mode.
+	 * 
+	 * @param classifierVersion The version of the classifier that was used to
+	 * 							calculate the mode on the server side.
+	 * 
+	 * @throws DataAccessException Thrown if there is an error, e.g. one of the
+	 * 							   parameters is null that isn't allowed to be
+	 * 							   null.
+	 */
+	public static void createExtendedEntry(String username, String client, 
+			Date timestamp, long epochMillis, TimeZone timezone, 
+			LocationStatus locationStatus, JSONObject location, Mode mode,
+			JSONObject sensorData, JSONObject features, String classifierVersion) throws DataAccessException {
+		
+		// Create the transaction.
+		DefaultTransactionDefinition def = new DefaultTransactionDefinition();
+		def.setName("Creating an extended Mobility data point.");
+		
+		try {
+			// Begin the transaction.
+			PlatformTransactionManager transactionManager = new DataSourceTransactionManager(instance.dataSource);
+			TransactionStatus status = transactionManager.getTransaction(def);
+			
+			// Create the point.
+			try {
+				instance.jdbcTemplate.update(
+						SQL_INSERT_EXTENDED, 
+						new Object[] {
+								username,
+								client,
+								TimeUtils.getIso8601DateTimeString(timestamp),
+								epochMillis,
+								(timezone == null) ? null : timezone.getDisplayName(),
+								locationStatus.name().toLowerCase(),
+								(location == null) ? null : location.toString(),
+								(sensorData == null) ? null : sensorData.toString(),
+								(features == null) ? null : features.toString(),
+								classifierVersion,
+								(mode == null) ? null : mode.name().toLowerCase(),
+								MobilityPrivacyStateCache.PRIVACY_STATE_PRIVATE
+						});
+			}
+			catch(org.springframework.dao.DataAccessException e) {
+				throw new DataAccessException(
+					"Error executing SQL '" + SQL_INSERT_EXTENDED + "' with parameters: " +
+						username + ", " +
+						client + ", " +
+						TimeUtils.getIso8601DateTimeString(timestamp) + ", " +
+						epochMillis + ", " +
+						((timezone == null) ? null : timezone.getDisplayName()) + ", " +
+						locationStatus + ", " +
+						((location == null) ? null : location.toString()) + ", " +
+						((sensorData == null) ? null : sensorData.toString()) + ", " +
+						((features == null) ? null : features.toString()) + ", " +
+						classifierVersion + ", " +
+						((mode == null) ? null : mode.name().toLowerCase()) + ", " +
+						MobilityPrivacyStateCache.PRIVACY_STATE_PRIVATE,
+					e);
+			}
+			
+			// Commit the transaction.
+			try {
+				transactionManager.commit(status);
+			}
+			catch(TransactionException e) {
+				transactionManager.rollback(status);
+				throw new DataAccessException("Error while committing the transaction.", e);
+			}
+		}
+		catch(TransactionException e) {
+			throw new DataAccessException("Error while attempting to rollback the transaction.", e);
+		}
 	}
 	
 	/**
