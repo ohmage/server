@@ -1,15 +1,5 @@
 package org.ohmage.request;
 
-import java.io.BufferedInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.zip.GZIPInputStream;
-
 import javax.servlet.http.HttpServletRequest;
 
 import org.ohmage.request.audit.AuditReadRequest;
@@ -40,7 +30,6 @@ import org.ohmage.request.user.UserInfoReadRequest;
 import org.ohmage.request.user.UserReadRequest;
 import org.ohmage.request.user.UserStatsReadRequest;
 import org.ohmage.request.user.UserUpdateRequest;
-import org.ohmage.util.StringUtils;
 
 /**
  * Request builder from an HTTP request.
@@ -53,14 +42,6 @@ public final class RequestBuilder {
 	 * instantiated. Instead, the static builder method should be called.
 	 */
 	private RequestBuilder() {}
-	
-	private static final String KEY_CONTENT_ENCODING = "Content-Encoding";
-	private static final String VALUE_GZIP = "gzip";
-	
-	private static final int CHUNK_SIZE = 4096;
-	
-	private static final String PARAMETER_SEPARATOR = "&";
-	private static final String PARAMETER_VALUE_SEPARATOR = "=";
 	
 	private static final String API_ROOT = "/app";
 	
@@ -116,7 +97,7 @@ public final class RequestBuilder {
 	/**
 	 * Builds a new request based on the request's URI. This will always return
 	 * a request and will never return null. If the URI is unknown it will 
-	 * return a FailedRequest().
+	 * return a {@link org.ohmage.request.FailedRequest}.
 	 * 
 	 * @param httpRequest The incoming HTTP request.
 	 * 
@@ -124,19 +105,6 @@ public final class RequestBuilder {
 	 */
 	public static Request buildRequest(HttpServletRequest httpRequest) {
 		String requestUri = httpRequest.getRequestURI();
-
-		// Retrieve the parameters from the request. This will unzip them if
-		// necessary.
-		Map<String, String[]> parameters;
-		try {
-			parameters = getParameters(httpRequest);
-		}
-		catch(IllegalArgumentException e) {
-			return new FailedRequest();
-		}
-		catch(IllegalStateException e) {
-			return new FailedRequest();
-		}
 		
 		// Config
 		if(API_CONFIG_READ.equals(requestUri)) {
@@ -205,8 +173,9 @@ public final class RequestBuilder {
 		else if(API_IMAGE_READ.equals(requestUri)) {
 			return new ImageReadRequest(httpRequest);
 		}
+		// Mobility
 		else if(API_MOBILITY_UPLOAD.equals(requestUri)) {
-			return new MobilityUploadRequest(parameters);
+			return new MobilityUploadRequest(httpRequest);
 		}
 		//Survey
 		else if(API_SURVEY_UPLOAD.equals(requestUri)) {
@@ -275,6 +244,7 @@ public final class RequestBuilder {
 				API_DOCUMENT_DELETE.equals(uri) ||
 				// Image
 				API_IMAGE_READ.equals(uri) ||
+				// Mobility
 				API_MOBILITY_UPLOAD.equals(uri) ||
 				// User
 				API_USER_CREATE.equals(uri) ||
@@ -289,142 +259,5 @@ public final class RequestBuilder {
 		
 		// The URI is unknown.
 		return false;
-	}
-	
-	/**
-	 * Retrieves the parameter map from the request and returns it.
-	 * 
-	 * @param httpRequest A HttpServletRequest that contains the desired 
-	 * 					  parameter map.
-	 * 
-	 * @return Returns a map of keys to an array of values for all of the
-	 * 		   parameters contained in the request.
-	 * 
-	 * @throws IllegalArgumentException Thrown if the parameters cannot be 
-	 * 									parsed.
-	 * 
-	 * @throws IllegalStateException Thrown if there is a problem connecting to
-	 * 								 or reading from the request.
-	 */
-	private static Map<String, String[]> getParameters(HttpServletRequest httpRequest) {
-		Enumeration<String> contentEncodingHeaders = httpRequest.getHeaders(KEY_CONTENT_ENCODING);
-		
-		while(contentEncodingHeaders.hasMoreElements()) {
-			if(VALUE_GZIP.equals(contentEncodingHeaders.nextElement())) {
-				return gunzipRequest(httpRequest);
-			}
-		}
-		
-		return httpRequest.getParameterMap();
-	}
-	
-	/**
-	 * Retrieves the parameter map from a request that has had its contents
-	 * GZIP'd. 
-	 * 
-	 * @param httpRequest A HttpServletRequest whose contents are GZIP'd as
-	 * 					  indicated by a "Content-Encoding" header.
-	 * 
-	 * @return Returns a map of keys to a list of values for all of the 
-	 * 		   parameters passed to the server.
-	 * 
-	 * @throws IllegalArgumentException Thrown if the parameters cannot be 
-	 * 									parsed.
-	 * 
-	 * @throws IllegalStateException Thrown if there is a problem connecting to
-	 * 								 or reading from the request.
-	 */
-	private static Map<String, String[]> gunzipRequest(HttpServletRequest httpRequest) {
-		// Retrieve the InputStream for the GZIP'd content of the request.
-		InputStream inputStream;
-		try {
-			inputStream = new BufferedInputStream(new GZIPInputStream(httpRequest.getInputStream()));
-		}
-		catch(IllegalStateException e) {
-			throw new IllegalStateException("The request's input stream can no longer be connected.", e);
-		}
-		catch(IOException e) {
-			throw new IllegalStateException("Could not connect to the request's input stream.", e);
-		}
-		
-		// Retrieve the parameter list as a string.
-		String parameterString;
-		try {
-			// This will build the parameter string.
-			StringBuilder builder = new StringBuilder();
-			
-			// These will store the information for the current chunk.
-			byte[] chunk = new byte[CHUNK_SIZE];
-			int readLen = 0;
-			
-			while((readLen = inputStream.read(chunk)) != -1) {
-				builder.append(new String(chunk, 0, readLen));
-			}
-			
-			parameterString = builder.toString();
-		}
-		catch(IOException e) {
-			throw new IllegalStateException("There was an error while reading from the request's input stream.", e);
-		}
-		finally {
-			try {
-				inputStream.close();
-			}
-			catch(IOException e) {
-				throw new IllegalStateException("And error occurred while closing the input stream.", e);
-			}
-		}
-		
-		// Create the resulting object so that, unless we fail, we will never
-		// return null.
-		Map<String, String[]> parameterMap = new HashMap<String, String[]>();
-		
-		// If the parameters string is not empty, parse it for the parameters.
-		if(! StringUtils.isEmptyOrWhitespaceOnly(parameterString)) {
-			Map<String, List<String>> parameters = new HashMap<String, List<String>>();
-			
-			// First, split all of the parameters apart.
-			String[] keyValuePairs = parameterString.split(PARAMETER_SEPARATOR);
-			
-			// For each of the pairs, split their key and value and store them.
-			for(String keyValuePair : keyValuePairs) {
-				// If the pair is empty or null, ignore it.
-				if(StringUtils.isEmptyOrWhitespaceOnly(keyValuePair.trim())) {
-					continue;
-				}
-				
-				// Split the key from the value.
-				String[] splitPair = keyValuePair.split(PARAMETER_VALUE_SEPARATOR);
-				
-				// If there isn't exactly one key to one value, then there is a
-				// problem, and we need to abort.
-				if(splitPair.length <= 1) {
-					throw new IllegalArgumentException("One of the parameter's 'pairs' did not contain a '" + PARAMETER_VALUE_SEPARATOR + "': " + keyValuePair);
-				}
-				else if(splitPair.length > 2) {
-					throw new IllegalArgumentException("One of the parameter's 'pairs' contained multiple '" + PARAMETER_VALUE_SEPARATOR + "'s: " + keyValuePair);
-				}
-				
-				// The key is the first part of the pair.
-				String key = splitPair[0];
-				
-				// The first or next value for the key is the second part of 
-				// the pair.
-				List<String> values = parameters.get(key);
-				if(values == null) {
-					values = new LinkedList<String>();
-					parameters.put(key, values);
-				}
-				values.add(StringUtils.urlDecode(splitPair[1]));
-			}
-			
-			// Now that we have all of the pairs, convert it into the 
-			// appropriate map.
-			for(String key : parameters.keySet()) {
-				parameterMap.put(key, parameters.get(key).toArray(new String[0]));
-			}
-		}
-		
-		return parameterMap;
 	}
 }

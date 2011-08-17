@@ -1,6 +1,6 @@
 package org.ohmage.request;
 
-import java.util.HashMap;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -16,7 +16,6 @@ import org.ohmage.domain.User;
 import org.ohmage.exception.ServiceException;
 import org.ohmage.service.AuthenticationService;
 import org.ohmage.util.CookieUtils;
-
 
 /**
  * A request that contains a User object and a client String that represents
@@ -51,6 +50,8 @@ public abstract class UserRequest extends Request {
 	 * 			   {@link #UserRequest(HttpServletRequest, boolean)} instead.
 	 */
 	public UserRequest(String username, String password, boolean hashPassword, String client) {
+		super(null);
+		
 		// This will either be reset as a new User object or the request will 
 		// have failed.
 		User tempUser = null;
@@ -81,6 +82,8 @@ public abstract class UserRequest extends Request {
 	 * 			   instead.
 	 */
 	public UserRequest(String token, String client) {
+		super(null);
+		
 		// This will either be reset as a new User object or the request will 
 		// have failed.
 		User tempUser = null;
@@ -125,6 +128,8 @@ public abstract class UserRequest extends Request {
 	 * 			   instead.
 	 */
 	public UserRequest(String username, String password, boolean hashPassword, String token, String client) {
+		super(null);
+		
 		// This will either be reset as a new User object or the request will 
 		// have failed.
 		User tempUser = null;
@@ -164,15 +169,15 @@ public abstract class UserRequest extends Request {
 	 * 					   authenticating the user.
 	 */
 	public UserRequest(HttpServletRequest httpRequest, boolean hashPassword) {
-		super();
+		super(httpRequest);
 		
 		User tUser = null;
 		
 		// Attempt to retrieve all usernames passed to the server.
-		String[] usernames = httpRequest.getParameterValues(InputKeys.USER);
+		String[] usernames = getParameterValues(InputKeys.USER);
 		
 		// If it is missing, fail the request.
-		if((usernames == null) || (usernames.length == 0)) {
+		if(usernames.length == 0) {
 			LOGGER.info("The username is missing from the request.");
 			setFailed(ErrorCodes.AUTHENTICATION_FAILED, "Missing username.");
 		}
@@ -184,10 +189,10 @@ public abstract class UserRequest extends Request {
 		else {
 			// If exactly one username is found, attempt to retrieve all 
 			// paswords sent to the server.
-			String[] passwords = httpRequest.getParameterValues(InputKeys.PASSWORD);
+			String[] passwords = getParameterValues(InputKeys.PASSWORD);
 			
 			// If it is missing, fail the request.
-			if((passwords == null) || (passwords.length == 0)) {
+			if(passwords.length == 0) {
 				LOGGER.info("The password is missing from the request.");
 				setFailed(ErrorCodes.AUTHENTICATION_FAILED, "Missing password.");
 			}
@@ -210,11 +215,11 @@ public abstract class UserRequest extends Request {
 		
 		// Retrieve the client parameter(s) from the request.
 		String tClient = null;
-		String[] clients = httpRequest.getParameterValues(InputKeys.CLIENT);
+		String[] clients = getParameterValues(InputKeys.CLIENT);
 		
 		if(! isFailed()) {
 			// If there is no client, throw an error.
-			if((clients == null) || (clients.length == 0)) {
+			if(clients.length == 0) {
 				LOGGER.info("The client is missing from the request.");
 				setFailed(ErrorCodes.AUTHENTICATION_FAILED, "Missing client.");
 			}
@@ -236,6 +241,7 @@ public abstract class UserRequest extends Request {
 		client = tClient;
 	}
 	
+	/*
 	public UserRequest(Map<String, String[]> parameters, boolean hashPassword) {
 		super();
 		
@@ -308,6 +314,7 @@ public abstract class UserRequest extends Request {
 		user = tUser;
 		client = tClient;
 	}
+	*/
 	
 	/**
 	 * Creates a Request from an authentication token.
@@ -318,7 +325,7 @@ public abstract class UserRequest extends Request {
 	 * @param tokenLocation This indicates where the token must be located.
 	 */
 	public UserRequest(HttpServletRequest httpRequest, TokenLocation tokenLocation) {
-		super();
+		super(httpRequest);
 		
 		User tUser = null;
 		
@@ -359,9 +366,9 @@ public abstract class UserRequest extends Request {
 		if((tUser == null) && (! isFailed()) &&
 		   (tokenLocation.equals(TokenLocation.PARAMETER) || tokenLocation.equals(TokenLocation.EITHER))) {
 			// Retrieve all of the authentication tokens that were parameters.
-			String[] tokens = httpRequest.getParameterValues(InputKeys.AUTH_TOKEN);
+			String[] tokens = getParameterValues(InputKeys.AUTH_TOKEN);
 			
-			if((tokens == null) || (tokens.length == 0)) {
+			if(tokens.length == 0) {
 				LOGGER.info("The authentication token is missing.");
 				setFailed(ErrorCodes.AUTHENTICATION_FAILED, "The authentication token is missing as a parameter: " + InputKeys.AUTH_TOKEN);
 			}
@@ -384,11 +391,11 @@ public abstract class UserRequest extends Request {
 		
 		// Retrieve the client parameter(s) from the request.
 		String tClient = null;
-		String[] clients = httpRequest.getParameterValues(InputKeys.CLIENT);
+		String[] clients = getParameterValues(InputKeys.CLIENT);
 
 		if(! isFailed()) {
 			// If there is no client, throw an error.
-			if((clients == null) || (clients.length == 0)) {
+			if(clients.length == 0) {
 				LOGGER.info("The client is missing from the request.");
 				setFailed(ErrorCodes.AUTHENTICATION_FAILED, "Missing client.");
 			}
@@ -427,7 +434,7 @@ public abstract class UserRequest extends Request {
 	 * 					   authenticating them.
 	 */
 	public UserRequest(HttpServletRequest httpRequest, TokenLocation tokenLocation, boolean hashPassword) {
-		super();
+		super(httpRequest);
 		
 		User tUser = null;
 		
@@ -436,10 +443,10 @@ public abstract class UserRequest extends Request {
 		boolean getToken = false;
 		
 		// Attempt to retrieve all usernames passed to the server.
-		String[] usernames = httpRequest.getParameterValues(InputKeys.USER);
+		String[] usernames = getParameterValues(InputKeys.USER);
 		
 		// If it is missing, search for a token.
-		if((usernames == null) || (usernames.length == 0)) {
+		if(usernames.length == 0) {
 			getToken = true;
 		}
 		// If there is more than one, fail the request.
@@ -450,10 +457,10 @@ public abstract class UserRequest extends Request {
 		else {
 			// If exactly one username is found, attempt to retrieve all 
 			// paswords sent to the server.
-			String[] passwords = httpRequest.getParameterValues(InputKeys.PASSWORD);
+			String[] passwords = getParameterValues(InputKeys.PASSWORD);
 			
 			// If it is missing, fail the request.
-			if((passwords == null) || (passwords.length == 0)) {
+			if(passwords.length == 0) {
 				getToken = true;
 			}
 			// If there are more than one, fail the request.
@@ -511,9 +518,9 @@ public abstract class UserRequest extends Request {
 			if((tUser == null) && (! isFailed()) &&
 			   (tokenLocation.equals(TokenLocation.PARAMETER) || tokenLocation.equals(TokenLocation.EITHER))) {
 				// Retrieve all of the authentication tokens that were parameters.
-				String[] tokens = httpRequest.getParameterValues(InputKeys.AUTH_TOKEN);
+				String[] tokens = getParameterValues(InputKeys.AUTH_TOKEN);
 				
-				if((tokens == null) || (tokens.length == 0)) {
+				if(tokens.length == 0) {
 					LOGGER.info("Either a username and password or an authentication token are required.");
 					setFailed(ErrorCodes.AUTHENTICATION_FAILED, "Either a username and password or an authentication token are required.");
 				}
@@ -538,11 +545,11 @@ public abstract class UserRequest extends Request {
 		
 		// Retrieve the client parameter(s) from the request.
 		String tClient = null;
-		String[] clients = httpRequest.getParameterValues(InputKeys.CLIENT);
+		String[] clients = getParameterValues(InputKeys.CLIENT);
 
 		if(! isFailed()) {
 			// If there is no client, throw an error.
-			if((clients == null) || (clients.length == 0)) {
+			if(clients.length == 0) {
 				LOGGER.info("The client is missing from the request.");
 				setFailed(ErrorCodes.AUTHENTICATION_FAILED, "Missing client.");
 			}
@@ -581,29 +588,6 @@ public abstract class UserRequest extends Request {
 	public final String getClient() {
 		return client;
 	}
-	
-	/**
-	 * Retrieves the authentication / session token from the request. It first
-	 * attempts to retrieve it as a cookie and, if it doesn't exist there,
-	 * attempts to retrieve it as a parameter. If it didn't exist there either,
-	 * null is returned.
-	 *  
-	 * @param httpRequest The request that contains the cookie in either its
-	 * 					  header or as a parameter.
-	 * 
-	 * @return The authentication / session token from this request or null if
-	 * 		   no such cookie or parameter exists.
-	 */
-	public static String getToken(HttpServletRequest httpRequest) {
-		String token;
-		
-		token = CookieUtils.getCookieValue(httpRequest.getCookies(), InputKeys.AUTH_TOKEN);
-		if(token == null) {
-			token = httpRequest.getParameter(InputKeys.AUTH_TOKEN);
-		}
-		
-		return token;
-	}
 
 	/**
 	 * Authenticates the user in the request.
@@ -629,7 +613,33 @@ public abstract class UserRequest extends Request {
 	 */
 	@Override
 	public Map<String, String[]> getAuditInformation() {
-		return new HashMap<String, String[]>();
+		return Collections.emptyMap();
+	}
+	
+	/**************************************************************************
+	 *  Begin JEE Requirements
+	 *************************************************************************/
+	/**
+	 * Retrieves the authentication / session token from the request. It first
+	 * attempts to retrieve it as a cookie and, if it doesn't exist there,
+	 * attempts to retrieve it as a parameter. If it didn't exist there either,
+	 * null is returned.
+	 *  
+	 * @param httpRequest The request that contains the cookie in either its
+	 * 					  header or as a parameter.
+	 * 
+	 * @return The authentication / session token from this request or null if
+	 * 		   no such cookie or parameter exists.
+	 */
+	public static String getToken(HttpServletRequest httpRequest) {
+		String token;
+		
+		token = CookieUtils.getCookieValue(httpRequest.getCookies(), InputKeys.AUTH_TOKEN);
+		if(token == null) {
+			token = httpRequest.getParameter(InputKeys.AUTH_TOKEN);
+		}
+		
+		return token;
 	}
 	
 	/**
@@ -678,4 +688,7 @@ public abstract class UserRequest extends Request {
 		
 		super.respond(httpRequest, httpResponse, key, value);
 	}
+	/**************************************************************************
+	 *  End JEE Requirements
+	 *************************************************************************/
 }

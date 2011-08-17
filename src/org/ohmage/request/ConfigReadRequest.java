@@ -27,7 +27,7 @@ public class ConfigReadRequest extends Request {
 	 * Default constructor.
 	 */
 	public ConfigReadRequest() {
-		super();
+		super(null);
 		
 		result = new JSONObject();
 	}

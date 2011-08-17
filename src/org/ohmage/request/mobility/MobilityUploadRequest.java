@@ -1,7 +1,6 @@
 package org.ohmage.request.mobility;
 
 import java.util.List;
-import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -140,8 +139,8 @@ public class MobilityUploadRequest extends UserRequest {
 	 * @param httpRequest A HttpServletRequest that contains the parameters for
 	 * 					  this request.
 	 */
-	public MobilityUploadRequest(Map<String, String[]> parameters) {
-		super(parameters, false);
+	public MobilityUploadRequest(HttpServletRequest httpRequest) {
+		super(httpRequest, false);
 		
 		LOGGER.info("Creating a Mobility upload request.");
 		
@@ -149,19 +148,17 @@ public class MobilityUploadRequest extends UserRequest {
 		
 		if(! isFailed()) {
 			try {
-				String dataString = null;
-				String[] dataArray = parameters.get(InputKeys.DATA);
-				if((dataArray != null) && (dataArray.length != 0)) {
-					dataString = dataArray[0];
-				}
-				tData = MobilityValidators.validateDataAsJsonArray(this, dataString);
-				if(tData == null) {
+				String[] dataArray = getParameterValues(InputKeys.DATA);
+				if(dataArray.length == 0) {
 					setFailed(ErrorCodes.MOBILITY_INVALID_DATA, "The upload data is missing: " + ErrorCodes.MOBILITY_INVALID_DATA);
 					throw new ValidationException("The upload data is missing: " + ErrorCodes.MOBILITY_INVALID_DATA);
 				}
 				else if(dataArray.length > 1) {
 					setFailed(ErrorCodes.MOBILITY_INVALID_DATA, "Multiple data parameters were given: " + ErrorCodes.MOBILITY_INVALID_DATA);
 					throw new ValidationException("Multiple data parameters were given: " + ErrorCodes.MOBILITY_INVALID_DATA);
+				}
+				else {
+					tData = MobilityValidators.validateDataAsJsonArray(this, dataArray[0]);
 				}
 			}
 			catch(ValidationException e) {
