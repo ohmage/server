@@ -16,7 +16,7 @@ import org.ohmage.request.Request;
 
 /**
  * This class contains the services that create, read, update, and delete
- * user-image assocations.
+ * user-image associations.
  * 
  * @author John Jenkins
  */
@@ -25,6 +25,32 @@ public final class UserImageServices {
 	 * Default constructor. Private so that it cannot be instantiated.
 	 */
 	private UserImageServices() {}
+	
+	/**
+	 * Verifies that some photo prompt response exists and the image ID for
+	 * the response is the same as the given image ID.
+	 * 
+	 * @param request The Request that is performing this service.
+	 * 
+	 * @param username The username of the user.
+	 * 
+	 * @param imageId The unique identifier for the image.
+	 * 
+	 * @throws ServiceException Thrown if no such photo prompt response exists
+	 * 							or if there is an error.
+	 */
+	public static void verifyPhotoPromptResponseExistsForUserAndImage(Request request, String username, String imageId) throws ServiceException {
+		try {
+			if(! UserImageDaos.responseExistsForUserWithImage(username, imageId)) {
+				request.setFailed(ErrorCodes.IMAGE_INVALID_ID, "No such photo prompt response exists with the given image ID.");
+				throw new ServiceException("No such photo prompt response exists with the given image ID.");
+			}
+		}
+		catch(DataAccessException e) {
+			request.setFailed();
+			throw new ServiceException(e);
+		}
+	}
 	
 	/**
 	 * Verifies that an user has sufficient permissions to read an image.

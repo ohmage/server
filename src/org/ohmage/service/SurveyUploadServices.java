@@ -32,7 +32,7 @@ import org.ohmage.validator.prompt.UUIDPromptValidator;
  * @author Joshua Selsky
  */
 public final class SurveyUploadServices {
-	private static final Logger logger = Logger.getLogger(SurveyUploadServices.class);
+	private static final Logger LOGGER = Logger.getLogger(SurveyUploadServices.class);
 	
 	// Error message constants
 	private static final String SURVEY_INVALID_JSON = "survey upload contains unparseable JSON";
@@ -115,7 +115,7 @@ public final class SurveyUploadServices {
 
 		int numberOfResponses = surveyResponses.length();
 		
-		logger.info("Validating " + numberOfResponses + " survey responses");
+		LOGGER.info("Validating " + numberOfResponses + " survey responses");
 		
 		if(surveyResponses.length() < 1) {
 			
@@ -210,8 +210,8 @@ public final class SurveyUploadServices {
 					throw new ServiceException(PROMPT_MISSING_PROMPT_ID_AND_REPEATABLE_SET_ID);
 				}
 				
-				if(logger.isDebugEnabled()) {
-					logger.debug("beginning to validate a repeatableSet: " + repeatableSetId);
+				if(LOGGER.isDebugEnabled()) {
+					LOGGER.debug("beginning to validate a repeatableSet: " + repeatableSetId);
 				}
 				
 				// Validate the repeatable set
@@ -336,8 +336,8 @@ public final class SurveyUploadServices {
 								
 							}
 							
-							if(logger.isDebugEnabled()) {
-								logger.debug("Validating prompt " + repeatableSetPromptId + IN_REPEATABLE_SET + repeatableSetId);
+							if(LOGGER.isDebugEnabled()) {
+								LOGGER.debug("Validating prompt " + repeatableSetPromptId + IN_REPEATABLE_SET + repeatableSetId);
 							}
 							
 							if(! promptValidator.validate(prompt, promptResponse)) {
@@ -377,8 +377,8 @@ public final class SurveyUploadServices {
 					
 				}
 				
-				if(logger.isDebugEnabled()) {
-					logger.debug("validating prompt " + promptId);
+				if(LOGGER.isDebugEnabled()) {
+					LOGGER.debug("validating prompt " + promptId);
 				}
 				
 				if(! promptValidator.validate(prompt, response)) {

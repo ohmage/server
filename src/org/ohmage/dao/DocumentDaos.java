@@ -959,13 +959,13 @@ public class DocumentDaos extends Dao {
 		// Get the maximum number of items in a directory.
 		int numFilesPerDirectory;
 		try {
-			numFilesPerDirectory = Integer.decode(PreferenceCache.instance().lookup(PreferenceCache.KEY_MAXIMUM_NUMBER_OF_DOCUMENTS_PER_DIRECTORY));
+			numFilesPerDirectory = Integer.decode(PreferenceCache.instance().lookup(PreferenceCache.KEY_MAXIMUM_NUMBER_OF_FILES_PER_DIRECTORY));
 		}
 		catch(CacheMissException e) {
-			throw new DataAccessException("Preference cache doesn't know about 'known' key: " + PreferenceCache.KEY_MAXIMUM_NUMBER_OF_DOCUMENTS_PER_DIRECTORY, e);
+			throw new DataAccessException("Preference cache doesn't know about 'known' key: " + PreferenceCache.KEY_MAXIMUM_NUMBER_OF_FILES_PER_DIRECTORY, e);
 		}
 		catch(NumberFormatException e) {
-			throw new DataAccessException("Stored value for key '" + PreferenceCache.KEY_MAXIMUM_NUMBER_OF_DOCUMENTS_PER_DIRECTORY + "' is not decodable as a number.", e);
+			throw new DataAccessException("Stored value for key '" + PreferenceCache.KEY_MAXIMUM_NUMBER_OF_FILES_PER_DIRECTORY + "' is not decodable as a number.", e);
 		}
 		
 		// If the leaf directory was never initialized, then we should do
@@ -1023,13 +1023,13 @@ public class DocumentDaos extends Dao {
 			// Get the number of folders deep that documents are stored.
 			int fileDepth;
 			try {
-				fileDepth = Integer.decode(PreferenceCache.instance().lookup(PreferenceCache.KEY_DOCUMENT_DEPTH));
+				fileDepth = Integer.decode(PreferenceCache.instance().lookup(PreferenceCache.KEY_FILE_HIERARCHY_DEPTH));
 			}
 			catch(CacheMissException e) {
-				throw new DataAccessException("Preference cache doesn't know about 'known' key: " + PreferenceCache.KEY_DOCUMENT_DEPTH, e);
+				throw new DataAccessException("Preference cache doesn't know about 'known' key: " + PreferenceCache.KEY_FILE_HIERARCHY_DEPTH, e);
 			}
 			catch(NumberFormatException e) {
-				throw new DataAccessException("Stored value for key '" + PreferenceCache.KEY_DOCUMENT_DEPTH + "' is not decodable as a number.", e);
+				throw new DataAccessException("Stored value for key '" + PreferenceCache.KEY_FILE_HIERARCHY_DEPTH + "' is not decodable as a number.", e);
 			}
 			
 			DirectoryFilter directoryFilter = new DirectoryFilter();
@@ -1230,7 +1230,7 @@ public class DocumentDaos extends Dao {
 	 */
 	private static String directoryNameBuilder(long name, int numFilesPerDirectory) {
 		int nameLength = String.valueOf(name).length();
-		int maxLength = String.valueOf(numFilesPerDirectory).length();
+		int maxLength = new Double(Math.log10(numFilesPerDirectory)).intValue();
 		int numberOfZeros = maxLength - nameLength;
 		
 		StringBuilder builder = new StringBuilder();

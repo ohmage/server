@@ -172,12 +172,21 @@ public class UserCampaignServices {
 	 * 			   as well as any others that are necessary. The reason this is
 	 * 			   a bad idea is because it puts too much of the work on the 
 	 * 			   requests which must keep up with the ACLs and may lead to 
-	 * 			   multiple services to perform one logical service, i.e. call
-	 * 			   something like this then call a service that checks if the
-	 * 			   user is privileged in some class to which this campaign 
-	 * 			   belongs which is all one logical service that checks if a 
-	 * 			   user can read this campaign's metadata. If nothing else, it
-	 * 			   should be made private.
+	 * 			   multiple services performing one logical service. For 
+	 * 			   example, a request will call this method to ensure that the
+	 * 			   user has some roles then, if not, call a service that checks
+	 * 			   if the user is privileged in some class to which this 
+	 * 			   campaign belongs. This is all one logical operation which is
+	 * 			   determining if a user can read a campaign's meta data. If 
+	 * 			   all of the steps are spread out among multiple operations 
+	 * 			   like this function is doing, then each request must perform 
+	 * 			   all of these operations. If the ACLs should change, then we
+	 * 			   must go to each of the requests and change the work flow. If
+	 * 			   we encapsulate all of the work into a single function, then
+	 * 			   we would only need to change that function, which is far 
+	 * 			   more efficient. This function and other functions like it
+	 * 			   should be removed as soon as they are no longer being used
+	 * 			   to prevent this poor programming decision.
 	 */
 	public static void checkUserHasRolesInCampaign(Request request, String username, String campaignId, Collection<String> campaignRoles) throws ServiceException {
 		try {

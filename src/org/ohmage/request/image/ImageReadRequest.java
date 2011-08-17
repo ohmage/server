@@ -100,7 +100,7 @@ public class ImageReadRequest extends UserRequest {
 				}
 			}
 			catch(ValidationException e) {
-				
+				LOGGER.info(e.toString());
 			}
 		}
 		
@@ -123,7 +123,7 @@ public class ImageReadRequest extends UserRequest {
 		
 		try {
 			LOGGER.info("Verifying that the image exists.");
-			ImageServices.verifyImageExists(this, imageId);
+			ImageServices.verifyImageExistance(this, imageId, true);
 			
 			LOGGER.info("Verifying that the user can read the image.");
 			UserImageServices.verifyUserCanReadImage(this, getUser().getUsername(), imageId);

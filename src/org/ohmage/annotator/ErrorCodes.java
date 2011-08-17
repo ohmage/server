@@ -71,6 +71,7 @@ public final class ErrorCodes {
 	public static final String IMAGE_INVALID_ID = "0800";
 	public static final String IMAGE_INVALID_SIZE = "0801";
 	public static final String IMAGE_INSUFFICIENT_PERMISSIONS = "0802";
+	public static final String IMAGE_INVALID_DATA = "0803";
 
 	public static final String CLASS_INVALID_ID = "0900";
 	public static final String CLASS_INVALID_NAME = "0901";
