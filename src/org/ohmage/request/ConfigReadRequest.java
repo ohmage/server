@@ -40,7 +40,7 @@ public class ConfigReadRequest extends Request {
 	public void service() {
 		LOGGER.info("Gathering information about the system.");
 		
-		// Get the response values to be returned to the requestor and place
+		// Get the response values to be returned to the requester and place
 		// them in the response.
 		try {
 			// Get the application's name.
