@@ -1,5 +1,11 @@
 package org.ohmage.validator;
 
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+
+import javax.imageio.ImageIO;
+
 import org.apache.log4j.Logger;
 import org.ohmage.annotator.ErrorCodes;
 import org.ohmage.exception.ValidationException;
@@ -85,6 +91,36 @@ public final class ImageValidators {
 		catch(IllegalArgumentException e) {
 			request.setFailed(ErrorCodes.IMAGE_INVALID_SIZE, "The image size value is an unknown value: " + imageSize);
 			throw new ValidationException("The image size value is an unknown value: " + imageSize, e);
+		}
+	}
+	
+	/**
+	 * Validates that an image's contents as a byte array are decodable as an 
+	 * image.
+	 *  
+	 * @param request The Request that is performing this validation.
+	 * 
+	 * @param imageContents The image's contents as a byte array.
+	 * 
+	 * @return Returns null if the image's contents are null or have a length 
+	 * 		   of zero; otherwise, a BufferedImage representing a decoded  
+	 * 		   version of the image are returned.
+	 * 
+	 * @throws ValidationException Thrown if the image is not null, has a 
+	 * 							   length greater than 0, and isn't decodable 
+	 * 							   as any type of known image.
+	 */
+	public static final BufferedImage validateImageContents(Request request, byte[] imageContents) throws ValidationException {
+		if((imageContents == null) || (imageContents.length == 0)) {
+			return null;
+		}
+		
+		try {
+			return ImageIO.read(new ByteArrayInputStream(imageContents));
+		}
+		catch(IOException e) {
+			request.setFailed();
+			throw new ValidationException("There was an error while reading the image's contents.");
 		}
 	}
 }

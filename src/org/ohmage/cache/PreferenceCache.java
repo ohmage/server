@@ -45,18 +45,27 @@ public final class PreferenceCache extends KeyValueCache {
 	public static final String KEY_DEFAULT_CAN_CREATE_PRIVILIEGE = "default_can_create_privilege";
 	public static final String KEY_DEFAULT_SURVEY_RESPONSE_SHARING_STATE = "default_survey_response_sharing_state";
 	
+	// URL-based resource constants.
+	public static final String KEY_MAXIMUM_NUMBER_OF_FILES_PER_DIRECTORY = "max_files_per_dir";
+	public static final String KEY_FILE_HIERARCHY_DEPTH = "document_depth";
+	
+	// Document-specific information.
 	public static final String KEY_MAXIMUM_DOCUMENT_SIZE = "maximum_document_size";
 	public static final String KEY_DOCUMENT_DIRECTORY = "document_directory";
-	public static final String KEY_MAXIMUM_NUMBER_OF_DOCUMENTS_PER_DIRECTORY = "max_files_per_dir";
-	public static final String KEY_DOCUMENT_DEPTH = "document_depth";
 	
+	// Image-specific information.
+	public static final String KEY_IMAGE_DIRECTORY = "image_directory";
+	
+	// Properties-specific information.
 	public static final String KEY_PROPERTIES_FILE = "properties_file";
 	
+	// Build-specific information.
 	public static final String KEY_APPLICATION_NAME = "application_name";
 	public static final String KEY_APPLICATION_VERSION = "application_version";
 	public static final String KEY_APPLICATION_BUILD = "application_build";
 	public static final String KEY_SSL_ENABLED = "ssl_enabled";
 	
+	// Visualization-specific information.
 	public static final String KEY_VISUALIZATION_SERVER = "visualization_server_address";
 	
 	// The reference to one's self to return to requesters.

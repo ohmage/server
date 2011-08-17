@@ -88,58 +88,60 @@ public class CampaignCreationRequest extends UserRequest {
 		String tPrivacyState = null;
 		List<String> tClassIds = null;
 		
-		try {
-			byte[] pXml = getMultipartValue(httpRequest, InputKeys.XML);
-			if(pXml == null) {
-				setFailed(ErrorCodes.CAMPAIGN_INVALID_XML, "Missing required campaign XML: " + InputKeys.XML);
-				throw new ValidationException("Missing required campaign XML.");
+		if(! isFailed()) {
+			try {
+				byte[] pXml = getMultipartValue(httpRequest, InputKeys.XML);
+				if(pXml == null) {
+					setFailed(ErrorCodes.CAMPAIGN_INVALID_XML, "Missing required campaign XML: " + InputKeys.XML);
+					throw new ValidationException("Missing required campaign XML.");
+				}
+				else {
+					tXml = CampaignValidators.validateXml(this, new String(pXml));
+				}
+				if(tXml == null) {
+					setFailed(ErrorCodes.CAMPAIGN_INVALID_XML, "Missing required campaign XML.");
+					throw new ValidationException("Missing required campaign XML.");
+				}
+				
+				tRunningState = CampaignValidators.validateRunningState(this, httpRequest.getParameter(InputKeys.RUNNING_STATE));
+				if(tRunningState == null) {
+					setFailed(ErrorCodes.CAMPAIGN_INVALID_RUNNING_STATE, "Missing the required initial running state.");
+					throw new ValidationException("Missing required running state.");
+				}
+				else if(httpRequest.getParameterValues(InputKeys.RUNNING_STATE).length > 1) {
+					setFailed(ErrorCodes.CAMPAIGN_INVALID_RUNNING_STATE, "Multiple running states were found.");
+					throw new ValidationException("Multiple running states were found.");
+				}
+				
+				tPrivacyState = CampaignValidators.validatePrivacyState(this, httpRequest.getParameter(InputKeys.PRIVACY_STATE));
+				if(tPrivacyState == null) {
+					setFailed(ErrorCodes.CAMPAIGN_INVALID_PRIVACY_STATE, "Missing the required initial privacy state.");
+					throw new ValidationException("Missing required privacy state.");
+				}
+				else if(httpRequest.getParameterValues(InputKeys.PRIVACY_STATE).length > 1) {
+					setFailed(ErrorCodes.CAMPAIGN_INVALID_PRIVACY_STATE, "Multiple privacy states were found.");
+					throw new ValidationException("Multiple privacy states were found.");
+				}
+				
+				tClassIds = ClassValidators.validateClassIdList(this, httpRequest.getParameter(InputKeys.CLASS_URN_LIST));
+				if(tClassIds == null) {
+					setFailed(ErrorCodes.CLASS_INVALID_ID, "Missing the required class ID list.");
+					throw new ValidationException("Missing required class ID list.");
+				}
+				else if(httpRequest.getParameterValues(InputKeys.CLASS_URN_LIST).length > 1) {
+					setFailed(ErrorCodes.CLASS_INVALID_ID, "Multiple class ID lists were found.");
+					throw new ValidationException("Multiple class ID lists were found.");
+				}
+				
+				tDescription = CampaignValidators.validateDescription(this, httpRequest.getParameter(InputKeys.DESCRIPTION));
+				if((tDescription != null) && (httpRequest.getParameterValues(InputKeys.DESCRIPTION).length > 1)) {
+					setFailed(ErrorCodes.CLASS_INVALID_DESCRIPTION, "Multiple descriptions were found.");
+					throw new ValidationException("Multiple descriptions were found.");
+				}
 			}
-			else {
-				tXml = CampaignValidators.validateXml(this, new String(pXml));
+			catch(ValidationException e) {
+				LOGGER.info(e.toString());
 			}
-			if(tXml == null) {
-				setFailed(ErrorCodes.CAMPAIGN_INVALID_XML, "Missing required campaign XML.");
-				throw new ValidationException("Missing required campaign XML.");
-			}
-			
-			tRunningState = CampaignValidators.validateRunningState(this, httpRequest.getParameter(InputKeys.RUNNING_STATE));
-			if(tRunningState == null) {
-				setFailed(ErrorCodes.CAMPAIGN_INVALID_RUNNING_STATE, "Missing the required initial running state.");
-				throw new ValidationException("Missing required running state.");
-			}
-			else if(httpRequest.getParameterValues(InputKeys.RUNNING_STATE).length > 1) {
-				setFailed(ErrorCodes.CAMPAIGN_INVALID_RUNNING_STATE, "Multiple running states were found.");
-				throw new ValidationException("Multiple running states were found.");
-			}
-			
-			tPrivacyState = CampaignValidators.validatePrivacyState(this, httpRequest.getParameter(InputKeys.PRIVACY_STATE));
-			if(tPrivacyState == null) {
-				setFailed(ErrorCodes.CAMPAIGN_INVALID_PRIVACY_STATE, "Missing the required initial privacy state.");
-				throw new ValidationException("Missing required privacy state.");
-			}
-			else if(httpRequest.getParameterValues(InputKeys.PRIVACY_STATE).length > 1) {
-				setFailed(ErrorCodes.CAMPAIGN_INVALID_PRIVACY_STATE, "Multiple privacy states were found.");
-				throw new ValidationException("Multiple privacy states were found.");
-			}
-			
-			tClassIds = ClassValidators.validateClassIdList(this, httpRequest.getParameter(InputKeys.CLASS_URN_LIST));
-			if(tClassIds == null) {
-				setFailed(ErrorCodes.CLASS_INVALID_ID, "Missing the required class ID list.");
-				throw new ValidationException("Missing required class ID list.");
-			}
-			else if(httpRequest.getParameterValues(InputKeys.CLASS_URN_LIST).length > 1) {
-				setFailed(ErrorCodes.CLASS_INVALID_ID, "Multiple class ID lists were found.");
-				throw new ValidationException("Multiple class ID lists were found.");
-			}
-			
-			tDescription = CampaignValidators.validateDescription(this, httpRequest.getParameter(InputKeys.DESCRIPTION));
-			if((tDescription != null) && (httpRequest.getParameterValues(InputKeys.DESCRIPTION).length > 1)) {
-				setFailed(ErrorCodes.CLASS_INVALID_DESCRIPTION, "Multiple descriptions were found.");
-				throw new ValidationException("Multiple descriptions were found.");
-			}
-		}
-		catch(ValidationException e) {
-			LOGGER.info(e.toString());
 		}
 		
 		xml = tXml;
