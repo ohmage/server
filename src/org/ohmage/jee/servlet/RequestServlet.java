@@ -257,10 +257,13 @@ public class RequestServlet extends HttpServlet {
 	 */
 	@Override
 	protected final void doGet(HttpServletRequest httpRequest, HttpServletResponse httpResponse) {
-		if("/app/image/read".equals(httpRequest.getRequestURI())) {
+		if(RequestBuilder.API_CONFIG_READ.equals(httpRequest.getRequestURI())) {
 			processRequest(httpRequest, httpResponse);
 		}
-		else if("/app/document/read/contents".equals(httpRequest.getRequestURI())) {
+		else if(RequestBuilder.API_IMAGE_READ.equals(httpRequest.getRequestURI())) {
+			processRequest(httpRequest, httpResponse);
+		}
+		else if(RequestBuilder.API_DOCUMENT_READ_CONTENTS.equals(httpRequest.getRequestURI())) {
 			processRequest(httpRequest, httpResponse);
 		}
 		else if(httpRequest.getRequestURI().startsWith("/app/viz/")) {
