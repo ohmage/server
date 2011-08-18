@@ -163,12 +163,12 @@ public final class ImageDaos extends Dao {
 		
 		try {
 			// Begin the transaction.
-			PlatformTransactionManager transactionManager = new DataSourceTransactionManager(instance.dataSource);
+			PlatformTransactionManager transactionManager = new DataSourceTransactionManager(instance.getDataSource());
 			TransactionStatus status = transactionManager.getTransaction(def);
 			
 			// Insert the image URL into the database.
 			try {
-				instance.jdbcTemplate.update(
+				instance.getJdbcTemplate().update(
 						SQL_INSERT_IMAGE, 
 						new Object[] { username, client, imageId, url }
 					);
@@ -208,7 +208,7 @@ public final class ImageDaos extends Dao {
 	 */
 	public static Boolean getImageExists(String imageId) throws DataAccessException {
 		try {
-			return instance.jdbcTemplate.queryForObject(SQL_EXISTS_IMAGE, new Object[] { imageId }, Boolean.class);
+			return instance.getJdbcTemplate().queryForObject(SQL_EXISTS_IMAGE, new Object[] { imageId }, Boolean.class);
 		}
 		catch(org.springframework.dao.DataAccessException e) {
 			throw new DataAccessException("Error executing SQL '" + SQL_EXISTS_IMAGE + "' with parameter: " + imageId, e);
@@ -228,7 +228,7 @@ public final class ImageDaos extends Dao {
 	 */
 	public static String getImageUrl(String imageId) throws DataAccessException {
 		try {
-			return instance.jdbcTemplate.queryForObject(SQL_GET_IMAGE_URL, new Object[] { imageId }, String.class);
+			return instance.getJdbcTemplate().queryForObject(SQL_GET_IMAGE_URL, new Object[] { imageId }, String.class);
 		}
 		catch(org.springframework.dao.IncorrectResultSizeDataAccessException e) {
 			if(e.getActualSize() > 1) {

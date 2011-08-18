@@ -337,12 +337,12 @@ public final class CampaignDaos extends Dao {
 		
 		try {
 			// Begin the transaction.
-			PlatformTransactionManager transactionManager = new DataSourceTransactionManager(instance.dataSource);
+			PlatformTransactionManager transactionManager = new DataSourceTransactionManager(instance.getDataSource());
 			TransactionStatus status = transactionManager.getTransaction(def);
 			
 			// Create the campaign.
 			try {
-				instance.jdbcTemplate.update(
+				instance.getJdbcTemplate().update(
 						SQL_INSERT_CAMPAIGN, 
 						new Object[] { campaignId, name, xml, description, runningState, privacyState });
 			}
@@ -360,7 +360,7 @@ public final class CampaignDaos extends Dao {
 			// Add the requesting user as the author. This may have already 
 			// happened above.
 			try {
-				instance.jdbcTemplate.update(SQL_INSERT_USER_ROLE_CAMPAIGN, creatorUsername, campaignId, CampaignRoleCache.ROLE_AUTHOR);
+				instance.getJdbcTemplate().update(SQL_INSERT_USER_ROLE_CAMPAIGN, creatorUsername, campaignId, CampaignRoleCache.ROLE_AUTHOR);
 			}
 			catch(org.springframework.dao.DataIntegrityViolationException e) {
 				// The user was already an author of this campaign implying 
@@ -398,7 +398,7 @@ public final class CampaignDaos extends Dao {
 	 */
 	public static Boolean getCampaignExists(String campaignId) throws DataAccessException {
 		try {
-			return instance.jdbcTemplate.queryForObject(
+			return instance.getJdbcTemplate().queryForObject(
 					SQL_EXISTS_CAMPAIGN, 
 					new Object[] { campaignId }, 
 					Boolean.class
@@ -419,7 +419,7 @@ public final class CampaignDaos extends Dao {
 	 */
 	public static String getRunningStateForCampaignId(String campaignId) throws DataAccessException {
 		try {
-			return instance.jdbcTemplate.queryForObject(
+			return instance.getJdbcTemplate().queryForObject(
 					SQL_SELECT_CAMPAIGN_RUNNING_STATE, 
 					new Object[] { campaignId }, 
 					String.class
@@ -440,7 +440,7 @@ public final class CampaignDaos extends Dao {
 	 */
 	public static String getName(String campaignId) throws DataAccessException {
 		try {
-			return instance.jdbcTemplate.queryForObject(SQL_GET_NAME, new Object[] { campaignId }, String.class);
+			return instance.getJdbcTemplate().queryForObject(SQL_GET_NAME, new Object[] { campaignId }, String.class);
 		}
 		catch(org.springframework.dao.IncorrectResultSizeDataAccessException e) {
 			if(e.getActualSize() > 1) {
@@ -462,7 +462,7 @@ public final class CampaignDaos extends Dao {
 	 */
 	public static Configuration findCampaignConfiguration(final String campaignId) throws DataAccessException {
 		try {
-			return instance.jdbcTemplate.queryForObject(
+			return instance.getJdbcTemplate().queryForObject(
 					SQL_SELECT_CAMPAIGN_CONFIGURATION, 
 					new Object[] { campaignId }, 
 					new RowMapper<Configuration>() { public Configuration mapRow(ResultSet rs, int rowNum) throws SQLException {
@@ -495,7 +495,7 @@ public final class CampaignDaos extends Dao {
 	 */
 	public static String getDescription(String campaignId) throws DataAccessException {
 		try {
-			return instance.jdbcTemplate.queryForObject(SQL_GET_DESCRIPTION, new Object[] { campaignId }, String.class);
+			return instance.getJdbcTemplate().queryForObject(SQL_GET_DESCRIPTION, new Object[] { campaignId }, String.class);
 		}
 		catch(org.springframework.dao.IncorrectResultSizeDataAccessException e) {
 			if(e.getActualSize() > 1) {
@@ -519,7 +519,7 @@ public final class CampaignDaos extends Dao {
 	 */
 	public static String getCampaignPrivacyState(String campaignId) throws DataAccessException {
 		try {
-			return instance.jdbcTemplate.queryForObject(SQL_GET_PRIVACY_STATE, new Object[] { campaignId }, String.class);
+			return instance.getJdbcTemplate().queryForObject(SQL_GET_PRIVACY_STATE, new Object[] { campaignId }, String.class);
 		}
 		catch(org.springframework.dao.IncorrectResultSizeDataAccessException e) {
 			if(e.getActualSize() > 1) {
@@ -543,7 +543,7 @@ public final class CampaignDaos extends Dao {
 	 */
 	public static String getCampaignRunningState(String campaignId) throws DataAccessException {
 		try {
-			return instance.jdbcTemplate.queryForObject(SQL_GET_RUNNING_STATE, new Object[] { campaignId }, String.class);
+			return instance.getJdbcTemplate().queryForObject(SQL_GET_RUNNING_STATE, new Object[] { campaignId }, String.class);
 		}
 		catch(org.springframework.dao.IncorrectResultSizeDataAccessException e) {
 			if(e.getActualSize() > 1) {
@@ -567,7 +567,7 @@ public final class CampaignDaos extends Dao {
 	 */
 	public static String getXml(String campaignId) throws DataAccessException {
 		try {
-			return instance.jdbcTemplate.queryForObject(SQL_GET_XML, new Object[] { campaignId }, String.class);
+			return instance.getJdbcTemplate().queryForObject(SQL_GET_XML, new Object[] { campaignId }, String.class);
 		}
 		catch(org.springframework.dao.IncorrectResultSizeDataAccessException e) {
 			if(e.getActualSize() > 1) {
@@ -591,7 +591,7 @@ public final class CampaignDaos extends Dao {
 	 */
 	public static Timestamp getCreationTimestamp(String campaignId) throws DataAccessException {
 		try {
-			return instance.jdbcTemplate.queryForObject(SQL_GET_CREATION_TIMESTAMP, new Object[] { campaignId }, Timestamp.class);
+			return instance.getJdbcTemplate().queryForObject(SQL_GET_CREATION_TIMESTAMP, new Object[] { campaignId }, Timestamp.class);
 		}
 		catch(org.springframework.dao.IncorrectResultSizeDataAccessException e) {
 			if(e.getActualSize() > 1) {
@@ -616,7 +616,7 @@ public final class CampaignDaos extends Dao {
 	public static List<String> getCampaignsOnOrAfterDate(Calendar date) throws DataAccessException {
 		Timestamp dateAsTimestamp = new Timestamp(date.getTimeInMillis());
 		try {
-			return instance.jdbcTemplate.query(
+			return instance.getJdbcTemplate().query(
 					SQL_GET_CAMPAIGNS_ON_OR_AFTER_DATE,
 					new Object[] { dateAsTimestamp },
 					new SingleColumnRowMapper<String>());
@@ -637,7 +637,7 @@ public final class CampaignDaos extends Dao {
 	public static List<String> getCampaignsOnOrBeforeDate(Calendar date) throws DataAccessException {
 		Timestamp dateAsTimestamp = new Timestamp(date.getTimeInMillis());
 		try {
-			return instance.jdbcTemplate.query(
+			return instance.getJdbcTemplate().query(
 					SQL_GET_CAMPAIGNS_ON_OR_BEFORE_DATE,
 					new Object[] { dateAsTimestamp },
 					new SingleColumnRowMapper<String>());
@@ -658,7 +658,7 @@ public final class CampaignDaos extends Dao {
 	 */
 	public static List<String> getCampaignsWithPrivacyState(String privacyState) throws DataAccessException {
 		try {
-			return instance.jdbcTemplate.query(
+			return instance.getJdbcTemplate().query(
 					SQL_GET_CAMPAIGNS_WITH_PRIVACY_STATE,
 					new Object[] { privacyState },
 					new SingleColumnRowMapper<String>());
@@ -679,7 +679,7 @@ public final class CampaignDaos extends Dao {
 	 */
 	public static List<String> getCampaignsWithRunningState(String runningState) throws DataAccessException {
 		try {
-			return instance.jdbcTemplate.query(
+			return instance.getJdbcTemplate().query(
 					SQL_GET_CAMPAIGNS_WITH_RUNNING_STATE,
 					new Object[] { runningState },
 					new SingleColumnRowMapper<String>());
@@ -737,13 +737,13 @@ public final class CampaignDaos extends Dao {
 		
 		try {
 			// Begin the transaction.
-			PlatformTransactionManager transactionManager = new DataSourceTransactionManager(instance.dataSource);
+			PlatformTransactionManager transactionManager = new DataSourceTransactionManager(instance.getDataSource());
 			TransactionStatus status = transactionManager.getTransaction(def);
 			
 			// Update the XML if it is present.
 			if(xml != null) {
 				try {
-					instance.jdbcTemplate.update(SQL_UPDATE_XML, new Object[] { xml, campaignId });
+					instance.getJdbcTemplate().update(SQL_UPDATE_XML, new Object[] { xml, campaignId });
 				}
 				catch(org.springframework.dao.DataAccessException e) {
 					transactionManager.rollback(status);
@@ -754,7 +754,7 @@ public final class CampaignDaos extends Dao {
 			// Update the description if it is present.
 			if(description != null) {
 				try {
-					instance.jdbcTemplate.update(SQL_UPDATE_DESCRIPTION, new Object[] { description, campaignId });
+					instance.getJdbcTemplate().update(SQL_UPDATE_DESCRIPTION, new Object[] { description, campaignId });
 				}
 				catch(org.springframework.dao.DataAccessException e) {
 					transactionManager.rollback(status);
@@ -765,7 +765,7 @@ public final class CampaignDaos extends Dao {
 			// Update the running state if it is present.
 			if(runningState != null) {
 				try {
-					instance.jdbcTemplate.update(SQL_UPDATE_RUNNING_STATE, new Object[] { runningState, campaignId });
+					instance.getJdbcTemplate().update(SQL_UPDATE_RUNNING_STATE, new Object[] { runningState, campaignId });
 				}
 				catch(org.springframework.dao.DataAccessException e) {
 					transactionManager.rollback(status);
@@ -776,7 +776,7 @@ public final class CampaignDaos extends Dao {
 			// Update the privacy state if it is present.
 			if(privacyState != null) {
 				try {
-					instance.jdbcTemplate.update(SQL_UPDATE_PRIVACY_STATE, new Object[] { privacyState, campaignId });
+					instance.getJdbcTemplate().update(SQL_UPDATE_PRIVACY_STATE, new Object[] { privacyState, campaignId });
 				}
 				catch(org.springframework.dao.DataAccessException e) {
 					transactionManager.rollback(status);
@@ -789,7 +789,7 @@ public final class CampaignDaos extends Dao {
 				for(String username : usersAndRolesToAdd.keySet()) {
 					for(String role : usersAndRolesToAdd.get(username)) {
 						try {
-							instance.jdbcTemplate.update(SQL_INSERT_USER_ROLE_CAMPAIGN, new Object[] { username, campaignId, role });
+							instance.getJdbcTemplate().update(SQL_INSERT_USER_ROLE_CAMPAIGN, new Object[] { username, campaignId, role });
 						}
 						catch(org.springframework.dao.DataIntegrityViolationException e) {
 							// This means that the user already had the role in
@@ -809,7 +809,7 @@ public final class CampaignDaos extends Dao {
 				for(String username : usersAndRolesToRemove.keySet()) {
 					for(String role : usersAndRolesToRemove.get(username)) {
 						try {
-							instance.jdbcTemplate.update(SQL_DELETE_USER_ROLE_CAMPAIGN, new Object[] { username, campaignId, role });
+							instance.getJdbcTemplate().update(SQL_DELETE_USER_ROLE_CAMPAIGN, new Object[] { username, campaignId, role });
 						}
 						catch(org.springframework.dao.DataAccessException e) {
 							transactionManager.rollback(status);
@@ -874,7 +874,7 @@ public final class CampaignDaos extends Dao {
 							// given when they joined the class.
 							List<String> roles;
 							try {
-								roles = instance.jdbcTemplate.query(
+								roles = instance.getJdbcTemplate().query(
 										SQL_GET_USER_DEFAULT_ROLES, 
 										new Object[] { username, campaignId, classId }, 
 										new SingleColumnRowMapper<String>());
@@ -887,7 +887,7 @@ public final class CampaignDaos extends Dao {
 							
 							for(String role : roles) {
 								try {
-									instance.jdbcTemplate.update(
+									instance.getJdbcTemplate().update(
 											SQL_DELETE_USER_ROLE_CAMPAIGN, 
 											new Object[] { username, campaignId, role });
 								}
@@ -906,7 +906,7 @@ public final class CampaignDaos extends Dao {
 
 					// Remove the campaign, class association.
 					try {
-						instance.jdbcTemplate.update(SQL_DELETE_CAMPAIGN_CLASS, new Object[] { campaignId, classId });
+						instance.getJdbcTemplate().update(SQL_DELETE_CAMPAIGN_CLASS, new Object[] { campaignId, classId });
 					}
 					catch(org.springframework.dao.DataAccessException e) {
 						transactionManager.rollback(status);
@@ -948,11 +948,11 @@ public final class CampaignDaos extends Dao {
 		
 		try {
 			// Begin the transaction.
-			PlatformTransactionManager transactionManager = new DataSourceTransactionManager(instance.dataSource);
+			PlatformTransactionManager transactionManager = new DataSourceTransactionManager(instance.getDataSource());
 			TransactionStatus status = transactionManager.getTransaction(def);
 			
 			try {
-				instance.jdbcTemplate.update(SQL_DELETE_CAMPAIGN, campaignId);
+				instance.getJdbcTemplate().update(SQL_DELETE_CAMPAIGN, campaignId);
 			}
 			catch(org.springframework.dao.DataAccessException e) {
 				transactionManager.rollback(status);
@@ -994,7 +994,7 @@ public final class CampaignDaos extends Dao {
 		
 		// Associate this class to the campaign.
 		try {
-			instance.jdbcTemplate.update(SQL_INSERT_CAMPAIGN_CLASS, new Object[] { campaignId, classId });
+			instance.getJdbcTemplate().update(SQL_INSERT_CAMPAIGN_CLASS, new Object[] { campaignId, classId });
 		}
 		catch(org.springframework.dao.DataIntegrityViolationException e) {
 			// If the campaign was already associated with the class, ignore
@@ -1011,7 +1011,7 @@ public final class CampaignDaos extends Dao {
 		// relationships for privileged users.
 		// TODO: This should be a parameter in the API.
 		try {
-			instance.jdbcTemplate.update(
+			instance.getJdbcTemplate().update(
 					SQL_INSERT_CAMPAIGN_CLASS_DEFAULT_ROLE, 
 					new Object[] { 
 							campaignId, 
@@ -1026,7 +1026,7 @@ public final class CampaignDaos extends Dao {
 					campaignId + ", " + classId + ", " + ClassRoleCache.ROLE_PRIVILEGED + ", " + CampaignRoleCache.ROLE_SUPERVISOR, e);
 		}
 		try {
-			instance.jdbcTemplate.update(
+			instance.getJdbcTemplate().update(
 					SQL_INSERT_CAMPAIGN_CLASS_DEFAULT_ROLE, 
 					new Object[] { 
 							campaignId, 
@@ -1045,7 +1045,7 @@ public final class CampaignDaos extends Dao {
 		// relationships for restricted users.
 		// TODO: This should be a parameter in the API.
 		try {
-			instance.jdbcTemplate.update(
+			instance.getJdbcTemplate().update(
 					SQL_INSERT_CAMPAIGN_CLASS_DEFAULT_ROLE, 
 					new Object[] { 
 							campaignId, 
@@ -1060,7 +1060,7 @@ public final class CampaignDaos extends Dao {
 					campaignId + ", " + classId + ", " + ClassRoleCache.ROLE_RESTRICTED + ", " + CampaignRoleCache.ROLE_ANALYST, e);
 		}
 		try {
-			instance.jdbcTemplate.update(
+			instance.getJdbcTemplate().update(
 					SQL_INSERT_CAMPAIGN_CLASS_DEFAULT_ROLE, 
 					new Object[] { 
 							campaignId,
@@ -1090,7 +1090,7 @@ public final class CampaignDaos extends Dao {
 		for(String username : usernames) {
 			List<String> roles;
 			try {
-				roles = instance.jdbcTemplate.query(
+				roles = instance.getJdbcTemplate().query(
 						SQL_GET_USER_DEFAULT_ROLES, 
 						new Object[] { username, campaignId, classId }, 
 						new SingleColumnRowMapper<String>());
@@ -1103,7 +1103,7 @@ public final class CampaignDaos extends Dao {
 			
 			for(String role : roles) {
 				try {
-					instance.jdbcTemplate.update(
+					instance.getJdbcTemplate().update(
 							SQL_INSERT_USER_ROLE_CAMPAIGN, 
 							new Object[] { username, campaignId, role });
 				}

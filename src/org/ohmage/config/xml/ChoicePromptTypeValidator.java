@@ -16,7 +16,7 @@ import org.ohmage.config.grammar.custom.ConditionValuePair;
  * @author Joshua Selsky
  */
 public class ChoicePromptTypeValidator extends AbstractNumberPromptTypeValidator {
-	protected Map<Integer, String> choices;
+	private Map<Integer, String> choices;
 	
 	public ChoicePromptTypeValidator() {
 		choices = new HashMap<Integer, String>();
@@ -131,6 +131,32 @@ public class ChoicePromptTypeValidator extends AbstractNumberPromptTypeValidator
 		if(! choices.containsValue(value)) {
 			throw new IllegalArgumentException("default value [" + value + "] is missing from choices");
 		}
+	}
+	
+	/**
+	 * Returns whether or not the list of choices contains some key.
+	 * 
+	 * @param key The key whose existence is being checked.
+	 * 
+	 * @return Whether or not the list of choices contains some key.
+	 */
+	protected boolean choicesContains(Integer key) {
+		return choices.containsKey(key);
+	}
+	
+	/**
+	 * Adds a new integer key and string value as a possible choice replacing
+	 * and returning any existing value associated with the key.
+	 * 
+	 * @param key The integer key.
+	 * 
+	 * @param value The string value.
+	 * 
+	 * @return If there already existed some key in the choice list, the new
+	 * 		   value will replace the old value and the old value is returned.
+	 */
+	protected String addChoice(Integer key, String value) {
+		return choices.put(key, value);
 	}
 	
 	protected void performExtendedConfigValidation(Node promptNode, Nodes minVNodes, Nodes maxVNodes) {

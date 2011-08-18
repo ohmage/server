@@ -10,8 +10,8 @@ import nu.xom.Nodes;
  * @author selsky
  */
 public abstract class AbstractNumberPromptTypeValidator extends AbstractPromptTypeValidator {
-	protected int _min;
-	protected int _max;
+	private int min;
+	private int max;
 	
 	@Override
 	public void validateAndSetConfiguration(Node promptNode) {
@@ -54,7 +54,7 @@ public abstract class AbstractNumberPromptTypeValidator extends AbstractPromptTy
 			throw new IllegalArgumentException("Value is not an integer: " + value);
 		}
 		
-		if(intValue < _min || intValue > _max) {
+		if(intValue < min || intValue > max) {
 			throw new IllegalArgumentException("Value is out of min-max range: " + value);
 		}
 	}
@@ -95,6 +95,22 @@ public abstract class AbstractNumberPromptTypeValidator extends AbstractPromptTy
 		}
 		
 		return i; 
+	}
+	
+	protected int getMin() {
+		return min;
+	}
+	
+	protected void setMin(int min) {
+		this.min = min;
+	}
+	
+	protected int getMax() {
+		return max;
+	}
+	
+	protected void setMax(int max) {
+		this.max = max;
 	}
 	
 	protected abstract void performExtendedConfigValidation(Node promptNode, Nodes minVNodes, Nodes maxVNodes);

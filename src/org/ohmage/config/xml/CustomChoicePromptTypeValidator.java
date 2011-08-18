@@ -35,10 +35,10 @@ public class CustomChoicePromptTypeValidator extends ChoicePromptTypeValidator {
 			int kSize = kNodes.size();
 			for(int j = 0; j < kSize; j++) {
 				int key = getValidNonNegativeInteger(kNodes.get(j).getValue().trim());
-				if(choices.containsKey(key)) {
+				if(choicesContains(key)) {
 					throw new IllegalArgumentException("duplicate choice key found: " + key); 
 				}
-				choices.put(key, null);
+				addChoice(key, null);
 			}
 			
 			Nodes lNodes = promptNode.query("properties/property/label");
@@ -53,7 +53,7 @@ public class CustomChoicePromptTypeValidator extends ChoicePromptTypeValidator {
 				if(! valueSet.add(value)) {
 					throw new IllegalArgumentException("duplicate choice label found: " + value);
 				}
-				choices.put(key, value);
+				addChoice(key, value);
 			}
 		}
 	}

@@ -138,7 +138,7 @@ public final class PreferenceCache extends KeyValueCache {
 	 */
 	public String lookup(String key) throws CacheMissException {		
 		// If the lookup table is out-of-date, refresh it.
-		if((lastUpdateTimestamp + updateFrequency) <= System.currentTimeMillis()) {
+		if((getLastUpdateTimestamp() + getUpdateFrequency()) <= System.currentTimeMillis()) {
 			refreshMap();
 		}
 		

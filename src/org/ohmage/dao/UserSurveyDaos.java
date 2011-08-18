@@ -125,7 +125,7 @@ public final class UserSurveyDaos extends Dao {
 	 */
 	public static Timestamp getLastUploadForUser(String requestersUsername, String usersUsername) throws DataAccessException {
 		try {
-			List<Timestamp> timestamps = instance.jdbcTemplate.query(
+			List<Timestamp> timestamps = instance.getJdbcTemplate().query(
 					SQL_GET_SURVEY_RESPONSES_FOR_USER_FOR_REQUESTER,
 					new Object[] { usersUsername, requestersUsername },
 					new RowMapper<Timestamp> () {
@@ -197,7 +197,7 @@ public final class UserSurveyDaos extends Dao {
 			final List<String> nonNullLocations = new LinkedList<String>();
 			final List<String> allLocations = new LinkedList<String>();
 			
-			instance.jdbcTemplate.query(
+			instance.getJdbcTemplate().query(
 					SQL_GET_SURVEY_RESPONSES_FOR_USER_FOR_REQUESTER, 
 					new Object[] { usersUsername, requestersUsername }, 
 					new RowMapper<String>() {

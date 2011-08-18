@@ -24,9 +24,9 @@ public class NumberMinMaxPromptTypeValidator extends AbstractNumberPromptTypeVal
 			} catch (NumberFormatException nfe) {
 				throw new IllegalArgumentException("not a number: " + pair.getValue()); 
 			}
-			if(v < _min || v > _max) {
-				throw new IllegalArgumentException("number or hours_before_now prompt value of out range. min=" + _min + ", max=" +
-				    _max + ", value=" + pair.getValue());
+			if(v < getMin() || v > getMax()) {
+				throw new IllegalArgumentException("number or hours_before_now prompt value of out range. min=" + getMin() + ", max=" +
+				    getMax() + ", value=" + pair.getValue());
 			}
 		}
 	}
@@ -36,10 +36,10 @@ public class NumberMinMaxPromptTypeValidator extends AbstractNumberPromptTypeVal
 	 * Makes sure max is greater than min and that min and max are both valid integers.
 	 */
 	protected void performExtendedConfigValidation(Node promptNode, Nodes minLNodes, Nodes maxLNodes) {
-		_min = getValidNegOrPosInteger(minLNodes.get(0).getValue().trim()); 
-		_max = getValidNegOrPosInteger(maxLNodes.get(0).getValue().trim());
+		setMin(getValidNegOrPosInteger(minLNodes.get(0).getValue().trim())); 
+		setMax(getValidNegOrPosInteger(maxLNodes.get(0).getValue().trim()));
 		
-		if(_max < _min) {
+		if(getMax() < getMin()) {
 			throw new IllegalStateException("max cannot be less than min: " + promptNode.toXML());
 		}
 	}

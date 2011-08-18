@@ -9,21 +9,21 @@ import java.util.List;
  * @author selsky
  */
 public class PromptTypeValidatorFactory {
-	private static final List<String> _promptTypes;
+	private static final List<String> promptTypes;
 	
 	static {
-		_promptTypes = new ArrayList<String>();
+		promptTypes = new ArrayList<String>();
 		
-		_promptTypes.add("timestamp");
-		_promptTypes.add("number");
-		_promptTypes.add("hours_before_now");
-		_promptTypes.add("text");
-		_promptTypes.add("multi_choice");
-		_promptTypes.add("multi_choice_custom");
-		_promptTypes.add("single_choice");
-		_promptTypes.add("single_choice_custom");
-		_promptTypes.add("photo");
-		_promptTypes.add("remote_activity");
+		promptTypes.add("timestamp");
+		promptTypes.add("number");
+		promptTypes.add("hours_before_now");
+		promptTypes.add("text");
+		promptTypes.add("multi_choice");
+		promptTypes.add("multi_choice_custom");
+		promptTypes.add("single_choice");
+		promptTypes.add("single_choice_custom");
+		promptTypes.add("photo");
+		promptTypes.add("remote_activity");
 	}
 	
 	// prevent instantiation
@@ -82,6 +82,6 @@ public class PromptTypeValidatorFactory {
 	 * Returns whether the provided promptType is supported by this factory. 
 	 */
 	public static boolean isValidPromptType(String promptType) {
-		return _promptTypes.contains(promptType);
+		return promptTypes.contains(promptType);
 	}                                                           
 }

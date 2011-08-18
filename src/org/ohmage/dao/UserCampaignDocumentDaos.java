@@ -92,7 +92,7 @@ public final class UserCampaignDocumentDaos extends Dao {
 		
 		List<String> documentList;
 		try {
-			documentList = instance.jdbcTemplate.query(
+			documentList = instance.getJdbcTemplate().query(
 					SQL_GET_DOCUMENTS_SPECIFIC_TO_CAMPAIGN_FOR_REQUESTING_USER, 
 					new Object[] { username, campaignId },
 					new SingleColumnRowMapper<String>());
@@ -124,7 +124,7 @@ public final class UserCampaignDocumentDaos extends Dao {
 	 */
 	public static Boolean getUserIsSupervisorInAnyCampaignAssociatedWithDocument(String username, String documentId) throws DataAccessException {
 		try {
-			return instance.jdbcTemplate.queryForObject(
+			return instance.getJdbcTemplate().queryForObject(
 					SQL_EXISTS_USER_IS_SUPERVISOR_IN_ANY_CAMPAIGN_ASSOCIATED_WITH_DOCUMENT, 
 					new Object[] { username, documentId }, 
 					Boolean.class);

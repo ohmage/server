@@ -63,7 +63,7 @@ public final class CampaignImageDaos extends Dao {
 	 */
 	public static List<String> getCampaignIdsForImageId(String imageId) throws DataAccessException {
 		try {
-			return instance.jdbcTemplate.query(
+			return instance.getJdbcTemplate().query(
 					SQL_GET_CAMPAIGN_IDS_FOR_IMAGE, 
 					new Object[] { imageId }, 
 					new SingleColumnRowMapper<String>());
@@ -90,7 +90,7 @@ public final class CampaignImageDaos extends Dao {
 	 */
 	public static String getImagePrivacyStateInCampaign(String campaignId, String imageId) throws DataAccessException {
 		try {
-			return instance.jdbcTemplate.queryForObject(
+			return instance.getJdbcTemplate().queryForObject(
 					SQL_GET_IMAGE_PRIVACY_STATE_IN_CAMPAIGN, 
 					new Object[] { campaignId, imageId }, 
 					String.class);

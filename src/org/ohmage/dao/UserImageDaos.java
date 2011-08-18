@@ -59,7 +59,7 @@ public final class UserImageDaos extends Dao {
 	 */
 	public static Boolean responseExistsForUserWithImage(String username, String imageId) throws DataAccessException {
 		try {
-			return instance.jdbcTemplate.queryForObject(SQL_EXISTS_IMAGE_FOR_USER_IN_RESPONSE, new Object[] { username, imageId }, Boolean.class);
+			return instance.getJdbcTemplate().queryForObject(SQL_EXISTS_IMAGE_FOR_USER_IN_RESPONSE, new Object[] { username, imageId }, Boolean.class);
 		}
 		catch(org.springframework.dao.DataAccessException e) {
 			throw new DataAccessException("Error executing SQL '" + SQL_EXISTS_IMAGE_FOR_USER_IN_RESPONSE + "' with parameters: " + 
@@ -79,7 +79,7 @@ public final class UserImageDaos extends Dao {
 	 */
 	public static String getImageOwner(String imageId) throws DataAccessException {
 		try {
-			return instance.jdbcTemplate.queryForObject(SQL_GET_IMAGE_OWNER, new Object[] { imageId }, String.class);
+			return instance.getJdbcTemplate().queryForObject(SQL_GET_IMAGE_OWNER, new Object[] { imageId }, String.class);
 		}
 		catch(org.springframework.dao.IncorrectResultSizeDataAccessException e) {
 			if(e.getActualSize() > 1) {

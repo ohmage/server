@@ -270,12 +270,12 @@ public final class UserMobilityDaos extends Dao {
 		
 		try {
 			// Begin the transaction.
-			PlatformTransactionManager transactionManager = new DataSourceTransactionManager(instance.dataSource);
+			PlatformTransactionManager transactionManager = new DataSourceTransactionManager(instance.getDataSource());
 			TransactionStatus status = transactionManager.getTransaction(def);
 			
 			// Create the point.
 			try {
-				instance.jdbcTemplate.update(
+				instance.getJdbcTemplate().update(
 						SQL_INSERT_MODE_ONLY, 
 						new Object[] {
 								username,
@@ -371,12 +371,12 @@ public final class UserMobilityDaos extends Dao {
 		
 		try {
 			// Begin the transaction.
-			PlatformTransactionManager transactionManager = new DataSourceTransactionManager(instance.dataSource);
+			PlatformTransactionManager transactionManager = new DataSourceTransactionManager(instance.getDataSource());
 			TransactionStatus status = transactionManager.getTransaction(def);
 			
 			// Create the point.
 			try {
-				instance.jdbcTemplate.update(
+				instance.getJdbcTemplate().update(
 						SQL_INSERT_EXTENDED, 
 						new Object[] {
 								username,
@@ -442,7 +442,7 @@ public final class UserMobilityDaos extends Dao {
 		// Retrieve a Timestamp of the most recent mode-only upload.
 		Timestamp lastModeOnlyUpload = null;
 		try {
-			List<Timestamp> timestamps = instance.jdbcTemplate.query(
+			List<Timestamp> timestamps = instance.getJdbcTemplate().query(
 					SQL_GET_MODE_ONLY_FOR_USER_FOR_REQUESTER, 
 					new Object[] { usersUsername, requestersUsername }, 
 					new RowMapper<Timestamp>() {
@@ -482,7 +482,7 @@ public final class UserMobilityDaos extends Dao {
 		// Retrieve a Timestamp of the most recent extended upload.
 		Timestamp lastExtendedUpload = null;
 		try {
-			List<Timestamp> timestamps = instance.jdbcTemplate.query(
+			List<Timestamp> timestamps = instance.getJdbcTemplate().query(
 					SQL_GET_EXTENDED_FOR_USER_FOR_REQUESTER, 
 					new Object[] { usersUsername, requestersUsername }, 
 					new RowMapper<Timestamp>() {
@@ -567,7 +567,7 @@ public final class UserMobilityDaos extends Dao {
 			final List<String> nonNullLocations = new LinkedList<String>();
 			final List<String> allLocations = new LinkedList<String>();
 			
-			instance.jdbcTemplate.query(
+			instance.getJdbcTemplate().query(
 					SQL_GET_MODE_ONLY_FOR_USER_FOR_REQUESTER, 
 					new Object[] { usersUsername, requestersUsername }, 
 					new RowMapper<String>() {
@@ -608,7 +608,7 @@ public final class UserMobilityDaos extends Dao {
 			final List<String> nonNullLocations = new LinkedList<String>();
 			final List<String> allLocations = new LinkedList<String>();
 			
-			instance.jdbcTemplate.query(
+			instance.getJdbcTemplate().query(
 					SQL_GET_EXTENDED_FOR_USER_FOR_REQUESTER, 
 					new Object[] { usersUsername, requestersUsername }, 
 					new RowMapper<String>() {

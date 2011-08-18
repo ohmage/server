@@ -96,7 +96,7 @@ public class SurveyUploadDao extends AbstractUploadDao {
 		// Wrap all of the inserts in a transaction 
 		DefaultTransactionDefinition def = new DefaultTransactionDefinition();
 		def.setName("survey upload");
-		DataSourceTransactionManager transactionManager = new DataSourceTransactionManager(instance.dataSource);
+		DataSourceTransactionManager transactionManager = new DataSourceTransactionManager(instance.getDataSource());
 		TransactionStatus status = transactionManager.getTransaction(def); // begin transaction
 		
 		// Use a savepoint to handle nested rollbacks if duplicates are found
@@ -116,7 +116,7 @@ public class SurveyUploadDao extends AbstractUploadDao {
 					
 					// First, insert the survey
 					
-					instance.jdbcTemplate.update(
+					instance.getJdbcTemplate().update(
 						new PreparedStatementCreator() {
 							public PreparedStatement createPreparedStatement(Connection connection) throws SQLException {
 								PreparedStatement ps 
@@ -159,7 +159,7 @@ public class SurveyUploadDao extends AbstractUploadDao {
 						final PromptResponse promptUpload = promptUploadList.get(i);	
 						currentPromptResponse = promptUpload;
 						
-						instance.jdbcTemplate.update(
+						instance.getJdbcTemplate().update(
 							new PreparedStatementCreator() {
 								public PreparedStatement createPreparedStatement(Connection connection) throws SQLException {
 									PreparedStatement ps 

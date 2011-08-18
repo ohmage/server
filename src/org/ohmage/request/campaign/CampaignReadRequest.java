@@ -220,7 +220,8 @@ public class CampaignReadRequest extends UserRequest {
 			}
 			
 			// TODO: Should this really be an issue? Should we simply return
-			// nothing?
+			// nothing? There was a GitHub issue, and it was decided that it 
+			// was better to send an error to the user than to return nothing.
 			LOGGER.info("Verifying that if both the start date and end date are present that the start date isn't after the end date.");
 			if((tStartDate != null) && (tEndDate != null) && (tStartDate.after(tEndDate))) {
 				setFailed(ErrorCodes.SERVER_INVALID_DATE, "The start date cannot be after the end date.");
@@ -395,6 +396,10 @@ public class CampaignReadRequest extends UserRequest {
 			}
 		}
 		
+		// Set the response's content type to "text/html" and if it is a
+		// successful read, it will change it to whatever is appropriate.
+		httpResponse.setContentType("text/html");
+		
 		String responseText;
 		if(isFailed()) {
 			// If it failed, get the failure message.
@@ -459,7 +464,7 @@ public class CampaignReadRequest extends UserRequest {
 			else if(OutputFormat.XML.equals(outputFormat)) {
 				// Set the type and force the browser to download it as the 
 				// last step before beginning to stream the response.
-				httpResponse.setContentType("ohmage/campaign");
+				httpResponse.setContentType("text/xml");
 				httpResponse.setHeader("Content-Disposition", "attachment; filename=" + campaignNameResult + ".xml");
 				
 				responseText = xmlResult;

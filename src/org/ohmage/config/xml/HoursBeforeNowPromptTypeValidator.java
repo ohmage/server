@@ -15,10 +15,10 @@ public class HoursBeforeNowPromptTypeValidator extends NumberMinMaxPromptTypeVal
 	 */
 	@Override
 	protected void performExtendedConfigValidation(Node promptNode, Nodes minVNodes, Nodes maxVNodes) {
-		_min = getValidNonNegativeInteger(minVNodes.get(0).getValue().trim()); 
-		_max = getValidNonNegativeInteger(maxVNodes.get(0).getValue().trim());
+		setMin(getValidNonNegativeInteger(minVNodes.get(0).getValue().trim())); 
+		setMax(getValidNonNegativeInteger(maxVNodes.get(0).getValue().trim()));
 		
-		if(_max < _min) {
+		if(getMax() < getMin()) {
 			throw new IllegalStateException("max cannot be less than min:\n" + promptNode.toXML());
 		}
 	}

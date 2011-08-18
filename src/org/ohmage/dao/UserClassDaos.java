@@ -9,9 +9,7 @@ import java.util.Map;
 import javax.sql.DataSource;
 
 import org.apache.log4j.Logger;
-
 import org.ohmage.exception.DataAccessException;
-
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.SingleColumnRowMapper;
 
@@ -91,7 +89,7 @@ public final class UserClassDaos extends Dao {
 	 */
 	public static Boolean userBelongsToClass(String classId, String username) throws DataAccessException {
 		try {
-			return (Boolean) instance.jdbcTemplate.queryForObject(SQL_EXISTS_USER_CLASS, new Object[] { username, classId }, Boolean.class);
+			return (Boolean) instance.getJdbcTemplate().queryForObject(SQL_EXISTS_USER_CLASS, new Object[] { username, classId }, Boolean.class);
 		}
 		catch(org.springframework.dao.DataAccessException e) {
 			throw new DataAccessException("Error executing SQL '" + SQL_EXISTS_USER_CLASS + "' with parameters: " + username + ", " + classId, e);
@@ -107,7 +105,7 @@ public final class UserClassDaos extends Dao {
 	 */
 	public static List<String> getUsersInClass(String classId) throws DataAccessException {
 		try {
-			return instance.jdbcTemplate.query(SQL_GET_USER_CLASS, new Object[] { classId }, new SingleColumnRowMapper<String>());
+			return instance.getJdbcTemplate().query(SQL_GET_USER_CLASS, new Object[] { classId }, new SingleColumnRowMapper<String>());
 		}
 		catch(org.springframework.dao.DataAccessException e) {
 			throw new DataAccessException("Error executing SQL '" + SQL_GET_USER_CLASS + "' with parameters: " + classId, e);
@@ -127,7 +125,7 @@ public final class UserClassDaos extends Dao {
 	 */
 	public static String getUserClassRole(String classId, String username) throws DataAccessException {
 		try {
-			return (String) instance.jdbcTemplate.queryForObject(SQL_GET_USER_ROLE, new Object[] { username, classId }, String.class);
+			return (String) instance.getJdbcTemplate().queryForObject(SQL_GET_USER_ROLE, new Object[] { username, classId }, String.class);
 		}
 		catch(org.springframework.dao.IncorrectResultSizeDataAccessException e) {
 			if(e.getActualSize() > 1) {
@@ -146,7 +144,7 @@ public final class UserClassDaos extends Dao {
 		try {
 			final Map<String, String> result = new HashMap<String, String>();
 			
-			instance.jdbcTemplate.query(
+			instance.getJdbcTemplate().query(
 					SQL_GET_CLASS_ID_AND_NAMES_FOR_USER, 
 					new Object[] { username }, 
 					new RowMapper<Object> () {
