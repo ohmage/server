@@ -659,6 +659,16 @@ public class UserDaos extends Dao {
 						hashedPassword + ", " + username, e);
 			}
 			
+			// Ensure that this user is no longer a new user.
+			try {
+				instance.getJdbcTemplate().update(SQL_UPDATE_NEW_ACCOUNT, false, username);
+			}
+			catch(org.springframework.dao.DataAccessException e) {
+				transactionManager.rollback(status);
+				throw new DataAccessException("Error executing the following SQL '" + SQL_UPDATE_NEW_ACCOUNT + "' with parameters: " + 
+						false + ", " + username, e);
+			}
+			
 			// Commit the transaction.
 			try {
 				transactionManager.commit(status);
