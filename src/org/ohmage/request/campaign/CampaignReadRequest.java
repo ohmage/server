@@ -146,6 +146,8 @@ public class CampaignReadRequest extends UserRequest {
 	private static final Logger LOGGER = Logger.getLogger(CampaignReadRequest.class);
 
 	private static final String JSON_KEY_USER_ROLES = "user_roles";
+
+	private static final long MILLIS_IN_A_SECOND = 1000;
 	
 	private final CampaignValidators.OutputFormat outputFormat;
 	
@@ -291,7 +293,7 @@ public class CampaignReadRequest extends UserRequest {
 	public void service() {
 		LOGGER.info("Servicing the campaign read request.");
 		
-		if(! authenticate(false)) {
+		if(! authenticate(AllowNewAccount.NEW_ACCOUNT_DISALLOWED)) {
 			return;
 		}
 		

@@ -158,7 +158,7 @@ public class CampaignCreationRequest extends UserRequest {
 	public void service() {
 		LOGGER.info("Servicing the campaign creation request.");
 		
-		if(! authenticate(false)) {
+		if(! authenticate(AllowNewAccount.NEW_ACCOUNT_DISALLOWED)) {
 			return;
 		}
 		

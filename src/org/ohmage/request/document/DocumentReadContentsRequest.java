@@ -50,6 +50,8 @@ public class DocumentReadContentsRequest extends UserRequest {
 	private static final Logger LOGGER = Logger.getLogger(DocumentReadContentsRequest.class);
 	
 	private static final int CHUNK_SIZE = 4096;
+
+	private static final long MILLIS_IN_A_SECOND = 1000;
 	
 	private final String documentId;
 	
@@ -94,7 +96,7 @@ public class DocumentReadContentsRequest extends UserRequest {
 	public void service() {
 		LOGGER.info("Servicing the document read contents request.");
 		
-		if(! authenticate(false)) {
+		if(! authenticate(AllowNewAccount.NEW_ACCOUNT_DISALLOWED)) {
 			return;
 		}
 		

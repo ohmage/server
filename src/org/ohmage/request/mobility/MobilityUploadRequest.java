@@ -176,7 +176,7 @@ public class MobilityUploadRequest extends UserRequest {
 	public void service() {
 		LOGGER.info("Servicing the Mobility upload request.");
 		
-		if(! authenticate(false)) {
+		if(! authenticate(AllowNewAccount.NEW_ACCOUNT_DISALLOWED)) {
 			return;
 		}
 		

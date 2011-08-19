@@ -79,7 +79,7 @@ public class UserChangePasswordRequest extends UserRequest {
 	public void service() {
 		LOGGER.info("Servicing the change password request.");
 		
-		if(! authenticate(true)) {
+		if(! authenticate(AllowNewAccount.NEW_ACCOUNT_ALLOWED)) {
 			return;
 		}
 		

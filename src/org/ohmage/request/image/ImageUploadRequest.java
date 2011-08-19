@@ -69,7 +69,7 @@ public class ImageUploadRequest extends UserRequest {
 	public void service() {
 		LOGGER.info("Servicing the image upload request.");
 		
-		if(! authenticate(false)) {
+		if(! authenticate(AllowNewAccount.NEW_ACCOUNT_DISALLOWED)) {
 			return;
 		}
 		

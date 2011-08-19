@@ -27,8 +27,9 @@ public abstract class UserRequest extends Request {
 	private static final Logger LOGGER = Logger.getLogger(UserRequest.class);
 	
 	protected static enum TokenLocation { COOKIE, PARAMETER, EITHER };
+	protected static enum AllowNewAccount { NEW_ACCOUNT_ALLOWED, NEW_ACCOUNT_DISALLOWED };
 	
-	public static final long MILLIS_IN_A_SECOND = 1000;
+	private static final long MILLIS_IN_A_SECOND = 1000;
 	
 	private final User user;
 	private final String client;
@@ -595,11 +596,13 @@ public abstract class UserRequest extends Request {
 	 * @param newAccountsAllowed Whether or not new accounts are allowed to
 	 * 							 make this call.
 	 */
-	public final boolean authenticate(boolean newAccountsAllowed) {
+	public final boolean authenticate(AllowNewAccount newAccountsAllowed) {
 		try {
 			// Validate that the username and password are valid.
 			LOGGER.info("Authenticating the user.");
-			return AuthenticationService.authenticate(this, newAccountsAllowed);
+			return AuthenticationService.authenticate(
+					this, 
+					AllowNewAccount.NEW_ACCOUNT_ALLOWED.equals(newAccountsAllowed));
 		}
 		catch(ServiceException e) {
 			e.logException(LOGGER);

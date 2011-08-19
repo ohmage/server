@@ -190,7 +190,7 @@ public class DocumentCreationRequest extends UserRequest {
 	public void service() {
 		LOGGER.info("Servicing a document creation request.");
 		
-		if(! authenticate(false)) {
+		if(! authenticate(AllowNewAccount.NEW_ACCOUNT_DISALLOWED)) {
 			return;
 		}
 		

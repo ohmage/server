@@ -61,6 +61,8 @@ public class ImageReadRequest extends UserRequest {
 	private static final Logger LOGGER = Logger.getLogger(ImageReadRequest.class);
 	
 	private static final int CHUNK_SIZE = 4096;
+
+	private static final long MILLIS_IN_A_SECOND = 1000;
 	
 	private final String imageId;
 	private final ImageSize size;
@@ -117,7 +119,7 @@ public class ImageReadRequest extends UserRequest {
 	public void service() {
 		LOGGER.info("Servicing image read request.");
 		
-		if(! authenticate(false)) {
+		if(! authenticate(AllowNewAccount.NEW_ACCOUNT_DISALLOWED)) {
 			return;
 		}
 		

@@ -106,7 +106,7 @@ public class UserReadRequest extends UserRequest {
 	public void service() {
 		LOGGER.info("Servicing the user read request.");
 		
-		if(! authenticate(false)) {
+		if(! authenticate(AllowNewAccount.NEW_ACCOUNT_DISALLOWED)) {
 			return;
 		}
 		

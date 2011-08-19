@@ -126,7 +126,7 @@ public class UserStatsReadRequest extends UserRequest {
 	public void service() {
 		LOGGER.info("Servicing the user stats read request.");
 		
-		if(! authenticate(false)) {
+		if(! authenticate(AllowNewAccount.NEW_ACCOUNT_DISALLOWED)) {
 			return;
 		}
 		

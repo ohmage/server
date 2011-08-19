@@ -154,7 +154,7 @@ public final class SurveyUploadRequest extends UserRequest {
 	public void service() {
 		LOGGER.info("Servicing a survey upload request.");
 		
-		if(! authenticate(false)) {
+		if(! authenticate(AllowNewAccount.NEW_ACCOUNT_DISALLOWED)) {
 			return;
 		}
 		
