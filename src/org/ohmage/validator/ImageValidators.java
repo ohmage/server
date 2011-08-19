@@ -86,7 +86,7 @@ public final class ImageValidators {
 		}
 		
 		try {
-			return ImageSize.valueOf(imageSize);
+			return ImageSize.valueOf(imageSize.toUpperCase());
 		}
 		catch(IllegalArgumentException e) {
 			request.setFailed(ErrorCodes.IMAGE_INVALID_SIZE, "The image size value is an unknown value: " + imageSize);
