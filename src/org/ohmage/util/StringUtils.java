@@ -20,7 +20,10 @@ import java.net.URLDecoder;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
+import java.util.List;
 import java.util.UUID;
 import java.util.regex.Pattern;
 
@@ -40,6 +43,8 @@ public final class StringUtils {
 	private static final DateFormat DATE_TIME_FORMAT_EVERYONE_ELSE = new SimpleDateFormat("yyyy-M-d H:m:s");
 	
 	private static final Pattern EMAIL_PATTERN = Pattern.compile("^([_A-Za-z0-9-]+)(\\.[_A-Za-z0-9-]+)*@[A-Za-z0-9]+(\\.[A-Za-z0-9]+)*(\\.[A-Za-z]{2,})$");
+	
+	private static final String DEFAULT_DELIMITER = ",";
 	
 	/**
 	 * It is unnecessary to instantiate this class as it is a collection of 
@@ -323,5 +328,65 @@ public final class StringUtils {
 				return null;
 			}
 		}
+	}
+	
+	/**
+	 * Splits the provided string using the provided delimiter. If no delimiter
+	 * is provided, a comma is used.
+	 * 
+	 * @param string  The string to split
+	 * @param delimiter The delimiter to use for the split operation.
+	 * @return A List of Strings from the provided String or an empty string if
+	 * the provided list is null or all whitespace. 
+	 */
+	public static List<String> splitString(String string, String delimiter) {
+		if(isEmptyOrWhitespaceOnly(string)) {
+			return Collections.emptyList();
+		} 
+		return Arrays.asList(string.split(isEmptyOrWhitespaceOnly(delimiter) ? DEFAULT_DELIMITER : delimiter));
+	}
+	
+	/**
+	 * Checks the incoming string to see if it contains only the delimiter or
+	 * multiple delimiters in a row. If the delimiter is not provided, 
+	 * a comma is used.
+	 * 
+	 * @param string  A string containing a delimited list.
+	 * @param delimiter The string delimiter.
+	 * @return  true if the string is malformed, false otherwise.
+	 */
+	public static boolean isMalformedDelimitedList(String string, String delimiter) {
+		if(StringUtils.isEmptyOrWhitespaceOnly(string)) {
+			return false;
+		}
+		
+		if(StringUtils.isEmptyOrWhitespaceOnly(delimiter)) {
+			delimiter = DEFAULT_DELIMITER;
+		}
+		
+		int strlen = string.length();
+		int currentIndex = -1;
+		for(int i = 0; i < strlen; i++) {
+			if(currentIndex == -1) {
+				currentIndex = string.indexOf(delimiter);
+				if(currentIndex == -1) { // no delimiter found
+					return false;
+				}
+			} else {
+				int lastOccurrence = currentIndex;
+				currentIndex = string.indexOf(delimiter, lastOccurrence);
+				
+				if(currentIndex == -1) {
+					return false;
+				}
+				else {
+					if(currentIndex == lastOccurrence - 1) { // two delimiters in a row
+						return true;
+					}
+				}
+			}
+		}
+		
+		return ! string.equals(delimiter);
 	}
 }

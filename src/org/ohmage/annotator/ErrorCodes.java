@@ -55,6 +55,10 @@ public final class ErrorCodes {
 	public static final String SURVEY_SURVEY_LIST_OR_PROMPT_LIST_ONLY = "0618";
 	public static final String SURVEY_INVALID_LAUNCH_CONTEXT = "0619";
 	public static final String SURVEY_INVALID_LAUNCH_TIME = "0620";
+	public static final String SURVEY_MALFORMED_USER_LIST = "0621";
+	public static final String SURVEY_MALFORMED_PROMPT_ID_LIST = "0622";
+	public static final String SURVEY_MALFORMED_SURVEY_ID_LIST = "0623";
+	public static final String SURVEY_MALFORMED_COLUMN_LIST = "0624";
 	
 	public static final String CAMPAIGN_INVALID_ID = "0700";
 	public static final String CAMPAIGN_INVALID_NAME = "0701";

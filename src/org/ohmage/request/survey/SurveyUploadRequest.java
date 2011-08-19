@@ -126,28 +126,29 @@ public final class SurveyUploadRequest extends UserRequest {
 				setFailed(ErrorCodes.SERVER_INVALID_TIMESTAMP, "Invalid " + InputKeys.CAMPAIGN_CREATION_TIMESTAMP);
 			}
 			
-			if(tempCampaignCreationTimestamp == null) {
-				setFailed(ErrorCodes.SERVER_INVALID_TIMESTAMP, "Missing " + InputKeys.CAMPAIGN_CREATION_TIMESTAMP);
+			if(! isFailed() && tempCampaignCreationTimestamp == null) {
+				setFailed(ErrorCodes.SERVER_INVALID_TIMESTAMP, "Missing " + InputKeys.CAMPAIGN_CREATION_TIMESTAMP);				
 			}
 			
-			if(! StringUtils.isValidUrn(tempCampaignUrn)) {
+			if(! isFailed() && ! StringUtils.isValidUrn(tempCampaignUrn)) {
 				setFailed(ErrorCodes.CAMPAIGN_INVALID_ID, "Invalid campaign id: " + tempCampaignUrn + " was provided.");
 			}
 			
-			if(StringUtils.isEmptyOrWhitespaceOnly(tempJsonData)) {
+			if(! isFailed() && StringUtils.isEmptyOrWhitespaceOnly(tempJsonData)) {
 				setFailed(ErrorCodes.SURVEY_INVALID_RESPONSES, "No value found for 'data' parameter.");
 			}
-		} 
+		}
 		
 		this.campaignCreationTimestamp = httpRequest.getParameter(InputKeys.CAMPAIGN_CREATION_TIMESTAMP);
 		this.campaignUrn = tempCampaignUrn;
 		this.jsonData = tempJsonData;
 	}
 	
-	
 	/**
 	 * Performs a survey upload in the following steps:
-	 * TODO
+	 * <ol>
+	 * <li>TODO</li>
+	 * </ol>
 	 */
 	@Override
 	public void service() {
@@ -211,10 +212,11 @@ public final class SurveyUploadRequest extends UserRequest {
 			LOGGER.info("Saving " + numberOfSurveyResponses + " surveys into the db.");
 			List<Integer> duplicateIndexList = SurveyUploadDao.insertSurveys(this, getUser(), getClient(), campaignUrn, surveyUploadList);
 			
-			// TODO - port the message logging later as part of 2.7
+			LOGGER.info("Found " + duplicateIndexList.size() + " duplicate survey uploads");
+			
+			// TODO - port the message logging later as part of 2.7?
 			// We can use the Audit API for now
 			// LOGGER.info("Logging upload and upload stats to the filesystem.");
-			
 		}
 		catch(ServiceException e) {
 			e.logException(LOGGER);
