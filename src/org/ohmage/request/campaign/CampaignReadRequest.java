@@ -6,9 +6,11 @@ import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.util.Calendar;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -19,7 +21,7 @@ import org.json.JSONObject;
 import org.ohmage.annotator.ErrorCodes;
 import org.ohmage.cache.CampaignRoleCache;
 import org.ohmage.cache.UserBin;
-import org.ohmage.domain.Campaign;
+import org.ohmage.domain.CampaignInformation;
 import org.ohmage.exception.DataAccessException;
 import org.ohmage.exception.ServiceException;
 import org.ohmage.exception.ValidationException;
@@ -142,16 +144,8 @@ import org.ohmage.validator.ClassValidators;
  */
 public class CampaignReadRequest extends UserRequest {
 	private static final Logger LOGGER = Logger.getLogger(CampaignReadRequest.class);
-	
-	private static final String JSON_KEY_NAME = "name";
-	private static final String JSON_KEY_DESCRIPTION = "description";
-	private static final String JSON_KEY_XML = "xml";
-	private static final String JSON_KEY_RUNNING_STATE = "running_state";
-	private static final String JSON_KEY_PRIVACY_STATE = "privacy_state";
-	private static final String JSON_KEY_CREATION_TIMESTAMP = "creation_timestamp";
-	private static final String JSON_KEY_CLASSES = "classes";
+
 	private static final String JSON_KEY_USER_ROLES = "user_roles";
-	private static final String JSON_KEY_CAMPAIGN_ROLES_WITH_USERS = "user_role_campaign";
 	
 	private final CampaignValidators.OutputFormat outputFormat;
 	
@@ -167,7 +161,7 @@ public class CampaignReadRequest extends UserRequest {
 	private final String role;
 	
 	// For short and long reads.
-	private Map<Campaign, List<String>> shortOrLongResult;
+	private Map<CampaignInformation, List<String>> shortOrLongResult;
 	
 	// For XML reads.
 	private String xmlResult;
@@ -285,7 +279,7 @@ public class CampaignReadRequest extends UserRequest {
 		
 		role = tRole;
 		
-		shortOrLongResult = new HashMap<Campaign, List<String>>();
+		shortOrLongResult = new HashMap<CampaignInformation, List<String>>();
 		xmlResult = "";
 		campaignNameResult = "";
 	}
@@ -317,16 +311,12 @@ public class CampaignReadRequest extends UserRequest {
 				List<String> resultCampaignIds = UserCampaignServices.getCampaignsForUser(this, getUser().getUsername(), 
 						campaignIds, classIds, startDate, endDate, privacyState, runningState, role);
 				
-				if(OutputFormat.LONG.equals(outputFormat)) {
-					LOGGER.info("Verifying that the requesting user can read the users and their roles with the resulting campaigns.");
-					UserCampaignServices.verifyUserCanReadUsersInCampaigns(this, getUser().getUsername(), resultCampaignIds);
-					
-					LOGGER.info("Verifying that the requesting user can read the classes associated with the resulting campaigns.");
-					UserCampaignServices.verifyUserCanReadClassesAssociatedWithCampaigns(this, getUser().getUsername(), resultCampaignIds);
-				}
-				
 				LOGGER.info("Gathering the information about the campaigns.");
 				shortOrLongResult = UserCampaignServices.getCampaignAndUserRolesForCampaigns(this, getUser().getUsername(), resultCampaignIds, OutputFormat.LONG.equals(outputFormat));
+				
+				for(CampaignInformation campaign : shortOrLongResult.keySet()) {
+					LOGGER.debug("Campaign dump: " + campaign.toJson(true, true, true, true, true, true, true, true));
+				}
 			}
 			else if(OutputFormat.XML.equals(outputFormat)) {
 				LOGGER.info("Gathering the XML for the campaign.");
@@ -394,41 +384,52 @@ public class CampaignReadRequest extends UserRequest {
 					
 					// Create and add the metadata.
 					JSONObject metadata = new JSONObject();
-					metadata.put("number_of_results", shortOrLongResult.keySet().size());
-					List<String> resultCampaignIds = new LinkedList<String>();
-					for(Campaign campaign : shortOrLongResult.keySet()) {
-						resultCampaignIds.add(campaign.getUrn());
-					}
-					metadata.put("items", resultCampaignIds);
-					result.put("metadata", metadata);
-					
 					// Add the information for each of the campaigns into their own
 					// JSONObject and add that to the result.
 					JSONObject campaignInfo = new JSONObject();
-					for(Campaign campaign : shortOrLongResult.keySet()) {
-						JSONObject currResult = new JSONObject();
-						campaignInfo.put(campaign.getUrn(), currResult);
+					
+					// Get all of the campaign IDs for the metadata.
+					Set<String> resultCampaignIds = new HashSet<String>();
+					
+					// This is done, so we don't have to repeatedly check the
+					// same value.
+					boolean longOutput = OutputFormat.LONG.equals(outputFormat);
+					
+					// For each of the campaigns, process its information and
+					// place it in its respective object.
+					for(CampaignInformation campaign : shortOrLongResult.keySet()) {
+						// Get the campaign's ID for the metadata.
+						resultCampaignIds.add(campaign.getId());
 						
-						currResult.put(JSON_KEY_NAME, campaign.getName());
-						currResult.put(JSON_KEY_DESCRIPTION, campaign.getDescription());
-						currResult.put(JSON_KEY_RUNNING_STATE, campaign.getRunningState());
-						currResult.put(JSON_KEY_PRIVACY_STATE, campaign.getPrivacyState());
-						currResult.put(JSON_KEY_CLASSES, campaign.getClasses());
-						currResult.put(JSON_KEY_CREATION_TIMESTAMP, campaign.getCampaignCreationTimestamp());
-						currResult.put(JSON_KEY_USER_ROLES, shortOrLongResult.get(campaign));
+						List<String> roles = shortOrLongResult.get(campaign);
+						boolean supervisorOrAuthor = 
+							roles.contains(CampaignRoleCache.ROLE_SUPERVISOR) || 
+							roles.contains(CampaignRoleCache.ROLE_AUTHOR);
 						
-						if(OutputFormat.LONG.equals(outputFormat)) {
-							currResult.put(JSON_KEY_XML, campaign.getXml());
-							
-							JSONObject campaignRoles = new JSONObject();
-							campaignRoles.put(CampaignRoleCache.ROLE_SUPERVISOR, campaign.getSupervisors());
-							campaignRoles.put(CampaignRoleCache.ROLE_AUTHOR, campaign.getAuthors());
-							campaignRoles.put(CampaignRoleCache.ROLE_ANALYST, campaign.getAnalysts());
-							campaignRoles.put(CampaignRoleCache.ROLE_PARTICIPANT, campaign.getParticipants());
-							currResult.put(JSON_KEY_CAMPAIGN_ROLES_WITH_USERS, campaignRoles);
+						// Create the JSONObject response. This may return null
+						// if there is an error building it.
+						JSONObject resultJson = campaign.toJson(
+								false,	// ID 
+								longOutput,	// Classes
+								longOutput,	// Any roles
+								supervisorOrAuthor,	// Participants
+								supervisorOrAuthor, // Analysts
+								true,				// Authors
+								supervisorOrAuthor,	// Supervisors
+								longOutput);// XML
+						
+						if(resultJson != null) {
+							resultJson.put(JSON_KEY_USER_ROLES, roles);
 						}
+						
+						campaignInfo.accumulate(campaign.getId(), resultJson);
 					}
-					result.put(JSON_KEY_DATA, campaignInfo);
+					
+					metadata.put("number_of_results", resultCampaignIds.size());
+					metadata.put("items", resultCampaignIds);
+					
+					result.put("metadata", metadata);
+					result.put("data", campaignInfo);
 					
 					responseText = result.toString();
 				}
@@ -479,8 +480,8 @@ public class CampaignReadRequest extends UserRequest {
 		
 		// Retrieve all of the campaign IDs from the result.
 		List<String> campaignIds = new LinkedList<String>();
-		for(Campaign campaign : shortOrLongResult.keySet()) {
-			campaignIds.add(campaign.getUrn());
+		for(CampaignInformation campaign : shortOrLongResult.keySet()) {
+			campaignIds.add(campaign.getId());
 		}
 		
 		// If any campaign IDs were found, add an entry into the audit 
