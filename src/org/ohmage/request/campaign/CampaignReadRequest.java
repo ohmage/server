@@ -313,10 +313,6 @@ public class CampaignReadRequest extends UserRequest {
 				
 				LOGGER.info("Gathering the information about the campaigns.");
 				shortOrLongResult = UserCampaignServices.getCampaignAndUserRolesForCampaigns(this, getUser().getUsername(), resultCampaignIds, OutputFormat.LONG.equals(outputFormat));
-				
-				for(CampaignInformation campaign : shortOrLongResult.keySet()) {
-					LOGGER.debug("Campaign dump: " + campaign.toJson(true, true, true, true, true, true, true, true));
-				}
 			}
 			else if(OutputFormat.XML.equals(outputFormat)) {
 				LOGGER.info("Gathering the XML for the campaign.");
