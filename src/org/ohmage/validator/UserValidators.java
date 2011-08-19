@@ -55,6 +55,17 @@ public final class UserValidators {
 	// A compiled version of the username pattern string for checking a user's
 	// username.
 	private static final Pattern USERNAME_PATTERN = Pattern.compile(USERNAME_PATTERN_STRING);
+	// The description of the username requirements for the user.
+	private static final String USERNAME_REQUIREMENTS = 
+		"The username must " +
+		"be between 4 and 25 characters and " +
+		"must contain at least one alphanumeric character. " + 
+		"It may also consist of any of these characters " +
+			"'.', " +
+			"'_', " +
+			"'@', " +
+			"'+', " +
+			"'-'.";
 	
 	// This is the regular expression for the password string. The password 
 	// must contain at least one lower case character, one upper case
@@ -81,16 +92,48 @@ public final class UserValidators {
 			"(" + // Beginning of subgroup 1-4.
 				"?=.*" + // This group must consist of at least one of the 
 		                 // following characters.
-				"[,\\.<>:\\[\\]!@#$%^&*+-/=?_{|}$]" +
+				"[,\\.<>:\\[\\]!@#$%^&*+-/=?_{|}]" +
 			")" + // End of subgroup 1-4.
 			"." + // All of the previous subgroups must be true.
 			"{8,16}" + // There must be at least 8 and no more than 16
 			           // characters.
 		")" + // End of group 1.
 		"$";  // End of the line.
-	// A compiled version fo the password pattern string for checking a user's
+	// A compiled version of the password pattern string for checking a user's
 	// password.
 	private static final Pattern PLAINTEXT_PASSWORD_PATTERN = Pattern.compile(PLAINTEXT_PASSWORD_PATTERN_STRING);
+	// A description of the password for the user.
+	private static final String PASSWORD_REQUIREMENTS = 
+		"The password must " +
+		"be between 8 and 16 characters, " +
+		"contain at least one lower case character, " +
+		"contain at least one upper case character, " +
+		"contain at least one digit, " +
+		"and contain at least one of the following characters " +
+			"',', " +
+			"'.', " +
+			"'<', " +
+			"'>', " +
+			"'[', " +
+			"']', " +
+			"'!', " +
+			"'@', " +
+			"'#', " +
+			"'$', " +
+			"'%', " +
+			"'^', " +
+			"'&', " +
+			"'*', " +
+			"'+', " +
+			"'-', " +
+			"'/', " +
+			"'=', " +
+			"'?', " +
+			"'_', " +
+			"'{', " +
+			"'}', " +
+			"'|', " +
+			"':'.";
 	
 	private static final String HASHED_PASSWORD_PATTERN_STRING = "[\\w\\.\\$\\/]{50,60}";
 	private static final Pattern HASHED_PASSWORD_PATTERN = Pattern.compile(HASHED_PASSWORD_PATTERN_STRING);
@@ -135,8 +178,8 @@ public final class UserValidators {
 		else {
 			// TODO: This might be where we tell them what a username must look
 			// 		 like.
-			request.setFailed(ErrorCodes.USER_INVALID_USERNAME, "The username is invalid: " + username);
-			throw new ValidationException("The username is invalid: " + username);
+			request.setFailed(ErrorCodes.USER_INVALID_USERNAME, "The username is invalid. " + USERNAME_REQUIREMENTS);
+			throw new ValidationException("The username is invalid. " + USERNAME_REQUIREMENTS);
 		}
 	}
 	
@@ -209,8 +252,8 @@ public final class UserValidators {
 			return password;
 		}
 		else {
-			request.setFailed(ErrorCodes.USER_INVALID_PASSWORD, "The password is invalid.");
-			throw new ValidationException("The plaintext password is invalid.");
+			request.setFailed(ErrorCodes.USER_INVALID_PASSWORD, "The password is invalid. " + PASSWORD_REQUIREMENTS);
+			throw new ValidationException("The password is invalid. " + PASSWORD_REQUIREMENTS);
 		}
 	}
 	
