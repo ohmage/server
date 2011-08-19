@@ -28,7 +28,7 @@ import org.ohmage.util.JsonUtils;
  * @author Joshua Selsky
  */
 public abstract class AbstractPromptValidator implements PromptValidator {
-	private static Logger _logger = Logger.getLogger(AbstractPromptValidator.class);
+	private static final Logger LOGGER = Logger.getLogger(AbstractPromptValidator.class);
 	
 	/**
 	 * Returns true if the promptResponse contains the value NOT_DISPLAYED. NOT_DISPLAYED is considered to be a valid prompt
@@ -65,8 +65,8 @@ public abstract class AbstractPromptValidator implements PromptValidator {
 			return true;
 		}
 		
-		if(_logger.isDebugEnabled()) {
-			_logger.debug(JsonInputKeys.PROMPT_SKIPPED + " found, but prompt " + prompt.getId() + " is not skippable");
+		if(LOGGER.isDebugEnabled()) {
+			LOGGER.debug(JsonInputKeys.PROMPT_SKIPPED + " found, but prompt " + prompt.getId() + " is not skippable");
 		}
 		
 		return false;

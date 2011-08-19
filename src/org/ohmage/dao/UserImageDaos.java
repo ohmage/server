@@ -83,7 +83,7 @@ public final class UserImageDaos extends Dao {
 		}
 		catch(org.springframework.dao.IncorrectResultSizeDataAccessException e) {
 			if(e.getActualSize() > 1) {
-				throw new DataAccessException("More than one image has the same ID.");
+				throw new DataAccessException("More than one image has the same ID.", e);
 			}
 			
 			return null;

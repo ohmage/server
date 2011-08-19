@@ -40,6 +40,9 @@ public final class StringUtils {
 	
 	private static final Pattern EMAIL_PATTERN = Pattern.compile("^([_A-Za-z0-9-]+)(\\.[_A-Za-z0-9-]+)*@[A-Za-z0-9]+(\\.[A-Za-z0-9]+)*(\\.[A-Za-z]{2,})$");
 	
+	private static final int LATITUDE_LIMIT = 90;
+	private static final int LONGITUDE_LIMIT = 180;
+	
 	/**
 	 * It is unnecessary to instantiate this class as it is a collection of 
 	 * static methods.
@@ -251,7 +254,7 @@ public final class StringUtils {
 	public static String stripMillisFromJdbcTimestampString(String timestamp) {
 		if(null != timestamp) {
 			if(timestamp.contains(".")) {
-				return timestamp.substring(0, timestamp.lastIndexOf("."));
+				return timestamp.substring(0, timestamp.lastIndexOf('.'));
 			} 
 			else {
 				return timestamp;
@@ -342,7 +345,7 @@ public final class StringUtils {
 		
 		try {
 			Double latitudeDouble = Double.parseDouble(latitude);
-			if((latitudeDouble < -90) || (latitudeDouble > 90)) {
+			if((latitudeDouble < -LATITUDE_LIMIT) || (latitudeDouble > LATITUDE_LIMIT)) {
 				return null;
 			}
 			else {
@@ -371,12 +374,12 @@ public final class StringUtils {
 		}
 		
 		try {
-			Double latitudeDouble = Double.parseDouble(longitude);
-			if((latitudeDouble < -180) || (latitudeDouble > 180)) {
+			Double longitudeDouble = Double.parseDouble(longitude);
+			if((longitudeDouble < -LONGITUDE_LIMIT) || (longitudeDouble > LONGITUDE_LIMIT)) {
 				return null;
 			}
 			else {
-				return latitudeDouble;
+				return longitudeDouble;
 			}
 		}
 		catch(NumberFormatException e) {

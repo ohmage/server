@@ -80,28 +80,28 @@ public class MobilityInformation {
 				latitude = locationData.getDouble(JSON_KEY_LATITUDE);
 			}
 			catch(JSONException e) {
-				throw new MobilityException(ErrorCodes.SERVER_INVALID_LOCATION, "The latitude is missing or invalid.");
+				throw new MobilityException(ErrorCodes.SERVER_INVALID_LOCATION, "The latitude is missing or invalid.", e);
 			}
 			
 			try {
 				longitude = locationData.getDouble(JSON_KEY_LONGITUDE);
 			}
 			catch(JSONException e) {
-				throw new MobilityException(ErrorCodes.SERVER_INVALID_LOCATION, "The longitude is missing or invalid.");
+				throw new MobilityException(ErrorCodes.SERVER_INVALID_LOCATION, "The longitude is missing or invalid.", e);
 			}
 
 			try {
 				accuracy = locationData.getDouble(JSON_KEY_ACCURACY);
 			}
 			catch(JSONException e) {
-				throw new MobilityException(ErrorCodes.SERVER_INVALID_LOCATION, "The accuracy is missing or invalid.");
+				throw new MobilityException(ErrorCodes.SERVER_INVALID_LOCATION, "The accuracy is missing or invalid.", e);
 			}
 			
 			try {
 				provider = locationData.getString(JSON_KEY_PROVIDER);
 			}
 			catch(JSONException e) {
-				throw new MobilityException(ErrorCodes.SERVER_INVALID_LOCATION, "The provider is missing.");
+				throw new MobilityException(ErrorCodes.SERVER_INVALID_LOCATION, "The provider is missing.", e);
 			}
 			
 			try {
@@ -112,7 +112,7 @@ public class MobilityInformation {
 				}
 			}
 			catch(JSONException e) {
-				throw new MobilityException(ErrorCodes.SERVER_INVALID_TIMESTAMP, "The timestamp is missing.");
+				throw new MobilityException(ErrorCodes.SERVER_INVALID_TIMESTAMP, "The timestamp is missing.", e);
 			}
 		}
 
@@ -426,7 +426,7 @@ public class MobilityInformation {
 				mode = Mode.valueOf(sensorData.getString(JSON_KEY_MODE).toUpperCase());
 			}
 			catch(JSONException e) {
-				throw new MobilityException(ErrorCodes.MOBILITY_INVALID_MODE, "The mode is missing.");
+				throw new MobilityException(ErrorCodes.MOBILITY_INVALID_MODE, "The mode is missing.", e);
 			}
 			catch(IllegalArgumentException e) {
 				throw new MobilityException(ErrorCodes.MOBILITY_INVALID_MODE, "The mode is not a known mode.", e);

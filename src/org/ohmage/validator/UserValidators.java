@@ -23,10 +23,73 @@ import org.ohmage.util.StringUtils;
 public final class UserValidators {
 	private static final Logger LOGGER = Logger.getLogger(UserValidators.class);
 	
-	private static final String USERNAME_PATTERN_STRING = "[a-z\\.]{9,15}";
+	// This is the regular expression for the username string. The username
+	// must contain at least alphanumeric character, upper or lower case. It
+	// can then contain any more alphanumeric characters as well as any number
+	// of characters from a set. The total length of the username must be
+	// between 4 and 25 characters, inclusive.
+	private static final String USERNAME_PATTERN_STRING = 
+		"^" + // Beginning of the line.
+		"(" + // Beginning of group 1.
+			"?=.*" + // There must be at least 1 of the following,
+			"[" + // Beginning of the definition.
+				"a-z" + // A lower case character.
+				"A-Z" + // An upper case character.
+				"\\d" + // A digit.
+			"]" + // End of the definition.
+		")" + // End of group 1.
+		"[" + // Beginning of the definition. At least one of the following 
+		      // must be present.
+			"a-z" + // A lower case, alphabetic character. 
+			"A-Z" + // An upper case, alphabetic character. 
+			"\\d" + // A digit. 
+			"." +   // A period. 
+			"_" +   // An underscore. 
+			"@" +   // An "at" symbol.
+			"+" +   // A plus sign. 
+			"\\-" + // A minus sign.
+		"]" + // End of the definition.
+		"{4,25}" + // The total string must be at least 4 characters and no
+		           // more than 25 characters.
+		"$";  // End of the line.
+	// A compiled version of the username pattern string for checking a user's
+	// username.
 	private static final Pattern USERNAME_PATTERN = Pattern.compile(USERNAME_PATTERN_STRING);
 	
-	private static final String PLAINTEXT_PASSWORD_PATTERN_STRING = "[a-z\\.]{9,15}";
+	// This is the regular expression for the password string. The password 
+	// must contain at least one lower case character, one upper case
+	// character, one digit, and one of a set of special characters. It must be
+	// between 8 and 16 characters, inclusive.
+	private static final String PLAINTEXT_PASSWORD_PATTERN_STRING = 
+		"^" + // Beginning of the line.
+		"(" + // Beginning of group 1.
+			"(" + // Beginning of subgroup 1-1.
+				"?=.*" + // This group must consist of at least one of the 
+				         // following characters.
+				"[a-z]" + // A lower case character.
+			")" + // End of subgroup 1-1.
+			"(" + // Beginning of subgroup 1-2.
+				"?=.*" + // This group must consist of at least one of the 
+		                 // following characters.
+				"[A-Z]" +// An upper case character.
+			")" + // End of subgroup 1-2.
+			"(" + // Beginning of subgroup 1-3.
+				"?=.*" + // This group must consist of at least one of the 
+		                 // following characters.
+				"\\d" + // A digit.
+			")" + // End of subgroup 1-3.
+			"(" + // Beginning of subgroup 1-4.
+				"?=.*" + // This group must consist of at least one of the 
+		                 // following characters.
+				"[,\\.<>:\\[\\]!@#$%^&*+-/=?_{|}$]" +
+			")" + // End of subgroup 1-4.
+			"." + // All of the previous subgroups must be true.
+			"{8,16}" + // There must be at least 8 and no more than 16
+			           // characters.
+		")" + // End of group 1.
+		"$";  // End of the line.
+	// A compiled version fo the password pattern string for checking a user's
+	// password.
 	private static final Pattern PLAINTEXT_PASSWORD_PATTERN = Pattern.compile(PLAINTEXT_PASSWORD_PATTERN_STRING);
 	
 	private static final String HASHED_PASSWORD_PATTERN_STRING = "[\\w\\.\\$\\/]{50,60}";

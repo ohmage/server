@@ -47,7 +47,7 @@ public final class ImageValidators {
 	 * @throws ValidationException Thrown if the image ID is not null, not
 	 * 							   whitespace only, and not a valid image ID.
 	 */
-	public static final String validateId(Request request, String imageId) throws ValidationException {
+	public static String validateId(Request request, String imageId) throws ValidationException {
 		LOGGER.info("Validating an image ID.");
 		
 		if(StringUtils.isEmptyOrWhitespaceOnly(imageId)) {
@@ -78,7 +78,7 @@ public final class ImageValidators {
 	 * @throws ValidationException Thrown if the image size is not null, not
 	 * 							   whitespace only, and not a valid ImageSize.
 	 */
-	public static final ImageSize validateImageSize(Request request, String imageSize) throws ValidationException {
+	public static ImageSize validateImageSize(Request request, String imageSize) throws ValidationException {
 		LOGGER.info("Validating an image size value.");
 		
 		if(StringUtils.isEmptyOrWhitespaceOnly(imageSize)) {
@@ -110,7 +110,7 @@ public final class ImageValidators {
 	 * 							   length greater than 0, and isn't decodable 
 	 * 							   as any type of known image.
 	 */
-	public static final BufferedImage validateImageContents(Request request, byte[] imageContents) throws ValidationException {
+	public static BufferedImage validateImageContents(Request request, byte[] imageContents) throws ValidationException {
 		if((imageContents == null) || (imageContents.length == 0)) {
 			return null;
 		}
@@ -120,7 +120,7 @@ public final class ImageValidators {
 		}
 		catch(IOException e) {
 			request.setFailed();
-			throw new ValidationException("There was an error while reading the image's contents.");
+			throw new ValidationException("There was an error while reading the image's contents.", e);
 		}
 	}
 }

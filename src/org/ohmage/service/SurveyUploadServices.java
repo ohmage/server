@@ -24,7 +24,7 @@ import org.ohmage.validator.prompt.SingleChoiceCustomPromptValidator;
 import org.ohmage.validator.prompt.SingleChoicePromptValidator;
 import org.ohmage.validator.prompt.TextWithinRangePromptValidator;
 import org.ohmage.validator.prompt.TimestampPromptValidator;
-import org.ohmage.validator.prompt.UUIDPromptValidator;
+import org.ohmage.validator.prompt.UuidPromptValidator;
 
 /**
  * Contains methods for handling and validating survey uploads. 
@@ -61,18 +61,18 @@ public final class SurveyUploadServices {
 	private static final String PROMPT_INVALID_FOR_SURVEY = "survey does not contain prompt ";
 	
 	// A  map of prompt validators for the supported prompt types
-	private static final Map<String, PromptValidator> promptValidatorMap = new TreeMap<String, PromptValidator>();
+	private static final Map<String, PromptValidator> PROMPT_VALIDATOR_MAP = new TreeMap<String, PromptValidator>();
 	
 	static {
-		promptValidatorMap.put(PromptTypeKeys.TYPE_HOURS_BEFORE_NOW, new RangeBoundNumberPromptValidator());
-		promptValidatorMap.put(PromptTypeKeys.TYPE_IMAGE, new UUIDPromptValidator());
-		promptValidatorMap.put(PromptTypeKeys.TYPE_MULTI_CHOICE, new MultiChoicePromptValidator());
-		promptValidatorMap.put(PromptTypeKeys.TYPE_MULTI_CHOICE_CUSTOM, new MultiChoiceCustomPromptValidator());
-		promptValidatorMap.put(PromptTypeKeys.TYPE_NUMBER, new RangeBoundNumberPromptValidator());
-		promptValidatorMap.put(PromptTypeKeys.TYPE_SINGLE_CHOICE, new SingleChoicePromptValidator());
-		promptValidatorMap.put(PromptTypeKeys.TYPE_SINGLE_CHOICE_CUSTOM, new SingleChoiceCustomPromptValidator());
-		promptValidatorMap.put(PromptTypeKeys.TYPE_TEXT, new TextWithinRangePromptValidator());
-		promptValidatorMap.put(PromptTypeKeys.TYPE_TIMESTAMP, new TimestampPromptValidator());
+		PROMPT_VALIDATOR_MAP.put(PromptTypeKeys.TYPE_HOURS_BEFORE_NOW, new RangeBoundNumberPromptValidator());
+		PROMPT_VALIDATOR_MAP.put(PromptTypeKeys.TYPE_IMAGE, new UuidPromptValidator());
+		PROMPT_VALIDATOR_MAP.put(PromptTypeKeys.TYPE_MULTI_CHOICE, new MultiChoicePromptValidator());
+		PROMPT_VALIDATOR_MAP.put(PromptTypeKeys.TYPE_MULTI_CHOICE_CUSTOM, new MultiChoiceCustomPromptValidator());
+		PROMPT_VALIDATOR_MAP.put(PromptTypeKeys.TYPE_NUMBER, new RangeBoundNumberPromptValidator());
+		PROMPT_VALIDATOR_MAP.put(PromptTypeKeys.TYPE_SINGLE_CHOICE, new SingleChoicePromptValidator());
+		PROMPT_VALIDATOR_MAP.put(PromptTypeKeys.TYPE_SINGLE_CHOICE_CUSTOM, new SingleChoiceCustomPromptValidator());
+		PROMPT_VALIDATOR_MAP.put(PromptTypeKeys.TYPE_TEXT, new TextWithinRangePromptValidator());
+		PROMPT_VALIDATOR_MAP.put(PromptTypeKeys.TYPE_TIMESTAMP, new TimestampPromptValidator());
 	}
 	
 	/**
@@ -322,7 +322,7 @@ public final class SurveyUploadServices {
 							
 							Prompt prompt = configuration.getPrompt(surveyId, repeatableSetId, repeatableSetPromptId);
 							String promptType = configuration.getPromptType(surveyId, repeatableSetId, repeatableSetPromptId);
-							PromptValidator promptValidator = promptValidatorMap.get(promptType);
+							PromptValidator promptValidator = PROMPT_VALIDATOR_MAP.get(promptType);
 							
 							// This is bad because it means the configuration
 							// portion of the server app is out of sync with
@@ -363,7 +363,7 @@ public final class SurveyUploadServices {
 				
 				String promptType = configuration.getPromptType(surveyId, promptId);
 				Prompt prompt = configuration.getPrompt(surveyId, promptId);
-				PromptValidator promptValidator = promptValidatorMap.get(promptType);
+				PromptValidator promptValidator = PROMPT_VALIDATOR_MAP.get(promptType);
 				
 				// This is bad because it means the configuration
 				// portion of the server app is out of sync with

@@ -5,7 +5,7 @@ package org.ohmage.domain.configuration;
  * 
  * @author Joshua Selsky
  */
-public class PromptTypeKeys {
+public final class PromptTypeKeys {
 
 	/**
 	 * Private to prevent instantiation.

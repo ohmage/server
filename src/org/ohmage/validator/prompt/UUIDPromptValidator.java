@@ -31,9 +31,9 @@ import org.ohmage.util.StringUtils;
  * 
  * @author Joshua Selsky
  */
-public final class UUIDPromptValidator extends AbstractPromptValidator {
-	private static Logger logger = Logger.getLogger(UUIDPromptValidator.class);
-	private static Pattern _pattern 
+public final class UuidPromptValidator extends AbstractPromptValidator {
+	private static Logger logger = Logger.getLogger(UuidPromptValidator.class);
+	private static Pattern pattern 
 		= Pattern.compile("[a-fA-F0-9]{8}\\-[a-fA-F0-9]{4}\\-[a-fA-F0-9]{4}\\-[a-fA-F0-9]{4}\\-[a-fA-F0-9]{12}");
 	
 	/**
@@ -57,7 +57,7 @@ public final class UUIDPromptValidator extends AbstractPromptValidator {
 			return false;
 		}
 		
-		if(! _pattern.matcher(value).matches()) {
+		if(! pattern.matcher(value).matches()) {
 			if(logger.isDebugEnabled()) {
 				logger.debug("invalid UUID for prompt " + prompt.getId() + ". value: " + value);
 			}
@@ -68,7 +68,7 @@ public final class UUIDPromptValidator extends AbstractPromptValidator {
 	}
 	
 //	public static void main(String args[]) {
-//		System.out.println(_pattern.matcher("afda1b74-4f23-4068-a50b-664e1c347264").matches());
+//		System.out.println(pattern.matcher("afda1b74-4f23-4068-a50b-664e1c347264").matches());
 //	}
 
 }

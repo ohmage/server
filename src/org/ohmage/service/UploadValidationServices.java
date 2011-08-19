@@ -75,7 +75,7 @@ public final class UploadValidationServices {
 			
 			String msg = errorMessageInvalid + timestamp;
 			request.setFailed(ErrorCodes.SERVER_INVALID_TIMESTAMP, msg);
-			throw new ServiceException(msg);
+			throw new ServiceException(msg, pe);
 		}
 	}
 	

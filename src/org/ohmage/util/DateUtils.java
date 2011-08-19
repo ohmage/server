@@ -31,8 +31,8 @@ import org.apache.log4j.Logger;
  * 
  * @author Joshua Selsky
  */
-public class DateUtils {
-	private static Logger _logger = Logger.getLogger(DateUtils.class);
+public final class DateUtils {
+	private static final Logger LOGGER = Logger.getLogger(DateUtils.class);
 	
 	/**
 	 * Private constructor as this class is a collection of static methods.
@@ -49,16 +49,16 @@ public class DateUtils {
 		
 		TimeZone systemTimeZone = TimeZone.getDefault();
 		
-		if(_logger.isDebugEnabled()) {
-			_logger.debug("system tz: " + systemTimeZone.getID());
+		if(LOGGER.isDebugEnabled()) {
+			LOGGER.debug("system tz: " + systemTimeZone.getID());
 		}
 		
 		TimeZone dataTimeZone = TimeZone.getTimeZone(timezone);
 		
 		long now = System.currentTimeMillis();
 		
-		if(_logger.isDebugEnabled()) {
-			_logger.debug("returning " + (systemTimeZone.getOffset(now) - dataTimeZone.getOffset(now))  + " for tz " + timezone);
+		if(LOGGER.isDebugEnabled()) {
+			LOGGER.debug("returning " + (systemTimeZone.getOffset(now) - dataTimeZone.getOffset(now))  + " for tz " + timezone);
 		}
 		
 		return systemTimeZone.getOffset(now) - dataTimeZone.getOffset(now);
@@ -100,7 +100,7 @@ public class DateUtils {
 			
 		} catch (ParseException pe) { // data that does not match the format
 			
-			_logger.warn("unparseable date");
+			LOGGER.warn("unparseable date");
 			throw new IllegalStateException("could not parse timestamp " + timestamp + " using format " + dateFormatString, pe);
 			
 		}

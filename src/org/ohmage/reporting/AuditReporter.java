@@ -116,10 +116,10 @@ public final class AuditReporter {
 				// Either way, make a note of it in the list of URIs.
 				Integer uriCount = numberUriRequests.get(uri);
 				if(uriCount == null) {
-					numberUriRequests.put(uri, new Integer(1));
+					numberUriRequests.put(uri, 1);
 				}
 				else {
-					numberUriRequests.put(uri, new Integer(uriCount + 1));
+					numberUriRequests.put(uri, uriCount + 1);
 				}
 				
 				// If the request is known, note it and continue processing.
@@ -155,10 +155,10 @@ public final class AuditReporter {
 								for(String classId : classIdCollection) {
 									Integer count = numberClassReads.get(classId);
 									if(count == null) {
-										numberClassReads.put(classId, new Integer(1));
+										numberClassReads.put(classId, 1);
 									}
 									else {
-										numberClassReads.put(classId, new Integer(count + 1));
+										numberClassReads.put(classId, count + 1);
 									}
 								}
 							}
@@ -170,10 +170,10 @@ public final class AuditReporter {
 								for(String campaignId : campaignIdCollection) {
 									Integer count = numberCampaignReads.get(campaignId);
 									if(count == null) {
-										numberCampaignReads.put(campaignId, new Integer(1));
+										numberCampaignReads.put(campaignId, 1);
 									}
 									else {
-										numberCampaignReads.put(campaignId, new Integer(count + 1));
+										numberCampaignReads.put(campaignId, count + 1);
 									}
 								}
 							}

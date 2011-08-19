@@ -62,11 +62,9 @@ public class ChoicePromptTypeValidator extends AbstractNumberPromptTypeValidator
 		
 		// If values exists, there must be one present for each key-label pair
 		Nodes valueNodes = promptNode.query("properties/property/value");
-		if(0 != valueNodes.size()) {
-			if(valueNodes.size() != labelNodes.size()) {
+		if((0 != valueNodes.size()) && (valueNodes.size() != labelNodes.size())) {
 				throw new IllegalArgumentException("The number of value nodes is not equal to the number of label nodes. " +
 					"If values are present, each label must also specify a value");
-			}
 		}
 		
 		// This is an edge case, but until we have more displayTypes it seems ok here
@@ -94,7 +92,7 @@ public class ChoicePromptTypeValidator extends AbstractNumberPromptTypeValidator
 						Float.parseFloat(vNodes.get(i).getValue().trim());
 					} catch(NumberFormatException nfe) {
 						throw new IllegalArgumentException("Value must be an integer for choice option in prompt " 
-							+ promptNode.toXML());
+							+ promptNode.toXML(), nfe);
 					}
 				}
 			}
@@ -108,7 +106,7 @@ public class ChoicePromptTypeValidator extends AbstractNumberPromptTypeValidator
 			try {
 				i = Integer.parseInt(pair.getValue());
 			} catch (NumberFormatException nfe) {
-				throw new IllegalArgumentException("invalid condition value: " + i);
+				throw new IllegalArgumentException("invalid condition value: " + i, nfe);
 			}
 			
 			if(! choices.containsKey(i)) {

@@ -47,10 +47,8 @@ public final class MultiChoicePromptValidator extends AbstractPromptValidator {
 		}
 		
 		JSONArray jsonArray = JsonUtils.getJsonArrayFromJsonObject(promptResponse, JsonInputKeys.PROMPT_VALUE);
-		if(null == jsonArray) {
-			if(logger.isDebugEnabled()) {
-				logger.debug("unparseable or missing JSON array value for prompt id " + prompt.getId());
-			}
+		if((null == jsonArray) && (logger.isDebugEnabled())) {
+			logger.debug("unparseable or missing JSON array value for prompt id " + prompt.getId());
 		}
 		
 		Set<String> keySet = prompt.getProperties().keySet();

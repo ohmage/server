@@ -97,7 +97,7 @@ public final class CampaignImageDaos extends Dao {
 		}
 		catch(org.springframework.dao.IncorrectResultSizeDataAccessException e) {
 			if(e.getActualSize() > 1) {
-				throw new DataAccessException("An image, '" + imageId + "' has multiple privacy states in the same campaign: " + campaignId);
+				throw new DataAccessException("An image, '" + imageId + "' has multiple privacy states in the same campaign: " + campaignId, e);
 			}
 			
 			return null;

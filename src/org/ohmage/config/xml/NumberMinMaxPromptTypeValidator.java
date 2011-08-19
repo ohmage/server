@@ -22,7 +22,7 @@ public class NumberMinMaxPromptTypeValidator extends AbstractNumberPromptTypeVal
 			try {
 				v = Integer.parseInt(pair.getValue());
 			} catch (NumberFormatException nfe) {
-				throw new IllegalArgumentException("not a number: " + pair.getValue()); 
+				throw new IllegalArgumentException("not a number: " + pair.getValue(), nfe); 
 			}
 			if(v < getMin() || v > getMax()) {
 				throw new IllegalArgumentException("number or hours_before_now prompt value of out range. min=" + getMin() + ", max=" +

@@ -581,7 +581,7 @@ public class AuditDaos extends Dao {
 					private String key;
 					private String value;
 					
-					private KeyValuePair(String key, String value) {
+					public KeyValuePair(String key, String value) {
 						this.key = key;
 						this.value = value;
 					}
@@ -631,7 +631,7 @@ public class AuditDaos extends Dao {
 				result.add(auditInformation);
 			}
 			catch(org.springframework.dao.IncorrectResultSizeDataAccessException e) {
-				throw new DataAccessException("The audit ID does not exist: " + auditId);
+				throw new DataAccessException("The audit ID does not exist: " + auditId, e);
 			}
 			catch(org.springframework.dao.DataAccessException e) {
 				throw new DataAccessException("Error executing SQL '" + SQL_GET_AUDIT_INFORMATION_FROM_ID + "' with parameter: " + 

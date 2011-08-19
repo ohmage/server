@@ -21,31 +21,31 @@ package org.ohmage.domain.configuration;
  * @author selsky
  */
 public class PromptProperty {
-	private String _key;   
-	private String _value; // an optional visualization-specific value for range-bound properties 
-	private String _label; // a required label describing a selection or bound
+	private String key;   
+	private String value; // an optional visualization-specific value for range-bound properties 
+	private String label; // a required label describing a selection or bound
 	
 	public PromptProperty(String key, String value, String label) {
-		_key = key;
-		_value = value;
-		_label = label;
+		this.key = key;
+		this.value = value;
+		this.label = label;
 	}
 
 	public String getKey() {
-		return _key;
+		return key;
 	}
 
 	public String getValue() {
-		return _value;
+		return value;
 	}
 
 	public String getLabel() {
-		return _label;
+		return label;
 	}
 
 	@Override
 	public String toString() {
-		return "PromptProperty [_key=" + _key + ", _label=" + _label
-				+ ", _value=" + _value + "]";
+		return "PromptProperty [key=" + key + ", label=" + label
+				+ ", value=" + value + "]";
 	}
 }

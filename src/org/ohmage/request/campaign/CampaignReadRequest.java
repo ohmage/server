@@ -343,30 +343,6 @@ public class CampaignReadRequest extends UserRequest {
 			e.logException(LOGGER);
 		}
 	}
-	
-	/**
-	 * Returns an empty map. This is for requests that don't have any specific
-	 * information to return.
-	 */
-	@Override
-	public Map<String, String[]> getAuditInformation() {
-		Map<String, String[]> result = new HashMap<String, String[]>();
-		
-		// Retrieve all of the campaign IDs from the result.
-		List<String> campaignIds = new LinkedList<String>();
-		for(Campaign campaign : shortOrLongResult.keySet()) {
-			campaignIds.add(campaign.getUrn());
-		}
-		
-		// If any campaign IDs were found, add an entry into the audit 
-		// information where the key distinguishes this as a result and the
-		// value is the listof campaign IDs.
-		if(campaignIds.size() > 0) {
-			result.put(InputKeys.CAMPAIGN_URN, campaignIds.toArray(new String[0]));
-		}
-		
-		return result;
-	}
 
 	/**
 	 * Responds with the requested information.
@@ -491,5 +467,29 @@ public class CampaignReadRequest extends UserRequest {
 		catch(IOException e) {
 			LOGGER.error("Unable to flush or close the writer.", e);
 		}
+	}
+	
+	/**
+	 * Returns an empty map. This is for requests that don't have any specific
+	 * information to return.
+	 */
+	@Override
+	public Map<String, String[]> getAuditInformation() {
+		Map<String, String[]> auditInfo = new HashMap<String, String[]>();
+		
+		// Retrieve all of the campaign IDs from the result.
+		List<String> campaignIds = new LinkedList<String>();
+		for(Campaign campaign : shortOrLongResult.keySet()) {
+			campaignIds.add(campaign.getUrn());
+		}
+		
+		// If any campaign IDs were found, add an entry into the audit 
+		// information where the key distinguishes this as a result and the
+		// value is the listof campaign IDs.
+		if(campaignIds.size() > 0) {
+			auditInfo.put(InputKeys.CAMPAIGN_URN, campaignIds.toArray(new String[0]));
+		}
+		
+		return auditInfo;
 	}
 }

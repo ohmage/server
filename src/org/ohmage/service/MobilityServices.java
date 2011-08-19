@@ -126,7 +126,7 @@ public final class MobilityServices {
 					}
 					catch(IllegalArgumentException e) {
 						request.setFailed();
-						throw new ServiceException("There was a problem reading the classification's information.");
+						throw new ServiceException("There was a problem reading the classification's information.", e);
 					}
 				}
 				// If the features don't exist, then create the classifier data
@@ -137,7 +137,7 @@ public final class MobilityServices {
 					}
 					catch(IllegalArgumentException e) {
 						request.setFailed();
-						throw new ServiceException("There was a problem reading the classification's mode.");
+						throw new ServiceException("There was a problem reading the classification's mode.", e);
 					}
 				}
 			}

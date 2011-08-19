@@ -51,7 +51,7 @@ public abstract class AbstractNumberPromptTypeValidator extends AbstractPromptTy
 		try {
 			intValue = Integer.parseInt(value);
 		} catch (NumberFormatException nfe) {
-			throw new IllegalArgumentException("Value is not an integer: " + value);
+			throw new IllegalArgumentException("Value is not an integer: " + value, nfe);
 		}
 		
 		if(intValue < min || intValue > max) {
@@ -63,7 +63,7 @@ public abstract class AbstractNumberPromptTypeValidator extends AbstractPromptTy
 		try {
 			return Integer.parseInt(value);
 		} catch (NumberFormatException nfe) {
-			throw new IllegalArgumentException("not a valid integer: " + value);
+			throw new IllegalArgumentException("not a valid integer: " + value, nfe);
 		}
 	}
 	
@@ -72,7 +72,7 @@ public abstract class AbstractNumberPromptTypeValidator extends AbstractPromptTy
 		try {
 			i = Integer.parseInt(value);
 		} catch (NumberFormatException nfe) {
-			throw new IllegalArgumentException("not a valid integer: " + value);
+			throw new IllegalArgumentException("not a valid integer: " + value, nfe);
 		}
 		
 		if(i < 0) {
@@ -87,7 +87,7 @@ public abstract class AbstractNumberPromptTypeValidator extends AbstractPromptTy
 		try {
 			i = Integer.parseInt(value);
 		} catch (NumberFormatException nfe) {
-			throw new IllegalArgumentException("not a valid integer: " + value);
+			throw new IllegalArgumentException("not a valid integer: " + value, nfe);
 		}
 		
 		if(i < 1) {

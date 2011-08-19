@@ -103,6 +103,22 @@ public final class ImageDaos extends Dao {
 		instance = this;
 	}
 	
+	/**
+	 * Stores a BufferedImage onto the file system with a thumbnail version,
+	 * then it adds the reference to the image in the database.
+	 *  
+	 * @param username The username of the user that is storing the image.
+	 * 
+	 * @param client The client parameter that was given that is storing the
+	 * 				 image.
+	 * 
+	 * @param imageId The image's unique identifier.
+	 * 
+	 * @param imageContents The contents of the image to be stored on the file
+	 * 						system along with a thumbnail version.
+	 * 
+	 * @throws DataAccessException Thrown if there is an error.
+	 */
 	public static void createImage(String username, String client, String imageId, BufferedImage imageContents) throws DataAccessException {
 		// getDirectory() is used as opposed to accessing the current leaf
 		// directory class variable as it will do sanitation in case it hasn't
@@ -232,7 +248,7 @@ public final class ImageDaos extends Dao {
 		}
 		catch(org.springframework.dao.IncorrectResultSizeDataAccessException e) {
 			if(e.getActualSize() > 1) {
-				throw new DataAccessException("Multiple images have the same unique identifier.");
+				throw new DataAccessException("Multiple images have the same unique identifier.", e);
 			}
 			
 			return null;

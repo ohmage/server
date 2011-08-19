@@ -35,7 +35,7 @@ import org.ohmage.request.Request;
  * @author Joshua Selsky
  */
 public class UserCampaignServices {
-	private static Logger LOGGER = Logger.getLogger(UserCampaignServices.class);
+	private static final Logger LOGGER = Logger.getLogger(UserCampaignServices.class);
 	
 	/**
 	 * Default constructor. Private so that it cannot be instantiated.

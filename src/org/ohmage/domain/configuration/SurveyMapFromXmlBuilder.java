@@ -36,6 +36,11 @@ public final class SurveyMapFromXmlBuilder {
 	// private static Logger _logger = Logger.getLogger(SurveyMapFromXmlBuilder.class);
 	
 	/**
+	 * Default constructor. Private so that it cannot be instantiated.
+	 */
+	private SurveyMapFromXmlBuilder() {}
+	
+	/**
 	 * Creates a List of Surveys from the provided String that must be valid XML according to configuration.xsd. This validity
 	 * is assumed because the configuration has been successfully loaded into the system.
 	 */

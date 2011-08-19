@@ -136,7 +136,7 @@ public class RemoteActivityPromptTypeValidator extends AbstractPromptTypeValidat
 				JSONArray promptResult = new JSONArray(pair.getValue());
 			}
 			catch(JSONException e) {
-				throw new IllegalArgumentException("Invalid return value: " + pair.getValue());
+				throw new IllegalArgumentException("Invalid return value: " + pair.getValue(), e);
 			}
 		}
 	}
@@ -288,7 +288,7 @@ public class RemoteActivityPromptTypeValidator extends AbstractPromptTypeValidat
 			}
 		}
 		catch(NumberFormatException e) {
-			throw new IllegalArgumentException("'retries' is not a valid integer");
+			throw new IllegalArgumentException("'retries' is not a valid integer", e);
 		}
 	}
 	
