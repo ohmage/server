@@ -15,6 +15,9 @@ import javax.sql.DataSource;
 
 import org.ohmage.cache.CampaignRoleCache;
 import org.ohmage.cache.ClassRoleCache;
+import org.ohmage.domain.CampaignInformation;
+import org.ohmage.domain.CampaignInformation.PrivacyState;
+import org.ohmage.domain.CampaignInformation.RunningState;
 import org.ohmage.domain.configuration.Configuration;
 import org.ohmage.domain.configuration.SurveyMapFromXmlBuilder;
 import org.ohmage.exception.DataAccessException;
@@ -73,17 +76,25 @@ public final class CampaignDaos extends Dao {
 		"WHERE c.urn = ?" +
 		"AND c.privacy_state_id = cps.id";
 	
+	// Returns the campaign's creation timestamp.
+	private static final String SQL_GET_CREATION_TIMESTAMP =
+		"SELECT creation_timestamp " +
+		"FROM campaign " +
+		"WHERE urn = ?";
+	
 	// Returns the XML for a campaign.
 	private static final String SQL_GET_XML = 
 		"SELECT xml " +
 		"FROM campaign " +
 		"WHERE urn = ?";
 	
-	// Returns the campaign's creation timestamp.
-	private static final String SQL_GET_CREATION_TIMESTAMP =
-		"SELECT creation_timestamp " +
-		"FROM campaign " +
-		"WHERE urn = ?";
+	// Returns the information pertaining directly to a campaign.
+	private static final String SQL_GET_CAMPAIGN_INFORMATION =
+		"SELECT c.name, c.description, crs.running_state, cps.privacy_state, c.creation_timestamp " +
+		"FROM campaign c, campaign_running_state crs, campaign_privacy_state cps " +
+		"WHERE c.urn = ? " +
+		"AND c.running_state_id = crs.id " +
+		"AND c.privacy_state_id = cps.id";
 	
 	// Returns all of the IDs for all of the campaigns whose creation timestamp
 	// was on or after some date.
@@ -602,6 +613,51 @@ public final class CampaignDaos extends Dao {
 		}
 		catch(org.springframework.dao.DataAccessException e) {
 			throw new DataAccessException("Error executing SQL '" + SQL_GET_CREATION_TIMESTAMP + "' with parameter: " + campaignId, e);
+		}
+	}
+	
+	/**
+	 * Creates a new CampaignInformation object based on the information about
+	 * some campaign.
+	 *  
+	 * @param campaignId The campaign's unique identifier.
+	 * 
+	 * @return A CampaignInformation object with the required information about
+	 * 		   a campaign or null if no such campaign exists.
+	 * 
+	 * @throws DataAccessException Thrown if there is an error.
+	 */
+	public static CampaignInformation getCampaignInformation(final String campaignId) throws DataAccessException {
+		try {
+			return instance.getJdbcTemplate().queryForObject(
+					SQL_GET_CAMPAIGN_INFORMATION,
+					new Object[] { campaignId },
+					new RowMapper<CampaignInformation>() {
+						@Override
+						public CampaignInformation mapRow(ResultSet rs, int rowNum) throws SQLException {
+							return new CampaignInformation(
+									campaignId,
+									rs.getString("name"),
+									rs.getString("description"),
+									RunningState.valueOf(rs.getString("running_state").toUpperCase()),
+									PrivacyState.valueOf(rs.getString("privacy_state").toUpperCase()),
+									rs.getTimestamp("creation_timestamp"));
+						}
+					});
+		}
+		catch(org.springframework.dao.IncorrectResultSizeDataAccessException e) {
+			if(e.getActualSize() > 1) {
+				throw new DataAccessException("Mutiple campaigns have the same ID: " + campaignId, e);
+			}
+			
+			return null;
+		}
+		catch(org.springframework.dao.DataAccessException e) {
+			throw new DataAccessException(
+					"Error executing SQL '" + SQL_GET_CAMPAIGN_INFORMATION +
+					"' with parameter: " +
+						campaignId,
+					e);
 		}
 	}
 	

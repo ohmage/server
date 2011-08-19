@@ -1,6 +1,5 @@
 package org.ohmage.service;
 
-import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collection;
@@ -21,6 +20,7 @@ import org.ohmage.dao.CampaignSurveyDaos;
 import org.ohmage.dao.UserCampaignDaos;
 import org.ohmage.dao.UserDaos;
 import org.ohmage.domain.Campaign;
+import org.ohmage.domain.CampaignInformation;
 import org.ohmage.domain.User;
 import org.ohmage.domain.UserPersonal;
 import org.ohmage.domain.UserRoleCampaignInfo;
@@ -750,7 +750,7 @@ public class UserCampaignServices {
 	/**
 	 * Gathers the requested information about a campaign. This will be at 
 	 * least its name, description (possibly null), running state, privacy 
-	 * state, creation timestamp, and all of the classes associated with the
+	 * state, creation timestamp, and all of the requesting user's roles in the
 	 * campaign.<br />
 	 * <br />
 	 * The extras include the campaign's XML, all of the users associated with 
@@ -773,28 +773,17 @@ public class UserCampaignServices {
 	 * 
 	 * @throws ServiceException Thrown if there is an error.
 	 */
-	public static Map<Campaign, List<String>> getCampaignAndUserRolesForCampaigns(Request request,
+	public static Map<CampaignInformation, List<String>> getCampaignAndUserRolesForCampaigns(Request request,
 			String username, Collection<String> campaignIds, boolean withExtras) throws ServiceException {
 		try {
-			Map<Campaign, List<String>> result = new HashMap<Campaign, List<String>>();
+			Map<CampaignInformation, List<String>> result = new HashMap<CampaignInformation, List<String>>();
 			
 			for(String campaignId : campaignIds) {
 				// Create the Campaign object with the campaign's ID.
-				Campaign campaign = new Campaign(campaignId);
+				CampaignInformation campaign = CampaignDaos.getCampaignInformation(campaignId);
 				
-				// Get the information about a campaign.
-				campaign.setName(CampaignDaos.getName(campaignId));
-				campaign.setDescription(CampaignDaos.getDescription(campaignId));
-				campaign.setRunningState(CampaignDaos.getCampaignRunningState(campaignId));
-				campaign.setPrivacyState(CampaignDaos.getCampaignPrivacyState(campaignId));
-				
-				Timestamp creationTimestamp = CampaignDaos.getCreationTimestamp(campaignId);
-				// FIXME: I don't like this. The Campaign class should take a 
-				// timestamp object and be responsible for doing things like 
-				// this itself.
-				String creationTimestampString = creationTimestamp.toString();
-				String creationTimestampWithoutMillis = creationTimestampString.substring(0, creationTimestampString.indexOf('.'));
-				campaign.setCampaignCreationTimestamp(creationTimestampWithoutMillis);
+				// Get the user's roles.
+				List<String> roles = UserCampaignDaos.getUserCampaignRoles(username, campaignId);
 				
 				// If we are supposed to get the extra information as well.
 				if(withExtras) {
@@ -808,19 +797,19 @@ public class UserCampaignServices {
 					// roles.
 					List<String> campaignUsernames = UserCampaignDaos.getUsersInCampaign(campaignId);
 					for(String campaignUsername : campaignUsernames) {
-						List<String> roles = UserCampaignDaos.getUserCampaignRoles(campaignUsername, campaignId);
+						List<String> userRoles = UserCampaignDaos.getUserCampaignRoles(campaignUsername, campaignId);
 						
-						for(String role : roles) {
-							if(CampaignRoleCache.ROLE_SUPERVISOR.equals(role)) {
+						for(String userRole : userRoles) {
+							if(CampaignRoleCache.ROLE_SUPERVISOR.equals(userRole)) {
 								campaign.addSupervisor(campaignUsername);
 							}
-							else if(CampaignRoleCache.ROLE_AUTHOR.equals(role)) {
+							else if(CampaignRoleCache.ROLE_AUTHOR.equals(userRole)) {
 								campaign.addAuthor(campaignUsername);
 							}
-							else if(CampaignRoleCache.ROLE_ANALYST.equals(role)) {
+							else if(CampaignRoleCache.ROLE_ANALYST.equals(userRole)) {
 								campaign.addAnalyst(campaignUsername);
 							}
-							else if(CampaignRoleCache.ROLE_PARTICIPANT.equals(role)) {
+							else if(CampaignRoleCache.ROLE_PARTICIPANT.equals(userRole)) {
 								campaign.addParticipant(campaignUsername);
 							}
 						}
@@ -828,7 +817,7 @@ public class UserCampaignServices {
 				}
 
 				// Add the user's roles.
-				result.put(campaign, UserCampaignDaos.getUserCampaignRoles(username, campaignId));
+				result.put(campaign, roles);
 			}
 			
 			return result;
