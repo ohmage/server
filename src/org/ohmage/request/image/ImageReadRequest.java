@@ -167,7 +167,7 @@ public class ImageReadRequest extends UserRequest {
 				// FIXME: This isn't necessarily the case. We might want to do
 				// some sort of image inspection to figure out what this should
 				// be.
-				httpResponse.setContentType("image/jpeg");
+				httpResponse.setContentType("image/png");
 				
 				// If available, set the token.
 				if(getUser() != null) {

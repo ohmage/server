@@ -68,7 +68,7 @@ public final class ImageDaos extends Dao {
 	private static final Pattern IMAGE_DIRECTORY_PATTERN = Pattern.compile("[0-9]+");
 	
 	private static final String IMAGE_STORE_FORMAT = "png";
-	private static final String IMAGE_SCALED_EXTENSION = "-s";
+	public static final String IMAGE_SCALED_EXTENSION = "-s";
 	private static final double IMAGE_SCALED_MAX_DIMENSION = 150.0;
 	
 	/**

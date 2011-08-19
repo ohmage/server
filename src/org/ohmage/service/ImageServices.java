@@ -109,11 +109,8 @@ public final class ImageServices {
 			
 			if(ImageSize.SMALL.equals(size)) {
 				// If they are requesting the smaller image, we need to parse 
-				// the URL string and insert "-s" just before the ".jpg" at the
-				// end.
-				// FIXME: It would probably be best to add another extension
-				// onto the image to prevent this weird parsing.
-				imageUrl = imageUrl.substring(0, imageUrl.length() - 4) + "-s" + imageUrl.substring(imageUrl.length() - 4, imageUrl.length());
+				// the URL string and insert "-s" at the end.
+				imageUrl = imageUrl + ImageDaos.IMAGE_SCALED_EXTENSION;
 			}
 			
 			return (new URL(imageUrl)).openConnection().getInputStream();
