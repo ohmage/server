@@ -16,7 +16,7 @@ import org.ohmage.util.JsonUtils;
  * @author Joshua Selsky
  */
 public final class RemoteActivityPromptValidator extends AbstractPromptValidator {
-	private static Logger _logger = Logger.getLogger(RemoteActivityPromptValidator.class);
+	private static final Logger LOGGER = Logger.getLogger(RemoteActivityPromptValidator.class);
 	
 	/**
 	 * Validates that the result is a valid JSONArray,that the number of
@@ -40,7 +40,7 @@ public final class RemoteActivityPromptValidator extends AbstractPromptValidator
 		// something even if it is an empty array.
 		JSONArray responseJsonArray = JsonUtils.getJsonArrayFromJsonObject(promptResponse, JsonInputKeys.PROMPT_VALUE);
 		if(responseJsonArray == null) {
-			_logger.info("Missing or invalid JSONArray for prompt: " + prompt.getId());
+			LOGGER.info("Missing or invalid JSONArray for prompt: " + prompt.getId());
 			return false;
 		}
 		
@@ -48,7 +48,7 @@ public final class RemoteActivityPromptValidator extends AbstractPromptValidator
 		// they ran it more than that many times.
 		int numRetries = Integer.parseInt(prompt.getProperties().get(JsonInputKeys.PROMPT_REMOTE_ACTIVITY_RETRIES).getLabel());
 		if(responseJsonArray.length() > (numRetries + 1)) {
-			_logger.info("Too many responses in JSONArray for prompt: " + prompt.getId());
+			LOGGER.info("Too many responses in JSONArray for prompt: " + prompt.getId());
 			return false;
 		}
 		
@@ -58,12 +58,12 @@ public final class RemoteActivityPromptValidator extends AbstractPromptValidator
 		if(prompt.getProperties().containsKey(JsonInputKeys.PROMPT_REMOTE_ACTIVITY_MIN_RUNS)) {
 			int minRuns = Integer.parseInt(prompt.getProperties().get(JsonInputKeys.PROMPT_REMOTE_ACTIVITY_MIN_RUNS).getLabel());
 			if(responseJsonArray.length() < minRuns) {
-				_logger.info("Not enough runs of the remote Activity. The XML requires " + minRuns + ", but we only received " + responseJsonArray.length() + ".");
+				LOGGER.info("Not enough runs of the remote Activity. The XML requires " + minRuns + ", but we only received " + responseJsonArray.length() + ".");
 				return false;
 			}
 		}
 		else {
-			_logger.warn("Need to make the 'min_runs' property exist in all campaigns.");
+			LOGGER.warn("Need to make the 'min_runs' property exist in all campaigns.");
 		}
 		
 		// For each of the individual runs,
@@ -76,20 +76,20 @@ public final class RemoteActivityPromptValidator extends AbstractPromptValidator
 				Double currScore = Double.valueOf(currJsonObject.get(JsonInputKeys.PROMPT_REMOTE_ACTIVITY_SCORE).toString());
 				
 				if(currScore == null) {
-					_logger.info("Missing required return value: " + JsonInputKeys.PROMPT_REMOTE_ACTIVITY_SCORE);
+					LOGGER.info("Missing required return value: " + JsonInputKeys.PROMPT_REMOTE_ACTIVITY_SCORE);
 					return false;
 				}
 				else if(currScore.isInfinite() || currScore.isNaN()) {
-					_logger.info("Returned single value is an invalid value: " + currScore.toString());
+					LOGGER.info("Returned single value is an invalid value: " + currScore.toString());
 					return false;
 				}
 			}
 			catch(JSONException e) {
-				_logger.info("Error parsing JSONArray for JSONObject: " + responseJsonArray.toString(), e);
+				LOGGER.info("Error parsing JSONArray for JSONObject: " + responseJsonArray.toString(), e);
 				return false;
 			}
 			catch(ClassCastException e) {
-				_logger.info("Error converting the single-value score into a double.", e);
+				LOGGER.info("Error converting the single-value score into a double.", e);
 				return false;
 			}
 		}

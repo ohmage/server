@@ -146,8 +146,8 @@ CREATE TABLE campaign_class (
 -- -----------------------------------------------------------------------
 CREATE TABLE user (
   id int unsigned NOT NULL auto_increment,
-  username varchar(15) NOT NULL,
-  password varchar(100) NOT NULL,
+  username varchar(25) NOT NULL,
+  password varchar(60) NOT NULL,
   enabled bit NOT NULL,
   new_account bit NOT NULL,
   campaign_creation_privilege bit NOT NULL,

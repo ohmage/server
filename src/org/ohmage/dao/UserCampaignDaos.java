@@ -109,7 +109,7 @@ public final class UserCampaignDaos extends Dao {
 	 */
 	public static boolean userBelongsToCampaign(String username, String campaignId) throws DataAccessException {
 		try {
-			return instance.jdbcTemplate.queryForObject(SQL_EXISTS_USER_CAMPAIGN, new Object[] { campaignId, username }, Boolean.class);
+			return instance.getJdbcTemplate().queryForObject(SQL_EXISTS_USER_CAMPAIGN, new Object[] { campaignId, username }, Boolean.class);
 		}
 		catch(org.springframework.dao.DataAccessException e) {
 			throw new DataAccessException("Error executing SQL '" + SQL_EXISTS_USER_CAMPAIGN + "' with parameters: " +
@@ -126,7 +126,7 @@ public final class UserCampaignDaos extends Dao {
 	 */
 	public static List<String> getUsersInCampaign(String campaignId) throws DataAccessException {
 		try {
-			return instance.jdbcTemplate.query(SQL_GET_USERS_IN_CAMPAIGN, new Object[] { campaignId }, new SingleColumnRowMapper<String>());
+			return instance.getJdbcTemplate().query(SQL_GET_USERS_IN_CAMPAIGN, new Object[] { campaignId }, new SingleColumnRowMapper<String>());
 		}
 		catch(org.springframework.dao.DataAccessException e) {
 			throw new DataAccessException("Error executing SQL '" + SQL_GET_USERS_IN_CAMPAIGN + "' with parameter: " +
@@ -146,7 +146,7 @@ public final class UserCampaignDaos extends Dao {
 	 */
 	public static List<String> getUserCampaignRoles(String username, String campaignId) throws DataAccessException {
 		try {
-			return instance.jdbcTemplate.queryForList(
+			return instance.getJdbcTemplate().queryForList(
 					SQL_GET_USER_CAMPAIGN_ROLES, 
 					new Object[] { username, campaignId }, 
 					String.class);
@@ -166,7 +166,7 @@ public final class UserCampaignDaos extends Dao {
 	 */
 	public static List<UserRoleCampaignInfo> getAllCampaignRolesAndCampaignInfoForUser(User user) throws DataAccessException {
 		try {
-			return instance.jdbcTemplate.query(
+			return instance.getJdbcTemplate().query(
 					SQL_GET_ALL_USER_CAMPAIGN_ROLES_AND_INFO,
 					new Object[] { user.getUsername() },
 					new RowMapper <UserRoleCampaignInfo> () {
@@ -203,7 +203,7 @@ public final class UserCampaignDaos extends Dao {
 		try {
 			final Map<String, String> result = new HashMap<String, String>();
 			
-			instance.jdbcTemplate.query(
+			instance.getJdbcTemplate().query(
 					SQL_GET_CAMPAIGN_ID_AND_NAMES_FOR_USER, 
 					new Object[] { username }, 
 					new RowMapper<Object> () {
@@ -235,7 +235,7 @@ public final class UserCampaignDaos extends Dao {
 	 */
 	public static List<String> getCampaignIdsForUserWithRole(String username, String role) throws DataAccessException {
 		try {
-			return instance.jdbcTemplate.query(
+			return instance.getJdbcTemplate().query(
 					SQL_GET_CAMPAIGN_IDS_FOR_USER_WITH_ROLE, 
 					new Object[] { username, role },
 					new SingleColumnRowMapper<String>());

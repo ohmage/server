@@ -113,7 +113,7 @@ public abstract class StringAndIdCache extends Cache {
 	 */
 	public int lookup(String string) throws CacheMissException {		
 		// If the lookup table is out-of-date, refresh it.
-		if((lastUpdateTimestamp + updateFrequency) <= System.currentTimeMillis()) {
+		if((getLastUpdateTimestamp() + getUpdateFrequency()) <= System.currentTimeMillis()) {
 			refreshMap();
 		}
 		
@@ -150,7 +150,7 @@ public abstract class StringAndIdCache extends Cache {
 	 */
 	public String lookup(int id) throws CacheMissException {
 		// If the lookup table is out-of-date, refresh it.
-		if((lastUpdateTimestamp + updateFrequency) <= System.currentTimeMillis()) {
+		if((getLastUpdateTimestamp() + getUpdateFrequency()) <= System.currentTimeMillis()) {
 			refreshMap();
 		}
 
@@ -172,7 +172,7 @@ public abstract class StringAndIdCache extends Cache {
 	@Override
 	public Set<String> getKeys() {
 		// If the lookup table is out-of-date, refresh it.
-		if((lastUpdateTimestamp + updateFrequency) <= System.currentTimeMillis()) {
+		if((getLastUpdateTimestamp() + getUpdateFrequency()) <= System.currentTimeMillis()) {
 			refreshMap();
 		}
 		
@@ -205,12 +205,12 @@ public abstract class StringAndIdCache extends Cache {
 		// Only one thread should be updating this information at a time. Once
 		// other threads enter, they should check to see if an update was just
 		// done and, if so, should abort a second update.
-		if((lastUpdateTimestamp + updateFrequency) > System.currentTimeMillis()) {
+		if((getLastUpdateTimestamp() + getUpdateFrequency()) > System.currentTimeMillis()) {
 			return;
 		}
 		
 		// This is the JdbcTemplate we will use for our query.
-		JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
+		JdbcTemplate jdbcTemplate = new JdbcTemplate(getDataSource());
 		
 		// Get all of the strings and their corresponding IDs. If there is an
 		// issue, report it and abort the update.
@@ -240,6 +240,6 @@ public abstract class StringAndIdCache extends Cache {
 		}
 		this.stringAndIdMap = stringAndIdMap;
 		
-		lastUpdateTimestamp = System.currentTimeMillis();
+		setLastUpdateTimestamp(System.currentTimeMillis());
 	}
 }

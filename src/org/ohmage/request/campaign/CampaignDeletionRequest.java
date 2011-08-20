@@ -72,7 +72,7 @@ public class CampaignDeletionRequest extends UserRequest {
 	public void service() {
 		LOGGER.info("Servicing the campaign deletion request.");
 		
-		if(! authenticate(false)) {
+		if(! authenticate(AllowNewAccount.NEW_ACCOUNT_DISALLOWED)) {
 			return;
 		}
 		

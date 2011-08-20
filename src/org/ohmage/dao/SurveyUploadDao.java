@@ -38,7 +38,7 @@ public class SurveyUploadDao extends AbstractUploadDao {
 	
 	private static SurveyUploadDao instance;
 	
-	private static final Logger logger = Logger.getLogger(SurveyUploadDao.class);
+	private static final Logger LOGGER = Logger.getLogger(SurveyUploadDao.class);
 	
 	private static final String SQL_INSERT_SURVEY_RESPONSE =
 		"INSERT into survey_response " +
@@ -96,7 +96,7 @@ public class SurveyUploadDao extends AbstractUploadDao {
 		// Wrap all of the inserts in a transaction 
 		DefaultTransactionDefinition def = new DefaultTransactionDefinition();
 		def.setName("survey upload");
-		DataSourceTransactionManager transactionManager = new DataSourceTransactionManager(instance.dataSource);
+		DataSourceTransactionManager transactionManager = new DataSourceTransactionManager(instance.getDataSource());
 		TransactionStatus status = transactionManager.getTransaction(def); // begin transaction
 		
 		// Use a savepoint to handle nested rollbacks if duplicates are found
@@ -116,7 +116,7 @@ public class SurveyUploadDao extends AbstractUploadDao {
 					
 					// First, insert the survey
 					
-					instance.jdbcTemplate.update(
+					instance.getJdbcTemplate().update(
 						new PreparedStatementCreator() {
 							public PreparedStatement createPreparedStatement(Connection connection) throws SQLException {
 								PreparedStatement ps 
@@ -136,7 +136,7 @@ public class SurveyUploadDao extends AbstractUploadDao {
 								try {
 									ps.setInt(13, SurveyResponsePrivacyStateCache.instance().lookup(PreferenceCache.instance().lookup(PreferenceCache.KEY_DEFAULT_SURVEY_RESPONSE_SHARING_STATE)));
 								} catch (CacheMissException e) {
-									logger.error("Error reading from the cache.", e);
+									LOGGER.error("Error reading from the cache.", e);
 									throw new SQLException(e);
 								}
 								return ps;
@@ -159,7 +159,7 @@ public class SurveyUploadDao extends AbstractUploadDao {
 						final PromptResponse promptUpload = promptUploadList.get(i);	
 						currentPromptResponse = promptUpload;
 						
-						instance.jdbcTemplate.update(
+						instance.getJdbcTemplate().update(
 							new PreparedStatementCreator() {
 								public PreparedStatement createPreparedStatement(Connection connection) throws SQLException {
 									PreparedStatement ps 
@@ -185,7 +185,7 @@ public class SurveyUploadDao extends AbstractUploadDao {
 					
 					if(instance.isDuplicate(dive)) {
 						 
-						logger.debug("Found a duplicate survey upload message for user " + username);
+						LOGGER.debug("Found a duplicate survey upload message for user " + username);
 						
 						duplicateIndexList.add(surveyIndex);
 						status.rollbackToSavepoint(savepoint);
@@ -198,7 +198,7 @@ public class SurveyUploadDao extends AbstractUploadDao {
 						// this DAO runs so there is either missing validation 
 						// or somehow an auto_incremented key has been duplicated.
 						
-						logger.error("Caught DataAccessException", dive);
+						LOGGER.error("Caught DataAccessException", dive);
 						logErrorDetails(currentSurveyResponse, currentPromptResponse, currentSql, username, campaignUrn);
 						rollback(transactionManager, status);
 						throw new DataAccessException(dive);
@@ -209,7 +209,7 @@ public class SurveyUploadDao extends AbstractUploadDao {
 					// Some other database problem happened that prevented
                     // the SQL from completing normally.
 					
-					logger.error("caught DataAccessException", dae);
+					LOGGER.error("caught DataAccessException", dae);
 					logErrorDetails(currentSurveyResponse, currentPromptResponse, currentSql, username, campaignUrn);
 					rollback(transactionManager, status);
 					throw new DataAccessException(dae);
@@ -219,18 +219,18 @@ public class SurveyUploadDao extends AbstractUploadDao {
 			
 			// Finally, commit the transaction
 			transactionManager.commit(status);
-			logger.info("Completed survey message persistence");
+			LOGGER.info("Completed survey message persistence");
 		} 
 		
 		catch (TransactionException te) { 
 			
-			logger.error("failed to commit survey upload transaction, attempting to rollback", te);
+			LOGGER.error("failed to commit survey upload transaction, attempting to rollback", te);
 			rollback(transactionManager, status);
 			logErrorDetails(currentSurveyResponse, currentPromptResponse, currentSql, username, campaignUrn);
 			throw new DataAccessException(te);
 		}
 		
-		logger.info("Finished inserting responses into the database.");
+		LOGGER.info("Finished inserting responses into the database.");
 		return duplicateIndexList;
 	}
 	
@@ -242,12 +242,12 @@ public class SurveyUploadDao extends AbstractUploadDao {
 		
 		try {
 			
-			logger.error("rolling back a failed survey upload transaction");
+			LOGGER.error("rolling back a failed survey upload transaction");
 			transactionManager.rollback(transactionStatus);
 			
 		} catch (TransactionException te) {
 			
-			logger.error("failed to rollback survey upload transaction", te);
+			LOGGER.error("failed to rollback survey upload transaction", te);
 			throw new DataAccessException(te);
 		}
 	}
@@ -268,6 +268,6 @@ public class SurveyUploadDao extends AbstractUploadDao {
 		error.append("\n The prompt response at hand was ");
 		error.append(promptResponse);
 		
-		logger.error(error.toString());
+		LOGGER.error(error.toString());
 	}	
 }

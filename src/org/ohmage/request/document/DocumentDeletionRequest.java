@@ -78,7 +78,7 @@ public class DocumentDeletionRequest extends UserRequest {
 	public void service() {
 		LOGGER.info("Servicing the document read contents request.");
 		
-		if(! authenticate(false)) {
+		if(! authenticate(AllowNewAccount.NEW_ACCOUNT_DISALLOWED)) {
 			return;
 		}
 		

@@ -31,7 +31,7 @@ import org.ohmage.util.StringUtils;
  * @author Joshua Selsky
  */
 public final class SingleChoicePromptValidator extends AbstractPromptValidator {
-	private static Logger _logger = Logger.getLogger(SingleChoicePromptValidator.class);
+	private static final Logger LOGGER = Logger.getLogger(SingleChoicePromptValidator.class);
 	
 	/**
 	 * Validates that the value within the promptResponse is a valid single_choice key in the Prompt.
@@ -52,8 +52,8 @@ public final class SingleChoicePromptValidator extends AbstractPromptValidator {
 		
 		String value = JsonUtils.getStringFromJsonObject(promptResponse, JsonInputKeys.PROMPT_VALUE);
 		if(StringUtils.isEmptyOrWhitespaceOnly(value)) {
-			if(_logger.isDebugEnabled()) {
-				_logger.debug("Missing or empty string for single_choice value in prompt " + prompt.getId());
+			if(LOGGER.isDebugEnabled()) {
+				LOGGER.debug("Missing or empty string for single_choice value in prompt " + prompt.getId());
 			}
 			return false;
 		}
@@ -65,8 +65,8 @@ public final class SingleChoicePromptValidator extends AbstractPromptValidator {
 			}
 		}
 		
-		if(_logger.isDebugEnabled()) {
-			_logger.debug("single_choice value does not exist for prompt " + prompt.getId() + ". value: " + value);
+		if(LOGGER.isDebugEnabled()) {
+			LOGGER.debug("single_choice value does not exist for prompt " + prompt.getId() + ". value: " + value);
 		}
 		
 		return false;

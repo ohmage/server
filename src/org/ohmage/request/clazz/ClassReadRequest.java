@@ -93,7 +93,7 @@ public class ClassReadRequest extends UserRequest {
 	public void service() {
 		LOGGER.info("Servicing a class read request.");
 		
-		if(! authenticate(false)) {
+		if(! authenticate(AllowNewAccount.NEW_ACCOUNT_DISALLOWED)) {
 			return;
 		}
 		
@@ -140,12 +140,12 @@ public class ClassReadRequest extends UserRequest {
 	 */
 	@Override
 	public Map<String, String[]> getAuditInformation() {
-		Map<String, String[]> result = new HashMap<String, String[]>();
+		Map<String, String[]> auditInfo = new HashMap<String, String[]>();
 		
 		if(classIds != null) {
-			result.put(InputKeys.CLASS_URN, classIds.toArray(new String[0]));
+			auditInfo.put(InputKeys.CLASS_URN, classIds.toArray(new String[0]));
 		}
 		
-		return result;
+		return auditInfo;
 	}
 }

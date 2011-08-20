@@ -13,7 +13,6 @@ import org.ohmage.service.ClassServices;
 import org.ohmage.service.UserServices;
 import org.ohmage.validator.ClassValidators;
 
-
 /**
  * <p>Creates a new class. The requester must be an admin.</p>
  * <table border="1">
@@ -113,7 +112,7 @@ public class ClassCreationRequest extends UserRequest {
 	public void service() {
 		LOGGER.info("Servicing a class creation request.");
 		
-		if(! authenticate(false)) {
+		if(! authenticate(AllowNewAccount.NEW_ACCOUNT_DISALLOWED)) {
 			return;
 		}
 		

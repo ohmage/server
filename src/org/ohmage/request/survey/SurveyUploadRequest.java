@@ -75,20 +75,21 @@ import org.ohmage.validator.DateValidators;
 public final class SurveyUploadRequest extends UserRequest {
 	private static final Logger LOGGER = Logger.getLogger(SurveyUploadRequest.class);
 	
+	private static final List<String> ALLOWED_ROLES;
+	private static final String ALLOWED_CAMPAIGN_RUNNING_STATE = CampaignRunningStateCache.RUNNING_STATE_RUNNING;
+	
+	static {
+		ALLOWED_ROLES = Arrays.asList(new String[] {CampaignRoleCache.ROLE_PARTICIPANT});
+	}
+	
 	// The campaign creation timestamp is stored as a String because it is 
 	// never used in any kind of calculation.
 	private final String campaignCreationTimestamp;
 	private final String campaignUrn;
-	private static final List<String> allowedRoles;
-	private static final String allowedCampaignRunningState = CampaignRunningStateCache.RUNNING_STATE_RUNNING;
 	
 	private Configuration configuration;
 	private String jsonData;
 	private JSONArray jsonDataArray;
-	
-	static {
-		allowedRoles = Arrays.asList(new String[] {CampaignRoleCache.ROLE_PARTICIPANT});
-	}
 	
 	/**
 	 * Builds this request based on the information in the HTTP request.
@@ -154,7 +155,7 @@ public final class SurveyUploadRequest extends UserRequest {
 	public void service() {
 		LOGGER.info("Servicing a survey upload request.");
 		
-		if(! authenticate(false)) {
+		if(! authenticate(AllowNewAccount.NEW_ACCOUNT_DISALLOWED)) {
 			return;
 		}
 		
@@ -178,10 +179,10 @@ public final class SurveyUploadRequest extends UserRequest {
 		    UserCampaignServices.campaignExistsAndUserBelongs(this, this.getUser(), campaignUrn);
 			
 			LOGGER.info("Checking the user and the campaign ID against the allowed roles for this request");
-			UserCampaignServices.verifyAllowedUserRoleInCampaign(this, this.getUser(), this.campaignUrn, allowedRoles);
+			UserCampaignServices.verifyAllowedUserRoleInCampaign(this, this.getUser(), this.campaignUrn, ALLOWED_ROLES);
 		
 			LOGGER.info("Checking that the user is attempting to upload to a running campaign");
-			CampaignServices.verifyAllowedRunningState(this, this.getUser(), this.campaignUrn, allowedCampaignRunningState);
+			CampaignServices.verifyAllowedRunningState(this, this.getUser(), this.campaignUrn, ALLOWED_CAMPAIGN_RUNNING_STATE);
 			
 			LOGGER.info("Checking the campaign creation timestamp to ensure a user is not attempting to upload to an out-of-date canmpaign.");
 			CampaignServices.verifyCampaignCreationTimestamp(this, this.getUser(), this.campaignUrn, this.campaignCreationTimestamp);

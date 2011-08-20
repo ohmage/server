@@ -57,7 +57,7 @@ public class AuditValidators {
 					RequestType.TRACE.toString().toLowerCase() + "', or '" +
 					RequestType.UNKNOWN.toString().toLowerCase() + "'." +
 					" Given: " + requestType);
-			throw new ValidationException("Invalid request type given: " + requestType);
+			throw new ValidationException("Invalid request type given: " + requestType, e);
 		}
 	}
 	
@@ -165,7 +165,7 @@ public class AuditValidators {
 					ResponseType.SUCCESS.toString().toLowerCase() + "' or '" +
 					ResponseType.FAILURE.toString().toLowerCase() + "'." +
 					" Given: " + responseType);
-			throw new ValidationException("Invalid request type given: " + responseType);
+			throw new ValidationException("Invalid request type given: " + responseType, e);
 		}
 	}
 	

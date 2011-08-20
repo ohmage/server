@@ -15,7 +15,6 @@
  ******************************************************************************/
 package org.ohmage.domain;
 
-import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -26,6 +25,7 @@ import org.json.JSONObject;
 import org.ohmage.cache.DocumentPrivacyStateCache;
 import org.ohmage.cache.DocumentRoleCache;
 import org.ohmage.util.StringUtils;
+import org.ohmage.util.TimeUtils;
 
 /**
  * A class to represent documents in the database. 
@@ -285,13 +285,11 @@ public class DocumentInformation {
 		try {
 			JSONObject result = new JSONObject();
 			
-			SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-			
 			result.put("name", name);
 			result.put("description", ((description ==  null) ? "" : description));
 			result.put("privacy_state", privacyState);
-			result.put("last_modified", formatter.format(lastModified));
-			result.put("creation_date", formatter.format(lastModified));
+			result.put("last_modified", TimeUtils.getIso8601DateTimeString(lastModified));
+			result.put("creation_date", TimeUtils.getIso8601DateTimeString(creationDate));
 			result.put("size", size);
 			result.put("creator", creator);
 			

@@ -55,12 +55,7 @@ public final class UserCampaignDocumentDaos extends Dao {
 		"AND urc.user_role_id = ur.id " +
 		"AND (" +
 			"(d.privacy_state_id = dps.id " +
-			"AND dps.privacy_state = '" + DocumentPrivacyStateCache.PRIVACY_STATE_SHARED + "' " +
-			"AND (" +
-				"(ur.role = '" + CampaignRoleCache.ROLE_ANALYST + "')" +
-				" OR " +
-				"(ur.role = '" + CampaignRoleCache.ROLE_AUTHOR + "')" +
-			"))" +
+			"AND dps.privacy_state = '" + DocumentPrivacyStateCache.PRIVACY_STATE_SHARED + "')" +
 			" OR " +
 			"(ur.role = '" + CampaignRoleCache.ROLE_SUPERVISOR + "')" +
 			" OR " +
@@ -97,7 +92,7 @@ public final class UserCampaignDocumentDaos extends Dao {
 		
 		List<String> documentList;
 		try {
-			documentList = instance.jdbcTemplate.query(
+			documentList = instance.getJdbcTemplate().query(
 					SQL_GET_DOCUMENTS_SPECIFIC_TO_CAMPAIGN_FOR_REQUESTING_USER, 
 					new Object[] { username, campaignId },
 					new SingleColumnRowMapper<String>());
@@ -129,7 +124,7 @@ public final class UserCampaignDocumentDaos extends Dao {
 	 */
 	public static Boolean getUserIsSupervisorInAnyCampaignAssociatedWithDocument(String username, String documentId) throws DataAccessException {
 		try {
-			return instance.jdbcTemplate.queryForObject(
+			return instance.getJdbcTemplate().queryForObject(
 					SQL_EXISTS_USER_IS_SUPERVISOR_IN_ANY_CAMPAIGN_ASSOCIATED_WITH_DOCUMENT, 
 					new Object[] { username, documentId }, 
 					Boolean.class);

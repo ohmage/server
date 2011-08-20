@@ -17,14 +17,14 @@ package org.ohmage.domain.configuration;
 
 
 public abstract class AbstractSurveyItem implements SurveyItem {
-	protected String _id;
+	private String id;
 	
 	public AbstractSurveyItem(String id) {
-		_id = id;
+		this.id = id;
 	}
 	
 	@Override
 	public String getId() {
-		return _id;
+		return id;
 	}
 }

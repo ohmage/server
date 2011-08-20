@@ -11,6 +11,7 @@ import javax.sql.DataSource;
  * @author Joshua Selsky
  */
 public class AbstractUploadDao extends Dao {
+	private static final int MYSQL_DUPLICATE_KEY_ERROR_CODE = 1062;
 	
 	/**
 	 * Creates this DAO.
@@ -27,6 +28,6 @@ public class AbstractUploadDao extends Dao {
 	 * @return false otherwise 
 	 */
 	protected boolean isDuplicate(Throwable t) {
-		 return (t.getCause() instanceof SQLException) && (((SQLException) t.getCause()).getErrorCode() == 1062);
+		 return (t.getCause() instanceof SQLException) && (((SQLException) t.getCause()).getErrorCode() == MYSQL_DUPLICATE_KEY_ERROR_CODE);
 	}
 }

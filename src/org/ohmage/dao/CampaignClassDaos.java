@@ -54,7 +54,7 @@ public final class CampaignClassDaos extends Dao {
 	 */
 	public static List<String> getCampaignsAssociatedWithClass(String classId) throws DataAccessException {
 		try {
-			return instance.jdbcTemplate.query(
+			return instance.getJdbcTemplate().query(
 					SQL_GET_CAMPAIGNS_ASSOCIATED_WITH_CLASS,
 					new Object[] { classId },
 					new SingleColumnRowMapper<String>());
@@ -75,7 +75,7 @@ public final class CampaignClassDaos extends Dao {
 	 */
 	public static List<String> getClassesAssociatedWithCampaign(String campaignId) throws DataAccessException {
 		try {
-			return instance.jdbcTemplate.query(
+			return instance.getJdbcTemplate().query(
 					SQL_GET_CLASSES_ASSOCIATED_WITH_CAMPAIGN, 
 					new Object[] { campaignId },
 					new SingleColumnRowMapper<String>());

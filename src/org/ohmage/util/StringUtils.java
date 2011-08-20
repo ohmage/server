@@ -17,7 +17,6 @@ package org.ohmage.util;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
-import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
@@ -36,15 +35,18 @@ public final class StringUtils {
 	private static final int NUM_URN_SEGMENTS = 3;
 	private static final Pattern URN_PATTERN = Pattern.compile("[a-z0-9_]+");
 
-	private static final DateFormat DATE_FORMAT_AMERICAN = new SimpleDateFormat("MM/dd/yyyy");
-	private static final DateFormat DATE_FORMAT_EVERYONE_ELSE = new SimpleDateFormat("yyyy-MM-dd");
+	private static final String FORMAT_AMERICAN_DATE = "MM/dd/yyyy";
+	private static final String FORMAT_ISO_8601_DATE = "yyyy-MM-dd";
 	
-	private static final DateFormat DATE_TIME_FORMAT_AMERICAN = new SimpleDateFormat("M/d/yyyy h:m:s a");
-	private static final DateFormat DATE_TIME_FORMAT_EVERYONE_ELSE = new SimpleDateFormat("yyyy-M-d H:m:s");
+	private static final String FORMAT_AMERICAN_DATE_TIME = "M/d/yyyy h:m:s a";
+	private static final String FORMAT_ISO_8601_DATE_TIME = "yyyy-M-d H:m:s";
 	
 	private static final Pattern EMAIL_PATTERN = Pattern.compile("^([_A-Za-z0-9-]+)(\\.[_A-Za-z0-9-]+)*@[A-Za-z0-9]+(\\.[A-Za-z0-9]+)*(\\.[A-Za-z]{2,})$");
 	
 	private static final String DEFAULT_DELIMITER = ",";
+	
+	private static final int LATITUDE_LIMIT = 90;
+	private static final int LONGITUDE_LIMIT = 180;
 	
 	/**
 	 * It is unnecessary to instantiate this class as it is a collection of 
@@ -257,7 +259,7 @@ public final class StringUtils {
 	public static String stripMillisFromJdbcTimestampString(String timestamp) {
 		if(null != timestamp) {
 			if(timestamp.contains(".")) {
-				return timestamp.substring(0, timestamp.lastIndexOf("."));
+				return timestamp.substring(0, timestamp.lastIndexOf('.'));
 			} 
 			else {
 				return timestamp;
@@ -270,8 +272,8 @@ public final class StringUtils {
 	 * Decodes a String representing a date and returns a resulting Date
 	 * object. The date may follow any of these formats:
 	 * <ul>
-	 *   <li>{@value #DATE_FORMAT_AMERICAN}</li>
-	 *   <li>{@value #DATE_FORMAT_EVERYONE_ELSE}</li>
+	 *   <li>{@value #FORMAT_AMERICAN_DATE}</li>
+	 *   <li>{@value #FORMAT_ISO_8601_DATE}</li>
 	 * </ul>
 	 * 
 	 * @param date The date as a String that is to be decoded.
@@ -286,13 +288,13 @@ public final class StringUtils {
 		}
 		
 		try {
-			return DATE_FORMAT_AMERICAN.parse(date);
+			return new SimpleDateFormat(FORMAT_AMERICAN_DATE).parse(date);
 		}
 		catch(ParseException americanException) {
 			try {
-				return DATE_FORMAT_EVERYONE_ELSE.parse(date);
+				return new SimpleDateFormat(FORMAT_ISO_8601_DATE).parse(date);
 			}
-			catch(ParseException otherException) {
+			catch(ParseException iso8601Exception) {
 				return null;
 			}
 		}
@@ -302,8 +304,8 @@ public final class StringUtils {
 	 * Decodes a String representing a date-time and returns a resulting Date
 	 * object. The date my follow any of these formats:
 	 * <ul>
-	 *   <li>{@value #DATE_TIME_FORMAT_AMERICAN}</li>
-	 *   <li>{@value #DATE_TIME_FORMAT_EVERYONE_ELSE}</li>
+	 *   <li>{@value #FORMAT_AMERICAN_DATE_TIME}</li>
+	 *   <li>{@value #FORMAT_ISO_8601_DATE_TIME}</li>
 	 * </ul>
 	 * 
 	 * @param dateTime The date-time as a String that is to be decoded.
@@ -318,15 +320,75 @@ public final class StringUtils {
 		}
 		
 		try {
-			return DATE_TIME_FORMAT_AMERICAN.parse(dateTime);
+			return new SimpleDateFormat(FORMAT_AMERICAN_DATE_TIME).parse(dateTime);
 		}
 		catch(ParseException americanException) {
 			try {
-				return DATE_TIME_FORMAT_EVERYONE_ELSE.parse(dateTime);
+				return new SimpleDateFormat(FORMAT_ISO_8601_DATE_TIME).parse(dateTime);
 			}
-			catch(ParseException otherException) {
+			catch(ParseException iso8601Exception) {
 				return null;
 			}
+		}
+	}
+	
+	/**
+	 * Decodes a String into a Double and then verifies that it is a plausible
+	 * latitude value. If the String is null, whitespace only, or not a
+	 * plausible latitude value, null is returned; otherwise a Double 
+	 * representing the latitude value is returned.
+	 * 
+	 * @param latitude The String to be decoded.
+	 * 
+	 * @return Null if the String is null, whitespace only, not a number, or
+	 * 		   not a valid latitude value.
+	 */
+	public static Double decodeLatitude(String latitude) {
+		if(StringUtils.isEmptyOrWhitespaceOnly(latitude)) {
+			return null;
+		}
+		
+		try {
+			Double latitudeDouble = Double.parseDouble(latitude);
+			if((latitudeDouble < -LATITUDE_LIMIT) || (latitudeDouble > LATITUDE_LIMIT)) {
+				return null;
+			}
+			else {
+				return latitudeDouble;
+			}
+		}
+		catch(NumberFormatException e) {
+			return null;
+		}
+	}
+	
+	/**
+	 * Decodes a String into a Double and then verifies that it is a plausible
+	 * longitude value. If the String is null, whitespace only, or not a
+	 * plausible longitude value, null is returned; otherwise a Double 
+	 * representing the longitude value is returned.
+	 * 
+	 * @param longitude The String to be decoded.
+	 * 
+	 * @return Null if the String is null, whitespace only, not a number, or
+	 * 		   not a valid longitude value.
+	 */
+	public static Double decodeLongitude(String longitude) {
+		if(StringUtils.isEmptyOrWhitespaceOnly(longitude)) {
+			return null;
+		}
+		
+		try {
+			Double longitudeDouble = Double.parseDouble(longitude);
+			if((longitudeDouble < -LONGITUDE_LIMIT) || (longitudeDouble > LONGITUDE_LIMIT)) {
+				return null;
+			}
+			else {
+				return longitudeDouble;
+			}
+		}
+		catch(NumberFormatException e) {
+			return null;
 		}
 	}
 	

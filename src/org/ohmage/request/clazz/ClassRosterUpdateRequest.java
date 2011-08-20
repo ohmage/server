@@ -102,7 +102,7 @@ public class ClassRosterUpdateRequest extends UserRequest {
 	public void service() {
 		LOGGER.info("Servicing the class roster update request.");
 		
-		if(! authenticate(false)) {
+		if(! authenticate(AllowNewAccount.NEW_ACCOUNT_DISALLOWED)) {
 			return;
 		}
 		

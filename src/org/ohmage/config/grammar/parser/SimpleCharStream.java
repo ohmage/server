@@ -80,7 +80,7 @@ public class SimpleCharStream
 		}
 		catch (Throwable t)
 		{
-			throw new Error(t.getMessage());
+			throw new Error(t.getMessage(), t);
 		}
 
 

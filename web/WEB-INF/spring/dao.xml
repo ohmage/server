@@ -29,7 +29,13 @@
     </constructor-arg>
   </bean>
   
-  <bean class="org.ohmage.dao.CampaignSurveyDaos">
+  <bean class="org.ohmage.dao.CampaignImageDaos">
+    <constructor-arg>
+      <ref bean="dataSource" />
+    </constructor-arg>
+  </bean>
+  
+  <bean class="org.ohmage.dao.CampaignSurveyResponseDaos">
     <constructor-arg>
       <ref bean="dataSource" />
     </constructor-arg>
@@ -42,6 +48,24 @@
   </bean>
   
   <bean class="org.ohmage.dao.DocumentDaos">
+    <constructor-arg>
+      <ref bean="dataSource" />
+    </constructor-arg>
+  </bean>
+  
+  <bean class="org.ohmage.dao.ImageDaos">
+    <constructor-arg>
+      <ref bean="dataSource" />
+    </constructor-arg>
+  </bean>
+  
+  <bean class="org.ohmage.dao.SurveyResponseDaos">
+    <constructor-arg>
+      <ref bean="dataSource" />
+    </constructor-arg>
+  </bean>
+  
+  <bean class="org.ohmage.dao.SurveyResponseImageDaos">
     <constructor-arg>
       <ref bean="dataSource" />
     </constructor-arg>
@@ -101,7 +125,13 @@
     </constructor-arg>
   </bean>
   
-  <bean class="org.ohmage.dao.UserSurveyDaos">
+  <bean class="org.ohmage.dao.UserImageDaos">
+    <constructor-arg>
+      <ref bean="dataSource" />
+    </constructor-arg>
+  </bean>
+  
+  <bean class="org.ohmage.dao.UserSurveyResponseDaos">
     <constructor-arg>
       <ref bean="dataSource" />
     </constructor-arg>

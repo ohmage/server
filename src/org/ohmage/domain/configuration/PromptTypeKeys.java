@@ -5,7 +5,7 @@ package org.ohmage.domain.configuration;
  * 
  * @author Joshua Selsky
  */
-public class PromptTypeKeys {
+public final class PromptTypeKeys {
 
 	/**
 	 * Private to prevent instantiation.
@@ -20,5 +20,5 @@ public class PromptTypeKeys {
 	public static final String TYPE_MULTI_CHOICE_CUSTOM = "multi_choice_custom";
 	public static final String TYPE_TIMESTAMP = "timestamp";
 	public static final String TYPE_TEXT = "text";
-	public static final String TYPE_IMAGE = "image";
+	public static final String TYPE_IMAGE = "photo";
 }

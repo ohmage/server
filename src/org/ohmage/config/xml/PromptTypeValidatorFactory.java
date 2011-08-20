@@ -8,22 +8,22 @@ import java.util.List;
  * 
  * @author selsky
  */
-public class PromptTypeValidatorFactory {
-	private static final List<String> _promptTypes;
+public final class PromptTypeValidatorFactory {
+	private static final List<String> PROMPT_TYPES;
 	
 	static {
-		_promptTypes = new ArrayList<String>();
+		PROMPT_TYPES = new ArrayList<String>();
 		
-		_promptTypes.add("timestamp");
-		_promptTypes.add("number");
-		_promptTypes.add("hours_before_now");
-		_promptTypes.add("text");
-		_promptTypes.add("multi_choice");
-		_promptTypes.add("multi_choice_custom");
-		_promptTypes.add("single_choice");
-		_promptTypes.add("single_choice_custom");
-		_promptTypes.add("photo");
-		_promptTypes.add("remote_activity");
+		PROMPT_TYPES.add("timestamp");
+		PROMPT_TYPES.add("number");
+		PROMPT_TYPES.add("hours_before_now");
+		PROMPT_TYPES.add("text");
+		PROMPT_TYPES.add("multi_choice");
+		PROMPT_TYPES.add("multi_choice_custom");
+		PROMPT_TYPES.add("single_choice");
+		PROMPT_TYPES.add("single_choice_custom");
+		PROMPT_TYPES.add("photo");
+		PROMPT_TYPES.add("remote_activity");
 	}
 	
 	// prevent instantiation
@@ -82,6 +82,6 @@ public class PromptTypeValidatorFactory {
 	 * Returns whether the provided promptType is supported by this factory. 
 	 */
 	public static boolean isValidPromptType(String promptType) {
-		return _promptTypes.contains(promptType);
+		return PROMPT_TYPES.contains(promptType);
 	}                                                           
 }

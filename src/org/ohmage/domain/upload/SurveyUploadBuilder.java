@@ -15,7 +15,7 @@ import org.ohmage.util.JsonUtils;
  * 
  * @author Joshua Selsky
  */
-public class SurveyUploadBuilder {
+public final class SurveyUploadBuilder {
 	private static Logger logger = Logger.getLogger(SurveyUploadBuilder.class);
 	
 	/**

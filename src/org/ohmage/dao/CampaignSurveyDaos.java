@@ -62,7 +62,7 @@ public class CampaignSurveyDaos extends Dao {
 	 */
 	public static long getNumberOfSurveyResponsesForCampaign(String campaignId) throws DataAccessException {
 		try {
-			return instance.jdbcTemplate.queryForLong(SQL_COUNT_SURVEY_RESPONSES, campaignId);
+			return instance.getJdbcTemplate().queryForLong(SQL_COUNT_SURVEY_RESPONSES, campaignId);
 		}
 		catch(org.springframework.dao.DataAccessException e) {
 			throw new DataAccessException("Error running SQL '" + SQL_COUNT_SURVEY_RESPONSES + "' with parameter: " + campaignId, e);
@@ -81,7 +81,7 @@ public class CampaignSurveyDaos extends Dao {
 	 */
 	public static long getNumberOfPromptResposnesForCampaign(String campaignId) throws DataAccessException {
 		try {
-			return instance.jdbcTemplate.queryForLong(SQL_COUNT_PROMPT_RESPONSES, campaignId);
+			return instance.getJdbcTemplate().queryForLong(SQL_COUNT_PROMPT_RESPONSES, campaignId);
 		}
 		catch(org.springframework.dao.DataAccessException e) {
 			throw new DataAccessException("Error running SQL '" + SQL_COUNT_PROMPT_RESPONSES + "' with parameter: " + campaignId, e);

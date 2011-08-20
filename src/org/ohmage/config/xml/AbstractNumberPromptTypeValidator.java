@@ -10,8 +10,8 @@ import nu.xom.Nodes;
  * @author selsky
  */
 public abstract class AbstractNumberPromptTypeValidator extends AbstractPromptTypeValidator {
-	protected int _min;
-	protected int _max;
+	private int min;
+	private int max;
 	
 	@Override
 	public void validateAndSetConfiguration(Node promptNode) {
@@ -51,10 +51,10 @@ public abstract class AbstractNumberPromptTypeValidator extends AbstractPromptTy
 		try {
 			intValue = Integer.parseInt(value);
 		} catch (NumberFormatException nfe) {
-			throw new IllegalArgumentException("Value is not an integer: " + value);
+			throw new IllegalArgumentException("Value is not an integer: " + value, nfe);
 		}
 		
-		if(intValue < _min || intValue > _max) {
+		if(intValue < min || intValue > max) {
 			throw new IllegalArgumentException("Value is out of min-max range: " + value);
 		}
 	}
@@ -63,7 +63,7 @@ public abstract class AbstractNumberPromptTypeValidator extends AbstractPromptTy
 		try {
 			return Integer.parseInt(value);
 		} catch (NumberFormatException nfe) {
-			throw new IllegalArgumentException("not a valid integer: " + value);
+			throw new IllegalArgumentException("not a valid integer: " + value, nfe);
 		}
 	}
 	
@@ -72,7 +72,7 @@ public abstract class AbstractNumberPromptTypeValidator extends AbstractPromptTy
 		try {
 			i = Integer.parseInt(value);
 		} catch (NumberFormatException nfe) {
-			throw new IllegalArgumentException("not a valid integer: " + value);
+			throw new IllegalArgumentException("not a valid integer: " + value, nfe);
 		}
 		
 		if(i < 0) {
@@ -87,7 +87,7 @@ public abstract class AbstractNumberPromptTypeValidator extends AbstractPromptTy
 		try {
 			i = Integer.parseInt(value);
 		} catch (NumberFormatException nfe) {
-			throw new IllegalArgumentException("not a valid integer: " + value);
+			throw new IllegalArgumentException("not a valid integer: " + value, nfe);
 		}
 		
 		if(i < 1) {
@@ -95,6 +95,22 @@ public abstract class AbstractNumberPromptTypeValidator extends AbstractPromptTy
 		}
 		
 		return i; 
+	}
+	
+	protected int getMin() {
+		return min;
+	}
+	
+	protected void setMin(int min) {
+		this.min = min;
+	}
+	
+	protected int getMax() {
+		return max;
+	}
+	
+	protected void setMax(int max) {
+		this.max = max;
 	}
 	
 	protected abstract void performExtendedConfigValidation(Node promptNode, Nodes minVNodes, Nodes maxVNodes);

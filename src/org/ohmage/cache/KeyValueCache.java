@@ -113,7 +113,7 @@ public abstract class KeyValueCache extends Cache {
 	 */
 	public String lookup(String key) throws CacheMissException {		
 		// If the lookup table is out-of-date, refresh it.
-		if((lastUpdateTimestamp + updateFrequency) <= System.currentTimeMillis()) {
+		if((getLastUpdateTimestamp() + getUpdateFrequency()) <= System.currentTimeMillis()) {
 			refreshMap();
 		}
 		
@@ -135,7 +135,7 @@ public abstract class KeyValueCache extends Cache {
 	@Override
 	public Set<String> getKeys() {
 		// If the lookup table is out-of-date, refresh it.
-		if((lastUpdateTimestamp + updateFrequency) <= System.currentTimeMillis()) {
+		if((getLastUpdateTimestamp() + getUpdateFrequency()) <= System.currentTimeMillis()) {
 			refreshMap();
 		}
 		
@@ -162,13 +162,13 @@ public abstract class KeyValueCache extends Cache {
 		// Only one thread should be updating this information at a time. Once
 		// other threads enter, they should check to see if an update was just
 		// done and, if so, should abort a second update.
-		if((lastUpdateTimestamp + updateFrequency) > System.currentTimeMillis()) {
+		if((getLastUpdateTimestamp() + getUpdateFrequency()) > System.currentTimeMillis()) {
 			return;
 		}
 		
 		// This is the JdbcTemplate we will use for our query. If there is an
 		// issue report it and abort the update.
-		JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
+		JdbcTemplate jdbcTemplate = new JdbcTemplate(getDataSource());
 		
 		// Get all the keys and their corresponding values.
 		List<KeyAndValue> keyAndValue;
@@ -196,6 +196,6 @@ public abstract class KeyValueCache extends Cache {
 		}
 		this.keyValueMap = keyValueMap;
 		
-		lastUpdateTimestamp = System.currentTimeMillis();
+		setLastUpdateTimestamp(System.currentTimeMillis());
 	}
 }

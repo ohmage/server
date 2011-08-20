@@ -228,7 +228,7 @@ public class AuditDaos extends Dao {
 		
 		try {
 			// Begin the transaction.
-			PlatformTransactionManager transactionManager = new DataSourceTransactionManager(instance.dataSource);
+			PlatformTransactionManager transactionManager = new DataSourceTransactionManager(instance.getDataSource());
 			TransactionStatus status = transactionManager.getTransaction(def);
 			
 			// Create a key holder that will be responsible for referencing 
@@ -237,7 +237,7 @@ public class AuditDaos extends Dao {
 			
 			// Insert the audit entry.
 			try {
-				instance.jdbcTemplate.update(
+				instance.getJdbcTemplate().update(
 						new PreparedStatementCreator() {
 							@Override
 							public PreparedStatement createPreparedStatement(Connection connection) throws SQLException {
@@ -278,7 +278,7 @@ public class AuditDaos extends Dao {
 				for(String key : parameters.keySet()) {
 					for(String value : parameters.get(key)) {
 						try {
-							instance.jdbcTemplate.update(
+							instance.getJdbcTemplate().update(
 									SQL_INSERT_PARAMETER, 
 									keyHolder.getKey().longValue(), 
 									key, 
@@ -302,7 +302,7 @@ public class AuditDaos extends Dao {
 				for(String key : extras.keySet()) {
 					for(String value : extras.get(key)) {
 						try {
-							instance.jdbcTemplate.update(
+							instance.getJdbcTemplate().update(
 									SQL_INSERT_EXTRA, 
 									keyHolder.getKey().longValue(), 
 									key, 
@@ -342,7 +342,7 @@ public class AuditDaos extends Dao {
 	 */
 	public static List<Long> getAllAudits() throws DataAccessException {
 		try {
-			return instance.jdbcTemplate.query(SQL_GET_AUDIT_IDS, new SingleColumnRowMapper<Long>());
+			return instance.getJdbcTemplate().query(SQL_GET_AUDIT_IDS, new SingleColumnRowMapper<Long>());
 		}
 		catch(org.springframework.dao.DataAccessException e) {
 			throw new DataAccessException("Error executing SQL '" + SQL_GET_AUDIT_IDS_WITH_TYPE + "'", e);
@@ -360,7 +360,7 @@ public class AuditDaos extends Dao {
 	 */
 	public static List<Long> getAllAuditsWithRequestType(RequestServlet.RequestType requestType) throws DataAccessException {
 		try {
-			return instance.jdbcTemplate.query(SQL_GET_AUDIT_IDS_WITH_TYPE, new Object[] { requestType.name().toLowerCase() }, new SingleColumnRowMapper<Long>());
+			return instance.getJdbcTemplate().query(SQL_GET_AUDIT_IDS_WITH_TYPE, new Object[] { requestType.name().toLowerCase() }, new SingleColumnRowMapper<Long>());
 		}
 		catch(org.springframework.dao.DataAccessException e) {
 			throw new DataAccessException("Error executing SQL '" + SQL_GET_AUDIT_IDS_WITH_TYPE + "' with parameter: " + requestType.name().toLowerCase(), e);
@@ -376,7 +376,7 @@ public class AuditDaos extends Dao {
 	 */
 	public static List<Long> getAllAuditsWithUri(String uri) throws DataAccessException {
 		try {
-			return instance.jdbcTemplate.query(SQL_GET_AUDIT_IDS_WITH_URI, new Object[] { uri }, new SingleColumnRowMapper<Long>());
+			return instance.getJdbcTemplate().query(SQL_GET_AUDIT_IDS_WITH_URI, new Object[] { uri }, new SingleColumnRowMapper<Long>());
 		}
 		catch(org.springframework.dao.DataAccessException e) {
 			throw new DataAccessException("Error executing SQL '" + SQL_GET_AUDIT_IDS_WITH_URI + "' with parameter: " + uri, e);
@@ -392,7 +392,7 @@ public class AuditDaos extends Dao {
 	 */
 	public static List<Long> getAllAuditsWithClient(String client) throws DataAccessException {
 		try {
-			return instance.jdbcTemplate.query(SQL_GET_AUDIT_IDS_WITH_CLIENT, new Object[] { client }, new SingleColumnRowMapper<Long>());
+			return instance.getJdbcTemplate().query(SQL_GET_AUDIT_IDS_WITH_CLIENT, new Object[] { client }, new SingleColumnRowMapper<Long>());
 		}
 		catch(org.springframework.dao.DataAccessException e) {
 			throw new DataAccessException("Error executing SQL '" + SQL_GET_AUDIT_IDS_WITH_CLIENT + "' with parameter: " + client, e);
@@ -408,7 +408,7 @@ public class AuditDaos extends Dao {
 	 */
 	public static List<Long> getAllAuditsWithDeviceId(String deviceId) throws DataAccessException{
 		try {
-			return instance.jdbcTemplate.query(SQL_GET_AUDIT_IDS_WITH_DEVICE_ID, new Object[] { deviceId }, new SingleColumnRowMapper<Long>());
+			return instance.getJdbcTemplate().query(SQL_GET_AUDIT_IDS_WITH_DEVICE_ID, new Object[] { deviceId }, new SingleColumnRowMapper<Long>());
 		}
 		catch(org.springframework.dao.DataAccessException e) {
 			throw new DataAccessException("Error executing SQL '" + SQL_GET_AUDIT_IDS_WITH_DEVICE_ID + "' with parameter: " + deviceId, e);
@@ -438,7 +438,7 @@ public class AuditDaos extends Dao {
 	public static List<Long> getAllAuditsWithResponse(ResponseType responseType, final String errorCode) throws DataAccessException {
 		if(ResponseType.SUCCESS.equals(responseType)) {
 			try {
-				return instance.jdbcTemplate.query(SQL_GET_AUDIT_IDS_WITH_SUCCESS_RESPONSE, new SingleColumnRowMapper<Long>());
+				return instance.getJdbcTemplate().query(SQL_GET_AUDIT_IDS_WITH_SUCCESS_RESPONSE, new SingleColumnRowMapper<Long>());
 			}
 			catch(org.springframework.dao.DataAccessException e) {
 				throw new DataAccessException("Error executing SQL '" + SQL_GET_AUDIT_IDS_WITH_DEVICE_ID + "'.", e);
@@ -447,7 +447,7 @@ public class AuditDaos extends Dao {
 		else if(ResponseType.FAILURE.equals(responseType)) {
 			if(errorCode == null) {
 				try {
-					return instance.jdbcTemplate.query(SQL_GET_AUDIT_IDS_WITH_FAILURE_RESPONSE, new SingleColumnRowMapper<Long>());
+					return instance.getJdbcTemplate().query(SQL_GET_AUDIT_IDS_WITH_FAILURE_RESPONSE, new SingleColumnRowMapper<Long>());
 				}
 				catch(org.springframework.dao.DataAccessException e) {
 					throw new DataAccessException("Error executing SQL '" + SQL_GET_AUDIT_IDS_WITH_DEVICE_ID + "'.", e);
@@ -455,7 +455,7 @@ public class AuditDaos extends Dao {
 			}
 			else {
 				try {
-					return instance.jdbcTemplate.query(SQL_GET_AUDIT_IDS_WITH_FAILURE_RESPONSE_WITH_CODE, new Object[] { errorCode }, new SingleColumnRowMapper<Long>());
+					return instance.getJdbcTemplate().query(SQL_GET_AUDIT_IDS_WITH_FAILURE_RESPONSE_WITH_CODE, new Object[] { errorCode }, new SingleColumnRowMapper<Long>());
 				}
 				catch(org.springframework.dao.DataAccessException e) {
 					throw new DataAccessException("Error executing SQL '" + SQL_GET_AUDIT_IDS_WITH_FAILURE_RESPONSE_WITH_CODE + "'.", e);
@@ -477,7 +477,7 @@ public class AuditDaos extends Dao {
 	 */
 	public static List<Long> getAllAuditsOnOrAfterDate(Date date) throws DataAccessException {
 		try {
-			return instance.jdbcTemplate.query(SQL_GET_AUDIT_IDS_ON_OR_AFTER_DATE, new Object[] { date }, new SingleColumnRowMapper<Long>());
+			return instance.getJdbcTemplate().query(SQL_GET_AUDIT_IDS_ON_OR_AFTER_DATE, new Object[] { date }, new SingleColumnRowMapper<Long>());
 		}
 		catch(org.springframework.dao.DataAccessException e) {
 			throw new DataAccessException("Error executing SQL '" + SQL_GET_AUDIT_IDS_ON_OR_AFTER_DATE + "' with parameter: " + date, e);
@@ -494,7 +494,7 @@ public class AuditDaos extends Dao {
 	 */
 	public static List<Long> getAllAuditsOnOrBeforeDate(Date date) throws DataAccessException {
 		try {
-			return instance.jdbcTemplate.query(SQL_GET_AUDIT_IDS_ON_OR_BEFORE_DATE, new Object[] { date }, new SingleColumnRowMapper<Long>());
+			return instance.getJdbcTemplate().query(SQL_GET_AUDIT_IDS_ON_OR_BEFORE_DATE, new Object[] { date }, new SingleColumnRowMapper<Long>());
 		}
 		catch(org.springframework.dao.DataAccessException e) {
 			throw new DataAccessException("Error executing SQL '" + SQL_GET_AUDIT_IDS_ON_OR_BEFORE_DATE + "' with parameter: " + date, e);
@@ -515,7 +515,7 @@ public class AuditDaos extends Dao {
 	 */
 	public static List<Long> getAllAuditsOnOrBetweenDates(Date startDate, Date endDate) throws DataAccessException {
 		try {
-			return instance.jdbcTemplate.query(SQL_GET_AUDIT_IDS_ON_OR_BETWEEN_DATES, new Object[] { startDate, endDate }, new SingleColumnRowMapper<Long>());
+			return instance.getJdbcTemplate().query(SQL_GET_AUDIT_IDS_ON_OR_BETWEEN_DATES, new Object[] { startDate, endDate }, new SingleColumnRowMapper<Long>());
 		}
 		catch(org.springframework.dao.DataAccessException e) {
 			throw new DataAccessException("Error executing SQL '" + SQL_GET_AUDIT_IDS_ON_OR_BETWEEN_DATES + "' with parameters: " + 
@@ -540,7 +540,7 @@ public class AuditDaos extends Dao {
 		
 		for(Long auditId : auditIds) {
 			try {
-				final AuditInformation auditInformation = instance.jdbcTemplate.queryForObject(
+				final AuditInformation auditInformation = instance.getJdbcTemplate().queryForObject(
 						SQL_GET_AUDIT_INFORMATION_FROM_ID, 
 						new Object[] { auditId },
 						new RowMapper<AuditInformation>() {
@@ -581,7 +581,7 @@ public class AuditDaos extends Dao {
 					private String key;
 					private String value;
 					
-					private KeyValuePair(String key, String value) {
+					public KeyValuePair(String key, String value) {
 						this.key = key;
 						this.value = value;
 					}
@@ -589,7 +589,7 @@ public class AuditDaos extends Dao {
 				
 				// Add all of the parameters.
 				try {
-					final List<KeyValuePair> parameters = instance.jdbcTemplate.query(
+					final List<KeyValuePair> parameters = instance.getJdbcTemplate().query(
 							SQL_GET_AUDIT_PARAMETERS, 
 							new Object[] { auditId }, 
 							new RowMapper<KeyValuePair>() {
@@ -609,7 +609,7 @@ public class AuditDaos extends Dao {
 				
 				// Add all of the extras.
 				try {
-					final List<KeyValuePair> extras = instance.jdbcTemplate.query(
+					final List<KeyValuePair> extras = instance.getJdbcTemplate().query(
 							SQL_GET_AUDIT_EXTRAS, 
 							new Object[] { auditId }, 
 							new RowMapper<KeyValuePair>() {
@@ -631,7 +631,7 @@ public class AuditDaos extends Dao {
 				result.add(auditInformation);
 			}
 			catch(org.springframework.dao.IncorrectResultSizeDataAccessException e) {
-				throw new DataAccessException("The audit ID does not exist: " + auditId);
+				throw new DataAccessException("The audit ID does not exist: " + auditId, e);
 			}
 			catch(org.springframework.dao.DataAccessException e) {
 				throw new DataAccessException("Error executing SQL '" + SQL_GET_AUDIT_INFORMATION_FROM_ID + "' with parameter: " + 
