@@ -13,6 +13,36 @@ import org.ohmage.service.SurveyResponseServices;
 import org.ohmage.service.UserSurveyResponseServices;
 import org.ohmage.validator.SurveyResponseValidators;
 
+/**
+ * <p>Deletes a survey response and any images associated with it. The 
+ * requesting user must be the owner of the survey response and the campaign
+ * must be running or they must be a supervisor in the campaign to which the
+ * survey response belongs.</p>
+ * <table border="1">
+ *   <tr>
+ *     <td>Parameter Name</td>
+ *     <td>Description</td>
+ *     <td>Required</td>
+ *   </tr>
+ *   <tr>
+ *     <td>{@value org.ohmage.request.InputKeys#AUTH_TOKEN}</td>
+ *     <td>The requesting user's authentication token.</td>
+ *     <td>true</td>
+ *   </tr>
+ *   <tr>
+ *     <td>{@value org.ohmage.request.InputKeys#CLIENT}</td>
+ *     <td>A string describing the client that is making this request.</td>
+ *     <td>true</td>
+ *   </tr>
+ *   <tr>
+ *     <td>{@value org.ohmage.request.InputKeys#SURVEY_ID}</td>
+ *     <td>The survey response's unique identifier.</td>
+ *     <td>true</td>
+ *   </tr>
+ * </table>
+ * 
+ * @author John Jenkins
+ */
 public class SurveyResponseDeleteRequest extends UserRequest {
 	private static final Logger LOGGER = Logger.getLogger(Logger.class);
 	
