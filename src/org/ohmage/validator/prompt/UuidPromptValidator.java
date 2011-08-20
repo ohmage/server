@@ -24,7 +24,6 @@ import org.ohmage.request.JsonInputKeys;
 import org.ohmage.util.JsonUtils;
 import org.ohmage.util.StringUtils;
 
-
 /**
  * Validator for prompt responses that are represented by a UUID (currently
  * used by image upload only. 
