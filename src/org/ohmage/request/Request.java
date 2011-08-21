@@ -210,60 +210,57 @@ public abstract class Request {
 	 */
 	protected void respond(HttpServletRequest httpRequest, HttpServletResponse httpResponse, String key, Object value) {
 		// Create a writer for the HTTP response object.
-		Writer writer;
+		Writer writer = null;
+		String responseText = "";
+		
 		try {
 			writer = new BufferedWriter(new OutputStreamWriter(getOutputStream(httpRequest, httpResponse)));
+			
+			// Sets the HTTP headers to disable caching.
+			expireResponse(httpResponse);
+			httpResponse.setContentType("application/json");
+			
+			// If the response hasn't failed yet, attempt to create and write the
+			// JSON response.
+			if(! failed) {
+				try {
+					JSONObject result = new JSONObject();
+					
+					result.put(JSON_KEY_RESULT, RESULT_SUCCESS);
+					result.put(key, value);
+					
+					responseText = result.toString();
+				}
+				catch(JSONException e) {
+					// If anything fails, echo it in the logs and set the request
+					// as failed.
+					LOGGER.error("An error occurred while building the success JSON response.", e);
+					failed = true;
+				}
+			}
+			
+			// If the request failed, either during the build or while the response
+			// was being built, write a failure message.
+			if(failed) {
+				responseText = getFailureMessage();
+			}
+			writer.write(responseText);
 		}
 		catch(IOException e) {
-			LOGGER.error("Unable to create writer object. Aborting.", e);
-			return;
+			LOGGER.error("Unable to write response message. Aborting.", e);
 		}
 		
-		// Sets the HTTP headers to disable caching.
-		expireResponse(httpResponse);
-		httpResponse.setContentType("application/json");
-		
-		String responseText = "";
-		// If the response hasn't failed yet, attempt to create and write the
-		// JSON response.
-		if(! failed) {
+		finally {
 			try {
-				JSONObject result = new JSONObject();
-				
-				result.put(JSON_KEY_RESULT, RESULT_SUCCESS);
-				result.put(key, value);
-				
-				responseText = result.toString();
+				if(writer != null) {
+					writer.flush();
+					writer.close();
+					writer = null;
+				}
 			}
-			catch(JSONException e) {
-				// If anything fails, echo it in the logs and set the request
-				// as failed.
-				LOGGER.error("An error occurred while building the success JSON response.", e);
-				failed = true;
+			catch(IOException e) {
+				LOGGER.error("Unable to flush or close the writer.", e);
 			}
-		}
-		
-		// If the request failed, either during the build or while the response
-		// was being built, write a failure message.
-		if(failed) {
-			responseText = getFailureMessage();
-		}
-		
-		try {
-			writer.write(responseText); 
-		}
-		catch(IOException e) {
-			LOGGER.error("Unable to write failed response message. Aborting.", e);
-			return;
-		}
-		
-		try {
-			writer.flush();
-			writer.close();
-		}
-		catch(IOException e) {
-			LOGGER.error("Unable to flush or close the writer.", e);
-			return;
 		}
 	}
 	
