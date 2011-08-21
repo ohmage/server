@@ -390,7 +390,10 @@ public abstract class Request {
 		}
 		finally {
 			try {
-				inputStream.close();
+				if(inputStream != null) {
+					inputStream.close();
+					inputStream = null;
+				}
 			}
 			catch(IOException e) {
 				throw new IllegalStateException("And error occurred while closing the input stream.", e);
