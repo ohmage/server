@@ -169,7 +169,6 @@ public final class SurveyUploadRequest extends UserRequest {
 			// 8. Validates each message in the JSON data
 			// 9. Converts the JSON surveys into POJOs/DTOs
 			// 10. Stores the surveys in the db.
-			// 11. Logs the upload
 			
 			LOGGER.info("Populating the logged-in user with their associated campaigns and roles.");
 			UserCampaignServices.populateUserWithCampaignRoleInfo(this, this.getUser());

@@ -96,6 +96,7 @@ public final class ErrorCodes {
 	public static final String USER_INVALID_EMAIL_ADDRESS = "1010";
 	public static final String USER_INVALID_JSON_DATA = "1011";
 	public static final String USER_INSUFFICIENT_PERMISSIONS = "1012";
+	public static final String USER_NOT_IN_CAMPAIGN = "1013";
 	
 	public static final String DOCUMENT_INVALID_ID = "1100";
 	public static final String DOCUMENT_INVALID_NAME = "1101";

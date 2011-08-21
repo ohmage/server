@@ -11,9 +11,17 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.log4j.Logger;
 import org.ohmage.annotator.ErrorCodes;
 import org.ohmage.cache.SurveyResponsePrivacyStateCache;
+import org.ohmage.dao.SurveyResponseReadDao;
+import org.ohmage.domain.configuration.Configuration;
+import org.ohmage.domain.survey.read.SurveyResponseReadResult;
+import org.ohmage.exception.DataAccessException;
+import org.ohmage.exception.ServiceException;
 import org.ohmage.exception.ValidationException;
 import org.ohmage.request.InputKeys;
 import org.ohmage.request.UserRequest;
+import org.ohmage.service.CampaignServices;
+import org.ohmage.service.SurveyResponseReadServices;
+import org.ohmage.service.UserCampaignServices;
 import org.ohmage.validator.DateValidators;
 import org.ohmage.validator.SurveyResponseReadValidators;
 
@@ -24,7 +32,7 @@ import org.ohmage.validator.SurveyResponseReadValidators;
  *  
  * @author Joshua Selsky
  */
-public class SurveyResponseReadRequest extends UserRequest {
+public final class SurveyResponseReadRequest extends UserRequest {
 	private static final Logger LOGGER = Logger.getLogger(SurveyResponseReadRequest.class);
 	
 	private final Date startDate;
@@ -42,16 +50,14 @@ public class SurveyResponseReadRequest extends UserRequest {
 	private final String privacyState;
 	private final Boolean collapse;
 	
+	private Configuration configuration;
+	
 	private static final List<String> ALLOWED_COLUMN_URN_LIST;
 	private static final List<String> ALLOWED_OUTPUT_FORMAT_LIST;
 	private static final List<String> ALLOWED_SORT_ORDER_LIST;
 	
 	public static final String URN_SPECIAL_ALL = "urn:ohmage:special:all";
 	public static final List<String> URN_SPECIAL_ALL_LIST;
-	
-	static {
-		URN_SPECIAL_ALL_LIST = Collections.unmodifiableList(Arrays.asList(new String[]{URN_SPECIAL_ALL}));
-	}
 	
 	public static final String URN_CONTEXT_CLIENT = "urn:ohmage:context:client";
 	public static final String URN_CONTEXT_TIMESTAMP = "urn:ohmage:context:timestamp";
@@ -92,6 +98,8 @@ public class SurveyResponseReadRequest extends UserRequest {
 		ALLOWED_OUTPUT_FORMAT_LIST = Arrays.asList(new String[] {OUTPUT_FORMAT_JSON_ROWS, OUTPUT_FORMAT_JSON_COLUMNS, OUTPUT_FORMAT_CSV});
 		
 		ALLOWED_SORT_ORDER_LIST = Arrays.asList(new String[] {InputKeys.SORT_ORDER_SURVEY, InputKeys.SORT_ORDER_TIMESTAMP, InputKeys.SORT_ORDER_USER});
+		
+		URN_SPECIAL_ALL_LIST = Collections.unmodifiableList(Arrays.asList(new String[]{URN_SPECIAL_ALL}));
 	}
 	
 	/**
@@ -130,11 +138,13 @@ public class SurveyResponseReadRequest extends UserRequest {
 		
 		if(! isFailed()) {
 		
-			LOGGER.info("Creating a survey response read reaquest.");
+			LOGGER.info("Creating a survey response read request.");
 			
 			try {
-				
-				// FIXME constant-ify the hard-coded strings, maybe even for logging messages ??
+				// FIXME constant-ify the hard-coded strings, maybe even for
+				// logging messages (possibly AOP-ify logging)
+				// Also, move validation to the SurveyResponseReadValidators
+				// And check for multiple copies of params
 				
 				LOGGER.info("Making sure campaign_urn parameter is present.");
 				
@@ -209,11 +219,13 @@ public class SurveyResponseReadRequest extends UserRequest {
 
 				LOGGER.info("Validating collapse parameter.");
 				
-				tCollapseAsBoolean = SurveyResponseReadValidators.validateReturnId(this, tCollapse);
+				tCollapseAsBoolean = SurveyResponseReadValidators.validateCollapse(this, tCollapse);
 			} 
 			
 			catch (ValidationException e) {
+				
 				LOGGER.info(e);
+				
 			}
 		}
 		
@@ -233,60 +245,72 @@ public class SurveyResponseReadRequest extends UserRequest {
 		this.userList = tUserListAsList;
 	}
 	
-	
+	/**
+	 * Services this request.
+	 */
 	@Override
 	public void service() {
 		
-//		  <!-- Controller -->
-//		  <bean id="surveyResponseReadController" class="org.ohmage.controller.ControllerImpl">
-//		    <constructor-arg index="0">
-//		      <list>
-//		        <!-- authenticate -->
-//		        <ref bean="tokenOrUserPasswordAuthenticationService" />
-//		        
-//		        <!-- convert string list params to actual lists -->
-//		        <ref bean="surveyResponseReadParamConverterService" />
-//		        
-//		        <!-- find the campaigns for the logged-in user -->
-//		        <ref bean="userRoleCampaignPopulationService" />
-//		        
-//		        <!-- authorize -->
-//		        <ref bean="userCampaignValidationService" />
-//		        <ref bean="campaignUserCheckService" />
-//		        <ref bean="participantUserParamValidationService" />
-//		        <ref bean="readOperationCampaignPrivacyStateValidationService" />
-//		        
-//		        <!-- grab the XML config from the db -->
-//		        <ref bean="findCampaignConfigurationService" />
-//		        
-//		        <!-- sanity check the query params against the config -->
-//		        <ref bean="surveyResponseReadPromptIdValidationService" />
-//		        <ref bean="surveyResponseReadSurveyIdValidationService" />
-//		        
-//		        <!-- run the query -->
-//		        <ref bean="surveyResponseReadService" />
-//		        
-//		        <!-- filter the output based on the the privacy_state of the response, and the role of the currently logged-in user -->
-//		        <bean class="org.ohmage.service.SurveyResponsePrivacyFilterService" />
-//		        
-//		      </list>
-//		    </constructor-arg>
-//		    <constructor-arg index="1">
-//		      <ref bean="serverErrorRequestAnnotator" />
-//		    </constructor-arg>
-//		    <property name="validators">
-//		      <list>
-
-//		      </list>      
-//		    </property>
-//		    <property name="featureName"><value>survey response query</value></property>
-//		  </bean>
-				
+		LOGGER.info("Servicing a survey response read request.");
+		
+		if(! authenticate(false)) {
+			return;
+		}
+		
+		try {
+			
+			LOGGER.info("Populating the requester with their associated campaigns and roles.");
+			UserCampaignServices.populateUserWithCampaignRoleInfo(this, this.getUser());
+			
+			LOGGER.info("Verifying that requester belongs to the campaign specified by campaign ID.");
+		    UserCampaignServices.campaignExistsAndUserBelongs(this, this.getUser(), this.campaignUrn);
+		    
+		    LOGGER.info("Verifying that the requester has a role that allows reading of survey responses.");
+		    UserCampaignServices.requesterCanViewUsersSurveyResponses(this, this.campaignUrn, this.getUser().getUsername(), null);
+			
+		    if(! this.userList.equals(URN_SPECIAL_ALL_LIST)) {
+		    	LOGGER.info("Checking the user list to make sure all of the users belong to the campaign ID.");
+		    	UserCampaignServices.verifyUsersExistInCampaign(this, this.campaignUrn, this.userList);
+		    }
+		    
+		    LOGGER.info("Retrieving campaign configuration.");
+			this.configuration = CampaignServices.findCampaignConfiguration(this, this.campaignUrn);
+		    
+			if(this.promptIdList != null && ! this.promptIdList.equals(URN_SPECIAL_ALL_LIST)) {
+				LOGGER.info("Verifying that the prompt ids in the query belong to the campaign.");
+				SurveyResponseReadServices.verifyPromptIdsBelongToConfiguration(this, this.promptIdList, this.configuration);
+			}
+			
+			if(this.surveyIdList != null && ! this.surveyIdList.equals(URN_SPECIAL_ALL_LIST)) {
+				LOGGER.info("Verifying that the survey ids in the query belong to the campaign.");
+				SurveyResponseReadServices.verifySurveyIdsBelongToConfiguration(this, this.surveyIdList, this.configuration);
+			}
+		    
+			LOGGER.info("Dispatching to the data layer.");
+			List<SurveyResponseReadResult> surveyResponseList = SurveyResponseReadDao.retrieveSurveyResponses(this, this.userList,
+					this.campaignUrn, this.promptIdList, this.surveyIdList, this.startDate, this.endDate, this.sortOrder, 
+					this.configuration);
+			
+			LOGGER.info("Filtering survey response results according to our privacy rules and the requester's role.");
+			SurveyResponseReadServices.performPrivacyFilter(this.getUser(), this.campaignUrn, surveyResponseList, this.privacyState);
+		}
+		
+		catch(ServiceException e) {
+			e.logException(LOGGER);
+		}
+		catch(DataAccessException e) {
+			e.logException(LOGGER);
+		}
 	}
 
 	@Override
 	public void respond(HttpServletRequest httpRequest, HttpServletResponse httpResponse) {
-		// TODO Auto-generated method stub
+		
+		super.respond(httpRequest, httpResponse, null);
 
+		
+		
+		
+		
 	}
 }

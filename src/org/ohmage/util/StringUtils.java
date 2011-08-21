@@ -31,6 +31,7 @@ import java.util.regex.Pattern;
  * A collection of methods for manipulating or validating Strings.
  * 
  * @author Joshua Selsky
+ * @author John Jenkins
  */
 public final class StringUtils {
 	private static final int NUM_URN_SEGMENTS = 3;
@@ -389,4 +390,24 @@ public final class StringUtils {
 		
 		return ! string.equals(delimiter);
 	}
+	
+	/**
+	 * @return a parameter list of the form (?,...?) depending on the numberOfParameters  
+	 */
+	public static String generateStatementPList(int numberOfParameters) {
+		if(numberOfParameters < 1) {
+			throw new IllegalArgumentException("cannot generate a parameter list for less than one parameter");
+		}
+		
+		StringBuilder builder = new StringBuilder("(");
+		for(int i = 0; i < numberOfParameters; i++) {
+			builder.append("?");
+			if(i < numberOfParameters - 1) {
+				builder.append(",");
+			}	
+		}
+		builder.append(")");
+		return builder.toString();
+	}
+
 }

@@ -27,6 +27,7 @@ import org.ohmage.domain.UserRoleCampaignInfo;
 import org.ohmage.exception.DataAccessException;
 import org.ohmage.exception.ServiceException;
 import org.ohmage.request.Request;
+import org.ohmage.util.StringUtils;
 
 /**
  * This class contains the services for user-campaign relationships.
@@ -73,16 +74,15 @@ public class UserCampaignServices {
 	}
 	
 	/**
-	 * Ensures that the user in the UserRequest belongs to the campaign
-	 * represented by the campaignId.
+	 * Ensures that the User belongs to the campaign represented by the
+	 * campaignId.
 	 *  
 	 * @param request The request that is performing this service.
-	 * 
+	 * @param user  The user to validate.
 	 * @param campaignId The campaign ID for the campaign in question.
 	 * 
 	 * @throws ServiceException Thrown if the campaign doesn't exist or the user
-	 * 							doesn't belong to the campaign, or if there is
-	 * 							an error.
+	 * 							doesn't belong to the campaign.
 	 */
 	public static void campaignExistsAndUserBelongs(Request request, User user, String campaignId) throws ServiceException {
 		if(user.getCampaignsAndRoles() == null) {
@@ -933,6 +933,46 @@ public class UserCampaignServices {
 	public static void verifyUserCanReadClassesAssociatedWithCampaigns(Request request, String username, Collection<String> campaignIds) throws ServiceException {
 		for(String campaignId : campaignIds) {
 			verifyUserCanReadClassesAssociatedWithCampaign(request, username, campaignId);
+		}
+	}
+	
+	/**
+	 * Verifies that each username in usernameList belongs to the campaign
+	 * specified by the campaignId.
+	 * 
+	 * @param request  The request to fail when a user does not belong to a
+	 * campaign or an IO problem occurs.
+	 * @param campaignId  The campaign to check each user against.
+	 * @param usernameList  The users in question
+	 * @throws ServiceException  If any user in usernameList does not belong
+	 * to the campaign or if an IO problem occurs.
+	 * @throws IllegalArgumentException if the request is null; if the 
+	 * campaignId is empty or null; or if the usernameList is null.
+	 */
+	public static void verifyUsersExistInCampaign(Request request, String campaignId, List<String> usernameList) throws ServiceException {
+		// check for logical errors
+		if(request == null || StringUtils.isEmptyOrWhitespaceOnly(campaignId) || usernameList == null) {
+			throw new IllegalArgumentException("null request, empty campaignId, or null usernameList");
+		}
+		
+		// check each username in usernameList
+		try {
+			for(String username : usernameList) {
+				if(! UserCampaignDaos.userBelongsToCampaign(username, campaignId)) {
+					StringBuilder sb = new StringBuilder();
+					sb.append("User in usernameList does not belong to campaign. Username: ");
+					sb.append(username);
+					sb.append(" Campaign ID: ");
+					sb.append(campaignId);
+					String msg = sb.toString();
+					request.setFailed(ErrorCodes.USER_NOT_IN_CAMPAIGN, msg);
+					throw new ServiceException(msg);
+				}
+			}
+		}
+		catch(DataAccessException e) {
+			request.setFailed();
+			throw new ServiceException(e);
 		}
 	}
 }
