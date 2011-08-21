@@ -61,7 +61,7 @@ public class AuthTokenRequest extends UserRequest {
 	public void service() {
 		LOGGER.info("Servicing the authentication token request.");
 
-		if(! authenticate(false)) {
+		if(! authenticate(AllowNewAccount.NEW_ACCOUNT_DISALLOWED)) {
 			return;
 		}
 		

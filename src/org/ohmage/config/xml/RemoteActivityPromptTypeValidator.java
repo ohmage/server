@@ -15,8 +15,8 @@ import org.ohmage.util.StringUtils;
 public class RemoteActivityPromptTypeValidator extends AbstractPromptTypeValidator {
 	private static final int MAX_INPUT_LENGTH = 65536;
 	
-	private int _minRuns;
-	private int _retries;
+	private int minRuns;
+	private int retries;
 
 	/**
 	 * Check that the following properties exist and that they are sane.
@@ -136,7 +136,7 @@ public class RemoteActivityPromptTypeValidator extends AbstractPromptTypeValidat
 				JSONArray promptResult = new JSONArray(pair.getValue());
 			}
 			catch(JSONException e) {
-				throw new IllegalArgumentException("Invalid return value: " + pair.getValue());
+				throw new IllegalArgumentException("Invalid return value: " + pair.getValue(), e);
 			}
 		}
 	}
@@ -281,14 +281,14 @@ public class RemoteActivityPromptTypeValidator extends AbstractPromptTypeValidat
 	 */
 	private void validateRetries(String value) {
 		try {
-			_retries = Integer.parseInt(value);
+			retries = Integer.parseInt(value);
 			
-			if(_retries < 0) {
+			if(retries < 0) {
 				throw new IllegalArgumentException("'retries' must be non-negative");
 			}
 		}
 		catch(NumberFormatException e) {
-			throw new IllegalArgumentException("'retries' is not a valid integer");
+			throw new IllegalArgumentException("'retries' is not a valid integer", e);
 		}
 	}
 	
@@ -314,9 +314,9 @@ public class RemoteActivityPromptTypeValidator extends AbstractPromptTypeValidat
 	 */
 	private void validateMinRuns(String value) {
 		try {
-			_minRuns = Integer.parseInt(value);
+			minRuns = Integer.parseInt(value);
 			
-			if(_minRuns < 0) {
+			if(minRuns < 0) {
 				throw new IllegalArgumentException("'min_runs' must be non-negative.");
 			}
 		}
@@ -331,7 +331,7 @@ public class RemoteActivityPromptTypeValidator extends AbstractPromptTypeValidat
 	 * Activity.
 	 */
 	private boolean validateRetriesAndMinRuns() {
-		if(_minRuns > (_retries + 1)) {
+		if(minRuns > (retries + 1)) {
 			return false;
 		}
 		

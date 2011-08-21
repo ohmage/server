@@ -201,7 +201,7 @@ public class AuditReadRequest extends UserRequest {
 	public void service() {
 		LOGGER.info("Servicing the audit read request.");
 		
-		if(! authenticate(false)) {
+		if(! authenticate(AllowNewAccount.NEW_ACCOUNT_DISALLOWED)) {
 			return;
 		}
 		

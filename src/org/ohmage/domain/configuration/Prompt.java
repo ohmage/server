@@ -25,66 +25,66 @@ import java.util.Map;
  * @author selsky
  */
 public class Prompt extends AbstractSurveyItem {
-	private String _displayType;
-	private String _type;
-	private Map<String, PromptProperty> _properties;
-	private boolean _skippable;
-	private String _displayLabel;
-	private String _unit;
-	private String _text;
-	private int _index;
+	private String displayType;
+	private String type;
+	private Map<String, PromptProperty> properties;
+	private boolean skippable;
+	private String displayLabel;
+	private String unit;
+	private String text;
+	private int index;
 
 	public Prompt(String id, String displayType, String type, Map<String, PromptProperty> props, boolean skippable, 
 			String displayLabel, String unit, String text, int index) {
 		
 		super(id);
-		_displayType = displayType;
-		_type = type;
-		_properties = props; // TODO really need a deep copy here
-		_skippable = skippable;
-		_displayLabel = displayLabel;
-		_unit = unit;
-		_text = text;
-		_index = index;
+		this.displayType = displayType;
+		this.type = type;
+		properties = props; // TODO really need a deep copy here
+		this.skippable = skippable;
+		this.displayLabel = displayLabel;
+		this.unit = unit;
+		this.text = text;
+		this.index = index;
 	}
 
 	public String getText() {
-		return _text;
+		return text;
 	}
 	
 	public String getDisplayType() {
-		return _displayType;
+		return displayType;
 	}
 
 	public String getType() {
-		return _type;
+		return type;
 	}
 	
 	public String getUnit() {
-		return _unit;
+		return unit;
 	}
 
 	public String getDisplayLabel() {
-		return _displayLabel;
+		return displayLabel;
 	}
 	
 	public Map<String, PromptProperty> getProperties() {
-		return Collections.unmodifiableMap(_properties);
+		return Collections.unmodifiableMap(properties);
 	}
 
 	public boolean isSkippable() {
-		return _skippable;
+		return skippable;
 	}
 	
 	public int getIndex() {
-		return _index;
+		return index;
 	}
 
 	@Override
 	public String toString() {
-		return "Prompt [_displayType=" + _displayType + ", _type=" + _type
-				+ ", _properties=" + _properties + ", _skippable=" + _skippable
-				+ ", _displayLabel=" + _displayLabel + ", _unit=" + _unit
-				+ ", _text=" + _text + ", _index=" + _index + "]";
+		return "Prompt [displayType=" + displayType + ", type=" + type
+				+ ", properties=" + properties + ", skippable=" + skippable
+				+ ", displayLabel=" + displayLabel + ", unit=" + unit
+				+ ", text=" + text + ", index=" + index + "]";
 	}
 }

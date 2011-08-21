@@ -26,33 +26,33 @@ import java.util.Map;
  * @author selsky
  */
 public class Survey extends AbstractSurveyItem {
-	private Map<String, SurveyItem> _surveyItemMap; // prompts and repeatableSets
-	private String _title;
-	private String _description;
+	private Map<String, SurveyItem> surveyItemMap; // prompts and repeatableSets
+	private String title;
+	private String description;
 	
 	public Survey(String surveyId, String title, String description, Map<String, SurveyItem> surveyMap) {
 		super(surveyId);
-		_surveyItemMap = surveyMap; // TODO really need a deep copy here, but so far the creator of this Map does not change it
-		_title = title;
-		_description = description;
+		surveyItemMap = surveyMap; // TODO really need a deep copy here, but so far the creator of this Map does not change it
+		this.title = title;
+		this.description = description;
 	}
 
 	public Map<String, SurveyItem> getSurveyItemMap() {
-		return Collections.unmodifiableMap(_surveyItemMap);
+		return Collections.unmodifiableMap(surveyItemMap);
 	}
 	
 	public String getTitle() {
-		return _title;
+		return title;
 	}
 	
 	public String getDescription() {
-		return _description;
+		return description;
 	}
 	
 	public String getRepeatableSetIdForPromptId(String promptId) {
-		Iterator<String> iterator = _surveyItemMap.keySet().iterator();
+		Iterator<String> iterator = surveyItemMap.keySet().iterator();
 		while(iterator.hasNext()) {
-			SurveyItem si = _surveyItemMap.get(iterator.next());
+			SurveyItem si = surveyItemMap.get(iterator.next());
 			if(si instanceof RepeatableSet) {
 				RepeatableSet repeatableSet = (RepeatableSet) si;
 				
@@ -67,7 +67,7 @@ public class Survey extends AbstractSurveyItem {
 
 	@Override
 	public String toString() {
-		return "Survey [_description=" + _description + ", _surveyItemMap="
-				+ _surveyItemMap + ", _title=" + _title + "]";
+		return "Survey [description=" + description + ", surveyItemMap="
+				+ surveyItemMap + ", title=" + title + "]";
 	}
 }

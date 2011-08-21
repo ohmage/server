@@ -60,7 +60,7 @@ public class AuthRequest extends UserRequest {
 	public void service() {
 		LOGGER.info("Servicing the authentication request.");
 		
-		authenticate(false);
+		authenticate(AllowNewAccount.NEW_ACCOUNT_DISALLOWED);
 	}
 
 	/**

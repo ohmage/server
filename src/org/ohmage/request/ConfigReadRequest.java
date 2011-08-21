@@ -10,6 +10,7 @@ import org.apache.log4j.Logger;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.ohmage.cache.PreferenceCache;
+import org.ohmage.cache.SurveyResponsePrivacyStateCache;
 import org.ohmage.exception.CacheMissException;
 
 /**
@@ -27,7 +28,7 @@ public class ConfigReadRequest extends Request {
 	 * Default constructor.
 	 */
 	public ConfigReadRequest() {
-		super();
+		super(null);
 		
 		result = new JSONObject();
 	}
@@ -40,7 +41,7 @@ public class ConfigReadRequest extends Request {
 	public void service() {
 		LOGGER.info("Gathering information about the system.");
 		
-		// Get the response values to be returned to the requestor and place
+		// Get the response values to be returned to the requester and place
 		// them in the response.
 		try {
 			// Get the application's name.
@@ -54,6 +55,8 @@ public class ConfigReadRequest extends Request {
 			
 			// Get the default survey response sharing state.
 			result.put("default_survey_response_sharing_state", PreferenceCache.instance().lookup(PreferenceCache.KEY_DEFAULT_SURVEY_RESPONSE_SHARING_STATE));
+			
+			result.put("survey_response_privacy_states", SurveyResponsePrivacyStateCache.instance().getKeys());
 		}
 		catch(CacheMissException e) {
 			setFailed();

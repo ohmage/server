@@ -109,7 +109,7 @@ public final class AuthenticationDao extends Dao{
 		// Hash the password if necessary.
 		if(user.hashPassword()) {
 			try {
-				String actualPassword = (String) instance.jdbcTemplate.queryForObject(
+				String actualPassword = (String) instance.getJdbcTemplate().queryForObject(
 						SQL_GET_PASSWORD, 
 						new Object[] { user.getUsername() },
 						String.class);
@@ -138,7 +138,7 @@ public final class AuthenticationDao extends Dao{
 		
 		// Get the user's information from the database.
 		try {
-			UserInformation userInformation = instance.jdbcTemplate.queryForObject(
+			UserInformation userInformation = instance.getJdbcTemplate().queryForObject(
 					SQL_GET_USER, 
 					new Object[] { user.getUsername(), hashedPassword }, 
 					new RowMapper<UserInformation>() {

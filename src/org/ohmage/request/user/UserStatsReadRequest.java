@@ -13,7 +13,7 @@ import org.ohmage.request.InputKeys;
 import org.ohmage.request.UserRequest;
 import org.ohmage.service.UserCampaignServices;
 import org.ohmage.service.UserMobilityServices;
-import org.ohmage.service.UserSurveyServices;
+import org.ohmage.service.UserSurveyResponseServices;
 import org.ohmage.validator.CampaignValidators;
 import org.ohmage.validator.UserValidators;
 
@@ -126,7 +126,7 @@ public class UserStatsReadRequest extends UserRequest {
 	public void service() {
 		LOGGER.info("Servicing the user stats read request.");
 		
-		if(! authenticate(false)) {
+		if(! authenticate(AllowNewAccount.NEW_ACCOUNT_DISALLOWED)) {
 			return;
 		}
 		
@@ -138,13 +138,13 @@ public class UserStatsReadRequest extends UserRequest {
 			UserMobilityServices.requesterCanViewUsersMobilityData(this, getUser().getUsername(), username);
 			
 			LOGGER.info("Gathering the number of hours since the last survey upload.");
-			hoursSinceLastSurveyUpload = UserSurveyServices.getHoursSinceLastSurveyUplaod(this, getUser().getUsername(), username);
+			hoursSinceLastSurveyUpload = UserSurveyResponseServices.getHoursSinceLastSurveyUplaod(this, getUser().getUsername(), username);
 			
 			LOGGER.info("Gathering the number of hours since the last Mobility upload.");
 			hoursSinceLastMobilityUpload = UserMobilityServices.getHoursSinceLastMobilityUpload(this, getUser().getUsername(), username);
 			
 			LOGGER.info("Gathering the percentage of successful location uploads from surveys in the last day.");
-			pastDaySuccessfulSurveyLocationUpdatesPercentage = UserSurveyServices.getPercentageOfNonNullLocationsOverPastDay(this, getUser().getUsername(), username);
+			pastDaySuccessfulSurveyLocationUpdatesPercentage = UserSurveyResponseServices.getPercentageOfNonNullLocationsOverPastDay(this, getUser().getUsername(), username);
 			
 			LOGGER.info("Gathering the percentage of successful location updates from Mobility in the last day.");
 			pastDatSuccessfulMobilityLocationUpdatesPercentage = UserMobilityServices.getPercentageOfNonNullLocationsOverPastDay(this, getUser().getUsername(), username);

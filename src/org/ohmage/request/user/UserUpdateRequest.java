@@ -230,7 +230,7 @@ public class UserUpdateRequest extends UserRequest {
 	public void service() {
 		LOGGER.info("Validating the user update request.");
 		
-		if(! authenticate(false)) {
+		if(! authenticate(AllowNewAccount.NEW_ACCOUNT_DISALLOWED)) {
 			return;
 		}
 		

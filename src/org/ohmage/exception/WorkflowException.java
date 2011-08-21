@@ -97,7 +97,7 @@ public abstract class WorkflowException extends Exception {
 	 */
 	public void logException(Logger logger) {
 		if(isSerious) {
-			logger.error(this);
+			logger.error(toString(), this);
 		}
 		else {
 			logger.info(toString());

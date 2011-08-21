@@ -362,12 +362,12 @@ public class DocumentDaos extends Dao {
 		
 		try {
 			// Begin the transaction.
-			PlatformTransactionManager transactionManager = new DataSourceTransactionManager(instance.dataSource);
+			PlatformTransactionManager transactionManager = new DataSourceTransactionManager(instance.getDataSource());
 			TransactionStatus status = transactionManager.getTransaction(def);
 			
 			// Insert the file in the DB.
 			try {
-				instance.jdbcTemplate.update(
+				instance.getJdbcTemplate().update(
 						SQL_INSERT_DOCUMENT, 
 						new Object[] { 
 								uuid, 
@@ -389,7 +389,7 @@ public class DocumentDaos extends Dao {
 			
 			// Insert the creator in the DB.
 			try {
-				instance.jdbcTemplate.update(
+				instance.getJdbcTemplate().update(
 						SQL_INSERT_DOCUMENT_USER_CREATOR, 
 						new Object[] { 
 								uuid, 
@@ -406,7 +406,7 @@ public class DocumentDaos extends Dao {
 			
 			// Insert this user's user-role in the DB.
 			try {
-				instance.jdbcTemplate.update(
+				instance.getJdbcTemplate().update(
 						SQL_INSERT_USER_ROLE, 
 						new Object[] { 
 								uuid, 
@@ -427,7 +427,7 @@ public class DocumentDaos extends Dao {
 				for(String campaignId : campaignRoleMap.keySet()) {
 					// Attempt to insert it into the database.
 					try {
-						instance.jdbcTemplate.update(
+						instance.getJdbcTemplate().update(
 								SQL_INSERT_CAMPAIGN_ROLE, 
 								new Object[] { 
 										uuid, 
@@ -450,7 +450,7 @@ public class DocumentDaos extends Dao {
 				for(String classId : classRoleMap.keySet()) {
 					// Attempt to insert it into the database.
 					try {
-						instance.jdbcTemplate.update(
+						instance.getJdbcTemplate().update(
 								SQL_INSERT_CLASS_ROLE, 
 								new Object[] { 
 										uuid, 
@@ -494,7 +494,7 @@ public class DocumentDaos extends Dao {
 	 */
 	public static boolean getDocumentExists(String documentId) throws DataAccessException {
 		try {
-			return instance.jdbcTemplate.queryForObject(SQL_EXISTS_DOCUMENT, new Object[] { documentId }, Boolean.class);
+			return instance.getJdbcTemplate().queryForObject(SQL_EXISTS_DOCUMENT, new Object[] { documentId }, Boolean.class);
 		}
 		catch(org.springframework.dao.DataAccessException e) {
 			throw new DataAccessException("Error executing SQL '" + SQL_EXISTS_DOCUMENT + "' with parameter: " + documentId, e);
@@ -511,7 +511,7 @@ public class DocumentDaos extends Dao {
 	 */
 	public static String getDocumentUrl(String documentId) throws DataAccessException {
 		try {
-			return instance.jdbcTemplate.queryForObject(SQL_GET_DOCUMENT_URL, new Object[] { documentId }, String.class);
+			return instance.getJdbcTemplate().queryForObject(SQL_GET_DOCUMENT_URL, new Object[] { documentId }, String.class);
 		}
 		catch(org.springframework.dao.DataAccessException e) {
 			throw new DataAccessException("Error executing SQL '" + SQL_GET_DOCUMENT_URL + "' with parameter: " + documentId, e);
@@ -528,7 +528,7 @@ public class DocumentDaos extends Dao {
 	 */
 	public static String getDocumentName(String documentId) throws DataAccessException {
 		try {
-			return instance.jdbcTemplate.queryForObject(SQL_GET_DOCUMENT_NAME, new Object[] { documentId }, String.class);
+			return instance.getJdbcTemplate().queryForObject(SQL_GET_DOCUMENT_NAME, new Object[] { documentId }, String.class);
 		}
 		catch(org.springframework.dao.DataAccessException e) {
 			throw new DataAccessException("Error executing SQL '" + SQL_GET_DOCUMENT_NAME + "' with parameter: " + documentId, e);
@@ -546,7 +546,7 @@ public class DocumentDaos extends Dao {
 	 */
 	public static DocumentInformation getDocumentInformation(String documentId) throws DataAccessException {
 		try {
-			return instance.jdbcTemplate.queryForObject(
+			return instance.getJdbcTemplate().queryForObject(
 				SQL_GET_DOCUMENT_INFO, 
 				new Object[] { documentId }, 
 				new RowMapper<DocumentInformation>() {
@@ -620,7 +620,7 @@ public class DocumentDaos extends Dao {
 		def.setName("Document update.");
 		
 		try {
-			PlatformTransactionManager transactionManager = new DataSourceTransactionManager(instance.dataSource);
+			PlatformTransactionManager transactionManager = new DataSourceTransactionManager(instance.getDataSource());
 			TransactionStatus status = transactionManager.getTransaction(def);
 			
 			try {
@@ -682,13 +682,13 @@ public class DocumentDaos extends Dao {
 		def.setName("Document delete.");
 		
 		try {
-			PlatformTransactionManager transactionManager = new DataSourceTransactionManager(instance.dataSource);
+			PlatformTransactionManager transactionManager = new DataSourceTransactionManager(instance.getDataSource());
 			TransactionStatus status = transactionManager.getTransaction(def);
 			
 			String documentUrl = getDocumentUrl(documentId);
 			
 			try {
-				instance.jdbcTemplate.update(SQL_DELETE_DOCUMENT, new Object[] { documentId });
+				instance.getJdbcTemplate().update(SQL_DELETE_DOCUMENT, new Object[] { documentId });
 			}
 			catch(org.springframework.dao.DataAccessException e) {
 				transactionManager.rollback(status);
@@ -738,7 +738,7 @@ public class DocumentDaos extends Dao {
 		// Update the document's name.
 		String extension = getExtension(name);
 		try {
-			instance.jdbcTemplate.update(SQL_UPDATE_NAME, new Object[] { name, extension, documentId });
+			instance.getJdbcTemplate().update(SQL_UPDATE_NAME, new Object[] { name, extension, documentId });
 		}
 		catch(org.springframework.dao.DataAccessException e) {
 			errorExecutingSql(SQL_UPDATE_NAME, e, name, extension, documentId);
@@ -761,7 +761,7 @@ public class DocumentDaos extends Dao {
 		
 		// Update the document's description.
 		try {
-			instance.jdbcTemplate.update(SQL_UPDATE_DESCRIPTION, new Object[] { description, documentId });
+			instance.getJdbcTemplate().update(SQL_UPDATE_DESCRIPTION, new Object[] { description, documentId });
 		}
 		catch(org.springframework.dao.DataAccessException e) {
 			errorExecutingSql(SQL_UPDATE_DESCRIPTION, e, description, documentId);
@@ -785,7 +785,7 @@ public class DocumentDaos extends Dao {
 		
 		// Update the document's privacy state.
 		try {
-			instance.jdbcTemplate.update(SQL_UPDATE_PRIVACY_STATE, new Object[] { privacyState, documentId });
+			instance.getJdbcTemplate().update(SQL_UPDATE_PRIVACY_STATE, new Object[] { privacyState, documentId });
 		}
 		catch(org.springframework.dao.DataAccessException e) {
 			throw new DataAccessException("Error executing SQL '" + SQL_UPDATE_PRIVACY_STATE + "' with parameters: " +
@@ -811,7 +811,7 @@ public class DocumentDaos extends Dao {
 		
 		// Update the size in the database.
 		try {
-			instance.jdbcTemplate.update(SQL_UPDATE_SIZE, new Object[] { contents.length, documentId });
+			instance.getJdbcTemplate().update(SQL_UPDATE_SIZE, new Object[] { contents.length, documentId });
 		}
 		catch(org.springframework.dao.DataAccessException e) {
 			throw new DataAccessException("Error executing SQL '" + SQL_UPDATE_SIZE + "' with parameters: " + contents.length + ", " + documentId, e);
@@ -887,7 +887,7 @@ public class DocumentDaos extends Dao {
 				
 				// Delete the document-campaign role.
 				try {
-					instance.jdbcTemplate.update(sqlDeleteEntity, new Object[] { documentId, entityId });
+					instance.getJdbcTemplate().update(sqlDeleteEntity, new Object[] { documentId, entityId });
 				}
 				catch(org.springframework.dao.DataAccessException e) {
 					throw new DataAccessException("Error executing SQL '" + sqlDeleteEntity + "' with parameters: " + documentId + ", " + entityId, e);
@@ -907,14 +907,14 @@ public class DocumentDaos extends Dao {
 				
 				// Add the document-entity role.
 				try {
-					instance.jdbcTemplate.update(sqlInsertEntity, 
+					instance.getJdbcTemplate().update(sqlInsertEntity, 
 							new Object[] { documentId, entityId, role });
 				}
 				catch(org.springframework.dao.DataIntegrityViolationException duplicateEntryException) {
 					// If the entity is already associated with the document, then
 					// they must be attempting an update.
 					try {
-						instance.jdbcTemplate.update(sqlUpdateEntity, new Object[] { role, documentId, entityId });
+						instance.getJdbcTemplate().update(sqlUpdateEntity, new Object[] { role, documentId, entityId });
 					}
 					catch(org.springframework.dao.DataAccessException e) {
 						throw new DataAccessException("Error executing SQL '" + sqlUpdateEntity + "' with parameters: " + 
@@ -959,13 +959,13 @@ public class DocumentDaos extends Dao {
 		// Get the maximum number of items in a directory.
 		int numFilesPerDirectory;
 		try {
-			numFilesPerDirectory = Integer.decode(PreferenceCache.instance().lookup(PreferenceCache.KEY_MAXIMUM_NUMBER_OF_DOCUMENTS_PER_DIRECTORY));
+			numFilesPerDirectory = Integer.decode(PreferenceCache.instance().lookup(PreferenceCache.KEY_MAXIMUM_NUMBER_OF_FILES_PER_DIRECTORY));
 		}
 		catch(CacheMissException e) {
-			throw new DataAccessException("Preference cache doesn't know about 'known' key: " + PreferenceCache.KEY_MAXIMUM_NUMBER_OF_DOCUMENTS_PER_DIRECTORY, e);
+			throw new DataAccessException("Preference cache doesn't know about 'known' key: " + PreferenceCache.KEY_MAXIMUM_NUMBER_OF_FILES_PER_DIRECTORY, e);
 		}
 		catch(NumberFormatException e) {
-			throw new DataAccessException("Stored value for key '" + PreferenceCache.KEY_MAXIMUM_NUMBER_OF_DOCUMENTS_PER_DIRECTORY + "' is not decodable as a number.", e);
+			throw new DataAccessException("Stored value for key '" + PreferenceCache.KEY_MAXIMUM_NUMBER_OF_FILES_PER_DIRECTORY + "' is not decodable as a number.", e);
 		}
 		
 		// If the leaf directory was never initialized, then we should do
@@ -1023,13 +1023,13 @@ public class DocumentDaos extends Dao {
 			// Get the number of folders deep that documents are stored.
 			int fileDepth;
 			try {
-				fileDepth = Integer.decode(PreferenceCache.instance().lookup(PreferenceCache.KEY_DOCUMENT_DEPTH));
+				fileDepth = Integer.decode(PreferenceCache.instance().lookup(PreferenceCache.KEY_FILE_HIERARCHY_DEPTH));
 			}
 			catch(CacheMissException e) {
-				throw new DataAccessException("Preference cache doesn't know about 'known' key: " + PreferenceCache.KEY_DOCUMENT_DEPTH, e);
+				throw new DataAccessException("Preference cache doesn't know about 'known' key: " + PreferenceCache.KEY_FILE_HIERARCHY_DEPTH, e);
 			}
 			catch(NumberFormatException e) {
-				throw new DataAccessException("Stored value for key '" + PreferenceCache.KEY_DOCUMENT_DEPTH + "' is not decodable as a number.", e);
+				throw new DataAccessException("Stored value for key '" + PreferenceCache.KEY_FILE_HIERARCHY_DEPTH + "' is not decodable as a number.", e);
 			}
 			
 			DirectoryFilter directoryFilter = new DirectoryFilter();
@@ -1230,7 +1230,7 @@ public class DocumentDaos extends Dao {
 	 */
 	private static String directoryNameBuilder(long name, int numFilesPerDirectory) {
 		int nameLength = String.valueOf(name).length();
-		int maxLength = String.valueOf(numFilesPerDirectory).length();
+		int maxLength = new Double(Math.log10(numFilesPerDirectory)).intValue();
 		int numberOfZeros = maxLength - nameLength;
 		
 		StringBuilder builder = new StringBuilder();

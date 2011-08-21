@@ -1,6 +1,6 @@
 package org.ohmage.request;
 
-import java.util.HashMap;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -17,7 +17,6 @@ import org.ohmage.exception.ServiceException;
 import org.ohmage.service.AuthenticationService;
 import org.ohmage.util.CookieUtils;
 
-
 /**
  * A request that contains a User object and a client String that represents
  * how the requester is making this request.
@@ -28,8 +27,9 @@ public abstract class UserRequest extends Request {
 	private static final Logger LOGGER = Logger.getLogger(UserRequest.class);
 	
 	protected static enum TokenLocation { COOKIE, PARAMETER, EITHER };
+	protected static enum AllowNewAccount { NEW_ACCOUNT_ALLOWED, NEW_ACCOUNT_DISALLOWED };
 	
-	public static final long MILLIS_IN_A_SECOND = 1000;
+	private static final long MILLIS_IN_A_SECOND = 1000;
 	
 	private final User user;
 	private final String client;
@@ -51,6 +51,8 @@ public abstract class UserRequest extends Request {
 	 * 			   {@link #UserRequest(HttpServletRequest, boolean)} instead.
 	 */
 	public UserRequest(String username, String password, boolean hashPassword, String client) {
+		super(null);
+		
 		// This will either be reset as a new User object or the request will 
 		// have failed.
 		User tempUser = null;
@@ -81,6 +83,8 @@ public abstract class UserRequest extends Request {
 	 * 			   instead.
 	 */
 	public UserRequest(String token, String client) {
+		super(null);
+		
 		// This will either be reset as a new User object or the request will 
 		// have failed.
 		User tempUser = null;
@@ -125,6 +129,8 @@ public abstract class UserRequest extends Request {
 	 * 			   instead.
 	 */
 	public UserRequest(String username, String password, boolean hashPassword, String token, String client) {
+		super(null);
+		
 		// This will either be reset as a new User object or the request will 
 		// have failed.
 		User tempUser = null;
@@ -164,12 +170,86 @@ public abstract class UserRequest extends Request {
 	 * 					   authenticating the user.
 	 */
 	public UserRequest(HttpServletRequest httpRequest, boolean hashPassword) {
+		super(httpRequest);
+		
+		User tUser = null;
+		
+		// Attempt to retrieve all usernames passed to the server.
+		String[] usernames = getParameterValues(InputKeys.USER);
+		
+		// If it is missing, fail the request.
+		if(usernames.length == 0) {
+			LOGGER.info("The username is missing from the request.");
+			setFailed(ErrorCodes.AUTHENTICATION_FAILED, "Missing username.");
+		}
+		// If there is more than one, fail the request.
+		else if(usernames.length > 1) {
+			LOGGER.info("More than one username was given.");
+			setFailed(ErrorCodes.AUTHENTICATION_FAILED, "More than one username was given.");
+		}
+		else {
+			// If exactly one username is found, attempt to retrieve all 
+			// paswords sent to the server.
+			String[] passwords = getParameterValues(InputKeys.PASSWORD);
+			
+			// If it is missing, fail the request.
+			if(passwords.length == 0) {
+				LOGGER.info("The password is missing from the request.");
+				setFailed(ErrorCodes.AUTHENTICATION_FAILED, "Missing password.");
+			}
+			// If there are more than one, fail the request.
+			else if(passwords.length > 1) {
+				LOGGER.info("More than one password was given.");
+				setFailed(ErrorCodes.AUTHENTICATION_FAILED, "More than one password was given.");
+			}
+			else {
+				// Attempt to create the new User object for this request.
+				try {
+					tUser = new User(usernames[0], passwords[0], hashPassword);
+				}
+				catch(IllegalArgumentException e) {
+					LOGGER.info("The username and/or password are invalid.");
+					setFailed(ErrorCodes.AUTHENTICATION_FAILED, "The username and/or password are invalid.");
+				}
+			}
+		}
+		
+		// Retrieve the client parameter(s) from the request.
+		String tClient = null;
+		String[] clients = getParameterValues(InputKeys.CLIENT);
+		
+		if(! isFailed()) {
+			// If there is no client, throw an error.
+			if(clients.length == 0) {
+				LOGGER.info("The client is missing from the request.");
+				setFailed(ErrorCodes.AUTHENTICATION_FAILED, "Missing client.");
+			}
+			// If there are multiple clients, throw an error.
+			else if(clients.length > 1) {
+				LOGGER.info("More than one client was given.");
+				setFailed(ErrorCodes.AUTHENTICATION_FAILED, "More than one client was given.");
+			}
+			else {
+				// Save the client.
+				tClient = clients[0];
+				
+				// Push the client into the logs.
+				NDC.push("client=" + tClient);
+			}
+		}
+		
+		user = tUser;
+		client = tClient;
+	}
+	
+	/*
+	public UserRequest(Map<String, String[]> parameters, boolean hashPassword) {
 		super();
 		
 		User tUser = null;
 		
 		// Attempt to retrieve all usernames passed to the server.
-		String[] usernames = httpRequest.getParameterValues(InputKeys.USER);
+		String[] usernames = parameters.get(InputKeys.USER);
 		
 		// If it is missing, fail the request.
 		if((usernames == null) || (usernames.length == 0)) {
@@ -184,7 +264,7 @@ public abstract class UserRequest extends Request {
 		else {
 			// If exactly one username is found, attempt to retrieve all 
 			// paswords sent to the server.
-			String[] passwords = httpRequest.getParameterValues(InputKeys.PASSWORD);
+			String[] passwords = parameters.get(InputKeys.PASSWORD);
 			
 			// If it is missing, fail the request.
 			if((passwords == null) || (passwords.length == 0)) {
@@ -210,7 +290,7 @@ public abstract class UserRequest extends Request {
 		
 		// Retrieve the client parameter(s) from the request.
 		String tClient = null;
-		String[] clients = httpRequest.getParameterValues(InputKeys.CLIENT);
+		String[] clients = parameters.get(InputKeys.CLIENT);
 		
 		if(! isFailed()) {
 			// If there is no client, throw an error.
@@ -235,6 +315,7 @@ public abstract class UserRequest extends Request {
 		user = tUser;
 		client = tClient;
 	}
+	*/
 	
 	/**
 	 * Creates a Request from an authentication token.
@@ -245,7 +326,7 @@ public abstract class UserRequest extends Request {
 	 * @param tokenLocation This indicates where the token must be located.
 	 */
 	public UserRequest(HttpServletRequest httpRequest, TokenLocation tokenLocation) {
-		super();
+		super(httpRequest);
 		
 		User tUser = null;
 		
@@ -286,9 +367,9 @@ public abstract class UserRequest extends Request {
 		if((tUser == null) && (! isFailed()) &&
 		   (tokenLocation.equals(TokenLocation.PARAMETER) || tokenLocation.equals(TokenLocation.EITHER))) {
 			// Retrieve all of the authentication tokens that were parameters.
-			String[] tokens = httpRequest.getParameterValues(InputKeys.AUTH_TOKEN);
+			String[] tokens = getParameterValues(InputKeys.AUTH_TOKEN);
 			
-			if((tokens == null) || (tokens.length == 0)) {
+			if(tokens.length == 0) {
 				LOGGER.info("The authentication token is missing.");
 				setFailed(ErrorCodes.AUTHENTICATION_FAILED, "The authentication token is missing as a parameter: " + InputKeys.AUTH_TOKEN);
 			}
@@ -311,11 +392,11 @@ public abstract class UserRequest extends Request {
 		
 		// Retrieve the client parameter(s) from the request.
 		String tClient = null;
-		String[] clients = httpRequest.getParameterValues(InputKeys.CLIENT);
+		String[] clients = getParameterValues(InputKeys.CLIENT);
 
 		if(! isFailed()) {
 			// If there is no client, throw an error.
-			if((clients == null) || (clients.length == 0)) {
+			if(clients.length == 0) {
 				LOGGER.info("The client is missing from the request.");
 				setFailed(ErrorCodes.AUTHENTICATION_FAILED, "Missing client.");
 			}
@@ -354,7 +435,7 @@ public abstract class UserRequest extends Request {
 	 * 					   authenticating them.
 	 */
 	public UserRequest(HttpServletRequest httpRequest, TokenLocation tokenLocation, boolean hashPassword) {
-		super();
+		super(httpRequest);
 		
 		User tUser = null;
 		
@@ -363,10 +444,10 @@ public abstract class UserRequest extends Request {
 		boolean getToken = false;
 		
 		// Attempt to retrieve all usernames passed to the server.
-		String[] usernames = httpRequest.getParameterValues(InputKeys.USER);
+		String[] usernames = getParameterValues(InputKeys.USER);
 		
 		// If it is missing, search for a token.
-		if((usernames == null) || (usernames.length == 0)) {
+		if(usernames.length == 0) {
 			getToken = true;
 		}
 		// If there is more than one, fail the request.
@@ -377,10 +458,10 @@ public abstract class UserRequest extends Request {
 		else {
 			// If exactly one username is found, attempt to retrieve all 
 			// paswords sent to the server.
-			String[] passwords = httpRequest.getParameterValues(InputKeys.PASSWORD);
+			String[] passwords = getParameterValues(InputKeys.PASSWORD);
 			
 			// If it is missing, fail the request.
-			if((passwords == null) || (passwords.length == 0)) {
+			if(passwords.length == 0) {
 				getToken = true;
 			}
 			// If there are more than one, fail the request.
@@ -438,9 +519,9 @@ public abstract class UserRequest extends Request {
 			if((tUser == null) && (! isFailed()) &&
 			   (tokenLocation.equals(TokenLocation.PARAMETER) || tokenLocation.equals(TokenLocation.EITHER))) {
 				// Retrieve all of the authentication tokens that were parameters.
-				String[] tokens = httpRequest.getParameterValues(InputKeys.AUTH_TOKEN);
+				String[] tokens = getParameterValues(InputKeys.AUTH_TOKEN);
 				
-				if((tokens == null) || (tokens.length == 0)) {
+				if(tokens.length == 0) {
 					LOGGER.info("Either a username and password or an authentication token are required.");
 					setFailed(ErrorCodes.AUTHENTICATION_FAILED, "Either a username and password or an authentication token are required.");
 				}
@@ -465,11 +546,11 @@ public abstract class UserRequest extends Request {
 		
 		// Retrieve the client parameter(s) from the request.
 		String tClient = null;
-		String[] clients = httpRequest.getParameterValues(InputKeys.CLIENT);
+		String[] clients = getParameterValues(InputKeys.CLIENT);
 
 		if(! isFailed()) {
 			// If there is no client, throw an error.
-			if((clients == null) || (clients.length == 0)) {
+			if(clients.length == 0) {
 				LOGGER.info("The client is missing from the request.");
 				setFailed(ErrorCodes.AUTHENTICATION_FAILED, "Missing client.");
 			}
@@ -508,7 +589,39 @@ public abstract class UserRequest extends Request {
 	public final String getClient() {
 		return client;
 	}
+
+	/**
+	 * Authenticates the user in the request.
+	 * 
+	 * @param newAccountsAllowed Whether or not new accounts are allowed to
+	 * 							 make this call.
+	 */
+	public final boolean authenticate(AllowNewAccount newAccountsAllowed) {
+		try {
+			// Validate that the username and password are valid.
+			LOGGER.info("Authenticating the user.");
+			return AuthenticationService.authenticate(
+					this, 
+					AllowNewAccount.NEW_ACCOUNT_ALLOWED.equals(newAccountsAllowed));
+		}
+		catch(ServiceException e) {
+			e.logException(LOGGER);
+			return false;
+		}
+	}
 	
+	/**
+	 * Returns an empty map. This is for requests that don't have any specific
+	 * information to return.
+	 */
+	@Override
+	public Map<String, String[]> getAuditInformation() {
+		return Collections.emptyMap();
+	}
+	
+	/**************************************************************************
+	 *  Begin JEE Requirements
+	 *************************************************************************/
 	/**
 	 * Retrieves the authentication / session token from the request. It first
 	 * attempts to retrieve it as a cookie and, if it doesn't exist there,
@@ -530,33 +643,6 @@ public abstract class UserRequest extends Request {
 		}
 		
 		return token;
-	}
-
-	/**
-	 * Authenticates the user in the request.
-	 * 
-	 * @param newAccountsAllowed Whether or not new accounts are allowed to
-	 * 							 make this call.
-	 */
-	public final boolean authenticate(boolean newAccountsAllowed) {
-		try {
-			// Validate that the username and password are valid.
-			LOGGER.info("Authenticating the user.");
-			return AuthenticationService.authenticate(this, newAccountsAllowed);
-		}
-		catch(ServiceException e) {
-			e.logException(LOGGER);
-			return false;
-		}
-	}
-	
-	/**
-	 * Returns an empty map. This is for requests that don't have any specific
-	 * information to return.
-	 */
-	@Override
-	public Map<String, String[]> getAuditInformation() {
-		return new HashMap<String, String[]>();
 	}
 	
 	/**
@@ -605,4 +691,7 @@ public abstract class UserRequest extends Request {
 		
 		super.respond(httpRequest, httpResponse, key, value);
 	}
+	/**************************************************************************
+	 *  End JEE Requirements
+	 *************************************************************************/
 }

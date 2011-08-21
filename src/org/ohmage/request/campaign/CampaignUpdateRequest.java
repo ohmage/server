@@ -203,7 +203,7 @@ public class CampaignUpdateRequest extends UserRequest {
 	public void service() {
 		LOGGER.info("Servicing the campaign update request.");
 		
-		if(! authenticate(false)) {
+		if(! authenticate(AllowNewAccount.NEW_ACCOUNT_DISALLOWED)) {
 			return;
 		}
 		

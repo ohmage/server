@@ -179,7 +179,7 @@ public final class UserDocumentDaos extends Dao {
 		// Get the list of documents specific to the user.
 		List<String> userDocuments;
 		try {
-			userDocuments = instance.jdbcTemplate.query(
+			userDocuments = instance.getJdbcTemplate().query(
 					SQL_GET_DOCUMENTS_SPECIFIC_TO_REQUESTING_USER, 
 					new Object[] { username }, 
 					new SingleColumnRowMapper<String>());
@@ -216,7 +216,7 @@ public final class UserDocumentDaos extends Dao {
 	 */
 	public static String getDocumentRoleForDocumentSpecificToUser(String username, String documentId) throws DataAccessException {
 		try {
-			return instance.jdbcTemplate.queryForObject(
+			return instance.getJdbcTemplate().queryForObject(
 					SQL_GET_DOCUMENT_ROLES_FOR_DOCUMENT_SPECIFIC_TO_REQUESTING_USER, 
 					new Object[] { username, documentId }, 
 					String.class);
@@ -249,7 +249,7 @@ public final class UserDocumentDaos extends Dao {
 	 */
 	public static List<String> getDocumentRolesForDocumentForUser(String username, String documentId) throws DataAccessException {
 		try {
-			return instance.jdbcTemplate.query(
+			return instance.getJdbcTemplate().query(
 					SQL_GET_DOCUMENT_ROLES_FOR_DOCUMENT_FOR_USER, 
 					new Object[] { username, documentId }, 
 					new SingleColumnRowMapper<String>());

@@ -229,12 +229,12 @@ public class ClassDaos extends Dao {
 		
 		try {
 			// Begin the transaction.
-			PlatformTransactionManager transactionManager = new DataSourceTransactionManager(instance.dataSource);
+			PlatformTransactionManager transactionManager = new DataSourceTransactionManager(instance.getDataSource());
 			TransactionStatus status = transactionManager.getTransaction(def);
 			
 			// Insert the class.
 			try {
-				instance.jdbcTemplate.update(SQL_INSERT_CLASS, new Object[] { classId, className, classDescription });
+				instance.getJdbcTemplate().update(SQL_INSERT_CLASS, new Object[] { classId, className, classDescription });
 			}
 			catch(org.springframework.dao.DataAccessException e) {
 				transactionManager.rollback(status);
@@ -265,7 +265,7 @@ public class ClassDaos extends Dao {
 	 */
 	public static Boolean getClassExists(String classId) throws DataAccessException {
 		try {
-			return (Boolean) instance.jdbcTemplate.queryForObject(SQL_EXISTS_CLASS, new Object[] { classId }, Boolean.class);
+			return (Boolean) instance.getJdbcTemplate().queryForObject(SQL_EXISTS_CLASS, new Object[] { classId }, Boolean.class);
 		}
 		catch(org.springframework.dao.DataAccessException e) {
 			throw new DataAccessException("Error executing SQL '" + SQL_EXISTS_CLASS + "' with parameters: " + classId, e);
@@ -293,7 +293,7 @@ public class ClassDaos extends Dao {
 			String userRole;
 			ClassInformation classInformation;
 			try {
-				ClassInformationAndUserRole classInformationAndUserRole = instance.jdbcTemplate.queryForObject(
+				ClassInformationAndUserRole classInformationAndUserRole = instance.getJdbcTemplate().queryForObject(
 						SQL_GET_CLASS_INFO_AND_USER_ROLE, 
 						new Object[] { classId, requester }, 
 						new RowMapper<ClassInformationAndUserRole>() {
@@ -347,7 +347,7 @@ public class ClassDaos extends Dao {
 	 */
 	public static List<UserAndClassRole> getUserRolePairs(String classId) throws DataAccessException {
 		try {
-			return instance.jdbcTemplate.query(
+			return instance.getJdbcTemplate().query(
 					SQL_GET_USERS_AND_CLASS_ROLES, 
 					new Object[] { classId }, 
 					new RowMapper<UserAndClassRole>() {
@@ -390,13 +390,13 @@ public class ClassDaos extends Dao {
 		
 		try {
 			// Begin the transaction.
-			PlatformTransactionManager transactionManager = new DataSourceTransactionManager(instance.dataSource);
+			PlatformTransactionManager transactionManager = new DataSourceTransactionManager(instance.getDataSource());
 			TransactionStatus status = transactionManager.getTransaction(def);
 			
 			// Update the name if it's not null.
 			if(className != null) {
 				try {
-					instance.jdbcTemplate.update(SQL_UPDATE_CLASS_NAME, new Object[] { className, classId });
+					instance.getJdbcTemplate().update(SQL_UPDATE_CLASS_NAME, new Object[] { className, classId });
 				}
 				catch(org.springframework.dao.DataAccessException e) {
 					transactionManager.rollback(status);
@@ -408,7 +408,7 @@ public class ClassDaos extends Dao {
 			// Update the name if it's not null.
 			if(classDescription != null) {
 				try {
-					instance.jdbcTemplate.update(SQL_UPDATE_CLASS_DESCRIPTION, new Object[] { classDescription, classId });
+					instance.getJdbcTemplate().update(SQL_UPDATE_CLASS_DESCRIPTION, new Object[] { classDescription, classId });
 				}
 				catch(org.springframework.dao.DataAccessException e) {
 					transactionManager.rollback(status);
@@ -422,7 +422,7 @@ public class ClassDaos extends Dao {
 			if(usersToRemove != null) {
 				for(String username : usersToRemove) {
 					try {
-						instance.jdbcTemplate.update(SQL_DELETE_USER_FROM_CLASS, new Object[] { username, classId });
+						instance.getJdbcTemplate().update(SQL_DELETE_USER_FROM_CLASS, new Object[] { username, classId });
 					}
 					catch(org.springframework.dao.DataAccessException e) {
 						transactionManager.rollback(status);
@@ -442,7 +442,7 @@ public class ClassDaos extends Dao {
 					String role = userAndRolesToAdd.get(username);
 					
 					try {
-						instance.jdbcTemplate.update(SQL_INSERT_USER_CLASS, new Object[] { username, classId, role } );
+						instance.getJdbcTemplate().update(SQL_INSERT_USER_CLASS, new Object[] { username, classId, role } );
 					}
 					catch(org.springframework.dao.DataIntegrityViolationException duplicateException) {
 						String originalRole;
@@ -456,7 +456,7 @@ public class ClassDaos extends Dao {
 						
 						if(! originalRole.equals(role)) {
 							try {
-								if(instance.jdbcTemplate.update(SQL_UPDATE_USER_CLASS, new Object[] { role, username, classId }) > 0) {
+								if(instance.getJdbcTemplate().update(SQL_UPDATE_USER_CLASS, new Object[] { role, username, classId }) > 0) {
 									warningMessages.add("The user '" + username + 
 											"' was already associated with the class '" + classId + 
 											"'. Their role has been updated from '" + originalRole +
@@ -506,11 +506,11 @@ public class ClassDaos extends Dao {
 		
 		try {
 			// Begin the transaction.
-			PlatformTransactionManager transactionManager = new DataSourceTransactionManager(instance.dataSource);
+			PlatformTransactionManager transactionManager = new DataSourceTransactionManager(instance.getDataSource());
 			TransactionStatus status = transactionManager.getTransaction(def);
 			
 			try {
-				instance.jdbcTemplate.update(SQL_DELETE_CLASS, new Object[] { classId });
+				instance.getJdbcTemplate().update(SQL_DELETE_CLASS, new Object[] { classId });
 			}
 			catch(org.springframework.dao.DataAccessException e) {
 				transactionManager.rollback(status);

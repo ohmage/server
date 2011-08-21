@@ -324,15 +324,12 @@ public class CampaignValidator {
 		
 		for(int i = 0; i < size; i++) {
 			
-			if(Boolean.valueOf(repeatableSets.get(i).query("terminationSkipEnabled").get(0).getValue().trim())) { // terminationSkipLabel
-				                                                                                                  // must exist
+			if(Boolean.valueOf(repeatableSets.get(i).query("terminationSkipEnabled").get(0).getValue().trim()) && // terminationSkipLabel must exist
+					(repeatableSets.get(i).query("terminationSkipLabel").size() < 1)) { 
 				
-				if(repeatableSets.get(i).query("terminationSkipLabel").size() < 1) {
-					
-					throw new IllegalStateException("Invalid repeatableSet config for repeatableSet id " 
-							+ repeatableSets.get(i).query("id").get(0).getValue().trim() + ". terminationSkipLabel is required if "
-							+ "terminationSkipEnabled is true");
-				}
+				throw new IllegalStateException("Invalid repeatableSet config for repeatableSet id " 
+						+ repeatableSets.get(i).query("id").get(0).getValue().trim() + ". terminationSkipLabel is required if "
+						+ "terminationSkipEnabled is true");
 			}	
 		}
 	}
@@ -348,14 +345,12 @@ public class CampaignValidator {
 		
 		for(int i = 0; i < size; i++) {
 			
-			if(Boolean.valueOf(prompts.get(i).query("skippable").get(0).getValue().trim())) { // skipLabel must exist
+			if(Boolean.valueOf(prompts.get(i).query("skippable").get(0).getValue().trim()) &&
+					(prompts.get(i).query("skipLabel").size() < 1)) { // skipLabel must exist
 				
-				if(prompts.get(i).query("skipLabel").size() < 1) {
-					
-					throw new IllegalStateException("Invalid prompt config for prompt id " 
-							+ prompts.get(i).query("id").get(0).getValue().trim() + ". skipLabel is required if "
-							+ "skippable is true");
-				}
+				throw new IllegalStateException("Invalid prompt config for prompt id " 
+						+ prompts.get(i).query("id").get(0).getValue().trim() + ". skipLabel is required if "
+						+ "skippable is true");
 			}
 			
 			boolean showSummary = false;
@@ -371,14 +366,11 @@ public class CampaignValidator {
 				showSummary = Boolean.valueOf(prompts.get(i).query("../../../..").get(0).query("showSummary").get(0).getValue().trim());
 			}
 			
-			if(showSummary) {
-				
-				if(prompts.get(i).query("abbreviatedText").size() < 1) {
-					
-					throw new IllegalStateException("Invalid prompt config for prompt id " 
-							+ prompts.get(i).query("id").get(0).getValue().trim() + ". abbreviatedText is required if "
-							+ "showSummary on the parent survey is true");
-				}
+			if(showSummary && (prompts.get(i).query("abbreviatedText").size() < 1)) {
+
+				throw new IllegalStateException("Invalid prompt config for prompt id " 
+						+ prompts.get(i).query("id").get(0).getValue().trim() + ". abbreviatedText is required if "
+						+ "showSummary on the parent survey is true");
 			}
 		}
 	}
@@ -480,9 +472,14 @@ public class CampaignValidator {
 						 
 						 List<String> cumulativeIdList = new ArrayList<String>();
 						 cumulativeIdList.addAll(idList);  // copy the Id list so it is not changed in the inner loop
-						 int cumulativeIndex = outerIndex; // make sure not to increment the outer index
+						 // FIXME: Sonar pointed out that this is not being 
+						 // anywhere however there is a similarly named
+						 // 'cumulativeIdIndex'. I am leaving this comment here
+						 // to suggest to someone to check this out and make
+						 // sure the code below is correct.
+						 //int cumulativeIndex = outerIndex; // make sure not to increment the outer index
 						 						 
-						 for(int i = 0; i < numberOfInnerElements; i++, cumulativeIndex++) {
+						 for(int i = 0; i < numberOfInnerElements; i++/*, cumulativeIndex++*/) {
 							 Node currentInnerNode = repeatableSetPromptNodes.get(i);
 							 String currentInnerId = currentInnerNode.query("id").get(0).getValue().trim();
 							 LOGGER.info("checking condition for a prompt inside of a repeatableSet: " + currentInnerId);

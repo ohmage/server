@@ -33,12 +33,12 @@ public abstract class Cache {
 	public static final long MIN_CACHE_REFRESH_MILLIS = 1000;
 	
 	// The DataSource to use when querying the database.
-	protected DataSource dataSource;
+	private DataSource dataSource;
 	
 	// The last time we refreshed our cache in milliseconds since epoch.
-	protected long lastUpdateTimestamp;
+	private long lastUpdateTimestamp;
 	// The number of milliseconds between refreshes of the local cache.
-	protected long updateFrequency;
+	private long updateFrequency;
 	
 	/**
 	 * Default constructor made protected so children can call it, but it is
@@ -58,57 +58,47 @@ public abstract class Cache {
 	}
 	
 	/**
-	 * Sets the DataSource for this object. This can only be called once by
-	 * Spring on startup and subsequent calls will cause an 
-	 * IllegalArgumentException exception to be thrown.
+	 * Returns the DataSource that is used to query the database for each 
+	 * cache's specific values.
 	 * 
-	 * @param dataSource The DataSource for its children to use when querying
-	 * 					 the database.
-	 * 
-	 * @throws IllegalArgumentException Thrown if the DataSource has not yet
-	 * 									been set and Spring has passed in a
-	 * 									null value or if the DataSource has
-	 * 									been set and it is attempting to be
-	 * 									reset.
-	 *
-	public synchronized void setDataSource(DataSource dataSource) {
-		if(this.dataSource != null) {
-			throw new IllegalStateException("The DataSource may only be set once.");
-		}
-		if(dataSource == null) {
-			throw new IllegalArgumentException("The DataSource may not be null.");
-		}
-		
-		this.dataSource = dataSource;
-	}*/
+	 * @return The DataSource that is used to query the database for each
+	 * 		   cache's specific values.
+	 */
+	protected DataSource getDataSource() {
+		return dataSource;
+	}
 	
 	/**
-	 * Sets the initial update frequency for this object. This may be reset by
-	 * anyone at a later date to dynamically increase cache fidelity or to
-	 * lessen the load on the database.
+	 * Returns the milliseconds since epoch of the last update.
 	 * 
-	 * @param frequencyInMilliseconds The frequency that updates should be
-	 * 								  checked for in milliseconds. The system
-	 * 								  will still only do updates when a 
-	 * 								  request is being made and the cache has
-	 * 								  expired to prevent unnecessary checks to
-	 * 								  the database.
+	 * @return The milliseconds since epoch of the last update.
+	 */
+	protected long getLastUpdateTimestamp() {
+		return lastUpdateTimestamp;
+	}
+	
+	/**
+	 * Updates the milliseconds since epoch of the most recent update unless 
+	 * this value is less than the current value in which case this call is
+	 * ignored.
 	 * 
-	 * @throws IllegalArgumentException Thrown if the 
-	 * 									'frequencyInMilliseconds' is less than
-	 * 									the minimum allowed frequency, 
-	 * 									{@value #MIN_CACHE_REFRESH_MILLIS}.
-	 * 
-	 * @see #MIN_CACHE_REFRESH_MILLIS
-	 *
-	public synchronized void setUpdateFrequency(long frequencyInMilliseconds) {
-		if(frequencyInMilliseconds < MIN_CACHE_REFRESH_MILLIS) {
-			throw new IllegalArgumentException("The update frequency must be a positive integer greater than or equal to " +
-					MIN_CACHE_REFRESH_MILLIS + " milliseconds.");
+	 * @param timestamp The number of milliseconds since epoch when the most
+	 * 					recent update took place.
+	 */
+	protected void setLastUpdateTimestamp(long timestamp) {
+		if(timestamp > lastUpdateTimestamp) {
+			lastUpdateTimestamp = timestamp;
 		}
-		
-		updateFrequency = frequencyInMilliseconds;
-	}*/
+	}
+	
+	/**
+	 * Returns the minimum number of milliseconds between each cache update.
+	 * 
+	 * @return The minimum number of milliseconds between each cache update.
+	 */
+	protected long getUpdateFrequency() {
+		return updateFrequency;
+	}
 	
 	/**
 	 * Gets the known keys for the cache.

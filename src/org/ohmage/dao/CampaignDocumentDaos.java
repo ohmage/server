@@ -44,7 +44,7 @@ public final class CampaignDocumentDaos extends Dao {
 	 */
 	public static List<String> getCampaignsAssociatedWithDocument(String documentId) throws DataAccessException {
 		try {
-			return instance.jdbcTemplate.query(
+			return instance.getJdbcTemplate().query(
 					SQL_GET_CAMPAIGNS_ASSOCIATED_WITH_DOCUMENT, 
 					new Object[] { documentId }, 
 					new SingleColumnRowMapper<String>());

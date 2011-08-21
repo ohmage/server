@@ -90,7 +90,7 @@ public final class DateValidators {
 				LOGGER.debug("Invalid datetime: " + date + ". It does not match: " + format);
 			}
 			
-			throw new ValidationException("Invalid date: " + date);
+			throw new ValidationException("Invalid date: " + date, pe);
 		}
 	}
 }

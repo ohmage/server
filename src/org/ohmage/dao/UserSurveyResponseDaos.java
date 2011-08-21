@@ -26,7 +26,14 @@ import org.springframework.jdbc.core.RowMapper;
  * 
  * @author John Jenkins
  */
-public final class UserSurveyDaos extends Dao {
+public final class UserSurveyResponseDaos extends Dao {
+	// Retrieves the username of the owner of a survey response.
+	private static final String SQL_GET_SURVEY_RESPONSE_OWNER =
+		"SELECT u.username " +
+		"FROM user u, survey_response sr " +
+		"WHERE sr.id = ? " +
+		"AND sr.user_id = u.id";
+	
 	// Retrieves all of the survey responses for a user that are visible to a
 	// requesting user.
 	private static final String SQL_GET_SURVEY_RESPONSES_FOR_USER_FOR_REQUESTER = 
@@ -74,7 +81,7 @@ public final class UserSurveyDaos extends Dao {
 			")" +
 			" OR " +
 			"(" +
-				// The requesting is an author and the response's privacy state
+				// The requester is an author and the response's privacy state
 				// is shared.
 				"ru.id = urc.user_id " +
 				"AND c.id = urc.campaign_id " +
@@ -89,6 +96,7 @@ public final class UserSurveyDaos extends Dao {
 				// The requesting user is the same as the user, the campaign is
 				// running, and the response's privacy state is not 
 				// "invisible".
+				// TODO: This may need to be updated with the new ACLs.
 				"ru.id = u.id " +
 				// Get the campaign's running state.
 				"AND c.running_state_id = crs.id " +
@@ -98,17 +106,46 @@ public final class UserSurveyDaos extends Dao {
 			")" +
 		")";
 	
-	private static UserSurveyDaos instance;
+	private static UserSurveyResponseDaos instance;
 	
 	/**
 	 * Creates this DAO.
 	 * 
 	 * @param dataSource The DataSource to use when accessing the database.
 	 */
-	private UserSurveyDaos(DataSource dataSource) {
+	private UserSurveyResponseDaos(DataSource dataSource) {
 		super(dataSource);
 		
 		instance = this;
+	}
+	
+	/**
+	 * Return the username of the user that created this survey response.
+	 * 
+	 * @param surveyResponseId The unique identifier for the survey response.
+	 * 
+	 * @return The username of the user that owns this survey response or null
+	 * 		   if the survey response doesn't exist.
+	 * 
+	 * @throws DataAccessException Thrown if there is an error.
+	 */
+	public static String getSurveyResponseOwner(Long surveyResponseId) throws DataAccessException {
+		try {
+			return instance.getJdbcTemplate().queryForObject(
+					SQL_GET_SURVEY_RESPONSE_OWNER,
+					new Object[] { surveyResponseId },
+					String.class);
+		}
+		catch(org.springframework.dao.IncorrectResultSizeDataAccessException e) {
+			if(e.getActualSize() > 1) {
+				throw new DataAccessException("One survey response has more than one owner.", e);
+			}
+		
+			return null;
+		}
+		catch(org.springframework.dao.DataAccessException e) {
+			throw new DataAccessException("Error executing SQL '" + SQL_GET_SURVEY_RESPONSE_OWNER + "' with parameter: " + surveyResponseId, e);
+		}
 	}
 	
 	/**
@@ -125,7 +162,7 @@ public final class UserSurveyDaos extends Dao {
 	 */
 	public static Timestamp getLastUploadForUser(String requestersUsername, String usersUsername) throws DataAccessException {
 		try {
-			List<Timestamp> timestamps = instance.jdbcTemplate.query(
+			List<Timestamp> timestamps = instance.getJdbcTemplate().query(
 					SQL_GET_SURVEY_RESPONSES_FOR_USER_FOR_REQUESTER,
 					new Object[] { usersUsername, requestersUsername },
 					new RowMapper<Timestamp> () {
@@ -197,7 +234,7 @@ public final class UserSurveyDaos extends Dao {
 			final List<String> nonNullLocations = new LinkedList<String>();
 			final List<String> allLocations = new LinkedList<String>();
 			
-			instance.jdbcTemplate.query(
+			instance.getJdbcTemplate().query(
 					SQL_GET_SURVEY_RESPONSES_FOR_USER_FOR_REQUESTER, 
 					new Object[] { usersUsername, requestersUsername }, 
 					new RowMapper<String>() {
@@ -206,8 +243,8 @@ public final class UserSurveyDaos extends Dao {
 							// Get the time the Mobility point was uploaded.
 							Timestamp generatedTimestamp = rs.getTimestamp("upload_timestamp");
 							
-							// If it was uploaded within the last 24 hours it
-							// is valid.
+							// If it was uploaded within the last 'hours' it is
+							// valid.
 							if(! generatedTimestamp.before(dayAgoTimestamp)) {
 								String location = rs.getString("location");
 								if(location != null) {

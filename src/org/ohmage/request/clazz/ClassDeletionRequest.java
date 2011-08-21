@@ -80,7 +80,7 @@ public class ClassDeletionRequest extends UserRequest {
 	public void service() {
 		LOGGER.info("Servicing a class deletion request.");
 		
-		if(! authenticate(false)) {
+		if(! authenticate(AllowNewAccount.NEW_ACCOUNT_DISALLOWED)) {
 			return;
 		}
 		

@@ -15,12 +15,7 @@ import org.ohmage.config.grammar.custom.ConditionValuePair;
  * @author selsky
  */
 public class TimestampPromptTypeValidator implements PromptTypeValidator {
-	private static final SimpleDateFormat _timestampFormat;
-	
-	static { // SimpleDateFormat is not thread-safe, but since the main validator has only one thread this is ok.
-		_timestampFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
-		_timestampFormat.setLenient(false);
-	}
+	private static final String FORMAT_TIMESTAMP = "yyyy-MM-dd'T'HH:mm:ss";
 	
 	@Override
 	public void checkDefaultValue(String value) {
@@ -45,7 +40,9 @@ public class TimestampPromptTypeValidator implements PromptTypeValidator {
 	
 	private void checkTimestamp(String value) {
 		ParsePosition pp = new ParsePosition(0);
-		if(null == _timestampFormat.parse(value, pp)) {
+		// TODO: This can be done from a TimeUtil, but you don't get to report
+		// the failure position. But, I believe this will always be ignored.
+		if(null == (new SimpleDateFormat(FORMAT_TIMESTAMP)).parse(value, pp)) {
 			throw new IllegalArgumentException("Not a valid timestamp [" +  value + "] Parsing failed at position " 
 				+ pp.getErrorIndex());
 		}

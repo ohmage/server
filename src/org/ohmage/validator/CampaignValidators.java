@@ -316,21 +316,21 @@ public final class CampaignValidators {
 	}
 	
 	/**
-	 * Validates that a Start date is a valid date and returns a Calendar 
+	 * Validates that a start date is a valid date and returns a Calendar 
 	 * object representing that date.
 	 * 
 	 * @param request The Request that is performing this validation.
 	 * 
 	 * @param startDate The date to be validated.
 	 * 
-	 * @return Returns null if the Start date is null or whitespace only;
-	 * 		   otherwise, it returns a Calendar representing the Start date.
+	 * @return Returns null if the start date is null or whitespace only;
+	 * 		   otherwise, it returns a Calendar representing the start date.
 	 * 
-	 * @throws ValidationException Thrown if the Start date isn't a decodable
+	 * @throws ValidationException Thrown if the start date isn't a decodable
 	 * 							   date.
 	 */
 	public static Calendar validateStartDate(Request request, String startDate) throws ValidationException {
-		LOGGER.info("Validating a Start date.");
+		LOGGER.info("Validating a start date.");
 		
 		if(StringUtils.isEmptyOrWhitespaceOnly(startDate)) {
 			return null;
@@ -338,8 +338,8 @@ public final class CampaignValidators {
 		
 		Date date = StringUtils.decodeDate(startDate);
 		if(date == null) {
-			request.setFailed(ErrorCodes.SERVER_INVALID_DATE, "The Start date is invalid: " + startDate);
-			throw new ValidationException("The Start date is invalid: " + startDate);
+			request.setFailed(ErrorCodes.SERVER_INVALID_DATE, "The start date is invalid: " + startDate);
+			throw new ValidationException("The start date is invalid: " + startDate);
 		}
 		
 		Calendar calendar = Calendar.getInstance();

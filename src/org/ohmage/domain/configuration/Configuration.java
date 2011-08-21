@@ -34,14 +34,14 @@ import org.ohmage.util.StringUtils;
  */
 public class Configuration {
 	//private static Logger _logger = Logger.getLogger(Configuration.class);
-	private String _urn;
-	private String _name;
-	private String _description;
-	private String _runningState;
-	private String _privacyState;
-	private String _creationTimestamp;
-	private Map<String, Survey> _surveyMap;
-	private String _xml;
+	private String urn;
+	private String name;
+	private String description;
+	private String runningState;
+	private String privacyState;
+	private String creationTimestamp;
+	private Map<String, Survey> surveyMap;
+	private String xml;
 	
 	public Configuration(String urn, String name, String description, String runningState, String privacyState, 
 			String creationTimestamp, Map<String, Survey> surveyMap, String xml) {
@@ -70,108 +70,108 @@ public class Configuration {
 			throw new IllegalArgumentException("a map of surveys is required");
 		}
 		
-		_urn = urn;
-		_name = name;
-		_description = description;
-		_runningState = runningState;
-		_privacyState = privacyState;
-		_creationTimestamp = creationTimestamp;
-		_surveyMap = surveyMap; // TODO deep copy?
-		_xml = xml;
+		this.urn = urn;
+		this.name = name;
+		this.description = description;
+		this.runningState = runningState;
+		this.privacyState = privacyState;
+		this.creationTimestamp = creationTimestamp;
+		this.surveyMap = surveyMap; // TODO deep copy?
+		this.xml = xml;
 	}
 	
 	public String getUrn() {
-		return _urn;
+		return urn;
 	}
 
 	public Map<String, Survey> getSurveys() {
-		return Collections.unmodifiableMap(_surveyMap);
+		return Collections.unmodifiableMap(surveyMap);
 	}
 	
 	public String getXml() {
-		return _xml;
+		return xml;
 	}
 
 	public String getName() {
-		return _name;
+		return name;
 	}
 	
 	public String getDescription() {
-		return _description;
+		return description;
 	}
 
 	public String getRunningState() {
-		return _runningState;
+		return runningState;
 	}
 
 	public String getPrivacyState() {
-		return _privacyState;
+		return privacyState;
 	}
 
 	public String getCreationTimestamp() {
-		return _creationTimestamp;
+		return creationTimestamp;
 	}
 
 	public boolean surveyIdExists(String surveyId) {
-		return _surveyMap.containsKey(surveyId);
+		return surveyMap.containsKey(surveyId);
 	}
 	
 	public String getSurveyTitleFor(String surveyId) {
 		if(surveyIdExists(surveyId)) {
-			return _surveyMap.get(surveyId).getTitle();
+			return surveyMap.get(surveyId).getTitle();
 		}
 		return null;
 	}
 	
 	public String getSurveyDescriptionFor(String surveyId) {
 		if(surveyIdExists(surveyId)) {
-			return _surveyMap.get(surveyId).getDescription();
+			return surveyMap.get(surveyId).getDescription();
 		}
 		return null;
 	}
 	
 	public boolean repeatableSetExists(String surveyId, String repeatableSetId) {
-        if(! _surveyMap.get(surveyId).getSurveyItemMap().containsKey(repeatableSetId)) {
+        if(! surveyMap.get(surveyId).getSurveyItemMap().containsKey(repeatableSetId)) {
         	return false;
         } 
-		SurveyItem si = _surveyMap.get(surveyId).getSurveyItemMap().get(repeatableSetId);
+		SurveyItem si = surveyMap.get(surveyId).getSurveyItemMap().get(repeatableSetId);
         return si instanceof RepeatableSet;
 	}
 
 	public boolean promptExists(String surveyId, String promptId) {
-        return _surveyMap.get(surveyId).getSurveyItemMap().containsKey(promptId);
+        return surveyMap.get(surveyId).getSurveyItemMap().containsKey(promptId);
 	}
 	
 	public boolean promptExists(String surveyId, String repeatableSetId, String promptId) {
-        return ((RepeatableSet)_surveyMap.get(surveyId).getSurveyItemMap().get(repeatableSetId)).getPromptMap().containsKey(promptId);
+        return ((RepeatableSet)surveyMap.get(surveyId).getSurveyItemMap().get(repeatableSetId)).getPromptMap().containsKey(promptId);
 	}
 	
 	public boolean isPromptSkippable(String surveyId, String promptId) {
-        return ((Prompt) _surveyMap.get(surveyId).getSurveyItemMap().get(promptId)).isSkippable();
+        return ((Prompt) surveyMap.get(surveyId).getSurveyItemMap().get(promptId)).isSkippable();
 	}
 	
 	public boolean isPromptSkippable(String surveyId, String repeatableSetId, String promptId) {
-        return ((RepeatableSet)_surveyMap.get(surveyId).getSurveyItemMap().get(repeatableSetId)).getPromptMap().get(promptId).isSkippable();
+        return ((RepeatableSet)surveyMap.get(surveyId).getSurveyItemMap().get(repeatableSetId)).getPromptMap().get(promptId).isSkippable();
 	}
 
 	public String getPromptType(String surveyId, String promptId) {
-		return ((Prompt)_surveyMap.get(surveyId).getSurveyItemMap().get(promptId)).getType();
+		return ((Prompt)surveyMap.get(surveyId).getSurveyItemMap().get(promptId)).getType();
 	}
 
 	public String getPromptType(String surveyId, String repeatableSetId, String promptId) {
-		return ((RepeatableSet)_surveyMap.get(surveyId).getSurveyItemMap().get(repeatableSetId)).getPromptMap().get(promptId).getType();
+		return ((RepeatableSet)surveyMap.get(surveyId).getSurveyItemMap().get(repeatableSetId)).getPromptMap().get(promptId).getType();
 	}
 
 	public Prompt getPrompt(String surveyId, String promptId) {
-		return ((Prompt)_surveyMap.get(surveyId).getSurveyItemMap().get(promptId)); 
+		return ((Prompt)surveyMap.get(surveyId).getSurveyItemMap().get(promptId)); 
 	}
 
 	public Prompt getPrompt(String surveyId, String repeatableSetId, String promptId) {
-		return ((RepeatableSet)_surveyMap.get(surveyId).getSurveyItemMap().get(repeatableSetId)).getPromptMap().get(promptId); 
+		return ((RepeatableSet)surveyMap.get(surveyId).getSurveyItemMap().get(repeatableSetId)).getPromptMap().get(promptId); 
 	}
 
 	public int getIndexForPrompt(String surveyId, String promptId) {
-		Survey survey = _surveyMap.get(surveyId);
+		Survey survey = surveyMap.get(surveyId);
 		
 		if(isPromptInRepeatableSet(surveyId, promptId)) {
 			String repeatableSetId = survey.getRepeatableSetIdForPromptId(promptId);
@@ -182,20 +182,20 @@ public class Configuration {
 	}
 	
 	public boolean isPromptInRepeatableSet(String surveyId, String promptId) {
-		return null != _surveyMap.get(surveyId).getRepeatableSetIdForPromptId(promptId);
+		return null != surveyMap.get(surveyId).getRepeatableSetIdForPromptId(promptId);
 	}
 	
 	public boolean promptContainsSingleChoiceValues(String promptId) {
 		if(null != promptId) {
 			String surveyId = getSurveyIdForPromptId(promptId);
 			if(isPromptInRepeatableSet(surveyId, promptId)) {
-				String repeatableSetId = _surveyMap.get(surveyId).getRepeatableSetIdForPromptId(promptId);
-				Prompt p = ((RepeatableSet) _surveyMap.get(surveyId).getSurveyItemMap().get(repeatableSetId)).getPromptMap().get(promptId);
+				String repeatableSetId = surveyMap.get(surveyId).getRepeatableSetIdForPromptId(promptId);
+				Prompt p = ((RepeatableSet) surveyMap.get(surveyId).getSurveyItemMap().get(repeatableSetId)).getPromptMap().get(promptId);
 				if("single_choice".equals(p.getType())) {
 					return p.getProperties().containsKey("value");
 				}
 			} else {
-				Prompt p = ((Prompt) _surveyMap.get(surveyId).getSurveyItemMap().get(promptId));
+				Prompt p = ((Prompt) surveyMap.get(surveyId).getSurveyItemMap().get(promptId));
 				if("single_choice".equals(p.getType())) {
 					return p.getProperties().containsKey("value");
 				}
@@ -206,11 +206,11 @@ public class Configuration {
 	}
 
 	public int getNumberOfPromptsInSurvey(String surveyId) {
-		return _surveyMap.get(surveyId).getSurveyItemMap().keySet().size();
+		return surveyMap.get(surveyId).getSurveyItemMap().keySet().size();
 	}
 	
 	public int getNumberOfPromptsInSurvey(String surveyId, String repeatableSetId) {
-		return ((RepeatableSet)_surveyMap.get(surveyId).getSurveyItemMap().get(repeatableSetId)).getPromptMap().keySet().size();
+		return ((RepeatableSet)surveyMap.get(surveyId).getSurveyItemMap().get(repeatableSetId)).getPromptMap().keySet().size();
 	}
 	
 	/**
@@ -218,7 +218,7 @@ public class Configuration {
 	 * repeatableSetId are valid. 
 	 */
 	public int numberOfPromptsInRepeatableSet(String surveyId, String repeatableSetId) {
-		SurveyItem si = _surveyMap.get(surveyId).getSurveyItemMap().get(repeatableSetId);
+		SurveyItem si = surveyMap.get(surveyId).getSurveyItemMap().get(repeatableSetId);
         return ((RepeatableSet) si).getPromptMap().size();
 	}
 	
@@ -227,9 +227,9 @@ public class Configuration {
 	 * to be unique. 
 	 */
 	public String getSurveyIdForPromptId(String promptId) {
-		Set<String> keys = _surveyMap.keySet();
+		Set<String> keys = surveyMap.keySet();
 		for(String key : keys) { 
-			Survey s = _surveyMap.get(key);
+			Survey s = surveyMap.get(key);
 			Map<String, SurveyItem> itemMap = s.getSurveyItemMap(); 
 			Set<String> itemKeys = itemMap.keySet();
 			for(String itemKey : itemKeys) {
@@ -252,7 +252,7 @@ public class Configuration {
 	 * Returns the promptIds of those prompts with a displayType of metadata for the survey that contains the provided promptId.  
 	 */
 	public List<String> getMetadataPromptIds(String promptId) {
-		Survey survey = _surveyMap.get(getSurveyIdForPromptId(promptId));
+		Survey survey = surveyMap.get(getSurveyIdForPromptId(promptId));
 		List<String> list = new ArrayList<String>();
 		if(null != survey) {
 			Map<String, SurveyItem> itemMap = survey.getSurveyItemMap();
@@ -313,10 +313,8 @@ public class Configuration {
 	private String getChoiceValueFrom(Prompt prompt, String key) {
 		Map<String, PromptProperty> props = prompt.getProperties();
 		String value = null;
-		if(null != props) {
-			if(props.containsKey(key)) {
-				return props.get(key).getValue();
-			}
+		if((null != props) && (props.containsKey(key))) {
+			return props.get(key).getValue();
 		}
 		return value;
 	}
@@ -332,10 +330,8 @@ public class Configuration {
 	private String getChoiceLabelFrom(Prompt prompt, String key) {
 		Map<String, PromptProperty> props = prompt.getProperties();
 		String value = null;
-		if(null != props) {
-			if(props.containsKey(key)) {
-				return props.get(key).getLabel();
-			}
+		if((null != props) && (props.containsKey(key))) {
+			return props.get(key).getLabel();
 		}
 		return value;
 	}

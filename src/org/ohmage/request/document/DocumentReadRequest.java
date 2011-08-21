@@ -132,7 +132,7 @@ public class DocumentReadRequest extends UserRequest {
 	public void service() {
 		LOGGER.info("Servicing the document read request.");
 		
-		if(! authenticate(false)) {
+		if(! authenticate(AllowNewAccount.NEW_ACCOUNT_DISALLOWED)) {
 			return;
 		}
 		

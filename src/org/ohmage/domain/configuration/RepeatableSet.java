@@ -25,20 +25,20 @@ import java.util.Map;
  * @author selsky
  */
 public class RepeatableSet extends AbstractSurveyItem {
-	private Map<String, Prompt> _promptMap;
+	private Map<String, Prompt> promptMap;
 	
 	public RepeatableSet(String id, Map<String, Prompt> promptMap) {
 		super(id);
-		_promptMap = promptMap; 
+		this.promptMap = promptMap; 
 	}
 
 	public Map<String, Prompt> getPromptMap() {
-		return Collections.unmodifiableMap(_promptMap);
+		return Collections.unmodifiableMap(promptMap);
 	}
 
 	@Override
 	public String toString() {
-		return "RepeatableSet [_promptMap=" + _promptMap + ", getId()="
+		return "RepeatableSet [promptMap=" + promptMap + ", getId()="
 				+ getId() + "]";
 	}	
 }

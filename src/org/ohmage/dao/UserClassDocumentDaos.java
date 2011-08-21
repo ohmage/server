@@ -89,7 +89,7 @@ public final class UserClassDocumentDaos extends Dao {
 	public static List<DocumentInformation> getVisibleDocumentsToUserInClass(String username, String classId) throws DataAccessException {
 		List<String> documentList;
 		try {
-			documentList = instance.jdbcTemplate.query(
+			documentList = instance.getJdbcTemplate().query(
 					SQL_GET_DOCUMENTS_SPECIFIC_TO_CLASS_FOR_REQUESTING_USER, 
 					new Object[] { username, classId },
 					new SingleColumnRowMapper<String>());
@@ -121,7 +121,7 @@ public final class UserClassDocumentDaos extends Dao {
 	 */
 	public static Boolean getUserIsPrivilegedInAnyClassAssociatedWithDocument(String username, String documentId) throws DataAccessException {
 		try {
-			return instance.jdbcTemplate.queryForObject(
+			return instance.getJdbcTemplate().queryForObject(
 					SQL_EXISTS_USER_IS_PRIVILEGED_IN_ANY_CLASS_ASSOCIATED_WITH_DOCUMENT, 
 					new Object[] { username, documentId }, 
 					Boolean.class);

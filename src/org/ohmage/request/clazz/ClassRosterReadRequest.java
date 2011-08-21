@@ -15,11 +15,11 @@ import org.apache.log4j.Logger;
 import org.ohmage.annotator.ErrorCodes;
 import org.ohmage.cache.UserBin;
 import org.ohmage.dao.ClassDaos.UserAndClassRole;
+import org.ohmage.exception.ServiceException;
 import org.ohmage.exception.ValidationException;
 import org.ohmage.request.InputKeys;
 import org.ohmage.request.UserRequest;
 import org.ohmage.service.ClassServices;
-import org.ohmage.exception.ServiceException;
 import org.ohmage.service.UserClassServices;
 import org.ohmage.util.CookieUtils;
 import org.ohmage.validator.ClassValidators;
@@ -51,6 +51,8 @@ import org.ohmage.validator.ClassValidators;
  */
 public class ClassRosterReadRequest extends UserRequest {
 	private static final Logger LOGGER = Logger.getLogger(ClassRosterReadRequest.class);
+
+	private static final long MILLIS_IN_A_SECOND = 1000;
 	
 	private final List<String> classIds;
 	
@@ -95,7 +97,7 @@ public class ClassRosterReadRequest extends UserRequest {
 	public void service() {
 		LOGGER.info("Servicing the class roster read request.");
 		
-		if(! authenticate(false)) {
+		if(! authenticate(AllowNewAccount.NEW_ACCOUNT_DISALLOWED)) {
 			return;
 		}
 		

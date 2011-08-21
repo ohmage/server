@@ -57,7 +57,7 @@ public final class UserCampaignClassDaos extends Dao {
 	 */
 	public static int getNumberOfClassesThroughWhichUserIsAssociatedWithCampaign(String username, String campaignId) throws DataAccessException {
 		try {
-			return instance.jdbcTemplate.queryForInt(SQL_COUNT_USER_ASSOCIATED_WITH_CAMPAIGN_THROUGH_CLASSES, username, campaignId);
+			return instance.getJdbcTemplate().queryForInt(SQL_COUNT_USER_ASSOCIATED_WITH_CAMPAIGN_THROUGH_CLASSES, username, campaignId);
 		}
 		catch(org.springframework.dao.DataAccessException e) {
 			throw new DataAccessException("Error executing SQL '" + SQL_COUNT_USER_ASSOCIATED_WITH_CAMPAIGN_THROUGH_CLASSES + "' with parameters: " +

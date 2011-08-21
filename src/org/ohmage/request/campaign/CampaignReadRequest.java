@@ -6,9 +6,11 @@ import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.util.Calendar;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -19,7 +21,7 @@ import org.json.JSONObject;
 import org.ohmage.annotator.ErrorCodes;
 import org.ohmage.cache.CampaignRoleCache;
 import org.ohmage.cache.UserBin;
-import org.ohmage.domain.Campaign;
+import org.ohmage.domain.CampaignInformation;
 import org.ohmage.exception.DataAccessException;
 import org.ohmage.exception.ServiceException;
 import org.ohmage.exception.ValidationException;
@@ -142,16 +144,10 @@ import org.ohmage.validator.ClassValidators;
  */
 public class CampaignReadRequest extends UserRequest {
 	private static final Logger LOGGER = Logger.getLogger(CampaignReadRequest.class);
-	
-	private static final String JSON_KEY_NAME = "name";
-	private static final String JSON_KEY_DESCRIPTION = "description";
-	private static final String JSON_KEY_XML = "xml";
-	private static final String JSON_KEY_RUNNING_STATE = "running_state";
-	private static final String JSON_KEY_PRIVACY_STATE = "privacy_state";
-	private static final String JSON_KEY_CREATION_TIMESTAMP = "creation_timestamp";
-	private static final String JSON_KEY_CLASSES = "classes";
+
 	private static final String JSON_KEY_USER_ROLES = "user_roles";
-	private static final String JSON_KEY_CAMPAIGN_ROLES_WITH_USERS = "user_role_campaign";
+
+	private static final long MILLIS_IN_A_SECOND = 1000;
 	
 	private final CampaignValidators.OutputFormat outputFormat;
 	
@@ -167,7 +163,7 @@ public class CampaignReadRequest extends UserRequest {
 	private final String role;
 	
 	// For short and long reads.
-	private Map<Campaign, List<String>> shortOrLongResult;
+	private Map<CampaignInformation, List<String>> shortOrLongResult;
 	
 	// For XML reads.
 	private String xmlResult;
@@ -209,8 +205,8 @@ public class CampaignReadRequest extends UserRequest {
 			
 			tStartDate = CampaignValidators.validateStartDate(this, httpRequest.getParameter(InputKeys.START_DATE));
 			if((tStartDate != null) && (httpRequest.getParameterValues(InputKeys.START_DATE).length > 1)) {
-				setFailed(ErrorCodes.SERVER_INVALID_DATE, "Multiple Start dates were found.");
-				throw new ValidationException("Multiple Start dates were found.");
+				setFailed(ErrorCodes.SERVER_INVALID_DATE, "Multiple start dates were found.");
+				throw new ValidationException("Multiple start dates were found.");
 			}
 			
 			tEndDate = CampaignValidators.validateEndDate(this, httpRequest.getParameter(InputKeys.END_DATE));
@@ -220,11 +216,12 @@ public class CampaignReadRequest extends UserRequest {
 			}
 			
 			// TODO: Should this really be an issue? Should we simply return
-			// nothing?
-			LOGGER.info("Verifying that if both the Start date and end date are present that the Start date isn't after the end date.");
+			// nothing? There was a GitHub issue, and it was decided that it 
+			// was better to send an error to the user than to return nothing.
+			LOGGER.info("Verifying that if both the start date and end date are present that the start date isn't after the end date.");
 			if((tStartDate != null) && (tEndDate != null) && (tStartDate.after(tEndDate))) {
-				setFailed(ErrorCodes.SERVER_INVALID_DATE, "The Start date cannot be after the end date.");
-				throw new ValidationException("The Start date cannot be after the end date.");
+				setFailed(ErrorCodes.SERVER_INVALID_DATE, "The start date cannot be after the end date.");
+				throw new ValidationException("The start date cannot be after the end date.");
 			}
 			
 			tCampaignIds = CampaignValidators.validateCampaignIds(this, httpRequest.getParameter(InputKeys.CAMPAIGN_URN_LIST));
@@ -284,7 +281,7 @@ public class CampaignReadRequest extends UserRequest {
 		
 		role = tRole;
 		
-		shortOrLongResult = new HashMap<Campaign, List<String>>();
+		shortOrLongResult = new HashMap<CampaignInformation, List<String>>();
 		xmlResult = "";
 		campaignNameResult = "";
 	}
@@ -296,7 +293,7 @@ public class CampaignReadRequest extends UserRequest {
 	public void service() {
 		LOGGER.info("Servicing the campaign read request.");
 		
-		if(! authenticate(false)) {
+		if(! authenticate(AllowNewAccount.NEW_ACCOUNT_DISALLOWED)) {
 			return;
 		}
 		
@@ -316,14 +313,6 @@ public class CampaignReadRequest extends UserRequest {
 				List<String> resultCampaignIds = UserCampaignServices.getCampaignsForUser(this, getUser().getUsername(), 
 						campaignIds, classIds, startDate, endDate, privacyState, runningState, role);
 				
-				if(OutputFormat.LONG.equals(outputFormat)) {
-					LOGGER.info("Verifying that the requesting user can read the users and their roles with the resulting campaigns.");
-					UserCampaignServices.verifyUserCanReadUsersInCampaigns(this, getUser().getUsername(), resultCampaignIds);
-					
-					LOGGER.info("Verifying that the requesting user can read the classes associated with the resulting campaigns.");
-					UserCampaignServices.verifyUserCanReadClassesAssociatedWithCampaigns(this, getUser().getUsername(), resultCampaignIds);
-				}
-				
 				LOGGER.info("Gathering the information about the campaigns.");
 				shortOrLongResult = UserCampaignServices.getCampaignAndUserRolesForCampaigns(this, getUser().getUsername(), resultCampaignIds, OutputFormat.LONG.equals(outputFormat));
 			}
@@ -342,30 +331,6 @@ public class CampaignReadRequest extends UserRequest {
 			e.logException(LOGGER);
 		}
 	}
-	
-	/**
-	 * Returns an empty map. This is for requests that don't have any specific
-	 * information to return.
-	 */
-	@Override
-	public Map<String, String[]> getAuditInformation() {
-		Map<String, String[]> result = new HashMap<String, String[]>();
-		
-		// Retrieve all of the campaign IDs from the result.
-		List<String> campaignIds = new LinkedList<String>();
-		for(Campaign campaign : shortOrLongResult.keySet()) {
-			campaignIds.add(campaign.getUrn());
-		}
-		
-		// If any campaign IDs were found, add an entry into the audit 
-		// information where the key distinguishes this as a result and the
-		// value is the listof campaign IDs.
-		if(campaignIds.size() > 0) {
-			result.put(InputKeys.CAMPAIGN_URN, campaignIds.toArray(new String[0]));
-		}
-		
-		return result;
-	}
 
 	/**
 	 * Responds with the requested information.
@@ -374,108 +339,156 @@ public class CampaignReadRequest extends UserRequest {
 	public void respond(HttpServletRequest httpRequest, HttpServletResponse httpResponse) {
 		LOGGER.info("Responding to the campaign read request.");
 		
+		// Creates the writer that will write the response, success or fail.
+		Writer writer;
+		try {
+			writer = new BufferedWriter(new OutputStreamWriter(getOutputStream(httpRequest, httpResponse)));
+		}
+		catch(IOException e) {
+			LOGGER.error("Unable to create writer object. Aborting.", e);
+			return;
+		}
+		
+		// Sets the HTTP headers to disable caching
+		expireResponse(httpResponse);
+		
+		// If available, update the token.
+		if(getUser() != null) {
+			final String token = getUser().getToken(); 
+			if(token != null) {
+				CookieUtils.setCookieValue(httpResponse, InputKeys.AUTH_TOKEN, token, (int) (UserBin.getTokenRemainingLifetimeInMillis(token) / MILLIS_IN_A_SECOND));
+			}
+		}
+		
+		// Set the response's content type to "text/html" and if it is a
+		// successful read, it will change it to whatever is appropriate.
+		httpResponse.setContentType("text/html");
+		
+		String responseText;
 		if(isFailed()) {
-			super.respond(httpRequest, httpResponse, null);
+			// If it failed, get the failure message.
+			responseText = getFailureMessage();
 		}
 		else {
+			// If it has succeeded thus far, set the return value based on the
+			// type of request.
 			if(OutputFormat.SHORT.equals(outputFormat) || OutputFormat.LONG.equals(outputFormat)) {
 				try {
 					// Create the JSONObject with which to respond.
 					JSONObject result = new JSONObject();
 					
+					// Mark it as successful.
+					result.put(JSON_KEY_RESULT, RESULT_SUCCESS);
+					
+					// Create and add the metadata.
+					JSONObject metadata = new JSONObject();
 					// Add the information for each of the campaigns into their own
 					// JSONObject and add that to the result.
-					for(Campaign campaign : shortOrLongResult.keySet()) {
-						JSONObject currResult = new JSONObject();
-						result.put(campaign.getUrn(), currResult);
+					JSONObject campaignInfo = new JSONObject();
+					
+					// Get all of the campaign IDs for the metadata.
+					Set<String> resultCampaignIds = new HashSet<String>();
+					
+					// This is done, so we don't have to repeatedly check the
+					// same value.
+					boolean longOutput = OutputFormat.LONG.equals(outputFormat);
+					
+					// For each of the campaigns, process its information and
+					// place it in its respective object.
+					for(CampaignInformation campaign : shortOrLongResult.keySet()) {
+						// Get the campaign's ID for the metadata.
+						resultCampaignIds.add(campaign.getId());
 						
-						currResult.put(JSON_KEY_NAME, campaign.getName());
-						currResult.put(JSON_KEY_DESCRIPTION, campaign.getDescription());
-						currResult.put(JSON_KEY_RUNNING_STATE, campaign.getRunningState());
-						currResult.put(JSON_KEY_PRIVACY_STATE, campaign.getPrivacyState());
-						currResult.put(JSON_KEY_CLASSES, campaign.getClasses());
-						currResult.put(JSON_KEY_CREATION_TIMESTAMP, campaign.getCampaignCreationTimestamp());
-						currResult.put(JSON_KEY_USER_ROLES, shortOrLongResult.get(campaign));
+						List<String> roles = shortOrLongResult.get(campaign);
+						boolean supervisorOrAuthor = 
+							roles.contains(CampaignRoleCache.ROLE_SUPERVISOR) || 
+							roles.contains(CampaignRoleCache.ROLE_AUTHOR);
 						
-						if(OutputFormat.LONG.equals(outputFormat)) {
-							currResult.put(JSON_KEY_XML, campaign.getXml());
-							
-							JSONObject campaignRoles = new JSONObject();
-							campaignRoles.put(CampaignRoleCache.ROLE_SUPERVISOR, campaign.getSupervisors());
-							campaignRoles.put(CampaignRoleCache.ROLE_AUTHOR, campaign.getAuthors());
-							campaignRoles.put(CampaignRoleCache.ROLE_ANALYST, campaign.getAnalysts());
-							campaignRoles.put(CampaignRoleCache.ROLE_PARTICIPANT, campaign.getParticipants());
-							currResult.put(JSON_KEY_CAMPAIGN_ROLES_WITH_USERS, campaignRoles);
+						// Create the JSONObject response. This may return null
+						// if there is an error building it.
+						JSONObject resultJson = campaign.toJson(
+								false,	// ID 
+								longOutput,	// Classes
+								longOutput,	// Any roles
+								supervisorOrAuthor,	// Participants
+								supervisorOrAuthor, // Analysts
+								true,				// Authors
+								supervisorOrAuthor,	// Supervisors
+								longOutput);// XML
+						
+						if(resultJson != null) {
+							resultJson.put(JSON_KEY_USER_ROLES, roles);
 						}
+						
+						campaignInfo.accumulate(campaign.getId(), resultJson);
 					}
 					
-					// Respond with the result.
-					super.respond(httpRequest, httpResponse, result);
+					metadata.put("number_of_results", resultCampaignIds.size());
+					metadata.put("items", resultCampaignIds);
+					
+					result.put("metadata", metadata);
+					result.put("data", campaignInfo);
+					
+					responseText = result.toString();
 				}
 				catch(JSONException e) {
 					// If anything fails, return a failure message.
-					setFailed();
-					super.respond(httpRequest, httpResponse, null);
+					responseText = getFailureMessage();
 				}
 			}
 			else if(OutputFormat.XML.equals(outputFormat)) {
-				// Creates the writer that will write the response, success or fail.
-				Writer writer;
-				try {
-					writer = new BufferedWriter(new OutputStreamWriter(getOutputStream(httpRequest, httpResponse)));
-				}
-				catch(IOException e) {
-					LOGGER.error("Unable to create writer object. Aborting.", e);
-					return;
-				}
+				// Set the type and force the browser to download it as the 
+				// last step before beginning to stream the response.
+				httpResponse.setContentType("text/xml");
+				httpResponse.setHeader("Content-Disposition", "attachment; filename=" + campaignNameResult + ".xml");
 				
-				// Sets the HTTP headers to disable caching
-				expireResponse(httpResponse);
-				
-				// If the request ever failed, write an error message.
-				String responseText = "";
-				if(isFailed()) {
-					httpResponse.setContentType("text/html");
-					
-					// Use the annotator's message to build the response.
-					responseText = getFailureMessage();
-				}
-				// Otherwise, write the response.
-				else {
-					// Set the type and force the browser to download it as the 
-					// last step before beginning to stream the response.
-					httpResponse.setContentType("ohmage/campaign");
-					httpResponse.setHeader("Content-Disposition", "attachment; filename=" + campaignNameResult + ".xml");
-					
-					responseText = xmlResult;
-					
-					// If available, update the token.
-					if(getUser() != null) {
-						final String token = getUser().getToken(); 
-						if(token != null) {
-							CookieUtils.setCookieValue(httpResponse, InputKeys.AUTH_TOKEN, token, (int) (UserBin.getTokenRemainingLifetimeInMillis(token) / MILLIS_IN_A_SECOND));
-						}
-					}
-				}
-					
-				// Write the error response.
-				try {
-					writer.write(responseText); 
-				}
-				catch(IOException e) {
-					LOGGER.error("Unable to write failed response message. Aborting.", e);
-					return;
-				}
-				
-				// Flush it and close.
-				try {
-					writer.flush();
-					writer.close();
-				}
-				catch(IOException e) {
-					LOGGER.error("Unable to flush or close the writer.", e);
-				}
+				responseText = xmlResult;
+			}
+			else {
+				responseText = getFailureMessage();
 			}
 		}
+			
+		// Write the error response.
+		try {
+			writer.write(responseText); 
+		}
+		catch(IOException e) {
+			LOGGER.error("Unable to write failed response message. Aborting.", e);
+			return;
+		}
+		
+		// Flush it and close.
+		try {
+			writer.flush();
+			writer.close();
+		}
+		catch(IOException e) {
+			LOGGER.error("Unable to flush or close the writer.", e);
+		}
+	}
+	
+	/**
+	 * Returns an empty map. This is for requests that don't have any specific
+	 * information to return.
+	 */
+	@Override
+	public Map<String, String[]> getAuditInformation() {
+		Map<String, String[]> auditInfo = new HashMap<String, String[]>();
+		
+		// Retrieve all of the campaign IDs from the result.
+		List<String> campaignIds = new LinkedList<String>();
+		for(CampaignInformation campaign : shortOrLongResult.keySet()) {
+			campaignIds.add(campaign.getId());
+		}
+		
+		// If any campaign IDs were found, add an entry into the audit 
+		// information where the key distinguishes this as a result and the
+		// value is the listof campaign IDs.
+		if(campaignIds.size() > 0) {
+			auditInfo.put(InputKeys.CAMPAIGN_URN, campaignIds.toArray(new String[0]));
+		}
+		
+		return auditInfo;
 	}
 }

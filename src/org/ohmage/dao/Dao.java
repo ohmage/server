@@ -18,8 +18,8 @@ import org.springframework.jdbc.core.JdbcTemplate;
 public abstract class Dao {
 	private boolean initialized = false;
 	
-	protected final DataSource dataSource;
-	protected final JdbcTemplate jdbcTemplate;
+	private final DataSource dataSource;
+	private final JdbcTemplate jdbcTemplate;
 	
 	/**
 	 * Builds this DAO by keeping track of the DataSource that was used to
@@ -74,5 +74,25 @@ public abstract class Dao {
 		throw new DataAccessException(
 				"Error executing SQL '" + sql + "' " +
 				"with parameter(s): " + params, e);
+	}
+	
+	/**
+	 * Returns the DataSource that was used to create this DAO.
+	 * 
+	 * @return The DataSource that was used to create this DAO.
+	 */
+	protected DataSource getDataSource() {
+		return dataSource;
+	}
+	
+	/**
+	 * Returns the JdbcTemplate that should be used by this DAO to perform its
+	 * queries, updates, and deletes.
+	 * 
+	 * @return The JdbcTemplate that should be used by this DAO to perform its
+	 * 		   queries, updates, and deletes.
+	 */
+	protected JdbcTemplate getJdbcTemplate() {
+		return jdbcTemplate;
 	}
 }

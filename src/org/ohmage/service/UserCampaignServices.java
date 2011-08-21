@@ -1,6 +1,5 @@
 package org.ohmage.service;
 
-import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collection;
@@ -17,10 +16,11 @@ import org.ohmage.cache.CampaignRoleCache;
 import org.ohmage.cache.CampaignRunningStateCache;
 import org.ohmage.dao.CampaignClassDaos;
 import org.ohmage.dao.CampaignDaos;
-import org.ohmage.dao.CampaignSurveyDaos;
+import org.ohmage.dao.CampaignSurveyResponseDaos;
 import org.ohmage.dao.UserCampaignDaos;
 import org.ohmage.dao.UserDaos;
 import org.ohmage.domain.Campaign;
+import org.ohmage.domain.CampaignInformation;
 import org.ohmage.domain.User;
 import org.ohmage.domain.UserPersonal;
 import org.ohmage.domain.UserRoleCampaignInfo;
@@ -36,7 +36,7 @@ import org.ohmage.util.StringUtils;
  * @author Joshua Selsky
  */
 public class UserCampaignServices {
-	private static Logger LOGGER = Logger.getLogger(UserCampaignServices.class);
+	private static final Logger LOGGER = Logger.getLogger(UserCampaignServices.class);
 	
 	/**
 	 * Default constructor. Private so that it cannot be instantiated.
@@ -172,12 +172,21 @@ public class UserCampaignServices {
 	 * 			   as well as any others that are necessary. The reason this is
 	 * 			   a bad idea is because it puts too much of the work on the 
 	 * 			   requests which must keep up with the ACLs and may lead to 
-	 * 			   multiple services to perform one logical service, i.e. call
-	 * 			   something like this then call a service that checks if the
-	 * 			   user is privileged in some class to which this campaign 
-	 * 			   belongs which is all one logical service that checks if a 
-	 * 			   user can read this campaign's metadata. If nothing else, it
-	 * 			   should be made private.
+	 * 			   multiple services performing one logical service. For 
+	 * 			   example, a request will call this method to ensure that the
+	 * 			   user has some roles then, if not, call a service that checks
+	 * 			   if the user is privileged in some class to which this 
+	 * 			   campaign belongs. This is all one logical operation which is
+	 * 			   determining if a user can read a campaign's meta data. If 
+	 * 			   all of the steps are spread out among multiple operations 
+	 * 			   like this function is doing, then each request must perform 
+	 * 			   all of these operations. If the ACLs should change, then we
+	 * 			   must go to each of the requests and change the work flow. If
+	 * 			   we encapsulate all of the work into a single function, then
+	 * 			   we would only need to change that function, which is far 
+	 * 			   more efficient. This function and other functions like it
+	 * 			   should be removed as soon as they are no longer being used
+	 * 			   to prevent this poor programming decision.
 	 */
 	public static void checkUserHasRolesInCampaign(Request request, String username, String campaignId, Collection<String> campaignRoles) throws ServiceException {
 		try {
@@ -363,7 +372,7 @@ public class UserCampaignServices {
 			
 			if(roles.contains(CampaignRoleCache.ROLE_SUPERVISOR) ||
 			   roles.contains(CampaignRoleCache.ROLE_AUTHOR)) {
-				if(CampaignSurveyDaos.getNumberOfSurveyResponsesForCampaign(campaignId) == 0) {
+				if(CampaignSurveyResponseDaos.getNumberOfSurveyResponsesForCampaign(campaignId) == 0) {
 					return;
 				}
 				
@@ -450,7 +459,7 @@ public class UserCampaignServices {
 			}
 			
 			if(roles.contains(CampaignRoleCache.ROLE_AUTHOR)) {
-				long numberOfResponses = CampaignSurveyDaos.getNumberOfSurveyResponsesForCampaign(campaignId);
+				long numberOfResponses = CampaignSurveyResponseDaos.getNumberOfSurveyResponsesForCampaign(campaignId);
 				
 				if(numberOfResponses == 0) {
 					return;
@@ -710,7 +719,7 @@ public class UserCampaignServices {
 		
 		if(startDate != null) {
 			// Get all of the campaigns whose creation timestamp is greater
-			// than or equal to the Start date.
+			// than or equal to the start date.
 			desiredCampaignIds.retainAll(CampaignDaos.getCampaignsOnOrAfterDate(startDate));
 		}
 		
@@ -741,7 +750,7 @@ public class UserCampaignServices {
 	/**
 	 * Gathers the requested information about a campaign. This will be at 
 	 * least its name, description (possibly null), running state, privacy 
-	 * state, creation timestamp, and all of the classes associated with the
+	 * state, creation timestamp, and all of the requesting user's roles in the
 	 * campaign.<br />
 	 * <br />
 	 * The extras include the campaign's XML, all of the users associated with 
@@ -764,28 +773,17 @@ public class UserCampaignServices {
 	 * 
 	 * @throws ServiceException Thrown if there is an error.
 	 */
-	public static Map<Campaign, List<String>> getCampaignAndUserRolesForCampaigns(Request request,
+	public static Map<CampaignInformation, List<String>> getCampaignAndUserRolesForCampaigns(Request request,
 			String username, Collection<String> campaignIds, boolean withExtras) throws ServiceException {
 		try {
-			Map<Campaign, List<String>> result = new HashMap<Campaign, List<String>>();
+			Map<CampaignInformation, List<String>> result = new HashMap<CampaignInformation, List<String>>();
 			
 			for(String campaignId : campaignIds) {
 				// Create the Campaign object with the campaign's ID.
-				Campaign campaign = new Campaign(campaignId);
+				CampaignInformation campaign = CampaignDaos.getCampaignInformation(campaignId);
 				
-				// Get the information about a campaign.
-				campaign.setName(CampaignDaos.getName(campaignId));
-				campaign.setDescription(CampaignDaos.getDescription(campaignId));
-				campaign.setRunningState(CampaignDaos.getCampaignRunningState(campaignId));
-				campaign.setPrivacyState(CampaignDaos.getCampaignPrivacyState(campaignId));
-				
-				Timestamp creationTimestamp = CampaignDaos.getCreationTimestamp(campaignId);
-				// FIXME: I don't like this. The Campaign class should take a 
-				// timestamp object and be responsible for doing things like 
-				// this itself.
-				String creationTimestampString = creationTimestamp.toString();
-				String creationTimestampWithoutMillis = creationTimestampString.substring(0, creationTimestampString.indexOf('.'));
-				campaign.setCampaignCreationTimestamp(creationTimestampWithoutMillis);
+				// Get the user's roles.
+				List<String> roles = UserCampaignDaos.getUserCampaignRoles(username, campaignId);
 				
 				// If we are supposed to get the extra information as well.
 				if(withExtras) {
@@ -799,19 +797,19 @@ public class UserCampaignServices {
 					// roles.
 					List<String> campaignUsernames = UserCampaignDaos.getUsersInCampaign(campaignId);
 					for(String campaignUsername : campaignUsernames) {
-						List<String> roles = UserCampaignDaos.getUserCampaignRoles(campaignUsername, campaignId);
+						List<String> userRoles = UserCampaignDaos.getUserCampaignRoles(campaignUsername, campaignId);
 						
-						for(String role : roles) {
-							if(CampaignRoleCache.ROLE_SUPERVISOR.equals(role)) {
+						for(String userRole : userRoles) {
+							if(CampaignRoleCache.ROLE_SUPERVISOR.equals(userRole)) {
 								campaign.addSupervisor(campaignUsername);
 							}
-							else if(CampaignRoleCache.ROLE_AUTHOR.equals(role)) {
+							else if(CampaignRoleCache.ROLE_AUTHOR.equals(userRole)) {
 								campaign.addAuthor(campaignUsername);
 							}
-							else if(CampaignRoleCache.ROLE_ANALYST.equals(role)) {
+							else if(CampaignRoleCache.ROLE_ANALYST.equals(userRole)) {
 								campaign.addAnalyst(campaignUsername);
 							}
-							else if(CampaignRoleCache.ROLE_PARTICIPANT.equals(role)) {
+							else if(CampaignRoleCache.ROLE_PARTICIPANT.equals(userRole)) {
 								campaign.addParticipant(campaignUsername);
 							}
 						}
@@ -819,7 +817,7 @@ public class UserCampaignServices {
 				}
 
 				// Add the user's roles.
-				result.put(campaign, UserCampaignDaos.getUserCampaignRoles(username, campaignId));
+				result.put(campaign, roles);
 			}
 			
 			return result;

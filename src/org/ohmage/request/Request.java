@@ -1,5 +1,6 @@
 package org.ohmage.request;
 
+import java.io.BufferedInputStream;
 import java.io.BufferedWriter;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -7,7 +8,13 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
+import java.util.Collections;
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
+import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
 import javax.servlet.ServletException;
@@ -22,6 +29,7 @@ import org.json.JSONObject;
 import org.ohmage.annotator.Annotator;
 import org.ohmage.annotator.ErrorCodes;
 import org.ohmage.exception.ValidationException;
+import org.ohmage.util.StringUtils;
 
 /**
  * Superclass for all requests. Defines the basic requirements for a request.
@@ -76,15 +84,30 @@ public abstract class Request {
 			"\"" + Annotator.JSON_KEY_TEXT + "\":\"An error occurred while building the JSON response.\"}" +
 		"]}";
 	
+	private static final String KEY_CONTENT_ENCODING = "Content-Encoding";
+	private static final String VALUE_GZIP = "gzip";
+	
+	private static final int CHUNK_SIZE = 4096;
+	
+	private static final String PARAMETER_SEPARATOR = "&";
+	private static final String PARAMETER_VALUE_SEPARATOR = "=";
+	
 	private final Annotator annotator;
 	private boolean failed;
 	
+	private final Map<String, String[]> parameters;
+	
 	/**
 	 * Default constructor. Creates a new, generic annotator for this object.
+	 * 
+	 * @param httpRequest An HttpServletRequest that was used to create this 
+	 * 					  request. This may be null if no such request exists.
 	 */
-	protected Request() {
+	protected Request(HttpServletRequest httpRequest) {
 		annotator = new Annotator();
 		failed = false;
+		
+		parameters = getParameters(httpRequest);
 	}
 
 	/**
@@ -146,6 +169,26 @@ public abstract class Request {
 			// written message as the response.
 			LOGGER.error("An error occurred while building the failure JSON response.", e);
 			result = RESPONSE_ERROR_JSON_TEXT;
+		}
+		return result;
+	}
+	
+	/**
+	 * Returns an array of all of the values from a parameter in the request.
+	 * 
+	 * @param parameterKey The key to use to lookup the parameter value.
+	 * 
+	 * @return An array of all values given for the parameter. The array may be
+	 * 		   empty, but will never be null.
+	 */
+	protected String[] getParameterValues(String parameterKey) {
+		if(parameterKey == null) {
+			return new String[0];
+		}
+		
+		String[] result = parameters.get(parameterKey);
+		if(result == null) {
+			result = new String[0];
 		}
 		return result;
 	}
@@ -265,50 +308,146 @@ public abstract class Request {
 	}
 	
 	/**
-	 * There is functionality in Tomcat 6 to perform this action, but it is also nice to have it controlled programmatically.
+	 * Retrieves the parameter map from the request and returns it.
 	 * 
-	 * @return an OutputStream appropriate for the headers found in the request.
+	 * @param httpRequest A HttpServletRequest that contains the desired 
+	 * 					  parameter map.
+	 * 
+	 * @return Returns a map of keys to an array of values for all of the
+	 * 		   parameters contained in the request. This may return an empty 
+	 * 		   map, but it will never return null.
+	 * 
+	 * @throws IllegalArgumentException Thrown if the parameters cannot be 
+	 * 									parsed.
+	 * 
+	 * @throws IllegalStateException Thrown if there is a problem connecting to
+	 * 								 or reading from the request.
 	 */
-	protected OutputStream getOutputStream(HttpServletRequest request, HttpServletResponse response) 
-		throws IOException {
-		
-		OutputStream os = null; 
-		
-		// Determine if the response can be gzipped
-		String encoding = request.getHeader("Accept-Encoding");
-		if (encoding != null && encoding.indexOf("gzip") >= 0) {
-            
-			if(LOGGER.isDebugEnabled()) {
-				LOGGER.debug("Returning a GZIPOutputStream");
-			}
-			
-            response.setHeader("Content-Encoding","gzip");
-            response.setHeader("Vary", "Accept-Encoding");
-            os = new GZIPOutputStream(response.getOutputStream());
-		
-		} else {
-			
-			if(LOGGER.isDebugEnabled()) {
-				LOGGER.debug("Returning the default OutputStream");
-			}
-			
-			os = response.getOutputStream();
+	protected static Map<String, String[]> getParameters(HttpServletRequest httpRequest) {
+		if(httpRequest == null) {
+			return Collections.emptyMap();
 		}
 		
-		return os;
+		Enumeration<String> contentEncodingHeaders = httpRequest.getHeaders(KEY_CONTENT_ENCODING);
+		
+		while(contentEncodingHeaders.hasMoreElements()) {
+			if(VALUE_GZIP.equals(contentEncodingHeaders.nextElement())) {
+				return gunzipRequest(httpRequest);
+			}
+		}
+		
+		return httpRequest.getParameterMap();
 	}
 	
 	/**
-	 * Sets the response headers to disallow client caching.
+	 * Retrieves the parameter map from a request that has had its contents
+	 * GZIP'd. 
+	 * 
+	 * @param httpRequest A HttpServletRequest whose contents are GZIP'd as
+	 * 					  indicated by a "Content-Encoding" header.
+	 * 
+	 * @return Returns a map of keys to a list of values for all of the 
+	 * 		   parameters passed to the server. This may return an empty map,
+	 * 		   but it will never return null.
+	 * 
+	 * @throws IllegalArgumentException Thrown if the parameters cannot be 
+	 * 									parsed.
+	 * 
+	 * @throws IllegalStateException Thrown if there is a problem connecting to
+	 * 								 or reading from the request.
 	 */
-	protected void expireResponse(HttpServletResponse response) {
-		response.setHeader("Expires", "Fri, 5 May 1995 12:00:00 GMT");
-        response.setHeader("Cache-Control", "no-store, no-cache, must-revalidate");
-        response.setHeader("Pragma", "no-cache");
-        
-        // this is done to allow client content to be served up from from different domains than the server data
-        // e.g., when you want to run a client in a local sandbox, but retrieve data from a remote server
-        response.setHeader("Access-Control-Allow-Origin","*");
+	private static Map<String, String[]> gunzipRequest(HttpServletRequest httpRequest) {
+		// Retrieve the InputStream for the GZIP'd content of the request.
+		InputStream inputStream;
+		try {
+			inputStream = new BufferedInputStream(new GZIPInputStream(httpRequest.getInputStream()));
+		}
+		catch(IllegalStateException e) {
+			throw new IllegalStateException("The request's input stream can no longer be connected.", e);
+		}
+		catch(IOException e) {
+			throw new IllegalStateException("Could not connect to the request's input stream.", e);
+		}
+		
+		// Retrieve the parameter list as a string.
+		String parameterString;
+		try {
+			// This will build the parameter string.
+			StringBuilder builder = new StringBuilder();
+			
+			// These will store the information for the current chunk.
+			byte[] chunk = new byte[CHUNK_SIZE];
+			int readLen = 0;
+			
+			while((readLen = inputStream.read(chunk)) != -1) {
+				builder.append(new String(chunk, 0, readLen));
+			}
+			
+			parameterString = builder.toString();
+		}
+		catch(IOException e) {
+			throw new IllegalStateException("There was an error while reading from the request's input stream.", e);
+		}
+		finally {
+			try {
+				inputStream.close();
+			}
+			catch(IOException e) {
+				throw new IllegalStateException("And error occurred while closing the input stream.", e);
+			}
+		}
+		
+		// Create the resulting object so that, unless we fail, we will never
+		// return null.
+		Map<String, String[]> parameterMap = new HashMap<String, String[]>();
+		
+		// If the parameters string is not empty, parse it for the parameters.
+		if(! StringUtils.isEmptyOrWhitespaceOnly(parameterString)) {
+			Map<String, List<String>> parameters = new HashMap<String, List<String>>();
+			
+			// First, split all of the parameters apart.
+			String[] keyValuePairs = parameterString.split(PARAMETER_SEPARATOR);
+			
+			// For each of the pairs, split their key and value and store them.
+			for(String keyValuePair : keyValuePairs) {
+				// If the pair is empty or null, ignore it.
+				if(StringUtils.isEmptyOrWhitespaceOnly(keyValuePair.trim())) {
+					continue;
+				}
+				
+				// Split the key from the value.
+				String[] splitPair = keyValuePair.split(PARAMETER_VALUE_SEPARATOR);
+				
+				// If there isn't exactly one key to one value, then there is a
+				// problem, and we need to abort.
+				if(splitPair.length <= 1) {
+					throw new IllegalArgumentException("One of the parameter's 'pairs' did not contain a '" + PARAMETER_VALUE_SEPARATOR + "': " + keyValuePair);
+				}
+				else if(splitPair.length > 2) {
+					throw new IllegalArgumentException("One of the parameter's 'pairs' contained multiple '" + PARAMETER_VALUE_SEPARATOR + "'s: " + keyValuePair);
+				}
+				
+				// The key is the first part of the pair.
+				String key = splitPair[0];
+				
+				// The first or next value for the key is the second part of 
+				// the pair.
+				List<String> values = parameters.get(key);
+				if(values == null) {
+					values = new LinkedList<String>();
+					parameters.put(key, values);
+				}
+				values.add(StringUtils.urlDecode(splitPair[1]));
+			}
+			
+			// Now that we have all of the pairs, convert it into the 
+			// appropriate map.
+			for(String key : parameters.keySet()) {
+				parameterMap.put(key, parameters.get(key).toArray(new String[0]));
+			}
+		}
+		
+		return parameterMap;
 	}
 	
 	/**
@@ -368,6 +507,56 @@ public abstract class Request {
 			setFailed();
 			throw new ValidationException(e);
 		}
+	}
+	
+	/**
+	 * Sets the response headers to disallow client caching.
+	 */
+	protected void expireResponse(HttpServletResponse response) {
+		response.setHeader("Expires", "Fri, 5 May 1995 12:00:00 GMT");
+        response.setHeader("Cache-Control", "no-store, no-cache, must-revalidate");
+        response.setHeader("Pragma", "no-cache");
+        
+        // This is done to allow client content to be served up from from 
+        // different domains than the server data e.g., when you want to run a
+        // client in a local sandbox, but retrieve data from a remote server
+        response.setHeader("Access-Control-Allow-Origin","*");
+	}
+	
+	/**
+	 * There is functionality in Tomcat 6 to perform this action, but it is 
+	 * also nice to have it controlled programmatically.
+	 * 
+	 * @return an OutputStream appropriate for the headers found in the 
+	 * request.
+	 */
+	protected OutputStream getOutputStream(HttpServletRequest request, HttpServletResponse response) 
+		throws IOException {
+		
+		OutputStream os = null; 
+		
+		// Determine if the response can be gzipped
+		String encoding = request.getHeader("Accept-Encoding");
+		if (encoding != null && encoding.indexOf("gzip") >= 0) {
+            
+			if(LOGGER.isDebugEnabled()) {
+				LOGGER.debug("Returning a GZIPOutputStream");
+			}
+			
+            response.setHeader("Content-Encoding","gzip");
+            response.setHeader("Vary", "Accept-Encoding");
+            os = new GZIPOutputStream(response.getOutputStream());
+		
+		} else {
+			
+			if(LOGGER.isDebugEnabled()) {
+				LOGGER.debug("Returning the default OutputStream");
+			}
+			
+			os = response.getOutputStream();
+		}
+		
+		return os;
 	}
 	/**************************************************************************
 	 *  End JEE Requirements

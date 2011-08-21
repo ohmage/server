@@ -50,6 +50,8 @@ public class DocumentReadContentsRequest extends UserRequest {
 	private static final Logger LOGGER = Logger.getLogger(DocumentReadContentsRequest.class);
 	
 	private static final int CHUNK_SIZE = 4096;
+
+	private static final long MILLIS_IN_A_SECOND = 1000;
 	
 	private final String documentId;
 	
@@ -94,7 +96,7 @@ public class DocumentReadContentsRequest extends UserRequest {
 	public void service() {
 		LOGGER.info("Servicing the document read contents request.");
 		
-		if(! authenticate(false)) {
+		if(! authenticate(AllowNewAccount.NEW_ACCOUNT_DISALLOWED)) {
 			return;
 		}
 		
@@ -162,7 +164,7 @@ public class DocumentReadContentsRequest extends UserRequest {
 				// Set the output stream to the response.
 				DataOutputStream dos = new DataOutputStream(os);
 				
-				// Read the file in chuncks and write it to the output stream.
+				// Read the file in chunks and write it to the output stream.
 				byte[] bytes = new byte[CHUNK_SIZE];
 				int read = 0;
 				int currRead = contentsStream.read(bytes);
@@ -186,7 +188,7 @@ public class DocumentReadContentsRequest extends UserRequest {
 				os.flush();
 				os.close();
 			}
-			// If the error occured while reading from the input stream or
+			// If the error occurred while reading from the input stream or
 			// writing to the output stream, abort the whole operation and
 			// return an error.
 			catch(IOException e) {

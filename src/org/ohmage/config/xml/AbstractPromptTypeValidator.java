@@ -8,7 +8,7 @@ import nu.xom.Node;
  * @author selsky
  */
 public abstract class AbstractPromptTypeValidator implements PromptTypeValidator {
-	protected boolean _skippable;
+	private boolean skippable;
 	
 	/**
 	 * Utility to check for constant values such as SKIPPED, which are not dependent on any specific prompt type.
@@ -18,7 +18,7 @@ public abstract class AbstractPromptTypeValidator implements PromptTypeValidator
 			return false;
 		}
 		
-		if(! _skippable) { // error
+		if(! skippable) { // error
 			throw new IllegalStateException("SKIPPED not allowed for prompt type in Condition"); 
 		}
 		
@@ -26,6 +26,6 @@ public abstract class AbstractPromptTypeValidator implements PromptTypeValidator
 	}
 	
 	public void setSkippable(Node promptNode) {
-		_skippable = Boolean.valueOf(promptNode.query("skippable").get(0).getValue().trim());
+		skippable = Boolean.valueOf(promptNode.query("skippable").get(0).getValue().trim());
 	}
 }

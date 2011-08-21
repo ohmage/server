@@ -22,7 +22,7 @@ public class FailedRequest extends Request {
 	 * Default constructor. Sets the request as failed.
 	 */
 	public FailedRequest() {
-		super();
+		super(null);
 		
 		setFailed();
 	}
