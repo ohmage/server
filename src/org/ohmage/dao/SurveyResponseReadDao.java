@@ -156,7 +156,7 @@ public class SurveyResponseReadDao extends Dao {
 		}
 		
 		try {
-			return instance.jdbcTemplate.query(
+			return instance.getJdbcTemplate().query(
 				sql, paramList.toArray(), new RowMapper<SurveyResponseReadResult>() {
 					public SurveyResponseReadResult mapRow(ResultSet rs, int rowNum) throws SQLException {
 						SurveyResponseReadResult result = new SurveyResponseReadResult();

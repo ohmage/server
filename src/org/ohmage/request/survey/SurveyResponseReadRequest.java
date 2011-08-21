@@ -253,7 +253,7 @@ public final class SurveyResponseReadRequest extends UserRequest {
 		
 		LOGGER.info("Servicing a survey response read request.");
 		
-		if(! authenticate(false)) {
+		if(! authenticate(AllowNewAccount.NEW_ACCOUNT_DISALLOWED)) {
 			return;
 		}
 		
