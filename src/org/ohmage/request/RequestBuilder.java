@@ -25,6 +25,7 @@ import org.ohmage.request.image.ImageUploadRequest;
 import org.ohmage.request.mobility.MobilityUploadRequest;
 import org.ohmage.request.survey.SurveyResponseDeleteRequest;
 import org.ohmage.request.survey.SurveyResponseReadRequest;
+import org.ohmage.request.survey.SurveyResponseUpdateRequest;
 import org.ohmage.request.survey.SurveyUploadRequest;
 import org.ohmage.request.user.UserChangePasswordRequest;
 import org.ohmage.request.user.UserCreationRequest;
@@ -97,6 +98,7 @@ public final class RequestBuilder {
 	private static final String API_SURVEY_UPLOAD = API_ROOT + "/survey/upload";
 	private static final String API_SURVEY_RESPONSE_DELETE = API_ROOT + "/survey_response/delete";
 	private static final String API_SURVEY_RESPONSE_READ = API_ROOT + "/survey_response/read";
+	private static final String API_SURVEY_RESPONSE_UPDATE = API_ROOT + "/survey_response/update";
 
 	// User
 	public static final String API_USER_CREATE = API_ROOT + "/user/create";
@@ -211,6 +213,9 @@ public final class RequestBuilder {
 		}
 		else if(API_SURVEY_RESPONSE_READ.equals(requestUri)) {
 			return new SurveyResponseReadRequest(httpRequest);
+		}
+		else if(API_SURVEY_RESPONSE_UPDATE.equals(requestUri)) {
+			return new SurveyResponseUpdateRequest(httpRequest);
 		}
 		// User
 		else if(API_USER_CREATE.equals(requestUri)) {
