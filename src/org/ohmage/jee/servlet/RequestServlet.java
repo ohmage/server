@@ -173,6 +173,8 @@ public class RequestServlet extends HttpServlet {
 					}
 				}
 				
+				LOGGER.debug("Response: " + responseString);
+				
 				// Create the audit report.
 				AuditServices.createAudit(requestType, uri, client, deviceId, responseString, parameterMap, extras, receivedTimestamp, respondTimestamp);
 			}
@@ -313,7 +315,7 @@ public class RequestServlet extends HttpServlet {
 	 * 					   once the request has been processed.
 	 */
 	protected void processRequest(HttpServletRequest httpRequest, HttpServletResponse httpResponse) {
-		Request request = RequestBuilder.buildRequest(httpRequest);
+		request = RequestBuilder.buildRequest(httpRequest);
 		
 		if(! request.isFailed()) {
 			request.service();
