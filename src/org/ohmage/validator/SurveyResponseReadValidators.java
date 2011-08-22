@@ -303,10 +303,10 @@ public final class SurveyResponseReadValidators {
 		
 		List<String> splitColumnList = StringUtils.splitString(columnList, InputKeys.LIST_ITEM_SEPARATOR);	
 		
-		if(splitColumnList.size() > MAX_NUMBER_OF_COLUMNS) {
-			request.setFailed(ErrorCodes.SURVEY_MALFORMED_COLUMN_LIST, ERROR_TOO_MANY_COLUMNS_IN_COLUMN_LIST);
-			throw new ValidationException(ERROR_TOO_MANY_COLUMNS_IN_COLUMN_LIST);
-		} 
+//		if(splitColumnList.size() > MAX_NUMBER_OF_COLUMNS) {
+//			request.setFailed(ErrorCodes.SURVEY_MALFORMED_COLUMN_LIST, ERROR_TOO_MANY_COLUMNS_IN_COLUMN_LIST);
+//			throw new ValidationException(ERROR_TOO_MANY_COLUMNS_IN_COLUMN_LIST);
+//		} 
 		
 		if(ListUtils.containsDuplicates(splitColumnList)) {
 			request.setFailed(ErrorCodes.SURVEY_MALFORMED_COLUMN_LIST, ERROR_DUPLICATE_IN_COLUMN_LIST);

@@ -17,6 +17,7 @@ import org.ohmage.request.Request;
  * survey responses.
  * 
  * @author John Jenkins
+ * @author Joshua Selsky
  */
 public final class SurveyResponseServices {
 	/**
@@ -46,7 +47,7 @@ public final class SurveyResponseServices {
 			// modify the url_based_resource table and file system. If an image
 			// deletion fails, the survey response will exist, but the images 
 			// from the survey response that were deleted will be deleted. Not 
-			// all of them will be delete, however; the one that caused the
+			// all of them will be deleted, however; the one that caused the
 			// exception will remain. While this may seem like an error, I felt
 			// that it would be worse to have the user stuck in a situation 
 			// where no images were being deleted than one where only part of a
@@ -59,6 +60,24 @@ public final class SurveyResponseServices {
 			
 			SurveyResponseDaos.deleteSurveyResponse(surveyResponseId);
 		}
+		catch(DataAccessException e) {
+			request.setFailed();
+			throw new ServiceException(e);
+		}
+	}
+	
+	/**
+	 * Updates the privacy state on a survey.
+	 * 
+	 * @param request  The request to fail should an error occur.
+	 * @param surveyResponseId  The key for the survey to update.
+	 * @param privacyState  The new privacy state value.
+	 * @throws ServiceException  If an error occurs.
+	 */
+	public static void updateSurveyResponsePrivacyState(Request request, Long surveyResponseId, String privacyState) throws ServiceException { 
+		try {
+			SurveyResponseDaos.updateSurveyResponsePrivacyState(surveyResponseId, privacyState);
+		} 
 		catch(DataAccessException e) {
 			request.setFailed();
 			throw new ServiceException(e);
