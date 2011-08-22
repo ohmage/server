@@ -116,7 +116,7 @@ public class RequestServlet extends HttpServlet {
 				// null is used.
 				String[] clientValues = parameterMap.get(InputKeys.CLIENT);
 				String client = null;
-				if((clientValues != null) && (clientValues.length > 0)) {
+				if((clientValues != null) && (clientValues.length == 1)) {
 					client = clientValues[0];
 				}
 				
@@ -149,11 +149,15 @@ public class RequestServlet extends HttpServlet {
 					parameterMap.put(InputKeys.NEW_PASSWORD, passwordsOmitted);
 				}
 				
+				// Remove any data parameters as those are large and may  
+				// contain sensitive data.
+				parameterMap.remove(InputKeys.DATA);
+				
 				// Retrieve the device ID. If any number of device IDs exist,
 				// the first one reported will be used.
 				String deviceId = null;
 				String[] deviceIds = parameterMap.get(KEY_DEVICE_ID);
-				if((deviceIds != null) && (deviceIds.length > 0)) {
+				if((deviceIds != null) && (deviceIds.length == 1)) {
 					deviceId = deviceIds[0];
 				}
 				
@@ -223,11 +227,6 @@ public class RequestServlet extends HttpServlet {
 		// Retrieve the request's URI.
 		String uri = httpRequest.getRequestURI();
 		
-		// Retrieve the request's parameter map. We must make a copy because as
-		// soon as this function exists Tomcat will begin destroying the  
-		// original parameter map.
-		Map<String, String[]> parameterMap = new HashMap<String, String[]>(httpRequest.getParameterMap());
-		
 		// Generate an 'extras' Map based on the HTTP headers.
 		Map<String, String[]> extras = new HashMap<String, String[]>();
 		Enumeration<String> headers = httpRequest.getHeaderNames();
@@ -243,10 +242,22 @@ public class RequestServlet extends HttpServlet {
 			extras.put(header, valueList.toArray(new String[0]));
 		}
 		
+		// This is the parameter map that will be taken from the request if
+		// available; otherwise, it will be taken from the user request.
+		Map<String, String[]> parameterMap;
+		
 		Object requestObject = httpRequest.getAttribute(KEY_ATTRIBUTE);
 		Request request = null;
 		if(requestObject != null) {
 			request = (Request) requestObject;
+			
+			parameterMap = new HashMap<String, String[]>(request.getParameterMap());
+		}
+		else {
+			// Retrieve the request's parameter map. We must make a copy 
+			// because as soon as this function exists Tomcat will begin 
+			// destroying the original parameter map.
+			parameterMap = new HashMap<String, String[]>(httpRequest.getParameterMap());
 		}
 
 		// Create a separate thread with the parameters and start that thread.

@@ -175,6 +175,15 @@ public abstract class Request {
 	}
 	
 	/**
+	 * Returns an unmodifiable version of the parameter map.
+	 * 
+	 * @return An unmodifiable version of the parameter map.
+	 */
+	public Map<String, String[]> getParameterMap() {
+		return Collections.unmodifiableMap(parameters);
+	}
+	
+	/**
 	 * Returns an array of all of the values from a parameter in the request.
 	 * 
 	 * @param parameterKey The key to use to lookup the parameter value.
