@@ -49,7 +49,7 @@ public final class CampaignDaos extends Dao {
 			"FROM campaign " +
 			"WHERE urn = ?" +
 		")";
-	
+
 	// Returns the name of a campaign.
 	private static final String SQL_GET_NAME =
 		"SELECT name " +
@@ -59,6 +59,12 @@ public final class CampaignDaos extends Dao {
 	// Returns the description of a campaign.
 	private static final String SQL_GET_DESCRIPTION = 
 		"SELECT description " +
+		"FROM campaign " +
+		"WHERE urn = ?";
+
+	// Returns the XML for a campaign.
+	private static final String SQL_GET_XML = 
+		"SELECT xml " +
 		"FROM campaign " +
 		"WHERE urn = ?";
 
@@ -75,16 +81,10 @@ public final class CampaignDaos extends Dao {
 		"FROM campaign c, campaign_privacy_state cps " +
 		"WHERE c.urn = ?" +
 		"AND c.privacy_state_id = cps.id";
-	
+
 	// Returns the campaign's creation timestamp.
 	private static final String SQL_GET_CREATION_TIMESTAMP =
 		"SELECT creation_timestamp " +
-		"FROM campaign " +
-		"WHERE urn = ?";
-	
-	// Returns the XML for a campaign.
-	private static final String SQL_GET_XML = 
-		"SELECT xml " +
 		"FROM campaign " +
 		"WHERE urn = ?";
 	
@@ -147,7 +147,7 @@ public final class CampaignDaos extends Dao {
 		"AND cl.id = uc.class_id " +
 		"AND uc.user_class_role_id = ccdr.user_class_role_id " +
 		"AND ccdr.user_role_id = ur.id";
-	
+
 	// Inserts a new campaign.
 	private static final String SQL_INSERT_CAMPAIGN = 
 		"INSERT INTO campaign(urn, name, xml, description, creation_timestamp, running_state_id, privacy_state_id) " +
@@ -288,13 +288,6 @@ public final class CampaignDaos extends Dao {
 			"WHERE role = ?" +
 		")";
 	
-	// Finds the running state for a particular campaign
-	private static final String SQL_SELECT_CAMPAIGN_RUNNING_STATE = 
-		"SELECT crs.running_state " +
-		"FROM campaign c, campaign_running_state crs " +
-		"WHERE c.urn = ? " +
-		"AND c.running_state_id = crs.id";
-	
 	private static final String SQL_SELECT_CAMPAIGN_CONFIGURATION = 
 		"SELECT c.name, c.description, c.xml, crs.running_state, cps.privacy_state, c.creation_timestamp" +
         " FROM campaign c, campaign_running_state crs, campaign_privacy_state cps" +
@@ -417,27 +410,6 @@ public final class CampaignDaos extends Dao {
 		}
 		catch(org.springframework.dao.DataAccessException e) {
 			throw new DataAccessException("Error executing SQL '" + SQL_EXISTS_CAMPAIGN + "' with parameter: " + campaignId, e);
-		}
-	}
-	
-	/**
-	 * Finds the running state for the provided campaign id.
-	 * 
-	 * @param campaignId The unique identifier for the campaign running
-	 *                   state in question.
-	 * @return A String identifying the campaign's running state.
-	 * @throws DataAccessException If an error occurs running the SQL.
-	 */
-	public static String getRunningStateForCampaignId(String campaignId) throws DataAccessException {
-		try {
-			return instance.getJdbcTemplate().queryForObject(
-					SQL_SELECT_CAMPAIGN_RUNNING_STATE, 
-					new Object[] { campaignId }, 
-					String.class
-			);
-		} 
-		catch(org.springframework.dao.DataAccessException e) {
-			throw new DataAccessException("Error executing SQL '" + SQL_SELECT_CAMPAIGN_RUNNING_STATE + "' with parameter: " + campaignId, e);
 		}
 	}
 	
@@ -1074,7 +1046,7 @@ public final class CampaignDaos extends Dao {
 							classId, 
 							ClassRoleCache.ROLE_PRIVILEGED, 
 							CampaignRoleCache.ROLE_SUPERVISOR }
-					);
+				);
 		}
 		catch(org.springframework.dao.DataAccessException e) {
 			transactionManager.rollback(status);

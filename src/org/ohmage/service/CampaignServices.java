@@ -9,6 +9,8 @@ import java.util.Set;
 
 import nu.xom.Builder;
 import nu.xom.Document;
+import nu.xom.Element;
+import nu.xom.Nodes;
 import nu.xom.ParsingException;
 import nu.xom.ValidityException;
 import nu.xom.XMLException;
@@ -211,6 +213,72 @@ public class CampaignServices {
 		catch(DataAccessException e) {
 			request.setFailed();
 			throw new ServiceException(e);
+		}
+	}
+
+	/**
+	 * Ensures that the prompt ID exists in the campaign XML of the campaign.
+	 * 
+	 * @param request The Request that is performing this service.
+	 * 
+	 * @param campaignId The unique identifier for the campaign whose XML is 
+	 * 					 being checked.
+	 * 
+	 * @param promptId A prompt ID that is unique to the campaign's XML and is
+	 * 				   being checked for existance.
+	 * 
+	 * @throws ServiceException Throws a 
+	 * 							{@value org.ohmage.annotator.ErrorCodes#CAMPAIGN_NOT_FOUND}
+	 * 							if the campaign doesn't exist or a
+	 * 							{@value org.ohmage.annotator.ErrorCodes##CAMPAIGN_UNKNOWN_PROMPT_ID}
+	 * 							if the prompt ID doesn't exist in the 
+	 * 							campaign's XML. Also, thrown if there is an 
+	 * 							error.
+	 */
+	public static void ensurePromptExistsInCampaign(Request request, String campaignId, String promptId) throws ServiceException {
+		// Get the XML.
+		String xml;
+		try {
+			xml = CampaignDaos.getXml(campaignId);
+		}
+		catch(DataAccessException e) {
+			request.setFailed();
+			throw new ServiceException(e);
+		}
+		if(xml == null) {
+			request.setFailed(ErrorCodes.CAMPAIGN_INVALID_ID, "There is no such campaign with the campaign ID: " + campaignId);
+			throw new ServiceException("There is no such campaign with the campaign ID: " + campaignId);
+		}
+		
+		// Now use XOM to retrieve a Document and a root node for further processing. XOM is used because it has a 
+		// very simple XPath API	
+		Builder builder = new Builder();
+		Document document;
+		try {
+			document = builder.build(new StringReader(xml));
+		} catch (IOException e) {
+			// The XML should already have been validated, so this should
+			// never happen.
+			request.setFailed();
+			throw new ServiceException("Unable to read XML.", e);
+		} catch (ValidityException e) {
+			// The XML should already have been validated, so this should
+			// never happen.
+			request.setFailed();
+			throw new ServiceException("Invalid XML.", e);
+		} catch (ParsingException e) {
+			// The XML should already have been validated, so this should
+			// never happen.
+			request.setFailed();
+			throw new ServiceException("XML cannot be parsed.", e);
+		}
+		
+		// Find all the prompt IDs with the parameterized promptId.
+		Element root = document.getRootElement();
+		Nodes nodes = root.query("/campaign/surveys/survey/contentList/prompt[id='" + promptId + "']");
+		if(nodes.size() == 0) {
+			request.setFailed(ErrorCodes.SURVEY_INVALID_PROMPT_ID, "The following prompt ID is not part of the campaign's XML: " + promptId);
+			throw new ServiceException("The following prompt ID is not part of the campaign's XML: " + promptId);
 		}
 	}
 	

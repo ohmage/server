@@ -352,13 +352,12 @@ public final class SurveyResponseReadRequest extends UserRequest {
 					setFailed(ErrorCodes.SERVER_INVALID_DATE, "Invalid start_date or end_date");
 					throw e;
 				}
-				
-				if(tPrivacyState != null) {
-					LOGGER.info("Validating privacy_state parameter.");
-					if(! SurveyResponsePrivacyStateCache.instance().getKeys().contains(tPrivacyState)) {
-						setFailed(ErrorCodes.SURVEY_INVALID_PRIVACY_STATE, "Found unknown privacy_state: " + tPrivacyState);
-						throw new ValidationException("Found unknown privacy_state: " + tPrivacyState);
-					}
+
+				LOGGER.info("Validating privacy_state parameter.");
+				if(! StringUtils.isEmptyOrWhitespaceOnly(tPrivacyState) &&
+						! SurveyResponsePrivacyStateCache.instance().getKeys().contains(tPrivacyState)) {
+					setFailed(ErrorCodes.SURVEY_INVALID_PRIVACY_STATE, "Found unknown privacy_state: " + tPrivacyState);
+					throw new ValidationException("Found unknown privacy_state: " + tPrivacyState);
 				}
 				
 				LOGGER.info("Validating user_list parameter.");

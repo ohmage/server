@@ -113,6 +113,7 @@ public final class ErrorCodes {
 	
 	public static final String VISUALIZATION_INVALID_WIDTH_VALUE = "1200";
 	public static final String VISUALIZATION_INVALID_HEIGHT_VALUE = "1201";
+	public static final String VISUALIZATION_GENERAL_ERROR = "1202";
 	
 	public static final String AUDIT_INSUFFICIENT_PERMISSIONS = "1300";
 	public static final String AUDIT_INVALID_REQUEST_TYPE = "1301";

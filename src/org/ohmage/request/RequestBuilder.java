@@ -33,6 +33,12 @@ import org.ohmage.request.user.UserInfoReadRequest;
 import org.ohmage.request.user.UserReadRequest;
 import org.ohmage.request.user.UserStatsReadRequest;
 import org.ohmage.request.user.UserUpdateRequest;
+import org.ohmage.request.visualization.VizPromptDistributionRequest;
+import org.ohmage.request.visualization.VizPromptTimeseriesRequest;
+import org.ohmage.request.visualization.VizScatterPlotRequest;
+import org.ohmage.request.visualization.VizSurveyResponseCountRequest;
+import org.ohmage.request.visualization.VizTwoDDensityRequest;
+import org.ohmage.request.visualization.VizUserTimeseriesRequest;
 
 /**
  * Request builder from an HTTP request.
@@ -100,6 +106,15 @@ public final class RequestBuilder {
 	public static final String API_USER_UPDATE = API_ROOT + "/user/update";
 	public static final String API_USER_CHANGE_PASSWORD = API_ROOT + "/user/change_password";
 	public static final String API_USER_DELETE = API_ROOT + "/user/delete";
+	
+	// Visualization
+	private static final String API_VISUALIZATION = API_ROOT + "/viz";
+	private static final String API_VISUALIZATION_SURVEY_RESPONSE_COUNT = API_VISUALIZATION + "/survey_response_count/read";
+	private static final String API_VISUALIZATION_PROMPT_DISTRIBUTION = API_VISUALIZATION + "/prompt_distribution/read";
+	private static final String API_VISUALIZATION_PROMPT_TIMESERIES = API_VISUALIZATION + "/prompt_timeseries/read";
+	private static final String API_VISUALIZATION_USER_TIMESERIES = API_VISUALIZATION + "/user_timeseries/read";
+	private static final String API_VISUALIZATION_SCATTER_PLOT = API_VISUALIZATION + "/scatter_plot/read";
+	private static final String API_VISUALIZATION_2D_DENSITY = API_VISUALIZATION + "/2d_density/read";
 	
 	/**
 	 * Builds a new request based on the request's URI. This will always return
@@ -219,6 +234,25 @@ public final class RequestBuilder {
 		else if(API_USER_DELETE.equals(requestUri)) {
 			return new UserDeletionRequest(httpRequest);
 		}
+		// Visualization
+		else if(API_VISUALIZATION_SURVEY_RESPONSE_COUNT.equals(requestUri)) {
+			return new VizSurveyResponseCountRequest(httpRequest);
+		}
+		else if(API_VISUALIZATION_PROMPT_DISTRIBUTION.equals(requestUri)) {
+			return new VizPromptDistributionRequest(httpRequest);
+		}
+		else if(API_VISUALIZATION_PROMPT_TIMESERIES.equals(requestUri)) {
+			return new VizPromptTimeseriesRequest(httpRequest);
+		}
+		else if(API_VISUALIZATION_USER_TIMESERIES.equals(requestUri)) {
+			return new VizUserTimeseriesRequest(httpRequest);
+		}
+		else if(API_VISUALIZATION_SCATTER_PLOT.equals(requestUri)) {
+			return new VizScatterPlotRequest(httpRequest);
+		}
+		else if(API_VISUALIZATION_2D_DENSITY.equals(requestUri)) {
+			return new VizTwoDDensityRequest(httpRequest);
+		}
 		
 		// The URI is unknown.
 		return new FailedRequest();
@@ -273,7 +307,14 @@ public final class RequestBuilder {
 				API_USER_STATS_READ.equals(uri) ||
 				API_USER_UPDATE.equals(uri) ||
 				API_USER_CHANGE_PASSWORD.equals(uri) ||
-				API_USER_DELETE.equals(uri)) {
+				API_USER_DELETE.equals(uri) ||
+				// Visualization
+				API_VISUALIZATION_SURVEY_RESPONSE_COUNT.equals(uri) ||
+				API_VISUALIZATION_PROMPT_DISTRIBUTION.equals(uri) ||
+				API_VISUALIZATION_PROMPT_TIMESERIES.equals(uri) ||
+				API_VISUALIZATION_USER_TIMESERIES.equals(uri) ||
+				API_VISUALIZATION_SCATTER_PLOT.equals(uri) ||
+				API_VISUALIZATION_2D_DENSITY.equals(uri)) {
 			return true;
 		}
 		

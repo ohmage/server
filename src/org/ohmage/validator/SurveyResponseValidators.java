@@ -1,6 +1,7 @@
 package org.ohmage.validator;
 
 import org.ohmage.annotator.ErrorCodes;
+import org.ohmage.cache.SurveyResponsePrivacyStateCache;
 import org.ohmage.exception.ValidationException;
 import org.ohmage.request.Request;
 import org.ohmage.util.StringUtils;
@@ -41,6 +42,34 @@ public final class SurveyResponseValidators {
 		catch(NumberFormatException e) {
 			request.setFailed(ErrorCodes.SURVEY_INVALID_SURVEY_ID, "Invalid survey ID given: " + surveyId);
 			throw new ValidationException("Invalid survey ID given: " + surveyId);
+		}
+	}
+	
+	/**
+	 * Validates that a privacy state is a valid survey response privacy state.
+	 * 
+	 * @param request The Request that is performing this validation.
+	 * 
+	 * @param privacyState The privacy state to be validated.
+	 * 
+	 * @return Returns null if the privacy state is null or whitespace only;
+	 * 		   otherwise, the privacy state is returned.
+	 * 
+	 * @throws ValidationException Thrown if the privacy state is not null, not
+	 * 							   whitespace only, and not a valid survey 
+	 * 							   response privacy state.
+	 */
+	public static String validatePrivacyState(Request request, String privacyState) throws ValidationException {
+		if(StringUtils.isEmptyOrWhitespaceOnly(privacyState)) {
+			return null;
+		}
+		
+		if(SurveyResponsePrivacyStateCache.instance().getKeys().contains(privacyState)) {
+			return privacyState;
+		}
+		else {
+			request.setFailed(ErrorCodes.SURVEY_INVALID_PRIVACY_STATE, "The privacy state is unknown: " + privacyState);
+			throw new ValidationException("The privacy state is unknown: " + privacyState);
 		}
 	}
 }

@@ -33,9 +33,9 @@ public class RequestServlet extends HttpServlet {
 	
 	private static final String KEY_DEVICE_ID = "device_id";
 	
-	private static final long serialVersionUID = 1L;
+	private static final String KEY_ATTRIBUTE = "_ohmage_request_";
 	
-	private Request request;
+	private static final long serialVersionUID = 1L;
 	
 	/**
 	 * The different possible HTTP request types.
@@ -52,6 +52,8 @@ public class RequestServlet extends HttpServlet {
 	 * @author John Jenkins
 	 */
 	private final class AuditThread extends Thread {
+		private final Request request;
+		
 		private final RequestType requestType;
 		private final String uri;
 		
@@ -84,12 +86,15 @@ public class RequestServlet extends HttpServlet {
 		 * 						   'receivedTimestamp'.
 		 */
 		public AuditThread(
+				final Request request,
 				final RequestType requestType,
 				final String uri,
 				final Map<String, String[]> parameterMap,
 				final Map<String, String[]> headerMap,
 				final long receivedTimestamp, 
 				final long respondTimestamp) {
+			
+			this.request = request;
 			
 			this.requestType = requestType;
 			this.uri = uri;
@@ -111,7 +116,7 @@ public class RequestServlet extends HttpServlet {
 				// null is used.
 				String[] clientValues = parameterMap.get(InputKeys.CLIENT);
 				String client = null;
-				if((clientValues != null) && (clientValues.length > 0)) {
+				if((clientValues != null) && (clientValues.length == 1)) {
 					client = clientValues[0];
 				}
 				
@@ -144,11 +149,15 @@ public class RequestServlet extends HttpServlet {
 					parameterMap.put(InputKeys.NEW_PASSWORD, passwordsOmitted);
 				}
 				
+				// Remove any data parameters as those are large and may  
+				// contain sensitive data.
+				parameterMap.remove(InputKeys.DATA);
+				
 				// Retrieve the device ID. If any number of device IDs exist,
 				// the first one reported will be used.
 				String deviceId = null;
 				String[] deviceIds = parameterMap.get(KEY_DEVICE_ID);
-				if((deviceIds != null) && (deviceIds.length > 0)) {
+				if((deviceIds != null) && (deviceIds.length == 1)) {
 					deviceId = deviceIds[0];
 				}
 				
@@ -189,13 +198,6 @@ public class RequestServlet extends HttpServlet {
 	}
 	
 	/**
-	 * Default constructor.
-	 */
-	public RequestServlet() {
-		request = null;
-	}
-	
-	/**
 	 * This injects itself between Tomcat and our request servicing components,
 	 * so that we can audit all incoming requests.
 	 */
@@ -225,11 +227,6 @@ public class RequestServlet extends HttpServlet {
 		// Retrieve the request's URI.
 		String uri = httpRequest.getRequestURI();
 		
-		// Retrieve the request's parameter map. We must make a copy because as
-		// soon as this function exists Tomcat will begin destroying the  
-		// original parameter map.
-		Map<String, String[]> parameterMap = new HashMap<String, String[]>(httpRequest.getParameterMap());
-		
 		// Generate an 'extras' Map based on the HTTP headers.
 		Map<String, String[]> extras = new HashMap<String, String[]>();
 		Enumeration<String> headers = httpRequest.getHeaderNames();
@@ -244,9 +241,27 @@ public class RequestServlet extends HttpServlet {
 			
 			extras.put(header, valueList.toArray(new String[0]));
 		}
+		
+		// This is the parameter map that will be taken from the request if
+		// available; otherwise, it will be taken from the user request.
+		Map<String, String[]> parameterMap;
+		
+		Object requestObject = httpRequest.getAttribute(KEY_ATTRIBUTE);
+		Request request = null;
+		if(requestObject != null) {
+			request = (Request) requestObject;
+			
+			parameterMap = new HashMap<String, String[]>(request.getParameterMap());
+		}
+		else {
+			// Retrieve the request's parameter map. We must make a copy 
+			// because as soon as this function exists Tomcat will begin 
+			// destroying the original parameter map.
+			parameterMap = new HashMap<String, String[]>(httpRequest.getParameterMap());
+		}
 
 		// Create a separate thread with the parameters and start that thread.
-		AuditThread auditThread = new AuditThread(requestType, uri, parameterMap, extras, receivedTimestamp, respondedTimestamp);
+		AuditThread auditThread = new AuditThread(request, requestType, uri, parameterMap, extras, receivedTimestamp, respondedTimestamp);
 		auditThread.start();
 	}
 	
@@ -320,5 +335,7 @@ public class RequestServlet extends HttpServlet {
 		}
 		
 		request.respond(httpRequest, httpResponse);
+		
+		httpRequest.setAttribute(KEY_ATTRIBUTE, request);
 	}
 }

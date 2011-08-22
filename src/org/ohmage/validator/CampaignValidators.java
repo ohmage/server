@@ -17,7 +17,6 @@ import org.ohmage.cache.CampaignRoleCache;
 import org.ohmage.cache.CampaignRunningStateCache;
 import org.ohmage.config.grammar.custom.ConditionParseException;
 import org.ohmage.config.xml.CampaignValidator;
-import org.ohmage.domain.User;
 import org.ohmage.exception.ValidationException;
 import org.ohmage.request.InputKeys;
 import org.ohmage.request.Request;
@@ -241,18 +240,6 @@ public final class CampaignValidators {
 		
 		return xml;
 	}
-	
-
-	public boolean verifyAllowedRunningState(User user, String campaignId, String allowedCampaignRunningState) throws ValidationException {
-		if(user == null) {
-			throw new ValidationException("User object is null.", true);
-		}
-		if(! user.getCampaignsAndRoles().containsKey(campaignId)) {
-			throw new ValidationException("User is not in campaign " + campaignId, true);
-		}
-		
-		return user.getCampaignsAndRoles().get(campaignId).getCampaign().getRunningState().equals(allowedCampaignRunningState);
-	}
 
 	/**
 	 * Validates that a campaign description is valid by ensuring that it does
@@ -408,5 +395,30 @@ public final class CampaignValidators {
 			request.setFailed(ErrorCodes.CAMPAIGN_INVALID_ROLE, "The campaign role is unknown: " + role);
 			throw new ValidationException("The campaign role is unknown: " + role);
 		}
+	}
+
+	/**
+	 * Validates that a campaign's XML's prompt ID follows our conventions. It
+	 * does _not_ validate that the prompt ID is exists in the XML.
+	 * 
+	 * @param request The Request that is performing this validation.
+	 * 
+	 * @param promptId The prompt ID to be validated.
+	 * 
+	 * @return Returns null if the prompt ID is null or whitespace only; 
+	 * 		   otherwise, it returns the prompt ID.
+	 * 
+	 * @throws ValidationException Thrown if the prompt ID is not null, not
+	 * 							   whitespace only, and doesn't pass syntactic
+	 * 							   validation.
+	 */
+	public static String validatePromptId(Request request, String promptId) throws ValidationException {
+		LOGGER.info("Validating a campaign's prompt ID.");
+		
+		if(StringUtils.isEmptyOrWhitespaceOnly(promptId)) {
+			return null;
+		}
+		
+		return promptId;
 	}
 }

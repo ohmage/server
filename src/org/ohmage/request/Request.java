@@ -175,6 +175,15 @@ public abstract class Request {
 	}
 	
 	/**
+	 * Returns an unmodifiable version of the parameter map.
+	 * 
+	 * @return An unmodifiable version of the parameter map.
+	 */
+	public Map<String, String[]> getParameterMap() {
+		return Collections.unmodifiableMap(parameters);
+	}
+	
+	/**
 	 * Returns an array of all of the values from a parameter in the request.
 	 * 
 	 * @param parameterKey The key to use to lookup the parameter value.
@@ -192,6 +201,27 @@ public abstract class Request {
 			result = new String[0];
 		}
 		return result;
+	}
+	
+	/**
+	 * Returns the first value for some key from the parameter list. If there
+	 * are no values for a key, null is returned.
+	 * 
+	 * @param parameterKey The key to use to lookup a list of values, the first
+	 * 					   of which will be returned.
+	 * 
+	 * @return Returns the first of a list of values for some key or null if no
+	 * 		   values exist for the key.
+	 */
+	protected String getParameter(String parameterKey) {
+		String[] values = getParameterValues(parameterKey);
+		
+		if(values.length == 0) {
+			return null;
+		}
+		else {
+			return values[0];
+		}
 	}
 	
 	/**
@@ -262,7 +292,7 @@ public abstract class Request {
 			
 			// Sets the HTTP headers to disable caching.
 			expireResponse(httpResponse);
-			httpResponse.setContentType("application/json");
+			httpResponse.setContentType("text/html");
 			
 			// If the response hasn't failed yet, attempt to create and write the
 			// JSON response.
@@ -288,6 +318,7 @@ public abstract class Request {
 			if(failed) {
 				responseText = getFailureMessage();
 			}
+			
 			writer.write(responseText);
 		}
 		catch(IOException e) {
