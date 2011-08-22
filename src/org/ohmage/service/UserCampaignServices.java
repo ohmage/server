@@ -583,7 +583,6 @@ public class UserCampaignServices {
 	 *					   is attempting to read data. If null is passed, it
 	 *					   will check to see if the requesting user can view
 	 *					   survey responses about any user in the campaign.
-	 *					   is attempting to read data.
 	 *
 	 * @throws ServiceException Thrown if none of the rules are true or there 
 	 * 							is an error.

@@ -262,7 +262,7 @@ public abstract class Request {
 			
 			// Sets the HTTP headers to disable caching.
 			expireResponse(httpResponse);
-			httpResponse.setContentType("application/json");
+			httpResponse.setContentType("text/html");
 			
 			// If the response hasn't failed yet, attempt to create and write the
 			// JSON response.
@@ -288,6 +288,7 @@ public abstract class Request {
 			if(failed) {
 				responseText = getFailureMessage();
 			}
+			
 			writer.write(responseText);
 		}
 		catch(IOException e) {

@@ -6,6 +6,7 @@ import javax.servlet.http.HttpServletRequest;
 
 import org.apache.log4j.Logger;
 import org.ohmage.exception.ServiceException;
+import org.ohmage.service.UserCampaignServices;
 import org.ohmage.service.VisualizationServices;
 
 /**
@@ -53,6 +54,9 @@ public class VizSurveyResponseCountRequest extends VisualizationRequest {
 		}
 		
 		try {
+			LOGGER.info("Verifying the user is able to read survey responses about other users.");
+			UserCampaignServices.requesterCanViewUsersSurveyResponses(this, getCampaignId(), getUser().getUsername(), null);
+			
 			LOGGER.info("Making the request to the visualization server.");
 			setImage(VisualizationServices.sendVisualizationRequest(this, REQUEST_PATH, getUser().getToken(), 
 					getCampaignId(), getWidth(), getHeight(), new HashMap<String, String>()));

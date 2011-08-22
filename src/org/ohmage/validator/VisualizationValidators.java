@@ -3,8 +3,7 @@ package org.ohmage.validator;
 import org.ohmage.annotator.ErrorCodes;
 import org.ohmage.exception.ValidationException;
 import org.ohmage.request.Request;
-
-import com.mysql.jdbc.StringUtils;
+import org.ohmage.util.StringUtils;
 
 /**
  * This class is responsible for validating all values pertaining to 
