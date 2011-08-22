@@ -583,6 +583,7 @@ public class UserCampaignServices {
 	 *					   is attempting to read data. If null is passed, it
 	 *					   will check to see if the requesting user can view
 	 *					   survey responses about any user in the campaign.
+	 *					   is attempting to read data.
 	 *
 	 * @throws ServiceException Thrown if none of the rules are true or there 
 	 * 							is an error.
@@ -590,38 +591,38 @@ public class UserCampaignServices {
 	public static void requesterCanViewUsersSurveyResponses(Request request, String campaignId, String requesterUsername, String userUsername) throws ServiceException {
 		try {
 			List<String> requesterRoles = UserCampaignDaos.getUserCampaignRoles(requesterUsername, campaignId);
-
+			
 			// If the requester's role list contains supervisor, return.
 			if(requesterRoles.contains(CampaignRoleCache.ROLE_SUPERVISOR)) {
 				return;
 			}
-
+			
 			// If the requester's role list contains author, return.
 			if(requesterRoles.contains(CampaignRoleCache.ROLE_AUTHOR)) {
 				return;
 			}
-
+			
 			// If the requester's role list contains analyst,
 			if(requesterRoles.contains(CampaignRoleCache.ROLE_ANALYST)) {
 				String privacyState = CampaignDaos.getCampaignPrivacyState(campaignId);
-
+				
 				if((privacyState != null) && 
 				   (CampaignPrivacyStateCache.PRIVACY_STATE_SHARED.equals(privacyState))) {
 					return;
 				}
 			}
-
+				
 			// If the requester is the same as the user in question.
 			if(requesterUsername.equals(userUsername)) {
 				String runningState = CampaignDaos.getCampaignRunningState(campaignId);
-
+					
 				// If the campaign is running, return.
 				if((runningState != null) && 
 				   (CampaignRunningStateCache.RUNNING_STATE_RUNNING.equals(runningState))) {
 					return;
 				}
 			}
-
+				
 			request.setFailed(ErrorCodes.CAMPAIGN_INSUFFICIENT_PERMISSIONS, "The user does not have sufficient permissions to read information about other users.");
 			throw new ServiceException("The user does not have sufficient permissions to read information about other users.");
 		}
@@ -974,4 +975,3 @@ public class UserCampaignServices {
 		}
 	}
 }
-

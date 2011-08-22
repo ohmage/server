@@ -71,6 +71,7 @@ public final class InputKeys {
 	
 	// Prompt Constants
 	public static final String PROMPT_ID = "prompt_id";
+	public static final String PROMPT2_ID = "prompt2_id";
 	public static final String PROMPT_ID_LIST = "prompt_id_list";
 	public static final String IMAGE_ID = "id";
 	
@@ -80,6 +81,7 @@ public final class InputKeys {
 	
 	// User Constants
 	public static final String USER = "user";
+	public static final String NEW_USERNAME = "new_username";
 	public static final String NEW_PASSWORD = "new_password";
 	public static final String USER_LIST = "user_list";
 	public static final String USER_LIST_ADD = "user_list_add";
@@ -127,7 +129,11 @@ public final class InputKeys {
 	public static final String DOCUMENT_CLASS_ROLE_LIST = "document_class_role_list";
 	public static final String DOCUMENT_USER_ROLE_LIST = "document_user_role_list";
 	public static final String DOCUMENT_PERSONAL_DOCUMENTS = "personal_documents";
-	
+
+	// Visualization Constants
+	public static final String VISUALIZATION_WIDTH = "width";
+	public static final String VISUALIZATION_HEIGHT = "height";
+
 	// Audit Constants
 	public static final String AUDIT_REQUEST_TYPE = "request_type";
 	public static final String AUDIT_URI = "uri";
