@@ -5,6 +5,9 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -17,8 +20,11 @@ import org.ohmage.exception.ValidationException;
 import org.ohmage.request.InputKeys;
 import org.ohmage.request.UserRequest;
 import org.ohmage.service.UserCampaignServices;
+import org.ohmage.service.VisualizationServices;
 import org.ohmage.util.CookieUtils;
+import org.ohmage.util.TimeUtils;
 import org.ohmage.validator.CampaignValidators;
+import org.ohmage.validator.SurveyResponseValidators;
 import org.ohmage.validator.VisualizationValidators;
 
 /**
@@ -62,6 +68,10 @@ public abstract class VisualizationRequest extends UserRequest {
 	private final int width;
 	private final int height;
 	
+	private final Date startDate;
+	private final Date endDate;
+	private final String privacyState;
+	
 	private byte[] result;
 	
 	/**
@@ -77,6 +87,9 @@ public abstract class VisualizationRequest extends UserRequest {
 		String tCampaignId = null;
 		Integer tWidth = null;
 		Integer tHeight = null;
+		Date tStartDate = null;
+		Date tEndDate = null;
+		String tPrivacyState = null;
 		
 		try {
 			tCampaignId = CampaignValidators.validateCampaignId(this, httpRequest.getParameter(InputKeys.CAMPAIGN_URN));
@@ -96,6 +109,10 @@ public abstract class VisualizationRequest extends UserRequest {
 				setFailed(ErrorCodes.VISUALIZATION_INVALID_HEIGHT_VALUE, "The visualization height is missing.");
 				throw new ValidationException("The visualization height is missing.");
 			}
+			
+			tStartDate = VisualizationValidators.validateStartDate(this, getParameter(InputKeys.START_DATE));
+			tEndDate = VisualizationValidators.validateEndDate(this, getParameter(InputKeys.END_DATE));
+			tPrivacyState = SurveyResponseValidators.validatePrivacyState(this, getParameter(InputKeys.PRIVACY_STATE)); 
 		}
 		catch(ValidationException e) {
 			LOGGER.info(e.toString());
@@ -104,6 +121,10 @@ public abstract class VisualizationRequest extends UserRequest {
 		campaignId = tCampaignId;
 		width = tWidth;
 		height = tHeight;
+		
+		startDate = tStartDate;
+		endDate = tEndDate;
+		privacyState = tPrivacyState;
 		
 		result = null;
 	}
@@ -223,6 +244,31 @@ public abstract class VisualizationRequest extends UserRequest {
 	 */
 	protected final int getHeight() {
 		return height;
+	}
+	
+	/**
+	 * Returns a map of the parameters to be passed to the visualization
+	 * server.
+	 *  
+	 * @return A map of key-value pairs to be passed to the visualization 
+	 * 		   server.
+	 */
+	protected final Map<String, String> getVisualizationParameters() {
+		Map<String, String> result = new HashMap<String, String>();
+		
+		if(startDate != null) {
+			result.put(VisualizationServices.PARAMETER_KEY_START_DATE, TimeUtils.getIso8601DateString(startDate));
+		}
+		
+		if(endDate != null) {
+			result.put(VisualizationServices.PARAMETER_KEY_END_DATE, TimeUtils.getIso8601DateString(endDate));
+		}
+		
+		if(privacyState != null) {
+			result.put(VisualizationServices.PARAMETER_KEY_PRIVACY_STATE, privacyState);
+		}
+		
+		return result;
 	}
 	
 	/**

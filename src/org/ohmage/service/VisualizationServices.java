@@ -28,23 +28,39 @@ public class VisualizationServices {
 	/**
 	 * The token parameter key for the visualization server.
 	 */
-	public static final String PARAMETER_KEY_TOKEN = "token";
+	private static final String PARAMETER_KEY_TOKEN = "token";
 	/**
 	 * The server parameter key for the visualization server.
 	 */
-	public static final String PARAMETER_KEY_SERVER = "server";
+	private static final String PARAMETER_KEY_SERVER = "server";
 	/**
 	 * The campaign ID parameter key for the visualization server.
 	 */
-	public static final String PARAMETER_KEY_CAMPAIGN_ID = "campaign_urn";
+	private static final String PARAMETER_KEY_CAMPAIGN_ID = "campaign_urn";
 	/**
 	 * The width parameter key for the visualization server.
 	 */
-	public static final String PARAMETER_KEY_WIDTH = "!width";
+	private static final String PARAMETER_KEY_WIDTH = "!width";
 	/**
 	 * The height parameter key for the visualization server.
 	 */
-	public static final String PARAMETER_KEY_HEIGHT = "!height";
+	private static final String PARAMETER_KEY_HEIGHT = "!height";
+	
+	/**
+	 * The start date which limits the range of visible survey responses to 
+	 * those on or after this date.
+	 */
+	public static final String PARAMETER_KEY_START_DATE = "start_date";
+	/**
+	 * The end date which limits the range of visible survey responses to those
+	 * on or before this date.
+	 */
+	public static final String PARAMETER_KEY_END_DATE = "end_date";
+	/**
+	 * The privacy state which limits the survey responses to only those whose
+	 * privacy state matches this privacy state.
+	 */
+	public static final String PARAMETER_KEY_PRIVACY_STATE = "privacy_state";
 	
 	/**
 	 * The single prompt ID parameter key for the visualization server.
@@ -184,11 +200,11 @@ public class VisualizationServices {
 					if(errorContentArray.length == 2) {
 						request.setFailed(ErrorCodes.VISUALIZATION_GENERAL_ERROR, errorContentArray[1].trim());
 						throw new ServiceException("The server returned the HTTP error code '" + httpUrlConnection.getResponseCode() + 
-								"' with the error '" + errorContentArray[1].trim() + "'.");
+								"' with the error '" + errorContentArray[1].trim() + "': " + urlString);
 					}
 					else {
 						request.setFailed(ErrorCodes.VISUALIZATION_GENERAL_ERROR, "The server returned a non-200 response.");
-						throw new ServiceException("The server returned a non-200 response.");
+						throw new ServiceException("The server returned a non-200 response: " + urlString);
 					}
 				}
 			}

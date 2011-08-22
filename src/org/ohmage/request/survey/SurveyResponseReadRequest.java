@@ -230,7 +230,8 @@ public final class SurveyResponseReadRequest extends UserRequest {
 				}
 				
 				LOGGER.info("Validating privacy_state parameter.");
-				if(! SurveyResponsePrivacyStateCache.instance().getKeys().contains(tPrivacyState)) {
+				if(! StringUtils.isEmptyOrWhitespaceOnly(tPrivacyState) &&
+						! SurveyResponsePrivacyStateCache.instance().getKeys().contains(tPrivacyState)) {
 					setFailed(ErrorCodes.SURVEY_INVALID_PRIVACY_STATE, "Found unknown privacy_state: " + tPrivacyState);
 					throw new ValidationException("Found unknown privacy_state: " + tPrivacyState);
 				}
@@ -621,8 +622,6 @@ public final class SurveyResponseReadRequest extends UserRequest {
 					
 				}
 			}
-			
-			LOGGER.info("Done responding.");
 		}
 	}
 	

@@ -1,6 +1,5 @@
 package org.ohmage.request.visualization;
 
-import java.util.HashMap;
 import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
@@ -106,7 +105,7 @@ public class VizScatterPlotRequest extends VisualizationRequest {
 			LOGGER.info("Verifying that the second prompt ID exists in the campaign's XML");
 			CampaignServices.ensurePromptExistsInCampaign(this, getCampaignId(), prompt2Id);
 			
-			Map<String, String> parameters = new HashMap<String, String>();
+			Map<String, String> parameters = getVisualizationParameters();
 			parameters.put(VisualizationServices.PARAMETER_KEY_PROMPT_ID, promptId);
 			parameters.put(VisualizationServices.PARAMETER_KEY_PROMPT2_ID, prompt2Id);
 			

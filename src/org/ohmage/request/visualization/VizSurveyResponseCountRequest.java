@@ -1,7 +1,5 @@
 package org.ohmage.request.visualization;
 
-import java.util.HashMap;
-
 import javax.servlet.http.HttpServletRequest;
 
 import org.apache.log4j.Logger;
@@ -59,7 +57,7 @@ public class VizSurveyResponseCountRequest extends VisualizationRequest {
 			
 			LOGGER.info("Making the request to the visualization server.");
 			setImage(VisualizationServices.sendVisualizationRequest(this, REQUEST_PATH, getUser().getToken(), 
-					getCampaignId(), getWidth(), getHeight(), new HashMap<String, String>()));
+					getCampaignId(), getWidth(), getHeight(), getVisualizationParameters()));
 		}
 		catch(ServiceException e) {
 			e.logException(LOGGER);

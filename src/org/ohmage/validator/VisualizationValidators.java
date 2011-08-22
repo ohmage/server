@@ -1,5 +1,7 @@
 package org.ohmage.validator;
 
+import java.util.Date;
+
 import org.ohmage.annotator.ErrorCodes;
 import org.ohmage.exception.ValidationException;
 import org.ohmage.request.Request;
@@ -99,6 +101,80 @@ public class VisualizationValidators {
 		catch(NumberFormatException e) {
 			request.setFailed(ErrorCodes.VISUALIZATION_INVALID_WIDTH_VALUE, "The image's width is not a number: " + height);
 			throw new ValidationException("The image's width is not a valid number: " + height, e);
+		}
+	}
+	
+	/**
+	 * Validates that a start date string is a valid date and returns it. If it
+	 * is not a valid date, the request is failed and an exception is thrown.
+	 * 
+	 * @param request The Request that is performing this validation.
+	 * 
+	 * @param startDate The start date string to be validated.
+	 * 
+	 * @return Returns null the start date is null or whitespace only. 
+	 * 		   Otherwise, the start date as a Date object is returned.
+	 * 
+	 * @throws ValidationException Thrown if the start date is not null, not
+	 * 							   whitespace only, and not a valid date.
+	 */
+	public static Date validateStartDate(Request request, String startDate) throws ValidationException {
+		if(StringUtils.isEmptyOrWhitespaceOnly(startDate)) {
+			return null;
+		}
+		
+		Date result = StringUtils.decodeDate(startDate);
+		if(result == null) {
+			result = StringUtils.decodeDate(startDate);
+			
+			if(result == null) {
+				request.setFailed(ErrorCodes.SERVER_INVALID_DATE, "The start date is not a valid date: " + startDate);
+				throw new ValidationException("The start date is not a valid date: " + startDate);
+			}
+			else {
+				return result;
+			}
+		}
+		else {
+			request.setFailed(ErrorCodes.SERVER_INVALID_DATE, "Only a date is allowed, not time: " + startDate);
+			throw new ValidationException("Only a date is allowed, not time: " + startDate);
+		}
+	}
+	
+	/**
+	 * Validates that a end date string is a valid date and returns it. If it
+	 * is not a valid date, the request is failed and an exception is thrown.
+	 * 
+	 * @param request The Request that is performing this validation.
+	 * 
+	 * @param endDate The end date string to be validated.
+	 * 
+	 * @return Returns null the end date is null or whitespace only. Otherwise, 
+	 * 		   the end date as a Date object is returned.
+	 * 
+	 * @throws ValidationException Thrown if the end date is not null, not
+	 * 							   whitespace only, and not a valid date.
+	 */
+	public static Date validateEndDate(Request request, String endDate) throws ValidationException {
+		if(StringUtils.isEmptyOrWhitespaceOnly(endDate)) {
+			return null;
+		}
+		
+		Date result = StringUtils.decodeDateTime(endDate);
+		if(result == null) {
+			result = StringUtils.decodeDate(endDate);
+			
+			if(result == null) {
+				request.setFailed(ErrorCodes.SERVER_INVALID_DATE, "The end date is not a valid date: " + endDate);
+				throw new ValidationException("The end date is not a valid date: " + endDate);
+			}
+			else {
+				return result;
+			}
+		}
+		else {
+			request.setFailed(ErrorCodes.SERVER_INVALID_DATE, "Only a date is allowed, not time: " + endDate);
+			throw new ValidationException("Only a date is allowed, not time: " + endDate);
 		}
 	}
 }
