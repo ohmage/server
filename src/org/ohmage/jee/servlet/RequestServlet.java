@@ -33,9 +33,9 @@ public class RequestServlet extends HttpServlet {
 	
 	private static final String KEY_DEVICE_ID = "device_id";
 	
-	private static final long serialVersionUID = 1L;
+	private static final String KEY_ATTRIBUTE = "_ohmage_request_";
 	
-	private Request request;
+	private static final long serialVersionUID = 1L;
 	
 	/**
 	 * The different possible HTTP request types.
@@ -52,6 +52,8 @@ public class RequestServlet extends HttpServlet {
 	 * @author John Jenkins
 	 */
 	private final class AuditThread extends Thread {
+		private final Request request;
+		
 		private final RequestType requestType;
 		private final String uri;
 		
@@ -84,12 +86,15 @@ public class RequestServlet extends HttpServlet {
 		 * 						   'receivedTimestamp'.
 		 */
 		public AuditThread(
+				final Request request,
 				final RequestType requestType,
 				final String uri,
 				final Map<String, String[]> parameterMap,
 				final Map<String, String[]> headerMap,
 				final long receivedTimestamp, 
 				final long respondTimestamp) {
+			
+			this.request = request;
 			
 			this.requestType = requestType;
 			this.uri = uri;
@@ -173,8 +178,6 @@ public class RequestServlet extends HttpServlet {
 					}
 				}
 				
-				LOGGER.debug("Response: " + responseString);
-				
 				// Create the audit report.
 				AuditServices.createAudit(requestType, uri, client, deviceId, responseString, parameterMap, extras, receivedTimestamp, respondTimestamp);
 			}
@@ -188,13 +191,6 @@ public class RequestServlet extends HttpServlet {
 				LOGGER.error("Error while auditing the request.", e);
 			}
 		}
-	}
-	
-	/**
-	 * Default constructor.
-	 */
-	public RequestServlet() {
-		request = null;
 	}
 	
 	/**
@@ -246,9 +242,15 @@ public class RequestServlet extends HttpServlet {
 			
 			extras.put(header, valueList.toArray(new String[0]));
 		}
+		
+		Object requestObject = httpRequest.getAttribute(KEY_ATTRIBUTE);
+		Request request = null;
+		if(requestObject != null) {
+			request = (Request) requestObject;
+		}
 
 		// Create a separate thread with the parameters and start that thread.
-		AuditThread auditThread = new AuditThread(requestType, uri, parameterMap, extras, receivedTimestamp, respondedTimestamp);
+		AuditThread auditThread = new AuditThread(request, requestType, uri, parameterMap, extras, receivedTimestamp, respondedTimestamp);
 		auditThread.start();
 	}
 	
@@ -315,12 +317,14 @@ public class RequestServlet extends HttpServlet {
 	 * 					   once the request has been processed.
 	 */
 	protected void processRequest(HttpServletRequest httpRequest, HttpServletResponse httpResponse) {
-		request = RequestBuilder.buildRequest(httpRequest);
+		Request request = RequestBuilder.buildRequest(httpRequest);
 		
 		if(! request.isFailed()) {
 			request.service();
 		}
 		
 		request.respond(httpRequest, httpResponse);
+		
+		httpRequest.setAttribute(KEY_ATTRIBUTE, request);
 	}
 }

@@ -621,6 +621,8 @@ public final class SurveyResponseReadRequest extends UserRequest {
 					
 				}
 			}
+			
+			LOGGER.info("Done responding.");
 		}
 	}
 	
