@@ -19,6 +19,7 @@ import org.ohmage.request.Request;
  * user-survey information.
  * 
  * @author John Jenkins
+ * @author Joshua Selsky
  */
 public class UserSurveyResponseServices {
 	private static final long MILLIS_IN_A_HOUR = 60 * 60 * 1000;
@@ -44,7 +45,7 @@ public class UserSurveyResponseServices {
 	 * 							doesn't have sufficient permissions to delete
 	 * 							the survey response.
 	 */
-	public static void verifyUserCanDeleteSurveyResponse(Request request, String requesterUsername, Long surveyResponseId) throws ServiceException {
+	public static void verifyUserCanUpdateOrDeleteSurveyResponse(Request request, String requesterUsername, Long surveyResponseId) throws ServiceException {
 		try {
 			// Get the response's campaign.
 			String campaignId = CampaignSurveyResponseDaos.getCampaignIdFromSurveyId(surveyResponseId);

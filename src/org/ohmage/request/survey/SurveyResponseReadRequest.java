@@ -45,10 +45,134 @@ import org.ohmage.validator.DateValidators;
 import org.ohmage.validator.SurveyResponseReadValidators;
 
 /**
- * <p>A request to read survey response data</p>
+ * <p>Allows a requester to read survey responses. Supervisors can read survey
+ * responses anytime. Survey response owners (i.e., participants) can read
+ * their own responses anytime. Authors can only read shared responses. 
+ * Analysts can read shared responses only if the campaign is shared.</p>
+ * <table border="1">
+ *   <tr>
+ *     <td>Parameter Name</td>
+ *     <td>Description</td>
+ *     <td>Required</td>
+ *   </tr>
+ *   <tr>
+ *     <td>{@value org.ohmage.request.InputKeys#AUTH_TOKEN}</td>
+ *     <td>The requesting user's authentication token.</td>
+ *     <td>true</td>
+ *   </tr>
+ *   <tr>
+ *     <td>{@value org.ohmage.request.InputKeys#CLIENT}</td>
+ *     <td>A string describing the client that is making this request.</td>
+ *     <td>true</td>
+ *   </tr>
+ *   <tr>
+ *     <td>{@value org.ohmage.request.InputKeys#CAMPAIGN_URN}</td>
+ *     <td>The campaign URN to use when retrieving responses.</td>
+ *     <td>true</td>
+ *   </tr>
+ *   <tr>
+ *     <td>{@value org.ohmage.request.InputKeys#USER_LIST}</td>
+ *     <td>A comma-separated list of usernames to retrieve responses for
+ *         or the value {@value URN_SPECIAL_ALL}</td>
+ *     <td>true</td>
+ *   </tr>
+ *   <tr>
+ *     <td>{@value org.ohmage.request.InputKeys#COLUMN_LIST}</td>
+ *     <td>A comma-separated list of the columns to retrieve responses for
+ *         or the value {@value #_URN_SPECIAL_ALL}. If {@value #_URN_SPECIAL_ALL}
+ *         is not used, the only allowed values are: 
+ *         {@value #_URN_CONTEXT_CLIENT},
+ *         {@value #_URN_CONTEXT_TIMESTAMP},
+ *         {@value #_URN_CONTEXT_URN_CONTEXT_TIMEZONE},
+ *         {@value #_URN_CONTEXT_UTC_TIMESTAMP},
+ *         {@value #_URN_CONTEXT_LAUNCH_CONTEXT_LONG},
+ *         {@value #_URN_CONTEXT_LAUNCH_CONTEXT_SHORT},
+ *         {@value #_URN_CONTEXT_LOCATION_STATUS},
+ *         {@value #_URN_CONTEXT_LOCATION_LATITUDE},
+ *         {@value #_URN_CONTEXT_LOCATION_TIMESTAMP},
+ *         {@value #_URN_CONTEXT_LOCATION_ACCURACY},
+ *         {@value #_URN_CONTEXT_LOCATION_PROVIDER},
+ *         {@value #_URN_USER_ID},
+ *         {@value #_URN_SURVEY_ID},
+ *         {@value #_URN_SURVEY_TITLE},
+ *         {@value #_URN_SURVEY_DESCRIPTION},
+ *         {@value #_URN_SURVEY_PRIVACY_STATE},
+ *         {@value #_URN_REPEATABLE_SET_ID},
+ *         {@value #_URN_REPEATABLE_SET_ITERATION},
+ *         {@value #_URN_PROMPT_RESPONSE}
+ *         </td>
+ *     <td>true</td>
+ *   </tr>
+ *   <tr>
+ *     <td>{@value org.ohmage.request.InputKeys#OUTPUT_FORMAT}</td>
+ *     <td>The desired output format of the results. Must be one of 
+ *     {@value #_OUTPUT_FORMAT_JSON_ROWS}, {@value #_OUTPUT_FORMAT_JSON_COLUMNS},
+ *     or, {@value #_OUTPUT_FORMAT_CSV}</td>
+ *     <td>true</td>
+ *   </tr>   
+ *   <tr>
+ *     <td>{@value org.ohmage.request.InputKeys#PROMPT_ID_LIST}</td>
+ *     <td>A comma-separated list of prompt ids to retrieve responses for
+ *         or the value {@link #_URN_SPECIAL_ALL}. This key is only
+ *         optional if {@value org.ohmage.request.InputKeys#SURVEY_ID_LIST}
+ *         is not present.</td>
+ *     <td>false</td>
+ *   </tr>
+ *   <tr>
+ *     <td>{@value org.ohmage.request.InputKeys#SURVEY_ID_LIST}</td>
+ *     <td>A comma-separated list of survey ids to retrieve responses for
+ *         or the value {@link #_URN_SPECIAL_ALL}. This key is only
+ *         optional if {@value org.ohmage.request.InputKeys#PROMPT_ID_LIST}
+ *         is not present.</td>
+ *     <td>false</td>
+ *   </tr>
+ *   <tr>
+ *     <td>{@value org.ohmage.request.InputKeys#START_DATE}</td>
+ *     <td>The start date to use for results between dates.
+ *         Required if end date is present.</td>
+ *     <td>false</td>
+ *   </tr>
+ *   <tr>
+ *     <td>{@value org.ohmage.request.InputKeys#END_DATE}</td>
+ *     <td>The end date to use for results between dates.
+ *         Required if start date is present.</td>
+ *     <td>false</td>
+ *   </tr>
+ *   <tr>
+ *     <td>{@value org.ohmage.request.InputKeys#SORT_ORDER}</td>
+ *     <td>The sort order to use i.e., the SQL order by.</td>
+ *     <td>false</td>
+ *   </tr>
+ *   <tr>
+ *     <td>{@value org.ohmage.request.InputKeys#SUPPRESS_METADATA}</td>
+ *     <td>For {@value #_OUTPUT_FORMAT_CSV} output, whether to suppress the
+ *     metadata section from the output</td>
+ *     <td>false</td>
+ *   </tr>
+ *   <tr>
+ *     <td>{@value org.ohmage.request.InputKeys#PRETTY_PRINT}</td>
+ *     <td>For JSON-based output, whether to pretty print the output</td>
+ *     <td>false</td>
+ *   </tr>
+ *   <tr>
+ *     <td>{@value org.ohmage.request.InputKeys#RETURN_ID}</td>
+ *     <td>For {@value #_OUTPUT_FORMAT_JSON_ROWS} output, whether to return
+ *     the id on each result. The web front-end uses the id value to perform
+ *     updates.</td>
+ *     <td>false</td>
+ *   </tr>
+ *   <tr>
+ *     <td>{@value org.ohmage.request.InputKeys#PRIVACY_STATE}</td>
+ *     <td>Filters the results by their associated privacy state.</td>
+ *     <td>false</td>
+ *   </tr>
+ *   <tr>
+ *     <td>{@value org.ohmage.request.InputKeys#COLLAPSE}</td>
+ *     <td>Filters the results by uniqueness.</td>
+ *     <td>false</td>
+ *   </tr>
+ * </table>
  * 
- * TODO Javadoc
- *  
  * @author Joshua Selsky
  */
 public final class SurveyResponseReadRequest extends UserRequest {
@@ -85,9 +209,9 @@ public final class SurveyResponseReadRequest extends UserRequest {
 	public static final String URN_CONTEXT_TIMESTAMP = "urn:ohmage:context:timestamp";
 	public static final String URN_CONTEXT_TIMEZONE = "urn:ohmage:context:timezone";
 	public static final String URN_CONTEXT_UTC_TIMESTAMP = "urn:ohmage:context:utc_timestamp";
-	public static final String URN_CONTEXT_LAUNCH_CONTEXT_LONG = "urn:ohmage:context:launch_context:long";
-	public static final String URN_CONTEXT_LAUNCH_CONTEXT_SHORT = "urn:ohmage:context:launch_context:short";
-	public static final String URN_CONTEXT_CONTEXT_LOCATION_STATUS = "urn:ohmage:context:location:status";
+	public static final String URN_CONTEXT_LAUNCH_CONTEXT_LONG = "urn:ohmage:context:launch_context_long";
+	public static final String URN_CONTEXT_LAUNCH_CONTEXT_SHORT = "urn:ohmage:context:launch_context_short";
+	public static final String URN_CONTEXT_LOCATION_STATUS = "urn:ohmage:context:location:status";
 	public static final String URN_CONTEXT_LOCATION_LATITUDE = "urn:ohmage:context:location:latitude";
 	public static final String URN_CONTEXT_LOCATION_LONGITUDE = "urn:ohmage:context:location:longitude";
 	public static final String URN_CONTEXT_LOCATION_TIMESTAMP = "urn:ohmage:context:location:timestamp";
@@ -127,7 +251,7 @@ public final class SurveyResponseReadRequest extends UserRequest {
 	static {
 		ALLOWED_COLUMN_URN_LIST = Arrays.asList(new String[] {
 			URN_CONTEXT_CLIENT, URN_CONTEXT_TIMESTAMP, URN_CONTEXT_TIMEZONE, URN_CONTEXT_UTC_TIMESTAMP,
-			URN_CONTEXT_LAUNCH_CONTEXT_LONG, URN_CONTEXT_LAUNCH_CONTEXT_SHORT, URN_CONTEXT_CONTEXT_LOCATION_STATUS,
+			URN_CONTEXT_LAUNCH_CONTEXT_LONG, URN_CONTEXT_LAUNCH_CONTEXT_SHORT, URN_CONTEXT_LOCATION_STATUS,
 			URN_CONTEXT_LOCATION_LATITUDE, URN_CONTEXT_LOCATION_LONGITUDE, URN_CONTEXT_LOCATION_TIMESTAMP,
 			URN_CONTEXT_LOCATION_ACCURACY, URN_CONTEXT_LOCATION_PROVIDER, URN_USER_ID, URN_SURVEY_ID,
 			URN_SURVEY_TITLE, URN_SURVEY_DESCRIPTION, URN_SURVEY_PRIVACY_STATE, URN_REPEATABLE_SET_ID,
@@ -229,10 +353,12 @@ public final class SurveyResponseReadRequest extends UserRequest {
 					throw e;
 				}
 				
-				LOGGER.info("Validating privacy_state parameter.");
-				if(! SurveyResponsePrivacyStateCache.instance().getKeys().contains(tPrivacyState)) {
-					setFailed(ErrorCodes.SURVEY_INVALID_PRIVACY_STATE, "Found unknown privacy_state: " + tPrivacyState);
-					throw new ValidationException("Found unknown privacy_state: " + tPrivacyState);
+				if(tPrivacyState != null) {
+					LOGGER.info("Validating privacy_state parameter.");
+					if(! SurveyResponsePrivacyStateCache.instance().getKeys().contains(tPrivacyState)) {
+						setFailed(ErrorCodes.SURVEY_INVALID_PRIVACY_STATE, "Found unknown privacy_state: " + tPrivacyState);
+						throw new ValidationException("Found unknown privacy_state: " + tPrivacyState);
+					}
 				}
 				
 				LOGGER.info("Validating user_list parameter.");
@@ -353,7 +479,11 @@ public final class SurveyResponseReadRequest extends UserRequest {
 			e.logException(LOGGER);
 		}
 	}
-
+	
+	/**
+	 * Builds the output depending on the state of this request and whatever
+	 * output format the requester selected.
+	 */
 	@Override
 	public void respond(HttpServletRequest httpRequest, HttpServletResponse httpResponse) {
 		Writer writer = null;
@@ -596,7 +726,7 @@ public final class SurveyResponseReadRequest extends UserRequest {
 		}
 		
 		// FIXME and catch the actual exceptions
-		catch(Exception e) { // catch Exception in order to avoid redundant catch block functionality
+		catch(Exception e) {
 			
 			LOGGER.error("An unrecoverable exception occurred while generating a survey response read response", e);
 			try {
@@ -626,7 +756,7 @@ public final class SurveyResponseReadRequest extends UserRequest {
 	
 	/* Methods for retrieving output formatting variables */
 	
-	// FIXME: these should just be passed to the methods that write the output
+	// FIXME: these should just be passed (within one object) to the methods that write the output 
 	
 	public Boolean getPrettyPrint() {
 		return prettyPrint;

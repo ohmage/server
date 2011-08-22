@@ -5,6 +5,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.log4j.Logger;
 import org.ohmage.annotator.ErrorCodes;
+import org.ohmage.cache.SurveyResponsePrivacyStateCache;
 import org.ohmage.exception.ServiceException;
 import org.ohmage.exception.ValidationException;
 import org.ohmage.request.InputKeys;
@@ -14,10 +15,9 @@ import org.ohmage.service.UserSurveyResponseServices;
 import org.ohmage.validator.SurveyResponseValidators;
 
 /**
- * <p>Deletes a survey response and any images associated with it. The 
- * requesting user must be the owner of the survey response and the campaign
- * must be running or they must be a supervisor in the campaign to which the
- * survey response belongs.</p>
+ * <p>Allows a requester to change the privacy state on a survey 
+ * response. The access rules for this API are identical to 
+ * those for deleting a survey response.</p>
  * <table border="1">
  *   <tr>
  *     <td>Parameter Name</td>
@@ -39,14 +39,21 @@ import org.ohmage.validator.SurveyResponseValidators;
  *     <td>The survey response's unique identifier.</td>
  *     <td>true</td>
  *   </tr>
+ *   <tr>
+ *     <td>{@value org.ohmage.request.InputKeys#PRIVACY_STATE}</td>
+ *     <td>The new privacy state.</td>
+ *     <td>true</td>
+ *   </tr>
  * </table>
  * 
- * @author John Jenkins
+ * @author Joshua Selsky
+ * @see org.ohmage.request.survey.SurveyResponseDeleteRequest
  */
-public class SurveyResponseDeleteRequest extends UserRequest {
-	private static final Logger LOGGER = Logger.getLogger(SurveyResponseDeleteRequest.class);
+public class SurveyResponseUpdateRequest extends UserRequest {
+	private static final Logger LOGGER = Logger.getLogger(SurveyResponseUpdateRequest.class);
 	
 	private final Long surveyResponseId;
+	private final String privacyState;
 	
 	/**
 	 * Creates a survey response delete request.
@@ -54,15 +61,17 @@ public class SurveyResponseDeleteRequest extends UserRequest {
 	 * @param httpRequest The HttpServletRequest with the parameters for this
 	 * 					  request.
 	 */
-	public SurveyResponseDeleteRequest(HttpServletRequest httpRequest) {
+	public SurveyResponseUpdateRequest(HttpServletRequest httpRequest) {
 		super(httpRequest, TokenLocation.PARAMETER);
 		
-		LOGGER.info("Creating a survey response delete request.");
+		LOGGER.info("Creating a survey response update request.");
 		
 		Long tSurveyResponseId = null;
+		String tPrivacyState = null;
 		
 		if(! isFailed()) {
 			try {
+				LOGGER.info("Validating survey_id parameter.");
 				String[] surveyIds = getParameterValues(InputKeys.SURVEY_ID);
 				if(surveyIds.length == 0) {
 					setFailed(ErrorCodes.SURVEY_INVALID_SURVEY_ID, "Missing the required survey ID: " + InputKeys.SURVEY_ID);
@@ -80,6 +89,24 @@ public class SurveyResponseDeleteRequest extends UserRequest {
 						throw new ValidationException("Missing the required survey ID: " + InputKeys.SURVEY_ID);
 					}
 				}
+				LOGGER.info("Validating privacy_state parameter.");
+				String[] privacyStates = getParameterValues(InputKeys.PRIVACY_STATE);
+				if(privacyStates.length == 0) {
+					setFailed(ErrorCodes.SURVEY_INVALID_PRIVACY_STATE, "Missing the required privacy state: " + InputKeys.PRIVACY_STATE);
+					throw new ValidationException("Missing the required privacy state: " + InputKeys.PRIVACY_STATE);
+				}
+				else if(privacyStates.length > 1) {
+					setFailed(ErrorCodes.SURVEY_INVALID_PRIVACY_STATE, "Multiple privacy state parameters were given.");
+					throw new ValidationException("Multiple privacy state parameters were given.");
+				}
+				else {
+					tSurveyResponseId = SurveyResponseValidators.validateSurveyId(this, surveyIds[0]);
+					
+					if(! SurveyResponsePrivacyStateCache.instance().getKeys().contains(tPrivacyState)) {
+						setFailed(ErrorCodes.SURVEY_INVALID_PRIVACY_STATE, "Found unknown privacy_state: " + tPrivacyState);
+						throw new ValidationException("Found unknown privacy_state: " + tPrivacyState);
+					}
+				}
 			}
 			catch(ValidationException e) {
 				LOGGER.info(e.toString());
@@ -87,6 +114,7 @@ public class SurveyResponseDeleteRequest extends UserRequest {
 		}
 		
 		surveyResponseId = tSurveyResponseId;
+		privacyState = tPrivacyState;
 	}
 
 	/**
@@ -94,18 +122,18 @@ public class SurveyResponseDeleteRequest extends UserRequest {
 	 */
 	@Override
 	public void service() {
-		LOGGER.info("Servicing the survey response delete request.");
+		LOGGER.info("Servicing the survey response update request.");
 		
 		if(! authenticate(AllowNewAccount.NEW_ACCOUNT_DISALLOWED)) {
 			return;
 		}
 		
 		try {
-			LOGGER.info("Verifying that the user is allowed to delete the survey response.");
-			UserSurveyResponseServices.verifyUserCanUpdateOrDeleteSurveyResponse(this, getUser().getUsername(), surveyResponseId);
+			LOGGER.info("Verifying that the user is allowed to update the survey response.");
+			UserSurveyResponseServices.verifyUserCanUpdateOrDeleteSurveyResponse(this, this.getUser().getUsername(), this.surveyResponseId);
 			
-			LOGGER.info("Deleting the survey response.");
-			SurveyResponseServices.deleteSurveyResponse(this, surveyResponseId);
+			LOGGER.info("Updating the survey response.");
+			SurveyResponseServices.updateSurveyResponsePrivacyState(this, this.surveyResponseId, this.privacyState);
 		}
 		catch(ServiceException e) {
 			e.logException(LOGGER);
