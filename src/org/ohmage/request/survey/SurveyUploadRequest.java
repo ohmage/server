@@ -27,6 +27,7 @@ import org.ohmage.service.SurveyUploadServices;
 import org.ohmage.service.UserCampaignServices;
 import org.ohmage.util.JsonUtils;
 import org.ohmage.util.StringUtils;
+import org.ohmage.util.TimeUtils;
 import org.ohmage.validator.DateValidators;
 
 /**
@@ -117,11 +118,21 @@ public final class SurveyUploadRequest extends UserRequest {
 			LOGGER.info("Creating a survey upload request.");
 			 
 			tempCampaignCreationTimestamp = null;
-			tempCampaignUrn = httpRequest.getParameter(InputKeys.CAMPAIGN_URN);
-			tempJsonData = httpRequest.getParameter(InputKeys.DATA);
+			String[] campaignIdArray = getParameterValues(InputKeys.CAMPAIGN_URN);
+			if(campaignIdArray.length == 1) {
+				tempCampaignUrn = campaignIdArray[0];
+			}
+			String[] dataArray = getParameterValues(InputKeys.DATA);
+			if(dataArray.length == 1) {
+				tempJsonData = dataArray[0];
+			}
 			
 			try {
-				tempCampaignCreationTimestamp = DateValidators.validateISO8601DateTime(httpRequest.getParameter(InputKeys.CAMPAIGN_CREATION_TIMESTAMP));
+				String[] campaignCreationTimestampArray = getParameterValues(InputKeys.CAMPAIGN_CREATION_TIMESTAMP);
+				if(campaignCreationTimestampArray.length == 1) {
+					tempCampaignCreationTimestamp = DateValidators.validateISO8601DateTime(campaignCreationTimestampArray[0]);
+				}
+				LOGGER.debug("tempCampaignCreationTimestamp = " + tempCampaignCreationTimestamp);
 			}
 			catch(ValidationException e) {
 				setFailed(ErrorCodes.SERVER_INVALID_TIMESTAMP, "Invalid " + InputKeys.CAMPAIGN_CREATION_TIMESTAMP);
@@ -140,7 +151,7 @@ public final class SurveyUploadRequest extends UserRequest {
 			}
 		}
 		
-		this.campaignCreationTimestamp = httpRequest.getParameter(InputKeys.CAMPAIGN_CREATION_TIMESTAMP);
+		this.campaignCreationTimestamp = TimeUtils.getIso8601DateTimeString(tempCampaignCreationTimestamp);
 		this.campaignUrn = tempCampaignUrn;
 		this.jsonData = tempJsonData;
 	}
