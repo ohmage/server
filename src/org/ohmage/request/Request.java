@@ -195,6 +195,27 @@ public abstract class Request {
 	}
 	
 	/**
+	 * Returns the first value for some key from the parameter list. If there
+	 * are no values for a key, null is returned.
+	 * 
+	 * @param parameterKey The key to use to lookup a list of values, the first
+	 * 					   of which will be returned.
+	 * 
+	 * @return Returns the first of a list of values for some key or null if no
+	 * 		   values exist for the key.
+	 */
+	protected String getParameter(String parameterKey) {
+		String[] values = getParameterValues(parameterKey);
+		
+		if(values.length == 0) {
+			return null;
+		}
+		else {
+			return values[0];
+		}
+	}
+	
+	/**
 	 * Performs the operations for which this Request is responsible and 
 	 * aggregates any resulting data. This should be container agnostic. The
 	 * specific constructors should gather the required information to perform
