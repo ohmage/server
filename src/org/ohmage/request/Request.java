@@ -35,6 +35,7 @@ import org.ohmage.util.StringUtils;
  * Superclass for all requests. Defines the basic requirements for a request.
  * 
  * @author John Jenkins
+ * @author Joshua Selsky
  */
 public abstract class Request {
 	private static final Logger LOGGER = Logger.getLogger(Request.class);

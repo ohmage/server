@@ -437,13 +437,13 @@ public final class StringUtils {
 				}
 			} else {
 				int lastOccurrence = currentIndex;
-				currentIndex = string.indexOf(delimiter, lastOccurrence);
+				currentIndex = string.indexOf(delimiter, lastOccurrence + 1);
 				
 				if(currentIndex == -1) {
 					return false;
 				}
 				else {
-					if(currentIndex == lastOccurrence - 1) { // two delimiters in a row
+					if(currentIndex == lastOccurrence + 1) { // two delimiters in a row
 						return true;
 					}
 				}

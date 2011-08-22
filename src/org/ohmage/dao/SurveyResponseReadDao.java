@@ -118,12 +118,11 @@ public class SurveyResponseReadDao extends Dao {
 				List<String> promptIdList, List<String> surveyIdList, Date startDate, Date endDate, String sortOrder,
 				final Configuration configuration) throws DataAccessException {
 		
-		// check for logical errors
+		// check for logical errors -- missing required params
 		if(request == null || userList == null || StringUtils.isEmptyOrWhitespaceOnly(campaignID)
-			|| promptIdList == null || surveyIdList == null || StringUtils.isEmptyOrWhitespaceOnly(sortOrder)
-			|| configuration == null) {
+			|| (promptIdList == null && surveyIdList == null) || configuration == null) {
 			
-			throw new IllegalArgumentException("request, userList, campaignID, promptIdList, surveyIdList, sortOrder," +
+			throw new IllegalArgumentException("request, userList, campaignID, promptIdList or surveyIdList, " +
 				" and configuration must all be non-null");
 		}
 		
@@ -257,29 +256,33 @@ public class SurveyResponseReadDao extends Dao {
 		
 		// this is super-lame; it should be using an enum
 		
-		if("user,timestamp,survey".equals(sortOrder)) {
-			
-			builder.append(SQL_ORDER_BY_USER_TIMESTAMP_SURVEY);
-			
-		} else if("user,survey,timestamp".equals(sortOrder)) {
-			
-			builder.append(SQL_ORDER_BY_USER_SURVEY_TIMESTAMP);
-			
-		} else if("survey,user,timestamp".equals(sortOrder)) {
-			
-			builder.append(SQL_ORDER_BY_SURVEY_USER_TIMESTAMP);
-			
-		} else if("survey,timestamp,user".equals(sortOrder)) {
-			
-			builder.append(SQL_ORDER_BY_SURVEY_TIMESTAMP_USER);
-			
-		} else if("timestamp,survey,user".equals(sortOrder)) {
-			
-			builder.append(SQL_ORDER_BY_TIMESTAMP_SURVEY_USER);
-			
-		} else if("timestamp,user,survey".equals(sortOrder)) {
-			
-			builder.append(SQL_ORDER_BY_TIMESTAMP_USER_SURVEY);
+		if(sortOrder != null) {
+		
+			if("user,timestamp,survey".equals(sortOrder)) {
+				
+				builder.append(SQL_ORDER_BY_USER_TIMESTAMP_SURVEY);
+				
+			} else if("user,survey,timestamp".equals(sortOrder)) {
+				
+				builder.append(SQL_ORDER_BY_USER_SURVEY_TIMESTAMP);
+				
+			} else if("survey,user,timestamp".equals(sortOrder)) {
+				
+				builder.append(SQL_ORDER_BY_SURVEY_USER_TIMESTAMP);
+				
+			} else if("survey,timestamp,user".equals(sortOrder)) {
+				
+				builder.append(SQL_ORDER_BY_SURVEY_TIMESTAMP_USER);
+				
+			} else if("timestamp,survey,user".equals(sortOrder)) {
+				
+				builder.append(SQL_ORDER_BY_TIMESTAMP_SURVEY_USER);
+				
+			} else if("timestamp,user,survey".equals(sortOrder)) {
+				
+				builder.append(SQL_ORDER_BY_TIMESTAMP_USER_SURVEY);
+			} 
+			// FIXME - what's the default if there is no sort order? Ask Hongsuda.
 		}
 		
 		if(LOGGER.isDebugEnabled()) {

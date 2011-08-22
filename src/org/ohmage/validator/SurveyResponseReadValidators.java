@@ -387,14 +387,14 @@ public final class SurveyResponseReadValidators {
 		}
 		
 		// sortOrder is optional
-		if(sortOrder == null) {
+		if(StringUtils.isEmptyOrWhitespaceOnly(sortOrder)) {
 			return null;
 		}
 		
 		// perform validation
 		if(StringUtils.isMalformedDelimitedList(sortOrder, InputKeys.LIST_ITEM_SEPARATOR)) {
 			request.setFailed(ErrorCodes.SURVEY_INVALID_SORT_ORDER, ERROR_INVALID_SORT_ORDER + sortOrder);
-			throw new ValidationException(ERROR_INVALID_OUTPUT_FORMAT + sortOrder);
+			throw new ValidationException(ERROR_INVALID_SORT_ORDER + sortOrder);
 		}
 		
 		List<String> sortOrderList = StringUtils.splitString(sortOrder, InputKeys.LIST_ITEM_SEPARATOR);
@@ -504,8 +504,8 @@ public final class SurveyResponseReadValidators {
 		}
 		
 		// don't validate the optional value if it doesn't exist
-		if(booleanString == null) {
-			return null;
+		if(StringUtils.isEmptyOrWhitespaceOnly(booleanString)) {
+			return Boolean.FALSE;
 		}
 
 		// perform validation

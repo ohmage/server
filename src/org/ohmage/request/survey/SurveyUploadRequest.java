@@ -213,10 +213,6 @@ public final class SurveyUploadRequest extends UserRequest {
 			List<Integer> duplicateIndexList = SurveyUploadDao.insertSurveys(this, getUser(), getClient(), campaignUrn, surveyUploadList);
 			
 			LOGGER.info("Found " + duplicateIndexList.size() + " duplicate survey uploads");
-			
-			// TODO - port the message logging later as part of 2.7?
-			// We can use the Audit API for now
-			// LOGGER.info("Logging upload and upload stats to the filesystem.");
 		}
 		catch(ServiceException e) {
 			e.logException(LOGGER);
@@ -233,5 +229,4 @@ public final class SurveyUploadRequest extends UserRequest {
 	public void respond(HttpServletRequest httpRequest, HttpServletResponse httpResponse) {
 		super.respond(httpRequest, httpResponse, null);
 	}
-	
 }

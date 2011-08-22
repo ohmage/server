@@ -29,7 +29,7 @@ public abstract class UserRequest extends Request {
 	protected static enum TokenLocation { COOKIE, PARAMETER, EITHER };
 	protected static enum AllowNewAccount { NEW_ACCOUNT_ALLOWED, NEW_ACCOUNT_DISALLOWED };
 	
-	private static final long MILLIS_IN_A_SECOND = 1000;
+	protected static final long MILLIS_IN_A_SECOND = 1000;
 	
 	private final User user;
 	private final String client;
