@@ -38,6 +38,8 @@ import org.ohmage.request.visualization.VizPromptDistributionRequest;
 import org.ohmage.request.visualization.VizPromptTimeseriesRequest;
 import org.ohmage.request.visualization.VizScatterPlotRequest;
 import org.ohmage.request.visualization.VizSurveyResponseCountRequest;
+import org.ohmage.request.visualization.VizSurveyResponsePrivacyStateRequest;
+import org.ohmage.request.visualization.VizSurveyResponsePrivacyStateTimeseriesRequest;
 import org.ohmage.request.visualization.VizTwoDDensityRequest;
 import org.ohmage.request.visualization.VizUserTimeseriesRequest;
 
@@ -117,6 +119,8 @@ public final class RequestBuilder {
 	private static final String API_VISUALIZATION_USER_TIMESERIES = API_VISUALIZATION + "/user_timeseries/read";
 	private static final String API_VISUALIZATION_SCATTER_PLOT = API_VISUALIZATION + "/scatter_plot/read";
 	private static final String API_VISUALIZATION_2D_DENSITY = API_VISUALIZATION + "/2d_density/read";
+	private static final String API_VISUALIZATION_SURVEY_RESPONSE_PRIVACY = API_VISUALIZATION + "/survey_responses_privacy_state/read";
+	private static final String API_VISUALIZATION_SURVEY_RESPONSE_PRIVACY_TIMESERIES = API_VISUALIZATION + "/survey_responses_privacy_state_time/read";
 	
 	/**
 	 * Builds a new request based on the request's URI. This will always return
@@ -258,6 +262,12 @@ public final class RequestBuilder {
 		else if(API_VISUALIZATION_2D_DENSITY.equals(requestUri)) {
 			return new VizTwoDDensityRequest(httpRequest);
 		}
+		else if(API_VISUALIZATION_SURVEY_RESPONSE_PRIVACY.equals(requestUri)) {
+			return new VizSurveyResponsePrivacyStateRequest(httpRequest);
+		}
+		else if(API_VISUALIZATION_SURVEY_RESPONSE_PRIVACY_TIMESERIES.equals(requestUri)) {
+			return new VizSurveyResponsePrivacyStateTimeseriesRequest(httpRequest);
+		}
 		
 		// The URI is unknown.
 		return new FailedRequest();
@@ -319,7 +329,9 @@ public final class RequestBuilder {
 				API_VISUALIZATION_PROMPT_TIMESERIES.equals(uri) ||
 				API_VISUALIZATION_USER_TIMESERIES.equals(uri) ||
 				API_VISUALIZATION_SCATTER_PLOT.equals(uri) ||
-				API_VISUALIZATION_2D_DENSITY.equals(uri)) {
+				API_VISUALIZATION_2D_DENSITY.equals(uri) ||
+				API_VISUALIZATION_SURVEY_RESPONSE_PRIVACY.equals(uri) ||
+				API_VISUALIZATION_SURVEY_RESPONSE_PRIVACY_TIMESERIES.equals(uri)) {
 			return true;
 		}
 		
