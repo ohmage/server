@@ -63,10 +63,10 @@ public class SurveyResponseDeleteRequest extends UserRequest {
 		
 		if(! isFailed()) {
 			try {
-				String[] surveyIds = getParameterValues(InputKeys.SURVEY_ID);
+				String[] surveyIds = getParameterValues(InputKeys.SURVEY_KEY);
 				if(surveyIds.length == 0) {
-					setFailed(ErrorCodes.SURVEY_INVALID_SURVEY_ID, "Missing the required survey ID: " + InputKeys.SURVEY_ID);
-					throw new ValidationException("Missing the required survey ID: " + InputKeys.SURVEY_ID);
+					setFailed(ErrorCodes.SURVEY_INVALID_SURVEY_ID, "Missing the required survey ID: " + InputKeys.SURVEY_KEY);
+					throw new ValidationException("Missing the required survey ID: " + InputKeys.SURVEY_KEY);
 				}
 				else if(surveyIds.length > 1) {
 					setFailed(ErrorCodes.SURVEY_INVALID_SURVEY_ID, "Multiple survey ID parameters were given.");
@@ -76,8 +76,8 @@ public class SurveyResponseDeleteRequest extends UserRequest {
 					tSurveyResponseId = SurveyResponseValidators.validateSurveyId(this, surveyIds[0]);
 					
 					if(tSurveyResponseId == null) {
-						setFailed(ErrorCodes.SURVEY_INVALID_SURVEY_ID, "Missing the required survey ID: " + InputKeys.SURVEY_ID);
-						throw new ValidationException("Missing the required survey ID: " + InputKeys.SURVEY_ID);
+						setFailed(ErrorCodes.SURVEY_INVALID_SURVEY_ID, "Missing the required survey ID: " + InputKeys.SURVEY_KEY);
+						throw new ValidationException("Missing the required survey ID: " + InputKeys.SURVEY_KEY);
 					}
 				}
 			}
