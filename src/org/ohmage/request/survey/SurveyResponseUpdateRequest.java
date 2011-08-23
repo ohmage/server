@@ -71,22 +71,27 @@ public class SurveyResponseUpdateRequest extends UserRequest {
 		
 		if(! isFailed()) {
 			try {
+				
+				// FIXME: for survey_response/delete the parameter is called
+				// survey_id, but for survey_response/update the parameter is
+				// called survey_key. We should be using survey_id consistently.
+				
 				LOGGER.info("Validating survey_id parameter.");
-				String[] surveyIds = getParameterValues(InputKeys.SURVEY_ID);
+				String[] surveyIds = getParameterValues(InputKeys.SURVEY_KEY);
 				if(surveyIds.length == 0) {
-					setFailed(ErrorCodes.SURVEY_INVALID_SURVEY_ID, "Missing the required survey ID: " + InputKeys.SURVEY_ID);
-					throw new ValidationException("Missing the required survey ID: " + InputKeys.SURVEY_ID);
+					setFailed(ErrorCodes.SURVEY_INVALID_SURVEY_KEY_VALUE, "Missing the required survey key: " + InputKeys.SURVEY_KEY);
+					throw new ValidationException("Missing the required survey ID: " + InputKeys.SURVEY_KEY);
 				}
 				else if(surveyIds.length > 1) {
-					setFailed(ErrorCodes.SURVEY_INVALID_SURVEY_ID, "Multiple survey ID parameters were given.");
+					setFailed(ErrorCodes.SURVEY_INVALID_SURVEY_KEY_VALUE, "Multiple survey key parameters were given.");
 					throw new ValidationException("Multiple survey ID parameters were given.");
 				}
 				else {
 					tSurveyResponseId = SurveyResponseValidators.validateSurveyId(this, surveyIds[0]);
 					
 					if(tSurveyResponseId == null) {
-						setFailed(ErrorCodes.SURVEY_INVALID_SURVEY_ID, "Missing the required survey ID: " + InputKeys.SURVEY_ID);
-						throw new ValidationException("Missing the required survey ID: " + InputKeys.SURVEY_ID);
+						setFailed(ErrorCodes.SURVEY_INVALID_SURVEY_KEY_VALUE, "Missing the required survey key: " + InputKeys.SURVEY_KEY);
+						throw new ValidationException("Missing the required survey key: " + InputKeys.SURVEY_KEY);
 					}
 				}
 				LOGGER.info("Validating privacy_state parameter.");
@@ -100,7 +105,7 @@ public class SurveyResponseUpdateRequest extends UserRequest {
 					throw new ValidationException("Multiple privacy state parameters were given.");
 				}
 				else {
-					tSurveyResponseId = SurveyResponseValidators.validateSurveyId(this, surveyIds[0]);
+					tPrivacyState = SurveyResponseValidators.validatePrivacyState(this, privacyStates[0]);
 					
 					if(! SurveyResponsePrivacyStateCache.instance().getKeys().contains(tPrivacyState)) {
 						setFailed(ErrorCodes.SURVEY_INVALID_PRIVACY_STATE, "Found unknown privacy_state: " + tPrivacyState);

@@ -103,12 +103,12 @@ public class SurveyResponseDaos extends Dao {
 			try {
 				instance.getJdbcTemplate().update(
 						SQL_UPDATE_SURVEY_RESPONSE_PRIVACY_STATE, 
-						new Object[] { surveyResponseId, newPrivacyState });
+						new Object[] { newPrivacyState, surveyResponseId });
 			}
 			catch(org.springframework.dao.DataAccessException e) {
 				transactionManager.rollback(status);
 				throw new DataAccessException("Error executing SQL '" + SQL_UPDATE_SURVEY_RESPONSE_PRIVACY_STATE + 
-					"' with parameters: " + surveyResponseId + ", " + newPrivacyState, e);
+					"' with parameters: " + newPrivacyState + ", " + surveyResponseId, e);
 			}
 			
 			// Commit the transaction.
