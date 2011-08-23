@@ -562,6 +562,9 @@ public class UserCampaignServices {
 	 * - If the user is a supervisor or an author.<br />
 	 * - If the user is an analyst and the campaign is shared.<br />
 	 * - If the user is the same as all of the requesting users.<br />
+	 * <br />
+	 * If you want to check if a user can read survey responses from every user
+	 * in a campaign, don't pass in any user usernames.
 	 * 
 	 * @param request The Request that is performing this service.
 	 * 
@@ -569,24 +572,24 @@ public class UserCampaignServices {
 	 * 
 	 * @param requesterUsername The requesting user's username.
 	 * 
-	 * @param usersUsernames A list of usernames to check that that the 
-	 * 						 requesting user has permission to read their 
-	 * 						 shared survey responses.
+	 * @param userUsernames The array of usernames of specific users to check
+	 * 						if the requesting user has permission to read their
+	 * 						information.
 	 *
 	 * @throws ServiceException Thrown if none of the rules are true or there 
 	 * 							is an error.
 	 */
 	public static void requesterCanViewUsersSurveyResponses(Request request, 
-			String campaignId, String requesterUsername, String... usersUsernames) throws ServiceException {
+			String campaignId, String requesterUsername, String... userUsernames) throws ServiceException {
 		try {
 			// If the requester is the same as all of the users in question.
-			boolean onlySelf = true;
-			for(String username : usersUsernames) {
+			boolean otherUsers = false;
+			for(String username : userUsernames) {
 				if(! requesterUsername.equals(username)) {
-					onlySelf = false;
+					otherUsers = true;
 				}
 			}
-			if(onlySelf) {
+			if(! otherUsers) {
 				return;
 			}
 			
