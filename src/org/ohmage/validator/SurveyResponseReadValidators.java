@@ -1,5 +1,6 @@
 package org.ohmage.validator;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.regex.Pattern;
 
@@ -276,7 +277,7 @@ public final class SurveyResponseReadValidators {
 	 */
 	public static List<String> validateColumnList(Request request, String columnList, List<String> allowedColumnList) 
 		throws ValidationException {
-		
+
 		// check for logical errors
 		if(request == null) {
 			throw new IllegalArgumentException(NULL_REQUEST);
@@ -308,7 +309,7 @@ public final class SurveyResponseReadValidators {
 //			throw new ValidationException(ERROR_TOO_MANY_COLUMNS_IN_COLUMN_LIST);
 //		} 
 		
-		if(ListUtils.containsDuplicates(splitColumnList)) {
+		if(splitColumnList.size() != (new HashSet<String>(splitColumnList)).size()) {
 			request.setFailed(ErrorCodes.SURVEY_MALFORMED_COLUMN_LIST, ERROR_DUPLICATE_IN_COLUMN_LIST);
 			throw new ValidationException(ERROR_DUPLICATE_IN_COLUMN_LIST);
 		}
