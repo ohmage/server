@@ -425,7 +425,7 @@ public final class SurveyResponseReadRequest extends UserRequest {
 		    UserCampaignServices.campaignExistsAndUserBelongs(this, this.getUser(), this.campaignUrn);
 		    
 		    LOGGER.info("Verifying that the requester has a role that allows reading of survey responses for each of the users in the list.");
-	    	UserCampaignServices.requesterCanViewUsersSurveyResponses(this, this.campaignUrn, this.getUser().getUsername(), userList.toArray(new String[0]));
+	    	UserCampaignServices.requesterCanViewUsersSurveyResponses(this, this.campaignUrn, this.getUser().getUsername(), (String[]) userList.toArray());
 			
 		    if(! this.userList.equals(URN_SPECIAL_ALL_LIST)) {
 		    	LOGGER.info("Checking the user list to make sure all of the users belong to the campaign ID.");
