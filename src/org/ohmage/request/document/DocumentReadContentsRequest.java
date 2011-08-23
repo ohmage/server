@@ -207,7 +207,6 @@ public class DocumentReadContentsRequest extends UserRequest {
 			}
 			catch(IOException e) {
 				LOGGER.error("Unable to write failed response message. Aborting.", e);
-				return;
 			}
 			
 			// Flush it and close.

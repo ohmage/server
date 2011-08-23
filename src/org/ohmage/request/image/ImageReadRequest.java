@@ -170,7 +170,8 @@ public class ImageReadRequest extends UserRequest {
 				// some sort of image inspection to figure out what this should
 				// be.
 				httpResponse.setContentType("image/png");
-				
+				httpResponse.setHeader("Content-Disposition", "filename=image");
+
 				// If available, set the token.
 				if(getUser() != null) {
 					final String token = getUser().getToken(); 
@@ -226,7 +227,6 @@ public class ImageReadRequest extends UserRequest {
 			}
 			catch(IOException e) {
 				LOGGER.error("Unable to write failed response message. Aborting.", e);
-				return;
 			}
 			
 			// Flush it and close.
