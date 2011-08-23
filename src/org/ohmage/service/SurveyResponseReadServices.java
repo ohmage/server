@@ -97,7 +97,7 @@ public final class SurveyResponseReadServices {
 		}
 		
 		for(String surveyId : surveyIdList) {
-			if(configuration.getSurveyIdForPromptId(surveyId) == null) {
+			if(! configuration.surveyIdExists(surveyId)) {
 				StringBuilder sb = new StringBuilder();
 				sb.append("The configuration for campaign ");
 				sb.append(configuration.getUrn());

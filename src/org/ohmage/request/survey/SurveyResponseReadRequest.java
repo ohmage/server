@@ -274,41 +274,22 @@ public final class SurveyResponseReadRequest extends UserRequest {
 		// Handle user-password or token-based authentication
 		super(httpRequest, TokenLocation.EITHER, false);
 		
-		String tStartDate = httpRequest.getParameter(InputKeys.START_DATE);
 		Date tStartDateAsDate = null;
-		
-		String tEndDate = httpRequest.getParameter(InputKeys.END_DATE);
 		Date tEndDateAsDate = null;
 		
-		String tCampaignUrn = httpRequest.getParameter(InputKeys.CAMPAIGN_URN);
+		String tCampaignUrn = getParameter(InputKeys.CAMPAIGN_URN);
+		String tOutputFormat = getParameter(InputKeys.OUTPUT_FORMAT);
+		String tSortOrder = getParameter(InputKeys.SORT_ORDER);
+		String tPrivacyState = getParameter(InputKeys.PRIVACY_STATE);
 		
-		String tUserList = httpRequest.getParameter(InputKeys.USER_LIST);
 		List<String> tUserListAsList = null;
-		
-		String tPromptIdList = httpRequest.getParameter(InputKeys.PROMPT_ID_LIST);
 		List<String> tPromptIdListAsList = null;
-		
-		String tSurveyIdList = httpRequest.getParameter(InputKeys.SURVEY_ID_LIST);
 		List<String> tSurveyIdListAsList = null;
-		
-		String tColumnList = httpRequest.getParameter(InputKeys.COLUMN_LIST);
 		List<String> tColumnListAsList = null;
 		
-		String tOutputFormat = httpRequest.getParameter(InputKeys.OUTPUT_FORMAT);
-		
-		String tPrettyPrint = httpRequest.getParameter(InputKeys.PRETTY_PRINT);
 		Boolean tPrettyPrintAsBoolean = null;
-		
-		String tSuppressMetadata = httpRequest.getParameter(InputKeys.SUPPRESS_METADATA);
 		Boolean tSuppressMetadataAsBoolean = null;
-		
-		String tReturnId = httpRequest.getParameter(InputKeys.RETURN_ID);
 		Boolean tReturnIdAsBoolean = null;
-		
-		String tSortOrder = httpRequest.getParameter(InputKeys.SORT_ORDER);
-		
-		String tPrivacyState = httpRequest.getParameter(InputKeys.PRIVACY_STATE);
-		String tCollapse = httpRequest.getParameter(InputKeys.COLLAPSE);
 		Boolean tCollapseAsBoolean = null;
 		
 		if(! isFailed()) {
@@ -331,14 +312,14 @@ public final class SurveyResponseReadRequest extends UserRequest {
 				LOGGER.info("Validating start_date and end_date parameters.");
 					
 				try {
-					if(! StringUtils.isEmptyOrWhitespaceOnly(tStartDate)) {
-						tStartDateAsDate = DateValidators.validateISO8601Date(tStartDate);
+					if(! StringUtils.isEmptyOrWhitespaceOnly(getParameter(InputKeys.START_DATE))) {
+						tStartDateAsDate = DateValidators.validateISO8601Date(getParameter(InputKeys.START_DATE));
 					}
 					else {
 						tStartDateAsDate = null;
 					}
-					if(! StringUtils.isEmptyOrWhitespaceOnly(tStartDate)) {
-						tEndDateAsDate = DateValidators.validateISO8601Date(tEndDate);
+					if(! StringUtils.isEmptyOrWhitespaceOnly(getParameter(InputKeys.END_DATE))) {
+						tEndDateAsDate = DateValidators.validateISO8601Date(getParameter(InputKeys.END_DATE));
 					}
 					else {
 						tEndDateAsDate = null;
@@ -361,23 +342,25 @@ public final class SurveyResponseReadRequest extends UserRequest {
 				}
 				
 				LOGGER.info("Validating user_list parameter.");
-				tUserListAsList = SurveyResponseReadValidators.validateUserList(this, tUserList);
+				tUserListAsList = SurveyResponseReadValidators.validateUserList(this, getParameter(InputKeys.USER_LIST));
 				
 				LOGGER.info("Validating prompt_id_list and survey_id_list parameters.");
-				List<String> tList = SurveyResponseReadValidators.validatePromptIdSurveyIdLists(this, tPromptIdList, tSurveyIdList);
+				List<String> tList = SurveyResponseReadValidators.validatePromptIdSurveyIdLists(this, getParameter(InputKeys.PROMPT_ID_LIST), getParameter(InputKeys.SURVEY_ID_LIST));
 				
 				// Now check whether it's a prompt id list or a survey id list
-				if(tPromptIdList == null) {
+				if(StringUtils.isEmptyOrWhitespaceOnly(getParameter(InputKeys.PROMPT_ID_LIST))) {
+					LOGGER.info("Found " + tList.size() + " survey ids to query against.");
 					tSurveyIdListAsList = tList;
 					tPromptIdListAsList = Collections.emptyList();
 				}
 				else {
+					LOGGER.info("Found " + tList.size() + " prompt ids to query against.");
 					tSurveyIdListAsList = Collections.emptyList();
 					tPromptIdListAsList = tList;
 				}
 				
 				LOGGER.info("Validating column_list parameter.");
-				tColumnListAsList = SurveyResponseReadValidators.validateColumnList(this, tColumnList, ALLOWED_COLUMN_URN_LIST);
+				tColumnListAsList = SurveyResponseReadValidators.validateColumnList(this, getParameter(InputKeys.COLUMN_LIST), ALLOWED_COLUMN_URN_LIST);
 				
 				LOGGER.info("Validating output_format parameter.");
 				tOutputFormat = SurveyResponseReadValidators.validateOutputFormat(this, tOutputFormat, ALLOWED_OUTPUT_FORMAT_LIST);
@@ -386,16 +369,16 @@ public final class SurveyResponseReadRequest extends UserRequest {
 				tSortOrder = SurveyResponseReadValidators.validateSortOrder(this, tSortOrder, ALLOWED_SORT_ORDER_LIST); 
 				
 				LOGGER.info("Validating suppress_metadata parameter.");
-				tSuppressMetadataAsBoolean = SurveyResponseReadValidators.validateSuppressMetadata(this, tSuppressMetadata);
+				tSuppressMetadataAsBoolean = SurveyResponseReadValidators.validateSuppressMetadata(this, getParameter(InputKeys.SUPPRESS_METADATA));
 				
 				LOGGER.info("Validating pretty_print parameter.");
-				tPrettyPrintAsBoolean = SurveyResponseReadValidators.validatePrettyPrint(this, tPrettyPrint);
+				tPrettyPrintAsBoolean = SurveyResponseReadValidators.validatePrettyPrint(this, getParameter(InputKeys.PRETTY_PRINT));
 
 				LOGGER.info("Validating return_id parameter.");
-				tReturnIdAsBoolean = SurveyResponseReadValidators.validateReturnId(this, tReturnId);
+				tReturnIdAsBoolean = SurveyResponseReadValidators.validateReturnId(this, getParameter(InputKeys.RETURN_ID));
 
 				LOGGER.info("Validating collapse parameter.");
-				tCollapseAsBoolean = SurveyResponseReadValidators.validateCollapse(this, tCollapse);
+				tCollapseAsBoolean = SurveyResponseReadValidators.validateCollapse(this, getParameter(InputKeys.COLLAPSE));
 			} 
 			
 			catch (ValidationException e) {
@@ -451,13 +434,15 @@ public final class SurveyResponseReadRequest extends UserRequest {
 		    
 		    LOGGER.info("Retrieving campaign configuration.");
 			this.configuration = CampaignServices.findCampaignConfiguration(this, this.campaignUrn);
+			
+			LOGGER.info(configuration.getSurveyDescriptionFor(surveyIdList.get(0)));
 		    
-			if(this.promptIdList != null && ! this.promptIdList.equals(URN_SPECIAL_ALL_LIST)) {
+			if(! this.promptIdList.isEmpty() && ! this.promptIdList.equals(URN_SPECIAL_ALL_LIST)) {
 				LOGGER.info("Verifying that the prompt ids in the query belong to the campaign.");
 				SurveyResponseReadServices.verifyPromptIdsBelongToConfiguration(this, this.promptIdList, this.configuration);
 			}
 			
-			if(this.surveyIdList != null && ! this.surveyIdList.equals(URN_SPECIAL_ALL_LIST)) {
+			if(! this.surveyIdList.isEmpty() && ! this.surveyIdList.equals(URN_SPECIAL_ALL_LIST)) {
 				LOGGER.info("Verifying that the survey ids in the query belong to the campaign.");
 				SurveyResponseReadServices.verifySurveyIdsBelongToConfiguration(this, this.surveyIdList, this.configuration);
 			}

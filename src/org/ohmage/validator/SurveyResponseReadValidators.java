@@ -4,12 +4,12 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.regex.Pattern;
 
+import org.apache.log4j.Logger;
 import org.ohmage.annotator.ErrorCodes;
 import org.ohmage.exception.ValidationException;
 import org.ohmage.request.InputKeys;
 import org.ohmage.request.Request;
 import org.ohmage.request.survey.SurveyResponseReadRequest;
-import org.ohmage.util.ListUtils;
 import org.ohmage.util.StringUtils;
 
 /**
@@ -18,11 +18,14 @@ import org.ohmage.util.StringUtils;
  * @author Joshua Selsky
  */
 public final class SurveyResponseReadValidators {
+	
+	private static Logger LOGGER = Logger.getLogger(SurveyResponseReadValidators.class);
+	
 	// list size constants
 	private static final int MAX_NUMBER_OF_USERS = 10;
 	private static final int MAX_NUMBER_OF_PROMPTS = 10;
 	private static final int MAX_NUMBER_OF_SURVEYS = 10;
-	private static final int MAX_NUMBER_OF_COLUMNS = 10;
+//	private static final int MAX_NUMBER_OF_COLUMNS = 10;
 	private static final int ALLOWED_NUMBER_OF_SORT_ORDER_ITEMS = 3;
 	
 	// logical errors
@@ -57,8 +60,8 @@ public final class SurveyResponseReadValidators {
 	// column list messages
 	private static final String ERROR_EMPTY_COLUMN_LIST = "The column_list is empty.";
 	private static final String ERROR_MALFORMED_COLUMN_LIST = "The column_list is malformed.";
-	private static final String ERROR_TOO_MANY_COLUMNS_IN_COLUMN_LIST = "The column_list cannot be larger than "
-		+ MAX_NUMBER_OF_COLUMNS + "items";
+//	private static final String ERROR_TOO_MANY_COLUMNS_IN_COLUMN_LIST = "The column_list cannot be larger than "
+//		+ MAX_NUMBER_OF_COLUMNS + "items";
 	private static final String ERROR_DUPLICATE_IN_COLUMN_LIST = "The column_list contains duplicates.";
 	private static final String ERROR_INVALID_COLUMN_IN_COLUMN_LIST = "The column_list contains an invalid column id.";
 	
@@ -126,7 +129,7 @@ public final class SurveyResponseReadValidators {
 				throw new ValidationException(ERROR_TOO_MANY_USERS);
 			} 
 			
-			if(ListUtils.containsDuplicates(splitUserList)) {
+			if(splitUserList.size() != (new HashSet<String>(splitUserList).size())) {
 				request.setFailed(ErrorCodes.SURVEY_MALFORMED_USER_LIST, ERROR_DUPLICATE_USER);
 				throw new ValidationException(ERROR_DUPLICATE_USER);
 			}
@@ -158,6 +161,8 @@ public final class SurveyResponseReadValidators {
 	 * @throws IllegalArgumentException if the request is null.
 	 */
 	public static List<String> validatePromptIdSurveyIdLists(Request request, String promptIdList, String surveyIdList) throws ValidationException {
+		LOGGER.info("p: " + promptIdList);
+		LOGGER.info("s: " + surveyIdList);
 		
 		// check for logical errors
 		if(request == null) {
@@ -186,14 +191,16 @@ public final class SurveyResponseReadValidators {
 					throw new ValidationException(ERROR_MALFORMED_SURVEY_ID_LIST);
 				}
 				
-				List<String> splitSurveyIdList = StringUtils.splitString(promptIdList, InputKeys.LIST_ITEM_SEPARATOR);	
+				List<String> splitSurveyIdList = StringUtils.splitString(surveyIdList, InputKeys.LIST_ITEM_SEPARATOR);	
 				
-				if(splitSurveyIdList.size() > MAX_NUMBER_OF_PROMPTS) {
+				LOGGER.info(splitSurveyIdList);
+				
+				if(splitSurveyIdList.size() > MAX_NUMBER_OF_SURVEYS) {
 					request.setFailed(ErrorCodes.SURVEY_TOO_MANY_SURVEY_IDS, ERROR_TOO_MANY_SURVEYS);
 					throw new ValidationException(ERROR_TOO_MANY_SURVEYS);
 				}
 				
-				if(ListUtils.containsDuplicates(splitSurveyIdList)) {
+				if(splitSurveyIdList.size() != (new HashSet<String>(splitSurveyIdList).size())) {
 					request.setFailed(ErrorCodes.SURVEY_MALFORMED_SURVEY_ID_LIST, ERROR_DUPLICATE_SURVEY_ID);
 					throw new ValidationException(ERROR_DUPLICATE_SURVEY_ID);
 				}
@@ -235,7 +242,7 @@ public final class SurveyResponseReadValidators {
 					throw new ValidationException(ERROR_TOO_MANY_PROMPTS);
 				} 
 				
-				if(ListUtils.containsDuplicates(splitPromptIdList)) {
+				if(splitPromptIdList.size() != (new HashSet<String>(splitPromptIdList).size())) {
 					request.setFailed(ErrorCodes.SURVEY_MALFORMED_PROMPT_ID_LIST, ERROR_DUPLICATE_PROMPT_ID);
 					throw new ValidationException(ERROR_DUPLICATE_PROMPT_ID);
 				}
@@ -405,7 +412,7 @@ public final class SurveyResponseReadValidators {
 			throw new ValidationException(ERROR_INVALID_SORT_ORDER + sortOrder);
 		}
 		
-		if(ListUtils.containsDuplicates(sortOrderList)) {
+		if(sortOrderList.size() != (new HashSet<String>(sortOrderList)).size()) {
 			request.setFailed(ErrorCodes.SURVEY_INVALID_SORT_ORDER, ERROR_INVALID_SORT_ORDER + sortOrder);
 			throw new ValidationException(ERROR_INVALID_SORT_ORDER + sortOrder);
 		}
