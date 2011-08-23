@@ -79,27 +79,27 @@ public class DocumentDaos extends Dao {
 	// Inserts the document into the database.
 	private static final String SQL_INSERT_DOCUMENT = 
 		"INSERT INTO document(uuid, name, description, extension, url, size, privacy_state_id, creation_timestamp) " +
-		"VALUES (?, ?, ?, ?, ?, ?, (SELECT Id FROM document_privacy_state WHERE privacy_state = ?), now())";
+		"VALUES (?, ?, ?, ?, ?, ?, (SELECT id FROM document_privacy_state WHERE privacy_state = ?), now())";
 	
 	// Associates a static user string as the creator of a document.
 	private static final String SQL_INSERT_DOCUMENT_USER_CREATOR = 
 		"INSERT INTO document_user_creator(document_id, username) " +
-		"VALUES ((SELECT Id FROM document WHERE uuid = ?), ?)";
+		"VALUES ((SELECT id FROM document WHERE uuid = ?), ?)";
 	
 	// Associates a user with a document and gives them a specific role.
 	private static final String SQL_INSERT_USER_ROLE = 
 		"INSERT INTO document_user_role(document_id, user_id, document_role_id) " +
 		"VALUES (" +
 			"(" +
-				"SELECT Id " +
+				"SELECT id " +
 				"FROM document " +
 				"WHERE uuid = ?" +
 			"), (" +
-				"SELECT Id " +
+				"SELECT id " +
 				"FROM user " +
 				"WHERE username = ?" +
 			"), (" +
-				"SELECT Id " +
+				"SELECT id " +
 				"FROM document_role " +
 				"WHERE role = ?" +
 			")" +
@@ -110,15 +110,15 @@ public class DocumentDaos extends Dao {
 		"INSERT INTO document_campaign_role(document_id, campaign_id, document_role_id) " +
 		"VALUES (" +
 			"(" +
-				"SELECT Id " +
+				"SELECT id " +
 				"FROM document " +
 				"WHERE uuid = ?" +
 			"), (" +
-				"SELECT Id " +
+				"SELECT id " +
 				"FROM campaign " +
 				"WHERE urn = ?" +
 			"), (" +
-				"SELECT Id " +
+				"SELECT id " +
 				"FROM document_role " +
 				"WHERE role = ?" +
 			")" +
@@ -129,15 +129,15 @@ public class DocumentDaos extends Dao {
 		"INSERT INTO document_class_role(document_id, class_id, document_role_id) " +
 		"VALUES (" +
 			"(" +
-				"SELECT Id " +
+				"SELECT id " +
 				"FROM document " +
 				"WHERE uuid = ?" +
 			"), (" +
-				"SELECT Id " +
+				"SELECT id " +
 				"FROM class " +
 				"WHERE urn = ?" +
 			"), (" +
-				"SELECT Id " +
+				"SELECT id " +
 				"FROM document_role " +
 				"WHERE role = ?" +
 			")" +
@@ -156,7 +156,7 @@ public class DocumentDaos extends Dao {
 	private static final String SQL_UPDATE_PRIVACY_STATE = 
 		"UPDATE document " +
 		"SET privacy_state_id = (" +
-			"SELECT Id " +
+			"SELECT id " +
 			"FROM document_privacy_state " +
 			"WHERE privacy_state = ?" +
 		") " +
@@ -170,17 +170,17 @@ public class DocumentDaos extends Dao {
 	private static final String SQL_UPDATE_CAMPAIGN_ROLE = 
 		"UPDATE document_campaign_role " +
 		"SET document_role_id = (" +
-			"SELECT Id " +
+			"SELECT id " +
 			"FROM document_role " +
 			"WHERE role = ?" +
 		") " +
 		"WHERE document_id = (" +
-			"SELECT Id " +
+			"SELECT id " +
 			"FROM document " +
 			"WHERE uuid = ?" +
 		") " +
 		"AND campaign_id = (" +
-			"SELECT Id " +
+			"SELECT id " +
 			"FROM campaign " +
 			"WHERE urn = ?" +
 		")";
@@ -188,17 +188,17 @@ public class DocumentDaos extends Dao {
 	private static final String SQL_UPDATE_CLASS_ROLE = 
 		"UPDATE document_class_role " +
 		"SET document_role_id = (" +
-			"SELECT Id " +
+			"SELECT id " +
 			"FROM document_role " +
 			"WHERE role = ?" +
 		") " +
 		"WHERE document_id = (" +
-			"SELECT Id " +
+			"SELECT id " +
 			"FROM document " +
 			"WHERE uuid = ?" +
 		") " +
 		"AND class_id = (" +
-			"SELECT Id " +
+			"SELECT id " +
 			"FROM class " +
 			"WHERE urn = ?" +
 		")";
@@ -206,17 +206,17 @@ public class DocumentDaos extends Dao {
 	private static final String SQL_UPDATE_USER_ROLE = 
 		"UPDATE document_user_role " +
 		"SET document_role_id = (" +
-			"SELECT Id " +
+			"SELECT id " +
 			"FROM document_role " +
 			"WHERE role = ?" +
 		") " +
 		"WHERE document_id = (" +
-			"SELECT Id " +
+			"SELECT id " +
 			"FROM document " +
 			"WHERE uuid = ?" +
 		") " +
 		"AND user_id = (" +
-			"SELECT Id " +
+			"SELECT id " +
 			"FROM user " +
 			"WHERE username = ?" +
 		")";
@@ -228,12 +228,12 @@ public class DocumentDaos extends Dao {
 	private static final String SQL_DELETE_CAMPAIGN_ROLE = 
 		"DELETE FROM document_campaign_role " +
 		"WHERE document_id = (" +
-			"SELECT Id " +
+			"SELECT id " +
 			"FROM document " +
 			"WHERE uuid = ?" +
 		") " +
 		"AND campaign_id = (" +
-			"SELECT Id " +
+			"SELECT id " +
 			"FROM campaign " +
 			"WHERE urn = ?" +
 		")";
@@ -241,12 +241,12 @@ public class DocumentDaos extends Dao {
 	private static final String SQL_DELETE_CLASS_ROLE = 
 		"DELETE FROM document_class_role " +
 		"WHERE document_id = (" +
-			"SELECT Id " +
+			"SELECT id " +
 			"FROM document " +
 			"WHERE uuid = ?" +
 		") " +
 		"AND class_id = (" +
-			"SELECT Id " +
+			"SELECT id " +
 			"FROM class " +
 			"WHERE urn = ?" +
 		")";
@@ -254,12 +254,12 @@ public class DocumentDaos extends Dao {
 	private static final String SQL_DELETE_USER_ROLE = 
 		"DELETE FROM document_user_role " +
 		"WHERE document_id = (" +
-			"SELECT Id " +
+			"SELECT id " +
 			"FROM document " +
 			"WHERE uuid = ?" +
 		") " +
 		"AND user_id = (" +
-			"SELECT Id " +
+			"SELECT id " +
 			"FROM user " +
 			"WHERE username = ?" +
 		")";
@@ -557,8 +557,8 @@ public class DocumentDaos extends Dao {
 								rs.getString("name"),
 								rs.getString("description"),
 								rs.getString("privacy_state"),
-								rs.getDate("last_modified_timestamp"),
-								rs.getDate("creation_timestamp"),
+								rs.getTimestamp("last_modified_timestamp"),
+								rs.getTimestamp("creation_timestamp"),
 								rs.getInt("size"),
 								rs.getString("username"));
 					}
