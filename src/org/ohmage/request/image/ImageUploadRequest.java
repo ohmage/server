@@ -15,6 +15,34 @@ import org.ohmage.service.ImageServices;
 import org.ohmage.service.UserImageServices;
 import org.ohmage.validator.ImageValidators;
 
+/**
+ * <p>Stores an image based on the image ID as long as the corresponding prompt
+ * response has already been uploaded via survey/upload</p>
+ * <table border="1">
+ *   <tr>
+ *     <td>Parameter Name</td>
+ *     <td>Description</td>
+ *     <td>Required</td>
+ *   </tr>
+ *   <tr>
+ *     <td>{@value org.ohmage.request.InputKeys#CLIENT}</td>
+ *     <td>A string describing the client that is making this request.</td>
+ *     <td>true</td>
+ *   </tr>
+ *   <tr>
+ *     <td>{@value org.ohmage.request.InputKeys#IMAGE_ID}</td>
+ *     <td>The image's unique identifier.</td>
+ *     <td>true</td>
+ *   </tr>
+ *   <tr>
+ *     <td>{@value org.ohmage.request.InputKeys#DATA}</td>
+ *     <td>The contents of the image.</td>
+ *     <td>false</td>
+ *   </tr>
+ * </table>
+ * 
+ * @author John Jenkins
+ */
 public class ImageUploadRequest extends UserRequest {
 	private static final Logger LOGGER = Logger.getLogger(ImageUploadRequest.class);
 	
