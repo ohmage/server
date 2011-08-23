@@ -549,70 +549,6 @@ public class UserCampaignServices {
 			throw new ServiceException(e);
 		}
 	}
-
-	/**
-	 * Checks that the requesting user can view survey responses for some user.
-	 * There may not actually be any responses to read or the responses may
-	 * need to be made public first. This only guarantees that, if the user has
-	 * any public responses that the requesting user is allowed to view them.
-	 * Therefore, this will pass as long as any of the following are true:
-	 * <br />
-	 * <br />
-	 * - If the user is a supervisor or an author.<br />
-	 * - If the user is an analyst and the campaign is shared.<br />
-	 * - If the user is the requester.<br />
-	 * 
-	 * @param request The Request that is performing this service.
-	 * 
-	 * @param campaignId The unique identifier for the campaign.
-	 * 
-	 * @param requesterUsername The requesting user's username.
-	 * 
-	 * @param userUsername The username of the user about which the requester 
-	 *					   is attempting to read data. If null is passed, it
-	 *					   will check to see if the requesting user can view
-	 *					   survey responses about any user in the campaign.
-	 *
-	 * @throws ServiceException Thrown if none of the rules are true or there 
-	 * 							is an error.
-	 */
-	public static void requesterCanViewUserSurveyResponses(Request request, String campaignId, String requesterUsername, String userUsername) throws ServiceException {
-		try {
-			// If the requester is the same as the user in question.
-			if(requesterUsername.equals(userUsername)) {
-				return;
-			}
-			
-			List<String> requesterRoles = UserCampaignDaos.getUserCampaignRoles(requesterUsername, campaignId);
-			
-			// If the requester's role list contains supervisor, return.
-			if(requesterRoles.contains(CampaignRoleCache.ROLE_SUPERVISOR)) {
-				return;
-			}
-			
-			// If the requester's role list contains author, return.
-			if(requesterRoles.contains(CampaignRoleCache.ROLE_AUTHOR)) {
-				return;
-			}
-			
-			// If the requester's role list contains analyst,
-			if(requesterRoles.contains(CampaignRoleCache.ROLE_ANALYST)) {
-				String privacyState = CampaignDaos.getCampaignPrivacyState(campaignId);
-				
-				if((privacyState != null) && 
-				   (CampaignPrivacyStateCache.PRIVACY_STATE_SHARED.equals(privacyState))) {
-					return;
-				}
-			}
-				
-			request.setFailed(ErrorCodes.CAMPAIGN_INSUFFICIENT_PERMISSIONS, "The user does not have sufficient permissions to read information about other users.");
-			throw new ServiceException("The user does not have sufficient permissions to read information about other users.");
-		}
-		catch(DataAccessException e) {
-			request.setFailed();
-			throw new ServiceException(e);
-		}
-	}
 	
 	/**
 	 * Checks that the requesting user can view survey responses for some 
@@ -641,7 +577,7 @@ public class UserCampaignServices {
 	 * 							is an error.
 	 */
 	public static void requesterCanViewUsersSurveyResponses(Request request, 
-			String campaignId, String requesterUsername, Collection<String> usersUsernames) throws ServiceException {
+			String campaignId, String requesterUsername, String... usersUsernames) throws ServiceException {
 		try {
 			// If the requester is the same as all of the users in question.
 			boolean onlySelf = true;
