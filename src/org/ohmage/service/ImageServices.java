@@ -108,9 +108,20 @@ public final class ImageServices {
 			String imageUrl = ImageDaos.getImageUrl(imageId);
 			
 			if(ImageSize.SMALL.equals(size)) {
-				// If they are requesting the smaller image, we need to parse 
-				// the URL string and insert "-s" at the end.
-				imageUrl = imageUrl + ImageDaos.IMAGE_SCALED_EXTENSION;
+				int imageUrlLength = imageUrl.length();
+				// If it is saved in the old format with the extension, then 
+				// we need to place the scaled extension before the file
+				// extension.
+				if((imageUrlLength >= 4) && (imageUrl.charAt(imageUrlLength - 4) == '.')) {
+					imageUrl = imageUrl.substring(0, imageUrlLength - 4) + 
+							ImageDaos.IMAGE_SCALED_EXTENSION + 
+							imageUrl.substring(imageUrlLength - 4, imageUrlLength);
+				}
+				// If it is saved in the new format without the extension, then
+				// we only need to attach the extension to the end of the URL.
+				else {
+					imageUrl += ImageDaos.IMAGE_SCALED_EXTENSION;
+				}
 			}
 			
 			return (new URL(imageUrl)).openConnection().getInputStream();
