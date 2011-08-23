@@ -435,8 +435,6 @@ public final class SurveyResponseReadRequest extends UserRequest {
 		    LOGGER.info("Retrieving campaign configuration.");
 			this.configuration = CampaignServices.findCampaignConfiguration(this, this.campaignUrn);
 			
-			LOGGER.info(configuration.getSurveyDescriptionFor(surveyIdList.get(0)));
-		    
 			if(! this.promptIdList.isEmpty() && ! this.promptIdList.equals(URN_SPECIAL_ALL_LIST)) {
 				LOGGER.info("Verifying that the prompt ids in the query belong to the campaign.");
 				SurveyResponseReadServices.verifyPromptIdsBelongToConfiguration(this, this.promptIdList, this.configuration);
