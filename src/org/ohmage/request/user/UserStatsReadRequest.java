@@ -132,7 +132,7 @@ public class UserStatsReadRequest extends UserRequest {
 		
 		try {
 			LOGGER.info("Verifying that the requester has permissions to view the survey information.");
-			UserCampaignServices.requesterCanViewUsersSurveyResponses(this, campaignId, getUser().getUsername(), username);
+			UserCampaignServices.requesterCanViewUserSurveyResponses(this, campaignId, getUser().getUsername(), username);
 			
 			LOGGER.info("Verifying that the requester has permissions to view the mobility information.");
 			UserMobilityServices.requesterCanViewUsersMobilityData(this, getUser().getUsername(), username);

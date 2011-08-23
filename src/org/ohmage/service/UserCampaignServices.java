@@ -13,7 +13,6 @@ import org.apache.log4j.Logger;
 import org.ohmage.annotator.ErrorCodes;
 import org.ohmage.cache.CampaignPrivacyStateCache;
 import org.ohmage.cache.CampaignRoleCache;
-import org.ohmage.cache.CampaignRunningStateCache;
 import org.ohmage.dao.CampaignClassDaos;
 import org.ohmage.dao.CampaignDaos;
 import org.ohmage.dao.CampaignSurveyResponseDaos;
@@ -561,17 +560,7 @@ public class UserCampaignServices {
 	 * <br />
 	 * - If the user is a supervisor or an author.<br />
 	 * - If the user is an analyst and the campaign is shared.<br />
-	 * - If the user is the requester and the campaign is running.<br />
-	 * <br />
-	 * If you wish to check if the requester can view shared survey responses  
-	 * about any arbitrary user in a campaign, pass null for the
-	 * 'userUsername'. This is the only parameter that is allowed to be null.
-	 * <br />
-	 * <br />
-	 * If the campaign doesn't exist, this will set the request as failed 
-	 * indicating that the user doesn't have sufficient permissions to view
-	 * other users' survey responses. Therefore, it is highly recommended that
-	 * the campaign's existence be validated before this is run.
+	 * - If the user is the requester.<br />
 	 * 
 	 * @param request The Request that is performing this service.
 	 * 
@@ -587,8 +576,13 @@ public class UserCampaignServices {
 	 * @throws ServiceException Thrown if none of the rules are true or there 
 	 * 							is an error.
 	 */
-	public static void requesterCanViewUsersSurveyResponses(Request request, String campaignId, String requesterUsername, String userUsername) throws ServiceException {
+	public static void requesterCanViewUserSurveyResponses(Request request, String campaignId, String requesterUsername, String userUsername) throws ServiceException {
 		try {
+			// If the requester is the same as the user in question.
+			if(requesterUsername.equals(userUsername)) {
+				return;
+			}
+			
 			List<String> requesterRoles = UserCampaignDaos.getUserCampaignRoles(requesterUsername, campaignId);
 			
 			// If the requester's role list contains supervisor, return.
@@ -611,13 +605,73 @@ public class UserCampaignServices {
 				}
 			}
 				
-			// If the requester is the same as the user in question.
-			if(requesterUsername.equals(userUsername)) {
-				String runningState = CampaignDaos.getCampaignRunningState(campaignId);
-					
-				// If the campaign is running, return.
-				if((runningState != null) && 
-				   (CampaignRunningStateCache.RUNNING_STATE_RUNNING.equals(runningState))) {
+			request.setFailed(ErrorCodes.CAMPAIGN_INSUFFICIENT_PERMISSIONS, "The user does not have sufficient permissions to read information about other users.");
+			throw new ServiceException("The user does not have sufficient permissions to read information about other users.");
+		}
+		catch(DataAccessException e) {
+			request.setFailed();
+			throw new ServiceException(e);
+		}
+	}
+	
+	/**
+	 * Checks that the requesting user can view survey responses for some 
+	 * collection of users. There may not actually be any responses to read or
+	 * the responses may need to be made public first. This only guarantees 
+	 * that, if the other users have any public responses that the requesting
+	 * user is allowed to view them. Therefore, this will pass as long as any 
+	 * of the following are true:
+	 * <br />
+	 * <br />
+	 * - If the user is a supervisor or an author.<br />
+	 * - If the user is an analyst and the campaign is shared.<br />
+	 * - If the user is the same as all of the requesting users.<br />
+	 * 
+	 * @param request The Request that is performing this service.
+	 * 
+	 * @param campaignId The unique identifier for the campaign.
+	 * 
+	 * @param requesterUsername The requesting user's username.
+	 * 
+	 * @param usersUsernames A list of usernames to check that that the 
+	 * 						 requesting user has permission to read their 
+	 * 						 shared survey responses.
+	 *
+	 * @throws ServiceException Thrown if none of the rules are true or there 
+	 * 							is an error.
+	 */
+	public static void requesterCanViewUsersSurveyResponses(Request request, 
+			String campaignId, String requesterUsername, Collection<String> usersUsernames) throws ServiceException {
+		try {
+			// If the requester is the same as all of the users in question.
+			boolean onlySelf = true;
+			for(String username : usersUsernames) {
+				if(! requesterUsername.equals(username)) {
+					onlySelf = false;
+				}
+			}
+			if(onlySelf) {
+				return;
+			}
+			
+			List<String> requesterRoles = UserCampaignDaos.getUserCampaignRoles(requesterUsername, campaignId);
+			
+			// If the requester's role list contains supervisor, return.
+			if(requesterRoles.contains(CampaignRoleCache.ROLE_SUPERVISOR)) {
+				return;
+			}
+			
+			// If the requester's role list contains author, return.
+			if(requesterRoles.contains(CampaignRoleCache.ROLE_AUTHOR)) {
+				return;
+			}
+			
+			// If the requester's role list contains analyst,
+			if(requesterRoles.contains(CampaignRoleCache.ROLE_ANALYST)) {
+				String privacyState = CampaignDaos.getCampaignPrivacyState(campaignId);
+				
+				if((privacyState != null) && 
+				   (CampaignPrivacyStateCache.PRIVACY_STATE_SHARED.equals(privacyState))) {
 					return;
 				}
 			}

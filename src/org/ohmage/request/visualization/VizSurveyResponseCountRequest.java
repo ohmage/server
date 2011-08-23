@@ -1,5 +1,7 @@
 package org.ohmage.request.visualization;
 
+import java.util.ArrayList;
+
 import javax.servlet.http.HttpServletRequest;
 
 import org.apache.log4j.Logger;
@@ -53,7 +55,7 @@ public class VizSurveyResponseCountRequest extends VisualizationRequest {
 		
 		try {
 			LOGGER.info("Verifying the user is able to read survey responses about other users.");
-			UserCampaignServices.requesterCanViewUsersSurveyResponses(this, getCampaignId(), getUser().getUsername(), null);
+			UserCampaignServices.requesterCanViewUsersSurveyResponses(this, getCampaignId(), getUser().getUsername(), new ArrayList<String>(0));
 			
 			LOGGER.info("Making the request to the visualization server.");
 			setImage(VisualizationServices.sendVisualizationRequest(this, REQUEST_PATH, getUser().getToken(), 
