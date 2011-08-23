@@ -21,4 +21,5 @@ public final class PromptTypeKeys {
 	public static final String TYPE_TIMESTAMP = "timestamp";
 	public static final String TYPE_TEXT = "text";
 	public static final String TYPE_IMAGE = "photo";
+	public static final String TYPE_REMOTE_ACTIVITY = "remote_activity";
 }

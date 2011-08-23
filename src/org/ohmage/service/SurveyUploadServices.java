@@ -20,6 +20,7 @@ import org.ohmage.validator.prompt.MultiChoiceCustomPromptValidator;
 import org.ohmage.validator.prompt.MultiChoicePromptValidator;
 import org.ohmage.validator.prompt.PromptValidator;
 import org.ohmage.validator.prompt.RangeBoundNumberPromptValidator;
+import org.ohmage.validator.prompt.RemoteActivityPromptValidator;
 import org.ohmage.validator.prompt.SingleChoiceCustomPromptValidator;
 import org.ohmage.validator.prompt.SingleChoicePromptValidator;
 import org.ohmage.validator.prompt.TextWithinRangePromptValidator;
@@ -73,6 +74,7 @@ public final class SurveyUploadServices {
 		PROMPT_VALIDATOR_MAP.put(PromptTypeKeys.TYPE_SINGLE_CHOICE_CUSTOM, new SingleChoiceCustomPromptValidator());
 		PROMPT_VALIDATOR_MAP.put(PromptTypeKeys.TYPE_TEXT, new TextWithinRangePromptValidator());
 		PROMPT_VALIDATOR_MAP.put(PromptTypeKeys.TYPE_TIMESTAMP, new TimestampPromptValidator());
+		PROMPT_VALIDATOR_MAP.put(PromptTypeKeys.TYPE_REMOTE_ACTIVITY, new RemoteActivityPromptValidator());
 	}
 	
 	/**
