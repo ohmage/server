@@ -83,7 +83,7 @@ public class VizUserTimeseriesRequest extends VisualizationRequest {
 			UserServices.checkUserExistance(this, username, true);
 			
 			LOGGER.info("Verifying that the requester has permissions to view another user's data.");
-			UserCampaignServices.requesterCanViewUserSurveyResponses(this, getCampaignId(), getUser().getUsername(), username);
+			UserCampaignServices.requesterCanViewUsersSurveyResponses(this, getCampaignId(), getUser().getUsername(), username);
 			
 			Map<String, String> parameters = getVisualizationParameters();
 			parameters.put(VisualizationServices.PARAMETER_KEY_PROMPT_ID, promptId);

@@ -1,6 +1,5 @@
 package org.ohmage.request.visualization;
 
-import java.util.ArrayList;
 import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
@@ -55,7 +54,7 @@ public class VizSurveyResponsePrivacyStateTimeseriesRequest extends Visualizatio
 		
 		try {
 			LOGGER.info("Verifying the user is able to read survey responses about other users.");
-			UserCampaignServices.requesterCanViewUsersSurveyResponses(this, getCampaignId(), getUser().getUsername(), new ArrayList<String>(0));
+			UserCampaignServices.requesterCanViewUsersSurveyResponses(this, getCampaignId(), getUser().getUsername());
 			
 			Map<String, String> parameters = getVisualizationParameters();
 			parameters.remove(VisualizationServices.PARAMETER_KEY_PRIVACY_STATE);
