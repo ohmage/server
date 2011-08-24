@@ -29,6 +29,12 @@
     </constructor-arg>
   </bean>
   
+  <bean class="org.ohmage.dao.CampaignDocumentDaos">
+    <constructor-arg>
+      <ref bean="dataSource" />
+    </constructor-arg>
+  </bean>
+  
   <bean class="org.ohmage.dao.CampaignImageDaos">
     <constructor-arg>
       <ref bean="dataSource" />
@@ -42,6 +48,12 @@
   </bean>
 
   <bean class="org.ohmage.dao.ClassDaos">
+    <constructor-arg>
+      <ref bean="dataSource" />
+    </constructor-arg>
+  </bean>
+
+  <bean class="org.ohmage.dao.ClassDocumentDaos">
     <constructor-arg>
       <ref bean="dataSource" />
     </constructor-arg>

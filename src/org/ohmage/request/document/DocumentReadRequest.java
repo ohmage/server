@@ -1,5 +1,6 @@
 package org.ohmage.request.document;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -73,7 +74,7 @@ public class DocumentReadRequest extends UserRequest {
 	private final List<String> campaignIds;
 	private final List<String> classIds;
 	
-	private Set<DocumentInformation> result;
+	private List<DocumentInformation> result;
 	
 	/**
 	 * Creates a new document read request from the information in the 
@@ -122,7 +123,7 @@ public class DocumentReadRequest extends UserRequest {
 		campaignIds = tempCampaignIds;
 		classIds = tempClassIds;
 		
-		result = new HashSet<DocumentInformation>();
+		result = new ArrayList<DocumentInformation>(0);
 	}
 
 	/**
@@ -147,20 +148,25 @@ public class DocumentReadRequest extends UserRequest {
 				UserClassServices.classesExistAndUserBelongs(this, classIds, getUser().getUsername());
 			}
 			
+			Set<String> documentIds = new HashSet<String>();
+			
 			if(personalDocuments) {
 				LOGGER.info("Gathering information about the documents that are specific to this user.");
-				result.addAll(UserDocumentServices.getDocumentsSpecificToUser(this, getUser().getUsername())); 
+				documentIds.addAll(UserDocumentServices.getDocumentsSpecificToUser(this, getUser().getUsername())); 
 			}
 			
 			if(campaignIds != null) {
 				LOGGER.info("Gathering information about the documents that are visible to this user in the parameterized campaigns.");
-				result.addAll(UserCampaignDocumentServices.getVisibleDocumentsSpecificToCampaigns(this, getUser().getUsername(), campaignIds));
+				documentIds.addAll(UserCampaignDocumentServices.getVisibleDocumentsSpecificToCampaigns(this, getUser().getUsername(), campaignIds));
 			}
 		
 			if(classIds != null) {
 				LOGGER.info("Gathering information about the documents that are visible to this user in the parameterized classes.");
-				result.addAll(UserClassDocumentServices.getVisibleDocumentsSpecificToClasses(this, getUser().getUsername(), classIds));
+				documentIds.addAll(UserClassDocumentServices.getVisibleDocumentsSpecificToClasses(this, getUser().getUsername(), classIds));
 			}
+			
+			LOGGER.info("Gathering the specific information about each of the documents.");
+			result = UserDocumentServices.getDocumentInformationForDocumentsWithUser(this, getUser().getUsername(), documentIds);
 		}
 		catch(ServiceException e) {
 			e.logException(LOGGER);

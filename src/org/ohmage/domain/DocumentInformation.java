@@ -35,6 +35,17 @@ import org.ohmage.util.TimeUtils;
 public class DocumentInformation {	
 	private static final Logger LOGGER = Logger.getLogger(DocumentInformation.class);
 	
+	private static final String JSON_KEY_NAME = "name";
+	private static final String JSON_KEY_DESCRIPTION = "description";
+	private static final String JSON_KEY_PRIVACY_STATE = "privacy_state";
+	private static final String JSON_KEY_LAST_MODIFIED = "last_modified";
+	private static final String JSON_KEY_CREATION_DATE = "creation_date";
+	private static final String JSON_KEY_SIZE = "size";
+	private static final String JSON_KEY_CREATOR = "creator";
+	private static final String JSON_KEY_USER_ROLE = "user_role";
+	private static final String JSON_KEY_CAMPAIGN_ROLE = "campaign_role";
+	private static final String JSON_KEY_CLASS_ROLE = "class_role";
+	
 	private final String documentId;
 	private final String name;
 	private final String description;
@@ -179,12 +190,11 @@ public class DocumentInformation {
 	 * 
 	 * @param documentRole The role for the user that owns this object.
 	 * 
-	 * @throws IllegalArgumentException Thrown if the role is null or 
-	 * 									whitespace only.
+	 * @throws IllegalArgumentException Thrown if the role is unknown.
 	 */
 	public void addUserRole(String documentRole) {
 		if(! DocumentRoleCache.instance().getKeys().contains(documentRole)) {
-			throw new IllegalArgumentException("The role cannot be null or whitespace only.");
+			throw new IllegalArgumentException("The role is unknown.");
 		}
 		
 		userRole = documentRole;
@@ -221,7 +231,7 @@ public class DocumentInformation {
 			throw new IllegalArgumentException("The campaign ID cannot be null or whitespace only.");
 		}
 		else if(! DocumentRoleCache.instance().getKeys().contains(documentRole)) {
-			throw new IllegalArgumentException("The role cannot be null or whitespace only.");
+			throw new IllegalArgumentException("The role is unknown.");
 		}
 		
 		return campaignAndRole.put(campaignId, documentRole);
@@ -260,7 +270,7 @@ public class DocumentInformation {
 			throw new IllegalArgumentException("The class ID cannot be null or whitespace only.");
 		}
 		else if(! DocumentRoleCache.instance().getKeys().contains(documentRole)) {
-			throw new IllegalArgumentException("The role cannot be null or whitespace only.");
+			throw new IllegalArgumentException("The role is unknown.");
 		}
 		
 		return classAndRole.put(classId, documentRole);
@@ -285,17 +295,17 @@ public class DocumentInformation {
 		try {
 			JSONObject result = new JSONObject();
 			
-			result.put("name", name);
-			result.put("description", ((description ==  null) ? "" : description));
-			result.put("privacy_state", privacyState);
-			result.put("last_modified", TimeUtils.getIso8601DateTimeString(lastModified));
-			result.put("creation_date", TimeUtils.getIso8601DateTimeString(creationDate));
-			result.put("size", size);
-			result.put("creator", creator);
+			result.put(JSON_KEY_NAME, name);
+			result.put(JSON_KEY_DESCRIPTION, ((description ==  null) ? "" : description));
+			result.put(JSON_KEY_PRIVACY_STATE, privacyState);
+			result.put(JSON_KEY_LAST_MODIFIED, TimeUtils.getIso8601DateTimeString(lastModified));
+			result.put(JSON_KEY_CREATION_DATE, TimeUtils.getIso8601DateTimeString(creationDate));
+			result.put(JSON_KEY_SIZE, size);
+			result.put(JSON_KEY_CREATOR, creator);
 			
-			result.put("user_role", ((userRole == null) ? "" : userRole));
-			result.put("campaign_roles", new JSONObject(campaignAndRole));
-			result.put("class_role", new JSONObject(classAndRole));
+			result.put(JSON_KEY_USER_ROLE, ((userRole == null) ? "" : userRole));
+			result.put(JSON_KEY_CAMPAIGN_ROLE, new JSONObject(campaignAndRole));
+			result.put(JSON_KEY_CLASS_ROLE, new JSONObject(classAndRole));
 			
 			return result;
 		}
@@ -304,138 +314,41 @@ public class DocumentInformation {
 			return null;
 		}
 	}
-	
+
 	/**
-	 * Generates a hash code for this object.
+	 * Generates a hash code which must compare the same variables as 
+	 * {@link #equals(Object)}.
+	 * 
+	 * @see #equals(Object)
 	 */
 	@Override
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
 		result = prime * result
-				+ ((campaignAndRole == null) ? 0 : campaignAndRole.hashCode());
-		result = prime * result
-				+ ((classAndRole == null) ? 0 : classAndRole.hashCode());
-		result = prime * result
-				+ ((creationDate == null) ? 0 : creationDate.hashCode());
-		result = prime * result + ((creator == null) ? 0 : creator.hashCode());
-		result = prime * result
-				+ ((description == null) ? 0 : description.hashCode());
-		result = prime * result
 				+ ((documentId == null) ? 0 : documentId.hashCode());
-		result = prime * result
-				+ ((lastModified == null) ? 0 : lastModified.hashCode());
-		result = prime * result + ((name == null) ? 0 : name.hashCode());
-		result = prime * result
-				+ ((privacyState == null) ? 0 : privacyState.hashCode());
-		result = prime * result + size;
-		result = prime * result
-				+ ((userRole == null) ? 0 : userRole.hashCode());
 		return result;
 	}
 
 	/**
-	 * Compares this object to another object and returns whether or not they
-	 * are equal. 
+	 * The system should never have to DocumentInformation objects with the 
+	 * same document ID but different contents. Therefore, all we need to check
+	 * is the document ID between the two objects.
 	 */
 	@Override
 	public boolean equals(Object obj) {
-		if (this == obj) {
+		if (this == obj)
 			return true;
-		}
-		if (obj == null) {
+		if (obj == null)
 			return false;
-		}
-		if (getClass() != obj.getClass()) {
+		if (getClass() != obj.getClass())
 			return false;
-		}
-		
 		DocumentInformation other = (DocumentInformation) obj;
-		
-		if (campaignAndRole == null) {
-			if (other.campaignAndRole != null) {
-				return false;
-			}
-		} else if (!campaignAndRole.equals(other.campaignAndRole)) {
-			return false;
-		}
-		
-		if (classAndRole == null) {
-			if (other.classAndRole != null) {
-				return false;
-			}
-		} else if (!classAndRole.equals(other.classAndRole)) {
-			return false;
-		}
-		
-		if (creationDate == null) {
-			if (other.creationDate != null) {
-				return false;
-			}
-		} else if (!creationDate.equals(other.creationDate)) {
-			return false;
-		}
-		
-		if (creator == null) {
-			if (other.creator != null) {
-				return false;
-			}
-		} else if (!creator.equals(other.creator)) {
-			return false;
-		}
-		
-		if (description == null) {
-			if (other.description != null) {
-				return false;
-			}
-		} else if (!description.equals(other.description)) {
-			return false;
-		}
-		
 		if (documentId == null) {
-			if (other.documentId != null) {
+			if (other.documentId != null)
 				return false;
-			}
-		} else if (!documentId.equals(other.documentId)) {
+		} else if (!documentId.equals(other.documentId))
 			return false;
-		}
-		
-		if (lastModified == null) {
-			if (other.lastModified != null) {
-				return false;
-			}
-		} else if (!lastModified.equals(other.lastModified)) {
-			return false;
-		}
-		
-		if (name == null) {
-			if (other.name != null) {
-				return false;
-			}
-		} else if (!name.equals(other.name)) {
-			return false;
-		}
-		
-		if (privacyState == null) {
-			if (other.privacyState != null) {
-				return false;
-			}
-		} else if (!privacyState.equals(other.privacyState)) {
-			return false;
-		}
-		
-		if (size != other.size) {
-			return false;
-		}
-		
-		if (userRole == null) {
-			if (other.userRole != null) {
-				return false;
-			}
-		} else if (!userRole.equals(other.userRole)) {
-			return false;
-		}
-		
 		return true;
 	}
 }

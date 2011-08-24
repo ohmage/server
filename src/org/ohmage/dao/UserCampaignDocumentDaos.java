@@ -1,6 +1,5 @@
 package org.ohmage.dao;
 
-import java.util.LinkedList;
 import java.util.List;
 
 import javax.sql.DataSource;
@@ -8,7 +7,6 @@ import javax.sql.DataSource;
 import org.ohmage.cache.CampaignRoleCache;
 import org.ohmage.cache.DocumentPrivacyStateCache;
 import org.ohmage.cache.DocumentRoleCache;
-import org.ohmage.domain.DocumentInformation;
 import org.ohmage.exception.DataAccessException;
 import org.springframework.jdbc.core.SingleColumnRowMapper;
 
@@ -53,9 +51,9 @@ public final class UserCampaignDocumentDaos extends Dao {
 		"AND dcar.campaign_id = urc.campaign_id " +
 		"AND urc.user_id = u.id " +
 		"AND urc.user_role_id = ur.id " +
+		"AND d.privacy_state_id = dps.id " +
 		"AND (" +
-			"(d.privacy_state_id = dps.id " +
-			"AND dps.privacy_state = '" + DocumentPrivacyStateCache.PRIVACY_STATE_SHARED + "')" +
+			"(dps.privacy_state = '" + DocumentPrivacyStateCache.PRIVACY_STATE_SHARED + "')" +
 			" OR " +
 			"(ur.role = '" + CampaignRoleCache.ROLE_SUPERVISOR + "')" +
 			" OR " +
@@ -76,23 +74,22 @@ public final class UserCampaignDocumentDaos extends Dao {
 	}
 	
 	/**
-	 * Gathers the information about all of the documents in a campaign that
-	 * are visible to the requesting user.
+	 * Retrieves the list of document IDs for all of the documents associated
+	 * with a campaign.
 	 * 
 	 * @param username The username of the requesting user.
 	 * 
-	 * @param campaignId The campaign ID for the campaign whose information is
-	 * 					 desired.
+	 * @param campaignId The campaign's unique identifier.
 	 * 
-	 * @return Returns a List of DocumentInformation objects where each object
-	 * 		   represents a document visible to the user in the campaign.
+	 * @return A list of document IDs.
+	 * 
+	 * @throws DataAccessException Thrown if there is an error.
 	 */
-	public static List<DocumentInformation> getVisibleDocumentsToUserInCampaign(String username, String campaignId) 
+	public static List<String> getVisibleDocumentsToUserInCampaign(String username, String campaignId) 
 	 	throws DataAccessException {
 		
-		List<String> documentList;
 		try {
-			documentList = instance.getJdbcTemplate().query(
+			return instance.getJdbcTemplate().query(
 					SQL_GET_DOCUMENTS_SPECIFIC_TO_CAMPAIGN_FOR_REQUESTING_USER, 
 					new Object[] { username, campaignId },
 					new SingleColumnRowMapper<String>());
@@ -101,14 +98,6 @@ public final class UserCampaignDocumentDaos extends Dao {
 			throw new DataAccessException("Error executing SQL '" + SQL_GET_DOCUMENTS_SPECIFIC_TO_CAMPAIGN_FOR_REQUESTING_USER + " with parameters: " +
 					username + ", " + campaignId, e);
 		}
-		
-		List<DocumentInformation> result = new LinkedList<DocumentInformation>();
-		
-		for(String documentId : documentList) {
-			result.add(DocumentDaos.getDocumentInformation(documentId));
-		}
-		
-		return result;
 	}
 	
 	/**
