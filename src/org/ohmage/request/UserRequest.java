@@ -14,8 +14,10 @@ import org.ohmage.annotator.ErrorCodes;
 import org.ohmage.cache.UserBin;
 import org.ohmage.domain.User;
 import org.ohmage.exception.ServiceException;
+import org.ohmage.exception.ValidationException;
 import org.ohmage.service.AuthenticationService;
 import org.ohmage.util.CookieUtils;
+import org.ohmage.util.StringUtils;
 
 /**
  * A request that contains a User object and a client String that represents
@@ -31,134 +33,10 @@ public abstract class UserRequest extends Request {
 	
 	protected static final long MILLIS_IN_A_SECOND = 1000;
 	
+	private static final int MAX_CLIENT_LENGTH = 255;
+	
 	private final User user;
 	private final String client;
-	
-	/**
-	 * Builds a request that contains a user based on a username and password.
-	 * 
-	 * @param username The username of the requester.
-	 * 
-	 * @param password The password of the requester.
-	 * 
-	 * @param hashPassword Whether or not the user's password should be hashed 
-	 * 					   before being used.
-	 * 
-	 * @param client The name of the client requester is using to make the
-	 * 				 request.
-	 * 
-	 * @deprecated This does not check if there are duplicate parameters. Use
-	 * 			   {@link #UserRequest(HttpServletRequest, boolean)} instead.
-	 */
-	public UserRequest(String username, String password, boolean hashPassword, String client) {
-		super(null);
-		
-		// This will either be reset as a new User object or the request will 
-		// have failed.
-		User tempUser = null;
-		
-		try {
-			// Create the new User object for this request.
-			tempUser = new User(username, password, hashPassword);
-		}
-		catch(IllegalArgumentException e) {
-			LOGGER.info("The User could not be created because the username and/or password were missing.");
-			setFailed(ErrorCodes.AUTHENTICATION_FAILED, "Missing username and/or password.");
-		}
-		
-		user = tempUser;
-		this.client = client;
-	}
-
-	/**
-	 * Builds a request that contains a user based on their user token.
-	 * 
-	 * @param token The requester's current authentication / session token.
-	 * 
-	 * @param client The name of the client the requester is using to make the
-	 * 				 request.
-	 * 
-	 * @deprecated This does not check if there are duplicate parameters. Use
-	 * 			   {@link #UserRequest(HttpServletRequest, TokenLocation)}
-	 * 			   instead.
-	 */
-	public UserRequest(String token, String client) {
-		super(null);
-		
-		// This will either be reset as a new User object or the request will 
-		// have failed.
-		User tempUser = null;
-		
-		if(token != null) {
-			tempUser = UserBin.getUser(token);
-		}
-		
-		// If the bin doesn't know about the user, set the request as 
-		// failed.
-		if(tempUser == null) {
-			LOGGER.info("The user object could not be created because the token was unknown.");
-			setFailed(ErrorCodes.AUTHENTICATION_FAILED, "Unkown token.");
-		}
-		
-		user = tempUser;
-		this.client = client;
-	}
-	
-	/**
-	 * Build a request that contains first a username and password, but if that
-	 * fails attempt to create them from a token. If both fail, then set the
-	 * request as failed.
-	 * 
-	 * For a successful login, either the username and the password should be
-	 * valid or the token should be valid.
-	 * 
-	 * @param username The username of the requester.
-	 * 
-	 * @param password The password of the requester.
-	 * 
-	 * @param hashPassword Whether or not the password should be hashed before
-	 * 					   being used.
-	 * 
-	 * @param token The requester's authentication / session token.
-	 * 
-	 * @param client The name of the client the requester is using to make the
-	 * 				 request.
-	 * 
-	 * @deprecated This does not check if there are duplicate parameters. Use
-	 * 			   {@link #UserRequest(HttpServletRequest, TokenLocation, boolean)}
-	 * 			   instead.
-	 */
-	public UserRequest(String username, String password, boolean hashPassword, String token, String client) {
-		super(null);
-		
-		// This will either be reset as a new User object or the request will 
-		// have failed.
-		User tempUser = null;
-		
-		try {
-			// Create the new User object for this request.
-			tempUser = new User(username, password, hashPassword);
-		}
-		// If user creation failed, try to lookup a user with the token.
-		catch(IllegalArgumentException e) {
-			LOGGER.info("The username and/or password were missing. Attempting to validate the user with a token.");
-			
-			// Attempt to retrieve the user.
-			if(token != null) {
-				tempUser = UserBin.getUser(token);
-			}
-			
-			// If the bin doesn't know about the user, set the request as 
-			// failed.
-			if(tempUser == null) {
-				LOGGER.info("The username and/or password and the token were all invalid or missing.");
-				setFailed(ErrorCodes.AUTHENTICATION_FAILED, "Missing username and password and authentication token.");
-			}
-		}
-		
-		user = tempUser;
-		this.client = client;
-	}
 	
 	/**
 	 * Creates a Request from a username and password in the request.
@@ -231,91 +109,21 @@ public abstract class UserRequest extends Request {
 			}
 			else {
 				// Save the client.
-				tClient = clients[0];
-				
-				// Push the client into the logs.
-				NDC.push("client=" + tClient);
-			}
-		}
-		
-		user = tUser;
-		client = tClient;
-	}
-	
-	/*
-	public UserRequest(Map<String, String[]> parameters, boolean hashPassword) {
-		super();
-		
-		User tUser = null;
-		
-		// Attempt to retrieve all usernames passed to the server.
-		String[] usernames = parameters.get(InputKeys.USER);
-		
-		// If it is missing, fail the request.
-		if((usernames == null) || (usernames.length == 0)) {
-			LOGGER.info("The username is missing from the request.");
-			setFailed(ErrorCodes.AUTHENTICATION_FAILED, "Missing username.");
-		}
-		// If there is more than one, fail the request.
-		else if(usernames.length > 1) {
-			LOGGER.info("More than one username was given.");
-			setFailed(ErrorCodes.AUTHENTICATION_FAILED, "More than one username was given.");
-		}
-		else {
-			// If exactly one username is found, attempt to retrieve all 
-			// paswords sent to the server.
-			String[] passwords = parameters.get(InputKeys.PASSWORD);
-			
-			// If it is missing, fail the request.
-			if((passwords == null) || (passwords.length == 0)) {
-				LOGGER.info("The password is missing from the request.");
-				setFailed(ErrorCodes.AUTHENTICATION_FAILED, "Missing password.");
-			}
-			// If there are more than one, fail the request.
-			else if(passwords.length > 1) {
-				LOGGER.info("More than one password was given.");
-				setFailed(ErrorCodes.AUTHENTICATION_FAILED, "More than one password was given.");
-			}
-			else {
-				// Attempt to create the new User object for this request.
 				try {
-					tUser = new User(usernames[0], passwords[0], hashPassword);
+					tClient = validateClient(clients[0]);
+					
+					// Push the client into the logs.
+					NDC.push("client=" + tClient);
 				}
-				catch(IllegalArgumentException e) {
-					LOGGER.info("The username and/or password are invalid.");
-					setFailed(ErrorCodes.AUTHENTICATION_FAILED, "The username and/or password are invalid.");
+				catch(ValidationException e) {
+					LOGGER.info(e.toString());
 				}
-			}
-		}
-		
-		// Retrieve the client parameter(s) from the request.
-		String tClient = null;
-		String[] clients = parameters.get(InputKeys.CLIENT);
-		
-		if(! isFailed()) {
-			// If there is no client, throw an error.
-			if((clients == null) || (clients.length == 0)) {
-				LOGGER.info("The client is missing from the request.");
-				setFailed(ErrorCodes.AUTHENTICATION_FAILED, "Missing client.");
-			}
-			// If there are multiple clients, throw an error.
-			else if(clients.length > 1) {
-				LOGGER.info("More than one client was given.");
-				setFailed(ErrorCodes.AUTHENTICATION_FAILED, "More than one client was given.");
-			}
-			else {
-				// Save the client.
-				tClient = clients[0];
-				
-				// Push the client into the logs.
-				NDC.push("client=" + tClient);
 			}
 		}
 		
 		user = tUser;
 		client = tClient;
 	}
-	*/
 	
 	/**
 	 * Creates a Request from an authentication token.
@@ -407,10 +215,15 @@ public abstract class UserRequest extends Request {
 			}
 			else {
 				// Save the client.
-				tClient = clients[0];
-				
-				// Push the client into the logs.
-				NDC.push("client=" + tClient);
+				try {
+					tClient = validateClient(clients[0]);
+					
+					// Push the client into the logs.
+					NDC.push("client=" + tClient);
+				}
+				catch(ValidationException e) {
+					LOGGER.info(e.toString());
+				}
 			}
 		}
 		
@@ -561,10 +374,15 @@ public abstract class UserRequest extends Request {
 			}
 			else {
 				// Save the client.
-				tClient = clients[0];
-				
-				// Push the client into the logs.
-				NDC.push("client=" + tClient);
+				try {
+					tClient = validateClient(clients[0]);
+					
+					// Push the client into the logs.
+					NDC.push("client=" + tClient);
+				}
+				catch(ValidationException e) {
+					LOGGER.info(e.toString());
+				}
 			}
 		}
 		
@@ -694,4 +512,29 @@ public abstract class UserRequest extends Request {
 	/**************************************************************************
 	 *  End JEE Requirements
 	 *************************************************************************/
+	
+	/**
+	 * Validates that a client value is valid.
+	 * 
+	 * @param client The client value to be validated.
+	 * 
+	 * @return Returns null if the client value is null or whitespace only;
+	 * 		   otherwise, it returns the client value.
+	 * 
+	 * @throws ValidationException Thrown if the client value is not null, not
+	 * 							   whitespace only, and not a valid client
+	 * 							   value.
+	 */
+	private final String validateClient(String client) throws ValidationException {
+		if(StringUtils.isEmptyOrWhitespaceOnly(client)) {
+			return null;
+		}
+		
+		if(client.length() > MAX_CLIENT_LENGTH) {
+			setFailed(ErrorCodes.SERVER_INVALID_CLIENT, "The client value is too long.");
+			throw new ValidationException("The client value is too long.");
+		}
+		
+		return client;
+	}
 }
