@@ -471,240 +471,250 @@ public final class SurveyResponseReadRequest extends UserRequest {
 		Writer writer = null;
 		
 		try {
-			// Prepare for sending the response to the client
 			writer = new BufferedWriter(new OutputStreamWriter(getOutputStream(httpRequest, httpResponse)));
-			String responseText = null;
 			
-			// Sets the HTTP headers to disable caching
-			expireResponse(httpResponse);
-			
-			final String token = this.getUser().getToken(); 
-			if(token != null) {
-				CookieUtils.setCookieValue(httpResponse, InputKeys.AUTH_TOKEN, token, (int) (UserBin.getTokenRemainingLifetimeInMillis(token) / MILLIS_IN_A_SECOND));
-			}
-			
-			// Set the content type depending on the output format the 
-			// requester requested.
-			if(OUTPUT_FORMAT_CSV.equals(this.outputFormat)) {
+			// Don't attempt to generate output if the request has failed.
+			// If the request ever failed, write an error message.
+			if(isFailed()) {
 				
-				httpResponse.setContentType("text/csv");
-				httpResponse.setHeader("Content-Disposition", "attachment; f.txt");
+				writer.write(getFailureMessage());
 				
 			} else {
 				
-				httpResponse.setContentType("application/json");
-			}
-			
-			// Build the appropriate response 
-			if(! isFailed()) {
+				// Prepare for sending the response to the client
+				String responseText = null;
 				
-				List<String> columnList = this.columnList;
-				List<String> outputColumns = new ArrayList<String>();
-				List<SurveyResponseReadIndexedResult> indexedResultList = new ArrayList<SurveyResponseReadIndexedResult>();
+				// Sets the HTTP headers to disable caching
+				expireResponse(httpResponse);
 				
-				// Build the column headers
-				// Each column is a Map with a list containing the values for each row
+				final String token = this.getUser().getToken(); 
+				if(token != null) {
+					CookieUtils.setCookieValue(httpResponse, InputKeys.AUTH_TOKEN, token, (int) (UserBin.getTokenRemainingLifetimeInMillis(token) / MILLIS_IN_A_SECOND));
+				}
 				
-				if(URN_SPECIAL_ALL.equals(columnList.get(0))) {
-					outputColumns.addAll(ALLOWED_COLUMN_URN_LIST);
+				// Set the content type depending on the output format the 
+				// requester requested.
+				if(OUTPUT_FORMAT_CSV.equals(this.outputFormat)) {
+					
+					httpResponse.setContentType("text/csv");
+					httpResponse.setHeader("Content-Disposition", "attachment; f.txt");
+					
 				} else {
-					outputColumns.addAll(columnList);
+					
+					httpResponse.setContentType("application/json");
 				}
 				
-				if(columnList.contains(URN_PROMPT_RESPONSE) || URN_SPECIAL_ALL.equals(columnList.get(0))) {
-					// The logic here is that if the user is requesting results for survey ids, they want all of the prompts
-					// for those survey ids
-					// So, loop through the results and find all of the unique prompt ids by forcing them into a Set
-					Set<String> promptIdSet = new HashSet<String>();
+				// Build the appropriate response 
+				if(! isFailed()) {
 					
-					if(0 != surveyResponseList.size()) {
-						for(SurveyResponseReadResult result : surveyResponseList) {
-							
-							promptIdSet.add(URN_PROMPT_ID_PREFIX + result.getPromptId());
-						}
-						outputColumns.addAll(promptIdSet);
-					}
-				}
-				
-				// get rid of urn:ohmage:prompt:response because it has been replaced with specific prompt ids
-				// the list will be unchanged if it didn't already contain urn:ohmage:prompt:response 
-				outputColumns.remove(URN_PROMPT_RESPONSE);
-				
-				// For every result found by the query, the prompt responses need to be rolled up so they are all stored
-				// with their associated survey response and metadata. Each prompt response is returned from the db in its
-				// own row and the rows can have different sort orders.
-				
-				boolean isCsv = OUTPUT_FORMAT_CSV.equals(this.outputFormat);
-				
-				for(SurveyResponseReadResult result : surveyResponseList) {
+					List<String> columnList = this.columnList;
+					List<String> outputColumns = new ArrayList<String>();
+					List<SurveyResponseReadIndexedResult> indexedResultList = new ArrayList<SurveyResponseReadIndexedResult>();
 					
-					if(indexedResultList.isEmpty()) { // first time thru 
-						indexedResultList.add(new SurveyResponseReadIndexedResult(result, isCsv));
+					// Build the column headers
+					// Each column is a Map with a list containing the values for each row
+					
+					if(URN_SPECIAL_ALL.equals(columnList.get(0))) {
+						outputColumns.addAll(ALLOWED_COLUMN_URN_LIST);
+					} else {
+						outputColumns.addAll(columnList);
 					}
-					else {
-						int numberOfIndexedResults = indexedResultList.size();
-						boolean found = false;
-						for(int i = 0; i < numberOfIndexedResults; i++) {
-							if(indexedResultList.get(i).getKey().keysAreEqual(result.getUsername(),
-									                                          result.getTimestamp(),
-									                                          result.getSurveyId(),
-									                                          result.getRepeatableSetId(),
-									                                          result.getRepeatableSetIteration())) {
+					
+					if(columnList.contains(URN_PROMPT_RESPONSE) || URN_SPECIAL_ALL.equals(columnList.get(0))) {
+						// The logic here is that if the user is requesting results for survey ids, they want all of the prompts
+						// for those survey ids
+						// So, loop through the results and find all of the unique prompt ids by forcing them into a Set
+						Set<String> promptIdSet = new HashSet<String>();
+						
+						if(0 != surveyResponseList.size()) {
+							for(SurveyResponseReadResult result : surveyResponseList) {
 								
-								found = true;
-								indexedResultList.get(i).addPromptResponse(result, isCsv);
+								promptIdSet.add(URN_PROMPT_ID_PREFIX + result.getPromptId());
 							}
+							outputColumns.addAll(promptIdSet);
 						}
-						if(! found) {
+					}
+					
+					// get rid of urn:ohmage:prompt:response because it has been replaced with specific prompt ids
+					// the list will be unchanged if it didn't already contain urn:ohmage:prompt:response 
+					outputColumns.remove(URN_PROMPT_RESPONSE);
+					
+					// For every result found by the query, the prompt responses need to be rolled up so they are all stored
+					// with their associated survey response and metadata. Each prompt response is returned from the db in its
+					// own row and the rows can have different sort orders.
+					
+					boolean isCsv = OUTPUT_FORMAT_CSV.equals(this.outputFormat);
+					
+					for(SurveyResponseReadResult result : surveyResponseList) {
+						
+						if(indexedResultList.isEmpty()) { // first time thru 
 							indexedResultList.add(new SurveyResponseReadIndexedResult(result, isCsv));
 						}
-					}
-				}
-				
-				// For csv and json-columns output, the custom choices need to be converted
-				// into unique-ified list in order for visualiztions and export to work
-				// properly. The key is the prompt id.
-				Map<String, List<CustomChoiceItem>> uniqueCustomChoiceMap = null; // will be converted into a choice glossary
-				                                                                  // for the custom types
-				Map<String, Integer> uniqueCustomChoiceIndexMap = null;
-				
-				// Now find the custom choice prompts (if there are any) and 
-				// unique-ify the entries for their choice glossaries, create 
-				// their choice glossaries, and clean up the display value 
-				// (i.e., remove all the custom_choices stuff and leave only
-				// the value or values the user selected).
-					
-				for(SurveyResponseReadIndexedResult result : indexedResultList) {
-					Map<String, PromptResponseMetadata> promptResponseMetadataMap = result.getPromptResponseMetadataMap();
-					Iterator<String> responseMetadataKeyIterator = promptResponseMetadataMap.keySet().iterator();
-					
-					while(responseMetadataKeyIterator.hasNext()) {
-						String promptId = (responseMetadataKeyIterator.next());
-						PromptResponseMetadata metadata = promptResponseMetadataMap.get(promptId);
-						
-						if(SINGLE_CHOICE_CUSTOM.equals(metadata.getPromptType()) || MULTI_CHOICE_CUSTOM.equals(metadata.getPromptType())) {
-							
-							List<CustomChoiceItem> customChoiceItems = null;
-							
-							if(null == uniqueCustomChoiceMap) { // lazily initialized in case there are no custom choices
-								uniqueCustomChoiceMap = new HashMap<String, List<CustomChoiceItem>>();
-							} 
-							
-							if(! uniqueCustomChoiceMap.containsKey(promptId)) {
-								customChoiceItems = new ArrayList<CustomChoiceItem>();
-								uniqueCustomChoiceMap.put(promptId, customChoiceItems);
-							} 
-							else {
-								customChoiceItems = uniqueCustomChoiceMap.get(promptId);
-							}
-							
-							
-							String tmp = (String) result.getPromptResponseMap().get(promptId);
-							
-							if(! (SKIPPED.equals(tmp) || NOT_DISPLAYED.equals(tmp))) {
-								// All of the data for the choice_glossary for custom types is stored in its JSON response
-								JSONObject customChoiceResponse = new JSONObject((String) result.getPromptResponseMap().get(promptId));
- 
-								// Since the glossary will not contain the custom choices, the result's display value 
-								// can simply be the values the user chose.
-								// The value will either be a string (single_choice_custom) or an array (multi_choice_custom)
-								Integer singleChoiceValue = JsonUtils.getIntegerFromJsonObject(customChoiceResponse, VALUE);
-								if(null != singleChoiceValue) {
-									result.getPromptResponseMap().put(promptId, singleChoiceValue);
-								}
-								else {
-									result.getPromptResponseMap().put(promptId, JsonUtils.getJsonArrayFromJsonObject(customChoiceResponse, VALUE));
-								}
-								
-								JSONArray customChoices = JsonUtils.getJsonArrayFromJsonObject(customChoiceResponse, CUSTOM_CHOICES);
-								
-								
-								for(int i = 0; i < customChoices.length(); i++) {
-									JSONObject choice = JsonUtils.getJsonObjectFromJsonArray(customChoices, i);
-
-									// If the choice_id is >= 100, it means that is it a choice that the user added
-									// In the current system, users cannot remove choices
-									int originalId = choice.getInt(CHOICE_ID);
-									CustomChoiceItem cci = null;
-									boolean isGlobal = false;
-									if(originalId < MAGIC_CUSTOM_CHOICE_INDEX) {										
-										cci = new CustomChoiceItem(originalId, result.getUsername(), choice.getString(CHOICE_VALUE), GLOBAL);
-										isGlobal = true;
-									} 
-									else {
-										cci = new CustomChoiceItem(originalId, result.getUsername(), choice.getString(CHOICE_VALUE), CUSTOM);
-									}
+						else {
+							int numberOfIndexedResults = indexedResultList.size();
+							boolean found = false;
+							for(int i = 0; i < numberOfIndexedResults; i++) {
+								if(indexedResultList.get(i).getKey().keysAreEqual(result.getUsername(),
+										                                          result.getTimestamp(),
+										                                          result.getSurveyId(),
+										                                          result.getRepeatableSetId(),
+										                                          result.getRepeatableSetIteration())) {
 									
-									if(! customChoiceItems.contains(cci)) {
-										if(isGlobal) {
-											cci.setId(cci.getOriginalId());
-											customChoiceItems.add(cci);
-										}
-										else {
-											if(null == uniqueCustomChoiceIndexMap) {
-												uniqueCustomChoiceIndexMap = new HashMap<String, Integer>();												
-											}
-											
-											if(! uniqueCustomChoiceIndexMap.containsKey(promptId)) {
-												uniqueCustomChoiceIndexMap.put(promptId, MAGIC_CUSTOM_CHOICE_INDEX - 1);
-											}
-											
-											int uniqueId = uniqueCustomChoiceIndexMap.get(promptId) + 1;
-											cci.setId(uniqueId);
-											customChoiceItems.add(cci);
-											uniqueCustomChoiceIndexMap.put(promptId, uniqueId);
-										}
-									}	
+									found = true;
+									indexedResultList.get(i).addPromptResponse(result, isCsv);
 								}
+							}
+							if(! found) {
+								indexedResultList.add(new SurveyResponseReadIndexedResult(result, isCsv));
 							}
 						}
 					}
- 				}
-				
-				int numberOfSurveys = indexedResultList.size();
-				int numberOfPrompts = this.surveyResponseList.size();
-				
-				// Delete the original result list
-				this.surveyResponseList.clear();
-				this.surveyResponseList = null;
-				
-				if(OUTPUT_FORMAT_JSON_ROWS.equals(this.outputFormat)) {
 					
-					responseText = SurveyResponseReadServices.generateJsonRowsOutput(this, numberOfSurveys, numberOfPrompts, indexedResultList, outputColumns, uniqueCustomChoiceMap);
+					// For csv and json-columns output, the custom choices need to be converted
+					// into unique-ified list in order for visualiztions and export to work
+					// properly. The key is the prompt id.
+					Map<String, List<CustomChoiceItem>> uniqueCustomChoiceMap = null; // will be converted into a choice glossary
+					                                                                  // for the custom types
+					Map<String, Integer> uniqueCustomChoiceIndexMap = null;
 					
-				}
-				else if(OUTPUT_FORMAT_JSON_COLUMNS.equals(this.outputFormat)) {
+					// Now find the custom choice prompts (if there are any) and 
+					// unique-ify the entries for their choice glossaries, create 
+					// their choice glossaries, and clean up the display value 
+					// (i.e., remove all the custom_choices stuff and leave only
+					// the value or values the user selected).
+						
+					for(SurveyResponseReadIndexedResult result : indexedResultList) {
+						Map<String, PromptResponseMetadata> promptResponseMetadataMap = result.getPromptResponseMetadataMap();
+						Iterator<String> responseMetadataKeyIterator = promptResponseMetadataMap.keySet().iterator();
+						
+						while(responseMetadataKeyIterator.hasNext()) {
+							String promptId = (responseMetadataKeyIterator.next());
+							PromptResponseMetadata metadata = promptResponseMetadataMap.get(promptId);
+							
+							if(SINGLE_CHOICE_CUSTOM.equals(metadata.getPromptType()) || MULTI_CHOICE_CUSTOM.equals(metadata.getPromptType())) {
+								
+								List<CustomChoiceItem> customChoiceItems = null;
+								
+								if(null == uniqueCustomChoiceMap) { // lazily initialized in case there are no custom choices
+									uniqueCustomChoiceMap = new HashMap<String, List<CustomChoiceItem>>();
+								} 
+								
+								if(! uniqueCustomChoiceMap.containsKey(promptId)) {
+									customChoiceItems = new ArrayList<CustomChoiceItem>();
+									uniqueCustomChoiceMap.put(promptId, customChoiceItems);
+								} 
+								else {
+									customChoiceItems = uniqueCustomChoiceMap.get(promptId);
+								}
+								
+								
+								String tmp = (String) result.getPromptResponseMap().get(promptId);
+								
+								if(! (SKIPPED.equals(tmp) || NOT_DISPLAYED.equals(tmp))) {
+									// All of the data for the choice_glossary for custom types is stored in its JSON response
+									JSONObject customChoiceResponse = new JSONObject((String) result.getPromptResponseMap().get(promptId));
+	 
+									// Since the glossary will not contain the custom choices, the result's display value 
+									// can simply be the values the user chose.
+									// The value will either be a string (single_choice_custom) or an array (multi_choice_custom)
+									Integer singleChoiceValue = JsonUtils.getIntegerFromJsonObject(customChoiceResponse, VALUE);
+									if(null != singleChoiceValue) {
+										result.getPromptResponseMap().put(promptId, singleChoiceValue);
+									}
+									else {
+										result.getPromptResponseMap().put(promptId, JsonUtils.getJsonArrayFromJsonObject(customChoiceResponse, VALUE));
+									}
+									
+									JSONArray customChoices = JsonUtils.getJsonArrayFromJsonObject(customChoiceResponse, CUSTOM_CHOICES);
+									
+									
+									for(int i = 0; i < customChoices.length(); i++) {
+										JSONObject choice = JsonUtils.getJsonObjectFromJsonArray(customChoices, i);
+	
+										// If the choice_id is >= 100, it means that is it a choice that the user added
+										// In the current system, users cannot remove choices
+										int originalId = choice.getInt(CHOICE_ID);
+										CustomChoiceItem cci = null;
+										boolean isGlobal = false;
+										if(originalId < MAGIC_CUSTOM_CHOICE_INDEX) {										
+											cci = new CustomChoiceItem(originalId, result.getUsername(), choice.getString(CHOICE_VALUE), GLOBAL);
+											isGlobal = true;
+										} 
+										else {
+											cci = new CustomChoiceItem(originalId, result.getUsername(), choice.getString(CHOICE_VALUE), CUSTOM);
+										}
+										
+										if(! customChoiceItems.contains(cci)) {
+											if(isGlobal) {
+												cci.setId(cci.getOriginalId());
+												customChoiceItems.add(cci);
+											}
+											else {
+												if(null == uniqueCustomChoiceIndexMap) {
+													uniqueCustomChoiceIndexMap = new HashMap<String, Integer>();												
+												}
+												
+												if(! uniqueCustomChoiceIndexMap.containsKey(promptId)) {
+													uniqueCustomChoiceIndexMap.put(promptId, MAGIC_CUSTOM_CHOICE_INDEX - 1);
+												}
+												
+												int uniqueId = uniqueCustomChoiceIndexMap.get(promptId) + 1;
+												cci.setId(uniqueId);
+												customChoiceItems.add(cci);
+												uniqueCustomChoiceIndexMap.put(promptId, uniqueId);
+											}
+										}	
+									}
+								}
+							}
+						}
+	 				}
 					
-					if(indexedResultList.isEmpty()) {
+					int numberOfSurveys = indexedResultList.size();
+					int numberOfPrompts = this.surveyResponseList.size();
+					
+					// Delete the original result list
+					this.surveyResponseList.clear();
+					this.surveyResponseList = null;
+					
+					if(OUTPUT_FORMAT_JSON_ROWS.equals(this.outputFormat)) {
 						
-						responseText = SurveyResponseReadServices.generateZeroResultJsonColumnOutput(this, outputColumns);
+						responseText = SurveyResponseReadServices.generateJsonRowsOutput(this, numberOfSurveys, numberOfPrompts, indexedResultList, outputColumns, uniqueCustomChoiceMap);
 						
-					} else {
-						
-						responseText = SurveyResponseReadServices.generateMultiResultJsonColumnOutput(this, numberOfSurveys, numberOfPrompts, indexedResultList, outputColumns, uniqueCustomChoiceMap);
 					}
-				}
-				
-				else if(OUTPUT_FORMAT_CSV.equals(this.outputFormat)) {
-					
-					if(indexedResultList.isEmpty()) {
+					else if(OUTPUT_FORMAT_JSON_COLUMNS.equals(this.outputFormat)) {
 						
-						responseText = SurveyResponseReadServices.generateZeroResultCsvOutput(this, outputColumns);
-						
-					} else {
-						
-						responseText = SurveyResponseReadServices.generateMultiResultCsvOutput(this, numberOfSurveys, numberOfPrompts, indexedResultList, outputColumns, uniqueCustomChoiceMap);
+						if(indexedResultList.isEmpty()) {
+							
+							responseText = SurveyResponseReadServices.generateZeroResultJsonColumnOutput(this, outputColumns);
+							
+						} else {
+							
+							responseText = SurveyResponseReadServices.generateMultiResultJsonColumnOutput(this, numberOfSurveys, numberOfPrompts, indexedResultList, outputColumns, uniqueCustomChoiceMap);
+						}
 					}
+					
+					else if(OUTPUT_FORMAT_CSV.equals(this.outputFormat)) {
+						
+						if(indexedResultList.isEmpty()) {
+							
+							responseText = SurveyResponseReadServices.generateZeroResultCsvOutput(this, outputColumns);
+							
+						} else {
+							
+							responseText = SurveyResponseReadServices.generateMultiResultCsvOutput(this, numberOfSurveys, numberOfPrompts, indexedResultList, outputColumns, uniqueCustomChoiceMap);
+						}
+					}
+				} 
+				else {
+					
+					// Even for CSV output, the error messages remain JSON
+					responseText = getFailureMessage();
 				}
-			} 
-			else {
 				
-				// Even for CSV output, the error messages remain JSON
-				responseText = getFailureMessage();
+				LOGGER.info("Writing survey response read output.");
+				writer.write(responseText);
 			}
-			
-			LOGGER.info("Writing survey response read output.");
-			writer.write(responseText);
 		}
 		
 		// FIXME and catch the actual exceptions
