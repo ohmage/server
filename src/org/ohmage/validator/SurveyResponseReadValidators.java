@@ -4,7 +4,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.regex.Pattern;
 
-import org.apache.log4j.Logger;
 import org.ohmage.annotator.ErrorCodes;
 import org.ohmage.exception.ValidationException;
 import org.ohmage.request.InputKeys;
@@ -19,7 +18,7 @@ import org.ohmage.util.StringUtils;
  */
 public final class SurveyResponseReadValidators {
 	
-	private static Logger LOGGER = Logger.getLogger(SurveyResponseReadValidators.class);
+//	private static Logger LOGGER = Logger.getLogger(SurveyResponseReadValidators.class);
 	
 	// list size constants
 	private static final int MAX_NUMBER_OF_USERS = 10;
@@ -161,9 +160,6 @@ public final class SurveyResponseReadValidators {
 	 * @throws IllegalArgumentException if the request is null.
 	 */
 	public static List<String> validatePromptIdSurveyIdLists(Request request, String promptIdList, String surveyIdList) throws ValidationException {
-		LOGGER.info("p: " + promptIdList);
-		LOGGER.info("s: " + surveyIdList);
-		
 		// check for logical errors
 		if(request == null) {
 			throw new IllegalArgumentException(NULL_REQUEST);
@@ -192,8 +188,6 @@ public final class SurveyResponseReadValidators {
 				}
 				
 				List<String> splitSurveyIdList = StringUtils.splitString(surveyIdList, InputKeys.LIST_ITEM_SEPARATOR);	
-				
-				LOGGER.info(splitSurveyIdList);
 				
 				if(splitSurveyIdList.size() > MAX_NUMBER_OF_SURVEYS) {
 					request.setFailed(ErrorCodes.SURVEY_TOO_MANY_SURVEY_IDS, ERROR_TOO_MANY_SURVEYS);
