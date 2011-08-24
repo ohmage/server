@@ -3,6 +3,7 @@ package org.ohmage.domain;
 import org.apache.log4j.Logger;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.ohmage.util.StringUtils;
 
 /**
  * This class encapsulates a user's information.
@@ -50,7 +51,7 @@ public class UserPersonal {
 		this.emailAddress = emailAddress;
 		
 		JSONObject tJsonData = new JSONObject();
-		if(jsonData != null) {
+		if(! StringUtils.isEmptyOrWhitespaceOnly(jsonData)) {
 			try {
 				tJsonData = new JSONObject(jsonData);
 			}
