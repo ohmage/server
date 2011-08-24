@@ -16,6 +16,7 @@
 package org.ohmage.jee.filter;
 
 import java.io.IOException;
+import java.util.UUID;
 
 import javax.servlet.Filter;
 import javax.servlet.FilterChain;
@@ -23,14 +24,17 @@ import javax.servlet.FilterConfig;
 import javax.servlet.ServletException;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
-import javax.servlet.http.HttpServletRequest;
 
-import org.apache.log4j.Logger;
 import org.apache.log4j.NDC;
 
+/**
+ * Filter that creates a unique id for all requests and pushes that id onto
+ * a Logger's stack. This way we have a way to track individual requests
+ * in our logs.
+ * 
+ * @author Joshua Selsky
+ */
 public class Log4jNdcFilter implements Filter {
-	private static final Logger LOGGER = Logger.getLogger(Log4jNdcFilter.class);
-	
 	/**
 	 * Default no-arg constructor.
 	 */
@@ -53,19 +57,12 @@ public class Log4jNdcFilter implements Filter {
 	}
 	
 	/**
-	 * Pushes the current thread's session Id into the Log4J NDC.
+	 * Pushes a UUID into the Log4J NDC for request tracking and debugging.
 	 */
 	public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) 
 		throws ServletException, IOException {	
 		
-		String sessionId = ((HttpServletRequest) request).getSession().getId(); // The getSession call will create a session
-		                                                                        // if one does not exist for the current thread.
-		
-		if(LOGGER.isDebugEnabled()) {
-			LOGGER.debug("found sessionId: " + sessionId);
-		}
-		
-		NDC.push(sessionId);
+		NDC.push(UUID.randomUUID().toString());
 		
 		// Execute the rest of the filters in the chain and then whatever Servlet is bound to the current request URI
 		chain.doFilter(request, response);
