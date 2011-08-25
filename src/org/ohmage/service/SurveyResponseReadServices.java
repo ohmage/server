@@ -171,16 +171,16 @@ public final class SurveyResponseReadServices {
 					numberOfResults--;
 				}
 			}
-			
-			// Filter based on the optional privacy state query parameter
-			
-			if(privacyState != null) {
-				for(int i = 0; i < numberOfResults; i++) {
-					if(! (surveyResponseList.get(i)).getPrivacyState().equals(privacyState)) { 
-						surveyResponseList.remove(i);
-						i--;
-						numberOfResults--;
-					}
+		}
+		
+		// Filter based on the optional privacy state query parameter
+		
+		if(privacyState != null) {
+			for(int i = 0; i < numberOfResults; i++) {
+				if(! (surveyResponseList.get(i)).getPrivacyState().equals(privacyState)) { 
+					surveyResponseList.remove(i);
+					i--;
+					numberOfResults--;
 				}
 			}
 		}
