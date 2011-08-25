@@ -25,7 +25,7 @@ import org.ohmage.service.AuditServices;
  * 
  * @author John Jenkins
  */
-@MultipartConfig(location="/tmp/", fileSizeThreshold=1024*1024, maxFileSize=1024*1024*5, maxRequestSize=1024*1024*5*5)
+@MultipartConfig(location="/tmp/", maxFileSize=1024*1024*5, maxRequestSize=1024*1024*5*5, fileSizeThreshold=1024*1024*5*5 + 1)
 public class RequestServlet extends HttpServlet {
 	private static final Logger LOGGER = Logger.getLogger(RequestServlet.class);
 	
