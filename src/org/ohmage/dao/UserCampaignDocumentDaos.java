@@ -53,7 +53,8 @@ public final class UserCampaignDocumentDaos extends Dao {
 		"AND urc.user_role_id = ur.id " +
 		"AND d.privacy_state_id = dps.id " +
 		"AND (" +
-			"(dps.privacy_state = '" + DocumentPrivacyStateCache.PRIVACY_STATE_SHARED + "')" +
+			"(dps.privacy_state = '" + DocumentPrivacyStateCache.PRIVACY_STATE_SHARED + "' " +
+			"AND ur.role != '" + CampaignRoleCache.ROLE_PARTICIPANT + "')" +
 			" OR " +
 			"(ur.role = '" + CampaignRoleCache.ROLE_SUPERVISOR + "')" +
 			" OR " +
