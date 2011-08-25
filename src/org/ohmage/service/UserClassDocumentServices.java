@@ -9,7 +9,6 @@ import java.util.Set;
 import org.ohmage.annotator.ErrorCodes;
 import org.ohmage.dao.UserClassDaos;
 import org.ohmage.dao.UserClassDocumentDaos;
-import org.ohmage.domain.DocumentInformation;
 import org.ohmage.exception.DataAccessException;
 import org.ohmage.exception.ServiceException;
 import org.ohmage.request.Request;
@@ -122,23 +121,21 @@ public class UserClassDocumentServices {
 	}
 	
 	/**
-	 * Retrieves a List of DocumentInformation for each of the visible 
-	 * documents associated with a class. Visibility is based on the user's
-	 * role in the class and the documents' privacy state.
+	 * Retrieves a list of all of the documents associated with a class.
 	 * 
 	 * @param request The request that is performing this service.
 	 * 
 	 * @param username The username of the requester.
 	 * 
-	 * @param classId The class ID for the campaign whose documents are
-	 * 				  desired.
+	 * @param classId The class' unique identifier.
 	 * 
-	 * @return Returns a List of DocumentInformation objects where each object
-	 * 		   represents a document associated with this class.
+	 * @return A list of all of unique identifiers for all of the documents 
+	 * 		   associated with the class. The list may be empty but will never
+	 * 		   be null.
 	 * 
 	 * @throws ServiceException Thrown if there is an error.
 	 */
-	public static List<DocumentInformation> getVisibleDocumentsSpecificToClass(Request request, String username, String classId) throws ServiceException {
+	public static List<String> getVisibleDocumentsSpecificToClass(Request request, String username, String classId) throws ServiceException {
 		try {
 			return UserClassDocumentDaos.getVisibleDocumentsToUserInClass(username, classId);
 		}
@@ -149,29 +146,27 @@ public class UserClassDocumentServices {
 	}
 	
 	/**
-	 * Retrieves a List of DocumentInformation objects for all of the visible
-	 * documents associated with all of the class. Visibility is based on the
-	 * user's role in the classes and the documents' privacy state. 
+	 * Retrieves a list of all of the documents associated with all of the 
+	 * classes in a collection.
 	 * 
 	 * @param request The request that is performing this service.
 	 * 
 	 * @param username The username of the requester.
 	 * 
-	 * @param classIds A List of campaign IDs for the classes whose documents
-	 * 				   are desired.
+	 * @param classIds A list of unique identifiers of classes.
 	 * 
-	 * @return Returns a List of DocumentInformation objects where each object
-	 * 		   represents a document associated with any of the classes in the
-	 * 		   list. This will not contain duplicates.
+	 * @return A list of the unique identifiers for all of the documents 
+	 * 		   associated with the class. This list may be empty but will never
+	 * 		   be null and will contain only unique entries.
 	 * 
 	 * @throws ServiceException Thrown if there is an error.
 	 */
-	public static List<DocumentInformation> getVisibleDocumentsSpecificToClasses(Request request, String username, List<String> classIds) throws ServiceException {
-		Set<DocumentInformation> resultSet = new HashSet<DocumentInformation>();
+	public static List<String> getVisibleDocumentsSpecificToClasses(Request request, String username, Collection<String> classIds) throws ServiceException {
+		Set<String> resultSet = new HashSet<String>();
 		for(String classId : classIds) {
 			resultSet.addAll(getVisibleDocumentsSpecificToClass(request, username, classId));
 		}
-		return new ArrayList<DocumentInformation>(resultSet);
+		return new ArrayList<String>(resultSet);
 	}
 	
 	/**

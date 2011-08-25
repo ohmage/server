@@ -9,7 +9,6 @@ import java.util.Set;
 import org.ohmage.annotator.ErrorCodes;
 import org.ohmage.dao.UserCampaignDaos;
 import org.ohmage.dao.UserCampaignDocumentDaos;
-import org.ohmage.domain.DocumentInformation;
 import org.ohmage.exception.DataAccessException;
 import org.ohmage.exception.ServiceException;
 import org.ohmage.request.Request;
@@ -130,23 +129,20 @@ public class UserCampaignDocumentServices {
 	}
 	
 	/**
-	 * Retrieves a List of DocumentInformation for each of the visible 
-	 * documents associated with a campaign. Visibility is based on the user's
-	 * role in the campaign and the documents' privacy state.
+	 * Retrieves a list of document IDs for all of the documents associate with
+	 * a campaign.
 	 * 
 	 * @param request The request that is performing this service.
 	 * 
 	 * @param username The username of the requester.
 	 * 
-	 * @param campaignId The campaign ID for the campaign whose documents are
-	 * 					 desired.
+	 * @param campaignId The campaign's unique identifier.
 	 * 
-	 * @return Returns a List of DocumentInformation objects where each object
-	 * 		   represents a document associated with this campaign.
+	 * @return A list of document IDs.
 	 * 
 	 * @throws ServiceException Thrown if there is an error.
 	 */
-	public static List<DocumentInformation> getVisibleDocumentsSpecificToCampaign(Request request, String username, String campaignId) throws ServiceException {
+	public static List<String> getVisibleDocumentsSpecificToCampaign(Request request, String username, String campaignId) throws ServiceException {
 		try {
 			return UserCampaignDocumentDaos.getVisibleDocumentsToUserInCampaign(username, campaignId);
 		}
@@ -157,29 +153,26 @@ public class UserCampaignDocumentServices {
 	}
 	
 	/**
-	 * Retrieves a List of DocumentInformation objects for all of the visible
-	 * documents associated with all of the campaigns. Visibility is based on
-	 * the user's role in the campaigns and the documents' privacy state. 
+	 * Retrieves a list of document IDs for all of the documents associated 
+	 * with all of a collection of campaigns.
 	 * 
 	 * @param request The request that is performing this service.
 	 * 
 	 * @param username The username of the requester.
 	 * 
-	 * @param campaignIds A List of campaign IDs for the campaigns whose 
+	 * @param campaignIds A collection of campaign IDs for the campaigns whose 
 	 * 					  documents are desired.
 	 * 
-	 * @return Returns a List of DocumentInformation objects where each object
-	 * 		   represents a document associated with any of the campaigns in
-	 * 		   the list. This will not contain duplicates.
+	 * @return A list of unique document IDs.
 	 * 
 	 * @throws ServiceException Thrown if there is an error.
 	 */
-	public static List<DocumentInformation> getVisibleDocumentsSpecificToCampaigns(Request request, String username, List<String> campaignIds) throws ServiceException {
-		Set<DocumentInformation> resultSet = new HashSet<DocumentInformation>();
+	public static List<String> getVisibleDocumentsSpecificToCampaigns(Request request, String username, Collection<String> campaignIds) throws ServiceException {
+		Set<String> resultSet = new HashSet<String>();
 		for(String campaignId : campaignIds) {
 			resultSet.addAll(getVisibleDocumentsSpecificToCampaign(request, username, campaignId));
 		}
-		return new ArrayList<DocumentInformation>(resultSet);
+		return new ArrayList<String>(resultSet);
 	}
 	
 	/**

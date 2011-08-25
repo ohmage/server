@@ -1,6 +1,5 @@
 package org.ohmage.dao;
 
-import java.util.LinkedList;
 import java.util.List;
 
 import javax.sql.DataSource;
@@ -9,7 +8,6 @@ import org.ohmage.cache.CampaignRoleCache;
 import org.ohmage.cache.ClassRoleCache;
 import org.ohmage.cache.DocumentPrivacyStateCache;
 import org.ohmage.cache.DocumentRoleCache;
-import org.ohmage.domain.DocumentInformation;
 import org.ohmage.exception.DataAccessException;
 import org.springframework.jdbc.core.SingleColumnRowMapper;
 
@@ -46,9 +44,9 @@ public final class UserDocumentDaos extends Dao {
 		"AND dur.user_id = u.id " +
 		"AND dur.document_id = d.id " +
 		"AND dur.document_role_id = dr.id " +
+		"AND d.privacy_state_id = dps.id " +
 		"AND (" +
-			"(d.privacy_state_id = dps.id " +
-			"AND dps.privacy_state = '" + DocumentPrivacyStateCache.PRIVACY_STATE_SHARED + "')" +
+			"(dps.privacy_state = '" + DocumentPrivacyStateCache.PRIVACY_STATE_SHARED + "')" +
 			" OR " +
 			"(dr.role = '" + DocumentRoleCache.ROLE_OWNER + "')" + 
 		")";
@@ -166,20 +164,16 @@ public final class UserDocumentDaos extends Dao {
 	}
 	
 	/**
-	 * Gets the information for all of the documents that belong explicitly to
-	 * a user and that are visible to the user.
+	 * Retrieves the unique identifiers for all of the documents directly
+	 * associated with a user.
 	 * 
-	 * @param username The username of the user whose documents' information 
-	 * 				   are desired.
+	 * @param username The username of the user whose documents are desired.
 	 * 
-	 * @return Returns a List of DocumentInformation objects for all of the
-	 * 		   documents that are visible to the user.
+	 * @return A list of document IDs.
 	 */
-	public static List<DocumentInformation> getVisibleDocumentsSpecificToUser(String username) throws DataAccessException {
-		// Get the list of documents specific to the user.
-		List<String> userDocuments;
+	public static List<String> getVisibleDocumentsSpecificToUser(String username) throws DataAccessException {
 		try {
-			userDocuments = instance.getJdbcTemplate().query(
+			return instance.getJdbcTemplate().query(
 					SQL_GET_DOCUMENTS_SPECIFIC_TO_REQUESTING_USER, 
 					new Object[] { username }, 
 					new SingleColumnRowMapper<String>());
@@ -187,16 +181,6 @@ public final class UserDocumentDaos extends Dao {
 		catch(org.springframework.dao.DataAccessException e) {
 			throw new DataAccessException("Error executing SQL '" + SQL_GET_DOCUMENTS_SPECIFIC_TO_REQUESTING_USER + "' with parameter: " + username, e);
 		}
-		
-		// Create the list to be returned to the caller.
-		List<DocumentInformation> resultList = new LinkedList<DocumentInformation>();
-		
-		// Get the document information for each of the documents in the list.
-		for(String documentId : userDocuments) {
-			resultList.add(DocumentDaos.getDocumentInformation(documentId));
-		}
-		
-		return resultList;
 	}
 	
 	/**

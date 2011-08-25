@@ -1,6 +1,5 @@
 package org.ohmage.dao;
 
-import java.util.LinkedList;
 import java.util.List;
 
 import javax.sql.DataSource;
@@ -8,7 +7,6 @@ import javax.sql.DataSource;
 import org.ohmage.cache.ClassRoleCache;
 import org.ohmage.cache.DocumentPrivacyStateCache;
 import org.ohmage.cache.DocumentRoleCache;
-import org.ohmage.domain.DocumentInformation;
 import org.ohmage.exception.DataAccessException;
 import org.springframework.jdbc.core.SingleColumnRowMapper;
 
@@ -53,9 +51,9 @@ public final class UserClassDocumentDaos extends Dao {
 		"AND dclr.class_id = uc.class_id " +
 		"AND uc.user_id = u.id " +
 		"AND uc.user_class_role_id = ucr.id " +
+		"AND d.privacy_state_id = dps.id " +
 		"AND (" +
-			"(d.privacy_state_id = dps.id " +
-			"AND dps.privacy_state = '" + DocumentPrivacyStateCache.PRIVACY_STATE_SHARED + "')" +
+			"(dps.privacy_state = '" + DocumentPrivacyStateCache.PRIVACY_STATE_SHARED + "')" +
 			" OR " +
 			"(ucr.role = '" + ClassRoleCache.ROLE_PRIVILEGED + "')" +
 			" OR " +
@@ -76,20 +74,21 @@ public final class UserClassDocumentDaos extends Dao {
 	}
 	
 	/**
-	 * Gathers the information about all of the documents in a class that are
-	 * visible to the requesting user.
+	 * Gathers the unique identifiers for all of the documents associated with
+	 * a class.
 	 * 
 	 * @param username The username of the requesting user.
 	 * 
-	 * @param classId The class ID for the class whose information is desired.
+	 * @param classId The class' unique identifier.
 	 * 
-	 * @return Returns a List of DocumentInformation objects where each object
-	 * 		   represents a document visible to the user in the class.
+	 * @return A list of the documents associated with a class. The list may be
+	 * 		   empty but never null.
+	 * 
+	 * @throws DataAccessException Thrown if there is an error.
 	 */
-	public static List<DocumentInformation> getVisibleDocumentsToUserInClass(String username, String classId) throws DataAccessException {
-		List<String> documentList;
+	public static List<String> getVisibleDocumentsToUserInClass(String username, String classId) throws DataAccessException {
 		try {
-			documentList = instance.getJdbcTemplate().query(
+			return instance.getJdbcTemplate().query(
 					SQL_GET_DOCUMENTS_SPECIFIC_TO_CLASS_FOR_REQUESTING_USER, 
 					new Object[] { username, classId },
 					new SingleColumnRowMapper<String>());
@@ -98,14 +97,6 @@ public final class UserClassDocumentDaos extends Dao {
 			throw new DataAccessException("Error executing SQL '" + SQL_GET_DOCUMENTS_SPECIFIC_TO_CLASS_FOR_REQUESTING_USER + " with parameters: " +
 					username + ", " + classId, e);
 		}
-		
-		List<DocumentInformation> result = new LinkedList<DocumentInformation>();
-		
-		for(String documentId : documentList) {
-			result.add(DocumentDaos.getDocumentInformation(documentId));
-		}
-		
-		return result;
 	}
 	
 	/**

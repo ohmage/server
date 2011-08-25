@@ -1,14 +1,20 @@
 package org.ohmage.service;
 
+import java.util.Collection;
+import java.util.LinkedList;
 import java.util.List;
 
 import org.ohmage.annotator.ErrorCodes;
 import org.ohmage.cache.DocumentRoleCache;
+import org.ohmage.dao.CampaignDocumentDaos;
+import org.ohmage.dao.ClassDocumentDaos;
+import org.ohmage.dao.DocumentDaos;
 import org.ohmage.dao.UserDocumentDaos;
 import org.ohmage.domain.DocumentInformation;
 import org.ohmage.exception.DataAccessException;
 import org.ohmage.exception.ServiceException;
 import org.ohmage.request.Request;
+import org.ohmage.util.StringUtils;
 
 /**
  * This class is responsible for gathering and writing information about 
@@ -23,21 +29,17 @@ public class UserDocumentServices {
 	private UserDocumentServices() {}
 	
 	/**
-	 * Retrieves the document information about all of the documents that 
-	 * belong directly to the user and that are visible to the user.
+	 * Retrieves the ID for all documents directly associated with the user.
 	 * 
 	 * @param request The request that is performing this service.
 	 * 
-	 * @param username The username of the user whose documents' information is
-	 * 				   desired.
+	 * @param username The username of the user.
 	 * 
-	 * @return Returns a List of DocumentInformation objects where each object
-	 * 		   in the list pertains to a unique document that is directly 
-	 * 		   associated and visible to the user.
+	 * @return A list of document IDs.
 	 * 
 	 * @throws ServiceException Thrown if there is an error.
 	 */
-	public static List<DocumentInformation> getDocumentsSpecificToUser(Request request, String username) throws ServiceException {
+	public static List<String> getDocumentsSpecificToUser(Request request, String username) throws ServiceException {
 		try {
 			return UserDocumentDaos.getVisibleDocumentsSpecificToUser(username);
 		}
@@ -186,5 +188,87 @@ public class UserDocumentServices {
 			request.setFailed();
 			throw new ServiceException(e);
 		}
+	}
+	
+	/**
+	 * Retrieves the information about a document and also populates the role
+	 * of a specific user, all of the campaigns, and all of the classes.
+	 * 
+	 * @param request The Request that is performing this service.
+	 * 
+	 * @param username The user's username.
+	 * 
+	 * @param documentId The document's unique identifier.
+	 * 
+	 * @return A DocumentInformation object that contains all of the 
+	 * 		   information about a single doucment as well as a user's specific
+	 * 		   role, all of the campaigns associated with the document and 
+	 * 		   their role, and all of the classes associated with the document
+	 * 		   and their role.
+	 * 
+	 * @throws ServiceException Thrown if there is an error.
+	 */
+	public static DocumentInformation getDocumentInformationForDocumentWithUser(Request request, String username, String documentId) throws ServiceException {
+		try {
+			// Get the document's basic information.
+			DocumentInformation result = DocumentDaos.getDocumentInformation(documentId);
+			
+			// Get the user's specific role.
+			String userRole = UserDocumentDaos.getDocumentRoleForDocumentSpecificToUser(username, documentId);
+			if(! StringUtils.isEmptyOrWhitespaceOnly(userRole)) {
+				result.addUserRole(userRole);
+			}
+			
+			// For all of the campaigns associated with the document, get their
+			// role.
+			for(String campaignId : CampaignDocumentDaos.getCampaignsAssociatedWithDocument(documentId)) {
+				String campaignRole = CampaignDocumentDaos.getCampaignsDocumentRole(campaignId, documentId);
+				if(! StringUtils.isEmptyOrWhitespaceOnly(campaignRole)) {
+					result.addCampaignRole(campaignId, campaignRole);
+				}
+			}
+			
+			// For all of the classes associated with the document, get their
+			// role.
+			for(String classId : ClassDocumentDaos.getClassesAssociatedWithDocument(documentId)) {
+				String classRole = ClassDocumentDaos.getClassDocumentRole(classId, documentId);
+				if(! StringUtils.isEmptyOrWhitespaceOnly(classRole)) {
+					result.addClassRole(classId, classRole);
+				}
+			}
+			
+			return result;
+		}
+		catch(DataAccessException e) {
+			request.setFailed();
+			throw new ServiceException(e);
+		}
+	}
+	
+	/**
+	 * Creates a list of DocumentInformation objects, one for each document,
+	 * populating each with the user's document role, all of the campaigns
+	 * associated with the document and their role, and all of the classes 
+	 * associated with the document and their role.
+	 * 
+	 * @param request The Request that is performing this service.
+	 * 
+	 * @param username The user's username.
+	 * 
+	 * @param documentIds The document's unique identifier.
+	 * 
+	 * @return A list of DocumentInformation objects each representing one of
+	 * 		   the document IDs.
+	 * 
+	 * @throws ServiceException Thrown if there is an error.
+	 * 
+	 * @see #getDocumentInformationForDocumentWithUser(Request, String, String)
+	 */
+	public static List<DocumentInformation> getDocumentInformationForDocumentsWithUser(Request request, String username, Collection<String> documentIds) throws ServiceException {
+		List<DocumentInformation> result = new LinkedList<DocumentInformation>();
+		for(String documentId : documentIds) {
+			result.add(getDocumentInformationForDocumentWithUser(request, username, documentId));
+		}
+		return result;
 	}
 }
