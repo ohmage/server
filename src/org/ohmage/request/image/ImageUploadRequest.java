@@ -114,10 +114,6 @@ public class ImageUploadRequest extends UserRequest {
 			LOGGER.info("Verifing that some photo prompt response exists for this user whose response is this image's ID.");
 			UserImageServices.verifyPhotoPromptResponseExistsForUserAndImage(this, getUser().getUsername(), imageId);
 			
-			// We want to prevent someone from updating an image.
-			LOGGER.info("Verifying that an image has not already been uploaded for this photo prompt.");
-			ImageServices.verifyImageExistance(this, imageId, false);
-			
 			LOGGER.info("Saving the image.");
 			ImageServices.createImage(this, getUser().getUsername(), getClient(), imageId, imageContents);
 		}

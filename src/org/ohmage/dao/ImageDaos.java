@@ -127,6 +127,12 @@ public final class ImageDaos extends Dao {
 	 * @throws DataAccessException Thrown if there is an error.
 	 */
 	public static void createImage(String username, String client, String imageId, BufferedImage imageContents) throws DataAccessException {
+		// First, we need to make sure the file wasn't already uploaded in 
+		// which case we just ignore this call as we allow for duplicates.
+		if(getImageExists(imageId)) {
+			return;
+		}
+		
 		// getDirectory() is used as opposed to accessing the current leaf
 		// directory class variable as it will do sanitation in case it hasn't
 		// been initialized or is full.
