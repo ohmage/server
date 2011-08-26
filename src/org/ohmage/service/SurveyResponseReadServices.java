@@ -154,13 +154,18 @@ public final class SurveyResponseReadServices {
 				
 				if( 
 				    // Owners and supervisors can see unshared responses
-					(resultIsUnshared(currentResult) && ! currentResult.getUsername().equals(user.getUsername())) 
+					(resultIsUnshared(currentResult) && ! currentResult.getUsername().equals(user.getUsername()))
 					
 					|| 
 					
+					((! resultIsUnshared(currentResult)) && (! currentResult.getUsername().equals(user.getUsername()) 
+							&& ! user.isAuthorInCampaign(campaignId) && ! user.isAnalystInCampaign(campaignId))) 
+					
+					||
+					
 					// Owners, supervisors, and authors can see shared responses if the campaign is private 
-					(user.getCampaignsAndRoles().get(campaignId).getCampaign().getPrivacyState().equals(CampaignPrivacyStateCache.PRIVACY_STATE_PRIVATE) 
-						&& currentResult.getPrivacyState().equals(SurveyResponsePrivacyStateCache.PRIVACY_STATE_SHARED) 
+					((user.getCampaignsAndRoles().get(campaignId).getCampaign().getPrivacyState().equals(CampaignPrivacyStateCache.PRIVACY_STATE_PRIVATE) 
+						&& currentResult.getPrivacyState().equals(SurveyResponsePrivacyStateCache.PRIVACY_STATE_SHARED)) 
 						&& ! user.isAuthorInCampaign(campaignId) 
 						&& ! currentResult.getUsername().equals(user.getUsername()))
 						
