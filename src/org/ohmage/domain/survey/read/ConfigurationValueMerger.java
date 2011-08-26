@@ -111,8 +111,13 @@ public class ConfigurationValueMerger {
 				setDisplayValueFromRemoteActivity(result);
 			}
 			else if(PromptTypeUtils.isJsonObject(result.getPromptType())) {
-			
-				result.setDisplayValue((String) result.getResponse());
+				try {
+					result.setDisplayValue(new JSONObject(String.valueOf(result.getResponse())));
+				}
+				catch(JSONException e) {
+					_logger.warn("could not convert custom choice prompt response to a JSON object");
+					result.setDisplayValue("{}");
+				}
 				
 			} else {
 				
@@ -152,8 +157,15 @@ public class ConfigurationValueMerger {
 		try {
 			result.setDisplayValue(new JSONArray(String.valueOf(result.getResponse())));
 		} catch (JSONException je) {
-			result.setDisplayValue(new JSONArray());
-			_logger.warn("cannot convert multi-choice response value to JSON Array: " + result.getResponse());
+			// Check for SKIPPED or NOT_DISPLAYED
+			String str = String.valueOf(result.getResponse());
+			if("SKIPPED".equals(str) || "NOT_DISPLAYED".equals(str)) {
+				result.setDisplayValue(str);
+			} 
+			else {
+				_logger.warn("multi_choice response is not a string or a JSONArray: " + result.getResponse());
+				result.setDisplayValue(new JSONArray());
+			}
 		}
 	}
 	

@@ -613,27 +613,28 @@ public final class SurveyResponseReadRequest extends UserRequest {
 									customChoiceItems = uniqueCustomChoiceMap.get(promptId);
 								}
 								
+								// All of the data for the choice_glossary for custom types is stored in its JSON response
 								
-								String tmp = (String) result.getPromptResponseMap().get(promptId);
+								JSONObject customChoiceResponse = (JSONObject) (result.getPromptResponseMap().get(promptId));								
 								
-								if(! (SKIPPED.equals(tmp) || NOT_DISPLAYED.equals(tmp))) {
-									// All of the data for the choice_glossary for custom types is stored in its JSON response
-									JSONObject customChoiceResponse = new JSONObject((String) result.getPromptResponseMap().get(promptId));
-	 
-									// Since the glossary will not contain the custom choices, the result's display value 
-									// can simply be the values the user chose.
-									// The value will either be a string (single_choice_custom) or an array (multi_choice_custom)
-									Integer singleChoiceValue = JsonUtils.getIntegerFromJsonObject(customChoiceResponse, VALUE);
-									if(null != singleChoiceValue) {
-										result.getPromptResponseMap().put(promptId, singleChoiceValue);
-									}
-									else {
-										result.getPromptResponseMap().put(promptId, JsonUtils.getJsonArrayFromJsonObject(customChoiceResponse, VALUE));
-									}
-									
-									JSONArray customChoices = JsonUtils.getJsonArrayFromJsonObject(customChoiceResponse, CUSTOM_CHOICES);
-									
-									
+								Integer singleChoiceValue = JsonUtils.getIntegerFromJsonObject(customChoiceResponse, VALUE);
+								if(null != singleChoiceValue) {
+									result.getPromptResponseMap().put(promptId, singleChoiceValue);
+								} 
+								else if(null != JsonUtils.getStringFromJsonObject(customChoiceResponse, VALUE)) {
+									result.getPromptResponseMap().put(promptId, JsonUtils.getStringFromJsonObject(customChoiceResponse, VALUE));
+								}
+								else {
+									result.getPromptResponseMap().put(promptId, JsonUtils.getJsonArrayFromJsonObject(customChoiceResponse, VALUE));
+								}								
+ 
+								// Since the glossary will not contain the custom choices, the result's display value 
+								// can simply be the values the user chose.
+								
+								JSONArray customChoices = JsonUtils.getJsonArrayFromJsonObject(customChoiceResponse, CUSTOM_CHOICES);
+								
+								if(customChoices != null) {
+								
 									for(int i = 0; i < customChoices.length(); i++) {
 										JSONObject choice = JsonUtils.getJsonObjectFromJsonArray(customChoices, i);
 	
