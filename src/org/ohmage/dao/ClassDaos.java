@@ -2,6 +2,7 @@ package org.ohmage.dao;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -66,18 +67,38 @@ public class ClassDaos extends Dao {
 		"INSERT INTO user_class(user_id, class_id, user_class_role_id) " +
 		"VALUES (" +
 			"(" +
-				"SELECT Id " +
+				"SELECT id " +
 				"FROM user " +
 				"WHERE username = ?" +
 			"), (" +
-				"SELECT Id " +
+				"SELECT id " +
 				"FROM class " +
 				"WHERE urn = ?" +
 			"), (" +
-				"SELECT Id " +
+				"SELECT id " +
 				"FROM user_class_role " +
 				"WHERE role = ?" +
 			")" +
+		")";
+	
+	// Associates a user with a campaign.
+	private static final String SQL_INSERT_USER_CAMPAIGN =
+		"INSERT INTO user_role_campaign(user_id, campaign_id, user_role_id) " +
+		"VALUES (" +
+			"(" +
+				"SELECT id " +
+				"FROM user " +
+				"WHERE username = ?" +
+			"), (" +
+				"SELECT id " +
+				"FROM campaign " +
+				"WHERE urn = ?" +
+			"), (" +
+				"SELECT id " +
+				"FROM user_role " +
+				"WHERE role = ?" +
+			")" +
+			"" +
 		")";
 	
 	// Updates a class' name.
@@ -96,17 +117,17 @@ public class ClassDaos extends Dao {
 	private static final String SQL_UPDATE_USER_CLASS =
 		"UPDATE user_class " +
 		"SET user_class_role_id = (" +
-			"SELECT Id " +
+			"SELECT id " +
 			"FROM user_class_role " +
 			"WHERE role = ?" +
 		")" +
 		"WHERE user_id = (" +
-			"SELECT Id " +
+			"SELECT id " +
 			"FROM user " +
 			"WHERE username = ?" +
 		")" +
 		"AND class_id = (" +
-			"SELECT Id " +
+			"SELECT id " +
 			"FROM class " +
 			"WHERE urn = ?" +
 		")";
@@ -116,18 +137,37 @@ public class ClassDaos extends Dao {
 		"DELETE FROM class " + 
 		"WHERE urn = ?";
 	
-	// Deletes a user from a class if they have the specified role.
+	// Deletes a user from a class.
 	private static final String SQL_DELETE_USER_FROM_CLASS =
 		"DELETE FROM user_class " +
 		"WHERE user_id = (" +
-			"SELECT Id " +
+			"SELECT id " +
 			"FROM user " +
 			"WHERE username = ?" +
 		") " +
 		"AND class_id = (" +
-			"SELECT Id " +
+			"SELECT id " +
 			"FROM class " +
 			"WHERE urn = ?" +
+		")";
+	
+	// Deletes a user from a campaign as long as they have the given role.
+	private static final String SQL_DELETE_USER_FROM_CAMPAIGN =
+		"DELETE FROM user_role_campaign " +
+		"WHERE user_id = (" +
+			"SELECT id " +
+			"FROM user " +
+			"WHERE username = ?" +
+		") " +
+		"AND campaign_id = (" +
+			"SELECT id " +
+			"FROM campaign " +
+			"WHERE urn = ?" +
+		") " +
+		"AND user_role_id = (" +
+			"SELECT id " +
+			"FROM user_role " +
+			"WHERE role = ?" +
 		")";
 	
 	/**
@@ -384,6 +424,12 @@ public class ClassDaos extends Dao {
 
 	public static List<String> updateClass(String classId, String className, String classDescription, Map<String, String> userAndRolesToAdd, List<String> usersToRemove)
 		throws DataAccessException {
+		// Note: This function is ugly. We need to stop using a class as a 
+		// mechanism to add users to a campaign and start using it like a 
+		// group, where a user's roles in a campaign are the union of those
+		// given to them directly from the user_role_campaign table and the
+		// roles given to each of the classes to which they belong.
+		
 		// Create the transaction.
 		DefaultTransactionDefinition def = new DefaultTransactionDefinition();
 		def.setName("Creating a new class.");
@@ -417,10 +463,36 @@ public class ClassDaos extends Dao {
 				}
 			}
 			
+			// If either of the user lists are non-empty, we grab the list of
+			// campaigns associated with the class now as it will be needed, 
+			// and we don't want to grab it multiple times.
+			List<String> campaignIds = Collections.emptyList();
+			if((usersToRemove != null) || (userAndRolesToAdd != null)) {
+				try {
+					campaignIds = CampaignClassDaos.getCampaignsAssociatedWithClass(classId);
+				}
+				catch(DataAccessException e) {
+					transactionManager.rollback(status);
+					throw e;
+				}
+			}
+			
 			// Delete the users before adding the new ones. This facilitates
 			// upgrading a user from one role to another.
 			if(usersToRemove != null) {
 				for(String username : usersToRemove) {
+					// Get the user's role in the class before removing
+					// it.
+					String classRole;
+					try {
+						classRole = UserClassDaos.getUserClassRole(classId, username);
+					}
+					catch(DataAccessException e) {
+						transactionManager.rollback(status);
+						throw e;
+					}
+					
+					// Remove the user from the class.
 					try {
 						instance.getJdbcTemplate().update(SQL_DELETE_USER_FROM_CLASS, new Object[] { username, classId });
 					}
@@ -428,6 +500,52 @@ public class ClassDaos extends Dao {
 						transactionManager.rollback(status);
 						throw new DataAccessException("Error while executing SQL '" + SQL_DELETE_USER_FROM_CLASS + "' with parameters: " + 
 								username + ", " + classId, e);
+					}
+					
+					// For all of the campaigns associated with the class, see
+					// if the user is associated with any of them in any other
+					// capacity, and, if not, dissociate them from the 
+					// campaign.
+					for(String campaignId : campaignIds) {
+						// If they are associated with the campaign through 
+						// no classes, then we are going to remove any 
+						// campaign-class associations that may exist.
+						int numClasses;
+						try {
+							numClasses = UserCampaignClassDaos.getNumberOfClassesThroughWhichUserIsAssociatedWithCampaign(username, campaignId);
+						}
+						catch(DataAccessException e) {
+							transactionManager.rollback(status);
+							throw e;
+						}
+						
+						if(numClasses == 0) {
+							// Get the default roles which are to be revoked
+							// from the user.
+							List<String> defaultRoles;
+							try {
+								defaultRoles = CampaignClassDaos.getDefaultCampaignRolesForCampaignClass(campaignId, classId, classRole);
+							}
+							catch(DataAccessException e) {
+								transactionManager.rollback(status);
+								throw e;
+							}
+							
+							// For each of the default roles, remove that role
+							// from the user.
+							for(String defaultRole : defaultRoles) {
+								try {
+									instance.getJdbcTemplate().update(
+											SQL_DELETE_USER_FROM_CAMPAIGN,
+											new Object[] { username, campaignId, defaultRole });
+								}
+								catch(org.springframework.dao.DataAccessException e) {
+									transactionManager.rollback(status);
+									throw new DataAccessException("Error executing SQL '" + SQL_DELETE_USER_FROM_CAMPAIGN + "' with parameters: " +
+											username + ", " + campaignId + ", " + defaultRole, e);
+								}
+							}
+						}
 					}
 				}
 			}
@@ -439,12 +557,20 @@ public class ClassDaos extends Dao {
 			// Add the users to the class.
 			if(userAndRolesToAdd != null) {
 				for(String username : userAndRolesToAdd.keySet()) {
+					// Get the user's (new) role.
 					String role = userAndRolesToAdd.get(username);
 					
+					boolean addDefaultRoles = false;
 					try {
+						// Attempt to add the user to the class.
 						instance.getJdbcTemplate().update(SQL_INSERT_USER_CLASS, new Object[] { username, classId, role } );
+						
+						addDefaultRoles = true;
 					}
+					// This will be thrown if they are already associated with
+					// the class.
 					catch(org.springframework.dao.DataIntegrityViolationException duplicateException) {
+						// Get the user's current role.
 						String originalRole;
 						try {
 							originalRole = UserClassDaos.getUserClassRole(classId, username);
@@ -454,7 +580,10 @@ public class ClassDaos extends Dao {
 							throw e;
 						}
 						
+						// If their new role is the same as their old role, we
+						// will ignore this update.
 						if(! originalRole.equals(role)) {
+							// Update their role to the new role.
 							try {
 								if(instance.getJdbcTemplate().update(SQL_UPDATE_USER_CLASS, new Object[] { role, username, classId }) > 0) {
 									warningMessages.add("The user '" + username + 
@@ -468,12 +597,85 @@ public class ClassDaos extends Dao {
 								throw new DataAccessException("Error while executing SQL '" + SQL_UPDATE_USER_CLASS + "' with parameters: " + 
 										role + ", " + username + ", " + classId, e);
 							}
+							
+							// For each of the campaigns associated with this
+							// class,
+							for(String campaignId : campaignIds) {
+								// If they are only associated with the 
+								// campaign in this class.
+								int numClasses;
+								try {
+									numClasses = UserCampaignClassDaos.getNumberOfClassesThroughWhichUserIsAssociatedWithCampaign(username, campaignId);
+								}
+								catch(DataAccessException e) {
+									transactionManager.rollback(status);
+									throw e;
+								}
+								
+								if(numClasses == 1) {
+									// Remove the current roles with the 
+									// campaign and add a new role with the
+									// campaign.
+									List<String> defaultRoles;
+									try {
+										defaultRoles = CampaignClassDaos.getDefaultCampaignRolesForCampaignClass(campaignId, classId, originalRole);
+									}
+									catch(DataAccessException e) {
+										transactionManager.rollback(status);
+										throw e;
+									}
+									
+									for(String defaultRole : defaultRoles) {
+										try {
+											instance.getJdbcTemplate().update(
+													SQL_DELETE_USER_FROM_CAMPAIGN,
+													new Object[] { username, campaignId, defaultRole });
+										}
+										catch(org.springframework.dao.DataAccessException e) {
+											transactionManager.rollback(status);
+											throw new DataAccessException("Error executing SQL '" + SQL_DELETE_USER_FROM_CAMPAIGN + "' with parameters: " +
+													username + ", " + campaignId + ", " + defaultRole, e);
+										}
+									}
+								}
+								
+								addDefaultRoles = true;
+							}
 						}
 					}
 					catch(org.springframework.dao.DataAccessException e) {
 						transactionManager.rollback(status);
 						throw new DataAccessException("Error while executing SQL '" + SQL_INSERT_USER_CLASS + "' with parameters: " + 
 								username + ", " + classId + ", " + role, e);
+					}
+
+					if(addDefaultRoles) {
+						// For each of the campaign's associated with the 
+						// class, add them to the campaign with the default
+						// roles.
+						for(String campaignId : campaignIds) {
+							List<String> defaultRoles;
+							try {
+								defaultRoles = CampaignClassDaos.getDefaultCampaignRolesForCampaignClass(campaignId, classId, role);
+							}
+							catch(DataAccessException e) {
+								transactionManager.rollback(status);
+								throw e;
+							}
+							
+							for(String defaultRole : defaultRoles) {
+								try {
+									instance.getJdbcTemplate().update(
+											SQL_INSERT_USER_CAMPAIGN,
+											new Object[] { username, campaignId, defaultRole });
+								}
+								catch(org.springframework.dao.DataAccessException e) {
+									transactionManager.rollback(status);
+									throw new DataAccessException("Error executing SQL '" + SQL_INSERT_USER_CAMPAIGN + "' with parameters: " +
+											username + ", " + campaignId + ", " + defaultRole, e);
+								}
+							}
+						}
 					}
 				}
 			}

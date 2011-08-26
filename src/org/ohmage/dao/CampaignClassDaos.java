@@ -30,6 +30,20 @@ public final class CampaignClassDaos extends Dao {
 		"AND ca.id = cc.campaign_id " +
 		"AND cl.id = cc.class_id";
 	
+	// Retrieves all of the default roles for a campaign-class association 
+	// based on some class role.
+	private static final String SQL_GET_CAMPAIGN_CLASS_DEFAULT_ROLES =
+		"SELECT ur.role " +
+		"FROM campaign ca, class cl, campaign_class cc, user_role ur, user_class_role ucr, campaign_class_default_role ccdr " +
+		"WHERE ca.urn = ? " +
+		"AND cl.urn = ? " +
+		"AND ca.id = cc.campaign_id " +
+		"AND cl.id = cc.class_id " +
+		"AND cc.id = ccdr.campaign_class_id " +
+		"AND ccdr.user_class_role_id = ucr.id " +
+		"AND ucr.role = ? " +
+		"AND ccdr.user_role_id = ur.id";
+	
 	private static CampaignClassDaos instance;
 	
 	/**
@@ -82,6 +96,39 @@ public final class CampaignClassDaos extends Dao {
 		}
 		catch(org.springframework.dao.DataAccessException e) {
 			throw new DataAccessException("Error executing SQL '" + SQL_GET_CLASSES_ASSOCIATED_WITH_CAMPAIGN + "' with parameter: " + campaignId, e);
+		}
+	}
+	
+	/**
+	 * Retrieves the list of default campaign roles for a user in a class with
+	 * the specified class role.
+	 * 
+	 * @param campaignId The campaign's unique identifier.
+	 * 
+	 * @param classId The class' unique identifier.
+	 * 
+	 * @param classRole The class role.
+	 * 
+	 * @return A, possibly empty but never null, list of campaign roles.
+	 * 
+	 * @throws DataAccessException Thrown if there is an error.
+	 */
+	public static List<String> getDefaultCampaignRolesForCampaignClass(String campaignId, String classId, String classRole) throws DataAccessException {
+		try {
+			return instance.getJdbcTemplate().query(
+					SQL_GET_CAMPAIGN_CLASS_DEFAULT_ROLES,
+					new Object[] { campaignId, classId, classRole },
+					new SingleColumnRowMapper<String>());
+		}
+		catch(org.springframework.dao.DataAccessException e) {
+			throw new DataAccessException(
+					"Error executing SQL '" + 
+						SQL_GET_CAMPAIGN_CLASS_DEFAULT_ROLES + 
+					"' with parameters: " + 
+						campaignId + ", " +
+						classId + ", " +
+						classRole + ", ",
+					e);
 		}
 	}
 }
