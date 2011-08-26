@@ -50,7 +50,6 @@ public final class PreferenceCache extends KeyValueCache {
 	public static final String KEY_FILE_HIERARCHY_DEPTH = "document_depth";
 	
 	// Document-specific information.
-	public static final String KEY_MAXIMUM_DOCUMENT_SIZE = "maximum_document_size";
 	public static final String KEY_DOCUMENT_DIRECTORY = "document_directory";
 	
 	// Image-specific information.
