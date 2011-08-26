@@ -479,6 +479,9 @@ public final class SurveyResponseReadRequest extends UserRequest {
 		try {
 			writer = new BufferedWriter(new OutputStreamWriter(getOutputStream(httpRequest, httpResponse)));
 			
+			// Sets the HTTP headers to disable caching
+			expireResponse(httpResponse);
+			
 			// Don't attempt to generate output if the request has failed.
 			// If the request ever failed, write an error message.
 			if(isFailed()) {
@@ -489,9 +492,6 @@ public final class SurveyResponseReadRequest extends UserRequest {
 				
 				// Prepare for sending the response to the client
 				String responseText = null;
-				
-				// Sets the HTTP headers to disable caching
-				expireResponse(httpResponse);
 				
 				final String token = this.getUser().getToken(); 
 				if(token != null) {
