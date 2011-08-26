@@ -445,6 +445,10 @@ public final class SurveyResponseReadServices {
 			}
 			
 			main.put("data", dataArray);
+			
+		} else {
+			
+			main.put("data", new JSONArray());
 		}
 		
 		return request.getPrettyPrint() ? main.toString(4) : main.toString();		
