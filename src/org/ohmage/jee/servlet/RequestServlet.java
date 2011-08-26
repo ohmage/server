@@ -18,6 +18,7 @@ import org.ohmage.exception.ServiceException;
 import org.ohmage.request.InputKeys;
 import org.ohmage.request.Request;
 import org.ohmage.request.RequestBuilder;
+import org.ohmage.request.UserRequest;
 import org.ohmage.service.AuditServices;
 
 /**
@@ -33,7 +34,11 @@ import org.ohmage.service.AuditServices;
 public class RequestServlet extends HttpServlet {
 	private static final Logger LOGGER = Logger.getLogger(RequestServlet.class);
 	
+	private static final int MAX_DATABASE_LENGTH = (1024 * 16) - 1;
+	
 	private static final String PASSWORD_OMITTED = "omitted";
+	private static final String LONG_VALUE_OMITTED = "<<<Value exeeded " + MAX_DATABASE_LENGTH + " characters.>>>";
+	private static final String ELLIPSE = "...";
 	
 	private static final String KEY_DEVICE_ID = "device_id";
 	
@@ -116,46 +121,32 @@ public class RequestServlet extends HttpServlet {
 		@Override
 		public void run() {
 			try {
-				// Retrieve the client parameter should one exist. Otherwise,
-				// null is used.
-				String[] clientValues = parameterMap.get(InputKeys.CLIENT);
-				String client = null;
-				if((clientValues != null) && (clientValues.length == 1)) {
-					client = clientValues[0];
-				}
-				
-				// Replace any obvious passwords with a placeholder.
-				String[] passwords;
-				String[] passwordsOmitted;
-				
-				// First, do it for all of the InputKeys.PASSWORD parameters.
-				passwords = parameterMap.get(InputKeys.PASSWORD);
-				if(passwords != null) {
-					passwordsOmitted = new String[passwords.length];
-					
-					for(int i = 0; i < passwords.length; i++) {
-						passwordsOmitted[i] = PASSWORD_OMITTED;
-					}
-
-					parameterMap.put(InputKeys.PASSWORD, passwordsOmitted);
-				}
-				
-				// Then, do it for all of the InputKeys.NEW_PASSWORD 
-				// parameters.
-				passwords = parameterMap.get(InputKeys.NEW_PASSWORD);
-				if(passwords != null) {
-					passwordsOmitted = new String[passwords.length];
-					
-					for(int i = 0; i < passwords.length; i++) {
-						passwordsOmitted[i] = PASSWORD_OMITTED;
-					}
-
-					parameterMap.put(InputKeys.NEW_PASSWORD, passwordsOmitted);
-				}
-				
-				// Remove any data parameters as those are large and may  
-				// contain sensitive data.
+				// We remove any uploaded to data to avoid storing personal or
+				// sensitive data in the audit table.
 				parameterMap.remove(InputKeys.DATA);
+				
+				// Go through the parameters and remove all values that are
+				// greater than 64kB because the database will reject it.
+				for(String key : parameterMap.keySet()) {
+					String[] values = parameterMap.get(key);
+					
+					// If it is a password or new_password, we mask it to avoid
+					// accidentally storing any passwords in the database,
+					// except in the user table.
+					if(key.equals(InputKeys.PASSWORD) || 
+							key.equals(InputKeys.NEW_PASSWORD)) {
+						for(int i = 0; i < values.length; i++) {
+							values[i] = PASSWORD_OMITTED;
+						}
+					}
+					else {
+						for(int i = 0; i < values.length; i++) {
+							if(values[i].length() > MAX_DATABASE_LENGTH) {
+								values[i] = LONG_VALUE_OMITTED;
+							}
+						}
+					}
+				}
 				
 				// Retrieve the device ID. If any number of device IDs exist,
 				// the first one reported will be used.
@@ -173,16 +164,25 @@ public class RequestServlet extends HttpServlet {
 				}
 				else if(request.isFailed()) {
 					responseString = request.getFailureMessage();
+					
+					if(responseString.length() > MAX_DATABASE_LENGTH) {
+						responseString = responseString.substring(0, MAX_DATABASE_LENGTH - 3) + ELLIPSE;
+					}
 				}
 				
 				// Generate an 'extras' Map based on the HTTP headers.
 				Map<String, String[]> extras = headerMap;
 				
 				// Get any extras from the request.
+				String client = null;
 				if(request != null) {
 					Map<String, String[]> requestExtras = request.getAuditInformation();
 					if(requestExtras != null) {
 						extras.putAll(requestExtras);
+					}
+					
+					if(request instanceof UserRequest) {
+						client = ((UserRequest) request).getClient();
 					}
 				}
 				
