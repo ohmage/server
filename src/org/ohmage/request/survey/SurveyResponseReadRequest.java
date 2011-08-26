@@ -424,8 +424,14 @@ public final class SurveyResponseReadRequest extends UserRequest {
 			LOGGER.info("Verifying that requester belongs to the campaign specified by campaign ID.");
 		    UserCampaignServices.campaignExistsAndUserBelongs(this, this.getUser(), this.campaignUrn);
 		    
-		    LOGGER.info("Verifying that the requester has a role that allows reading of survey responses for each of the users in the list.");
-	    	UserCampaignServices.requesterCanViewUsersSurveyResponses(this, this.campaignUrn, this.getUser().getUsername(), (String[]) userList.toArray());
+		    
+		    // We have removed this ACL check because it causes participants
+		    // to not be able to view their own data. The bigger problem
+		    // is that for "Browse Data" the front end always passes 
+		    // user_list=urn:ohmage:special:all
+		    
+//		    LOGGER.info("Verifying that the requester has a role that allows reading of survey responses for each of the users in the list.");
+//	    	UserCampaignServices.requesterCanViewUsersSurveyResponses(this, this.campaignUrn, this.getUser().getUsername(), (String[]) userList.toArray());
 			
 		    if(! this.userList.equals(URN_SPECIAL_ALL_LIST)) {
 		    	LOGGER.info("Checking the user list to make sure all of the users belong to the campaign ID.");
