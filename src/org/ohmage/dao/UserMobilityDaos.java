@@ -35,7 +35,7 @@ import org.springframework.transaction.support.DefaultTransactionDefinition;
  * 
  * @author John Jenkins
  */
-public final class UserMobilityDaos extends Dao {
+public final class UserMobilityDaos extends AbstractUploadDao {
 	private static final int HOURS_IN_A_DAY = 24;
 	
 	// Inserts a mode-only entry into the database.
@@ -289,6 +289,24 @@ public final class UserMobilityDaos extends Dao {
 								MobilityPrivacyStateCache.PRIVACY_STATE_PRIVATE
 						});
 			}
+			// If this is a duplicate upload, we will ignore it by rolling back
+			// to where we were before we started and return.
+			catch(org.springframework.dao.DataIntegrityViolationException e) {
+				if(! instance.isDuplicate(e)) {
+					throw new DataAccessException(
+						"Error executing SQL '" + SQL_INSERT_MODE_ONLY + "' with parameters: " +
+							username + ", " +
+							client + ", " +
+							TimeUtils.getIso8601DateTimeString(timestamp) + ", " +
+							epochMillis + ", " +
+							((timezone == null) ? null : timezone.getDisplayName()) + ", " +
+							locationStatus + ", " +
+							((location == null) ? null : location.toString()) + ", " +
+							((mode == null) ? null : mode.name().toLowerCase()) + ", " +
+							MobilityPrivacyStateCache.PRIVACY_STATE_PRIVATE,
+						e);
+				}
+			}
 			catch(org.springframework.dao.DataAccessException e) {
 				throw new DataAccessException(
 					"Error executing SQL '" + SQL_INSERT_MODE_ONLY + "' with parameters: " +
@@ -392,6 +410,27 @@ public final class UserMobilityDaos extends Dao {
 								(mode == null) ? null : mode.name().toLowerCase(),
 								MobilityPrivacyStateCache.PRIVACY_STATE_PRIVATE
 						});
+			}
+			// If this is a duplicate upload, we will ignore it by rolling back
+			// to where we were before we started and return.
+			catch(org.springframework.dao.DataIntegrityViolationException e) {
+				if(! instance.isDuplicate(e)) {
+					throw new DataAccessException(
+						"Error executing SQL '" + SQL_INSERT_EXTENDED + "' with parameters: " +
+							username + ", " +
+							client + ", " +
+							TimeUtils.getIso8601DateTimeString(timestamp) + ", " +
+							epochMillis + ", " +
+							((timezone == null) ? null : timezone.getDisplayName()) + ", " +
+							locationStatus + ", " +
+							((location == null) ? null : location.toString()) + ", " +
+							((sensorData == null) ? null : sensorData.toString()) + ", " +
+							((features == null) ? null : features.toString()) + ", " +
+							classifierVersion + ", " +
+							((mode == null) ? null : mode.name().toLowerCase()) + ", " +
+							MobilityPrivacyStateCache.PRIVACY_STATE_PRIVATE,
+						e);
+				}
 			}
 			catch(org.springframework.dao.DataAccessException e) {
 				throw new DataAccessException(

@@ -18,7 +18,6 @@ import org.ohmage.validator.ClassValidators;
 import org.ohmage.validator.UserClassValidators;
 import org.ohmage.validator.UserValidators;
 
-
 /**
  * <p>This class is responsible for updating a class. The requesting user must
  * be privileged in the class or an admin.</p>
