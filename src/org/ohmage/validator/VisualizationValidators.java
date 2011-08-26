@@ -123,7 +123,7 @@ public class VisualizationValidators {
 			return null;
 		}
 		
-		Date result = StringUtils.decodeDate(startDate);
+		Date result = StringUtils.decodeDateTime(startDate);
 		if(result == null) {
 			result = StringUtils.decodeDate(startDate);
 			

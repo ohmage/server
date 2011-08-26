@@ -176,8 +176,6 @@ public final class UserValidators {
 			return username;
 		}
 		else {
-			// TODO: This might be where we tell them what a username must look
-			// 		 like.
 			request.setFailed(ErrorCodes.USER_INVALID_USERNAME, "The username is invalid. " + USERNAME_REQUIREMENTS);
 			throw new ValidationException("The username is invalid. " + USERNAME_REQUIREMENTS);
 		}
@@ -210,7 +208,7 @@ public final class UserValidators {
 		
 		String[] usernameArray = usernameList.split(InputKeys.LIST_ITEM_SEPARATOR);
 		for(int i = 0; i < usernameArray.length; i++) {
-			String username = validateUsername(request, usernameArray[i]);
+			String username = validateUsername(request, usernameArray[i].trim());
 			
 			if(username != null) {
 				result.add(username);
@@ -315,8 +313,8 @@ public final class UserValidators {
 			return null;
 		}
 		
-		if(StringUtils.isValidBoolean(value)) {
-			return StringUtils.decodeBoolean(value);
+		if(StringUtils.isValidBoolean(value.trim())) {
+			return StringUtils.decodeBoolean(value.trim());
 		}
 		else {
 			request.setFailed(ErrorCodes.USER_INVALID_ADMIN_VALUE, "The admin value is invalid: " + value);
@@ -349,8 +347,8 @@ public final class UserValidators {
 			return null;
 		}
 		
-		if(StringUtils.isValidBoolean(value)) {
-			return StringUtils.decodeBoolean(value);
+		if(StringUtils.isValidBoolean(value.trim())) {
+			return StringUtils.decodeBoolean(value.trim());
 		}
 		else {
 			request.setFailed(ErrorCodes.USER_INVALID_ENABLED_VALUE, "The enabled value is invalid: " + value);
@@ -384,8 +382,8 @@ public final class UserValidators {
 			return null;
 		}
 		
-		if(StringUtils.isValidBoolean(value)) {
-			return StringUtils.decodeBoolean(value);
+		if(StringUtils.isValidBoolean(value.trim())) {
+			return StringUtils.decodeBoolean(value.trim());
 		}
 		else {
 			request.setFailed(ErrorCodes.USER_INVALID_NEW_ACCOUNT_VALUE, "The new account value is invalid: " + value);
@@ -419,8 +417,8 @@ public final class UserValidators {
 			return null;
 		}
 		
-		if(StringUtils.isValidBoolean(value)) {
-			return StringUtils.decodeBoolean(value);
+		if(StringUtils.isValidBoolean(value.trim())) {
+			return StringUtils.decodeBoolean(value.trim());
 		}
 		else {
 			request.setFailed(ErrorCodes.USER_INVALID_CAMPAIGN_CREATION_PRIVILEGE, "The campaign creation privilege value is invalid: " + value);
@@ -450,16 +448,16 @@ public final class UserValidators {
 			return null;
 		}
 		
-		if(StringUtils.isProfane(value)) {
+		if(StringUtils.isProfane(value.trim())) {
 			request.setFailed(ErrorCodes.USER_INVALID_FIRST_NAME_VALUE, "The first name value for the user contains profanity: " + value);
 			throw new ValidationException("The first name value for the user contains profanity: " + value);
 		}
-		else if(! StringUtils.lengthWithinLimits(value, 0, MAX_FIRST_NAME_LENGTH)) {
+		else if(! StringUtils.lengthWithinLimits(value.trim(), 0, MAX_FIRST_NAME_LENGTH)) {
 			request.setFailed(ErrorCodes.USER_INVALID_FIRST_NAME_VALUE, "The first name value for the user is too long. The limit is " + MAX_FIRST_NAME_LENGTH + " characters.");
 			throw new ValidationException("The first name value for the user is too long. The limit is " + MAX_FIRST_NAME_LENGTH + " characters.");
 		}
 		else {
-			return value;
+			return value.trim();
 		}
 	}
 	
@@ -485,16 +483,16 @@ public final class UserValidators {
 			return null;
 		}
 		
-		if(StringUtils.isProfane(value)) {
+		if(StringUtils.isProfane(value.trim())) {
 			request.setFailed(ErrorCodes.USER_INVALID_LAST_NAME_VALUE, "The last name value for the user contains profanity: " + value);
 			throw new ValidationException("The last name value for the user contains profanity: " + value);
 		}
-		else if(! StringUtils.lengthWithinLimits(value, 0, MAX_LAST_NAME_LENGTH)) {
+		else if(! StringUtils.lengthWithinLimits(value.trim(), 0, MAX_LAST_NAME_LENGTH)) {
 			request.setFailed(ErrorCodes.USER_INVALID_LAST_NAME_VALUE, "The last name value for the user is too long. The limit is " + MAX_LAST_NAME_LENGTH + " characters.");
 			throw new ValidationException("The last name value for the user is too long. The limit is " + MAX_LAST_NAME_LENGTH + " characters.");
 		}
 		else {
-			return value;
+			return value.trim();
 		}
 	}
 	
@@ -520,16 +518,16 @@ public final class UserValidators {
 			return null;
 		}
 		
-		if(StringUtils.isProfane(value)) {
+		if(StringUtils.isProfane(value.trim())) {
 			request.setFailed(ErrorCodes.USER_INVALID_ORGANIZATION_VALUE, "The organization value for the user contains profanity: " + value);
 			throw new ValidationException("The organization value for the user contains profanity: " + value);
 		}
-		else if(! StringUtils.lengthWithinLimits(value, 0, MAX_ORGANIZATION_LENGTH)) {
+		else if(! StringUtils.lengthWithinLimits(value.trim(), 0, MAX_ORGANIZATION_LENGTH)) {
 			request.setFailed(ErrorCodes.USER_INVALID_ORGANIZATION_VALUE, "The organization value for the user is too long. The limit is " + MAX_ORGANIZATION_LENGTH + " characters.");
 			throw new ValidationException("The organization value for the user is too long. The limit is " + MAX_ORGANIZATION_LENGTH + " characters.");
 		}
 		else {
-			return value;
+			return value.trim();
 		}
 	}
 	
@@ -555,16 +553,16 @@ public final class UserValidators {
 			return null;
 		}
 		
-		if(StringUtils.isProfane(value)) {
+		if(StringUtils.isProfane(value.trim())) {
 			request.setFailed(ErrorCodes.USER_INVALID_PERSONAL_ID_VALUE, "The personal ID value for the user contains profanity: " + value);
 			throw new ValidationException("The personal ID value for the user contains profanity: " + value);
 		}
-		else if(! StringUtils.lengthWithinLimits(value, 0, MAX_PERSONAL_ID_LENGTH)) {
+		else if(! StringUtils.lengthWithinLimits(value.trim(), 0, MAX_PERSONAL_ID_LENGTH)) {
 			request.setFailed(ErrorCodes.USER_INVALID_PERSONAL_ID_VALUE, "The personal ID value for the user is too long. The limit is " + MAX_PERSONAL_ID_LENGTH + " characters.");
 			throw new ValidationException("The personal ID value for the user is too long. The limit is " + MAX_PERSONAL_ID_LENGTH + " characters.");
 		}
 		else {
-			return value;
+			return value.trim();
 		}
 	}
 	
@@ -588,8 +586,8 @@ public final class UserValidators {
 			return null;
 		}
 		
-		if(StringUtils.isValidEmailAddress(value)) {
-			return value;
+		if(StringUtils.isValidEmailAddress(value.trim())) {
+			return value.trim();
 		}
 		else {
 			request.setFailed(ErrorCodes.USER_INVALID_EMAIL_ADDRESS, "The email address value for the user is invalid: " + value);
@@ -619,7 +617,7 @@ public final class UserValidators {
 		}
 		
 		try {
-			return new JSONObject(value);
+			return new JSONObject(value.trim());
 		}
 		catch(JSONException e) {
 			request.setFailed(ErrorCodes.USER_INVALID_JSON_DATA, "The user's JSON data object is not a valid JSONObject: " + value);

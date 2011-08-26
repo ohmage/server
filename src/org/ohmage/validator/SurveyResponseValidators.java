@@ -64,8 +64,8 @@ public final class SurveyResponseValidators {
 			return null;
 		}
 		
-		if(SurveyResponsePrivacyStateCache.instance().getKeys().contains(privacyState)) {
-			return privacyState;
+		if(SurveyResponsePrivacyStateCache.instance().getKeys().contains(privacyState.trim())) {
+			return privacyState.trim();
 		}
 		else {
 			request.setFailed(ErrorCodes.SURVEY_INVALID_PRIVACY_STATE, "The privacy state is unknown: " + privacyState);

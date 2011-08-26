@@ -56,12 +56,10 @@ public final class ClassValidators {
 			return null;
 		}
 		
-		String classIdTrimmed = classId.trim();
-		
 		// If the value is a valid URN, meaning that it is a plausible class 
 		// ID, return the class ID back to the caller.
-		if(StringUtils.isValidUrn(classIdTrimmed)) {
-			return classIdTrimmed;
+		if(StringUtils.isValidUrn(classId.trim())) {
+			return classId.trim();
 		}
 		// If the class ID is not null, not whitespace only, and not a valid
 		// URN, set the request as failed and throw a ValidationException to
@@ -111,7 +109,7 @@ public final class ClassValidators {
 		String[] classListArray = classIdListString.split(InputKeys.LIST_ITEM_SEPARATOR);
 		for(int i = 0; i < classListArray.length; i++) {
 			// Validate the current class ID.
-			String currClassId = validateClassId(request, classListArray[i]);
+			String currClassId = validateClassId(request, classListArray[i].trim());
 			
 			// If it returned null, then the current class ID in the array
 			// was probably whitespace only because the class list had two
@@ -149,16 +147,16 @@ public final class ClassValidators {
 			return null;
 		}
 		
-		if(StringUtils.isProfane(name)) {
+		if(StringUtils.isProfane(name.trim())) {
 			request.setFailed(ErrorCodes.CLASS_INVALID_NAME, "The class name contains profanity: " + name);
 			throw new ValidationException("The class name contains profanity: " + name);
 		}
-		else if(! StringUtils.lengthWithinLimits(name, 0, MAX_NAME_LENGTH)) {
+		else if(! StringUtils.lengthWithinLimits(name.trim(), 0, MAX_NAME_LENGTH)) {
 			request.setFailed(ErrorCodes.CLASS_INVALID_NAME, "The class name is too long. The maximum length of the class name is " + MAX_NAME_LENGTH + " characters");
 			throw new ValidationException("The class name is too long. The maximum length of the class name is " + MAX_NAME_LENGTH + " characters");
 		}
 		else {
-			return name;
+			return name.trim();
 		}
 	}
 	
@@ -183,12 +181,12 @@ public final class ClassValidators {
 			return null;
 		}
 		
-		if(StringUtils.isProfane(description)) {
+		if(StringUtils.isProfane(description.trim())) {
 			request.setFailed(ErrorCodes.CLASS_INVALID_DESCRIPTION, "The class description contains profanity: " + description);
 			throw new ValidationException("The class description contains profanity: " + description);
 		}
 		else {
-			return description;
+			return description.trim();
 		}
 	}
 	
@@ -215,14 +213,12 @@ public final class ClassValidators {
 			return null;
 		}
 		
-		String classRoleTrimmed = classRole.trim();
-		
 		try {
-			ClassRoleCache.instance().lookup(classRoleTrimmed);
+			ClassRoleCache.instance().lookup(classRole.trim());
 			
 			// If the lookup doesn't throw an exception then the class role 
 			// must be known.
-			return classRoleTrimmed;
+			return classRole.trim();
 		}
 		catch(CacheMissException e) {
 			request.setFailed(ErrorCodes.CLASS_INVALID_ROLE, "Unknown class role: " + classRole);

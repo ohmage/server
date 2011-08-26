@@ -44,8 +44,8 @@ public class DocumentValidators {
 			return null;
 		}
 		
-		if(StringUtils.isValidUuid(documentId)) {
-			return documentId;
+		if(StringUtils.isValidUuid(documentId.trim())) {
+			return documentId.trim();
 		}
 		else {
 			request.setFailed(ErrorCodes.DOCUMENT_INVALID_ID, "The document ID is invalid: " + documentId);
@@ -74,8 +74,8 @@ public class DocumentValidators {
 			return null;
 		}
 		
-		if(DocumentPrivacyStateCache.instance().getKeys().contains(privacyState)) {
-			return privacyState;
+		if(DocumentPrivacyStateCache.instance().getKeys().contains(privacyState.trim())) {
+			return privacyState.trim();
 		}
 		else {
 			request.setFailed(ErrorCodes.DOCUMENT_INVALID_PRIVACY_STATE, "Unknown privacy state: " + privacyState);
@@ -103,8 +103,8 @@ public class DocumentValidators {
 			return null;
 		}
 		
-		if(DocumentRoleCache.instance().getKeys().contains(role)) {
-			return role;
+		if(DocumentRoleCache.instance().getKeys().contains(role.trim())) {
+			return role.trim();
 		}
 		else {
 			request.setFailed(ErrorCodes.DOCUMENT_INVALID_ROLE, "Invalid document role: " + role);
@@ -133,8 +133,8 @@ public class DocumentValidators {
 			return null;
 		}
 		
-		if(StringUtils.isValidBoolean(value)) {
-			return StringUtils.decodeBoolean(value);
+		if(StringUtils.isValidBoolean(value.trim())) {
+			return StringUtils.decodeBoolean(value.trim());
 		}
 		else {
 			request.setFailed(ErrorCodes.DOCUMENT_INVALID_PERSONAL_DOCUMENTS_VALUE, "Invalid personal documents value: " + value);
@@ -163,16 +163,16 @@ public class DocumentValidators {
 			return null;
 		}
 		
-		if(StringUtils.isProfane(value)) {
+		if(StringUtils.isProfane(value.trim())) {
 			request.setFailed(ErrorCodes.DOCUMENT_INVALID_NAME, "The name of this document contains profanity: " + value);
 			throw new ValidationException("The name of this document contains profanity: " + value);
 		}
-		else if(! StringUtils.lengthWithinLimits(value, 0, MAX_NAME_LENGTH)) {
+		else if(! StringUtils.lengthWithinLimits(value.trim(), 0, MAX_NAME_LENGTH)) {
 			request.setFailed(ErrorCodes.DOCUMENT_INVALID_NAME, "The name of this document is too long. The limit is " + MAX_NAME_LENGTH + " characters.");
 			throw new ValidationException("The name of this document is too long. The limit is " + MAX_NAME_LENGTH + " characters.");
 		}
 		else {
-			return value;
+			return value.trim();
 		}
 	}
 	
@@ -196,12 +196,12 @@ public class DocumentValidators {
 			return null;
 		}
 		
-		if(StringUtils.isProfane(value)) {
+		if(StringUtils.isProfane(value.trim())) {
 			request.setFailed(ErrorCodes.DOCUMENT_INVALID_DESCRIPTION, "The document's description contains profanity.");
 			throw new ValidationException("The document's description contains profanity.");
 		}
 		else {
-			return value;
+			return value.trim();
 		}
 	}
 }

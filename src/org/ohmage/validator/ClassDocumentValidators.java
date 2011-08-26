@@ -55,7 +55,7 @@ public final class ClassDocumentValidators {
 		
 		String[] classAndRoleArray = classAndRoleList.split(InputKeys.LIST_ITEM_SEPARATOR);
 		for(int i = 0; i < classAndRoleArray.length; i++) {
-			String classAndRoleString = classAndRoleArray[i];
+			String classAndRoleString = classAndRoleArray[i].trim();
 			
 			if(! StringUtils.isEmptyOrWhitespaceOnly(classAndRoleString)) {
 				String[] classAndRole = classAndRoleString.split(InputKeys.ENTITY_ROLE_SEPARATOR);
@@ -65,8 +65,8 @@ public final class ClassDocumentValidators {
 					throw new ValidationException("The class ID, document role pair is invalid: " + classAndRoleArray[i]);
 				}
 				
-				String classId = ClassValidators.validateClassId(request, classAndRole[0]);
-				String documentRole = DocumentValidators.validateRole(request, classAndRole[1]);
+				String classId = ClassValidators.validateClassId(request, classAndRole[0].trim());
+				String documentRole = DocumentValidators.validateRole(request, classAndRole[1].trim());
 				
 				result.put(classId, documentRole);
 			}

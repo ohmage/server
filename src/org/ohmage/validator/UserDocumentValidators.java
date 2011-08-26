@@ -57,7 +57,7 @@ public class UserDocumentValidators {
 		
 		String[] usernameAndRoleArray = usernameAndRoleList.split(InputKeys.LIST_ITEM_SEPARATOR);
 		for(int i = 0; i < usernameAndRoleArray.length; i++) {
-			String usernameAndRoleString = usernameAndRoleArray[i]; 
+			String usernameAndRoleString = usernameAndRoleArray[i].trim(); 
 			
 			if(! StringUtils.isEmptyOrWhitespaceOnly(usernameAndRoleString)) {
 				String[] usernameAndRole = usernameAndRoleString.split(InputKeys.ENTITY_ROLE_SEPARATOR);
@@ -67,8 +67,8 @@ public class UserDocumentValidators {
 					throw new ValidationException("The username, document role pair is invalid: " + usernameAndRoleArray[i]);
 				}
 				
-				String username = UserValidators.validateUsername(request, usernameAndRole[0]);
-				String documentRole = DocumentValidators.validateRole(request, usernameAndRole[1]);
+				String username = UserValidators.validateUsername(request, usernameAndRole[0].trim());
+				String documentRole = DocumentValidators.validateRole(request, usernameAndRole[1].trim());
 				
 				result.put(username, documentRole);
 			}

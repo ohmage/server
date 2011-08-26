@@ -65,7 +65,7 @@ public class UserCampaignValidators {
 		
 		// For each of these pairs,
 		for(int i = 0; i < userAndRoleArray.length; i++) {
-			String currUserAndRole = userAndRoleArray[i];
+			String currUserAndRole = userAndRoleArray[i].trim();
 			
 			// If the pair is empty, i.e. there were two list item separators
 			// in a row, then skip it.
@@ -80,8 +80,8 @@ public class UserCampaignValidators {
 				}
 				
 				// Validate the actual elements in the pair.
-				String username = UserValidators.validateUsername(request, userAndRole[0]);
-				String role = CampaignValidators.validateRole(request, userAndRole[1]);
+				String username = UserValidators.validateUsername(request, userAndRole[0].trim());
+				String role = CampaignValidators.validateRole(request, userAndRole[1].trim());
 				
 				// Add the role to the list of roles.
 				Set<String> roles = result.get(username);

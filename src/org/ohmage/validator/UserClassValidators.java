@@ -60,7 +60,7 @@ public final class UserClassValidators {
 		Map<String, String> result = new HashMap<String, String>();
 		String[] userAndRoleArray = userClassRoleList.split(InputKeys.LIST_ITEM_SEPARATOR);
 		for(int i = 0; i < userAndRoleArray.length; i++) {
-			String currUserAndRole = userAndRoleArray[i];
+			String currUserAndRole = userAndRoleArray[i].trim();
 			
 			if(! StringUtils.isEmptyOrWhitespaceOnly(currUserAndRole)) {
 				String[] userAndRole = currUserAndRole.split(InputKeys.ENTITY_ROLE_SEPARATOR);
@@ -70,8 +70,8 @@ public final class UserClassValidators {
 					throw new ValidationException("The user class-role list at index " + i + " is invalid: " + currUserAndRole);
 				}
 				
-				String username = UserValidators.validateUsername(request, userAndRole[0]);
-				String role = ClassValidators.validateClassRole(request, userAndRole[1]);
+				String username = UserValidators.validateUsername(request, userAndRole[0].trim());
+				String role = ClassValidators.validateClassRole(request, userAndRole[1].trim());
 				
 				String oldRole = result.put(username, role);
 				if((oldRole != null) && (! oldRole.equals(role))) {

@@ -12,6 +12,8 @@ import org.ohmage.util.StringUtils;
 public class AuditValidators {
 	private static final Logger LOGGER = Logger.getLogger(AuditValidators.class);
 	
+	private static final int MAX_CLIENT_LENGTH = 255;
+	
 	public static enum ResponseType { SUCCESS, FAILURE };
 	
 	/**
@@ -44,7 +46,7 @@ public class AuditValidators {
 		}
 		
 		try {
-			return RequestType.valueOf(requestType.toUpperCase());
+			return RequestType.valueOf(requestType.trim().toUpperCase());
 		}
 		catch(IllegalArgumentException e) {
 			request.setFailed(ErrorCodes.AUDIT_INVALID_RESPONSE_TYPE, "The request type must be one of '" + 
@@ -82,7 +84,7 @@ public class AuditValidators {
 			return null;
 		}
 		
-		return uri;
+		return uri.trim();
 	}
 	
 	/**
@@ -97,7 +99,8 @@ public class AuditValidators {
 	 * @return The client string value unless it was null or whitespace only in
 	 * 		   which case null is returned. 
 	 * 
-	 * @throws ValidationException Never thrown.
+	 * @throws ValidationException Thrown if the client value is greater than
+	 * 							   {@value #MAX_CLIENT_LENGTH} characters.
 	 */
 	public static String validateClient(Request request, String client) throws ValidationException {
 		LOGGER.info("Validating a client value.");
@@ -106,7 +109,13 @@ public class AuditValidators {
 			return null;
 		}
 		
-		return client;
+		if(client.trim().length() > MAX_CLIENT_LENGTH) {
+			request.setFailed(ErrorCodes.SERVER_INVALID_CLIENT, "The client value cannot be longer than " + MAX_CLIENT_LENGTH + " characters.");
+			throw new ValidationException("The client value cannot be longer than " + MAX_CLIENT_LENGTH + " characters.");
+		}
+		else {
+			return client.trim();
+		}
 	}
 	
 	/**
@@ -130,7 +139,7 @@ public class AuditValidators {
 			return null;
 		}
 		
-		return deviceId;
+		return deviceId.trim();
 	}
 	
 	/**
@@ -158,7 +167,7 @@ public class AuditValidators {
 		}
 		
 		try {
-			return ResponseType.valueOf(responseType.toUpperCase());
+			return ResponseType.valueOf(responseType.trim().toUpperCase());
 		}
 		catch(IllegalArgumentException e) {
 			request.setFailed(ErrorCodes.AUDIT_INVALID_RESPONSE_TYPE, "The response type must be one of '" + 
@@ -191,7 +200,7 @@ public class AuditValidators {
 			return null;
 		}
 		
-		return errorCode;
+		return errorCode.trim();
 	}
 	
 	/**
@@ -223,8 +232,6 @@ public class AuditValidators {
 				throw new ValidationException("The start date is invalid: " + startDate);
 			}
 		}
-		
-		LOGGER.debug("Returning: " + date.toString());
 		
 		return date;
 	}

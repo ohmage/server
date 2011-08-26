@@ -40,6 +40,6 @@ public final class StringValidators {
 		
 		// TODO: Add a profanity filter.
 		
-		return string;
+		return string.trim();
 	}
 }

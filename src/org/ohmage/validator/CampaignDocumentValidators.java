@@ -57,7 +57,7 @@ public class CampaignDocumentValidators {
 		
 		String[] campaignAndRoleArray = campaignAndRoleList.split(InputKeys.LIST_ITEM_SEPARATOR);
 		for(int i = 0; i < campaignAndRoleArray.length; i++) {
-			String campaignAndRoleString = campaignAndRoleArray[i];
+			String campaignAndRoleString = campaignAndRoleArray[i].trim();
 			
 			if(! StringUtils.isEmptyOrWhitespaceOnly(campaignAndRoleString)) {
 				String[] campaignAndRole = campaignAndRoleString.split(InputKeys.ENTITY_ROLE_SEPARATOR);
@@ -67,8 +67,8 @@ public class CampaignDocumentValidators {
 					throw new ValidationException("The campaign ID, document role pair is invalid: " + campaignAndRoleArray[i]);
 				}
 				
-				String campaignId = CampaignValidators.validateCampaignId(request, campaignAndRole[0]);
-				String documentRole = DocumentValidators.validateRole(request, campaignAndRole[1]);
+				String campaignId = CampaignValidators.validateCampaignId(request, campaignAndRole[0].trim());
+				String documentRole = DocumentValidators.validateRole(request, campaignAndRole[1].trim());
 	
 				result.put(campaignId, documentRole);
 			}

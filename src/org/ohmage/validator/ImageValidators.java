@@ -54,8 +54,8 @@ public final class ImageValidators {
 			return null;
 		}
 		
-		if(StringUtils.isValidUuid(imageId)) {
-			return imageId;
+		if(StringUtils.isValidUuid(imageId.trim())) {
+			return imageId.trim();
 		}
 		else {
 			request.setFailed(ErrorCodes.IMAGE_INVALID_ID, "The image ID is not a valid image ID: " + imageId);
@@ -86,7 +86,7 @@ public final class ImageValidators {
 		}
 		
 		try {
-			return ImageSize.valueOf(imageSize.toUpperCase());
+			return ImageSize.valueOf(imageSize.trim().toUpperCase());
 		}
 		catch(IllegalArgumentException e) {
 			request.setFailed(ErrorCodes.IMAGE_INVALID_SIZE, "The image size value is an unknown value: " + imageSize);

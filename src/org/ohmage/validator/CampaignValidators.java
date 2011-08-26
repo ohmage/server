@@ -65,8 +65,8 @@ public final class CampaignValidators {
 		
 		// If the value is a valid URN, meaning that it is a plausible campaign 
 		// ID, return the campaign ID back to the caller.
-		if(StringUtils.isValidUrn(campaignId)) {
-			return campaignId;
+		if(StringUtils.isValidUrn(campaignId.trim())) {
+			return campaignId.trim();
 		}
 		// If the campaign ID is not null, not whitespace only, and not a valid
 		// URN, set the request as failed and throw a ValidationException to
@@ -108,7 +108,7 @@ public final class CampaignValidators {
 		
 		String[] campaignIdArray = campaignIds.split(InputKeys.LIST_ITEM_SEPARATOR);
 		for(int i = 0; i < campaignIdArray.length; i++) {
-			String campaignId = validateCampaignId(request, campaignIdArray[i]);
+			String campaignId = validateCampaignId(request, campaignIdArray[i].trim());
 			
 			if(campaignId != null) {
 				resultSet.add(campaignId);
@@ -146,7 +146,7 @@ public final class CampaignValidators {
 			return null;
 		}
 		
-		if(CampaignRunningStateCache.instance().getKeys().contains(runningState)) {
+		if(CampaignRunningStateCache.instance().getKeys().contains(runningState.trim())) {
 			return runningState;
 		}
 		else {
@@ -178,7 +178,7 @@ public final class CampaignValidators {
 			return null;
 		}
 		
-		if(CampaignPrivacyStateCache.instance().getKeys().contains(privacyState)) {
+		if(CampaignPrivacyStateCache.instance().getKeys().contains(privacyState.trim())) {
 			return privacyState;
 		}
 		else {
@@ -262,12 +262,12 @@ public final class CampaignValidators {
 			return null;
 		}
 		
-		if(StringUtils.isProfane(description)) {
+		if(StringUtils.isProfane(description.trim())) {
 			request.setFailed(ErrorCodes.CAMPAIGN_INVALID_DESCRIPTION, "The campaign description contains profanity: " + description);
 			throw new ValidationException("The campaign description contains profanity: " + description);
 		}
 		else {
-			return description;
+			return description.trim();
 		}
 	}
 	
@@ -294,7 +294,7 @@ public final class CampaignValidators {
 		}
 		
 		try {
-			return OutputFormat.valueOf(outputFormat.toUpperCase());
+			return OutputFormat.valueOf(outputFormat.trim().toUpperCase());
 		}
 		catch(IllegalArgumentException e) {
 			request.setFailed(ErrorCodes.CAMPAIGN_INVALID_OUTPUT_FORMAT, "Unknown output format: " + outputFormat);
@@ -388,7 +388,7 @@ public final class CampaignValidators {
 			return null;
 		}
 		
-		if(CampaignRoleCache.instance().getKeys().contains(role)) {
+		if(CampaignRoleCache.instance().getKeys().contains(role.trim())) {
 			return role;
 		}
 		else {
@@ -419,6 +419,6 @@ public final class CampaignValidators {
 			return null;
 		}
 		
-		return promptId;
+		return promptId.trim();
 	}
 }
