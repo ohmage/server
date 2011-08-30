@@ -581,8 +581,9 @@ public class ClassDaos extends Dao {
 						}
 						
 						// If their new role is the same as their old role, we
-						// will ignore this update.
-						if(! originalRole.equals(role)) {
+						// will ignore this update. If the original role is 
+						// null it means, there was no class role for the user.
+						if(originalRole == null || ! originalRole.equals(role)) {
 							// Update their role to the new role.
 							try {
 								if(instance.getJdbcTemplate().update(SQL_UPDATE_USER_CLASS, new Object[] { role, username, classId }) > 0) {
