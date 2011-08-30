@@ -125,7 +125,7 @@ public final class UserClassDaos extends Dao {
 	 */
 	public static String getUserClassRole(String classId, String username) throws DataAccessException {
 		try {
-			return (String) instance.getJdbcTemplate().queryForObject(SQL_GET_USER_ROLE, new Object[] { username, classId }, String.class);
+			return instance.getJdbcTemplate().queryForObject(SQL_GET_USER_ROLE, new Object[] { username, classId }, String.class);
 		}
 		catch(org.springframework.dao.IncorrectResultSizeDataAccessException e) {
 			if(e.getActualSize() > 1) {
