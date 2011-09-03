@@ -2,6 +2,7 @@ package org.ohmage.dao;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
@@ -9,6 +10,7 @@ import java.util.Map;
 
 import javax.sql.DataSource;
 
+import org.apache.log4j.Logger;
 import org.ohmage.cache.ClassRoleCache;
 import org.ohmage.domain.ClassInformation;
 import org.ohmage.exception.DataAccessException;
@@ -28,8 +30,12 @@ import org.springframework.transaction.support.DefaultTransactionDefinition;
  * single transaction.
  * 
  * @author John Jenkins
+ * @author Joshua Selsky
  */
 public class ClassDaos extends Dao {
+	
+	private static Logger LOGGER = Logger.getLogger(ClassDaos.class);
+	
 	// Returns a boolean as to whether or not the given class exists.
 	private static final String SQL_EXISTS_CLASS = 
 		"SELECT EXISTS(" +
@@ -38,6 +44,45 @@ public class ClassDaos extends Dao {
 			"WHERE urn = ?" +
 		")";
 	
+	// Returns a boolean as to whether or not a user has a relationship with
+	// the class.
+	private static final String SQL_EXISTS_USER_CLASS = 
+		"SELECT EXISTS (SELECT id FROM user_class WHERE " +
+		" user_id = " +
+			"(" +
+				"SELECT id " +
+				"FROM user " +
+				"WHERE username = ?" +
+			")" +
+		" AND class_id = (" +
+				"SELECT id " +
+				"FROM class " +
+				"WHERE urn = ?" +
+			")" +
+		")";
+	
+	// Returns a boolean as to whether or not a user has a relationship with
+	// the campign.
+	private static final String SQL_EXISTS_USER_CAMPAIGN =
+		"SELECT EXISTS (SELECT id FROM user_role_campaign WHERE " +
+		" user_id = " +
+			"(" +
+				"SELECT id " +
+				"FROM user " +
+				"WHERE username = ?" +
+			")" +
+		" AND campaign_id = (" +
+				"SELECT id " +
+				"FROM campaign " +
+				"WHERE urn = ?" +
+			")" +
+		" AND user_role_id = (" +
+				"SELECT id " +
+				"FROM user_role " +
+				"WHERE role = ?" +
+			")" +
+		")";
+
 	// Returns the class' information and the a user's role in that class.
 	private static final String SQL_GET_CLASS_INFO_AND_USER_ROLE = 
 		"SELECT c.urn, c.name, c.description, ucr.role " +
@@ -305,7 +350,7 @@ public class ClassDaos extends Dao {
 	 */
 	public static Boolean getClassExists(String classId) throws DataAccessException {
 		try {
-			return (Boolean) instance.getJdbcTemplate().queryForObject(SQL_EXISTS_CLASS, new Object[] { classId }, Boolean.class);
+			return instance.getJdbcTemplate().queryForObject(SQL_EXISTS_CLASS, new Object[] { classId }, Boolean.class);
 		}
 		catch(org.springframework.dao.DataAccessException e) {
 			throw new DataAccessException("Error executing SQL '" + SQL_EXISTS_CLASS + "' with parameters: " + classId, e);
@@ -451,7 +496,7 @@ public class ClassDaos extends Dao {
 				}
 			}
 			
-			// Update the name if it's not null.
+			// Update the description if it's not null.
 			if(classDescription != null) {
 				try {
 					instance.getJdbcTemplate().update(SQL_UPDATE_CLASS_DESCRIPTION, new Object[] { classDescription, classId });
@@ -556,91 +601,120 @@ public class ClassDaos extends Dao {
 			
 			// Add the users to the class.
 			if(userAndRolesToAdd != null) {
+				
 				for(String username : userAndRolesToAdd.keySet()) {
+					
 					// Get the user's (new) role.
 					String role = userAndRolesToAdd.get(username);
 					
 					boolean addDefaultRoles = false;
+					
 					try {
-						// Attempt to add the user to the class.
-						instance.getJdbcTemplate().update(SQL_INSERT_USER_CLASS, new Object[] { username, classId, role } );
 						
-						addDefaultRoles = true;
-					}
-					// This will be thrown if they are already associated with
-					// the class.
-					catch(org.springframework.dao.DataIntegrityViolationException duplicateException) {
-						// Get the user's current role.
-						String originalRole;
-						try {
-							originalRole = UserClassDaos.getUserClassRole(classId, username);
-						}
-						catch(DataAccessException e) {
-							transactionManager.rollback(status);
-							throw e;
-						}
-						
-						// If their new role is the same as their old role, we
-						// will ignore this update. If the original role is 
-						// null it means, there was no class role for the user.
-						if(originalRole == null || ! originalRole.equals(role)) {
-							// Update their role to the new role.
-							try {
-								if(instance.getJdbcTemplate().update(SQL_UPDATE_USER_CLASS, new Object[] { role, username, classId }) > 0) {
-									warningMessages.add("The user '" + username + 
-											"' was already associated with the class '" + classId + 
-											"'. Their role has been updated from '" + originalRole +
-											"' to '" + role + "'");
-								}
-							}
-							catch(org.springframework.dao.DataAccessException e) {
-								transactionManager.rollback(status);
-								throw new DataAccessException("Error while executing SQL '" + SQL_UPDATE_USER_CLASS + "' with parameters: " + 
-										role + ", " + username + ", " + classId, e);
+						if(! instance.getJdbcTemplate().queryForObject(SQL_EXISTS_USER_CLASS, new Object[] { username, classId}, Boolean.class)) {
+							
+							if(LOGGER.isDebugEnabled()) {
+								LOGGER.debug("The user did not exist in the class so the user is being added before any updates are attemped.");
 							}
 							
-							// For each of the campaigns associated with this
-							// class,
-							for(String campaignId : campaignIds) {
-								// If they are only associated with the 
-								// campaign in this class.
-								int numClasses;
-								try {
-									numClasses = UserCampaignClassDaos.getNumberOfClassesThroughWhichUserIsAssociatedWithCampaign(username, campaignId);
-								}
-								catch(DataAccessException e) {
-									transactionManager.rollback(status);
-									throw e;
+							instance.getJdbcTemplate().update(SQL_INSERT_USER_CLASS, new Object[] { username, classId, role } );
+							addDefaultRoles = true;
+						}
+						
+						else  {
+							
+							if(LOGGER.isDebugEnabled()) {
+								LOGGER.debug("The user already has a role in the class so only updates will be performed.");
+							}
+							
+							// Get the user's current role.
+							String originalRole = null;
+							try {
+								originalRole = UserClassDaos.getUserClassRole(classId, username);
+							}
+							catch(DataAccessException e) {
+								transactionManager.rollback(status);
+								throw e;
+							}
+							
+							// If their new role is the same as their old role, we
+							// will ignore this update.
+							if(! role.equals(originalRole)) {
+								
+								if(LOGGER.isDebugEnabled()) {
+									LOGGER.debug("Changing user's class role from " + originalRole + " to " + role);
 								}
 								
-								if(numClasses == 1) {
-									// Remove the current roles with the 
-									// campaign and add a new role with the
-									// campaign.
-									List<String> defaultRoles;
+								// Update their role to the new role.
+								try {
+									if(instance.getJdbcTemplate().update(SQL_UPDATE_USER_CLASS, new Object[] { role, username, classId }) > 0) {
+										warningMessages.add("The user '" + username + 
+												"' was already associated with the class '" + classId + 
+												"'. Their role has been updated from '" + originalRole +
+												"' to '" + role + "'");
+									}
+								}
+								catch(org.springframework.dao.DataAccessException e) {
+									transactionManager.rollback(status);
+									throw new DataAccessException("Error while executing SQL '" + SQL_UPDATE_USER_CLASS + "' with parameters: " + 
+											role + ", " + username + ", " + classId, e);
+								}
+								
+								// For each of the campaigns associated with this
+								// class,
+								for(String campaignId : campaignIds) {
+									// If they are only associated with this 
+									// campaign in this class.
+									int numClasses;
 									try {
-										defaultRoles = CampaignClassDaos.getDefaultCampaignRolesForCampaignClass(campaignId, classId, originalRole);
+										numClasses = UserCampaignClassDaos.getNumberOfClassesThroughWhichUserIsAssociatedWithCampaign(username, campaignId);
 									}
 									catch(DataAccessException e) {
 										transactionManager.rollback(status);
 										throw e;
 									}
 									
-									for(String defaultRole : defaultRoles) {
-										try {
-											instance.getJdbcTemplate().update(
-													SQL_DELETE_USER_FROM_CAMPAIGN,
-													new Object[] { username, campaignId, defaultRole });
+									if(numClasses == 1) {
+										
+										if(LOGGER.isDebugEnabled()) {
+											LOGGER.debug("The user only belonged to the campaign " + campaignId + "  via one class" +
+												" and their class role is changing so all default campaign roles are being deleted.");
 										}
-										catch(org.springframework.dao.DataAccessException e) {
+										
+										// Remove the current roles with the 
+										// campaign and add a new role with the
+										// campaign.
+										List<String> defaultRoles;
+										try {
+											defaultRoles = CampaignClassDaos.getDefaultCampaignRolesForCampaignClass(campaignId, classId, originalRole);
+										}
+										catch(DataAccessException e) {
 											transactionManager.rollback(status);
-											throw new DataAccessException("Error executing SQL '" + SQL_DELETE_USER_FROM_CAMPAIGN + "' with parameters: " +
-													username + ", " + campaignId + ", " + defaultRole, e);
+											throw e;
+										}
+										
+										for(String defaultRole : defaultRoles) {
+											try {
+												instance.getJdbcTemplate().update(
+														SQL_DELETE_USER_FROM_CAMPAIGN,
+														new Object[] { username, campaignId, defaultRole });
+											}
+											catch(org.springframework.dao.DataAccessException e) {
+												transactionManager.rollback(status);
+												throw new DataAccessException("Error executing SQL '" + SQL_DELETE_USER_FROM_CAMPAIGN + "' with parameters: " +
+														username + ", " + campaignId + ", " + defaultRole, e);
+											}
 										}
 									}
+									
+									addDefaultRoles = true;
 								}
+							}
+							else {
 								
-								addDefaultRoles = true;
+								if(LOGGER.isDebugEnabled()) {
+									LOGGER.debug("Nothing to do because the user's class role is not changing.");
+								}
 							}
 						}
 					}
@@ -666,9 +740,26 @@ public class ClassDaos extends Dao {
 							
 							for(String defaultRole : defaultRoles) {
 								try {
-									instance.getJdbcTemplate().update(
-											SQL_INSERT_USER_CAMPAIGN,
-											new Object[] { username, campaignId, defaultRole });
+									final Object[] params = new Object[] {username, campaignId, defaultRole};
+									
+									if(LOGGER.isDebugEnabled()) {
+										LOGGER.debug("Assigning the user a default campaign role of " + defaultRole + " in campaign " + campaignId);
+									}
+									
+									// The user may already have the role in
+									// the campaign via another class or the 
+									// user may have not been in any class
+									// at all.
+									if(! instance.getJdbcTemplate().queryForObject(SQL_EXISTS_USER_CAMPAIGN, params, Boolean.class)) {
+									
+										instance.getJdbcTemplate().update(SQL_INSERT_USER_CAMPAIGN, params);
+									} 
+									else {
+										
+										if(LOGGER.isDebugEnabled()) {
+											LOGGER.debug("User already has this role in the campaign: " + Arrays.asList(params));
+										}			
+									}
 								}
 								catch(org.springframework.dao.DataAccessException e) {
 									transactionManager.rollback(status);
