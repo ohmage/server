@@ -116,7 +116,7 @@ public class ConfigurationValueMerger {
 				}
 				catch(JSONException e) {
 					_logger.warn("could not convert custom choice prompt response to a JSON object");
-					result.setDisplayValue("{}");
+					result.setDisplayValue(new JSONObject());
 				}
 				
 			} else {
