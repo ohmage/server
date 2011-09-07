@@ -237,8 +237,8 @@ public final class SurveyResponseReadRequest extends UserRequest {
 	// FIXME: some of these constants belong elsewhere with the survey response
 	// upload prompt type hierarchy where there all still a bunch of hard-coded
 	// strings
-	private static final String SKIPPED = "SKIPPED";
-	private static final String NOT_DISPLAYED = "NOT_DISPLAYED";
+//	private static final String SKIPPED = "SKIPPED";
+//	private static final String NOT_DISPLAYED = "NOT_DISPLAYED";
 	private static final String VALUE = "value";
 	private static final String SINGLE_CHOICE_CUSTOM = "single_choice_custom";
 	private static final String MULTI_CHOICE_CUSTOM = "multi_choice_custom";
@@ -456,8 +456,12 @@ public final class SurveyResponseReadRequest extends UserRequest {
 					this.campaignUrn, this.promptIdList, this.surveyIdList, this.startDate, this.endDate, this.sortOrder, 
 					this.configuration);
 			
+			LOGGER.info("Found " + surveyResponseList.size() + " results");
+			
 			LOGGER.info("Filtering survey response results according to our privacy rules and the requester's role.");
 			SurveyResponseReadServices.performPrivacyFilter(this.getUser(), this.campaignUrn, surveyResponseList, this.privacyState);
+			
+			LOGGER.info("Found: " + surveyResponseList.size() + " results after filtering.");
 		}
 		
 		catch(ServiceException e) {
