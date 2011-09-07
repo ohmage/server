@@ -131,7 +131,9 @@ public class SurveyResponseReadDao extends Dao {
 		String sql = generateSql(userList, promptIdList, surveyIdList, startDate, endDate, sortOrder);
 		
 		final List<Object> paramList = new ArrayList<Object>();
+		
 		paramList.add(campaignID);
+		
 		if(! userList.equals(SurveyResponseReadRequest.URN_SPECIAL_ALL_LIST)) {
 			paramList.addAll(userList);
 		}
@@ -146,8 +148,8 @@ public class SurveyResponseReadDao extends Dao {
 			}
 		}
 		if(startDate != null && endDate != null) {
-			paramList.add(startDate);
-			paramList.add(endDate);
+			paramList.add(new java.sql.Date(startDate.getTime()).toString());
+			paramList.add(new java.sql.Date(endDate.getTime()).toString());
 		}
 		
 		if(LOGGER.isDebugEnabled()) {
