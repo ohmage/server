@@ -57,7 +57,8 @@ public final class ClassDocumentValidators {
 		for(int i = 0; i < classAndRoleArray.length; i++) {
 			String classAndRoleString = classAndRoleArray[i].trim();
 			
-			if(! StringUtils.isEmptyOrWhitespaceOnly(classAndRoleString)) {
+			if((! StringUtils.isEmptyOrWhitespaceOnly(classAndRoleString)) &&
+					(! classAndRoleString.equals(InputKeys.ENTITY_ROLE_SEPARATOR))) {
 				String[] classAndRole = classAndRoleString.split(InputKeys.ENTITY_ROLE_SEPARATOR);
 				
 				if(classAndRole.length != 2) {

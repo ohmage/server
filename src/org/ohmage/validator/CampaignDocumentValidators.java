@@ -59,7 +59,8 @@ public class CampaignDocumentValidators {
 		for(int i = 0; i < campaignAndRoleArray.length; i++) {
 			String campaignAndRoleString = campaignAndRoleArray[i].trim();
 			
-			if(! StringUtils.isEmptyOrWhitespaceOnly(campaignAndRoleString)) {
+			if((! StringUtils.isEmptyOrWhitespaceOnly(campaignAndRoleString)) &&
+					(! campaignAndRoleString.equals(InputKeys.ENTITY_ROLE_SEPARATOR))) {
 				String[] campaignAndRole = campaignAndRoleString.split(InputKeys.ENTITY_ROLE_SEPARATOR);
 				
 				if(campaignAndRole.length != 2) {

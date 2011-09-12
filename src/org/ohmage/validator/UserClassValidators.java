@@ -62,7 +62,8 @@ public final class UserClassValidators {
 		for(int i = 0; i < userAndRoleArray.length; i++) {
 			String currUserAndRole = userAndRoleArray[i].trim();
 			
-			if(! StringUtils.isEmptyOrWhitespaceOnly(currUserAndRole)) {
+			if((! StringUtils.isEmptyOrWhitespaceOnly(currUserAndRole)) &&
+					(! currUserAndRole.equals(InputKeys.ENTITY_ROLE_SEPARATOR))) {
 				String[] userAndRole = currUserAndRole.split(InputKeys.ENTITY_ROLE_SEPARATOR);
 				
 				if(userAndRole.length != 2) {

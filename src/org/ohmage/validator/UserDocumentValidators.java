@@ -59,7 +59,8 @@ public class UserDocumentValidators {
 		for(int i = 0; i < usernameAndRoleArray.length; i++) {
 			String usernameAndRoleString = usernameAndRoleArray[i].trim(); 
 			
-			if(! StringUtils.isEmptyOrWhitespaceOnly(usernameAndRoleString)) {
+			if((! StringUtils.isEmptyOrWhitespaceOnly(usernameAndRoleString)) &&
+					(! usernameAndRoleString.equals(InputKeys.ENTITY_ROLE_SEPARATOR))) {
 				String[] usernameAndRole = usernameAndRoleString.split(InputKeys.ENTITY_ROLE_SEPARATOR);
 				
 				if(usernameAndRole.length != 2) {
