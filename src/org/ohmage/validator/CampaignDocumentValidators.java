@@ -63,12 +63,21 @@ public class CampaignDocumentValidators {
 				String[] campaignAndRole = campaignAndRoleString.split(InputKeys.ENTITY_ROLE_SEPARATOR);
 				
 				if(campaignAndRole.length != 2) {
-					request.setFailed(ErrorCodes.CAMPAIGN_INVALID_ID, "The campaign ID, document role pair is invalid: " + campaignAndRoleArray[i]);
-					throw new ValidationException("The campaign ID, document role pair is invalid: " + campaignAndRoleArray[i]);
+					request.setFailed(ErrorCodes.CAMPAIGN_INVALID_ID, "The campaign ID, document role pair is invalid: " + campaignAndRoleString);
+					throw new ValidationException("The campaign ID, document role pair is invalid: " + campaignAndRoleString);
 				}
 				
 				String campaignId = CampaignValidators.validateCampaignId(request, campaignAndRole[0].trim());
+				if(campaignId == null) {
+					request.setFailed(ErrorCodes.CAMPAIGN_INVALID_ID, "The campaign ID in the campaign ID, document role pair is missing: " + campaignAndRoleString);
+					throw new ValidationException("The campaign ID in the campaign ID, document role pair is missing: " + campaignAndRoleString);
+				}
+				
 				String documentRole = DocumentValidators.validateRole(request, campaignAndRole[1].trim());
+				if(documentRole == null) {
+					request.setFailed(ErrorCodes.DOCUMENT_INVALID_ROLE, "The document role in the campaign ID, document role pair is missing: " + campaignAndRoleString);
+					throw new ValidationException("The document role in the campaign ID, document role pair is missing: " + campaignAndRoleString);
+				}
 	
 				result.put(campaignId, documentRole);
 			}

@@ -63,12 +63,21 @@ public class UserDocumentValidators {
 				String[] usernameAndRole = usernameAndRoleString.split(InputKeys.ENTITY_ROLE_SEPARATOR);
 				
 				if(usernameAndRole.length != 2) {
-					request.setFailed(ErrorCodes.USER_INVALID_USERNAME, "The username, document role pair is invalid: " + usernameAndRoleArray[i]);
-					throw new ValidationException("The username, document role pair is invalid: " + usernameAndRoleArray[i]);
+					request.setFailed(ErrorCodes.USER_INVALID_USERNAME, "The username, document role pair is invalid: " + usernameAndRoleString);
+					throw new ValidationException("The username, document role pair is invalid: " + usernameAndRoleString);
 				}
 				
 				String username = UserValidators.validateUsername(request, usernameAndRole[0].trim());
+				if(username == null) {
+					request.setFailed(ErrorCodes.USER_INVALID_USERNAME, "The username in the username, document role pair is missing: " + usernameAndRoleString);
+					throw new ValidationException("The username in the username, document role pair is missing: " + usernameAndRoleString);
+				}
+				
 				String documentRole = DocumentValidators.validateRole(request, usernameAndRole[1].trim());
+				if(documentRole == null) {
+					request.setFailed(ErrorCodes.DOCUMENT_INVALID_ROLE, "The document role in the username, document role pair is missing: " + usernameAndRoleString);
+					throw new ValidationException("The document role in the username, document role pair is missing: " + usernameAndRoleString);
+				}
 				
 				result.put(username, documentRole);
 			}

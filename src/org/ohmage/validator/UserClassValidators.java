@@ -71,7 +71,16 @@ public final class UserClassValidators {
 				}
 				
 				String username = UserValidators.validateUsername(request, userAndRole[0].trim());
+				if(username == null) {
+					request.setFailed(ErrorCodes.USER_INVALID_USERNAME, "The username in the username, class role list is missing: " + currUserAndRole);
+					throw new ValidationException("The username in the username, class role list is missing: " + currUserAndRole);
+				}
+				
 				String role = ClassValidators.validateClassRole(request, userAndRole[1].trim());
+				if(role == null) {
+					request.setFailed(ErrorCodes.CLASS_INVALID_ROLE, "The class role in the username, class role list is missing: " + currUserAndRole);
+					throw new ValidationException("The class role in the username, class role list is missing: " + currUserAndRole);
+				}
 				
 				String oldRole = result.put(username, role);
 				if((oldRole != null) && (! oldRole.equals(role))) {

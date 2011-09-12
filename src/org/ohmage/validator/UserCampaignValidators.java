@@ -82,7 +82,16 @@ public class UserCampaignValidators {
 				
 				// Validate the actual elements in the pair.
 				String username = UserValidators.validateUsername(request, userAndRole[0].trim());
+				if(username == null) {
+					request.setFailed(ErrorCodes.USER_INVALID_USERNAME, "The username in the username, campaign role pair is missing: " + currUserAndRole);
+					throw new ValidationException("The username in the username, campaign role pair is missing: " + currUserAndRole);
+				}
+				
 				String role = CampaignValidators.validateRole(request, userAndRole[1].trim());
+				if(role == null) {
+					request.setFailed(ErrorCodes.CAMPAIGN_INVALID_ROLE, "The campaign role in the username, campaign role pair is missing: " + currUserAndRole);
+					throw new ValidationException("The campaign role in the username, campaign role pair is missing: " + currUserAndRole);
+				}
 				
 				// Add the role to the list of roles.
 				Set<String> roles = result.get(username);
