@@ -819,7 +819,7 @@ public final class CampaignDaos extends Dao {
 						try {
 							instance.getJdbcTemplate().update(SQL_INSERT_USER_ROLE_CAMPAIGN, new Object[] { username, campaignId, role });
 						}
-						catch(org.springframework.dao.DataIntegrityViolationException e) {
+						catch(org.springframework.dao.DuplicateKeyException e) {
 							// This means that the user already had the role in
 							// the campaign. We can ignore this.
 						}
@@ -918,10 +918,6 @@ public final class CampaignDaos extends Dao {
 									instance.getJdbcTemplate().update(
 											SQL_DELETE_USER_ROLE_CAMPAIGN, 
 											new Object[] { username, campaignId, role });
-								}
-								catch(org.springframework.dao.DataIntegrityViolationException e) {
-									// If the user already has the role in the campaign then
-									// ignore it.
 								}
 								catch(org.springframework.dao.DataAccessException e) {
 									transactionManager.rollback(status);
@@ -1024,7 +1020,7 @@ public final class CampaignDaos extends Dao {
 		try {
 			instance.getJdbcTemplate().update(SQL_INSERT_CAMPAIGN_CLASS, new Object[] { campaignId, classId });
 		}
-		catch(org.springframework.dao.DataIntegrityViolationException e) {
+		catch(org.springframework.dao.DuplicateKeyException e) {
 			// If the campaign was already associated with the class, ignore
 			// this call.
 			return;
@@ -1135,7 +1131,7 @@ public final class CampaignDaos extends Dao {
 							SQL_INSERT_USER_ROLE_CAMPAIGN, 
 							new Object[] { username, campaignId, role });
 				}
-				catch(org.springframework.dao.DataIntegrityViolationException e) {
+				catch(org.springframework.dao.DuplicateKeyException e) {
 					// If the user already has the role in the campaign then
 					// ignore it.
 				}
