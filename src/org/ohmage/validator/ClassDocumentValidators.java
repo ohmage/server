@@ -57,16 +57,26 @@ public final class ClassDocumentValidators {
 		for(int i = 0; i < classAndRoleArray.length; i++) {
 			String classAndRoleString = classAndRoleArray[i].trim();
 			
-			if(! StringUtils.isEmptyOrWhitespaceOnly(classAndRoleString)) {
+			if((! StringUtils.isEmptyOrWhitespaceOnly(classAndRoleString)) &&
+					(! classAndRoleString.equals(InputKeys.ENTITY_ROLE_SEPARATOR))) {
 				String[] classAndRole = classAndRoleString.split(InputKeys.ENTITY_ROLE_SEPARATOR);
 				
 				if(classAndRole.length != 2) {
-					request.setFailed(ErrorCodes.CLASS_INVALID_ID, "The class ID, document role pair is invalid: " + classAndRoleArray[i]);
-					throw new ValidationException("The class ID, document role pair is invalid: " + classAndRoleArray[i]);
+					request.setFailed(ErrorCodes.CLASS_INVALID_ID, "The class ID, document role pair is invalid: " + classAndRoleString);
+					throw new ValidationException("The class ID, document role pair is invalid: " + classAndRoleString);
 				}
 				
 				String classId = ClassValidators.validateClassId(request, classAndRole[0].trim());
+				if(classId == null) {
+					request.setFailed(ErrorCodes.CLASS_INVALID_ID, "The class ID in the class ID, document role pair is missing: " + classAndRoleString);
+					throw new ValidationException("The class ID in the class ID, document role pair is missing: " + classAndRoleString);
+				}
+				
 				String documentRole = DocumentValidators.validateRole(request, classAndRole[1].trim());
+				if(documentRole == null) {
+					request.setFailed(ErrorCodes.DOCUMENT_INVALID_ROLE, "The document role in the class ID, document role pair is missing: " + classAndRoleString);
+					throw new ValidationException("The document role in the class ID, document role pair is missing: " + classAndRoleString);
+				}
 				
 				result.put(classId, documentRole);
 			}

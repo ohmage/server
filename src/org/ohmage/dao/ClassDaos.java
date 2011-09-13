@@ -43,45 +43,6 @@ public class ClassDaos extends Dao {
 			"FROM class " +
 			"WHERE urn = ?" +
 		")";
-	
-	// Returns a boolean as to whether or not a user has a relationship with
-	// the class.
-	private static final String SQL_EXISTS_USER_CLASS = 
-		"SELECT EXISTS (SELECT id FROM user_class WHERE " +
-		" user_id = " +
-			"(" +
-				"SELECT id " +
-				"FROM user " +
-				"WHERE username = ?" +
-			")" +
-		" AND class_id = (" +
-				"SELECT id " +
-				"FROM class " +
-				"WHERE urn = ?" +
-			")" +
-		")";
-	
-	// Returns a boolean as to whether or not a user has a relationship with
-	// the campign.
-	private static final String SQL_EXISTS_USER_CAMPAIGN =
-		"SELECT EXISTS (SELECT id FROM user_role_campaign WHERE " +
-		" user_id = " +
-			"(" +
-				"SELECT id " +
-				"FROM user " +
-				"WHERE username = ?" +
-			")" +
-		" AND campaign_id = (" +
-				"SELECT id " +
-				"FROM campaign " +
-				"WHERE urn = ?" +
-			")" +
-		" AND user_role_id = (" +
-				"SELECT id " +
-				"FROM user_role " +
-				"WHERE role = ?" +
-			")" +
-		")";
 
 	// Returns the class' information and the a user's role in that class.
 	private static final String SQL_GET_CLASS_INFO_AND_USER_ROLE = 
@@ -611,7 +572,7 @@ public class ClassDaos extends Dao {
 					
 					try {
 						
-						if(! instance.getJdbcTemplate().queryForObject(SQL_EXISTS_USER_CLASS, new Object[] { username, classId}, Boolean.class)) {
+						if(! UserClassDaos.userBelongsToClass(classId, username)) {
 							
 							if(LOGGER.isDebugEnabled()) {
 								LOGGER.debug("The user did not exist in the class so the user is being added before any updates are attemped.");
@@ -723,6 +684,10 @@ public class ClassDaos extends Dao {
 						throw new DataAccessException("Error while executing SQL '" + SQL_INSERT_USER_CLASS + "' with parameters: " + 
 								username + ", " + classId + ", " + role, e);
 					}
+					catch(DataAccessException e) {
+						transactionManager.rollback(status);
+						throw e;
+					}
 
 					if(addDefaultRoles) {
 						// For each of the campaign's associated with the 
@@ -750,7 +715,7 @@ public class ClassDaos extends Dao {
 									// the campaign via another class or the 
 									// user may have not been in any class
 									// at all.
-									if(! instance.getJdbcTemplate().queryForObject(SQL_EXISTS_USER_CAMPAIGN, params, Boolean.class)) {
+									if(! UserCampaignDaos.getUserCampaignRoles(username, campaignId).contains(defaultRole)) {
 									
 										instance.getJdbcTemplate().update(SQL_INSERT_USER_CAMPAIGN, params);
 									} 
@@ -765,6 +730,10 @@ public class ClassDaos extends Dao {
 									transactionManager.rollback(status);
 									throw new DataAccessException("Error executing SQL '" + SQL_INSERT_USER_CAMPAIGN + "' with parameters: " +
 											username + ", " + campaignId + ", " + defaultRole, e);
+								}
+								catch(DataAccessException e) {
+									transactionManager.rollback(status);
+									throw e;
 								}
 							}
 						}

@@ -69,7 +69,8 @@ public class UserCampaignValidators {
 			
 			// If the pair is empty, i.e. there were two list item separators
 			// in a row, then skip it.
-			if(! StringUtils.isEmptyOrWhitespaceOnly(currUserAndRole)) {
+			if((! StringUtils.isEmptyOrWhitespaceOnly(currUserAndRole)) && 
+					(! currUserAndRole.equals(InputKeys.ENTITY_ROLE_SEPARATOR))) {
 				String[] userAndRole = currUserAndRole.split(InputKeys.ENTITY_ROLE_SEPARATOR);
 				
 				// If the pair isn't actually a pair, fail with an invalid 
@@ -81,7 +82,16 @@ public class UserCampaignValidators {
 				
 				// Validate the actual elements in the pair.
 				String username = UserValidators.validateUsername(request, userAndRole[0].trim());
+				if(username == null) {
+					request.setFailed(ErrorCodes.USER_INVALID_USERNAME, "The username in the username, campaign role pair is missing: " + currUserAndRole);
+					throw new ValidationException("The username in the username, campaign role pair is missing: " + currUserAndRole);
+				}
+				
 				String role = CampaignValidators.validateRole(request, userAndRole[1].trim());
+				if(role == null) {
+					request.setFailed(ErrorCodes.CAMPAIGN_INVALID_ROLE, "The campaign role in the username, campaign role pair is missing: " + currUserAndRole);
+					throw new ValidationException("The campaign role in the username, campaign role pair is missing: " + currUserAndRole);
+				}
 				
 				// Add the role to the list of roles.
 				Set<String> roles = result.get(username);
