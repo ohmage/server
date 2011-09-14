@@ -192,12 +192,21 @@ public class Configuration {
 				String repeatableSetId = surveyMap.get(surveyId).getRepeatableSetIdForPromptId(promptId);
 				Prompt p = ((RepeatableSet) surveyMap.get(surveyId).getSurveyItemMap().get(repeatableSetId)).getPromptMap().get(promptId);
 				if("single_choice".equals(p.getType())) {
-					return p.getProperties().containsKey("value");
+					Iterator<String> propertyIterator = p.getProperties().keySet().iterator();
+					// If a value exists for any choice, values must exist for 
+					// every choice. Our configuration validation process 
+					// handles this rule.  
+					return p.getProperties().get(propertyIterator.next()).getValue() != null;
 				}
-			} else {
+			} else { 
 				Prompt p = ((Prompt) surveyMap.get(surveyId).getSurveyItemMap().get(promptId));
 				if("single_choice".equals(p.getType())) {
-					return p.getProperties().containsKey("value");
+
+					Iterator<String> propertyIterator = p.getProperties().keySet().iterator();
+					// If a value exists for any choice, values must exist for 
+					// every choice. Our configuration validation process 
+					// handles this rule.  
+					return p.getProperties().get(propertyIterator.next()).getValue() != null;
 				}
 			}
 		}

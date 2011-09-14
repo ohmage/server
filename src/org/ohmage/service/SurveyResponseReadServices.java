@@ -958,7 +958,7 @@ public final class SurveyResponseReadServices {
 					if(config.promptContainsSingleChoiceValues(internalPromptId)) {
 						shortHeader = internalPromptId + ":label," + internalPromptId + ":value";
 					} 
-					else {
+					else { 
 						shortHeader = internalPromptId + ":label";
 					}
 				} 
@@ -1113,10 +1113,10 @@ public final class SurveyResponseReadServices {
 						
 						if(null != valueLabel) {
 							if(null != valueLabel.getValue()) {
-								builder.append(valueLabel.getLabel()).append(",").append(valueLabel.getValue());
+								builder.append(valueLabel.getLabel().replace(",","")).append(",").append(valueLabel.getValue());
 							} 
 							else {
-								builder.append(valueLabel.getLabel());
+								builder.append(null != valueLabel.getLabel() ? valueLabel.getLabel().replace(",","") : "null");
 							}
 						} 
 						else {
