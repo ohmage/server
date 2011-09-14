@@ -355,7 +355,7 @@ public abstract class Request {
 	 * @throws IllegalStateException Thrown if there is a problem connecting to
 	 * 								 or reading from the request.
 	 */
-	protected static Map<String, String[]> getParameters(HttpServletRequest httpRequest) {
+	private static Map<String, String[]> getParameters(HttpServletRequest httpRequest) {
 		if(httpRequest == null) {
 			return Collections.emptyMap();
 		}

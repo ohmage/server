@@ -24,7 +24,7 @@ import org.springframework.jdbc.core.RowMapper;
  * @author Joshua Selsky
  * @see org.ohmage.domain.survey.read.ConfigurationValueMerger
  */
-public class SurveyResponseReadDao extends Dao {
+public final class SurveyResponseReadDao extends Dao {
 	
 	private static SurveyResponseReadDao instance;
 	private static final Logger LOGGER = Logger.getLogger(SurveyResponseReadDao.class);
@@ -74,7 +74,7 @@ public class SurveyResponseReadDao extends Dao {
 	
 	private static final String SQL_ORDER_BY_TIMESTAMP_SURVEY_USER =
 		" ORDER BY sr.msg_timestamp, sr.survey_id, pr.repeatable_set_id, " +
-        "pr.repeatable_set_iteration, pr.prompt_id, u.username";	
+        "pr.repeatable_set_iteration, pr.prompt_id, u.username";
 	
 	/**
 	 * Creates this DAO.

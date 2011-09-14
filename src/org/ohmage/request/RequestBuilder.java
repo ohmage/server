@@ -24,6 +24,7 @@ import org.ohmage.request.image.ImageReadRequest;
 import org.ohmage.request.image.ImageUploadRequest;
 import org.ohmage.request.mobility.MobilityUploadRequest;
 import org.ohmage.request.survey.SurveyResponseDeleteRequest;
+import org.ohmage.request.survey.SurveyResponseFunctionReadRequest;
 import org.ohmage.request.survey.SurveyResponseReadRequest;
 import org.ohmage.request.survey.SurveyResponseUpdateRequest;
 import org.ohmage.request.survey.SurveyUploadRequest;
@@ -101,6 +102,7 @@ public final class RequestBuilder {
 	private static final String API_SURVEY_RESPONSE_DELETE = API_ROOT + "/survey_response/delete";
 	private static final String API_SURVEY_RESPONSE_READ = API_ROOT + "/survey_response/read";
 	private static final String API_SURVEY_RESPONSE_UPDATE = API_ROOT + "/survey_response/update";
+	private static final String API_SURVEY_RESPONSE_FUNCTION_READ = API_ROOT + "/survey_response/function/read";
 
 	// User
 	public static final String API_USER_CREATE = API_ROOT + "/user/create";
@@ -212,14 +214,17 @@ public final class RequestBuilder {
 		else if(API_SURVEY_UPLOAD.equals(requestUri)) {
 			return new SurveyUploadRequest(httpRequest);
 		}
-		else if(API_SURVEY_RESPONSE_DELETE.equals(requestUri)) {
-			return new SurveyResponseDeleteRequest(httpRequest);
-		}
 		else if(API_SURVEY_RESPONSE_READ.equals(requestUri)) {
 			return new SurveyResponseReadRequest(httpRequest);
 		}
 		else if(API_SURVEY_RESPONSE_UPDATE.equals(requestUri)) {
 			return new SurveyResponseUpdateRequest(httpRequest);
+		}
+		else if(API_SURVEY_RESPONSE_DELETE.equals(requestUri)) {
+			return new SurveyResponseDeleteRequest(httpRequest);
+		}
+		else if(API_SURVEY_RESPONSE_FUNCTION_READ.equals(requestUri)) {
+			return new SurveyResponseFunctionReadRequest(httpRequest);
 		}
 		// User
 		else if(API_USER_CREATE.equals(requestUri)) {
@@ -314,7 +319,10 @@ public final class RequestBuilder {
 				API_MOBILITY_UPLOAD.equals(uri) ||
 				// Survey
 				API_SURVEY_UPLOAD.equals(uri) ||
+				API_SURVEY_RESPONSE_READ.equals(uri) ||
+				API_SURVEY_RESPONSE_UPDATE.equals(uri) ||
 				API_SURVEY_RESPONSE_DELETE.equals(uri) ||
+				API_SURVEY_RESPONSE_FUNCTION_READ.equals(uri) ||
 				// User
 				API_USER_CREATE.equals(uri) ||
 				API_USER_READ.equals(uri) ||

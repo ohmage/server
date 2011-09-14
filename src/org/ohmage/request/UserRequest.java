@@ -413,6 +413,9 @@ public abstract class UserRequest extends Request {
 	 * 
 	 * @param newAccountsAllowed Whether or not new accounts are allowed to
 	 * 							 make this call.
+	 * 
+	 * @return Returns true if the user was successfully authenticated; false
+	 * 		   otherwise.
 	 */
 	public final boolean authenticate(AllowNewAccount newAccountsAllowed) {
 		try {
