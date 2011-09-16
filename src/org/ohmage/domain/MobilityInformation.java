@@ -25,15 +25,20 @@ import edu.ucla.cens.mobilityclassifier.Sample;
  */
 public class MobilityInformation {
 	private static final String JSON_KEY_DATE = "date";
+	private static final String JSON_KEY_DATE_SHORT = "ts";
 	private static final String JSON_KEY_TIME = "time";
 	private static final String JSON_KEY_TIMEZONE = "timezone";
+	private static final String JSON_KEY_TIMEZONE_SHORT = "tz";
 	private static final String JSON_KEY_LOCATION_STATUS = "location_status";
+	private static final String JSON_KEY_LOCATION_STATUS_SHORT = "ls";
 	private static final String JSON_KEY_LOCATION = "location";
+	private static final String JSON_KEY_LOCATION_SHORT = "l";
 
 	private static final String JSON_KEY_SUBTYPE = "subtype";
 	
 	// Mode-only
 	private static final String JSON_KEY_MODE = "mode";
+	private static final String JSON_KEY_MODE_SHORT = "m";
 	
 	// Sensor data
 	private static final String JSON_KEY_DATA = "data";
@@ -41,6 +46,8 @@ public class MobilityInformation {
 	private final Date date;
 	private final long time;
 	private final TimeZone timezone;
+	
+	private final String privacyState;
 	
 	public static enum LocationStatus { VALID, NETWORK, INACCURATE, STALE, UNAVAILABLE };
 	private final LocationStatus locationStatus;
@@ -53,10 +60,15 @@ public class MobilityInformation {
 	 */
 	public final class Location {
 		private static final String JSON_KEY_LATITUDE = "latitude";
+		private static final String JSON_KEY_LATITUDE_SHORT = "la";
 		private static final String JSON_KEY_LONGITUDE = "longitude";
+		private static final String JSON_KEY_LONGITUDE_SHORT = "lo";
 		private static final String JSON_KEY_ACCURACY = "accuracy";
+		private static final String JSON_KEY_ACCURACY_SHORT = "ac";
 		private static final String JSON_KEY_PROVIDER = "provider";
+		private static final String JSON_KEY_PROVIDER_SHORT = "pr";
 		private static final String JSON_KEY_TIMESTAMP = "timestamp";
+		private static final String JSON_KEY_TIMESTAMP_SHORT = "ts";
 		
 		private final Double latitude;
 		private final Double longitude;
@@ -164,18 +176,21 @@ public class MobilityInformation {
 		/**
 		 * Creates a JSONObject that represents the information in this object.
 		 * 
+		 * @param abbreviated Whether or not the keys should use their 
+		 * 					  abbreviated version.
+		 * 
 		 * @return Returns a JSONObject that represents this object or null if
 		 * 		   there is an error building the JSONObject.
 		 */
-		public final JSONObject toJson() {
+		public final JSONObject toJson(final boolean abbreviated) {
 			try {
 				JSONObject result = new JSONObject();
 				
-				result.put(JSON_KEY_LATITUDE, latitude);
-				result.put(JSON_KEY_LONGITUDE, longitude);
-				result.put(JSON_KEY_ACCURACY, accuracy);
-				result.put(JSON_KEY_PROVIDER, provider);
-				result.put(JSON_KEY_TIMESTAMP, TimeUtils.getIso8601DateTimeString(timestamp));
+				result.put(((abbreviated) ? JSON_KEY_LATITUDE_SHORT : JSON_KEY_LATITUDE), latitude);
+				result.put(((abbreviated) ? JSON_KEY_LONGITUDE_SHORT : JSON_KEY_LONGITUDE), longitude);
+				result.put(((abbreviated) ? JSON_KEY_ACCURACY_SHORT : JSON_KEY_ACCURACY), accuracy);
+				result.put(((abbreviated) ? JSON_KEY_PROVIDER_SHORT : JSON_KEY_PROVIDER), provider);
+				result.put(((abbreviated) ? JSON_KEY_TIMESTAMP_SHORT : JSON_KEY_TIMESTAMP), TimeUtils.getIso8601DateTimeString(timestamp));
 				
 				return result;
 			}
@@ -395,12 +410,16 @@ public class MobilityInformation {
 					JSONObject result = new JSONObject();
 					
 					result.put(JSON_KEY_WIFI_DATA_TIMESTAMP, TimeUtils.getIso8601DateTimeString(timestamp));
+					
+					JSONArray scanJson = new JSONArray();
 					for(String ssid : scan.keySet()) {
 						JSONObject currScan = new JSONObject();
 						currScan.put(JSON_KEY_SSID, ssid);
 						currScan.put(JSON_KEY_STRENGTH, scan.get(ssid));
-						result.put(JSON_KEY_WIFI_DATA_SCAN, currScan);
+						
+						scanJson.put(currScan);
 					}
+					result.put(JSON_KEY_WIFI_DATA_SCAN, scanJson);
 					
 					return result;
 				}
@@ -631,6 +650,72 @@ public class MobilityInformation {
 		}
 		
 		/**
+		 * Creates a ClassifierData object that contains all of the applicable
+		 * keys from the JSONObject. The only required key is the mode.
+		 * 
+		 * @param classifierData The classifier data as a JSONObject.
+		 * 
+		 * @throws MobilityException Thrown if the mode is missing or unknown.
+		 */
+		private ClassifierData(JSONObject classifierData) throws MobilityException{
+			try {
+				mode = Mode.valueOf(classifierData.getString(JSON_KEY_MODE).toUpperCase());
+			}
+			catch(JSONException e) {
+				throw new MobilityException(ErrorCodes.MOBILITY_INVALID_MODE, "The mode is missing.", e);
+			}
+			catch(IllegalArgumentException e) {
+				throw new MobilityException(ErrorCodes.MOBILITY_INVALID_MODE, "The mode is unknown.", e);
+			}
+			
+			List<Double> tFft = null;
+			try {
+				JSONArray fftArray = classifierData.getJSONArray(JSON_KEY_FFT);
+				
+				int numEntries = fftArray.length();
+				tFft = new ArrayList<Double>(numEntries);
+				for(int i = 0; i < numEntries; i++) {
+					tFft.add(fftArray.getDouble(i));
+				}
+			}
+			catch(JSONException e) {
+				// If it is missing we don't care. It may be that only the mode
+				// could be calculated.
+			}
+			fft = tFft;
+			
+			Double tVariance = null;
+			try {
+				tVariance = classifierData.getDouble(JSON_KEY_VARIANCE);
+			}
+			catch(JSONException e) {
+				// If it is missing we don't care. It may be that only the mode
+				// could be calculated.
+			}
+			variance = tVariance;
+			
+			Double tN95Variance = null;
+			try {
+				tN95Variance = classifierData.getDouble(JSON_KEY_N95_VARIANCE);
+			}
+			catch(JSONException e) {
+				// If it is missing we don't care. It may be that only the mode
+				// could be calculated.
+			}
+			n95Variance = tN95Variance;
+			
+			Double tAverage = null;
+			try {
+				tAverage = classifierData.getDouble(JSON_KEY_AVERAGE);
+			}
+			catch(JSONException e) {
+				// If it is missing we don't care. It may be that only the mode
+				// could be calculated.
+			}
+			average = tAverage;
+		}
+		
+		/**
 		 * Builds a ClassifierData object from the given data.
 		 * 
 		 * @param fft The FFT from the server's classifier.
@@ -650,19 +735,7 @@ public class MobilityInformation {
 		private ClassifierData(List<Double> fft, Double variance,
 				Double n95Variance,
 				Double average, Mode mode) {
-			if(fft == null) {
-				throw new IllegalArgumentException("The FFT cannot be null.");
-			}
-			else if(variance == null) {
-				throw new IllegalArgumentException("The variance cannot be null.");
-			}
-			else if(n95Variance == null) {
-				throw new IllegalArgumentException("The N95 variance cannot be null.");
-			}
-			else if(average == null) {
-				throw new IllegalArgumentException("The average cannot be null.");
-			}
-			else if(mode == null) {
+			if(mode == null) {
 				throw new IllegalArgumentException("The mode cannot be null.");
 			}
 			
@@ -676,7 +749,7 @@ public class MobilityInformation {
 		/**
 		 * Returns the FFT array.
 		 * 
-		 * @return The FFT array.
+		 * @return The FFT array. May be null.
 		 */
 		public final List<Double> getFft() {
 			return fft;
@@ -685,7 +758,7 @@ public class MobilityInformation {
 		/**
 		 * Returns the variance.
 		 * 
-		 * @return The variance.
+		 * @return The variance. May be null.
 		 */
 		public final Double getVariance() {
 			return variance;
@@ -694,7 +767,7 @@ public class MobilityInformation {
 		/**
 		 * Returns the N95 variance.
 		 * 
-		 * @return The N95 variance.
+		 * @return The N95 variance. May be null.
 		 */
 		public final Double getN95Variance() {
 			return n95Variance;
@@ -703,7 +776,7 @@ public class MobilityInformation {
 		/**
 		 * Returns the average.
 		 * 
-		 * @return The average.
+		 * @return The average. May be null.
 		 */
 		public final Double getAverage() {
 			return average;
@@ -729,9 +802,7 @@ public class MobilityInformation {
 			try {
 				JSONObject result = new JSONObject();
 				
-				if(fft != null) {
-					result.put(JSON_KEY_FFT, fft);
-				}
+				result.put(JSON_KEY_FFT, fft);
 				result.put(JSON_KEY_VARIANCE, variance);
 				
 				result.put(JSON_KEY_N95_VARIANCE, n95Variance);
@@ -831,7 +902,7 @@ public class MobilityInformation {
 	 * 							 contains insufficient information to build 
 	 * 							 this object.
 	 */
-	public MobilityInformation(JSONObject mobilityPoint) throws MobilityException {
+	public MobilityInformation(JSONObject mobilityPoint, String privacyState) throws MobilityException {
 		// Get the date.
 		try {
 			date = StringUtils.decodeDateTime(mobilityPoint.getString(JSON_KEY_DATE));
@@ -942,6 +1013,114 @@ public class MobilityInformation {
 		
 		// Set the server's classification to null.
 		classifierData = null;
+		
+		this.privacyState = privacyState;
+	}
+	
+	/**
+	 * Creates a new MobilityInformation object that represents a Mobility data
+	 * point based on the parameters. If it is a mode-only point, set sensor
+	 * data, features, and classifier version to null.
+	 * 
+	 * @param date The date this Mobility point was created.
+	 * 
+	 * @param time The milliseconds since the epoch at which time this point
+	 * 			   was created.
+	 * 
+	 * @param timezone The timezone of the device that created this point at 
+	 * 				   time it was created.
+	 * 
+	 * @param locationStatus The location status of this point.
+	 * 
+	 * @param location The location of this point which may be null if the
+	 * 				   location status correlates.
+	 * 
+	 * @param mode The user's mode when this point was created.
+	 * 
+	 * @param privacyState The privacy state of this point.
+	 * 
+	 * @param sensorData The optional sensor data that may have additionally
+	 * 					 been collected at the time this point was created.
+	 * 
+	 * @param features The optional feature information calculated by the 
+	 * 				   server once the point was uploaded.
+	 * 
+	 * @param classifierVersion The version of the classifier that was used to
+	 * 							generate the 'features'.
+	 * 
+	 * @throws MobilityException Thrown if any of the required parameters are	
+	 * 							 missing or any of the parameters are invalid.
+	 * 
+	 * @throws IllegalArgumentExcpetion Thrown if any of the required 
+	 * 									parameters are missing or if any of the
+	 * 									parameters are invalid.
+	 */
+	public MobilityInformation(Date date, Long time, TimeZone timezone,
+			LocationStatus locationStatus, JSONObject location, 
+			Mode mode, String privacyState, 
+			JSONObject sensorData, JSONObject features, String classifierVersion) throws MobilityException{
+		
+		if(date == null) {
+			throw new IllegalArgumentException("The date cannot be null.");
+		}
+		else {
+			this.date = date;
+		}
+		
+		if(time == null) {
+			throw new IllegalArgumentException("The time cannot be null.");
+		}
+		else {
+			this.time = time;
+		}
+		
+		if(timezone == null) {
+			throw new IllegalArgumentException("The timezone cannot be null.");
+		}
+		else {
+			this.timezone = timezone;
+		}
+		
+		if(locationStatus == null) {
+			throw new IllegalArgumentException("The location status cannot be null.");
+		}
+		else {
+			this.locationStatus = locationStatus;
+		}
+		
+		if(location == null) {
+			this.location = null;
+		}
+		else {
+			this.location = new Location(location);
+		}
+		
+		if(mode == null) {
+			throw new IllegalArgumentException("The mode cannot be null.");
+		}
+		else {
+			this.mode = mode;
+		}
+		
+		if(privacyState == null) {
+			throw new IllegalArgumentException("The privacy state cannot be null.");
+		}
+		else {
+			this.privacyState = privacyState;
+		}
+		
+		if((sensorData == null) && (features == null) && (classifierVersion == null)) {
+			subType = SubType.MODE_ONLY;
+			
+			this.sensorData = null;
+			this.classifierData = null;
+		}
+		else {
+			subType = SubType.SENSOR_DATA;
+			
+			this.sensorData = new SensorData(sensorData);
+			this.classifierData = new ClassifierData(features);
+		}
 	}
 
 	/**
@@ -973,6 +1152,15 @@ public class MobilityInformation {
 		return timezone;
 	}
 
+	/**
+	 * Returns the Mobility point's privacy state.
+	 * 
+	 * @return The Mobility point's privacy state.
+	 */
+	public final String getPrivacyState() {
+		return privacyState;
+	}
+	
 	/**
 	 * Returns the status of the location value obtained when this Mobility
 	 * point was created.
@@ -1103,5 +1291,33 @@ public class MobilityInformation {
 	 */
 	public final ClassifierData getClassifierData() {
 		return classifierData;
+	}
+	
+	/**
+	 * Outputs this Mobility point as a JSONObject.
+	 * 
+	 * @param abbreviated Whether or not to use the abbreviated versions of the
+	 * 					  JSON keys.
+	 * 
+	 * @return A JSONObject that represents this Mobility point.
+	 */
+	public final JSONObject toJson(final boolean abbreviated) {
+		try {
+			JSONObject result = new JSONObject();
+			
+			result.put(((abbreviated) ? JSON_KEY_MODE_SHORT : JSON_KEY_MODE), mode.toString().toLowerCase());
+			result.put(((abbreviated) ? JSON_KEY_DATE_SHORT : JSON_KEY_DATE), TimeUtils.getIso8601DateTimeString(date));
+			result.put(((abbreviated) ? JSON_KEY_TIMEZONE_SHORT : JSON_KEY_TIMEZONE), timezone.getID());
+			result.put(((abbreviated) ? JSON_KEY_LOCATION_STATUS_SHORT : JSON_KEY_LOCATION_STATUS), locationStatus.toString().toLowerCase());
+			
+			if(location != null) {
+				result.put(((abbreviated) ? JSON_KEY_LOCATION_SHORT : JSON_KEY_LOCATION), location.toJson(abbreviated));
+			}
+			
+			return result;
+		}
+		catch(JSONException e) {
+			return null;
+		}
 	}
 }

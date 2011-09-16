@@ -88,26 +88,23 @@ public class UserMobilityServices {
 	
 	/**
 	 * Retrieves the number of hours since the last Mobility upload from a 
-	 * user. If the user has never uploaded any Mobility points, the maximum
-	 * value for a double is returned.
+	 * user.
 	 * 
 	 * @param request The Request that is performing this service.
-	 * 
-	 * @param requestersUsername The username of the user that is requesting
-	 * 							 this information.
 	 * 
 	 * @param username The username of the user in question.
 	 * 
 	 * @return Returns a double value representing the number of hours since 
-	 * 		   the last time that some user uploaded Mobility points.
+	 * 		   the last time that some user uploaded Mobility points or null if
+	 * 		   there are none.
 	 * 
 	 * @throws ServiceException Thrown if there is an error.
 	 */
-	public static double getHoursSinceLastMobilityUpload(Request request, String requestersUsername, String usersUsername) throws ServiceException {
+	public static Double getHoursSinceLastMobilityUpload(Request request, String username) throws ServiceException {
 		try {
-			Timestamp lastMobilityUpload = UserMobilityDaos.getLastUploadForUser(requestersUsername, usersUsername);
+			Timestamp lastMobilityUpload = UserMobilityDaos.getLastUploadForUser(username);
 			if(lastMobilityUpload == null) {
-				return Double.MAX_VALUE;
+				return null;
 			}
 			else {
 				long differenceInMillis = Calendar.getInstance().getTimeInMillis() - lastMobilityUpload.getTime();
@@ -127,26 +124,17 @@ public class UserMobilityServices {
 	 * 
 	 * @param request The Request that is performing this service.
 	 * 
-	 * @param requestersUsername The username of the user that is requesting
-	 * 							 this information.
-	 * 
-	 * @param usersUsername The username of the user in question.
+	 * @param username The username of the user in question.
 	 * 
 	 * @return Returns a double value representing the percentage of non-null
 	 * 		   location values from all of the Mobility uploads in the last 24
-	 * 		   hours. If there were no Mobility uploads, -1.0 is returned.
+	 * 		   hours or null if there are none.
 	 * 
 	 * @throws ServiceException Thrown if there is an error.
 	 */
-	public static double getPercentageOfNonNullLocationsOverPastDay(Request request, String requestersUsername, String usersUsername) throws ServiceException {
+	public static Double getPercentageOfNonNullLocationsOverPastDay(Request request, String username) throws ServiceException {
 		try {
-			Double percentage = UserMobilityDaos.getPercentageOfNonNullLocations(requestersUsername, usersUsername, HOURS_IN_A_DAY);
-			if(percentage == null) {
-				return -1.0;
-			}
-			else {
-				return percentage;
-			}
+			return UserMobilityDaos.getPercentageOfNonNullLocations(username, HOURS_IN_A_DAY);
 		}
 		catch(DataAccessException e) {
 			request.setFailed();

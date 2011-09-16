@@ -1,5 +1,6 @@
 package org.ohmage.validator;
 
+import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -7,6 +8,7 @@ import org.apache.log4j.Logger;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.ohmage.annotator.ErrorCodes;
+import org.ohmage.cache.MobilityPrivacyStateCache;
 import org.ohmage.domain.MobilityInformation;
 import org.ohmage.domain.MobilityInformation.MobilityException;
 import org.ohmage.exception.ValidationException;
@@ -58,7 +60,7 @@ public final class MobilityValidators {
 			
 			List<MobilityInformation> result = new LinkedList<MobilityInformation>();
 			for(int i = 0; i < jsonArray.length(); i++) {
-				result.add(new MobilityInformation(jsonArray.getJSONObject(i)));
+				result.add(new MobilityInformation(jsonArray.getJSONObject(i), MobilityPrivacyStateCache.PRIVACY_STATE_PRIVATE));
 			}
 			
 			return result;
@@ -70,6 +72,40 @@ public final class MobilityValidators {
 		catch(MobilityException e) {
 			request.setFailed(e.getErrorCode(), e.getErrorText());
 			throw new ValidationException(e.getErrorText(), e);
+		}
+	}
+	
+	/**
+	 * Validates that the date is valid and returns it or fails the request.
+	 * 
+	 * @param request The Request performing this validation.
+	 * 
+	 * @param date The date value as a string.
+	 * 
+	 * @return The date decoded into a Date object or null if the string was
+	 * 		   null or whitespace only.
+	 * 
+	 * @throws ValidationException Thrown if the date string was not null, not
+	 * 							   whitespace only, and not a valid date.
+	 */
+	public static Date validateDate(Request request, String date) throws ValidationException { 
+		LOGGER.info("Validating a date value.");
+		
+		if(StringUtils.isEmptyOrWhitespaceOnly(date)) {
+			return null;
+		}
+		
+		Date result = StringUtils.decodeDateTime(date);
+		if(result == null) {
+			result = StringUtils.decodeDate(date);
+		}
+		
+		if(result == null) {
+			request.setFailed(ErrorCodes.SERVER_INVALID_DATE, "The date value is unknown: " + date);
+			throw new ValidationException("The date value is unknown: " + date);
+		}
+		else {
+			return result;
 		}
 	}
 }

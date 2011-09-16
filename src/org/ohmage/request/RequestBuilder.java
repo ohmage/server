@@ -22,6 +22,8 @@ import org.ohmage.request.document.DocumentReadRequest;
 import org.ohmage.request.document.DocumentUpdateRequest;
 import org.ohmage.request.image.ImageReadRequest;
 import org.ohmage.request.image.ImageUploadRequest;
+import org.ohmage.request.mobility.MobilityReadChunkedRequest;
+import org.ohmage.request.mobility.MobilityReadRequest;
 import org.ohmage.request.mobility.MobilityUploadRequest;
 import org.ohmage.request.survey.SurveyResponseDeleteRequest;
 import org.ohmage.request.survey.SurveyResponseFunctionReadRequest;
@@ -57,7 +59,7 @@ public final class RequestBuilder {
 	 */
 	private RequestBuilder() {}
 	
-	private static final String API_ROOT = "/app";
+	public static final String API_ROOT = "/app";
 	
 	// Audit
 	public static final String API_AUDIT_READ = API_ROOT + "/audit/read";
@@ -96,13 +98,15 @@ public final class RequestBuilder {
 	
 	// Mobility
 	public static final String API_MOBILITY_UPLOAD = API_ROOT + "/mobility/upload";
+	public static final String API_MOBILITY_READ = API_ROOT + "/mobility/read";
+	public static final String API_MOBILITY_READ_CHUNKED = API_ROOT + "/mobility/read/chunked";
 	
 	// Survey
-	private static final String API_SURVEY_UPLOAD = API_ROOT + "/survey/upload";
-	private static final String API_SURVEY_RESPONSE_DELETE = API_ROOT + "/survey_response/delete";
-	private static final String API_SURVEY_RESPONSE_READ = API_ROOT + "/survey_response/read";
-	private static final String API_SURVEY_RESPONSE_UPDATE = API_ROOT + "/survey_response/update";
-	private static final String API_SURVEY_RESPONSE_FUNCTION_READ = API_ROOT + "/survey_response/function/read";
+	public static final String API_SURVEY_UPLOAD = API_ROOT + "/survey/upload";
+	public static final String API_SURVEY_RESPONSE_DELETE = API_ROOT + "/survey_response/delete";
+	public static final String API_SURVEY_RESPONSE_READ = API_ROOT + "/survey_response/read";
+	public static final String API_SURVEY_RESPONSE_UPDATE = API_ROOT + "/survey_response/update";
+	public static final String API_SURVEY_RESPONSE_FUNCTION_READ = API_ROOT + "/survey_response/function/read";
 
 	// User
 	public static final String API_USER_CREATE = API_ROOT + "/user/create";
@@ -114,15 +118,15 @@ public final class RequestBuilder {
 	public static final String API_USER_DELETE = API_ROOT + "/user/delete";
 	
 	// Visualization
-	private static final String API_VISUALIZATION = API_ROOT + "/viz";
-	private static final String API_VISUALIZATION_SURVEY_RESPONSE_COUNT = API_VISUALIZATION + "/survey_response_count/read";
-	private static final String API_VISUALIZATION_PROMPT_DISTRIBUTION = API_VISUALIZATION + "/prompt_distribution/read";
-	private static final String API_VISUALIZATION_PROMPT_TIMESERIES = API_VISUALIZATION + "/prompt_timeseries/read";
-	private static final String API_VISUALIZATION_USER_TIMESERIES = API_VISUALIZATION + "/user_timeseries/read";
-	private static final String API_VISUALIZATION_SCATTER_PLOT = API_VISUALIZATION + "/scatter_plot/read";
-	private static final String API_VISUALIZATION_2D_DENSITY = API_VISUALIZATION + "/2d_density/read";
-	private static final String API_VISUALIZATION_SURVEY_RESPONSE_PRIVACY = API_VISUALIZATION + "/survey_responses_privacy_state/read";
-	private static final String API_VISUALIZATION_SURVEY_RESPONSE_PRIVACY_TIMESERIES = API_VISUALIZATION + "/survey_responses_privacy_state_time/read";
+	public static final String API_VISUALIZATION = API_ROOT + "/viz";
+	public static final String API_VISUALIZATION_SURVEY_RESPONSE_COUNT = API_VISUALIZATION + "/survey_response_count/read";
+	public static final String API_VISUALIZATION_PROMPT_DISTRIBUTION = API_VISUALIZATION + "/prompt_distribution/read";
+	public static final String API_VISUALIZATION_PROMPT_TIMESERIES = API_VISUALIZATION + "/prompt_timeseries/read";
+	public static final String API_VISUALIZATION_USER_TIMESERIES = API_VISUALIZATION + "/user_timeseries/read";
+	public static final String API_VISUALIZATION_SCATTER_PLOT = API_VISUALIZATION + "/scatter_plot/read";
+	public static final String API_VISUALIZATION_2D_DENSITY = API_VISUALIZATION + "/2d_density/read";
+	public static final String API_VISUALIZATION_SURVEY_RESPONSE_PRIVACY = API_VISUALIZATION + "/survey_responses_privacy_state/read";
+	public static final String API_VISUALIZATION_SURVEY_RESPONSE_PRIVACY_TIMESERIES = API_VISUALIZATION + "/survey_responses_privacy_state_time/read";
 	
 	/**
 	 * Builds a new request based on the request's URI. This will always return
@@ -209,6 +213,12 @@ public final class RequestBuilder {
 		// Mobility
 		else if(API_MOBILITY_UPLOAD.equals(requestUri)) {
 			return new MobilityUploadRequest(httpRequest);
+		}
+		else if(API_MOBILITY_READ.equals(requestUri)) {
+			return new MobilityReadRequest(httpRequest);
+		}
+		else if(API_MOBILITY_READ_CHUNKED.equals(requestUri)) {
+			return new MobilityReadChunkedRequest(httpRequest);
 		}
 		//Survey
 		else if(API_SURVEY_UPLOAD.equals(requestUri)) {
@@ -317,6 +327,8 @@ public final class RequestBuilder {
 				API_IMAGE_UPLOAD.equals(uri) ||
 				// Mobility
 				API_MOBILITY_UPLOAD.equals(uri) ||
+				API_MOBILITY_READ.equals(uri) ||
+				API_MOBILITY_READ_CHUNKED.equals(uri) ||
 				// Survey
 				API_SURVEY_UPLOAD.equals(uri) ||
 				API_SURVEY_RESPONSE_READ.equals(uri) ||

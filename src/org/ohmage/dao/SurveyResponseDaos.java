@@ -15,6 +15,7 @@ import org.json.JSONObject;
 import org.ohmage.domain.SurveyResponseInformation;
 import org.ohmage.domain.SurveyResponseInformation.SurveyResponseException;
 import org.ohmage.exception.DataAccessException;
+import org.ohmage.util.TimeUtils;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.SingleColumnRowMapper;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
@@ -256,7 +257,7 @@ public class SurveyResponseDaos extends Dao {
 		try {
 			return instance.getJdbcTemplate().query(
 					SQL_GET_IDS_AFTER_DATE, 
-					new Object[] { campaignId, startDate }, 
+					new Object[] { campaignId, TimeUtils.getIso8601DateString(startDate) }, 
 					new SingleColumnRowMapper<Long>());
 		}
 		catch(org.springframework.dao.DataAccessException e) {
@@ -265,7 +266,7 @@ public class SurveyResponseDaos extends Dao {
 							SQL_GET_IDS_AFTER_DATE + 
 						"' with parameters: " + 
 							campaignId + ", " + 
-							startDate,
+							TimeUtils.getIso8601DateString(startDate),
 					e);
 		}
 	}
@@ -287,7 +288,7 @@ public class SurveyResponseDaos extends Dao {
 		try {
 			return instance.getJdbcTemplate().query(
 					SQL_GET_IDS_BEFORE_DATE, 
-					new Object[] { campaignId, endDate }, 
+					new Object[] { campaignId, TimeUtils.getIso8601DateString(endDate) }, 
 					new SingleColumnRowMapper<Long>());
 		}
 		catch(org.springframework.dao.DataAccessException e) {
@@ -296,7 +297,7 @@ public class SurveyResponseDaos extends Dao {
 							SQL_GET_IDS_BEFORE_DATE + 
 						"' with parameters: " + 
 							campaignId + ", " + 
-							endDate,
+							TimeUtils.getIso8601DateString(endDate),
 					e);
 		}
 	}

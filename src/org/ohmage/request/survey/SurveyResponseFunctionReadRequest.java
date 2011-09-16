@@ -85,6 +85,12 @@ import org.ohmage.validator.UserValidators;
 public class SurveyResponseFunctionReadRequest extends UserRequest {
 	private static final Logger LOGGER = Logger.getLogger(SurveyResponseFunctionReadRequest.class);
 	
+	private static final String JSON_KEY_VALUE = "value";
+	private static final String JSON_KEY_TIMESTAMP = "timestamp";
+	private static final String JSON_KEY_TIMEZONE = "timezone";
+	private static final String JSON_KEY_LOCATION_STATUS = "location_status";
+	private static final String JSON_KEY_LOCATION = "location";
+	
 	private final String campaignId;
 	private final Function functionId;
 	private final Date startDate;
@@ -267,16 +273,16 @@ public class SurveyResponseFunctionReadRequest extends UserRequest {
 				for(SurveyResponseInformation surveyResponse : surveyResponses) {
 					JSONObject currResult = new JSONObject();
 					
-					currResult.put("value", surveyResponse.getSurveyId());
-					currResult.put("timestamp", TimeUtils.getIso8601DateTimeString(surveyResponse.getDate()));
-					currResult.put("tz", surveyResponse.getTimezone().getDisplayName());
-					currResult.put("location_status", surveyResponse.getLocationStatus().toString().toLowerCase());
+					currResult.put(JSON_KEY_VALUE, surveyResponse.getSurveyId());
+					currResult.put(JSON_KEY_TIMESTAMP, TimeUtils.getIso8601DateTimeString(surveyResponse.getDate()));
+					currResult.put(JSON_KEY_TIMEZONE, surveyResponse.getTimezone().getID());
+					currResult.put(JSON_KEY_LOCATION_STATUS, surveyResponse.getLocationStatus().toString().toLowerCase());
 					Location location = surveyResponse.getLocation();
 					if(location == null) {
-						currResult.put("location", new JSONObject());
+						currResult.put(JSON_KEY_LOCATION, new JSONObject());
 					}
 					else {
-						currResult.put("location", location.toJson());
+						currResult.put(JSON_KEY_LOCATION, location.toJson());
 					}
 					
 					completedSurveysResult.put(currResult);
@@ -284,7 +290,7 @@ public class SurveyResponseFunctionReadRequest extends UserRequest {
 				
 				super.respond(httpRequest, httpResponse, JSON_KEY_DATA, completedSurveysResult);
 				break;
-			// Retruns aggregated statistics about the survey responses.
+			// Returns aggregated statistics about the survey responses.
 			case STATS:
 				JSONObject statsResult = new JSONObject();
 				

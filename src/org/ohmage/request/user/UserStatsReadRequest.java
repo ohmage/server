@@ -18,12 +18,12 @@ import org.ohmage.validator.CampaignValidators;
 import org.ohmage.validator.UserValidators;
 
 /**
- * <p>Reads some statistical information about a user pertaining to the number
- * of uploads and the location status of those uploads. The requesting user 
- * must have sufficient permissions to view the user's survey responses, at 
- * least the shared ones, and their Mobility points, at least the shared ones.
- * The user may authenticate themselves with a username and password or by
- * supplying an authentication token.</p>
+ * Reads some statistical information about a user pertaining to the number of
+ * uploads and the location status of those uploads. The requesting user must 
+ * have sufficient permissions to view the user's survey responses, at least 
+ * the shared ones, and their Mobility points, at least the shared ones. The
+ * user may authenticate themselves with a username and password or by 
+ * supplying an authentication token.
  * <table border="1">
  *   <tr>
  *     <td>Parameter Name</td>
@@ -61,15 +61,18 @@ public class UserStatsReadRequest extends UserRequest {
 	private static final String JSON_KEY_PAST_DAY_SUCCESSFUL_SURVEY_LOCATION_UPDATES_PERCENTAGE = "Past Day Percent Successful Survey Location Updates";
 	private static final String JSON_KEY_PAST_DAY_SUCCESSFUL_MOBILITY_LOCATION_UPDATES_PERCENTAGE = "Past Day Percent Successful Mobility Location Updates";
 	
+	private static final Double DEFAULT_VALUE_IF_NO_MOBILITY_UPLOADS = Double.MAX_VALUE;
+	private static final Double DEFAULT_VALUE_IF_NO_MOBILITY_UPLOADS_IN_LAST_DAY = -1.0;
+	
 	// Parameters
 	private final String campaignId;
 	private final String username;
 	
 	// Results
-	private double hoursSinceLastSurveyUpload;
-	private double hoursSinceLastMobilityUpload;
-	private double pastDaySuccessfulSurveyLocationUpdatesPercentage;
-	private double pastDatSuccessfulMobilityLocationUpdatesPercentage;
+	private Double hoursSinceLastSurveyUpload;
+	private Double hoursSinceLastMobilityUpload;
+	private Double pastDaySuccessfulSurveyLocationUpdatesPercentage;
+	private Double pastDatSuccessfulMobilityLocationUpdatesPercentage;
 	
 	/**
 	 * Creates a new user stats read request.
@@ -141,13 +144,13 @@ public class UserStatsReadRequest extends UserRequest {
 			hoursSinceLastSurveyUpload = UserSurveyResponseServices.getHoursSinceLastSurveyUplaod(this, getUser().getUsername(), username);
 			
 			LOGGER.info("Gathering the number of hours since the last Mobility upload.");
-			hoursSinceLastMobilityUpload = UserMobilityServices.getHoursSinceLastMobilityUpload(this, getUser().getUsername(), username);
+			hoursSinceLastMobilityUpload = UserMobilityServices.getHoursSinceLastMobilityUpload(this, username);
 			
 			LOGGER.info("Gathering the percentage of successful location uploads from surveys in the last day.");
 			pastDaySuccessfulSurveyLocationUpdatesPercentage = UserSurveyResponseServices.getPercentageOfNonNullLocationsOverPastDay(this, getUser().getUsername(), username);
 			
 			LOGGER.info("Gathering the percentage of successful location updates from Mobility in the last day.");
-			pastDatSuccessfulMobilityLocationUpdatesPercentage = UserMobilityServices.getPercentageOfNonNullLocationsOverPastDay(this, getUser().getUsername(), username);
+			pastDatSuccessfulMobilityLocationUpdatesPercentage = UserMobilityServices.getPercentageOfNonNullLocationsOverPastDay(this, username);
 		}
 		catch(ServiceException e) {
 			e.logException(LOGGER);
@@ -163,10 +166,27 @@ public class UserStatsReadRequest extends UserRequest {
 		
 		if(! isFailed()) {
 			try {
-				jsonResult.put(JSON_KEY_HOURS_SINCE_LAST_SURVEY_UPLOAD, hoursSinceLastSurveyUpload);
-				jsonResult.put(JSON_KEY_HOURS_SINCE_LAST_MOBILITY_UPLOAD, hoursSinceLastMobilityUpload);
-				jsonResult.put(JSON_KEY_PAST_DAY_SUCCESSFUL_SURVEY_LOCATION_UPDATES_PERCENTAGE, pastDaySuccessfulSurveyLocationUpdatesPercentage);
-				jsonResult.put(JSON_KEY_PAST_DAY_SUCCESSFUL_MOBILITY_LOCATION_UPDATES_PERCENTAGE, pastDatSuccessfulMobilityLocationUpdatesPercentage);
+				jsonResult.put(
+						JSON_KEY_HOURS_SINCE_LAST_SURVEY_UPLOAD, 
+						hoursSinceLastSurveyUpload);
+				
+				jsonResult.put(
+						JSON_KEY_HOURS_SINCE_LAST_MOBILITY_UPLOAD, 
+						((hoursSinceLastMobilityUpload == null) ? 
+								DEFAULT_VALUE_IF_NO_MOBILITY_UPLOADS : 
+								hoursSinceLastMobilityUpload)
+						);
+				
+				jsonResult.put(
+						JSON_KEY_PAST_DAY_SUCCESSFUL_SURVEY_LOCATION_UPDATES_PERCENTAGE, 
+						pastDaySuccessfulSurveyLocationUpdatesPercentage);
+				
+				jsonResult.put(
+						JSON_KEY_PAST_DAY_SUCCESSFUL_MOBILITY_LOCATION_UPDATES_PERCENTAGE, 
+						((pastDatSuccessfulMobilityLocationUpdatesPercentage == null) ?
+								DEFAULT_VALUE_IF_NO_MOBILITY_UPLOADS_IN_LAST_DAY : 
+								pastDatSuccessfulMobilityLocationUpdatesPercentage)
+						);
 			}
 			catch(JSONException e) {
 				LOGGER.error("There was an error creating the JSONArray result object.", e);

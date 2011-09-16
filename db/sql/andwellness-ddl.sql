@@ -333,7 +333,7 @@ CREATE TABLE mobility_privacy_state (
 -- High-frequency "mode only" mobility data. Mobility data is *not*
 -- linked to a campaign.
 -- --------------------------------------------------------------------
-CREATE TABLE mobility_mode_only (
+CREATE TABLE mobility (
   id int unsigned NOT NULL auto_increment,
   user_id int unsigned NOT NULL,
   client tinytext NOT NULL,
@@ -357,27 +357,15 @@ CREATE TABLE mobility_mode_only (
 -- High-frequency "mode + sensor data" mobility data. Mobility data is 
 -- *not* linked to a campaign.
 -- --------------------------------------------------------------------
-CREATE TABLE mobility_extended (
+CREATE TABLE mobility_extended_new (
   id int unsigned NOT NULL auto_increment,
-  user_id int unsigned NOT NULL,
-  client tinytext NOT NULL,
-  msg_timestamp datetime NOT NULL,
-  epoch_millis bigint unsigned NOT NULL,
-  phone_timezone varchar(32) NOT NULL,
-  location_status tinytext NOT NULL,
-  location text,
+  mobility_id int unsigned NOT NULL,
   sensor_data text NOT NULL,
   features text NOT NULL,
-  classifier_version tinytext NOT NULL, 
-  mode varchar(30) NOT NULL,
-  upload_timestamp datetime NOT NULL, -- the upload time based on the server time and timezone
+  classifier_version tinytext NOT NULL,
   audit_timestamp timestamp default current_timestamp on update current_timestamp,
-  privacy_state_id int unsigned NOT NULL,
   PRIMARY KEY (id),
-  INDEX (user_id, msg_timestamp),
-  UNIQUE INDEX (user_id, epoch_millis),
-  CONSTRAINT FOREIGN KEY (user_id) REFERENCES user (id) ON DELETE CASCADE ON UPDATE CASCADE,
-  CONSTRAINT FOREIGN KEY (privacy_state_id) REFERENCES mobility_privacy_state (id) ON DELETE CASCADE ON UPDATE CASCADE
+  CONSTRAINT FOREIGN KEY (mobility_id) REFERENCES mobility (id) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- --------------------------------------------------------------------
