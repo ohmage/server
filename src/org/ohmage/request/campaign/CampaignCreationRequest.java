@@ -164,7 +164,7 @@ public class CampaignCreationRequest extends UserRequest {
 		
 		try {
 			// Get the campaign's URN and name from the XML.
-			CampaignIdAndName campaignInfo = CampaignServices.getCampaignUrnAndNameFromXml(this, xml);
+			CampaignIdAndName campaignInfo = CampaignServices.getCampaignUrnNameAndIconUrlFromXml(this, xml);
 			
 			LOGGER.info("Verifying that the campaign doesn't already exist.");
 			CampaignServices.checkCampaignExistence(this, campaignInfo.getCampaignId(), false);
@@ -177,7 +177,7 @@ public class CampaignCreationRequest extends UserRequest {
 			
 			LOGGER.info("Creating the campaign.");
 			CampaignServices.createCampaign(this, campaignInfo.getCampaignId(), campaignInfo.getCampaignName(), 
-					xml, description, runningState, privacyState, classIds, getUser().getUsername());
+					xml, description, campaignInfo.getIconUrl(), runningState, privacyState, classIds, getUser().getUsername());
 		}
 		catch(ServiceException e) {
 			e.logException(LOGGER);

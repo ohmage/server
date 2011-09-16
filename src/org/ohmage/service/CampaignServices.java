@@ -33,6 +33,7 @@ import org.ohmage.request.Request;
 public class CampaignServices {
 	private static final String PATH_CAMPAIGN_URN = "/campaign/campaignUrn";
 	private static final String PATH_CAMPAIGN_NAME = "/campaign/campaignName";
+	private static final String PATH_ICON_URL = "/campaign/iconUrl";
 	
 	/**
 	 * Default constructor. Private to prevent instantiation.
@@ -47,6 +48,7 @@ public class CampaignServices {
 	public static final class CampaignIdAndName {
 		private final String id;
 		private final String name;
+		private final String iconUrl;
 		
 		/**
 		 * Creates a new ID-name association.
@@ -54,10 +56,13 @@ public class CampaignServices {
 		 * @param campaignId The campaign's unique identifier.
 		 * 
 		 * @param campaignName The campaign's name.
+		 * 
+		 * @param iconUrl The campaign's icon's URL. Optional.
 		 */
-		public CampaignIdAndName(String campaignId, String campaignName) {
+		public CampaignIdAndName(String campaignId, String campaignName, String iconUrl) {
 			id = campaignId;
 			name = campaignName;
+			this.iconUrl = iconUrl;
 		}
 		
 		/**
@@ -76,6 +81,15 @@ public class CampaignServices {
 		 */
 		public String getCampaignName() {
 			return name;
+		}
+		
+		/**
+		 * Returns the campaign's icon's URL if it exists.
+		 * 
+		 * @return The campaign's icon's URL or null if it doesn't exist.
+		 */
+		public String getIconUrl() {
+			return iconUrl;
 		}
 	}
 	
@@ -105,9 +119,9 @@ public class CampaignServices {
 	 * @throws ServiceException Thrown if there is an error.
 	 */
 	public static void createCampaign(Request request, String campaignId, String name, String xml, String description, 
-			String runningState, String privacyState, List<String> classIds, String creatorUsername) throws ServiceException {
+			String iconUrl, String runningState, String privacyState, List<String> classIds, String creatorUsername) throws ServiceException {
 		try {
-			CampaignDaos.createCampaign(campaignId, name, xml, description, runningState, privacyState, classIds, creatorUsername);
+			CampaignDaos.createCampaign(campaignId, name, xml, description, iconUrl, runningState, privacyState, classIds, creatorUsername);
 		}
 		catch(DataAccessException e) {
 			request.setFailed();
@@ -283,7 +297,8 @@ public class CampaignServices {
 	}
 	
 	/**
-	 * Gets the campaign's URN and name from the campaign XML.<br />
+	 * Gets the campaign's URN, name, and icon URL, if it exists, from the 
+	 * campaign XML.<br />
 	 * <br />
 	 * Note: The campaign should have been validated before this point.
 	 * 
@@ -297,7 +312,7 @@ public class CampaignServices {
 	 * 							This should never happen as the XML should have
 	 * 							been validated before this call is made.
 	 */
-	public static CampaignIdAndName getCampaignUrnAndNameFromXml(Request request, String xml) throws ServiceException {
+	public static CampaignIdAndName getCampaignUrnNameAndIconUrlFromXml(Request request, String xml) throws ServiceException {
 		// Generate a builder that will build the XML Document.
 		Builder builder;
 		try {
@@ -357,7 +372,20 @@ public class CampaignServices {
 			throw new ServiceException("There is no campaign name field in the XML, but it should have already been validated.", e);
 		}
 		
-		return new CampaignIdAndName(campaignUrn, campaignName);
+		// Get the campaign's icon URL if it exists.
+		String iconUrl = null;
+		try {
+			iconUrl = xmlDocument.getRootElement().query(PATH_ICON_URL).get(0).getValue();
+		}
+		catch(XPathException e) {
+			request.setFailed();
+			throw new ServiceException("The PATH to get the campaign icon URL is invalid.", e);
+		}
+		catch(IndexOutOfBoundsException e) {
+			// There is no campaign icon URL which is acceptable.
+		}
+		
+		return new CampaignIdAndName(campaignUrn, campaignName, iconUrl);
 	}
 	
 	/**
@@ -407,7 +435,7 @@ public class CampaignServices {
 	public static void verifyTheNewXmlIdAndNameAreTheSameAsTheCurrentIdAndName(Request request, String campaignId, String newXml) throws ServiceException {
 		try {
 			// Retrieve the ID and name from the current XML.
-			CampaignIdAndName newCampaignIdAndName = getCampaignUrnAndNameFromXml(request, newXml);
+			CampaignIdAndName newCampaignIdAndName = getCampaignUrnNameAndIconUrlFromXml(request, newXml);
 			
 			// We check the XML's ID against the given ID and the XML's name
 			// against what the DAO reports as the name. We do not check 
