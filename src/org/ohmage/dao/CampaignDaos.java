@@ -96,7 +96,7 @@ public final class CampaignDaos extends Dao {
 	
 	// Returns the information pertaining directly to a campaign.
 	private static final String SQL_GET_CAMPAIGN_INFORMATION =
-		"SELECT c.name, c.description, c.icon_url, crs.running_state, cps.privacy_state, c.creation_timestamp " +
+		"SELECT c.name, c.description, c.icon_url, c.authored_by, crs.running_state, cps.privacy_state, c.creation_timestamp " +
 		"FROM campaign c, campaign_running_state crs, campaign_privacy_state cps " +
 		"WHERE c.urn = ? " +
 		"AND c.running_state_id = crs.id " +
@@ -156,8 +156,8 @@ public final class CampaignDaos extends Dao {
 
 	// Inserts a new campaign.
 	private static final String SQL_INSERT_CAMPAIGN = 
-		"INSERT INTO campaign(urn, name, xml, description, icon_url, creation_timestamp, running_state_id, privacy_state_id) " +
-		"VALUES (?, ?, ?, ?, ?, now(), (" +
+		"INSERT INTO campaign(urn, name, xml, description, icon_url, authored_by, creation_timestamp, running_state_id, privacy_state_id) " +
+		"VALUES (?, ?, ?, ?, ?, ?, now(), (" +
 				"SELECT Id " +
 				"FROM campaign_running_state " +
 				"WHERE running_state = ?" +
@@ -338,7 +338,7 @@ public final class CampaignDaos extends Dao {
 	 * @param creatorUsername The username of the creator of this campaign.
 	 */
 	public static void createCampaign(String campaignId, String name, String xml, String description, 
-			String iconUrl, String runningState, String privacyState, List<String> classIds, String creatorUsername) 
+			String iconUrl, String authoredBy, String runningState, String privacyState, List<String> classIds, String creatorUsername) 
 		throws DataAccessException {
 		
 		// Create the transaction.
@@ -354,12 +354,12 @@ public final class CampaignDaos extends Dao {
 			try {
 				instance.getJdbcTemplate().update(
 						SQL_INSERT_CAMPAIGN, 
-						new Object[] { campaignId, name, xml, description, iconUrl, runningState, privacyState });
+						new Object[] { campaignId, name, xml, description, iconUrl, authoredBy, runningState, privacyState });
 			}
 			catch(org.springframework.dao.DataAccessException e) {
 				transactionManager.rollback(status);
 				throw new DataAccessException("Error executing SQL '" + SQL_INSERT_CAMPAIGN + "' with parameters: " +
-						campaignId + ", " + name + ", " + xml + ", " + description + ", " + iconUrl + ", " + runningState + ", " + privacyState, e);
+						campaignId + ", " + name + ", " + xml + ", " + description + ", " + iconUrl + ", " + authoredBy + ", " + runningState + ", " + privacyState, e);
 			}
 			
 			// Add each of the classes to the campaign.
@@ -642,6 +642,7 @@ public final class CampaignDaos extends Dao {
 									rs.getString("name"),
 									rs.getString("description"),
 									rs.getString("icon_url"),
+									rs.getString("authored_by"),
 									RunningState.valueOf(rs.getString("running_state").toUpperCase()),
 									PrivacyState.valueOf(rs.getString("privacy_state").toUpperCase()),
 									rs.getTimestamp("creation_timestamp"));
