@@ -1,6 +1,10 @@
 package org.ohmage.service;
 
+import java.awt.image.BufferedImage;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeMap;
 
 import org.apache.log4j.Logger;
@@ -34,33 +38,7 @@ import org.ohmage.validator.prompt.UuidPromptValidator;
  */
 public final class SurveyUploadServices {
 	private static final Logger LOGGER = Logger.getLogger(SurveyUploadServices.class);
-	
-	// Error message constants
-	private static final String SURVEY_INVALID_JSON = "survey upload contains unparseable JSON";
-	private static final String SURVEY_EMPTY = "survey upload contains an empty responses array";
-	private static final String SURVEY_FOUND_EMPTY_PROMPT = "found an empty prompt response at index ";
-	private static final String SURVEY_ID_MISSING = "survey_id is null or empty";
-	private static final String SURVEY_ID_UNKNOWN = "survey_id is unknown";
-	private static final String SURVEY_MISSING_RESPONSES = "responses array is null or empty";
-	private static final String SURVEY_LAUNCH_CONTEXT_MISSING = "survey_launch_context is missing";
-	private static final String SURVEY_LAUNCH_TIME_MISSING = "survey_launch_context launch_time is missing";
-	private static final String PROMPT_MISSING_PROMPT_ID_AND_REPEATABLE_SET_ID = "malformed prompt response: both prompt_id and repeatable_set_id are missing";
-	private static final String REPEATABLE_SET_DOES_NOT_EXIST_IN_CONFIGURATION = "repeatable set does not exist, the provided id is: ";
-	private static final String REPEATABLE_SET_INVALID_SKIPPED = "'skipped' is missing or non-boolean in repeatable set: ";
-	private static final String REPEATABLE_SET_INVALID_NOT_DISPLAYED = "'not_displayed' is missing or non-boolean in repeatable set: ";
-	private static final String REPEATABLE_SET_MISSING_RESPONSES = "missing responses array in repeatable set: ";
-	private static final String REPEATABLE_SET_CONTAINS_NO_RESPONSES_FOR_DISPLAYED = "empty responses array in repeatable set that was displayed. The repeatable set id is: ";
-	private static final String REPEATABLE_SET_CONTAINS_RESPONSES_FOR_NOT_DISPLAYED = "non-empty responses array in repeatable set that was not displayed. The repeatable set id is: ";
-	private static final String REPEATABLE_SET_INCORRECT_NUMBER_OF_RESPONSES = "incorrect number of prompts returned in repeatable set. ";
-	private static final String REPEATABLE_SET_NULL_PROMPT_RESPONSE = "null prompt response detected at repeatable set iteration ";
-	private static final String FOR_REPEATABLE_SET_ID = " for repeatable set id ";
-	private static final String IN_REPEATABLE_SET = " in repeatable set ";
-	private static final String REPEATABLE_SET_MISSING_PROMPT_ID = "missing prompt_id detected at repeatable set iteration ";
-	private static final String REPEATABLE_SET_UNKNOWN_PROMPT_ID = "unknown prompt_id detected at repeatable set iteration ";
-	private static final String PROMPT_UNKNOWN_TYPE = "a prompt of an unknown type detected in a configuration: ";
-	private static final String PROMPT_INVALID_VALUE = "found invalid value for prompt id ";
-	private static final String PROMPT_INVALID_FOR_SURVEY = "survey does not contain prompt ";
-	
+
 	// A  map of prompt validators for the supported prompt types
 	private static final Map<String, PromptValidator> PROMPT_VALIDATOR_MAP = new TreeMap<String, PromptValidator>();
 	
@@ -110,11 +88,15 @@ public final class SurveyUploadServices {
 	 * @param request The request to fail should validation fail.
 	 * @param surveyResponses The array of responses to validate.
 	 * @param configuration The campaign configuration used to aid in validating specific prompt responses.
+	 * @return  Returns a List of Strings representing all of the image UUIDs
+	 * found in the upload. If no image prompts were contained in the upload,
+	 * an empty list is returned.
 	 * @throws ServiceException If any part of the upload is syntactically or semantically invalid.
 	 */
-	public static void validateSurveyUpload(Request request, JSONArray surveyResponses, Configuration configuration)
+	public static List<String> validateSurveyUpload(Request request, JSONArray surveyResponses, Configuration configuration)
 		throws ServiceException {
 
+		List<String> imageIdList = new ArrayList<String>();
 		int numberOfResponses = surveyResponses.length();
 		
 		LOGGER.info("Validating " + numberOfResponses + " survey responses");
@@ -173,8 +155,10 @@ public final class SurveyUploadServices {
 				throw new ServiceException(SURVEY_LAUNCH_TIME_MISSING);
 			}
 			
-			validatePromptResponses(request, configuration, responseArray, surveyId);
+			imageIdList.addAll(validatePromptResponses(request, configuration, responseArray, surveyId));
 		}
+		
+		return imageIdList;
 	}
 	
 	/**
@@ -187,11 +171,15 @@ public final class SurveyUploadServices {
 	 * for validation.
 	 * @param responseArray The array of prompt responses to validate.
 	 * @param surveyId  The id of the survey for the above responses.
+	 * @return  Returns a List of Strings representing all of the image UUIDs
+	 * found in the upload. If no image prompts were contained in the upload,
+	 * an empty list is returned.   
 	 * @throws ServiceException  If any prompt response is invalid.
 	 */
-	private static void validatePromptResponses(Request request, Configuration configuration, JSONArray responseArray, String surveyId)
+	private static List<String> validatePromptResponses(Request request, Configuration configuration, JSONArray responseArray, String surveyId)
 		throws ServiceException {
 		
+		List<String> imageIdList = new ArrayList<String>();
 		int numberOfResponses = responseArray.length();
 		
 		for(int i = 0; i < numberOfResponses; i++) {
@@ -348,6 +336,10 @@ public final class SurveyUploadServices {
 								request.setFailed(ErrorCodes.SURVEY_INVALID_RESPONSES, message);
 								throw new ServiceException(message);
 							}
+							
+							if(prompt.getType().equals(PromptTypeKeys.TYPE_IMAGE)) {
+								imageIdList.add(JsonUtils.getStringFromJsonObject(promptResponse, JsonInputKeys.PROMPT_VALUE));
+							}
 						}
 					}
 				}
@@ -388,7 +380,86 @@ public final class SurveyUploadServices {
 					request.setFailed(ErrorCodes.SURVEY_INVALID_RESPONSES, message);
 					throw new ServiceException(message);
 				}
+				
+				if(prompt.getType().equals(PromptTypeKeys.TYPE_IMAGE)) {
+					imageIdList.add(JsonUtils.getStringFromJsonObject(response, JsonInputKeys.PROMPT_VALUE));
+				}
+			}
+		}
+		
+		return imageIdList;
+	}
+	
+	/**
+	 * Checks that image ids found in the survey payload match the image ids
+	 * found in the multi-part binary section of the payload.
+	 * 
+	 * @param request  The request to fail should the validation indicate a problem.
+	 * @param idsFoundInSurveyPayload  A List of Strings representing image ids
+	 * from the "data" portion of a survey upload.
+	 * @param imagePayloadMap  A Map of image payload data.
+	 * @throws ServiceException
+	 */
+	public static void validateImageKeys(Request request, List<String> idsFoundInSurveyPayload, Map<String, BufferedImage> imagePayloadMap) 
+		throws ServiceException {
+		
+		if(idsFoundInSurveyPayload.isEmpty() && imagePayloadMap == null) {
+			// Nothing to do because there are no images.
+			return;
+		}
+		
+		if(imagePayloadMap == null && ! idsFoundInSurveyPayload.isEmpty()) {
+			String message = "No images found, but image ids were present in the survey upload.";
+			request.setFailed(ErrorCodes.SURVEY_INVALID_RESPONSES, message);
+			throw new ServiceException(message);
+		}
+		
+		if(imagePayloadMap != null && idsFoundInSurveyPayload.isEmpty()) {
+			String message = "Images were found, but no image ids were present in the survey upload.";
+			request.setFailed(ErrorCodes.SURVEY_INVALID_RESPONSES, message);
+			throw new ServiceException(message);
+		}
+		
+		Set<String> payloadKeys = imagePayloadMap.keySet(); 
+		
+		if(payloadKeys.size() != idsFoundInSurveyPayload.size()) {
+			String message = "The number of images does not match the number of images found in the survey payload.";
+			request.setFailed(ErrorCodes.SURVEY_INVALID_RESPONSES, message);
+			throw new ServiceException(message);
+		}
+		
+		for(String payloadKey : payloadKeys) {
+			if(! idsFoundInSurveyPayload.contains(payloadKey)) {
+				String message = "An image key was found that was not present in the survey payload.";
+				request.setFailed(ErrorCodes.SURVEY_INVALID_RESPONSES, message);
+				throw new ServiceException(message);
 			}
 		}
 	}
+	
+	// Error message constants
+	private static final String SURVEY_INVALID_JSON = "survey upload contains unparseable JSON";
+	private static final String SURVEY_EMPTY = "survey upload contains an empty responses array";
+	private static final String SURVEY_FOUND_EMPTY_PROMPT = "found an empty prompt response at index ";
+	private static final String SURVEY_ID_MISSING = "survey_id is null or empty";
+	private static final String SURVEY_ID_UNKNOWN = "survey_id is unknown";
+	private static final String SURVEY_MISSING_RESPONSES = "responses array is null or empty";
+	private static final String SURVEY_LAUNCH_CONTEXT_MISSING = "survey_launch_context is missing";
+	private static final String SURVEY_LAUNCH_TIME_MISSING = "survey_launch_context launch_time is missing";
+	private static final String PROMPT_MISSING_PROMPT_ID_AND_REPEATABLE_SET_ID = "malformed prompt response: both prompt_id and repeatable_set_id are missing";
+	private static final String REPEATABLE_SET_DOES_NOT_EXIST_IN_CONFIGURATION = "repeatable set does not exist, the provided id is: ";
+	private static final String REPEATABLE_SET_INVALID_SKIPPED = "'skipped' is missing or non-boolean in repeatable set: ";
+	private static final String REPEATABLE_SET_INVALID_NOT_DISPLAYED = "'not_displayed' is missing or non-boolean in repeatable set: ";
+	private static final String REPEATABLE_SET_MISSING_RESPONSES = "missing responses array in repeatable set: ";
+	private static final String REPEATABLE_SET_CONTAINS_NO_RESPONSES_FOR_DISPLAYED = "empty responses array in repeatable set that was displayed. The repeatable set id is: ";
+	private static final String REPEATABLE_SET_CONTAINS_RESPONSES_FOR_NOT_DISPLAYED = "non-empty responses array in repeatable set that was not displayed. The repeatable set id is: ";
+	private static final String REPEATABLE_SET_INCORRECT_NUMBER_OF_RESPONSES = "incorrect number of prompts returned in repeatable set. ";
+	private static final String REPEATABLE_SET_NULL_PROMPT_RESPONSE = "null prompt response detected at repeatable set iteration ";
+	private static final String FOR_REPEATABLE_SET_ID = " for repeatable set id ";
+	private static final String IN_REPEATABLE_SET = " in repeatable set ";
+	private static final String REPEATABLE_SET_MISSING_PROMPT_ID = "missing prompt_id detected at repeatable set iteration ";
+	private static final String REPEATABLE_SET_UNKNOWN_PROMPT_ID = "unknown prompt_id detected at repeatable set iteration ";
+	private static final String PROMPT_UNKNOWN_TYPE = "a prompt of an unknown type detected in a configuration: ";
+	private static final String PROMPT_INVALID_VALUE = "found invalid value for prompt id ";
+	private static final String PROMPT_INVALID_FOR_SURVEY = "survey does not contain prompt ";
 }

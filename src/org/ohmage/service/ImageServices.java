@@ -1,6 +1,5 @@
 package org.ohmage.service;
 
-import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
@@ -26,33 +25,6 @@ public final class ImageServices {
 	 * Default constructor. Private so that it cannot be instantiated.
 	 */
 	private ImageServices() {}
-	
-	/**
-	 * Creates an image entry for an existing image whose ID has already been
-	 * uploaded as a prompt response.
-	 * 
-	 * @param request The Request performing this service.
-	 * 
-	 * @param username The username of the user uploading the image.
-	 * 
-	 * @param client The client name for the device that is uploading the 
-	 * 				 image.
-	 * 
-	 * @param imageId The unique identifier for the image.
-	 * 
-	 * @param imageContents The contents of the image.
-	 * 
-	 * @throws ServiceException Thrown if there is an error.
-	 */
-	public static void createImage(Request request, String username, String client, String imageId, BufferedImage imageContents) throws ServiceException {
-		try {
-			ImageDaos.createImage(username, client, imageId, imageContents);
-		}
-		catch(DataAccessException e) {
-			request.setFailed();
-			throw new ServiceException(e);
-		}
-	}
 	
 	/**
 	 * Checks if an image exists or not and compares that to whether or not it
