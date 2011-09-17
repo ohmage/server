@@ -127,7 +127,7 @@ public class UserReadRequest extends UserRequest {
 				ClassServices.checkClassesExistence(this, classIds, true);
 				
 				LOGGER.info("Verifying that the requester is privileged in all of the classes.");
-				UserClassServices.userHasRoleInClasses(this, getUser().getUsername(), classIds, ClassRoleCache.ROLE_PRIVILEGED);
+				UserClassServices.userHasRoleInClasses(this, getUser().getUsername(), classIds, ClassRoleCache.Role.PRIVILEGED);
 				
 				LOGGER.info("Gathering the information about the users in the classes.");
 				result.putAll(UserClassServices.getPersonalInfoForUsersInClasses(this, classIds));

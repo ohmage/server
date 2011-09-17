@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.ohmage.annotator.ErrorCodes;
+import org.ohmage.cache.ClassRoleCache;
 import org.ohmage.dao.ClassDaos;
 import org.ohmage.dao.ClassDaos.UserAndClassRole;
 import org.ohmage.domain.ClassInformation;
@@ -193,7 +194,7 @@ public final class ClassServices {
 	 * 
 	 * @throws ServiceException Thrown if there is an error.
 	 */
-	public static void updateClass(Request request, String classId, String className, String classDescription, Map<String, String> usersToAdd, List<String> usersToRemove) throws ServiceException{
+	public static void updateClass(Request request, String classId, String className, String classDescription, Map<String, ClassRoleCache.Role> usersToAdd, List<String> usersToRemove) throws ServiceException{
 		try {
 			ClassDaos.updateClass(classId, className, classDescription, usersToAdd, usersToRemove);
 		}
@@ -212,7 +213,7 @@ public final class ClassServices {
 	 * 
 	 * @throws ServiceException Thrown if there is an error.
 	 */
-	public static List<String> updateClassViaRoster(Request request, Map<String, Map<String, String>> roster) throws ServiceException {
+	public static List<String> updateClassViaRoster(Request request, Map<String, Map<String, ClassRoleCache.Role>> roster) throws ServiceException {
 		try {
 			List<String> warningMessages = new ArrayList<String>();
 			

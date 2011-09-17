@@ -9,6 +9,7 @@ import java.util.List;
 import javax.sql.DataSource;
 
 import org.apache.log4j.Logger;
+import org.ohmage.cache.SurveyResponsePrivacyStateCache;
 import org.ohmage.domain.configuration.Configuration;
 import org.ohmage.domain.survey.read.ConfigurationValueMerger;
 import org.ohmage.domain.survey.read.SurveyResponseReadResult;
@@ -188,7 +189,7 @@ public final class SurveyResponseReadDao extends Dao {
 						result.setClient(rs.getString(12));
 						result.setLaunchContext(rs.getString(13));
 						result.setSurveyPrimaryKeyId(rs.getInt(14));
-						result.setPrivacyState(rs.getString(15));
+						result.setPrivacyState(SurveyResponsePrivacyStateCache.PrivacyState.getValue(rs.getString(15)));
 						
 						ConfigurationValueMerger.merge(result, configuration);
 						

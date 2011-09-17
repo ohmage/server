@@ -12,6 +12,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.ohmage.annotator.ErrorCodes;
+import org.ohmage.cache.SurveyResponsePrivacyStateCache;
 import org.ohmage.util.StringUtils;
 import org.ohmage.util.TimeUtils;
 
@@ -32,7 +33,7 @@ public class SurveyResponseInformation {
 	private final TimeZone timezone;
 	
 	private final String surveyId;
-	private final String privacyState;
+	private final SurveyResponsePrivacyStateCache.PrivacyState privacyState;
 	
 	/**
 	 * Context information gathered by the phone when this survey was launched.
@@ -532,7 +533,7 @@ public class SurveyResponseInformation {
 			final Date date, final long time, final TimeZone timezone, 
 			final String surveyId, final JSONObject launchContext, 
 			final String locationStatus, final JSONObject location,
-			final String privacyState) throws SurveyResponseException {
+			final SurveyResponsePrivacyStateCache.PrivacyState privacyState) throws SurveyResponseException {
 		if(StringUtils.isEmptyOrWhitespaceOnly(username)) {
 			throw new IllegalArgumentException("The username cannot be null or whitespace only.");
 		}
@@ -557,7 +558,7 @@ public class SurveyResponseInformation {
 		else if(locationStatus == null) {
 			throw new IllegalArgumentException("The location status cannot be null.");
 		}
-		else if(StringUtils.isEmptyOrWhitespaceOnly(privacyState)) {
+		else if(privacyState == null) {
 			throw new IllegalArgumentException("The privacy state cannot be null.");
 		}
 		
@@ -695,7 +696,7 @@ public class SurveyResponseInformation {
 	 * 
 	 * @return The privacy state.
 	 */
-	public final String getPrivacyState() {
+	public final SurveyResponsePrivacyStateCache.PrivacyState getPrivacyState() {
 		return privacyState;
 	}
 	

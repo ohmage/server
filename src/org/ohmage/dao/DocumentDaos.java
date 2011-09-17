@@ -21,6 +21,7 @@ import java.util.regex.Pattern;
 import javax.sql.DataSource;
 
 import org.apache.log4j.Logger;
+import org.ohmage.cache.DocumentPrivacyStateCache;
 import org.ohmage.cache.DocumentRoleCache;
 import org.ohmage.cache.PreferenceCache;
 import org.ohmage.domain.DocumentInformation;
@@ -327,8 +328,8 @@ public class DocumentDaos extends Dao {
 	 * 
 	 * @return Returns a unique identifier for this document.
 	 */
-	public static String createDocument(byte[] contents, String name, String description, String privacyState, 
-			Map<String, String> campaignRoleMap, Map<String, String> classRoleMap, String creatorUsername) 
+	public static String createDocument(byte[] contents, String name, String description, DocumentPrivacyStateCache.PrivacyState privacyState, 
+			Map<String, DocumentRoleCache.Role> campaignRoleMap, Map<String, DocumentRoleCache.Role> classRoleMap, String creatorUsername) 
 		throws DataAccessException {
 		
 		// Create a new, random UUID to use to save this file.
@@ -411,7 +412,7 @@ public class DocumentDaos extends Dao {
 						new Object[] { 
 								uuid, 
 								creatorUsername, 
-								DocumentRoleCache.ROLE_OWNER
+								DocumentRoleCache.Role.OWNER
 						}
 					);
 			}
@@ -419,7 +420,7 @@ public class DocumentDaos extends Dao {
 				newFile.delete();
 				transactionManager.rollback(status);
 				throw new DataAccessException("Error executing SQL '" + SQL_INSERT_USER_ROLE + "' with parameters: " +
-						uuid + ", " + creatorUsername + ", " + DocumentRoleCache.ROLE_OWNER, e);
+						uuid + ", " + creatorUsername + ", " + DocumentRoleCache.Role.OWNER, e);
 			}
 			
 			// Insert any campaign associations in the DB.
@@ -556,7 +557,7 @@ public class DocumentDaos extends Dao {
 								rs.getString("uuid"),
 								rs.getString("name"),
 								rs.getString("description"),
-								rs.getString("privacy_state"),
+								DocumentPrivacyStateCache.PrivacyState.getValue(rs.getString("privacy_state")),
 								rs.getTimestamp("last_modified_timestamp"),
 								rs.getTimestamp("creation_timestamp"),
 								rs.getInt("size"),
@@ -611,10 +612,11 @@ public class DocumentDaos extends Dao {
 	 * @param usersToRemove A List of usernames that should no longer be 
 	 * 						associated with this document.
 	 */
-	public static void updateDocument(String documentId, byte[] contents, String name, String description, String privacyState,
-			Map<String, String> campaignAndRolesToAdd, List<String> campaignsToRemove, 
-			Map<String, String> classAndRolesToAdd, List<String> classesToRemove, 
-			Map<String, String> userAndRolesToAdd, List<String> usersToRemove) throws DataAccessException {
+	public static void updateDocument(String documentId, byte[] contents, String name, String description, 
+			DocumentPrivacyStateCache.PrivacyState privacyState,
+			Map<String, DocumentRoleCache.Role> campaignAndRolesToAdd, List<String> campaignsToRemove, 
+			Map<String, DocumentRoleCache.Role> classAndRolesToAdd, List<String> classesToRemove, 
+			Map<String, DocumentRoleCache.Role> userAndRolesToAdd, List<String> usersToRemove) throws DataAccessException {
 		// Begin transaction
 		DefaultTransactionDefinition def = new DefaultTransactionDefinition();
 		def.setName("Document update.");
@@ -778,7 +780,7 @@ public class DocumentDaos extends Dao {
 	 * 							  This should never happen as it has already
 	 * 							  been validated.
 	 */
-	private static void updatePrivacyState(String documentId, String privacyState) throws CacheMissException, DataAccessException {
+	private static void updatePrivacyState(String documentId, DocumentPrivacyStateCache.PrivacyState privacyState) throws CacheMissException, DataAccessException {
 		if(privacyState == null) {
 			return;
 		}
@@ -875,7 +877,7 @@ public class DocumentDaos extends Dao {
 	 * @throws CacheMissException Thrown if there is an issue getting the 
 	 * 							  database ID for the document.
 	 */
-	private static void updateEntityRoleList(String documentId, Map<String, String> entityAndRolesToAdd, List<String> entitiesToRemove, 
+	private static void updateEntityRoleList(String documentId, Map<String, DocumentRoleCache.Role> entityAndRolesToAdd, List<String> entitiesToRemove, 
 			String sqlInsertEntity, String sqlUpdateEntity, String sqlDeleteEntity) throws CacheMissException, DataAccessException {
 
 		// Delete roles
@@ -903,7 +905,7 @@ public class DocumentDaos extends Dao {
 				String entityId = addMapIter.next();
 				
 				// Get the entity's role.
-				String role = entityAndRolesToAdd.get(entityId);
+				DocumentRoleCache.Role role = entityAndRolesToAdd.get(entityId);
 				
 				// Add the document-entity role.
 				try {

@@ -5,6 +5,7 @@ import java.util.Map;
 
 import org.apache.log4j.Logger;
 import org.ohmage.annotator.ErrorCodes;
+import org.ohmage.cache.ClassRoleCache;
 import org.ohmage.exception.ValidationException;
 import org.ohmage.request.InputKeys;
 import org.ohmage.request.Request;
@@ -50,14 +51,14 @@ public final class UserClassValidators {
 	 * 							   syntactically invalid. Also, thrown if any
 	 * 							   of the roles in the list String are invalid.
 	 */
-	public static Map<String, String> validateUserAndClassRoleList(Request request, String userClassRoleList) throws ValidationException {
+	public static Map<String, ClassRoleCache.Role> validateUserAndClassRoleList(Request request, String userClassRoleList) throws ValidationException {
 		LOGGER.info("Validating the user and class role list.");
 		
 		if(StringUtils.isEmptyOrWhitespaceOnly(userClassRoleList)) {
 			return null;
 		}
 		
-		Map<String, String> result = new HashMap<String, String>();
+		Map<String, ClassRoleCache.Role> result = new HashMap<String, ClassRoleCache.Role>();
 		String[] userAndRoleArray = userClassRoleList.split(InputKeys.LIST_ITEM_SEPARATOR);
 		for(int i = 0; i < userAndRoleArray.length; i++) {
 			String currUserAndRole = userAndRoleArray[i].trim();
@@ -77,13 +78,13 @@ public final class UserClassValidators {
 					throw new ValidationException("The username in the username, class role list is missing: " + currUserAndRole);
 				}
 				
-				String role = ClassValidators.validateClassRole(request, userAndRole[1].trim());
+				ClassRoleCache.Role role = ClassValidators.validateClassRole(request, userAndRole[1].trim());
 				if(role == null) {
 					request.setFailed(ErrorCodes.CLASS_INVALID_ROLE, "The class role in the username, class role list is missing: " + currUserAndRole);
 					throw new ValidationException("The class role in the username, class role list is missing: " + currUserAndRole);
 				}
 				
-				String oldRole = result.put(username, role);
+				ClassRoleCache.Role oldRole = result.put(username, role);
 				if((oldRole != null) && (! oldRole.equals(role))) {
 					request.setFailed(ErrorCodes.CLASS_INVALID_ROLE, "The username '" + username + "' contains multiple, different roles.");
 					throw new ValidationException("The username '" + username + "' contains multiple, different roles.");

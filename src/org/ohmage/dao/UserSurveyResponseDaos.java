@@ -62,7 +62,7 @@ public final class UserSurveyResponseDaos extends Dao {
 				"ru.id = urc.user_id " +
 				"AND c.id = urc.campaign_id " +
 				"AND ur.id = urc.user_role_id " +
-				"AND ur.role = '" + CampaignRoleCache.ROLE_SUPERVISOR + "'" +
+				"AND ur.role = '" + CampaignRoleCache.Role.SUPERVISOR + "'" +
 			")" +
 			" OR " +
 			"(" +
@@ -72,12 +72,12 @@ public final class UserSurveyResponseDaos extends Dao {
 				"ru.id = urc.user_id " +
 				"AND c.id = urc.campaign_id " +
 				"AND ur.id = urc.user_role_id " +
-				"AND ur.role = '" + CampaignRoleCache.ROLE_ANALYST + "' " +
+				"AND ur.role = '" + CampaignRoleCache.Role.ANALYST + "' " +
 				// Get the campaign's privacy state.
 				"AND c.privacy_state_id = cps.id " +
-				"AND cps.privacy_state = '" + CampaignPrivacyStateCache.PRIVACY_STATE_SHARED + "' " +
+				"AND cps.privacy_state = '" + CampaignPrivacyStateCache.PrivacyState.SHARED + "' " +
 				// Ensure the survey response is not "invisible".
-				"AND srps.privacy_state != '" + SurveyResponsePrivacyStateCache.PRIVACY_STATE_INVISIBLE + "'" +
+				"AND srps.privacy_state != '" + SurveyResponsePrivacyStateCache.PrivacyState.INVISIBLE + "'" +
 			")" +
 			" OR " +
 			"(" +
@@ -86,10 +86,10 @@ public final class UserSurveyResponseDaos extends Dao {
 				"ru.id = urc.user_id " +
 				"AND c.id = urc.campaign_id " +
 				"AND ur.id = urc.user_role_id " +
-				"AND ur.role = '" + CampaignRoleCache.ROLE_AUTHOR + "' " +
+				"AND ur.role = '" + CampaignRoleCache.Role.AUTHOR + "' " +
 				// Get the survey response's privacy state.
 				"AND srps.id = sr.privacy_state_id " +
-				"AND srps.privacy_state = '" + SurveyResponsePrivacyStateCache.PRIVACY_STATE_SHARED + "'" +
+				"AND srps.privacy_state = '" + SurveyResponsePrivacyStateCache.PrivacyState.SHARED + "'" +
 			")" +
 			" OR " +
 			"(" +
@@ -100,9 +100,9 @@ public final class UserSurveyResponseDaos extends Dao {
 				"ru.id = u.id " +
 				// Get the campaign's running state.
 				"AND c.running_state_id = crs.id " +
-				"AND crs.id = '" + CampaignRunningStateCache.RUNNING_STATE_RUNNING + "' " +
+				"AND crs.id = '" + CampaignRunningStateCache.RunningState.RUNNING + "' " +
 				// Ensure the survey response is not "invisible".
-				"AND srps.privacy_state != '" + SurveyResponsePrivacyStateCache.PRIVACY_STATE_INVISIBLE + "'" +
+				"AND srps.privacy_state != '" + SurveyResponsePrivacyStateCache.PrivacyState.INVISIBLE + "'" +
 			")" +
 		")";
 	

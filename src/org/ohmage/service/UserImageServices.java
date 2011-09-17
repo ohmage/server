@@ -77,31 +77,31 @@ public final class UserImageServices {
 			// For each of the campaigns, see if the requesting user has 
 			// sufficient permissions.
 			for(String campaignId : campaignIds) {
-				List<String> roles = UserCampaignDaos.getUserCampaignRoles(requesterUsername, campaignId);
+				List<CampaignRoleCache.Role> roles = UserCampaignDaos.getUserCampaignRoles(requesterUsername, campaignId);
 
 				// If they are a supervisor.
-				if(roles.contains(CampaignRoleCache.ROLE_SUPERVISOR)) {
+				if(roles.contains(CampaignRoleCache.Role.SUPERVISOR)) {
 					return;
 				}
 				
 				// Retrieves the privacy state of the image in this campaign. 
 				// If null is returned, something has changed since the list of
 				// campaign IDs was retrieved, so we need to just error out.
-				String imagePrivacyState = CampaignImageDaos.getImagePrivacyStateInCampaign(campaignId, imageId);
+				SurveyResponsePrivacyStateCache.PrivacyState imagePrivacyState = CampaignImageDaos.getImagePrivacyStateInCampaign(campaignId, imageId);
 				
 				// They are an author and the image is shared
-				if(roles.contains(CampaignRoleCache.ROLE_AUTHOR) && 
-						SurveyResponsePrivacyStateCache.PRIVACY_STATE_SHARED.equals(imagePrivacyState)) {
+				if(roles.contains(CampaignRoleCache.Role.AUTHOR) && 
+						SurveyResponsePrivacyStateCache.PrivacyState.SHARED.equals(imagePrivacyState)) {
 					return;
 				}
 				
 				// Retrieve the campaign's privacy state.
-				String campaignPrivacyState = CampaignDaos.getCampaignPrivacyState(campaignId);
+				CampaignPrivacyStateCache.PrivacyState campaignPrivacyState = CampaignDaos.getCampaignPrivacyState(campaignId);
 				
 				// They are an analyst, the image is shared, and the campaign is shared.
-				if(roles.contains(CampaignRoleCache.ROLE_ANALYST) && 
-						SurveyResponsePrivacyStateCache.PRIVACY_STATE_SHARED.equals(imagePrivacyState) &&
-						CampaignPrivacyStateCache.PRIVACY_STATE_SHARED.equals(campaignPrivacyState)) {
+				if(roles.contains(CampaignRoleCache.Role.ANALYST) && 
+						SurveyResponsePrivacyStateCache.PrivacyState.SHARED.equals(imagePrivacyState) &&
+						CampaignPrivacyStateCache.PrivacyState.SHARED.equals(campaignPrivacyState)) {
 					return;
 				}
 			}

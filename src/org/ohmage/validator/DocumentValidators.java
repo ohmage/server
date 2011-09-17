@@ -67,17 +67,17 @@ public class DocumentValidators {
 	 * 							   whitespace only and is not a valid document
 	 * 							   privacy state.
 	 */
-	public static String validatePrivacyState(Request request, String privacyState) throws ValidationException {
+	public static DocumentPrivacyStateCache.PrivacyState validatePrivacyState(Request request, String privacyState) throws ValidationException {
 		LOGGER.info("Validating a document's privacy state.");
 		
 		if(StringUtils.isEmptyOrWhitespaceOnly(privacyState)) {
 			return null;
 		}
-		
-		if(DocumentPrivacyStateCache.instance().getKeys().contains(privacyState.trim())) {
-			return privacyState.trim();
+			
+		try {
+			return DocumentPrivacyStateCache.PrivacyState.getValue(privacyState);
 		}
-		else {
+		catch(IllegalArgumentException e) {
 			request.setFailed(ErrorCodes.DOCUMENT_INVALID_PRIVACY_STATE, "Unknown privacy state: " + privacyState);
 			throw new ValidationException("The document's privacy state is unknown: " + privacyState);
 		}
@@ -96,17 +96,17 @@ public class DocumentValidators {
 	 * @throws ValidationException Thrown if the role is no null nor whitespace
 	 * 							   only and is an unknown role.
 	 */
-	public static String validateRole(Request request, String role) throws ValidationException {
+	public static DocumentRoleCache.Role validateRole(Request request, String role) throws ValidationException {
 		LOGGER.info("Validating a document role.");
 		
 		if(StringUtils.isEmptyOrWhitespaceOnly(role)) {
 			return null;
 		}
 		
-		if(DocumentRoleCache.instance().getKeys().contains(role.trim())) {
-			return role.trim();
+		try {
+			return DocumentRoleCache.Role.getValue(role);
 		}
-		else {
+		catch(IllegalArgumentException e) {
 			request.setFailed(ErrorCodes.DOCUMENT_INVALID_ROLE, "Invalid document role: " + role);
 			throw new ValidationException("Invalid document role: " + role);
 		}

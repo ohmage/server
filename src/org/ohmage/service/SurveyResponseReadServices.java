@@ -129,7 +129,7 @@ public final class SurveyResponseReadServices {
 	 * @return
 	 */
 	public static List<SurveyResponseReadResult> performPrivacyFilter(User user, String campaignId,
-		List<SurveyResponseReadResult> surveyResponseList, String privacyState) {
+		List<SurveyResponseReadResult> surveyResponseList, SurveyResponsePrivacyStateCache.PrivacyState privacyState) {
 		
 		// check for logical errors
 		if(user == null  || StringUtils.isEmptyOrWhitespaceOnly(campaignId) || surveyResponseList == null) {
@@ -164,8 +164,8 @@ public final class SurveyResponseReadServices {
 					||
 					
 					// Owners, supervisors, and authors can see shared responses if the campaign is private 
-					((user.getCampaignsAndRoles().get(campaignId).getCampaign().getPrivacyState().equals(CampaignPrivacyStateCache.PRIVACY_STATE_PRIVATE) 
-						&& currentResult.getPrivacyState().equals(SurveyResponsePrivacyStateCache.PRIVACY_STATE_SHARED)) 
+					((user.getCampaignsAndRoles().get(campaignId).getCampaign().getPrivacyState().equals(CampaignPrivacyStateCache.PrivacyState.PRIVATE) 
+						&& currentResult.getPrivacyState().equals(SurveyResponsePrivacyStateCache.PrivacyState.SHARED)) 
 						&& ! user.isAuthorInCampaign(campaignId) 
 						&& ! currentResult.getUsername().equals(user.getUsername()))
 						
@@ -182,7 +182,7 @@ public final class SurveyResponseReadServices {
 		
 		if(privacyState != null) {
 			for(int i = 0; i < numberOfResults; i++) {
-				if(! (surveyResponseList.get(i)).getPrivacyState().equals(privacyState)) { 
+				if(! surveyResponseList.get(i).getPrivacyState().equals(privacyState)) { 
 					surveyResponseList.remove(i);
 					i--;
 					numberOfResults--;
@@ -201,7 +201,7 @@ public final class SurveyResponseReadServices {
 	 * @return true if the result is shared; false otherwise.
 	 */
 	private static boolean resultIsUnshared(SurveyResponseReadResult result) {
-		return ! result.getPrivacyState().equals(SurveyResponsePrivacyStateCache.PRIVACY_STATE_SHARED); 
+		return ! result.getPrivacyState().equals(SurveyResponsePrivacyStateCache.PrivacyState.SHARED); 
 	}
 	
 	/* Methods for generating output */

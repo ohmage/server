@@ -32,7 +32,7 @@ public final class UserCampaignDocumentDaos extends Dao {
 			"AND u.id = urc.user_id " +
 			"AND c.id = urc.campaign_id " +
 			"AND ur.id = urc.user_role_id " +
-			"AND ur.role = '" + CampaignRoleCache.ROLE_SUPERVISOR + "' " +
+			"AND ur.role = '" + CampaignRoleCache.Role.SUPERVISOR + "' " +
 			// Ensure that the campaign is associated with the document.
 			"AND d.id = dcr.document_id " +
 			"AND c.id = dcr.campaign_id" +
@@ -53,12 +53,12 @@ public final class UserCampaignDocumentDaos extends Dao {
 		"AND urc.user_role_id = ur.id " +
 		"AND d.privacy_state_id = dps.id " +
 		"AND (" +
-			"(dps.privacy_state = '" + DocumentPrivacyStateCache.PRIVACY_STATE_SHARED + "' " +
-			"AND ur.role != '" + CampaignRoleCache.ROLE_PARTICIPANT + "')" +
+			"(dps.privacy_state = '" + DocumentPrivacyStateCache.PrivacyState.SHARED + "' " +
+			"AND ur.role != '" + CampaignRoleCache.Role.PARTICIPANT + "')" +
 			" OR " +
-			"(ur.role = '" + CampaignRoleCache.ROLE_SUPERVISOR + "')" +
+			"(ur.role = '" + CampaignRoleCache.Role.SUPERVISOR + "')" +
 			" OR " +
-			"(dr.role = '" + DocumentRoleCache.ROLE_OWNER + "')" +
+			"(dr.role = '" + DocumentRoleCache.Role.OWNER + "')" +
 		")";
 	
 	private static UserCampaignDocumentDaos instance;

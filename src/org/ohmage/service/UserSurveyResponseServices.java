@@ -50,11 +50,11 @@ public class UserSurveyResponseServices {
 			// Get the response's campaign.
 			String campaignId = CampaignSurveyResponseDaos.getCampaignIdFromSurveyId(surveyResponseId);
 			
-			if(UserCampaignDaos.getUserCampaignRoles(requesterUsername, campaignId).contains(CampaignRoleCache.ROLE_SUPERVISOR)) {
+			if(UserCampaignDaos.getUserCampaignRoles(requesterUsername, campaignId).contains(CampaignRoleCache.Role.SUPERVISOR)) {
 				return;
 			}
 			
-			if(CampaignRunningStateCache.RUNNING_STATE_RUNNING.equals(CampaignDaos.getCampaignRunningState(campaignId))) {
+			if(CampaignRunningStateCache.RunningState.RUNNING.equals(CampaignDaos.getCampaignRunningState(campaignId))) {
 				if(requesterUsername.equals(UserSurveyResponseDaos.getSurveyResponseOwner(surveyResponseId))) {
 					return;
 				}

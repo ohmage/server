@@ -24,7 +24,7 @@ import javax.sql.DataSource;
  */
 public final class CampaignRoleCache extends StringAndIdCache {
 	// The column IDs for the query.
-	private static final String ID_COLUMN = "Id";
+	private static final String ID_COLUMN = "id";
 	private static final String ROLE_COLUMN = "role";
 	
 	// The SQL used to get at the cache's values.
@@ -36,11 +36,40 @@ public final class CampaignRoleCache extends StringAndIdCache {
 	// to reference which key we want.
 	public static final String CACHE_KEY = "campaignRoleCache";
 	
-	// Known campaign role constants.
-	public static final String ROLE_ANALYST = "analyst";
-	public static final String ROLE_AUTHOR = "author";
-	public static final String ROLE_PARTICIPANT = "participant";
-	public static final String ROLE_SUPERVISOR = "supervisor";
+	/**
+	 * Known campaign roles.
+	 * 
+	 * @author John Jenkins
+	 */
+	public static enum Role {
+		SUPERVISOR,
+		AUTHOR,
+		ANALYST,
+		PARTICIPANT;
+		
+		/**
+		 * Converts a String value into a Role or throws an exception if there
+		 * is no comparable role.
+		 * 
+		 * @param role The role to be converted into a Role enum.
+		 * 
+		 * @return A comparable Role enum.
+		 * 
+		 * @throws IllegalArgumentException Thrown if there is no comparable
+		 * 									Role enum.
+		 */
+		public static Role getValue(String role) {
+			return valueOf(role.toUpperCase());
+		}
+		
+		/**
+		 * Converts the role to a nice, human-readable format.
+		 */
+		@Override
+		public String toString() {
+			return name().toLowerCase();
+		}
+	}
 	
 	// A reference to the only instance of this class for the Singleton
 	// pattern.

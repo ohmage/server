@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import org.ohmage.cache.MobilityPrivacyStateCache;
 import org.ohmage.dao.UserMobilityDaos;
 import org.ohmage.domain.MobilityInformation;
 import org.ohmage.domain.MobilityInformation.LocationStatus;
@@ -159,7 +160,7 @@ public final class MobilityServices {
 	 * @throws ServiceException Thrown if there is an error.
 	 */
 	public static List<MobilityInformation> retrieveMobilityData(Request request, String username, 
-			String client, Date startDate, Date endDate, String privacyState,
+			String client, Date startDate, Date endDate, MobilityPrivacyStateCache.PrivacyState privacyState,
 			LocationStatus locationStatus, Mode mode) throws ServiceException {
 		
 		try {

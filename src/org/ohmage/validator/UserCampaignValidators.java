@@ -7,6 +7,7 @@ import java.util.Set;
 
 import org.apache.log4j.Logger;
 import org.ohmage.annotator.ErrorCodes;
+import org.ohmage.cache.CampaignRoleCache;
 import org.ohmage.exception.ValidationException;
 import org.ohmage.request.InputKeys;
 import org.ohmage.request.Request;
@@ -50,7 +51,7 @@ public class UserCampaignValidators {
 	 * 							   pairs are invalid, or either the username or
 	 * 							   class role are invalid.
 	 */
-	public static Map<String, Set<String>> validateUserAndCampaignRole(Request request, String userAndCampaignRoleList) throws ValidationException {
+	public static Map<String, Set<CampaignRoleCache.Role>> validateUserAndCampaignRole(Request request, String userAndCampaignRoleList) throws ValidationException {
 		LOGGER.info("Validating a list of user and class role pairs.");
 		
 		// If it's null or empty, return null.
@@ -59,7 +60,7 @@ public class UserCampaignValidators {
 		}
 		
 		// Create the resulting object which will initially be empty.
-		Map<String, Set<String>> result = new HashMap<String, Set<String>>();
+		Map<String, Set<CampaignRoleCache.Role>> result = new HashMap<String, Set<CampaignRoleCache.Role>>();
 		// Split the parameterized value into its pairs.
 		String[] userAndRoleArray = userAndCampaignRoleList.split(InputKeys.LIST_ITEM_SEPARATOR);
 		
@@ -87,16 +88,16 @@ public class UserCampaignValidators {
 					throw new ValidationException("The username in the username, campaign role pair is missing: " + currUserAndRole);
 				}
 				
-				String role = CampaignValidators.validateRole(request, userAndRole[1].trim());
+				CampaignRoleCache.Role role = CampaignValidators.validateRole(request, userAndRole[1].trim());
 				if(role == null) {
 					request.setFailed(ErrorCodes.CAMPAIGN_INVALID_ROLE, "The campaign role in the username, campaign role pair is missing: " + currUserAndRole);
 					throw new ValidationException("The campaign role in the username, campaign role pair is missing: " + currUserAndRole);
 				}
 				
 				// Add the role to the list of roles.
-				Set<String> roles = result.get(username);
+				Set<CampaignRoleCache.Role> roles = result.get(username);
 				if(roles == null) {
-					roles = new HashSet<String>();
+					roles = new HashSet<CampaignRoleCache.Role>();
 					result.put(username, roles);
 				}
 				roles.add(role);

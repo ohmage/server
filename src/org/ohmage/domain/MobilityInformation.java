@@ -12,6 +12,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.ohmage.annotator.ErrorCodes;
+import org.ohmage.cache.MobilityPrivacyStateCache;
 import org.ohmage.domain.MobilityInformation.SensorData.AccelData;
 import org.ohmage.util.StringUtils;
 import org.ohmage.util.TimeUtils;
@@ -47,7 +48,7 @@ public class MobilityInformation {
 	private final long time;
 	private final TimeZone timezone;
 	
-	private final String privacyState;
+	private final MobilityPrivacyStateCache.PrivacyState privacyState;
 	
 	public static enum LocationStatus { VALID, NETWORK, INACCURATE, STALE, UNAVAILABLE };
 	private final LocationStatus locationStatus;
@@ -902,7 +903,7 @@ public class MobilityInformation {
 	 * 							 contains insufficient information to build 
 	 * 							 this object.
 	 */
-	public MobilityInformation(JSONObject mobilityPoint, String privacyState) throws MobilityException {
+	public MobilityInformation(JSONObject mobilityPoint, MobilityPrivacyStateCache.PrivacyState privacyState) throws MobilityException {
 		// Get the date.
 		try {
 			date = StringUtils.decodeDateTime(mobilityPoint.getString(JSON_KEY_DATE));
@@ -1057,7 +1058,7 @@ public class MobilityInformation {
 	 */
 	public MobilityInformation(Date date, Long time, TimeZone timezone,
 			LocationStatus locationStatus, JSONObject location, 
-			Mode mode, String privacyState, 
+			Mode mode, MobilityPrivacyStateCache.PrivacyState privacyState, 
 			JSONObject sensorData, JSONObject features, String classifierVersion) throws MobilityException{
 		
 		if(date == null) {
@@ -1157,7 +1158,7 @@ public class MobilityInformation {
 	 * 
 	 * @return The Mobility point's privacy state.
 	 */
-	public final String getPrivacyState() {
+	public final MobilityPrivacyStateCache.PrivacyState getPrivacyState() {
 		return privacyState;
 	}
 	

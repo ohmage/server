@@ -22,6 +22,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.ohmage.cache.CampaignPrivacyStateCache;
+import org.ohmage.cache.CampaignRunningStateCache;
 import org.ohmage.util.StringUtils;
 
 
@@ -37,13 +39,15 @@ public class Configuration {
 	private String urn;
 	private String name;
 	private String description;
-	private String runningState;
-	private String privacyState;
+	private CampaignRunningStateCache.RunningState runningState;
+	private CampaignPrivacyStateCache.PrivacyState privacyState;
 	private String creationTimestamp;
 	private Map<String, Survey> surveyMap;
 	private String xml;
 	
-	public Configuration(String urn, String name, String description, String runningState, String privacyState, 
+	public Configuration(String urn, String name, String description, 
+			CampaignRunningStateCache.RunningState runningState, 
+			CampaignPrivacyStateCache.PrivacyState privacyState, 
 			String creationTimestamp, Map<String, Survey> surveyMap, String xml) {
 		
 		// If any of these properties are missing, it means the db is in an inconsistent state!
@@ -54,10 +58,10 @@ public class Configuration {
 			throw new IllegalArgumentException("a name is required");
 		}
 		// a null or empty description is allowed
-		if(StringUtils.isEmptyOrWhitespaceOnly(runningState)) {
+		if(runningState == null) {
 			throw new IllegalArgumentException("running state is required");
 		}
-		if(StringUtils.isEmptyOrWhitespaceOnly(privacyState)) {
+		if(privacyState == null) {
 			throw new IllegalArgumentException("privacy state is required");
 		}
 		if(StringUtils.isEmptyOrWhitespaceOnly(creationTimestamp)) {
@@ -100,11 +104,11 @@ public class Configuration {
 		return description;
 	}
 
-	public String getRunningState() {
+	public CampaignRunningStateCache.RunningState getRunningState() {
 		return runningState;
 	}
 
-	public String getPrivacyState() {
+	public CampaignPrivacyStateCache.PrivacyState getPrivacyState() {
 		return privacyState;
 	}
 

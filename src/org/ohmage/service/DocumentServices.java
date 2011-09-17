@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.ohmage.annotator.ErrorCodes;
+import org.ohmage.cache.DocumentPrivacyStateCache;
 import org.ohmage.cache.DocumentRoleCache;
 import org.ohmage.dao.DocumentDaos;
 import org.ohmage.exception.DataAccessException;
@@ -51,8 +52,8 @@ public class DocumentServices {
 	 * 
 	 * @throws ServiceException Thrown if there is an error.
 	 */
-	public static String createDocument(Request request, byte[] contents, String name, String description, String privacyState,
-			Map<String, String> campaignRoleMap, Map<String, String> classRoleMap, String creatorUsername) throws ServiceException {
+	public static String createDocument(Request request, byte[] contents, String name, String description, DocumentPrivacyStateCache.PrivacyState privacyState,
+			Map<String, DocumentRoleCache.Role> campaignRoleMap, Map<String, DocumentRoleCache.Role> classRoleMap, String creatorUsername) throws ServiceException {
 		try {
 			return DocumentDaos.createDocument(contents, name, description, privacyState, campaignRoleMap, classRoleMap, creatorUsername);
 		}
@@ -128,29 +129,29 @@ public class DocumentServices {
 	 * 
 	 * @throws IllegalArgumentException The List of roles is null.
 	 */
-	public static void ensureRoleNotLessThanRoles(Request request, String role, Collection<String> roles) throws ServiceException {
+	public static void ensureRoleNotLessThanRoles(Request request, DocumentRoleCache.Role role, Collection<DocumentRoleCache.Role> roles) throws ServiceException {
 		if(roles == null) {
 			throw new IllegalArgumentException("The list of roles is null.");
 		}
 		
-		if(DocumentRoleCache.ROLE_OWNER.equals(role)) {
+		if(DocumentRoleCache.Role.OWNER.equals(role)) {
 			return;
 		}
-		else if(roles.contains(DocumentRoleCache.ROLE_OWNER)) {
+		else if(roles.contains(DocumentRoleCache.Role.OWNER)) {
 			request.setFailed(ErrorCodes.DOCUMENT_INSUFFICIENT_PERMISSIONS, "The user is attempting to grant or revoke document ownership when they are not an owner themselves.");
 			throw new ServiceException("The user is attempting to grant or revoke document ownership when they are not an owner themselves.");
 		}
-		else if(DocumentRoleCache.ROLE_WRITER.equals(role)) {
+		else if(DocumentRoleCache.Role.WRITER.equals(role)) {
 			return;
 		}
-		else if(roles.contains(DocumentRoleCache.ROLE_WRITER)) {
+		else if(roles.contains(DocumentRoleCache.Role.WRITER)) {
 			request.setFailed(ErrorCodes.DOCUMENT_INSUFFICIENT_PERMISSIONS, "The user is attempting to grant or revoke the document write ability when they are not a document writer themselves.");
 			throw new ServiceException("The user is attempting to grant or revoke the document write ability when they are not a document writer themselves.");
 		}
-		else if(DocumentRoleCache.ROLE_READER.equals(role)) {
+		else if(DocumentRoleCache.Role.READER.equals(role)) {
 			return;
 		}
-		else if(role.contains(DocumentRoleCache.ROLE_READER)) {
+		else if(roles.contains(DocumentRoleCache.Role.READER)) {
 			request.setFailed(ErrorCodes.DOCUMENT_INSUFFICIENT_PERMISSIONS, "The user is attempting to grant or revoke the document read ability when they are not a document readers themselves.");
 			throw new ServiceException("The user is attempting to grant or revoke the document read ability when they are not a document readers themselves.");
 		}
@@ -242,10 +243,11 @@ public class DocumentServices {
 	 * 
 	 * @throws ServiceException Thrown if there is an error.
 	 */
-	public static void updateDocument(Request request, String documentId, byte[] newContents, String newName, String newDescription, String newPrivacyState,
-			Map<String, String> campaignAndRolesToAssociateOrUpdate, List<String> campaignsToDisassociate,
-			Map<String, String> classAndRolesToAssociateOrUpdate, List<String> classesToDisassociate,
-			Map<String, String> userAndRolesToAssociateOrUpdate, List<String> usersToDisassoicate) throws ServiceException {
+	public static void updateDocument(Request request, String documentId, byte[] newContents, String newName, String newDescription, 
+			DocumentPrivacyStateCache.PrivacyState newPrivacyState,
+			Map<String, DocumentRoleCache.Role> campaignAndRolesToAssociateOrUpdate, List<String> campaignsToDisassociate,
+			Map<String, DocumentRoleCache.Role> classAndRolesToAssociateOrUpdate, List<String> classesToDisassociate,
+			Map<String, DocumentRoleCache.Role> userAndRolesToAssociateOrUpdate, List<String> usersToDisassoicate) throws ServiceException {
 		try {
 			DocumentDaos.updateDocument(documentId, newContents, newName, newDescription, newPrivacyState, 
 					campaignAndRolesToAssociateOrUpdate, campaignsToDisassociate, 

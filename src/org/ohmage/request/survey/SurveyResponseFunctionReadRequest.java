@@ -14,6 +14,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.ohmage.annotator.ErrorCodes;
+import org.ohmage.cache.SurveyResponsePrivacyStateCache;
 import org.ohmage.domain.SurveyResponseInformation;
 import org.ohmage.domain.SurveyResponseInformation.Location;
 import org.ohmage.exception.ServiceException;
@@ -294,9 +295,9 @@ public class SurveyResponseFunctionReadRequest extends UserRequest {
 			case STATS:
 				JSONObject statsResult = new JSONObject();
 				
-				Map<String, Integer> privacyStates = new HashMap<String, Integer>();
+				Map<SurveyResponsePrivacyStateCache.PrivacyState, Integer> privacyStates = new HashMap<SurveyResponsePrivacyStateCache.PrivacyState, Integer>();
 				for(SurveyResponseInformation surveyResponse : surveyResponses) {
-					String privacyState = surveyResponse.getPrivacyState();
+					SurveyResponsePrivacyStateCache.PrivacyState privacyState = surveyResponse.getPrivacyState();
 					
 					Integer count = privacyStates.get(privacyState);
 					if(count == null) {
@@ -307,8 +308,8 @@ public class SurveyResponseFunctionReadRequest extends UserRequest {
 					}
 				}
 				
-				for(String privacyState : privacyStates.keySet()) {
-					statsResult.put(privacyState, privacyStates.get(privacyState));
+				for(SurveyResponsePrivacyStateCache.PrivacyState privacyState : privacyStates.keySet()) {
+					statsResult.put(privacyState.toString(), privacyStates.get(privacyState));
 				}
 				
 				respond(httpRequest, httpResponse, statsResult);

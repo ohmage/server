@@ -22,6 +22,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.ohmage.cache.CampaignPrivacyStateCache;
+import org.ohmage.cache.CampaignRunningStateCache;
 import org.ohmage.util.StringUtils;
 
 /**
@@ -33,8 +35,8 @@ public class Campaign {
 	private String urn;
 	private String name;
 	private String description;
-	private String runningState;
-	private String privacyState;
+	private CampaignRunningStateCache.RunningState runningState;
+	private CampaignPrivacyStateCache.PrivacyState privacyState;
 
 	/**
 	 * TODO: Make this a Timestamp or Calendar?
@@ -72,7 +74,7 @@ public class Campaign {
 		participants = new HashSet<String>();
 	}
 	
-	public Campaign(String urn, String name, String description, String runningState, String privacyState, String campaignCreationTimestamp) {
+	public Campaign(String urn, String name, String description, CampaignRunningStateCache.RunningState runningState, CampaignPrivacyStateCache.PrivacyState privacyState, String campaignCreationTimestamp) {
 		this.urn = urn;
 		this.name = name;
 		this.description = description;
@@ -127,19 +129,19 @@ public class Campaign {
 		this.description = description;
 	}
 	
-	public String getRunningState() {
+	public CampaignRunningStateCache.RunningState getRunningState() {
 		return this.runningState;
 	}
 	
-	public void setRunningState(String runningState) {
+	public void setRunningState(CampaignRunningStateCache.RunningState runningState) {
 		this.runningState = runningState;
 	}
 	
-	public String getPrivacyState() {
+	public CampaignPrivacyStateCache.PrivacyState getPrivacyState() {
 		return this.privacyState;
 	}
 	
-	public void setPrivacyState(String privacyState) {
+	public void setPrivacyState(CampaignPrivacyStateCache.PrivacyState privacyState) {
 		this.privacyState = privacyState;
 	}
 	
