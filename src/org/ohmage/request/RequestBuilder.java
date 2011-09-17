@@ -21,13 +21,12 @@ import org.ohmage.request.document.DocumentReadContentsRequest;
 import org.ohmage.request.document.DocumentReadRequest;
 import org.ohmage.request.document.DocumentUpdateRequest;
 import org.ohmage.request.image.ImageReadRequest;
-import org.ohmage.request.image.ImageUploadRequest;
 import org.ohmage.request.mobility.MobilityUploadRequest;
+import org.ohmage.request.survey.SurveyUploadRequest;
 import org.ohmage.request.survey.SurveyResponseDeleteRequest;
 import org.ohmage.request.survey.SurveyResponseFunctionReadRequest;
 import org.ohmage.request.survey.SurveyResponseReadRequest;
 import org.ohmage.request.survey.SurveyResponseUpdateRequest;
-import org.ohmage.request.survey.SurveyUploadRequest;
 import org.ohmage.request.user.UserChangePasswordRequest;
 import org.ohmage.request.user.UserCreationRequest;
 import org.ohmage.request.user.UserDeletionRequest;
@@ -92,7 +91,6 @@ public final class RequestBuilder {
 
 	// Image
 	public static final String API_IMAGE_READ = API_ROOT + "/image/read";
-	public static final String API_IMAGE_UPLOAD = API_ROOT + "/image/upload";
 	
 	// Mobility
 	public static final String API_MOBILITY_UPLOAD = API_ROOT + "/mobility/upload";
@@ -203,14 +201,10 @@ public final class RequestBuilder {
 		else if(API_IMAGE_READ.equals(requestUri)) {
 			return new ImageReadRequest(httpRequest);
 		}
-		else if(API_IMAGE_UPLOAD.equals(requestUri)) {
-			return new ImageUploadRequest(httpRequest);
-		}
 		// Mobility
 		else if(API_MOBILITY_UPLOAD.equals(requestUri)) {
 			return new MobilityUploadRequest(httpRequest);
 		}
-		//Survey
 		else if(API_SURVEY_UPLOAD.equals(requestUri)) {
 			return new SurveyUploadRequest(httpRequest);
 		}
@@ -314,7 +308,6 @@ public final class RequestBuilder {
 				API_DOCUMENT_DELETE.equals(uri) ||
 				// Image
 				API_IMAGE_READ.equals(uri) ||
-				API_IMAGE_UPLOAD.equals(uri) ||
 				// Mobility
 				API_MOBILITY_UPLOAD.equals(uri) ||
 				// Survey
