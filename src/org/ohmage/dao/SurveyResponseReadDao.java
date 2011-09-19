@@ -9,6 +9,7 @@ import java.util.List;
 import javax.sql.DataSource;
 
 import org.apache.log4j.Logger;
+import org.ohmage.cache.SurveyResponsePrivacyStateCache;
 import org.ohmage.domain.configuration.Configuration;
 import org.ohmage.domain.survey.read.ConfigurationValueMerger;
 import org.ohmage.domain.survey.read.SurveyResponseReadResult;
@@ -114,9 +115,11 @@ public final class SurveyResponseReadDao extends Dao {
 	 * The required parameters are request, userList, campaignID, promptIdList, 
 	 * surveyIdList, sortOrder, and configuration.
 	 */
-	public static List<SurveyResponseReadResult> retrieveSurveyResponses(Request request, List<String> userList, String campaignID,
-				List<String> promptIdList, List<String> surveyIdList, Date startDate, Date endDate, String sortOrder,
-				final Configuration configuration) throws DataAccessException {
+	public static List<SurveyResponseReadResult> retrieveSurveyResponses(Request request, 
+			List<String> userList, String campaignID,
+			List<String> promptIdList, List<String> surveyIdList, 
+			Date startDate, Date endDate, String sortOrder,
+			final Configuration configuration) throws DataAccessException {
 		
 		// check for logical errors -- missing required params
 		if(request == null || userList == null || StringUtils.isEmptyOrWhitespaceOnly(campaignID)
@@ -188,7 +191,7 @@ public final class SurveyResponseReadDao extends Dao {
 						result.setClient(rs.getString(12));
 						result.setLaunchContext(rs.getString(13));
 						result.setSurveyPrimaryKeyId(rs.getInt(14));
-						result.setPrivacyState(rs.getString(15));
+						result.setPrivacyState(SurveyResponsePrivacyStateCache.PrivacyState.getValue(rs.getString(15)));
 						
 						ConfigurationValueMerger.merge(result, configuration);
 						

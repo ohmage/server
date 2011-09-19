@@ -4,6 +4,7 @@ import java.util.List;
 
 import javax.sql.DataSource;
 
+import org.ohmage.cache.SurveyResponsePrivacyStateCache;
 import org.ohmage.exception.DataAccessException;
 import org.springframework.jdbc.core.SingleColumnRowMapper;
 
@@ -88,12 +89,12 @@ public final class CampaignImageDaos extends Dao {
 	 * 
 	 * @throws DataAccessException Thrown if there is an error.
 	 */
-	public static String getImagePrivacyStateInCampaign(String campaignId, String imageId) throws DataAccessException {
+	public static SurveyResponsePrivacyStateCache.PrivacyState getImagePrivacyStateInCampaign(String campaignId, String imageId) throws DataAccessException {
 		try {
-			return instance.getJdbcTemplate().queryForObject(
+			return SurveyResponsePrivacyStateCache.PrivacyState.getValue(instance.getJdbcTemplate().queryForObject(
 					SQL_GET_IMAGE_PRIVACY_STATE_IN_CAMPAIGN, 
 					new Object[] { campaignId, imageId }, 
-					String.class);
+					String.class));
 		}
 		catch(org.springframework.dao.IncorrectResultSizeDataAccessException e) {
 			if(e.getActualSize() > 1) {

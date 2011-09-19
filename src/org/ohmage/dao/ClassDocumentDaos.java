@@ -4,6 +4,7 @@ import java.util.List;
 
 import javax.sql.DataSource;
 
+import org.ohmage.cache.DocumentRoleCache;
 import org.ohmage.exception.DataAccessException;
 import org.springframework.jdbc.core.SingleColumnRowMapper;
 
@@ -80,12 +81,14 @@ public class ClassDocumentDaos extends Dao {
 	 * 
 	 * @throws DataAccessException Thrown if there is an error.
 	 */
-	public static String getClassDocumentRole(String classId, String documentId) throws DataAccessException {
+	public static DocumentRoleCache.Role getClassDocumentRole(String classId, String documentId) throws DataAccessException {
 		try {
-			return instance.getJdbcTemplate().queryForObject(
-					SQL_GET_CLASS_DOCUMENT_ROLE,
-					new Object[] { classId, documentId },
-					String.class);
+			return DocumentRoleCache.Role.getValue(
+					instance.getJdbcTemplate().queryForObject(
+							SQL_GET_CLASS_DOCUMENT_ROLE,
+							new Object[] { classId, documentId },
+							String.class)
+					);
 		}
 		catch(org.springframework.dao.IncorrectResultSizeDataAccessException e) {
 			if(e.getActualSize() > 1) {

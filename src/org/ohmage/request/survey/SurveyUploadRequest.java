@@ -92,11 +92,11 @@ import org.ohmage.validator.ImageValidators;
 public class SurveyUploadRequest extends UserRequest {
 	private static final Logger LOGGER = Logger.getLogger(SurveyUploadRequest.class);
 	
-	private static final List<String> ALLOWED_ROLES;
-	private static final String ALLOWED_CAMPAIGN_RUNNING_STATE = CampaignRunningStateCache.RUNNING_STATE_RUNNING;
+	private static final List<CampaignRoleCache.Role> ALLOWED_ROLES;
+	private static final CampaignRunningStateCache.RunningState ALLOWED_CAMPAIGN_RUNNING_STATE = CampaignRunningStateCache.RunningState.RUNNING;
 	
 	static {
-		ALLOWED_ROLES = Arrays.asList(new String[] {CampaignRoleCache.ROLE_PARTICIPANT});
+		ALLOWED_ROLES = Arrays.asList(new CampaignRoleCache.Role[] {CampaignRoleCache.Role.PARTICIPANT});
 	}
 	
 	// The campaign creation timestamp is stored as a String because it is 

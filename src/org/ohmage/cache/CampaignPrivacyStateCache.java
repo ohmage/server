@@ -25,7 +25,7 @@ import javax.sql.DataSource;
  */
 public final class CampaignPrivacyStateCache extends StringAndIdCache {
 	// The column IDs for the query.
-	private static final String ID_COLUMN = "Id";
+	private static final String ID_COLUMN = "id";
 	private static final String STATE_COLUMN = "privacy_state";
 	
 	// The SQL that will retrieve the desired values.
@@ -37,9 +37,39 @@ public final class CampaignPrivacyStateCache extends StringAndIdCache {
 	// to reference which cache we want.
 	public static final String CACHE_KEY = "campaignPrivacyStateCache";
 	
-	// Known campaign privacy states.
-	public static final String PRIVACY_STATE_PRIVATE = "private";
-	public static final String PRIVACY_STATE_SHARED = "shared";
+	/**
+	 * Known campaign privacy states.
+	 * 
+	 * @author John Jenkins
+	 */
+	public static enum PrivacyState {
+		PRIVATE,
+		SHARED;
+		
+		/**
+		 * Converts a String value into a PrivacyState or throws an exception
+		 * if there is no comparable privacy state.
+		 * 
+		 * @param privacyState The privacy state to be converted into a 
+		 * 					   PrivacyState enum.
+		 * 
+		 * @return A comparable PrivacyState enum.
+		 * 
+		 * @throws IllegalArgumentException Thrown if there is no comparable
+		 * 									PrivacyState enum.
+		 */
+		public static PrivacyState getValue(String privacyState) {
+			return valueOf(privacyState.toUpperCase());
+		}
+		
+		/**
+		 * Converts the privacy state to a nice, human-readable format.
+		 */
+		@Override
+		public String toString() {
+			return name().toLowerCase();
+		}
+	}
 	
 	// A reference to the only instance of this class for the Singleton
 	// pattern.

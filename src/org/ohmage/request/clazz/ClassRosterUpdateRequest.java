@@ -12,6 +12,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.log4j.Logger;
 import org.json.JSONArray;
 import org.ohmage.annotator.ErrorCodes;
+import org.ohmage.cache.ClassRoleCache;
 import org.ohmage.exception.ServiceException;
 import org.ohmage.exception.ValidationException;
 import org.ohmage.request.InputKeys;
@@ -63,7 +64,7 @@ public class ClassRosterUpdateRequest extends UserRequest {
 	
 	private static final String KEY_WARNING_MESSAGES = "warning_messages";
 	
-	private final Map<String, Map<String, String>> roster;
+	private final Map<String, Map<String, ClassRoleCache.Role>> roster;
 	
 	private List<String> warningMessages;
 	
@@ -78,7 +79,7 @@ public class ClassRosterUpdateRequest extends UserRequest {
 		
 		LOGGER.info("Create a class roster update request.");
 		
-		Map<String, Map<String, String>> tRoster = null;
+		Map<String, Map<String, ClassRoleCache.Role>> tRoster = null;
 		
 		try {
 			tRoster = ClassValidators.validateClassRoster(this, getMultipartValue(httpRequest, InputKeys.ROSTER));

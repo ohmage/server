@@ -4,6 +4,7 @@ import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 
+import org.ohmage.cache.SurveyResponsePrivacyStateCache;
 import org.ohmage.dao.ImageDaos;
 import org.ohmage.dao.SurveyResponseDaos;
 import org.ohmage.dao.SurveyResponseImageDaos;
@@ -85,7 +86,7 @@ public final class SurveyResponseServices {
 			final Request request, final String campaignId,
 			final String username, final String client, 
 			final Date startDate, final Date endDate, 
-			final String privacyState, 
+			final SurveyResponsePrivacyStateCache.PrivacyState privacyState, 
 			final String surveyId, final String promptId, final String promptType) throws ServiceException {
 		try {
 			// Populate the list with all of the survey response IDs.
@@ -161,7 +162,7 @@ public final class SurveyResponseServices {
 	 * @param privacyState  The new privacy state value.
 	 * @throws ServiceException  If an error occurs.
 	 */
-	public static void updateSurveyResponsePrivacyState(Request request, Long surveyResponseId, String privacyState) throws ServiceException { 
+	public static void updateSurveyResponsePrivacyState(Request request, Long surveyResponseId, SurveyResponsePrivacyStateCache.PrivacyState privacyState) throws ServiceException { 
 		try {
 			SurveyResponseDaos.updateSurveyResponsePrivacyState(surveyResponseId, privacyState);
 		} 

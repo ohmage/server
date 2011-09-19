@@ -8,11 +8,15 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.log4j.Logger;
 import org.ohmage.annotator.ErrorCodes;
+import org.ohmage.cache.DocumentPrivacyStateCache;
+import org.ohmage.cache.DocumentRoleCache;
 import org.ohmage.exception.ServiceException;
 import org.ohmage.exception.ValidationException;
 import org.ohmage.request.InputKeys;
 import org.ohmage.request.UserRequest;
+import org.ohmage.service.CampaignDocumentServices;
 import org.ohmage.service.CampaignServices;
+import org.ohmage.service.ClassDocumentServices;
 import org.ohmage.service.ClassServices;
 import org.ohmage.service.DocumentServices;
 import org.ohmage.service.UserCampaignDocumentServices;
@@ -131,15 +135,15 @@ public class DocumentUpdateRequest extends UserRequest {
 	
 	private final String newName;
 	private final String newDescription;
-	private final String newPrivacyState;
+	private final DocumentPrivacyStateCache.PrivacyState newPrivacyState;
 	
-	private final Map<String, String> campaignAndRolesToAdd;
+	private final Map<String, DocumentRoleCache.Role> campaignAndRolesToAdd;
 	private final List<String> campaignsToRemove;
 	
-	private final Map<String, String> classAndRolesToAdd;
+	private final Map<String, DocumentRoleCache.Role> classAndRolesToAdd;
 	private final List<String> classesToRemove;
 	
-	private final Map<String, String> userAndRolesToAdd;
+	private final Map<String, DocumentRoleCache.Role> userAndRolesToAdd;
 	private final List<String> usersToRemove;
 	
 	/**
@@ -158,15 +162,15 @@ public class DocumentUpdateRequest extends UserRequest {
 		
 		String tNewName = null;
 		String tNewDescription = null;
-		String tNewPrivacyState = null;
+		DocumentPrivacyStateCache.PrivacyState tNewPrivacyState = null;
 		
-		Map<String, String> tCampaignAndRolesToAdd = null;
+		Map<String, DocumentRoleCache.Role> tCampaignAndRolesToAdd = null;
 		List<String> tCampaignsToRemove = null;
 		
-		Map<String, String> tClassAndRolesToAdd = null;
+		Map<String, DocumentRoleCache.Role> tClassAndRolesToAdd = null;
 		List<String> tClassesToRemove = null;
 		
-		Map<String, String> tUserAndRolesToAdd = null;
+		Map<String, DocumentRoleCache.Role> tUserAndRolesToAdd = null;
 		List<String> tUsersToRemove = null;
 		
 		try {
@@ -277,7 +281,7 @@ public class DocumentUpdateRequest extends UserRequest {
 			UserDocumentServices.userCanModifyDocument(this, getUser().getUsername(), documentId);
 			
 			LOGGER.info("Getting the user's highest role for the document.");
-			String highestRole = UserDocumentServices.getHighestDocumentRoleForUserForDocument(this, getUser().getUsername(), documentId);
+			DocumentRoleCache.Role highestRole = UserDocumentServices.getHighestDocumentRoleForUserForDocument(this, getUser().getUsername(), documentId);
 			
 			if(campaignAndRolesToAdd != null) {
 				LOGGER.info("Verifying that the campaigns in the campaign-role list exist.");
@@ -298,7 +302,7 @@ public class DocumentUpdateRequest extends UserRequest {
 				UserCampaignDocumentServices.userCanDisassociateDocumentsFromCampaigns(this, getUser().getUsername(), campaignsToRemove);
 				
 				LOGGER.info("Verifying that the user is not attempting to revoke more permissions from campaigns than they have.");
-				DocumentServices.ensureRoleNotLessThanRoles(this, highestRole, campaignsToRemove);
+				CampaignDocumentServices.ensureRoleHighEnoughToDisassociateDocumentFromCampaigns(this, highestRole, campaignsToRemove, documentId);
 			}
 			
 			if(classAndRolesToAdd != null) {
@@ -320,7 +324,7 @@ public class DocumentUpdateRequest extends UserRequest {
 				UserClassDocumentServices.userCanDisassociateDocumentsWithClasses(this, getUser().getUsername(), classesToRemove);
 				
 				LOGGER.info("Verifying that the user is not attempting to revoke more permissions from classes than they have.");
-				DocumentServices.ensureRoleNotLessThanRoles(this, highestRole, classesToRemove);
+				ClassDocumentServices.ensureRoleHighEnoughToDisassociateDocumentFromClasses(this, highestRole, classesToRemove, documentId);
 			}
 			
 			if(userAndRolesToAdd != null) {
@@ -333,7 +337,7 @@ public class DocumentUpdateRequest extends UserRequest {
 			
 			if(usersToRemove != null) {
 				LOGGER.info("Verifying that the user is not attempting to revoke more permissions from users than they have.");
-				DocumentServices.ensureRoleNotLessThanRoles(this, highestRole, usersToRemove);
+				UserDocumentServices.ensureRoleHighEnoughToDisassociateDocumentFromOtherUsers(this, highestRole, usersToRemove, documentId);
 			}
 			
 			LOGGER.info("Updating the document.");

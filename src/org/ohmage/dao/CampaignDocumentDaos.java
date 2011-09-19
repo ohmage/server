@@ -1,10 +1,14 @@
 package org.ohmage.dao;
 
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.List;
 
 import javax.sql.DataSource;
 
+import org.ohmage.cache.DocumentRoleCache;
 import org.ohmage.exception.DataAccessException;
+import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.SingleColumnRowMapper;
 
 /**
@@ -81,12 +85,18 @@ public final class CampaignDocumentDaos extends Dao {
 	 * 
 	 * @throws DataAccessException Thrown if there is an error.
 	 */
-	public static String getCampaignsDocumentRole(String campaignId, String documentId) throws DataAccessException {
+	public static DocumentRoleCache.Role getCampaignDocumentRole(String campaignId, String documentId) throws DataAccessException {
 		try {
 			return instance.getJdbcTemplate().queryForObject(
 					SQL_GET_CAMPAIGN_DOCUMENT_ROLE,
 					new Object[] { campaignId, documentId },
-					String.class);
+					new RowMapper<DocumentRoleCache.Role>() {
+						@Override
+						public DocumentRoleCache.Role mapRow(ResultSet rs, int rowNum) throws SQLException {
+							return DocumentRoleCache.Role.getValue(rs.getString("role"));
+						}
+					}
+				);
 		}
 		catch(org.springframework.dao.IncorrectResultSizeDataAccessException e) {
 			if(e.getActualSize() > 1) {

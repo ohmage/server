@@ -249,7 +249,7 @@ public final class UserMobilityDaos extends AbstractUploadDao {
 							
 							ps.setString(8, mobilityPoint.getMode().toString().toLowerCase());
 							
-							ps.setString(9, mobilityPoint.getPrivacyState());
+							ps.setString(9, mobilityPoint.getPrivacyState().toString());
 							
 							return ps;
 						}
@@ -294,7 +294,7 @@ public final class UserMobilityDaos extends AbstractUploadDao {
 								mobilityPoint.getLocationStatus().toString().toLowerCase() + ", " +
 								((mobilityPoint.getLocation() == null) ? "null" : mobilityPoint.getLocation().toJson(false).toString()) + ", " +
 								mobilityPoint.getMode().toString().toLowerCase() + ", " +
-								MobilityPrivacyStateCache.PRIVACY_STATE_PRIVATE,
+								mobilityPoint.getPrivacyState(),
 							e);
 				}
 			}
@@ -309,7 +309,7 @@ public final class UserMobilityDaos extends AbstractUploadDao {
 							mobilityPoint.getLocationStatus().toString().toLowerCase() + ", " +
 							((mobilityPoint.getLocation() == null) ? "null" : mobilityPoint.getLocation().toJson(false).toString()) + ", " +
 							mobilityPoint.getMode().toString().toLowerCase() + ", " +
-							MobilityPrivacyStateCache.PRIVACY_STATE_PRIVATE,
+							mobilityPoint.getPrivacyState(),
 						e);
 			}
 			
@@ -527,11 +527,11 @@ public final class UserMobilityDaos extends AbstractUploadDao {
 	 * 
 	 * @throws DataAccessException Thrown if there is an error.
 	 */
-	public static List<Long> getIdsWithPrivacyState(String username, String privacyState) throws DataAccessException {
+	public static List<Long> getIdsWithPrivacyState(String username, MobilityPrivacyStateCache.PrivacyState privacyState) throws DataAccessException {
 		try {
 			return instance.getJdbcTemplate().query(
 					SQL_GET_IDS_WITH_PRIVACY_STATE,
-					new Object[] { username, privacyState },
+					new Object[] { username, privacyState.toString() },
 					new SingleColumnRowMapper<Long>());
 		}
 		catch(org.springframework.dao.DataAccessException e) {
@@ -652,7 +652,7 @@ public final class UserMobilityDaos extends AbstractUploadDao {
 										LocationStatus.valueOf(rs.getString("location_status").toUpperCase()),
 										location,
 										Mode.valueOf(rs.getString("mode").toUpperCase()),
-										rs.getString("privacy_state"),
+										MobilityPrivacyStateCache.PrivacyState.getValue(rs.getString("privacy_state")),
 										sensorData,
 										features,
 										rs.getString("classifier_version"));

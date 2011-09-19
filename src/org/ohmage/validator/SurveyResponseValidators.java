@@ -69,15 +69,15 @@ public final class SurveyResponseValidators {
 	 * 							   whitespace only, and not a valid survey 
 	 * 							   response privacy state.
 	 */
-	public static String validatePrivacyState(Request request, String privacyState) throws ValidationException {
+	public static SurveyResponsePrivacyStateCache.PrivacyState validatePrivacyState(Request request, String privacyState) throws ValidationException {
 		if(StringUtils.isEmptyOrWhitespaceOnly(privacyState)) {
 			return null;
 		}
 		
-		if(SurveyResponsePrivacyStateCache.instance().getKeys().contains(privacyState.trim())) {
-			return privacyState.trim();
+		try {
+			return SurveyResponsePrivacyStateCache.PrivacyState.getValue(privacyState);
 		}
-		else {
+		catch(IllegalArgumentException e) {
 			request.setFailed(ErrorCodes.SURVEY_INVALID_PRIVACY_STATE, "The privacy state is unknown: " + privacyState);
 			throw new ValidationException("The privacy state is unknown: " + privacyState);
 		}

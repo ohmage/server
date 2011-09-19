@@ -49,15 +49,15 @@ public class DocumentInformation {
 	private final String documentId;
 	private final String name;
 	private final String description;
-	private final String privacyState;
+	private final DocumentPrivacyStateCache.PrivacyState privacyState;
 	private final Date lastModified;
 	private final Date creationDate;
 	private final int size;
 	private final String creator;
 	
 	private String userRole;
-	private final Map<String, String> campaignAndRole;
-	private final Map<String, String> classAndRole;
+	private final Map<String, DocumentRoleCache.Role> campaignAndRole;
+	private final Map<String, DocumentRoleCache.Role> classAndRole;
 	
 	/**
 	 * Creates a new DocumentInformation object that contains information about
@@ -79,7 +79,7 @@ public class DocumentInformation {
 	 * @throws IllegalArgumentException Thrown if any of the parameters are
 	 * 									null and/or invalid.
 	 */
-	public DocumentInformation(String documentId, String name, String description, String privacyState, 
+	public DocumentInformation(String documentId, String name, String description, DocumentPrivacyStateCache.PrivacyState privacyState, 
 			Date lastModified, Date creationDate, int size, String creator) {
 		if(StringUtils.isEmptyOrWhitespaceOnly(documentId)) {
 			throw new IllegalArgumentException("The document's ID cannot be null or whitespace only.");
@@ -109,8 +109,8 @@ public class DocumentInformation {
 		this.size = size;
 		this.creator = creator;
 
-		campaignAndRole = new HashMap<String, String>();
-		classAndRole = new HashMap<String, String>();
+		campaignAndRole = new HashMap<String, DocumentRoleCache.Role>();
+		classAndRole = new HashMap<String, DocumentRoleCache.Role>();
 	}
 	
 	/**
@@ -145,7 +145,7 @@ public class DocumentInformation {
 	 * 
 	 * @return The privacy state of the document.
 	 */
-	public String getPrivacyState() {
+	public DocumentPrivacyStateCache.PrivacyState getPrivacyState() {
 		return privacyState;
 	}
 	
@@ -226,12 +226,12 @@ public class DocumentInformation {
 	 * 									whitespace only or if the documentRole
 	 * 									is unknown.
 	 */
-	public String addCampaignRole(String campaignId, String documentRole) {
+	public DocumentRoleCache.Role addCampaignRole(String campaignId, DocumentRoleCache.Role documentRole) {
 		if(StringUtils.isEmptyOrWhitespaceOnly(campaignId)) {
 			throw new IllegalArgumentException("The campaign ID cannot be null or whitespace only.");
 		}
-		else if(! DocumentRoleCache.instance().getKeys().contains(documentRole)) {
-			throw new IllegalArgumentException("The role is unknown.");
+		else if(documentRole == null) {
+			throw new IllegalArgumentException("The role cannot be null.");
 		}
 		
 		return campaignAndRole.put(campaignId, documentRole);
@@ -244,7 +244,7 @@ public class DocumentInformation {
 	 * @return A map of the campaigns and their role that this user has with
 	 * 		   this document.
 	 */
-	public Map<String, String> getCampaignsAndTheirRoles() {
+	public Map<String, DocumentRoleCache.Role> getCampaignsAndTheirRoles() {
 		return campaignAndRole;
 	}
 	
@@ -265,12 +265,12 @@ public class DocumentInformation {
 	 * 									whitespace only or if the document role
 	 * 									is unknown.
 	 */
-	public String addClassRole(String classId, String documentRole) {
+	public DocumentRoleCache.Role addClassRole(String classId, DocumentRoleCache.Role documentRole) {
 		if(StringUtils.isEmptyOrWhitespaceOnly(classId)) {
 			throw new IllegalArgumentException("The class ID cannot be null or whitespace only.");
 		}
-		else if(! DocumentRoleCache.instance().getKeys().contains(documentRole)) {
-			throw new IllegalArgumentException("The role is unknown.");
+		else if(documentRole == null) {
+			throw new IllegalArgumentException("The role cannot be null.");
 		}
 		
 		return classAndRole.put(classId, documentRole);
@@ -281,7 +281,7 @@ public class DocumentInformation {
 	 * 
 	 * @return A map of the classes and their associated document roles.
 	 */
-	public Map<String, String> getClassAndTheirRoles() {
+	public Map<String, DocumentRoleCache.Role> getClassAndTheirRoles() {
 		return classAndRole;
 	}
 	

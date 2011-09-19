@@ -66,13 +66,13 @@ public class UserMobilityServices {
 			
 			Set<String> campaignIds = UserCampaignDaos.getCampaignIdsAndNameForUser(usersUsername).keySet();
 			for(String campaignId : campaignIds) {
-				List<String> requestersCampaignRoles = UserCampaignDaos.getUserCampaignRoles(requestersUsername, campaignId);
+				List<CampaignRoleCache.Role> requestersCampaignRoles = UserCampaignDaos.getUserCampaignRoles(requestersUsername, campaignId);
 				
-				if(requestersCampaignRoles.contains(CampaignRoleCache.ROLE_SUPERVISOR)) {
+				if(requestersCampaignRoles.contains(CampaignRoleCache.Role.SUPERVISOR)) {
 					return;
 				}
-				else if(requestersCampaignRoles.contains(CampaignRoleCache.ROLE_ANALYST) && 
-						CampaignPrivacyStateCache.PRIVACY_STATE_SHARED.equals(CampaignDaos.getCampaignPrivacyState(campaignId))) {
+				else if(requestersCampaignRoles.contains(CampaignRoleCache.Role.ANALYST) && 
+						CampaignPrivacyStateCache.PrivacyState.SHARED.equals(CampaignDaos.getCampaignPrivacyState(campaignId))) {
 					return;
 				}
 			}

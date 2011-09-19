@@ -9,6 +9,8 @@ import java.util.Set;
 import org.apache.log4j.Logger;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.ohmage.cache.CampaignRoleCache;
+import org.ohmage.cache.ClassRoleCache;
 
 /**
  * This class is responsible for collecting and displaying the information 
@@ -33,10 +35,10 @@ public class UserInformation {
 	private final boolean campaignCreationPrivilege;
 	
 	private final Map<String, String> campaigns;
-	private final Set<String> campaignRoles;
+	private final Set<CampaignRoleCache.Role> campaignRoles;
 	
 	private final Map<String, String> classes;
-	private final Set<String> classRoles;
+	private final Set<ClassRoleCache.Role> classRoles;
 	
 	/**
 	 * Creates a new user information object with a default campaign creation
@@ -50,10 +52,10 @@ public class UserInformation {
 		this.campaignCreationPrivilege = campaignCreationPrivilege;
 		
 		campaigns = new HashMap<String, String>();
-		campaignRoles = new HashSet<String>();
+		campaignRoles = new HashSet<CampaignRoleCache.Role>();
 		
 		classes = new HashMap<String, String>();
-		classRoles = new HashSet<String>();
+		classRoles = new HashSet<ClassRoleCache.Role>();
 	}
 	
 	/**
@@ -87,7 +89,7 @@ public class UserInformation {
 	 * 
 	 * @param campaignRole A campaign role to be added to be added to the list.
 	 */
-	public void addCampaignRole(String campaignRole) {
+	public void addCampaignRole(CampaignRoleCache.Role campaignRole) {
 		if(campaignRole != null) {
 			campaignRoles.add(campaignRole);
 		}
@@ -100,7 +102,7 @@ public class UserInformation {
 	 * @param campaignRoles A Collection of campaign roles to be added to the
 	 * 						list.
 	 */
-	public void addCampaignRoles(Collection<String> campaignRoles) {
+	public void addCampaignRoles(Collection<CampaignRoleCache.Role> campaignRoles) {
 		if(campaignRoles != null) {
 			this.campaignRoles.addAll(campaignRoles);
 		}
@@ -135,7 +137,7 @@ public class UserInformation {
 	 * 
 	 * @param classRole The class role to be added.
 	 */
-	public void addClassRole(String classRole) {
+	public void addClassRole(ClassRoleCache.Role classRole) {
 		if(classRole != null) {
 			classRoles.add(classRole);
 		}
@@ -147,7 +149,7 @@ public class UserInformation {
 	 * @param classRoles A Collection of class roles to add to the current list
 	 * 					 of class roles.
 	 */
-	public void addClassRoles(Collection<String> classRoles) {
+	public void addClassRoles(Collection<ClassRoleCache.Role> classRoles) {
 		if(classRoles != null) {
 			this.classRoles.addAll(classRoles);
 		}

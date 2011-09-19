@@ -9,6 +9,7 @@ import java.util.Map;
 import javax.sql.DataSource;
 
 import org.apache.log4j.Logger;
+import org.ohmage.cache.ClassRoleCache;
 import org.ohmage.exception.DataAccessException;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.SingleColumnRowMapper;
@@ -113,7 +114,7 @@ public final class UserClassDaos extends Dao {
 	}
 	
 	/**
-	 * Querys the database to get the role of a user in a class. If a user 
+	 * Queries the database to get the role of a user in a class. If a user 
 	 * doesn't have a role in a class, null is returned.
 	 * 
 	 * @param classId A class' unique identifier.
@@ -123,9 +124,9 @@ public final class UserClassDaos extends Dao {
 	 * @return Returns the user's role in the class unless they have no role in
 	 * 		   the class in which case null is returned.
 	 */
-	public static String getUserClassRole(String classId, String username) throws DataAccessException {
+	public static ClassRoleCache.Role getUserClassRole(String classId, String username) throws DataAccessException {
 		try {
-			return instance.getJdbcTemplate().queryForObject(SQL_GET_USER_ROLE, new Object[] { username, classId }, String.class);
+			return ClassRoleCache.Role.getValue(instance.getJdbcTemplate().queryForObject(SQL_GET_USER_ROLE, new Object[] { username, classId }, String.class));
 		}
 		catch(org.springframework.dao.IncorrectResultSizeDataAccessException e) {
 			if(e.getActualSize() > 1) {
@@ -140,6 +141,18 @@ public final class UserClassDaos extends Dao {
 		}
 	}
 	
+	/**
+	 * Returns the set of all class IDs and their names with which a user is
+	 * associated.
+	 * 
+	 * @param username The user's username.
+	 * 
+	 * @return A, possibly empty but never null, map of class unique 
+	 * 		   identifiers to their name for all of the classes to which a user
+	 * 		   is associated.
+	 * 
+	 * @throws DataAccessException Thrown if there is an error.
+	 */
 	public static Map<String, String> getClassIdsAndNameForUser(String username) throws DataAccessException {
 		try {
 			final Map<String, String> result = new HashMap<String, String>();

@@ -19,7 +19,7 @@ import javax.sql.DataSource;
 
 public final class DocumentRoleCache extends StringAndIdCache {
 	// The column IDs for the query.
-	private static final String ID_COLUMN = "Id";
+	private static final String ID_COLUMN = "id";
 	private static final String ROLE_COLUMN = "role";
 	
 	// The SQL that will retrieve the desired values.
@@ -31,10 +31,76 @@ public final class DocumentRoleCache extends StringAndIdCache {
 	// to reference which cache we want.
 	public static final String CACHE_KEY = "documentRoleCache";
 	
-	// Known roles for those associated with documents.
-	public static final String ROLE_READER = "reader";
-	public static final String ROLE_WRITER = "writer";
-	public static final String ROLE_OWNER = "owner";
+	/**
+	 * Known document roles.
+	 * 
+	 * @author John Jenkins
+	 */
+	public static enum Role {
+		READER,
+		WRITER,
+		OWNER;
+		
+		/**
+		 * Converts a String value into a Role or throws an exception if there
+		 * is no comparable role.
+		 * 
+		 * @param role The role to be converted into a Role enum.
+		 * 
+		 * @return A comparable Role enum.
+		 * 
+		 * @throws IllegalArgumentException Thrown if there is no comparable
+		 * 									Role enum.
+		 */
+		public static Role getValue(String role) {
+			return valueOf(role.toUpperCase());
+		}
+		
+		/**
+		 * Compares this Role with another Role that may be null. The order is
+		 * OWNER > WRITER > READER > null. If 'role' is greater than this Role,
+		 * 1 is returned. If they are the same, 0 is returned. Otherwise, -1 is
+		 * returned.
+		 * 
+		 * @param role The Role to compare against this Role.
+		 * 
+		 * @return 1 if 'role' is greater than this role, 0 if they are the 
+		 * 		   same, or -1 otherwise.
+		 */
+		public int compare(Role role) {
+			if(this == OWNER) {
+				if(role == OWNER) {
+					return 0;
+				}
+			}
+			else if(this == WRITER) {
+				if(role == OWNER) {
+					return 1;
+				}
+				else if(role == WRITER) {
+					return 0;
+				}
+			}
+			else if(this == READER) {
+				if((role == OWNER) || (role == WRITER)) {
+					return 1;
+				}
+				else if(role == READER) {
+					return 0;
+				}
+			}
+			
+			return -1;
+		}
+		
+		/**
+		 * Converts the role to a nice, human-readable format.
+		 */
+		@Override
+		public String toString() {
+			return name().toLowerCase();
+		}
+	}
 	
 	// A reference to the only instance of this class for the Singleton
 	// pattern.

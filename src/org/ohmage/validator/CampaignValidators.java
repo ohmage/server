@@ -139,17 +139,17 @@ public final class CampaignValidators {
 	 * 							   whitespace only and isn't a known campaign
 	 * 							   running state.
 	 */
-	public static String validateRunningState(Request request, String runningState) throws ValidationException {
+	public static CampaignRunningStateCache.RunningState validateRunningState(Request request, String runningState) throws ValidationException {
 		LOGGER.info("Validating a campaign running state.");
 		
 		if(StringUtils.isEmptyOrWhitespaceOnly(runningState)) {
 			return null;
 		}
 		
-		if(CampaignRunningStateCache.instance().getKeys().contains(runningState.trim())) {
-			return runningState;
+		try {
+			return CampaignRunningStateCache.RunningState.getValue(runningState);
 		}
-		else {
+		catch(IllegalArgumentException e) {
 			request.setFailed(ErrorCodes.CAMPAIGN_INVALID_RUNNING_STATE, "The running state is unknown.");
 			throw new ValidationException("The running state is unknown: " + runningState);
 		}
@@ -171,17 +171,17 @@ public final class CampaignValidators {
 	 * 							   whitespace only and isn't a known campaign
 	 * 							   privacy state.
 	 */
-	public static String validatePrivacyState(Request request, String privacyState) throws ValidationException {
+	public static CampaignPrivacyStateCache.PrivacyState validatePrivacyState(Request request, String privacyState) throws ValidationException {
 		LOGGER.info("Validating a campaign privacy state.");
 		
 		if(StringUtils.isEmptyOrWhitespaceOnly(privacyState)) {
 			return null;
 		}
 		
-		if(CampaignPrivacyStateCache.instance().getKeys().contains(privacyState.trim())) {
-			return privacyState;
+		try {
+			return CampaignPrivacyStateCache.PrivacyState.getValue(privacyState);
 		}
-		else {
+		catch(IllegalArgumentException e) {
 			request.setFailed(ErrorCodes.CAMPAIGN_INVALID_PRIVACY_STATE, "The privacy state is unknown.");
 			throw new ValidationException("The privacy state is unknown: " + privacyState);
 		}
@@ -381,19 +381,19 @@ public final class CampaignValidators {
 	 * @throws ValidationException Thrown if the role is not a valid campaign
 	 * 							   role.
 	 */
-	public static String validateRole(Request request, String role) throws ValidationException {
+	public static CampaignRoleCache.Role validateRole(Request request, String role) throws ValidationException {
 		LOGGER.info("Validating a campaign role.");
 		
 		if(StringUtils.isEmptyOrWhitespaceOnly(role)) {
 			return null;
 		}
 		
-		if(CampaignRoleCache.instance().getKeys().contains(role.trim())) {
-			return role;
+		try {
+			return CampaignRoleCache.Role.getValue(role);
 		}
-		else {
+		catch(IllegalArgumentException e) {
 			request.setFailed(ErrorCodes.CAMPAIGN_INVALID_ROLE, "The campaign role is unknown: " + role);
-			throw new ValidationException("The campaign role is unknown: " + role);
+			throw new ValidationException("The campaign role is unknown: " + role, e);
 		}
 	}
 

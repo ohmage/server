@@ -25,6 +25,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.log4j.Logger;
 import org.ohmage.domain.User;
+import org.springframework.beans.factory.DisposableBean;
 
 /**
  * User storage. User objects are mapped to unique ids. Avoids dependencies on JEE session management. The lifetime param set on 
@@ -32,7 +33,7 @@ import org.ohmage.domain.User;
  * 
  * @author Joshua Selsky
  */
-public final class UserBin extends TimerTask {
+public final class UserBin extends TimerTask implements DisposableBean {
 	private static final Logger LOGGER = Logger.getLogger(UserBin.class);
 	
 	private static final int LIFETIME = 1800000;
@@ -83,6 +84,11 @@ public final class UserBin extends TimerTask {
 		EXECUTIONER.schedule(this, EXECUTION_PERIOD * 2, EXECUTION_PERIOD);
 		
 		initialized = true;
+	}
+	
+	@Override
+	public void destroy() {
+		EXECUTIONER.cancel();
 	}
 	
 	/**

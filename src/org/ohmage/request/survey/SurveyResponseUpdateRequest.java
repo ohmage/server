@@ -53,7 +53,7 @@ public class SurveyResponseUpdateRequest extends UserRequest {
 	private static final Logger LOGGER = Logger.getLogger(SurveyResponseUpdateRequest.class);
 	
 	private final Long surveyResponseId;
-	private final String privacyState;
+	private final SurveyResponsePrivacyStateCache.PrivacyState privacyState;
 	
 	/**
 	 * Creates a survey response delete request.
@@ -67,7 +67,7 @@ public class SurveyResponseUpdateRequest extends UserRequest {
 		LOGGER.info("Creating a survey response update request.");
 		
 		Long tSurveyResponseId = null;
-		String tPrivacyState = null;
+		SurveyResponsePrivacyStateCache.PrivacyState tPrivacyState = null;
 		
 		if(! isFailed()) {
 			try {

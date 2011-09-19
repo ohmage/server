@@ -15,6 +15,10 @@
  ******************************************************************************/
 package org.ohmage.domain;
 
+import org.ohmage.cache.CampaignPrivacyStateCache;
+import org.ohmage.cache.CampaignRoleCache;
+import org.ohmage.cache.CampaignRunningStateCache;
+
 /**
  * @author Joshua Selsky
  */
@@ -22,13 +26,14 @@ public class UserRoleCampaignInfo {
 	private String campaignUrn;
 	private String campaignName;
 	private String campaignDescription;
-	private String campaignPrivacyState;
-	private String campaignRunningState;
+	private CampaignPrivacyStateCache.PrivacyState campaignPrivacyState;
+	private CampaignRunningStateCache.RunningState campaignRunningState;
 	private String campaignCreationTimestamp;
-	private String userRole;
+	private CampaignRoleCache.Role userRole;
 	
-	public UserRoleCampaignInfo(String campaignUrn, String campaignName, String campaignDescription, String campaignPrivacyState,
-			String campaignRunningState, String campaignCreationTimestamp, String userRole) {
+	public UserRoleCampaignInfo(String campaignUrn, String campaignName, String campaignDescription, 
+			CampaignPrivacyStateCache.PrivacyState campaignPrivacyState,
+			CampaignRunningStateCache.RunningState campaignRunningState, String campaignCreationTimestamp, CampaignRoleCache.Role userRole) {
 		this.campaignUrn = campaignUrn;
 		this.campaignName = campaignName;
 		this.campaignDescription = campaignDescription;
@@ -50,11 +55,11 @@ public class UserRoleCampaignInfo {
 		return this.campaignDescription;
 	}
 
-	public String getCampaignPrivacyState() {
+	public CampaignPrivacyStateCache.PrivacyState getCampaignPrivacyState() {
 		return this.campaignPrivacyState;
 	}
 
-	public String getCampaignRunningState() {
+	public CampaignRunningStateCache.RunningState getCampaignRunningState() {
 		return this.campaignRunningState;
 	}
 
@@ -62,7 +67,7 @@ public class UserRoleCampaignInfo {
 		return this.campaignCreationTimestamp;
 	}
 	
-	public String getUserRole() {
+	public CampaignRoleCache.Role getUserRole() {
 		return this.userRole;
 	}
 }

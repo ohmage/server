@@ -21,6 +21,7 @@ import java.util.ListIterator;
 
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.ohmage.cache.ClassRoleCache;
 
 /**
  * Information about a class. The object must contain a a URN and name of the
@@ -36,7 +37,7 @@ public class ClassInformation {
 	 */
 	private final class UserAndRole {
 		private final String username;
-		private final String role;
+		private final ClassRoleCache.Role role;
 		
 		/**
 		 * Convenience constructor.
@@ -45,7 +46,7 @@ public class ClassInformation {
 		 * 
 		 * @param role The class role of the user.
 		 */
-		private UserAndRole(String username, String role) {
+		private UserAndRole(String username, ClassRoleCache.Role role) {
 			this.username = username;
 			this.role = role;
 		}
@@ -94,12 +95,9 @@ public class ClassInformation {
 	 * @throws IllegalArgumentException Thrown if the username and/or the role
 	 * 									is null.
 	 */
-	public void addUser(String username, String role) {
+	public void addUser(String username, ClassRoleCache.Role role) {
 		if(username == null) {
 			throw new IllegalArgumentException("User's username cannot be null.");
-		}
-		else if(role == null) {
-			throw new IllegalArgumentException("User's role cannot be null.");
 		}
 		
 		users.add(new UserAndRole(username, role));
@@ -149,7 +147,7 @@ public class ClassInformation {
 		while(usersIter.hasNext()) {
 			UserAndRole currUser = usersIter.next();
 			
-			users.put(currUser.username, currUser.role);
+			users.put(currUser.username, (currUser.role == null) ? "" : currUser.role);
 		}
 		result.put("users", users);
 		

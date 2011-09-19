@@ -17,6 +17,9 @@ import nu.xom.XMLException;
 import nu.xom.XPathException;
 
 import org.ohmage.annotator.ErrorCodes;
+import org.ohmage.cache.CampaignPrivacyStateCache;
+import org.ohmage.cache.CampaignRoleCache;
+import org.ohmage.cache.CampaignRunningStateCache;
 import org.ohmage.dao.CampaignDaos;
 import org.ohmage.domain.User;
 import org.ohmage.domain.configuration.Configuration;
@@ -135,7 +138,10 @@ public class CampaignServices {
 	 * @throws ServiceException Thrown if there is an error.
 	 */
 	public static void createCampaign(Request request, String campaignId, String name, String xml, String description, 
-			String iconUrl, String authoredBy, String runningState, String privacyState, List<String> classIds, String creatorUsername) throws ServiceException {
+			String iconUrl, String authoredBy, 
+			CampaignRunningStateCache.RunningState runningState, 
+			CampaignPrivacyStateCache.PrivacyState privacyState, 
+			List<String> classIds, String creatorUsername) throws ServiceException {
 		try {
 			CampaignDaos.createCampaign(campaignId, name, xml, description, iconUrl, authoredBy, runningState, privacyState, classIds, creatorUsername);
 		}
@@ -427,7 +433,7 @@ public class CampaignServices {
 	 * @param allowedRunningState The allowed running state for the above campaign.
 	 * @throws ServiceException
 	 */
-	public static void verifyAllowedRunningState(Request request, User user, String campaignId, String allowedRunningState)
+	public static void verifyAllowedRunningState(Request request, User user, String campaignId, CampaignRunningStateCache.RunningState allowedRunningState)
 		throws ServiceException {
 		
 		if(user.getCampaignsAndRoles() == null) { // logical error
@@ -560,8 +566,13 @@ public class CampaignServices {
 	 * 
 	 * @throws ServiceException Thrown if there is an error.
 	 */
-	public static void updateCampaign(Request request, String campaignId, String xml, String description, String runningState, String privacyState, 
-			Collection<String> classIds, Map<String, Set<String>> usersAndRolesToAdd, Map<String, Set<String>> usersAndRolesToRemove) throws ServiceException {
+	public static void updateCampaign(Request request, 
+			String campaignId, String xml, String description, 
+			CampaignRunningStateCache.RunningState runningState, 
+			CampaignPrivacyStateCache.PrivacyState privacyState, 
+			Collection<String> classIds, 
+			Map<String, Set<CampaignRoleCache.Role>> usersAndRolesToAdd, 
+			Map<String, Set<CampaignRoleCache.Role>> usersAndRolesToRemove) throws ServiceException {
 		try {
 			CampaignDaos.updateCampaign(campaignId, xml, description, runningState, privacyState, classIds, usersAndRolesToAdd, usersAndRolesToRemove);
 		}

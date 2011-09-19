@@ -21,6 +21,8 @@ import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
+import org.ohmage.cache.CampaignRoleCache;
+
 /**
  * Storage class for mapping a Campaign to a List of user roles.
  * 
@@ -28,14 +30,14 @@ import java.util.List;
  * Maybe we should just call this CampaignAndRoles?
  * 
  * Better yet, maybe we should just get rid of this class and replace it with
- * Map<Campaign, List<String>>?
+ * Map<Campaign, List<CampaignRoleCache.Role>>?
  * 
  * @author Joshua Selsky
  */
 public class CampaignAndUserRoles {
 	
 	private Campaign campaign;
-	private List<String> userRoleStrings;
+	private List<CampaignRoleCache.Role> userRoles;
 
 	/**
 	 * Default constructor.
@@ -45,7 +47,7 @@ public class CampaignAndUserRoles {
 	 */
 	public CampaignAndUserRoles() {
 		campaign = null;
-		userRoleStrings = new LinkedList<String>();
+		userRoles = new LinkedList<CampaignRoleCache.Role>();
 	}
 	
 	/**
@@ -56,7 +58,7 @@ public class CampaignAndUserRoles {
 	 */
 	public CampaignAndUserRoles(Campaign campaign) {
 		this.campaign = campaign;
-		this.userRoleStrings = new LinkedList<String>();
+		this.userRoles = new LinkedList<CampaignRoleCache.Role>();
 	}
 
 	/**
@@ -68,7 +70,7 @@ public class CampaignAndUserRoles {
 	 */
 	public CampaignAndUserRoles(CampaignAndUserRoles original) {
 		campaign = new Campaign(original.campaign);
-		userRoleStrings = new ArrayList<String>(original.userRoleStrings);
+		userRoles = new ArrayList<CampaignRoleCache.Role>(original.userRoles);
 	}
 
 	/**
@@ -96,11 +98,11 @@ public class CampaignAndUserRoles {
 	 * 
 	 * @param userRole The campaign role to add.
 	 */
-	public void addUserRoleString(String userRole) {
-		if(null == this.userRoleStrings) {
-			this.userRoleStrings = new ArrayList<String>();
+	public void addUserRole(CampaignRoleCache.Role userRole) {
+		if(null == this.userRoles) {
+			this.userRoles = new ArrayList<CampaignRoleCache.Role>();
 		}
-		this.userRoleStrings.add(userRole);
+		this.userRoles.add(userRole);
 	}
 	
 	/**
@@ -108,9 +110,9 @@ public class CampaignAndUserRoles {
 	 * 
 	 * @param roles A Collection of roles to be added.
 	 */
-	public void addRoles(Collection<String> roles) {
+	public void addRoles(Collection<CampaignRoleCache.Role> roles) {
 		if(roles != null) {
-			userRoleStrings.addAll(roles);
+			userRoles.addAll(roles);
 		}
 	}
 
@@ -119,8 +121,8 @@ public class CampaignAndUserRoles {
 	 * 
 	 * @return A List of the user's roles in this campaign.
 	 */
-	public List<String> getUserRoleStrings() {
-		return Collections.unmodifiableList(this.userRoleStrings);
+	public List<CampaignRoleCache.Role> getUserRoleStrings() {
+		return Collections.unmodifiableList(this.userRoles);
 	}
 
 	/**
@@ -130,6 +132,6 @@ public class CampaignAndUserRoles {
 	@Override
 	public String toString() {
 		return "CampaignAndUserRoles [campaign=" + campaign
-				+ ", userRoleStrings=" + userRoleStrings + "]";
+				+ ", userRoles=" + userRoles + "]";
 	}
 }

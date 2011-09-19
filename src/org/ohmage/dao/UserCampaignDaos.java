@@ -8,6 +8,9 @@ import java.util.Map;
 
 import javax.sql.DataSource;
 
+import org.ohmage.cache.CampaignPrivacyStateCache;
+import org.ohmage.cache.CampaignRoleCache;
+import org.ohmage.cache.CampaignRunningStateCache;
 import org.ohmage.domain.User;
 import org.ohmage.domain.UserRoleCampaignInfo;
 import org.ohmage.exception.DataAccessException;
@@ -144,12 +147,18 @@ public final class UserCampaignDaos extends Dao {
 	 * 
 	 * @return A possibly empty List of roles for this user in this campaign.
 	 */
-	public static List<String> getUserCampaignRoles(String username, String campaignId) throws DataAccessException {
+	public static List<CampaignRoleCache.Role> getUserCampaignRoles(String username, String campaignId) throws DataAccessException {
 		try {
-			return instance.getJdbcTemplate().queryForList(
+			return instance.getJdbcTemplate().query(
 					SQL_GET_USER_CAMPAIGN_ROLES, 
 					new Object[] { username, campaignId }, 
-					String.class);
+					new RowMapper<CampaignRoleCache.Role>() {
+						@Override
+						public CampaignRoleCache.Role mapRow(ResultSet rs, int rowNum) throws SQLException {
+							return CampaignRoleCache.Role.getValue(rs.getString("role"));
+						}
+					}
+				);
 		}
 		catch(org.springframework.dao.DataAccessException e) {
 			throw new DataAccessException("Error executing SQL '" + SQL_GET_USER_CAMPAIGN_ROLES + "' with parameters: " + 
@@ -175,10 +184,10 @@ public final class UserCampaignDaos extends Dao {
 								rs.getString(1),
 								rs.getString(2),
 								rs.getString(3),
-								rs.getString(4),
-								rs.getString(5),
+								CampaignPrivacyStateCache.PrivacyState.getValue(rs.getString(4)),
+								CampaignRunningStateCache.RunningState.getValue(rs.getString(5)),
 								StringUtils.stripMillisFromJdbcTimestampString(rs.getString(6)),
-								rs.getString(7)
+								CampaignRoleCache.Role.getValue(rs.getString(7))
 							);
 							return result;
 						}
@@ -233,11 +242,11 @@ public final class UserCampaignDaos extends Dao {
 	 * @return A List of unique identifiers for all campaigns with which the 
 	 * 		   user is associated and has the given role. 
 	 */
-	public static List<String> getCampaignIdsForUserWithRole(String username, String role) throws DataAccessException {
+	public static List<String> getCampaignIdsForUserWithRole(String username, CampaignRoleCache.Role role) throws DataAccessException {
 		try {
 			return instance.getJdbcTemplate().query(
 					SQL_GET_CAMPAIGN_IDS_FOR_USER_WITH_ROLE, 
-					new Object[] { username, role },
+					new Object[] { username, role.toString() },
 					new SingleColumnRowMapper<String>());
 		}
 		catch(org.springframework.dao.DataAccessException e) {

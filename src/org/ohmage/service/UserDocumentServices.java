@@ -64,7 +64,7 @@ public class UserDocumentServices {
 	 */
 	public static void userCanReadDocument(Request request, String username, String documentId) throws ServiceException {
 		try {
-			List<String> roles = UserDocumentDaos.getDocumentRolesForDocumentForUser(username, documentId);
+			List<DocumentRoleCache.Role> roles = UserDocumentDaos.getDocumentRolesForDocumentForUser(username, documentId);
 			
 			// To read a document, it simply has to be visible to the user in
 			// some capacity.
@@ -94,14 +94,14 @@ public class UserDocumentServices {
 	 */
 	public static void userCanModifyDocument(Request request, String username, String documentId) throws ServiceException {
 		try {
-			List<String> roles = UserDocumentDaos.getDocumentRolesForDocumentForUser(username, documentId);
+			List<DocumentRoleCache.Role> roles = UserDocumentDaos.getDocumentRolesForDocumentForUser(username, documentId);
 			
 			// To modify a document, the user must be a writer or owner or a
 			// supervisor in any of the campaigns to which the document is 
 			// associated or privileged in any of the classes to which the 
 			// document is associated.
-			if((! roles.contains(DocumentRoleCache.ROLE_OWNER)) && 
-			   (! roles.contains(DocumentRoleCache.ROLE_WRITER)) &&
+			if((! roles.contains(DocumentRoleCache.Role.OWNER)) && 
+			   (! roles.contains(DocumentRoleCache.Role.WRITER)) &&
 			   (! UserCampaignDocumentServices.getUserIsSupervisorInAnyCampaignAssociatedWithDocument(request, username, documentId)) &&
 			   (! UserClassDocumentServices.getUserIsPrivilegedInAnyClassAssociatedWithDocument(request, username, documentId))) {
 				request.setFailed(ErrorCodes.DOCUMENT_INSUFFICIENT_PERMISSIONS, "The user does not have sufficient permissions to modify the document.");
@@ -129,13 +129,13 @@ public class UserDocumentServices {
 	 */
 	public static void userCanDeleteDocument(Request request, String username, String documentId) throws ServiceException {
 		try {
-			List<String> roles = UserDocumentDaos.getDocumentRolesForDocumentForUser(username, documentId);
+			List<DocumentRoleCache.Role> roles = UserDocumentDaos.getDocumentRolesForDocumentForUser(username, documentId);
 			
 			// To modify a document, the user must be a writer or owner or a
 			// supervisor in any of the campaigns to which the document is 
 			// associated or privileged in any of the classes to which the 
 			// document is associated.
-			if((! roles.contains(DocumentRoleCache.ROLE_OWNER)) &&
+			if((! roles.contains(DocumentRoleCache.Role.OWNER)) &&
 			   (! UserCampaignDocumentServices.getUserIsSupervisorInAnyCampaignAssociatedWithDocument(request, username, documentId)) &&
 			   (! UserClassDocumentServices.getUserIsPrivilegedInAnyClassAssociatedWithDocument(request, username, documentId))) {
 				request.setFailed(ErrorCodes.DOCUMENT_INSUFFICIENT_PERMISSIONS, "The user does not have sufficient permissions to delete the document.");
@@ -145,6 +145,54 @@ public class UserDocumentServices {
 		catch(DataAccessException e) {
 			request.setFailed();
 			throw new ServiceException(e);
+		}
+	}
+	
+	/**
+	 * Verifies that a given role has enough permissions to disassociate a
+	 * document and a user based on the user's role with the document.
+	 * 
+	 * @param request The Request that is performing this service.
+	 * 
+	 * @param role The maximum role of the user that is attempting to 
+	 * 			   disassociate the class and document. 
+	 * 
+	 * @param username The other user's username.
+	 * 
+	 * @param documentId The document's unique identifier.
+	 * 
+	 * @throws ServiceException Thrown if the role is not high enough to
+	 * 							disassociate the user and document.
+	 */
+	public static void ensureRoleHighEnoughToDisassociateOtherUserFromDocument(Request request, DocumentRoleCache.Role role, String username, String documentId) throws ServiceException {
+		DocumentRoleCache.Role otherUserRole = getHighestDocumentRoleForUserForDocument(request, username, documentId);
+		
+		if(role.compare(otherUserRole) < 0) {
+			request.setFailed(ErrorCodes.DOCUMENT_INSUFFICIENT_PERMISSIONS, "Insufficient permissions to disassociate the document '" + documentId + "' with the user '" + username + "' as the user has a higher role.");
+			throw new ServiceException("Insufficient permissions to disassociate the document '" + documentId + "' with the user '" + username + "' as the user has a higher role.");
+		}
+	}
+	
+	/**
+	 * Verifies that a given role has enough permissions to disassociate a
+	 * document and each of the users in a collection based on the users' 
+	 * individual roles with the document.
+	 * 
+	 * @param request The Request that is performing this service.
+	 * 
+	 * @param role The maximum role of the user that is attempting to 
+	 * 			   disassociate the classes and document. 
+	 * 
+	 * @param usernames The other users' usernames.
+	 * 
+	 * @param documentId The document's unique identifier.
+	 * 
+	 * @throws ServiceException Thrown if the role is not high enough to
+	 * 							disassociate a user and document.
+	 */
+	public static void ensureRoleHighEnoughToDisassociateDocumentFromOtherUsers(Request request, DocumentRoleCache.Role role, Collection<String> usernames, String documentId) throws ServiceException {
+		for(String username : usernames) {
+			ensureRoleHighEnoughToDisassociateOtherUserFromDocument(request, role, username, documentId);
 		}
 	}
 	
@@ -167,18 +215,18 @@ public class UserDocumentServices {
 	 * 
 	 * @throws ServiceException Thrown if there is an error.
 	 */
-	public static String getHighestDocumentRoleForUserForDocument(Request request, String username, String documentId) throws ServiceException {
+	public static DocumentRoleCache.Role getHighestDocumentRoleForUserForDocument(Request request, String username, String documentId) throws ServiceException {
 		try {
-			List<String> roles = UserDocumentDaos.getDocumentRolesForDocumentForUser(username, documentId);
+			List<DocumentRoleCache.Role> roles = UserDocumentDaos.getDocumentRolesForDocumentForUser(username, documentId);
 			
-			if(roles.contains(DocumentRoleCache.ROLE_OWNER)) {
-				return DocumentRoleCache.ROLE_OWNER;
+			if(roles.contains(DocumentRoleCache.Role.OWNER)) {
+				return DocumentRoleCache.Role.OWNER;
 			}
-			else if(roles.contains(DocumentRoleCache.ROLE_WRITER)) {
-				return DocumentRoleCache.ROLE_WRITER;
+			else if(roles.contains(DocumentRoleCache.Role.WRITER)) {
+				return DocumentRoleCache.Role.WRITER;
 			}
-			else if(roles.contains(DocumentRoleCache.ROLE_READER)) {
-				return DocumentRoleCache.ROLE_READER;
+			else if(roles.contains(DocumentRoleCache.Role.READER)) {
+				return DocumentRoleCache.Role.READER;
 			}
 			else {
 				return null;
@@ -222,8 +270,8 @@ public class UserDocumentServices {
 			// For all of the campaigns associated with the document, get their
 			// role.
 			for(String campaignId : CampaignDocumentDaos.getCampaignsAssociatedWithDocument(documentId)) {
-				String campaignRole = CampaignDocumentDaos.getCampaignsDocumentRole(campaignId, documentId);
-				if(! StringUtils.isEmptyOrWhitespaceOnly(campaignRole)) {
+				DocumentRoleCache.Role campaignRole = CampaignDocumentDaos.getCampaignDocumentRole(campaignId, documentId);
+				if(campaignRole != null) {
 					result.addCampaignRole(campaignId, campaignRole);
 				}
 			}
@@ -231,8 +279,8 @@ public class UserDocumentServices {
 			// For all of the classes associated with the document, get their
 			// role.
 			for(String classId : ClassDocumentDaos.getClassesAssociatedWithDocument(documentId)) {
-				String classRole = ClassDocumentDaos.getClassDocumentRole(classId, documentId);
-				if(! StringUtils.isEmptyOrWhitespaceOnly(classRole)) {
+				DocumentRoleCache.Role classRole = ClassDocumentDaos.getClassDocumentRole(classId, documentId);
+				if(classRole != null) {
 					result.addClassRole(classId, classRole);
 				}
 			}

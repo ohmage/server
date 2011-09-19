@@ -12,6 +12,7 @@ import javax.sql.DataSource;
 
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.ohmage.cache.SurveyResponsePrivacyStateCache;
 import org.ohmage.domain.SurveyResponseInformation;
 import org.ohmage.domain.SurveyResponseInformation.SurveyResponseException;
 import org.ohmage.exception.DataAccessException;
@@ -315,11 +316,12 @@ public class SurveyResponseDaos extends Dao {
 	 * 
 	 * @throws DataAccessException Thrown if there is an error.
 	 */
-	public static List<Long> retrieveSurveyResponseIdsWithPrivacyState(final String campaignId, final String privacyState) throws DataAccessException {
+	public static List<Long> retrieveSurveyResponseIdsWithPrivacyState(final String campaignId, 
+			final SurveyResponsePrivacyStateCache.PrivacyState privacyState) throws DataAccessException {
 		try {
 			return instance.getJdbcTemplate().query(
 					SQL_GET_IDS_WITH_PRIVACY_STATE, 
-					new Object[] { campaignId, privacyState }, 
+					new Object[] { campaignId, privacyState.toString() }, 
 					new SingleColumnRowMapper<Long>());
 		}
 		catch(org.springframework.dao.DataAccessException e) {
@@ -467,7 +469,7 @@ public class SurveyResponseDaos extends Dao {
 										new JSONObject(rs.getString("launch_context")),
 										rs.getString("location_status"),
 										locationJson,
-										rs.getString("privacy_state"));
+										SurveyResponsePrivacyStateCache.PrivacyState.getValue(rs.getString("privacy_state")));
 							}
 							catch(JSONException e) {
 								throw new SQLException("Error creating a JSONObject.", e);
@@ -540,7 +542,7 @@ public class SurveyResponseDaos extends Dao {
 	 * 
 	 * @throws DataAccessException Thrown if there is an error.
 	 */
-	public static void updateSurveyResponsePrivacyState(Long surveyResponseId, String newPrivacyState) throws DataAccessException {
+	public static void updateSurveyResponsePrivacyState(Long surveyResponseId, SurveyResponsePrivacyStateCache.PrivacyState newPrivacyState) throws DataAccessException {
 		// Create the transaction.
 		DefaultTransactionDefinition def = new DefaultTransactionDefinition();
 		def.setName("Updating a survey response.");
@@ -553,7 +555,7 @@ public class SurveyResponseDaos extends Dao {
 			try {
 				instance.getJdbcTemplate().update(
 						SQL_UPDATE_SURVEY_RESPONSE_PRIVACY_STATE, 
-						new Object[] { newPrivacyState, surveyResponseId });
+						new Object[] { newPrivacyState.toString(), surveyResponseId });
 			}
 			catch(org.springframework.dao.DataAccessException e) {
 				transactionManager.rollback(status);

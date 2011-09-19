@@ -60,7 +60,7 @@ public final class MobilityValidators {
 			
 			List<MobilityInformation> result = new LinkedList<MobilityInformation>();
 			for(int i = 0; i < jsonArray.length(); i++) {
-				result.add(new MobilityInformation(jsonArray.getJSONObject(i), MobilityPrivacyStateCache.PRIVACY_STATE_PRIVATE));
+				result.add(new MobilityInformation(jsonArray.getJSONObject(i), MobilityPrivacyStateCache.PrivacyState.PRIVATE));
 			}
 			
 			return result;

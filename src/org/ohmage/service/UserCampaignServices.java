@@ -13,6 +13,7 @@ import org.apache.log4j.Logger;
 import org.ohmage.annotator.ErrorCodes;
 import org.ohmage.cache.CampaignPrivacyStateCache;
 import org.ohmage.cache.CampaignRoleCache;
+import org.ohmage.cache.CampaignRunningStateCache;
 import org.ohmage.dao.CampaignClassDaos;
 import org.ohmage.dao.CampaignDaos;
 import org.ohmage.dao.CampaignSurveyResponseDaos;
@@ -149,56 +150,6 @@ public class UserCampaignServices {
 			throw new ServiceException(e);
 		}
 	}
-
-	/**
-	 * Ensures that the user has all of the roles in the Collection of roles.
-	 * 
-	 * @param request The Request that is performing this service.
-	 * 
-	 * @param username The username of the user whose roles in the campaign is
-	 * 				   being checked.
-	 * 
-	 * @param campaignId The campaign's unique identifier.
-	 * 
-	 * @param campaignRoles A Collection of campaign roles that the user must
-	 * 						possess in the class.
-	 * 
-	 * @throws ServiceException Thrown if the user is missing any of the roles
-	 * 							in the campaign or if there is an error.
-	 * 
-	 * @deprecated Instead, we should try to create functions like 
-	 * 			   "verifyUserCanReadCampaign" which will perform this action
-	 * 			   as well as any others that are necessary. The reason this is
-	 * 			   a bad idea is because it puts too much of the work on the 
-	 * 			   requests which must keep up with the ACLs and may lead to 
-	 * 			   multiple services performing one logical service. For 
-	 * 			   example, a request will call this method to ensure that the
-	 * 			   user has some roles then, if not, call a service that checks
-	 * 			   if the user is privileged in some class to which this 
-	 * 			   campaign belongs. This is all one logical operation which is
-	 * 			   determining if a user can read a campaign's meta data. If 
-	 * 			   all of the steps are spread out among multiple operations 
-	 * 			   like this function is doing, then each request must perform 
-	 * 			   all of these operations. If the ACLs should change, then we
-	 * 			   must go to each of the requests and change the work flow. If
-	 * 			   we encapsulate all of the work into a single function, then
-	 * 			   we would only need to change that function, which is far 
-	 * 			   more efficient. This function and other functions like it
-	 * 			   should be removed as soon as they are no longer being used
-	 * 			   to prevent this poor programming decision.
-	 */
-	public static void checkUserHasRolesInCampaign(Request request, String username, String campaignId, Collection<String> campaignRoles) throws ServiceException {
-		try {
-			if(! UserCampaignDaos.getUserCampaignRoles(username, campaignId).containsAll(campaignRoles)) {
-				request.setFailed(ErrorCodes.CAMPAIGN_INSUFFICIENT_PERMISSIONS, "The user is doesn't have sufficient permissions in the campaign: " + campaignId);
-				throw new ServiceException("The user is doesn't have sufficient permissions in the campaign: " + campaignId);
-			}
-		}
-		catch(DataAccessException e) {
-			request.setFailed();
-			throw new ServiceException(e);
-		}
-	}
 	
 	/**
 	 * For the given campaign and list of allowed roles, determines if the 
@@ -214,7 +165,7 @@ public class UserCampaignServices {
 	 * or if the User does not have one of the allowedRoles in the campaign
 	 * represented by the campaignId.
 	 */
-	public static void verifyAllowedUserRoleInCampaign(Request request, User user, String campaignId, List<String> allowedRoles)
+	public static void verifyAllowedUserRoleInCampaign(Request request, User user, String campaignId, List<CampaignRoleCache.Role> allowedRoles)
 		throws ServiceException {
 		
 		if(user.getCampaignsAndRoles() == null) { // logical error
@@ -227,8 +178,8 @@ public class UserCampaignServices {
 			throw new ServiceException("The User in the Request does not belong to the campaign " + campaignId);
 		}
 		
-		List<String> roleList = user.getCampaignsAndRoles().get(campaignId).getUserRoleStrings();
-		for(String role : roleList) {
+		List<CampaignRoleCache.Role> roleList = user.getCampaignsAndRoles().get(campaignId).getUserRoleStrings();
+		for(CampaignRoleCache.Role role : roleList) {
 			if(allowedRoles.contains(role)) {
 				return;
 			}
@@ -237,41 +188,6 @@ public class UserCampaignServices {
 		request.setFailed(ErrorCodes.CAMPAIGN_INSUFFICIENT_PERMISSIONS, "User does not have a correct role to perform" +
 			" the operation.");
 		throw new ServiceException("User does not have a correct role to perform the operation.");
-	}	
-
-    /**
-	 * Ensures that the user has all of the roles in the Collection of roles 
-	 * for each of the campaigns in the Collection of campaign IDs.
-	 * 
-	 * @param request The Request that is performing this service.
-	 * 
-	 * @param username The username of the user whose roles in the campagins is
-	 * 				   being checked.
-	 * 
-	 * @param campaignIds The Collection of campaign identifiers.
-	 * 
-	 * @param campaignRoles The Collection of campaign roles.
-	 * 
-	 * @throws ServiceException Thrown if the user doesn't have any of the 
-	 * 							roles in one of the classes or if there is an
-	 * 							error.
-	 * 
-	 * @deprecated Instead, we should try to create functions like 
-	 * 			   "verifyUserCanReadCampaign" which will perform this action
-	 * 			   as well as any others that are necessary. The reason this is
-	 * 			   a bad idea is because it puts too much of the work on the 
-	 * 			   requests which must keep up with the ACLs and may lead to 
-	 * 			   multiple services to perform one logical service, i.e. call
-	 * 			   something like this then call a service that checks if the
-	 * 			   user is privileged in some class to which this campaign 
-	 * 			   belongs which is all one logical service that checks if a 
-	 * 			   user can read this campaign's metadata. If nothing else, it
-	 * 			   should be made private.
-	 */
-	public static void checkUserHasRolesInCampaigns(Request request, String username, Collection<String> campaignIds, Collection<String> campaignRoles) throws ServiceException {
-		for(String campaignId : campaignIds) {
-			checkUserHasRolesInCampaign(request, username, campaignId, campaignRoles);
-		}
 	}
 	
 	/**
@@ -290,7 +206,7 @@ public class UserCampaignServices {
 	 */
 	public static void verifyUserCanReadUsersInfoInCampaign(Request request, String username, String campaignId) throws ServiceException  {
 		try {
-			if(! UserCampaignDaos.getUserCampaignRoles(username, campaignId).contains(CampaignRoleCache.ROLE_SUPERVISOR)) {
+			if(! UserCampaignDaos.getUserCampaignRoles(username, campaignId).contains(CampaignRoleCache.Role.SUPERVISOR)) {
 				request.setFailed(ErrorCodes.CAMPAIGN_INSUFFICIENT_PERMISSIONS, "The user is not allowed to read the personal information of the users in the following campaign: " + campaignId);
 				throw new ServiceException("The user is not allowed to read the personal information of the users in the following campaign: " + campaignId);
 			}
@@ -335,10 +251,10 @@ public class UserCampaignServices {
 	 */
 	public static void verifyUserCanUpdateCampaign(Request request, String username, String campaignId) throws ServiceException {
 		try {
-			List<String> roles = UserCampaignDaos.getUserCampaignRoles(username, campaignId);
+			List<CampaignRoleCache.Role> roles = UserCampaignDaos.getUserCampaignRoles(username, campaignId);
 			
-			if(roles.contains(CampaignRoleCache.ROLE_SUPERVISOR) ||
-			   roles.contains(CampaignRoleCache.ROLE_AUTHOR)) {
+			if(roles.contains(CampaignRoleCache.Role.SUPERVISOR) ||
+			   roles.contains(CampaignRoleCache.Role.AUTHOR)) {
 				return;
 			}
 			
@@ -367,10 +283,10 @@ public class UserCampaignServices {
 	 */
 	public static void verifyUserCanUpdateCampaignXml(Request request, String username, String campaignId) throws ServiceException {
 		try {
-			List<String> roles = UserCampaignDaos.getUserCampaignRoles(username, campaignId);
+			List<CampaignRoleCache.Role> roles = UserCampaignDaos.getUserCampaignRoles(username, campaignId);
 			
-			if(roles.contains(CampaignRoleCache.ROLE_SUPERVISOR) ||
-			   roles.contains(CampaignRoleCache.ROLE_AUTHOR)) {
+			if(roles.contains(CampaignRoleCache.Role.SUPERVISOR) ||
+			   roles.contains(CampaignRoleCache.Role.AUTHOR)) {
 				if(CampaignSurveyResponseDaos.getNumberOfSurveyResponsesForCampaign(campaignId) == 0) {
 					return;
 				}
@@ -404,16 +320,17 @@ public class UserCampaignServices {
 	 * @throws ServiceException Thrown if the user is not allowed to grant or
 	 * 							revoke some role or if there is an error.
 	 */
-	public static void verifyUserCanGrantOrRevokeRoles(Request request, String username, String campaignId, Collection<String> roles) throws ServiceException {
+	public static void verifyUserCanGrantOrRevokeRoles(Request request, String username, 
+			String campaignId, Collection<CampaignRoleCache.Role> roles) throws ServiceException {
 		try {
-			List<String> usersRoles = UserCampaignDaos.getUserCampaignRoles(username, campaignId);
+			List<CampaignRoleCache.Role> usersRoles = UserCampaignDaos.getUserCampaignRoles(username, campaignId);
 			
-			if(usersRoles.contains(CampaignRoleCache.ROLE_SUPERVISOR)) {
+			if(usersRoles.contains(CampaignRoleCache.Role.SUPERVISOR)) {
 				return;
 			}
 			
-			if(usersRoles.contains(CampaignRoleCache.ROLE_AUTHOR)) {
-				if(! roles.contains(CampaignRoleCache.ROLE_SUPERVISOR)) {
+			if(usersRoles.contains(CampaignRoleCache.Role.AUTHOR)) {
+				if(! roles.contains(CampaignRoleCache.Role.SUPERVISOR)) {
 					return;
 				}
 				
@@ -451,13 +368,13 @@ public class UserCampaignServices {
 	 */
 	public static void userCanDeleteCampaign(Request request, String username, String campaignId) throws ServiceException {
 		try {
-			List<String> roles = UserCampaignDaos.getUserCampaignRoles(username, campaignId);
+			List<CampaignRoleCache.Role> roles = UserCampaignDaos.getUserCampaignRoles(username, campaignId);
 			
-			if(roles.contains(CampaignRoleCache.ROLE_SUPERVISOR)) {
+			if(roles.contains(CampaignRoleCache.Role.SUPERVISOR)) {
 				return;
 			}
 			
-			if(roles.contains(CampaignRoleCache.ROLE_AUTHOR)) {
+			if(roles.contains(CampaignRoleCache.Role.AUTHOR)) {
 				long numberOfResponses = CampaignSurveyResponseDaos.getNumberOfSurveyResponsesForCampaign(campaignId);
 				
 				if(numberOfResponses == 0) {
@@ -593,24 +510,25 @@ public class UserCampaignServices {
 				return;
 			}
 			
-			List<String> requesterRoles = UserCampaignDaos.getUserCampaignRoles(requesterUsername, campaignId);
+			List<CampaignRoleCache.Role> requesterRoles = 
+				UserCampaignDaos.getUserCampaignRoles(requesterUsername, campaignId);
 			
 			// If the requester's role list contains supervisor, return.
-			if(requesterRoles.contains(CampaignRoleCache.ROLE_SUPERVISOR)) {
+			if(requesterRoles.contains(CampaignRoleCache.Role.SUPERVISOR)) {
 				return;
 			}
 			
 			// If the requester's role list contains author, return.
-			if(requesterRoles.contains(CampaignRoleCache.ROLE_AUTHOR)) {
+			if(requesterRoles.contains(CampaignRoleCache.Role.AUTHOR)) {
 				return;
 			}
 			
 			// If the requester's role list contains analyst,
-			if(requesterRoles.contains(CampaignRoleCache.ROLE_ANALYST)) {
-				String privacyState = CampaignDaos.getCampaignPrivacyState(campaignId);
+			if(requesterRoles.contains(CampaignRoleCache.Role.ANALYST)) {
+				CampaignPrivacyStateCache.PrivacyState privacyState = CampaignDaos.getCampaignPrivacyState(campaignId);
 				
 				if((privacyState != null) && 
-				   (CampaignPrivacyStateCache.PRIVACY_STATE_SHARED.equals(privacyState))) {
+				   (CampaignPrivacyStateCache.PrivacyState.SHARED.equals(privacyState))) {
 					return;
 				}
 			}
@@ -687,8 +605,13 @@ public class UserCampaignServices {
 	 * 
 	 * @throws ServiceException Thrown if there is an error.
 	 */
-	public static List<String> getCampaignsForUser(Request request, String username, Collection<String> campaignIds, Collection<String> classIds,
-			Calendar startDate, Calendar endDate, String privacyState, String runningState, String role) throws ServiceException, DataAccessException {
+	public static List<String> getCampaignsForUser(Request request, 
+			String username, 
+			Collection<String> campaignIds, Collection<String> classIds,
+			Calendar startDate, Calendar endDate, 
+			CampaignPrivacyStateCache.PrivacyState privacyState, 
+			CampaignRunningStateCache.RunningState runningState, 
+			CampaignRoleCache.Role role) throws ServiceException, DataAccessException {
 		
 		Set<String> desiredCampaignIds = new HashSet<String>();
 		
@@ -766,17 +689,17 @@ public class UserCampaignServices {
 	 * 
 	 * @throws ServiceException Thrown if there is an error.
 	 */
-	public static Map<CampaignInformation, List<String>> getCampaignAndUserRolesForCampaigns(Request request,
+	public static Map<CampaignInformation, List<CampaignRoleCache.Role>> getCampaignAndUserRolesForCampaigns(Request request,
 			String username, Collection<String> campaignIds, boolean withExtras) throws ServiceException {
 		try {
-			Map<CampaignInformation, List<String>> result = new HashMap<CampaignInformation, List<String>>();
+			Map<CampaignInformation, List<CampaignRoleCache.Role>> result = new HashMap<CampaignInformation, List<CampaignRoleCache.Role>>();
 			
 			for(String campaignId : campaignIds) {
 				// Create the Campaign object with the campaign's ID.
 				CampaignInformation campaign = CampaignDaos.getCampaignInformation(campaignId);
 				
 				// Get the user's roles.
-				List<String> roles = UserCampaignDaos.getUserCampaignRoles(username, campaignId);
+				List<CampaignRoleCache.Role> roles = UserCampaignDaos.getUserCampaignRoles(username, campaignId);
 				
 				// If we are supposed to get the extra information as well.
 				if(withExtras) {
@@ -790,19 +713,19 @@ public class UserCampaignServices {
 					// roles.
 					List<String> campaignUsernames = UserCampaignDaos.getUsersInCampaign(campaignId);
 					for(String campaignUsername : campaignUsernames) {
-						List<String> userRoles = UserCampaignDaos.getUserCampaignRoles(campaignUsername, campaignId);
+						List<CampaignRoleCache.Role> userRoles = UserCampaignDaos.getUserCampaignRoles(campaignUsername, campaignId);
 						
-						for(String userRole : userRoles) {
-							if(CampaignRoleCache.ROLE_SUPERVISOR.equals(userRole)) {
+						for(CampaignRoleCache.Role userRole : userRoles) {
+							if(CampaignRoleCache.Role.SUPERVISOR.equals(userRole)) {
 								campaign.addSupervisor(campaignUsername);
 							}
-							else if(CampaignRoleCache.ROLE_AUTHOR.equals(userRole)) {
+							else if(CampaignRoleCache.Role.AUTHOR.equals(userRole)) {
 								campaign.addAuthor(campaignUsername);
 							}
-							else if(CampaignRoleCache.ROLE_ANALYST.equals(userRole)) {
+							else if(CampaignRoleCache.Role.ANALYST.equals(userRole)) {
 								campaign.addAnalyst(campaignUsername);
 							}
-							else if(CampaignRoleCache.ROLE_PARTICIPANT.equals(userRole)) {
+							else if(CampaignRoleCache.Role.PARTICIPANT.equals(userRole)) {
 								campaign.addParticipant(campaignUsername);
 							}
 						}
@@ -838,9 +761,10 @@ public class UserCampaignServices {
 	 */
 	public static void verifyUserCanReadUsersInCampaign(Request request, String username, String campaignId) throws ServiceException {
 		try {
-			List<String> roles = UserCampaignDaos.getUserCampaignRoles(username, campaignId);
+			List<CampaignRoleCache.Role> roles = UserCampaignDaos.getUserCampaignRoles(username, campaignId);
 			
-			if(roles.contains(CampaignRoleCache.ROLE_SUPERVISOR) || roles.contains(CampaignRoleCache.ROLE_AUTHOR)) {
+			if(roles.contains(CampaignRoleCache.Role.SUPERVISOR) || 
+					roles.contains(CampaignRoleCache.Role.AUTHOR)) {
 				return;
 			}
 			
@@ -891,9 +815,10 @@ public class UserCampaignServices {
 	 */
 	public static void verifyUserCanReadClassesAssociatedWithCampaign(Request request, String username, String campaignId) throws ServiceException {
 		try {
-			List<String> roles = UserCampaignDaos.getUserCampaignRoles(username, campaignId);
+			List<CampaignRoleCache.Role> roles = UserCampaignDaos.getUserCampaignRoles(username, campaignId);
 			
-			if(roles.contains(CampaignRoleCache.ROLE_SUPERVISOR) || roles.contains(CampaignRoleCache.ROLE_AUTHOR)) {
+			if(roles.contains(CampaignRoleCache.Role.SUPERVISOR) || 
+					roles.contains(CampaignRoleCache.Role.AUTHOR)) {
 				return;
 			}
 			

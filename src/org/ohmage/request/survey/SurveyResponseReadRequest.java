@@ -43,6 +43,7 @@ import org.ohmage.util.JsonUtils;
 import org.ohmage.util.StringUtils;
 import org.ohmage.validator.DateValidators;
 import org.ohmage.validator.SurveyResponseReadValidators;
+import org.ohmage.validator.SurveyResponseValidators;
 
 /**
  * <p>Allows a requester to read survey responses. Supervisors can read survey
@@ -190,7 +191,7 @@ public final class SurveyResponseReadRequest extends UserRequest {
 	private final Boolean suppressMetadata;
 	private final Boolean returnId;
 	private final String sortOrder;
-	private final String privacyState;
+	private final SurveyResponsePrivacyStateCache.PrivacyState privacyState;
 	private final Boolean collapse;
 	
 	private Configuration configuration;
@@ -280,7 +281,7 @@ public final class SurveyResponseReadRequest extends UserRequest {
 		String tCampaignUrn = getParameter(InputKeys.CAMPAIGN_URN);
 		String tOutputFormat = getParameter(InputKeys.OUTPUT_FORMAT);
 		String tSortOrder = getParameter(InputKeys.SORT_ORDER);
-		String tPrivacyState = getParameter(InputKeys.PRIVACY_STATE);
+		SurveyResponsePrivacyStateCache.PrivacyState tPrivacyState = null;
 		
 		List<String> tUserListAsList = null;
 		List<String> tPromptIdListAsList = null;
@@ -335,8 +336,8 @@ public final class SurveyResponseReadRequest extends UserRequest {
 				}
 
 				LOGGER.info("Validating privacy_state parameter.");
-				if(! StringUtils.isEmptyOrWhitespaceOnly(tPrivacyState) &&
-						! SurveyResponsePrivacyStateCache.instance().getKeys().contains(tPrivacyState)) {
+				tPrivacyState = SurveyResponseValidators.validatePrivacyState(this, getParameter(InputKeys.PRIVACY_STATE));
+				if(tPrivacyState == null) {
 					setFailed(ErrorCodes.SURVEY_INVALID_PRIVACY_STATE, "Found unknown privacy_state: " + tPrivacyState);
 					throw new ValidationException("Found unknown privacy_state: " + tPrivacyState);
 				}

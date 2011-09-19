@@ -25,7 +25,7 @@ import javax.sql.DataSource;
  */
 public final class CampaignRunningStateCache extends StringAndIdCache{
 	// The column IDs for the query.
-	private static final String ID_COLUMN = "Id";
+	private static final String ID_COLUMN = "id";
 	private static final String STATE_COLUMN = "running_state";
 	
 	// The SQL that will retrieve the desired values.
@@ -37,9 +37,39 @@ public final class CampaignRunningStateCache extends StringAndIdCache{
 	// to reference which key we want.
 	public static final String CACHE_KEY = "campaignRunningStateCache";
 	
-	// Known campaign running states.
-	public static final String RUNNING_STATE_RUNNING = "running";
-	public static final String RUNNING_STATE_STOPPED = "stopped";
+	/**
+	 * Known campaign running states.
+	 * 
+	 * @author John Jenkins
+	 */
+	public static enum RunningState {
+		RUNNING,
+		STOPPED;
+		
+		/**
+		 * Converts a String value into a RunningState or throws an exception 
+		 * if there is no comparable running state.
+		 * 
+		 * @param runningState The running state to be converted into a 
+		 * 					   RunningState enum.
+		 * 
+		 * @return A comparable RunningState enum.
+		 * 
+		 * @throws IllegalArgumentException Thrown if there is no comparable
+		 * 									RunningState enum.
+		 */
+		public static RunningState getValue(String runningState) {
+			return valueOf(runningState.toUpperCase());
+		}
+		
+		/**
+		 * Converts the running state to a nice, human-readable format.
+		 */
+		@Override
+		public String toString() {
+			return name().toLowerCase();
+		}
+	}
 
 	// A reference to the only instance of this class for the Singleton
 	// pattern.

@@ -17,6 +17,7 @@ package org.ohmage.domain.survey.read;
 
 import java.util.Map;
 
+import org.ohmage.cache.SurveyResponsePrivacyStateCache;
 import org.ohmage.domain.configuration.PromptProperty;
 
 /**
@@ -51,7 +52,7 @@ public class SurveyResponseReadResult {
 	private String _username;
 	private Map<String, PromptProperty> _choiceGlossary;
 	private int _surveyPrimaryKeyId;
-	private String _privacyState;
+	private SurveyResponsePrivacyStateCache.PrivacyState _privacyState;
 	private String _promptText;
 	
 	public String getPromptText() {
@@ -62,11 +63,11 @@ public class SurveyResponseReadResult {
 		_promptText = promptText;
 	}
 	
-	public String getPrivacyState() {
+	public SurveyResponsePrivacyStateCache.PrivacyState getPrivacyState() {
 		return _privacyState;
 	}
 	
-	public void setPrivacyState(String state) {
+	public void setPrivacyState(SurveyResponsePrivacyStateCache.PrivacyState state) {
 		_privacyState = state;
 	}
 	

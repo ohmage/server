@@ -32,7 +32,7 @@ public final class UserClassDocumentDaos extends Dao {
 			"AND u.id = uc.user_id " +
 			"AND c.id = uc.class_id " +
 			"AND ucr.id = uc.user_class_role_id " +
-			"AND ucr.role = '" + ClassRoleCache.ROLE_PRIVILEGED + "' " +
+			"AND ucr.role = '" + ClassRoleCache.Role.PRIVILEGED + "' " +
 			// Ensure that the campaign is associated with the document.
 			"AND d.id = dcr.document_id " +
 			"AND c.id = dcr.class_id" +
@@ -53,11 +53,11 @@ public final class UserClassDocumentDaos extends Dao {
 		"AND uc.user_class_role_id = ucr.id " +
 		"AND d.privacy_state_id = dps.id " +
 		"AND (" +
-			"(dps.privacy_state = '" + DocumentPrivacyStateCache.PRIVACY_STATE_SHARED + "')" +
+			"(dps.privacy_state = '" + DocumentPrivacyStateCache.PrivacyState.SHARED + "')" +
 			" OR " +
-			"(ucr.role = '" + ClassRoleCache.ROLE_PRIVILEGED + "')" +
+			"(ucr.role = '" + ClassRoleCache.Role.PRIVILEGED + "')" +
 			" OR " +
-			"(dr.role = '" + DocumentRoleCache.ROLE_OWNER + "')" +
+			"(dr.role = '" + DocumentRoleCache.Role.OWNER + "')" +
 		")";
 	
 	private static UserClassDocumentDaos instance;

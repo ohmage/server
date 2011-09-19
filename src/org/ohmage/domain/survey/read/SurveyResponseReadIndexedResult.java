@@ -18,6 +18,7 @@ package org.ohmage.domain.survey.read;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.ohmage.cache.SurveyResponsePrivacyStateCache;
 import org.ohmage.domain.configuration.PromptProperty;
 
 /**
@@ -120,7 +121,7 @@ public class SurveyResponseReadIndexedResult {
 		return _originalResult.getLocationStatus();
 	}
 	
-	public String getPrivacyState() {
+	public SurveyResponsePrivacyStateCache.PrivacyState getPrivacyState() {
 		return _originalResult.getPrivacyState();
 	}
 	

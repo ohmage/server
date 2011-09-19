@@ -11,6 +11,7 @@ import java.util.Map;
 import javax.sql.DataSource;
 
 import org.apache.log4j.Logger;
+import org.ohmage.cache.CampaignRoleCache;
 import org.ohmage.cache.ClassRoleCache;
 import org.ohmage.domain.ClassInformation;
 import org.ohmage.exception.DataAccessException;
@@ -184,7 +185,7 @@ public class ClassDaos extends Dao {
 	 */
 	private static final class ClassInformationAndUserRole {
 		private final ClassInformation classInformation;
-		private final String role;
+		private final ClassRoleCache.Role role;
 		
 		/**
 		 * Convenience constructor.
@@ -194,7 +195,7 @@ public class ClassDaos extends Dao {
 		 * 
 		 * @param role The role of the requesting user in this class.
 		 */
-		private ClassInformationAndUserRole(ClassInformation classInformation, String role) {
+		private ClassInformationAndUserRole(ClassInformation classInformation, ClassRoleCache.Role role) {
 			this.classInformation = classInformation;
 			this.role = role;
 		}
@@ -207,7 +208,7 @@ public class ClassDaos extends Dao {
 	 */
 	public static final class UserAndClassRole {
 		private final String username;
-		private final String role;
+		private final ClassRoleCache.Role role;
 		
 		/**
 		 * Convenience constructor.
@@ -216,7 +217,7 @@ public class ClassDaos extends Dao {
 		 * 
 		 * @param role The user's role in the class.
 		 */
-		public UserAndClassRole(String username, String role) {
+		public UserAndClassRole(String username, ClassRoleCache.Role role) {
 			this.username = username;
 			this.role = role;
 		}
@@ -235,7 +236,7 @@ public class ClassDaos extends Dao {
 		 * 
 		 * @return The user's class role.
 		 */
-		public String getRole() {
+		public ClassRoleCache.Role getRole() {
 			return role;
 		}
 	}
@@ -336,7 +337,7 @@ public class ClassDaos extends Dao {
 		
 		for(String classId : classIds) {
 			// Get the class' information and the user's role in the class.
-			String userRole;
+			ClassRoleCache.Role userRole;
 			ClassInformation classInformation;
 			try {
 				ClassInformationAndUserRole classInformationAndUserRole = instance.getJdbcTemplate().queryForObject(
@@ -350,7 +351,8 @@ public class ClassDaos extends Dao {
 												rs.getString("urn"),
 												rs.getString("name"),
 												rs.getString("description")),
-										rs.getString("role")
+												ClassRoleCache.Role.getValue(rs.getString("role")
+										)
 								);
 								return result;
 							}
@@ -365,7 +367,7 @@ public class ClassDaos extends Dao {
 						classId + ", " + requester, e);
 			}
 			
-			boolean includeUserRoles = ClassRoleCache.ROLE_PRIVILEGED.equals(userRole);
+			boolean includeUserRoles = ClassRoleCache.Role.PRIVILEGED.equals(userRole);
 			
 			// Get all the users in this class and their class role.
 			List<UserAndClassRole> usersAndRole = getUserRolePairs(classId);
@@ -373,7 +375,7 @@ public class ClassDaos extends Dao {
 			// For each of the users add them to the current classes 
 			// information object.
 			for(UserAndClassRole userInformation : usersAndRole) {
-				classInformation.addUser(userInformation.username, ((includeUserRoles) ? userInformation.role : ""));
+				classInformation.addUser(userInformation.username, ((includeUserRoles) ? userInformation.role : null));
 			}
 			
 			// Add the class information to the list to be returned.
@@ -399,7 +401,7 @@ public class ClassDaos extends Dao {
 					new RowMapper<UserAndClassRole>() {
 						@Override
 						public UserAndClassRole mapRow(ResultSet rs, int row) throws SQLException {
-							return new UserAndClassRole(rs.getString("username"), rs.getString("role"));
+							return new UserAndClassRole(rs.getString("username"), ClassRoleCache.Role.getValue(rs.getString("role")));
 						}
 					});
 		}
@@ -428,7 +430,7 @@ public class ClassDaos extends Dao {
 	 * 						this class.
 	 */
 
-	public static List<String> updateClass(String classId, String className, String classDescription, Map<String, String> userAndRolesToAdd, List<String> usersToRemove)
+	public static List<String> updateClass(String classId, String className, String classDescription, Map<String, ClassRoleCache.Role> userAndRolesToAdd, List<String> usersToRemove)
 		throws DataAccessException {
 		// Note: This function is ugly. We need to stop using a class as a 
 		// mechanism to add users to a campaign and start using it like a 
@@ -489,7 +491,7 @@ public class ClassDaos extends Dao {
 				for(String username : usersToRemove) {
 					// Get the user's role in the class before removing
 					// it.
-					String classRole;
+					ClassRoleCache.Role classRole;
 					try {
 						classRole = UserClassDaos.getUserClassRole(classId, username);
 					}
@@ -528,7 +530,7 @@ public class ClassDaos extends Dao {
 						if(numClasses == 0) {
 							// Get the default roles which are to be revoked
 							// from the user.
-							List<String> defaultRoles;
+							List<CampaignRoleCache.Role> defaultRoles;
 							try {
 								defaultRoles = CampaignClassDaos.getDefaultCampaignRolesForCampaignClass(campaignId, classId, classRole);
 							}
@@ -539,11 +541,11 @@ public class ClassDaos extends Dao {
 							
 							// For each of the default roles, remove that role
 							// from the user.
-							for(String defaultRole : defaultRoles) {
+							for(CampaignRoleCache.Role defaultRole : defaultRoles) {
 								try {
 									instance.getJdbcTemplate().update(
 											SQL_DELETE_USER_FROM_CAMPAIGN,
-											new Object[] { username, campaignId, defaultRole });
+											new Object[] { username, campaignId, defaultRole.toString() });
 								}
 								catch(org.springframework.dao.DataAccessException e) {
 									transactionManager.rollback(status);
@@ -566,7 +568,7 @@ public class ClassDaos extends Dao {
 				for(String username : userAndRolesToAdd.keySet()) {
 					
 					// Get the user's (new) role.
-					String role = userAndRolesToAdd.get(username);
+					ClassRoleCache.Role role = userAndRolesToAdd.get(username);
 					
 					boolean addDefaultRoles = false;
 					
@@ -578,7 +580,7 @@ public class ClassDaos extends Dao {
 								LOGGER.debug("The user did not exist in the class so the user is being added before any updates are attemped.");
 							}
 							
-							instance.getJdbcTemplate().update(SQL_INSERT_USER_CLASS, new Object[] { username, classId, role } );
+							instance.getJdbcTemplate().update(SQL_INSERT_USER_CLASS, new Object[] { username, classId, role.toString() } );
 							addDefaultRoles = true;
 						}
 						
@@ -589,7 +591,7 @@ public class ClassDaos extends Dao {
 							}
 							
 							// Get the user's current role.
-							String originalRole = null;
+							ClassRoleCache.Role originalRole = null;
 							try {
 								originalRole = UserClassDaos.getUserClassRole(classId, username);
 							}
@@ -608,7 +610,7 @@ public class ClassDaos extends Dao {
 								
 								// Update their role to the new role.
 								try {
-									if(instance.getJdbcTemplate().update(SQL_UPDATE_USER_CLASS, new Object[] { role, username, classId }) > 0) {
+									if(instance.getJdbcTemplate().update(SQL_UPDATE_USER_CLASS, new Object[] { role.toString(), username, classId }) > 0) {
 										warningMessages.add("The user '" + username + 
 												"' was already associated with the class '" + classId + 
 												"'. Their role has been updated from '" + originalRole +
@@ -645,7 +647,7 @@ public class ClassDaos extends Dao {
 										// Remove the current roles with the 
 										// campaign and add a new role with the
 										// campaign.
-										List<String> defaultRoles;
+										List<CampaignRoleCache.Role> defaultRoles;
 										try {
 											defaultRoles = CampaignClassDaos.getDefaultCampaignRolesForCampaignClass(campaignId, classId, originalRole);
 										}
@@ -654,11 +656,11 @@ public class ClassDaos extends Dao {
 											throw e;
 										}
 										
-										for(String defaultRole : defaultRoles) {
+										for(CampaignRoleCache.Role defaultRole : defaultRoles) {
 											try {
 												instance.getJdbcTemplate().update(
 														SQL_DELETE_USER_FROM_CAMPAIGN,
-														new Object[] { username, campaignId, defaultRole });
+														new Object[] { username, campaignId, defaultRole.toString() });
 											}
 											catch(org.springframework.dao.DataAccessException e) {
 												transactionManager.rollback(status);
@@ -694,7 +696,7 @@ public class ClassDaos extends Dao {
 						// class, add them to the campaign with the default
 						// roles.
 						for(String campaignId : campaignIds) {
-							List<String> defaultRoles;
+							List<CampaignRoleCache.Role> defaultRoles;
 							try {
 								defaultRoles = CampaignClassDaos.getDefaultCampaignRolesForCampaignClass(campaignId, classId, role);
 							}
@@ -703,9 +705,9 @@ public class ClassDaos extends Dao {
 								throw e;
 							}
 							
-							for(String defaultRole : defaultRoles) {
+							for(CampaignRoleCache.Role defaultRole : defaultRoles) {
 								try {
-									final Object[] params = new Object[] {username, campaignId, defaultRole};
+									final Object[] params = new Object[] {username, campaignId, defaultRole.toString()};
 									
 									if(LOGGER.isDebugEnabled()) {
 										LOGGER.debug("Assigning the user a default campaign role of " + defaultRole + " in campaign " + campaignId);

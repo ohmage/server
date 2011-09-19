@@ -25,7 +25,7 @@ import javax.sql.DataSource;
  */
 public final class MobilityPrivacyStateCache extends StringAndIdCache {
 	// The column IDs for the query.
-	private static final String ID_COLUMN = "Id";
+	private static final String ID_COLUMN = "id";
 	private static final String STATE_COLUMN = "privacy_state";
 	
 	private static final String SQL_GET_MOBILITY_PRIVACY_STATES_AND_IDS = 
@@ -36,16 +36,39 @@ public final class MobilityPrivacyStateCache extends StringAndIdCache {
 	// to reference which key we want.
 	public static final String CACHE_KEY = "mobilityPrivacyStateCache";
 	
-	// Known Mobility privacy states.
-	public static final String PRIVACY_STATE_PRIVATE = "private";
 	/**
-	 * This will probably be used somewhere down the road, but for now it 
-	 * shouldn't be used unless as an option in a WHERE clause where it will
-	 * always return null.
+	 * Known Mobility privacy states.
 	 * 
-	 * @deprecated
+	 * @author John Jenkins
 	 */
-	public static final String PRIVACY_STATE_SHARED = "shared";
+	public static enum PrivacyState {
+		PRIVATE,
+		SHARED;
+		
+		/**
+		 * Converts a String value into a PrivacyState or throws an exception
+		 * if there is no comparable privacy state.
+		 * 
+		 * @param privacyState The privacy state to be converted into a 
+		 * 					   PrivacyState enum.
+		 * 
+		 * @return A comparable PrivacyState enum.
+		 * 
+		 * @throws IllegalArgumentException Thrown if there is no comparable
+		 * 									PrivacyState enum.
+		 */
+		public static PrivacyState getValue(String privacyState) {
+			return valueOf(privacyState.toUpperCase());
+		}
+		
+		/**
+		 * Converts the privacy state to a nice, human-readable format.
+		 */
+		@Override
+		public String toString() {
+			return name().toLowerCase();
+		}
+	}
 	
 	// A reference to the only instance of this class for the Singleton
 	// pattern.
