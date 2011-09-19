@@ -122,7 +122,7 @@ public final class CampaignClassDaos extends Dao {
 		try {
 			return instance.getJdbcTemplate().query(
 					SQL_GET_CAMPAIGN_CLASS_DEFAULT_ROLES,
-					new Object[] { campaignId, classId, classRole },
+					new Object[] { campaignId, classId, classRole.toString() },
 					new RowMapper<CampaignRoleCache.Role>() {
 						@Override
 						public CampaignRoleCache.Role mapRow(ResultSet rs, int rowNum) throws SQLException {

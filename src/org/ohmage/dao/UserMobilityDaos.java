@@ -531,7 +531,7 @@ public final class UserMobilityDaos extends AbstractUploadDao {
 		try {
 			return instance.getJdbcTemplate().query(
 					SQL_GET_IDS_WITH_PRIVACY_STATE,
-					new Object[] { username, privacyState },
+					new Object[] { username, privacyState.toString() },
 					new SingleColumnRowMapper<Long>());
 		}
 		catch(org.springframework.dao.DataAccessException e) {

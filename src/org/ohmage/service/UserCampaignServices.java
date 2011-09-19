@@ -150,56 +150,6 @@ public class UserCampaignServices {
 			throw new ServiceException(e);
 		}
 	}
-
-	/**
-	 * Ensures that the user has all of the roles in the Collection of roles.
-	 * 
-	 * @param request The Request that is performing this service.
-	 * 
-	 * @param username The username of the user whose roles in the campaign is
-	 * 				   being checked.
-	 * 
-	 * @param campaignId The campaign's unique identifier.
-	 * 
-	 * @param campaignRoles A Collection of campaign roles that the user must
-	 * 						possess in the class.
-	 * 
-	 * @throws ServiceException Thrown if the user is missing any of the roles
-	 * 							in the campaign or if there is an error.
-	 * 
-	 * @deprecated Instead, we should try to create functions like 
-	 * 			   "verifyUserCanReadCampaign" which will perform this action
-	 * 			   as well as any others that are necessary. The reason this is
-	 * 			   a bad idea is because it puts too much of the work on the 
-	 * 			   requests which must keep up with the ACLs and may lead to 
-	 * 			   multiple services performing one logical service. For 
-	 * 			   example, a request will call this method to ensure that the
-	 * 			   user has some roles then, if not, call a service that checks
-	 * 			   if the user is privileged in some class to which this 
-	 * 			   campaign belongs. This is all one logical operation which is
-	 * 			   determining if a user can read a campaign's meta data. If 
-	 * 			   all of the steps are spread out among multiple operations 
-	 * 			   like this function is doing, then each request must perform 
-	 * 			   all of these operations. If the ACLs should change, then we
-	 * 			   must go to each of the requests and change the work flow. If
-	 * 			   we encapsulate all of the work into a single function, then
-	 * 			   we would only need to change that function, which is far 
-	 * 			   more efficient. This function and other functions like it
-	 * 			   should be removed as soon as they are no longer being used
-	 * 			   to prevent this poor programming decision.
-	 */
-	public static void checkUserHasRolesInCampaign(Request request, String username, String campaignId, Collection<String> campaignRoles) throws ServiceException {
-		try {
-			if(! UserCampaignDaos.getUserCampaignRoles(username, campaignId).containsAll(campaignRoles)) {
-				request.setFailed(ErrorCodes.CAMPAIGN_INSUFFICIENT_PERMISSIONS, "The user is doesn't have sufficient permissions in the campaign: " + campaignId);
-				throw new ServiceException("The user is doesn't have sufficient permissions in the campaign: " + campaignId);
-			}
-		}
-		catch(DataAccessException e) {
-			request.setFailed();
-			throw new ServiceException(e);
-		}
-	}
 	
 	/**
 	 * For the given campaign and list of allowed roles, determines if the 
@@ -238,41 +188,6 @@ public class UserCampaignServices {
 		request.setFailed(ErrorCodes.CAMPAIGN_INSUFFICIENT_PERMISSIONS, "User does not have a correct role to perform" +
 			" the operation.");
 		throw new ServiceException("User does not have a correct role to perform the operation.");
-	}	
-
-    /**
-	 * Ensures that the user has all of the roles in the Collection of roles 
-	 * for each of the campaigns in the Collection of campaign IDs.
-	 * 
-	 * @param request The Request that is performing this service.
-	 * 
-	 * @param username The username of the user whose roles in the campagins is
-	 * 				   being checked.
-	 * 
-	 * @param campaignIds The Collection of campaign identifiers.
-	 * 
-	 * @param campaignRoles The Collection of campaign roles.
-	 * 
-	 * @throws ServiceException Thrown if the user doesn't have any of the 
-	 * 							roles in one of the classes or if there is an
-	 * 							error.
-	 * 
-	 * @deprecated Instead, we should try to create functions like 
-	 * 			   "verifyUserCanReadCampaign" which will perform this action
-	 * 			   as well as any others that are necessary. The reason this is
-	 * 			   a bad idea is because it puts too much of the work on the 
-	 * 			   requests which must keep up with the ACLs and may lead to 
-	 * 			   multiple services to perform one logical service, i.e. call
-	 * 			   something like this then call a service that checks if the
-	 * 			   user is privileged in some class to which this campaign 
-	 * 			   belongs which is all one logical service that checks if a 
-	 * 			   user can read this campaign's metadata. If nothing else, it
-	 * 			   should be made private.
-	 */
-	public static void checkUserHasRolesInCampaigns(Request request, String username, Collection<String> campaignIds, Collection<String> campaignRoles) throws ServiceException {
-		for(String campaignId : campaignIds) {
-			checkUserHasRolesInCampaign(request, username, campaignId, campaignRoles);
-		}
 	}
 	
 	/**

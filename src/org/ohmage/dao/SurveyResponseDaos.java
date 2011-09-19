@@ -321,7 +321,7 @@ public class SurveyResponseDaos extends Dao {
 		try {
 			return instance.getJdbcTemplate().query(
 					SQL_GET_IDS_WITH_PRIVACY_STATE, 
-					new Object[] { campaignId, privacyState }, 
+					new Object[] { campaignId, privacyState.toString() }, 
 					new SingleColumnRowMapper<Long>());
 		}
 		catch(org.springframework.dao.DataAccessException e) {
@@ -555,7 +555,7 @@ public class SurveyResponseDaos extends Dao {
 			try {
 				instance.getJdbcTemplate().update(
 						SQL_UPDATE_SURVEY_RESPONSE_PRIVACY_STATE, 
-						new Object[] { newPrivacyState, surveyResponseId });
+						new Object[] { newPrivacyState.toString(), surveyResponseId });
 			}
 			catch(org.springframework.dao.DataAccessException e) {
 				transactionManager.rollback(status);

@@ -377,7 +377,7 @@ public class DocumentDaos extends Dao {
 								extension, 
 								url, 
 								fileLength, 
-								privacyState
+								privacyState.toString()
 						}
 					);
 			}
@@ -412,7 +412,7 @@ public class DocumentDaos extends Dao {
 						new Object[] { 
 								uuid, 
 								creatorUsername, 
-								DocumentRoleCache.Role.OWNER
+								DocumentRoleCache.Role.OWNER.toString()
 						}
 					);
 			}
@@ -433,7 +433,7 @@ public class DocumentDaos extends Dao {
 								new Object[] { 
 										uuid, 
 										campaignId, 
-										campaignRoleMap.get(campaignId)
+										campaignRoleMap.get(campaignId).toString()
 								}
 							);
 					}
@@ -456,7 +456,7 @@ public class DocumentDaos extends Dao {
 								new Object[] { 
 										uuid, 
 										classId, 
-										classRoleMap.get(classId)
+										classRoleMap.get(classId).toString()
 								}
 							);
 					}
@@ -787,7 +787,7 @@ public class DocumentDaos extends Dao {
 		
 		// Update the document's privacy state.
 		try {
-			instance.getJdbcTemplate().update(SQL_UPDATE_PRIVACY_STATE, new Object[] { privacyState, documentId });
+			instance.getJdbcTemplate().update(SQL_UPDATE_PRIVACY_STATE, new Object[] { privacyState.toString(), documentId });
 		}
 		catch(org.springframework.dao.DataAccessException e) {
 			throw new DataAccessException("Error executing SQL '" + SQL_UPDATE_PRIVACY_STATE + "' with parameters: " +
@@ -877,8 +877,11 @@ public class DocumentDaos extends Dao {
 	 * @throws CacheMissException Thrown if there is an issue getting the 
 	 * 							  database ID for the document.
 	 */
-	private static void updateEntityRoleList(String documentId, Map<String, DocumentRoleCache.Role> entityAndRolesToAdd, List<String> entitiesToRemove, 
-			String sqlInsertEntity, String sqlUpdateEntity, String sqlDeleteEntity) throws CacheMissException, DataAccessException {
+	private static void updateEntityRoleList(String documentId, 
+			Map<String, DocumentRoleCache.Role> entityAndRolesToAdd, 
+			List<String> entitiesToRemove, 
+			String sqlInsertEntity, String sqlUpdateEntity, String sqlDeleteEntity) 
+	throws CacheMissException, DataAccessException {
 
 		// Delete roles
 		if(entitiesToRemove != null) {
@@ -910,13 +913,13 @@ public class DocumentDaos extends Dao {
 				// Add the document-entity role.
 				try {
 					instance.getJdbcTemplate().update(sqlInsertEntity, 
-							new Object[] { documentId, entityId, role });
+							new Object[] { documentId, entityId, role.toString() });
 				}
 				catch(org.springframework.dao.DataIntegrityViolationException duplicateEntryException) {
 					// If the entity is already associated with the document, then
 					// they must be attempting an update.
 					try {
-						instance.getJdbcTemplate().update(sqlUpdateEntity, new Object[] { role, documentId, entityId });
+						instance.getJdbcTemplate().update(sqlUpdateEntity, new Object[] { role.toString(), documentId, entityId });
 					}
 					catch(org.springframework.dao.DataAccessException e) {
 						throw new DataAccessException("Error executing SQL '" + sqlUpdateEntity + "' with parameters: " + 

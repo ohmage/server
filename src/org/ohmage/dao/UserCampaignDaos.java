@@ -246,7 +246,7 @@ public final class UserCampaignDaos extends Dao {
 		try {
 			return instance.getJdbcTemplate().query(
 					SQL_GET_CAMPAIGN_IDS_FOR_USER_WITH_ROLE, 
-					new Object[] { username, role },
+					new Object[] { username, role.toString() },
 					new SingleColumnRowMapper<String>());
 		}
 		catch(org.springframework.dao.DataAccessException e) {

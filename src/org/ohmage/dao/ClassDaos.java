@@ -351,7 +351,8 @@ public class ClassDaos extends Dao {
 												rs.getString("urn"),
 												rs.getString("name"),
 												rs.getString("description")),
-										ClassRoleCache.Role.getValue(rs.getString("role"))
+												ClassRoleCache.Role.getValue(rs.getString("role")
+										)
 								);
 								return result;
 							}
@@ -544,7 +545,7 @@ public class ClassDaos extends Dao {
 								try {
 									instance.getJdbcTemplate().update(
 											SQL_DELETE_USER_FROM_CAMPAIGN,
-											new Object[] { username, campaignId, defaultRole });
+											new Object[] { username, campaignId, defaultRole.toString() });
 								}
 								catch(org.springframework.dao.DataAccessException e) {
 									transactionManager.rollback(status);
@@ -579,7 +580,7 @@ public class ClassDaos extends Dao {
 								LOGGER.debug("The user did not exist in the class so the user is being added before any updates are attemped.");
 							}
 							
-							instance.getJdbcTemplate().update(SQL_INSERT_USER_CLASS, new Object[] { username, classId, role } );
+							instance.getJdbcTemplate().update(SQL_INSERT_USER_CLASS, new Object[] { username, classId, role.toString() } );
 							addDefaultRoles = true;
 						}
 						
@@ -609,7 +610,7 @@ public class ClassDaos extends Dao {
 								
 								// Update their role to the new role.
 								try {
-									if(instance.getJdbcTemplate().update(SQL_UPDATE_USER_CLASS, new Object[] { role, username, classId }) > 0) {
+									if(instance.getJdbcTemplate().update(SQL_UPDATE_USER_CLASS, new Object[] { role.toString(), username, classId }) > 0) {
 										warningMessages.add("The user '" + username + 
 												"' was already associated with the class '" + classId + 
 												"'. Their role has been updated from '" + originalRole +
@@ -659,7 +660,7 @@ public class ClassDaos extends Dao {
 											try {
 												instance.getJdbcTemplate().update(
 														SQL_DELETE_USER_FROM_CAMPAIGN,
-														new Object[] { username, campaignId, defaultRole });
+														new Object[] { username, campaignId, defaultRole.toString() });
 											}
 											catch(org.springframework.dao.DataAccessException e) {
 												transactionManager.rollback(status);
@@ -706,7 +707,7 @@ public class ClassDaos extends Dao {
 							
 							for(CampaignRoleCache.Role defaultRole : defaultRoles) {
 								try {
-									final Object[] params = new Object[] {username, campaignId, defaultRole};
+									final Object[] params = new Object[] {username, campaignId, defaultRole.toString()};
 									
 									if(LOGGER.isDebugEnabled()) {
 										LOGGER.debug("Assigning the user a default campaign role of " + defaultRole + " in campaign " + campaignId);
