@@ -37,6 +37,7 @@ public class CampaignServices {
 	private static final String PATH_CAMPAIGN_URN = "/campaign/campaignUrn";
 	private static final String PATH_CAMPAIGN_NAME = "/campaign/campaignName";
 	private static final String PATH_ICON_URL = "/campaign/iconUrl";
+	private static final String PATH_AUTHORED_BY = "/campaign/authoredBy";
 	
 	/**
 	 * Default constructor. Private to prevent instantiation.
@@ -48,10 +49,11 @@ public class CampaignServices {
 	 * 
 	 * @author John Jenkins
 	 */
-	public static final class CampaignIdAndName {
+	public static final class CampaignMetadata {
 		private final String id;
 		private final String name;
 		private final String iconUrl;
+		private final String authoredBy;
 		
 		/**
 		 * Creates a new ID-name association.
@@ -61,11 +63,15 @@ public class CampaignServices {
 		 * @param campaignName The campaign's name.
 		 * 
 		 * @param iconUrl The campaign's icon's URL. Optional.
+		 * 
+		 * @param authoredBy The name of the organization/person that authored
+		 * 					 this campaign.
 		 */
-		public CampaignIdAndName(String campaignId, String campaignName, String iconUrl) {
+		public CampaignMetadata(String campaignId, String campaignName, String iconUrl, String authoredBy) {
 			id = campaignId;
 			name = campaignName;
 			this.iconUrl = iconUrl;
+			this.authoredBy = authoredBy;
 		}
 		
 		/**
@@ -93,6 +99,16 @@ public class CampaignServices {
 		 */
 		public String getIconUrl() {
 			return iconUrl;
+		}
+		
+		/**
+		 * Returns the name of the organization or person that authored this 
+		 * campaign.
+		 * 
+		 * @return The campaign's author or null if it doesn't exist.
+		 */
+		public String getAuthoredBy() {
+			return authoredBy;
 		}
 	}
 	
@@ -122,12 +138,12 @@ public class CampaignServices {
 	 * @throws ServiceException Thrown if there is an error.
 	 */
 	public static void createCampaign(Request request, String campaignId, String name, String xml, String description, 
-			String iconUrl, 
+			String iconUrl, String authoredBy, 
 			CampaignRunningStateCache.RunningState runningState, 
 			CampaignPrivacyStateCache.PrivacyState privacyState, 
 			List<String> classIds, String creatorUsername) throws ServiceException {
 		try {
-			CampaignDaos.createCampaign(campaignId, name, xml, description, iconUrl, runningState, privacyState, classIds, creatorUsername);
+			CampaignDaos.createCampaign(campaignId, name, xml, description, iconUrl, authoredBy, runningState, privacyState, classIds, creatorUsername);
 		}
 		catch(DataAccessException e) {
 			request.setFailed();
@@ -312,13 +328,13 @@ public class CampaignServices {
 	 * 
 	 * @param xml The XML definition of this campaign.
 	 * 
-	 * @return A CampaignIdAndName object with the campaign's URN and name.
+	 * @return A CampaignMetadata object with the campaign's URN and name.
 	 * 
 	 * @throws ServiceException Thrown if there is an error parsing the XML. 
 	 * 							This should never happen as the XML should have
 	 * 							been validated before this call is made.
 	 */
-	public static CampaignIdAndName getCampaignUrnNameAndIconUrlFromXml(Request request, String xml) throws ServiceException {
+	public static CampaignMetadata getCampaignMetadataFromXml(Request request, String xml) throws ServiceException {
 		// Generate a builder that will build the XML Document.
 		Builder builder;
 		try {
@@ -391,7 +407,20 @@ public class CampaignServices {
 			// There is no campaign icon URL which is acceptable.
 		}
 		
-		return new CampaignIdAndName(campaignUrn, campaignName, iconUrl);
+		// Get the campaign's author if it exists.
+		String authoredBy = null;
+		try {
+			authoredBy = xmlDocument.getRootElement().query(PATH_AUTHORED_BY).get(0).getValue();
+		}
+		catch(XPathException e) {
+			request.setFailed();
+			throw new ServiceException("The PATH to get the campaig's author is invalid.", e);
+		}
+		catch(IndexOutOfBoundsException e) {
+			// There is no campaign icon URL which is acceptable.
+		}
+		
+		return new CampaignMetadata(campaignUrn, campaignName, iconUrl, authoredBy);
 	}
 	
 	/**
@@ -441,7 +470,7 @@ public class CampaignServices {
 	public static void verifyTheNewXmlIdAndNameAreTheSameAsTheCurrentIdAndName(Request request, String campaignId, String newXml) throws ServiceException {
 		try {
 			// Retrieve the ID and name from the current XML.
-			CampaignIdAndName newCampaignIdAndName = getCampaignUrnNameAndIconUrlFromXml(request, newXml);
+			CampaignMetadata newCampaignIdAndName = getCampaignMetadataFromXml(request, newXml);
 			
 			// We check the XML's ID against the given ID and the XML's name
 			// against what the DAO reports as the name. We do not check 

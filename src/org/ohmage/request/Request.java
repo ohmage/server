@@ -110,6 +110,13 @@ public abstract class Request {
 		
 		parameters = getParameters(httpRequest);
 	}
+	
+	/**
+	 * @return Returns the parameters from the HTTP request.
+	 */
+	protected Map<String, String[]> getParameters() {
+		return parameters;
+	}
 
 	/**
 	 * Returns whether or not this request has failed.
@@ -534,7 +541,7 @@ public abstract class Request {
 		}
 		catch(ServletException e) {
 			LOGGER.error("This is not a multipart/form-data POST.", e);
-			setFailed(ErrorCodes.SYSTEM_GENERAL_ERROR, "This is not a multipart/form-data POST which is what we expect for uploading campaign XMLs.");
+			setFailed(ErrorCodes.SYSTEM_GENERAL_ERROR, "This is not a multipart/form-data POST which is what we expect for the current API call.");
 			throw new ValidationException(e);
 		}
 		catch(IOException e) {

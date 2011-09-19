@@ -1,12 +1,21 @@
 package org.ohmage.request.survey;
 
+import java.awt.image.BufferedImage;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Date;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
 
+import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.Part;
 
 import org.apache.log4j.Logger;
 import org.json.JSONArray;
@@ -27,11 +36,11 @@ import org.ohmage.service.SurveyUploadServices;
 import org.ohmage.service.UserCampaignServices;
 import org.ohmage.util.JsonUtils;
 import org.ohmage.util.StringUtils;
-import org.ohmage.util.TimeUtils;
 import org.ohmage.validator.DateValidators;
+import org.ohmage.validator.ImageValidators;
 
 /**
- * <p>Uploads a survey.</p>
+ * <p>Stores a survey and its associated images (if any are present in the payload)</p>
  * <table border="1">
  *   <tr>
  *     <td>Parameter Name</td>
@@ -65,15 +74,22 @@ import org.ohmage.validator.DateValidators;
  *     <td>true</td>
  *   </tr>
  *   <tr>
- *     <td>{@value org.ohmage.request.InputKeys#DATA}</td>
- *     <td>The data payload for the survey(s) being uploaded.</td>
+ *     <td>{@value org.ohmage.request.InputKeys#SURVEY}</td>
+ *     <td>The survey data payload for the survey(s) being uploaded.</td>
  *     <td>true</td>
+ *   </tr>
+ *   <tr>
+ *     <td>A UUID linking the binary image data to a UUID that must be present
+ *      in the survey data payload. There can be many images attached to a
+ *      survey upload.</td>
+ *     <td></td>
+ *     <td>true, only if the survey data payload contains image prompt responses</td>
  *   </tr>
  * </table>
  * 
  * @author Joshua Selsky
  */
-public final class SurveyUploadRequest extends UserRequest {
+public class SurveyUploadRequest extends UserRequest {
 	private static final Logger LOGGER = Logger.getLogger(SurveyUploadRequest.class);
 	
 	private static final List<CampaignRoleCache.Role> ALLOWED_ROLES;
@@ -87,83 +103,132 @@ public final class SurveyUploadRequest extends UserRequest {
 	// never used in any kind of calculation.
 	private final String campaignCreationTimestamp;
 	private final String campaignUrn;
+	private final Map<String, BufferedImage> imageContentsMap;
 	
 	private Configuration configuration;
 	private String jsonData;
 	private JSONArray jsonDataArray;
 	
 	/**
-	 * Builds this request based on the information in the HTTP request.
+	 * Creates a new image upload request.
 	 * 
-	 * First, dispatches to the parent constructor; then checks the 
-	 * following parameters from the inbound request for well-formedness
-	 * and existence: {@value org.ohmage.request.InputKeys#CAMPAIGN_URN}, 
-	 * {@value org.ohmage.request.InputKeys#CAMPAIGN_CREATION_TIMESTAMP}, and 
-	 * {@value org.ohmage.request.InputKeys#DATA}. If the parameters all pass 
-	 * their validation checks, the appropriate instance variables are set. If 
-	 * initialization is not successful this instance is marked as failed and 
-	 * annotated with the appropriate error.
-	 * 
-	 * @param httpRequest A HttpServletRequest object that contains the
-	 * 					  parameters to and metadata for this request.
+	 * @param httpRequest The HttpServletRequest with the parameters for this
+	 * 					  request.
 	 */
 	public SurveyUploadRequest(HttpServletRequest httpRequest) {
 		super(httpRequest, false);
 		
-		Date tempCampaignCreationTimestamp = null;
-		String tempCampaignUrn = null;
-		String tempJsonData = null;
+		LOGGER.info("Creating an atomic survey upload request.");
+		
+		String tCampaignCreationTimestamp = null;
+		String tCampaignUrn = null;
+		String tJsonData = null;
+		Map<String, BufferedImage> tImageContentsMap = null;
 		
 		if(! isFailed()) {
-			LOGGER.info("Creating a survey upload request.");
-			 
-			tempCampaignCreationTimestamp = null;
-			String[] campaignIdArray = getParameterValues(InputKeys.CAMPAIGN_URN);
-			if(campaignIdArray.length == 1) {
-				tempCampaignUrn = campaignIdArray[0];
-			}
-			String[] dataArray = getParameterValues(InputKeys.DATA);
-			if(dataArray.length == 1) {
-				tempJsonData = dataArray[0];
-			}
-			
 			try {
-				String[] campaignCreationTimestampArray = getParameterValues(InputKeys.CAMPAIGN_CREATION_TIMESTAMP);
-				if(campaignCreationTimestampArray.length == 1) {
-					tempCampaignCreationTimestamp = DateValidators.validateISO8601DateTime(campaignCreationTimestampArray[0]);
+				Map<String, String[]> parameters = getParameters();
+				
+				// Validate the campaign URN
+				
+				String[] t = parameters.get(InputKeys.CAMPAIGN_URN);
+				if(t == null || t.length != 1) {
+					setFailed(ErrorCodes.CAMPAIGN_INVALID_ID, "campaign_urn is missing or there is more than one.");
+					throw new ValidationException("campaign_urn is missing or there is more than one.");
+				} else {
+					tCampaignUrn = t[0];
 				}
-				LOGGER.debug("tempCampaignCreationTimestamp = " + tempCampaignCreationTimestamp);
+				
+				// Validate the campaign creation timestamp
+				
+				t = parameters.get(InputKeys.CAMPAIGN_CREATION_TIMESTAMP);
+				if(t == null || t.length != 1) {
+					setFailed(ErrorCodes.SERVER_INVALID_TIMESTAMP, "campaign_creation_timestamp is missing or there is more than one");
+					throw new ValidationException("campaign_creation_timestamp is missing or there is more than one");
+				} 
+				else {
+					
+					// Make sure it's a valid timestamp
+					DateValidators.validateISO8601DateTime(t[0]);
+					tCampaignCreationTimestamp = t[0];
+				}
+				
+				t = parameters.get(InputKeys.SURVEYS);
+				if(t == null || t.length != 1) {
+					setFailed(ErrorCodes.SURVEY_INVALID_RESPONSES, "No value found for 'surveys' parameter or multiple surveys parameters were found.");
+					throw new ValidationException("No value found for 'surveys' parameter or multiple surveys parameters were found.");
+				}
+				else {
+					tJsonData = StringUtils.urlDecode(t[0]);
+				}
+				
+				// Retrieve and validate images
+				
+				List<String> imageIds = new ArrayList<String>();
+				Collection<Part> parts = null;
+				
+				try {
+					// FIXME - push to base class especially because of the ServletException that gets thrown
+					parts = httpRequest.getParts();
+					for(Part p : parts) {
+						try {
+							UUID.fromString(p.getName());
+							imageIds.add(p.getName());
+						}
+						catch (IllegalArgumentException e) {
+							// ignore because there may not be any UUIDs/images
+						}
+					}
+				}
+				catch(ServletException e) {
+					LOGGER.error("cannot parse parts", e);
+					setFailed();
+					throw new ValidationException(e);
+				}
+				catch(IOException e) {
+					LOGGER.error("cannot parse parts", e);
+					setFailed();
+					throw new ValidationException(e);
+				}
+				
+				Set<String> stringSet = new HashSet<String>(imageIds);
+				
+				if(stringSet.size() != imageIds.size()) {
+					setFailed(ErrorCodes.IMAGE_INVALID_DATA, "a duplicate image key was detected in the multi-part upload");
+					throw new ValidationException("a duplicate image key was detected in the multi-part upload");
+				}
+
+				for(String imageId : imageIds) {
+					
+					BufferedImage bufferedImage = ImageValidators.validateImageContents(this, getMultipartValue(httpRequest, imageId));
+					if(tImageContentsMap == null) {
+						tImageContentsMap = new HashMap<String, BufferedImage>();
+					}
+					tImageContentsMap.put(imageId, bufferedImage);
+					
+					if(LOGGER.isDebugEnabled()) {
+						LOGGER.debug("succesfully created a BufferedImage for key " + imageId);
+					}
+				}
+				
 			}
 			catch(ValidationException e) {
-				setFailed(ErrorCodes.SERVER_INVALID_TIMESTAMP, "Invalid " + InputKeys.CAMPAIGN_CREATION_TIMESTAMP);
-			}
-			
-			if(! isFailed() && tempCampaignCreationTimestamp == null) {
-				setFailed(ErrorCodes.SERVER_INVALID_TIMESTAMP, "Missing " + InputKeys.CAMPAIGN_CREATION_TIMESTAMP);				
-			}
-			
-			if(! isFailed() && ! StringUtils.isValidUrn(tempCampaignUrn)) {
-				setFailed(ErrorCodes.CAMPAIGN_INVALID_ID, "Invalid campaign id: " + tempCampaignUrn + " was provided.");
-			}
-			
-			if(! isFailed() && StringUtils.isEmptyOrWhitespaceOnly(tempJsonData)) {
-				setFailed(ErrorCodes.SURVEY_INVALID_RESPONSES, "No value found for 'data' parameter.");
+				LOGGER.info(e.toString());
 			}
 		}
 		
-		this.campaignCreationTimestamp = TimeUtils.getIso8601DateTimeString(tempCampaignCreationTimestamp);
-		this.campaignUrn = tempCampaignUrn;
-		this.jsonData = tempJsonData;
+		this.campaignCreationTimestamp = tCampaignCreationTimestamp;
+		this.campaignUrn = tCampaignUrn;
+		this.jsonData = tJsonData;
+		this.imageContentsMap = tImageContentsMap;
 	}
-	
+
 	/**
-	 * Performs a survey upload in the following steps:
-	 * <ol>
-	 * <li>TODO</li>
-	 * </ol>
+	 * Services the request.
 	 */
 	@Override
 	public void service() {
+		
 		LOGGER.info("Servicing a survey upload request.");
 		
 		if(! authenticate(AllowNewAccount.NEW_ACCOUNT_DISALLOWED)) {
@@ -210,7 +275,8 @@ public final class SurveyUploadRequest extends UserRequest {
 			this.jsonData = null;
 			
 			LOGGER.info("Validating surveys.");
-			SurveyUploadServices.validateSurveyUpload(this, jsonDataArray, configuration);
+			List<String> imageIdList = SurveyUploadServices.validateSurveyUpload(this, jsonDataArray, configuration);
+			SurveyUploadServices.validateImageKeys(this, imageIdList, imageContentsMap);
 			
 			LOGGER.info("Prepping surveys for db insertion.");
 			
@@ -221,8 +287,9 @@ public final class SurveyUploadRequest extends UserRequest {
 			}
 
 			LOGGER.info("Saving " + numberOfSurveyResponses + " surveys into the db.");
-			List<Integer> duplicateIndexList = SurveyUploadDao.insertSurveys(this, getUser(), getClient(), campaignUrn, surveyUploadList);
 			
+			List<Integer> duplicateIndexList = SurveyUploadDao.insertSurveys(this, getUser(), getClient(), campaignUrn, surveyUploadList, imageContentsMap);
+
 			LOGGER.info("Found " + duplicateIndexList.size() + " duplicate survey uploads");
 		}
 		catch(ServiceException e) {
@@ -234,10 +301,13 @@ public final class SurveyUploadRequest extends UserRequest {
 	}
 
 	/**
-	 * Responds with a success or failure message.
+	 * Responds to the image upload request with success or a failure message
+	 * that contains a failure code and failure text.
 	 */
 	@Override
 	public void respond(HttpServletRequest httpRequest, HttpServletResponse httpResponse) {
+		LOGGER.info("Responding to the survey upload request.");
+		
 		super.respond(httpRequest, httpResponse, null);
 	}
 }

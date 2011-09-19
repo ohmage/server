@@ -37,6 +37,7 @@ public final class CampaignInformation {
 	private static final String JSON_KEY_NAME = "name";
 	private static final String JSON_KEY_DESCRIPTION = "description";
 	private static final String JSON_KEY_ICON_URL = "icon_url";
+	private static final String JSON_KEY_AUTHORED_BY = "authored_by";
 	private static final String JSON_KEY_RUNNING_STATE = "running_state";
 	private static final String JSON_KEY_PRIVACY_STATE = "privacy_state";
 	private static final String JSON_KEY_CREATION_TIMESTAMP = "creation_timestamp";
@@ -54,6 +55,7 @@ public final class CampaignInformation {
 	private final String name;
 	private final String description;
 	private final String iconUrl;
+	private final String authoredBy;
 	private final RunningState runningState;
 	private final PrivacyState privacyState;
 	private final Date creationTimestamp;
@@ -88,7 +90,7 @@ public final class CampaignInformation {
 	 * 									parameters are null or whitespace only.
 	 */
 	public CampaignInformation(String id, String name, String description,
-			String iconUrl,
+			String iconUrl, String authoredBy,
 			RunningState runningState, PrivacyState privacyState, 
 			Date creationTimestamp) {
 		
@@ -112,6 +114,7 @@ public final class CampaignInformation {
 		this.name = name;
 		this.description = description;
 		this.iconUrl = iconUrl;
+		this.authoredBy = authoredBy;
 		this.runningState = runningState;
 		this.privacyState = privacyState;
 		this.creationTimestamp = new Date(creationTimestamp.getTime());
@@ -421,6 +424,7 @@ public final class CampaignInformation {
 			result.put(JSON_KEY_NAME, name);
 			result.put(JSON_KEY_DESCRIPTION, (description == null) ? "" : description);
 			result.put(JSON_KEY_ICON_URL, iconUrl);
+			result.put(JSON_KEY_AUTHORED_BY, authoredBy);
 			result.put(JSON_KEY_RUNNING_STATE, runningState.name().toLowerCase());
 			result.put(JSON_KEY_PRIVACY_STATE, privacyState.name().toLowerCase());
 			result.put(JSON_KEY_CREATION_TIMESTAMP, TimeUtils.getIso8601DateTimeString(creationTimestamp));

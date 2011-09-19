@@ -14,7 +14,7 @@ import org.ohmage.exception.ValidationException;
 import org.ohmage.request.InputKeys;
 import org.ohmage.request.UserRequest;
 import org.ohmage.service.CampaignServices;
-import org.ohmage.service.CampaignServices.CampaignIdAndName;
+import org.ohmage.service.CampaignServices.CampaignMetadata;
 import org.ohmage.service.UserClassServices;
 import org.ohmage.service.UserServices;
 import org.ohmage.validator.CampaignValidators;
@@ -166,7 +166,7 @@ public class CampaignCreationRequest extends UserRequest {
 		
 		try {
 			// Get the campaign's URN and name from the XML.
-			CampaignIdAndName campaignInfo = CampaignServices.getCampaignUrnNameAndIconUrlFromXml(this, xml);
+			CampaignMetadata campaignInfo = CampaignServices.getCampaignMetadataFromXml(this, xml);
 			
 			LOGGER.info("Verifying that the campaign doesn't already exist.");
 			CampaignServices.checkCampaignExistence(this, campaignInfo.getCampaignId(), false);
@@ -179,7 +179,7 @@ public class CampaignCreationRequest extends UserRequest {
 			
 			LOGGER.info("Creating the campaign.");
 			CampaignServices.createCampaign(this, campaignInfo.getCampaignId(), campaignInfo.getCampaignName(), 
-					xml, description, campaignInfo.getIconUrl(), runningState, privacyState, classIds, getUser().getUsername());
+					xml, description, campaignInfo.getIconUrl(), campaignInfo.getAuthoredBy(), runningState, privacyState, classIds, getUser().getUsername());
 		}
 		catch(ServiceException e) {
 			e.logException(LOGGER);
