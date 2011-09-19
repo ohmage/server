@@ -13,6 +13,7 @@
   <fileset id="compile-dependencies" dir="${component.repository}">
     <include name="log4j-1.2.16.jar"/>
     <include name="servlet-api-3.0.jar"/>
+    <include name="org.springframework.beans-3.0.5.RELEASE.jar" />
     <include name="org.springframework.core-3.0.5.RELEASE.jar" />
     <include name="org.springframework.jdbc-3.0.5.RELEASE.jar" />
     <include name="org.springframework.transaction-3.0.5.RELEASE.jar" />
