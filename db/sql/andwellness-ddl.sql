@@ -121,6 +121,8 @@ CREATE TABLE campaign (
   running_state_id int unsigned NOT NULL,
   privacy_state_id int unsigned NOT NULL,
   creation_timestamp datetime NOT NULL,
+  icon_url varchar(255),
+  authored_by varchar(255),
   PRIMARY KEY (id),
   UNIQUE (urn),
   CONSTRAINT FOREIGN KEY (running_state_id) REFERENCES campaign_running_state (id) ON DELETE CASCADE ON UPDATE CASCADE,
@@ -357,7 +359,7 @@ CREATE TABLE mobility (
 -- High-frequency "mode + sensor data" mobility data. Mobility data is 
 -- *not* linked to a campaign.
 -- --------------------------------------------------------------------
-CREATE TABLE mobility_extended_new (
+CREATE TABLE mobility_extended (
   id int unsigned NOT NULL auto_increment,
   mobility_id int unsigned NOT NULL,
   sensor_data text NOT NULL,
