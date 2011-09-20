@@ -19,11 +19,11 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.Map;
 
-
 /**
- * A minified immutable survey generated from configuration XML. 
+ * Wrapper for the items in a survey: survey title, survey description,
+ * and all of the prompts and repeatable sets in a survey. 
  * 
- * @author selsky
+ * @author Joshua Selsky
  */
 public class Survey extends AbstractSurveyItem {
 	private Map<String, SurveyItem> surveyItemMap; // prompts and repeatableSets

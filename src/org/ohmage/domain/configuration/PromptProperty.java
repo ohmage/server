@@ -16,9 +16,10 @@
 package org.ohmage.domain.configuration;
 
 /**
- * Bean-style wrapper for an immutable prompt property. A prompt property defines bounds or options on a prompt type.
+ * Bean-style wrapper for an immutable prompt property. A prompt property
+ * defines bounds or options on a prompt type.
  * 
- * @author selsky
+ * @author Joshua Selsky
  */
 public class PromptProperty {
 	private String key;   

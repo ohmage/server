@@ -15,7 +15,12 @@
  ******************************************************************************/
 package org.ohmage.domain.configuration;
 
-
+/**
+ * Abstract base class for survey items that use IDs: surveys, repeatable_sets,
+ * and prompts.
+ * 
+ * @author Joshua Selsky
+ */
 public abstract class AbstractSurveyItem implements SurveyItem {
 	private String id;
 	

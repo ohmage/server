@@ -16,9 +16,9 @@
 package org.ohmage.domain.configuration;
 
 /**
- * Base abstraction for items that may exist in a survey.
+ * Contract for survey items containing IDs.
  * 
- * @author selsky
+ * @author Joshua Selsky
  */
 public interface SurveyItem {
 

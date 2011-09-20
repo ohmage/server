@@ -20,9 +20,9 @@ import java.util.Map;
 
 
 /**
- * A repeatable set has an id and a Map of Prompts.
+ * Maps a repeatable set id to the Prompts contained with in the set.
  * 
- * @author selsky
+ * @author Joshua Selsky
  */
 public class RepeatableSet extends AbstractSurveyItem {
 	private Map<String, Prompt> promptMap;

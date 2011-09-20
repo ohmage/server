@@ -20,9 +20,9 @@ import java.util.Map;
 
 
 /**
- * A survey prompt configuration.
+ * Representation of prompt configuration data.
  * 
- * @author selsky
+ * @author Joshua Selsky
  */
 public class Prompt extends AbstractSurveyItem {
 	private String displayType;
