@@ -67,7 +67,9 @@ public class MobilityReadChunkedRequest extends UserRequest {
 	private static final String JSON_KEY_LOCATION_STATUS = "ls";
 	private static final String JSON_KEY_LOCATION = "l";
 	
-	public static final int POINTS_PER_CHUNK = 10;
+	private static final int POINTS_PER_CHUNK = 10;
+	// 10 days
+	private static final long MAX_MILLIS_BETWEEN_START_AND_END_DATES = 1000 * 60 * 60 * 24 * 10; 
 	
 	private final Date startDate;
 	private final Date endDate;
@@ -124,9 +126,15 @@ public class MobilityReadChunkedRequest extends UserRequest {
 					setFailed(ErrorCodes.SERVER_INVALID_DATE, "Multiple end dates were given: " + InputKeys.END_DATE);
 					throw new ValidationException("Multiple end dates were given: " + InputKeys.END_DATE);
 				}
+				
+				Date latestDate = new Date(tStartDate.getTime() + MAX_MILLIS_BETWEEN_START_AND_END_DATES);
+				if(tEndDate.after(latestDate)) {
+					setFailed(ErrorCodes.SERVER_INVALID_DATE, "The maximum time range between the start and end dates is 10 days.");
+					throw new ValidationException("The maximum time range between the start and end dates is 10 days.");
+				}
 			}
 			catch(ValidationException e) {
-				
+				LOGGER.info(e.toString());
 			}
 		}
 		

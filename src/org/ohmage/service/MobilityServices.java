@@ -1,6 +1,6 @@
 package org.ohmage.service;
 
-import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
@@ -159,44 +159,74 @@ public final class MobilityServices {
 	 * 
 	 * @throws ServiceException Thrown if there is an error.
 	 */
-	public static List<MobilityInformation> retrieveMobilityData(Request request, String username, 
-			String client, Date startDate, Date endDate, MobilityPrivacyStateCache.PrivacyState privacyState,
+	public static List<MobilityInformation> retrieveMobilityData(
+			Request request, String username, String client, 
+			Date startDate, Date endDate, 
+			MobilityPrivacyStateCache.PrivacyState privacyState,
 			LocationStatus locationStatus, Mode mode) throws ServiceException {
 		
 		try {
-			List<Long> mobilityIds = UserMobilityDaos.getIdsForUser(username);
+			// Create the IDs list and set it to null. Once we find a non-null
+			// parameter, we will set the list to that parameter's value.
+			List<Long> mobilityIds = null;
+			
+			// If both start and end date are non-null, get the IDs from their
+			// intersection; otherwise, try and get the IDs from the one that
+			// isn't null if either are non-null.
+			if((startDate != null) && (endDate != null)) {
+				mobilityIds = UserMobilityDaos.getIdsCreatedBetweenDates(username, startDate, endDate);
+			}
+			else {
+				if(startDate != null) {
+					mobilityIds = UserMobilityDaos.getIdsCreatedAfterDate(username, startDate);
+				}
+				else if(endDate != null) {
+					mobilityIds = UserMobilityDaos.getIdsCreatedBeforeDate(username, endDate);
+				}
+			}
 			
 			if(client != null) {
-				mobilityIds.retainAll(UserMobilityDaos.getIdsForClient(username, client));
-			}
-			
-			if(startDate != null) {
-				mobilityIds.retainAll(UserMobilityDaos.getIdsCreatedAfterDate(username, startDate));
-			}
-			
-			if(endDate != null) {
-				mobilityIds.retainAll(UserMobilityDaos.getIdsCreatedBeforeDate(username, endDate));
+				if(mobilityIds == null) {
+					mobilityIds = UserMobilityDaos.getIdsForClient(username, client);
+				}
+				else {
+					mobilityIds.retainAll(UserMobilityDaos.getIdsForClient(username, client));
+				}
 			}
 			
 			if(privacyState != null) {
-				mobilityIds.retainAll(UserMobilityDaos.getIdsWithPrivacyState(username, privacyState));
+				if(mobilityIds == null) {
+					mobilityIds = UserMobilityDaos.getIdsWithPrivacyState(username, privacyState);
+				}
+				else {
+					mobilityIds.retainAll(UserMobilityDaos.getIdsWithPrivacyState(username, privacyState));
+				}
 			}
 			
 			if(locationStatus != null) {
-				mobilityIds.retainAll(UserMobilityDaos.getIdsWithLocationStatus(username, locationStatus));
+				if(mobilityIds == null) {
+					mobilityIds = UserMobilityDaos.getIdsWithLocationStatus(username, locationStatus);
+				}
+				else {
+					mobilityIds.retainAll(UserMobilityDaos.getIdsWithLocationStatus(username, locationStatus));
+				}
 			}
 			
 			if(mode != null) {
-				mobilityIds.retainAll(UserMobilityDaos.getIdsWithMode(username, mode));
+				if(mobilityIds == null) {
+					mobilityIds = UserMobilityDaos.getIdsWithMode(username, mode);
+				}
+				else {
+					mobilityIds.retainAll(UserMobilityDaos.getIdsWithMode(username, mode));
+				}
 			}
 			
-			List<MobilityInformation> result = new ArrayList<MobilityInformation>(mobilityIds.size());
-			
-			for(Long mobilityId : mobilityIds) {
-				result.add(UserMobilityDaos.getMobilityInformationFromId(mobilityId));
+			if((mobilityIds == null) || (mobilityIds.size() == 0)) {
+				return Collections.emptyList();
 			}
-			
-			return result;
+			else {
+				return UserMobilityDaos.getMobilityInformationFromIds(mobilityIds);
+			}
 		}
 		catch(DataAccessException e) {
 			request.setFailed();

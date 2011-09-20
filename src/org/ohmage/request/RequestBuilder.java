@@ -1,7 +1,10 @@
 package org.ohmage.request;
 
+import java.lang.reflect.InvocationTargetException;
+
 import javax.servlet.http.HttpServletRequest;
 
+import org.apache.log4j.Logger;
 import org.ohmage.request.audit.AuditReadRequest;
 import org.ohmage.request.auth.AuthRequest;
 import org.ohmage.request.auth.AuthTokenRequest;
@@ -52,11 +55,87 @@ import org.ohmage.request.visualization.VizUserTimeseriesRequest;
  * @author Joshua Selsky
  */
 public final class RequestBuilder {
+	private static final Logger LOGGER = Logger.getLogger(RequestBuilder.class);
+
 	/**
 	 * Default constructor. Made private because this class should never be
 	 * instantiated. Instead, the static builder method should be called.
 	 */
 	private RequestBuilder() {}
+	
+	/**
+	 * This enum was initially intended to be a central location to hold the 
+	 * information required to build a new Request. An enum was used instead of
+	 * a class because I was hoping to use the built-in functionality for 
+	 * looking up enums to minimize the code for building Requests. However, 
+	 * this has been more difficult than originally perceived and is being put 
+	 * on the back burner for the time being. It also drastically limits what 
+	 * the constructor for each Request can consist of, forcing all requests to 
+	 * having the same constructor format.
+	 * 
+	 * @author John Jenkins
+	 */
+	public static enum RequestEnum {
+		AUTHENTICATE_REQUEST (AuthRequest.class),
+		AUTHENTICATION_TOKEN_REQUEST (AuthTokenRequest.class);
+		
+		private final Class<? extends Request> requestClass;
+		
+		/**
+		 * Correlates a Request subclass with this RequestEnum.
+		 * 
+		 * @param requestClass The Request subclass that should be created when
+		 * 					   this class is run.
+		 */
+		private RequestEnum(final Class<? extends Request> requestClass) {
+			if(requestClass == null) {
+				throw new IllegalStateException("The request's class cannot be null.");
+			}
+			
+			this.requestClass = requestClass;
+		}
+		
+		/**
+		 * Creates a new Request based on how this enum object.
+		 * 
+		 * @param httpRequest The HttpServletRequest with the matching URI.
+		 * 
+		 * @return A Request object based on this enum.
+		 */
+		public Request getRequest(final HttpServletRequest httpRequest) {
+			try {
+				return requestClass.getConstructor(HttpServletRequest.class).newInstance(httpRequest);
+			}
+			catch(NoSuchMethodException e) {
+				LOGGER.error("The HttpServletRequest constructor is missing for the Request: " + requestClass.getCanonicalName());
+				throw new IllegalStateException("The HttpServletRequest constructor is missing for the Request: " + requestClass.getCanonicalName(), e);
+			}
+			catch(SecurityException e) {
+				LOGGER.error("The SecurityManager is preventing us from accessing the constructor via reflection: " + requestClass.getCanonicalName());
+				throw new IllegalStateException("The SecurityManager is preventing us from accessing the constructor via reflection: " + requestClass.getCanonicalName(), e);
+			}
+			catch(InvocationTargetException e) {
+				LOGGER.error("The constructor threw an exception: " + requestClass.getCanonicalName());
+				throw new IllegalStateException("The constructor threw an exception: " + requestClass.getCanonicalName(), e);
+			}
+			catch(IllegalAccessException e) {
+				LOGGER.error("The constructor enforces Java language access control and is preventing instantiation: " + requestClass.getCanonicalName());
+				throw new IllegalStateException("The constructor enforces Java language access control and is preventing instantiation: " + requestClass.getCanonicalName(), e);
+			}
+			catch(InstantiationException e) {
+				LOGGER.error("Attempting to instantiate an abstract class: " + requestClass.getCanonicalName());
+				throw new IllegalStateException("Attempting to instantiate an abstract class: " + requestClass.getCanonicalName(), e);
+			}
+			catch(ExceptionInInitializerError e) {
+				LOGGER.error("The initialization failed: " + requestClass.getCanonicalName());
+				throw new IllegalStateException("The initialization failed: " + requestClass.getCanonicalName(), e);
+			}
+			catch(IllegalArgumentException e) {
+				LOGGER.error("The parameter's type doesn't match the desired type: " + requestClass.getCanonicalName());
+				throw new IllegalStateException("The parameter's type doesn't match the desired type: " + requestClass.getCanonicalName(), e);
+			}
+		}
+	}
 	
 	public static final String API_ROOT = "/app";
 	

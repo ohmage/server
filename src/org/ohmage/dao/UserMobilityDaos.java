@@ -6,6 +6,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.Calendar;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.LinkedList;
@@ -24,6 +25,7 @@ import org.ohmage.domain.MobilityInformation.MobilityException;
 import org.ohmage.domain.MobilityInformation.Mode;
 import org.ohmage.domain.MobilityInformation.SubType;
 import org.ohmage.exception.DataAccessException;
+import org.ohmage.util.StringUtils;
 import org.ohmage.util.TimeUtils;
 import org.springframework.jdbc.core.PreparedStatementCreator;
 import org.springframework.jdbc.core.RowMapper;
@@ -79,6 +81,14 @@ public final class UserMobilityDaos extends AbstractUploadDao {
 		"FROM user u, mobility m " +
 		"WHERE u.username = ? " +
 		"AND u.id = m.user_id " +
+		"AND m.msg_timestamp <= ?";
+	
+	private static final String SQL_GET_IDS_CREATE_BETWEEN_DATES =
+		"SELECT m.id " +
+		"FROM user u, mobility m " +
+		"WHERE u.username = ? " +
+		"AND u.id = m.user_id " +
+		"AND m.msg_timestamp >= ? " +
 		"AND m.msg_timestamp <= ?";
 	
 	// Retrieves the ID for all of the Mobility points that belong to a user 
@@ -140,6 +150,19 @@ public final class UserMobilityDaos extends AbstractUploadDao {
 		"WHERE m.id = ? " +
 		"AND u.id = m.user_id " +
 		"AND mps.id = m.privacy_state_id";
+	
+	private static final String SQL_GET_MOBILITY_DATA_FROM_IDS =
+		"SELECT u.username, m.client, " +
+			"m.msg_timestamp, m.epoch_millis, m.upload_timestamp, " +
+			"m.phone_timezone, m.location_status, m.location, " +
+			"m.mode, mps.privacy_state, " +
+			"me.sensor_data, me.features, me.classifier_version " +
+		"FROM user u, mobility_privacy_state mps, " +
+			"mobility m LEFT JOIN mobility_extended me " +
+			"ON m.id = me.mobility_id " +
+		"WHERE u.id = m.user_id " +
+		"AND mps.id = m.privacy_state_id " +
+		"AND m.id IN ";
 	
 	// Retrieves all of the information pertaining to a single Mobility data 
 	// point for a given username. This will return alot of data and should be
@@ -450,6 +473,24 @@ public final class UserMobilityDaos extends AbstractUploadDao {
 		}
 	}
 	
+	public static List<Long> getIdsCreatedBetweenDates(String username, Date startDate, Date endDate) throws DataAccessException {
+		try {
+			return instance.getJdbcTemplate().query(
+					SQL_GET_IDS_CREATE_BETWEEN_DATES,
+					new Object[] { username, TimeUtils.getIso8601DateString(startDate), TimeUtils.getIso8601DateString(endDate) },
+					new SingleColumnRowMapper<Long>());
+		}
+		catch(org.springframework.dao.DataAccessException e) {
+			throw new DataAccessException(
+					"Error executing SQL '" +
+							SQL_GET_IDS_CREATED_BEFORE_DATE + 
+						"' with parameters: " + 
+							username + ", " +
+							TimeUtils.getIso8601DateString(endDate),
+					e);
+		}
+	}
+	
 	/**
 	 * Retrieves the database ID for all of the Mobility data points that 
 	 * belong to a specific user and that were uploaded on or after a specified
@@ -683,6 +724,79 @@ public final class UserMobilityDaos extends AbstractUploadDao {
 							SQL_GET_MOBILITY_DATA_FROM_ID + 
 						"' with parameter: " + 
 							id,
+					e);
+		}
+	}
+	
+	/**
+	 * Gathers the MobilitInformation for all of the IDs in the collection.
+	 * 
+	 * @param ids A collection of database IDs for Mobility points.
+	 * 
+	 * @return A, possibly empty but never null, list of MobilityInformation 
+	 * 		   objects where each object should correspond to an ID in the 
+	 * 		   'ids' list.
+	 *  
+	 * @throws DataAccessException Thrown if there is an error.
+	 */
+	public static List<MobilityInformation> getMobilityInformationFromIds(Collection<Long> ids) throws DataAccessException {
+		try {
+			return instance.getJdbcTemplate().query(
+					SQL_GET_MOBILITY_DATA_FROM_IDS + StringUtils.generateStatementPList(ids.size()),
+					ids.toArray(),
+					new RowMapper<MobilityInformation>() {
+						@Override
+						public MobilityInformation mapRow(ResultSet rs, int rowNum) throws SQLException {
+							try {
+								JSONObject location = null;
+								String locationString = rs.getString("location");
+								if(locationString != null) {
+									location = new JSONObject(locationString);
+								}
+								
+								JSONObject sensorData = null;
+								String sensorDataString = rs.getString("sensor_data");
+								if(sensorDataString != null) {
+									sensorData = new JSONObject(sensorDataString);
+								}
+								
+								JSONObject features = null;
+								String featuresString = rs.getString("features");
+								if(featuresString != null) {
+									features = new JSONObject(featuresString);
+								}
+								
+								return new MobilityInformation(
+										rs.getTimestamp("msg_timestamp"),
+										rs.getLong("epoch_millis"),
+										TimeZone.getTimeZone(rs.getString("phone_timezone")),
+										LocationStatus.valueOf(rs.getString("location_status").toUpperCase()),
+										location,
+										Mode.valueOf(rs.getString("mode").toUpperCase()),
+										MobilityPrivacyStateCache.PrivacyState.getValue(rs.getString("privacy_state")),
+										sensorData,
+										features,
+										rs.getString("classifier_version"));
+							}
+							catch(JSONException e) {
+								throw new SQLException("Error building a JSONObject.", e);
+							}
+							catch(MobilityException e) {
+								throw new SQLException("Error building the MobilityInformation object. This suggests malformed data in the database.", e);
+							}
+							catch(IllegalArgumentException e) {
+								throw new SQLException("Error building the MobilityInformation object. This suggests malformed data in the database.", e);
+							}
+						}
+					}
+				);
+		}
+		catch(org.springframework.dao.DataAccessException e) {
+			throw new DataAccessException(
+					"Error executing SQL '" +
+							SQL_GET_MOBILITY_DATA_FROM_ID + 
+						"' with parameter: " + 
+							ids,
 					e);
 		}
 	}
