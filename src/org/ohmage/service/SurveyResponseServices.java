@@ -1,7 +1,7 @@
 package org.ohmage.service;
 
+import java.util.Collections;
 import java.util.Date;
-import java.util.LinkedList;
 import java.util.List;
 
 import org.ohmage.cache.SurveyResponsePrivacyStateCache;
@@ -90,63 +90,95 @@ public final class SurveyResponseServices {
 			final String surveyId, final String promptId, final String promptType) throws ServiceException {
 		try {
 			// Populate the list with all of the survey response IDs.
-			List<Long> surveyResponseIds = SurveyResponseDaos.retrieveSurveyResponseIdsFromCampaign(campaignId);
+			List<Long> surveyResponseIds = null;
 			
 			// Trim from the list all survey responses not made by a specified
 			// user.
 			if(username != null) {
-				surveyResponseIds.retainAll(SurveyResponseDaos.retrieveSurveyResponseIdsFromUser(campaignId, username));
+				surveyResponseIds = SurveyResponseDaos.retrieveSurveyResponseIdsFromUser(campaignId, username);
 			}
 			
 			// Trim from the list all survey responses not made by a specified
 			// client
 			if(client != null) {
-				surveyResponseIds.retainAll(SurveyResponseDaos.retrieveSurveyResponseIdsWithClient(campaignId, client));
+				if(surveyResponseIds == null) {
+					surveyResponseIds = SurveyResponseDaos.retrieveSurveyResponseIdsWithClient(campaignId, client);
+				}
+				else {
+					surveyResponseIds.retainAll(SurveyResponseDaos.retrieveSurveyResponseIdsWithClient(campaignId, client));
+				}
 			}
 			
 			// Trim from the list all survey responses made before some date.
 			if(startDate != null) {
-				surveyResponseIds.retainAll(SurveyResponseDaos.retrieveSurveyResponseIdsAfterDate(campaignId, startDate));
+				if(surveyResponseIds == null) {
+					surveyResponseIds = SurveyResponseDaos.retrieveSurveyResponseIdsAfterDate(campaignId, startDate);
+				}
+				else {
+					surveyResponseIds.retainAll(SurveyResponseDaos.retrieveSurveyResponseIdsAfterDate(campaignId, startDate));
+				}
 			}
 			
 			// Trim from the list all survey responses made after some date.
 			if(endDate != null) {
-				surveyResponseIds.retainAll(SurveyResponseDaos.retrieveSurveyResponseIdsBeforeDate(campaignId, endDate));
+				if(surveyResponseIds == null) {
+					surveyResponseIds = SurveyResponseDaos.retrieveSurveyResponseIdsBeforeDate(campaignId, endDate);
+				}
+				else {
+					surveyResponseIds.retainAll(SurveyResponseDaos.retrieveSurveyResponseIdsBeforeDate(campaignId, endDate));
+				}
 			}
 			
 			// Trim from the list all survey responses without a specified 
 			// privacy state.
 			if(privacyState != null) {
-				surveyResponseIds.retainAll(SurveyResponseDaos.retrieveSurveyResponseIdsWithPrivacyState(campaignId, privacyState));
+				if(surveyResponseIds == null) {
+					surveyResponseIds = SurveyResponseDaos.retrieveSurveyResponseIdsWithPrivacyState(campaignId, privacyState);
+				}
+				else {
+					surveyResponseIds.retainAll(SurveyResponseDaos.retrieveSurveyResponseIdsWithPrivacyState(campaignId, privacyState));
+				}
 			}
 			
 			// Trim from the list all survey responses without a certain survey
 			// ID.
 			if(surveyId != null) {
-				surveyResponseIds.retainAll(SurveyResponseDaos.retrieveSurveyResponseIdsWithSurveyId(campaignId, surveyId));
+				if(surveyResponseIds == null) {
+					surveyResponseIds = SurveyResponseDaos.retrieveSurveyResponseIdsWithSurveyId(campaignId, surveyId);
+				}
+				else {
+					surveyResponseIds.retainAll(SurveyResponseDaos.retrieveSurveyResponseIdsWithSurveyId(campaignId, surveyId));
+				}
 			}
 			
 			// Trim from the list all survey responses without a certain prompt
 			// ID.
 			if(promptId != null) {
-				surveyResponseIds.retainAll(SurveyResponseDaos.retrieveSurveyResponseIdsWithPromptId(campaignId, promptId));
+				if(surveyResponseIds == null) {
+					surveyResponseIds = SurveyResponseDaos.retrieveSurveyResponseIdsWithPromptId(campaignId, promptId);
+				}
+				else {
+					surveyResponseIds.retainAll(SurveyResponseDaos.retrieveSurveyResponseIdsWithPromptId(campaignId, promptId));
+				}
 			}
 			
 			// Trim from the list all survey responses without a certain prompt
 			// type.
 			if(promptType != null) {
-				surveyResponseIds.retainAll(SurveyResponseDaos.retrieveSurveyResponseIdsWithPromptType(campaignId, promptType));
+				if(surveyResponseIds == null) {
+					surveyResponseIds = SurveyResponseDaos.retrieveSurveyResponseIdsWithPromptType(campaignId, promptType);
+				}
+				else {
+					surveyResponseIds.retainAll(SurveyResponseDaos.retrieveSurveyResponseIdsWithPromptType(campaignId, promptType));
+				}
 			}
 			
-			List<SurveyResponseInformation> result = new LinkedList<SurveyResponseInformation>();
-			
-			// Now, for all of the remaining IDs, get the survey response
-			// information.
-			for(Long surveyResponseId : surveyResponseIds) {
-				result.add(SurveyResponseDaos.retrieveSurveyResponseFromId(surveyResponseId));
+			if((surveyResponseIds == null) || (surveyResponseIds.size() == 0)) {
+				return Collections.emptyList();
 			}
-			
-			return result;
+			else {
+				return SurveyResponseDaos.retrieveSurveyResponseFromIds(surveyResponseIds);
+			}
 		}
 		catch(DataAccessException e) {
 			request.setFailed();

@@ -2,6 +2,7 @@ package org.ohmage.dao;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -16,6 +17,7 @@ import org.ohmage.cache.SurveyResponsePrivacyStateCache;
 import org.ohmage.domain.SurveyResponseInformation;
 import org.ohmage.domain.SurveyResponseInformation.SurveyResponseException;
 import org.ohmage.exception.DataAccessException;
+import org.ohmage.util.StringUtils;
 import org.ohmage.util.TimeUtils;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.SingleColumnRowMapper;
@@ -125,9 +127,21 @@ public class SurveyResponseDaos extends Dao {
 		"AND c.id = sr.campaign_id " +
 		"AND srps.id = sr.privacy_state_id";
 	
+	// Retrieves all of the information about a single survey response.
+	private static final String SQL_GET_SURVEY_RESPONSES = 
+		"SELECT u.username, c.urn, sr.id, sr.client, " +
+			"sr.msg_timestamp, sr.epoch_millis, sr.phone_timezone, " +
+			"sr.survey_id, sr.launch_context, " +
+			"sr.location_status, sr.location, srps.privacy_state " +
+		"FROM user u, campaign c, survey_response sr, survey_response_privacy_state srps " +
+		"WHERE u.id = sr.user_id " +
+		"AND c.id = sr.campaign_id " +
+		"AND srps.id = sr.privacy_state_id " +
+		"AND sr.id in ";
+	
 	// Retrieves all of the information about all prompt responses that pertain
 	// to a single survey response.
-	private static final String SQL_GET_PROMPT_RESPONSE = 
+	private static final String SQL_GET_PROMPT_RESPONSES = 
 		"SELECT prompt_id, prompt_type, repeatable_set_id, repeatable_set_iteration, response " +
 		"FROM prompt_response " +
 		"WHERE survey_response_id = ?";
@@ -490,7 +504,7 @@ public class SurveyResponseDaos extends Dao {
 			// Retrieve all of the prompt responses for the survey response and
 			// add them to the survey response information object.
 			instance.getJdbcTemplate().query(
-					SQL_GET_PROMPT_RESPONSE,
+					SQL_GET_PROMPT_RESPONSES,
 					new Object[] { surveyResponseId },
 					new RowMapper<Object>() {
 						@Override
@@ -530,6 +544,113 @@ public class SurveyResponseDaos extends Dao {
 			throw new DataAccessException(
 					"Error executing SQL '" + SQL_GET_SURVEY_RESPONSE + 
 						"' with parameter: " + surveyResponseId,
+					e);
+		}
+	}
+	
+	/**
+	 * Retrieves the information about a list of survey responses including all
+	 * of their individual prompt responses.
+	 * 
+	 * @param surveyResponseIds A collection of unique identifiers for survey
+	 * 							responses whose information is being queried.
+	 * 
+	 * @return A list of SurveyResponseInformation objects each relating to a
+	 * 		   survey response ID.
+	 * 
+	 * @throws DataAccessException Thrown if there is an error.
+	 */
+	public static List<SurveyResponseInformation> retrieveSurveyResponseFromIds(
+			final Collection<Long> surveyResponseIds) throws DataAccessException {
+		try {
+			final Map<String, Class<?>> typeMapping = new HashMap<String, Class<?>>();
+			typeMapping.put("tinyint", Integer.class);
+			
+			final List<SurveyResponseInformation> result = 
+				instance.getJdbcTemplate().query(
+					SQL_GET_SURVEY_RESPONSES + StringUtils.generateStatementPList(surveyResponseIds.size()),
+					surveyResponseIds.toArray(),
+					new RowMapper<SurveyResponseInformation>() {
+						@Override
+						public SurveyResponseInformation mapRow(ResultSet rs, int rowNum) throws SQLException {
+							try {
+								JSONObject locationJson = null;
+								String locationString = rs.getString("location");
+								if(locationString != null) {
+									locationJson = new JSONObject(locationString);
+								}
+								
+								final SurveyResponseInformation currResult = 
+									new SurveyResponseInformation(
+										rs.getString("username"),
+										rs.getString("urn"),
+										rs.getString("client"),
+										rs.getTimestamp("msg_timestamp"),
+										rs.getLong("epoch_millis"),
+										TimeZone.getTimeZone(rs.getString("phone_timezone")),
+										rs.getString("survey_id"),
+										new JSONObject(rs.getString("launch_context")),
+										rs.getString("location_status"),
+										locationJson,
+										SurveyResponsePrivacyStateCache.PrivacyState.getValue(rs.getString("privacy_state")));
+								
+								// Retrieve all of the prompt responses for the survey response and
+								// add them to the survey response information object.
+								try {
+									instance.getJdbcTemplate().query(
+											SQL_GET_PROMPT_RESPONSES,
+											new Object[] { rs.getLong("id") },
+											new RowMapper<Object>() {
+												@Override
+												public Object mapRow(ResultSet rs, int rowNum) throws SQLException {
+													try {
+														currResult.addPromptResponse(
+																rs.getString("prompt_id"), 
+																rs.getString("prompt_type"), 
+																rs.getString("repeatable_set_id"), 
+																(Integer) rs.getObject("repeatable_set_iteration", typeMapping), 
+																rs.getString("response"));
+													}
+													catch(SurveyResponseException e) {
+														throw new SQLException("Error adding a prompt response.", e);
+													}
+													catch(IllegalArgumentException e) {
+														throw new SQLException("Error adding a prompt response.", e);
+													}
+													
+													return null;
+												}
+											}
+										);
+								}
+								catch(org.springframework.dao.DataAccessException e) {
+									throw new SQLException(
+											"Error executing SQL '" + SQL_GET_PROMPT_RESPONSES + 
+											"' with parameter: " + rs.getLong("id"),
+										e);
+								}
+								
+								return currResult;
+							}
+							catch(JSONException e) {
+								throw new SQLException("Error creating a JSONObject.", e);
+							}
+							catch(SurveyResponseException e) {
+								throw new SQLException("Error creating the survey response information object.", e);
+							}
+							catch(IllegalArgumentException e) {
+								throw new SQLException("Error creating the survey response information object.", e);
+							}
+						}
+					}
+				);
+			
+			return result;
+		}
+		catch(org.springframework.dao.DataAccessException e) {
+			throw new DataAccessException(
+					"Error executing SQL '" + SQL_GET_SURVEY_RESPONSE + 
+						"' with parameter: " + surveyResponseIds,
 					e);
 		}
 	}
