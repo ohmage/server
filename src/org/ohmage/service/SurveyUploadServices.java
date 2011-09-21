@@ -338,7 +338,11 @@ public final class SurveyUploadServices {
 							}
 							
 							if(prompt.getType().equals(PromptTypeKeys.TYPE_IMAGE)) {
-								imageIdList.add(JsonUtils.getStringFromJsonObject(promptResponse, JsonInputKeys.PROMPT_VALUE));
+								String imageId = JsonUtils.getStringFromJsonObject(promptResponse, JsonInputKeys.PROMPT_VALUE); 
+								
+								if(! JsonInputKeys.PROMPT_NOT_DISPLAYED.equals(imageId) && ! JsonInputKeys.PROMPT_SKIPPED.equals(imageId)) {
+									imageIdList.add(imageId);
+								}
 							}
 						}
 					}
@@ -382,7 +386,11 @@ public final class SurveyUploadServices {
 				}
 				
 				if(prompt.getType().equals(PromptTypeKeys.TYPE_IMAGE)) {
-					imageIdList.add(JsonUtils.getStringFromJsonObject(response, JsonInputKeys.PROMPT_VALUE));
+					String imageId = JsonUtils.getStringFromJsonObject(response, JsonInputKeys.PROMPT_VALUE); 
+					
+					if(! JsonInputKeys.PROMPT_NOT_DISPLAYED.equals(imageId) && ! JsonInputKeys.PROMPT_SKIPPED.equals(imageId)) {
+						imageIdList.add(imageId);
+					}
 				}
 			}
 		}
@@ -421,12 +429,6 @@ public final class SurveyUploadServices {
 		}
 		
 		Set<String> payloadKeys = imagePayloadMap.keySet(); 
-		
-		if(payloadKeys.size() != idsFoundInSurveyPayload.size()) {
-			String message = "The number of images does not match the number of images found in the survey payload.";
-			request.setFailed(ErrorCodes.SURVEY_INVALID_RESPONSES, message);
-			throw new ServiceException(message);
-		}
 		
 		for(String payloadKey : payloadKeys) {
 			if(! idsFoundInSurveyPayload.contains(payloadKey)) {
