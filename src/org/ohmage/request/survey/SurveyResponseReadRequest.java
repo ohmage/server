@@ -337,10 +337,6 @@ public final class SurveyResponseReadRequest extends UserRequest {
 
 				LOGGER.info("Validating privacy_state parameter.");
 				tPrivacyState = SurveyResponseValidators.validatePrivacyState(this, getParameter(InputKeys.PRIVACY_STATE));
-				if(tPrivacyState == null) {
-					setFailed(ErrorCodes.SURVEY_INVALID_PRIVACY_STATE, "Found unknown privacy_state: " + tPrivacyState);
-					throw new ValidationException("Found unknown privacy_state: " + tPrivacyState);
-				}
 				
 				LOGGER.info("Validating user_list parameter.");
 				tUserListAsList = SurveyResponseReadValidators.validateUserList(this, getParameter(InputKeys.USER_LIST));
