@@ -21,7 +21,7 @@ import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
-import org.ohmage.cache.CampaignRoleCache;
+import org.ohmage.domain.configuration.Configuration;
 
 /**
  * Storage class for mapping a Campaign to a List of user roles.
@@ -36,8 +36,8 @@ import org.ohmage.cache.CampaignRoleCache;
  */
 public class CampaignAndUserRoles {
 	
-	private Campaign campaign;
-	private List<CampaignRoleCache.Role> userRoles;
+	private Configuration campaign;
+	private List<Configuration.Role> userRoles;
 
 	/**
 	 * Default constructor.
@@ -47,7 +47,7 @@ public class CampaignAndUserRoles {
 	 */
 	public CampaignAndUserRoles() {
 		campaign = null;
-		userRoles = new LinkedList<CampaignRoleCache.Role>();
+		userRoles = new LinkedList<Configuration.Role>();
 	}
 	
 	/**
@@ -56,9 +56,9 @@ public class CampaignAndUserRoles {
 	 * @param campaign The Campaign for which the user's roles will be later
 	 * 				   added.
 	 */
-	public CampaignAndUserRoles(Campaign campaign) {
+	public CampaignAndUserRoles(Configuration campaign) {
 		this.campaign = campaign;
-		this.userRoles = new LinkedList<CampaignRoleCache.Role>();
+		this.userRoles = new LinkedList<Configuration.Role>();
 	}
 
 	/**
@@ -69,8 +69,8 @@ public class CampaignAndUserRoles {
 	 * 				   be based.
 	 */
 	public CampaignAndUserRoles(CampaignAndUserRoles original) {
-		campaign = new Campaign(original.campaign);
-		userRoles = new ArrayList<CampaignRoleCache.Role>(original.userRoles);
+		campaign = new Configuration(original.campaign);
+		userRoles = new ArrayList<Configuration.Role>(original.userRoles);
 	}
 
 	/**
@@ -79,7 +79,7 @@ public class CampaignAndUserRoles {
 	 * @param campaign A Campaign object for this campaign, user-role 
 	 * 				   relationship.
 	 */
-	public void setCampaign(Campaign campaign) {
+	public void setCampaign(Configuration campaign) {
 		this.campaign = campaign;
 	}
 
@@ -88,7 +88,7 @@ public class CampaignAndUserRoles {
 	 * 
 	 * @return The Campaign for his relationship.
 	 */
-	public Campaign getCampaign() {
+	public Configuration getCampaign() {
 		return this.campaign;
 	}
 
@@ -98,9 +98,9 @@ public class CampaignAndUserRoles {
 	 * 
 	 * @param userRole The campaign role to add.
 	 */
-	public void addUserRole(CampaignRoleCache.Role userRole) {
+	public void addUserRole(Configuration.Role userRole) {
 		if(null == this.userRoles) {
-			this.userRoles = new ArrayList<CampaignRoleCache.Role>();
+			this.userRoles = new ArrayList<Configuration.Role>();
 		}
 		this.userRoles.add(userRole);
 	}
@@ -110,7 +110,7 @@ public class CampaignAndUserRoles {
 	 * 
 	 * @param roles A Collection of roles to be added.
 	 */
-	public void addRoles(Collection<CampaignRoleCache.Role> roles) {
+	public void addRoles(Collection<Configuration.Role> roles) {
 		if(roles != null) {
 			userRoles.addAll(roles);
 		}
@@ -121,7 +121,7 @@ public class CampaignAndUserRoles {
 	 * 
 	 * @return A List of the user's roles in this campaign.
 	 */
-	public List<CampaignRoleCache.Role> getUserRoleStrings() {
+	public List<Configuration.Role> getUserRoleStrings() {
 		return Collections.unmodifiableList(this.userRoles);
 	}
 

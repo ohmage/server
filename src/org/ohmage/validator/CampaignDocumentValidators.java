@@ -5,7 +5,7 @@ import java.util.Map;
 
 import org.apache.log4j.Logger;
 import org.ohmage.annotator.ErrorCodes;
-import org.ohmage.cache.DocumentRoleCache;
+import org.ohmage.domain.Document;
 import org.ohmage.exception.ValidationException;
 import org.ohmage.request.InputKeys;
 import org.ohmage.request.Request;
@@ -47,14 +47,14 @@ public class CampaignDocumentValidators {
 	 * 							   individual values in the pairs are malformed
 	 * 							   or missing.
 	 */
-	public static Map<String, DocumentRoleCache.Role> validateCampaignIdAndDocumentRoleList(Request request, String campaignAndRoleList) throws ValidationException {
+	public static Map<String, Document.Role> validateCampaignIdAndDocumentRoleList(Request request, String campaignAndRoleList) throws ValidationException {
 		LOGGER.info("Validating a list of campaign ID and document role pairs.");
 		
 		if(StringUtils.isEmptyOrWhitespaceOnly(campaignAndRoleList)) {
 			return null;
 		}
 		
-		Map<String, DocumentRoleCache.Role> result = new HashMap<String, DocumentRoleCache.Role>();
+		Map<String, Document.Role> result = new HashMap<String, Document.Role>();
 		
 		String[] campaignAndRoleArray = campaignAndRoleList.split(InputKeys.LIST_ITEM_SEPARATOR);
 		for(int i = 0; i < campaignAndRoleArray.length; i++) {
@@ -75,7 +75,7 @@ public class CampaignDocumentValidators {
 					throw new ValidationException("The campaign ID in the campaign ID, document role pair is missing: " + campaignAndRoleString);
 				}
 				
-				DocumentRoleCache.Role documentRole = DocumentValidators.validateRole(request, campaignAndRole[1].trim());
+				Document.Role documentRole = DocumentValidators.validateRole(request, campaignAndRole[1].trim());
 				if(documentRole == null) {
 					request.setFailed(ErrorCodes.DOCUMENT_INVALID_ROLE, "The document role in the campaign ID, document role pair is missing: " + campaignAndRoleString);
 					throw new ValidationException("The document role in the campaign ID, document role pair is missing: " + campaignAndRoleString);

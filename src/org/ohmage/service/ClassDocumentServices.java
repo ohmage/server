@@ -3,8 +3,8 @@ package org.ohmage.service;
 import java.util.Collection;
 
 import org.ohmage.annotator.ErrorCodes;
-import org.ohmage.cache.DocumentRoleCache;
 import org.ohmage.dao.ClassDocumentDaos;
+import org.ohmage.domain.Document;
 import org.ohmage.exception.DataAccessException;
 import org.ohmage.exception.ServiceException;
 import org.ohmage.request.Request;
@@ -35,7 +35,7 @@ public class ClassDocumentServices {
 	 * 
 	 * @throws ServiceException Thrown if there is an error.
 	 */
-	public static DocumentRoleCache.Role getDocumentRoleForClass(Request request, String classId, String documentId) throws ServiceException {
+	public static Document.Role getDocumentRoleForClass(Request request, String classId, String documentId) throws ServiceException {
 		try {
 			return ClassDocumentDaos.getClassDocumentRole(classId, documentId);
 		}
@@ -61,8 +61,8 @@ public class ClassDocumentServices {
 	 * @throws ServiceException Thrown if the role is not high enough to
 	 * 							disassociate a class and document.
 	 */
-	public static void ensureRoleHighEnoughToDisassociateDocumentFromClass(Request request, DocumentRoleCache.Role role, String classId, String documentId) throws ServiceException {
-		DocumentRoleCache.Role classDocumentRole = getDocumentRoleForClass(request, classId, documentId);
+	public static void ensureRoleHighEnoughToDisassociateDocumentFromClass(Request request, Document.Role role, String classId, String documentId) throws ServiceException {
+		Document.Role classDocumentRole = getDocumentRoleForClass(request, classId, documentId);
 		
 		if(role.compare(classDocumentRole) < 0) {
 			request.setFailed(ErrorCodes.DOCUMENT_INSUFFICIENT_PERMISSIONS, "Insufficient permissions to disassociate the document '" + documentId + "' with the class '" + classId + "' as the class has a higher role.");
@@ -87,7 +87,7 @@ public class ClassDocumentServices {
 	 * @throws ServiceException Thrown if the role is not high enough to
 	 * 							disassociate the class and document.
 	 */
-	public static void ensureRoleHighEnoughToDisassociateDocumentFromClasses(Request request, DocumentRoleCache.Role role, Collection<String> classIds, String documentId) throws ServiceException {
+	public static void ensureRoleHighEnoughToDisassociateDocumentFromClasses(Request request, Document.Role role, Collection<String> classIds, String documentId) throws ServiceException {
 		for(String classId : classIds) {
 			ensureRoleHighEnoughToDisassociateDocumentFromClass(request, role, classId, documentId);
 		}

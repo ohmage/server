@@ -4,8 +4,8 @@ import java.util.Collection;
 import java.util.List;
 
 import org.ohmage.annotator.ErrorCodes;
-import org.ohmage.cache.DocumentRoleCache;
 import org.ohmage.dao.CampaignDocumentDaos;
+import org.ohmage.domain.Document;
 import org.ohmage.exception.DataAccessException;
 import org.ohmage.exception.ServiceException;
 import org.ohmage.request.Request;
@@ -57,7 +57,7 @@ public class CampaignDocumentServices {
 	 * 
 	 * @throws ServiceException Thrown if there is an error.
 	 */
-	public static DocumentRoleCache.Role getDocumentRoleForCampaign(Request request, String campaignId, String documentId) throws ServiceException {
+	public static Document.Role getDocumentRoleForCampaign(Request request, String campaignId, String documentId) throws ServiceException {
 		try {
 			return CampaignDocumentDaos.getCampaignDocumentRole(campaignId, documentId);
 		}
@@ -83,8 +83,8 @@ public class CampaignDocumentServices {
 	 * @throws ServiceException Thrown if the role is not high enough to
 	 * 							disassociate the campaign and document.
 	 */
-	public static void ensureRoleHighEnoughToDisassociateDocumentFromCampaign(Request request, DocumentRoleCache.Role role, String campaignId, String documentId) throws ServiceException {
-		DocumentRoleCache.Role campaignDocumentRole = getDocumentRoleForCampaign(request, campaignId, documentId);
+	public static void ensureRoleHighEnoughToDisassociateDocumentFromCampaign(Request request, Document.Role role, String campaignId, String documentId) throws ServiceException {
+		Document.Role campaignDocumentRole = getDocumentRoleForCampaign(request, campaignId, documentId);
 		
 		if(role.compare(campaignDocumentRole) < 0) {
 			request.setFailed(ErrorCodes.DOCUMENT_INSUFFICIENT_PERMISSIONS, "Insufficient permissions to disassociate the document '" + documentId + "' with the campaign '" + campaignId + "' as the campaign has a higher role.");
@@ -109,7 +109,7 @@ public class CampaignDocumentServices {
 	 * @throws ServiceException Thrown if the role is not high enough to
 	 * 							disassociate a campaign and document.
 	 */
-	public static void ensureRoleHighEnoughToDisassociateDocumentFromCampaigns(Request request, DocumentRoleCache.Role role, Collection<String> campaignIds, String documentId) throws ServiceException {
+	public static void ensureRoleHighEnoughToDisassociateDocumentFromCampaigns(Request request, Document.Role role, Collection<String> campaignIds, String documentId) throws ServiceException {
 		for(String campaignId : campaignIds) {
 			ensureRoleHighEnoughToDisassociateDocumentFromCampaign(request, role, campaignId, documentId);
 		}

@@ -13,6 +13,7 @@ import java.sql.Statement;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
@@ -22,14 +23,14 @@ import javax.sql.DataSource;
 
 import org.apache.log4j.Logger;
 import org.ohmage.cache.PreferenceCache;
-import org.ohmage.cache.SurveyResponsePrivacyStateCache;
-import org.ohmage.domain.User;
-import org.ohmage.domain.configuration.PromptTypeKeys;
-import org.ohmage.domain.upload.PromptResponse;
-import org.ohmage.domain.upload.SurveyResponse;
+import org.ohmage.domain.configuration.PromptResponse;
+import org.ohmage.domain.configuration.RepeatableSet;
+import org.ohmage.domain.configuration.Response;
+import org.ohmage.domain.configuration.SurveyResponse;
+import org.ohmage.domain.configuration.prompt.response.PhotoPromptResponse;
 import org.ohmage.exception.CacheMissException;
 import org.ohmage.exception.DataAccessException;
-import org.ohmage.request.Request;
+import org.ohmage.util.TimeUtils;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.jdbc.core.PreparedStatementCreator;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
@@ -74,7 +75,6 @@ public class SurveyUploadDao extends AbstractUploadDao {
 		}
 	}
 
-	
 	private static final Logger LOGGER = Logger.getLogger(SurveyUploadDao.class);
 	
 	private static final String SQL_INSERT_SURVEY_RESPONSE =
@@ -91,7 +91,7 @@ public class SurveyUploadDao extends AbstractUploadDao {
 		"client = ?, " +
 		"upload_timestamp = ?, " +
 		"launch_context = ?, " +
-		"privacy_state_id = ?";
+		"privacy_state = (SELECT id FROM survey_response_privacy_state WHERE privacy_state = ?)";
 		
 	private static final String SQL_INSERT_PROMPT_RESPONSE =
 		"INSERT into prompt_response " +
@@ -130,7 +130,6 @@ public class SurveyUploadDao extends AbstractUploadDao {
 	 * Any images are also persisted to the file system. The entire persistence
 	 * process is wrapped in one giant transaction.
 	 * 
-	 * @param request  The Request to fail should a problem occur.
 	 * @param user  The owner of the survey upload.
 	 * @param client  The software client that performed the upload.
 	 * @param campaignUrn  The campaign for the survey upload.
@@ -140,8 +139,7 @@ public class SurveyUploadDao extends AbstractUploadDao {
 	 * surveys.
 	 * @throws DataAccessException  If any IO error occurs.
 	 */
-	public static List<Integer> insertSurveys(final Request request, 
-			                                  final User user,
+	public static List<Integer> insertSurveys(final String username,
 			                                  final String client,
 			                                  final String campaignUrn,
 			                                  final List<SurveyResponse> surveyUploadList,
@@ -149,9 +147,7 @@ public class SurveyUploadDao extends AbstractUploadDao {
 		throws DataAccessException {
 		
 		List<Integer> duplicateIndexList = new ArrayList<Integer>();
-		final String username = user.getUsername();
 		int numberOfSurveys = surveyUploadList.size();
-		int surveyIndex = 0;
 		
 		// The following variables are used in logging messages when errors occur
 		SurveyResponse currentSurveyResponse = null;
@@ -172,7 +168,7 @@ public class SurveyUploadDao extends AbstractUploadDao {
 		
 		try { // handle TransactionExceptions
 			
-			for(; surveyIndex < numberOfSurveys; surveyIndex++) { 
+			for(int surveyIndex = 0; surveyIndex < numberOfSurveys; surveyIndex++) { 
 				
 				 try { // handle DataAccessExceptions
 					
@@ -191,18 +187,18 @@ public class SurveyUploadDao extends AbstractUploadDao {
 									= connection.prepareStatement(SQL_INSERT_SURVEY_RESPONSE, Statement.RETURN_GENERATED_KEYS);
 								ps.setString(1, username);
 								ps.setString(2, campaignUrn);
-								ps.setTimestamp(3, Timestamp.valueOf(surveyUpload.getDate()));
-								ps.setLong(4, surveyUpload.getEpochTime());
-								ps.setString(5, surveyUpload.getTimezone());
-								ps.setString(6, surveyUpload.getLocationStatus());
-								ps.setString(7, surveyUpload.getLocation());
-								ps.setString(8, surveyUpload.getSurveyId());
-								ps.setString(9, surveyUpload.getSurvey());
+								ps.setString(3, TimeUtils.getIso8601DateTimeString(surveyUpload.getDate()));
+								ps.setLong(4, surveyUpload.getTime());
+								ps.setString(5, surveyUpload.getTimezone().getID());
+								ps.setString(6, surveyUpload.getLocationStatus().toString());
+								ps.setString(7, surveyUpload.getLocation().toJson(false).toString());
+								ps.setString(8, surveyUpload.getSurvey().getId());
+								ps.setString(9, surveyUpload.toJson(false, false, false, false, true, true, true, true, true, true, false, false, true, true, true, false).toString());
 								ps.setString(10, client);
 								ps.setTimestamp(11, new Timestamp(System.currentTimeMillis()));
-								ps.setString(12, surveyUpload.getLaunchContext());
+								ps.setString(12, surveyUpload.getLaunchContext().toJson(true).toString());
 								try {
-									ps.setInt(13, SurveyResponsePrivacyStateCache.instance().lookup(PreferenceCache.instance().lookup(PreferenceCache.KEY_DEFAULT_SURVEY_RESPONSE_SHARING_STATE)));
+									ps.setString(13, PreferenceCache.instance().lookup(PreferenceCache.KEY_DEFAULT_SURVEY_RESPONSE_SHARING_STATE));
 								} catch (CacheMissException e) {
 									LOGGER.error("Error reading from the cache.", e);
 									throw new SQLException(e);
@@ -220,38 +216,41 @@ public class SurveyUploadDao extends AbstractUploadDao {
 					currentSql = SQL_INSERT_PROMPT_RESPONSE;
 					
 					// Now insert each prompt response from the survey
-					
-					List<PromptResponse> promptUploadList = surveyUpload.getPromptResponses();
-					
-					for(int i = 0; i < promptUploadList.size(); i++) {
-						final PromptResponse promptUpload = promptUploadList.get(i);	
-						currentPromptResponse = promptUpload;
+					Collection<Response> promptUploadList = surveyUpload.getPromptResponses().values();
+					for(Response response : promptUploadList) {
+						if(! (response instanceof PromptResponse)) {
+							continue;
+						}
+						final PromptResponse promptResponse = (PromptResponse) response;
 						
 						instance.getJdbcTemplate().update(
 							new PreparedStatementCreator() {
 								public PreparedStatement createPreparedStatement(Connection connection) throws SQLException {
 									PreparedStatement ps 
 										= connection.prepareStatement(SQL_INSERT_PROMPT_RESPONSE);
-									ps.setInt(1, surveyResponseId.intValue());
-									ps.setString(2, promptUpload.getRepeatableSetId());
-									if(null != promptUpload.getRepeatableSetIteration()) {
-										ps.setInt(3, Integer.parseInt(promptUpload.getRepeatableSetIteration()));
-									} else {
+									ps.setLong(1, surveyResponseId.longValue());
+									
+									RepeatableSet parent = promptResponse.getPrompt().getParent();
+									if(parent == null) {
+										ps.setNull(2, java.sql.Types.NULL);
 										ps.setNull(3, java.sql.Types.NULL);
 									}
-									ps.setString(4, promptUpload.getType());
-									ps.setString(5, promptUpload.getPromptId());
-									ps.setString(6, promptUpload.getValue());
+									else {
+										ps.setString(2, parent.getId());
+										ps.setInt(3, promptResponse.getRepeatableSetIteration());
+									}
+									ps.setString(4, promptResponse.getPrompt().getType().toString());
+									ps.setString(5, promptResponse.getPrompt().getId());
+									ps.setString(6, promptResponse.getResponseValue());
 									
 									return ps;
 								}
 							}
 						);
 						
-						if(promptUpload.getType().equals(PromptTypeKeys.TYPE_IMAGE)) {
-						
+						if(promptResponse instanceof PhotoPromptResponse) {
 							// Grab the associated image and save it
-							String imageId = promptUpload.getValue();
+							String imageId = promptResponse.getResponseValue();
 							BufferedImage imageContents = bufferedImageMap.get(imageId);
 							
 							// getDirectory() is used as opposed to accessing the current leaf

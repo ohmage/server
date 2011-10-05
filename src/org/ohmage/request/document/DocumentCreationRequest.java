@@ -9,8 +9,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.log4j.Logger;
 import org.ohmage.annotator.ErrorCodes;
-import org.ohmage.cache.DocumentPrivacyStateCache;
-import org.ohmage.cache.DocumentRoleCache;
+import org.ohmage.domain.Document;
 import org.ohmage.exception.ServiceException;
 import org.ohmage.exception.ValidationException;
 import org.ohmage.request.InputKeys;
@@ -90,16 +89,16 @@ import org.ohmage.validator.DocumentValidators;
 public class DocumentCreationRequest extends UserRequest {
 	private static final Logger LOGGER = Logger.getLogger(DocumentCreationRequest.class);
 	
-	private static final String KEY_DOCUMENT_ID = "document_id";
+	public static final String KEY_DOCUMENT_ID = "document_id";
 	
 	private final byte[] document;
 	
 	private final String name;
 	private final String description;
-	private final DocumentPrivacyStateCache.PrivacyState privacyState;
+	private final Document.PrivacyState privacyState;
 
-	private final Map<String, DocumentRoleCache.Role> campaignRoleMap;
-	private final Map<String, DocumentRoleCache.Role> classRoleMap;
+	private final Map<String, Document.Role> campaignRoleMap;
+	private final Map<String, Document.Role> classRoleMap;
 	
 	private String documentId;
 	
@@ -117,10 +116,10 @@ public class DocumentCreationRequest extends UserRequest {
 		
 		byte[] tempDocument = null;
 		String tempName = null;
-		DocumentPrivacyStateCache.PrivacyState tempPrivacyState = null;
+		Document.PrivacyState tempPrivacyState = null;
 		String tempDescription = null;
-		Map<String, DocumentRoleCache.Role> tempCampaignRoleList = null;
-		Map<String, DocumentRoleCache.Role> tempClassRoleList = null;
+		Map<String, Document.Role> tempCampaignRoleList = null;
+		Map<String, Document.Role> tempClassRoleList = null;
 		
 		try {
 			tempDocument = getMultipartValue(httpRequest, InputKeys.DOCUMENT);

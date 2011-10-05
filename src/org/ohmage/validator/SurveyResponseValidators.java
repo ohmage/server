@@ -3,7 +3,7 @@ package org.ohmage.validator;
 import java.util.Date;
 
 import org.ohmage.annotator.ErrorCodes;
-import org.ohmage.cache.SurveyResponsePrivacyStateCache;
+import org.ohmage.domain.configuration.SurveyResponse;
 import org.ohmage.exception.ValidationException;
 import org.ohmage.request.Request;
 import org.ohmage.util.StringUtils;
@@ -69,13 +69,13 @@ public final class SurveyResponseValidators {
 	 * 							   whitespace only, and not a valid survey 
 	 * 							   response privacy state.
 	 */
-	public static SurveyResponsePrivacyStateCache.PrivacyState validatePrivacyState(Request request, String privacyState) throws ValidationException {
+	public static SurveyResponse.PrivacyState validatePrivacyState(Request request, String privacyState) throws ValidationException {
 		if(StringUtils.isEmptyOrWhitespaceOnly(privacyState)) {
 			return null;
 		}
 		
 		try {
-			return SurveyResponsePrivacyStateCache.PrivacyState.getValue(privacyState);
+			return SurveyResponse.PrivacyState.getValue(privacyState);
 		}
 		catch(IllegalArgumentException e) {
 			request.setFailed(ErrorCodes.SURVEY_INVALID_PRIVACY_STATE, "The privacy state is unknown: " + privacyState);

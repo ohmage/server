@@ -17,14 +17,13 @@ import javax.sql.DataSource;
 
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.ohmage.cache.MobilityPrivacyStateCache;
-import org.ohmage.domain.MobilityInformation;
-import org.ohmage.domain.MobilityInformation.Location;
-import org.ohmage.domain.MobilityInformation.LocationStatus;
-import org.ohmage.domain.MobilityInformation.MobilityException;
-import org.ohmage.domain.MobilityInformation.Mode;
-import org.ohmage.domain.MobilityInformation.SubType;
+import org.ohmage.domain.Location;
+import org.ohmage.domain.MobilityPoint;
+import org.ohmage.domain.MobilityPoint.LocationStatus;
+import org.ohmage.domain.MobilityPoint.Mode;
+import org.ohmage.domain.MobilityPoint.SubType;
 import org.ohmage.exception.DataAccessException;
+import org.ohmage.exception.ErrorCodeException;
 import org.ohmage.util.StringUtils;
 import org.ohmage.util.TimeUtils;
 import org.springframework.jdbc.core.PreparedStatementCreator;
@@ -241,7 +240,7 @@ public final class UserMobilityDaos extends AbstractUploadDao {
 	 * @throws DataAccessException Thrown if there is an error.
 	 */
 	public static void createMobilityPoint(final String username, final String client,
-			final MobilityInformation mobilityPoint) throws DataAccessException {
+			final MobilityPoint mobilityPoint) throws DataAccessException {
 		
 		// Create the transaction.
 		DefaultTransactionDefinition def = new DefaultTransactionDefinition();
@@ -568,7 +567,7 @@ public final class UserMobilityDaos extends AbstractUploadDao {
 	 * 
 	 * @throws DataAccessException Thrown if there is an error.
 	 */
-	public static List<Long> getIdsWithPrivacyState(String username, MobilityPrivacyStateCache.PrivacyState privacyState) throws DataAccessException {
+	public static List<Long> getIdsWithPrivacyState(String username, MobilityPoint.PrivacyState privacyState) throws DataAccessException {
 		try {
 			return instance.getJdbcTemplate().query(
 					SQL_GET_IDS_WITH_PRIVACY_STATE,
@@ -659,14 +658,14 @@ public final class UserMobilityDaos extends AbstractUploadDao {
 	 * 
 	 * @throws DataAccessException Thrown if there is an error.
 	 */
-	public static MobilityInformation getMobilityInformationFromId(Long id) throws DataAccessException {
+	public static MobilityPoint getMobilityInformationFromId(Long id) throws DataAccessException {
 		try {
 			return instance.getJdbcTemplate().queryForObject(
 					SQL_GET_MOBILITY_DATA_FROM_ID,
 					new Object[] { id },
-					new RowMapper<MobilityInformation>() {
+					new RowMapper<MobilityPoint>() {
 						@Override
-						public MobilityInformation mapRow(ResultSet rs, int rowNum) throws SQLException {
+						public MobilityPoint mapRow(ResultSet rs, int rowNum) throws SQLException {
 							try {
 								JSONObject location = null;
 								String locationString = rs.getString("location");
@@ -686,14 +685,14 @@ public final class UserMobilityDaos extends AbstractUploadDao {
 									features = new JSONObject(featuresString);
 								}
 								
-								return new MobilityInformation(
+								return new MobilityPoint(
 										rs.getTimestamp("msg_timestamp"),
 										rs.getLong("epoch_millis"),
 										TimeZone.getTimeZone(rs.getString("phone_timezone")),
 										LocationStatus.valueOf(rs.getString("location_status").toUpperCase()),
 										location,
 										Mode.valueOf(rs.getString("mode").toUpperCase()),
-										MobilityPrivacyStateCache.PrivacyState.getValue(rs.getString("privacy_state")),
+										MobilityPoint.PrivacyState.getValue(rs.getString("privacy_state")),
 										sensorData,
 										features,
 										rs.getString("classifier_version"));
@@ -701,7 +700,7 @@ public final class UserMobilityDaos extends AbstractUploadDao {
 							catch(JSONException e) {
 								throw new SQLException("Error building a JSONObject.", e);
 							}
-							catch(MobilityException e) {
+							catch(ErrorCodeException e) {
 								throw new SQLException("Error building the MobilityInformation object. This suggests malformed data in the database.", e);
 							}
 							catch(IllegalArgumentException e) {
@@ -739,14 +738,14 @@ public final class UserMobilityDaos extends AbstractUploadDao {
 	 *  
 	 * @throws DataAccessException Thrown if there is an error.
 	 */
-	public static List<MobilityInformation> getMobilityInformationFromIds(Collection<Long> ids) throws DataAccessException {
+	public static List<MobilityPoint> getMobilityInformationFromIds(Collection<Long> ids) throws DataAccessException {
 		try {
 			return instance.getJdbcTemplate().query(
 					SQL_GET_MOBILITY_DATA_FROM_IDS + StringUtils.generateStatementPList(ids.size()),
 					ids.toArray(),
-					new RowMapper<MobilityInformation>() {
+					new RowMapper<MobilityPoint>() {
 						@Override
-						public MobilityInformation mapRow(ResultSet rs, int rowNum) throws SQLException {
+						public MobilityPoint mapRow(ResultSet rs, int rowNum) throws SQLException {
 							try {
 								JSONObject location = null;
 								String locationString = rs.getString("location");
@@ -766,14 +765,14 @@ public final class UserMobilityDaos extends AbstractUploadDao {
 									features = new JSONObject(featuresString);
 								}
 								
-								return new MobilityInformation(
+								return new MobilityPoint(
 										rs.getTimestamp("msg_timestamp"),
 										rs.getLong("epoch_millis"),
 										TimeZone.getTimeZone(rs.getString("phone_timezone")),
 										LocationStatus.valueOf(rs.getString("location_status").toUpperCase()),
 										location,
 										Mode.valueOf(rs.getString("mode").toUpperCase()),
-										MobilityPrivacyStateCache.PrivacyState.getValue(rs.getString("privacy_state")),
+										MobilityPoint.PrivacyState.getValue(rs.getString("privacy_state")),
 										sensorData,
 										features,
 										rs.getString("classifier_version"));
@@ -781,7 +780,7 @@ public final class UserMobilityDaos extends AbstractUploadDao {
 							catch(JSONException e) {
 								throw new SQLException("Error building a JSONObject.", e);
 							}
-							catch(MobilityException e) {
+							catch(ErrorCodeException e) {
 								throw new SQLException("Error building the MobilityInformation object. This suggests malformed data in the database.", e);
 							}
 							catch(IllegalArgumentException e) {

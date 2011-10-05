@@ -20,11 +20,8 @@ import java.util.Set;
 import javax.sql.DataSource;
 
 /**
- * The superclass for all caches. No direct instance of this ever exists
- * because all subclasses should be either abstracted (but not abstract)
- * the same as this one, or should be concrete Singletons.
- * 
- * @author John Jenkins
+ * The superclass for all caches. No direct instance of this ever exists because all subclasses should be either abstracted (but not abstract) the same as this one, or should be concrete Singletons.
+ * @author  John Jenkins
  */
 public abstract class Cache {
 	/**
@@ -33,11 +30,17 @@ public abstract class Cache {
 	public static final long MIN_CACHE_REFRESH_MILLIS = 1000;
 	
 	// The DataSource to use when querying the database.
+	/**
+	 */
 	private DataSource dataSource;
 	
 	// The last time we refreshed our cache in milliseconds since epoch.
+	/**
+	 */
 	private long lastUpdateTimestamp;
 	// The number of milliseconds between refreshes of the local cache.
+	/**
+	 */
 	private long updateFrequency;
 	
 	/**
@@ -58,11 +61,8 @@ public abstract class Cache {
 	}
 	
 	/**
-	 * Returns the DataSource that is used to query the database for each 
-	 * cache's specific values.
-	 * 
-	 * @return The DataSource that is used to query the database for each
-	 * 		   cache's specific values.
+	 * Returns the DataSource that is used to query the database for each  cache's specific values.
+	 * @return  The DataSource that is used to query the database for each  cache's specific values.
 	 */
 	protected DataSource getDataSource() {
 		return dataSource;
@@ -70,20 +70,15 @@ public abstract class Cache {
 	
 	/**
 	 * Returns the milliseconds since epoch of the last update.
-	 * 
-	 * @return The milliseconds since epoch of the last update.
+	 * @return  The milliseconds since epoch of the last update.
 	 */
 	protected long getLastUpdateTimestamp() {
 		return lastUpdateTimestamp;
 	}
 	
 	/**
-	 * Updates the milliseconds since epoch of the most recent update unless 
-	 * this value is less than the current value in which case this call is
-	 * ignored.
-	 * 
-	 * @param timestamp The number of milliseconds since epoch when the most
-	 * 					recent update took place.
+	 * Updates the milliseconds since epoch of the most recent update unless  this value is less than the current value in which case this call is ignored.
+	 * @param timestamp  The number of milliseconds since epoch when the most  recent update took place.
 	 */
 	protected void setLastUpdateTimestamp(long timestamp) {
 		if(timestamp > lastUpdateTimestamp) {
@@ -93,8 +88,7 @@ public abstract class Cache {
 	
 	/**
 	 * Returns the minimum number of milliseconds between each cache update.
-	 * 
-	 * @return The minimum number of milliseconds between each cache update.
+	 * @return  The minimum number of milliseconds between each cache update.
 	 */
 	protected long getUpdateFrequency() {
 		return updateFrequency;
@@ -110,8 +104,7 @@ public abstract class Cache {
 	
 	/**
 	 * Returns a human-readable name for this cache.
-	 * 
-	 * @return Returns a human-readable name for this cache.
+	 * @return  Returns a human-readable name for this cache.
 	 */
 	public abstract String getName();
 }

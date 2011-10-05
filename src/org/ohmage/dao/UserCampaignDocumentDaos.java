@@ -4,9 +4,8 @@ import java.util.List;
 
 import javax.sql.DataSource;
 
-import org.ohmage.cache.CampaignRoleCache;
-import org.ohmage.cache.DocumentPrivacyStateCache;
-import org.ohmage.cache.DocumentRoleCache;
+import org.ohmage.domain.Document;
+import org.ohmage.domain.configuration.Configuration;
 import org.ohmage.exception.DataAccessException;
 import org.springframework.jdbc.core.SingleColumnRowMapper;
 
@@ -32,7 +31,7 @@ public final class UserCampaignDocumentDaos extends Dao {
 			"AND u.id = urc.user_id " +
 			"AND c.id = urc.campaign_id " +
 			"AND ur.id = urc.user_role_id " +
-			"AND ur.role = '" + CampaignRoleCache.Role.SUPERVISOR + "' " +
+			"AND ur.role = '" + Configuration.Role.SUPERVISOR + "' " +
 			// Ensure that the campaign is associated with the document.
 			"AND d.id = dcr.document_id " +
 			"AND c.id = dcr.campaign_id" +
@@ -53,12 +52,12 @@ public final class UserCampaignDocumentDaos extends Dao {
 		"AND urc.user_role_id = ur.id " +
 		"AND d.privacy_state_id = dps.id " +
 		"AND (" +
-			"(dps.privacy_state = '" + DocumentPrivacyStateCache.PrivacyState.SHARED + "' " +
-			"AND ur.role != '" + CampaignRoleCache.Role.PARTICIPANT + "')" +
+			"(dps.privacy_state = '" + Document.PrivacyState.SHARED + "' " +
+			"AND ur.role != '" + Configuration.Role.PARTICIPANT + "')" +
 			" OR " +
-			"(ur.role = '" + CampaignRoleCache.Role.SUPERVISOR + "')" +
+			"(ur.role = '" + Configuration.Role.SUPERVISOR + "')" +
 			" OR " +
-			"(dr.role = '" + DocumentRoleCache.Role.OWNER + "')" +
+			"(dr.role = '" + Document.Role.OWNER + "')" +
 		")";
 	
 	private static UserCampaignDocumentDaos instance;

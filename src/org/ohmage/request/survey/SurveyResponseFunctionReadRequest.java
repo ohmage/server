@@ -14,13 +14,14 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.ohmage.annotator.ErrorCodes;
-import org.ohmage.cache.SurveyResponsePrivacyStateCache;
-import org.ohmage.domain.SurveyResponseInformation;
-import org.ohmage.domain.SurveyResponseInformation.Location;
+import org.ohmage.domain.Location;
+import org.ohmage.domain.configuration.Configuration;
+import org.ohmage.domain.configuration.SurveyResponse;
 import org.ohmage.exception.ServiceException;
 import org.ohmage.exception.ValidationException;
 import org.ohmage.request.InputKeys;
 import org.ohmage.request.UserRequest;
+import org.ohmage.service.CampaignServices;
 import org.ohmage.service.SurveyResponseServices;
 import org.ohmage.service.UserCampaignServices;
 import org.ohmage.util.TimeUtils;
@@ -98,7 +99,7 @@ public class SurveyResponseFunctionReadRequest extends UserRequest {
 	private final Date endDate;
 	private final String ownersUsername;
 	
-	private List<SurveyResponseInformation> surveyResponses;
+	private List<SurveyResponse> surveyResponses;
 	
 	/**
 	 * Creates a new survey response function read request.
@@ -235,10 +236,13 @@ public class SurveyResponseFunctionReadRequest extends UserRequest {
 						getUser().getUsername() :
 						ownersUsername);
 			
+			LOGGER.info("Gathering the campaign.");
+			Configuration campaign = CampaignServices.findCampaignConfiguration(this, campaignId);
+			
 			LOGGER.info("Gathering the survey response information.");
 			surveyResponses = SurveyResponseServices.readSurveyResponseInformation(
 					this, 
-					campaignId, 
+					campaign, 
 					ownersUsername, 
 					null, 
 					startDate, 
@@ -271,10 +275,10 @@ public class SurveyResponseFunctionReadRequest extends UserRequest {
 			case COMPLETED_SURVEYS:
 				JSONArray completedSurveysResult = new JSONArray();
 				
-				for(SurveyResponseInformation surveyResponse : surveyResponses) {
+				for(SurveyResponse surveyResponse : surveyResponses) {
 					JSONObject currResult = new JSONObject();
 					
-					currResult.put(JSON_KEY_VALUE, surveyResponse.getSurveyId());
+					currResult.put(JSON_KEY_VALUE, surveyResponse.getSurvey().getId());
 					currResult.put(JSON_KEY_TIMESTAMP, TimeUtils.getIso8601DateTimeString(surveyResponse.getDate()));
 					currResult.put(JSON_KEY_TIMEZONE, surveyResponse.getTimezone().getID());
 					currResult.put(JSON_KEY_LOCATION_STATUS, surveyResponse.getLocationStatus().toString().toLowerCase());
@@ -283,7 +287,7 @@ public class SurveyResponseFunctionReadRequest extends UserRequest {
 						currResult.put(JSON_KEY_LOCATION, new JSONObject());
 					}
 					else {
-						currResult.put(JSON_KEY_LOCATION, location.toJson());
+						currResult.put(JSON_KEY_LOCATION, location.toJson(false));
 					}
 					
 					completedSurveysResult.put(currResult);
@@ -295,9 +299,9 @@ public class SurveyResponseFunctionReadRequest extends UserRequest {
 			case STATS:
 				JSONObject statsResult = new JSONObject();
 				
-				Map<SurveyResponsePrivacyStateCache.PrivacyState, Integer> privacyStates = new HashMap<SurveyResponsePrivacyStateCache.PrivacyState, Integer>();
-				for(SurveyResponseInformation surveyResponse : surveyResponses) {
-					SurveyResponsePrivacyStateCache.PrivacyState privacyState = surveyResponse.getPrivacyState();
+				Map<SurveyResponse.PrivacyState, Integer> privacyStates = new HashMap<SurveyResponse.PrivacyState, Integer>();
+				for(SurveyResponse surveyResponse : surveyResponses) {
+					SurveyResponse.PrivacyState privacyState = surveyResponse.getPrivacyState();
 					
 					Integer count = privacyStates.get(privacyState);
 					if(count == null) {
@@ -308,7 +312,7 @@ public class SurveyResponseFunctionReadRequest extends UserRequest {
 					}
 				}
 				
-				for(SurveyResponsePrivacyStateCache.PrivacyState privacyState : privacyStates.keySet()) {
+				for(SurveyResponse.PrivacyState privacyState : privacyStates.keySet()) {
 					statsResult.put(privacyState.toString(), privacyStates.get(privacyState));
 				}
 				

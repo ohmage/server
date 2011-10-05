@@ -38,7 +38,7 @@ import org.ohmage.request.UserRequest;
 public class AuthRequest extends UserRequest {
 	private static final Logger LOGGER = Logger.getLogger(AuthRequest.class);
 
-	private static final String KEY_HASHED_PASSWORD = "hashed_password";
+	public static final String KEY_HASHED_PASSWORD = "hashed_password";
 	
 	/**
 	 * Creates this authentication request based on the information in the 

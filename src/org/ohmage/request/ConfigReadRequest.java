@@ -10,7 +10,7 @@ import org.apache.log4j.Logger;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.ohmage.cache.PreferenceCache;
-import org.ohmage.cache.SurveyResponsePrivacyStateCache;
+import org.ohmage.domain.configuration.SurveyResponse;
 import org.ohmage.exception.CacheMissException;
 
 /**
@@ -56,7 +56,7 @@ public class ConfigReadRequest extends Request {
 			// Get the default survey response sharing state.
 			result.put("default_survey_response_sharing_state", PreferenceCache.instance().lookup(PreferenceCache.KEY_DEFAULT_SURVEY_RESPONSE_SHARING_STATE));
 			
-			result.put("survey_response_privacy_states", SurveyResponsePrivacyStateCache.instance().getKeys());
+			result.put("survey_response_privacy_states", SurveyResponse.PrivacyState.getPrivacyStates());
 		}
 		catch(CacheMissException e) {
 			setFailed();

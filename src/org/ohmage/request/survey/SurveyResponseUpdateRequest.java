@@ -5,7 +5,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.log4j.Logger;
 import org.ohmage.annotator.ErrorCodes;
-import org.ohmage.cache.SurveyResponsePrivacyStateCache;
+import org.ohmage.domain.configuration.SurveyResponse;
 import org.ohmage.exception.ServiceException;
 import org.ohmage.exception.ValidationException;
 import org.ohmage.request.InputKeys;
@@ -53,7 +53,7 @@ public class SurveyResponseUpdateRequest extends UserRequest {
 	private static final Logger LOGGER = Logger.getLogger(SurveyResponseUpdateRequest.class);
 	
 	private final Long surveyResponseId;
-	private final SurveyResponsePrivacyStateCache.PrivacyState privacyState;
+	private final SurveyResponse.PrivacyState privacyState;
 	
 	/**
 	 * Creates a survey response delete request.
@@ -67,7 +67,7 @@ public class SurveyResponseUpdateRequest extends UserRequest {
 		LOGGER.info("Creating a survey response update request.");
 		
 		Long tSurveyResponseId = null;
-		SurveyResponsePrivacyStateCache.PrivacyState tPrivacyState = null;
+		SurveyResponse.PrivacyState tPrivacyState = null;
 		
 		if(! isFailed()) {
 			try {
@@ -106,11 +106,6 @@ public class SurveyResponseUpdateRequest extends UserRequest {
 				}
 				else {
 					tPrivacyState = SurveyResponseValidators.validatePrivacyState(this, privacyStates[0]);
-					
-					if(! SurveyResponsePrivacyStateCache.instance().getKeys().contains(tPrivacyState)) {
-						setFailed(ErrorCodes.SURVEY_INVALID_PRIVACY_STATE, "Found unknown privacy_state: " + tPrivacyState);
-						throw new ValidationException("Found unknown privacy_state: " + tPrivacyState);
-					}
 				}
 			}
 			catch(ValidationException e) {

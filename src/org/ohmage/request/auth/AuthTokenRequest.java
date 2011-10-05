@@ -39,7 +39,7 @@ import org.ohmage.request.UserRequest;
 public class AuthTokenRequest extends UserRequest {
 	private static final Logger LOGGER = Logger.getLogger(AuthTokenRequest.class);
 	
-	private static final String KEY_AUTH_TOKEN = "token";
+	public static final String KEY_AUTH_TOKEN = "token";
 	
 	/**
 	 * A request for an authentication token.

@@ -16,7 +16,7 @@ import java.util.concurrent.TimeUnit;
 import org.apache.log4j.Logger;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.ohmage.domain.AuditInformation;
+import org.ohmage.domain.Audit;
 import org.ohmage.exception.ServiceException;
 import org.ohmage.request.FailedRequest;
 import org.ohmage.request.InputKeys;
@@ -79,7 +79,7 @@ public final class AuditReporter {
 			endDate.set(Calendar.MILLISECOND, 0);
 			
 			// Use the service to aggregate the results.
-			List<AuditInformation> audits;
+			List<Audit> audits;
 			try {
 				audits = AuditServices.getAuditInformation(
 						failedRequest, 
@@ -108,7 +108,7 @@ public final class AuditReporter {
 			Map<String, Integer> numberClassReads = new HashMap<String, Integer>();
 			
 			// Cycle through all of the audit entries.
-			for(AuditInformation audit : audits) {
+			for(Audit audit : audits) {
 				// First, get the URI and determine if the request is even 
 				// valid.
 				String uri = audit.getUri();

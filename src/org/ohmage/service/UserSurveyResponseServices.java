@@ -4,12 +4,11 @@ import java.sql.Timestamp;
 import java.util.Calendar;
 
 import org.ohmage.annotator.ErrorCodes;
-import org.ohmage.cache.CampaignRoleCache;
-import org.ohmage.cache.CampaignRunningStateCache;
 import org.ohmage.dao.CampaignDaos;
 import org.ohmage.dao.CampaignSurveyResponseDaos;
 import org.ohmage.dao.UserCampaignDaos;
 import org.ohmage.dao.UserSurveyResponseDaos;
+import org.ohmage.domain.configuration.Configuration;
 import org.ohmage.exception.DataAccessException;
 import org.ohmage.exception.ServiceException;
 import org.ohmage.request.Request;
@@ -50,11 +49,11 @@ public class UserSurveyResponseServices {
 			// Get the response's campaign.
 			String campaignId = CampaignSurveyResponseDaos.getCampaignIdFromSurveyId(surveyResponseId);
 			
-			if(UserCampaignDaos.getUserCampaignRoles(requesterUsername, campaignId).contains(CampaignRoleCache.Role.SUPERVISOR)) {
+			if(UserCampaignDaos.getUserCampaignRoles(requesterUsername, campaignId).contains(Configuration.Role.SUPERVISOR)) {
 				return;
 			}
 			
-			if(CampaignRunningStateCache.RunningState.RUNNING.equals(CampaignDaos.getCampaignRunningState(campaignId))) {
+			if(Configuration.RunningState.RUNNING.equals(CampaignDaos.getCampaignRunningState(campaignId))) {
 				if(requesterUsername.equals(UserSurveyResponseDaos.getSurveyResponseOwner(surveyResponseId))) {
 					return;
 				}

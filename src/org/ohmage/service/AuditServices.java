@@ -5,7 +5,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.ohmage.dao.AuditDaos;
-import org.ohmage.domain.AuditInformation;
+import org.ohmage.domain.Audit;
 import org.ohmage.exception.DataAccessException;
 import org.ohmage.exception.ServiceException;
 import org.ohmage.jee.servlet.RequestServlet;
@@ -113,7 +113,7 @@ public class AuditServices {
 	 * 
 	 * @throws ServiceException Thrown if there is an error.
 	 */
-	public static List<AuditInformation> getAuditInformation(Request request, RequestType requestType, String uri, String client, 
+	public static List<Audit> getAuditInformation(Request request, RequestType requestType, String uri, String client, 
 			String deviceId, ResponseType responseType, String errorCode, Date startDate, Date endDate) throws ServiceException {
 		try {
 			List<Long> auditIds = null;

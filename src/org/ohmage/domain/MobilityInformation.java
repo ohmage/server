@@ -13,7 +13,9 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.ohmage.annotator.ErrorCodes;
 import org.ohmage.cache.MobilityPrivacyStateCache;
+import org.ohmage.domain.Location.LocationException;
 import org.ohmage.domain.MobilityInformation.SensorData.AccelData;
+import org.ohmage.exception.ErrorCodeException;
 import org.ohmage.util.StringUtils;
 import org.ohmage.util.TimeUtils;
 
@@ -28,6 +30,7 @@ public class MobilityInformation {
 	private static final String JSON_KEY_DATE = "date";
 	private static final String JSON_KEY_DATE_SHORT = "ts";
 	private static final String JSON_KEY_TIME = "time";
+	private static final String JSON_KEY_TIME_SHORT = "t";
 	private static final String JSON_KEY_TIMEZONE = "timezone";
 	private static final String JSON_KEY_TIMEZONE_SHORT = "tz";
 	private static final String JSON_KEY_LOCATION_STATUS = "location_status";
@@ -35,7 +38,7 @@ public class MobilityInformation {
 	private static final String JSON_KEY_LOCATION = "location";
 	private static final String JSON_KEY_LOCATION_SHORT = "l";
 
-	private static final String JSON_KEY_SUBTYPE = "subtype";
+	public static final String JSON_KEY_SUBTYPE = "subtype";
 	
 	// Mode-only
 	private static final String JSON_KEY_MODE = "mode";
@@ -52,154 +55,6 @@ public class MobilityInformation {
 	
 	public static enum LocationStatus { VALID, NETWORK, INACCURATE, STALE, UNAVAILABLE };
 	private final LocationStatus locationStatus;
-	
-	/**
-	 * This class contains all of the information associated with a location
-	 * record.
-	 * 
-	 * @author John Jenkins
-	 */
-	public final class Location {
-		private static final String JSON_KEY_LATITUDE = "latitude";
-		private static final String JSON_KEY_LATITUDE_SHORT = "la";
-		private static final String JSON_KEY_LONGITUDE = "longitude";
-		private static final String JSON_KEY_LONGITUDE_SHORT = "lo";
-		private static final String JSON_KEY_ACCURACY = "accuracy";
-		private static final String JSON_KEY_ACCURACY_SHORT = "ac";
-		private static final String JSON_KEY_PROVIDER = "provider";
-		private static final String JSON_KEY_PROVIDER_SHORT = "pr";
-		private static final String JSON_KEY_TIMESTAMP = "timestamp";
-		private static final String JSON_KEY_TIMESTAMP_SHORT = "ts";
-		
-		private final Double latitude;
-		private final Double longitude;
-		private final Double accuracy;
-		private final String provider;
-		private final Date timestamp;
-		
-		/**
-		 * Creates a new Location object.
-		 * 
-		 * @param locationData A JSONObject representing all of the data for a
-		 * 					   Location object.
-		 * 
-		 * @throws MobilityException Thrown if the location data is null, isn't
-		 * 							 a valid JSONObject, doesn't contain all of
-		 * 							 the required information, or any of the 
-		 * 							 information is invalid for its type.
-		 */
-		private Location(JSONObject locationData) throws MobilityException {
-			try {
-				latitude = locationData.getDouble(JSON_KEY_LATITUDE);
-			}
-			catch(JSONException e) {
-				throw new MobilityException(ErrorCodes.SERVER_INVALID_LOCATION, "The latitude is missing or invalid.", e);
-			}
-			
-			try {
-				longitude = locationData.getDouble(JSON_KEY_LONGITUDE);
-			}
-			catch(JSONException e) {
-				throw new MobilityException(ErrorCodes.SERVER_INVALID_LOCATION, "The longitude is missing or invalid.", e);
-			}
-
-			try {
-				accuracy = locationData.getDouble(JSON_KEY_ACCURACY);
-			}
-			catch(JSONException e) {
-				throw new MobilityException(ErrorCodes.SERVER_INVALID_LOCATION, "The accuracy is missing or invalid.", e);
-			}
-			
-			try {
-				provider = locationData.getString(JSON_KEY_PROVIDER);
-			}
-			catch(JSONException e) {
-				throw new MobilityException(ErrorCodes.SERVER_INVALID_LOCATION, "The provider is missing.", e);
-			}
-			
-			try {
-				timestamp = StringUtils.decodeDateTime(locationData.getString(JSON_KEY_TIMESTAMP));
-				
-				if(timestamp == null) {
-					throw new MobilityException(ErrorCodes.SERVER_INVALID_TIMESTAMP, "The timestamp is invalid.");
-				}
-			}
-			catch(JSONException e) {
-				throw new MobilityException(ErrorCodes.SERVER_INVALID_TIMESTAMP, "The timestamp is missing.", e);
-			}
-		}
-
-		/**
-		 * Returns the latitude of this location.
-		 * 
-		 * @return The latitude of this location.
-		 */
-		public final double getLatitude() {
-			return latitude;
-		}
-
-		/**
-		 * Returns the longitude of this location.
-		 * 
-		 * @return The longitude of this location.
-		 */
-		public final double getLongitude() {
-			return longitude;
-		}
-
-		/**
-		 * Returns the accuracy of this location.
-		 * 
-		 * @return The accuracy of this location.
-		 */
-		public final double getAccuracy() {
-			return accuracy;
-		}
-
-		/**
-		 * Returns the provider of this location information.
-		 * 
-		 * @return The provider of this location information.
-		 */
-		public final String getProvider() {
-			return provider;
-		}
-
-		/**
-		 * Returns the timestamp for when this information was gathered.
-		 * 
-		 * @return The timestamp for when this information was gathered.
-		 */
-		public final Date getTimestamp() {
-			return timestamp;
-		}
-		
-		/**
-		 * Creates a JSONObject that represents the information in this object.
-		 * 
-		 * @param abbreviated Whether or not the keys should use their 
-		 * 					  abbreviated version.
-		 * 
-		 * @return Returns a JSONObject that represents this object or null if
-		 * 		   there is an error building the JSONObject.
-		 */
-		public final JSONObject toJson(final boolean abbreviated) {
-			try {
-				JSONObject result = new JSONObject();
-				
-				result.put(((abbreviated) ? JSON_KEY_LATITUDE_SHORT : JSON_KEY_LATITUDE), latitude);
-				result.put(((abbreviated) ? JSON_KEY_LONGITUDE_SHORT : JSON_KEY_LONGITUDE), longitude);
-				result.put(((abbreviated) ? JSON_KEY_ACCURACY_SHORT : JSON_KEY_ACCURACY), accuracy);
-				result.put(((abbreviated) ? JSON_KEY_PROVIDER_SHORT : JSON_KEY_PROVIDER), provider);
-				result.put(((abbreviated) ? JSON_KEY_TIMESTAMP_SHORT : JSON_KEY_TIMESTAMP), TimeUtils.getIso8601DateTimeString(timestamp));
-				
-				return result;
-			}
-			catch(JSONException e) {
-				return null;
-			}
-		}
-	}
 	private final Location location;
 
 	public static enum SubType { MODE_ONLY, SENSOR_DATA };
@@ -217,7 +72,7 @@ public class MobilityInformation {
 	 * 
 	 * @author John Jenkins
 	 */
-	public final class SensorData {
+	public static final class SensorData {
 		private static final String JSON_KEY_MODE = "mode";
 		private static final String JSON_KEY_SPEED = "speed";
 		
@@ -239,10 +94,10 @@ public class MobilityInformation {
 		 * 
 		 * @author John Jenkins
 		 */
-		public final class AccelData {
-			private final Double x;
-			private final Double y;
-			private final Double z;
+		public static final class AccelData {
+			private final double x;
+			private final double y;
+			private final double z;
 			
 			/**
 			 * Creates a tri-axle acceleration data point.
@@ -253,7 +108,7 @@ public class MobilityInformation {
 			 * 
 			 * @param z The z-acceleration of the point.
 			 */
-			private AccelData(Double x, Double y, Double z) {
+			public AccelData(final double x, final double y, final double z) {
 				this.x = x;
 				this.y = y;
 				this.z = z;
@@ -314,7 +169,7 @@ public class MobilityInformation {
 		 * 
 		 * @author John Jenkins
 		 */
-		public final class WifiData {
+		public static final class WifiData {
 			private static final String JSON_KEY_SSID = "ssid";
 			private static final String JSON_KEY_STRENGTH = "strength";
 			
@@ -334,13 +189,13 @@ public class MobilityInformation {
 			 * @throws MobilityException Thrown if either of the parameters are
 			 * 							 null or invalid values.
 			 */
-			private WifiData(String timestamp, JSONArray scan) throws MobilityException {
+			private WifiData(String timestamp, JSONArray scan) throws ErrorCodeException {
 				// Validate the timestamp value.
 				if(timestamp == null) {
-					throw new MobilityException(ErrorCodes.SERVER_INVALID_TIMESTAMP, "The timestamp is missing.");
+					throw new ErrorCodeException(ErrorCodes.SERVER_INVALID_TIMESTAMP, "The timestamp is missing.");
 				}
 				else if((this.timestamp = StringUtils.decodeDate(timestamp)) == null) {
-					throw new MobilityException(ErrorCodes.SERVER_INVALID_TIMESTAMP, "The timestamp is invalid.");
+					throw new ErrorCodeException(ErrorCodes.SERVER_INVALID_TIMESTAMP, "The timestamp is invalid.");
 				}
 				
 				// Validate the scan value.
@@ -360,7 +215,7 @@ public class MobilityInformation {
 							ssid = jsonObject.getString(JSON_KEY_SSID);
 						}
 						catch(JSONException e) {
-							throw new MobilityException(ErrorCodes.MOBILITY_INVALID_WIFI_DATA, "The SSID is missing.", e);
+							throw new ErrorCodeException(ErrorCodes.MOBILITY_INVALID_WIFI_DATA, "The SSID is missing.", e);
 						}
 						
 						// Get the strength.
@@ -369,16 +224,42 @@ public class MobilityInformation {
 							strength = jsonObject.getDouble(JSON_KEY_STRENGTH);
 						}
 						catch(JSONException e) {
-							throw new MobilityException(ErrorCodes.MOBILITY_INVALID_WIFI_DATA, "The strength is missing or invalid.", e);
+							throw new ErrorCodeException(ErrorCodes.MOBILITY_INVALID_WIFI_DATA, "The strength is missing or invalid.", e);
 						}
 						
 						// Add them to the map.
 						this.scan.put(ssid, strength);
 					}
 					catch(JSONException e) {
-						throw new MobilityException(ErrorCodes.MOBILITY_INVALID_WIFI_DATA, "The scan is invalid.", e);
+						throw new ErrorCodeException(ErrorCodes.MOBILITY_INVALID_WIFI_DATA, "The scan is invalid.", e);
 					}
 				}
+			}
+			
+			/**
+			 * Creates a WiFiData object that contains a timestamp of when the
+			 * record was made and the map of WiFi device IDs to their signal
+			 * strength.
+			 *  
+			 * @param timestamp The date and time that this record was made.
+			 * 
+			 * @param scans A map of WiFi device IDs to their signal strength.
+			 * 
+			 * @throws IllegalArgumentException Thrown if the timestamp or 
+			 * 									scans map are null.
+			 */
+			public WifiData(final Date timestamp, 
+					final Map<String, Double> scans) {
+				
+				if(timestamp == null) {
+					throw new IllegalArgumentException("The timestamp cannot be null.");
+				}
+				else if(scans == null) {
+					throw new IllegalArgumentException("The map of scans cannot be null.");
+				}
+				
+				this.timestamp = timestamp;
+				this.scan = scans;
 			}
 
 			/**
@@ -440,16 +321,16 @@ public class MobilityInformation {
 		 * 							 valid sensor data, or missing some 
 		 * 							 component.
 		 */
-		private SensorData(JSONObject sensorData) throws MobilityException {
+		private SensorData(JSONObject sensorData) throws ErrorCodeException {
 			// Get the mode.
 			try {
 				mode = Mode.valueOf(sensorData.getString(JSON_KEY_MODE).toUpperCase());
 			}
 			catch(JSONException e) {
-				throw new MobilityException(ErrorCodes.MOBILITY_INVALID_MODE, "The mode is missing.", e);
+				throw new ErrorCodeException(ErrorCodes.MOBILITY_INVALID_MODE, "The mode is missing.", e);
 			}
 			catch(IllegalArgumentException e) {
-				throw new MobilityException(ErrorCodes.MOBILITY_INVALID_MODE, "The mode is not a known mode.", e);
+				throw new ErrorCodeException(ErrorCodes.MOBILITY_INVALID_MODE, "The mode is not a known mode.", e);
 			}
 			
 			// Get the speed.
@@ -457,7 +338,7 @@ public class MobilityInformation {
 				speed = sensorData.getDouble(JSON_KEY_SPEED);
 			}
 			catch(JSONException e) {
-				throw new MobilityException(ErrorCodes.MOBILITY_INVALID_SPEED, "The speed is missing or invalid.", e);
+				throw new ErrorCodeException(ErrorCodes.MOBILITY_INVALID_SPEED, "The speed is missing or invalid.", e);
 			}
 			
 			// Get the accelerometer data.
@@ -478,7 +359,7 @@ public class MobilityInformation {
 							x = accelDataPointJson.getDouble(JSON_KEY_ACCEL_DATA_X);
 						}
 						catch(JSONException e) {
-							throw new MobilityException(ErrorCodes.MOBILITY_INVALID_ACCELEROMETER_DATA, "The 'x' point was missing or invalid.", e);
+							throw new ErrorCodeException(ErrorCodes.MOBILITY_INVALID_ACCELEROMETER_DATA, "The 'x' point was missing or invalid.", e);
 						}
 						
 						// Get the y-acceleration.
@@ -487,7 +368,7 @@ public class MobilityInformation {
 							y = accelDataPointJson.getDouble(JSON_KEY_ACCEL_DATA_Y);
 						}
 						catch(JSONException e) {
-							throw new MobilityException(ErrorCodes.MOBILITY_INVALID_ACCELEROMETER_DATA, "The 'y' point was missing or invalid.", e);
+							throw new ErrorCodeException(ErrorCodes.MOBILITY_INVALID_ACCELEROMETER_DATA, "The 'y' point was missing or invalid.", e);
 						}
 						
 						// Get the z-acceleration.
@@ -496,19 +377,19 @@ public class MobilityInformation {
 							z = accelDataPointJson.getDouble(JSON_KEY_ACCEL_DATA_Z);
 						}
 						catch(JSONException e) {
-							throw new MobilityException(ErrorCodes.MOBILITY_INVALID_ACCELEROMETER_DATA, "The 'z' point was missing or invalid.", e);
+							throw new ErrorCodeException(ErrorCodes.MOBILITY_INVALID_ACCELEROMETER_DATA, "The 'z' point was missing or invalid.", e);
 						}
 						
 						// Add a new point.
 						accelData.add(new AccelData(x, y, z));
 					}
 					catch(JSONException e) {
-						throw new MobilityException(ErrorCodes.MOBILITY_INVALID_ACCELEROMETER_DATA, "An accelerometer data point is not a JSONObject.", e);
+						throw new ErrorCodeException(ErrorCodes.MOBILITY_INVALID_ACCELEROMETER_DATA, "An accelerometer data point is not a JSONObject.", e);
 					}
 				}
 			}
 			catch(JSONException e) {
-				throw new MobilityException(ErrorCodes.MOBILITY_INVALID_ACCELEROMETER_DATA, "The accelerometer data is missing or invalid.", e);
+				throw new ErrorCodeException(ErrorCodes.MOBILITY_INVALID_ACCELEROMETER_DATA, "The accelerometer data is missing or invalid.", e);
 			}
 			
 			// Get the WiFi data.
@@ -521,7 +402,7 @@ public class MobilityInformation {
 					timestamp = wifiDataJson.getString(JSON_KEY_WIFI_DATA_TIMESTAMP);
 				}
 				catch(JSONException e) {
-					throw new MobilityException(ErrorCodes.SERVER_INVALID_TIMESTAMP, "The timestamp is missing.", e);
+					throw new ErrorCodeException(ErrorCodes.SERVER_INVALID_TIMESTAMP, "The timestamp is missing.", e);
 				}
 				
 				// Get the scan.
@@ -530,15 +411,51 @@ public class MobilityInformation {
 					scan = wifiDataJson.getJSONArray(JSON_KEY_WIFI_DATA_SCAN);
 				}
 				catch(JSONException e) {
-					throw new MobilityException(ErrorCodes.MOBILITY_INVALID_WIFI_DATA, "The scan is missing.", e);
+					throw new ErrorCodeException(ErrorCodes.MOBILITY_INVALID_WIFI_DATA, "The scan is missing.", e);
 				}
 				
 				// Set the WifiData.
 				wifiData = new WifiData(timestamp, scan);
 			}
 			catch(JSONException e) {
-				throw new MobilityException(ErrorCodes.MOBILITY_INVALID_WIFI_DATA, "The WiFi data is missing or invalid.", e);
+				throw new ErrorCodeException(ErrorCodes.MOBILITY_INVALID_WIFI_DATA, "The WiFi data is missing or invalid.", e);
 			}
+		}
+		
+		/**
+		 * Creates a new SensorData object that represents the information 
+		 * collected by Mobility when a Mobility point was generated.
+		 * 
+		 * @param mode The mode calculated based on this information.
+		 * 
+		 * @param speed The speed of the device when this point was made.
+		 * 
+		 * @param accelData The accelerometer information collected during this
+		 * 					reading.
+		 * 
+		 * @param wifiData The WiFi information collected when this point was
+		 * 				   made.
+		 * 
+		 * @throws IllegalArgumentException Thrown if the mode, accelerometer
+		 * 									data, or WiFi data are null.
+		 */
+		public SensorData(final Mode mode, final double speed, 
+				final List<AccelData> accelData, final WifiData wifiData) {
+			
+			if(mode == null) {
+				throw new IllegalArgumentException("The mode cannot be null.");
+			}
+			else if(accelData == null) {
+				throw new IllegalArgumentException("The accelerometer data cannot be null.");
+			}
+			else if(wifiData == null) {
+				throw new IllegalArgumentException("The WiFi data cannot be null.");
+			}
+
+			this.mode = mode;
+			this.speed = speed;
+			this.accelData = accelData;
+			this.wifiData = wifiData;
 		}
 
 		/**
@@ -658,15 +575,15 @@ public class MobilityInformation {
 		 * 
 		 * @throws MobilityException Thrown if the mode is missing or unknown.
 		 */
-		private ClassifierData(JSONObject classifierData) throws MobilityException{
+		private ClassifierData(JSONObject classifierData) throws ErrorCodeException{
 			try {
 				mode = Mode.valueOf(classifierData.getString(JSON_KEY_MODE).toUpperCase());
 			}
 			catch(JSONException e) {
-				throw new MobilityException(ErrorCodes.MOBILITY_INVALID_MODE, "The mode is missing.", e);
+				throw new ErrorCodeException(ErrorCodes.MOBILITY_INVALID_MODE, "The mode is missing.", e);
 			}
 			catch(IllegalArgumentException e) {
-				throw new MobilityException(ErrorCodes.MOBILITY_INVALID_MODE, "The mode is unknown.", e);
+				throw new ErrorCodeException(ErrorCodes.MOBILITY_INVALID_MODE, "The mode is unknown.", e);
 			}
 			
 			List<Double> tFft = null;
@@ -821,78 +738,6 @@ public class MobilityInformation {
 	private ClassifierData classifierData;
 	
 	/**
-	 * This is an exception explicitly for creating a Mobility point from a
-	 * JSONObject. This allows for a central place for creating and validating
-	 * Mobility uploads and allows them to throw error codes and texts which 
-	 * can be caught by validators to report back to the user.
-	 * 
-	 * @author John Jenkins
-	 */
-	public final class MobilityException extends Exception {
-		private static final long serialVersionUID = 1L;
-		
-		private final String errorCode;
-		private final String errorText;
-		
-		/**
-		 * Creates a new Mobility exception that contains an error code which
-		 * corresponds to the error text describing what was wrong with this
-		 * Mobility point.
-		 * 
-		 * @param errorCode The ErrorCode indicating what was wrong with this
-		 * 					Mobility point.
-		 * 
-		 * @param errorText A human-readable description of what caused this 
-		 * 					error.
-		 */
-		private MobilityException(String errorCode, String errorText) {
-			super(errorText);
-			
-			this.errorCode = errorCode;
-			this.errorText = errorText;
-		}
-		
-		/**
-		 * Creates a new Mobility exception that contains an error code which
-		 * corresponds to the error text describing what was wrong with this
-		 * Mobility point and includes the Throwable that caused this 
-		 * exception.
-		 * 
-		 * @param errorCode The ErrorCode indicating what was wrong with this
-		 * 					Mobility point.
-		 * 
-		 * @param errorText A human-readable description of what cuased this
-		 * 					error.
-		 * 
-		 * @param cause The Throwable that caused this point to be reached.
-		 */
-		private MobilityException(String errorCode, String errorText, Throwable cause) {
-			super(errorText, cause);
-			
-			this.errorCode = errorCode;
-			this.errorText = errorText;
-		}
-		
-		/**
-		 * Returns the error code that was used to create this exception.
-		 * 
-		 * @return The error code that was used to create this exception.
-		 */
-		public final String getErrorCode() {
-			return errorCode;
-		}
-		
-		/**
-		 * Returns the error text that was used to create this exception.
-		 * 
-		 * @return The error text that was used to create this exception.
-		 */
-		public final String getErrorText() {
-			return errorText;
-		}
-	}
-	
-	/**
 	 * Creates a MobilityInformation object that represents all of the 
 	 * information in the parameterized Mobility data point.
 	 * 
@@ -903,63 +748,102 @@ public class MobilityInformation {
 	 * 							 contains insufficient information to build 
 	 * 							 this object.
 	 */
-	public MobilityInformation(JSONObject mobilityPoint, MobilityPrivacyStateCache.PrivacyState privacyState) throws MobilityException {
+	public MobilityInformation(JSONObject mobilityPoint, MobilityPrivacyStateCache.PrivacyState privacyState) throws ErrorCodeException {
 		// Get the date.
+		Date tDate;
 		try {
-			date = StringUtils.decodeDateTime(mobilityPoint.getString(JSON_KEY_DATE));
+			tDate = StringUtils.decodeDateTime(mobilityPoint.getString(JSON_KEY_DATE));
 			
-			if(date == null) {
-				throw new MobilityException(ErrorCodes.SERVER_INVALID_TIMESTAMP, "The date is invalid.");
+			if(tDate == null) {
+				throw new ErrorCodeException(ErrorCodes.SERVER_INVALID_TIMESTAMP, "The date is invalid.");
 			}
 		}
-		catch(JSONException e) {
-			throw new MobilityException(ErrorCodes.SERVER_INVALID_TIMESTAMP, "The date is missing.", e);
+		catch(JSONException outerException) {
+			try {
+				tDate = StringUtils.decodeDateTime(mobilityPoint.getString(JSON_KEY_DATE_SHORT));
+			}
+			catch(JSONException innerException) {
+				throw new ErrorCodeException(ErrorCodes.SERVER_INVALID_TIMESTAMP, "The date is missing.", innerException);
+			}
 		}
+		date = tDate;
 		
 		// Get the time.
+		long tTime;
 		try {
-			time = mobilityPoint.getLong(JSON_KEY_TIME);
+			tTime = mobilityPoint.getLong(JSON_KEY_TIME);
 		}
-		catch(JSONException e) {
-			throw new MobilityException(ErrorCodes.SERVER_INVALID_TIME, "The time is missing.", e);
+		catch(JSONException outerException) {
+			try {
+				tTime = mobilityPoint.getLong(JSON_KEY_TIME_SHORT);
+			}
+			catch(JSONException innerException) {
+				throw new ErrorCodeException(ErrorCodes.SERVER_INVALID_TIME, "The time is missing.", innerException);
+			}
 		}
+		time = tTime;
 		
 		// Get the timezone.
 		// FIXME: This doesn't validate the timezone and instead just defaults
 		// to GMT.
+		TimeZone tTimezone;
 		try {
-			timezone = TimeZone.getTimeZone(mobilityPoint.getString(JSON_KEY_TIMEZONE));
+			tTimezone = TimeZone.getTimeZone(mobilityPoint.getString(JSON_KEY_TIMEZONE));
 		}
-		catch(JSONException e) {
-			throw new MobilityException(ErrorCodes.SERVER_INVALID_TIMEZONE, "The timezone is missing.", e);
+		catch(JSONException outerException) {
+			try {
+				tTimezone = TimeZone.getTimeZone(mobilityPoint.getString(JSON_KEY_TIMEZONE_SHORT));
+			}
+			catch(JSONException innerException) {
+				throw new ErrorCodeException(ErrorCodes.SERVER_INVALID_TIMEZONE, "The timezone is missing.", innerException);
+			}
 		}
+		timezone = tTimezone;
 		
 		// Get the location status.
+		LocationStatus tLocationStatus;
 		try {
-			locationStatus = LocationStatus.valueOf(mobilityPoint.getString(JSON_KEY_LOCATION_STATUS).toUpperCase());
+			tLocationStatus = LocationStatus.valueOf(mobilityPoint.getString(JSON_KEY_LOCATION_STATUS).toUpperCase());
 		}
-		catch(JSONException e) {
-			throw new MobilityException(ErrorCodes.SERVER_INVALID_LOCATION_STATUS, "The location status is missing.", e);
+		catch(JSONException outerException) {
+			try {
+				tLocationStatus = LocationStatus.valueOf(mobilityPoint.getString(JSON_KEY_LOCATION_STATUS_SHORT).toUpperCase());
+			}
+			catch(JSONException innerException) {
+				throw new ErrorCodeException(ErrorCodes.SERVER_INVALID_LOCATION_STATUS, "The location status is missing.", innerException);
+			}
 		}
 		catch(IllegalArgumentException e) {
-			throw new MobilityException(ErrorCodes.SERVER_INVALID_LOCATION_STATUS, "The location status is unknown.", e);
+			throw new ErrorCodeException(ErrorCodes.SERVER_INVALID_LOCATION_STATUS, "The location status is unknown.", e);
 		}
+		locationStatus = tLocationStatus;
 		
 		// Get the location.
 		Location tLocation;
 		try {
 			tLocation = new Location(mobilityPoint.getJSONObject(JSON_KEY_LOCATION));
 		}
-		catch(JSONException e) {
-			// If there was no location information in the JSONObject, check to
-			// ensure that the location status was unavailable as that is the
-			// only time this is acceptable.
-			if(LocationStatus.UNAVAILABLE.equals(locationStatus)) {
-				tLocation = null;
+		catch(JSONException outerException) {
+			try {
+				tLocation = new Location(mobilityPoint.getJSONObject(JSON_KEY_LOCATION_SHORT));
 			}
-			else {
-				throw new MobilityException(ErrorCodes.SERVER_INVALID_LOCATION, "The location is missing.", e);
+			catch(JSONException innerException) {
+				// If there was no location information in the JSONObject, 
+				// check to ensure that the location status was unavailable as
+				// that is the only time this is acceptable.
+				if(LocationStatus.UNAVAILABLE.equals(locationStatus)) {
+					tLocation = null;
+				}
+				else {
+					throw new ErrorCodeException(ErrorCodes.SERVER_INVALID_LOCATION, "The location is missing.", innerException);
+				}
 			}
+			catch(LocationException e) {
+				throw new ErrorCodeException(e.getErrorCode(), e.getErrorText(), e);
+			}
+		}
+		catch(LocationException e) {
+			throw new ErrorCodeException(e.getErrorCode(), e.getErrorText(), e);
 		}
 		location = tLocation;
 		
@@ -968,28 +852,38 @@ public class MobilityInformation {
 			subType = SubType.valueOf(mobilityPoint.getString(JSON_KEY_SUBTYPE).toUpperCase());
 		}
 		catch(JSONException e) {
-			throw new MobilityException(ErrorCodes.MOBILITY_INVALID_SUBTYPE, "The subtype is missing.", e);
+			throw new ErrorCodeException(ErrorCodes.MOBILITY_INVALID_SUBTYPE, "The subtype is missing.", e);
 		}
 		catch(IllegalArgumentException e) {
-			throw new MobilityException(ErrorCodes.MOBILITY_INVALID_SUBTYPE, "The subtype is an unknown type.", e);
+			throw new ErrorCodeException(ErrorCodes.MOBILITY_INVALID_SUBTYPE, "The subtype is an unknown type.", e);
 		}
 		
 		// Based on the subtype, get the mode or sensor data.
 		switch(subType) {
 		case MODE_ONLY:
+			Mode tMode;
 			try {
-				mode = Mode.valueOf(mobilityPoint.getString(JSON_KEY_MODE).toUpperCase());
-				sensorData = null;
+				tMode = Mode.valueOf(mobilityPoint.getString(JSON_KEY_MODE).toUpperCase());
 			}
-			catch(JSONException e) {
-				throw new MobilityException(
-						ErrorCodes.MOBILITY_INVALID_MODE, 
-						"The subtype is '" + SubType.MODE_ONLY.toString().toLowerCase() + "', but the required key is missing: " + JSON_KEY_MODE, 
-						e);
+			catch(JSONException outerException) {
+				try {
+					tMode = Mode.valueOf(mobilityPoint.getString(JSON_KEY_MODE_SHORT).toUpperCase());
+				}
+				catch(JSONException innerException) {
+					throw new ErrorCodeException(
+							ErrorCodes.MOBILITY_INVALID_MODE, 
+							"The subtype is '" + 
+								SubType.MODE_ONLY.toString().toLowerCase() + 
+								"', but the required key is missing: " + 
+								JSON_KEY_MODE, 
+							innerException);
+				}
 			}
 			catch(IllegalArgumentException e) {
-				throw new MobilityException(ErrorCodes.MOBILITY_INVALID_MODE, "The mode is unknown.", e);
+				throw new ErrorCodeException(ErrorCodes.MOBILITY_INVALID_MODE, "The mode is unknown.", e);
 			}
+			mode = tMode;
+			sensorData = null;
 			break;
 			
 		case SENSOR_DATA:
@@ -998,7 +892,7 @@ public class MobilityInformation {
 				mode = sensorData.mode;
 			}
 			catch(JSONException e) {
-				throw new MobilityException(
+				throw new ErrorCodeException(
 						ErrorCodes.SERVER_INVALID_JSON, 
 						"The subtype is '" + SubType.SENSOR_DATA.toString().toLowerCase() + "', but the required key is missing: " + JSON_KEY_DATA,
 						e);
@@ -1059,7 +953,7 @@ public class MobilityInformation {
 	public MobilityInformation(Date date, Long time, TimeZone timezone,
 			LocationStatus locationStatus, JSONObject location, 
 			Mode mode, MobilityPrivacyStateCache.PrivacyState privacyState, 
-			JSONObject sensorData, JSONObject features, String classifierVersion) throws MobilityException{
+			JSONObject sensorData, JSONObject features, String classifierVersion) throws ErrorCodeException {
 		
 		if(date == null) {
 			throw new IllegalArgumentException("The date cannot be null.");
@@ -1093,7 +987,12 @@ public class MobilityInformation {
 			this.location = null;
 		}
 		else {
-			this.location = new Location(location);
+			try {
+				this.location = new Location(location);
+			}
+			catch(LocationException e) {
+				throw new ErrorCodeException(e.getErrorCode(), e.getErrorText(), e);
+			}
 		}
 		
 		if(mode == null) {
@@ -1122,6 +1021,93 @@ public class MobilityInformation {
 			this.sensorData = new SensorData(sensorData);
 			this.classifierData = new ClassifierData(features);
 		}
+	}
+	
+	/**
+	 * Creates a new MobilityInformation object.
+	 * 
+	 * @param date The date and time that this reading was taken.
+	 * 
+	 * @param time The milliseconds since epoch that this reading was made.
+	 * 
+	 * @param timezone The time zone of the device that is making this reading.
+	 * 
+	 * @param locationStatus The status of the location object.
+	 * 
+	 * @param location The location of the device that is making this reading.
+	 * 				   This may be null if the location is unknown.
+	 * 
+	 * @param mode The mode as determined by Mobility.
+	 * 
+	 * @param sensorData The sensor data that was taken to generate the mode.
+	 * 					 This may be null if this data is not being captured.
+	 * 
+	 * @throws IllegalArgumentException Thrown if any of the required 
+	 * 									parameters are missing.
+	 */
+	public MobilityInformation(Date date, Long time, TimeZone timezone,
+			LocationStatus locationStatus, Location location, 
+			Mode mode, SensorData sensorData) {
+		
+		if(date == null) {
+			throw new IllegalArgumentException("The date cannot be null.");
+		}
+		else {
+			this.date = date;
+		}
+		
+		if(time == null) {
+			throw new IllegalArgumentException("The time cannot be null.");
+		}
+		else {
+			this.time = time;
+		}
+		
+		if(timezone == null) {
+			throw new IllegalArgumentException("The timezone cannot be null.");
+		}
+		else {
+			this.timezone = timezone;
+		}
+		
+		if(locationStatus == null) {
+			throw new IllegalArgumentException("The location status cannot be null.");
+		}
+		else {
+			this.locationStatus = locationStatus;
+		}
+		
+		if((! LocationStatus.UNAVAILABLE.equals(locationStatus)) &&
+				(location == null)) {
+			throw new IllegalArgumentException(
+					"The location cannot be null if the location status is not '" + 
+					LocationStatus.UNAVAILABLE.toString().toLowerCase() + "'.");
+		}
+		else {
+			this.location = location;
+		}
+		
+		if(mode == null) {
+			throw new IllegalArgumentException("The mode cannot be null.");
+		}
+		else {
+			this.mode = mode;
+		}
+		
+		if(sensorData == null) {
+			subType = SubType.MODE_ONLY;
+			
+			this.sensorData = null;
+			this.classifierData = null;
+		}
+		else {
+			subType = SubType.SENSOR_DATA;
+			
+			this.sensorData = sensorData;
+			this.classifierData = null;
+		}
+		
+		privacyState = MobilityPrivacyStateCache.PrivacyState.PRIVATE;
 	}
 
 	/**
@@ -1300,19 +1286,39 @@ public class MobilityInformation {
 	 * @param abbreviated Whether or not to use the abbreviated versions of the
 	 * 					  JSON keys.
 	 * 
+	 * @param withData Whether or not to include only the mode or to include
+	 * 				   whatever the subtype defines.
+	 * 
 	 * @return A JSONObject that represents this Mobility point.
 	 */
-	public final JSONObject toJson(final boolean abbreviated) {
+	public final JSONObject toJson(final boolean abbreviated, final boolean withData) {
 		try {
 			JSONObject result = new JSONObject();
 			
-			result.put(((abbreviated) ? JSON_KEY_MODE_SHORT : JSON_KEY_MODE), mode.toString().toLowerCase());
 			result.put(((abbreviated) ? JSON_KEY_DATE_SHORT : JSON_KEY_DATE), TimeUtils.getIso8601DateTimeString(date));
 			result.put(((abbreviated) ? JSON_KEY_TIMEZONE_SHORT : JSON_KEY_TIMEZONE), timezone.getID());
-			result.put(((abbreviated) ? JSON_KEY_LOCATION_STATUS_SHORT : JSON_KEY_LOCATION_STATUS), locationStatus.toString().toLowerCase());
+			result.put(((abbreviated) ? JSON_KEY_TIME_SHORT : JSON_KEY_TIME), time);
 			
+			result.put(((abbreviated) ? JSON_KEY_LOCATION_STATUS_SHORT : JSON_KEY_LOCATION_STATUS), locationStatus.toString().toLowerCase());
 			if(location != null) {
 				result.put(((abbreviated) ? JSON_KEY_LOCATION_SHORT : JSON_KEY_LOCATION), location.toJson(abbreviated));
+			}
+			
+			if(withData) {
+				// Subtype
+				result.put(JSON_KEY_SUBTYPE, subType.toString().toLowerCase());
+				
+				// If subtype is mode-only, then just the mode.
+				if(SubType.MODE_ONLY.equals(subType)) {
+					result.put(((abbreviated) ? JSON_KEY_MODE_SHORT : JSON_KEY_MODE), mode.toString().toLowerCase());
+				}
+				// If subtype is sensor-data, then a data object.
+				else if(SubType.SENSOR_DATA.equals(subType)) {
+					result.put(JSON_KEY_DATA, sensorData.toJson());
+				}
+			}
+			else {
+				result.put(((abbreviated) ? JSON_KEY_MODE_SHORT : JSON_KEY_MODE), mode.toString().toLowerCase());
 			}
 			
 			return result;

@@ -6,10 +6,9 @@ import java.util.List;
 
 import javax.sql.DataSource;
 
-import org.ohmage.cache.CampaignRoleCache;
-import org.ohmage.cache.ClassRoleCache;
-import org.ohmage.cache.DocumentPrivacyStateCache;
-import org.ohmage.cache.DocumentRoleCache;
+import org.ohmage.domain.Clazz;
+import org.ohmage.domain.Document;
+import org.ohmage.domain.configuration.Configuration;
 import org.ohmage.exception.DataAccessException;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.SingleColumnRowMapper;
@@ -31,9 +30,9 @@ public final class UserDocumentDaos extends Dao {
 		"AND dur.user_id = u.id " +
 		"AND (" +
 			"(d.privacy_state_id = dps.id " +
-			"AND dps.privacy_state = '" + DocumentPrivacyStateCache.PrivacyState.SHARED + "')" +
+			"AND dps.privacy_state = '" + Document.PrivacyState.SHARED + "')" +
 			" OR " +
-			"(dr.role = '" + DocumentRoleCache.Role.OWNER + "')" + 
+			"(dr.role = '" + Document.Role.OWNER + "')" + 
 		")";
 	
 	// Gets the list of roles for a single document that is directly associated
@@ -49,9 +48,9 @@ public final class UserDocumentDaos extends Dao {
 		"AND dur.document_role_id = dr.id " +
 		"AND d.privacy_state_id = dps.id " +
 		"AND (" +
-			"(dps.privacy_state = '" + DocumentPrivacyStateCache.PrivacyState.SHARED + "')" +
+			"(dps.privacy_state = '" + Document.PrivacyState.SHARED + "')" +
 			" OR " +
-			"(dr.role = '" + DocumentRoleCache.Role.OWNER + "')" + 
+			"(dr.role = '" + Document.Role.OWNER + "')" + 
 		")";
 	
 	private static final String SQL_GET_DOCUMENT_ROLES_FOR_DOCUMENT_FOR_USER =
@@ -81,11 +80,11 @@ public final class UserDocumentDaos extends Dao {
 				// ACL: The document must be shared or the user must be
 				// privileged in class or the role of the class is 'owner'.
 				"AND (" +
-					"(d.privacy_state_id = dps.id AND dps.privacy_state = '" + DocumentPrivacyStateCache.PrivacyState.SHARED + "')" +
+					"(d.privacy_state_id = dps.id AND dps.privacy_state = '" + Document.PrivacyState.SHARED + "')" +
 					" OR " +
-					"(ucr.role = '" + ClassRoleCache.Role.PRIVILEGED + "')" +
+					"(ucr.role = '" + Clazz.Role.PRIVILEGED + "')" +
 					" OR " +
-					"(dr.role = '" + DocumentRoleCache.Role.OWNER + "')" +
+					"(dr.role = '" + Document.Role.OWNER + "')" +
 				")" +
 			// Union
 			" UNION " +
@@ -114,16 +113,16 @@ public final class UserDocumentDaos extends Dao {
 				// for the campaign or the role of the campaign is 'owner'.
 				"AND (" +
 					"(d.privacy_state_id = dps.id " +
-					"AND dps.privacy_state = '" + DocumentPrivacyStateCache.PrivacyState.SHARED + "' " +
+					"AND dps.privacy_state = '" + Document.PrivacyState.SHARED + "' " +
 					"AND (" +
-						"(ur.role = '" + CampaignRoleCache.Role.ANALYST + "')" +
+						"(ur.role = '" + Configuration.Role.ANALYST + "')" +
 						" OR " +
-						"(ur.role = '" + CampaignRoleCache.Role.AUTHOR + "')" +
+						"(ur.role = '" + Configuration.Role.AUTHOR + "')" +
 					"))" +
 				" OR " +
-					"(ur.role = '" + CampaignRoleCache.Role.SUPERVISOR + "')" +
+					"(ur.role = '" + Configuration.Role.SUPERVISOR + "')" +
 				" OR " +
-					"(dr.role = '" + DocumentRoleCache.Role.OWNER + "')" +
+					"(dr.role = '" + Document.Role.OWNER + "')" +
 				")" +
 			// Union
 			" UNION " +
@@ -138,9 +137,9 @@ public final class UserDocumentDaos extends Dao {
 				// ACL: The document must be shared or the user must be an
 				// owner.
 				"AND (" +
-					"(d.privacy_state_id = dps.id AND dps.privacy_state = '" + DocumentPrivacyStateCache.PrivacyState.SHARED + "')" +
+					"(d.privacy_state_id = dps.id AND dps.privacy_state = '" + Document.PrivacyState.SHARED + "')" +
 					" OR " +
-					"(dr.role = '" + DocumentRoleCache.Role.OWNER + "')" +
+					"(dr.role = '" + Document.Role.OWNER + "')" +
 				")" +
 			// This is an aggregation of the form:
 			// 		document_role.role
@@ -201,12 +200,15 @@ public final class UserDocumentDaos extends Dao {
 	 * 		   it, then their document role with said document is returned.
 	 * 		   Otherwise, null is returned.
 	 */
-	public static String getDocumentRoleForDocumentSpecificToUser(String username, String documentId) throws DataAccessException {
+	public static Document.Role getDocumentRoleForDocumentSpecificToUser(String username, String documentId) throws DataAccessException {
 		try {
-			return instance.getJdbcTemplate().queryForObject(
-					SQL_GET_DOCUMENT_ROLES_FOR_DOCUMENT_SPECIFIC_TO_REQUESTING_USER, 
-					new Object[] { username, documentId }, 
-					String.class);
+			return Document.Role.valueOf(
+					instance.getJdbcTemplate().queryForObject(
+							SQL_GET_DOCUMENT_ROLES_FOR_DOCUMENT_SPECIFIC_TO_REQUESTING_USER, 
+							new Object[] { username, documentId }, 
+							String.class
+						)
+				);
 		}
 		catch(org.springframework.dao.IncorrectResultSizeDataAccessException e) {
 			if(e.getActualSize() > 1) {
@@ -234,15 +236,15 @@ public final class UserDocumentDaos extends Dao {
 	 * @return Returns a, possibly empty, List of document roles for the user
 	 * 		   specific to the document.
 	 */
-	public static List<DocumentRoleCache.Role> getDocumentRolesForDocumentForUser(String username, String documentId) throws DataAccessException {
+	public static List<Document.Role> getDocumentRolesForDocumentForUser(String username, String documentId) throws DataAccessException {
 		try {
 			return instance.getJdbcTemplate().query(
 					SQL_GET_DOCUMENT_ROLES_FOR_DOCUMENT_FOR_USER, 
 					new Object[] { username, documentId }, 
-					new RowMapper<DocumentRoleCache.Role>() {
+					new RowMapper<Document.Role>() {
 						@Override
-						public DocumentRoleCache.Role mapRow(ResultSet rs, int rowNum) throws SQLException {
-							return DocumentRoleCache.Role.getValue(rs.getString("role"));
+						public Document.Role mapRow(ResultSet rs, int rowNum) throws SQLException {
+							return Document.Role.getValue(rs.getString("role"));
 						}
 					});
 		}

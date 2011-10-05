@@ -376,7 +376,7 @@ public final class SurveyResponseReadValidators {
 	 * @return
 	 * @throws ValidationException
 	 */
-	public static String validateSortOrder(Request request, String sortOrder, List<String> allowedSortOrderList) 
+	public static List<String> validateSortOrder(Request request, String sortOrder, List<String> allowedSortOrderList) 
 		throws ValidationException {
 		
 		// check for logical errors
@@ -418,7 +418,7 @@ public final class SurveyResponseReadValidators {
 			}
 		}
 		
-		return sortOrder;
+		return sortOrderList;
 	}
 	
 	/**

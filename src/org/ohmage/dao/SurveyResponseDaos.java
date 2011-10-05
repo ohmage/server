@@ -5,6 +5,7 @@ import java.sql.SQLException;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.TimeZone;
@@ -13,10 +14,24 @@ import javax.sql.DataSource;
 
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.ohmage.cache.SurveyResponsePrivacyStateCache;
-import org.ohmage.domain.SurveyResponseInformation;
-import org.ohmage.domain.SurveyResponseInformation.SurveyResponseException;
+import org.ohmage.domain.configuration.Configuration;
+import org.ohmage.domain.configuration.Prompt;
+import org.ohmage.domain.configuration.PromptResponse;
+import org.ohmage.domain.configuration.Response.NoResponse;
+import org.ohmage.domain.configuration.SurveyResponse;
+import org.ohmage.domain.configuration.prompt.response.HoursBeforeNowPromptResponse;
+import org.ohmage.domain.configuration.prompt.response.MultiChoiceCustomPromptResponse;
+import org.ohmage.domain.configuration.prompt.response.MultiChoicePromptResponse;
+import org.ohmage.domain.configuration.prompt.response.NumberPromptResponse;
+import org.ohmage.domain.configuration.prompt.response.PhotoPromptResponse;
+import org.ohmage.domain.configuration.prompt.response.RemoteActivityPromptResponse;
+import org.ohmage.domain.configuration.prompt.response.SingleChoiceCustomPromptResponse;
+import org.ohmage.domain.configuration.prompt.response.SingleChoicePromptResponse;
+import org.ohmage.domain.configuration.prompt.response.TextPromptResponse;
+import org.ohmage.domain.configuration.prompt.response.TimestampPromptResponse;
 import org.ohmage.exception.DataAccessException;
+import org.ohmage.exception.ErrorCodeException;
+import org.ohmage.request.InputKeys;
 import org.ohmage.util.StringUtils;
 import org.ohmage.util.TimeUtils;
 import org.springframework.jdbc.core.RowMapper;
@@ -120,7 +135,7 @@ public class SurveyResponseDaos extends Dao {
 	
 	// Retrieves all of the information about a single survey response.
 	private static final String SQL_GET_SURVEY_RESPONSE = 
-		"SELECT u.username, c.urn, sr.client, sr.msg_timestamp, sr.epoch_millis, sr.phone_timezone, sr.survey_id, sr.launch_context, sr.location_status, sr.location, srps.privacy_state " +
+		"SELECT u.username, c.urn, sr.id, sr.client, sr.msg_timestamp, sr.epoch_millis, sr.phone_timezone, sr.survey_id, sr.launch_context, sr.location_status, sr.location, srps.privacy_state " +
 		"FROM user u, campaign c, survey_response sr, survey_response_privacy_state srps " +
 		"WHERE sr.id = ? " +
 		"AND u.id = sr.user_id " +
@@ -331,7 +346,7 @@ public class SurveyResponseDaos extends Dao {
 	 * @throws DataAccessException Thrown if there is an error.
 	 */
 	public static List<Long> retrieveSurveyResponseIdsWithPrivacyState(final String campaignId, 
-			final SurveyResponsePrivacyStateCache.PrivacyState privacyState) throws DataAccessException {
+			final SurveyResponse.PrivacyState privacyState) throws DataAccessException {
 		try {
 			return instance.getJdbcTemplate().query(
 					SQL_GET_IDS_WITH_PRIVACY_STATE, 
@@ -446,6 +461,8 @@ public class SurveyResponseDaos extends Dao {
 	 * Retrieves the information about a survey response including all of the
 	 * individual prompt responses.
 	 * 
+	 * @param campaign The campaign that contains all of the surveys.
+	 * 
 	 * @param surveyResponseId The survey response's unique identifier.
 	 * 
 	 * @return A SurveyResponseInformation object.
@@ -456,15 +473,18 @@ public class SurveyResponseDaos extends Dao {
 	 * 							   understood by the SurveyResponseInformation
 	 * 							   constructor.
 	 */
-	public static SurveyResponseInformation retrieveSurveyResponseFromId(final Long surveyResponseId) throws DataAccessException {
+	public static SurveyResponse retrieveSurveyResponseFromId(
+			final Configuration campaign,
+			final Long surveyResponseId) throws DataAccessException {
+		
 		try {
 			// Create the survey response information object from the database.
-			final SurveyResponseInformation result = instance.getJdbcTemplate().queryForObject(
+			final SurveyResponse result = instance.getJdbcTemplate().queryForObject(
 					SQL_GET_SURVEY_RESPONSE,
 					new Object[] { surveyResponseId },
-					new RowMapper<SurveyResponseInformation>() {
+					new RowMapper<SurveyResponse>() {
 						@Override
-						public SurveyResponseInformation mapRow(ResultSet rs, int rowNum) throws SQLException {
+						public SurveyResponse mapRow(ResultSet rs, int rowNum) throws SQLException {
 							try {
 								JSONObject locationJson = null;
 								String locationString = rs.getString("location");
@@ -472,23 +492,24 @@ public class SurveyResponseDaos extends Dao {
 									locationJson = new JSONObject(locationString);
 								}
 								
-								return new SurveyResponseInformation(
+								return new SurveyResponse(
+										campaign.getSurveys().get(rs.getString("survey_id")),
+										rs.getLong("id"),
 										rs.getString("username"),
 										rs.getString("urn"),
 										rs.getString("client"),
 										rs.getTimestamp("msg_timestamp"),
 										rs.getLong("epoch_millis"),
 										TimeZone.getTimeZone(rs.getString("phone_timezone")),
-										rs.getString("survey_id"),
 										new JSONObject(rs.getString("launch_context")),
 										rs.getString("location_status"),
 										locationJson,
-										SurveyResponsePrivacyStateCache.PrivacyState.getValue(rs.getString("privacy_state")));
+										SurveyResponse.PrivacyState.getValue(rs.getString("privacy_state")));
 							}
 							catch(JSONException e) {
 								throw new SQLException("Error creating a JSONObject.", e);
 							}
-							catch(SurveyResponseException e) {
+							catch(ErrorCodeException e) {
 								throw new SQLException("Error creating the survey response information object.", e);
 							}
 							catch(IllegalArgumentException e) {
@@ -510,14 +531,13 @@ public class SurveyResponseDaos extends Dao {
 						@Override
 						public Object mapRow(ResultSet rs, int rowNum) throws SQLException {
 							try {
-								result.addPromptResponse(
-										rs.getString("prompt_id"), 
-										rs.getString("prompt_type"), 
-										rs.getString("repeatable_set_id"), 
+								result.addPromptResponse(createPromptResponse(
+										Prompt.Type.valueOf(rs.getString("prompt_type")),
+										rs.getString("prompt_id"),
 										(Integer) rs.getObject("repeatable_set_iteration", typeMapping), 
-										rs.getString("response"));
+										rs.getString("response")));
 							}
-							catch(SurveyResponseException e) {
+							catch(DataAccessException e) {
 								throw new SQLException("Error adding a prompt response.", e);
 							}
 							catch(IllegalArgumentException e) {
@@ -552,6 +572,8 @@ public class SurveyResponseDaos extends Dao {
 	 * Retrieves the information about a list of survey responses including all
 	 * of their individual prompt responses.
 	 * 
+	 * @param campaign The campaign that contains all of the surveys.
+	 * 
 	 * @param surveyResponseIds A collection of unique identifiers for survey
 	 * 							responses whose information is being queried.
 	 * 
@@ -560,19 +582,20 @@ public class SurveyResponseDaos extends Dao {
 	 * 
 	 * @throws DataAccessException Thrown if there is an error.
 	 */
-	public static List<SurveyResponseInformation> retrieveSurveyResponseFromIds(
+	public static List<SurveyResponse> retrieveSurveyResponseFromIds(
+			final Configuration campaign,
 			final Collection<Long> surveyResponseIds) throws DataAccessException {
 		try {
 			final Map<String, Class<?>> typeMapping = new HashMap<String, Class<?>>();
 			typeMapping.put("tinyint", Integer.class);
 			
-			final List<SurveyResponseInformation> result = 
+			final List<SurveyResponse> result = 
 				instance.getJdbcTemplate().query(
 					SQL_GET_SURVEY_RESPONSES + StringUtils.generateStatementPList(surveyResponseIds.size()),
 					surveyResponseIds.toArray(),
-					new RowMapper<SurveyResponseInformation>() {
+					new RowMapper<SurveyResponse>() {
 						@Override
-						public SurveyResponseInformation mapRow(ResultSet rs, int rowNum) throws SQLException {
+						public SurveyResponse mapRow(ResultSet rs, int rowNum) throws SQLException {
 							try {
 								JSONObject locationJson = null;
 								String locationString = rs.getString("location");
@@ -580,22 +603,24 @@ public class SurveyResponseDaos extends Dao {
 									locationJson = new JSONObject(locationString);
 								}
 								
-								final SurveyResponseInformation currResult = 
-									new SurveyResponseInformation(
+								// Create an object for this survey response.
+								final SurveyResponse currResult = 
+									new SurveyResponse(
+										campaign.getSurveys().get(rs.getString("survey_id")),
+										rs.getLong("id"),
 										rs.getString("username"),
 										rs.getString("urn"),
 										rs.getString("client"),
 										rs.getTimestamp("msg_timestamp"),
 										rs.getLong("epoch_millis"),
 										TimeZone.getTimeZone(rs.getString("phone_timezone")),
-										rs.getString("survey_id"),
 										new JSONObject(rs.getString("launch_context")),
 										rs.getString("location_status"),
 										locationJson,
-										SurveyResponsePrivacyStateCache.PrivacyState.getValue(rs.getString("privacy_state")));
+										SurveyResponse.PrivacyState.getValue(rs.getString("privacy_state")));
 								
-								// Retrieve all of the prompt responses for the survey response and
-								// add them to the survey response information object.
+								// Retrieve all of the prompt responses for the
+								// current survey response.
 								try {
 									instance.getJdbcTemplate().query(
 											SQL_GET_PROMPT_RESPONSES,
@@ -604,14 +629,13 @@ public class SurveyResponseDaos extends Dao {
 												@Override
 												public Object mapRow(ResultSet rs, int rowNum) throws SQLException {
 													try {
-														currResult.addPromptResponse(
-																rs.getString("prompt_id"), 
-																rs.getString("prompt_type"), 
-																rs.getString("repeatable_set_id"), 
+														currResult.addPromptResponse(createPromptResponse(
+																Prompt.Type.valueOf(rs.getString("prompt_type")),
+																rs.getString("prompt_id"),
 																(Integer) rs.getObject("repeatable_set_iteration", typeMapping), 
-																rs.getString("response"));
+																rs.getString("response")));
 													}
-													catch(SurveyResponseException e) {
+													catch(DataAccessException e) {
 														throw new SQLException("Error adding a prompt response.", e);
 													}
 													catch(IllegalArgumentException e) {
@@ -635,7 +659,7 @@ public class SurveyResponseDaos extends Dao {
 							catch(JSONException e) {
 								throw new SQLException("Error creating a JSONObject.", e);
 							}
-							catch(SurveyResponseException e) {
+							catch(ErrorCodeException e) {
 								throw new SQLException("Error creating the survey response information object.", e);
 							}
 							catch(IllegalArgumentException e) {
@@ -663,7 +687,7 @@ public class SurveyResponseDaos extends Dao {
 	 * 
 	 * @throws DataAccessException Thrown if there is an error.
 	 */
-	public static void updateSurveyResponsePrivacyState(Long surveyResponseId, SurveyResponsePrivacyStateCache.PrivacyState newPrivacyState) throws DataAccessException {
+	public static void updateSurveyResponsePrivacyState(Long surveyResponseId, SurveyResponse.PrivacyState newPrivacyState) throws DataAccessException {
 		// Create the transaction.
 		DefaultTransactionDefinition def = new DefaultTransactionDefinition();
 		def.setName("Updating a survey response.");
@@ -736,6 +760,208 @@ public class SurveyResponseDaos extends Dao {
 		}
 		catch(TransactionException e) {
 			throw new DataAccessException("Error while attempting to rollback the transaction.", e);
+		}
+	}
+	
+	/**
+	 * Creates a PromptResponse object from the given parameters.
+	 * 
+	 * @param promptType The prompty type.
+	 * 
+	 * @param promptId The prompt's campaign-unique identifier.
+	 * 
+	 * @param repeatableSetId If the prompt is part of a repeatable set, then
+	 * 						  that repeatable set's campaign-unique identifier;
+	 * 						  otherwise, null.
+	 * 
+	 * @param repeatableSetIteration If the prompt is part of a repeatable set,
+	 * 								 then the iteration of that repeatable set
+	 * 								 to which this prompt was responded; 
+	 *  							 otherwise, null.
+	 * 
+	 * @param response The response given by the server.
+	 * 
+	 * @return A PromptResponse object representing this prompt response.
+	 * 
+	 * @throws DataAccessException Thrown if there is an error.
+	 */
+	private static PromptResponse createPromptResponse(
+			final Prompt.Type promptType,
+			final String promptId, final Integer repeatableSetIteration, 
+			final String response) throws DataAccessException {
+		
+		try {
+			if(Prompt.Type.HOURS_BEFORE_NOW.equals(promptType)) {
+				Long hours = null;
+				NoResponse noResponse = null;
+				try {
+					noResponse = NoResponse.valueOf(response);
+				}
+				catch(IllegalArgumentException iae) {
+					try {
+						hours = Long.decode(response);
+					}
+					catch(NumberFormatException nfe) {
+						throw new DataAccessException("Error decoding the value of a hours-before-now response.", nfe);
+					}
+				}
+				
+				return new HoursBeforeNowPromptResponse(null, noResponse, repeatableSetIteration, hours);
+			}
+			else if(Prompt.Type.PHOTO.equals(promptType)) {
+				NoResponse noResponse = null;
+				try {
+					noResponse = NoResponse.valueOf(response);
+				}
+				catch(IllegalArgumentException e) {
+					// Then, it is a UUID and this is acceptable.
+				}
+				
+				return new PhotoPromptResponse(null, noResponse, repeatableSetIteration,
+						(noResponse == null) ? response : null, null);
+			}
+			else if(Prompt.Type.MULTI_CHOICE.equals(promptType)) {
+				List<String> values = null;
+				NoResponse noResponse = null;
+				try {
+					noResponse = NoResponse.valueOf(response);
+				}
+				catch(IllegalArgumentException e) {
+					// Then, it is a list or results and this is acceptable.
+					String responseWithoutBrackets = response.substring(1, response.length() - 1);
+					String[] responses = responseWithoutBrackets.split(InputKeys.LIST_ITEM_SEPARATOR);
+					
+					values = new LinkedList<String>();
+					for(int i = 0; i < responses.length; i++) {
+						values.add(responses[i]);
+					}
+				}
+				
+				return new MultiChoicePromptResponse(null,
+						noResponse, repeatableSetIteration, 
+						values);
+			}
+			else if(Prompt.Type.MULTI_CHOICE_CUSTOM.equals(promptType)) {
+				List<String> values = null;
+				NoResponse noResponse = null;
+				try {
+					noResponse = NoResponse.valueOf(response);
+				}
+				catch(IllegalArgumentException e) {
+					// Then, it is a list or results and this is acceptable.
+					String responseWithoutBrackets = response.substring(1, response.length() - 1);
+					String[] responses = responseWithoutBrackets.split(InputKeys.LIST_ITEM_SEPARATOR);
+					
+					values = new LinkedList<String>();
+					for(int i = 0; i < responses.length; i++) {
+						values.add(responses[i]);
+					}
+				}
+				
+				return new MultiChoiceCustomPromptResponse(null, noResponse,
+						repeatableSetIteration, values);
+			}
+			else if(Prompt.Type.NUMBER.equals(promptType)) {
+				Integer number = null;
+				NoResponse noResponse = null;
+				try {
+					noResponse = NoResponse.valueOf(response);
+				}
+				catch(IllegalArgumentException iae) {
+					try {
+						number = Integer.decode(response);
+					}
+					catch(NumberFormatException nfe) {
+						throw new DataAccessException("Error decoding the value of a numbers response.", nfe);
+					}
+				}
+				
+				return new NumberPromptResponse(null,
+						noResponse, repeatableSetIteration,
+						number);
+			}
+			else if(Prompt.Type.REMOTE_ACTIVITY.equals(promptType)) {
+				JSONObject result = null;
+				NoResponse noResponse = null;
+				try {
+					noResponse = NoResponse.valueOf(response);
+				}
+				catch(IllegalArgumentException iae) {
+					try {
+						result = new JSONObject(response);
+					}
+					catch(JSONException je) {
+						throw new DataAccessException("Error decoding the value of a remote activity response.", je);
+					}
+				}
+				
+				return new RemoteActivityPromptResponse(null,
+						noResponse, repeatableSetIteration,
+						result);
+			}
+			else if(Prompt.Type.SINGLE_CHOICE.equals(promptType)) {
+				NoResponse noResponse = null;
+				try {
+					noResponse = NoResponse.valueOf(response);
+				}
+				catch(IllegalArgumentException e) {
+					// Then, it is a single choice value which is acceptable.
+				}
+				
+				return new SingleChoicePromptResponse(null,
+						noResponse, repeatableSetIteration,
+						response);
+			}
+			else if(Prompt.Type.SINGLE_CHOICE_CUSTOM.equals(promptType)) {
+				NoResponse noResponse = null;
+				try {
+					noResponse = NoResponse.valueOf(response);
+				}
+				catch(IllegalArgumentException e) {
+					// Then, it is a single choice value which is acceptable.
+				}
+				
+				return new SingleChoiceCustomPromptResponse(null,
+						noResponse, repeatableSetIteration,
+						response);
+			}
+			else if(Prompt.Type.TEXT.equals(promptType)) {
+				NoResponse noResponse = null;
+				try {
+					noResponse = NoResponse.valueOf(response);
+				}
+				catch(IllegalArgumentException e) {
+					// Then, it is a text value and this is acceptable.
+				}
+				
+				return new TextPromptResponse(null,
+						noResponse, repeatableSetIteration,
+						response);
+			}
+			else if(Prompt.Type.TIMESTAMP.equals(promptType)) {
+				Date timestamp = null;
+				NoResponse noResponse = null;
+				try {
+					noResponse = NoResponse.valueOf(response);
+				}
+				catch(IllegalArgumentException e) {
+					timestamp = StringUtils.decodeDateTime(response);
+					
+					if(timestamp == null) {
+						throw new DataAccessException("Error decoding the value of a timestamp: " + response, e);
+					}
+				}
+				
+				return new TimestampPromptResponse(null,
+						noResponse, repeatableSetIteration,
+						timestamp);
+			}
+			else {
+				throw new DataAccessException("Unknown prompt type: " + promptType);
+			}
+		}
+		catch(IllegalArgumentException e) {
+			throw new DataAccessException("A required parameter was null.", e);
 		}
 	}
 }

@@ -8,9 +8,9 @@ import java.util.Map;
 import java.util.Set;
 
 import org.ohmage.annotator.ErrorCodes;
-import org.ohmage.cache.ClassRoleCache;
 import org.ohmage.dao.UserClassDaos;
 import org.ohmage.dao.UserDaos;
+import org.ohmage.domain.Clazz;
 import org.ohmage.domain.UserPersonal;
 import org.ohmage.exception.DataAccessException;
 import org.ohmage.exception.ServiceException;
@@ -91,7 +91,7 @@ public final class UserClassServices {
 	 * @throws ServiceException Thrown if the user doesn't have the role in the
 	 * 							class or if there is an error.
 	 */
-	public static void userHasRoleInClass(Request request, String username, String classId, ClassRoleCache.Role classRole) throws ServiceException {
+	public static void userHasRoleInClass(Request request, String username, String classId, Clazz.Role classRole) throws ServiceException {
 		try {
 			if(! UserClassDaos.getUserClassRole(classId, username).equals(classRole)) {
 				request.setFailed(ErrorCodes.CLASS_INSUFFICIENT_PERMISSIONS, "The user doesn't have sufficient permissions for the following class: " + classId);
@@ -120,7 +120,7 @@ public final class UserClassServices {
 	 * 							role in each of the classes or there is an 
 	 * 							error.
 	 */
-	public static void userHasRoleInClasses(Request request, String username, Collection<String> classIds, ClassRoleCache.Role classRole) throws ServiceException {
+	public static void userHasRoleInClasses(Request request, String username, Collection<String> classIds, Clazz.Role classRole) throws ServiceException {
 		for(String classId : classIds) {
 			userHasRoleInClass(request, username, classId, classRole);
 		}
@@ -141,7 +141,7 @@ public final class UserClassServices {
 	 */
 	public static void userIsAdminOrPrivileged(Request request, String classId, String username) throws ServiceException {
 		try {
-			if((! ClassRoleCache.Role.PRIVILEGED.equals(UserClassDaos.getUserClassRole(classId, username))) &&
+			if((! Clazz.Role.PRIVILEGED.equals(UserClassDaos.getUserClassRole(classId, username))) &&
 			   (! UserDaos.userIsAdmin(username))) {
 				request.setFailed(ErrorCodes.CLASS_INSUFFICIENT_PERMISSIONS, "The user is not privileged in the class.");
 				throw new ServiceException("The user is not privileged in the class.");
@@ -178,7 +178,7 @@ public final class UserClassServices {
 			// For each of the classes in the list, the user must be 
 			// privileged.
 			for(String classId : classIds) {
-				if(! ClassRoleCache.Role.PRIVILEGED.equals(UserClassDaos.getUserClassRole(classId, username))) {
+				if(! Clazz.Role.PRIVILEGED.equals(UserClassDaos.getUserClassRole(classId, username))) {
 					request.setFailed(ErrorCodes.CLASS_INSUFFICIENT_PERMISSIONS, "The user is not and admin nor privileged in a class: " + classId);
 					throw new ServiceException("The user is not and admin nor privileged in a class: " + classId);
 				}

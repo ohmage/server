@@ -6,7 +6,7 @@ import java.util.List;
 
 import javax.sql.DataSource;
 
-import org.ohmage.cache.DocumentRoleCache;
+import org.ohmage.domain.Document;
 import org.ohmage.exception.DataAccessException;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.SingleColumnRowMapper;
@@ -85,15 +85,15 @@ public final class CampaignDocumentDaos extends Dao {
 	 * 
 	 * @throws DataAccessException Thrown if there is an error.
 	 */
-	public static DocumentRoleCache.Role getCampaignDocumentRole(String campaignId, String documentId) throws DataAccessException {
+	public static Document.Role getCampaignDocumentRole(String campaignId, String documentId) throws DataAccessException {
 		try {
 			return instance.getJdbcTemplate().queryForObject(
 					SQL_GET_CAMPAIGN_DOCUMENT_ROLE,
 					new Object[] { campaignId, documentId },
-					new RowMapper<DocumentRoleCache.Role>() {
+					new RowMapper<Document.Role>() {
 						@Override
-						public DocumentRoleCache.Role mapRow(ResultSet rs, int rowNum) throws SQLException {
-							return DocumentRoleCache.Role.getValue(rs.getString("role"));
+						public Document.Role mapRow(ResultSet rs, int rowNum) throws SQLException {
+							return Document.Role.getValue(rs.getString("role"));
 						}
 					}
 				);

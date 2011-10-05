@@ -7,9 +7,9 @@ import java.util.List;
 import java.util.Set;
 
 import org.ohmage.annotator.ErrorCodes;
-import org.ohmage.cache.ClassRoleCache;
 import org.ohmage.dao.UserClassDaos;
 import org.ohmage.dao.UserClassDocumentDaos;
+import org.ohmage.domain.Clazz;
 import org.ohmage.exception.DataAccessException;
 import org.ohmage.exception.ServiceException;
 import org.ohmage.request.Request;
@@ -37,7 +37,7 @@ public class UserClassDocumentServices {
 	 */
 	public static void userCanAssociateDocumentsWithClass(Request request, String username, String classId) throws ServiceException {
 		try {
-			ClassRoleCache.Role classRole = UserClassDaos.getUserClassRole(classId, username);
+			Clazz.Role classRole = UserClassDaos.getUserClassRole(classId, username);
 			
 			if(classRole == null) {
 				request.setFailed(ErrorCodes.DOCUMENT_INSUFFICIENT_PERMISSIONS, "The user is not a member of the following class and, therefore, cannot associate documents with it: " + classId);
@@ -66,7 +66,7 @@ public class UserClassDocumentServices {
 	 */
 	public static void userCanDisassociateDocumentsWithClass(Request request, String username, String classId) throws ServiceException {
 		try {
-			ClassRoleCache.Role classRole = UserClassDaos.getUserClassRole(classId, username);
+			Clazz.Role classRole = UserClassDaos.getUserClassRole(classId, username);
 			
 			if(classRole == null) {
 				request.setFailed(ErrorCodes.DOCUMENT_INSUFFICIENT_PERMISSIONS, "The user is not a member of the following class and, therefore, cannot disassociate documents from it: " + classId);

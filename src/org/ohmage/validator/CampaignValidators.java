@@ -7,21 +7,16 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import nu.xom.ParsingException;
-import nu.xom.ValidityException;
-
 import org.apache.log4j.Logger;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.ohmage.annotator.ErrorCodes;
-import org.ohmage.cache.CampaignPrivacyStateCache;
-import org.ohmage.cache.CampaignRoleCache;
-import org.ohmage.cache.CampaignRunningStateCache;
-import org.ohmage.config.grammar.custom.ConditionParseException;
-import org.ohmage.config.xml.CampaignValidator;
+import org.ohmage.domain.configuration.Configuration;
 import org.ohmage.exception.ValidationException;
 import org.ohmage.request.InputKeys;
 import org.ohmage.request.Request;
 import org.ohmage.util.StringUtils;
-import org.xml.sax.SAXException;
 
 /**
  * Class to contain the validators for campaign parameters.
@@ -30,8 +25,6 @@ import org.xml.sax.SAXException;
  */
 public final class CampaignValidators {
 	private static final Logger LOGGER = Logger.getLogger(CampaignValidators.class);
-	
-	private static final String CAMPAIGN_XML_SCHEMA_FILENAME = "/opt/aw/conf/configuration.xsd";
 	
 	public static enum OutputFormat { SHORT, LONG, XML }; 
 	
@@ -139,7 +132,7 @@ public final class CampaignValidators {
 	 * 							   whitespace only and isn't a known campaign
 	 * 							   running state.
 	 */
-	public static CampaignRunningStateCache.RunningState validateRunningState(Request request, String runningState) throws ValidationException {
+	public static Configuration.RunningState validateRunningState(Request request, String runningState) throws ValidationException {
 		LOGGER.info("Validating a campaign running state.");
 		
 		if(StringUtils.isEmptyOrWhitespaceOnly(runningState)) {
@@ -147,7 +140,7 @@ public final class CampaignValidators {
 		}
 		
 		try {
-			return CampaignRunningStateCache.RunningState.getValue(runningState);
+			return Configuration.RunningState.getValue(runningState);
 		}
 		catch(IllegalArgumentException e) {
 			request.setFailed(ErrorCodes.CAMPAIGN_INVALID_RUNNING_STATE, "The running state is unknown.");
@@ -171,7 +164,7 @@ public final class CampaignValidators {
 	 * 							   whitespace only and isn't a known campaign
 	 * 							   privacy state.
 	 */
-	public static CampaignPrivacyStateCache.PrivacyState validatePrivacyState(Request request, String privacyState) throws ValidationException {
+	public static Configuration.PrivacyState validatePrivacyState(Request request, String privacyState) throws ValidationException {
 		LOGGER.info("Validating a campaign privacy state.");
 		
 		if(StringUtils.isEmptyOrWhitespaceOnly(privacyState)) {
@@ -179,7 +172,7 @@ public final class CampaignValidators {
 		}
 		
 		try {
-			return CampaignPrivacyStateCache.PrivacyState.getValue(privacyState);
+			return Configuration.PrivacyState.getValue(privacyState);
 		}
 		catch(IllegalArgumentException e) {
 			request.setFailed(ErrorCodes.CAMPAIGN_INVALID_PRIVACY_STATE, "The privacy state is unknown.");
@@ -211,30 +204,9 @@ public final class CampaignValidators {
 		}
 		
 		try {
-			(new CampaignValidator()).run(xml, CAMPAIGN_XML_SCHEMA_FILENAME);
-		}
-		catch(ValidityException e) {
-			request.setFailed(ErrorCodes.CAMPAIGN_INVALID_XML, e.getMessage());
-			throw new ValidationException("The XML was invalid.", e);
-		} 
-		catch(SAXException e) {
-			request.setFailed(ErrorCodes.CAMPAIGN_INVALID_XML, e.getMessage());
-			throw new ValidationException("The XML was invalid.", e);
-		}
-		catch(ConditionParseException e) {
-			request.setFailed(ErrorCodes.CAMPAIGN_INVALID_XML, e.getMessage());
-			throw new ValidationException("The XML was invalid.", e);
-		}
-		catch(ParsingException e) {
-			request.setFailed(ErrorCodes.CAMPAIGN_INVALID_XML, e.getMessage());
-			throw new ValidationException("The XML was invalid.", e);
-		}
-		catch(IllegalStateException e) {
-			request.setFailed(ErrorCodes.CAMPAIGN_INVALID_XML, e.getMessage());
-			throw new ValidationException("The XML was invalid.", e);
+			Configuration.validateXml(xml);
 		}
 		catch(IllegalArgumentException e) {
-			request.setFailed(ErrorCodes.CAMPAIGN_INVALID_XML, e.getMessage());
 			throw new ValidationException("The XML was invalid.", e);
 		}
 		
@@ -381,7 +353,7 @@ public final class CampaignValidators {
 	 * @throws ValidationException Thrown if the role is not a valid campaign
 	 * 							   role.
 	 */
-	public static CampaignRoleCache.Role validateRole(Request request, String role) throws ValidationException {
+	public static Configuration.Role validateRole(Request request, String role) throws ValidationException {
 		LOGGER.info("Validating a campaign role.");
 		
 		if(StringUtils.isEmptyOrWhitespaceOnly(role)) {
@@ -389,7 +361,7 @@ public final class CampaignValidators {
 		}
 		
 		try {
-			return CampaignRoleCache.Role.getValue(role);
+			return Configuration.Role.getValue(role);
 		}
 		catch(IllegalArgumentException e) {
 			request.setFailed(ErrorCodes.CAMPAIGN_INVALID_ROLE, "The campaign role is unknown: " + role);
@@ -420,5 +392,47 @@ public final class CampaignValidators {
 		}
 		
 		return promptId.trim();
+	}
+	
+	/**
+	 * Validates that a string uploaded by a client is a valid JSONArray of
+	 * JSONObjects. It does no validation of the individual survey responses.
+	 * 
+	 * @param request The Request performing this validation.
+	 * 
+	 * @param uploadValue The string uploaded by the client.
+	 * 
+	 * @return A list of the survey responses as JSONObjects.
+	 * 
+	 * @throws ValidationException Thrown if the response was not valid JSON.
+	 */
+	public static List<JSONObject> validateUploadedJson(Request request, String uploadValue) throws ValidationException {
+		LOGGER.info("Validating the uploaded JSON.");
+		
+		if(StringUtils.isEmptyOrWhitespaceOnly(uploadValue)) {
+			return null;
+		}
+		
+		JSONArray surveyResponseJson;
+		try {
+			surveyResponseJson = new JSONArray(uploadValue);
+		}
+		catch(JSONException e) {
+			throw new ValidationException("The uploaded JSON was not a JSONArray.", e);
+		}
+		int numResponses = surveyResponseJson.length();
+		
+		List<JSONObject> result = new ArrayList<JSONObject>(numResponses);
+		
+		for(int i = 0; i < numResponses; i++) {
+			try {
+			result.add(surveyResponseJson.getJSONObject(i));
+			}
+			catch(JSONException e) {
+				throw new ValidationException("One of the survey responses was not valid JSON.", e);
+			}
+		}
+		
+		return result;
 	}
 }

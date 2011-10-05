@@ -10,9 +10,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.log4j.Logger;
 import org.ohmage.annotator.ErrorCodes;
-import org.ohmage.cache.CampaignPrivacyStateCache;
-import org.ohmage.cache.CampaignRoleCache;
-import org.ohmage.cache.CampaignRunningStateCache;
+import org.ohmage.domain.configuration.Configuration;
 import org.ohmage.exception.ServiceException;
 import org.ohmage.exception.ValidationException;
 import org.ohmage.request.InputKeys;
@@ -99,11 +97,11 @@ public class CampaignUpdateRequest extends UserRequest {
 	private final String campaignId;
 	private final String xml;
 	private final String description;
-	private final CampaignRunningStateCache.RunningState runningState;
-	private final CampaignPrivacyStateCache.PrivacyState privacyState;
+	private final Configuration.RunningState runningState;
+	private final Configuration.PrivacyState privacyState;
 	private final List<String> classIds;
-	private final Map<String, Set<CampaignRoleCache.Role>> usersAndRolesToAdd;
-	private final Map<String, Set<CampaignRoleCache.Role>> usersAndRolesToRemove;
+	private final Map<String, Set<Configuration.Role>> usersAndRolesToAdd;
+	private final Map<String, Set<Configuration.Role>> usersAndRolesToRemove;
 	
 	/**
 	 * Creates a campaign update request.
@@ -119,11 +117,11 @@ public class CampaignUpdateRequest extends UserRequest {
 		String tCampaignId = null;
 		String tXml = null;
 		String tDescription = null;
-		CampaignRunningStateCache.RunningState tRunningState = null;
-		CampaignPrivacyStateCache.PrivacyState tPrivacyState = null;
+		Configuration.RunningState tRunningState = null;
+		Configuration.PrivacyState tPrivacyState = null;
 		List<String> tClassIds = null;
-		Map<String, Set<CampaignRoleCache.Role>> tUsersAndRolesToAdd = null;
-		Map<String, Set<CampaignRoleCache.Role>> tUsersAndRolesToRemove = null;
+		Map<String, Set<Configuration.Role>> tUsersAndRolesToAdd = null;
+		Map<String, Set<Configuration.Role>> tUsersAndRolesToRemove = null;
 		
 		try {
 			tCampaignId = CampaignValidators.validateCampaignId(this, httpRequest.getParameter(InputKeys.CAMPAIGN_URN));
@@ -232,8 +230,8 @@ public class CampaignUpdateRequest extends UserRequest {
 			
 			if(usersAndRolesToAdd != null) {
 				LOGGER.info("Verifying that the user is allowed to give the permissions they are trying to give.");
-				Set<CampaignRoleCache.Role> roles = new HashSet<CampaignRoleCache.Role>();
-				for(Set<CampaignRoleCache.Role> currRoles : usersAndRolesToAdd.values()) {
+				Set<Configuration.Role> roles = new HashSet<Configuration.Role>();
+				for(Set<Configuration.Role> currRoles : usersAndRolesToAdd.values()) {
 					roles.addAll(currRoles);
 				}
 				UserCampaignServices.verifyUserCanGrantOrRevokeRoles(this, getUser().getUsername(), campaignId, roles);
@@ -241,8 +239,8 @@ public class CampaignUpdateRequest extends UserRequest {
 			
 			if(usersAndRolesToRemove != null) {
 				LOGGER.info("Verifying that the user is allowed to revoke permissions that they are trying to revoke access.");
-				Set<CampaignRoleCache.Role> roles = new HashSet<CampaignRoleCache.Role>();
-				for(Set<CampaignRoleCache.Role> currRoles : usersAndRolesToRemove.values()) {
+				Set<Configuration.Role> roles = new HashSet<Configuration.Role>();
+				for(Set<Configuration.Role> currRoles : usersAndRolesToRemove.values()) {
 					roles.addAll(currRoles);
 				}
 				UserCampaignServices.verifyUserCanGrantOrRevokeRoles(this, getUser().getUsername(), campaignId, roles);

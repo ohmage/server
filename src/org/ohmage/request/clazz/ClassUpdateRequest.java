@@ -8,7 +8,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.log4j.Logger;
 import org.ohmage.annotator.ErrorCodes;
-import org.ohmage.cache.ClassRoleCache;
+import org.ohmage.domain.Clazz;
 import org.ohmage.exception.ServiceException;
 import org.ohmage.exception.ValidationException;
 import org.ohmage.request.InputKeys;
@@ -76,7 +76,7 @@ public class ClassUpdateRequest extends UserRequest {
 	private final String classId;
 	private final String className;
 	private final String classDescription;
-	private final Map<String, ClassRoleCache.Role> usersToAdd;
+	private final Map<String, Clazz.Role> usersToAdd;
 	private final List<String> usersToRemove;
 	
 	/**
@@ -91,7 +91,7 @@ public class ClassUpdateRequest extends UserRequest {
 		String tempClassId = null;
 		String tempClassName = null;
 		String tempClassDescription = null;
-		Map<String, ClassRoleCache.Role> tempUsersToAdd = null;
+		Map<String, Clazz.Role> tempUsersToAdd = null;
 		List<String> tempUsersToRemove = null;
 		
 		if(! isFailed()) {

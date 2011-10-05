@@ -1,27 +1,24 @@
 package org.ohmage.dao;
 
 
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import javax.sql.DataSource;
 
-import org.ohmage.cache.CampaignPrivacyStateCache;
-import org.ohmage.cache.CampaignRoleCache;
-import org.ohmage.cache.CampaignRunningStateCache;
-import org.ohmage.cache.ClassRoleCache;
-import org.ohmage.domain.CampaignInformation;
-import org.ohmage.domain.CampaignInformation.PrivacyState;
-import org.ohmage.domain.CampaignInformation.RunningState;
+import org.ohmage.domain.Clazz;
 import org.ohmage.domain.configuration.Configuration;
-import org.ohmage.domain.configuration.SurveyMapFromXmlBuilder;
+import org.ohmage.domain.configuration.Survey;
 import org.ohmage.exception.DataAccessException;
 import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.jdbc.core.RowMapper;
@@ -98,7 +95,7 @@ public final class CampaignDaos extends Dao {
 	
 	// Returns the information pertaining directly to a campaign.
 	private static final String SQL_GET_CAMPAIGN_INFORMATION =
-		"SELECT c.name, c.description, c.icon_url, c.authored_by, crs.running_state, cps.privacy_state, c.creation_timestamp " +
+		"SELECT c.name, c.description, c.icon_url, c.authored_by, c.xml, crs.running_state, cps.privacy_state, c.creation_timestamp " +
 		"FROM campaign c, campaign_running_state crs, campaign_privacy_state cps " +
 		"WHERE c.urn = ? " +
 		"AND c.running_state_id = crs.id " +
@@ -296,13 +293,6 @@ public final class CampaignDaos extends Dao {
 			"WHERE role = ?" +
 		")";
 	
-	private static final String SQL_SELECT_CAMPAIGN_CONFIGURATION = 
-		"SELECT c.name, c.description, c.xml, crs.running_state, cps.privacy_state, c.creation_timestamp" +
-        " FROM campaign c, campaign_running_state crs, campaign_privacy_state cps" +
-        " WHERE urn = ?" +
-        " AND c.running_state_id = crs.id" +
-        " AND c.privacy_state_id = cps.id";
-	
 	
 	// The single instance of this class as the constructor should only ever be
 	// called once by Spring.
@@ -341,8 +331,8 @@ public final class CampaignDaos extends Dao {
 	 */
 	public static void createCampaign(String campaignId, String name, String xml, String description, 
 			String iconUrl, String authoredBy, 
-			CampaignRunningStateCache.RunningState runningState, 
-			CampaignPrivacyStateCache.PrivacyState privacyState, 
+			Configuration.RunningState runningState, 
+			Configuration.PrivacyState privacyState, 
 			List<String> classIds, String creatorUsername)
 		throws DataAccessException {
 		
@@ -375,7 +365,7 @@ public final class CampaignDaos extends Dao {
 			// Add the requesting user as the author. This may have already 
 			// happened above.
 			try {
-				instance.getJdbcTemplate().update(SQL_INSERT_USER_ROLE_CAMPAIGN, creatorUsername, campaignId, CampaignRoleCache.Role.AUTHOR);
+				instance.getJdbcTemplate().update(SQL_INSERT_USER_ROLE_CAMPAIGN, creatorUsername, campaignId, Configuration.Role.AUTHOR);
 			}
 			catch(org.springframework.dao.DataIntegrityViolationException e) {
 				// The user was already an author of this campaign implying 
@@ -385,7 +375,7 @@ public final class CampaignDaos extends Dao {
 			catch(org.springframework.dao.DataAccessException e) {
 				transactionManager.rollback(status);
 				throw new DataAccessException("Error executing SQL '" + SQL_INSERT_USER_ROLE_CAMPAIGN + "' with parameters: " + 
-						creatorUsername + ", " + campaignId + ", " + CampaignRoleCache.Role.AUTHOR, e);
+						creatorUsername + ", " + campaignId + ", " + Configuration.Role.AUTHOR, e);
 			}
 			
 			// Commit the transaction.
@@ -457,25 +447,31 @@ public final class CampaignDaos extends Dao {
 	public static Configuration findCampaignConfiguration(final String campaignId) throws DataAccessException {
 		try {
 			return instance.getJdbcTemplate().queryForObject(
-					SQL_SELECT_CAMPAIGN_CONFIGURATION, 
+					SQL_GET_CAMPAIGN_INFORMATION, 
 					new Object[] { campaignId }, 
-					new RowMapper<Configuration>() { public Configuration mapRow(ResultSet rs, int rowNum) throws SQLException {
-						String name = rs.getString(1);
-						String description = rs.getString(2);
-						String xml = rs.getString(3);
-						CampaignRunningStateCache.RunningState runningState = CampaignRunningStateCache.RunningState.getValue(rs.getString(4));
-						CampaignPrivacyStateCache.PrivacyState privacyState = CampaignPrivacyStateCache.PrivacyState.getValue(rs.getString(5));
-						String timestamp = rs.getTimestamp(6).toString();
-						return new Configuration(campaignId, name, description, 
-								runningState, privacyState, timestamp, SurveyMapFromXmlBuilder.buildFrom(xml), xml);
-					}}
-			);
+					new RowMapper<Configuration>() {
+						@Override
+						public Configuration mapRow(ResultSet rs, int rowNum) 
+								throws SQLException {
+							
+						return new Configuration(
+								rs.getString("description"),
+								Configuration.RunningState.getValue(
+										rs.getString("running_state")),
+								Configuration.PrivacyState.getValue(
+										rs.getString("privacy_state")),
+								rs.getTimestamp("creation_timestamp"),
+								rs.getString("xml")
+							);
+						}
+					}
+				);
 		}
 		catch(IncorrectResultSizeDataAccessException e) {
-			throw new DataAccessException("Found an incorrect number of results executing SQL '" + SQL_SELECT_CAMPAIGN_CONFIGURATION + "' with parameter: " + campaignId, e);
+			throw new DataAccessException("Found an incorrect number of results executing SQL '" + SQL_GET_CAMPAIGN_INFORMATION + "' with parameter: " + campaignId, e);
 		}
 		catch(org.springframework.dao.DataAccessException e) {
-			throw new DataAccessException("General error executing SQL '" + SQL_SELECT_CAMPAIGN_CONFIGURATION + "' with parameter: " + campaignId, e);
+			throw new DataAccessException("General error executing SQL '" + SQL_GET_CAMPAIGN_INFORMATION + "' with parameter: " + campaignId, e);
 		}
 	}
     
@@ -511,9 +507,9 @@ public final class CampaignDaos extends Dao {
 	 * @return If the campaign exists, its PrivacyState enum is returned;
 	 * 		   otherwise, null is returned.
 	 */
-	public static CampaignPrivacyStateCache.PrivacyState getCampaignPrivacyState(String campaignId) throws DataAccessException {
+	public static Configuration.PrivacyState getCampaignPrivacyState(String campaignId) throws DataAccessException {
 		try {
-			return CampaignPrivacyStateCache.PrivacyState.getValue(instance.getJdbcTemplate().queryForObject(SQL_GET_PRIVACY_STATE, new Object[] { campaignId }, String.class));
+			return Configuration.PrivacyState.getValue(instance.getJdbcTemplate().queryForObject(SQL_GET_PRIVACY_STATE, new Object[] { campaignId }, String.class));
 		}
 		catch(org.springframework.dao.IncorrectResultSizeDataAccessException e) {
 			if(e.getActualSize() > 1) {
@@ -535,9 +531,9 @@ public final class CampaignDaos extends Dao {
 	 * @return If the campaign exists, its running state String is returned;
 	 * 		   otherwise, null is returned.
 	 */
-	public static CampaignRunningStateCache.RunningState getCampaignRunningState(String campaignId) throws DataAccessException {
+	public static Configuration.RunningState getCampaignRunningState(String campaignId) throws DataAccessException {
 		try {
-			return CampaignRunningStateCache.RunningState.getValue(instance.getJdbcTemplate().queryForObject(SQL_GET_RUNNING_STATE, new Object[] { campaignId }, String.class));
+			return Configuration.RunningState.getValue(instance.getJdbcTemplate().queryForObject(SQL_GET_RUNNING_STATE, new Object[] { campaignId }, String.class));
 		}
 		catch(org.springframework.dao.IncorrectResultSizeDataAccessException e) {
 			if(e.getActualSize() > 1) {
@@ -634,23 +630,38 @@ public final class CampaignDaos extends Dao {
 	 * 
 	 * @throws DataAccessException Thrown if there is an error.
 	 */
-	public static CampaignInformation getCampaignInformation(final String campaignId) throws DataAccessException {
+	public static Configuration getCampaignInformation(final String campaignId) throws DataAccessException {
 		try {
 			return instance.getJdbcTemplate().queryForObject(
 					SQL_GET_CAMPAIGN_INFORMATION,
 					new Object[] { campaignId },
-					new RowMapper<CampaignInformation>() {
+					new RowMapper<Configuration>() {
 						@Override
-						public CampaignInformation mapRow(ResultSet rs, int rowNum) throws SQLException {
-							return new CampaignInformation(
+						public Configuration mapRow(ResultSet rs, int rowNum) throws SQLException {
+							URL iconUrl = null;
+							String iconString = rs.getString("icon_url");
+							if(iconString != null) {
+								try {
+									iconUrl = new URL(iconString);
+								}
+								catch(MalformedURLException e) {
+									// This parameter is still experimental, so
+									// we will leave this alone for now.
+								}
+							}
+							
+							return new Configuration(
 									campaignId,
 									rs.getString("name"),
 									rs.getString("description"),
-									rs.getString("icon_url"),
+									null,
+									iconUrl,
 									rs.getString("authored_by"),
-									RunningState.valueOf(rs.getString("running_state").toUpperCase()),
-									PrivacyState.valueOf(rs.getString("privacy_state").toUpperCase()),
-									rs.getTimestamp("creation_timestamp"));
+									Configuration.RunningState.valueOf(rs.getString("running_state").toUpperCase()),
+									Configuration.PrivacyState.valueOf(rs.getString("privacy_state").toUpperCase()),
+									rs.getTimestamp("creation_timestamp"),
+									new HashMap<String, Survey>(0),
+									rs.getString("xml"));
 						}
 					});
 		}
@@ -721,7 +732,7 @@ public final class CampaignDaos extends Dao {
 	 * @return Returns a list of campaign IDs whose is privacy state is 
 	 * 		   'privacyState'.
 	 */
-	public static List<String> getCampaignsWithPrivacyState(CampaignPrivacyStateCache.PrivacyState privacyState) throws DataAccessException {
+	public static List<String> getCampaignsWithPrivacyState(Configuration.PrivacyState privacyState) throws DataAccessException {
 		try {
 			return instance.getJdbcTemplate().query(
 					SQL_GET_CAMPAIGNS_WITH_PRIVACY_STATE,
@@ -742,7 +753,7 @@ public final class CampaignDaos extends Dao {
 	 * @return Returns a list of campaign IDs whose is running state is 
 	 * 		   'runningState'.
 	 */
-	public static List<String> getCampaignsWithRunningState(CampaignRunningStateCache.RunningState runningState) throws DataAccessException {
+	public static List<String> getCampaignsWithRunningState(Configuration.RunningState runningState) throws DataAccessException {
 		try {
 			return instance.getJdbcTemplate().query(
 					SQL_GET_CAMPAIGNS_WITH_RUNNING_STATE,
@@ -793,11 +804,11 @@ public final class CampaignDaos extends Dao {
 	 * 								any of their roles revoked.
 	 */
 	public static void updateCampaign(String campaignId, String xml, String description, 
-			CampaignRunningStateCache.RunningState runningState, 
-			CampaignPrivacyStateCache.PrivacyState privacyState, 
+			Configuration.RunningState runningState, 
+			Configuration.PrivacyState privacyState, 
 			Collection<String> classIds, 
-			Map<String, Set<CampaignRoleCache.Role>> usersAndRolesToAdd, 
-			Map<String, Set<CampaignRoleCache.Role>> usersAndRolesToRemove)
+			Map<String, Set<Configuration.Role>> usersAndRolesToAdd, 
+			Map<String, Set<Configuration.Role>> usersAndRolesToRemove)
 		throws DataAccessException {
 		
 		// Create the transaction.
@@ -856,7 +867,7 @@ public final class CampaignDaos extends Dao {
 			// Add the specific users with specific roles.
 			if(usersAndRolesToAdd != null) {
 				for(String username : usersAndRolesToAdd.keySet()) {
-					for(CampaignRoleCache.Role role : usersAndRolesToAdd.get(username)) {
+					for(Configuration.Role role : usersAndRolesToAdd.get(username)) {
 						try {
 							instance.getJdbcTemplate().update(SQL_INSERT_USER_ROLE_CAMPAIGN, new Object[] { username, campaignId, role.toString() });
 						}
@@ -876,7 +887,7 @@ public final class CampaignDaos extends Dao {
 			// Remove the specific users and their roles.
 			if(usersAndRolesToRemove != null) {
 				for(String username : usersAndRolesToRemove.keySet()) {
-					for(CampaignRoleCache.Role role : usersAndRolesToRemove.get(username)) {
+					for(Configuration.Role role : usersAndRolesToRemove.get(username)) {
 						try {
 							instance.getJdbcTemplate().update(SQL_DELETE_USER_ROLE_CAMPAIGN, new Object[] { username, campaignId, role.toString() });
 						}
@@ -941,15 +952,15 @@ public final class CampaignDaos extends Dao {
 						if(numClasses == 1) {
 							// Retrieve the default roles that the user was 
 							// given when they joined the class.
-							List<CampaignRoleCache.Role> roles;
+							List<Configuration.Role> roles;
 							try {
 								roles = instance.getJdbcTemplate().query(
 										SQL_GET_USER_DEFAULT_ROLES, 
 										new Object[] { username, campaignId, classId }, 
-										new RowMapper<CampaignRoleCache.Role> () {
+										new RowMapper<Configuration.Role> () {
 											@Override
-											public CampaignRoleCache.Role mapRow(ResultSet rs, int rowNum) throws SQLException {
-												return CampaignRoleCache.Role.getValue("role");
+											public Configuration.Role mapRow(ResultSet rs, int rowNum) throws SQLException {
+												return Configuration.Role.getValue("role");
 											}
 										});
 							}
@@ -959,7 +970,7 @@ public final class CampaignDaos extends Dao {
 										username + ", " + campaignId + ", " + classId, e);
 							}
 							
-							for(CampaignRoleCache.Role role : roles) {
+							for(Configuration.Role role : roles) {
 								try {
 									instance.getJdbcTemplate().update(
 											SQL_DELETE_USER_ROLE_CAMPAIGN, 
@@ -1086,14 +1097,14 @@ public final class CampaignDaos extends Dao {
 					new Object[] { 
 							campaignId, 
 							classId, 
-							ClassRoleCache.Role.PRIVILEGED.toString(), 
-							CampaignRoleCache.Role.SUPERVISOR.toString() }
+							Clazz.Role.PRIVILEGED.toString(), 
+							Configuration.Role.SUPERVISOR.toString() }
 				);
 		}
 		catch(org.springframework.dao.DataAccessException e) {
 			transactionManager.rollback(status);
 			throw new DataAccessException("Error executing SQL '" + SQL_INSERT_CAMPAIGN_CLASS_DEFAULT_ROLE + "' with parameters: " + 
-					campaignId + ", " + classId + ", " + ClassRoleCache.Role.PRIVILEGED + ", " + CampaignRoleCache.Role.SUPERVISOR, e);
+					campaignId + ", " + classId + ", " + Clazz.Role.PRIVILEGED + ", " + Configuration.Role.SUPERVISOR, e);
 		}
 		try {
 			instance.getJdbcTemplate().update(
@@ -1101,14 +1112,14 @@ public final class CampaignDaos extends Dao {
 					new Object[] { 
 							campaignId, 
 							classId, 
-							ClassRoleCache.Role.PRIVILEGED.toString(), 
-							CampaignRoleCache.Role.PARTICIPANT.toString() }
+							Clazz.Role.PRIVILEGED.toString(), 
+							Configuration.Role.PARTICIPANT.toString() }
 					);
 		}
 		catch(org.springframework.dao.DataAccessException e) {
 			transactionManager.rollback(status);
 			throw new DataAccessException("Error executing SQL '" + SQL_INSERT_CAMPAIGN_CLASS_DEFAULT_ROLE + "' with parameters: " + 
-					campaignId + ", " + classId + ", " + ClassRoleCache.Role.PRIVILEGED + ", " + CampaignRoleCache.Role.PARTICIPANT, e);
+					campaignId + ", " + classId + ", " + Clazz.Role.PRIVILEGED + ", " + Configuration.Role.PARTICIPANT, e);
 		}
 		
 		// Insert the default campaign_class_default_role
@@ -1120,14 +1131,14 @@ public final class CampaignDaos extends Dao {
 					new Object[] { 
 							campaignId, 
 							classId, 
-							ClassRoleCache.Role.RESTRICTED.toString(), 
-							CampaignRoleCache.Role.ANALYST.toString() }
+							Clazz.Role.RESTRICTED.toString(), 
+							Configuration.Role.ANALYST.toString() }
 					);
 		}
 		catch(org.springframework.dao.DataAccessException e) {
 			transactionManager.rollback(status);
 			throw new DataAccessException("Error executing SQL '" + SQL_INSERT_CAMPAIGN_CLASS_DEFAULT_ROLE + "' with parameters: " + 
-					campaignId + ", " + classId + ", " + ClassRoleCache.Role.RESTRICTED + ", " + CampaignRoleCache.Role.ANALYST, e);
+					campaignId + ", " + classId + ", " + Clazz.Role.RESTRICTED + ", " + Configuration.Role.ANALYST, e);
 		}
 		try {
 			instance.getJdbcTemplate().update(
@@ -1135,14 +1146,14 @@ public final class CampaignDaos extends Dao {
 					new Object[] { 
 							campaignId,
 							classId,
-							ClassRoleCache.Role.RESTRICTED.toString(), 
-							CampaignRoleCache.Role.PARTICIPANT.toString() }
+							Clazz.Role.RESTRICTED.toString(), 
+							Configuration.Role.PARTICIPANT.toString() }
 					);
 		}
 		catch(org.springframework.dao.DataAccessException e) {
 			transactionManager.rollback(status);
 			throw new DataAccessException("Error executing SQL '" + SQL_INSERT_CAMPAIGN_CLASS_DEFAULT_ROLE + "' with parameters: " + 
-					campaignId + ", " + classId + ", " + ClassRoleCache.Role.RESTRICTED + ", " + CampaignRoleCache.Role.PARTICIPANT, e);
+					campaignId + ", " + classId + ", " + Clazz.Role.RESTRICTED + ", " + Configuration.Role.PARTICIPANT, e);
 		}
 		
 		// Get the list of users in the class.
@@ -1158,15 +1169,15 @@ public final class CampaignDaos extends Dao {
 		// For each of the users in the class, assign them their default roles
 		// in the campaign.
 		for(String username : usernames) {
-			List<CampaignRoleCache.Role> roles;
+			List<Configuration.Role> roles;
 			try {
 				roles = instance.getJdbcTemplate().query(
 						SQL_GET_USER_DEFAULT_ROLES, 
 						new Object[] { username, campaignId, classId }, 
-						new RowMapper<CampaignRoleCache.Role>() {
+						new RowMapper<Configuration.Role>() {
 							@Override
-							public CampaignRoleCache.Role mapRow(ResultSet rs, int rowNum) throws SQLException {
-								return CampaignRoleCache.Role.getValue(rs.getString("role"));
+							public Configuration.Role mapRow(ResultSet rs, int rowNum) throws SQLException {
+								return Configuration.Role.getValue(rs.getString("role"));
 							}
 						});
 			}
@@ -1176,7 +1187,7 @@ public final class CampaignDaos extends Dao {
 						username + ", " + campaignId + ", " + classId, e);
 			}
 			
-			for(CampaignRoleCache.Role role : roles) {
+			for(Configuration.Role role : roles) {
 				try {
 					instance.getJdbcTemplate().update(
 							SQL_INSERT_USER_ROLE_CAMPAIGN, 

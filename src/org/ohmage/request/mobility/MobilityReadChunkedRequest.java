@@ -17,9 +17,9 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.ohmage.annotator.ErrorCodes;
-import org.ohmage.domain.MobilityInformation;
-import org.ohmage.domain.MobilityInformation.Location;
-import org.ohmage.domain.MobilityInformation.LocationStatus;
+import org.ohmage.domain.Location;
+import org.ohmage.domain.MobilityPoint;
+import org.ohmage.domain.MobilityPoint.LocationStatus;
 import org.ohmage.exception.ServiceException;
 import org.ohmage.exception.ValidationException;
 import org.ohmage.request.InputKeys;
@@ -74,7 +74,7 @@ public class MobilityReadChunkedRequest extends UserRequest {
 	private final Date startDate;
 	private final Date endDate;
 	
-	private List<MobilityInformation> result;
+	private List<MobilityPoint> result;
 	
 	/**
 	 * Creates a new Mobility read chunked request.
@@ -180,10 +180,10 @@ public class MobilityReadChunkedRequest extends UserRequest {
 		
 		JSONArray resultJson = new JSONArray();
 		
-		List<MobilityInformation> chunk = new ArrayList<MobilityInformation>(POINTS_PER_CHUNK);
-		ListIterator<MobilityInformation> resultIter = result.listIterator();
+		List<MobilityPoint> chunk = new ArrayList<MobilityPoint>(POINTS_PER_CHUNK);
+		ListIterator<MobilityPoint> resultIter = result.listIterator();
 		while(resultIter.hasNext()) {
-			MobilityInformation mobilityPoint = resultIter.next();
+			MobilityPoint mobilityPoint = resultIter.next();
 			chunk.add(mobilityPoint);
 			if((chunk.size() == POINTS_PER_CHUNK) || (! resultIter.hasNext())) {
 				try {
@@ -200,7 +200,7 @@ public class MobilityReadChunkedRequest extends UserRequest {
 					
 					// Cycle through each of the points in the chunk and gather
 					// the appropriate information about each.
-					for(MobilityInformation chunkPoint : chunk) {
+					for(MobilityPoint chunkPoint : chunk) {
 						// Increase the count for this point's mode.
 						String modeString = chunkPoint.getMode().toString().toLowerCase();
 						Integer count = modeCount.get(modeString);

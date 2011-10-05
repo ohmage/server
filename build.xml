@@ -28,6 +28,9 @@
     <include name="xom-1.2.6.jar"/>
     <include name="mobility-classifier-1.1.jar"/>
     <include name="xml-apis-xerces-2.11.0.jar"/>
+  	<include name="httpcore-4.1.2.jar"/>
+  	<include name="httpclient-4.1.2.jar"/>
+  	<include name="httpmime-4.1.2.jar"/>
   </fileset>
 
   <fileset id="run-dependencies" dir="${component.repository}">
@@ -110,6 +113,24 @@
         <exclude name="**/*.java"/>
       </fileset>
     </copy>
+  </target>
+	
+  <target name="javac-library" description="Compiles Java files to create the ohmage library.">
+    <mkdir dir="${build}/classes"/>
+  	<javac destdir="${build}/classes" source="1.6" target="1.6"
+  	      debug="true" deprecation="true" optimize="true" failonerror="true" 
+  	      encoding="UTF-8" includeantruntime="false">
+  	  <compilerarg value="-Xlint:unchecked"/>
+  	  <src path="${src}"/>
+  	  <include name="org/ohmage/lib/**" />
+  	  <include name="org/ohmage/util/StringUtils.java" />
+  	  <classpath refid="compile-classpath"/>
+  	</javac>
+  	<copy todir="${build}/classes">
+  	  <fileset dir="${src}">
+  	    <exclude name="**/*.java"/>
+  	  </fileset>
+  	</copy>
   </target>
 
   <target name="javadoc" description="Compiles Javadocs.">
@@ -203,6 +224,27 @@
       <manifest>
         <attribute name="Main-Class" value="org.ohmage.config.xml.CampaignValidator" />
       </manifest>
+    </jar>
+  </target>
+
+  <target name="dist-library" depends="javac-library"
+        description="Compiles java files to create the library JAR.">
+    <mkdir dir="${dist}"/>
+    <echo message="Warning: Bundling of dependencies will not work if jars are organized in subdirs in component repository."/>
+    <jar destfile="${dist}/ohmage-${app_version}-api.jar">
+      <fileset dir="${build}/classes">
+  	    <include name="org/ohmage/lib/**" />
+  	    <include name="org/ohmage/util/StringUtils.class" />
+  	  </fileset>
+      <fileset dir="${src}">
+        <include name="org/ohmage/lib/**" />
+      	<include name="org/ohmage/util/StringUtils.java" />
+      </fileset>
+  	  <zipfileset src="${component.repository}/json-dot-org-2010-01-05.jar" excludes="META-INF/*" />
+  	  <zipfileset src="${component.repository}/httpcore-4.1.2.jar" excludes="META-INF/*" />
+  	  <zipfileset src="${component.repository}/httpclient-4.1.2.jar" excludes="META-INF/*" />
+  	  <zipfileset src="${component.repository}/httpmime-4.1.2.jar" excludes="META-INF/*" />
+      <zipfileset src="${component.repository}/commons-logging-1.1.1.jar" excludes="META-INF/*" />
     </jar>
   </target>
 

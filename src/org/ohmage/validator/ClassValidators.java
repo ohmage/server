@@ -9,7 +9,7 @@ import java.util.Set;
 
 import org.apache.log4j.Logger;
 import org.ohmage.annotator.ErrorCodes;
-import org.ohmage.cache.ClassRoleCache;
+import org.ohmage.domain.Clazz;
 import org.ohmage.exception.ValidationException;
 import org.ohmage.request.InputKeys;
 import org.ohmage.request.Request;
@@ -205,7 +205,7 @@ public final class ClassValidators {
 	 * @throws ValidationException Thrown if the class role is not a valid class
 	 * 							  role.
 	 */
-	public static ClassRoleCache.Role validateClassRole(Request request, String role) throws ValidationException {
+	public static Clazz.Role validateClassRole(Request request, String role) throws ValidationException {
 		LOGGER.info("Validating a class role.");
 		
 		if(StringUtils.isEmptyOrWhitespaceOnly(role)) {
@@ -213,7 +213,7 @@ public final class ClassValidators {
 		}
 		
 		try {
-			return ClassRoleCache.Role.getValue(role.trim());
+			return Clazz.Role.getValue(role.trim());
 		}
 		catch(IllegalArgumentException e) {
 			request.setFailed(ErrorCodes.CLASS_INVALID_ROLE, "Unknown class role: " + role);
@@ -243,7 +243,7 @@ public final class ClassValidators {
 	 * 
 	 * @throws ValidationException Thrown if the roster is not a valid roster.
 	 */
-	public static Map<String, Map<String, ClassRoleCache.Role>> validateClassRoster(Request request, byte[] roster) throws ValidationException {
+	public static Map<String, Map<String, Clazz.Role>> validateClassRoster(Request request, byte[] roster) throws ValidationException {
 		LOGGER.info("Validating a class roster.");
 		
 		if((roster == null) || (roster.length == 0)) {
@@ -257,7 +257,7 @@ public final class ClassValidators {
 		// with newlines.
 		rosterString = rosterString.replace('\r', '\n');
 		
-		Map<String, Map<String, ClassRoleCache.Role>> result = new HashMap<String, Map<String, ClassRoleCache.Role>>();
+		Map<String, Map<String, Clazz.Role>> result = new HashMap<String, Map<String, Clazz.Role>>();
 		
 		String[] rosterLines = rosterString.split("\n");
 		for(int i = 0; i < rosterLines.length; i++) {
@@ -274,15 +274,15 @@ public final class ClassValidators {
 			
 			String classId = ClassValidators.validateClassId(request, rosterLine[0]);
 			String username = UserValidators.validateUsername(request, rosterLine[1]);
-			ClassRoleCache.Role classRole = ClassValidators.validateClassRole(request, rosterLine[2]);
+			Clazz.Role classRole = ClassValidators.validateClassRole(request, rosterLine[2]);
 			
-			Map<String, ClassRoleCache.Role> userRoleMap = result.get(classId);
+			Map<String, Clazz.Role> userRoleMap = result.get(classId);
 			if(userRoleMap == null) {
-				userRoleMap = new HashMap<String, ClassRoleCache.Role>();
+				userRoleMap = new HashMap<String, Clazz.Role>();
 				result.put(classId, userRoleMap);
 			}
 			
-			ClassRoleCache.Role originalRole = userRoleMap.put(username, classRole);
+			Clazz.Role originalRole = userRoleMap.put(username, classRole);
 			// Add the role but keep track of whether or not a role already 
 			// existed for this user in this class. It is an error only if the
 			// two roles do not match.

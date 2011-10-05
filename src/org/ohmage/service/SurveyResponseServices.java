@@ -1,14 +1,24 @@
 package org.ohmage.service;
 
+import java.awt.image.BufferedImage;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
-import org.ohmage.cache.SurveyResponsePrivacyStateCache;
+import org.ohmage.annotator.ErrorCodes;
 import org.ohmage.dao.ImageDaos;
 import org.ohmage.dao.SurveyResponseDaos;
 import org.ohmage.dao.SurveyResponseImageDaos;
-import org.ohmage.domain.SurveyResponseInformation;
+import org.ohmage.dao.SurveyUploadDao;
+import org.ohmage.domain.configuration.Configuration;
+import org.ohmage.domain.configuration.Response;
+import org.ohmage.domain.configuration.SurveyResponse;
+import org.ohmage.domain.configuration.prompt.response.PhotoPromptResponse;
 import org.ohmage.exception.DataAccessException;
 import org.ohmage.exception.ServiceException;
 import org.ohmage.request.Request;
@@ -28,6 +38,78 @@ public final class SurveyResponseServices {
 	 * Default constructor. Private so that it cannot be instantiated.
 	 */
 	private SurveyResponseServices() {}
+	
+	/**
+	 * Creates new survey responses in the database.
+	 * 
+	 * @param request The Request that is performing this service.
+	 * 
+	 * @param user The username of the user that created this survey response.
+	 * 
+	 * @param client The client value.
+	 * 
+	 * @param campaignUrn The unique identifier for the campaign to which the
+	 * 					  survey belongs that the user used to create these
+	 * 					  survey responses.
+	 * 
+	 * @param surveyUploadList The list of survey responses to add to the
+	 * 						   database.
+	 * 
+	 * @param bufferedImageMap The map of image unique identifiers to 
+	 * 						   BufferedImage objects to use when creating the
+	 * 						   database entry.
+	 * 
+	 * @return A list of the indices of the survey responses that were 
+	 * 		   duplicates.
+	 * 
+	 * @throws ServiceException Thrown if there is an error.
+	 */
+	public static List<Integer> createSurveyResponses(
+			final Request request, final String user, final String client,
+            final String campaignUrn,
+            final List<SurveyResponse> surveyUploadList,
+            final Map<String, BufferedImage> bufferedImageMap) 
+            throws ServiceException {
+		
+		try {
+			return SurveyUploadDao.insertSurveys(user, client, campaignUrn, surveyUploadList, bufferedImageMap);
+		}
+		catch(DataAccessException e) {
+			request.setFailed();
+			throw new ServiceException(e);
+		}
+	}
+	
+	/**
+	 * Verifies that, for all photo prompt responses, a corresponding image
+	 * exists in the list of images.
+	 * 
+	 * @param request The Request that is performing this service.
+	 * 
+	 * @param surveyResponses The survey responses.
+	 * 
+	 * @param images A map of image IDs to image contents.
+	 * 
+	 * @throws ServiceException Thrown if a prompt response exists but its
+	 * 							corresponding contents don't.
+	 */
+	public static void verifyImagesExistForPhotoPromptResponses(
+			final Request request, 
+			final Collection<SurveyResponse> surveyResponses,
+			final Map<String, BufferedImage> images) 
+			throws ServiceException {
+		
+		for(SurveyResponse surveyResponse : surveyResponses) {
+			for(Response promptResponse : surveyResponse.getPromptResponses().values()) {
+				if(promptResponse instanceof PhotoPromptResponse) {
+					if(! images.containsKey(promptResponse.getResponseValue())) {
+						request.setFailed(ErrorCodes.SURVEY_INVALID_RESPONSES, "An image key was found that was not present in the survey payload.");
+						throw new ServiceException("An image key was found that was not present in the survey payload.");
+					}
+				}
+			}
+		}
+	}
 	
 	/**
 	 * Generates a list of SurveyResponseInformation objects where each object
@@ -52,7 +134,7 @@ public final class SurveyResponseServices {
 	 * 
 	 * @param campaignId The campaign's unique identifier. Required.
 	 * 
-	 * @param username A user's username to which the results must only 
+	 * @param usernames A user's username to which the results must only 
 	 * 				   pertain. Optional.
 	 * 
 	 * @param client A client value to limit the results to only those uploaded
@@ -68,11 +150,11 @@ public final class SurveyResponseServices {
 	 * 					   results to only those with this privacy state.
 	 * 					   Optional.
 	 * 
-	 * @param surveyId A campaign-wide unique survey ID that limits the 
-	 * 				   responses to only those made for that survey. Optional.
+	 * @param surveyIds A collection of survey response IDs to which the 
+	 * 					results must belong to any of them. Optional.
 	 * 
-	 * @param promptId A campaign-wide unique prompt ID that limits the 
-	 * 				   responses to only those made for that prompt. Optional.
+	 * @param promptIds A collection of prompt response IDs to which the 
+	 * 					results must belong ot any of them.
 	 * 
 	 * @param promptType A prompt type that limits all responses to those of
 	 * 					 exactly this prompt type. Optional.
@@ -82,12 +164,17 @@ public final class SurveyResponseServices {
 	 * 
 	 * @throws ServiceException Thrown if there is an error.
 	 */
-	public static List<SurveyResponseInformation> readSurveyResponseInformation(
-			final Request request, final String campaignId,
+	public static List<SurveyResponse> readSurveyResponseInformation(
+			final Request request, final Configuration campaign,
 			final String username, final String client, 
 			final Date startDate, final Date endDate, 
-			final SurveyResponsePrivacyStateCache.PrivacyState privacyState, 
-			final String surveyId, final String promptId, final String promptType) throws ServiceException {
+			final SurveyResponse.PrivacyState privacyState, 
+			final Collection<String> surveyIds, 
+			final Collection<String> promptIds, 
+			final String promptType) throws ServiceException {
+		
+		String campaignId = campaign.getId();
+		
 		try {
 			// Populate the list with all of the survey response IDs.
 			List<Long> surveyResponseIds = null;
@@ -140,25 +227,35 @@ public final class SurveyResponseServices {
 				}
 			}
 			
-			// Trim from the list all survey responses without a certain survey
-			// ID.
-			if(surveyId != null) {
+			// Trim from the list all survey responses without certain survey
+			// IDs.
+			if(surveyIds != null) {
+				Set<Long> surveyIdIds = new HashSet<Long>();
+				for(String surveyId : surveyIds) {
+					surveyIdIds.addAll(SurveyResponseDaos.retrieveSurveyResponseIdsWithSurveyId(campaignId, surveyId));
+				}
+				
 				if(surveyResponseIds == null) {
-					surveyResponseIds = SurveyResponseDaos.retrieveSurveyResponseIdsWithSurveyId(campaignId, surveyId);
+					surveyResponseIds = new LinkedList<Long>(surveyIdIds);
 				}
 				else {
-					surveyResponseIds.retainAll(SurveyResponseDaos.retrieveSurveyResponseIdsWithSurveyId(campaignId, surveyId));
+					surveyResponseIds.retainAll(surveyIdIds);
 				}
 			}
 			
-			// Trim from the list all survey responses without a certain prompt
-			// ID.
-			if(promptId != null) {
+			// Trim from the list all survey responses without certain prompt
+			// IDs.
+			if(promptIds != null) {
+				Set<Long> promptIdIds = new HashSet<Long>();
+				for(String promptId : promptIds) {
+					promptIdIds.addAll(SurveyResponseDaos.retrieveSurveyResponseIdsWithPromptId(campaignId, promptId));
+				}
+				
 				if(surveyResponseIds == null) {
-					surveyResponseIds = SurveyResponseDaos.retrieveSurveyResponseIdsWithPromptId(campaignId, promptId);
+					surveyResponseIds = new LinkedList<Long>(promptIdIds);
 				}
 				else {
-					surveyResponseIds.retainAll(SurveyResponseDaos.retrieveSurveyResponseIdsWithPromptId(campaignId, promptId));
+					surveyResponseIds.retainAll(promptIdIds);
 				}
 			}
 			
@@ -177,7 +274,7 @@ public final class SurveyResponseServices {
 				return Collections.emptyList();
 			}
 			else {
-				return SurveyResponseDaos.retrieveSurveyResponseFromIds(surveyResponseIds);
+				return SurveyResponseDaos.retrieveSurveyResponseFromIds(campaign, surveyResponseIds);
 			}
 		}
 		catch(DataAccessException e) {
@@ -194,7 +291,7 @@ public final class SurveyResponseServices {
 	 * @param privacyState  The new privacy state value.
 	 * @throws ServiceException  If an error occurs.
 	 */
-	public static void updateSurveyResponsePrivacyState(Request request, Long surveyResponseId, SurveyResponsePrivacyStateCache.PrivacyState privacyState) throws ServiceException { 
+	public static void updateSurveyResponsePrivacyState(Request request, Long surveyResponseId, SurveyResponse.PrivacyState privacyState) throws ServiceException { 
 		try {
 			SurveyResponseDaos.updateSurveyResponsePrivacyState(surveyResponseId, privacyState);
 		} 

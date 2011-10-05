@@ -1,6 +1,7 @@
 package org.ohmage.domain;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.LinkedList;
@@ -13,6 +14,9 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.ohmage.annotator.ErrorCodes;
 import org.ohmage.cache.SurveyResponsePrivacyStateCache;
+import org.ohmage.domain.Location.LocationException;
+import org.ohmage.domain.prompt.response.PromptResponse;
+import org.ohmage.exception.ErrorCodeException;
 import org.ohmage.util.StringUtils;
 import org.ohmage.util.TimeUtils;
 
@@ -24,6 +28,19 @@ import org.ohmage.util.TimeUtils;
  * @author John Jenkins
  */
 public class SurveyResponseInformation {
+	private static final String JSON_KEY_USERNAME = "user";
+	private static final String JSON_KEY_CAMPAIGN_ID = "campaign_id";
+	private static final String JSON_KEY_CLIENT = "client";
+	private static final String JSON_KEY_DATE = "date";
+	private static final String JSON_KEY_TIME = "time";
+	private static final String JSON_KEY_TIMEZONE = "timezone";
+	private static final String JSON_KEY_LOCATION_STATUS = "location_status";
+	private static final String JSON_KEY_LOCATION = "location";
+	private static final String JSON_KEY_SURVEY_ID = "survey_id";
+	private static final String JSON_KEY_SURVEY_LAUNCH_CONTEXT = "survey_launch_context";
+	private static final String JSON_KEY_RESPONSES = "responses";
+	private static final String JSON_KEY_PRIVACY_STATE = "privacy_state";
+	
 	private final String username;
 	private final String campaignId;
 	private final String client;
@@ -32,7 +49,12 @@ public class SurveyResponseInformation {
 	private final long time;
 	private final TimeZone timezone;
 	
+	public static enum LocationStatus { VALID, NETWORK, INACCURATE, STALE, UNAVAILABLE };
+	private final LocationStatus locationStatus;
+	private final Location location;
+	
 	private final String surveyId;
+	private final List<PromptResponse> promptResponses;
 	private final SurveyResponsePrivacyStateCache.PrivacyState privacyState;
 	
 	/**
@@ -40,7 +62,7 @@ public class SurveyResponseInformation {
 	 * 
 	 * @author John Jenkins
 	 */
-	public final class LaunchContext {
+	public static final class LaunchContext {
 		private static final String JSON_KEY_LAUNCH_TIME = "launch_time";
 		private static final String JSON_KEY_ACTIVE_TRIGGERS = "active_triggers";
 		
@@ -58,20 +80,20 @@ public class SurveyResponseInformation {
 		 * 								   the launchContext, or if any of the
 		 * 								   values for those keys are invalid.
 		 */
-		private LaunchContext(final JSONObject launchContext) throws SurveyResponseException {
+		private LaunchContext(final JSONObject launchContext) throws ErrorCodeException {
 			if(launchContext == null) {
-				throw new SurveyResponseException(ErrorCodes.SURVEY_INVALID_LAUNCH_CONTEXT, "The launch context cannot be null.");
+				throw new ErrorCodeException(ErrorCodes.SURVEY_INVALID_LAUNCH_CONTEXT, "The launch context cannot be null.");
 			}
 			
 			try {
 				launchTime = StringUtils.decodeDateTime(launchContext.getString(JSON_KEY_LAUNCH_TIME));
 				
 				if(launchTime == null) {
-					throw new SurveyResponseException(ErrorCodes.SURVEY_INVALID_LAUNCH_CONTEXT, "The launch time is missing in the launch context.");
+					throw new ErrorCodeException(ErrorCodes.SURVEY_INVALID_LAUNCH_CONTEXT, "The launch time is missing in the launch context.");
 				}
 			}
 			catch(JSONException e) {
-				throw new SurveyResponseException(ErrorCodes.SURVEY_INVALID_LAUNCH_CONTEXT, "The launch time is missing in the launch context.");
+				throw new ErrorCodeException(ErrorCodes.SURVEY_INVALID_LAUNCH_CONTEXT, "The launch time is missing in the launch context.");
 			}
 			
 			try {
@@ -84,8 +106,29 @@ public class SurveyResponseInformation {
 				}
 			}
 			catch(JSONException e) {
-				throw new SurveyResponseException(ErrorCodes.SURVEY_INVALID_LAUNCH_CONTEXT, "The active triggers list is missing in the launch context.");
+				throw new ErrorCodeException(ErrorCodes.SURVEY_INVALID_LAUNCH_CONTEXT, "The active triggers list is missing in the launch context.");
 			}
+		}
+		
+		/**
+		 * Creates a new LaunchContext.
+		 * 
+		 * @param launchTime The date and time that the survey was launched.
+		 * 
+		 * @param activeTriggers A, possibly empty, list of trigger IDs that 
+		 * 						 were active when the survey was launched. 
+		 */
+		public LaunchContext(final Date launchTime, 
+				final Collection<String> activeTriggers) {
+			if(launchTime == null) {
+				throw new IllegalArgumentException("The date cannot be null.");
+			}
+			else if(activeTriggers == null) {
+				throw new IllegalArgumentException("The collection of trigger IDs cannot be null");
+			}
+			
+			this.launchTime = launchTime;
+			this.activeTriggers = new ArrayList<String>(activeTriggers);
 		}
 		
 		/**
@@ -128,370 +171,6 @@ public class SurveyResponseInformation {
 	}
 	private final LaunchContext launchContext;
 	
-	public static enum LocationStatus { VALID, NETWORK, INACCURATE, STALE, UNAVAILABLE };
-	private final LocationStatus locationStatus;
-	
-	/**
-	 * This class contains all of the information associated with a location
-	 * record.
-	 * 
-	 * @author John Jenkins
-	 */
-	public final class Location {
-		private static final String JSON_KEY_LATITUDE = "latitude";
-		private static final String JSON_KEY_LONGITUDE = "longitude";
-		private static final String JSON_KEY_ACCURACY = "accuracy";
-		private static final String JSON_KEY_PROVIDER = "provider";
-		private static final String JSON_KEY_TIMESTAMP = "timestamp";
-		
-		private final Double latitude;
-		private final Double longitude;
-		private final Double accuracy;
-		private final String provider;
-		private final Date timestamp;
-		
-		/**
-		 * Creates a new Location object.
-		 * 
-		 * @param locationData A JSONObject representing all of the data for a
-		 * 					   Location object.
-		 * 
-		 * @throws SurveyResponseException Thrown if the location data is null,
-		 * 								   isn't a valid JSONObject, doesn't 
-		 * 								   contain all of the required 
-		 * 								   information, or any of the 
-		 * 								   information is invalid for its type.
-		 */
-		private Location(JSONObject locationData) throws SurveyResponseException {
-			try {
-				latitude = locationData.getDouble(JSON_KEY_LATITUDE);
-			}
-			catch(JSONException e) {
-				throw new SurveyResponseException(ErrorCodes.SERVER_INVALID_LOCATION, "The latitude is missing or invalid.", e);
-			}
-			
-			try {
-				longitude = locationData.getDouble(JSON_KEY_LONGITUDE);
-			}
-			catch(JSONException e) {
-				throw new SurveyResponseException(ErrorCodes.SERVER_INVALID_LOCATION, "The longitude is missing or invalid.", e);
-			}
-
-			try {
-				accuracy = locationData.getDouble(JSON_KEY_ACCURACY);
-			}
-			catch(JSONException e) {
-				throw new SurveyResponseException(ErrorCodes.SERVER_INVALID_LOCATION, "The accuracy is missing or invalid.", e);
-			}
-			
-			try {
-				provider = locationData.getString(JSON_KEY_PROVIDER);
-			}
-			catch(JSONException e) {
-				throw new SurveyResponseException(ErrorCodes.SERVER_INVALID_LOCATION, "The provider is missing.", e);
-			}
-			
-			try {
-				timestamp = StringUtils.decodeDateTime(locationData.getString(JSON_KEY_TIMESTAMP));
-				
-				if(timestamp == null) {
-					throw new SurveyResponseException(ErrorCodes.SERVER_INVALID_TIMESTAMP, "The timestamp is invalid.");
-				}
-			}
-			catch(JSONException e) {
-				throw new SurveyResponseException(ErrorCodes.SERVER_INVALID_TIMESTAMP, "The timestamp is missing.", e);
-			}
-		}
-
-		/**
-		 * Returns the latitude of this location.
-		 * 
-		 * @return The latitude of this location.
-		 */
-		public final double getLatitude() {
-			return latitude;
-		}
-
-		/**
-		 * Returns the longitude of this location.
-		 * 
-		 * @return The longitude of this location.
-		 */
-		public final double getLongitude() {
-			return longitude;
-		}
-
-		/**
-		 * Returns the accuracy of this location.
-		 * 
-		 * @return The accuracy of this location.
-		 */
-		public final double getAccuracy() {
-			return accuracy;
-		}
-
-		/**
-		 * Returns the provider of this location information.
-		 * 
-		 * @return The provider of this location information.
-		 */
-		public final String getProvider() {
-			return provider;
-		}
-
-		/**
-		 * Returns the timestamp for when this information was gathered.
-		 * 
-		 * @return The timestamp for when this information was gathered.
-		 */
-		public final Date getTimestamp() {
-			return timestamp;
-		}
-		
-		/**
-		 * Creates a JSONObject that represents the information in this object.
-		 * 
-		 * @return Returns a JSONObject that represents this object or null if
-		 * 		   there is an error building the JSONObject.
-		 */
-		public final JSONObject toJson() {
-			try {
-				JSONObject result = new JSONObject();
-				
-				result.put(JSON_KEY_LATITUDE, latitude);
-				result.put(JSON_KEY_LONGITUDE, longitude);
-				result.put(JSON_KEY_ACCURACY, accuracy);
-				result.put(JSON_KEY_PROVIDER, provider);
-				result.put(JSON_KEY_TIMESTAMP, TimeUtils.getIso8601DateTimeString(timestamp));
-				
-				return result;
-			}
-			catch(JSONException e) {
-				return null;
-			}
-		}
-	}
-	private final Location location;
-	
-	/**
-	 * This class represents a single prompt response.
-	 * 
-	 * @author John Jenkins
-	 */
-	public final class PromptResponse {
-		private static final String JSON_KEY_PROMPT_ID = "prompt_id";
-		private static final String JSON_KEY_PROMPT_TYPE = "prompt_type";
-		private static final String JSON_KEY_REPEATABLE_SET_ID = "repeatable_set_id";
-		private static final String JSON_KEY_REPEATABLE_SET_ITERATION = "repeatable_set_iteration";
-		private static final String JSON_KEY_RESPONSE = "value";
-		
-		private final String promptId;
-		private final String promptType;
-		
-		private final String repeatableSetId;
-		private final Integer repeatableSetIteration;
-		
-		private final Object response;
-		
-		/**
-		 * Creates a new prompt response.
-		 * 
-		 * @param promptId The prompt's identifier, unique to the 
-		 * 				   configuration, but not to this prompt response.
-		 * 
-		 * @param promptType The prompt's type.
-		 * 
-		 * @param repeatableSetId The repeatable set ID if this was part of a
-		 * 						  repeatable set or NULL if not.
-		 * 
-		 * @param repeatableSetIteration The iteration within the repeatable 
-		 * 								 set for this survey response if it was
-		 * 								 part of a repeatable set or NULL if 
-		 * 								 not.
-		 * 
-		 * @param response The response value.
-		 * 
-		 * @throws SurveyResponseException Thrown if the prompt ID is null or 
-		 * 								   whitespace only or the response is 
-		 * 								   null.
-		 * 
-		 * @throws IllegalArgumentExcpetion Thrown if the prompt type is null 
-		 * 									or whitespace only.
-		 */
-		public PromptResponse(final String promptId, final String promptType, 
-				final String repeatableSetId, final Integer repeatableSetIteration, 
-				final Object response) throws SurveyResponseException {
-			if(StringUtils.isEmptyOrWhitespaceOnly(promptId)) {
-				throw new SurveyResponseException(ErrorCodes.SURVEY_INVALID_PROMPT_ID, "The prompt ID cannot be null.");
-			}
-			else if(StringUtils.isEmptyOrWhitespaceOnly(promptType)) {
-				throw new IllegalArgumentException("The prompt type cannot be null.");
-			}
-			else if(response == null) {
-				throw new SurveyResponseException(ErrorCodes.SURVEY_INVALID_RESPONSES, "The response value cannot be null.");
-			}
-			
-			this.promptId = promptId;
-			this.promptType = promptType;
-			
-			this.repeatableSetId = repeatableSetId;
-			this.repeatableSetIteration = repeatableSetIteration;
-			
-			this.response = response;
-		}
-		
-		/**
-		 * Returns the prompt's ID.
-		 * 
-		 * @return The prompt's ID.
-		 */
-		public String getPromptId() {
-			return promptId;
-		}
-		
-		/**
-		 * Returns the prompt's type.
-		 * 
-		 * @return The prompt's type.
-		 */
-		public String getPromptType() {
-			return promptType;
-		}
-		
-		/**
-		 * Returns the repeatable set ID if available.
-		 * 
-		 * @return The repeatable set ID or null if this wasn't part of a
-		 * 		   repeatable set.
-		 */
-		public String getRepeatableSetId() {
-			return repeatableSetId;
-		}
-		
-		/**
-		 * Returns the repeatable set iteration if available.
-		 * 
-		 * @return The repeatable set iteration or null if this wasn't part of
-		 * 		   a repeatable set.
-		 */
-		public Integer getRepeatableSetIteration() {
-			return repeatableSetIteration;
-		}
-		
-		/**
-		 * Returns the prompt response value.
-		 * 
-		 * @return The prompt response value.
-		 */
-		public Object getResponse() {
-			return response;
-		}
-		
-		/**
-		 * Creates a JSONObject that represents this object.
-		 * 
-		 * @param longVersion The representation saved in the database only
-		 * 					  includes the prompt ID and the response value. If
-		 * 					  this flag is set to true it includes the prompt 
-		 * 					  type, repeatable set ID if available, and 
-		 * 					  repeatable set iteration if available.
-		 * 
-		 * @return A JSONObject that represents this object.
-		 */
-		public JSONObject toJson(final boolean longVersion) {
-			try {
-				JSONObject result = new JSONObject();
-				
-				result.put(JSON_KEY_PROMPT_ID, promptId);
-				result.put(JSON_KEY_RESPONSE, response);
-				
-				if(longVersion) {
-					result.put(JSON_KEY_PROMPT_TYPE, promptType);
-					result.put(JSON_KEY_REPEATABLE_SET_ID, repeatableSetId);
-					result.put(JSON_KEY_REPEATABLE_SET_ITERATION, repeatableSetIteration);
-				}
-				
-				return result;
-			}
-			catch(JSONException e) {
-				return null;
-			}
-		}
-	}
-	private final List<PromptResponse> promptResponses;
-	
-	/**
-	 * This is an exception explicitly for creating a Mobility point from a
-	 * JSONObject. This allows for a central place for creating and validating
-	 * Mobility uploads and allows them to throw error codes and texts which 
-	 * can be caught by validators to report back to the user.
-	 * 
-	 * @author John Jenkins
-	 */
-	public final class SurveyResponseException extends Exception {
-		private static final long serialVersionUID = 1L;
-		
-		private final String errorCode;
-		private final String errorText;
-		
-		/**
-		 * Creates a new Mobility exception that contains an error code which
-		 * corresponds to the error text describing what was wrong with this
-		 * Mobility point.
-		 * 
-		 * @param errorCode The ErrorCode indicating what was wrong with this
-		 * 					Mobility point.
-		 * 
-		 * @param errorText A human-readable description of what caused this 
-		 * 					error.
-		 */
-		private SurveyResponseException(String errorCode, String errorText) {
-			super(errorText);
-			
-			this.errorCode = errorCode;
-			this.errorText = errorText;
-		}
-		
-		/**
-		 * Creates a new Mobility exception that contains an error code which
-		 * corresponds to the error text describing what was wrong with this
-		 * Mobility point and includes the Throwable that caused this 
-		 * exception.
-		 * 
-		 * @param errorCode The ErrorCode indicating what was wrong with this
-		 * 					Mobility point.
-		 * 
-		 * @param errorText A human-readable description of what cuased this
-		 * 					error.
-		 * 
-		 * @param cause The Throwable that caused this point to be reached.
-		 */
-		private SurveyResponseException(String errorCode, String errorText, Throwable cause) {
-			super(errorText, cause);
-			
-			this.errorCode = errorCode;
-			this.errorText = errorText;
-		}
-		
-		/**
-		 * Returns the error code that was used to create this exception.
-		 * 
-		 * @return The error code that was used to create this exception.
-		 */
-		public final String getErrorCode() {
-			return errorCode;
-		}
-		
-		/**
-		 * Returns the error text that was used to create this exception.
-		 * 
-		 * @return The error text that was used to create this exception.
-		 */
-		public final String getErrorText() {
-			return errorText;
-		}
-	}
-	
 	/**
 	 * Creates a new survey response information object based on the 
 	 * parameters. All parameters are required unless otherwise specified.
@@ -523,17 +202,20 @@ public class SurveyResponseInformation {
 	 * @param location The location information. This may be null if it  
 	 * 				   correlates with the location status.
 	 * 
-	 * @throws SurveyResponseException Thrown if any of the information 
-	 * 								   provided is missing or invalid.
+	 * @throws ErrorCodeException Thrown if any of the information provided is
+	 * 							  missing or invalid.
 	 * 
 	 * @throws IllegalArgumentException Thrown if any of the information
 	 * 									provided is missing or invalid.
 	 */
-	public SurveyResponseInformation(final String username, final String campaignId, final String client,
+	public SurveyResponseInformation(final String username, 
+			final String campaignId, final String client,
 			final Date date, final long time, final TimeZone timezone, 
 			final String surveyId, final JSONObject launchContext, 
 			final String locationStatus, final JSONObject location,
-			final SurveyResponsePrivacyStateCache.PrivacyState privacyState) throws SurveyResponseException {
+			final SurveyResponsePrivacyStateCache.PrivacyState privacyState) 
+			throws ErrorCodeException {
+		
 		if(StringUtils.isEmptyOrWhitespaceOnly(username)) {
 			throw new IllegalArgumentException("The username cannot be null or whitespace only.");
 		}
@@ -582,11 +264,111 @@ public class SurveyResponseInformation {
 			throw new IllegalArgumentException("Unknown location status.", e);
 		}
 		if(location != null) {
-			this.location = new Location(location);
+			try {
+				this.location = new Location(location);
+			}
+			catch(LocationException e) {
+				throw new ErrorCodeException(e.getErrorCode(), e.getErrorText(), e);
+			}
 		}
 		else {
 			this.location = null;
 		}
+		
+		promptResponses = new LinkedList<PromptResponse>();
+	}
+	
+	/**
+	 * Creates a new SurveyResponseInformation object.
+	 * 
+	 * @param username The user's that is generating this survey response's
+	 * 				   username.
+	 * 
+	 * @param campaignId The unique identifier for the campaign to which this
+	 * 					 survey belongs.
+	 * 
+	 * @param client The client value.
+	 * 
+	 * @param date The date and time for which this survey response was 
+	 * 			   created.
+	 * 
+	 * @param time The milliseconds since the epoch denoting when this survey
+	 * 			   response was created.
+	 * 
+	 * @param timezone The timezone of the device when this survey response was
+	 * 				   created.
+	 * 
+	 * @param surveyId The campaign-unique identifier for the survey for which
+	 * 				   this survey response belongs.
+	 * 
+	 * @param launchContext Context information about the device when this
+	 * 						survey response was created.
+	 * 
+	 * @param locationStatus The status of the location.
+	 * 
+	 * @param location The location of the device when this survey response was
+	 * 				   created. This may be null if 'locationStatus' concurs.
+	 * 
+	 * @param privacyState The privacy state of this survey response.
+	 * 
+	 * @throws IllegalArgumentException Thrown if any of the required 
+	 * 									parameters are null.
+	 */
+	public SurveyResponseInformation(final String username, 
+			final String campaignId, final String client,
+			final Date date, final long time, final TimeZone timezone, 
+			final String surveyId, final LaunchContext launchContext, 
+			final LocationStatus locationStatus, final Location location,
+			final SurveyResponsePrivacyStateCache.PrivacyState privacyState) 
+			throws ErrorCodeException {
+		
+		if(StringUtils.isEmptyOrWhitespaceOnly(username)) {
+			throw new IllegalArgumentException("The username cannot be null or whitespace only.");
+		}
+		else if(StringUtils.isEmptyOrWhitespaceOnly(campaignId)) {
+			throw new IllegalArgumentException("The campaign ID cannot be null or whitespace only.");
+		}
+		else if(StringUtils.isEmptyOrWhitespaceOnly(client)) {
+			throw new IllegalArgumentException("The client cannot be null or whitespace only.");
+		}
+		else if(date == null) {
+			throw new IllegalArgumentException("The date cannot be null.");
+		}
+		else if(timezone == null) {
+			throw new IllegalArgumentException("The timezone cannot be null.");
+		}
+		else if(surveyId == null) {
+			throw new IllegalArgumentException("The survey ID cannot be null.");
+		}
+		else if(launchContext == null) {
+			throw new IllegalArgumentException("The launch context cannot be null.");
+		}
+		else if(locationStatus == null) {
+			throw new IllegalArgumentException("The location status cannot be null.");
+		}
+		else if(privacyState == null) {
+			throw new IllegalArgumentException("The privacy state cannot be null.");
+		}
+		
+		this.username = username;
+		this.campaignId = campaignId;
+		this.client = client;
+		
+		this.date = date;
+		this.time = time;
+		this.timezone = timezone;
+		
+		this.surveyId = surveyId;
+		this.privacyState = privacyState;
+		
+		this.launchContext = launchContext;
+		
+		this.locationStatus = locationStatus;
+		if(! LocationStatus.UNAVAILABLE.equals(locationStatus) && 
+				(location == null)) {
+			throw new IllegalArgumentException("The location cannot be null unless the location status is unavailable.");
+		}
+		this.location = location;
 		
 		promptResponses = new LinkedList<PromptResponse>();
 	}
@@ -710,35 +492,63 @@ public class SurveyResponseInformation {
 	}
 	
 	/**
-	 * Adds a new prompt response to this survey response. The prompt ID, 
-	 * prompt type, and response are required, but the repeatable set ID and
-	 * iteration value are not if it is not part of a survey response.
+	 * Adds a prompt response to this survey response.
 	 * 
-	 * @param promptId The prompt's campaign-wide unique identifier.
+	 * @param promptResponse The prompt response.
 	 * 
-	 * @param promptType The prompt's response type.
-	 * 
-	 * @param repeatableSetId The repeatable set's unique identifier if this
-	 * 						  prompt is part of a repeatable set or null if it
-	 * 						  is not.
-	 * 
-	 * @param repeatableSetIteration The iteration of this repeatable set if 
-	 * 								 this prompt is part of a repeatable set or
-	 * 								 null if it is not.
-	 * 
-	 * @param response The response value that the participant supplied, or the
-	 * 				   device generated, representing the participant's 
-	 * 				   response.
-	 * 
-	 * @throws SurveyResponseException Thrown if the prompt ID is null or 
-	 * 								   whitespace only or the response is null.
-	 * 
-	 * @throws IllegalArgumentExcpetion Thrown if the prompt type is null or
-	 * 									whitespace only.
+	 * @throws IllegalArgumentException Thrown if the prompt response is null.
 	 */
-	public final void addPromptResponse(final String promptId, final String promptType, 
-			final String repeatableSetId, final Integer repeatableSetIteration, 
-			final Object response) throws SurveyResponseException {
-		promptResponses.add(new PromptResponse(promptId, promptType, repeatableSetId, repeatableSetIteration, response));
+	public final void addPromptResponse(final PromptResponse promptResponse) {
+		if(promptResponse == null) {
+			throw new IllegalArgumentException("The prompt response cannot be null., e");
+		}
+		
+		promptResponses.add(promptResponse);
+	}
+	
+	/**
+	 * Creates a JSONObject that represents this survey response object.
+	 * 
+	 * @param withExtras If set, it will include all values that would not 
+	 * 					 normally be added to the JSON including the username,
+	 * 					 campaign ID, client, and privacy state.
+	 * 
+	 * @return A JSONObject that represents this object or null if there was an
+	 * 		   error.
+	 */
+	public final JSONObject toJson(final boolean withExtras) {
+		try {
+			JSONObject result = new JSONObject();
+			
+			if(withExtras) {
+				result.put(JSON_KEY_USERNAME, username);
+				result.put(JSON_KEY_CAMPAIGN_ID, campaignId);
+				result.put(JSON_KEY_CLIENT, client);
+				
+				result.put(JSON_KEY_PRIVACY_STATE, privacyState.toString().toLowerCase());
+			}
+			
+			result.put(JSON_KEY_DATE, TimeUtils.getIso8601DateTimeString(date));
+			result.put(JSON_KEY_TIME, time);
+			result.put(JSON_KEY_TIMEZONE, timezone.getID());
+			result.put(JSON_KEY_LOCATION_STATUS, locationStatus.toString().toLowerCase());
+			if(location != null) {
+				result.put(JSON_KEY_LOCATION, location.toJson(false));
+			}
+			
+			result.put(JSON_KEY_SURVEY_ID, surveyId);
+			result.put(JSON_KEY_SURVEY_LAUNCH_CONTEXT, launchContext.toJson());
+			
+			JSONArray responses = new JSONArray();
+			for(PromptResponse promptResponse : promptResponses) {
+				responses.put(promptResponse.toJson(false));
+			}
+			result.put(JSON_KEY_RESPONSES, responses);
+			
+			return result;
+		}
+		catch(JSONException e) {
+			return null;
+		}
 	}
 }

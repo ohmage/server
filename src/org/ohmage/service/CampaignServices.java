@@ -2,7 +2,9 @@ package org.ohmage.service;
 
 import java.io.IOException;
 import java.io.StringReader;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -16,14 +18,13 @@ import nu.xom.ValidityException;
 import nu.xom.XMLException;
 import nu.xom.XPathException;
 
+import org.json.JSONObject;
 import org.ohmage.annotator.ErrorCodes;
-import org.ohmage.cache.CampaignPrivacyStateCache;
-import org.ohmage.cache.CampaignRoleCache;
-import org.ohmage.cache.CampaignRunningStateCache;
 import org.ohmage.dao.CampaignDaos;
-import org.ohmage.domain.User;
 import org.ohmage.domain.configuration.Configuration;
+import org.ohmage.domain.configuration.SurveyResponse;
 import org.ohmage.exception.DataAccessException;
+import org.ohmage.exception.ErrorCodeException;
 import org.ohmage.exception.ServiceException;
 import org.ohmage.request.Request;
 
@@ -139,8 +140,8 @@ public class CampaignServices {
 	 */
 	public static void createCampaign(Request request, String campaignId, String name, String xml, String description, 
 			String iconUrl, String authoredBy, 
-			CampaignRunningStateCache.RunningState runningState, 
-			CampaignPrivacyStateCache.PrivacyState privacyState, 
+			Configuration.RunningState runningState, 
+			Configuration.PrivacyState privacyState, 
 			List<String> classIds, String creatorUsername) throws ServiceException {
 		try {
 			CampaignDaos.createCampaign(campaignId, name, xml, description, iconUrl, authoredBy, runningState, privacyState, classIds, creatorUsername);
@@ -424,6 +425,30 @@ public class CampaignServices {
 	}
 	
 	/**
+	 * Verifies that the campaign is running.
+	 * 
+	 * @param request The Request that is performing this service.
+	 * 
+	 * @param campaignId The campaign's unique identifier.
+	 * 
+	 * @throws ServiceException Thrown if the campaign is not running or if 
+	 * 							there is an error.
+	 */
+	public static void verifyCampaignIsRunning(Request request, String campaignId) throws ServiceException {
+		try {
+			if(! Configuration.RunningState.RUNNING.equals(
+					CampaignDaos.getCampaignRunningState(campaignId))) {
+				request.setFailed(ErrorCodes.CAMPAIGN_INVALID_RUNNING_STATE, "The campaign is not running.");
+				throw new ServiceException("The campaign is not running.");
+			}
+		}
+		catch(DataAccessException e) {
+			request.setFailed();
+			throw new ServiceException(e);
+		}
+	}
+	
+	/**
 	 * Verifies that the user belongs to a campaign specified by the campaign id and that the campaign referenced by the id 
 	 * has a value that matches the allowed running state.
 	 * 
@@ -432,8 +457,8 @@ public class CampaignServices {
 	 * @param campaignId The campaign id in question.
 	 * @param allowedRunningState The allowed running state for the above campaign.
 	 * @throws ServiceException
-	 */
-	public static void verifyAllowedRunningState(Request request, User user, String campaignId, CampaignRunningStateCache.RunningState allowedRunningState)
+	 *
+	public static void verifyAllowedRunningState(Request request, User user, String campaignId, Configuration.RunningState allowedRunningState)
 		throws ServiceException {
 		
 		if(user.getCampaignsAndRoles() == null) { // logical error
@@ -450,7 +475,7 @@ public class CampaignServices {
 			request.setFailed(ErrorCodes.CAMPAIGN_INVALID_RUNNING_STATE, "Campaign does not have the allowed running state: " + allowedRunningState);
 			throw new ServiceException("Campaign does not have the allowed running state: " + allowedRunningState);
 		}
-	}
+	}*/
 	
 	/**
 	 * Verifies that the campaign ID and name in some XML file are the same as
@@ -510,7 +535,7 @@ public class CampaignServices {
 	 * object, or if the user does not belong to the campaign, or the campaign
 	 * creation timestamp does not match what is currently stored for the 
 	 * campaign. 
-	 */
+	 *
 	public static void verifyCampaignCreationTimestamp(Request request, User user, String campaignId, String campaignCreationTimestamp)
 		throws ServiceException {
 		
@@ -530,6 +555,91 @@ public class CampaignServices {
 		if(! user.getCampaignsAndRoles().get(campaignId).getCampaign().getCampaignCreationTimestamp().equals(campaignCreationTimestamp)) {
 			request.setFailed(ErrorCodes.CAMPAIGN_OUT_OF_DATE, "Campaign does not have the timestamp: " + campaignCreationTimestamp);
 			throw new ServiceException("Campaign does not have the timestamp: " + campaignCreationTimestamp);
+		}
+	}*/
+	
+	/**
+	 * Verifies that the given timestamp is the same as the campaign's creation
+	 * timestamp.
+	 * 
+	 * @param request The Request that is performing this service.
+	 * 
+	 * @param campaignId The campaign's unique identifier.
+	 * 
+	 * @param creationTimestamp The expected campaign creation timestamp.
+	 * 
+	 * @throws ServiceException Thrown if the expected and actual campaign 
+	 * 							creation timestamps are not the same or if 
+	 * 							there is an error.
+	 */
+	public static void verifyCampaignIsUpToDate(Request request, String campaignId, Date creationTimestamp) throws ServiceException {
+		try {
+			if(! creationTimestamp.equals(CampaignDaos.getCreationTimestamp(campaignId))) {
+				request.setFailed(ErrorCodes.CAMPAIGN_OUT_OF_DATE, "The given timestamp is not the same as the campaign's creation timestamp.");
+				throw new ServiceException("The given timestamp is not the same as the campaign's creation timestamp.");
+			}
+		}
+		catch(DataAccessException e) {
+			request.setFailed();
+			throw new ServiceException(e);
+		}
+	}
+	
+	/**
+	 * Finds the configuration for the campaign identified by the campaign id.
+	 * 
+	 * @param campaignId The campaign id to use for lookup.
+	 * @return a Configuration instance created from the XML for the campaign.
+	 * @throws ServiceException If an error occurred in the data layer.
+	 */
+	public static Configuration findCampaignConfiguration(Request request, String campaignId) throws ServiceException {
+		try {
+			
+			return CampaignDaos.findCampaignConfiguration(campaignId);
+		}
+		catch(DataAccessException e) {
+				request.setFailed();
+				throw new ServiceException(e);
+		}
+	}
+	
+	/**
+	 * Verifies that the survey responses as JSONObjects are valid survey
+	 * responses for the given campaign.
+	 * 
+	 * @param request The Request that is performing this service.
+	 * 
+	 * @param username The username of the user that generated these survey
+	 * 				   responses.
+	 * 
+	 * @param client The client value.
+	 * 
+	 * @param campaign The campaign.
+	 * 
+	 * @param jsonSurveyResponses The collection of survey responses as 
+	 * 							  JSONObjects.
+	 * 
+	 * @return A list of SurveyResponse objects representing the JSON survey 
+	 * 		   responses.
+	 * 
+	 * @throws ServiceException Thrown if one of the survey responses is
+	 * 							malformed.
+	 */
+	public static List<SurveyResponse> getSurveyResponses(Request request, String username,
+			String client, Configuration campaign, Collection<JSONObject> jsonSurveyResponses) throws ServiceException {
+		
+		try {
+			List<SurveyResponse> result = new ArrayList<SurveyResponse>(jsonSurveyResponses.size());
+			
+			for(JSONObject jsonResponse : jsonSurveyResponses) {
+				result.add(new SurveyResponse(-1, username, campaign.getId(), client, campaign, jsonResponse));
+			}
+			
+			return result;
+		}
+		catch(ErrorCodeException e) {
+			request.setFailed(e.getErrorCode(), e.getErrorText());
+			throw new ServiceException(e);
 		}
 	}
 	
@@ -568,35 +678,17 @@ public class CampaignServices {
 	 */
 	public static void updateCampaign(Request request, 
 			String campaignId, String xml, String description, 
-			CampaignRunningStateCache.RunningState runningState, 
-			CampaignPrivacyStateCache.PrivacyState privacyState, 
+			Configuration.RunningState runningState, 
+			Configuration.PrivacyState privacyState, 
 			Collection<String> classIds, 
-			Map<String, Set<CampaignRoleCache.Role>> usersAndRolesToAdd, 
-			Map<String, Set<CampaignRoleCache.Role>> usersAndRolesToRemove) throws ServiceException {
+			Map<String, Set<Configuration.Role>> usersAndRolesToAdd, 
+			Map<String, Set<Configuration.Role>> usersAndRolesToRemove) throws ServiceException {
 		try {
 			CampaignDaos.updateCampaign(campaignId, xml, description, runningState, privacyState, classIds, usersAndRolesToAdd, usersAndRolesToRemove);
 		}
 		catch(DataAccessException e) {
 			request.setFailed();
 			throw new ServiceException(e);
-		}
-	}
-	
-	/**
-	 * Finds the configuration for the campaign identified by the campaign id.
-	 * 
-	 * @param campaignId The campaign id to use for lookup.
-	 * @return a Configuration instance created from the XML for the campaign.
-	 * @throws ServiceException If an error occurred in the data layer.
-	 */
-	public static Configuration findCampaignConfiguration(Request request, String campaignId) throws ServiceException {
-		try {
-			
-			return CampaignDaos.findCampaignConfiguration(campaignId);
-		}
-		catch(DataAccessException e) {
-				request.setFailed();
-				throw new ServiceException(e);
 		}
 	}
 		

@@ -11,7 +11,7 @@ import org.apache.log4j.Logger;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.ohmage.annotator.ErrorCodes;
-import org.ohmage.domain.ClassInformation;
+import org.ohmage.domain.Clazz;
 import org.ohmage.exception.ServiceException;
 import org.ohmage.exception.ValidationException;
 import org.ohmage.request.InputKeys;
@@ -105,13 +105,13 @@ public class ClassReadRequest extends UserRequest {
 			
 			// Get the information about the classes.
 			LOGGER.info("Gathering the information about the classes in the list.");
-			List<ClassInformation> informationAboutClasses = ClassServices.getClassesInformation(this, classIds, getUser().getUsername());
+			List<Clazz> informationAboutClasses = ClassServices.getClassesInformation(this, classIds, getUser().getUsername());
 			
 			// Populate our result JSONObject with class information.
 			LOGGER.info("Creating the result JSONObject with the information about the classes.");
 			try {
-				for(ClassInformation classInformation : informationAboutClasses) {
-					result.put(classInformation.getUrn(), classInformation.toJson(false));
+				for(Clazz classInformation : informationAboutClasses) {
+					result.put(classInformation.getId(), classInformation.toJson(false));
 				}
 			}
 			catch(JSONException e) {

@@ -14,7 +14,7 @@ import javax.sql.DataSource;
 
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.ohmage.domain.AuditInformation;
+import org.ohmage.domain.Audit;
 import org.ohmage.exception.DataAccessException;
 import org.ohmage.jee.servlet.RequestServlet;
 import org.ohmage.jee.servlet.RequestServlet.RequestType;
@@ -528,24 +528,24 @@ public class AuditDaos extends Dao {
 	 * 
 	 * @param auditIds The unique identifiers for some audits.
 	 * 
-	 * @return Returns a list of AuditInformation objects, one for each audit
+	 * @return Returns a list of Audit objects, one for each audit
 	 * 		   ID.
 	 */
-	public static List<AuditInformation> readAuditInformation(final List<Long> auditIds) throws DataAccessException {
+	public static List<Audit> readAuditInformation(final List<Long> auditIds) throws DataAccessException {
 		if(auditIds == null) {
-			return new LinkedList<AuditInformation>();
+			return new LinkedList<Audit>();
 		}
 		
-		final List<AuditInformation> result = new ArrayList<AuditInformation>(auditIds.size());
+		final List<Audit> result = new ArrayList<Audit>(auditIds.size());
 		
 		for(Long auditId : auditIds) {
 			try {
-				final AuditInformation auditInformation = instance.getJdbcTemplate().queryForObject(
+				final Audit auditInformation = instance.getJdbcTemplate().queryForObject(
 						SQL_GET_AUDIT_INFORMATION_FROM_ID, 
 						new Object[] { auditId },
-						new RowMapper<AuditInformation>() {
+						new RowMapper<Audit>() {
 							@Override
-							public AuditInformation mapRow(ResultSet rs, int rowNum) throws SQLException {
+							public Audit mapRow(ResultSet rs, int rowNum) throws SQLException {
 								RequestType requestType;
 								try {
 									requestType = RequestType.valueOf(rs.getString("request_type").toUpperCase());
@@ -562,7 +562,7 @@ public class AuditDaos extends Dao {
 									response = new JSONObject();
 								}
 
-								return new AuditInformation(
+								return new Audit(
 										requestType,
 										rs.getString("uri"),
 										rs.getString("client"),

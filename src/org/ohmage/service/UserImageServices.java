@@ -3,13 +3,12 @@ package org.ohmage.service;
 import java.util.List;
 
 import org.ohmage.annotator.ErrorCodes;
-import org.ohmage.cache.CampaignPrivacyStateCache;
-import org.ohmage.cache.CampaignRoleCache;
-import org.ohmage.cache.SurveyResponsePrivacyStateCache;
 import org.ohmage.dao.CampaignDaos;
 import org.ohmage.dao.CampaignImageDaos;
 import org.ohmage.dao.UserCampaignDaos;
 import org.ohmage.dao.UserImageDaos;
+import org.ohmage.domain.configuration.Configuration;
+import org.ohmage.domain.configuration.SurveyResponse;
 import org.ohmage.exception.DataAccessException;
 import org.ohmage.exception.ServiceException;
 import org.ohmage.request.Request;
@@ -77,31 +76,31 @@ public final class UserImageServices {
 			// For each of the campaigns, see if the requesting user has 
 			// sufficient permissions.
 			for(String campaignId : campaignIds) {
-				List<CampaignRoleCache.Role> roles = UserCampaignDaos.getUserCampaignRoles(requesterUsername, campaignId);
+				List<Configuration.Role> roles = UserCampaignDaos.getUserCampaignRoles(requesterUsername, campaignId);
 
 				// If they are a supervisor.
-				if(roles.contains(CampaignRoleCache.Role.SUPERVISOR)) {
+				if(roles.contains(Configuration.Role.SUPERVISOR)) {
 					return;
 				}
 				
 				// Retrieves the privacy state of the image in this campaign. 
 				// If null is returned, something has changed since the list of
 				// campaign IDs was retrieved, so we need to just error out.
-				SurveyResponsePrivacyStateCache.PrivacyState imagePrivacyState = CampaignImageDaos.getImagePrivacyStateInCampaign(campaignId, imageId);
+				SurveyResponse.PrivacyState imagePrivacyState = CampaignImageDaos.getImagePrivacyStateInCampaign(campaignId, imageId);
 				
 				// They are an author and the image is shared
-				if(roles.contains(CampaignRoleCache.Role.AUTHOR) && 
-						SurveyResponsePrivacyStateCache.PrivacyState.SHARED.equals(imagePrivacyState)) {
+				if(roles.contains(Configuration.Role.AUTHOR) && 
+						SurveyResponse.PrivacyState.SHARED.equals(imagePrivacyState)) {
 					return;
 				}
 				
 				// Retrieve the campaign's privacy state.
-				CampaignPrivacyStateCache.PrivacyState campaignPrivacyState = CampaignDaos.getCampaignPrivacyState(campaignId);
+				Configuration.PrivacyState campaignPrivacyState = CampaignDaos.getCampaignPrivacyState(campaignId);
 				
 				// They are an analyst, the image is shared, and the campaign is shared.
-				if(roles.contains(CampaignRoleCache.Role.ANALYST) && 
-						SurveyResponsePrivacyStateCache.PrivacyState.SHARED.equals(imagePrivacyState) &&
-						CampaignPrivacyStateCache.PrivacyState.SHARED.equals(campaignPrivacyState)) {
+				if(roles.contains(Configuration.Role.ANALYST) && 
+						SurveyResponse.PrivacyState.SHARED.equals(imagePrivacyState) &&
+						Configuration.PrivacyState.SHARED.equals(campaignPrivacyState)) {
 					return;
 				}
 			}

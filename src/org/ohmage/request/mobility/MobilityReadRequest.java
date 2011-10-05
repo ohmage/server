@@ -12,7 +12,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.log4j.Logger;
 import org.json.JSONArray;
 import org.ohmage.annotator.ErrorCodes;
-import org.ohmage.domain.MobilityInformation;
+import org.ohmage.domain.MobilityPoint;
 import org.ohmage.exception.ServiceException;
 import org.ohmage.exception.ValidationException;
 import org.ohmage.request.InputKeys;
@@ -49,7 +49,7 @@ public class MobilityReadRequest extends UserRequest {
 	
 	private final Date date;
 	
-	private List<MobilityInformation> result;
+	private List<MobilityPoint> result;
 	
 	/**
 	 * Creates a Mobility read request.
@@ -115,6 +115,10 @@ public class MobilityReadRequest extends UserRequest {
 			endDate.setTimeInMillis(startDate.getTimeInMillis());
 			endDate.add(Calendar.DAY_OF_YEAR, 1);
 			
+			LOGGER.debug("Actual date: " + TimeUtils.getIso8601DateTimeString(date));
+			LOGGER.debug("Start date: " + TimeUtils.getIso8601DateTimeString(new Date(startDate.getTimeInMillis())));
+			LOGGER.debug("End date: " + TimeUtils.getIso8601DateTimeString(new Date(endDate.getTimeInMillis())));
+			
 			result = MobilityServices.retrieveMobilityData(
 					this, 
 					getUser().getUsername(), 
@@ -139,8 +143,8 @@ public class MobilityReadRequest extends UserRequest {
 
 		JSONArray resultJson = new JSONArray();
 		
-		for(MobilityInformation mobilityPoint : result) {
-			resultJson.put(mobilityPoint.toJson(true));
+		for(MobilityPoint mobilityPoint : result) {
+			resultJson.put(mobilityPoint.toJson(true, false));
 		}
 			
 		respond(httpRequest, httpResponse, JSON_KEY_DATA, resultJson);

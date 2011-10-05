@@ -21,10 +21,8 @@ import java.util.regex.Pattern;
 import javax.sql.DataSource;
 
 import org.apache.log4j.Logger;
-import org.ohmage.cache.DocumentPrivacyStateCache;
-import org.ohmage.cache.DocumentRoleCache;
 import org.ohmage.cache.PreferenceCache;
-import org.ohmage.domain.DocumentInformation;
+import org.ohmage.domain.Document;
 import org.ohmage.exception.CacheMissException;
 import org.ohmage.exception.DataAccessException;
 import org.springframework.jdbc.core.RowMapper;
@@ -328,8 +326,8 @@ public class DocumentDaos extends Dao {
 	 * 
 	 * @return Returns a unique identifier for this document.
 	 */
-	public static String createDocument(byte[] contents, String name, String description, DocumentPrivacyStateCache.PrivacyState privacyState, 
-			Map<String, DocumentRoleCache.Role> campaignRoleMap, Map<String, DocumentRoleCache.Role> classRoleMap, String creatorUsername) 
+	public static String createDocument(byte[] contents, String name, String description, Document.PrivacyState privacyState, 
+			Map<String, Document.Role> campaignRoleMap, Map<String, Document.Role> classRoleMap, String creatorUsername) 
 		throws DataAccessException {
 		
 		// Create a new, random UUID to use to save this file.
@@ -412,7 +410,7 @@ public class DocumentDaos extends Dao {
 						new Object[] { 
 								uuid, 
 								creatorUsername, 
-								DocumentRoleCache.Role.OWNER.toString()
+								Document.Role.OWNER.toString()
 						}
 					);
 			}
@@ -420,7 +418,7 @@ public class DocumentDaos extends Dao {
 				newFile.delete();
 				transactionManager.rollback(status);
 				throw new DataAccessException("Error executing SQL '" + SQL_INSERT_USER_ROLE + "' with parameters: " +
-						uuid + ", " + creatorUsername + ", " + DocumentRoleCache.Role.OWNER, e);
+						uuid + ", " + creatorUsername + ", " + Document.Role.OWNER, e);
 			}
 			
 			// Insert any campaign associations in the DB.
@@ -545,19 +543,19 @@ public class DocumentDaos extends Dao {
 	 * @return A DocumentInformation object representing the information about
 	 * 		   this document.
 	 */
-	public static DocumentInformation getDocumentInformation(String documentId) throws DataAccessException {
+	public static Document getDocumentInformation(String documentId) throws DataAccessException {
 		try {
 			return instance.getJdbcTemplate().queryForObject(
 				SQL_GET_DOCUMENT_INFO, 
 				new Object[] { documentId }, 
-				new RowMapper<DocumentInformation>() {
+				new RowMapper<Document>() {
 					@Override
-					public DocumentInformation mapRow(ResultSet rs, int rowNum) throws SQLException {
-						return new DocumentInformation(
+					public Document mapRow(ResultSet rs, int rowNum) throws SQLException {
+						return new Document(
 								rs.getString("uuid"),
 								rs.getString("name"),
 								rs.getString("description"),
-								DocumentPrivacyStateCache.PrivacyState.getValue(rs.getString("privacy_state")),
+								Document.PrivacyState.getValue(rs.getString("privacy_state")),
 								rs.getTimestamp("last_modified_timestamp"),
 								rs.getTimestamp("creation_timestamp"),
 								rs.getInt("size"),
@@ -613,10 +611,10 @@ public class DocumentDaos extends Dao {
 	 * 						associated with this document.
 	 */
 	public static void updateDocument(String documentId, byte[] contents, String name, String description, 
-			DocumentPrivacyStateCache.PrivacyState privacyState,
-			Map<String, DocumentRoleCache.Role> campaignAndRolesToAdd, List<String> campaignsToRemove, 
-			Map<String, DocumentRoleCache.Role> classAndRolesToAdd, List<String> classesToRemove, 
-			Map<String, DocumentRoleCache.Role> userAndRolesToAdd, List<String> usersToRemove) throws DataAccessException {
+			Document.PrivacyState privacyState,
+			Map<String, Document.Role> campaignAndRolesToAdd, List<String> campaignsToRemove, 
+			Map<String, Document.Role> classAndRolesToAdd, List<String> classesToRemove, 
+			Map<String, Document.Role> userAndRolesToAdd, List<String> usersToRemove) throws DataAccessException {
 		// Begin transaction
 		DefaultTransactionDefinition def = new DefaultTransactionDefinition();
 		def.setName("Document update.");
@@ -780,7 +778,7 @@ public class DocumentDaos extends Dao {
 	 * 							  This should never happen as it has already
 	 * 							  been validated.
 	 */
-	private static void updatePrivacyState(String documentId, DocumentPrivacyStateCache.PrivacyState privacyState) throws CacheMissException, DataAccessException {
+	private static void updatePrivacyState(String documentId, Document.PrivacyState privacyState) throws CacheMissException, DataAccessException {
 		if(privacyState == null) {
 			return;
 		}
@@ -878,7 +876,7 @@ public class DocumentDaos extends Dao {
 	 * 							  database ID for the document.
 	 */
 	private static void updateEntityRoleList(String documentId, 
-			Map<String, DocumentRoleCache.Role> entityAndRolesToAdd, 
+			Map<String, Document.Role> entityAndRolesToAdd, 
 			List<String> entitiesToRemove, 
 			String sqlInsertEntity, String sqlUpdateEntity, String sqlDeleteEntity) 
 	throws CacheMissException, DataAccessException {
@@ -908,7 +906,7 @@ public class DocumentDaos extends Dao {
 				String entityId = addMapIter.next();
 				
 				// Get the entity's role.
-				DocumentRoleCache.Role role = entityAndRolesToAdd.get(entityId);
+				Document.Role role = entityAndRolesToAdd.get(entityId);
 				
 				// Add the document-entity role.
 				try {

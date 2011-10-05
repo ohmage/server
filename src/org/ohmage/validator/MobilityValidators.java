@@ -8,9 +8,8 @@ import org.apache.log4j.Logger;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.ohmage.annotator.ErrorCodes;
-import org.ohmage.cache.MobilityPrivacyStateCache;
-import org.ohmage.domain.MobilityInformation;
-import org.ohmage.domain.MobilityInformation.MobilityException;
+import org.ohmage.domain.MobilityPoint;
+import org.ohmage.exception.ErrorCodeException;
 import org.ohmage.exception.ValidationException;
 import org.ohmage.request.Request;
 import org.ohmage.util.StringUtils;
@@ -48,7 +47,7 @@ public final class MobilityValidators {
 	 * 							   JSONObjects cannot become a 
 	 * 							   MobilityInformation object.
 	 */
-	public static List<MobilityInformation> validateDataAsJsonArray(Request request, String data) throws ValidationException {
+	public static List<MobilityPoint> validateDataAsJsonArray(Request request, String data) throws ValidationException {
 		LOGGER.info("Validating a JSONArray of data points.");
 		
 		if(StringUtils.isEmptyOrWhitespaceOnly(data)) {
@@ -58,9 +57,9 @@ public final class MobilityValidators {
 		try {
 			JSONArray jsonArray = new JSONArray(data.trim());
 			
-			List<MobilityInformation> result = new LinkedList<MobilityInformation>();
+			List<MobilityPoint> result = new LinkedList<MobilityPoint>();
 			for(int i = 0; i < jsonArray.length(); i++) {
-				result.add(new MobilityInformation(jsonArray.getJSONObject(i), MobilityPrivacyStateCache.PrivacyState.PRIVATE));
+				result.add(new MobilityPoint(jsonArray.getJSONObject(i), MobilityPoint.PrivacyState.PRIVATE));
 			}
 			
 			return result;
@@ -69,7 +68,7 @@ public final class MobilityValidators {
 			request.setFailed(ErrorCodes.SERVER_INVALID_JSON, "The JSONArray containing the data is malformed.");
 			throw new ValidationException("The JSONArray containing the data is malformed.", e);
 		}
-		catch(MobilityException e) {
+		catch(ErrorCodeException e) {
 			request.setFailed(e.getErrorCode(), e.getErrorText());
 			throw new ValidationException(e.getErrorText(), e);
 		}

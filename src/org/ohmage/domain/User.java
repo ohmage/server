@@ -19,8 +19,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.ohmage.cache.CampaignRoleCache;
-import org.ohmage.cache.ClassRoleCache;
+import org.ohmage.domain.configuration.Configuration;
 import org.ohmage.util.StringUtils;
 
 /**
@@ -43,7 +42,7 @@ public class User {
 	private boolean loggedIn;
 	
 	private final Map<String, CampaignAndUserRoles> campaignAndUserRolesMap; // A user can have multiple roles in the same campaign.
-	private final Map<String, ClassRoleCache.Role> classRoleMap;
+	private final Map<String, Clazz.Role> classRoleMap;
 	
 	/**
 	 * Creates a new User object.
@@ -75,7 +74,7 @@ public class User {
 		loggedIn = false;
 		
 		campaignAndUserRolesMap = new HashMap<String, CampaignAndUserRoles>();
-		classRoleMap = new HashMap<String, ClassRoleCache.Role>();
+		classRoleMap = new HashMap<String, Clazz.Role>();
 	}
 	
 	/**
@@ -104,7 +103,7 @@ public class User {
 		}
 		
 		// Create a new class-role map and copy everything over.
-		classRoleMap = new HashMap<String, ClassRoleCache.Role>();
+		classRoleMap = new HashMap<String, Clazz.Role>();
 		for(String classId : user.classRoleMap.keySet()) {
 			classRoleMap.put(classId, user.classRoleMap.get(classId));
 		}
@@ -135,12 +134,12 @@ public class User {
 	 * 
 	 * @param userRole The user's role in that campaign.
 	 */
-	public void addCampaignAndUserRole(Campaign campaign, CampaignRoleCache.Role userRole) {
-		CampaignAndUserRoles campaignAndUserRoles = campaignAndUserRolesMap.get(campaign.getUrn());
+	public void addCampaignAndUserRole(Configuration campaign, Configuration.Role userRole) {
+		CampaignAndUserRoles campaignAndUserRoles = campaignAndUserRolesMap.get(campaign.getId());
 		if(campaignAndUserRoles == null) {
 			campaignAndUserRoles = new CampaignAndUserRoles();
 			campaignAndUserRoles.setCampaign(campaign);
-			campaignAndUserRolesMap.put(campaign.getUrn(), campaignAndUserRoles);
+			campaignAndUserRolesMap.put(campaign.getId(), campaignAndUserRoles);
 		}
 		
 		campaignAndUserRoles.addUserRole(userRole);
@@ -165,7 +164,7 @@ public class User {
 	 * @throws IllegalArgumentException Thrown if the class Id or the user's 
 	 * 									role are obviously invalid.
 	 */
-	public void getClassRole(String classId, ClassRoleCache.Role role) {
+	public void getClassRole(String classId, Clazz.Role role) {
 		if(StringUtils.isEmptyOrWhitespaceOnly(classId)) {
 			throw new IllegalArgumentException("The class ID cannot be null or whitespace only.");
 		}
@@ -184,7 +183,7 @@ public class User {
 	 * 		   null which may not be accurate if it has not been explicitly
 	 * 		   populated.
 	 */
-	public Map<String, ClassRoleCache.Role> getClassesAndRole() {
+	public Map<String, Clazz.Role> getClassesAndRole() {
 		return classRoleMap;
 	}
 	
@@ -255,13 +254,13 @@ public class User {
 	 * 		   specified by the 'campaignId'.
 	 */
 	public boolean isSupervisorInCampaign(String campaignId) {
-		List<CampaignRoleCache.Role> roles = campaignAndUserRolesMap.get(campaignId).getUserRoleStrings();
+		List<Configuration.Role> roles = campaignAndUserRolesMap.get(campaignId).getUserRoleStrings();
 		
 		if(roles == null) {
 			return false;
 		}
 		
-		return roles.contains(CampaignRoleCache.Role.SUPERVISOR);
+		return roles.contains(Configuration.Role.SUPERVISOR);
 	}
 	
 	/**
@@ -276,13 +275,13 @@ public class User {
 	 * 		   specified by the 'campaignId'.
 	 */
 	public boolean isAuthorInCampaign(String campaignId) {
-		List<CampaignRoleCache.Role> roles = campaignAndUserRolesMap.get(campaignId).getUserRoleStrings();
+		List<Configuration.Role> roles = campaignAndUserRolesMap.get(campaignId).getUserRoleStrings();
 		
 		if(roles == null) {
 			return false;
 		}
 		
-		return roles.contains(CampaignRoleCache.Role.AUTHOR);
+		return roles.contains(Configuration.Role.AUTHOR);
 	}
 	
 	/**
@@ -297,13 +296,13 @@ public class User {
 	 * 		   specified by the 'campaignId'.
 	 */
 	public boolean isAnalystInCampaign(String campaignId) {
-		List<CampaignRoleCache.Role> roles = campaignAndUserRolesMap.get(campaignId).getUserRoleStrings();
+		List<Configuration.Role> roles = campaignAndUserRolesMap.get(campaignId).getUserRoleStrings();
 		
 		if(roles == null) {
 			return false;
 		}
 		
-		return roles.contains(CampaignRoleCache.Role.ANALYST);
+		return roles.contains(Configuration.Role.ANALYST);
 	}
 	
 	/**
@@ -318,13 +317,13 @@ public class User {
 	 * 		   specified by the 'campaignId'.
 	 */
 	public boolean isParticipantInCampaign(String campaignId) {
-		List<CampaignRoleCache.Role> roles = campaignAndUserRolesMap.get(campaignId).getUserRoleStrings();
+		List<Configuration.Role> roles = campaignAndUserRolesMap.get(campaignId).getUserRoleStrings();
 		
 		if(roles == null) {
 			return false;
 		}
 		
-		return roles.contains(CampaignRoleCache.Role.PARTICIPANT);
+		return roles.contains(Configuration.Role.PARTICIPANT);
 	}
 
 	/**
@@ -340,8 +339,8 @@ public class User {
 	 * @return Whether or not the user is a specified 'role' in the campaign 
 	 * 		   specified by the 'campaignId'.
 	 */
-	public boolean hasRoleInCampaign(String campaignId, CampaignRoleCache.Role role) {
-		List<CampaignRoleCache.Role> roles = campaignAndUserRolesMap.get(campaignId).getUserRoleStrings();
+	public boolean hasRoleInCampaign(String campaignId, Configuration.Role role) {
+		List<Configuration.Role> roles = campaignAndUserRolesMap.get(campaignId).getUserRoleStrings();
 		
 		if(roles == null) {
 			return false;
@@ -362,13 +361,13 @@ public class User {
 	 * 		   the 'classId'.
 	 */
 	public boolean isPrivilegedInClass(String classId) {
-		ClassRoleCache.Role role = classRoleMap.get(classId);
+		Clazz.Role role = classRoleMap.get(classId);
 		
 		if(role == null) {
 			return false;
 		}
 		
-		return role.equals(ClassRoleCache.Role.PRIVILEGED);
+		return role.equals(Clazz.Role.PRIVILEGED);
 	}
 	
 	/**
@@ -383,13 +382,13 @@ public class User {
 	 * 		   the 'classId'.
 	 */
 	public boolean isRestrictedInClass(String classId) {
-		ClassRoleCache.Role role = classRoleMap.get(classId);
+		Clazz.Role role = classRoleMap.get(classId);
 		
 		if(role == null) {
 			return false;
 		}
 		
-		return role.equals(ClassRoleCache.Role.RESTRICTED);
+		return role.equals(Clazz.Role.RESTRICTED);
 	}
 	
 	/**
@@ -403,8 +402,8 @@ public class User {
 	 * @return Whether or not the user has the 'role' in the class specified by 
 	 * 		   the 'classId'.
 	 */
-	public boolean hasRoleInClass(String classId, ClassRoleCache.Role classRole) {
-		ClassRoleCache.Role role = classRoleMap.get(classId);
+	public boolean hasRoleInClass(String classId, Clazz.Role classRole) {
+		Clazz.Role role = classRoleMap.get(classId);
 		
 		if(role == null) {
 			return false;

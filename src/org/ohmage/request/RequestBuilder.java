@@ -217,6 +217,8 @@ public final class RequestBuilder {
 	public static Request buildRequest(HttpServletRequest httpRequest) {
 		String requestUri = httpRequest.getRequestURI();
 		
+		LOGGER.debug(requestUri);
+		
 		// Config
 		if(API_CONFIG_READ.equals(requestUri)) {
 			return new ConfigReadRequest();

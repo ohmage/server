@@ -4,9 +4,8 @@ import java.util.List;
 
 import javax.sql.DataSource;
 
-import org.ohmage.cache.ClassRoleCache;
-import org.ohmage.cache.DocumentPrivacyStateCache;
-import org.ohmage.cache.DocumentRoleCache;
+import org.ohmage.domain.Clazz;
+import org.ohmage.domain.Document;
 import org.ohmage.exception.DataAccessException;
 import org.springframework.jdbc.core.SingleColumnRowMapper;
 
@@ -32,7 +31,7 @@ public final class UserClassDocumentDaos extends Dao {
 			"AND u.id = uc.user_id " +
 			"AND c.id = uc.class_id " +
 			"AND ucr.id = uc.user_class_role_id " +
-			"AND ucr.role = '" + ClassRoleCache.Role.PRIVILEGED + "' " +
+			"AND ucr.role = '" + Clazz.Role.PRIVILEGED + "' " +
 			// Ensure that the campaign is associated with the document.
 			"AND d.id = dcr.document_id " +
 			"AND c.id = dcr.class_id" +
@@ -53,11 +52,11 @@ public final class UserClassDocumentDaos extends Dao {
 		"AND uc.user_class_role_id = ucr.id " +
 		"AND d.privacy_state_id = dps.id " +
 		"AND (" +
-			"(dps.privacy_state = '" + DocumentPrivacyStateCache.PrivacyState.SHARED + "')" +
+			"(dps.privacy_state = '" + Document.PrivacyState.SHARED + "')" +
 			" OR " +
-			"(ucr.role = '" + ClassRoleCache.Role.PRIVILEGED + "')" +
+			"(ucr.role = '" + Clazz.Role.PRIVILEGED + "')" +
 			" OR " +
-			"(dr.role = '" + DocumentRoleCache.Role.OWNER + "')" +
+			"(dr.role = '" + Document.Role.OWNER + "')" +
 		")";
 	
 	private static UserClassDocumentDaos instance;

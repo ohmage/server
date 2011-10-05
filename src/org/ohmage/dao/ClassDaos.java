@@ -11,9 +11,8 @@ import java.util.Map;
 import javax.sql.DataSource;
 
 import org.apache.log4j.Logger;
-import org.ohmage.cache.CampaignRoleCache;
-import org.ohmage.cache.ClassRoleCache;
-import org.ohmage.domain.ClassInformation;
+import org.ohmage.domain.Clazz;
+import org.ohmage.domain.configuration.Configuration;
 import org.ohmage.exception.DataAccessException;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
@@ -184,8 +183,8 @@ public class ClassDaos extends Dao {
 	 * @author John Jenkins
 	 */
 	private static final class ClassInformationAndUserRole {
-		private final ClassInformation classInformation;
-		private final ClassRoleCache.Role role;
+		private final Clazz classInformation;
+		private final Clazz.Role role;
 		
 		/**
 		 * Convenience constructor.
@@ -195,7 +194,7 @@ public class ClassDaos extends Dao {
 		 * 
 		 * @param role The role of the requesting user in this class.
 		 */
-		private ClassInformationAndUserRole(ClassInformation classInformation, ClassRoleCache.Role role) {
+		private ClassInformationAndUserRole(Clazz classInformation, Clazz.Role role) {
 			this.classInformation = classInformation;
 			this.role = role;
 		}
@@ -208,7 +207,7 @@ public class ClassDaos extends Dao {
 	 */
 	public static final class UserAndClassRole {
 		private final String username;
-		private final ClassRoleCache.Role role;
+		private final Clazz.Role role;
 		
 		/**
 		 * Convenience constructor.
@@ -217,7 +216,7 @@ public class ClassDaos extends Dao {
 		 * 
 		 * @param role The user's role in the class.
 		 */
-		public UserAndClassRole(String username, ClassRoleCache.Role role) {
+		public UserAndClassRole(String username, Clazz.Role role) {
 			this.username = username;
 			this.role = role;
 		}
@@ -236,7 +235,7 @@ public class ClassDaos extends Dao {
 		 * 
 		 * @return The user's class role.
 		 */
-		public ClassRoleCache.Role getRole() {
+		public Clazz.Role getRole() {
 			return role;
 		}
 	}
@@ -332,13 +331,13 @@ public class ClassDaos extends Dao {
 	 * 		   parameterized list of class IDs. This may be an empty list, but
 	 * 		   it will never be null.
 	 */
-	public static List<ClassInformation> getClassesInformation(List<String> classIds, String requester) throws DataAccessException {
-		List<ClassInformation> result = new LinkedList<ClassInformation>();
+	public static List<Clazz> getClassesInformation(List<String> classIds, String requester) throws DataAccessException {
+		List<Clazz> result = new LinkedList<Clazz>();
 		
 		for(String classId : classIds) {
 			// Get the class' information and the user's role in the class.
-			ClassRoleCache.Role userRole;
-			ClassInformation classInformation;
+			Clazz.Role userRole;
+			Clazz classInformation;
 			try {
 				ClassInformationAndUserRole classInformationAndUserRole = instance.getJdbcTemplate().queryForObject(
 						SQL_GET_CLASS_INFO_AND_USER_ROLE, 
@@ -347,11 +346,11 @@ public class ClassDaos extends Dao {
 							@Override
 							public ClassInformationAndUserRole mapRow(ResultSet rs, int row) throws SQLException {
 								ClassInformationAndUserRole result = new ClassInformationAndUserRole(
-										new ClassInformation(
+										new Clazz(
 												rs.getString("urn"),
 												rs.getString("name"),
 												rs.getString("description")),
-												ClassRoleCache.Role.getValue(rs.getString("role")
+												Clazz.Role.getValue(rs.getString("role")
 										)
 								);
 								return result;
@@ -367,7 +366,7 @@ public class ClassDaos extends Dao {
 						classId + ", " + requester, e);
 			}
 			
-			boolean includeUserRoles = ClassRoleCache.Role.PRIVILEGED.equals(userRole);
+			boolean includeUserRoles = Clazz.Role.PRIVILEGED.equals(userRole);
 			
 			// Get all the users in this class and their class role.
 			List<UserAndClassRole> usersAndRole = getUserRolePairs(classId);
@@ -401,7 +400,7 @@ public class ClassDaos extends Dao {
 					new RowMapper<UserAndClassRole>() {
 						@Override
 						public UserAndClassRole mapRow(ResultSet rs, int row) throws SQLException {
-							return new UserAndClassRole(rs.getString("username"), ClassRoleCache.Role.getValue(rs.getString("role")));
+							return new UserAndClassRole(rs.getString("username"), Clazz.Role.getValue(rs.getString("role")));
 						}
 					});
 		}
@@ -430,7 +429,7 @@ public class ClassDaos extends Dao {
 	 * 						this class.
 	 */
 
-	public static List<String> updateClass(String classId, String className, String classDescription, Map<String, ClassRoleCache.Role> userAndRolesToAdd, List<String> usersToRemove)
+	public static List<String> updateClass(String classId, String className, String classDescription, Map<String, Clazz.Role> userAndRolesToAdd, List<String> usersToRemove)
 		throws DataAccessException {
 		// Note: This function is ugly. We need to stop using a class as a 
 		// mechanism to add users to a campaign and start using it like a 
@@ -491,7 +490,7 @@ public class ClassDaos extends Dao {
 				for(String username : usersToRemove) {
 					// Get the user's role in the class before removing
 					// it.
-					ClassRoleCache.Role classRole;
+					Clazz.Role classRole;
 					try {
 						classRole = UserClassDaos.getUserClassRole(classId, username);
 					}
@@ -530,7 +529,7 @@ public class ClassDaos extends Dao {
 						if(numClasses == 0) {
 							// Get the default roles which are to be revoked
 							// from the user.
-							List<CampaignRoleCache.Role> defaultRoles;
+							List<Configuration.Role> defaultRoles;
 							try {
 								defaultRoles = CampaignClassDaos.getDefaultCampaignRolesForCampaignClass(campaignId, classId, classRole);
 							}
@@ -541,7 +540,7 @@ public class ClassDaos extends Dao {
 							
 							// For each of the default roles, remove that role
 							// from the user.
-							for(CampaignRoleCache.Role defaultRole : defaultRoles) {
+							for(Configuration.Role defaultRole : defaultRoles) {
 								try {
 									instance.getJdbcTemplate().update(
 											SQL_DELETE_USER_FROM_CAMPAIGN,
@@ -568,7 +567,7 @@ public class ClassDaos extends Dao {
 				for(String username : userAndRolesToAdd.keySet()) {
 					
 					// Get the user's (new) role.
-					ClassRoleCache.Role role = userAndRolesToAdd.get(username);
+					Clazz.Role role = userAndRolesToAdd.get(username);
 					
 					boolean addDefaultRoles = false;
 					
@@ -591,7 +590,7 @@ public class ClassDaos extends Dao {
 							}
 							
 							// Get the user's current role.
-							ClassRoleCache.Role originalRole = null;
+							Clazz.Role originalRole = null;
 							try {
 								originalRole = UserClassDaos.getUserClassRole(classId, username);
 							}
@@ -647,7 +646,7 @@ public class ClassDaos extends Dao {
 										// Remove the current roles with the 
 										// campaign and add a new role with the
 										// campaign.
-										List<CampaignRoleCache.Role> defaultRoles;
+										List<Configuration.Role> defaultRoles;
 										try {
 											defaultRoles = CampaignClassDaos.getDefaultCampaignRolesForCampaignClass(campaignId, classId, originalRole);
 										}
@@ -656,7 +655,7 @@ public class ClassDaos extends Dao {
 											throw e;
 										}
 										
-										for(CampaignRoleCache.Role defaultRole : defaultRoles) {
+										for(Configuration.Role defaultRole : defaultRoles) {
 											try {
 												instance.getJdbcTemplate().update(
 														SQL_DELETE_USER_FROM_CAMPAIGN,
@@ -696,7 +695,7 @@ public class ClassDaos extends Dao {
 						// class, add them to the campaign with the default
 						// roles.
 						for(String campaignId : campaignIds) {
-							List<CampaignRoleCache.Role> defaultRoles;
+							List<Configuration.Role> defaultRoles;
 							try {
 								defaultRoles = CampaignClassDaos.getDefaultCampaignRolesForCampaignClass(campaignId, classId, role);
 							}
@@ -705,7 +704,7 @@ public class ClassDaos extends Dao {
 								throw e;
 							}
 							
-							for(CampaignRoleCache.Role defaultRole : defaultRoles) {
+							for(Configuration.Role defaultRole : defaultRoles) {
 								try {
 									final Object[] params = new Object[] {username, campaignId, defaultRole.toString()};
 									

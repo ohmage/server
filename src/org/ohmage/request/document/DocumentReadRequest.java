@@ -12,7 +12,7 @@ import org.apache.log4j.Logger;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.ohmage.annotator.ErrorCodes;
-import org.ohmage.domain.DocumentInformation;
+import org.ohmage.domain.Document;
 import org.ohmage.exception.ServiceException;
 import org.ohmage.exception.ValidationException;
 import org.ohmage.request.InputKeys;
@@ -74,7 +74,7 @@ public class DocumentReadRequest extends UserRequest {
 	private final List<String> campaignIds;
 	private final List<String> classIds;
 	
-	private List<DocumentInformation> result;
+	private List<Document> result;
 	
 	/**
 	 * Creates a new document read request from the information in the 
@@ -123,7 +123,7 @@ public class DocumentReadRequest extends UserRequest {
 		campaignIds = tempCampaignIds;
 		classIds = tempClassIds;
 		
-		result = new ArrayList<DocumentInformation>(0);
+		result = new ArrayList<Document>(0);
 	}
 
 	/**
@@ -180,7 +180,7 @@ public class DocumentReadRequest extends UserRequest {
 	@Override
 	public void respond(HttpServletRequest httpRequest, HttpServletResponse httpResponse) {
 		JSONObject jsonResult = new JSONObject();
-		for(DocumentInformation documentInformation : result) {
+		for(Document documentInformation : result) {
 			try {
 				jsonResult.put(documentInformation.getDocumentId(), documentInformation.toJsonObject());
 			}

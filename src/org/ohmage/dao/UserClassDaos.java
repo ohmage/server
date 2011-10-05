@@ -9,7 +9,7 @@ import java.util.Map;
 import javax.sql.DataSource;
 
 import org.apache.log4j.Logger;
-import org.ohmage.cache.ClassRoleCache;
+import org.ohmage.domain.Clazz;
 import org.ohmage.exception.DataAccessException;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.SingleColumnRowMapper;
@@ -124,9 +124,9 @@ public final class UserClassDaos extends Dao {
 	 * @return Returns the user's role in the class unless they have no role in
 	 * 		   the class in which case null is returned.
 	 */
-	public static ClassRoleCache.Role getUserClassRole(String classId, String username) throws DataAccessException {
+	public static Clazz.Role getUserClassRole(String classId, String username) throws DataAccessException {
 		try {
-			return ClassRoleCache.Role.getValue(instance.getJdbcTemplate().queryForObject(SQL_GET_USER_ROLE, new Object[] { username, classId }, String.class));
+			return Clazz.Role.getValue(instance.getJdbcTemplate().queryForObject(SQL_GET_USER_ROLE, new Object[] { username, classId }, String.class));
 		}
 		catch(org.springframework.dao.IncorrectResultSizeDataAccessException e) {
 			if(e.getActualSize() > 1) {

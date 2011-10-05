@@ -10,7 +10,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.log4j.Logger;
 import org.json.JSONArray;
 import org.ohmage.annotator.ErrorCodes;
-import org.ohmage.domain.AuditInformation;
+import org.ohmage.domain.Audit;
 import org.ohmage.exception.ServiceException;
 import org.ohmage.exception.ValidationException;
 import org.ohmage.jee.servlet.RequestServlet;
@@ -106,7 +106,7 @@ public class AuditReadRequest extends UserRequest {
 	private final Date startDate;
 	private final Date endDate;
 	
-	private List<AuditInformation> results;
+	private List<Audit> results;
 	
 	/**
 	 * Creates an audit read request.
@@ -191,7 +191,7 @@ public class AuditReadRequest extends UserRequest {
 		startDate = tStartDate;
 		endDate = tEndDate;
 		
-		results = new LinkedList<AuditInformation>();
+		results = new LinkedList<Audit>();
 	}
 
 	/**
@@ -224,7 +224,7 @@ public class AuditReadRequest extends UserRequest {
 	public void respond(HttpServletRequest httpRequest, HttpServletResponse httpResponse) {
 		// Build the result object.
 		JSONArray resultJson = new JSONArray();
-		for(AuditInformation result : results) {
+		for(Audit result : results) {
 			resultJson.put(result.toJson());
 		}
 		

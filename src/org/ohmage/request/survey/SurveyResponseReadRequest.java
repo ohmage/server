@@ -7,10 +7,11 @@ import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -20,27 +21,28 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.log4j.Logger;
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 import org.ohmage.annotator.ErrorCodes;
-import org.ohmage.cache.SurveyResponsePrivacyStateCache;
-import org.ohmage.cache.UserBin;
-import org.ohmage.dao.SurveyResponseReadDao;
 import org.ohmage.domain.configuration.Configuration;
-import org.ohmage.domain.survey.read.CustomChoiceItem;
-import org.ohmage.domain.survey.read.PromptResponseMetadata;
-import org.ohmage.domain.survey.read.SurveyResponseReadIndexedResult;
-import org.ohmage.domain.survey.read.SurveyResponseReadResult;
-import org.ohmage.exception.DataAccessException;
+import org.ohmage.domain.configuration.Prompt;
+import org.ohmage.domain.configuration.PromptResponse;
+import org.ohmage.domain.configuration.RepeatableSet;
+import org.ohmage.domain.configuration.RepeatableSetResponse;
+import org.ohmage.domain.configuration.Response;
+import org.ohmage.domain.configuration.Survey;
+import org.ohmage.domain.configuration.SurveyItem;
+import org.ohmage.domain.configuration.SurveyResponse;
 import org.ohmage.exception.ServiceException;
 import org.ohmage.exception.ValidationException;
 import org.ohmage.request.InputKeys;
 import org.ohmage.request.UserRequest;
 import org.ohmage.service.CampaignServices;
 import org.ohmage.service.SurveyResponseReadServices;
+import org.ohmage.service.SurveyResponseServices;
 import org.ohmage.service.UserCampaignServices;
-import org.ohmage.util.CookieUtils;
-import org.ohmage.util.JsonUtils;
 import org.ohmage.util.StringUtils;
+import org.ohmage.util.TimeUtils;
 import org.ohmage.validator.DateValidators;
 import org.ohmage.validator.SurveyResponseReadValidators;
 import org.ohmage.validator.SurveyResponseValidators;
@@ -82,25 +84,25 @@ import org.ohmage.validator.SurveyResponseValidators;
  *     <td>A comma-separated list of the columns to retrieve responses for
  *         or the value {@value #_URN_SPECIAL_ALL}. If {@value #_URN_SPECIAL_ALL}
  *         is not used, the only allowed values are: 
- *         {@value #_URN_CONTEXT_CLIENT},
- *         {@value #_URN_CONTEXT_TIMESTAMP},
- *         {@value #_URN_CONTEXT_URN_CONTEXT_TIMEZONE},
- *         {@value #_URN_CONTEXT_UTC_TIMESTAMP},
- *         {@value #_URN_CONTEXT_LAUNCH_CONTEXT_LONG},
- *         {@value #_URN_CONTEXT_LAUNCH_CONTEXT_SHORT},
- *         {@value #_URN_CONTEXT_LOCATION_STATUS},
- *         {@value #_URN_CONTEXT_LOCATION_LATITUDE},
- *         {@value #_URN_CONTEXT_LOCATION_TIMESTAMP},
- *         {@value #_URN_CONTEXT_LOCATION_ACCURACY},
- *         {@value #_URN_CONTEXT_LOCATION_PROVIDER},
- *         {@value #_URN_USER_ID},
- *         {@value #_URN_SURVEY_ID},
- *         {@value #_URN_SURVEY_TITLE},
- *         {@value #_URN_SURVEY_DESCRIPTION},
- *         {@value #_URN_SURVEY_PRIVACY_STATE},
- *         {@value #_URN_REPEATABLE_SET_ID},
- *         {@value #_URN_REPEATABLE_SET_ITERATION},
- *         {@value #_URN_PROMPT_RESPONSE}
+ *         {@value #URN_CONTEXT_CLIENT},
+ *         {@value #URN_CONTEXT_TIMESTAMP},
+ *         {@value #URN_CONTEXT_TIMEZONE},
+ *         {@value #URN_CONTEXT_UTC_TIMESTAMP},
+ *         {@value #URN_CONTEXT_LAUNCH_CONTEXT_LONG},
+ *         {@value #URN_CONTEXT_LAUNCH_CONTEXT_SHORT},
+ *         {@value #URN_CONTEXT_LOCATION_STATUS},
+ *         {@value #URN_CONTEXT_LOCATION_LATITUDE},
+ *         {@value #URN_CONTEXT_LOCATION_TIMESTAMP},
+ *         {@value #URN_CONTEXT_LOCATION_ACCURACY},
+ *         {@value #URN_CONTEXT_LOCATION_PROVIDER},
+ *         {@value #URN_USER_ID},
+ *         {@value #URN_SURVEY_ID},
+ *         {@value #URN_SURVEY_TITLE},
+ *         {@value #URN_SURVEY_DESCRIPTION},
+ *         {@value #URN_SURVEY_PRIVACY_STATE},
+ *         {@value #URN_REPEATABLE_SET_ID},
+ *         {@value #URN_REPEATABLE_SET_ITERATION},
+ *         {@value #URN_PROMPT_RESPONSE}
  *         </td>
  *     <td>true</td>
  *   </tr>
@@ -190,14 +192,12 @@ public final class SurveyResponseReadRequest extends UserRequest {
 	private final Boolean prettyPrint;
 	private final Boolean suppressMetadata;
 	private final Boolean returnId;
-	private final String sortOrder;
-	private final SurveyResponsePrivacyStateCache.PrivacyState privacyState;
+	private final List<String> sortOrder;
+	private final SurveyResponse.PrivacyState privacyState;
 	private final Boolean collapse;
 	
 	private Configuration configuration;
-	private List<SurveyResponseReadResult> surveyResponseList;
-	
-	private static final int MAGIC_CUSTOM_CHOICE_INDEX = 100;
+	private List<SurveyResponse> surveyResponseList;
 	
 	private static final List<String> ALLOWED_COLUMN_URN_LIST;
 	private static final List<String> ALLOWED_OUTPUT_FORMAT_LIST;
@@ -235,19 +235,9 @@ public final class SurveyResponseReadRequest extends UserRequest {
 	public static final String OUTPUT_FORMAT_JSON_COLUMNS = "json-columns";
 	public static final String OUTPUT_FORMAT_CSV = "csv";
 	
-	// FIXME: some of these constants belong elsewhere with the survey response
-	// upload prompt type hierarchy where there all still a bunch of hard-coded
-	// strings
-//	private static final String SKIPPED = "SKIPPED";
-//	private static final String NOT_DISPLAYED = "NOT_DISPLAYED";
-	private static final String VALUE = "value";
-	private static final String SINGLE_CHOICE_CUSTOM = "single_choice_custom";
-	private static final String MULTI_CHOICE_CUSTOM = "multi_choice_custom";
-	private static final String CUSTOM_CHOICES = "custom_choices";
-	private static final String CHOICE_ID = "choice_id";
-	private static final String CHOICE_VALUE = "choice_value";
-	private static final String GLOBAL = "global";
-	private static final String CUSTOM = "custom";
+	private static final String CONTEXT = "context";
+	private static final String VALUES = "values";
+	private static final String METADATA = "metadata";
 	
 	static {
 		ALLOWED_COLUMN_URN_LIST = Arrays.asList(new String[] {
@@ -280,8 +270,8 @@ public final class SurveyResponseReadRequest extends UserRequest {
 		
 		String tCampaignUrn = getParameter(InputKeys.CAMPAIGN_URN);
 		String tOutputFormat = getParameter(InputKeys.OUTPUT_FORMAT);
-		String tSortOrder = getParameter(InputKeys.SORT_ORDER);
-		SurveyResponsePrivacyStateCache.PrivacyState tPrivacyState = null;
+		List<String> tSortOrder = null;
+		SurveyResponse.PrivacyState tPrivacyState = null;
 		
 		List<String> tUserListAsList = null;
 		List<String> tPromptIdListAsList = null;
@@ -298,11 +288,6 @@ public final class SurveyResponseReadRequest extends UserRequest {
 			LOGGER.info("Creating a survey response read request.");
 			
 			try {
-				// FIXME constant-ify the hard-coded strings, maybe even for
-				// logging messages (possibly AOP-ify logging)
-				// Also, move validation to the SurveyResponseReadValidators
-				// And check for multiple copies of params
-				
 				LOGGER.info("Making sure campaign_urn parameter is present.");
 				
 				if(tCampaignUrn == null) {
@@ -330,17 +315,13 @@ public final class SurveyResponseReadRequest extends UserRequest {
 						setFailed(ErrorCodes.SERVER_INVALID_DATE, "Missing start_date or end_date");
 					}
 				} 
-				catch (ValidationException e) { // FIXME the DateValidators methods should take a Request parameter to fail
+				catch (ValidationException e) {
 					setFailed(ErrorCodes.SERVER_INVALID_DATE, "Invalid start_date or end_date");
 					throw e;
 				}
 
 				LOGGER.info("Validating privacy_state parameter.");
 				tPrivacyState = SurveyResponseValidators.validatePrivacyState(this, getParameter(InputKeys.PRIVACY_STATE));
-				if(tPrivacyState == null) {
-					setFailed(ErrorCodes.SURVEY_INVALID_PRIVACY_STATE, "Found unknown privacy_state: " + tPrivacyState);
-					throw new ValidationException("Found unknown privacy_state: " + tPrivacyState);
-				}
 				
 				LOGGER.info("Validating user_list parameter.");
 				tUserListAsList = SurveyResponseReadValidators.validateUserList(this, getParameter(InputKeys.USER_LIST));
@@ -367,7 +348,7 @@ public final class SurveyResponseReadRequest extends UserRequest {
 				tOutputFormat = SurveyResponseReadValidators.validateOutputFormat(this, tOutputFormat, ALLOWED_OUTPUT_FORMAT_LIST);
 
 				LOGGER.info("Validating sort_order parameter.");
-				tSortOrder = SurveyResponseReadValidators.validateSortOrder(this, tSortOrder, ALLOWED_SORT_ORDER_LIST); 
+				tSortOrder = SurveyResponseReadValidators.validateSortOrder(this, getParameter(InputKeys.SORT_ORDER), ALLOWED_SORT_ORDER_LIST); 
 				
 				LOGGER.info("Validating suppress_metadata parameter.");
 				tSuppressMetadataAsBoolean = SurveyResponseReadValidators.validateSuppressMetadata(this, getParameter(InputKeys.SUPPRESS_METADATA));
@@ -419,9 +400,6 @@ public final class SurveyResponseReadRequest extends UserRequest {
 		
 		try {
 			
-			LOGGER.info("Populating the requester with their associated campaigns and roles.");
-			UserCampaignServices.populateUserWithCampaignRoleInfo(this, this.getUser());
-			
 			LOGGER.info("Verifying that requester belongs to the campaign specified by campaign ID.");
 		    UserCampaignServices.campaignExistsAndUserBelongs(this, this.getUser(), this.campaignUrn);
 		    
@@ -453,22 +431,66 @@ public final class SurveyResponseReadRequest extends UserRequest {
 			}
 		    
 			LOGGER.info("Dispatching to the data layer.");
-			this.surveyResponseList = SurveyResponseReadDao.retrieveSurveyResponses(this, this.userList,
-					this.campaignUrn, this.promptIdList, this.surveyIdList, this.startDate, this.endDate, this.sortOrder, 
-					this.configuration);
+			surveyResponseList = new LinkedList<SurveyResponse>();
+			for(String username : userList) {
+				// This can never overlap unless the usernames are identical,
+				// which should have already been taken care of.
+				surveyResponseList.addAll(
+						SurveyResponseServices.readSurveyResponseInformation(
+								this, configuration, username, null, startDate, 
+								endDate, privacyState, surveyIdList, 
+								promptIdList, null
+							)
+					);
+			}
 			
 			LOGGER.info("Found " + surveyResponseList.size() + " results");
 			
 			LOGGER.info("Filtering survey response results according to our privacy rules and the requester's role.");
 			SurveyResponseReadServices.performPrivacyFilter(this.getUser(), this.campaignUrn, surveyResponseList, this.privacyState);
 			
-			LOGGER.info("Found: " + surveyResponseList.size() + " results after filtering.");
+			LOGGER.info("Found " + surveyResponseList.size() + " results after filtering.");
+			
+			if(sortOrder != null) {
+				LOGGER.info("Sorting the results.");
+				Collections.sort(
+						surveyResponseList, 
+						new Comparator<SurveyResponse>() {
+							@Override
+							public int compare(
+									SurveyResponse o1,
+									SurveyResponse o2) {
+								
+								for(String item : sortOrder) {
+									if(InputKeys.SORT_ORDER_SURVEY.equals(item)) {
+										if(! o1.getSurvey().equals(o2.getSurvey())) {
+											return o1.getSurvey().getId().compareTo(o2.getSurvey().getId());
+										}
+									}
+									else if(InputKeys.SORT_ORDER_TIMESTAMP.equals(item)) {
+										if(o1.getTime() != o2.getTime()) {
+											if((o1.getTime() - o2.getTime()) < 0) {
+												return -1;
+											}
+											else {
+												return 1;
+											}
+										}
+									}
+									else if(InputKeys.SORT_ORDER_USER.equals(item)) {
+										if(! o1.getUsername().equals(o2.getUsername())) {
+											return o1.getUsername().compareTo(o2.getUsername());
+										}
+									}
+								}
+								return 0;
+							}
+						}
+					);
+			}
 		}
 		
 		catch(ServiceException e) {
-			e.logException(LOGGER);
-		}
-		catch(DataAccessException e) {
 			e.logException(LOGGER);
 		}
 	}
@@ -479,310 +501,429 @@ public final class SurveyResponseReadRequest extends UserRequest {
 	 */
 	@Override
 	public void respond(HttpServletRequest httpRequest, HttpServletResponse httpResponse) {
-		Writer writer = null;
+		LOGGER.info("Responding to the survey response read request.");
 		
+		// Create a writer for the HTTP response object.
+		Writer writer = null;
 		try {
 			writer = new BufferedWriter(new OutputStreamWriter(getOutputStream(httpRequest, httpResponse)));
+		}
+		catch(IOException e) {
+			LOGGER.error("Unable to write response message. Aborting.", e);
+			return;
+		}
+		
+		// Sets the HTTP headers to disable caching.
+		expireResponse(httpResponse);
+		
+		String resultString = "";
+		
+		if(! isFailed()) {
+			try {
+				boolean allColumns = columnList.equals(URN_SPECIAL_ALL_LIST);
 			
-			// Sets the HTTP headers to disable caching
-			expireResponse(httpResponse);
-			
-			// Don't attempt to generate output if the request has failed.
-			// If the request ever failed, write an error message.
-			if(isFailed()) {
-				
-				writer.write(getFailureMessage());
-				
-			} else {
-				
-				// Prepare for sending the response to the client
-				String responseText = null;
-				
-				final String token = this.getUser().getToken(); 
-				if(token != null) {
-					CookieUtils.setCookieValue(httpResponse, InputKeys.AUTH_TOKEN, token, (int) (UserBin.getTokenRemainingLifetimeInMillis(token) / MILLIS_IN_A_SECOND));
-				}
-				
-				// Set the content type depending on the output format the 
-				// requester requested.
-				if(OUTPUT_FORMAT_CSV.equals(this.outputFormat)) {
+				if(OUTPUT_FORMAT_JSON_ROWS.equals(outputFormat)) {
+					httpResponse.setContentType("text/html");
 					
-					httpResponse.setContentType("text/csv");
-					httpResponse.setHeader("Content-Disposition", "attachment; f.txt");
+					JSONArray result = new JSONArray();
 					
-				} else {
-					
-					httpResponse.setContentType("application/json");
-				}
-				
-				// Build the appropriate response 
-				if(! isFailed()) {
-					
-					List<String> columnList = this.columnList;
-					List<String> outputColumns = new ArrayList<String>();
-					List<SurveyResponseReadIndexedResult> indexedResultList = new ArrayList<SurveyResponseReadIndexedResult>();
-					
-					// Build the column headers
-					// Each column is a Map with a list containing the values for each row
-					
-					if(URN_SPECIAL_ALL.equals(columnList.get(0))) {
-						outputColumns.addAll(ALLOWED_COLUMN_URN_LIST);
-					} else {
-						outputColumns.addAll(columnList);
+					for(SurveyResponse surveyResponse : surveyResponseList) {
+						result.put(surveyResponse.toJson(
+								allColumns || columnList.contains(URN_USER_ID),
+								allColumns || columnList.contains(false),
+								allColumns || columnList.contains(URN_CONTEXT_CLIENT),
+								allColumns || columnList.contains(URN_SURVEY_PRIVACY_STATE),
+								allColumns || columnList.contains(URN_CONTEXT_UTC_TIMESTAMP),
+								allColumns || columnList.contains(false),
+								allColumns || columnList.contains(URN_CONTEXT_TIMEZONE),
+								allColumns || columnList.contains(URN_CONTEXT_LOCATION_STATUS),
+								allColumns || columnList.contains(URN_CONTEXT_LOCATION_STATUS), // FIXME: This should break the location object down.
+								allColumns || columnList.contains(URN_SURVEY_ID),
+								allColumns || columnList.contains(URN_SURVEY_TITLE),
+								allColumns || columnList.contains(URN_SURVEY_DESCRIPTION),
+								allColumns || columnList.contains(URN_CONTEXT_LAUNCH_CONTEXT_LONG) || columnList.contains(URN_CONTEXT_LAUNCH_CONTEXT_SHORT),
+								columnList.contains(URN_CONTEXT_LAUNCH_CONTEXT_LONG),
+								allColumns || columnList.contains(URN_PROMPT_RESPONSE),
+								returnId
+							)
+						);
 					}
 					
-					if(columnList.contains(URN_PROMPT_RESPONSE) || URN_SPECIAL_ALL.equals(columnList.get(0))) {
-						// The logic here is that if the user is requesting results for survey ids, they want all of the prompts
-						// for those survey ids
-						// So, loop through the results and find all of the unique prompt ids by forcing them into a Set
-						Set<String> promptIdSet = new HashSet<String>();
+					if(collapse) {
+						int count = result.length();
+						Set<String> collapsedSet = new HashSet<String>(count);
 						
-						if(0 != surveyResponseList.size()) {
-							for(SurveyResponseReadResult result : surveyResponseList) {
-								
-								promptIdSet.add(URN_PROMPT_ID_PREFIX + result.getPromptId());
+						for(int i = 0; i < count; i++) {
+							// This shouldn't work because JSONObject can 
+							// output identical objects in different manners.
+							if(! collapsedSet.add(result.getJSONObject(i).toString())) {
+								result.remove(i);
+								i--;
+								count--;
 							}
-							outputColumns.addAll(promptIdSet);
 						}
 					}
 					
-					// get rid of urn:ohmage:prompt:response because it has been replaced with specific prompt ids
-					// the list will be unchanged if it didn't already contain urn:ohmage:prompt:response 
-					outputColumns.remove(URN_PROMPT_RESPONSE);
+					if(prettyPrint) {
+						resultString = result.toString(4);
+					}
+					else {
+						resultString = result.toString();
+					}
+				}
+				else if(OUTPUT_FORMAT_JSON_COLUMNS.equals(outputFormat) || 
+						OUTPUT_FORMAT_CSV.equals(outputFormat)) {
 					
-					// For every result found by the query, the prompt responses need to be rolled up so they are all stored
-					// with their associated survey response and metadata. Each prompt response is returned from the db in its
-					// own row and the rows can have different sort orders.
-					
-					boolean isCsv = OUTPUT_FORMAT_CSV.equals(this.outputFormat);
-					
-					for(SurveyResponseReadResult result : surveyResponseList) {
+					if(collapse) {
+						Set<SurveyResponse> surveyResponseSet = 
+							new HashSet<SurveyResponse>(surveyResponseList);
 						
-						if(indexedResultList.isEmpty()) { // first time thru 
-							indexedResultList.add(new SurveyResponseReadIndexedResult(result, isCsv));
+						for(SurveyResponse currResponse : surveyResponseList) {
+							if(! surveyResponseSet.add(currResponse)) {
+								surveyResponseList.remove(currResponse);
+							}
+						}
+					}
+					
+					JSONArray usernames = new JSONArray();
+					JSONArray clients = new JSONArray();
+					JSONArray privacyStates = new JSONArray();
+					JSONArray timestamps = new JSONArray();
+					JSONArray timezones = new JSONArray();
+					JSONArray locationStatuses = new JSONArray();
+					JSONArray locations = new JSONArray();
+					JSONArray surveyIds = new JSONArray();
+					JSONArray surveyTitles = new JSONArray();
+					JSONArray surveyDescriptions = new JSONArray();
+					JSONArray launchContexts = new JSONArray();
+
+					Map<String, Survey> surveys = new HashMap<String, Survey>();
+					Map<String, JSONObject> prompts = new HashMap<String, JSONObject>();
+
+					for(SurveyResponse surveyResponse : surveyResponseList) {
+						Survey survey = surveyResponse.getSurvey();
+						
+						if(! surveys.containsKey(survey.getId())) {
+							surveys.put(survey.getId(), survey);
+							
+							populatePrompts(survey.getSurveyItems(), prompts);
+						}
+					}
+					
+					for(SurveyResponse surveyResponse : surveyResponseList) {
+						processResponses(allColumns, surveyResponse, 
+								surveyResponse.getPromptResponses(), 
+								surveys, prompts, 
+								usernames, clients, privacyStates, 
+								timestamps, timezones, 
+								locationStatuses, locations, 
+								surveyIds, surveyTitles, surveyDescriptions, 
+								launchContexts
+							);
+					}
+					
+					// Add all of the applicable output stuff.
+					JSONObject result = new JSONObject();
+					
+					if(allColumns || columnList.contains(URN_USER_ID)) {
+						JSONObject values = new JSONObject();
+						values.put(VALUES, usernames);
+						result.put(URN_USER_ID, values);
+					}
+					if(allColumns || columnList.contains(URN_CONTEXT_CLIENT)) {
+						JSONObject values = new JSONObject();
+						values.put(VALUES, clients);
+						result.put(URN_CONTEXT_CLIENT, values);
+					}
+					if(allColumns || columnList.contains(URN_SURVEY_PRIVACY_STATE)) {
+						JSONObject values = new JSONObject();
+						values.put(VALUES, privacyStates);
+						result.put(URN_SURVEY_PRIVACY_STATE, values);
+					}
+					if(allColumns || columnList.contains(URN_CONTEXT_UTC_TIMESTAMP)) {
+						JSONObject values = new JSONObject();
+						values.put(VALUES, timestamps);
+						result.put(URN_CONTEXT_UTC_TIMESTAMP, values);
+					}
+					if(allColumns || columnList.contains(URN_CONTEXT_TIMEZONE)) {
+						JSONObject values = new JSONObject();
+						values.put(VALUES, timezones);
+						result.put(URN_CONTEXT_TIMEZONE, values);
+					}
+					if(allColumns || columnList.contains(URN_CONTEXT_LOCATION_STATUS)) {
+						JSONObject values = new JSONObject();
+						values.put(VALUES, locationStatuses);
+						result.put(URN_CONTEXT_LOCATION_STATUS, values);
+					}
+					if(allColumns || columnList.contains(URN_CONTEXT_LOCATION_STATUS)) {
+						JSONObject values = new JSONObject();
+						values.put(VALUES, locations);
+						result.put(URN_CONTEXT_LOCATION_STATUS, values);
+					}
+					if(allColumns || columnList.contains(URN_SURVEY_ID)) {
+						JSONObject values = new JSONObject();
+						values.put(VALUES, surveyIds);
+						result.put(URN_SURVEY_ID, values);
+					}
+					if(allColumns || columnList.contains(URN_SURVEY_TITLE)) {
+						JSONObject values = new JSONObject();
+						values.put(VALUES, surveyTitles);
+						result.put(URN_SURVEY_TITLE, values);
+					}
+					if(allColumns || columnList.contains(URN_SURVEY_DESCRIPTION)) {
+						JSONObject values = new JSONObject();
+						values.put(VALUES, surveyDescriptions);
+						result.put(URN_SURVEY_DESCRIPTION, values);
+					}
+					if(allColumns || columnList.contains(URN_CONTEXT_LAUNCH_CONTEXT_LONG)) {
+						JSONObject values = new JSONObject();
+						values.put(VALUES, launchContexts);
+						result.put(URN_CONTEXT_LAUNCH_CONTEXT_LONG, values);
+					}
+					if(columnList.contains(URN_CONTEXT_LAUNCH_CONTEXT_SHORT)) {
+						JSONObject values = new JSONObject();
+						values.put(VALUES, launchContexts);
+						result.put(URN_CONTEXT_LAUNCH_CONTEXT_SHORT, values);
+					}
+					if(allColumns || columnList.contains(URN_PROMPT_RESPONSE)) {
+						for(String promptId : prompts.keySet()) {
+							result.put(
+									URN_PROMPT_ID_PREFIX + promptId, 
+									prompts.get(promptId));
+						}
+					}
+					
+					JSONObject metadata = null;
+					if(! suppressMetadata) {
+						metadata = new JSONObject();
+						
+						metadata.put("campaign_urn", campaignUrn);
+						metadata.put("number_of_prompts", prompts.size());
+						metadata.put("number_of_surveys", surveys.size());
+					}
+					
+					if(OUTPUT_FORMAT_JSON_COLUMNS.equals(outputFormat)) {
+						httpResponse.setContentType("text/html");
+						
+						JSONObject resultJson = new JSONObject();
+						resultJson.put(JSON_KEY_RESULT, RESULT_SUCCESS);
+						
+						if(! suppressMetadata) {
+							metadata.put("items", result.keys());
+							resultJson.put(METADATA, metadata);
+						}
+						
+						resultJson.put(JSON_KEY_DATA, result);
+						
+						if(prettyPrint) {
+							resultString = resultJson.toString(4);
 						}
 						else {
-							int numberOfIndexedResults = indexedResultList.size();
-							boolean found = false;
-							for(int i = 0; i < numberOfIndexedResults; i++) {
-								if(indexedResultList.get(i).getKey().keysAreEqual(result.getUsername(),
-										                                          result.getTimestamp(),
-										                                          result.getSurveyId(),
-										                                          result.getRepeatableSetId(),
-										                                          result.getRepeatableSetIteration())) {
-									
-									found = true;
-									indexedResultList.get(i).addPromptResponse(result, isCsv);
+							resultString = resultJson.toString();
+						}
+					}
+					else if(OUTPUT_FORMAT_CSV.equals(outputFormat)) {
+						httpResponse.setContentType("text/csv");
+						httpResponse.setHeader("Content-Disposition", "attachment; filename=SurveyResponses.csv");
+
+						StringBuilder resultBuilder = new StringBuilder();
+						
+						if(! suppressMetadata) {
+							metadata.put(JSON_KEY_RESULT, RESULT_SUCCESS);
+							
+							resultBuilder.append("## begin metadata\n");
+							resultBuilder.append('#').append(metadata.toString().replace(',', ';')).append('\n');
+							resultBuilder.append("## end metadata\n");
+						}
+						
+						// Prompt contexts.
+						resultBuilder.append("## begin prompt contexts\n");
+						for(String promptId : prompts.keySet()) {
+							JSONObject promptJson = new JSONObject();
+							
+							promptJson.put(promptId, prompts.get(promptId).toString());
+							
+							resultBuilder.append('#').append(promptJson.toString()).append('\n');
+						}
+						resultBuilder.append("## end prompt contexts\n");
+						
+						// Data.
+						resultBuilder.append("## begin data");
+
+						JSONArray keys = new JSONArray(result.keys());
+						int keyLength = keys.length();
+						
+						resultBuilder.append('#');
+						for(int i = 0; i < keyLength; i++) {
+							String header = keys.getString(i);
+							if(header.startsWith("urn:ohmage:")) {
+								header = header.substring(11);
+								
+								if(header.startsWith("prompt:id:")) {
+									header = header.substring(10);
 								}
 							}
-							if(! found) {
-								indexedResultList.add(new SurveyResponseReadIndexedResult(result, isCsv));
+							resultBuilder.append(header);
+							
+							if((i + 1) != keyLength) {
+								resultBuilder.append(',');
 							}
 						}
-					}
-					
-					// For csv and json-columns output, the custom choices need to be converted
-					// into unique-ified list in order for visualiztions and export to work
-					// properly. The key is the prompt id.
-					Map<String, List<CustomChoiceItem>> uniqueCustomChoiceMap = null; // will be converted into a choice glossary
-					                                                                  // for the custom types
-					Map<String, Integer> uniqueCustomChoiceIndexMap = null;
-					
-					// Now find the custom choice prompts (if there are any) and 
-					// unique-ify the entries for their choice glossaries, create 
-					// their choice glossaries, and clean up the display value 
-					// (i.e., remove all the custom_choices stuff and leave only
-					// the value or values the user selected).
+						resultBuilder.append('\n');
 						
-					for(SurveyResponseReadIndexedResult result : indexedResultList) {
-						Map<String, PromptResponseMetadata> promptResponseMetadataMap = result.getPromptResponseMetadataMap();
-						Iterator<String> responseMetadataKeyIterator = promptResponseMetadataMap.keySet().iterator();
-						
-						while(responseMetadataKeyIterator.hasNext()) {
-							String promptId = (responseMetadataKeyIterator.next());
-							PromptResponseMetadata metadata = promptResponseMetadataMap.get(promptId);
-							
-							if(SINGLE_CHOICE_CUSTOM.equals(metadata.getPromptType()) || MULTI_CHOICE_CUSTOM.equals(metadata.getPromptType())) {
+						for(int i = 0; i < keyLength; i++) {
+							for(int j = 0; j < keyLength; j++) {
+								resultBuilder.append(result.getJSONObject(keys.getString(j)).getJSONArray(VALUES).get(i));
 								
-								List<CustomChoiceItem> customChoiceItems = null;
-								
-								if(null == uniqueCustomChoiceMap) { // lazily initialized in case there are no custom choices
-									uniqueCustomChoiceMap = new HashMap<String, List<CustomChoiceItem>>();
-								} 
-								
-								if(! uniqueCustomChoiceMap.containsKey(promptId)) {
-									customChoiceItems = new ArrayList<CustomChoiceItem>();
-									uniqueCustomChoiceMap.put(promptId, customChoiceItems);
-								} 
-								else {
-									customChoiceItems = uniqueCustomChoiceMap.get(promptId);
-								}
-								
-								// All of the data for the choice_glossary for custom types is stored in its JSON response
-								
-								JSONObject customChoiceResponse = (JSONObject) (result.getPromptResponseMap().get(promptId));								
-								
-								Integer singleChoiceValue = JsonUtils.getIntegerFromJsonObject(customChoiceResponse, VALUE);
-								if(null != singleChoiceValue) {
-									result.getPromptResponseMap().put(promptId, singleChoiceValue);
-								} 
-								else if(null != JsonUtils.getStringFromJsonObject(customChoiceResponse, VALUE)) {
-									result.getPromptResponseMap().put(promptId, JsonUtils.getStringFromJsonObject(customChoiceResponse, VALUE));
-								}
-								else {
-									result.getPromptResponseMap().put(promptId, JsonUtils.getJsonArrayFromJsonObject(customChoiceResponse, VALUE));
-								}								
- 
-								// Since the glossary will not contain the custom choices, the result's display value 
-								// can simply be the values the user chose.
-								
-								JSONArray customChoices = JsonUtils.getJsonArrayFromJsonObject(customChoiceResponse, CUSTOM_CHOICES);
-								
-								if(customChoices != null) {
-								
-									for(int i = 0; i < customChoices.length(); i++) {
-										JSONObject choice = JsonUtils.getJsonObjectFromJsonArray(customChoices, i);
-	
-										// If the choice_id is >= 100, it means that is it a choice that the user added
-										// In the current system, users cannot remove choices
-										int originalId = choice.getInt(CHOICE_ID);
-										CustomChoiceItem cci = null;
-										boolean isGlobal = false;
-										if(originalId < MAGIC_CUSTOM_CHOICE_INDEX) {										
-											cci = new CustomChoiceItem(originalId, result.getUsername(), choice.getString(CHOICE_VALUE), GLOBAL);
-											isGlobal = true;
-										} 
-										else {
-											cci = new CustomChoiceItem(originalId, result.getUsername(), choice.getString(CHOICE_VALUE), CUSTOM);
-										}
-										
-										if(! customChoiceItems.contains(cci)) {
-											if(isGlobal) {
-												cci.setId(cci.getOriginalId());
-												customChoiceItems.add(cci);
-											}
-											else {
-												if(null == uniqueCustomChoiceIndexMap) {
-													uniqueCustomChoiceIndexMap = new HashMap<String, Integer>();												
-												}
-												
-												if(! uniqueCustomChoiceIndexMap.containsKey(promptId)) {
-													uniqueCustomChoiceIndexMap.put(promptId, MAGIC_CUSTOM_CHOICE_INDEX - 1);
-												}
-												
-												int uniqueId = uniqueCustomChoiceIndexMap.get(promptId) + 1;
-												cci.setId(uniqueId);
-												customChoiceItems.add(cci);
-												uniqueCustomChoiceIndexMap.put(promptId, uniqueId);
-											}
-										}	
-									}
+								if((j + 1) != keyLength) {
+									resultBuilder.append(',');
 								}
 							}
+							
+							resultBuilder.append('\n');
 						}
-	 				}
-					
-					int numberOfSurveys = indexedResultList.size();
-					int numberOfPrompts = this.surveyResponseList.size();
-					
-					// Delete the original result list
-					this.surveyResponseList.clear();
-					this.surveyResponseList = null;
-					
-					if(OUTPUT_FORMAT_JSON_ROWS.equals(this.outputFormat)) {
 						
-						responseText = SurveyResponseReadServices.generateJsonRowsOutput(this, numberOfSurveys, numberOfPrompts, indexedResultList, outputColumns, uniqueCustomChoiceMap);
+						resultBuilder.append("## end data");
 						
+						resultString = resultBuilder.toString();
 					}
-					else if(OUTPUT_FORMAT_JSON_COLUMNS.equals(this.outputFormat)) {
-						
-						if(indexedResultList.isEmpty()) {
-							
-							responseText = SurveyResponseReadServices.generateZeroResultJsonColumnOutput(this, outputColumns);
-							
-						} else {
-							
-							responseText = SurveyResponseReadServices.generateMultiResultJsonColumnOutput(this, numberOfSurveys, numberOfPrompts, indexedResultList, outputColumns, uniqueCustomChoiceMap);
-						}
-					}
-					
-					else if(OUTPUT_FORMAT_CSV.equals(this.outputFormat)) {
-						
-						if(indexedResultList.isEmpty()) {
-							
-							responseText = SurveyResponseReadServices.generateZeroResultCsvOutput(this, outputColumns);
-							
-						} else {
-							
-							responseText = SurveyResponseReadServices.generateMultiResultCsvOutput(this, numberOfSurveys, numberOfPrompts, indexedResultList, outputColumns, uniqueCustomChoiceMap);
-						}
-					}
-				} 
-				else {
-					
-					// Even for CSV output, the error messages remain JSON
-					responseText = getFailureMessage();
 				}
-				
-				LOGGER.info("Writing survey response read output.");
-				writer.write(responseText);
+			}
+			catch(JSONException e) {
+				LOGGER.error(e);
+				setFailed();
 			}
 		}
 		
-		// FIXME and catch the actual exceptions
-		catch(Exception e) {
-			
-			LOGGER.error("An unrecoverable exception occurred while generating a survey response read response", e);
-			try {
-				writer.write(getFailureMessage());
-			} catch (Exception ee) {
-				LOGGER.error("Caught Exception when attempting to write to HTTP output stream", ee);
-			}
-			
-		} 
-		finally {
-			if(null != writer) {
+		if(isFailed()) {
+			httpResponse.setContentType("text/html");
+			resultString = this.getFailureMessage();
+		}
+		
+		try {
+			writer.write(resultString);
+		}
+		catch(IOException e) {
+			LOGGER.error("Unable to write response message. Aborting.", e);
+		}
+		
+		try {
+			writer.flush();
+			writer.close();
+		}
+		catch(IOException e) {
+			LOGGER.error("Unable to flush or close the writer.", e);
+		}
+	}
+	
+	private void populatePrompts(
+			final Map<String, SurveyItem> surveyItems,
+			Map<String, JSONObject> prompts) 
+			throws JSONException {
+		
+		for(SurveyItem surveyItem : 
+			surveyItems.values()) {
+	
+			if(surveyItem instanceof Prompt) {
+				Prompt prompt = (Prompt) surveyItem;
 				
-				try {
-					
-					writer.flush();
-					writer.close();
-					writer = null;
-					
-				} catch (IOException ioe) {
-					
-					LOGGER.error("Caught IOException when attempting to free resources", ioe);
-					
-				}
+				JSONObject promptJson = new JSONObject();
+				promptJson.put(CONTEXT, prompt.toJson());
+				promptJson.put(VALUES, new JSONArray());
+				
+				prompts.put(prompt.getId(), promptJson);
+			}
+			else if(surveyItem instanceof RepeatableSet) {
+				RepeatableSet repeatableSet = (RepeatableSet) surveyItem;
+				populatePrompts(repeatableSet.getPrompts(), prompts);
 			}
 		}
 	}
 	
-	/* Methods for retrieving output formatting variables */
-	
-	// FIXME: these should just be passed (within one object) to the methods that write the output 
-	
-	public Boolean getPrettyPrint() {
-		return prettyPrint;
-	}
-	
-	public Boolean getSuppressMetadata() {
-		return suppressMetadata;
-	}
-	
-	public Boolean getReturnId() {
-		return returnId;
-	}
-	
-	public Boolean getCollapse() {
-		return collapse;
-	}
-	
-	public Configuration getConfiguration() {
-		return configuration;
-	}
-	
-	public String getCampaignUrn() {
-		return campaignUrn;
+	private void processResponses(final boolean allColumns, 
+			final SurveyResponse surveyResponse,
+			final Map<Integer, Response> responses, 
+			Map<String, Survey> surveys, Map<String, JSONObject> prompts,
+			JSONArray usernames, JSONArray clients, JSONArray privacyStates,
+			JSONArray timestamps, JSONArray timezones,
+			JSONArray locationStatuses, JSONArray locations,
+			JSONArray surveyIds, JSONArray surveyTitles, 
+			JSONArray surveyDescriptions, JSONArray launchContexts) 
+			throws JSONException {
+
+		List<Integer> indices = new ArrayList<Integer>(responses.keySet());
+		Collections.sort(indices);
+		
+		for(Integer index : indices) {
+			Response response = responses.get(index);
+			if(response instanceof PromptResponse) {				
+				if(allColumns || columnList.contains(URN_USER_ID)) {
+					usernames.put(surveyResponse.getUsername());
+				}
+				if(allColumns || columnList.contains(URN_CONTEXT_CLIENT)) {
+					clients.put(surveyResponse.getClient());
+				}
+				if(allColumns || columnList.contains(URN_SURVEY_PRIVACY_STATE)) {
+					privacyStates.put(surveyResponse.getPrivacyState().toString());
+				}
+				if(allColumns || columnList.contains(URN_CONTEXT_UTC_TIMESTAMP)) {
+					timestamps.put(TimeUtils.getIso8601DateTimeString(surveyResponse.getDate()));
+				}
+				if(allColumns || columnList.contains(URN_CONTEXT_TIMEZONE)) {
+					timezones.put(surveyResponse.getTimezone().getID());
+				}
+				if(allColumns || columnList.contains(URN_CONTEXT_LOCATION_STATUS)) {
+					locationStatuses.put(surveyResponse.getLocationStatus().toString());
+				}
+				if(allColumns || columnList.contains(URN_CONTEXT_LOCATION_STATUS)) { // FIXME: This should break down the location object.
+					locations.put(surveyResponse.getLocation().toJson(false)); 
+				}
+				if(allColumns || columnList.contains(URN_SURVEY_ID)) {
+					surveyIds.put(surveyResponse.getSurvey().getId());
+				}
+				if(allColumns || columnList.contains(URN_SURVEY_TITLE)) {
+					surveyTitles.put(surveyResponse.getSurvey().getTitle());
+				}
+				if(allColumns || columnList.contains(URN_SURVEY_DESCRIPTION)) {
+					surveyDescriptions.put(surveyResponse.getSurvey().getDescription());
+				}
+				if(allColumns || columnList.contains(URN_CONTEXT_LAUNCH_CONTEXT_LONG) || columnList.contains(URN_CONTEXT_LAUNCH_CONTEXT_SHORT)) {
+					launchContexts.put(surveyResponse.getLaunchContext().toJson(columnList.contains(URN_CONTEXT_LAUNCH_CONTEXT_LONG)));
+				}
+				if(allColumns || columnList.contains(URN_PROMPT_RESPONSE)) {
+					for(String promptId : prompts.keySet()) {
+						JSONArray values = prompts.get(promptId).getJSONArray(VALUES);
+						if(promptId.equals(response.getId())) {
+							values.put(response.getResponseValue());
+						}
+						else {
+							values.put("null");
+						}
+					}
+				}
+			}
+			else if(response instanceof RepeatableSetResponse) {
+				RepeatableSetResponse repeatableSetResponse =
+					(RepeatableSetResponse) response;
+				
+				Map<Integer, Map<Integer, Response>> repeatableSetResponses =
+					repeatableSetResponse.getResponseGroups();
+				
+				List<Integer> rsIndices = new ArrayList<Integer>(repeatableSetResponses.keySet());
+				Collections.sort(rsIndices);
+				
+				for(Integer rsIndex : rsIndices) {
+					this.processResponses(allColumns, surveyResponse,
+							repeatableSetResponses.get(rsIndex), 
+							surveys, prompts, 
+							usernames, clients, privacyStates, 
+							timestamps, timezones, 
+							locationStatuses, locations, 
+							surveyIds, surveyTitles, surveyDescriptions, 
+							launchContexts
+						);
+				}
+			}
+		}
 	}
 }
