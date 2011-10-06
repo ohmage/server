@@ -362,7 +362,7 @@ public abstract class Request {
 	 * @throws IllegalStateException Thrown if there is a problem connecting to
 	 * 								 or reading from the request.
 	 */
-	private static Map<String, String[]> getParameters(HttpServletRequest httpRequest) {
+	private Map<String, String[]> getParameters(HttpServletRequest httpRequest) {
 		if(httpRequest == null) {
 			return Collections.emptyMap();
 		}
@@ -395,17 +395,16 @@ public abstract class Request {
 	 * @throws IllegalStateException Thrown if there is a problem connecting to
 	 * 								 or reading from the request.
 	 */
-	private static Map<String, String[]> gunzipRequest(HttpServletRequest httpRequest) {
+	private Map<String, String[]> gunzipRequest(HttpServletRequest httpRequest) {
 		// Retrieve the InputStream for the GZIP'd content of the request.
 		InputStream inputStream;
 		try {
 			inputStream = new BufferedInputStream(new GZIPInputStream(httpRequest.getInputStream()));
 		}
-		catch(IllegalStateException e) {
-			throw new IllegalStateException("The request's input stream can no longer be connected.", e);
-		}
 		catch(IOException e) {
-			throw new IllegalStateException("Could not connect to the request's input stream.", e);
+			LOGGER.error("The uploaded content was not GZIP content.", e);
+			setFailed(ErrorCodes.SYSTEM_GENERAL_ERROR, "Not a gzip file.");
+			return Collections.emptyMap();
 		}
 		
 		// Retrieve the parameter list as a string.

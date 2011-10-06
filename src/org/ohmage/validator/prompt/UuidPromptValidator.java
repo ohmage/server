@@ -66,9 +66,4 @@ public final class UuidPromptValidator extends AbstractPromptValidator {
 
 		return true;
 	}
-
-//	public static void main(String args[]) {
-//		System.out.println(pattern.matcher("afda1b74-4f23-4068-a50b-664e1c347264").matches());
-//	}
-
 }

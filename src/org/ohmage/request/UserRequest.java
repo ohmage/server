@@ -50,6 +50,13 @@ public abstract class UserRequest extends Request {
 	public UserRequest(HttpServletRequest httpRequest, boolean hashPassword) {
 		super(httpRequest);
 		
+		if(isFailed()) {
+			user = null;
+			client = null;
+			
+			return;
+		}
+		
 		User tUser = null;
 		
 		// Attempt to retrieve all usernames passed to the server.
@@ -135,6 +142,13 @@ public abstract class UserRequest extends Request {
 	 */
 	public UserRequest(HttpServletRequest httpRequest, TokenLocation tokenLocation) {
 		super(httpRequest);
+		
+		if(isFailed()) {
+			user = null;
+			client = null;
+			
+			return;
+		}
 		
 		User tUser = null;
 		
@@ -249,6 +263,13 @@ public abstract class UserRequest extends Request {
 	 */
 	public UserRequest(HttpServletRequest httpRequest, TokenLocation tokenLocation, boolean hashPassword) {
 		super(httpRequest);
+		
+		if(isFailed()) {
+			user = null;
+			client = null;
+			
+			return;
+		}
 		
 		User tUser = null;
 		
