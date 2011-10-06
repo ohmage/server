@@ -20,8 +20,8 @@ import javax.servlet.http.Part;
 import org.apache.log4j.Logger;
 import org.json.JSONObject;
 import org.ohmage.annotator.ErrorCodes;
-import org.ohmage.domain.configuration.Configuration;
-import org.ohmage.domain.configuration.SurveyResponse;
+import org.ohmage.domain.campaign.Campaign;
+import org.ohmage.domain.campaign.SurveyResponse;
 import org.ohmage.exception.ServiceException;
 import org.ohmage.exception.ValidationException;
 import org.ohmage.request.InputKeys;
@@ -237,7 +237,7 @@ public class SurveyUploadRequest extends UserRequest {
 			CampaignServices.verifyCampaignIsUpToDate(this, campaignUrn, campaignCreationTimestamp);
 			
 			LOGGER.info("Generating the campaign object.");
-			Configuration campaign = CampaignServices.findCampaignConfiguration(this, campaignUrn);
+			Campaign campaign = CampaignServices.findCampaignConfiguration(this, campaignUrn);
 			
 			LOGGER.info("Verifying the uploaded data against the campaign.");
 			List<SurveyResponse> surveyResponses = 

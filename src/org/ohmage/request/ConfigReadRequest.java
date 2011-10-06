@@ -10,7 +10,7 @@ import org.apache.log4j.Logger;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.ohmage.cache.PreferenceCache;
-import org.ohmage.domain.configuration.SurveyResponse;
+import org.ohmage.domain.campaign.SurveyResponse;
 import org.ohmage.exception.CacheMissException;
 
 /**

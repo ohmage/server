@@ -4,7 +4,7 @@ import java.util.List;
 
 import javax.sql.DataSource;
 
-import org.ohmage.domain.configuration.SurveyResponse;
+import org.ohmage.domain.campaign.SurveyResponse;
 import org.ohmage.exception.DataAccessException;
 import org.springframework.jdbc.core.SingleColumnRowMapper;
 

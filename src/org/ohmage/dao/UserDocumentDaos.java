@@ -8,7 +8,7 @@ import javax.sql.DataSource;
 
 import org.ohmage.domain.Clazz;
 import org.ohmage.domain.Document;
-import org.ohmage.domain.configuration.Configuration;
+import org.ohmage.domain.campaign.Campaign;
 import org.ohmage.exception.DataAccessException;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.SingleColumnRowMapper;
@@ -115,12 +115,12 @@ public final class UserDocumentDaos extends Dao {
 					"(d.privacy_state_id = dps.id " +
 					"AND dps.privacy_state = '" + Document.PrivacyState.SHARED + "' " +
 					"AND (" +
-						"(ur.role = '" + Configuration.Role.ANALYST + "')" +
+						"(ur.role = '" + Campaign.Role.ANALYST + "')" +
 						" OR " +
-						"(ur.role = '" + Configuration.Role.AUTHOR + "')" +
+						"(ur.role = '" + Campaign.Role.AUTHOR + "')" +
 					"))" +
 				" OR " +
-					"(ur.role = '" + Configuration.Role.SUPERVISOR + "')" +
+					"(ur.role = '" + Campaign.Role.SUPERVISOR + "')" +
 				" OR " +
 					"(dr.role = '" + Document.Role.OWNER + "')" +
 				")" +

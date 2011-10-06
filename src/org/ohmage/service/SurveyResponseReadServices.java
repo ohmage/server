@@ -5,8 +5,8 @@ import java.util.List;
 
 import org.ohmage.annotator.ErrorCodes;
 import org.ohmage.domain.User;
-import org.ohmage.domain.configuration.Configuration;
-import org.ohmage.domain.configuration.SurveyResponse;
+import org.ohmage.domain.campaign.Campaign;
+import org.ohmage.domain.campaign.SurveyResponse;
 import org.ohmage.exception.ServiceException;
 import org.ohmage.request.Request;
 import org.ohmage.util.StringUtils;
@@ -33,7 +33,7 @@ public final class SurveyResponseReadServices {
 	 * @throws IllegalArgumentException if request, promptIdList, or
 	 * configuration are null.
 	 */
-	public static void verifyPromptIdsBelongToConfiguration(Request request, List<String> promptIdList, Configuration configuration)
+	public static void verifyPromptIdsBelongToConfiguration(Request request, List<String> promptIdList, Campaign configuration)
 		throws ServiceException {
 		
 		// check for logical errors
@@ -66,7 +66,7 @@ public final class SurveyResponseReadServices {
 	 * @throws IllegalArgumentException if request, surveyIdList, or
 	 * configuration are null.
 	 */
-	public static void verifySurveyIdsBelongToConfiguration(Request request, List<String> surveyIdList, Configuration configuration)
+	public static void verifySurveyIdsBelongToConfiguration(Request request, List<String> surveyIdList, Campaign configuration)
 		throws ServiceException {
 		
 		// check for logical errors
@@ -136,7 +136,7 @@ public final class SurveyResponseReadServices {
 					||
 					
 					// Owners, supervisors, and authors can see shared responses if the campaign is private 
-					((user.getCampaignsAndRoles().get(campaignId).getCampaign().getPrivacyState().equals(Configuration.PrivacyState.PRIVATE) 
+					((user.getCampaignsAndRoles().get(campaignId).getCampaign().getPrivacyState().equals(Campaign.PrivacyState.PRIVATE) 
 						&& currentResult.getPrivacyState().equals(SurveyResponse.PrivacyState.SHARED)) 
 						&& ! user.isAuthorInCampaign(campaignId) 
 						&& ! currentResult.getUsername().equals(user.getUsername()))

@@ -7,7 +7,7 @@ import java.util.List;
 import javax.sql.DataSource;
 
 import org.ohmage.domain.Clazz;
-import org.ohmage.domain.configuration.Configuration;
+import org.ohmage.domain.campaign.Campaign;
 import org.ohmage.exception.DataAccessException;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.SingleColumnRowMapper;
@@ -118,15 +118,15 @@ public final class CampaignClassDaos extends Dao {
 	 * 
 	 * @throws DataAccessException Thrown if there is an error.
 	 */
-	public static List<Configuration.Role> getDefaultCampaignRolesForCampaignClass(String campaignId, String classId, Clazz.Role classRole) throws DataAccessException {
+	public static List<Campaign.Role> getDefaultCampaignRolesForCampaignClass(String campaignId, String classId, Clazz.Role classRole) throws DataAccessException {
 		try {
 			return instance.getJdbcTemplate().query(
 					SQL_GET_CAMPAIGN_CLASS_DEFAULT_ROLES,
 					new Object[] { campaignId, classId, classRole.toString() },
-					new RowMapper<Configuration.Role>() {
+					new RowMapper<Campaign.Role>() {
 						@Override
-						public Configuration.Role mapRow(ResultSet rs, int rowNum) throws SQLException {
-							return Configuration.Role.getValue(rs.getString("role"));
+						public Campaign.Role mapRow(ResultSet rs, int rowNum) throws SQLException {
+							return Campaign.Role.getValue(rs.getString("role"));
 						}
 					});
 		}

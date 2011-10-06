@@ -35,7 +35,7 @@ import org.json.JSONObject;
 import org.ohmage.annotator.Annotator;
 import org.ohmage.domain.Document;
 import org.ohmage.domain.MobilityPoint;
-import org.ohmage.domain.configuration.SurveyResponse;
+import org.ohmage.domain.campaign.SurveyResponse;
 import org.ohmage.exception.ErrorCodeException;
 import org.ohmage.lib.exception.ApiException;
 import org.ohmage.lib.exception.RequestErrorException;
@@ -50,6 +50,11 @@ import org.ohmage.request.survey.SurveyResponseReadRequest;
 import org.ohmage.util.StringUtils;
 import org.ohmage.util.TimeUtils;
 
+/**
+ * This is the main interface class for the server.
+ * 
+ * @author John Jenkins
+ */
 public class OhmageApi {
 	private static final int HTTP_PORT = 80;
 	private static final int HTTPS_PORT = 443;

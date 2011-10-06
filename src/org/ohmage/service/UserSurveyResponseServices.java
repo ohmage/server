@@ -8,7 +8,7 @@ import org.ohmage.dao.CampaignDaos;
 import org.ohmage.dao.CampaignSurveyResponseDaos;
 import org.ohmage.dao.UserCampaignDaos;
 import org.ohmage.dao.UserSurveyResponseDaos;
-import org.ohmage.domain.configuration.Configuration;
+import org.ohmage.domain.campaign.Campaign;
 import org.ohmage.exception.DataAccessException;
 import org.ohmage.exception.ServiceException;
 import org.ohmage.request.Request;
@@ -49,11 +49,11 @@ public class UserSurveyResponseServices {
 			// Get the response's campaign.
 			String campaignId = CampaignSurveyResponseDaos.getCampaignIdFromSurveyId(surveyResponseId);
 			
-			if(UserCampaignDaos.getUserCampaignRoles(requesterUsername, campaignId).contains(Configuration.Role.SUPERVISOR)) {
+			if(UserCampaignDaos.getUserCampaignRoles(requesterUsername, campaignId).contains(Campaign.Role.SUPERVISOR)) {
 				return;
 			}
 			
-			if(Configuration.RunningState.RUNNING.equals(CampaignDaos.getCampaignRunningState(campaignId))) {
+			if(Campaign.RunningState.RUNNING.equals(CampaignDaos.getCampaignRunningState(campaignId))) {
 				if(requesterUsername.equals(UserSurveyResponseDaos.getSurveyResponseOwner(surveyResponseId))) {
 					return;
 				}

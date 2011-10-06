@@ -12,7 +12,7 @@ import javax.sql.DataSource;
 
 import org.apache.log4j.Logger;
 import org.ohmage.domain.Clazz;
-import org.ohmage.domain.configuration.Configuration;
+import org.ohmage.domain.campaign.Campaign;
 import org.ohmage.exception.DataAccessException;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
@@ -529,7 +529,7 @@ public class ClassDaos extends Dao {
 						if(numClasses == 0) {
 							// Get the default roles which are to be revoked
 							// from the user.
-							List<Configuration.Role> defaultRoles;
+							List<Campaign.Role> defaultRoles;
 							try {
 								defaultRoles = CampaignClassDaos.getDefaultCampaignRolesForCampaignClass(campaignId, classId, classRole);
 							}
@@ -540,7 +540,7 @@ public class ClassDaos extends Dao {
 							
 							// For each of the default roles, remove that role
 							// from the user.
-							for(Configuration.Role defaultRole : defaultRoles) {
+							for(Campaign.Role defaultRole : defaultRoles) {
 								try {
 									instance.getJdbcTemplate().update(
 											SQL_DELETE_USER_FROM_CAMPAIGN,
@@ -646,7 +646,7 @@ public class ClassDaos extends Dao {
 										// Remove the current roles with the 
 										// campaign and add a new role with the
 										// campaign.
-										List<Configuration.Role> defaultRoles;
+										List<Campaign.Role> defaultRoles;
 										try {
 											defaultRoles = CampaignClassDaos.getDefaultCampaignRolesForCampaignClass(campaignId, classId, originalRole);
 										}
@@ -655,7 +655,7 @@ public class ClassDaos extends Dao {
 											throw e;
 										}
 										
-										for(Configuration.Role defaultRole : defaultRoles) {
+										for(Campaign.Role defaultRole : defaultRoles) {
 											try {
 												instance.getJdbcTemplate().update(
 														SQL_DELETE_USER_FROM_CAMPAIGN,
@@ -695,7 +695,7 @@ public class ClassDaos extends Dao {
 						// class, add them to the campaign with the default
 						// roles.
 						for(String campaignId : campaignIds) {
-							List<Configuration.Role> defaultRoles;
+							List<Campaign.Role> defaultRoles;
 							try {
 								defaultRoles = CampaignClassDaos.getDefaultCampaignRolesForCampaignClass(campaignId, classId, role);
 							}
@@ -704,7 +704,7 @@ public class ClassDaos extends Dao {
 								throw e;
 							}
 							
-							for(Configuration.Role defaultRole : defaultRoles) {
+							for(Campaign.Role defaultRole : defaultRoles) {
 								try {
 									final Object[] params = new Object[] {username, campaignId, defaultRole.toString()};
 									

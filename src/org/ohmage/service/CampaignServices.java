@@ -21,8 +21,8 @@ import nu.xom.XPathException;
 import org.json.JSONObject;
 import org.ohmage.annotator.ErrorCodes;
 import org.ohmage.dao.CampaignDaos;
-import org.ohmage.domain.configuration.Configuration;
-import org.ohmage.domain.configuration.SurveyResponse;
+import org.ohmage.domain.campaign.Campaign;
+import org.ohmage.domain.campaign.SurveyResponse;
 import org.ohmage.exception.DataAccessException;
 import org.ohmage.exception.ErrorCodeException;
 import org.ohmage.exception.ServiceException;
@@ -140,8 +140,8 @@ public class CampaignServices {
 	 */
 	public static void createCampaign(Request request, String campaignId, String name, String xml, String description, 
 			String iconUrl, String authoredBy, 
-			Configuration.RunningState runningState, 
-			Configuration.PrivacyState privacyState, 
+			Campaign.RunningState runningState, 
+			Campaign.PrivacyState privacyState, 
 			List<String> classIds, String creatorUsername) throws ServiceException {
 		try {
 			CampaignDaos.createCampaign(campaignId, name, xml, description, iconUrl, authoredBy, runningState, privacyState, classIds, creatorUsername);
@@ -436,7 +436,7 @@ public class CampaignServices {
 	 */
 	public static void verifyCampaignIsRunning(Request request, String campaignId) throws ServiceException {
 		try {
-			if(! Configuration.RunningState.RUNNING.equals(
+			if(! Campaign.RunningState.RUNNING.equals(
 					CampaignDaos.getCampaignRunningState(campaignId))) {
 				request.setFailed(ErrorCodes.CAMPAIGN_INVALID_RUNNING_STATE, "The campaign is not running.");
 				throw new ServiceException("The campaign is not running.");
@@ -458,7 +458,7 @@ public class CampaignServices {
 	 * @param allowedRunningState The allowed running state for the above campaign.
 	 * @throws ServiceException
 	 *
-	public static void verifyAllowedRunningState(Request request, User user, String campaignId, Configuration.RunningState allowedRunningState)
+	public static void verifyAllowedRunningState(Request request, User user, String campaignId, Campaign.RunningState allowedRunningState)
 		throws ServiceException {
 		
 		if(user.getCampaignsAndRoles() == null) { // logical error
@@ -589,10 +589,10 @@ public class CampaignServices {
 	 * Finds the configuration for the campaign identified by the campaign id.
 	 * 
 	 * @param campaignId The campaign id to use for lookup.
-	 * @return a Configuration instance created from the XML for the campaign.
+	 * @return a Campaign instance created from the XML for the campaign.
 	 * @throws ServiceException If an error occurred in the data layer.
 	 */
-	public static Configuration findCampaignConfiguration(Request request, String campaignId) throws ServiceException {
+	public static Campaign findCampaignConfiguration(Request request, String campaignId) throws ServiceException {
 		try {
 			
 			return CampaignDaos.findCampaignConfiguration(campaignId);
@@ -626,7 +626,7 @@ public class CampaignServices {
 	 * 							malformed.
 	 */
 	public static List<SurveyResponse> getSurveyResponses(Request request, String username,
-			String client, Configuration campaign, Collection<JSONObject> jsonSurveyResponses) throws ServiceException {
+			String client, Campaign campaign, Collection<JSONObject> jsonSurveyResponses) throws ServiceException {
 		
 		try {
 			List<SurveyResponse> result = new ArrayList<SurveyResponse>(jsonSurveyResponses.size());
@@ -678,11 +678,11 @@ public class CampaignServices {
 	 */
 	public static void updateCampaign(Request request, 
 			String campaignId, String xml, String description, 
-			Configuration.RunningState runningState, 
-			Configuration.PrivacyState privacyState, 
+			Campaign.RunningState runningState, 
+			Campaign.PrivacyState privacyState, 
 			Collection<String> classIds, 
-			Map<String, Set<Configuration.Role>> usersAndRolesToAdd, 
-			Map<String, Set<Configuration.Role>> usersAndRolesToRemove) throws ServiceException {
+			Map<String, Set<Campaign.Role>> usersAndRolesToAdd, 
+			Map<String, Set<Campaign.Role>> usersAndRolesToRemove) throws ServiceException {
 		try {
 			CampaignDaos.updateCampaign(campaignId, xml, description, runningState, privacyState, classIds, usersAndRolesToAdd, usersAndRolesToRemove);
 		}

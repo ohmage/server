@@ -19,7 +19,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.ohmage.domain.configuration.Configuration;
+import org.ohmage.domain.campaign.Campaign;
 import org.ohmage.util.StringUtils;
 
 /**
@@ -134,7 +134,7 @@ public class User {
 	 * 
 	 * @param userRole The user's role in that campaign.
 	 */
-	public void addCampaignAndUserRole(Configuration campaign, Configuration.Role userRole) {
+	public void addCampaignAndUserRole(Campaign campaign, Campaign.Role userRole) {
 		CampaignAndUserRoles campaignAndUserRoles = campaignAndUserRolesMap.get(campaign.getId());
 		if(campaignAndUserRoles == null) {
 			campaignAndUserRoles = new CampaignAndUserRoles();
@@ -254,13 +254,13 @@ public class User {
 	 * 		   specified by the 'campaignId'.
 	 */
 	public boolean isSupervisorInCampaign(String campaignId) {
-		List<Configuration.Role> roles = campaignAndUserRolesMap.get(campaignId).getUserRoleStrings();
+		List<Campaign.Role> roles = campaignAndUserRolesMap.get(campaignId).getUserRoleStrings();
 		
 		if(roles == null) {
 			return false;
 		}
 		
-		return roles.contains(Configuration.Role.SUPERVISOR);
+		return roles.contains(Campaign.Role.SUPERVISOR);
 	}
 	
 	/**
@@ -275,13 +275,13 @@ public class User {
 	 * 		   specified by the 'campaignId'.
 	 */
 	public boolean isAuthorInCampaign(String campaignId) {
-		List<Configuration.Role> roles = campaignAndUserRolesMap.get(campaignId).getUserRoleStrings();
+		List<Campaign.Role> roles = campaignAndUserRolesMap.get(campaignId).getUserRoleStrings();
 		
 		if(roles == null) {
 			return false;
 		}
 		
-		return roles.contains(Configuration.Role.AUTHOR);
+		return roles.contains(Campaign.Role.AUTHOR);
 	}
 	
 	/**
@@ -296,13 +296,13 @@ public class User {
 	 * 		   specified by the 'campaignId'.
 	 */
 	public boolean isAnalystInCampaign(String campaignId) {
-		List<Configuration.Role> roles = campaignAndUserRolesMap.get(campaignId).getUserRoleStrings();
+		List<Campaign.Role> roles = campaignAndUserRolesMap.get(campaignId).getUserRoleStrings();
 		
 		if(roles == null) {
 			return false;
 		}
 		
-		return roles.contains(Configuration.Role.ANALYST);
+		return roles.contains(Campaign.Role.ANALYST);
 	}
 	
 	/**
@@ -317,13 +317,13 @@ public class User {
 	 * 		   specified by the 'campaignId'.
 	 */
 	public boolean isParticipantInCampaign(String campaignId) {
-		List<Configuration.Role> roles = campaignAndUserRolesMap.get(campaignId).getUserRoleStrings();
+		List<Campaign.Role> roles = campaignAndUserRolesMap.get(campaignId).getUserRoleStrings();
 		
 		if(roles == null) {
 			return false;
 		}
 		
-		return roles.contains(Configuration.Role.PARTICIPANT);
+		return roles.contains(Campaign.Role.PARTICIPANT);
 	}
 
 	/**
@@ -339,8 +339,8 @@ public class User {
 	 * @return Whether or not the user is a specified 'role' in the campaign 
 	 * 		   specified by the 'campaignId'.
 	 */
-	public boolean hasRoleInCampaign(String campaignId, Configuration.Role role) {
-		List<Configuration.Role> roles = campaignAndUserRolesMap.get(campaignId).getUserRoleStrings();
+	public boolean hasRoleInCampaign(String campaignId, Campaign.Role role) {
+		List<Campaign.Role> roles = campaignAndUserRolesMap.get(campaignId).getUserRoleStrings();
 		
 		if(roles == null) {
 			return false;

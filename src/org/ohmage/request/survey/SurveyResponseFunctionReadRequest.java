@@ -15,8 +15,8 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.ohmage.annotator.ErrorCodes;
 import org.ohmage.domain.Location;
-import org.ohmage.domain.configuration.Configuration;
-import org.ohmage.domain.configuration.SurveyResponse;
+import org.ohmage.domain.campaign.Campaign;
+import org.ohmage.domain.campaign.SurveyResponse;
 import org.ohmage.exception.ServiceException;
 import org.ohmage.exception.ValidationException;
 import org.ohmage.request.InputKeys;
@@ -237,7 +237,7 @@ public class SurveyResponseFunctionReadRequest extends UserRequest {
 						ownersUsername);
 			
 			LOGGER.info("Gathering the campaign.");
-			Configuration campaign = CampaignServices.findCampaignConfiguration(this, campaignId);
+			Campaign campaign = CampaignServices.findCampaignConfiguration(this, campaignId);
 			
 			LOGGER.info("Gathering the survey response information.");
 			surveyResponses = SurveyResponseServices.readSurveyResponseInformation(

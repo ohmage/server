@@ -15,10 +15,10 @@ import org.ohmage.dao.ImageDaos;
 import org.ohmage.dao.SurveyResponseDaos;
 import org.ohmage.dao.SurveyResponseImageDaos;
 import org.ohmage.dao.SurveyUploadDao;
-import org.ohmage.domain.configuration.Configuration;
-import org.ohmage.domain.configuration.Response;
-import org.ohmage.domain.configuration.SurveyResponse;
-import org.ohmage.domain.configuration.prompt.response.PhotoPromptResponse;
+import org.ohmage.domain.campaign.Campaign;
+import org.ohmage.domain.campaign.Response;
+import org.ohmage.domain.campaign.SurveyResponse;
+import org.ohmage.domain.campaign.response.PhotoPromptResponse;
 import org.ohmage.exception.DataAccessException;
 import org.ohmage.exception.ServiceException;
 import org.ohmage.request.Request;
@@ -165,7 +165,7 @@ public final class SurveyResponseServices {
 	 * @throws ServiceException Thrown if there is an error.
 	 */
 	public static List<SurveyResponse> readSurveyResponseInformation(
-			final Request request, final Configuration campaign,
+			final Request request, final Campaign campaign,
 			final String username, final String client, 
 			final Date startDate, final Date endDate, 
 			final SurveyResponse.PrivacyState privacyState, 

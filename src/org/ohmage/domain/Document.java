@@ -350,8 +350,8 @@ public class Document {
 	 * 
 	 * @param classId A unique identifier for a class.
 	 * 
-	 * @param documentRole The role to be associated with this class for this
-	 * 					   document.
+	 * @param role The role to be associated with this class for this
+	 * 			   document.
 	 * 
 	 * @return The old document role for this class for this user.
 	 * 

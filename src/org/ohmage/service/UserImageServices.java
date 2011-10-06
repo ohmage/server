@@ -7,8 +7,8 @@ import org.ohmage.dao.CampaignDaos;
 import org.ohmage.dao.CampaignImageDaos;
 import org.ohmage.dao.UserCampaignDaos;
 import org.ohmage.dao.UserImageDaos;
-import org.ohmage.domain.configuration.Configuration;
-import org.ohmage.domain.configuration.SurveyResponse;
+import org.ohmage.domain.campaign.Campaign;
+import org.ohmage.domain.campaign.SurveyResponse;
 import org.ohmage.exception.DataAccessException;
 import org.ohmage.exception.ServiceException;
 import org.ohmage.request.Request;
@@ -76,10 +76,10 @@ public final class UserImageServices {
 			// For each of the campaigns, see if the requesting user has 
 			// sufficient permissions.
 			for(String campaignId : campaignIds) {
-				List<Configuration.Role> roles = UserCampaignDaos.getUserCampaignRoles(requesterUsername, campaignId);
+				List<Campaign.Role> roles = UserCampaignDaos.getUserCampaignRoles(requesterUsername, campaignId);
 
 				// If they are a supervisor.
-				if(roles.contains(Configuration.Role.SUPERVISOR)) {
+				if(roles.contains(Campaign.Role.SUPERVISOR)) {
 					return;
 				}
 				
@@ -89,18 +89,18 @@ public final class UserImageServices {
 				SurveyResponse.PrivacyState imagePrivacyState = CampaignImageDaos.getImagePrivacyStateInCampaign(campaignId, imageId);
 				
 				// They are an author and the image is shared
-				if(roles.contains(Configuration.Role.AUTHOR) && 
+				if(roles.contains(Campaign.Role.AUTHOR) && 
 						SurveyResponse.PrivacyState.SHARED.equals(imagePrivacyState)) {
 					return;
 				}
 				
 				// Retrieve the campaign's privacy state.
-				Configuration.PrivacyState campaignPrivacyState = CampaignDaos.getCampaignPrivacyState(campaignId);
+				Campaign.PrivacyState campaignPrivacyState = CampaignDaos.getCampaignPrivacyState(campaignId);
 				
 				// They are an analyst, the image is shared, and the campaign is shared.
-				if(roles.contains(Configuration.Role.ANALYST) && 
+				if(roles.contains(Campaign.Role.ANALYST) && 
 						SurveyResponse.PrivacyState.SHARED.equals(imagePrivacyState) &&
-						Configuration.PrivacyState.SHARED.equals(campaignPrivacyState)) {
+						Campaign.PrivacyState.SHARED.equals(campaignPrivacyState)) {
 					return;
 				}
 			}

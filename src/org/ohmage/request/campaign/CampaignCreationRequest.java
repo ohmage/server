@@ -7,7 +7,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.log4j.Logger;
 import org.ohmage.annotator.ErrorCodes;
-import org.ohmage.domain.configuration.Configuration;
+import org.ohmage.domain.campaign.Campaign;
 import org.ohmage.exception.ServiceException;
 import org.ohmage.exception.ValidationException;
 import org.ohmage.request.InputKeys;
@@ -68,8 +68,8 @@ public class CampaignCreationRequest extends UserRequest {
 
 	private final String xml;
 	private final String description;
-	private final Configuration.RunningState runningState;
-	private final Configuration.PrivacyState privacyState;
+	private final Campaign.RunningState runningState;
+	private final Campaign.PrivacyState privacyState;
 	private final List<String> classIds;
 	
 	/**
@@ -85,8 +85,8 @@ public class CampaignCreationRequest extends UserRequest {
 		
 		String tXml = null;
 		String tDescription = null;
-		Configuration.RunningState tRunningState = null;
-		Configuration.PrivacyState tPrivacyState = null;
+		Campaign.RunningState tRunningState = null;
+		Campaign.PrivacyState tPrivacyState = null;
 		List<String> tClassIds = null;
 		
 		if(! isFailed()) {

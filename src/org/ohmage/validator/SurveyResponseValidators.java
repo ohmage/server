@@ -3,7 +3,7 @@ package org.ohmage.validator;
 import java.util.Date;
 
 import org.ohmage.annotator.ErrorCodes;
-import org.ohmage.domain.configuration.SurveyResponse;
+import org.ohmage.domain.campaign.SurveyResponse;
 import org.ohmage.exception.ValidationException;
 import org.ohmage.request.Request;
 import org.ohmage.util.StringUtils;

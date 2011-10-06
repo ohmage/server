@@ -23,11 +23,11 @@ import javax.sql.DataSource;
 
 import org.apache.log4j.Logger;
 import org.ohmage.cache.PreferenceCache;
-import org.ohmage.domain.configuration.PromptResponse;
-import org.ohmage.domain.configuration.RepeatableSet;
-import org.ohmage.domain.configuration.Response;
-import org.ohmage.domain.configuration.SurveyResponse;
-import org.ohmage.domain.configuration.prompt.response.PhotoPromptResponse;
+import org.ohmage.domain.campaign.PromptResponse;
+import org.ohmage.domain.campaign.RepeatableSet;
+import org.ohmage.domain.campaign.Response;
+import org.ohmage.domain.campaign.SurveyResponse;
+import org.ohmage.domain.campaign.response.PhotoPromptResponse;
 import org.ohmage.exception.CacheMissException;
 import org.ohmage.exception.DataAccessException;
 import org.ohmage.util.TimeUtils;

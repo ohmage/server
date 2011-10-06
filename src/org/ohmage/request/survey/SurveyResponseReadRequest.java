@@ -24,15 +24,15 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.ohmage.annotator.ErrorCodes;
-import org.ohmage.domain.configuration.Configuration;
-import org.ohmage.domain.configuration.Prompt;
-import org.ohmage.domain.configuration.PromptResponse;
-import org.ohmage.domain.configuration.RepeatableSet;
-import org.ohmage.domain.configuration.RepeatableSetResponse;
-import org.ohmage.domain.configuration.Response;
-import org.ohmage.domain.configuration.Survey;
-import org.ohmage.domain.configuration.SurveyItem;
-import org.ohmage.domain.configuration.SurveyResponse;
+import org.ohmage.domain.campaign.Campaign;
+import org.ohmage.domain.campaign.Prompt;
+import org.ohmage.domain.campaign.PromptResponse;
+import org.ohmage.domain.campaign.RepeatableSet;
+import org.ohmage.domain.campaign.RepeatableSetResponse;
+import org.ohmage.domain.campaign.Response;
+import org.ohmage.domain.campaign.Survey;
+import org.ohmage.domain.campaign.SurveyItem;
+import org.ohmage.domain.campaign.SurveyResponse;
 import org.ohmage.exception.ServiceException;
 import org.ohmage.exception.ValidationException;
 import org.ohmage.request.InputKeys;
@@ -196,7 +196,7 @@ public final class SurveyResponseReadRequest extends UserRequest {
 	private final SurveyResponse.PrivacyState privacyState;
 	private final Boolean collapse;
 	
-	private Configuration configuration;
+	private Campaign configuration;
 	private List<SurveyResponse> surveyResponseList;
 	
 	private static final List<String> ALLOWED_COLUMN_URN_LIST;
@@ -817,7 +817,7 @@ public final class SurveyResponseReadRequest extends UserRequest {
 	}
 	
 	private void populatePrompts(
-			final Map<String, SurveyItem> surveyItems,
+			final Map<Integer, SurveyItem> surveyItems,
 			Map<String, JSONObject> prompts) 
 			throws JSONException {
 		

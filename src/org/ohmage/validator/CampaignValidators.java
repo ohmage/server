@@ -12,7 +12,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.ohmage.annotator.ErrorCodes;
-import org.ohmage.domain.configuration.Configuration;
+import org.ohmage.domain.campaign.Campaign;
 import org.ohmage.exception.ValidationException;
 import org.ohmage.request.InputKeys;
 import org.ohmage.request.Request;
@@ -132,7 +132,7 @@ public final class CampaignValidators {
 	 * 							   whitespace only and isn't a known campaign
 	 * 							   running state.
 	 */
-	public static Configuration.RunningState validateRunningState(Request request, String runningState) throws ValidationException {
+	public static Campaign.RunningState validateRunningState(Request request, String runningState) throws ValidationException {
 		LOGGER.info("Validating a campaign running state.");
 		
 		if(StringUtils.isEmptyOrWhitespaceOnly(runningState)) {
@@ -140,7 +140,7 @@ public final class CampaignValidators {
 		}
 		
 		try {
-			return Configuration.RunningState.getValue(runningState);
+			return Campaign.RunningState.getValue(runningState);
 		}
 		catch(IllegalArgumentException e) {
 			request.setFailed(ErrorCodes.CAMPAIGN_INVALID_RUNNING_STATE, "The running state is unknown.");
@@ -164,7 +164,7 @@ public final class CampaignValidators {
 	 * 							   whitespace only and isn't a known campaign
 	 * 							   privacy state.
 	 */
-	public static Configuration.PrivacyState validatePrivacyState(Request request, String privacyState) throws ValidationException {
+	public static Campaign.PrivacyState validatePrivacyState(Request request, String privacyState) throws ValidationException {
 		LOGGER.info("Validating a campaign privacy state.");
 		
 		if(StringUtils.isEmptyOrWhitespaceOnly(privacyState)) {
@@ -172,7 +172,7 @@ public final class CampaignValidators {
 		}
 		
 		try {
-			return Configuration.PrivacyState.getValue(privacyState);
+			return Campaign.PrivacyState.getValue(privacyState);
 		}
 		catch(IllegalArgumentException e) {
 			request.setFailed(ErrorCodes.CAMPAIGN_INVALID_PRIVACY_STATE, "The privacy state is unknown.");
@@ -204,7 +204,7 @@ public final class CampaignValidators {
 		}
 		
 		try {
-			Configuration.validateXml(xml);
+			Campaign.validateXml(xml);
 		}
 		catch(IllegalArgumentException e) {
 			throw new ValidationException("The XML was invalid.", e);
@@ -353,7 +353,7 @@ public final class CampaignValidators {
 	 * @throws ValidationException Thrown if the role is not a valid campaign
 	 * 							   role.
 	 */
-	public static Configuration.Role validateRole(Request request, String role) throws ValidationException {
+	public static Campaign.Role validateRole(Request request, String role) throws ValidationException {
 		LOGGER.info("Validating a campaign role.");
 		
 		if(StringUtils.isEmptyOrWhitespaceOnly(role)) {
@@ -361,7 +361,7 @@ public final class CampaignValidators {
 		}
 		
 		try {
-			return Configuration.Role.getValue(role);
+			return Campaign.Role.getValue(role);
 		}
 		catch(IllegalArgumentException e) {
 			request.setFailed(ErrorCodes.CAMPAIGN_INVALID_ROLE, "The campaign role is unknown: " + role);

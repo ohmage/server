@@ -11,8 +11,8 @@ import java.util.TimeZone;
 
 import javax.sql.DataSource;
 
-import org.ohmage.domain.configuration.Configuration;
-import org.ohmage.domain.configuration.SurveyResponse;
+import org.ohmage.domain.campaign.Campaign;
+import org.ohmage.domain.campaign.SurveyResponse;
 import org.ohmage.exception.DataAccessException;
 import org.springframework.jdbc.core.RowMapper;
 
@@ -60,7 +60,7 @@ public final class UserSurveyResponseDaos extends Dao {
 				"ru.id = urc.user_id " +
 				"AND c.id = urc.campaign_id " +
 				"AND ur.id = urc.user_role_id " +
-				"AND ur.role = '" + Configuration.Role.SUPERVISOR + "'" +
+				"AND ur.role = '" + Campaign.Role.SUPERVISOR + "'" +
 			")" +
 			" OR " +
 			"(" +
@@ -70,10 +70,10 @@ public final class UserSurveyResponseDaos extends Dao {
 				"ru.id = urc.user_id " +
 				"AND c.id = urc.campaign_id " +
 				"AND ur.id = urc.user_role_id " +
-				"AND ur.role = '" + Configuration.Role.ANALYST + "' " +
+				"AND ur.role = '" + Campaign.Role.ANALYST + "' " +
 				// Get the campaign's privacy state.
 				"AND c.privacy_state_id = cps.id " +
-				"AND cps.privacy_state = '" + Configuration.PrivacyState.SHARED + "' " +
+				"AND cps.privacy_state = '" + Campaign.PrivacyState.SHARED + "' " +
 				// Ensure the survey response is not "invisible".
 				"AND srps.privacy_state != '" + SurveyResponse.PrivacyState.INVISIBLE + "'" +
 			")" +
@@ -84,7 +84,7 @@ public final class UserSurveyResponseDaos extends Dao {
 				"ru.id = urc.user_id " +
 				"AND c.id = urc.campaign_id " +
 				"AND ur.id = urc.user_role_id " +
-				"AND ur.role = '" + Configuration.Role.AUTHOR + "' " +
+				"AND ur.role = '" + Campaign.Role.AUTHOR + "' " +
 				// Get the survey response's privacy state.
 				"AND srps.id = sr.privacy_state_id " +
 				"AND srps.privacy_state = '" + SurveyResponse.PrivacyState.SHARED + "'" +
@@ -98,7 +98,7 @@ public final class UserSurveyResponseDaos extends Dao {
 				"ru.id = u.id " +
 				// Get the campaign's running state.
 				"AND c.running_state_id = crs.id " +
-				"AND crs.id = '" + Configuration.RunningState.RUNNING + "' " +
+				"AND crs.id = '" + Campaign.RunningState.RUNNING + "' " +
 				// Ensure the survey response is not "invisible".
 				"AND srps.privacy_state != '" + SurveyResponse.PrivacyState.INVISIBLE + "'" +
 			")" +

@@ -50,8 +50,8 @@ public class Audit {
 	 * much of the information for an audit.
 	 * 
 	 * @param requestType The 
-	 * 					  {@link org.ohmage.jee.servlet.RequestServlet.RequestType}
-	 * 					  from this request.
+	 * 				  {@link org.ohmage.jee.servlet.RequestServlet.RequestType}
+	 * 				  from this request.
 	 * 
 	 * @param uri The URI that supplied for this request.
 	 * 

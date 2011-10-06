@@ -20,7 +20,7 @@ import org.ohmage.util.TimeUtils;
 import edu.ucla.cens.mobilityclassifier.Sample;
 
 /**
- * This class is responsible for individual MobilityPoint data points.
+ * This class is responsible for individual Mobility data points.
  * 
  * @author John Jenkins
  */
@@ -54,7 +54,7 @@ public class MobilityPoint {
 	private final Location location;
 	
 	/**
-	 * Known MobilityPoint privacy states.
+	 * Known Mobility privacy states.
 	 * @author  John Jenkins
 	 */
 	public static enum PrivacyState {
@@ -98,7 +98,7 @@ public class MobilityPoint {
 	// Sensor data
 	/**
 	 * This class is responsible for managing the sensor data in a single
-	 * MobilityPoint entry.
+	 * Mobility entry.
 	 * 
 	 * @author John Jenkins
 	 */
@@ -454,7 +454,7 @@ public class MobilityPoint {
 		
 		/**
 		 * Creates a new SensorData object that represents the information 
-		 * collected by MobilityPoint when a MobilityPoint point was generated.
+		 * collected by Mobility when a Mobility point was generated.
 		 * 
 		 * @param mode The mode calculated based on this information.
 		 * 
@@ -768,13 +768,13 @@ public class MobilityPoint {
 	private ClassifierData classifierData;
 	
 	/**
-	 * Creates a MobilityPoint object that represents all of the 
-	 * information in the parameterized MobilityPoint data point.
+	 * Creates a Mobility object that represents all of the 
+	 * information in the parameterized Mobility data point.
 	 * 
 	 * @param mobilityPoint A JSONObject that contains all of the required
-	 * 						information for a MobilityPoint data point.
+	 * 						information for a Mobility data point.
 	 * 
-	 * @throws MobilityException Thrown if MobilityPoint point is null, invalid, or
+	 * @throws MobilityException Thrown if Mobility point is null, invalid, or
 	 * 							 contains insufficient information to build 
 	 * 							 this object.
 	 */
@@ -939,11 +939,11 @@ public class MobilityPoint {
 	}
 	
 	/**
-	 * Creates a new MobilityPoint object that represents a MobilityPoint data
+	 * Creates a new MobilityPoint object that represents a Mobility data
 	 * point based on the parameters. If it is a mode-only point, set sensor
 	 * data, features, and classifier version to null.
 	 * 
-	 * @param date The date this MobilityPoint point was created.
+	 * @param date The date this Mobility point was created.
 	 * 
 	 * @param time The milliseconds since the epoch at which time this point
 	 * 			   was created.
@@ -1058,7 +1058,7 @@ public class MobilityPoint {
 	 * @param location The location of the device that is making this reading.
 	 * 				   This may be null if the location is unknown.
 	 * 
-	 * @param mode The mode as determined by MobilityPoint.
+	 * @param mode The mode as determined by Mobility.
 	 * 
 	 * @param sensorData The sensor data that was taken to generate the mode.
 	 * 					 This may be null if this data is not being captured.
@@ -1132,19 +1132,19 @@ public class MobilityPoint {
 	}
 
 	/**
-	 * Returns the date and time this MobilityPoint point was created.
+	 * Returns the date and time this Mobility point was created.
 	 * 
-	 * @return The date and time this MobilityPoint point was created.
+	 * @return The date and time this Mobility point was created.
 	 */
 	public final Date getDate() {
 		return date;
 	}
 
 	/**
-	 * Returns the number of milliseconds since the epoch when this MobilityPoint
+	 * Returns the number of milliseconds since the epoch when this Mobility
 	 * point was created.
 	 * 
-	 * @return The number of milliseconds since the epoch when this MobilityPoint
+	 * @return The number of milliseconds since the epoch when this Mobility
 	 * 		   point was created.
 	 */
 	public final long getTime() {
@@ -1152,28 +1152,28 @@ public class MobilityPoint {
 	}
 
 	/**
-	 * Returns the phone's timezone when this MobilityPoint point was created.
+	 * Returns the phone's timezone when this Mobility point was created.
 	 * 
-	 * @return The phone's timezone when this MobilityPoint point was created.
+	 * @return The phone's timezone when this Mobility point was created.
 	 */
 	public final TimeZone getTimezone() {
 		return timezone;
 	}
 
 	/**
-	 * Returns the MobilityPoint point's privacy state.
+	 * Returns the Mobility point's privacy state.
 	 * 
-	 * @return The MobilityPoint point's privacy state.
+	 * @return The Mobility point's privacy state.
 	 */
 	public final PrivacyState getPrivacyState() {
 		return privacyState;
 	}
 	
 	/**
-	 * Returns the status of the location value obtained when this MobilityPoint
+	 * Returns the status of the location value obtained when this Mobility
 	 * point was created.
 	 * 
-	 * @return The status of the location value obtained when this MobilityPoint
+	 * @return The status of the location value obtained when this Mobility
 	 * 		   point was created.
 	 * 
 	 * @see #getLocation()
@@ -1184,10 +1184,10 @@ public class MobilityPoint {
 
 	/**
 	 * Returns a Location object representing the information collected about
-	 * the phone's location when this MobilityPoint point was created. 
+	 * the phone's location when this Mobility point was created. 
 	 * 
 	 * @return A Location object representing the information collected about
-	 * 		   the phone's location when this MobilityPoint point was created.
+	 * 		   the phone's location when this Mobility point was created.
 	 * 
 	 * @see #getLocationStatus()
 	 */
@@ -1196,10 +1196,10 @@ public class MobilityPoint {
 	}
 
 	/**
-	 * Returns the SubType of this MobilityPoint reading which dictates whether the
+	 * Returns the SubType of this Mobility reading which dictates whether the
 	 * mode or the sensor data is valid.
 	 * 
-	 * @return The SubType of this MobilityPoint reading which dictates whether the
+	 * @return The SubType of this Mobility reading which dictates whether the
 	 * 		   mode or the sensor data is valid.
 	 * 
 	 * @see SubType
@@ -1211,33 +1211,33 @@ public class MobilityPoint {
 	}
 
 	/**
-	 * This is the Mode that was calculated when this MobilityPoint point was made.
+	 * This is the Mode that was calculated when this Mobility point was made.
 	 * 
-	 * @return The Mode that was calculated when this MobilityPoint point was made.
+	 * @return The Mode that was calculated when this Mobility point was made.
 	 */
 	public final Mode getMode() {
 		return mode;
 	}
 
 	/**
-	 * Returns the additional sensor data that was recorded when this MobilityPoint
+	 * Returns the additional sensor data that was recorded when this Mobility
 	 * point was made. This will be null if the {@link #getSubType()} is not
-	 * {@value SubType#SENSOR_DATA}.
+	 * {@link SubType#SENSOR_DATA}.
 	 * 
-	 * @return The additional sensor data that was recorded when this MobilityPoint
+	 * @return The additional sensor data that was recorded when this Mobility
 	 * 		   point was made or null if {@link #getSubType()} does not return
-	 * 		   {@value SubType#SENSOR_DATA}.
+	 * 		   {@link SubType#SENSOR_DATA}.
 	 */
 	public final SensorData getSensorData() {
 		return sensorData;
 	}
 	
 	/**
-	 * Returns the list of Samples from this MobilityPoint point if it is of type
-	 * {@value SubType#SENSOR_DATA}; otherwise, null is returned.
+	 * Returns the list of Samples from this Mobility point if it is of type
+	 * {@link SubType#SENSOR_DATA}; otherwise, null is returned.
 	 * 
-	 * @return A list of Samples from this MobilityPoint point if it is of type
-	 * 		   {@value SubType#SENSOR_DATA}, which may be empty but will never
+	 * @return A list of Samples from this Mobility point if it is of type
+	 * 		   {@link SubType#SENSOR_DATA}, which may be empty but will never 
 	 * 		   be null; otherwise, null is returned.
 	 */
 	public final List<Sample> getSamples() {
@@ -1257,7 +1257,7 @@ public class MobilityPoint {
 	}
 	
 	/**
-	 * Sets this MobilityPoint point's classifier data from the server's classifier.
+	 * Sets this Mobility point's classifier data from the server's classifier.
 	 * 
 	 * @param fft The FFT from the server's classifier.
 	 * 
@@ -1281,7 +1281,7 @@ public class MobilityPoint {
 	}
 	
 	/**
-	 * Sets this MobilityPoint point's classifier data from the server's classifier,
+	 * Sets this Mobility point's classifier data from the server's classifier,
 	 * but it only sets the mode.
 	 * 
 	 * @param mode The mode that the classifier generated.
@@ -1302,7 +1302,7 @@ public class MobilityPoint {
 	}
 	
 	/**
-	 * Outputs this MobilityPoint point as a JSONObject.
+	 * Outputs this Mobility point as a JSONObject.
 	 * 
 	 * @param abbreviated Whether or not to use the abbreviated versions of the
 	 * 					  JSON keys.
@@ -1310,7 +1310,7 @@ public class MobilityPoint {
 	 * @param withData Whether or not to include only the mode or to include
 	 * 				   whatever the subtype defines.
 	 * 
-	 * @return A JSONObject that represents this MobilityPoint point.
+	 * @return A JSONObject that represents this Mobility point.
 	 */
 	public final JSONObject toJson(final boolean abbreviated, final boolean withData) {
 		try {

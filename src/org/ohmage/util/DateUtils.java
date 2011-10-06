@@ -65,11 +65,14 @@ public final class DateUtils {
 	}
 	
 	/**
+	 * Validates that some timezone string is a valid timezone string.
 	 * 
-	 * @param tz
-	 * @return
+	 * @param tz The timezone string.
+	 * 
+	 * @return True if the timezone string is a valid timezone; false, 
+	 * 		   otherwise.
 	 */
-	public static boolean isValidTimezone(String tz) {
+	public static boolean isValidTimezone(final String tz) {
 		if(null != tz) {
 			// TODO store a static sorted copy of this list?
 			return Arrays.asList(TimeZone.getAvailableIDs()).contains(tz);

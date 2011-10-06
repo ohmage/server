@@ -5,7 +5,6 @@ import java.sql.SQLException;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.TimeZone;
@@ -14,24 +13,11 @@ import javax.sql.DataSource;
 
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.ohmage.domain.configuration.Configuration;
-import org.ohmage.domain.configuration.Prompt;
-import org.ohmage.domain.configuration.PromptResponse;
-import org.ohmage.domain.configuration.Response.NoResponse;
-import org.ohmage.domain.configuration.SurveyResponse;
-import org.ohmage.domain.configuration.prompt.response.HoursBeforeNowPromptResponse;
-import org.ohmage.domain.configuration.prompt.response.MultiChoiceCustomPromptResponse;
-import org.ohmage.domain.configuration.prompt.response.MultiChoicePromptResponse;
-import org.ohmage.domain.configuration.prompt.response.NumberPromptResponse;
-import org.ohmage.domain.configuration.prompt.response.PhotoPromptResponse;
-import org.ohmage.domain.configuration.prompt.response.RemoteActivityPromptResponse;
-import org.ohmage.domain.configuration.prompt.response.SingleChoiceCustomPromptResponse;
-import org.ohmage.domain.configuration.prompt.response.SingleChoicePromptResponse;
-import org.ohmage.domain.configuration.prompt.response.TextPromptResponse;
-import org.ohmage.domain.configuration.prompt.response.TimestampPromptResponse;
+import org.ohmage.domain.campaign.Campaign;
+import org.ohmage.domain.campaign.Prompt;
+import org.ohmage.domain.campaign.SurveyResponse;
 import org.ohmage.exception.DataAccessException;
 import org.ohmage.exception.ErrorCodeException;
-import org.ohmage.request.InputKeys;
 import org.ohmage.util.StringUtils;
 import org.ohmage.util.TimeUtils;
 import org.springframework.jdbc.core.RowMapper;
@@ -474,7 +460,7 @@ public class SurveyResponseDaos extends Dao {
 	 * 							   constructor.
 	 */
 	public static SurveyResponse retrieveSurveyResponseFromId(
-			final Configuration campaign,
+			final Campaign campaign,
 			final Long surveyResponseId) throws DataAccessException {
 		
 		try {
@@ -519,6 +505,8 @@ public class SurveyResponseDaos extends Dao {
 					}
 				);
 			
+			final String surveyId = result.getSurvey().getId();
+			
 			final Map<String, Class<?>> typeMapping = new HashMap<String, Class<?>>();
 			typeMapping.put("tinyint", Integer.class);
 			
@@ -531,17 +519,11 @@ public class SurveyResponseDaos extends Dao {
 						@Override
 						public Object mapRow(ResultSet rs, int rowNum) throws SQLException {
 							try {
-								result.addPromptResponse(createPromptResponse(
-										Prompt.Type.valueOf(rs.getString("prompt_type")),
-										rs.getString("prompt_id"),
-										(Integer) rs.getObject("repeatable_set_iteration", typeMapping), 
-										rs.getString("response")));
-							}
-							catch(DataAccessException e) {
-								throw new SQLException("Error adding a prompt response.", e);
+								Prompt prompt = campaign.getPrompt(surveyId, rs.getString("prompt_id"));
+								result.addPromptResponse(prompt.createResponse(rs.getString("response"), (Integer) rs.getObject("repeatable_set_iteration", typeMapping)));
 							}
 							catch(IllegalArgumentException e) {
-								throw new SQLException("Error adding a prompt response.", e);
+								throw new SQLException("The prompt response value from the database is not a valid response value for this prompt.", e);
 							}
 							
 							return null;
@@ -583,7 +565,7 @@ public class SurveyResponseDaos extends Dao {
 	 * @throws DataAccessException Thrown if there is an error.
 	 */
 	public static List<SurveyResponse> retrieveSurveyResponseFromIds(
-			final Configuration campaign,
+			final Campaign campaign,
 			final Collection<Long> surveyResponseIds) throws DataAccessException {
 		try {
 			final Map<String, Class<?>> typeMapping = new HashMap<String, Class<?>>();
@@ -619,6 +601,8 @@ public class SurveyResponseDaos extends Dao {
 										locationJson,
 										SurveyResponse.PrivacyState.getValue(rs.getString("privacy_state")));
 								
+								final String surveyId = currResult.getSurvey().getId();
+								
 								// Retrieve all of the prompt responses for the
 								// current survey response.
 								try {
@@ -629,17 +613,11 @@ public class SurveyResponseDaos extends Dao {
 												@Override
 												public Object mapRow(ResultSet rs, int rowNum) throws SQLException {
 													try {
-														currResult.addPromptResponse(createPromptResponse(
-																Prompt.Type.valueOf(rs.getString("prompt_type")),
-																rs.getString("prompt_id"),
-																(Integer) rs.getObject("repeatable_set_iteration", typeMapping), 
-																rs.getString("response")));
-													}
-													catch(DataAccessException e) {
-														throw new SQLException("Error adding a prompt response.", e);
+														Prompt prompt = campaign.getPrompt(surveyId, rs.getString("prompt_id"));
+														currResult.addPromptResponse(prompt.createResponse(rs.getString("response"), (Integer) rs.getObject("repeatable_set_iteration", typeMapping)));
 													}
 													catch(IllegalArgumentException e) {
-														throw new SQLException("Error adding a prompt response.", e);
+														throw new SQLException("The prompt response value from the database is not a valid response value for this prompt.", e);
 													}
 													
 													return null;
@@ -760,208 +738,6 @@ public class SurveyResponseDaos extends Dao {
 		}
 		catch(TransactionException e) {
 			throw new DataAccessException("Error while attempting to rollback the transaction.", e);
-		}
-	}
-	
-	/**
-	 * Creates a PromptResponse object from the given parameters.
-	 * 
-	 * @param promptType The prompty type.
-	 * 
-	 * @param promptId The prompt's campaign-unique identifier.
-	 * 
-	 * @param repeatableSetId If the prompt is part of a repeatable set, then
-	 * 						  that repeatable set's campaign-unique identifier;
-	 * 						  otherwise, null.
-	 * 
-	 * @param repeatableSetIteration If the prompt is part of a repeatable set,
-	 * 								 then the iteration of that repeatable set
-	 * 								 to which this prompt was responded; 
-	 *  							 otherwise, null.
-	 * 
-	 * @param response The response given by the server.
-	 * 
-	 * @return A PromptResponse object representing this prompt response.
-	 * 
-	 * @throws DataAccessException Thrown if there is an error.
-	 */
-	private static PromptResponse createPromptResponse(
-			final Prompt.Type promptType,
-			final String promptId, final Integer repeatableSetIteration, 
-			final String response) throws DataAccessException {
-		
-		try {
-			if(Prompt.Type.HOURS_BEFORE_NOW.equals(promptType)) {
-				Long hours = null;
-				NoResponse noResponse = null;
-				try {
-					noResponse = NoResponse.valueOf(response);
-				}
-				catch(IllegalArgumentException iae) {
-					try {
-						hours = Long.decode(response);
-					}
-					catch(NumberFormatException nfe) {
-						throw new DataAccessException("Error decoding the value of a hours-before-now response.", nfe);
-					}
-				}
-				
-				return new HoursBeforeNowPromptResponse(null, noResponse, repeatableSetIteration, hours);
-			}
-			else if(Prompt.Type.PHOTO.equals(promptType)) {
-				NoResponse noResponse = null;
-				try {
-					noResponse = NoResponse.valueOf(response);
-				}
-				catch(IllegalArgumentException e) {
-					// Then, it is a UUID and this is acceptable.
-				}
-				
-				return new PhotoPromptResponse(null, noResponse, repeatableSetIteration,
-						(noResponse == null) ? response : null, null);
-			}
-			else if(Prompt.Type.MULTI_CHOICE.equals(promptType)) {
-				List<String> values = null;
-				NoResponse noResponse = null;
-				try {
-					noResponse = NoResponse.valueOf(response);
-				}
-				catch(IllegalArgumentException e) {
-					// Then, it is a list or results and this is acceptable.
-					String responseWithoutBrackets = response.substring(1, response.length() - 1);
-					String[] responses = responseWithoutBrackets.split(InputKeys.LIST_ITEM_SEPARATOR);
-					
-					values = new LinkedList<String>();
-					for(int i = 0; i < responses.length; i++) {
-						values.add(responses[i]);
-					}
-				}
-				
-				return new MultiChoicePromptResponse(null,
-						noResponse, repeatableSetIteration, 
-						values);
-			}
-			else if(Prompt.Type.MULTI_CHOICE_CUSTOM.equals(promptType)) {
-				List<String> values = null;
-				NoResponse noResponse = null;
-				try {
-					noResponse = NoResponse.valueOf(response);
-				}
-				catch(IllegalArgumentException e) {
-					// Then, it is a list or results and this is acceptable.
-					String responseWithoutBrackets = response.substring(1, response.length() - 1);
-					String[] responses = responseWithoutBrackets.split(InputKeys.LIST_ITEM_SEPARATOR);
-					
-					values = new LinkedList<String>();
-					for(int i = 0; i < responses.length; i++) {
-						values.add(responses[i]);
-					}
-				}
-				
-				return new MultiChoiceCustomPromptResponse(null, noResponse,
-						repeatableSetIteration, values);
-			}
-			else if(Prompt.Type.NUMBER.equals(promptType)) {
-				Integer number = null;
-				NoResponse noResponse = null;
-				try {
-					noResponse = NoResponse.valueOf(response);
-				}
-				catch(IllegalArgumentException iae) {
-					try {
-						number = Integer.decode(response);
-					}
-					catch(NumberFormatException nfe) {
-						throw new DataAccessException("Error decoding the value of a numbers response.", nfe);
-					}
-				}
-				
-				return new NumberPromptResponse(null,
-						noResponse, repeatableSetIteration,
-						number);
-			}
-			else if(Prompt.Type.REMOTE_ACTIVITY.equals(promptType)) {
-				JSONObject result = null;
-				NoResponse noResponse = null;
-				try {
-					noResponse = NoResponse.valueOf(response);
-				}
-				catch(IllegalArgumentException iae) {
-					try {
-						result = new JSONObject(response);
-					}
-					catch(JSONException je) {
-						throw new DataAccessException("Error decoding the value of a remote activity response.", je);
-					}
-				}
-				
-				return new RemoteActivityPromptResponse(null,
-						noResponse, repeatableSetIteration,
-						result);
-			}
-			else if(Prompt.Type.SINGLE_CHOICE.equals(promptType)) {
-				NoResponse noResponse = null;
-				try {
-					noResponse = NoResponse.valueOf(response);
-				}
-				catch(IllegalArgumentException e) {
-					// Then, it is a single choice value which is acceptable.
-				}
-				
-				return new SingleChoicePromptResponse(null,
-						noResponse, repeatableSetIteration,
-						response);
-			}
-			else if(Prompt.Type.SINGLE_CHOICE_CUSTOM.equals(promptType)) {
-				NoResponse noResponse = null;
-				try {
-					noResponse = NoResponse.valueOf(response);
-				}
-				catch(IllegalArgumentException e) {
-					// Then, it is a single choice value which is acceptable.
-				}
-				
-				return new SingleChoiceCustomPromptResponse(null,
-						noResponse, repeatableSetIteration,
-						response);
-			}
-			else if(Prompt.Type.TEXT.equals(promptType)) {
-				NoResponse noResponse = null;
-				try {
-					noResponse = NoResponse.valueOf(response);
-				}
-				catch(IllegalArgumentException e) {
-					// Then, it is a text value and this is acceptable.
-				}
-				
-				return new TextPromptResponse(null,
-						noResponse, repeatableSetIteration,
-						response);
-			}
-			else if(Prompt.Type.TIMESTAMP.equals(promptType)) {
-				Date timestamp = null;
-				NoResponse noResponse = null;
-				try {
-					noResponse = NoResponse.valueOf(response);
-				}
-				catch(IllegalArgumentException e) {
-					timestamp = StringUtils.decodeDateTime(response);
-					
-					if(timestamp == null) {
-						throw new DataAccessException("Error decoding the value of a timestamp: " + response, e);
-					}
-				}
-				
-				return new TimestampPromptResponse(null,
-						noResponse, repeatableSetIteration,
-						timestamp);
-			}
-			else {
-				throw new DataAccessException("Unknown prompt type: " + promptType);
-			}
-		}
-		catch(IllegalArgumentException e) {
-			throw new DataAccessException("A required parameter was null.", e);
 		}
 	}
 }

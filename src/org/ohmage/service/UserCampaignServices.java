@@ -17,7 +17,7 @@ import org.ohmage.dao.UserCampaignDaos;
 import org.ohmage.dao.UserDaos;
 import org.ohmage.domain.User;
 import org.ohmage.domain.UserPersonal;
-import org.ohmage.domain.configuration.Configuration;
+import org.ohmage.domain.campaign.Campaign;
 import org.ohmage.exception.DataAccessException;
 import org.ohmage.exception.ServiceException;
 import org.ohmage.request.Request;
@@ -160,7 +160,7 @@ public class UserCampaignServices {
 	 * or if the User does not have one of the allowedRoles in the campaign
 	 * represented by the campaignId.
 	 */
-	public static void verifyAllowedUserRoleInCampaign(Request request, User user, String campaignId, List<Configuration.Role> allowedRoles)
+	public static void verifyAllowedUserRoleInCampaign(Request request, User user, String campaignId, List<Campaign.Role> allowedRoles)
 		throws ServiceException {
 		
 		if(user.getCampaignsAndRoles() == null) { // logical error
@@ -173,8 +173,8 @@ public class UserCampaignServices {
 			throw new ServiceException("The User in the Request does not belong to the campaign " + campaignId);
 		}
 		
-		List<Configuration.Role> roleList = user.getCampaignsAndRoles().get(campaignId).getUserRoleStrings();
-		for(Configuration.Role role : roleList) {
+		List<Campaign.Role> roleList = user.getCampaignsAndRoles().get(campaignId).getUserRoleStrings();
+		for(Campaign.Role role : roleList) {
 			if(allowedRoles.contains(role)) {
 				return;
 			}
@@ -202,7 +202,7 @@ public class UserCampaignServices {
 			final String username, final String campaignId) throws ServiceException {
 		
 		try {
-			if(! UserCampaignDaos.getUserCampaignRoles(username, campaignId).contains(Configuration.Role.PARTICIPANT)) {
+			if(! UserCampaignDaos.getUserCampaignRoles(username, campaignId).contains(Campaign.Role.PARTICIPANT)) {
 				request.setFailed(ErrorCodes.SURVEY_INSUFFICIENT_PERMISSIONS, "The user is not a participant in the campaign and, therefore, cannot upload responses.");
 				throw new ServiceException("The user is not a participant in the campaign and, therefore, cannot upload responses.");
 			}
@@ -229,7 +229,7 @@ public class UserCampaignServices {
 	 */
 	public static void verifyUserCanReadUsersInfoInCampaign(Request request, String username, String campaignId) throws ServiceException  {
 		try {
-			if(! UserCampaignDaos.getUserCampaignRoles(username, campaignId).contains(Configuration.Role.SUPERVISOR)) {
+			if(! UserCampaignDaos.getUserCampaignRoles(username, campaignId).contains(Campaign.Role.SUPERVISOR)) {
 				request.setFailed(ErrorCodes.CAMPAIGN_INSUFFICIENT_PERMISSIONS, "The user is not allowed to read the personal information of the users in the following campaign: " + campaignId);
 				throw new ServiceException("The user is not allowed to read the personal information of the users in the following campaign: " + campaignId);
 			}
@@ -274,10 +274,10 @@ public class UserCampaignServices {
 	 */
 	public static void verifyUserCanUpdateCampaign(Request request, String username, String campaignId) throws ServiceException {
 		try {
-			List<Configuration.Role> roles = UserCampaignDaos.getUserCampaignRoles(username, campaignId);
+			List<Campaign.Role> roles = UserCampaignDaos.getUserCampaignRoles(username, campaignId);
 			
-			if(roles.contains(Configuration.Role.SUPERVISOR) ||
-			   roles.contains(Configuration.Role.AUTHOR)) {
+			if(roles.contains(Campaign.Role.SUPERVISOR) ||
+			   roles.contains(Campaign.Role.AUTHOR)) {
 				return;
 			}
 			
@@ -306,10 +306,10 @@ public class UserCampaignServices {
 	 */
 	public static void verifyUserCanUpdateCampaignXml(Request request, String username, String campaignId) throws ServiceException {
 		try {
-			List<Configuration.Role> roles = UserCampaignDaos.getUserCampaignRoles(username, campaignId);
+			List<Campaign.Role> roles = UserCampaignDaos.getUserCampaignRoles(username, campaignId);
 			
-			if(roles.contains(Configuration.Role.SUPERVISOR) ||
-			   roles.contains(Configuration.Role.AUTHOR)) {
+			if(roles.contains(Campaign.Role.SUPERVISOR) ||
+			   roles.contains(Campaign.Role.AUTHOR)) {
 				if(CampaignSurveyResponseDaos.getNumberOfSurveyResponsesForCampaign(campaignId) == 0) {
 					return;
 				}
@@ -344,16 +344,16 @@ public class UserCampaignServices {
 	 * 							revoke some role or if there is an error.
 	 */
 	public static void verifyUserCanGrantOrRevokeRoles(Request request, String username, 
-			String campaignId, Collection<Configuration.Role> roles) throws ServiceException {
+			String campaignId, Collection<Campaign.Role> roles) throws ServiceException {
 		try {
-			List<Configuration.Role> usersRoles = UserCampaignDaos.getUserCampaignRoles(username, campaignId);
+			List<Campaign.Role> usersRoles = UserCampaignDaos.getUserCampaignRoles(username, campaignId);
 			
-			if(usersRoles.contains(Configuration.Role.SUPERVISOR)) {
+			if(usersRoles.contains(Campaign.Role.SUPERVISOR)) {
 				return;
 			}
 			
-			if(usersRoles.contains(Configuration.Role.AUTHOR)) {
-				if(! roles.contains(Configuration.Role.SUPERVISOR)) {
+			if(usersRoles.contains(Campaign.Role.AUTHOR)) {
+				if(! roles.contains(Campaign.Role.SUPERVISOR)) {
 					return;
 				}
 				
@@ -391,13 +391,13 @@ public class UserCampaignServices {
 	 */
 	public static void userCanDeleteCampaign(Request request, String username, String campaignId) throws ServiceException {
 		try {
-			List<Configuration.Role> roles = UserCampaignDaos.getUserCampaignRoles(username, campaignId);
+			List<Campaign.Role> roles = UserCampaignDaos.getUserCampaignRoles(username, campaignId);
 			
-			if(roles.contains(Configuration.Role.SUPERVISOR)) {
+			if(roles.contains(Campaign.Role.SUPERVISOR)) {
 				return;
 			}
 			
-			if(roles.contains(Configuration.Role.AUTHOR)) {
+			if(roles.contains(Campaign.Role.AUTHOR)) {
 				long numberOfResponses = CampaignSurveyResponseDaos.getNumberOfSurveyResponsesForCampaign(campaignId);
 				
 				if(numberOfResponses == 0) {
@@ -533,25 +533,25 @@ public class UserCampaignServices {
 				return;
 			}
 			
-			List<Configuration.Role> requesterRoles = 
+			List<Campaign.Role> requesterRoles = 
 				UserCampaignDaos.getUserCampaignRoles(requesterUsername, campaignId);
 			
 			// If the requester's role list contains supervisor, return.
-			if(requesterRoles.contains(Configuration.Role.SUPERVISOR)) {
+			if(requesterRoles.contains(Campaign.Role.SUPERVISOR)) {
 				return;
 			}
 			
 			// If the requester's role list contains author, return.
-			if(requesterRoles.contains(Configuration.Role.AUTHOR)) {
+			if(requesterRoles.contains(Campaign.Role.AUTHOR)) {
 				return;
 			}
 			
 			// If the requester's role list contains analyst,
-			if(requesterRoles.contains(Configuration.Role.ANALYST)) {
-				Configuration.PrivacyState privacyState = CampaignDaos.getCampaignPrivacyState(campaignId);
+			if(requesterRoles.contains(Campaign.Role.ANALYST)) {
+				Campaign.PrivacyState privacyState = CampaignDaos.getCampaignPrivacyState(campaignId);
 				
 				if((privacyState != null) && 
-				   (Configuration.PrivacyState.SHARED.equals(privacyState))) {
+				   (Campaign.PrivacyState.SHARED.equals(privacyState))) {
 					return;
 				}
 			}
@@ -632,9 +632,9 @@ public class UserCampaignServices {
 			String username, 
 			Collection<String> campaignIds, Collection<String> classIds,
 			Calendar startDate, Calendar endDate, 
-			Configuration.PrivacyState privacyState, 
-			Configuration.RunningState runningState, 
-			Configuration.Role role) throws ServiceException, DataAccessException {
+			Campaign.PrivacyState privacyState, 
+			Campaign.RunningState runningState, 
+			Campaign.Role role) throws ServiceException, DataAccessException {
 		
 		Set<String> desiredCampaignIds = new HashSet<String>();
 		
@@ -712,17 +712,17 @@ public class UserCampaignServices {
 	 * 
 	 * @throws ServiceException Thrown if there is an error.
 	 */
-	public static Map<Configuration, List<Configuration.Role>> getCampaignAndUserRolesForCampaigns(Request request,
+	public static Map<Campaign, List<Campaign.Role>> getCampaignAndUserRolesForCampaigns(Request request,
 			String username, Collection<String> campaignIds, boolean withExtras) throws ServiceException {
 		try {
-			Map<Configuration, List<Configuration.Role>> result = new HashMap<Configuration, List<Configuration.Role>>();
+			Map<Campaign, List<Campaign.Role>> result = new HashMap<Campaign, List<Campaign.Role>>();
 			
 			for(String campaignId : campaignIds) {
 				// Create the Campaign object with the campaign's ID.
-				Configuration campaign = CampaignDaos.getCampaignInformation(campaignId);
+				Campaign campaign = CampaignDaos.getCampaignInformation(campaignId);
 				
 				// Get the user's roles.
-				List<Configuration.Role> roles = UserCampaignDaos.getUserCampaignRoles(username, campaignId);
+				List<Campaign.Role> roles = UserCampaignDaos.getUserCampaignRoles(username, campaignId);
 				
 				// If we are supposed to get the extra information as well.
 				if(withExtras) {
@@ -733,9 +733,9 @@ public class UserCampaignServices {
 					// roles.
 					List<String> campaignUsernames = UserCampaignDaos.getUsersInCampaign(campaignId);
 					for(String campaignUsername : campaignUsernames) {
-						List<Configuration.Role> userRoles = UserCampaignDaos.getUserCampaignRoles(campaignUsername, campaignId);
+						List<Campaign.Role> userRoles = UserCampaignDaos.getUserCampaignRoles(campaignUsername, campaignId);
 						
-						for(Configuration.Role userRole : userRoles) {
+						for(Campaign.Role userRole : userRoles) {
 							campaign.addUser(username, userRole);
 						}
 					}
@@ -770,10 +770,10 @@ public class UserCampaignServices {
 	 */
 	public static void verifyUserCanReadUsersInCampaign(Request request, String username, String campaignId) throws ServiceException {
 		try {
-			List<Configuration.Role> roles = UserCampaignDaos.getUserCampaignRoles(username, campaignId);
+			List<Campaign.Role> roles = UserCampaignDaos.getUserCampaignRoles(username, campaignId);
 			
-			if(roles.contains(Configuration.Role.SUPERVISOR) || 
-					roles.contains(Configuration.Role.AUTHOR)) {
+			if(roles.contains(Campaign.Role.SUPERVISOR) || 
+					roles.contains(Campaign.Role.AUTHOR)) {
 				return;
 			}
 			
@@ -824,10 +824,10 @@ public class UserCampaignServices {
 	 */
 	public static void verifyUserCanReadClassesAssociatedWithCampaign(Request request, String username, String campaignId) throws ServiceException {
 		try {
-			List<Configuration.Role> roles = UserCampaignDaos.getUserCampaignRoles(username, campaignId);
+			List<Campaign.Role> roles = UserCampaignDaos.getUserCampaignRoles(username, campaignId);
 			
-			if(roles.contains(Configuration.Role.SUPERVISOR) || 
-					roles.contains(Configuration.Role.AUTHOR)) {
+			if(roles.contains(Campaign.Role.SUPERVISOR) || 
+					roles.contains(Campaign.Role.AUTHOR)) {
 				return;
 			}
 			

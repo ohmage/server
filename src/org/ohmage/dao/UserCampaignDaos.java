@@ -8,7 +8,7 @@ import java.util.Map;
 
 import javax.sql.DataSource;
 
-import org.ohmage.domain.configuration.Configuration;
+import org.ohmage.domain.campaign.Campaign;
 import org.ohmage.exception.DataAccessException;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.SingleColumnRowMapper;
@@ -130,15 +130,15 @@ public final class UserCampaignDaos extends Dao {
 	 * 
 	 * @return A possibly empty List of roles for this user in this campaign.
 	 */
-	public static List<Configuration.Role> getUserCampaignRoles(String username, String campaignId) throws DataAccessException {
+	public static List<Campaign.Role> getUserCampaignRoles(String username, String campaignId) throws DataAccessException {
 		try {
 			return instance.getJdbcTemplate().query(
 					SQL_GET_USER_CAMPAIGN_ROLES, 
 					new Object[] { username, campaignId }, 
-					new RowMapper<Configuration.Role>() {
+					new RowMapper<Campaign.Role>() {
 						@Override
-						public Configuration.Role mapRow(ResultSet rs, int rowNum) throws SQLException {
-							return Configuration.Role.getValue(rs.getString("role"));
+						public Campaign.Role mapRow(ResultSet rs, int rowNum) throws SQLException {
+							return Campaign.Role.getValue(rs.getString("role"));
 						}
 					}
 				);
@@ -192,7 +192,7 @@ public final class UserCampaignDaos extends Dao {
 	 * @return A List of unique identifiers for all campaigns with which the 
 	 * 		   user is associated and has the given role. 
 	 */
-	public static List<String> getCampaignIdsForUserWithRole(String username, Configuration.Role role) throws DataAccessException {
+	public static List<String> getCampaignIdsForUserWithRole(String username, Campaign.Role role) throws DataAccessException {
 		try {
 			return instance.getJdbcTemplate().query(
 					SQL_GET_CAMPAIGN_IDS_FOR_USER_WITH_ROLE, 

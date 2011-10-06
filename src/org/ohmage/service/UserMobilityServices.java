@@ -9,7 +9,7 @@ import org.ohmage.annotator.ErrorCodes;
 import org.ohmage.dao.CampaignDaos;
 import org.ohmage.dao.UserCampaignDaos;
 import org.ohmage.dao.UserMobilityDaos;
-import org.ohmage.domain.configuration.Configuration;
+import org.ohmage.domain.campaign.Campaign;
 import org.ohmage.exception.DataAccessException;
 import org.ohmage.exception.ServiceException;
 import org.ohmage.request.Request;
@@ -65,13 +65,13 @@ public class UserMobilityServices {
 			
 			Set<String> campaignIds = UserCampaignDaos.getCampaignIdsAndNameForUser(usersUsername).keySet();
 			for(String campaignId : campaignIds) {
-				List<Configuration.Role> requestersCampaignRoles = UserCampaignDaos.getUserCampaignRoles(requestersUsername, campaignId);
+				List<Campaign.Role> requestersCampaignRoles = UserCampaignDaos.getUserCampaignRoles(requestersUsername, campaignId);
 				
-				if(requestersCampaignRoles.contains(Configuration.Role.SUPERVISOR)) {
+				if(requestersCampaignRoles.contains(Campaign.Role.SUPERVISOR)) {
 					return;
 				}
-				else if(requestersCampaignRoles.contains(Configuration.Role.ANALYST) && 
-						Configuration.PrivacyState.SHARED.equals(CampaignDaos.getCampaignPrivacyState(campaignId))) {
+				else if(requestersCampaignRoles.contains(Campaign.Role.ANALYST) && 
+						Campaign.PrivacyState.SHARED.equals(CampaignDaos.getCampaignPrivacyState(campaignId))) {
 					return;
 				}
 			}

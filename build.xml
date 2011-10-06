@@ -84,7 +84,7 @@
   <target name="javac" description="Compiles Java files.">
     <mkdir dir="${build}/classes"/>
     <javac destdir="${build}/classes" source="1.6" target="1.6"
-          debug="true" deprecation="true" optimize="false" failonerror="true" 
+          debug="true" deprecation="true" optimize="true" failonerror="true" 
     	  encoding="UTF-8">
       <compilerarg value="-Xlint:unchecked"/>
       <src path="${src}"/>
@@ -100,7 +100,7 @@
   <target name="javac-validator" description="Compiles Java files to create the campaign validator.">
     <mkdir dir="${build}/classes"/>
     <javac destdir="${build}/classes" source="1.6" target="1.6"
-          debug="true" deprecation="true" optimize="false" failonerror="true" 
+          debug="true" deprecation="true" optimize="true" failonerror="true" 
     	  encoding="UTF-8">
       <compilerarg value="-Xlint:unchecked"/>
       <src path="${src}"/>
@@ -122,8 +122,11 @@
   	      encoding="UTF-8" includeantruntime="false">
   	  <compilerarg value="-Xlint:unchecked"/>
   	  <src path="${src}"/>
+  	  <include name="org/ohmage/domain/**" />
   	  <include name="org/ohmage/lib/**" />
-  	  <include name="org/ohmage/util/StringUtils.java" />
+  	  <include name="org/ohmage/util/**" />
+  	  <include name="org/ohmage/exception/ErrorCodeException.java" />
+      <exclude name="org/ohmage/domain/Audit.java" />
   	  <classpath refid="compile-classpath"/>
   	</javac>
   	<copy todir="${build}/classes">
@@ -141,6 +144,22 @@
         <include name="**/*.java"/>
       </fileset>
        <classpath refid="compile-classpath"/>
+    </javadoc>
+  </target>
+	
+  <target name="javadoc-library" description="Compiles Javadocs for the library only.">
+    <mkdir dir="${build}/docs"/>
+    <javadoc destdir="${build}/docs" private="true" link="http://java.sun.com/javase/6/docs/api/"
+             encoding="UTF-8" additionalparam="-quiet">
+      <fileset dir="${src}">
+        <include name="org/ohmage/domain/**" />
+        <include name="org/ohmage/lib/**" />
+        <include name="org/ohmage/util/**" />
+      	<include name="org/ohmage/annotator/**" />
+        <include name="org/ohmage/exception/ErrorCodeException.java" />
+      	<exclude name="org/ohmage/domain/Audit.java" />
+      </fileset>
+      <classpath refid="compile-classpath"/>
     </javadoc>
   </target>
 
@@ -227,19 +246,22 @@
     </jar>
   </target>
 
-  <target name="dist-library" depends="javac-library"
+  <target name="dist-library" depends="javac-library, javadoc-library"
         description="Compiles java files to create the library JAR.">
     <mkdir dir="${dist}"/>
     <echo message="Warning: Bundling of dependencies will not work if jars are organized in subdirs in component repository."/>
     <jar destfile="${dist}/ohmage-${app_version}-api.jar">
       <fileset dir="${build}/classes">
+      	<include name="org/ohmage/domain/**" />
   	    <include name="org/ohmage/lib/**" />
-  	    <include name="org/ohmage/util/StringUtils.class" />
+      	<include name="org/ohmage/util/**" />
+      	<include name="org/ohmage/exception/ErrorCodeException.class" />
+        <exclude name="org/ohmage/domain/Audit.java" />
   	  </fileset>
-      <fileset dir="${src}">
-        <include name="org/ohmage/lib/**" />
-      	<include name="org/ohmage/util/StringUtils.java" />
+      <fileset dir="${build}">
+        <include name="docs/**" />
       </fileset>
+      <zipfileset src="${component.repository}/xom-1.2.6.jar" excludes="META-INF/*" />
   	  <zipfileset src="${component.repository}/json-dot-org-2010-01-05.jar" excludes="META-INF/*" />
   	  <zipfileset src="${component.repository}/httpcore-4.1.2.jar" excludes="META-INF/*" />
   	  <zipfileset src="${component.repository}/httpclient-4.1.2.jar" excludes="META-INF/*" />

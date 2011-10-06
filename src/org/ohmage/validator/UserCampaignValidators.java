@@ -7,7 +7,7 @@ import java.util.Set;
 
 import org.apache.log4j.Logger;
 import org.ohmage.annotator.ErrorCodes;
-import org.ohmage.domain.configuration.Configuration;
+import org.ohmage.domain.campaign.Campaign;
 import org.ohmage.exception.ValidationException;
 import org.ohmage.request.InputKeys;
 import org.ohmage.request.Request;
@@ -51,7 +51,7 @@ public class UserCampaignValidators {
 	 * 							   pairs are invalid, or either the username or
 	 * 							   class role are invalid.
 	 */
-	public static Map<String, Set<Configuration.Role>> validateUserAndCampaignRole(Request request, String userAndCampaignRoleList) throws ValidationException {
+	public static Map<String, Set<Campaign.Role>> validateUserAndCampaignRole(Request request, String userAndCampaignRoleList) throws ValidationException {
 		LOGGER.info("Validating a list of user and class role pairs.");
 		
 		// If it's null or empty, return null.
@@ -60,7 +60,7 @@ public class UserCampaignValidators {
 		}
 		
 		// Create the resulting object which will initially be empty.
-		Map<String, Set<Configuration.Role>> result = new HashMap<String, Set<Configuration.Role>>();
+		Map<String, Set<Campaign.Role>> result = new HashMap<String, Set<Campaign.Role>>();
 		// Split the parameterized value into its pairs.
 		String[] userAndRoleArray = userAndCampaignRoleList.split(InputKeys.LIST_ITEM_SEPARATOR);
 		
@@ -88,16 +88,16 @@ public class UserCampaignValidators {
 					throw new ValidationException("The username in the username, campaign role pair is missing: " + currUserAndRole);
 				}
 				
-				Configuration.Role role = CampaignValidators.validateRole(request, userAndRole[1].trim());
+				Campaign.Role role = CampaignValidators.validateRole(request, userAndRole[1].trim());
 				if(role == null) {
 					request.setFailed(ErrorCodes.CAMPAIGN_INVALID_ROLE, "The campaign role in the username, campaign role pair is missing: " + currUserAndRole);
 					throw new ValidationException("The campaign role in the username, campaign role pair is missing: " + currUserAndRole);
 				}
 				
 				// Add the role to the list of roles.
-				Set<Configuration.Role> roles = result.get(username);
+				Set<Campaign.Role> roles = result.get(username);
 				if(roles == null) {
-					roles = new HashSet<Configuration.Role>();
+					roles = new HashSet<Campaign.Role>();
 					result.put(username, roles);
 				}
 				roles.add(role);

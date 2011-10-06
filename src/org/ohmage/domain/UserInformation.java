@@ -9,7 +9,7 @@ import java.util.Set;
 import org.apache.log4j.Logger;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.ohmage.domain.configuration.Configuration;
+import org.ohmage.domain.campaign.Campaign;
 
 /**
  * This class is responsible for collecting and displaying the information 
@@ -34,7 +34,7 @@ public class UserInformation {
 	private final boolean campaignCreationPrivilege;
 	
 	private final Map<String, String> campaigns;
-	private final Set<Configuration.Role> campaignRoles;
+	private final Set<Campaign.Role> campaignRoles;
 	
 	private final Map<String, String> classes;
 	private final Set<Clazz.Role> classRoles;
@@ -51,7 +51,7 @@ public class UserInformation {
 		this.campaignCreationPrivilege = campaignCreationPrivilege;
 		
 		campaigns = new HashMap<String, String>();
-		campaignRoles = new HashSet<Configuration.Role>();
+		campaignRoles = new HashSet<Campaign.Role>();
 		
 		classes = new HashMap<String, String>();
 		classRoles = new HashSet<Clazz.Role>();
@@ -95,7 +95,7 @@ public class UserInformation {
 	 * 
 	 * @param campaignRole A campaign role to be added to be added to the list.
 	 */
-	public void addCampaignRole(Configuration.Role campaignRole) {
+	public void addCampaignRole(Campaign.Role campaignRole) {
 		if(campaignRole == null) {
 			throw new NullPointerException("The campaign role is null.");
 		}
@@ -110,7 +110,7 @@ public class UserInformation {
 	 * @param campaignRoles A Collection of campaign roles to be added to the
 	 * 						list.
 	 */
-	public void addCampaignRoles(Collection<Configuration.Role> campaignRoles) {
+	public void addCampaignRoles(Collection<Campaign.Role> campaignRoles) {
 		if(campaignRoles == null) {
 			throw new NullPointerException("The collection of campaign roles is null.");
 		}
