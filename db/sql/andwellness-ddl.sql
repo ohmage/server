@@ -467,7 +467,7 @@ CREATE TABLE document_user_role (
 CREATE TABLE document_user_creator (
   id int unsigned NOT NULL auto_increment,
   document_id int unsigned NOT NULL,
-  username varchar(15) NOT NULL,
+  username varchar(25) NOT NULL,
   PRIMARY KEY (id),
   UNIQUE (document_id),
   CONSTRAINT FOREIGN KEY (document_id) REFERENCES document (id) ON DELETE CASCADE ON UPDATE CASCADE
