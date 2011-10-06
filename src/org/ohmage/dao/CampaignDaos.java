@@ -375,12 +375,13 @@ public final class CampaignDaos extends Dao {
 			// Add the requesting user as the author. This may have already 
 			// happened above.
 			try {
-				instance.getJdbcTemplate().update(SQL_INSERT_USER_ROLE_CAMPAIGN, creatorUsername, campaignId, CampaignRoleCache.Role.AUTHOR);
+				instance.getJdbcTemplate().update(SQL_INSERT_USER_ROLE_CAMPAIGN, creatorUsername, campaignId, CampaignRoleCache.Role.AUTHOR.toString());
 			}
 			catch(org.springframework.dao.DataIntegrityViolationException e) {
 				// The user was already an author of this campaign implying 
 				// that it's one of the default campaign roles based on a class
 				// role that the 'creatorUsername' has.
+				e.printStackTrace();
 			}
 			catch(org.springframework.dao.DataAccessException e) {
 				transactionManager.rollback(status);
