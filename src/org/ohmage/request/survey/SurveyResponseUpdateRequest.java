@@ -107,9 +107,9 @@ public class SurveyResponseUpdateRequest extends UserRequest {
 				else {
 					tPrivacyState = SurveyResponseValidators.validatePrivacyState(this, privacyStates[0]);
 					
-					if(! SurveyResponsePrivacyStateCache.instance().getKeys().contains(tPrivacyState)) {
-						setFailed(ErrorCodes.SURVEY_INVALID_PRIVACY_STATE, "Found unknown privacy_state: " + tPrivacyState);
-						throw new ValidationException("Found unknown privacy_state: " + tPrivacyState);
+					if(tPrivacyState == null) {
+						setFailed(ErrorCodes.SURVEY_INVALID_PRIVACY_STATE, "Privacy state is missing.");
+						throw new ValidationException("Privacy state is missing.");
 					}
 				}
 			}
