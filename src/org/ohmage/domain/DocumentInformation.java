@@ -87,8 +87,8 @@ public class DocumentInformation {
 		else if(StringUtils.isEmptyOrWhitespaceOnly(name)) {
 			throw new IllegalArgumentException("The document's name cannot be null or whitespace only.");
 		}
-		else if(! DocumentPrivacyStateCache.instance().getKeys().contains(privacyState)) {
-			throw new IllegalArgumentException("The document's privacy state cannot be null or whitespace only.");
+		else if(privacyState == null) {
+			throw new IllegalArgumentException("The document's privacy state cannot be null.");
 		}
 		else if(lastModified == null) {
 			throw new IllegalArgumentException("The document's last modified value cannot be null.");

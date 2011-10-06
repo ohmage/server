@@ -149,7 +149,13 @@ public class SurveyUploadRequest extends UserRequest {
 				else {
 					
 					// Make sure it's a valid timestamp
-					DateValidators.validateISO8601DateTime(t[0]);
+					try {
+						DateValidators.validateISO8601DateTime(t[0]);
+					} 
+					catch(ValidationException e) {
+						setFailed(ErrorCodes.SERVER_INVALID_TIMESTAMP, "campaign_creation_timestamp is malformed");
+						throw e;
+					}
 					tCampaignCreationTimestamp = t[0];
 				}
 				
