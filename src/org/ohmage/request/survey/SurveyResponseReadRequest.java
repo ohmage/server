@@ -227,7 +227,7 @@ public final class SurveyResponseReadRequest extends UserRequest {
 	public static final String URN_REPEATABLE_SET_ITERATION = "urn:ohmage:repeatable_set:iteration";
 	public static final String URN_PROMPT_RESPONSE = "urn:ohmage:prompt:response";
 	
-	private static final String URN_PROMPT_ID_PREFIX = "urn:ohmage:prompt:id:";
+	public static final String URN_PROMPT_ID_PREFIX = "urn:ohmage:prompt:id:";
 	
 	// output format constants - these are the output formats the requester
 	// can select from
@@ -570,6 +570,8 @@ public final class SurveyResponseReadRequest extends UserRequest {
 					else {
 						resultString = result.toString();
 					}
+					
+					// TODO: ADD METADATA
 				}
 				else if(OUTPUT_FORMAT_JSON_COLUMNS.equals(outputFormat) || 
 						OUTPUT_FORMAT_CSV.equals(outputFormat)) {

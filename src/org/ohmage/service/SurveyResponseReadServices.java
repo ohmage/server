@@ -27,9 +27,13 @@ public final class SurveyResponseReadServices {
 	 * configuration.
 	 * 
 	 * @param request  The request to fail should the promptIdList be invalid.
+	 * 
 	 * @param promptIdList  The prompt ids to validate.
+	 * 
 	 * @param configuration  The configuration to use for prompt id lookup.
+	 * 
 	 * @throws ServiceException if an invalid prompt id is detected.
+	 * 
 	 * @throws IllegalArgumentException if request, promptIdList, or
 	 * configuration are null.
 	 */
@@ -60,9 +64,13 @@ public final class SurveyResponseReadServices {
 	 * configuration.
 	 * 
 	 * @param request  The request to fail should the surveyIdList be invalid.
+	 * 
 	 * @param surveyIdList  The survey ids to validate.
+	 * 
 	 * @param configuration  The configuration to use for survey id lookup
+	 * 
 	 * @throws ServiceException if an invalid survey id is detected.
+	 * 
 	 * @throws IllegalArgumentException if request, surveyIdList, or
 	 * configuration are null.
 	 */
@@ -101,10 +109,14 @@ public final class SurveyResponseReadServices {
 	 * 
 	 * 
 	 * @param user The requester behind the survey response query.
-	 * @param campaignId The campaign URN for the 
-	 * @param surveyResponseList 
+	 * 
+	 * @param campaignId The campaign URN for the
+	 *  
+	 * @param surveyResponseList
+	 *  
 	 * @param privacyState
-	 * @return
+	 * 
+	 * @return A filtered list of survey response results.
 	 */
 	public static void performPrivacyFilter(User user, String campaignId,
 		Collection<SurveyResponse> surveyResponseList, SurveyResponse.PrivacyState privacyState) {
@@ -166,6 +178,6 @@ public final class SurveyResponseReadServices {
 	 * @return true if the result is shared; false otherwise.
 	 */
 	private static boolean resultIsUnshared(SurveyResponse result) {
-		return ! SurveyResponse.PrivacyState.SHARED.equals(result.getPrivacyState()); 
+		return ! SurveyResponse.PrivacyState.SHARED.equals(result.getPrivacyState());
 	}
 }

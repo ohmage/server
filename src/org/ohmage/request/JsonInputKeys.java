@@ -64,10 +64,4 @@ public final class JsonInputKeys {
 	public static final String PROMPT_CUSTOM_CHOICES = "custom_choices";
 	public static final String PROMPT_CUSTOM_CHOICE_ID = "choice_id";
 	public static final String PROMPT_CUSTOM_CHOICE_VALUE = "choice_value";
-	
-	
-	
-	
-	// Mobility
-	
 }
