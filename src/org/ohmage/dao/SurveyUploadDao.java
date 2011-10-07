@@ -30,6 +30,7 @@ import org.ohmage.domain.campaign.SurveyResponse;
 import org.ohmage.domain.campaign.response.PhotoPromptResponse;
 import org.ohmage.exception.CacheMissException;
 import org.ohmage.exception.DataAccessException;
+import org.ohmage.request.JsonInputKeys;
 import org.ohmage.util.TimeUtils;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.jdbc.core.PreparedStatementCreator;
@@ -253,76 +254,79 @@ public class SurveyUploadDao extends AbstractUploadDao {
 							String imageId = promptResponse.getResponseValue();
 							BufferedImage imageContents = bufferedImageMap.get(imageId);
 							
-							// getDirectory() is used as opposed to accessing the current leaf
-							// directory class variable as it will do sanitation in case it hasn't
-							// been initialized or is full.
-							File imageDirectory = getDirectory();
-							File regularImage = new File(imageDirectory.getAbsolutePath() + "/" + imageId);
-							regularImageList.add(regularImage);
-							File scaledImage = new File(imageDirectory.getAbsolutePath() + "/" + imageId + IMAGE_SCALED_EXTENSION);
-							scaledImageList.add(scaledImage);
-							
-							// Write the original to the file system.
-							try {
-								ImageIO.write(imageContents, IMAGE_STORE_FORMAT, regularImage);
-							}
-							catch(IOException e) {
+							if(! JsonInputKeys.PROMPT_SKIPPED.equals(imageId) && ! JsonInputKeys.PROMPT_NOT_DISPLAYED.equals(imageId)) {
 								
-								rollback(transactionManager, status);
-								throw new DataAccessException("Error writing the regular image to the system.", e);
-							}
-							
-							// Write the scaled image to the file system.
-							try {
-								// Get the percentage to scale the image.
-								Double scalePercentage;
-								if(imageContents.getWidth() > imageContents.getHeight()) {
-									scalePercentage = IMAGE_SCALED_MAX_DIMENSION / imageContents.getWidth();
+								// getDirectory() is used as opposed to accessing the current leaf
+								// directory class variable as it will do sanitation in case it hasn't
+								// been initialized or is full.
+								File imageDirectory = getDirectory();
+								File regularImage = new File(imageDirectory.getAbsolutePath() + "/" + imageId);
+								regularImageList.add(regularImage);
+								File scaledImage = new File(imageDirectory.getAbsolutePath() + "/" + imageId + IMAGE_SCALED_EXTENSION);
+								scaledImageList.add(scaledImage);
+								
+								// Write the original to the file system.
+								try {
+									ImageIO.write(imageContents, IMAGE_STORE_FORMAT, regularImage);
 								}
-								else {
-									scalePercentage = IMAGE_SCALED_MAX_DIMENSION / imageContents.getHeight();
+								catch(IOException e) {
+									
+									rollback(transactionManager, status);
+									throw new DataAccessException("Error writing the regular image to the system.", e);
 								}
 								
-								// Calculate the scaled image's width and height.
-								int width = (new Double(imageContents.getWidth() * scalePercentage)).intValue();
-								int height = (new Double(imageContents.getHeight() * scalePercentage)).intValue();
+								// Write the scaled image to the file system.
+								try {
+									// Get the percentage to scale the image.
+									Double scalePercentage;
+									if(imageContents.getWidth() > imageContents.getHeight()) {
+										scalePercentage = IMAGE_SCALED_MAX_DIMENSION / imageContents.getWidth();
+									}
+									else {
+										scalePercentage = IMAGE_SCALED_MAX_DIMENSION / imageContents.getHeight();
+									}
+									
+									// Calculate the scaled image's width and height.
+									int width = (new Double(imageContents.getWidth() * scalePercentage)).intValue();
+									int height = (new Double(imageContents.getHeight() * scalePercentage)).intValue();
+									
+									// Create the new image of the same type as the original and of the
+									// scaled dimensions.
+									BufferedImage scaledContents = new BufferedImage(width, height, imageContents.getType());
+									
+									// Paint the original image onto the scaled canvas.
+									Graphics2D graphics2d = scaledContents.createGraphics();
+									graphics2d.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+									graphics2d.drawImage(imageContents, 0, 0, width, height, null);
+									
+									// Cleanup.
+									graphics2d.dispose();
+									
+									// Write the scaled image to the filesystem.
+									ImageIO.write(scaledContents, IMAGE_STORE_FORMAT, scaledImage);
+								}
+								catch(IOException e) {
+									regularImage.delete();
+									rollback(transactionManager, status);
+									throw new DataAccessException("Error writing the scaled image to the system.", e);
+								}
 								
-								// Create the new image of the same type as the original and of the
-								// scaled dimensions.
-								BufferedImage scaledContents = new BufferedImage(width, height, imageContents.getType());
-								
-								// Paint the original image onto the scaled canvas.
-								Graphics2D graphics2d = scaledContents.createGraphics();
-								graphics2d.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
-								graphics2d.drawImage(imageContents, 0, 0, width, height, null);
-								
-								// Cleanup.
-								graphics2d.dispose();
-								
-								// Write the scaled image to the filesystem.
-								ImageIO.write(scaledContents, IMAGE_STORE_FORMAT, scaledImage);
-							}
-							catch(IOException e) {
-								regularImage.delete();
-								rollback(transactionManager, status);
-								throw new DataAccessException("Error writing the scaled image to the system.", e);
-							}
-							
-							// Get the image's URL.
-							String url = "file://" + regularImage.getAbsolutePath();
-							// Insert the image URL into the database.
-							try {
-								instance.getJdbcTemplate().update(
-										SQL_INSERT_IMAGE, 
-										new Object[] { username, client, imageId, url }
-									);
-							}
-							catch(org.springframework.dao.DataAccessException e) {
-								regularImage.delete();
-								scaledImage.delete();
-								transactionManager.rollback(status);
-								throw new DataAccessException("Error executing SQL '" + SQL_INSERT_IMAGE + "' with parameters: " +
-										username + ", " + client + ", " + imageId + ", " + url, e);
+								// Get the image's URL.
+								String url = "file://" + regularImage.getAbsolutePath();
+								// Insert the image URL into the database.
+								try {
+									instance.getJdbcTemplate().update(
+											SQL_INSERT_IMAGE, 
+											new Object[] { username, client, imageId, url }
+										);
+								}
+								catch(org.springframework.dao.DataAccessException e) {
+									regularImage.delete();
+									scaledImage.delete();
+									transactionManager.rollback(status);
+									throw new DataAccessException("Error executing SQL '" + SQL_INSERT_IMAGE + "' with parameters: " +
+											username + ", " + client + ", " + imageId + ", " + url, e);
+								}
 							}
 						}
 					}
