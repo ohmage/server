@@ -34,6 +34,8 @@ import org.ohmage.util.SurveyResponseReadWriterUtils;
 /**
  * Services for survey response read.
  * 
+ * FIXME: every output method in this class incorrectly ignores the suppress_metadata API parameter
+ * 
  * @author Joshua Selsky
  */
 public final class SurveyResponseReadServices {
@@ -49,9 +51,13 @@ public final class SurveyResponseReadServices {
 	 * configuration.
 	 * 
 	 * @param request  The request to fail should the promptIdList be invalid.
+	 * 
 	 * @param promptIdList  The prompt ids to validate.
+	 * 
 	 * @param configuration  The configuration to use for prompt id lookup.
+	 * 
 	 * @throws ServiceException if an invalid prompt id is detected.
+	 * 
 	 * @throws IllegalArgumentException if request, promptIdList, or
 	 * configuration are null.
 	 */
@@ -82,9 +88,13 @@ public final class SurveyResponseReadServices {
 	 * configuration.
 	 * 
 	 * @param request  The request to fail should the surveyIdList be invalid.
+	 * 
 	 * @param surveyIdList  The survey ids to validate.
+	 * 
 	 * @param configuration  The configuration to use for survey id lookup
+	 * 
 	 * @throws ServiceException if an invalid survey id is detected.
+	 * 
 	 * @throws IllegalArgumentException if request, surveyIdList, or
 	 * configuration are null.
 	 */
@@ -123,10 +133,14 @@ public final class SurveyResponseReadServices {
 	 * 
 	 * 
 	 * @param user The requester behind the survey response query.
-	 * @param campaignId The campaign URN for the 
-	 * @param surveyResponseList 
+	 * 
+	 * @param campaignId The campaign URN for the
+	 *  
+	 * @param surveyResponseList
+	 *  
 	 * @param privacyState
-	 * @return
+	 * 
+	 * @return A filtered list of survey response results.
 	 */
 	public static List<SurveyResponseReadResult> performPrivacyFilter(User user, String campaignId,
 		List<SurveyResponseReadResult> surveyResponseList, SurveyResponsePrivacyStateCache.PrivacyState privacyState) {
@@ -147,8 +161,6 @@ public final class SurveyResponseReadServices {
 			for(int i = 0; i < numberOfResults; i++) {
 				
 				SurveyResponseReadResult currentResult = surveyResponseList.get(i);
-				
-				// _logger.info(currentResult.getPrivacyState());
 				
 				// Filter based on our ACL rules
 				
@@ -204,37 +216,104 @@ public final class SurveyResponseReadServices {
 		return ! result.getPrivacyState().equals(SurveyResponsePrivacyStateCache.PrivacyState.SHARED); 
 	}
 	
-	/* Methods for generating output */
+	// ---------------------------------------------------
+	// Constants and methods used for generating output 
+	// ---------------------------------------------------
 	
 	private static final String NEWLINE = System.getProperty("line.separator");
 	
+	private static final String JSON_OUTPUT_KEY_RESULT = "result";
+	private static final String JSON_OUTPUT_VALUE_SUCCESS = "success";
+	private static final String JSON_OUTPUT_KEY_NUMBER_OF_PROMPTS = "number_of_prompts";
+	private static final String JSON_OUTPUT_KEY_NUMBER_OF_SURVEYS = "number_of_surveys";
+	private static final String JSON_OUTPUT_KEY_ITEMS = "items";
+	private static final String JSON_OUTPUT_KEY_METADATA = "metadata";
+	private static final String JSON_OUTPUT_KEY_CAMPAIGN_URN = "campaign_urn";
+	private static final String JSON_OUTPUT_KEY_USER = "user";
+	private static final String JSON_OUTPUT_KEY_CLIENT = "client";
+	private static final String JSON_OUTPUT_KEY_TIMESTAMP = "timestamp";
+	private static final String JSON_OUTPUT_KEY_TIMEZONE = "timezone";
+	private static final String JSON_OUTPUT_KEY_UTC_TIMESTAMP = "utc_timestamp";
+	private static final String JSON_OUTPUT_KEY_LAUNCH_CONTEXT_LONG = "launch_context_long";
+	private static final String JSON_OUTPUT_KEY_LAUNCH_CONTEXT_SHORT = "launch_context_short";
+	private static final String JSON_OUTPUT_KEY_LOCATION_STATUS = "location_status";
+	private static final String LOCATION_STATUS_UNAVAILABLE = "unavailable";
+	private static final String JSON_OUTPUT_KEY_LATITUDE = "latitude";
+	private static final String JSON_OUTPUT_KEY_LONGITUDE = "longitude";
+	private static final String JSON_OUTPUT_KEY_LOCATION_TIMESTAMP = "location_timestamp";
+	private static final String JSON_OUTPUT_KEY_ACCURACY = "accuracy";
+	private static final String JSON_OUTPUT_KEY_LOCATION_ACCURACY = "location_accuracy";
+	private static final String JSON_OUTPUT_KEY_PROVIDER = "provider";
+	private static final String JSON_OUTPUT_KEY_LOCATION_PROVIDER = "location_provider";
+	private static final String JSON_OUTPUT_KEY_SURVEY_ID = "survey_id";
+	private static final String JSON_OUTPUT_KEY_SURVEY_TITLE = "survey_title";
+	private static final String JSON_OUTPUT_KEY_SURVEY_DESCRIPTION = "survey_description";
+	private static final String JSON_OUTPUT_KEY_SURVEY_PRIVACY_STATE = "privacy_state";
+	private static final String JSON_OUTPUT_KEY_REPEATABLE_SET_ID = "repeatable_set_id";
+	private static final String JSON_OUTPUT_KEY_REPEATABLE_SET_ITERATION = "repeatable_set_iteration";
+	private static final String JSON_OUTPUT_KEY_PROMPT_CHOICE_GLOSSARY = "prompt_choice_glossary";
+	private static final String JSON_OUTPUT_KEY_CHOICE_LABEL = "label";
+	private static final String JSON_OUTPUT_KEY_CHOICE_TYPE = "type";
+	private static final String JSON_OUTPUT_KEY_PROMPT_RESPONSE = "prompt_response";
+	private static final String JSON_OUTPUT_KEY_PROMPT_DISPLAY_TYPE = "prompt_display_type";
+	private static final String JSON_OUTPUT_KEY_PROMPT_UNIT = "prompt_unit";
+	private static final String JSON_OUTPUT_KEY_PROMPT_TYPE = "prompt_type";
+	private static final String JSON_OUTPUT_KEY_PROMPT_TEXT = "prompt_text";
+	private static final String JSON_OUTPUT_KEY_PROMPT_INDEX = "prompt_index";
+	private static final String JSON_OUTPUT_KEY_PROMPT_RESPONSES = "responses";
+	private static final String JSON_OUTPUT_KEY_SURVEY_KEY = "survey_key";
+	private static final String JSON_OUTPUT_KEY_DATA = "data";
+	
 	/**
+	 * Creates JSON rows output as defined by our specification. The word
+	 * "rows" is used to signify that each survey response for a particular
+	 * query is returned in its own row as a JSON object consisting of the 
+	 * usual keys and values. This allows for tabular or flat record-style 
+	 * rendering of the results. The main use case for json-rows output is a UI
+	 * for browseable editable prompt responses.
 	 * 
-	 * @param request
-	 * @param numberOfSurveys
-	 * @param numberOfPrompts
-	 * @param indexedResultList
-	 * @param outputColumns
-	 * @param uniqueCustomChoiceMap
-	 * @return
-	 * @throws JSONException
+	 * @param request  The request to use for retrieving and utilizing output
+	 * formatting parameters: return_id, collapse, pretty_print. 
+	 * 
+	 * @param numberOfSurveys  The number of surveys as calculated by the
+	 * caller of this method.
+	 * 
+	 * @param numberOfPrompts  The number of prompt responses as calculated
+	 * by the caller of this method.
+	 * 
+	 * @param indexedResultList  The list of "indexed" results where each
+	 * result represents a single survey response with all of its associated
+	 * prompt responses.
+	 * 
+	 * @param rowItems  The list of row items that dictates which data will be 
+	 * present in the output.
+	 * 
+	 * @param uniqueCustomChoiceMap  For a given custom choice prompt response,
+	 * all of the choices by every user in the query output are rolled up into 
+	 * one unique list of choices which is then mapped to the prompt id.
+	 * 
+	 * @return Returns JSON rows output as a String.
+	 * 
+	 * @throws JSONException  If any error occurs when attempting to build the
+	 * JSON response.
 	 */
 	public static String generateJsonRowsOutput(SurveyResponseReadRequest request, 
 			                                    int numberOfSurveys,
 			                                    int numberOfPrompts,
 			                                    List<SurveyResponseReadIndexedResult> indexedResultList,
-			                                    List<String> outputColumns,
+			                                    List<String> rowItems,
 			                                    Map<String, List<CustomChoiceItem>> uniqueCustomChoiceMap) throws JSONException {
 		
 		LOGGER.info("Generating row-based JSON output");
 		
 		JSONObject main = new JSONObject();
-		main.put("result", "success");
+		main.put(JSON_OUTPUT_KEY_RESULT, JSON_OUTPUT_VALUE_SUCCESS);
+		
 		JSONObject metadata = new JSONObject();
-		metadata.put("number_of_prompts", numberOfPrompts);
-		metadata.put("number_of_surveys", numberOfSurveys);
-		metadata.put("items", outputColumns);
-		main.put("metadata", metadata);
+		metadata.put(JSON_OUTPUT_KEY_NUMBER_OF_PROMPTS, numberOfPrompts);
+		metadata.put(JSON_OUTPUT_KEY_NUMBER_OF_SURVEYS, numberOfSurveys);
+		metadata.put(JSON_OUTPUT_KEY_ITEMS, rowItems);
+		main.put(JSON_OUTPUT_KEY_METADATA, metadata);
 		
 		if(indexedResultList.size() > 0) {
 			
@@ -244,139 +323,144 @@ public final class SurveyResponseReadServices {
 				
 				JSONObject record = new JSONObject();
 				
-				for(String rowItem : outputColumns) {
+				// Build the output according to the output columns the client
+				// software provided to the API
 				
-					if("urn:ohmage:user:id".equals(rowItem)) {
-						
-						record.put("user", result.getUsername());
-						
-					} else if("urn:ohmage:context:client".equals(rowItem)) {
-						
-						record.put("client", result.getClient());
+				for(String rowItem : rowItems) {
 					
-					} else if("urn:ohmage:context:timestamp".equals(rowItem)){
+					if(SurveyResponseReadRequest.URN_USER_ID.equals(rowItem)) {
 						
-						record.put("timestamp", result.getTimestamp());
-					
-					} else if("urn:ohmage:context:timezone".equals(rowItem)) {
+						record.put(JSON_OUTPUT_KEY_USER, result.getUsername());
 						
-						record.put("timezone", result.getTimezone());
+					} else if(SurveyResponseReadRequest.URN_CONTEXT_CLIENT.equals(rowItem)) {
 						
-					} else if("urn:ohmage:context:utc_timestamp".equals(rowItem)) {
+						record.put(JSON_OUTPUT_KEY_CLIENT, result.getClient());
+						
+					} else if(SurveyResponseReadRequest.URN_CONTEXT_TIMESTAMP.equals(rowItem)){
+						
+						record.put(JSON_OUTPUT_KEY_TIMESTAMP, result.getTimestamp());
+						
+					} else if(SurveyResponseReadRequest.URN_CONTEXT_TIMEZONE.equals(rowItem)) {
+						
+						record.put(JSON_OUTPUT_KEY_TIMEZONE, result.getTimezone());
+						
+					} else if(SurveyResponseReadRequest.URN_CONTEXT_UTC_TIMESTAMP.equals(rowItem)) {
 					
-						record.putOpt("utc_timestamp", SurveyResponseReadWriterUtils.generateUtcTimestamp(result));
+						record.putOpt(JSON_OUTPUT_KEY_UTC_TIMESTAMP, SurveyResponseReadWriterUtils.generateUtcTimestamp(result));
 					
-				    } else if("urn:ohmage:context:launch_context_long".equals(rowItem)) {
+				    } else if(SurveyResponseReadRequest.URN_CONTEXT_LAUNCH_CONTEXT_LONG.equals(rowItem)) {
 				    	
-				    	record.put("launch_context_long", result.getLaunchContext() == null ? null : new JSONObject(result.getLaunchContext()));
+				    	record.put(JSON_OUTPUT_KEY_LAUNCH_CONTEXT_LONG, result.getLaunchContext() == null 
+				    			?  null : new JSONObject(result.getLaunchContext()));
 				    	
-				    } else if("urn:ohmage:context:launch_context_short".equals(rowItem)) {
+				    } else if(SurveyResponseReadRequest.URN_CONTEXT_LAUNCH_CONTEXT_SHORT.equals(rowItem)) {
 				    	
-				    	record.put("launch_context_short", result.getLaunchContext() == null ? null : SurveyResponseReadWriterUtils.shortLaunchContext(result.getLaunchContext()));
+				    	record.put(JSON_OUTPUT_KEY_LAUNCH_CONTEXT_SHORT, result.getLaunchContext() == null 
+				    			? null : SurveyResponseReadWriterUtils.shortLaunchContext(result.getLaunchContext()));
 				    	
-				    } else if("urn:ohmage:context:location:status".equals(rowItem)) {
+				    } else if(SurveyResponseReadRequest.URN_CONTEXT_LOCATION_STATUS.equals(rowItem)) {
 				    
-				    	record.put("location_status", result.getLocationStatus());
+				    	record.put(JSON_OUTPUT_KEY_LOCATION_STATUS, result.getLocationStatus());
 				    
-				    } else if("urn:ohmage:context:location:latitude".equals(rowItem)) {
+				    } else if(SurveyResponseReadRequest.URN_CONTEXT_LOCATION_LATITUDE.equals(rowItem)) {
 				    	
-				    	if(! "unavailable".equals(result.getLocationStatus())) {
+				    	if(! LOCATION_STATUS_UNAVAILABLE.equals(result.getLocationStatus())) {
 				    		JSONObject location = new JSONObject(result.getLocation());
 				    		
-				    		if(! Double.isNaN(location.optDouble("latitude"))) {
-				    			record.put("latitude", location.optDouble("latitude"));
+				    		if(! Double.isNaN(location.optDouble(JSON_OUTPUT_KEY_LATITUDE))) {
+				    			record.put(JSON_OUTPUT_KEY_LATITUDE, location.optDouble(JSON_OUTPUT_KEY_LATITUDE));
 							} else {
-								record.put("latitude", JSONObject.NULL);
+								record.put(JSON_OUTPUT_KEY_LATITUDE, JSONObject.NULL);
 							}
 				    		
 				    	} else {
-							record.put("latitude", JSONObject.NULL);
+							record.put(JSON_OUTPUT_KEY_LATITUDE, JSONObject.NULL);
 						}
 				    
-				    } else if("urn:ohmage:context:location:longitude".equals(rowItem)) {
+				    } else if(SurveyResponseReadRequest.URN_CONTEXT_LOCATION_LONGITUDE.equals(rowItem)) {
 				    	
-				    	if(! "unavailable".equals(result.getLocationStatus())) {
+				    	if(! LOCATION_STATUS_UNAVAILABLE.equals(result.getLocationStatus())) {
 				    		JSONObject location = new JSONObject(result.getLocation());
 				    		
-				    		if(! Double.isNaN(location.optDouble("longitude"))) {
-				    			record.put("longitude", location.optDouble("longitude"));
+				    		if(! Double.isNaN(location.optDouble(JSON_OUTPUT_KEY_LONGITUDE))) {
+				    			record.put(JSON_OUTPUT_KEY_LONGITUDE, location.optDouble(JSON_OUTPUT_KEY_LONGITUDE));
 							} else {
-								record.put("longitude", JSONObject.NULL);
+								record.put(JSON_OUTPUT_KEY_LONGITUDE, JSONObject.NULL);
 							}
 				    	} else {
-							record.put("longitude", JSONObject.NULL);
+							record.put(JSON_OUTPUT_KEY_LONGITUDE, JSONObject.NULL);
 						}
 				    	
-				    } else if("urn:ohmage:context:location:timestamp".equals(rowItem)) {
+				    } else if(SurveyResponseReadRequest.URN_CONTEXT_LOCATION_TIMESTAMP.equals(rowItem)) {
 				    	
-				    	if(! "unavailable".equals(result.getLocationStatus())) { 
+				    	if(! LOCATION_STATUS_UNAVAILABLE.equals(result.getLocationStatus())) { 
 					    	JSONObject location = new JSONObject(result.getLocation());
 					    	
-					    	if(! "".equals(location.optString("timestamp")) ) { 
-					    		record.put("location_timestamp", location.optString("timestamp"));
+					    	if(! "".equals(location.optString(JSON_OUTPUT_KEY_TIMESTAMP)) ) { 
+					    		record.put(JSON_OUTPUT_KEY_LOCATION_TIMESTAMP, location.optString(JSON_OUTPUT_KEY_TIMESTAMP));
 					    	} else {
-					    		record.put("location_timestamp", JSONObject.NULL);
+					    		record.put(JSON_OUTPUT_KEY_LOCATION_TIMESTAMP, JSONObject.NULL);
 					    	}
 				    	} else {
-				    		record.put("location_timestamp", JSONObject.NULL);
+				    		record.put(JSON_OUTPUT_KEY_LOCATION_TIMESTAMP, JSONObject.NULL);
 				    	}
 				    	
-				    } else if("urn:ohmage:context:location:accuracy".equals(rowItem)) {
+				    } else if(SurveyResponseReadRequest.URN_CONTEXT_LOCATION_ACCURACY.equals(rowItem)) {
 				    	
-				    	if(! "unavailable".equals(result.getLocationStatus())) {
+				    	if(! LOCATION_STATUS_UNAVAILABLE.equals(result.getLocationStatus())) {
 				    		
 					    	JSONObject location = new JSONObject(result.getLocation());
 					    	
-				    		if(! Double.isNaN(location.optDouble("accuracy"))) {
-				    			record.put("location_accuracy", location.optDouble("accuracy"));
+				    		if(! Double.isNaN(location.optDouble(JSON_OUTPUT_KEY_ACCURACY))) {
+				    			record.put(JSON_OUTPUT_KEY_LOCATION_ACCURACY, location.optDouble(JSON_OUTPUT_KEY_ACCURACY));
 							} else {
-								record.put("location_accuracy", JSONObject.NULL);
+								record.put(JSON_OUTPUT_KEY_LOCATION_ACCURACY, JSONObject.NULL);
 							}
 				    	} else {
-							record.put("location_accuracy", JSONObject.NULL);
+							record.put(JSON_OUTPUT_KEY_LOCATION_ACCURACY, JSONObject.NULL);
 						}
 				    	
-				    } else if("urn:ohmage:context:location:provider".equals(rowItem)) {
+				    } else if(SurveyResponseReadRequest.URN_CONTEXT_LOCATION_PROVIDER.equals(rowItem)) {
 				    	
-				    	if(! "unavailable".equals(result.getLocationStatus())) { 
+				    	if(! LOCATION_STATUS_UNAVAILABLE.equals(result.getLocationStatus())) { 
 					    	JSONObject location = new JSONObject(result.getLocation());
 					    	
-					    	if(! "".equals(location.optString("provider")) ) { 
-					    		record.put("location_provider", location.optString("provider"));
+					    	if(! "".equals(location.optString(JSON_OUTPUT_KEY_PROVIDER)) ) { 
+					    		record.put(JSON_OUTPUT_KEY_LOCATION_PROVIDER, location.optString(JSON_OUTPUT_KEY_PROVIDER));
 					    	} else {
-					    		record.put("location_provider", JSONObject.NULL);
+					    		record.put(JSON_OUTPUT_KEY_LOCATION_PROVIDER, JSONObject.NULL);
 					    	}
 				    	} else {
-				    		record.put("location_provider", JSONObject.NULL);
+				    		record.put(JSON_OUTPUT_KEY_LOCATION_PROVIDER, JSONObject.NULL);
 				    	}
 				    	
-				    } else if ("urn:ohmage:survey:id".equals(rowItem)) {
+				    } else if (SurveyResponseReadRequest.URN_SURVEY_ID.equals(rowItem)) { 
 				    	
-				    	record.put("survey_id", result.getSurveyId());
+				    	record.put(JSON_OUTPUT_KEY_SURVEY_ID, result.getSurveyId());
 				    	
-				    } else if("urn:ohmage:survey:title".equals(rowItem)) {
+				    } else if(SurveyResponseReadRequest.URN_SURVEY_TITLE.equals(rowItem)) {
 				    	
-				    	record.put("survey_title", result.getSurveyTitle());
+				    	record.put(JSON_OUTPUT_KEY_SURVEY_TITLE, result.getSurveyTitle());
 				    
-				    } else if("urn:ohmage:survey:description".equals(rowItem)) {
+				    } else if(SurveyResponseReadRequest.URN_SURVEY_DESCRIPTION.equals(rowItem)) {
 				    	
-				    	record.put("survey_description", result.getSurveyDescription());
+				    	record.put(JSON_OUTPUT_KEY_SURVEY_DESCRIPTION, result.getSurveyDescription());
 				    	
-				    } else if("urn:ohmage:survey:privacy_state".equals(rowItem)) {
+				    } else if(SurveyResponseReadRequest.URN_SURVEY_PRIVACY_STATE.equals(rowItem)) {
 				    	
-				    	record.put("privacy_state", result.getPrivacyState());
+				    	record.put(JSON_OUTPUT_KEY_SURVEY_PRIVACY_STATE, result.getPrivacyState());
 				    	
-				    } else if("urn:ohmage:repeatable_set:id".equals(rowItem)) {
+				    } else if(SurveyResponseReadRequest.URN_REPEATABLE_SET_ID.equals(rowItem)) {
 				    	
-				    	record.put("repeatable_set_id", 
+				    	record.put(JSON_OUTPUT_KEY_REPEATABLE_SET_ID, 
 				    		result.getRepeatableSetId() == null ? JSONObject.NULL : result.getRepeatableSetId());
 				    
-				    } else if("urn:ohmage:repeatable_set:iteration".equals(rowItem)) {
+				    } else if(SurveyResponseReadRequest.URN_REPEATABLE_SET_ITERATION.equals(rowItem)) {
 				    	
-				    	record.put("repeatable_set_iteration", 
+				    	record.put(JSON_OUTPUT_KEY_REPEATABLE_SET_ITERATION, 
 				    		result.getRepeatableSetIteration() == null ? JSONObject.NULL : result.getRepeatableSetIteration());
 				    
-					} else if (rowItem.startsWith("urn:ohmage:prompt:id:")) {
+					} else if (rowItem.startsWith(SurveyResponseReadRequest.URN_PROMPT_ID_PREFIX)) {
 						
 						JSONObject promptObject = new JSONObject();
 						
@@ -392,33 +476,33 @@ public final class SurveyResponseReadServices {
 							List<CustomChoiceItem> customChoiceItemList = (null == uniqueCustomChoiceMap ? null : uniqueCustomChoiceMap.get(key));
 							
 							if(null != ppMap) {
-								response.put("prompt_choice_glossary", SurveyResponseReadWriterUtils.choiceGlossaryToJson(ppMap));
+								response.put(JSON_OUTPUT_KEY_PROMPT_CHOICE_GLOSSARY, SurveyResponseReadWriterUtils.choiceGlossaryToJson(ppMap));
 							} 
-							else if(null != customChoiceItemList)  {
+							else if (null != customChoiceItemList)  {
 								JSONObject choiceGlossaryObject = new JSONObject();
 								for(CustomChoiceItem cci : customChoiceItemList) {
 									JSONObject choice = new JSONObject();
-									choice.put("label", cci.getLabel());
-									choice.put("type", cci.getType());
+									choice.put(JSON_OUTPUT_KEY_CHOICE_LABEL, cci.getLabel());
+									choice.put(JSON_OUTPUT_KEY_CHOICE_TYPE, cci.getType());
 									choiceGlossaryObject.put(String.valueOf(cci.getId()), choice);
 								}
-								response.put("prompt_choice_glossary", choiceGlossaryObject);
+								response.put(JSON_OUTPUT_KEY_PROMPT_CHOICE_GLOSSARY, choiceGlossaryObject);
 							}
 							
-							response.put("prompt_response", promptResponseMap.get(key));
-							response.put("prompt_display_type", promptResponseMetadataMap.get(key).getDisplayType());
-							response.put("prompt_unit", promptResponseMetadataMap.get(key).getUnit());
-							response.put("prompt_type", promptResponseMetadataMap.get(key).getPromptType());
-							response.put("prompt_text", promptResponseMetadataMap.get(key).getPromptText());
-							response.put("prompt_index", request.getConfiguration().getIndexForPrompt(result.getSurveyId(), key));
+							response.put(JSON_OUTPUT_KEY_PROMPT_RESPONSE, promptResponseMap.get(key));
+							response.put(JSON_OUTPUT_KEY_PROMPT_DISPLAY_TYPE, promptResponseMetadataMap.get(key).getDisplayType());
+							response.put(JSON_OUTPUT_KEY_PROMPT_UNIT, promptResponseMetadataMap.get(key).getUnit());
+							response.put(JSON_OUTPUT_KEY_PROMPT_TYPE, promptResponseMetadataMap.get(key).getPromptType());
+							response.put(JSON_OUTPUT_KEY_PROMPT_TEXT, promptResponseMetadataMap.get(key).getPromptText());
+							response.put(JSON_OUTPUT_KEY_PROMPT_INDEX, request.getConfiguration().getIndexForPrompt(result.getSurveyId(), key));
 							promptObject.put(key, response); // the key here is the prompt_id from the XML config
 						}
 
-						record.put("responses", promptObject);
+						record.put(JSON_OUTPUT_KEY_PROMPT_RESPONSES, promptObject);
 					}
 					
 					if(request.getReturnId()) { // only allowed for json-rows output
-						record.put("survey_key", result.getSurveyPrimaryKeyId());
+						record.put(JSON_OUTPUT_KEY_SURVEY_KEY, result.getSurveyPrimaryKeyId());
 					}
 				}
 				
@@ -430,7 +514,9 @@ public final class SurveyResponseReadServices {
 			if(request.getCollapse()) {
 				int size = dataArray.length();
 				
-				LOGGER.info("Number of results before collapsing: " + size);
+				if(LOGGER.isDebugEnabled()) {
+					LOGGER.debug("Number of results before collapsing: " + size);
+				}
 				
 				for(int i = 0; i < size; i++) {
 					String string = dataArray.getJSONObject(i).toString();
@@ -441,29 +527,57 @@ public final class SurveyResponseReadServices {
 					} 
 				}
 				
-				LOGGER.info("Number of results after collapsing: " + dataArray.length());
+				if(LOGGER.isDebugEnabled()) {
+					LOGGER.debug("Number of results after collapsing: " + dataArray.length());
+				}
 			}
 			
-			main.put("data", dataArray);
+			main.put(JSON_OUTPUT_KEY_DATA, dataArray);
 			
 		} else {
 			
-			main.put("data", new JSONArray());
+			main.put(JSON_OUTPUT_KEY_DATA, new JSONArray());
 		}
 		
 		return request.getPrettyPrint() ? main.toString(4) : main.toString();		
 	}
 	
 	/**
+	 * Creates JSON columns output as defined by our specification. The word
+	 * "columns" is used to signify that each item in a survey response for a
+	 * particular query is returned in a kind of JSON matrix where there is a
+	 * column header, but the data itself is not labelled. Each column is a JSON
+	 * object with a key mapped to a JSON array of output values relevant for
+	 * that particular column, The main use case for json-columns output is for
+	 * consumption by rApache. It is also used (in conjunction the collapse 
+	 * parameter by the web front-end to generate smart filtered drop-down 
+	 * lists (e.g., find all users that have survey responses within a 
+	 * particular campaign). 
 	 * 
-	 * @param request
-	 * @param numberOfSurveys
-	 * @param numberOfPrompts
-	 * @param indexedResultList
-	 * @param outputColumns
-	 * @param uniqueCustomChoiceMap
-	 * @return
-	 * @throws JSONException
+	 * @param request  The request to use for retrieving and utilizing output
+	 * formatting parameters: return_id, collapse, pretty_print. 
+	 * 
+	 * @param numberOfSurveys  The number of surveys as calculated by the
+	 * caller of this method.
+	 * 
+	 * @param numberOfPrompts  The number of prompt responses as calculated
+	 * by the caller of this method.
+	 * 
+	 * @param indexedResultList  The list of "indexed" results where each results 
+	 * represents a single survey response with all of its associated prompt
+	 * responses.
+	 * 
+	 * @param outputColumns  The list of output columns that dictates which 
+	 * items will be present in the output.
+	 * 
+	 * @param uniqueCustomChoiceMap  For a given custom choice prompt response,
+	 * all of the choices by every user in the query output are rolled up into 
+	 * one unique list of choices which is then mapped to the prompt id.
+	 * 
+	 * @return Returns JSON columns output as a String.
+	 * 
+	 * @throws JSONException  If any error occurs when attempting to build the
+	 * JSON response.
 	 */
 	public static String generateMultiResultJsonColumnOutput(SurveyResponseReadRequest request, 
                                                              int numberOfSurveys,
@@ -512,45 +626,45 @@ public final class SurveyResponseReadServices {
 					columnMap.put(outputColumnKey, columnList);
 				}	
 				
-				if("urn:ohmage:user:id".equals(outputColumnKey)) {
+				if(SurveyResponseReadRequest.URN_USER_ID.equals(outputColumnKey)) {
 					
 					columnMap.get(outputColumnKey).add(result.getUsername());
 					
-				} else if("urn:ohmage:context:client".equals(outputColumnKey)) {
+				} else if(SurveyResponseReadRequest.URN_CONTEXT_CLIENT.equals(outputColumnKey)) {
 					
 					columnMap.get(outputColumnKey).add(result.getClient());
 				
-				} else if("urn:ohmage:context:timestamp".equals(outputColumnKey)){
+				} else if(SurveyResponseReadRequest.URN_CONTEXT_TIMESTAMP.equals(outputColumnKey)){
 					
 					columnMap.get(outputColumnKey).add(result.getTimestamp());
 				
-				} else if("urn:ohmage:context:timezone".equals(outputColumnKey)) {
+				} else if(SurveyResponseReadRequest.URN_CONTEXT_TIMEZONE.equals(outputColumnKey)) {
 					
 					columnMap.get(outputColumnKey).add(result.getTimezone());
 					
-				} else if("urn:ohmage:context:utc_timestamp".equals(outputColumnKey)) {
+				} else if(SurveyResponseReadRequest.URN_CONTEXT_UTC_TIMESTAMP.equals(outputColumnKey)) {
 				
 					columnMap.get(outputColumnKey).add(SurveyResponseReadWriterUtils.generateUtcTimestamp(result));
 				
-			    } else if("urn:ohmage:context:launch_context_long".equals(outputColumnKey)) {
+			    } else if(SurveyResponseReadRequest.URN_CONTEXT_LAUNCH_CONTEXT_LONG.equals(outputColumnKey)) {
 			    	
 			    	columnMap.get(outputColumnKey).add(result.getLaunchContext() == null ? null : new JSONObject(result.getLaunchContext()));
 			    	
-			    } else if("urn:ohmage:context:launch_context_short".equals(outputColumnKey)) {
+			    } else if(SurveyResponseReadRequest.URN_CONTEXT_LAUNCH_CONTEXT_SHORT.equals(outputColumnKey)) {
 			    	
 			    	columnMap.get(outputColumnKey).add(result.getLaunchContext() == null ? null : SurveyResponseReadWriterUtils.shortLaunchContext(result.getLaunchContext()));
 			    	
-			    } else if("urn:ohmage:context:location:status".equals(outputColumnKey)) {
+			    } else if(SurveyResponseReadRequest.URN_CONTEXT_LOCATION_STATUS.equals(outputColumnKey)) {
 			    
 			    	columnMap.get(outputColumnKey).add(result.getLocationStatus());
-			    
-			    } else if("urn:ohmage:context:location:latitude".equals(outputColumnKey)) {
+			     
+			    } else if(SurveyResponseReadRequest.URN_CONTEXT_LOCATION_LATITUDE.equals(outputColumnKey)) {
 			    	
-			    	if(! "unavailable".equals(result.getLocationStatus())) {
+			    	if(! LOCATION_STATUS_UNAVAILABLE.equals(result.getLocationStatus())) {
 			    		JSONObject location = new JSONObject(result.getLocation());
 			    		
-			    		if(! Double.isNaN(location.optDouble("latitude"))) {
-			    			columnMap.get(outputColumnKey).add(location.optDouble("latitude"));
+			    		if(! Double.isNaN(location.optDouble(JSON_OUTPUT_KEY_LATITUDE))) {
+			    			columnMap.get(outputColumnKey).add(location.optDouble(JSON_OUTPUT_KEY_LATITUDE));
 						} else {
 							columnMap.get(outputColumnKey).add(JSONObject.NULL);
 						}
@@ -559,13 +673,13 @@ public final class SurveyResponseReadServices {
 						columnMap.get(outputColumnKey).add(JSONObject.NULL);
 					}
 			    
-			    } else if("urn:ohmage:context:location:longitude".equals(outputColumnKey)) {
+			    } else if(SurveyResponseReadRequest.URN_CONTEXT_LOCATION_LONGITUDE.equals(outputColumnKey)) {
 			    	
-			    	if(! "unavailable".equals(result.getLocationStatus())) {
+			    	if(! LOCATION_STATUS_UNAVAILABLE.equals(result.getLocationStatus())) {
 			    		JSONObject location = new JSONObject(result.getLocation());
 			    		
-			    		if(! Double.isNaN(location.optDouble("longitude"))) {
-			    			columnMap.get(outputColumnKey).add(location.optDouble("longitude"));
+			    		if(! Double.isNaN(location.optDouble(JSON_OUTPUT_KEY_LONGITUDE))) {
+			    			columnMap.get(outputColumnKey).add(location.optDouble(JSON_OUTPUT_KEY_LONGITUDE));
 						} else {
 							columnMap.get(outputColumnKey).add(JSONObject.NULL);
 						}
@@ -573,13 +687,13 @@ public final class SurveyResponseReadServices {
 						columnMap.get(outputColumnKey).add(JSONObject.NULL);
 					}
 			    	
-			    } else if("urn:ohmage:context:location:timestamp".equals(outputColumnKey)) {
+			    } else if(SurveyResponseReadRequest.URN_CONTEXT_LOCATION_TIMESTAMP.equals(outputColumnKey)) {
 			    	
-			    	if(! "unavailable".equals(result.getLocationStatus())) { 
+			    	if(! LOCATION_STATUS_UNAVAILABLE.equals(result.getLocationStatus())) { 
 				    	JSONObject location = new JSONObject(result.getLocation());
 				    	
-				    	if(! "".equals(location.optString("timestamp")) ) { 
-				    		columnMap.get(outputColumnKey).add(location.optString("timestamp"));
+				    	if(! "".equals(location.optString(JSON_OUTPUT_KEY_TIMESTAMP)) ) { 
+				    		columnMap.get(outputColumnKey).add(location.optString(JSON_OUTPUT_KEY_TIMESTAMP));
 				    	} else {
 				    		columnMap.get(outputColumnKey).add(JSONObject.NULL);
 				    	}
@@ -587,14 +701,14 @@ public final class SurveyResponseReadServices {
 			    		columnMap.get(outputColumnKey).add(JSONObject.NULL);
 			    	}
 			    	
-			    } else if("urn:ohmage:context:location:accuracy".equals(outputColumnKey)) {
+			    } else if(SurveyResponseReadRequest.URN_CONTEXT_LOCATION_ACCURACY.equals(outputColumnKey)) {
 			    	
-			    	if(! "unavailable".equals(result.getLocationStatus())) {
+			    	if(! LOCATION_STATUS_UNAVAILABLE.equals(result.getLocationStatus())) {
 			    		
 				    	JSONObject location = new JSONObject(result.getLocation());
 				    	
-			    		if(! Double.isNaN(location.optDouble("accuracy"))) {
-			    			columnMap.get(outputColumnKey).add(location.optDouble("accuracy"));
+			    		if(! Double.isNaN(location.optDouble(JSON_OUTPUT_KEY_ACCURACY))) {
+			    			columnMap.get(outputColumnKey).add(location.optDouble(JSON_OUTPUT_KEY_ACCURACY));
 						} else {
 							columnMap.get(outputColumnKey).add(JSONObject.NULL);
 						}
@@ -602,13 +716,13 @@ public final class SurveyResponseReadServices {
 						columnMap.get(outputColumnKey).add(JSONObject.NULL);
 					}
 			    	
-			    } else if("urn:ohmage:context:location:provider".equals(outputColumnKey)) {
+			    } else if(SurveyResponseReadRequest.URN_CONTEXT_LOCATION_PROVIDER.equals(outputColumnKey)) {
 			    	
-			    	if(! "unavailable".equals(result.getLocationStatus())) { 
+			    	if(! LOCATION_STATUS_UNAVAILABLE.equals(result.getLocationStatus())) { 
 				    	JSONObject location = new JSONObject(result.getLocation());
 				    	
-				    	if(! "".equals(location.optString("provider")) ) { 
-				    		columnMap.get(outputColumnKey).add(location.optString("provider"));
+				    	if(! "".equals(location.optString(JSON_OUTPUT_KEY_PROVIDER)) ) { 
+				    		columnMap.get(outputColumnKey).add(location.optString(JSON_OUTPUT_KEY_PROVIDER));
 				    	} else {
 				    		columnMap.get(outputColumnKey).add(JSONObject.NULL);
 				    	}
@@ -616,33 +730,33 @@ public final class SurveyResponseReadServices {
 			    		columnMap.get(outputColumnKey).add(JSONObject.NULL);
 			    	}
 			    	
-			    } else if ("urn:ohmage:survey:id".equals(outputColumnKey)) {
+			    } else if (SurveyResponseReadRequest.URN_SURVEY_ID.equals(outputColumnKey)) {
 			    	
 			    	columnMap.get(outputColumnKey).add(result.getSurveyId());
 			    	
-			    } else if("urn:ohmage:survey:title".equals(outputColumnKey)) {
+			    } else if(SurveyResponseReadRequest.URN_SURVEY_TITLE.equals(outputColumnKey)) {
 			    	
 			    	columnMap.get(outputColumnKey).add(result.getSurveyTitle());
 			    
-			    } else if("urn:ohmage:survey:description".equals(outputColumnKey)) {
+			    } else if(SurveyResponseReadRequest.URN_SURVEY_DESCRIPTION.equals(outputColumnKey)) {
 			    	
 			    	columnMap.get(outputColumnKey).add(result.getSurveyDescription());
 			    	
-			    } else if("urn:ohmage:survey:privacy_state".equals(outputColumnKey)) {
+			    } else if(SurveyResponseReadRequest.URN_SURVEY_PRIVACY_STATE.equals(outputColumnKey)) {
 			    	
 			    	columnMap.get(outputColumnKey).add(result.getPrivacyState());
 			    	
-			    } else if("urn:ohmage:repeatable_set:id".equals(outputColumnKey)) {
+			    } else if(SurveyResponseReadRequest.URN_REPEATABLE_SET_ID.equals(outputColumnKey)) {
 			    	
 			    	columnMap.get(outputColumnKey).add(result.getRepeatableSetId() == null ? JSONObject.NULL : result.getRepeatableSetId());
 			    
-			    } else if("urn:ohmage:repeatable_set:iteration".equals(outputColumnKey)) {
+			    } else if(SurveyResponseReadRequest.URN_REPEATABLE_SET_ITERATION.equals(outputColumnKey)) {
 			    	
 			    	columnMap.get(outputColumnKey).add(result.getRepeatableSetIteration() == null ? JSONObject.NULL : result.getRepeatableSetIteration());
 			    
-				} else if (outputColumnKey.startsWith("urn:ohmage:prompt:id:")) {
+				} else if (outputColumnKey.startsWith(SurveyResponseReadRequest.URN_PROMPT_ID_PREFIX)) {
 					
-					columnMap.get(outputColumnKey).add(result.getPromptResponseMap().get(outputColumnKey.substring("urn:ohmage:prompt:id:".length())));
+					columnMap.get(outputColumnKey).add(result.getPromptResponseMap().get(outputColumnKey.substring(SurveyResponseReadRequest.URN_PROMPT_ID_PREFIX.length())));
 				}
 			}
 		}
@@ -651,21 +765,20 @@ public final class SurveyResponseReadServices {
 		
 		// Build metadata section
 		JSONObject main = new JSONObject();
-		main.put("result", "success");
+		main.put(JSON_OUTPUT_KEY_RESULT, JSON_OUTPUT_VALUE_SUCCESS);
 		JSONObject metadata = new JSONObject();
-		metadata.put("campaign_urn", request.getCampaignUrn());
-		metadata.put("number_of_prompts", numberOfPrompts);
-		metadata.put("number_of_surveys", numberOfSurveys);
+		metadata.put(JSON_OUTPUT_KEY_CAMPAIGN_URN, request.getCampaignUrn());
+		metadata.put(JSON_OUTPUT_KEY_NUMBER_OF_PROMPTS, numberOfPrompts);
+		metadata.put(JSON_OUTPUT_KEY_NUMBER_OF_SURVEYS, numberOfSurveys);
 		JSONArray items = new JSONArray();
 		for(String key : outputColumns) {
 			items.put(key);
 		}
-		metadata.put("items", items);
-		main.put("metadata", metadata);
+		metadata.put(JSON_OUTPUT_KEY_ITEMS, items);
+		main.put(JSON_OUTPUT_KEY_METADATA, metadata);
 		
 		JSONArray data = new JSONArray();
-		main.put("data", data);
-
+		main.put(JSON_OUTPUT_KEY_DATA, data);
 		
 		Iterator<String> columnMapIterator = columnMap.keySet().iterator();
 		while(columnMapIterator.hasNext()) {
@@ -731,11 +844,12 @@ public final class SurveyResponseReadServices {
 		}
 				
 		return request.getPrettyPrint() ? main.toString(4) : main.toString();
-
-
 	}
 	
 	/**
+	 * Generates zero-result output for a json-columns request. 
+	 * 
+	 * FIXME: this method incorrectly ignores the suppress-metadata parameter
 	 * 
 	 * @param request
 	 * @param outputColumns
@@ -859,10 +973,14 @@ public final class SurveyResponseReadServices {
 		
 		// Sort the column map key set for predictable columnar output.
 		// In the future, there can be a column_order parameter to the API 
-		// For now, canonicalize into 'ohmage order': user, datetime, survey id, repeatable set id, repeatable set iteration,
-		// prompt id, and then 'context' columns and survey title and description in alpha order
+		// For now, canonicalize into 'ohmage order': user, datetime, survey 
+		// id, repeatable set id, repeatable set iteration, prompt id, prompt
+		// response, and then 'context' columns and survey title and 
+		// description in alpha order
 		
-		// Note that not all columns are necessarily present. This is based on the column_list parameter passed to the API.
+		// Note that not all columns are necessarily present The columns in the
+		// outputColumns list are dependent on what was provided to the HTTP
+		// API call.
 	
 		TreeSet<String> sortedColumnMapKeySet = new TreeSet<String>(outputColumns);
 		ArrayList<String> canonicalColumnList = new ArrayList<String>();
@@ -897,7 +1015,9 @@ public final class SurveyResponseReadServices {
 			sortedColumnMapKeySet.remove("urn:ohmage:repeatable_set:iteration");
 		}
 		
-		// Group all of the prompts in the order in which they appear in the survey XML
+		// Group all of the prompts in the order in which they appear in the
+		// survey XML
+		
 		Configuration configuration = request.getConfiguration();
 		Map<String, List<Object>> surveyIdToPromptIdListMap = new HashMap<String, List<Object>>();
 		
@@ -1224,9 +1344,14 @@ public final class SurveyResponseReadServices {
 	}
 	
 	/**
-	 * FIXME: move to StringUtils 
-	 * @param string
-	 * @return
+	 * Utitlity method for cleaning text for CSV output. "Fixes" strings so 
+	 * programs like Excel interpret the values as belonging to a single 
+	 * column.
+	 * 
+	 * @param string The string to clean and quote.
+	 * @return A double quoted version of the provided string wih all of its
+	 * double quotes replaced by single quotes and all whitespace converted 
+	 * to single spaces.
 	 */
 	private static String cleanAndQuoteString(String string) {
 		if(null != string) {
