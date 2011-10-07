@@ -28,9 +28,10 @@ import org.ohmage.util.StringUtils;
 
 
 /**
- * Immutable bean-style wrapper for accessing and validating campaign configuration properties. The methods in this class assume
- * that the caller has validated that the parameters (i.e., prompt ids, survey ids, repeatable set ids) are valid for a 
- * particular configuration instance.
+ * Immutable bean-style wrapper for accessing and validating campaign 
+ * configuration properties. The methods in this class assume that the caller
+ * has validated that the parameters (i.e., prompt ids, survey ids, repeatable
+ * set ids) are valid for a particular configuration instance.
  * 
  * @author Joshua Selsky
  */
@@ -45,6 +46,18 @@ public class Configuration {
 	private Map<String, Survey> surveyMap;
 	private String xml;
 	
+	/**
+	 * Creates a configuration from XML and db properties.
+	 * 
+	 * @param urn  The campaign URN.
+	 * @param name  The campaign name.
+	 * @param description  The campaign description.
+	 * @param runningState  The campaign's running state
+	 * @param privacyState  The campaign's privacy state
+	 * @param creationTimestamp  The campaign's creation timestamp.
+	 * @param surveyMap  A Map of the surveys contained by the campaign.
+	 * @param xml  The raw campaign XML.
+	 */
 	public Configuration(String urn, String name, String description, 
 			CampaignRunningStateCache.RunningState runningState, 
 			CampaignPrivacyStateCache.PrivacyState privacyState, 
