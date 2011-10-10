@@ -1,8 +1,12 @@
 package org.ohmage.domain.campaign;
 
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.ohmage.util.StringUtils;
 
 public final class Message extends SurveyItem {
+	private static final String JSON_KEY_TEXT = "text";
+	
 	/**
 	 * The text to be displayed to the user.
 	 */
@@ -63,6 +67,32 @@ public final class Message extends SurveyItem {
 	@Override
 	public int getNumPrompts() {
 		return 0;
+	}
+	
+	/**
+	 * Creates a JSONObject that represents this message.
+	 * 
+	 * @return A JSONObject that represents this message.
+	 */
+	@Override
+	public JSONObject toJson() {
+		try {
+			JSONObject result = super.toJson();
+			
+			if(result == null) {
+				// FIXME: This should ignore what the parent does and let the
+				// exception propogate.
+				return null;
+			}
+			
+			result.put(JSON_KEY_TEXT, text);
+			
+			return result;
+		}
+		catch(JSONException e) {
+			// FIXME: This should throw an exception.
+			return null;
+		}
 	}
 
 	/**

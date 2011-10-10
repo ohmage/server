@@ -1,5 +1,8 @@
 package org.ohmage.domain.campaign;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 /**
  * This class corresponds to all objects that present information to or sample
  * information from a user.  
@@ -7,6 +10,10 @@ package org.ohmage.domain.campaign;
  * @author John Jenkins
  */
 public abstract class SurveyItem {
+	private static final String JSON_KEY_ID = "id";
+	private static final String JSON_KEY_CONDITION = "condition";
+	private static final String JSON_KEY_INDEX = "index";
+	
 	/**
 	 * The prompt's campaign-unique identifier.
 	 */
@@ -28,6 +35,64 @@ public abstract class SurveyItem {
 	 * the top of the survey hierarchy.
 	 */
 	private RepeatableSet parent = null;
+	
+	/**
+	 * This class represents all of the different possible types of survey
+	 * items.
+	 * 
+	 * @author John Jenkins
+	 */
+	public static enum Type {
+		MESSAGE ("message"),
+		REPEATABLE_SET ("repeatableSet"),
+		PROMPT ("prompt");
+		
+		private final String xmlValue;
+		
+		/**
+		 * Creates a Type with how it is displayed in XML.
+		 * 
+		 * @param xmlValue The XML value for a survey item type.
+		 */
+		private Type(final String xmlValue) { 
+			this.xmlValue = xmlValue;
+		}
+		
+		/**
+		 * Compares the 'xmlValue' with the internal XML value for each of the
+		 * types until a match is found, which is returned. If no match is 
+		 * found an exception is thrown.
+		 * 
+		 * @param xmlValue The value to be compared to the Types' XML values.
+		 * 
+		 * @return A Type that is equivalent to the XML type of one of the 
+		 * 		   Types.
+		 * 
+		 * @throws IllegalArgumentException Thrown if no Type has the XML type
+		 * 									'xmlValue'.
+		 */
+		public static Type getValue(final String xmlValue) {
+			Type[] types = Type.values();
+			
+			for(int i = 0; i < types.length; i++) {
+				if(types[i].xmlValue.equals(xmlValue)) {
+					return types[i];
+				}
+			}
+			
+			throw new IllegalArgumentException("Unknown type.");
+		}
+		
+		/**
+		 * Returns the XML value for this Type.
+		 * 
+		 * @return The XML value for this Type.
+		 */
+		@Override
+		public String toString() {
+			return xmlValue;
+		}
+	}
 	
 	/**
 	 * Creates an abstract prompt with a condition determining if it should be
@@ -90,12 +155,24 @@ public abstract class SurveyItem {
 	}
 	
 	/**
-	 * Sets the parent of this survey item which must be a repeatable set.
+	 * Generates a JSONObject that represents this survey item.
 	 * 
-	 * @param parent The repeatable set that contains this survey item.
+	 * @return A JSONObject representing this survey item.
 	 */
-	protected void setParent(final RepeatableSet parent) {
-		this.parent = parent;
+	public JSONObject toJson() {
+		try {
+			JSONObject result = new JSONObject();
+			
+			result.put(JSON_KEY_ID, id);
+			result.put(JSON_KEY_CONDITION, condition);
+			result.put(JSON_KEY_INDEX, index);
+			
+			return result;
+		}
+		catch(JSONException e) {
+			// FIXME: This should throw an exception.
+			return null;
+		}
 	}
 	
 	/**
@@ -152,5 +229,14 @@ public abstract class SurveyItem {
 		} else if (!id.equals(other.id))
 			return false;
 		return true;
+	}
+	
+	/**
+	 * Sets the parent of this survey item which must be a repeatable set.
+	 * 
+	 * @param parent The repeatable set that contains this survey item.
+	 */
+	protected void setParent(final RepeatableSet parent) {
+		this.parent = parent;
 	}
 }

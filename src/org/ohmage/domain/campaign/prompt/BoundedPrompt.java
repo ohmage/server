@@ -4,6 +4,8 @@ import java.math.BigInteger;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.ohmage.domain.campaign.Prompt;
 import org.ohmage.domain.campaign.Response.NoResponse;
 
@@ -16,14 +18,18 @@ import org.ohmage.domain.campaign.Response.NoResponse;
  * @author John Jenkins
  */
 public abstract class BoundedPrompt extends Prompt {
+	private static final String JSON_KEY_LOWER_BOUND = "min";
+	private static final String JSON_KEY_UPPER_BOUND = "max";
+	private static final String JSON_KEY_DEFAULT = "default";
+	
 	/**
 	 * The campaign configuration property key for the lower bound.
 	 */
-	public static final String KEY_MIN = "min";
+	public static final String XML_KEY_MIN = "min";
 	/**
 	 * The campaign configuration property key for the upper bound.
 	 */
-	public static final String KEY_MAX = "max";
+	public static final String XML_KEY_MAX = "max";
 	
 	private final long min;
 	private final long max;
@@ -75,16 +81,15 @@ public abstract class BoundedPrompt extends Prompt {
 	 * @throws IllegalArgumentException Thrown if any of the required 
 	 * 									parameters are missing or invalid. 
 	 */
-	public BoundedPrompt(final String condition, 
-			final String id, final String unit,
-			final String text, 
+	public BoundedPrompt(final String id, final String condition, 
+			final String unit, final String text, 
 			final String abbreviatedText, final String explanationText,
 			final boolean skippable, final String skipLabel,
 			final DisplayType displayType, final String displayLabel,
 			final long min, final long max, final Long defaultValue,
 			final Type type, final int index) {
 		
-		super(condition, id, unit, text, abbreviatedText, explanationText,
+		super(id, condition, unit, text, abbreviatedText, explanationText,
 				skippable, skipLabel, displayType, displayLabel, 
 				type, index);
 		
@@ -203,6 +208,34 @@ public abstract class BoundedPrompt extends Prompt {
 		}
 		
 		return longValue;
+	}
+	
+	/**
+	 * Creates a JSONObject that represents this bounded prompt.
+	 * 
+	 * @return A JSONObject that represents this bounded prompt.
+	 */
+	@Override
+	public JSONObject toJson() {
+		try {
+			JSONObject result = super.toJson();
+			
+			if(result == null) {
+				// FIXME: Ignore the exception thrown, allowing it to 
+				// propagate.
+				return null;
+			}
+			
+			result.put(JSON_KEY_LOWER_BOUND, min);
+			result.put(JSON_KEY_UPPER_BOUND, max);
+			result.put(JSON_KEY_DEFAULT, defaultValue);
+			
+			return result;
+		}
+		catch(JSONException e) {
+			// FIXME: Throw an exception.
+			return null;
+		}
 	}
 
 	/**

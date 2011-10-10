@@ -463,6 +463,10 @@ public class SurveyResponse {
 		else if(locationStatus == null) {
 			throw new IllegalArgumentException("The location status cannot be null.");
 		}
+		else if((! LocationStatus.UNAVAILABLE.equals(locationStatus)) && 
+				(location == null)) {
+			throw new IllegalArgumentException("THe location status is not unavailable, but the location status is null.");
+		}
 		else if(privacyState == null) {
 			throw new IllegalArgumentException("The privacy state cannot be null.");
 		}
@@ -574,7 +578,7 @@ public class SurveyResponse {
 		}
 		
 		try {
-			locationStatus = LocationStatus.valueOf(response.getString(JSON_KEY_LOCATION_STATUS));
+			locationStatus = LocationStatus.valueOf(response.getString(JSON_KEY_LOCATION_STATUS).toUpperCase());
 		}
 		catch(JSONException e) {
 			throw new ErrorCodeException(ErrorCodes.SERVER_INVALID_LOCATION_STATUS, "The location status is missing.", e);
@@ -603,7 +607,7 @@ public class SurveyResponse {
 		catch(JSONException e) {
 			throw new ErrorCodeException(ErrorCodes.SURVEY_INVALID_RESPONSES, "There weren't any responses for the survey.", e);
 		}
-		this.promptResponses = processResponses(campaign.getSurveys().get(surveyId).getSurveyItems(), responses, 0);
+		this.promptResponses = processResponses(campaign.getSurveys().get(surveyId).getSurveyItems(), responses, -1);
 	}
 	
 	/**
@@ -995,7 +999,15 @@ public class SurveyResponse {
 				
 				try {
 					String promptId = currResponse.getString(JSON_KEY_PROMPT_ID);
-					Prompt prompt = (Prompt) surveyItems.get(promptId);
+					Prompt prompt = null;
+					for(SurveyItem surveyItem : surveyItems.values()) {
+						if(surveyItem.getId().equals(promptId)) {
+							prompt = (Prompt) surveyItem;
+						}
+					}
+					if(prompt == null) {
+						throw new ErrorCodeException(ErrorCodes.SURVEY_INVALID_RESPONSES, "The prompt ID is unknown: " + promptId);
+					}
 					
 					results.put(
 							prompt.getIndex(),
@@ -1007,7 +1019,15 @@ public class SurveyResponse {
 				catch(JSONException notPrompt) {
 					try {
 						String repeatableSetId = currResponse.getString(JSON_KEY_REPEATABLE_SET_ID);
-						RepeatableSet repeatableSet = (RepeatableSet) surveyItems.get(repeatableSetId);
+						RepeatableSet repeatableSet = null;
+						for(SurveyItem surveyItem : surveyItems.values()) {
+							if(surveyItem.getId().equals(repeatableSetId)) {
+								repeatableSet = (RepeatableSet) surveyItem;
+							}
+						}
+						if(repeatableSet == null) {
+							throw new ErrorCodeException(ErrorCodes.SURVEY_INVALID_RESPONSES, "The repeatable set ID is unknown: " + repeatableSetId);
+						}
 						
 						results.put(
 								repeatableSet.getIndex(),
@@ -1029,18 +1049,20 @@ public class SurveyResponse {
 		}
 		
 		for(SurveyItem surveyItem : surveyItems.values()) {
-			String surveyItemId = surveyItem.getId();
-			boolean found = false;
-		
-			for(Response response : results.values()) {
-				if(response.getId().equals(surveyItemId)) {
-					found = true;
-					break;
-				}
-			}
+			if(! (surveyItem instanceof Message)) {
+				String surveyItemId = surveyItem.getId();
+				boolean found = false;
 			
-			if(! found) {
-				throw new ErrorCodeException(ErrorCodes.SURVEY_INVALID_RESPONSES, "The response is missing a response for the prompt: " + surveyItemId);
+				for(Response response : results.values()) {
+					if(response.getId().equals(surveyItemId)) {
+						found = true;
+						break;
+					}
+				}
+				
+				if(! found) {
+					throw new ErrorCodeException(ErrorCodes.SURVEY_INVALID_RESPONSES, "The response is missing a response for the prompt: " + surveyItemId);
+				}
 			}
 		}
 		
@@ -1090,7 +1112,7 @@ public class SurveyResponse {
 		
 		return prompt.createResponse(
 				responseObject, 
-				(repeatableSetIteration == 0) ? null : repeatableSetIteration);
+				(repeatableSetIteration < 0) ? null : repeatableSetIteration);
 	}
 	
 	/**
@@ -1134,7 +1156,7 @@ public class SurveyResponse {
 				result.addResponseGroup(
 						i + 1, 
 						processResponses(
-								repeatableSet.getPrompts(), 
+								repeatableSet.getSurveyItems(), 
 								responses.getJSONArray(i),
 								i
 							)

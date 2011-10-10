@@ -12,11 +12,11 @@ public class TextPrompt extends BoundedPrompt {
 	/**
 	 * Creates a new text prompt.
 	 * 
-	 * @param condition The condition determining if this prompt should be
-	 * 					displayed.
-	 * 
 	 * @param id The unique identifier for the prompt within its survey item
 	 * 			 group.
+	 * 
+	 * @param condition The condition determining if this prompt should be
+	 * 					displayed.
 	 * 
 	 * @param unit The unit value for this prompt.
 	 * 
@@ -48,15 +48,14 @@ public class TextPrompt extends BoundedPrompt {
 	 * @throws IllegalArgumentException Thrown if any of the required 
 	 * 									parameters are missing or invalid. 
 	 */
-	public TextPrompt(final String condition, 
-			final String id, final String unit,
-			final String text, 
+	public TextPrompt(final String id, final String condition, 
+			final String unit, final String text, 
 			final String abbreviatedText, final String explanationText,
 			final boolean skippable, final String skipLabel,
 			final DisplayType displayType, final String displayLabel,
 			final long min, final long max, final int index) {
 		
-		super(condition, id, unit, text, abbreviatedText, explanationText,
+		super(id, condition, unit, text, abbreviatedText, explanationText,
 				skippable, skipLabel, displayType, displayLabel, 
 				min, max, null, Type.TEXT, index);
 	}
@@ -138,7 +137,7 @@ public class TextPrompt extends BoundedPrompt {
 		if((repeatableSetIteration == null) && (getParent() != null)) {
 			throw new IllegalArgumentException("The repeatable set iteration is null, but this prompt is part of a repeatable set.");
 		}
-		else if(repeatableSetIteration < 0) {
+		else if((repeatableSetIteration != null) && (repeatableSetIteration < 0)) {
 			throw new IllegalArgumentException("The repeatable set iteration value is negative.");
 		}
 		

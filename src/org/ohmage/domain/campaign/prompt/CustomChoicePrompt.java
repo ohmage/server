@@ -20,11 +20,11 @@ public abstract class CustomChoicePrompt extends ChoicePrompt {
 	/**
 	 * Creates a custom choice prompt.
 	 * 
-	 * @param condition The condition determining if this prompt should be
-	 * 					displayed.
-	 * 
 	 * @param id The unique identifier for the prompt within its survey item
 	 * 			 group.
+	 * 
+	 * @param condition The condition determining if this prompt should be
+	 * 					displayed.
 	 * 
 	 * @param unit The unit value for this prompt.
 	 * 
@@ -61,9 +61,8 @@ public abstract class CustomChoicePrompt extends ChoicePrompt {
 	 * @throws IllegalArgumentException Thrown if any of the required 
 	 * 									parameters are missing or invalid. 
 	 */
-	public CustomChoicePrompt(final String condition, 
-			final String id, final String unit,
-			final String text, 
+	public CustomChoicePrompt(final String id, final String condition, 
+			final String unit, final String text, 
 			final String abbreviatedText, final String explanationText,
 			final boolean skippable, final String skipLabel,
 			final DisplayType displayType, final String displayLabel,
@@ -71,7 +70,7 @@ public abstract class CustomChoicePrompt extends ChoicePrompt {
 			final Map<Integer, LabelValuePair> customChoices, 
 			final Type type, final int index) {
 		
-		super(condition, id, unit, text, abbreviatedText, explanationText,
+		super(id, condition, unit, text, abbreviatedText, explanationText,
 				skippable, skipLabel, displayType, displayLabel, 
 				choices, type, index);
 		
@@ -182,9 +181,15 @@ public abstract class CustomChoicePrompt extends ChoicePrompt {
 		try {
 			JSONObject result = super.toJson();
 			
+			if(result == null) {
+				// FIXME: Ignore the exception thrown, allowing it to 
+				// propagate.
+				return null;
+			}
+			
 			JSONObject choiceGlossary = result.getJSONObject(JSON_KEY_CHOICE_GLOSSARY);
 			for(Integer key : customChoices.keySet()) {
-				choiceGlossary.put(key.toString(), customChoices.get(key));
+				choiceGlossary.put(key.toString(), customChoices.get(key).toJson());
 			}
 			result.put(JSON_KEY_CHOICE_GLOSSARY, choiceGlossary);
 			

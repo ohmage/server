@@ -7,6 +7,9 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.ohmage.domain.campaign.Response.NoResponse;
 import org.ohmage.domain.campaign.response.MultiChoicePromptResponse;
 
@@ -17,16 +20,18 @@ import org.ohmage.domain.campaign.response.MultiChoicePromptResponse;
  * @author John Jenkins
  */
 public class MultiChoicePrompt extends ChoicePrompt {
+	private static final String JSON_KEY_DEFAULT = "default";
+	
 	private final Collection<String> defaultValues;
 	
 	/**
 	 * Creates a new multiple-choice prompt.
 	 * 
-	 * @param condition The condition determining if this prompt should be
-	 * 					displayed.
-	 * 
 	 * @param id The unique identifier for the prompt within its survey item
 	 * 			 group.
+	 * 
+	 * @param condition The condition determining if this prompt should be
+	 * 					displayed.
 	 * 
 	 * @param unit The unit value for this prompt.
 	 * 
@@ -67,7 +72,7 @@ public class MultiChoicePrompt extends ChoicePrompt {
 			final Map<Integer, LabelValuePair> choices, 
 			final Collection<String> defaultValues, final int index) {
 		
-		super(condition, id, unit, text, abbreviatedText, explanationText,
+		super(id, condition, unit, text, abbreviatedText, explanationText,
 				skippable, skipLabel, displayType, displayLabel, 
 				choices, Type.MULTI_CHOICE, index);
 		
@@ -201,7 +206,7 @@ public class MultiChoicePrompt extends ChoicePrompt {
 		if((repeatableSetIteration == null) && (getParent() != null)) {
 			throw new IllegalArgumentException("The repeatable set iteration is null, but this prompt is part of a repeatable set.");
 		}
-		else if(repeatableSetIteration < 0) {
+		else if((repeatableSetIteration != null) && (repeatableSetIteration < 0)) {
 			throw new IllegalArgumentException("The repeatable set iteration value is negative.");
 		}
 		
@@ -226,6 +231,32 @@ public class MultiChoicePrompt extends ChoicePrompt {
 		}
 			
 		throw new IllegalArgumentException("The response was not a valid response.");
+	}
+	
+	/**
+	 * Creates a JSONObject that represents this multi-choice prompt.
+	 * 
+	 * @return A JSONObject that represents this multi-choice prompt.
+	 */
+	@Override
+	public JSONObject toJson() {
+		try {
+			JSONObject result = super.toJson();
+			
+			if(result == null) {
+				// FIXME: Ignore the exception thrown, allowing it to 
+				// propagate.
+				return null;
+			}
+			
+			result.put(JSON_KEY_DEFAULT, new JSONArray(defaultValues));
+			
+			return result;
+		}
+		catch(JSONException e) {
+			// FIXME: Throw an exception.
+			return null;
+		}
 	}
 
 	/**

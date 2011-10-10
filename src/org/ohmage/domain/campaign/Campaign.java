@@ -24,9 +24,11 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import nu.xom.Builder;
 import nu.xom.Document;
@@ -37,6 +39,7 @@ import nu.xom.ParsingException;
 import nu.xom.ValidityException;
 import nu.xom.XMLException;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.ohmage.domain.campaign.Prompt.DisplayType;
@@ -65,7 +68,7 @@ import org.ohmage.util.TimeUtils;
  * @author John Jenkins
  */
 public class Campaign {
-	private static final String XML_ID = "/campaign/campaignUrl";
+	private static final String XML_ID = "/campaign/campaignUrn";
 	private static final String XML_NAME = "/campaign/campaignName";
 	
 	private static final String XML_SERVER_URL = "/campaign/serverUrl";
@@ -89,7 +92,7 @@ public class Campaign {
 	private static final String XML_PROMPT_ID = "id";
 	private static final String XML_PROMPT_CONDITION = "condition";
 	private static final String XML_PROMPT_UNIT = "unit";
-	private static final String XML_PROMPT_TEXT = "text";
+	private static final String XML_PROMPT_TEXT = "promptText";
 	private static final String XML_PROMPT_ABBREVIATED_TEXT = "abbreviatedText";
 	private static final String XML_PROMPT_EXPLANATION_TEXT = "explanationText";
 	private static final String XML_PROMPT_SKIPPABLE = "skippable";
@@ -126,6 +129,7 @@ public class Campaign {
 	private static final String JSON_KEY_PRIVACY_STATE = "privacy_state";
 	private static final String JSON_KEY_CREATION_TIMESTAMP = "creation_timestamp";
 	private static final String JSON_KEY_XML = "xml";
+	private static final String JSON_KEY_SURVEYS = "surveys";
 	
 	private static final String JSON_KEY_CLASSES = "classes";
 	
@@ -1423,10 +1427,38 @@ public class Campaign {
 		}
 	}
 	
+	/**
+	 * Creates a JSONObject from this campaign.
+	 * 
+	 * @param withId Whether or not to include the ID.
+	 * 
+	 * @param withClasses Whether or not to include the list of classes.
+	 * 
+	 * @param withRoles Whether or not to include the list of roles for all of
+	 * 					the users.
+	 * 
+	 * @param withParticipants If 'withRoles' is true, whether or not to 
+	 * 						   include the list of participants.
+	 * 
+	 * @param withAnalysts If 'withRoles' is true, whether or not to include 
+	 * 					   the list of analysts.
+	 * 
+	 * @param withAuthors If 'withRoles' is true, whether or not to include the
+	 * 					  list of authors.
+	 * 
+	 * @param withSupervisors If 'withRoles' is true, whether or not to include
+	 * 						  the list of supervisors.
+	 * 
+	 * @param withXml Whether or not to include the XML.
+	 * 
+	 * @return A JSONObject that represents this campaign or null if there was
+	 * 		   an error.
+	 */
 	public JSONObject toJson(final boolean withId, final boolean withClasses,
 			final boolean withRoles, final boolean withParticipants,
 			final boolean withAnalysts, final boolean withAuthors,
-			final boolean withSupervisors, final boolean withXml) {
+			final boolean withSupervisors, final boolean withXml,
+			final boolean withSurveys) {
 		try {
 			JSONObject result = new JSONObject();
 			
@@ -1466,6 +1498,29 @@ public class Campaign {
 			
 			if(withXml) {
 				result.put(JSON_KEY_XML, xml);
+			}
+			
+			if(withSurveys) {
+				JSONArray surveysArray = new JSONArray();
+				
+				for(Survey survey : surveyMap.values()) {
+					surveysArray.put( 
+							survey.toJson(
+									true,	// ID
+									true,	// Title
+									true,	// Description
+									true,	// Intro Text
+									true,	// Submit Text
+									true,	// Show Summary
+									true,	// Edit Summary
+									true,	// Summary Text
+									true,	// Anytime
+									true	// Prompts
+								)
+						);
+				}
+				
+				result.put(JSON_KEY_SURVEYS, surveysArray);
 			}
 			
 			return result;
@@ -1710,7 +1765,9 @@ public class Campaign {
 		
 		Map<String, Survey> result = new HashMap<String, Survey>(numSurveys);
 		for(Survey survey : surveys) {
-			result.put(survey.getId(), survey);
+			if(result.put(survey.getId(), survey) != null) {
+				throw new IllegalArgumentException("Mutiple surveys have the same unique identifier: " + survey.getId());
+			}
 		}
 		
 		return result;
@@ -1759,17 +1816,17 @@ public class Campaign {
 		
 		Nodes titles = survey.query(XML_SURVEY_TITLE);
 		if(titles.size() == 0) {
-			throw new IllegalArgumentException("The survey title is missing.");
+			throw new IllegalArgumentException("The survey title is missing: " + id);
 		}
 		else if(titles.size() > 1) {
-			throw new IllegalArgumentException("Multiple survey titles were found for the same survey.");
+			throw new IllegalArgumentException("Multiple survey titles were found for the same survey: " + id);
 		}
 		String title = titles.get(0).getValue().trim();
 		
 		String description = null;
 		Nodes descriptions = survey.query(XML_SURVEY_DESCRIPTION);
 		if(descriptions.size() > 1) {
-			throw new IllegalArgumentException("Multiple survey descriptions were found for the same survey.");
+			throw new IllegalArgumentException("Multiple survey descriptions were found for the same survey: " + id);
 		}
 		else if(descriptions.size() == 1) {
 			description = descriptions.get(0).getValue().trim();
@@ -1778,7 +1835,7 @@ public class Campaign {
 		String introText = null;
 		Nodes introTexts = survey.query(XML_SURVEY_INTRO_TEXT);
 		if(introTexts.size() > 1) {
-			throw new IllegalArgumentException("Multiple survey intro texts were found for the same survey.");
+			throw new IllegalArgumentException("Multiple survey intro texts were found for the same survey: " + id);
 		}
 		else if(introTexts.size() == 1) {
 			introText = introTexts.get(0).getValue().trim();
@@ -1789,7 +1846,7 @@ public class Campaign {
 			throw new IllegalArgumentException("The survey submit text is missing.");
 		}
 		else if(submitTexts.size() > 1) {
-			throw new IllegalArgumentException("Multiple survey submit texts were found for the same survey.");
+			throw new IllegalArgumentException("Multiple survey submit texts were found for the same survey: " + id);
 		}
 		String submitText = submitTexts.get(0).getValue().trim();
 		
@@ -1798,30 +1855,30 @@ public class Campaign {
 			throw new IllegalArgumentException("The survey show summary is missing.");
 		}
 		else if(showSummarys.size() > 1) {
-			throw new IllegalArgumentException("Multiple survey show summarys were found for the same survey.");
+			throw new IllegalArgumentException("Multiple survey show summarys were found for the same survey: " + id);
 		}
 		Boolean showSummary = StringUtils.decodeBoolean(showSummarys.get(0).getValue().trim());
 		if(showSummary == null) {
-			throw new IllegalArgumentException("The show summary value is not a valid boolean value.");
+			throw new IllegalArgumentException("The show summary value is not a valid boolean value: " + id);
 		}
 		
 		Boolean editSummary = null;
 		Nodes editSummarys = survey.query(XML_SURVEY_EDIT_SUMMARY);
 		if(editSummarys.size() > 1) {
-			throw new IllegalArgumentException("Multiple survey edit summarys were found for the same survey.");
+			throw new IllegalArgumentException("Multiple survey edit summarys were found for the same survey: " + id);
 		}
 		else if(editSummarys.size() == 1) {
 			editSummary = StringUtils.decodeBoolean(editSummarys.get(0).getValue().trim());
 			
 			if(editSummary == null) {
-				throw new IllegalArgumentException("The edit summary value is not a valid boolean value.");
+				throw new IllegalArgumentException("The edit summary value is not a valid boolean value: " + id);
 			}
 		}
 		
 		String summaryText = null;
 		Nodes summaryTexts = survey.query(XML_SURVEY_SUMMARY_TEXT);
 		if(summaryTexts.size() > 1) {
-			throw new IllegalArgumentException("Multiple survey summary texts were found for the same survey.");
+			throw new IllegalArgumentException("Multiple survey summary texts were found for the same survey: " + id);
 		}
 		else if(summaryTexts.size() == 1) {
 			summaryText = summaryTexts.get(0).getValue();
@@ -1829,29 +1886,35 @@ public class Campaign {
 		
 		Nodes anytimes = survey.query(XML_SURVEY_ANYTIME);
 		if(anytimes.size() == 0) {
-			throw new IllegalArgumentException("The survey anytime value is missing.");
+			throw new IllegalArgumentException("The survey anytime value is missing: " + id);
 		}
 		else if(anytimes.size() > 1) {
-			throw new IllegalArgumentException("Multiple survey anytime values were found for the same survey.");
+			throw new IllegalArgumentException("Multiple survey anytime values were found for the same survey: " + id);
 		}
 		Boolean anytime = StringUtils.decodeBoolean(anytimes.get(0).getValue().trim());
 		if(anytime == null) {
-			throw new IllegalArgumentException("The anytime value is not a valid boolean value.");
+			throw new IllegalArgumentException("The anytime value is not a valid boolean value: " + id);
 		}
 		
 		Nodes contentLists = survey.query(XML_SURVEY_CONTENT_LIST);
 		if(contentLists.size() == 0) {
-			throw new IllegalArgumentException("The survey content list is missing.");
+			throw new IllegalArgumentException("The survey content list is missing: " + id);
 		}
-		else if(contentLists.size() > 0) {
-			throw new IllegalArgumentException("Multiple survey content lists were found.");
+		else if(contentLists.size() > 1) {
+			throw new IllegalArgumentException("Multiple survey content lists were found: " + id);
 		}
 		Node contentList = contentLists.get(0);
-		List<SurveyItem> promptsList = processContentList(contentList.query(XML_CONTENT_LIST_ITEMS));
+		List<SurveyItem> promptsList = processContentList(id, contentList.query(XML_CONTENT_LIST_ITEMS));
 		
 		Map<Integer, SurveyItem> prompts = new HashMap<Integer, SurveyItem>(promptsList.size());
+		Set<String> promptIds = new HashSet<String>();
 		for(SurveyItem prompt : promptsList) {
-			prompts.put(prompt.getIndex(), prompt);
+			if(promptIds.add(prompt.getId())) {
+				prompts.put(prompt.getIndex(), prompt);
+			}
+			else {
+				throw new IllegalArgumentException("Multiple prompts have the same unqiue identifier in a group of survey items: " + prompt.getId());
+			}
 		}
 		
 		return new Survey(id, title, description, introText, submitText,
@@ -1861,6 +1924,9 @@ public class Campaign {
 	/**
 	 * Processes the content list items from the XML.
 	 * 
+	 * @param surveyId The unique identifier for the survey that is contains
+	 * 				   this content list.
+	 * 
 	 * @param contentListItems The Nodes from the XML that define the content
 	 * 						   list.
 	 * 
@@ -1869,29 +1935,37 @@ public class Campaign {
 	 * @throws IllegalArgumentException Thrown if one of the content list items 
 	 * 									is malformed.
 	 */
-	private static List<SurveyItem> processContentList(final Nodes contentListItems) {
+	private static List<SurveyItem> processContentList(final String surveyId,
+			final Nodes contentListItems) {
+		
 		int numItems = contentListItems.size();
 		List<SurveyItem> result = new ArrayList<SurveyItem>(numItems);
 		
 		for(int i = 0; i < numItems; i++) {
+			SurveyItem.Type contentListItem;
 			try {
-				String contentListItem = ((Element) contentListItems.get(i)).getLocalName().toUpperCase();
-				
-				if("message".equals(contentListItem)) {
-					result.add(processMessage(contentListItems.get(i), i));
-				}
-				else if("repeatableSet".equals(contentListItem)) {
-					result.add(processRepeatableSet(contentListItems.get(i), i));
-				}
-				else if("prompt".equals(contentListItem)) {
-					result.add(processPrompt(contentListItems.get(i), i));
-				}
-				else {
-					throw new IllegalStateException("There are new content list items but no matching processor.");
-				}
+				contentListItem = SurveyItem.Type.getValue(
+						((Element) contentListItems.get(i)).getLocalName());
 			}
 			catch(IllegalArgumentException e) {
-				throw new IllegalStateException("There were unknown content list items found.", e);
+				throw new IllegalStateException("There were unknown content list items found: " + surveyId, e);
+			}
+				
+			switch(contentListItem) {
+			case MESSAGE:
+				result.add(processMessage(surveyId, contentListItems.get(i), i));
+				break;
+				
+			case REPEATABLE_SET:
+				result.add(processRepeatableSet(surveyId, contentListItems.get(i), i));
+				break;
+				
+			case PROMPT:
+				result.add(processPrompt(surveyId, contentListItems.get(i), i));
+				break;
+				
+			default:
+				throw new IllegalStateException("There are new content list items but no matching processor for survey '" + surveyId + "': " + contentListItem);
 			}
 		}
 		
@@ -1901,26 +1975,31 @@ public class Campaign {
 	/**
 	 * Creates a Message object from the message Node from the XML.
 	 * 
+	 * @param containerId The unique identifier for the container that contains
+	 * 					  this message.
+	 * 
 	 * @param message The message Node from the XML.
 	 * 
 	 * @param index The index of this message in its list of survey items.
 	 * 
 	 * @return A Message object representing the message defined in the XML.
 	 */
-	private static Message processMessage(final Node message, final int index) {
+	private static Message processMessage(final String containerId,
+			final Node message, final int index) {
+		
 		Nodes ids = message.query(XML_MESSAGE_ID);
 		if(ids.size() == 0) {
-			throw new IllegalArgumentException("The message ID is missing.");
+			throw new IllegalArgumentException("The message ID is missing: " + containerId);
 		}
 		else if(ids.size() > 1) {
-			throw new IllegalArgumentException("Multiple message IDs were found.");
+			throw new IllegalArgumentException("Multiple message IDs were found: " + containerId);
 		}
 		String id = ids.get(0).getValue().trim();
 		
 		String condition = null;
 		Nodes conditions = message.query(XML_MESSAGE_CONDITION);
 		if(conditions.size() > 1) {
-			throw new IllegalArgumentException("Multiple message conditions were found.");
+			throw new IllegalArgumentException("Multiple message conditions were found: " + id);
 		}
 		else if(conditions.size() == 1) {
 			condition = conditions.get(0).getValue().trim();
@@ -1928,10 +2007,10 @@ public class Campaign {
 		
 		Nodes texts = message.query(XML_MESSAGE_TEXT);
 		if(texts.size() == 0) {
-			throw new IllegalArgumentException("The message text is missing.");
+			throw new IllegalArgumentException("The message text is missing: " + id);
 		}
 		else if(texts.size() > 1) {
-			throw new IllegalArgumentException("Multiple message texts were found.");
+			throw new IllegalArgumentException("Multiple message texts were found: " + id);
 		}
 		String text = texts.get(0).getValue().trim();
 		
@@ -1941,6 +2020,9 @@ public class Campaign {
 	/**
 	 * Creates a RepeatableSet object from the repeatable set Node from the 
 	 * XML.
+	 * 
+	 * @param containerId The unique identifier for the container of this
+	 * 					  repeatable set.
 	 * 
 	 * @param repeatableSet The repeatable set Node from the XML.
 	 * 
@@ -1954,21 +2036,22 @@ public class Campaign {
 	 * 									malformed or if any of the prompts in
 	 * 									the repeatable set are malformed.
 	 */
-	private static RepeatableSet processRepeatableSet(final Node repeatableSet,
-			final int index) {
+	private static RepeatableSet processRepeatableSet(final String containerId,
+			final Node repeatableSet, final int index) {
+		
 		Nodes ids = repeatableSet.query(XML_REPEATABLE_SET_ID);
 		if(ids.size() == 0) {
-			throw new IllegalArgumentException("The repeatable set ID is missing.");
+			throw new IllegalArgumentException("The repeatable set ID is missing: " + containerId);
 		}
 		else if(ids.size() > 1) {
-			throw new IllegalArgumentException("Multiple repeatable set IDs were found.");
+			throw new IllegalArgumentException("Multiple repeatable set IDs were found: " + containerId);
 		}
 		String id = ids.get(0).getValue().trim();
 		
 		String condition = null;
 		Nodes conditions = repeatableSet.query(XML_REPEATABLE_SET_CONDITION);
 		if(conditions.size() > 1) {
-			throw new IllegalArgumentException("Multiple repeatable set conditions were found.");
+			throw new IllegalArgumentException("Multiple repeatable set conditions were found: " + id);
 		}
 		else if(conditions.size() == 1) {
 			condition = conditions.get(0).getValue().trim();
@@ -1977,69 +2060,89 @@ public class Campaign {
 		Nodes teminationQuestions =
 			repeatableSet.query(XML_REPEATABLE_SET_TERMINATION_QUESTION);
 		if(teminationQuestions.size() == 0) {
-			throw new IllegalArgumentException("The repeatable set termination question is missing.");
+			throw new IllegalArgumentException("The repeatable set termination question is missing: " + id);
 		}
 		else if(teminationQuestions.size() > 1) {
-			throw new IllegalArgumentException("Multiple repeatable set termination questions were found.");
+			throw new IllegalArgumentException("Multiple repeatable set termination questions were found: " + id);
 		}
 		String terminationQuestion = teminationQuestions.get(0).getValue().trim();
 		
 		Nodes terminationTrueLabels =
 			repeatableSet.query(XML_REPEATABLE_SET_TERMINATION_TRUE_LABEL);
 		if(terminationTrueLabels.size() == 0) {
-			throw new IllegalArgumentException("The repeatable set termination true label is missing.");
+			throw new IllegalArgumentException("The repeatable set termination true label is missing: " + id);
 		}
 		else if(terminationTrueLabels.size() > 1) {
-			throw new IllegalArgumentException("Multiple repeatable set termination true labels were found.");
+			throw new IllegalArgumentException("Multiple repeatable set termination true labels were found: " + id);
 		}
 		String terminationTrueLabel = terminationTrueLabels.get(0).getValue().trim();
 		
 		Nodes terminationFalseLabels =
 			repeatableSet.query(XML_REPEATABLE_SET_TERMINATION_FALSE_LABEL);
 		if(terminationFalseLabels.size() == 0) {
-			throw new IllegalArgumentException("The repeatable set termination false label is missing.");
+			throw new IllegalArgumentException("The repeatable set termination false label is missing: " + id);
 		}
 		else if(terminationFalseLabels.size() > 1) {
-			throw new IllegalArgumentException("Multiple repeatable set termination false labels were found.");
+			throw new IllegalArgumentException("Multiple repeatable set termination false labels were found: " + id);
 		}
 		String terminationFalseLabel = terminationFalseLabels.get(0).getValue().trim();
 		
 		Nodes terminationSkipEnableds =
 			repeatableSet.query(XML_REPEATABLE_SET_TERMINATION_SKIP_ENABLED);
 		if(terminationSkipEnableds.size() == 0) {
-			throw new IllegalArgumentException("The repeatable set termination skip enabled value is missing.");
+			throw new IllegalArgumentException("The repeatable set termination skip enabled value is missing: " + id);
 		}
 		else if(terminationSkipEnableds.size() > 1) {
-			throw new IllegalArgumentException("Multiple repeatable set termination skip enabled value were found.");
+			throw new IllegalArgumentException("Multiple repeatable set termination skip enabled value were found: " + id);
 		}
 		Boolean terminationSkipEnabled = 
 			StringUtils.decodeBoolean(
 					terminationSkipEnableds.get(0).getValue().trim()
 				);
 		if(terminationSkipEnabled == null) {
-			throw new IllegalArgumentException("The termination skip enabled value is not a valid boolean value.");
+			throw new IllegalArgumentException("The termination skip enabled value is not a valid boolean value: " + id);
 		}
 		
 		String terminationSkipLabel = null;
 		Nodes terminationSkipLabels = 
 			repeatableSet.query(XML_REPEATABLE_SET_TERMINATION_SKIP_LABEL);
 		if(terminationSkipLabels.size() > 1) {
-			throw new IllegalArgumentException("Multiple repeatable set termination skip labels were found.");
+			throw new IllegalArgumentException("Multiple repeatable set termination skip labels were found: " + id);
 		}
 		else if(terminationSkipLabels.size() == 1) {
 			terminationSkipLabel = terminationSkipLabels.get(0).getValue().trim();
 		}
 		
-		Nodes promptNodes = repeatableSet.query(XML_REPEATABLE_SET_PROMPTS);
-		List<SurveyItem> prompts = processContentList(promptNodes);
-		if(prompts.size() == 0) {
-			throw new IllegalArgumentException("The repeatable set doesn't contain any prompts.");
+		Nodes promptsNodes = repeatableSet.query(XML_REPEATABLE_SET_PROMPTS);
+		if(promptsNodes.size() == 0) {
+			throw new IllegalArgumentException("The repeatable set doesn't contain a prompts group: " + id);
+		}
+		if(promptsNodes.size() > 1) {
+			throw new IllegalArgumentException("The repeatable set contains multiple prompts groups: " + id);
+		}
+		
+		Nodes promptNodes = promptsNodes.get(0).query(XML_CONTENT_LIST_ITEMS);
+		List<SurveyItem> promptGroup = processContentList(id, promptNodes);
+		if(promptGroup.size() == 0) {
+			throw new IllegalArgumentException("The repeatable set doesn't contain any prompts: " + id);
 		}
 		
 		Map<Integer, SurveyItem> promptMap = 
-			new HashMap<Integer, SurveyItem>(prompts.size());
-		for(SurveyItem currPrompt : prompts) {
-			promptMap.put(currPrompt.getIndex(), currPrompt);
+			new HashMap<Integer, SurveyItem>(promptGroup.size());
+		Set<String> promptIds = new HashSet<String>();
+		for(SurveyItem currPrompt : promptGroup) {
+			if(promptIds.add(currPrompt.getId())) {
+				// This is where repeatable sets prevent sub repeatable sets.
+				// To allow this restriction, remove this if statement.
+				if(currPrompt instanceof RepeatableSet) {
+					throw new IllegalArgumentException("Repeatable sets may not contain repeatable sets: " + id);
+				}
+
+				promptMap.put(currPrompt.getIndex(), currPrompt);
+			}
+			else {
+				throw new IllegalArgumentException("A repeatable set has multiple prompts with the same unique identifier: " + currPrompt.getId());
+			}
 		}
 		
 		return new RepeatableSet(id, condition, terminationQuestion,
@@ -2051,6 +2154,9 @@ public class Campaign {
 	/**
 	 * Creates a Prompt object based on the XML prompt Node.
 	 * 
+	 * @param containerId The unique identifier for the container that contains
+	 * 					  this prompt.
+	 * 
 	 * @param prompt The XML prompt node.
 	 * 
 	 * @param index The index of this prompt in its collection of survey items.
@@ -2059,20 +2165,22 @@ public class Campaign {
 	 * 
 	 * @throws IllegalArgumentException Thrown if the prompt is malformed.
 	 */
-	private static Prompt processPrompt(final Node prompt, final int index) {
+	private static Prompt processPrompt(final String containerId, 
+			final Node prompt, final int index) {
+		
 		Nodes ids = prompt.query(XML_PROMPT_ID);
 		if(ids.size() == 0) {
-			throw new IllegalArgumentException("The prompt ID is missing.");
+			throw new IllegalArgumentException("The prompt ID is missing: " + containerId);
 		}
 		else if(ids.size() > 1) {
-			throw new IllegalArgumentException("Multiple prompt IDs were found.");
+			throw new IllegalArgumentException("Multiple prompt IDs were found: " + containerId);
 		}
 		String id = ids.get(0).getValue().trim();
 		
 		String condition = null;
 		Nodes conditions = prompt.query(XML_PROMPT_CONDITION);
 		if(conditions.size() > 1) {
-			throw new IllegalArgumentException("Multiple prompt conditions were found.");
+			throw new IllegalArgumentException("Multiple prompt conditions were found: " + id);
 		}
 		else if(conditions.size() == 1) {
 			condition = conditions.get(0).getValue().trim();
@@ -2081,7 +2189,7 @@ public class Campaign {
 		String unit = null;
 		Nodes units = prompt.query(XML_PROMPT_UNIT);
 		if(units.size() > 1) {
-			throw new IllegalArgumentException("Multiple prompt units were found.");
+			throw new IllegalArgumentException("Multiple prompt units were found: " + id);
 		}
 		else if(units.size() == 1) {
 			unit = units.get(0).getValue().trim();
@@ -2089,17 +2197,17 @@ public class Campaign {
 		
 		Nodes texts = prompt.query(XML_PROMPT_TEXT);
 		if(texts.size() == 0) {
-			throw new IllegalArgumentException("The prompt text is missing.");
+			throw new IllegalArgumentException("The prompt text is missing: " + id);
 		}
 		else if(texts.size() > 1) {
-			throw new IllegalArgumentException("Multiple prompt texts were found.");
+			throw new IllegalArgumentException("Multiple prompt texts were found: " + id);
 		}
 		String text = texts.get(0).getValue().trim();
 		
 		String abbreviatedText = null;
 		Nodes abbreviatedTexts = prompt.query(XML_PROMPT_ABBREVIATED_TEXT);
 		if(abbreviatedTexts.size() > 1) {
-			throw new IllegalArgumentException("Multiple prompt abbreviated texts were found.");
+			throw new IllegalArgumentException("Multiple prompt abbreviated texts were found: " + id);
 		}
 		else if(abbreviatedTexts.size() == 1) {
 			abbreviatedText = abbreviatedTexts.get(0).getValue().trim();
@@ -2108,7 +2216,7 @@ public class Campaign {
 		String explanationText = null;
 		Nodes explanationTexts = prompt.query(XML_PROMPT_EXPLANATION_TEXT);
 		if(explanationTexts.size() > 1) {
-			throw new IllegalArgumentException("Multiple prompt explanation texts were found.");
+			throw new IllegalArgumentException("Multiple prompt explanation texts were found: " + id);
 		}
 		else if(explanationTexts.size() == 1) {
 			explanationText = explanationTexts.get(0).getValue().trim();
@@ -2116,20 +2224,20 @@ public class Campaign {
 		
 		Nodes skippables = prompt.query(XML_PROMPT_SKIPPABLE);
 		if(skippables.size() == 0) {
-			throw new IllegalArgumentException("The prompt skippable is missing.");
+			throw new IllegalArgumentException("The prompt skippable is missing: " + id);
 		}
 		else if(skippables.size() > 1) {
-			throw new IllegalArgumentException("Multiple prompt skippable values were found.");
+			throw new IllegalArgumentException("Multiple prompt skippable values were found: " + id);
 		}
 		Boolean skippable = StringUtils.decodeBoolean(skippables.get(0).getValue());
 		if(skippable == null) {
-			throw new IllegalArgumentException("The prompt skippable value was not a valid boolean value.");
+			throw new IllegalArgumentException("The prompt skippable value was not a valid boolean value: " + id);
 		}
 		
 		String skipLabel = null;
 		Nodes skipLabels = prompt.query(XML_PROMPT_SKIP_LABEL);
 		if(skipLabels.size() > 1) {
-			throw new IllegalArgumentException("Multiple prompt skip labels were found.");
+			throw new IllegalArgumentException("Multiple prompt skip labels were found: " + id);
 		}
 		else if(skipLabels.size() == 1) {
 			skipLabel = skipLabels.get(0).getValue().trim();
@@ -2137,32 +2245,32 @@ public class Campaign {
 		
 		Nodes displayTypes = prompt.query(XML_PROMPT_DISPLAY_TYPE);
 		if(displayTypes.size() == 0) {
-			throw new IllegalArgumentException("The prompt display type is missing.");
+			throw new IllegalArgumentException("The prompt display type is missing: " + id);
 		}
-		else if(displayTypes.size() > 0) {
-			throw new IllegalArgumentException("Multiple prompt display types were found.");
+		else if(displayTypes.size() > 1) {
+			throw new IllegalArgumentException("Multiple prompt display types were found: " + id);
 		}
 		DisplayType displayType;
 		try {
-			displayType = DisplayType.valueOf(displayTypes.get(0).getValue().trim());
+			displayType = DisplayType.valueOf(displayTypes.get(0).getValue().trim().toUpperCase());
 		}
 		catch(IllegalArgumentException e) {
-			throw new IllegalArgumentException("The display type is unknown.", e);
+			throw new IllegalArgumentException("The display type is unknown: " + id, e);
 		}
 		
 		Nodes displayLabels = prompt.query(XML_PROMPT_DISPLAY_LABEL);
 		if(displayLabels.size() == 0) {
-			throw new IllegalArgumentException("The prompt display label is missing.");
+			throw new IllegalArgumentException("The prompt display label is missing: " + id);
 		}
 		else if(displayLabels.size() > 1) {
-			throw new IllegalArgumentException("Multiple prompt display labels were found.");
+			throw new IllegalArgumentException("Multiple prompt display labels were found: " + id);
 		}
 		String displayLabel = displayLabels.get(0).getValue().trim();
 		
 		String defaultValue = null;
 		Nodes defaultValues = prompt.query(XML_PROMPT_DEFAULT);
 		if(defaultValues.size() > 1) {
-			throw new IllegalArgumentException("Multiple default values were found.");
+			throw new IllegalArgumentException("Multiple default values were found: " + id);
 		}
 		else if(defaultValues.size() == 1) {
 			defaultValue = defaultValues.get(0).toString().trim();
@@ -2170,26 +2278,26 @@ public class Campaign {
 		
 		Nodes promptTypes = prompt.query(XML_PROMPT_TYPE);
 		if(promptTypes.size() == 0) {
-			throw new IllegalArgumentException("The prompt type is invalid.");
+			throw new IllegalArgumentException("The prompt type is invalid: " + id);
 		}
 		else if(promptTypes.size() > 1) {
-			throw new IllegalArgumentException("Multiple prompt types were found.");
+			throw new IllegalArgumentException("Multiple prompt types were found: " + id);
 		}
 		Prompt.Type type;
 		try {
 			type = Prompt.Type.valueOf(promptTypes.get(0).getValue().toUpperCase());
 		}
 		catch(IllegalArgumentException e) {
-			throw new IllegalArgumentException("The prompt type is unknown.");
+			throw new IllegalArgumentException("The prompt type is unknown: " + id);
 		}
 		
 		Map<String, LabelValuePair> properties;
 		Nodes propertiesNodes = prompt.query(XML_PROMPT_PROPERTIES);
 		if(propertiesNodes.size() > 1) {
-			throw new IllegalArgumentException("Multiple properties groups found.");
+			throw new IllegalArgumentException("Multiple properties groups found: " + id);
 		}
 		else if(propertiesNodes.size() == 1) {
-			properties = getKeyValueLabelTrios(propertiesNodes.get(0).query(XML_PROMPT_PROPERTY));
+			properties = getKeyValueLabelTrios(id, propertiesNodes.get(0).query(XML_PROMPT_PROPERTY));
 		}
 		else {
 			properties = new HashMap<String, LabelValuePair>(0);
@@ -2261,7 +2369,9 @@ public class Campaign {
 	 * 
 	 * @throws IllegalArgumentException Thrown if a property is invalid.
 	 */
-	private static Map<String, LabelValuePair> getKeyValueLabelTrios(final Nodes properties) {
+	private static Map<String, LabelValuePair> getKeyValueLabelTrios(
+			final String containerId, final Nodes properties) {
+		
 		if(properties.size() == 0) {
 			return Collections.emptyMap();
 		}
@@ -2274,26 +2384,26 @@ public class Campaign {
 			
 			Nodes keys = propertyNode.query(XML_PROPERTY_KEY);
 			if(keys.size() == 0) {
-				throw new IllegalArgumentException("The property key is missing.");
+				throw new IllegalArgumentException("The property key is missing: " + containerId);
 			}
 			else if(keys.size() > 1) {
-				throw new IllegalArgumentException("Multiple property keys were found.");
+				throw new IllegalArgumentException("Multiple property keys were found: " + containerId);
 			}
 			String key = keys.get(0).getValue().trim();
 			
 			Nodes labels = propertyNode.query(XML_PROPERTY_LABEL);
 			if(labels.size() == 0) {
-				throw new IllegalArgumentException("The property label is missing.");
+				throw new IllegalArgumentException("The property label is missing: " + containerId);
 			}
 			else if(labels.size() > 1) {
-				throw new IllegalArgumentException("Multiple property labels were found.");
+				throw new IllegalArgumentException("Multiple property labels were found: " + containerId);
 			}
 			String label = labels.get(0).getValue().trim();
 			
 			Number value = null;
 			Nodes values = propertyNode.query(XML_PROPERTY_VALUE);
 			if(values.size() > 1) {
-				throw new IllegalArgumentException("Multiple property values found.");
+				throw new IllegalArgumentException("Multiple property values found: " + containerId);
 			}
 			else if(values.size() == 1) {
 				String valueString = values.get(0).getValue().trim();
@@ -2318,7 +2428,7 @@ public class Campaign {
 								}
 								catch(NumberFormatException notDouble) {
 									throw new IllegalArgumentException(
-											"The property value is not a numeric value.");
+											"The property value is not a numeric value: " + containerId);
 								}
 							}
 						}
@@ -2328,7 +2438,7 @@ public class Campaign {
 			
 			if(result.put(key, new LabelValuePair(label, value)) != null) {
 				throw new IllegalArgumentException(
-						"Multiple properties with the same key were found.");
+						"Multiple properties with the same key were found: " + containerId);
 			}
 		}
 		
@@ -2382,42 +2492,46 @@ public class Campaign {
 		int min;
 		try {
 			LabelValuePair minVlp = 
-				properties.get(HoursBeforeNowPrompt.KEY_MIN);
+				properties.get(HoursBeforeNowPrompt.XML_KEY_MIN);
 			
 			if(minVlp == null) {
 				throw new IllegalArgumentException(
 						"Missing the '" +
-							HoursBeforeNowPrompt.KEY_MIN +
-							"' property.");
+							HoursBeforeNowPrompt.XML_KEY_MIN +
+							"' property: " +
+							id);
 			}
 			min = Integer.decode(minVlp.getLabel());
 		}
 		catch(IllegalArgumentException e) {
 			throw new IllegalArgumentException(
 					"The '" +
-						HoursBeforeNowPrompt.KEY_MIN +
-						"' property is not an integer.", 
+						HoursBeforeNowPrompt.XML_KEY_MIN +
+						"' property is not an integer: " +
+						id, 
 					e);
 		}
 		
 		int max;
 		try {
 			LabelValuePair maxVlp = 
-				properties.get(HoursBeforeNowPrompt.KEY_MAX);
+				properties.get(HoursBeforeNowPrompt.XML_KEY_MAX);
 			
 			if(maxVlp == null) {
 				throw new IllegalArgumentException(
 						"Missing the '" +
-							HoursBeforeNowPrompt.KEY_MAX +
-							"' property.");
+							HoursBeforeNowPrompt.XML_KEY_MAX +
+							"' property: " +
+							id);
 			}
 			max = Integer.decode(maxVlp.getLabel());
 		}
 		catch(IllegalArgumentException e) {
 			throw new IllegalArgumentException(
 					"The '" +
-						HoursBeforeNowPrompt.KEY_MAX +
-						"' property is not an integer.", 
+						HoursBeforeNowPrompt.XML_KEY_MAX +
+						"' property is not an integer: " +
+						id, 
 					e);
 		}
 		
@@ -2429,7 +2543,8 @@ public class Campaign {
 		}
 		catch(NumberFormatException e) {
 			throw new IllegalArgumentException(
-					"The default value is not a valid integer.");
+					"The default value is not a valid integer: " +
+						id);
 		}
 		
 		return new HoursBeforeNowPrompt(id, condition, unit, text, 
@@ -2490,12 +2605,14 @@ public class Campaign {
 				
 				if(keyInt < 0) {
 					throw new IllegalArgumentException(
-							"The key value cannot be negative.");
+							"The key value cannot be negative: " +
+								id);
 				}
 			}
 			catch(NumberFormatException e) {
 				throw new IllegalArgumentException(
-						"The key is not a valid integer.", 
+						"The key is not a valid integer: " +
+							id, 
 						e);
 			}
 			
@@ -2575,12 +2692,15 @@ public class Campaign {
 				
 				if(keyInt < 0) {
 					throw new IllegalArgumentException(
-							"The key value cannot be negative.");
+							"The key value cannot be negative: " +
+								id);
 				}
 			}
 			catch(NumberFormatException e) {
 				throw new IllegalArgumentException(
-						"The key is not a valid integer.", e);
+						"The key is not a valid integer: " +
+							id, 
+						e);
 			}
 			
 			choices.put(keyInt, properties.get(key));
@@ -2652,42 +2772,46 @@ public class Campaign {
 		int min;
 		try {
 			LabelValuePair minVlp = 
-				properties.get(NumberPrompt.KEY_MIN);
+				properties.get(NumberPrompt.XML_KEY_MIN);
 			
 			if(minVlp == null) {
 				throw new IllegalArgumentException(
 						"Missing the '" +
-							NumberPrompt.KEY_MIN +
-							"' property.");
+							NumberPrompt.XML_KEY_MIN +
+							"' property: " +
+							id);
 			}
 			min = Integer.decode(minVlp.getLabel());
 		}
 		catch(IllegalArgumentException e) {
 			throw new IllegalArgumentException(
 					"The '" +
-						NumberPrompt.KEY_MIN +
-						"' property is not an integer.", 
+						NumberPrompt.XML_KEY_MIN +
+						"' property is not an integer: " +
+						id, 
 					e);
 		}
 		
 		int max;
 		try {
 			LabelValuePair maxVlp = 
-				properties.get(NumberPrompt.KEY_MAX);
+				properties.get(NumberPrompt.XML_KEY_MAX);
 			
 			if(maxVlp == null) {
 				throw new IllegalArgumentException(
 						"Missing the '" +
-							NumberPrompt.KEY_MAX +
-							"' property.");
+							NumberPrompt.XML_KEY_MAX +
+							"' property: " +
+							id);
 			}
 			max = Integer.decode(maxVlp.getLabel());
 		}
 		catch(IllegalArgumentException e) {
 			throw new IllegalArgumentException(
 					"The '" +
-						NumberPrompt.KEY_MAX +
-						"' property is not an integer.", 
+						NumberPrompt.XML_KEY_MAX +
+						"' property is not an integer: " +
+						id, 
 					e);
 		}
 		
@@ -2699,7 +2823,8 @@ public class Campaign {
 		}
 		catch(NumberFormatException e) {
 			throw new IllegalArgumentException(
-					"The default value is not a valid integer.");
+					"The default value is not a valid integer: " +
+						id);
 		}
 		
 		return new NumberPrompt(id, condition, unit, text, 
@@ -2753,27 +2878,30 @@ public class Campaign {
 		int verticalResolution;
 		try {
 			LabelValuePair verticalResolutionVlp = 
-				properties.get(PhotoPrompt.KEY_VERTICAL_RESOLUTION);
+				properties.get(PhotoPrompt.XML_KEY_VERTICAL_RESOLUTION);
 			
 			if(verticalResolutionVlp == null) {
 				throw new IllegalArgumentException(
 						"Missing the '" +
-							PhotoPrompt.KEY_VERTICAL_RESOLUTION +
-							"' property.");
+							PhotoPrompt.XML_KEY_VERTICAL_RESOLUTION +
+							"' property: " +
+							id);
 			}
 			verticalResolution = Integer.decode(verticalResolutionVlp.getLabel());
 		}
 		catch(IllegalArgumentException e) {
 			throw new IllegalArgumentException(
 					"The '" +
-						PhotoPrompt.KEY_VERTICAL_RESOLUTION +
-						"' property is not an integer.", 
+						PhotoPrompt.XML_KEY_VERTICAL_RESOLUTION +
+						"' property is not an integer: " +
+						id, 
 					e);
 		}
 		
 		if(defaultValue != null) {
 			throw new IllegalArgumentException(
-					"Default values are not allowed for photo prompts.");
+					"Default values are not allowed for photo prompts: " +
+						id);
 		}
 		
 		return new PhotoPrompt(id, condition, unit, text, 
@@ -2825,98 +2953,109 @@ public class Campaign {
 			final String defaultValue,
 			final Map<String, LabelValuePair> properties, final int index) {
 
-		LabelValuePair packageVlp = properties.get(RemoteActivityPrompt.KEY_PACKAGE);
+		LabelValuePair packageVlp = properties.get(RemoteActivityPrompt.XML_KEY_PACKAGE);
 		if(packageVlp == null) {
 			throw new IllegalArgumentException(
 					"Missing the '" + 
-						RemoteActivityPrompt.KEY_PACKAGE + 
-						"' property.");
+						RemoteActivityPrompt.XML_KEY_PACKAGE + 
+						"' property: " +
+						id);
 		}
 		String packagee = packageVlp.getLabel();
 		
-		LabelValuePair activityVlp = properties.get(RemoteActivityPrompt.KEY_ACTIVITY);
+		LabelValuePair activityVlp = properties.get(RemoteActivityPrompt.XML_KEY_ACTIVITY);
 		if(activityVlp == null) {
 			throw new IllegalArgumentException(
 					"Missing the '" + 
-						RemoteActivityPrompt.KEY_ACTIVITY + 
-						"' property.");
+						RemoteActivityPrompt.XML_KEY_ACTIVITY + 
+						"' property: " +
+						id);
 		}
 		String activity = activityVlp.getLabel();
 		
-		LabelValuePair actionVlp = properties.get(RemoteActivityPrompt.KEY_ACTION);
+		LabelValuePair actionVlp = properties.get(RemoteActivityPrompt.XML_KEY_ACTION);
 		if(actionVlp == null) {
 			throw new IllegalArgumentException(
 					"Missing the '" + 
-						RemoteActivityPrompt.KEY_ACTION + 
-						"' property.");
+						RemoteActivityPrompt.XML_KEY_ACTION + 
+						"' property: " +
+						id);
 		}
 		String action = actionVlp.getLabel();
 		
-		LabelValuePair autolaunchVlp = properties.get(RemoteActivityPrompt.KEY_AUTOLAUNCH);
+		LabelValuePair autolaunchVlp = properties.get(RemoteActivityPrompt.XML_KEY_AUTOLAUNCH);
 		if(autolaunchVlp == null) {
 			throw new IllegalArgumentException(
 					"Missing the '" + 
-						RemoteActivityPrompt.KEY_ACTION + 
-						"' property.");
+						RemoteActivityPrompt.XML_KEY_ACTION + 
+						"' property: " +
+						id);
 		}
 		Boolean autolaunch = StringUtils.decodeBoolean(autolaunchVlp.getLabel());
 		if(autolaunch == null) {
 			throw new IllegalArgumentException(
 					"The property '" + 
-						RemoteActivityPrompt.KEY_AUTOLAUNCH + 
-						"' is not a valid boolean.");
+						RemoteActivityPrompt.XML_KEY_AUTOLAUNCH + 
+						"' is not a valid boolean: " +
+						id);
 		}
 		
 		int retries;
 		try {
-			LabelValuePair retriesVlp = properties.get(RemoteActivityPrompt.KEY_RETRIES);
+			LabelValuePair retriesVlp = properties.get(RemoteActivityPrompt.XML_KEY_RETRIES);
 			if(retriesVlp == null) {
 				throw new IllegalArgumentException(
 						"Missing the '" + 
-							RemoteActivityPrompt.KEY_RETRIES + 
-							"' property.");	
+							RemoteActivityPrompt.XML_KEY_RETRIES + 
+							"' property: " +
+							id);	
 			}
 			retries = Integer.decode(retriesVlp.getLabel());
 		}
 		catch(IllegalArgumentException e) {
 			throw new IllegalArgumentException(
 					"The '" +
-						RemoteActivityPrompt.KEY_RETRIES +
-						"' property is not an integer.", 
+						RemoteActivityPrompt.XML_KEY_RETRIES +
+						"' property is not an integer: " +
+						id, 
 					e);
 		}
 		
 		int minRuns;
 		try {
-			LabelValuePair minRunsVlp = properties.get(RemoteActivityPrompt.KEY_MIN_RUNS);
+			LabelValuePair minRunsVlp = properties.get(RemoteActivityPrompt.XML_KEY_MIN_RUNS);
 			if(minRunsVlp == null) {
 				throw new IllegalArgumentException(
 						"Missing the '" + 
-							RemoteActivityPrompt.KEY_MIN_RUNS + 
-							"' property.");	
+							RemoteActivityPrompt.XML_KEY_MIN_RUNS + 
+							"' property: " +
+							id);	
 			}
 			minRuns = Integer.decode(minRunsVlp.getLabel());
 		}
 		catch(IllegalArgumentException e) {
 			throw new IllegalArgumentException(
 					"The '" +
-						RemoteActivityPrompt.KEY_MIN_RUNS +
-						"' property is not an integer.", 
+						RemoteActivityPrompt.XML_KEY_MIN_RUNS +
+						"' property is not an integer: " +
+						id, 
 					e);
 		}
 		
-		LabelValuePair inputVlp = properties.get(RemoteActivityPrompt.KEY_INPUT);
+		LabelValuePair inputVlp = properties.get(RemoteActivityPrompt.XML_KEY_INPUT);
 		if(inputVlp == null) {
 			throw new IllegalArgumentException(
 					"Missing the '" + 
-						RemoteActivityPrompt.KEY_INPUT + 
-						"' property.");
+						RemoteActivityPrompt.XML_KEY_INPUT + 
+						"' property: " +
+						id);
 		}
 		String input = inputVlp.getLabel();
 		
 		if(defaultValue != null) {
 			throw new IllegalArgumentException(
-					"Default values aren't allowed for remote activity prompts.");
+					"Default values aren't allowed for remote activity prompts: " +
+					id);
 		}
 		
 		return new RemoteActivityPrompt(id, condition, unit, text, 
@@ -2979,12 +3118,14 @@ public class Campaign {
 				
 				if(keyInt < 0) {
 					throw new IllegalArgumentException(
-							"The key value cannot be negative.");
+							"The key value cannot be negative: " +
+								id);
 				}
 			}
 			catch(NumberFormatException e) {
 				throw new IllegalArgumentException(
-						"The key is not a valid integer.", 
+						"The key is not a valid integer: " +
+							id, 
 						e);
 			}
 			
@@ -3050,12 +3191,15 @@ public class Campaign {
 				
 				if(keyInt < 0) {
 					throw new IllegalArgumentException(
-							"The key value cannot be negative.");
+							"The key value cannot be negative: " +
+								id);
 				}
 			}
 			catch(NumberFormatException e) {
 				throw new IllegalArgumentException(
-						"The key is not a valid integer.", e);
+						"The key is not a valid integer: " +
+							id, 
+						e);
 			}
 			
 			choices.put(keyInt, properties.get(key));
@@ -3113,48 +3257,53 @@ public class Campaign {
 		int min;
 		try {
 			LabelValuePair minVlp = 
-				properties.get(NumberPrompt.KEY_MIN);
+				properties.get(NumberPrompt.XML_KEY_MIN);
 			
 			if(minVlp == null) {
 				throw new IllegalArgumentException(
 						"Missing the '" +
-							NumberPrompt.KEY_MIN +
-							"' property.");
+							NumberPrompt.XML_KEY_MIN +
+							"' property: " +
+							id);
 			}
 			min = Integer.decode(minVlp.getLabel());
 		}
 		catch(IllegalArgumentException e) {
 			throw new IllegalArgumentException(
 					"The '" +
-						NumberPrompt.KEY_MIN +
-						"' property is not an integer.", 
+						NumberPrompt.XML_KEY_MIN +
+						"' property is not an integer: " +
+						id, 
 					e);
 		}
 		
 		int max;
 		try {
 			LabelValuePair maxVlp = 
-				properties.get(NumberPrompt.KEY_MAX);
+				properties.get(NumberPrompt.XML_KEY_MAX);
 			
 			if(maxVlp == null) {
 				throw new IllegalArgumentException(
 						"Missing the '" +
-							NumberPrompt.KEY_MAX +
-							"' property.");
+							NumberPrompt.XML_KEY_MAX +
+							"' property: " +
+							id);
 			}
 			max = Integer.decode(maxVlp.getLabel());
 		}
 		catch(IllegalArgumentException e) {
 			throw new IllegalArgumentException(
 					"The '" +
-						NumberPrompt.KEY_MAX +
-						"' property is not an integer.", 
+						NumberPrompt.XML_KEY_MAX +
+						"' property is not an integer: " +
+						id, 
 					e);
 		}
 		
 		if(defaultValue != null) {
 			throw new IllegalArgumentException(
-					"Default values aren't allowed for remote activity prompts.");
+					"Default values aren't allowed for remote activity prompts: " +
+						id);
 		}
 		
 		return new TextPrompt(id, condition, unit, text, 
@@ -3207,7 +3356,8 @@ public class Campaign {
 		
 		if(defaultValue != null) {
 			throw new IllegalArgumentException(
-					"Default values aren't allowed for remote activity prompts.");
+					"Default values aren't allowed for remote activity prompts: " +
+						id);
 		}
 		
 		return new TimestampPrompt(id, condition, unit, text, 

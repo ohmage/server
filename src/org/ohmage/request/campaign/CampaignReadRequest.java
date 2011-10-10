@@ -414,7 +414,8 @@ public class CampaignReadRequest extends UserRequest {
 								supervisorOrAuthor, // Analysts
 								true,				// Authors
 								supervisorOrAuthor,	// Supervisors
-								longOutput);// XML
+								longOutput,	// XML
+								false);	// Surveys
 						
 						if(resultJson != null) {
 							resultJson.put(JSON_KEY_USER_ROLES, roles);

@@ -837,7 +837,7 @@ public final class SurveyResponseReadRequest extends UserRequest {
 			}
 			else if(surveyItem instanceof RepeatableSet) {
 				RepeatableSet repeatableSet = (RepeatableSet) surveyItem;
-				populatePrompts(repeatableSet.getPrompts(), prompts);
+				populatePrompts(repeatableSet.getSurveyItems(), prompts);
 			}
 		}
 	}

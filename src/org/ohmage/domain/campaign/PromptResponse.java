@@ -50,7 +50,7 @@ public abstract class PromptResponse extends Response {
 				(prompt.getParent() != null)) {
 			throw new IllegalArgumentException("The repeatable set iteration is null, but this prompt is part of a repeatable set.");
 		}
-		else if(repeatableSetIteration < 0) {
+		else if((repeatableSetIteration != null) && (repeatableSetIteration < 0)) {
 			throw new IllegalArgumentException("The repeatable set iteration value is negative.");
 		}
 		

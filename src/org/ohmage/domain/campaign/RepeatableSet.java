@@ -15,10 +15,15 @@
  ******************************************************************************/
 package org.ohmage.domain.campaign;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.ohmage.util.StringUtils;
 
 /**
@@ -28,14 +33,21 @@ import org.ohmage.util.StringUtils;
  * @author John Jenkins
  */
 public class RepeatableSet extends SurveyItem {
+	private static final String JSON_KEY_TERMINATION_QUESTION = "termination_question";
+	private static final String JSON_KEY_TERMINATION_TRUE_LABEL = "termination_true_label";
+	private static final String JSON_KEY_TERMINATION_FALSE_LABEL = "termination_false_label";
+	private static final String JSON_KEY_TERMINATION_SKIP_ENABLED = "termination_skip_enabled";
+	private static final String JSON_KEY_TERMINATION_SKIP_LABEL = "termination_skip_label";
+	private static final String JSON_KEY_PROMPTS = "surveyItems";
+	
 	private final String terminationQuestion;
-	private final String termiantionTrueLabel;
+	private final String terminationTrueLabel;
 	private final String terminationFalseLabel;
 	
 	private final boolean terminationSkipEnabled;
 	private final String terminationSkipLabel;
 	
-	private final Map<Integer, SurveyItem> prompts;
+	private final Map<Integer, SurveyItem> surveyItems;
 	
 	/**
 	 * Creates a new repeatable set.
@@ -63,7 +75,7 @@ public class RepeatableSet extends SurveyItem {
 	 * 							   that they may skip the entire repeatable 
 	 * 							   set.
 	 * 
-	 * @param prompts A map of the survey item's index to the actual survey
+	 * @param surveyItems A map of the survey item's index to the actual survey
 	 * 				  item.
 	 * 
 	 * @param index The repeatable set's index in its parent group of survey
@@ -100,16 +112,16 @@ public class RepeatableSet extends SurveyItem {
 		}
 		
 		this.terminationQuestion = terminationQuestion;
-		this.termiantionTrueLabel = terminationTrueLabel;
+		this.terminationTrueLabel = terminationTrueLabel;
 		this.terminationFalseLabel = terminationFalseLabel;
 		
 		this.terminationSkipEnabled = terminationSkipEnabled;
 		this.terminationSkipLabel = terminationSkipLabel;
 		
-		this.prompts = new HashMap<Integer, SurveyItem>(prompts.size());
+		this.surveyItems = new HashMap<Integer, SurveyItem>(prompts.size());
 		for(SurveyItem surveyItem : prompts.values()) {
 			surveyItem.setParent(this);
-			this.prompts.put(surveyItem.getIndex(), surveyItem);
+			this.surveyItems.put(surveyItem.getIndex(), surveyItem);
 		}
 	}
 
@@ -130,7 +142,7 @@ public class RepeatableSet extends SurveyItem {
 	 * 		   to take the repeatable set again.
 	 */
 	public final String getTermiantionTrueLabel() {
-		return termiantionTrueLabel;
+		return terminationTrueLabel;
 	}
 
 	/**
@@ -173,8 +185,8 @@ public class RepeatableSet extends SurveyItem {
 	 * @return The map of survey item indexes to their SurveyItem objects for
 	 * 		   this repeatable set.
 	 */
-	public final Map<Integer, SurveyItem> getPrompts() {
-		return Collections.unmodifiableMap(prompts);
+	public final Map<Integer, SurveyItem> getSurveyItems() {
+		return Collections.unmodifiableMap(surveyItems);
 	}
 	
 	/**
@@ -192,7 +204,7 @@ public class RepeatableSet extends SurveyItem {
 			return null;
 		}
 		
-		for(SurveyItem prompt : prompts.values()) {
+		for(SurveyItem prompt : surveyItems.values()) {
 			if(prompt instanceof RepeatableSet) {
 				Prompt result = ((RepeatableSet) prompt).getPrompt(promptId);
 				if(result != null) {
@@ -224,7 +236,7 @@ public class RepeatableSet extends SurveyItem {
 			return null;
 		}
 		
-		for(SurveyItem prompt : prompts.values()) {
+		for(SurveyItem prompt : surveyItems.values()) {
 			if(prompt instanceof RepeatableSet) {
 				RepeatableSet repeatableSet = (RepeatableSet) prompt;
 				
@@ -241,6 +253,68 @@ public class RepeatableSet extends SurveyItem {
 		
 		return null;
 	}
+	
+	/**
+	 * Returns a survey item from this repeatable set, but not from any of the
+	 * sub repeatable sets.
+	 * 
+	 * @param surveyItemId The survey item's unique identifier.
+	 * 
+	 * @return The SurveyItem in question or null if it doesn't exist.
+	 */
+	public final SurveyItem getSurveyItem(final String surveyItemId) {
+		if(StringUtils.isEmptyOrWhitespaceOnly(surveyItemId)) {
+			return null;
+		}
+		
+		for(SurveyItem surveyItem : surveyItems.values()) {
+			if(surveyItem.getId().equals(surveyItemId)) {
+				return surveyItem;
+			}
+		}
+		
+		return null;
+	}
+	
+	/**
+	 * Creates a JSONObject that represents this repeatable set and all of its
+	 * survey items.
+	 * 
+	 * @return A JSONObject representing this repeatable set and it survey 
+	 * 		   items or null if there is an error.
+	 */
+	@Override
+	public JSONObject toJson() {
+		try {
+			JSONObject result = super.toJson();
+			
+			if(result == null) {
+				// FIXME: Ignore the exception and let it propagate.
+				return null;
+			}
+			
+			result.put(JSON_KEY_TERMINATION_QUESTION, terminationQuestion);
+			result.put(JSON_KEY_TERMINATION_TRUE_LABEL, terminationTrueLabel);
+			result.put(JSON_KEY_TERMINATION_FALSE_LABEL, terminationFalseLabel);
+			result.put(JSON_KEY_TERMINATION_SKIP_ENABLED, terminationSkipEnabled);
+			result.put(JSON_KEY_TERMINATION_SKIP_LABEL, terminationSkipLabel);
+			
+			List<Integer> indices = new ArrayList<Integer>(surveyItems.keySet());
+			Collections.sort(indices);
+			
+			JSONArray surveyItemsJson = new JSONArray();
+			for(Integer index : indices) {
+				surveyItemsJson.put(surveyItems.get(index).toJson());
+			}
+			result.put(JSON_KEY_PROMPTS, surveyItemsJson);
+			
+			return result;
+		}
+		catch(JSONException e) {
+			// FIXME: Throw an exception.
+			return null;
+		}
+	}
 
 	/**
 	 * Returns the number of survey items that this repeatable set contains,
@@ -255,7 +329,7 @@ public class RepeatableSet extends SurveyItem {
 		// Start at 1 to include yourself.
 		int total = 1;
 		
-		for(SurveyItem prompt : prompts.values()) {
+		for(SurveyItem prompt : surveyItems.values()) {
 			total += prompt.getNumSurveyItems();
 		}
 		
@@ -263,17 +337,17 @@ public class RepeatableSet extends SurveyItem {
 	}
 	
 	/**
-	 * Returns the number of prompts contained by this repeatable set and all
+	 * Returns the number of surveyItems contained by this repeatable set and all
 	 * those in sub repeatable sets.
 	 * 
-	 * @return The total number of prompts contained in this repeatable set and
+	 * @return The total number of surveyItems contained in this repeatable set and
 	 * 		   contained in all of its sub repeatable sets.
 	 */
 	@Override
 	public int getNumPrompts() {
 		int total = 0;
 		
-		for(SurveyItem prompt : prompts.values()) {
+		for(SurveyItem prompt : surveyItems.values()) {
 			total += prompt.getNumPrompts();
 		}
 		
@@ -289,10 +363,10 @@ public class RepeatableSet extends SurveyItem {
 	public int hashCode() {
 		final int prime = 31;
 		int result = super.hashCode();
-		result = prime * result + ((prompts == null) ? 0 : prompts.hashCode());
+		result = prime * result + ((surveyItems == null) ? 0 : surveyItems.hashCode());
 		result = prime
 				* result
-				+ ((termiantionTrueLabel == null) ? 0 : termiantionTrueLabel
+				+ ((terminationTrueLabel == null) ? 0 : terminationTrueLabel
 						.hashCode());
 		result = prime
 				* result
@@ -328,15 +402,15 @@ public class RepeatableSet extends SurveyItem {
 		if (getClass() != obj.getClass())
 			return false;
 		RepeatableSet other = (RepeatableSet) obj;
-		if (prompts == null) {
-			if (other.prompts != null)
+		if (surveyItems == null) {
+			if (other.surveyItems != null)
 				return false;
-		} else if (!prompts.equals(other.prompts))
+		} else if (!surveyItems.equals(other.surveyItems))
 			return false;
-		if (termiantionTrueLabel == null) {
-			if (other.termiantionTrueLabel != null)
+		if (terminationTrueLabel == null) {
+			if (other.terminationTrueLabel != null)
 				return false;
-		} else if (!termiantionTrueLabel.equals(other.termiantionTrueLabel))
+		} else if (!terminationTrueLabel.equals(other.terminationTrueLabel))
 			return false;
 		if (terminationFalseLabel == null) {
 			if (other.terminationFalseLabel != null)

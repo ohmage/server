@@ -23,8 +23,10 @@ import javax.sql.DataSource;
 
 import org.apache.log4j.Logger;
 import org.ohmage.cache.PreferenceCache;
+import org.ohmage.domain.Location;
 import org.ohmage.domain.campaign.PromptResponse;
 import org.ohmage.domain.campaign.RepeatableSet;
+import org.ohmage.domain.campaign.RepeatableSetResponse;
 import org.ohmage.domain.campaign.Response;
 import org.ohmage.domain.campaign.SurveyResponse;
 import org.ohmage.domain.campaign.response.PhotoPromptResponse;
@@ -92,7 +94,7 @@ public class SurveyUploadDao extends AbstractUploadDao {
 		"client = ?, " +
 		"upload_timestamp = ?, " +
 		"launch_context = ?, " +
-		"privacy_state = (SELECT id FROM survey_response_privacy_state WHERE privacy_state = ?)";
+		"privacy_state_id = (SELECT id FROM survey_response_privacy_state WHERE privacy_state = ?)";
 		
 	private static final String SQL_INSERT_PROMPT_RESPONSE =
 		"INSERT into prompt_response " +
@@ -186,13 +188,20 @@ public class SurveyUploadDao extends AbstractUploadDao {
 							public PreparedStatement createPreparedStatement(Connection connection) throws SQLException {
 								PreparedStatement ps 
 									= connection.prepareStatement(SQL_INSERT_SURVEY_RESPONSE, Statement.RETURN_GENERATED_KEYS);
+								
+								String locationString = null;
+								Location location = surveyUpload.getLocation();
+								if(location != null) {
+									locationString = location.toJson(false).toString();
+								}
+								
 								ps.setString(1, username);
 								ps.setString(2, campaignUrn);
 								ps.setString(3, TimeUtils.getIso8601DateTimeString(surveyUpload.getDate()));
 								ps.setLong(4, surveyUpload.getTime());
 								ps.setString(5, surveyUpload.getTimezone().getID());
 								ps.setString(6, surveyUpload.getLocationStatus().toString());
-								ps.setString(7, surveyUpload.getLocation().toJson(false).toString());
+								ps.setString(7, locationString);
 								ps.setString(8, surveyUpload.getSurvey().getId());
 								ps.setString(9, surveyUpload.toJson(false, false, false, false, true, true, true, true, true, true, false, false, true, true, true, false).toString());
 								ps.setString(10, client);
@@ -218,118 +227,11 @@ public class SurveyUploadDao extends AbstractUploadDao {
 					
 					// Now insert each prompt response from the survey
 					Collection<Response> promptUploadList = surveyUpload.getPromptResponses().values();
-					for(Response response : promptUploadList) {
-						if(! (response instanceof PromptResponse)) {
-							continue;
-						}
-						final PromptResponse promptResponse = (PromptResponse) response;
-						
-						instance.getJdbcTemplate().update(
-							new PreparedStatementCreator() {
-								public PreparedStatement createPreparedStatement(Connection connection) throws SQLException {
-									PreparedStatement ps 
-										= connection.prepareStatement(SQL_INSERT_PROMPT_RESPONSE);
-									ps.setLong(1, surveyResponseId.longValue());
-									
-									RepeatableSet parent = promptResponse.getPrompt().getParent();
-									if(parent == null) {
-										ps.setNull(2, java.sql.Types.NULL);
-										ps.setNull(3, java.sql.Types.NULL);
-									}
-									else {
-										ps.setString(2, parent.getId());
-										ps.setInt(3, promptResponse.getRepeatableSetIteration());
-									}
-									ps.setString(4, promptResponse.getPrompt().getType().toString());
-									ps.setString(5, promptResponse.getPrompt().getId());
-									ps.setString(6, promptResponse.getResponseValue());
-									
-									return ps;
-								}
-							}
-						);
-						
-						if(promptResponse instanceof PhotoPromptResponse) {
-							// Grab the associated image and save it
-							String imageId = promptResponse.getResponseValue();
-							BufferedImage imageContents = bufferedImageMap.get(imageId);
-							
-							if(! JsonInputKeys.PROMPT_SKIPPED.equals(imageId) && ! JsonInputKeys.PROMPT_NOT_DISPLAYED.equals(imageId)) {
-								
-								// getDirectory() is used as opposed to accessing the current leaf
-								// directory class variable as it will do sanitation in case it hasn't
-								// been initialized or is full.
-								File imageDirectory = getDirectory();
-								File regularImage = new File(imageDirectory.getAbsolutePath() + "/" + imageId);
-								regularImageList.add(regularImage);
-								File scaledImage = new File(imageDirectory.getAbsolutePath() + "/" + imageId + IMAGE_SCALED_EXTENSION);
-								scaledImageList.add(scaledImage);
-								
-								// Write the original to the file system.
-								try {
-									ImageIO.write(imageContents, IMAGE_STORE_FORMAT, regularImage);
-								}
-								catch(IOException e) {
-									
-									rollback(transactionManager, status);
-									throw new DataAccessException("Error writing the regular image to the system.", e);
-								}
-								
-								// Write the scaled image to the file system.
-								try {
-									// Get the percentage to scale the image.
-									Double scalePercentage;
-									if(imageContents.getWidth() > imageContents.getHeight()) {
-										scalePercentage = IMAGE_SCALED_MAX_DIMENSION / imageContents.getWidth();
-									}
-									else {
-										scalePercentage = IMAGE_SCALED_MAX_DIMENSION / imageContents.getHeight();
-									}
-									
-									// Calculate the scaled image's width and height.
-									int width = (new Double(imageContents.getWidth() * scalePercentage)).intValue();
-									int height = (new Double(imageContents.getHeight() * scalePercentage)).intValue();
-									
-									// Create the new image of the same type as the original and of the
-									// scaled dimensions.
-									BufferedImage scaledContents = new BufferedImage(width, height, imageContents.getType());
-									
-									// Paint the original image onto the scaled canvas.
-									Graphics2D graphics2d = scaledContents.createGraphics();
-									graphics2d.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
-									graphics2d.drawImage(imageContents, 0, 0, width, height, null);
-									
-									// Cleanup.
-									graphics2d.dispose();
-									
-									// Write the scaled image to the filesystem.
-									ImageIO.write(scaledContents, IMAGE_STORE_FORMAT, scaledImage);
-								}
-								catch(IOException e) {
-									regularImage.delete();
-									rollback(transactionManager, status);
-									throw new DataAccessException("Error writing the scaled image to the system.", e);
-								}
-								
-								// Get the image's URL.
-								String url = "file://" + regularImage.getAbsolutePath();
-								// Insert the image URL into the database.
-								try {
-									instance.getJdbcTemplate().update(
-											SQL_INSERT_IMAGE, 
-											new Object[] { username, client, imageId, url }
-										);
-								}
-								catch(org.springframework.dao.DataAccessException e) {
-									regularImage.delete();
-									scaledImage.delete();
-									transactionManager.rollback(status);
-									throw new DataAccessException("Error executing SQL '" + SQL_INSERT_IMAGE + "' with parameters: " +
-											username + ", " + client + ", " + imageId + ", " + url, e);
-								}
-							}
-						}
-					}
+					
+					createPromptResponse(username, client, surveyResponseId, 
+							regularImageList, scaledImageList, 
+							promptUploadList, null, bufferedImageMap, 
+							transactionManager, status);
 					
 				} catch (DataIntegrityViolationException dive) { // a unique index exists only on the survey_response table
 					
@@ -752,5 +654,142 @@ public class SurveyUploadDao extends AbstractUploadDao {
 		Arrays.sort(directories);
 		
 		return directories[directories.length - 1];
+	}
+	
+	private static void createPromptResponse(
+			final String username, final String client,
+			final Number surveyResponseId,
+			final List<File> regularImageList, 
+			final List<File> scaledImageList,
+			final Collection<Response> promptUploadList,
+			final Integer repeatableSetIteration,
+            final Map<String, BufferedImage> bufferedImageMap,
+            final DataSourceTransactionManager transactionManager,
+            final TransactionStatus status) 
+			throws DataAccessException{
+		
+		for(Response response : promptUploadList) {
+			if(response instanceof RepeatableSetResponse) {
+				Map<Integer, Map<Integer, Response>> iterationToResponse =
+					((RepeatableSetResponse) response).getResponseGroups();
+				
+				for(Integer iteration : iterationToResponse.keySet()) {
+					createPromptResponse(username, client, surveyResponseId, 
+							regularImageList, scaledImageList,
+							iterationToResponse.get(iteration).values(), 
+							iteration, bufferedImageMap, 
+							transactionManager, status
+						);
+				}
+				continue;
+			}
+			final PromptResponse promptResponse = (PromptResponse) response;
+			
+			instance.getJdbcTemplate().update(
+				new PreparedStatementCreator() {
+					public PreparedStatement createPreparedStatement(Connection connection) throws SQLException {
+						PreparedStatement ps 
+							= connection.prepareStatement(SQL_INSERT_PROMPT_RESPONSE);
+						ps.setLong(1, surveyResponseId.longValue());
+						
+						RepeatableSet parent = promptResponse.getPrompt().getParent();
+						if(parent == null) {
+							ps.setNull(2, java.sql.Types.NULL);
+							ps.setNull(3, java.sql.Types.NULL);
+						}
+						else {
+							ps.setString(2, parent.getId());
+							ps.setInt(3, repeatableSetIteration);
+						}
+						ps.setString(4, promptResponse.getPrompt().getType().toString());
+						ps.setString(5, promptResponse.getPrompt().getId());
+						ps.setString(6, promptResponse.getResponseValue());
+						
+						return ps;
+					}
+				}
+			);
+			
+			if(promptResponse instanceof PhotoPromptResponse) {
+				// Grab the associated image and save it
+				String imageId = promptResponse.getResponseValue();
+				BufferedImage imageContents = bufferedImageMap.get(imageId);
+				
+				if(! JsonInputKeys.PROMPT_SKIPPED.equals(imageId) && ! JsonInputKeys.PROMPT_NOT_DISPLAYED.equals(imageId)) {
+					
+					// getDirectory() is used as opposed to accessing the current leaf
+					// directory class variable as it will do sanitation in case it hasn't
+					// been initialized or is full.
+					File imageDirectory = getDirectory();
+					File regularImage = new File(imageDirectory.getAbsolutePath() + "/" + imageId);
+					regularImageList.add(regularImage);
+					File scaledImage = new File(imageDirectory.getAbsolutePath() + "/" + imageId + IMAGE_SCALED_EXTENSION);
+					scaledImageList.add(scaledImage);
+					
+					// Write the original to the file system.
+					try {
+						ImageIO.write(imageContents, IMAGE_STORE_FORMAT, regularImage);
+					}
+					catch(IOException e) {
+						
+						rollback(transactionManager, status);
+						throw new DataAccessException("Error writing the regular image to the system.", e);
+					}
+					
+					// Write the scaled image to the file system.
+					try {
+						// Get the percentage to scale the image.
+						Double scalePercentage;
+						if(imageContents.getWidth() > imageContents.getHeight()) {
+							scalePercentage = IMAGE_SCALED_MAX_DIMENSION / imageContents.getWidth();
+						}
+						else {
+							scalePercentage = IMAGE_SCALED_MAX_DIMENSION / imageContents.getHeight();
+						}
+						
+						// Calculate the scaled image's width and height.
+						int width = (new Double(imageContents.getWidth() * scalePercentage)).intValue();
+						int height = (new Double(imageContents.getHeight() * scalePercentage)).intValue();
+						
+						// Create the new image of the same type as the original and of the
+						// scaled dimensions.
+						BufferedImage scaledContents = new BufferedImage(width, height, imageContents.getType());
+						
+						// Paint the original image onto the scaled canvas.
+						Graphics2D graphics2d = scaledContents.createGraphics();
+						graphics2d.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+						graphics2d.drawImage(imageContents, 0, 0, width, height, null);
+						
+						// Cleanup.
+						graphics2d.dispose();
+						
+						// Write the scaled image to the filesystem.
+						ImageIO.write(scaledContents, IMAGE_STORE_FORMAT, scaledImage);
+					}
+					catch(IOException e) {
+						regularImage.delete();
+						rollback(transactionManager, status);
+						throw new DataAccessException("Error writing the scaled image to the system.", e);
+					}
+					
+					// Get the image's URL.
+					String url = "file://" + regularImage.getAbsolutePath();
+					// Insert the image URL into the database.
+					try {
+						instance.getJdbcTemplate().update(
+								SQL_INSERT_IMAGE, 
+								new Object[] { username, client, imageId, url }
+							);
+					}
+					catch(org.springframework.dao.DataAccessException e) {
+						regularImage.delete();
+						scaledImage.delete();
+						transactionManager.rollback(status);
+						throw new DataAccessException("Error executing SQL '" + SQL_INSERT_IMAGE + "' with parameters: " +
+								username + ", " + client + ", " + imageId + ", " + url, e);
+					}
+				}
+			}
+		}
 	}
 }

@@ -588,6 +588,7 @@ public class CampaignServices {
 	/**
 	 * Finds the configuration for the campaign identified by the campaign id.
 	 * 
+	 * @param request The Request that is performing this service.
 	 * @param campaignId The campaign id to use for lookup.
 	 * @return a Campaign instance created from the XML for the campaign.
 	 * @throws ServiceException If an error occurred in the data layer.

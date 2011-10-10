@@ -124,6 +124,8 @@ public class RepeatableSetResponse extends Response {
 					for(Integer index : indices) {
 						iterationResponse.put(iterationResponses.get(index).toJson());
 					}
+					
+					repeatableSetResponses.put(iterationResponse);
 				}
 				result.put(RESPONSES, repeatableSetResponses);
 			}

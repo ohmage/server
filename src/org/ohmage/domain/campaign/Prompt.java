@@ -28,8 +28,14 @@ import org.ohmage.util.StringUtils;
  */
 public abstract class Prompt extends SurveyItem {
 	public static final String JSON_KEY_UNIT = "unit";
+	public static final String JSON_KEY_TEXT = "text";
+	public static final String JSON_KEY_ABBREVIATED_TEXT = "abbreviated_text";
+	public static final String JSON_KEY_EXPLANATION_TEXT = "explanation_text";
+	public static final String JSON_KEY_SKIPPABLE = "skippable";
+	public static final String JSON_KEY_SKIP_LABEL = "skip_label";
 	public static final String JSON_KEY_PROMPT_TYPE = "prompt_type";
 	public static final String JSON_KEY_DISPLAY_TYPE = "display_type";
+	public static final String JSON_KEY_DISPLAY_LABEL = "display_label";
 
 	private final String unit;
 	
@@ -115,6 +121,9 @@ public abstract class Prompt extends SurveyItem {
 	 * @author John Jenkins
 	 */
 	public static final class LabelValuePair {
+		public static final String JSON_KEY_LABEL = "label";
+		public static final String JSON_KEY_VALUE = "value";
+		
 		private final String label;
 		private final Number value;
 		
@@ -153,6 +162,26 @@ public abstract class Prompt extends SurveyItem {
 		 */
 		public Number getValue() {
 			return value;
+		}
+		
+		/**
+		 * Returns a JSONObject that represents this label-value pair.
+		 * 
+		 * @return A JSONObject that represents this label-value pair.
+		 */
+		public JSONObject toJson() {
+			try {
+				JSONObject result = new JSONObject();
+				
+				result.put(JSON_KEY_LABEL, label);
+				result.put(JSON_KEY_VALUE, value);
+				
+				return result;
+			}
+			catch(JSONException e) {
+				// FIXME: Throw an exception.
+				return null;
+			}
 		}
 
 		/**
@@ -375,33 +404,35 @@ public abstract class Prompt extends SurveyItem {
 	}
 	
 	/**
-	 * Creates a JSONObject that represents this prompt.<br />
-	 * <br />
-	 * For now, this is highly dependent on the output and input that were
-	 * already required by the system, so it is not an exhaustive output. For
-	 * now, it only outputs the unit, prompt type, and display type.
+	 * Creates a JSONObject that represents this prompt.
 	 * 
 	 * @return A JSONObject representing this prompt or null if there is an
 	 * 		   error.
 	 */
+	@Override
 	public JSONObject toJson() {
 		try {
-			JSONObject result = new JSONObject();
+			JSONObject result = super.toJson();
 			
-			// FIXME: This should output everything about the prompt. To
-			// facilitate the lesser requirements of certain scenarios, flags
-			// should be added to the parameter of the function to allow the
-			// user to specify exactly what they want.
+			if(result == null) {
+				// FIXME: Ignore the exception and let it propagate.
+				return null;
+			}
+			
 			result.put(JSON_KEY_UNIT, unit);
+			result.put(JSON_KEY_TEXT, text);
+			result.put(JSON_KEY_ABBREVIATED_TEXT, abbreviatedText);
+			result.put(JSON_KEY_EXPLANATION_TEXT, explanationText);
+			result.put(JSON_KEY_SKIPPABLE, skippable);
+			result.put(JSON_KEY_SKIP_LABEL, skipLabel);
 			result.put(JSON_KEY_PROMPT_TYPE, type.toString());
 			result.put(JSON_KEY_DISPLAY_TYPE, displayType.toString());
+			result.put(JSON_KEY_DISPLAY_LABEL, displayLabel);
 			
 			return result;
 		}
 		catch(JSONException e) {
-			// This should throw an IllegalStateException or some sort of 
-			// exception on the extremely off chance that this does happen
-			// instead of returning null.
+			// FIXME: Throw an exception.
 			return null;
 		}
 	}

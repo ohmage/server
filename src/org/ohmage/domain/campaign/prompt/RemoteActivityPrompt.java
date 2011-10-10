@@ -12,13 +12,21 @@ import org.ohmage.domain.campaign.response.RemoteActivityPromptResponse;
  * @author John Jenkins
  */
 public class RemoteActivityPrompt extends Prompt {
-	public static final String KEY_PACKAGE = "package";
-	public static final String KEY_ACTIVITY = "activity";
-	public static final String KEY_ACTION = "action";
-	public static final String KEY_AUTOLAUNCH = "autolaunch";
-	public static final String KEY_RETRIES = "retries";
-	public static final String KEY_MIN_RUNS = "min_runs";
-	public static final String KEY_INPUT = "input";
+	public static final String JSON_KEY_PACKAGE = "package";
+	public static final String JSON_KEY_ACTIVITY = "activity";
+	public static final String JSON_KEY_ACTION = "action";
+	public static final String JSON_KEY_AUTOLAUNCH = "autolaunch";
+	public static final String JSON_KEY_RETRIES = "retries";
+	public static final String JSON_KEY_MIN_RUNS = "min_runs";
+	public static final String JSON_KEY_INPUT = "input";
+	
+	public static final String XML_KEY_PACKAGE = "package";
+	public static final String XML_KEY_ACTIVITY = "activity";
+	public static final String XML_KEY_ACTION = "action";
+	public static final String XML_KEY_AUTOLAUNCH = "autolaunch";
+	public static final String XML_KEY_RETRIES = "retries";
+	public static final String XML_KEY_MIN_RUNS = "min_runs";
+	public static final String XML_KEY_INPUT = "input";
 	
 	public static final String JSON_KEY_SCORE = "score";
 	
@@ -35,11 +43,11 @@ public class RemoteActivityPrompt extends Prompt {
 	/**
 	 * Creates a remote Activity prompt.
 	 * 
-	 * @param condition The condition determining if this prompt should be
-	 * 					displayed.
-	 * 
 	 * @param id The unique identifier for the prompt within its survey item
 	 * 			 group.
+	 * 
+	 * @param condition The condition determining if this prompt should be
+	 * 					displayed.
 	 * 
 	 * @param unit The unit value for this prompt.
 	 * 
@@ -94,7 +102,7 @@ public class RemoteActivityPrompt extends Prompt {
 			final boolean autolaunch, final int retries, final int minRuns,
 			final String input, final int index) {
 		
-		super(condition, id, unit, text, abbreviatedText, explanationText,
+		super(id, condition, unit, text, abbreviatedText, explanationText,
 				skippable, skipLabel, displayType, displayLabel, 
 				Type.REMOTE_ACTIVITY, index);
 		
@@ -276,7 +284,7 @@ public class RemoteActivityPrompt extends Prompt {
 		if((repeatableSetIteration == null) && (getParent() != null)) {
 			throw new IllegalArgumentException("The repeatable set iteration is null, but this prompt is part of a repeatable set.");
 		}
-		else if(repeatableSetIteration < 0) {
+		else if((repeatableSetIteration != null) && (repeatableSetIteration < 0)) {
 			throw new IllegalArgumentException("The repeatable set iteration value is negative.");
 		}
 		
@@ -301,6 +309,38 @@ public class RemoteActivityPrompt extends Prompt {
 		}
 			
 		throw new IllegalArgumentException("The response was not a valid response.");
+	}
+	
+	/**
+	 * Creates a JSONObject that represents this remote Activity prompt.
+	 * 
+	 * @return A JSONObject that represents this remote Activity prompt.
+	 */
+	@Override
+	public JSONObject toJson() {
+		try {
+			JSONObject result = super.toJson();
+			
+			if(result == null) {
+				// FIXME: Ignore the exception thrown, allowing it to 
+				// propagate.
+				return null;
+			}
+			
+			result.put(JSON_KEY_PACKAGE, packagee);
+			result.put(JSON_KEY_ACTIVITY, activity);
+			result.put(JSON_KEY_ACTION, action);
+			result.put(JSON_KEY_AUTOLAUNCH, autolaunch);
+			result.put(JSON_KEY_RETRIES, retries);
+			result.put(JSON_KEY_MIN_RUNS, minRuns);
+			result.put(JSON_KEY_INPUT, input);
+			
+			return result;
+		}
+		catch(JSONException e) {
+			// FIXME: Throw an exception.
+			return null;
+		}
 	}
 	
 	/**

@@ -2,6 +2,7 @@ package org.ohmage.lib;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
@@ -35,6 +36,7 @@ import org.json.JSONObject;
 import org.ohmage.annotator.Annotator;
 import org.ohmage.domain.Document;
 import org.ohmage.domain.MobilityPoint;
+import org.ohmage.domain.ServerConfig;
 import org.ohmage.domain.campaign.SurveyResponse;
 import org.ohmage.exception.ErrorCodeException;
 import org.ohmage.lib.exception.ApiException;
@@ -63,7 +65,6 @@ public class OhmageApi {
 	
 	private static final String CONTENT_TYPE_HEADER = "Content-Type";
 	private static final String CONTENT_TYPE_HTML = "text/html";
-	private static final String CONTENT_TYPE_JSON = "application/json";
 		
 	private final URL url;
 	
@@ -75,22 +76,76 @@ public class OhmageApi {
 	 * @throws Exception Catch-all for debugging.
 	 */
 	public static void main(String args[]) throws Exception {
-		String client = "library";
+		/*
+		String campaignXml = readFile("/Users/jojenki/Desktop/CHIPTS.xml");
+		
+		Campaign campaign = new Campaign("Description", RunningState.RUNNING, PrivacyState.SHARED, new Date(), campaignXml);
+	
+		Survey survey = campaign.getSurveys().get("test");
+		Prompt outerPrompt = (Prompt) survey.getSurveyItem("SubstanceUseDescriptionOuter");
+		RepeatableSet repeatableSet = (RepeatableSet) survey.getSurveyItem("OuterRepeatableSet");
+		
+		Prompt innerPrompt = repeatableSet.getPrompt("SubstanceUseDescriptionInner");
+		
+		RepeatableSetResponse rsResponse = new RepeatableSetResponse(repeatableSet, null);
+		
+		PromptResponse innerPromptResponse = innerPrompt.createResponse("Inner response.", 1);
+		Map<Integer, Response> rsResponseGroup = new HashMap<Integer, Response>();
+		rsResponseGroup.put(innerPrompt.getIndex(), innerPromptResponse);
+		
+		rsResponse.addResponseGroup(1, rsResponseGroup);
+		
+		PromptResponse outerPromptResponse = outerPrompt.createResponse("Outer response", null);
+		
+		Map<Integer, Response> responseGroup = new HashMap<Integer, Response>();
+		responseGroup.put(outerPromptResponse.getPrompt().getIndex(), outerPromptResponse);
+		responseGroup.put(rsResponse.getRepeatableSet().getIndex(), rsResponse);
+		
+		LaunchContext launchContext = new LaunchContext(new Date(), new LinkedList<String>());
+		
+		SurveyResponse surveyResponse = new SurveyResponse(survey, -1, "sink.thaw", 
+				"urn:campaign:andwellness:chipts:08032011:Test", "library",
+				new Date(), (new Date()).getTime(), TimeZone.getDefault(),
+				launchContext, LocationStatus.UNAVAILABLE, null, 
+				SurveyResponse.PrivacyState.SHARED, responseGroup);
+		
+		Collection<SurveyResponse> surveyResponses = new ArrayList<SurveyResponse>();
+		surveyResponses.add(surveyResponse);
 		
 		OhmageApi api = new OhmageApi("localhost", 8080, false);
+		String hashedPassword = api.getHashedPassword("sink.thaw", "mill.damper", "library");
 		
-		String token = api.getAuthenticationToken("sink.thaw", "mill.damper", client);
-		String hashedPassword = api.getHashedPassword("sink.thaw", "mill.damper", client);
+		Date creation = new Date(new Long("1318030689000"));
 		
-		Collection<String> usernames = new ArrayList<String>(1);
-		usernames.add("sink.thaw");
-		Collection<String> emptyList = new ArrayList<String>(0);
-		/*
-		Collection<SurveyResponseInformation> result = 
-			api.getSurveyResponsesJsonColumns(token, null, null, client, "urn:campaign:ca:lausd:Addams_HS:CS101:Fall:2011:Sleep", 
-				usernames, emptyList, emptyList, null, null, null, null, null, null, null, null, null);
+		//System.out.println(surveyResponse.toJson(true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true).toString(4));
 		
-		System.out.println(new String(result));*/
+		api.uploadSurveyResponses("sink.thaw", hashedPassword, "library", "urn:campaign:andwellness:chipts:08032011:Test", creation, surveyResponses);
+		*/
+		OhmageApi api = new OhmageApi("localhost", 8080, false);
+		System.out.println(api.getServerConfiguration().toJson().toString(4));
+	}
+	
+	/**
+	 * DELETE ME!
+	 * 
+	 * @param filename The XML's filename.
+	 * 
+	 * @return The XML as a String.
+	 * 
+	 * @throws Exception If something fails.
+	 */
+	private static String readFile(final String filename) throws Exception {
+		File file = new File(filename);
+		
+		ByteArrayOutputStream baos = new ByteArrayOutputStream();
+		byte[] chunk = new byte[4096];
+		InputStream is = new FileInputStream(file);
+		int amountRead;
+		while((amountRead = is.read(chunk)) != -1) {
+			baos.write(chunk, 0, amountRead);
+		}
+		
+		return new String(baos.toByteArray());
 	}
 	
 	/**
@@ -142,6 +197,48 @@ public class OhmageApi {
 		}
 		catch(MalformedURLException e) {
 			throw new IllegalArgumentException("The server's address is invalid.");
+		}
+	}
+	
+	/**************************************************************************
+	 * Configuration Requests
+	 *************************************************************************/
+	
+	/**
+	 * Reads the server's configuration.
+	 * 
+	 * @return The server's configuration.
+	 * 
+	 * @throws ApiException Thrown if the server returns an error or if the
+	 * 						server's configuration is invalid.
+	 */
+	public ServerConfig getServerConfiguration() throws ApiException {
+		String serverResponse;
+		try {
+			serverResponse = 
+				processJsonResponse(
+					makeRequest(
+							new URL(url.toString() + RequestBuilder.API_CONFIG_READ), 
+							new HashMap<String, Object>(0), 
+							false), 
+					InputKeys.DATA);
+		}
+		catch(MalformedURLException e) {
+			throw new ApiException("The URL was incorrectly created.", e);
+		}
+		catch(IllegalArgumentException e) {
+			throw new ApiException("The response was not proper JSON.", e);
+		}
+		
+		try {
+			return new ServerConfig(new JSONObject(serverResponse));
+		}
+		catch(JSONException e) {
+			throw new ApiException("The response was not proper JSON.", e);
+		}
+		catch(IllegalArgumentException e) {
+			throw new ApiException(
+					"The response is missing a required key.", e);
 		}
 	}
 	
@@ -1107,8 +1204,7 @@ public class OhmageApi {
 		// an exception.
 		Header[] headers = httpResponse.getHeaders(CONTENT_TYPE_HEADER);
 		String contentType = headers[0].getValue();
-		if(CONTENT_TYPE_HTML.equals(contentType) || 
-				CONTENT_TYPE_JSON.equals(contentType)) {
+		if(CONTENT_TYPE_HTML.equals(contentType)) {
 			checkFailure(result);
 		}
 		

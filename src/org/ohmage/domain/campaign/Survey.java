@@ -15,9 +15,14 @@
  ******************************************************************************/
 package org.ohmage.domain.campaign;
 
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.ohmage.util.StringUtils;
 
 /**
@@ -27,6 +32,17 @@ import org.ohmage.util.StringUtils;
  * @author John Jenkins
  */
 public class Survey {
+	private static final String JSON_KEY_ID = "id";
+	private static final String JSON_KEY_TITLE = "title";
+	private static final String JSON_KEY_DESCRIPTION = "description";
+	private static final String JSON_KEY_INTRO_TEXT = "intro_text";
+	private static final String JSON_KEY_SUBMIT_TEXT = "submit_text";
+	private static final String JSON_KEY_SHOW_SUMMARY = "show_summary";
+	private static final String JSON_KEY_EDIT_SUMMARY = "edit_summary";
+	private static final String JSON_KEY_SUMMARY_TEXT = "summary_text";
+	private static final String JSON_KEY_ANYTIME = "anytime";
+	private static final String JSON_KEY_PROMPTS = "prompts";
+	
 	/**
 	 * The surveys unique identifier.
 	 */
@@ -298,7 +314,11 @@ public class Survey {
 				}
 			}
 			else if(prompt instanceof RepeatableSet) {
-				if(((RepeatableSet) prompt).getPrompt(surveyItemId) != null) {
+				RepeatableSet repeatableSet = (RepeatableSet) prompt;
+				if(repeatableSet.getId().equals(surveyItemId)) {
+					return repeatableSet;
+				}
+				else if(repeatableSet.getPrompt(surveyItemId) != null) {
 					return prompt;
 				}
 			}
@@ -323,6 +343,102 @@ public class Survey {
 		}
 		
 		return null;
+	}
+	
+	/**
+	 * Creates a JSONObject that represents this survey.
+	 * 
+	 * @param withId Whether or not to include the survey's unique identifier.
+	 * 
+	 * @param withTitle Whether or not to include the survey's title.
+	 * 
+	 * @param withDescription Whether or not to include the survey's 
+	 * 						  description.
+	 * 
+	 * @param withIntroText Whether or not to include the survey's intro text.
+	 * 
+	 * @param withSubmitText Whether or not to include the survey's submit
+	 * 						 text.
+	 * 
+	 * @param withShowSummary Whether or not to include if the survey is going
+	 * 						  to show a summary.
+	 * 
+	 * @param withEditSummary Whether or not to include if the survey allows 
+	 * 						  the user to edit the summary.
+	 * 
+	 * @param withSummaryText Whether or not to include the summary text.
+	 * 
+	 * @param withAnytime Whether or not to include if the survey allows the 
+	 * 					  user to take the survey anytime.
+	 * 
+	 * @param withSurveyItems Whether or not to include all of the prompts.
+	 * 
+	 * @return A JSONObject that represents this survey based on the 
+	 * 		   parameters.
+	 */
+	public JSONObject toJson(final boolean withId, final boolean withTitle,
+			final boolean withDescription, final boolean withIntroText,
+			final boolean withSubmitText, final boolean withShowSummary,
+			final boolean withEditSummary, final boolean withSummaryText,
+			final boolean withAnytime, final boolean withSurveyItems) {
+		try {
+			JSONObject result = new JSONObject();
+			
+			if(withId) {
+				result.put(JSON_KEY_ID, id);
+			}
+
+			if(withTitle) {
+				result.put(JSON_KEY_TITLE, title);
+			}
+
+			if(withDescription) {
+				result.put(JSON_KEY_DESCRIPTION, description);
+			}
+
+			if(withIntroText) {
+				result.put(JSON_KEY_INTRO_TEXT, introText);
+			}
+
+			if(withSubmitText) {
+				result.put(JSON_KEY_SUBMIT_TEXT, submitText);
+			}
+
+			if(withShowSummary) {
+				result.put(JSON_KEY_SHOW_SUMMARY, showSummary);
+			}
+
+			if(withEditSummary) {
+				result.put(JSON_KEY_EDIT_SUMMARY, editSummary);
+			}
+
+			if(withSummaryText) {
+				result.put(JSON_KEY_SUMMARY_TEXT, summaryText);
+			}
+
+			if(withAnytime) {
+				result.put(JSON_KEY_ANYTIME, anytime);
+			}
+
+			if(withSurveyItems) {
+				JSONArray surveyItemsArray = new JSONArray();
+				
+				List<Integer> indices = new ArrayList<Integer>(surveyItems.keySet());
+				Collections.sort(indices);
+				
+				for(Integer index : indices) {
+					surveyItemsArray.put(surveyItems.get(index).toJson());
+				}
+				
+				result.put(JSON_KEY_PROMPTS, surveyItemsArray);
+			}
+			
+			return result;
+		}
+		catch(JSONException e) {
+			// FIXME: This should throw an exception.
+			return null;
+		}
 	}
 
 	/**

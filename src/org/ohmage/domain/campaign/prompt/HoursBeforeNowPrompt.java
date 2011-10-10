@@ -12,11 +12,11 @@ public class HoursBeforeNowPrompt extends BoundedPrompt {
 	/**
 	 * Creates a hours-before-now prompt.
 	 * 
-	 * @param condition The condition determining if this prompt should be
-	 * 					displayed.
-	 * 
 	 * @param id The unique identifier for the prompt within its survey item
 	 * 			 group.
+	 * 
+	 * @param condition The condition determining if this prompt should be
+	 * 					displayed.
 	 * 
 	 * @param unit The unit value for this prompt.
 	 * 
@@ -59,7 +59,7 @@ public class HoursBeforeNowPrompt extends BoundedPrompt {
 			final long min, final long max, final Long defaultValue, 
 			final int index) {
 		
-		super(condition, id, unit, text, abbreviatedText, explanationText,
+		super(id, condition, unit, text, abbreviatedText, explanationText,
 				skippable, skipLabel, displayType, displayLabel, 
 				min, max, defaultValue, Type.HOURS_BEFORE_NOW, index);
 	}
