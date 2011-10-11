@@ -90,7 +90,7 @@ public class RepeatableSet extends SurveyItem {
 			final String terminationFalseLabel,
 			final boolean terminationSkipEnabled, 
 			final String terminationSkipLabel,
-			final Map<Integer, SurveyItem> prompts,
+			final Map<Integer, SurveyItem> surveyItems,
 			final int index) {
 		
 		super(id, condition, index);
@@ -107,7 +107,7 @@ public class RepeatableSet extends SurveyItem {
 		if(terminationSkipEnabled && StringUtils.isEmptyOrWhitespaceOnly(terminationSkipLabel)) {
 			throw new IllegalArgumentException("The termination skip is enabled but the label is null.");
 		}
-		if((prompts == null) || (prompts.size() == 0)) {
+		if((surveyItems == null) || (surveyItems.size() == 0)) {
 			throw new IllegalArgumentException("The prompt list cannot be null or empty.");
 		}
 		
@@ -118,8 +118,8 @@ public class RepeatableSet extends SurveyItem {
 		this.terminationSkipEnabled = terminationSkipEnabled;
 		this.terminationSkipLabel = terminationSkipLabel;
 		
-		this.surveyItems = new HashMap<Integer, SurveyItem>(prompts.size());
-		for(SurveyItem surveyItem : prompts.values()) {
+		this.surveyItems = new HashMap<Integer, SurveyItem>(surveyItems.size());
+		for(SurveyItem surveyItem : surveyItems.values()) {
 			surveyItem.setParent(this);
 			this.surveyItems.put(surveyItem.getIndex(), surveyItem);
 		}

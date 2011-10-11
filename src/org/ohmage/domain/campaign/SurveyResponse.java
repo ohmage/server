@@ -481,8 +481,8 @@ public class SurveyResponse {
 		 * may also be a key called "context" which further describes the 
 		 * prompt responses.
 		 * 
-		 * @see SurveyResponse#JSON_KEY_CONTEXT
-		 * @see SurveyResponse#JSON_KEY_VALUES
+		 * @see org.ohmage.request.survey.SurveyResponseReadRequest#JSON_KEY_CONTEXT JSON_KEY_CONTEXT
+		 * @see org.ohmage.request.survey.SurveyResponseReadRequest#JSON_KEY_VALUES JSON_KEY_VALUES
 		 */
 		JSON_COLUMNS ("json-columns"),
 		/**

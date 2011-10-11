@@ -270,7 +270,10 @@ public final class SurveyResponseServices {
 				}
 			}
 			
-			if((surveyResponseIds == null) || (surveyResponseIds.size() == 0)) {
+			if(surveyResponseIds == null) {
+				return SurveyResponseDaos.retrieveSurveyResponseFromIds(campaign, SurveyResponseDaos.retrieveSurveyResponseIdsFromCampaign(campaignId));
+			}
+			else if(surveyResponseIds.size() == 0) {
 				return Collections.emptyList();
 			}
 			else {

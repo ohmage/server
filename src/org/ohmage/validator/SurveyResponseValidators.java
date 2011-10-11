@@ -149,6 +149,37 @@ public final class SurveyResponseValidators {
 	}
 	
 	/**
+	 * Validates that a set of usernames is either the special URN value or is 
+	 * a valid list of usernames.
+	 * 
+	 * @param request The Request that is performing this validation.
+	 * 
+	 * @param usernames The usernames list as a string.
+	 * 
+	 * @return A set of usernames that may only contain the special URN value,
+	 * 		   or null if the usernames string is null or whitespace only.
+	 * 
+	 * @throws ValidationException Thrown if the usernames string listcontains 
+	 * 							   a username that is invalid.
+	 */
+	public static Set<String> validateUsernames(final Request request, final String usernames) throws ValidationException {
+		if(StringUtils.isEmptyOrWhitespaceOnly(usernames)) {
+			return null;
+		}
+		
+		String[] usernamesArray = usernames.split(InputKeys.LIST_ITEM_SEPARATOR);
+		for(int i = 0; i < usernamesArray.length; i++) {
+			if(SurveyResponseReadRequest.URN_SPECIAL_ALL.equals(usernamesArray[i])) {
+				Set<String> result = new HashSet<String>(1);
+				result.add(SurveyResponseReadRequest.URN_SPECIAL_ALL);
+				return result;
+			}
+		}
+		
+		return UserValidators.validateUsernames(request, usernames);
+	}
+	
+	/**
 	 * Validates that the column list string contains only valid column keys or
 	 * none at all. 
 	 * 

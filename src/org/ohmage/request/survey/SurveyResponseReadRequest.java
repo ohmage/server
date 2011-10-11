@@ -49,7 +49,6 @@ import org.ohmage.service.UserCampaignServices;
 import org.ohmage.util.TimeUtils;
 import org.ohmage.validator.CampaignValidators;
 import org.ohmage.validator.SurveyResponseValidators;
-import org.ohmage.validator.UserValidators;
 
 /**
  * <p>Allows a requester to read survey responses. Supervisors can read survey
@@ -193,24 +192,26 @@ public final class SurveyResponseReadRequest extends UserRequest {
 	/**
 	 * The, optional, additional JSON key associated with a prompt responses in
 	 * the 
-	 * {@link org.ohmage.domain.Campaign.SurveyResponse.OutputFormat#JSON_COLUMNS} 
+	 * {@link org.ohmage.domain.Campaign.SurveyResponse.OutputFormat#JSON_COLUMNS JSON_COLUMNS} 
 	 * format representing additional information about the prompt's responses.
 	 * 
-	 * @see org.ohmage.domain.Campaign.SurveyResponse.OutputFormat#JSON_COLUMNS
+	 * @see org.ohmage.domain.Campaign.SurveyResponse.OutputFormat#JSON_COLUMNS JSON_COLUMNS
 	 */
 	public static final String JSON_KEY_CONTEXT = "context";
 	/**
 	 * The JSON key associated with a prompt responses in the 
-	 * {@link org.ohmage.domain.Campaign.SurveyResponse.OutputFormat#JSON_COLUMNS} 
+	 * {@link org.ohmage.domain.Campaign.SurveyResponse.OutputFormat#JSON_COLUMNS JSON_COLUMNS} 
 	 * format representing the values for the prompt response.
 	 * 
-	 * @see org.ohmage.domain.Campaign.SurveyResponse.OutputFormat#JSON_COLUMNS
+	 * @see org.ohmage.domain.Campaign.SurveyResponse.OutputFormat#JSON_COLUMNS JSON_COLUMNS
 	 */
 	public static final String JSON_KEY_VALUES = "values";
 	/**
 	 * The JSON key in the metadata for 
-	 * {@link org.ohmage.domain.Campaign.SurveyResponse.OutputFormat#JSON_ROWS}
+	 * {@link org.ohmage.domain.Campaign.SurveyResponse.OutputFormat#JSON_ROWS JSON_ROWS}
 	 * representing the number of unique surveys in the results. 
+	 * 
+	 * @see org.ohmage.domain.Campaign.SurveyResponse.OutputFormat#JSON_ROWS JSON_ROWS
 	 */
 	public static final String JSON_KEY_NUM_SURVEYS = "number_of_surveys";
 	
@@ -331,7 +332,7 @@ public final class SurveyResponseReadRequest extends UserRequest {
 					throw new ValidationException("Mutliple user lists were given: " + InputKeys.USER_LIST);
 				}
 				else {
-					tUsernames = UserValidators.validateUsernames(this, t[0]);
+					tUsernames = SurveyResponseValidators.validateUsernames(this, t[0]);
 					
 					if(tUsernames == null) {
 						setFailed(ErrorCodes.SURVEY_MALFORMED_USER_LIST, "The user list is missing: " + InputKeys.USER_LIST);
@@ -523,7 +524,9 @@ public final class SurveyResponseReadRequest extends UserRequest {
 		}
 		
 		try {
-			
+			// This is not necessarily the case because the user may no longer
+			// belong to the campaign but still want to see their data. This
+			// should only check that the campaign exists.
 			LOGGER.info("Verifying that requester belongs to the campaign specified by campaign ID.");
 		    UserCampaignServices.campaignExistsAndUserBelongs(this, campaignId, this.getUser().getUsername());
 		    
@@ -536,6 +539,8 @@ public final class SurveyResponseReadRequest extends UserRequest {
 //		    LOGGER.info("Verifying that the requester has a role that allows reading of survey responses for each of the users in the list.");
 //	    	UserCampaignServices.requesterCanViewUsersSurveyResponses(this, this.campaignUrn, this.getUser().getUsername(), (String[]) userList.toArray());
 			
+		    // The user may want to read survey responses from a user that no
+		    // longer belongs to the campaign.
 		    if(! usernames.equals(URN_SPECIAL_ALL_LIST)) {
 		    	LOGGER.info("Checking the user list to make sure all of the users belong to the campaign ID.");
 		    	UserCampaignServices.verifyUsersExistInCampaign(this, campaignId, usernames);
@@ -557,18 +562,33 @@ public final class SurveyResponseReadRequest extends UserRequest {
 			LOGGER.info("Dispatching to the data layer.");
 			surveyResponseList = new LinkedList<SurveyResponse>();
 			
-			for(String username : usernames) {
-				// This can never overlap unless the usernames are identical,
-				// which should have already been taken care of.
+			if(URN_SPECIAL_ALL_LIST.equals(usernames)) {
 				surveyResponseList.addAll(
 						SurveyResponseServices.readSurveyResponseInformation(
-								this, configuration, username, null, startDate, 
-								endDate, privacyState, 
+								this, configuration, null, null, 
+								startDate, endDate, privacyState, 
 								(URN_SPECIAL_ALL_LIST.equals(surveyIds)) ? null : surveyIds, 
 								(URN_SPECIAL_ALL_LIST.equals(promptIds)) ? null : promptIds, 
 								null
 							)
 					);
+			}
+			else {
+				for(String username : usernames) {
+					// This can never overlap unless the usernames are 
+					// identicial, which should have already been taken care
+					// of.
+					surveyResponseList.addAll(
+							SurveyResponseServices.readSurveyResponseInformation(
+									this, configuration, username, null, startDate, 
+									endDate, privacyState, 
+									(URN_SPECIAL_ALL_LIST.equals(surveyIds)) ? null : surveyIds, 
+									(URN_SPECIAL_ALL_LIST.equals(promptIds)) ? null : promptIds, 
+									null
+								)
+						);
+				}
+				
 			}
 			
 			LOGGER.info("Found " + surveyResponseList.size() + " results");

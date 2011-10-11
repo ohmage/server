@@ -2,7 +2,6 @@ package org.ohmage.lib;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
@@ -88,8 +87,8 @@ public class OhmageApi {
 		
 		System.out.println(new String(api.getSurveyResponsesCsv(authToken, null, null, 
 				"library", "urn:campaign:andwellness:chipts:08032011:Test", 
-				usernames, columns, new ArrayList<String>(0), 
-				null, null, null, null, null, null)));
+				new ArrayList<String>(0), columns, new ArrayList<String>(0), 
+				null, true, null, null, null, null)));
 	}
 	
 	/**
@@ -100,7 +99,7 @@ public class OhmageApi {
 	 * @return The XML as a String.
 	 * 
 	 * @throws Exception If something fails.
-	 */
+	 *
 	private static String readFile(final String filename) throws Exception {
 		File file = new File(filename);
 		
@@ -113,7 +112,7 @@ public class OhmageApi {
 		}
 		
 		return new String(baos.toByteArray());
-	}
+	}*/
 	
 	/**
 	 * Creates a new OhmageAPI object that points to a single server.
@@ -729,7 +728,15 @@ public class OhmageApi {
 		parameters.put(InputKeys.CLIENT, client);
 		parameters.put(InputKeys.CAMPAIGN_URN, campaignId);
 		parameters.put(InputKeys.OUTPUT_FORMAT, SurveyResponse.OutputFormat.CSV);
-		parameters.put(InputKeys.USER_LIST, StringUtils.collectionToStringList(usernames, InputKeys.LIST_ITEM_SEPARATOR));
+		
+		if(usernames != null) {
+			if(usernames.size() == 0) {
+				parameters.put(InputKeys.USER_LIST, SurveyResponseReadRequest.URN_SPECIAL_ALL);
+			}
+			else {
+				parameters.put(InputKeys.USER_LIST, StringUtils.collectionToStringList(usernames, InputKeys.LIST_ITEM_SEPARATOR));
+			}
+		}
 		
 		if(columnList != null) {
 			if(columnList.size() == 0) {
