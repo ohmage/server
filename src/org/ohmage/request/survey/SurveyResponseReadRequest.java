@@ -562,7 +562,8 @@ public final class SurveyResponseReadRequest extends UserRequest {
 							boolean found = false;
 							for(int i = 0; i < numberOfIndexedResults; i++) {
 								if(indexedResultList.get(i).getKey().keysAreEqual(result.getUsername(),
-										                                          result.getTimestamp(),
+										                                          //result.getTimestamp(),
+																				  result.getEpochMillis(),
 										                                          result.getSurveyId(),
 										                                          result.getRepeatableSetId(),
 										                                          result.getRepeatableSetIteration())) {

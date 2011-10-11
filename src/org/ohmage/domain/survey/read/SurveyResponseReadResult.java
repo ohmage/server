@@ -33,6 +33,7 @@ public class SurveyResponseReadResult {
 	private String _locationStatus;
 	private String _location;
 	private String _timestamp;
+	private Long _epochMillis;
 	private String _timezone;
 	private String _surveyId;
 	private String _promptId;
@@ -266,25 +267,12 @@ public class SurveyResponseReadResult {
 	public void setChoiceGlossary(Map<String, PromptProperty> choiceGlossary) {
 		_choiceGlossary = choiceGlossary;
 	}
+	
+	public Long getEpochMillis() {
+		return _epochMillis;
+	}
 
-	@Override
-	public String toString() {
-		return "SurveyResponseReadResult [_response=" + _response
-				+ ", _repeatableSetIteration=" + _repeatableSetIteration
-				+ ", _locationStatus=" + _locationStatus + ", _location="
-				+ _location + ", _timestamp=" + _timestamp + ", _timezone="
-				+ _timezone + ", _surveyId=" + _surveyId + ", _promptId="
-				+ _promptId + ", _promptType=" + _promptType
-				+ ", _repeatableSetId=" + _repeatableSetId + ", _displayLabel="
-				+ _displayLabel + ", _displayValue=" + _displayValue
-				+ ", _singleChoiceOrdinalValue=" + _singleChoiceOrdinalValue
-				+ ", _unit=" + _unit + ", _displayType=" + _displayType
-				+ ", _utcTimestamp=" + _utcTimestamp + ", _client=" + _client
-				+ ", _launchContext=" + _launchContext + ", _surveyTitle="
-				+ _surveyTitle + ", _surveyDescription=" + _surveyDescription
-				+ ", _username=" + _username + ", _choiceGlossary="
-				+ _choiceGlossary + ", _surveyPrimaryKeyId="
-				+ _surveyPrimaryKeyId + ", _privacyState=" + _privacyState
-				+ ", _promptText=" + _promptText + "]";
+	public void setEpochMillis(Long epochMillis) {
+		_epochMillis = epochMillis;
 	}
 }

@@ -43,7 +43,7 @@ public class SurveyResponseReadIndexedResult {
 	
 	public SurveyResponseReadIndexedResult(SurveyResponseReadResult result, boolean isCsv) {
 		
-		_key = new SurveyResponseReadIndexedResultKey(result.getUsername(), result.getTimestamp(), 
+		_key = new SurveyResponseReadIndexedResultKey(result.getUsername(), result.getEpochMillis(), 
 			result.getSurveyId(), result.getRepeatableSetId(), result.getRepeatableSetIteration());	
 		
 		_originalResult = result;
