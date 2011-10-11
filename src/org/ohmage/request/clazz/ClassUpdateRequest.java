@@ -1,7 +1,8 @@
 package org.ohmage.request.clazz;
 
-import java.util.List;
+import java.util.Collection;
 import java.util.Map;
+import java.util.Set;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -77,7 +78,7 @@ public class ClassUpdateRequest extends UserRequest {
 	private final String className;
 	private final String classDescription;
 	private final Map<String, Clazz.Role> usersToAdd;
-	private final List<String> usersToRemove;
+	private final Collection<String> usersToRemove;
 	
 	/**
 	 * Creates a new class update request.
@@ -92,7 +93,7 @@ public class ClassUpdateRequest extends UserRequest {
 		String tempClassName = null;
 		String tempClassDescription = null;
 		Map<String, Clazz.Role> tempUsersToAdd = null;
-		List<String> tempUsersToRemove = null;
+		Set<String> tempUsersToRemove = null;
 		
 		if(! isFailed()) {
 			try {

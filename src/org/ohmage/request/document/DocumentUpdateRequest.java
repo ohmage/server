@@ -1,7 +1,9 @@
 package org.ohmage.request.document;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -143,7 +145,7 @@ public class DocumentUpdateRequest extends UserRequest {
 	private final List<String> classesToRemove;
 	
 	private final Map<String, Document.Role> userAndRolesToAdd;
-	private final List<String> usersToRemove;
+	private final Collection<String> usersToRemove;
 	
 	/**
 	 * Creates a new document update request from the information in the
@@ -170,7 +172,7 @@ public class DocumentUpdateRequest extends UserRequest {
 		List<String> tClassesToRemove = null;
 		
 		Map<String, Document.Role> tUserAndRolesToAdd = null;
-		List<String> tUsersToRemove = null;
+		Set<String> tUsersToRemove = null;
 		
 		try {
 			tDocumentId = DocumentValidators.validateDocumentId(this, httpRequest.getParameter(InputKeys.DOCUMENT_ID));

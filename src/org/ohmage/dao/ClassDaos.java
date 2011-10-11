@@ -3,6 +3,7 @@ package org.ohmage.dao;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
@@ -429,7 +430,7 @@ public class ClassDaos extends Dao {
 	 * 						this class.
 	 */
 
-	public static List<String> updateClass(String classId, String className, String classDescription, Map<String, Clazz.Role> userAndRolesToAdd, List<String> usersToRemove)
+	public static List<String> updateClass(String classId, String className, String classDescription, Map<String, Clazz.Role> userAndRolesToAdd, Collection<String> usersToRemove)
 		throws DataAccessException {
 		// Note: This function is ugly. We need to stop using a class as a 
 		// mechanism to add users to a campaign and start using it like a 

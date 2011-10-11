@@ -254,8 +254,12 @@ public class User {
 	 * 		   specified by the 'campaignId'.
 	 */
 	public boolean isSupervisorInCampaign(String campaignId) {
-		List<Campaign.Role> roles = campaignAndUserRolesMap.get(campaignId).getUserRoleStrings();
+		CampaignAndUserRoles caur = campaignAndUserRolesMap.get(campaignId);
+		if(caur == null) {
+			return false;
+		}
 		
+		List<Campaign.Role> roles = caur.getUserRoleStrings();
 		if(roles == null) {
 			return false;
 		}
@@ -275,8 +279,12 @@ public class User {
 	 * 		   specified by the 'campaignId'.
 	 */
 	public boolean isAuthorInCampaign(String campaignId) {
-		List<Campaign.Role> roles = campaignAndUserRolesMap.get(campaignId).getUserRoleStrings();
+		CampaignAndUserRoles caur = campaignAndUserRolesMap.get(campaignId);
+		if(caur == null) {
+			return false;
+		}
 		
+		List<Campaign.Role> roles = caur.getUserRoleStrings();
 		if(roles == null) {
 			return false;
 		}
@@ -296,8 +304,12 @@ public class User {
 	 * 		   specified by the 'campaignId'.
 	 */
 	public boolean isAnalystInCampaign(String campaignId) {
-		List<Campaign.Role> roles = campaignAndUserRolesMap.get(campaignId).getUserRoleStrings();
+		CampaignAndUserRoles caur = campaignAndUserRolesMap.get(campaignId);
+		if(caur == null) {
+			return false;
+		}
 		
+		List<Campaign.Role> roles = caur.getUserRoleStrings();
 		if(roles == null) {
 			return false;
 		}
@@ -317,8 +329,12 @@ public class User {
 	 * 		   specified by the 'campaignId'.
 	 */
 	public boolean isParticipantInCampaign(String campaignId) {
-		List<Campaign.Role> roles = campaignAndUserRolesMap.get(campaignId).getUserRoleStrings();
+		CampaignAndUserRoles caur = campaignAndUserRolesMap.get(campaignId);
+		if(caur == null) {
+			return false;
+		}
 		
+		List<Campaign.Role> roles = caur.getUserRoleStrings();
 		if(roles == null) {
 			return false;
 		}
@@ -340,8 +356,12 @@ public class User {
 	 * 		   specified by the 'campaignId'.
 	 */
 	public boolean hasRoleInCampaign(String campaignId, Campaign.Role role) {
-		List<Campaign.Role> roles = campaignAndUserRolesMap.get(campaignId).getUserRoleStrings();
+		CampaignAndUserRoles caur = campaignAndUserRolesMap.get(campaignId);
+		if(caur == null) {
+			return false;
+		}
 		
+		List<Campaign.Role> roles = caur.getUserRoleStrings();
 		if(roles == null) {
 			return false;
 		}
@@ -362,7 +382,6 @@ public class User {
 	 */
 	public boolean isPrivilegedInClass(String classId) {
 		Clazz.Role role = classRoleMap.get(classId);
-		
 		if(role == null) {
 			return false;
 		}
@@ -383,7 +402,6 @@ public class User {
 	 */
 	public boolean isRestrictedInClass(String classId) {
 		Clazz.Role role = classRoleMap.get(classId);
-		
 		if(role == null) {
 			return false;
 		}
@@ -404,7 +422,6 @@ public class User {
 	 */
 	public boolean hasRoleInClass(String classId, Clazz.Role classRole) {
 		Clazz.Role role = classRoleMap.get(classId);
-		
 		if(role == null) {
 			return false;
 		}

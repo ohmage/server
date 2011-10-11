@@ -76,53 +76,20 @@ public class OhmageApi {
 	 * @throws Exception Catch-all for debugging.
 	 */
 	public static void main(String args[]) throws Exception {
-		/*
-		String campaignXml = readFile("/Users/jojenki/Desktop/CHIPTS.xml");
-		
-		Campaign campaign = new Campaign("Description", RunningState.RUNNING, PrivacyState.SHARED, new Date(), campaignXml);
-	
-		Survey survey = campaign.getSurveys().get("test");
-		Prompt outerPrompt = (Prompt) survey.getSurveyItem("SubstanceUseDescriptionOuter");
-		RepeatableSet repeatableSet = (RepeatableSet) survey.getSurveyItem("OuterRepeatableSet");
-		
-		Prompt innerPrompt = repeatableSet.getPrompt("SubstanceUseDescriptionInner");
-		
-		RepeatableSetResponse rsResponse = new RepeatableSetResponse(repeatableSet, null);
-		
-		PromptResponse innerPromptResponse = innerPrompt.createResponse("Inner response.", 1);
-		Map<Integer, Response> rsResponseGroup = new HashMap<Integer, Response>();
-		rsResponseGroup.put(innerPrompt.getIndex(), innerPromptResponse);
-		
-		rsResponse.addResponseGroup(1, rsResponseGroup);
-		
-		PromptResponse outerPromptResponse = outerPrompt.createResponse("Outer response", null);
-		
-		Map<Integer, Response> responseGroup = new HashMap<Integer, Response>();
-		responseGroup.put(outerPromptResponse.getPrompt().getIndex(), outerPromptResponse);
-		responseGroup.put(rsResponse.getRepeatableSet().getIndex(), rsResponse);
-		
-		LaunchContext launchContext = new LaunchContext(new Date(), new LinkedList<String>());
-		
-		SurveyResponse surveyResponse = new SurveyResponse(survey, -1, "sink.thaw", 
-				"urn:campaign:andwellness:chipts:08032011:Test", "library",
-				new Date(), (new Date()).getTime(), TimeZone.getDefault(),
-				launchContext, LocationStatus.UNAVAILABLE, null, 
-				SurveyResponse.PrivacyState.SHARED, responseGroup);
-		
-		Collection<SurveyResponse> surveyResponses = new ArrayList<SurveyResponse>();
-		surveyResponses.add(surveyResponse);
-		
 		OhmageApi api = new OhmageApi("localhost", 8080, false);
-		String hashedPassword = api.getHashedPassword("sink.thaw", "mill.damper", "library");
 		
-		Date creation = new Date(new Long("1318030689000"));
+		String authToken = api.getAuthenticationToken("sink.thaw", "mill.damper", "library");
 		
-		//System.out.println(surveyResponse.toJson(true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true).toString(4));
+		Collection<String> usernames = new ArrayList<String>(1);
+		usernames.add("sink.thaw");
 		
-		api.uploadSurveyResponses("sink.thaw", hashedPassword, "library", "urn:campaign:andwellness:chipts:08032011:Test", creation, surveyResponses);
-		*/
-		OhmageApi api = new OhmageApi("localhost", 8080, false);
-		System.out.println(api.getServerConfiguration().toJson().toString(4));
+		Collection<SurveyResponse.ColumnKey> columns = new ArrayList<SurveyResponse.ColumnKey>(1);
+		columns.add(SurveyResponse.ColumnKey.USER_ID);
+		
+		System.out.println(new String(api.getSurveyResponsesCsv(authToken, null, null, 
+				"library", "urn:campaign:andwellness:chipts:08032011:Test", 
+				usernames, columns, new ArrayList<String>(0), 
+				null, null, null, null, null, null)));
 	}
 	
 	/**
@@ -739,7 +706,7 @@ public class OhmageApi {
 			final String authenticationToken, final String username, 
 			final String hashedPassword, final String client,
 			final String campaignId, final Collection<String> usernames,
-			final Collection<String> columnList,
+			final Collection<SurveyResponse.ColumnKey> columnList,
 			final Collection<String> surveyIdList, 
 			final Collection<String> promptIdList,
 			final Boolean collapse,
@@ -761,7 +728,7 @@ public class OhmageApi {
 		}
 		parameters.put(InputKeys.CLIENT, client);
 		parameters.put(InputKeys.CAMPAIGN_URN, campaignId);
-		parameters.put(InputKeys.OUTPUT_FORMAT, SurveyResponseReadRequest.OUTPUT_FORMAT_CSV);
+		parameters.put(InputKeys.OUTPUT_FORMAT, SurveyResponse.OutputFormat.CSV);
 		parameters.put(InputKeys.USER_LIST, StringUtils.collectionToStringList(usernames, InputKeys.LIST_ITEM_SEPARATOR));
 		
 		if(columnList != null) {
@@ -791,7 +758,7 @@ public class OhmageApi {
 		}
 		
 		parameters.put(InputKeys.COLLAPSE, collapse);
-		parameters.put(InputKeys.SUPPRESS_METADATA, true);
+		//parameters.put(InputKeys.SUPPRESS_METADATA, true);
 		parameters.put(InputKeys.START_DATE, TimeUtils.getIso8601DateTimeString(startDate));
 		parameters.put(InputKeys.END_DATE, TimeUtils.getIso8601DateTimeString(endDate));
 		parameters.put(InputKeys.RETURN_ID, returnId);
@@ -818,7 +785,7 @@ public class OhmageApi {
 		return response;
 	}
 	
-	public Collection<SurveyResponse> getSurveyResponsesJsonColumns(
+	public /*Collection<SurveyResponse>*/JSONObject getSurveyResponsesJsonColumns(
 			final String authenticationToken, final String username, 
 			final String hashedPassword, final String client,
 			final String campaignId, final Collection<String> usernames,
@@ -844,7 +811,7 @@ public class OhmageApi {
 		}
 		parameters.put(InputKeys.CLIENT, client);
 		parameters.put(InputKeys.CAMPAIGN_URN, campaignId);
-		parameters.put(InputKeys.OUTPUT_FORMAT, "json-columns");
+		parameters.put(InputKeys.OUTPUT_FORMAT, SurveyResponse.OutputFormat.JSON_COLUMNS);
 		parameters.put(InputKeys.USER_LIST, StringUtils.collectionToStringList(usernames, InputKeys.LIST_ITEM_SEPARATOR));
 		
 		if(columnList != null) {
@@ -892,7 +859,7 @@ public class OhmageApi {
 									parameters, 
 									false
 								),
-							SurveyResponseReadRequest.JSON_KEY_RESULT
+							InputKeys.DATA
 						)
 				);
 		}
@@ -907,8 +874,8 @@ public class OhmageApi {
 		}
 		
 		
-		return null;
-		//return response;
+		//return null;
+		return response;
 	}
 	
 	/**************************************************************************

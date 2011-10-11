@@ -87,7 +87,7 @@ public class SurveyResponseUpdateRequest extends UserRequest {
 					throw new ValidationException("Multiple survey ID parameters were given.");
 				}
 				else {
-					tSurveyResponseId = SurveyResponseValidators.validateSurveyId(this, surveyIds[0]);
+					tSurveyResponseId = SurveyResponseValidators.validateSurveyDbId(this, surveyIds[0]);
 					
 					if(tSurveyResponseId == null) {
 						setFailed(ErrorCodes.SURVEY_INVALID_SURVEY_KEY_VALUE, "Missing the required survey key: " + InputKeys.SURVEY_KEY);

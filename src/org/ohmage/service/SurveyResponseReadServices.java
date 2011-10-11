@@ -4,9 +4,12 @@ import java.util.Collection;
 import java.util.List;
 
 import org.ohmage.annotator.ErrorCodes;
-import org.ohmage.domain.User;
+import org.ohmage.dao.CampaignDaos;
+import org.ohmage.dao.UserCampaignDaos;
 import org.ohmage.domain.campaign.Campaign;
+import org.ohmage.domain.campaign.Campaign.Role;
 import org.ohmage.domain.campaign.SurveyResponse;
+import org.ohmage.exception.DataAccessException;
 import org.ohmage.exception.ServiceException;
 import org.ohmage.request.Request;
 import org.ohmage.util.StringUtils;
@@ -28,7 +31,7 @@ public final class SurveyResponseReadServices {
 	 * 
 	 * @param request  The request to fail should the promptIdList be invalid.
 	 * 
-	 * @param promptIdList  The prompt ids to validate.
+	 * @param promptIdList  The prompt IDs to validate.
 	 * 
 	 * @param configuration  The configuration to use for prompt id lookup.
 	 * 
@@ -37,7 +40,7 @@ public final class SurveyResponseReadServices {
 	 * @throws IllegalArgumentException if request, promptIdList, or
 	 * configuration are null.
 	 */
-	public static void verifyPromptIdsBelongToConfiguration(Request request, List<String> promptIdList, Campaign configuration)
+	public static void verifyPromptIdsBelongToConfiguration(Request request, Collection<String> promptIdList, Campaign configuration)
 		throws ServiceException {
 		
 		// check for logical errors
@@ -74,7 +77,7 @@ public final class SurveyResponseReadServices {
 	 * @throws IllegalArgumentException if request, surveyIdList, or
 	 * configuration are null.
 	 */
-	public static void verifySurveyIdsBelongToConfiguration(Request request, List<String> surveyIdList, Campaign configuration)
+	public static void verifySurveyIdsBelongToConfiguration(Request request, Collection<String> surveyIdList, Campaign configuration)
 		throws ServiceException {
 		
 		// check for logical errors
@@ -107,8 +110,9 @@ public final class SurveyResponseReadServices {
 	 * 
 	 * <p>This method assumes that the user's role has already been checked
 	 * 
+	 * @param request The Request that is performing this service.
 	 * 
-	 * @param user The requester behind the survey response query.
+	 * @param user The requester's username.
 	 * 
 	 * @param campaignId The campaign URN for the
 	 *  
@@ -118,11 +122,16 @@ public final class SurveyResponseReadServices {
 	 * 
 	 * @return A filtered list of survey response results.
 	 */
-	public static void performPrivacyFilter(User user, String campaignId,
-		Collection<SurveyResponse> surveyResponseList, SurveyResponse.PrivacyState privacyState) {
+	public static void performPrivacyFilter(final Request request, 
+			final String username, final String campaignId,
+			final Collection<SurveyResponse> surveyResponseList) 
+			throws ServiceException {
 		
 		// check for logical errors
-		if(user == null  || StringUtils.isEmptyOrWhitespaceOnly(campaignId) || surveyResponseList == null) {
+		if(StringUtils.isEmptyOrWhitespaceOnly(username) || 
+				StringUtils.isEmptyOrWhitespaceOnly(campaignId) || 
+				surveyResponseList == null) {
+			
 			throw new IllegalArgumentException("user, campaignId, and surveyResponseList must all be non-null");
 		}
 		
@@ -130,54 +139,53 @@ public final class SurveyResponseReadServices {
 			return;
 		}
 		
-		// Supervisors can read all data all the time
-		if(! user.isSupervisorInCampaign(campaignId)) {
-			for(SurveyResponse currentResult : surveyResponseList) {
+		try {
+			List<Role> userRoles = UserCampaignDaos.getUserCampaignRoles(username, campaignId);
+			
+			// Supervisors can read all data all the time
+			if(! userRoles.contains(Campaign.Role.SUPERVISOR)) {
+				Campaign.PrivacyState privacyState = 
+					CampaignDaos.getCampaignPrivacyState(campaignId);
 				
-				// Filter based on our ACL rules
-				
-				if( 
-				    // Owners and supervisors can see unshared responses
-					(resultIsUnshared(currentResult) && ! currentResult.getUsername().equals(user.getUsername()))
+				for(SurveyResponse currentResult : surveyResponseList) {
+					// If they own it, it's ok.
+					if(currentResult.getUsername().equals(username)) {
+						continue;
+					}
 					
-					|| 
-					
-					((! resultIsUnshared(currentResult)) && (! currentResult.getUsername().equals(user.getUsername()) 
-							&& ! user.isAuthorInCampaign(campaignId) && ! user.isAnalystInCampaign(campaignId))) 
-					
-					||
-					
-					// Owners, supervisors, and authors can see shared responses if the campaign is private 
-					((user.getCampaignsAndRoles().get(campaignId).getCampaign().getPrivacyState().equals(Campaign.PrivacyState.PRIVATE) 
-						&& currentResult.getPrivacyState().equals(SurveyResponse.PrivacyState.SHARED)) 
-						&& ! user.isAuthorInCampaign(campaignId) 
-						&& ! currentResult.getUsername().equals(user.getUsername()))
+					// If it isn't shared,
+					if(! SurveyResponse.PrivacyState.SHARED.equals(
+							currentResult.getPrivacyState())) {
 						
-				  ) {
+						// If the campaign is shared and the user is an author or
+						// analyst, it's ok.
+						if(Campaign.PrivacyState.SHARED.equals(privacyState) &&
+								(userRoles.contains(Campaign.Role.AUTHOR) ||
+										userRoles.contains(Campaign.Role.ANALYST))
+								) {
+							
+							continue;
+						}
+					}
+					// If it is shared,
+					else {
+						// If the user is an author or analyst, it's ok.
+						if(userRoles.contains(Campaign.Role.AUTHOR) ||
+								userRoles.contains(Campaign.Role.ANALYST)) {
+							
+							continue;
+						}
+					}
 					
+					// If none of the above rules apply, it will fall to this and
+					// remove the survey response.
 					surveyResponseList.remove(currentResult);
 				}
 			}
 		}
-		
-		// Filter based on the optional privacy state query parameter
-		
-		if(privacyState != null) {
-			for(SurveyResponse currentResult : surveyResponseList) {
-				if(! currentResult.getPrivacyState().equals(privacyState)) { 
-					surveyResponseList.remove(currentResult);
-				}
-			}
+		catch(DataAccessException e) {
+			request.setFailed();
+			throw new ServiceException(e);
 		}
-	}
-	
-	/**
-	 * Checks whether the result is shared or unshared.
-	 * 
-	 * @param result The result to check.
-	 * @return true if the result is shared; false otherwise.
-	 */
-	private static boolean resultIsUnshared(SurveyResponse result) {
-		return ! SurveyResponse.PrivacyState.SHARED.equals(result.getPrivacyState());
 	}
 }

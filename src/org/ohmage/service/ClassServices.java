@@ -193,7 +193,7 @@ public final class ClassServices {
 	 * 
 	 * @throws ServiceException Thrown if there is an error.
 	 */
-	public static void updateClass(Request request, String classId, String className, String classDescription, Map<String, Clazz.Role> usersToAdd, List<String> usersToRemove) throws ServiceException{
+	public static void updateClass(Request request, String classId, String className, String classDescription, Map<String, Clazz.Role> usersToAdd, Collection<String> usersToRemove) throws ServiceException{
 		try {
 			ClassDaos.updateClass(classId, className, classDescription, usersToAdd, usersToRemove);
 		}

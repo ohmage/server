@@ -293,6 +293,300 @@ public class SurveyResponse {
 	private final LaunchContext launchContext;
 	
 	/**
+	 * The possible column keys that can be requested for survey response read.
+	 * 
+	 * @author John Jenkins
+	 */
+	public static enum ColumnKey {
+		/**
+		 * The request-wide client key.
+		 */
+		CONTEXT_CLIENT ("urn:ohmage:context:client"),
+		/**
+		 * The survey-wide timestamp key.
+		 * 
+		 * @see ColumnKey#CONTEXT_TIMEZONE
+		 */
+		CONTEXT_TIMESTAMP ("urn:ohmage:context:timestamp"),
+		/**
+		 * The survey-wide timezone key.
+		 * 
+		 * @see ColumnKey#CONTEXT_TIMESTAMP
+		 */
+		CONTEXT_TIMEZONE ("urn:ohmage:context:timezone"),
+		/**
+		 * The survey-wide timestamp converted to UTC key.
+		 */
+		CONTEXT_UTC_TIMESTAMP ("urn:ohmage:context:utc_timestamp"),
+		/**
+		 * The key for the survey's entire launch context.
+		 * 
+		 * @see ColumnKey#CONTEXT_LAUNCH_CONTEXT_SHORT
+		 */
+		CONTEXT_LAUNCH_CONTEXT_LONG ("urn:ohmage:context:launch_context_long"),
+		/**
+		 * The key for only the survey's launch timestamp.
+		 * 
+		 * @see ColumnKey#CONTEXT_LAUNCH_CONTEXT_SHORT
+		 */
+		CONTEXT_LAUNCH_CONTEXT_SHORT ("urn:ohmage:context:launch_context_short"),
+		/**
+		 * The survey's location status key.
+		 * 
+		 * @see ColumnKey#CONTEXT_LOCATION_ACCURACY
+		 * @see ColumnKey#CONTEXT_LOCATION_LATITUDE
+		 * @see ColumnKey#CONTEXT_LOCATION_LONGITUDE
+		 * @see ColumnKey#CONTEXT_LOCATION_PROVIDER
+		 * @see ColumnKey#CONTEXT_LOCATION_TIMESTAMP
+		 */
+		CONTEXT_LOCATION_STATUS ("urn:ohmage:context:location:status"),
+		/**
+		 * The survey's location's latitude key.
+		 * 
+		 * @see ColumnKey#CONTEXT_LOCATION_STATUS
+		 */
+		CONTEXT_LOCATION_LATITUDE ("urn:ohmage:context:location:latitude"),
+		/**
+		 * The survey's location's longitude key.
+		 * 
+		 * @see ColumnKey#CONTEXT_LOCATION_STATUS
+		 */
+		CONTEXT_LOCATION_LONGITUDE ("urn:ohmage:context:location:longitude"),
+		/**
+		 * The survey's location's timestamp key.
+		 * 
+		 * @see ColumnKey#CONTEXT_LOCATION_STATUS
+		 */
+		CONTEXT_LOCATION_TIMESTAMP ("urn:ohmage:context:location:timestamp"),
+		/**
+		 * The survey's location's accuracy key.
+		 * 
+		 * @see ColumnKey#CONTEXT_LOCATION_STATUS
+		 */
+		CONTEXT_LOCATION_ACCURACY ("urn:ohmage:context:location:accuracy"),
+		/**
+		 * The survey's location's provider key.
+		 * 
+		 * @see ColumnKey#CONTEXT_LOCATION_STATUS
+		 */
+		CONTEXT_LOCATION_PROVIDER ("urn:ohmage:context:location:provider"),
+		/**
+		 * The survey's user ID key.
+		 */
+		USER_ID ("urn:ohmage:user:id"),
+		/**
+		 * The survey's ID key.
+		 */
+		SURVEY_ID ("urn:ohmage:survey:id"),
+		/**
+		 * The survey's title key.
+		 */
+		SURVEY_TITLE ("urn:ohmage:survey:title"),
+		/**
+		 * The survey's description key.
+		 */
+		SURVEY_DESCRIPTION ("urn:ohmage:survey:description"),
+		/**
+		 * The survey privacy state key.
+		 * 
+		 * @see PrivacyState
+		 */
+		SURVEY_PRIVACY_STATE ("urn:ohmage:survey:privacy_state"),
+		/**
+		 * The prompt's repeatable set ID if the prompt was part of a 
+		 * repeatable set.
+		 */
+		REPEATABLE_SET_ID ("urn:ohmage:repeatable_set:id"),
+		/**
+		 * The prompt's repeatable set iteration if the prompt was part of a
+		 * repeatable set.
+		 */
+		REPEATABLE_SET_ITERATION ("urn:ohmage:repeatable_set:iteration"),
+		/**
+		 * The key used to indicate if responses are desired; however, the 
+		 * response from the server will include either only the prompts' ID
+		 * in the case of {@link OutputFormat#JSON_ROWS} and 
+		 * {@link OutputFormat#CSV} or the prompts' ID prepended with 
+		 * {@link ColumnKey#URN_PROMPT_ID_PREFIX} in the case of 
+		 * {@link OutputFormat#JSON_COLUMNS}.
+		 */
+		PROMPT_RESPONSE ("urn:ohmage:prompt:response");
+		
+		/**
+		 * The prefix to prompt IDs in the {@link OutputFormat#JSON_COLUMNS}.
+		 * 
+		 * @see OutputFormat#JSON_COLUMNS
+		 */
+		public static final String URN_PROMPT_ID_PREFIX = "urn:ohmage:prompt:id:";
+		
+		private final String key;
+		
+		/**
+		 * Assigns the key to the enum constant.
+		 * 
+		 * @param key The key.
+		 */
+		private ColumnKey(final String key) {
+			this.key = key;
+		}
+		
+		/**
+		 * Returns a ColumnKey enum for the given key or throws an exception.
+		 * 
+		 * @param key The key.
+		 * 
+		 * @return A ColumnKey enum.
+		 * 
+		 * @throws IllegalArgumentException Thrown if the key could not be
+		 * 									converted into a ColumnKey enum.
+		 */
+		public static ColumnKey getValue(final String key) {
+			ColumnKey[] values = ColumnKey.values();
+			
+			for(int i = 0; i < values.length; i++) {
+				if(values[i].key.equals(key)) {
+					return values[i];
+				}
+			}
+			
+			throw new IllegalArgumentException("Unknown key: " + key);
+		}
+		
+		/**
+		 * Returns the key value.
+		 * 
+		 * @return The key value.
+		 */
+		@Override
+		public String toString() {
+			return key;
+		}
+	}
+
+	/**
+	 * The possible output formats for reading survey responses.
+	 * 
+	 * @author John Jenkins
+	 */
+	public static enum OutputFormat {
+		/**
+		 * This will result in a JSONArray of JSONObjects where each JSONObject
+		 * represents a single survey response.
+		 */
+		JSON_ROWS ("json-rows"),
+		/**
+		 * This will result in a JSONObject where the key is one of the  
+		 * requested keys and the value is a JSONArray with at least the key
+		 * "values" which is a JSONArray of the type-appropriate values. There
+		 * may also be a key called "context" which further describes the 
+		 * prompt responses.
+		 * 
+		 * @see SurveyResponse#JSON_KEY_CONTEXT
+		 * @see SurveyResponse#JSON_KEY_VALUES
+		 */
+		JSON_COLUMNS ("json-columns"),
+		/**
+		 * This will result in a file attachment which contains CSV-formatted 
+		 * results. The results will contain headers for the requested columns
+		 * and one additional column for each of the requested prompts. If a
+		 * row does not contain a response to the question, "null" will be
+		 * output instead.
+		 */
+		CSV ("csv");
+		
+		private final String key;
+		
+		/**
+		 * Assigns the key to the enum constant.
+		 * 
+		 * @param key The key value to be associated with the enum.
+		 */
+		private OutputFormat(final String key) {
+			this.key = key;
+		}
+		
+		/**
+		 * Translates a key value into an appropriate OutputFormat enum or
+		 * throws an exception.
+		 * 
+		 * @param key The key value.
+		 * 
+		 * @return An OutputFormat enum.
+		 * 
+		 * @throws IllegalArgumentException Thrown if there is no applicable
+		 * 									OutputFormat for the key.
+		 */
+		public static OutputFormat getValue(final String key) {
+			OutputFormat[] values = OutputFormat.values();
+			
+			for(int i = 0; i < values.length; i++) {
+				if(values[i].key.equals(key)) {
+					return values[i];
+				}
+			}
+			
+			throw new IllegalArgumentException("Unknown key: " + key);
+		}
+		
+		/**
+		 * Returns the key value.
+		 * 
+		 * @return The key value.
+		 */
+		@Override
+		public String toString() {
+			return key;
+		}
+	}
+	
+	/**
+	 * This represents the different sort parameters influencing how the final
+	 * results are presented to the user.
+	 * 
+	 * @author John Jenkins
+	 */
+	public static enum SortParameter {
+		SURVEY,
+		TIMESTAMP,
+		USER;
+		
+		/**
+		 * Converts a string value into its appropriate SortParameter object or
+		 * throws an exception of no appropriate SortParameter object exists.
+		 * 
+		 * @param value The string value.
+		 * 
+		 * @return A SortParameter object.
+		 * 
+		 * @throws IllegalArgumentException Thrown if no appropriate 
+		 * 									SortParameter object applies to 
+		 * 									the given value.
+		 */
+		public static SortParameter getValue(final String value) {
+			SortParameter[] sortParameters = values();
+			String valueLowerCase = value.toLowerCase();
+			
+			for(int i = 0; i < sortParameters.length; i++) {
+				if(sortParameters[i].name().toLowerCase().equals(valueLowerCase)) {
+					return sortParameters[i];
+				}
+			}
+			
+			throw new IllegalArgumentException("Unknown value: " + value);
+		}
+		
+		/**
+		 * Returns this sort parameter as a lower case version of its name.
+		 * 
+		 * @return This sort parameter as a lower case version of its name.
+		 */
+		@Override
+		public String toString() {
+			return name().toLowerCase();
+		}
+	}
+	
+	/**
 	 * Creates a new survey response information object based on the 
 	 * parameters. All parameters are required unless otherwise specified.
 	 * 
@@ -879,7 +1173,7 @@ public class SurveyResponse {
 	}
 	
 	/**
-	 * Creates a hash code for this survey response.
+	 * Generates a hash code for this survey response.
 	 * 
 	 * @return A hash code for this survey response.
 	 */
@@ -890,6 +1184,15 @@ public class SurveyResponse {
 		result = prime * result
 				+ ((campaignId == null) ? 0 : campaignId.hashCode());
 		result = prime * result + ((client == null) ? 0 : client.hashCode());
+		result = prime * result + ((date == null) ? 0 : date.hashCode());
+		result = prime * result
+				+ ((launchContext == null) ? 0 : launchContext.hashCode());
+		result = prime * result
+				+ ((location == null) ? 0 : location.hashCode());
+		result = prime * result
+				+ ((locationStatus == null) ? 0 : locationStatus.hashCode());
+		result = prime * result
+				+ ((privacyState == null) ? 0 : privacyState.hashCode());
 		result = prime * result
 				+ ((promptResponses == null) ? 0 : promptResponses.hashCode());
 		result = prime * result + ((survey == null) ? 0 : survey.hashCode());
@@ -902,10 +1205,12 @@ public class SurveyResponse {
 	}
 
 	/**
-	 * Determines if this survey response is equal to another object.
+	 * Determines if this survey response is equivalent to another object.
 	 * 
-	 * @return True if this survey response is equal to the other object; false
-	 * 		   otherwise.
+	 * @param obj The other object.
+	 * 
+	 * @return True if the other object is logically equivalent to this survey
+	 * 		   response; false, otherwise.
 	 */
 	@Override
 	public boolean equals(Object obj) {
@@ -925,6 +1230,25 @@ public class SurveyResponse {
 			if (other.client != null)
 				return false;
 		} else if (!client.equals(other.client))
+			return false;
+		if (date == null) {
+			if (other.date != null)
+				return false;
+		} else if (!date.equals(other.date))
+			return false;
+		if (launchContext == null) {
+			if (other.launchContext != null)
+				return false;
+		} else if (!launchContext.equals(other.launchContext))
+			return false;
+		if (location == null) {
+			if (other.location != null)
+				return false;
+		} else if (!location.equals(other.location))
+			return false;
+		if (locationStatus != other.locationStatus)
+			return false;
+		if (privacyState != other.privacyState)
 			return false;
 		if (promptResponses == null) {
 			if (other.promptResponses != null)
@@ -948,22 +1272,6 @@ public class SurveyResponse {
 		return true;
 	}
 
-	/**
-	 * Processes an array of response objects from JSON.
-	 * 
-	 * @param campaign The campaign definition.
-	 * 
-	 * @param currArray The responses as a JSONArray.
-	 * 
-	 * @param repeatableSetIteration The iteration of the repeatable set for
-	 * 								 which these prompts belong.
-	 * 
-	 * @return A map of the respone's index to the response.
-	 * 
-	 * @throws ErrorCodeException Thrown if the list or any of its elements are
-	 * 							  malformed.
-	 */
-	
 	/**
 	 * Processes an JSONArray of survey responses based on their survey item
 	 * counterparts. 

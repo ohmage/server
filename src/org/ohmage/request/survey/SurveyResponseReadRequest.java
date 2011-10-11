@@ -5,12 +5,13 @@ import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -24,6 +25,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.ohmage.annotator.ErrorCodes;
+import org.ohmage.domain.Location;
 import org.ohmage.domain.campaign.Campaign;
 import org.ohmage.domain.campaign.Prompt;
 import org.ohmage.domain.campaign.PromptResponse;
@@ -33,6 +35,9 @@ import org.ohmage.domain.campaign.Response;
 import org.ohmage.domain.campaign.Survey;
 import org.ohmage.domain.campaign.SurveyItem;
 import org.ohmage.domain.campaign.SurveyResponse;
+import org.ohmage.domain.campaign.SurveyResponse.ColumnKey;
+import org.ohmage.domain.campaign.SurveyResponse.OutputFormat;
+import org.ohmage.domain.campaign.SurveyResponse.SortParameter;
 import org.ohmage.exception.ServiceException;
 import org.ohmage.exception.ValidationException;
 import org.ohmage.request.InputKeys;
@@ -41,11 +46,10 @@ import org.ohmage.service.CampaignServices;
 import org.ohmage.service.SurveyResponseReadServices;
 import org.ohmage.service.SurveyResponseServices;
 import org.ohmage.service.UserCampaignServices;
-import org.ohmage.util.StringUtils;
 import org.ohmage.util.TimeUtils;
-import org.ohmage.validator.DateValidators;
-import org.ohmage.validator.SurveyResponseReadValidators;
+import org.ohmage.validator.CampaignValidators;
 import org.ohmage.validator.SurveyResponseValidators;
+import org.ohmage.validator.UserValidators;
 
 /**
  * <p>Allows a requester to read survey responses. Supervisors can read survey
@@ -91,6 +95,7 @@ import org.ohmage.validator.SurveyResponseValidators;
  *         {@value #URN_CONTEXT_LAUNCH_CONTEXT_LONG},
  *         {@value #URN_CONTEXT_LAUNCH_CONTEXT_SHORT},
  *         {@value #URN_CONTEXT_LOCATION_STATUS},
+ *         {@value #URN_CONTEXT_LOCATION_LONGITUDE},
  *         {@value #URN_CONTEXT_LOCATION_LATITUDE},
  *         {@value #URN_CONTEXT_LOCATION_TIMESTAMP},
  *         {@value #URN_CONTEXT_LOCATION_ACCURACY},
@@ -181,80 +186,66 @@ import org.ohmage.validator.SurveyResponseValidators;
 public final class SurveyResponseReadRequest extends UserRequest {
 	private static final Logger LOGGER = Logger.getLogger(SurveyResponseReadRequest.class);
 	
-	private final Date startDate;
-	private final Date endDate;
-	private final String campaignUrn;
-	private final List<String> userList;
-	private final List<String> promptIdList;
-	private final List<String> surveyIdList;
-	private final List<String> columnList;
-	private final String outputFormat;
-	private final Boolean prettyPrint;
-	private final Boolean suppressMetadata;
-	private final Boolean returnId;
-	private final List<String> sortOrder;
-	private final SurveyResponse.PrivacyState privacyState;
-	private final Boolean collapse;
-	
-	private Campaign configuration;
-	private List<SurveyResponse> surveyResponseList;
-	
-	private static final List<String> ALLOWED_COLUMN_URN_LIST;
-	private static final List<String> ALLOWED_OUTPUT_FORMAT_LIST;
-	private static final List<String> ALLOWED_SORT_ORDER_LIST;
+	/**
+	 * The JSON key for the metadata associated with a response read request.
+	 */
+	public static final String JSON_KEY_METADATA = "metadata";
+	/**
+	 * The, optional, additional JSON key associated with a prompt responses in
+	 * the 
+	 * {@link org.ohmage.domain.Campaign.SurveyResponse.OutputFormat#JSON_COLUMNS} 
+	 * format representing additional information about the prompt's responses.
+	 * 
+	 * @see org.ohmage.domain.Campaign.SurveyResponse.OutputFormat#JSON_COLUMNS
+	 */
+	public static final String JSON_KEY_CONTEXT = "context";
+	/**
+	 * The JSON key associated with a prompt responses in the 
+	 * {@link org.ohmage.domain.Campaign.SurveyResponse.OutputFormat#JSON_COLUMNS} 
+	 * format representing the values for the prompt response.
+	 * 
+	 * @see org.ohmage.domain.Campaign.SurveyResponse.OutputFormat#JSON_COLUMNS
+	 */
+	public static final String JSON_KEY_VALUES = "values";
+	/**
+	 * The JSON key in the metadata for 
+	 * {@link org.ohmage.domain.Campaign.SurveyResponse.OutputFormat#JSON_ROWS}
+	 * representing the number of unique surveys in the results. 
+	 */
+	public static final String JSON_KEY_NUM_SURVEYS = "number_of_surveys";
 	
 	public static final String URN_SPECIAL_ALL = "urn:ohmage:special:all";
-	public static final List<String> URN_SPECIAL_ALL_LIST;
-	
-	public static final String URN_CONTEXT_CLIENT = "urn:ohmage:context:client";
-	public static final String URN_CONTEXT_TIMESTAMP = "urn:ohmage:context:timestamp";
-	public static final String URN_CONTEXT_TIMEZONE = "urn:ohmage:context:timezone";
-	public static final String URN_CONTEXT_UTC_TIMESTAMP = "urn:ohmage:context:utc_timestamp";
-	public static final String URN_CONTEXT_LAUNCH_CONTEXT_LONG = "urn:ohmage:context:launch_context_long";
-	public static final String URN_CONTEXT_LAUNCH_CONTEXT_SHORT = "urn:ohmage:context:launch_context_short";
-	public static final String URN_CONTEXT_LOCATION_STATUS = "urn:ohmage:context:location:status";
-	public static final String URN_CONTEXT_LOCATION_LATITUDE = "urn:ohmage:context:location:latitude";
-	public static final String URN_CONTEXT_LOCATION_LONGITUDE = "urn:ohmage:context:location:longitude";
-	public static final String URN_CONTEXT_LOCATION_TIMESTAMP = "urn:ohmage:context:location:timestamp";
-	public static final String URN_CONTEXT_LOCATION_ACCURACY = "urn:ohmage:context:location:accuracy";
-	public static final String URN_CONTEXT_LOCATION_PROVIDER = "urn:ohmage:context:location:provider";
-	public static final String URN_USER_ID = "urn:ohmage:user:id";
-	public static final String URN_SURVEY_ID = "urn:ohmage:survey:id";
-	public static final String URN_SURVEY_TITLE = "urn:ohmage:survey:title";
-	public static final String URN_SURVEY_DESCRIPTION = "urn:ohmage:survey:description";
-	public static final String URN_SURVEY_PRIVACY_STATE = "urn:ohmage:survey:privacy_state";
-	public static final String URN_REPEATABLE_SET_ID = "urn:ohmage:repeatable_set:id";
-	public static final String URN_REPEATABLE_SET_ITERATION = "urn:ohmage:repeatable_set:iteration";
-	public static final String URN_PROMPT_RESPONSE = "urn:ohmage:prompt:response";
-	
-	public static final String URN_PROMPT_ID_PREFIX = "urn:ohmage:prompt:id:";
-	
-	// output format constants - these are the output formats the requester
-	// can select from
-	public static final String OUTPUT_FORMAT_JSON_ROWS = "json-rows";
-	public static final String OUTPUT_FORMAT_JSON_COLUMNS = "json-columns";
-	public static final String OUTPUT_FORMAT_CSV = "csv";
-	
-	private static final String CONTEXT = "context";
-	private static final String VALUES = "values";
-	private static final String METADATA = "metadata";
-	
+	public static final Collection<String> URN_SPECIAL_ALL_LIST;
 	static {
-		ALLOWED_COLUMN_URN_LIST = Arrays.asList(new String[] {
-			URN_CONTEXT_CLIENT, URN_CONTEXT_TIMESTAMP, URN_CONTEXT_TIMEZONE, URN_CONTEXT_UTC_TIMESTAMP,
-			URN_CONTEXT_LAUNCH_CONTEXT_LONG, URN_CONTEXT_LAUNCH_CONTEXT_SHORT, URN_CONTEXT_LOCATION_STATUS,
-			URN_CONTEXT_LOCATION_LATITUDE, URN_CONTEXT_LOCATION_LONGITUDE, URN_CONTEXT_LOCATION_TIMESTAMP,
-			URN_CONTEXT_LOCATION_ACCURACY, URN_CONTEXT_LOCATION_PROVIDER, URN_USER_ID, URN_SURVEY_ID,
-			URN_SURVEY_TITLE, URN_SURVEY_DESCRIPTION, URN_SURVEY_PRIVACY_STATE, URN_REPEATABLE_SET_ID,
-			URN_REPEATABLE_SET_ITERATION, URN_PROMPT_RESPONSE
-		});
-		
-		ALLOWED_OUTPUT_FORMAT_LIST = Arrays.asList(new String[] {OUTPUT_FORMAT_JSON_ROWS, OUTPUT_FORMAT_JSON_COLUMNS, OUTPUT_FORMAT_CSV});
-		
-		ALLOWED_SORT_ORDER_LIST = Arrays.asList(new String[] {InputKeys.SORT_ORDER_SURVEY, InputKeys.SORT_ORDER_TIMESTAMP, InputKeys.SORT_ORDER_USER});
-		
-		URN_SPECIAL_ALL_LIST = Collections.unmodifiableList(Arrays.asList(new String[]{URN_SPECIAL_ALL}));
+		URN_SPECIAL_ALL_LIST = new HashSet<String>();
+		URN_SPECIAL_ALL_LIST.add(URN_SPECIAL_ALL);
 	}
+
+	private static final int MAX_NUMBER_OF_USERS = 10;
+	private static final int MAX_NUMBER_OF_SURVEYS = 10;
+	private static final int MAX_NUMBER_OF_PROMPTS = 10;
+
+	private final String campaignId;
+	private final Collection<SurveyResponse.ColumnKey> columns;
+	private final Collection<String> usernames;
+	private final SurveyResponse.OutputFormat outputFormat;
+
+	private final Collection<String> surveyIds;
+	private final Collection<String> promptIds;
+
+	private final Date startDate;
+	private final Date endDate;
+
+	private final List<SortParameter> sortOrder;
+
+	private final SurveyResponse.PrivacyState privacyState;
+
+	private final Boolean collapse;
+	private final Boolean prettyPrint;
+	private final Boolean returnId;
+	private final Boolean suppressMetadata;
+	
+	private List<SurveyResponse> surveyResponseList;
 	
 	/**
 	 * Creates a survey response read request.
@@ -264,126 +255,259 @@ public final class SurveyResponseReadRequest extends UserRequest {
 	public SurveyResponseReadRequest(HttpServletRequest httpRequest) {
 		// Handle user-password or token-based authentication
 		super(httpRequest, TokenLocation.EITHER, false);
+
+		String tCampaignId = null;
+		Set<SurveyResponse.ColumnKey> tColumns = null;
+		Set<String> tUsernames = null;
+		SurveyResponse.OutputFormat tOutputFormat = null;
+
+		Set<String> tSurveyIds = null;
+		Set<String> tPromptIds = null;
 		
-		Date tStartDateAsDate = null;
-		Date tEndDateAsDate = null;
+		Date tStartDate = null;
+		Date tEndDate = null;
 		
-		String tCampaignUrn = getParameter(InputKeys.CAMPAIGN_URN);
-		String tOutputFormat = getParameter(InputKeys.OUTPUT_FORMAT);
-		List<String> tSortOrder = null;
+		List<SortParameter> tSortOrder = null;
+		
 		SurveyResponse.PrivacyState tPrivacyState = null;
-		
-		List<String> tUserListAsList = null;
-		List<String> tPromptIdListAsList = null;
-		List<String> tSurveyIdListAsList = null;
-		List<String> tColumnListAsList = null;
-		
-		Boolean tPrettyPrintAsBoolean = null;
-		Boolean tSuppressMetadataAsBoolean = null;
-		Boolean tReturnIdAsBoolean = null;
-		Boolean tCollapseAsBoolean = null;
+
+		Boolean tCollapse = null;
+		Boolean tPrettyPrint = null;
+		Boolean tReturnId = null;
+		Boolean tSuppressMetadata = null;
 		
 		if(! isFailed()) {
 		
 			LOGGER.info("Creating a survey response read request.");
+			String[] t;
 			
 			try {
-				LOGGER.info("Making sure campaign_urn parameter is present.");
-				
-				if(tCampaignUrn == null) {
-					setFailed(ErrorCodes.CAMPAIGN_INVALID_ID, "The required campaign URN was not present.");
-					throw new ValidationException("The required campaign URN was not present.");
+				// Campaign ID
+				t = getParameterValues(InputKeys.CAMPAIGN_URN);
+				if(t.length == 0) {
+					setFailed(ErrorCodes.CAMPAIGN_INVALID_ID, "The required campaign ID was not present: " + InputKeys.CAMPAIGN_URN);
+					throw new ValidationException("The required campaign ID was not present: " + InputKeys.CAMPAIGN_URN);
 				}
-				
-				LOGGER.info("Validating start_date and end_date parameters.");
-					
-				try {
-					if(! StringUtils.isEmptyOrWhitespaceOnly(getParameter(InputKeys.START_DATE))) {
-						tStartDateAsDate = DateValidators.validateISO8601Date(getParameter(InputKeys.START_DATE));
-					}
-					else {
-						tStartDateAsDate = null;
-					}
-					if(! StringUtils.isEmptyOrWhitespaceOnly(getParameter(InputKeys.END_DATE))) {
-						tEndDateAsDate = DateValidators.validateISO8601Date(getParameter(InputKeys.END_DATE));
-					}
-					else {
-						tEndDateAsDate = null;
-					}
-					
-					if((tStartDateAsDate != null && tEndDateAsDate == null) || (tStartDateAsDate == null && tEndDateAsDate != null)) {
-						setFailed(ErrorCodes.SERVER_INVALID_DATE, "Missing start_date or end_date");
-					}
-				} 
-				catch (ValidationException e) {
-					setFailed(ErrorCodes.SERVER_INVALID_DATE, "Invalid start_date or end_date");
-					throw e;
-				}
-
-				LOGGER.info("Validating privacy_state parameter.");
-				tPrivacyState = SurveyResponseValidators.validatePrivacyState(this, getParameter(InputKeys.PRIVACY_STATE));
-				
-				LOGGER.info("Validating user_list parameter.");
-				tUserListAsList = SurveyResponseReadValidators.validateUserList(this, getParameter(InputKeys.USER_LIST));
-				
-				LOGGER.info("Validating prompt_id_list and survey_id_list parameters.");
-				List<String> tList = SurveyResponseReadValidators.validatePromptIdSurveyIdLists(this, getParameter(InputKeys.PROMPT_ID_LIST), getParameter(InputKeys.SURVEY_ID_LIST));
-				
-				// Now check whether it's a prompt id list or a survey id list
-				if(StringUtils.isEmptyOrWhitespaceOnly(getParameter(InputKeys.PROMPT_ID_LIST))) {
-					LOGGER.info("Found " + tList.size() + " survey ids to query against.");
-					tSurveyIdListAsList = tList;
-					tPromptIdListAsList = Collections.emptyList();
+				else if(t.length > 1) {
+					setFailed(ErrorCodes.CAMPAIGN_INVALID_ID, "Multiple campaign IDs were found: " + InputKeys.CAMPAIGN_URN);
+					throw new ValidationException("Multiple campaign IDs were found: " + InputKeys.CAMPAIGN_URN);
 				}
 				else {
-					LOGGER.info("Found " + tList.size() + " prompt ids to query against.");
-					tSurveyIdListAsList = Collections.emptyList();
-					tPromptIdListAsList = tList;
+					tCampaignId = CampaignValidators.validateCampaignId(this, t[0]);
+					
+					if(tCampaignId == null) {
+						setFailed(ErrorCodes.CAMPAIGN_INVALID_ID, "The required campaign ID was not present: " + InputKeys.CAMPAIGN_URN);
+						throw new ValidationException("The required campaign ID was not present: " + InputKeys.CAMPAIGN_URN);
+					}
 				}
 				
-				LOGGER.info("Validating column_list parameter.");
-				tColumnListAsList = SurveyResponseReadValidators.validateColumnList(this, getParameter(InputKeys.COLUMN_LIST), ALLOWED_COLUMN_URN_LIST);
+				// Column List
+				t = getParameterValues(InputKeys.COLUMN_LIST);
+				if(t.length == 0) {
+					setFailed(ErrorCodes.SURVEY_INVALID_COLUMN_ID, "The required column list was missing: " + InputKeys.COLUMN_LIST);
+					throw new ValidationException("The required column list was missing: " + InputKeys.COLUMN_LIST);
+				}
+				else if(t.length > 1) {
+					setFailed(ErrorCodes.SURVEY_INVALID_COLUMN_ID, "Multiple column lists were given: " + InputKeys.COLUMN_LIST);
+					throw new ValidationException("Multiple column lists were given: " + InputKeys.COLUMN_LIST);
+				}
+				else {
+					tColumns = SurveyResponseValidators.validateColumnList(this, t[0]);
+					
+					if(tColumns == null) {
+						setFailed(ErrorCodes.SURVEY_INVALID_COLUMN_ID, "The required column list was missing: " + InputKeys.COLUMN_LIST);
+						throw new ValidationException("The required column list was missing: " + InputKeys.COLUMN_LIST);
+					}
+				}
 				
-				LOGGER.info("Validating output_format parameter.");
-				tOutputFormat = SurveyResponseReadValidators.validateOutputFormat(this, tOutputFormat, ALLOWED_OUTPUT_FORMAT_LIST);
-
-				LOGGER.info("Validating sort_order parameter.");
-				tSortOrder = SurveyResponseReadValidators.validateSortOrder(this, getParameter(InputKeys.SORT_ORDER), ALLOWED_SORT_ORDER_LIST); 
+				// User List
+				t = getParameterValues(InputKeys.USER_LIST);
+				if(t.length == 0) {
+					setFailed(ErrorCodes.SURVEY_MALFORMED_USER_LIST, "The user list is missing: " + InputKeys.USER_LIST);
+					throw new ValidationException("The user list is missing: " + InputKeys.USER_LIST);
+				}
+				else if(t.length > 1) {
+					setFailed(ErrorCodes.SURVEY_MALFORMED_USER_LIST, "Mutliple user lists were given: " + InputKeys.USER_LIST);
+					throw new ValidationException("Mutliple user lists were given: " + InputKeys.USER_LIST);
+				}
+				else {
+					tUsernames = UserValidators.validateUsernames(this, t[0]);
+					
+					if(tUsernames == null) {
+						setFailed(ErrorCodes.SURVEY_MALFORMED_USER_LIST, "The user list is missing: " + InputKeys.USER_LIST);
+						throw new ValidationException("The user list is missing: " + InputKeys.USER_LIST);
+					}
+					else if(tUsernames.size() > MAX_NUMBER_OF_USERS) {
+						setFailed(ErrorCodes.SURVEY_TOO_MANY_USERS, "The user list contains more than " + MAX_NUMBER_OF_USERS + " users: " + tUsernames.size());
+						throw new ValidationException("The user list contains more than " + MAX_NUMBER_OF_USERS + " users: " + tUsernames.size());
+					}
+				}
 				
-				LOGGER.info("Validating suppress_metadata parameter.");
-				tSuppressMetadataAsBoolean = SurveyResponseReadValidators.validateSuppressMetadata(this, getParameter(InputKeys.SUPPRESS_METADATA));
+				// Output Format
+				t = getParameterValues(InputKeys.OUTPUT_FORMAT);
+				if(t.length == 0) {
+					setFailed(ErrorCodes.SURVEY_INVALID_OUTPUT_FORMAT, "The output format is missing: " + InputKeys.OUTPUT_FORMAT);
+					throw new ValidationException("The output format is missing: " + InputKeys.OUTPUT_FORMAT);
+				}
+				else if(t.length > 1) {
+					setFailed(ErrorCodes.SURVEY_INVALID_OUTPUT_FORMAT, "Multiple output formats were given: " + InputKeys.OUTPUT_FORMAT);
+					throw new ValidationException("Multiple output formats were given: " + InputKeys.OUTPUT_FORMAT);
+				}
+				else {
+					tOutputFormat = SurveyResponseValidators.validateOutputFormat(this, t[0]);
+					
+					if(tOutputFormat == null) {
+						setFailed(ErrorCodes.SURVEY_INVALID_OUTPUT_FORMAT, "The output format is missing: " + InputKeys.OUTPUT_FORMAT);
+						throw new ValidationException("The output format is missing: " + InputKeys.OUTPUT_FORMAT);
+					}
+				}
 				
-				LOGGER.info("Validating pretty_print parameter.");
-				tPrettyPrintAsBoolean = SurveyResponseReadValidators.validatePrettyPrint(this, getParameter(InputKeys.PRETTY_PRINT));
-
-				LOGGER.info("Validating return_id parameter.");
-				tReturnIdAsBoolean = SurveyResponseReadValidators.validateReturnId(this, getParameter(InputKeys.RETURN_ID));
-
-				LOGGER.info("Validating collapse parameter.");
-				tCollapseAsBoolean = SurveyResponseReadValidators.validateCollapse(this, getParameter(InputKeys.COLLAPSE));
-			} 
-			
+				// Survey ID List
+				t = getParameterValues(InputKeys.SURVEY_ID_LIST);
+				if(t.length > 1) {
+					setFailed(ErrorCodes.SURVEY_MALFORMED_SURVEY_ID_LIST, "Multiple survey ID lists were given: " + InputKeys.SURVEY_ID_LIST);
+					throw new ValidationException("Multiple survey ID lists were given: " + InputKeys.SURVEY_ID_LIST);
+				}
+				else if(t.length == 1) {
+					tSurveyIds = SurveyResponseValidators.validateSurveyIds(this, t[0]);
+					
+					if(tSurveyIds.size() > MAX_NUMBER_OF_SURVEYS) {
+						setFailed(ErrorCodes.SURVEY_TOO_MANY_SURVEY_IDS, "More than " + MAX_NUMBER_OF_SURVEYS + " survey IDs were given: " + tSurveyIds.size());
+						throw new ValidationException("More than " + MAX_NUMBER_OF_SURVEYS + " survey IDs were given: " + tSurveyIds.size());
+					}
+				}
+				
+				// Prompt ID List
+				t = getParameterValues(InputKeys.PROMPT_ID_LIST);
+				if(t.length > 1) {
+					setFailed(ErrorCodes.SURVEY_MALFORMED_PROMPT_ID_LIST, "Multiple prompt ID lists were given: " + InputKeys.PROMPT_ID_LIST);
+					throw new ValidationException("Multiple prompt ID lists were given: " + InputKeys.PROMPT_ID_LIST);
+				}
+				else if(t.length == 1) {
+					tPromptIds = SurveyResponseValidators.validatePromptIds(this, t[0]);
+					
+					if(tPromptIds.size() > MAX_NUMBER_OF_PROMPTS) {
+						setFailed(ErrorCodes.SURVEY_TOO_MANY_PROMPT_IDS, "More than " + MAX_NUMBER_OF_PROMPTS + " prompt IDs were given: " + tPromptIds.size());
+						throw new ValidationException("More than " + MAX_NUMBER_OF_PROMPTS + " prompt IDs were given: " + tPromptIds.size());
+					}
+				}
+				
+				// Survey ID List and Prompt ID List Presence Check
+				if(((tSurveyIds == null) || (tSurveyIds.size() == 0)) && 
+				   ((tPromptIds == null) || (tPromptIds.size() == 0))) {
+					setFailed(ErrorCodes.SURVEY_SURVEY_LIST_OR_PROMPT_LIST_ONLY, "A survey list (" + InputKeys.SURVEY_ID_LIST + ") or a prompt list (" + InputKeys.PROMPT_ID_LIST + ") must be given.");
+					throw new ValidationException("A survey list (" + InputKeys.SURVEY_ID_LIST + ") or prompt list (" + InputKeys.PROMPT_ID_LIST + ") must be given.");
+				}
+				else if(((tSurveyIds != null) && (tSurveyIds.size() > 0)) && 
+						((tPromptIds != null) && (tPromptIds.size() > 0))) {
+					setFailed(ErrorCodes.SURVEY_SURVEY_LIST_OR_PROMPT_LIST_ONLY, "Both a survey list (" + InputKeys.SURVEY_ID_LIST + ") and a prompt list (" + InputKeys.PROMPT_ID_LIST + ") must be given.");
+					throw new ValidationException("Both a survey list (" + InputKeys.SURVEY_ID_LIST + ") and a prompt list (" + InputKeys.PROMPT_ID_LIST + ") must be given.");
+				}
+				
+				// Start Date
+				t = getParameterValues(InputKeys.START_DATE);
+				if(t.length > 1) {
+					setFailed(ErrorCodes.SERVER_INVALID_DATE, "Multiple start dates were given: " + InputKeys.START_DATE);
+					throw new ValidationException("Multiple start dates were given: " + InputKeys.START_DATE);
+				}
+				else if(t.length == 1) {
+					tStartDate = SurveyResponseValidators.validateStartDate(this, t[0]);
+				}
+				
+				// End Date
+				t = getParameterValues(InputKeys.END_DATE);
+				if(t.length > 1) {
+					setFailed(ErrorCodes.SERVER_INVALID_DATE, "Multiple end dates were given: " + InputKeys.END_DATE);
+					throw new ValidationException("Multiple end dates were given: " + InputKeys.END_DATE);
+				}
+				else if(t.length == 1) {
+					tEndDate = SurveyResponseValidators.validateEndDate(this, t[0]);
+				}
+				
+				// Sort Order
+				t = getParameterValues(InputKeys.SORT_ORDER);
+				if(t.length > 1) {
+					setFailed(ErrorCodes.SURVEY_INVALID_SORT_ORDER, "Multiple sort order lists were given: " + InputKeys.SORT_ORDER);
+					throw new ValidationException("Multiple sort order lists were given: " + InputKeys.SORT_ORDER);
+				}
+				else if(t.length == 1) {
+					tSortOrder = SurveyResponseValidators.validateSortOrder(this, t[0]);
+				}
+				
+				// Privacy State
+				t = getParameterValues(InputKeys.PRIVACY_STATE);
+				if(t.length > 1) {
+					setFailed(ErrorCodes.SURVEY_INVALID_PRIVACY_STATE, "Multiple privacy state values were given: " + InputKeys.PRIVACY_STATE);
+					throw new ValidationException("Multiple privacy state values were given: " + InputKeys.PRIVACY_STATE);
+				}
+				else if(t.length == 1) {
+					tPrivacyState = SurveyResponseValidators.validatePrivacyState(this, t[0]);
+				}
+				
+				// Collapse
+				t = getParameterValues(InputKeys.COLLAPSE);
+				if(t.length > 1) {
+					setFailed(ErrorCodes.SURVEY_INVALID_COLLAPSE_VALUE, "Multiple collapse values were given: " + InputKeys.COLLAPSE);
+					throw new ValidationException("Multiple collapse values were given: " + InputKeys.COLLAPSE);
+				}
+				else if(t.length == 1) {
+					tCollapse = SurveyResponseValidators.validateCollapse(this, t[0]);
+				}
+				
+				// Pretty print
+				t = getParameterValues(InputKeys.PRETTY_PRINT);
+				if(t.length > 1) {
+					setFailed(ErrorCodes.SURVEY_INVALID_PRETTY_PRINT_VALUE, "Multiple pretty print values were given: " + InputKeys.PRETTY_PRINT);
+					throw new ValidationException("Multiple pretty print values were given: " + InputKeys.PRETTY_PRINT);
+				}
+				else if(t.length == 1) {
+					tPrettyPrint = SurveyResponseValidators.validatePrettyPrint(this, t[0]);
+				}
+				
+				// Return ID
+				t = getParameterValues(InputKeys.RETURN_ID);
+				if(t.length > 1) {
+					setFailed(ErrorCodes.SURVEY_INVALID_RETURN_ID, "Multiple return ID values were given: " + InputKeys.RETURN_ID);
+					throw new ValidationException("Multiple return ID values were given: " + InputKeys.RETURN_ID);
+				}
+				else if(t.length == 1) {
+					tReturnId = SurveyResponseValidators.validateReturnId(this, t[0]);
+				}
+				
+				// Suppress metadata
+				t = getParameterValues(InputKeys.SUPPRESS_METADATA);
+				if(t.length > 1) {
+					setFailed(ErrorCodes.SURVEY_INVALID_SUPPRESS_METADATA_VALUE, "Multiple suppress metadata values were given: " + InputKeys.SUPPRESS_METADATA);
+					throw new ValidationException("Multiple suppress metadata values were given: " + InputKeys.SUPPRESS_METADATA);
+				}
+				else if(t.length == 1) {
+					tSuppressMetadata = SurveyResponseValidators.validateSuppressMetadata(this, t[0]);
+				}
+			}
 			catch (ValidationException e) {
-				
 				LOGGER.info(e);
-				
 			}
 		}
 		
-		this.campaignUrn = tCampaignUrn;
-		this.collapse = tCollapseAsBoolean;
-		this.columnList = tColumnListAsList;
-		this.endDate = tEndDateAsDate;
-		this.outputFormat = tOutputFormat;
-		this.prettyPrint = tPrettyPrintAsBoolean;
-		this.privacyState = tPrivacyState;
-		this.promptIdList = tPromptIdListAsList;
-		this.returnId = tReturnIdAsBoolean;
-		this.sortOrder = tSortOrder;
-		this.startDate = tStartDateAsDate;
-		this.suppressMetadata = tSuppressMetadataAsBoolean;
-		this.surveyIdList = tSurveyIdListAsList;
-		this.userList = tUserListAsList;
+		campaignId = tCampaignId;
+		columns = tColumns;
+		usernames = tUsernames;
+		outputFormat = tOutputFormat;
+		
+		surveyIds = tSurveyIds;
+		promptIds = tPromptIds;
+
+		startDate = tStartDate;
+		endDate = tEndDate;
+
+		sortOrder = tSortOrder;
+
+		privacyState = tPrivacyState;
+
+		collapse = tCollapse;
+		prettyPrint = tPrettyPrint;
+		returnId = tReturnId;
+		suppressMetadata = tSuppressMetadata;
 	}
 	
 	/**
@@ -401,7 +525,7 @@ public final class SurveyResponseReadRequest extends UserRequest {
 		try {
 			
 			LOGGER.info("Verifying that requester belongs to the campaign specified by campaign ID.");
-		    UserCampaignServices.campaignExistsAndUserBelongs(this, this.getUser(), this.campaignUrn);
+		    UserCampaignServices.campaignExistsAndUserBelongs(this, campaignId, this.getUser().getUsername());
 		    
 		    
 		    // We have removed this ACL check because it causes participants
@@ -412,34 +536,37 @@ public final class SurveyResponseReadRequest extends UserRequest {
 //		    LOGGER.info("Verifying that the requester has a role that allows reading of survey responses for each of the users in the list.");
 //	    	UserCampaignServices.requesterCanViewUsersSurveyResponses(this, this.campaignUrn, this.getUser().getUsername(), (String[]) userList.toArray());
 			
-		    if(! this.userList.equals(URN_SPECIAL_ALL_LIST)) {
+		    if(! usernames.equals(URN_SPECIAL_ALL_LIST)) {
 		    	LOGGER.info("Checking the user list to make sure all of the users belong to the campaign ID.");
-		    	UserCampaignServices.verifyUsersExistInCampaign(this, this.campaignUrn, this.userList);
+		    	UserCampaignServices.verifyUsersExistInCampaign(this, campaignId, usernames);
 		    }
 		    
 		    LOGGER.info("Retrieving campaign configuration.");
-			this.configuration = CampaignServices.findCampaignConfiguration(this, this.campaignUrn);
+			Campaign configuration = CampaignServices.findCampaignConfiguration(this, campaignId);
 			
-			if(! this.promptIdList.isEmpty() && ! this.promptIdList.equals(URN_SPECIAL_ALL_LIST)) {
+			if((promptIds != null) && (! promptIds.isEmpty()) && (! URN_SPECIAL_ALL_LIST.equals(promptIds))) {
 				LOGGER.info("Verifying that the prompt ids in the query belong to the campaign.");
-				SurveyResponseReadServices.verifyPromptIdsBelongToConfiguration(this, this.promptIdList, this.configuration);
+				SurveyResponseReadServices.verifyPromptIdsBelongToConfiguration(this, promptIds, configuration);
 			}
 			
-			if(! this.surveyIdList.isEmpty() && ! this.surveyIdList.equals(URN_SPECIAL_ALL_LIST)) {
+			if((surveyIds != null) && (! surveyIds.isEmpty()) && (! URN_SPECIAL_ALL_LIST.equals(surveyIds))) {
 				LOGGER.info("Verifying that the survey ids in the query belong to the campaign.");
-				SurveyResponseReadServices.verifySurveyIdsBelongToConfiguration(this, this.surveyIdList, this.configuration);
+				SurveyResponseReadServices.verifySurveyIdsBelongToConfiguration(this, surveyIds, configuration);
 			}
 		    
 			LOGGER.info("Dispatching to the data layer.");
 			surveyResponseList = new LinkedList<SurveyResponse>();
-			for(String username : userList) {
+			
+			for(String username : usernames) {
 				// This can never overlap unless the usernames are identical,
 				// which should have already been taken care of.
 				surveyResponseList.addAll(
 						SurveyResponseServices.readSurveyResponseInformation(
 								this, configuration, username, null, startDate, 
-								endDate, privacyState, surveyIdList, 
-								promptIdList, null
+								endDate, privacyState, 
+								(URN_SPECIAL_ALL_LIST.equals(surveyIds)) ? null : surveyIds, 
+								(URN_SPECIAL_ALL_LIST.equals(promptIds)) ? null : promptIds, 
+								null
 							)
 					);
 			}
@@ -447,7 +574,7 @@ public final class SurveyResponseReadRequest extends UserRequest {
 			LOGGER.info("Found " + surveyResponseList.size() + " results");
 			
 			LOGGER.info("Filtering survey response results according to our privacy rules and the requester's role.");
-			SurveyResponseReadServices.performPrivacyFilter(this.getUser(), this.campaignUrn, surveyResponseList, this.privacyState);
+			SurveyResponseReadServices.performPrivacyFilter(this, this.getUser().getUsername(), campaignId, surveyResponseList);
 			
 			LOGGER.info("Found " + surveyResponseList.size() + " results after filtering.");
 			
@@ -461,13 +588,16 @@ public final class SurveyResponseReadRequest extends UserRequest {
 									SurveyResponse o1,
 									SurveyResponse o2) {
 								
-								for(String item : sortOrder) {
-									if(InputKeys.SORT_ORDER_SURVEY.equals(item)) {
+								for(SortParameter sortParameter : sortOrder) {
+									switch(sortParameter) {
+									
+									case SURVEY:
 										if(! o1.getSurvey().equals(o2.getSurvey())) {
 											return o1.getSurvey().getId().compareTo(o2.getSurvey().getId());
 										}
-									}
-									else if(InputKeys.SORT_ORDER_TIMESTAMP.equals(item)) {
+										break;
+										
+									case TIMESTAMP:
 										if(o1.getTime() != o2.getTime()) {
 											if((o1.getTime() - o2.getTime()) < 0) {
 												return -1;
@@ -476,11 +606,13 @@ public final class SurveyResponseReadRequest extends UserRequest {
 												return 1;
 											}
 										}
-									}
-									else if(InputKeys.SORT_ORDER_USER.equals(item)) {
+										break;
+										
+									case USER:
 										if(! o1.getUsername().equals(o2.getUsername())) {
 											return o1.getUsername().compareTo(o2.getUsername());
 										}
+										break;
 									}
 								}
 								return 0;
@@ -520,48 +652,63 @@ public final class SurveyResponseReadRequest extends UserRequest {
 		
 		if(! isFailed()) {
 			try {
-				boolean allColumns = columnList.equals(URN_SPECIAL_ALL_LIST);
+				boolean allColumns = columns.equals(URN_SPECIAL_ALL_LIST);
 			
-				if(OUTPUT_FORMAT_JSON_ROWS.equals(outputFormat)) {
+				if(OutputFormat.JSON_ROWS.equals(outputFormat)) {
 					httpResponse.setContentType("text/html");
 					
-					JSONArray result = new JSONArray();
+					JSONObject result = new JSONObject();
+					result.put(JSON_KEY_RESULT, RESULT_SUCCESS);
 					
+					Set<String> uniqueSurveyIds = new HashSet<String>();
+					JSONArray results = new JSONArray();
 					for(SurveyResponse surveyResponse : surveyResponseList) {
-						result.put(surveyResponse.toJson(
-								allColumns || columnList.contains(URN_USER_ID),
-								allColumns || columnList.contains(false),
-								allColumns || columnList.contains(URN_CONTEXT_CLIENT),
-								allColumns || columnList.contains(URN_SURVEY_PRIVACY_STATE),
-								allColumns || columnList.contains(URN_CONTEXT_UTC_TIMESTAMP),
-								allColumns || columnList.contains(false),
-								allColumns || columnList.contains(URN_CONTEXT_TIMEZONE),
-								allColumns || columnList.contains(URN_CONTEXT_LOCATION_STATUS),
-								allColumns || columnList.contains(URN_CONTEXT_LOCATION_STATUS), // FIXME: This should break the location object down.
-								allColumns || columnList.contains(URN_SURVEY_ID),
-								allColumns || columnList.contains(URN_SURVEY_TITLE),
-								allColumns || columnList.contains(URN_SURVEY_DESCRIPTION),
-								allColumns || columnList.contains(URN_CONTEXT_LAUNCH_CONTEXT_LONG) || columnList.contains(URN_CONTEXT_LAUNCH_CONTEXT_SHORT),
-								columnList.contains(URN_CONTEXT_LAUNCH_CONTEXT_LONG),
-								allColumns || columnList.contains(URN_PROMPT_RESPONSE),
+						uniqueSurveyIds.add(surveyResponse.getSurvey().getId());
+						
+						results.put(surveyResponse.toJson(
+								allColumns || columns.contains(ColumnKey.USER_ID),
+								allColumns || false,
+								allColumns || columns.contains(ColumnKey.CONTEXT_CLIENT),
+								allColumns || columns.contains(ColumnKey.SURVEY_PRIVACY_STATE),
+								allColumns || columns.contains(ColumnKey.CONTEXT_UTC_TIMESTAMP),
+								allColumns || false,
+								allColumns || columns.contains(ColumnKey.CONTEXT_TIMEZONE),
+								allColumns || columns.contains(ColumnKey.CONTEXT_LOCATION_STATUS),
+								allColumns || columns.contains(ColumnKey.CONTEXT_LOCATION_STATUS), // FIXME: This should break the location object down.
+								allColumns || columns.contains(ColumnKey.SURVEY_ID),
+								allColumns || columns.contains(ColumnKey.SURVEY_TITLE),
+								allColumns || columns.contains(ColumnKey.SURVEY_DESCRIPTION),
+								allColumns || columns.contains(ColumnKey.CONTEXT_LAUNCH_CONTEXT_LONG) || columns.contains(ColumnKey.CONTEXT_LAUNCH_CONTEXT_SHORT),
+								columns.contains(ColumnKey.CONTEXT_LAUNCH_CONTEXT_LONG),
+								allColumns || columns.contains(ColumnKey.PROMPT_RESPONSE),
 								returnId
 							)
 						);
 					}
 					
-					if(collapse) {
+					if((collapse != null) && collapse) {
 						int count = result.length();
 						Set<String> collapsedSet = new HashSet<String>(count);
 						
 						for(int i = 0; i < count; i++) {
 							// This shouldn't work because JSONObject can 
 							// output identical objects in different manners.
-							if(! collapsedSet.add(result.getJSONObject(i).toString())) {
-								result.remove(i);
+							if(! collapsedSet.add(results.getJSONObject(i).toString())) {
+								results.remove(i);
 								i--;
 								count--;
 							}
 						}
+					}
+					result.put(JSON_KEY_DATA, results);
+					
+					// Metadata
+					if((suppressMetadata == null) || (! suppressMetadata)) {
+						JSONObject metadata = new JSONObject();
+						
+						metadata.put(JSON_KEY_NUM_SURVEYS, uniqueSurveyIds.size());
+						
+						result.put(JSON_KEY_METADATA, metadata);
 					}
 					
 					if(prettyPrint) {
@@ -570,22 +717,9 @@ public final class SurveyResponseReadRequest extends UserRequest {
 					else {
 						resultString = result.toString();
 					}
-					
-					// TODO: ADD METADATA
 				}
-				else if(OUTPUT_FORMAT_JSON_COLUMNS.equals(outputFormat) || 
-						OUTPUT_FORMAT_CSV.equals(outputFormat)) {
-					
-					if(collapse) {
-						Set<SurveyResponse> surveyResponseSet = 
-							new HashSet<SurveyResponse>(surveyResponseList);
-						
-						for(SurveyResponse currResponse : surveyResponseList) {
-							if(! surveyResponseSet.add(currResponse)) {
-								surveyResponseList.remove(currResponse);
-							}
-						}
-					}
+				else if(OutputFormat.JSON_COLUMNS.equals(outputFormat) || 
+						OutputFormat.CSV.equals(outputFormat)) {
 					
 					JSONArray usernames = new JSONArray();
 					JSONArray clients = new JSONArray();
@@ -593,7 +727,11 @@ public final class SurveyResponseReadRequest extends UserRequest {
 					JSONArray timestamps = new JSONArray();
 					JSONArray timezones = new JSONArray();
 					JSONArray locationStatuses = new JSONArray();
-					JSONArray locations = new JSONArray();
+					JSONArray locationLongitude = new JSONArray();
+					JSONArray locationLatitude = new JSONArray();
+					JSONArray locationTimestamp = new JSONArray();
+					JSONArray locationAccuracy = new JSONArray();
+					JSONArray locationProvider = new JSONArray();
 					JSONArray surveyIds = new JSONArray();
 					JSONArray surveyTitles = new JSONArray();
 					JSONArray surveyDescriptions = new JSONArray();
@@ -612,13 +750,17 @@ public final class SurveyResponseReadRequest extends UserRequest {
 						}
 					}
 					
+					int numResponses = 0;
 					for(SurveyResponse surveyResponse : surveyResponseList) {
-						processResponses(allColumns, surveyResponse, 
+						numResponses += processResponses(allColumns, 
+								surveyResponse, 
 								surveyResponse.getPromptResponses(), 
 								surveys, prompts, 
 								usernames, clients, privacyStates, 
 								timestamps, timezones, 
-								locationStatuses, locations, 
+								locationStatuses, locationLongitude, 
+								locationLatitude, locationTimestamp, 
+								locationAccuracy, locationProvider,
 								surveyIds, surveyTitles, surveyDescriptions, 
 								launchContexts
 							);
@@ -627,110 +769,161 @@ public final class SurveyResponseReadRequest extends UserRequest {
 					// Add all of the applicable output stuff.
 					JSONObject result = new JSONObject();
 					
-					if(allColumns || columnList.contains(URN_USER_ID)) {
+					if(allColumns || columns.contains(ColumnKey.USER_ID)) {
 						JSONObject values = new JSONObject();
-						values.put(VALUES, usernames);
-						result.put(URN_USER_ID, values);
+						values.put(JSON_KEY_VALUES, usernames);
+						result.put(ColumnKey.USER_ID.toString(), values);
 					}
-					if(allColumns || columnList.contains(URN_CONTEXT_CLIENT)) {
+					if(allColumns || columns.contains(ColumnKey.CONTEXT_CLIENT)) {
 						JSONObject values = new JSONObject();
-						values.put(VALUES, clients);
-						result.put(URN_CONTEXT_CLIENT, values);
+						values.put(JSON_KEY_VALUES, clients);
+						result.put(ColumnKey.CONTEXT_CLIENT.toString(), values);
 					}
-					if(allColumns || columnList.contains(URN_SURVEY_PRIVACY_STATE)) {
+					if(allColumns || columns.contains(ColumnKey.SURVEY_PRIVACY_STATE)) {
 						JSONObject values = new JSONObject();
-						values.put(VALUES, privacyStates);
-						result.put(URN_SURVEY_PRIVACY_STATE, values);
+						values.put(JSON_KEY_VALUES, privacyStates);
+						result.put(ColumnKey.SURVEY_PRIVACY_STATE.toString(), values);
 					}
-					if(allColumns || columnList.contains(URN_CONTEXT_UTC_TIMESTAMP)) {
+					if(allColumns || columns.contains(ColumnKey.CONTEXT_UTC_TIMESTAMP)) {
 						JSONObject values = new JSONObject();
-						values.put(VALUES, timestamps);
-						result.put(URN_CONTEXT_UTC_TIMESTAMP, values);
+						values.put(JSON_KEY_VALUES, timestamps);
+						result.put(ColumnKey.CONTEXT_UTC_TIMESTAMP.toString(), values);
 					}
-					if(allColumns || columnList.contains(URN_CONTEXT_TIMEZONE)) {
+					if(allColumns || columns.contains(ColumnKey.CONTEXT_TIMEZONE)) {
 						JSONObject values = new JSONObject();
-						values.put(VALUES, timezones);
-						result.put(URN_CONTEXT_TIMEZONE, values);
+						values.put(JSON_KEY_VALUES, timezones);
+						result.put(ColumnKey.CONTEXT_TIMEZONE.toString(), values);
 					}
-					if(allColumns || columnList.contains(URN_CONTEXT_LOCATION_STATUS)) {
+					if(allColumns || columns.contains(ColumnKey.CONTEXT_LOCATION_STATUS)) {
 						JSONObject values = new JSONObject();
-						values.put(VALUES, locationStatuses);
-						result.put(URN_CONTEXT_LOCATION_STATUS, values);
+						values.put(JSON_KEY_VALUES, locationStatuses);
+						result.put(ColumnKey.CONTEXT_LOCATION_STATUS.toString(), values);
 					}
-					if(allColumns || columnList.contains(URN_CONTEXT_LOCATION_STATUS)) {
+					if(allColumns || columns.contains(ColumnKey.CONTEXT_LOCATION_LONGITUDE)) {
 						JSONObject values = new JSONObject();
-						values.put(VALUES, locations);
-						result.put(URN_CONTEXT_LOCATION_STATUS, values);
+						values.put(JSON_KEY_VALUES, locationLongitude);
+						result.put(ColumnKey.CONTEXT_LOCATION_LONGITUDE.toString(), values);
 					}
-					if(allColumns || columnList.contains(URN_SURVEY_ID)) {
+					if(allColumns || columns.contains(ColumnKey.CONTEXT_LOCATION_LATITUDE)) {
 						JSONObject values = new JSONObject();
-						values.put(VALUES, surveyIds);
-						result.put(URN_SURVEY_ID, values);
+						values.put(JSON_KEY_VALUES, locationLatitude);
+						result.put(ColumnKey.CONTEXT_LOCATION_LATITUDE.toString(), values);
 					}
-					if(allColumns || columnList.contains(URN_SURVEY_TITLE)) {
+					if(allColumns || columns.contains(ColumnKey.CONTEXT_LOCATION_TIMESTAMP)) {
 						JSONObject values = new JSONObject();
-						values.put(VALUES, surveyTitles);
-						result.put(URN_SURVEY_TITLE, values);
+						values.put(JSON_KEY_VALUES, locationTimestamp);
+						result.put(ColumnKey.CONTEXT_LOCATION_TIMESTAMP.toString(), values);
 					}
-					if(allColumns || columnList.contains(URN_SURVEY_DESCRIPTION)) {
+					if(allColumns || columns.contains(ColumnKey.CONTEXT_LOCATION_ACCURACY)) {
 						JSONObject values = new JSONObject();
-						values.put(VALUES, surveyDescriptions);
-						result.put(URN_SURVEY_DESCRIPTION, values);
+						values.put(JSON_KEY_VALUES, locationAccuracy);
+						result.put(ColumnKey.CONTEXT_LOCATION_ACCURACY.toString(), values);
 					}
-					if(allColumns || columnList.contains(URN_CONTEXT_LAUNCH_CONTEXT_LONG)) {
+					if(allColumns || columns.contains(ColumnKey.CONTEXT_LOCATION_PROVIDER)) {
 						JSONObject values = new JSONObject();
-						values.put(VALUES, launchContexts);
-						result.put(URN_CONTEXT_LAUNCH_CONTEXT_LONG, values);
+						values.put(JSON_KEY_VALUES, locationProvider);
+						result.put(ColumnKey.CONTEXT_LOCATION_PROVIDER.toString(), values);
 					}
-					if(columnList.contains(URN_CONTEXT_LAUNCH_CONTEXT_SHORT)) {
+					if(allColumns || columns.contains(ColumnKey.SURVEY_ID)) {
 						JSONObject values = new JSONObject();
-						values.put(VALUES, launchContexts);
-						result.put(URN_CONTEXT_LAUNCH_CONTEXT_SHORT, values);
+						values.put(JSON_KEY_VALUES, surveyIds);
+						result.put(ColumnKey.SURVEY_ID.toString(), values);
 					}
-					if(allColumns || columnList.contains(URN_PROMPT_RESPONSE)) {
+					if(allColumns || columns.contains(ColumnKey.SURVEY_TITLE)) {
+						JSONObject values = new JSONObject();
+						values.put(JSON_KEY_VALUES, surveyTitles);
+						result.put(ColumnKey.SURVEY_TITLE.toString(), values);
+					}
+					if(allColumns || columns.contains(ColumnKey.SURVEY_DESCRIPTION)) {
+						JSONObject values = new JSONObject();
+						values.put(JSON_KEY_VALUES, surveyDescriptions);
+						result.put(ColumnKey.SURVEY_DESCRIPTION.toString(), values);
+					}
+					if(allColumns || columns.contains(ColumnKey.CONTEXT_LAUNCH_CONTEXT_LONG)) {
+						JSONObject values = new JSONObject();
+						values.put(JSON_KEY_VALUES, launchContexts);
+						result.put(ColumnKey.CONTEXT_LAUNCH_CONTEXT_LONG.toString(), values);
+					}
+					if(columns.contains(ColumnKey.CONTEXT_LAUNCH_CONTEXT_SHORT)) {
+						JSONObject values = new JSONObject();
+						values.put(JSON_KEY_VALUES, launchContexts);
+						result.put(ColumnKey.CONTEXT_LAUNCH_CONTEXT_SHORT.toString(), values);
+					}
+					if(allColumns || columns.contains(ColumnKey.PROMPT_RESPONSE)) {
 						for(String promptId : prompts.keySet()) {
 							result.put(
-									URN_PROMPT_ID_PREFIX + promptId, 
+									SurveyResponse.ColumnKey.URN_PROMPT_ID_PREFIX + promptId, 
 									prompts.get(promptId));
 						}
 					}
 					
+					if((collapse != null) && collapse) {
+						JSONArray keys = new JSONArray();
+						Iterator<?> keysIter = result.keys();
+						while(keysIter.hasNext()) {
+							keys.put(keysIter.next());
+						}
+						int keyLength = keys.length();
+						
+						Set<String> uniqueRow = new HashSet<String>();
+						for(int i = 0; i < numResponses; i++) {
+							StringBuilder currResultBuilder = new StringBuilder();
+							
+							for(int j = 0; j < keyLength; j++) {
+								currResultBuilder.append(result.getJSONObject(keys.getString(j)).getJSONArray(JSON_KEY_VALUES).get(i));
+								
+								if((j + 1) != keyLength) {
+									currResultBuilder.append(',');
+								}
+							}
+							
+							if(! uniqueRow.add(currResultBuilder.toString())) {
+								for(int j = 0; j < keyLength; j++) {
+									result.getJSONObject(keys.getString(j)).getJSONArray(JSON_KEY_VALUES).remove(i);
+								}
+
+								i--;
+								numResponses--;
+							}
+						}
+					}
+					
 					JSONObject metadata = null;
-					if(! suppressMetadata) {
+					if((suppressMetadata == null) || (! suppressMetadata)) {
 						metadata = new JSONObject();
 						
-						metadata.put("campaign_urn", campaignUrn);
+						metadata.put("campaign_urn", campaignId);
 						metadata.put("number_of_prompts", prompts.size());
 						metadata.put("number_of_surveys", surveys.size());
 					}
 					
-					if(OUTPUT_FORMAT_JSON_COLUMNS.equals(outputFormat)) {
+					if(OutputFormat.JSON_COLUMNS.equals(outputFormat)) {
 						httpResponse.setContentType("text/html");
 						
 						JSONObject resultJson = new JSONObject();
 						resultJson.put(JSON_KEY_RESULT, RESULT_SUCCESS);
 						
-						if(! suppressMetadata) {
+						if((suppressMetadata == null) || (! suppressMetadata)) {
 							metadata.put("items", result.keys());
-							resultJson.put(METADATA, metadata);
+							resultJson.put(JSON_KEY_METADATA, metadata);
 						}
 						
 						resultJson.put(JSON_KEY_DATA, result);
 						
-						if(prettyPrint) {
+						if((prettyPrint != null) && prettyPrint) {
 							resultString = resultJson.toString(4);
 						}
 						else {
 							resultString = resultJson.toString();
 						}
 					}
-					else if(OUTPUT_FORMAT_CSV.equals(outputFormat)) {
+					else if(OutputFormat.CSV.equals(outputFormat)) {
 						httpResponse.setContentType("text/csv");
 						httpResponse.setHeader("Content-Disposition", "attachment; filename=SurveyResponses.csv");
 
 						StringBuilder resultBuilder = new StringBuilder();
 						
-						if(! suppressMetadata) {
+						if((suppressMetadata == null) || (! suppressMetadata)) {
 							metadata.put(JSON_KEY_RESULT, RESULT_SUCCESS);
 							
 							resultBuilder.append("## begin metadata\n");
@@ -739,20 +932,26 @@ public final class SurveyResponseReadRequest extends UserRequest {
 						}
 						
 						// Prompt contexts.
-						resultBuilder.append("## begin prompt contexts\n");
-						for(String promptId : prompts.keySet()) {
-							JSONObject promptJson = new JSONObject();
-							
-							promptJson.put(promptId, prompts.get(promptId).toString());
-							
-							resultBuilder.append('#').append(promptJson.toString()).append('\n');
+						if(allColumns || columns.contains(ColumnKey.PROMPT_RESPONSE)) {
+							resultBuilder.append("## begin prompt contexts\n");
+							for(String promptId : prompts.keySet()) {
+								JSONObject promptJson = new JSONObject();
+								
+								promptJson.put(promptId, prompts.get(promptId).get(JSON_KEY_CONTEXT).toString());
+								
+								resultBuilder.append('#').append(promptJson.toString()).append('\n');
+							}
+							resultBuilder.append("## end prompt contexts\n");
 						}
-						resultBuilder.append("## end prompt contexts\n");
 						
 						// Data.
-						resultBuilder.append("## begin data");
+						resultBuilder.append("## begin data\n");
 
-						JSONArray keys = new JSONArray(result.keys());
+						JSONArray keys = new JSONArray();
+						Iterator<?> keysIter = result.keys();
+						while(keysIter.hasNext()) {
+							keys.put(keysIter.next());
+						}
 						int keyLength = keys.length();
 						
 						resultBuilder.append('#');
@@ -773,15 +972,15 @@ public final class SurveyResponseReadRequest extends UserRequest {
 						}
 						resultBuilder.append('\n');
 						
-						for(int i = 0; i < keyLength; i++) {
+						for(int i = 0; i < numResponses; i++) {
 							for(int j = 0; j < keyLength; j++) {
-								resultBuilder.append(result.getJSONObject(keys.getString(j)).getJSONArray(VALUES).get(i));
+								resultBuilder.append(result.getJSONObject(keys.getString(j)).getJSONArray(JSON_KEY_VALUES).get(i));
 								
 								if((j + 1) != keyLength) {
 									resultBuilder.append(',');
 								}
 							}
-							
+
 							resultBuilder.append('\n');
 						}
 						
@@ -792,7 +991,7 @@ public final class SurveyResponseReadRequest extends UserRequest {
 				}
 			}
 			catch(JSONException e) {
-				LOGGER.error(e);
+				LOGGER.error(e.toString(), e);
 				setFailed();
 			}
 		}
@@ -818,20 +1017,31 @@ public final class SurveyResponseReadRequest extends UserRequest {
 		}
 	}
 	
+	/**
+	 * Populates the prompts map with all of the prompts from all of the survey
+	 * items. 
+	 * 
+	 * @param surveyItems The map of survey item indices to the survey item.
+	 * 
+	 * @param prompts The prompts to be populated with all of the prompts in
+	 * 				  the survey item including all of the sub-prompts of 
+	 * 				  repeatable sets.
+	 * 
+	 * @throws JSONException Thrown if there is an error building the JSON.
+	 */
 	private void populatePrompts(
 			final Map<Integer, SurveyItem> surveyItems,
 			Map<String, JSONObject> prompts) 
 			throws JSONException {
 		
-		for(SurveyItem surveyItem : 
-			surveyItems.values()) {
+		for(SurveyItem surveyItem : surveyItems.values()) {
 	
 			if(surveyItem instanceof Prompt) {
 				Prompt prompt = (Prompt) surveyItem;
 				
 				JSONObject promptJson = new JSONObject();
-				promptJson.put(CONTEXT, prompt.toJson());
-				promptJson.put(VALUES, new JSONArray());
+				promptJson.put(JSON_KEY_CONTEXT, prompt.toJson());
+				promptJson.put(JSON_KEY_VALUES, new JSONArray());
 				
 				prompts.put(prompt.getId(), promptJson);
 			}
@@ -842,13 +1052,57 @@ public final class SurveyResponseReadRequest extends UserRequest {
 		}
 	}
 	
-	private void processResponses(final boolean allColumns, 
+	/**
+	 * Processes each of the responses in map to populate the JSONObjects by
+	 * placing the value from the response into its corresponding JSONObject.
+	 * 
+	 * @param allColumns Whether or not to populate all JSONObjects.
+	 * 
+	 * @param surveyResponse The current survey response.
+	 * 
+	 * @param responses The map of response index from the survey response to
+	 * 					the actual response.
+	 * 
+	 * @param surveys The map of survey IDs to Survey objects.
+	 * 
+	 * @param prompts The map of prompt IDs to Prompt objects.
+	 * 
+	 * @param usernames The usernames JSONArray.
+	 * 
+	 * @param clients The clients JSONArray.
+	 * 
+	 * @param privacyStates The privacy states JSONArray.
+	 * 
+	 * @param timestamps The timestamps JSONArray.
+	 * 
+	 * @param timezones The timezones JSONArray.
+	 * 
+	 * @param locationStatuses The location statuses JSONArray.
+	 * 
+	 * @param locations The locations JSONArray.
+	 * 
+	 * @param surveyIds The survey IDs JSONArray.
+	 * 
+	 * @param surveyTitles The survey titles JSONArray.
+	 * 
+	 * @param surveyDescriptions The survey description JSONArray.
+	 * 
+	 * @param launchContexts The launch contexts JSONArray.
+	 * 
+	 * @return The total number of prompt responses that were processed.
+	 * 
+	 * @throws JSONException Thrown if there is an error populating any of the
+	 * 						 JSONArrays.
+	 */
+	private int processResponses(final boolean allColumns, 
 			final SurveyResponse surveyResponse,
 			final Map<Integer, Response> responses, 
 			Map<String, Survey> surveys, Map<String, JSONObject> prompts,
 			JSONArray usernames, JSONArray clients, JSONArray privacyStates,
 			JSONArray timestamps, JSONArray timezones,
-			JSONArray locationStatuses, JSONArray locations,
+			JSONArray locationStatuses, JSONArray locationLongitude,
+			JSONArray locationLatitude, JSONArray locationTimestamp,
+			JSONArray locationAccuracy, JSONArray locationProvider,
 			JSONArray surveyIds, JSONArray surveyTitles, 
 			JSONArray surveyDescriptions, JSONArray launchContexts) 
 			throws JSONException {
@@ -856,45 +1110,90 @@ public final class SurveyResponseReadRequest extends UserRequest {
 		List<Integer> indices = new ArrayList<Integer>(responses.keySet());
 		Collections.sort(indices);
 		
+		int numResponses = 0;
 		for(Integer index : indices) {
 			Response response = responses.get(index);
-			if(response instanceof PromptResponse) {				
-				if(allColumns || columnList.contains(URN_USER_ID)) {
+			if(response instanceof PromptResponse) {
+				numResponses++;
+				
+				if(allColumns || columns.contains(ColumnKey.USER_ID)) {
 					usernames.put(surveyResponse.getUsername());
 				}
-				if(allColumns || columnList.contains(URN_CONTEXT_CLIENT)) {
+				if(allColumns || columns.contains(ColumnKey.CONTEXT_CLIENT)) {
 					clients.put(surveyResponse.getClient());
 				}
-				if(allColumns || columnList.contains(URN_SURVEY_PRIVACY_STATE)) {
+				if(allColumns || columns.contains(ColumnKey.SURVEY_PRIVACY_STATE)) {
 					privacyStates.put(surveyResponse.getPrivacyState().toString());
 				}
-				if(allColumns || columnList.contains(URN_CONTEXT_UTC_TIMESTAMP)) {
+				if(allColumns || columns.contains(ColumnKey.CONTEXT_UTC_TIMESTAMP)) {
 					timestamps.put(TimeUtils.getIso8601DateTimeString(surveyResponse.getDate()));
 				}
-				if(allColumns || columnList.contains(URN_CONTEXT_TIMEZONE)) {
+				if(allColumns || columns.contains(ColumnKey.CONTEXT_TIMEZONE)) {
 					timezones.put(surveyResponse.getTimezone().getID());
 				}
-				if(allColumns || columnList.contains(URN_CONTEXT_LOCATION_STATUS)) {
+				if(allColumns || columns.contains(ColumnKey.CONTEXT_LOCATION_STATUS)) {
 					locationStatuses.put(surveyResponse.getLocationStatus().toString());
 				}
-				if(allColumns || columnList.contains(URN_CONTEXT_LOCATION_STATUS)) { // FIXME: This should break down the location object.
-					locations.put(surveyResponse.getLocation().toJson(false)); 
+				if(allColumns || columns.contains(ColumnKey.CONTEXT_LOCATION_LONGITUDE)) {
+					Location location = surveyResponse.getLocation();
+					if(location == null) {
+						locationLongitude.put("");
+					}
+					else {
+						locationLongitude.put(location.getLongitude());
+					}
 				}
-				if(allColumns || columnList.contains(URN_SURVEY_ID)) {
+				if(allColumns || columns.contains(ColumnKey.CONTEXT_LOCATION_LATITUDE)) {
+					Location location = surveyResponse.getLocation();
+					if(location == null) {
+						locationLatitude.put("");
+					}
+					else {
+						locationLatitude.put(location.getLatitude());
+					}
+				}
+				if(allColumns || columns.contains(ColumnKey.CONTEXT_LOCATION_TIMESTAMP)) {
+					Location location = surveyResponse.getLocation();
+					if(location == null) {
+						locationTimestamp.put("");
+					}
+					else {
+						locationTimestamp.put(TimeUtils.getIso8601DateTimeString(location.getTimestamp()));
+					}
+				}
+				if(allColumns || columns.contains(ColumnKey.CONTEXT_LOCATION_ACCURACY)) {
+					Location location = surveyResponse.getLocation();
+					if(location == null) {
+						locationAccuracy.put("");
+					}
+					else {
+						locationAccuracy.put(location.getAccuracy());
+					}
+				}
+				if(allColumns || columns.contains(ColumnKey.CONTEXT_LOCATION_PROVIDER)) {
+					Location location = surveyResponse.getLocation();
+					if(location == null) {
+						locationProvider.put("");
+					}
+					else {
+						locationProvider.put(location.getProvider());
+					}
+				}
+				if(allColumns || columns.contains(ColumnKey.SURVEY_ID)) {
 					surveyIds.put(surveyResponse.getSurvey().getId());
 				}
-				if(allColumns || columnList.contains(URN_SURVEY_TITLE)) {
+				if(allColumns || columns.contains(ColumnKey.SURVEY_TITLE)) {
 					surveyTitles.put(surveyResponse.getSurvey().getTitle());
 				}
-				if(allColumns || columnList.contains(URN_SURVEY_DESCRIPTION)) {
+				if(allColumns || columns.contains(ColumnKey.SURVEY_DESCRIPTION)) {
 					surveyDescriptions.put(surveyResponse.getSurvey().getDescription());
 				}
-				if(allColumns || columnList.contains(URN_CONTEXT_LAUNCH_CONTEXT_LONG) || columnList.contains(URN_CONTEXT_LAUNCH_CONTEXT_SHORT)) {
-					launchContexts.put(surveyResponse.getLaunchContext().toJson(columnList.contains(URN_CONTEXT_LAUNCH_CONTEXT_LONG)));
+				if(allColumns || columns.contains(ColumnKey.CONTEXT_LAUNCH_CONTEXT_LONG) || columns.contains(ColumnKey.CONTEXT_LAUNCH_CONTEXT_SHORT)) {
+					launchContexts.put(surveyResponse.getLaunchContext().toJson(allColumns || columns.contains(ColumnKey.CONTEXT_LAUNCH_CONTEXT_LONG)));
 				}
-				if(allColumns || columnList.contains(URN_PROMPT_RESPONSE)) {
+				if(allColumns || columns.contains(ColumnKey.PROMPT_RESPONSE)) {
 					for(String promptId : prompts.keySet()) {
-						JSONArray values = prompts.get(promptId).getJSONArray(VALUES);
+						JSONArray values = prompts.get(promptId).getJSONArray(JSON_KEY_VALUES);
 						if(promptId.equals(response.getId())) {
 							values.put(response.getResponseValue());
 						}
@@ -911,21 +1210,26 @@ public final class SurveyResponseReadRequest extends UserRequest {
 				Map<Integer, Map<Integer, Response>> repeatableSetResponses =
 					repeatableSetResponse.getResponseGroups();
 				
-				List<Integer> rsIndices = new ArrayList<Integer>(repeatableSetResponses.keySet());
-				Collections.sort(rsIndices);
+				List<Integer> rsIterations = 
+					new ArrayList<Integer>(repeatableSetResponses.keySet());
 				
-				for(Integer rsIndex : rsIndices) {
-					this.processResponses(allColumns, surveyResponse,
+				for(Integer rsIndex : rsIterations) {
+					numResponses += processResponses(allColumns, 
+							surveyResponse,
 							repeatableSetResponses.get(rsIndex), 
 							surveys, prompts, 
 							usernames, clients, privacyStates, 
 							timestamps, timezones, 
-							locationStatuses, locations, 
+							locationStatuses, locationLongitude,
+							locationLatitude, locationTimestamp,
+							locationAccuracy, locationProvider,
 							surveyIds, surveyTitles, surveyDescriptions, 
 							launchContexts
 						);
 				}
 			}
 		}
+		
+		return numResponses;
 	}
 }

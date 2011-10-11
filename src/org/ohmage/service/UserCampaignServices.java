@@ -89,7 +89,6 @@ public class UserCampaignServices {
 			throw new ServiceException("The user does not belong to the campaign: " + campaignId);
 		}
 	}
-
 		
 	/**
 	 * Ensures that all of the campaigns in a List exist and that the user 
@@ -874,7 +873,7 @@ public class UserCampaignServices {
 	 * @throws IllegalArgumentException if the request is null; if the 
 	 * campaignId is empty or null; or if the usernameList is null.
 	 */
-	public static void verifyUsersExistInCampaign(Request request, String campaignId, List<String> usernameList) throws ServiceException {
+	public static void verifyUsersExistInCampaign(Request request, String campaignId, Collection<String> usernameList) throws ServiceException {
 		// check for logical errors
 		if(request == null || StringUtils.isEmptyOrWhitespaceOnly(campaignId) || usernameList == null) {
 			throw new IllegalArgumentException("null request, empty campaignId, or null usernameList");

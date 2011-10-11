@@ -10,6 +10,7 @@ import java.net.URL;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -614,7 +615,7 @@ public class DocumentDaos extends Dao {
 			Document.PrivacyState privacyState,
 			Map<String, Document.Role> campaignAndRolesToAdd, List<String> campaignsToRemove, 
 			Map<String, Document.Role> classAndRolesToAdd, List<String> classesToRemove, 
-			Map<String, Document.Role> userAndRolesToAdd, List<String> usersToRemove) throws DataAccessException {
+			Map<String, Document.Role> userAndRolesToAdd, Collection<String> usersToRemove) throws DataAccessException {
 		// Begin transaction
 		DefaultTransactionDefinition def = new DefaultTransactionDefinition();
 		def.setName("Document update.");
@@ -877,7 +878,7 @@ public class DocumentDaos extends Dao {
 	 */
 	private static void updateEntityRoleList(String documentId, 
 			Map<String, Document.Role> entityAndRolesToAdd, 
-			List<String> entitiesToRemove, 
+			Collection<String> entitiesToRemove, 
 			String sqlInsertEntity, String sqlUpdateEntity, String sqlDeleteEntity) 
 	throws CacheMissException, DataAccessException {
 

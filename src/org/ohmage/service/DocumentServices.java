@@ -246,7 +246,7 @@ public class DocumentServices {
 			Document.PrivacyState newPrivacyState,
 			Map<String, Document.Role> campaignAndRolesToAssociateOrUpdate, List<String> campaignsToDisassociate,
 			Map<String, Document.Role> classAndRolesToAssociateOrUpdate, List<String> classesToDisassociate,
-			Map<String, Document.Role> userAndRolesToAssociateOrUpdate, List<String> usersToDisassoicate) throws ServiceException {
+			Map<String, Document.Role> userAndRolesToAssociateOrUpdate, Collection<String> usersToDisassoicate) throws ServiceException {
 		try {
 			DocumentDaos.updateDocument(documentId, newContents, newName, newDescription, newPrivacyState, 
 					campaignAndRolesToAssociateOrUpdate, campaignsToDisassociate, 
