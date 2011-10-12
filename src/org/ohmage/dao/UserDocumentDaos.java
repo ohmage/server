@@ -202,7 +202,7 @@ public final class UserDocumentDaos extends Dao {
 	 */
 	public static Document.Role getDocumentRoleForDocumentSpecificToUser(String username, String documentId) throws DataAccessException {
 		try {
-			return Document.Role.valueOf(
+			return Document.Role.getValue(
 					instance.getJdbcTemplate().queryForObject(
 							SQL_GET_DOCUMENT_ROLES_FOR_DOCUMENT_SPECIFIC_TO_REQUESTING_USER, 
 							new Object[] { username, documentId }, 

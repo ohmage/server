@@ -18,6 +18,7 @@ package org.ohmage.domain;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 
 import org.json.JSONException;
@@ -210,6 +211,129 @@ public class Document {
 
 		campaignAndRole = new HashMap<String, Role>();
 		classAndRole = new HashMap<String, Role>();
+	}
+	
+	/**
+	 * Creates a Document object from the data in the JSONObject.
+	 * 
+	 * @param documentId The document's unique identifier.
+	 * 
+	 * @param documentInfo The document's information as a JSONObject.
+	 * 
+	 * @throws IllegalArgumentException Thrown if one of the parameters is
+	 * 									invalid.
+	 */
+	public Document(final String documentId, JSONObject documentInfo) {
+		if(StringUtils.isEmptyOrWhitespaceOnly(documentId)) {
+			throw new IllegalArgumentException("The document ID is null.");
+		}
+		else if(documentInfo == null) {
+			throw new IllegalArgumentException("The document information is null.");
+		}
+		
+		this.documentId = documentId;
+		
+		try {
+			name = documentInfo.getString(JSON_KEY_NAME);
+		}
+		catch(JSONException e) {
+			throw new IllegalArgumentException("The JSONObject is missing the name value.", e);
+		}
+		
+		String tDescription = null;
+		try {
+			tDescription = documentInfo.getString(JSON_KEY_DESCRIPTION);
+		}
+		catch(JSONException e) {
+			// The description is optional.
+		}
+		description = tDescription;
+		
+		try {
+			privacyState = PrivacyState.getValue(documentInfo.getString(JSON_KEY_PRIVACY_STATE));
+		}
+		catch(JSONException e) {
+			throw new IllegalArgumentException("The JSONObject is missing the privacy state value.", e);
+		}
+		catch(IllegalArgumentException e) {
+			throw new IllegalArgumentException("The privacy state is an unknown privacy state.", e);
+		}
+		
+		try {
+			lastModified = StringUtils.decodeDateTime(documentInfo.getString(JSON_KEY_LAST_MODIFIED));
+		}
+		catch(JSONException e) {
+			throw new IllegalArgumentException("The JSONObject is missing the last modified value.", e);
+		}
+		
+		try {
+			creationDate = StringUtils.decodeDateTime(documentInfo.getString(JSON_KEY_CREATION_DATE));
+		}
+		catch(JSONException e) {
+			throw new IllegalArgumentException("The JSONObject is missing the creation date value.", e);
+		}
+		
+		try {
+			size = documentInfo.getInt(JSON_KEY_SIZE);
+		}
+		catch(JSONException e) {
+			throw new IllegalArgumentException("The JSONObject is missing the size value.", e);
+		}
+		
+		try {
+			creator = documentInfo.getString(JSON_KEY_CREATOR);
+		}
+		catch(JSONException e) {
+			throw new IllegalArgumentException("The JSONObject is missing the creator value.", e);
+		}
+		
+		try {
+			JSONObject campaignAndRoles = documentInfo.getJSONObject(JSON_KEY_CAMPAIGN_ROLE);
+			campaignAndRole = new HashMap<String, Role>(campaignAndRoles.length());
+			
+			Iterator<?> keys = campaignAndRoles.keys();
+			while(keys.hasNext()) {
+				String key = (String) keys.next();
+				campaignAndRole.put(key, Role.getValue(campaignAndRoles.getString(key)));
+			}
+		}
+		catch(JSONException e) {
+			throw new IllegalArgumentException("The JSONObject is missing the campaign and role value.", e);
+		}
+		catch(IllegalArgumentException e) {
+			throw new IllegalArgumentException("The role is unknown.", e);
+		}
+		
+		try {
+			JSONObject classAndRoles = documentInfo.getJSONObject(JSON_KEY_CLASS_ROLE);
+			classAndRole = new HashMap<String, Role>(classAndRoles.length());
+			
+			Iterator<?> keys = classAndRoles.keys();
+			while(keys.hasNext()) {
+				String key = (String) keys.next();
+				classAndRole.put(key, Role.getValue(classAndRoles.getString(key)));
+			}
+		}
+		catch(JSONException e) {
+			throw new IllegalArgumentException("The JSONObject is missing the class and role value.", e);
+		}
+		catch(IllegalArgumentException e) {
+			throw new IllegalArgumentException("The role is unknown.", e);
+		}
+		
+		try {
+			userRole = Role.getValue(documentInfo.getString(JSON_KEY_USER_ROLE));
+		}
+		catch(JSONException e) {
+			// It's an optional parameter.
+		}
+		catch(IllegalArgumentException e) {
+			// We really should thrown an error here, but the output for 
+			// document read states that if the role is unknown that we output
+			// an empty string for the role. Instead, we should just omit the
+			// parameter. Also, why do we not have the user's role on output?
+			//throw new IllegalArgumentException("The role is unknown.", e);
+		}
 	}
 	
 	/**

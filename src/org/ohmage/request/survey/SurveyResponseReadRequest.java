@@ -580,15 +580,14 @@ public final class SurveyResponseReadRequest extends UserRequest {
 					// of.
 					surveyResponseList.addAll(
 							SurveyResponseServices.readSurveyResponseInformation(
-									this, configuration, username, null, startDate, 
-									endDate, privacyState, 
+									this, configuration, username, null, 
+									startDate, endDate, privacyState, 
 									(URN_SPECIAL_ALL_LIST.equals(surveyIds)) ? null : surveyIds, 
 									(URN_SPECIAL_ALL_LIST.equals(promptIds)) ? null : promptIds, 
 									null
 								)
 						);
 				}
-				
 			}
 			
 			LOGGER.info("Found " + surveyResponseList.size() + " results");

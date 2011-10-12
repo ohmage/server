@@ -3,10 +3,12 @@ package org.ohmage.domain;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
 import org.apache.log4j.Logger;
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.ohmage.domain.campaign.Campaign;
@@ -55,6 +57,101 @@ public class UserInformation {
 		
 		classes = new HashMap<String, String>();
 		classRoles = new HashSet<Clazz.Role>();
+	}
+	
+	/**
+	 * Creates a UserInformation object from the information.
+	 * 
+	 * @param information The information used to create this object.
+	 * 
+	 * @throws IllegalArgumentException Thrown if information object is null or
+	 * 									malformed.
+	 */
+	public UserInformation(final JSONObject information) {
+		if(information == null) {
+			throw new IllegalArgumentException("The information is null.");
+		}
+		
+		JSONObject permissions;
+		try {
+			permissions = information.getJSONObject(JSON_KEY_PERMISSIONS);
+		}
+		catch(JSONException e) {
+			throw new IllegalArgumentException("The permissions JSON is missing.", e);
+		}
+		
+		try {
+			campaignCreationPrivilege = permissions.getBoolean(JSON_KEY_PERMISSIONS_CAMPAIGN_CREATION); 
+		}
+		catch(JSONException e) {
+			throw new IllegalArgumentException("The campaign creation permission is missing from the list of permissions.", e);
+		}
+		
+		try {
+			JSONObject campaignsJson = information.getJSONObject(JSON_KEY_CAMPAIGNS);
+			
+			campaigns = new HashMap<String, String>(campaignsJson.length());
+			
+			Iterator<?> keys = campaignsJson.keys();
+			while(keys.hasNext()) {
+				String key = (String) keys.next();
+				
+				campaigns.put(key, campaignsJson.getString(key));
+			}	
+		}
+		catch(JSONException e) {
+			throw new IllegalArgumentException("The campaigns JSON is missing or malformed.", e);
+		}
+		
+		try {
+			JSONArray campaignRolesJson = information.getJSONArray(JSON_KEY_CAMPAIGN_ROLES);
+			int numRoles = campaignRolesJson.length();
+
+			campaignRoles = new HashSet<Campaign.Role>(numRoles);
+			
+			for(int i = 0; i < numRoles; i++) {
+				campaignRoles.add(Campaign.Role.getValue(campaignRolesJson.getString(i)));
+			}
+		}
+		catch(JSONException e) {
+			throw new IllegalArgumentException("The campaign roles JSON is missing.", e);
+		}
+		catch(IllegalArgumentException e) {
+			throw new IllegalArgumentException("The campaign roles JSON contains an unknown role.", e);
+		}
+		
+		try {
+			JSONObject classesJson = information.getJSONObject(JSON_KEY_CLASSES);
+			
+			classes = new HashMap<String, String>(classesJson.length());
+			
+			Iterator<?> keys = classesJson.keys();
+			while(keys.hasNext()) {
+				String key = (String) keys.next();
+				
+				classes.put(key, classesJson.getString(key));
+			}
+		}
+		catch(JSONException e) {
+			throw new IllegalArgumentException("The classes JSON is missing or malformed.", e);
+		}
+		
+		try {
+			JSONArray classRolesJson = information.getJSONArray(JSON_KEY_CLASS_ROLES);
+			int numRoles = classRolesJson.length();
+			
+			classRoles = new HashSet<Clazz.Role>(numRoles);
+			
+			for(int i = 0; i < numRoles; i++) {
+				classRoles.add(Clazz.Role.getValue(classRolesJson.getString(i)));
+			}
+		}
+		catch(JSONException e) {
+			throw new IllegalArgumentException("The class roles JSON is missing.", e);
+		}
+		catch(IllegalArgumentException e) {
+			throw new IllegalArgumentException("The class roles JSON contains an unknown role.", e);
+		}
 	}
 	
 	/**
