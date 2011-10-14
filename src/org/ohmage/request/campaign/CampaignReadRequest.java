@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.util.Calendar;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -22,6 +23,7 @@ import org.json.JSONObject;
 import org.ohmage.annotator.ErrorCodes;
 import org.ohmage.cache.UserBin;
 import org.ohmage.domain.campaign.Campaign;
+import org.ohmage.domain.campaign.Campaign.OutputFormat;
 import org.ohmage.exception.DataAccessException;
 import org.ohmage.exception.ServiceException;
 import org.ohmage.exception.ValidationException;
@@ -32,7 +34,6 @@ import org.ohmage.service.UserCampaignServices;
 import org.ohmage.service.UserClassServices;
 import org.ohmage.util.CookieUtils;
 import org.ohmage.validator.CampaignValidators;
-import org.ohmage.validator.CampaignValidators.OutputFormat;
 import org.ohmage.validator.ClassValidators;
 
 /**
@@ -149,10 +150,10 @@ public class CampaignReadRequest extends UserRequest {
 
 	private static final long MILLIS_IN_A_SECOND = 1000;
 	
-	private final CampaignValidators.OutputFormat outputFormat;
+	private final Campaign.OutputFormat outputFormat;
 	
 	private final List<String> campaignIds;
-	private final List<String> classIds;
+	private final Collection<String> classIds;
 	
 	private final Calendar startDate;
 	private final Calendar endDate;
@@ -179,10 +180,10 @@ public class CampaignReadRequest extends UserRequest {
 		
 		LOGGER.info("Creating a campaign read reaquest.");
 		
-		CampaignValidators.OutputFormat tOutputFormat = null;
+		Campaign.OutputFormat tOutputFormat = null;
 		
 		List<String> tCampaignIds = null;
-		List<String> tClassIds = null;
+		Set<String> tClassIds = null;
 		
 		Calendar tStartDate = null;
 		Calendar tEndDate = null;

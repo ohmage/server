@@ -332,7 +332,7 @@ public class ClassDaos extends Dao {
 	 * 		   parameterized list of class IDs. This may be an empty list, but
 	 * 		   it will never be null.
 	 */
-	public static List<Clazz> getClassesInformation(List<String> classIds, String requester) throws DataAccessException {
+	public static List<Clazz> getClassesInformation(Collection<String> classIds, String requester) throws DataAccessException {
 		List<Clazz> result = new LinkedList<Clazz>();
 		
 		for(String classId : classIds) {
@@ -640,7 +640,7 @@ public class ClassDaos extends Dao {
 									if(numClasses == 1) {
 										
 										if(LOGGER.isDebugEnabled()) {
-											LOGGER.debug("The user only belonged to the campaign " + campaignId + "  via one class" +
+											LOGGER.debug("The user only belonged to the campaign " + campaignId + " via one class" +
 												" and their class role is changing so all default campaign roles are being deleted.");
 										}
 										

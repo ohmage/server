@@ -16,10 +16,12 @@
 package org.ohmage.domain;
 
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.ohmage.util.StringUtils;
 
 /**
  * Information about a class.
@@ -27,6 +29,11 @@ import org.json.JSONObject;
  * @author John Jenkins
  */
 public class Clazz {
+	private static final String JSON_KEY_ID = "id";
+	private static final String JSON_KEY_NAME = "name";
+	private static final String JSON_KEY_DESCRIPTION = "description";
+	private static final String JSON_KEY_USERS = "users";
+	
 	private final String id;
 	private final String name;
 	private final String description;
@@ -75,14 +82,15 @@ public class Clazz {
 	 * 
 	 * @param description The description of this class. This may be null.
 	 * 
-	 * @throws NullPointerException Thrown if id or name are null.
+	 * @throws IllegalArgumentException Thrown if id or name are null or 
+	 * 									whitespace only.
 	 */
 	public Clazz(String id, String name, String description) {
-		if(id == null) {
-			throw new NullPointerException("Class ID cannot be null.");
+		if(StringUtils.isEmptyOrWhitespaceOnly(id)) {
+			throw new IllegalArgumentException("Class ID cannot be null or whitespace only.");
 		}
-		if(name == null) {
-			throw new NullPointerException("Class name cannot be null.");
+		if(StringUtils.isEmptyOrWhitespaceOnly(name)) {
+			throw new IllegalArgumentException("Class name cannot be null or whitespace only.");
 		}
 		
 		this.id = id;
@@ -90,6 +98,65 @@ public class Clazz {
 		this.description = description;
 		
 		userRole = new HashMap<String, Role>();
+	}
+	
+	/**
+	 * Creates a Clazz object based on the information.
+	 * 
+	 * @param id The class' unique identifier.
+	 * 
+	 * @param information A JSONObject containing the information about the
+	 * 					  Clazz.
+	 * 
+	 * @throws IllegalArgumentException Thrown if any of the parameters are
+	 * 									invalid.
+	 */
+	public Clazz(final String id, final JSONObject information) {
+		if(StringUtils.isEmptyOrWhitespaceOnly(id)) {
+			throw new IllegalArgumentException("The ID cannot be null or whitespace only.");
+		}
+		else if(information == null) {
+			throw new IllegalArgumentException("The information is null.");
+		}
+		
+		this.id = id;
+		
+		try {
+			name = information.getString(JSON_KEY_NAME);
+		}
+		catch(JSONException e) {
+			throw new IllegalArgumentException("The information is missing the class' name.", e);
+		}
+		
+		String tDescription = null;
+		try {
+			tDescription = information.getString(JSON_KEY_DESCRIPTION);
+		}
+		catch(JSONException e) {
+			// The description is optional.
+		}
+		description = tDescription;
+		
+		try {
+			JSONObject userRolesJson = information.getJSONObject(JSON_KEY_USERS);
+			userRole = new HashMap<String, Role>(userRolesJson.length());
+			
+			Iterator<?> keys = userRolesJson.keys();
+			while(keys.hasNext()) {
+				String username = (String) keys.next();
+				
+				Role role = null;
+				String roleString = userRolesJson.getString(username);
+				if(! StringUtils.isEmptyOrWhitespaceOnly(roleString)) {
+					role = Role.getValue(roleString);
+				}
+				
+				userRole.put(username, role);
+			}
+		}
+		catch(JSONException e) {
+			throw new IllegalArgumentException("The information is missing the class' name.", e);
+		}
 	}
 	
 	/**
@@ -126,14 +193,12 @@ public class Clazz {
 	 * 
 	 * @param role The user's class role.
 	 * 
-	 * @throws NullPointerException Thrown if the username or role are null.
+	 * @throws IllegalArgumentException Thrown if the username or role are 
+	 * 									null.
 	 */
 	public void addUser(final String username, final Role role) {
-		if(username == null) {
-			throw new NullPointerException("The username is null.");
-		}
-		else if(role == null) {
-			throw new NullPointerException("The role is null.");
+		if(StringUtils.isEmptyOrWhitespaceOnly(username)) {
+			throw new IllegalArgumentException("The username is null or whitespace only.");
 		}
 		
 		userRole.put(username, role);
@@ -148,17 +213,33 @@ public class Clazz {
 	 * @return Returns a JSONObject with the classes as a JSONObject where the
 	 * 		   keys are the users and their values are their class roles.
 	 * 
-	 * @throws JSONException Thrown if generating the object caused an error.
+	 * @throws IllegalStateException Thrown if generating the object caused an 
+	 * 								 error.
 	 */
-	public JSONObject toJson(boolean withId) throws JSONException {
-		JSONObject result = new JSONObject();
-		
-		if(withId) {
-			result.put("urn", id);
+	public JSONObject toJson(boolean withId) {
+		try {
+			JSONObject result = new JSONObject();
+			
+			if(withId) {
+				result.put(JSON_KEY_ID, id);
+			}
+			result.put(JSON_KEY_NAME, name);
+			
+			//result.put(JSON_KEY_DESCRIPTION, ((description == null) ? "" : description));
+			result.put(JSON_KEY_DESCRIPTION, description);
+			
+			JSONObject users = new JSONObject();
+			for(String username : userRole.keySet()) {
+				Role role = (Role) userRole.get(username);
+				
+				users.put(username, ((role == null) ? "" : role));
+			}
+			result.put(JSON_KEY_USERS, users);
+			
+			return result;
 		}
-		result.put("name", name);
-		result.put("description", ((description == null) ? "" : description));
-		
-		return result;
+		catch(JSONException e) {
+			throw new IllegalStateException("There was an error building the JSON.", e);
+		}
 	}
 }

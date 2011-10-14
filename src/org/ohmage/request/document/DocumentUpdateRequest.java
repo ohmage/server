@@ -142,7 +142,7 @@ public class DocumentUpdateRequest extends UserRequest {
 	private final List<String> campaignsToRemove;
 	
 	private final Map<String, Document.Role> classAndRolesToAdd;
-	private final List<String> classesToRemove;
+	private final Collection<String> classesToRemove;
 	
 	private final Map<String, Document.Role> userAndRolesToAdd;
 	private final Collection<String> usersToRemove;
@@ -169,7 +169,7 @@ public class DocumentUpdateRequest extends UserRequest {
 		List<String> tCampaignsToRemove = null;
 		
 		Map<String, Document.Role> tClassAndRolesToAdd = null;
-		List<String> tClassesToRemove = null;
+		Set<String> tClassesToRemove = null;
 		
 		Map<String, Document.Role> tUserAndRolesToAdd = null;
 		Set<String> tUsersToRemove = null;

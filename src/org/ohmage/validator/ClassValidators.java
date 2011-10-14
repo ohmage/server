@@ -1,9 +1,7 @@
 package org.ohmage.validator;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -92,7 +90,7 @@ public final class ClassValidators {
 	 * @throws ValidationException Thrown if the class Id list String contains a
 	 * 							  class ID that is an invalid class ID.
 	 */
-	public static List<String> validateClassIdList(Request request, String classIdListString) throws ValidationException {
+	public static Set<String> validateClassIdList(Request request, String classIdListString) throws ValidationException {
 		LOGGER.info("Validating the list of classes.");
 		
 		// If the class list is an empty string, then we return null.
@@ -122,7 +120,7 @@ public final class ClassValidators {
 			return null;
 		}
 		else {
-			return new ArrayList<String>(classIdList);
+			return classIdList;
 		}
 	}
 	
@@ -268,8 +266,8 @@ public final class ClassValidators {
 			String[] rosterLine = rosterLines[i].split(",");
 			
 			if(rosterLine.length != 3) {
-				request.setFailed(ErrorCodes.CLASS_INVALID_ROSTER, "The following line is malformed in the class roster.");
-				throw new ValidationException("The following line is malformed in the class roster.");
+				request.setFailed(ErrorCodes.CLASS_INVALID_ROSTER, "The following line is malformed in the class roster: " + rosterLines[i]);
+				throw new ValidationException("The following line is malformed in the class roster: " + rosterLines[i]);
 			}
 			
 			String classId = ClassValidators.validateClassId(request, rosterLine[0]);

@@ -15,7 +15,6 @@ import org.ohmage.dao.CampaignDaos;
 import org.ohmage.dao.CampaignSurveyResponseDaos;
 import org.ohmage.dao.UserCampaignDaos;
 import org.ohmage.dao.UserDaos;
-import org.ohmage.domain.User;
 import org.ohmage.domain.UserPersonal;
 import org.ohmage.domain.campaign.Campaign;
 import org.ohmage.exception.DataAccessException;
@@ -66,29 +65,6 @@ public class UserCampaignServices {
 			throw new ServiceException(e);
 		}
 	}
-	
-	/**
-	 * Ensures that the User belongs to the campaign represented by the
-	 * campaignId.
-	 *  
-	 * @param request The request that is performing this service.
-	 * @param user  The user to validate.
-	 * @param campaignId The campaign ID for the campaign in question.
-	 * 
-	 * @throws ServiceException Thrown if the campaign doesn't exist or the user
-	 * 							doesn't belong to the campaign.
-	 */
-	public static void campaignExistsAndUserBelongs(Request request, User user, String campaignId) throws ServiceException {
-		if(user.getCampaignsAndRoles() == null) {
-			request.setFailed();
-			throw new ServiceException("The User in the Request has not been populated with his or her associated campaigns and roles", true);
-		}
-		
-		if(! user.getCampaignsAndRoles().keySet().contains(campaignId)) {
-			request.setFailed(ErrorCodes.CAMPAIGN_INVALID_ID, "User does not belong to campaign.");
-			throw new ServiceException("The user does not belong to the campaign: " + campaignId);
-		}
-	}
 		
 	/**
 	 * Ensures that all of the campaigns in a List exist and that the user 
@@ -109,79 +85,6 @@ public class UserCampaignServices {
 		for(String campaignId : campaignIds) {
 			campaignExistsAndUserBelongs(request, campaignId, username);
 		}
-	}
-	
-	/**
-	 * Populates the User in the Request with campaign information and the
-	 * User's associated roles for each campaign.
-	 * 
-	 * @param request The request to retrieve the User from.
-	 * 
-	 * @throws ServiceException Thrown if there is no user in the request, the
-	 * user does not belong to any campaigns, or if there is an error. 
-	 *
-	public static void populateUserWithCampaignRoleInfo(Request request, User user) throws ServiceException {
-		LOGGER.info("Populating the user in the request with campaign info and the user's roles for each campaign they belong to");
-		
-		try {
-			List<UserRoleCampaignInfo> userRoleCampaignInfoList 
-				= UserCampaignDaos.getAllCampaignRolesAndCampaignInfoForUser(user);
-			
-			for(UserRoleCampaignInfo info : userRoleCampaignInfoList) {
-				Campaign campaign = new Campaign();
-				campaign.setCampaignCreationTimestamp(info.getCampaignCreationTimestamp());
-				campaign.setDescription(info.getCampaignDescription());
-				campaign.setName(info.getCampaignName());
-				campaign.setPrivacyState(info.getCampaignPrivacyState());
-				campaign.setRunningState(info.getCampaignRunningState());
-				campaign.setUrn(info.getCampaignUrn());
-				user.addCampaignAndUserRole(campaign, info.getUserRole());
-			}
-		
-		} catch (DataAccessException e) {
-			request.setFailed();
-			throw new ServiceException(e);
-		}
-	}
-	*/
-	
-	/**
-	 * For the given campaign and list of allowed roles, determines if the 
-	 * given User has one of those roles in their campaigns. 
-	 * 
-	 * @param request The request to fail if the User does not have one of the
-	 * allowed roles in the campaign.
-	 * @param user The User to check.
-	 * @param campaignId The id of the campaign for the User.
-	 * @param allowedRoles The allowed roles for some particular operation.
-	 * @throws ServiceException If the User object contains no CampaignsAndRoles, 
-	 * if the User does not belong to the campaign represented by the campaignId,
-	 * or if the User does not have one of the allowedRoles in the campaign
-	 * represented by the campaignId.
-	 */
-	public static void verifyAllowedUserRoleInCampaign(Request request, User user, String campaignId, List<Campaign.Role> allowedRoles)
-		throws ServiceException {
-		
-		if(user.getCampaignsAndRoles() == null) { // logical error
-			request.setFailed();
-			throw new ServiceException("The User in the Request has not been populated with his or her associated campaigns and roles", true);
-		}
-		
-		if(! user.getCampaignsAndRoles().containsKey(campaignId)) {
-			request.setFailed(ErrorCodes.CAMPAIGN_INVALID_ID, "User does not belong to campaign.");
-			throw new ServiceException("The User in the Request does not belong to the campaign " + campaignId);
-		}
-		
-		List<Campaign.Role> roleList = user.getCampaignsAndRoles().get(campaignId).getUserRoleStrings();
-		for(Campaign.Role role : roleList) {
-			if(allowedRoles.contains(role)) {
-				return;
-			}
-		}
-
-		request.setFailed(ErrorCodes.CAMPAIGN_INSUFFICIENT_PERMISSIONS, "User does not have a correct role to perform" +
-			" the operation.");
-		throw new ServiceException("User does not have a correct role to perform the operation.");
 	}
 	
 	/**
@@ -735,7 +638,7 @@ public class UserCampaignServices {
 						List<Campaign.Role> userRoles = UserCampaignDaos.getUserCampaignRoles(campaignUsername, campaignId);
 						
 						for(Campaign.Role userRole : userRoles) {
-							campaign.addUser(username, userRole);
+							campaign.addUser(campaignUsername, userRole);
 						}
 					}
 				}

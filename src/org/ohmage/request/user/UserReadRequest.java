@@ -1,8 +1,10 @@
 package org.ohmage.request.user;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -59,7 +61,7 @@ public class UserReadRequest extends UserRequest {
 	private static final Logger LOGGER = Logger.getLogger(UserReadRequest.class);
 	
 	private final List<String> campaignIds;
-	private final List<String> classIds; 
+	private final Collection<String> classIds; 
 	
 	private Map<String, UserPersonal> result;
 	
@@ -74,7 +76,7 @@ public class UserReadRequest extends UserRequest {
 		LOGGER.info("Creating a user read request.");
 		
 		List<String> tCampaignIds = null;
-		List<String> tClassIds = null;
+		Set<String> tClassIds = null;
 		
 		try {
 			tCampaignIds = CampaignValidators.validateCampaignIds(this, httpRequest.getParameter(InputKeys.CAMPAIGN_URN_LIST));

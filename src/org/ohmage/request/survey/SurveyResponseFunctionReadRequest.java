@@ -17,6 +17,7 @@ import org.ohmage.annotator.ErrorCodes;
 import org.ohmage.domain.Location;
 import org.ohmage.domain.campaign.Campaign;
 import org.ohmage.domain.campaign.SurveyResponse;
+import org.ohmage.domain.campaign.SurveyResponse.Function;
 import org.ohmage.exception.ServiceException;
 import org.ohmage.exception.ValidationException;
 import org.ohmage.request.InputKeys;
@@ -27,7 +28,6 @@ import org.ohmage.service.UserCampaignServices;
 import org.ohmage.util.TimeUtils;
 import org.ohmage.validator.CampaignValidators;
 import org.ohmage.validator.SurveyResponseValidators;
-import org.ohmage.validator.SurveyResponseValidators.Function;
 import org.ohmage.validator.UserValidators;
 
 /**
@@ -227,6 +227,9 @@ public class SurveyResponseFunctionReadRequest extends UserRequest {
 		}
 		
 		try {
+			LOGGER.info("Verifying that the campaign exists.");
+			CampaignServices.checkCampaignExistence(this, campaignId, true);
+			
 			LOGGER.info("Verifying that the user is allowed to read the requested survey responses.");
 			UserCampaignServices.requesterCanViewUsersSurveyResponses(
 					this, 
@@ -295,6 +298,7 @@ public class SurveyResponseFunctionReadRequest extends UserRequest {
 				
 				super.respond(httpRequest, httpResponse, JSON_KEY_DATA, completedSurveysResult);
 				break;
+				
 			// Returns aggregated statistics about the survey responses.
 			case STATS:
 				JSONObject statsResult = new JSONObject();

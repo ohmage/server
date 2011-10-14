@@ -3,7 +3,7 @@
   <property file="build.properties"/>
   <property name="component.repository" location="${user.home}/.component-repository"/>
   <property name="app_name" value="Mobilize"/>
-  <property name="app_version" value="2.7"/>
+  <property name="app_version" value="2.8"/>
   <property name="src" location="src"/>
   <property name="view" location="view"/>
   <property name="resources" location="web"/>

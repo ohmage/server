@@ -71,7 +71,7 @@ public final class UserClassServices {
 	 * 							classes don't exist, or if the user doesn't
 	 * 							belong to any of the classes.
 	 */
-	public static void classesExistAndUserBelongs(Request request, List<String> classIds, String username) throws ServiceException {
+	public static void classesExistAndUserBelongs(Request request, Collection<String> classIds, String username) throws ServiceException {
 		for(String classId : classIds) {
 			classExistsAndUserBelongs(request, classId, username);
 		}

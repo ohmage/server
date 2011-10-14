@@ -74,8 +74,49 @@ public class RepeatableSetResponse extends Response {
 		if(this.responses.containsKey(iteration)) {
 			throw new IllegalArgumentException("There is already a list of responses for that iteration.");
 		}
+		else if(responses == null) {
+			throw new IllegalArgumentException("The responses map is null.");
+		}
 		
-		this.responses.put(iteration, Collections.unmodifiableMap(responses));
+		this.responses.put(iteration, new HashMap<Integer, Response>(responses));
+	}
+	
+	/**
+	 * Adds a response to the repeatable set.
+	 * 
+	 * @param iteration The iteration of the repeatable set.
+	 * 
+	 * @param index The prompt's index in the repeatable set off which this
+	 * 				response was based.
+	 * 
+	 * @param response The response.
+	 * 
+	 * @throws IllegalArgumentException Thrown if the response is null or if a
+	 * 									response already exists for the  
+	 * 									iteration and index. 
+	 */
+	public void addResponse(final int iteration, final int index, 
+			final Response response) {
+		
+		if(response == null) {
+			throw new IllegalArgumentException("The response is null.");
+		}
+		
+		Map<Integer, Response> iterationResponses = responses.get(iteration);
+		if(iterationResponses == null) {
+			Map<Integer, Response> currResponses = new HashMap<Integer, Response>();
+			currResponses.put(index, response);
+			
+			responses.put(iteration, currResponses);
+		}
+		else {
+			if(iterationResponses.containsKey(index)) {
+				throw new IllegalArgumentException("A response already existed for that index in that iteration.");
+			}
+			else {
+				iterationResponses.put(index, response);
+			}
+		}
 	}
 	
 	/**

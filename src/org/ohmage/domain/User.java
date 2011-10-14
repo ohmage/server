@@ -15,11 +15,6 @@
  ******************************************************************************/
 package org.ohmage.domain;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import org.ohmage.domain.campaign.Campaign;
 import org.ohmage.util.StringUtils;
 
 /**
@@ -40,9 +35,6 @@ public class User {
 	private String token;
 	
 	private boolean loggedIn;
-	
-	private final Map<String, CampaignAndUserRoles> campaignAndUserRolesMap; // A user can have multiple roles in the same campaign.
-	private final Map<String, Clazz.Role> classRoleMap;
 	
 	/**
 	 * Creates a new User object.
@@ -72,9 +64,6 @@ public class User {
 		token = null;
 		
 		loggedIn = false;
-		
-		campaignAndUserRolesMap = new HashMap<String, CampaignAndUserRoles>();
-		classRoleMap = new HashMap<String, Clazz.Role>();
 	}
 	
 	/**
@@ -94,19 +83,6 @@ public class User {
 		token = user.token;
 		
 		loggedIn = user.loggedIn;
-		
-		// Create a new campaign-role map and copy everything over.
-		campaignAndUserRolesMap = new HashMap<String, CampaignAndUserRoles>();
-		for(String campaignId : user.campaignAndUserRolesMap.keySet()) {
-			CampaignAndUserRoles originalCampaignRoles = user.campaignAndUserRolesMap.get(campaignId);
-			campaignAndUserRolesMap.put(campaignId, new CampaignAndUserRoles(originalCampaignRoles));
-		}
-		
-		// Create a new class-role map and copy everything over.
-		classRoleMap = new HashMap<String, Clazz.Role>();
-		for(String classId : user.classRoleMap.keySet()) {
-			classRoleMap.put(classId, user.classRoleMap.get(classId));
-		}
 	}
 	
 	/**
@@ -125,66 +101,6 @@ public class User {
 	 */
 	public void setToken(String token) {
 		this.token = token;
-	}
-	
-	/**
-	 * Associates a campaign and role in that campaign to this user.
-	 * 
-	 * @param campaign A campaign that this user belongs to.
-	 * 
-	 * @param userRole The user's role in that campaign.
-	 */
-	public void addCampaignAndUserRole(Campaign campaign, Campaign.Role userRole) {
-		CampaignAndUserRoles campaignAndUserRoles = campaignAndUserRolesMap.get(campaign.getId());
-		if(campaignAndUserRoles == null) {
-			campaignAndUserRoles = new CampaignAndUserRoles();
-			campaignAndUserRoles.setCampaign(campaign);
-			campaignAndUserRolesMap.put(campaign.getId(), campaignAndUserRoles);
-		}
-		
-		campaignAndUserRoles.addUserRole(userRole);
-	}
-	
-	/**
-	 * Gets the campaigns and user roles that this user is associated with.
-	 * 
-	 * @return A Map of the campaign IDs to campaigns and user roles for this user. 
-	 */
-	public Map<String, CampaignAndUserRoles> getCampaignsAndRoles() {
-		return campaignAndUserRolesMap;
-	}
-	
-	/**
-	 * Associates a class and role in that class to this user.
-	 * 
-	 * @param classId A unique identifier for the class. 
-	 * 
-	 * @param role The user's role in that class.
-	 * 
-	 * @throws IllegalArgumentException Thrown if the class Id or the user's 
-	 * 									role are obviously invalid.
-	 */
-	public void getClassRole(String classId, Clazz.Role role) {
-		if(StringUtils.isEmptyOrWhitespaceOnly(classId)) {
-			throw new IllegalArgumentException("The class ID cannot be null or whitespace only.");
-		}
-		else if(role == null) {
-			throw new IllegalArgumentException("The class role cannot be null or whitespace only.");
-		}
-		
-		classRoleMap.put(classId, role);
-	}
-	
-	/**
-	 * Gets the list of classes with which the user is associated and the 
-	 * user's roles in each campaign.
-	 *  
-	 * @return A Map of the class IDs to user's role in the class. This may be 
-	 * 		   null which may not be accurate if it has not been explicitly
-	 * 		   populated.
-	 */
-	public Map<String, Clazz.Role> getClassesAndRole() {
-		return classRoleMap;
 	}
 	
 	/**
@@ -243,200 +159,12 @@ public class User {
 	}
 	
 	/**
-	 * Given a campaign's ID, return whether or not this user has the role of
-	 * supervisor in that campaign.
-	 * 
-	 * This requires that the campaign-roles have been populated.
-	 * 
-	 * @param campaignId A unique ID for a campaign.
-	 * 
-	 * @return Whether or not the user is a supervisor in the campaign 
-	 * 		   specified by the 'campaignId'.
-	 */
-	public boolean isSupervisorInCampaign(String campaignId) {
-		CampaignAndUserRoles caur = campaignAndUserRolesMap.get(campaignId);
-		if(caur == null) {
-			return false;
-		}
-		
-		List<Campaign.Role> roles = caur.getUserRoleStrings();
-		if(roles == null) {
-			return false;
-		}
-		
-		return roles.contains(Campaign.Role.SUPERVISOR);
-	}
-	
-	/**
-	 * Given a campaign's ID, return whether or not this user has the role of
-	 * author in that campaign.
-	 * 
-	 * This requires that the campaign-roles have been populated.
-	 * 
-	 * @param campaignId A unique ID for a campaign.
-	 * 
-	 * @return Whether or not the user is an author in the campaign 
-	 * 		   specified by the 'campaignId'.
-	 */
-	public boolean isAuthorInCampaign(String campaignId) {
-		CampaignAndUserRoles caur = campaignAndUserRolesMap.get(campaignId);
-		if(caur == null) {
-			return false;
-		}
-		
-		List<Campaign.Role> roles = caur.getUserRoleStrings();
-		if(roles == null) {
-			return false;
-		}
-		
-		return roles.contains(Campaign.Role.AUTHOR);
-	}
-	
-	/**
-	 * Given a campaign's ID, return whether or not this user has the role of
-	 * analyst in that campaign.
-	 * 
-	 * This requires that the campaign-roles have been populated.
-	 * 
-	 * @param campaignId A unique ID for a campaign.
-	 * 
-	 * @return Whether or not the user is an analyst in the campaign 
-	 * 		   specified by the 'campaignId'.
-	 */
-	public boolean isAnalystInCampaign(String campaignId) {
-		CampaignAndUserRoles caur = campaignAndUserRolesMap.get(campaignId);
-		if(caur == null) {
-			return false;
-		}
-		
-		List<Campaign.Role> roles = caur.getUserRoleStrings();
-		if(roles == null) {
-			return false;
-		}
-		
-		return roles.contains(Campaign.Role.ANALYST);
-	}
-	
-	/**
-	 * Given a campaign's ID, return whether or not this user has the role of
-	 * participant in that campaign.
-	 * 
-	 * This requires that the campaign-roles have been populated.
-	 * 
-	 * @param campaignId A unique ID for a campaign.
-	 * 
-	 * @return Whether or not the user is a participant in the campaign 
-	 * 		   specified by the 'campaignId'.
-	 */
-	public boolean isParticipantInCampaign(String campaignId) {
-		CampaignAndUserRoles caur = campaignAndUserRolesMap.get(campaignId);
-		if(caur == null) {
-			return false;
-		}
-		
-		List<Campaign.Role> roles = caur.getUserRoleStrings();
-		if(roles == null) {
-			return false;
-		}
-		
-		return roles.contains(Campaign.Role.PARTICIPANT);
-	}
-
-	/**
-	 * Given a campaign's ID, return whether or not this user has the given 
-	 * role in that campaign.
-	 * 
-	 * This requires that the campaign-roles have been populated.
-	 * 
-	 * @param campaignId A unique ID for a campaign.
-	 * 
-	 * @param role The role to check if the user has for the given campaign.
-	 * 
-	 * @return Whether or not the user is a specified 'role' in the campaign 
-	 * 		   specified by the 'campaignId'.
-	 */
-	public boolean hasRoleInCampaign(String campaignId, Campaign.Role role) {
-		CampaignAndUserRoles caur = campaignAndUserRolesMap.get(campaignId);
-		if(caur == null) {
-			return false;
-		}
-		
-		List<Campaign.Role> roles = caur.getUserRoleStrings();
-		if(roles == null) {
-			return false;
-		}
-		
-		return roles.contains(role);
-	}
-	
-	/**
-	 * Given a class' ID, return whether or not this user has the role of
-	 * privileged in that class.
-	 * 
-	 * This requires that the class-roles have been populated.
-	 * 
-	 * @param classId A unique ID for a class.
-	 * 
-	 * @return Whether or not the user is privileged in the class specified by 
-	 * 		   the 'classId'.
-	 */
-	public boolean isPrivilegedInClass(String classId) {
-		Clazz.Role role = classRoleMap.get(classId);
-		if(role == null) {
-			return false;
-		}
-		
-		return role.equals(Clazz.Role.PRIVILEGED);
-	}
-	
-	/**
-	 * Given a class' ID, return whether or not this user has the role of
-	 * restricted in that class.
-	 * 
-	 * This requires that the class-roles have been populated.
-	 * 
-	 * @param classId A unique ID for a class.
-	 * 
-	 * @return Whether or not the user is restricted in the class specified by 
-	 * 		   the 'classId'.
-	 */
-	public boolean isRestrictedInClass(String classId) {
-		Clazz.Role role = classRoleMap.get(classId);
-		if(role == null) {
-			return false;
-		}
-		
-		return role.equals(Clazz.Role.RESTRICTED);
-	}
-	
-	/**
-	 * Given a class' ID, return whether or not this user has the given role in
-	 * that class.
-	 * 
-	 * This requires that the class-roles have been populated.
-	 * 
-	 * @param classId A unique ID for a class.
-	 * 
-	 * @return Whether or not the user has the 'role' in the class specified by 
-	 * 		   the 'classId'.
-	 */
-	public boolean hasRoleInClass(String classId, Clazz.Role classRole) {
-		Clazz.Role role = classRoleMap.get(classId);
-		if(role == null) {
-			return false;
-		}
-		
-		return role.equals(classRole);
-	}
-	
-	/**
 	 * Returns a String dump of this user.
 	 */
 	@Override
 	public String toString() {
 		return "User [username=" + username + ", _password=omitted"
-				+ ", loggedIn=" + loggedIn + ", campaignRoleMap="
-				+ campaignAndUserRolesMap + ", classRoleMap=" + classRoleMap + "]";
+				+ ", loggedIn=" + loggedIn + "]";
 	}
 
 	/**
@@ -448,11 +176,6 @@ public class User {
 		final int booleanTruePrime = 1231;
 		final int booleanFalsePrime = 1237;
 		int result = 1;
-		result = prime
-				* result
-				+ ((campaignAndUserRolesMap == null) ? 0 : campaignAndUserRolesMap.hashCode());
-		result = prime * result
-				+ ((classRoleMap == null) ? 0 : classRoleMap.hashCode());
 		result = prime * result + (loggedIn ? booleanTruePrime : booleanFalsePrime);
 		result = prime * result
 				+ ((password == null) ? 0 : password.hashCode());
@@ -483,24 +206,6 @@ public class User {
 		}
 		
 		User other = (User) object;
-		
-		// Ensure that the campaign-role map is equal.
-		if (campaignAndUserRolesMap == null) {
-			if (other.campaignAndUserRolesMap != null) {
-				return false;
-			}
-		} else if (!campaignAndUserRolesMap.equals(other.campaignAndUserRolesMap)) {
-			return false;
-		}
-		
-		// Ensure that the class-role map is equal.
-		if (classRoleMap == null) {
-			if (other.classRoleMap != null) {
-				return false;
-			}
-		} else if (!classRoleMap.equals(other.classRoleMap)) {
-			return false;
-		}
 		
 		// Ensure that the logged in statuses are equal.
 		if (loggedIn != other.loggedIn) {

@@ -142,7 +142,7 @@ public class CampaignServices {
 			String iconUrl, String authoredBy, 
 			Campaign.RunningState runningState, 
 			Campaign.PrivacyState privacyState, 
-			List<String> classIds, String creatorUsername) throws ServiceException {
+			Collection<String> classIds, String creatorUsername) throws ServiceException {
 		try {
 			CampaignDaos.createCampaign(campaignId, name, xml, description, iconUrl, authoredBy, runningState, privacyState, classIds, creatorUsername);
 		}
@@ -595,7 +595,6 @@ public class CampaignServices {
 	 */
 	public static Campaign findCampaignConfiguration(Request request, String campaignId) throws ServiceException {
 		try {
-			
 			return CampaignDaos.findCampaignConfiguration(campaignId);
 		}
 		catch(DataAccessException e) {
@@ -665,6 +664,12 @@ public class CampaignServices {
 	 * @param privacyState The new privacy state for the campaign or null if 
 	 * 					   the privacy state should not be updated.
 	 * 
+	 * @param classesToAdd The collection of classes to associate with the
+	 * 					   campaign.
+	 * 
+	 * @param classesToRemove The collection of classes to disassociate from
+	 * 						  the campaign.
+	 * 
 	 * @param usersAndRolesToAdd A map of usernames to a list of roles that the
 	 * 							 users should be granted in the campaign or 
 	 * 							 null if no users should be granted any new 
@@ -681,11 +686,12 @@ public class CampaignServices {
 			String campaignId, String xml, String description, 
 			Campaign.RunningState runningState, 
 			Campaign.PrivacyState privacyState, 
-			Collection<String> classIds, 
+			Collection<String> classesToAdd, 
+			Collection<String> classesToRemove,
 			Map<String, Set<Campaign.Role>> usersAndRolesToAdd, 
 			Map<String, Set<Campaign.Role>> usersAndRolesToRemove) throws ServiceException {
 		try {
-			CampaignDaos.updateCampaign(campaignId, xml, description, runningState, privacyState, classIds, usersAndRolesToAdd, usersAndRolesToRemove);
+			CampaignDaos.updateCampaign(campaignId, xml, description, runningState, privacyState, classesToAdd, classesToRemove, usersAndRolesToAdd, usersAndRolesToRemove);
 		}
 		catch(DataAccessException e) {
 			request.setFailed();

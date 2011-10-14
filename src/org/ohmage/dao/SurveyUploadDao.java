@@ -226,7 +226,7 @@ public class SurveyUploadDao extends AbstractUploadDao {
 					currentSql = SQL_INSERT_PROMPT_RESPONSE;
 					
 					// Now insert each prompt response from the survey
-					Collection<Response> promptUploadList = surveyUpload.getPromptResponses().values();
+					Collection<Response> promptUploadList = surveyUpload.getResponses().values();
 					
 					createPromptResponse(username, client, surveyResponseId, 
 							regularImageList, scaledImageList, 

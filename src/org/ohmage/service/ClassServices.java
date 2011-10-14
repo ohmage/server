@@ -132,7 +132,7 @@ public final class ClassServices {
 	 * 
 	 * @throws ServiceException Thrown if there is an error.
 	 */
-	public static List<Clazz> getClassesInformation(Request request, List<String> classIds, String requester) throws ServiceException {
+	public static List<Clazz> getClassesInformation(Request request, Collection<String> classIds, String requester) throws ServiceException {
 		try {
 			return ClassDaos.getClassesInformation(classIds, requester);
 		}
@@ -156,7 +156,7 @@ public final class ClassServices {
 	 * 
 	 * @throws ServiceException Thrown if there is an error.
 	 */
-	public static Map<String, List<UserAndClassRole>> generateClassRoster(Request request, List<String> classIds) throws ServiceException {
+	public static Map<String, List<UserAndClassRole>> generateClassRoster(Request request, Collection<String> classIds) throws ServiceException {
 		try {
 			Map<String, List<UserAndClassRole>> result = new HashMap<String, List<UserAndClassRole>>();
 			

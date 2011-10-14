@@ -1,8 +1,10 @@
 package org.ohmage.request.clazz;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -48,7 +50,7 @@ import org.ohmage.validator.ClassValidators;
 public class ClassReadRequest extends UserRequest {
 	private static final Logger LOGGER = Logger.getLogger(ClassReadRequest.class);
 	
-	private final List<String> classIds;
+	private final Collection<String> classIds;
 	private final JSONObject result;
 	
 	/**
@@ -60,7 +62,7 @@ public class ClassReadRequest extends UserRequest {
 	public ClassReadRequest(HttpServletRequest httpRequest) {
 		super(httpRequest, TokenLocation.EITHER);
 		
-		List<String> tempClassIds = null;
+		Set<String> tempClassIds = null;
 		
 		if(! isFailed()) {
 			LOGGER.info("Creating a new class read request.");
@@ -114,10 +116,15 @@ public class ClassReadRequest extends UserRequest {
 					result.put(classInformation.getId(), classInformation.toJson(false));
 				}
 			}
+			catch(IllegalStateException e) {
+				LOGGER.error("Error creating the class' information.", e);
+				setFailed();
+				throw new ServiceException(e);
+			}
 			catch(JSONException e) {
 				LOGGER.error("Error adding a class' information to the result object.", e);
 				setFailed();
-				return;
+				throw new ServiceException(e);
 			}
 		}
 		catch(ServiceException e) {

@@ -1,6 +1,7 @@
 package org.ohmage.request.document;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -72,7 +73,7 @@ public class DocumentReadRequest extends UserRequest {
 	
 	private final Boolean personalDocuments;
 	private final List<String> campaignIds;
-	private final List<String> classIds;
+	private final Collection<String> classIds;
 	
 	private List<Document> result;
 	
@@ -90,7 +91,7 @@ public class DocumentReadRequest extends UserRequest {
 		
 		Boolean tempPersonalDocuments = null;
 		List<String> tempCampaignIds = null;
-		List<String> tempClassIds = null;
+		Set<String> tempClassIds = null;
 		
 		try {
 			tempPersonalDocuments = DocumentValidators.validatePersonalDocuments(this, httpRequest.getParameter(InputKeys.DOCUMENT_PERSONAL_DOCUMENTS));

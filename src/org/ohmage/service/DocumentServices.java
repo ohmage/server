@@ -245,7 +245,7 @@ public class DocumentServices {
 	public static void updateDocument(Request request, String documentId, byte[] newContents, String newName, String newDescription, 
 			Document.PrivacyState newPrivacyState,
 			Map<String, Document.Role> campaignAndRolesToAssociateOrUpdate, List<String> campaignsToDisassociate,
-			Map<String, Document.Role> classAndRolesToAssociateOrUpdate, List<String> classesToDisassociate,
+			Map<String, Document.Role> classAndRolesToAssociateOrUpdate, Collection<String> classesToDisassociate,
 			Map<String, Document.Role> userAndRolesToAssociateOrUpdate, Collection<String> usersToDisassoicate) throws ServiceException {
 		try {
 			DocumentDaos.updateDocument(documentId, newContents, newName, newDescription, newPrivacyState, 

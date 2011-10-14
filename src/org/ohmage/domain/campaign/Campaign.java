@@ -25,6 +25,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -123,6 +124,7 @@ public class Campaign {
 	private static final String JSON_KEY_ID = "campaign_id";
 	private static final String JSON_KEY_NAME = "name";
 	private static final String JSON_KEY_DESCRIPTION = "description";
+	private static final String JSON_KEY_SERVER_URL = "server_url";
 	private static final String JSON_KEY_ICON_URL = "icon_url";
 	private static final String JSON_KEY_AUTHORED_BY = "authored_by";
 	private static final String JSON_KEY_RUNNING_STATE = "running_state";
@@ -159,6 +161,9 @@ public class Campaign {
 	/**
 	 * The map of survey unique identifiers to Survey objects for this 
 	 * configuration.
+	 * 
+	 * Note: Under certain situations this may be an empty list. It should 
+	 * never be null, however.
 	 */
 	private final Map<String, Survey> surveyMap;
 	/**
@@ -294,6 +299,42 @@ public class Campaign {
 		}
 	}
 	private final Map<String, List<Role>> userRoles;
+
+	/**
+	 * The output formats for reading campaigns.
+	 * 
+	 * @author John Jenkins
+	 */
+	public static enum OutputFormat { 
+		SHORT, 
+		LONG, 
+		XML;
+		
+		/**
+		 * Converts a string representing an output format into an OutputFormat
+		 * enum.
+		 * 
+		 * @param outputFormat The output format as a string.
+		 * 
+		 * @return The OutputFormat enum.
+		 * 
+		 * @throws IllegalArgumentException Thrown if there is no comperable
+		 * 									OutputFormat enum.
+		 */
+		public static OutputFormat getValue(final String outputFormat) {
+			return valueOf(outputFormat.toUpperCase());
+		}
+		
+		/**
+		 * Converts the output format to a nice, human-readable format.
+		 * 
+		 * @return The output format as a nice, human-readable format. 
+		 */
+		@Override
+		public String toString() {
+			return name().toLowerCase();
+		}
+	} 
 	
 	private final List<String> classes;
 	
@@ -339,8 +380,8 @@ public class Campaign {
 		if(creationTimestamp == null) {
 			throw new IllegalArgumentException("The creation timestamp cannot be null.");
 		}
-		if(null == surveyMap || surveyMap.isEmpty()) {
-			throw new IllegalArgumentException("The survey map cannot be null or whitespace only.");
+		if(null == surveyMap) {
+			throw new IllegalArgumentException("The survey map cannot be null or empty only.");
 		}
 		
 		this.id = id;
@@ -362,6 +403,212 @@ public class Campaign {
 		
 		userRoles = new HashMap<String, List<Role>>();
 		classes = new LinkedList<String>();
+	}
+	
+	/**
+	 * Creates a Campaign object from the JSON information.
+	 * 
+	 * @param id The campaign's identifier.
+	 * 
+	 * @param information The information about the campaign.
+	 */
+	public Campaign(final String id, final JSONObject information) {
+		if(StringUtils.isEmptyOrWhitespaceOnly(id)) {
+			throw new IllegalArgumentException("The ID is null or whitespace only.");
+		}
+		else if(information == null) {
+			throw new IllegalArgumentException("The information is null.");
+		}
+		
+		String tDescription = null;
+		try {
+			tDescription = information.getString(JSON_KEY_DESCRIPTION);
+		}
+		catch(JSONException e) {
+			// The description is optional.
+		}
+		description = tDescription;
+		
+		try {
+			runningState = RunningState.getValue(information.getString(JSON_KEY_RUNNING_STATE));
+		}
+		catch(JSONException e) {
+			throw new IllegalArgumentException("The running state is missing.", e);
+		}
+		catch(IllegalArgumentException e) {
+			throw new IllegalArgumentException("The running state is invalid.", e);
+		}
+
+		try {
+			privacyState = PrivacyState.getValue(information.getString(JSON_KEY_PRIVACY_STATE));
+		}
+		catch(JSONException e) {
+			throw new IllegalArgumentException("The privacy state is missing.", e);
+		}
+		catch(IllegalArgumentException e) {
+			throw new IllegalArgumentException("The privacy state is invalid.", e);
+		}
+		
+		try {
+			creationTimestamp = StringUtils.decodeDateTime(information.getString(JSON_KEY_CREATION_TIMESTAMP));
+			
+			if(creationTimestamp == null) {
+				throw new IllegalArgumentException("The creation timestamp is invalid.");
+			}
+		}
+		catch(JSONException e) {
+			throw new IllegalArgumentException("The creation timestamp is missing.", e);
+		}
+		
+		Map<String, List<Role>> tUserRoles = new HashMap<String, List<Role>>();
+		try {
+			JSONObject roles = information.getJSONObject(JSON_KEY_ROLES);
+			
+			Iterator<?> keys = roles.keys();
+			while(keys.hasNext()) {
+				Role role = Role.getValue((String) keys.next());
+				
+				JSONArray usernames = roles.getJSONArray(role.toString());
+				int numUsernames = usernames.length();
+				for(int i = 0; i < numUsernames; i++) {
+					String username = usernames.getString(i);
+					
+					List<Role> currUserRoles = tUserRoles.get(username);
+					if(currUserRoles == null) {
+						currUserRoles = new LinkedList<Role>();
+						tUserRoles.put(username, currUserRoles);
+					}
+					currUserRoles.add(role);
+				}
+			}
+		}
+		catch(JSONException e) {
+			// The user-role map is optional.
+		}
+		catch(IllegalArgumentException e) {
+			throw new IllegalArgumentException("Unknown role.", e);
+		}
+		userRoles = tUserRoles;
+		
+		List<String> tClasses = new LinkedList<String>();
+		try {
+			JSONArray classesJson = information.getJSONArray(JSON_KEY_CLASSES);
+			int numClasses = classesJson.length();
+			for(int i = 0; i < numClasses; i++) {
+				tClasses.add(classesJson.getString(i));
+			}
+		}
+		catch(JSONException e) {
+			// The classes list is optional.
+		}
+		classes = tClasses;
+		
+		// Attempt to get this information from the XML first, and, if the XML
+		// is missing, attempt to retrieve it from the JSON.
+		String tId = null;
+		String tName = null;
+		URL tServerUrl = null;
+		URL tIconUrl = null;
+		String tAuthoredBy = null;
+		String tXml = null;
+		Map<String, Survey> tSurveyMap = new HashMap<String, Survey>(0);
+		try {
+			tXml = information.getString(JSON_KEY_XML);
+			
+			Document document;
+			try {
+				document = (new Builder()).build(new StringReader(tXml));
+			} 
+			catch(IOException e) {
+				// This should only be thrown if it can't read the 'xml', but
+				// given that it is already in memory this should never happen.
+				throw new IllegalStateException("XML was unreadable.", e);
+			}
+			catch(XMLException e) {
+				throw new IllegalStateException("No usable XML parser could be found.", e);
+			}
+			catch(ValidityException e) {
+				throw new IllegalArgumentException("The XML is invalid.", e);
+			}
+			catch(ParsingException e) {
+				throw new IllegalArgumentException("The XML is not well formed.", e);
+			}
+			
+			Element root = document.getRootElement();
+			
+			tId = getId(root);
+			tName = getName(root);
+			
+			try {
+				tServerUrl = getServerUrl(root);
+			}
+			catch(IllegalArgumentException e) {
+				// The server URL is optional, so we don't care.
+			}
+			
+			try {
+				tIconUrl = getIconUrl(root);
+			}
+			catch(IllegalArgumentException e) {
+				// The icon URL is optional, so we don't care.
+			}
+			
+			try {
+				tAuthoredBy = getAuthoredBy(root);
+			}
+			catch(IllegalArgumentException e) {
+				// The icon URL is optional, so we don't care.
+			}
+			
+			// Process all of the surveys.
+			tSurveyMap = getSurveys(root);
+		}
+		catch(JSONException noXml) {
+			tId = id;
+			
+			try {
+				tName = information.getString(JSON_KEY_NAME);
+			}
+			catch(JSONException e) {
+				throw new IllegalArgumentException("The campaign's name was missing from the JSON.", e);
+			}
+			
+			try {
+				tServerUrl = new URL(information.getString(JSON_KEY_SERVER_URL));
+			}
+			catch(JSONException e) {
+				// The server URL is optional.
+			}
+			catch(MalformedURLException e) {
+				throw new IllegalArgumentException("The server URL is not a valid URL.", e);
+			}
+			
+			try {
+				tIconUrl = new URL(information.getString(JSON_KEY_ICON_URL));
+			}
+			catch(JSONException e) {
+				// The icon URL is optional.
+			}
+			catch(MalformedURLException e) {
+				throw new IllegalArgumentException("The icon URL is not a valid URL.", e);
+			}
+			
+			try {
+				tAuthoredBy = information.getString(JSON_KEY_AUTHORED_BY);
+			}
+			catch(JSONException e) {
+				// The authored by value is optional.
+			}
+		}
+		this.id = tId;
+		name = tName;
+		
+		serverUrl = tServerUrl;
+		iconUrl = tIconUrl;
+		authoredBy = tAuthoredBy;
+		
+		xml = tXml;
+		surveyMap = tSurveyMap;
 	}
 	
 	/**
@@ -1467,6 +1714,7 @@ public class Campaign {
 			}
 			result.put(JSON_KEY_NAME, name);
 			result.put(JSON_KEY_DESCRIPTION, (description == null) ? "" : description);
+			result.put(JSON_KEY_SERVER_URL, serverUrl);
 			result.put(JSON_KEY_ICON_URL, iconUrl);
 			result.put(JSON_KEY_AUTHORED_BY, authoredBy);
 			result.put(JSON_KEY_RUNNING_STATE, runningState.name().toLowerCase());

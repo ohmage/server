@@ -15,6 +15,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
@@ -34,12 +35,15 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.ohmage.annotator.Annotator;
+import org.ohmage.domain.Clazz;
 import org.ohmage.domain.Document;
 import org.ohmage.domain.MobilityPoint;
 import org.ohmage.domain.ServerConfig;
 import org.ohmage.domain.UserInformation;
 import org.ohmage.domain.UserPersonal;
+import org.ohmage.domain.campaign.Campaign;
 import org.ohmage.domain.campaign.SurveyResponse;
+import org.ohmage.domain.campaign.SurveyResponse.PrivacyState;
 import org.ohmage.exception.ErrorCodeException;
 import org.ohmage.lib.exception.ApiException;
 import org.ohmage.lib.exception.RequestErrorException;
@@ -48,6 +52,7 @@ import org.ohmage.request.Request;
 import org.ohmage.request.RequestBuilder;
 import org.ohmage.request.auth.AuthRequest;
 import org.ohmage.request.auth.AuthTokenRequest;
+import org.ohmage.request.clazz.ClassRosterUpdateRequest;
 import org.ohmage.request.document.DocumentCreationRequest;
 import org.ohmage.request.mobility.MobilityReadRequest;
 import org.ohmage.request.survey.SurveyResponseReadRequest;
@@ -55,7 +60,7 @@ import org.ohmage.util.StringUtils;
 import org.ohmage.util.TimeUtils;
 
 /**
- * This is the main interface class for the server.
+ * This is the main interface class for the server. 
  * 
  * @author John Jenkins
  */
@@ -78,15 +83,18 @@ public class OhmageApi {
 	 * @throws Exception Catch-all for debugging.
 	 */
 	public static void main(String args[]) throws Exception {
-		OhmageApi api = new OhmageApi("localhost", 8080, false);
+		OhmageApi api = new OhmageApi("dev.andwellness.org", null, true);
 		
-		String authToken = api.getAuthenticationToken("sink.thaw", "mill.damper", "library");
+		String authToken = api.getAuthenticationToken("sink.thaw", "Q!W@e3r4", "library");
+
+		Map<PrivacyState, Integer> result = api.getSurveyResponsePrivacyStateCounts(
+				null, null, authToken, "library", 
+				"urn:campaign:andwellness:chipts:08032011:Test", new Date(0), 
+				new Date(new Long("99999999999999999")), null);
 		
-		System.out.println(api.getUserInformation(authToken, "library").toJsonObject().toString(4));
-		
-		api.updateUser(authToken, "library", "sink.thaw", null, null, null, true, null, null, null, null, null, null);
-		
-		System.out.println(api.getUserInformation(authToken, "library").toJsonObject().toString(4));
+		for(PrivacyState privacyState : result.keySet()) {
+			System.out.println(privacyState + ": " + result.get(privacyState));
+		}
 	}
 	
 	/**
@@ -283,6 +291,671 @@ public class OhmageApi {
 							parameters, 
 							false), 
 					AuthTokenRequest.KEY_AUTH_TOKEN);
+		}
+		catch(MalformedURLException e) {
+			throw new ApiException("The URL was incorrectly created.", e);
+		}
+		catch(IllegalArgumentException e) {
+			throw new ApiException("The response was not proper JSON.", e);
+		}
+	}
+
+	/**************************************************************************
+	 * Campaign Requests
+	 *************************************************************************/
+	
+	/**
+	 * Creates a campaign.
+	 * 
+	 * @param authenticationToken The user's authentication token.
+	 * 
+	 * @param client The client value.
+	 * 
+	 * @param runningState The initial running state for this campaign.
+	 * 
+	 * @param privacyState The initial privacy state for this campaign.
+	 *  
+	 * @param classIds The IDs for the classes to associate with this campaign.
+	 * 
+	 * @param xml The campaign's XML.
+	 * 
+	 * @param description The campaign's description. Optional.
+	 * 
+	 * @throws ApiException Thrown if there is a library error.
+	 * 
+	 * @throws RequestErrorException Thrown if the server returns an error.
+	 */
+	public void createCampaign(final String authenticationToken, 
+			final String client, final Campaign.RunningState runningState, 
+			final Campaign.PrivacyState privacyState,
+			final Collection<String> classIds, final String xml,
+			final String description) 
+			throws ApiException, RequestErrorException {
+		
+		Map<String, Object> parameters = new HashMap<String, Object>();
+		parameters.put(InputKeys.AUTH_TOKEN, authenticationToken);
+		parameters.put(InputKeys.CLIENT, client);
+		parameters.put(InputKeys.RUNNING_STATE, runningState);
+		parameters.put(InputKeys.PRIVACY_STATE, privacyState);
+		
+		if(classIds != null) {
+			parameters.put(InputKeys.CLASS_URN_LIST, StringUtils.collectionToStringList(classIds, InputKeys.LIST_ITEM_SEPARATOR));
+		}
+		
+		parameters.put(InputKeys.XML, xml);
+		parameters.put(InputKeys.DESCRIPTION, description);
+		
+		try {
+			makeRequest(
+					new URL(url.toString() + RequestBuilder.API_CAMPAIGN_CREATE), 
+					parameters, 
+					false
+				);
+		}
+		catch(MalformedURLException e) {
+			throw new ApiException("The URL was incorrectly created.", e);
+		}
+		catch(IllegalArgumentException e) {
+			throw new ApiException("The response was not proper JSON.", e);
+		}
+	}
+	
+	/**
+	 * Retrieves the XML for a campaign.
+	 * 
+	 * @param authenticationToken The user's authentication token.
+	 * 
+	 * @param client The client value.
+	 * 
+	 * @param campaignId The campaign's unique identifier.
+	 * 
+	 * @return The campaign's XML as a byte array.
+	 * 
+	 * @throws ApiException Thrown if there is a library error.
+	 * 
+	 * @throws RequestErrorException Thrown if the server returns an error.
+	 */
+	public byte[] getCampaignXml(final String authenticationToken,
+			final String client, final String campaignId) 
+			throws ApiException, RequestErrorException {
+		
+		Map<String, Object> parameters = new HashMap<String, Object>();
+		parameters.put(InputKeys.AUTH_TOKEN, authenticationToken);
+		parameters.put(InputKeys.CLIENT, client);
+		parameters.put(InputKeys.CAMPAIGN_URN_LIST, campaignId);
+		parameters.put(InputKeys.OUTPUT_FORMAT, Campaign.OutputFormat.XML);
+		
+		try {
+			return makeRequest(
+					new URL(url.toString() + RequestBuilder.API_CAMPAIGN_READ), 
+					parameters, 
+					false
+				);
+		}
+		catch(MalformedURLException e) {
+			throw new ApiException("The URL was incorrectly created.", e);
+		}
+		catch(IllegalArgumentException e) {
+			throw new ApiException("The response was not proper JSON.", e);
+		}
+	}
+	
+	/**
+	 * Retrieves information about all of the campaigns that satisfy the given
+	 * parameters. The amount of information is determined by 'outputFormat'.
+	 * 
+	 * @param authenticationToken The user's authentication token.
+	 * 
+	 * @param client The client value.
+	 * 
+	 * @param outputFormat The 
+	 * 					   {@link org.ohmage.domain.campaign.Campaign.OutputFormat}
+	 * 					   that determines the amount of information returned.
+	 * 
+	 * @param campaignIds A collection of campaign identifiers with which to 
+	 * 					  begin; however, information about these campaigns
+	 * 					  might not be returned if they don't meet the other
+	 * 					  criteria. If this is omitted, then all campaigns to
+	 * 					  which the user is associated will be the initial 
+	 * 					  list.
+	 * 
+	 * @param userRole A campaign role to limit the campaigns to only those
+	 * 				   in which the user has the given role.
+	 * 
+	 * @param startDate A date to limit the campaigns to only those that were
+	 * 					created on or after this date.
+	 * 
+	 * @param endDate A date to limit the campaigns to only those that were
+	 * 				  created on or before this date.
+	 * 
+	 * @param privacyState A campaign privacy state to limit the results to 
+	 * 					   only those that have the given privacy state.
+	 * 
+	 * @param runningState A campaign running state to limit the results to
+	 * 					   only those that have the given running state.
+	 * 
+	 * @param classIds A collection of class identifiers to limit the campaigns
+	 * 				   to only those that are associated with any of the 
+	 * 				   classes in the list.
+	 * 
+	 * @return A map of campaign IDs to Campaign objects.
+	 * 
+	 * @throws ApiException Thrown if there is a library error.
+	 * 
+	 * @throws RequestErrorException Thrown if the server returns an error.
+	 */
+	public Map<String, Campaign> getCampaigns(final String authenticationToken,
+			final String client, final Campaign.OutputFormat outputFormat,
+			final Collection<String> campaignIds, final Campaign.Role userRole,
+			final Date startDate, final Date endDate,
+			final Campaign.PrivacyState privacyState, 
+			final Campaign.RunningState runningState,
+			final Collection<String> classIds)
+			throws ApiException, RequestErrorException {
+		
+		if(Campaign.OutputFormat.XML.equals(outputFormat)) {
+			throw new IllegalArgumentException("The XML output format is not allowed for this call.");
+		}
+		
+		Map<String, Object> parameters = new HashMap<String, Object>();
+		parameters.put(InputKeys.AUTH_TOKEN, authenticationToken);
+		parameters.put(InputKeys.CLIENT, client);
+		parameters.put(InputKeys.OUTPUT_FORMAT, outputFormat);
+		parameters.put(InputKeys.USER_ROLE, userRole);
+		parameters.put(InputKeys.START_DATE, TimeUtils.getIso8601DateTimeString(startDate));
+		parameters.put(InputKeys.END_DATE, TimeUtils.getIso8601DateTimeString(endDate));
+		parameters.put(InputKeys.PRIVACY_STATE, privacyState);
+		parameters.put(InputKeys.RUNNING_STATE, runningState);
+		if(campaignIds != null) {
+			parameters.put(InputKeys.CAMPAIGN_URN_LIST, StringUtils.collectionToStringList(campaignIds, InputKeys.LIST_ITEM_SEPARATOR));
+		}
+		if(classIds != null) {
+			parameters.put(InputKeys.CLASS_URN_LIST, StringUtils.collectionToStringList(classIds, InputKeys.LIST_ITEM_SEPARATOR));
+		}
+		
+		JSONObject resultJson;
+		try {
+			resultJson = new JSONObject(
+					processJsonResponse(
+						makeRequest(
+								new URL(url.toString() + RequestBuilder.API_CAMPAIGN_READ), 
+								parameters, 
+								false), 
+						Request.JSON_KEY_DATA
+					)
+				);
+		}
+		catch(MalformedURLException e) {
+			throw new ApiException("The URL was incorrectly created.", e);
+		}
+		catch(IllegalArgumentException e) {
+			throw new ApiException("The response was not proper JSON.", e);
+		}
+		catch(JSONException e) {
+			throw new ApiException("The data was not proper JSON.", e);
+		}
+		
+		Map<String, Campaign> result = new HashMap<String, Campaign>();
+		
+		Iterator<?> keys = resultJson.keys();
+		while(keys.hasNext()) {
+			String campaignId = (String) keys.next();
+			
+			try {
+				result.put(campaignId, new Campaign(campaignId, resultJson.getJSONObject(campaignId)));
+			} catch (JSONException e) {
+				throw new ApiException("The campaign information was not valid JSON.", e);
+			}
+		}
+		
+		return result;
+	}
+	
+	/**
+	 * Updates a campaign.
+	 * 
+	 * @param authenticationToken The user's authentication token.
+	 * 
+	 * @param client The client value.
+	 * 
+	 * @param campaignId The campaign's unique identifier.
+	 * 
+	 * @param runningState The campaign's new running state. Optional.
+	 * 
+	 * @param privacyState The campaign's new privacy state. Optional.
+	 * 
+	 * @param xml The campaign's new XML. Optional.
+	 * 
+	 * @param description The campaign's new description. Optional.
+	 * 
+	 * @param classesToAdd A collection of classes to associate with the 
+	 * 					   campaign. Optional.
+	 * 
+	 * @param classesToRemove A collection of classes to disassociate with the
+	 * 						  campaign. Optional.
+	 * 
+	 * @param usersToAdd A map of usernames to a set of campaign roles to grant
+	 * 					 a user a set of roles in a campaign. Optional.
+	 * 
+	 * @param usersToRemove A map of usernames to a set of campaign roles to
+	 * 						revoke from a set of users. Optional.
+	 * 
+	 * @throws ApiException Thrown if there is a library error.
+	 * 
+	 * @throws RequestErrorException Thrown if the server returns an error.
+	 */
+	public void updateCampaign(final String authenticationToken,
+			final String client, final String campaignId,
+			final Campaign.RunningState runningState,
+			final Campaign.PrivacyState privacyState,
+			final String xml, final String description,
+			final Collection<String> classesToAdd,
+			final Collection<String> classesToRemove,
+			final Map<String, Set<Campaign.Role>> usersToAdd, 
+			final Map<String, Set<Campaign.Role>> usersToRemove)
+			throws ApiException, RequestErrorException {
+		
+		Map<String, Object> parameters = new HashMap<String, Object>();
+		parameters.put(InputKeys.AUTH_TOKEN, authenticationToken);
+		parameters.put(InputKeys.CLIENT, client);
+		parameters.put(InputKeys.CAMPAIGN_URN, campaignId);
+		parameters.put(InputKeys.RUNNING_STATE, runningState);
+		parameters.put(InputKeys.PRIVACY_STATE, privacyState);
+		parameters.put(InputKeys.XML, xml);
+		parameters.put(InputKeys.DESCRIPTION, description);
+		
+		if(classesToAdd != null) {
+			parameters.put(InputKeys.CLASS_LIST_ADD, StringUtils.collectionToStringList(classesToAdd, InputKeys.LIST_ITEM_SEPARATOR));
+		}
+		if(classesToRemove != null) {
+			parameters.put(InputKeys.CLASS_LIST_REMOVE, StringUtils.collectionToStringList(classesToRemove, InputKeys.LIST_ITEM_SEPARATOR));
+		}
+		if(usersToAdd != null) {
+			StringBuilder resultBuilder = new StringBuilder();
+			for(String username : usersToAdd.keySet()) {
+				for(Campaign.Role role : usersToAdd.get(username)) {
+					resultBuilder.append(username).append(InputKeys.ENTITY_ROLE_SEPARATOR).append(role).append(InputKeys.LIST_ITEM_SEPARATOR);
+				}
+			}
+			
+			String result = resultBuilder.toString();
+			while(result.endsWith(InputKeys.LIST_ITEM_SEPARATOR)) {
+				result = result.substring(0, result.length() - 1);
+			}
+			
+			parameters.put(InputKeys.USER_LIST_ADD, result);
+		}
+		if(usersToRemove != null) {
+			StringBuilder resultBuilder = new StringBuilder();
+			for(String username : usersToRemove.keySet()) {
+				for(Campaign.Role role : usersToRemove.get(username)) {
+					resultBuilder.append(username).append(InputKeys.ENTITY_ROLE_SEPARATOR).append(role).append(InputKeys.LIST_ITEM_SEPARATOR);
+				}
+			}
+			
+			String result = resultBuilder.toString();
+			while(result.endsWith(InputKeys.LIST_ITEM_SEPARATOR)) {
+				result = result.substring(0, result.length() - 1);
+			}
+			parameters.put(InputKeys.USER_LIST_REMOVE, result);
+		}
+		
+		try {
+			makeRequest(
+					new URL(url.toString() + RequestBuilder.API_CAMPAIGN_UPDATE), 
+					parameters, 
+					true
+				);
+		}
+		catch(MalformedURLException e) {
+			throw new ApiException("The URL was incorrectly created.", e);
+		}
+		catch(IllegalArgumentException e) {
+			throw new ApiException("The response was not proper JSON.", e);
+		}
+	}
+
+	/**
+	 * Deletes a campaign.
+	 * 
+	 * @param authenticationToken The user's authentication token.
+	 * 
+	 * @param client The client value.
+	 * 
+	 * @param campaignId The unique identifier for the campaign to be deleted.
+	 * 
+	 * @throws ApiException Thrown if there is a library error.
+	 * 
+	 * @throws RequestErrorException Thrown if the server returns an error.
+	 */
+	public void deleteCampaign(final String authenticationToken,
+			final String client, final String campaignId)
+			throws ApiException, RequestErrorException {
+		
+		Map<String, Object> parameters = new HashMap<String, Object>();
+		parameters.put(InputKeys.AUTH_TOKEN, authenticationToken);
+		parameters.put(InputKeys.CLIENT, client);
+		parameters.put(InputKeys.CAMPAIGN_URN, campaignId);
+		
+		try {
+			makeRequest(
+					new URL(url.toString() + RequestBuilder.API_CAMPAIGN_DELETE), 
+					parameters, 
+					false
+				);
+		}
+		catch(MalformedURLException e) {
+			throw new ApiException("The URL was incorrectly created.", e);
+		}
+		catch(IllegalArgumentException e) {
+			throw new ApiException("The response was not proper JSON.", e);
+		}
+	}
+
+	/**************************************************************************
+	 * Class Requests
+	 *************************************************************************/
+	
+	/**
+	 * Creates a new class.
+	 * 
+	 * @param authenticationToken The user's authentication token.
+	 * 
+	 * @param client The client value.
+	 * 
+	 * @param classId The new class' unique identifier.
+	 * 
+	 * @param className The new class' name.
+	 * 
+	 * @param description The new class' description.
+	 * 
+	 * @throws ApiException Thrown if there is a library error.
+	 * 
+	 * @throws RequestErrorException Thrown if the server returns an error.
+	 */
+	public void createClass(final String authenticationToken,
+			final String client, final String classId, final String className,
+			final String description) 
+			throws ApiException, RequestErrorException {
+		
+		Map<String, Object> parameters = new HashMap<String, Object>();
+		parameters.put(InputKeys.AUTH_TOKEN, authenticationToken);
+		parameters.put(InputKeys.CLIENT, client);
+		parameters.put(InputKeys.CLASS_URN, classId);
+		parameters.put(InputKeys.CLASS_NAME, className);
+		parameters.put(InputKeys.DESCRIPTION, description);
+		
+		try {
+			makeRequest(
+					new URL(url.toString() + RequestBuilder.API_CLASS_CREATE), 
+					parameters, 
+					false
+				);
+		}
+		catch(MalformedURLException e) {
+			throw new ApiException("The URL was incorrectly created.", e);
+		}
+		catch(IllegalArgumentException e) {
+			throw new ApiException("The response was not proper JSON.", e);
+		}
+	}
+	
+	/**
+	 * Retrieves the information about the requested classes.
+	 * 
+	 * @param authenticationToken The user's authentication token.
+	 * 
+	 * @param client The client value.
+	 * 
+	 * @param classIds The requested classes' unique identifiers.
+	 * 
+	 * @return A map of class IDs to their Clazz object.
+	 * 
+	 * @throws ApiException Thrown if there is a library error.
+	 * 
+	 * @throws RequestErrorException Thrown if the server returns an error.
+	 */
+	public Map<String, Clazz> getClasses(final String authenticationToken,
+			final String client, final Collection<String> classIds)
+			throws ApiException, RequestErrorException {
+		
+		Map<String, Object> parameters = new HashMap<String, Object>();
+		parameters.put(InputKeys.AUTH_TOKEN, authenticationToken);
+		parameters.put(InputKeys.CLIENT, client);
+		
+		if(classIds != null) {
+			parameters.put(InputKeys.CLASS_URN_LIST, StringUtils.collectionToStringList(classIds, InputKeys.LIST_ITEM_SEPARATOR));
+		}
+
+		JSONObject resultJson;
+		try {
+			resultJson = new JSONObject(
+					processJsonResponse(
+						makeRequest(
+								new URL(url.toString() + RequestBuilder.API_CLASS_READ), 
+								parameters, 
+								false), 
+						Request.JSON_KEY_DATA
+					)
+				);
+		}
+		catch(MalformedURLException e) {
+			throw new ApiException("The URL was incorrectly created.", e);
+		}
+		catch(IllegalArgumentException e) {
+			throw new ApiException("The response was not proper JSON.", e);
+		}
+		catch(JSONException e) {
+			throw new ApiException("The data was not proper JSON.", e);
+		}
+		
+		Map<String, Clazz> result = new HashMap<String, Clazz>();
+		
+		Iterator<?> keys = resultJson.keys();
+		while(keys.hasNext()) {
+			String classId = (String) keys.next();
+			
+			try {
+				result.put(classId, new Clazz(classId, resultJson.getJSONObject(classId)));
+			} 
+			catch(JSONException e) {
+				throw new ApiException("The class information is not valid JSON.", e);
+			}
+		}
+		
+		return result;
+	}
+	
+	/**
+	 * Retrieves a roster for all of the classes in question.
+	 * 
+	 * @param authenticationToken The user's authentication token.
+	 * 
+	 * @param client The client value.
+	 * 
+	 * @param classIds The collection of classes.
+	 * 
+	 * @return A CSV file as a byte array that is the class roster.
+	 * 
+	 * @throws ApiException Thrown if there is a library error.
+	 * 
+	 * @throws RequestErrorException Thrown if the server returns an error.
+	 */
+	public byte[] getClassRoster(final String authenticationToken,
+			final String client, final Collection<String> classIds)
+			throws ApiException, RequestErrorException {
+		
+		Map<String, Object> parameters = new HashMap<String, Object>();
+		parameters.put(InputKeys.AUTH_TOKEN, authenticationToken);
+		parameters.put(InputKeys.CLIENT, client);
+		
+		if(classIds != null) {
+			parameters.put(InputKeys.CLASS_URN_LIST, StringUtils.collectionToStringList(classIds, InputKeys.LIST_ITEM_SEPARATOR));
+		}
+		
+		try {
+			return makeRequest(
+					new URL(url.toString() + RequestBuilder.API_CLASS_ROSTER_READ), 
+					parameters, 
+					false);
+		}
+		catch(MalformedURLException e) {
+			throw new ApiException("The URL was incorrectly created.", e);
+		}
+		catch(IllegalArgumentException e) {
+			throw new ApiException("The response was not proper JSON.", e);
+		}
+	}
+	
+	/**
+	 * Updates a class with the given information.
+	 * 
+	 * @param authenticationToken The user's authentication token.
+	 * 
+	 * @param client The client value.
+	 * 
+	 * @param classId The unique identifier for the class to update.
+	 * 
+	 * @param newName The class' new name. Optional.
+	 * 
+	 * @param newDescription The class' new description. Optional.
+	 * 
+	 * @param usersToAdd A map of usernames to class role to add to the class.
+	 * 					 Optional.
+	 * 
+	 * @param usersToRemove A list of classes to remove. Optional.
+	 * 
+	 * @throws ApiException Thrown if there is a library error.
+	 * 
+	 * @throws RequestErrorException Thrown if the server returns an error.
+	 */
+	public void updateClass(final String authenticationToken, 
+			final String client, final String classId, final String newName,
+			final String newDescription, 
+			final Map<String, Clazz.Role> usersToAdd, 
+			final Collection<String> usersToRemove)
+			throws ApiException, RequestErrorException {
+		
+		Map<String, Object> parameters = new HashMap<String, Object>();
+		parameters.put(InputKeys.AUTH_TOKEN, authenticationToken);
+		parameters.put(InputKeys.CLIENT, client);
+		parameters.put(InputKeys.CLASS_URN, classId);
+		parameters.put(InputKeys.CLASS_NAME, newName);
+		parameters.put(InputKeys.DESCRIPTION, newDescription);
+		
+		if(usersToAdd != null) {
+			parameters.put(InputKeys.USER_ROLE_LIST_ADD, StringUtils.mapToStringList(usersToAdd, InputKeys.ENTITY_ROLE_SEPARATOR, InputKeys.LIST_ITEM_SEPARATOR));
+		}
+		if(usersToRemove != null) {
+			parameters.put(InputKeys.USER_LIST_REMOVE, StringUtils.collectionToStringList(usersToRemove, InputKeys.LIST_ITEM_SEPARATOR));
+		}
+		
+		try {
+			makeRequest(
+					new URL(url.toString() + RequestBuilder.API_CLASS_UPDATE), 
+					parameters, 
+					false
+				);
+		}
+		catch(MalformedURLException e) {
+			throw new ApiException("The URL was incorrectly created.", e);
+		}
+		catch(IllegalArgumentException e) {
+			throw new ApiException("The response was not proper JSON.", e);
+		}
+	}
+	
+	/**
+	 * Uploads a class roster to update some classes and returns warning 
+	 * messages if something happened that wasn't fatal but the user probably
+	 * needs to know.
+	 * 
+	 * @param authenticationToken The user's authentication token.
+	 * 
+	 * @param client The client value.
+	 * 
+	 * @param roster The roster.
+	 * 
+	 * @return The warning messages from the server.
+	 * 
+	 * @throws ApiException Thrown if there is a library error.
+	 * 
+	 * @throws RequestErrorException Thrown if the server returns an error.
+	 */
+	public List<String> uploadRoster(final String authenticationToken,
+			final String client, final String roster)
+			throws ApiException, RequestErrorException {
+		
+		Map<String, Object> parameters = new HashMap<String, Object>();
+		parameters.put(InputKeys.AUTH_TOKEN, authenticationToken);
+		parameters.put(InputKeys.CLIENT, client);
+		parameters.put(InputKeys.ROSTER, roster);
+		
+		JSONArray warningMessages;
+		try {
+			warningMessages = new JSONArray(
+					processJsonResponse(
+							makeRequest(
+									new URL(url.toString() + RequestBuilder.API_CLASS_ROSTER_UPDATE), 
+									parameters, 
+									true
+								),
+							ClassRosterUpdateRequest.KEY_WARNING_MESSAGES
+						)
+				);
+		}
+		catch(MalformedURLException e) {
+			throw new ApiException("The URL was incorrectly created.", e);
+		}
+		catch(IllegalArgumentException e) {
+			throw new ApiException("The response was not proper JSON.", e);
+		}
+		catch(JSONException e) {
+			throw new ApiException("The warning messages were not valid JSON.", e);
+		}
+		
+		int numWarningMessages = warningMessages.length();
+		List<String> result = new ArrayList<String>(numWarningMessages);
+		for(int i = 0; i < numWarningMessages; i++) {
+			try {
+				result.add(warningMessages.getString(i));
+			} 
+			catch(JSONException e) {
+				throw new ApiException("An error message was not a String.", e);
+			}
+		}
+		
+		return result;
+	}
+	
+	/**
+	 * Deletes a class.
+	 * 
+	 * @param authenticationToken The user's authentication token.
+	 * 
+	 * @param client THe client value.
+	 * 
+	 * @param classId The class' unique identifier.
+	 * 
+	 * @throws ApiException Thrown if there is a library error.
+	 * 
+	 * @throws RequestErrorException Thrown if the server returns an error.
+	 */
+	public void deleteClass(final String authenticationToken, 
+			final String client, final String classId)
+			throws ApiException, RequestErrorException {
+		
+		Map<String, Object> parameters = new HashMap<String, Object>();
+		parameters.put(InputKeys.AUTH_TOKEN, authenticationToken);
+		parameters.put(InputKeys.CLIENT, client);
+		parameters.put(InputKeys.CLASS_URN, classId);
+		
+		try {
+			makeRequest(
+					new URL(url.toString() + RequestBuilder.API_CLASS_DELETE), 
+					parameters, 
+					false
+				);
 		}
 		catch(MalformedURLException e) {
 			throw new ApiException("The URL was incorrectly created.", e);
@@ -918,10 +1591,6 @@ public class OhmageApi {
 	 * 					   will limit the results to only those responses from
 	 * 					   these prompts.
 	 * 
-	 * @param collapse Whether or not to collapse the results which will result
-	 * 				   in duplicate rows being rolled into a single resulting
-	 * 				   row.
-	 * 
 	 * @param startDate A date and time limiting the results to only those that
 	 * 					occurred on or after this date.
 	 * 
@@ -930,6 +1599,13 @@ public class OhmageApi {
 	 * 
 	 * @param privacyState A survey response privacy state limiting the results
 	 * 					   to only those with the given privacy state.
+	 * 
+	 * @param collapse Whether or not to collapse the results which will result
+	 * 				   in duplicate rows being rolled into a single resulting
+	 * 				   row.
+	 * 
+	 * @param suppressMetadata Whether or not to suppress the metadata comments
+	 * 						   in the header.
 	 * 
 	 * @param returnId Whether or not to return unique identifiers for the 
 	 * 				   survey responses.
@@ -947,9 +1623,9 @@ public class OhmageApi {
 			final Collection<SurveyResponse.ColumnKey> columnList,
 			final Collection<String> surveyIdList, 
 			final Collection<String> promptIdList,
-			final Boolean collapse,
 			final Date startDate, final Date endDate, 
 			final SurveyResponse.PrivacyState privacyState,
+			final Boolean collapse, final Boolean suppressMetadata,
 			final Boolean returnId)
 			throws ApiException, RequestErrorException {
 		
@@ -997,7 +1673,7 @@ public class OhmageApi {
 		}
 		
 		parameters.put(InputKeys.COLLAPSE, collapse);
-		//parameters.put(InputKeys.SUPPRESS_METADATA, true);
+		parameters.put(InputKeys.SUPPRESS_METADATA, suppressMetadata);
 		parameters.put(InputKeys.START_DATE, TimeUtils.getIso8601DateTimeString(startDate));
 		parameters.put(InputKeys.END_DATE, TimeUtils.getIso8601DateTimeString(endDate));
 		parameters.put(InputKeys.RETURN_ID, returnId);
@@ -1024,16 +1700,71 @@ public class OhmageApi {
 		return response;
 	}
 	
-	public /*Collection<SurveyResponse>*/JSONObject getSurveyResponsesJsonColumns(
+	/**
+	 * Retrieves the survey response information as JSON.
+	 * 
+	 * @param authenticationToken The user's authentication token.
+	 * 
+	 * @param username The user's username.
+	 * 
+	 * @param hashedPassword The user's hashed password.
+	 * 
+	 * @param client The client value.
+	 * 
+	 * @param campaignId The unique identifier for the campaign to which the
+	 * 					 survey responses belong.
+	 * 
+	 * @param usernames A collection of usernames for the users whose data is
+	 * 					desired. An empty collection indicates that all users 
+	 * 					are desired.
+	 * 
+	 * @param columnList A collection of the desired columns. See
+	 * 					 {@link org.ohmage.domain.campaign.SurveyResponse.ColumnKey ColumnKey}.
+	 * 					 An empty collection indicates that all columns are
+	 * 					 desired.
+	 * 
+	 * @param surveyIdList The collection of survey IDs for which to gather 
+	 * 					   survey responses.
+	 * 
+	 * @param promptIdList The collection of prompt IDs for which to gather
+	 * 					   survey responses.
+	 * 
+	 * @param startDate A date indicating that only survey responses on or 
+	 * 					after this date should be returned. Optional.
+	 * 
+	 * @param endDate A date indicating that only survey responses on or before
+	 * 				  this date should be returned. Optional.
+	 * 
+	 * @param privacyState A survey response privacy state indicating that only
+	 * 					   survey responses with this privacy state should be
+	 * 					   returned. Optional.
+	 * 
+	 * @param collapse Whether or not to combine identical results. Optional.
+	 * 
+	 * @param suppressMetadata Whether or not to include the metadata. 
+	 * 						   Optional.
+	 * 
+	 * @param returnId Whether or not to return the unique identifiers for all
+	 * 				   of the survey responses.
+	 * 
+	 * @return A JSONObject representing the desired results. Note that this 
+	 * 		   will almost certainly change in the near future to return a more
+	 * 		   Java-friendly response.
+	 * 
+	 * @throws ApiException Thrown if there is a library error.
+	 * 
+	 * @throws RequestErrorException Thrown if the server returns an error.
+	 */
+	public JSONObject getSurveyResponsesJsonColumns(
 			final String authenticationToken, final String username, 
 			final String hashedPassword, final String client,
 			final String campaignId, final Collection<String> usernames,
-			final Collection<String> columnList,
+			final Collection<SurveyResponse.ColumnKey> columnList,
 			final Collection<String> surveyIdList, 
 			final Collection<String> promptIdList,
-			final Boolean collapse,
 			final Date startDate, final Date endDate, 
 			final SurveyResponse.PrivacyState privacyState,
+			final Boolean collapse, final Boolean suppressMetadata,
 			final Boolean returnId)
 			throws ApiException, RequestErrorException {
 		
@@ -1044,7 +1775,15 @@ public class OhmageApi {
 		parameters.put(InputKeys.CLIENT, client);
 		parameters.put(InputKeys.CAMPAIGN_URN, campaignId);
 		parameters.put(InputKeys.OUTPUT_FORMAT, SurveyResponse.OutputFormat.JSON_COLUMNS);
-		parameters.put(InputKeys.USER_LIST, StringUtils.collectionToStringList(usernames, InputKeys.LIST_ITEM_SEPARATOR));
+		
+		if(usernames != null) {
+			if(usernames.size() == 0) {
+				parameters.put(InputKeys.USER_LIST, SurveyResponseReadRequest.URN_SPECIAL_ALL);
+			}
+			else {
+				parameters.put(InputKeys.USER_LIST, StringUtils.collectionToStringList(usernames, InputKeys.LIST_ITEM_SEPARATOR));
+			}
+		}
 		
 		if(columnList != null) {
 			if(columnList.size() == 0) {
@@ -1071,16 +1810,13 @@ public class OhmageApi {
 				parameters.put(InputKeys.PROMPT_ID_LIST, StringUtils.collectionToStringList(promptIdList, InputKeys.LIST_ITEM_SEPARATOR));
 			}
 		}
-		
-		parameters.put(InputKeys.COLLAPSE, collapse);
-		parameters.put(InputKeys.SUPPRESS_METADATA, true);
+
 		parameters.put(InputKeys.START_DATE, TimeUtils.getIso8601DateTimeString(startDate));
 		parameters.put(InputKeys.END_DATE, TimeUtils.getIso8601DateTimeString(endDate));
+		parameters.put(InputKeys.PRIVACY_STATE, privacyState);
+		parameters.put(InputKeys.COLLAPSE, collapse);
+		parameters.put(InputKeys.SUPPRESS_METADATA, suppressMetadata);
 		parameters.put(InputKeys.RETURN_ID, returnId);
-		
-		if(privacyState != null) {
-			parameters.put(InputKeys.PRIVACY_STATE, privacyState.toString());
-		}
 		
 		JSONObject response;
 		try {
@@ -1105,9 +1841,336 @@ public class OhmageApi {
 			throw new ApiException("The response was proper JSON but the data was not.", e);
 		}
 		
-		
-		//return null;
 		return response;
+		// TODO: We need to convert this from a JSONObject into some Java 
+		// object.
+	}
+	
+	/**
+	 * Retrieves the survey response information as JSON.
+	 * 
+	 * @param authenticationToken The user's authentication token.
+	 * 
+	 * @param username The user's username.
+	 * 
+	 * @param hashedPassword The user's hashed password.
+	 * 
+	 * @param client The client value.
+	 * 
+	 * @param campaignId The unique identifier for the campaign to which the
+	 * 					 survey responses belong.
+	 * 
+	 * @param usernames A collection of usernames for the users whose data is
+	 * 					desired. An empty collection indicates that all users 
+	 * 					are desired.
+	 * 
+	 * @param columnList A collection of the desired columns. See
+	 * 					 {@link org.ohmage.domain.campaign.SurveyResponse.ColumnKey ColumnKey}.
+	 * 					 An empty collection indicates that all columns are
+	 * 					 desired.
+	 * 
+	 * @param surveyIdList The collection of survey IDs for which to gather 
+	 * 					   survey responses.
+	 * 
+	 * @param promptIdList The collection of prompt IDs for which to gather
+	 * 					   survey responses.
+	 * 
+	 * @param startDate A date indicating that only survey responses on or 
+	 * 					after this date should be returned. Optional.
+	 * 
+	 * @param endDate A date indicating that only survey responses on or before
+	 * 				  this date should be returned. Optional.
+	 * 
+	 * @param privacyState A survey response privacy state indicating that only
+	 * 					   survey responses with this privacy state should be
+	 * 					   returned. Optional.
+	 * 
+	 * @param collapse Whether or not to combine identical results. Optional.
+	 * 
+	 * @param suppressMetadata Whether or not to include the metadata. 
+	 * 						   Optional.
+	 * 
+	 * @param returnId Whether or not to return the unique identifiers for all
+	 * 				   of the survey responses.
+	 * 
+	 * @return A JSONArray representing the desired results. Note that this 
+	 * 		   will almost certainly change in the near future to return a more
+	 * 		   Java-friendly response.
+	 * 
+	 * @throws ApiException Thrown if there is a library error.
+	 * 
+	 * @throws RequestErrorException Thrown if the server returns an error.
+	 */
+	public JSONArray getSurveyResponsesJsonRows(
+			final String authenticationToken, final String username, 
+			final String hashedPassword, final String client,
+			final String campaignId, final Collection<String> usernames,
+			final Collection<SurveyResponse.ColumnKey> columnList,
+			final Collection<String> surveyIdList, 
+			final Collection<String> promptIdList,
+			final Date startDate, final Date endDate, 
+			final SurveyResponse.PrivacyState privacyState,
+			final Boolean collapse, final Boolean suppressMetadata,
+			final Boolean returnId)
+			throws ApiException, RequestErrorException {
+		
+		Map<String, Object> parameters = new HashMap<String, Object>();
+		parameters.put(InputKeys.USER, username);
+		parameters.put(InputKeys.PASSWORD, hashedPassword);
+		parameters.put(InputKeys.AUTH_TOKEN, authenticationToken);
+		parameters.put(InputKeys.CLIENT, client);
+		parameters.put(InputKeys.CAMPAIGN_URN, campaignId);
+		parameters.put(InputKeys.OUTPUT_FORMAT, SurveyResponse.OutputFormat.JSON_ROWS);
+		
+		if(usernames != null) {
+			if(usernames.size() == 0) {
+				parameters.put(InputKeys.USER_LIST, SurveyResponseReadRequest.URN_SPECIAL_ALL);
+			}
+			else {
+				parameters.put(InputKeys.USER_LIST, StringUtils.collectionToStringList(usernames, InputKeys.LIST_ITEM_SEPARATOR));
+			}
+		}
+		
+		if(columnList != null) {
+			if(columnList.size() == 0) {
+				parameters.put(InputKeys.COLUMN_LIST, SurveyResponseReadRequest.URN_SPECIAL_ALL);
+			}
+			else {
+				parameters.put(InputKeys.COLUMN_LIST, StringUtils.collectionToStringList(columnList, InputKeys.LIST_ITEM_SEPARATOR));
+			}
+		}
+		
+		if(surveyIdList != null) {
+			if(surveyIdList.size() == 0) {
+				parameters.put(InputKeys.SURVEY_ID_LIST, SurveyResponseReadRequest.URN_SPECIAL_ALL);
+			}
+			else {
+				parameters.put(InputKeys.SURVEY_ID_LIST, StringUtils.collectionToStringList(surveyIdList, InputKeys.LIST_ITEM_SEPARATOR));
+			}
+		}
+		if(promptIdList != null) {
+			if(promptIdList.size() == 0) {
+				parameters.put(InputKeys.PROMPT_ID_LIST, SurveyResponseReadRequest.URN_SPECIAL_ALL);
+			}
+			else {
+				parameters.put(InputKeys.PROMPT_ID_LIST, StringUtils.collectionToStringList(promptIdList, InputKeys.LIST_ITEM_SEPARATOR));
+			}
+		}
+
+		parameters.put(InputKeys.START_DATE, TimeUtils.getIso8601DateTimeString(startDate));
+		parameters.put(InputKeys.END_DATE, TimeUtils.getIso8601DateTimeString(endDate));
+		parameters.put(InputKeys.PRIVACY_STATE, privacyState);
+		parameters.put(InputKeys.COLLAPSE, collapse);
+		parameters.put(InputKeys.SUPPRESS_METADATA, suppressMetadata);
+		parameters.put(InputKeys.RETURN_ID, returnId);
+		
+		JSONArray response;
+		try {
+			response = new JSONArray(
+					processJsonResponse(
+							makeRequest(
+									new URL(url.toString() + RequestBuilder.API_SURVEY_RESPONSE_READ), 
+									parameters, 
+									false
+								),
+							InputKeys.DATA
+						)
+				);
+		}
+		catch(MalformedURLException e) {
+			throw new ApiException("The URL was incorrectly created.", e);
+		}
+		catch(IllegalArgumentException e) {
+			throw new ApiException("The response was not proper JSON.", e);
+		}
+		catch(JSONException e) {
+			throw new ApiException("The response was proper JSON but the data was not.", e);
+		}
+		
+		return response;
+		// TODO: We need to convert this from a JSONArray into some Java 
+		// object.
+	}
+	
+	/**
+	 * Retrieves the privacy states for all of the survey responses and the
+	 * count of each of those privacy states.
+	 * 
+	 * @param username The username of the user who is asking.
+	 * 
+	 * @param hashedPassword The hashed password of the user who is asking.
+	 * 
+	 * @param authenticationToken The authentication token of the user who is
+	 * 							  asking.
+	 * 
+	 * @param client The client value.
+	 * 
+	 * @param campaignId The campaign's unique identifier.
+	 * 
+	 * @param startDate A date indicating that all survey responses examined
+	 * 					must have been made on or after this date.
+	 *  
+	 * @param endDate A date indicating that all survey responses examined must
+	 * 				  have been made on or before this date.
+	 * 
+	 * @param ownerUsername Limits the privacy states to only those of the
+	 * 						survey responses of the given user. Optional.
+	 * 
+	 * @return A map of survey response privacy states to their counts.
+	 * 
+	 * @throws ApiException Thrown if there is a library error.
+	 * 
+	 * @throws RequestErrorException Thrown if the server returns an error.
+	 */
+	public Map<SurveyResponse.PrivacyState, Integer> getSurveyResponsePrivacyStateCounts(
+			final String username, final String hashedPassword, 
+			final String authenticationToken, final String client,
+			final String campaignId, 
+			final Date startDate, final Date endDate,
+			final String ownerUsername)
+			throws ApiException, RequestErrorException {
+		
+		Map<String, Object> parameters = new HashMap<String, Object>();
+		parameters.put(InputKeys.USER, username);
+		parameters.put(InputKeys.PASSWORD, hashedPassword);
+		parameters.put(InputKeys.AUTH_TOKEN, authenticationToken);
+		parameters.put(InputKeys.CLIENT, client);
+		parameters.put(InputKeys.CAMPAIGN_URN, campaignId);
+		parameters.put(InputKeys.SURVEY_RESPONSE_OWNER, ownerUsername);
+		parameters.put(InputKeys.START_DATE, TimeUtils.getIso8601DateTimeString(startDate));
+		parameters.put(InputKeys.END_DATE, TimeUtils.getIso8601DateTimeString(endDate));
+		parameters.put(InputKeys.SURVEY_FUNCTION_ID, SurveyResponse.Function.STATS);
+		
+		JSONObject response;
+		try {
+			response = new JSONObject(
+					processJsonResponse(
+							makeRequest(
+									new URL(url.toString() + RequestBuilder.API_SURVEY_RESPONSE_FUNCTION_READ), 
+									parameters, 
+									false
+								),
+							InputKeys.DATA
+						)
+				);
+		}
+		catch(MalformedURLException e) {
+			throw new ApiException("The URL was incorrectly created.", e);
+		}
+		catch(IllegalArgumentException e) {
+			throw new ApiException("The response was not proper JSON.", e);
+		}
+		catch(JSONException e) {
+			throw new ApiException("The response was proper JSON but the data was not.", e);
+		}
+		
+		Map<SurveyResponse.PrivacyState, Integer> result = 
+			new HashMap<SurveyResponse.PrivacyState, Integer>(response.length());
+		
+		Iterator<?> keys = response.keys();
+		while(keys.hasNext()) {
+			String privacyStateString = (String) keys.next();
+			
+			try {
+				SurveyResponse.PrivacyState currPrivacyState =
+					SurveyResponse.PrivacyState.getValue(privacyStateString);
+				
+				result.put(currPrivacyState, response.getInt(privacyStateString));
+			}
+			catch(IllegalArgumentException e) {
+				throw new ApiException("The server returned an unknown survey response privacy state.", e);
+			}
+			catch(JSONException e) {
+				throw new ApiException("The server returned not a number for a survey response privacy state's count.", e);
+			}
+		}
+		
+		return result;
+	}
+	
+	/**
+	 * Updates a survey response.
+	 * 
+	 * @param authenticationToken The user's authentication token.
+	 * 
+	 * @param client The client value.
+	 * 
+	 * @param campaignId The campaign's unique identifier.
+	 * 
+	 * @param surveyId The survey response's unique identifier.
+	 * 
+	 * @param newPrivacyState The survey response's new privacy state.
+	 * 
+	 * @throws ApiException Thrown if there is a library error.
+	 * 
+	 * @throws RequestErrorException Thrown if the server returns an error.
+	 */
+	public void updateSurveyResponse(final String authenticationToken,
+			final String client, final String campaignId, 
+			final String surveyId, 
+			final SurveyResponse.PrivacyState newPrivacyState)
+			throws ApiException, RequestErrorException {
+		
+		Map<String, Object> parameters = new HashMap<String, Object>();
+		parameters.put(InputKeys.AUTH_TOKEN, authenticationToken);
+		parameters.put(InputKeys.CLIENT, client);
+		parameters.put(InputKeys.CAMPAIGN_URN, campaignId);
+		parameters.put(InputKeys.SURVEY_ID, surveyId);
+		parameters.put(InputKeys.PRIVACY_STATE, newPrivacyState);
+
+		try {
+			makeRequest(
+					new URL(url.toString() + RequestBuilder.API_SURVEY_RESPONSE_UPDATE),
+					parameters,
+					false
+				);
+		}
+		catch(MalformedURLException e) {
+			throw new ApiException("The URL was incorrectly created.", e);
+		}
+		catch(IllegalArgumentException e) {
+			throw new ApiException("The response was not proper JSON.", e);
+		}
+	}
+	
+	/**
+	 * Deletes a survey response.
+	 * 
+	 * @param authenticationToken The user's authentication token.
+	 * 
+	 * @param client The client value.
+	 * 
+	 * @param campaignId The campaign's unique identifier.
+	 * 
+	 * @param surveyId The survey response's unique identifier.
+	 * 
+	 * @throws ApiException Thrown if there is a library error.
+	 * 
+	 * @throws RequestErrorException Thrown if the server returns an error.
+	 */
+	public void deleteSurveyResponse(final String authenticationToken,
+			final String client, final String campaignId, 
+			final String surveyId) throws ApiException, RequestErrorException {
+		
+		Map<String, Object> parameters = new HashMap<String, Object>();
+		parameters.put(InputKeys.AUTH_TOKEN, authenticationToken);
+		parameters.put(InputKeys.CLIENT, client);
+		parameters.put(InputKeys.CAMPAIGN_URN, campaignId);
+		parameters.put(InputKeys.SURVEY_ID, surveyId);
+		
+		try {
+			makeRequest(
+					new URL(url.toString() + RequestBuilder.API_SURVEY_RESPONSE_DELETE),
+					parameters,
+					false
+				);
+		}
+		catch(MalformedURLException e) {
+			throw new ApiException("The URL was incorrectly created.", e);
+		}
+		catch(IllegalArgumentException e) {
+			throw new ApiException("The response was not proper JSON.", e);
+		}
 	}
 	
 	/**************************************************************************
@@ -1160,14 +2223,11 @@ public class OhmageApi {
 		parameters.put(InputKeys.CAMPAIGN_CREATION_PRIVILEGE, canCreateCampaigns);
 		
 		try {
-			processJsonResponse(
-					makeRequest(
-							new URL(url.toString() + RequestBuilder.API_USER_CREATE),
-							parameters,
-							false
-					),
-					null
-			);
+			makeRequest(
+					new URL(url.toString() + RequestBuilder.API_USER_CREATE),
+					parameters,
+					false
+				);
 		}
 		catch(MalformedURLException e) {
 			throw new ApiException("The URL was incorrectly created.", e);
@@ -1388,6 +2448,46 @@ public class OhmageApi {
 		try {
 			makeRequest(
 					new URL(url.toString() + RequestBuilder.API_USER_UPDATE), 
+					parameters, 
+					false
+				);
+		}
+		catch(MalformedURLException e) {
+			throw new ApiException("The URL was incorrectly created.", e);
+		}
+		catch(IllegalArgumentException e) {
+			throw new ApiException("The response was not proper JSON.", e);
+		}
+	}
+	
+	/**
+	 * Changes the user's password.
+	 * 
+	 * @param username The user's username.
+	 * 
+	 * @param password The user's current, plaintext password.
+	 * 
+	 * @param client The client value.
+	 * 
+	 * @param newPassword The user's new password.
+	 * 
+	 * @throws ApiException Thrown if there is a library error.
+	 * 
+	 * @throws RequestErrorException Thrown if the server returns an error.
+	 */
+	public void changePassword(final String username, final String password,
+			final String client, final String newPassword)
+			throws ApiException, RequestErrorException {
+		
+		Map<String, Object> parameters = new HashMap<String, Object>();
+		parameters.put(InputKeys.USER, username);
+		parameters.put(InputKeys.PASSWORD, password);
+		parameters.put(InputKeys.CLIENT, client);
+		parameters.put(InputKeys.NEW_PASSWORD, newPassword);
+		
+		try {
+			makeRequest(
+					new URL(url.toString() + RequestBuilder.API_USER_CHANGE_PASSWORD), 
 					parameters, 
 					false
 				);

@@ -100,7 +100,7 @@ public final class SurveyResponseServices {
 			throws ServiceException {
 		
 		for(SurveyResponse surveyResponse : surveyResponses) {
-			for(Response promptResponse : surveyResponse.getPromptResponses().values()) {
+			for(Response promptResponse : surveyResponse.getResponses().values()) {
 				if(promptResponse instanceof PhotoPromptResponse) {
 					if(! images.containsKey(promptResponse.getResponseValue())) {
 						request.setFailed(ErrorCodes.SURVEY_INVALID_RESPONSES, "An image key was found that was not present in the survey payload.");

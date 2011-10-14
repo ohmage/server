@@ -9,6 +9,7 @@ import java.util.Set;
 import org.ohmage.annotator.ErrorCodes;
 import org.ohmage.domain.campaign.SurveyResponse;
 import org.ohmage.domain.campaign.SurveyResponse.ColumnKey;
+import org.ohmage.domain.campaign.SurveyResponse.Function;
 import org.ohmage.domain.campaign.SurveyResponse.OutputFormat;
 import org.ohmage.domain.campaign.SurveyResponse.SortParameter;
 import org.ohmage.exception.ValidationException;
@@ -23,12 +24,6 @@ import org.ohmage.util.StringUtils;
  * @author John Jenkins
  */
 public final class SurveyResponseValidators {
-	/**
-	 * The known "survey response function" functions.
-	 * 
-	 * @author John Jenkins
-	 */
-	public static enum Function { COMPLETED_SURVEYS, STATS }
 	
 	/**
 	 * Default constructor. Private so that it cannot be instantiated.

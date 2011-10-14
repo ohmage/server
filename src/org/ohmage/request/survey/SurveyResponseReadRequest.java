@@ -575,9 +575,6 @@ public final class SurveyResponseReadRequest extends UserRequest {
 			}
 			else {
 				for(String username : usernames) {
-					// This can never overlap unless the usernames are 
-					// identicial, which should have already been taken care
-					// of.
 					surveyResponseList.addAll(
 							SurveyResponseServices.readSurveyResponseInformation(
 									this, configuration, username, null, 
@@ -730,7 +727,7 @@ public final class SurveyResponseReadRequest extends UserRequest {
 						result.put(JSON_KEY_METADATA, metadata);
 					}
 					
-					if(prettyPrint) {
+					if((prettyPrint != null) && prettyPrint) {
 						resultString = result.toString(4);
 					}
 					else {
@@ -773,7 +770,7 @@ public final class SurveyResponseReadRequest extends UserRequest {
 					for(SurveyResponse surveyResponse : surveyResponseList) {
 						numResponses += processResponses(allColumns, 
 								surveyResponse, 
-								surveyResponse.getPromptResponses(), 
+								surveyResponse.getResponses(), 
 								surveys, prompts, 
 								usernames, clients, privacyStates, 
 								timestamps, timezones, 
@@ -1214,7 +1211,13 @@ public final class SurveyResponseReadRequest extends UserRequest {
 					for(String promptId : prompts.keySet()) {
 						JSONArray values = prompts.get(promptId).getJSONArray(JSON_KEY_VALUES);
 						if(promptId.equals(response.getId())) {
-							values.put(response.getResponseValue());
+							String responseValue = response.getResponseValue();
+							
+							if(OutputFormat.CSV.equals(outputFormat)) {
+								responseValue = "\"" + responseValue + "\"";
+							}
+							
+							values.put(responseValue);
 						}
 						else {
 							values.put("null");

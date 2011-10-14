@@ -614,7 +614,7 @@ public class DocumentDaos extends Dao {
 	public static void updateDocument(String documentId, byte[] contents, String name, String description, 
 			Document.PrivacyState privacyState,
 			Map<String, Document.Role> campaignAndRolesToAdd, List<String> campaignsToRemove, 
-			Map<String, Document.Role> classAndRolesToAdd, List<String> classesToRemove, 
+			Map<String, Document.Role> classAndRolesToAdd, Collection<String> classesToRemove, 
 			Map<String, Document.Role> userAndRolesToAdd, Collection<String> usersToRemove) throws DataAccessException {
 		// Begin transaction
 		DefaultTransactionDefinition def = new DefaultTransactionDefinition();

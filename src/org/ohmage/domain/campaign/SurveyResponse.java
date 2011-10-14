@@ -83,7 +83,7 @@ public class SurveyResponse {
 	
 	private final Survey survey;
 	private final long surveyResponseId;
-	private final Map<Integer, Response> promptResponses;
+	private final Map<Integer, Response> responses;
 	
 	/**
 	 * Survey response privacy states.
@@ -462,6 +462,40 @@ public class SurveyResponse {
 			return key;
 		}
 	}
+	
+	/**
+	 * The known "survey response function" functions.
+	 * 
+	 * @author John Jenkins
+	 */
+	public static enum Function { 
+		COMPLETED_SURVEYS, 
+		STATS;
+		
+		/**
+		 * Generates the Function enum for the key.
+		 * 
+		 * @param key The Function as a string.
+		 * 
+		 * @return The Function as an enum.
+		 * 
+		 * @throws IllegalArgumentException Thrown if no such Function enum
+		 * 									represents the key.
+		 */
+		public static Function getValue(final String key) {
+			return valueOf(key.toUpperCase());
+		}
+		
+		/**
+		 * Returns this Function as a human-readable value.
+		 * 
+		 * @return This Function as a human-readable value.
+		 */
+		@Override
+		public String toString() {
+			return name().toLowerCase();
+		}
+	}
 
 	/**
 	 * The possible output formats for reading survey responses.
@@ -686,7 +720,7 @@ public class SurveyResponse {
 			this.location = null;
 		}
 		
-		promptResponses = new HashMap<Integer, Response>();
+		responses = new HashMap<Integer, Response>();
 	}
 	
 	/**
@@ -786,7 +820,7 @@ public class SurveyResponse {
 		}
 		this.location = location;
 		
-		promptResponses = new HashMap<Integer, Response>(responses);
+		this.responses = new HashMap<Integer, Response>(responses);
 	}
 	
 	/**
@@ -901,7 +935,7 @@ public class SurveyResponse {
 		catch(JSONException e) {
 			throw new ErrorCodeException(ErrorCodes.SURVEY_INVALID_RESPONSES, "There weren't any responses for the survey.", e);
 		}
-		this.promptResponses = processResponses(campaign.getSurveys().get(surveyId).getSurveyItems(), responses, -1);
+		this.responses = processResponses(campaign.getSurveys().get(surveyId).getSurveyItems(), responses, -1);
 	}
 	
 	/**
@@ -1027,8 +1061,8 @@ public class SurveyResponse {
 	 * 
 	 * @return An unmodifiable list of the responses.
 	 */
-	public final Map<Integer, Response> getPromptResponses() {
-		return Collections.unmodifiableMap(promptResponses);
+	public final Map<Integer, Response> getResponses() {
+		return Collections.unmodifiableMap(responses);
 	}
 	
 	/**
@@ -1040,10 +1074,25 @@ public class SurveyResponse {
 	 */
 	public final void addPromptResponse(final PromptResponse promptResponse) {
 		if(promptResponse == null) {
-			throw new IllegalArgumentException("The prompt response cannot be null.");
+			throw new IllegalArgumentException("The prompt response is null.");
 		}
 		
-		promptResponses.put(promptResponses.size() + 1, promptResponse);
+		RepeatableSet parent = promptResponse.getPrompt().getParent();
+		if(parent == null) {
+			responses.put(promptResponse.getPrompt().getIndex(), promptResponse);
+		}
+		else {
+			// FIXME: This assumes repeatable sets cannot contain repeatable
+			// sets. This needs to be fixed if we ever allow it.
+			int index = parent.getIndex();
+			
+			RepeatableSetResponse rsResponse = (RepeatableSetResponse) responses.get(index);
+			if(rsResponse == null) {
+				rsResponse = new RepeatableSetResponse(parent, null);
+				responses.put(index, rsResponse);
+			}
+			rsResponse.addResponse(promptResponse.getRepeatableSetIteration(), index, promptResponse);
+		}
 	}
 	
 	/**
@@ -1151,12 +1200,12 @@ public class SurveyResponse {
 			}
 			
 			if(withResponses) {
-				List<Integer> indices = new ArrayList<Integer>(promptResponses.keySet());
+				List<Integer> indices = new ArrayList<Integer>(responses.keySet());
 				Collections.sort(indices);
 
 				JSONArray responses = new JSONArray();
 				for(Integer index : indices) {
-					responses.put(promptResponses.get(index).toJson());
+					responses.put(this.responses.get(index).toJson());
 				}
 				result.put(JSON_KEY_RESPONSES, responses);
 			}
@@ -1194,7 +1243,7 @@ public class SurveyResponse {
 		result = prime * result
 				+ ((privacyState == null) ? 0 : privacyState.hashCode());
 		result = prime * result
-				+ ((promptResponses == null) ? 0 : promptResponses.hashCode());
+				+ ((responses == null) ? 0 : responses.hashCode());
 		result = prime * result + ((survey == null) ? 0 : survey.hashCode());
 		result = prime * result
 				+ (int) (surveyResponseId ^ (surveyResponseId >>> 32));
@@ -1250,10 +1299,10 @@ public class SurveyResponse {
 			return false;
 		if (privacyState != other.privacyState)
 			return false;
-		if (promptResponses == null) {
-			if (other.promptResponses != null)
+		if (responses == null) {
+			if (other.responses != null)
 				return false;
-		} else if (!promptResponses.equals(other.promptResponses))
+		} else if (!responses.equals(other.responses))
 			return false;
 		if (survey == null) {
 			if (other.survey != null)

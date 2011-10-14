@@ -62,7 +62,11 @@ import org.ohmage.validator.ClassValidators;
 public class ClassRosterUpdateRequest extends UserRequest {
 	private static final Logger LOGGER = Logger.getLogger(ClassRosterUpdateRequest.class);
 	
-	private static final String KEY_WARNING_MESSAGES = "warning_messages";
+	/**
+	 * The key used in the returned JSON indicating the warning messages 
+	 * JSONArray.
+	 */
+	public static final String KEY_WARNING_MESSAGES = "warning_messages";
 	
 	private final Map<String, Map<String, Clazz.Role>> roster;
 	

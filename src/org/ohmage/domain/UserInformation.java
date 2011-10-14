@@ -1,6 +1,7 @@
 package org.ohmage.domain;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -188,6 +189,17 @@ public class UserInformation {
 	}
 	
 	/**
+	 * Returns an unmodifiable map of all of the campaigns associated with the 
+	 * user.
+	 * 
+	 * @return An unmodifiable map of all of the campaigns associated with a
+	 * 		   user.
+	 */
+	public Map<String, String> getCampaigns() {
+		return Collections.unmodifiableMap(campaigns);
+	}
+	
+	/**
 	 * Adds a new campaign role.
 	 * 
 	 * @param campaignRole A campaign role to be added to be added to the list.
@@ -244,6 +256,15 @@ public class UserInformation {
 		}
 
 		this.classes.putAll(classes);
+	}
+	
+	/**
+	 * Returns an unmodifiable map of the classes associated with the user.
+	 * 
+	 * @return An unmodifiable map of the classes associated with the user.
+	 */
+	public Map<String, String> getClasses() {
+		return Collections.unmodifiableMap(classes);
 	}
 	
 	/**

@@ -34,7 +34,7 @@ public class CampaignDocumentValidators {
 	 * 							  document role pairs. The pairs should be 
 	 * 							  separated by
 	 * 							  {@value org.ohmage.request.InputKeys#LIST_ITEM_SEPARATOR}s 
-	 * 							  and each pair should have its class ID 
+	 * 							  and each pair should have its campaign ID 
 	 * 							  separated from its document role by a 
 	 * 							  {@value org.ohmage.request.InputKeys#ENTITY_ROLE_SEPARATOR}.
 	 * 

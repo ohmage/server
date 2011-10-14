@@ -1,6 +1,7 @@
 package org.ohmage.request.campaign;
 
-import java.util.List;
+import java.util.Collection;
+import java.util.Set;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -70,7 +71,7 @@ public class CampaignCreationRequest extends UserRequest {
 	private final String description;
 	private final Campaign.RunningState runningState;
 	private final Campaign.PrivacyState privacyState;
-	private final List<String> classIds;
+	private final Collection<String> classIds;
 	
 	/**
 	 * Builds a campaign creation request from the HttpServletRequest.
@@ -87,7 +88,7 @@ public class CampaignCreationRequest extends UserRequest {
 		String tDescription = null;
 		Campaign.RunningState tRunningState = null;
 		Campaign.PrivacyState tPrivacyState = null;
-		List<String> tClassIds = null;
+		Set<String> tClassIds = null;
 		
 		if(! isFailed()) {
 			try {

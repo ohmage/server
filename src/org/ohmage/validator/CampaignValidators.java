@@ -13,6 +13,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.ohmage.annotator.ErrorCodes;
 import org.ohmage.domain.campaign.Campaign;
+import org.ohmage.domain.campaign.Campaign.OutputFormat;
 import org.ohmage.exception.ValidationException;
 import org.ohmage.request.InputKeys;
 import org.ohmage.request.Request;
@@ -25,8 +26,6 @@ import org.ohmage.util.StringUtils;
  */
 public final class CampaignValidators {
 	private static final Logger LOGGER = Logger.getLogger(CampaignValidators.class);
-	
-	public static enum OutputFormat { SHORT, LONG, XML }; 
 	
 	/**
 	 * Default constructor. Made private to prevent instantiation.

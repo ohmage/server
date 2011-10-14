@@ -6,7 +6,6 @@ import java.net.URL;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
-import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.HashMap;
@@ -333,7 +332,7 @@ public final class CampaignDaos extends Dao {
 			String iconUrl, String authoredBy, 
 			Campaign.RunningState runningState, 
 			Campaign.PrivacyState privacyState, 
-			List<String> classIds, String creatorUsername)
+			Collection<String> classIds, String creatorUsername)
 		throws DataAccessException {
 		
 		// Create the transaction.
@@ -469,7 +468,11 @@ public final class CampaignDaos extends Dao {
 				);
 		}
 		catch(IncorrectResultSizeDataAccessException e) {
-			throw new DataAccessException("Found an incorrect number of results executing SQL '" + SQL_GET_CAMPAIGN_INFORMATION + "' with parameter: " + campaignId, e);
+			if(e.getActualSize() == 0) {
+				return null;
+			}
+			
+			throw new DataAccessException("Multiple campaigns have the same ID: " + campaignId, e);
 		}
 		catch(org.springframework.dao.DataAccessException e) {
 			throw new DataAccessException("General error executing SQL '" + SQL_GET_CAMPAIGN_INFORMATION + "' with parameter: " + campaignId, e);
@@ -787,12 +790,11 @@ public final class CampaignDaos extends Dao {
 	 * @param privacyState The new privacy state for the campaign or null if 
 	 * 					   the privacy state should not be updated.
 	 * 
-	 * @param classIds FIXME: A collection of class IDs where any classes in
-	 * 				   the list will have their users added to the class based
-	 * 				   on the default class-campaign default roles. Any classes
-	 * 				   that are not in the list will be disassociated and all
-	 * 				   of their users will be disassociated unless they are
-	 * 				   associated in another class.
+	 * @param classesToAdd The collection of classes to associate with the
+	 * 					   campaign.
+	 * 
+	 * @param classesToRemove The collection of classes to disassociate from
+	 * 						  the campaign.
 	 * 
 	 * @param usersAndRolesToAdd A map of usernames to a list of roles that the
 	 * 							 users should be granted in the campaign or 
@@ -807,7 +809,8 @@ public final class CampaignDaos extends Dao {
 	public static void updateCampaign(String campaignId, String xml, String description, 
 			Campaign.RunningState runningState, 
 			Campaign.PrivacyState privacyState, 
-			Collection<String> classIds, 
+			Collection<String> classesToAdd,
+			Collection<String> classesToRemove,
 			Map<String, Set<Campaign.Role>> usersAndRolesToAdd, 
 			Map<String, Set<Campaign.Role>> usersAndRolesToRemove)
 		throws DataAccessException {
@@ -901,30 +904,9 @@ public final class CampaignDaos extends Dao {
 				}
 			}
 			
-			// Update the classes
-			if(classIds != null) {
-				// Retrieve all of the classes that are currently associated with the campaign.
-				List<String> classesToRemove;
-				try {
-					classesToRemove = CampaignClassDaos.getClassesAssociatedWithCampaign(campaignId);
-				}
-				catch(DataAccessException e) {
-					transactionManager.rollback(status);
-					throw e;
-				}
-				
-				// Create the list of classes to add by taking the list of 
-				// classes from the user and removing all those that were 
-				// already associated with campaign.
-				List<String> classesToAdd = new ArrayList<String>(classIds);
-				classesToAdd.removeAll(classesToRemove);
-
-				// Create the list of classes to remove by taking those that 
-				// were already associated with the campaign and remove all 
-				// that should still be associated with the campaign.
-				classesToRemove.removeAll(classIds);
-					
-				// For all of the classes that are associated with the campaign but are not in the classIds list,
+			if(classesToRemove != null) {
+				// For all of the classes that are associated with the campaign
+				// but are not in the classIds list,
 				for(String classId : classesToRemove) {
 					// For each of the users in the class, if they are only 
 					// associated with the campaign through this class then 
@@ -996,7 +978,9 @@ public final class CampaignDaos extends Dao {
 								"' with parameters: " + campaignId + ", " + classId, e);
 					}
 				}
-				
+			}
+			
+			if(classesToAdd != null) {
 				// For all of the classes that are in the classIds list but not
 				// associated with the campaign,
 				for(String classId : classesToAdd) {

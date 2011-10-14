@@ -613,8 +613,21 @@ public class SurveyResponseDaos extends Dao {
 												@Override
 												public Object mapRow(ResultSet rs, int rowNum) throws SQLException {
 													try {
-														Prompt prompt = campaign.getPrompt(surveyId, rs.getString("prompt_id"));
-														currResult.addPromptResponse(prompt.createResponse(rs.getString("response"), (Integer) rs.getObject("repeatable_set_iteration", typeMapping)));
+														// Retrieve the prompt
+														// from the 
+														// configuration.
+														Prompt prompt = 
+															campaign.getPrompt(
+																	surveyId,
+																	rs.getString("prompt_id")
+																);
+														
+														currResult.addPromptResponse(
+																prompt.createResponse(
+																		rs.getString("response"), 
+																		(Integer) rs.getObject("repeatable_set_iteration", typeMapping)
+																	)
+															);
 													}
 													catch(IllegalArgumentException e) {
 														throw new SQLException("The prompt response value from the database is not a valid response value for this prompt.", e);
