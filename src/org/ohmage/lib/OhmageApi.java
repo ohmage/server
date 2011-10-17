@@ -43,7 +43,6 @@ import org.ohmage.domain.UserInformation;
 import org.ohmage.domain.UserPersonal;
 import org.ohmage.domain.campaign.Campaign;
 import org.ohmage.domain.campaign.SurveyResponse;
-import org.ohmage.domain.campaign.SurveyResponse.PrivacyState;
 import org.ohmage.exception.ErrorCodeException;
 import org.ohmage.lib.exception.ApiException;
 import org.ohmage.lib.exception.RequestErrorException;
@@ -74,51 +73,6 @@ public class OhmageApi {
 	private static final String CONTENT_TYPE_HTML = "text/html";
 		
 	private final URL url;
-	
-	/**
-	 * REMOVE BEFORE RELEASE! THIS IS FOR TESTING PURPOSES ONLY.
-	 * 
-	 * @param args The arguments with which to test.
-	 * 
-	 * @throws Exception Catch-all for debugging.
-	 */
-	public static void main(String args[]) throws Exception {
-		OhmageApi api = new OhmageApi("dev.andwellness.org", null, true);
-		
-		String authToken = api.getAuthenticationToken("sink.thaw", "Q!W@e3r4", "library");
-
-		Map<PrivacyState, Integer> result = api.getSurveyResponsePrivacyStateCounts(
-				null, null, authToken, "library", 
-				"urn:campaign:andwellness:chipts:08032011:Test", new Date(0), 
-				new Date(new Long("99999999999999999")), null);
-		
-		for(PrivacyState privacyState : result.keySet()) {
-			System.out.println(privacyState + ": " + result.get(privacyState));
-		}
-	}
-	
-	/**
-	 * DELETE ME!
-	 * 
-	 * @param filename The XML's filename.
-	 * 
-	 * @return The XML as a String.
-	 * 
-	 * @throws Exception If something fails.
-	 *
-	private static String readFile(final String filename) throws Exception {
-		File file = new File(filename);
-		
-		ByteArrayOutputStream baos = new ByteArrayOutputStream();
-		byte[] chunk = new byte[4096];
-		InputStream is = new FileInputStream(file);
-		int amountRead;
-		while((amountRead = is.read(chunk)) != -1) {
-			baos.write(chunk, 0, amountRead);
-		}
-		
-		return new String(baos.toByteArray());
-	}*/
 	
 	/**
 	 * Creates a new OhmageAPI object that points to a single server.
@@ -2194,12 +2148,12 @@ public class OhmageApi {
 	 * 
 	 * @param newAccount Whether or not the new user must change their password
 	 * 					 before they can login. This is optional and defaults 
-	 * 					 to true. To omit this value, pass null.
+	 * 					 to true. Optional.
 	 * 
 	 * @param canCreateCampaigns Whether or not the new user is allowed to 
 	 * 							 create campaigns. This is optional and 
 	 * 							 defaults to however the server is configured.
-	 * 							 To omit this value, pass null.
+	 * 							 Optional.
 	 * 
 	 * @throws ApiException Thrown if there is a library error.
 	 * 
@@ -2208,7 +2162,7 @@ public class OhmageApi {
 	public void createUser(final String authenticationToken, 
 			final String client,
 			final String newUsername, final String newPassword,
-			final boolean admin, final boolean enabled,
+			final Boolean admin, final Boolean enabled,
 			final Boolean newAccount, final Boolean canCreateCampaigns) 
 			throws ApiException, RequestErrorException {
 		

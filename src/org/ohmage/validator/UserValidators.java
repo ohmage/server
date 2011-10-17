@@ -36,8 +36,8 @@ public final class UserValidators {
 				"\\d" + // A digit.
 			"]" + // End of the definition.
 		")" + // End of group 1.
-		"[" + // Beginning of the definition. At least one of the following 
-		      // must be present.
+		"[" + // Beginning of the definition. The username must consist of only
+			  // these characters
 			"a-z" + // A lower case, alphabetic character. 
 			"A-Z" + // An upper case, alphabetic character. 
 			"\\d" + // A digit. 
