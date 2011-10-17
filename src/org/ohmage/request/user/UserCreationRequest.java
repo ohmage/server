@@ -81,8 +81,6 @@ public class UserCreationRequest extends UserRequest {
 	public UserCreationRequest(HttpServletRequest httpRequest) {
 		super(httpRequest, TokenLocation.PARAMETER);
 		
-		LOGGER.info("Creating a user creation request.");
-		
 		String tNewUsername = null;
 		String tNewPassword = null;
 		Boolean tNewIsAdmin = null;
@@ -90,61 +88,65 @@ public class UserCreationRequest extends UserRequest {
 		Boolean tNewIsNewAccount = null;
 		Boolean tNewCampaignCreationPrivilege = null;
 		
-		try {
-			tNewUsername = UserValidators.validateUsername(this, httpRequest.getParameter(InputKeys.USERNAME));
-			if(tNewUsername == null) {
-				setFailed(ErrorCodes.USER_INVALID_USERNAME, "Missing the required username for the new user: " + InputKeys.USERNAME);
-				throw new ValidationException("Missing the required username for the new user: " + InputKeys.USERNAME);
+		if(! isFailed()) {
+			LOGGER.info("Creating a user creation request.");
+		
+			try {
+				tNewUsername = UserValidators.validateUsername(this, httpRequest.getParameter(InputKeys.USERNAME));
+				if(tNewUsername == null) {
+					setFailed(ErrorCodes.USER_INVALID_USERNAME, "Missing the required username for the new user: " + InputKeys.USERNAME);
+					throw new ValidationException("Missing the required username for the new user: " + InputKeys.USERNAME);
+				}
+				else if(httpRequest.getParameterValues(InputKeys.USERNAME).length > 1) {
+					setFailed(ErrorCodes.USER_INVALID_USERNAME, "Multiple username parameters were given.");
+					throw new ValidationException("Multiple username parameters were given.");
+				}
+				
+				tNewPassword = UserValidators.validatePlaintextPassword(this, httpRequest.getParameter(InputKeys.PASSWORD));
+				if(tNewPassword == null) {
+					setFailed(ErrorCodes.USER_INVALID_PASSWORD, "Missing the required plaintext password for the user: " + InputKeys.PASSWORD);
+					throw new ValidationException("Missing the required plaintext password for the user: " + InputKeys.PASSWORD);
+				}
+				else if(httpRequest.getParameterValues(InputKeys.PASSWORD).length > 1) {
+					setFailed(ErrorCodes.USER_INVALID_PASSWORD, "Multiple password parameters were given.");
+					throw new ValidationException("Multiple password parameters were given.");
+				}
+				
+				tNewIsAdmin = UserValidators.validateAdminValue(this, httpRequest.getParameter(InputKeys.USER_ADMIN));
+				if(tNewIsAdmin == null) {
+					setFailed(ErrorCodes.USER_INVALID_ADMIN_VALUE, "Missing the required admin parameter: " + InputKeys.USER_ADMIN);
+					throw new ValidationException("Missing the required admin parameter: " + InputKeys.USER_ADMIN);
+				}
+				else if(httpRequest.getParameterValues(InputKeys.USER_ADMIN).length > 1) {
+					setFailed(ErrorCodes.USER_INVALID_ADMIN_VALUE, "Multiple admin parameters were given.");
+					throw new ValidationException("Multiple admin parameters were given.");
+				}
+				
+				tNewIsEnabled = UserValidators.validateEnabledValue(this, httpRequest.getParameter(InputKeys.USER_ENABLED));
+				if(tNewIsEnabled == null) {
+					setFailed(ErrorCodes.USER_INVALID_ENABLED_VALUE, "Missing the required enabled parameter: " + InputKeys.USER_ENABLED);
+					throw new ValidationException("Missing the required enabled parameter: " + InputKeys.USER_ENABLED);
+				}
+				else if(httpRequest.getParameterValues(InputKeys.USER_ENABLED).length > 1) {
+					setFailed(ErrorCodes.USER_INVALID_ENABLED_VALUE, "Multiple enabled parameters were given.");
+					throw new ValidationException("Multiple enabled parameters were given.");
+				}
+				
+				tNewIsNewAccount = UserValidators.validateNewAccountValue(this, httpRequest.getParameter(InputKeys.NEW_ACCOUNT));
+				if((tNewIsNewAccount != null) && (httpRequest.getParameterValues(InputKeys.NEW_ACCOUNT).length > 1)) {
+					setFailed(ErrorCodes.USER_INVALID_NEW_ACCOUNT_VALUE, "Multiple new account parameters were given.");
+					throw new ValidationException("Multiple new account parameters were given.");
+				}
+				
+				tNewCampaignCreationPrivilege = UserValidators.validateCampaignCreationPrivilegeValue(this, httpRequest.getParameter(InputKeys.CAMPAIGN_CREATION_PRIVILEGE));
+				if((tNewCampaignCreationPrivilege != null) && (httpRequest.getParameterValues(InputKeys.CAMPAIGN_CREATION_PRIVILEGE).length > 1)) {
+					setFailed(ErrorCodes.USER_INVALID_CAMPAIGN_CREATION_PRIVILEGE, "Multiple campaign creation privilege parameters were given.");
+					throw new ValidationException("Multiple campaign creation privilege parameters were given.");
+				}
 			}
-			else if(httpRequest.getParameterValues(InputKeys.USERNAME).length > 1) {
-				setFailed(ErrorCodes.USER_INVALID_USERNAME, "Multiple username parameters were given.");
-				throw new ValidationException("Multiple username parameters were given.");
+			catch(ValidationException e) {
+				LOGGER.info(e.toString());
 			}
-			
-			tNewPassword = UserValidators.validatePlaintextPassword(this, httpRequest.getParameter(InputKeys.PASSWORD));
-			if(tNewPassword == null) {
-				setFailed(ErrorCodes.USER_INVALID_PASSWORD, "Missing the required plaintext password for the user: " + InputKeys.PASSWORD);
-				throw new ValidationException("Missing the required plaintext password for the user: " + InputKeys.PASSWORD);
-			}
-			else if(httpRequest.getParameterValues(InputKeys.PASSWORD).length > 1) {
-				setFailed(ErrorCodes.USER_INVALID_PASSWORD, "Multiple password parameters were given.");
-				throw new ValidationException("Multiple password parameters were given.");
-			}
-			
-			tNewIsAdmin = UserValidators.validateAdminValue(this, httpRequest.getParameter(InputKeys.USER_ADMIN));
-			if(tNewIsAdmin == null) {
-				setFailed(ErrorCodes.USER_INVALID_ADMIN_VALUE, "Missing the required admin parameter: " + InputKeys.USER_ADMIN);
-				throw new ValidationException("Missing the required admin parameter: " + InputKeys.USER_ADMIN);
-			}
-			else if(httpRequest.getParameterValues(InputKeys.USER_ADMIN).length > 1) {
-				setFailed(ErrorCodes.USER_INVALID_ADMIN_VALUE, "Multiple admin parameters were given.");
-				throw new ValidationException("Multiple admin parameters were given.");
-			}
-			
-			tNewIsEnabled = UserValidators.validateEnabledValue(this, httpRequest.getParameter(InputKeys.USER_ENABLED));
-			if(tNewIsEnabled == null) {
-				setFailed(ErrorCodes.USER_INVALID_ENABLED_VALUE, "Missing the required enabled parameter: " + InputKeys.USER_ENABLED);
-				throw new ValidationException("Missing the required enabled parameter: " + InputKeys.USER_ENABLED);
-			}
-			else if(httpRequest.getParameterValues(InputKeys.USER_ENABLED).length > 1) {
-				setFailed(ErrorCodes.USER_INVALID_ENABLED_VALUE, "Multiple enabled parameters were given.");
-				throw new ValidationException("Multiple enabled parameters were given.");
-			}
-			
-			tNewIsNewAccount = UserValidators.validateNewAccountValue(this, httpRequest.getParameter(InputKeys.NEW_ACCOUNT));
-			if((tNewIsNewAccount != null) && (httpRequest.getParameterValues(InputKeys.NEW_ACCOUNT).length > 1)) {
-				setFailed(ErrorCodes.USER_INVALID_NEW_ACCOUNT_VALUE, "Multiple new account parameters were given.");
-				throw new ValidationException("Multiple new account parameters were given.");
-			}
-			
-			tNewCampaignCreationPrivilege = UserValidators.validateCampaignCreationPrivilegeValue(this, httpRequest.getParameter(InputKeys.CAMPAIGN_CREATION_PRIVILEGE));
-			if((tNewCampaignCreationPrivilege != null) && (httpRequest.getParameterValues(InputKeys.CAMPAIGN_CREATION_PRIVILEGE).length > 1)) {
-				setFailed(ErrorCodes.USER_INVALID_CAMPAIGN_CREATION_PRIVILEGE, "Multiple campaign creation privilege parameters were given.");
-				throw new ValidationException("Multiple campaign creation privilege parameters were given.");
-			}
-		}
-		catch(ValidationException e) {
-			LOGGER.info(e.toString());
 		}
 		
 		newUsername = tNewUsername;
