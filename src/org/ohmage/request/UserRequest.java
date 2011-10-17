@@ -107,12 +107,12 @@ public abstract class UserRequest extends Request {
 			// If there is no client, throw an error.
 			if(clients.length == 0) {
 				LOGGER.info("The client is missing from the request.");
-				setFailed(ErrorCodes.AUTHENTICATION_FAILED, "Missing client.");
+				setFailed(ErrorCodes.SERVER_INVALID_CLIENT, "Missing client.");
 			}
 			// If there are multiple clients, throw an error.
 			else if(clients.length > 1) {
 				LOGGER.info("More than one client was given.");
-				setFailed(ErrorCodes.AUTHENTICATION_FAILED, "More than one client was given.");
+				setFailed(ErrorCodes.SERVER_INVALID_CLIENT, "More than one client was given.");
 			}
 			else {
 				// Save the client.
@@ -220,12 +220,12 @@ public abstract class UserRequest extends Request {
 			// If there is no client, throw an error.
 			if(clients.length == 0) {
 				LOGGER.info("The client is missing from the request.");
-				setFailed(ErrorCodes.AUTHENTICATION_FAILED, "Missing client.");
+				setFailed(ErrorCodes.SERVER_INVALID_CLIENT, "Missing client.");
 			}
 			// If there are multiple clients, throw an error.
 			else if(clients.length > 1) {
 				LOGGER.info("More than one client was given.");
-				setFailed(ErrorCodes.AUTHENTICATION_FAILED, "More than one client was given.");
+				setFailed(ErrorCodes.SERVER_INVALID_CLIENT, "More than one client was given.");
 			}
 			else {
 				// Save the client.
@@ -386,12 +386,12 @@ public abstract class UserRequest extends Request {
 			// If there is no client, throw an error.
 			if(clients.length == 0) {
 				LOGGER.info("The client is missing from the request.");
-				setFailed(ErrorCodes.AUTHENTICATION_FAILED, "Missing client.");
+				setFailed(ErrorCodes.SERVER_INVALID_CLIENT, "Missing client.");
 			}
 			// If there are multiple clients, throw an error.
 			else if(clients.length > 1) {
 				LOGGER.info("More than one client was given.");
-				setFailed(ErrorCodes.AUTHENTICATION_FAILED, "More than one client was given.");
+				setFailed(ErrorCodes.SERVER_INVALID_CLIENT, "More than one client was given.");
 			}
 			else {
 				// Save the client.
