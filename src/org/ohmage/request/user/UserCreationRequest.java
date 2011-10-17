@@ -113,7 +113,7 @@ public class UserCreationRequest extends UserRequest {
 				}
 				
 				tNewIsAdmin = UserValidators.validateAdminValue(this, httpRequest.getParameter(InputKeys.USER_ADMIN));
-				if((tNewIsAdmin == null) && (httpRequest.getParameterValues(InputKeys.USER_ADMIN).length > 1)) {
+				if((tNewIsAdmin != null) && (httpRequest.getParameterValues(InputKeys.USER_ADMIN).length > 1)) {
 					setFailed(ErrorCodes.USER_INVALID_ADMIN_VALUE, "Multiple admin parameters were given.");
 					throw new ValidationException("Multiple admin parameters were given.");
 				}
