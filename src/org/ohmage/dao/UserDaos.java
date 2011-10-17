@@ -223,9 +223,19 @@ public class UserDaos extends Dao {
 	public static void createUser(String username, String hashedPassword, Boolean admin, Boolean enabled, Boolean newAccount, Boolean campaignCreationPrivilege) 
 		throws DataAccessException {
 		
+		Boolean tAdmin = admin;
+		if(tAdmin == null) {
+			tAdmin = false;
+		}
+		
+		Boolean tEnabled = enabled;
+		if(tEnabled == null) {
+			tEnabled = false;
+		}
+		
 		Boolean tNewAccount = newAccount;
 		if(tNewAccount == null) {
-			tNewAccount = Boolean.TRUE;
+			tNewAccount = true;
 		}
 		
 		Boolean tCampaignCreationPrivilege = campaignCreationPrivilege;
@@ -249,12 +259,12 @@ public class UserDaos extends Dao {
 			
 			// Insert the new user.
 			try {
-				instance.getJdbcTemplate().update(SQL_INSERT_USER, new Object[] { username, hashedPassword, admin, enabled, tNewAccount, tCampaignCreationPrivilege });
+				instance.getJdbcTemplate().update(SQL_INSERT_USER, new Object[] { username, hashedPassword, tAdmin, tEnabled, tNewAccount, tCampaignCreationPrivilege });
 			}
 			catch(org.springframework.dao.DataAccessException e) {
 				transactionManager.rollback(status);
 				throw new DataAccessException("Error while executing SQL '" + SQL_INSERT_USER + "' with parameters: " +
-						username + ", " + hashedPassword + ", " + admin + ", " + enabled + ", " + tNewAccount + ", " + tCampaignCreationPrivilege, e);
+						username + ", " + hashedPassword + ", " + tAdmin + ", " + tEnabled + ", " + tNewAccount + ", " + tCampaignCreationPrivilege, e);
 			}
 			
 			// Commit the transaction.

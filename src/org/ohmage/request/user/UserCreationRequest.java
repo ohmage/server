@@ -113,21 +113,13 @@ public class UserCreationRequest extends UserRequest {
 				}
 				
 				tNewIsAdmin = UserValidators.validateAdminValue(this, httpRequest.getParameter(InputKeys.USER_ADMIN));
-				if(tNewIsAdmin == null) {
-					setFailed(ErrorCodes.USER_INVALID_ADMIN_VALUE, "Missing the required admin parameter: " + InputKeys.USER_ADMIN);
-					throw new ValidationException("Missing the required admin parameter: " + InputKeys.USER_ADMIN);
-				}
-				else if(httpRequest.getParameterValues(InputKeys.USER_ADMIN).length > 1) {
+				if((tNewIsAdmin == null) && (httpRequest.getParameterValues(InputKeys.USER_ADMIN).length > 1)) {
 					setFailed(ErrorCodes.USER_INVALID_ADMIN_VALUE, "Multiple admin parameters were given.");
 					throw new ValidationException("Multiple admin parameters were given.");
 				}
 				
 				tNewIsEnabled = UserValidators.validateEnabledValue(this, httpRequest.getParameter(InputKeys.USER_ENABLED));
-				if(tNewIsEnabled == null) {
-					setFailed(ErrorCodes.USER_INVALID_ENABLED_VALUE, "Missing the required enabled parameter: " + InputKeys.USER_ENABLED);
-					throw new ValidationException("Missing the required enabled parameter: " + InputKeys.USER_ENABLED);
-				}
-				else if(httpRequest.getParameterValues(InputKeys.USER_ENABLED).length > 1) {
+				if((tNewIsEnabled != null) && (httpRequest.getParameterValues(InputKeys.USER_ENABLED).length > 1)) {
 					setFailed(ErrorCodes.USER_INVALID_ENABLED_VALUE, "Multiple enabled parameters were given.");
 					throw new ValidationException("Multiple enabled parameters were given.");
 				}
