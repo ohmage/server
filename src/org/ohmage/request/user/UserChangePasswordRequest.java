@@ -50,23 +50,25 @@ public class UserChangePasswordRequest extends UserRequest {
 	public UserChangePasswordRequest(HttpServletRequest httpRequest) {
 		super(httpRequest, true);
 		
-		LOGGER.info("Creating a user change password request.");
-		
 		String tNewPassword = null;
 		
-		try {
-			tNewPassword = UserValidators.validatePlaintextPassword(this, httpRequest.getParameter(InputKeys.NEW_PASSWORD));
-			if(tNewPassword == null) {
-				setFailed(ErrorCodes.USER_INVALID_PASSWORD, "The new password is missing: " + InputKeys.NEW_PASSWORD);
-				throw new ValidationException("The new password is missing: " + InputKeys.NEW_PASSWORD);
+		if(! isFailed()) {
+			LOGGER.info("Creating a user change password request.");
+			
+			try {
+				tNewPassword = UserValidators.validatePlaintextPassword(this, httpRequest.getParameter(InputKeys.NEW_PASSWORD));
+				if(tNewPassword == null) {
+					setFailed(ErrorCodes.USER_INVALID_PASSWORD, "The new password is missing: " + InputKeys.NEW_PASSWORD);
+					throw new ValidationException("The new password is missing: " + InputKeys.NEW_PASSWORD);
+				}
+				else if(httpRequest.getParameterValues(InputKeys.NEW_PASSWORD).length > 1) {
+					setFailed(ErrorCodes.USER_INVALID_PASSWORD, "Multiple new password parameters were given.");
+					throw new ValidationException("Multiple new password parameters were given.");
+				}
 			}
-			else if(httpRequest.getParameterValues(InputKeys.NEW_PASSWORD).length > 1) {
-				setFailed(ErrorCodes.USER_INVALID_PASSWORD, "Multiple new password parameters were given.");
-				throw new ValidationException("Multiple new password parameters were given.");
+			catch(ValidationException e) {
+				LOGGER.info(e.toString());
 			}
-		}
-		catch(ValidationException e) {
-			LOGGER.info(e.toString());
 		}
 		
 		newPassword = tNewPassword;

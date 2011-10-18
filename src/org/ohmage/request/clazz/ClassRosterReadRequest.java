@@ -4,9 +4,11 @@ import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -14,9 +16,9 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.log4j.Logger;
 import org.ohmage.annotator.ErrorCodes;
 import org.ohmage.cache.UserBin;
-import org.ohmage.dao.ClassDaos.UserAndClassRole;
 import org.ohmage.exception.ServiceException;
 import org.ohmage.exception.ValidationException;
+import org.ohmage.query.ClassQueries.UserAndClassRole;
 import org.ohmage.request.InputKeys;
 import org.ohmage.request.UserRequest;
 import org.ohmage.service.ClassServices;
@@ -54,7 +56,7 @@ public class ClassRosterReadRequest extends UserRequest {
 
 	private static final long MILLIS_IN_A_SECOND = 1000;
 	
-	private final List<String> classIds;
+	private final Collection<String> classIds;
 	
 	private Map<String, List<UserAndClassRole>> roster;
 	
@@ -69,7 +71,7 @@ public class ClassRosterReadRequest extends UserRequest {
 		
 		LOGGER.info("Creating a class roster read request.");
 		
-		List<String> tClassIds = null;
+		Set<String> tClassIds = null;
 		
 		try {
 			tClassIds = ClassValidators.validateClassIdList(this, httpRequest.getParameter(InputKeys.CLASS_URN_LIST));

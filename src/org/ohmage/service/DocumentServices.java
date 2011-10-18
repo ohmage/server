@@ -9,11 +9,10 @@ import java.util.List;
 import java.util.Map;
 
 import org.ohmage.annotator.ErrorCodes;
-import org.ohmage.cache.DocumentPrivacyStateCache;
-import org.ohmage.cache.DocumentRoleCache;
-import org.ohmage.dao.DocumentDaos;
+import org.ohmage.domain.Document;
 import org.ohmage.exception.DataAccessException;
 import org.ohmage.exception.ServiceException;
+import org.ohmage.query.DocumentQueries;
 import org.ohmage.request.Request;
 
 /**
@@ -52,10 +51,10 @@ public class DocumentServices {
 	 * 
 	 * @throws ServiceException Thrown if there is an error.
 	 */
-	public static String createDocument(Request request, byte[] contents, String name, String description, DocumentPrivacyStateCache.PrivacyState privacyState,
-			Map<String, DocumentRoleCache.Role> campaignRoleMap, Map<String, DocumentRoleCache.Role> classRoleMap, String creatorUsername) throws ServiceException {
+	public static String createDocument(Request request, byte[] contents, String name, String description, Document.PrivacyState privacyState,
+			Map<String, Document.Role> campaignRoleMap, Map<String, Document.Role> classRoleMap, String creatorUsername) throws ServiceException {
 		try {
-			return DocumentDaos.createDocument(contents, name, description, privacyState, campaignRoleMap, classRoleMap, creatorUsername);
+			return DocumentQueries.createDocument(contents, name, description, privacyState, campaignRoleMap, classRoleMap, creatorUsername);
 		}
 		catch(DataAccessException e) {
 			request.setFailed();
@@ -75,7 +74,7 @@ public class DocumentServices {
 	 */
 	public static void ensureDocumentExistence(Request request, String documentId) throws ServiceException {
 		try {
-			if(! DocumentDaos.getDocumentExists(documentId)) {
+			if(! DocumentQueries.getDocumentExists(documentId)) {
 				request.setFailed(ErrorCodes.DOCUMENT_INVALID_ID, "The document with the given document ID does not exist: " + documentId);
 				throw new ServiceException("The document with the given document ID does not exist: " + documentId);
 			}
@@ -101,7 +100,7 @@ public class DocumentServices {
 	 */
 	public static String getDocumentName(Request request, String documentId) throws ServiceException {
 		try {
-			return DocumentDaos.getDocumentName(documentId);
+			return DocumentQueries.getDocumentName(documentId);
 		}
 		catch(DataAccessException e) {
 			request.setFailed();
@@ -129,29 +128,29 @@ public class DocumentServices {
 	 * 
 	 * @throws IllegalArgumentException The List of roles is null.
 	 */
-	public static void ensureRoleNotLessThanRoles(Request request, DocumentRoleCache.Role role, Collection<DocumentRoleCache.Role> roles) throws ServiceException {
+	public static void ensureRoleNotLessThanRoles(Request request, Document.Role role, Collection<Document.Role> roles) throws ServiceException {
 		if(roles == null) {
 			throw new IllegalArgumentException("The list of roles is null.");
 		}
 		
-		if(DocumentRoleCache.Role.OWNER.equals(role)) {
+		if(Document.Role.OWNER.equals(role)) {
 			return;
 		}
-		else if(roles.contains(DocumentRoleCache.Role.OWNER)) {
+		else if(roles.contains(Document.Role.OWNER)) {
 			request.setFailed(ErrorCodes.DOCUMENT_INSUFFICIENT_PERMISSIONS, "The user is attempting to grant or revoke document ownership when they are not an owner themselves.");
 			throw new ServiceException("The user is attempting to grant or revoke document ownership when they are not an owner themselves.");
 		}
-		else if(DocumentRoleCache.Role.WRITER.equals(role)) {
+		else if(Document.Role.WRITER.equals(role)) {
 			return;
 		}
-		else if(roles.contains(DocumentRoleCache.Role.WRITER)) {
+		else if(roles.contains(Document.Role.WRITER)) {
 			request.setFailed(ErrorCodes.DOCUMENT_INSUFFICIENT_PERMISSIONS, "The user is attempting to grant or revoke the document write ability when they are not a document writer themselves.");
 			throw new ServiceException("The user is attempting to grant or revoke the document write ability when they are not a document writer themselves.");
 		}
-		else if(DocumentRoleCache.Role.READER.equals(role)) {
+		else if(Document.Role.READER.equals(role)) {
 			return;
 		}
-		else if(roles.contains(DocumentRoleCache.Role.READER)) {
+		else if(roles.contains(Document.Role.READER)) {
 			request.setFailed(ErrorCodes.DOCUMENT_INSUFFICIENT_PERMISSIONS, "The user is attempting to grant or revoke the document read ability when they are not a document readers themselves.");
 			throw new ServiceException("The user is attempting to grant or revoke the document read ability when they are not a document readers themselves.");
 		}
@@ -179,7 +178,7 @@ public class DocumentServices {
 	 */
 	public static InputStream getDocumentInputStream(Request request, String documentId) throws ServiceException {
 		try {
-			return (new URL(DocumentDaos.getDocumentUrl(documentId))).openConnection().getInputStream();
+			return (new URL(DocumentQueries.getDocumentUrl(documentId))).openConnection().getInputStream();
 			
 		}
 		catch(DataAccessException e) {
@@ -244,12 +243,12 @@ public class DocumentServices {
 	 * @throws ServiceException Thrown if there is an error.
 	 */
 	public static void updateDocument(Request request, String documentId, byte[] newContents, String newName, String newDescription, 
-			DocumentPrivacyStateCache.PrivacyState newPrivacyState,
-			Map<String, DocumentRoleCache.Role> campaignAndRolesToAssociateOrUpdate, List<String> campaignsToDisassociate,
-			Map<String, DocumentRoleCache.Role> classAndRolesToAssociateOrUpdate, List<String> classesToDisassociate,
-			Map<String, DocumentRoleCache.Role> userAndRolesToAssociateOrUpdate, List<String> usersToDisassoicate) throws ServiceException {
+			Document.PrivacyState newPrivacyState,
+			Map<String, Document.Role> campaignAndRolesToAssociateOrUpdate, List<String> campaignsToDisassociate,
+			Map<String, Document.Role> classAndRolesToAssociateOrUpdate, Collection<String> classesToDisassociate,
+			Map<String, Document.Role> userAndRolesToAssociateOrUpdate, Collection<String> usersToDisassoicate) throws ServiceException {
 		try {
-			DocumentDaos.updateDocument(documentId, newContents, newName, newDescription, newPrivacyState, 
+			DocumentQueries.updateDocument(documentId, newContents, newName, newDescription, newPrivacyState, 
 					campaignAndRolesToAssociateOrUpdate, campaignsToDisassociate, 
 					classAndRolesToAssociateOrUpdate, classesToDisassociate, 
 					userAndRolesToAssociateOrUpdate, usersToDisassoicate);
@@ -271,7 +270,7 @@ public class DocumentServices {
 	 */
 	public static void deleteDocument(Request request, String documentId) throws ServiceException {
 		try {
-			DocumentDaos.deleteDocument(documentId);
+			DocumentQueries.deleteDocument(documentId);
 		}
 		catch(DataAccessException e) {
 			request.setFailed();

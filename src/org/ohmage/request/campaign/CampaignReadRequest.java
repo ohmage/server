@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.util.Calendar;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -20,11 +21,9 @@ import org.apache.log4j.Logger;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.ohmage.annotator.ErrorCodes;
-import org.ohmage.cache.CampaignPrivacyStateCache;
-import org.ohmage.cache.CampaignRoleCache;
-import org.ohmage.cache.CampaignRunningStateCache;
 import org.ohmage.cache.UserBin;
-import org.ohmage.domain.CampaignInformation;
+import org.ohmage.domain.campaign.Campaign;
+import org.ohmage.domain.campaign.Campaign.OutputFormat;
 import org.ohmage.exception.DataAccessException;
 import org.ohmage.exception.ServiceException;
 import org.ohmage.exception.ValidationException;
@@ -35,7 +34,6 @@ import org.ohmage.service.UserCampaignServices;
 import org.ohmage.service.UserClassServices;
 import org.ohmage.util.CookieUtils;
 import org.ohmage.validator.CampaignValidators;
-import org.ohmage.validator.CampaignValidators.OutputFormat;
 import org.ohmage.validator.ClassValidators;
 
 /**
@@ -152,21 +150,21 @@ public class CampaignReadRequest extends UserRequest {
 
 	private static final long MILLIS_IN_A_SECOND = 1000;
 	
-	private final CampaignValidators.OutputFormat outputFormat;
+	private final Campaign.OutputFormat outputFormat;
 	
 	private final List<String> campaignIds;
-	private final List<String> classIds;
+	private final Collection<String> classIds;
 	
 	private final Calendar startDate;
 	private final Calendar endDate;
 	
-	private final CampaignPrivacyStateCache.PrivacyState privacyState;
-	private final CampaignRunningStateCache.RunningState runningState;
+	private final Campaign.PrivacyState privacyState;
+	private final Campaign.RunningState runningState;
 	
-	private final CampaignRoleCache.Role role;
+	private final Campaign.Role role;
 	
 	// For short and long reads.
-	private Map<CampaignInformation, List<CampaignRoleCache.Role>> shortOrLongResult;
+	private Map<Campaign, List<Campaign.Role>> shortOrLongResult;
 	
 	// For XML reads.
 	private String xmlResult;
@@ -182,18 +180,18 @@ public class CampaignReadRequest extends UserRequest {
 		
 		LOGGER.info("Creating a campaign read reaquest.");
 		
-		CampaignValidators.OutputFormat tOutputFormat = null;
+		Campaign.OutputFormat tOutputFormat = null;
 		
 		List<String> tCampaignIds = null;
-		List<String> tClassIds = null;
+		Set<String> tClassIds = null;
 		
 		Calendar tStartDate = null;
 		Calendar tEndDate = null;
 		
-		CampaignPrivacyStateCache.PrivacyState tPrivacyState = null;
-		CampaignRunningStateCache.RunningState tRunningState = null;
+		Campaign.PrivacyState tPrivacyState = null;
+		Campaign.RunningState tRunningState = null;
 		
-		CampaignRoleCache.Role tRole = null;
+		Campaign.Role tRole = null;
 		
 		try {
 			tOutputFormat = CampaignValidators.validateOutputFormat(this, httpRequest.getParameter(InputKeys.OUTPUT_FORMAT));
@@ -398,14 +396,14 @@ public class CampaignReadRequest extends UserRequest {
 					
 					// For each of the campaigns, process its information and
 					// place it in its respective object.
-					for(CampaignInformation campaign : shortOrLongResult.keySet()) {
+					for(Campaign campaign : shortOrLongResult.keySet()) {
 						// Get the campaign's ID for the metadata.
 						resultCampaignIds.add(campaign.getId());
 						
-						List<CampaignRoleCache.Role> roles = shortOrLongResult.get(campaign);
+						List<Campaign.Role> roles = shortOrLongResult.get(campaign);
 						boolean supervisorOrAuthor = 
-							roles.contains(CampaignRoleCache.Role.SUPERVISOR) || 
-							roles.contains(CampaignRoleCache.Role.AUTHOR);
+							roles.contains(Campaign.Role.SUPERVISOR) || 
+							roles.contains(Campaign.Role.AUTHOR);
 						
 						// Create the JSONObject response. This may return null
 						// if there is an error building it.
@@ -417,7 +415,8 @@ public class CampaignReadRequest extends UserRequest {
 								supervisorOrAuthor, // Analysts
 								true,				// Authors
 								supervisorOrAuthor,	// Supervisors
-								longOutput);// XML
+								longOutput,	// XML
+								false);	// Surveys
 						
 						if(resultJson != null) {
 							resultJson.put(JSON_KEY_USER_ROLES, roles);
@@ -481,7 +480,7 @@ public class CampaignReadRequest extends UserRequest {
 		
 		// Retrieve all of the campaign IDs from the result.
 		List<String> campaignIds = new LinkedList<String>();
-		for(CampaignInformation campaign : shortOrLongResult.keySet()) {
+		for(Campaign campaign : shortOrLongResult.keySet()) {
 			campaignIds.add(campaign.getId());
 		}
 		

@@ -7,11 +7,11 @@ import java.util.List;
 import java.util.Set;
 
 import org.ohmage.annotator.ErrorCodes;
-import org.ohmage.cache.CampaignRoleCache;
-import org.ohmage.dao.UserCampaignDaos;
-import org.ohmage.dao.UserCampaignDocumentDaos;
+import org.ohmage.domain.campaign.Campaign;
 import org.ohmage.exception.DataAccessException;
 import org.ohmage.exception.ServiceException;
+import org.ohmage.query.UserCampaignDocumentQueries;
+import org.ohmage.query.UserCampaignQueries;
 import org.ohmage.request.Request;
 
 /**
@@ -42,7 +42,7 @@ public class UserCampaignDocumentServices {
 	 */
 	public static void userCanAssociateDocumentsWithCampaign(Request request, String username, String campaignId) throws ServiceException {
 		try {
-			List<CampaignRoleCache.Role> roles = UserCampaignDaos.getUserCampaignRoles(username, campaignId);
+			List<Campaign.Role> roles = UserCampaignQueries.getUserCampaignRoles(username, campaignId);
 			
 			if(roles.size() == 0) {
 				request.setFailed(ErrorCodes.DOCUMENT_INSUFFICIENT_PERMISSIONS, "The user is not a member of the following campaign and, therefore, cannot associate documents with it: " + campaignId);
@@ -72,7 +72,7 @@ public class UserCampaignDocumentServices {
 	 */
 	public static void userCanDisassociateDocumentsFromCampaign(Request request, String username, String campaignId) throws ServiceException {
 		try {
-			List<CampaignRoleCache.Role> roles = UserCampaignDaos.getUserCampaignRoles(username, campaignId);
+			List<Campaign.Role> roles = UserCampaignQueries.getUserCampaignRoles(username, campaignId);
 			
 			if(roles.size() == 0) {
 				request.setFailed(ErrorCodes.DOCUMENT_INSUFFICIENT_PERMISSIONS, "The user is not a member of the following campaign and, therefore, cannot disassociate documents from it: " + campaignId);
@@ -145,7 +145,7 @@ public class UserCampaignDocumentServices {
 	 */
 	public static List<String> getVisibleDocumentsSpecificToCampaign(Request request, String username, String campaignId) throws ServiceException {
 		try {
-			return UserCampaignDocumentDaos.getVisibleDocumentsToUserInCampaign(username, campaignId);
+			return UserCampaignDocumentQueries.getVisibleDocumentsToUserInCampaign(username, campaignId);
 		}
 		catch(DataAccessException e) {
 			request.setFailed();
@@ -193,7 +193,7 @@ public class UserCampaignDocumentServices {
 	 */
 	public static boolean getUserIsSupervisorInAnyCampaignAssociatedWithDocument(Request request, String username, String documentId) throws ServiceException {
 		try {
-			return UserCampaignDocumentDaos.getUserIsSupervisorInAnyCampaignAssociatedWithDocument(username, documentId);
+			return UserCampaignDocumentQueries.getUserIsSupervisorInAnyCampaignAssociatedWithDocument(username, documentId);
 		}
 		catch(DataAccessException e) {
 			request.setFailed();

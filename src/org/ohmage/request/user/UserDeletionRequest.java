@@ -1,6 +1,7 @@
 package org.ohmage.request.user;
 
-import java.util.List;
+import java.util.Collection;
+import java.util.Set;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -41,7 +42,7 @@ import org.ohmage.validator.UserValidators;
 public class UserDeletionRequest extends UserRequest {
 	private static final Logger LOGGER = Logger.getLogger(UserDeletionRequest.class);
 	
-	private final List<String> usernames;
+	private final Collection<String> usernames;
 	
 	/**
 	 * Creates a user deletion request.
@@ -53,7 +54,7 @@ public class UserDeletionRequest extends UserRequest {
 		
 		LOGGER.info("Creating a user deletion request.");
 		
-		List<String> tUsernames = null;
+		Set<String> tUsernames = null;
 		
 		try {
 			tUsernames = UserValidators.validateUsernames(this, httpRequest.getParameter(InputKeys.USER_LIST));

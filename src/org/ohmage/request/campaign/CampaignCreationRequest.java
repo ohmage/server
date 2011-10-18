@@ -1,14 +1,14 @@
 package org.ohmage.request.campaign;
 
-import java.util.List;
+import java.util.Collection;
+import java.util.Set;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.log4j.Logger;
 import org.ohmage.annotator.ErrorCodes;
-import org.ohmage.cache.CampaignPrivacyStateCache;
-import org.ohmage.cache.CampaignRunningStateCache;
+import org.ohmage.domain.campaign.Campaign;
 import org.ohmage.exception.ServiceException;
 import org.ohmage.exception.ValidationException;
 import org.ohmage.request.InputKeys;
@@ -69,9 +69,9 @@ public class CampaignCreationRequest extends UserRequest {
 
 	private final String xml;
 	private final String description;
-	private final CampaignRunningStateCache.RunningState runningState;
-	private final CampaignPrivacyStateCache.PrivacyState privacyState;
-	private final List<String> classIds;
+	private final Campaign.RunningState runningState;
+	private final Campaign.PrivacyState privacyState;
+	private final Collection<String> classIds;
 	
 	/**
 	 * Builds a campaign creation request from the HttpServletRequest.
@@ -86,9 +86,9 @@ public class CampaignCreationRequest extends UserRequest {
 		
 		String tXml = null;
 		String tDescription = null;
-		CampaignRunningStateCache.RunningState tRunningState = null;
-		CampaignPrivacyStateCache.PrivacyState tPrivacyState = null;
-		List<String> tClassIds = null;
+		Campaign.RunningState tRunningState = null;
+		Campaign.PrivacyState tPrivacyState = null;
+		Set<String> tClassIds = null;
 		
 		if(! isFailed()) {
 			try {

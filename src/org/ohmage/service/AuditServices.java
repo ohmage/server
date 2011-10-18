@@ -4,12 +4,12 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
-import org.ohmage.dao.AuditDaos;
-import org.ohmage.domain.AuditInformation;
+import org.ohmage.domain.Audit;
 import org.ohmage.exception.DataAccessException;
 import org.ohmage.exception.ServiceException;
 import org.ohmage.jee.servlet.RequestServlet;
 import org.ohmage.jee.servlet.RequestServlet.RequestType;
+import org.ohmage.query.AuditQueries;
 import org.ohmage.request.Request;
 import org.ohmage.validator.AuditValidators.ResponseType;
 
@@ -68,7 +68,7 @@ public class AuditServices {
 	public static void createAudit(RequestServlet.RequestType requestType, String uri, String client, String deviceId, String response,
 			Map<String, String[]> parameterMap, Map<String, String[]> extras, long receivedTimestamp, long respondTimestamp) throws ServiceException {
 		try {
-			AuditDaos.createAudit(requestType, uri, client, deviceId, parameterMap, extras, response, receivedTimestamp, respondTimestamp);
+			AuditQueries.createAudit(requestType, uri, client, deviceId, parameterMap, extras, response, receivedTimestamp, respondTimestamp);
 		}
 		catch(DataAccessException e) {
 			throw new ServiceException(e);
@@ -113,83 +113,83 @@ public class AuditServices {
 	 * 
 	 * @throws ServiceException Thrown if there is an error.
 	 */
-	public static List<AuditInformation> getAuditInformation(Request request, RequestType requestType, String uri, String client, 
+	public static List<Audit> getAuditInformation(Request request, RequestType requestType, String uri, String client, 
 			String deviceId, ResponseType responseType, String errorCode, Date startDate, Date endDate) throws ServiceException {
 		try {
 			List<Long> auditIds = null;
 			
 			if(requestType != null) {
-				auditIds = AuditDaos.getAllAuditsWithRequestType(requestType);
+				auditIds = AuditQueries.getAllAuditsWithRequestType(requestType);
 			}
 			
 			if(uri != null) {
 				if(auditIds == null) {
-					auditIds = AuditDaos.getAllAuditsWithUri(uri);
+					auditIds = AuditQueries.getAllAuditsWithUri(uri);
 				}
 				else {
-					auditIds.retainAll(AuditDaos.getAllAuditsWithUri(uri));
+					auditIds.retainAll(AuditQueries.getAllAuditsWithUri(uri));
 				}
 			}
 			
 			if(client != null) {
 				if(auditIds == null) {
-					auditIds = AuditDaos.getAllAuditsWithClient(client);
+					auditIds = AuditQueries.getAllAuditsWithClient(client);
 				}
 				else {
-					auditIds.retainAll(AuditDaos.getAllAuditsWithClient(client));
+					auditIds.retainAll(AuditQueries.getAllAuditsWithClient(client));
 				}
 			}
 			
 			if(deviceId != null) {
 				if(auditIds == null) {
-					auditIds = AuditDaos.getAllAuditsWithDeviceId(deviceId);
+					auditIds = AuditQueries.getAllAuditsWithDeviceId(deviceId);
 				}
 				else {
-					auditIds.retainAll(AuditDaos.getAllAuditsWithDeviceId(deviceId));
+					auditIds.retainAll(AuditQueries.getAllAuditsWithDeviceId(deviceId));
 				}
 			}
 			
 			if(responseType != null) {
 				if(auditIds == null) {
-					auditIds = AuditDaos.getAllAuditsWithResponse(responseType, errorCode);
+					auditIds = AuditQueries.getAllAuditsWithResponse(responseType, errorCode);
 				}
 				else {
-					auditIds.retainAll(AuditDaos.getAllAuditsWithResponse(responseType, errorCode));
+					auditIds.retainAll(AuditQueries.getAllAuditsWithResponse(responseType, errorCode));
 				}
 			}
 			
 			if(startDate != null) {
 				if(endDate == null) {
 					if(auditIds == null) {
-						auditIds = AuditDaos.getAllAuditsOnOrAfterDate(startDate);
+						auditIds = AuditQueries.getAllAuditsOnOrAfterDate(startDate);
 					}
 					else {
-						auditIds.retainAll(AuditDaos.getAllAuditsOnOrAfterDate(startDate));
+						auditIds.retainAll(AuditQueries.getAllAuditsOnOrAfterDate(startDate));
 					}
 				}
 				else {
 					if(auditIds == null) {
-						auditIds = AuditDaos.getAllAuditsOnOrBetweenDates(startDate, endDate);
+						auditIds = AuditQueries.getAllAuditsOnOrBetweenDates(startDate, endDate);
 					}
 					else {
-						auditIds.retainAll(AuditDaos.getAllAuditsOnOrBetweenDates(startDate, endDate));
+						auditIds.retainAll(AuditQueries.getAllAuditsOnOrBetweenDates(startDate, endDate));
 					}
 				}
 			}
 			else if(endDate != null) {
 				if(auditIds == null) {
-					auditIds = AuditDaos.getAllAuditsOnOrBeforeDate(endDate);
+					auditIds = AuditQueries.getAllAuditsOnOrBeforeDate(endDate);
 				}
 				else {
-					auditIds.retainAll(AuditDaos.getAllAuditsOnOrBeforeDate(endDate));
+					auditIds.retainAll(AuditQueries.getAllAuditsOnOrBeforeDate(endDate));
 				}
 			}
 			
 			if(auditIds == null) {
-				auditIds = AuditDaos.getAllAudits();
+				auditIds = AuditQueries.getAllAudits();
 			}
 			
-			return AuditDaos.readAuditInformation(auditIds);
+			return AuditQueries.readAuditInformation(auditIds);
 		}
 		catch(DataAccessException e) {
 			request.setFailed();

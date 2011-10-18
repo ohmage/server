@@ -7,7 +7,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.log4j.Logger;
 import org.ohmage.annotator.ErrorCodes;
-import org.ohmage.domain.MobilityInformation;
+import org.ohmage.domain.MobilityPoint;
 import org.ohmage.exception.ServiceException;
 import org.ohmage.exception.ValidationException;
 import org.ohmage.request.InputKeys;
@@ -131,7 +131,7 @@ import org.ohmage.validator.MobilityValidators;
 public class MobilityUploadRequest extends UserRequest {
 	private static final Logger LOGGER = Logger.getLogger(MobilityUploadRequest.class);
 	
-	private final List<MobilityInformation> data;
+	private final List<MobilityPoint> data;
 	
 	/**
 	 * Creates a Mobility upload request.
@@ -144,7 +144,7 @@ public class MobilityUploadRequest extends UserRequest {
 		
 		LOGGER.info("Creating a Mobility upload request.");
 		
-		List<MobilityInformation> tData = null;
+		List<MobilityPoint> tData = null;
 		
 		if(! isFailed()) {
 			try {

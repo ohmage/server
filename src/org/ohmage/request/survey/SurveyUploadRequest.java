@@ -3,8 +3,8 @@ package org.ohmage.request.survey;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -18,24 +18,18 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.Part;
 
 import org.apache.log4j.Logger;
-import org.json.JSONArray;
+import org.json.JSONObject;
 import org.ohmage.annotator.ErrorCodes;
-import org.ohmage.cache.CampaignRoleCache;
-import org.ohmage.cache.CampaignRunningStateCache;
-import org.ohmage.dao.SurveyUploadDao;
-import org.ohmage.domain.configuration.Configuration;
-import org.ohmage.domain.upload.SurveyResponse;
-import org.ohmage.domain.upload.SurveyUploadBuilder;
-import org.ohmage.exception.DataAccessException;
+import org.ohmage.domain.campaign.Campaign;
+import org.ohmage.domain.campaign.SurveyResponse;
 import org.ohmage.exception.ServiceException;
 import org.ohmage.exception.ValidationException;
 import org.ohmage.request.InputKeys;
 import org.ohmage.request.UserRequest;
 import org.ohmage.service.CampaignServices;
-import org.ohmage.service.SurveyUploadServices;
+import org.ohmage.service.SurveyResponseServices;
 import org.ohmage.service.UserCampaignServices;
-import org.ohmage.util.JsonUtils;
-import org.ohmage.util.StringUtils;
+import org.ohmage.validator.CampaignValidators;
 import org.ohmage.validator.DateValidators;
 import org.ohmage.validator.ImageValidators;
 
@@ -92,22 +86,12 @@ import org.ohmage.validator.ImageValidators;
 public class SurveyUploadRequest extends UserRequest {
 	private static final Logger LOGGER = Logger.getLogger(SurveyUploadRequest.class);
 	
-	private static final List<CampaignRoleCache.Role> ALLOWED_ROLES;
-	private static final CampaignRunningStateCache.RunningState ALLOWED_CAMPAIGN_RUNNING_STATE = CampaignRunningStateCache.RunningState.RUNNING;
-	
-	static {
-		ALLOWED_ROLES = Arrays.asList(new CampaignRoleCache.Role[] {CampaignRoleCache.Role.PARTICIPANT});
-	}
-	
 	// The campaign creation timestamp is stored as a String because it is 
 	// never used in any kind of calculation.
-	private final String campaignCreationTimestamp;
 	private final String campaignUrn;
+	private final Date campaignCreationTimestamp;
+	private List<JSONObject> jsonData;
 	private final Map<String, BufferedImage> imageContentsMap;
-	
-	private Configuration configuration;
-	private String jsonData;
-	private JSONArray jsonDataArray;
 	
 	/**
 	 * Creates a new image upload request.
@@ -118,11 +102,11 @@ public class SurveyUploadRequest extends UserRequest {
 	public SurveyUploadRequest(HttpServletRequest httpRequest) {
 		super(httpRequest, false);
 		
-		LOGGER.info("Creating an atomic survey upload request.");
-		
-		String tCampaignCreationTimestamp = null;
+		LOGGER.info("Creating a survey upload request.");
+
 		String tCampaignUrn = null;
-		String tJsonData = null;
+		Date tCampaignCreationTimestamp = null;
+		List<JSONObject> tJsonData = null;
 		Map<String, BufferedImage> tImageContentsMap = null;
 		
 		if(! isFailed()) {
@@ -130,17 +114,20 @@ public class SurveyUploadRequest extends UserRequest {
 				Map<String, String[]> parameters = getParameters();
 				
 				// Validate the campaign URN
-				
 				String[] t = parameters.get(InputKeys.CAMPAIGN_URN);
 				if(t == null || t.length != 1) {
 					setFailed(ErrorCodes.CAMPAIGN_INVALID_ID, "campaign_urn is missing or there is more than one.");
 					throw new ValidationException("campaign_urn is missing or there is more than one.");
 				} else {
-					tCampaignUrn = t[0];
+					tCampaignUrn = CampaignValidators.validateCampaignId(this, t[0]);
+					
+					if(tCampaignUrn == null) {
+						setFailed(ErrorCodes.CAMPAIGN_INVALID_ID, "The campaign ID is invalid.");
+						throw new ValidationException("The campaign ID is invalid.");
+					}
 				}
 				
 				// Validate the campaign creation timestamp
-				
 				t = parameters.get(InputKeys.CAMPAIGN_CREATION_TIMESTAMP);
 				if(t == null || t.length != 1) {
 					setFailed(ErrorCodes.SERVER_INVALID_TIMESTAMP, "campaign_creation_timestamp is missing or there is more than one");
@@ -150,13 +137,12 @@ public class SurveyUploadRequest extends UserRequest {
 					
 					// Make sure it's a valid timestamp
 					try {
-						DateValidators.validateISO8601DateTime(t[0]);
-					} 
+						tCampaignCreationTimestamp = DateValidators.validateISO8601DateTime(t[0]);
+					}
 					catch(ValidationException e) {
-						setFailed(ErrorCodes.SERVER_INVALID_TIMESTAMP, "campaign_creation_timestamp is malformed");
+						setFailed(ErrorCodes.SERVER_INVALID_DATE, e.getMessage());
 						throw e;
 					}
-					tCampaignCreationTimestamp = t[0];
 				}
 				
 				t = parameters.get(InputKeys.SURVEYS);
@@ -165,14 +151,18 @@ public class SurveyUploadRequest extends UserRequest {
 					throw new ValidationException("No value found for 'surveys' parameter or multiple surveys parameters were found.");
 				}
 				else {
-					tJsonData = StringUtils.urlDecode(t[0]);
+					try {
+						tJsonData = CampaignValidators.validateUploadedJson(this, t[0]);
+					}
+					catch(IllegalArgumentException e) {
+						setFailed(ErrorCodes.SURVEY_INVALID_RESPONSES, "The survey responses could not be URL decoded.");
+						throw new ValidationException("The survey responses could not be URL decoded.", e);
+					}
 				}
 				
 				// Retrieve and validate images
-				
 				List<String> imageIds = new ArrayList<String>();
 				Collection<Part> parts = null;
-				
 				try {
 					// FIXME - push to base class especially because of the ServletException that gets thrown
 					parts = httpRequest.getParts();
@@ -204,13 +194,9 @@ public class SurveyUploadRequest extends UserRequest {
 					throw new ValidationException("a duplicate image key was detected in the multi-part upload");
 				}
 
+				tImageContentsMap = new HashMap<String, BufferedImage>();
 				for(String imageId : imageIds) {
-					
-					BufferedImage bufferedImage = ImageValidators.validateImageContents(this, getMultipartValue(httpRequest, imageId));
-					if(tImageContentsMap == null) {
-						tImageContentsMap = new HashMap<String, BufferedImage>();
-					}
-					tImageContentsMap.put(imageId, bufferedImage);
+					tImageContentsMap.put(imageId, ImageValidators.validateImageContents(this, getMultipartValue(httpRequest, imageId)));
 					
 					if(LOGGER.isDebugEnabled()) {
 						LOGGER.debug("succesfully created a BufferedImage for key " + imageId);
@@ -222,9 +208,9 @@ public class SurveyUploadRequest extends UserRequest {
 				LOGGER.info(e.toString());
 			}
 		}
-		
-		this.campaignCreationTimestamp = tCampaignCreationTimestamp;
+
 		this.campaignUrn = tCampaignUrn;
+		this.campaignCreationTimestamp = tCampaignCreationTimestamp;
 		this.jsonData = tJsonData;
 		this.imageContentsMap = tImageContentsMap;
 	}
@@ -234,7 +220,6 @@ public class SurveyUploadRequest extends UserRequest {
 	 */
 	@Override
 	public void service() {
-		
 		LOGGER.info("Servicing a survey upload request.");
 		
 		if(! authenticate(AllowNewAccount.NEW_ACCOUNT_DISALLOWED)) {
@@ -242,66 +227,36 @@ public class SurveyUploadRequest extends UserRequest {
 		}
 		
 		try {
-			// 1. Populate the User with their campaign info
-			// 2. Validate the logged-in user has access to the campaign
-			// 3. Checks that it is a participant performing the upload
-			// 4. Checks the campaign running state
-			// 5. Checks that the campaign creation time matches what we have in the db
-			// 6. Looks up the campaign configuration
-			// 7. Validates the JSON data
-			// 8. Validates each message in the JSON data
-			// 9. Converts the JSON surveys into POJOs/DTOs
-			// 10. Stores the surveys in the db.
+			LOGGER.info("Verifying that the user is a participant in the campaign.");
+			UserCampaignServices.verifyUserCanUploadSurveyResponses(this, getUser().getUsername(), campaignUrn);
 			
-			LOGGER.info("Populating the logged-in user with their associated campaigns and roles.");
-			UserCampaignServices.populateUserWithCampaignRoleInfo(this, this.getUser());
+			LOGGER.info("Verifying that the campaign is running.");
+			CampaignServices.verifyCampaignIsRunning(this, campaignUrn);
 			
-			LOGGER.info("Checking the user and campaign ID in order to make sure the user belongs to the campaign ID in the request");
-		    UserCampaignServices.campaignExistsAndUserBelongs(this, this.getUser(), campaignUrn);
+			LOGGER.info("Verifying that the uploaded survey responses aren't out of date.");
+			CampaignServices.verifyCampaignIsUpToDate(this, campaignUrn, campaignCreationTimestamp);
 			
-			LOGGER.info("Checking the user and the campaign ID against the allowed roles for this request");
-			UserCampaignServices.verifyAllowedUserRoleInCampaign(this, this.getUser(), this.campaignUrn, ALLOWED_ROLES);
-		
-			LOGGER.info("Checking that the user is attempting to upload to a running campaign");
-			CampaignServices.verifyAllowedRunningState(this, this.getUser(), this.campaignUrn, ALLOWED_CAMPAIGN_RUNNING_STATE);
+			LOGGER.info("Generating the campaign object.");
+			Campaign campaign = CampaignServices.findCampaignConfiguration(this, campaignUrn);
 			
-			LOGGER.info("Checking the campaign creation timestamp to ensure a user is not attempting to upload to an out-of-date canmpaign.");
-			CampaignServices.verifyCampaignCreationTimestamp(this, this.getUser(), this.campaignUrn, this.campaignCreationTimestamp);
-			
-			LOGGER.info("Retrieving campaign configuration.");
-			this.configuration = CampaignServices.findCampaignConfiguration(this, this.campaignUrn);
-			
-			LOGGER.info("Parsing JSON data upload.");
-			// Each survey in an upload is represented by a JSONObject within
-			// a JSONArray 
-			this.jsonDataArray = SurveyUploadServices.stringToJsonArray(this, this.jsonData);
-			
-			// Recycle the string because it's no longer needed and it's
-			// potentially quite large
-			this.jsonData = null;
-			
-			LOGGER.info("Validating surveys.");
-			List<String> imageIdList = SurveyUploadServices.validateSurveyUpload(this, jsonDataArray, configuration);
-			SurveyUploadServices.validateImageKeys(this, imageIdList, imageContentsMap);
-			
-			LOGGER.info("Prepping surveys for db insertion.");
-			
-			int numberOfSurveyResponses = jsonDataArray.length();
-			List<SurveyResponse> surveyUploadList = new ArrayList<SurveyResponse>();
-			for(int i = 0; i < numberOfSurveyResponses; i++) {
-				surveyUploadList.add(SurveyUploadBuilder.createSurveyUploadFrom(configuration, JsonUtils.getJsonObjectFromJsonArray(jsonDataArray, i)));
-			}
+			LOGGER.info("Verifying the uploaded data against the campaign.");
+			List<SurveyResponse> surveyResponses = 
+				CampaignServices.getSurveyResponses(
+						this, 
+						getUser().getUsername(), 
+						getClient(),
+						campaign, 
+						jsonData);
 
-			LOGGER.info("Saving " + numberOfSurveyResponses + " surveys into the db.");
+			LOGGER.info("Validating that all photo prompt responses have their corresponding images attached.");
+			SurveyResponseServices.verifyImagesExistForPhotoPromptResponses(this, surveyResponses, imageContentsMap);
 			
-			List<Integer> duplicateIndexList = SurveyUploadDao.insertSurveys(this, getUser(), getClient(), campaignUrn, surveyUploadList, imageContentsMap);
+			LOGGER.info("Inserting the data into the database.");
+			List<Integer> duplicateIndexList = SurveyResponseServices.createSurveyResponses(this, getUser().getUsername(), getClient(), campaignUrn, surveyResponses, imageContentsMap);
 
 			LOGGER.info("Found " + duplicateIndexList.size() + " duplicate survey uploads");
 		}
 		catch(ServiceException e) {
-			e.logException(LOGGER);
-		}
-		catch(DataAccessException e) {
 			e.logException(LOGGER);
 		}
 	}

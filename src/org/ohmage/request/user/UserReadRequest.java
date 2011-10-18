@@ -1,8 +1,10 @@
 package org.ohmage.request.user;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -11,7 +13,7 @@ import org.apache.log4j.Logger;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.ohmage.annotator.ErrorCodes;
-import org.ohmage.cache.ClassRoleCache;
+import org.ohmage.domain.Clazz;
 import org.ohmage.domain.UserPersonal;
 import org.ohmage.exception.ServiceException;
 import org.ohmage.exception.ValidationException;
@@ -59,7 +61,7 @@ public class UserReadRequest extends UserRequest {
 	private static final Logger LOGGER = Logger.getLogger(UserReadRequest.class);
 	
 	private final List<String> campaignIds;
-	private final List<String> classIds; 
+	private final Collection<String> classIds; 
 	
 	private Map<String, UserPersonal> result;
 	
@@ -74,7 +76,7 @@ public class UserReadRequest extends UserRequest {
 		LOGGER.info("Creating a user read request.");
 		
 		List<String> tCampaignIds = null;
-		List<String> tClassIds = null;
+		Set<String> tClassIds = null;
 		
 		try {
 			tCampaignIds = CampaignValidators.validateCampaignIds(this, httpRequest.getParameter(InputKeys.CAMPAIGN_URN_LIST));
@@ -127,7 +129,7 @@ public class UserReadRequest extends UserRequest {
 				ClassServices.checkClassesExistence(this, classIds, true);
 				
 				LOGGER.info("Verifying that the requester is privileged in all of the classes.");
-				UserClassServices.userHasRoleInClasses(this, getUser().getUsername(), classIds, ClassRoleCache.Role.PRIVILEGED);
+				UserClassServices.userHasRoleInClasses(this, getUser().getUsername(), classIds, Clazz.Role.PRIVILEGED);
 				
 				LOGGER.info("Gathering the information about the users in the classes.");
 				result.putAll(UserClassServices.getPersonalInfoForUsersInClasses(this, classIds));

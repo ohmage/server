@@ -4,14 +4,13 @@ import java.sql.Timestamp;
 import java.util.Calendar;
 
 import org.ohmage.annotator.ErrorCodes;
-import org.ohmage.cache.CampaignRoleCache;
-import org.ohmage.cache.CampaignRunningStateCache;
-import org.ohmage.dao.CampaignDaos;
-import org.ohmage.dao.CampaignSurveyResponseDaos;
-import org.ohmage.dao.UserCampaignDaos;
-import org.ohmage.dao.UserSurveyResponseDaos;
+import org.ohmage.domain.campaign.Campaign;
 import org.ohmage.exception.DataAccessException;
 import org.ohmage.exception.ServiceException;
+import org.ohmage.query.CampaignQueries;
+import org.ohmage.query.CampaignSurveyResponseQueries;
+import org.ohmage.query.UserCampaignQueries;
+import org.ohmage.query.UserSurveyResponseQueries;
 import org.ohmage.request.Request;
 
 /**
@@ -48,14 +47,14 @@ public class UserSurveyResponseServices {
 	public static void verifyUserCanUpdateOrDeleteSurveyResponse(Request request, String requesterUsername, Long surveyResponseId) throws ServiceException {
 		try {
 			// Get the response's campaign.
-			String campaignId = CampaignSurveyResponseDaos.getCampaignIdFromSurveyId(surveyResponseId);
+			String campaignId = CampaignSurveyResponseQueries.getCampaignIdFromSurveyId(surveyResponseId);
 			
-			if(UserCampaignDaos.getUserCampaignRoles(requesterUsername, campaignId).contains(CampaignRoleCache.Role.SUPERVISOR)) {
+			if(UserCampaignQueries.getUserCampaignRoles(requesterUsername, campaignId).contains(Campaign.Role.SUPERVISOR)) {
 				return;
 			}
 			
-			if(CampaignRunningStateCache.RunningState.RUNNING.equals(CampaignDaos.getCampaignRunningState(campaignId))) {
-				if(requesterUsername.equals(UserSurveyResponseDaos.getSurveyResponseOwner(surveyResponseId))) {
+			if(Campaign.RunningState.RUNNING.equals(CampaignQueries.getCampaignRunningState(campaignId))) {
+				if(requesterUsername.equals(UserSurveyResponseQueries.getSurveyResponseOwner(surveyResponseId))) {
 					return;
 				}
 			}
@@ -87,7 +86,7 @@ public class UserSurveyResponseServices {
 	 */
 	public static double getHoursSinceLastSurveyUplaod(Request request, String requestersUsername, String usersUsername) throws ServiceException {
 		try {
-			Timestamp lastUpload = UserSurveyResponseDaos.getLastUploadForUser(requestersUsername, usersUsername);
+			Timestamp lastUpload = UserSurveyResponseQueries.getLastUploadForUser(requestersUsername, usersUsername);
 			if(lastUpload == null) {
 				return Double.MAX_VALUE;
 			}
@@ -123,7 +122,7 @@ public class UserSurveyResponseServices {
 	 */
 	public static double getPercentageOfNonNullLocationsOverPastDay(Request request, String requestersUsername, String usersUsername) throws ServiceException {
 		try {
-			Double percentage = UserSurveyResponseDaos.getPercentageOfNonNullSurveyLocations(requestersUsername, usersUsername, HOURS_IN_A_DAY);
+			Double percentage = UserSurveyResponseQueries.getPercentageOfNonNullSurveyLocations(requestersUsername, usersUsername, HOURS_IN_A_DAY);
 			if(percentage == null) {
 				return -1.0;
 			}

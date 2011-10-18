@@ -5,7 +5,7 @@ import java.util.Map;
 
 import org.apache.log4j.Logger;
 import org.ohmage.annotator.ErrorCodes;
-import org.ohmage.cache.DocumentRoleCache;
+import org.ohmage.domain.Document;
 import org.ohmage.exception.ValidationException;
 import org.ohmage.request.InputKeys;
 import org.ohmage.request.Request;
@@ -45,14 +45,14 @@ public final class ClassDocumentValidators {
 	 * 							   individual values in the pairs are malformed
 	 * 							   or missing. 
 	 */
-	public static Map<String, DocumentRoleCache.Role> validateClassIdAndDocumentRoleList(Request request, String classAndRoleList) throws ValidationException {
+	public static Map<String, Document.Role> validateClassIdAndDocumentRoleList(Request request, String classAndRoleList) throws ValidationException {
 		LOGGER.info("Validating a list of class ID and document role pairs.");
 		
 		if(StringUtils.isEmptyOrWhitespaceOnly(classAndRoleList)) {
 			return null;
 		}
 		
-		Map<String, DocumentRoleCache.Role> result = new HashMap<String, DocumentRoleCache.Role>();
+		Map<String, Document.Role> result = new HashMap<String, Document.Role>();
 		
 		String[] classAndRoleArray = classAndRoleList.split(InputKeys.LIST_ITEM_SEPARATOR);
 		for(int i = 0; i < classAndRoleArray.length; i++) {
@@ -73,7 +73,7 @@ public final class ClassDocumentValidators {
 					throw new ValidationException("The class ID in the class ID, document role pair is missing: " + classAndRoleString);
 				}
 				
-				DocumentRoleCache.Role documentRole = DocumentValidators.validateRole(request, classAndRole[1].trim());
+				Document.Role documentRole = DocumentValidators.validateRole(request, classAndRole[1].trim());
 				if(documentRole == null) {
 					request.setFailed(ErrorCodes.DOCUMENT_INVALID_ROLE, "The document role in the class ID, document role pair is missing: " + classAndRoleString);
 					throw new ValidationException("The document role in the class ID, document role pair is missing: " + classAndRoleString);

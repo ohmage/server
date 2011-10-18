@@ -5,7 +5,7 @@ import java.util.Map;
 
 import org.apache.log4j.Logger;
 import org.ohmage.annotator.ErrorCodes;
-import org.ohmage.cache.DocumentRoleCache;
+import org.ohmage.domain.Document;
 import org.ohmage.exception.ValidationException;
 import org.ohmage.request.InputKeys;
 import org.ohmage.request.Request;
@@ -47,14 +47,14 @@ public class UserDocumentValidators {
 	 * 							   individual values in the pairs are malformed
 	 * 							   or missing.
 	 */
-	public static Map<String, DocumentRoleCache.Role> validateUsernameAndDocumentRoleList(Request request, String usernameAndRoleList) throws ValidationException {
+	public static Map<String, Document.Role> validateUsernameAndDocumentRoleList(Request request, String usernameAndRoleList) throws ValidationException {
 		LOGGER.info("Validating a list of username and document role pairs.");
 		
 		if(StringUtils.isEmptyOrWhitespaceOnly(usernameAndRoleList)) {
 			return null;
 		}
 		
-		Map<String, DocumentRoleCache.Role> result = new HashMap<String, DocumentRoleCache.Role>();
+		Map<String, Document.Role> result = new HashMap<String, Document.Role>();
 		
 		String[] usernameAndRoleArray = usernameAndRoleList.split(InputKeys.LIST_ITEM_SEPARATOR);
 		for(int i = 0; i < usernameAndRoleArray.length; i++) {
@@ -75,7 +75,7 @@ public class UserDocumentValidators {
 					throw new ValidationException("The username in the username, document role pair is missing: " + usernameAndRoleString);
 				}
 				
-				DocumentRoleCache.Role documentRole = DocumentValidators.validateRole(request, usernameAndRole[1].trim());
+				Document.Role documentRole = DocumentValidators.validateRole(request, usernameAndRole[1].trim());
 				if(documentRole == null) {
 					request.setFailed(ErrorCodes.DOCUMENT_INVALID_ROLE, "The document role in the username, document role pair is missing: " + usernameAndRoleString);
 					throw new ValidationException("The document role in the username, document role pair is missing: " + usernameAndRoleString);

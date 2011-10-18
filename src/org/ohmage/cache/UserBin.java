@@ -40,7 +40,7 @@ public final class UserBin extends TimerTask implements DisposableBean {
 	private static final int EXECUTION_PERIOD = 60000;
 	
 	/**
-	 * A class for associating USERS to the time their token expires.
+	 * A class for associating users to the time their token expires.
 	 * 
 	 * @author John Jenkins
 	 */

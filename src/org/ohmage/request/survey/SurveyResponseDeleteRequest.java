@@ -73,7 +73,7 @@ public class SurveyResponseDeleteRequest extends UserRequest {
 					throw new ValidationException("Multiple survey ID parameters were given.");
 				}
 				else {
-					tSurveyResponseId = SurveyResponseValidators.validateSurveyId(this, surveyIds[0]);
+					tSurveyResponseId = SurveyResponseValidators.validateSurveyDbId(this, surveyIds[0]);
 					
 					if(tSurveyResponseId == null) {
 						setFailed(ErrorCodes.SURVEY_INVALID_SURVEY_ID, "Missing the required survey ID: " + InputKeys.SURVEY_KEY);

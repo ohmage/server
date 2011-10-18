@@ -1,8 +1,6 @@
 package org.ohmage.validator;
 
-import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 import java.util.regex.Pattern;
 
@@ -38,8 +36,8 @@ public final class UserValidators {
 				"\\d" + // A digit.
 			"]" + // End of the definition.
 		")" + // End of group 1.
-		"[" + // Beginning of the definition. At least one of the following 
-		      // must be present.
+		"[" + // Beginning of the definition. The username must consist of only
+			  // these characters
 			"a-z" + // A lower case, alphabetic character. 
 			"A-Z" + // An upper case, alphabetic character. 
 			"\\d" + // A digit. 
@@ -197,7 +195,7 @@ public final class UserValidators {
 	 * @throws ValidationException Thrown if the list is malformed or if any of
 	 * 							   the items in the list is malformed.
 	 */
-	public static List<String> validateUsernames(Request request, String usernameList) throws ValidationException {
+	public static Set<String> validateUsernames(Request request, String usernameList) throws ValidationException {
 		LOGGER.info("Validating that a list of usernames follows our conventions.");
 		
 		if(StringUtils.isEmptyOrWhitespaceOnly(usernameList)) {
@@ -219,7 +217,7 @@ public final class UserValidators {
 			return null;
 		}
 		
-		return new ArrayList<String>(result);
+		return result;
 	}
 	
 	/**

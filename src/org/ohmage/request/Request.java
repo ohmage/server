@@ -331,7 +331,6 @@ public abstract class Request {
 		catch(IOException e) {
 			LOGGER.error("Unable to write response message. Aborting.", e);
 		}
-		
 		finally {
 			try {
 				if(writer != null) {

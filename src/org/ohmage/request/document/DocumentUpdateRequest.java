@@ -1,15 +1,16 @@
 package org.ohmage.request.document;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.log4j.Logger;
 import org.ohmage.annotator.ErrorCodes;
-import org.ohmage.cache.DocumentPrivacyStateCache;
-import org.ohmage.cache.DocumentRoleCache;
+import org.ohmage.domain.Document;
 import org.ohmage.exception.ServiceException;
 import org.ohmage.exception.ValidationException;
 import org.ohmage.request.InputKeys;
@@ -135,16 +136,16 @@ public class DocumentUpdateRequest extends UserRequest {
 	
 	private final String newName;
 	private final String newDescription;
-	private final DocumentPrivacyStateCache.PrivacyState newPrivacyState;
+	private final Document.PrivacyState newPrivacyState;
 	
-	private final Map<String, DocumentRoleCache.Role> campaignAndRolesToAdd;
+	private final Map<String, Document.Role> campaignAndRolesToAdd;
 	private final List<String> campaignsToRemove;
 	
-	private final Map<String, DocumentRoleCache.Role> classAndRolesToAdd;
-	private final List<String> classesToRemove;
+	private final Map<String, Document.Role> classAndRolesToAdd;
+	private final Collection<String> classesToRemove;
 	
-	private final Map<String, DocumentRoleCache.Role> userAndRolesToAdd;
-	private final List<String> usersToRemove;
+	private final Map<String, Document.Role> userAndRolesToAdd;
+	private final Collection<String> usersToRemove;
 	
 	/**
 	 * Creates a new document update request from the information in the
@@ -162,16 +163,16 @@ public class DocumentUpdateRequest extends UserRequest {
 		
 		String tNewName = null;
 		String tNewDescription = null;
-		DocumentPrivacyStateCache.PrivacyState tNewPrivacyState = null;
+		Document.PrivacyState tNewPrivacyState = null;
 		
-		Map<String, DocumentRoleCache.Role> tCampaignAndRolesToAdd = null;
+		Map<String, Document.Role> tCampaignAndRolesToAdd = null;
 		List<String> tCampaignsToRemove = null;
 		
-		Map<String, DocumentRoleCache.Role> tClassAndRolesToAdd = null;
-		List<String> tClassesToRemove = null;
+		Map<String, Document.Role> tClassAndRolesToAdd = null;
+		Set<String> tClassesToRemove = null;
 		
-		Map<String, DocumentRoleCache.Role> tUserAndRolesToAdd = null;
-		List<String> tUsersToRemove = null;
+		Map<String, Document.Role> tUserAndRolesToAdd = null;
+		Set<String> tUsersToRemove = null;
 		
 		try {
 			tDocumentId = DocumentValidators.validateDocumentId(this, httpRequest.getParameter(InputKeys.DOCUMENT_ID));
@@ -281,7 +282,7 @@ public class DocumentUpdateRequest extends UserRequest {
 			UserDocumentServices.userCanModifyDocument(this, getUser().getUsername(), documentId);
 			
 			LOGGER.info("Getting the user's highest role for the document.");
-			DocumentRoleCache.Role highestRole = UserDocumentServices.getHighestDocumentRoleForUserForDocument(this, getUser().getUsername(), documentId);
+			Document.Role highestRole = UserDocumentServices.getHighestDocumentRoleForUserForDocument(this, getUser().getUsername(), documentId);
 			
 			if(campaignAndRolesToAdd != null) {
 				LOGGER.info("Verifying that the campaigns in the campaign-role list exist.");

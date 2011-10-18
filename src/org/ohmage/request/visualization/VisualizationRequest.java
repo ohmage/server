@@ -14,8 +14,8 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.log4j.Logger;
 import org.ohmage.annotator.ErrorCodes;
-import org.ohmage.cache.SurveyResponsePrivacyStateCache;
 import org.ohmage.cache.UserBin;
+import org.ohmage.domain.campaign.SurveyResponse;
 import org.ohmage.exception.ServiceException;
 import org.ohmage.exception.ValidationException;
 import org.ohmage.request.InputKeys;
@@ -71,7 +71,7 @@ public abstract class VisualizationRequest extends UserRequest {
 	
 	private final Date startDate;
 	private final Date endDate;
-	private final SurveyResponsePrivacyStateCache.PrivacyState privacyState;
+	private final SurveyResponse.PrivacyState privacyState;
 	
 	private byte[] result;
 	
@@ -90,7 +90,7 @@ public abstract class VisualizationRequest extends UserRequest {
 		Integer tHeight = null;
 		Date tStartDate = null;
 		Date tEndDate = null;
-		SurveyResponsePrivacyStateCache.PrivacyState tPrivacyState = null;
+		SurveyResponse.PrivacyState tPrivacyState = null;
 		
 		try {
 			tCampaignId = CampaignValidators.validateCampaignId(this, httpRequest.getParameter(InputKeys.CAMPAIGN_URN));

@@ -59,6 +59,8 @@ public final class InputKeys {
 	public static final String CLASS_URN = "class_urn";
 	public static final String CLASS_URN_LIST = "class_urn_list";
 	public static final String CLASS_ROLE_LIST_ADD = "class_role_list_add";
+	public static final String CLASS_ROLE_LIST_REMOVE = "class_role_list_remove";
+	public static final String CLASS_LIST_ADD = "class_list_add";
 	public static final String CLASS_LIST_REMOVE = "class_list_remove";
 	public static final String CLASS_NAME = "class_name";
 	public static final String ROSTER = "roster";

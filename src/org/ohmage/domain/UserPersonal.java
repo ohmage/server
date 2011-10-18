@@ -88,6 +88,67 @@ public class UserPersonal {
 	}
 	
 	/**
+	 * Creates an UserPeronal object from the information in the information
+	 * JSONObject.
+	 * 
+	 * @param information The JSONObject with the user's personal information.
+	 * 
+	 * @throws IllegalArgumentException Thrown if the information JSONObject
+	 * 									object is invalid.
+	 */
+	public UserPersonal(final JSONObject information) {
+		if(information == null) {
+			throw new IllegalArgumentException("The information is null.");
+		}
+		
+		try {
+			firstName = information.getString(KEY_FIRST_NAME);
+		}
+		catch(JSONException e) {
+			throw new IllegalArgumentException("The first name is missing: " + KEY_FIRST_NAME);
+		}
+		
+		try {
+			lastName = information.getString(KEY_LAST_NAME);
+		}
+		catch(JSONException e) {
+			throw new IllegalArgumentException("The last name is missing: " + KEY_LAST_NAME);
+		}
+		
+		try {
+			organization = information.getString(KEY_ORGANIZATION);
+		}
+		catch(JSONException e) {
+			throw new IllegalArgumentException("The organization is missing: " + KEY_ORGANIZATION);
+		}
+		
+		try {
+			personalId = information.getString(KEY_PERSONAL_ID);
+		}
+		catch(JSONException e) {
+			throw new IllegalArgumentException("The personal ID is missing: " + KEY_PERSONAL_ID);
+		}
+		
+		String tEmailAddress = null;
+		try {
+			tEmailAddress = information.getString(KEY_EMAIL_ADDRESS);
+		}
+		catch(JSONException e) {
+			// The email address may be empty.
+		}
+		emailAddress = tEmailAddress;
+		
+		JSONObject tJsonData = null;
+		try {
+			tJsonData = information.getJSONObject(KEY_JSON_DATA);
+		}
+		catch(JSONException e) {
+			// The JSON data may be empty.
+		}
+		jsonData = tJsonData;
+	}
+	
+	/**
 	 * Returns the user's first name or null if one doesn't exist.
 	 * 
 	 * @return the firstName

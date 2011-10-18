@@ -54,12 +54,31 @@ import org.ohmage.validator.UserValidators;
 public class UserStatsReadRequest extends UserRequest {
 	private static final Logger LOGGER = Logger.getLogger(UserStatsReadRequest.class);
 	
-	private static final String JSON_KEY_RESULT = "stats";
+	/**
+	 * The key used to place the stats information into the JSON result.
+	 */
+	public static final String JSON_KEY_RESULT = "stats";
 	
-	private static final String JSON_KEY_HOURS_SINCE_LAST_SURVEY_UPLOAD = "Hours Since Last Survey Upload";
-	private static final String JSON_KEY_HOURS_SINCE_LAST_MOBILITY_UPLOAD = "Hours Since Last Mobility Upload";
-	private static final String JSON_KEY_PAST_DAY_SUCCESSFUL_SURVEY_LOCATION_UPDATES_PERCENTAGE = "Past Day Percent Successful Survey Location Updates";
-	private static final String JSON_KEY_PAST_DAY_SUCCESSFUL_MOBILITY_LOCATION_UPDATES_PERCENTAGE = "Past Day Percent Successful Mobility Location Updates";
+	/**
+	 * The key used to indicate the number of hours as a decimal since the last
+	 * survey upload.
+	 */
+	public static final String JSON_KEY_HOURS_SINCE_LAST_SURVEY_UPLOAD = "Hours Since Last Survey Upload";
+	/**
+	 * The key used to indicate the number of hours as a decimal since the last
+	 * Mobility upload.
+	 */
+	public static final String JSON_KEY_HOURS_SINCE_LAST_MOBILITY_UPLOAD = "Hours Since Last Mobility Upload";
+	/**
+	 * The key used to indicate the percentage of survey uploads with valid
+	 * locations over the last 24 hours.
+	 */
+	public static final String JSON_KEY_PAST_DAY_SUCCESSFUL_SURVEY_LOCATION_UPDATES_PERCENTAGE = "Past Day Percent Successful Survey Location Updates";
+	/**
+	 * The key used to indicate the percentage of Mobility uploads with valid
+	 * locations over the last 24 hours.
+	 */
+	public static final String JSON_KEY_PAST_DAY_SUCCESSFUL_MOBILITY_LOCATION_UPDATES_PERCENTAGE = "Past Day Percent Successful Mobility Location Updates";
 	
 	private static final Double DEFAULT_VALUE_IF_NO_MOBILITY_UPLOADS = Double.MAX_VALUE;
 	private static final Double DEFAULT_VALUE_IF_NO_MOBILITY_UPLOADS_IN_LAST_DAY = -1.0;

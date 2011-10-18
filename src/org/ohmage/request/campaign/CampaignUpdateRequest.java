@@ -1,7 +1,6 @@
 package org.ohmage.request.campaign;
 
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -10,16 +9,16 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.log4j.Logger;
 import org.ohmage.annotator.ErrorCodes;
-import org.ohmage.cache.CampaignPrivacyStateCache;
-import org.ohmage.cache.CampaignRoleCache;
-import org.ohmage.cache.CampaignRunningStateCache;
+import org.ohmage.domain.campaign.Campaign;
 import org.ohmage.exception.ServiceException;
 import org.ohmage.exception.ValidationException;
 import org.ohmage.request.InputKeys;
 import org.ohmage.request.UserRequest;
+import org.ohmage.service.CampaignClassServices;
 import org.ohmage.service.CampaignServices;
 import org.ohmage.service.UserCampaignServices;
 import org.ohmage.service.UserClassServices;
+import org.ohmage.service.UserServices;
 import org.ohmage.validator.CampaignValidators;
 import org.ohmage.validator.ClassValidators;
 import org.ohmage.validator.UserCampaignValidators;
@@ -99,11 +98,12 @@ public class CampaignUpdateRequest extends UserRequest {
 	private final String campaignId;
 	private final String xml;
 	private final String description;
-	private final CampaignRunningStateCache.RunningState runningState;
-	private final CampaignPrivacyStateCache.PrivacyState privacyState;
-	private final List<String> classIds;
-	private final Map<String, Set<CampaignRoleCache.Role>> usersAndRolesToAdd;
-	private final Map<String, Set<CampaignRoleCache.Role>> usersAndRolesToRemove;
+	private final Campaign.RunningState runningState;
+	private final Campaign.PrivacyState privacyState;
+	private final Set<String> classesToAdd;
+	private final Set<String> classesToRemove; 
+	private final Map<String, Set<Campaign.Role>> usersAndRolesToAdd;
+	private final Map<String, Set<Campaign.Role>> usersAndRolesToRemove;
 	
 	/**
 	 * Creates a campaign update request.
@@ -119,11 +119,12 @@ public class CampaignUpdateRequest extends UserRequest {
 		String tCampaignId = null;
 		String tXml = null;
 		String tDescription = null;
-		CampaignRunningStateCache.RunningState tRunningState = null;
-		CampaignPrivacyStateCache.PrivacyState tPrivacyState = null;
-		List<String> tClassIds = null;
-		Map<String, Set<CampaignRoleCache.Role>> tUsersAndRolesToAdd = null;
-		Map<String, Set<CampaignRoleCache.Role>> tUsersAndRolesToRemove = null;
+		Campaign.RunningState tRunningState = null;
+		Campaign.PrivacyState tPrivacyState = null;
+		Set<String> tClassesToAdd = null;
+		Set<String> tClassesToRemove = null;
+		Map<String, Set<Campaign.Role>> tUsersAndRolesToAdd = null;
+		Map<String, Set<Campaign.Role>> tUsersAndRolesToRemove = null;
 		
 		try {
 			tCampaignId = CampaignValidators.validateCampaignId(this, httpRequest.getParameter(InputKeys.CAMPAIGN_URN));
@@ -158,19 +159,17 @@ public class CampaignUpdateRequest extends UserRequest {
 				setFailed(ErrorCodes.CAMPAIGN_INVALID_PRIVACY_STATE, "Multiple privacy states were found.");
 				throw new ValidationException("Multiple privacy states were found.");
 			}
-
-			// TODO: We cannot allow a campaign to not have any classes  
-			// associated with it. Because this will return null if the class
-			// list doesn't contain any meaningful class IDs and a null value
-			// for this parameter means that the class associations for this
-			// campaign will not be modified, we are safe. However, if we 
-			// decide to split this into two parameters, we will want to add a
-			// check to ensure that we are not disassociating all classes 
-			// without associating any new ones.
-			tClassIds = ClassValidators.validateClassIdList(this, httpRequest.getParameter(InputKeys.CLASS_URN_LIST));
-			if((tClassIds != null) && (httpRequest.getParameterValues(InputKeys.CLASS_URN_LIST).length > 1)) {
-				setFailed(ErrorCodes.CLASS_INVALID_ID, "Multiple class ID lists were found.");
-				throw new ValidationException("Multiple class ID lists were found.");
+			
+			tClassesToAdd = ClassValidators.validateClassIdList(this, getParameter(InputKeys.CLASS_LIST_ADD));
+			if((tClassesToAdd != null) && (getParameterValues(InputKeys.CLASS_ROLE_LIST_ADD).length > 1)) {
+				setFailed(ErrorCodes.CLASS_INVALID_ID, "Multiple class ID lists to add were found.");
+				throw new ValidationException("Multiple class ID lists to add were found.");
+			}
+			
+			tClassesToRemove = ClassValidators.validateClassIdList(this, getParameter(InputKeys.CLASS_LIST_REMOVE));
+			if((tClassesToRemove != null) && (getParameterValues(InputKeys.CLASS_LIST_REMOVE).length > 1)) {
+				setFailed(ErrorCodes.CLASS_INVALID_ID, "Multiple class ID lists to remove were found.");
+				throw new ValidationException("Multiple class ID lists to remove were found.");
 			}
 			
 			tUsersAndRolesToAdd = UserCampaignValidators.validateUserAndCampaignRole(this, httpRequest.getParameter(InputKeys.USER_ROLE_LIST_ADD));
@@ -194,7 +193,8 @@ public class CampaignUpdateRequest extends UserRequest {
 		description = tDescription;
 		runningState = tRunningState;
 		privacyState = tPrivacyState;
-		classIds = tClassIds;
+		classesToAdd = tClassesToAdd;
+		classesToRemove = tClassesToRemove;
 		usersAndRolesToAdd = tUsersAndRolesToAdd;
 		usersAndRolesToRemove = tUsersAndRolesToRemove;
 	}
@@ -225,15 +225,35 @@ public class CampaignUpdateRequest extends UserRequest {
 				CampaignServices.verifyTheNewXmlIdAndNameAreTheSameAsTheCurrentIdAndName(this, campaignId, xml);
 			}
 			
-			if(classIds != null) {
-				LOGGER.info("Verifying that all of the classes exist and that the user belongs.");
-				UserClassServices.classesExistAndUserBelongs(this, classIds, getUser().getUsername());
+			if((classesToAdd != null) && (classesToRemove != null)) {
+				LOGGER.info("Both a list of classes to add and remove were given, so we are truncating the lists to remove items that are in both.");
+				Set<String> union = new HashSet<String>(classesToAdd);
+				union.retainAll(classesToRemove);
+				
+				classesToAdd.removeAll(union);
+				classesToRemove.removeAll(union);
+			}
+			
+			if(classesToAdd != null) {
+				LOGGER.info("Verifying that all of the classes to add exist and that the user belongs.");
+				UserClassServices.classesExistAndUserBelongs(this, classesToAdd, getUser().getUsername());
+			}
+			
+			if(classesToRemove != null) {
+				LOGGER.info("Verifying that all of the classes to remove exist and that the user belongs.");
+				UserClassServices.classesExistAndUserBelongs(this, classesToRemove, getUser().getUsername());
+				
+				LOGGER.info("Verifying that not all of the classes are being disassociated from the campaign.");
+				CampaignClassServices.verifyNotDisassocitingAllClassesFromCampaign(this, campaignId, classesToRemove);
 			}
 			
 			if(usersAndRolesToAdd != null) {
+				LOGGER.info("Verifying that all of the users to add exist.");
+				UserServices.verifyUsersExist(this, usersAndRolesToAdd.keySet(), true);
+				
 				LOGGER.info("Verifying that the user is allowed to give the permissions they are trying to give.");
-				Set<CampaignRoleCache.Role> roles = new HashSet<CampaignRoleCache.Role>();
-				for(Set<CampaignRoleCache.Role> currRoles : usersAndRolesToAdd.values()) {
+				Set<Campaign.Role> roles = new HashSet<Campaign.Role>();
+				for(Set<Campaign.Role> currRoles : usersAndRolesToAdd.values()) {
 					roles.addAll(currRoles);
 				}
 				UserCampaignServices.verifyUserCanGrantOrRevokeRoles(this, getUser().getUsername(), campaignId, roles);
@@ -241,15 +261,15 @@ public class CampaignUpdateRequest extends UserRequest {
 			
 			if(usersAndRolesToRemove != null) {
 				LOGGER.info("Verifying that the user is allowed to revoke permissions that they are trying to revoke access.");
-				Set<CampaignRoleCache.Role> roles = new HashSet<CampaignRoleCache.Role>();
-				for(Set<CampaignRoleCache.Role> currRoles : usersAndRolesToRemove.values()) {
+				Set<Campaign.Role> roles = new HashSet<Campaign.Role>();
+				for(Set<Campaign.Role> currRoles : usersAndRolesToRemove.values()) {
 					roles.addAll(currRoles);
 				}
 				UserCampaignServices.verifyUserCanGrantOrRevokeRoles(this, getUser().getUsername(), campaignId, roles);
 			}
 			
 			LOGGER.info("Updating the campaign.");
-			CampaignServices.updateCampaign(this, campaignId, xml, description, runningState, privacyState, classIds, usersAndRolesToAdd, usersAndRolesToRemove);
+			CampaignServices.updateCampaign(this, campaignId, xml, description, runningState, privacyState, classesToAdd, classesToRemove, usersAndRolesToAdd, usersAndRolesToRemove);
 		}
 		catch(ServiceException e) {
 			e.logException(LOGGER);

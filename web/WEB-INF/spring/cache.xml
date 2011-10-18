@@ -1,48 +1,6 @@
 <beans xmlns="http://www.springframework.org/schema/beans"
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.5.xsd">
-       
-  <!-- State Caches -->
-  <bean class="org.ohmage.cache.CampaignPrivacyStateCache">
-    <constructor-arg><ref bean="dataSource" /></constructor-arg>
-    <constructor-arg><value>60000</value></constructor-arg>
-  </bean>
-  
-  <bean class="org.ohmage.cache.CampaignRunningStateCache">
-    <constructor-arg><ref bean="dataSource" /></constructor-arg>
-    <constructor-arg><value>60000</value></constructor-arg>
-  </bean>
-  
-  <bean class="org.ohmage.cache.MobilityPrivacyStateCache">
-    <constructor-arg><ref bean="dataSource" /></constructor-arg>
-    <constructor-arg><value>60000</value></constructor-arg>
-  </bean>
-  
-  <bean class="org.ohmage.cache.SurveyResponsePrivacyStateCache">
-    <constructor-arg><ref bean="dataSource" /></constructor-arg>
-    <constructor-arg><value>60000</value></constructor-arg>
-  </bean>
-  
-  <bean class="org.ohmage.cache.DocumentPrivacyStateCache">
-    <constructor-arg><ref bean="dataSource" /></constructor-arg>
-    <constructor-arg><value>60000</value></constructor-arg>
-  </bean>
-  
-  <!-- Role Caches -->
-  <bean class="org.ohmage.cache.CampaignRoleCache">
-    <constructor-arg><ref bean="dataSource" /></constructor-arg>
-    <constructor-arg><value>60000</value></constructor-arg>
-  </bean>
-  
-  <bean class="org.ohmage.cache.ClassRoleCache">
-    <constructor-arg><ref bean="dataSource" /></constructor-arg>
-    <constructor-arg><value>60000</value></constructor-arg>
-  </bean>
-  
-  <bean class="org.ohmage.cache.DocumentRoleCache">
-    <constructor-arg><ref bean="dataSource" /></constructor-arg>
-    <constructor-arg><value>60000</value></constructor-arg>
-  </bean>
   
   <!-- Preference Cache -->
   <bean class="org.ohmage.cache.PreferenceCache">

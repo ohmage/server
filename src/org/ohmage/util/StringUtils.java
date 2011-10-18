@@ -20,9 +20,11 @@ import java.net.URLDecoder;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.regex.Pattern;
 
@@ -391,6 +393,81 @@ public final class StringUtils {
 		catch(NumberFormatException e) {
 			return null;
 		}
+	}
+	
+	/**
+	 * Takes a collection of objects and converts them to a list where each 
+	 * item is converted to a string by its toString() method.
+	 * 
+	 * @param list The collection of items.
+	 * 
+	 * @param delimiter The delimiter to use between each item.
+	 * 
+	 * @return A String representing all of the list items in a delimited list.
+	 * 		   This will never return null.
+	 */
+	public static String collectionToStringList(Collection<?> list, String delimiter) {
+		boolean firstPass = true;
+		StringBuilder resultBuilder = new StringBuilder();
+		
+		for(Object item : list) {
+			if(firstPass) {
+				firstPass = false;
+			}
+			else {
+				resultBuilder.append(delimiter);
+			}
+			
+			resultBuilder.append(item.toString());
+		}
+		
+		return resultBuilder.toString();
+	}
+	
+	/**
+	 * Takes a map of objects and converts their keys and values to a list 
+	 * where each key and value are converted to a string by their toString()
+	 * methods, the pairs are joined with a 'pairDelimiter' between them and
+	 * the pairs are joined with other pairs with a 'listDelimiter' between
+	 * them.<br />
+	 * <br />
+	 * The keys and value cannot be null or an exception will be thrown.
+	 * 
+	 * @param map The map of items.
+	 * 
+	 * @param pairDelimiter The string to be placed between the key and value
+	 * 						while generating the list.
+	 * 
+	 * @param listDelimiter The string to be placed between the already joined
+	 * 						pairs while generating the list.
+	 * 
+	 * @return A String representing all of the pairs and list items together.
+	 * 
+	 * @throws IllegalArgumentException Thrown if any of the keys and/or values
+	 * 									are null.
+	 */
+	public static String mapToStringList(Map<?, ?> map, String pairDelimiter, String listDelimiter) {
+		boolean firstPass = true;
+		StringBuilder resultBuilder = new StringBuilder();
+		
+		for(Object key : map.keySet()) {
+			Object value = map.get(key);
+			
+			if(value == null) {
+				throw new IllegalArgumentException("The map cannot contain null values.");
+			}
+			
+			if(firstPass) {
+				firstPass = false;
+			}
+			else {
+				resultBuilder.append(listDelimiter);
+			}
+			
+			resultBuilder.append(key.toString()).append(pairDelimiter).append(value.toString());
+		}
+		
+		return resultBuilder.toString();
 	}
 	
 	/**

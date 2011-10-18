@@ -2,8 +2,7 @@ package org.ohmage.validator;
 
 import org.apache.log4j.Logger;
 import org.ohmage.annotator.ErrorCodes;
-import org.ohmage.cache.DocumentPrivacyStateCache;
-import org.ohmage.cache.DocumentRoleCache;
+import org.ohmage.domain.Document;
 import org.ohmage.exception.ValidationException;
 import org.ohmage.request.Request;
 import org.ohmage.util.StringUtils;
@@ -67,7 +66,7 @@ public class DocumentValidators {
 	 * 							   whitespace only and is not a valid document
 	 * 							   privacy state.
 	 */
-	public static DocumentPrivacyStateCache.PrivacyState validatePrivacyState(Request request, String privacyState) throws ValidationException {
+	public static Document.PrivacyState validatePrivacyState(Request request, String privacyState) throws ValidationException {
 		LOGGER.info("Validating a document's privacy state.");
 		
 		if(StringUtils.isEmptyOrWhitespaceOnly(privacyState)) {
@@ -75,7 +74,7 @@ public class DocumentValidators {
 		}
 			
 		try {
-			return DocumentPrivacyStateCache.PrivacyState.getValue(privacyState);
+			return Document.PrivacyState.getValue(privacyState);
 		}
 		catch(IllegalArgumentException e) {
 			request.setFailed(ErrorCodes.DOCUMENT_INVALID_PRIVACY_STATE, "Unknown privacy state: " + privacyState);
@@ -96,7 +95,7 @@ public class DocumentValidators {
 	 * @throws ValidationException Thrown if the role is no null nor whitespace
 	 * 							   only and is an unknown role.
 	 */
-	public static DocumentRoleCache.Role validateRole(Request request, String role) throws ValidationException {
+	public static Document.Role validateRole(Request request, String role) throws ValidationException {
 		LOGGER.info("Validating a document role.");
 		
 		if(StringUtils.isEmptyOrWhitespaceOnly(role)) {
@@ -104,7 +103,7 @@ public class DocumentValidators {
 		}
 		
 		try {
-			return DocumentRoleCache.Role.getValue(role);
+			return Document.Role.getValue(role);
 		}
 		catch(IllegalArgumentException e) {
 			request.setFailed(ErrorCodes.DOCUMENT_INVALID_ROLE, "Invalid document role: " + role);
