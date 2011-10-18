@@ -588,7 +588,25 @@ public class MobilityInformation {
 				JSONObject result = new JSONObject();
 				
 				result.put(JSON_KEY_MODE, mode.name().toLowerCase());
-				result.put(JSON_KEY_SPEED, speed);
+				
+				if(speed == null) {
+					// Don't put it in the JSON
+				}
+				else if(speed.isInfinite()) {
+					if(Double.POSITIVE_INFINITY == speed.doubleValue()) {
+						result.put(JSON_KEY_SPEED, "Infinity");
+					}
+					else {
+						result.put(JSON_KEY_SPEED, "-Infinity");
+					}
+				}
+				else if(speed.isNaN()) {
+					result.put(JSON_KEY_SPEED, "NaN");
+				}
+				else {
+					result.put(JSON_KEY_SPEED, speed);
+				}
+				
 				result.put(JSON_KEY_WIFI_DATA, wifiData.toJson());
 				
 				JSONArray accelArray = new JSONArray();
@@ -600,6 +618,7 @@ public class MobilityInformation {
 				return result;
 			}
 			catch(JSONException e) {
+				System.out.println("Failed to create the JSON." + e.toString());
 				return null;
 			}
 		}
@@ -814,6 +833,7 @@ public class MobilityInformation {
 				return result;
 			}
 			catch(JSONException e) {
+				System.out.println("Failed to create the JSON." + e.toString());
 				return null;
 			}
 		}
