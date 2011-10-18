@@ -1,7 +1,9 @@
 package org.ohmage.service;
 
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 import jbcrypt.BCrypt;
 
@@ -9,8 +11,10 @@ import org.ohmage.annotator.ErrorCodes;
 import org.ohmage.dao.UserCampaignDaos;
 import org.ohmage.dao.UserClassDaos;
 import org.ohmage.dao.UserDaos;
+import org.ohmage.domain.Clazz;
 import org.ohmage.domain.UserInformation;
 import org.ohmage.domain.UserPersonal;
+import org.ohmage.domain.campaign.Campaign;
 import org.ohmage.exception.DataAccessException;
 import org.ohmage.exception.ServiceException;
 import org.ohmage.request.Request;
@@ -164,6 +168,58 @@ public final class UserServices {
 			throw new ServiceException(e);
 		}
 	}
+	
+	/**
+	 * Verifies that a given user is allowed to read the personal information
+	 * about a group of users.
+	 * 
+	 * @param request The Request that is performing this service.
+	 * 
+	 * @param username The username of the reader.
+	 * 
+	 * @param usernames The usernames of the readees.
+	 * 
+	 * @throws ServiceException There was an error or the user is not allowed 
+	 * 							to read the personal information of one or more
+	 * 							of the users.
+	 */
+	public static void verifyUserCanReadUsersPersonalInfo(
+			final Request request, final String username, 
+			final Collection<String> usernames) throws ServiceException {
+		
+		if((usernames == null) || (usernames.size() == 0) ||
+				((usernames.size() == 1) && 
+				 usernames.iterator().next().equals(username))) {
+			return;
+		}
+		
+		try {
+			Set<String> supervisorCampaigns = 
+				UserCampaignServices.getCampaignsForUser(request, username, 
+						null, null, null, null, null, null, 
+						Campaign.Role.SUPERVISOR);
+			
+			Set<String> privilegedClasses = 
+				UserClassServices.getClassesForUser(
+						request, 
+						username, 
+						Clazz.Role.PRIVILEGED);
+			
+			for(String currUsername : usernames) {
+				if(UserCampaignServices.getCampaignsForUser(request, 
+						currUsername, supervisorCampaigns, privilegedClasses, 
+						null, null, null, null, null).size() == 0) {
+					
+					request.setFailed(ErrorCodes.USER_INSUFFICIENT_PERMISSIONS, 
+							"The user is not allowed to view personal information about a user in the list: " + currUsername);
+				}
+			}
+		}
+		catch(DataAccessException e) {
+			request.setFailed();
+			throw new ServiceException(e);
+		}
+	}
 
 	/**
 	 * Verifies that if the 'personalInfo' is not null nor empty, that either
@@ -255,6 +311,38 @@ public final class UserServices {
 			}
 			
 			return userInformation;
+		}
+		catch(DataAccessException e) {
+			request.setFailed();
+			throw new ServiceException(e);
+		}
+	}
+	
+	/**
+	 * Retrieves the personal information for all of the users in the list.
+	 * 
+	 * @param request The Request that is performing this service.
+	 * 
+	 * @param usernames The usernames.
+	 * 
+	 * @return A map of usernames to personal information or null if no 
+	 * 		   personal information is available.
+	 * 
+	 * @throws ServiceException There was an error.
+	 */
+	public static Map<String, UserPersonal> gatherPersonalInformation(
+			final Request request, final Collection<String> usernames) 
+			throws ServiceException {
+		
+		try {
+			Map<String, UserPersonal> result = 
+				new HashMap<String, UserPersonal>(usernames.size());
+			
+			for(String username : usernames) {
+				result.put(username, UserDaos.getPersonalInfoForUser(username));
+			}
+			
+			return result;
 		}
 		catch(DataAccessException e) {
 			request.setFailed();

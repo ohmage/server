@@ -64,6 +64,16 @@ public final class UserClassDaos extends Dao {
 		"AND u.id = uc.user_id " +
 		"AND c.id = uc.class_id";
 	
+	// Retrieves the ID and name of all of the classes to which a user belongs.
+	private static final String SQL_GET_CLASS_IDS_FOR_USER_WITH_ROLE =
+		"SELECT c.urn " +
+		"FROM user u, class c, user_class uc, user_class_role ucr " +
+		"WHERE u.username = ? " +
+		"AND u.id = uc.user_id " +
+		"AND c.id = uc.class_id " +
+		"AND uc.user_class_role_id = ucr.id " +
+		"AND ucr.role = ?";
+	
 	// The single instance of this class as the constructor should only ever be
 	// called once by Spring.
 	private static UserClassDaos instance;
@@ -173,6 +183,41 @@ public final class UserClassDaos extends Dao {
 		}
 		catch(org.springframework.dao.DataAccessException e) {
 			throw new DataAccessException("Error executing SQL '" + SQL_GET_CLASS_ID_AND_NAMES_FOR_USER + "' with parameter: " + username, e);
+		}
+	}
+	
+	/**
+	 * Retrieves the list of class identifiers for a user with a given role in
+	 * that class.
+	 * 
+	 * @param username The user's username.
+	 *  
+	 * @param role The user's class role.
+	 * 
+	 * @return The list of class identifiers.
+	 * 
+	 * @throws DataAccessException Thrown if there is an error.
+	 */
+	public static List<String> getClassIdsForUserWithRole(
+			final String username, final Clazz.Role role) 
+			throws DataAccessException {
+		
+		try {
+			return instance.getJdbcTemplate().query(
+					SQL_GET_CLASS_IDS_FOR_USER_WITH_ROLE, 
+					new Object[] { username, role.toString() },
+					new SingleColumnRowMapper<String>()
+				);
+		}
+		catch(org.springframework.dao.DataAccessException e) {
+			throw new DataAccessException(
+					"Error executing SQL '" + 
+						SQL_GET_CLASS_IDS_FOR_USER_WITH_ROLE + 
+						"' with parameters: " + 
+						username + 
+						", " + 
+						role.toString(), 
+					e);
 		}
 	}
 }

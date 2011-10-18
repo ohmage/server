@@ -2192,12 +2192,14 @@ public class OhmageApi {
 	}
 	
 	/**
-	 * Retrieves the personal information about each of the users in all of the
-	 * given classes and campaigns.
+	 * Retrieves the personal information about each of the users in the list
+	 * and all of the given classes and campaigns.
 	 * 
 	 * @param authenticationToken The user's authentication token.
 	 * 
 	 * @param client The client value.
+	 * 
+	 * @param usernames The collection of usernames.
 	 * 
 	 * @param campaignIds A collection of campaign IDs whose users' personal
 	 * 					  information is desired.
@@ -2215,6 +2217,7 @@ public class OhmageApi {
 	 */
 	public Map<String, UserPersonal> getUsersPersonalInformation(
 			final String authenticationToken, final String client,
+			final Collection<String> usernames,
 			final Collection<String> campaignIds, 
 			final Collection<String> classIds)
 			throws ApiException, RequestErrorException {
@@ -2475,13 +2478,15 @@ public class OhmageApi {
 		Map<String, Object> parameters = new HashMap<String, Object>();
 		parameters.put(InputKeys.AUTH_TOKEN, authenticationToken);
 		parameters.put(InputKeys.CLIENT, client);
-		parameters.put(
-				InputKeys.USER_LIST, 
-				StringUtils.collectionToStringList(
-						usernames, 
-						InputKeys.LIST_ITEM_SEPARATOR
-					)
-			);
+		if(usernames != null) {
+			parameters.put(
+					InputKeys.USER_LIST, 
+					StringUtils.collectionToStringList(
+							usernames, 
+							InputKeys.LIST_ITEM_SEPARATOR
+						)
+				);
+		}
 		
 		try {
 			processJsonResponse(

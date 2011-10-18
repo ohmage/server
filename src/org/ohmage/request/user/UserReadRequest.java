@@ -23,8 +23,10 @@ import org.ohmage.service.CampaignServices;
 import org.ohmage.service.ClassServices;
 import org.ohmage.service.UserCampaignServices;
 import org.ohmage.service.UserClassServices;
+import org.ohmage.service.UserServices;
 import org.ohmage.validator.CampaignValidators;
 import org.ohmage.validator.ClassValidators;
+import org.ohmage.validator.UserValidators;
 
 /**
  * <p>Reads the information about all of the users in all of the campaigns and
@@ -60,6 +62,7 @@ import org.ohmage.validator.ClassValidators;
 public class UserReadRequest extends UserRequest {
 	private static final Logger LOGGER = Logger.getLogger(UserReadRequest.class);
 	
+	private final Collection<String> usernames;
 	private final List<String> campaignIds;
 	private final Collection<String> classIds; 
 	
@@ -73,28 +76,43 @@ public class UserReadRequest extends UserRequest {
 	public UserReadRequest(HttpServletRequest httpRequest) {
 		super(httpRequest, TokenLocation.EITHER);
 		
-		LOGGER.info("Creating a user read request.");
-		
+		Collection<String> tUsernames = null;
 		List<String> tCampaignIds = null;
 		Set<String> tClassIds = null;
 		
-		try {
-			tCampaignIds = CampaignValidators.validateCampaignIds(this, httpRequest.getParameter(InputKeys.CAMPAIGN_URN_LIST));
-			if((tCampaignIds != null) && (httpRequest.getParameterValues(InputKeys.CAMPAIGN_URN_LIST).length > 1)) {
-				setFailed(ErrorCodes.CAMPAIGN_INVALID_ID, "Multiple campaign ID list parameters were found.");
-				throw new ValidationException("Multiple campaign ID list parameters were found.");
+		if(! isFailed()) {
+			LOGGER.info("Creating a user read request.");
+		
+			try {
+				String[] t;
+				
+				t = getParameterValues(InputKeys.USER_LIST);
+				if(t.length > 1) {
+					setFailed(ErrorCodes.USER_INVALID_USERNAME, "Multiple username lists parameters were found: " + InputKeys.USER_LIST);
+					throw new ValidationException("Multiple username lists parameters were found: " + InputKeys.USER_LIST);
+				}
+				else if(t.length == 1) {
+					tUsernames = UserValidators.validateUsernames(this, t[0]);
+				}
+					
+				tCampaignIds = CampaignValidators.validateCampaignIds(this, httpRequest.getParameter(InputKeys.CAMPAIGN_URN_LIST));
+				if((tCampaignIds != null) && (httpRequest.getParameterValues(InputKeys.CAMPAIGN_URN_LIST).length > 1)) {
+					setFailed(ErrorCodes.CAMPAIGN_INVALID_ID, "Multiple campaign ID list parameters were found.");
+					throw new ValidationException("Multiple campaign ID list parameters were found.");
+				}
+				
+				tClassIds = ClassValidators.validateClassIdList(this, httpRequest.getParameter(InputKeys.CLASS_URN_LIST));
+				if((tClassIds != null) && (httpRequest.getParameterValues(InputKeys.CLASS_URN_LIST).length > 1)) {
+					setFailed(ErrorCodes.CLASS_INVALID_ID, "Multiple class ID list parameters were found.");
+					throw new ValidationException("Multiple class ID list parameters were found.");
+				}
 			}
-			
-			tClassIds = ClassValidators.validateClassIdList(this, httpRequest.getParameter(InputKeys.CLASS_URN_LIST));
-			if((tClassIds != null) && (httpRequest.getParameterValues(InputKeys.CLASS_URN_LIST).length > 1)) {
-				setFailed(ErrorCodes.CLASS_INVALID_ID, "Multiple class ID list parameters were found.");
-				throw new ValidationException("Multiple class ID list parameters were found.");
+			catch(ValidationException e) {
+				LOGGER.info(e.toString());
 			}
-		}
-		catch(ValidationException e) {
-			LOGGER.info(e.toString());
 		}
 		
+		usernames = tUsernames;
 		campaignIds = tCampaignIds;
 		classIds = tClassIds;
 		
@@ -113,11 +131,19 @@ public class UserReadRequest extends UserRequest {
 		}
 		
 		try {
+			if(usernames != null) {
+				LOGGER.info("Verifying that the requester may read the information about the users in the list.");
+				UserServices.verifyUserCanReadUsersPersonalInfo(this, getUser().getUsername(), usernames);
+				
+				LOGGER.info("Gathering the information about the users.");
+				result.putAll(UserServices.gatherPersonalInformation(this, usernames));
+			}
+			
 			if(campaignIds != null) {
 				LOGGER.info("Verifying that all of the campaigns in the list exist.");
 				CampaignServices.checkCampaignsExistence(this, campaignIds, true);
 				
-				LOGGER.info("Verifying that the requester may read the information about hte users in the campaigns.");
+				LOGGER.info("Verifying that the requester may read the information about the users in the campaigns.");
 				UserCampaignServices.verifyUserCanReadUsersInfoInCampaigns(this, getUser().getUsername(), campaignIds);
 				
 				LOGGER.info("Gathering the information about the users in the campaigns.");

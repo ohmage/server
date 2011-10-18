@@ -311,7 +311,7 @@ public class CampaignReadRequest extends UserRequest {
 				}
 				
 				LOGGER.info("Generating the list of campaign IDs based on the parameters.");
-				List<String> resultCampaignIds = UserCampaignServices.getCampaignsForUser(this, getUser().getUsername(), 
+				Set<String> resultCampaignIds = UserCampaignServices.getCampaignsForUser(this, getUser().getUsername(), 
 						campaignIds, classIds, startDate, endDate, privacyState, runningState, role);
 				
 				LOGGER.info("Gathering the information about the campaigns.");

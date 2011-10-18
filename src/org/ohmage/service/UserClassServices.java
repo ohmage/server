@@ -232,6 +232,49 @@ public final class UserClassServices {
 	}
 	
 	/**
+	 * Retrieves the ID of all of the classes to which the user belongs. If a
+	 * role is given, the result will only contain the classes in which the
+	 * user has the given role.
+	 * 
+	 * @param request The Request that is performing this service.
+	 * 
+	 * @param username The user's username.
+	 * 
+	 * @param role The class role or null if all classes are desired.
+	 * 
+	 * @return The set of classes.
+	 * 
+	 * @throws ServiceException Thrown if there is an error.
+	 */
+	public static Set<String> getClassesForUser(final Request request,
+			final String username, final Clazz.Role role) 
+			throws ServiceException {
+		
+		try {
+			Set<String> allClasses = 
+				UserClassDaos.getClassIdsAndNameForUser(username).keySet();
+			
+			if(role == null) {
+				return allClasses;
+			}
+			else {
+				allClasses.retainAll(
+						UserClassDaos.getClassIdsForUserWithRole(
+								username, 
+								role
+							)
+					);
+				
+				return allClasses;
+			}
+		}
+		catch(DataAccessException e) {
+			request.setFailed();
+			throw new ServiceException(e);
+		}
+	}
+	
+	/**
 	 * Retrieves the personal information for all of the users in all of the 
 	 * classes without duplicates.
 	 * 

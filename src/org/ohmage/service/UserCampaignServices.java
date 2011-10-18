@@ -1,8 +1,8 @@
 package org.ohmage.service;
 
-import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -29,8 +29,6 @@ import org.ohmage.util.StringUtils;
  * @author Joshua Selsky
  */
 public class UserCampaignServices {
-	//private static final Logger LOGGER = Logger.getLogger(UserCampaignServices.class);
-	
 	/**
 	 * Default constructor. Private so that it cannot be instantiated.
 	 */
@@ -525,12 +523,12 @@ public class UserCampaignServices {
 	 * @param role A campaign role that trims the resulting list of campaigns 
 	 * 			   to only those where the user has that role in the campaign.
 	 *  
-	 * @return A List of campaign unique identifiers based on the 'campaignIds'
+	 * @return A Set of campaign unique identifiers based on the 'campaignIds'
 	 * 		   parameter and trimmed by the rest of the parameters.
 	 * 
 	 * @throws ServiceException Thrown if there is an error.
 	 */
-	public static List<String> getCampaignsForUser(Request request, 
+	public static Set<String> getCampaignsForUser(Request request, 
 			String username, 
 			Collection<String> campaignIds, Collection<String> classIds,
 			Calendar startDate, Calendar endDate, 
@@ -550,11 +548,19 @@ public class UserCampaignServices {
 			desiredCampaignIds.addAll(campaignIds);
 		}
 		
+		if(desiredCampaignIds.size() == 0) {
+			return Collections.emptySet();
+		}
+		
 		if(classIds != null) {
 			// Get all of the campaigns associated with all of the classes in
 			// the list.
 			for(String classId : classIds) {
 				desiredCampaignIds.retainAll(CampaignClassDaos.getCampaignsAssociatedWithClass(classId));
+			}
+			
+			if(desiredCampaignIds.size() == 0) {
+				return Collections.emptySet();
 			}
 		}
 		
@@ -562,30 +568,50 @@ public class UserCampaignServices {
 			// Get all of the campaigns whose creation timestamp is greater
 			// than or equal to the start date.
 			desiredCampaignIds.retainAll(CampaignDaos.getCampaignsOnOrAfterDate(startDate));
+			
+			if(desiredCampaignIds.size() == 0) {
+				return Collections.emptySet();
+			}
 		}
 		
 		if(endDate != null) {
 			// Get all of the campaigns whose creation timestamp is less than
 			// or equal to the end date.
 			desiredCampaignIds.retainAll(CampaignDaos.getCampaignsOnOrBeforeDate(endDate));
+			
+			if(desiredCampaignIds.size() == 0) {
+				return Collections.emptySet();
+			}
 		}
 		
 		if(privacyState != null) {
 			// Get all of the campaigns with a privacy state of 'privacyState'.
 			desiredCampaignIds.retainAll(CampaignDaos.getCampaignsWithPrivacyState(privacyState));
+			
+			if(desiredCampaignIds.size() == 0) {
+				return Collections.emptySet();
+			}
 		}
 		
 		if(runningState != null) {
 			// Get all of the campaigns with a running state of 'runningState'.
 			desiredCampaignIds.retainAll(CampaignDaos.getCampaignsWithRunningState(runningState));
+			
+			if(desiredCampaignIds.size() == 0) {
+				return Collections.emptySet();
+			}
 		}
 		
 		if(role != null) {
 			// Get all of the campaigns where the user's role is 'role'.
 			desiredCampaignIds.retainAll(UserCampaignDaos.getCampaignIdsForUserWithRole(username, role));
+			
+			if(desiredCampaignIds.size() == 0) {
+				return Collections.emptySet();
+			}
 		}
 		
-		return new ArrayList<String>(desiredCampaignIds);
+		return desiredCampaignIds;
 	}
 	
 	/**
