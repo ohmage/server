@@ -1,4 +1,4 @@
-package org.ohmage.dao;
+package org.ohmage.query;
 
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
@@ -49,9 +49,9 @@ import org.springframework.transaction.support.DefaultTransactionDefinition;
  * 
  * @author Joshua Selsky
  */
-public class SurveyUploadDao extends AbstractUploadDao {
+public class SurveyUploadQuery extends AbstractUploadQuery {
 	
-	private static SurveyUploadDao instance;
+	private static SurveyUploadQuery instance;
 	
 	// The current directory to which the next image should be saved.
 	private static File currLeafDirectory;
@@ -78,7 +78,7 @@ public class SurveyUploadDao extends AbstractUploadDao {
 		}
 	}
 
-	private static final Logger LOGGER = Logger.getLogger(SurveyUploadDao.class);
+	private static final Logger LOGGER = Logger.getLogger(SurveyUploadQuery.class);
 	
 	private static final String SQL_INSERT_SURVEY_RESPONSE =
 		"INSERT into survey_response " +
@@ -117,11 +117,11 @@ public class SurveyUploadDao extends AbstractUploadDao {
 		")";
 	
 	/**
-	 * Creates this DAO.
+	 * Creates this object.
 	 * 
 	 * @param dataSource The DataSource to use when querying the database.
 	 */
-	private SurveyUploadDao(DataSource dataSource) {
+	private SurveyUploadQuery(DataSource dataSource) {
 		super(dataSource);
 		
 		instance = this;
@@ -247,7 +247,7 @@ public class SurveyUploadDao extends AbstractUploadDao {
 					
 						// Some other integrity violation occurred - bad!! All 
 						// of the data to be inserted must be validated before 
-						// this DAO runs so there is either missing validation 
+						// this query runs so there is either missing validation 
 						// or somehow an auto_incremented key has been duplicated.
 						
 						LOGGER.error("Caught DataAccessException", dive);
@@ -354,7 +354,7 @@ public class SurveyUploadDao extends AbstractUploadDao {
 	}
 	
 	/**
-	 * Copied directly from ImageDaos.
+	 * Copied directly from ImageQueries.
 	 * 
 	 * Gets the directory to which a image should be saved. This should be used
 	 * instead of accessing the class-level variable directly as it handles the

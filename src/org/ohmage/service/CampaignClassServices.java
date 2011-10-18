@@ -5,9 +5,9 @@ import java.util.HashSet;
 import java.util.Set;
 
 import org.ohmage.annotator.ErrorCodes;
-import org.ohmage.dao.CampaignClassDaos;
 import org.ohmage.exception.DataAccessException;
 import org.ohmage.exception.ServiceException;
+import org.ohmage.query.CampaignClassQueries;
 import org.ohmage.request.Request;
 
 /**
@@ -42,7 +42,7 @@ public class CampaignClassServices {
 		
 		try {
 			Set<String> classIdsCopy = new HashSet<String>(classIds);
-			classIdsCopy.removeAll(CampaignClassDaos.getClassesAssociatedWithCampaign(campaignId));
+			classIdsCopy.removeAll(CampaignClassQueries.getClassesAssociatedWithCampaign(campaignId));
 			
 			if(classIdsCopy.size() == 0) {
 				request.setFailed(ErrorCodes.CAMPAIGN_INSUFFICIENT_PERMISSIONS, "The user is not allowed to disassociate all classes from the campaign.");

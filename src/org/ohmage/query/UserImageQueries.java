@@ -1,4 +1,4 @@
-package org.ohmage.dao;
+package org.ohmage.query;
 
 import javax.sql.DataSource;
 
@@ -10,7 +10,7 @@ import org.ohmage.exception.DataAccessException;
  * 
  * @author John Jenkins
  */
-public final class UserImageDaos extends Dao {
+public final class UserImageQueries extends Query {
 	// Returns a boolean representing whether or not some photo prompt response
 	// exists whose response value is the same as some photo's ID.
 	private static final String SQL_EXISTS_IMAGE_FOR_USER_IN_RESPONSE =
@@ -31,14 +31,14 @@ public final class UserImageDaos extends Dao {
 		"WHERE ubr.uuid = ? " +
 		"AND ubr.user_id = u.id";
 	
-	private static UserImageDaos instance;
+	private static UserImageQueries instance;
 	
 	/**
-	 * Creates this DAO.
+	 * Creates this object.
 	 * 
 	 * @param dataSource The DataSource to use to query the database.
 	 */
-	private UserImageDaos(DataSource dataSource) {
+	private UserImageQueries(DataSource dataSource) {
 		super(dataSource);
 		
 		instance = this;

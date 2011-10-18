@@ -9,10 +9,10 @@ import java.util.List;
 import java.util.Map;
 
 import org.ohmage.annotator.ErrorCodes;
-import org.ohmage.dao.DocumentDaos;
 import org.ohmage.domain.Document;
 import org.ohmage.exception.DataAccessException;
 import org.ohmage.exception.ServiceException;
+import org.ohmage.query.DocumentQueries;
 import org.ohmage.request.Request;
 
 /**
@@ -54,7 +54,7 @@ public class DocumentServices {
 	public static String createDocument(Request request, byte[] contents, String name, String description, Document.PrivacyState privacyState,
 			Map<String, Document.Role> campaignRoleMap, Map<String, Document.Role> classRoleMap, String creatorUsername) throws ServiceException {
 		try {
-			return DocumentDaos.createDocument(contents, name, description, privacyState, campaignRoleMap, classRoleMap, creatorUsername);
+			return DocumentQueries.createDocument(contents, name, description, privacyState, campaignRoleMap, classRoleMap, creatorUsername);
 		}
 		catch(DataAccessException e) {
 			request.setFailed();
@@ -74,7 +74,7 @@ public class DocumentServices {
 	 */
 	public static void ensureDocumentExistence(Request request, String documentId) throws ServiceException {
 		try {
-			if(! DocumentDaos.getDocumentExists(documentId)) {
+			if(! DocumentQueries.getDocumentExists(documentId)) {
 				request.setFailed(ErrorCodes.DOCUMENT_INVALID_ID, "The document with the given document ID does not exist: " + documentId);
 				throw new ServiceException("The document with the given document ID does not exist: " + documentId);
 			}
@@ -100,7 +100,7 @@ public class DocumentServices {
 	 */
 	public static String getDocumentName(Request request, String documentId) throws ServiceException {
 		try {
-			return DocumentDaos.getDocumentName(documentId);
+			return DocumentQueries.getDocumentName(documentId);
 		}
 		catch(DataAccessException e) {
 			request.setFailed();
@@ -178,7 +178,7 @@ public class DocumentServices {
 	 */
 	public static InputStream getDocumentInputStream(Request request, String documentId) throws ServiceException {
 		try {
-			return (new URL(DocumentDaos.getDocumentUrl(documentId))).openConnection().getInputStream();
+			return (new URL(DocumentQueries.getDocumentUrl(documentId))).openConnection().getInputStream();
 			
 		}
 		catch(DataAccessException e) {
@@ -248,7 +248,7 @@ public class DocumentServices {
 			Map<String, Document.Role> classAndRolesToAssociateOrUpdate, Collection<String> classesToDisassociate,
 			Map<String, Document.Role> userAndRolesToAssociateOrUpdate, Collection<String> usersToDisassoicate) throws ServiceException {
 		try {
-			DocumentDaos.updateDocument(documentId, newContents, newName, newDescription, newPrivacyState, 
+			DocumentQueries.updateDocument(documentId, newContents, newName, newDescription, newPrivacyState, 
 					campaignAndRolesToAssociateOrUpdate, campaignsToDisassociate, 
 					classAndRolesToAssociateOrUpdate, classesToDisassociate, 
 					userAndRolesToAssociateOrUpdate, usersToDisassoicate);
@@ -270,7 +270,7 @@ public class DocumentServices {
 	 */
 	public static void deleteDocument(Request request, String documentId) throws ServiceException {
 		try {
-			DocumentDaos.deleteDocument(documentId);
+			DocumentQueries.deleteDocument(documentId);
 		}
 		catch(DataAccessException e) {
 			request.setFailed();

@@ -1,4 +1,4 @@
-package org.ohmage.dao;
+package org.ohmage.query;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -35,7 +35,7 @@ import org.springframework.transaction.support.DefaultTransactionDefinition;
  * @author John Jenkins
  * @author Joshua Selsky
  */
-public class SurveyResponseDaos extends Dao {
+public class SurveyResponseQueries extends Query {
 	// Retrieves the ID for all survey responses in a campaign.
 	private static final String SQL_GET_IDS_FOR_CAMPAIGN =
 		"SELECT sr.id " +
@@ -159,14 +159,14 @@ public class SurveyResponseDaos extends Dao {
 		"DELETE FROM survey_response " +
 		"WHERE id = ?";
 	
-	private static SurveyResponseDaos instance;
+	private static SurveyResponseQueries instance;
 	
 	/**
-	 * Creates this DAO.
+	 * Creates this object.
 	 * 
 	 * @param dataSource The DataSource to use to query the database.
 	 */
-	private SurveyResponseDaos(DataSource dataSource) {
+	private SurveyResponseQueries(DataSource dataSource) {
 		super(dataSource);
 		
 		instance = this;

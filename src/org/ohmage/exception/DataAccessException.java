@@ -16,7 +16,7 @@
 package org.ohmage.exception;
 
 /**
- * Simple wrapper for RuntimeExceptions that are thrown from the DAO layer. 
+ * Simple wrapper for RuntimeExceptions that are thrown from the query package. 
  * 
  * @author Joshua Selsky
  */

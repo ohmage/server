@@ -1,4 +1,4 @@
-package org.ohmage.dao;
+package org.ohmage.query;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -28,7 +28,7 @@ import org.springframework.transaction.support.DefaultTransactionDefinition;
  * 
  * @author John Jenkins
  */
-public class UserDaos extends Dao {
+public class UserQueries extends Query {
 	// Returns a boolean representing whether or not a user exists
 	private static final String SQL_EXISTS_USER = 
 		"SELECT EXISTS(" +
@@ -190,14 +190,14 @@ public class UserDaos extends Dao {
 	
 	// The single instance of this class as the constructor should only ever be
 	// called once by Spring.
-	private static UserDaos instance;
+	private static UserQueries instance;
 	
 	/**
-	 * Creates this DAO.
+	 * Creates this object.
 	 * 
 	 * @param dataSource The DataSource to use to query the database.
 	 */
-	private UserDaos(DataSource dataSource) {
+	private UserQueries(DataSource dataSource) {
 		super(dataSource);
 		
 		instance = this;
@@ -348,7 +348,7 @@ public class UserDaos extends Dao {
 		}
 	}
 	
-	private static final Logger LOGGER = Logger.getLogger(UserDaos.class);
+	private static final Logger LOGGER = Logger.getLogger(UserQueries.class);
 	
 	/**
 	 * Checks if a user has a personal information entry in the database.

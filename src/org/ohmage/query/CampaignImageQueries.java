@@ -1,4 +1,4 @@
-package org.ohmage.dao;
+package org.ohmage.query;
 
 import java.util.List;
 
@@ -9,14 +9,14 @@ import org.ohmage.exception.DataAccessException;
 import org.springframework.jdbc.core.SingleColumnRowMapper;
 
 /**
- * This class is responsible for all DAOs pertaining to image-campaign 
+ * This class is responsible for all queries pertaining to image-campaign 
  * associations. While it may read information pertaining other objects, the
  * parameters, return values, and modified objects should pertain only to 
  * image-campaign associations.
  * 
  * @author John Jenkins
  */
-public final class CampaignImageDaos extends Dao {
+public final class CampaignImageQueries extends Query {
 	// Retrieves the unique identifiers for all of the campaigns for which an
 	// image is associated.
 	private static final String SQL_GET_CAMPAIGN_IDS_FOR_IMAGE =
@@ -38,14 +38,14 @@ public final class CampaignImageDaos extends Dao {
 		"AND sr.campaign_id = c.id " +
 		"AND sr.privacy_state_id = srps.id";
 	
-	private static CampaignImageDaos instance;
+	private static CampaignImageQueries instance;
 	
 	/**
-	 * Creates this DAO.
+	 * Creates this object.
 	 * 
 	 * @param dataSource The DataSource to use to query the database.
 	 */
-	private CampaignImageDaos(DataSource dataSource) {
+	private CampaignImageQueries(DataSource dataSource) {
 		super(dataSource);
 		
 		instance = this;

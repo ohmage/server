@@ -1,4 +1,4 @@
-package org.ohmage.dao;
+package org.ohmage.query;
 
 import java.util.List;
 
@@ -14,7 +14,7 @@ import org.springframework.jdbc.core.SingleColumnRowMapper;
  * 
  * @author John Jenkins
  */
-public class ClassDocumentDaos extends Dao {
+public class ClassDocumentQueries extends Query {
 	// Retrieves all of the classes associated with a document.
 	private static final String SQL_GET_CLASSES_ASSOCIATED_WITH_DOCUMENT =
 		"SELECT c.urn " +
@@ -33,14 +33,14 @@ public class ClassDocumentDaos extends Dao {
 		"AND d.id = dcr.document_id " +
 		"AND dcr.document_role_id = dr.id";
 	
-	private static ClassDocumentDaos instance;
+	private static ClassDocumentQueries instance;
 	
 	/**
-	 * Creates this DAO.
+	 * Creates this object.
 	 * 
 	 * @param dataSource A DataSource object to use when querying the database.
 	 */
-	private ClassDocumentDaos(DataSource dataSource) {
+	private ClassDocumentQueries(DataSource dataSource) {
 		super(dataSource);
 		
 		instance = this;

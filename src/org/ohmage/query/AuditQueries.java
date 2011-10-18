@@ -1,4 +1,4 @@
-package org.ohmage.dao;
+package org.ohmage.query;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -35,7 +35,7 @@ import org.springframework.transaction.support.DefaultTransactionDefinition;
  * 
  * @author John Jenkins
  */
-public class AuditDaos extends Dao {
+public class AuditQueries extends Query {
 	// Retrieves the audit ID for all audits.
 	private static final String SQL_GET_AUDIT_IDS =
 		"SELECT id " +
@@ -150,14 +150,14 @@ public class AuditDaos extends Dao {
 			"WHERE id = ?" +
 		"), ?, ?)";
 	
-	private static AuditDaos instance;
+	private static AuditQueries instance;
 	
 	/**
-	 * Creates this DAO.
+	 * Creates this object.
 	 * 
 	 * @param dataSource The DataSource to use when querying the database.
 	 */
-	private AuditDaos(DataSource dataSource) {
+	private AuditQueries(DataSource dataSource) {
 		super(dataSource);
 		
 		instance = this;

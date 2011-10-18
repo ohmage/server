@@ -1,4 +1,4 @@
-package org.ohmage.dao;
+package org.ohmage.query;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -19,7 +19,7 @@ import org.springframework.jdbc.core.SingleColumnRowMapper;
  * 
  * @author John Jenkins
  */
-public final class UserDocumentDaos extends Dao {
+public final class UserDocumentQueries extends Query {
 	// Gets the list of documents visible and specific to a user.
 	private static final String SQL_GET_DOCUMENTS_SPECIFIC_TO_REQUESTING_USER =
 		"SELECT distinct(d.uuid) " +
@@ -152,14 +152,14 @@ public final class UserDocumentDaos extends Dao {
 		"WHERE allDocuments.username = ? " +
 		"AND allDocuments.uuid = ?";
 	
-	private static UserDocumentDaos instance;
+	private static UserDocumentQueries instance;
 
 	/**
-	 * Creates this DAO.
+	 * Creates this object.
 	 * 
 	 * @param dataSource The DataSource to use when accessing the database.
 	 */
-	private UserDocumentDaos(DataSource dataSource) {
+	private UserDocumentQueries(DataSource dataSource) {
 		super(dataSource);
 		
 		instance = this;

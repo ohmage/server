@@ -1,4 +1,4 @@
-package org.ohmage.dao;
+package org.ohmage.query;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -23,8 +23,8 @@ import org.springframework.jdbc.core.SingleColumnRowMapper;
  * 
  * @author John Jenkins
  */
-public final class UserClassDaos extends Dao {
-	private static final Logger LOGGER = Logger.getLogger(UserClassDaos.class);
+public final class UserClassQueries extends Query {
+	private static final Logger LOGGER = Logger.getLogger(UserClassQueries.class);
 	
 	// Returns a boolean representing whether or not a user is associated with
 	// a class in any capacity.
@@ -66,14 +66,14 @@ public final class UserClassDaos extends Dao {
 	
 	// The single instance of this class as the constructor should only ever be
 	// called once by Spring.
-	private static UserClassDaos instance;
+	private static UserClassQueries instance;
 	
 	/**
-	 * Creates this DAO.
+	 * Creates this object.
 	 * 
 	 * @param dataSource A DataSource object to use when querying the database.
 	 */
-	private UserClassDaos(DataSource dataSource) {
+	private UserClassQueries(DataSource dataSource) {
 		super(dataSource);
 		
 		instance = this;

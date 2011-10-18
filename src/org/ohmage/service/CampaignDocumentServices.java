@@ -4,10 +4,10 @@ import java.util.Collection;
 import java.util.List;
 
 import org.ohmage.annotator.ErrorCodes;
-import org.ohmage.dao.CampaignDocumentDaos;
 import org.ohmage.domain.Document;
 import org.ohmage.exception.DataAccessException;
 import org.ohmage.exception.ServiceException;
+import org.ohmage.query.CampaignDocumentQueries;
 import org.ohmage.request.Request;
 
 /**
@@ -35,7 +35,7 @@ public class CampaignDocumentServices {
 	 */
 	public static List<String> getCampaignsAssociatedWithDocument(Request request, String documentId) throws ServiceException {
 		try {
-			return CampaignDocumentDaos.getCampaignsAssociatedWithDocument(documentId);
+			return CampaignDocumentQueries.getCampaignsAssociatedWithDocument(documentId);
 		}
 		catch(DataAccessException e) {
 			request.setFailed();
@@ -59,7 +59,7 @@ public class CampaignDocumentServices {
 	 */
 	public static Document.Role getDocumentRoleForCampaign(Request request, String campaignId, String documentId) throws ServiceException {
 		try {
-			return CampaignDocumentDaos.getCampaignDocumentRole(campaignId, documentId);
+			return CampaignDocumentQueries.getCampaignDocumentRole(campaignId, documentId);
 		}
 		catch(DataAccessException e) {
 			request.setFailed();

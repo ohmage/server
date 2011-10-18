@@ -20,12 +20,12 @@ import nu.xom.XPathException;
 
 import org.json.JSONObject;
 import org.ohmage.annotator.ErrorCodes;
-import org.ohmage.dao.CampaignDaos;
 import org.ohmage.domain.campaign.Campaign;
 import org.ohmage.domain.campaign.SurveyResponse;
 import org.ohmage.exception.DataAccessException;
 import org.ohmage.exception.ErrorCodeException;
 import org.ohmage.exception.ServiceException;
+import org.ohmage.query.CampaignQueries;
 import org.ohmage.request.Request;
 
 /**
@@ -144,7 +144,7 @@ public class CampaignServices {
 			Campaign.PrivacyState privacyState, 
 			Collection<String> classIds, String creatorUsername) throws ServiceException {
 		try {
-			CampaignDaos.createCampaign(campaignId, name, xml, description, iconUrl, authoredBy, runningState, privacyState, classIds, creatorUsername);
+			CampaignQueries.createCampaign(campaignId, name, xml, description, iconUrl, authoredBy, runningState, privacyState, classIds, creatorUsername);
 		}
 		catch(DataAccessException e) {
 			request.setFailed();
@@ -169,7 +169,7 @@ public class CampaignServices {
 	 */
 	public static void checkCampaignExistence(Request request, String campaignId, boolean shouldExist) throws ServiceException {
 		try {
-			if(CampaignDaos.getCampaignExists(campaignId)) {
+			if(CampaignQueries.getCampaignExists(campaignId)) {
 				if(! shouldExist) {
 					request.setFailed(ErrorCodes.CAMPAIGN_INVALID_XML, "A campaign with the same ID already exists: " + campaignId);
 					throw new ServiceException("The campaign already exists.");
@@ -223,7 +223,7 @@ public class CampaignServices {
 	 */
 	public static String getCampaignXml(Request request, String campaignId) throws ServiceException {
 		try {
-			return CampaignDaos.getXml(campaignId);
+			return CampaignQueries.getXml(campaignId);
 		}
 		catch(DataAccessException e) {
 			request.setFailed();
@@ -245,7 +245,7 @@ public class CampaignServices {
 	 */
 	public static String getCampaignName(Request request, String campaignId) throws ServiceException {
 		try {
-			return CampaignDaos.getName(campaignId);
+			return CampaignQueries.getName(campaignId);
 		}
 		catch(DataAccessException e) {
 			request.setFailed();
@@ -276,7 +276,7 @@ public class CampaignServices {
 		// Get the XML.
 		String xml;
 		try {
-			xml = CampaignDaos.getXml(campaignId);
+			xml = CampaignQueries.getXml(campaignId);
 		}
 		catch(DataAccessException e) {
 			request.setFailed();
@@ -437,7 +437,7 @@ public class CampaignServices {
 	public static void verifyCampaignIsRunning(Request request, String campaignId) throws ServiceException {
 		try {
 			if(! Campaign.RunningState.RUNNING.equals(
-					CampaignDaos.getCampaignRunningState(campaignId))) {
+					CampaignQueries.getCampaignRunningState(campaignId))) {
 				request.setFailed(ErrorCodes.CAMPAIGN_INVALID_RUNNING_STATE, "The campaign is not running.");
 				throw new ServiceException("The campaign is not running.");
 			}
@@ -498,7 +498,7 @@ public class CampaignServices {
 			CampaignMetadata newCampaignIdAndName = getCampaignMetadataFromXml(request, newXml);
 			
 			// We check the XML's ID against the given ID and the XML's name
-			// against what the DAO reports as the name. We do not check 
+			// against what the query reports as the name. We do not check 
 			// against the actual saved XML as that would be less efficient. 
 			// The only time these would not be the same is when there was an
 			// integrity issue in the database.
@@ -507,7 +507,7 @@ public class CampaignServices {
 				throw new ServiceException("The campaign's ID in the new XML must be the same as the original XML.");
 			}
 			
-			if(! newCampaignIdAndName.getCampaignName().equals(CampaignDaos.getName(campaignId))) {
+			if(! newCampaignIdAndName.getCampaignName().equals(CampaignQueries.getName(campaignId))) {
 				request.setFailed(ErrorCodes.CAMPAIGN_XML_HEADER_CHANGED, "The campaign's name in the new XML must be the same as the original XML.");
 				throw new ServiceException("The campaign's name in the new XML must be the same as the original XML.");
 			}
@@ -574,7 +574,7 @@ public class CampaignServices {
 	 */
 	public static void verifyCampaignIsUpToDate(Request request, String campaignId, Date creationTimestamp) throws ServiceException {
 		try {
-			if(! creationTimestamp.equals(CampaignDaos.getCreationTimestamp(campaignId))) {
+			if(! creationTimestamp.equals(CampaignQueries.getCreationTimestamp(campaignId))) {
 				request.setFailed(ErrorCodes.CAMPAIGN_OUT_OF_DATE, "The given timestamp is not the same as the campaign's creation timestamp.");
 				throw new ServiceException("The given timestamp is not the same as the campaign's creation timestamp.");
 			}
@@ -595,7 +595,7 @@ public class CampaignServices {
 	 */
 	public static Campaign findCampaignConfiguration(Request request, String campaignId) throws ServiceException {
 		try {
-			return CampaignDaos.findCampaignConfiguration(campaignId);
+			return CampaignQueries.findCampaignConfiguration(campaignId);
 		}
 		catch(DataAccessException e) {
 				request.setFailed();
@@ -691,7 +691,7 @@ public class CampaignServices {
 			Map<String, Set<Campaign.Role>> usersAndRolesToAdd, 
 			Map<String, Set<Campaign.Role>> usersAndRolesToRemove) throws ServiceException {
 		try {
-			CampaignDaos.updateCampaign(campaignId, xml, description, runningState, privacyState, classesToAdd, classesToRemove, usersAndRolesToAdd, usersAndRolesToRemove);
+			CampaignQueries.updateCampaign(campaignId, xml, description, runningState, privacyState, classesToAdd, classesToRemove, usersAndRolesToAdd, usersAndRolesToRemove);
 		}
 		catch(DataAccessException e) {
 			request.setFailed();
@@ -710,7 +710,7 @@ public class CampaignServices {
 	 */
 	public static void deleteCampaign(Request request, String campaignId) throws ServiceException {
 		try {
-			CampaignDaos.deleteCampaign(campaignId);
+			CampaignQueries.deleteCampaign(campaignId);
 		}
 		catch(DataAccessException e) {
 			request.setFailed();

@@ -1,4 +1,4 @@
-package org.ohmage.dao;
+package org.ohmage.query;
 
 import java.util.List;
 
@@ -15,7 +15,7 @@ import org.springframework.jdbc.core.SingleColumnRowMapper;
  * 
  * @author John Jenkins
  */
-public final class UserClassDocumentDaos extends Dao {
+public final class UserClassDocumentQueries extends Query {
 	// Check if the user is a supervisor in any campaign with which the 
 	// document is associated.
 	private static final String SQL_EXISTS_USER_IS_PRIVILEGED_IN_ANY_CLASS_ASSOCIATED_WITH_DOCUMENT = 
@@ -59,14 +59,14 @@ public final class UserClassDocumentDaos extends Dao {
 			"(dr.role = '" + Document.Role.OWNER + "')" +
 		")";
 	
-	private static UserClassDocumentDaos instance;
+	private static UserClassDocumentQueries instance;
 	
 	/**
-	 * Creates this DAO.
+	 * Creates this object.
 	 * 
 	 * @param dataSource The DataSource to use to query the database.
 	 */
-	private UserClassDocumentDaos(DataSource dataSource) {
+	private UserClassDocumentQueries(DataSource dataSource) {
 		super(dataSource);
 		
 		instance = this;

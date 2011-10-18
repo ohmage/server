@@ -1,4 +1,4 @@
-package org.ohmage.dao;
+package org.ohmage.query;
 
 import java.util.List;
 
@@ -13,7 +13,7 @@ import org.springframework.jdbc.core.SingleColumnRowMapper;
  * 
  * @author John Jenkins
  */
-public class SurveyResponseImageDaos extends Dao {
+public class SurveyResponseImageQueries extends Query {
 	// Returns all of the image IDs for all of the photo prompt responses for a
 	// survey.
 	private static final String SQL_GET_IMAGE_IDS_FROM_SURVEY_RESPONSE = 
@@ -22,14 +22,14 @@ public class SurveyResponseImageDaos extends Dao {
 		"WHERE pr.survey_response_id = ? " +
 		"AND prompt_type = 'photo'";
 	
-	private static SurveyResponseImageDaos instance;
+	private static SurveyResponseImageQueries instance;
 	
 	/**
-	 * Creates this DAO.
+	 * Creates this object.
 	 * 
 	 * @param dataSource The DataSource to use to query the database.
 	 */
-	private SurveyResponseImageDaos(DataSource dataSource) {
+	private SurveyResponseImageQueries(DataSource dataSource) {
 		super(dataSource);
 		
 		instance = this;

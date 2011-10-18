@@ -1,4 +1,4 @@
-package org.ohmage.dao;
+package org.ohmage.query;
 
 import java.io.File;
 import java.net.MalformedURLException;
@@ -22,8 +22,8 @@ import org.springframework.transaction.support.DefaultTransactionDefinition;
  * 
  * @author John Jenkins
  */
-public final class ImageDaos extends Dao {
-	private static final Logger LOGGER = Logger.getLogger(ImageDaos.class);
+public final class ImageQueries extends Query {
+	private static final Logger LOGGER = Logger.getLogger(ImageQueries.class);
 	
 	// Checks if an image exists.
 	private static final String SQL_EXISTS_IMAGE = 
@@ -51,14 +51,14 @@ public final class ImageDaos extends Dao {
 	public static final String IMAGE_STORE_FORMAT = "png";
 	public static final String IMAGE_SCALED_EXTENSION = "-s";
 	
-	private static ImageDaos instance;
+	private static ImageQueries instance;
 	
 	/**
-	 * Creates this DAO.
+	 * Creates this object.
 	 * 
 	 * @param dataSource The DataSource to use to query the database.
 	 */
-	private ImageDaos(DataSource dataSource) {
+	private ImageQueries(DataSource dataSource) {
 		super(dataSource);
 		
 		instance = this;

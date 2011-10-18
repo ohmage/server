@@ -1,4 +1,4 @@
-package org.ohmage.dao;
+package org.ohmage.query;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -18,7 +18,7 @@ import org.springframework.jdbc.core.SingleColumnRowMapper;
  * 
  * @author John Jenkins
  */
-public final class CampaignClassDaos extends Dao {
+public final class CampaignClassQueries extends Query {
 	// Retrieves the IDs for all of the campaigns associated with a class.
 	private static final String SQL_GET_CAMPAIGNS_ASSOCIATED_WITH_CLASS =
 		"SELECT ca.urn " +
@@ -49,14 +49,14 @@ public final class CampaignClassDaos extends Dao {
 		"AND ucr.role = ? " +
 		"AND ccdr.user_role_id = ur.id";
 	
-	private static CampaignClassDaos instance;
+	private static CampaignClassQueries instance;
 	
 	/**
-	 * Creates this DAO.
+	 * Creates this object.
 	 * 
 	 * @param dataSource A DataSource object to use when querying the database.
 	 */
-	private CampaignClassDaos(DataSource dataSource) {
+	private CampaignClassQueries(DataSource dataSource) {
 		super(dataSource);
 		
 		instance = this;

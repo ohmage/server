@@ -8,12 +8,12 @@ import java.util.Map;
 import java.util.Set;
 
 import org.ohmage.annotator.ErrorCodes;
-import org.ohmage.dao.UserClassDaos;
-import org.ohmage.dao.UserDaos;
 import org.ohmage.domain.Clazz;
 import org.ohmage.domain.UserPersonal;
 import org.ohmage.exception.DataAccessException;
 import org.ohmage.exception.ServiceException;
+import org.ohmage.query.UserClassQueries;
+import org.ohmage.query.UserQueries;
 import org.ohmage.request.Request;
 
 /**
@@ -45,7 +45,7 @@ public final class UserClassServices {
 		ClassServices.checkClassExistence(request, classId, true);
 		
 		try {
-			if(! UserClassDaos.userBelongsToClass(classId, username)) {
+			if(! UserClassQueries.userBelongsToClass(classId, username)) {
 				request.setFailed(ErrorCodes.USER_INVALID_USERNAME, "The user does not belong to the class: " + classId);
 				throw new ServiceException("The user does not belong to the class: " + classId);
 			}
@@ -93,7 +93,7 @@ public final class UserClassServices {
 	 */
 	public static void userHasRoleInClass(Request request, String username, String classId, Clazz.Role classRole) throws ServiceException {
 		try {
-			if(! UserClassDaos.getUserClassRole(classId, username).equals(classRole)) {
+			if(! UserClassQueries.getUserClassRole(classId, username).equals(classRole)) {
 				request.setFailed(ErrorCodes.CLASS_INSUFFICIENT_PERMISSIONS, "The user doesn't have sufficient permissions for the following class: " + classId);
 				throw new ServiceException("The user doesn't have sufficient permissions for the following class: " + classId);
 			}
@@ -141,8 +141,8 @@ public final class UserClassServices {
 	 */
 	public static void userIsAdminOrPrivileged(Request request, String classId, String username) throws ServiceException {
 		try {
-			if((! Clazz.Role.PRIVILEGED.equals(UserClassDaos.getUserClassRole(classId, username))) &&
-			   (! UserDaos.userIsAdmin(username))) {
+			if((! Clazz.Role.PRIVILEGED.equals(UserClassQueries.getUserClassRole(classId, username))) &&
+			   (! UserQueries.userIsAdmin(username))) {
 				request.setFailed(ErrorCodes.CLASS_INSUFFICIENT_PERMISSIONS, "The user is not privileged in the class.");
 				throw new ServiceException("The user is not privileged in the class.");
 			}
@@ -171,14 +171,14 @@ public final class UserClassServices {
 	public static void userIsAdminOrPrivilegedInAllClasses(Request request, String username, Collection<String> classIds) throws ServiceException {
 		try {
 			// If the user is an admin, return.
-			if(UserDaos.userIsAdmin(username)) {
+			if(UserQueries.userIsAdmin(username)) {
 				return;
 			}
 			
 			// For each of the classes in the list, the user must be 
 			// privileged.
 			for(String classId : classIds) {
-				if(! Clazz.Role.PRIVILEGED.equals(UserClassDaos.getUserClassRole(classId, username))) {
+				if(! Clazz.Role.PRIVILEGED.equals(UserClassQueries.getUserClassRole(classId, username))) {
 					request.setFailed(ErrorCodes.CLASS_INSUFFICIENT_PERMISSIONS, "The user is not and admin nor privileged in a class: " + classId);
 					throw new ServiceException("The user is not and admin nor privileged in a class: " + classId);
 				}
@@ -203,7 +203,7 @@ public final class UserClassServices {
 	 */
 	public static List<String> getUsersInClass(Request request, String classId) throws ServiceException {
 		try {
-			return UserClassDaos.getUsersInClass(classId);
+			return UserClassQueries.getUsersInClass(classId);
 		}
 		catch(DataAccessException e) {
 			request.setFailed();
@@ -249,7 +249,7 @@ public final class UserClassServices {
 			Collection<String> usernames = getUsersInClasses(request, classIds);
 			
 			for(String username : usernames) {
-				result.put(username, UserDaos.getPersonalInfoForUser(username));
+				result.put(username, UserQueries.getPersonalInfoForUser(username));
 			}
 			
 			return result;
