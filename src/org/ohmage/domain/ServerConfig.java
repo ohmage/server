@@ -35,10 +35,16 @@ public class ServerConfig {
 	 * response privacy states.
 	 */
 	public static final String JSON_KEY_SURVEY_RESPONSE_PRIVACY_STATES = "survey_response_privacy_states";
+	/**
+	 * The key to use when creating/reading JSON for the server's default 
+	 * campaign creation privilege.
+	 */
+	public static final String JSON_KEY_DEFAULT_CAMPAIGN_CREATION_PRIVILEGE = "default_campaign_creation_privilege";
 	
 	private final String appName;
 	private final String appVersion;
 	private final String appBuild;
+	private final boolean defaultCampaignCreationPrivilege;
 	private final SurveyResponse.PrivacyState defaultSurveyResponsePrivacyState;
 	private final SurveyResponse.PrivacyState[] surveyResponsePrivacyStates;
 	
@@ -64,7 +70,8 @@ public class ServerConfig {
 	public ServerConfig(final String appName, final String appVersion,
 			final String appBuild, 
 			final SurveyResponse.PrivacyState defaultSurveyResponsePrivacyState,
-			final SurveyResponse.PrivacyState[] surveyResponsePrivacyStates) {
+			final SurveyResponse.PrivacyState[] surveyResponsePrivacyStates,
+			final boolean defaultCampaignCreationPrivilege) {
 		
 		if(StringUtils.isEmptyOrWhitespaceOnly(appName)) {
 			throw new IllegalArgumentException("The application name is null or whitespace only.");
@@ -85,6 +92,7 @@ public class ServerConfig {
 		this.appName = appName;
 		this.appVersion = appVersion;
 		this.appBuild = appBuild;
+		this.defaultCampaignCreationPrivilege = defaultCampaignCreationPrivilege;
 		this.defaultSurveyResponsePrivacyState = defaultSurveyResponsePrivacyState;
 		
 		this.surveyResponsePrivacyStates = 
@@ -127,6 +135,17 @@ public class ServerConfig {
 		}
 		catch(JSONException e) {
 			throw new IllegalArgumentException("The application name was missing from the JSON.", e);
+		}
+		
+		try {
+			defaultCampaignCreationPrivilege =
+				Boolean.valueOf(serverConfigAsJson.getString(JSON_KEY_DEFAULT_CAMPAIGN_CREATION_PRIVILEGE));
+		}
+		catch(JSONException e) {
+			throw new IllegalArgumentException("The default campaign creation privilege was missing from the JSON.", e);
+		}
+		catch(IllegalArgumentException e) {
+			throw new IllegalArgumentException("The default campaign creation privilege is not a valid boolean value.", e);
 		}
 		
 		try {
@@ -190,6 +209,15 @@ public class ServerConfig {
 	}
 	
 	/**
+	 * Returns the default campaign creation privilege.
+	 * 
+	 * @return The default campaign creation privilege.
+	 */
+	public final boolean getDefaultCampaignCreationPrivilege() {
+		return defaultCampaignCreationPrivilege;
+	}
+	
+	/**
 	 * Returns the default survey response privacy state for newly uploaded
 	 * survey responses.
 	 * 
@@ -230,6 +258,7 @@ public class ServerConfig {
 			result.put(JSON_KEY_APPLICATION_NAME, appName);
 			result.put(JSON_KEY_APPLICATION_VERSION, appVersion);
 			result.put(JSON_KEY_APPLICATION_BUILD, appBuild);
+			result.put(JSON_KEY_DEFAULT_CAMPAIGN_CREATION_PRIVILEGE, defaultCampaignCreationPrivilege);
 			result.put(JSON_KEY_DEFAULT_SURVEY_RESPONSE_PRIVACY_STATE, defaultSurveyResponsePrivacyState);
 			result.put(JSON_KEY_SURVEY_RESPONSE_PRIVACY_STATES, new JSONArray(surveyResponsePrivacyStates));
 			

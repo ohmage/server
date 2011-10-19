@@ -80,8 +80,25 @@ public class ConfigServices {
 		SurveyResponse.PrivacyState[] surveyResponsePrivacyStates =
 			SurveyResponse.PrivacyState.getPrivacyStates();
 		
+		boolean defaultCampaignCreationPrivilege;
+		try {
+			defaultCampaignCreationPrivilege = 
+				Boolean.valueOf(
+						instance.lookup(PreferenceCache.KEY_DEFAULT_CAN_CREATE_PRIVILIEGE)
+					);
+		}
+		catch(CacheMissException e) {
+			request.setFailed();
+			throw new ServiceException("The default campaign creation privilege was unknown.", e);
+		}
+		catch(IllegalArgumentException e) {
+			request.setFailed();
+			throw new ServiceException("The default campaign creation privilege was not a valid boolean.", e);
+		}
+		
 		return new ServerConfig(appName, appVersion, appBuild,
-				defaultSurveyResponsePrivacyState, surveyResponsePrivacyStates
+				defaultSurveyResponsePrivacyState, surveyResponsePrivacyStates,
+				defaultCampaignCreationPrivilege
 			);
 	}
 }
