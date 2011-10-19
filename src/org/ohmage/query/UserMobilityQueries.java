@@ -307,7 +307,7 @@ public final class UserMobilityQueries extends AbstractUploadQuery {
 			catch(org.springframework.dao.DataIntegrityViolationException e) {
 				if(! instance.isDuplicate(e)) {
 					throw new DataAccessException(
-							"Error executing SQL '" + SQL_INSERT_EXTENDED + "' with parameters: " +
+							"Error executing SQL '" + SQL_INSERT + "' with parameters: " +
 								username + ", " +
 								client + ", " +
 								TimeUtils.getIso8601DateTimeString(mobilityPoint.getDate()) + ", " +
@@ -322,7 +322,7 @@ public final class UserMobilityQueries extends AbstractUploadQuery {
 			}
 			catch(org.springframework.dao.DataAccessException e) {
 				throw new DataAccessException(
-						"Error executing SQL '" + SQL_INSERT_EXTENDED + "' with parameters: " +
+						"Error executing SQL '" + SQL_INSERT + "' with parameters: " +
 							username + ", " +
 							client + ", " +
 							TimeUtils.getIso8601DateTimeString(mobilityPoint.getDate()) + ", " +
