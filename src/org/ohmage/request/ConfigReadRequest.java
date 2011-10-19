@@ -7,7 +7,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.log4j.Logger;
-import org.json.JSONObject;
+import org.ohmage.domain.ServerConfig;
 import org.ohmage.exception.ServiceException;
 import org.ohmage.service.ConfigServices;
 
@@ -20,7 +20,7 @@ import org.ohmage.service.ConfigServices;
 public class ConfigReadRequest extends Request {
 	private static final Logger LOGGER = Logger.getLogger(ConfigReadRequest.class);
 	
-	private JSONObject result;
+	private ServerConfig result;
 	
 	/**
 	 * Default constructor.
@@ -28,7 +28,7 @@ public class ConfigReadRequest extends Request {
 	public ConfigReadRequest() {
 		super(null);
 		
-		result = new JSONObject();
+		result = null;
 	}
 	
 	/**
@@ -40,7 +40,7 @@ public class ConfigReadRequest extends Request {
 		LOGGER.info("Gathering information about the system.");
 		
 		try {
-			result = ConfigServices.readServerConfiguration(this).toJson();
+			result = ConfigServices.readServerConfiguration(this);
 		}
 		catch(ServiceException e) {
 			e.logException(LOGGER);
@@ -63,6 +63,6 @@ public class ConfigReadRequest extends Request {
 	public void respond(HttpServletRequest httpRequest, HttpServletResponse httpResponse) {
 		LOGGER.info("Writing configuration read response.");
 		
-		respond(httpRequest, httpResponse, result);
+		respond(httpRequest, httpResponse, (result == null) ? null : result.toJson());
 	}
 }
