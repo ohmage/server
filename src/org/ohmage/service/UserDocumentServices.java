@@ -5,13 +5,13 @@ import java.util.LinkedList;
 import java.util.List;
 
 import org.ohmage.annotator.ErrorCodes;
-import org.ohmage.dao.CampaignDocumentDaos;
-import org.ohmage.dao.ClassDocumentDaos;
-import org.ohmage.dao.DocumentDaos;
-import org.ohmage.dao.UserDocumentDaos;
 import org.ohmage.domain.Document;
 import org.ohmage.exception.DataAccessException;
 import org.ohmage.exception.ServiceException;
+import org.ohmage.query.CampaignDocumentQueries;
+import org.ohmage.query.ClassDocumentQueries;
+import org.ohmage.query.DocumentQueries;
+import org.ohmage.query.UserDocumentQueries;
 import org.ohmage.request.Request;
 
 /**
@@ -39,7 +39,7 @@ public class UserDocumentServices {
 	 */
 	public static List<String> getDocumentsSpecificToUser(Request request, String username) throws ServiceException {
 		try {
-			return UserDocumentDaos.getVisibleDocumentsSpecificToUser(username);
+			return UserDocumentQueries.getVisibleDocumentsSpecificToUser(username);
 		}
 		catch(DataAccessException e) {
 			request.setFailed();
@@ -62,7 +62,7 @@ public class UserDocumentServices {
 	 */
 	public static void userCanReadDocument(Request request, String username, String documentId) throws ServiceException {
 		try {
-			List<Document.Role> roles = UserDocumentDaos.getDocumentRolesForDocumentForUser(username, documentId);
+			List<Document.Role> roles = UserDocumentQueries.getDocumentRolesForDocumentForUser(username, documentId);
 			
 			// To read a document, it simply has to be visible to the user in
 			// some capacity.
@@ -92,7 +92,7 @@ public class UserDocumentServices {
 	 */
 	public static void userCanModifyDocument(Request request, String username, String documentId) throws ServiceException {
 		try {
-			List<Document.Role> roles = UserDocumentDaos.getDocumentRolesForDocumentForUser(username, documentId);
+			List<Document.Role> roles = UserDocumentQueries.getDocumentRolesForDocumentForUser(username, documentId);
 			
 			// To modify a document, the user must be a writer or owner or a
 			// supervisor in any of the campaigns to which the document is 
@@ -127,7 +127,7 @@ public class UserDocumentServices {
 	 */
 	public static void userCanDeleteDocument(Request request, String username, String documentId) throws ServiceException {
 		try {
-			List<Document.Role> roles = UserDocumentDaos.getDocumentRolesForDocumentForUser(username, documentId);
+			List<Document.Role> roles = UserDocumentQueries.getDocumentRolesForDocumentForUser(username, documentId);
 			
 			// To modify a document, the user must be a writer or owner or a
 			// supervisor in any of the campaigns to which the document is 
@@ -215,7 +215,7 @@ public class UserDocumentServices {
 	 */
 	public static Document.Role getHighestDocumentRoleForUserForDocument(Request request, String username, String documentId) throws ServiceException {
 		try {
-			List<Document.Role> roles = UserDocumentDaos.getDocumentRolesForDocumentForUser(username, documentId);
+			List<Document.Role> roles = UserDocumentQueries.getDocumentRolesForDocumentForUser(username, documentId);
 			
 			if(roles.contains(Document.Role.OWNER)) {
 				return Document.Role.OWNER;
@@ -257,18 +257,18 @@ public class UserDocumentServices {
 	public static Document getDocumentInformationForDocumentWithUser(Request request, String username, String documentId) throws ServiceException {
 		try {
 			// Get the document's basic information.
-			Document result = DocumentDaos.getDocumentInformation(documentId);
+			Document result = DocumentQueries.getDocumentInformation(documentId);
 			
 			// Get the user's specific role.
-			Document.Role userRole = UserDocumentDaos.getDocumentRoleForDocumentSpecificToUser(username, documentId);
+			Document.Role userRole = UserDocumentQueries.getDocumentRoleForDocumentSpecificToUser(username, documentId);
 			if(userRole != null) {
 				result.setUserRole(userRole);
 			}
 			
 			// For all of the campaigns associated with the document, get their
 			// role.
-			for(String campaignId : CampaignDocumentDaos.getCampaignsAssociatedWithDocument(documentId)) {
-				Document.Role campaignRole = CampaignDocumentDaos.getCampaignDocumentRole(campaignId, documentId);
+			for(String campaignId : CampaignDocumentQueries.getCampaignsAssociatedWithDocument(documentId)) {
+				Document.Role campaignRole = CampaignDocumentQueries.getCampaignDocumentRole(campaignId, documentId);
 				if(campaignRole != null) {
 					result.addCampaignRole(campaignId, campaignRole);
 				}
@@ -276,8 +276,8 @@ public class UserDocumentServices {
 			
 			// For all of the classes associated with the document, get their
 			// role.
-			for(String classId : ClassDocumentDaos.getClassesAssociatedWithDocument(documentId)) {
-				Document.Role classRole = ClassDocumentDaos.getClassDocumentRole(classId, documentId);
+			for(String classId : ClassDocumentQueries.getClassesAssociatedWithDocument(documentId)) {
+				Document.Role classRole = ClassDocumentQueries.getClassDocumentRole(classId, documentId);
 				if(classRole != null) {
 					result.addClassRole(classId, classRole);
 				}

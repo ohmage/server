@@ -1,4 +1,4 @@
-package org.ohmage.dao;
+package org.ohmage.query;
 
 
 import java.net.MalformedURLException;
@@ -39,7 +39,7 @@ import org.springframework.transaction.support.DefaultTransactionDefinition;
  * @author John Jenkins
  * @author Joshua Selsky
  */
-public final class CampaignDaos extends Dao {
+public final class CampaignQueries extends Query {
 	// Returns a boolean value of whether or not the campaign exists.
 	private static final String SQL_EXISTS_CAMPAIGN = 
 		"SELECT EXISTS(" +
@@ -295,14 +295,14 @@ public final class CampaignDaos extends Dao {
 	
 	// The single instance of this class as the constructor should only ever be
 	// called once by Spring.
-	private static CampaignDaos instance;
+	private static CampaignQueries instance;
 
 	/**
-	 * Creates this DAO.
+	 * Creates this object.
 	 * 
 	 * @param dataSource A DataSource object to use when querying the database.
 	 */
-	private CampaignDaos(DataSource dataSource) {
+	private CampaignQueries(DataSource dataSource) {
 		super(dataSource);
 		
 		instance = this;
@@ -913,7 +913,7 @@ public final class CampaignDaos extends Dao {
 					// remove them.
 					List<String> usernames;
 					try {
-						usernames = UserClassDaos.getUsersInClass(classId);
+						usernames = UserClassQueries.getUsersInClass(classId);
 					}
 					catch(DataAccessException e) {
 						transactionManager.rollback(status);
@@ -926,7 +926,7 @@ public final class CampaignDaos extends Dao {
 						// campaign.
 						int numClasses;
 						try {
-							numClasses = UserCampaignClassDaos.getNumberOfClassesThroughWhichUserIsAssociatedWithCampaign(username, campaignId); 
+							numClasses = UserCampaignClassQueries.getNumberOfClassesThroughWhichUserIsAssociatedWithCampaign(username, campaignId); 
 						}
 						catch(DataAccessException e) {
 							transactionManager.rollback(status);
@@ -1144,7 +1144,7 @@ public final class CampaignDaos extends Dao {
 		// Get the list of users in the class.
 		List<String> usernames;
 		try {
-			usernames = UserClassDaos.getUsersInClass(classId);
+			usernames = UserClassQueries.getUsersInClass(classId);
 		}
 		catch(DataAccessException e) {
 			transactionManager.rollback(status);

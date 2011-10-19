@@ -1,4 +1,4 @@
-package org.ohmage.dao;
+package org.ohmage.query;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -21,7 +21,7 @@ import org.springframework.jdbc.core.SingleColumnRowMapper;
  * @author John Jenkins
  * @author Joshua Selsky
  */
-public final class UserCampaignDaos extends Dao {
+public final class UserCampaignQueries extends Query {
 	// Retrieves whether or not a user has any role in a campaign.
 	private static final String SQL_EXISTS_USER_CAMPAIGN =
 		"SELECT EXISTS(" +
@@ -71,14 +71,14 @@ public final class UserCampaignDaos extends Dao {
 		"AND ur.id = urc.user_role_id " +
 		"AND c.id = urc.campaign_id";
 	
-	private static UserCampaignDaos instance;
+	private static UserCampaignQueries instance;
 	
 	/**
-	 * Creates this DAO.
+	 * Creates this object.
 	 * 
 	 * @param dataSource A DataSource object to use when querying the database.
 	 */
-	private UserCampaignDaos(DataSource dataSource) {
+	private UserCampaignQueries(DataSource dataSource) {
 		super(dataSource);
 		
 		instance = this;

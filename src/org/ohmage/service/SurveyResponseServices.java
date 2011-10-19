@@ -11,16 +11,16 @@ import java.util.Map;
 import java.util.Set;
 
 import org.ohmage.annotator.ErrorCodes;
-import org.ohmage.dao.ImageDaos;
-import org.ohmage.dao.SurveyResponseDaos;
-import org.ohmage.dao.SurveyResponseImageDaos;
-import org.ohmage.dao.SurveyUploadDao;
 import org.ohmage.domain.campaign.Campaign;
 import org.ohmage.domain.campaign.Response;
 import org.ohmage.domain.campaign.SurveyResponse;
 import org.ohmage.domain.campaign.response.PhotoPromptResponse;
 import org.ohmage.exception.DataAccessException;
 import org.ohmage.exception.ServiceException;
+import org.ohmage.query.ImageQueries;
+import org.ohmage.query.SurveyResponseImageQueries;
+import org.ohmage.query.SurveyResponseQueries;
+import org.ohmage.query.SurveyUploadQuery;
 import org.ohmage.request.Request;
 
 /**
@@ -72,7 +72,7 @@ public final class SurveyResponseServices {
             throws ServiceException {
 		
 		try {
-			return SurveyUploadDao.insertSurveys(user, client, campaignUrn, surveyUploadList, bufferedImageMap);
+			return SurveyUploadQuery.insertSurveys(user, client, campaignUrn, surveyUploadList, bufferedImageMap);
 		}
 		catch(DataAccessException e) {
 			request.setFailed();
@@ -182,37 +182,37 @@ public final class SurveyResponseServices {
 			// Trim from the list all survey responses not made by a specified
 			// user.
 			if(username != null) {
-				surveyResponseIds = SurveyResponseDaos.retrieveSurveyResponseIdsFromUser(campaignId, username);
+				surveyResponseIds = SurveyResponseQueries.retrieveSurveyResponseIdsFromUser(campaignId, username);
 			}
 			
 			// Trim from the list all survey responses not made by a specified
 			// client
 			if(client != null) {
 				if(surveyResponseIds == null) {
-					surveyResponseIds = SurveyResponseDaos.retrieveSurveyResponseIdsWithClient(campaignId, client);
+					surveyResponseIds = SurveyResponseQueries.retrieveSurveyResponseIdsWithClient(campaignId, client);
 				}
 				else {
-					surveyResponseIds.retainAll(SurveyResponseDaos.retrieveSurveyResponseIdsWithClient(campaignId, client));
+					surveyResponseIds.retainAll(SurveyResponseQueries.retrieveSurveyResponseIdsWithClient(campaignId, client));
 				}
 			}
 			
 			// Trim from the list all survey responses made before some date.
 			if(startDate != null) {
 				if(surveyResponseIds == null) {
-					surveyResponseIds = SurveyResponseDaos.retrieveSurveyResponseIdsAfterDate(campaignId, startDate);
+					surveyResponseIds = SurveyResponseQueries.retrieveSurveyResponseIdsAfterDate(campaignId, startDate);
 				}
 				else {
-					surveyResponseIds.retainAll(SurveyResponseDaos.retrieveSurveyResponseIdsAfterDate(campaignId, startDate));
+					surveyResponseIds.retainAll(SurveyResponseQueries.retrieveSurveyResponseIdsAfterDate(campaignId, startDate));
 				}
 			}
 			
 			// Trim from the list all survey responses made after some date.
 			if(endDate != null) {
 				if(surveyResponseIds == null) {
-					surveyResponseIds = SurveyResponseDaos.retrieveSurveyResponseIdsBeforeDate(campaignId, endDate);
+					surveyResponseIds = SurveyResponseQueries.retrieveSurveyResponseIdsBeforeDate(campaignId, endDate);
 				}
 				else {
-					surveyResponseIds.retainAll(SurveyResponseDaos.retrieveSurveyResponseIdsBeforeDate(campaignId, endDate));
+					surveyResponseIds.retainAll(SurveyResponseQueries.retrieveSurveyResponseIdsBeforeDate(campaignId, endDate));
 				}
 			}
 			
@@ -220,10 +220,10 @@ public final class SurveyResponseServices {
 			// privacy state.
 			if(privacyState != null) {
 				if(surveyResponseIds == null) {
-					surveyResponseIds = SurveyResponseDaos.retrieveSurveyResponseIdsWithPrivacyState(campaignId, privacyState);
+					surveyResponseIds = SurveyResponseQueries.retrieveSurveyResponseIdsWithPrivacyState(campaignId, privacyState);
 				}
 				else {
-					surveyResponseIds.retainAll(SurveyResponseDaos.retrieveSurveyResponseIdsWithPrivacyState(campaignId, privacyState));
+					surveyResponseIds.retainAll(SurveyResponseQueries.retrieveSurveyResponseIdsWithPrivacyState(campaignId, privacyState));
 				}
 			}
 			
@@ -232,7 +232,7 @@ public final class SurveyResponseServices {
 			if(surveyIds != null) {
 				Set<Long> surveyIdIds = new HashSet<Long>();
 				for(String surveyId : surveyIds) {
-					surveyIdIds.addAll(SurveyResponseDaos.retrieveSurveyResponseIdsWithSurveyId(campaignId, surveyId));
+					surveyIdIds.addAll(SurveyResponseQueries.retrieveSurveyResponseIdsWithSurveyId(campaignId, surveyId));
 				}
 				
 				if(surveyResponseIds == null) {
@@ -248,7 +248,7 @@ public final class SurveyResponseServices {
 			if(promptIds != null) {
 				Set<Long> promptIdIds = new HashSet<Long>();
 				for(String promptId : promptIds) {
-					promptIdIds.addAll(SurveyResponseDaos.retrieveSurveyResponseIdsWithPromptId(campaignId, promptId));
+					promptIdIds.addAll(SurveyResponseQueries.retrieveSurveyResponseIdsWithPromptId(campaignId, promptId));
 				}
 				
 				if(surveyResponseIds == null) {
@@ -263,21 +263,21 @@ public final class SurveyResponseServices {
 			// type.
 			if(promptType != null) {
 				if(surveyResponseIds == null) {
-					surveyResponseIds = SurveyResponseDaos.retrieveSurveyResponseIdsWithPromptType(campaignId, promptType);
+					surveyResponseIds = SurveyResponseQueries.retrieveSurveyResponseIdsWithPromptType(campaignId, promptType);
 				}
 				else {
-					surveyResponseIds.retainAll(SurveyResponseDaos.retrieveSurveyResponseIdsWithPromptType(campaignId, promptType));
+					surveyResponseIds.retainAll(SurveyResponseQueries.retrieveSurveyResponseIdsWithPromptType(campaignId, promptType));
 				}
 			}
 			
 			if(surveyResponseIds == null) {
-				return SurveyResponseDaos.retrieveSurveyResponseFromIds(campaign, SurveyResponseDaos.retrieveSurveyResponseIdsFromCampaign(campaignId));
+				return SurveyResponseQueries.retrieveSurveyResponseFromIds(campaign, SurveyResponseQueries.retrieveSurveyResponseIdsFromCampaign(campaignId));
 			}
 			else if(surveyResponseIds.size() == 0) {
 				return Collections.emptyList();
 			}
 			else {
-				return SurveyResponseDaos.retrieveSurveyResponseFromIds(campaign, surveyResponseIds);
+				return SurveyResponseQueries.retrieveSurveyResponseFromIds(campaign, surveyResponseIds);
 			}
 		}
 		catch(DataAccessException e) {
@@ -296,7 +296,7 @@ public final class SurveyResponseServices {
 	 */
 	public static void updateSurveyResponsePrivacyState(Request request, Long surveyResponseId, SurveyResponse.PrivacyState privacyState) throws ServiceException { 
 		try {
-			SurveyResponseDaos.updateSurveyResponsePrivacyState(surveyResponseId, privacyState);
+			SurveyResponseQueries.updateSurveyResponsePrivacyState(surveyResponseId, privacyState);
 		} 
 		catch(DataAccessException e) {
 			request.setFailed();
@@ -316,7 +316,7 @@ public final class SurveyResponseServices {
 	 */
 	public static void deleteSurveyResponse(Request request, Long surveyResponseId) throws ServiceException {
 		try {
-			List<String> imageIds = SurveyResponseImageDaos.getImageIdsFromSurveyResponse(surveyResponseId);
+			List<String> imageIds = SurveyResponseImageQueries.getImageIdsFromSurveyResponse(surveyResponseId);
 
 			// Here we are deleting the images then deleting the survey 
 			// response. If this fails, the entire service is aborted, but the
@@ -334,10 +334,10 @@ public final class SurveyResponseServices {
 			// image, this will give them the chance to delete it even if 
 			// another image and/or the survey response are causing a problem.
 			for(String imageId : imageIds) {
-				ImageDaos.deleteImage(imageId);
+				ImageQueries.deleteImage(imageId);
 			}
 			
-			SurveyResponseDaos.deleteSurveyResponse(surveyResponseId);
+			SurveyResponseQueries.deleteSurveyResponse(surveyResponseId);
 		}
 		catch(DataAccessException e) {
 			request.setFailed();

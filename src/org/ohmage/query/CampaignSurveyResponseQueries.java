@@ -1,4 +1,4 @@
-package org.ohmage.dao;
+package org.ohmage.query;
 
 import javax.sql.DataSource;
 
@@ -12,7 +12,7 @@ import org.ohmage.exception.DataAccessException;
  * 
  * @author John Jenkins
  */
-public class CampaignSurveyResponseDaos extends Dao {
+public class CampaignSurveyResponseQueries extends Query {
 	// Retrieves the total number of survey responses for a campaign.
 	private static final String SQL_COUNT_SURVEY_RESPONSES =
 		"SELECT COUNT(Id) " +
@@ -45,14 +45,14 @@ public class CampaignSurveyResponseDaos extends Dao {
 		"WHERE sr.id = ? " +
 		"AND sr.campaign_id = c.id";
 	
-	private static CampaignSurveyResponseDaos instance;
+	private static CampaignSurveyResponseQueries instance;
 	
 	/**
-	 * Private constructor that is used by Spring to setup this DAO.
+	 * Private constructor that is used by Spring to setup this object.
 	 * 
 	 * @param dataSource The DataSource to use to query the database.
 	 */
-	private CampaignSurveyResponseDaos(DataSource dataSource) {
+	private CampaignSurveyResponseQueries(DataSource dataSource) {
 		super(dataSource);
 		
 		instance = this;

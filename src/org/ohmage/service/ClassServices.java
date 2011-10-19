@@ -7,11 +7,11 @@ import java.util.List;
 import java.util.Map;
 
 import org.ohmage.annotator.ErrorCodes;
-import org.ohmage.dao.ClassDaos;
-import org.ohmage.dao.ClassDaos.UserAndClassRole;
 import org.ohmage.domain.Clazz;
 import org.ohmage.exception.DataAccessException;
 import org.ohmage.exception.ServiceException;
+import org.ohmage.query.ClassQueries;
+import org.ohmage.query.ClassQueries.UserAndClassRole;
 import org.ohmage.request.Request;
 
 /**
@@ -40,7 +40,7 @@ public final class ClassServices {
 	 */
 	public static void createClass(Request request, String classId, String className, String classDescription) throws ServiceException {
 		try {
-			ClassDaos.createClass(classId, className, classDescription);
+			ClassQueries.createClass(classId, className, classDescription);
 		}
 		catch(DataAccessException e) {
 			request.setFailed();
@@ -69,7 +69,7 @@ public final class ClassServices {
 	 */
 	public static void checkClassExistence(Request request, String classId, boolean shouldExist) throws ServiceException {
 		try {
-			if((classId != null) && ClassDaos.getClassExists(classId)) {
+			if((classId != null) && ClassQueries.getClassExists(classId)) {
 				if(! shouldExist) {
 					request.setFailed(ErrorCodes.CLASS_INVALID_ID, "The class already exists: " + classId);
 					throw new ServiceException("The class already exists: " + classId);
@@ -134,7 +134,7 @@ public final class ClassServices {
 	 */
 	public static List<Clazz> getClassesInformation(Request request, Collection<String> classIds, String requester) throws ServiceException {
 		try {
-			return ClassDaos.getClassesInformation(classIds, requester);
+			return ClassQueries.getClassesInformation(classIds, requester);
 		}
 		catch(DataAccessException e) {
 			request.setFailed();
@@ -161,7 +161,7 @@ public final class ClassServices {
 			Map<String, List<UserAndClassRole>> result = new HashMap<String, List<UserAndClassRole>>();
 			
 			for(String classId : classIds) {
-				result.put(classId, ClassDaos.getUserRolePairs(classId));
+				result.put(classId, ClassQueries.getUserRolePairs(classId));
 			}
 			
 			return result;
@@ -195,7 +195,7 @@ public final class ClassServices {
 	 */
 	public static void updateClass(Request request, String classId, String className, String classDescription, Map<String, Clazz.Role> usersToAdd, Collection<String> usersToRemove) throws ServiceException{
 		try {
-			ClassDaos.updateClass(classId, className, classDescription, usersToAdd, usersToRemove);
+			ClassQueries.updateClass(classId, className, classDescription, usersToAdd, usersToRemove);
 		}
 		catch(DataAccessException e) {
 			request.setFailed();
@@ -217,7 +217,7 @@ public final class ClassServices {
 			List<String> warningMessages = new ArrayList<String>();
 			
 			for(String classId : roster.keySet()) {
-				warningMessages.addAll(ClassDaos.updateClass(classId, null, null, roster.get(classId), null));
+				warningMessages.addAll(ClassQueries.updateClass(classId, null, null, roster.get(classId), null));
 			}
 			
 			return warningMessages;
@@ -239,7 +239,7 @@ public final class ClassServices {
 	 */
 	public static void deleteClass(Request request, String classId) throws ServiceException {
 		try {
-			ClassDaos.deleteClass(classId);
+			ClassQueries.deleteClass(classId);
 		}
 		catch(DataAccessException e) {
 			request.setFailed();

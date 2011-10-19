@@ -4,13 +4,13 @@ import java.util.Collection;
 import java.util.List;
 
 import org.ohmage.annotator.ErrorCodes;
-import org.ohmage.dao.CampaignDaos;
-import org.ohmage.dao.UserCampaignDaos;
 import org.ohmage.domain.campaign.Campaign;
 import org.ohmage.domain.campaign.Campaign.Role;
 import org.ohmage.domain.campaign.SurveyResponse;
 import org.ohmage.exception.DataAccessException;
 import org.ohmage.exception.ServiceException;
+import org.ohmage.query.CampaignQueries;
+import org.ohmage.query.UserCampaignQueries;
 import org.ohmage.request.Request;
 import org.ohmage.util.StringUtils;
 
@@ -140,12 +140,12 @@ public final class SurveyResponseReadServices {
 		}
 		
 		try {
-			List<Role> userRoles = UserCampaignDaos.getUserCampaignRoles(username, campaignId);
+			List<Role> userRoles = UserCampaignQueries.getUserCampaignRoles(username, campaignId);
 			
 			// Supervisors can read all data all the time
 			if(! userRoles.contains(Campaign.Role.SUPERVISOR)) {
 				Campaign.PrivacyState privacyState = 
-					CampaignDaos.getCampaignPrivacyState(campaignId);
+					CampaignQueries.getCampaignPrivacyState(campaignId);
 				
 				for(SurveyResponse currentResult : surveyResponseList) {
 					// If they own it, it's ok.

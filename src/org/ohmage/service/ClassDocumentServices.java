@@ -3,10 +3,10 @@ package org.ohmage.service;
 import java.util.Collection;
 
 import org.ohmage.annotator.ErrorCodes;
-import org.ohmage.dao.ClassDocumentDaos;
 import org.ohmage.domain.Document;
 import org.ohmage.exception.DataAccessException;
 import org.ohmage.exception.ServiceException;
+import org.ohmage.query.ClassDocumentQueries;
 import org.ohmage.request.Request;
 
 /**
@@ -37,7 +37,7 @@ public class ClassDocumentServices {
 	 */
 	public static Document.Role getDocumentRoleForClass(Request request, String classId, String documentId) throws ServiceException {
 		try {
-			return ClassDocumentDaos.getClassDocumentRole(classId, documentId);
+			return ClassDocumentQueries.getClassDocumentRole(classId, documentId);
 		}
 		catch(DataAccessException e) {
 			request.setFailed();

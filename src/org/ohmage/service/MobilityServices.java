@@ -4,12 +4,12 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
-import org.ohmage.dao.UserMobilityDaos;
 import org.ohmage.domain.MobilityPoint;
 import org.ohmage.domain.MobilityPoint.LocationStatus;
 import org.ohmage.domain.MobilityPoint.Mode;
 import org.ohmage.exception.DataAccessException;
 import org.ohmage.exception.ServiceException;
+import org.ohmage.query.UserMobilityQueries;
 import org.ohmage.request.Request;
 
 import edu.ucla.cens.mobilityclassifier.Classification;
@@ -47,7 +47,7 @@ public final class MobilityServices {
 		
 		try {
 			for(MobilityPoint mobilityPoint : mobilityPoints) {
-				UserMobilityDaos.createMobilityPoint(username, client, mobilityPoint);
+				UserMobilityQueries.createMobilityPoint(username, client, mobilityPoint);
 			}
 		}
 		catch(DataAccessException e) {
@@ -173,50 +173,50 @@ public final class MobilityServices {
 			// intersection; otherwise, try and get the IDs from the one that
 			// isn't null if either are non-null.
 			if((startDate != null) && (endDate != null)) {
-				mobilityIds = UserMobilityDaos.getIdsCreatedBetweenDates(username, startDate, endDate);
+				mobilityIds = UserMobilityQueries.getIdsCreatedBetweenDates(username, startDate, endDate);
 			}
 			else {
 				if(startDate != null) {
-					mobilityIds = UserMobilityDaos.getIdsCreatedAfterDate(username, startDate);
+					mobilityIds = UserMobilityQueries.getIdsCreatedAfterDate(username, startDate);
 				}
 				else if(endDate != null) {
-					mobilityIds = UserMobilityDaos.getIdsCreatedBeforeDate(username, endDate);
+					mobilityIds = UserMobilityQueries.getIdsCreatedBeforeDate(username, endDate);
 				}
 			}
 			
 			if(client != null) {
 				if(mobilityIds == null) {
-					mobilityIds = UserMobilityDaos.getIdsForClient(username, client);
+					mobilityIds = UserMobilityQueries.getIdsForClient(username, client);
 				}
 				else {
-					mobilityIds.retainAll(UserMobilityDaos.getIdsForClient(username, client));
+					mobilityIds.retainAll(UserMobilityQueries.getIdsForClient(username, client));
 				}
 			}
 			
 			if(privacyState != null) {
 				if(mobilityIds == null) {
-					mobilityIds = UserMobilityDaos.getIdsWithPrivacyState(username, privacyState);
+					mobilityIds = UserMobilityQueries.getIdsWithPrivacyState(username, privacyState);
 				}
 				else {
-					mobilityIds.retainAll(UserMobilityDaos.getIdsWithPrivacyState(username, privacyState));
+					mobilityIds.retainAll(UserMobilityQueries.getIdsWithPrivacyState(username, privacyState));
 				}
 			}
 			
 			if(locationStatus != null) {
 				if(mobilityIds == null) {
-					mobilityIds = UserMobilityDaos.getIdsWithLocationStatus(username, locationStatus);
+					mobilityIds = UserMobilityQueries.getIdsWithLocationStatus(username, locationStatus);
 				}
 				else {
-					mobilityIds.retainAll(UserMobilityDaos.getIdsWithLocationStatus(username, locationStatus));
+					mobilityIds.retainAll(UserMobilityQueries.getIdsWithLocationStatus(username, locationStatus));
 				}
 			}
 			
 			if(mode != null) {
 				if(mobilityIds == null) {
-					mobilityIds = UserMobilityDaos.getIdsWithMode(username, mode);
+					mobilityIds = UserMobilityQueries.getIdsWithMode(username, mode);
 				}
 				else {
-					mobilityIds.retainAll(UserMobilityDaos.getIdsWithMode(username, mode));
+					mobilityIds.retainAll(UserMobilityQueries.getIdsWithMode(username, mode));
 				}
 			}
 			
@@ -224,7 +224,7 @@ public final class MobilityServices {
 				return Collections.emptyList();
 			}
 			else {
-				return UserMobilityDaos.getMobilityInformationFromIds(mobilityIds);
+				return UserMobilityQueries.getMobilityInformationFromIds(mobilityIds);
 			}
 		}
 		catch(DataAccessException e) {

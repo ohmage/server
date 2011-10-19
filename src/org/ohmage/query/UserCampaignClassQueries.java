@@ -1,4 +1,4 @@
-package org.ohmage.dao;
+package org.ohmage.query;
 
 import javax.sql.DataSource;
 
@@ -10,7 +10,7 @@ import org.ohmage.exception.DataAccessException;
  * 
  * @author John Jenkins
  */
-public final class UserCampaignClassDaos extends Dao {
+public final class UserCampaignClassQueries extends Query {
 	// Retrieves the number of ways a user is associated with a campaign via
 	// their class relationships.
 	private static final String SQL_COUNT_USER_ASSOCIATED_WITH_CAMPAIGN_THROUGH_CLASSES =
@@ -22,14 +22,14 @@ public final class UserCampaignClassDaos extends Dao {
 		"AND c.urn = ? " +
 		"AND c.id = cc.campaign_id";
 	
-	private static UserCampaignClassDaos instance;
+	private static UserCampaignClassQueries instance;
 	
 	/**
-	 * Creates this DAO.
+	 * Creates this object.
 	 * 
 	 * @param dataSource A DataSource object to use when querying the database.
 	 */
-	private UserCampaignClassDaos(DataSource dataSource) {
+	private UserCampaignClassQueries(DataSource dataSource) {
 		super(dataSource);
 		
 		instance = this;

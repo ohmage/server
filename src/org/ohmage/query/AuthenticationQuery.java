@@ -1,4 +1,4 @@
-package org.ohmage.dao;
+package org.ohmage.query;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -18,7 +18,7 @@ import org.springframework.jdbc.core.RowMapper;
  * 
  * @author John Jenkins
  */
-public final class AuthenticationDao extends Dao{
+public final class AuthenticationQuery extends Query{
 	// Gets the user's hashed password from the database.
 	private static final String SQL_GET_PASSWORD = 
 		"SELECT password " +
@@ -33,13 +33,13 @@ public final class AuthenticationDao extends Dao{
         "AND password = ?";
 	
 	/**
-	 * Container for the results of this DAO. This includes information 
+	 * Container for the results of this Query. This includes information 
 	 * specific to the request's user pertaining to their login capabilities.
 	 * 
 	 * This inner class is static so that it can be used by the static call,
-	 * public so that the results of this DAO can be understood by its caller,
+	 * public so that the results of this Query can be understood by its caller,
 	 * and final so that no one else tries to subclass it. It specific to this
-	 * DAO.
+	 * Query.
 	 * 
 	 * @author John Jenkins
 	 */
@@ -78,14 +78,14 @@ public final class AuthenticationDao extends Dao{
 		}
 	}
 	
-	private static AuthenticationDao instance;
+	private static AuthenticationQuery instance;
 	
 	/**
-	 * Creates this DAO.
+	 * Creates this object.
 	 * 
 	 * @param dataSource The DataSource to use when querying the database.
 	 */
-	private AuthenticationDao(DataSource dataSource) {
+	private AuthenticationQuery(DataSource dataSource) {
 		super(dataSource);
 		
 		instance = this;

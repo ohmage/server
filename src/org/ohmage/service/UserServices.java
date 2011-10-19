@@ -8,15 +8,15 @@ import java.util.Set;
 import jbcrypt.BCrypt;
 
 import org.ohmage.annotator.ErrorCodes;
-import org.ohmage.dao.UserCampaignDaos;
-import org.ohmage.dao.UserClassDaos;
-import org.ohmage.dao.UserDaos;
 import org.ohmage.domain.Clazz;
 import org.ohmage.domain.UserInformation;
 import org.ohmage.domain.UserPersonal;
 import org.ohmage.domain.campaign.Campaign;
 import org.ohmage.exception.DataAccessException;
 import org.ohmage.exception.ServiceException;
+import org.ohmage.query.UserCampaignQueries;
+import org.ohmage.query.UserClassQueries;
+import org.ohmage.query.UserQueries;
 import org.ohmage.request.Request;
 
 /**
@@ -56,7 +56,7 @@ public final class UserServices {
 		try {
 			String hashedPassword = BCrypt.hashpw(password, BCrypt.gensalt(13));
 			
-			UserDaos.createUser(username, hashedPassword, admin, enabled, newAccount, campaignCreationPrivilege);
+			UserQueries.createUser(username, hashedPassword, admin, enabled, newAccount, campaignCreationPrivilege);
 		}
 		catch(DataAccessException e) {
 			request.setFailed();
@@ -79,7 +79,7 @@ public final class UserServices {
 	 */
 	public static void checkUserExistance(Request request, String username, boolean shouldExist) throws ServiceException {
 		try {
-			if(UserDaos.userExists(username)) {
+			if(UserQueries.userExists(username)) {
 				if(! shouldExist) {
 					request.setFailed(ErrorCodes.USER_INVALID_USERNAME, "The following user already exists: " + username);
 					throw new ServiceException("The following user already exists: " + username);
@@ -134,7 +134,7 @@ public final class UserServices {
 	 */
 	public static void verifyUserIsAdmin(Request request, String username) throws ServiceException {
 		try {
-			if(! UserDaos.userIsAdmin(username)) {
+			if(! UserQueries.userIsAdmin(username)) {
 				request.setFailed(ErrorCodes.USER_INSUFFICIENT_PERMISSIONS, "The user is not an admin.");
 				throw new ServiceException("The user is not an admin.");
 			}
@@ -158,7 +158,7 @@ public final class UserServices {
 	 */
 	public static void verifyUserCanCreateCampaigns(Request request, String username) throws ServiceException {
 		try {
-			if(! UserDaos.userCanCreateCampaigns(username)) {
+			if(! UserQueries.userCanCreateCampaigns(username)) {
 				request.setFailed(ErrorCodes.CAMPAIGN_INSUFFICIENT_PERMISSIONS, "The user does not have permission to create new campaigns.");
 				throw new ServiceException("The user does not have permission to create new campaigns.");
 			}
@@ -248,7 +248,7 @@ public final class UserServices {
 	public static void verifyUserHasOrCanCreatePersonalInfo(Request request, String username, UserPersonal personalInfo) throws ServiceException {
 		if((personalInfo != null) && (! personalInfo.isEmpty())) {
 			try {
-				if(! UserDaos.userHasPersonalInfo(username)) {
+				if(! UserQueries.userHasPersonalInfo(username)) {
 					if(personalInfo.getFirstName() == null) {
 						request.setFailed(ErrorCodes.USER_INVALID_FIRST_NAME_VALUE, "The user doesn't have personal information yet, and a first name is necessary to create one.");
 						throw new ServiceException("The user doesn't have personal information yet, and a first name is necessary to create one.");
@@ -290,24 +290,24 @@ public final class UserServices {
 	public static UserInformation gatherUserInformation(Request request, String username) throws ServiceException {
 		try {
 			// Get campaign creation privilege.
-			UserInformation userInformation = new UserInformation(UserDaos.userCanCreateCampaigns(username));
+			UserInformation userInformation = new UserInformation(UserQueries.userCanCreateCampaigns(username));
 			
 			// Get the campaigns and their names for the requester.
-			Map<String, String> campaigns = UserCampaignDaos.getCampaignIdsAndNameForUser(username);
+			Map<String, String> campaigns = UserCampaignQueries.getCampaignIdsAndNameForUser(username);
 			userInformation.addCampaigns(campaigns);
 			
 			// Get the requester's campaign roles for each of the campaigns.
 			for(String campaignId : campaigns.keySet()) {
-				userInformation.addCampaignRoles(UserCampaignDaos.getUserCampaignRoles(username, campaignId));
+				userInformation.addCampaignRoles(UserCampaignQueries.getUserCampaignRoles(username, campaignId));
 			}
 			
 			// Get the classes and their names for the requester.
-			Map<String, String> classes = UserClassDaos.getClassIdsAndNameForUser(username);
+			Map<String, String> classes = UserClassQueries.getClassIdsAndNameForUser(username);
 			userInformation.addClasses(classes);
 			
 			// Get the requester's class roles for each of the classes.
 			for(String classId : classes.keySet()) {
-				userInformation.addClassRole(UserClassDaos.getUserClassRole(classId, username));
+				userInformation.addClassRole(UserClassQueries.getUserClassRole(classId, username));
 			}
 			
 			return userInformation;
@@ -339,7 +339,7 @@ public final class UserServices {
 				new HashMap<String, UserPersonal>(usernames.size());
 			
 			for(String username : usernames) {
-				result.put(username, UserDaos.getPersonalInfoForUser(username));
+				result.put(username, UserQueries.getPersonalInfoForUser(username));
 			}
 			
 			return result;
@@ -385,7 +385,7 @@ public final class UserServices {
 	 */
 	public static void updateUser(Request request, String username, Boolean admin, Boolean enabled, Boolean newAccount, Boolean campaignCreationPrivilege, UserPersonal personalInfo) throws ServiceException {
 		try {
-			UserDaos.updateUser(username, admin, enabled, newAccount, campaignCreationPrivilege, personalInfo);
+			UserQueries.updateUser(username, admin, enabled, newAccount, campaignCreationPrivilege, personalInfo);
 		}
 		catch(DataAccessException e) {
 			request.setFailed();
@@ -409,7 +409,7 @@ public final class UserServices {
 		try {
 			String hashedPassword = BCrypt.hashpw(plaintextPassword, BCrypt.gensalt(13));
 			
-			UserDaos.updateUserPassword(username, hashedPassword);
+			UserQueries.updateUserPassword(username, hashedPassword);
 		}
 		catch(DataAccessException e) {
 			request.setFailed();
@@ -428,7 +428,7 @@ public final class UserServices {
 	 */
 	public static void deleteUser(Request request, Collection<String> usernames) throws ServiceException {
 		try {
-			UserDaos.deleteUsers(usernames);
+			UserQueries.deleteUsers(usernames);
 		}
 		catch(DataAccessException e) {
 			request.setFailed();

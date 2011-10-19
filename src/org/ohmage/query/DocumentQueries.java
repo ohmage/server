@@ -1,4 +1,4 @@
-package org.ohmage.dao;
+package org.ohmage.query;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -44,8 +44,8 @@ import org.springframework.transaction.support.DefaultTransactionDefinition;
  * 
  * @author John Jenkins
  */
-public class DocumentDaos extends Dao {
-	private static final Logger LOGGER = Logger.getLogger(DocumentDaos.class);
+public class DocumentQueries extends Query {
+	private static final Logger LOGGER = Logger.getLogger(DocumentQueries.class);
 	
 	// Retrieves a boolean representing whether or not a document exists in the
 	// database.
@@ -292,14 +292,14 @@ public class DocumentDaos extends Dao {
 	
 	// The single instance of this class as the constructor should only ever be
 	// called once by Spring.
-	private static DocumentDaos instance;
+	private static DocumentQueries instance;
 	
 	/**
-	 * Creates this DAO.
+	 * Creates this object.
 	 * 
 	 * @param dataSource A DataSource object to use when querying the database.
 	 */
-	private DocumentDaos(DataSource dataSource) {
+	private DocumentQueries(DataSource dataSource) {
 		super(dataSource);
 		
 		instance = this;

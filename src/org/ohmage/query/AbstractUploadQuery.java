@@ -1,24 +1,24 @@
-package org.ohmage.dao;
+package org.ohmage.query;
 
 import java.sql.SQLException;
 
 import javax.sql.DataSource;
 
 /**
- * Abstract base class for any 'upload' DAO that needs to manage duplicate
+ * Abstract base class for any 'upload' Query that needs to manage duplicate
  * uploads.
  * 
  * @author Joshua Selsky
  */
-public class AbstractUploadDao extends Dao {
+public class AbstractUploadQuery extends Query {
 	private static final int MYSQL_DUPLICATE_KEY_ERROR_CODE = 1062;
 	
 	/**
-	 * Creates this DAO.
+	 * Creates this object.
 	 * 
 	 * @param dataSource The DataSource to use when querying the database.
 	 */
-	public AbstractUploadDao(DataSource dataSource) {
+	public AbstractUploadQuery(DataSource dataSource) {
 		super(dataSource);
 	}
 	

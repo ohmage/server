@@ -1,4 +1,4 @@
-package org.ohmage.dao;
+package org.ohmage.query;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -33,9 +33,9 @@ import org.springframework.transaction.support.DefaultTransactionDefinition;
  * @author John Jenkins
  * @author Joshua Selsky
  */
-public class ClassDaos extends Dao {
+public class ClassQueries extends Query {
 	
-	private static Logger LOGGER = Logger.getLogger(ClassDaos.class);
+	private static Logger LOGGER = Logger.getLogger(ClassQueries.class);
 	
 	// Returns a boolean as to whether or not the given class exists.
 	private static final String SQL_EXISTS_CLASS = 
@@ -243,14 +243,14 @@ public class ClassDaos extends Dao {
 
 	// The single instance of this class as the constructor should only ever be
 	// called once by Spring.
-	private static ClassDaos instance;
+	private static ClassQueries instance;
 	
 	/**
-	 * Creates this DAO.
+	 * Creates this object.
 	 * 
 	 * @param dataSource A DataSource object to use when querying the database.
 	 */
-	private ClassDaos(DataSource dataSource) {
+	private ClassQueries(DataSource dataSource) {
 		super(dataSource);
 		
 		instance = this;
@@ -477,7 +477,7 @@ public class ClassDaos extends Dao {
 			List<String> campaignIds = Collections.emptyList();
 			if((usersToRemove != null) || (userAndRolesToAdd != null)) {
 				try {
-					campaignIds = CampaignClassDaos.getCampaignsAssociatedWithClass(classId);
+					campaignIds = CampaignClassQueries.getCampaignsAssociatedWithClass(classId);
 				}
 				catch(DataAccessException e) {
 					transactionManager.rollback(status);
@@ -493,7 +493,7 @@ public class ClassDaos extends Dao {
 					// it.
 					Clazz.Role classRole;
 					try {
-						classRole = UserClassDaos.getUserClassRole(classId, username);
+						classRole = UserClassQueries.getUserClassRole(classId, username);
 					}
 					catch(DataAccessException e) {
 						transactionManager.rollback(status);
@@ -520,7 +520,7 @@ public class ClassDaos extends Dao {
 						// campaign-class associations that may exist.
 						int numClasses;
 						try {
-							numClasses = UserCampaignClassDaos.getNumberOfClassesThroughWhichUserIsAssociatedWithCampaign(username, campaignId);
+							numClasses = UserCampaignClassQueries.getNumberOfClassesThroughWhichUserIsAssociatedWithCampaign(username, campaignId);
 						}
 						catch(DataAccessException e) {
 							transactionManager.rollback(status);
@@ -532,7 +532,7 @@ public class ClassDaos extends Dao {
 							// from the user.
 							List<Campaign.Role> defaultRoles;
 							try {
-								defaultRoles = CampaignClassDaos.getDefaultCampaignRolesForCampaignClass(campaignId, classId, classRole);
+								defaultRoles = CampaignClassQueries.getDefaultCampaignRolesForCampaignClass(campaignId, classId, classRole);
 							}
 							catch(DataAccessException e) {
 								transactionManager.rollback(status);
@@ -574,7 +574,7 @@ public class ClassDaos extends Dao {
 					
 					try {
 						
-						if(! UserClassDaos.userBelongsToClass(classId, username)) {
+						if(! UserClassQueries.userBelongsToClass(classId, username)) {
 							
 							if(LOGGER.isDebugEnabled()) {
 								LOGGER.debug("The user did not exist in the class so the user is being added before any updates are attemped.");
@@ -593,7 +593,7 @@ public class ClassDaos extends Dao {
 							// Get the user's current role.
 							Clazz.Role originalRole = null;
 							try {
-								originalRole = UserClassDaos.getUserClassRole(classId, username);
+								originalRole = UserClassQueries.getUserClassRole(classId, username);
 							}
 							catch(DataAccessException e) {
 								transactionManager.rollback(status);
@@ -630,7 +630,7 @@ public class ClassDaos extends Dao {
 									// campaign in this class.
 									int numClasses;
 									try {
-										numClasses = UserCampaignClassDaos.getNumberOfClassesThroughWhichUserIsAssociatedWithCampaign(username, campaignId);
+										numClasses = UserCampaignClassQueries.getNumberOfClassesThroughWhichUserIsAssociatedWithCampaign(username, campaignId);
 									}
 									catch(DataAccessException e) {
 										transactionManager.rollback(status);
@@ -649,7 +649,7 @@ public class ClassDaos extends Dao {
 										// campaign.
 										List<Campaign.Role> defaultRoles;
 										try {
-											defaultRoles = CampaignClassDaos.getDefaultCampaignRolesForCampaignClass(campaignId, classId, originalRole);
+											defaultRoles = CampaignClassQueries.getDefaultCampaignRolesForCampaignClass(campaignId, classId, originalRole);
 										}
 										catch(DataAccessException e) {
 											transactionManager.rollback(status);
@@ -698,7 +698,7 @@ public class ClassDaos extends Dao {
 						for(String campaignId : campaignIds) {
 							List<Campaign.Role> defaultRoles;
 							try {
-								defaultRoles = CampaignClassDaos.getDefaultCampaignRolesForCampaignClass(campaignId, classId, role);
+								defaultRoles = CampaignClassQueries.getDefaultCampaignRolesForCampaignClass(campaignId, classId, role);
 							}
 							catch(DataAccessException e) {
 								transactionManager.rollback(status);
@@ -717,7 +717,7 @@ public class ClassDaos extends Dao {
 									// the campaign via another class or the 
 									// user may have not been in any class
 									// at all.
-									if(! UserCampaignDaos.getUserCampaignRoles(username, campaignId).contains(defaultRole)) {
+									if(! UserCampaignQueries.getUserCampaignRoles(username, campaignId).contains(defaultRole)) {
 									
 										instance.getJdbcTemplate().update(SQL_INSERT_USER_CAMPAIGN, params);
 									} 

@@ -1,4 +1,4 @@
-package org.ohmage.dao;
+package org.ohmage.query;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -47,7 +47,7 @@ import edu.ucla.cens.mobilityclassifier.MobilityClassifier;
  * 
  * @author John Jenkins
  */
-public final class UserMobilityDaos extends AbstractUploadDao {
+public final class UserMobilityQueries extends AbstractUploadQuery {
 	// Retrieves the ID for all of the Mobility points that belong to a user.
 	private static final String SQL_GET_IDS_FOR_USER = 
 		"SELECT m.id " +
@@ -215,14 +215,14 @@ public final class UserMobilityDaos extends AbstractUploadDao {
 			"?" +		// classifier_version
 		")";
 	
-	private static UserMobilityDaos instance;
+	private static UserMobilityQueries instance;
 
 	/**
-	 * Creates this DAO.
+	 * Creates this object.
 	 * 
 	 * @param dataSource The DataSource to use when accessing the database.
 	 */
-	private UserMobilityDaos(DataSource dataSource) {
+	private UserMobilityQueries(DataSource dataSource) {
 		super(dataSource);
 		
 		instance = this;

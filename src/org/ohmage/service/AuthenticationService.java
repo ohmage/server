@@ -1,10 +1,10 @@
 package org.ohmage.service;
 
 import org.ohmage.annotator.ErrorCodes;
-import org.ohmage.dao.AuthenticationDao;
-import org.ohmage.dao.AuthenticationDao.UserInformation;
 import org.ohmage.exception.DataAccessException;
 import org.ohmage.exception.ServiceException;
+import org.ohmage.query.AuthenticationQuery;
+import org.ohmage.query.AuthenticationQuery.UserInformation;
 import org.ohmage.request.UserRequest;
 
 /**
@@ -45,7 +45,7 @@ public final class AuthenticationService {
 		// correct.
 		UserInformation userInformation;
 		try {
-			userInformation = AuthenticationDao.execute(request);
+			userInformation = AuthenticationQuery.execute(request);
 		}
 		catch(DataAccessException e) {
 			request.setFailed();

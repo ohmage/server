@@ -6,12 +6,12 @@ import java.util.List;
 import java.util.Set;
 
 import org.ohmage.annotator.ErrorCodes;
-import org.ohmage.dao.CampaignDaos;
-import org.ohmage.dao.UserCampaignDaos;
-import org.ohmage.dao.UserMobilityDaos;
 import org.ohmage.domain.campaign.Campaign;
 import org.ohmage.exception.DataAccessException;
 import org.ohmage.exception.ServiceException;
+import org.ohmage.query.CampaignQueries;
+import org.ohmage.query.UserCampaignQueries;
+import org.ohmage.query.UserMobilityQueries;
 import org.ohmage.request.Request;
 
 /**
@@ -63,15 +63,15 @@ public class UserMobilityServices {
 				return;
 			}
 			
-			Set<String> campaignIds = UserCampaignDaos.getCampaignIdsAndNameForUser(usersUsername).keySet();
+			Set<String> campaignIds = UserCampaignQueries.getCampaignIdsAndNameForUser(usersUsername).keySet();
 			for(String campaignId : campaignIds) {
-				List<Campaign.Role> requestersCampaignRoles = UserCampaignDaos.getUserCampaignRoles(requestersUsername, campaignId);
+				List<Campaign.Role> requestersCampaignRoles = UserCampaignQueries.getUserCampaignRoles(requestersUsername, campaignId);
 				
 				if(requestersCampaignRoles.contains(Campaign.Role.SUPERVISOR)) {
 					return;
 				}
 				else if(requestersCampaignRoles.contains(Campaign.Role.ANALYST) && 
-						Campaign.PrivacyState.SHARED.equals(CampaignDaos.getCampaignPrivacyState(campaignId))) {
+						Campaign.PrivacyState.SHARED.equals(CampaignQueries.getCampaignPrivacyState(campaignId))) {
 					return;
 				}
 			}
@@ -101,7 +101,7 @@ public class UserMobilityServices {
 	 */
 	public static Double getHoursSinceLastMobilityUpload(Request request, String username) throws ServiceException {
 		try {
-			Timestamp lastMobilityUpload = UserMobilityDaos.getLastUploadForUser(username);
+			Timestamp lastMobilityUpload = UserMobilityQueries.getLastUploadForUser(username);
 			if(lastMobilityUpload == null) {
 				return null;
 			}
@@ -133,7 +133,7 @@ public class UserMobilityServices {
 	 */
 	public static Double getPercentageOfNonNullLocationsOverPastDay(Request request, String username) throws ServiceException {
 		try {
-			return UserMobilityDaos.getPercentageOfNonNullLocations(username, HOURS_IN_A_DAY);
+			return UserMobilityQueries.getPercentageOfNonNullLocations(username, HOURS_IN_A_DAY);
 		}
 		catch(DataAccessException e) {
 			request.setFailed();

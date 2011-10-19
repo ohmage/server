@@ -6,9 +6,9 @@ import java.net.MalformedURLException;
 import java.net.URL;
 
 import org.ohmage.annotator.ErrorCodes;
-import org.ohmage.dao.ImageDaos;
 import org.ohmage.exception.DataAccessException;
 import org.ohmage.exception.ServiceException;
+import org.ohmage.query.ImageQueries;
 import org.ohmage.request.Request;
 import org.ohmage.validator.ImageValidators.ImageSize;
 
@@ -42,7 +42,7 @@ public final class ImageServices {
 	 */
 	public static void verifyImageExistance(Request request, String imageId, boolean shouldExist) throws ServiceException {
 		try {
-			Boolean imageExists = ImageDaos.getImageExists(imageId);
+			Boolean imageExists = ImageQueries.getImageExists(imageId);
 			
 			if(imageExists && (! shouldExist)) {
 				request.setFailed(ErrorCodes.IMAGE_INVALID_ID, "The image already exists.");
@@ -77,7 +77,7 @@ public final class ImageServices {
 	 */
 	public static InputStream getImage(Request request, String imageId, ImageSize size) throws ServiceException {
 		try {
-			String imageUrl = ImageDaos.getImageUrl(imageId);
+			String imageUrl = ImageQueries.getImageUrl(imageId);
 			
 			if(ImageSize.SMALL.equals(size)) {
 				int imageUrlLength = imageUrl.length();
@@ -86,13 +86,13 @@ public final class ImageServices {
 				// extension.
 				if((imageUrlLength >= 4) && (imageUrl.charAt(imageUrlLength - 4) == '.')) {
 					imageUrl = imageUrl.substring(0, imageUrlLength - 4) + 
-							ImageDaos.IMAGE_SCALED_EXTENSION + 
+							ImageQueries.IMAGE_SCALED_EXTENSION + 
 							imageUrl.substring(imageUrlLength - 4, imageUrlLength);
 				}
 				// If it is saved in the new format without the extension, then
 				// we only need to attach the extension to the end of the URL.
 				else {
-					imageUrl += ImageDaos.IMAGE_SCALED_EXTENSION;
+					imageUrl += ImageQueries.IMAGE_SCALED_EXTENSION;
 				}
 			}
 			

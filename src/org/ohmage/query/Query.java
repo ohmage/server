@@ -1,4 +1,4 @@
-package org.ohmage.dao;
+package org.ohmage.query;
 
 import javax.sql.DataSource;
 
@@ -6,7 +6,7 @@ import org.ohmage.exception.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 /**
- * The superclass for all DAOs, this class contains the DataSource with which 
+ * The superclass for all Queries, this class contains the DataSource with which 
  * it was built as well as a JDBC template which is the most common field that
  * subclasses will use to access the database.
  * 
@@ -15,15 +15,15 @@ import org.springframework.jdbc.core.JdbcTemplate;
  * 
  * @author John Jenkins
  */
-public abstract class Dao {
+public abstract class Query {
 	private boolean initialized = false;
 	
 	private final DataSource dataSource;
 	private final JdbcTemplate jdbcTemplate;
 	
 	/**
-	 * Builds this DAO by keeping track of the DataSource that was used to
-	 * create it and creates a JDBC template for subclasses to use when 
+	 * Builds this query object by keeping track of the DataSource that was 
+	 * used to create it and creates a JDBC template for subclasses to use when 
 	 * querying the database.
 	 * 
 	 * All subclasses must be Singletons in that all subsequent invocations of
@@ -37,12 +37,12 @@ public abstract class Dao {
 	 * 								 this class again. All subclasses must be
 	 * 								 Singletons.
 	 */
-	protected Dao(DataSource dataSource) {
+	protected Query(DataSource dataSource) {
 		if(dataSource == null) {
 			throw new IllegalArgumentException("The data source cannot be null.");
 		}
 		else if(initialized) {
-			throw new IllegalStateException("A DAO should be built exactly once by Spring when the server is initialized.");
+			throw new IllegalStateException("A Query should be built exactly once by Spring when the server is initialized.");
 		}
 		
 		this.dataSource = dataSource;
@@ -52,9 +52,9 @@ public abstract class Dao {
 	}
 	
 	/**
-	 * Throws a new org.ohmage.dao.DataAccessException. This is what all Daos
-	 * should use when a generic org.springframework.dao.DataAccessException is
-	 * thrown.
+	 * Throws a new org.ohmage.dao.DataAccessException. This is what all query 
+	 * objects should use when a generic 
+	 * org.springframework.dao.DataAccessException is thrown.
 	 * 
 	 * @param sql The SQL that caused the 
 	 * 			  org.springframework.dao.DataAccessException.
@@ -77,20 +77,20 @@ public abstract class Dao {
 	}
 	
 	/**
-	 * Returns the DataSource that was used to create this DAO.
+	 * Returns the DataSource that was used to create this object.
 	 * 
-	 * @return The DataSource that was used to create this DAO.
+	 * @return The DataSource that was used to create this object.
 	 */
 	protected DataSource getDataSource() {
 		return dataSource;
 	}
 	
 	/**
-	 * Returns the JdbcTemplate that should be used by this DAO to perform its
-	 * queries, updates, and deletes.
+	 * Returns the JdbcTemplate that should be used by this object to perform 
+	 * its queries, updates, and deletes.
 	 * 
-	 * @return The JdbcTemplate that should be used by this DAO to perform its
-	 * 		   queries, updates, and deletes.
+	 * @return The JdbcTemplate that should be used by this object to perform 
+	 *         its queries, updates, and deletes.
 	 */
 	protected JdbcTemplate getJdbcTemplate() {
 		return jdbcTemplate;
