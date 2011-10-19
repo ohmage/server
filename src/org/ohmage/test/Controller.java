@@ -6,6 +6,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Date;
 
 import org.ohmage.lib.OhmageApi;
 import org.ohmage.lib.exception.ApiException;
@@ -40,6 +41,8 @@ public class Controller {
 			return;
 		}
 
+		long start = (new Date()).getTime();
+		
 		// TODO: We will want some sort of cascading cleanup here.
 		try {
 			// Begin by testing authentication with the admin information and then
@@ -93,7 +96,9 @@ public class Controller {
 		
 		// Cleanup.
 		
-		System.out.println("All tests passed.");
+		long end = (new Date()).getTime();
+		
+		System.out.println("All tests passed in " + (end - start) + " milliseconds.");
 	}
 	
 	/**

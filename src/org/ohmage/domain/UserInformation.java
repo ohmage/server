@@ -156,6 +156,15 @@ public class UserInformation {
 	}
 	
 	/**
+	 * Returns whether or not the user is allowed to create campaigns.
+	 * 
+	 * @return Whether or not the user is allowed to create campaigns.
+	 */
+	public boolean getCampaignCreationPrivilege() {
+		return campaignCreationPrivilege;
+	}
+	
+	/**
 	 * Adds a new campaign to the list of campaigns.
 	 * 
 	 * @param campaignId The campaign's unique identifier.
