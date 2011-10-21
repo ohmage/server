@@ -2521,7 +2521,7 @@ public class Campaign {
 			throw new IllegalArgumentException("Multiple default values were found: " + id);
 		}
 		else if(defaultValues.size() == 1) {
-			defaultValue = defaultValues.get(0).toString().trim();
+			defaultValue = defaultValues.get(0).getValue().trim();
 		}
 		
 		Nodes promptTypes = prompt.query(XML_PROMPT_TYPE);
