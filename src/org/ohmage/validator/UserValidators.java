@@ -7,10 +7,9 @@ import java.util.regex.Pattern;
 import org.apache.log4j.Logger;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.ohmage.annotator.ErrorCodes;
+import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.exception.ValidationException;
 import org.ohmage.request.InputKeys;
-import org.ohmage.request.Request;
 import org.ohmage.util.StringUtils;
 
 /**
@@ -152,8 +151,6 @@ public final class UserValidators {
 	 * conventions, a ValidationException is thrown. Otherwise, the username is
 	 * passed back to the caller.
 	 * 
-	 * @param request The request that is having this username validated.
-	 * 
 	 * @param username The username to validate.
 	 * 
 	 * @return Returns null if the username is null or whitespace only. 
@@ -163,7 +160,9 @@ public final class UserValidators {
 	 * 							   whitespace only and doesn't follow our 
 	 * 							   conventions.
 	 */
-	public static String validateUsername(Request request, String username) throws ValidationException {
+	public static String validateUsername(final String username) 
+			throws ValidationException {
+		
 		LOGGER.info("Validating that the username follows our conventions.");
 		
 		if(StringUtils.isEmptyOrWhitespaceOnly(username)) {
@@ -174,8 +173,9 @@ public final class UserValidators {
 			return username;
 		}
 		else {
-			request.setFailed(ErrorCodes.USER_INVALID_USERNAME, "The username is invalid. " + USERNAME_REQUIREMENTS);
-			throw new ValidationException("The username is invalid. " + USERNAME_REQUIREMENTS);
+			throw new ValidationException(
+					ErrorCode.USER_INVALID_USERNAME, 
+					"The username is invalid. " + USERNAME_REQUIREMENTS);
 		}
 	}
 	
@@ -183,8 +183,6 @@ public final class UserValidators {
 	 * Validates that a String representation of a list of usernames is well
 	 * formed and that each of the usernames follows our conventions. It then
 	 * returns the list of usernames as a List.
-	 * 
-	 * @param request The request that is performing this validation.
 	 * 
 	 * @param usernameList A String representation of a list of usernames where
 	 * 					   the usernames should be separated by
@@ -195,7 +193,9 @@ public final class UserValidators {
 	 * @throws ValidationException Thrown if the list is malformed or if any of
 	 * 							   the items in the list is malformed.
 	 */
-	public static Set<String> validateUsernames(Request request, String usernameList) throws ValidationException {
+	public static Set<String> validateUsernames(final String usernameList) 
+			throws ValidationException {
+		
 		LOGGER.info("Validating that a list of usernames follows our conventions.");
 		
 		if(StringUtils.isEmptyOrWhitespaceOnly(usernameList)) {
@@ -206,7 +206,7 @@ public final class UserValidators {
 		
 		String[] usernameArray = usernameList.split(InputKeys.LIST_ITEM_SEPARATOR);
 		for(int i = 0; i < usernameArray.length; i++) {
-			String username = validateUsername(request, usernameArray[i].trim());
+			String username = validateUsername(usernameArray[i].trim());
 			
 			if(username != null) {
 				result.add(username);
@@ -226,8 +226,6 @@ public final class UserValidators {
 	 * conventions, a ValidationException is thrown. Otherwise, the password is
 	 * passed back to the caller.
 	 * 
-	 * @param request The request that is having this password validated.
-	 * 
 	 * @param password The plaintext password to validate.
 	 * 
 	 * @return Returns null if the password is null or whitespace only. 
@@ -237,7 +235,9 @@ public final class UserValidators {
 	 * 							   whitespace only and doesn't follow our 
 	 * 							   conventions.
 	 */
-	public static String validatePlaintextPassword(Request request, String password) throws ValidationException {
+	public static String validatePlaintextPassword(final String password) 
+			throws ValidationException {
+		
 		LOGGER.info("Validating that the plaintext password follows our conventions.");
 		
 		if(StringUtils.isEmptyOrWhitespaceOnly(password)) {
@@ -248,8 +248,9 @@ public final class UserValidators {
 			return password;
 		}
 		else {
-			request.setFailed(ErrorCodes.USER_INVALID_PASSWORD, "The password is invalid. " + PASSWORD_REQUIREMENTS);
-			throw new ValidationException("The password is invalid. " + PASSWORD_REQUIREMENTS);
+			throw new ValidationException(
+					ErrorCode.USER_INVALID_PASSWORD, 
+					"The password is invalid. " + PASSWORD_REQUIREMENTS);
 		}
 	}
 	
@@ -258,8 +259,6 @@ public final class UserValidators {
 	 * null or whitespace only, null is returned. If it doesn't follow our
 	 * conventions, a ValidationException is thrown. Otherwise, the password is
 	 * passed back to the caller.
-	 * 
-	 * @param request The request that is having this password validated.
 	 * 
 	 * @param password The hashed password to validate.
 	 * 
@@ -270,7 +269,9 @@ public final class UserValidators {
 	 * 							   whitespace only and doesn't follow our 
 	 * 							   conventions.
 	 */
-	public static String validateHashedPassword(Request request, String password) throws ValidationException {
+	public static String validateHashedPassword(final String password) 
+			throws ValidationException {
+		
 		LOGGER.info("Validating that the hashed password follows our conventions.");
 		
 		if(StringUtils.isEmptyOrWhitespaceOnly(password)) {
@@ -281,8 +282,9 @@ public final class UserValidators {
 			return password;
 		}
 		else {
-			request.setFailed(ErrorCodes.USER_INVALID_PASSWORD, "The password is invalid.");
-			throw new ValidationException("The hashed password is invalid.");
+			throw new ValidationException(
+					ErrorCode.USER_INVALID_PASSWORD, 
+					"The hashed password is invalid.");
 		}
 	}
 	
@@ -291,8 +293,6 @@ public final class UserValidators {
 	 * whitespace only, null is returned. If the value is a valid admin value,
 	 * it is returned. If the value is not null, not whitespace only, and not a
 	 * valid admin value, a ValidationException is thrown.
-	 * 
-	 * @param request The Request that is performing this validation.
 	 * 
 	 * @param value The String representation of the admin value to be  
 	 * 				validated.
@@ -304,7 +304,9 @@ public final class UserValidators {
 	 * 							   whitespace only, and not a valid admin 
 	 * 							   value.
 	 */
-	public static Boolean validateAdminValue(Request request, String value) throws ValidationException {
+	public static Boolean validateAdminValue(final String value) 
+			throws ValidationException {
+		
 		LOGGER.info("Validating an admin value.");
 		
 		if(StringUtils.isEmptyOrWhitespaceOnly(value)) {
@@ -315,8 +317,9 @@ public final class UserValidators {
 			return StringUtils.decodeBoolean(value.trim());
 		}
 		else {
-			request.setFailed(ErrorCodes.USER_INVALID_ADMIN_VALUE, "The admin value is invalid: " + value);
-			throw new ValidationException("The admin value is invalid: " + value);
+			throw new ValidationException(
+					ErrorCode.USER_INVALID_ADMIN_VALUE, 
+					"The admin value is invalid: " + value);
 		}
 	}
 	
@@ -325,8 +328,6 @@ public final class UserValidators {
 	 * whitespace only, null is returned. If the value is a valid enabled 
 	 * value, it is returned. If the value is not null, not whitespace only, 
 	 * and not a valid enabled value, a ValidationException is thrown.
-	 * 
-	 * @param request The Request that is performing this validation.
 	 * 
 	 * @param value The String representation of the enabled value to be  
 	 * 				validated.
@@ -338,7 +339,9 @@ public final class UserValidators {
 	 * 							   whitespace only, and not a valid enabled 
 	 * 							   value.
 	 */
-	public static Boolean validateEnabledValue(Request request, String value) throws ValidationException {
+	public static Boolean validateEnabledValue(final String value) 
+			throws ValidationException {
+		
 		LOGGER.info("Validating that a value is a valid enabled value.");
 		
 		if(StringUtils.isEmptyOrWhitespaceOnly(value)) {
@@ -349,8 +352,9 @@ public final class UserValidators {
 			return StringUtils.decodeBoolean(value.trim());
 		}
 		else {
-			request.setFailed(ErrorCodes.USER_INVALID_ENABLED_VALUE, "The enabled value is invalid: " + value);
-			throw new ValidationException("The enabled value is invalid: " + value);
+			throw new ValidationException(
+					ErrorCode.USER_INVALID_ENABLED_VALUE, 
+					"The enabled value is invalid: " + value);
 		}
 	}
 	
@@ -360,8 +364,6 @@ public final class UserValidators {
 	 * account value, it is returned. If the value is not null, not whitespace
 	 * only, and not a valid new account value, a ValidationException is 
 	 * thrown.
-	 * 
-	 * @param request The Request that is performing this validation.
 	 * 
 	 * @param value The String representation of the new account value to be  
 	 * 				validated.
@@ -373,7 +375,9 @@ public final class UserValidators {
 	 * 							   whitespace only, and not a valid new account 
 	 * 							   value.
 	 */
-	public static Boolean validateNewAccountValue(Request request, String value) throws ValidationException {
+	public static Boolean validateNewAccountValue(final String value) 
+			throws ValidationException {
+		
 		LOGGER.info("Validating that the value is a valid new account value.");
 		
 		if(StringUtils.isEmptyOrWhitespaceOnly(value)) {
@@ -384,8 +388,9 @@ public final class UserValidators {
 			return StringUtils.decodeBoolean(value.trim());
 		}
 		else {
-			request.setFailed(ErrorCodes.USER_INVALID_NEW_ACCOUNT_VALUE, "The new account value is invalid: " + value);
-			throw new ValidationException("The new account value is invalid: " + value);
+			throw new ValidationException(
+					ErrorCode.USER_INVALID_NEW_ACCOUNT_VALUE, 
+					"The new account value is invalid: " + value);
 		}
 	}
 	
@@ -395,8 +400,6 @@ public final class UserValidators {
 	 * a valid campaign creation privilege value, it is returned. If the value
 	 * is not null, not whitespace only, and not a valid campaign creation 
 	 * privilege value, a ValidationException is thrown.
-	 * 
-	 * @param request The Request that is performing this validation.
 	 * 
 	 * @param value The String representation of the campaign creation 
 	 * 				privilege value to be validated.
@@ -408,7 +411,9 @@ public final class UserValidators {
 	 * 							   whitespace only, and not a valid campaign 
 	 * 							   creation privilege value.
 	 */
-	public static Boolean validateCampaignCreationPrivilegeValue(Request request, String value) throws ValidationException {
+	public static Boolean validateCampaignCreationPrivilegeValue(
+			final String value) throws ValidationException {
+		
 		LOGGER.info("Validating that the value is a valid campaign creation privilege value.");
 		
 		if(StringUtils.isEmptyOrWhitespaceOnly(value)) {
@@ -419,16 +424,16 @@ public final class UserValidators {
 			return StringUtils.decodeBoolean(value.trim());
 		}
 		else {
-			request.setFailed(ErrorCodes.USER_INVALID_CAMPAIGN_CREATION_PRIVILEGE, "The campaign creation privilege value is invalid: " + value);
-			throw new ValidationException("The campaign creation privilege value is invalid: " + value);
+			throw new ValidationException(
+					ErrorCode.USER_INVALID_CAMPAIGN_CREATION_PRIVILEGE, 
+					"The campaign creation privilege value is invalid: " + 
+						value);
 		}
 	}
 	
 	/**
 	 * Validates that the first name value for a user is a valid first name
 	 * value.
-	 * 
-	 * @param request The Request that is performing this validation.
 	 * 
 	 * @param value The String value of the user's first name.
 	 * 
@@ -439,7 +444,9 @@ public final class UserValidators {
 	 * 							   its length is greater than 
 	 * 							   {@value #MAX_FIRST_NAME_LENGTH}.
 	 */
-	public static String validateFirstName(Request request, String value) throws ValidationException {
+	public static String validateFirstName(final String value) 
+			throws ValidationException {
+		
 		LOGGER.info("Validating that a first name value is valid.");
 		
 		if(StringUtils.isEmptyOrWhitespaceOnly(value)) {
@@ -447,12 +454,17 @@ public final class UserValidators {
 		}
 		
 		if(StringUtils.isProfane(value.trim())) {
-			request.setFailed(ErrorCodes.USER_INVALID_FIRST_NAME_VALUE, "The first name value for the user contains profanity: " + value);
-			throw new ValidationException("The first name value for the user contains profanity: " + value);
+			throw new ValidationException(
+					ErrorCode.USER_INVALID_FIRST_NAME_VALUE, 
+					"The first name value for the user contains profanity: " + 
+						value);
 		}
 		else if(! StringUtils.lengthWithinLimits(value.trim(), 0, MAX_FIRST_NAME_LENGTH)) {
-			request.setFailed(ErrorCodes.USER_INVALID_FIRST_NAME_VALUE, "The first name value for the user is too long. The limit is " + MAX_FIRST_NAME_LENGTH + " characters.");
-			throw new ValidationException("The first name value for the user is too long. The limit is " + MAX_FIRST_NAME_LENGTH + " characters.");
+			throw new ValidationException(
+					ErrorCode.USER_INVALID_FIRST_NAME_VALUE, 
+					"The first name value for the user is too long. The limit is " + 
+						MAX_FIRST_NAME_LENGTH + 
+						" characters.");
 		}
 		else {
 			return value.trim();
@@ -463,8 +475,6 @@ public final class UserValidators {
 	 * Validates that the last name value for a user is a valid last name
 	 * value.
 	 * 
-	 * @param request The Request that is performing this validation.
-	 * 
 	 * @param value The String value of the user's last name.
 	 * 
 	 * @return Returns null if the value is null or whitespace only; otherwise,
@@ -474,7 +484,9 @@ public final class UserValidators {
 	 * 							   its length is greater than 
 	 * 							   {@value #MAX_LAST_NAME_LENGTH}.
 	 */
-	public static String validateLastName(Request request, String value) throws ValidationException {
+	public static String validateLastName(final String value) 
+			throws ValidationException {
+		
 		LOGGER.info("Validating that a last name value is valid.");
 		
 		if(StringUtils.isEmptyOrWhitespaceOnly(value)) {
@@ -482,12 +494,17 @@ public final class UserValidators {
 		}
 		
 		if(StringUtils.isProfane(value.trim())) {
-			request.setFailed(ErrorCodes.USER_INVALID_LAST_NAME_VALUE, "The last name value for the user contains profanity: " + value);
-			throw new ValidationException("The last name value for the user contains profanity: " + value);
+			throw new ValidationException(
+					ErrorCode.USER_INVALID_LAST_NAME_VALUE, 
+					"The last name value for the user contains profanity: " + 
+						value);
 		}
 		else if(! StringUtils.lengthWithinLimits(value.trim(), 0, MAX_LAST_NAME_LENGTH)) {
-			request.setFailed(ErrorCodes.USER_INVALID_LAST_NAME_VALUE, "The last name value for the user is too long. The limit is " + MAX_LAST_NAME_LENGTH + " characters.");
-			throw new ValidationException("The last name value for the user is too long. The limit is " + MAX_LAST_NAME_LENGTH + " characters.");
+			throw new ValidationException(
+					ErrorCode.USER_INVALID_LAST_NAME_VALUE, 
+					"The last name value for the user is too long. The limit is " + 
+						MAX_LAST_NAME_LENGTH + 
+						" characters.");
 		}
 		else {
 			return value.trim();
@@ -498,8 +515,6 @@ public final class UserValidators {
 	 * Validates that the organization value for a user is a valid organization
 	 * value.
 	 * 
-	 * @param request The Request that is performing this validation.
-	 * 
 	 * @param value The String value of the user's organization.
 	 * 
 	 * @return Returns null if the value is null or whitespace only; otherwise,
@@ -509,7 +524,9 @@ public final class UserValidators {
 	 * 							   its length is greater than 
 	 * 							   {@value #MAX_ORGANIZATION_LENGTH}.
 	 */
-	public static String validateOrganization(Request request, String value) throws ValidationException {
+	public static String validateOrganization(final String value) 
+			throws ValidationException {
+		
 		LOGGER.info("Validating that an organization name value is valid.");
 		
 		if(StringUtils.isEmptyOrWhitespaceOnly(value)) {
@@ -517,12 +534,17 @@ public final class UserValidators {
 		}
 		
 		if(StringUtils.isProfane(value.trim())) {
-			request.setFailed(ErrorCodes.USER_INVALID_ORGANIZATION_VALUE, "The organization value for the user contains profanity: " + value);
-			throw new ValidationException("The organization value for the user contains profanity: " + value);
+			throw new ValidationException(
+					ErrorCode.USER_INVALID_ORGANIZATION_VALUE, 
+					"The organization value for the user contains profanity: " + 
+						value);
 		}
 		else if(! StringUtils.lengthWithinLimits(value.trim(), 0, MAX_ORGANIZATION_LENGTH)) {
-			request.setFailed(ErrorCodes.USER_INVALID_ORGANIZATION_VALUE, "The organization value for the user is too long. The limit is " + MAX_ORGANIZATION_LENGTH + " characters.");
-			throw new ValidationException("The organization value for the user is too long. The limit is " + MAX_ORGANIZATION_LENGTH + " characters.");
+			throw new ValidationException(
+					ErrorCode.USER_INVALID_ORGANIZATION_VALUE, 
+					"The organization value for the user is too long. The limit is " + 
+						MAX_ORGANIZATION_LENGTH + 
+						" characters.");
 		}
 		else {
 			return value.trim();
@@ -533,8 +555,6 @@ public final class UserValidators {
 	 * Validates that the personal ID value for a user is a valid personal ID
 	 * value.
 	 * 
-	 * @param request The Request that is performing this validation.
-	 * 
 	 * @param value The String value of the user's personal ID.
 	 * 
 	 * @return Returns null if the value is null or whitespace only; otherwise,
@@ -544,7 +564,9 @@ public final class UserValidators {
 	 * 							   its length is greater than 
 	 * 							   {@value #MAX_PERSONAL_ID_LENGTH}.
 	 */
-	public static String validatePersonalId(Request request, String value) throws ValidationException {
+	public static String validatePersonalId(final String value) 
+			throws ValidationException {
+		
 		LOGGER.info("Validating that a personal ID value is valid.");
 		
 		if(StringUtils.isEmptyOrWhitespaceOnly(value)) {
@@ -552,12 +574,17 @@ public final class UserValidators {
 		}
 		
 		if(StringUtils.isProfane(value.trim())) {
-			request.setFailed(ErrorCodes.USER_INVALID_PERSONAL_ID_VALUE, "The personal ID value for the user contains profanity: " + value);
-			throw new ValidationException("The personal ID value for the user contains profanity: " + value);
+			throw new ValidationException(
+					ErrorCode.USER_INVALID_PERSONAL_ID_VALUE, 
+					"The personal ID value for the user contains profanity: " + 
+						value);
 		}
 		else if(! StringUtils.lengthWithinLimits(value.trim(), 0, MAX_PERSONAL_ID_LENGTH)) {
-			request.setFailed(ErrorCodes.USER_INVALID_PERSONAL_ID_VALUE, "The personal ID value for the user is too long. The limit is " + MAX_PERSONAL_ID_LENGTH + " characters.");
-			throw new ValidationException("The personal ID value for the user is too long. The limit is " + MAX_PERSONAL_ID_LENGTH + " characters.");
+			throw new ValidationException(
+					ErrorCode.USER_INVALID_PERSONAL_ID_VALUE, 
+					"The personal ID value for the user is too long. The limit is " + 
+						MAX_PERSONAL_ID_LENGTH + 
+						" characters.");
 		}
 		else {
 			return value.trim();
@@ -567,8 +594,6 @@ public final class UserValidators {
 	/**
 	 * Validates that the email address for a user is a valid email address.
 	 * 
-	 * @param request The Request that is performing this validation.
-	 * 
 	 * @param value The String value of the user's email address.
 	 * 
 	 * @return Returns null if the value is null or whitespace only; otherwise,
@@ -577,7 +602,9 @@ public final class UserValidators {
 	 * @throws ValidationException Thrown if the email address is not a valid
 	 * 							   email address.
 	 */
-	public static String validateEmailAddress(Request request, String value) throws ValidationException {
+	public static String validateEmailAddress(final String value) 
+			throws ValidationException {
+		
 		LOGGER.info("Validating that a first name value is valid.");
 		
 		if(StringUtils.isEmptyOrWhitespaceOnly(value)) {
@@ -588,16 +615,16 @@ public final class UserValidators {
 			return value.trim();
 		}
 		else {
-			request.setFailed(ErrorCodes.USER_INVALID_EMAIL_ADDRESS, "The email address value for the user is invalid: " + value);
-			throw new ValidationException("The email address value for the user is invalid: " + value);
+			throw new ValidationException(
+					ErrorCode.USER_INVALID_EMAIL_ADDRESS, 
+					"The email address value for the user is invalid: " + 
+						value);
 		}
 	}
 	
 	/**
 	 * Validates that some String is a valid JSONObject, creates a JSONObject
 	 * from the String, and returns it.
-	 * 
-	 * @param request The Request that is performing this validation.
 	 * 
 	 * @param value The String representation of the JSONObject.
 	 * 
@@ -607,7 +634,9 @@ public final class UserValidators {
 	 * @throws ValidationException Thrown if the value is not null, not 
 	 * 							   whitespace only, and not a valid JSONObject.
 	 */
-	public static JSONObject validateJsonData(Request request, String value) throws ValidationException {
+	public static JSONObject validateJsonData(final String value) 
+			throws ValidationException {
+		
 		LOGGER.info("Validating that a first name value is valid.");
 		
 		if(StringUtils.isEmptyOrWhitespaceOnly(value)) {
@@ -618,8 +647,11 @@ public final class UserValidators {
 			return new JSONObject(value.trim());
 		}
 		catch(JSONException e) {
-			request.setFailed(ErrorCodes.USER_INVALID_JSON_DATA, "The user's JSON data object is not a valid JSONObject: " + value);
-			throw new ValidationException("The user's JSON data object is not a valid JSONObject: " + value, e);
+			throw new ValidationException(
+					ErrorCode.USER_INVALID_JSON_DATA, 
+					"The user's JSON data object is not a valid JSONObject: " +
+						value, 
+					e);
 		}
 	}
 }

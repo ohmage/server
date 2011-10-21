@@ -6,13 +6,12 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import org.ohmage.annotator.ErrorCodes;
+import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.domain.campaign.Campaign;
 import org.ohmage.exception.DataAccessException;
 import org.ohmage.exception.ServiceException;
 import org.ohmage.query.UserCampaignDocumentQueries;
 import org.ohmage.query.UserCampaignQueries;
-import org.ohmage.request.Request;
 
 /**
  * This class contains the services for user-campaign-document relationships.
@@ -30,8 +29,6 @@ public class UserCampaignDocumentServices {
 	 * restriction is that the user must belong to the campaign in some 
 	 * capacity.
 	 * 
-	 * @param request The request that is performing this service.
-	 * 
 	 * @param username The username of the user in question.
 	 * 
 	 * @param campaignId The campaign ID of the campaign in question.
@@ -40,17 +37,18 @@ public class UserCampaignDocumentServices {
 	 * 							not allowed to associate documents with this
 	 * 							campaign.
 	 */
-	public static void userCanAssociateDocumentsWithCampaign(Request request, String username, String campaignId) throws ServiceException {
+	public static void userCanAssociateDocumentsWithCampaign(
+			final String username, final String campaignId) 
+			throws ServiceException {
+		
 		try {
 			List<Campaign.Role> roles = UserCampaignQueries.getUserCampaignRoles(username, campaignId);
 			
 			if(roles.size() == 0) {
-				request.setFailed(ErrorCodes.DOCUMENT_INSUFFICIENT_PERMISSIONS, "The user is not a member of the following campaign and, therefore, cannot associate documents with it: " + campaignId);
-				throw new ServiceException("The user is not a member of the following campaign and, therefore, cannot associate documents with it: " + campaignId);
+				throw new ServiceException(ErrorCode.DOCUMENT_INSUFFICIENT_PERMISSIONS, "The user is not a member of the following campaign and, therefore, cannot associate documents with it: " + campaignId);
 			}
 		}
 		catch(DataAccessException e) {
-			request.setFailed();
 			throw new ServiceException(e);
 		}
 	}
@@ -60,8 +58,6 @@ public class UserCampaignDocumentServices {
 	 * only restriction is that the user must belong to the campaign in some
 	 * capacity.
 	 * 
-	 * @param request The request that is performing this service.
-	 * 
 	 * @param username The username of the user in question.
 	 * 
 	 * @param campaignId The campaign ID of the campaign in question.
@@ -70,17 +66,21 @@ public class UserCampaignDocumentServices {
 	 * 							not allowed to disassociate documents from this
 	 * 							campaign.
 	 */
-	public static void userCanDisassociateDocumentsFromCampaign(Request request, String username, String campaignId) throws ServiceException {
+	public static void userCanDisassociateDocumentsFromCampaign(
+			final String username, final String campaignId) 
+			throws ServiceException {
+		
 		try {
 			List<Campaign.Role> roles = UserCampaignQueries.getUserCampaignRoles(username, campaignId);
 			
 			if(roles.size() == 0) {
-				request.setFailed(ErrorCodes.DOCUMENT_INSUFFICIENT_PERMISSIONS, "The user is not a member of the following campaign and, therefore, cannot disassociate documents from it: " + campaignId);
-				throw new ServiceException("The user is not a member of the following campaign and, therefore, cannot disassociate documents from it: " + campaignId);
+				throw new ServiceException(
+						ErrorCode.DOCUMENT_INSUFFICIENT_PERMISSIONS, 
+						"The user is not a member of the following campaign and, therefore, cannot disassociate documents from it: " + 
+							campaignId);
 			}
 		}
 		catch(DataAccessException e) {
-			request.setFailed();
 			throw new ServiceException(e);
 		}
 	}
@@ -89,8 +89,6 @@ public class UserCampaignDocumentServices {
 	 * Verifies that a user can associate documents with all of the campaigns
 	 * in a list. The only restriction is that the user must belong to each of
 	 * the campaigns.
-	 * 
-	 * @param request The request that is performing this service.
 	 * 
 	 * @param username The username of the user in question.
 	 * 
@@ -101,9 +99,12 @@ public class UserCampaignDocumentServices {
 	 * 							not allowed to associate documents with any of
 	 * 							the campaigns.
 	 */
-	public static void userCanAssociateDocumentsWithCampaigns(Request request, String username, Collection<String> campaignIds) throws ServiceException {
+	public static void userCanAssociateDocumentsWithCampaigns(
+			final String username, final Collection<String> campaignIds) 
+			throws ServiceException {
+		
 		for(String campaignId : campaignIds) {
-			userCanAssociateDocumentsWithCampaign(request, username, campaignId);
+			userCanAssociateDocumentsWithCampaign(username, campaignId);
 		}
 	}
 	
@@ -111,8 +112,6 @@ public class UserCampaignDocumentServices {
 	 * Verifies that a user can disassociate documents from all of the 
 	 * campaigns in a List. The only restrictino is that the user must belong
 	 * to each of the campaigns.
-	 * 
-	 * @param request The request that is performing this service.
 	 * 
 	 * @param username The username of the user in question.
 	 * 
@@ -123,17 +122,18 @@ public class UserCampaignDocumentServices {
 	 * 							not allowed to disassociate documents with any
 	 * 							of the campaigns.
 	 */
-	public static void userCanDisassociateDocumentsFromCampaigns(Request request, String username, Collection<String> campaignIds) throws ServiceException {
+	public static void userCanDisassociateDocumentsFromCampaigns(
+			final String username, final Collection<String> campaignIds) 
+			throws ServiceException {
+		
 		for(String campaignId : campaignIds) {
-			userCanDisassociateDocumentsFromCampaign(request, username, campaignId);
+			userCanDisassociateDocumentsFromCampaign(username, campaignId);
 		}
 	}
 	
 	/**
 	 * Retrieves a list of document IDs for all of the documents associate with
 	 * a campaign.
-	 * 
-	 * @param request The request that is performing this service.
 	 * 
 	 * @param username The username of the requester.
 	 * 
@@ -143,12 +143,14 @@ public class UserCampaignDocumentServices {
 	 * 
 	 * @throws ServiceException Thrown if there is an error.
 	 */
-	public static List<String> getVisibleDocumentsSpecificToCampaign(Request request, String username, String campaignId) throws ServiceException {
+	public static List<String> getVisibleDocumentsSpecificToCampaign(
+			final String username, final String campaignId) 
+			throws ServiceException {
+		
 		try {
 			return UserCampaignDocumentQueries.getVisibleDocumentsToUserInCampaign(username, campaignId);
 		}
 		catch(DataAccessException e) {
-			request.setFailed();
 			throw new ServiceException(e);
 		}
 	}
@@ -156,8 +158,6 @@ public class UserCampaignDocumentServices {
 	/**
 	 * Retrieves a list of document IDs for all of the documents associated 
 	 * with all of a collection of campaigns.
-	 * 
-	 * @param request The request that is performing this service.
 	 * 
 	 * @param username The username of the requester.
 	 * 
@@ -168,10 +168,13 @@ public class UserCampaignDocumentServices {
 	 * 
 	 * @throws ServiceException Thrown if there is an error.
 	 */
-	public static List<String> getVisibleDocumentsSpecificToCampaigns(Request request, String username, Collection<String> campaignIds) throws ServiceException {
+	public static List<String> getVisibleDocumentsSpecificToCampaigns(
+			final String username, final Collection<String> campaignIds) 
+			throws ServiceException {
+		
 		Set<String> resultSet = new HashSet<String>();
 		for(String campaignId : campaignIds) {
-			resultSet.addAll(getVisibleDocumentsSpecificToCampaign(request, username, campaignId));
+			resultSet.addAll(getVisibleDocumentsSpecificToCampaign(username, campaignId));
 		}
 		return new ArrayList<String>(resultSet);
 	}
@@ -179,8 +182,6 @@ public class UserCampaignDocumentServices {
 	/**
 	 * Retrieves whether or not the user is a supervisor in any of the 
 	 * campaigns with which the document is associated.
-	 * 
-	 * @param request The Request that is performing this service.
 	 * 
 	 * @param username The username of the user.
 	 * 
@@ -191,12 +192,14 @@ public class UserCampaignDocumentServices {
 	 * 
 	 * @throws ServiceException Thrown if there is an error.
 	 */
-	public static boolean getUserIsSupervisorInAnyCampaignAssociatedWithDocument(Request request, String username, String documentId) throws ServiceException {
+	public static boolean getUserIsSupervisorInAnyCampaignAssociatedWithDocument(
+			final String username, final String documentId) 
+			throws ServiceException {
+		
 		try {
 			return UserCampaignDocumentQueries.getUserIsSupervisorInAnyCampaignAssociatedWithDocument(username, documentId);
 		}
 		catch(DataAccessException e) {
-			request.setFailed();
 			throw new ServiceException(e);
 		}
 	}

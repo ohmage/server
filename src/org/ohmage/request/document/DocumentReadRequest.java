@@ -12,7 +12,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.log4j.Logger;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.ohmage.annotator.ErrorCodes;
+import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.domain.Document;
 import org.ohmage.exception.ServiceException;
 import org.ohmage.exception.ValidationException;
@@ -94,29 +94,30 @@ public class DocumentReadRequest extends UserRequest {
 		Set<String> tempClassIds = null;
 		
 		try {
-			tempPersonalDocuments = DocumentValidators.validatePersonalDocuments(this, httpRequest.getParameter(InputKeys.DOCUMENT_PERSONAL_DOCUMENTS));
+			tempPersonalDocuments = DocumentValidators.validatePersonalDocuments(httpRequest.getParameter(InputKeys.DOCUMENT_PERSONAL_DOCUMENTS));
 			if(tempPersonalDocuments == null) {
-				setFailed(ErrorCodes.DOCUMENT_INVALID_PERSONAL_DOCUMENTS_VALUE, "Missing required key: " + InputKeys.DOCUMENT_PERSONAL_DOCUMENTS);
+				setFailed(ErrorCode.DOCUMENT_INVALID_PERSONAL_DOCUMENTS_VALUE, "Missing required key: " + InputKeys.DOCUMENT_PERSONAL_DOCUMENTS);
 				throw new ValidationException("Missing required key: " + InputKeys.DOCUMENT_PERSONAL_DOCUMENTS);
 			}
 			else if(httpRequest.getParameterValues(InputKeys.DOCUMENT_PERSONAL_DOCUMENTS).length > 1) {
-				setFailed(ErrorCodes.DOCUMENT_INVALID_PERSONAL_DOCUMENTS_VALUE, "Multiple personal documents parameters were given.");
+				setFailed(ErrorCode.DOCUMENT_INVALID_PERSONAL_DOCUMENTS_VALUE, "Multiple personal documents parameters were given.");
 				throw new ValidationException("Multiple personal documents parameters were given.");
 			}
 			
-			tempCampaignIds = CampaignValidators.validateCampaignIds(this, httpRequest.getParameter(InputKeys.CAMPAIGN_URN_LIST));
+			tempCampaignIds = CampaignValidators.validateCampaignIds(httpRequest.getParameter(InputKeys.CAMPAIGN_URN_LIST));
 			if((tempCampaignIds != null) && (httpRequest.getParameterValues(InputKeys.CAMPAIGN_URN_LIST).length > 1)) {
-				setFailed(ErrorCodes.CAMPAIGN_INVALID_ID, "Multiple campaign ID lists were given.");
+				setFailed(ErrorCode.CAMPAIGN_INVALID_ID, "Multiple campaign ID lists were given.");
 				throw new ValidationException("Multiple campaign ID lists were given.");
 			}
 			
-			tempClassIds = ClassValidators.validateClassIdList(this, httpRequest.getParameter(InputKeys.CLASS_URN_LIST));
+			tempClassIds = ClassValidators.validateClassIdList(httpRequest.getParameter(InputKeys.CLASS_URN_LIST));
 			if((tempClassIds != null) && (httpRequest.getParameterValues(InputKeys.CLASS_URN_LIST).length > 1)) {
-				setFailed(ErrorCodes.CLASS_INVALID_ID, "Multiple class ID lists were given.");
+				setFailed(ErrorCode.CLASS_INVALID_ID, "Multiple class ID lists were given.");
 				throw new ValidationException("Multiple class ID lists were given.");
 			}
 		}
 		catch(ValidationException e) {
+			e.failRequest(this);
 			LOGGER.info(e.toString());
 		}
 		
@@ -141,35 +142,36 @@ public class DocumentReadRequest extends UserRequest {
 		try {
 			if(campaignIds != null) {
 				LOGGER.info("Verifying that the campaigns in the campaign list exist and that the user belongs.");
-				UserCampaignServices.campaignsExistAndUserBelongs(this, campaignIds, getUser().getUsername());
+				UserCampaignServices.campaignsExistAndUserBelongs(campaignIds, getUser().getUsername());
 			}
 			
 			if(classIds != null) {
 				LOGGER.info("Verifying that the classes in the class list exist and that the user belongs.");
-				UserClassServices.classesExistAndUserBelongs(this, classIds, getUser().getUsername());
+				UserClassServices.classesExistAndUserBelongs(classIds, getUser().getUsername());
 			}
 			
 			Set<String> documentIds = new HashSet<String>();
 			
 			if(personalDocuments) {
 				LOGGER.info("Gathering information about the documents that are specific to this user.");
-				documentIds.addAll(UserDocumentServices.getDocumentsSpecificToUser(this, getUser().getUsername())); 
+				documentIds.addAll(UserDocumentServices.getDocumentsSpecificToUser(getUser().getUsername())); 
 			}
 			
 			if(campaignIds != null) {
 				LOGGER.info("Gathering information about the documents that are visible to this user in the parameterized campaigns.");
-				documentIds.addAll(UserCampaignDocumentServices.getVisibleDocumentsSpecificToCampaigns(this, getUser().getUsername(), campaignIds));
+				documentIds.addAll(UserCampaignDocumentServices.getVisibleDocumentsSpecificToCampaigns(getUser().getUsername(), campaignIds));
 			}
 		
 			if(classIds != null) {
 				LOGGER.info("Gathering information about the documents that are visible to this user in the parameterized classes.");
-				documentIds.addAll(UserClassDocumentServices.getVisibleDocumentsSpecificToClasses(this, getUser().getUsername(), classIds));
+				documentIds.addAll(UserClassDocumentServices.getVisibleDocumentsSpecificToClasses(getUser().getUsername(), classIds));
 			}
 			
 			LOGGER.info("Gathering the specific information about each of the documents.");
-			result = UserDocumentServices.getDocumentInformationForDocumentsWithUser(this, getUser().getUsername(), documentIds);
+			result = UserDocumentServices.getDocumentInformationForDocumentsWithUser(getUser().getUsername(), documentIds);
 		}
 		catch(ServiceException e) {
+			e.failRequest(this);
 			e.logException(LOGGER);
 		}
 	}

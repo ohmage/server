@@ -40,9 +40,10 @@ public class ConfigReadRequest extends Request {
 		LOGGER.info("Gathering information about the system.");
 		
 		try {
-			result = ConfigServices.readServerConfiguration(this);
+			result = ConfigServices.readServerConfiguration();
 		}
 		catch(ServiceException e) {
+			e.failRequest(this);
 			e.logException(LOGGER);
 		}
 	}

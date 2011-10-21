@@ -24,7 +24,7 @@ import org.apache.log4j.Logger;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.ohmage.annotator.ErrorCodes;
+import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.domain.Location;
 import org.ohmage.domain.campaign.Campaign;
 import org.ohmage.domain.campaign.Prompt;
@@ -286,18 +286,18 @@ public final class SurveyResponseReadRequest extends UserRequest {
 				// Campaign ID
 				t = getParameterValues(InputKeys.CAMPAIGN_URN);
 				if(t.length == 0) {
-					setFailed(ErrorCodes.CAMPAIGN_INVALID_ID, "The required campaign ID was not present: " + InputKeys.CAMPAIGN_URN);
+					setFailed(ErrorCode.CAMPAIGN_INVALID_ID, "The required campaign ID was not present: " + InputKeys.CAMPAIGN_URN);
 					throw new ValidationException("The required campaign ID was not present: " + InputKeys.CAMPAIGN_URN);
 				}
 				else if(t.length > 1) {
-					setFailed(ErrorCodes.CAMPAIGN_INVALID_ID, "Multiple campaign IDs were found: " + InputKeys.CAMPAIGN_URN);
+					setFailed(ErrorCode.CAMPAIGN_INVALID_ID, "Multiple campaign IDs were found: " + InputKeys.CAMPAIGN_URN);
 					throw new ValidationException("Multiple campaign IDs were found: " + InputKeys.CAMPAIGN_URN);
 				}
 				else {
-					tCampaignId = CampaignValidators.validateCampaignId(this, t[0]);
+					tCampaignId = CampaignValidators.validateCampaignId(t[0]);
 					
 					if(tCampaignId == null) {
-						setFailed(ErrorCodes.CAMPAIGN_INVALID_ID, "The required campaign ID was not present: " + InputKeys.CAMPAIGN_URN);
+						setFailed(ErrorCode.CAMPAIGN_INVALID_ID, "The required campaign ID was not present: " + InputKeys.CAMPAIGN_URN);
 						throw new ValidationException("The required campaign ID was not present: " + InputKeys.CAMPAIGN_URN);
 					}
 				}
@@ -305,18 +305,18 @@ public final class SurveyResponseReadRequest extends UserRequest {
 				// Column List
 				t = getParameterValues(InputKeys.COLUMN_LIST);
 				if(t.length == 0) {
-					setFailed(ErrorCodes.SURVEY_INVALID_COLUMN_ID, "The required column list was missing: " + InputKeys.COLUMN_LIST);
+					setFailed(ErrorCode.SURVEY_INVALID_COLUMN_ID, "The required column list was missing: " + InputKeys.COLUMN_LIST);
 					throw new ValidationException("The required column list was missing: " + InputKeys.COLUMN_LIST);
 				}
 				else if(t.length > 1) {
-					setFailed(ErrorCodes.SURVEY_INVALID_COLUMN_ID, "Multiple column lists were given: " + InputKeys.COLUMN_LIST);
+					setFailed(ErrorCode.SURVEY_INVALID_COLUMN_ID, "Multiple column lists were given: " + InputKeys.COLUMN_LIST);
 					throw new ValidationException("Multiple column lists were given: " + InputKeys.COLUMN_LIST);
 				}
 				else {
-					tColumns = SurveyResponseValidators.validateColumnList(this, t[0]);
+					tColumns = SurveyResponseValidators.validateColumnList(t[0]);
 					
 					if(tColumns == null) {
-						setFailed(ErrorCodes.SURVEY_INVALID_COLUMN_ID, "The required column list was missing: " + InputKeys.COLUMN_LIST);
+						setFailed(ErrorCode.SURVEY_INVALID_COLUMN_ID, "The required column list was missing: " + InputKeys.COLUMN_LIST);
 						throw new ValidationException("The required column list was missing: " + InputKeys.COLUMN_LIST);
 					}
 				}
@@ -324,22 +324,22 @@ public final class SurveyResponseReadRequest extends UserRequest {
 				// User List
 				t = getParameterValues(InputKeys.USER_LIST);
 				if(t.length == 0) {
-					setFailed(ErrorCodes.SURVEY_MALFORMED_USER_LIST, "The user list is missing: " + InputKeys.USER_LIST);
+					setFailed(ErrorCode.SURVEY_MALFORMED_USER_LIST, "The user list is missing: " + InputKeys.USER_LIST);
 					throw new ValidationException("The user list is missing: " + InputKeys.USER_LIST);
 				}
 				else if(t.length > 1) {
-					setFailed(ErrorCodes.SURVEY_MALFORMED_USER_LIST, "Mutliple user lists were given: " + InputKeys.USER_LIST);
+					setFailed(ErrorCode.SURVEY_MALFORMED_USER_LIST, "Mutliple user lists were given: " + InputKeys.USER_LIST);
 					throw new ValidationException("Mutliple user lists were given: " + InputKeys.USER_LIST);
 				}
 				else {
-					tUsernames = SurveyResponseValidators.validateUsernames(this, t[0]);
+					tUsernames = SurveyResponseValidators.validateUsernames(t[0]);
 					
 					if(tUsernames == null) {
-						setFailed(ErrorCodes.SURVEY_MALFORMED_USER_LIST, "The user list is missing: " + InputKeys.USER_LIST);
+						setFailed(ErrorCode.SURVEY_MALFORMED_USER_LIST, "The user list is missing: " + InputKeys.USER_LIST);
 						throw new ValidationException("The user list is missing: " + InputKeys.USER_LIST);
 					}
 					else if(tUsernames.size() > MAX_NUMBER_OF_USERS) {
-						setFailed(ErrorCodes.SURVEY_TOO_MANY_USERS, "The user list contains more than " + MAX_NUMBER_OF_USERS + " users: " + tUsernames.size());
+						setFailed(ErrorCode.SURVEY_TOO_MANY_USERS, "The user list contains more than " + MAX_NUMBER_OF_USERS + " users: " + tUsernames.size());
 						throw new ValidationException("The user list contains more than " + MAX_NUMBER_OF_USERS + " users: " + tUsernames.size());
 					}
 				}
@@ -347,18 +347,18 @@ public final class SurveyResponseReadRequest extends UserRequest {
 				// Output Format
 				t = getParameterValues(InputKeys.OUTPUT_FORMAT);
 				if(t.length == 0) {
-					setFailed(ErrorCodes.SURVEY_INVALID_OUTPUT_FORMAT, "The output format is missing: " + InputKeys.OUTPUT_FORMAT);
+					setFailed(ErrorCode.SURVEY_INVALID_OUTPUT_FORMAT, "The output format is missing: " + InputKeys.OUTPUT_FORMAT);
 					throw new ValidationException("The output format is missing: " + InputKeys.OUTPUT_FORMAT);
 				}
 				else if(t.length > 1) {
-					setFailed(ErrorCodes.SURVEY_INVALID_OUTPUT_FORMAT, "Multiple output formats were given: " + InputKeys.OUTPUT_FORMAT);
+					setFailed(ErrorCode.SURVEY_INVALID_OUTPUT_FORMAT, "Multiple output formats were given: " + InputKeys.OUTPUT_FORMAT);
 					throw new ValidationException("Multiple output formats were given: " + InputKeys.OUTPUT_FORMAT);
 				}
 				else {
-					tOutputFormat = SurveyResponseValidators.validateOutputFormat(this, t[0]);
+					tOutputFormat = SurveyResponseValidators.validateOutputFormat(t[0]);
 					
 					if(tOutputFormat == null) {
-						setFailed(ErrorCodes.SURVEY_INVALID_OUTPUT_FORMAT, "The output format is missing: " + InputKeys.OUTPUT_FORMAT);
+						setFailed(ErrorCode.SURVEY_INVALID_OUTPUT_FORMAT, "The output format is missing: " + InputKeys.OUTPUT_FORMAT);
 						throw new ValidationException("The output format is missing: " + InputKeys.OUTPUT_FORMAT);
 					}
 				}
@@ -366,14 +366,14 @@ public final class SurveyResponseReadRequest extends UserRequest {
 				// Survey ID List
 				t = getParameterValues(InputKeys.SURVEY_ID_LIST);
 				if(t.length > 1) {
-					setFailed(ErrorCodes.SURVEY_MALFORMED_SURVEY_ID_LIST, "Multiple survey ID lists were given: " + InputKeys.SURVEY_ID_LIST);
+					setFailed(ErrorCode.SURVEY_MALFORMED_SURVEY_ID_LIST, "Multiple survey ID lists were given: " + InputKeys.SURVEY_ID_LIST);
 					throw new ValidationException("Multiple survey ID lists were given: " + InputKeys.SURVEY_ID_LIST);
 				}
 				else if(t.length == 1) {
-					tSurveyIds = SurveyResponseValidators.validateSurveyIds(this, t[0]);
+					tSurveyIds = SurveyResponseValidators.validateSurveyIds(t[0]);
 					
 					if(tSurveyIds.size() > MAX_NUMBER_OF_SURVEYS) {
-						setFailed(ErrorCodes.SURVEY_TOO_MANY_SURVEY_IDS, "More than " + MAX_NUMBER_OF_SURVEYS + " survey IDs were given: " + tSurveyIds.size());
+						setFailed(ErrorCode.SURVEY_TOO_MANY_SURVEY_IDS, "More than " + MAX_NUMBER_OF_SURVEYS + " survey IDs were given: " + tSurveyIds.size());
 						throw new ValidationException("More than " + MAX_NUMBER_OF_SURVEYS + " survey IDs were given: " + tSurveyIds.size());
 					}
 				}
@@ -381,14 +381,14 @@ public final class SurveyResponseReadRequest extends UserRequest {
 				// Prompt ID List
 				t = getParameterValues(InputKeys.PROMPT_ID_LIST);
 				if(t.length > 1) {
-					setFailed(ErrorCodes.SURVEY_MALFORMED_PROMPT_ID_LIST, "Multiple prompt ID lists were given: " + InputKeys.PROMPT_ID_LIST);
+					setFailed(ErrorCode.SURVEY_MALFORMED_PROMPT_ID_LIST, "Multiple prompt ID lists were given: " + InputKeys.PROMPT_ID_LIST);
 					throw new ValidationException("Multiple prompt ID lists were given: " + InputKeys.PROMPT_ID_LIST);
 				}
 				else if(t.length == 1) {
-					tPromptIds = SurveyResponseValidators.validatePromptIds(this, t[0]);
+					tPromptIds = SurveyResponseValidators.validatePromptIds(t[0]);
 					
 					if(tPromptIds.size() > MAX_NUMBER_OF_PROMPTS) {
-						setFailed(ErrorCodes.SURVEY_TOO_MANY_PROMPT_IDS, "More than " + MAX_NUMBER_OF_PROMPTS + " prompt IDs were given: " + tPromptIds.size());
+						setFailed(ErrorCode.SURVEY_TOO_MANY_PROMPT_IDS, "More than " + MAX_NUMBER_OF_PROMPTS + " prompt IDs were given: " + tPromptIds.size());
 						throw new ValidationException("More than " + MAX_NUMBER_OF_PROMPTS + " prompt IDs were given: " + tPromptIds.size());
 					}
 				}
@@ -396,96 +396,97 @@ public final class SurveyResponseReadRequest extends UserRequest {
 				// Survey ID List and Prompt ID List Presence Check
 				if(((tSurveyIds == null) || (tSurveyIds.size() == 0)) && 
 				   ((tPromptIds == null) || (tPromptIds.size() == 0))) {
-					setFailed(ErrorCodes.SURVEY_SURVEY_LIST_OR_PROMPT_LIST_ONLY, "A survey list (" + InputKeys.SURVEY_ID_LIST + ") or a prompt list (" + InputKeys.PROMPT_ID_LIST + ") must be given.");
+					setFailed(ErrorCode.SURVEY_SURVEY_LIST_OR_PROMPT_LIST_ONLY, "A survey list (" + InputKeys.SURVEY_ID_LIST + ") or a prompt list (" + InputKeys.PROMPT_ID_LIST + ") must be given.");
 					throw new ValidationException("A survey list (" + InputKeys.SURVEY_ID_LIST + ") or prompt list (" + InputKeys.PROMPT_ID_LIST + ") must be given.");
 				}
 				else if(((tSurveyIds != null) && (tSurveyIds.size() > 0)) && 
 						((tPromptIds != null) && (tPromptIds.size() > 0))) {
-					setFailed(ErrorCodes.SURVEY_SURVEY_LIST_OR_PROMPT_LIST_ONLY, "Both a survey list (" + InputKeys.SURVEY_ID_LIST + ") and a prompt list (" + InputKeys.PROMPT_ID_LIST + ") must be given.");
+					setFailed(ErrorCode.SURVEY_SURVEY_LIST_OR_PROMPT_LIST_ONLY, "Both a survey list (" + InputKeys.SURVEY_ID_LIST + ") and a prompt list (" + InputKeys.PROMPT_ID_LIST + ") must be given.");
 					throw new ValidationException("Both a survey list (" + InputKeys.SURVEY_ID_LIST + ") and a prompt list (" + InputKeys.PROMPT_ID_LIST + ") must be given.");
 				}
 				
 				// Start Date
 				t = getParameterValues(InputKeys.START_DATE);
 				if(t.length > 1) {
-					setFailed(ErrorCodes.SERVER_INVALID_DATE, "Multiple start dates were given: " + InputKeys.START_DATE);
+					setFailed(ErrorCode.SERVER_INVALID_DATE, "Multiple start dates were given: " + InputKeys.START_DATE);
 					throw new ValidationException("Multiple start dates were given: " + InputKeys.START_DATE);
 				}
 				else if(t.length == 1) {
-					tStartDate = SurveyResponseValidators.validateStartDate(this, t[0]);
+					tStartDate = SurveyResponseValidators.validateStartDate(t[0]);
 				}
 				
 				// End Date
 				t = getParameterValues(InputKeys.END_DATE);
 				if(t.length > 1) {
-					setFailed(ErrorCodes.SERVER_INVALID_DATE, "Multiple end dates were given: " + InputKeys.END_DATE);
+					setFailed(ErrorCode.SERVER_INVALID_DATE, "Multiple end dates were given: " + InputKeys.END_DATE);
 					throw new ValidationException("Multiple end dates were given: " + InputKeys.END_DATE);
 				}
 				else if(t.length == 1) {
-					tEndDate = SurveyResponseValidators.validateEndDate(this, t[0]);
+					tEndDate = SurveyResponseValidators.validateEndDate(t[0]);
 				}
 				
 				// Sort Order
 				t = getParameterValues(InputKeys.SORT_ORDER);
 				if(t.length > 1) {
-					setFailed(ErrorCodes.SURVEY_INVALID_SORT_ORDER, "Multiple sort order lists were given: " + InputKeys.SORT_ORDER);
+					setFailed(ErrorCode.SURVEY_INVALID_SORT_ORDER, "Multiple sort order lists were given: " + InputKeys.SORT_ORDER);
 					throw new ValidationException("Multiple sort order lists were given: " + InputKeys.SORT_ORDER);
 				}
 				else if(t.length == 1) {
-					tSortOrder = SurveyResponseValidators.validateSortOrder(this, t[0]);
+					tSortOrder = SurveyResponseValidators.validateSortOrder(t[0]);
 				}
 				
 				// Privacy State
 				t = getParameterValues(InputKeys.PRIVACY_STATE);
 				if(t.length > 1) {
-					setFailed(ErrorCodes.SURVEY_INVALID_PRIVACY_STATE, "Multiple privacy state values were given: " + InputKeys.PRIVACY_STATE);
+					setFailed(ErrorCode.SURVEY_INVALID_PRIVACY_STATE, "Multiple privacy state values were given: " + InputKeys.PRIVACY_STATE);
 					throw new ValidationException("Multiple privacy state values were given: " + InputKeys.PRIVACY_STATE);
 				}
 				else if(t.length == 1) {
-					tPrivacyState = SurveyResponseValidators.validatePrivacyState(this, t[0]);
+					tPrivacyState = SurveyResponseValidators.validatePrivacyState(t[0]);
 				}
 				
 				// Collapse
 				t = getParameterValues(InputKeys.COLLAPSE);
 				if(t.length > 1) {
-					setFailed(ErrorCodes.SURVEY_INVALID_COLLAPSE_VALUE, "Multiple collapse values were given: " + InputKeys.COLLAPSE);
+					setFailed(ErrorCode.SURVEY_INVALID_COLLAPSE_VALUE, "Multiple collapse values were given: " + InputKeys.COLLAPSE);
 					throw new ValidationException("Multiple collapse values were given: " + InputKeys.COLLAPSE);
 				}
 				else if(t.length == 1) {
-					tCollapse = SurveyResponseValidators.validateCollapse(this, t[0]);
+					tCollapse = SurveyResponseValidators.validateCollapse(t[0]);
 				}
 				
 				// Pretty print
 				t = getParameterValues(InputKeys.PRETTY_PRINT);
 				if(t.length > 1) {
-					setFailed(ErrorCodes.SURVEY_INVALID_PRETTY_PRINT_VALUE, "Multiple pretty print values were given: " + InputKeys.PRETTY_PRINT);
+					setFailed(ErrorCode.SURVEY_INVALID_PRETTY_PRINT_VALUE, "Multiple pretty print values were given: " + InputKeys.PRETTY_PRINT);
 					throw new ValidationException("Multiple pretty print values were given: " + InputKeys.PRETTY_PRINT);
 				}
 				else if(t.length == 1) {
-					tPrettyPrint = SurveyResponseValidators.validatePrettyPrint(this, t[0]);
+					tPrettyPrint = SurveyResponseValidators.validatePrettyPrint(t[0]);
 				}
 				
 				// Return ID
 				t = getParameterValues(InputKeys.RETURN_ID);
 				if(t.length > 1) {
-					setFailed(ErrorCodes.SURVEY_INVALID_RETURN_ID, "Multiple return ID values were given: " + InputKeys.RETURN_ID);
+					setFailed(ErrorCode.SURVEY_INVALID_RETURN_ID, "Multiple return ID values were given: " + InputKeys.RETURN_ID);
 					throw new ValidationException("Multiple return ID values were given: " + InputKeys.RETURN_ID);
 				}
 				else if(t.length == 1) {
-					tReturnId = SurveyResponseValidators.validateReturnId(this, t[0]);
+					tReturnId = SurveyResponseValidators.validateReturnId(t[0]);
 				}
 				
 				// Suppress metadata
 				t = getParameterValues(InputKeys.SUPPRESS_METADATA);
 				if(t.length > 1) {
-					setFailed(ErrorCodes.SURVEY_INVALID_SUPPRESS_METADATA_VALUE, "Multiple suppress metadata values were given: " + InputKeys.SUPPRESS_METADATA);
+					setFailed(ErrorCode.SURVEY_INVALID_SUPPRESS_METADATA_VALUE, "Multiple suppress metadata values were given: " + InputKeys.SUPPRESS_METADATA);
 					throw new ValidationException("Multiple suppress metadata values were given: " + InputKeys.SUPPRESS_METADATA);
 				}
 				else if(t.length == 1) {
-					tSuppressMetadata = SurveyResponseValidators.validateSuppressMetadata(this, t[0]);
+					tSuppressMetadata = SurveyResponseValidators.validateSuppressMetadata(t[0]);
 				}
 			}
 			catch (ValidationException e) {
+				e.failRequest(this);
 				LOGGER.info(e);
 			}
 		}
@@ -528,7 +529,7 @@ public final class SurveyResponseReadRequest extends UserRequest {
 			// belong to the campaign but still want to see their data. This
 			// should only check that the campaign exists.
 			LOGGER.info("Verifying that requester belongs to the campaign specified by campaign ID.");
-		    UserCampaignServices.campaignExistsAndUserBelongs(this, campaignId, this.getUser().getUsername());
+		    UserCampaignServices.campaignExistsAndUserBelongs(campaignId, this.getUser().getUsername());
 		    
 		    
 		    // We have removed this ACL check because it causes participants
@@ -543,20 +544,20 @@ public final class SurveyResponseReadRequest extends UserRequest {
 		    // longer belongs to the campaign.
 		    if(! usernames.equals(URN_SPECIAL_ALL_LIST)) {
 		    	LOGGER.info("Checking the user list to make sure all of the users belong to the campaign ID.");
-		    	UserCampaignServices.verifyUsersExistInCampaign(this, campaignId, usernames);
+		    	UserCampaignServices.verifyUsersExistInCampaign(campaignId, usernames);
 		    }
 		    
 		    LOGGER.info("Retrieving campaign configuration.");
-			Campaign configuration = CampaignServices.findCampaignConfiguration(this, campaignId);
+			Campaign configuration = CampaignServices.findCampaignConfiguration(campaignId);
 			
 			if((promptIds != null) && (! promptIds.isEmpty()) && (! URN_SPECIAL_ALL_LIST.equals(promptIds))) {
 				LOGGER.info("Verifying that the prompt ids in the query belong to the campaign.");
-				SurveyResponseReadServices.verifyPromptIdsBelongToConfiguration(this, promptIds, configuration);
+				SurveyResponseReadServices.verifyPromptIdsBelongToConfiguration(promptIds, configuration);
 			}
 			
 			if((surveyIds != null) && (! surveyIds.isEmpty()) && (! URN_SPECIAL_ALL_LIST.equals(surveyIds))) {
 				LOGGER.info("Verifying that the survey ids in the query belong to the campaign.");
-				SurveyResponseReadServices.verifySurveyIdsBelongToConfiguration(this, surveyIds, configuration);
+				SurveyResponseReadServices.verifySurveyIdsBelongToConfiguration(surveyIds, configuration);
 			}
 		    
 			LOGGER.info("Dispatching to the data layer.");
@@ -565,7 +566,7 @@ public final class SurveyResponseReadRequest extends UserRequest {
 			if(URN_SPECIAL_ALL_LIST.equals(usernames)) {
 				surveyResponseList.addAll(
 						SurveyResponseServices.readSurveyResponseInformation(
-								this, configuration, null, null, 
+								configuration, null, null, 
 								startDate, endDate, privacyState, 
 								(URN_SPECIAL_ALL_LIST.equals(surveyIds)) ? null : surveyIds, 
 								(URN_SPECIAL_ALL_LIST.equals(promptIds)) ? null : promptIds, 
@@ -577,7 +578,7 @@ public final class SurveyResponseReadRequest extends UserRequest {
 				for(String username : usernames) {
 					surveyResponseList.addAll(
 							SurveyResponseServices.readSurveyResponseInformation(
-									this, configuration, username, null, 
+									configuration, username, null, 
 									startDate, endDate, privacyState, 
 									(URN_SPECIAL_ALL_LIST.equals(surveyIds)) ? null : surveyIds, 
 									(URN_SPECIAL_ALL_LIST.equals(promptIds)) ? null : promptIds, 
@@ -590,7 +591,7 @@ public final class SurveyResponseReadRequest extends UserRequest {
 			LOGGER.info("Found " + surveyResponseList.size() + " results");
 			
 			LOGGER.info("Filtering survey response results according to our privacy rules and the requester's role.");
-			SurveyResponseReadServices.performPrivacyFilter(this, this.getUser().getUsername(), campaignId, surveyResponseList);
+			SurveyResponseReadServices.performPrivacyFilter(this.getUser().getUsername(), campaignId, surveyResponseList);
 			
 			LOGGER.info("Found " + surveyResponseList.size() + " results after filtering.");
 			
@@ -637,8 +638,8 @@ public final class SurveyResponseReadRequest extends UserRequest {
 					);
 			}
 		}
-		
 		catch(ServiceException e) {
+			e.failRequest(this);
 			e.logException(LOGGER);
 		}
 	}

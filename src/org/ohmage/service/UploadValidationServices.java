@@ -6,10 +6,9 @@ import java.util.Arrays;
 import java.util.List;
 
 import org.json.JSONObject;
-import org.ohmage.annotator.ErrorCodes;
+import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.exception.ServiceException;
 import org.ohmage.request.JsonInputKeys;
-import org.ohmage.request.Request;
 import org.ohmage.util.DateUtils;
 import org.ohmage.util.JsonUtils;
 import org.ohmage.util.StringUtils;
@@ -46,7 +45,6 @@ public final class UploadValidationServices {
 	 * Validates the provided timestamp. The timestamp must be of the form 
 	 * yyyy-MM-dd HH:mm:ss in SimpleDateFormat pattern parlance. 
 	 * 
-	 * @param request The request to fail should the timestamp be invalid.
 	 * @param date The date to validate.
 	 * @param errorMessageEmptyOrNull The error message to push into the
 	 * Request when validation fails because the timestamp is null or empty.
@@ -56,12 +54,14 @@ public final class UploadValidationServices {
 	 * @see java.util.SimpleDateFormat
 	 * @throws ServiceException if the timestamp is null or an unparseable ISO8601 timestamp
 	 */
-	public static void validateIso8601Timestamp(Request request, String timestamp, String errorMessageEmptyOrNull, String errorMessageInvalid) 
-		throws ServiceException {
+	public static void validateIso8601Timestamp(final String timestamp, 
+			final String errorMessageEmptyOrNull, 
+			final String errorMessageInvalid) throws ServiceException {
 		
 		if(StringUtils.isEmptyOrWhitespaceOnly(timestamp)) {
-			request.setFailed(ErrorCodes.SERVER_INVALID_TIMESTAMP, errorMessageEmptyOrNull);
-			throw new ServiceException(errorMessageEmptyOrNull);
+			throw new ServiceException(
+					ErrorCode.SERVER_INVALID_TIMESTAMP, 
+					errorMessageEmptyOrNull);
 		}
 		
 		SimpleDateFormat sdf = new SimpleDateFormat(ISO_8601_TIMESTAMP_PATTERN);
@@ -74,29 +74,32 @@ public final class UploadValidationServices {
 		} catch (ParseException pe) {
 			
 			String msg = errorMessageInvalid + timestamp;
-			request.setFailed(ErrorCodes.SERVER_INVALID_TIMESTAMP, msg);
-			throw new ServiceException(msg, pe);
+			throw new ServiceException(
+					ErrorCode.SERVER_INVALID_TIMESTAMP, 
+					msg, 
+					pe);
 		}
 	}
 	
 	/**
 	 * Validates the provided (UNIX epoch-style) time. 
 	 * 
-	 * @param request The request to fail should the time be invalid.
 	 * @param date The date to validate.
 	 * @throws ServiceException if the time is null or negative
 	 */
-	public static void validateEpochTime(Request request, Long time) throws ServiceException {
+	public static void validateEpochTime(final Long time) 
+			throws ServiceException {
+		
 		if(time == null) {
-			String msg = "time in upload message is null";
-			request.setFailed(ErrorCodes.SERVER_INVALID_TIME, msg);
-			throw new ServiceException(msg);
+			throw new ServiceException(
+					ErrorCode.SERVER_INVALID_TIME, 
+					"time in upload message is null");
 		}
 		
 		if(time < 0) {	
-			String msg = "time in upload message is invalid: " + time;
-			request.setFailed(ErrorCodes.SERVER_INVALID_TIME, msg);
-			throw new ServiceException(msg);
+			throw new ServiceException(
+					ErrorCode.SERVER_INVALID_TIME, 
+					"time in upload message is invalid: " + time);
 		}
 	}
 	
@@ -107,90 +110,85 @@ public final class UploadValidationServices {
 	 * this). This method will throw a ServiceException if the server JVM 
 	 * does not understand the provided timezone.  
 	 *  
-	 * @param request The request to fail should the timezone be invalid.
 	 * @param timezone The timezone to validate.
 	 * @throws ServiceException if the timezone is null or unknown
 	 */
-	public static void validateTimezone(Request request, String timezone) throws ServiceException {
+	public static void validateTimezone(final String timezone) 
+			throws ServiceException {
+		
 		if(StringUtils.isEmptyOrWhitespaceOnly(timezone)) {
-			String msg = "timezone in upload message is null";
-			request.setFailed(ErrorCodes.SERVER_INVALID_TIMEZONE, msg);
-			throw new ServiceException(msg);
+			throw new ServiceException(
+					ErrorCode.SERVER_INVALID_TIMEZONE, 
+					"timezone in upload message is null");
 		}
 		
 		if(! DateUtils.isValidTimezone(timezone)) {
-			String msg = "timezone in upload message is invalid/unknown to the server: " + timezone;
-			request.setFailed(ErrorCodes.SERVER_INVALID_TIMEZONE, msg);
-			throw new ServiceException(msg);
+			throw new ServiceException(
+					ErrorCode.SERVER_INVALID_TIMEZONE, 
+					"timezone in upload message is invalid/unknown to the server: " + 
+						timezone);
 		}
 	}
 	
 	/**
 	 * Validates the provided latitude.
 	 * 
-	 * @param request   The request to fail if the latitude is invalid.
 	 * @param latitude  The latitude to validate
 	 * @throws ServiceException if the latitude is null or not within the range
 	 * of a correct latitude (-90 < latitude < 90)
 	 */
-	public static void validateLatitude(Request request, Double latitude) throws ServiceException {
+	public static void validateLatitude(final Double latitude) 
+			throws ServiceException {
+		
 		if(latitude == null) {
-			failRequestAndThrowServiceException(
-				request, 
-				ErrorCodes.SERVER_INVALID_LOCATION,
-				"latitude in upload message is null"
-			);
+			throw new ServiceException(
+					ErrorCode.SERVER_INVALID_LOCATION,
+					"latitude in upload message is null");
 		}
 		
 		if(latitude.doubleValue() < -90d || latitude.doubleValue() > 90d) {
-			failRequestAndThrowServiceException(
-				request, 
-				ErrorCodes.SERVER_INVALID_LOCATION,
-                "latitude in upload message is invalid: " + latitude
-            );
+			throw new ServiceException(
+				ErrorCode.SERVER_INVALID_LOCATION,
+                "latitude in upload message is invalid: " + latitude);
 		}
 	}
 	
 	/**
 	 * Validates the provided longitude.
 	 * 
-	 * @param request   The request to fail if the latitude is invalid.
 	 * @param longitude The longitude to validate
 	 * @throws ServiceException if the latitude is null or not within the range
 	 * of a correct longitude (-180 < latitude < 180)
 	 */
-    public static void validateLongitude(Request request, Double longitude) throws ServiceException {
+    public static void validateLongitude(final Double longitude) 
+    		throws ServiceException {
+    	
     	if(longitude == null) {
-    		failRequestAndThrowServiceException(
-    			request, 
-    			ErrorCodes.SERVER_INVALID_LOCATION,
-    			"longitude in upload message is null"
-    		);
+    		throw new ServiceException(
+    			ErrorCode.SERVER_INVALID_LOCATION,
+    			"longitude in upload message is null");
 		}
 		
 		if(longitude.doubleValue() < -180d || longitude.doubleValue() > 180d) {
-			failRequestAndThrowServiceException(
-				request, 
-				ErrorCodes.SERVER_INVALID_LOCATION,
-                "longitude in upload message is invalid: " + longitude
-            );
+			throw new ServiceException(
+				ErrorCode.SERVER_INVALID_LOCATION,
+                "longitude in upload message is invalid: " + longitude);
 		}
 	}
     
     /**
 	 * Validates the provided accuracy (the accuracy of a GPS or Network derived latlong).
 	 * 
-	 * @param request   The request to fail if the accuracy is invalid.
 	 * @param accuracy  The accuracy to validate
 	 * @throws ServiceException If the accuracy is null or an unparseable float
 	 */
-    public static void validateAccuracy(Request request, String accuracy) throws ServiceException {
+    public static void validateAccuracy(final String accuracy) 
+    		throws ServiceException {
+    	
     	if(accuracy == null) {
-    		failRequestAndThrowServiceException(
-    			request, 
-    			ErrorCodes.SERVER_INVALID_LOCATION,
-    			"accuracy in upload message is null"
-    		);
+    		throw new ServiceException(
+    			ErrorCode.SERVER_INVALID_LOCATION,
+    			"accuracy in upload message is null");
 		}
 		
     	try {
@@ -198,12 +196,10 @@ public final class UploadValidationServices {
 			Float.parseFloat(accuracy);
 			
 		} catch (NumberFormatException nfe) {
-			
-			failRequestAndThrowServiceException(
-    			request, 
-    			ErrorCodes.SERVER_INVALID_LOCATION,
-    			"accuracy in upload message is an unparseable float: " + accuracy
-    		);
+			throw new ServiceException(
+    			ErrorCode.SERVER_INVALID_LOCATION,
+    			"accuracy in upload message is an unparseable float: " + accuracy,
+    			nfe);
 		}
 	}
     
@@ -214,13 +210,13 @@ public final class UploadValidationServices {
 	 * @param provider  The provider to validate
 	 * @throws ServiceException If the provider is empty or null
 	 */
-    public static void validateProvider(Request request, String provider) throws ServiceException {
+    public static void validateProvider(final String provider) 
+    		throws ServiceException {
+    	
     	if(StringUtils.isEmptyOrWhitespaceOnly(provider)) {
-    		failRequestAndThrowServiceException(
-    			request, 
-    			ErrorCodes.SERVER_INVALID_LOCATION,
-    			"provider in upload message is null"
-    		);
+    		throw new ServiceException(
+    			ErrorCode.SERVER_INVALID_LOCATION,
+    			"provider in upload message is null");
 		}
 	}
     
@@ -228,21 +224,23 @@ public final class UploadValidationServices {
 	 * Validates that the provided location status is not null and an accepted
 	 * location status value.
 	 * 
-	 * @param request  The request to fail should the location status be invalid.
 	 * @param locationStatus  The location status to validate.
 	 * @throws ServiceException  If the location status is null or invalid.
 	 */
-	public static void validateLocationStatus(Request request, String locationStatus) throws ServiceException {
+	public static void validateLocationStatus(final String locationStatus) 
+			throws ServiceException {
+		
 		if(locationStatus == null) {
-			String msg = "location_status in upload message is null";
-			request.setFailed(ErrorCodes.SERVER_INVALID_LOCATION_STATUS, msg);
-			throw new ServiceException(msg);
+			throw new ServiceException(
+					ErrorCode.SERVER_INVALID_LOCATION_STATUS, 
+					"location_status in upload message is null");
 		}
 		
 		if(! LOCATION_STATUSES.contains(locationStatus)) {
-			String msg = "location_status in upload message is invalid: " + locationStatus;
-			request.setFailed(ErrorCodes.SERVER_INVALID_LOCATION_STATUS, msg);
-			throw new ServiceException(msg);
+			throw new ServiceException(
+					ErrorCode.SERVER_INVALID_LOCATION_STATUS, 
+					"location_status in upload message is invalid: " + 
+						locationStatus);
 		}
 	}
 	
@@ -252,35 +250,34 @@ public final class UploadValidationServices {
 	 * the location object must contain values for longitude, latitude,
 	 * accuracy, provider, and timestamp.
 	 *  
-	 * @param request  The request to fail should the location object be
-	 * invalid.
 	 * @param location  A JSON object containing location properties to be
 	 * validated.
 	 * @throws ServiceException  If the location is null and the location 
 	 * status is unavailable or if the location status is not unavailable
 	 * and the location is invalid in structure.
 	 */
-	public static void validateLocation(Request request, JSONObject location, String locationStatus) throws ServiceException {
+	public static void validateLocation(final JSONObject location, 
+			final String locationStatus) throws ServiceException {
+		
 		if(locationStatus.equals(JsonInputKeys.METADATA_LOCATION_STATUS_UNAVAILABLE) && location != null) {
-			String msg = "location object in upload message exists, but location status is unavailable";
-			request.setFailed(ErrorCodes.SERVER_INVALID_LOCATION, msg);
-			throw new ServiceException(msg);
+			throw new ServiceException(
+					ErrorCode.SERVER_INVALID_LOCATION, 
+					"location object in upload message exists, but location status is unavailable");
 		}
 		
 		if(! locationStatus.equals(JsonInputKeys.METADATA_LOCATION_STATUS_UNAVAILABLE) && location == null) {
-			String msg = "missing location object in upload message";
-			request.setFailed(ErrorCodes.SERVER_INVALID_LOCATION, msg);
-			throw new ServiceException(msg);
+			throw new ServiceException(
+					ErrorCode.SERVER_INVALID_LOCATION, 
+					"missing location object in upload message");
 		}
 		
 		if(location != null) {
-			UploadValidationServices.validateLatitude(request, JsonUtils.getDoubleFromJsonObject(location, JsonInputKeys.METADATA_LOCATION_LATITUDE));
-			UploadValidationServices.validateLongitude(request, JsonUtils.getDoubleFromJsonObject(location, JsonInputKeys.METADATA_LOCATION_LONGITUDE));
-			UploadValidationServices.validateAccuracy(request, JsonUtils.getStringFromJsonObject(location, JsonInputKeys.METADATA_LOCATION_ACCURACY));
-			UploadValidationServices.validateProvider(request, JsonUtils.getStringFromJsonObject(location, JsonInputKeys.METADATA_LOCATION_PROVIDER));
+			UploadValidationServices.validateLatitude(JsonUtils.getDoubleFromJsonObject(location, JsonInputKeys.METADATA_LOCATION_LATITUDE));
+			UploadValidationServices.validateLongitude(JsonUtils.getDoubleFromJsonObject(location, JsonInputKeys.METADATA_LOCATION_LONGITUDE));
+			UploadValidationServices.validateAccuracy(JsonUtils.getStringFromJsonObject(location, JsonInputKeys.METADATA_LOCATION_ACCURACY));
+			UploadValidationServices.validateProvider(JsonUtils.getStringFromJsonObject(location, JsonInputKeys.METADATA_LOCATION_PROVIDER));
 			
 			UploadValidationServices.validateIso8601Timestamp(
-				request,
 				JsonUtils.getStringFromJsonObject(location, JsonInputKeys.METADATA_LOCATION_TIMESTAMP),
 				LOCATION_TIMESTAMP_ERROR_MESSAGE_NULL,
 				LOCATION_TIMESTAMP_ERROR_MESSAGE_INVALID
@@ -297,15 +294,15 @@ public final class UploadValidationServices {
 	 * {@value org.ohmage.request.JsonInputKeys#METADATA_DATE},
 	 * 
 	 *  
-	 * @param request  The request to fail should the location object be
-	 * invalid.
 	 * @param location  A JSON object containing location properties to be
 	 * validated.
 	 * @throws ServiceException  If the location is null and the location 
 	 * status is unavailable or if the location status is not unavailable
 	 * and the location is invalid in structure.
 	 */
-	public static void validateUploadMetadata(Request request, JSONObject uploadObject) throws ServiceException {
+	public static void validateUploadMetadata(final JSONObject uploadObject) 
+			throws ServiceException {
+		
 		// FIXME this is actually a timestamp -- it should be renamed in the HTTP API calls that use it
 		String metadataDate = JsonUtils.getStringFromJsonObject(uploadObject, JsonInputKeys.METADATA_DATE);
 		Long epochTime = JsonUtils.getLongFromJsonObject(uploadObject, JsonInputKeys.METADATA_TIME);
@@ -313,15 +310,10 @@ public final class UploadValidationServices {
 		String locationStatus = JsonUtils.getStringFromJsonObject(uploadObject, JsonInputKeys.METADATA_LOCATION_STATUS);
 		JSONObject location = JsonUtils.getJsonObjectFromJsonObject(uploadObject, JsonInputKeys.METADATA_LOCATION);
 		
-		validateIso8601Timestamp(request, metadataDate, DATE_ERROR_MESSAGE_NULL, DATE_ERROR_MESSAGE_INVALID);
-		validateEpochTime(request, epochTime);
-		validateTimezone(request, timezone);
-		validateLocationStatus(request, locationStatus);
-		validateLocation(request, location, locationStatus);
-	}
-	
-    private static void failRequestAndThrowServiceException(Request request, String errorCode, String msg) throws ServiceException {
-		request.setFailed(errorCode, msg);
-		throw new ServiceException(msg);
+		validateIso8601Timestamp(metadataDate, DATE_ERROR_MESSAGE_NULL, DATE_ERROR_MESSAGE_INVALID);
+		validateEpochTime(epochTime);
+		validateTimezone(timezone);
+		validateLocationStatus(locationStatus);
+		validateLocation(location, locationStatus);
 	}
 }

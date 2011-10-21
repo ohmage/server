@@ -7,7 +7,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.log4j.Logger;
-import org.ohmage.annotator.ErrorCodes;
+import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.domain.campaign.Campaign;
 import org.ohmage.exception.ServiceException;
 import org.ohmage.exception.ValidationException;
@@ -94,54 +94,55 @@ public class CampaignCreationRequest extends UserRequest {
 			try {
 				byte[] pXml = getMultipartValue(httpRequest, InputKeys.XML);
 				if(pXml == null) {
-					setFailed(ErrorCodes.CAMPAIGN_INVALID_XML, "Missing required campaign XML: " + InputKeys.XML);
+					setFailed(ErrorCode.CAMPAIGN_INVALID_XML, "Missing required campaign XML: " + InputKeys.XML);
 					throw new ValidationException("Missing required campaign XML.");
 				}
 				else {
-					tXml = CampaignValidators.validateXml(this, new String(pXml));
+					tXml = CampaignValidators.validateXml(new String(pXml));
 				}
 				if(tXml == null) {
-					setFailed(ErrorCodes.CAMPAIGN_INVALID_XML, "Missing required campaign XML.");
+					setFailed(ErrorCode.CAMPAIGN_INVALID_XML, "Missing required campaign XML.");
 					throw new ValidationException("Missing required campaign XML.");
 				}
 				
-				tRunningState = CampaignValidators.validateRunningState(this, httpRequest.getParameter(InputKeys.RUNNING_STATE));
+				tRunningState = CampaignValidators.validateRunningState(httpRequest.getParameter(InputKeys.RUNNING_STATE));
 				if(tRunningState == null) {
-					setFailed(ErrorCodes.CAMPAIGN_INVALID_RUNNING_STATE, "Missing the required initial running state.");
+					setFailed(ErrorCode.CAMPAIGN_INVALID_RUNNING_STATE, "Missing the required initial running state.");
 					throw new ValidationException("Missing required running state.");
 				}
 				else if(httpRequest.getParameterValues(InputKeys.RUNNING_STATE).length > 1) {
-					setFailed(ErrorCodes.CAMPAIGN_INVALID_RUNNING_STATE, "Multiple running states were found.");
+					setFailed(ErrorCode.CAMPAIGN_INVALID_RUNNING_STATE, "Multiple running states were found.");
 					throw new ValidationException("Multiple running states were found.");
 				}
 				
-				tPrivacyState = CampaignValidators.validatePrivacyState(this, httpRequest.getParameter(InputKeys.PRIVACY_STATE));
+				tPrivacyState = CampaignValidators.validatePrivacyState(httpRequest.getParameter(InputKeys.PRIVACY_STATE));
 				if(tPrivacyState == null) {
-					setFailed(ErrorCodes.CAMPAIGN_INVALID_PRIVACY_STATE, "Missing the required initial privacy state.");
+					setFailed(ErrorCode.CAMPAIGN_INVALID_PRIVACY_STATE, "Missing the required initial privacy state.");
 					throw new ValidationException("Missing required privacy state.");
 				}
 				else if(httpRequest.getParameterValues(InputKeys.PRIVACY_STATE).length > 1) {
-					setFailed(ErrorCodes.CAMPAIGN_INVALID_PRIVACY_STATE, "Multiple privacy states were found.");
+					setFailed(ErrorCode.CAMPAIGN_INVALID_PRIVACY_STATE, "Multiple privacy states were found.");
 					throw new ValidationException("Multiple privacy states were found.");
 				}
 				
-				tClassIds = ClassValidators.validateClassIdList(this, httpRequest.getParameter(InputKeys.CLASS_URN_LIST));
+				tClassIds = ClassValidators.validateClassIdList(httpRequest.getParameter(InputKeys.CLASS_URN_LIST));
 				if(tClassIds == null) {
-					setFailed(ErrorCodes.CLASS_INVALID_ID, "Missing the required class ID list.");
+					setFailed(ErrorCode.CLASS_INVALID_ID, "Missing the required class ID list.");
 					throw new ValidationException("Missing required class ID list.");
 				}
 				else if(httpRequest.getParameterValues(InputKeys.CLASS_URN_LIST).length > 1) {
-					setFailed(ErrorCodes.CLASS_INVALID_ID, "Multiple class ID lists were found.");
+					setFailed(ErrorCode.CLASS_INVALID_ID, "Multiple class ID lists were found.");
 					throw new ValidationException("Multiple class ID lists were found.");
 				}
 				
-				tDescription = CampaignValidators.validateDescription(this, httpRequest.getParameter(InputKeys.DESCRIPTION));
+				tDescription = CampaignValidators.validateDescription(httpRequest.getParameter(InputKeys.DESCRIPTION));
 				if((tDescription != null) && (httpRequest.getParameterValues(InputKeys.DESCRIPTION).length > 1)) {
-					setFailed(ErrorCodes.CLASS_INVALID_DESCRIPTION, "Multiple descriptions were found.");
+					setFailed(ErrorCode.CLASS_INVALID_DESCRIPTION, "Multiple descriptions were found.");
 					throw new ValidationException("Multiple descriptions were found.");
 				}
 			}
 			catch(ValidationException e) {
+				e.failRequest(this);
 				LOGGER.info(e.toString());
 			}
 		}
@@ -166,22 +167,23 @@ public class CampaignCreationRequest extends UserRequest {
 		
 		try {
 			// Get the campaign's URN and name from the XML.
-			CampaignMetadata campaignInfo = CampaignServices.getCampaignMetadataFromXml(this, xml);
+			CampaignMetadata campaignInfo = CampaignServices.getCampaignMetadataFromXml(xml);
 			
 			LOGGER.info("Verifying that the campaign doesn't already exist.");
-			CampaignServices.checkCampaignExistence(this, campaignInfo.getCampaignId(), false);
+			CampaignServices.checkCampaignExistence(campaignInfo.getCampaignId(), false);
 			
 			LOGGER.info("Verifying that the user is allowed to create campaigns.");
-			UserServices.verifyUserCanCreateCampaigns(this, getUser().getUsername());
+			UserServices.verifyUserCanCreateCampaigns(getUser().getUsername());
 			
 			LOGGER.info("Verifying that all of the classes and that the user is enrolled in call of the classes.");
-			UserClassServices.classesExistAndUserBelongs(this, classIds, getUser().getUsername());
+			UserClassServices.classesExistAndUserBelongs(classIds, getUser().getUsername());
 			
 			LOGGER.info("Creating the campaign.");
-			CampaignServices.createCampaign(this, campaignInfo.getCampaignId(), campaignInfo.getCampaignName(), 
+			CampaignServices.createCampaign(campaignInfo.getCampaignId(), campaignInfo.getCampaignName(), 
 					xml, description, campaignInfo.getIconUrl(), campaignInfo.getAuthoredBy(), runningState, privacyState, classIds, getUser().getUsername());
 		}
 		catch(ServiceException e) {
+			e.failRequest(this);
 			e.logException(LOGGER);
 		}
 	}

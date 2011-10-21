@@ -6,7 +6,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.log4j.Logger;
-import org.ohmage.annotator.ErrorCodes;
+import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.domain.MobilityPoint;
 import org.ohmage.exception.ServiceException;
 import org.ohmage.exception.ValidationException;
@@ -150,18 +150,19 @@ public class MobilityUploadRequest extends UserRequest {
 			try {
 				String[] dataArray = getParameterValues(InputKeys.DATA);
 				if(dataArray.length == 0) {
-					setFailed(ErrorCodes.MOBILITY_INVALID_DATA, "The upload data is missing: " + ErrorCodes.MOBILITY_INVALID_DATA);
-					throw new ValidationException("The upload data is missing: " + ErrorCodes.MOBILITY_INVALID_DATA);
+					setFailed(ErrorCode.MOBILITY_INVALID_DATA, "The upload data is missing: " + ErrorCode.MOBILITY_INVALID_DATA);
+					throw new ValidationException("The upload data is missing: " + ErrorCode.MOBILITY_INVALID_DATA);
 				}
 				else if(dataArray.length > 1) {
-					setFailed(ErrorCodes.MOBILITY_INVALID_DATA, "Multiple data parameters were given: " + ErrorCodes.MOBILITY_INVALID_DATA);
-					throw new ValidationException("Multiple data parameters were given: " + ErrorCodes.MOBILITY_INVALID_DATA);
+					setFailed(ErrorCode.MOBILITY_INVALID_DATA, "Multiple data parameters were given: " + ErrorCode.MOBILITY_INVALID_DATA);
+					throw new ValidationException("Multiple data parameters were given: " + ErrorCode.MOBILITY_INVALID_DATA);
 				}
 				else {
-					tData = MobilityValidators.validateDataAsJsonArray(this, dataArray[0]);
+					tData = MobilityValidators.validateDataAsJsonArray(dataArray[0]);
 				}
 			}
 			catch(ValidationException e) {
+				e.failRequest(this);
 				LOGGER.info(e.toString());
 			}
 		}
@@ -182,12 +183,13 @@ public class MobilityUploadRequest extends UserRequest {
 		
 		try {
 			LOGGER.info("Running the server-side classifier.");
-			MobilityServices.classifyData(this, data);
+			MobilityServices.classifyData(data);
 			
 			LOGGER.info("Storing the Mobility data points.");
-			MobilityServices.createMobilityPoint(this, getUser().getUsername(), getClient(), data);
+			MobilityServices.createMobilityPoint(getUser().getUsername(), getClient(), data);
 		}
 		catch(ServiceException e) {
+			e.failRequest(this);
 			e.logException(LOGGER);
 		}
 	}

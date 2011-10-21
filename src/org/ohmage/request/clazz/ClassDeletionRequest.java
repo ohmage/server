@@ -4,7 +4,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.log4j.Logger;
-import org.ohmage.annotator.ErrorCodes;
+import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.exception.ServiceException;
 import org.ohmage.exception.ValidationException;
 import org.ohmage.request.InputKeys;
@@ -55,17 +55,18 @@ public class ClassDeletionRequest extends UserRequest {
 		
 		if(! isFailed()) {
 			try {
-				tempClassId = ClassValidators.validateClassId(this, httpRequest.getParameter(InputKeys.CLASS_URN));
+				tempClassId = ClassValidators.validateClassId(httpRequest.getParameter(InputKeys.CLASS_URN));
 				if(tempClassId == null) {
-					setFailed(ErrorCodes.CLASS_INVALID_ID, "Missing the required class ID: " + InputKeys.CLASS_URN);
+					setFailed(ErrorCode.CLASS_INVALID_ID, "Missing the required class ID: " + InputKeys.CLASS_URN);
 					throw new ValidationException("Missing the required class ID: " + InputKeys.CLASS_URN);
 				}
 				else if(httpRequest.getParameterValues(InputKeys.CLASS_URN).length > 1) {
-					setFailed(ErrorCodes.CLASS_INVALID_ID, "Multiple class ID parameters were found.");
+					setFailed(ErrorCode.CLASS_INVALID_ID, "Multiple class ID parameters were found.");
 					throw new ValidationException("Multiple class ID parameters were found.");
 				}
 			}
 			catch(ValidationException e) {
+				e.failRequest(this);
 				LOGGER.info(e.toString());
 			}
 		}
@@ -86,15 +87,16 @@ public class ClassDeletionRequest extends UserRequest {
 		
 		try {
 			LOGGER.info("Checking that the user is an admin.");
-			UserServices.verifyUserIsAdmin(this, getUser().getUsername());
+			UserServices.verifyUserIsAdmin(getUser().getUsername());
 			
 			LOGGER.info("Checking that the class exists.");
-			ClassServices.checkClassExistence(this, classId, true);
+			ClassServices.checkClassExistence(classId, true);
 			
 			LOGGER.info("Deleting the class.");
-			ClassServices.deleteClass(this, classId);
+			ClassServices.deleteClass(classId);
 		}
 		catch(ServiceException e) {
+			e.failRequest(this);
 			e.logException(LOGGER);
 		}
 	}

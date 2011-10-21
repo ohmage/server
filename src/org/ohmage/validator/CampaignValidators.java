@@ -11,12 +11,11 @@ import org.apache.log4j.Logger;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.ohmage.annotator.ErrorCodes;
+import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.domain.campaign.Campaign;
 import org.ohmage.domain.campaign.Campaign.OutputFormat;
 import org.ohmage.exception.ValidationException;
 import org.ohmage.request.InputKeys;
-import org.ohmage.request.Request;
 import org.ohmage.util.StringUtils;
 
 /**
@@ -47,8 +46,8 @@ public final class CampaignValidators {
 	 * 							   whitespace only, and not a valid campaign
 	 * 							   identifier.
 	 */
-	public static String validateCampaignId(Request request, String campaignId) throws ValidationException {
-		LOGGER.info("Validating a campaign ID.");
+	public static String validateCampaignId(final String campaignId) 
+			throws ValidationException {
 		
 		// If the value is null or whitespace only, return null.
 		if(StringUtils.isEmptyOrWhitespaceOnly(campaignId)) {
@@ -64,16 +63,15 @@ public final class CampaignValidators {
 		// URN, set the request as failed and throw a ValidationException to
 		// warn the caller.
 		else {
-			request.setFailed(ErrorCodes.CAMPAIGN_INVALID_ID, "The campaign identifier is invalid: " + campaignId);
-			throw new ValidationException("The campaign identifier is invalid: " + campaignId);
+			throw new ValidationException(
+					ErrorCode.CAMPAIGN_INVALID_ID, 
+					"The campaign identifier is invalid: " + campaignId);
 		}
 	}
 	
 	/**
 	 * Validates that a String list of campaign identifiers is a valid list and
 	 * each campaign identifier in the list is a valid identifier.
-	 * 
-	 * @param request The request that is performing this validation.
 	 * 
 	 * @param campaignIds A String list of campaign identifiers where each
 	 * 					  identifier is separated by a 
@@ -89,8 +87,8 @@ public final class CampaignValidators {
 	 * 							   values in the list is not a valid campaign
 	 * 							   identifier. 
 	 */
-	public static List<String> validateCampaignIds(Request request, String campaignIds) throws ValidationException {
-		LOGGER.info("Validating a list of campaign identifiers.");
+	public static List<String> validateCampaignIds(final String campaignIds) 
+			throws ValidationException {
 		
 		if(StringUtils.isEmptyOrWhitespaceOnly(campaignIds)) {
 			return null;
@@ -100,7 +98,7 @@ public final class CampaignValidators {
 		
 		String[] campaignIdArray = campaignIds.split(InputKeys.LIST_ITEM_SEPARATOR);
 		for(int i = 0; i < campaignIdArray.length; i++) {
-			String campaignId = validateCampaignId(request, campaignIdArray[i].trim());
+			String campaignId = validateCampaignId(campaignIdArray[i].trim());
 			
 			if(campaignId != null) {
 				resultSet.add(campaignId);
@@ -120,8 +118,6 @@ public final class CampaignValidators {
 	 * running state is null or whitespace only, then null is returned. If it
 	 * isn't a valid running state, a ValidationException is thrown.
 	 * 
-	 * @param request The request that is validating this running state.
-	 * 
 	 * @param runningState The running state to validate.
 	 * 
 	 * @return Returns null if the running state is null or whitespace only. 
@@ -131,8 +127,8 @@ public final class CampaignValidators {
 	 * 							   whitespace only and isn't a known campaign
 	 * 							   running state.
 	 */
-	public static Campaign.RunningState validateRunningState(Request request, String runningState) throws ValidationException {
-		LOGGER.info("Validating a campaign running state.");
+	public static Campaign.RunningState validateRunningState(
+			final String runningState) throws ValidationException {
 		
 		if(StringUtils.isEmptyOrWhitespaceOnly(runningState)) {
 			return null;
@@ -142,8 +138,10 @@ public final class CampaignValidators {
 			return Campaign.RunningState.getValue(runningState);
 		}
 		catch(IllegalArgumentException e) {
-			request.setFailed(ErrorCodes.CAMPAIGN_INVALID_RUNNING_STATE, "The running state is unknown.");
-			throw new ValidationException("The running state is unknown: " + runningState);
+			throw new ValidationException(
+					ErrorCode.CAMPAIGN_INVALID_RUNNING_STATE, 
+					"The running state is unknown: " + runningState,
+					e);
 		}
 	}
 	
@@ -151,8 +149,6 @@ public final class CampaignValidators {
 	 * Checks that a privacy state is a valid campaign privacy state. If the 
 	 * privacy state is null or whitespace only, then null is returned. If it
 	 * isn't a valid privacy state, a ValidationException is thrown.
-	 * 
-	 * @param request The request that is validating this privacy state.
 	 * 
 	 * @param privacyState The privacy state to validate.
 	 * 
@@ -163,8 +159,8 @@ public final class CampaignValidators {
 	 * 							   whitespace only and isn't a known campaign
 	 * 							   privacy state.
 	 */
-	public static Campaign.PrivacyState validatePrivacyState(Request request, String privacyState) throws ValidationException {
-		LOGGER.info("Validating a campaign privacy state.");
+	public static Campaign.PrivacyState validatePrivacyState(
+			final String privacyState) throws ValidationException {
 		
 		if(StringUtils.isEmptyOrWhitespaceOnly(privacyState)) {
 			return null;
@@ -174,16 +170,16 @@ public final class CampaignValidators {
 			return Campaign.PrivacyState.getValue(privacyState);
 		}
 		catch(IllegalArgumentException e) {
-			request.setFailed(ErrorCodes.CAMPAIGN_INVALID_PRIVACY_STATE, "The privacy state is unknown.");
-			throw new ValidationException("The privacy state is unknown: " + privacyState);
+			throw new ValidationException(
+					ErrorCode.CAMPAIGN_INVALID_PRIVACY_STATE, 
+					"The privacy state is unknown: " + privacyState,
+					e);
 		}
 	}
 	
 	/**
 	 * Validates a campaign's XML. If it is null or whitespace, this returns
 	 * null. If it is invalid, this throws a ValidationException.
-	 * 
-	 * @param request The request that is validating this XML.
 	 * 
 	 * @param xml The campaign XML to be validated.
 	 * 
@@ -195,8 +191,8 @@ public final class CampaignValidators {
 	 * @throws ValidationException Thrown if the XML is not null, not 
 	 * 							   whitespace only, and is invalid.
 	 */
-	public static String validateXml(Request request, String xml) throws ValidationException {
-		LOGGER.info("Validating a campaign's XML.");
+	public static String validateXml(final  String xml) 
+			throws ValidationException {
 		
 		if(StringUtils.isEmptyOrWhitespaceOnly(xml)) {
 			return null;
@@ -206,7 +202,10 @@ public final class CampaignValidators {
 			Campaign.validateXml(xml);
 		}
 		catch(IllegalArgumentException e) {
-			throw new ValidationException("The XML was invalid.", e);
+			throw new ValidationException(
+					ErrorCode.CAMPAIGN_INVALID_XML, 
+					"The XML was invalid.", 
+					e);
 		}
 		
 		return xml;
@@ -216,8 +215,6 @@ public final class CampaignValidators {
 	 * Validates that a campaign description is valid by ensuring that it does
 	 * not contain any profanity.
 	 * 
-	 * @param request The Request that is performing this validation.
-	 * 
 	 * @param description The description to validate.
 	 * 
 	 * @return Returns null if the description is null or whitespace only;
@@ -226,16 +223,18 @@ public final class CampaignValidators {
 	 * @throws ValidationException Thrown if the description contains 
 	 * 							   profanity.
 	 */
-	public static String validateDescription(Request request, String description) throws ValidationException {
-		LOGGER.info("Validating a campaign description.");
+	public static String validateDescription(final String description) 
+			throws ValidationException {
 		
 		if(StringUtils.isEmptyOrWhitespaceOnly(description)) {
 			return null;
 		}
 		
 		if(StringUtils.isProfane(description.trim())) {
-			request.setFailed(ErrorCodes.CAMPAIGN_INVALID_DESCRIPTION, "The campaign description contains profanity: " + description);
-			throw new ValidationException("The campaign description contains profanity: " + description);
+			throw new ValidationException(
+					ErrorCode.CAMPAIGN_INVALID_DESCRIPTION, 
+					"The campaign description contains profanity: " + 
+						description);
 		}
 		else {
 			return description.trim();
@@ -244,8 +243,6 @@ public final class CampaignValidators {
 	
 	/**
 	 * Validates that the output format is a valid output format.
-	 * 
-	 * @param request The Request that is performing this validation.
 	 * 
 	 * @param outputFormat The output format String to be validated.
 	 * 
@@ -257,8 +254,8 @@ public final class CampaignValidators {
 	 * 							   whitespace only, and not a valid output 
 	 * 							   format.
 	 */
-	public static OutputFormat validateOutputFormat(Request request, String outputFormat) throws ValidationException {
-		LOGGER.info("Validating a campaign's output format.");
+	public static OutputFormat validateOutputFormat(final String outputFormat) 
+			throws ValidationException {
 		
 		if(StringUtils.isEmptyOrWhitespaceOnly(outputFormat)) {
 			return null;
@@ -268,16 +265,16 @@ public final class CampaignValidators {
 			return OutputFormat.valueOf(outputFormat.trim().toUpperCase());
 		}
 		catch(IllegalArgumentException e) {
-			request.setFailed(ErrorCodes.CAMPAIGN_INVALID_OUTPUT_FORMAT, "Unknown output format: " + outputFormat);
-			throw new ValidationException("Unknown output format: " + outputFormat, e);
+			throw new ValidationException(
+					ErrorCode.CAMPAIGN_INVALID_OUTPUT_FORMAT, 
+					"Unknown output format: " + outputFormat, 
+					e);
 		}
 	}
 	
 	/**
 	 * Validates that a start date is a valid date and returns a Calendar 
 	 * object representing that date.
-	 * 
-	 * @param request The Request that is performing this validation.
 	 * 
 	 * @param startDate The date to be validated.
 	 * 
@@ -287,8 +284,8 @@ public final class CampaignValidators {
 	 * @throws ValidationException Thrown if the start date isn't a decodable
 	 * 							   date.
 	 */
-	public static Calendar validateStartDate(Request request, String startDate) throws ValidationException {
-		LOGGER.info("Validating a start date.");
+	public static Calendar validateStartDate(final String startDate) 
+			throws ValidationException {
 		
 		if(StringUtils.isEmptyOrWhitespaceOnly(startDate)) {
 			return null;
@@ -296,8 +293,9 @@ public final class CampaignValidators {
 		
 		Date date = StringUtils.decodeDate(startDate);
 		if(date == null) {
-			request.setFailed(ErrorCodes.SERVER_INVALID_DATE, "The start date is invalid: " + startDate);
-			throw new ValidationException("The start date is invalid: " + startDate);
+			throw new ValidationException(
+					ErrorCode.SERVER_INVALID_DATE, 
+					"The start date is invalid: " + startDate);
 		}
 		
 		Calendar calendar = Calendar.getInstance();
@@ -310,8 +308,6 @@ public final class CampaignValidators {
 	 * Validates that an end date is a valid date and returns a Calendar 
 	 * object representing that date.
 	 * 
-	 * @param request The Request that is performing this validation.
-	 * 
 	 * @param endDate The date to be validated.
 	 * 
 	 * @return Returns null if the end date is null or whitespace only;
@@ -320,8 +316,8 @@ public final class CampaignValidators {
 	 * @throws ValidationException Thrown if the end date isn't a decodable
 	 * 							   date.
 	 */
-	public static Calendar validateEndDate(Request request, String endDate) throws ValidationException {
-		LOGGER.info("Validating an end date.");
+	public static Calendar validateEndDate(final String endDate) 
+			throws ValidationException {
 		
 		if(StringUtils.isEmptyOrWhitespaceOnly(endDate)) {
 			return null;
@@ -329,8 +325,9 @@ public final class CampaignValidators {
 		
 		Date date = StringUtils.decodeDate(endDate);
 		if(date == null) {
-			request.setFailed(ErrorCodes.SERVER_INVALID_DATE, "The end date is invalid: " + endDate);
-			throw new ValidationException("The end date is invalid: " + endDate);
+			throw new ValidationException(
+					ErrorCode.SERVER_INVALID_DATE, 
+					"The end date is invalid: " + endDate);
 		}
 		
 		Calendar calendar = Calendar.getInstance();
@@ -342,8 +339,6 @@ public final class CampaignValidators {
 	/**
 	 * Validates that a campaign role is a valid campaign role.
 	 * 
-	 * @param request The Request that is performing this validation.
-	 * 
 	 * @param role The role to be validated.
 	 * 
 	 * @return Returns null if the role is null or whitespace only; otherwise,
@@ -352,8 +347,8 @@ public final class CampaignValidators {
 	 * @throws ValidationException Thrown if the role is not a valid campaign
 	 * 							   role.
 	 */
-	public static Campaign.Role validateRole(Request request, String role) throws ValidationException {
-		LOGGER.info("Validating a campaign role.");
+	public static Campaign.Role validateRole(final String role) 
+			throws ValidationException {
 		
 		if(StringUtils.isEmptyOrWhitespaceOnly(role)) {
 			return null;
@@ -363,16 +358,17 @@ public final class CampaignValidators {
 			return Campaign.Role.getValue(role);
 		}
 		catch(IllegalArgumentException e) {
-			request.setFailed(ErrorCodes.CAMPAIGN_INVALID_ROLE, "The campaign role is unknown: " + role);
-			throw new ValidationException("The campaign role is unknown: " + role, e);
+			throw new ValidationException(
+					ErrorCode.CAMPAIGN_INVALID_ROLE, 
+					"The campaign role is unknown: " + role, 
+					e
+				);
 		}
 	}
 
 	/**
 	 * Validates that a campaign's XML's prompt ID follows our conventions. It
 	 * does _not_ validate that the prompt ID is exists in the XML.
-	 * 
-	 * @param request The Request that is performing this validation.
 	 * 
 	 * @param promptId The prompt ID to be validated.
 	 * 
@@ -383,7 +379,8 @@ public final class CampaignValidators {
 	 * 							   whitespace only, and doesn't pass syntactic
 	 * 							   validation.
 	 */
-	public static String validatePromptId(Request request, String promptId) throws ValidationException {
+	public static String validatePromptId(final String promptId) 
+			throws ValidationException {
 		LOGGER.info("Validating a campaign's prompt ID.");
 		
 		if(StringUtils.isEmptyOrWhitespaceOnly(promptId)) {
@@ -392,12 +389,10 @@ public final class CampaignValidators {
 		
 		return promptId.trim();
 	}
-	
+
 	/**
 	 * Validates that a string uploaded by a client is a valid JSONArray of
 	 * JSONObjects. It does no validation of the individual survey responses.
-	 * 
-	 * @param request The Request performing this validation.
 	 * 
 	 * @param uploadValue The string uploaded by the client.
 	 * 
@@ -405,33 +400,40 @@ public final class CampaignValidators {
 	 * 
 	 * @throws ValidationException Thrown if the response was not valid JSON.
 	 */
-	public static List<JSONObject> validateUploadedJson(Request request, String uploadValue) throws ValidationException {
+	public static List<JSONObject> validateUploadedJson(
+			final String uploadValue) throws ValidationException {
 		LOGGER.info("Validating the uploaded JSON.");
-		
+
 		if(StringUtils.isEmptyOrWhitespaceOnly(uploadValue)) {
 			return null;
 		}
-		
+
 		JSONArray surveyResponseJson;
 		try {
 			surveyResponseJson = new JSONArray(uploadValue);
 		}
 		catch(JSONException e) {
-			throw new ValidationException("The uploaded JSON was not a JSONArray.", e);
+			throw new ValidationException(
+					ErrorCode.SERVER_INVALID_JSON, 
+					"The uploaded JSON was not a JSONArray.", 
+					e);
 		}
 		int numResponses = surveyResponseJson.length();
-		
+
 		List<JSONObject> result = new ArrayList<JSONObject>(numResponses);
-		
+
 		for(int i = 0; i < numResponses; i++) {
 			try {
-			result.add(surveyResponseJson.getJSONObject(i));
+				result.add(surveyResponseJson.getJSONObject(i));
 			}
 			catch(JSONException e) {
-				throw new ValidationException("One of the survey responses was not valid JSON.", e);
+				throw new ValidationException(
+						ErrorCode.SERVER_INVALID_JSON, 
+						"One of the survey responses was not valid JSON.", 
+						e);
 			}
 		}
-		
+
 		return result;
 	}
 }

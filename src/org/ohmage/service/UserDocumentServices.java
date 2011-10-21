@@ -4,7 +4,7 @@ import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 
-import org.ohmage.annotator.ErrorCodes;
+import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.domain.Document;
 import org.ohmage.exception.DataAccessException;
 import org.ohmage.exception.ServiceException;
@@ -29,28 +29,25 @@ public class UserDocumentServices {
 	/**
 	 * Retrieves the ID for all documents directly associated with the user.
 	 * 
-	 * @param request The request that is performing this service.
-	 * 
 	 * @param username The username of the user.
 	 * 
 	 * @return A list of document IDs.
 	 * 
 	 * @throws ServiceException Thrown if there is an error.
 	 */
-	public static List<String> getDocumentsSpecificToUser(Request request, String username) throws ServiceException {
+	public static List<String> getDocumentsSpecificToUser(
+			final String username) throws ServiceException {
+		
 		try {
 			return UserDocumentQueries.getVisibleDocumentsSpecificToUser(username);
 		}
 		catch(DataAccessException e) {
-			request.setFailed();
 			throw new ServiceException(e);
 		}
 	}
 	
 	/**
 	 * Ensures that a user can read a document.
-	 * 
-	 * @param request The request that is performing this service.
 	 * 
 	 * @param username The username of the user that is being checked that they
 	 * 				   can read this document.
@@ -60,27 +57,27 @@ public class UserDocumentServices {
 	 * @throws ServiceException Thrown if the user cannot read this document or
 	 * 							if there is an error.
 	 */
-	public static void userCanReadDocument(Request request, String username, String documentId) throws ServiceException {
+	public static void userCanReadDocument(final String username, 
+			final String documentId) throws ServiceException {
+		
 		try {
 			List<Document.Role> roles = UserDocumentQueries.getDocumentRolesForDocumentForUser(username, documentId);
 			
 			// To read a document, it simply has to be visible to the user in
 			// some capacity.
 			if(roles.size() == 0) {
-				request.setFailed(ErrorCodes.DOCUMENT_INSUFFICIENT_PERMISSIONS, "The user does not have sufficient permissions to read the document.");
-				throw new ServiceException("The user does not have sufficient permissions to read the document.");
+				throw new ServiceException(
+						ErrorCode.DOCUMENT_INSUFFICIENT_PERMISSIONS, 
+						"The user does not have sufficient permissions to read the document.");
 			}
 		}
 		catch(DataAccessException e) {
-			request.setFailed();
 			throw new ServiceException(e);
 		}
 	}
 	
 	/**
 	 * Ensures that a user can modify a document.
-	 * 
-	 * @param request The request that is performing this service.
 	 * 
 	 * @param username The username of the user that is being checkec that they
 	 * 				   can modify this document.
@@ -90,7 +87,8 @@ public class UserDocumentServices {
 	 * @throws ServiceException Thrown if the user cannot modify this document
 	 * 							or if there is an error.
 	 */
-	public static void userCanModifyDocument(Request request, String username, String documentId) throws ServiceException {
+	public static void userCanModifyDocument(final String username, 
+			final String documentId) throws ServiceException {
 		try {
 			List<Document.Role> roles = UserDocumentQueries.getDocumentRolesForDocumentForUser(username, documentId);
 			
@@ -100,22 +98,20 @@ public class UserDocumentServices {
 			// document is associated.
 			if((! roles.contains(Document.Role.OWNER)) && 
 			   (! roles.contains(Document.Role.WRITER)) &&
-			   (! UserCampaignDocumentServices.getUserIsSupervisorInAnyCampaignAssociatedWithDocument(request, username, documentId)) &&
-			   (! UserClassDocumentServices.getUserIsPrivilegedInAnyClassAssociatedWithDocument(request, username, documentId))) {
-				request.setFailed(ErrorCodes.DOCUMENT_INSUFFICIENT_PERMISSIONS, "The user does not have sufficient permissions to modify the document.");
-				throw new ServiceException("The user does not have sufficient permissions to modify the document.");
+			   (! UserCampaignDocumentServices.getUserIsSupervisorInAnyCampaignAssociatedWithDocument(username, documentId)) &&
+			   (! UserClassDocumentServices.getUserIsPrivilegedInAnyClassAssociatedWithDocument(username, documentId))) {
+				throw new ServiceException(
+						ErrorCode.DOCUMENT_INSUFFICIENT_PERMISSIONS, 
+						"The user does not have sufficient permissions to modify the document.");
 			}
 		}
 		catch(DataAccessException e) {
-			request.setFailed();
 			throw new ServiceException(e);
 		}
 	}
 	
 	/**
 	 * Ensures that a user can delete a document.
-	 * 
-	 * @param request The request that is performing this service.
 	 * 
 	 * @param username The username of the user that is being checked that they
 	 * 				   can delete this document.
@@ -125,7 +121,9 @@ public class UserDocumentServices {
 	 * @throws ServiceException Thrown if the user cannot modify this document
 	 * 							or if there is an error.
 	 */
-	public static void userCanDeleteDocument(Request request, String username, String documentId) throws ServiceException {
+	public static void userCanDeleteDocument(final String username, 
+			final String documentId) throws ServiceException {
+		
 		try {
 			List<Document.Role> roles = UserDocumentQueries.getDocumentRolesForDocumentForUser(username, documentId);
 			
@@ -134,14 +132,14 @@ public class UserDocumentServices {
 			// associated or privileged in any of the classes to which the 
 			// document is associated.
 			if((! roles.contains(Document.Role.OWNER)) &&
-			   (! UserCampaignDocumentServices.getUserIsSupervisorInAnyCampaignAssociatedWithDocument(request, username, documentId)) &&
-			   (! UserClassDocumentServices.getUserIsPrivilegedInAnyClassAssociatedWithDocument(request, username, documentId))) {
-				request.setFailed(ErrorCodes.DOCUMENT_INSUFFICIENT_PERMISSIONS, "The user does not have sufficient permissions to delete the document.");
-				throw new ServiceException("The user does not have sufficient permissions to delete the document.");
+			   (! UserCampaignDocumentServices.getUserIsSupervisorInAnyCampaignAssociatedWithDocument(username, documentId)) &&
+			   (! UserClassDocumentServices.getUserIsPrivilegedInAnyClassAssociatedWithDocument(username, documentId))) {
+				throw new ServiceException(
+						ErrorCode.DOCUMENT_INSUFFICIENT_PERMISSIONS, 
+						"The user does not have sufficient permissions to delete the document.");
 			}
 		}
 		catch(DataAccessException e) {
-			request.setFailed();
 			throw new ServiceException(e);
 		}
 	}
@@ -149,8 +147,6 @@ public class UserDocumentServices {
 	/**
 	 * Verifies that a given role has enough permissions to disassociate a
 	 * document and a user based on the user's role with the document.
-	 * 
-	 * @param request The Request that is performing this service.
 	 * 
 	 * @param role The maximum role of the user that is attempting to 
 	 * 			   disassociate the class and document. 
@@ -162,12 +158,20 @@ public class UserDocumentServices {
 	 * @throws ServiceException Thrown if the role is not high enough to
 	 * 							disassociate the user and document.
 	 */
-	public static void ensureRoleHighEnoughToDisassociateOtherUserFromDocument(Request request, Document.Role role, String username, String documentId) throws ServiceException {
-		Document.Role otherUserRole = getHighestDocumentRoleForUserForDocument(request, username, documentId);
+	public static void ensureRoleHighEnoughToDisassociateOtherUserFromDocument(
+			final Document.Role role, final String username, 
+			final String documentId) throws ServiceException {
+		
+		Document.Role otherUserRole = getHighestDocumentRoleForUserForDocument(username, documentId);
 		
 		if(role.compare(otherUserRole) < 0) {
-			request.setFailed(ErrorCodes.DOCUMENT_INSUFFICIENT_PERMISSIONS, "Insufficient permissions to disassociate the document '" + documentId + "' with the user '" + username + "' as the user has a higher role.");
-			throw new ServiceException("Insufficient permissions to disassociate the document '" + documentId + "' with the user '" + username + "' as the user has a higher role.");
+			throw new ServiceException(
+					ErrorCode.DOCUMENT_INSUFFICIENT_PERMISSIONS, 
+					"Insufficient permissions to disassociate the document '" + 
+						documentId +
+						"' with the user '" + 
+						username + 
+						"' as the user has a higher role.");
 		}
 	}
 	
@@ -175,8 +179,6 @@ public class UserDocumentServices {
 	 * Verifies that a given role has enough permissions to disassociate a
 	 * document and each of the users in a collection based on the users' 
 	 * individual roles with the document.
-	 * 
-	 * @param request The Request that is performing this service.
 	 * 
 	 * @param role The maximum role of the user that is attempting to 
 	 * 			   disassociate the classes and document. 
@@ -188,9 +190,12 @@ public class UserDocumentServices {
 	 * @throws ServiceException Thrown if the role is not high enough to
 	 * 							disassociate a user and document.
 	 */
-	public static void ensureRoleHighEnoughToDisassociateDocumentFromOtherUsers(Request request, Document.Role role, Collection<String> usernames, String documentId) throws ServiceException {
+	public static void ensureRoleHighEnoughToDisassociateDocumentFromOtherUsers(
+			final Document.Role role, final Collection<String> usernames, 
+			final String documentId) throws ServiceException {
+		
 		for(String username : usernames) {
-			ensureRoleHighEnoughToDisassociateOtherUserFromDocument(request, role, username, documentId);
+			ensureRoleHighEnoughToDisassociateOtherUserFromDocument(role, username, documentId);
 		}
 	}
 	
@@ -198,8 +203,6 @@ public class UserDocumentServices {
 	 * Returns the highest role for a user for a document or null if the user 
 	 * is not associated with the document. This is across all possible 
 	 * relationships, campaign, class, and direct.
-	 * 
-	 * @param request The request that is performing this service.
 	 * 
 	 * @param username The username of the user whose highest role with the 
 	 * 				   document is desired.
@@ -213,7 +216,10 @@ public class UserDocumentServices {
 	 * 
 	 * @throws ServiceException Thrown if there is an error.
 	 */
-	public static Document.Role getHighestDocumentRoleForUserForDocument(Request request, String username, String documentId) throws ServiceException {
+	public static Document.Role getHighestDocumentRoleForUserForDocument(
+			final String username, final String documentId) 
+			throws ServiceException {
+		
 		try {
 			List<Document.Role> roles = UserDocumentQueries.getDocumentRolesForDocumentForUser(username, documentId);
 			
@@ -231,7 +237,6 @@ public class UserDocumentServices {
 			}
 		}
 		catch(DataAccessException e) {
-			request.setFailed();
 			throw new ServiceException(e);
 		}
 	}
@@ -239,8 +244,6 @@ public class UserDocumentServices {
 	/**
 	 * Retrieves the information about a document and also populates the role
 	 * of a specific user, all of the campaigns, and all of the classes.
-	 * 
-	 * @param request The Request that is performing this service.
 	 * 
 	 * @param username The user's username.
 	 * 
@@ -254,7 +257,10 @@ public class UserDocumentServices {
 	 * 
 	 * @throws ServiceException Thrown if there is an error.
 	 */
-	public static Document getDocumentInformationForDocumentWithUser(Request request, String username, String documentId) throws ServiceException {
+	public static Document getDocumentInformationForDocumentWithUser(
+			final String username, final String documentId) 
+			throws ServiceException {
+		
 		try {
 			// Get the document's basic information.
 			Document result = DocumentQueries.getDocumentInformation(documentId);
@@ -286,7 +292,6 @@ public class UserDocumentServices {
 			return result;
 		}
 		catch(DataAccessException e) {
-			request.setFailed();
 			throw new ServiceException(e);
 		}
 	}
@@ -296,8 +301,6 @@ public class UserDocumentServices {
 	 * populating each with the user's document role, all of the campaigns
 	 * associated with the document and their role, and all of the classes 
 	 * associated with the document and their role.
-	 * 
-	 * @param request The Request that is performing this service.
 	 * 
 	 * @param username The user's username.
 	 * 
@@ -310,10 +313,13 @@ public class UserDocumentServices {
 	 * 
 	 * @see #getDocumentInformationForDocumentWithUser(Request, String, String)
 	 */
-	public static List<Document> getDocumentInformationForDocumentsWithUser(Request request, String username, Collection<String> documentIds) throws ServiceException {
+	public static List<Document> getDocumentInformationForDocumentsWithUser(
+			final String username, final Collection<String> documentIds) 
+			throws ServiceException {
+		
 		List<Document> result = new LinkedList<Document>();
 		for(String documentId : documentIds) {
-			result.add(getDocumentInformationForDocumentWithUser(request, username, documentId));
+			result.add(getDocumentInformationForDocumentWithUser(username, documentId));
 		}
 		return result;
 	}

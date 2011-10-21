@@ -7,7 +7,7 @@ import javax.sql.DataSource;
 
 import jbcrypt.BCrypt;
 
-import org.ohmage.annotator.ErrorCodes;
+import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.domain.User;
 import org.ohmage.exception.DataAccessException;
 import org.ohmage.request.UserRequest;
@@ -124,7 +124,7 @@ public final class AuthenticationQuery extends Query{
 				
 				// If there weren't any users, return and let the service
 				// handle the lack of results.
-				userRequest.setFailed(ErrorCodes.AUTHENTICATION_FAILED, "Unknown user in the request.");
+				userRequest.setFailed(ErrorCode.AUTHENTICATION_FAILED, "Unknown user in the request.");
 				return null;
 			}
 			catch(org.springframework.dao.DataAccessException e) {
@@ -160,7 +160,7 @@ public final class AuthenticationQuery extends Query{
 			
 			// If the username wasn't found or the username and password 
 			// combination were incorrect.
-			userRequest.setFailed(ErrorCodes.AUTHENTICATION_FAILED, "Unknown user or incorrect password.");
+			userRequest.setFailed(ErrorCode.AUTHENTICATION_FAILED, "Unknown user or incorrect password.");
 			return null;
 		} 
 		catch(org.springframework.dao.DataAccessException e) {

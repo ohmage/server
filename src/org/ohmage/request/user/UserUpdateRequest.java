@@ -5,7 +5,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.log4j.Logger;
 import org.json.JSONObject;
-import org.ohmage.annotator.ErrorCodes;
+import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.domain.UserPersonal;
 import org.ohmage.exception.ServiceException;
 import org.ohmage.exception.ValidationException;
@@ -139,77 +139,78 @@ public class UserUpdateRequest extends UserRequest {
 		JSONObject tJsonData = null;
 		
 		try {
-			tUsername = UserValidators.validateUsername(this, httpRequest.getParameter(InputKeys.USERNAME));
+			tUsername = UserValidators.validateUsername(httpRequest.getParameter(InputKeys.USERNAME));
 			if(tUsername == null) {
-				setFailed(ErrorCodes.USER_INVALID_USERNAME, "The username is missing or not a valid username.");
+				setFailed(ErrorCode.USER_INVALID_USERNAME, "The username is missing or not a valid username.");
 				throw new ValidationException("The username is missing or not a valid username.");
 			}
 			else if(httpRequest.getParameterValues(InputKeys.USERNAME).length > 1) {
-				setFailed(ErrorCodes.USER_INVALID_USERNAME, "Multiple username parameters were given.");
+				setFailed(ErrorCode.USER_INVALID_USERNAME, "Multiple username parameters were given.");
 				throw new ValidationException("Multiple username parameters were given.");
 			}
 			
-			tAdmin = UserValidators.validateAdminValue(this, httpRequest.getParameter(InputKeys.USER_ADMIN));
+			tAdmin = UserValidators.validateAdminValue(httpRequest.getParameter(InputKeys.USER_ADMIN));
 			if((tAdmin != null) && (httpRequest.getParameterValues(InputKeys.USER_ADMIN).length > 1)) {
-				setFailed(ErrorCodes.USER_INVALID_ADMIN_VALUE, "Multiple admin parameters were given.");
+				setFailed(ErrorCode.USER_INVALID_ADMIN_VALUE, "Multiple admin parameters were given.");
 				throw new ValidationException("Multiple admin parameters were given.");
 			}
 			
-			tEnabled = UserValidators.validateEnabledValue(this, httpRequest.getParameter(InputKeys.USER_ENABLED));
+			tEnabled = UserValidators.validateEnabledValue(httpRequest.getParameter(InputKeys.USER_ENABLED));
 			if((tEnabled != null) && (httpRequest.getParameterValues(InputKeys.USER_ENABLED).length > 1)) {
-				setFailed(ErrorCodes.USER_INVALID_ENABLED_VALUE, "Multiple enabled parameters were given.");
+				setFailed(ErrorCode.USER_INVALID_ENABLED_VALUE, "Multiple enabled parameters were given.");
 				throw new ValidationException("Multiple enabled parameters were given.");
 			}
 			
-			tNewAccount = UserValidators.validateNewAccountValue(this, httpRequest.getParameter(InputKeys.NEW_ACCOUNT));
+			tNewAccount = UserValidators.validateNewAccountValue(httpRequest.getParameter(InputKeys.NEW_ACCOUNT));
 			if((tNewAccount != null) && (httpRequest.getParameterValues(InputKeys.NEW_ACCOUNT).length > 1)) {
-				setFailed(ErrorCodes.USER_INVALID_NEW_ACCOUNT_VALUE, "Multiple new account parameters were given.");
+				setFailed(ErrorCode.USER_INVALID_NEW_ACCOUNT_VALUE, "Multiple new account parameters were given.");
 				throw new ValidationException("Multiple new account parameters were given.");
 			}
 			
-			tCampaignCreationPrivilege = UserValidators.validateCampaignCreationPrivilegeValue(this, httpRequest.getParameter(InputKeys.CAMPAIGN_CREATION_PRIVILEGE));
+			tCampaignCreationPrivilege = UserValidators.validateCampaignCreationPrivilegeValue(httpRequest.getParameter(InputKeys.CAMPAIGN_CREATION_PRIVILEGE));
 			if((tCampaignCreationPrivilege != null) && (httpRequest.getParameterValues(InputKeys.CAMPAIGN_CREATION_PRIVILEGE).length > 1)) {
-				setFailed(ErrorCodes.USER_INVALID_CAMPAIGN_CREATION_PRIVILEGE, "Multiple campaign creation privilege parameters were given.");
+				setFailed(ErrorCode.USER_INVALID_CAMPAIGN_CREATION_PRIVILEGE, "Multiple campaign creation privilege parameters were given.");
 				throw new ValidationException("Multiple campaign creation privilege parameters were given.");
 			}
 			
-			tFirstName = UserValidators.validateFirstName(this, httpRequest.getParameter(InputKeys.FIRST_NAME));
+			tFirstName = UserValidators.validateFirstName(httpRequest.getParameter(InputKeys.FIRST_NAME));
 			if((tFirstName != null) && (httpRequest.getParameterValues(InputKeys.FIRST_NAME).length > 1)) {
-				setFailed(ErrorCodes.USER_INVALID_FIRST_NAME_VALUE, "Multiple first name parameters were given.");
+				setFailed(ErrorCode.USER_INVALID_FIRST_NAME_VALUE, "Multiple first name parameters were given.");
 				throw new ValidationException("Multiple first name parameters were given.");
 			}
 			
-			tLastName = UserValidators.validateLastName(this, httpRequest.getParameter(InputKeys.LAST_NAME));
+			tLastName = UserValidators.validateLastName(httpRequest.getParameter(InputKeys.LAST_NAME));
 			if((tLastName != null) && (httpRequest.getParameterValues(InputKeys.LAST_NAME).length > 1)) {
-				setFailed(ErrorCodes.USER_INVALID_LAST_NAME_VALUE, "Multiple last name parameters were given.");
+				setFailed(ErrorCode.USER_INVALID_LAST_NAME_VALUE, "Multiple last name parameters were given.");
 				throw new ValidationException("Multiple last name parameters were given.");
 			}
 			
-			tOrganization = UserValidators.validateOrganization(this, httpRequest.getParameter(InputKeys.ORGANIZATION));
+			tOrganization = UserValidators.validateOrganization(httpRequest.getParameter(InputKeys.ORGANIZATION));
 			if((tOrganization != null) && (httpRequest.getParameterValues(InputKeys.ORGANIZATION).length > 1)) {
-				setFailed(ErrorCodes.USER_INVALID_ORGANIZATION_VALUE, "Multiple organization parameters were given.");
+				setFailed(ErrorCode.USER_INVALID_ORGANIZATION_VALUE, "Multiple organization parameters were given.");
 				throw new ValidationException("Multiple organization parameters were given.");
 			}
 			
-			tPersonalId = UserValidators.validatePersonalId(this, httpRequest.getParameter(InputKeys.PERSONAL_ID));
+			tPersonalId = UserValidators.validatePersonalId(httpRequest.getParameter(InputKeys.PERSONAL_ID));
 			if((tPersonalId != null) && (httpRequest.getParameterValues(InputKeys.PERSONAL_ID).length > 1)) {
-				setFailed(ErrorCodes.USER_INVALID_PERSONAL_ID_VALUE, "Multiple personal ID parameters were given.");
+				setFailed(ErrorCode.USER_INVALID_PERSONAL_ID_VALUE, "Multiple personal ID parameters were given.");
 				throw new ValidationException("Multiple personal ID parameters were given.");
 			}
 			
-			tEmailAddress = UserValidators.validateEmailAddress(this, httpRequest.getParameter(InputKeys.EMAIL_ADDRESS));
+			tEmailAddress = UserValidators.validateEmailAddress(httpRequest.getParameter(InputKeys.EMAIL_ADDRESS));
 			if((tEmailAddress != null) && (httpRequest.getParameterValues(InputKeys.EMAIL_ADDRESS).length > 1)) {
-				setFailed(ErrorCodes.USER_INVALID_EMAIL_ADDRESS, "Multiple email address parameters were given.");
+				setFailed(ErrorCode.USER_INVALID_EMAIL_ADDRESS, "Multiple email address parameters were given.");
 				throw new ValidationException("Multiple email address parameters were given.");
 			}
 			
-			tJsonData = UserValidators.validateJsonData(this, httpRequest.getParameter(InputKeys.USER_JSON_DATA));
+			tJsonData = UserValidators.validateJsonData(httpRequest.getParameter(InputKeys.USER_JSON_DATA));
 			if((tJsonData != null) && (httpRequest.getParameterValues(InputKeys.USER_JSON_DATA).length > 1)) {
-				setFailed(ErrorCodes.USER_INVALID_JSON_DATA, "Multiple JSON data parameters were given.");
+				setFailed(ErrorCode.USER_INVALID_JSON_DATA, "Multiple JSON data parameters were given.");
 				throw new ValidationException("Multiple JSON data parameters were given.");
 			}
 		}
 		catch(ValidationException e) {
+			e.failRequest(this);
 			LOGGER.info(e.toString());
 		}
 		
@@ -236,18 +237,19 @@ public class UserUpdateRequest extends UserRequest {
 		
 		try {
 			LOGGER.info("Verifying that the requesting user is an admin.");
-			UserServices.verifyUserIsAdmin(this, getUser().getUsername());
+			UserServices.verifyUserIsAdmin(getUser().getUsername());
 			
 			LOGGER.info("Verifying that the user to be upaded exists.");
-			UserServices.checkUserExistance(this, username, true);
+			UserServices.checkUserExistance(username, true);
 			
 			LOGGER.info("Verify that either the user to be updated already has a personal record or that enough information was provided to create a new one.");
-			UserServices.verifyUserHasOrCanCreatePersonalInfo(this, username, personalInfo);
+			UserServices.verifyUserHasOrCanCreatePersonalInfo(username, personalInfo);
 			
 			LOGGER.info("Updating the user.");
-			UserServices.updateUser(this, username, admin, enabled, newAccount, campaignCreationPrivilege, personalInfo);
+			UserServices.updateUser(username, admin, enabled, newAccount, campaignCreationPrivilege, personalInfo);
 		}
 		catch(ServiceException e) {
+			e.failRequest(this);
 			e.logException(LOGGER);
 		}
 	}

@@ -13,7 +13,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.log4j.Logger;
-import org.ohmage.annotator.ErrorCodes;
+import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.cache.UserBin;
 import org.ohmage.domain.campaign.SurveyResponse;
 import org.ohmage.exception.ServiceException;
@@ -93,29 +93,30 @@ public abstract class VisualizationRequest extends UserRequest {
 		SurveyResponse.PrivacyState tPrivacyState = null;
 		
 		try {
-			tCampaignId = CampaignValidators.validateCampaignId(this, httpRequest.getParameter(InputKeys.CAMPAIGN_URN));
+			tCampaignId = CampaignValidators.validateCampaignId(httpRequest.getParameter(InputKeys.CAMPAIGN_URN));
 			if(tCampaignId == null) {
-				setFailed(ErrorCodes.CAMPAIGN_INVALID_ID, "The campaign ID is missing.");
+				setFailed(ErrorCode.CAMPAIGN_INVALID_ID, "The campaign ID is missing.");
 				throw new ValidationException("The campaign ID is missing.");
 			}
 			
-			tWidth = VisualizationValidators.validateWidth(this, httpRequest.getParameter(InputKeys.VISUALIZATION_WIDTH));
+			tWidth = VisualizationValidators.validateWidth(httpRequest.getParameter(InputKeys.VISUALIZATION_WIDTH));
 			if(tWidth == null) {
-				setFailed(ErrorCodes.VISUALIZATION_INVALID_WIDTH_VALUE, "The visualization width is missing.");
+				setFailed(ErrorCode.VISUALIZATION_INVALID_WIDTH_VALUE, "The visualization width is missing.");
 				throw new ValidationException("The visualization width is missing.");
 			}
 			
-			tHeight = VisualizationValidators.validateHeight(this, httpRequest.getParameter(InputKeys.VISUALIZATION_HEIGHT));
+			tHeight = VisualizationValidators.validateHeight(httpRequest.getParameter(InputKeys.VISUALIZATION_HEIGHT));
 			if(tHeight == null) {
-				setFailed(ErrorCodes.VISUALIZATION_INVALID_HEIGHT_VALUE, "The visualization height is missing.");
+				setFailed(ErrorCode.VISUALIZATION_INVALID_HEIGHT_VALUE, "The visualization height is missing.");
 				throw new ValidationException("The visualization height is missing.");
 			}
 			
-			tStartDate = VisualizationValidators.validateStartDate(this, getParameter(InputKeys.START_DATE));
-			tEndDate = VisualizationValidators.validateEndDate(this, getParameter(InputKeys.END_DATE));
-			tPrivacyState = SurveyResponseValidators.validatePrivacyState(this, getParameter(InputKeys.PRIVACY_STATE)); 
+			tStartDate = VisualizationValidators.validateStartDate(getParameter(InputKeys.START_DATE));
+			tEndDate = VisualizationValidators.validateEndDate(getParameter(InputKeys.END_DATE));
+			tPrivacyState = SurveyResponseValidators.validatePrivacyState(getParameter(InputKeys.PRIVACY_STATE)); 
 		}
 		catch(ValidationException e) {
+			e.failRequest(this);
 			LOGGER.info(e.toString());
 		}
 		
@@ -142,9 +143,10 @@ public abstract class VisualizationRequest extends UserRequest {
 		
 		try {
 			LOGGER.info("Verifying that the campaign exists and that the requesting user belongs to the campaign.");
-			UserCampaignServices.campaignExistsAndUserBelongs(this, campaignId, getUser().getUsername());
+			UserCampaignServices.campaignExistsAndUserBelongs(campaignId, getUser().getUsername());
 		}
 		catch(ServiceException e) {
+			e.failRequest(this);
 			e.logException(LOGGER);
 		}
 	}

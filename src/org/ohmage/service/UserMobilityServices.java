@@ -5,14 +5,13 @@ import java.util.Calendar;
 import java.util.List;
 import java.util.Set;
 
-import org.ohmage.annotator.ErrorCodes;
+import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.domain.campaign.Campaign;
 import org.ohmage.exception.DataAccessException;
 import org.ohmage.exception.ServiceException;
 import org.ohmage.query.CampaignQueries;
 import org.ohmage.query.UserCampaignQueries;
 import org.ohmage.query.UserMobilityQueries;
-import org.ohmage.request.Request;
 
 /**
  * This class contains all of the services pertaining to reading and writing
@@ -44,8 +43,6 @@ public class UserMobilityServices {
 	 *   belongs and the campaign is shared.</li>
 	 * </ul>
 	 * 
-	 * @param request The Request that is performing this service.
-	 * 
 	 * @param requestersUsername The username of the user that is attempting to
 	 * 							 view data about another user.
 	 * 
@@ -57,7 +54,10 @@ public class UserMobilityServices {
 	 * 							information about another user or if there is
 	 * 							an error.
 	 */
-	public static void requesterCanViewUsersMobilityData(Request request, String requestersUsername, String usersUsername) throws ServiceException {
+	public static void requesterCanViewUsersMobilityData(
+			final String requestersUsername, final String usersUsername) 
+			throws ServiceException {
+		
 		try {
 			if(requestersUsername.equals(usersUsername)) {
 				return;
@@ -76,11 +76,11 @@ public class UserMobilityServices {
 				}
 			}
 			
-			request.setFailed(ErrorCodes.MOBILITY_INSUFFICIENT_PERMISSIONS, "Insufficient permissions to read Mobility information about another user.");
-			throw new ServiceException("Insufficient permissions to read Mobility information about another user.");
+			throw new ServiceException(
+					ErrorCode.MOBILITY_INSUFFICIENT_PERMISSIONS, 
+					"Insufficient permissions to read Mobility information about another user.");
 		}
 		catch(DataAccessException e) {
-			request.setFailed();
 			throw new ServiceException(e);
 		}
 	}
@@ -88,8 +88,6 @@ public class UserMobilityServices {
 	/**
 	 * Retrieves the number of hours since the last Mobility upload from a 
 	 * user.
-	 * 
-	 * @param request The Request that is performing this service.
 	 * 
 	 * @param username The username of the user in question.
 	 * 
@@ -99,7 +97,9 @@ public class UserMobilityServices {
 	 * 
 	 * @throws ServiceException Thrown if there is an error.
 	 */
-	public static Double getHoursSinceLastMobilityUpload(Request request, String username) throws ServiceException {
+	public static Double getHoursSinceLastMobilityUpload(final String username)
+			throws ServiceException {
+		
 		try {
 			Timestamp lastMobilityUpload = UserMobilityQueries.getLastUploadForUser(username);
 			if(lastMobilityUpload == null) {
@@ -112,7 +112,6 @@ public class UserMobilityServices {
 			}
 		}
 		catch(DataAccessException e) {
-			request.setFailed();
 			throw new ServiceException(e);
 		}
 	}
@@ -120,8 +119,6 @@ public class UserMobilityServices {
 	/**
 	 * Retrieves the percentage of non-null location values in all of the 
 	 * updates in the last 24 hours.
-	 * 
-	 * @param request The Request that is performing this service.
 	 * 
 	 * @param username The username of the user in question.
 	 * 
@@ -131,12 +128,13 @@ public class UserMobilityServices {
 	 * 
 	 * @throws ServiceException Thrown if there is an error.
 	 */
-	public static Double getPercentageOfNonNullLocationsOverPastDay(Request request, String username) throws ServiceException {
+	public static Double getPercentageOfNonNullLocationsOverPastDay(
+			final String username) throws ServiceException {
+		
 		try {
 			return UserMobilityQueries.getPercentageOfNonNullLocations(username, HOURS_IN_A_DAY);
 		}
 		catch(DataAccessException e) {
-			request.setFailed();
 			throw new ServiceException(e);
 		}
 	}

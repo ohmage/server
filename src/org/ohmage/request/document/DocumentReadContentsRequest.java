@@ -12,7 +12,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.log4j.Logger;
-import org.ohmage.annotator.ErrorCodes;
+import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.cache.UserBin;
 import org.ohmage.exception.ServiceException;
 import org.ohmage.exception.ValidationException;
@@ -70,17 +70,18 @@ public class DocumentReadContentsRequest extends UserRequest {
 		String tempDocumentId = null;
 		
 		try {
-			tempDocumentId = DocumentValidators.validateDocumentId(this, httpRequest.getParameter(InputKeys.DOCUMENT_ID));
+			tempDocumentId = DocumentValidators.validateDocumentId(httpRequest.getParameter(InputKeys.DOCUMENT_ID));
 			if(tempDocumentId == null) {
-				setFailed(ErrorCodes.DOCUMENT_INVALID_ID, "The document ID is missing.");
+				setFailed(ErrorCode.DOCUMENT_INVALID_ID, "The document ID is missing.");
 				throw new ValidationException("The document ID is missing.");
 			}
 			else if(httpRequest.getParameterValues(InputKeys.DOCUMENT_ID).length > 1) {
-				setFailed(ErrorCodes.DOCUMENT_INVALID_ID, "Multiple document IDs were given.");
+				setFailed(ErrorCode.DOCUMENT_INVALID_ID, "Multiple document IDs were given.");
 				throw new ValidationException("Multiple document IDs were given.");
 			}
 		}
 		catch(ValidationException e) {
+			e.failRequest(this);
 			LOGGER.info(e.toString());
 		}
 		
@@ -102,18 +103,19 @@ public class DocumentReadContentsRequest extends UserRequest {
 		
 		try {
 			LOGGER.info("Verifying that the document exists.");
-			DocumentServices.ensureDocumentExistence(this, documentId);
+			DocumentServices.ensureDocumentExistence(documentId);
 			
 			LOGGER.info("Verifying that the requesting user can read the contents of this document.");
-			UserDocumentServices.userCanReadDocument(this, getUser().getUsername(), documentId);
+			UserDocumentServices.userCanReadDocument(getUser().getUsername(), documentId);
 			
 			LOGGER.info("Retrieving the document's name.");
-			documentName = DocumentServices.getDocumentName(this, documentId);
+			documentName = DocumentServices.getDocumentName(documentId);
 			
 			LOGGER.info("Retrieving the document's contents.");
-			contentsStream = DocumentServices.getDocumentInputStream(this, documentId);
+			contentsStream = DocumentServices.getDocumentInputStream(documentId);
 		}
 		catch(ServiceException e) {
+			e.failRequest(this);
 			e.logException(LOGGER);
 		}
 	}

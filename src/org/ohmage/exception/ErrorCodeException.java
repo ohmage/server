@@ -1,35 +1,68 @@
 package org.ohmage.exception;
 
+import org.ohmage.annotator.Annotator.ErrorCode;
+
 /**
  * This Exception class defines exceptions that contain error codes and 
  * corresponding error text as defined by the ohmage system.
  * 
  * @author John Jenkins
  */
-public class ErrorCodeException extends Exception {
+public class ErrorCodeException extends WorkflowException {
 	private static final long serialVersionUID = 1L;
 	
-	private final String errorCode;
-	private final String errorText;
-	
 	/**
-	 * Creates a new ErrorCodeException with an error code and corresponding
-	 * text.
+	 * Creates a new exception with an error code and error text.
 	 * 
 	 * @param errorCode The error code.
 	 * 
 	 * @param errorText The error text.
 	 */
-	public ErrorCodeException(final String errorCode, final String errorText) {
-		super(errorText);
+	public ErrorCodeException(final ErrorCode errorCode, 
+			final String errorText) {
 		
-		this.errorCode = errorCode;
-		this.errorText = errorText;
+		super(errorCode, errorText);
 	}
 	
 	/**
-	 * Creates a new ErrorCodeException with an error code, corresponding text,
-	 * and another Throwable.
+	 * Creates an exception with an error code, error text, and a custom 
+	 * message that will be printed to the log instead of the error text.
+	 * 
+	 * @param errorCode The error code.
+	 * 
+	 * @param errorText The error text.
+	 * 
+	 * @param message The message for the server log.
+	 */
+	public ErrorCodeException(final ErrorCode errorCode,
+			final String errorText, final String message) {
+		
+		super(errorCode, errorText, message);
+	}
+	
+	/**
+	 * Creates an exception with an error code, error text, a custom message 
+	 * that will be printed to the log instead of the error text, and another
+	 * Throwable that caused this exception.
+	 * 
+	 * @param errorCode The error code.
+	 * 
+	 * @param errorText The error text.
+	 * 
+	 * @param message The message for the server log.
+	 * 
+	 * @param cause The Throwable that caused this exception.
+	 */
+	public ErrorCodeException(final ErrorCode errorCode, 
+			final String errorText, final String message, 
+			final Throwable cause) {
+		
+		super(errorCode, errorText, message, cause);
+	}
+	
+	/**
+	 * Creates an exception with an error code, error text, and another 
+	 * Throwable that caused this exception.
 	 * 
 	 * @param errorCode The error code.
 	 * 
@@ -37,28 +70,9 @@ public class ErrorCodeException extends Exception {
 	 * 
 	 * @param cause The Throwable that caused this exception.
 	 */
-	public ErrorCodeException(final String errorCode, final String errorText, final Throwable cause) {
-		super(errorText, cause);
-
-		this.errorCode = errorCode;
-		this.errorText = errorText;
-	}
-	
-	/**
-	 * Returns the error code.
-	 * 
-	 * @return The error code. This may be null.
-	 */
-	public String getErrorCode() {
-		return errorCode;
-	}
-	
-	/**
-	 * Returns the error text.
-	 * 
-	 * @return The error text. This may be null.
-	 */
-	public String getErrorText() {
-		return errorText;
+	public ErrorCodeException(final ErrorCode errorCode,
+			final String errorText, final Throwable cause) {
+		
+		super(errorCode, errorText, cause);
 	}
 }

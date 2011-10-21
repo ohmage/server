@@ -5,7 +5,7 @@ import java.util.Collection;
 import java.util.Map;
 
 import org.json.JSONObject;
-import org.ohmage.annotator.ErrorCodes;
+import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.domain.ServerConfig;
 import org.ohmage.domain.UserInformation;
 import org.ohmage.domain.UserPersonal;
@@ -101,8 +101,8 @@ public class UserApiTests {
 			throw new IllegalStateException("Failed: User: No authentication token.");
 		}
 		catch(RequestErrorException e) {
-			if(! ErrorCodes.AUTHENTICATION_FAILED.equals(e.getErrorCode())) {
-				throw new IllegalStateException("Failed: User: No authentication token. Expected: " + ErrorCodes.AUTHENTICATION_FAILED, e);
+			if(! ErrorCode.AUTHENTICATION_FAILED.equals(e.getErrorCode())) {
+				throw new IllegalStateException("Failed: User: No authentication token. Expected: " + ErrorCode.AUTHENTICATION_FAILED, e);
 			}
 		}
 		
@@ -112,8 +112,8 @@ public class UserApiTests {
 			throw new IllegalStateException("Failed: User: Invalid authentication token.");
 		}
 		catch(RequestErrorException e) {
-			if(! ErrorCodes.AUTHENTICATION_FAILED.equals(e.getErrorCode())) {
-				throw new IllegalStateException("Failed: User: Invalid authentication token. Expected: " + ErrorCodes.AUTHENTICATION_FAILED, e);
+			if(! ErrorCode.AUTHENTICATION_FAILED.equals(e.getErrorCode())) {
+				throw new IllegalStateException("Failed: User: Invalid authentication token. Expected: " + ErrorCode.AUTHENTICATION_FAILED, e);
 			}
 		}
 		
@@ -123,8 +123,8 @@ public class UserApiTests {
 			throw new IllegalStateException("Failed: User: No client value.");
 		}
 		catch(RequestErrorException e) {
-			if(! ErrorCodes.SERVER_INVALID_CLIENT.equals(e.getErrorCode())) {
-				throw new IllegalStateException("Failed: User: No client value. Expected: " + ErrorCodes.SERVER_INVALID_CLIENT, e);
+			if(! ErrorCode.SERVER_INVALID_CLIENT.equals(e.getErrorCode())) {
+				throw new IllegalStateException("Failed: User: No client value. Expected: " + ErrorCode.SERVER_INVALID_CLIENT, e);
 			}
 		}
 		
@@ -134,8 +134,8 @@ public class UserApiTests {
 			throw new IllegalStateException("Failed: User: No new username.");
 		}
 		catch(RequestErrorException e) {
-			if(! ErrorCodes.USER_INVALID_USERNAME.equals(e.getErrorCode())) {
-				throw new IllegalStateException("Failed: User: No new username. Expected: " + ErrorCodes.USER_INVALID_USERNAME, e);
+			if(! ErrorCode.USER_INVALID_USERNAME.equals(e.getErrorCode())) {
+				throw new IllegalStateException("Failed: User: No new username. Expected: " + ErrorCode.USER_INVALID_USERNAME, e);
 			}
 		}
 		
@@ -145,8 +145,8 @@ public class UserApiTests {
 			throw new IllegalStateException("Failed: User: Username is too short.");
 		}
 		catch(RequestErrorException e) {
-			if(! ErrorCodes.USER_INVALID_USERNAME.equals(e.getErrorCode())) {
-				throw new IllegalStateException("Failed: User: Username is too short. Expected: " + ErrorCodes.USER_INVALID_USERNAME, e);
+			if(! ErrorCode.USER_INVALID_USERNAME.equals(e.getErrorCode())) {
+				throw new IllegalStateException("Failed: User: Username is too short. Expected: " + ErrorCode.USER_INVALID_USERNAME, e);
 			}
 		}
 		
@@ -156,8 +156,8 @@ public class UserApiTests {
 			throw new IllegalStateException("Failed: User: Username is too long.");
 		}
 		catch(RequestErrorException e) {
-			if(! ErrorCodes.USER_INVALID_USERNAME.equals(e.getErrorCode())) {
-				throw new IllegalStateException("Failed: User: Username is too long. Expected: " + ErrorCodes.USER_INVALID_USERNAME, e);
+			if(! ErrorCode.USER_INVALID_USERNAME.equals(e.getErrorCode())) {
+				throw new IllegalStateException("Failed: User: Username is too long. Expected: " + ErrorCode.USER_INVALID_USERNAME, e);
 			}
 		}
 		
@@ -167,8 +167,8 @@ public class UserApiTests {
 			throw new IllegalStateException("Failed: User: Username uses invalid character, '#'.");
 		}
 		catch(RequestErrorException e) {
-			if(! ErrorCodes.USER_INVALID_USERNAME.equals(e.getErrorCode())) {
-				throw new IllegalStateException("Failed: User: Username uses invalid character, '#'. Expected: " + ErrorCodes.USER_INVALID_USERNAME, e);
+			if(! ErrorCode.USER_INVALID_USERNAME.equals(e.getErrorCode())) {
+				throw new IllegalStateException("Failed: User: Username uses invalid character, '#'. Expected: " + ErrorCode.USER_INVALID_USERNAME, e);
 			}
 		}
 		
@@ -179,8 +179,8 @@ public class UserApiTests {
 			throw new IllegalStateException("Failed: User: Username doesn't contain a required character.");
 		}
 		catch(RequestErrorException e) {
-			if(! ErrorCodes.USER_INVALID_USERNAME.equals(e.getErrorCode())) {
-				throw new IllegalStateException("Failed: User: Username doesn't contain a required character. Expected: " + ErrorCodes.USER_INVALID_USERNAME);
+			if(! ErrorCode.USER_INVALID_USERNAME.equals(e.getErrorCode())) {
+				throw new IllegalStateException("Failed: User: Username doesn't contain a required character. Expected: " + ErrorCode.USER_INVALID_USERNAME);
 			}
 		}
 		
@@ -190,8 +190,8 @@ public class UserApiTests {
 			throw new IllegalStateException("Failed: User: Password is missing.");
 		}
 		catch(RequestErrorException e) {
-			if(! ErrorCodes.USER_INVALID_PASSWORD.equals(e.getErrorCode())) {
-				throw new IllegalStateException("Failed: User: Password is missing. Expected: " + ErrorCodes.USER_INVALID_PASSWORD, e);
+			if(! ErrorCode.USER_INVALID_PASSWORD.equals(e.getErrorCode())) {
+				throw new IllegalStateException("Failed: User: Password is missing. Expected: " + ErrorCode.USER_INVALID_PASSWORD, e);
 			}
 		}
 		
@@ -201,8 +201,8 @@ public class UserApiTests {
 			throw new IllegalStateException("Failed: User: Password is too short.");
 		}
 		catch(RequestErrorException e) {
-			if(! ErrorCodes.USER_INVALID_PASSWORD.equals(e.getErrorCode())) {
-				throw new IllegalStateException("Failed: User: Password is too short. Expected: " + ErrorCodes.USER_INVALID_PASSWORD);
+			if(! ErrorCode.USER_INVALID_PASSWORD.equals(e.getErrorCode())) {
+				throw new IllegalStateException("Failed: User: Password is too short. Expected: " + ErrorCode.USER_INVALID_PASSWORD);
 			}
 		}
 		
@@ -212,8 +212,8 @@ public class UserApiTests {
 			throw new IllegalStateException("Failed: User: Password is too long.");
 		}
 		catch(RequestErrorException e) {
-			if(! ErrorCodes.USER_INVALID_PASSWORD.equals(e.getErrorCode())) {
-				throw new IllegalStateException("Failed: User: Password is too long. Expected: " + ErrorCodes.USER_INVALID_PASSWORD, e);
+			if(! ErrorCode.USER_INVALID_PASSWORD.equals(e.getErrorCode())) {
+				throw new IllegalStateException("Failed: User: Password is too long. Expected: " + ErrorCode.USER_INVALID_PASSWORD, e);
 			}
 		}
 		
@@ -223,8 +223,8 @@ public class UserApiTests {
 			throw new IllegalStateException("Failed: User: Password missing lower case character.");
 		}
 		catch(RequestErrorException e) {
-			if(! ErrorCodes.USER_INVALID_PASSWORD.equals(e.getErrorCode())) {
-				throw new IllegalStateException("Failed: User: Password missing lower case character. Expected: " + ErrorCodes.USER_INVALID_PASSWORD, e);
+			if(! ErrorCode.USER_INVALID_PASSWORD.equals(e.getErrorCode())) {
+				throw new IllegalStateException("Failed: User: Password missing lower case character. Expected: " + ErrorCode.USER_INVALID_PASSWORD, e);
 			}
 		}
 		
@@ -234,8 +234,8 @@ public class UserApiTests {
 			throw new IllegalStateException("Failed: User: Password missing upper case character.");
 		}
 		catch(RequestErrorException e) {
-			if(! ErrorCodes.USER_INVALID_PASSWORD.equals(e.getErrorCode())) {
-				throw new IllegalStateException("Failed: User: Password missing upper case character. Expected: " + ErrorCodes.USER_INVALID_PASSWORD, e);
+			if(! ErrorCode.USER_INVALID_PASSWORD.equals(e.getErrorCode())) {
+				throw new IllegalStateException("Failed: User: Password missing upper case character. Expected: " + ErrorCode.USER_INVALID_PASSWORD, e);
 			}
 		}
 		
@@ -245,8 +245,8 @@ public class UserApiTests {
 			throw new IllegalStateException("Failed: User: Password missing numeric character.");
 		}
 		catch(RequestErrorException e) {
-			if(! ErrorCodes.USER_INVALID_PASSWORD.equals(e.getErrorCode())) {
-				throw new IllegalStateException("Failed: User: Password missing numeric character. Expected: " + ErrorCodes.USER_INVALID_PASSWORD, e);
+			if(! ErrorCode.USER_INVALID_PASSWORD.equals(e.getErrorCode())) {
+				throw new IllegalStateException("Failed: User: Password missing numeric character. Expected: " + ErrorCode.USER_INVALID_PASSWORD, e);
 			}
 		}
 		
@@ -256,8 +256,8 @@ public class UserApiTests {
 			throw new IllegalStateException("Failed: User: Password missing special character.");
 		}
 		catch(RequestErrorException e) {
-			if(! ErrorCodes.USER_INVALID_PASSWORD.equals(e.getErrorCode())) {
-				throw new IllegalStateException("Failed: User: Password missing special character. Expected: " + ErrorCodes.USER_INVALID_PASSWORD, e);
+			if(! ErrorCode.USER_INVALID_PASSWORD.equals(e.getErrorCode())) {
+				throw new IllegalStateException("Failed: User: Password missing special character. Expected: " + ErrorCode.USER_INVALID_PASSWORD, e);
 			}
 		}
 		
@@ -287,7 +287,7 @@ public class UserApiTests {
 			throw new IllegalArgumentException("Failed: User: No authentication token.");
 		}
 		catch(RequestErrorException e) {
-			if(! ErrorCodes.AUTHENTICATION_FAILED.equals(e.getErrorCode())) {
+			if(! ErrorCode.AUTHENTICATION_FAILED.equals(e.getErrorCode())) {
 				throw new IllegalArgumentException("Failed: User: No authentication token.", e);
 			}
 		}
@@ -298,7 +298,7 @@ public class UserApiTests {
 			throw new IllegalArgumentException("Failed: User: Invalid authentication token.");
 		}
 		catch(RequestErrorException e) {
-			if(! ErrorCodes.AUTHENTICATION_FAILED.equals(e.getErrorCode())) {
+			if(! ErrorCode.AUTHENTICATION_FAILED.equals(e.getErrorCode())) {
 				throw new IllegalArgumentException("Failed: User: Invalid authentication token.", e);
 			}
 		}
@@ -309,7 +309,7 @@ public class UserApiTests {
 			throw new IllegalArgumentException("Failed: User: No client.");
 		}
 		catch(RequestErrorException e) {
-			if(! ErrorCodes.SERVER_INVALID_CLIENT.equals(e.getErrorCode())) {
+			if(! ErrorCode.SERVER_INVALID_CLIENT.equals(e.getErrorCode())) {
 				throw new IllegalArgumentException("Failed: User: No client.", e);
 			}
 		}
@@ -330,7 +330,7 @@ public class UserApiTests {
 			throw new IllegalArgumentException("Failed: User: No authentication token.");
 		}
 		catch(RequestErrorException e) {
-			if(! ErrorCodes.AUTHENTICATION_FAILED.equals(e.getErrorCode())) {
+			if(! ErrorCode.AUTHENTICATION_FAILED.equals(e.getErrorCode())) {
 				throw new IllegalArgumentException("Failed: User: No authentication token.", e);
 			}
 		}
@@ -341,7 +341,7 @@ public class UserApiTests {
 			throw new IllegalArgumentException("Failed: User: Invalid token.");
 		}
 		catch(RequestErrorException e) {
-			if(! ErrorCodes.AUTHENTICATION_FAILED.equals(e.getErrorCode())) {
+			if(! ErrorCode.AUTHENTICATION_FAILED.equals(e.getErrorCode())) {
 				throw new IllegalArgumentException("Failed: User: Invalid token.", e);
 			}
 		}
@@ -352,7 +352,7 @@ public class UserApiTests {
 			throw new IllegalArgumentException("Failed: User: No client.");
 		}
 		catch(RequestErrorException e) {
-			if(! ErrorCodes.SERVER_INVALID_CLIENT.equals(e.getErrorCode())) {
+			if(! ErrorCode.SERVER_INVALID_CLIENT.equals(e.getErrorCode())) {
 				throw new IllegalArgumentException("Failed: User: No client.", e);
 			}
 		}
@@ -363,7 +363,7 @@ public class UserApiTests {
 			throw new IllegalArgumentException("Failed: User: Invalid user.");
 		}
 		catch(RequestErrorException e) {
-			if(! ErrorCodes.USER_INVALID_USERNAME.equals(e.getErrorCode())) {
+			if(! ErrorCode.USER_INVALID_USERNAME.equals(e.getErrorCode())) {
 				throw new IllegalArgumentException("Failed: User: Invalid user.", e);
 			}
 		}
@@ -384,7 +384,7 @@ public class UserApiTests {
 			throw new IllegalArgumentException("Failed: User: Invalid first name when a personal entry doesn't exist.");
 		}
 		catch(RequestErrorException e) {
-			if(! ErrorCodes.USER_INVALID_FIRST_NAME_VALUE.equals(e.getErrorCode())) {
+			if(! ErrorCode.USER_INVALID_FIRST_NAME_VALUE.equals(e.getErrorCode())) {
 				throw new IllegalArgumentException("Failed: User: Invalid first name when a personal entry doesn't exist.", e);
 			}
 		}
@@ -395,7 +395,7 @@ public class UserApiTests {
 			throw new IllegalArgumentException("Failed: User: Invalid last name when a personal entry doesn't exist.");
 		}
 		catch(RequestErrorException e) {
-			if(! ErrorCodes.USER_INVALID_LAST_NAME_VALUE.equals(e.getErrorCode())) {
+			if(! ErrorCode.USER_INVALID_LAST_NAME_VALUE.equals(e.getErrorCode())) {
 				throw new IllegalArgumentException("Failed: User: Invalid last name when a personal entry doesn't exist.", e);
 			}
 		}
@@ -406,7 +406,7 @@ public class UserApiTests {
 			throw new IllegalArgumentException("Failed: User: Invalid organization when a personal entry doesn't exist.");
 		}
 		catch(RequestErrorException e) {
-			if(! ErrorCodes.USER_INVALID_ORGANIZATION_VALUE.equals(e.getErrorCode())) {
+			if(! ErrorCode.USER_INVALID_ORGANIZATION_VALUE.equals(e.getErrorCode())) {
 				throw new IllegalArgumentException("Failed: User: Invalid organization when a personal entry doesn't exist.", e);
 			}
 		}
@@ -417,7 +417,7 @@ public class UserApiTests {
 			throw new IllegalArgumentException("Failed: User: Invalid personal ID when a personal entry doesn't exist.");
 		}
 		catch(RequestErrorException e) {
-			if(! ErrorCodes.USER_INVALID_PERSONAL_ID_VALUE.equals(e.getErrorCode())) {
+			if(! ErrorCode.USER_INVALID_PERSONAL_ID_VALUE.equals(e.getErrorCode())) {
 				throw new IllegalArgumentException("Failed: User: Invalid personal ID when a personal entry doesn't exist.", e);
 			}
 		}
@@ -780,7 +780,7 @@ public class UserApiTests {
 			throw new IllegalArgumentException("Failed: User: Account is disabled and password needs to be changed.");
 		}
 		catch(RequestErrorException e) {
-			if(! ErrorCodes.AUTHENTICATION_FAILED.equals(e.getErrorCode())) {
+			if(! ErrorCode.AUTHENTICATION_FAILED.equals(e.getErrorCode())) {
 				throw new IllegalArgumentException("Failed: User: Account is disabled and password needs to be changed.", e);
 			}
 		}
@@ -792,7 +792,7 @@ public class UserApiTests {
 			throw new IllegalArgumentException("Failed: User: The user shouldn't be able to change their password because their account is disabled.");
 		}
 		catch(RequestErrorException e) {
-			if(! ErrorCodes.AUTHENTICATION_FAILED.equals(e.getErrorCode())) {
+			if(! ErrorCode.AUTHENTICATION_FAILED.equals(e.getErrorCode())) {
 				throw new IllegalArgumentException("Failed: User: The user shouldn't be able to change their password because their account is disabled.", e);
 			}
 		}
@@ -812,7 +812,7 @@ public class UserApiTests {
 			throw new IllegalArgumentException("Failed: User: Password needs to be changed.");
 		}
 		catch(RequestErrorException e) {
-			if(! ErrorCodes.AUTHENTICATION_FAILED.equals(e.getErrorCode())) {
+			if(! ErrorCode.AUTHENTICATION_FAILED.equals(e.getErrorCode())) {
 				throw new IllegalArgumentException("Failed: User: Password needs to be changed.", e);
 			}
 		}
@@ -843,7 +843,7 @@ public class UserApiTests {
 			throw new IllegalArgumentException("Failed: User: No token.");
 		}
 		catch(RequestErrorException e) {
-			if(! ErrorCodes.AUTHENTICATION_FAILED.equals(e.getErrorCode())) {
+			if(! ErrorCode.AUTHENTICATION_FAILED.equals(e.getErrorCode())) {
 				throw new IllegalArgumentException("Failed: User: No token.", e);
 			}
 		}
@@ -854,7 +854,7 @@ public class UserApiTests {
 			throw new IllegalArgumentException("Failed: User: Invalid token.");
 		}
 		catch(RequestErrorException e) {
-			if(! ErrorCodes.AUTHENTICATION_FAILED.equals(e.getErrorCode())) {
+			if(! ErrorCode.AUTHENTICATION_FAILED.equals(e.getErrorCode())) {
 				throw new IllegalArgumentException("Failed: User: Invalid token.", e);
 			}
 		}
@@ -865,7 +865,7 @@ public class UserApiTests {
 			throw new IllegalArgumentException("Failed: User: No client.");
 		}
 		catch(RequestErrorException e) {
-			if(! ErrorCodes.SERVER_INVALID_CLIENT.equals(e.getErrorCode())) {
+			if(! ErrorCode.SERVER_INVALID_CLIENT.equals(e.getErrorCode())) {
 				throw new IllegalArgumentException("Failed: User: No client.", e);
 			}
 		}
@@ -919,7 +919,7 @@ public class UserApiTests {
 			throw new IllegalArgumentException("Failed: User: Non-admin user creating another user.");
 		}
 		catch(RequestErrorException e) {
-			if(! ErrorCodes.USER_INSUFFICIENT_PERMISSIONS.equals(e.getErrorCode())) {
+			if(! ErrorCode.USER_INSUFFICIENT_PERMISSIONS.equals(e.getErrorCode())) {
 				throw new IllegalArgumentException("Failed: User: Non-admin user creating another user.");
 			}
 		}
@@ -959,8 +959,8 @@ public class UserApiTests {
 			throw new IllegalStateException("Failed: User: Username is missing.");
 		}
 		catch(RequestErrorException e) {
-			if(! ErrorCodes.AUTHENTICATION_FAILED.equals(e.getErrorCode())) {
-				throw new IllegalStateException("Failed: User: Username is missing. Expected: " + ErrorCodes.AUTHENTICATION_FAILED, e);
+			if(! ErrorCode.AUTHENTICATION_FAILED.equals(e.getErrorCode())) {
+				throw new IllegalStateException("Failed: User: Username is missing. Expected: " + ErrorCode.AUTHENTICATION_FAILED, e);
 			}
 		}
 
@@ -970,8 +970,8 @@ public class UserApiTests {
 			throw new IllegalStateException("Failed: User: Username is too short.");
 		}
 		catch(RequestErrorException e) {
-			if(! ErrorCodes.AUTHENTICATION_FAILED.equals(e.getErrorCode())) {
-				throw new IllegalStateException("Failed: User: Username is too short. Expected: " + ErrorCodes.USER_INVALID_USERNAME, e);
+			if(! ErrorCode.AUTHENTICATION_FAILED.equals(e.getErrorCode())) {
+				throw new IllegalStateException("Failed: User: Username is too short. Expected: " + ErrorCode.USER_INVALID_USERNAME, e);
 			}
 		}
 		
@@ -981,8 +981,8 @@ public class UserApiTests {
 			throw new IllegalStateException("Failed: User: Username is too long.");
 		}
 		catch(RequestErrorException e) {
-			if(! ErrorCodes.AUTHENTICATION_FAILED.equals(e.getErrorCode())) {
-				throw new IllegalStateException("Failed: User: Username is too long. Expected: " + ErrorCodes.USER_INVALID_USERNAME, e);
+			if(! ErrorCode.AUTHENTICATION_FAILED.equals(e.getErrorCode())) {
+				throw new IllegalStateException("Failed: User: Username is too long. Expected: " + ErrorCode.USER_INVALID_USERNAME, e);
 			}
 		}
 		
@@ -992,8 +992,8 @@ public class UserApiTests {
 			throw new IllegalStateException("Failed: User: Username users invalid character, '#'.");
 		}
 		catch(RequestErrorException e) {
-			if(! ErrorCodes.AUTHENTICATION_FAILED.equals(e.getErrorCode())) {
-				throw new IllegalStateException("Failed: User: Username users invalid character, '#'. Expected: " + ErrorCodes.USER_INVALID_USERNAME, e);
+			if(! ErrorCode.AUTHENTICATION_FAILED.equals(e.getErrorCode())) {
+				throw new IllegalStateException("Failed: User: Username users invalid character, '#'. Expected: " + ErrorCode.USER_INVALID_USERNAME, e);
 			}
 		}
 		
@@ -1004,8 +1004,8 @@ public class UserApiTests {
 			throw new IllegalStateException("Failed: User: Username contains valid characters, but none of the required ones.");
 		}
 		catch(RequestErrorException e) {
-			if(! ErrorCodes.AUTHENTICATION_FAILED.equals(e.getErrorCode())) {
-				throw new IllegalStateException("Failed: User: Username contains valid characters, but none of the required ones. Expected: " + ErrorCodes.USER_INVALID_USERNAME, e);
+			if(! ErrorCode.AUTHENTICATION_FAILED.equals(e.getErrorCode())) {
+				throw new IllegalStateException("Failed: User: Username contains valid characters, but none of the required ones. Expected: " + ErrorCode.USER_INVALID_USERNAME, e);
 			}
 		}
 
@@ -1015,8 +1015,8 @@ public class UserApiTests {
 			throw new IllegalStateException("Failed: User: Password missing.");
 		}
 		catch(RequestErrorException e) {
-			if(! ErrorCodes.AUTHENTICATION_FAILED.equals(e.getErrorCode())) {
-				throw new IllegalStateException("Failed: User: Password missing. Expected: " + ErrorCodes.USER_INVALID_PASSWORD, e);
+			if(! ErrorCode.AUTHENTICATION_FAILED.equals(e.getErrorCode())) {
+				throw new IllegalStateException("Failed: User: Password missing. Expected: " + ErrorCode.USER_INVALID_PASSWORD, e);
 			}
 		}
 
@@ -1026,8 +1026,8 @@ public class UserApiTests {
 			throw new IllegalStateException("Failed: User: Password too short.");
 		}
 		catch(RequestErrorException e) {
-			if(! ErrorCodes.AUTHENTICATION_FAILED.equals(e.getErrorCode())) {
-				throw new IllegalStateException("Failed: User: Password too short. Expected: " + ErrorCodes.USER_INVALID_PASSWORD, e);
+			if(! ErrorCode.AUTHENTICATION_FAILED.equals(e.getErrorCode())) {
+				throw new IllegalStateException("Failed: User: Password too short. Expected: " + ErrorCode.USER_INVALID_PASSWORD, e);
 			}
 		}
 
@@ -1037,8 +1037,8 @@ public class UserApiTests {
 			throw new IllegalStateException("Failed: User: Password too long.");
 		}
 		catch(RequestErrorException e) {
-			if(! ErrorCodes.AUTHENTICATION_FAILED.equals(e.getErrorCode())) {
-				throw new IllegalStateException("Failed: User: Password too long. Expected: " + ErrorCodes.USER_INVALID_PASSWORD, e);
+			if(! ErrorCode.AUTHENTICATION_FAILED.equals(e.getErrorCode())) {
+				throw new IllegalStateException("Failed: User: Password too long. Expected: " + ErrorCode.USER_INVALID_PASSWORD, e);
 			}
 		}
 
@@ -1048,8 +1048,8 @@ public class UserApiTests {
 			throw new IllegalStateException("Failed: User: Password missing lower case character.");
 		}
 		catch(RequestErrorException e) {
-			if(! ErrorCodes.AUTHENTICATION_FAILED.equals(e.getErrorCode())) {
-				throw new IllegalStateException("Failed: User: Password missing lower case character. Expected: " + ErrorCodes.USER_INVALID_PASSWORD, e);
+			if(! ErrorCode.AUTHENTICATION_FAILED.equals(e.getErrorCode())) {
+				throw new IllegalStateException("Failed: User: Password missing lower case character. Expected: " + ErrorCode.USER_INVALID_PASSWORD, e);
 			}
 		}
 
@@ -1059,8 +1059,8 @@ public class UserApiTests {
 			throw new IllegalStateException("Failed: User: Password missing upper case character.");
 		}
 		catch(RequestErrorException e) {
-			if(! ErrorCodes.AUTHENTICATION_FAILED.equals(e.getErrorCode())) {
-				throw new IllegalStateException("Failed: User: Password missing upper case character. Expected: " + ErrorCodes.USER_INVALID_PASSWORD, e);
+			if(! ErrorCode.AUTHENTICATION_FAILED.equals(e.getErrorCode())) {
+				throw new IllegalStateException("Failed: User: Password missing upper case character. Expected: " + ErrorCode.USER_INVALID_PASSWORD, e);
 			}
 		}
 
@@ -1070,8 +1070,8 @@ public class UserApiTests {
 			throw new IllegalStateException("Failed: User: Password missing numeric character.");
 		}
 		catch(RequestErrorException e) {
-			if(! ErrorCodes.AUTHENTICATION_FAILED.equals(e.getErrorCode())) {
-				throw new IllegalStateException("Failed: User: Password missing numeric character. Expected: " + ErrorCodes.USER_INVALID_PASSWORD, e);
+			if(! ErrorCode.AUTHENTICATION_FAILED.equals(e.getErrorCode())) {
+				throw new IllegalStateException("Failed: User: Password missing numeric character. Expected: " + ErrorCode.USER_INVALID_PASSWORD, e);
 			}
 		}
 
@@ -1081,8 +1081,8 @@ public class UserApiTests {
 			throw new IllegalStateException("Failed: User: Password missing special character.");
 		}
 		catch(RequestErrorException e) {
-			if(! ErrorCodes.AUTHENTICATION_FAILED.equals(e.getErrorCode())) {
-				throw new IllegalStateException("Failed: User: Password missing special character. Expected: " + ErrorCodes.USER_INVALID_PASSWORD, e);
+			if(! ErrorCode.AUTHENTICATION_FAILED.equals(e.getErrorCode())) {
+				throw new IllegalStateException("Failed: User: Password missing special character. Expected: " + ErrorCode.USER_INVALID_PASSWORD, e);
 			}
 		}
 
@@ -1092,8 +1092,8 @@ public class UserApiTests {
 			throw new IllegalStateException("Failed: User: Password missing special character.");
 		}
 		catch(RequestErrorException e) {
-			if(! ErrorCodes.SERVER_INVALID_CLIENT.equals(e.getErrorCode())) {
-				throw new IllegalStateException("Failed: User: Password missing special character. Expected: " + ErrorCodes.SERVER_INVALID_CLIENT, e);
+			if(! ErrorCode.SERVER_INVALID_CLIENT.equals(e.getErrorCode())) {
+				throw new IllegalStateException("Failed: User: Password missing special character. Expected: " + ErrorCode.SERVER_INVALID_CLIENT, e);
 			}
 		}
 
@@ -1103,8 +1103,8 @@ public class UserApiTests {
 			throw new IllegalStateException("Failed: User: New password missing.");
 		}
 		catch(RequestErrorException e) {
-			if(! ErrorCodes.USER_INVALID_PASSWORD.equals(e.getErrorCode())) {
-				throw new IllegalStateException("Failed: User: New password missing. Expected: " + ErrorCodes.USER_INVALID_PASSWORD, e);
+			if(! ErrorCode.USER_INVALID_PASSWORD.equals(e.getErrorCode())) {
+				throw new IllegalStateException("Failed: User: New password missing. Expected: " + ErrorCode.USER_INVALID_PASSWORD, e);
 			}
 		}
 
@@ -1114,8 +1114,8 @@ public class UserApiTests {
 			throw new IllegalStateException("Failed: User: New password too short.");
 		}
 		catch(RequestErrorException e) {
-			if(! ErrorCodes.USER_INVALID_PASSWORD.equals(e.getErrorCode())) {
-				throw new IllegalStateException("Failed: User: New password too short. Expected: " + ErrorCodes.USER_INVALID_PASSWORD, e);
+			if(! ErrorCode.USER_INVALID_PASSWORD.equals(e.getErrorCode())) {
+				throw new IllegalStateException("Failed: User: New password too short. Expected: " + ErrorCode.USER_INVALID_PASSWORD, e);
 			}
 		}
 
@@ -1125,8 +1125,8 @@ public class UserApiTests {
 			throw new IllegalStateException("Failed: User: New password too long.");
 		}
 		catch(RequestErrorException e) {
-			if(! ErrorCodes.USER_INVALID_PASSWORD.equals(e.getErrorCode())) {
-				throw new IllegalStateException("Failed: User: New password too long. Expected: " + ErrorCodes.USER_INVALID_PASSWORD, e);
+			if(! ErrorCode.USER_INVALID_PASSWORD.equals(e.getErrorCode())) {
+				throw new IllegalStateException("Failed: User: New password too long. Expected: " + ErrorCode.USER_INVALID_PASSWORD, e);
 			}
 		}
 
@@ -1136,8 +1136,8 @@ public class UserApiTests {
 			throw new IllegalStateException("Failed: User: New password missing lower case character.");
 		}
 		catch(RequestErrorException e) {
-			if(! ErrorCodes.USER_INVALID_PASSWORD.equals(e.getErrorCode())) {
-				throw new IllegalStateException("Failed: User: New password missing lower case character. Expected: " + ErrorCodes.USER_INVALID_PASSWORD, e);
+			if(! ErrorCode.USER_INVALID_PASSWORD.equals(e.getErrorCode())) {
+				throw new IllegalStateException("Failed: User: New password missing lower case character. Expected: " + ErrorCode.USER_INVALID_PASSWORD, e);
 			}
 		}
 
@@ -1147,8 +1147,8 @@ public class UserApiTests {
 			throw new IllegalStateException("Failed: User: New password missing upper case character.");
 		}
 		catch(RequestErrorException e) {
-			if(! ErrorCodes.USER_INVALID_PASSWORD.equals(e.getErrorCode())) {
-				throw new IllegalStateException("Failed: User: New password missing upper case character. Expected: " + ErrorCodes.USER_INVALID_PASSWORD, e);
+			if(! ErrorCode.USER_INVALID_PASSWORD.equals(e.getErrorCode())) {
+				throw new IllegalStateException("Failed: User: New password missing upper case character. Expected: " + ErrorCode.USER_INVALID_PASSWORD, e);
 			}
 		}
 
@@ -1158,8 +1158,8 @@ public class UserApiTests {
 			throw new IllegalStateException("Failed: User: New password missing numeric character.");
 		}
 		catch(RequestErrorException e) {
-			if(! ErrorCodes.USER_INVALID_PASSWORD.equals(e.getErrorCode())) {
-				throw new IllegalStateException("Failed: User: New password missing numeric character. Expected: " + ErrorCodes.USER_INVALID_PASSWORD, e);
+			if(! ErrorCode.USER_INVALID_PASSWORD.equals(e.getErrorCode())) {
+				throw new IllegalStateException("Failed: User: New password missing numeric character. Expected: " + ErrorCode.USER_INVALID_PASSWORD, e);
 			}
 		}
 
@@ -1169,8 +1169,8 @@ public class UserApiTests {
 			throw new IllegalStateException("Failed: User: New password missing special character.");
 		}
 		catch(RequestErrorException e) {
-			if(! ErrorCodes.USER_INVALID_PASSWORD.equals(e.getErrorCode())) {
-				throw new IllegalStateException("Failed: User: New password missing special character. Expected: " + ErrorCodes.USER_INVALID_PASSWORD, e);
+			if(! ErrorCode.USER_INVALID_PASSWORD.equals(e.getErrorCode())) {
+				throw new IllegalStateException("Failed: User: New password missing special character. Expected: " + ErrorCode.USER_INVALID_PASSWORD, e);
 			}
 		}
 		
@@ -1202,7 +1202,7 @@ public class UserApiTests {
 			throw new IllegalStateException("Failed: User: The authentication token was null.");
 		}
 		catch(RequestErrorException e) {
-			if(! ErrorCodes.AUTHENTICATION_FAILED.equals(e.getErrorCode())) {
+			if(! ErrorCode.AUTHENTICATION_FAILED.equals(e.getErrorCode())) {
 				throw new IllegalArgumentException("Failed: User: The authentication token was null.", e);
 			}
 		}
@@ -1213,7 +1213,7 @@ public class UserApiTests {
 			throw new IllegalStateException("Failed: User: The authentication token was invalid.");
 		}
 		catch(RequestErrorException e) {
-			if(! ErrorCodes.AUTHENTICATION_FAILED.equals(e.getErrorCode())) {
+			if(! ErrorCode.AUTHENTICATION_FAILED.equals(e.getErrorCode())) {
 				throw new IllegalArgumentException("Failed: User: The authentication token was invalid.", e);
 			}
 		}
@@ -1224,7 +1224,7 @@ public class UserApiTests {
 			throw new IllegalStateException("Failed: User: The client was null.");
 		}
 		catch(RequestErrorException e) {
-			if(! ErrorCodes.SERVER_INVALID_CLIENT.equals(e.getErrorCode())) {
+			if(! ErrorCode.SERVER_INVALID_CLIENT.equals(e.getErrorCode())) {
 				throw new IllegalArgumentException("Failed: User: The client was null.", e);
 			}
 		}
@@ -1235,7 +1235,7 @@ public class UserApiTests {
 			throw new IllegalStateException("Failed: User: The username list was null.");
 		}
 		catch(RequestErrorException e) {
-			if(! ErrorCodes.USER_INVALID_USERNAME.equals(e.getErrorCode())) {
+			if(! ErrorCode.USER_INVALID_USERNAME.equals(e.getErrorCode())) {
 				throw new IllegalArgumentException("Failed: User: The usernmae list was null.", e);
 			}
 		}

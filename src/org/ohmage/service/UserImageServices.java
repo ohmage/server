@@ -2,7 +2,7 @@ package org.ohmage.service;
 
 import java.util.List;
 
-import org.ohmage.annotator.ErrorCodes;
+import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.domain.campaign.Campaign;
 import org.ohmage.domain.campaign.SurveyResponse;
 import org.ohmage.exception.DataAccessException;
@@ -11,7 +11,6 @@ import org.ohmage.query.CampaignImageQueries;
 import org.ohmage.query.CampaignQueries;
 import org.ohmage.query.UserCampaignQueries;
 import org.ohmage.query.UserImageQueries;
-import org.ohmage.request.Request;
 
 /**
  * This class contains the services that create, read, update, and delete
@@ -29,8 +28,6 @@ public final class UserImageServices {
 	 * Verifies that some photo prompt response exists and the image ID for
 	 * the response is the same as the given image ID.
 	 * 
-	 * @param request The Request that is performing this service.
-	 * 
 	 * @param username The username of the user.
 	 * 
 	 * @param imageId The unique identifier for the image.
@@ -38,23 +35,24 @@ public final class UserImageServices {
 	 * @throws ServiceException Thrown if no such photo prompt response exists
 	 * 							or if there is an error.
 	 */
-	public static void verifyPhotoPromptResponseExistsForUserAndImage(Request request, String username, String imageId) throws ServiceException {
+	public static void verifyPhotoPromptResponseExistsForUserAndImage(
+			final String username, final String imageId) 
+			throws ServiceException {
+		
 		try {
 			if(! UserImageQueries.responseExistsForUserWithImage(username, imageId)) {
-				request.setFailed(ErrorCodes.IMAGE_INVALID_ID, "No such photo prompt response exists with the given image ID.");
-				throw new ServiceException("No such photo prompt response exists with the given image ID.");
+				throw new ServiceException(
+						ErrorCode.IMAGE_INVALID_ID, 
+						"No such photo prompt response exists with the given image ID.");
 			}
 		}
 		catch(DataAccessException e) {
-			request.setFailed();
 			throw new ServiceException(e);
 		}
 	}
 	
 	/**
 	 * Verifies that an user has sufficient permissions to read an image.
-	 * 
-	 * @param request The Request that is performing this service.
 	 * 
 	 * @param requesterUsername The username of the user making this request.
 	 * 
@@ -63,7 +61,9 @@ public final class UserImageServices {
 	 * @throws ServiceException Thrown if the user doesn't have sufficient
 	 * 							permissions to read the image.
 	 */
-	public static void verifyUserCanReadImage(Request request, String requesterUsername, String imageId) throws ServiceException {
+	public static void verifyUserCanReadImage(final String requesterUsername, 
+			final String imageId) throws ServiceException {
+		
 		try {
 			// If it is their own image, they can read it.
 			if(requesterUsername.equals(UserImageQueries.getImageOwner(imageId))) {
@@ -107,11 +107,11 @@ public final class UserImageServices {
 			
 			// If we made it to this point, the requesting user doesn't have
 			// sufficient permissions to read the image.
-			request.setFailed(ErrorCodes.IMAGE_INSUFFICIENT_PERMISSIONS, "The user doesn't have sufficient permissions to read the image.");
-			throw new ServiceException("The user doesn't have sufficient permissions to read the image.");
+			throw new ServiceException(
+					ErrorCode.IMAGE_INSUFFICIENT_PERMISSIONS, 
+					"The user doesn't have sufficient permissions to read the image.");
 		}
 		catch(DataAccessException e) {
-			request.setFailed();
 			throw new ServiceException(e);
 		}
 	}

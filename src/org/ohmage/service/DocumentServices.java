@@ -8,12 +8,11 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
-import org.ohmage.annotator.ErrorCodes;
+import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.domain.Document;
 import org.ohmage.exception.DataAccessException;
 import org.ohmage.exception.ServiceException;
 import org.ohmage.query.DocumentQueries;
-import org.ohmage.request.Request;
 
 /**
  * This class contains the services that pertain to documents.
@@ -28,8 +27,6 @@ public class DocumentServices {
 	
 	/**
 	 * Creates a new document in the database.
-	 * 
-	 * @param request The request that is calling the service.
 	 * 
 	 * @param contents The contents of the new document.
 	 * 
@@ -51,13 +48,17 @@ public class DocumentServices {
 	 * 
 	 * @throws ServiceException Thrown if there is an error.
 	 */
-	public static String createDocument(Request request, byte[] contents, String name, String description, Document.PrivacyState privacyState,
-			Map<String, Document.Role> campaignRoleMap, Map<String, Document.Role> classRoleMap, String creatorUsername) throws ServiceException {
+	public static String createDocument(final byte[] contents, 
+			final String name, final String description, 
+			final Document.PrivacyState privacyState,
+			final Map<String, Document.Role> campaignRoleMap, 
+			final Map<String, Document.Role> classRoleMap, 
+			final String creatorUsername) throws ServiceException {
+		
 		try {
 			return DocumentQueries.createDocument(contents, name, description, privacyState, campaignRoleMap, classRoleMap, creatorUsername);
 		}
 		catch(DataAccessException e) {
-			request.setFailed();
 			throw new ServiceException(e);
 		}
 	}
@@ -65,30 +66,29 @@ public class DocumentServices {
 	/**
 	 * Ensures that a document exists. 
 	 * 
-	 * @param request The request that is performing this service.
-	 * 
 	 * @param documentId The unique document ID for the document in question.
 	 * 
 	 * @throws ServiceException Thrown if the document doesn't exist or there 
 	 * 							is an error.
 	 */
-	public static void ensureDocumentExistence(Request request, String documentId) throws ServiceException {
+	public static void ensureDocumentExistence(final String documentId) 
+			throws ServiceException {
+		
 		try {
 			if(! DocumentQueries.getDocumentExists(documentId)) {
-				request.setFailed(ErrorCodes.DOCUMENT_INVALID_ID, "The document with the given document ID does not exist: " + documentId);
-				throw new ServiceException("The document with the given document ID does not exist: " + documentId);
+				throw new ServiceException(
+						ErrorCode.DOCUMENT_INVALID_ID, 
+						"The document with the given document ID does not exist: " + 
+							documentId);
 			}
 		}
 		catch(DataAccessException e) {
-			request.setFailed();
 			throw new ServiceException(e);
 		}
 	}
 	
 	/**
 	 * Retrieves the document's name.
-	 * 
-	 * @param request The request that wants the document's name.
 	 * 
 	 * @param documentId The unique identifier for the document.
 	 * 
@@ -98,12 +98,13 @@ public class DocumentServices {
 	 * 
 	 * @throws ServiceException Thrown if there is an error.
 	 */
-	public static String getDocumentName(Request request, String documentId) throws ServiceException {
+	public static String getDocumentName(final String documentId) 
+			throws ServiceException {
+		
 		try {
 			return DocumentQueries.getDocumentName(documentId);
 		}
 		catch(DataAccessException e) {
-			request.setFailed();
 			throw new ServiceException(e);
 		}
 	}
@@ -114,8 +115,6 @@ public class DocumentServices {
 	 * attempting to grant or revoke more permissions than they have. If the 
 	 * role is null or not a valid role, this will still succeed if the list of
 	 * roles is empty. If the List is null, it will throw an exception.
-	 * 
-	 * @param request The request that is performing this service.
 	 * 
 	 * @param role The document role that cannot be less than any other roles 
 	 * 			   in the List.
@@ -128,7 +127,9 @@ public class DocumentServices {
 	 * 
 	 * @throws IllegalArgumentException The List of roles is null.
 	 */
-	public static void ensureRoleNotLessThanRoles(Request request, Document.Role role, Collection<Document.Role> roles) throws ServiceException {
+	public static void ensureRoleNotLessThanRoles(final Document.Role role, 
+			final Collection<Document.Role> roles) throws ServiceException {
+		
 		if(roles == null) {
 			throw new IllegalArgumentException("The list of roles is null.");
 		}
@@ -137,26 +138,30 @@ public class DocumentServices {
 			return;
 		}
 		else if(roles.contains(Document.Role.OWNER)) {
-			request.setFailed(ErrorCodes.DOCUMENT_INSUFFICIENT_PERMISSIONS, "The user is attempting to grant or revoke document ownership when they are not an owner themselves.");
-			throw new ServiceException("The user is attempting to grant or revoke document ownership when they are not an owner themselves.");
+			throw new ServiceException(
+					ErrorCode.DOCUMENT_INSUFFICIENT_PERMISSIONS, 
+					"The user is attempting to grant or revoke document ownership when they are not an owner themselves.");
 		}
 		else if(Document.Role.WRITER.equals(role)) {
 			return;
 		}
 		else if(roles.contains(Document.Role.WRITER)) {
-			request.setFailed(ErrorCodes.DOCUMENT_INSUFFICIENT_PERMISSIONS, "The user is attempting to grant or revoke the document write ability when they are not a document writer themselves.");
-			throw new ServiceException("The user is attempting to grant or revoke the document write ability when they are not a document writer themselves.");
+			throw new ServiceException(
+					ErrorCode.DOCUMENT_INSUFFICIENT_PERMISSIONS, 
+					"The user is attempting to grant or revoke the document write ability when they are not a document writer themselves.");
 		}
 		else if(Document.Role.READER.equals(role)) {
 			return;
 		}
 		else if(roles.contains(Document.Role.READER)) {
-			request.setFailed(ErrorCodes.DOCUMENT_INSUFFICIENT_PERMISSIONS, "The user is attempting to grant or revoke the document read ability when they are not a document readers themselves.");
-			throw new ServiceException("The user is attempting to grant or revoke the document read ability when they are not a document readers themselves.");
+			throw new ServiceException(
+					ErrorCode.DOCUMENT_INSUFFICIENT_PERMISSIONS, 
+					"The user is attempting to grant or revoke the document read ability when they are not a document readers themselves.");
 		}
 		else if(roles.size() != 0) {
-			request.setFailed(ErrorCodes.DOCUMENT_INSUFFICIENT_PERMISSIONS, "The user is attempting to grant or revoke permissions when they are not associated with the document.");
-			throw new ServiceException("The user is attempting to grant or revoke permissions when they are not associated with the document.");
+			throw new ServiceException(
+					ErrorCode.DOCUMENT_INSUFFICIENT_PERMISSIONS, 
+					"The user is attempting to grant or revoke permissions when they are not associated with the document.");
 		}
 	}
 	
@@ -164,9 +169,6 @@ public class DocumentServices {
 	 * Retrieves an InputStream to the contents of the document. This may be 
 	 * the contents of any URL, so it should be closed as soon as it is no 
 	 * longer needed.
-	 * 
-	 * @param request The request that is requesting an InputStream to a 
-	 * 				  document.
 	 * 
 	 * @param documentId The document's unique identifier.
 	 * 
@@ -176,21 +178,20 @@ public class DocumentServices {
 	 * 							document's URL or if there is an issue opening
 	 * 							the connection or InputStream.
 	 */
-	public static InputStream getDocumentInputStream(Request request, String documentId) throws ServiceException {
+	public static InputStream getDocumentInputStream(final String documentId) 
+			throws ServiceException {
+		
 		try {
 			return (new URL(DocumentQueries.getDocumentUrl(documentId))).openConnection().getInputStream();
 			
 		}
 		catch(DataAccessException e) {
-			request.setFailed();
 			throw new ServiceException(e);
 		}
 		catch(MalformedURLException e) {
-			request.setFailed();
 			throw new ServiceException(e);
 		}
 		catch(IOException e) {
-			request.setFailed();
 			throw new ServiceException(e);
 		}
 	}
@@ -199,8 +200,6 @@ public class DocumentServices {
 	 * Updates a document's information and/or contents. Except for the 
 	 * 'request' and the 'documentId', any parameter can be null indicating
 	 * that its value should not be updated.
-	 * 
-	 * @param request The Request that is performing this update.
 	 * 
 	 * @param documentId The unique identifier for the document to be updated.
 	 * 
@@ -242,11 +241,18 @@ public class DocumentServices {
 	 * 
 	 * @throws ServiceException Thrown if there is an error.
 	 */
-	public static void updateDocument(Request request, String documentId, byte[] newContents, String newName, String newDescription, 
-			Document.PrivacyState newPrivacyState,
-			Map<String, Document.Role> campaignAndRolesToAssociateOrUpdate, List<String> campaignsToDisassociate,
-			Map<String, Document.Role> classAndRolesToAssociateOrUpdate, Collection<String> classesToDisassociate,
-			Map<String, Document.Role> userAndRolesToAssociateOrUpdate, Collection<String> usersToDisassoicate) throws ServiceException {
+	public static void updateDocument(final String documentId, 
+			final byte[] newContents, final String newName, 
+			final String newDescription, 
+			final Document.PrivacyState newPrivacyState,
+			final Map<String, Document.Role> campaignAndRolesToAssociateOrUpdate, 
+			final List<String> campaignsToDisassociate,
+			final Map<String, Document.Role> classAndRolesToAssociateOrUpdate, 
+			final Collection<String> classesToDisassociate,
+			final Map<String, Document.Role> userAndRolesToAssociateOrUpdate, 
+			final Collection<String> usersToDisassoicate) 
+			throws ServiceException {
+		
 		try {
 			DocumentQueries.updateDocument(documentId, newContents, newName, newDescription, newPrivacyState, 
 					campaignAndRolesToAssociateOrUpdate, campaignsToDisassociate, 
@@ -254,7 +260,6 @@ public class DocumentServices {
 					userAndRolesToAssociateOrUpdate, usersToDisassoicate);
 		}
 		catch(DataAccessException e) {
-			request.setFailed();
 			throw new ServiceException(e);
 		}
 	}
@@ -262,18 +267,17 @@ public class DocumentServices {
 	/**
 	 * Deletes a document.
 	 * 
-	 * @param request The request that is attempting to delete the document.
-	 * 
 	 * @param documentId The unique ID for the document to be deleted.
 	 * 
 	 * @throws ServiceException Thrown if there is an error.
 	 */
-	public static void deleteDocument(Request request, String documentId) throws ServiceException {
+	public static void deleteDocument(final String documentId) 
+			throws ServiceException {
+		
 		try {
 			DocumentQueries.deleteDocument(documentId);
 		}
 		catch(DataAccessException e) {
-			request.setFailed();
 			throw new ServiceException(e);
 		}
 	}

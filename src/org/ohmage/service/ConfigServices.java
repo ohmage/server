@@ -5,7 +5,6 @@ import org.ohmage.domain.ServerConfig;
 import org.ohmage.domain.campaign.SurveyResponse;
 import org.ohmage.exception.CacheMissException;
 import org.ohmage.exception.ServiceException;
-import org.ohmage.request.Request;
 
 /**
  * This class contains the services that pertain to the server's configuration.
@@ -22,14 +21,12 @@ public class ConfigServices {
 	 * Creates a server configuration object to hold the server's 
 	 * configuration.
 	 * 
-	 * @param request The Request using this service.
-	 * 
 	 * @return A ServerConfig object representing the server's configuration.
 	 * 
 	 * @throws ServiceException Thrown if there is an error reading from the
 	 * 							cache or decoding a value from it.
 	 */
-	public static ServerConfig readServerConfiguration(final Request request) 
+	public static ServerConfig readServerConfiguration() 
 			throws ServiceException {
 		
 		PreferenceCache instance = PreferenceCache.instance();
@@ -39,7 +36,6 @@ public class ConfigServices {
 			appName = instance.lookup(PreferenceCache.KEY_APPLICATION_NAME); 
 		}
 		catch(CacheMissException e) {
-			request.setFailed();
 			throw new ServiceException("The application name was unknown.", e);
 		}
 		
@@ -48,7 +44,6 @@ public class ConfigServices {
 			appVersion = instance.lookup(PreferenceCache.KEY_APPLICATION_VERSION); 
 		}
 		catch(CacheMissException e) {
-			request.setFailed();
 			throw new ServiceException("The application version was unknown.", e);
 		}
 		
@@ -57,7 +52,6 @@ public class ConfigServices {
 			appBuild = instance.lookup(PreferenceCache.KEY_APPLICATION_BUILD); 
 		}
 		catch(CacheMissException e) {
-			request.setFailed();
 			throw new ServiceException("The application build was unknown.", e);
 		}
 		
@@ -69,11 +63,9 @@ public class ConfigServices {
 					); 
 		}
 		catch(CacheMissException e) {
-			request.setFailed();
 			throw new ServiceException("The application name was unknown.", e);
 		}
 		catch(IllegalArgumentException e) {
-			request.setFailed();
 			throw new ServiceException("The survey response privacy state is not a valid survey response privacy state.");
 		}
 		
@@ -88,11 +80,9 @@ public class ConfigServices {
 					);
 		}
 		catch(CacheMissException e) {
-			request.setFailed();
 			throw new ServiceException("The default campaign creation privilege was unknown.", e);
 		}
 		catch(IllegalArgumentException e) {
-			request.setFailed();
 			throw new ServiceException("The default campaign creation privilege was not a valid boolean.", e);
 		}
 		

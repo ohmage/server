@@ -3,12 +3,11 @@ package org.ohmage.service;
 import java.util.Collection;
 import java.util.List;
 
-import org.ohmage.annotator.ErrorCodes;
+import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.domain.Document;
 import org.ohmage.exception.DataAccessException;
 import org.ohmage.exception.ServiceException;
 import org.ohmage.query.CampaignDocumentQueries;
-import org.ohmage.request.Request;
 
 /**
  * This class contains the services that pertain to campaign-document 
@@ -25,28 +24,25 @@ public class CampaignDocumentServices {
 	/**
 	 * Retrieves a List of campaign IDs that are associated with a document.
 	 * 
-	 * @param request The Request that is performing this service.
-	 * 
 	 * @param documentId The document's unique identifier.
 	 * 
 	 * @return A List of campaign unique identifiers.
 	 * 
 	 * @throws ServiceException Thrown if there is an error.
 	 */
-	public static List<String> getCampaignsAssociatedWithDocument(Request request, String documentId) throws ServiceException {
+	public static List<String> getCampaignsAssociatedWithDocument(
+			final String documentId) throws ServiceException {
+		
 		try {
 			return CampaignDocumentQueries.getCampaignsAssociatedWithDocument(documentId);
 		}
 		catch(DataAccessException e) {
-			request.setFailed();
 			throw new ServiceException(e);
 		}
 	}
 	
 	/**
 	 * Returns the document role for a given document with a given campaign.
-	 * 
-	 * @param request The Request performing this service.
 	 * 
 	 * @param campaignId The campaign's unique identifier.
 	 * 
@@ -57,12 +53,14 @@ public class CampaignDocumentServices {
 	 * 
 	 * @throws ServiceException Thrown if there is an error.
 	 */
-	public static Document.Role getDocumentRoleForCampaign(Request request, String campaignId, String documentId) throws ServiceException {
+	public static Document.Role getDocumentRoleForCampaign(
+			final String campaignId, final String documentId) 
+			throws ServiceException {
+		
 		try {
 			return CampaignDocumentQueries.getCampaignDocumentRole(campaignId, documentId);
 		}
 		catch(DataAccessException e) {
-			request.setFailed();
 			throw new ServiceException(e);
 		}
 	}
@@ -70,8 +68,6 @@ public class CampaignDocumentServices {
 	/**
 	 * Verifies that a given role has enough permissions to disassociate a
 	 * document and a campaign based on the campaign's role with the document.
-	 * 
-	 * @param request The Request that is performing this service.
 	 * 
 	 * @param role The maximum role of the user that is attempting to 
 	 * 			   disassociate the campaign and document. 
@@ -83,12 +79,20 @@ public class CampaignDocumentServices {
 	 * @throws ServiceException Thrown if the role is not high enough to
 	 * 							disassociate the campaign and document.
 	 */
-	public static void ensureRoleHighEnoughToDisassociateDocumentFromCampaign(Request request, Document.Role role, String campaignId, String documentId) throws ServiceException {
-		Document.Role campaignDocumentRole = getDocumentRoleForCampaign(request, campaignId, documentId);
+	public static void ensureRoleHighEnoughToDisassociateDocumentFromCampaign(
+			final Document.Role role, final String campaignId, 
+			final String documentId) throws ServiceException {
+		
+		Document.Role campaignDocumentRole = getDocumentRoleForCampaign(campaignId, documentId);
 		
 		if(role.compare(campaignDocumentRole) < 0) {
-			request.setFailed(ErrorCodes.DOCUMENT_INSUFFICIENT_PERMISSIONS, "Insufficient permissions to disassociate the document '" + documentId + "' with the campaign '" + campaignId + "' as the campaign has a higher role.");
-			throw new ServiceException("Insufficient permissions to disassociate the document '" + documentId + "' with the campaign '" + campaignId + "' as the campaign has a higher role.");
+			throw new ServiceException(
+					ErrorCode.DOCUMENT_INSUFFICIENT_PERMISSIONS, 
+					"Insufficient permissions to disassociate the document '" +
+						documentId + 
+						"' with the campaign '" + 
+						campaignId + 
+						"' as the campaign has a higher role.");
 		}
 	}
 	
@@ -96,8 +100,6 @@ public class CampaignDocumentServices {
 	 * Verifies that a given role has enough permissions to disassociate a
 	 * document and each of the campaigns in a collection based on the 
 	 * campaigns' individual roles with the document.
-	 * 
-	 * @param request The Request that is performing this service.
 	 * 
 	 * @param role The maximum role of the user that is attempting to 
 	 * 			   disassociate the campaigns and document. 
@@ -109,9 +111,12 @@ public class CampaignDocumentServices {
 	 * @throws ServiceException Thrown if the role is not high enough to
 	 * 							disassociate a campaign and document.
 	 */
-	public static void ensureRoleHighEnoughToDisassociateDocumentFromCampaigns(Request request, Document.Role role, Collection<String> campaignIds, String documentId) throws ServiceException {
+	public static void ensureRoleHighEnoughToDisassociateDocumentFromCampaigns(
+			final Document.Role role, final Collection<String> campaignIds, 
+			final String documentId) throws ServiceException {
+		
 		for(String campaignId : campaignIds) {
-			ensureRoleHighEnoughToDisassociateDocumentFromCampaign(request, role, campaignId, documentId);
+			ensureRoleHighEnoughToDisassociateDocumentFromCampaign(role, campaignId, documentId);
 		}
 	}
 }

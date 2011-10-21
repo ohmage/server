@@ -5,11 +5,10 @@ import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 
-import org.ohmage.annotator.ErrorCodes;
+import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.exception.DataAccessException;
 import org.ohmage.exception.ServiceException;
 import org.ohmage.query.ImageQueries;
-import org.ohmage.request.Request;
 import org.ohmage.validator.ImageValidators.ImageSize;
 
 /**
@@ -30,8 +29,6 @@ public final class ImageServices {
 	 * Checks if an image exists or not and compares that to whether or not it
 	 * should exist.
 	 * 
-	 * @param request The Request that is performing this service.
-	 * 
 	 * @param imageId The unique identifier for the image.
 	 * 
 	 * @param shouldExist Whether or not the image should exist.
@@ -40,29 +37,30 @@ public final class ImageServices {
 	 * 							should or does exist and it should not, or if
 	 * 							there is an error.
 	 */
-	public static void verifyImageExistance(Request request, String imageId, boolean shouldExist) throws ServiceException {
+	public static void verifyImageExistance(final String imageId, 
+			final boolean shouldExist) throws ServiceException {
+		
 		try {
 			Boolean imageExists = ImageQueries.getImageExists(imageId);
 			
 			if(imageExists && (! shouldExist)) {
-				request.setFailed(ErrorCodes.IMAGE_INVALID_ID, "The image already exists.");
-				throw new ServiceException("The image already exists.");
+				throw new ServiceException(
+						ErrorCode.IMAGE_INVALID_ID, 
+						"The image already exists.");
 			}
 			else if((! imageExists) && shouldExist) {
-				request.setFailed(ErrorCodes.IMAGE_INVALID_ID, "The image does not exist.");
-				throw new ServiceException("The image does not exist.");
+				throw new ServiceException(
+						ErrorCode.IMAGE_INVALID_ID, 
+						"The image does not exist.");
 			}
 		}
 		catch(DataAccessException e) {
-			request.setFailed();
 			throw new ServiceException(e);
 		}
 	}
 	
 	/**
 	 * Retrieves an InputStream connected to the image.
-	 * 
-	 * @param request The Request that is performing this service.
 	 * 
 	 * @param imageId The image's unique identifier.
 	 * 
@@ -75,7 +73,9 @@ public final class ImageServices {
 	 * 							malformed, or there is an error connecting to
 	 * 							them.
 	 */
-	public static InputStream getImage(Request request, String imageId, ImageSize size) throws ServiceException {
+	public static InputStream getImage(final String imageId, 
+			final ImageSize size) throws ServiceException {
+		
 		try {
 			String imageUrl = ImageQueries.getImageUrl(imageId);
 			
@@ -99,15 +99,12 @@ public final class ImageServices {
 			return (new URL(imageUrl)).openConnection().getInputStream();
 		}
 		catch(DataAccessException e) {
-			request.setFailed();
 			throw new ServiceException(e);
 		}
 		catch(MalformedURLException e) {
-			request.setFailed();
 			throw new ServiceException("The stored URL invalid.", e);
 		}
 		catch(IOException e) {
-			request.setFailed();
 			throw new ServiceException("The URL could not be read.", e);
 		}
 	}

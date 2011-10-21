@@ -6,7 +6,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import org.ohmage.annotator.ErrorCodes;
+import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.domain.campaign.SurveyResponse;
 import org.ohmage.domain.campaign.SurveyResponse.ColumnKey;
 import org.ohmage.domain.campaign.SurveyResponse.Function;
@@ -14,7 +14,6 @@ import org.ohmage.domain.campaign.SurveyResponse.OutputFormat;
 import org.ohmage.domain.campaign.SurveyResponse.SortParameter;
 import org.ohmage.exception.ValidationException;
 import org.ohmage.request.InputKeys;
-import org.ohmage.request.Request;
 import org.ohmage.request.survey.SurveyResponseReadRequest;
 import org.ohmage.util.StringUtils;
 
@@ -33,13 +32,13 @@ public final class SurveyResponseValidators {
 	/**
 	 * Validates a string representing a list of survey IDs.
 	 * 
-	 * @param request The Request that is performing this validation.
-	 * 
 	 * @param surveyIds The string list of survey IDs.
 	 * 
 	 * @return A Set of unique survey IDs.
 	 */
-	public static Set<String> validateSurveyIds(final Request request, final String surveyIds) throws ValidationException {
+	public static Set<String> validateSurveyIds( final String surveyIds) 
+			throws ValidationException {
+		
 		if(StringUtils.isEmptyOrWhitespaceOnly(surveyIds)) {
 			return null;
 		}
@@ -61,25 +60,25 @@ public final class SurveyResponseValidators {
 	/**
 	 * Validates a string representing a list of prompt response IDs.
 	 * 
-	 * @param request The Request that is performing this validation.
-	 * 
 	 * @param promptIds The string list of prompt IDs.
 	 * 
 	 * @return A Set of unique prompt IDs.
 	 */
-	public static Set<String> validatePromptIds(final Request request, final String promptIds) throws ValidationException {
+	public static Set<String> validatePromptIds(final String promptIds) 
+			throws ValidationException {
+		
 		if(StringUtils.isEmptyOrWhitespaceOnly(promptIds)) {
 			return null;
 		}
 		
 		Set<String> result = new HashSet<String>();
-		String[] surveyIdsArray = promptIds.split(InputKeys.LIST_ITEM_SEPARATOR);
+		String[] promptIdsArray = promptIds.split(InputKeys.LIST_ITEM_SEPARATOR);
 		
-		for(int i = 0; i < surveyIdsArray.length; i++) {
-			String currSurveyId = surveyIdsArray[i].trim();
+		for(int i = 0; i < promptIdsArray.length; i++) {
+			String currPromptId = promptIdsArray[i].trim();
 			
-			if(! StringUtils.isEmptyOrWhitespaceOnly(currSurveyId)) {
-				result.add(currSurveyId);
+			if(! StringUtils.isEmptyOrWhitespaceOnly(currPromptId)) {
+				result.add(currPromptId);
 			}
 		}
 		
@@ -89,8 +88,6 @@ public final class SurveyResponseValidators {
 	/**
 	 * Validates that a survey database ID is a valid survey database ID.
 	 * 
-	 * @param request The Request performing this validation.
-	 * 
 	 * @param surveyId A survey ID as a string to be validated.
 	 * 
 	 * @return Returns the survey ID or null if it was null or whitespace.
@@ -99,7 +96,9 @@ public final class SurveyResponseValidators {
 	 * 							   whitespace only, and not valid.
 	 */
 	// TODO: Rename to validateSurveyResponseId
-	public static Long validateSurveyDbId(Request request, String surveyId) throws ValidationException {
+	public static Long validateSurveyResponseId(final String surveyId) 
+			throws ValidationException {
+		
 		if(StringUtils.isEmptyOrWhitespaceOnly(surveyId)) {
 			return null;
 		}
@@ -110,15 +109,14 @@ public final class SurveyResponseValidators {
 			return Long.decode(surveyId);
 		}
 		catch(NumberFormatException e) {
-			request.setFailed(ErrorCodes.SURVEY_INVALID_SURVEY_ID, "Invalid survey ID given: " + surveyId);
-			throw new ValidationException("Invalid survey ID given: " + surveyId);
+			throw new ValidationException(
+					ErrorCode.SURVEY_INVALID_SURVEY_ID, 
+					"Invalid survey ID given: " + surveyId);
 		}
 	}
 	
 	/**
 	 * Validates that a privacy state is a valid survey response privacy state.
-	 * 
-	 * @param request The Request that is performing this validation.
 	 * 
 	 * @param privacyState The privacy state to be validated.
 	 * 
@@ -129,7 +127,9 @@ public final class SurveyResponseValidators {
 	 * 							   whitespace only, and not a valid survey 
 	 * 							   response privacy state.
 	 */
-	public static SurveyResponse.PrivacyState validatePrivacyState(Request request, String privacyState) throws ValidationException {
+	public static SurveyResponse.PrivacyState validatePrivacyState(
+			final String privacyState) throws ValidationException {
+		
 		if(StringUtils.isEmptyOrWhitespaceOnly(privacyState)) {
 			return null;
 		}
@@ -138,16 +138,15 @@ public final class SurveyResponseValidators {
 			return SurveyResponse.PrivacyState.getValue(privacyState);
 		}
 		catch(IllegalArgumentException e) {
-			request.setFailed(ErrorCodes.SURVEY_INVALID_PRIVACY_STATE, "The privacy state is unknown: " + privacyState);
-			throw new ValidationException("The privacy state is unknown: " + privacyState);
+			throw new ValidationException(
+					ErrorCode.SURVEY_INVALID_PRIVACY_STATE, 
+					"The privacy state is unknown: " + privacyState);
 		}
 	}
 	
 	/**
 	 * Validates that a set of usernames is either the special URN value or is 
 	 * a valid list of usernames.
-	 * 
-	 * @param request The Request that is performing this validation.
 	 * 
 	 * @param usernames The usernames list as a string.
 	 * 
@@ -157,7 +156,9 @@ public final class SurveyResponseValidators {
 	 * @throws ValidationException Thrown if the usernames string listcontains 
 	 * 							   a username that is invalid.
 	 */
-	public static Set<String> validateUsernames(final Request request, final String usernames) throws ValidationException {
+	public static Set<String> validateUsernames(final String usernames) 
+			throws ValidationException {
+		
 		if(StringUtils.isEmptyOrWhitespaceOnly(usernames)) {
 			return null;
 		}
@@ -171,14 +172,12 @@ public final class SurveyResponseValidators {
 			}
 		}
 		
-		return UserValidators.validateUsernames(request, usernames);
+		return UserValidators.validateUsernames(usernames);
 	}
 	
 	/**
 	 * Validates that the column list string contains only valid column keys or
 	 * none at all. 
-	 * 
-	 * @param request The Request that is performing this validation.
 	 * 
 	 * @param columnList The column list as a string.
 	 * 
@@ -189,7 +188,9 @@ public final class SurveyResponseValidators {
 	 *  
 	 * @throws ValidationException Thrown if an unknown key is found.
 	 */
-	public static Set<SurveyResponse.ColumnKey> validateColumnList(final Request request, final String columnList) throws ValidationException {
+	public static Set<SurveyResponse.ColumnKey> validateColumnList(
+			final String columnList) throws ValidationException {
+		
 		if(StringUtils.isEmptyOrWhitespaceOnly(columnList)) {
 			return null;
 		}
@@ -225,8 +226,11 @@ public final class SurveyResponseValidators {
 					// It is not the special key and wasn't a known key, so 
 					// throw an exception.
 					else {
-						request.setFailed(ErrorCodes.SURVEY_MALFORMED_COLUMN_LIST, "The column list contains an unknown value: " + currValue);
-						throw new ValidationException("The column list contains an unknown value: " + currValue, e);
+						throw new ValidationException(
+								ErrorCode.SURVEY_MALFORMED_COLUMN_LIST, 
+								"The column list contains an unknown value: " +
+									currValue, 
+								e);
 					}
 				}
 			}
@@ -238,8 +242,6 @@ public final class SurveyResponseValidators {
 	/**
 	 * Validates that a string value represents a known output format value.
 	 * 
-	 * @param request The Request that is performing this validation.
-	 * 
 	 * @param outputFormat The output format as a string.
 	 * 
 	 * @return An OutputFormat object, or null if the output format string was
@@ -247,7 +249,9 @@ public final class SurveyResponseValidators {
 	 * 
 	 * @throws ValidationException Thrown if the output format is unknown.
 	 */
-	public static OutputFormat validateOutputFormat(final Request request, final String outputFormat) throws ValidationException {
+	public static OutputFormat validateOutputFormat(final String outputFormat) 
+			throws ValidationException {
+		
 		if(StringUtils.isEmptyOrWhitespaceOnly(outputFormat)) {
 			return null;
 		}
@@ -256,16 +260,15 @@ public final class SurveyResponseValidators {
 			return OutputFormat.getValue(outputFormat);
 		}
 		catch(IllegalArgumentException e) {
-			request.setFailed(ErrorCodes.SURVEY_INVALID_OUTPUT_FORMAT, "The output format is unknown: " + outputFormat);
-			throw new ValidationException("The output format is unknown: " + outputFormat);
+			throw new ValidationException(
+					ErrorCode.SURVEY_INVALID_OUTPUT_FORMAT, 
+					"The output format is unknown: " + outputFormat);
 		}
 	}
 	
 	/**
 	 * Validates that a list of sort order values contains all of the required
 	 * values with no duplicates or is empty.
-	 * 
-	 * @param request The Request that is performing this validation.
 	 * 
 	 * @param sortOrder The sort order values as a string.
 	 * 
@@ -277,7 +280,9 @@ public final class SurveyResponseValidators {
 	 * 							   multiple times, or if all of the known sort
 	 * 							   order values weren't given.
 	 */
-	public static List<SortParameter> validateSortOrder(final Request request, final String sortOrder) throws ValidationException {
+	public static List<SortParameter> validateSortOrder(final String sortOrder)
+			throws ValidationException {
+		
 		if(StringUtils.isEmptyOrWhitespaceOnly(sortOrder)) {
 			return null;
 		}
@@ -291,13 +296,17 @@ public final class SurveyResponseValidators {
 				currSortParameter = SortParameter.getValue(sortOrderArray[i].trim());
 			}
 			catch(IllegalArgumentException e) {
-				request.setFailed(ErrorCodes.SURVEY_INVALID_SORT_ORDER, "An unknown sort order value was given: " + sortOrderArray[i]);
-				throw new ValidationException("An unknown sort order value was given: " + sortOrderArray[i]);
+				throw new ValidationException(
+						ErrorCode.SURVEY_INVALID_SORT_ORDER, 
+						"An unknown sort order value was given: " + 
+							sortOrderArray[i]);
 			}
 			
 			if(result.contains(currSortParameter)) {
-				request.setFailed(ErrorCodes.SURVEY_INVALID_SORT_ORDER, "The same sort order value was given multiple times: " + currSortParameter.toString());
-				throw new ValidationException("The same sort order value was given multiple times: " + currSortParameter.toString());
+				throw new ValidationException(
+						ErrorCode.SURVEY_INVALID_SORT_ORDER, 
+						"The same sort order value was given multiple times: " + 
+							currSortParameter.toString());
 			}
 			else {
 				result.add(currSortParameter);
@@ -305,8 +314,13 @@ public final class SurveyResponseValidators {
 		}
 		
 		if(result.size() != SortParameter.values().length) {
-			request.setFailed(ErrorCodes.SURVEY_INVALID_SORT_ORDER, "There are " + SortParameter.values().length + " sort order values and " + result.size() + " were given.");
-			throw new ValidationException("There are " + SortParameter.values().length + " sort order values and " + result.size() + " were given.");
+			throw new ValidationException(
+					ErrorCode.SURVEY_INVALID_SORT_ORDER, 
+					"There are " + 
+						SortParameter.values().length + 
+						" sort order values and " + 
+						result.size() + 
+						" were given.");
 		}
 		
 		return result;
@@ -314,8 +328,6 @@ public final class SurveyResponseValidators {
 	
 	/**
 	 * Validates that a function ID is a known function ID and returns it.
-	 * 
-	 * @param request The Request that is performing this validation.
 	 * 
 	 * @param function The function ID as a string.
 	 * 
@@ -326,7 +338,9 @@ public final class SurveyResponseValidators {
 	 * 							   whitespace only, and not a valid function 
 	 * 							   ID.
 	 */
-	public static Function validateFunction(Request request, String function) throws ValidationException {
+	public static Function validateFunction(final String function) 
+			throws ValidationException {
+		
 		if(StringUtils.isEmptyOrWhitespaceOnly(function)) {
 			return null;
 		}
@@ -335,15 +349,15 @@ public final class SurveyResponseValidators {
 			return Function.valueOf(function.toUpperCase());
 		}
 		catch(IllegalArgumentException e) {
-			request.setFailed(ErrorCodes.SURVEY_INVALID_SURVEY_FUNCTION_ID, "The survey response function ID is unknown: " + function);
-			throw new ValidationException("The survey response function ID is unknown: " + function);
+			throw new ValidationException(
+					ErrorCode.SURVEY_INVALID_SURVEY_FUNCTION_ID, 
+					"The survey response function ID is unknown: " + 
+						function);
 		}
 	}
 	
 	/**
 	 * Validates that a date is a valid Date and returns it.
-	 * 
-	 * @param request The Request that is performing this validation.
 	 * 
 	 * @param startDate The start date to be validated and decoded into a Date
 	 * 					object.
@@ -354,7 +368,9 @@ public final class SurveyResponseValidators {
 	 * @throws ValidationException Thrown if the start date was not null, not
 	 * 							   whitespace only, and not a valid date.
 	 */
-	public static Date validateStartDate(Request request, String startDate) throws ValidationException {
+	public static Date validateStartDate(final String startDate) 
+			throws ValidationException {
+		
 		if(StringUtils.isEmptyOrWhitespaceOnly(startDate)) {
 			return null;
 		}
@@ -365,8 +381,10 @@ public final class SurveyResponseValidators {
 		}
 		
 		if(result == null) {
-			request.setFailed(ErrorCodes.SERVER_INVALID_DATE, "The start date was unknown: " + startDate);
-			throw new ValidationException("The start date was unknown: " + startDate);
+			throw new ValidationException(
+					ErrorCode.SERVER_INVALID_DATE, 
+					"The start date was unknown: " + 
+						startDate);
 		}
 		else {
 			return result;
@@ -375,8 +393,6 @@ public final class SurveyResponseValidators {
 	
 	/**
 	 * Validates that a date is a valid Date and returns it.
-	 * 
-	 * @param request The Request that is performing this validation.
 	 * 
 	 * @param endDate The end date to be validated and decoded into a Date
 	 * 				  object.
@@ -387,7 +403,9 @@ public final class SurveyResponseValidators {
 	 * @throws ValidationException Thrown if the end date was not null, not
 	 * 							   whitespace only, and not a valid date.
 	 */
-	public static Date validateEndDate(Request request, String endDate) throws ValidationException {
+	public static Date validateEndDate(final String endDate) 
+			throws ValidationException {
+		
 		if(StringUtils.isEmptyOrWhitespaceOnly(endDate)) {
 			return null;
 		}
@@ -398,8 +416,10 @@ public final class SurveyResponseValidators {
 		}
 		
 		if(result == null) {
-			request.setFailed(ErrorCodes.SERVER_INVALID_DATE, "The end date was unknown: " + endDate);
-			throw new ValidationException("The end date was unknown: " + endDate);
+			throw new ValidationException(
+					ErrorCode.SERVER_INVALID_DATE, 
+					"The end date was unknown: " + 
+						endDate);
 		}
 		else {
 			return result;
@@ -409,54 +429,66 @@ public final class SurveyResponseValidators {
 	/**
 	 * Validates the optional suppressMetadata boolean.
 	 * 
-	 * @param request  The request to fail should suppressMetadata be invalid.
 	 * @param suppressMetadata  The value to validate.
 	 * @return  the Boolean equivalent of suppressMetadata 
 	 * @throws ValidationException if suppressMetadata is not null and non-boolean.
 	 * @throws IllegalArgumentException if the request is null
 	 */
-	public static Boolean validateSuppressMetadata(Request request, String suppressMetadata) throws ValidationException {
+	public static Boolean validateSuppressMetadata(
+			final String suppressMetadata) throws ValidationException {
 		
-		return validateOptionalBoolean(request, suppressMetadata, ErrorCodes.SURVEY_INVALID_SUPPRESS_METADATA_VALUE, "The suppress metadata value is invalid: ");
+		return validateOptionalBoolean(
+				suppressMetadata, 
+				ErrorCode.SURVEY_INVALID_SUPPRESS_METADATA_VALUE, 
+				"The suppress metadata value is invalid: ");
 	}
 
 	/**
 	 * Validates the optional returnId boolean.
 	 * 
-	 * @param request  The request to fail should returnId be invalid.
 	 * @param returnId  The value to validate.
 	 * @return  the Boolean equivalent of returnId 
 	 * @throws ValidationException if returnId is not null and non-boolean.
 	 */
-	public static Boolean validateReturnId(Request request, String returnId) throws ValidationException {
+	public static Boolean validateReturnId(final String returnId) 
+			throws ValidationException {
 		
-		return validateOptionalBoolean(request, returnId, ErrorCodes.SURVEY_INVALID_RETURN_ID, "The return ID value is invalid: ");
+		return validateOptionalBoolean(
+				returnId, 
+				ErrorCode.SURVEY_INVALID_RETURN_ID, 
+				"The return ID value is invalid: ");
 	}
 
 	/**
 	 * Validates the optional prettyPrint boolean.
 	 * 
-	 * @param request  The request to fail should prettyPrint be invalid.
 	 * @param returnId  The value to validate.
 	 * @return  the Boolean equivalent of prettyPrint 
 	 * @throws ValidationException if prettyPrint is not null and non-boolean.
 	 */
-	public static Boolean validatePrettyPrint(Request request, String prettyPrint) throws ValidationException {
+	public static Boolean validatePrettyPrint(final String prettyPrint) 
+			throws ValidationException {
 		
-		return validateOptionalBoolean(request, prettyPrint, ErrorCodes.SURVEY_INVALID_PRETTY_PRINT_VALUE, "The pretty print value is invalid: ");
+		return validateOptionalBoolean(
+				prettyPrint, 
+				ErrorCode.SURVEY_INVALID_PRETTY_PRINT_VALUE, 
+				"The pretty print value is invalid: ");
 	}
 	
 	/**
 	 * Validates the optional collapse boolean.
 	 * 
-	 * @param request  The request to fail should collapse be invalid.
 	 * @param returnId  The value to validate.
 	 * @return  the Boolean equivalent of collapse 
 	 * @throws ValidationException if collapse is not null and non-boolean.
 	 */
-	public static Boolean validateCollapse(Request request, String collapse) throws ValidationException {
+	public static Boolean validateCollapse(final String collapse) 
+			throws ValidationException {
 		
-		return validateOptionalBoolean(request, collapse, ErrorCodes.SURVEY_INVALID_COLLAPSE_VALUE, "The collapse value is invalid: ");
+		return validateOptionalBoolean(
+				collapse, 
+				ErrorCode.SURVEY_INVALID_COLLAPSE_VALUE, 
+				"The collapse value is invalid: ");
 	}
 
 
@@ -464,7 +496,6 @@ public final class SurveyResponseValidators {
 	 * Utility for validating optional booleans where booleans must adhere to
 	 * the strict values of "true" or "false" if the booleanString is not null.
 	 * 
-	 * @param request The request to fail should the booleanString be invalid.
 	 * @param booleanString  The string to validate.
 	 * @param errorCode  The error code to use when failing the request.
 	 * @param errorMessage  The error message to use when failing the request.
@@ -474,13 +505,9 @@ public final class SurveyResponseValidators {
 	 * @throws IllegalArgumentException if the request is null; if the error
 	 * code is empty or null; or if the error message is empty or null.
 	 */
-	private static Boolean validateOptionalBoolean(Request request, String booleanString, String errorCode, String errorMessage) 
-		throws ValidationException {
-		
-		// check for logical errors
-		if(request == null) {
-			throw new IllegalArgumentException("The Request cannot be null");
-		}
+	private static Boolean validateOptionalBoolean(final String booleanString, 
+			final ErrorCode errorCode, final String errorMessage) 
+			throws ValidationException {
 		
 		// don't validate the optional value if it doesn't exist
 		if(StringUtils.isEmptyOrWhitespaceOnly(booleanString)) {
@@ -489,8 +516,10 @@ public final class SurveyResponseValidators {
 
 		// perform validation
 		if(StringUtils.decodeBoolean(booleanString) == null) {
-			request.setFailed(errorCode, errorMessage + booleanString);
-			throw new ValidationException(errorMessage + booleanString);
+			throw new ValidationException(
+					errorCode, 
+					errorMessage + booleanString
+				);
 		}
 		
 		return Boolean.valueOf(booleanString);

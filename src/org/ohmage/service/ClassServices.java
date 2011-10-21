@@ -6,13 +6,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.ohmage.annotator.ErrorCodes;
+import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.domain.Clazz;
 import org.ohmage.exception.DataAccessException;
 import org.ohmage.exception.ServiceException;
 import org.ohmage.query.ClassQueries;
 import org.ohmage.query.ClassQueries.UserAndClassRole;
-import org.ohmage.request.Request;
 
 /**
  * This class contains the services that pertain to classes.
@@ -28,8 +27,6 @@ public final class ClassServices {
 	/**
 	 * Creates a new class.
 	 * 
-	 * @param request The request that it is creating the new class.
-	 * 
 	 * @param classId The unique identifier for the new class.
 	 * 
 	 * @param className The new class' name.
@@ -38,12 +35,14 @@ public final class ClassServices {
 	 * 
 	 * @throws ServiceException Thrown if there is an error.
 	 */
-	public static void createClass(Request request, String classId, String className, String classDescription) throws ServiceException {
+	public static void createClass(final String classId, 
+			final String className, final String classDescription) 
+			throws ServiceException {
+		
 		try {
 			ClassQueries.createClass(classId, className, classDescription);
 		}
 		catch(DataAccessException e) {
-			request.setFailed();
 			throw new ServiceException(e);
 		}
 	}
@@ -57,8 +56,6 @@ public final class ClassServices {
 	 * Note: Passing in a value of null will always result in the class not
 	 * existing.
 	 * 
-	 * @param request The request that is validating this class' identifier.
-	 * 
 	 * @param classId The class identifier to use to check for existence.
 	 * 
 	 * @param shouldExist Whether or not the class should already exist.
@@ -67,23 +64,28 @@ public final class ClassServices {
 	 * 							exist and it should, or the class does exist
 	 * 							and it shouldn't.
 	 */
-	public static void checkClassExistence(Request request, String classId, boolean shouldExist) throws ServiceException {
+	public static void checkClassExistence(final String classId, 
+			final boolean shouldExist) throws ServiceException {
+		
 		try {
 			if((classId != null) && ClassQueries.getClassExists(classId)) {
 				if(! shouldExist) {
-					request.setFailed(ErrorCodes.CLASS_INVALID_ID, "The class already exists: " + classId);
-					throw new ServiceException("The class already exists: " + classId);
+					throw new ServiceException(
+							ErrorCode.CLASS_INVALID_ID,
+							"The class already exists: " + classId
+						);
 				}
 			}
 			else {
 				if(shouldExist) {
-					request.setFailed(ErrorCodes.CLASS_INVALID_ID, "The class does not exist: " + classId);
-					throw new ServiceException("The class does not exist: " + classId);
+					throw new ServiceException(
+							ErrorCode.CLASS_INVALID_ID, 
+							"The class does not exist: " + classId
+						);
 				}
 			}
 		}
 		catch(DataAccessException e) {
-			request.setFailed();
 			throw new ServiceException(e);
 		}
 	}
@@ -93,9 +95,6 @@ public final class ClassServices {
 	 * not they should exist. If any of them don't match or there is an error
 	 * at any point, it will set the request as failed with an error message if
 	 * the reason for failure is known and will throw a ServiceException. 
-	 * 
-	 * @param request The request that is having these classes' existence 
-	 * 				  checked.
 	 * 
 	 * @param classIds The List of class identifiers whose existence need to be
 	 * 				   checked.
@@ -107,18 +106,17 @@ public final class ClassServices {
 	 * 							classes exist and they shouldn't, or if any of
 	 * 							the classes don't exist and they should.
 	 */
-	public static void checkClassesExistence(Request request, Collection<String> classIds, boolean shouldExist) throws ServiceException {
+	public static void checkClassesExistence(final Collection<String> classIds, 
+			final boolean shouldExist) throws ServiceException {
+		
 		for(String classId : classIds) {
-			checkClassExistence(request, classId, shouldExist);
+			checkClassExistence(classId, shouldExist);
 		}
 	}
 	
 	/**
 	 * Retrieves the information about all of the classes in the class  
 	 * identifier list.
-	 * 
-	 * @param request The request that is attempting to aggregate this 
-	 * 				  information.
 	 * 
 	 * @param classIds A List of class identifiers to use to aggregate the
 	 * 				   information.
@@ -132,12 +130,14 @@ public final class ClassServices {
 	 * 
 	 * @throws ServiceException Thrown if there is an error.
 	 */
-	public static List<Clazz> getClassesInformation(Request request, Collection<String> classIds, String requester) throws ServiceException {
+	public static List<Clazz> getClassesInformation(
+			final Collection<String> classIds, final String requester) 
+			throws ServiceException {
+		
 		try {
 			return ClassQueries.getClassesInformation(classIds, requester);
 		}
 		catch(DataAccessException e) {
-			request.setFailed();
 			throw new ServiceException(e);
 		}
 	}
@@ -145,8 +145,6 @@ public final class ClassServices {
 	/**
 	 * Generates a Map of class IDs to a List of users and their roles for a 
 	 * List of classes.
-	 * 
-	 * @param request The Request that is performing this service.
 	 * 
 	 * @param classIds A List of unique identifiers for the classes that should
 	 * 				   be added to the roster.
@@ -156,7 +154,9 @@ public final class ClassServices {
 	 * 
 	 * @throws ServiceException Thrown if there is an error.
 	 */
-	public static Map<String, List<UserAndClassRole>> generateClassRoster(Request request, Collection<String> classIds) throws ServiceException {
+	public static Map<String, List<UserAndClassRole>> generateClassRoster(
+			final Collection<String> classIds) throws ServiceException {
+		
 		try {
 			Map<String, List<UserAndClassRole>> result = new HashMap<String, List<UserAndClassRole>>();
 			
@@ -167,15 +167,12 @@ public final class ClassServices {
 			return result;
 		}
 		catch(DataAccessException e) {
-			request.setFailed();
 			throw new ServiceException(e);
 		}
 	}
 
 	/**
 	 * Updates the class.
-	 * 
-	 * @param request The request that is asking to have the class updated.
 	 * 
 	 * @param classId The unique identifier for the class to update.
 	 * 
@@ -193,12 +190,15 @@ public final class ClassServices {
 	 * 
 	 * @throws ServiceException Thrown if there is an error.
 	 */
-	public static void updateClass(Request request, String classId, String className, String classDescription, Map<String, Clazz.Role> usersToAdd, Collection<String> usersToRemove) throws ServiceException{
+	public static void updateClass(final String classId, 
+			final String className, final String classDescription, 
+			final Map<String, Clazz.Role> usersToAdd, 
+			final Collection<String> usersToRemove) throws ServiceException {
+		
 		try {
 			ClassQueries.updateClass(classId, className, classDescription, usersToAdd, usersToRemove);
 		}
 		catch(DataAccessException e) {
-			request.setFailed();
 			throw new ServiceException(e);
 		}
 	}
@@ -206,13 +206,14 @@ public final class ClassServices {
 	/**
 	 * Updates the class via a class roster.
 	 * 
-	 * @param request The Request that is asking to have the class updated.
-	 * 
 	 * @param roster A Map of class IDs to Maps of usernames to class roles.
 	 * 
 	 * @throws ServiceException Thrown if there is an error.
 	 */
-	public static List<String> updateClassViaRoster(Request request, Map<String, Map<String, Clazz.Role>> roster) throws ServiceException {
+	public static List<String> updateClassViaRoster(
+			final Map<String, Map<String, Clazz.Role>> roster) 
+			throws ServiceException {
+		
 		try {
 			List<String> warningMessages = new ArrayList<String>();
 			
@@ -223,7 +224,6 @@ public final class ClassServices {
 			return warningMessages;
 		}
 		catch(DataAccessException e) {
-			request.setFailed();
 			throw new ServiceException(e);
 		}
 	}
@@ -231,18 +231,17 @@ public final class ClassServices {
 	/**
 	 * Deletes the class.
 	 * 
-	 * @param request The request that is asking to have the class deleted.
-	 * 
 	 * @param classId The unique identifier or the class to be deleted.
 	 * 
 	 * @throws ServiceException Thrown if there is an error.
 	 */
-	public static void deleteClass(Request request, String classId) throws ServiceException {
+	public static void deleteClass(final String classId) 
+			throws ServiceException {
+		
 		try {
 			ClassQueries.deleteClass(classId);
 		}
 		catch(DataAccessException e) {
-			request.setFailed();
 			throw new ServiceException(e);
 		}
 	}

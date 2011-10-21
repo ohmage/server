@@ -4,11 +4,10 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.log4j.Logger;
-import org.ohmage.annotator.ErrorCodes;
+import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.domain.Clazz;
 import org.ohmage.exception.ValidationException;
 import org.ohmage.request.InputKeys;
-import org.ohmage.request.Request;
 import org.ohmage.util.StringUtils;
 
 /**
@@ -31,8 +30,6 @@ public final class UserClassValidators {
 	 * If there is any error in validating the list, a ValidationException is
 	 * thrown. Otherwise, a Map of usernames to class roles is returned.
 	 *  
-	 * @param request The request that is having this list validated.
-	 * 
 	 * @param userClassRoleList A String representing a list of username and
 	 * 							class-role pairs. The pairs should be separated
 	 * 							by 
@@ -51,7 +48,9 @@ public final class UserClassValidators {
 	 * 							   syntactically invalid. Also, thrown if any
 	 * 							   of the roles in the list String are invalid.
 	 */
-	public static Map<String, Clazz.Role> validateUserAndClassRoleList(Request request, String userClassRoleList) throws ValidationException {
+	public static Map<String, Clazz.Role> validateUserAndClassRoleList(
+			final String userClassRoleList) throws ValidationException {
+		
 		LOGGER.info("Validating the user and class role list.");
 		
 		if(StringUtils.isEmptyOrWhitespaceOnly(userClassRoleList)) {
@@ -68,26 +67,35 @@ public final class UserClassValidators {
 				String[] userAndRole = currUserAndRole.split(InputKeys.ENTITY_ROLE_SEPARATOR);
 				
 				if(userAndRole.length != 2) {
-					request.setFailed(ErrorCodes.CLASS_INVALID_ROLE, "The username, class role is invalid: " + currUserAndRole);
-					throw new ValidationException("The user class-role list at index " + i + " is invalid: " + currUserAndRole);
+					throw new ValidationException(
+							ErrorCode.CLASS_INVALID_ROLE, 
+							"The user class-role list is invalid: " + 
+								currUserAndRole);
 				}
 				
-				String username = UserValidators.validateUsername(request, userAndRole[0].trim());
+				String username = UserValidators.validateUsername(userAndRole[0].trim());
 				if(username == null) {
-					request.setFailed(ErrorCodes.USER_INVALID_USERNAME, "The username in the username, class role list is missing: " + currUserAndRole);
-					throw new ValidationException("The username in the username, class role list is missing: " + currUserAndRole);
+					throw new ValidationException(
+							ErrorCode.USER_INVALID_USERNAME, 
+							"The username in the username, class role list is missing: " + 
+								currUserAndRole);
 				}
 				
-				Clazz.Role role = ClassValidators.validateClassRole(request, userAndRole[1].trim());
+				Clazz.Role role = ClassValidators.validateClassRole(userAndRole[1].trim());
 				if(role == null) {
-					request.setFailed(ErrorCodes.CLASS_INVALID_ROLE, "The class role in the username, class role list is missing: " + currUserAndRole);
-					throw new ValidationException("The class role in the username, class role list is missing: " + currUserAndRole);
+					throw new ValidationException(
+							ErrorCode.CLASS_INVALID_ROLE, 
+							"The class role in the username, class role list is missing: " + 
+								currUserAndRole);
 				}
 				
 				Clazz.Role oldRole = result.put(username, role);
 				if((oldRole != null) && (! oldRole.equals(role))) {
-					request.setFailed(ErrorCodes.CLASS_INVALID_ROLE, "The username '" + username + "' contains multiple, different roles.");
-					throw new ValidationException("The username '" + username + "' contains multiple, different roles.");
+					throw new ValidationException(
+							ErrorCode.CLASS_INVALID_ROLE, 
+							"The username '" + 
+								username + 
+								"' contains multiple, different roles.");
 				}
 			}
 		}

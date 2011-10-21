@@ -11,7 +11,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.log4j.Logger;
 import org.json.JSONArray;
-import org.ohmage.annotator.ErrorCodes;
+import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.domain.MobilityPoint;
 import org.ohmage.exception.ServiceException;
 import org.ohmage.exception.ValidationException;
@@ -68,23 +68,24 @@ public class MobilityReadRequest extends UserRequest {
 			try {
 				String[] dates = getParameterValues(InputKeys.DATE);
 				if(dates.length == 0) {
-					setFailed(ErrorCodes.SERVER_INVALID_DATE, "The date value is missing: " + InputKeys.DATE);
+					setFailed(ErrorCode.SERVER_INVALID_DATE, "The date value is missing: " + InputKeys.DATE);
 					throw new ValidationException("The date value is missing: " + InputKeys.DATE);
 				}
 				else if(dates.length == 1) {
-					tDate = MobilityValidators.validateDate(this, dates[0]);
+					tDate = MobilityValidators.validateDate(dates[0]);
 					
 					if(tDate == null) {
-						setFailed(ErrorCodes.SERVER_INVALID_DATE, "The date value is missing: " + InputKeys.DATE);
+						setFailed(ErrorCode.SERVER_INVALID_DATE, "The date value is missing: " + InputKeys.DATE);
 						throw new ValidationException("The date value is missing: " + InputKeys.DATE);
 					}
 				}
 				else {
-					setFailed(ErrorCodes.SERVER_INVALID_DATE, "Multiple date values were given: " + InputKeys.DATE);
+					setFailed(ErrorCode.SERVER_INVALID_DATE, "Multiple date values were given: " + InputKeys.DATE);
 					throw new ValidationException("Multiple date values were given: " + InputKeys.DATE);
 				}
 			}
 			catch(ValidationException e) {
+				e.failRequest(this);
 				LOGGER.info(e.toString());
 			}
 		}
@@ -120,7 +121,6 @@ public class MobilityReadRequest extends UserRequest {
 			LOGGER.debug("End date: " + TimeUtils.getIso8601DateTimeString(new Date(endDate.getTimeInMillis())));
 			
 			result = MobilityServices.retrieveMobilityData(
-					this, 
 					getUser().getUsername(), 
 					null, 
 					new Date(startDate.getTimeInMillis()), 
@@ -130,6 +130,7 @@ public class MobilityReadRequest extends UserRequest {
 					null);
 		}
 		catch(ServiceException e) {
+			e.failRequest(this);
 			e.logException(LOGGER);
 		}
 	}

@@ -10,7 +10,6 @@ import org.ohmage.exception.ServiceException;
 import org.ohmage.jee.servlet.RequestServlet;
 import org.ohmage.jee.servlet.RequestServlet.RequestType;
 import org.ohmage.query.AuditQueries;
-import org.ohmage.request.Request;
 import org.ohmage.validator.AuditValidators.ResponseType;
 
 /**
@@ -65,8 +64,13 @@ public class AuditServices {
 	 * 
 	 * @throws ServiceException Thrown if there is an error.
 	 */
-	public static void createAudit(RequestServlet.RequestType requestType, String uri, String client, String deviceId, String response,
-			Map<String, String[]> parameterMap, Map<String, String[]> extras, long receivedTimestamp, long respondTimestamp) throws ServiceException {
+	public static void createAudit(
+			final RequestServlet.RequestType requestType, final String uri, 
+			final String client, final String deviceId, final String response,
+			final Map<String, String[]> parameterMap, 
+			final Map<String, String[]> extras, final long receivedTimestamp, 
+			final long respondTimestamp) throws ServiceException {
+		
 		try {
 			AuditQueries.createAudit(requestType, uri, client, deviceId, parameterMap, extras, response, receivedTimestamp, respondTimestamp);
 		}
@@ -81,8 +85,6 @@ public class AuditServices {
 	 * isn't allowed to be null, then all the information about all of the 
 	 * audits is returned.
 	 *  
-	 * @param request The Request that is performing this service. Required.
-	 * 
 	 * @param requestType Limits the results to only those with this 
 	 * 					  RequestType. Not required.
 	 * 
@@ -113,8 +115,12 @@ public class AuditServices {
 	 * 
 	 * @throws ServiceException Thrown if there is an error.
 	 */
-	public static List<Audit> getAuditInformation(Request request, RequestType requestType, String uri, String client, 
-			String deviceId, ResponseType responseType, String errorCode, Date startDate, Date endDate) throws ServiceException {
+	public static List<Audit> getAuditInformation(
+			final RequestType requestType, final String uri, 
+			final String client, final String deviceId, 
+			final ResponseType responseType, final String errorCode, 
+			final Date startDate, final Date endDate) throws ServiceException {
+		
 		try {
 			List<Long> auditIds = null;
 			
@@ -192,7 +198,6 @@ public class AuditServices {
 			return AuditQueries.readAuditInformation(auditIds);
 		}
 		catch(DataAccessException e) {
-			request.setFailed();
 			throw new ServiceException(e);
 		}
 	}

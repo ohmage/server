@@ -6,11 +6,10 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.log4j.Logger;
-import org.ohmage.annotator.ErrorCodes;
+import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.domain.campaign.Campaign;
 import org.ohmage.exception.ValidationException;
 import org.ohmage.request.InputKeys;
-import org.ohmage.request.Request;
 import org.ohmage.util.StringUtils;
 
 /**
@@ -32,8 +31,6 @@ public class UserCampaignValidators {
 	 * result is a map of usernames to a set of campaign roles. It is a set 
 	 * instead of a list to prevent duplicate roles for the same user.
 	 * 
-	 * @param request The Request that is performing this validation.
-	 * 
 	 * @param userAndCampaignRoleList A String representing a list of username
 	 * 								  and campaign role pairs. The pairs should
 	 * 								  be separated by 
@@ -51,7 +48,9 @@ public class UserCampaignValidators {
 	 * 							   pairs are invalid, or either the username or
 	 * 							   class role are invalid.
 	 */
-	public static Map<String, Set<Campaign.Role>> validateUserAndCampaignRole(Request request, String userAndCampaignRoleList) throws ValidationException {
+	public static Map<String, Set<Campaign.Role>> validateUserAndCampaignRole(
+			final String userAndCampaignRoleList) throws ValidationException {
+		
 		LOGGER.info("Validating a list of user and class role pairs.");
 		
 		// If it's null or empty, return null.
@@ -77,21 +76,27 @@ public class UserCampaignValidators {
 				// If the pair isn't actually a pair, fail with an invalid 
 				// campaign role error.
 				if(userAndRole.length != 2) {
-					request.setFailed(ErrorCodes.CAMPAIGN_INVALID_ROLE, "The username, campaign role pair is invalid: " + currUserAndRole);
-					throw new ValidationException("The user campaign-role list at index " + i + " is invalid: " + currUserAndRole);
+					throw new ValidationException(
+							ErrorCode.CAMPAIGN_INVALID_ROLE, 
+							"The user campaign-role list is invalid: " + 
+								currUserAndRole);
 				}
 				
 				// Validate the actual elements in the pair.
-				String username = UserValidators.validateUsername(request, userAndRole[0].trim());
+				String username = UserValidators.validateUsername(userAndRole[0].trim());
 				if(username == null) {
-					request.setFailed(ErrorCodes.USER_INVALID_USERNAME, "The username in the username, campaign role pair is missing: " + currUserAndRole);
-					throw new ValidationException("The username in the username, campaign role pair is missing: " + currUserAndRole);
+					throw new ValidationException(
+							ErrorCode.USER_INVALID_USERNAME, 
+							"The username in the username, campaign role pair is missing: " + 
+								currUserAndRole);
 				}
 				
-				Campaign.Role role = CampaignValidators.validateRole(request, userAndRole[1].trim());
+				Campaign.Role role = CampaignValidators.validateRole(userAndRole[1].trim());
 				if(role == null) {
-					request.setFailed(ErrorCodes.CAMPAIGN_INVALID_ROLE, "The campaign role in the username, campaign role pair is missing: " + currUserAndRole);
-					throw new ValidationException("The campaign role in the username, campaign role pair is missing: " + currUserAndRole);
+					throw new ValidationException(
+							ErrorCode.CAMPAIGN_INVALID_ROLE, 
+							"The campaign role in the username, campaign role pair is missing: " + 
+								currUserAndRole);
 				}
 				
 				// Add the role to the list of roles.

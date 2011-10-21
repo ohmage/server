@@ -7,11 +7,10 @@ import java.util.List;
 import org.apache.log4j.Logger;
 import org.json.JSONArray;
 import org.json.JSONException;
-import org.ohmage.annotator.ErrorCodes;
+import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.domain.MobilityPoint;
 import org.ohmage.exception.ErrorCodeException;
 import org.ohmage.exception.ValidationException;
-import org.ohmage.request.Request;
 import org.ohmage.util.StringUtils;
 
 /**
@@ -32,8 +31,6 @@ public final class MobilityValidators {
 	 * Validates Mobility data in the format of a JSONArray of JSONObjects 
 	 * where each JSONObject is a Mobility data point.
 	 * 
-	 * @param request The Request that is performing this service.
-	 * 
 	 * @param data The data to be validated. The expected value is a JSONArray
 	 * 			   of JSONObjects where each JSONObject is a Mobility data
 	 * 			   point.
@@ -47,7 +44,9 @@ public final class MobilityValidators {
 	 * 							   JSONObjects cannot become a 
 	 * 							   MobilityInformation object.
 	 */
-	public static List<MobilityPoint> validateDataAsJsonArray(Request request, String data) throws ValidationException {
+	public static List<MobilityPoint> validateDataAsJsonArray(
+			final String data) throws ValidationException {
+		
 		LOGGER.info("Validating a JSONArray of data points.");
 		
 		if(StringUtils.isEmptyOrWhitespaceOnly(data)) {
@@ -65,19 +64,18 @@ public final class MobilityValidators {
 			return result;
 		}
 		catch(JSONException e) {
-			request.setFailed(ErrorCodes.SERVER_INVALID_JSON, "The JSONArray containing the data is malformed.");
-			throw new ValidationException("The JSONArray containing the data is malformed.", e);
+			throw new ValidationException(
+					ErrorCode.SERVER_INVALID_JSON, 
+					"The JSONArray containing the data is malformed.", 
+					e);
 		}
 		catch(ErrorCodeException e) {
-			request.setFailed(e.getErrorCode(), e.getErrorText());
-			throw new ValidationException(e.getErrorText(), e);
+			throw new ValidationException(e);
 		}
 	}
 	
 	/**
 	 * Validates that the date is valid and returns it or fails the request.
-	 * 
-	 * @param request The Request performing this validation.
 	 * 
 	 * @param date The date value as a string.
 	 * 
@@ -87,7 +85,9 @@ public final class MobilityValidators {
 	 * @throws ValidationException Thrown if the date string was not null, not
 	 * 							   whitespace only, and not a valid date.
 	 */
-	public static Date validateDate(Request request, String date) throws ValidationException { 
+	public static Date validateDate(final String date) 
+			throws ValidationException {
+		
 		LOGGER.info("Validating a date value.");
 		
 		if(StringUtils.isEmptyOrWhitespaceOnly(date)) {
@@ -100,8 +100,9 @@ public final class MobilityValidators {
 		}
 		
 		if(result == null) {
-			request.setFailed(ErrorCodes.SERVER_INVALID_DATE, "The date value is unknown: " + date);
-			throw new ValidationException("The date value is unknown: " + date);
+			throw new ValidationException(
+					ErrorCode.SERVER_INVALID_DATE, 
+					"The date value is unknown: " + date);
 		}
 		else {
 			return result;

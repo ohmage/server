@@ -1,6 +1,6 @@
 package org.ohmage.test.auth;
 
-import org.ohmage.annotator.ErrorCodes;
+import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.lib.OhmageApi;
 import org.ohmage.lib.exception.ApiException;
 import org.ohmage.lib.exception.RequestErrorException;
@@ -58,9 +58,9 @@ public class AuthenticationApiTest {
 			api.getHashedPassword(null, null, null);
 		}
 		catch(RequestErrorException e) {
-			if(! ErrorCodes.AUTHENTICATION_FAILED.equals(e.getErrorCode())) {
+			if(! ErrorCode.AUTHENTICATION_FAILED.equals(e.getErrorCode())) {
 				System.out.println("Failed: Auth: No username.");
-				System.out.println("This should have been error code '" + ErrorCodes.AUTHENTICATION_FAILED + "'.");
+				System.out.println("This should have been error code '" + ErrorCode.AUTHENTICATION_FAILED + "'.");
 				throw e;
 			}
 		}
@@ -70,9 +70,9 @@ public class AuthenticationApiTest {
 			api.getHashedPassword("blah", null, null);
 		}
 		catch(RequestErrorException e) {
-			if(! ErrorCodes.AUTHENTICATION_FAILED.equals(e.getErrorCode())) {
+			if(! ErrorCode.AUTHENTICATION_FAILED.equals(e.getErrorCode())) {
 				System.out.println("Failed: Auth: Invalid username.");
-				System.out.println("This should have been error code '" + ErrorCodes.AUTHENTICATION_FAILED + "'.");
+				System.out.println("This should have been error code '" + ErrorCode.AUTHENTICATION_FAILED + "'.");
 				throw e;
 			}
 		}
@@ -82,9 +82,9 @@ public class AuthenticationApiTest {
 			api.getHashedPassword(username, null, null);
 		}
 		catch(RequestErrorException e) {
-			if(! ErrorCodes.AUTHENTICATION_FAILED.equals(e.getErrorCode())) {
+			if(! ErrorCode.AUTHENTICATION_FAILED.equals(e.getErrorCode())) {
 				System.out.println("Failed: Auth: No password.");
-				System.out.println("This should have been error code '" + ErrorCodes.AUTHENTICATION_FAILED + "'.");
+				System.out.println("This should have been error code '" + ErrorCode.AUTHENTICATION_FAILED + "'.");
 				throw e;
 			}
 		}
@@ -94,9 +94,9 @@ public class AuthenticationApiTest {
 			api.getHashedPassword(username, "blah", null);
 		}
 		catch(RequestErrorException e) {
-			if(! ErrorCodes.SERVER_INVALID_CLIENT.equals(e.getErrorCode())) {
+			if(! ErrorCode.SERVER_INVALID_CLIENT.equals(e.getErrorCode())) {
 				System.out.println("Failed: Auth: No client with invalid password.");
-				System.out.println("This should have been error code '" + ErrorCodes.AUTHENTICATION_FAILED + "'.");
+				System.out.println("This should have been error code '" + ErrorCode.AUTHENTICATION_FAILED + "'.");
 				throw e;
 			}
 		}
@@ -107,9 +107,9 @@ public class AuthenticationApiTest {
 		}
 		catch(RequestErrorException e) {
 			// Note: This feels like it should be an invalid password, but
-			if(! ErrorCodes.AUTHENTICATION_FAILED.equals(e.getErrorCode())) {
+			if(! ErrorCode.AUTHENTICATION_FAILED.equals(e.getErrorCode())) {
 				System.out.println("Failed: Auth: Invalid password.");
-				System.out.println("This should have been error code '" + ErrorCodes.AUTHENTICATION_FAILED + "'.");
+				System.out.println("This should have been error code '" + ErrorCode.AUTHENTICATION_FAILED + "'.");
 				throw e;
 			}
 		}
@@ -119,9 +119,9 @@ public class AuthenticationApiTest {
 			api.getHashedPassword(username, password, null);
 		}
 		catch(RequestErrorException e) {
-			if(! ErrorCodes.SERVER_INVALID_CLIENT.equals(e.getErrorCode())) {
+			if(! ErrorCode.SERVER_INVALID_CLIENT.equals(e.getErrorCode())) {
 				System.out.println("Failed: Auth: No client with valid password.");
-				System.out.println("This should have been error code '" + ErrorCodes.AUTHENTICATION_FAILED + "'.");
+				System.out.println("This should have been error code '" + ErrorCode.AUTHENTICATION_FAILED + "'.");
 				throw e;
 			}
 		}
@@ -148,9 +148,9 @@ public class AuthenticationApiTest {
 			api.getAuthenticationToken(null, null, null);
 		}
 		catch(RequestErrorException e) {
-			if(! ErrorCodes.AUTHENTICATION_FAILED.equals(e.getErrorCode())) {
+			if(! ErrorCode.AUTHENTICATION_FAILED.equals(e.getErrorCode())) {
 				System.out.println("Failed: AuthToken: No username.");
-				System.out.println("This should have been error code '" + ErrorCodes.AUTHENTICATION_FAILED + "'.");
+				System.out.println("This should have been error code '" + ErrorCode.AUTHENTICATION_FAILED + "'.");
 				throw e;
 			}
 		}
@@ -160,9 +160,9 @@ public class AuthenticationApiTest {
 			api.getAuthenticationToken("blah", null, null);
 		}
 		catch(RequestErrorException e) {
-			if(! ErrorCodes.AUTHENTICATION_FAILED.equals(e.getErrorCode())) {
+			if(! ErrorCode.AUTHENTICATION_FAILED.equals(e.getErrorCode())) {
 				System.out.println("Failed: AuthToken: Invalid username.");
-				System.out.println("This should have been error code '" + ErrorCodes.AUTHENTICATION_FAILED + "'.");
+				System.out.println("This should have been error code '" + ErrorCode.AUTHENTICATION_FAILED + "'.");
 				throw e;
 			}
 		}
@@ -172,9 +172,9 @@ public class AuthenticationApiTest {
 			api.getAuthenticationToken(username, null, null);
 		}
 		catch(RequestErrorException e) {
-			if(! ErrorCodes.AUTHENTICATION_FAILED.equals(e.getErrorCode())) {
+			if(! ErrorCode.AUTHENTICATION_FAILED.equals(e.getErrorCode())) {
 				System.out.println("Failed: AuthToken: No password.");
-				System.out.println("This should have been error code '" + ErrorCodes.AUTHENTICATION_FAILED + "'.");
+				System.out.println("This should have been error code '" + ErrorCode.AUTHENTICATION_FAILED + "'.");
 				throw e;
 			}
 		}
@@ -184,9 +184,9 @@ public class AuthenticationApiTest {
 			api.getAuthenticationToken(username, "blah", null);
 		}
 		catch(RequestErrorException e) {
-			if(! ErrorCodes.SERVER_INVALID_CLIENT.equals(e.getErrorCode())) {
+			if(! ErrorCode.SERVER_INVALID_CLIENT.equals(e.getErrorCode())) {
 				System.out.println("Failed: AuthToken: Invalid password.");
-				System.out.println("This should have been error code '" + ErrorCodes.AUTHENTICATION_FAILED + "'.");
+				System.out.println("This should have been error code '" + ErrorCode.AUTHENTICATION_FAILED + "'.");
 				throw e;
 			}
 		}
@@ -196,9 +196,9 @@ public class AuthenticationApiTest {
 			api.getAuthenticationToken(username, "blah", Controller.CLIENT);
 		}
 		catch(RequestErrorException e) {
-			if(! ErrorCodes.AUTHENTICATION_FAILED.equals(e.getErrorCode())) {
+			if(! ErrorCode.AUTHENTICATION_FAILED.equals(e.getErrorCode())) {
 				System.out.println("Failed: AuthToken: Invalid password.");
-				System.out.println("This should have been error code '" + ErrorCodes.AUTHENTICATION_FAILED + "'.");
+				System.out.println("This should have been error code '" + ErrorCode.AUTHENTICATION_FAILED + "'.");
 				throw e;
 			}
 		}
@@ -208,9 +208,9 @@ public class AuthenticationApiTest {
 			api.getAuthenticationToken(username, password, null);
 		}
 		catch(RequestErrorException e) {
-			if(! ErrorCodes.SERVER_INVALID_CLIENT.equals(e.getErrorCode())) {
+			if(! ErrorCode.SERVER_INVALID_CLIENT.equals(e.getErrorCode())) {
 				System.out.println("Failed: AuthToken: No client.");
-				System.out.println("This should have been error code '" + ErrorCodes.AUTHENTICATION_FAILED + "'.");
+				System.out.println("This should have been error code '" + ErrorCode.AUTHENTICATION_FAILED + "'.");
 				throw e;
 			}
 		}

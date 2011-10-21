@@ -4,11 +4,10 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.log4j.Logger;
-import org.ohmage.annotator.ErrorCodes;
+import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.domain.Document;
 import org.ohmage.exception.ValidationException;
 import org.ohmage.request.InputKeys;
-import org.ohmage.request.Request;
 import org.ohmage.util.StringUtils;
 
 /**
@@ -45,7 +44,9 @@ public final class ClassDocumentValidators {
 	 * 							   individual values in the pairs are malformed
 	 * 							   or missing. 
 	 */
-	public static Map<String, Document.Role> validateClassIdAndDocumentRoleList(Request request, String classAndRoleList) throws ValidationException {
+	public static Map<String, Document.Role> validateClassIdAndDocumentRoleList(
+			final String classAndRoleList) throws ValidationException {
+		
 		LOGGER.info("Validating a list of class ID and document role pairs.");
 		
 		if(StringUtils.isEmptyOrWhitespaceOnly(classAndRoleList)) {
@@ -63,20 +64,26 @@ public final class ClassDocumentValidators {
 				String[] classAndRole = classAndRoleString.split(InputKeys.ENTITY_ROLE_SEPARATOR);
 				
 				if(classAndRole.length != 2) {
-					request.setFailed(ErrorCodes.CLASS_INVALID_ID, "The class ID, document role pair is invalid: " + classAndRoleString);
-					throw new ValidationException("The class ID, document role pair is invalid: " + classAndRoleString);
+					throw new ValidationException(
+							ErrorCode.CLASS_INVALID_ID, 
+							"The class ID, document role pair is invalid: " + 
+								classAndRoleString);
 				}
 				
-				String classId = ClassValidators.validateClassId(request, classAndRole[0].trim());
+				String classId = ClassValidators.validateClassId(classAndRole[0].trim());
 				if(classId == null) {
-					request.setFailed(ErrorCodes.CLASS_INVALID_ID, "The class ID in the class ID, document role pair is missing: " + classAndRoleString);
-					throw new ValidationException("The class ID in the class ID, document role pair is missing: " + classAndRoleString);
+					throw new ValidationException(
+							ErrorCode.CLASS_INVALID_ID, 
+							"The class ID in the class ID, document role pair is missing: " + 
+								classAndRoleString);
 				}
 				
-				Document.Role documentRole = DocumentValidators.validateRole(request, classAndRole[1].trim());
+				Document.Role documentRole = DocumentValidators.validateRole(classAndRole[1].trim());
 				if(documentRole == null) {
-					request.setFailed(ErrorCodes.DOCUMENT_INVALID_ROLE, "The document role in the class ID, document role pair is missing: " + classAndRoleString);
-					throw new ValidationException("The document role in the class ID, document role pair is missing: " + classAndRoleString);
+					throw new ValidationException(
+							ErrorCode.DOCUMENT_INVALID_ROLE, 
+							"The document role in the class ID, document role pair is missing: " + 
+								classAndRoleString);
 				}
 				
 				result.put(classId, documentRole);

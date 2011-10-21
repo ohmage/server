@@ -2,12 +2,11 @@ package org.ohmage.service;
 
 import java.util.Collection;
 
-import org.ohmage.annotator.ErrorCodes;
+import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.domain.Document;
 import org.ohmage.exception.DataAccessException;
 import org.ohmage.exception.ServiceException;
 import org.ohmage.query.ClassDocumentQueries;
-import org.ohmage.request.Request;
 
 /**
  * This class is responsible for all operations that pertain to class-document
@@ -35,12 +34,13 @@ public class ClassDocumentServices {
 	 * 
 	 * @throws ServiceException Thrown if there is an error.
 	 */
-	public static Document.Role getDocumentRoleForClass(Request request, String classId, String documentId) throws ServiceException {
+	public static Document.Role getDocumentRoleForClass(final String classId, 
+			final String documentId) throws ServiceException {
+		
 		try {
 			return ClassDocumentQueries.getClassDocumentRole(classId, documentId);
 		}
 		catch(DataAccessException e) {
-			request.setFailed();
 			throw new ServiceException(e);
 		}
 	}
@@ -48,8 +48,6 @@ public class ClassDocumentServices {
 	/**
 	 * Verifies that a given role has enough permissions to disassociate a
 	 * document and a class based on the class' role with the document.
-	 * 
-	 * @param request The Request that is performing this service.
 	 * 
 	 * @param role The maximum role of the user that is attempting to 
 	 * 			   disassociate the class and document. 
@@ -61,12 +59,20 @@ public class ClassDocumentServices {
 	 * @throws ServiceException Thrown if the role is not high enough to
 	 * 							disassociate a class and document.
 	 */
-	public static void ensureRoleHighEnoughToDisassociateDocumentFromClass(Request request, Document.Role role, String classId, String documentId) throws ServiceException {
-		Document.Role classDocumentRole = getDocumentRoleForClass(request, classId, documentId);
+	public static void ensureRoleHighEnoughToDisassociateDocumentFromClass(
+			final Document.Role role, final String classId, 
+			final String documentId) throws ServiceException {
+		
+		Document.Role classDocumentRole = getDocumentRoleForClass(classId, documentId);
 		
 		if(role.compare(classDocumentRole) < 0) {
-			request.setFailed(ErrorCodes.DOCUMENT_INSUFFICIENT_PERMISSIONS, "Insufficient permissions to disassociate the document '" + documentId + "' with the class '" + classId + "' as the class has a higher role.");
-			throw new ServiceException("Insufficient permissions to disassociate the document '" + documentId + "' with the class '" + classId + "' as the class has a higher role.");
+			throw new ServiceException(
+					ErrorCode.DOCUMENT_INSUFFICIENT_PERMISSIONS, 
+					"Insufficient permissions to disassociate the document '" +
+						documentId + 
+						"' with the class '" + 
+						classId + 
+						"' as the class has a higher role.");
 		}
 	}
 	
@@ -74,8 +80,6 @@ public class ClassDocumentServices {
 	 * Verifies that a given role has enough permissions to disassociate a
 	 * document and each of the classes in a collection based on the 
 	 * classes' individual roles with the document.
-	 * 
-	 * @param request The Request that is performing this service.
 	 * 
 	 * @param role The maximum role of the user that is attempting to 
 	 * 			   disassociate the classes and document. 
@@ -87,9 +91,12 @@ public class ClassDocumentServices {
 	 * @throws ServiceException Thrown if the role is not high enough to
 	 * 							disassociate the class and document.
 	 */
-	public static void ensureRoleHighEnoughToDisassociateDocumentFromClasses(Request request, Document.Role role, Collection<String> classIds, String documentId) throws ServiceException {
+	public static void ensureRoleHighEnoughToDisassociateDocumentFromClasses(
+			final Document.Role role, final Collection<String> classIds, 
+			final String documentId) throws ServiceException {
+		
 		for(String classId : classIds) {
-			ensureRoleHighEnoughToDisassociateDocumentFromClass(request, role, classId, documentId);
+			ensureRoleHighEnoughToDisassociateDocumentFromClass(role, classId, documentId);
 		}
 	}
 }

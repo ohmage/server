@@ -11,11 +11,10 @@ import java.net.URLConnection;
 import java.net.UnknownHostException;
 import java.util.Map;
 
-import org.ohmage.annotator.ErrorCodes;
+import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.cache.PreferenceCache;
 import org.ohmage.exception.CacheMissException;
 import org.ohmage.exception.ServiceException;
-import org.ohmage.request.Request;
 
 /**
  * This class contains the services for visualization requests.
@@ -84,8 +83,6 @@ public class VisualizationServices {
 	 * Sends a request to the visualization server and returns the image as a
 	 * byte array that was returned by the visualization server.
 	 * 
-	 * @param request The Request that is performing this service.
-	 * 
 	 * @param requestPath The additional path beyond the base URI that is 
 	 * 					  stored in the database. An example would be, if the
 	 * 					  database stored the visualization server's address as
@@ -115,8 +112,11 @@ public class VisualizationServices {
 	 * 
 	 * @throws ServiceException Thrown if there is an error.
 	 */
-	public static byte[] sendVisualizationRequest(Request request, String requestPath, String userToken,
-			String campaignId, int width, int height, Map<String, String> parameters) throws ServiceException {
+	public static byte[] sendVisualizationRequest(final String requestPath, 
+			final String userToken, final String campaignId, final int width, 
+			final int height, final Map<String, String> parameters) 
+			throws ServiceException {
+		
 		// Build the request.
 		StringBuilder urlBuilder = new StringBuilder();
 		try {
@@ -128,8 +128,10 @@ public class VisualizationServices {
 			}
 		}
 		catch(CacheMissException e) {
-			request.setFailed();
-			throw new ServiceException("Cache doesn't know about 'known' key: " + PreferenceCache.KEY_VISUALIZATION_SERVER, e);
+			throw new ServiceException(
+					"Cache doesn't know about 'known' key: " + 
+						PreferenceCache.KEY_VISUALIZATION_SERVER,
+					e);
 		}
 		urlBuilder.append(requestPath).append("?");
 		
@@ -139,8 +141,9 @@ public class VisualizationServices {
 			hostname = InetAddress.getLocalHost().getHostName();
 		}
 		catch(UnknownHostException e) {
-			request.setFailed();
-			throw new ServiceException("The sky is falling! Oh, and our own hostname is unknown.", e);
+			throw new ServiceException(
+					"The sky is falling! Oh, and our own hostname is unknown.",
+					e);
 		}
 		
 		// Get the protocol string based on SSL being enabled.
@@ -152,8 +155,10 @@ public class VisualizationServices {
 			}
 		}
 		catch(CacheMissException e) {
-			request.setFailed();
-			throw new ServiceException("Cache doesn't know about 'known' key: " + PreferenceCache.KEY_PROPERTIES_FILE, e);
+			throw new ServiceException(
+					"Cache doesn't know about 'known' key: " + 
+						PreferenceCache.KEY_PROPERTIES_FILE, 
+					e);
 		}
 		
 		// Add the required parameters.
@@ -198,13 +203,20 @@ public class VisualizationServices {
 					// If we didn't end up with two lines, then this is an 
 					// unknown error response.
 					if(errorContentArray.length == 2) {
-						request.setFailed(ErrorCodes.VISUALIZATION_GENERAL_ERROR, errorContentArray[1].trim());
-						throw new ServiceException("The server returned the HTTP error code '" + httpUrlConnection.getResponseCode() + 
-								"' with the error '" + errorContentArray[1].trim() + "': " + urlString);
+						throw new ServiceException(
+								ErrorCode.VISUALIZATION_GENERAL_ERROR, 
+								"The server returned the HTTP error code '" + 
+									httpUrlConnection.getResponseCode() + 
+									"' with the error '" + 
+									errorContentArray[1].trim() + 
+									"': " + 
+									urlString);
 					}
 					else {
-						request.setFailed(ErrorCodes.VISUALIZATION_GENERAL_ERROR, "The server returned a non-200 response.");
-						throw new ServiceException("The server returned a non-200 response: " + urlString);
+						throw new ServiceException(
+								ErrorCode.VISUALIZATION_GENERAL_ERROR, 
+								"The server returned a non-200 response: " + 
+									urlString);
 					}
 				}
 			}
@@ -223,12 +235,16 @@ public class VisualizationServices {
 			return byteArrayStream.toByteArray();
 		}
 		catch(MalformedURLException e) {
-			request.setFailed(ErrorCodes.VISUALIZATION_GENERAL_ERROR, "There was an error communicating with the visualization server. Please try again later.");
-			throw new ServiceException("Built a malformed URL: " + urlString, e);
+			throw new ServiceException(
+					ErrorCode.VISUALIZATION_GENERAL_ERROR, 
+					"Built a malformed URL: " + urlString, 
+					e);
 		}
 		catch(IOException e) {
-			request.setFailed(ErrorCodes.VISUALIZATION_GENERAL_ERROR, "There was an error communicating with the visualization server. Please try again later.");
-			throw new ServiceException("Error while communicating with the visualization server.", e);
+			throw new ServiceException(
+					ErrorCode.VISUALIZATION_GENERAL_ERROR, 
+					"Error while communicating with the visualization server.",
+					e);
 		}
 	}
 }

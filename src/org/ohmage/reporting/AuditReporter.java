@@ -18,7 +18,6 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.ohmage.domain.Audit;
 import org.ohmage.exception.ServiceException;
-import org.ohmage.request.FailedRequest;
 import org.ohmage.request.InputKeys;
 import org.ohmage.request.RequestBuilder;
 import org.ohmage.service.AuditServices;
@@ -59,10 +58,6 @@ public final class AuditReporter {
 		 */
 		@Override
 		public void run() {
-			// Generate a dummy, failed request in case something goes wrong in
-			// the service.
-			FailedRequest failedRequest = new FailedRequest();
-			
 			// Generate the start date.
 			Calendar startDate = Calendar.getInstance();
 			startDate.add(Calendar.DAY_OF_YEAR, -1);
@@ -82,7 +77,6 @@ public final class AuditReporter {
 			List<Audit> audits;
 			try {
 				audits = AuditServices.getAuditInformation(
-						failedRequest, 
 						null, 
 						null, 
 						null, 

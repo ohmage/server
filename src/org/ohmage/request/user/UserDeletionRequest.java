@@ -7,7 +7,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.log4j.Logger;
-import org.ohmage.annotator.ErrorCodes;
+import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.exception.ServiceException;
 import org.ohmage.exception.ValidationException;
 import org.ohmage.request.InputKeys;
@@ -57,17 +57,18 @@ public class UserDeletionRequest extends UserRequest {
 		Set<String> tUsernames = null;
 		
 		try {
-			tUsernames = UserValidators.validateUsernames(this, httpRequest.getParameter(InputKeys.USER_LIST));
+			tUsernames = UserValidators.validateUsernames(httpRequest.getParameter(InputKeys.USER_LIST));
 			if(tUsernames == null) {
-				setFailed(ErrorCodes.USER_INVALID_USERNAME, "The list of usernames must contain at least one username.");
+				setFailed(ErrorCode.USER_INVALID_USERNAME, "The list of usernames must contain at least one username.");
 				throw new ValidationException("The list of usernames must contain at least one username.");
 			}
 			else if(httpRequest.getParameterValues(InputKeys.USER_LIST).length > 1) {
-				setFailed(ErrorCodes.USER_INVALID_USERNAME, "Multiple username parameters were given.");
+				setFailed(ErrorCode.USER_INVALID_USERNAME, "Multiple username parameters were given.");
 				throw new ValidationException("Multiple username parameters were given.");
 			}
 		}
 		catch(ValidationException e) {
+			e.failRequest(this);
 			LOGGER.info(e.toString());
 		}
 		
@@ -87,15 +88,16 @@ public class UserDeletionRequest extends UserRequest {
 		
 		try {
 			LOGGER.info("Verifying that the user is an admin.");
-			UserServices.verifyUserIsAdmin(this, getUser().getUsername());
+			UserServices.verifyUserIsAdmin(getUser().getUsername());
 			
 			LOGGER.info("Verifying that the users in the list exist.");
-			UserServices.verifyUsersExist(this, usernames, true);
+			UserServices.verifyUsersExist(usernames, true);
 			
 			LOGGER.info("Deleteing the user(s).");
-			UserServices.deleteUser(this, usernames);
+			UserServices.deleteUser(usernames);
 		}
 		catch(ServiceException e) {
+			e.failRequest(this);
 			e.logException(LOGGER);
 		}
 	}

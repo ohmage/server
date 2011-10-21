@@ -16,6 +16,9 @@
 package org.ohmage.exception;
 
 import org.apache.log4j.Logger;
+import org.ohmage.annotator.Annotator;
+import org.ohmage.annotator.Annotator.ErrorCode;
+import org.ohmage.request.Request;
 
 /**
  * Abstract base class for checked Exceptions that may occur in various
@@ -27,36 +30,17 @@ import org.apache.log4j.Logger;
 public abstract class WorkflowException extends Exception {
 	private static final long serialVersionUID = 1L;
 	
-	// Keeps track of the seriousness of the exception. If it is created with a
-	// message then it is not considered serious as this is how services report
-	// that they have failed, but not that there is an issue. If it created 
-	// with a Throwable, then there is a more pressing exception being thrown
-	// and that makes it serious.
-	private final boolean isSerious;
+	private final Annotator annotator;
 
 	/**
 	 * Creates a new service exception with only a message.
 	 * 
 	 * @param message A String explaining why this exception is being thrown.
 	 */
-	public WorkflowException(String message) {
+	public WorkflowException(final String message) {
 		super(message);
 		
-		isSerious = false;
-	}
-	
-	/**
-	 * Creates a new service exception with a message and an indicator
-	 * of the seriousness of the message.
-	 * 
-	 * @param message A String explaining why this exception is being thrown.
-	 * @param isSerious A boolean, that if true, marks this as an exception
-	 *                  that will be logged with the level ERROR.
-	 */
-	public WorkflowException(String message, boolean isSerious) {
-		super(message);
-		
-		this.isSerious = isSerious;
+		annotator = null;
 	}
 	
 	/**
@@ -69,10 +53,15 @@ public abstract class WorkflowException extends Exception {
 	 * @param cause A Throwable that was caught and is associated with why this
 	 * 				exception is being thrown.
 	 */
-	public WorkflowException(String message, Throwable cause) {
+	public WorkflowException(final String message, final Throwable cause) {
 		super(message, cause);
 		
-		isSerious = true;
+		if(cause instanceof WorkflowException) {
+			annotator = ((WorkflowException) cause).annotator;
+		}
+		else {
+			annotator = null;
+		}
 	}
 	
 	/**
@@ -81,10 +70,104 @@ public abstract class WorkflowException extends Exception {
 	 * @param cause A Throwable that was caught and is associated with why this
 	 * 				exception is being thrown.
 	 */
-	public WorkflowException(Throwable cause) {
+	public WorkflowException(final Throwable cause) {
 		super(cause);
 		
-		isSerious = true;
+		if(cause instanceof WorkflowException) {
+			annotator = ((WorkflowException) cause).annotator;
+		}
+		else {
+			annotator = null;
+		}
+	}
+	
+	/**
+	 * Creates an exception with an error code and error text.
+	 * 
+	 * @param errorCode The error code.
+	 * 
+	 * @param errorText The error text.
+	 */
+	public WorkflowException(final ErrorCode errorCode, 
+			final String errorText) {
+		
+		super(errorText);
+		
+		annotator = new Annotator(errorCode, errorText);
+	}
+	
+	/**
+	 * Creates an exception with an error code, error text, and a custom 
+	 * message that will be printed to the log instead of the error text.
+	 * 
+	 * @param errorCode The error code.
+	 * 
+	 * @param errorText The error text.
+	 * 
+	 * @param message The message for the server log.
+	 */
+	public WorkflowException(final ErrorCode errorCode,
+			final String errorText, final String message) {
+		
+		super(message);
+		
+		annotator = new Annotator(errorCode, errorText);
+	}
+	
+	/**
+	 * Creates an exception with an error code, error text, a custom message 
+	 * that will be printed to the log instead of the error text, and another
+	 * Throwable that caused this exception.
+	 * 
+	 * @param errorCode The error code.
+	 * 
+	 * @param errorText The error text.
+	 * 
+	 * @param message The message for the server log.
+	 * 
+	 * @param cause The Throwable that caused this exception.
+	 */
+	public WorkflowException(final ErrorCode errorCode, 
+			final String errorText, final String message, 
+			final Throwable cause) {
+		
+		super(message, cause);
+		
+		annotator = new Annotator(errorCode, errorText);
+	}
+	
+	/**
+	 * Creates an exception with an error code, error text, and another 
+	 * Throwable that caused this exception.
+	 * 
+	 * @param errorCode The error code.
+	 * 
+	 * @param errorText The error text.
+	 * 
+	 * @param cause The Throwable that caused this exception.
+	 */
+	public WorkflowException(final ErrorCode errorCode,
+			final String errorText, final Throwable cause) {
+		
+		super(cause);
+		
+		annotator = new Annotator(errorCode, errorText);
+	}
+	
+	/**
+	 * Sets a request as failed based on the error code and error text in this
+	 * exception if any is present. If not, it will fail it with whatever the
+	 * request's general failure message is.
+	 * 
+	 * @param request The request to fail.
+	 */
+	public void failRequest(final Request request) {
+		if(annotator == null) {
+			request.setFailed();
+		}
+		else {
+			request.setFailed(annotator.getErrorCode(), annotator.getErrorText());
+		}
 	}
 	
 	/**
@@ -95,12 +178,13 @@ public abstract class WorkflowException extends Exception {
 	 * 
 	 * @param logger The Logger to which this exception should be output.
 	 */
-	public void logException(Logger logger) {
-		if(isSerious) {
-			logger.error(toString(), this);
+	public void logException(final Logger logger) {
+		Throwable cause = this.getCause();
+		if(cause == null) {
+			logger.info(toString());
 		}
 		else {
-			logger.info(toString());
+			logger.error(toString(), this);
 		}
 	}
 }

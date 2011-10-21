@@ -9,7 +9,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.log4j.Logger;
-import org.ohmage.annotator.ErrorCodes;
+import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.domain.Document;
 import org.ohmage.exception.ServiceException;
 import org.ohmage.exception.ValidationException;
@@ -175,73 +175,74 @@ public class DocumentUpdateRequest extends UserRequest {
 		Set<String> tUsersToRemove = null;
 		
 		try {
-			tDocumentId = DocumentValidators.validateDocumentId(this, httpRequest.getParameter(InputKeys.DOCUMENT_ID));
+			tDocumentId = DocumentValidators.validateDocumentId(httpRequest.getParameter(InputKeys.DOCUMENT_ID));
 			if(tDocumentId == null) {
-				setFailed(ErrorCodes.DOCUMENT_INVALID_ID, "The required document ID is missing.");
+				setFailed(ErrorCode.DOCUMENT_INVALID_ID, "The required document ID is missing.");
 				throw new ValidationException("The required document ID is missing.");
 			}
 			else if(httpRequest.getParameterValues(InputKeys.DOCUMENT_ID).length > 1) {
-				setFailed(ErrorCodes.DOCUMENT_INVALID_ID, "Multiple document ID parameters were given.");
+				setFailed(ErrorCode.DOCUMENT_INVALID_ID, "Multiple document ID parameters were given.");
 				throw new ValidationException("Multiple document ID parameters were given.");
 			}
 			
 			tNewContents = getMultipartValue(httpRequest, InputKeys.DOCUMENT);
 			
-			tNewName = DocumentValidators.validateName(this, httpRequest.getParameter(InputKeys.DOCUMENT_NAME));
+			tNewName = DocumentValidators.validateName(httpRequest.getParameter(InputKeys.DOCUMENT_NAME));
 			if((tNewName != null) && (httpRequest.getParameterValues(InputKeys.DOCUMENT_NAME).length > 1)) {
-				setFailed(ErrorCodes.DOCUMENT_INVALID_NAME, "Mutiple document name parameters were given.");
+				setFailed(ErrorCode.DOCUMENT_INVALID_NAME, "Mutiple document name parameters were given.");
 				throw new ValidationException("Mutiple document name parameters were given.");
 			}
 			
-			tNewDescription = DocumentValidators.validateDescription(this, httpRequest.getParameter(InputKeys.DESCRIPTION));
+			tNewDescription = DocumentValidators.validateDescription(httpRequest.getParameter(InputKeys.DESCRIPTION));
 			if((tNewDescription != null) && (httpRequest.getParameterValues(InputKeys.DESCRIPTION).length > 1)) {
-				setFailed(ErrorCodes.DOCUMENT_INVALID_DESCRIPTION, "Mutiple description parameters were given.");
+				setFailed(ErrorCode.DOCUMENT_INVALID_DESCRIPTION, "Mutiple description parameters were given.");
 				throw new ValidationException("Mutiple description parameters were given.");
 			}
 			
-			tNewPrivacyState = DocumentValidators.validatePrivacyState(this, httpRequest.getParameter(InputKeys.PRIVACY_STATE));
+			tNewPrivacyState = DocumentValidators.validatePrivacyState(httpRequest.getParameter(InputKeys.PRIVACY_STATE));
 			if((tNewPrivacyState != null) && (httpRequest.getParameterValues(InputKeys.PRIVACY_STATE).length > 1)) {
-				setFailed(ErrorCodes.DOCUMENT_INVALID_PRIVACY_STATE, "Mutiple privacy state parameters were given.");
+				setFailed(ErrorCode.DOCUMENT_INVALID_PRIVACY_STATE, "Mutiple privacy state parameters were given.");
 				throw new ValidationException("Mutiple privacy state parameters were given.");
 			}
 			
-			tCampaignAndRolesToAdd = CampaignDocumentValidators.validateCampaignIdAndDocumentRoleList(this, httpRequest.getParameter(InputKeys.CAMPAIGN_ROLE_LIST_ADD));
+			tCampaignAndRolesToAdd = CampaignDocumentValidators.validateCampaignIdAndDocumentRoleList(httpRequest.getParameter(InputKeys.CAMPAIGN_ROLE_LIST_ADD));
 			if((tCampaignAndRolesToAdd != null) && (httpRequest.getParameterValues(InputKeys.CAMPAIGN_ROLE_LIST_ADD).length > 1)) {
-				setFailed(ErrorCodes.CAMPAIGN_INVALID_ID, "Mutiple campaign ID, document role list parameters were given.");
+				setFailed(ErrorCode.CAMPAIGN_INVALID_ID, "Mutiple campaign ID, document role list parameters were given.");
 				throw new ValidationException("Mutiple campaign ID, document role list parameters were given.");
 			}
 			
-			tCampaignsToRemove = CampaignValidators.validateCampaignIds(this, httpRequest.getParameter(InputKeys.CAMPAIGN_LIST_REMOVE));
+			tCampaignsToRemove = CampaignValidators.validateCampaignIds(httpRequest.getParameter(InputKeys.CAMPAIGN_LIST_REMOVE));
 			if((tCampaignsToRemove != null) && (httpRequest.getParameterValues(InputKeys.CAMPAIGN_LIST_REMOVE).length > 1)) {
-				setFailed(ErrorCodes.CAMPAIGN_INVALID_ID, "Mutiple campaign ID list parameters were given.");
+				setFailed(ErrorCode.CAMPAIGN_INVALID_ID, "Mutiple campaign ID list parameters were given.");
 				throw new ValidationException("Mutiple campaign ID list parameters were given.");
 			}
 			
-			tClassAndRolesToAdd = ClassDocumentValidators.validateClassIdAndDocumentRoleList(this, httpRequest.getParameter(InputKeys.CLASS_ROLE_LIST_ADD));
+			tClassAndRolesToAdd = ClassDocumentValidators.validateClassIdAndDocumentRoleList(httpRequest.getParameter(InputKeys.CLASS_ROLE_LIST_ADD));
 			if((tClassAndRolesToAdd != null) && (httpRequest.getParameterValues(InputKeys.CLASS_ROLE_LIST_ADD).length > 1)) {
-				setFailed(ErrorCodes.CLASS_INVALID_ID, "Mutiple class ID, document role list parameters were given.");
+				setFailed(ErrorCode.CLASS_INVALID_ID, "Mutiple class ID, document role list parameters were given.");
 				throw new ValidationException("Mutiple class ID, document role list parameters were given.");
 			}
 			
-			tClassesToRemove = ClassValidators.validateClassIdList(this, httpRequest.getParameter(InputKeys.CLASS_LIST_REMOVE));
+			tClassesToRemove = ClassValidators.validateClassIdList(httpRequest.getParameter(InputKeys.CLASS_LIST_REMOVE));
 			if((tClassesToRemove != null) && (httpRequest.getParameterValues(InputKeys.CLASS_LIST_REMOVE).length > 1)) {
-				setFailed(ErrorCodes.CLASS_INVALID_ID, "Mutiple class ID list parameters were given.");
+				setFailed(ErrorCode.CLASS_INVALID_ID, "Mutiple class ID list parameters were given.");
 				throw new ValidationException("Mutiple class ID list parameters were given.");
 			}
 			
-			tUserAndRolesToAdd = UserDocumentValidators.validateUsernameAndDocumentRoleList(this, httpRequest.getParameter(InputKeys.USER_ROLE_LIST_ADD));
+			tUserAndRolesToAdd = UserDocumentValidators.validateUsernameAndDocumentRoleList(httpRequest.getParameter(InputKeys.USER_ROLE_LIST_ADD));
 			if((tUserAndRolesToAdd != null) && (httpRequest.getParameterValues(InputKeys.USER_ROLE_LIST_ADD).length > 1)) {
-				setFailed(ErrorCodes.USER_INVALID_USERNAME, "Mutiple username, document role list parameters were given.");
+				setFailed(ErrorCode.USER_INVALID_USERNAME, "Mutiple username, document role list parameters were given.");
 				throw new ValidationException("Mutiple username, document role list parameters were given.");
 			}
 			
-			tUsersToRemove = UserValidators.validateUsernames(this, httpRequest.getParameter(InputKeys.USER_LIST_REMOVE));
+			tUsersToRemove = UserValidators.validateUsernames(httpRequest.getParameter(InputKeys.USER_LIST_REMOVE));
 			if((tUsersToRemove != null) && (httpRequest.getParameterValues(InputKeys.USER_LIST_REMOVE).length > 1)) {
-				setFailed(ErrorCodes.USER_INVALID_USERNAME, "Mutiple username list parameters were given.");
+				setFailed(ErrorCode.USER_INVALID_USERNAME, "Mutiple username list parameters were given.");
 				throw new ValidationException("Mutiple username list parameters were given.");
 			}
 		}
 		catch(ValidationException e) {
+			e.failRequest(this);
 			LOGGER.info(e.toString());
 		}
 		
@@ -276,76 +277,77 @@ public class DocumentUpdateRequest extends UserRequest {
 		
 		try {
 			LOGGER.info("Verifying that the document exists.");
-			DocumentServices.ensureDocumentExistence(this, documentId);
+			DocumentServices.ensureDocumentExistence(documentId);
 			
 			LOGGER.info("Verifying that the user can modify the document.");
-			UserDocumentServices.userCanModifyDocument(this, getUser().getUsername(), documentId);
+			UserDocumentServices.userCanModifyDocument(getUser().getUsername(), documentId);
 			
 			LOGGER.info("Getting the user's highest role for the document.");
-			Document.Role highestRole = UserDocumentServices.getHighestDocumentRoleForUserForDocument(this, getUser().getUsername(), documentId);
+			Document.Role highestRole = UserDocumentServices.getHighestDocumentRoleForUserForDocument(getUser().getUsername(), documentId);
 			
 			if(campaignAndRolesToAdd != null) {
 				LOGGER.info("Verifying that the campaigns in the campaign-role list exist.");
-				CampaignServices.checkCampaignsExistence(this, campaignAndRolesToAdd.keySet(), true);
+				CampaignServices.checkCampaignsExistence(campaignAndRolesToAdd.keySet(), true);
 				
 				LOGGER.info("Verifying that the user can associate the document with the campaigns in the campaign-role list.");
-				UserCampaignDocumentServices.userCanAssociateDocumentsWithCampaigns(this, getUser().getUsername(), campaignAndRolesToAdd.keySet());
+				UserCampaignDocumentServices.userCanAssociateDocumentsWithCampaigns(getUser().getUsername(), campaignAndRolesToAdd.keySet());
 				
 				LOGGER.info("Verifying that the user is not attempting to give more permissions to a campaign than they have.");
-				DocumentServices.ensureRoleNotLessThanRoles(this, highestRole, campaignAndRolesToAdd.values());
+				DocumentServices.ensureRoleNotLessThanRoles(highestRole, campaignAndRolesToAdd.values());
 			}
 			
 			if(campaignsToRemove != null) {
 				LOGGER.info("Verifying that the campaigns in the campaign list exist.");
-				CampaignServices.checkCampaignsExistence(this, campaignsToRemove, true);
+				CampaignServices.checkCampaignsExistence(campaignsToRemove, true);
 				
 				LOGGER.info("Verifying that the user has enough permissions in the campaigns to disassociate them from the document.");
-				UserCampaignDocumentServices.userCanDisassociateDocumentsFromCampaigns(this, getUser().getUsername(), campaignsToRemove);
+				UserCampaignDocumentServices.userCanDisassociateDocumentsFromCampaigns(getUser().getUsername(), campaignsToRemove);
 				
 				LOGGER.info("Verifying that the user is not attempting to revoke more permissions from campaigns than they have.");
-				CampaignDocumentServices.ensureRoleHighEnoughToDisassociateDocumentFromCampaigns(this, highestRole, campaignsToRemove, documentId);
+				CampaignDocumentServices.ensureRoleHighEnoughToDisassociateDocumentFromCampaigns(highestRole, campaignsToRemove, documentId);
 			}
 			
 			if(classAndRolesToAdd != null) {
 				LOGGER.info("Verifying that the classes in the class-role list exist.");
-				ClassServices.checkClassesExistence(this, classAndRolesToAdd.keySet(), true);
+				ClassServices.checkClassesExistence(classAndRolesToAdd.keySet(), true);
 				
 				LOGGER.info("Verifying that the user can associate the document with the classes in the class-role list.");
-				UserClassDocumentServices.userCanAssociateDocumentsWithClasses(this, getUser().getUsername(), classAndRolesToAdd.keySet());
+				UserClassDocumentServices.userCanAssociateDocumentsWithClasses(getUser().getUsername(), classAndRolesToAdd.keySet());
 				
 				LOGGER.info("Verifying that the user is not attempting to give more permissions to a class than they have.");
-				DocumentServices.ensureRoleNotLessThanRoles(this, highestRole, classAndRolesToAdd.values());
+				DocumentServices.ensureRoleNotLessThanRoles(highestRole, classAndRolesToAdd.values());
 			}
 			
 			if(classesToRemove != null) {
 				LOGGER.info("Verifying that the classes in the class list exist.");
-				ClassServices.checkClassesExistence(this, classesToRemove, true);
+				ClassServices.checkClassesExistence(classesToRemove, true);
 				
 				LOGGER.info("Verifying that the user has enough permissions in the classes to disassociate them from the document.");
-				UserClassDocumentServices.userCanDisassociateDocumentsWithClasses(this, getUser().getUsername(), classesToRemove);
+				UserClassDocumentServices.userCanDisassociateDocumentsWithClasses(getUser().getUsername(), classesToRemove);
 				
 				LOGGER.info("Verifying that the user is not attempting to revoke more permissions from classes than they have.");
-				ClassDocumentServices.ensureRoleHighEnoughToDisassociateDocumentFromClasses(this, highestRole, classesToRemove, documentId);
+				ClassDocumentServices.ensureRoleHighEnoughToDisassociateDocumentFromClasses(highestRole, classesToRemove, documentId);
 			}
 			
 			if(userAndRolesToAdd != null) {
 				LOGGER.info("Verifying that the users in the user-role list exist.");
-				UserServices.verifyUsersExist(this, userAndRolesToAdd.keySet(), true);
+				UserServices.verifyUsersExist(userAndRolesToAdd.keySet(), true);
 				
 				LOGGER.info("Verifying that the user is not attempting to give more permissions to a user than they have.");
-				DocumentServices.ensureRoleNotLessThanRoles(this, highestRole, userAndRolesToAdd.values());
+				DocumentServices.ensureRoleNotLessThanRoles(highestRole, userAndRolesToAdd.values());
 			}
 			
 			if(usersToRemove != null) {
 				LOGGER.info("Verifying that the user is not attempting to revoke more permissions from users than they have.");
-				UserDocumentServices.ensureRoleHighEnoughToDisassociateDocumentFromOtherUsers(this, highestRole, usersToRemove, documentId);
+				UserDocumentServices.ensureRoleHighEnoughToDisassociateDocumentFromOtherUsers(highestRole, usersToRemove, documentId);
 			}
 			
 			LOGGER.info("Updating the document.");
-			DocumentServices.updateDocument(this, documentId, newContents, newName, newDescription, newPrivacyState, 
+			DocumentServices.updateDocument(documentId, newContents, newName, newDescription, newPrivacyState, 
 					campaignAndRolesToAdd, campaignsToRemove, classAndRolesToAdd, classesToRemove, userAndRolesToAdd, usersToRemove);
 		}
 		catch(ServiceException e) {
+			e.failRequest(this);
 			e.logException(LOGGER);
 		}
 	}

@@ -1,6 +1,6 @@
 package org.ohmage.service;
 
-import org.ohmage.annotator.ErrorCodes;
+import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.exception.DataAccessException;
 import org.ohmage.exception.ServiceException;
 import org.ohmage.query.AuthenticationQuery;
@@ -24,8 +24,6 @@ public final class AuthenticationService {
 	 * exists about them, then false is returned. If such information does
 	 * exist, that information is checked to ensure that they are allowed to
 	 * login.
-	 * 
-	 * @param request The request with the user that is attempting to login.
 	 * 
 	 * @param newAccountsAllowed Whether or not new accounts are allowed.
 	 * 
@@ -61,13 +59,13 @@ public final class AuthenticationService {
 		// If the account is disabled, update the annotator and set the request
 		// as failed.
 		if(! userInformation.getEnabled()) {
-			request.setFailed(ErrorCodes.AUTHENTICATION_FAILED, "The account is disabled.");
+			request.setFailed(ErrorCode.AUTHENTICATION_FAILED, "The account is disabled.");
 			return false;
 		}
 		// If the user is a new user and we aren't allowing new users for this
 		// call, update the annotator and set the request as failed.
 		else if((! newAccountsAllowed) && userInformation.getNewAccount()) {
-			request.setFailed(ErrorCodes.AUTHENTICATION_FAILED, "New accounts aren't allowed to use this service.");
+			request.setFailed(ErrorCode.AUTHENTICATION_FAILED, "New accounts aren't allowed to use this service.");
 			return false;
 		}
 		// Otherwise, the user is valid and should be logged in.

@@ -12,7 +12,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.log4j.Logger;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.ohmage.annotator.ErrorCodes;
+import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.domain.Clazz;
 import org.ohmage.domain.UserPersonal;
 import org.ohmage.exception.ServiceException;
@@ -88,26 +88,27 @@ public class UserReadRequest extends UserRequest {
 				
 				t = getParameterValues(InputKeys.USER_LIST);
 				if(t.length > 1) {
-					setFailed(ErrorCodes.USER_INVALID_USERNAME, "Multiple username lists parameters were found: " + InputKeys.USER_LIST);
+					setFailed(ErrorCode.USER_INVALID_USERNAME, "Multiple username lists parameters were found: " + InputKeys.USER_LIST);
 					throw new ValidationException("Multiple username lists parameters were found: " + InputKeys.USER_LIST);
 				}
 				else if(t.length == 1) {
-					tUsernames = UserValidators.validateUsernames(this, t[0]);
+					tUsernames = UserValidators.validateUsernames(t[0]);
 				}
 					
-				tCampaignIds = CampaignValidators.validateCampaignIds(this, httpRequest.getParameter(InputKeys.CAMPAIGN_URN_LIST));
+				tCampaignIds = CampaignValidators.validateCampaignIds(httpRequest.getParameter(InputKeys.CAMPAIGN_URN_LIST));
 				if((tCampaignIds != null) && (httpRequest.getParameterValues(InputKeys.CAMPAIGN_URN_LIST).length > 1)) {
-					setFailed(ErrorCodes.CAMPAIGN_INVALID_ID, "Multiple campaign ID list parameters were found.");
+					setFailed(ErrorCode.CAMPAIGN_INVALID_ID, "Multiple campaign ID list parameters were found.");
 					throw new ValidationException("Multiple campaign ID list parameters were found.");
 				}
 				
-				tClassIds = ClassValidators.validateClassIdList(this, httpRequest.getParameter(InputKeys.CLASS_URN_LIST));
+				tClassIds = ClassValidators.validateClassIdList(httpRequest.getParameter(InputKeys.CLASS_URN_LIST));
 				if((tClassIds != null) && (httpRequest.getParameterValues(InputKeys.CLASS_URN_LIST).length > 1)) {
-					setFailed(ErrorCodes.CLASS_INVALID_ID, "Multiple class ID list parameters were found.");
+					setFailed(ErrorCode.CLASS_INVALID_ID, "Multiple class ID list parameters were found.");
 					throw new ValidationException("Multiple class ID list parameters were found.");
 				}
 			}
 			catch(ValidationException e) {
+				e.failRequest(this);
 				LOGGER.info(e.toString());
 			}
 		}
@@ -133,35 +134,36 @@ public class UserReadRequest extends UserRequest {
 		try {
 			if(usernames != null) {
 				LOGGER.info("Verifying that the requester may read the information about the users in the list.");
-				UserServices.verifyUserCanReadUsersPersonalInfo(this, getUser().getUsername(), usernames);
+				UserServices.verifyUserCanReadUsersPersonalInfo(getUser().getUsername(), usernames);
 				
 				LOGGER.info("Gathering the information about the users.");
-				result.putAll(UserServices.gatherPersonalInformation(this, usernames));
+				result.putAll(UserServices.gatherPersonalInformation(usernames));
 			}
 			
 			if(campaignIds != null) {
 				LOGGER.info("Verifying that all of the campaigns in the list exist.");
-				CampaignServices.checkCampaignsExistence(this, campaignIds, true);
+				CampaignServices.checkCampaignsExistence(campaignIds, true);
 				
 				LOGGER.info("Verifying that the requester may read the information about the users in the campaigns.");
-				UserCampaignServices.verifyUserCanReadUsersInfoInCampaigns(this, getUser().getUsername(), campaignIds);
+				UserCampaignServices.verifyUserCanReadUsersInfoInCampaigns(getUser().getUsername(), campaignIds);
 				
 				LOGGER.info("Gathering the information about the users in the campaigns.");
-				result.putAll(UserCampaignServices.getPersonalInfoForUsersInCampaigns(this, campaignIds));
+				result.putAll(UserCampaignServices.getPersonalInfoForUsersInCampaigns(campaignIds));
 			}
 			
 			if(classIds != null) {
 				LOGGER.info("Verifying that all of the classes in the list exist.");
-				ClassServices.checkClassesExistence(this, classIds, true);
+				ClassServices.checkClassesExistence(classIds, true);
 				
 				LOGGER.info("Verifying that the requester is privileged in all of the classes.");
-				UserClassServices.userHasRoleInClasses(this, getUser().getUsername(), classIds, Clazz.Role.PRIVILEGED);
+				UserClassServices.userHasRoleInClasses(getUser().getUsername(), classIds, Clazz.Role.PRIVILEGED);
 				
 				LOGGER.info("Gathering the information about the users in the classes.");
-				result.putAll(UserClassServices.getPersonalInfoForUsersInClasses(this, classIds));
+				result.putAll(UserClassServices.getPersonalInfoForUsersInClasses(classIds));
 			}
 		}
 		catch(ServiceException e) {
+			e.failRequest(this);
 			e.logException(LOGGER);
 		}
 	}

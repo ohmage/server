@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.ohmage.annotator.ErrorCodes;
+import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.domain.campaign.Campaign;
 import org.ohmage.domain.campaign.Response;
 import org.ohmage.domain.campaign.SurveyResponse;
@@ -21,7 +21,6 @@ import org.ohmage.query.ImageQueries;
 import org.ohmage.query.SurveyResponseImageQueries;
 import org.ohmage.query.SurveyResponseQueries;
 import org.ohmage.query.SurveyUploadQuery;
-import org.ohmage.request.Request;
 
 /**
  * This class is responsible for creating, reading, updating, and deleting 
@@ -41,8 +40,6 @@ public final class SurveyResponseServices {
 	
 	/**
 	 * Creates new survey responses in the database.
-	 * 
-	 * @param request The Request that is performing this service.
 	 * 
 	 * @param user The username of the user that created this survey response.
 	 * 
@@ -64,9 +61,8 @@ public final class SurveyResponseServices {
 	 * 
 	 * @throws ServiceException Thrown if there is an error.
 	 */
-	public static List<Integer> createSurveyResponses(
-			final Request request, final String user, final String client,
-            final String campaignUrn,
+	public static List<Integer> createSurveyResponses(final String user, 
+			final String client, final String campaignUrn,
             final List<SurveyResponse> surveyUploadList,
             final Map<String, BufferedImage> bufferedImageMap) 
             throws ServiceException {
@@ -75,7 +71,6 @@ public final class SurveyResponseServices {
 			return SurveyUploadQuery.insertSurveys(user, client, campaignUrn, surveyUploadList, bufferedImageMap);
 		}
 		catch(DataAccessException e) {
-			request.setFailed();
 			throw new ServiceException(e);
 		}
 	}
@@ -83,8 +78,6 @@ public final class SurveyResponseServices {
 	/**
 	 * Verifies that, for all photo prompt responses, a corresponding image
 	 * exists in the list of images.
-	 * 
-	 * @param request The Request that is performing this service.
 	 * 
 	 * @param surveyResponses The survey responses.
 	 * 
@@ -94,7 +87,6 @@ public final class SurveyResponseServices {
 	 * 							corresponding contents don't.
 	 */
 	public static void verifyImagesExistForPhotoPromptResponses(
-			final Request request, 
 			final Collection<SurveyResponse> surveyResponses,
 			final Map<String, BufferedImage> images) 
 			throws ServiceException {
@@ -103,8 +95,9 @@ public final class SurveyResponseServices {
 			for(Response promptResponse : surveyResponse.getResponses().values()) {
 				if(promptResponse instanceof PhotoPromptResponse) {
 					if(! images.containsKey(promptResponse.getResponseValue())) {
-						request.setFailed(ErrorCodes.SURVEY_INVALID_RESPONSES, "An image key was found that was not present in the survey payload.");
-						throw new ServiceException("An image key was found that was not present in the survey payload.");
+						throw new ServiceException(
+								ErrorCode.SURVEY_INVALID_RESPONSES, 
+								"An image key was found that was not present in the survey payload.");
 					}
 				}
 			}
@@ -130,8 +123,6 @@ public final class SurveyResponseServices {
 	 * the survey ID and prompt ID are present but that prompt is not part of
 	 * that survey, no error will be thrown but the results will be empty.
 	 *  
-	 * @param request The Request that is performing this service. Required.
-	 * 
 	 * @param campaignId The campaign's unique identifier. Required.
 	 * 
 	 * @param usernames A user's username to which the results must only 
@@ -165,8 +156,8 @@ public final class SurveyResponseServices {
 	 * @throws ServiceException Thrown if there is an error.
 	 */
 	public static List<SurveyResponse> readSurveyResponseInformation(
-			final Request request, final Campaign campaign,
-			final String username, final String client, 
+			final Campaign campaign, final String username, 
+			final String client, 
 			final Date startDate, final Date endDate, 
 			final SurveyResponse.PrivacyState privacyState, 
 			final Collection<String> surveyIds, 
@@ -281,7 +272,6 @@ public final class SurveyResponseServices {
 			}
 		}
 		catch(DataAccessException e) {
-			request.setFailed();
 			throw new ServiceException(e);
 		}
 	}
@@ -289,17 +279,19 @@ public final class SurveyResponseServices {
 	/**
 	 * Updates the privacy state on a survey.
 	 * 
-	 * @param request  The request to fail should an error occur.
 	 * @param surveyResponseId  The key for the survey to update.
 	 * @param privacyState  The new privacy state value.
 	 * @throws ServiceException  If an error occurs.
 	 */
-	public static void updateSurveyResponsePrivacyState(Request request, Long surveyResponseId, SurveyResponse.PrivacyState privacyState) throws ServiceException { 
+	public static void updateSurveyResponsePrivacyState(
+			final Long surveyResponseId, 
+			final SurveyResponse.PrivacyState privacyState) 
+			throws ServiceException {
+		
 		try {
 			SurveyResponseQueries.updateSurveyResponsePrivacyState(surveyResponseId, privacyState);
 		} 
 		catch(DataAccessException e) {
-			request.setFailed();
 			throw new ServiceException(e);
 		}
 	}
@@ -308,16 +300,17 @@ public final class SurveyResponseServices {
 	 * Deletes all of the images associated with a survey response then deletes
 	 * the survey response itself.
 	 * 
-	 * @param request The Request that is performing this service.
-	 * 
 	 * @param surveyResponseId The survey response's unique identifier.
 	 * 
 	 * @throws ServiceException Thrown if there is an error.
 	 */
-	public static void deleteSurveyResponse(Request request, Long surveyResponseId) throws ServiceException {
+	public static void deleteSurveyResponse(final Long surveyResponseId) 
+			throws ServiceException {
+		
 		try {
 			List<String> imageIds = SurveyResponseImageQueries.getImageIdsFromSurveyResponse(surveyResponseId);
 
+			// TODO:
 			// Here we are deleting the images then deleting the survey 
 			// response. If this fails, the entire service is aborted, but the
 			// individual services that deleted the images are not rolled back.
@@ -340,7 +333,6 @@ public final class SurveyResponseServices {
 			SurveyResponseQueries.deleteSurveyResponse(surveyResponseId);
 		}
 		catch(DataAccessException e) {
-			request.setFailed();
 			throw new ServiceException(e);
 		}
 	}

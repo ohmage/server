@@ -5,7 +5,7 @@ import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 
 import org.apache.log4j.Logger;
-import org.ohmage.annotator.ErrorCodes;
+import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.exception.ServiceException;
 import org.ohmage.exception.ValidationException;
 import org.ohmage.request.InputKeys;
@@ -61,19 +61,20 @@ public class VizScatterPlotRequest extends VisualizationRequest {
 		String tPrompt2Id = null;
 		
 		try {
-			tPromptId = CampaignValidators.validatePromptId(this, httpRequest.getParameter(InputKeys.PROMPT_ID));
+			tPromptId = CampaignValidators.validatePromptId(httpRequest.getParameter(InputKeys.PROMPT_ID));
 			if(tPromptId == null) {
-				setFailed(ErrorCodes.SURVEY_INVALID_PROMPT_ID, "Missing the parameter: " + InputKeys.PROMPT_ID);
+				setFailed(ErrorCode.SURVEY_INVALID_PROMPT_ID, "Missing the parameter: " + InputKeys.PROMPT_ID);
 				throw new ValidationException("Missing the parameter: " + InputKeys.PROMPT_ID);
 			}
 			
-			tPrompt2Id = CampaignValidators.validatePromptId(this, httpRequest.getParameter(InputKeys.PROMPT2_ID));
+			tPrompt2Id = CampaignValidators.validatePromptId(httpRequest.getParameter(InputKeys.PROMPT2_ID));
 			if(tPrompt2Id == null) {
-				setFailed(ErrorCodes.SURVEY_INVALID_PROMPT_ID, "Missing the parameter: " + InputKeys.PROMPT2_ID);
+				setFailed(ErrorCode.SURVEY_INVALID_PROMPT_ID, "Missing the parameter: " + InputKeys.PROMPT2_ID);
 				throw new ValidationException("Missing the parameter: " + InputKeys.PROMPT2_ID);
 			}
 		}
 		catch(ValidationException e) {
+			e.failRequest(this);
 			LOGGER.info(e.toString());
 		}
 		
@@ -100,20 +101,21 @@ public class VizScatterPlotRequest extends VisualizationRequest {
 		
 		try {
 			LOGGER.info("Verifying that the first prompt ID exists in the campaign's XML");
-			CampaignServices.ensurePromptExistsInCampaign(this, getCampaignId(), promptId);
+			CampaignServices.ensurePromptExistsInCampaign(getCampaignId(), promptId);
 			
 			LOGGER.info("Verifying that the second prompt ID exists in the campaign's XML");
-			CampaignServices.ensurePromptExistsInCampaign(this, getCampaignId(), prompt2Id);
+			CampaignServices.ensurePromptExistsInCampaign(getCampaignId(), prompt2Id);
 			
 			Map<String, String> parameters = getVisualizationParameters();
 			parameters.put(VisualizationServices.PARAMETER_KEY_PROMPT_ID, promptId);
 			parameters.put(VisualizationServices.PARAMETER_KEY_PROMPT2_ID, prompt2Id);
 			
 			LOGGER.info("Making the request to the visualization server.");
-			setImage(VisualizationServices.sendVisualizationRequest(this, REQUEST_PATH, getUser().getToken(), 
+			setImage(VisualizationServices.sendVisualizationRequest(REQUEST_PATH, getUser().getToken(), 
 					getCampaignId(), getWidth(), getHeight(), parameters));
 		}
 		catch(ServiceException e) {
+			e.failRequest(this);
 			e.logException(LOGGER);
 		}
 	}

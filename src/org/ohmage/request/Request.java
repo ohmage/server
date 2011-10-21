@@ -27,7 +27,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.ohmage.annotator.Annotator;
-import org.ohmage.annotator.ErrorCodes;
+import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.exception.ValidationException;
 import org.ohmage.util.StringUtils;
 
@@ -142,7 +142,7 @@ public abstract class Request {
 	 * 
 	 * @param errorText The text to be returned to the user.
 	 */
-	public void setFailed(String errorCode, String errorText) {
+	public void setFailed(final ErrorCode errorCode, final String errorText) {
 		annotator.update(errorCode, errorText);
 		
 		failed = true;
@@ -402,7 +402,7 @@ public abstract class Request {
 		}
 		catch(IOException e) {
 			LOGGER.error("The uploaded content was not GZIP content.", e);
-			setFailed(ErrorCodes.SYSTEM_GENERAL_ERROR, "Not a gzip file.");
+			setFailed(ErrorCode.SYSTEM_GENERAL_ERROR, "Not a gzip file.");
 			return Collections.emptyMap();
 		}
 		
@@ -539,7 +539,7 @@ public abstract class Request {
 		}
 		catch(ServletException e) {
 			LOGGER.error("This is not a multipart/form-data POST.", e);
-			setFailed(ErrorCodes.SYSTEM_GENERAL_ERROR, "This is not a multipart/form-data POST which is what we expect for the current API call.");
+			setFailed(ErrorCode.SYSTEM_GENERAL_ERROR, "This is not a multipart/form-data POST which is what we expect for the current API call.");
 			throw new ValidationException(e);
 		}
 		catch(IOException e) {

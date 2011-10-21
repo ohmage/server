@@ -16,7 +16,7 @@ import org.apache.log4j.Logger;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.ohmage.annotator.ErrorCodes;
+import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.domain.Location;
 import org.ohmage.domain.MobilityPoint;
 import org.ohmage.domain.MobilityPoint.LocationStatus;
@@ -93,47 +93,48 @@ public class MobilityReadChunkedRequest extends UserRequest {
 			try {
 				String[] startDates = getParameterValues(InputKeys.START_DATE);
 				if(startDates.length == 0) {
-					setFailed(ErrorCodes.SERVER_INVALID_DATE, "The start date is missing: " + InputKeys.START_DATE);
+					setFailed(ErrorCode.SERVER_INVALID_DATE, "The start date is missing: " + InputKeys.START_DATE);
 					throw new ValidationException("The start date is missing: " + InputKeys.START_DATE);
 				}
 				else if(startDates.length == 1) {
-					tStartDate = MobilityValidators.validateDate(this, startDates[0]);
+					tStartDate = MobilityValidators.validateDate(startDates[0]);
 					
 					if(tStartDate == null) {
-						setFailed(ErrorCodes.SERVER_INVALID_DATE, "The start date is missing: " + InputKeys.START_DATE);
+						setFailed(ErrorCode.SERVER_INVALID_DATE, "The start date is missing: " + InputKeys.START_DATE);
 						throw new ValidationException("The start date is missing: " + InputKeys.START_DATE);
 					}
 				}
 				else {
-					setFailed(ErrorCodes.SERVER_INVALID_DATE, "Multiple start dates were given: " + InputKeys.START_DATE);
+					setFailed(ErrorCode.SERVER_INVALID_DATE, "Multiple start dates were given: " + InputKeys.START_DATE);
 					throw new ValidationException("Multiple start dates were given: " + InputKeys.START_DATE);
 				}
 				
 				String[] endDates = getParameterValues(InputKeys.END_DATE);
 				if(endDates.length == 0) {
-					setFailed(ErrorCodes.SERVER_INVALID_DATE, "The end date is missing: " + InputKeys.END_DATE);
+					setFailed(ErrorCode.SERVER_INVALID_DATE, "The end date is missing: " + InputKeys.END_DATE);
 					throw new ValidationException("The end date is missing: " + InputKeys.END_DATE);
 				}
 				else if(endDates.length == 1) {
-					tEndDate = MobilityValidators.validateDate(this, endDates[0]);
+					tEndDate = MobilityValidators.validateDate(endDates[0]);
 					
 					if(tEndDate == null) {
-						setFailed(ErrorCodes.SERVER_INVALID_DATE, "The end date is missing: " + InputKeys.END_DATE);
+						setFailed(ErrorCode.SERVER_INVALID_DATE, "The end date is missing: " + InputKeys.END_DATE);
 						throw new ValidationException("The end date is missing: " + InputKeys.END_DATE);
 					}
 				}
 				else {
-					setFailed(ErrorCodes.SERVER_INVALID_DATE, "Multiple end dates were given: " + InputKeys.END_DATE);
+					setFailed(ErrorCode.SERVER_INVALID_DATE, "Multiple end dates were given: " + InputKeys.END_DATE);
 					throw new ValidationException("Multiple end dates were given: " + InputKeys.END_DATE);
 				}
 				
 				Date latestDate = new Date(tStartDate.getTime() + MAX_MILLIS_BETWEEN_START_AND_END_DATES);
 				if(tEndDate.after(latestDate)) {
-					setFailed(ErrorCodes.SERVER_INVALID_DATE, "The maximum time range between the start and end dates is 10 days.");
+					setFailed(ErrorCode.SERVER_INVALID_DATE, "The maximum time range between the start and end dates is 10 days.");
 					throw new ValidationException("The maximum time range between the start and end dates is 10 days.");
 				}
 			}
 			catch(ValidationException e) {
+				e.failRequest(this);
 				LOGGER.info(e.toString());
 			}
 		}
@@ -157,7 +158,6 @@ public class MobilityReadChunkedRequest extends UserRequest {
 		
 		try {
 			result = MobilityServices.retrieveMobilityData(
-					this, 
 					getUser().getUsername(), 
 					null, 
 					startDate, 
@@ -167,6 +167,7 @@ public class MobilityReadChunkedRequest extends UserRequest {
 					null);
 		}
 		catch(ServiceException e) {
+			e.failRequest(this);
 			e.logException(LOGGER);
 		}
 	}

@@ -5,7 +5,7 @@ import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 
 import org.apache.log4j.Logger;
-import org.ohmage.annotator.ErrorCodes;
+import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.exception.ServiceException;
 import org.ohmage.exception.ValidationException;
 import org.ohmage.request.InputKeys;
@@ -38,19 +38,20 @@ public class VizUserTimeseriesRequest extends VisualizationRequest {
 		String tUsername = null;
 		
 		try {
-			tPromptId = CampaignValidators.validatePromptId(this, httpRequest.getParameter(InputKeys.PROMPT_ID));
+			tPromptId = CampaignValidators.validatePromptId(httpRequest.getParameter(InputKeys.PROMPT_ID));
 			if(tPromptId == null) {
-				setFailed(ErrorCodes.SURVEY_INVALID_PROMPT_ID, "Missing the parameter: " + InputKeys.PROMPT_ID);
+				setFailed(ErrorCode.SURVEY_INVALID_PROMPT_ID, "Missing the parameter: " + InputKeys.PROMPT_ID);
 				throw new ValidationException("Missing the parameter: " + InputKeys.PROMPT_ID);
 			}
 			
-			tUsername = UserValidators.validateUsername(this, httpRequest.getParameter(InputKeys.USER));
+			tUsername = UserValidators.validateUsername(httpRequest.getParameter(InputKeys.USER));
 			if(tUsername == null) {
-				setFailed(ErrorCodes.USER_INVALID_USERNAME, "Missing the parameter: " + InputKeys.USER);
+				setFailed(ErrorCode.USER_INVALID_USERNAME, "Missing the parameter: " + InputKeys.USER);
 				throw new ValidationException("Missing the parameter: " + InputKeys.USER);
 			}
 		}
 		catch(ValidationException e) {
+			e.failRequest(this);
 			LOGGER.info(e.toString());
 		}
 		
@@ -77,23 +78,24 @@ public class VizUserTimeseriesRequest extends VisualizationRequest {
 		
 		try {
 			LOGGER.info("Verifying that the prompt ID exists in the campaign's XML");
-			CampaignServices.ensurePromptExistsInCampaign(this, getCampaignId(), promptId);
+			CampaignServices.ensurePromptExistsInCampaign(getCampaignId(), promptId);
 			
 			LOGGER.info("Verifying that the user exists.");
-			UserServices.checkUserExistance(this, username, true);
+			UserServices.checkUserExistance(username, true);
 			
 			LOGGER.info("Verifying that the requester has permissions to view another user's data.");
-			UserCampaignServices.requesterCanViewUsersSurveyResponses(this, getCampaignId(), getUser().getUsername(), username);
+			UserCampaignServices.requesterCanViewUsersSurveyResponses(getCampaignId(), getUser().getUsername(), username);
 			
 			Map<String, String> parameters = getVisualizationParameters();
 			parameters.put(VisualizationServices.PARAMETER_KEY_PROMPT_ID, promptId);
 			parameters.put(VisualizationServices.PARAMETER_KEY_USERNAME, username);
 			
 			LOGGER.info("Making the request to the visualization server.");
-			setImage(VisualizationServices.sendVisualizationRequest(this, REQUEST_PATH, getUser().getToken(), 
+			setImage(VisualizationServices.sendVisualizationRequest(REQUEST_PATH, getUser().getToken(), 
 					getCampaignId(), getWidth(), getHeight(), parameters));
 		}
 		catch(ServiceException e) {
+			e.failRequest(this);
 			e.logException(LOGGER);
 		}
 	}

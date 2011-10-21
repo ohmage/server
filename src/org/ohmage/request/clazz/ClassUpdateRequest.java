@@ -8,7 +8,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.log4j.Logger;
-import org.ohmage.annotator.ErrorCodes;
+import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.domain.Clazz;
 import org.ohmage.exception.ServiceException;
 import org.ohmage.exception.ValidationException;
@@ -97,41 +97,42 @@ public class ClassUpdateRequest extends UserRequest {
 		
 		if(! isFailed()) {
 			try {
-				tempClassId = ClassValidators.validateClassId(this, httpRequest.getParameter(InputKeys.CLASS_URN));
+				tempClassId = ClassValidators.validateClassId(httpRequest.getParameter(InputKeys.CLASS_URN));
 				if(tempClassId == null) {
-					setFailed(ErrorCodes.CLASS_INVALID_ID, "Missing the class ID: " + InputKeys.CLASS_URN);
+					setFailed(ErrorCode.CLASS_INVALID_ID, "Missing the class ID: " + InputKeys.CLASS_URN);
 					throw new ValidationException("Missing the class ID: " + InputKeys.CLASS_URN);
 				}
 				else if(httpRequest.getParameterValues(InputKeys.CLASS_URN).length > 1) {
-					setFailed(ErrorCodes.CLASS_INVALID_ID, "Multiple class IDs were found.");
+					setFailed(ErrorCode.CLASS_INVALID_ID, "Multiple class IDs were found.");
 					throw new ValidationException("Multiple class IDs were found.");
 				}
 				
-				tempClassName = ClassValidators.validateName(this, httpRequest.getParameter(InputKeys.CLASS_NAME));
+				tempClassName = ClassValidators.validateName(httpRequest.getParameter(InputKeys.CLASS_NAME));
 				if((tempClassName != null) && (httpRequest.getParameterValues(InputKeys.CLASS_NAME).length > 1)) {
-					setFailed(ErrorCodes.CLASS_INVALID_NAME, "Multiple name parameters were found.");
+					setFailed(ErrorCode.CLASS_INVALID_NAME, "Multiple name parameters were found.");
 					throw new ValidationException("Multiple name parameters were found.");
 				}
 				
-				tempClassDescription = ClassValidators.validateDescription(this, httpRequest.getParameter(InputKeys.DESCRIPTION));
+				tempClassDescription = ClassValidators.validateDescription(httpRequest.getParameter(InputKeys.DESCRIPTION));
 				if((tempClassDescription != null) && (httpRequest.getParameterValues(InputKeys.DESCRIPTION).length > 1)) {
-					setFailed(ErrorCodes.CLASS_INVALID_DESCRIPTION, "Multiple description parameters were found.");
+					setFailed(ErrorCode.CLASS_INVALID_DESCRIPTION, "Multiple description parameters were found.");
 					throw new ValidationException("Multiple description parameters were found.");
 				}
 				
-				tempUsersToAdd = UserClassValidators.validateUserAndClassRoleList(this, httpRequest.getParameter(InputKeys.USER_ROLE_LIST_ADD));
+				tempUsersToAdd = UserClassValidators.validateUserAndClassRoleList(httpRequest.getParameter(InputKeys.USER_ROLE_LIST_ADD));
 				if((tempUsersToAdd != null) && (httpRequest.getParameterValues(InputKeys.USER_ROLE_LIST_ADD).length > 1)) {
-					setFailed(ErrorCodes.USER_INVALID_USERNAME, "Multiple username, campaign role add parameters were found.");
+					setFailed(ErrorCode.USER_INVALID_USERNAME, "Multiple username, campaign role add parameters were found.");
 					throw new ValidationException("Multiple username, campaign role add parameters were found.");
 				}
 				
-				tempUsersToRemove = UserValidators.validateUsernames(this, httpRequest.getParameter(InputKeys.USER_LIST_REMOVE));
+				tempUsersToRemove = UserValidators.validateUsernames(httpRequest.getParameter(InputKeys.USER_LIST_REMOVE));
 				if((tempUsersToRemove != null) && (httpRequest.getParameterValues(InputKeys.USER_LIST_REMOVE).length > 1)) {
-					setFailed(ErrorCodes.USER_INVALID_USERNAME, "Multiple username list parameters were found.");
+					setFailed(ErrorCode.USER_INVALID_USERNAME, "Multiple username list parameters were found.");
 					throw new ValidationException("Multiple username list parameters were found.");
 				}
 			}
 			catch(ValidationException e) {
+				e.failRequest(this);
 				LOGGER.info(e.toString());
 			}
 		}
@@ -158,15 +159,16 @@ public class ClassUpdateRequest extends UserRequest {
 		
 		try {
 			LOGGER.info("Checking that the class exists.");
-			ClassServices.checkClassExistence(this, classId, true);
+			ClassServices.checkClassExistence(classId, true);
 			
 			LOGGER.info("Checking that the user is privileged in the class or is an admin.");
-			UserClassServices.userIsAdminOrPrivileged(this, classId, getUser().getUsername());
+			UserClassServices.userIsAdminOrPrivileged(classId, getUser().getUsername());
 			
 			LOGGER.info("Updating the class.");
-			ClassServices.updateClass(this, classId, className, classDescription, usersToAdd, usersToRemove);
+			ClassServices.updateClass(classId, className, classDescription, usersToAdd, usersToRemove);
 		}
 		catch(ServiceException e) {
+			e.failRequest(this);
 			e.logException(LOGGER);
 		}
 	}

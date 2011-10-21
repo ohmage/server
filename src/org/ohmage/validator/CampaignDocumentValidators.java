@@ -4,11 +4,10 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.log4j.Logger;
-import org.ohmage.annotator.ErrorCodes;
+import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.domain.Document;
 import org.ohmage.exception.ValidationException;
 import org.ohmage.request.InputKeys;
-import org.ohmage.request.Request;
 import org.ohmage.util.StringUtils;
 
 /**
@@ -28,8 +27,6 @@ public class CampaignDocumentValidators {
 	/**
 	 * Validates a list of campaign ID and document role pairs.
 	 * 
-	 * @param request The request that is performing this validation.
-	 * 
 	 * @param campaignAndRoleList A String representing the campaign ID,  
 	 * 							  document role pairs. The pairs should be 
 	 * 							  separated by
@@ -47,7 +44,8 @@ public class CampaignDocumentValidators {
 	 * 							   individual values in the pairs are malformed
 	 * 							   or missing.
 	 */
-	public static Map<String, Document.Role> validateCampaignIdAndDocumentRoleList(Request request, String campaignAndRoleList) throws ValidationException {
+	public static Map<String, Document.Role> validateCampaignIdAndDocumentRoleList(
+			final String campaignAndRoleList) throws ValidationException {
 		LOGGER.info("Validating a list of campaign ID and document role pairs.");
 		
 		if(StringUtils.isEmptyOrWhitespaceOnly(campaignAndRoleList)) {
@@ -65,20 +63,26 @@ public class CampaignDocumentValidators {
 				String[] campaignAndRole = campaignAndRoleString.split(InputKeys.ENTITY_ROLE_SEPARATOR);
 				
 				if(campaignAndRole.length != 2) {
-					request.setFailed(ErrorCodes.CAMPAIGN_INVALID_ID, "The campaign ID, document role pair is invalid: " + campaignAndRoleString);
-					throw new ValidationException("The campaign ID, document role pair is invalid: " + campaignAndRoleString);
+					throw new ValidationException(
+							ErrorCode.CAMPAIGN_INVALID_ID, 
+							"The campaign ID, document role pair is invalid: " + 
+								campaignAndRoleString);
 				}
 				
-				String campaignId = CampaignValidators.validateCampaignId(request, campaignAndRole[0].trim());
+				String campaignId = CampaignValidators.validateCampaignId(campaignAndRole[0].trim());
 				if(campaignId == null) {
-					request.setFailed(ErrorCodes.CAMPAIGN_INVALID_ID, "The campaign ID in the campaign ID, document role pair is missing: " + campaignAndRoleString);
-					throw new ValidationException("The campaign ID in the campaign ID, document role pair is missing: " + campaignAndRoleString);
+					throw new ValidationException(
+							ErrorCode.CAMPAIGN_INVALID_ID, 
+							"The campaign ID in the campaign ID, document role pair is missing: " + 
+								campaignAndRoleString);
 				}
 				
-				Document.Role documentRole = DocumentValidators.validateRole(request, campaignAndRole[1].trim());
+				Document.Role documentRole = DocumentValidators.validateRole(campaignAndRole[1].trim());
 				if(documentRole == null) {
-					request.setFailed(ErrorCodes.DOCUMENT_INVALID_ROLE, "The document role in the campaign ID, document role pair is missing: " + campaignAndRoleString);
-					throw new ValidationException("The document role in the campaign ID, document role pair is missing: " + campaignAndRoleString);
+					throw new ValidationException(
+							ErrorCode.DOCUMENT_INVALID_ROLE, 
+							"The document role in the campaign ID, document role pair is missing: " + 
+								campaignAndRoleString);
 				}
 	
 				result.put(campaignId, documentRole);

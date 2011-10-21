@@ -7,14 +7,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.ohmage.annotator.ErrorCodes;
+import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.domain.Clazz;
 import org.ohmage.domain.UserPersonal;
 import org.ohmage.exception.DataAccessException;
 import org.ohmage.exception.ServiceException;
 import org.ohmage.query.UserClassQueries;
 import org.ohmage.query.UserQueries;
-import org.ohmage.request.Request;
 
 /**
  * This class contains the services for user-class relationships.
@@ -31,8 +30,6 @@ public final class UserClassServices {
 	 * Ensures that the class exists and that the user belongs to the class in
 	 * some capacity.
 	 * 
-	 * @param request The request that is performing this check.
-	 * 
 	 * @param classId The unique identifier for the class.
 	 * 
 	 * @param username The username of the user that must belong to the class.
@@ -41,17 +38,19 @@ public final class UserClassServices {
 	 * 							doesn't exist, or if the class does exist but
 	 * 							the user doesn't belong to the class.
 	 */
-	public static void classExistsAndUserBelongs(Request request, String classId, String username) throws ServiceException {
-		ClassServices.checkClassExistence(request, classId, true);
+	public static void classExistsAndUserBelongs(final String classId, 
+			final String username) throws ServiceException {
+		
+		ClassServices.checkClassExistence(classId, true);
 		
 		try {
 			if(! UserClassQueries.userBelongsToClass(classId, username)) {
-				request.setFailed(ErrorCodes.USER_INVALID_USERNAME, "The user does not belong to the class: " + classId);
-				throw new ServiceException("The user does not belong to the class: " + classId);
+				throw new ServiceException(
+						ErrorCode.USER_INVALID_USERNAME, 
+						"The user does not belong to the class: " + classId);
 			}
 		}
 		catch(DataAccessException e) {
-			request.setFailed();
 			throw new ServiceException(e);
 		}
 	}
@@ -59,8 +58,6 @@ public final class UserClassServices {
 	/**
 	 * Ensures that all of the classes in the class list exists and that the 
 	 * user belong to each of them in some capacity.
-	 * 
-	 * @param request The request that is performing this check.
 	 * 
 	 * @param classIds A List of unique identifiers for classes.
 	 * 
@@ -71,16 +68,17 @@ public final class UserClassServices {
 	 * 							classes don't exist, or if the user doesn't
 	 * 							belong to any of the classes.
 	 */
-	public static void classesExistAndUserBelongs(Request request, Collection<String> classIds, String username) throws ServiceException {
+	public static void classesExistAndUserBelongs(
+			final Collection<String> classIds, final String username) 
+			throws ServiceException {
+		
 		for(String classId : classIds) {
-			classExistsAndUserBelongs(request, classId, username);
+			classExistsAndUserBelongs(classId, username);
 		}
 	}
 	
 	/**
 	 * Verifies that the user's role in the class is the same as a given role.
-	 * 
-	 * @param request The Request that is performing this service.
 	 * 
 	 * @param username The username of the user.
 	 * 
@@ -91,15 +89,19 @@ public final class UserClassServices {
 	 * @throws ServiceException Thrown if the user doesn't have the role in the
 	 * 							class or if there is an error.
 	 */
-	public static void userHasRoleInClass(Request request, String username, String classId, Clazz.Role classRole) throws ServiceException {
+	public static void userHasRoleInClass(final String username, 
+			final String classId, final Clazz.Role classRole) 
+			throws ServiceException {
+		
 		try {
 			if(! UserClassQueries.getUserClassRole(classId, username).equals(classRole)) {
-				request.setFailed(ErrorCodes.CLASS_INSUFFICIENT_PERMISSIONS, "The user doesn't have sufficient permissions for the following class: " + classId);
-				throw new ServiceException("The user doesn't have sufficient permissions for the following class: " + classId);
+				throw new ServiceException(
+						ErrorCode.CLASS_INSUFFICIENT_PERMISSIONS, 
+						"The user doesn't have sufficient permissions for the following class: " + 
+							classId);
 			}
 		}
 		catch(DataAccessException e) {
-			request.setFailed();
 			throw new ServiceException(e);
 		}
 	}
@@ -107,8 +109,6 @@ public final class UserClassServices {
 	/**
 	 * Verifies that the user's role in each of the classes is the same as the
 	 * given role.
-	 * 
-	 * @param request The Request that is performing this service.
 	 * 
 	 * @param username The user's username.
 	 * 
@@ -120,17 +120,18 @@ public final class UserClassServices {
 	 * 							role in each of the classes or there is an 
 	 * 							error.
 	 */
-	public static void userHasRoleInClasses(Request request, String username, Collection<String> classIds, Clazz.Role classRole) throws ServiceException {
+	public static void userHasRoleInClasses(final String username, 
+			final Collection<String> classIds, final Clazz.Role classRole) 
+			throws ServiceException {
+		
 		for(String classId : classIds) {
-			userHasRoleInClass(request, username, classId, classRole);
+			userHasRoleInClass(username, classId, classRole);
 		}
 	}
 	
 	/**
 	 * Checks if the user is privileged in the class or an admin.
 	 *  
-	 * @param request The request that is performing this check.
-	 * 
 	 * @param classId The class to check if the user is privileged.
 	 * 
 	 * @param username The user to check if they are privileged in the class.
@@ -139,16 +140,18 @@ public final class UserClassServices {
 	 * 							not privileged in the class nor are they an 
 	 * 							admin.
 	 */
-	public static void userIsAdminOrPrivileged(Request request, String classId, String username) throws ServiceException {
+	public static void userIsAdminOrPrivileged(final String classId, 
+			final String username) throws ServiceException {
+		
 		try {
 			if((! Clazz.Role.PRIVILEGED.equals(UserClassQueries.getUserClassRole(classId, username))) &&
 			   (! UserQueries.userIsAdmin(username))) {
-				request.setFailed(ErrorCodes.CLASS_INSUFFICIENT_PERMISSIONS, "The user is not privileged in the class.");
-				throw new ServiceException("The user is not privileged in the class.");
+				throw new ServiceException(
+						ErrorCode.CLASS_INSUFFICIENT_PERMISSIONS, 
+						"The user is not privileged in the class.");
 			}
 		}
 		catch(DataAccessException e) {
-			request.setFailed();
 			throw new ServiceException(e);
 		}
 	}
@@ -156,8 +159,6 @@ public final class UserClassServices {
 	/**
 	 * Ensures that the user is an admin or that they are privileged in all of 
 	 * the classes in the class list.
-	 * 
-	 * @param request The request that performs this service.
 	 * 
 	 * @param username The username of the user that must be an admin or 
 	 * 				   privileged in all of the classes in the list.
@@ -168,7 +169,10 @@ public final class UserClassServices {
 	 * 							privileged in one of the classes or there is an
 	 * 							error.
 	 */
-	public static void userIsAdminOrPrivilegedInAllClasses(Request request, String username, Collection<String> classIds) throws ServiceException {
+	public static void userIsAdminOrPrivilegedInAllClasses(
+			final String username, final Collection<String> classIds) 
+			throws ServiceException {
+		
 		try {
 			// If the user is an admin, return.
 			if(UserQueries.userIsAdmin(username)) {
@@ -179,13 +183,14 @@ public final class UserClassServices {
 			// privileged.
 			for(String classId : classIds) {
 				if(! Clazz.Role.PRIVILEGED.equals(UserClassQueries.getUserClassRole(classId, username))) {
-					request.setFailed(ErrorCodes.CLASS_INSUFFICIENT_PERMISSIONS, "The user is not and admin nor privileged in a class: " + classId);
-					throw new ServiceException("The user is not and admin nor privileged in a class: " + classId);
+					throw new ServiceException(
+							ErrorCode.CLASS_INSUFFICIENT_PERMISSIONS, 
+							"The user is not and admin nor privileged in a class: " + 
+								classId);
 				}
 			}
 		}
 		catch(DataAccessException e) {
-			request.setFailed();
 			throw new ServiceException(e);
 		}
 	}
@@ -193,28 +198,25 @@ public final class UserClassServices {
 	/**
 	 * Retrieves a List of all the users in the class.
 	 * 
-	 * @param request The Request that is performing this service.
-	 * 
 	 * @param classId The unique identifier for the class.
 	 * 
 	 * @return Returns a List of usernames for all of the users in the class.
 	 * 
 	 * @throws ServiceException Thrown if there is an error.
 	 */
-	public static List<String> getUsersInClass(Request request, String classId) throws ServiceException {
+	public static List<String> getUsersInClass(final String classId) 
+			throws ServiceException {
+		
 		try {
 			return UserClassQueries.getUsersInClass(classId);
 		}
 		catch(DataAccessException e) {
-			request.setFailed();
 			throw new ServiceException(e);
 		}
 	}
 	
 	/**
 	 * Retrieves a Set of all of the usernames in all of the classes.
-	 * 
-	 * @param request The Request that is performing this service.
 	 * 
 	 * @param classIds A Collection of class identifiers.
 	 * 
@@ -223,10 +225,12 @@ public final class UserClassServices {
 	 * 
 	 * @throws ServiceException Thrown if there is an error.
 	 */
-	public static Set<String> getUsersInClasses(Request request, Collection<String> classIds) throws ServiceException {
+	public static Set<String> getUsersInClasses(
+			final Collection<String> classIds) throws ServiceException {
+		
 		Set<String> usernames = new HashSet<String>();
 		for(String classId : classIds) {
-			usernames.addAll(getUsersInClass(request, classId));
+			usernames.addAll(getUsersInClass(classId));
 		}
 		return usernames;
 	}
@@ -236,8 +240,6 @@ public final class UserClassServices {
 	 * role is given, the result will only contain the classes in which the
 	 * user has the given role.
 	 * 
-	 * @param request The Request that is performing this service.
-	 * 
 	 * @param username The user's username.
 	 * 
 	 * @param role The class role or null if all classes are desired.
@@ -246,9 +248,8 @@ public final class UserClassServices {
 	 * 
 	 * @throws ServiceException Thrown if there is an error.
 	 */
-	public static Set<String> getClassesForUser(final Request request,
-			final String username, final Clazz.Role role) 
-			throws ServiceException {
+	public static Set<String> getClassesForUser(final String username, 
+			final Clazz.Role role) throws ServiceException {
 		
 		try {
 			Set<String> allClasses = 
@@ -269,7 +270,6 @@ public final class UserClassServices {
 			}
 		}
 		catch(DataAccessException e) {
-			request.setFailed();
 			throw new ServiceException(e);
 		}
 	}
@@ -278,18 +278,18 @@ public final class UserClassServices {
 	 * Retrieves the personal information for all of the users in all of the 
 	 * classes without duplicates.
 	 * 
-	 * @param request The Request that is performing this service.
-	 * 
 	 * @param classIds The Collection of unique identifiers for the classes.
 	 * 
 	 * @return Returns a Map of usernames to UserPersonal information.
 	 * 
 	 * @throws ServiceException Thrown if there is an error.
 	 */
-	public static Map<String, UserPersonal> getPersonalInfoForUsersInClasses(Request request, Collection<String> classIds) throws ServiceException {
+	public static Map<String, UserPersonal> getPersonalInfoForUsersInClasses(
+			final Collection<String> classIds) throws ServiceException {
+		
 		try {
 			Map<String, UserPersonal> result = new HashMap<String, UserPersonal>();
-			Collection<String> usernames = getUsersInClasses(request, classIds);
+			Collection<String> usernames = getUsersInClasses(classIds);
 			
 			for(String username : usernames) {
 				result.put(username, UserQueries.getPersonalInfoForUser(username));
@@ -298,7 +298,6 @@ public final class UserClassServices {
 			return result;
 		}
 		catch(DataAccessException e) {
-			request.setFailed();
 			throw new ServiceException(e);
 		}
 	}

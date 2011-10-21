@@ -4,7 +4,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.log4j.Logger;
-import org.ohmage.annotator.ErrorCodes;
+import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.exception.ServiceException;
 import org.ohmage.exception.ValidationException;
 import org.ohmage.request.InputKeys;
@@ -65,23 +65,24 @@ public class SurveyResponseDeleteRequest extends UserRequest {
 			try {
 				String[] surveyIds = getParameterValues(InputKeys.SURVEY_KEY);
 				if(surveyIds.length == 0) {
-					setFailed(ErrorCodes.SURVEY_INVALID_SURVEY_ID, "Missing the required survey ID: " + InputKeys.SURVEY_KEY);
+					setFailed(ErrorCode.SURVEY_INVALID_SURVEY_ID, "Missing the required survey ID: " + InputKeys.SURVEY_KEY);
 					throw new ValidationException("Missing the required survey ID: " + InputKeys.SURVEY_KEY);
 				}
 				else if(surveyIds.length > 1) {
-					setFailed(ErrorCodes.SURVEY_INVALID_SURVEY_ID, "Multiple survey ID parameters were given.");
+					setFailed(ErrorCode.SURVEY_INVALID_SURVEY_ID, "Multiple survey ID parameters were given.");
 					throw new ValidationException("Multiple survey ID parameters were given.");
 				}
 				else {
-					tSurveyResponseId = SurveyResponseValidators.validateSurveyDbId(this, surveyIds[0]);
+					tSurveyResponseId = SurveyResponseValidators.validateSurveyResponseId(surveyIds[0]);
 					
 					if(tSurveyResponseId == null) {
-						setFailed(ErrorCodes.SURVEY_INVALID_SURVEY_ID, "Missing the required survey ID: " + InputKeys.SURVEY_KEY);
+						setFailed(ErrorCode.SURVEY_INVALID_SURVEY_ID, "Missing the required survey ID: " + InputKeys.SURVEY_KEY);
 						throw new ValidationException("Missing the required survey ID: " + InputKeys.SURVEY_KEY);
 					}
 				}
 			}
 			catch(ValidationException e) {
+				e.failRequest(this);
 				LOGGER.info(e.toString());
 			}
 		}
@@ -102,12 +103,13 @@ public class SurveyResponseDeleteRequest extends UserRequest {
 		
 		try {
 			LOGGER.info("Verifying that the user is allowed to delete the survey response.");
-			UserSurveyResponseServices.verifyUserCanUpdateOrDeleteSurveyResponse(this, getUser().getUsername(), surveyResponseId);
+			UserSurveyResponseServices.verifyUserCanUpdateOrDeleteSurveyResponse(getUser().getUsername(), surveyResponseId);
 			
 			LOGGER.info("Deleting the survey response.");
-			SurveyResponseServices.deleteSurveyResponse(this, surveyResponseId);
+			SurveyResponseServices.deleteSurveyResponse(surveyResponseId);
 		}
 		catch(ServiceException e) {
+			e.failRequest(this);
 			e.logException(LOGGER);
 		}
 	}

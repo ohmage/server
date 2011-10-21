@@ -33,18 +33,6 @@ public class DataAccessException extends WorkflowException {
 	}
 	
 	/**
-	 * Creates a new service exception with a message and an indicator
-	 * of the seriousness of the message.
-	 * 
-	 * @param message A String explaining why this exception is being thrown.
-	 * @param isSerious A boolean, that if true, marks this as an exception
-	 *                  that will be logged with the level ERROR.
-	 */
-	public DataAccessException(String message, boolean isSerious) {
-		super(message, isSerious);
-	}
-	
-	/**
 	 * Creates a new service exception with a message as to why it's being 
 	 * thrown and another Throwable that may have caused this exception to be
 	 * thrown.

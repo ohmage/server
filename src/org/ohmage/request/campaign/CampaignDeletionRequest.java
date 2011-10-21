@@ -4,7 +4,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.log4j.Logger;
-import org.ohmage.annotator.ErrorCodes;
+import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.exception.ServiceException;
 import org.ohmage.exception.ValidationException;
 import org.ohmage.request.InputKeys;
@@ -48,17 +48,18 @@ public class CampaignDeletionRequest extends UserRequest {
 		String tCampaignId = null;
 		
 		try {
-			tCampaignId = CampaignValidators.validateCampaignId(this, httpRequest.getParameter(InputKeys.CAMPAIGN_URN));
+			tCampaignId = CampaignValidators.validateCampaignId(httpRequest.getParameter(InputKeys.CAMPAIGN_URN));
 			if(tCampaignId == null) {
-				setFailed(ErrorCodes.CAMPAIGN_INVALID_ID, "A campaign identifier is required: " + InputKeys.CAMPAIGN_URN);
+				setFailed(ErrorCode.CAMPAIGN_INVALID_ID, "A campaign identifier is required: " + InputKeys.CAMPAIGN_URN);
 				throw new ValidationException("A campaign identifier is required: " + InputKeys.CAMPAIGN_URN);
 			}
 			else if(httpRequest.getParameterValues(InputKeys.CAMPAIGN_URN).length > 1) {
-				setFailed(ErrorCodes.CAMPAIGN_INVALID_ID, "Multiple campaign IDs were found.");
+				setFailed(ErrorCode.CAMPAIGN_INVALID_ID, "Multiple campaign IDs were found.");
 				throw new ValidationException("Multiple campaign IDs were found.");
 			}
 		}
 		catch(ValidationException e) {
+			e.failRequest(this);
 			LOGGER.info(e.toString());
 		}
 		
@@ -78,15 +79,16 @@ public class CampaignDeletionRequest extends UserRequest {
 		
 		try {
 			LOGGER.info("Verifying that the campaign exists.");
-			CampaignServices.checkCampaignExistence(this, campaignId, true);
+			CampaignServices.checkCampaignExistence(campaignId, true);
 			
 			LOGGER.info("Verifying that the requesting user is allowed to delete the campaign.");
-			UserCampaignServices.userCanDeleteCampaign(this, getUser().getUsername(), campaignId);
+			UserCampaignServices.userCanDeleteCampaign(getUser().getUsername(), campaignId);
 			
 			LOGGER.info("Deleting the campaign.");
-			CampaignServices.deleteCampaign(this, campaignId);
+			CampaignServices.deleteCampaign(campaignId);
 		}
 		catch(ServiceException e) {
+			e.failRequest(this);
 			e.logException(LOGGER);
 		}
 	}

@@ -14,7 +14,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.log4j.Logger;
-import org.ohmage.annotator.ErrorCodes;
+import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.cache.UserBin;
 import org.ohmage.exception.ServiceException;
 import org.ohmage.exception.ValidationException;
@@ -74,17 +74,18 @@ public class ClassRosterReadRequest extends UserRequest {
 		Set<String> tClassIds = null;
 		
 		try {
-			tClassIds = ClassValidators.validateClassIdList(this, httpRequest.getParameter(InputKeys.CLASS_URN_LIST));
+			tClassIds = ClassValidators.validateClassIdList(httpRequest.getParameter(InputKeys.CLASS_URN_LIST));
 			if(tClassIds == null) {
-				setFailed(ErrorCodes.CLASS_INVALID_ID, "Missing required class ID list: " + InputKeys.CLASS_URN_LIST);
+				setFailed(ErrorCode.CLASS_INVALID_ID, "Missing required class ID list: " + InputKeys.CLASS_URN_LIST);
 				throw new ValidationException("Missing required class ID list: " + InputKeys.CLASS_URN_LIST);
 			}
 			else if(httpRequest.getParameterValues(InputKeys.CLASS_URN_LIST).length > 1) {
-				setFailed(ErrorCodes.CLASS_INVALID_ID, "Multiple class ID lists were found.");
+				setFailed(ErrorCode.CLASS_INVALID_ID, "Multiple class ID lists were found.");
 				throw new ValidationException("Multiple class ID lists were found.");
 			}
 		}
 		catch(ValidationException e) {
+			e.failRequest(this);
 			LOGGER.info(e.toString());
 		}
 		
@@ -105,15 +106,16 @@ public class ClassRosterReadRequest extends UserRequest {
 		
 		try {
 			LOGGER.info("Verifying that the classes in the class list exist.");
-			ClassServices.checkClassesExistence(this, classIds, true);
+			ClassServices.checkClassesExistence(classIds, true);
 			
 			LOGGER.info("Verify that the user is an admin or that they are privileged in each of the classes in a list.");
-			UserClassServices.userIsAdminOrPrivilegedInAllClasses(this, getUser().getUsername(), classIds);
+			UserClassServices.userIsAdminOrPrivilegedInAllClasses(getUser().getUsername(), classIds);
 			
 			LOGGER.info("Generating the class roster.");
-			roster = ClassServices.generateClassRoster(this, classIds);
+			roster = ClassServices.generateClassRoster(classIds);
 		}
 		catch(ServiceException e) {
+			e.failRequest(this);
 			e.logException(LOGGER);
 		}
 	}

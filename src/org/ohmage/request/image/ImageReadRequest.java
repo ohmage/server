@@ -12,7 +12,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.log4j.Logger;
-import org.ohmage.annotator.ErrorCodes;
+import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.cache.UserBin;
 import org.ohmage.exception.ServiceException;
 import org.ohmage.exception.ValidationException;
@@ -85,23 +85,24 @@ public class ImageReadRequest extends UserRequest {
 		
 		if(! isFailed()) {
 			try {
-				tImageId = ImageValidators.validateId(this, httpRequest.getParameter(InputKeys.IMAGE_ID));
+				tImageId = ImageValidators.validateId(httpRequest.getParameter(InputKeys.IMAGE_ID));
 				if(tImageId == null) {
-					setFailed(ErrorCodes.IMAGE_INVALID_ID, "The image ID is missing: " + InputKeys.IMAGE_ID);
+					setFailed(ErrorCode.IMAGE_INVALID_ID, "The image ID is missing: " + InputKeys.IMAGE_ID);
 					throw new ValidationException("The image ID is missing: " + InputKeys.IMAGE_ID);
 				}
 				else if(httpRequest.getParameterValues(InputKeys.IMAGE_ID).length > 1) {
-					setFailed(ErrorCodes.IMAGE_INVALID_ID, "Multiple owner values were given: " + InputKeys.IMAGE_ID);
+					setFailed(ErrorCode.IMAGE_INVALID_ID, "Multiple owner values were given: " + InputKeys.IMAGE_ID);
 					throw new ValidationException("Multiple owner values were given: " + InputKeys.IMAGE_ID);
 				}
 				
-				tSize = ImageValidators.validateImageSize(this, httpRequest.getParameter(InputKeys.IMAGE_SIZE));
+				tSize = ImageValidators.validateImageSize(httpRequest.getParameter(InputKeys.IMAGE_SIZE));
 				if((tSize != null) && (httpRequest.getParameterValues(InputKeys.IMAGE_SIZE).length > 1)) {
-					setFailed(ErrorCodes.IMAGE_INVALID_SIZE, "Multiple image sizes were given: " + InputKeys.IMAGE_SIZE);
+					setFailed(ErrorCode.IMAGE_INVALID_SIZE, "Multiple image sizes were given: " + InputKeys.IMAGE_SIZE);
 					throw new ValidationException("Multiple image sizes were given: " + InputKeys.IMAGE_SIZE);
 				}
 			}
 			catch(ValidationException e) {
+				e.failRequest(this);
 				LOGGER.info(e.toString());
 			}
 		}
@@ -125,15 +126,16 @@ public class ImageReadRequest extends UserRequest {
 		
 		try {
 			LOGGER.info("Verifying that the image exists.");
-			ImageServices.verifyImageExistance(this, imageId, true);
+			ImageServices.verifyImageExistance(imageId, true);
 			
 			LOGGER.info("Verifying that the user can read the image.");
-			UserImageServices.verifyUserCanReadImage(this, getUser().getUsername(), imageId);
+			UserImageServices.verifyUserCanReadImage(getUser().getUsername(), imageId);
 			
 			LOGGER.info("Retreiving the image.");
-			imageStream = ImageServices.getImage(this, imageId, size);
+			imageStream = ImageServices.getImage(imageId, size);
 		}
 		catch(ServiceException e) {
+			e.failRequest(this);
 			e.logException(LOGGER);
 		}
 	}

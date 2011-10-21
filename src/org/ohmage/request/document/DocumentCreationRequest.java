@@ -8,7 +8,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.log4j.Logger;
-import org.ohmage.annotator.ErrorCodes;
+import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.domain.Document;
 import org.ohmage.exception.ServiceException;
 import org.ohmage.exception.ValidationException;
@@ -124,55 +124,56 @@ public class DocumentCreationRequest extends UserRequest {
 		try {
 			tempDocument = getMultipartValue(httpRequest, InputKeys.DOCUMENT);
 			if(tempDocument == null) {
-				setFailed(ErrorCodes.DOCUMENT_INVALID_CONTENTS, "The document's contents are missing: " + InputKeys.DOCUMENT);
+				setFailed(ErrorCode.DOCUMENT_INVALID_CONTENTS, "The document's contents are missing: " + InputKeys.DOCUMENT);
 				throw new ValidationException("The document's contents were missing.");
 			}
 			
-			tempName = DocumentValidators.validateName(this, httpRequest.getParameter(InputKeys.DOCUMENT_NAME));
+			tempName = DocumentValidators.validateName(httpRequest.getParameter(InputKeys.DOCUMENT_NAME));
 			if(tempName == null) {
-				setFailed(ErrorCodes.DOCUMENT_INVALID_NAME, "The document's name is missing: " + InputKeys.DOCUMENT_NAME);
+				setFailed(ErrorCode.DOCUMENT_INVALID_NAME, "The document's name is missing: " + InputKeys.DOCUMENT_NAME);
 				throw new ValidationException("The document's name is missing: " + InputKeys.DOCUMENT_NAME);
 			}
 			else if(httpRequest.getParameterValues(InputKeys.DOCUMENT_NAME).length > 1) {
-				setFailed(ErrorCodes.DOCUMENT_INVALID_NAME, "Multiple document names were found.");
+				setFailed(ErrorCode.DOCUMENT_INVALID_NAME, "Multiple document names were found.");
 				throw new ValidationException("The document's name is missing.");
 			}
 			
-			tempPrivacyState = DocumentValidators.validatePrivacyState(this, httpRequest.getParameter(InputKeys.PRIVACY_STATE));
+			tempPrivacyState = DocumentValidators.validatePrivacyState(httpRequest.getParameter(InputKeys.PRIVACY_STATE));
 			if(tempPrivacyState == null) {
-				setFailed(ErrorCodes.DOCUMENT_INVALID_PRIVACY_STATE, "The document's privacy state is missing: " + InputKeys.PRIVACY_STATE);
+				setFailed(ErrorCode.DOCUMENT_INVALID_PRIVACY_STATE, "The document's privacy state is missing: " + InputKeys.PRIVACY_STATE);
 				throw new ValidationException("The document's privacy state is missing: " + InputKeys.PRIVACY_STATE);
 			}
 			else if(httpRequest.getParameterValues(InputKeys.PRIVACY_STATE).length > 1) {
-				setFailed(ErrorCodes.DOCUMENT_INVALID_PRIVACY_STATE, "Multiple privacy state parameters were found.");
+				setFailed(ErrorCode.DOCUMENT_INVALID_PRIVACY_STATE, "Multiple privacy state parameters were found.");
 				throw new ValidationException("Multiple privacy state parameters were found.");
 			}
 			
-			tempCampaignRoleList = CampaignDocumentValidators.validateCampaignIdAndDocumentRoleList(this, httpRequest.getParameter(InputKeys.DOCUMENT_CAMPAIGN_ROLE_LIST));
+			tempCampaignRoleList = CampaignDocumentValidators.validateCampaignIdAndDocumentRoleList(httpRequest.getParameter(InputKeys.DOCUMENT_CAMPAIGN_ROLE_LIST));
 			if((tempCampaignRoleList != null) && (httpRequest.getParameterValues(InputKeys.DOCUMENT_CAMPAIGN_ROLE_LIST).length > 1)) {
-				setFailed(ErrorCodes.DOCUMENT_INVALID_ID, "Multiple document, campaign role lists were found.");
+				setFailed(ErrorCode.DOCUMENT_INVALID_ID, "Multiple document, campaign role lists were found.");
 				throw new ValidationException("Multiple document, campaign role lists were found.");
 			}
 			
-			tempClassRoleList = ClassDocumentValidators.validateClassIdAndDocumentRoleList(this, httpRequest.getParameter(InputKeys.DOCUMENT_CLASS_ROLE_LIST));
+			tempClassRoleList = ClassDocumentValidators.validateClassIdAndDocumentRoleList(httpRequest.getParameter(InputKeys.DOCUMENT_CLASS_ROLE_LIST));
 			if((tempClassRoleList != null) && (httpRequest.getParameterValues(InputKeys.DOCUMENT_CLASS_ROLE_LIST).length > 1)) {
-				setFailed(ErrorCodes.DOCUMENT_INVALID_ID, "Multiple document, class role lists were found.");
+				setFailed(ErrorCode.DOCUMENT_INVALID_ID, "Multiple document, class role lists were found.");
 				throw new ValidationException("Multiple document, class role lists were found.");
 			}
 			
 			if(((tempCampaignRoleList == null) || (tempCampaignRoleList.size() == 0)) &&
 			   ((tempClassRoleList == null) || (tempClassRoleList.size() == 0))) {
-				setFailed(ErrorCodes.DOCUMENT_MISSING_CAMPAIGN_AND_CLASS_ROLE_LISTS, "You must provide an initial campaign-role and/or class-role list.");
+				setFailed(ErrorCode.DOCUMENT_MISSING_CAMPAIGN_AND_CLASS_ROLE_LISTS, "You must provide an initial campaign-role and/or class-role list.");
 				throw new ValidationException("You must provide an initial campaign-role and/or class-role list.");
 			}
 			
-			tempDescription = DocumentValidators.validateDescription(this, httpRequest.getParameter(InputKeys.DESCRIPTION));
+			tempDescription = DocumentValidators.validateDescription(httpRequest.getParameter(InputKeys.DESCRIPTION));
 			if((tempDescription != null) && (httpRequest.getParameterValues(InputKeys.DESCRIPTION).length > 1)) {
-				setFailed(ErrorCodes.DOCUMENT_INVALID_DESCRIPTION, "Multiple document description parameters were found.");
+				setFailed(ErrorCode.DOCUMENT_INVALID_DESCRIPTION, "Multiple document description parameters were found.");
 				throw new ValidationException("Multiple document description parameters were found.");
 			}
 		}
 		catch(ValidationException e) {
+			e.failRequest(this);
 			LOGGER.info(e.toString());
 		}
 		
@@ -200,26 +201,27 @@ public class DocumentCreationRequest extends UserRequest {
 				List<String> campaignIds = new ArrayList<String>(campaignRoleMap.keySet());
 				
 				LOGGER.info("Verifying that the campaigns in the campaign-role list exist.");
-				CampaignServices.checkCampaignsExistence(this, campaignIds, true);
+				CampaignServices.checkCampaignsExistence(campaignIds, true);
 				
 				LOGGER.info("Verifying that the user can associate documents with the campaigns in the campaign-role list.");
-				UserCampaignDocumentServices.userCanAssociateDocumentsWithCampaigns(this, getUser().getUsername(), campaignIds);
+				UserCampaignDocumentServices.userCanAssociateDocumentsWithCampaigns(getUser().getUsername(), campaignIds);
 			}
 			
 			if(classRoleMap != null) {
 				List<String> classIds = new ArrayList<String>(classRoleMap.keySet());
 				
 				LOGGER.info("Verifying that the classes in the class-role list exist.");
-				ClassServices.checkClassesExistence(this, classIds, true);
+				ClassServices.checkClassesExistence(classIds, true);
 				
 				LOGGER.info("Verifying that the user can associate documents with the classes in the class-role list.");
-				UserClassDocumentServices.userCanAssociateDocumentsWithClasses(this, getUser().getUsername(), classIds);
+				UserClassDocumentServices.userCanAssociateDocumentsWithClasses(getUser().getUsername(), classIds);
 			}
 			
 			LOGGER.info("Creating the document.");
-			documentId = DocumentServices.createDocument(this, document, name, description, privacyState, campaignRoleMap, classRoleMap, getUser().getUsername());
+			documentId = DocumentServices.createDocument(document, name, description, privacyState, campaignRoleMap, classRoleMap, getUser().getUsername());
 		}
 		catch(ServiceException e) {
+			e.failRequest(this);
 			e.logException(LOGGER);
 		}
 	}

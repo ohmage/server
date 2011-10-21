@@ -10,7 +10,6 @@ import org.ohmage.domain.MobilityPoint.Mode;
 import org.ohmage.exception.DataAccessException;
 import org.ohmage.exception.ServiceException;
 import org.ohmage.query.UserMobilityQueries;
-import org.ohmage.request.Request;
 
 import edu.ucla.cens.mobilityclassifier.Classification;
 import edu.ucla.cens.mobilityclassifier.MobilityClassifier;
@@ -29,15 +28,15 @@ public final class MobilityServices {
 	/**
 	 * Adds the Mobility point to the database.
 	 * 
-	 * @param request The Request that is performing this service.
-	 * 
 	 * @param mobilityPoints A list of Mobility points to be added to the 
 	 * 						 database.
 	 * 
 	 * @throws ServiceException Thrown if there is an error.
 	 */
-	public static void createMobilityPoint(Request request, String username, String client,
-			List<MobilityPoint> mobilityPoints) throws ServiceException {
+	public static void createMobilityPoint(final String username, 
+			final String client, final List<MobilityPoint> mobilityPoints) 
+			throws ServiceException {
+		
 		if(username == null) {
 			throw new ServiceException("The username cannot be null.");
 		}
@@ -51,7 +50,6 @@ public final class MobilityServices {
 			}
 		}
 		catch(DataAccessException e) {
-			request.setFailed();
 			throw new ServiceException(e);
 		}
 	}
@@ -59,15 +57,15 @@ public final class MobilityServices {
 	/**
 	 * Runs the classifier against all of the Mobility points in the list.
 	 * 
-	 * @param request The Request that is performing this service.
-	 * 
 	 * @param mobilityPoints The Mobility points that are to be classified by
 	 * 						 the server.
 	 * 
 	 * @throws ServiceException Thrown if there is an error with the 
 	 * 							classification service.
 	 */
-	public static void classifyData(Request request, List<MobilityPoint> mobilityPoints) throws ServiceException {
+	public static void classifyData(final List<MobilityPoint> mobilityPoints) 
+			throws ServiceException {
+		
 		// If the list is empty, just exit.
 		if(mobilityPoints == null) {
 			return;
@@ -98,8 +96,9 @@ public final class MobilityServices {
 								MobilityPoint.Mode.valueOf(classification.getMode().toUpperCase()));
 					}
 					catch(IllegalArgumentException e) {
-						request.setFailed();
-						throw new ServiceException("There was a problem reading the classification's information.", e);
+						throw new ServiceException(
+								"There was a problem reading the classification's information.", 
+								e);
 					}
 				}
 				// If the features don't exist, then create the classifier data
@@ -109,8 +108,9 @@ public final class MobilityServices {
 						mobilityPoint.setClassifierModeOnly(MobilityPoint.Mode.valueOf(classification.getMode().toUpperCase()));
 					}
 					catch(IllegalArgumentException e) {
-						request.setFailed();
-						throw new ServiceException("There was a problem reading the classification's mode.", e);
+						throw new ServiceException(
+								"There was a problem reading the classification's mode.", 
+								e);
 					}
 				}
 			}
@@ -129,8 +129,6 @@ public final class MobilityServices {
 	 * returned. If the username, start date, and end date are all given, the
 	 * result is the list of Mobility points made by that user on or after the
 	 * start date and on or before the end date.
-	 * 
-	 * @param request The Request performing this service. Required.
 	 * 
 	 * @param username The username of the user whose points are being queried.
 	 * 				   Required.
@@ -159,10 +157,11 @@ public final class MobilityServices {
 	 * @throws ServiceException Thrown if there is an error.
 	 */
 	public static List<MobilityPoint> retrieveMobilityData(
-			Request request, String username, String client, 
-			Date startDate, Date endDate, 
-			MobilityPoint.PrivacyState privacyState,
-			LocationStatus locationStatus, Mode mode) throws ServiceException {
+			final String username, final String client, 
+			final Date startDate, final Date endDate, 
+			final MobilityPoint.PrivacyState privacyState,
+			final LocationStatus locationStatus, final Mode mode) 
+			throws ServiceException {
 		
 		try {
 			// Create the IDs list and set it to null. Once we find a non-null
@@ -228,7 +227,6 @@ public final class MobilityServices {
 			}
 		}
 		catch(DataAccessException e) {
-			request.setFailed();
 			throw new ServiceException(e);
 		}
 	}

@@ -6,7 +6,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.log4j.Logger;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.ohmage.annotator.ErrorCodes;
+import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.exception.ServiceException;
 import org.ohmage.exception.ValidationException;
 import org.ohmage.request.InputKeys;
@@ -108,27 +108,28 @@ public class UserStatsReadRequest extends UserRequest {
 		String tUsername = null;
 		
 		try {
-			tCampaignId = CampaignValidators.validateCampaignId(this, httpRequest.getParameter(InputKeys.CAMPAIGN_URN));
+			tCampaignId = CampaignValidators.validateCampaignId(httpRequest.getParameter(InputKeys.CAMPAIGN_URN));
 			if(tCampaignId == null) {
-				setFailed(ErrorCodes.CAMPAIGN_INVALID_ID, "Missing the required campaign ID: " + InputKeys.CAMPAIGN_URN);
+				setFailed(ErrorCode.CAMPAIGN_INVALID_ID, "Missing the required campaign ID: " + InputKeys.CAMPAIGN_URN);
 				throw new ValidationException("Missing the required campaign ID: " + InputKeys.CAMPAIGN_URN);
 			}
 			else if(httpRequest.getParameterValues(InputKeys.CAMPAIGN_URN).length > 1) {
-				setFailed(ErrorCodes.CAMPAIGN_INVALID_ID, "Multiple campaign ID parameters were given.");
+				setFailed(ErrorCode.CAMPAIGN_INVALID_ID, "Multiple campaign ID parameters were given.");
 				throw new ValidationException("Multiple campaign ID parameters were given.");
 			}
 			
-			tUsername = UserValidators.validateUsername(this, httpRequest.getParameter(InputKeys.USERNAME));
+			tUsername = UserValidators.validateUsername(httpRequest.getParameter(InputKeys.USERNAME));
 			if(tUsername == null) {
-				setFailed(ErrorCodes.USER_INVALID_USERNAME, "Missing the required username: " + InputKeys.USERNAME);
+				setFailed(ErrorCode.USER_INVALID_USERNAME, "Missing the required username: " + InputKeys.USERNAME);
 				throw new ValidationException("Missing the required username: " + InputKeys.USERNAME);
 			}
 			else if(httpRequest.getParameterValues(InputKeys.USERNAME).length > 1) {
-				setFailed(ErrorCodes.USER_INVALID_USERNAME, "Multiple username parameters were given.");
+				setFailed(ErrorCode.USER_INVALID_USERNAME, "Multiple username parameters were given.");
 				throw new ValidationException("Multiple username parameters were given.");
 			}
 		}
 		catch(ValidationException e) {
+			e.failRequest(this);
 			LOGGER.info(e.toString());
 		}
 		
@@ -154,24 +155,25 @@ public class UserStatsReadRequest extends UserRequest {
 		
 		try {
 			LOGGER.info("Verifying that the requester has permissions to view the survey information.");
-			UserCampaignServices.requesterCanViewUsersSurveyResponses(this, campaignId, getUser().getUsername(), username);
+			UserCampaignServices.requesterCanViewUsersSurveyResponses(campaignId, getUser().getUsername(), username);
 			
 			LOGGER.info("Verifying that the requester has permissions to view the mobility information.");
-			UserMobilityServices.requesterCanViewUsersMobilityData(this, getUser().getUsername(), username);
+			UserMobilityServices.requesterCanViewUsersMobilityData(getUser().getUsername(), username);
 			
 			LOGGER.info("Gathering the number of hours since the last survey upload.");
-			hoursSinceLastSurveyUpload = UserSurveyResponseServices.getHoursSinceLastSurveyUplaod(this, getUser().getUsername(), username);
+			hoursSinceLastSurveyUpload = UserSurveyResponseServices.getHoursSinceLastSurveyUplaod(getUser().getUsername(), username);
 			
 			LOGGER.info("Gathering the number of hours since the last Mobility upload.");
-			hoursSinceLastMobilityUpload = UserMobilityServices.getHoursSinceLastMobilityUpload(this, username);
+			hoursSinceLastMobilityUpload = UserMobilityServices.getHoursSinceLastMobilityUpload(username);
 			
 			LOGGER.info("Gathering the percentage of successful location uploads from surveys in the last day.");
-			pastDaySuccessfulSurveyLocationUpdatesPercentage = UserSurveyResponseServices.getPercentageOfNonNullLocationsOverPastDay(this, getUser().getUsername(), username);
+			pastDaySuccessfulSurveyLocationUpdatesPercentage = UserSurveyResponseServices.getPercentageOfNonNullLocationsOverPastDay(getUser().getUsername(), username);
 			
 			LOGGER.info("Gathering the percentage of successful location updates from Mobility in the last day.");
-			pastDatSuccessfulMobilityLocationUpdatesPercentage = UserMobilityServices.getPercentageOfNonNullLocationsOverPastDay(this, username);
+			pastDatSuccessfulMobilityLocationUpdatesPercentage = UserMobilityServices.getPercentageOfNonNullLocationsOverPastDay(username);
 		}
 		catch(ServiceException e) {
+			e.failRequest(this);
 			e.logException(LOGGER);
 		}
 	}

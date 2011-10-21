@@ -6,11 +6,10 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.log4j.Logger;
-import org.ohmage.annotator.ErrorCodes;
+import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.domain.Clazz;
 import org.ohmage.exception.ValidationException;
 import org.ohmage.request.InputKeys;
-import org.ohmage.request.Request;
 import org.ohmage.util.StringUtils;
 
 /**
@@ -34,9 +33,6 @@ public final class ClassValidators {
 	 * class ID is returned; however, if it is not null, not whitespace only,  
 	 * and not a valid class identifier, a ValidationException is thrown.
 	 *  
-	 * @param request The request that is attempting to have this class ID 
-	 * 				  validated.
-	 * 
 	 * @param classId The class identifier to be validated.
 	 * 
 	 * @return Returns the class ID if it is not null, not whitespace, and 
@@ -45,8 +41,8 @@ public final class ClassValidators {
 	 * @throws ValidationException Thrown if the class ID is not null, not
 	 * 		   whitespace only, and not a valid class ID.
 	 */
-	public static String validateClassId(Request request, String classId) throws ValidationException {
-		LOGGER.info("Validating a class ID.");
+	public static String validateClassId(final String classId) 
+			throws ValidationException {
 		
 		// If the value is null or whitespace only, return null.
 		if(StringUtils.isEmptyOrWhitespaceOnly(classId)) {
@@ -62,8 +58,9 @@ public final class ClassValidators {
 		// URN, set the request as failed and throw a ValidationException to
 		// warn the caller.
 		else {
-			request.setFailed(ErrorCodes.CLASS_INVALID_ID, "The class identifier is invalid: " + classId);
-			throw new ValidationException("The class identifier is invalid: " + classId);
+			throw new ValidationException(
+					ErrorCode.CLASS_INVALID_ID, 
+					"The class identifier is invalid: " + classId);
 		}
 	}
 	
@@ -75,9 +72,6 @@ public final class ClassValidators {
 	 * any are invalid, it will return an error message stating which one in
 	 * the list was invalid.
 	 *  
-	 * @param request The request that it attempting to have this class ID list
-	 * 				  validated.
-	 * 
 	 * @param classIdListString The class list as a String where each item is
 	 * 							separated by
 	 * 						  	{@value org.ohmage.request.InputKeys#LIST_ITEM_SEPARATOR}.
@@ -90,7 +84,9 @@ public final class ClassValidators {
 	 * @throws ValidationException Thrown if the class Id list String contains a
 	 * 							  class ID that is an invalid class ID.
 	 */
-	public static Set<String> validateClassIdList(Request request, String classIdListString) throws ValidationException {
+	public static Set<String> validateClassIdList(
+			final String classIdListString) throws ValidationException {
+		
 		LOGGER.info("Validating the list of classes.");
 		
 		// If the class list is an empty string, then we return null.
@@ -106,7 +102,7 @@ public final class ClassValidators {
 		String[] classListArray = classIdListString.split(InputKeys.LIST_ITEM_SEPARATOR);
 		for(int i = 0; i < classListArray.length; i++) {
 			// Validate the current class ID.
-			String currClassId = validateClassId(request, classListArray[i].trim());
+			String currClassId = validateClassId(classListArray[i].trim());
 			
 			// If it returned null, then the current class ID in the array
 			// was probably whitespace only because the class list had two
@@ -128,8 +124,6 @@ public final class ClassValidators {
 	 * Validates that a class name is a valid class name by ensuring that it is
 	 * not profane and not too long.
 	 * 
-	 * @param request The Request that is performing this validation.
-	 * 
 	 * @param name The name to validate.
 	 * 
 	 * @return Returns null if the name is null or whitespace only; otherwise,
@@ -137,7 +131,9 @@ public final class ClassValidators {
 	 * 
 	 * @throws ValidationException Thrown if the name is profane or too long.
 	 */
-	public static String validateName(Request request, String name) throws ValidationException {
+	public static String validateName(final String name) 
+			throws ValidationException {
+		
 		LOGGER.info("Validating a class name.");
 		
 		if(StringUtils.isEmptyOrWhitespaceOnly(name)) {
@@ -145,12 +141,16 @@ public final class ClassValidators {
 		}
 		
 		if(StringUtils.isProfane(name.trim())) {
-			request.setFailed(ErrorCodes.CLASS_INVALID_NAME, "The class name contains profanity: " + name);
-			throw new ValidationException("The class name contains profanity: " + name);
+			throw new ValidationException(
+					ErrorCode.CLASS_INVALID_NAME, 
+					"The class name contains profanity: " + name);
 		}
 		else if(! StringUtils.lengthWithinLimits(name.trim(), 0, MAX_NAME_LENGTH)) {
-			request.setFailed(ErrorCodes.CLASS_INVALID_NAME, "The class name is too long. The maximum length of the class name is " + MAX_NAME_LENGTH + " characters");
-			throw new ValidationException("The class name is too long. The maximum length of the class name is " + MAX_NAME_LENGTH + " characters");
+			throw new ValidationException(
+					ErrorCode.CLASS_INVALID_NAME, 
+					"The class name is too long. The maximum length of the class name is " + 
+						MAX_NAME_LENGTH + 
+						" characters");
 		}
 		else {
 			return name.trim();
@@ -161,8 +161,6 @@ public final class ClassValidators {
 	 * Validates that a class description is a valid class description by 
 	 * ensuring that it doesn't contain profanity.
 	 * 
-	 * @param request The Request that is performing this validation.
-	 * 
 	 * @param description The description to be validated.
 	 * 
 	 * @return Returns null if the description is null or whitespace only;
@@ -171,7 +169,9 @@ public final class ClassValidators {
 	 * @throws ValidationException Thrown if the description contains 
 	 * 							   profanity.
 	 */
-	public static String validateDescription(Request request, String description) throws ValidationException {
+	public static String validateDescription(final String description) 
+			throws ValidationException {
+		
 		LOGGER.info("Validating a class description.");
 		
 		if(StringUtils.isEmptyOrWhitespaceOnly(description)) {
@@ -179,8 +179,10 @@ public final class ClassValidators {
 		}
 		
 		if(StringUtils.isProfane(description.trim())) {
-			request.setFailed(ErrorCodes.CLASS_INVALID_DESCRIPTION, "The class description contains profanity: " + description);
-			throw new ValidationException("The class description contains profanity: " + description);
+			throw new ValidationException(
+					ErrorCode.CLASS_INVALID_DESCRIPTION, 
+					"The class description contains profanity: " + 
+						description);
 		}
 		else {
 			return description.trim();
@@ -192,9 +194,6 @@ public final class ClassValidators {
 	 * only, null is returned. If it is not a valid role, a ValidationException
 	 * is thrown. If it is a valid role, it is returned.
 	 * 
-	 * @param request The request that is attempting to have the class role
-	 * 				  validated.
-	 * 
 	 * @param role The class role to validate.
 	 * 
 	 * @return Returns null if the class role is null or whitespace only; 
@@ -203,7 +202,9 @@ public final class ClassValidators {
 	 * @throws ValidationException Thrown if the class role is not a valid class
 	 * 							  role.
 	 */
-	public static Clazz.Role validateClassRole(Request request, String role) throws ValidationException {
+	public static Clazz.Role validateClassRole(final String role) 
+			throws ValidationException {
+		
 		LOGGER.info("Validating a class role.");
 		
 		if(StringUtils.isEmptyOrWhitespaceOnly(role)) {
@@ -214,8 +215,10 @@ public final class ClassValidators {
 			return Clazz.Role.getValue(role.trim());
 		}
 		catch(IllegalArgumentException e) {
-			request.setFailed(ErrorCodes.CLASS_INVALID_ROLE, "Unknown class role: " + role);
-			throw new ValidationException("Unkown class role: " + role, e);
+			throw new ValidationException(
+					ErrorCode.CLASS_INVALID_ROLE, 
+					"Unkown class role: " + role, 
+					e);
 		}
 	}
 	
@@ -224,9 +227,7 @@ public final class ClassValidators {
 	 * has no length, null is returned. Otherwise, a Map of class IDs to Maps
 	 * of usernames to class roles is returned. If the roster is not a valid 
 	 * roster a ValidationException is thrown and the request is failed with 
-	 * the error code, {@value ErrorCodes.CLASS_INVALID_ROSTER}.
-	 * 
-	 * @param request The Request that is performing this validation.
+	 * the error code, {@value ErrorCode.CLASS_INVALID_ROSTER}.
 	 * 
 	 * @param roster The class roster as a byte array. This should a series of
 	 * 				 newline-deliminated rows where each row is a comma-
@@ -241,7 +242,9 @@ public final class ClassValidators {
 	 * 
 	 * @throws ValidationException Thrown if the roster is not a valid roster.
 	 */
-	public static Map<String, Map<String, Clazz.Role>> validateClassRoster(Request request, byte[] roster) throws ValidationException {
+	public static Map<String, Map<String, Clazz.Role>> validateClassRoster(
+			final byte[] roster) throws ValidationException {
+		
 		LOGGER.info("Validating a class roster.");
 		
 		if((roster == null) || (roster.length == 0)) {
@@ -266,13 +269,15 @@ public final class ClassValidators {
 			String[] rosterLine = rosterLines[i].split(",");
 			
 			if(rosterLine.length != 3) {
-				request.setFailed(ErrorCodes.CLASS_INVALID_ROSTER, "The following line is malformed in the class roster: " + rosterLines[i]);
-				throw new ValidationException("The following line is malformed in the class roster: " + rosterLines[i]);
+				throw new ValidationException(
+						ErrorCode.CLASS_INVALID_ROSTER, 
+						"The following line is malformed in the class roster: " + 
+							rosterLines[i]);
 			}
 			
-			String classId = ClassValidators.validateClassId(request, rosterLine[0]);
-			String username = UserValidators.validateUsername(request, rosterLine[1]);
-			Clazz.Role classRole = ClassValidators.validateClassRole(request, rosterLine[2]);
+			String classId = ClassValidators.validateClassId(rosterLine[0]);
+			String username = UserValidators.validateUsername(rosterLine[1]);
+			Clazz.Role classRole = ClassValidators.validateClassRole(rosterLine[2]);
 			
 			Map<String, Clazz.Role> userRoleMap = result.get(classId);
 			if(userRoleMap == null) {
@@ -285,10 +290,16 @@ public final class ClassValidators {
 			// existed for this user in this class. It is an error only if the
 			// two roles do not match.
 			if((originalRole != null) && (! originalRole.equals(classRole))) {
-				request.setFailed(ErrorCodes.CLASS_INVALID_ROSTER, "Two different roles were found for the same user in the same class. The user was '" + 
-						username + "' and the class was '" + classId + "'. The first role was '" + originalRole + "' and the second role was '" + classRole + "'");
-				throw new ValidationException("Two different roles were found for the same user in the same class. The user was '" + 
-						username + "' and the class was '" + classId + "'. The first role was '" + originalRole + "' and the second role was '" + classRole + "'");
+				throw new ValidationException(
+						ErrorCode.CLASS_INVALID_ROSTER, 
+						"Two different roles were found for the same user in the same class. The user was '" + 
+							username + 
+							"' and the class was '" + 
+							classId + "'. The first role was '" + 
+							originalRole + 
+							"' and the second role was '" + 
+							classRole + 
+							"'");
 			}
 		}
 		

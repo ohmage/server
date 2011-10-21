@@ -20,11 +20,10 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.log4j.Logger;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.ohmage.annotator.ErrorCodes;
+import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.cache.UserBin;
 import org.ohmage.domain.campaign.Campaign;
 import org.ohmage.domain.campaign.Campaign.OutputFormat;
-import org.ohmage.exception.DataAccessException;
 import org.ohmage.exception.ServiceException;
 import org.ohmage.exception.ValidationException;
 import org.ohmage.request.InputKeys;
@@ -194,25 +193,25 @@ public class CampaignReadRequest extends UserRequest {
 		Campaign.Role tRole = null;
 		
 		try {
-			tOutputFormat = CampaignValidators.validateOutputFormat(this, httpRequest.getParameter(InputKeys.OUTPUT_FORMAT));
+			tOutputFormat = CampaignValidators.validateOutputFormat(httpRequest.getParameter(InputKeys.OUTPUT_FORMAT));
 			if(tOutputFormat == null) {
-				setFailed(ErrorCodes.CAMPAIGN_INVALID_OUTPUT_FORMAT, "The required output format is missing: " + InputKeys.OUTPUT_FORMAT);
+				setFailed(ErrorCode.CAMPAIGN_INVALID_OUTPUT_FORMAT, "The required output format is missing: " + InputKeys.OUTPUT_FORMAT);
 				throw new ValidationException("The required output format is missing: " + InputKeys.OUTPUT_FORMAT);
 			}
 			else if(httpRequest.getParameterValues(InputKeys.OUTPUT_FORMAT).length > 1) {
-				setFailed(ErrorCodes.CAMPAIGN_INVALID_OUTPUT_FORMAT, "Multiple output formats were found.");
+				setFailed(ErrorCode.CAMPAIGN_INVALID_OUTPUT_FORMAT, "Multiple output formats were found.");
 				throw new ValidationException("Multiple output formats were found.");
 			}
 			
-			tStartDate = CampaignValidators.validateStartDate(this, httpRequest.getParameter(InputKeys.START_DATE));
+			tStartDate = CampaignValidators.validateStartDate(httpRequest.getParameter(InputKeys.START_DATE));
 			if((tStartDate != null) && (httpRequest.getParameterValues(InputKeys.START_DATE).length > 1)) {
-				setFailed(ErrorCodes.SERVER_INVALID_DATE, "Multiple start dates were found.");
+				setFailed(ErrorCode.SERVER_INVALID_DATE, "Multiple start dates were found.");
 				throw new ValidationException("Multiple start dates were found.");
 			}
 			
-			tEndDate = CampaignValidators.validateEndDate(this, httpRequest.getParameter(InputKeys.END_DATE));
+			tEndDate = CampaignValidators.validateEndDate(httpRequest.getParameter(InputKeys.END_DATE));
 			if((tStartDate != null) && (httpRequest.getParameterValues(InputKeys.START_DATE).length > 1)) {
-				setFailed(ErrorCodes.SERVER_INVALID_DATE, "Multiple end dates were found.");
+				setFailed(ErrorCode.SERVER_INVALID_DATE, "Multiple end dates were found.");
 				throw new ValidationException("Multiple end dates were found.");
 			}
 			
@@ -221,51 +220,52 @@ public class CampaignReadRequest extends UserRequest {
 			// was better to send an error to the user than to return nothing.
 			LOGGER.info("Verifying that if both the start date and end date are present that the start date isn't after the end date.");
 			if((tStartDate != null) && (tEndDate != null) && (tStartDate.after(tEndDate))) {
-				setFailed(ErrorCodes.SERVER_INVALID_DATE, "The start date cannot be after the end date.");
+				setFailed(ErrorCode.SERVER_INVALID_DATE, "The start date cannot be after the end date.");
 				throw new ValidationException("The start date cannot be after the end date.");
 			}
 			
-			tCampaignIds = CampaignValidators.validateCampaignIds(this, httpRequest.getParameter(InputKeys.CAMPAIGN_URN_LIST));
+			tCampaignIds = CampaignValidators.validateCampaignIds(httpRequest.getParameter(InputKeys.CAMPAIGN_URN_LIST));
 			if(OutputFormat.XML.equals(tOutputFormat)) {
 				if(tCampaignIds == null) {
-					setFailed(ErrorCodes.CAMPAIGN_INVALID_OUTPUT_FORMAT, "For an output format of '" + OutputFormat.XML.name() + "', exactly one campaign is required.");
+					setFailed(ErrorCode.CAMPAIGN_INVALID_OUTPUT_FORMAT, "For an output format of '" + OutputFormat.XML.name() + "', exactly one campaign is required.");
 					throw new ValidationException("For an output format of '" + OutputFormat.XML.name() + "' exactly one campaign is required.");
 				}
 				else if(tCampaignIds.size() > 1) {
-					setFailed(ErrorCodes.CAMPAIGN_INVALID_OUTPUT_FORMAT, "For an output format of '" + OutputFormat.XML.name() + "', only one campaign ID is allowed.");
+					setFailed(ErrorCode.CAMPAIGN_INVALID_OUTPUT_FORMAT, "For an output format of '" + OutputFormat.XML.name() + "', only one campaign ID is allowed.");
 					throw new ValidationException("For an output format of '" + OutputFormat.XML.name() + "' only one campaign ID is allowed.");
 				}
 			}
 			else if((tCampaignIds != null) && (httpRequest.getParameterValues(InputKeys.CAMPAIGN_URN_LIST).length > 1)) {
-				setFailed(ErrorCodes.CAMPAIGN_INVALID_ID, "Multiple campaign ID lists were found.");
+				setFailed(ErrorCode.CAMPAIGN_INVALID_ID, "Multiple campaign ID lists were found.");
 				throw new ValidationException("Multiple campaign ID lists were found.");
 			}
 			
-			tClassIds = ClassValidators.validateClassIdList(this, httpRequest.getParameter(InputKeys.CLASS_URN_LIST));
+			tClassIds = ClassValidators.validateClassIdList(httpRequest.getParameter(InputKeys.CLASS_URN_LIST));
 			if((tClassIds != null) && (httpRequest.getParameterValues(InputKeys.CLASS_URN_LIST).length > 1)) {
-				setFailed(ErrorCodes.CLASS_INVALID_ID, "Multiple class ID lists were found.");
+				setFailed(ErrorCode.CLASS_INVALID_ID, "Multiple class ID lists were found.");
 				throw new ValidationException("Multiple class ID lists were found.");
 			}
 			
-			tPrivacyState = CampaignValidators.validatePrivacyState(this, httpRequest.getParameter(InputKeys.PRIVACY_STATE));
+			tPrivacyState = CampaignValidators.validatePrivacyState(httpRequest.getParameter(InputKeys.PRIVACY_STATE));
 			if((tPrivacyState != null) && (httpRequest.getParameterValues(InputKeys.PRIVACY_STATE).length > 1)) {
-				setFailed(ErrorCodes.CAMPAIGN_INVALID_PRIVACY_STATE, "Multiple privacy state parameters were found.");
+				setFailed(ErrorCode.CAMPAIGN_INVALID_PRIVACY_STATE, "Multiple privacy state parameters were found.");
 				throw new ValidationException("Multiple privacy state parameters were found.");
 			}
 			
-			tRunningState = CampaignValidators.validateRunningState(this, httpRequest.getParameter(InputKeys.RUNNING_STATE));
+			tRunningState = CampaignValidators.validateRunningState(httpRequest.getParameter(InputKeys.RUNNING_STATE));
 			if((tRunningState != null) && (httpRequest.getParameterValues(InputKeys.RUNNING_STATE).length > 1)) {
-				setFailed(ErrorCodes.CAMPAIGN_INVALID_RUNNING_STATE, "Multiple running state parameters were found.");
+				setFailed(ErrorCode.CAMPAIGN_INVALID_RUNNING_STATE, "Multiple running state parameters were found.");
 				throw new ValidationException("Multiple running state parameters were found.");
 			}
 			
-			tRole = CampaignValidators.validateRole(this, httpRequest.getParameter(InputKeys.USER_ROLE));
+			tRole = CampaignValidators.validateRole(httpRequest.getParameter(InputKeys.USER_ROLE));
 			if((tRole != null) && (httpRequest.getParameterValues(InputKeys.USER_ROLE).length > 1)) {
-				setFailed(ErrorCodes.CAMPAIGN_INVALID_ROLE, "Multiple role parameters were found.");
+				setFailed(ErrorCode.CAMPAIGN_INVALID_ROLE, "Multiple role parameters were found.");
 				throw new ValidationException("Multiple role parameters were found.");
 			}
 		}
 		catch(ValidationException e) {
+			e.failRequest(this);
 			LOGGER.info(e.toString());
 		}
 		
@@ -301,34 +301,32 @@ public class CampaignReadRequest extends UserRequest {
 		try {
 			if(campaignIds != null) {
 				LOGGER.info("Verifying that all of the campaigns exist and that the user belongs to them in some capacity.");
-				UserCampaignServices.campaignsExistAndUserBelongs(this, campaignIds, getUser().getUsername());
+				UserCampaignServices.campaignsExistAndUserBelongs(campaignIds, getUser().getUsername());
 			}
 			
 			if(OutputFormat.SHORT.equals(outputFormat) || OutputFormat.LONG.equals(outputFormat)) {
 				if(classIds != null) {
 					LOGGER.info("Verifying that all of the classes exist and that the user belongs to them in some capacity.");
-					UserClassServices.classesExistAndUserBelongs(this, classIds, getUser().getUsername());
+					UserClassServices.classesExistAndUserBelongs(classIds, getUser().getUsername());
 				}
 				
 				LOGGER.info("Generating the list of campaign IDs based on the parameters.");
-				Set<String> resultCampaignIds = UserCampaignServices.getCampaignsForUser(this, getUser().getUsername(), 
+				Set<String> resultCampaignIds = UserCampaignServices.getCampaignsForUser(getUser().getUsername(), 
 						campaignIds, classIds, startDate, endDate, privacyState, runningState, role);
 				
 				LOGGER.info("Gathering the information about the campaigns.");
-				shortOrLongResult = UserCampaignServices.getCampaignAndUserRolesForCampaigns(this, getUser().getUsername(), resultCampaignIds, OutputFormat.LONG.equals(outputFormat));
+				shortOrLongResult = UserCampaignServices.getCampaignAndUserRolesForCampaigns(getUser().getUsername(), resultCampaignIds, OutputFormat.LONG.equals(outputFormat));
 			}
 			else if(OutputFormat.XML.equals(outputFormat)) {
 				LOGGER.info("Gathering the XML for the campaign.");
-				xmlResult = CampaignServices.getCampaignXml(this, campaignIds.get(0));
+				xmlResult = CampaignServices.getCampaignXml(campaignIds.get(0));
 				
 				LOGGER.info("Gathering the name of the campaign.");
-				campaignNameResult = CampaignServices.getCampaignName(this, campaignIds.get(0));
+				campaignNameResult = CampaignServices.getCampaignName(campaignIds.get(0));
 			}
 		}
 		catch(ServiceException e) {
-			e.logException(LOGGER);
-		}
-		catch(DataAccessException e) {
+			e.failRequest(this);
 			e.logException(LOGGER);
 		}
 	}

@@ -4,7 +4,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.log4j.Logger;
-import org.ohmage.annotator.ErrorCodes;
+import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.exception.ServiceException;
 import org.ohmage.exception.ValidationException;
 import org.ohmage.request.InputKeys;
@@ -56,17 +56,18 @@ public class UserChangePasswordRequest extends UserRequest {
 			LOGGER.info("Creating a user change password request.");
 			
 			try {
-				tNewPassword = UserValidators.validatePlaintextPassword(this, httpRequest.getParameter(InputKeys.NEW_PASSWORD));
+				tNewPassword = UserValidators.validatePlaintextPassword(httpRequest.getParameter(InputKeys.NEW_PASSWORD));
 				if(tNewPassword == null) {
-					setFailed(ErrorCodes.USER_INVALID_PASSWORD, "The new password is missing: " + InputKeys.NEW_PASSWORD);
+					setFailed(ErrorCode.USER_INVALID_PASSWORD, "The new password is missing: " + InputKeys.NEW_PASSWORD);
 					throw new ValidationException("The new password is missing: " + InputKeys.NEW_PASSWORD);
 				}
 				else if(httpRequest.getParameterValues(InputKeys.NEW_PASSWORD).length > 1) {
-					setFailed(ErrorCodes.USER_INVALID_PASSWORD, "Multiple new password parameters were given.");
+					setFailed(ErrorCode.USER_INVALID_PASSWORD, "Multiple new password parameters were given.");
 					throw new ValidationException("Multiple new password parameters were given.");
 				}
 			}
 			catch(ValidationException e) {
+				e.failRequest(this);
 				LOGGER.info(e.toString());
 			}
 		}
@@ -87,9 +88,10 @@ public class UserChangePasswordRequest extends UserRequest {
 		
 		try {
 			LOGGER.info("Updating the user's password.");
-			UserServices.updatePassword(this, getUser().getUsername(), newPassword);
+			UserServices.updatePassword(getUser().getUsername(), newPassword);
 		}
 		catch(ServiceException e) {
+			e.failRequest(this);
 			e.logException(LOGGER);
 		}
 	}

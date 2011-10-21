@@ -54,16 +54,17 @@ public class VizSurveyResponsePrivacyStateTimeseriesRequest extends Visualizatio
 		
 		try {
 			LOGGER.info("Verifying the user is able to read survey responses about other users.");
-			UserCampaignServices.requesterCanViewUsersSurveyResponses(this, getCampaignId(), getUser().getUsername());
+			UserCampaignServices.requesterCanViewUsersSurveyResponses(getCampaignId(), getUser().getUsername());
 			
 			Map<String, String> parameters = getVisualizationParameters();
 			parameters.remove(VisualizationServices.PARAMETER_KEY_PRIVACY_STATE);
 			
 			LOGGER.info("Making the request to the visualization server.");
-			setImage(VisualizationServices.sendVisualizationRequest(this, REQUEST_PATH, getUser().getToken(), 
+			setImage(VisualizationServices.sendVisualizationRequest(REQUEST_PATH, getUser().getToken(), 
 					getCampaignId(), getWidth(), getHeight(), parameters));
 		}
 		catch(ServiceException e) {
+			e.failRequest(this);
 			e.logException(LOGGER);
 		}
 	}

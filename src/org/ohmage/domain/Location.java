@@ -4,7 +4,7 @@ import java.util.Date;
 
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.ohmage.annotator.ErrorCodes;
+import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.exception.ErrorCodeException;
 import org.ohmage.util.StringUtils;
 import org.ohmage.util.TimeUtils;
@@ -54,7 +54,7 @@ public class Location {
 				tLatitude = locationData.getDouble(JSON_KEY_LATITUDE_SHORT);
 			}
 			catch(JSONException noShort) {
-				throw new ErrorCodeException(ErrorCodes.SERVER_INVALID_LOCATION, "The latitude is missing or invalid.", noShort);
+				throw new ErrorCodeException(ErrorCode.SERVER_INVALID_LOCATION, "The latitude is missing or invalid.", noShort);
 			}
 		}
 		latitude = tLatitude;
@@ -68,7 +68,7 @@ public class Location {
 				tLongitude = locationData.getDouble(JSON_KEY_LONGITUDE_SHORT);
 			}
 			catch(JSONException noShort) {
-				throw new ErrorCodeException(ErrorCodes.SERVER_INVALID_LOCATION, "The longitude is missing or invalid.", noShort);
+				throw new ErrorCodeException(ErrorCode.SERVER_INVALID_LOCATION, "The longitude is missing or invalid.", noShort);
 			}
 		}
 		longitude = tLongitude;
@@ -82,7 +82,7 @@ public class Location {
 				tAccuracy = locationData.getDouble(JSON_KEY_ACCURACY_SHORT);
 			}
 			catch(JSONException noShort) {
-				throw new ErrorCodeException(ErrorCodes.SERVER_INVALID_LOCATION, "The accuracy is missing or invalid.", noShort);
+				throw new ErrorCodeException(ErrorCode.SERVER_INVALID_LOCATION, "The accuracy is missing or invalid.", noShort);
 			}
 		}
 		accuracy = tAccuracy;
@@ -96,7 +96,7 @@ public class Location {
 				tProvider = locationData.getString(JSON_KEY_PROVIDER_SHORT);
 			}
 			catch(JSONException noShort) {
-				throw new ErrorCodeException(ErrorCodes.SERVER_INVALID_LOCATION, "The provider is missing.", noShort);
+				throw new ErrorCodeException(ErrorCode.SERVER_INVALID_LOCATION, "The provider is missing.", noShort);
 			}
 		}
 		provider = tProvider;
@@ -110,11 +110,11 @@ public class Location {
 				tTimestamp = StringUtils.decodeDateTime(locationData.getString(JSON_KEY_TIMESTAMP_SHORT));
 			}
 			catch(JSONException noShort) {
-				throw new ErrorCodeException(ErrorCodes.SERVER_INVALID_TIMESTAMP, "The timestamp is missing.", noShort);
+				throw new ErrorCodeException(ErrorCode.SERVER_INVALID_TIMESTAMP, "The timestamp is missing.", noShort);
 			}
 		}
 		if(tTimestamp == null) {
-			throw new ErrorCodeException(ErrorCodes.SERVER_INVALID_TIMESTAMP, "The timestamp is invalid.");
+			throw new ErrorCodeException(ErrorCode.SERVER_INVALID_TIMESTAMP, "The timestamp is invalid.");
 		}
 		timestamp = tTimestamp;
 	}

@@ -4,7 +4,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.log4j.Logger;
-import org.ohmage.annotator.ErrorCodes;
+import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.exception.ServiceException;
 import org.ohmage.exception.ValidationException;
 import org.ohmage.request.InputKeys;
@@ -69,33 +69,46 @@ public class ClassCreationRequest extends UserRequest {
 		
 		if(! isFailed()) {
 			try {
-				tempClassId = ClassValidators.validateClassId(this, httpRequest.getParameter(InputKeys.CLASS_URN));
+				tempClassId = ClassValidators.validateClassId(httpRequest.getParameter(InputKeys.CLASS_URN));
 				if(tempClassId == null) {
-					setFailed(ErrorCodes.CLASS_INVALID_ID, "Missing the required class ID: " + InputKeys.CLASS_URN);
-					throw new ValidationException("Missing the required class ID: " + InputKeys.CLASS_URN);
+					throw new ValidationException(
+							ErrorCode.CLASS_INVALID_ID, 
+							"Missing the required class ID: " + 
+								InputKeys.CLASS_URN
+						);
 				}
 				else if(httpRequest.getParameterValues(InputKeys.CLASS_URN).length > 1) {
-					setFailed(ErrorCodes.CLASS_INVALID_ID, "Duplicate class IDs found.");
-					throw new ValidationException("Duplicate class IDs found.");
+					throw new ValidationException(
+							ErrorCode.CLASS_INVALID_ID, 
+							"Duplicate class IDs found."
+						);
 				}
 				
-				tempClassName = ClassValidators.validateName(this, httpRequest.getParameter(InputKeys.CLASS_NAME));
+				tempClassName = ClassValidators.validateName(httpRequest.getParameter(InputKeys.CLASS_NAME));
 				if(tempClassName == null) {
-					setFailed(ErrorCodes.CLASS_INVALID_NAME, "Missing the required class name: " + InputKeys.CLASS_NAME);
-					throw new ValidationException("Missing the required class name: " + InputKeys.CLASS_NAME);
+					throw new ValidationException(
+							ErrorCode.CLASS_INVALID_NAME, 
+							"Missing the required class name: " + 
+								InputKeys.CLASS_NAME
+						);
 				}
 				else if(httpRequest.getParameterValues(InputKeys.CLASS_NAME).length > 1) {
-					setFailed(ErrorCodes.CLASS_INVALID_NAME, "Multiple class name parameters found.");
-					throw new ValidationException("Multiple class name parameters found.");
+					throw new ValidationException(
+							ErrorCode.CLASS_INVALID_NAME, 
+							"Multiple class name parameters found."
+						);
 				}
 				
-				tempClassDescription = ClassValidators.validateDescription(this, httpRequest.getParameter(InputKeys.DESCRIPTION));
+				tempClassDescription = ClassValidators.validateDescription(httpRequest.getParameter(InputKeys.DESCRIPTION));
 				if((tempClassDescription != null) && (httpRequest.getParameterValues(InputKeys.DESCRIPTION).length > 1)) {
-					setFailed(ErrorCodes.CLASS_INVALID_DESCRIPTION, "Multiple class descriptions were found.");
-					throw new ValidationException("Multiple class descriptions were found.");
+					throw new ValidationException(
+							ErrorCode.CLASS_INVALID_DESCRIPTION, 
+							"Multiple class descriptions were found."
+						);
 				}
 			}
 			catch(ValidationException e) {
+				e.failRequest(this);
 				LOGGER.info(e.toString());
 			}
 		}
@@ -119,17 +132,18 @@ public class ClassCreationRequest extends UserRequest {
 		try {
 			// Check if the user is an administrator.
 			LOGGER.info("Checking that the user is an admin.");
-			UserServices.verifyUserIsAdmin(this, getUser().getUsername());
+			UserServices.verifyUserIsAdmin(getUser().getUsername());
 			
 			// Check that the class doesn't already exist.
 			LOGGER.info("Checking that a class with the same ID doesn't already exist.");
-			ClassServices.checkClassExistence(this, classId, false);
+			ClassServices.checkClassExistence(classId, false);
 			
 			// Create the class.
 			LOGGER.info("Creating the class.");
-			ClassServices.createClass(this, classId, className, classDescription);
+			ClassServices.createClass(classId, className, classDescription);
 		}
 		catch(ServiceException e) {
+			e.failRequest(this);
 			e.logException(LOGGER);
 		}
 	}

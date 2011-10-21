@@ -19,7 +19,7 @@ import javax.servlet.http.Part;
 
 import org.apache.log4j.Logger;
 import org.json.JSONObject;
-import org.ohmage.annotator.ErrorCodes;
+import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.domain.campaign.Campaign;
 import org.ohmage.domain.campaign.SurveyResponse;
 import org.ohmage.exception.ServiceException;
@@ -116,13 +116,13 @@ public class SurveyUploadRequest extends UserRequest {
 				// Validate the campaign URN
 				String[] t = parameters.get(InputKeys.CAMPAIGN_URN);
 				if(t == null || t.length != 1) {
-					setFailed(ErrorCodes.CAMPAIGN_INVALID_ID, "campaign_urn is missing or there is more than one.");
+					setFailed(ErrorCode.CAMPAIGN_INVALID_ID, "campaign_urn is missing or there is more than one.");
 					throw new ValidationException("campaign_urn is missing or there is more than one.");
 				} else {
-					tCampaignUrn = CampaignValidators.validateCampaignId(this, t[0]);
+					tCampaignUrn = CampaignValidators.validateCampaignId(t[0]);
 					
 					if(tCampaignUrn == null) {
-						setFailed(ErrorCodes.CAMPAIGN_INVALID_ID, "The campaign ID is invalid.");
+						setFailed(ErrorCode.CAMPAIGN_INVALID_ID, "The campaign ID is invalid.");
 						throw new ValidationException("The campaign ID is invalid.");
 					}
 				}
@@ -130,7 +130,7 @@ public class SurveyUploadRequest extends UserRequest {
 				// Validate the campaign creation timestamp
 				t = parameters.get(InputKeys.CAMPAIGN_CREATION_TIMESTAMP);
 				if(t == null || t.length != 1) {
-					setFailed(ErrorCodes.SERVER_INVALID_TIMESTAMP, "campaign_creation_timestamp is missing or there is more than one");
+					setFailed(ErrorCode.SERVER_INVALID_TIMESTAMP, "campaign_creation_timestamp is missing or there is more than one");
 					throw new ValidationException("campaign_creation_timestamp is missing or there is more than one");
 				} 
 				else {
@@ -140,22 +140,22 @@ public class SurveyUploadRequest extends UserRequest {
 						tCampaignCreationTimestamp = DateValidators.validateISO8601DateTime(t[0]);
 					}
 					catch(ValidationException e) {
-						setFailed(ErrorCodes.SERVER_INVALID_DATE, e.getMessage());
+						setFailed(ErrorCode.SERVER_INVALID_DATE, e.getMessage());
 						throw e;
 					}
 				}
 				
 				t = parameters.get(InputKeys.SURVEYS);
 				if(t == null || t.length != 1) {
-					setFailed(ErrorCodes.SURVEY_INVALID_RESPONSES, "No value found for 'surveys' parameter or multiple surveys parameters were found.");
+					setFailed(ErrorCode.SURVEY_INVALID_RESPONSES, "No value found for 'surveys' parameter or multiple surveys parameters were found.");
 					throw new ValidationException("No value found for 'surveys' parameter or multiple surveys parameters were found.");
 				}
 				else {
 					try {
-						tJsonData = CampaignValidators.validateUploadedJson(this, t[0]);
+						tJsonData = CampaignValidators.validateUploadedJson(t[0]);
 					}
 					catch(IllegalArgumentException e) {
-						setFailed(ErrorCodes.SURVEY_INVALID_RESPONSES, "The survey responses could not be URL decoded.");
+						setFailed(ErrorCode.SURVEY_INVALID_RESPONSES, "The survey responses could not be URL decoded.");
 						throw new ValidationException("The survey responses could not be URL decoded.", e);
 					}
 				}
@@ -190,13 +190,13 @@ public class SurveyUploadRequest extends UserRequest {
 				Set<String> stringSet = new HashSet<String>(imageIds);
 				
 				if(stringSet.size() != imageIds.size()) {
-					setFailed(ErrorCodes.IMAGE_INVALID_DATA, "a duplicate image key was detected in the multi-part upload");
+					setFailed(ErrorCode.IMAGE_INVALID_DATA, "a duplicate image key was detected in the multi-part upload");
 					throw new ValidationException("a duplicate image key was detected in the multi-part upload");
 				}
 
 				tImageContentsMap = new HashMap<String, BufferedImage>();
 				for(String imageId : imageIds) {
-					tImageContentsMap.put(imageId, ImageValidators.validateImageContents(this, getMultipartValue(httpRequest, imageId)));
+					tImageContentsMap.put(imageId, ImageValidators.validateImageContents(getMultipartValue(httpRequest, imageId)));
 					
 					if(LOGGER.isDebugEnabled()) {
 						LOGGER.debug("succesfully created a BufferedImage for key " + imageId);
@@ -205,6 +205,7 @@ public class SurveyUploadRequest extends UserRequest {
 				
 			}
 			catch(ValidationException e) {
+				e.failRequest(this);
 				LOGGER.info(e.toString());
 			}
 		}
@@ -228,35 +229,35 @@ public class SurveyUploadRequest extends UserRequest {
 		
 		try {
 			LOGGER.info("Verifying that the user is a participant in the campaign.");
-			UserCampaignServices.verifyUserCanUploadSurveyResponses(this, getUser().getUsername(), campaignUrn);
+			UserCampaignServices.verifyUserCanUploadSurveyResponses(getUser().getUsername(), campaignUrn);
 			
 			LOGGER.info("Verifying that the campaign is running.");
-			CampaignServices.verifyCampaignIsRunning(this, campaignUrn);
+			CampaignServices.verifyCampaignIsRunning(campaignUrn);
 			
 			LOGGER.info("Verifying that the uploaded survey responses aren't out of date.");
-			CampaignServices.verifyCampaignIsUpToDate(this, campaignUrn, campaignCreationTimestamp);
+			CampaignServices.verifyCampaignIsUpToDate(campaignUrn, campaignCreationTimestamp);
 			
 			LOGGER.info("Generating the campaign object.");
-			Campaign campaign = CampaignServices.findCampaignConfiguration(this, campaignUrn);
+			Campaign campaign = CampaignServices.findCampaignConfiguration(campaignUrn);
 			
 			LOGGER.info("Verifying the uploaded data against the campaign.");
 			List<SurveyResponse> surveyResponses = 
 				CampaignServices.getSurveyResponses(
-						this, 
 						getUser().getUsername(), 
 						getClient(),
 						campaign, 
 						jsonData);
 
 			LOGGER.info("Validating that all photo prompt responses have their corresponding images attached.");
-			SurveyResponseServices.verifyImagesExistForPhotoPromptResponses(this, surveyResponses, imageContentsMap);
+			SurveyResponseServices.verifyImagesExistForPhotoPromptResponses(surveyResponses, imageContentsMap);
 			
 			LOGGER.info("Inserting the data into the database.");
-			List<Integer> duplicateIndexList = SurveyResponseServices.createSurveyResponses(this, getUser().getUsername(), getClient(), campaignUrn, surveyResponses, imageContentsMap);
+			List<Integer> duplicateIndexList = SurveyResponseServices.createSurveyResponses(getUser().getUsername(), getClient(), campaignUrn, surveyResponses, imageContentsMap);
 
 			LOGGER.info("Found " + duplicateIndexList.size() + " duplicate survey uploads");
 		}
 		catch(ServiceException e) {
+			e.failRequest(this);
 			e.logException(LOGGER);
 		}
 	}

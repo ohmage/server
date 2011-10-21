@@ -3,7 +3,7 @@ package org.ohmage.service;
 import java.util.Collection;
 import java.util.List;
 
-import org.ohmage.annotator.ErrorCodes;
+import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.domain.campaign.Campaign;
 import org.ohmage.domain.campaign.Campaign.Role;
 import org.ohmage.domain.campaign.SurveyResponse;
@@ -11,7 +11,6 @@ import org.ohmage.exception.DataAccessException;
 import org.ohmage.exception.ServiceException;
 import org.ohmage.query.CampaignQueries;
 import org.ohmage.query.UserCampaignQueries;
-import org.ohmage.request.Request;
 import org.ohmage.util.StringUtils;
 
 /**
@@ -40,11 +39,13 @@ public final class SurveyResponseReadServices {
 	 * @throws IllegalArgumentException if request, promptIdList, or
 	 * configuration are null.
 	 */
-	public static void verifyPromptIdsBelongToConfiguration(Request request, Collection<String> promptIdList, Campaign configuration)
+	public static void verifyPromptIdsBelongToConfiguration(
+			final Collection<String> promptIdList, 
+			final Campaign configuration)
 		throws ServiceException {
 		
 		// check for logical errors
-		if(request == null || promptIdList == null || configuration == null) {
+		if(promptIdList == null || configuration == null) {
 			throw new IllegalArgumentException("A non-null request, promptIdList, and configuration are required");
 		}
 		
@@ -56,8 +57,7 @@ public final class SurveyResponseReadServices {
 				sb.append(" did not contain the prompt id ");
 				sb.append(promptId);
 				String msg = sb.toString();
-				request.setFailed(ErrorCodes.SURVEY_INVALID_PROMPT_ID, msg);
-				throw new ServiceException(msg);
+				throw new ServiceException(ErrorCode.SURVEY_INVALID_PROMPT_ID, msg);
 			}
 		}
 	}
@@ -65,8 +65,6 @@ public final class SurveyResponseReadServices {
 	/**
 	 * Verifies that the surveyIdList contains surveys that are present in the
 	 * configuration.
-	 * 
-	 * @param request  The request to fail should the surveyIdList be invalid.
 	 * 
 	 * @param surveyIdList  The survey ids to validate.
 	 * 
@@ -77,11 +75,13 @@ public final class SurveyResponseReadServices {
 	 * @throws IllegalArgumentException if request, surveyIdList, or
 	 * configuration are null.
 	 */
-	public static void verifySurveyIdsBelongToConfiguration(Request request, Collection<String> surveyIdList, Campaign configuration)
+	public static void verifySurveyIdsBelongToConfiguration(
+			final Collection<String> surveyIdList, 
+			final Campaign configuration)
 		throws ServiceException {
 		
 		// check for logical errors
-		if(request == null || surveyIdList == null || configuration == null) {
+		if(surveyIdList == null || configuration == null) {
 			throw new IllegalArgumentException("A non-null request, surveyIdList, and configuration are required");
 		}
 		
@@ -93,8 +93,7 @@ public final class SurveyResponseReadServices {
 				sb.append(" did not contain the survey id ");
 				sb.append(surveyId);
 				String msg = sb.toString();
-				request.setFailed(ErrorCodes.SURVEY_INVALID_SURVEY_ID, msg);
-				throw new ServiceException(msg);
+				throw new ServiceException(ErrorCode.SURVEY_INVALID_SURVEY_ID, msg);
 			}
 		}
 	}
@@ -110,8 +109,6 @@ public final class SurveyResponseReadServices {
 	 * 
 	 * <p>This method assumes that the user's role has already been checked
 	 * 
-	 * @param request The Request that is performing this service.
-	 * 
 	 * @param user The requester's username.
 	 * 
 	 * @param campaignId The campaign URN for the
@@ -122,8 +119,8 @@ public final class SurveyResponseReadServices {
 	 * 
 	 * @return A filtered list of survey response results.
 	 */
-	public static void performPrivacyFilter(final Request request, 
-			final String username, final String campaignId,
+	public static void performPrivacyFilter(final String username, 
+			final String campaignId,
 			final Collection<SurveyResponse> surveyResponseList) 
 			throws ServiceException {
 		
@@ -184,7 +181,6 @@ public final class SurveyResponseReadServices {
 			}
 		}
 		catch(DataAccessException e) {
-			request.setFailed();
 			throw new ServiceException(e);
 		}
 	}

@@ -4,11 +4,10 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.log4j.Logger;
-import org.ohmage.annotator.ErrorCodes;
+import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.domain.Document;
 import org.ohmage.exception.ValidationException;
 import org.ohmage.request.InputKeys;
-import org.ohmage.request.Request;
 import org.ohmage.util.StringUtils;
 
 /**
@@ -28,8 +27,6 @@ public class UserDocumentValidators {
 	/**
 	 * Validates a list of username, document role pairs.
 	 *  
-	 * @param request The request that is performing this validation.
-	 * 
 	 * @param usernameAndRoleList A String representing the username,  
 	 * 							  document role pairs. The pairs should be 
 	 * 							  separated by
@@ -47,7 +44,9 @@ public class UserDocumentValidators {
 	 * 							   individual values in the pairs are malformed
 	 * 							   or missing.
 	 */
-	public static Map<String, Document.Role> validateUsernameAndDocumentRoleList(Request request, String usernameAndRoleList) throws ValidationException {
+	public static Map<String, Document.Role> validateUsernameAndDocumentRoleList(
+			final String usernameAndRoleList) throws ValidationException {
+		
 		LOGGER.info("Validating a list of username and document role pairs.");
 		
 		if(StringUtils.isEmptyOrWhitespaceOnly(usernameAndRoleList)) {
@@ -56,29 +55,38 @@ public class UserDocumentValidators {
 		
 		Map<String, Document.Role> result = new HashMap<String, Document.Role>();
 		
-		String[] usernameAndRoleArray = usernameAndRoleList.split(InputKeys.LIST_ITEM_SEPARATOR);
+		String[] usernameAndRoleArray = 
+			usernameAndRoleList.split(InputKeys.LIST_ITEM_SEPARATOR);
+		
 		for(int i = 0; i < usernameAndRoleArray.length; i++) {
 			String usernameAndRoleString = usernameAndRoleArray[i].trim(); 
 			
 			if((! StringUtils.isEmptyOrWhitespaceOnly(usernameAndRoleString)) &&
 					(! usernameAndRoleString.equals(InputKeys.ENTITY_ROLE_SEPARATOR))) {
-				String[] usernameAndRole = usernameAndRoleString.split(InputKeys.ENTITY_ROLE_SEPARATOR);
+				String[] usernameAndRole = 
+					usernameAndRoleString.split(InputKeys.ENTITY_ROLE_SEPARATOR);
 				
 				if(usernameAndRole.length != 2) {
-					request.setFailed(ErrorCodes.USER_INVALID_USERNAME, "The username, document role pair is invalid: " + usernameAndRoleString);
-					throw new ValidationException("The username, document role pair is invalid: " + usernameAndRoleString);
+					throw new ValidationException(
+							ErrorCode.USER_INVALID_USERNAME, 
+							"The username, document role pair is invalid: " + 
+								usernameAndRoleString);
 				}
 				
-				String username = UserValidators.validateUsername(request, usernameAndRole[0].trim());
+				String username = UserValidators.validateUsername(usernameAndRole[0].trim());
 				if(username == null) {
-					request.setFailed(ErrorCodes.USER_INVALID_USERNAME, "The username in the username, document role pair is missing: " + usernameAndRoleString);
-					throw new ValidationException("The username in the username, document role pair is missing: " + usernameAndRoleString);
+					throw new ValidationException(
+							ErrorCode.USER_INVALID_USERNAME, 
+							"The username in the username, document role pair is missing: " + 
+								usernameAndRoleString);
 				}
 				
-				Document.Role documentRole = DocumentValidators.validateRole(request, usernameAndRole[1].trim());
+				Document.Role documentRole = DocumentValidators.validateRole(usernameAndRole[1].trim());
 				if(documentRole == null) {
-					request.setFailed(ErrorCodes.DOCUMENT_INVALID_ROLE, "The document role in the username, document role pair is missing: " + usernameAndRoleString);
-					throw new ValidationException("The document role in the username, document role pair is missing: " + usernameAndRoleString);
+					throw new ValidationException(
+							ErrorCode.DOCUMENT_INVALID_ROLE, 
+							"The document role in the username, document role pair is missing: " + 
+								usernameAndRoleString);
 				}
 				
 				result.put(username, documentRole);

@@ -12,7 +12,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.log4j.Logger;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.ohmage.annotator.ErrorCodes;
+import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.domain.Clazz;
 import org.ohmage.exception.ServiceException;
 import org.ohmage.exception.ValidationException;
@@ -68,17 +68,18 @@ public class ClassReadRequest extends UserRequest {
 			LOGGER.info("Creating a new class read request.");
 			
 			try {
-				tempClassIds = ClassValidators.validateClassIdList(this, httpRequest.getParameter(InputKeys.CLASS_URN_LIST));
+				tempClassIds = ClassValidators.validateClassIdList(httpRequest.getParameter(InputKeys.CLASS_URN_LIST));
 				if(tempClassIds == null) {
-					setFailed(ErrorCodes.CLASS_INVALID_ID, "Missing required class ID list: " + InputKeys.CLASS_URN_LIST);
+					setFailed(ErrorCode.CLASS_INVALID_ID, "Missing required class ID list: " + InputKeys.CLASS_URN_LIST);
 					throw new ValidationException("Missing required class ID list: " + InputKeys.CLASS_URN_LIST);
 				}
 				else if(httpRequest.getParameterValues(InputKeys.CLASS_URN_LIST).length > 1) {
-					setFailed(ErrorCodes.CLASS_INVALID_ID, "Multiple class ID lists were found.");
+					setFailed(ErrorCode.CLASS_INVALID_ID, "Multiple class ID lists were found.");
 					throw new ValidationException("Multiple class ID lists were found.");
 				}
 			}
 			catch(ValidationException e) {
+				e.failRequest(this);
 				LOGGER.info(e.toString());
 			}
 		}
@@ -103,11 +104,11 @@ public class ClassReadRequest extends UserRequest {
 			// Check that each of the classes in the list exist and that the 
 			// requester is a member of each class.
 			LOGGER.info("Checking that all of the classes in the class list exist.");
-			UserClassServices.classesExistAndUserBelongs(this, classIds, getUser().getUsername());
+			UserClassServices.classesExistAndUserBelongs(classIds, getUser().getUsername());
 			
 			// Get the information about the classes.
 			LOGGER.info("Gathering the information about the classes in the list.");
-			List<Clazz> informationAboutClasses = ClassServices.getClassesInformation(this, classIds, getUser().getUsername());
+			List<Clazz> informationAboutClasses = ClassServices.getClassesInformation(classIds, getUser().getUsername());
 			
 			// Populate our result JSONObject with class information.
 			LOGGER.info("Creating the result JSONObject with the information about the classes.");
@@ -128,6 +129,7 @@ public class ClassReadRequest extends UserRequest {
 			}
 		}
 		catch(ServiceException e) {
+			e.failRequest(this);
 			e.logException(LOGGER);
 		}
 	}

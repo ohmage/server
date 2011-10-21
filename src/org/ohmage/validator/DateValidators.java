@@ -20,6 +20,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 
 import org.apache.log4j.Logger;
+import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.exception.ValidationException;
 
 
@@ -48,7 +49,9 @@ public final class DateValidators {
 	 *  @return Returns a Date representation of the provided String if the
 	 *  provided String is parseable and non-null.
 	 */
-	public static Date validateISO8601Date(String date) throws ValidationException {
+	public static Date validateISO8601Date(String date) 
+			throws ValidationException {
+		
 		return validate(date, ISO8601_DATE_FORMAT);
 	}
 	
@@ -62,7 +65,9 @@ public final class DateValidators {
 	 *  @return Returns a Date representation of the provided String if the
 	 *  provided String is parseable and non-null.
 	 */
-	public static Date validateISO8601DateTime(String dateTime) throws ValidationException {
+	public static Date validateISO8601DateTime(String dateTime) 
+			throws ValidationException {
+		
 		return validate(dateTime, ISO8601_DATETIME_FORMAT);
 	}
 	
@@ -72,7 +77,9 @@ public final class DateValidators {
 	 * @return Returns a Date representation of the provided String if the
 	 * provided String is parseable and non-null.
 	 */
-	private static Date validate(String date, String format) throws ValidationException {
+	private static Date validate(String date, String format) 
+			throws ValidationException {
+		
 		if(date == null) {
 			return null;
 		}
@@ -90,7 +97,10 @@ public final class DateValidators {
 				LOGGER.debug("Invalid datetime: " + date + ". It does not match: " + format);
 			}
 			
-			throw new ValidationException("Invalid date: " + date, pe);
+			throw new ValidationException(
+					ErrorCode.SERVER_INVALID_DATE, 
+					"Invalid date: " + date, 
+					pe);
 		}
 	}
 }

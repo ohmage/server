@@ -11,7 +11,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.log4j.Logger;
 import org.json.JSONArray;
-import org.ohmage.annotator.ErrorCodes;
+import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.domain.Clazz;
 import org.ohmage.exception.ServiceException;
 import org.ohmage.exception.ValidationException;
@@ -86,13 +86,14 @@ public class ClassRosterUpdateRequest extends UserRequest {
 		Map<String, Map<String, Clazz.Role>> tRoster = null;
 		
 		try {
-			tRoster = ClassValidators.validateClassRoster(this, getMultipartValue(httpRequest, InputKeys.ROSTER));
+			tRoster = ClassValidators.validateClassRoster(getMultipartValue(httpRequest, InputKeys.ROSTER));
 			if(tRoster == null) {
-				setFailed(ErrorCodes.CLASS_INVALID_ROSTER, "The class roster is missing.");
+				setFailed(ErrorCode.CLASS_INVALID_ROSTER, "The class roster is missing.");
 				throw new ValidationException("The class roster is missing.");
 			}
 		}
 		catch(ValidationException e) {
+			e.failRequest(this);
 			LOGGER.info(e.toString());
 		}
 		
@@ -115,22 +116,23 @@ public class ClassRosterUpdateRequest extends UserRequest {
 			Set<String> classIds = roster.keySet();
 			
 			LOGGER.info("Verifying that the classes in the class roster exist.");
-			ClassServices.checkClassesExistence(this, classIds, true);
+			ClassServices.checkClassesExistence(classIds, true);
 			
 			LOGGER.info("Verifying that the requester is an admin.");
-			UserServices.verifyUserIsAdmin(this, getUser().getUsername());
+			UserServices.verifyUserIsAdmin(getUser().getUsername());
 			
 			LOGGER.info("Verifying that the users in the roster exist.");
 			Set<String> uniqueUsers = new HashSet<String>();
 			for(String classId : classIds) {
 				uniqueUsers.addAll(roster.get(classId).keySet());
 			}
-			UserServices.verifyUsersExist(this, uniqueUsers, true);
+			UserServices.verifyUsersExist(uniqueUsers, true);
 			
 			LOGGER.info("Updating the classes via the roster.");
-			warningMessages = ClassServices.updateClassViaRoster(this, roster);
+			warningMessages = ClassServices.updateClassViaRoster(roster);
 		}
 		catch(ServiceException e) {
+			e.failRequest(this);
 			e.logException(LOGGER);
 		}
 	}

@@ -7,7 +7,7 @@ import java.util.Set;
 
 import jbcrypt.BCrypt;
 
-import org.ohmage.annotator.ErrorCodes;
+import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.domain.Clazz;
 import org.ohmage.domain.UserInformation;
 import org.ohmage.domain.UserPersonal;
@@ -17,7 +17,6 @@ import org.ohmage.exception.ServiceException;
 import org.ohmage.query.UserCampaignQueries;
 import org.ohmage.query.UserClassQueries;
 import org.ohmage.query.UserQueries;
-import org.ohmage.request.Request;
 
 /**
  * This class contains the services for users.
@@ -32,8 +31,6 @@ public final class UserServices {
 	
 	/**
 	 * Creates a new user.
-	 * 
-	 * @param request The Request that is performing this service.
 	 * 
 	 * @param username The username for the new user.
 	 * 
@@ -51,23 +48,23 @@ public final class UserServices {
 	 * 
 	 * @throws ServiceException Thrown if there is an error.
 	 */
-	public static void createUser(Request request, String username, String password, 
-			Boolean admin, Boolean enabled, Boolean newAccount, Boolean campaignCreationPrivilege) throws ServiceException {
+	public static void createUser(final String username, final String password, 
+			final Boolean admin, final Boolean enabled, 
+			final Boolean newAccount, final Boolean campaignCreationPrivilege)
+			throws ServiceException {
+		
 		try {
 			String hashedPassword = BCrypt.hashpw(password, BCrypt.gensalt(13));
 			
 			UserQueries.createUser(username, hashedPassword, admin, enabled, newAccount, campaignCreationPrivilege);
 		}
 		catch(DataAccessException e) {
-			request.setFailed();
 			throw new ServiceException(e);
 		}
 	}
 	
 	/**
 	 * Checks that a user's existence matches that of 'shouldExist'.
-	 * 
-	 * @param request The request that is performing this check.
 	 * 
 	 * @param username The username of the user in question.
 	 * 
@@ -77,23 +74,26 @@ public final class UserServices {
 	 * 							exists but shouldn't, or if the user doesn't
 	 * 							exist but should.
 	 */
-	public static void checkUserExistance(Request request, String username, boolean shouldExist) throws ServiceException {
+	public static void checkUserExistance(final String username, 
+			final boolean shouldExist) throws ServiceException {
+		
 		try {
 			if(UserQueries.userExists(username)) {
 				if(! shouldExist) {
-					request.setFailed(ErrorCodes.USER_INVALID_USERNAME, "The following user already exists: " + username);
-					throw new ServiceException("The following user already exists: " + username);
+					throw new ServiceException(
+							ErrorCode.USER_INVALID_USERNAME, 
+							"The following user already exists: " + username);
 				}
 			}
 			else {
 				if(shouldExist) {
-					request.setFailed(ErrorCodes.USER_INVALID_USERNAME, "The following user does not exist: " + username);
-					throw new ServiceException("The following user does not exist: " + username);
+					throw new ServiceException(
+							ErrorCode.USER_INVALID_USERNAME, 
+							"The following user does not exist: " + username);
 				}
 			}
 		}
 		catch(DataAccessException e) {
-			request.setFailed();
 			throw new ServiceException(e);
 		}
 	}
@@ -101,8 +101,6 @@ public final class UserServices {
 	/**
 	 * Checks that a Collection of users' existence matches that of 
 	 * 'shouldExist'.
-	 * 
-	 * @param request The Request that is performing this check.
 	 * 
 	 * @param usernames A Collection of usernames to check that each exists.
 	 * 
@@ -112,19 +110,16 @@ public final class UserServices {
 	 * 							users should have existed and didn't, or if one 
 	 * 							of the users shouldn't exist but does.
 	 */
-	public static void verifyUsersExist(Request request, Collection<String> usernames, boolean shouldExist) throws ServiceException {
+	public static void verifyUsersExist(final Collection<String> usernames, 
+			final boolean shouldExist) throws ServiceException {
+		
 		for(String username : usernames) {
-			checkUserExistance(request, username, shouldExist);
+			checkUserExistance(username, shouldExist);
 		}
 	}
 	
 	/**
 	 * Checks if the user is an admin.
-	 * 
-	 * @param request The request that is checking if the user is an admin.
-	 * 
-	 * @param username The username of the user whose admin status is being
-	 * 				   checked.
 	 * 
 	 * @return Returns true if the user is an admin; false if not or there is
 	 * 		   an error.
@@ -132,15 +127,18 @@ public final class UserServices {
 	 * @throws ServiceException Thrown if there was an error or if the user is
 	 * 							not an admin.
 	 */
-	public static void verifyUserIsAdmin(Request request, String username) throws ServiceException {
+	public static void verifyUserIsAdmin(final String username) 
+			throws ServiceException {
+		
 		try {
 			if(! UserQueries.userIsAdmin(username)) {
-				request.setFailed(ErrorCodes.USER_INSUFFICIENT_PERMISSIONS, "The user is not an admin.");
-				throw new ServiceException("The user is not an admin.");
+				throw new ServiceException(
+						ErrorCode.USER_INSUFFICIENT_PERMISSIONS, 
+						"The user is not an admin."
+					);
 			}
 		}
 		catch(DataAccessException e) {
-			request.setFailed();
 			throw new ServiceException(e);
 		}
 	}
@@ -148,23 +146,23 @@ public final class UserServices {
 	/**
 	 * Verifies that the user can create campaigns.
 	 * 
-	 * @param request The request that is performing this check.
-	 * 
 	 * @param username The username of the user whose campaign creation ability
 	 * 				   is being checked.
 	 * 
 	 * @throws ServiceException Thrown if there is an error or if the user is
 	 * 							not allowed to create campaigns.
 	 */
-	public static void verifyUserCanCreateCampaigns(Request request, String username) throws ServiceException {
+	public static void verifyUserCanCreateCampaigns(final String username) 
+			throws ServiceException {
+		
 		try {
 			if(! UserQueries.userCanCreateCampaigns(username)) {
-				request.setFailed(ErrorCodes.CAMPAIGN_INSUFFICIENT_PERMISSIONS, "The user does not have permission to create new campaigns.");
-				throw new ServiceException("The user does not have permission to create new campaigns.");
+				throw new ServiceException(
+						ErrorCode.CAMPAIGN_INSUFFICIENT_PERMISSIONS, 
+						"The user does not have permission to create new campaigns.");
 			}
 		}
 		catch(DataAccessException e) {
-			request.setFailed();
 			throw new ServiceException(e);
 		}
 	}
@@ -172,8 +170,6 @@ public final class UserServices {
 	/**
 	 * Verifies that a given user is allowed to read the personal information
 	 * about a group of users.
-	 * 
-	 * @param request The Request that is performing this service.
 	 * 
 	 * @param username The username of the reader.
 	 * 
@@ -184,8 +180,8 @@ public final class UserServices {
 	 * 							of the users.
 	 */
 	public static void verifyUserCanReadUsersPersonalInfo(
-			final Request request, final String username, 
-			final Collection<String> usernames) throws ServiceException {
+			final String username, final Collection<String> usernames) 
+			throws ServiceException {
 		
 		if((usernames == null) || (usernames.size() == 0) ||
 				((usernames.size() == 1) && 
@@ -193,31 +189,26 @@ public final class UserServices {
 			return;
 		}
 		
-		try {
-			Set<String> supervisorCampaigns = 
-				UserCampaignServices.getCampaignsForUser(request, username, 
-						null, null, null, null, null, null, 
-						Campaign.Role.SUPERVISOR);
-			
-			Set<String> privilegedClasses = 
-				UserClassServices.getClassesForUser(
-						request, 
-						username, 
-						Clazz.Role.PRIVILEGED);
-			
-			for(String currUsername : usernames) {
-				if(UserCampaignServices.getCampaignsForUser(request, 
-						currUsername, supervisorCampaigns, privilegedClasses, 
-						null, null, null, null, null).size() == 0) {
-					
-					request.setFailed(ErrorCodes.USER_INSUFFICIENT_PERMISSIONS, 
-							"The user is not allowed to view personal information about a user in the list: " + currUsername);
-				}
+		Set<String> supervisorCampaigns = 
+			UserCampaignServices.getCampaignsForUser(username, 
+					null, null, null, null, null, null, 
+					Campaign.Role.SUPERVISOR);
+		
+		Set<String> privilegedClasses = 
+			UserClassServices.getClassesForUser(
+					username, 
+					Clazz.Role.PRIVILEGED);
+		
+		for(String currUsername : usernames) {
+			if(UserCampaignServices.getCampaignsForUser( 
+					currUsername, supervisorCampaigns, privilegedClasses, 
+					null, null, null, null, null).size() == 0) {
+				
+				throw new ServiceException(
+						ErrorCode.USER_INSUFFICIENT_PERMISSIONS, 
+						"The user is not allowed to view personal information about a user in the list: " + 
+							currUsername);
 			}
-		}
-		catch(DataAccessException e) {
-			request.setFailed();
-			throw new ServiceException(e);
 		}
 	}
 
@@ -226,8 +217,6 @@ public final class UserServices {
 	 * there already exists a personal information entry for some user or that
 	 * there is sufficient information in the 'personalInfo' object to create a
 	 * new entry.
-	 * 
-	 * @param request The Request that is performing this service.
 	 * 
 	 * @param username The username of the user whose personal information is
 	 * 				   being queried.
@@ -245,30 +234,36 @@ public final class UserServices {
 	 * 							database. Also, it is thrown if there is an 
 	 * 							error. 
 	 */
-	public static void verifyUserHasOrCanCreatePersonalInfo(Request request, String username, UserPersonal personalInfo) throws ServiceException {
+	public static void verifyUserHasOrCanCreatePersonalInfo(
+			final String username, final UserPersonal personalInfo) 
+			throws ServiceException {
+		
 		if((personalInfo != null) && (! personalInfo.isEmpty())) {
 			try {
 				if(! UserQueries.userHasPersonalInfo(username)) {
 					if(personalInfo.getFirstName() == null) {
-						request.setFailed(ErrorCodes.USER_INVALID_FIRST_NAME_VALUE, "The user doesn't have personal information yet, and a first name is necessary to create one.");
-						throw new ServiceException("The user doesn't have personal information yet, and a first name is necessary to create one.");
+						throw new ServiceException(
+								ErrorCode.USER_INVALID_FIRST_NAME_VALUE, 
+								"The user doesn't have personal information yet, and a first name is necessary to create one.");
 					}
 					else if(personalInfo.getLastName() == null) {
-						request.setFailed(ErrorCodes.USER_INVALID_LAST_NAME_VALUE, "The user doesn't have personal information yet, and a last name is necessary to create one.");
-						throw new ServiceException("The user doesn't have personal information yet, and a last name is necessary to create one.");
+						throw new ServiceException(
+								ErrorCode.USER_INVALID_LAST_NAME_VALUE, 
+								"The user doesn't have personal information yet, and a last name is necessary to create one.");
 					}
 					else if(personalInfo.getOrganization() == null) {
-						request.setFailed(ErrorCodes.USER_INVALID_ORGANIZATION_VALUE, "The user doesn't have personal information yet, and a organization is necessary to create one.");
-						throw new ServiceException("The user doesn't have personal information yet, and an organization is necessary to create one.");
+						throw new ServiceException(
+								ErrorCode.USER_INVALID_ORGANIZATION_VALUE, 
+								"The user doesn't have personal information yet, and an organization is necessary to create one.");
 					}
 					else if(personalInfo.getPersonalId() == null) {
-						request.setFailed(ErrorCodes.USER_INVALID_PERSONAL_ID_VALUE, "The user doesn't have personal information yet, and a personal ID is necessary to create one.");
-						throw new ServiceException("The user doesn't have personal information yet, and a personal ID is necessary to create one.");
+						throw new ServiceException(
+								ErrorCode.USER_INVALID_PERSONAL_ID_VALUE, 
+								"The user doesn't have personal information yet, and a personal ID is necessary to create one.");
 					}
 				}
 			}
 			catch(DataAccessException e) {
-				request.setFailed();
 				throw new ServiceException(e);
 			}
 		}
@@ -276,8 +271,6 @@ public final class UserServices {
 	
 	/**
 	 * Gathers the personal information about a user.
-	 * 
-	 * @param request The Request that is performing this service.
 	 * 
 	 * @param username The username of the user whose information is being
 	 * 				   requested.
@@ -287,7 +280,9 @@ public final class UserServices {
 	 * 
 	 * @throws ServiceException Thrown if there is an error.
 	 */
-	public static UserInformation gatherUserInformation(Request request, String username) throws ServiceException {
+	public static UserInformation gatherUserInformation(final String username)
+			throws ServiceException {
+		
 		try {
 			// Get campaign creation privilege.
 			UserInformation userInformation = new UserInformation(UserQueries.userCanCreateCampaigns(username));
@@ -313,15 +308,12 @@ public final class UserServices {
 			return userInformation;
 		}
 		catch(DataAccessException e) {
-			request.setFailed();
 			throw new ServiceException(e);
 		}
 	}
 	
 	/**
 	 * Retrieves the personal information for all of the users in the list.
-	 * 
-	 * @param request The Request that is performing this service.
 	 * 
 	 * @param usernames The usernames.
 	 * 
@@ -331,8 +323,7 @@ public final class UserServices {
 	 * @throws ServiceException There was an error.
 	 */
 	public static Map<String, UserPersonal> gatherPersonalInformation(
-			final Request request, final Collection<String> usernames) 
-			throws ServiceException {
+			final Collection<String> usernames) throws ServiceException {
 		
 		try {
 			Map<String, UserPersonal> result = 
@@ -345,15 +336,12 @@ public final class UserServices {
 			return result;
 		}
 		catch(DataAccessException e) {
-			request.setFailed();
 			throw new ServiceException(e);
 		}
 	}
 	
 	/**
 	 * Updates a user's account information.
-	 * 
-	 * @param request The Request that is performing this service.
 	 * 
 	 * @param username The username of the user whose information is to be
 	 * 				   updated.
@@ -383,20 +371,21 @@ public final class UserServices {
 	 * 
 	 * @throws ServiceException Thrown if there is an error.
 	 */
-	public static void updateUser(Request request, String username, Boolean admin, Boolean enabled, Boolean newAccount, Boolean campaignCreationPrivilege, UserPersonal personalInfo) throws ServiceException {
+	public static void updateUser(final String username, final Boolean admin, 
+			final Boolean enabled, final Boolean newAccount, 
+			final Boolean campaignCreationPrivilege, 
+			final UserPersonal personalInfo) throws ServiceException {
+		
 		try {
 			UserQueries.updateUser(username, admin, enabled, newAccount, campaignCreationPrivilege, personalInfo);
 		}
 		catch(DataAccessException e) {
-			request.setFailed();
 			throw new ServiceException(e);
 		}
 	}
 	
 	/**
 	 * Updates the user's password.
-	 * 
-	 * @param request The Request that is performing this service.
 	 * 
 	 * @param username The username of the user whose password is being 
 	 * 				   updated.
@@ -405,14 +394,15 @@ public final class UserServices {
 	 * 
 	 * @throws ServiceException Thrown if there is an error.
 	 */
-	public static void updatePassword(Request request, String username, String plaintextPassword) throws ServiceException {
+	public static void updatePassword(final String username, 
+			final String plaintextPassword) throws ServiceException {
+		
 		try {
 			String hashedPassword = BCrypt.hashpw(plaintextPassword, BCrypt.gensalt(13));
 			
 			UserQueries.updateUserPassword(username, hashedPassword);
 		}
 		catch(DataAccessException e) {
-			request.setFailed();
 			throw new ServiceException(e);
 		}
 	}
@@ -420,18 +410,17 @@ public final class UserServices {
 	/**
 	 * Deletes all of the users from the Collection.
 	 * 
-	 * @param request The Request that is performing this service.
-	 * 
 	 * @param usernames A Collection of usernames of the users to delete.
 	 * 
 	 * @throws ServiceException Thrown if there is an error.
 	 */
-	public static void deleteUser(Request request, Collection<String> usernames) throws ServiceException {
+	public static void deleteUser(final Collection<String> usernames) 
+			throws ServiceException {
+		
 		try {
 			UserQueries.deleteUsers(usernames);
 		}
 		catch(DataAccessException e) {
-			request.setFailed();
 			throw new ServiceException(e);
 		}
 	}

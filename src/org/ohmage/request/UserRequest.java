@@ -10,7 +10,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.log4j.Logger;
 import org.apache.log4j.NDC;
 import org.json.JSONObject;
-import org.ohmage.annotator.ErrorCodes;
+import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.cache.UserBin;
 import org.ohmage.domain.User;
 import org.ohmage.exception.ServiceException;
@@ -65,12 +65,12 @@ public abstract class UserRequest extends Request {
 		// If it is missing, fail the request.
 		if(usernames.length == 0) {
 			LOGGER.info("The username is missing from the request.");
-			setFailed(ErrorCodes.AUTHENTICATION_FAILED, "Missing username.");
+			setFailed(ErrorCode.AUTHENTICATION_FAILED, "Missing username.");
 		}
 		// If there is more than one, fail the request.
 		else if(usernames.length > 1) {
 			LOGGER.info("More than one username was given.");
-			setFailed(ErrorCodes.AUTHENTICATION_FAILED, "More than one username was given.");
+			setFailed(ErrorCode.AUTHENTICATION_FAILED, "More than one username was given.");
 		}
 		else {
 			// If exactly one username is found, attempt to retrieve all 
@@ -80,12 +80,12 @@ public abstract class UserRequest extends Request {
 			// If it is missing, fail the request.
 			if(passwords.length == 0) {
 				LOGGER.info("The password is missing from the request.");
-				setFailed(ErrorCodes.AUTHENTICATION_FAILED, "Missing password.");
+				setFailed(ErrorCode.AUTHENTICATION_FAILED, "Missing password.");
 			}
 			// If there are more than one, fail the request.
 			else if(passwords.length > 1) {
 				LOGGER.info("More than one password was given.");
-				setFailed(ErrorCodes.AUTHENTICATION_FAILED, "More than one password was given.");
+				setFailed(ErrorCode.AUTHENTICATION_FAILED, "More than one password was given.");
 			}
 			else {
 				// Attempt to create the new User object for this request.
@@ -94,7 +94,7 @@ public abstract class UserRequest extends Request {
 				}
 				catch(IllegalArgumentException e) {
 					LOGGER.info("The username and/or password are invalid.");
-					setFailed(ErrorCodes.AUTHENTICATION_FAILED, "The username and/or password are invalid.");
+					setFailed(ErrorCode.AUTHENTICATION_FAILED, "The username and/or password are invalid.");
 				}
 			}
 		}
@@ -107,12 +107,12 @@ public abstract class UserRequest extends Request {
 			// If there is no client, throw an error.
 			if(clients.length == 0) {
 				LOGGER.info("The client is missing from the request.");
-				setFailed(ErrorCodes.SERVER_INVALID_CLIENT, "Missing client.");
+				setFailed(ErrorCode.SERVER_INVALID_CLIENT, "Missing client.");
 			}
 			// If there are multiple clients, throw an error.
 			else if(clients.length > 1) {
 				LOGGER.info("More than one client was given.");
-				setFailed(ErrorCodes.SERVER_INVALID_CLIENT, "More than one client was given.");
+				setFailed(ErrorCode.SERVER_INVALID_CLIENT, "More than one client was given.");
 			}
 			else {
 				// Save the client.
@@ -163,7 +163,7 @@ public abstract class UserRequest extends Request {
 			// fail the request.
 			if((cookies.size() == 0) && (! tokenLocation.equals(TokenLocation.EITHER))) {
 				LOGGER.info("The authentication token is missing.");
-				setFailed(ErrorCodes.AUTHENTICATION_FAILED, "The authentication token is missing as a cookie: " + InputKeys.AUTH_TOKEN);
+				setFailed(ErrorCode.AUTHENTICATION_FAILED, "The authentication token is missing as a cookie: " + InputKeys.AUTH_TOKEN);
 			}
 			else if(cookies.size() == 1) {
 				// Attempt to retrieve the user.
@@ -173,14 +173,14 @@ public abstract class UserRequest extends Request {
 				// failed.
 				if(tUser == null) {
 					LOGGER.info("Unknown token.");
-					setFailed(ErrorCodes.AUTHENTICATION_FAILED, "The token is unknown.");
+					setFailed(ErrorCode.AUTHENTICATION_FAILED, "The token is unknown.");
 				}
 			}
 			// If there are multipile authentication token cookies, fail the
 			// request.
 			else if(cookies.size() > 1) {
 				LOGGER.info("Multiple authentication token cookies were found.");
-				setFailed(ErrorCodes.AUTHENTICATION_FAILED, "Multiple authentication token cookies were found.");
+				setFailed(ErrorCode.AUTHENTICATION_FAILED, "Multiple authentication token cookies were found.");
 			}
 		}
 		
@@ -193,7 +193,7 @@ public abstract class UserRequest extends Request {
 			
 			if(tokens.length == 0) {
 				LOGGER.info("The authentication token is missing.");
-				setFailed(ErrorCodes.AUTHENTICATION_FAILED, "The authentication token is missing as a parameter: " + InputKeys.AUTH_TOKEN);
+				setFailed(ErrorCode.AUTHENTICATION_FAILED, "The authentication token is missing as a parameter: " + InputKeys.AUTH_TOKEN);
 			}
 			else if(tokens.length == 1) {
 				// Attempt to retrieve the user.
@@ -203,12 +203,12 @@ public abstract class UserRequest extends Request {
 				// failed.
 				if(tUser == null) {
 					LOGGER.info("Unknown token.");
-					setFailed(ErrorCodes.AUTHENTICATION_FAILED, "The token is unknown.");
+					setFailed(ErrorCode.AUTHENTICATION_FAILED, "The token is unknown.");
 				}
 			}
 			else if(tokens.length > 1){
 				LOGGER.info("Multiple authentication token parameters were found.");
-				setFailed(ErrorCodes.AUTHENTICATION_FAILED, "Multiple authentication token parameters were found.");
+				setFailed(ErrorCode.AUTHENTICATION_FAILED, "Multiple authentication token parameters were found.");
 			}
 		}
 		
@@ -220,12 +220,12 @@ public abstract class UserRequest extends Request {
 			// If there is no client, throw an error.
 			if(clients.length == 0) {
 				LOGGER.info("The client is missing from the request.");
-				setFailed(ErrorCodes.SERVER_INVALID_CLIENT, "Missing client.");
+				setFailed(ErrorCode.SERVER_INVALID_CLIENT, "Missing client.");
 			}
 			// If there are multiple clients, throw an error.
 			else if(clients.length > 1) {
 				LOGGER.info("More than one client was given.");
-				setFailed(ErrorCodes.SERVER_INVALID_CLIENT, "More than one client was given.");
+				setFailed(ErrorCode.SERVER_INVALID_CLIENT, "More than one client was given.");
 			}
 			else {
 				// Save the client.
@@ -287,7 +287,7 @@ public abstract class UserRequest extends Request {
 		// If there is more than one, fail the request.
 		else if(usernames.length > 1) {
 			LOGGER.info("More than one username was given.");
-			setFailed(ErrorCodes.AUTHENTICATION_FAILED, "More than one username was given.");
+			setFailed(ErrorCode.AUTHENTICATION_FAILED, "More than one username was given.");
 		}
 		else {
 			// If exactly one username is found, attempt to retrieve all 
@@ -301,7 +301,7 @@ public abstract class UserRequest extends Request {
 			// If there are more than one, fail the request.
 			else if(passwords.length > 1) {
 				LOGGER.info("More than one password was given.");
-				setFailed(ErrorCodes.AUTHENTICATION_FAILED, "More than one password was given.");
+				setFailed(ErrorCode.AUTHENTICATION_FAILED, "More than one password was given.");
 			}
 			else {
 				// Attempt to create the new User object for this request.
@@ -310,7 +310,7 @@ public abstract class UserRequest extends Request {
 				}
 				catch(IllegalArgumentException e) {
 					LOGGER.info("The username and/or password are invalid.");
-					setFailed(ErrorCodes.AUTHENTICATION_FAILED, "The username and/or password are invalid.");
+					setFailed(ErrorCode.AUTHENTICATION_FAILED, "The username and/or password are invalid.");
 				}
 			}
 		}
@@ -327,7 +327,7 @@ public abstract class UserRequest extends Request {
 				// location, fail the request.
 				if((cookies.size() == 0) && (! tokenLocation.equals(TokenLocation.EITHER))) {
 					LOGGER.info("Either a username and password or an authentication token are required.");
-					setFailed(ErrorCodes.AUTHENTICATION_FAILED, "Either a username and password or an authentication token are required.");
+					setFailed(ErrorCode.AUTHENTICATION_FAILED, "Either a username and password or an authentication token are required.");
 				}
 				else if(cookies.size() == 1) {
 					// Attempt to retrieve the user.
@@ -337,14 +337,14 @@ public abstract class UserRequest extends Request {
 					// failed.
 					if(tUser == null) {
 						LOGGER.info("Unknown token.");
-						setFailed(ErrorCodes.AUTHENTICATION_FAILED, "The token is unknown.");
+						setFailed(ErrorCode.AUTHENTICATION_FAILED, "The token is unknown.");
 					}
 				}
 				// If there are multipile authentication token cookies, fail the
 				// request.
 				else if(cookies.size() > 1){
 					LOGGER.info("Multiple authentication token cookies were found.");
-					setFailed(ErrorCodes.AUTHENTICATION_FAILED, "Multiple authentication token cookies were found.");
+					setFailed(ErrorCode.AUTHENTICATION_FAILED, "Multiple authentication token cookies were found.");
 				}
 			}
 			
@@ -357,7 +357,7 @@ public abstract class UserRequest extends Request {
 				
 				if(tokens.length == 0) {
 					LOGGER.info("Either a username and password or an authentication token are required.");
-					setFailed(ErrorCodes.AUTHENTICATION_FAILED, "Either a username and password or an authentication token are required.");
+					setFailed(ErrorCode.AUTHENTICATION_FAILED, "Either a username and password or an authentication token are required.");
 				}
 				else if(tokens.length == 1) {
 					// Attempt to retrieve the user.
@@ -367,12 +367,12 @@ public abstract class UserRequest extends Request {
 					// failed.
 					if(tUser == null) {
 						LOGGER.info("Unknown token.");
-						setFailed(ErrorCodes.AUTHENTICATION_FAILED, "The token is unknown.");
+						setFailed(ErrorCode.AUTHENTICATION_FAILED, "The token is unknown.");
 					}
 				}
 				else if(tokens.length > 1) {
 					LOGGER.info("Multiple authentication token parameters were found.");
-					setFailed(ErrorCodes.AUTHENTICATION_FAILED, "Multiple authentication token parameters were found.");
+					setFailed(ErrorCode.AUTHENTICATION_FAILED, "Multiple authentication token parameters were found.");
 				}
 			}
 		}
@@ -386,12 +386,12 @@ public abstract class UserRequest extends Request {
 			// If there is no client, throw an error.
 			if(clients.length == 0) {
 				LOGGER.info("The client is missing from the request.");
-				setFailed(ErrorCodes.SERVER_INVALID_CLIENT, "Missing client.");
+				setFailed(ErrorCode.SERVER_INVALID_CLIENT, "Missing client.");
 			}
 			// If there are multiple clients, throw an error.
 			else if(clients.length > 1) {
 				LOGGER.info("More than one client was given.");
-				setFailed(ErrorCodes.SERVER_INVALID_CLIENT, "More than one client was given.");
+				setFailed(ErrorCode.SERVER_INVALID_CLIENT, "More than one client was given.");
 			}
 			else {
 				// Save the client.
@@ -555,7 +555,7 @@ public abstract class UserRequest extends Request {
 		}
 		
 		if(client.length() > MAX_CLIENT_LENGTH) {
-			setFailed(ErrorCodes.SERVER_INVALID_CLIENT, "The client value is too long.");
+			setFailed(ErrorCode.SERVER_INVALID_CLIENT, "The client value is too long.");
 			throw new ValidationException("The client value is too long.");
 		}
 		

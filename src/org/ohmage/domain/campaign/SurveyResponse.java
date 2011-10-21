@@ -13,7 +13,7 @@ import java.util.TimeZone;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.ohmage.annotator.ErrorCodes;
+import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.domain.Location;
 import org.ohmage.domain.campaign.Response.NoResponse;
 import org.ohmage.exception.ErrorCodeException;
@@ -155,18 +155,18 @@ public class SurveyResponse {
 		 */
 		private LaunchContext(final JSONObject launchContext) throws ErrorCodeException {
 			if(launchContext == null) {
-				throw new ErrorCodeException(ErrorCodes.SURVEY_INVALID_LAUNCH_CONTEXT, "The launch context cannot be null.");
+				throw new ErrorCodeException(ErrorCode.SURVEY_INVALID_LAUNCH_CONTEXT, "The launch context cannot be null.");
 			}
 			
 			try {
 				launchTime = StringUtils.decodeDateTime(launchContext.getString(JSON_KEY_LAUNCH_TIME));
 				
 				if(launchTime == null) {
-					throw new ErrorCodeException(ErrorCodes.SURVEY_INVALID_LAUNCH_CONTEXT, "The launch time is missing in the launch context.");
+					throw new ErrorCodeException(ErrorCode.SURVEY_INVALID_LAUNCH_CONTEXT, "The launch time is missing in the launch context.");
 				}
 			}
 			catch(JSONException e) {
-				throw new ErrorCodeException(ErrorCodes.SURVEY_INVALID_LAUNCH_CONTEXT, "The launch time is missing in the launch context.");
+				throw new ErrorCodeException(ErrorCode.SURVEY_INVALID_LAUNCH_CONTEXT, "The launch time is missing in the launch context.");
 			}
 			
 			try {
@@ -179,7 +179,7 @@ public class SurveyResponse {
 				}
 			}
 			catch(JSONException e) {
-				throw new ErrorCodeException(ErrorCodes.SURVEY_INVALID_LAUNCH_CONTEXT, "The active triggers list is missing in the launch context.");
+				throw new ErrorCodeException(ErrorCode.SURVEY_INVALID_LAUNCH_CONTEXT, "The active triggers list is missing in the launch context.");
 			}
 		}
 		
@@ -846,13 +846,13 @@ public class SurveyResponse {
 			final JSONObject response) throws ErrorCodeException {
 		
 		if(StringUtils.isEmptyOrWhitespaceOnly(username)) {
-			throw new ErrorCodeException(ErrorCodes.USER_INVALID_USERNAME, "The username is invalid.");
+			throw new ErrorCodeException(ErrorCode.USER_INVALID_USERNAME, "The username is invalid.");
 		}
 		else if(StringUtils.isEmptyOrWhitespaceOnly(campaignId)) {
-			throw new ErrorCodeException(ErrorCodes.CAMPAIGN_INVALID_ID, "The campaign ID is invalid.");
+			throw new ErrorCodeException(ErrorCode.CAMPAIGN_INVALID_ID, "The campaign ID is invalid.");
 		}
 		else if(StringUtils.isEmptyOrWhitespaceOnly(client)) {
-			throw new ErrorCodeException(ErrorCodes.SERVER_INVALID_CLIENT, "The client value is invalid.");
+			throw new ErrorCodeException(ErrorCode.SERVER_INVALID_CLIENT, "The client value is invalid.");
 		}
 		
 		this.surveyResponseId = surveyResponseId;
@@ -864,25 +864,25 @@ public class SurveyResponse {
 			date = StringUtils.decodeDateTime(response.getString(JSON_KEY_DATE));
 			
 			if(date == null) {
-				throw new ErrorCodeException(ErrorCodes.SERVER_INVALID_DATE, "The date was not a valid date.");
+				throw new ErrorCodeException(ErrorCode.SERVER_INVALID_DATE, "The date was not a valid date.");
 			}
 		}
 		catch(JSONException e) {
-			throw new ErrorCodeException(ErrorCodes.SERVER_INVALID_DATE, "The date is missing.", e);
+			throw new ErrorCodeException(ErrorCode.SERVER_INVALID_DATE, "The date is missing.", e);
 		}
 		
 		try {
 			time = response.getLong(JSON_KEY_TIME);
 		}
 		catch(JSONException e) {
-			throw new ErrorCodeException(ErrorCodes.SERVER_INVALID_TIME, "The time is missing.", e);
+			throw new ErrorCodeException(ErrorCode.SERVER_INVALID_TIME, "The time is missing.", e);
 		}
 		
 		try {
 			timezone = TimeZone.getTimeZone(response.getString(JSON_KEY_TIMEZONE));
 		}
 		catch(JSONException e) {
-			throw new ErrorCodeException(ErrorCodes.SERVER_INVALID_TIMEZONE, "The timezone is missing.", e);
+			throw new ErrorCodeException(ErrorCode.SERVER_INVALID_TIMEZONE, "The timezone is missing.", e);
 		}
 		
 		String surveyId;
@@ -890,29 +890,29 @@ public class SurveyResponse {
 			surveyId = response.getString(JSON_KEY_SURVEY_ID);
 		}
 		catch(JSONException e) {
-			throw new ErrorCodeException(ErrorCodes.SURVEY_INVALID_SURVEY_ID, "The survey ID is missing.", e);
+			throw new ErrorCodeException(ErrorCode.SURVEY_INVALID_SURVEY_ID, "The survey ID is missing.", e);
 		}
 		
 		survey = campaign.getSurveys().get(surveyId);
 		if(survey == null) {
-			throw new ErrorCodeException(ErrorCodes.SURVEY_INVALID_SURVEY_ID, "The survey ID doesn't refer to any known surveys in the campaign.");
+			throw new ErrorCodeException(ErrorCode.SURVEY_INVALID_SURVEY_ID, "The survey ID doesn't refer to any known surveys in the campaign.");
 		}
 		
 		try {
 			launchContext = new LaunchContext(response.getJSONObject(JSON_KEY_SURVEY_LAUNCH_CONTEXT));
 		}
 		catch(JSONException e) {
-			throw new ErrorCodeException(ErrorCodes.SURVEY_INVALID_LAUNCH_CONTEXT, "The launch context is missing.", e);
+			throw new ErrorCodeException(ErrorCode.SURVEY_INVALID_LAUNCH_CONTEXT, "The launch context is missing.", e);
 		}
 		
 		try {
 			locationStatus = LocationStatus.valueOf(response.getString(JSON_KEY_LOCATION_STATUS).toUpperCase());
 		}
 		catch(JSONException e) {
-			throw new ErrorCodeException(ErrorCodes.SERVER_INVALID_LOCATION_STATUS, "The location status is missing.", e);
+			throw new ErrorCodeException(ErrorCode.SERVER_INVALID_LOCATION_STATUS, "The location status is missing.", e);
 		}
 		catch(IllegalArgumentException e) {
-			throw new ErrorCodeException(ErrorCodes.SERVER_INVALID_LOCATION_STATUS, "The location status is unknown.", e);
+			throw new ErrorCodeException(ErrorCode.SERVER_INVALID_LOCATION_STATUS, "The location status is unknown.", e);
 		}
 		
 		Location tLocation = null;
@@ -921,7 +921,7 @@ public class SurveyResponse {
 		}
 		catch(JSONException e) {
 			if(!LocationStatus.UNAVAILABLE.equals(locationStatus)) {
-				throw new ErrorCodeException(ErrorCodes.SERVER_INVALID_LOCATION, "The location is missing.", e);
+				throw new ErrorCodeException(ErrorCode.SERVER_INVALID_LOCATION, "The location is missing.", e);
 			}
 		}
 		location = tLocation;
@@ -933,7 +933,7 @@ public class SurveyResponse {
 			responses = response.getJSONArray(JSON_KEY_RESPONSES);
 		}
 		catch(JSONException e) {
-			throw new ErrorCodeException(ErrorCodes.SURVEY_INVALID_RESPONSES, "There weren't any responses for the survey.", e);
+			throw new ErrorCodeException(ErrorCode.SURVEY_INVALID_RESPONSES, "There weren't any responses for the survey.", e);
 		}
 		this.responses = processResponses(campaign.getSurveys().get(surveyId).getSurveyItems(), responses, -1);
 	}
@@ -1363,7 +1363,7 @@ public class SurveyResponse {
 						}
 					}
 					if(prompt == null) {
-						throw new ErrorCodeException(ErrorCodes.SURVEY_INVALID_RESPONSES, "The prompt ID is unknown: " + promptId);
+						throw new ErrorCodeException(ErrorCode.SURVEY_INVALID_RESPONSES, "The prompt ID is unknown: " + promptId);
 					}
 					
 					results.put(
@@ -1383,7 +1383,7 @@ public class SurveyResponse {
 							}
 						}
 						if(repeatableSet == null) {
-							throw new ErrorCodeException(ErrorCodes.SURVEY_INVALID_RESPONSES, "The repeatable set ID is unknown: " + repeatableSetId);
+							throw new ErrorCodeException(ErrorCode.SURVEY_INVALID_RESPONSES, "The repeatable set ID is unknown: " + repeatableSetId);
 						}
 						
 						results.put(
@@ -1393,15 +1393,15 @@ public class SurveyResponse {
 										currResponse));
 					}
 					catch(JSONException notRepeatableSet) {
-						throw new ErrorCodeException(ErrorCodes.SURVEY_INVALID_RESPONSES, "The response wasn't a prompt response or repeatable set.");
+						throw new ErrorCodeException(ErrorCode.SURVEY_INVALID_RESPONSES, "The response wasn't a prompt response or repeatable set.");
 					}
 				}
 				catch(ClassCastException e) {
-					throw new ErrorCodeException(ErrorCodes.SURVEY_INVALID_RESPONSES, "The response and XML disagree on the type of a survey item.", e);
+					throw new ErrorCodeException(ErrorCode.SURVEY_INVALID_RESPONSES, "The response and XML disagree on the type of a survey item.", e);
 				}
 			}
 			catch(JSONException e) {
-				throw new ErrorCodeException(ErrorCodes.SURVEY_INVALID_RESPONSES, "A response was not valid JSON.");
+				throw new ErrorCodeException(ErrorCode.SURVEY_INVALID_RESPONSES, "A response was not valid JSON.");
 			}
 		}
 		
@@ -1418,7 +1418,7 @@ public class SurveyResponse {
 				}
 				
 				if(! found) {
-					throw new ErrorCodeException(ErrorCodes.SURVEY_INVALID_RESPONSES, "The response is missing a response for the prompt: " + surveyItemId);
+					throw new ErrorCodeException(ErrorCode.SURVEY_INVALID_RESPONSES, "The response is missing a response for the prompt: " + surveyItemId);
 				}
 			}
 		}
@@ -1453,7 +1453,7 @@ public class SurveyResponse {
 			responseObject = response.get(JSON_KEY_PROMPT_VALUE);
 		}
 		catch(JSONException e) {
-			throw new ErrorCodeException(ErrorCodes.SURVEY_INVALID_RESPONSES, "The response value was missing.", e);
+			throw new ErrorCodeException(ErrorCode.SURVEY_INVALID_RESPONSES, "The response value was missing.", e);
 		}
 		
 		if(responseObject instanceof String) {
@@ -1496,7 +1496,7 @@ public class SurveyResponse {
 			}
 		}
 		catch(JSONException e) {
-			throw new ErrorCodeException(ErrorCodes.SURVEY_INVALID_RESPONSES, "The not displayed value is missing.", e);
+			throw new ErrorCodeException(ErrorCode.SURVEY_INVALID_RESPONSES, "The not displayed value is missing.", e);
 		}
 		RepeatableSetResponse result = new RepeatableSetResponse(repeatableSet, null);
 		
@@ -1504,7 +1504,7 @@ public class SurveyResponse {
 		try {
 			responses = response.getJSONArray(JSON_KEY_RESPONSES);
 		} catch (JSONException e) {
-			throw new ErrorCodeException(ErrorCodes.SURVEY_INVALID_RESPONSES, "The responses array for the repeatable set are missing.", e);
+			throw new ErrorCodeException(ErrorCode.SURVEY_INVALID_RESPONSES, "The responses array for the repeatable set are missing.", e);
 		}
 		
 		int numIterations = responses.length();
@@ -1519,7 +1519,7 @@ public class SurveyResponse {
 							)
 					);
 			} catch (JSONException e) {
-				throw new ErrorCodeException(ErrorCodes.SURVEY_INVALID_RESPONSES, "One of the response array objects for a repeatable set is not a JSONArray.", e);
+				throw new ErrorCodeException(ErrorCode.SURVEY_INVALID_RESPONSES, "One of the response array objects for a repeatable set is not a JSONArray.", e);
 			}
 		}
 		return result;

@@ -4,7 +4,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.log4j.Logger;
-import org.ohmage.annotator.ErrorCodes;
+import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.domain.campaign.SurveyResponse;
 import org.ohmage.exception.ServiceException;
 import org.ohmage.exception.ValidationException;
@@ -79,41 +79,42 @@ public class SurveyResponseUpdateRequest extends UserRequest {
 				LOGGER.info("Validating survey_id parameter.");
 				String[] surveyIds = getParameterValues(InputKeys.SURVEY_KEY);
 				if(surveyIds.length == 0) {
-					setFailed(ErrorCodes.SURVEY_INVALID_SURVEY_KEY_VALUE, "Missing the required survey key: " + InputKeys.SURVEY_KEY);
+					setFailed(ErrorCode.SURVEY_INVALID_SURVEY_KEY_VALUE, "Missing the required survey key: " + InputKeys.SURVEY_KEY);
 					throw new ValidationException("Missing the required survey ID: " + InputKeys.SURVEY_KEY);
 				}
 				else if(surveyIds.length > 1) {
-					setFailed(ErrorCodes.SURVEY_INVALID_SURVEY_KEY_VALUE, "Multiple survey key parameters were given.");
+					setFailed(ErrorCode.SURVEY_INVALID_SURVEY_KEY_VALUE, "Multiple survey key parameters were given.");
 					throw new ValidationException("Multiple survey ID parameters were given.");
 				}
 				else {
-					tSurveyResponseId = SurveyResponseValidators.validateSurveyDbId(this, surveyIds[0]);
+					tSurveyResponseId = SurveyResponseValidators.validateSurveyResponseId(surveyIds[0]);
 					
 					if(tSurveyResponseId == null) {
-						setFailed(ErrorCodes.SURVEY_INVALID_SURVEY_KEY_VALUE, "Missing the required survey key: " + InputKeys.SURVEY_KEY);
+						setFailed(ErrorCode.SURVEY_INVALID_SURVEY_KEY_VALUE, "Missing the required survey key: " + InputKeys.SURVEY_KEY);
 						throw new ValidationException("Missing the required survey key: " + InputKeys.SURVEY_KEY);
 					}
 				}
 				LOGGER.info("Validating privacy_state parameter.");
 				String[] privacyStates = getParameterValues(InputKeys.PRIVACY_STATE);
 				if(privacyStates.length == 0) {
-					setFailed(ErrorCodes.SURVEY_INVALID_PRIVACY_STATE, "Missing the required privacy state: " + InputKeys.PRIVACY_STATE);
+					setFailed(ErrorCode.SURVEY_INVALID_PRIVACY_STATE, "Missing the required privacy state: " + InputKeys.PRIVACY_STATE);
 					throw new ValidationException("Missing the required privacy state: " + InputKeys.PRIVACY_STATE);
 				}
 				else if(privacyStates.length > 1) {
-					setFailed(ErrorCodes.SURVEY_INVALID_PRIVACY_STATE, "Multiple privacy state parameters were given.");
+					setFailed(ErrorCode.SURVEY_INVALID_PRIVACY_STATE, "Multiple privacy state parameters were given.");
 					throw new ValidationException("Multiple privacy state parameters were given.");
 				}
 				else {
-					tPrivacyState = SurveyResponseValidators.validatePrivacyState(this, privacyStates[0]);
+					tPrivacyState = SurveyResponseValidators.validatePrivacyState(privacyStates[0]);
 
 					if(tPrivacyState == null) {
-						setFailed(ErrorCodes.SURVEY_INVALID_PRIVACY_STATE, "Privacy state is missing.");
+						setFailed(ErrorCode.SURVEY_INVALID_PRIVACY_STATE, "Privacy state is missing.");
 						throw new ValidationException("Privacy state is missing.");
 					}
 				}
 			}
 			catch(ValidationException e) {
+				e.failRequest(this);
 				LOGGER.info(e.toString());
 			}
 		}
@@ -135,12 +136,13 @@ public class SurveyResponseUpdateRequest extends UserRequest {
 		
 		try {
 			LOGGER.info("Verifying that the user is allowed to update the survey response.");
-			UserSurveyResponseServices.verifyUserCanUpdateOrDeleteSurveyResponse(this, this.getUser().getUsername(), this.surveyResponseId);
+			UserSurveyResponseServices.verifyUserCanUpdateOrDeleteSurveyResponse(this.getUser().getUsername(), this.surveyResponseId);
 			
 			LOGGER.info("Updating the survey response.");
-			SurveyResponseServices.updateSurveyResponsePrivacyState(this, this.surveyResponseId, this.privacyState);
+			SurveyResponseServices.updateSurveyResponsePrivacyState(this.surveyResponseId, this.privacyState);
 		}
 		catch(ServiceException e) {
+			e.failRequest(this);
 			e.logException(LOGGER);
 		}
 	}
