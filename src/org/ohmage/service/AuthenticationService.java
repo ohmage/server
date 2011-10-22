@@ -3,8 +3,8 @@ package org.ohmage.service;
 import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.exception.DataAccessException;
 import org.ohmage.exception.ServiceException;
-import org.ohmage.query.AuthenticationQuery;
-import org.ohmage.query.AuthenticationQuery.UserInformation;
+import org.ohmage.query.impl.AuthenticationQuery;
+import org.ohmage.query.impl.AuthenticationQuery.UserInformation;
 import org.ohmage.request.UserRequest;
 
 /**

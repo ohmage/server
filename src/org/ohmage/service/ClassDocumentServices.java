@@ -6,7 +6,7 @@ import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.domain.Document;
 import org.ohmage.exception.DataAccessException;
 import org.ohmage.exception.ServiceException;
-import org.ohmage.query.ClassDocumentQueries;
+import org.ohmage.query.impl.ClassDocumentQueries;
 
 /**
  * This class is responsible for all operations that pertain to class-document

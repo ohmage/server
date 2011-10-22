@@ -18,7 +18,7 @@ import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.cache.UserBin;
 import org.ohmage.exception.ServiceException;
 import org.ohmage.exception.ValidationException;
-import org.ohmage.query.ClassQueries.UserAndClassRole;
+import org.ohmage.query.impl.ClassQueries.UserAndClassRole;
 import org.ohmage.request.InputKeys;
 import org.ohmage.request.UserRequest;
 import org.ohmage.service.ClassServices;

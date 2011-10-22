@@ -1,4 +1,4 @@
-package org.ohmage.query;
+package org.ohmage.query.impl;
 
 import java.util.List;
 

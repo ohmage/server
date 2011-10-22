@@ -10,8 +10,8 @@ import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.domain.campaign.Campaign;
 import org.ohmage.exception.DataAccessException;
 import org.ohmage.exception.ServiceException;
-import org.ohmage.query.UserCampaignDocumentQueries;
-import org.ohmage.query.UserCampaignQueries;
+import org.ohmage.query.impl.UserCampaignDocumentQueries;
+import org.ohmage.query.impl.UserCampaignQueries;
 
 /**
  * This class contains the services for user-campaign-document relationships.

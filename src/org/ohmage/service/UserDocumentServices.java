@@ -8,10 +8,10 @@ import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.domain.Document;
 import org.ohmage.exception.DataAccessException;
 import org.ohmage.exception.ServiceException;
-import org.ohmage.query.CampaignDocumentQueries;
-import org.ohmage.query.ClassDocumentQueries;
-import org.ohmage.query.DocumentQueries;
-import org.ohmage.query.UserDocumentQueries;
+import org.ohmage.query.impl.CampaignDocumentQueries;
+import org.ohmage.query.impl.ClassDocumentQueries;
+import org.ohmage.query.impl.DocumentQueries;
+import org.ohmage.query.impl.UserDocumentQueries;
 import org.ohmage.request.Request;
 
 /**

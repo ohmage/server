@@ -7,7 +7,7 @@ import java.util.Set;
 import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.exception.DataAccessException;
 import org.ohmage.exception.ServiceException;
-import org.ohmage.query.CampaignClassQueries;
+import org.ohmage.query.impl.CampaignClassQueries;
 
 /**
  * This class contains the services that pertain to campaign-class 

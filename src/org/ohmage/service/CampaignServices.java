@@ -25,7 +25,7 @@ import org.ohmage.domain.campaign.SurveyResponse;
 import org.ohmage.exception.DataAccessException;
 import org.ohmage.exception.ErrorCodeException;
 import org.ohmage.exception.ServiceException;
-import org.ohmage.query.CampaignQueries;
+import org.ohmage.query.impl.CampaignQueries;
 
 /**
  * This class contains the services that pertain to campaigns.

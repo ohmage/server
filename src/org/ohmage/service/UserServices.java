@@ -14,9 +14,9 @@ import org.ohmage.domain.UserPersonal;
 import org.ohmage.domain.campaign.Campaign;
 import org.ohmage.exception.DataAccessException;
 import org.ohmage.exception.ServiceException;
-import org.ohmage.query.UserCampaignQueries;
-import org.ohmage.query.UserClassQueries;
-import org.ohmage.query.UserQueries;
+import org.ohmage.query.impl.UserCampaignQueries;
+import org.ohmage.query.impl.UserClassQueries;
+import org.ohmage.query.impl.UserQueries;
 
 /**
  * This class contains the services for users.

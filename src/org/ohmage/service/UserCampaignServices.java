@@ -14,11 +14,11 @@ import org.ohmage.domain.UserPersonal;
 import org.ohmage.domain.campaign.Campaign;
 import org.ohmage.exception.DataAccessException;
 import org.ohmage.exception.ServiceException;
-import org.ohmage.query.CampaignClassQueries;
-import org.ohmage.query.CampaignQueries;
-import org.ohmage.query.CampaignSurveyResponseQueries;
-import org.ohmage.query.UserCampaignQueries;
-import org.ohmage.query.UserQueries;
+import org.ohmage.query.impl.CampaignClassQueries;
+import org.ohmage.query.impl.CampaignQueries;
+import org.ohmage.query.impl.CampaignSurveyResponseQueries;
+import org.ohmage.query.impl.UserCampaignQueries;
+import org.ohmage.query.impl.UserQueries;
 import org.ohmage.util.StringUtils;
 
 /**

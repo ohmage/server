@@ -9,8 +9,8 @@ import org.ohmage.domain.campaign.Campaign.Role;
 import org.ohmage.domain.campaign.SurveyResponse;
 import org.ohmage.exception.DataAccessException;
 import org.ohmage.exception.ServiceException;
-import org.ohmage.query.CampaignQueries;
-import org.ohmage.query.UserCampaignQueries;
+import org.ohmage.query.impl.CampaignQueries;
+import org.ohmage.query.impl.UserCampaignQueries;
 import org.ohmage.util.StringUtils;
 
 /**

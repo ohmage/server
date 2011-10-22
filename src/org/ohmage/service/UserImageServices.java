@@ -7,10 +7,10 @@ import org.ohmage.domain.campaign.Campaign;
 import org.ohmage.domain.campaign.SurveyResponse;
 import org.ohmage.exception.DataAccessException;
 import org.ohmage.exception.ServiceException;
-import org.ohmage.query.CampaignImageQueries;
-import org.ohmage.query.CampaignQueries;
-import org.ohmage.query.UserCampaignQueries;
-import org.ohmage.query.UserImageQueries;
+import org.ohmage.query.impl.CampaignImageQueries;
+import org.ohmage.query.impl.CampaignQueries;
+import org.ohmage.query.impl.UserCampaignQueries;
+import org.ohmage.query.impl.UserImageQueries;
 
 /**
  * This class contains the services that create, read, update, and delete

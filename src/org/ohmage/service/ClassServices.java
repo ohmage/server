@@ -10,8 +10,8 @@ import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.domain.Clazz;
 import org.ohmage.exception.DataAccessException;
 import org.ohmage.exception.ServiceException;
-import org.ohmage.query.ClassQueries;
-import org.ohmage.query.ClassQueries.UserAndClassRole;
+import org.ohmage.query.impl.ClassQueries;
+import org.ohmage.query.impl.ClassQueries.UserAndClassRole;
 
 /**
  * This class contains the services that pertain to classes.

@@ -12,7 +12,7 @@ import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.domain.Document;
 import org.ohmage.exception.DataAccessException;
 import org.ohmage.exception.ServiceException;
-import org.ohmage.query.DocumentQueries;
+import org.ohmage.query.impl.DocumentQueries;
 
 /**
  * This class contains the services that pertain to documents.

@@ -8,7 +8,7 @@ import java.net.URL;
 import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.exception.DataAccessException;
 import org.ohmage.exception.ServiceException;
-import org.ohmage.query.ImageQueries;
+import org.ohmage.query.impl.ImageQueries;
 import org.ohmage.validator.ImageValidators.ImageSize;
 
 /**

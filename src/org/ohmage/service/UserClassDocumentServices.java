@@ -10,8 +10,8 @@ import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.domain.Clazz;
 import org.ohmage.exception.DataAccessException;
 import org.ohmage.exception.ServiceException;
-import org.ohmage.query.UserClassDocumentQueries;
-import org.ohmage.query.UserClassQueries;
+import org.ohmage.query.impl.UserClassDocumentQueries;
+import org.ohmage.query.impl.UserClassQueries;
 
 
 public class UserClassDocumentServices {

@@ -1,4 +1,4 @@
-package org.ohmage.query;
+package org.ohmage.query.impl;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -18,6 +18,7 @@ import org.ohmage.domain.Audit;
 import org.ohmage.exception.DataAccessException;
 import org.ohmage.jee.servlet.RequestServlet;
 import org.ohmage.jee.servlet.RequestServlet.RequestType;
+import org.ohmage.query.IAuditQueries;
 import org.ohmage.validator.AuditValidators.ResponseType;
 import org.springframework.jdbc.core.PreparedStatementCreator;
 import org.springframework.jdbc.core.RowMapper;
@@ -35,7 +36,7 @@ import org.springframework.transaction.support.DefaultTransactionDefinition;
  * 
  * @author John Jenkins
  */
-public class AuditQueries extends Query {
+public class AuditQueries extends Query implements IAuditQueries {
 	// Retrieves the audit ID for all audits.
 	private static final String SQL_GET_AUDIT_IDS =
 		"SELECT id " +
@@ -150,7 +151,7 @@ public class AuditQueries extends Query {
 			"WHERE id = ?" +
 		"), ?, ?)";
 	
-	private static AuditQueries instance;
+	// private static AuditQueries instance;
 	
 	/**
 	 * Creates this object.
@@ -159,49 +160,14 @@ public class AuditQueries extends Query {
 	 */
 	private AuditQueries(DataSource dataSource) {
 		super(dataSource);
-		
-		instance = this;
+		// instance = this;
 	}
 	
-	/**
-	 * Creates an audit entry with the parameterized information. Not all 
-	 * information is required; see the specific parameters for details.
-	 * 
-	 * @param requestType The RequestType of the request. Required.
-	 * 
-	 * @param uri The URI of the request. Required.
-	 * 
-	 * @param client The value of the client parameter. Not required.
-	 * 
-	 * @param deviceId An unique identifier for each device. Not required.
-	 * 
-	 * @param parameters A map of parameter keys to all of their values. Not
-	 * 					 required.
-	 * 
-	 * @param extras A map of keys from the HTTP request header to their 
-	 * 				 values.
-	 * 
-	 * @param response A string that should have the format of a JSONObject
-	 * 				   indicating whether or not the request succeed or failed.
-	 * 				   If the request succeed, that is all that needs to be
-	 * 				   passed; passing the data that was returned to the 
-	 * 				   requesting user would create too much duplicate data and
-	 * 				   may leak private information. If the request failed, the
-	 * 				   error code and error text should be included in this 
-	 * 				   JSONObject string.
-	 * 
-	 * @param receivedMillis A millisecond-level epoch-based time at which the
-	 * 						 request was received. This should be obtained by
-	 * 						 the same mechanism as 'respondMillis'. Required.
-	 *  
-	 * @param respondMillis A millisecond-level epoch-based time at which the
-	 * 						request was received. This should be obtained by
-	 * 						the same mechanism as 'receivedMillis'. Required.
-	 * 
-	 * @throws IllegalArgumentException Thrown if any of the required 
-	 * 									parameters are null.
+	/* (non-Javadoc)
+	 * @see org.ohmage.query.IAuditQueries#createAudit(org.ohmage.jee.servlet.RequestServlet.RequestType, java.lang.String, java.lang.String, java.lang.String, java.util.Map, java.util.Map, java.lang.String, long, long)
 	 */
-	public static void createAudit(
+	@Override
+	public void createAudit(
 			final RequestServlet.RequestType requestType, 
 			final String uri, 
 			final String client, 
@@ -228,7 +194,7 @@ public class AuditQueries extends Query {
 		
 		try {
 			// Begin the transaction.
-			PlatformTransactionManager transactionManager = new DataSourceTransactionManager(instance.getDataSource());
+			PlatformTransactionManager transactionManager = new DataSourceTransactionManager(getDataSource());
 			TransactionStatus status = transactionManager.getTransaction(def);
 			
 			// Create a key holder that will be responsible for referencing 
@@ -237,7 +203,7 @@ public class AuditQueries extends Query {
 			
 			// Insert the audit entry.
 			try {
-				instance.getJdbcTemplate().update(
+				getJdbcTemplate().update(
 						new PreparedStatementCreator() {
 							@Override
 							public PreparedStatement createPreparedStatement(Connection connection) throws SQLException {
@@ -278,7 +244,7 @@ public class AuditQueries extends Query {
 				for(String key : parameters.keySet()) {
 					for(String value : parameters.get(key)) {
 						try {
-							instance.getJdbcTemplate().update(
+								getJdbcTemplate().update(
 									SQL_INSERT_PARAMETER, 
 									keyHolder.getKey().longValue(), 
 									key, 
@@ -302,7 +268,7 @@ public class AuditQueries extends Query {
 				for(String key : extras.keySet()) {
 					for(String value : extras.get(key)) {
 						try {
-							instance.getJdbcTemplate().update(
+								getJdbcTemplate().update(
 									SQL_INSERT_EXTRA, 
 									keyHolder.getKey().longValue(), 
 									key, 
@@ -335,110 +301,79 @@ public class AuditQueries extends Query {
 		}
 	}
 	
-	/**
-	 * Retrieves the unique ID for all audits.
-	 * 
-	 * @return A list of audit IDs.
+	/* (non-Javadoc)
+	 * @see org.ohmage.query.IAuditQueries#getAllAudits()
 	 */
-	public static List<Long> getAllAudits() throws DataAccessException {
+	@Override
+	public List<Long> getAllAudits() throws DataAccessException {
 		try {
-			return instance.getJdbcTemplate().query(SQL_GET_AUDIT_IDS, new SingleColumnRowMapper<Long>());
+			return getJdbcTemplate().query(SQL_GET_AUDIT_IDS, new SingleColumnRowMapper<Long>());
 		}
 		catch(org.springframework.dao.DataAccessException e) {
 			throw new DataAccessException("Error executing SQL '" + SQL_GET_AUDIT_IDS_WITH_TYPE + "'", e);
 		}
 	}
 	
-	/**
-	 * Retrieves the unique ID for all audits with a specific HTTP request 
-	 * type.
-	 * 
-	 * @param requestType The HTTP request type. One of
-	 * 					  {@link org.ohmage.jee.servlet.RequestServlet.RequestType}.
-	 * 
-	 * @return A list of audit IDs.
+	/* (non-Javadoc)
+	 * @see org.ohmage.query.IAuditQueries#getAllAuditsWithRequestType(org.ohmage.jee.servlet.RequestServlet.RequestType)
 	 */
-	public static List<Long> getAllAuditsWithRequestType(RequestServlet.RequestType requestType) throws DataAccessException {
+	@Override
+	public List<Long> getAllAuditsWithRequestType(RequestServlet.RequestType requestType) throws DataAccessException {
 		try {
-			return instance.getJdbcTemplate().query(SQL_GET_AUDIT_IDS_WITH_TYPE, new Object[] { requestType.name().toLowerCase() }, new SingleColumnRowMapper<Long>());
+			return getJdbcTemplate().query(SQL_GET_AUDIT_IDS_WITH_TYPE, new Object[] { requestType.name().toLowerCase() }, new SingleColumnRowMapper<Long>());
 		}
 		catch(org.springframework.dao.DataAccessException e) {
 			throw new DataAccessException("Error executing SQL '" + SQL_GET_AUDIT_IDS_WITH_TYPE + "' with parameter: " + requestType.name().toLowerCase(), e);
 		}
 	}
 	
-	/**
-	 * Retrieves the unique ID for all audits with a specific URI.
-	 * 
-	 * @param uri The URI.
-	 * 
-	 * @return A list of audit IDs.
+	/* (non-Javadoc)
+	 * @see org.ohmage.query.IAuditQueries#getAllAuditsWithUri(java.lang.String)
 	 */
-	public static List<Long> getAllAuditsWithUri(String uri) throws DataAccessException {
+	@Override
+	public List<Long> getAllAuditsWithUri(String uri) throws DataAccessException {
 		try {
-			return instance.getJdbcTemplate().query(SQL_GET_AUDIT_IDS_WITH_URI, new Object[] { uri }, new SingleColumnRowMapper<Long>());
+			return getJdbcTemplate().query(SQL_GET_AUDIT_IDS_WITH_URI, new Object[] { uri }, new SingleColumnRowMapper<Long>());
 		}
 		catch(org.springframework.dao.DataAccessException e) {
 			throw new DataAccessException("Error executing SQL '" + SQL_GET_AUDIT_IDS_WITH_URI + "' with parameter: " + uri, e);
 		}
 	}
 	
-	/**
-	 * Retrieves the unique ID for all audits with a specific client.
-	 * 
-	 * @param client The client.
-	 * 
-	 * @return A list of audit IDs.
+	/* (non-Javadoc)
+	 * @see org.ohmage.query.IAuditQueries#getAllAuditsWithClient(java.lang.String)
 	 */
-	public static List<Long> getAllAuditsWithClient(String client) throws DataAccessException {
+	@Override
+	public List<Long> getAllAuditsWithClient(String client) throws DataAccessException {
 		try {
-			return instance.getJdbcTemplate().query(SQL_GET_AUDIT_IDS_WITH_CLIENT, new Object[] { client }, new SingleColumnRowMapper<Long>());
+			return getJdbcTemplate().query(SQL_GET_AUDIT_IDS_WITH_CLIENT, new Object[] { client }, new SingleColumnRowMapper<Long>());
 		}
 		catch(org.springframework.dao.DataAccessException e) {
 			throw new DataAccessException("Error executing SQL '" + SQL_GET_AUDIT_IDS_WITH_CLIENT + "' with parameter: " + client, e);
 		}
 	}
 	
-	/**
-	 * Retrieves the unique ID for all audits with a specific device ID.
-	 * 
-	 * @param deviceId The device's ID.
-	 * 
-	 * @return A list of audit IDs.
+	/* (non-Javadoc)
+	 * @see org.ohmage.query.IAuditQueries#getAllAuditsWithDeviceId(java.lang.String)
 	 */
-	public static List<Long> getAllAuditsWithDeviceId(String deviceId) throws DataAccessException{
+	@Override
+	public List<Long> getAllAuditsWithDeviceId(String deviceId) throws DataAccessException{
 		try {
-			return instance.getJdbcTemplate().query(SQL_GET_AUDIT_IDS_WITH_DEVICE_ID, new Object[] { deviceId }, new SingleColumnRowMapper<Long>());
+			return getJdbcTemplate().query(SQL_GET_AUDIT_IDS_WITH_DEVICE_ID, new Object[] { deviceId }, new SingleColumnRowMapper<Long>());
 		}
 		catch(org.springframework.dao.DataAccessException e) {
 			throw new DataAccessException("Error executing SQL '" + SQL_GET_AUDIT_IDS_WITH_DEVICE_ID + "' with parameter: " + deviceId, e);
 		}
 	}
 	
-	/**
-	 * Retrieves the unique ID for all audits whose response was one of 
-	 * {@link org.ohmage.validator.AuditValidators.ResponseType}. If the 
-	 * response type is 
-	 * {@link org.ohmage.validator.AuditValidators.ResponseType#FAILURE}, then
-	 * it can be further limited by only those audits with a specific error
-	 * code. If 'errorCode' is null all audits of failed requests will be 
-	 * returned.
-	 * 
-	 * @param responseTypes The resulting response returned to the user, one of
-	 * 						{@link org.ohmage.validator.AuditValidators.ResponseType}.
-	 * 
-	 * @param errorCode The error code to further limit the results if the 
-	 * 					'responseTypes' is
-	 * 					{@link org.ohmage.validator.AuditValidators.ResponseType#FAILURE}.
-	 * 					If this is null, all failed request audits will be
-	 * 					returned.
-	 * 
-	 * @return A list of audit IDs.
+	/* (non-Javadoc)
+	 * @see org.ohmage.query.IAuditQueries#getAllAuditsWithResponse(org.ohmage.validator.AuditValidators.ResponseType, java.lang.String)
 	 */
-	public static List<Long> getAllAuditsWithResponse(ResponseType responseType, final String errorCode) throws DataAccessException {
+	@Override
+	public List<Long> getAllAuditsWithResponse(ResponseType responseType, final String errorCode) throws DataAccessException {
 		if(ResponseType.SUCCESS.equals(responseType)) {
 			try {
-				return instance.getJdbcTemplate().query(SQL_GET_AUDIT_IDS_WITH_SUCCESS_RESPONSE, new SingleColumnRowMapper<Long>());
+				return getJdbcTemplate().query(SQL_GET_AUDIT_IDS_WITH_SUCCESS_RESPONSE, new SingleColumnRowMapper<Long>());
 			}
 			catch(org.springframework.dao.DataAccessException e) {
 				throw new DataAccessException("Error executing SQL '" + SQL_GET_AUDIT_IDS_WITH_DEVICE_ID + "'.", e);
@@ -447,7 +382,7 @@ public class AuditQueries extends Query {
 		else if(ResponseType.FAILURE.equals(responseType)) {
 			if(errorCode == null) {
 				try {
-					return instance.getJdbcTemplate().query(SQL_GET_AUDIT_IDS_WITH_FAILURE_RESPONSE, new SingleColumnRowMapper<Long>());
+					return getJdbcTemplate().query(SQL_GET_AUDIT_IDS_WITH_FAILURE_RESPONSE, new SingleColumnRowMapper<Long>());
 				}
 				catch(org.springframework.dao.DataAccessException e) {
 					throw new DataAccessException("Error executing SQL '" + SQL_GET_AUDIT_IDS_WITH_DEVICE_ID + "'.", e);
@@ -455,7 +390,7 @@ public class AuditQueries extends Query {
 			}
 			else {
 				try {
-					return instance.getJdbcTemplate().query(SQL_GET_AUDIT_IDS_WITH_FAILURE_RESPONSE_WITH_CODE, new Object[] { errorCode }, new SingleColumnRowMapper<Long>());
+					return getJdbcTemplate().query(SQL_GET_AUDIT_IDS_WITH_FAILURE_RESPONSE_WITH_CODE, new Object[] { errorCode }, new SingleColumnRowMapper<Long>());
 				}
 				catch(org.springframework.dao.DataAccessException e) {
 					throw new DataAccessException("Error executing SQL '" + SQL_GET_AUDIT_IDS_WITH_FAILURE_RESPONSE_WITH_CODE + "'.", e);
@@ -467,55 +402,39 @@ public class AuditQueries extends Query {
 		}
 	}
 	
-	/**
-	 * Retrieves the unique IDs for all audits that were recorded on or after
-	 * some date.
-	 * 
-	 * @param date The date.
-	 * 
-	 * @return A list of unique audit IDs.
+	/* (non-Javadoc)
+	 * @see org.ohmage.query.IAuditQueries#getAllAuditsOnOrAfterDate(java.util.Date)
 	 */
-	public static List<Long> getAllAuditsOnOrAfterDate(Date date) throws DataAccessException {
+	@Override
+	public List<Long> getAllAuditsOnOrAfterDate(Date date) throws DataAccessException {
 		try {
-			return instance.getJdbcTemplate().query(SQL_GET_AUDIT_IDS_ON_OR_AFTER_DATE, new Object[] { date }, new SingleColumnRowMapper<Long>());
+			return getJdbcTemplate().query(SQL_GET_AUDIT_IDS_ON_OR_AFTER_DATE, new Object[] { date }, new SingleColumnRowMapper<Long>());
 		}
 		catch(org.springframework.dao.DataAccessException e) {
 			throw new DataAccessException("Error executing SQL '" + SQL_GET_AUDIT_IDS_ON_OR_AFTER_DATE + "' with parameter: " + date, e);
 		}
 	}
 	
-	/**
-	 * Retrieves the unique IDs for all audits that were recorded on or before
-	 * some date.
-	 * 
-	 * @param date The date.
-	 * 
-	 * @return A list of unique audit IDs.
+	/* (non-Javadoc)
+	 * @see org.ohmage.query.IAuditQueries#getAllAuditsOnOrBeforeDate(java.util.Date)
 	 */
-	public static List<Long> getAllAuditsOnOrBeforeDate(Date date) throws DataAccessException {
+	@Override
+	public List<Long> getAllAuditsOnOrBeforeDate(Date date) throws DataAccessException {
 		try {
-			return instance.getJdbcTemplate().query(SQL_GET_AUDIT_IDS_ON_OR_BEFORE_DATE, new Object[] { date }, new SingleColumnRowMapper<Long>());
+			return getJdbcTemplate().query(SQL_GET_AUDIT_IDS_ON_OR_BEFORE_DATE, new Object[] { date }, new SingleColumnRowMapper<Long>());
 		}
 		catch(org.springframework.dao.DataAccessException e) {
 			throw new DataAccessException("Error executing SQL '" + SQL_GET_AUDIT_IDS_ON_OR_BEFORE_DATE + "' with parameter: " + date, e);
 		}
 	}
 	
-	/**
-	 * Retrieves the unique IDs for all audits that were recorded on or between
-	 * two dates.
-	 * 
-	 * @param startDate The earlier of the two date to which the audits will be
-	 * 					searched. 
-	 * 
-	 * @param endDate The latter of the two dates to which the audits will be
-	 * 				  searched.
-	 * 
-	 * @return A list of unique audit IDs.
+	/* (non-Javadoc)
+	 * @see org.ohmage.query.IAuditQueries#getAllAuditsOnOrBetweenDates(java.util.Date, java.util.Date)
 	 */
-	public static List<Long> getAllAuditsOnOrBetweenDates(Date startDate, Date endDate) throws DataAccessException {
+	@Override
+	public List<Long> getAllAuditsOnOrBetweenDates(Date startDate, Date endDate) throws DataAccessException {
 		try {
-			return instance.getJdbcTemplate().query(SQL_GET_AUDIT_IDS_ON_OR_BETWEEN_DATES, new Object[] { startDate, endDate }, new SingleColumnRowMapper<Long>());
+			return getJdbcTemplate().query(SQL_GET_AUDIT_IDS_ON_OR_BETWEEN_DATES, new Object[] { startDate, endDate }, new SingleColumnRowMapper<Long>());
 		}
 		catch(org.springframework.dao.DataAccessException e) {
 			throw new DataAccessException("Error executing SQL '" + SQL_GET_AUDIT_IDS_ON_OR_BETWEEN_DATES + "' with parameters: " + 
@@ -523,15 +442,11 @@ public class AuditQueries extends Query {
 		}
 	}
 	
-	/**
-	 * Retrieves all the information about a list of audit IDs.
-	 * 
-	 * @param auditIds The unique identifiers for some audits.
-	 * 
-	 * @return Returns a list of Audit objects, one for each audit
-	 * 		   ID.
+	/* (non-Javadoc)
+	 * @see org.ohmage.query.IAuditQueries#readAuditInformation(java.util.List)
 	 */
-	public static List<Audit> readAuditInformation(final List<Long> auditIds) throws DataAccessException {
+	@Override
+	public List<Audit> readAuditInformation(final List<Long> auditIds) throws DataAccessException {
 		if(auditIds == null) {
 			return new LinkedList<Audit>();
 		}
@@ -540,7 +455,7 @@ public class AuditQueries extends Query {
 		
 		for(Long auditId : auditIds) {
 			try {
-				final Audit auditInformation = instance.getJdbcTemplate().queryForObject(
+				final Audit auditInformation = getJdbcTemplate().queryForObject(
 						SQL_GET_AUDIT_INFORMATION_FROM_ID, 
 						new Object[] { auditId },
 						new RowMapper<Audit>() {
@@ -589,7 +504,7 @@ public class AuditQueries extends Query {
 				
 				// Add all of the parameters.
 				try {
-					final List<KeyValuePair> parameters = instance.getJdbcTemplate().query(
+					final List<KeyValuePair> parameters = getJdbcTemplate().query(
 							SQL_GET_AUDIT_PARAMETERS, 
 							new Object[] { auditId }, 
 							new RowMapper<KeyValuePair>() {
@@ -609,7 +524,7 @@ public class AuditQueries extends Query {
 				
 				// Add all of the extras.
 				try {
-					final List<KeyValuePair> extras = instance.getJdbcTemplate().query(
+					final List<KeyValuePair> extras = getJdbcTemplate().query(
 							SQL_GET_AUDIT_EXTRAS, 
 							new Object[] { auditId }, 
 							new RowMapper<KeyValuePair>() {

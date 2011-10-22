@@ -17,10 +17,10 @@ import org.ohmage.domain.campaign.SurveyResponse;
 import org.ohmage.domain.campaign.response.PhotoPromptResponse;
 import org.ohmage.exception.DataAccessException;
 import org.ohmage.exception.ServiceException;
-import org.ohmage.query.ImageQueries;
-import org.ohmage.query.SurveyResponseImageQueries;
-import org.ohmage.query.SurveyResponseQueries;
-import org.ohmage.query.SurveyUploadQuery;
+import org.ohmage.query.impl.ImageQueries;
+import org.ohmage.query.impl.SurveyResponseImageQueries;
+import org.ohmage.query.impl.SurveyResponseQueries;
+import org.ohmage.query.impl.SurveyUploadQuery;
 
 /**
  * This class is responsible for creating, reading, updating, and deleting 

@@ -1,4 +1,4 @@
-package org.ohmage.query;
+package org.ohmage.query.impl;
 
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
