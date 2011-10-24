@@ -9,7 +9,7 @@ import org.ohmage.domain.campaign.prompt.SingleChoicePrompt;
  * @author John Jenkins
  */
 public class SingleChoicePromptResponse extends PromptResponse {
-	private final String choice;
+	private final Integer choice;
 
 	/**
 	 * Creates a single choice prompt response.
@@ -26,7 +26,7 @@ public class SingleChoicePromptResponse extends PromptResponse {
 	 * 								 repeatable set on which this response was
 	 * 								 made.
 	 * 
-	 * @param choice The response from the user.
+	 * @param choice The key for the choice from the user.
 	 * 
 	 * @param validate Whether or not to validate the response.
 	 * 
@@ -36,22 +36,22 @@ public class SingleChoicePromptResponse extends PromptResponse {
 	 */
 	public SingleChoicePromptResponse(
 			final SingleChoicePrompt prompt, final NoResponse noResponse, 
-			final Integer repeatableSetIteration, final String choice,
+			final Integer repeatableSetIteration, final Integer choiceKey,
 			final boolean validate) {
 		
 		super(prompt, noResponse, repeatableSetIteration);
 		
-		if((choice == null) && (noResponse == null)) {
+		if((choiceKey == null) && (noResponse == null)) {
 			throw new IllegalArgumentException("Both choice and no response cannot be null.");
 		}
-		else if((choice != null) && (noResponse != null)) {
+		else if((choiceKey != null) && (noResponse != null)) {
 			throw new IllegalArgumentException("Both choice and no response were given.");
 		}
 		
 		if(validate) {
-			prompt.validateValue(choice);
+			prompt.validateValue(choiceKey);
 		}
-		this.choice = choice;
+		this.choice = choiceKey;
 	}
 	
 	/**
@@ -60,7 +60,7 @@ public class SingleChoicePromptResponse extends PromptResponse {
 	 * @return The choice response from the user.
 	 */
 	public String getText() {
-		return choice;
+		return ((SingleChoicePrompt) getPrompt()).getChoices().get(choice).getLabel();
 	}
 
 	/**
@@ -73,7 +73,7 @@ public class SingleChoicePromptResponse extends PromptResponse {
 		String noResponseString = super.getResponseValue();
 		
 		if(noResponseString == null) {
-			return choice;
+			return getText();
 		}
 		else {
 			return noResponseString;

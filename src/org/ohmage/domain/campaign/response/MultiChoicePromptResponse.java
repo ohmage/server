@@ -13,7 +13,7 @@ import org.ohmage.domain.campaign.prompt.MultiChoicePrompt;
  * @author John Jenkins
  */
 public class MultiChoicePromptResponse extends PromptResponse {
-	private final List<String> choices;
+	private final List<Integer> choices;
 	
 	/**
 	 * Creates a multiple-choice prompt response.
@@ -30,7 +30,7 @@ public class MultiChoicePromptResponse extends PromptResponse {
 	 * 								 repeatable set on which this response was
 	 * 								 made.
 	 * 
-	 * @param choices The response from the user.
+	 * @param choices The response keys from the user.
 	 * 
 	 * @param validate Whether or not to validate the response.
 	 * 
@@ -41,7 +41,7 @@ public class MultiChoicePromptResponse extends PromptResponse {
 	public MultiChoicePromptResponse(
 			final MultiChoicePrompt prompt, final NoResponse noResponse, 
 			final Integer repeatableSetIteration, 
-			final Collection<String> choices,
+			final Collection<Integer> choices,
 			final boolean validate) {
 		
 		super(prompt, noResponse, repeatableSetIteration);
@@ -56,7 +56,7 @@ public class MultiChoicePromptResponse extends PromptResponse {
 		if(validate) {
 			prompt.validateValue(choices);
 		}
-		this.choices = new ArrayList<String>(choices);
+		this.choices = new ArrayList<Integer>(choices);
 	}
 	
 	/**
@@ -65,7 +65,13 @@ public class MultiChoicePromptResponse extends PromptResponse {
 	 * @return The choices response from the user.
 	 */
 	public List<String> getChoices() {
-		return choices;
+		List<String> result = new ArrayList<String>(choices.size());
+		
+		for(Integer key : choices) {
+			result.add(((MultiChoicePrompt) getPrompt()).getChoices().get(key).getLabel());
+		}
+		
+		return result;
 	}
 
 	/**

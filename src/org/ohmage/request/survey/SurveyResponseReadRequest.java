@@ -372,7 +372,7 @@ public final class SurveyResponseReadRequest extends UserRequest {
 				else if(t.length == 1) {
 					tSurveyIds = SurveyResponseValidators.validateSurveyIds(t[0]);
 					
-					if(tSurveyIds.size() > MAX_NUMBER_OF_SURVEYS) {
+					if((tSurveyIds != null) && (tSurveyIds.size() > MAX_NUMBER_OF_SURVEYS)) {
 						setFailed(ErrorCode.SURVEY_TOO_MANY_SURVEY_IDS, "More than " + MAX_NUMBER_OF_SURVEYS + " survey IDs were given: " + tSurveyIds.size());
 						throw new ValidationException("More than " + MAX_NUMBER_OF_SURVEYS + " survey IDs were given: " + tSurveyIds.size());
 					}
@@ -387,7 +387,7 @@ public final class SurveyResponseReadRequest extends UserRequest {
 				else if(t.length == 1) {
 					tPromptIds = SurveyResponseValidators.validatePromptIds(t[0]);
 					
-					if(tPromptIds.size() > MAX_NUMBER_OF_PROMPTS) {
+					if((tPromptIds != null) && (tPromptIds.size() > MAX_NUMBER_OF_PROMPTS)) {
 						setFailed(ErrorCode.SURVEY_TOO_MANY_PROMPT_IDS, "More than " + MAX_NUMBER_OF_PROMPTS + " prompt IDs were given: " + tPromptIds.size());
 						throw new ValidationException("More than " + MAX_NUMBER_OF_PROMPTS + " prompt IDs were given: " + tPromptIds.size());
 					}
@@ -682,7 +682,7 @@ public final class SurveyResponseReadRequest extends UserRequest {
 					for(SurveyResponse surveyResponse : surveyResponseList) {
 						uniqueSurveyIds.add(surveyResponse.getSurvey().getId());
 						
-						results.put(surveyResponse.toJson(
+						JSONObject currResult = surveyResponse.toJson(
 								allColumns || columns.contains(ColumnKey.USER_ID),
 								allColumns || false,
 								allColumns || columns.contains(ColumnKey.CONTEXT_CLIENT),
@@ -691,20 +691,111 @@ public final class SurveyResponseReadRequest extends UserRequest {
 								allColumns || false,
 								allColumns || columns.contains(ColumnKey.CONTEXT_TIMEZONE),
 								allColumns || columns.contains(ColumnKey.CONTEXT_LOCATION_STATUS),
-								allColumns || columns.contains(ColumnKey.CONTEXT_LOCATION_STATUS), // FIXME: This should break the location object down.
+								false,
 								allColumns || columns.contains(ColumnKey.SURVEY_ID),
 								allColumns || columns.contains(ColumnKey.SURVEY_TITLE),
 								allColumns || columns.contains(ColumnKey.SURVEY_DESCRIPTION),
 								allColumns || columns.contains(ColumnKey.CONTEXT_LAUNCH_CONTEXT_LONG) || columns.contains(ColumnKey.CONTEXT_LAUNCH_CONTEXT_SHORT),
 								columns.contains(ColumnKey.CONTEXT_LAUNCH_CONTEXT_LONG),
 								allColumns || columns.contains(ColumnKey.PROMPT_RESPONSE),
-								returnId
-							)
-						);
+								((returnId == null) ? false : returnId)
+							);
+						
+						if(allColumns || columns.contains(ColumnKey.CONTEXT_LOCATION_ACCURACY)) {
+							Location location = surveyResponse.getLocation();
+							
+							if(location == null) {
+								currResult.put(Location.JSON_KEY_ACCURACY, "null");
+							}
+							else {
+								double accuracy = location.getAccuracy();
+								
+								if(accuracy == Double.POSITIVE_INFINITY) {
+									currResult.put(Location.JSON_KEY_ACCURACY, "Infinity");
+								}
+								else if(accuracy == Double.NEGATIVE_INFINITY) {
+									currResult.put(Location.JSON_KEY_ACCURACY, "-Infinity");
+								}
+								else if(accuracy == Double.NaN) {
+									currResult.put(Location.JSON_KEY_ACCURACY, "NaN");
+								}
+								else {
+									currResult.put(Location.JSON_KEY_ACCURACY, accuracy);
+								}
+							}
+						}
+						if(allColumns || columns.contains(ColumnKey.CONTEXT_LOCATION_LATITUDE)) {
+							Location location = surveyResponse.getLocation();
+							
+							if(location == null) {
+								currResult.put(Location.JSON_KEY_LATITUDE, "null");
+							}
+							else {
+								double latitude = location.getLatitude();
+								
+								if(latitude == Double.POSITIVE_INFINITY) {
+									currResult.put(Location.JSON_KEY_LATITUDE, "Infinity");
+								}
+								else if(latitude == Double.NEGATIVE_INFINITY) {
+									currResult.put(Location.JSON_KEY_LATITUDE, "-Infinity");
+								}
+								else if(latitude == Double.NaN) {
+									currResult.put(Location.JSON_KEY_LATITUDE, "NaN");
+								}
+								else {
+									currResult.put(Location.JSON_KEY_LATITUDE, latitude);
+								}
+							}
+						}
+						if(allColumns || columns.contains(ColumnKey.CONTEXT_LOCATION_LONGITUDE)) {
+							Location location = surveyResponse.getLocation();
+							
+							if(location == null) {
+								currResult.put(Location.JSON_KEY_LONGITUDE, "null");
+							}
+							else {
+								double longitude = location.getLongitude();
+								
+								if(longitude == Double.POSITIVE_INFINITY) {
+									currResult.put(Location.JSON_KEY_LONGITUDE, "Infinity");
+								}
+								else if(longitude == Double.NEGATIVE_INFINITY) {
+									currResult.put(Location.JSON_KEY_LONGITUDE, "-Infinity");
+								}
+								else if(longitude == Double.NaN) {
+									currResult.put(Location.JSON_KEY_LONGITUDE, "NaN");
+								}
+								else {
+									currResult.put(Location.JSON_KEY_LONGITUDE, longitude);
+								}
+							}
+						}
+						if(allColumns || columns.contains(ColumnKey.CONTEXT_LOCATION_PROVIDER)) {
+							Location location = surveyResponse.getLocation();
+							
+							if(location == null) {
+								currResult.put(Location.JSON_KEY_PROVIDER, "null");
+							}
+							else {
+								currResult.put(Location.JSON_KEY_PROVIDER, location.getProvider());
+							}
+						}
+						if(allColumns || columns.contains(ColumnKey.CONTEXT_LOCATION_TIMESTAMP)) {
+							Location location = surveyResponse.getLocation();
+							
+							if(location == null) {
+								currResult.put(Location.JSON_KEY_TIMESTAMP, "null");
+							}
+							else {
+								currResult.put(Location.JSON_KEY_TIMESTAMP, TimeUtils.getIso8601DateTimeString(location.getTimestamp()));
+							}
+						}
+							
+						results.put(currResult);
 					}
 					
 					if((collapse != null) && collapse) {
-						int count = result.length();
+						int count = results.length();
 						Set<String> collapsedSet = new HashSet<String>(count);
 						
 						for(int i = 0; i < count; i++) {

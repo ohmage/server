@@ -1,5 +1,6 @@
 package org.ohmage.request.audit;
 
+import java.net.URI;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
@@ -97,11 +98,11 @@ public class AuditReadRequest extends UserRequest {
 	private static final String RESULT_KEY = "audits";
 	
 	private final RequestType requestType;
-	private final String uri;
+	private final URI uri;
 	private final String client;
 	private final String deviceId;
 	private final ResponseType responseType;
-	private final String errorCode;
+	private final ErrorCode errorCode;
 	
 	private final Date startDate;
 	private final Date endDate;
@@ -119,11 +120,11 @@ public class AuditReadRequest extends UserRequest {
 		LOGGER.info("Creating an audit read request.");
 		
 		RequestServlet.RequestType tRequestType = null;
-		String tUri = null;
+		URI tUri = null;
 		String tClient = null;
 		String tDeviceId = null;
 		ResponseType tResponseType = null;
-		String tErrorCode = null;
+		ErrorCode tErrorCode = null;
 		Date tStartDate = null;
 		Date tEndDate = null;
 		

@@ -95,13 +95,13 @@ public class SingleChoicePrompt extends ChoicePrompt {
 	 * 
 	 * @param value The value to be validated.
 	 * 
-	 * @return A {@link NoResponse} object or a String.
+	 * @return A {@link NoResponse} object or an Integer.
 	 * 
 	 * @throws IllegalArgumentException Thrown if the value is not valid.
 	 */
 	@Override
 	public Object validateValue(final Object value) {
-		String choiceValue;
+		Integer keyValue;
 		
 		// If it's already a NoResponse value, then return make sure that if it
 		// was skipped that it as skippable.
@@ -113,24 +113,38 @@ public class SingleChoicePrompt extends ChoicePrompt {
 			return value;
 		}
 		else if(value instanceof String) {
-			choiceValue = (String) value;
-			
 			try {
-				return NoResponse.valueOf(choiceValue);
+				return NoResponse.valueOf((String) value);
 			}
-			catch(IllegalArgumentException e) {
-				// Then, the user must be attempting to respond with a value.
+			catch(IllegalArgumentException notNoResponse) {
+				try {
+					keyValue = Integer.decode((String) value);
+				}
+				catch(NumberFormatException notChoiceKey) {
+					Map<Integer, LabelValuePair> choices = getChoices();
+					
+					for(Integer key : choices.keySet()) {
+						if(choices.get(key).getLabel().equals((String) value)) {
+							return key;
+						}
+					}
+					
+					throw new IllegalArgumentException("The value was not a valid response value for this prompt.");
+				}
 			}
+		}
+		else if(value instanceof Integer) {
+			keyValue = (Integer) value;
 		}
 		else {
 			throw new IllegalArgumentException("The value is not decodable as a reponse value.");
 		}
 
-		if(! getChoices().values().contains(choiceValue)) {
-			throw new IllegalArgumentException("The value is not a value choice: " + choiceValue);
+		if(! getChoices().keySet().contains(keyValue)) {
+			throw new IllegalArgumentException("The value is not a value choice: " + keyValue);
 		}
 		
-		return choiceValue;
+		return keyValue;
 	}
 	
 	/**
@@ -171,12 +185,12 @@ public class SingleChoicePrompt extends ChoicePrompt {
 					false
 				);
 		}
-		else if(validatedResponse instanceof String) {
+		else if(validatedResponse instanceof Integer) {
 			return new SingleChoicePromptResponse(
 					this, 
 					null, 
 					repeatableSetIteration, 
-					(String) validatedResponse,
+					(Integer) validatedResponse,
 					false
 				);
 		}

@@ -1,6 +1,5 @@
 package org.ohmage.domain.campaign.prompt;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
@@ -107,13 +106,14 @@ public class MultiChoicePrompt extends ChoicePrompt {
 	 * 
 	 * @param value The value to be validated.
 	 * 
-	 * @return A {@link NoResponse} object or a Collection of Strings.
+	 * @return A {@link NoResponse} object or a Collection of Integers.
 	 * 
 	 * @throws IllegalArgumentException Thrown if the value is not valid.
 	 */
 	@Override
 	public Object validateValue(Object value) {
-		Collection<String> collectionValue = null;
+		Collection<Integer> collectionValue = null;
+		Map<Integer, LabelValuePair> choices = getChoices();
 		
 		// If it's already a NoResponse value, then return make sure that if it
 		// was skipped that it as skippable.
@@ -128,11 +128,19 @@ public class MultiChoicePrompt extends ChoicePrompt {
 		// are strings.
 		else if(value instanceof Collection<?>) {
 			Collection<?> values = (Collection<?>) value;
-			collectionValue = new ArrayList<String>(values.size());
+			collectionValue = new HashSet<Integer>(values.size());
 			
 			for(Object currResponse : values) {
-				if(currResponse instanceof String) {
-					collectionValue.add((String) currResponse);
+				if(currResponse instanceof Integer) {
+					collectionValue.add((Integer) currResponse);
+				}
+				else if(currResponse instanceof String) {
+					for(Integer key : choices.keySet()) {
+						if(choices.get(key).getLabel().equals(currResponse)) {
+							collectionValue.add(key);
+							break;
+						}
+					}
 				}
 				else {
 					throw new IllegalArgumentException("One of the values in the collection was not a String value.");
@@ -159,9 +167,27 @@ public class MultiChoicePrompt extends ChoicePrompt {
 				}
 				String[] responses = responseWithoutBrackets.split(",");
 				
-				collectionValue = new ArrayList<String>(responses.length);
+				collectionValue = new HashSet<Integer>(responses.length);
 				for(int i = 0; i < responses.length; i++) {
-					collectionValue.add(responses[i]);
+					String currResponse = responses[i];
+					
+					try {
+						collectionValue.add(Integer.decode(currResponse));
+					}
+					catch(NumberFormatException notKey) {
+						boolean found = false;
+						
+						for(Integer key : choices.keySet()) {
+							if(choices.get(key).getLabel().equals(currResponse)) {
+								collectionValue.add(key);
+								break;
+							}
+						}
+						
+						if(! found) {
+							throw new IllegalArgumentException("One of the values in the collection was not a String value.");
+						}
+					}
 				}
 			}
 		}
@@ -169,12 +195,9 @@ public class MultiChoicePrompt extends ChoicePrompt {
 			throw new IllegalArgumentException("The value is not decodable as a reponse value.");
 		}
 		
-		// At this point, we must have a collection of strings, so we need to
-		// validate all of the values.
-		Collection<LabelValuePair> labelValuePairs = getChoices().values();
-		for(String currValue : collectionValue) {
-			if(! labelValuePairs.contains(currValue)) {
-				throw new IllegalArgumentException("The value is not a value choice: " + currValue);
+		for(Integer key : collectionValue) {
+			if(! choices.containsKey(key)) {
+				throw new IllegalArgumentException("A key was given that isn't a known choice.");
 			}
 		}
 		
@@ -225,7 +248,7 @@ public class MultiChoicePrompt extends ChoicePrompt {
 					this, 
 					null, 
 					repeatableSetIteration, 
-					(Collection<String>) validatedResponse,
+					(Collection<Integer>) validatedResponse,
 					false
 				);
 		}

@@ -1,5 +1,7 @@
 package org.ohmage.validator;
 
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.Date;
 
 import org.ohmage.annotator.Annotator.ErrorCode;
@@ -8,9 +10,42 @@ import org.ohmage.jee.servlet.RequestServlet.RequestType;
 import org.ohmage.util.StringUtils;
 
 public class AuditValidators {
-	private static final int MAX_CLIENT_LENGTH = 255;
+	/**
+	 * The maximum length of a client value.
+	 */
+	public static final int MAX_CLIENT_LENGTH = 255;
 	
-	public static enum ResponseType { SUCCESS, FAILURE };
+	/**
+	 * The possible response types for a request.
+	 * 
+	 * @author John Jenkins
+	 */
+	public static enum ResponseType { 
+		SUCCESS, 
+		FAILURE;
+		
+		/**
+		 * Returns the ResponseType object that represents the value.
+		 *  
+		 * @param value The value to use to get a ResponseType object.
+		 * 
+		 * @return The ResponseType object.
+		 * 
+		 * @throws IllegalArgumentException Thrown if the value is not 
+		 * 									decodable as a response type value.
+		 */
+		public static ResponseType getValue(final String value) {
+			return valueOf(value.toUpperCase());
+		}
+		
+		/**
+		 * This response type as a human-readable string.
+		 */
+		@Override
+		public String toString() {
+			return name().toLowerCase();
+		}
+	}
 	
 	/**
 	 * Default constructor. Private so that it cannot be instantiated.
@@ -63,25 +98,40 @@ public class AuditValidators {
 	}
 	
 	/**
-	 * Checks if the URI is null or whitespace only. We put no other 
-	 * limitations on the URI because a user may want to read about URIs that
-	 * the server doesn't know about but someone is attempting to call anyway.
+	 * Validates that the URI string is a valid URI per Java's implementation 
+	 * URI.<br />
+	 * <br />
+	 * Note: The definition of a URI is very liberal and great care should
+	 * be taken when using the value that is returned.<br />
+	 * <br />
+	 * Note: An empty string is considered a valid URI, however our approach 
+	 * for handling empty string across all validators is to return null for an
+	 * empty string.
 	 * 
 	 * @param uri The URI as a string.
 	 * 
-	 * @return The URI as a string unless it was null or whitespace only in
-	 * 		   which case null is returned.
+	 * @return The URI as a Java URI object.
 	 * 
-	 * @throws ValidationException Never thrown.
+	 * @throws ValidationException If the URI string cannot be converted into a
+	 * 							   URI object.
 	 */
-	public static String validateUri(final String uri) 
+	public static URI validateUri(final String uri) 
 			throws ValidationException {
 		
 		if(StringUtils.isEmptyOrWhitespaceOnly(uri)) {
 			return null;
 		}
 		
-		return uri.trim();
+		try {
+			return new URI(uri);
+		}
+		catch(URISyntaxException e) {
+			throw new ValidationException(
+					ErrorCode.AUDIT_INVALID_URI, 
+					"The URI was invalid: " + uri, 
+					e
+				);
+		}
 	}
 	
 	/**
@@ -174,9 +224,8 @@ public class AuditValidators {
 	
 	/**
 	 * Checks if the error is null or whitespace only in which case it returns
-	 * null; otherwise it returns the error code. There are no restrictions on
-	 * what an error code value is allowed to be because they may change over
-	 * time and someone might want to query about an old one.
+	 * null; otherwise it returns the error code which must be one of
+	 * {@link org.ohmage.annotator.Annotator.ErrorCode ErrorCode}.
 	 * 
 	 * @param errorCode The error code to be validated.
 	 * 
@@ -185,14 +234,22 @@ public class AuditValidators {
 	 * 
 	 * @throws ValidationException Never thrown.
 	 */
-	public static String validateErrorCode(final String errorCode) 
+	public static ErrorCode validateErrorCode(final String errorCode) 
 			throws ValidationException {
 		
 		if(StringUtils.isEmptyOrWhitespaceOnly(errorCode)) {
 			return null;
 		}
 		
-		return errorCode.trim();
+		try {
+			return ErrorCode.getValue(errorCode);
+		}
+		catch(IllegalArgumentException e) {
+			throw new ValidationException(
+					ErrorCode.AUDIT_INVALID_ERROR_CODE, 
+					"The error code is unknown: " + errorCode, 
+					e);
+		}
 	}
 	
 	/**

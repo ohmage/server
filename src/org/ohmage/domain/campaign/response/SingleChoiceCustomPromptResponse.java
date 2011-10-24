@@ -9,7 +9,7 @@ import org.ohmage.domain.campaign.prompt.SingleChoiceCustomPrompt;
  * @author John Jenkins
  */
 public class SingleChoiceCustomPromptResponse extends PromptResponse {
-	private final String choice;
+	private final Integer choice;
 
 	/**
 	 * Creates a response for a single choice prompt with custom choices. 
@@ -26,7 +26,7 @@ public class SingleChoiceCustomPromptResponse extends PromptResponse {
 	 * 								 repeatable set on which this response was
 	 * 								 made.
 	 * 
-	 * @param choice The response from the user.
+	 * @param choice The key for the choice from the user.
 	 * 
 	 * @param validate Whether or not to validate the response.
 	 * 
@@ -36,7 +36,7 @@ public class SingleChoiceCustomPromptResponse extends PromptResponse {
 	 */
 	public SingleChoiceCustomPromptResponse(
 			final SingleChoiceCustomPrompt prompt, final NoResponse noResponse,
-			final Integer repeatableSetIteration, final String choice,
+			final Integer repeatableSetIteration, final Integer choice,
 			final boolean validate) {
 		
 		super(prompt, noResponse, repeatableSetIteration);
@@ -60,7 +60,7 @@ public class SingleChoiceCustomPromptResponse extends PromptResponse {
 	 * @return The choice from the user.
 	 */
 	public String getText() {
-		return choice;
+		return ((SingleChoiceCustomPrompt) getPrompt()).getAllChoices().get(choice).getLabel();
 	}
 
 	/**
@@ -73,7 +73,7 @@ public class SingleChoiceCustomPromptResponse extends PromptResponse {
 		String noResponseString = super.getResponseValue();
 		
 		if(noResponseString == null) {
-			return choice;
+			return getText();
 		}
 		else {
 			return noResponseString;

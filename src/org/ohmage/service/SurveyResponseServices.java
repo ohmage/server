@@ -262,7 +262,15 @@ public final class SurveyResponseServices {
 			}
 			
 			if(surveyResponseIds == null) {
-				return SurveyResponseQueries.retrieveSurveyResponseFromIds(campaign, SurveyResponseQueries.retrieveSurveyResponseIdsFromCampaign(campaignId));
+				List<Long> allIds = 
+					SurveyResponseQueries.retrieveSurveyResponseIdsFromCampaign(campaignId);
+				
+				if(allIds.size() == 0) {
+					return Collections.emptyList();
+				}
+				else {
+					return SurveyResponseQueries.retrieveSurveyResponseFromIds(campaign, allIds);
+				}
 			}
 			else if(surveyResponseIds.size() == 0) {
 				return Collections.emptyList();

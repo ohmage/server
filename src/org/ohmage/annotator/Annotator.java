@@ -21,6 +21,11 @@ public class Annotator {
 	 */
 	public static final String JSON_KEY_TEXT = "text"; 
 	
+	/**
+	 * The possible error codes.
+	 * 
+	 * @author John Jenkins
+	 */
 	public static enum ErrorCode {
 		SYSTEM_GENERAL_ERROR ("0100"),
 
@@ -134,10 +139,44 @@ public class Annotator {
 		
 		private final String value;
 		
+		/**
+		 * Constructs a new error code enum with its error code value.
+		 * 
+		 * @param value The code's four character value.
+		 */
 		private ErrorCode(final String value) {
 			this.value = value;
 		}
 		
+		/**
+		 * Converts an error code's four character value into an ErrorCode 
+		 * object.
+		 * 
+		 * @param value The value is not valid.
+		 * 
+		 * @return An ErrorCode object that corresponds to the given error code
+		 * 		   four digit value.
+		 * 
+		 * @throws IllegalArgumentException Thrown if no such error code 
+		 * 									exists.
+		 */
+		public static ErrorCode getValue(final String value) {
+			ErrorCode[] errorCodes = values();
+			
+			for(int i = 0; i < errorCodes.length; i++) {
+				if(errorCodes[i].value.equals(value)) {
+					return errorCodes[i];
+				}
+			}
+			
+			throw new IllegalArgumentException("Unknown value: " + value);
+		}
+		
+		/**
+		 * Returns the error code's four character value.
+		 * 
+		 * @return The code's four character value.
+		 */
 		@Override
 		public String toString() {
 			return value;

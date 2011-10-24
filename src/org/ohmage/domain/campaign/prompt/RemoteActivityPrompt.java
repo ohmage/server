@@ -1,5 +1,6 @@
 package org.ohmage.domain.campaign.prompt;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.ohmage.domain.campaign.Prompt;
@@ -213,7 +214,7 @@ public class RemoteActivityPrompt extends Prompt {
 	 */
 	@Override
 	public Object validateValue(final Object value) {
-		JSONObject valueJson;
+		JSONArray valueJson;
 		
 		// If it's already a NoResponse value, then return make sure that if it
 		// was skipped that it as skippable.
@@ -225,9 +226,10 @@ public class RemoteActivityPrompt extends Prompt {
 			return value;
 		}
 		// If it's already a JSONObject value, then set that to be validated.
-		else if(value instanceof JSONObject) {
-			valueJson = (JSONObject) value;
+		else if(value instanceof JSONArray) {
+			valueJson = (JSONArray) value;
 		}
+		// If it's a JSON
 		// If it is a string, parse it to check if it's a NoResponse value and,
 		// if not, parse it as a JSONObject to be validated.
 		else if(value instanceof String) {
@@ -238,7 +240,7 @@ public class RemoteActivityPrompt extends Prompt {
 			}
 			catch(IllegalArgumentException iae) {
 				try {
-					valueJson = new JSONObject((String) valueString);
+					valueJson = new JSONArray((String) valueString);
 				}
 				catch(JSONException e) {
 					throw new IllegalArgumentException("The string value could not be decoded as a NoResponse or JSONObject object.");
@@ -250,11 +252,30 @@ public class RemoteActivityPrompt extends Prompt {
 			throw new IllegalArgumentException("The value is not decodable as a response value.");
 		}
 		
-		try {
-			valueJson.getDouble(JSON_KEY_SCORE);
-		}
-		catch(JSONException e) {
-			throw new IllegalArgumentException("The JSON response value must contain the key '" + JSON_KEY_SCORE + "' which must be a numeric value.");
+		int numResponses = valueJson.length();
+		for(int i = 0; i < numResponses; i++) {
+			JSONObject currResponse;
+			try {
+				currResponse = valueJson.getJSONObject(i);
+			}
+			catch(JSONException e) {
+				throw new IllegalArgumentException(
+						"The item at index '" +
+							i +
+							"' isn't a valid JSONObject.",
+						e);
+			}
+			
+			try {
+				currResponse.getDouble(JSON_KEY_SCORE);
+			}
+			catch(JSONException e) {
+				throw new IllegalArgumentException(
+						"The JSON response value must contain the key '" +
+							JSON_KEY_SCORE +
+							"' which must be a numeric value.",
+						e);
+			}
 		}
 		
 		return valueJson;
@@ -298,12 +319,12 @@ public class RemoteActivityPrompt extends Prompt {
 					false
 				);
 		}
-		else if(validatedResponse instanceof String) {
+		else if(validatedResponse instanceof JSONArray) {
 			return new RemoteActivityPromptResponse(
 					this, 
 					null, 
 					repeatableSetIteration, 
-					(JSONObject) validatedResponse,
+					(JSONArray) validatedResponse,
 					false
 				);
 		}

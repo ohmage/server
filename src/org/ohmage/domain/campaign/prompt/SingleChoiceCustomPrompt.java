@@ -99,13 +99,13 @@ public class SingleChoiceCustomPrompt extends CustomChoicePrompt {
 	 * 
 	 * @param value The value to be validated.
 	 * 
-	 * @return A {@link NoResponse} object or a String.
+	 * @return A {@link NoResponse} object or an Integer.
 	 * 
 	 * @throws IllegalArgumentException Thrown if the value is not valid.
 	 */
 	@Override
 	public Object validateValue(Object value) {
-String choiceValue;
+		Integer choiceValue;
 		
 		// If it's already a NoResponse value, then return make sure that if it
 		// was skipped that it as skippable.
@@ -117,21 +117,32 @@ String choiceValue;
 			return value;
 		}
 		else if(value instanceof String) {
-			choiceValue = (String) value;
-			
 			try {
-				return NoResponse.valueOf(choiceValue);
+				return NoResponse.valueOf((String) value);
 			}
-			catch(IllegalArgumentException e) {
-				// Then, the user must be attempting to respond with a value.
+			catch(IllegalArgumentException notNoResponse) {
+				try {
+					choiceValue = Integer.decode((String) value);
+				}
+				catch(NumberFormatException notChoiceKey) {
+					Map<Integer, LabelValuePair> choices = getAllChoices();
+					
+					for(Integer key : choices.keySet()) {
+						if(choices.get(key).getLabel().equals((String) value)) {
+							return key;
+						}
+					}
+					
+					throw new IllegalArgumentException("The value was not a valid response value for this prompt.");
+				}
 			}
 		}
 		else {
 			throw new IllegalArgumentException("The value is not decodable as a reponse value.");
 		}
 
-		if(! getAllChoices().values().contains(choiceValue)) {
-			throw new IllegalArgumentException("The value is not a value choice: " + choiceValue);
+		if(! getAllChoices().keySet().contains(choiceValue)) {
+			throw new IllegalArgumentException("The value is not a valid key: " + choiceValue);
 		}
 		
 		return choiceValue;
@@ -175,12 +186,12 @@ String choiceValue;
 					false
 				);
 		}
-		else if(validatedResponse instanceof String) {
+		else if(validatedResponse instanceof Integer) {
 			return new SingleChoiceCustomPromptResponse(
 					this, 
 					null, 
 					repeatableSetIteration, 
-					(String) validatedResponse,
+					(Integer) validatedResponse,
 					false
 				);
 		}

@@ -1,9 +1,11 @@
 package org.ohmage.service;
 
+import java.net.URI;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
+import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.domain.Audit;
 import org.ohmage.exception.DataAccessException;
 import org.ohmage.exception.ServiceException;
@@ -116,10 +118,11 @@ public class AuditServices {
 	 * @throws ServiceException Thrown if there is an error.
 	 */
 	public static List<Audit> getAuditInformation(
-			final RequestType requestType, final String uri, 
-			final String client, final String deviceId, 
-			final ResponseType responseType, final String errorCode, 
-			final Date startDate, final Date endDate) throws ServiceException {
+			final RequestType requestType, final URI uri, final String client, 
+			final String deviceId, final ResponseType responseType, 
+			final ErrorCode errorCode, 
+			final Date startDate, final Date endDate) 
+			throws ServiceException {
 		
 		try {
 			List<Long> auditIds = null;

@@ -1,6 +1,6 @@
 package org.ohmage.domain.campaign.response;
 
-import org.json.JSONObject;
+import org.json.JSONArray;
 import org.ohmage.domain.campaign.PromptResponse;
 import org.ohmage.domain.campaign.prompt.RemoteActivityPrompt;
 
@@ -10,7 +10,7 @@ import org.ohmage.domain.campaign.prompt.RemoteActivityPrompt;
  * @author John Jenkins
  */
 public class RemoteActivityPromptResponse extends PromptResponse {
-	private final JSONObject result;
+	private final JSONArray result;
 	
 	/**
 	 * Creates a remote Activity prompt response.
@@ -27,7 +27,8 @@ public class RemoteActivityPromptResponse extends PromptResponse {
 	 * 								 repeatable set on which this response was
 	 * 								 made.
 	 * 
-	 * @param result The response from the user.
+	 * @param result The response from the user that should be a JSONArray of
+	 * 				 JSONObjects.
 	 * 
 	 * @param validate Whether or not to validate the response.
 	 * 
@@ -37,7 +38,7 @@ public class RemoteActivityPromptResponse extends PromptResponse {
 	 */
 	public RemoteActivityPromptResponse(
 			final RemoteActivityPrompt prompt, final NoResponse noResponse, 
-			final Integer repeatableSetIteration, final JSONObject result,
+			final Integer repeatableSetIteration, final JSONArray result,
 			final boolean validate) {
 		
 		super(prompt, noResponse, repeatableSetIteration);
@@ -57,9 +58,10 @@ public class RemoteActivityPromptResponse extends PromptResponse {
 	
 	/**
 	 * Returns the remote Activity's result.
+	 * 
 	 * @return The remote Activity's result.
 	 */
-	public JSONObject getResult() {
+	public JSONArray getResult() {
 		return result;
 	}
 

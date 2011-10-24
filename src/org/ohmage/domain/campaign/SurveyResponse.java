@@ -31,7 +31,7 @@ public class SurveyResponse {
 	private static final String JSON_KEY_USERNAME = "user";
 	private static final String JSON_KEY_CAMPAIGN_ID = "campaign_id";
 	private static final String JSON_KEY_CLIENT = "client";
-	private static final String JSON_KEY_DATE = "date";
+	private static final String JSON_KEY_DATE = "timestamp";
 	private static final String JSON_KEY_TIME = "time";
 	private static final String JSON_KEY_TIMEZONE = "timezone";
 	private static final String JSON_KEY_LOCATION_STATUS = "location_status";
@@ -935,7 +935,7 @@ public class SurveyResponse {
 		catch(JSONException e) {
 			throw new ErrorCodeException(ErrorCode.SURVEY_INVALID_RESPONSES, "There weren't any responses for the survey.", e);
 		}
-		this.responses = processResponses(campaign.getSurveys().get(surveyId).getSurveyItems(), responses, -1);
+		this.responses = processResponses(campaign.getSurveys().get(surveyId).getSurveyItems(), responses, null);
 	}
 	
 	/**
@@ -1456,20 +1456,12 @@ public class SurveyResponse {
 			throw new ErrorCodeException(ErrorCode.SURVEY_INVALID_RESPONSES, "The response value was missing.", e);
 		}
 		
-		if(responseObject instanceof String) {
-			try {
-				return prompt.createResponse(
-						NoResponse.valueOf((String) responseObject), 
-						(repeatableSetIteration == 0) ? null : repeatableSetIteration);
-			}
-			catch(IllegalArgumentException e) {
-				// The response has a value so, it will be interpreted as such.
-			}
+		try {
+			return prompt.createResponse(responseObject, repeatableSetIteration);
 		}
-		
-		return prompt.createResponse(
-				responseObject, 
-				(repeatableSetIteration < 0) ? null : repeatableSetIteration);
+		catch(IllegalArgumentException e) {
+			throw new ErrorCodeException(ErrorCode.SURVEY_INVALID_RESPONSES, "The response value was invalid.", e);
+		}
 	}
 	
 	/**

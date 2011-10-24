@@ -90,8 +90,8 @@ public abstract class Prompt extends SurveyItem {
 		TIMESTAMP,
 		NUMBER,
 		/**
-		 * @deprecated This should be a number or timestamp depending on the
-		 * 			   situation, and its use should be avoided.
+		 * TODO: This should be a number or timestamp depending on the 
+		 * situation, and its use should be avoided.
 		 */
 		HOURS_BEFORE_NOW,
 		TEXT,

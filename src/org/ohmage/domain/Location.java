@@ -16,15 +16,15 @@ import org.ohmage.util.TimeUtils;
  * @author John Jenkins
  */
 public class Location {
-	private static final String JSON_KEY_LATITUDE = "latitude";
+	public static final String JSON_KEY_LATITUDE = "latitude";
 	private static final String JSON_KEY_LATITUDE_SHORT = "la";
-	private static final String JSON_KEY_LONGITUDE = "longitude";
+	public static final String JSON_KEY_LONGITUDE = "longitude";
 	private static final String JSON_KEY_LONGITUDE_SHORT = "lo";
-	private static final String JSON_KEY_ACCURACY = "accuracy";
+	public static final String JSON_KEY_ACCURACY = "accuracy";
 	private static final String JSON_KEY_ACCURACY_SHORT = "ac";
-	private static final String JSON_KEY_PROVIDER = "provider";
+	public static final String JSON_KEY_PROVIDER = "provider";
 	private static final String JSON_KEY_PROVIDER_SHORT = "pr";
-	private static final String JSON_KEY_TIMESTAMP = "timestamp";
+	public static final String JSON_KEY_TIMESTAMP = "timestamp";
 	private static final String JSON_KEY_TIMESTAMP_SHORT = "ts";
 	
 	private final Double latitude;

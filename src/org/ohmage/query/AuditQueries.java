@@ -1,5 +1,6 @@
 package org.ohmage.query;
 
+import java.net.URI;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -14,6 +15,7 @@ import javax.sql.DataSource;
 
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.domain.Audit;
 import org.ohmage.exception.DataAccessException;
 import org.ohmage.jee.servlet.RequestServlet;
@@ -374,9 +376,9 @@ public class AuditQueries extends Query {
 	 * 
 	 * @return A list of audit IDs.
 	 */
-	public static List<Long> getAllAuditsWithUri(String uri) throws DataAccessException {
+	public static List<Long> getAllAuditsWithUri(URI uri) throws DataAccessException {
 		try {
-			return instance.getJdbcTemplate().query(SQL_GET_AUDIT_IDS_WITH_URI, new Object[] { uri }, new SingleColumnRowMapper<Long>());
+			return instance.getJdbcTemplate().query(SQL_GET_AUDIT_IDS_WITH_URI, new Object[] { uri.toString() }, new SingleColumnRowMapper<Long>());
 		}
 		catch(org.springframework.dao.DataAccessException e) {
 			throw new DataAccessException("Error executing SQL '" + SQL_GET_AUDIT_IDS_WITH_URI + "' with parameter: " + uri, e);
@@ -435,7 +437,7 @@ public class AuditQueries extends Query {
 	 * 
 	 * @return A list of audit IDs.
 	 */
-	public static List<Long> getAllAuditsWithResponse(ResponseType responseType, final String errorCode) throws DataAccessException {
+	public static List<Long> getAllAuditsWithResponse(ResponseType responseType, final ErrorCode errorCode) throws DataAccessException {
 		if(ResponseType.SUCCESS.equals(responseType)) {
 			try {
 				return instance.getJdbcTemplate().query(SQL_GET_AUDIT_IDS_WITH_SUCCESS_RESPONSE, new SingleColumnRowMapper<Long>());
@@ -455,7 +457,7 @@ public class AuditQueries extends Query {
 			}
 			else {
 				try {
-					return instance.getJdbcTemplate().query(SQL_GET_AUDIT_IDS_WITH_FAILURE_RESPONSE_WITH_CODE, new Object[] { errorCode }, new SingleColumnRowMapper<Long>());
+					return instance.getJdbcTemplate().query(SQL_GET_AUDIT_IDS_WITH_FAILURE_RESPONSE_WITH_CODE, new Object[] { errorCode.toString() }, new SingleColumnRowMapper<Long>());
 				}
 				catch(org.springframework.dao.DataAccessException e) {
 					throw new DataAccessException("Error executing SQL '" + SQL_GET_AUDIT_IDS_WITH_FAILURE_RESPONSE_WITH_CODE + "'.", e);
