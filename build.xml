@@ -5,6 +5,7 @@
   <property name="app_name" value="Mobilize"/>
   <property name="app_version" value="2.8"/>
   <property name="src" location="src"/>
+  <property name="test" location="test"/>
   <property name="view" location="view"/>
   <property name="resources" location="web"/>
   <property name="build" location="build"/>
@@ -31,6 +32,7 @@
   	<include name="httpcore-4.1.2.jar"/>
   	<include name="httpclient-4.1.2.jar"/>
   	<include name="httpmime-4.1.2.jar"/>
+  	<include name="junit-4.10.jar"/>
   </fileset>
 
   <fileset id="run-dependencies" dir="${component.repository}">
@@ -82,19 +84,16 @@
   </target>
 
   <target name="javac" description="Compiles Java files.">
-    <mkdir dir="${build}/classes"/>
+  	<mkdir dir="${build}/classes"/>
     <javac destdir="${build}/classes" source="1.6" target="1.6"
           debug="true" deprecation="true" optimize="true" failonerror="true" 
     	  encoding="UTF-8">
       <compilerarg value="-Xlint:unchecked"/>
       <src path="${src}"/>
+      <src path="${test}"/>
+      <exclude name="org/ohmage/test"/>
       <classpath refid="compile-classpath"/>
     </javac>
-    <copy todir="${build}/classes">
-      <fileset dir="${src}">
-        <exclude name="**/*.java"/>
-      </fileset>
-    </copy>
   </target>
 	
   <target name="javac-validator" description="Compiles Java files to create the campaign validator.">
@@ -108,11 +107,6 @@
       <include name="org/ohmage/util/StringUtils.java" />
       <classpath refid="compile-classpath"/>
     </javac>
-    <copy todir="${build}/classes">
-      <fileset dir="${src}">
-        <exclude name="**/*.java"/>
-      </fileset>
-    </copy>
   </target>
 	
   <target name="javac-library" description="Compiles Java files to create the ohmage library.">
@@ -129,11 +123,6 @@
       <exclude name="org/ohmage/domain/Audit.java" />
   	  <classpath refid="compile-classpath"/>
   	</javac>
-  	<copy todir="${build}/classes">
-  	  <fileset dir="${src}">
-  	    <exclude name="**/*.java"/>
-  	  </fileset>
-  	</copy>
   </target>
 
   <target name="javadoc" description="Compiles Javadocs.">
@@ -162,8 +151,22 @@
       <classpath refid="compile-classpath"/>
     </javadoc>
   </target>
+	
+  <path id="classpath.test">
+	<fileset dir="${component.repository}" includes="junit-4.10.jar"/>
+    <pathelement location="${build}/classes"/>
+  </path>
+	
+  <target name="test" depends="javac" description="Executes the JUnit tests.">
+  	<junit printsummary="yes" haltonfailure="yes">
+  	  <classpath refid="classpath.test"/>
+  	  <formatter type="plain" usefile="false" />
+  		
+  	  <test name="org.ohmage.validator.AuditValidatorsTest"/>
+  	</junit>
+  </target>
 
-  <target name="dist" depends="javac" description="Compiles Java files and creates WAR.">
+  <target name="dist" depends="test, javac" description="Compiles Java files and creates WAR.">
     <mkdir dir="${dist}"/>
     <echo message="Warning: Bundling of dependencies will not work if jars are organized in subdirs in component repository."/>
     <exec executable="git" outputproperty="git.revision" failifexecutionfails="true">
@@ -180,6 +183,7 @@
     <move file="system.properties" todir="web/META-INF"/>
     <war webxml="${resources}/WEB-INF/web-ssl.xml" destfile="${dist}/${ant.project.name}-${app_version}.war">
       <classes dir="${build}/classes"/>
+      <exclude name="**/*Test.java"/>
       <lib refid="run-dependencies"/>
       <webinf dir="${resources}/WEB-INF">
         <exclude name="web-no_ssl.xml"/>
@@ -212,6 +216,7 @@
     <move file="system.properties" todir="web/META-INF"/>
     <war webxml="${resources}/WEB-INF/web-no_ssl.xml" destfile="${dist}/${ant.project.name}-${app_version}-no_ssl.war">
       <classes dir="${build}/classes"/>
+      <exclude name="**/*Test.java"/>
       <lib refid="run-dependencies"/>
       <webinf dir="${resources}/WEB-INF">
         <exclude name="web-no_ssl.xml"/>
