@@ -1,11 +1,11 @@
 package org.ohmage.validator;
 
-import static org.junit.Assert.fail;
-
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.Date;
 import java.util.LinkedList;
+
+import junit.framework.TestCase;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -20,7 +20,7 @@ import org.ohmage.validator.AuditValidators.ResponseType;
  * 
  * @author John Jenkins
  */
-public class AuditValidatorsTest {
+public class AuditValidatorsTest extends TestCase {
 	private Collection<String> emptyValues;
 	
 	/**

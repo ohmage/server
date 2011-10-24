@@ -1,9 +1,9 @@
 package org.ohmage.validator;
 
-import static org.junit.Assert.fail;
-
 import java.util.Collection;
 import java.util.LinkedList;
+
+import junit.framework.TestCase;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -14,7 +14,7 @@ import org.ohmage.exception.ValidationException;
  * 
  * @author John Jenkins
  */
-public class CampaignClassValidatorsTest {
+public class CampaignClassValidatorsTest extends TestCase {
 	private Collection<String> emptyValues;
 	
 	/**
@@ -43,19 +43,29 @@ public class CampaignClassValidatorsTest {
 			
 			try {
 				CampaignClassValidators.validateClassesAndRoles("Invalid value.");
-				fail("The request type was an invalid value.");
+				fail("The class ID, campaign role list was an invalid value.");
 			}
 			catch(ValidationException e) { 
 				// Passed.
 			}
 			
-			try {
-				CampaignClassValidators.validateClassesAndRoles(",");
-				fail("The request type was an invalid value.");
-			}
-			catch(ValidationException e) { 
-				// Passed.
-			}
+			Assert.assertEquals(0, CampaignClassValidators.validateClassesAndRoles(";").size());
+			Assert.assertEquals(0, CampaignClassValidators.validateClassesAndRoles(",").size());
+			Assert.assertEquals(0, CampaignClassValidators.validateClassesAndRoles(",,,").size());
+			Assert.assertEquals(0, CampaignClassValidators.validateClassesAndRoles(";,").size());
+			Assert.assertEquals(0, CampaignClassValidators.validateClassesAndRoles(",;").size());
+			Assert.assertEquals(0, CampaignClassValidators.validateClassesAndRoles(";,;").size());
+			Assert.assertEquals(0, CampaignClassValidators.validateClassesAndRoles(";,;,").size());
+			Assert.assertEquals(0, CampaignClassValidators.validateClassesAndRoles(",;,;").size());
+			Assert.assertEquals(0, CampaignClassValidators.validateClassesAndRoles(",;,;,").size());
+			Assert.assertEquals(0, CampaignClassValidators.validateClassesAndRoles(";,;,;").size());
+			Assert.assertEquals(0, CampaignClassValidators.validateClassesAndRoles(",,;,;,").size());
+			Assert.assertEquals(0, CampaignClassValidators.validateClassesAndRoles(",;,,;,").size());
+			Assert.assertEquals(0, CampaignClassValidators.validateClassesAndRoles(",;,;,,").size());
+			
+			// The class ID and campaign roles are validated through their 
+			// respective validators, so if they pass validation then the rest
+			// of this function passes validation.
 		}
 		catch(ValidationException e) {
 			fail("A validation exception was thrown: " + e.getMessage());

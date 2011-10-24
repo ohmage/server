@@ -46,6 +46,7 @@ public class CampaignDocumentValidators {
 	 */
 	public static Map<String, Document.Role> validateCampaignIdAndDocumentRoleList(
 			final String campaignAndRoleList) throws ValidationException {
+		
 		LOGGER.info("Validating a list of campaign ID and document role pairs.");
 		
 		if(StringUtils.isEmptyOrWhitespaceOnly(campaignAndRoleList)) {
