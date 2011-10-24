@@ -153,7 +153,7 @@
   </target>
 	
   <path id="classpath.test">
-	<fileset dir="${component.repository}" includes="junit-4.10.jar"/>
+	<fileset refid="compile-dependencies"/>
     <pathelement location="${build}/classes"/>
   </path>
 	
@@ -161,8 +161,8 @@
   	<junit printsummary="yes" haltonfailure="yes">
   	  <classpath refid="classpath.test"/>
   	  <formatter type="plain" usefile="false" />
-  		
-  	  <test name="org.ohmage.validator.AuditValidatorsTest"/>
+
+  	  <test name="org.ohmage.validator.ValidatorTests"/>
   	</junit>
   </target>
 
