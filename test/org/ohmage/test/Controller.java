@@ -1,11 +1,5 @@
 package org.ohmage.test;
 
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.Date;
 
 import org.ohmage.lib.OhmageApi;
@@ -58,7 +52,7 @@ public class Controller {
 		
 		// Now that we know they work, get the hashed password and an 
 		// authentication token for the rest of the tests to use.
-		String hashedPassword = api.getHashedPassword(adminUsername, adminPassword, CLIENT);
+		//String hashedPassword = api.getHashedPassword(adminUsername, adminPassword, CLIENT);
 		String authToken = api.getAuthenticationToken(adminUsername, adminPassword, CLIENT);
 		
 		// Now, start testing the users and end with some users left in the
@@ -208,7 +202,7 @@ public class Controller {
 	 * 								 file on the filesystem.
 	 * 
 	 * @throws IOException Thrown if there is an issue reading from the file.
-	 */
+	 *
 	private static byte[] readFile(final String filename) throws FileNotFoundException, IOException {
 		File file = new File(filename);
 		
@@ -221,5 +215,5 @@ public class Controller {
 		}
 		
 		return baos.toByteArray();
-	}
+	}*/
 }
