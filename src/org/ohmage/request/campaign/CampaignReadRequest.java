@@ -4,9 +4,9 @@ import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
-import java.util.Calendar;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -154,8 +154,8 @@ public class CampaignReadRequest extends UserRequest {
 	private final List<String> campaignIds;
 	private final Collection<String> classIds;
 	
-	private final Calendar startDate;
-	private final Calendar endDate;
+	private final Date startDate;
+	private final Date endDate;
 	
 	private final Campaign.PrivacyState privacyState;
 	private final Campaign.RunningState runningState;
@@ -184,8 +184,8 @@ public class CampaignReadRequest extends UserRequest {
 		List<String> tCampaignIds = null;
 		Set<String> tClassIds = null;
 		
-		Calendar tStartDate = null;
-		Calendar tEndDate = null;
+		Date tStartDate = null;
+		Date tEndDate = null;
 		
 		Campaign.PrivacyState tPrivacyState = null;
 		Campaign.RunningState tRunningState = null;

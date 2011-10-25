@@ -6,8 +6,8 @@ import java.net.URL;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
-import java.util.Calendar;
 import java.util.Collection;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -19,6 +19,7 @@ import org.ohmage.domain.Clazz;
 import org.ohmage.domain.campaign.Campaign;
 import org.ohmage.domain.campaign.Survey;
 import org.ohmage.exception.DataAccessException;
+import org.ohmage.util.TimeUtils;
 import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.SingleColumnRowMapper;
@@ -693,16 +694,15 @@ public final class CampaignQueries extends Query {
 	 * 
 	 * @return A List of campaign IDs. This will never be null.
 	 */
-	public static List<String> getCampaignsOnOrAfterDate(Calendar date) throws DataAccessException {
-		Timestamp dateAsTimestamp = new Timestamp(date.getTimeInMillis());
+	public static List<String> getCampaignsOnOrAfterDate(Date date) throws DataAccessException {
 		try {
 			return instance.getJdbcTemplate().query(
 					SQL_GET_CAMPAIGNS_ON_OR_AFTER_DATE,
-					new Object[] { dateAsTimestamp },
+					new Object[] { TimeUtils.getIso8601DateTimeString(date) },
 					new SingleColumnRowMapper<String>());
 		}
 		catch(org.springframework.dao.DataAccessException e) {
-			throw new DataAccessException("Error executing SQL '" + SQL_GET_CAMPAIGNS_ON_OR_AFTER_DATE + "' with parameter: " + dateAsTimestamp, e);
+			throw new DataAccessException("Error executing SQL '" + SQL_GET_CAMPAIGNS_ON_OR_AFTER_DATE + "' with parameter: " + TimeUtils.getIso8601DateTimeString(date), e);
 		}
 	}
 	
@@ -714,16 +714,15 @@ public final class CampaignQueries extends Query {
 	 * 
 	 * @return A List of campaign IDs. This will never be null.
 	 */
-	public static List<String> getCampaignsOnOrBeforeDate(Calendar date) throws DataAccessException {
-		Timestamp dateAsTimestamp = new Timestamp(date.getTimeInMillis());
+	public static List<String> getCampaignsOnOrBeforeDate(Date date) throws DataAccessException {
 		try {
 			return instance.getJdbcTemplate().query(
 					SQL_GET_CAMPAIGNS_ON_OR_BEFORE_DATE,
-					new Object[] { dateAsTimestamp },
+					new Object[] { TimeUtils.getIso8601DateTimeString(date) },
 					new SingleColumnRowMapper<String>());
 		}
 		catch(org.springframework.dao.DataAccessException e) {
-			throw new DataAccessException("Error executing SQL '" + SQL_GET_CAMPAIGNS_ON_OR_BEFORE_DATE + "' with parameter: " + dateAsTimestamp, e);
+			throw new DataAccessException("Error executing SQL '" + SQL_GET_CAMPAIGNS_ON_OR_BEFORE_DATE + "' with parameter: " + TimeUtils.getIso8601DateTimeString(date), e);
 		}
 	}
 	

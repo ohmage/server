@@ -22,6 +22,7 @@ import java.util.Date;
 import org.apache.log4j.Logger;
 import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.exception.ValidationException;
+import org.ohmage.util.StringUtils;
 
 
 /**
@@ -80,7 +81,7 @@ public final class DateValidators {
 	private static Date validate(String date, String format) 
 			throws ValidationException {
 		
-		if(date == null) {
+		if(StringUtils.isEmptyOrWhitespaceOnly(date)) {
 			return null;
 		}
 		
@@ -88,7 +89,6 @@ public final class DateValidators {
 			// SimpleDateFormat is not thread-safe so is has to be created on 
 			// every invocation of this method
 			SimpleDateFormat formatter = new SimpleDateFormat(format);
-			formatter.setLenient(false);
 			return formatter.parse(date);
 			
 		} catch (ParseException pe) {

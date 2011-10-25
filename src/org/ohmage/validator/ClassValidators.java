@@ -20,7 +20,10 @@ import org.ohmage.util.StringUtils;
 public final class ClassValidators {
 	private static final Logger LOGGER = Logger.getLogger(ClassValidators.class);
 	
-	private static final int MAX_NAME_LENGTH = 255;
+	/**
+	 * The maximum length for a class name.
+	 */
+	public static final int MAX_NAME_LENGTH = 255;
 	
 	/**
 	 * Default constructor. Private so that no one can instantiate it.

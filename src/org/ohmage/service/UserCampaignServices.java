@@ -1,8 +1,8 @@
 package org.ohmage.service;
 
-import java.util.Calendar;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -533,7 +533,7 @@ public class UserCampaignServices {
 	public static Set<String> getCampaignsForUser(final String username, 
 			final Collection<String> campaignIds, 
 			final Collection<String> classIds,
-			final Calendar startDate, final Calendar endDate, 
+			final Date startDate, final Date endDate, 
 			final Campaign.PrivacyState privacyState, 
 			final Campaign.RunningState runningState, 
 			final Campaign.Role role) throws ServiceException {

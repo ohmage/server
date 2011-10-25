@@ -35,7 +35,10 @@ import java.util.regex.Pattern;
  * @author John Jenkins
  */
 public final class StringUtils {
-	private static final int NUM_URN_SEGMENTS = 3;
+	/**
+	 * The minimum number of URN segments.
+	 */
+	public static final int NUM_URN_SEGMENTS = 3;
 	private static final Pattern URN_PATTERN = Pattern.compile("[a-z0-9_]+");
 
 	private static final String FORMAT_AMERICAN_DATE = "MM/dd/yyyy";
@@ -151,6 +154,10 @@ public final class StringUtils {
 		String s = value.toLowerCase();
 		
 		if(! s.startsWith("urn:")) {
+			return false;
+		}
+		
+		if(s.endsWith(":")) {
 			return false;
 		}
 		
@@ -323,6 +330,10 @@ public final class StringUtils {
 		}
 		
 		try {
+			// FIXME: Once we move to only epoch long values, we need to adjust
+			// the time zone on these SimpleDateFormat objects to reflect that
+			// change, but that assumes we know the sender's timezone. We may
+			// want to get rid of this call altogether.
 			return new SimpleDateFormat(FORMAT_AMERICAN_DATE_TIME).parse(dateTime);
 		}
 		catch(ParseException americanException) {

@@ -1,7 +1,6 @@
 package org.ohmage.validator;
 
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
@@ -273,67 +272,69 @@ public final class CampaignValidators {
 	}
 	
 	/**
-	 * Validates that a start date is a valid date and returns a Calendar 
-	 * object representing that date.
+	 * Validates that a start date is a valid date and returns a Date object 
+	 * representing that date.
 	 * 
 	 * @param startDate The date to be validated.
 	 * 
 	 * @return Returns null if the start date is null or whitespace only;
-	 * 		   otherwise, it returns a Calendar representing the start date.
+	 * 		   otherwise, it returns a Date representing the start date.
 	 * 
 	 * @throws ValidationException Thrown if the start date isn't a decodable
 	 * 							   date.
 	 */
-	public static Calendar validateStartDate(final String startDate) 
+	public static Date validateStartDate(final String startDate) 
 			throws ValidationException {
 		
 		if(StringUtils.isEmptyOrWhitespaceOnly(startDate)) {
 			return null;
 		}
 		
-		Date date = StringUtils.decodeDate(startDate);
+		Date date = StringUtils.decodeDateTime(startDate);
 		if(date == null) {
-			throw new ValidationException(
-					ErrorCode.SERVER_INVALID_DATE, 
-					"The start date is invalid: " + startDate);
+			date = StringUtils.decodeDate(startDate);
+			
+			if(date == null) {
+				throw new ValidationException(
+						ErrorCode.SERVER_INVALID_DATE, 
+						"The start date is invalid: " + startDate);
+			}
 		}
 		
-		Calendar calendar = Calendar.getInstance();
-		calendar.setTime(date);
-		
-		return calendar;
+		return date;
 	}
 	
 	/**
-	 * Validates that an end date is a valid date and returns a Calendar 
-	 * object representing that date.
+	 * Validates that an end date is a valid date and returns a Date object 
+	 * representing that date.
 	 * 
 	 * @param endDate The date to be validated.
 	 * 
 	 * @return Returns null if the end date is null or whitespace only;
-	 * 		   otherwise, it returns a Calendar representing the end date.
+	 * 		   otherwise, it returns a Date representing the end date.
 	 * 
 	 * @throws ValidationException Thrown if the end date isn't a decodable
 	 * 							   date.
 	 */
-	public static Calendar validateEndDate(final String endDate) 
+	public static Date validateEndDate(final String endDate) 
 			throws ValidationException {
 		
 		if(StringUtils.isEmptyOrWhitespaceOnly(endDate)) {
 			return null;
 		}
 		
-		Date date = StringUtils.decodeDate(endDate);
+		Date date = StringUtils.decodeDateTime(endDate);
 		if(date == null) {
-			throw new ValidationException(
-					ErrorCode.SERVER_INVALID_DATE, 
-					"The end date is invalid: " + endDate);
+			date = StringUtils.decodeDate(endDate);
+			
+			if(date == null) {
+				throw new ValidationException(
+						ErrorCode.SERVER_INVALID_DATE, 
+						"The end date is invalid: " + endDate);
+			}
 		}
 		
-		Calendar calendar = Calendar.getInstance();
-		calendar.setTime(date);
-		
-		return calendar;
+		return date;
 	}
 	
 	/**
