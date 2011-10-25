@@ -1,9 +1,7 @@
 package org.ohmage.validator;
 
-import java.util.Calendar;
-import java.util.Collection;
 import java.util.Date;
-import java.util.LinkedList;
+import java.util.Map;
 
 import junit.framework.TestCase;
 
@@ -21,29 +19,13 @@ import org.ohmage.validator.AuditValidators.ResponseType;
  * @author John Jenkins
  */
 public class AuditValidatorsTest extends TestCase {
-	private Collection<String> emptyValues;
-	
-	/**
-	 * Sets up the empty string values.
-	 */
-	public AuditValidatorsTest() {
-		emptyValues = new LinkedList<String>();
-		emptyValues.add(null);
-		emptyValues.add("");
-		emptyValues.add(" ");
-		emptyValues.add("\t");
-		emptyValues.add(" \t ");
-		emptyValues.add("\n");
-		emptyValues.add(" \n ");
-	}
-
 	/**
 	 * Tests the request type validator.
 	 */
 	@Test
 	public void testValidateRequestType() {
 		try {
-			for(String emptyValue : emptyValues) {
+			for(String emptyValue : ParameterSets.getEmptyValues()) {
 				Assert.assertNull(AuditValidators.validateRequestType(emptyValue));
 			}
 			
@@ -76,7 +58,7 @@ public class AuditValidatorsTest extends TestCase {
 	@Test
 	public void testValidateUri() {
 		try {
-			for(String emptyValue : emptyValues) {
+			for(String emptyValue : ParameterSets.getEmptyValues()) {
 				Assert.assertNull(AuditValidators.validateUri(emptyValue));
 			}
 			
@@ -93,7 +75,7 @@ public class AuditValidatorsTest extends TestCase {
 	@Test
 	public void testValidateClient() {
 		try {
-			for(String emptyValue : emptyValues) {
+			for(String emptyValue : ParameterSets.getEmptyValues()) {
 				Assert.assertNull(AuditValidators.validateClient(emptyValue));
 			}
 			
@@ -122,7 +104,7 @@ public class AuditValidatorsTest extends TestCase {
 	@Test
 	public void testValidateDeviceId() {
 		try {
-			for(String emptyValue : emptyValues) {
+			for(String emptyValue : ParameterSets.getEmptyValues()) {
 				Assert.assertNull(AuditValidators.validateDeviceId(emptyValue));
 			}
 			
@@ -140,7 +122,7 @@ public class AuditValidatorsTest extends TestCase {
 	@Test
 	public void testValidateResponseType() {
 		try {
-			for(String emptyValue : emptyValues) {
+			for(String emptyValue : ParameterSets.getEmptyValues()) {
 				Assert.assertNull(AuditValidators.validateResponseType(emptyValue));
 			}
 			
@@ -173,7 +155,7 @@ public class AuditValidatorsTest extends TestCase {
 	@Test
 	public void testValidateErrorCode() {
 		try {
-			for(String emptyValue : emptyValues) {
+			for(String emptyValue : ParameterSets.getEmptyValues()) {
 				Assert.assertNull(AuditValidators.validateErrorCode(emptyValue));
 			}
 			
@@ -206,7 +188,7 @@ public class AuditValidatorsTest extends TestCase {
 	@Test
 	public void testValidateStartDate() {
 		try {
-			for(String emptyValue : emptyValues) {
+			for(String emptyValue : ParameterSets.getEmptyValues()) {
 				Assert.assertNull(AuditValidators.validateStartDate(emptyValue));
 			}
 			
@@ -218,46 +200,15 @@ public class AuditValidatorsTest extends TestCase {
 				// Passed.
 			}
 
-			Date actualValue;
-			String dateString;
+			Map<Date, String> dateToString = ParameterSets.getDateToString();
+			for(Date date : dateToString.keySet()) {
+				Assert.assertEquals(date, AuditValidators.validateStartDate(dateToString.get(date)));
+			}
 			
-			Calendar calendar = Calendar.getInstance();
-			calendar.set(Calendar.YEAR, 2000);
-			calendar.set(Calendar.MONTH, 0);
-			calendar.set(Calendar.DAY_OF_MONTH, 1);
-			calendar.set(Calendar.HOUR_OF_DAY, 0);
-			calendar.set(Calendar.MINUTE, 0);
-			calendar.set(Calendar.SECOND, 0);
-			calendar.set(Calendar.MILLISECOND, 0);
-			
-			actualValue = new Date(calendar.getTimeInMillis());
-			dateString = "2000-01-01";
-			Assert.assertEquals(actualValue, AuditValidators.validateStartDate(dateString));
-			
-			calendar.set(Calendar.MONTH, 1);
-			actualValue = new Date(calendar.getTimeInMillis());
-			dateString = "2000-01-32";
-			Assert.assertEquals(actualValue, AuditValidators.validateStartDate(dateString));
-			
-			actualValue = new Date(calendar.getTimeInMillis());
-			dateString = "2000-02-01 00:00:00";
-			Assert.assertEquals(actualValue, AuditValidators.validateStartDate(dateString));
-			
-			calendar.set(Calendar.HOUR_OF_DAY, 13);
-			calendar.set(Calendar.MINUTE, 10);
-			calendar.set(Calendar.SECOND, 5);
-			actualValue = new Date(calendar.getTimeInMillis());
-			dateString = "2000-02-01 13:10:05";
-			Assert.assertEquals(actualValue, AuditValidators.validateStartDate(dateString));
-			
-			calendar.set(Calendar.DAY_OF_MONTH, 2);
-			calendar.set(Calendar.HOUR_OF_DAY, 0);
-			calendar.set(Calendar.MINUTE, 0);
-			calendar.set(Calendar.SECOND, 0);
-			actualValue = new Date(calendar.getTimeInMillis());
-			dateString = "2000-02-01 23:59:60";
-			Assert.assertEquals(actualValue, AuditValidators.validateStartDate(dateString));
-			
+			Map<Date, String> dateTimeToString = ParameterSets.getDateTimeToString();
+			for(Date date : dateTimeToString.keySet()) {
+				Assert.assertEquals(date, AuditValidators.validateStartDate(dateTimeToString.get(date)));
+			}
 		}
 		catch(ValidationException e) {
 			fail("A validation exception was thrown: " + e.getMessage());
@@ -270,7 +221,7 @@ public class AuditValidatorsTest extends TestCase {
 	@Test
 	public void testValidateEndDate() {
 		try {
-			for(String emptyValue : emptyValues) {
+			for(String emptyValue : ParameterSets.getEmptyValues()) {
 				Assert.assertNull(AuditValidators.validateEndDate(emptyValue));
 			}
 			
@@ -282,46 +233,15 @@ public class AuditValidatorsTest extends TestCase {
 				// Passed.
 			}
 
-			Date actualValue;
-			String dateString;
+			Map<Date, String> dateToString = ParameterSets.getDateToString();
+			for(Date date : dateToString.keySet()) {
+				Assert.assertEquals(date, AuditValidators.validateEndDate(dateToString.get(date)));
+			}
 			
-			Calendar calendar = Calendar.getInstance();
-			calendar.set(Calendar.YEAR, 2000);
-			calendar.set(Calendar.MONTH, 0);
-			calendar.set(Calendar.DAY_OF_MONTH, 1);
-			calendar.set(Calendar.HOUR_OF_DAY, 0);
-			calendar.set(Calendar.MINUTE, 0);
-			calendar.set(Calendar.SECOND, 0);
-			calendar.set(Calendar.MILLISECOND, 0);
-			
-			actualValue = new Date(calendar.getTimeInMillis());
-			dateString = "2000-01-01";
-			Assert.assertEquals(actualValue, AuditValidators.validateEndDate(dateString));
-			
-			calendar.set(Calendar.MONTH, 1);
-			actualValue = new Date(calendar.getTimeInMillis());
-			dateString = "2000-01-32";
-			Assert.assertEquals(actualValue, AuditValidators.validateEndDate(dateString));
-			
-			actualValue = new Date(calendar.getTimeInMillis());
-			dateString = "2000-02-01 00:00:00";
-			Assert.assertEquals(actualValue, AuditValidators.validateEndDate(dateString));
-			
-			calendar.set(Calendar.HOUR_OF_DAY, 13);
-			calendar.set(Calendar.MINUTE, 10);
-			calendar.set(Calendar.SECOND, 5);
-			actualValue = new Date(calendar.getTimeInMillis());
-			dateString = "2000-02-01 13:10:05";
-			Assert.assertEquals(actualValue, AuditValidators.validateEndDate(dateString));
-			
-			calendar.set(Calendar.DAY_OF_MONTH, 2);
-			calendar.set(Calendar.HOUR_OF_DAY, 0);
-			calendar.set(Calendar.MINUTE, 0);
-			calendar.set(Calendar.SECOND, 0);
-			actualValue = new Date(calendar.getTimeInMillis());
-			dateString = "2000-02-01 23:59:60";
-			Assert.assertEquals(actualValue, AuditValidators.validateEndDate(dateString));
-			
+			Map<Date, String> dateTimeToString = ParameterSets.getDateTimeToString();
+			for(Date date : dateTimeToString.keySet()) {
+				Assert.assertEquals(date, AuditValidators.validateEndDate(dateTimeToString.get(date)));
+			}			
 		}
 		catch(ValidationException e) {
 			fail("A validation exception was thrown: " + e.getMessage());

@@ -7,23 +7,23 @@ import org.junit.Test;
 import org.ohmage.exception.ValidationException;
 
 /**
- * Tests the campaign-document validators.
+ * Tests the class-document validators.
  * 
  * @author John Jenkins
  */
-public class CampaignDocumentValidatorsTest extends TestCase {
+public class ClassDocumentValidatorsTest extends TestCase {
 	/**
-	 * Tests the campaign ID, document role list validator.
+	 * Tests the class ID, document role validator.
 	 */
 	@Test
-	public void testValidateCampaignIdAndDocumentRoleList() {
+	public void testValidateClassIdAndDocumentRoleList() {
 		try {
 			for(String emptyValue : ParameterSets.getEmptyValues()) {
-				Assert.assertNull(CampaignDocumentValidators.validateCampaignIdAndDocumentRoleList(emptyValue));
+				Assert.assertNull(ClassDocumentValidators.validateClassIdAndDocumentRoleList(emptyValue));
 			}
 			
 			try {
-				CampaignDocumentValidators.validateCampaignIdAndDocumentRoleList("Invalid value.");
+				ClassDocumentValidators.validateClassIdAndDocumentRoleList("Invalid value.");
 				fail("The campaign ID, document role list was an invalid value.");
 			}
 			catch(ValidationException e) { 
@@ -32,7 +32,7 @@ public class CampaignDocumentValidatorsTest extends TestCase {
 			
 			for(String validUrnDocumentRoleList : ParameterSets.getValidUrnDocumentRoleLists()) {
 				try {
-					CampaignDocumentValidators.validateCampaignIdAndDocumentRoleList(validUrnDocumentRoleList);
+					ClassDocumentValidators.validateClassIdAndDocumentRoleList(validUrnDocumentRoleList);
 				}
 				catch(ValidationException e) {
 					fail("A valid URN, campaign role list was flagged invalid: " + validUrnDocumentRoleList);
@@ -41,7 +41,7 @@ public class CampaignDocumentValidatorsTest extends TestCase {
 			
 			for(String invalidUrnDocumentRoleList : ParameterSets.getInvalidUrnDocumentRoleLists()) {
 				try {
-					CampaignDocumentValidators.validateCampaignIdAndDocumentRoleList(invalidUrnDocumentRoleList);
+					ClassDocumentValidators.validateClassIdAndDocumentRoleList(invalidUrnDocumentRoleList);
 					fail("An invalid URN, campaign role list was flagged valid: " + invalidUrnDocumentRoleList);
 				}
 				catch(ValidationException e) {

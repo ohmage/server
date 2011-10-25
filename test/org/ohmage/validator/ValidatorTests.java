@@ -20,12 +20,17 @@ public class ValidatorTests {
 	 */
 	public static Test suite() {
 		BasicConfigurator.configure();
+		ParameterSets.init();
 		
 		TestSuite suite = new TestSuite(ValidatorTests.class.getName());
 		
 		suite.addTestSuite(AuditValidatorsTest.class);
 		suite.addTestSuite(CampaignClassValidatorsTest.class);
 		suite.addTestSuite(CampaignDocumentValidatorsTest.class);
+		suite.addTestSuite(CampaignValidatorsTest.class);
+		suite.addTestSuite(ClassDocumentValidatorsTest.class);
+		suite.addTestSuite(ClassValidatorsTest.class);
+		suite.addTestSuite(DateValidatorsTest.class);
 		
 		return suite;
 	}
