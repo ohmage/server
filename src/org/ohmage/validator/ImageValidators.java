@@ -119,7 +119,8 @@ public final class ImageValidators {
 			return ImageIO.read(new ByteArrayInputStream(imageContents));
 		}
 		catch(IOException e) {
-			request.setFailed();
+			LOGGER.warn(e.toString(), e);
+			request.setFailed(ErrorCodes.IMAGE_INVALID_DATA, "The image contents was not decodable.");
 			throw new ValidationException("There was an error while reading the image's contents.", e);
 		}
 	}
