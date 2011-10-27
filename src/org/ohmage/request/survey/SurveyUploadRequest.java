@@ -208,8 +208,8 @@ public class SurveyUploadRequest extends UserRequest {
 					
 					BufferedImage bufferedImage = ImageValidators.validateImageContents(this, getMultipartValue(httpRequest, imageId));
 					if(bufferedImage == null) {
-						setFailed(ErrorCodes.IMAGE_INVALID_DATA, "The contents of the image are missing.");
-						throw new ValidationException("The contents of the image are missing.");
+						setFailed(ErrorCodes.IMAGE_INVALID_DATA, "The contents of the image are missing: " + imageId);
+						throw new ValidationException("The contents of the image are missing: " + imageId);
 					}
 					if(tImageContentsMap == null) {
 						tImageContentsMap = new HashMap<String, BufferedImage>();
