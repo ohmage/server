@@ -14,7 +14,10 @@ import org.ohmage.util.StringUtils;
 public class DocumentValidators {
 	private static final Logger LOGGER = Logger.getLogger(DocumentValidators.class);
 	
-	private static final int MAX_NAME_LENGTH = 255;
+	/**
+	 * The maximum allowed length for a document's name.
+	 */
+	public static final int MAX_NAME_LENGTH = 255;
 	
 	/**
 	 * Default constructor. Made private to prevent instantiation.

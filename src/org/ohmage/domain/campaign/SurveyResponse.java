@@ -597,16 +597,7 @@ public class SurveyResponse {
 		 * 									the given value.
 		 */
 		public static SortParameter getValue(final String value) {
-			SortParameter[] sortParameters = values();
-			String valueLowerCase = value.toLowerCase();
-			
-			for(int i = 0; i < sortParameters.length; i++) {
-				if(sortParameters[i].name().toLowerCase().equals(valueLowerCase)) {
-					return sortParameters[i];
-				}
-			}
-			
-			throw new IllegalArgumentException("Unknown value: " + value);
+			return SortParameter.valueOf(value.toUpperCase());
 		}
 		
 		/**

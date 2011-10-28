@@ -735,6 +735,10 @@ public class SurveyUploadQuery extends AbstractUploadQuery {
 						rollback(transactionManager, status);
 						throw new DataAccessException("Error writing the regular image to the system.", e);
 					}
+					catch(IllegalArgumentException e) {
+						rollback(transactionManager, status);
+						throw new DataAccessException("The image contents are null.", e);
+					}
 					
 					// Write the scaled image to the file system.
 					try {

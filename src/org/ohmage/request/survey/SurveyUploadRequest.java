@@ -196,7 +196,11 @@ public class SurveyUploadRequest extends UserRequest {
 
 				tImageContentsMap = new HashMap<String, BufferedImage>();
 				for(String imageId : imageIds) {
-					tImageContentsMap.put(imageId, ImageValidators.validateImageContents(getMultipartValue(httpRequest, imageId)));
+					BufferedImage bufferedImage = ImageValidators.validateImageContents(getMultipartValue(httpRequest, imageId));
+					if(bufferedImage == null) {
+						throw new ValidationException(ErrorCode.IMAGE_INVALID_DATA, "The image data is missing: " + imageId);
+					}
+					tImageContentsMap.put(imageId, bufferedImage);
 					
 					if(LOGGER.isDebugEnabled()) {
 						LOGGER.debug("succesfully created a BufferedImage for key " + imageId);

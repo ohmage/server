@@ -12,7 +12,6 @@ import org.apache.log4j.BasicConfigurator;
  * @author John Jenkins
  */
 public class ValidatorTests {
-
 	/**
 	 * Sets up the system and then runs each of the tests.
 	 * 
@@ -31,6 +30,15 @@ public class ValidatorTests {
 		suite.addTestSuite(ClassDocumentValidatorsTest.class);
 		suite.addTestSuite(ClassValidatorsTest.class);
 		suite.addTestSuite(DateValidatorsTest.class);
+		suite.addTestSuite(DocumentValidatorsTest.class);
+		suite.addTestSuite(ImageValidatorsTest.class);
+		suite.addTestSuite(MobilityValidatorsTest.class);
+		suite.addTestSuite(SurveyResponseValidatorsTest.class);
+		suite.addTestSuite(UserCampaignValidatorsTest.class);
+		suite.addTestSuite(UserClassValidatorsTest.class);
+		suite.addTestSuite(UserDocumentValidatorsTest.class);
+		suite.addTestSuite(UserValidatorsTest.class);
+		suite.addTestSuite(VisualizationValidatorsTest.class);
 		
 		return suite;
 	}

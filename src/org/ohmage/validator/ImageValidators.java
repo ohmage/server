@@ -118,7 +118,17 @@ public final class ImageValidators {
 		}
 		
 		try {
-			return ImageIO.read(new ByteArrayInputStream(imageContents));
+			BufferedImage bufferedImage = 
+				ImageIO.read(new ByteArrayInputStream(imageContents));
+			
+			if(bufferedImage == null) {
+				throw new ValidationException(
+						ErrorCode.IMAGE_INVALID_DATA,
+						"The image data was not valid image data.");
+			}
+			else {
+				return bufferedImage;
+			}
 		}
 		catch(IOException e) {
 			throw new ValidationException(

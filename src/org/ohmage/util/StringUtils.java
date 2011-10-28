@@ -47,7 +47,8 @@ public final class StringUtils {
 	private static final String FORMAT_AMERICAN_DATE_TIME = "M/d/yyyy h:m:s a";
 	private static final String FORMAT_ISO_8601_DATE_TIME = "yyyy-M-d H:m:s";
 	
-	private static final Pattern EMAIL_PATTERN = Pattern.compile("^([_A-Za-z0-9-]+)(\\.[_A-Za-z0-9-]+)*@[A-Za-z0-9]+(\\.[A-Za-z0-9]+)*(\\.[A-Za-z]{2,})$");
+	private static final Pattern EMAIL_PATTERN = 
+		Pattern.compile("^([_A-Za-z0-9-]+)(\\.[_A-Za-z0-9-]+)*@[A-Za-z0-9]+(\\.[A-Za-z0-9]+)*(\\.[A-Za-z]{2,})$");
 	
 	private static final String DEFAULT_DELIMITER = ",";
 	

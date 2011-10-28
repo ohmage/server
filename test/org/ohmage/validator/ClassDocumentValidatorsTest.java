@@ -35,14 +35,14 @@ public class ClassDocumentValidatorsTest extends TestCase {
 					ClassDocumentValidators.validateClassIdAndDocumentRoleList(validUrnDocumentRoleList);
 				}
 				catch(ValidationException e) {
-					fail("A valid URN, campaign role list was flagged invalid: " + validUrnDocumentRoleList);
+					fail("A valid URN, campaign role list failed validation: " + validUrnDocumentRoleList);
 				}
 			}
 			
 			for(String invalidUrnDocumentRoleList : ParameterSets.getInvalidUrnDocumentRoleLists()) {
 				try {
 					ClassDocumentValidators.validateClassIdAndDocumentRoleList(invalidUrnDocumentRoleList);
-					fail("An invalid URN, campaign role list was flagged valid: " + invalidUrnDocumentRoleList);
+					fail("An invalid URN, campaign role list passed validation: " + invalidUrnDocumentRoleList);
 				}
 				catch(ValidationException e) {
 					// Passed.

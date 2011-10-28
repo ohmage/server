@@ -153,15 +153,14 @@ public class ClassValidatorsTest extends TestCase {
 			
 			try {
 				ClassValidators.validateClassRole("Invalid value.");
-				fail("The campaign running state was invalid.");
+				fail("The class role was invalid.");
 			}
 			catch(ValidationException e) {
 				// Passed.
 			}
 			
-			Clazz.Role[] roles = Clazz.Role.values();
-			for(int i = 0; i < roles.length; i++) {
-				Assert.assertEquals(roles[i], ClassValidators.validateClassRole(roles[i].toString()));
+			for(Clazz.Role role : Clazz.Role.values()) {
+				Assert.assertEquals(role, ClassValidators.validateClassRole(role.toString()));
 			}
 		}
 		catch(ValidationException e) {
@@ -180,7 +179,7 @@ public class ClassValidatorsTest extends TestCase {
 			
 			try {
 				ClassValidators.validateClassRole("Invalid value.");
-				fail("The campaign running state was invalid.");
+				fail("The class roster was invalid.");
 			}
 			catch(ValidationException e) {
 				// Passed.

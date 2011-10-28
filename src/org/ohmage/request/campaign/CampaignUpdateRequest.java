@@ -245,7 +245,7 @@ public class CampaignUpdateRequest extends UserRequest {
 				UserClassServices.classesExistAndUserBelongs(classesToRemove, getUser().getUsername());
 				
 				LOGGER.info("Verifying that not all of the classes are being disassociated from the campaign.");
-				CampaignClassServices.verifyNotDisassocitingAllClassesFromCampaign(campaignId, classesToRemove);
+				CampaignClassServices.verifyNotDisassocitingAllClassesFromCampaign(campaignId, classesToRemove, classesToAdd);
 			}
 			
 			if(usersAndRolesToAdd != null) {

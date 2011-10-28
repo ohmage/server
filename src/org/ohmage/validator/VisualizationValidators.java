@@ -13,8 +13,11 @@ import org.ohmage.util.StringUtils;
  * @author John Jenkins
  */
 public class VisualizationValidators {
-	// The width for 1080p.
-	private static final int MAX_IMAGE_DIMENSION = 1920;
+	/**
+	 * The maximum dimension allowed for an image.
+	 */
+	// Twice the width for 1080p.
+	public static final int MAX_IMAGE_DIMENSION = 3840;
 	
 	/**
 	 * Default constructor. Private so that it cannot be instantiated.

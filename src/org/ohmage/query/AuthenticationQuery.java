@@ -109,10 +109,11 @@ public final class AuthenticationQuery extends Query{
 		// Hash the password if necessary.
 		if(user.hashPassword()) {
 			try {
-				String actualPassword = (String) instance.getJdbcTemplate().queryForObject(
-						SQL_GET_PASSWORD, 
-						new Object[] { user.getUsername() },
-						String.class);
+				String actualPassword = 
+					(String) instance.getJdbcTemplate().queryForObject(
+							SQL_GET_PASSWORD, 
+							new Object[] { user.getUsername() },
+							String.class);
 				hashedPassword = BCrypt.hashpw(user.getPassword(), actualPassword);
 				userRequest.getUser().setHashedPassword(hashedPassword);
 			}
@@ -153,7 +154,7 @@ public final class AuthenticationQuery extends Query{
 			return userInformation;
 		}
 		catch(org.springframework.dao.IncorrectResultSizeDataAccessException e) {
-			// If there were multiple users with teh same username,
+			// If there were multiple users with the same username,
 			if(e.getActualSize() > 1) {
 				throw new DataAccessException("Multiple users have the same username.", e);
 			}

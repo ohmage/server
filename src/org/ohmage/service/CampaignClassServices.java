@@ -34,14 +34,18 @@ public class CampaignClassServices {
 	 * 							associated or if there is an error.
 	 */
 	public static void verifyNotDisassocitingAllClassesFromCampaign(
-			final String campaignId, final Collection<String> classIds) 
+			final String campaignId, final Collection<String> classIdsToRemove,
+			final Collection<String> classIdsToAdd) 
 			throws ServiceException {
 		
 		try {
-			Set<String> classIdsCopy = new HashSet<String>(classIds);
-			classIdsCopy.removeAll(CampaignClassQueries.getClassesAssociatedWithCampaign(campaignId));
+			Set<String> currClassIds = new HashSet<String>(CampaignClassQueries.getClassesAssociatedWithCampaign(campaignId));
+			if(classIdsToAdd != null) {
+				currClassIds.addAll(classIdsToAdd);
+			}
+			currClassIds.removeAll(classIdsToRemove);
 			
-			if(classIdsCopy.size() == 0) {
+			if(currClassIds.size() == 0) {
 				throw new ServiceException(
 						ErrorCode.CAMPAIGN_INSUFFICIENT_PERMISSIONS, 
 						"The user is not allowed to disassociate all classes from the campaign.");

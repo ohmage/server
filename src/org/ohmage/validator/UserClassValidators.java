@@ -89,14 +89,7 @@ public final class UserClassValidators {
 								currUserAndRole);
 				}
 				
-				Clazz.Role oldRole = result.put(username, role);
-				if((oldRole != null) && (! oldRole.equals(role))) {
-					throw new ValidationException(
-							ErrorCode.CLASS_INVALID_ROLE, 
-							"The username '" + 
-								username + 
-								"' contains multiple, different roles.");
-				}
+				result.put(username, role);
 			}
 		}
 		

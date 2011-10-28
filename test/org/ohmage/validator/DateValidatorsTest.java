@@ -70,5 +70,4 @@ public class DateValidatorsTest extends TestCase {
 			fail("A validation exception was thrown: " + e.getMessage());
 		}
 	}
-
 }

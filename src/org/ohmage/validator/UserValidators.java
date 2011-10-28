@@ -132,13 +132,25 @@ public final class UserValidators {
 			"'|', " +
 			"':'.";
 	
-	private static final String HASHED_PASSWORD_PATTERN_STRING = "[\\w\\.\\$\\/]{50,60}";
+	private static final String HASHED_PASSWORD_PATTERN_STRING = "[\\w\\.\\$\\/]{60}";
 	private static final Pattern HASHED_PASSWORD_PATTERN = Pattern.compile(HASHED_PASSWORD_PATTERN_STRING);
 
-	private static final int MAX_FIRST_NAME_LENGTH = 255;
-	private static final int MAX_LAST_NAME_LENGTH = 255;
-	private static final int MAX_ORGANIZATION_LENGTH = 255;
-	private static final int MAX_PERSONAL_ID_LENGTH = 255;
+	/**
+	 * The maximum length of a first name value.
+	 */
+	public static final int MAX_FIRST_NAME_LENGTH = 255;
+	/**
+	 * The maximum length of a last name value.
+	 */
+	public static final int MAX_LAST_NAME_LENGTH = 255;
+	/**
+	 * The maximum length of the organization value.
+	 */
+	public static final int MAX_ORGANIZATION_LENGTH = 255;
+	/**
+	 * The maximum length of the personal ID value.
+	 */
+	public static final int MAX_PERSONAL_ID_LENGTH = 255;
 	
 	/**
 	 * Default constructor. Private so that it cannot be instantiated.

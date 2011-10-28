@@ -942,7 +942,7 @@ public final class CampaignQueries extends Query {
 										new RowMapper<Campaign.Role> () {
 											@Override
 											public Campaign.Role mapRow(ResultSet rs, int rowNum) throws SQLException {
-												return Campaign.Role.getValue("role");
+												return Campaign.Role.getValue(rs.getString("role"));
 											}
 										});
 							}
