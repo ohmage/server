@@ -149,6 +149,46 @@ public abstract class CustomChoicePrompt extends ChoicePrompt {
 	}
 	
 	/**
+	 * Returns the key for some label.
+	 * 
+	 * @param label The label.
+	 * 
+	 * @return The key value.
+	 * 
+	 * @throws IllegalArgumentException If no such key for the given label 
+	 * 									exists.
+	 */
+	public Integer getChoiceKey(final String label) {
+		Map<Integer, LabelValuePair> choices = getAllChoices();
+		for(Integer key : choices.keySet()) {
+			if(choices.get(key).getLabel().equals(label)) {
+				return key;
+			}
+		}
+		
+		throw new IllegalArgumentException("No such key for label: " + label);
+	}
+	
+	/**
+	 * Returns the label for a key.
+	 * 
+	 * @param key The key to use to get the label. 
+	 * 
+	 * @return The key's label.
+	 * 
+	 * @throws IllegalArgumentException If there is no such key.
+	 */
+	public String getChoiceLabel(final Integer key) {
+		LabelValuePair lvp = getAllChoices().get(key);
+		if(lvp == null) {
+			throw new IllegalArgumentException("The key is unknown.");
+		}
+		else {
+			return lvp.getLabel();
+		}
+	}
+	
+	/**
 	 * Removes a custom choice with the given key..
 	 * 
 	 * @param key The key of the custom choice to remove.
@@ -157,7 +197,7 @@ public abstract class CustomChoicePrompt extends ChoicePrompt {
 	 * 									to a static choice and not a custom 
 	 * 									one.
 	 */
-	public void removeChoice(Integer key) {
+	public void removeChoice(final Integer key) {
 		if(key == null) {
 			throw new IllegalArgumentException("The key cannot be null.");
 		}

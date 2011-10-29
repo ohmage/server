@@ -3290,15 +3290,11 @@ public class Campaign {
 					e);
 		}
 		
+		String input = null;
 		LabelValuePair inputVlp = properties.get(RemoteActivityPrompt.XML_KEY_INPUT);
-		if(inputVlp == null) {
-			throw new IllegalArgumentException(
-					"Missing the '" + 
-						RemoteActivityPrompt.XML_KEY_INPUT + 
-						"' property: " +
-						id);
+		if(inputVlp != null) {
+			input = inputVlp.getLabel();
 		}
-		String input = inputVlp.getLabel();
 		
 		if(defaultValue != null) {
 			throw new IllegalArgumentException(

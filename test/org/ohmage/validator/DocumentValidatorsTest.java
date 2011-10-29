@@ -74,7 +74,7 @@ public class DocumentValidatorsTest extends TestCase {
 	}
 
 	/**
-	 * Tests the docuemnt role validator.
+	 * Tests the document role validator.
 	 */
 	@Test
 	public void testValidateRole() {

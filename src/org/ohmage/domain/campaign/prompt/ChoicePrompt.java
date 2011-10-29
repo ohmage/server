@@ -89,6 +89,27 @@ public abstract class ChoicePrompt extends Prompt {
 	}
 	
 	/**
+	 * Returns the key for some label.
+	 * 
+	 * @param label The label.
+	 * 
+	 * @return The key value.
+	 * 
+	 * @throws IllegalArgumentException If no such key for the given label 
+	 * 									exists.
+	 */
+	public Integer getChoiceKey(final String label) {
+		Map<Integer, LabelValuePair> choices = getChoices();
+		for(Integer key : choices.keySet()) {
+			if(choices.get(key).getLabel().equals(label)) {
+				return key;
+			}
+		}
+		
+		throw new IllegalArgumentException("No such key for label: " + label);
+	}
+	
+	/**
 	 * Creates a JSONObject that represents this choice prompt.
 	 * 
 	 * @return A JSONObject that represents this choice prompt.

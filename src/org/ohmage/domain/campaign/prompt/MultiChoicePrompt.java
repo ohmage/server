@@ -11,6 +11,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.ohmage.domain.campaign.Response.NoResponse;
 import org.ohmage.domain.campaign.response.MultiChoicePromptResponse;
+import org.ohmage.util.StringUtils;
 
 /**
  * This class represents a multiple-choice prompt where the choices are all
@@ -155,37 +156,55 @@ public class MultiChoicePrompt extends ChoicePrompt {
 			try {
 				return NoResponse.valueOf(valueString);
 			}
-			catch(IllegalArgumentException e) {
-				String responseWithoutBrackets = valueString;
-				
-				if(responseWithoutBrackets.startsWith("[")) {
-					responseWithoutBrackets = responseWithoutBrackets.substring(1);
+			catch(IllegalArgumentException notNoResponse) {
+				collectionValue = new HashSet<Integer>();
+
+				try {
+					JSONArray responses = new JSONArray(valueString);
 					
-					if(responseWithoutBrackets.endsWith("]")) {
-						responseWithoutBrackets = responseWithoutBrackets.substring(0, responseWithoutBrackets.length());
-					}
-				}
-				String[] responses = responseWithoutBrackets.split(",");
-				
-				collectionValue = new HashSet<Integer>(responses.length);
-				for(int i = 0; i < responses.length; i++) {
-					String currResponse = responses[i];
-					
-					try {
-						collectionValue.add(Integer.decode(currResponse));
-					}
-					catch(NumberFormatException notKey) {
-						boolean found = false;
-						
-						for(Integer key : choices.keySet()) {
-							if(choices.get(key).getLabel().equals(currResponse)) {
-								collectionValue.add(key);
-								break;
+					int numResponses = responses.length();
+					for(int i = 0; i < numResponses; i++) {
+						try {
+							collectionValue.add(responses.getInt(i));
+						}
+						catch(JSONException notKey) {
+							String responseLabel = responses.getString(i);
+							
+							try {
+								collectionValue.add(getChoiceKey(responseLabel));
+							}
+							catch(IllegalArgumentException e) {
+								throw new IllegalArgumentException("The choice was not a valid response for this prompt.");
 							}
 						}
+					}
+				}
+				catch(JSONException notJsonArray) {
+					String[] responses = valueString.split(",");
+					
+					collectionValue = new HashSet<Integer>(responses.length);
+					for(int i = 0; i < responses.length; i++) {
+						String currResponse = responses[i];
 						
-						if(! found) {
-							throw new IllegalArgumentException("One of the values in the collection was not a String value.");
+						if(StringUtils.isEmptyOrWhitespaceOnly(currResponse)) {
+							try {
+								collectionValue.add(Integer.decode(currResponse));
+							}
+							catch(NumberFormatException notKey) {
+								boolean found = false;
+								
+								for(Integer key : choices.keySet()) {
+									if(choices.get(key).getLabel().equals(currResponse)) {
+										collectionValue.add(key);
+										found = true;
+										break;
+									}
+								}
+								
+								if(! found) {
+									throw new IllegalArgumentException("One of the values in the collection was not a String value.");
+								}
+							}
 						}
 					}
 				}

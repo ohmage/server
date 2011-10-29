@@ -157,14 +157,12 @@ public class CampaignValidatorsTest extends TestCase {
 			fail("A validation exception was thrown: " + e.getMessage());
 		}
 	}
-	
-/*
-TODO:
+
 	@Test
 	public void testValidateXml() {
-		fail("Not yet implemented");
+		// TODO: Finish implementing the test.
+		//fail("Not yet implemented");
 	}
-*/
 	
 	/**
 	 * Test the campaign description validator.

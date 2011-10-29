@@ -1,8 +1,10 @@
 package org.ohmage.domain.campaign.prompt;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -11,6 +13,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.ohmage.domain.campaign.Response.NoResponse;
 import org.ohmage.domain.campaign.response.MultiChoiceCustomPromptResponse;
+import org.ohmage.util.StringUtils;
 
 /**
  * This class represents a multiple-choice prompt with custom choices provided
@@ -129,7 +132,7 @@ public class MultiChoiceCustomPrompt extends CustomChoicePrompt {
 			return value;
 		}
 		// If it's already a collection, first ensure that all of the elements
-		// are strings.
+		// are integers.
 		else if(value instanceof Collection<?>) {
 			Collection<?> values = (Collection<?>) value;
 			collectionValue = new HashSet<Integer>(values.size());
@@ -159,37 +162,53 @@ public class MultiChoiceCustomPrompt extends CustomChoicePrompt {
 			try {
 				return NoResponse.valueOf(valueString);
 			}
-			catch(IllegalArgumentException e) {
-				String responseWithoutBrackets = valueString;
-				
-				if(responseWithoutBrackets.startsWith("[")) {
-					responseWithoutBrackets = responseWithoutBrackets.substring(1);
+			catch(IllegalArgumentException notNoResponse) {
+				collectionValue = new HashSet<Integer>();
+
+				try {
+					JSONArray responses = new JSONArray(valueString);
 					
-					if(responseWithoutBrackets.endsWith("]")) {
-						responseWithoutBrackets = responseWithoutBrackets.substring(0, responseWithoutBrackets.length());
+					int numResponses = responses.length();
+					for(int i = 0; i < numResponses; i++) {
+						String responseLabel = responses.getString(i);
+						
+						try {
+							collectionValue.add(getChoiceKey(responseLabel));
+						}
+						catch(IllegalArgumentException e) {
+							List<Integer> keyset = new ArrayList<Integer>(getAllChoices().keySet());
+							Collections.sort(keyset);
+							
+							addChoice(keyset.get(keyset.size() - 1) + 1, responseLabel, null);
+						}
 					}
 				}
-				String[] responses = responseWithoutBrackets.split(",");
-				
-				collectionValue = new HashSet<Integer>(responses.length);
-				for(int i = 0; i < responses.length; i++) {
-					String currResponse = responses[i];
+				catch(JSONException notJsonArray) {
+					String[] responses = valueString.split(",");
 					
-					try {
-						collectionValue.add(Integer.decode(currResponse));
-					}
-					catch(NumberFormatException notKey) {
-						boolean found = false;
+					collectionValue = new HashSet<Integer>(responses.length);
+					for(int i = 0; i < responses.length; i++) {
+						String currResponse = responses[i];
 						
-						for(Integer key : choices.keySet()) {
-							if(choices.get(key).getLabel().equals(currResponse)) {
-								collectionValue.add(key);
-								break;
+						if(StringUtils.isEmptyOrWhitespaceOnly(currResponse)) {
+							try {
+								collectionValue.add(Integer.decode(currResponse));
 							}
-						}
-						
-						if(! found) {
-							throw new IllegalArgumentException("One of the values in the collection was not a String value.");
+							catch(NumberFormatException notKey) {
+								boolean found = false;
+								
+								for(Integer key : choices.keySet()) {
+									if(choices.get(key).getLabel().equals(currResponse)) {
+										collectionValue.add(key);
+										found = true;
+										break;
+									}
+								}
+								
+								if(! found) {
+									throw new IllegalArgumentException("The response value could not be decoded as a response value.");
+								}
+							}
 						}
 					}
 				}

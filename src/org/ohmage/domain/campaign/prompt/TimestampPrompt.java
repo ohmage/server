@@ -93,13 +93,22 @@ public class TimestampPrompt extends Prompt {
 		}
 		// If it's a String, attempt to convert it to a Date and return it.
 		else if(value instanceof String) {
-			if(StringUtils.decodeDateTime((String) value) != null) {
-				return true;
+			Date result = null;
+			
+			try {
+				return NoResponse.valueOf((String) value);
 			}
-			else if(StringUtils.decodeDate((String) value) != null) {
-				return true;
-			}
-			else {
+			catch(IllegalArgumentException iae) {
+				result = StringUtils.decodeDateTime((String) value);
+				if(result != null) {
+					return result;
+				}
+				
+				result = StringUtils.decodeDate((String) value);
+				if(result != null) {
+					return result;
+				}
+			
 				throw new IllegalArgumentException("The string value could not be converted to a date.");
 			}
 		}

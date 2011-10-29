@@ -27,8 +27,6 @@ import org.apache.log4j.Logger;
 /**
  * A collection of static methods for working with dates.
  * 
- * FIXME -- Javadoc
- * 
  * @author Joshua Selsky
  */
 public final class DateUtils {

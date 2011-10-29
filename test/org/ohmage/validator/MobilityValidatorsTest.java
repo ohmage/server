@@ -15,13 +15,12 @@ import org.ohmage.exception.ValidationException;
  * @author John Jenkins
  */
 public class MobilityValidatorsTest extends TestCase {
-/*
-TODO:
 	@Test
 	public void testValidateDataAsJsonArray() {
-		fail("Not yet implemented");
+		// TODO: Finish implementing this test.
+		//fail("Not yet implemented");
 	}
-*/
+
 	/**
 	 * Tests the date validator.
 	 */
