@@ -623,11 +623,11 @@ public final class SurveyResponseReadRequest extends UserRequest {
 								if(null != singleChoiceValue) {
 									result.getPromptResponseMap().put(promptId, singleChoiceValue);
 								} 
-								else if(null != JsonUtils.getStringFromJsonObject(customChoiceResponse, VALUE)) {
-									result.getPromptResponseMap().put(promptId, JsonUtils.getStringFromJsonObject(customChoiceResponse, VALUE));
+								else if(null != JsonUtils.getJsonArrayFromJsonObject(customChoiceResponse, VALUE)) {
+									result.getPromptResponseMap().put(promptId, JsonUtils.getJsonArrayFromJsonObject(customChoiceResponse, VALUE));
 								}
 								else {
-									result.getPromptResponseMap().put(promptId, JsonUtils.getJsonArrayFromJsonObject(customChoiceResponse, VALUE));
+									result.getPromptResponseMap().put(promptId, JsonUtils.getStringFromJsonObject(customChoiceResponse, VALUE));
 								}								
  
 								// Since the glossary will not contain the custom choices, the result's display value 
