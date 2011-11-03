@@ -201,24 +201,24 @@ public class DocumentCreationRequest extends UserRequest {
 				List<String> campaignIds = new ArrayList<String>(campaignRoleMap.keySet());
 				
 				LOGGER.info("Verifying that the campaigns in the campaign-role list exist.");
-				CampaignServices.checkCampaignsExistence(campaignIds, true);
+				CampaignServices.instance().checkCampaignsExistence(campaignIds, true);
 				
 				LOGGER.info("Verifying that the user can associate documents with the campaigns in the campaign-role list.");
-				UserCampaignDocumentServices.userCanAssociateDocumentsWithCampaigns(getUser().getUsername(), campaignIds);
+				UserCampaignDocumentServices.instance().userCanAssociateDocumentsWithCampaigns(getUser().getUsername(), campaignIds);
 			}
 			
 			if(classRoleMap != null) {
 				List<String> classIds = new ArrayList<String>(classRoleMap.keySet());
 				
 				LOGGER.info("Verifying that the classes in the class-role list exist.");
-				ClassServices.checkClassesExistence(classIds, true);
+				ClassServices.instance().checkClassesExistence(classIds, true);
 				
 				LOGGER.info("Verifying that the user can associate documents with the classes in the class-role list.");
-				UserClassDocumentServices.userCanAssociateDocumentsWithClasses(getUser().getUsername(), classIds);
+				UserClassDocumentServices.instance().userCanAssociateDocumentsWithClasses(getUser().getUsername(), classIds);
 			}
 			
 			LOGGER.info("Creating the document.");
-			documentId = DocumentServices.createDocument(document, name, description, privacyState, campaignRoleMap, classRoleMap, getUser().getUsername());
+			documentId = DocumentServices.instance().createDocument(document, name, description, privacyState, campaignRoleMap, classRoleMap, getUser().getUsername());
 		}
 		catch(ServiceException e) {
 			e.failRequest(this);

@@ -18,6 +18,7 @@ import org.ohmage.domain.campaign.Prompt;
 import org.ohmage.domain.campaign.SurveyResponse;
 import org.ohmage.exception.DataAccessException;
 import org.ohmage.exception.ErrorCodeException;
+import org.ohmage.query.ISurveyResponseQueries;
 import org.ohmage.util.StringUtils;
 import org.ohmage.util.TimeUtils;
 import org.springframework.jdbc.core.RowMapper;
@@ -35,7 +36,7 @@ import org.springframework.transaction.support.DefaultTransactionDefinition;
  * @author John Jenkins
  * @author Joshua Selsky
  */
-public class SurveyResponseQueries extends Query {
+public class SurveyResponseQueries extends Query implements ISurveyResponseQueries {
 	// Retrieves the ID for all survey responses in a campaign.
 	private static final String SQL_GET_IDS_FOR_CAMPAIGN =
 		"SELECT sr.id " +
@@ -158,9 +159,7 @@ public class SurveyResponseQueries extends Query {
 	private static final String SQL_DELETE_SURVEY_RESPONSE =
 		"DELETE FROM survey_response " +
 		"WHERE id = ?";
-	
-	private static SurveyResponseQueries instance;
-	
+
 	/**
 	 * Creates this object.
 	 * 
@@ -168,24 +167,14 @@ public class SurveyResponseQueries extends Query {
 	 */
 	private SurveyResponseQueries(DataSource dataSource) {
 		super(dataSource);
-		
-		instance = this;
 	}
 	
-	/**
-	 * Retrieves the survey response ID for all of the survey responses made in
-	 * a given campaign.
-	 * 
-	 * @param campaignId The campaign's unique identifier.
-	 * 
-	 * @return A, possibly empty but never null, list of survey response unique
-	 * 		   identifiers.
-	 * 
-	 * @throws DataAccessException Thrown if there is an error.
+	/* (non-Javadoc)
+	 * @see org.ohmage.query.impl.ISurveyResponseQueries#retrieveSurveyResponseIdsFromCampaign(java.lang.String)
 	 */
-	public static List<Long> retrieveSurveyResponseIdsFromCampaign(final String campaignId) throws DataAccessException {
+	public List<Long> retrieveSurveyResponseIdsFromCampaign(final String campaignId) throws DataAccessException {
 		try {
-			return instance.getJdbcTemplate().query(SQL_GET_IDS_FOR_CAMPAIGN, new Object[] { campaignId }, new SingleColumnRowMapper<Long>());
+			return getJdbcTemplate().query(SQL_GET_IDS_FOR_CAMPAIGN, new Object[] { campaignId }, new SingleColumnRowMapper<Long>());
 		}
 		catch(org.springframework.dao.DataAccessException e) {
 			throw new DataAccessException(
@@ -197,22 +186,12 @@ public class SurveyResponseQueries extends Query {
 		}
 	}
 	
-	/**
-	 * Retrieves the survey response ID for all of the survey responses made by
-	 * a given user in a given campaign.
-	 * 
-	 * @param campaignId The campaign's unique identifier.
-	 * 
-	 * @param username The user's username.
-	 * 
-	 * @return A, possibly empty but never null, list of survey response unique
-	 * 		   identifiers.
-	 * 
-	 * @throws DataAccessException Thrown if there is an error.
+	/* (non-Javadoc)
+	 * @see org.ohmage.query.impl.ISurveyResponseQueries#retrieveSurveyResponseIdsFromUser(java.lang.String, java.lang.String)
 	 */
-	public static List<Long> retrieveSurveyResponseIdsFromUser(final String campaignId, final String username) throws DataAccessException {
+	public List<Long> retrieveSurveyResponseIdsFromUser(final String campaignId, final String username) throws DataAccessException {
 		try {
-			return instance.getJdbcTemplate().query(SQL_GET_IDS_FOR_USER, new Object[] { username, campaignId }, new SingleColumnRowMapper<Long>());
+			return getJdbcTemplate().query(SQL_GET_IDS_FOR_USER, new Object[] { username, campaignId }, new SingleColumnRowMapper<Long>());
 		}
 		catch(org.springframework.dao.DataAccessException e) {
 			throw new DataAccessException(
@@ -225,22 +204,12 @@ public class SurveyResponseQueries extends Query {
 		}
 	}
 	
-	/**
-	 * Retrieves the survey response ID for all of the survey responses made by
-	 * a given client in a given campaign.
-	 * 
-	 * @param campaignId The campaign's unique identifier.
-	 * 
-	 * @param client The client value.
-	 * 
-	 * @return A, possibly empty but never null, list of survey response unique
-	 * 		   identifiers.
-	 * 
-	 * @throws DataAccessException Thrown if there is an error.
+	/* (non-Javadoc)
+	 * @see org.ohmage.query.impl.ISurveyResponseQueries#retrieveSurveyResponseIdsWithClient(java.lang.String, java.lang.String)
 	 */
-	public static List<Long> retrieveSurveyResponseIdsWithClient(final String campaignId, final String client) throws DataAccessException {
+	public List<Long> retrieveSurveyResponseIdsWithClient(final String campaignId, final String client) throws DataAccessException {
 		try {
-			return instance.getJdbcTemplate().query(
+			return getJdbcTemplate().query(
 					SQL_GET_IDS_WITH_CLIENT, 
 					new Object[] { campaignId, client }, 
 					new SingleColumnRowMapper<Long>());
@@ -256,22 +225,12 @@ public class SurveyResponseQueries extends Query {
 		}
 	}
 
-	/**
-	 * Retrieves the survey response ID for all of the survey responses made on
-	 * or after a given date in a given campaign.
-	 * 
-	 * @param campaignId The campaign's unique identifier.
-	 * 
-	 * @param startDate The date.
-	 * 
-	 * @return A, possibly empty but never null, list of survey response unique
-	 * 		   identifiers.
-	 * 
-	 * @throws DataAccessException Thrown if there is an error.
+	/* (non-Javadoc)
+	 * @see org.ohmage.query.impl.ISurveyResponseQueries#retrieveSurveyResponseIdsAfterDate(java.lang.String, java.util.Date)
 	 */
-	public static List<Long> retrieveSurveyResponseIdsAfterDate(final String campaignId, final Date startDate) throws DataAccessException {
+	public List<Long> retrieveSurveyResponseIdsAfterDate(final String campaignId, final Date startDate) throws DataAccessException {
 		try {
-			return instance.getJdbcTemplate().query(
+			return getJdbcTemplate().query(
 					SQL_GET_IDS_AFTER_DATE, 
 					new Object[] { campaignId, TimeUtils.getIso8601DateString(startDate) }, 
 					new SingleColumnRowMapper<Long>());
@@ -287,22 +246,12 @@ public class SurveyResponseQueries extends Query {
 		}
 	}
 	
-	/**
-	 * Retrieves the survey response ID for all of the survey responses made on
-	 * or before a given date in a given campaign.
-	 * 
-	 * @param campaignId The campaign's unique identifier.
-	 * 
-	 * @param endDate The date.
-	 * 
-	 * @return A, possibly empty but never null, list of survey response unique
-	 * 		   identifiers.
-	 * 
-	 * @throws DataAccessException Thrown if there is an error.
+	/* (non-Javadoc)
+	 * @see org.ohmage.query.impl.ISurveyResponseQueries#retrieveSurveyResponseIdsBeforeDate(java.lang.String, java.util.Date)
 	 */
-	public static List<Long> retrieveSurveyResponseIdsBeforeDate(final String campaignId, final Date endDate) throws DataAccessException {
+	public List<Long> retrieveSurveyResponseIdsBeforeDate(final String campaignId, final Date endDate) throws DataAccessException {
 		try {
-			return instance.getJdbcTemplate().query(
+			return getJdbcTemplate().query(
 					SQL_GET_IDS_BEFORE_DATE, 
 					new Object[] { campaignId, TimeUtils.getIso8601DateString(endDate) }, 
 					new SingleColumnRowMapper<Long>());
@@ -318,23 +267,13 @@ public class SurveyResponseQueries extends Query {
 		}
 	}
 	
-	/**
-	 * Retrieves the survey response ID for all of the survey responses with a
-	 * given privacy state in a given campaign.
-	 * 
-	 * @param campaignId The campaign's unique identifier.
-	 * 
-	 * @param privacyState The privacy state.
-	 * 
-	 * @return A, possibly empty but never null, list of survey response unique
-	 * 		   identifiers.
-	 * 
-	 * @throws DataAccessException Thrown if there is an error.
+	/* (non-Javadoc)
+	 * @see org.ohmage.query.impl.ISurveyResponseQueries#retrieveSurveyResponseIdsWithPrivacyState(java.lang.String, org.ohmage.domain.campaign.SurveyResponse.PrivacyState)
 	 */
-	public static List<Long> retrieveSurveyResponseIdsWithPrivacyState(final String campaignId, 
+	public List<Long> retrieveSurveyResponseIdsWithPrivacyState(final String campaignId, 
 			final SurveyResponse.PrivacyState privacyState) throws DataAccessException {
 		try {
-			return instance.getJdbcTemplate().query(
+			return getJdbcTemplate().query(
 					SQL_GET_IDS_WITH_PRIVACY_STATE, 
 					new Object[] { campaignId, privacyState.toString() }, 
 					new SingleColumnRowMapper<Long>());
@@ -350,22 +289,12 @@ public class SurveyResponseQueries extends Query {
 		}
 	}
 	
-	/**
-	 * Retrieves the survey response ID for all of the survey responses with a
-	 * given survey ID in a given campaign.
-	 * 
-	 * @param campaignId The campaign's unique identifier.
-	 * 
-	 * @param surveyId The survey's unique identifier.
-	 * 
-	 * @return A, possibly empty but never null, list of survey response unique
-	 * 		   identifiers.
-	 * 
-	 * @throws DataAccessException Thrown if there is an error.
+	/* (non-Javadoc)
+	 * @see org.ohmage.query.impl.ISurveyResponseQueries#retrieveSurveyResponseIdsWithSurveyId(java.lang.String, java.lang.String)
 	 */
-	public static List<Long> retrieveSurveyResponseIdsWithSurveyId(final String campaignId, final String surveyId) throws DataAccessException {
+	public List<Long> retrieveSurveyResponseIdsWithSurveyId(final String campaignId, final String surveyId) throws DataAccessException {
 		try {
-			return instance.getJdbcTemplate().query(
+			return getJdbcTemplate().query(
 					SQL_GET_IDS_WITH_SURVEY_ID, 
 					new Object[] { campaignId, surveyId }, 
 					new SingleColumnRowMapper<Long>());
@@ -381,22 +310,12 @@ public class SurveyResponseQueries extends Query {
 		}
 	}
 	
-	/**
-	 * Retrieves the survey response ID for all of the survey responses with a
-	 * given prompt ID in a given campaign.
-	 * 
-	 * @param campaignId The campaign's unique identifier.
-	 * 
-	 * @param promptId The prompt's unique identifier.
-	 * 
-	 * @return A, possibly empty but never null, list of survey response unique
-	 * 		   identifiers.
-	 * 
-	 * @throws DataAccessException Thrown if there is an error.
+	/* (non-Javadoc)
+	 * @see org.ohmage.query.impl.ISurveyResponseQueries#retrieveSurveyResponseIdsWithPromptId(java.lang.String, java.lang.String)
 	 */
-	public static List<Long> retrieveSurveyResponseIdsWithPromptId(final String campaignId, final String promptId) throws DataAccessException {
+	public List<Long> retrieveSurveyResponseIdsWithPromptId(final String campaignId, final String promptId) throws DataAccessException {
 		try {
-			return instance.getJdbcTemplate().query(
+			return getJdbcTemplate().query(
 					SQL_GET_IDS_WITH_PROMPT_ID, 
 					new Object[] { campaignId, promptId }, 
 					new SingleColumnRowMapper<Long>());
@@ -412,22 +331,12 @@ public class SurveyResponseQueries extends Query {
 		}
 	}
 	
-	/**
-	 * Retrieves the survey response ID for all of the survey responses with a
-	 * given prompt type in a given campaign.
-	 * 
-	 * @param campaignId The campaign's unique identifier.
-	 * 
-	 * @param promptType The prompt's type.
-	 * 
-	 * @return A, possibly empty but never null, list of survey response unique
-	 * 		   identifiers.
-	 * 
-	 * @throws DataAccessException Thrown if there is an error.
+	/* (non-Javadoc)
+	 * @see org.ohmage.query.impl.ISurveyResponseQueries#retrieveSurveyResponseIdsWithPromptType(java.lang.String, java.lang.String)
 	 */
-	public static List<Long> retrieveSurveyResponseIdsWithPromptType(final String campaignId, final String promptType) throws DataAccessException {
+	public List<Long> retrieveSurveyResponseIdsWithPromptType(final String campaignId, final String promptType) throws DataAccessException {
 		try {
-			return instance.getJdbcTemplate().query(
+			return getJdbcTemplate().query(
 					SQL_GET_IDS_WITH_PROMPT_TYPE, 
 					new Object[] { campaignId, promptType }, 
 					new SingleColumnRowMapper<Long>());
@@ -443,29 +352,16 @@ public class SurveyResponseQueries extends Query {
 		}
 	}
 	
-	/**
-	 * Retrieves the information about a survey response including all of the
-	 * individual prompt responses.
-	 * 
-	 * @param campaign The campaign that contains all of the surveys.
-	 * 
-	 * @param surveyResponseId The survey response's unique identifier.
-	 * 
-	 * @return A SurveyResponseInformation object.
-	 * 
-	 * @throws DataAccessException Thrown if there is an error. This may be due
-	 * 							   to a problem with the database or an issue
-	 * 							   with the content in the database not being
-	 * 							   understood by the SurveyResponseInformation
-	 * 							   constructor.
+	/* (non-Javadoc)
+	 * @see org.ohmage.query.impl.ISurveyResponseQueries#retrieveSurveyResponseFromId(org.ohmage.domain.campaign.Campaign, java.lang.Long)
 	 */
-	public static SurveyResponse retrieveSurveyResponseFromId(
+	public SurveyResponse retrieveSurveyResponseFromId(
 			final Campaign campaign,
 			final Long surveyResponseId) throws DataAccessException {
 		
 		try {
 			// Create the survey response information object from the database.
-			final SurveyResponse result = instance.getJdbcTemplate().queryForObject(
+			final SurveyResponse result = getJdbcTemplate().queryForObject(
 					SQL_GET_SURVEY_RESPONSE,
 					new Object[] { surveyResponseId },
 					new RowMapper<SurveyResponse>() {
@@ -512,7 +408,7 @@ public class SurveyResponseQueries extends Query {
 			
 			// Retrieve all of the prompt responses for the survey response and
 			// add them to the survey response information object.
-			instance.getJdbcTemplate().query(
+			getJdbcTemplate().query(
 					SQL_GET_PROMPT_RESPONSES,
 					new Object[] { surveyResponseId },
 					new RowMapper<Object>() {
@@ -550,21 +446,10 @@ public class SurveyResponseQueries extends Query {
 		}
 	}
 	
-	/**
-	 * Retrieves the information about a list of survey responses including all
-	 * of their individual prompt responses.
-	 * 
-	 * @param campaign The campaign that contains all of the surveys.
-	 * 
-	 * @param surveyResponseIds A collection of unique identifiers for survey
-	 * 							responses whose information is being queried.
-	 * 
-	 * @return A list of SurveyResponseInformation objects each relating to a
-	 * 		   survey response ID.
-	 * 
-	 * @throws DataAccessException Thrown if there is an error.
+	/* (non-Javadoc)
+	 * @see org.ohmage.query.impl.ISurveyResponseQueries#retrieveSurveyResponseFromIds(org.ohmage.domain.campaign.Campaign, java.util.Collection)
 	 */
-	public static List<SurveyResponse> retrieveSurveyResponseFromIds(
+	public List<SurveyResponse> retrieveSurveyResponseFromIds(
 			final Campaign campaign,
 			final Collection<Long> surveyResponseIds) throws DataAccessException {
 		try {
@@ -572,7 +457,7 @@ public class SurveyResponseQueries extends Query {
 			typeMapping.put("tinyint", Integer.class);
 			
 			final List<SurveyResponse> result = 
-				instance.getJdbcTemplate().query(
+				getJdbcTemplate().query(
 					SQL_GET_SURVEY_RESPONSES + StringUtils.generateStatementPList(surveyResponseIds.size()),
 					surveyResponseIds.toArray(),
 					new RowMapper<SurveyResponse>() {
@@ -606,7 +491,7 @@ public class SurveyResponseQueries extends Query {
 								// Retrieve all of the prompt responses for the
 								// current survey response.
 								try {
-									instance.getJdbcTemplate().query(
+									getJdbcTemplate().query(
 											SQL_GET_PROMPT_RESPONSES,
 											new Object[] { rs.getLong("id") },
 											new RowMapper<Object>() {
@@ -670,26 +555,21 @@ public class SurveyResponseQueries extends Query {
 		}
 	}
 	
-	/**
-	 * Updates the privacy state on a survey response.
-	 * 
-	 * @param surveyResponseId The survey response's unique identifier.
-	 * @param privacyState The survey's new privacy state
-	 * 
-	 * @throws DataAccessException Thrown if there is an error.
+	/* (non-Javadoc)
+	 * @see org.ohmage.query.impl.ISurveyResponseQueries#updateSurveyResponsePrivacyState(java.lang.Long, org.ohmage.domain.campaign.SurveyResponse.PrivacyState)
 	 */
-	public static void updateSurveyResponsePrivacyState(Long surveyResponseId, SurveyResponse.PrivacyState newPrivacyState) throws DataAccessException {
+	public void updateSurveyResponsePrivacyState(Long surveyResponseId, SurveyResponse.PrivacyState newPrivacyState) throws DataAccessException {
 		// Create the transaction.
 		DefaultTransactionDefinition def = new DefaultTransactionDefinition();
 		def.setName("Updating a survey response.");
 		
 		try {
 			// Begin the transaction.
-			PlatformTransactionManager transactionManager = new DataSourceTransactionManager(instance.getDataSource());
+			PlatformTransactionManager transactionManager = new DataSourceTransactionManager(getDataSource());
 			TransactionStatus status = transactionManager.getTransaction(def);
 			
 			try {
-				instance.getJdbcTemplate().update(
+				getJdbcTemplate().update(
 						SQL_UPDATE_SURVEY_RESPONSE_PRIVACY_STATE, 
 						new Object[] { newPrivacyState.toString(), surveyResponseId });
 			}
@@ -713,25 +593,21 @@ public class SurveyResponseQueries extends Query {
 		}
 	}
 	
-	/**
-	 * Deletes a survey response.
-	 * 
-	 * @param surveyResponseId The survey response's unique identifier.
-	 * 
-	 * @throws DataAccessException Thrown if there is an error.
+	/* (non-Javadoc)
+	 * @see org.ohmage.query.impl.ISurveyResponseQueries#deleteSurveyResponse(java.lang.Long)
 	 */
-	public static void deleteSurveyResponse(Long surveyResponseId) throws DataAccessException {
+	public void deleteSurveyResponse(Long surveyResponseId) throws DataAccessException {
 		// Create the transaction.
 		DefaultTransactionDefinition def = new DefaultTransactionDefinition();
 		def.setName("Deleting a survey response.");
 		
 		try {
 			// Begin the transaction.
-			PlatformTransactionManager transactionManager = new DataSourceTransactionManager(instance.getDataSource());
+			PlatformTransactionManager transactionManager = new DataSourceTransactionManager(getDataSource());
 			TransactionStatus status = transactionManager.getTransaction(def);
 			
 			try {
-				instance.getJdbcTemplate().update(
+				getJdbcTemplate().update(
 						SQL_DELETE_SURVEY_RESPONSE, 
 						new Object[] { surveyResponseId });
 			}

@@ -7,6 +7,7 @@ import javax.sql.DataSource;
 import org.ohmage.domain.Document;
 import org.ohmage.domain.campaign.Campaign;
 import org.ohmage.exception.DataAccessException;
+import org.ohmage.query.IUserCampaignDocumentQueries;
 import org.springframework.jdbc.core.SingleColumnRowMapper;
 
 /**
@@ -15,7 +16,7 @@ import org.springframework.jdbc.core.SingleColumnRowMapper;
  * 
  * @author John Jenkins
  */
-public final class UserCampaignDocumentQueries extends Query {
+public final class UserCampaignDocumentQueries extends Query implements IUserCampaignDocumentQueries {
 	// Check if the user is a supervisor in any campaign with which the 
 	// document is associated.
 	private static final String SQL_EXISTS_USER_IS_SUPERVISOR_IN_ANY_CAMPAIGN_ASSOCIATED_WITH_DOCUMENT = 
@@ -60,8 +61,6 @@ public final class UserCampaignDocumentQueries extends Query {
 			"(dr.role = '" + Document.Role.OWNER + "')" +
 		")";
 	
-	private static UserCampaignDocumentQueries instance;
-	
 	/**
 	 * Creates this object.
 	 * 
@@ -69,8 +68,6 @@ public final class UserCampaignDocumentQueries extends Query {
 	 */
 	private UserCampaignDocumentQueries(DataSource dataSource) {
 		super(dataSource);
-		
-		instance = this;
 	}
 	
 	/**
@@ -85,11 +82,11 @@ public final class UserCampaignDocumentQueries extends Query {
 	 * 
 	 * @throws DataAccessException Thrown if there is an error.
 	 */
-	public static List<String> getVisibleDocumentsToUserInCampaign(String username, String campaignId) 
+	public List<String> getVisibleDocumentsToUserInCampaign(String username, String campaignId) 
 	 	throws DataAccessException {
 		
 		try {
-			return instance.getJdbcTemplate().query(
+			return getJdbcTemplate().query(
 					SQL_GET_DOCUMENTS_SPECIFIC_TO_CAMPAIGN_FOR_REQUESTING_USER, 
 					new Object[] { username, campaignId },
 					new SingleColumnRowMapper<String>());
@@ -111,9 +108,9 @@ public final class UserCampaignDocumentQueries extends Query {
 	 * @return Returns true if the user is a supervisor in any of the classes
 	 * 		   to which the document is associated.
 	 */
-	public static Boolean getUserIsSupervisorInAnyCampaignAssociatedWithDocument(String username, String documentId) throws DataAccessException {
+	public Boolean getUserIsSupervisorInAnyCampaignAssociatedWithDocument(String username, String documentId) throws DataAccessException {
 		try {
-			return instance.getJdbcTemplate().queryForObject(
+			return getJdbcTemplate().queryForObject(
 					SQL_EXISTS_USER_IS_SUPERVISOR_IN_ANY_CAMPAIGN_ASSOCIATED_WITH_DOCUMENT, 
 					new Object[] { username, documentId }, 
 					Boolean.class);

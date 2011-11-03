@@ -10,6 +10,7 @@ import org.ohmage.domain.Clazz;
 import org.ohmage.domain.Document;
 import org.ohmage.domain.campaign.Campaign;
 import org.ohmage.exception.DataAccessException;
+import org.ohmage.query.IUserDocumentQueries;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.SingleColumnRowMapper;
 
@@ -19,7 +20,7 @@ import org.springframework.jdbc.core.SingleColumnRowMapper;
  * 
  * @author John Jenkins
  */
-public final class UserDocumentQueries extends Query {
+public final class UserDocumentQueries extends Query implements IUserDocumentQueries {
 	// Gets the list of documents visible and specific to a user.
 	private static final String SQL_GET_DOCUMENTS_SPECIFIC_TO_REQUESTING_USER =
 		"SELECT distinct(d.uuid) " +
@@ -151,8 +152,6 @@ public final class UserDocumentQueries extends Query {
 		// Switch on a single user.
 		"WHERE allDocuments.username = ? " +
 		"AND allDocuments.uuid = ?";
-	
-	private static UserDocumentQueries instance;
 
 	/**
 	 * Creates this object.
@@ -161,8 +160,6 @@ public final class UserDocumentQueries extends Query {
 	 */
 	private UserDocumentQueries(DataSource dataSource) {
 		super(dataSource);
-		
-		instance = this;
 	}
 	
 	/**
@@ -173,9 +170,9 @@ public final class UserDocumentQueries extends Query {
 	 * 
 	 * @return A list of document IDs.
 	 */
-	public static List<String> getVisibleDocumentsSpecificToUser(String username) throws DataAccessException {
+	public List<String> getVisibleDocumentsSpecificToUser(String username) throws DataAccessException {
 		try {
-			return instance.getJdbcTemplate().query(
+			return getJdbcTemplate().query(
 					SQL_GET_DOCUMENTS_SPECIFIC_TO_REQUESTING_USER, 
 					new Object[] { username }, 
 					new SingleColumnRowMapper<String>());
@@ -200,10 +197,10 @@ public final class UserDocumentQueries extends Query {
 	 * 		   it, then their document role with said document is returned.
 	 * 		   Otherwise, null is returned.
 	 */
-	public static Document.Role getDocumentRoleForDocumentSpecificToUser(String username, String documentId) throws DataAccessException {
+	public Document.Role getDocumentRoleForDocumentSpecificToUser(String username, String documentId) throws DataAccessException {
 		try {
 			return Document.Role.getValue(
-					instance.getJdbcTemplate().queryForObject(
+					getJdbcTemplate().queryForObject(
 							SQL_GET_DOCUMENT_ROLES_FOR_DOCUMENT_SPECIFIC_TO_REQUESTING_USER, 
 							new Object[] { username, documentId }, 
 							String.class
@@ -236,9 +233,9 @@ public final class UserDocumentQueries extends Query {
 	 * @return Returns a, possibly empty, List of document roles for the user
 	 * 		   specific to the document.
 	 */
-	public static List<Document.Role> getDocumentRolesForDocumentForUser(String username, String documentId) throws DataAccessException {
+	public List<Document.Role> getDocumentRolesForDocumentForUser(String username, String documentId) throws DataAccessException {
 		try {
-			return instance.getJdbcTemplate().query(
+			return getJdbcTemplate().query(
 					SQL_GET_DOCUMENT_ROLES_FOR_DOCUMENT_FOR_USER, 
 					new Object[] { username, documentId }, 
 					new RowMapper<Document.Role>() {

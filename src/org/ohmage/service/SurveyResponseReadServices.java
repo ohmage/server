@@ -9,8 +9,8 @@ import org.ohmage.domain.campaign.Campaign.Role;
 import org.ohmage.domain.campaign.SurveyResponse;
 import org.ohmage.exception.DataAccessException;
 import org.ohmage.exception.ServiceException;
-import org.ohmage.query.impl.CampaignQueries;
-import org.ohmage.query.impl.UserCampaignQueries;
+import org.ohmage.query.ICampaignQueries;
+import org.ohmage.query.IUserCampaignQueries;
 import org.ohmage.util.StringUtils;
 
 /**
@@ -19,10 +19,43 @@ import org.ohmage.util.StringUtils;
  * @author Joshua Selsky
  */
 public final class SurveyResponseReadServices {
+	private static SurveyResponseReadServices instance;
+	private ICampaignQueries campaignQueries;
+	private IUserCampaignQueries userCampaignQueries;
+	
 	/**
-	 * Private to prevent instantiation.
+	 * Default constructor. Privately instantiated via dependency injection
+	 * (reflection).
+	 * 
+	 * @throws IllegalStateException if an instance of this class already
+	 * exists.
+	 * 
+	 * @throws IllegalArgumentException if iCampaignQueries or
+	 * iUserCampaignQueries is null.
 	 */
-	private SurveyResponseReadServices() { }
+	private SurveyResponseReadServices(ICampaignQueries iCampaignQueries, IUserCampaignQueries iUserCampaignQueries) { 
+		if(instance != null) {
+			throw new IllegalStateException("An instance of this class already exists.");
+		}
+		if(iCampaignQueries == null) {
+			throw new IllegalArgumentException("An instance of ICampaignQueries is required.");
+		}
+		if(iUserCampaignQueries == null) {
+			throw new IllegalArgumentException("An instance of IUserCampaignQueries is required.");
+		}
+		
+		campaignQueries = iCampaignQueries;
+		userCampaignQueries = iUserCampaignQueries;
+		
+		instance = this;
+	}
+	
+	/**
+	 * @return  Returns the singleton instance of this class.
+	 */
+	public static SurveyResponseReadServices instance() {
+		return instance;
+	}
 	
 	/**
 	 * Verifies that the promptIdList contains prompts that are present in the
@@ -39,7 +72,7 @@ public final class SurveyResponseReadServices {
 	 * @throws IllegalArgumentException if request, promptIdList, or
 	 * configuration are null.
 	 */
-	public static void verifyPromptIdsBelongToConfiguration(
+	public void verifyPromptIdsBelongToConfiguration(
 			final Collection<String> promptIdList, 
 			final Campaign configuration)
 		throws ServiceException {
@@ -75,7 +108,7 @@ public final class SurveyResponseReadServices {
 	 * @throws IllegalArgumentException if request, surveyIdList, or
 	 * configuration are null.
 	 */
-	public static void verifySurveyIdsBelongToConfiguration(
+	public void verifySurveyIdsBelongToConfiguration(
 			final Collection<String> surveyIdList, 
 			final Campaign configuration)
 		throws ServiceException {
@@ -119,7 +152,7 @@ public final class SurveyResponseReadServices {
 	 * 
 	 * @return A filtered list of survey response results.
 	 */
-	public static void performPrivacyFilter(final String username, 
+	public void performPrivacyFilter(final String username, 
 			final String campaignId,
 			final Collection<SurveyResponse> surveyResponseList) 
 			throws ServiceException {
@@ -137,12 +170,12 @@ public final class SurveyResponseReadServices {
 		}
 		
 		try {
-			List<Role> userRoles = UserCampaignQueries.getUserCampaignRoles(username, campaignId);
+			List<Role> userRoles = userCampaignQueries.getUserCampaignRoles(username, campaignId);
 			
 			// Supervisors can read all data all the time
 			if(! userRoles.contains(Campaign.Role.SUPERVISOR)) {
 				Campaign.PrivacyState privacyState = 
-					CampaignQueries.getCampaignPrivacyState(campaignId);
+					campaignQueries.getCampaignPrivacyState(campaignId);
 				
 				for(SurveyResponse currentResult : surveyResponseList) {
 					// If they own it, it's ok.

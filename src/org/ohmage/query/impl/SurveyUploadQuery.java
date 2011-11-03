@@ -32,6 +32,7 @@ import org.ohmage.domain.campaign.SurveyResponse;
 import org.ohmage.domain.campaign.response.PhotoPromptResponse;
 import org.ohmage.exception.CacheMissException;
 import org.ohmage.exception.DataAccessException;
+import org.ohmage.query.ISurveyUploadQuery;
 import org.ohmage.request.JsonInputKeys;
 import org.ohmage.util.TimeUtils;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -49,10 +50,7 @@ import org.springframework.transaction.support.DefaultTransactionDefinition;
  * 
  * @author Joshua Selsky
  */
-public class SurveyUploadQuery extends AbstractUploadQuery {
-	
-	private static SurveyUploadQuery instance;
-	
+public class SurveyUploadQuery extends AbstractUploadQuery implements ISurveyUploadQuery {
 	// The current directory to which the next image should be saved.
 	private static File currLeafDirectory;
 	
@@ -123,8 +121,6 @@ public class SurveyUploadQuery extends AbstractUploadQuery {
 	 */
 	private SurveyUploadQuery(DataSource dataSource) {
 		super(dataSource);
-		
-		instance = this;
 	}
 	
 	/**
@@ -142,7 +138,7 @@ public class SurveyUploadQuery extends AbstractUploadQuery {
 	 * surveys.
 	 * @throws DataAccessException  If any IO error occurs.
 	 */
-	public static List<Integer> insertSurveys(final String username,
+	public List<Integer> insertSurveys(final String username,
 			                                  final String client,
 			                                  final String campaignUrn,
 			                                  final List<SurveyResponse> surveyUploadList,
@@ -163,7 +159,7 @@ public class SurveyUploadQuery extends AbstractUploadQuery {
 		// Wrap all of the inserts in a transaction 
 		DefaultTransactionDefinition def = new DefaultTransactionDefinition();
 		def.setName("survey upload");
-		DataSourceTransactionManager transactionManager = new DataSourceTransactionManager(instance.getDataSource());
+		DataSourceTransactionManager transactionManager = new DataSourceTransactionManager(getDataSource());
 		TransactionStatus status = transactionManager.getTransaction(def); // begin transaction
 		
 		// Use a savepoint to handle nested rollbacks if duplicates are found
@@ -183,7 +179,7 @@ public class SurveyUploadQuery extends AbstractUploadQuery {
 					
 					// First, insert the survey
 					
-					instance.getJdbcTemplate().update(
+					getJdbcTemplate().update(
 						new PreparedStatementCreator() {
 							public PreparedStatement createPreparedStatement(Connection connection) throws SQLException {
 								PreparedStatement ps 
@@ -235,7 +231,7 @@ public class SurveyUploadQuery extends AbstractUploadQuery {
 					
 				} catch (DataIntegrityViolationException dive) { // a unique index exists only on the survey_response table
 					
-					if(instance.isDuplicate(dive)) {
+					if(isDuplicate(dive)) {
 						 
 						LOGGER.debug("Found a duplicate survey upload message for user " + username);
 						
@@ -319,7 +315,7 @@ public class SurveyUploadQuery extends AbstractUploadQuery {
 	/**
 	 * Attempts to rollback a transaction. 
 	 */
-	private static void rollback(PlatformTransactionManager transactionManager, TransactionStatus transactionStatus) 
+	private void rollback(PlatformTransactionManager transactionManager, TransactionStatus transactionStatus) 
 		throws DataAccessException {
 		
 		try {
@@ -334,7 +330,7 @@ public class SurveyUploadQuery extends AbstractUploadQuery {
 		}
 	}
 	
-	private static void logErrorDetails(SurveyResponse surveyResponse, PromptResponse promptResponse, String sql, String username,
+	private void logErrorDetails(SurveyResponse surveyResponse, PromptResponse promptResponse, String sql, String username,
 			String campaignUrn) {
 	
 		StringBuilder error = new StringBuilder();
@@ -363,7 +359,7 @@ public class SurveyUploadQuery extends AbstractUploadQuery {
 	 * 
 	 * @return A File object for where a document should be written.
 	 */
-	private static File getDirectory() throws DataAccessException {
+	private File getDirectory() throws DataAccessException {
 		// Get the maximum number of items in a directory.
 		int numFilesPerDirectory;
 		try {
@@ -399,7 +395,7 @@ public class SurveyUploadQuery extends AbstractUploadQuery {
 	 * directory with each step choosing the directory with the largest
 	 * integer value.
 	 */
-	private static synchronized void init(int numFilesPerDirectory) throws DataAccessException {
+	private synchronized void init(int numFilesPerDirectory) throws DataAccessException {
 		try {
 			// If the current leaf directory has been set, we weren't the
 			// first to call init(), so we can just back out.
@@ -504,7 +500,7 @@ public class SurveyUploadQuery extends AbstractUploadQuery {
 	 * 							   leaf directory and the maximum allowed
 	 * 							   number of directories in the branches.
 	 */
-	private static synchronized void getNewDirectory(int numFilesPerDirectory) throws DataAccessException {
+	private synchronized void getNewDirectory(int numFilesPerDirectory) throws DataAccessException {
 		try {
 			// Make sure that this hasn't changed because another thread may
 			// have preempted us and already changed the current leaf
@@ -622,7 +618,7 @@ public class SurveyUploadQuery extends AbstractUploadQuery {
 	 * @return A String representing the directory name based on the
 	 * 		   parameters.
 	 */
-	private static String directoryNameBuilder(long name, int numFilesPerDirectory) {
+	private String directoryNameBuilder(long name, int numFilesPerDirectory) {
 		int nameLength = String.valueOf(name).length();
 		int maxLength = new Double(Math.log10(numFilesPerDirectory)).intValue();
 		int numberOfZeros = maxLength - nameLength;
@@ -650,13 +646,13 @@ public class SurveyUploadQuery extends AbstractUploadQuery {
 	 * @return Returns the File whose path and name has the largest
 	 * 		   alphanumeric value.
 	 */
-	private static File getLargestSubfolder(File[] directories) {
+	private File getLargestSubfolder(File[] directories) {
 		Arrays.sort(directories);
 		
 		return directories[directories.length - 1];
 	}
 	
-	private static void createPromptResponse(
+	private void createPromptResponse(
 			final String username, final String client,
 			final Number surveyResponseId,
 			final List<File> regularImageList, 
@@ -685,7 +681,7 @@ public class SurveyUploadQuery extends AbstractUploadQuery {
 			}
 			final PromptResponse promptResponse = (PromptResponse) response;
 			
-			instance.getJdbcTemplate().update(
+			getJdbcTemplate().update(
 				new PreparedStatementCreator() {
 					public PreparedStatement createPreparedStatement(Connection connection) throws SQLException {
 						PreparedStatement ps 
@@ -776,7 +772,7 @@ public class SurveyUploadQuery extends AbstractUploadQuery {
 					String url = "file://" + regularImage.getAbsolutePath();
 					// Insert the image URL into the database.
 					try {
-						instance.getJdbcTemplate().update(
+						getJdbcTemplate().update(
 								SQL_INSERT_IMAGE, 
 								new Object[] { username, client, imageId, url }
 							);

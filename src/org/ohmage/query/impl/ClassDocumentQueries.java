@@ -6,6 +6,7 @@ import javax.sql.DataSource;
 
 import org.ohmage.domain.Document;
 import org.ohmage.exception.DataAccessException;
+import org.ohmage.query.IClassDocumentQueries;
 import org.springframework.jdbc.core.SingleColumnRowMapper;
 
 /**
@@ -14,7 +15,7 @@ import org.springframework.jdbc.core.SingleColumnRowMapper;
  * 
  * @author John Jenkins
  */
-public class ClassDocumentQueries extends Query {
+public class ClassDocumentQueries extends Query implements IClassDocumentQueries {
 	// Retrieves all of the classes associated with a document.
 	private static final String SQL_GET_CLASSES_ASSOCIATED_WITH_DOCUMENT =
 		"SELECT c.urn " +
@@ -33,8 +34,6 @@ public class ClassDocumentQueries extends Query {
 		"AND d.id = dcr.document_id " +
 		"AND dcr.document_role_id = dr.id";
 	
-	private static ClassDocumentQueries instance;
-	
 	/**
 	 * Creates this object.
 	 * 
@@ -42,20 +41,14 @@ public class ClassDocumentQueries extends Query {
 	 */
 	private ClassDocumentQueries(DataSource dataSource) {
 		super(dataSource);
-		
-		instance = this;
 	}
 	
-	/**
-	 * Retrieves the list of classes associatd with a document.
-	 * 
-	 * @param documentId The unique identifier for the document.
-	 * 
-	 * @return A list of class IDs with which this document is associated.
+	/* (non-Javadoc)
+	 * @see org.ohmage.query.impl.IClassDocumentQueries#getClassesAssociatedWithDocument(java.lang.String)
 	 */
-	public static List<String> getClassesAssociatedWithDocument(String documentId) throws DataAccessException {
+	public List<String> getClassesAssociatedWithDocument(String documentId) throws DataAccessException {
 		try {
-			return instance.getJdbcTemplate().query(
+			return getJdbcTemplate().query(
 					SQL_GET_CLASSES_ASSOCIATED_WITH_DOCUMENT, 
 					new Object[] { documentId }, 
 					new SingleColumnRowMapper<String>());
@@ -69,22 +62,13 @@ public class ClassDocumentQueries extends Query {
 		}
 	}
 	
-	/**
-	 * Retrieves a class' document role if it is associated with a document.
-	 * 
-	 * @param classId The class' unique identifier.
-	 * 
-	 * @param documentId The document's unique identifier.
-	 * 
-	 * @return The class' role for some document or null if the class is not
-	 * 		   associated with the document.
-	 * 
-	 * @throws DataAccessException Thrown if there is an error.
+	/* (non-Javadoc)
+	 * @see org.ohmage.query.impl.IClassDocumentQueries#getClassDocumentRole(java.lang.String, java.lang.String)
 	 */
-	public static Document.Role getClassDocumentRole(String classId, String documentId) throws DataAccessException {
+	public Document.Role getClassDocumentRole(String classId, String documentId) throws DataAccessException {
 		try {
 			return Document.Role.getValue(
-					instance.getJdbcTemplate().queryForObject(
+					getJdbcTemplate().queryForObject(
 							SQL_GET_CLASS_DOCUMENT_ROLE,
 							new Object[] { classId, documentId },
 							String.class)

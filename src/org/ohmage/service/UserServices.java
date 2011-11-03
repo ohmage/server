@@ -14,9 +14,9 @@ import org.ohmage.domain.UserPersonal;
 import org.ohmage.domain.campaign.Campaign;
 import org.ohmage.exception.DataAccessException;
 import org.ohmage.exception.ServiceException;
-import org.ohmage.query.impl.UserCampaignQueries;
-import org.ohmage.query.impl.UserClassQueries;
-import org.ohmage.query.impl.UserQueries;
+import org.ohmage.query.IUserCampaignQueries;
+import org.ohmage.query.IUserClassQueries;
+import org.ohmage.query.IUserQueries;
 
 /**
  * This class contains the services for users.
@@ -24,10 +24,53 @@ import org.ohmage.query.impl.UserQueries;
  * @author John Jenkins
  */
 public final class UserServices {
+	private static UserServices instance;
+	
+	private IUserQueries userQueries;
+	private IUserCampaignQueries userCampaignQueries;
+	private IUserClassQueries userClassQueries;
+	
 	/**
-	 * Default constructor. Made private so that it cannot be instantiated.
+	 * Default constructor. Privately instantiated via dependency injection
+	 * (reflection).
+	 * 
+	 * @throws IllegalStateException if an instance of this class already
+	 * exists
+	 * 
+	 * @throws IllegalArgumentException if iUserQueries or iUserClassQueries
+	 * or iUserCampaignQueries is null
 	 */
-	private UserServices() {}
+	private UserServices(IUserQueries iUserQueries, 
+			IUserCampaignQueries iUserCampaignQueries, IUserClassQueries iUserClassQueries) {
+		
+		if(instance != null) {
+			throw new IllegalStateException("An instance of this class already exists.");
+		}
+		
+		if(iUserQueries == null) {
+			throw new IllegalArgumentException("An instance of IUserQueries is required.");
+		}
+		if(iUserCampaignQueries == null) {
+			throw new IllegalArgumentException("An instance of IUserCampaignQueries is required.");
+		}
+		if(iUserClassQueries == null) {
+			throw new IllegalArgumentException("An instance of IUserClassQueries is required.");
+		}
+		
+		userQueries = iUserQueries;
+		userCampaignQueries = iUserCampaignQueries;
+		userClassQueries = iUserClassQueries;
+		
+		instance = this;		
+	}
+	
+	/**
+	 * @return  Returns the singleton instance of this class.
+	 */
+	public static UserServices instance() {
+		return instance;
+	}
+
 	
 	/**
 	 * Creates a new user.
@@ -48,7 +91,7 @@ public final class UserServices {
 	 * 
 	 * @throws ServiceException Thrown if there is an error.
 	 */
-	public static void createUser(final String username, final String password, 
+	public void createUser(final String username, final String password, 
 			final Boolean admin, final Boolean enabled, 
 			final Boolean newAccount, final Boolean campaignCreationPrivilege)
 			throws ServiceException {
@@ -56,7 +99,7 @@ public final class UserServices {
 		try {
 			String hashedPassword = BCrypt.hashpw(password, BCrypt.gensalt(13));
 			
-			UserQueries.createUser(username, hashedPassword, admin, enabled, newAccount, campaignCreationPrivilege);
+			userQueries.createUser(username, hashedPassword, admin, enabled, newAccount, campaignCreationPrivilege);
 		}
 		catch(DataAccessException e) {
 			throw new ServiceException(e);
@@ -74,11 +117,11 @@ public final class UserServices {
 	 * 							exists but shouldn't, or if the user doesn't
 	 * 							exist but should.
 	 */
-	public static void checkUserExistance(final String username, 
+	public void checkUserExistance(final String username, 
 			final boolean shouldExist) throws ServiceException {
 		
 		try {
-			if(UserQueries.userExists(username)) {
+			if(userQueries.userExists(username)) {
 				if(! shouldExist) {
 					throw new ServiceException(
 							ErrorCode.USER_INVALID_USERNAME, 
@@ -110,7 +153,7 @@ public final class UserServices {
 	 * 							users should have existed and didn't, or if one 
 	 * 							of the users shouldn't exist but does.
 	 */
-	public static void verifyUsersExist(final Collection<String> usernames, 
+	public void verifyUsersExist(final Collection<String> usernames, 
 			final boolean shouldExist) throws ServiceException {
 		
 		for(String username : usernames) {
@@ -127,11 +170,11 @@ public final class UserServices {
 	 * @throws ServiceException Thrown if there was an error or if the user is
 	 * 							not an admin.
 	 */
-	public static void verifyUserIsAdmin(final String username) 
+	public void verifyUserIsAdmin(final String username) 
 			throws ServiceException {
 		
 		try {
-			if(! UserQueries.userIsAdmin(username)) {
+			if(! userQueries.userIsAdmin(username)) {
 				throw new ServiceException(
 						ErrorCode.USER_INSUFFICIENT_PERMISSIONS, 
 						"The user is not an admin."
@@ -152,11 +195,11 @@ public final class UserServices {
 	 * @throws ServiceException Thrown if there is an error or if the user is
 	 * 							not allowed to create campaigns.
 	 */
-	public static void verifyUserCanCreateCampaigns(final String username) 
+	public void verifyUserCanCreateCampaigns(final String username) 
 			throws ServiceException {
 		
 		try {
-			if(! UserQueries.userCanCreateCampaigns(username)) {
+			if(! userQueries.userCanCreateCampaigns(username)) {
 				throw new ServiceException(
 						ErrorCode.CAMPAIGN_INSUFFICIENT_PERMISSIONS, 
 						"The user does not have permission to create new campaigns.");
@@ -179,7 +222,7 @@ public final class UserServices {
 	 * 							to read the personal information of one or more
 	 * 							of the users.
 	 */
-	public static void verifyUserCanReadUsersPersonalInfo(
+	public void verifyUserCanReadUsersPersonalInfo(
 			final String username, final Collection<String> usernames) 
 			throws ServiceException {
 		
@@ -190,17 +233,17 @@ public final class UserServices {
 		}
 		
 		Set<String> supervisorCampaigns = 
-			UserCampaignServices.getCampaignsForUser(username, 
+			UserCampaignServices.instance().getCampaignsForUser(username, 
 					null, null, null, null, null, null, 
 					Campaign.Role.SUPERVISOR);
 		
 		Set<String> privilegedClasses = 
-			UserClassServices.getClassesForUser(
+			UserClassServices.instance().getClassesForUser(
 					username, 
 					Clazz.Role.PRIVILEGED);
 		
 		for(String currUsername : usernames) {
-			if(UserCampaignServices.getCampaignsForUser( 
+			if(UserCampaignServices.instance().getCampaignsForUser( 
 					currUsername, supervisorCampaigns, privilegedClasses, 
 					null, null, null, null, null).size() == 0) {
 				
@@ -234,13 +277,13 @@ public final class UserServices {
 	 * 							database. Also, it is thrown if there is an 
 	 * 							error. 
 	 */
-	public static void verifyUserHasOrCanCreatePersonalInfo(
+	public void verifyUserHasOrCanCreatePersonalInfo(
 			final String username, final UserPersonal personalInfo) 
 			throws ServiceException {
 		
 		if((personalInfo != null) && (! personalInfo.isEmpty())) {
 			try {
-				if(! UserQueries.userHasPersonalInfo(username)) {
+				if(! userQueries.userHasPersonalInfo(username)) {
 					if(personalInfo.getFirstName() == null) {
 						throw new ServiceException(
 								ErrorCode.USER_INVALID_FIRST_NAME_VALUE, 
@@ -280,29 +323,29 @@ public final class UserServices {
 	 * 
 	 * @throws ServiceException Thrown if there is an error.
 	 */
-	public static UserInformation gatherUserInformation(final String username)
+	public UserInformation gatherUserInformation(final String username)
 			throws ServiceException {
 		
 		try {
 			// Get campaign creation privilege.
-			UserInformation userInformation = new UserInformation(UserQueries.userCanCreateCampaigns(username));
+			UserInformation userInformation = new UserInformation(userQueries.userCanCreateCampaigns(username));
 			
 			// Get the campaigns and their names for the requester.
-			Map<String, String> campaigns = UserCampaignQueries.getCampaignIdsAndNameForUser(username);
+			Map<String, String> campaigns = userCampaignQueries.getCampaignIdsAndNameForUser(username);
 			userInformation.addCampaigns(campaigns);
 			
 			// Get the requester's campaign roles for each of the campaigns.
 			for(String campaignId : campaigns.keySet()) {
-				userInformation.addCampaignRoles(UserCampaignQueries.getUserCampaignRoles(username, campaignId));
+				userInformation.addCampaignRoles(userCampaignQueries.getUserCampaignRoles(username, campaignId));
 			}
 			
 			// Get the classes and their names for the requester.
-			Map<String, String> classes = UserClassQueries.getClassIdsAndNameForUser(username);
+			Map<String, String> classes = userClassQueries.getClassIdsAndNameForUser(username);
 			userInformation.addClasses(classes);
 			
 			// Get the requester's class roles for each of the classes.
 			for(String classId : classes.keySet()) {
-				userInformation.addClassRole(UserClassQueries.getUserClassRole(classId, username));
+				userInformation.addClassRole(userClassQueries.getUserClassRole(classId, username));
 			}
 			
 			return userInformation;
@@ -322,7 +365,7 @@ public final class UserServices {
 	 * 
 	 * @throws ServiceException There was an error.
 	 */
-	public static Map<String, UserPersonal> gatherPersonalInformation(
+	public Map<String, UserPersonal> gatherPersonalInformation(
 			final Collection<String> usernames) throws ServiceException {
 		
 		try {
@@ -330,7 +373,7 @@ public final class UserServices {
 				new HashMap<String, UserPersonal>(usernames.size());
 			
 			for(String username : usernames) {
-				result.put(username, UserQueries.getPersonalInfoForUser(username));
+				result.put(username, userQueries.getPersonalInfoForUser(username));
 			}
 			
 			return result;
@@ -371,13 +414,13 @@ public final class UserServices {
 	 * 
 	 * @throws ServiceException Thrown if there is an error.
 	 */
-	public static void updateUser(final String username, final Boolean admin, 
+	public void updateUser(final String username, final Boolean admin, 
 			final Boolean enabled, final Boolean newAccount, 
 			final Boolean campaignCreationPrivilege, 
 			final UserPersonal personalInfo) throws ServiceException {
 		
 		try {
-			UserQueries.updateUser(username, admin, enabled, newAccount, campaignCreationPrivilege, personalInfo);
+			userQueries.updateUser(username, admin, enabled, newAccount, campaignCreationPrivilege, personalInfo);
 		}
 		catch(DataAccessException e) {
 			throw new ServiceException(e);
@@ -394,13 +437,13 @@ public final class UserServices {
 	 * 
 	 * @throws ServiceException Thrown if there is an error.
 	 */
-	public static void updatePassword(final String username, 
+	public void updatePassword(final String username, 
 			final String plaintextPassword) throws ServiceException {
 		
 		try {
 			String hashedPassword = BCrypt.hashpw(plaintextPassword, BCrypt.gensalt(13));
 			
-			UserQueries.updateUserPassword(username, hashedPassword);
+			userQueries.updateUserPassword(username, hashedPassword);
 		}
 		catch(DataAccessException e) {
 			throw new ServiceException(e);
@@ -414,11 +457,11 @@ public final class UserServices {
 	 * 
 	 * @throws ServiceException Thrown if there is an error.
 	 */
-	public static void deleteUser(final Collection<String> usernames) 
+	public void deleteUser(final Collection<String> usernames) 
 			throws ServiceException {
 		
 		try {
-			UserQueries.deleteUsers(usernames);
+			userQueries.deleteUsers(usernames);
 		}
 		catch(DataAccessException e) {
 			throw new ServiceException(e);

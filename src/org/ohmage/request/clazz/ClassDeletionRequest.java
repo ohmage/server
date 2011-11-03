@@ -87,13 +87,13 @@ public class ClassDeletionRequest extends UserRequest {
 		
 		try {
 			LOGGER.info("Checking that the user is an admin.");
-			UserServices.verifyUserIsAdmin(getUser().getUsername());
+			UserServices.instance().verifyUserIsAdmin(getUser().getUsername());
 			
 			LOGGER.info("Checking that the class exists.");
-			ClassServices.checkClassExistence(classId, true);
+			ClassServices.instance().checkClassExistence(classId, true);
 			
 			LOGGER.info("Deleting the class.");
-			ClassServices.deleteClass(classId);
+			ClassServices.instance().deleteClass(classId);
 		}
 		catch(ServiceException e) {
 			e.failRequest(this);

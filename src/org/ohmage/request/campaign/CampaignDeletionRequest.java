@@ -79,13 +79,13 @@ public class CampaignDeletionRequest extends UserRequest {
 		
 		try {
 			LOGGER.info("Verifying that the campaign exists.");
-			CampaignServices.checkCampaignExistence(campaignId, true);
+			CampaignServices.instance().checkCampaignExistence(campaignId, true);
 			
 			LOGGER.info("Verifying that the requesting user is allowed to delete the campaign.");
-			UserCampaignServices.userCanDeleteCampaign(getUser().getUsername(), campaignId);
+			UserCampaignServices.instance().userCanDeleteCampaign(getUser().getUsername(), campaignId);
 			
 			LOGGER.info("Deleting the campaign.");
-			CampaignServices.deleteCampaign(campaignId);
+			CampaignServices.instance().deleteCampaign(campaignId);
 		}
 		catch(ServiceException e) {
 			e.failRequest(this);

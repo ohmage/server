@@ -6,6 +6,7 @@ import javax.sql.DataSource;
 
 import org.ohmage.domain.campaign.SurveyResponse;
 import org.ohmage.exception.DataAccessException;
+import org.ohmage.query.ICampaignImageQueries;
 import org.springframework.jdbc.core.SingleColumnRowMapper;
 
 /**
@@ -16,7 +17,7 @@ import org.springframework.jdbc.core.SingleColumnRowMapper;
  * 
  * @author John Jenkins
  */
-public final class CampaignImageQueries extends Query {
+public final class CampaignImageQueries extends Query implements ICampaignImageQueries {
 	// Retrieves the unique identifiers for all of the campaigns for which an
 	// image is associated.
 	private static final String SQL_GET_CAMPAIGN_IDS_FOR_IMAGE =
@@ -38,8 +39,6 @@ public final class CampaignImageQueries extends Query {
 		"AND sr.campaign_id = c.id " +
 		"AND sr.privacy_state_id = srps.id";
 	
-	private static CampaignImageQueries instance;
-	
 	/**
 	 * Creates this object.
 	 * 
@@ -47,24 +46,14 @@ public final class CampaignImageQueries extends Query {
 	 */
 	private CampaignImageQueries(DataSource dataSource) {
 		super(dataSource);
-		
-		instance = this;
 	}
 	
-	/**
-	 * Retrieves all of the campaigns to which an image is associated.
-	 * 
-	 * @param imageId The image's unique identifier.
-	 * 
-	 * @return Returns a list of campaign IDs for to the image is associated. 
-	 * 		   The list may be empty if the image doesn't exist or isn't
-	 * 		   associated with any campaigns, but it will never be null.
-	 * 
-	 * @throws DataAccessException Thrown if there is an error.
+	/* (non-Javadoc)
+	 * @see org.ohmage.query.impl.ICampaignImageQueries#getCampaignIdsForImageId(java.lang.String)
 	 */
-	public static List<String> getCampaignIdsForImageId(String imageId) throws DataAccessException {
+	public List<String> getCampaignIdsForImageId(String imageId) throws DataAccessException {
 		try {
-			return instance.getJdbcTemplate().query(
+			return getJdbcTemplate().query(
 					SQL_GET_CAMPAIGN_IDS_FOR_IMAGE, 
 					new Object[] { imageId }, 
 					new SingleColumnRowMapper<String>());
@@ -74,24 +63,12 @@ public final class CampaignImageQueries extends Query {
 		}
 	}
 	
-	/**
-	 * Retrieves the privacy state of an image for a specific campaign. If the
-	 * image and/or campaign don't exist or the image isn't associated with the
-	 * campaign, null is returned.
-	 * 
-	 * @param campaignId The unique identifier for the campaign.
-	 * 
-	 * @param imageId The unique identifier for the image.
-	 * 
-	 * @return Returns the privacy state of the image in the campaign. If the
-	 * 		   image and/or campaign don't exist or the image isn't associated
-	 * 		   with the campaign, null is returned.
-	 * 
-	 * @throws DataAccessException Thrown if there is an error.
+	/* (non-Javadoc)
+	 * @see org.ohmage.query.impl.ICampaignImageQueries#getImagePrivacyStateInCampaign(java.lang.String, java.lang.String)
 	 */
-	public static SurveyResponse.PrivacyState getImagePrivacyStateInCampaign(String campaignId, String imageId) throws DataAccessException {
+	public SurveyResponse.PrivacyState getImagePrivacyStateInCampaign(String campaignId, String imageId) throws DataAccessException {
 		try {
-			return SurveyResponse.PrivacyState.getValue(instance.getJdbcTemplate().queryForObject(
+			return SurveyResponse.PrivacyState.getValue(getJdbcTemplate().queryForObject(
 					SQL_GET_IMAGE_PRIVACY_STATE_IN_CAMPAIGN, 
 					new Object[] { campaignId, imageId }, 
 					String.class));

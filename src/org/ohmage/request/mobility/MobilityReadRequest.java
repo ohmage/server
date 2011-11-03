@@ -120,7 +120,7 @@ public class MobilityReadRequest extends UserRequest {
 			LOGGER.debug("Start date: " + TimeUtils.getIso8601DateTimeString(new Date(startDate.getTimeInMillis())));
 			LOGGER.debug("End date: " + TimeUtils.getIso8601DateTimeString(new Date(endDate.getTimeInMillis())));
 			
-			result = MobilityServices.retrieveMobilityData(
+			result = MobilityServices.instance().retrieveMobilityData(
 					getUser().getUsername(), 
 					null, 
 					new Date(startDate.getTimeInMillis()), 

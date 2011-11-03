@@ -1,0 +1,139 @@
+package org.ohmage.query;
+
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+
+import org.ohmage.domain.Document;
+import org.ohmage.exception.DataAccessException;
+
+public interface IDocumentQueries {
+
+	/**
+	 * Creates a new document entry in the database. It saves the file to disk
+	 * and the database entry contains a reference to that file.
+	 * 
+	 * @param contents The contents of the file.
+	 * 
+	 * @param name The name of the file.
+	 * 
+	 * @param description A description for the file.
+	 * 
+	 * @param privacyState The initial privacy state of the file.
+	 * 
+	 * @param campaignRoleMap A Map of campaign IDs to document roles for which
+	 * 						  this document will have an initial association.
+	 * 
+	 * @param classRoleMap A Map of class IDs to document roles for which this
+	 * 					   document will have an initial association.
+	 * 
+	 * @param creatorUsername The username of the creator of this document.
+	 * 
+	 * @return Returns a unique identifier for this document.
+	 */
+	String createDocument(byte[] contents, String name, String description,
+			Document.PrivacyState privacyState,
+			Map<String, Document.Role> campaignRoleMap,
+			Map<String, Document.Role> classRoleMap, String creatorUsername)
+			throws DataAccessException;
+
+	/**
+	 * Returns whether or not a document with the unique document identifier
+	 * 'documentId' exists.
+	 * 
+	 * @param documentId The unique document identifier of a document.
+	 * 
+	 * @return Returns true if the document exists and false otherwise.
+	 */
+	boolean getDocumentExists(String documentId) throws DataAccessException;
+
+	/**
+	 * Returns the URL of the document.
+	 * 
+	 * @param documentId The unique document identifier of the document in 
+	 * 					 question.
+	 * 
+	 * @return Returns the URL of the document.
+	 */
+	String getDocumentUrl(String documentId) throws DataAccessException;
+
+	/**
+	 * Returns the name of the document.
+	 * 
+	 * @param documentId The unique document identifier of the document in 
+	 * 					 question.
+	 * 
+	 * @return Returns the name of the document.
+	 */
+	String getDocumentName(String documentId) throws DataAccessException;
+
+	/**
+	 * Retrieves the information about a document whose ID is 'documentId'.
+	 * 
+	 * @param documentId The unique document ID for the document whose 
+	 * 					 information is desired.
+	 *  
+	 * @return A DocumentInformation object representing the information about
+	 * 		   this document.
+	 */
+	Document getDocumentInformation(String documentId)
+			throws DataAccessException;
+
+	/**
+	 * Updates a document. The 'documentId' cannot be null as this is used to
+	 * indicate which document is being updated, but the remaining parameters
+	 * may all be null.
+	 * 
+	 * @param documentId The unique identifier for the document to be updated.
+	 * 
+	 * @param contents The new contents of the document.
+	 * 
+	 * @param name The new name of the document.
+	 * 
+	 * @param description The new description for the document.
+	 * 
+	 * @param privacyState The new privacy state for the document.
+	 * 
+	 * @param campaignAndRolesToAdd A Map of campaign IDs to document roles 
+	 * 								where the document should be associated to
+	 * 								the campaign with the given role or, if
+	 * 								already associated, should have its role
+	 * 								updated with the new role.
+	 * 
+	 * @param campaignsToRemove A List of campaign IDs that should no longer be
+	 * 							associated with this document.
+	 * 
+	 * @param classAndRolesToAdd A Map of class IDs to document roles where the
+	 * 							 document should be associated to the class 
+	 * 							 with the given role or, if already associated,
+	 * 							 should have its role updated with the new 
+	 * 							 role.
+	 * 
+	 * @param classesToRemove A List of class IDs that should no longer be
+	 * 						  associated with this document.
+	 * 
+	 * @param userAndRolesToAdd A Map of usernames to document roles where the
+	 * 							document should be associated to the user with
+	 * 							the given role or, if already associated, 
+	 * 							should have its role updated with the new role.
+	 * 
+	 * @param usersToRemove A List of usernames that should no longer be 
+	 * 						associated with this document.
+	 */
+	void updateDocument(String documentId, byte[] contents, String name,
+			String description, Document.PrivacyState privacyState,
+			Map<String, Document.Role> campaignAndRolesToAdd,
+			List<String> campaignsToRemove,
+			Map<String, Document.Role> classAndRolesToAdd,
+			Collection<String> classesToRemove,
+			Map<String, Document.Role> userAndRolesToAdd,
+			Collection<String> usersToRemove) throws DataAccessException;
+
+	/**
+	 * Deletes a document.
+	 * 
+	 * @param documentId The unique identifier for the document to be deleted.
+	 */
+	void deleteDocument(String documentId) throws DataAccessException;
+
+}

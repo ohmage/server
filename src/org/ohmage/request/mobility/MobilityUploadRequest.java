@@ -183,10 +183,10 @@ public class MobilityUploadRequest extends UserRequest {
 		
 		try {
 			LOGGER.info("Running the server-side classifier.");
-			MobilityServices.classifyData(data);
+			MobilityServices.instance().classifyData(data);
 			
 			LOGGER.info("Storing the Mobility data points.");
-			MobilityServices.createMobilityPoint(getUser().getUsername(), getClient(), data);
+			MobilityServices.instance().createMobilityPoint(getUser().getUsername(), getClient(), data);
 		}
 		catch(ServiceException e) {
 			e.failRequest(this);

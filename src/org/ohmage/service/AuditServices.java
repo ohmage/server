@@ -17,15 +17,39 @@ import org.ohmage.validator.AuditValidators.ResponseType;
  * includes creating audit entries and reading their contents.
  * 
  * @author John Jenkins
+ * @author Joshua Selsky
  */
 public class AuditServices {
-	private static IAuditQueries auditQueries;
+	private static AuditServices instance;
+	private IAuditQueries auditQueries;
 	
 	/**
-	 * Default constructor. Privately instantiated via dependency injection.
+	 * Default constructor. Privately instantiated via dependency injection
+	 * (reflection).
+	 * 
+	 * @throws IllegalStateException if an instance of this class already
+	 * exists
+	 * 
+	 * @throws IllegalArgumentException if iAuditQueries is null
 	 */
-	private AuditServices(IAuditQueries  iAuditQueries) {
+	private AuditServices(IAuditQueries iAuditQueries) {
+		if(instance != null) {
+			throw new IllegalStateException("An instance of this class already exists.");
+		}
+		
+		if(iAuditQueries == null) {
+			throw new IllegalArgumentException("An instance of IAuditQueries is required.");
+		}
+		
 		auditQueries = iAuditQueries;
+		instance = this;
+	}
+	
+	/**
+	 * @return  Returns the singleton instance of this class.
+	 */
+	public static AuditServices instance() {
+		return instance;
 	}
 	
 	/**
@@ -68,7 +92,7 @@ public class AuditServices {
 	 * 
 	 * @throws ServiceException Thrown if there is an error.
 	 */
-	public static void createAudit(
+	public void createAudit(
 			final RequestServlet.RequestType requestType, final String uri, 
 			final String client, final String deviceId, final String response,
 			final Map<String, String[]> parameterMap, 
@@ -119,7 +143,7 @@ public class AuditServices {
 	 * 
 	 * @throws ServiceException Thrown if there is an error.
 	 */
-	public static List<Audit> getAuditInformation(
+	public List<Audit> getAuditInformation(
 			final RequestType requestType, final String uri, 
 			final String client, final String deviceId, 
 			final ResponseType responseType, final String errorCode, 

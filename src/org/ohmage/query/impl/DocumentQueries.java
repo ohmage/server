@@ -26,6 +26,7 @@ import org.ohmage.cache.PreferenceCache;
 import org.ohmage.domain.Document;
 import org.ohmage.exception.CacheMissException;
 import org.ohmage.exception.DataAccessException;
+import org.ohmage.query.IDocumentQueries;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.transaction.PlatformTransactionManager;
@@ -44,7 +45,7 @@ import org.springframework.transaction.support.DefaultTransactionDefinition;
  * 
  * @author John Jenkins
  */
-public class DocumentQueries extends Query {
+public class DocumentQueries extends Query implements IDocumentQueries {
 	private static final Logger LOGGER = Logger.getLogger(DocumentQueries.class);
 	
 	// Retrieves a boolean representing whether or not a document exists in the
@@ -290,10 +291,6 @@ public class DocumentQueries extends Query {
 	// The current directory to which the next document should be saved.
 	private static File currLeafDirectory;
 	
-	// The single instance of this class as the constructor should only ever be
-	// called once by Spring.
-	private static DocumentQueries instance;
-	
 	/**
 	 * Creates this object.
 	 * 
@@ -301,33 +298,12 @@ public class DocumentQueries extends Query {
 	 */
 	private DocumentQueries(DataSource dataSource) {
 		super(dataSource);
-		
-		instance = this;
 	}
 	
-	/**
-	 * Creates a new document entry in the database. It saves the file to disk
-	 * and the database entry contains a reference to that file.
-	 * 
-	 * @param contents The contents of the file.
-	 * 
-	 * @param name The name of the file.
-	 * 
-	 * @param description A description for the file.
-	 * 
-	 * @param privacyState The initial privacy state of the file.
-	 * 
-	 * @param campaignRoleMap A Map of campaign IDs to document roles for which
-	 * 						  this document will have an initial association.
-	 * 
-	 * @param classRoleMap A Map of class IDs to document roles for which this
-	 * 					   document will have an initial association.
-	 * 
-	 * @param creatorUsername The username of the creator of this document.
-	 * 
-	 * @return Returns a unique identifier for this document.
+	/* (non-Javadoc)
+	 * @see org.ohmage.query.impl.IDocumentQueries#createDocument(byte[], java.lang.String, java.lang.String, org.ohmage.domain.Document.PrivacyState, java.util.Map, java.util.Map, java.lang.String)
 	 */
-	public static String createDocument(byte[] contents, String name, String description, Document.PrivacyState privacyState, 
+	public String createDocument(byte[] contents, String name, String description, Document.PrivacyState privacyState, 
 			Map<String, Document.Role> campaignRoleMap, Map<String, Document.Role> classRoleMap, String creatorUsername) 
 		throws DataAccessException {
 		
@@ -362,12 +338,12 @@ public class DocumentQueries extends Query {
 		
 		try {
 			// Begin the transaction.
-			PlatformTransactionManager transactionManager = new DataSourceTransactionManager(instance.getDataSource());
+			PlatformTransactionManager transactionManager = new DataSourceTransactionManager(getDataSource());
 			TransactionStatus status = transactionManager.getTransaction(def);
 			
 			// Insert the file in the DB.
 			try {
-				instance.getJdbcTemplate().update(
+				getJdbcTemplate().update(
 						SQL_INSERT_DOCUMENT, 
 						new Object[] { 
 								uuid, 
@@ -389,7 +365,7 @@ public class DocumentQueries extends Query {
 			
 			// Insert the creator in the DB.
 			try {
-				instance.getJdbcTemplate().update(
+				getJdbcTemplate().update(
 						SQL_INSERT_DOCUMENT_USER_CREATOR, 
 						new Object[] { 
 								uuid, 
@@ -406,7 +382,7 @@ public class DocumentQueries extends Query {
 			
 			// Insert this user's user-role in the DB.
 			try {
-				instance.getJdbcTemplate().update(
+				getJdbcTemplate().update(
 						SQL_INSERT_USER_ROLE, 
 						new Object[] { 
 								uuid, 
@@ -427,7 +403,7 @@ public class DocumentQueries extends Query {
 				for(String campaignId : campaignRoleMap.keySet()) {
 					// Attempt to insert it into the database.
 					try {
-						instance.getJdbcTemplate().update(
+						getJdbcTemplate().update(
 								SQL_INSERT_CAMPAIGN_ROLE, 
 								new Object[] { 
 										uuid, 
@@ -450,7 +426,7 @@ public class DocumentQueries extends Query {
 				for(String classId : classRoleMap.keySet()) {
 					// Attempt to insert it into the database.
 					try {
-						instance.getJdbcTemplate().update(
+						getJdbcTemplate().update(
 								SQL_INSERT_CLASS_ROLE, 
 								new Object[] { 
 										uuid, 
@@ -484,69 +460,48 @@ public class DocumentQueries extends Query {
 		}
 	}
 	
-	/**
-	 * Returns whether or not a document with the unique document identifier
-	 * 'documentId' exists.
-	 * 
-	 * @param documentId The unique document identifier of a document.
-	 * 
-	 * @return Returns true if the document exists and false otherwise.
+	/* (non-Javadoc)
+	 * @see org.ohmage.query.impl.IDocumentQueries#getDocumentExists(java.lang.String)
 	 */
-	public static boolean getDocumentExists(String documentId) throws DataAccessException {
+	public boolean getDocumentExists(String documentId) throws DataAccessException {
 		try {
-			return instance.getJdbcTemplate().queryForObject(SQL_EXISTS_DOCUMENT, new Object[] { documentId }, Boolean.class);
+			return getJdbcTemplate().queryForObject(SQL_EXISTS_DOCUMENT, new Object[] { documentId }, Boolean.class);
 		}
 		catch(org.springframework.dao.DataAccessException e) {
 			throw new DataAccessException("Error executing SQL '" + SQL_EXISTS_DOCUMENT + "' with parameter: " + documentId, e);
 		}
 	}
 	
-	/**
-	 * Returns the URL of the document.
-	 * 
-	 * @param documentId The unique document identifier of the document in 
-	 * 					 question.
-	 * 
-	 * @return Returns the URL of the document.
+	/* (non-Javadoc)
+	 * @see org.ohmage.query.impl.IDocumentQueries#getDocumentUrl(java.lang.String)
 	 */
-	public static String getDocumentUrl(String documentId) throws DataAccessException {
+	public String getDocumentUrl(String documentId) throws DataAccessException {
 		try {
-			return instance.getJdbcTemplate().queryForObject(SQL_GET_DOCUMENT_URL, new Object[] { documentId }, String.class);
+			return getJdbcTemplate().queryForObject(SQL_GET_DOCUMENT_URL, new Object[] { documentId }, String.class);
 		}
 		catch(org.springframework.dao.DataAccessException e) {
 			throw new DataAccessException("Error executing SQL '" + SQL_GET_DOCUMENT_URL + "' with parameter: " + documentId, e);
 		}
 	}
 	
-	/**
-	 * Returns the name of the document.
-	 * 
-	 * @param documentId The unique document identifier of the document in 
-	 * 					 question.
-	 * 
-	 * @return Returns the name of the document.
+	/* (non-Javadoc)
+	 * @see org.ohmage.query.impl.IDocumentQueries#getDocumentName(java.lang.String)
 	 */
-	public static String getDocumentName(String documentId) throws DataAccessException {
+	public String getDocumentName(String documentId) throws DataAccessException {
 		try {
-			return instance.getJdbcTemplate().queryForObject(SQL_GET_DOCUMENT_NAME, new Object[] { documentId }, String.class);
+			return getJdbcTemplate().queryForObject(SQL_GET_DOCUMENT_NAME, new Object[] { documentId }, String.class);
 		}
 		catch(org.springframework.dao.DataAccessException e) {
 			throw new DataAccessException("Error executing SQL '" + SQL_GET_DOCUMENT_NAME + "' with parameter: " + documentId, e);
 		}
 	}
 	
-	/**
-	 * Retrieves the information about a document whose ID is 'documentId'.
-	 * 
-	 * @param documentId The unique document ID for the document whose 
-	 * 					 information is desired.
-	 *  
-	 * @return A DocumentInformation object representing the information about
-	 * 		   this document.
+	/* (non-Javadoc)
+	 * @see org.ohmage.query.impl.IDocumentQueries#getDocumentInformation(java.lang.String)
 	 */
-	public static Document getDocumentInformation(String documentId) throws DataAccessException {
+	public Document getDocumentInformation(String documentId) throws DataAccessException {
 		try {
-			return instance.getJdbcTemplate().queryForObject(
+			return getJdbcTemplate().queryForObject(
 				SQL_GET_DOCUMENT_INFO, 
 				new Object[] { documentId }, 
 				new RowMapper<Document>() {
@@ -570,48 +525,10 @@ public class DocumentQueries extends Query {
 		}
 	}
 	
-	/**
-	 * Updates a document. The 'documentId' cannot be null as this is used to
-	 * indicate which document is being updated, but the remaining parameters
-	 * may all be null.
-	 * 
-	 * @param documentId The unique identifier for the document to be updated.
-	 * 
-	 * @param contents The new contents of the document.
-	 * 
-	 * @param name The new name of the document.
-	 * 
-	 * @param description The new description for the document.
-	 * 
-	 * @param privacyState The new privacy state for the document.
-	 * 
-	 * @param campaignAndRolesToAdd A Map of campaign IDs to document roles 
-	 * 								where the document should be associated to
-	 * 								the campaign with the given role or, if
-	 * 								already associated, should have its role
-	 * 								updated with the new role.
-	 * 
-	 * @param campaignsToRemove A List of campaign IDs that should no longer be
-	 * 							associated with this document.
-	 * 
-	 * @param classAndRolesToAdd A Map of class IDs to document roles where the
-	 * 							 document should be associated to the class 
-	 * 							 with the given role or, if already associated,
-	 * 							 should have its role updated with the new 
-	 * 							 role.
-	 * 
-	 * @param classesToRemove A List of class IDs that should no longer be
-	 * 						  associated with this document.
-	 * 
-	 * @param userAndRolesToAdd A Map of usernames to document roles where the
-	 * 							document should be associated to the user with
-	 * 							the given role or, if already associated, 
-	 * 							should have its role updated with the new role.
-	 * 
-	 * @param usersToRemove A List of usernames that should no longer be 
-	 * 						associated with this document.
+	/* (non-Javadoc)
+	 * @see org.ohmage.query.impl.IDocumentQueries#updateDocument(java.lang.String, byte[], java.lang.String, java.lang.String, org.ohmage.domain.Document.PrivacyState, java.util.Map, java.util.List, java.util.Map, java.util.Collection, java.util.Map, java.util.Collection)
 	 */
-	public static void updateDocument(String documentId, byte[] contents, String name, String description, 
+	public void updateDocument(String documentId, byte[] contents, String name, String description, 
 			Document.PrivacyState privacyState,
 			Map<String, Document.Role> campaignAndRolesToAdd, List<String> campaignsToRemove, 
 			Map<String, Document.Role> classAndRolesToAdd, Collection<String> classesToRemove, 
@@ -621,7 +538,7 @@ public class DocumentQueries extends Query {
 		def.setName("Document update.");
 		
 		try {
-			PlatformTransactionManager transactionManager = new DataSourceTransactionManager(instance.getDataSource());
+			PlatformTransactionManager transactionManager = new DataSourceTransactionManager(getDataSource());
 			TransactionStatus status = transactionManager.getTransaction(def);
 			
 			try {
@@ -672,24 +589,22 @@ public class DocumentQueries extends Query {
 		}
 	}
 	
-	/**
-	 * Deletes a document.
-	 * 
-	 * @param documentId The unique identifier for the document to be deleted.
+	/* (non-Javadoc)
+	 * @see org.ohmage.query.impl.IDocumentQueries#deleteDocument(java.lang.String)
 	 */
-	public static void deleteDocument(String documentId) throws DataAccessException {
+	public void deleteDocument(String documentId) throws DataAccessException {
 		// Begin transaction
 		DefaultTransactionDefinition def = new DefaultTransactionDefinition();
 		def.setName("Document delete.");
 		
 		try {
-			PlatformTransactionManager transactionManager = new DataSourceTransactionManager(instance.getDataSource());
+			PlatformTransactionManager transactionManager = new DataSourceTransactionManager(getDataSource());
 			TransactionStatus status = transactionManager.getTransaction(def);
 			
 			String documentUrl = getDocumentUrl(documentId);
 			
 			try {
-				instance.getJdbcTemplate().update(SQL_DELETE_DOCUMENT, new Object[] { documentId });
+				getJdbcTemplate().update(SQL_DELETE_DOCUMENT, new Object[] { documentId });
 			}
 			catch(org.springframework.dao.DataAccessException e) {
 				transactionManager.rollback(status);
@@ -731,7 +646,7 @@ public class DocumentQueries extends Query {
 	 * 
 	 * @param name The new name for the document with an extension.
 	 */
-	private static void updateName(String documentId, String name) throws DataAccessException {
+	private void updateName(String documentId, String name) throws DataAccessException {
 		if(name == null) {
 			return;
 		}
@@ -739,7 +654,7 @@ public class DocumentQueries extends Query {
 		// Update the document's name.
 		String extension = getExtension(name);
 		try {
-			instance.getJdbcTemplate().update(SQL_UPDATE_NAME, new Object[] { name, extension, documentId });
+			getJdbcTemplate().update(SQL_UPDATE_NAME, new Object[] { name, extension, documentId });
 		}
 		catch(org.springframework.dao.DataAccessException e) {
 			errorExecutingSql(SQL_UPDATE_NAME, e, name, extension, documentId);
@@ -755,14 +670,14 @@ public class DocumentQueries extends Query {
 	 * 
 	 * @param description The new description for the document.
 	 */
-	private static void updateDescription(String documentId, String description) throws DataAccessException {
+	private void updateDescription(String documentId, String description) throws DataAccessException {
 		if(description == null) {
 			return;
 		}
 		
 		// Update the document's description.
 		try {
-			instance.getJdbcTemplate().update(SQL_UPDATE_DESCRIPTION, new Object[] { description, documentId });
+			getJdbcTemplate().update(SQL_UPDATE_DESCRIPTION, new Object[] { description, documentId });
 		}
 		catch(org.springframework.dao.DataAccessException e) {
 			errorExecutingSql(SQL_UPDATE_DESCRIPTION, e, description, documentId);
@@ -779,14 +694,14 @@ public class DocumentQueries extends Query {
 	 * 							  This should never happen as it has already
 	 * 							  been validated.
 	 */
-	private static void updatePrivacyState(String documentId, Document.PrivacyState privacyState) throws CacheMissException, DataAccessException {
+	private void updatePrivacyState(String documentId, Document.PrivacyState privacyState) throws CacheMissException, DataAccessException {
 		if(privacyState == null) {
 			return;
 		}
 		
 		// Update the document's privacy state.
 		try {
-			instance.getJdbcTemplate().update(SQL_UPDATE_PRIVACY_STATE, new Object[] { privacyState.toString(), documentId });
+			getJdbcTemplate().update(SQL_UPDATE_PRIVACY_STATE, new Object[] { privacyState.toString(), documentId });
 		}
 		catch(org.springframework.dao.DataAccessException e) {
 			throw new DataAccessException("Error executing SQL '" + SQL_UPDATE_PRIVACY_STATE + "' with parameters: " +
@@ -802,7 +717,7 @@ public class DocumentQueries extends Query {
 	 * 
 	 * @param contents The new contents of the document.
 	 */
-	private static void updateContents(String documentId, byte[] contents) throws DataAccessException {
+	private void updateContents(String documentId, byte[] contents) throws DataAccessException {
 		if(contents == null) {
 			return;
 		}
@@ -812,7 +727,7 @@ public class DocumentQueries extends Query {
 		
 		// Update the size in the database.
 		try {
-			instance.getJdbcTemplate().update(SQL_UPDATE_SIZE, new Object[] { contents.length, documentId });
+			getJdbcTemplate().update(SQL_UPDATE_SIZE, new Object[] { contents.length, documentId });
 		}
 		catch(org.springframework.dao.DataAccessException e) {
 			throw new DataAccessException("Error executing SQL '" + SQL_UPDATE_SIZE + "' with parameters: " + contents.length + ", " + documentId, e);
@@ -876,7 +791,7 @@ public class DocumentQueries extends Query {
 	 * @throws CacheMissException Thrown if there is an issue getting the 
 	 * 							  database ID for the document.
 	 */
-	private static void updateEntityRoleList(String documentId, 
+	private void updateEntityRoleList(String documentId, 
 			Map<String, Document.Role> entityAndRolesToAdd, 
 			Collection<String> entitiesToRemove, 
 			String sqlInsertEntity, String sqlUpdateEntity, String sqlDeleteEntity) 
@@ -891,7 +806,7 @@ public class DocumentQueries extends Query {
 				
 				// Delete the document-campaign role.
 				try {
-					instance.getJdbcTemplate().update(sqlDeleteEntity, new Object[] { documentId, entityId });
+					getJdbcTemplate().update(sqlDeleteEntity, new Object[] { documentId, entityId });
 				}
 				catch(org.springframework.dao.DataAccessException e) {
 					throw new DataAccessException("Error executing SQL '" + sqlDeleteEntity + "' with parameters: " + documentId + ", " + entityId, e);
@@ -911,14 +826,14 @@ public class DocumentQueries extends Query {
 				
 				// Add the document-entity role.
 				try {
-					instance.getJdbcTemplate().update(sqlInsertEntity, 
+					getJdbcTemplate().update(sqlInsertEntity, 
 							new Object[] { documentId, entityId, role.toString() });
 				}
 				catch(org.springframework.dao.DataIntegrityViolationException duplicateEntryException) {
 					// If the entity is already associated with the document, then
 					// they must be attempting an update.
 					try {
-						instance.getJdbcTemplate().update(sqlUpdateEntity, new Object[] { role.toString(), documentId, entityId });
+						getJdbcTemplate().update(sqlUpdateEntity, new Object[] { role.toString(), documentId, entityId });
 					}
 					catch(org.springframework.dao.DataAccessException e) {
 						throw new DataAccessException("Error executing SQL '" + sqlUpdateEntity + "' with parameters: " + 
@@ -941,7 +856,7 @@ public class DocumentQueries extends Query {
 	 * 
 	 * @return The extension on the file with the name 'name'.
 	 */
-	private static String getExtension(String name) {
+	private String getExtension(String name) {
 		String[] parsedName = name.split("\\.");
 		String extension = null;
 		if((parsedName.length > 1) && (parsedName[parsedName.length - 1].length() <= MAX_EXTENSION_LENGTH)) {
@@ -959,7 +874,7 @@ public class DocumentQueries extends Query {
 	 * 
 	 * @return A File object for where a document should be written.
 	 */
-	private static File getDirectory() throws DataAccessException {
+	private File getDirectory() throws DataAccessException {
 		// Get the maximum number of items in a directory.
 		int numFilesPerDirectory;
 		try {
@@ -995,7 +910,7 @@ public class DocumentQueries extends Query {
 	 * directory with each step choosing the directory with the largest
 	 * integer value.
 	 */
-	private static void init(int numFilesPerDirectory) throws DataAccessException {
+	private void init(int numFilesPerDirectory) throws DataAccessException {
 		// Get the lock.
 		DIRECTORY_CREATION_LOCK.lock();
 		
@@ -1108,7 +1023,7 @@ public class DocumentQueries extends Query {
 	 * 							   leaf directory and the maximum allowed
 	 * 							   number of directories in the branches.
 	 */
-	private static void getNewDirectory(int numFilesPerDirectory) throws DataAccessException {
+	private void getNewDirectory(int numFilesPerDirectory) throws DataAccessException {
 		// Get the lock.
 		DIRECTORY_CREATION_LOCK.lock();
 		
@@ -1232,7 +1147,7 @@ public class DocumentQueries extends Query {
 	 * @return A String representing the directory name based on the
 	 * 		   parameters.
 	 */
-	private static String directoryNameBuilder(long name, int numFilesPerDirectory) {
+	private String directoryNameBuilder(long name, int numFilesPerDirectory) {
 		int nameLength = String.valueOf(name).length();
 		int maxLength = new Double(Math.log10(numFilesPerDirectory)).intValue();
 		int numberOfZeros = maxLength - nameLength;
@@ -1260,7 +1175,7 @@ public class DocumentQueries extends Query {
 	 * @return Returns the File whose path and name has the largest
 	 * 		   alphanumeric value.
 	 */
-	private static File getLargestSubfolder(File[] directories) {
+	private File getLargestSubfolder(File[] directories) {
 		Arrays.sort(directories);
 		
 		return directories[directories.length - 1];

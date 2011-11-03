@@ -10,6 +10,7 @@ import javax.sql.DataSource;
 
 import org.ohmage.domain.campaign.Campaign;
 import org.ohmage.exception.DataAccessException;
+import org.ohmage.query.IUserCampaignQueries;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.SingleColumnRowMapper;
 
@@ -21,7 +22,7 @@ import org.springframework.jdbc.core.SingleColumnRowMapper;
  * @author John Jenkins
  * @author Joshua Selsky
  */
-public final class UserCampaignQueries extends Query {
+public final class UserCampaignQueries extends Query implements IUserCampaignQueries {
 	// Retrieves whether or not a user has any role in a campaign.
 	private static final String SQL_EXISTS_USER_CAMPAIGN =
 		"SELECT EXISTS(" +
@@ -71,8 +72,6 @@ public final class UserCampaignQueries extends Query {
 		"AND ur.id = urc.user_role_id " +
 		"AND c.id = urc.campaign_id";
 	
-	private static UserCampaignQueries instance;
-	
 	/**
 	 * Creates this object.
 	 * 
@@ -80,8 +79,6 @@ public final class UserCampaignQueries extends Query {
 	 */
 	private UserCampaignQueries(DataSource dataSource) {
 		super(dataSource);
-		
-		instance = this;
 	}
 	
 	/**
@@ -93,9 +90,9 @@ public final class UserCampaignQueries extends Query {
 	 * 
 	 * @return Whether or not the user exists in a campaign.
 	 */
-	public static boolean userBelongsToCampaign(String username, String campaignId) throws DataAccessException {
+	public boolean userBelongsToCampaign(String username, String campaignId) throws DataAccessException {
 		try {
-			return instance.getJdbcTemplate().queryForObject(SQL_EXISTS_USER_CAMPAIGN, new Object[] { campaignId, username }, Boolean.class);
+			return getJdbcTemplate().queryForObject(SQL_EXISTS_USER_CAMPAIGN, new Object[] { campaignId, username }, Boolean.class);
 		}
 		catch(org.springframework.dao.DataAccessException e) {
 			throw new DataAccessException("Error executing SQL '" + SQL_EXISTS_USER_CAMPAIGN + "' with parameters: " +
@@ -110,9 +107,9 @@ public final class UserCampaignQueries extends Query {
 	 * 
 	 * @return A List of usernames for the users in the campaign.
 	 */
-	public static List<String> getUsersInCampaign(String campaignId) throws DataAccessException {
+	public List<String> getUsersInCampaign(String campaignId) throws DataAccessException {
 		try {
-			return instance.getJdbcTemplate().query(SQL_GET_USERS_IN_CAMPAIGN, new Object[] { campaignId }, new SingleColumnRowMapper<String>());
+			return getJdbcTemplate().query(SQL_GET_USERS_IN_CAMPAIGN, new Object[] { campaignId }, new SingleColumnRowMapper<String>());
 		}
 		catch(org.springframework.dao.DataAccessException e) {
 			throw new DataAccessException("Error executing SQL '" + SQL_GET_USERS_IN_CAMPAIGN + "' with parameter: " +
@@ -130,9 +127,9 @@ public final class UserCampaignQueries extends Query {
 	 * 
 	 * @return A possibly empty List of roles for this user in this campaign.
 	 */
-	public static List<Campaign.Role> getUserCampaignRoles(String username, String campaignId) throws DataAccessException {
+	public List<Campaign.Role> getUserCampaignRoles(String username, String campaignId) throws DataAccessException {
 		try {
-			return instance.getJdbcTemplate().query(
+			return getJdbcTemplate().query(
 					SQL_GET_USER_CAMPAIGN_ROLES, 
 					new Object[] { username, campaignId }, 
 					new RowMapper<Campaign.Role>() {
@@ -158,11 +155,11 @@ public final class UserCampaignQueries extends Query {
 	 * @return A Map of campaign IDs to campaign names for all of the campaigns
 	 * 		   to which the user is associated.
 	 */
-	public static Map<String, String> getCampaignIdsAndNameForUser(String username) throws DataAccessException {
+	public Map<String, String> getCampaignIdsAndNameForUser(String username) throws DataAccessException {
 		try {
 			final Map<String, String> result = new HashMap<String, String>();
 			
-			instance.getJdbcTemplate().query(
+			getJdbcTemplate().query(
 					SQL_GET_CAMPAIGN_ID_AND_NAMES_FOR_USER, 
 					new Object[] { username }, 
 					new RowMapper<Object> () {
@@ -192,9 +189,9 @@ public final class UserCampaignQueries extends Query {
 	 * @return A List of unique identifiers for all campaigns with which the 
 	 * 		   user is associated and has the given role. 
 	 */
-	public static List<String> getCampaignIdsForUserWithRole(String username, Campaign.Role role) throws DataAccessException {
+	public List<String> getCampaignIdsForUserWithRole(String username, Campaign.Role role) throws DataAccessException {
 		try {
-			return instance.getJdbcTemplate().query(
+			return getJdbcTemplate().query(
 					SQL_GET_CAMPAIGN_IDS_FOR_USER_WITH_ROLE, 
 					new Object[] { username, role.toString() },
 					new SingleColumnRowMapper<String>());

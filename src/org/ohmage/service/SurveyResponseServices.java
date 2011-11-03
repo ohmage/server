@@ -17,10 +17,10 @@ import org.ohmage.domain.campaign.SurveyResponse;
 import org.ohmage.domain.campaign.response.PhotoPromptResponse;
 import org.ohmage.exception.DataAccessException;
 import org.ohmage.exception.ServiceException;
-import org.ohmage.query.impl.ImageQueries;
-import org.ohmage.query.impl.SurveyResponseImageQueries;
-import org.ohmage.query.impl.SurveyResponseQueries;
-import org.ohmage.query.impl.SurveyUploadQuery;
+import org.ohmage.query.IImageQueries;
+import org.ohmage.query.ISurveyResponseImageQueries;
+import org.ohmage.query.ISurveyResponseQueries;
+import org.ohmage.query.ISurveyUploadQuery;
 
 /**
  * This class is responsible for creating, reading, updating, and deleting 
@@ -33,10 +33,57 @@ import org.ohmage.query.impl.SurveyUploadQuery;
  * @author Joshua Selsky
  */
 public final class SurveyResponseServices {
+	private static SurveyResponseServices instance;
+	
+	private IImageQueries imageQueries;
+	private ISurveyUploadQuery surveyUploadQuery;
+	private ISurveyResponseQueries surveyResponseQueries;
+	private ISurveyResponseImageQueries surveyResponseImageQueries;
+	
 	/**
-	 * Default constructor. Private so that it cannot be instantiated.
+	 * Default constructor. Privately instantiated via dependency injection
+	 * (reflection).
+	 * 
+	 * @throws IllegalStateException if an instance of this class already
+	 * exists
+	 * 
+	 * @throws IllegalArgumentException if iImageQueries or iSurveyUploadQuery
+	 * or iSurveyResponseQueries or iSurveyResponseImageQueries is null
 	 */
-	private SurveyResponseServices() {}
+	private SurveyResponseServices(IImageQueries iImageQueries, 
+			                       ISurveyUploadQuery iSurveyUploadQuery,
+			                       ISurveyResponseQueries iSurveyResponseQueries,
+			                       ISurveyResponseImageQueries iSurveyResponseImageQueries) {
+		if(instance != null) {
+			throw new IllegalStateException("An instance of this class already exists.");
+		}
+		if(iImageQueries == null) {
+			throw new IllegalArgumentException("An instance of IImageQueries is required.");
+		}
+		if(iSurveyUploadQuery == null) {
+			throw new IllegalArgumentException("An instance of ISurveyUploadQuery is required.");
+		}
+		if(iSurveyResponseQueries == null) {
+			throw new IllegalArgumentException("An instance of ISurveyResponseQueries is required.");
+		}
+		if(iSurveyResponseImageQueries == null) {
+			throw new IllegalArgumentException("An instance of ISurveyResponseImageQueries is required.");
+		}
+		
+		imageQueries = iImageQueries;
+		surveyUploadQuery = iSurveyUploadQuery;
+		surveyResponseQueries = iSurveyResponseQueries;
+		surveyResponseImageQueries = iSurveyResponseImageQueries;
+		
+		instance = this;
+	}
+	
+	/**
+	 * @return  Returns the singleton instance of this class.
+	 */
+	public static SurveyResponseServices instance() {
+		return instance;
+	}
 	
 	/**
 	 * Creates new survey responses in the database.
@@ -61,14 +108,14 @@ public final class SurveyResponseServices {
 	 * 
 	 * @throws ServiceException Thrown if there is an error.
 	 */
-	public static List<Integer> createSurveyResponses(final String user, 
+	public List<Integer> createSurveyResponses(final String user, 
 			final String client, final String campaignUrn,
             final List<SurveyResponse> surveyUploadList,
             final Map<String, BufferedImage> bufferedImageMap) 
             throws ServiceException {
 		
 		try {
-			return SurveyUploadQuery.insertSurveys(user, client, campaignUrn, surveyUploadList, bufferedImageMap);
+			return surveyUploadQuery.insertSurveys(user, client, campaignUrn, surveyUploadList, bufferedImageMap);
 		}
 		catch(DataAccessException e) {
 			throw new ServiceException(e);
@@ -86,7 +133,7 @@ public final class SurveyResponseServices {
 	 * @throws ServiceException Thrown if a prompt response exists but its
 	 * 							corresponding contents don't.
 	 */
-	public static void verifyImagesExistForPhotoPromptResponses(
+	public void verifyImagesExistForPhotoPromptResponses(
 			final Collection<SurveyResponse> surveyResponses,
 			final Map<String, BufferedImage> images) 
 			throws ServiceException {
@@ -155,7 +202,7 @@ public final class SurveyResponseServices {
 	 * 
 	 * @throws ServiceException Thrown if there is an error.
 	 */
-	public static List<SurveyResponse> readSurveyResponseInformation(
+	public List<SurveyResponse> readSurveyResponseInformation(
 			final Campaign campaign, final String username, 
 			final String client, 
 			final Date startDate, final Date endDate, 
@@ -173,37 +220,37 @@ public final class SurveyResponseServices {
 			// Trim from the list all survey responses not made by a specified
 			// user.
 			if(username != null) {
-				surveyResponseIds = SurveyResponseQueries.retrieveSurveyResponseIdsFromUser(campaignId, username);
+				surveyResponseIds = surveyResponseQueries.retrieveSurveyResponseIdsFromUser(campaignId, username);
 			}
 			
 			// Trim from the list all survey responses not made by a specified
 			// client
 			if(client != null) {
 				if(surveyResponseIds == null) {
-					surveyResponseIds = SurveyResponseQueries.retrieveSurveyResponseIdsWithClient(campaignId, client);
+					surveyResponseIds = surveyResponseQueries.retrieveSurveyResponseIdsWithClient(campaignId, client);
 				}
 				else {
-					surveyResponseIds.retainAll(SurveyResponseQueries.retrieveSurveyResponseIdsWithClient(campaignId, client));
+					surveyResponseIds.retainAll(surveyResponseQueries.retrieveSurveyResponseIdsWithClient(campaignId, client));
 				}
 			}
 			
 			// Trim from the list all survey responses made before some date.
 			if(startDate != null) {
 				if(surveyResponseIds == null) {
-					surveyResponseIds = SurveyResponseQueries.retrieveSurveyResponseIdsAfterDate(campaignId, startDate);
+					surveyResponseIds = surveyResponseQueries.retrieveSurveyResponseIdsAfterDate(campaignId, startDate);
 				}
 				else {
-					surveyResponseIds.retainAll(SurveyResponseQueries.retrieveSurveyResponseIdsAfterDate(campaignId, startDate));
+					surveyResponseIds.retainAll(surveyResponseQueries.retrieveSurveyResponseIdsAfterDate(campaignId, startDate));
 				}
 			}
 			
 			// Trim from the list all survey responses made after some date.
 			if(endDate != null) {
 				if(surveyResponseIds == null) {
-					surveyResponseIds = SurveyResponseQueries.retrieveSurveyResponseIdsBeforeDate(campaignId, endDate);
+					surveyResponseIds = surveyResponseQueries.retrieveSurveyResponseIdsBeforeDate(campaignId, endDate);
 				}
 				else {
-					surveyResponseIds.retainAll(SurveyResponseQueries.retrieveSurveyResponseIdsBeforeDate(campaignId, endDate));
+					surveyResponseIds.retainAll(surveyResponseQueries.retrieveSurveyResponseIdsBeforeDate(campaignId, endDate));
 				}
 			}
 			
@@ -211,10 +258,10 @@ public final class SurveyResponseServices {
 			// privacy state.
 			if(privacyState != null) {
 				if(surveyResponseIds == null) {
-					surveyResponseIds = SurveyResponseQueries.retrieveSurveyResponseIdsWithPrivacyState(campaignId, privacyState);
+					surveyResponseIds = surveyResponseQueries.retrieveSurveyResponseIdsWithPrivacyState(campaignId, privacyState);
 				}
 				else {
-					surveyResponseIds.retainAll(SurveyResponseQueries.retrieveSurveyResponseIdsWithPrivacyState(campaignId, privacyState));
+					surveyResponseIds.retainAll(surveyResponseQueries.retrieveSurveyResponseIdsWithPrivacyState(campaignId, privacyState));
 				}
 			}
 			
@@ -223,7 +270,7 @@ public final class SurveyResponseServices {
 			if(surveyIds != null) {
 				Set<Long> surveyIdIds = new HashSet<Long>();
 				for(String surveyId : surveyIds) {
-					surveyIdIds.addAll(SurveyResponseQueries.retrieveSurveyResponseIdsWithSurveyId(campaignId, surveyId));
+					surveyIdIds.addAll(surveyResponseQueries.retrieveSurveyResponseIdsWithSurveyId(campaignId, surveyId));
 				}
 				
 				if(surveyResponseIds == null) {
@@ -239,7 +286,7 @@ public final class SurveyResponseServices {
 			if(promptIds != null) {
 				Set<Long> promptIdIds = new HashSet<Long>();
 				for(String promptId : promptIds) {
-					promptIdIds.addAll(SurveyResponseQueries.retrieveSurveyResponseIdsWithPromptId(campaignId, promptId));
+					promptIdIds.addAll(surveyResponseQueries.retrieveSurveyResponseIdsWithPromptId(campaignId, promptId));
 				}
 				
 				if(surveyResponseIds == null) {
@@ -254,21 +301,21 @@ public final class SurveyResponseServices {
 			// type.
 			if(promptType != null) {
 				if(surveyResponseIds == null) {
-					surveyResponseIds = SurveyResponseQueries.retrieveSurveyResponseIdsWithPromptType(campaignId, promptType);
+					surveyResponseIds = surveyResponseQueries.retrieveSurveyResponseIdsWithPromptType(campaignId, promptType);
 				}
 				else {
-					surveyResponseIds.retainAll(SurveyResponseQueries.retrieveSurveyResponseIdsWithPromptType(campaignId, promptType));
+					surveyResponseIds.retainAll(surveyResponseQueries.retrieveSurveyResponseIdsWithPromptType(campaignId, promptType));
 				}
 			}
 			
 			if(surveyResponseIds == null) {
-				return SurveyResponseQueries.retrieveSurveyResponseFromIds(campaign, SurveyResponseQueries.retrieveSurveyResponseIdsFromCampaign(campaignId));
+				return surveyResponseQueries.retrieveSurveyResponseFromIds(campaign, surveyResponseQueries.retrieveSurveyResponseIdsFromCampaign(campaignId));
 			}
 			else if(surveyResponseIds.size() == 0) {
 				return Collections.emptyList();
 			}
 			else {
-				return SurveyResponseQueries.retrieveSurveyResponseFromIds(campaign, surveyResponseIds);
+				return surveyResponseQueries.retrieveSurveyResponseFromIds(campaign, surveyResponseIds);
 			}
 		}
 		catch(DataAccessException e) {
@@ -283,13 +330,13 @@ public final class SurveyResponseServices {
 	 * @param privacyState  The new privacy state value.
 	 * @throws ServiceException  If an error occurs.
 	 */
-	public static void updateSurveyResponsePrivacyState(
+	public void updateSurveyResponsePrivacyState(
 			final Long surveyResponseId, 
 			final SurveyResponse.PrivacyState privacyState) 
 			throws ServiceException {
 		
 		try {
-			SurveyResponseQueries.updateSurveyResponsePrivacyState(surveyResponseId, privacyState);
+			surveyResponseQueries.updateSurveyResponsePrivacyState(surveyResponseId, privacyState);
 		} 
 		catch(DataAccessException e) {
 			throw new ServiceException(e);
@@ -304,11 +351,11 @@ public final class SurveyResponseServices {
 	 * 
 	 * @throws ServiceException Thrown if there is an error.
 	 */
-	public static void deleteSurveyResponse(final Long surveyResponseId) 
+	public void deleteSurveyResponse(final Long surveyResponseId) 
 			throws ServiceException {
 		
 		try {
-			List<String> imageIds = SurveyResponseImageQueries.getImageIdsFromSurveyResponse(surveyResponseId);
+			List<String> imageIds = surveyResponseImageQueries.getImageIdsFromSurveyResponse(surveyResponseId);
 
 			// TODO:
 			// Here we are deleting the images then deleting the survey 
@@ -327,10 +374,10 @@ public final class SurveyResponseServices {
 			// image, this will give them the chance to delete it even if 
 			// another image and/or the survey response are causing a problem.
 			for(String imageId : imageIds) {
-				ImageQueries.deleteImage(imageId);
+				imageQueries.deleteImage(imageId);
 			}
 			
-			SurveyResponseQueries.deleteSurveyResponse(surveyResponseId);
+			surveyResponseQueries.deleteSurveyResponse(surveyResponseId);
 		}
 		catch(DataAccessException e) {
 			throw new ServiceException(e);

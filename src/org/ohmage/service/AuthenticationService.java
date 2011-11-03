@@ -3,7 +3,7 @@ package org.ohmage.service;
 import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.exception.DataAccessException;
 import org.ohmage.exception.ServiceException;
-import org.ohmage.query.impl.AuthenticationQuery;
+import org.ohmage.query.IAuthenticationQuery;
 import org.ohmage.query.impl.AuthenticationQuery.UserInformation;
 import org.ohmage.request.UserRequest;
 
@@ -11,12 +11,40 @@ import org.ohmage.request.UserRequest;
  * This class contains the authentication services.
  * 
  * @author John Jenkins
+ * @author Joshua Selsky
  */
 public final class AuthenticationService {
+	private static AuthenticationService instance;
+	private IAuthenticationQuery authenticationQuery;
+	
 	/**
-	 * Default constructor. Private to facilitate the Singleton pattern.
+	 * Default constructor. Privately instantiated via dependency injection
+	 * (reflection).
+	 * 
+	 * @throws IllegalStateException if an instance of this class already
+	 * exists
+	 * 
+	 * @throws IllegalArgumentException if iAuthenticationQuery is null 
 	 */
-	private AuthenticationService() {}
+	private AuthenticationService(IAuthenticationQuery iAuthenticationQuery) {
+		if(instance != null) {
+			throw new IllegalStateException("An instance of this class already exists.");
+		}
+
+		if(iAuthenticationQuery == null) {
+			throw new IllegalArgumentException("An instance of IAuthenticationQuery is required.");
+		}
+
+		authenticationQuery = iAuthenticationQuery;
+		instance = this;
+	}
+	
+	/**
+	 * @return  Returns the singleton instance of this class.
+	 */
+	public static AuthenticationService instance() {
+		return instance;
+	}
 	
 	/**
 	 * Checks if the user in the request is already logged in. If so, returns
@@ -32,7 +60,7 @@ public final class AuthenticationService {
 	 * 
 	 * @throws ServiceException Thrown if there is an error.
 	 */
-	public static boolean authenticate(UserRequest request, boolean newAccountsAllowed) throws ServiceException {
+	public boolean authenticate(UserRequest request, boolean newAccountsAllowed) throws ServiceException {
 		// If the user is already logged in, then they are already 
 		// authenticated.
 		if(request.getUser().isLoggedIn()) {
@@ -43,7 +71,7 @@ public final class AuthenticationService {
 		// correct.
 		UserInformation userInformation;
 		try {
-			userInformation = AuthenticationQuery.execute(request);
+			userInformation = authenticationQuery.execute(request);
 		}
 		catch(DataAccessException e) {
 			request.setFailed();

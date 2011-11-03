@@ -134,32 +134,32 @@ public class UserReadRequest extends UserRequest {
 		try {
 			if(usernames != null) {
 				LOGGER.info("Verifying that the requester may read the information about the users in the list.");
-				UserServices.verifyUserCanReadUsersPersonalInfo(getUser().getUsername(), usernames);
+				UserServices.instance().verifyUserCanReadUsersPersonalInfo(getUser().getUsername(), usernames);
 				
 				LOGGER.info("Gathering the information about the users.");
-				result.putAll(UserServices.gatherPersonalInformation(usernames));
+				result.putAll(UserServices.instance().gatherPersonalInformation(usernames));
 			}
 			
 			if(campaignIds != null) {
 				LOGGER.info("Verifying that all of the campaigns in the list exist.");
-				CampaignServices.checkCampaignsExistence(campaignIds, true);
+				CampaignServices.instance().checkCampaignsExistence(campaignIds, true);
 				
 				LOGGER.info("Verifying that the requester may read the information about the users in the campaigns.");
-				UserCampaignServices.verifyUserCanReadUsersInfoInCampaigns(getUser().getUsername(), campaignIds);
+				UserCampaignServices.instance().verifyUserCanReadUsersInfoInCampaigns(getUser().getUsername(), campaignIds);
 				
 				LOGGER.info("Gathering the information about the users in the campaigns.");
-				result.putAll(UserCampaignServices.getPersonalInfoForUsersInCampaigns(campaignIds));
+				result.putAll(UserCampaignServices.instance().getPersonalInfoForUsersInCampaigns(campaignIds));
 			}
 			
 			if(classIds != null) {
 				LOGGER.info("Verifying that all of the classes in the list exist.");
-				ClassServices.checkClassesExistence(classIds, true);
+				ClassServices.instance().checkClassesExistence(classIds, true);
 				
 				LOGGER.info("Verifying that the requester is privileged in all of the classes.");
-				UserClassServices.userHasRoleInClasses(getUser().getUsername(), classIds, Clazz.Role.PRIVILEGED);
+				UserClassServices.instance().userHasRoleInClasses(getUser().getUsername(), classIds, Clazz.Role.PRIVILEGED);
 				
 				LOGGER.info("Gathering the information about the users in the classes.");
-				result.putAll(UserClassServices.getPersonalInfoForUsersInClasses(classIds));
+				result.putAll(UserClassServices.instance().getPersonalInfoForUsersInClasses(classIds));
 			}
 		}
 		catch(ServiceException e) {

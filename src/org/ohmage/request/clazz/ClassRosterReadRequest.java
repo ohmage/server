@@ -106,13 +106,13 @@ public class ClassRosterReadRequest extends UserRequest {
 		
 		try {
 			LOGGER.info("Verifying that the classes in the class list exist.");
-			ClassServices.checkClassesExistence(classIds, true);
+			ClassServices.instance().checkClassesExistence(classIds, true);
 			
 			LOGGER.info("Verify that the user is an admin or that they are privileged in each of the classes in a list.");
-			UserClassServices.userIsAdminOrPrivilegedInAllClasses(getUser().getUsername(), classIds);
+			UserClassServices.instance().userIsAdminOrPrivilegedInAllClasses(getUser().getUsername(), classIds);
 			
 			LOGGER.info("Generating the class roster.");
-			roster = ClassServices.generateClassRoster(classIds);
+			roster = ClassServices.instance().generateClassRoster(classIds);
 		}
 		catch(ServiceException e) {
 			e.failRequest(this);

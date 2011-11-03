@@ -11,139 +11,157 @@
     </constructor-arg>
   </bean>
   
-  <bean class="org.ohmage.query.impl.AuthenticationQuery">
+  <bean name="authenticationQuery" class="org.ohmage.query.impl.AuthenticationQuery">
     <constructor-arg>
       <ref bean="dataSource" />
     </constructor-arg>
   </bean>
   
-  <bean class="org.ohmage.query.impl.CampaignClassQueries">
+  <bean name="campaignClassQueries" class="org.ohmage.query.impl.CampaignClassQueries">
     <constructor-arg>
       <ref bean="dataSource" />
     </constructor-arg>
   </bean>
   
-  <bean class="org.ohmage.query.impl.CampaignQueries">
+  <bean name="campaignQueries" class="org.ohmage.query.impl.CampaignQueries">
+    <constructor-arg index="0">
+      <ref bean="dataSource" />
+    </constructor-arg>
+    <constructor-arg index="1">
+      <ref bean="userCampaignClassQueries" />
+    </constructor-arg>
+    <constructor-arg index="2">
+      <ref bean="userClassQueries" />
+    </constructor-arg>
+  </bean>
+  
+  <bean name="campaignDocumentQueries" class="org.ohmage.query.impl.CampaignDocumentQueries">
     <constructor-arg>
       <ref bean="dataSource" />
     </constructor-arg>
   </bean>
   
-  <bean class="org.ohmage.query.impl.CampaignDocumentQueries">
+  <bean name="campaignImageQueries" class="org.ohmage.query.impl.CampaignImageQueries">
     <constructor-arg>
       <ref bean="dataSource" />
     </constructor-arg>
   </bean>
   
-  <bean class="org.ohmage.query.impl.CampaignImageQueries">
-    <constructor-arg>
-      <ref bean="dataSource" />
-    </constructor-arg>
-  </bean>
-  
-  <bean class="org.ohmage.query.impl.CampaignSurveyResponseQueries">
+  <bean name="campaignSurveyResponseQueries" class="org.ohmage.query.impl.CampaignSurveyResponseQueries">
     <constructor-arg>
       <ref bean="dataSource" />
     </constructor-arg>
   </bean>
 
-  <bean class="org.ohmage.query.impl.ClassQueries">
+  <bean name="classQueries" class="org.ohmage.query.impl.ClassQueries">
+    <constructor-arg>
+      <ref bean="dataSource" />
+    </constructor-arg>
+    <constructor-arg>
+      <ref bean="campaignClassQueries" />
+    </constructor-arg>
+    <constructor-arg>
+      <ref bean="userCampaignClassQueries" />
+    </constructor-arg>
+    <constructor-arg>
+      <ref bean="userClassQueries" />
+    </constructor-arg>
+    <constructor-arg>
+      <ref bean="userCampaignQueries" />
+    </constructor-arg>
+  </bean>
+
+  <bean name="classDocumentQueries" class="org.ohmage.query.impl.ClassDocumentQueries">
+    <constructor-arg>
+      <ref bean="dataSource" />
+    </constructor-arg>
+  </bean>
+  
+  <bean name="documentQueries" class="org.ohmage.query.impl.DocumentQueries">
+    <constructor-arg>
+      <ref bean="dataSource" />
+    </constructor-arg>
+  </bean>
+  
+  <bean name="imageQueries" class="org.ohmage.query.impl.ImageQueries">
+    <constructor-arg>
+      <ref bean="dataSource" />
+    </constructor-arg>
+  </bean>
+  
+  <bean name="surveyResponseQueries" class="org.ohmage.query.impl.SurveyResponseQueries">
+    <constructor-arg>
+      <ref bean="dataSource" />
+    </constructor-arg>
+  </bean>
+  
+  <bean name="surveyResponseImageQueries" class="org.ohmage.query.impl.SurveyResponseImageQueries">
+    <constructor-arg>
+      <ref bean="dataSource" />
+    </constructor-arg>
+  </bean>
+  
+  <bean name="surveyUploadQuery" class="org.ohmage.query.impl.SurveyUploadQuery">
+    <constructor-arg>
+      <ref bean="dataSource" />
+    </constructor-arg>
+  </bean>
+  
+  <bean name="userCampaignClassQueries" class="org.ohmage.query.impl.UserCampaignClassQueries">
+    <constructor-arg>
+      <ref bean="dataSource" />
+    </constructor-arg>
+  </bean>
+  
+  <bean name="userCampaignQueries" class="org.ohmage.query.impl.UserCampaignQueries">
+    <constructor-arg>
+      <ref bean="dataSource" />
+    </constructor-arg>
+  </bean>
+  
+  <bean name="userCampaignDocumentQueries" class="org.ohmage.query.impl.UserCampaignDocumentQueries">
     <constructor-arg>
       <ref bean="dataSource" />
     </constructor-arg>
   </bean>
 
-  <bean class="org.ohmage.query.impl.ClassDocumentQueries">
+  <bean name="userClassQueries" class="org.ohmage.query.impl.UserClassQueries">
     <constructor-arg>
       <ref bean="dataSource" />
     </constructor-arg>
   </bean>
   
-  <bean class="org.ohmage.query.impl.DocumentQueries">
+  <bean name="userClassDocumentQueries" class="org.ohmage.query.impl.UserClassDocumentQueries">
     <constructor-arg>
       <ref bean="dataSource" />
     </constructor-arg>
   </bean>
   
-  <bean class="org.ohmage.query.impl.ImageQueries">
+  <bean name="userQueries" class="org.ohmage.query.impl.UserQueries">
     <constructor-arg>
       <ref bean="dataSource" />
     </constructor-arg>
   </bean>
   
-  <bean class="org.ohmage.query.impl.SurveyResponseQueries">
+  <bean name="userDocumentQueries" class="org.ohmage.query.impl.UserDocumentQueries">
     <constructor-arg>
       <ref bean="dataSource" />
     </constructor-arg>
   </bean>
   
-  <bean class="org.ohmage.query.impl.SurveyResponseImageQueries">
+  <bean name="userImageQueries" class="org.ohmage.query.impl.UserImageQueries">
     <constructor-arg>
       <ref bean="dataSource" />
     </constructor-arg>
   </bean>
   
-  <bean class="org.ohmage.query.impl.SurveyUploadQuery">
+  <bean name="userMobilityQueries" class="org.ohmage.query.impl.UserMobilityQueries">
     <constructor-arg>
       <ref bean="dataSource" />
     </constructor-arg>
   </bean>
   
-  <bean class="org.ohmage.query.impl.UserCampaignClassQueries">
-    <constructor-arg>
-      <ref bean="dataSource" />
-    </constructor-arg>
-  </bean>
-  
-  <bean class="org.ohmage.query.impl.UserCampaignQueries">
-    <constructor-arg>
-      <ref bean="dataSource" />
-    </constructor-arg>
-  </bean>
-  
-  <bean class="org.ohmage.query.impl.UserCampaignDocumentQueries">
-    <constructor-arg>
-      <ref bean="dataSource" />
-    </constructor-arg>
-  </bean>
-
-  <bean class="org.ohmage.query.impl.UserClassQueries">
-    <constructor-arg>
-      <ref bean="dataSource" />
-    </constructor-arg>
-  </bean>
-  
-  <bean class="org.ohmage.query.impl.UserClassDocumentQueries">
-    <constructor-arg>
-      <ref bean="dataSource" />
-    </constructor-arg>
-  </bean>
-  
-  <bean class="org.ohmage.query.impl.UserQueries">
-    <constructor-arg>
-      <ref bean="dataSource" />
-    </constructor-arg>
-  </bean>
-  
-  <bean class="org.ohmage.query.impl.UserDocumentQueries">
-    <constructor-arg>
-      <ref bean="dataSource" />
-    </constructor-arg>
-  </bean>
-  
-  <bean class="org.ohmage.query.impl.UserImageQueries">
-    <constructor-arg>
-      <ref bean="dataSource" />
-    </constructor-arg>
-  </bean>
-  
-  <bean class="org.ohmage.query.impl.UserMobilityQueries">
-    <constructor-arg>
-      <ref bean="dataSource" />
-    </constructor-arg>
-  </bean>
-  
-  <bean class="org.ohmage.query.impl.UserSurveyResponseQueries">
+  <bean name="userSurveyResponseQueries" class="org.ohmage.query.impl.UserSurveyResponseQueries">
     <constructor-arg>
       <ref bean="dataSource" />
     </constructor-arg>

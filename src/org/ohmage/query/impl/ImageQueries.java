@@ -8,6 +8,7 @@ import javax.sql.DataSource;
 
 import org.apache.log4j.Logger;
 import org.ohmage.exception.DataAccessException;
+import org.ohmage.query.IImageQueries;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionException;
@@ -22,7 +23,7 @@ import org.springframework.transaction.support.DefaultTransactionDefinition;
  * 
  * @author John Jenkins
  */
-public final class ImageQueries extends Query {
+public final class ImageQueries extends Query implements IImageQueries {
 	private static final Logger LOGGER = Logger.getLogger(ImageQueries.class);
 	
 	// Checks if an image exists.
@@ -51,8 +52,6 @@ public final class ImageQueries extends Query {
 	public static final String IMAGE_STORE_FORMAT = "png";
 	public static final String IMAGE_SCALED_EXTENSION = "-s";
 	
-	private static ImageQueries instance;
-	
 	/**
 	 * Creates this object.
 	 * 
@@ -60,42 +59,26 @@ public final class ImageQueries extends Query {
 	 */
 	private ImageQueries(DataSource dataSource) {
 		super(dataSource);
-		
-		instance = this;
 	}
 
-	/**
-	 * Retrieves whether or not an image with the given ID exists.
-	 * 
-	 * @param imageId The image's ID.
-	 * 
-	 * @return Returns true if the image exists; false, otherwise.
-	 * 
-	 * @throws DataAccessException Thrown if there is an error.
+	/* (non-Javadoc)
+	 * @see org.ohmage.query.impl.IImageQueries#getImageExists(java.lang.String)
 	 */
-	public static Boolean getImageExists(String imageId) throws DataAccessException {
+	public Boolean getImageExists(String imageId) throws DataAccessException {
 		try {
-			return instance.getJdbcTemplate().queryForObject(SQL_EXISTS_IMAGE, new Object[] { imageId }, Boolean.class);
+			return getJdbcTemplate().queryForObject(SQL_EXISTS_IMAGE, new Object[] { imageId }, Boolean.class);
 		}
 		catch(org.springframework.dao.DataAccessException e) {
 			throw new DataAccessException("Error executing SQL '" + SQL_EXISTS_IMAGE + "' with parameter: " + imageId, e);
 		}
 	}
 	
-	/**
-	 * Retrieves the URL for the image if the image exists. If the image does
-	 * not exist, null is returned. 
-	 * 
-	 * @param imageId The unique identifier for the image.
-	 * 
-	 * @return Returns the URL for the image if it exists; otherwise, null is
-	 * 		   returned.
-	 * 
-	 * @throws DataAccessException Thrown if there is an error.
+	/* (non-Javadoc)
+	 * @see org.ohmage.query.impl.IImageQueries#getImageUrl(java.lang.String)
 	 */
-	public static String getImageUrl(String imageId) throws DataAccessException {
+	public String getImageUrl(String imageId) throws DataAccessException {
 		try {
-			return instance.getJdbcTemplate().queryForObject(SQL_GET_IMAGE_URL, new Object[] { imageId }, String.class);
+			return getJdbcTemplate().queryForObject(SQL_GET_IMAGE_URL, new Object[] { imageId }, String.class);
 		}
 		catch(org.springframework.dao.IncorrectResultSizeDataAccessException e) {
 			if(e.getActualSize() > 1) {
@@ -109,28 +92,23 @@ public final class ImageQueries extends Query {
 		}
 	}
 	
-	/**
-	 * Deletes an image reference from the database and, if successful, deletes
-	 * the images off of the file system.
-	 * 
-	 * @param imageId The image's unique identifier.
-	 * 
-	 * @throws DataAccessException Thrown if there is an error.
+	/* (non-Javadoc)
+	 * @see org.ohmage.query.impl.IImageQueries#deleteImage(java.lang.String)
 	 */
-	public static void deleteImage(String imageId) throws DataAccessException {
+	public void deleteImage(String imageId) throws DataAccessException {
 		// Create the transaction.
 		DefaultTransactionDefinition def = new DefaultTransactionDefinition();
 		def.setName("Deleting an image.");
 		
 		try {
 			// Begin the transaction.
-			PlatformTransactionManager transactionManager = new DataSourceTransactionManager(instance.getDataSource());
+			PlatformTransactionManager transactionManager = new DataSourceTransactionManager(getDataSource());
 			TransactionStatus status = transactionManager.getTransaction(def);
 			
 			String imageUrl = getImageUrl(imageId);
 			
 			try {
-				instance.getJdbcTemplate().update(
+				getJdbcTemplate().update(
 						SQL_DELETE_IMAGE,
 						new Object[] { imageId });
 			}

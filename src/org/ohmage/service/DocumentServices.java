@@ -12,7 +12,7 @@ import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.domain.Document;
 import org.ohmage.exception.DataAccessException;
 import org.ohmage.exception.ServiceException;
-import org.ohmage.query.impl.DocumentQueries;
+import org.ohmage.query.IDocumentQueries;
 
 /**
  * This class contains the services that pertain to documents.
@@ -20,10 +20,37 @@ import org.ohmage.query.impl.DocumentQueries;
  * @author John Jenkins
  */
 public class DocumentServices {
+	private static DocumentServices instance;
+	private IDocumentQueries documentQueries;
+	
 	/**
-	 * Default constructor. Private so that it cannot be instantiated.
+	 * Default constructor. Privately instantiated via dependency injection
+	 * (reflection).
+	 * 
+	 * @throws IllegalStateException if an instance of this class already
+	 * exists
+	 * 
+	 * @throws IllegalArgumentException if iDocumentQueries is null
 	 */
-	private DocumentServices() {}
+	private DocumentServices(IDocumentQueries iDocumentQueries) {
+		if(instance != null) {
+			throw new IllegalStateException("An instance of this class already exists.");
+		}
+		
+		if(iDocumentQueries == null) {
+			throw new IllegalArgumentException("An instance of IDocumentQueries is required.");
+		}
+		
+		documentQueries = iDocumentQueries;
+		instance = this;
+	}
+	
+	/**
+	 * @return  Returns the singleton instance of this class.
+	 */
+	public static DocumentServices instance() {
+		return instance;
+	}
 	
 	/**
 	 * Creates a new document in the database.
@@ -48,7 +75,7 @@ public class DocumentServices {
 	 * 
 	 * @throws ServiceException Thrown if there is an error.
 	 */
-	public static String createDocument(final byte[] contents, 
+	public String createDocument(final byte[] contents, 
 			final String name, final String description, 
 			final Document.PrivacyState privacyState,
 			final Map<String, Document.Role> campaignRoleMap, 
@@ -56,7 +83,7 @@ public class DocumentServices {
 			final String creatorUsername) throws ServiceException {
 		
 		try {
-			return DocumentQueries.createDocument(contents, name, description, privacyState, campaignRoleMap, classRoleMap, creatorUsername);
+			return documentQueries.createDocument(contents, name, description, privacyState, campaignRoleMap, classRoleMap, creatorUsername);
 		}
 		catch(DataAccessException e) {
 			throw new ServiceException(e);
@@ -71,11 +98,11 @@ public class DocumentServices {
 	 * @throws ServiceException Thrown if the document doesn't exist or there 
 	 * 							is an error.
 	 */
-	public static void ensureDocumentExistence(final String documentId) 
+	public void ensureDocumentExistence(final String documentId) 
 			throws ServiceException {
 		
 		try {
-			if(! DocumentQueries.getDocumentExists(documentId)) {
+			if(! documentQueries.getDocumentExists(documentId)) {
 				throw new ServiceException(
 						ErrorCode.DOCUMENT_INVALID_ID, 
 						"The document with the given document ID does not exist: " + 
@@ -98,11 +125,11 @@ public class DocumentServices {
 	 * 
 	 * @throws ServiceException Thrown if there is an error.
 	 */
-	public static String getDocumentName(final String documentId) 
+	public String getDocumentName(final String documentId) 
 			throws ServiceException {
 		
 		try {
-			return DocumentQueries.getDocumentName(documentId);
+			return documentQueries.getDocumentName(documentId);
 		}
 		catch(DataAccessException e) {
 			throw new ServiceException(e);
@@ -127,7 +154,7 @@ public class DocumentServices {
 	 * 
 	 * @throws IllegalArgumentException The List of roles is null.
 	 */
-	public static void ensureRoleNotLessThanRoles(final Document.Role role, 
+	public void ensureRoleNotLessThanRoles(final Document.Role role, 
 			final Collection<Document.Role> roles) throws ServiceException {
 		
 		if(roles == null) {
@@ -178,11 +205,11 @@ public class DocumentServices {
 	 * 							document's URL or if there is an issue opening
 	 * 							the connection or InputStream.
 	 */
-	public static InputStream getDocumentInputStream(final String documentId) 
+	public InputStream getDocumentInputStream(final String documentId) 
 			throws ServiceException {
 		
 		try {
-			return (new URL(DocumentQueries.getDocumentUrl(documentId))).openConnection().getInputStream();
+			return (new URL(documentQueries.getDocumentUrl(documentId))).openConnection().getInputStream();
 			
 		}
 		catch(DataAccessException e) {
@@ -241,7 +268,7 @@ public class DocumentServices {
 	 * 
 	 * @throws ServiceException Thrown if there is an error.
 	 */
-	public static void updateDocument(final String documentId, 
+	public void updateDocument(final String documentId, 
 			final byte[] newContents, final String newName, 
 			final String newDescription, 
 			final Document.PrivacyState newPrivacyState,
@@ -254,7 +281,7 @@ public class DocumentServices {
 			throws ServiceException {
 		
 		try {
-			DocumentQueries.updateDocument(documentId, newContents, newName, newDescription, newPrivacyState, 
+			documentQueries.updateDocument(documentId, newContents, newName, newDescription, newPrivacyState, 
 					campaignAndRolesToAssociateOrUpdate, campaignsToDisassociate, 
 					classAndRolesToAssociateOrUpdate, classesToDisassociate, 
 					userAndRolesToAssociateOrUpdate, usersToDisassoicate);
@@ -271,11 +298,11 @@ public class DocumentServices {
 	 * 
 	 * @throws ServiceException Thrown if there is an error.
 	 */
-	public static void deleteDocument(final String documentId) 
+	public void deleteDocument(final String documentId) 
 			throws ServiceException {
 		
 		try {
-			DocumentQueries.deleteDocument(documentId);
+			documentQueries.deleteDocument(documentId);
 		}
 		catch(DataAccessException e) {
 			throw new ServiceException(e);

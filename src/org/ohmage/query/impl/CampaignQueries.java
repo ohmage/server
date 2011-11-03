@@ -19,6 +19,9 @@ import org.ohmage.domain.Clazz;
 import org.ohmage.domain.campaign.Campaign;
 import org.ohmage.domain.campaign.Survey;
 import org.ohmage.exception.DataAccessException;
+import org.ohmage.query.ICampaignQueries;
+import org.ohmage.query.IUserCampaignClassQueries;
+import org.ohmage.query.IUserClassQueries;
 import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.SingleColumnRowMapper;
@@ -39,7 +42,10 @@ import org.springframework.transaction.support.DefaultTransactionDefinition;
  * @author John Jenkins
  * @author Joshua Selsky
  */
-public final class CampaignQueries extends Query {
+public final class CampaignQueries extends Query implements ICampaignQueries {
+	private IUserCampaignClassQueries userCampaignClassQueries;
+	private IUserClassQueries userClassQueries;
+	
 	// Returns a boolean value of whether or not the campaign exists.
 	private static final String SQL_EXISTS_CAMPAIGN = 
 		"SELECT EXISTS(" +
@@ -136,22 +142,6 @@ public final class CampaignQueries extends Query {
 			"WHERE running_state = ?" +
 		")";
 	
-	// Retrieves the campaign roles for a user based on the default roles for
-	// a campaign-class association.
-	public static final String SQL_GET_USER_DEFAULT_ROLES =
-		"SELECT ur.role " +
-		"FROM user u, campaign ca, class cl, campaign_class cc, user_role ur, user_class uc, campaign_class_default_role ccdr " +
-		"WHERE u.username = ? " +
-		"AND ca.urn = ? " +
-		"AND cl.urn = ? " +
-		"AND ca.id = cc.campaign_id " +
-		"AND cl.id = cc.class_id " +
-		"AND cc.id = ccdr.campaign_class_id " +
-		"AND u.id = uc.user_id " +
-		"AND cl.id = uc.class_id " +
-		"AND uc.user_class_role_id = ccdr.user_class_role_id " +
-		"AND ccdr.user_role_id = ur.id";
-
 	// Inserts a new campaign.
 	private static final String SQL_INSERT_CAMPAIGN = 
 		"INSERT INTO campaign(urn, name, xml, description, icon_url, authored_by, creation_timestamp, running_state_id, privacy_state_id) " +
@@ -291,44 +281,31 @@ public final class CampaignQueries extends Query {
 			"FROM user_role " +
 			"WHERE role = ?" +
 		")";
-	
-	
-	// The single instance of this class as the constructor should only ever be
-	// called once by Spring.
-	private static CampaignQueries instance;
 
 	/**
 	 * Creates this object.
 	 * 
 	 * @param dataSource A DataSource object to use when querying the database.
 	 */
-	private CampaignQueries(DataSource dataSource) {
+	private CampaignQueries(DataSource dataSource, IUserCampaignClassQueries iUserCampaignClassQueries, IUserClassQueries iUserClassQueries) {
 		super(dataSource);
 		
-		instance = this;
+		if(iUserCampaignClassQueries == null) {
+			throw new IllegalArgumentException("An instance of IUserCampaignClassQueries is a required argument.");
+		}
+		
+		if(iUserClassQueries == null) {
+			throw new IllegalArgumentException("An instance of IUserClassQueries is a required argument.");
+		}
+		
+		userCampaignClassQueries = iUserCampaignClassQueries; 
+		userClassQueries = iUserClassQueries;
 	}
 	
-	/**
-	 * Creates a new campaign.
-	 * 
-	 * @param campaignId The new campaign's unique identifier.
-	 * 
-	 * @param name The new campaign's name.
-	 * 
-	 * @param xml The XML defining the new campaign.
-	 * 
-	 * @param description An optional description for the campaign.
-	 * 
-	 * @param runningState The initial running state for the campaign.
-	 * 
-	 * @param privacyState The initial privacy state for the campaign.
-	 * 
-	 * @param classIds A List of classes with which this campaign should be 
-	 * 				   associated.
-	 * 
-	 * @param creatorUsername The username of the creator of this campaign.
+	/* (non-Javadoc)
+	 * @see org.ohmage.query.impl.ICampaignQueries#createCampaign(java.lang.String, java.lang.String, java.lang.String, java.lang.String, java.lang.String, java.lang.String, org.ohmage.domain.campaign.Campaign.RunningState, org.ohmage.domain.campaign.Campaign.PrivacyState, java.util.Collection, java.lang.String)
 	 */
-	public static void createCampaign(String campaignId, String name, String xml, String description, 
+	public void createCampaign(String campaignId, String name, String xml, String description, 
 			String iconUrl, String authoredBy, 
 			Campaign.RunningState runningState, 
 			Campaign.PrivacyState privacyState, 
@@ -341,12 +318,12 @@ public final class CampaignQueries extends Query {
 		
 		try {
 			// Begin the transaction.
-			PlatformTransactionManager transactionManager = new DataSourceTransactionManager(instance.getDataSource());
+			PlatformTransactionManager transactionManager = new DataSourceTransactionManager(getDataSource());
 			TransactionStatus status = transactionManager.getTransaction(def);
 			
 			// Create the campaign.
 			try {
-				instance.getJdbcTemplate().update(
+				getJdbcTemplate().update(
 						SQL_INSERT_CAMPAIGN, 
 						new Object[] { campaignId, name, xml, description, iconUrl, authoredBy, runningState.toString(), privacyState.toString() });
 			}
@@ -364,7 +341,7 @@ public final class CampaignQueries extends Query {
 			// Add the requesting user as the author. This may have already 
 			// happened above.
 			try {
-				instance.getJdbcTemplate().update(SQL_INSERT_USER_ROLE_CAMPAIGN, creatorUsername, campaignId, Campaign.Role.AUTHOR.toString());
+				getJdbcTemplate().update(SQL_INSERT_USER_ROLE_CAMPAIGN, creatorUsername, campaignId, Campaign.Role.AUTHOR.toString());
 			}
 			catch(org.springframework.dao.DataIntegrityViolationException e) {
 				// The user was already an author of this campaign implying 
@@ -392,18 +369,12 @@ public final class CampaignQueries extends Query {
 		}
 	}
 	
-	/**
-	 * Returns whether or not a campaign with the unique campaign identifier
-	 * 'campaignId' exists.
-	 * 
-	 * @param campaignId The unique identifier for the campaign whose existence
-	 * 					 is in question.
-	 * 
-	 * @return Returns true if the campaign exists; false, otherwise.
+	/* (non-Javadoc)
+	 * @see org.ohmage.query.impl.ICampaignQueries#getCampaignExists(java.lang.String)
 	 */
-	public static Boolean getCampaignExists(String campaignId) throws DataAccessException {
+	public Boolean getCampaignExists(String campaignId) throws DataAccessException {
 		try {
-			return instance.getJdbcTemplate().queryForObject(
+			return getJdbcTemplate().queryForObject(
 					SQL_EXISTS_CAMPAIGN, 
 					new Object[] { campaignId }, 
 					Boolean.class
@@ -414,17 +385,12 @@ public final class CampaignQueries extends Query {
 		}
 	}
 	
-	/**
-	 * Retrieves a campaign's name.
-	 * 
-	 * @param campaignId The unique identifier for the campaign.
-	 * 
-	 * @return If the campaign exists, its name is returned. Otherwise, null is
-	 * 		   returned.
+	/* (non-Javadoc)
+	 * @see org.ohmage.query.impl.ICampaignQueries#getName(java.lang.String)
 	 */
-	public static String getName(String campaignId) throws DataAccessException {
+	public String getName(String campaignId) throws DataAccessException {
 		try {
-			return instance.getJdbcTemplate().queryForObject(SQL_GET_NAME, new Object[] { campaignId }, String.class);
+			return getJdbcTemplate().queryForObject(SQL_GET_NAME, new Object[] { campaignId }, String.class);
 		}
 		catch(org.springframework.dao.IncorrectResultSizeDataAccessException e) {
 			if(e.getActualSize() > 1) {
@@ -438,15 +404,12 @@ public final class CampaignQueries extends Query {
 		}
 	}
 	
-	/**
-	 * Finds the configuration for the provided campaign id.
-	 * 
-	 * @param campaignId The unique identifier for the campaign..
-	 * @throws DataAccessException If an error occurs running the SQL.
+	/* (non-Javadoc)
+	 * @see org.ohmage.query.impl.ICampaignQueries#findCampaignConfiguration(java.lang.String)
 	 */
-	public static Campaign findCampaignConfiguration(final String campaignId) throws DataAccessException {
+	public Campaign findCampaignConfiguration(final String campaignId) throws DataAccessException {
 		try {
-			return instance.getJdbcTemplate().queryForObject(
+			return getJdbcTemplate().queryForObject(
 					SQL_GET_CAMPAIGN_INFORMATION, 
 					new Object[] { campaignId }, 
 					new RowMapper<Campaign>() {
@@ -479,17 +442,12 @@ public final class CampaignQueries extends Query {
 		}
 	}
     
-	/**
-	 * Retrieves a campaign's description.
-	 * 
-	 * @param campaignId The unique identifier for the campaign.
-	 * 
-	 * @return If the campaign exists, its description is returned. Otherwise, 
-	 * 		   null is returned.
+	/* (non-Javadoc)
+	 * @see org.ohmage.query.impl.ICampaignQueries#getDescription(java.lang.String)
 	 */
-	public static String getDescription(String campaignId) throws DataAccessException {
+	public String getDescription(String campaignId) throws DataAccessException {
 		try {
-			return instance.getJdbcTemplate().queryForObject(SQL_GET_DESCRIPTION, new Object[] { campaignId }, String.class);
+			return getJdbcTemplate().queryForObject(SQL_GET_DESCRIPTION, new Object[] { campaignId }, String.class);
 		}
 		catch(org.springframework.dao.IncorrectResultSizeDataAccessException e) {
 			if(e.getActualSize() > 1) {
@@ -503,17 +461,12 @@ public final class CampaignQueries extends Query {
 		}
 	}
 
-	/**
-	 * Retrieves the campaign's privacy state.
-	 * 
-	 * @param campaignId A campaign's unique identifier.
-	 * 
-	 * @return If the campaign exists, its PrivacyState enum is returned;
-	 * 		   otherwise, null is returned.
+	/* (non-Javadoc)
+	 * @see org.ohmage.query.impl.ICampaignQueries#getCampaignPrivacyState(java.lang.String)
 	 */
-	public static Campaign.PrivacyState getCampaignPrivacyState(String campaignId) throws DataAccessException {
+	public Campaign.PrivacyState getCampaignPrivacyState(String campaignId) throws DataAccessException {
 		try {
-			return Campaign.PrivacyState.getValue(instance.getJdbcTemplate().queryForObject(SQL_GET_PRIVACY_STATE, new Object[] { campaignId }, String.class));
+			return Campaign.PrivacyState.getValue(getJdbcTemplate().queryForObject(SQL_GET_PRIVACY_STATE, new Object[] { campaignId }, String.class));
 		}
 		catch(org.springframework.dao.IncorrectResultSizeDataAccessException e) {
 			if(e.getActualSize() > 1) {
@@ -527,17 +480,12 @@ public final class CampaignQueries extends Query {
 		}
 	}
 
-	/**
-	 * Retrieves the campaign's running state.
-	 * 
-	 * @param campaignId A campaign's unique identifier.
-	 * 
-	 * @return If the campaign exists, its running state String is returned;
-	 * 		   otherwise, null is returned.
+	/* (non-Javadoc)
+	 * @see org.ohmage.query.impl.ICampaignQueries#getCampaignRunningState(java.lang.String)
 	 */
-	public static Campaign.RunningState getCampaignRunningState(String campaignId) throws DataAccessException {
+	public Campaign.RunningState getCampaignRunningState(String campaignId) throws DataAccessException {
 		try {
-			return Campaign.RunningState.getValue(instance.getJdbcTemplate().queryForObject(SQL_GET_RUNNING_STATE, new Object[] { campaignId }, String.class));
+			return Campaign.RunningState.getValue(getJdbcTemplate().queryForObject(SQL_GET_RUNNING_STATE, new Object[] { campaignId }, String.class));
 		}
 		catch(org.springframework.dao.IncorrectResultSizeDataAccessException e) {
 			if(e.getActualSize() > 1) {
@@ -551,17 +499,12 @@ public final class CampaignQueries extends Query {
 		}
 	}
 	
-	/**
-	 * Retrieves a campaign's XML.
-	 * 
-	 * @param campaignId The unique identifier for the campaign.
-	 * 
-	 * @return If the campaign exists, its XML is returned. Otherwise, null is
-	 * 		   returned.
+	/* (non-Javadoc)
+	 * @see org.ohmage.query.impl.ICampaignQueries#getXml(java.lang.String)
 	 */
-	public static String getXml(String campaignId) throws DataAccessException {
+	public String getXml(String campaignId) throws DataAccessException {
 		try {
-			return instance.getJdbcTemplate().queryForObject(SQL_GET_XML, new Object[] { campaignId }, String.class);
+			return getJdbcTemplate().queryForObject(SQL_GET_XML, new Object[] { campaignId }, String.class);
 		}
 		catch(org.springframework.dao.IncorrectResultSizeDataAccessException e) {
 			if(e.getActualSize() > 1) {
@@ -575,17 +518,12 @@ public final class CampaignQueries extends Query {
 		}
 	}
 	
-	/**
-	 * Retrieves a campaign's icon's URL.
-	 * 
-	 * @param campaignId The unique identifier for the campaign.
-	 * 
-	 * @return If the campaign exists, its icon URL is returned. Otherwise, 
-	 * 		   null is returned.
+	/* (non-Javadoc)
+	 * @see org.ohmage.query.impl.ICampaignQueries#getIconUrl(java.lang.String)
 	 */
-	public static String getIconUrl(String campaignId) throws DataAccessException {
+	public String getIconUrl(String campaignId) throws DataAccessException {
 		try {
-			return instance.getJdbcTemplate().queryForObject(SQL_GET_ICON_URL, new Object[] { campaignId }, String.class);
+			return getJdbcTemplate().queryForObject(SQL_GET_ICON_URL, new Object[] { campaignId }, String.class);
 		}
 		catch(org.springframework.dao.IncorrectResultSizeDataAccessException e) {
 			if(e.getActualSize() > 1) {
@@ -599,17 +537,12 @@ public final class CampaignQueries extends Query {
 		}
 	}
 	
-	/**
-	 * Retrieves a campaign's creation timestamp.
-	 * 
-	 * @param campaignId The unique identifier for the campaign.
-	 * 
-	 * @return If the campaign exists, its timestamp is returned; otherwise, 
-	 * 		   null is returned.
+	/* (non-Javadoc)
+	 * @see org.ohmage.query.impl.ICampaignQueries#getCreationTimestamp(java.lang.String)
 	 */
-	public static Timestamp getCreationTimestamp(String campaignId) throws DataAccessException {
+	public Timestamp getCreationTimestamp(String campaignId) throws DataAccessException {
 		try {
-			return instance.getJdbcTemplate().queryForObject(SQL_GET_CREATION_TIMESTAMP, new Object[] { campaignId }, Timestamp.class);
+			return getJdbcTemplate().queryForObject(SQL_GET_CREATION_TIMESTAMP, new Object[] { campaignId }, Timestamp.class);
 		}
 		catch(org.springframework.dao.IncorrectResultSizeDataAccessException e) {
 			if(e.getActualSize() > 1) {
@@ -623,20 +556,12 @@ public final class CampaignQueries extends Query {
 		}
 	}
 	
-	/**
-	 * Creates a new CampaignInformation object based on the information about
-	 * some campaign.
-	 *  
-	 * @param campaignId The campaign's unique identifier.
-	 * 
-	 * @return A CampaignInformation object with the required information about
-	 * 		   a campaign or null if no such campaign exists.
-	 * 
-	 * @throws DataAccessException Thrown if there is an error.
+	/* (non-Javadoc)
+	 * @see org.ohmage.query.impl.ICampaignQueries#getCampaignInformation(java.lang.String)
 	 */
-	public static Campaign getCampaignInformation(final String campaignId) throws DataAccessException {
+	public Campaign getCampaignInformation(final String campaignId) throws DataAccessException {
 		try {
-			return instance.getJdbcTemplate().queryForObject(
+			return getJdbcTemplate().queryForObject(
 					SQL_GET_CAMPAIGN_INFORMATION,
 					new Object[] { campaignId },
 					new RowMapper<Campaign>() {
@@ -685,18 +610,13 @@ public final class CampaignQueries extends Query {
 		}
 	}
 	
-	/**
-	 * Retrieves the IDs for all campaigns whose creation timestamp was on or
-	 * after some date.
-	 * 
-	 * @param date The date as a Calendar.
-	 * 
-	 * @return A List of campaign IDs. This will never be null.
+	/* (non-Javadoc)
+	 * @see org.ohmage.query.impl.ICampaignQueries#getCampaignsOnOrAfterDate(java.util.Calendar)
 	 */
-	public static List<String> getCampaignsOnOrAfterDate(Calendar date) throws DataAccessException {
+	public List<String> getCampaignsOnOrAfterDate(Calendar date) throws DataAccessException {
 		Timestamp dateAsTimestamp = new Timestamp(date.getTimeInMillis());
 		try {
-			return instance.getJdbcTemplate().query(
+			return getJdbcTemplate().query(
 					SQL_GET_CAMPAIGNS_ON_OR_AFTER_DATE,
 					new Object[] { dateAsTimestamp },
 					new SingleColumnRowMapper<String>());
@@ -706,18 +626,13 @@ public final class CampaignQueries extends Query {
 		}
 	}
 	
-	/**
-	 * Retrieves the IDs for all campaigns whose creation timestamp was on or
-	 * before some date.
-	 * 
-	 * @param date The date as a Calendar.
-	 * 
-	 * @return A List of campaign IDs. This will never be null.
+	/* (non-Javadoc)
+	 * @see org.ohmage.query.impl.ICampaignQueries#getCampaignsOnOrBeforeDate(java.util.Calendar)
 	 */
-	public static List<String> getCampaignsOnOrBeforeDate(Calendar date) throws DataAccessException {
+	public List<String> getCampaignsOnOrBeforeDate(Calendar date) throws DataAccessException {
 		Timestamp dateAsTimestamp = new Timestamp(date.getTimeInMillis());
 		try {
-			return instance.getJdbcTemplate().query(
+			return getJdbcTemplate().query(
 					SQL_GET_CAMPAIGNS_ON_OR_BEFORE_DATE,
 					new Object[] { dateAsTimestamp },
 					new SingleColumnRowMapper<String>());
@@ -727,18 +642,12 @@ public final class CampaignQueries extends Query {
 		}
 	}
 	
-	/**
-	 * Returns a list of campaign IDs for all of the campaigns with a specified
-	 * privacy state.
-	 * 
-	 * @param privacyState The privacy state in question.
-	 * 
-	 * @return Returns a list of campaign IDs whose is privacy state is 
-	 * 		   'privacyState'.
+	/* (non-Javadoc)
+	 * @see org.ohmage.query.impl.ICampaignQueries#getCampaignsWithPrivacyState(org.ohmage.domain.campaign.Campaign.PrivacyState)
 	 */
-	public static List<String> getCampaignsWithPrivacyState(Campaign.PrivacyState privacyState) throws DataAccessException {
+	public List<String> getCampaignsWithPrivacyState(Campaign.PrivacyState privacyState) throws DataAccessException {
 		try {
-			return instance.getJdbcTemplate().query(
+			return getJdbcTemplate().query(
 					SQL_GET_CAMPAIGNS_WITH_PRIVACY_STATE,
 					new Object[] { privacyState.toString() },
 					new SingleColumnRowMapper<String>());
@@ -748,18 +657,12 @@ public final class CampaignQueries extends Query {
 		}
 	}
 	
-	/**
-	 * Returns a list of campaign IDs for all of the campaigns with a specified
-	 * running state.
-	 * 
-	 * @param runningState The running state in question.
-	 * 
-	 * @return Returns a list of campaign IDs whose is running state is 
-	 * 		   'runningState'.
+	/* (non-Javadoc)
+	 * @see org.ohmage.query.impl.ICampaignQueries#getCampaignsWithRunningState(org.ohmage.domain.campaign.Campaign.RunningState)
 	 */
-	public static List<String> getCampaignsWithRunningState(Campaign.RunningState runningState) throws DataAccessException {
+	public List<String> getCampaignsWithRunningState(Campaign.RunningState runningState) throws DataAccessException {
 		try {
-			return instance.getJdbcTemplate().query(
+			return getJdbcTemplate().query(
 					SQL_GET_CAMPAIGNS_WITH_RUNNING_STATE,
 					new Object[] { runningState.toString() },
 					new SingleColumnRowMapper<String>());
@@ -769,44 +672,10 @@ public final class CampaignQueries extends Query {
 		}
 	}
 	
-	/**
-	 * Updates a campaign. The 'request' and 'campaignId' are required; 
-	 * however, the remaining parameters may be null indicating that they 
-	 * should not be updated.
-	 * 
-	 * @param request The Request that is performing this service.
-	 *  
-	 * @param campaignId The campaign's unique identifier.
-	 * 
-	 * @param xml The new XML for the campaign or null if the XML should not be
-	 * 			  updated.
-	 * 
-	 * @param description The new description for the campaign or null if the
-	 * 					  description should not be updated.
-	 * 
-	 * @param runningState The new running state for the campaign or null if 
-	 * 					   the running state should not be updated.
-	 * 
-	 * @param privacyState The new privacy state for the campaign or null if 
-	 * 					   the privacy state should not be updated.
-	 * 
-	 * @param classesToAdd The collection of classes to associate with the
-	 * 					   campaign.
-	 * 
-	 * @param classesToRemove The collection of classes to disassociate from
-	 * 						  the campaign.
-	 * 
-	 * @param usersAndRolesToAdd A map of usernames to a list of roles that the
-	 * 							 users should be granted in the campaign or 
-	 * 							 null if no users should be granted any new 
-	 * 							 roles.
-	 * 
-	 * @param usersAndRolesToRemove A map of usernames to a list of roles that
-	 * 								should be revoked from the user in the
-	 * 								campaign or null if no users should have 
-	 * 								any of their roles revoked.
+	/* (non-Javadoc)
+	 * @see org.ohmage.query.impl.ICampaignQueries#updateCampaign(java.lang.String, java.lang.String, java.lang.String, org.ohmage.domain.campaign.Campaign.RunningState, org.ohmage.domain.campaign.Campaign.PrivacyState, java.util.Collection, java.util.Collection, java.util.Map, java.util.Map)
 	 */
-	public static void updateCampaign(String campaignId, String xml, String description, 
+	public void updateCampaign(String campaignId, String xml, String description, 
 			Campaign.RunningState runningState, 
 			Campaign.PrivacyState privacyState, 
 			Collection<String> classesToAdd,
@@ -821,13 +690,13 @@ public final class CampaignQueries extends Query {
 		
 		try {
 			// Begin the transaction.
-			PlatformTransactionManager transactionManager = new DataSourceTransactionManager(instance.getDataSource());
+			PlatformTransactionManager transactionManager = new DataSourceTransactionManager(getDataSource());
 			TransactionStatus status = transactionManager.getTransaction(def);
 			
 			// Update the XML if it is present.
 			if(xml != null) {
 				try {
-					instance.getJdbcTemplate().update(SQL_UPDATE_XML, new Object[] { xml, campaignId });
+					getJdbcTemplate().update(SQL_UPDATE_XML, new Object[] { xml, campaignId });
 				}
 				catch(org.springframework.dao.DataAccessException e) {
 					transactionManager.rollback(status);
@@ -838,7 +707,7 @@ public final class CampaignQueries extends Query {
 			// Update the description if it is present.
 			if(description != null) {
 				try {
-					instance.getJdbcTemplate().update(SQL_UPDATE_DESCRIPTION, new Object[] { description, campaignId });
+					getJdbcTemplate().update(SQL_UPDATE_DESCRIPTION, new Object[] { description, campaignId });
 				}
 				catch(org.springframework.dao.DataAccessException e) {
 					transactionManager.rollback(status);
@@ -849,7 +718,7 @@ public final class CampaignQueries extends Query {
 			// Update the running state if it is present.
 			if(runningState != null) {
 				try {
-					instance.getJdbcTemplate().update(SQL_UPDATE_RUNNING_STATE, new Object[] { runningState.toString(), campaignId });
+					getJdbcTemplate().update(SQL_UPDATE_RUNNING_STATE, new Object[] { runningState.toString(), campaignId });
 				}
 				catch(org.springframework.dao.DataAccessException e) {
 					transactionManager.rollback(status);
@@ -860,7 +729,7 @@ public final class CampaignQueries extends Query {
 			// Update the privacy state if it is present.
 			if(privacyState != null) {
 				try {
-					instance.getJdbcTemplate().update(SQL_UPDATE_PRIVACY_STATE, new Object[] { privacyState.toString(), campaignId });
+					getJdbcTemplate().update(SQL_UPDATE_PRIVACY_STATE, new Object[] { privacyState.toString(), campaignId });
 				}
 				catch(org.springframework.dao.DataAccessException e) {
 					transactionManager.rollback(status);
@@ -873,7 +742,7 @@ public final class CampaignQueries extends Query {
 				for(String username : usersAndRolesToAdd.keySet()) {
 					for(Campaign.Role role : usersAndRolesToAdd.get(username)) {
 						try {
-							instance.getJdbcTemplate().update(SQL_INSERT_USER_ROLE_CAMPAIGN, new Object[] { username, campaignId, role.toString() });
+							getJdbcTemplate().update(SQL_INSERT_USER_ROLE_CAMPAIGN, new Object[] { username, campaignId, role.toString() });
 						}
 						catch(org.springframework.dao.DuplicateKeyException e) {
 							// This means that the user already had the role in
@@ -893,7 +762,7 @@ public final class CampaignQueries extends Query {
 				for(String username : usersAndRolesToRemove.keySet()) {
 					for(Campaign.Role role : usersAndRolesToRemove.get(username)) {
 						try {
-							instance.getJdbcTemplate().update(SQL_DELETE_USER_ROLE_CAMPAIGN, new Object[] { username, campaignId, role.toString() });
+							getJdbcTemplate().update(SQL_DELETE_USER_ROLE_CAMPAIGN, new Object[] { username, campaignId, role.toString() });
 						}
 						catch(org.springframework.dao.DataAccessException e) {
 							transactionManager.rollback(status);
@@ -913,7 +782,7 @@ public final class CampaignQueries extends Query {
 					// remove them.
 					List<String> usernames;
 					try {
-						usernames = UserClassQueries.getUsersInClass(classId);
+						usernames = userClassQueries.getUsersInClass(classId);
 					}
 					catch(DataAccessException e) {
 						transactionManager.rollback(status);
@@ -926,7 +795,7 @@ public final class CampaignQueries extends Query {
 						// campaign.
 						int numClasses;
 						try {
-							numClasses = UserCampaignClassQueries.getNumberOfClassesThroughWhichUserIsAssociatedWithCampaign(username, campaignId); 
+							numClasses = userCampaignClassQueries.getNumberOfClassesThroughWhichUserIsAssociatedWithCampaign(username, campaignId); 
 						}
 						catch(DataAccessException e) {
 							transactionManager.rollback(status);
@@ -937,7 +806,7 @@ public final class CampaignQueries extends Query {
 							// given when they joined the class.
 							List<Campaign.Role> roles;
 							try {
-								roles = instance.getJdbcTemplate().query(
+								roles = getJdbcTemplate().query(
 										SQL_GET_USER_DEFAULT_ROLES, 
 										new Object[] { username, campaignId, classId }, 
 										new RowMapper<Campaign.Role> () {
@@ -955,7 +824,7 @@ public final class CampaignQueries extends Query {
 							
 							for(Campaign.Role role : roles) {
 								try {
-									instance.getJdbcTemplate().update(
+									getJdbcTemplate().update(
 											SQL_DELETE_USER_ROLE_CAMPAIGN, 
 											new Object[] { username, campaignId, role.toString() });
 								}
@@ -970,7 +839,7 @@ public final class CampaignQueries extends Query {
 
 					// Remove the campaign, class association.
 					try {
-						instance.getJdbcTemplate().update(SQL_DELETE_CAMPAIGN_CLASS, new Object[] { campaignId, classId });
+						getJdbcTemplate().update(SQL_DELETE_CAMPAIGN_CLASS, new Object[] { campaignId, classId });
 					}
 					catch(org.springframework.dao.DataAccessException e) {
 						transactionManager.rollback(status);
@@ -1002,23 +871,21 @@ public final class CampaignQueries extends Query {
 		}
 	}
 	
-	/**
-	 * Deletes a campaign.
-	 * 
-	 * @param campaignId The unique identifier of the campaign to be deleted.
+	/* (non-Javadoc)
+	 * @see org.ohmage.query.impl.ICampaignQueries#deleteCampaign(java.lang.String)
 	 */
-	public static void deleteCampaign(String campaignId) throws DataAccessException {
+	public void deleteCampaign(String campaignId) throws DataAccessException {
 		// Create the transaction.
 		DefaultTransactionDefinition def = new DefaultTransactionDefinition();
 		def.setName("Deleting a campaign.");
 		
 		try {
 			// Begin the transaction.
-			PlatformTransactionManager transactionManager = new DataSourceTransactionManager(instance.getDataSource());
+			PlatformTransactionManager transactionManager = new DataSourceTransactionManager(getDataSource());
 			TransactionStatus status = transactionManager.getTransaction(def);
 			
 			try {
-				instance.getJdbcTemplate().update(SQL_DELETE_CAMPAIGN, campaignId);
+				getJdbcTemplate().update(SQL_DELETE_CAMPAIGN, campaignId);
 			}
 			catch(org.springframework.dao.DataAccessException e) {
 				transactionManager.rollback(status);
@@ -1055,12 +922,12 @@ public final class CampaignQueries extends Query {
 	 * 
 	 * @param classId The unique identifier for the class.
 	 */
-	private static void associateCampaignAndClass(PlatformTransactionManager transactionManager, TransactionStatus status, String campaignId, String classId) 
+	private void associateCampaignAndClass(PlatformTransactionManager transactionManager, TransactionStatus status, String campaignId, String classId) 
 		throws DataAccessException {
 		
 		// Associate this class to the campaign.
 		try {
-			instance.getJdbcTemplate().update(SQL_INSERT_CAMPAIGN_CLASS, new Object[] { campaignId, classId });
+			getJdbcTemplate().update(SQL_INSERT_CAMPAIGN_CLASS, new Object[] { campaignId, classId });
 		}
 		catch(org.springframework.dao.DuplicateKeyException e) {
 			// If the campaign was already associated with the class, ignore
@@ -1077,7 +944,7 @@ public final class CampaignQueries extends Query {
 		// relationships for privileged users.
 		// TODO: This should be a parameter in the API.
 		try {
-			instance.getJdbcTemplate().update(
+			getJdbcTemplate().update(
 					SQL_INSERT_CAMPAIGN_CLASS_DEFAULT_ROLE, 
 					new Object[] { 
 							campaignId, 
@@ -1092,7 +959,7 @@ public final class CampaignQueries extends Query {
 					campaignId + ", " + classId + ", " + Clazz.Role.PRIVILEGED + ", " + Campaign.Role.SUPERVISOR, e);
 		}
 		try {
-			instance.getJdbcTemplate().update(
+			getJdbcTemplate().update(
 					SQL_INSERT_CAMPAIGN_CLASS_DEFAULT_ROLE, 
 					new Object[] { 
 							campaignId, 
@@ -1111,7 +978,7 @@ public final class CampaignQueries extends Query {
 		// relationships for restricted users.
 		// TODO: This should be a parameter in the API.
 		try {
-			instance.getJdbcTemplate().update(
+			getJdbcTemplate().update(
 					SQL_INSERT_CAMPAIGN_CLASS_DEFAULT_ROLE, 
 					new Object[] { 
 							campaignId, 
@@ -1126,7 +993,7 @@ public final class CampaignQueries extends Query {
 					campaignId + ", " + classId + ", " + Clazz.Role.RESTRICTED + ", " + Campaign.Role.ANALYST, e);
 		}
 		try {
-			instance.getJdbcTemplate().update(
+			getJdbcTemplate().update(
 					SQL_INSERT_CAMPAIGN_CLASS_DEFAULT_ROLE, 
 					new Object[] { 
 							campaignId,
@@ -1144,7 +1011,7 @@ public final class CampaignQueries extends Query {
 		// Get the list of users in the class.
 		List<String> usernames;
 		try {
-			usernames = UserClassQueries.getUsersInClass(classId);
+			usernames = userClassQueries.getUsersInClass(classId);
 		}
 		catch(DataAccessException e) {
 			transactionManager.rollback(status);
@@ -1156,7 +1023,7 @@ public final class CampaignQueries extends Query {
 		for(String username : usernames) {
 			List<Campaign.Role> roles;
 			try {
-				roles = instance.getJdbcTemplate().query(
+				roles = getJdbcTemplate().query(
 						SQL_GET_USER_DEFAULT_ROLES, 
 						new Object[] { username, campaignId, classId }, 
 						new RowMapper<Campaign.Role>() {
@@ -1174,7 +1041,7 @@ public final class CampaignQueries extends Query {
 			
 			for(Campaign.Role role : roles) {
 				try {
-					instance.getJdbcTemplate().update(
+					getJdbcTemplate().update(
 							SQL_INSERT_USER_ROLE_CAMPAIGN, 
 							new Object[] { username, campaignId, role.toString() });
 				}

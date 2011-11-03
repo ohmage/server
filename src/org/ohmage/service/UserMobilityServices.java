@@ -9,9 +9,9 @@ import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.domain.campaign.Campaign;
 import org.ohmage.exception.DataAccessException;
 import org.ohmage.exception.ServiceException;
-import org.ohmage.query.impl.CampaignQueries;
-import org.ohmage.query.impl.UserCampaignQueries;
-import org.ohmage.query.impl.UserMobilityQueries;
+import org.ohmage.query.ICampaignQueries;
+import org.ohmage.query.IUserCampaignQueries;
+import org.ohmage.query.IUserMobilityQueries;
 
 /**
  * This class contains all of the services pertaining to reading and writing
@@ -20,13 +20,56 @@ import org.ohmage.query.impl.UserMobilityQueries;
  * @author John Jenkins
  */
 public class UserMobilityServices {
+	private static UserMobilityServices instance;
+	
 	private static final long MILLIS_IN_A_HOUR = 60 * 60 * 1000;
 	private static final int HOURS_IN_A_DAY = 24;
 	
+	private ICampaignQueries campaignQueries;
+	private IUserCampaignQueries userCampaignQueries;
+	private IUserMobilityQueries userMobilityQueries;
+	
 	/**
-	 * Default constructor. Made private so that it cannot be instantiated.
+	 * Default constructor. Privately instantiated via dependency injection
+	 * (reflection).
+	 * 
+	 * @throws IllegalStateException if an instance of this class already
+	 * exists
+	 * 
+	 * @throws IllegalArgumentException if iCampaignQueries or 
+	 * iUserCampaignQueriesor or iUserMobilityQueries is null
 	 */
-	private UserMobilityServices() {}
+	private UserMobilityServices(ICampaignQueries iCampaignQueries, 
+			IUserCampaignQueries iUserCampaignQueries, IUserMobilityQueries iUserMobilityQueries) {
+		
+		if(instance != null) {
+			throw new IllegalStateException("An instance of this class already exists.");
+		}
+		
+		if(iCampaignQueries == null) {
+			throw new IllegalArgumentException("An instance of ICampaignQueries is required.");
+		}
+		if(iUserCampaignQueries == null) {
+			throw new IllegalArgumentException("An instance of IUserCampaignQueries is required.");
+		}
+		if(iUserMobilityQueries == null) {
+			throw new IllegalArgumentException("An instance of IUserMobilityQueries is required.");
+		}
+
+		
+		campaignQueries = iCampaignQueries;
+		userCampaignQueries = iUserCampaignQueries;
+		userMobilityQueries = iUserMobilityQueries;
+		
+		instance = this;
+	}
+	
+	/**
+	 * @return  Returns the singleton instance of this class.
+	 */
+	public static UserMobilityServices instance() {
+		return instance;
+	}
 	
 	/**
 	 * Checks if some "requesting" user can view Mobility data of another data.
@@ -54,7 +97,7 @@ public class UserMobilityServices {
 	 * 							information about another user or if there is
 	 * 							an error.
 	 */
-	public static void requesterCanViewUsersMobilityData(
+	public void requesterCanViewUsersMobilityData(
 			final String requestersUsername, final String usersUsername) 
 			throws ServiceException {
 		
@@ -63,15 +106,15 @@ public class UserMobilityServices {
 				return;
 			}
 			
-			Set<String> campaignIds = UserCampaignQueries.getCampaignIdsAndNameForUser(usersUsername).keySet();
+			Set<String> campaignIds = userCampaignQueries.getCampaignIdsAndNameForUser(usersUsername).keySet();
 			for(String campaignId : campaignIds) {
-				List<Campaign.Role> requestersCampaignRoles = UserCampaignQueries.getUserCampaignRoles(requestersUsername, campaignId);
+				List<Campaign.Role> requestersCampaignRoles = userCampaignQueries.getUserCampaignRoles(requestersUsername, campaignId);
 				
 				if(requestersCampaignRoles.contains(Campaign.Role.SUPERVISOR)) {
 					return;
 				}
 				else if(requestersCampaignRoles.contains(Campaign.Role.ANALYST) && 
-						Campaign.PrivacyState.SHARED.equals(CampaignQueries.getCampaignPrivacyState(campaignId))) {
+						Campaign.PrivacyState.SHARED.equals(campaignQueries.getCampaignPrivacyState(campaignId))) {
 					return;
 				}
 			}
@@ -97,11 +140,11 @@ public class UserMobilityServices {
 	 * 
 	 * @throws ServiceException Thrown if there is an error.
 	 */
-	public static Double getHoursSinceLastMobilityUpload(final String username)
+	public Double getHoursSinceLastMobilityUpload(final String username)
 			throws ServiceException {
 		
 		try {
-			Timestamp lastMobilityUpload = UserMobilityQueries.getLastUploadForUser(username);
+			Timestamp lastMobilityUpload = userMobilityQueries.getLastUploadForUser(username);
 			if(lastMobilityUpload == null) {
 				return null;
 			}
@@ -128,11 +171,11 @@ public class UserMobilityServices {
 	 * 
 	 * @throws ServiceException Thrown if there is an error.
 	 */
-	public static Double getPercentageOfNonNullLocationsOverPastDay(
+	public Double getPercentageOfNonNullLocationsOverPastDay(
 			final String username) throws ServiceException {
 		
 		try {
-			return UserMobilityQueries.getPercentageOfNonNullLocations(username, HOURS_IN_A_DAY);
+			return userMobilityQueries.getPercentageOfNonNullLocations(username, HOURS_IN_A_DAY);
 		}
 		catch(DataAccessException e) {
 			throw new ServiceException(e);

@@ -3,6 +3,7 @@ package org.ohmage.query.impl;
 import javax.sql.DataSource;
 
 import org.ohmage.exception.DataAccessException;
+import org.ohmage.query.ICampaignSurveyResponseQueries;
 
 /**
  * This class contains all of the functionality for creating, reading, 
@@ -12,7 +13,7 @@ import org.ohmage.exception.DataAccessException;
  * 
  * @author John Jenkins
  */
-public class CampaignSurveyResponseQueries extends Query {
+public class CampaignSurveyResponseQueries extends Query implements ICampaignSurveyResponseQueries {
 	// Retrieves the total number of survey responses for a campaign.
 	private static final String SQL_COUNT_SURVEY_RESPONSES =
 		"SELECT COUNT(Id) " +
@@ -45,8 +46,6 @@ public class CampaignSurveyResponseQueries extends Query {
 		"WHERE sr.id = ? " +
 		"AND sr.campaign_id = c.id";
 	
-	private static CampaignSurveyResponseQueries instance;
-	
 	/**
 	 * Private constructor that is used by Spring to setup this object.
 	 * 
@@ -54,62 +53,38 @@ public class CampaignSurveyResponseQueries extends Query {
 	 */
 	private CampaignSurveyResponseQueries(DataSource dataSource) {
 		super(dataSource);
-		
-		instance = this;
 	}
 	
-	/**
-	 * Retrieves the total number of survey responses for a campaign.
-	 * 
-	 * @param campaignId The unique identifier for the campaign.
-	 * 
-	 * @return The total number of survey responses for a campaign. If the
-	 * 		   campaign doesn't exist, 0 is returned.
-	 * 
-	 * @throws DataAccessException Thrown if there is an error.
+	/* (non-Javadoc)
+	 * @see org.ohmage.query.impl.ICampaignSurveyResponseQueries#getNumberOfSurveyResponsesForCampaign(java.lang.String)
 	 */
-	public static long getNumberOfSurveyResponsesForCampaign(String campaignId) throws DataAccessException {
+	public long getNumberOfSurveyResponsesForCampaign(String campaignId) throws DataAccessException {
 		try {
-			return instance.getJdbcTemplate().queryForLong(SQL_COUNT_SURVEY_RESPONSES, campaignId);
+			return getJdbcTemplate().queryForLong(SQL_COUNT_SURVEY_RESPONSES, campaignId);
 		}
 		catch(org.springframework.dao.DataAccessException e) {
 			throw new DataAccessException("Error running SQL '" + SQL_COUNT_SURVEY_RESPONSES + "' with parameter: " + campaignId, e);
 		}
 	}
 	
-	/**
-	 * Retrieves the total number of prompt responses for a campaign.
-	 * 
-	 * @param campaignId The unique identifier for the campaign.
-	 * 
-	 * @return The total number of prompt responses for a campaign. If the 
-	 * 		   campaign doesn't exist, 0 is returned.
-	 * 
-	 * @throws DataAccessException Thrown if there is an error.
+	/* (non-Javadoc)
+	 * @see org.ohmage.query.impl.ICampaignSurveyResponseQueries#getNumberOfPromptResposnesForCampaign(java.lang.String)
 	 */
-	public static long getNumberOfPromptResposnesForCampaign(String campaignId) throws DataAccessException {
+	public long getNumberOfPromptResposnesForCampaign(String campaignId) throws DataAccessException {
 		try {
-			return instance.getJdbcTemplate().queryForLong(SQL_COUNT_PROMPT_RESPONSES, campaignId);
+			return getJdbcTemplate().queryForLong(SQL_COUNT_PROMPT_RESPONSES, campaignId);
 		}
 		catch(org.springframework.dao.DataAccessException e) {
 			throw new DataAccessException("Error running SQL '" + SQL_COUNT_PROMPT_RESPONSES + "' with parameter: " + campaignId, e);
 		}
 	}
 	
-	/**
-	 * Retrieves the campaign ID for the campaign to which a survey belongs 
-	 * given a survey response.
-	 * 
-	 * @param surveyResponseId The survey response's unique identifier.
-	 * 
-	 * @return The campaign's unique identifier or null if the survey response
-	 *		   doesn't exist.
-	 *
-	 * @throws DataAccessException Thrown if there is an error.
+	/* (non-Javadoc)
+	 * @see org.ohmage.query.impl.ICampaignSurveyResponseQueries#getCampaignIdFromSurveyId(java.lang.Long)
 	 */
-	public static String getCampaignIdFromSurveyId(Long surveyResponseId) throws DataAccessException {
+	public String getCampaignIdFromSurveyId(Long surveyResponseId) throws DataAccessException {
 		try {
-			return instance.getJdbcTemplate().queryForObject(
+			return getJdbcTemplate().queryForObject(
 					SQL_GET_CAMPAIGN_ID_FROM_SURVEY_RESPONSE_ID,
 					new Object[] { surveyResponseId },
 					String.class);

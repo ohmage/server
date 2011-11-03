@@ -1,0 +1,20 @@
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.5.xsd">
+  
+  <bean class="org.ohmage.spring.ConfigurationSingletonValidityTester">
+    <constructor-arg index="0">
+      <list>
+        <value>org/ohmage/service</value>
+      </list>
+    </constructor-arg>
+    <constructor-arg index="1">
+      <list>
+        <value>org.ohmage.service.ConfigServices</value>
+        <value>org.ohmage.service.VisualizationServices</value>
+        <value>org.ohmage.service.UploadValidationServices</value>
+      </list>
+    </constructor-arg>
+  </bean>
+  
+</beans>

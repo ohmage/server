@@ -155,22 +155,22 @@ public class UserStatsReadRequest extends UserRequest {
 		
 		try {
 			LOGGER.info("Verifying that the requester has permissions to view the survey information.");
-			UserCampaignServices.requesterCanViewUsersSurveyResponses(campaignId, getUser().getUsername(), username);
+			UserCampaignServices.instance().requesterCanViewUsersSurveyResponses(campaignId, getUser().getUsername(), username);
 			
 			LOGGER.info("Verifying that the requester has permissions to view the mobility information.");
-			UserMobilityServices.requesterCanViewUsersMobilityData(getUser().getUsername(), username);
+			UserMobilityServices.instance().requesterCanViewUsersMobilityData(getUser().getUsername(), username);
 			
 			LOGGER.info("Gathering the number of hours since the last survey upload.");
-			hoursSinceLastSurveyUpload = UserSurveyResponseServices.getHoursSinceLastSurveyUplaod(getUser().getUsername(), username);
+			hoursSinceLastSurveyUpload = UserSurveyResponseServices.instance().getHoursSinceLastSurveyUplaod(getUser().getUsername(), username);
 			
 			LOGGER.info("Gathering the number of hours since the last Mobility upload.");
-			hoursSinceLastMobilityUpload = UserMobilityServices.getHoursSinceLastMobilityUpload(username);
+			hoursSinceLastMobilityUpload = UserMobilityServices.instance().getHoursSinceLastMobilityUpload(username);
 			
 			LOGGER.info("Gathering the percentage of successful location uploads from surveys in the last day.");
-			pastDaySuccessfulSurveyLocationUpdatesPercentage = UserSurveyResponseServices.getPercentageOfNonNullLocationsOverPastDay(getUser().getUsername(), username);
+			pastDaySuccessfulSurveyLocationUpdatesPercentage = UserSurveyResponseServices.instance().getPercentageOfNonNullLocationsOverPastDay(getUser().getUsername(), username);
 			
 			LOGGER.info("Gathering the percentage of successful location updates from Mobility in the last day.");
-			pastDatSuccessfulMobilityLocationUpdatesPercentage = UserMobilityServices.getPercentageOfNonNullLocationsOverPastDay(username);
+			pastDatSuccessfulMobilityLocationUpdatesPercentage = UserMobilityServices.instance().getPercentageOfNonNullLocationsOverPastDay(username);
 		}
 		catch(ServiceException e) {
 			e.failRequest(this);

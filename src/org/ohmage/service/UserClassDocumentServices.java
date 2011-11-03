@@ -10,15 +10,50 @@ import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.domain.Clazz;
 import org.ohmage.exception.DataAccessException;
 import org.ohmage.exception.ServiceException;
-import org.ohmage.query.impl.UserClassDocumentQueries;
-import org.ohmage.query.impl.UserClassQueries;
+import org.ohmage.query.IUserClassDocumentQueries;
+import org.ohmage.query.IUserClassQueries;
 
 
 public class UserClassDocumentServices {
+	private static UserClassDocumentServices instance;
+
+	private IUserClassQueries userClassQueries;
+	private IUserClassDocumentQueries userClassDocumentQueries;
+		
 	/**
-	 * Default constructor. Private so that it cannot be instantiated.
+	 * Default constructor. Privately instantiated via dependency injection
+	 * (reflection).
+	 * 
+	 * @throws IllegalStateException if an instance of this class already
+	 * exists
+	 * 
+	 * @throws IllegalArgumentException if iUserClassQueries or
+	 * iUserClassDocumentQueries is null
 	 */
-	private UserClassDocumentServices() {}
+	private UserClassDocumentServices(IUserClassQueries iUserClassQueries, IUserClassDocumentQueries iUserClassDocumentQueries) {
+		if(instance != null) {
+			throw new IllegalStateException("An instance of this class already exists.");
+		}
+		
+		if(iUserClassQueries == null) {
+			throw new IllegalArgumentException("An instance of IUserClassQueries is required.");
+		}
+		if(iUserClassDocumentQueries == null) {
+			throw new IllegalArgumentException("An instance of IUserClassDocumentQueries is required.");
+		}
+		
+		userClassQueries = iUserClassQueries;
+		userClassDocumentQueries = iUserClassDocumentQueries;
+		
+		instance = this;		
+	}
+	
+	/**
+	 * @return  Returns the singleton instance of this class.
+	 */
+	public static UserClassDocumentServices instance() {
+		return instance;
+	}
 	
 	/**
 	 * Verifies that the user can associate documents with a class. Currently,
@@ -32,12 +67,12 @@ public class UserClassDocumentServices {
 	 * @throws ServiceException Thrown if there is an error or if the user 
 	 * 							does not belong to the class in any capacity.
 	 */
-	public static void userCanAssociateDocumentsWithClass(
+	public void userCanAssociateDocumentsWithClass(
 			final String username, final String classId) 
 			throws ServiceException {
 		
 		try {
-			Clazz.Role classRole = UserClassQueries.getUserClassRole(classId, username);
+			Clazz.Role classRole = userClassQueries.getUserClassRole(classId, username);
 			
 			if(classRole == null) {
 				throw new ServiceException(
@@ -63,12 +98,12 @@ public class UserClassDocumentServices {
 	 * @throws ServiceException Thrown if there is an error or if the user 
 	 * 							does not belong to the class in any capacity.
 	 */
-	public static void userCanDisassociateDocumentsWithClass(
+	public void userCanDisassociateDocumentsWithClass(
 			final String username, final String classId) 
 			throws ServiceException {
 		
 		try {
-			Clazz.Role classRole = UserClassQueries.getUserClassRole(classId, username);
+			Clazz.Role classRole = userClassQueries.getUserClassRole(classId, username);
 			
 			if(classRole == null) {
 				throw new ServiceException(
@@ -95,7 +130,7 @@ public class UserClassDocumentServices {
 	 * @throws ServiceException Thrown if there is an error or if the user 
 	 * 							doesn't belong to one or more of the classes.
 	 */
-	public static void userCanAssociateDocumentsWithClasses(
+	public void userCanAssociateDocumentsWithClasses(
 			final String username, final Collection<String> classIds) 
 			throws ServiceException {
 		
@@ -117,7 +152,7 @@ public class UserClassDocumentServices {
 	 * @throws ServiceException Thrown if there is an error or if the user 
 	 * 							doesn't belong to one or more of the classes.
 	 */
-	public static void userCanDisassociateDocumentsWithClasses(
+	public void userCanDisassociateDocumentsWithClasses(
 			final String username, final Collection<String> classIds) 
 			throws ServiceException {
 		
@@ -139,12 +174,12 @@ public class UserClassDocumentServices {
 	 * 
 	 * @throws ServiceException Thrown if there is an error.
 	 */
-	public static List<String> getVisibleDocumentsSpecificToClass(
+	public List<String> getVisibleDocumentsSpecificToClass(
 			final String username, final String classId) 
 			throws ServiceException {
 		
 		try {
-			return UserClassDocumentQueries.getVisibleDocumentsToUserInClass(username, classId);
+			return userClassDocumentQueries.getVisibleDocumentsToUserInClass(username, classId);
 		}
 		catch(DataAccessException e) {
 			throw new ServiceException(e);
@@ -165,7 +200,7 @@ public class UserClassDocumentServices {
 	 * 
 	 * @throws ServiceException Thrown if there is an error.
 	 */
-	public static List<String> getVisibleDocumentsSpecificToClasses(
+	public List<String> getVisibleDocumentsSpecificToClasses(
 			final String username, final Collection<String> classIds) 
 			throws ServiceException {
 		
@@ -189,12 +224,12 @@ public class UserClassDocumentServices {
 	 * 
 	 * @throws ServiceException Thrown if there is an error.
 	 */
-	public static boolean getUserIsPrivilegedInAnyClassAssociatedWithDocument(
+	public boolean getUserIsPrivilegedInAnyClassAssociatedWithDocument(
 			final String username, final String documentId) 
 			throws ServiceException {
 		
 		try {
-			return UserClassDocumentQueries.getUserIsPrivilegedInAnyClassAssociatedWithDocument(username, documentId);
+			return userClassDocumentQueries.getUserIsPrivilegedInAnyClassAssociatedWithDocument(username, documentId);
 		}
 		catch(DataAccessException e) {
 			throw new ServiceException(e);

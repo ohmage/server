@@ -7,10 +7,10 @@ import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.domain.campaign.Campaign;
 import org.ohmage.exception.DataAccessException;
 import org.ohmage.exception.ServiceException;
-import org.ohmage.query.impl.CampaignQueries;
-import org.ohmage.query.impl.CampaignSurveyResponseQueries;
-import org.ohmage.query.impl.UserCampaignQueries;
-import org.ohmage.query.impl.UserSurveyResponseQueries;
+import org.ohmage.query.ICampaignQueries;
+import org.ohmage.query.ICampaignSurveyResponseQueries;
+import org.ohmage.query.IUserCampaignQueries;
+import org.ohmage.query.IUserSurveyResponseQueries;
 
 /**
  * This class contains all of the services pertaining to reading and writing
@@ -20,13 +20,62 @@ import org.ohmage.query.impl.UserSurveyResponseQueries;
  * @author Joshua Selsky
  */
 public class UserSurveyResponseServices {
+	private static UserSurveyResponseServices instance;
+	
 	private static final long MILLIS_IN_A_HOUR = 60 * 60 * 1000;
 	private static final int HOURS_IN_A_DAY = 24;
 	
+	private ICampaignQueries campaignQueries;
+	private ICampaignSurveyResponseQueries campaignSurveyResponseQueries;
+	private IUserCampaignQueries userCampaignQueries;
+	private IUserSurveyResponseQueries userSurveyResponseQueries;
+	
 	/**
-	 * Default constructor. Private so that it cannot be instantiated.
+	 * Default constructor. Privately instantiated via dependency injection
+	 * (reflection).
+	 * 
+	 * @throws IllegalStateException if an instance of this class already
+	 * exists
+	 * 
+	 * @throws IllegalArgumentException if iCampaignQueries or 
+	 * iCampaignSurveyResponseQueries or iUserCampaignQueries or
+	 * iUserSurveyResponseQueries is null
 	 */
-	private UserSurveyResponseServices() {}
+	private UserSurveyResponseServices(ICampaignQueries iCampaignQueries, 
+			ICampaignSurveyResponseQueries iCampaignSurveyResponseQueries, IUserCampaignQueries iUserCampaignQueries,
+			IUserSurveyResponseQueries iUserSurveyResponseQueries) {
+		
+		if(instance != null) {
+			throw new IllegalStateException("An instance of this class already exists.");
+		}
+		
+		if(iCampaignQueries == null) {
+			throw new IllegalArgumentException("An instance of ICampaignQueries is required.");
+		}
+		if(iCampaignSurveyResponseQueries == null) {
+			throw new IllegalArgumentException("An instance of ICampaignSurveyResponseQueries is required.");
+		}
+		if(iUserCampaignQueries == null) {
+			throw new IllegalArgumentException("An instance of IUserCampaignQueries is required.");
+		}
+		if(iUserSurveyResponseQueries == null) {
+			throw new IllegalArgumentException("An instance of IUserSurveyResponseQueries is required.");
+		}
+		
+		campaignQueries = iCampaignQueries;
+		userCampaignQueries = iUserCampaignQueries;
+		campaignSurveyResponseQueries = iCampaignSurveyResponseQueries;
+		userSurveyResponseQueries = iUserSurveyResponseQueries;
+		
+		instance = this;
+	}
+	
+	/**
+	 * @return  Returns the singleton instance of this class.
+	 */
+	public static UserSurveyResponseServices instance() {
+		return instance;
+	}
 	
 	/**
 	 * Verifies that the requesting user has sufficient permissions to delete
@@ -41,20 +90,20 @@ public class UserSurveyResponseServices {
 	 * 							doesn't have sufficient permissions to delete
 	 * 							the survey response.
 	 */
-	public static void verifyUserCanUpdateOrDeleteSurveyResponse(
+	public void verifyUserCanUpdateOrDeleteSurveyResponse(
 			final String requesterUsername, final Long surveyResponseId) 
 			throws ServiceException {
 		
 		try {
 			// Get the response's campaign.
-			String campaignId = CampaignSurveyResponseQueries.getCampaignIdFromSurveyId(surveyResponseId);
+			String campaignId = campaignSurveyResponseQueries.getCampaignIdFromSurveyId(surveyResponseId);
 			
-			if(UserCampaignQueries.getUserCampaignRoles(requesterUsername, campaignId).contains(Campaign.Role.SUPERVISOR)) {
+			if(userCampaignQueries.getUserCampaignRoles(requesterUsername, campaignId).contains(Campaign.Role.SUPERVISOR)) {
 				return;
 			}
 			
-			if(Campaign.RunningState.RUNNING.equals(CampaignQueries.getCampaignRunningState(campaignId))) {
-				if(requesterUsername.equals(UserSurveyResponseQueries.getSurveyResponseOwner(surveyResponseId))) {
+			if(Campaign.RunningState.RUNNING.equals(campaignQueries.getCampaignRunningState(campaignId))) {
+				if(requesterUsername.equals(userSurveyResponseQueries.getSurveyResponseOwner(surveyResponseId))) {
 					return;
 				}
 			}
@@ -82,12 +131,12 @@ public class UserSurveyResponseServices {
 	 * 
 	 * @throws ServiceException Thrown if there is an error.
 	 */
-	public static double getHoursSinceLastSurveyUplaod(
+	public double getHoursSinceLastSurveyUplaod(
 			final String requestersUsername, final String usersUsername) 
 			throws ServiceException {
 		
 		try {
-			Timestamp lastUpload = UserSurveyResponseQueries.getLastUploadForUser(requestersUsername, usersUsername);
+			Timestamp lastUpload = userSurveyResponseQueries.getLastUploadForUser(requestersUsername, usersUsername);
 			if(lastUpload == null) {
 				return Double.MAX_VALUE;
 			}
@@ -118,12 +167,12 @@ public class UserSurveyResponseServices {
 	 * 
 	 * @throws ServiceException Thrown if there is an error. 
 	 */
-	public static double getPercentageOfNonNullLocationsOverPastDay(
+	public double getPercentageOfNonNullLocationsOverPastDay(
 			final String requestersUsername, final String usersUsername) 
 			throws ServiceException {
 		
 		try {
-			Double percentage = UserSurveyResponseQueries.getPercentageOfNonNullSurveyLocations(requestersUsername, usersUsername, HOURS_IN_A_DAY);
+			Double percentage = userSurveyResponseQueries.getPercentageOfNonNullSurveyLocations(requestersUsername, usersUsername, HOURS_IN_A_DAY);
 			if(percentage == null) {
 				return -1.0;
 			}

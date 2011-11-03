@@ -10,7 +10,7 @@ import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.domain.Clazz;
 import org.ohmage.exception.DataAccessException;
 import org.ohmage.exception.ServiceException;
-import org.ohmage.query.impl.ClassQueries;
+import org.ohmage.query.IClassQueries;
 import org.ohmage.query.impl.ClassQueries.UserAndClassRole;
 
 /**
@@ -19,10 +19,38 @@ import org.ohmage.query.impl.ClassQueries.UserAndClassRole;
  * @author John Jenkins
  */
 public final class ClassServices {
+	private static ClassServices instance;
+	private IClassQueries classQueries;
+
 	/**
-	 * Default constructor. Made private so that it cannot be instantiated.
+	 * Default constructor. Privately instantiated via dependency injection
+	 * (reflection).
+	 * 
+	 * @throws IllegalStateException if an instance of this class already
+	 * exists
+	 * 
+	 * @throws IllegalArgumentException if iClassQueries is null
+	 */	
+	private ClassServices(IClassQueries iClassQueries) {
+		if(instance != null) {
+			throw new IllegalStateException("An instance of this class already exists.");
+		}
+		
+		if(iClassQueries == null) {
+			throw new IllegalArgumentException("An instance of IClassQueries is required.");
+		}
+		
+		classQueries = iClassQueries;
+		
+		instance = this;
+	}
+	
+	/**
+	 * @return  Returns the singleton instance of this class.
 	 */
-	private ClassServices() {}
+	public static ClassServices instance() {
+		return instance;
+	}
 	
 	/**
 	 * Creates a new class.
@@ -35,12 +63,12 @@ public final class ClassServices {
 	 * 
 	 * @throws ServiceException Thrown if there is an error.
 	 */
-	public static void createClass(final String classId, 
+	public void createClass(final String classId, 
 			final String className, final String classDescription) 
 			throws ServiceException {
 		
 		try {
-			ClassQueries.createClass(classId, className, classDescription);
+			classQueries.createClass(classId, className, classDescription);
 		}
 		catch(DataAccessException e) {
 			throw new ServiceException(e);
@@ -64,11 +92,11 @@ public final class ClassServices {
 	 * 							exist and it should, or the class does exist
 	 * 							and it shouldn't.
 	 */
-	public static void checkClassExistence(final String classId, 
+	public void checkClassExistence(final String classId, 
 			final boolean shouldExist) throws ServiceException {
 		
 		try {
-			if((classId != null) && ClassQueries.getClassExists(classId)) {
+			if((classId != null) && classQueries.getClassExists(classId)) {
 				if(! shouldExist) {
 					throw new ServiceException(
 							ErrorCode.CLASS_INVALID_ID,
@@ -106,7 +134,7 @@ public final class ClassServices {
 	 * 							classes exist and they shouldn't, or if any of
 	 * 							the classes don't exist and they should.
 	 */
-	public static void checkClassesExistence(final Collection<String> classIds, 
+	public void checkClassesExistence(final Collection<String> classIds, 
 			final boolean shouldExist) throws ServiceException {
 		
 		for(String classId : classIds) {
@@ -130,12 +158,12 @@ public final class ClassServices {
 	 * 
 	 * @throws ServiceException Thrown if there is an error.
 	 */
-	public static List<Clazz> getClassesInformation(
+	public List<Clazz> getClassesInformation(
 			final Collection<String> classIds, final String requester) 
 			throws ServiceException {
 		
 		try {
-			return ClassQueries.getClassesInformation(classIds, requester);
+			return classQueries.getClassesInformation(classIds, requester);
 		}
 		catch(DataAccessException e) {
 			throw new ServiceException(e);
@@ -154,14 +182,14 @@ public final class ClassServices {
 	 * 
 	 * @throws ServiceException Thrown if there is an error.
 	 */
-	public static Map<String, List<UserAndClassRole>> generateClassRoster(
+	public Map<String, List<UserAndClassRole>> generateClassRoster(
 			final Collection<String> classIds) throws ServiceException {
 		
 		try {
 			Map<String, List<UserAndClassRole>> result = new HashMap<String, List<UserAndClassRole>>();
 			
 			for(String classId : classIds) {
-				result.put(classId, ClassQueries.getUserRolePairs(classId));
+				result.put(classId, classQueries.getUserRolePairs(classId));
 			}
 			
 			return result;
@@ -190,13 +218,13 @@ public final class ClassServices {
 	 * 
 	 * @throws ServiceException Thrown if there is an error.
 	 */
-	public static void updateClass(final String classId, 
+	public void updateClass(final String classId, 
 			final String className, final String classDescription, 
 			final Map<String, Clazz.Role> usersToAdd, 
 			final Collection<String> usersToRemove) throws ServiceException {
 		
 		try {
-			ClassQueries.updateClass(classId, className, classDescription, usersToAdd, usersToRemove);
+			classQueries.updateClass(classId, className, classDescription, usersToAdd, usersToRemove);
 		}
 		catch(DataAccessException e) {
 			throw new ServiceException(e);
@@ -210,7 +238,7 @@ public final class ClassServices {
 	 * 
 	 * @throws ServiceException Thrown if there is an error.
 	 */
-	public static List<String> updateClassViaRoster(
+	public List<String> updateClassViaRoster(
 			final Map<String, Map<String, Clazz.Role>> roster) 
 			throws ServiceException {
 		
@@ -218,7 +246,7 @@ public final class ClassServices {
 			List<String> warningMessages = new ArrayList<String>();
 			
 			for(String classId : roster.keySet()) {
-				warningMessages.addAll(ClassQueries.updateClass(classId, null, null, roster.get(classId), null));
+				warningMessages.addAll(classQueries.updateClass(classId, null, null, roster.get(classId), null));
 			}
 			
 			return warningMessages;
@@ -235,11 +263,11 @@ public final class ClassServices {
 	 * 
 	 * @throws ServiceException Thrown if there is an error.
 	 */
-	public static void deleteClass(final String classId) 
+	public void deleteClass(final String classId) 
 			throws ServiceException {
 		
 		try {
-			ClassQueries.deleteClass(classId);
+			classQueries.deleteClass(classId);
 		}
 		catch(DataAccessException e) {
 			throw new ServiceException(e);

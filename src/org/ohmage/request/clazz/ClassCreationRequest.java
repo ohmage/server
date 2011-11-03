@@ -132,15 +132,15 @@ public class ClassCreationRequest extends UserRequest {
 		try {
 			// Check if the user is an administrator.
 			LOGGER.info("Checking that the user is an admin.");
-			UserServices.verifyUserIsAdmin(getUser().getUsername());
+			UserServices.instance().verifyUserIsAdmin(getUser().getUsername());
 			
 			// Check that the class doesn't already exist.
 			LOGGER.info("Checking that a class with the same ID doesn't already exist.");
-			ClassServices.checkClassExistence(classId, false);
+			ClassServices.instance().checkClassExistence(classId, false);
 			
 			// Create the class.
 			LOGGER.info("Creating the class.");
-			ClassServices.createClass(classId, className, classDescription);
+			ClassServices.instance().createClass(classId, className, classDescription);
 		}
 		catch(ServiceException e) {
 			e.failRequest(this);

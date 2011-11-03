@@ -11,6 +11,7 @@ import javax.sql.DataSource;
 import org.apache.log4j.Logger;
 import org.ohmage.domain.Clazz;
 import org.ohmage.exception.DataAccessException;
+import org.ohmage.query.IUserClassQueries;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.SingleColumnRowMapper;
 
@@ -23,7 +24,7 @@ import org.springframework.jdbc.core.SingleColumnRowMapper;
  * 
  * @author John Jenkins
  */
-public final class UserClassQueries extends Query {
+public final class UserClassQueries extends Query implements IUserClassQueries {
 	private static final Logger LOGGER = Logger.getLogger(UserClassQueries.class);
 	
 	// Returns a boolean representing whether or not a user is associated with
@@ -74,10 +75,6 @@ public final class UserClassQueries extends Query {
 		"AND uc.user_class_role_id = ucr.id " +
 		"AND ucr.role = ?";
 	
-	// The single instance of this class as the constructor should only ever be
-	// called once by Spring.
-	private static UserClassQueries instance;
-	
 	/**
 	 * Creates this object.
 	 * 
@@ -85,8 +82,6 @@ public final class UserClassQueries extends Query {
 	 */
 	private UserClassQueries(DataSource dataSource) {
 		super(dataSource);
-		
-		instance = this;
 	}
 
 	/**
@@ -98,9 +93,9 @@ public final class UserClassQueries extends Query {
 	 * 
 	 * @return Whether or not the user belongs to the class.
 	 */
-	public static Boolean userBelongsToClass(String classId, String username) throws DataAccessException {
+	public Boolean userBelongsToClass(String classId, String username) throws DataAccessException {
 		try {
-			return (Boolean) instance.getJdbcTemplate().queryForObject(SQL_EXISTS_USER_CLASS, new Object[] { username, classId }, Boolean.class);
+			return (Boolean) getJdbcTemplate().queryForObject(SQL_EXISTS_USER_CLASS, new Object[] { username, classId }, Boolean.class);
 		}
 		catch(org.springframework.dao.DataAccessException e) {
 			throw new DataAccessException("Error executing SQL '" + SQL_EXISTS_USER_CLASS + "' with parameters: " + username + ", " + classId, e);
@@ -114,9 +109,9 @@ public final class UserClassQueries extends Query {
 	 * 
 	 * @return Returns a List of usernames of all of the users in a class.
 	 */
-	public static List<String> getUsersInClass(String classId) throws DataAccessException {
+	public List<String> getUsersInClass(String classId) throws DataAccessException {
 		try {
-			return instance.getJdbcTemplate().query(SQL_GET_USER_CLASS, new Object[] { classId }, new SingleColumnRowMapper<String>());
+			return getJdbcTemplate().query(SQL_GET_USER_CLASS, new Object[] { classId }, new SingleColumnRowMapper<String>());
 		}
 		catch(org.springframework.dao.DataAccessException e) {
 			throw new DataAccessException("Error executing SQL '" + SQL_GET_USER_CLASS + "' with parameters: " + classId, e);
@@ -134,9 +129,9 @@ public final class UserClassQueries extends Query {
 	 * @return Returns the user's role in the class unless they have no role in
 	 * 		   the class in which case null is returned.
 	 */
-	public static Clazz.Role getUserClassRole(String classId, String username) throws DataAccessException {
+	public Clazz.Role getUserClassRole(String classId, String username) throws DataAccessException {
 		try {
-			return Clazz.Role.getValue(instance.getJdbcTemplate().queryForObject(SQL_GET_USER_ROLE, new Object[] { username, classId }, String.class));
+			return Clazz.Role.getValue(getJdbcTemplate().queryForObject(SQL_GET_USER_ROLE, new Object[] { username, classId }, String.class));
 		}
 		catch(org.springframework.dao.IncorrectResultSizeDataAccessException e) {
 			if(e.getActualSize() > 1) {
@@ -163,11 +158,11 @@ public final class UserClassQueries extends Query {
 	 * 
 	 * @throws DataAccessException Thrown if there is an error.
 	 */
-	public static Map<String, String> getClassIdsAndNameForUser(String username) throws DataAccessException {
+	public Map<String, String> getClassIdsAndNameForUser(String username) throws DataAccessException {
 		try {
 			final Map<String, String> result = new HashMap<String, String>();
 			
-			instance.getJdbcTemplate().query(
+			getJdbcTemplate().query(
 					SQL_GET_CLASS_ID_AND_NAMES_FOR_USER, 
 					new Object[] { username }, 
 					new RowMapper<Object> () {
@@ -198,12 +193,12 @@ public final class UserClassQueries extends Query {
 	 * 
 	 * @throws DataAccessException Thrown if there is an error.
 	 */
-	public static List<String> getClassIdsForUserWithRole(
+	public List<String> getClassIdsForUserWithRole(
 			final String username, final Clazz.Role role) 
 			throws DataAccessException {
 		
 		try {
-			return instance.getJdbcTemplate().query(
+			return getJdbcTemplate().query(
 					SQL_GET_CLASS_IDS_FOR_USER_WITH_ROLE, 
 					new Object[] { username, role.toString() },
 					new SingleColumnRowMapper<String>()

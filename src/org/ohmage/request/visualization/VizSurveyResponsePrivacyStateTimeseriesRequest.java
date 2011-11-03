@@ -54,7 +54,7 @@ public class VizSurveyResponsePrivacyStateTimeseriesRequest extends Visualizatio
 		
 		try {
 			LOGGER.info("Verifying the user is able to read survey responses about other users.");
-			UserCampaignServices.requesterCanViewUsersSurveyResponses(getCampaignId(), getUser().getUsername());
+			UserCampaignServices.instance().requesterCanViewUsersSurveyResponses(getCampaignId(), getUser().getUsername());
 			
 			Map<String, String> parameters = getVisualizationParameters();
 			parameters.remove(VisualizationServices.PARAMETER_KEY_PRIVACY_STATE);

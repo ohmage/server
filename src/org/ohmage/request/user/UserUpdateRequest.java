@@ -237,16 +237,16 @@ public class UserUpdateRequest extends UserRequest {
 		
 		try {
 			LOGGER.info("Verifying that the requesting user is an admin.");
-			UserServices.verifyUserIsAdmin(getUser().getUsername());
+			UserServices.instance().verifyUserIsAdmin(getUser().getUsername());
 			
 			LOGGER.info("Verifying that the user to be upaded exists.");
-			UserServices.checkUserExistance(username, true);
+			UserServices.instance().checkUserExistance(username, true);
 			
 			LOGGER.info("Verify that either the user to be updated already has a personal record or that enough information was provided to create a new one.");
-			UserServices.verifyUserHasOrCanCreatePersonalInfo(username, personalInfo);
+			UserServices.instance().verifyUserHasOrCanCreatePersonalInfo(username, personalInfo);
 			
 			LOGGER.info("Updating the user.");
-			UserServices.updateUser(username, admin, enabled, newAccount, campaignCreationPrivilege, personalInfo);
+			UserServices.instance().updateUser(username, admin, enabled, newAccount, campaignCreationPrivilege, personalInfo);
 		}
 		catch(ServiceException e) {
 			e.failRequest(this);

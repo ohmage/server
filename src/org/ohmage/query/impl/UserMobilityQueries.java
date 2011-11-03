@@ -24,6 +24,7 @@ import org.ohmage.domain.MobilityPoint.Mode;
 import org.ohmage.domain.MobilityPoint.SubType;
 import org.ohmage.exception.DataAccessException;
 import org.ohmage.exception.ErrorCodeException;
+import org.ohmage.query.IUserMobilityQueries;
 import org.ohmage.util.StringUtils;
 import org.ohmage.util.TimeUtils;
 import org.springframework.jdbc.core.PreparedStatementCreator;
@@ -47,7 +48,7 @@ import edu.ucla.cens.mobilityclassifier.MobilityClassifier;
  * 
  * @author John Jenkins
  */
-public final class UserMobilityQueries extends AbstractUploadQuery {
+public final class UserMobilityQueries extends AbstractUploadQuery implements IUserMobilityQueries {
 	// Retrieves the ID for all of the Mobility points that belong to a user.
 	private static final String SQL_GET_IDS_FOR_USER = 
 		"SELECT m.id " +
@@ -215,8 +216,6 @@ public final class UserMobilityQueries extends AbstractUploadQuery {
 			"?" +		// classifier_version
 		")";
 	
-	private static UserMobilityQueries instance;
-
 	/**
 	 * Creates this object.
 	 * 
@@ -224,8 +223,6 @@ public final class UserMobilityQueries extends AbstractUploadQuery {
 	 */
 	private UserMobilityQueries(DataSource dataSource) {
 		super(dataSource);
-		
-		instance = this;
 	}
 	
 	/**
@@ -239,7 +236,7 @@ public final class UserMobilityQueries extends AbstractUploadQuery {
 	 * 
 	 * @throws DataAccessException Thrown if there is an error.
 	 */
-	public static void createMobilityPoint(final String username, final String client,
+	public void createMobilityPoint(final String username, final String client,
 			final MobilityPoint mobilityPoint) throws DataAccessException {
 		
 		// Create the transaction.
@@ -248,12 +245,12 @@ public final class UserMobilityQueries extends AbstractUploadQuery {
 		
 		try {
 			// Begin the transaction.
-			PlatformTransactionManager transactionManager = new DataSourceTransactionManager(instance.getDataSource());
+			PlatformTransactionManager transactionManager = new DataSourceTransactionManager(getDataSource());
 			TransactionStatus status = transactionManager.getTransaction(def);
 
 			try {
 				KeyHolder mobilityPointDatabaseKeyHolder = new GeneratedKeyHolder();
-				instance.getJdbcTemplate().update(
+				getJdbcTemplate().update(
 					new PreparedStatementCreator() {
 						public PreparedStatement createPreparedStatement(Connection connection) throws SQLException {
 							PreparedStatement ps = connection.prepareStatement(SQL_INSERT, new String[] {"id"});
@@ -282,7 +279,7 @@ public final class UserMobilityQueries extends AbstractUploadQuery {
 				// If it's an extended entry, add the sensor data.
 				if(SubType.SENSOR_DATA.equals(mobilityPoint.getSubType())) {
 					try {
-						instance.getJdbcTemplate().update(
+						getJdbcTemplate().update(
 								SQL_INSERT_EXTENDED,
 								mobilityPointDatabaseKeyHolder.getKey().longValue(),
 								mobilityPoint.getSensorData().toJson().toString(),
@@ -305,7 +302,7 @@ public final class UserMobilityQueries extends AbstractUploadQuery {
 			// If this is a duplicate upload, we will ignore it by rolling back
 			// to where we were before we started and return.
 			catch(org.springframework.dao.DataIntegrityViolationException e) {
-				if(! instance.isDuplicate(e)) {
+				if(! isDuplicate(e)) {
 					throw new DataAccessException(
 							"Error executing SQL '" + SQL_INSERT + "' with parameters: " +
 								username + ", " +
@@ -360,9 +357,9 @@ public final class UserMobilityQueries extends AbstractUploadQuery {
 	 * 
 	 * @throws DataAccessException Thrown if there is an error.
 	 */
-	public static List<Long> getIdsForUser(String username) throws DataAccessException {
+	public List<Long> getIdsForUser(String username) throws DataAccessException {
 		try {
-			return instance.getJdbcTemplate().query(
+			return getJdbcTemplate().query(
 					SQL_GET_IDS_FOR_USER,
 					new Object[] { username },
 					new SingleColumnRowMapper<Long>());
@@ -390,9 +387,9 @@ public final class UserMobilityQueries extends AbstractUploadQuery {
 	 * 
 	 * @throws DataAccessException Thrown if there is an error.
 	 */
-	public static List<Long> getIdsForClient(String username, String client) throws DataAccessException {
+	public List<Long> getIdsForClient(String username, String client) throws DataAccessException {
 		try {
-			return instance.getJdbcTemplate().query(
+			return getJdbcTemplate().query(
 					SQL_GET_IDS_FOR_CLIENT,
 					new Object[] { username, client },
 					new SingleColumnRowMapper<Long>());
@@ -422,9 +419,9 @@ public final class UserMobilityQueries extends AbstractUploadQuery {
 	 * 
 	 * @throws DataAccessException Thrown if there is an error.
 	 */
-	public static List<Long> getIdsCreatedAfterDate(String username, Date startDate) throws DataAccessException {
+	public List<Long> getIdsCreatedAfterDate(String username, Date startDate) throws DataAccessException {
 		try {
-			return instance.getJdbcTemplate().query(
+			return getJdbcTemplate().query(
 					SQL_GET_IDS_CREATED_AFTER_DATE,
 					new Object[] { username, TimeUtils.getIso8601DateString(startDate) },
 					new SingleColumnRowMapper<Long>());
@@ -454,9 +451,9 @@ public final class UserMobilityQueries extends AbstractUploadQuery {
 	 * 
 	 * @throws DataAccessException Thrown if there is an error.
 	 */
-	public static List<Long> getIdsCreatedBeforeDate(String username, Date endDate) throws DataAccessException {
+	public List<Long> getIdsCreatedBeforeDate(String username, Date endDate) throws DataAccessException {
 		try {
-			return instance.getJdbcTemplate().query(
+			return getJdbcTemplate().query(
 					SQL_GET_IDS_CREATED_BEFORE_DATE,
 					new Object[] { username, TimeUtils.getIso8601DateString(endDate) },
 					new SingleColumnRowMapper<Long>());
@@ -472,9 +469,9 @@ public final class UserMobilityQueries extends AbstractUploadQuery {
 		}
 	}
 	
-	public static List<Long> getIdsCreatedBetweenDates(String username, Date startDate, Date endDate) throws DataAccessException {
+	public List<Long> getIdsCreatedBetweenDates(String username, Date startDate, Date endDate) throws DataAccessException {
 		try {
-			return instance.getJdbcTemplate().query(
+			return getJdbcTemplate().query(
 					SQL_GET_IDS_CREATE_BETWEEN_DATES,
 					new Object[] { username, TimeUtils.getIso8601DateString(startDate), TimeUtils.getIso8601DateString(endDate) },
 					new SingleColumnRowMapper<Long>());
@@ -504,9 +501,9 @@ public final class UserMobilityQueries extends AbstractUploadQuery {
 	 * 
 	 * @throws DataAccessException Thrown if there is an error.
 	 */
-	public static List<Long> getIdsUploadedAfterDate(String username, Date startDate) throws DataAccessException {
+	public List<Long> getIdsUploadedAfterDate(String username, Date startDate) throws DataAccessException {
 		try {
-			return instance.getJdbcTemplate().query(
+			return getJdbcTemplate().query(
 					SQL_GET_IDS_UPLOADED_AFTER_DATE,
 					new Object[] { username, TimeUtils.getIso8601DateString(startDate) },
 					new SingleColumnRowMapper<Long>());
@@ -536,9 +533,9 @@ public final class UserMobilityQueries extends AbstractUploadQuery {
 	 * 
 	 * @throws DataAccessException Thrown if there is an error.
 	 */
-	public static List<Long> getIdsUploadedBeforeDate(String username, Date endDate) throws DataAccessException {
+	public List<Long> getIdsUploadedBeforeDate(String username, Date endDate) throws DataAccessException {
 		try {
-			return instance.getJdbcTemplate().query(
+			return getJdbcTemplate().query(
 					SQL_GET_IDS_UPLOADED_BEFORE_DATE,
 					new Object[] { username, TimeUtils.getIso8601DateString(endDate) },
 					new SingleColumnRowMapper<Long>());
@@ -567,9 +564,9 @@ public final class UserMobilityQueries extends AbstractUploadQuery {
 	 * 
 	 * @throws DataAccessException Thrown if there is an error.
 	 */
-	public static List<Long> getIdsWithPrivacyState(String username, MobilityPoint.PrivacyState privacyState) throws DataAccessException {
+	public List<Long> getIdsWithPrivacyState(String username, MobilityPoint.PrivacyState privacyState) throws DataAccessException {
 		try {
-			return instance.getJdbcTemplate().query(
+			return getJdbcTemplate().query(
 					SQL_GET_IDS_WITH_PRIVACY_STATE,
 					new Object[] { username, privacyState.toString() },
 					new SingleColumnRowMapper<Long>());
@@ -598,9 +595,9 @@ public final class UserMobilityQueries extends AbstractUploadQuery {
 	 * 
 	 * @throws DataAccessException Thrown if there is an error.
 	 */
-	public static List<Long> getIdsWithLocationStatus(String username, LocationStatus locationStatus) throws DataAccessException {
+	public List<Long> getIdsWithLocationStatus(String username, LocationStatus locationStatus) throws DataAccessException {
 		try {
-			return instance.getJdbcTemplate().query(
+			return getJdbcTemplate().query(
 					SQL_GET_IDS_WITH_LOCATION_STATUS,
 					new Object[] { username, locationStatus.toString().toLowerCase() },
 					new SingleColumnRowMapper<Long>());
@@ -629,9 +626,9 @@ public final class UserMobilityQueries extends AbstractUploadQuery {
 	 * 
 	 * @throws DataAccessException Thrown if there is an error.
 	 */
-	public static List<Long> getIdsWithMode(String username, Mode mode) throws DataAccessException {
+	public List<Long> getIdsWithMode(String username, Mode mode) throws DataAccessException {
 		try {
-			return instance.getJdbcTemplate().query(
+			return getJdbcTemplate().query(
 					SQL_GET_IDS_WITH_MODE,
 					new Object[] { username, mode.toString().toLowerCase() },
 					new SingleColumnRowMapper<Long>());
@@ -658,9 +655,9 @@ public final class UserMobilityQueries extends AbstractUploadQuery {
 	 * 
 	 * @throws DataAccessException Thrown if there is an error.
 	 */
-	public static MobilityPoint getMobilityInformationFromId(Long id) throws DataAccessException {
+	public MobilityPoint getMobilityInformationFromId(Long id) throws DataAccessException {
 		try {
-			return instance.getJdbcTemplate().queryForObject(
+			return getJdbcTemplate().queryForObject(
 					SQL_GET_MOBILITY_DATA_FROM_ID,
 					new Object[] { id },
 					new RowMapper<MobilityPoint>() {
@@ -738,9 +735,9 @@ public final class UserMobilityQueries extends AbstractUploadQuery {
 	 *  
 	 * @throws DataAccessException Thrown if there is an error.
 	 */
-	public static List<MobilityPoint> getMobilityInformationFromIds(Collection<Long> ids) throws DataAccessException {
+	public List<MobilityPoint> getMobilityInformationFromIds(Collection<Long> ids) throws DataAccessException {
 		try {
-			return instance.getJdbcTemplate().query(
+			return getJdbcTemplate().query(
 					SQL_GET_MOBILITY_DATA_FROM_IDS + StringUtils.generateStatementPList(ids.size()),
 					ids.toArray(),
 					new RowMapper<MobilityPoint>() {
@@ -809,9 +806,9 @@ public final class UserMobilityQueries extends AbstractUploadQuery {
 	 * 		   Mobility upload from a user took place. If no Mobility data was
 	 * 		   ever uploaded, null is returned.
 	 */
-	public static Timestamp getLastUploadForUser(String username) throws DataAccessException {
+	public Timestamp getLastUploadForUser(String username) throws DataAccessException {
 		try {
-			List<Timestamp> timestamps = instance.getJdbcTemplate().query(
+			List<Timestamp> timestamps = getJdbcTemplate().query(
 					SQL_GET_MOBILITY_DATA_FOR_USER, 
 					new Object[] { username }, 
 					new RowMapper<Timestamp>() {
@@ -867,7 +864,7 @@ public final class UserMobilityQueries extends AbstractUploadQuery {
 	 * @return The percentage of non-null Mobility uploads or null if there
 	 * 		   were none. 
 	 */
-	public static Double getPercentageOfNonNullLocations(String username, int hours) 
+	public Double getPercentageOfNonNullLocations(String username, int hours) 
 		throws DataAccessException {
 		
 		try {
@@ -879,7 +876,7 @@ public final class UserMobilityQueries extends AbstractUploadQuery {
 			final List<String> nonNullLocations = new LinkedList<String>();
 			final List<String> allLocations = new LinkedList<String>();
 			
-			instance.getJdbcTemplate().query(
+			getJdbcTemplate().query(
 					SQL_GET_MOBILITY_DATA_FOR_USER, 
 					new Object[] { username }, 
 					new RowMapper<Object>() {

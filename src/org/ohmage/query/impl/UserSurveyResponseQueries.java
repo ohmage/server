@@ -14,6 +14,7 @@ import javax.sql.DataSource;
 import org.ohmage.domain.campaign.Campaign;
 import org.ohmage.domain.campaign.SurveyResponse;
 import org.ohmage.exception.DataAccessException;
+import org.ohmage.query.IUserSurveyResponseQueries;
 import org.springframework.jdbc.core.RowMapper;
 
 /**
@@ -24,7 +25,7 @@ import org.springframework.jdbc.core.RowMapper;
  * 
  * @author John Jenkins
  */
-public final class UserSurveyResponseQueries extends Query {
+public final class UserSurveyResponseQueries extends Query implements IUserSurveyResponseQueries {
 	// Retrieves the username of the owner of a survey response.
 	private static final String SQL_GET_SURVEY_RESPONSE_OWNER =
 		"SELECT u.username " +
@@ -104,8 +105,6 @@ public final class UserSurveyResponseQueries extends Query {
 			")" +
 		")";
 	
-	private static UserSurveyResponseQueries instance;
-	
 	/**
 	 * Creates this object.
 	 * 
@@ -113,8 +112,6 @@ public final class UserSurveyResponseQueries extends Query {
 	 */
 	private UserSurveyResponseQueries(DataSource dataSource) {
 		super(dataSource);
-		
-		instance = this;
 	}
 	
 	/**
@@ -127,9 +124,9 @@ public final class UserSurveyResponseQueries extends Query {
 	 * 
 	 * @throws DataAccessException Thrown if there is an error.
 	 */
-	public static String getSurveyResponseOwner(Long surveyResponseId) throws DataAccessException {
+	public String getSurveyResponseOwner(Long surveyResponseId) throws DataAccessException {
 		try {
-			return instance.getJdbcTemplate().queryForObject(
+			return getJdbcTemplate().queryForObject(
 					SQL_GET_SURVEY_RESPONSE_OWNER,
 					new Object[] { surveyResponseId },
 					String.class);
@@ -158,9 +155,9 @@ public final class UserSurveyResponseQueries extends Query {
 	 * @return A Time stamp of the last update whose time zone is set to the 
 	 * 		   same one as reported by the uploader.
 	 */
-	public static Timestamp getLastUploadForUser(String requestersUsername, String usersUsername) throws DataAccessException {
+	public Timestamp getLastUploadForUser(String requestersUsername, String usersUsername) throws DataAccessException {
 		try {
-			List<Timestamp> timestamps = instance.getJdbcTemplate().query(
+			List<Timestamp> timestamps = getJdbcTemplate().query(
 					SQL_GET_SURVEY_RESPONSES_FOR_USER_FOR_REQUESTER,
 					new Object[] { usersUsername, requestersUsername },
 					new RowMapper<Timestamp> () {
@@ -217,7 +214,7 @@ public final class UserSurveyResponseQueries extends Query {
 	 * @return Returns the percentage of non-null location values from surveys
 	 * 		   over the last 'hours' or null if there were no surveys.
 	 */
-	public static Double getPercentageOfNonNullSurveyLocations(String requestersUsername, String usersUsername, int hours)
+	public Double getPercentageOfNonNullSurveyLocations(String requestersUsername, String usersUsername, int hours)
 		throws DataAccessException {
 		
 		long nonNullLocationsCount = 0;
@@ -232,7 +229,7 @@ public final class UserSurveyResponseQueries extends Query {
 			final List<String> nonNullLocations = new LinkedList<String>();
 			final List<String> allLocations = new LinkedList<String>();
 			
-			instance.getJdbcTemplate().query(
+			getJdbcTemplate().query(
 					SQL_GET_SURVEY_RESPONSES_FOR_USER_FOR_REQUESTER, 
 					new Object[] { usersUsername, requestersUsername }, 
 					new RowMapper<String>() {

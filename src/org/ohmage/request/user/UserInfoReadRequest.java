@@ -62,7 +62,7 @@ public class UserInfoReadRequest extends UserRequest {
 		
 		try {
 			LOGGER.info("Gathering the information about the requesting user.");
-			result = UserServices.gatherUserInformation(getUser().getUsername());
+			result = UserServices.instance().gatherUserInformation(getUser().getUsername());
 		}
 		catch(ServiceException e) {
 			e.failRequest(this);

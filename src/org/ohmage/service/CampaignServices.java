@@ -25,7 +25,7 @@ import org.ohmage.domain.campaign.SurveyResponse;
 import org.ohmage.exception.DataAccessException;
 import org.ohmage.exception.ErrorCodeException;
 import org.ohmage.exception.ServiceException;
-import org.ohmage.query.impl.CampaignQueries;
+import org.ohmage.query.ICampaignQueries;
 
 /**
  * This class contains the services that pertain to campaigns.
@@ -34,15 +34,42 @@ import org.ohmage.query.impl.CampaignQueries;
  * @author Joshua Selsky
  */
 public class CampaignServices {
+	private static CampaignServices instance;
+	private ICampaignQueries campaignQueries;
+	
 	private static final String PATH_CAMPAIGN_URN = "/campaign/campaignUrn";
 	private static final String PATH_CAMPAIGN_NAME = "/campaign/campaignName";
 	private static final String PATH_ICON_URL = "/campaign/iconUrl";
 	private static final String PATH_AUTHORED_BY = "/campaign/authoredBy";
 	
 	/**
-	 * Default constructor. Private to prevent instantiation.
+	 * Default constructor. Privately instantiated via dependency injection
+	 * (reflection).
+	 * 
+	 * @throws IllegalStateException if an instance of this class already
+	 * exists
+	 * 
+	 * @throws IllegalArgumentException if iCampaignQueries is null
 	 */
-	private CampaignServices() {}
+	private CampaignServices(ICampaignQueries iCampaignQueries) {
+		if(instance != null) {
+			throw new IllegalStateException("An instance of this class already exists.");
+		}
+		if(iCampaignQueries == null) {
+			throw new IllegalArgumentException("An instance of ICampaignQueries is required.");
+		}
+		
+		campaignQueries = iCampaignQueries;
+		
+		instance = this;
+	}
+	
+	/**
+	 * @return  Returns the singleton instance of this class.
+	 */
+	public static CampaignServices instance() {
+		return instance;
+	}
 	
 	/**
 	 * Class for handling campaign ID and name combinations.
@@ -135,7 +162,7 @@ public class CampaignServices {
 	 * 
 	 * @throws ServiceException Thrown if there is an error.
 	 */
-	public static void createCampaign(final String campaignId, 
+	public void createCampaign(final String campaignId, 
 			final String name, final String xml, final String description, 
 			final String iconUrl, final String authoredBy, 
 			final Campaign.RunningState runningState, 
@@ -144,7 +171,7 @@ public class CampaignServices {
 			throws ServiceException {
 		
 		try {
-			CampaignQueries.createCampaign(campaignId, name, xml, description, iconUrl, authoredBy, runningState, privacyState, classIds, creatorUsername);
+			campaignQueries.createCampaign(campaignId, name, xml, description, iconUrl, authoredBy, runningState, privacyState, classIds, creatorUsername);
 		}
 		catch(DataAccessException e) {
 			throw new ServiceException(e);
@@ -164,11 +191,11 @@ public class CampaignServices {
 	 * 							exists and it shouldn't, or if the campaign
 	 * 							doesn't exist and it should.
 	 */
-	public static void checkCampaignExistence(final String campaignId, 
+	public void checkCampaignExistence(final String campaignId, 
 			final boolean shouldExist) throws ServiceException {
 		
 		try {
-			if(CampaignQueries.getCampaignExists(campaignId)) {
+			if(campaignQueries.getCampaignExists(campaignId)) {
 				if(! shouldExist) {
 					throw new ServiceException(
 							ErrorCode.CAMPAIGN_INVALID_XML, 
@@ -201,7 +228,7 @@ public class CampaignServices {
 	 * 							shouldn't or if any of the campaigns don't 
 	 * 							exist and they should.
 	 */
-	public static void checkCampaignsExistence(
+	public void checkCampaignsExistence(
 			final Collection<String> campaignIds, final boolean shouldExist) 
 			throws ServiceException {
 		
@@ -220,11 +247,11 @@ public class CampaignServices {
 	 * 
 	 * @throws ServiceException Thrown if there is an error.
 	 */
-	public static String getCampaignXml(final String campaignId) 
+	public String getCampaignXml(final String campaignId) 
 			throws ServiceException {
 		
 		try {
-			return CampaignQueries.getXml(campaignId);
+			return campaignQueries.getXml(campaignId);
 		}
 		catch(DataAccessException e) {
 			throw new ServiceException(e);
@@ -241,11 +268,11 @@ public class CampaignServices {
 	 * 
 	 * @throws ServiceException Thrown if there is an error.
 	 */
-	public static String getCampaignName(final String campaignId) 
+	public String getCampaignName(final String campaignId) 
 			throws ServiceException {
 		
 		try {
-			return CampaignQueries.getName(campaignId);
+			return campaignQueries.getName(campaignId);
 		}
 		catch(DataAccessException e) {
 			throw new ServiceException(e);
@@ -269,13 +296,13 @@ public class CampaignServices {
 	 * 							campaign's XML. Also, thrown if there is an 
 	 * 							error.
 	 */
-	public static void ensurePromptExistsInCampaign(final String campaignId, 
+	public void ensurePromptExistsInCampaign(final String campaignId, 
 			final String promptId) throws ServiceException {
 		
 		// Get the XML.
 		String xml;
 		try {
-			xml = CampaignQueries.getXml(campaignId);
+			xml = campaignQueries.getXml(campaignId);
 		}
 		catch(DataAccessException e) {
 			throw new ServiceException(e);
@@ -332,7 +359,7 @@ public class CampaignServices {
 	 * 							This should never happen as the XML should have
 	 * 							been validated before this call is made.
 	 */
-	public static CampaignMetadata getCampaignMetadataFromXml(final String xml)
+	public CampaignMetadata getCampaignMetadataFromXml(final String xml)
 			throws ServiceException {
 		
 		// Generate a builder that will build the XML Document.
@@ -421,12 +448,12 @@ public class CampaignServices {
 	 * @throws ServiceException Thrown if the campaign is not running or if 
 	 * 							there is an error.
 	 */
-	public static void verifyCampaignIsRunning(final String campaignId) 
+	public void verifyCampaignIsRunning(final String campaignId) 
 			throws ServiceException {
 		
 		try {
 			if(! Campaign.RunningState.RUNNING.equals(
-					CampaignQueries.getCampaignRunningState(campaignId))) {
+					campaignQueries.getCampaignRunningState(campaignId))) {
 				throw new ServiceException(
 						ErrorCode.CAMPAIGN_INVALID_RUNNING_STATE, 
 						"The campaign is not running.");
@@ -450,7 +477,7 @@ public class CampaignServices {
 	 * @throws ServiceException Thrown if the ID or name are different than
 	 *		   what we currently have on record or if there is an error.
 	 */
-	public static void verifyTheNewXmlIdAndNameAreTheSameAsTheCurrentIdAndName(
+	public void verifyTheNewXmlIdAndNameAreTheSameAsTheCurrentIdAndName(
 			final String campaignId, final String newXml) 
 			throws ServiceException {
 		
@@ -470,7 +497,7 @@ public class CampaignServices {
 						"The campaign's ID in the new XML must be the same as the original XML.");
 			}
 			
-			if(! newCampaignIdAndName.getCampaignName().equals(CampaignQueries.getName(campaignId))) {
+			if(! newCampaignIdAndName.getCampaignName().equals(campaignQueries.getName(campaignId))) {
 				throw new ServiceException(
 						ErrorCode.CAMPAIGN_XML_HEADER_CHANGED, 
 						"The campaign's name in the new XML must be the same as the original XML.");
@@ -493,11 +520,11 @@ public class CampaignServices {
 	 * 							creation timestamps are not the same or if 
 	 * 							there is an error.
 	 */
-	public static void verifyCampaignIsUpToDate(final String campaignId, 
+	public void verifyCampaignIsUpToDate(final String campaignId, 
 			final Date creationTimestamp) throws ServiceException {
 		
 		try {
-			if(! creationTimestamp.equals(CampaignQueries.getCreationTimestamp(campaignId))) {
+			if(! creationTimestamp.equals(campaignQueries.getCreationTimestamp(campaignId))) {
 				throw new ServiceException(
 						ErrorCode.CAMPAIGN_OUT_OF_DATE, 
 						"The given timestamp is not the same as the campaign's creation timestamp.");
@@ -515,11 +542,11 @@ public class CampaignServices {
 	 * @return a Campaign instance created from the XML for the campaign.
 	 * @throws ServiceException If an error occurred in the data layer.
 	 */
-	public static Campaign findCampaignConfiguration(final String campaignId)
+	public Campaign findCampaignConfiguration(final String campaignId)
 			throws ServiceException {
 		
 		try {
-			return CampaignQueries.findCampaignConfiguration(campaignId);
+			return campaignQueries.findCampaignConfiguration(campaignId);
 		}
 		catch(DataAccessException e) {
 				throw new ServiceException(e);
@@ -546,7 +573,7 @@ public class CampaignServices {
 	 * @throws ServiceException Thrown if one of the survey responses is
 	 * 							malformed.
 	 */
-	public static List<SurveyResponse> getSurveyResponses(
+	public List<SurveyResponse> getSurveyResponses(
 			final String username, final String client, 
 			final Campaign campaign, 
 			final Collection<JSONObject> jsonSurveyResponses) 
@@ -603,7 +630,7 @@ public class CampaignServices {
 	 * 
 	 * @throws ServiceException Thrown if there is an error.
 	 */
-	public static void updateCampaign(final String campaignId, 
+	public void updateCampaign(final String campaignId, 
 			final String xml, final String description, 
 			final Campaign.RunningState runningState, 
 			final Campaign.PrivacyState privacyState, 
@@ -614,7 +641,7 @@ public class CampaignServices {
 			throws ServiceException {
 		
 		try {
-			CampaignQueries.updateCampaign(campaignId, xml, description, runningState, privacyState, classesToAdd, classesToRemove, usersAndRolesToAdd, usersAndRolesToRemove);
+			campaignQueries.updateCampaign(campaignId, xml, description, runningState, privacyState, classesToAdd, classesToRemove, usersAndRolesToAdd, usersAndRolesToRemove);
 		}
 		catch(DataAccessException e) {
 			throw new ServiceException(e);
@@ -628,11 +655,11 @@ public class CampaignServices {
 	 * 
 	 * @throws ServiceException Thrown if there is an error.
 	 */
-	public static void deleteCampaign(final String campaignId) 
+	public void deleteCampaign(final String campaignId) 
 			throws ServiceException {
 		
 		try {
-			CampaignQueries.deleteCampaign(campaignId);
+			campaignQueries.deleteCampaign(campaignId);
 		}
 		catch(DataAccessException e) {
 			throw new ServiceException(e);

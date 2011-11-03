@@ -3,6 +3,7 @@ package org.ohmage.query.impl;
 import javax.sql.DataSource;
 
 import org.ohmage.exception.DataAccessException;
+import org.ohmage.query.IUserImageQueries;
 
 /**
  * This class is responsible for the functionality to create, read, update, and
@@ -10,7 +11,7 @@ import org.ohmage.exception.DataAccessException;
  * 
  * @author John Jenkins
  */
-public final class UserImageQueries extends Query {
+public final class UserImageQueries extends Query implements IUserImageQueries {
 	// Returns a boolean representing whether or not some photo prompt response
 	// exists whose response value is the same as some photo's ID.
 	private static final String SQL_EXISTS_IMAGE_FOR_USER_IN_RESPONSE =
@@ -31,8 +32,6 @@ public final class UserImageQueries extends Query {
 		"WHERE ubr.uuid = ? " +
 		"AND ubr.user_id = u.id";
 	
-	private static UserImageQueries instance;
-	
 	/**
 	 * Creates this object.
 	 * 
@@ -40,8 +39,6 @@ public final class UserImageQueries extends Query {
 	 */
 	private UserImageQueries(DataSource dataSource) {
 		super(dataSource);
-		
-		instance = this;
 	}
 	
 	/**
@@ -57,9 +54,9 @@ public final class UserImageQueries extends Query {
 	 * 
 	 * @throws DataAccessException Thrown if there is an error.
 	 */
-	public static Boolean responseExistsForUserWithImage(String username, String imageId) throws DataAccessException {
+	public Boolean responseExistsForUserWithImage(String username, String imageId) throws DataAccessException {
 		try {
-			return instance.getJdbcTemplate().queryForObject(SQL_EXISTS_IMAGE_FOR_USER_IN_RESPONSE, new Object[] { username, imageId }, Boolean.class);
+			return getJdbcTemplate().queryForObject(SQL_EXISTS_IMAGE_FOR_USER_IN_RESPONSE, new Object[] { username, imageId }, Boolean.class);
 		}
 		catch(org.springframework.dao.DataAccessException e) {
 			throw new DataAccessException("Error executing SQL '" + SQL_EXISTS_IMAGE_FOR_USER_IN_RESPONSE + "' with parameters: " + 
@@ -77,9 +74,9 @@ public final class UserImageQueries extends Query {
 	 * 
 	 * @throws DataAccessException Thrown if there is an error.
 	 */
-	public static String getImageOwner(String imageId) throws DataAccessException {
+	public String getImageOwner(String imageId) throws DataAccessException {
 		try {
-			return instance.getJdbcTemplate().queryForObject(SQL_GET_IMAGE_OWNER, new Object[] { imageId }, String.class);
+			return getJdbcTemplate().queryForObject(SQL_GET_IMAGE_OWNER, new Object[] { imageId }, String.class);
 		}
 		catch(org.springframework.dao.IncorrectResultSizeDataAccessException e) {
 			if(e.getActualSize() > 1) {

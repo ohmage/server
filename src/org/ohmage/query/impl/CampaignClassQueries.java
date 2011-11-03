@@ -9,6 +9,7 @@ import javax.sql.DataSource;
 import org.ohmage.domain.Clazz;
 import org.ohmage.domain.campaign.Campaign;
 import org.ohmage.exception.DataAccessException;
+import org.ohmage.query.ICampaignClassQueries;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.SingleColumnRowMapper;
 
@@ -18,7 +19,7 @@ import org.springframework.jdbc.core.SingleColumnRowMapper;
  * 
  * @author John Jenkins
  */
-public final class CampaignClassQueries extends Query {
+public final class CampaignClassQueries extends Query implements ICampaignClassQueries {
 	// Retrieves the IDs for all of the campaigns associated with a class.
 	private static final String SQL_GET_CAMPAIGNS_ASSOCIATED_WITH_CLASS =
 		"SELECT ca.urn " +
@@ -49,8 +50,6 @@ public final class CampaignClassQueries extends Query {
 		"AND ucr.role = ? " +
 		"AND ccdr.user_role_id = ur.id";
 	
-	private static CampaignClassQueries instance;
-	
 	/**
 	 * Creates this object.
 	 * 
@@ -58,22 +57,15 @@ public final class CampaignClassQueries extends Query {
 	 */
 	private CampaignClassQueries(DataSource dataSource) {
 		super(dataSource);
-		
-		instance = this;
 	}
 	
-	/**
-	 * Retrieves the list of unique identifiers for campaigns that are 
-	 * associated with the class.
-	 * 
-	 * @param classId The unique identifier for the class.
-	 * 
-	 * @return A List of campaign identifiers for all of the campaigns 
-	 * 		   associated with this class.
+	/* (non-Javadoc)
+	 * @see org.ohmage.query.impl.ICampaignClassQueries#getCampaignsAssociatedWithClass(java.lang.String)
 	 */
-	public static List<String> getCampaignsAssociatedWithClass(String classId) throws DataAccessException {
+	@Override
+	public List<String> getCampaignsAssociatedWithClass(String classId) throws DataAccessException {
 		try {
-			return instance.getJdbcTemplate().query(
+			return getJdbcTemplate().query(
 					SQL_GET_CAMPAIGNS_ASSOCIATED_WITH_CLASS,
 					new Object[] { classId },
 					new SingleColumnRowMapper<String>());
@@ -83,18 +75,13 @@ public final class CampaignClassQueries extends Query {
 		}
 	}
 	
-	/**
-	 * Retrieves the list of unique identifiers for all of the classes that are
-	 * associated with the campaign.
-	 * 
-	 * @param campaignId The campaign's unique identifier.
-	 * 
-	 * @return A list of class IDs for all of the classes associated with this
-	 * 		   campaign.
+	/* (non-Javadoc)
+	 * @see org.ohmage.query.impl.ICampaignClassQueries#getClassesAssociatedWithCampaign(java.lang.String)
 	 */
-	public static List<String> getClassesAssociatedWithCampaign(String campaignId) throws DataAccessException {
+	@Override
+	public List<String> getClassesAssociatedWithCampaign(String campaignId) throws DataAccessException {
 		try {
-			return instance.getJdbcTemplate().query(
+			return getJdbcTemplate().query(
 					SQL_GET_CLASSES_ASSOCIATED_WITH_CAMPAIGN, 
 					new Object[] { campaignId },
 					new SingleColumnRowMapper<String>());
@@ -104,23 +91,13 @@ public final class CampaignClassQueries extends Query {
 		}
 	}
 	
-	/**
-	 * Retrieves the list of default campaign roles for a user in a class with
-	 * the specified class role.
-	 * 
-	 * @param campaignId The campaign's unique identifier.
-	 * 
-	 * @param classId The class' unique identifier.
-	 * 
-	 * @param classRole The class role.
-	 * 
-	 * @return A, possibly empty but never null, list of campaign roles.
-	 * 
-	 * @throws DataAccessException Thrown if there is an error.
+	/* (non-Javadoc)
+	 * @see org.ohmage.query.impl.ICampaignClassQueries#getDefaultCampaignRolesForCampaignClass(java.lang.String, java.lang.String, org.ohmage.domain.Clazz.Role)
 	 */
-	public static List<Campaign.Role> getDefaultCampaignRolesForCampaignClass(String campaignId, String classId, Clazz.Role classRole) throws DataAccessException {
+	@Override
+	public List<Campaign.Role> getDefaultCampaignRolesForCampaignClass(String campaignId, String classId, Clazz.Role classRole) throws DataAccessException {
 		try {
-			return instance.getJdbcTemplate().query(
+			return getJdbcTemplate().query(
 					SQL_GET_CAMPAIGN_CLASS_DEFAULT_ROLES,
 					new Object[] { campaignId, classId, classRole.toString() },
 					new RowMapper<Campaign.Role>() {

@@ -116,20 +116,20 @@ public class ClassRosterUpdateRequest extends UserRequest {
 			Set<String> classIds = roster.keySet();
 			
 			LOGGER.info("Verifying that the classes in the class roster exist.");
-			ClassServices.checkClassesExistence(classIds, true);
+			ClassServices.instance().checkClassesExistence(classIds, true);
 			
 			LOGGER.info("Verifying that the requester is an admin.");
-			UserServices.verifyUserIsAdmin(getUser().getUsername());
+			UserServices.instance().verifyUserIsAdmin(getUser().getUsername());
 			
 			LOGGER.info("Verifying that the users in the roster exist.");
 			Set<String> uniqueUsers = new HashSet<String>();
 			for(String classId : classIds) {
 				uniqueUsers.addAll(roster.get(classId).keySet());
 			}
-			UserServices.verifyUsersExist(uniqueUsers, true);
+			UserServices.instance().verifyUsersExist(uniqueUsers, true);
 			
 			LOGGER.info("Updating the classes via the roster.");
-			warningMessages = ClassServices.updateClassViaRoster(roster);
+			warningMessages = ClassServices.instance().updateClassViaRoster(roster);
 		}
 		catch(ServiceException e) {
 			e.failRequest(this);

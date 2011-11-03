@@ -103,10 +103,10 @@ public class SurveyResponseDeleteRequest extends UserRequest {
 		
 		try {
 			LOGGER.info("Verifying that the user is allowed to delete the survey response.");
-			UserSurveyResponseServices.verifyUserCanUpdateOrDeleteSurveyResponse(getUser().getUsername(), surveyResponseId);
+			UserSurveyResponseServices.instance().verifyUserCanUpdateOrDeleteSurveyResponse(getUser().getUsername(), surveyResponseId);
 			
 			LOGGER.info("Deleting the survey response.");
-			SurveyResponseServices.deleteSurveyResponse(surveyResponseId);
+			SurveyResponseServices.instance().deleteSurveyResponse(surveyResponseId);
 		}
 		catch(ServiceException e) {
 			e.failRequest(this);

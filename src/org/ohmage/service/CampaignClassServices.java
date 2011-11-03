@@ -7,20 +7,48 @@ import java.util.Set;
 import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.exception.DataAccessException;
 import org.ohmage.exception.ServiceException;
-import org.ohmage.query.impl.CampaignClassQueries;
+import org.ohmage.query.ICampaignClassQueries;
 
 /**
  * This class contains the services that pertain to campaign-class 
  * associations.
  * 
  * @author John Jenkins
+ * @author Joshua Selsky
  */
-public class CampaignClassServices {
+public class CampaignClassServices {	
+	private static CampaignClassServices instance;
+	private ICampaignClassQueries campaignClassQueries;
+	
 	/**
-	 * Default constructor. Private so that it cannot be instantiated.
+	 * Default constructor. Privately instantiated via dependency injection
+	 * (reflection).
+	 * 
+	 * @throws IllegalStateException if an instance of this class already
+	 * exists
+	 *  
+	 * @throws IllegalArgumentException if iCampaignClassQueries is null
 	 */
-	private CampaignClassServices() {}
+	private CampaignClassServices(ICampaignClassQueries iCampaignClassQueries) {
+		if(instance != null) {
+			throw new IllegalStateException("An instance of this class already exists.");
+		}
+		
+		if(iCampaignClassQueries == null) {
+			throw new IllegalArgumentException("An instance of ICampaignClassQueries is required.");
+		}
+		
+		campaignClassQueries = iCampaignClassQueries;
+		instance = this;
+	}
 
+	/**
+	 * @return  Returns the singleton instance of this class.
+	 */
+	public static CampaignClassServices instance() {
+		return instance;
+	}
+	
 	/**
 	 * Verifies that the list of classes doesn't cover all of the classes
 	 * associated with the campaign.
@@ -33,13 +61,13 @@ public class CampaignClassServices {
 	 * 							all of the classes to which the campaign is
 	 * 							associated or if there is an error.
 	 */
-	public static void verifyNotDisassocitingAllClassesFromCampaign(
+	public void verifyNotDisassocitingAllClassesFromCampaign(
 			final String campaignId, final Collection<String> classIds) 
 			throws ServiceException {
 		
 		try {
 			Set<String> classIdsCopy = new HashSet<String>(classIds);
-			classIdsCopy.removeAll(CampaignClassQueries.getClassesAssociatedWithCampaign(campaignId));
+			classIdsCopy.removeAll(campaignClassQueries.getClassesAssociatedWithCampaign(campaignId));
 			
 			if(classIdsCopy.size() == 0) {
 				throw new ServiceException(

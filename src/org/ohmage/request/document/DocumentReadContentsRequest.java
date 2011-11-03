@@ -103,16 +103,16 @@ public class DocumentReadContentsRequest extends UserRequest {
 		
 		try {
 			LOGGER.info("Verifying that the document exists.");
-			DocumentServices.ensureDocumentExistence(documentId);
+			DocumentServices.instance().ensureDocumentExistence(documentId);
 			
 			LOGGER.info("Verifying that the requesting user can read the contents of this document.");
-			UserDocumentServices.userCanReadDocument(getUser().getUsername(), documentId);
+			UserDocumentServices.instance().userCanReadDocument(getUser().getUsername(), documentId);
 			
 			LOGGER.info("Retrieving the document's name.");
-			documentName = DocumentServices.getDocumentName(documentId);
+			documentName = DocumentServices.instance().getDocumentName(documentId);
 			
 			LOGGER.info("Retrieving the document's contents.");
-			contentsStream = DocumentServices.getDocumentInputStream(documentId);
+			contentsStream = DocumentServices.instance().getDocumentInputStream(documentId);
 		}
 		catch(ServiceException e) {
 			e.failRequest(this);

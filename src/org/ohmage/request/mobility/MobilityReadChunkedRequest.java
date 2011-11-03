@@ -157,7 +157,7 @@ public class MobilityReadChunkedRequest extends UserRequest {
 		}
 		
 		try {
-			result = MobilityServices.retrieveMobilityData(
+			result = MobilityServices.instance().retrieveMobilityData(
 					getUser().getUsername(), 
 					null, 
 					startDate, 

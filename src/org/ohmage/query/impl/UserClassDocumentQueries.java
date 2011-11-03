@@ -7,6 +7,7 @@ import javax.sql.DataSource;
 import org.ohmage.domain.Clazz;
 import org.ohmage.domain.Document;
 import org.ohmage.exception.DataAccessException;
+import org.ohmage.query.IUserClassDocumentQueries;
 import org.springframework.jdbc.core.SingleColumnRowMapper;
 
 /**
@@ -15,7 +16,7 @@ import org.springframework.jdbc.core.SingleColumnRowMapper;
  * 
  * @author John Jenkins
  */
-public final class UserClassDocumentQueries extends Query {
+public final class UserClassDocumentQueries extends Query implements IUserClassDocumentQueries {
 	// Check if the user is a supervisor in any campaign with which the 
 	// document is associated.
 	private static final String SQL_EXISTS_USER_IS_PRIVILEGED_IN_ANY_CLASS_ASSOCIATED_WITH_DOCUMENT = 
@@ -59,8 +60,6 @@ public final class UserClassDocumentQueries extends Query {
 			"(dr.role = '" + Document.Role.OWNER + "')" +
 		")";
 	
-	private static UserClassDocumentQueries instance;
-	
 	/**
 	 * Creates this object.
 	 * 
@@ -68,8 +67,6 @@ public final class UserClassDocumentQueries extends Query {
 	 */
 	private UserClassDocumentQueries(DataSource dataSource) {
 		super(dataSource);
-		
-		instance = this;
 	}
 	
 	/**
@@ -85,9 +82,9 @@ public final class UserClassDocumentQueries extends Query {
 	 * 
 	 * @throws DataAccessException Thrown if there is an error.
 	 */
-	public static List<String> getVisibleDocumentsToUserInClass(String username, String classId) throws DataAccessException {
+	public List<String> getVisibleDocumentsToUserInClass(String username, String classId) throws DataAccessException {
 		try {
-			return instance.getJdbcTemplate().query(
+			return getJdbcTemplate().query(
 					SQL_GET_DOCUMENTS_SPECIFIC_TO_CLASS_FOR_REQUESTING_USER, 
 					new Object[] { username, classId },
 					new SingleColumnRowMapper<String>());
@@ -109,9 +106,9 @@ public final class UserClassDocumentQueries extends Query {
 	 * @return Returns true if the user is privileged in any class that is 
 	 * 		   associated with the campaign.
 	 */
-	public static Boolean getUserIsPrivilegedInAnyClassAssociatedWithDocument(String username, String documentId) throws DataAccessException {
+	public Boolean getUserIsPrivilegedInAnyClassAssociatedWithDocument(String username, String documentId) throws DataAccessException {
 		try {
-			return instance.getJdbcTemplate().queryForObject(
+			return getJdbcTemplate().queryForObject(
 					SQL_EXISTS_USER_IS_PRIVILEGED_IN_ANY_CLASS_ASSOCIATED_WITH_DOCUMENT, 
 					new Object[] { username, documentId }, 
 					Boolean.class);

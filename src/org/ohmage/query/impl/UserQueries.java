@@ -12,6 +12,7 @@ import org.ohmage.cache.PreferenceCache;
 import org.ohmage.domain.UserPersonal;
 import org.ohmage.exception.CacheMissException;
 import org.ohmage.exception.DataAccessException;
+import org.ohmage.query.IUserQueries;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.transaction.PlatformTransactionManager;
@@ -28,7 +29,7 @@ import org.springframework.transaction.support.DefaultTransactionDefinition;
  * 
  * @author John Jenkins
  */
-public class UserQueries extends Query {
+public class UserQueries extends Query implements IUserQueries {
 	// Returns a boolean representing whether or not a user exists
 	private static final String SQL_EXISTS_USER = 
 		"SELECT EXISTS(" +
@@ -188,10 +189,6 @@ public class UserQueries extends Query {
 		"DELETE FROM user " +
 		"WHERE username = ?";
 	
-	// The single instance of this class as the constructor should only ever be
-	// called once by Spring.
-	private static UserQueries instance;
-	
 	/**
 	 * Creates this object.
 	 * 
@@ -199,8 +196,6 @@ public class UserQueries extends Query {
 	 */
 	private UserQueries(DataSource dataSource) {
 		super(dataSource);
-		
-		instance = this;
 	}
 	
 	/**
@@ -220,7 +215,7 @@ public class UserQueries extends Query {
 	 * @param campaignCreationPrivilege Whether or not the new user is allowed
 	 * 									to create campaigns.
 	 */
-	public static void createUser(String username, String hashedPassword, Boolean admin, Boolean enabled, Boolean newAccount, Boolean campaignCreationPrivilege) 
+	public void createUser(String username, String hashedPassword, Boolean admin, Boolean enabled, Boolean newAccount, Boolean campaignCreationPrivilege) 
 		throws DataAccessException {
 		
 		Boolean tAdmin = admin;
@@ -254,12 +249,12 @@ public class UserQueries extends Query {
 		
 		try {
 			// Begin the transaction.
-			PlatformTransactionManager transactionManager = new DataSourceTransactionManager(instance.getDataSource());
+			PlatformTransactionManager transactionManager = new DataSourceTransactionManager(getDataSource());
 			TransactionStatus status = transactionManager.getTransaction(def);
 			
 			// Insert the new user.
 			try {
-				instance.getJdbcTemplate().update(SQL_INSERT_USER, new Object[] { username, hashedPassword, tAdmin, tEnabled, tNewAccount, tCampaignCreationPrivilege });
+				getJdbcTemplate().update(SQL_INSERT_USER, new Object[] { username, hashedPassword, tAdmin, tEnabled, tNewAccount, tCampaignCreationPrivilege });
 			}
 			catch(org.springframework.dao.DataAccessException e) {
 				transactionManager.rollback(status);
@@ -290,9 +285,9 @@ public class UserQueries extends Query {
 	 * 
 	 * @throws DataAccessException Thrown if there is an error.
 	 */
-	public static Boolean userExists(String username) throws DataAccessException {
+	public Boolean userExists(String username) throws DataAccessException {
 		try {
-			return instance.getJdbcTemplate().queryForObject(
+			return getJdbcTemplate().queryForObject(
 					SQL_EXISTS_USER, 
 					new Object[] { username }, 
 					Boolean.class);
@@ -312,9 +307,9 @@ public class UserQueries extends Query {
 	 * @throws DataAccessException Thrown if there is a problem running the
 	 * 							   query.
 	 */
-	public static Boolean userIsAdmin(String username) throws DataAccessException {
+	public Boolean userIsAdmin(String username) throws DataAccessException {
 		try {
-			return instance.getJdbcTemplate().queryForObject(
+			return getJdbcTemplate().queryForObject(
 					SQL_EXISTS_USER_IS_ADMIN, 
 					new String[] { username }, 
 					Boolean.class
@@ -335,9 +330,9 @@ public class UserQueries extends Query {
 	 * @throws DataAccessException Thrown if there is a problem running the
 	 * 							   query.
 	 */
-	public static Boolean userCanCreateCampaigns(String username) throws DataAccessException {
+	public Boolean userCanCreateCampaigns(String username) throws DataAccessException {
 		try {
-			return instance.getJdbcTemplate().queryForObject(
+			return getJdbcTemplate().queryForObject(
 					SQL_EXISTS_USER_CAN_CREATE_CAMPAIGNS, 
 					new Object[] { username }, 
 					Boolean.class
@@ -360,9 +355,9 @@ public class UserQueries extends Query {
 	 * 
 	 * @throws DataAccessException Thrown if there is an error.
 	 */
-	public static Boolean userHasPersonalInfo(String username) throws DataAccessException {
+	public Boolean userHasPersonalInfo(String username) throws DataAccessException {
 		try {
-			return instance.getJdbcTemplate().queryForObject(
+			return getJdbcTemplate().queryForObject(
 					SQL_EXISTS_USER_PERSONAL,
 					new Object[] { username },
 					Boolean.class
@@ -387,9 +382,9 @@ public class UserQueries extends Query {
 	 * 
 	 * @throws DataAccessException Thrown if there is an error.
 	 */
-	public static UserPersonal getPersonalInfoForUser(String username) throws DataAccessException {
+	public UserPersonal getPersonalInfoForUser(String username) throws DataAccessException {
 		try {
-			return instance.getJdbcTemplate().queryForObject(
+			return getJdbcTemplate().queryForObject(
 					SQL_GET_USER_PERSONAL, 
 					new Object[] { username }, 
 					new RowMapper<UserPersonal>() {
@@ -448,7 +443,7 @@ public class UserQueries extends Query {
 	 * 					   personal information database record; all null 
 	 * 					   values will be ignored.
 	 */
-	public static void updateUser(String username, Boolean admin, Boolean enabled, Boolean newAccount, Boolean campaignCreationPrivilege, UserPersonal personalInfo) 
+	public void updateUser(String username, Boolean admin, Boolean enabled, Boolean newAccount, Boolean campaignCreationPrivilege, UserPersonal personalInfo) 
 		throws DataAccessException {
 		
 		// Create the transaction.
@@ -457,13 +452,13 @@ public class UserQueries extends Query {
 		
 		try {
 			// Begin the transaction.
-			PlatformTransactionManager transactionManager = new DataSourceTransactionManager(instance.getDataSource());
+			PlatformTransactionManager transactionManager = new DataSourceTransactionManager(getDataSource());
 			TransactionStatus status = transactionManager.getTransaction(def);
 			
 			// Update the admin value if it's not null.
 			if(admin != null) {
 				try {
-					instance.getJdbcTemplate().update(SQL_UPDATE_ADMIN, admin, username);
+					getJdbcTemplate().update(SQL_UPDATE_ADMIN, admin, username);
 				}
 				catch(org.springframework.dao.DataAccessException e) {
 					transactionManager.rollback(status);
@@ -475,7 +470,7 @@ public class UserQueries extends Query {
 			// Update the enabled value if it's not null.
 			if(enabled != null) {
 				try {
-					instance.getJdbcTemplate().update(SQL_UPDATE_ENABLED, enabled, username);
+					getJdbcTemplate().update(SQL_UPDATE_ENABLED, enabled, username);
 				}
 				catch(org.springframework.dao.DataAccessException e) {
 					transactionManager.rollback(status);
@@ -487,7 +482,7 @@ public class UserQueries extends Query {
 			// Update the new account value if it's not null.
 			if(newAccount != null) {
 				try {
-					instance.getJdbcTemplate().update(SQL_UPDATE_NEW_ACCOUNT, newAccount, username);
+					getJdbcTemplate().update(SQL_UPDATE_NEW_ACCOUNT, newAccount, username);
 				}
 				catch(org.springframework.dao.DataAccessException e) {
 					transactionManager.rollback(status);
@@ -499,7 +494,7 @@ public class UserQueries extends Query {
 			// Update the campaign creation privilege value if it's not null.
 			if(campaignCreationPrivilege != null) {
 				try {
-					instance.getJdbcTemplate().update(SQL_UPDATE_CAMPAIGN_CREATION_PRIVILEGE, campaignCreationPrivilege, username);
+					getJdbcTemplate().update(SQL_UPDATE_CAMPAIGN_CREATION_PRIVILEGE, campaignCreationPrivilege, username);
 				}
 				catch(org.springframework.dao.DataAccessException e) {
 					transactionManager.rollback(status);
@@ -528,7 +523,7 @@ public class UserQueries extends Query {
 					String firstName = personalInfo.getFirstName();
 					if(firstName != null) {
 						try {
-							instance.getJdbcTemplate().update(SQL_UPDATE_FIRST_NAME, firstName, username);
+							getJdbcTemplate().update(SQL_UPDATE_FIRST_NAME, firstName, username);
 						}
 						catch(org.springframework.dao.DataAccessException e) {
 							transactionManager.rollback(status);
@@ -541,7 +536,7 @@ public class UserQueries extends Query {
 					String lastName = personalInfo.getLastName();
 					if(lastName != null) {
 						try {
-							instance.getJdbcTemplate().update(SQL_UPDATE_LAST_NAME, lastName, username);
+							getJdbcTemplate().update(SQL_UPDATE_LAST_NAME, lastName, username);
 						}
 						catch(org.springframework.dao.DataAccessException e) {
 							transactionManager.rollback(status);
@@ -554,7 +549,7 @@ public class UserQueries extends Query {
 					String organization = personalInfo.getOrganization();
 					if(organization != null) {
 						try {
-							instance.getJdbcTemplate().update(SQL_UPDATE_ORGANIZATION, organization, username);
+							getJdbcTemplate().update(SQL_UPDATE_ORGANIZATION, organization, username);
 						}
 						catch(org.springframework.dao.DataAccessException e) {
 							transactionManager.rollback(status);
@@ -567,7 +562,7 @@ public class UserQueries extends Query {
 					String personalId = personalInfo.getPersonalId();
 					if(personalId != null) {
 						try {
-							instance.getJdbcTemplate().update(SQL_UPDATE_PERSONAL_ID, personalId, username);
+							getJdbcTemplate().update(SQL_UPDATE_PERSONAL_ID, personalId, username);
 						}
 						catch(org.springframework.dao.DataAccessException e) {
 							transactionManager.rollback(status);
@@ -580,7 +575,7 @@ public class UserQueries extends Query {
 				// create a new one.
 				else {
 					try {
-						instance.getJdbcTemplate().update(
+						getJdbcTemplate().update(
 								SQL_INSERT_USER_PERSONAL, 
 								username, 
 								personalInfo.getFirstName(), 
@@ -605,7 +600,7 @@ public class UserQueries extends Query {
 				String emailAddress = personalInfo.getEmailAddress();
 				if(emailAddress != null) {
 					try {
-						instance.getJdbcTemplate().update(SQL_UPDATE_EMAIL_ADDRESS, emailAddress, username);
+						getJdbcTemplate().update(SQL_UPDATE_EMAIL_ADDRESS, emailAddress, username);
 					}
 					catch(org.springframework.dao.DataAccessException e) {
 						transactionManager.rollback(status);
@@ -618,7 +613,7 @@ public class UserQueries extends Query {
 				JSONObject jsonData = personalInfo.getJsonData();
 				if(jsonData != null) {
 					try {
-						instance.getJdbcTemplate().update(SQL_UPDATE_JSON_DATA, jsonData.toString(), username);
+						getJdbcTemplate().update(SQL_UPDATE_JSON_DATA, jsonData.toString(), username);
 					}
 					catch(org.springframework.dao.DataAccessException e) {
 						transactionManager.rollback(status);
@@ -649,19 +644,19 @@ public class UserQueries extends Query {
 	 * 
 	 * @param hashedPassword The new, hashed password for the user.
 	 */
-	public static void updateUserPassword(String username, String hashedPassword) throws DataAccessException {
+	public void updateUserPassword(String username, String hashedPassword) throws DataAccessException {
 		// Create the transaction.
 		DefaultTransactionDefinition def = new DefaultTransactionDefinition();
 		def.setName("Updating a user's password.");
 		
 		try {
 			// Begin the transaction.
-			PlatformTransactionManager transactionManager = new DataSourceTransactionManager(instance.getDataSource());
+			PlatformTransactionManager transactionManager = new DataSourceTransactionManager(getDataSource());
 			TransactionStatus status = transactionManager.getTransaction(def);
 			
 			// Update the password.
 			try {
-				instance.getJdbcTemplate().update(SQL_UPDATE_PASSWORD, hashedPassword, username);
+				getJdbcTemplate().update(SQL_UPDATE_PASSWORD, hashedPassword, username);
 			}
 			catch(org.springframework.dao.DataAccessException e) {
 				transactionManager.rollback(status);
@@ -671,7 +666,7 @@ public class UserQueries extends Query {
 			
 			// Ensure that this user is no longer a new user.
 			try {
-				instance.getJdbcTemplate().update(SQL_UPDATE_NEW_ACCOUNT, false, username);
+				getJdbcTemplate().update(SQL_UPDATE_NEW_ACCOUNT, false, username);
 			}
 			catch(org.springframework.dao.DataAccessException e) {
 				transactionManager.rollback(status);
@@ -698,20 +693,20 @@ public class UserQueries extends Query {
 	 * 
 	 * @param usernames A Collection of usernames for the users to delete.
 	 */
-	public static void deleteUsers(Collection<String> usernames) throws DataAccessException {
+	public void deleteUsers(Collection<String> usernames) throws DataAccessException {
 		// Create the transaction.
 		DefaultTransactionDefinition def = new DefaultTransactionDefinition();
 		def.setName("Deleting a user.");
 		
 		try {
 			// Begin the transaction.
-			PlatformTransactionManager transactionManager = new DataSourceTransactionManager(instance.getDataSource());
+			PlatformTransactionManager transactionManager = new DataSourceTransactionManager(getDataSource());
 			TransactionStatus status = transactionManager.getTransaction(def);
 			
 			// Delete the users.
 			for(String username : usernames) {
 				try {
-					instance.getJdbcTemplate().update(SQL_DELETE_USER, username);
+					getJdbcTemplate().update(SQL_DELETE_USER, username);
 				}
 				catch(org.springframework.dao.DataAccessException e) {
 					transactionManager.rollback(status);

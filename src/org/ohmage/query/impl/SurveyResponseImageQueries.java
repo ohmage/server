@@ -5,6 +5,7 @@ import java.util.List;
 import javax.sql.DataSource;
 
 import org.ohmage.exception.DataAccessException;
+import org.ohmage.query.ISurveyResponseImageQueries;
 import org.springframework.jdbc.core.SingleColumnRowMapper;
 
 /**
@@ -13,7 +14,7 @@ import org.springframework.jdbc.core.SingleColumnRowMapper;
  * 
  * @author John Jenkins
  */
-public class SurveyResponseImageQueries extends Query {
+public class SurveyResponseImageQueries extends Query implements ISurveyResponseImageQueries {
 	// Returns all of the image IDs for all of the photo prompt responses for a
 	// survey.
 	private static final String SQL_GET_IMAGE_IDS_FROM_SURVEY_RESPONSE = 
@@ -21,9 +22,6 @@ public class SurveyResponseImageQueries extends Query {
 		"FROM prompt_response pr " +
 		"WHERE pr.survey_response_id = ? " +
 		"AND prompt_type = 'photo'";
-	
-	private static SurveyResponseImageQueries instance;
-	
 	/**
 	 * Creates this object.
 	 * 
@@ -31,22 +29,14 @@ public class SurveyResponseImageQueries extends Query {
 	 */
 	private SurveyResponseImageQueries(DataSource dataSource) {
 		super(dataSource);
-		
-		instance = this;
 	}
 	
-	/**
-	 * Retrieves all of the image IDs from a single survey response.
-	 * 
-	 * @param surveyResponseId The survey response's unique identifier.
-	 * 
-	 * @return A, possibly empty, list of image IDs from a survey response.
-	 * 
-	 * @throws DataAccessException Thrown if there is an error.
+	/* (non-Javadoc)
+	 * @see org.ohmage.query.impl.ISurveyResponseImageQueries#getImageIdsFromSurveyResponse(java.lang.Long)
 	 */
-	public static List<String> getImageIdsFromSurveyResponse(Long surveyResponseId) throws DataAccessException {
+	public List<String> getImageIdsFromSurveyResponse(Long surveyResponseId) throws DataAccessException {
 		try {
-			return instance.getJdbcTemplate().query(
+			return getJdbcTemplate().query(
 					SQL_GET_IMAGE_IDS_FROM_SURVEY_RESPONSE,
 					new Object[] { surveyResponseId },
 					new SingleColumnRowMapper<String>());

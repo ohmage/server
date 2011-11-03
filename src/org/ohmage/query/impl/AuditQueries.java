@@ -151,16 +151,13 @@ public class AuditQueries extends Query implements IAuditQueries {
 			"WHERE id = ?" +
 		"), ?, ?)";
 	
-	// private static AuditQueries instance;
-	
 	/**
-	 * Creates this object.
+	 * Creates this object via dependency injection (reflection).
 	 * 
 	 * @param dataSource The DataSource to use when querying the database.
 	 */
 	private AuditQueries(DataSource dataSource) {
 		super(dataSource);
-		// instance = this;
 	}
 	
 	/* (non-Javadoc)

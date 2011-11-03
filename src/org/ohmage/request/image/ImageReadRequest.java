@@ -126,13 +126,13 @@ public class ImageReadRequest extends UserRequest {
 		
 		try {
 			LOGGER.info("Verifying that the image exists.");
-			ImageServices.verifyImageExistance(imageId, true);
+			ImageServices.instance().verifyImageExistance(imageId, true);
 			
 			LOGGER.info("Verifying that the user can read the image.");
-			UserImageServices.verifyUserCanReadImage(getUser().getUsername(), imageId);
+			UserImageServices.instance().verifyUserCanReadImage(getUser().getUsername(), imageId);
 			
 			LOGGER.info("Retreiving the image.");
-			imageStream = ImageServices.getImage(imageId, size);
+			imageStream = ImageServices.instance().getImage(imageId, size);
 		}
 		catch(ServiceException e) {
 			e.failRequest(this);

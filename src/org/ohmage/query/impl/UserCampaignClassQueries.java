@@ -3,6 +3,7 @@ package org.ohmage.query.impl;
 import javax.sql.DataSource;
 
 import org.ohmage.exception.DataAccessException;
+import org.ohmage.query.IUserCampaignClassQueries;
 
 /**
  * This class contains all of the functionality for reading information about
@@ -10,7 +11,7 @@ import org.ohmage.exception.DataAccessException;
  * 
  * @author John Jenkins
  */
-public final class UserCampaignClassQueries extends Query {
+public final class UserCampaignClassQueries extends Query implements IUserCampaignClassQueries {
 	// Retrieves the number of ways a user is associated with a campaign via
 	// their class relationships.
 	private static final String SQL_COUNT_USER_ASSOCIATED_WITH_CAMPAIGN_THROUGH_CLASSES =
@@ -22,8 +23,6 @@ public final class UserCampaignClassQueries extends Query {
 		"AND c.urn = ? " +
 		"AND c.id = cc.campaign_id";
 	
-	private static UserCampaignClassQueries instance;
-	
 	/**
 	 * Creates this object.
 	 * 
@@ -31,8 +30,6 @@ public final class UserCampaignClassQueries extends Query {
 	 */
 	private UserCampaignClassQueries(DataSource dataSource) {
 		super(dataSource);
-		
-		instance = this;
 	}
 
 	/**
@@ -55,9 +52,9 @@ public final class UserCampaignClassQueries extends Query {
 	 * @return The number of classes that are associated with the campaign and
 	 * 		   of which the user is a member.
 	 */
-	public static int getNumberOfClassesThroughWhichUserIsAssociatedWithCampaign(String username, String campaignId) throws DataAccessException {
+	public int getNumberOfClassesThroughWhichUserIsAssociatedWithCampaign(String username, String campaignId) throws DataAccessException {
 		try {
-			return instance.getJdbcTemplate().queryForInt(SQL_COUNT_USER_ASSOCIATED_WITH_CAMPAIGN_THROUGH_CLASSES, username, campaignId);
+			return getJdbcTemplate().queryForInt(SQL_COUNT_USER_ASSOCIATED_WITH_CAMPAIGN_THROUGH_CLASSES, username, campaignId);
 		}
 		catch(org.springframework.dao.DataAccessException e) {
 			throw new DataAccessException("Error executing SQL '" + SQL_COUNT_USER_ASSOCIATED_WITH_CAMPAIGN_THROUGH_CLASSES + "' with parameters: " +

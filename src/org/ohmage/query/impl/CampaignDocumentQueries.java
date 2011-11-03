@@ -8,6 +8,7 @@ import javax.sql.DataSource;
 
 import org.ohmage.domain.Document;
 import org.ohmage.exception.DataAccessException;
+import org.ohmage.query.ICampaignDocumentQueries;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.SingleColumnRowMapper;
 
@@ -17,7 +18,7 @@ import org.springframework.jdbc.core.SingleColumnRowMapper;
  * 
  * @author John Jenkins
  */
-public final class CampaignDocumentQueries extends Query {
+public final class CampaignDocumentQueries extends Query implements ICampaignDocumentQueries {
 	// Retrieves all of the campaigns associated with a document.
 	private static final String SQL_GET_CAMPAIGNS_ASSOCIATED_WITH_DOCUMENT =
 		"SELECT c.urn " +
@@ -36,8 +37,6 @@ public final class CampaignDocumentQueries extends Query {
 		"AND d.id = dcr.document_id " +
 		"AND dcr.document_role_id = dr.id";
 	
-	private static CampaignDocumentQueries instance;
-	
 	/**
 	 * Creates this object.
 	 * 
@@ -45,21 +44,15 @@ public final class CampaignDocumentQueries extends Query {
 	 */
 	private CampaignDocumentQueries(DataSource dataSource) {
 		super(dataSource);
-		
-		instance = this;
 	}
 	
-	/**
-	 * Retrieves a List of String objects where each String represents the 
-	 * unique identifier for a campaign to which this document is associated.
-	 * 
-	 * @param documentId The unique identifier for the document.
-	 * 
-	 * @return A List of campaign IDs with which this document is associated.
+	/* (non-Javadoc)
+	 * @see org.ohmage.query.impl.ICampaignDocumentQueries#getCampaignsAssociatedWithDocument(java.lang.String)
 	 */
-	public static List<String> getCampaignsAssociatedWithDocument(String documentId) throws DataAccessException {
+	@Override
+	public List<String> getCampaignsAssociatedWithDocument(String documentId) throws DataAccessException {
 		try {
-			return instance.getJdbcTemplate().query(
+			return getJdbcTemplate().query(
 					SQL_GET_CAMPAIGNS_ASSOCIATED_WITH_DOCUMENT, 
 					new Object[] { documentId }, 
 					new SingleColumnRowMapper<String>());
@@ -73,21 +66,13 @@ public final class CampaignDocumentQueries extends Query {
 		}
 	}
 	
-	/**
-	 * Retrieves a camaign's document role if it is associated with a document.
-	 * 
-	 * @param campaignId The campaign's unique identifier.
-	 * 
-	 * @param documentId The document's unique identifier.
-	 * 
-	 * @return The campaign's role for some document or null if the campaign is
-	 * 		   not associated with the document.
-	 * 
-	 * @throws DataAccessException Thrown if there is an error.
+	/* (non-Javadoc)
+	 * @see org.ohmage.query.impl.ICampaignDocumentQueries#getCampaignDocumentRole(java.lang.String, java.lang.String)
 	 */
-	public static Document.Role getCampaignDocumentRole(String campaignId, String documentId) throws DataAccessException {
+	@Override
+	public Document.Role getCampaignDocumentRole(String campaignId, String documentId) throws DataAccessException {
 		try {
-			return instance.getJdbcTemplate().queryForObject(
+			return getJdbcTemplate().queryForObject(
 					SQL_GET_CAMPAIGN_DOCUMENT_ROLE,
 					new Object[] { campaignId, documentId },
 					new RowMapper<Document.Role>() {

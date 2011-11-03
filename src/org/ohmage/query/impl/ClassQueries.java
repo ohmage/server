@@ -15,6 +15,11 @@ import org.apache.log4j.Logger;
 import org.ohmage.domain.Clazz;
 import org.ohmage.domain.campaign.Campaign;
 import org.ohmage.exception.DataAccessException;
+import org.ohmage.query.ICampaignClassQueries;
+import org.ohmage.query.IClassQueries;
+import org.ohmage.query.IUserCampaignClassQueries;
+import org.ohmage.query.IUserCampaignQueries;
+import org.ohmage.query.IUserClassQueries;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.transaction.PlatformTransactionManager;
@@ -33,9 +38,14 @@ import org.springframework.transaction.support.DefaultTransactionDefinition;
  * @author John Jenkins
  * @author Joshua Selsky
  */
-public class ClassQueries extends Query {
+public class ClassQueries extends Query implements IClassQueries {
 	
 	private static Logger LOGGER = Logger.getLogger(ClassQueries.class);
+	
+	private ICampaignClassQueries campaignClassQueries; 
+	private IUserCampaignClassQueries userCampaignClassQueries;
+	private IUserClassQueries userClassQueries;
+	private IUserCampaignQueries userCampaignQueries;
 	
 	// Returns a boolean as to whether or not the given class exists.
 	private static final String SQL_EXISTS_CLASS = 
@@ -240,48 +250,55 @@ public class ClassQueries extends Query {
 			return role;
 		}
 	}
-
-	// The single instance of this class as the constructor should only ever be
-	// called once by Spring.
-	private static ClassQueries instance;
 	
 	/**
 	 * Creates this object.
 	 * 
 	 * @param dataSource A DataSource object to use when querying the database.
 	 */
-	private ClassQueries(DataSource dataSource) {
+	private ClassQueries(DataSource dataSource, ICampaignClassQueries iCampaignClassQueries, 
+			IUserCampaignClassQueries iUserCampaignClassQueries, IUserClassQueries iUserClassQueries, IUserCampaignQueries iUserCampaignQueries) {
 		super(dataSource);
 		
-		instance = this;
+		if(iCampaignClassQueries == null) {
+			throw new IllegalArgumentException("An instance of ICampaignClassQueries is a required argument.");
+		}
+		
+		if(iUserCampaignClassQueries == null) {
+			throw new IllegalArgumentException("An instance of IUserCampaignClassQueries is a required argument.");
+		}
+		
+		if(iUserClassQueries == null) {
+			throw new IllegalArgumentException("An instance of IUserClassQueries is a required argument.");
+		}
+		
+		if(iUserCampaignQueries == null) {
+			throw new IllegalArgumentException("An instance of IUserCampaignQueries is a required argument.");
+		}
+		
+		campaignClassQueries = iCampaignClassQueries;
+		userCampaignClassQueries = iUserCampaignClassQueries;
+		userClassQueries = iUserClassQueries;
+		userCampaignQueries = iUserCampaignQueries;
 	}
 	
-	/**
-	 * Creates a new class.
-	 * 
-	 * @param classId The unique identifier for the class.
-	 * 
-	 * @param className The name of the class.
-	 * 
-	 * @param classDescription An optional description of the class. This may
-	 * 						   be null.
-	 * 
-	 * @throws DataAccessException Thrown if there is an error executing any of
-	 * 							   the SQL.
+	/* (non-Javadoc)
+	 * @see org.ohmage.query.impl.IClassQueries#createClass(java.lang.String, java.lang.String, java.lang.String)
 	 */
-	public static void createClass(String classId, String className, String classDescription) throws DataAccessException {
+	@Override
+	public void createClass(String classId, String className, String classDescription) throws DataAccessException {
 		// Create the transaction.
 		DefaultTransactionDefinition def = new DefaultTransactionDefinition();
 		def.setName("Creating a new class.");
 		
 		try {
 			// Begin the transaction.
-			PlatformTransactionManager transactionManager = new DataSourceTransactionManager(instance.getDataSource());
+			PlatformTransactionManager transactionManager = new DataSourceTransactionManager(getDataSource());
 			TransactionStatus status = transactionManager.getTransaction(def);
 			
 			// Insert the class.
 			try {
-				instance.getJdbcTemplate().update(SQL_INSERT_CLASS, new Object[] { classId, className, classDescription });
+				getJdbcTemplate().update(SQL_INSERT_CLASS, new Object[] { classId, className, classDescription });
 			}
 			catch(org.springframework.dao.DataAccessException e) {
 				transactionManager.rollback(status);
@@ -303,36 +320,24 @@ public class ClassQueries extends Query {
 		}
 	}
 	
-	/**
-	 * Queries the database to see if a class exists.
-	 * 
-	 * @param classId The ID of the class in question.
-	 * 
-	 * @return Whether or not the class exists.
+	/* (non-Javadoc)
+	 * @see org.ohmage.query.impl.IClassQueries#getClassExists(java.lang.String)
 	 */
-	public static Boolean getClassExists(String classId) throws DataAccessException {
+	@Override
+	public Boolean getClassExists(String classId) throws DataAccessException {
 		try {
-			return instance.getJdbcTemplate().queryForObject(SQL_EXISTS_CLASS, new Object[] { classId }, Boolean.class);
+			return getJdbcTemplate().queryForObject(SQL_EXISTS_CLASS, new Object[] { classId }, Boolean.class);
 		}
 		catch(org.springframework.dao.DataAccessException e) {
 			throw new DataAccessException("Error executing SQL '" + SQL_EXISTS_CLASS + "' with parameters: " + classId, e);
 		}
 	}
 	
-	/**
-	 * Aggregates the information about a class as well as a list of users and
-	 * their roles in the class for a list of classes.
-	 * 
-	 * @param classIds The list of class IDs whose information, users, and
-	 * 				   users' roles are desired.
-	 * 
-	 * @param requester The username of the user who is making this request.
-	 * 
-	 * @return A List of ClassInformation objects correlating to the 
-	 * 		   parameterized list of class IDs. This may be an empty list, but
-	 * 		   it will never be null.
+	/* (non-Javadoc)
+	 * @see org.ohmage.query.impl.IClassQueries#getClassesInformation(java.util.Collection, java.lang.String)
 	 */
-	public static List<Clazz> getClassesInformation(Collection<String> classIds, String requester) throws DataAccessException {
+	@Override
+	public List<Clazz> getClassesInformation(Collection<String> classIds, String requester) throws DataAccessException {
 		List<Clazz> result = new LinkedList<Clazz>();
 		
 		for(String classId : classIds) {
@@ -340,7 +345,7 @@ public class ClassQueries extends Query {
 			Clazz.Role userRole;
 			Clazz classInformation;
 			try {
-				ClassInformationAndUserRole classInformationAndUserRole = instance.getJdbcTemplate().queryForObject(
+				ClassInformationAndUserRole classInformationAndUserRole = getJdbcTemplate().queryForObject(
 						SQL_GET_CLASS_INFO_AND_USER_ROLE, 
 						new Object[] { classId, requester }, 
 						new RowMapper<ClassInformationAndUserRole>() {
@@ -385,17 +390,13 @@ public class ClassQueries extends Query {
 		return result;
 	}
 	
-	/**
-	 * Retrieves a List of UserAndClassRole objects where each object is one of
-	 * the users in the class and their role.
-	 * 
-	 * @param classId The unique identifier for a class.
-	 * 
-	 * @return A List of UserAndClassRole objects.
+	/* (non-Javadoc)
+	 * @see org.ohmage.query.impl.IClassQueries#getUserRolePairs(java.lang.String)
 	 */
-	public static List<UserAndClassRole> getUserRolePairs(String classId) throws DataAccessException {
+	@Override
+	public List<UserAndClassRole> getUserRolePairs(String classId) throws DataAccessException {
 		try {
-			return instance.getJdbcTemplate().query(
+			return getJdbcTemplate().query(
 					SQL_GET_USERS_AND_CLASS_ROLES, 
 					new Object[] { classId }, 
 					new RowMapper<UserAndClassRole>() {
@@ -410,27 +411,12 @@ public class ClassQueries extends Query {
 		}
 	}
 	
-	/**
-	 * Updates a class' information and adds and removes users from the class
-	 * all as requested.
-	 * 
-	 * @param classId The class identifier to use to lookup which class to 
-	 * 				  update.
-	 * 
-	 * @param className The class' new name or null in which case the name will
-	 * 					not be updated.
-	 * 
-	 * @param classDescription The class' new description or null in which case
-	 * 						   the description will not be updated.
-	 *  
-	 * @param userAndRolesToAdd A list of users and respective roles to 
-	 * 							associate with this class.
-	 * 
-	 * @param usersToRemove A list of users and respective roles to remove from
-	 * 						this class.
+	/* (non-Javadoc)
+	 * @see org.ohmage.query.impl.IClassQueries#updateClass(java.lang.String, java.lang.String, java.lang.String, java.util.Map, java.util.Collection)
 	 */
 
-	public static List<String> updateClass(String classId, String className, String classDescription, Map<String, Clazz.Role> userAndRolesToAdd, Collection<String> usersToRemove)
+	@Override
+	public List<String> updateClass(String classId, String className, String classDescription, Map<String, Clazz.Role> userAndRolesToAdd, Collection<String> usersToRemove)
 		throws DataAccessException {
 		// Note: This function is ugly. We need to stop using a class as a 
 		// mechanism to add users to a campaign and start using it like a 
@@ -444,13 +430,13 @@ public class ClassQueries extends Query {
 		
 		try {
 			// Begin the transaction.
-			PlatformTransactionManager transactionManager = new DataSourceTransactionManager(instance.getDataSource());
+			PlatformTransactionManager transactionManager = new DataSourceTransactionManager(getDataSource());
 			TransactionStatus status = transactionManager.getTransaction(def);
 			
 			// Update the name if it's not null.
 			if(className != null) {
 				try {
-					instance.getJdbcTemplate().update(SQL_UPDATE_CLASS_NAME, new Object[] { className, classId });
+					getJdbcTemplate().update(SQL_UPDATE_CLASS_NAME, new Object[] { className, classId });
 				}
 				catch(org.springframework.dao.DataAccessException e) {
 					transactionManager.rollback(status);
@@ -462,7 +448,7 @@ public class ClassQueries extends Query {
 			// Update the description if it's not null.
 			if(classDescription != null) {
 				try {
-					instance.getJdbcTemplate().update(SQL_UPDATE_CLASS_DESCRIPTION, new Object[] { classDescription, classId });
+					getJdbcTemplate().update(SQL_UPDATE_CLASS_DESCRIPTION, new Object[] { classDescription, classId });
 				}
 				catch(org.springframework.dao.DataAccessException e) {
 					transactionManager.rollback(status);
@@ -477,7 +463,7 @@ public class ClassQueries extends Query {
 			List<String> campaignIds = Collections.emptyList();
 			if((usersToRemove != null) || (userAndRolesToAdd != null)) {
 				try {
-					campaignIds = CampaignClassQueries.getCampaignsAssociatedWithClass(classId);
+					campaignIds = campaignClassQueries.getCampaignsAssociatedWithClass(classId);
 				}
 				catch(DataAccessException e) {
 					transactionManager.rollback(status);
@@ -493,7 +479,7 @@ public class ClassQueries extends Query {
 					// it.
 					Clazz.Role classRole;
 					try {
-						classRole = UserClassQueries.getUserClassRole(classId, username);
+						classRole = userClassQueries.getUserClassRole(classId, username);
 					}
 					catch(DataAccessException e) {
 						transactionManager.rollback(status);
@@ -502,7 +488,7 @@ public class ClassQueries extends Query {
 					
 					// Remove the user from the class.
 					try {
-						instance.getJdbcTemplate().update(SQL_DELETE_USER_FROM_CLASS, new Object[] { username, classId });
+						getJdbcTemplate().update(SQL_DELETE_USER_FROM_CLASS, new Object[] { username, classId });
 					}
 					catch(org.springframework.dao.DataAccessException e) {
 						transactionManager.rollback(status);
@@ -520,7 +506,7 @@ public class ClassQueries extends Query {
 						// campaign-class associations that may exist.
 						int numClasses;
 						try {
-							numClasses = UserCampaignClassQueries.getNumberOfClassesThroughWhichUserIsAssociatedWithCampaign(username, campaignId);
+							numClasses = userCampaignClassQueries.getNumberOfClassesThroughWhichUserIsAssociatedWithCampaign(username, campaignId);
 						}
 						catch(DataAccessException e) {
 							transactionManager.rollback(status);
@@ -532,7 +518,7 @@ public class ClassQueries extends Query {
 							// from the user.
 							List<Campaign.Role> defaultRoles;
 							try {
-								defaultRoles = CampaignClassQueries.getDefaultCampaignRolesForCampaignClass(campaignId, classId, classRole);
+								defaultRoles = campaignClassQueries.getDefaultCampaignRolesForCampaignClass(campaignId, classId, classRole);
 							}
 							catch(DataAccessException e) {
 								transactionManager.rollback(status);
@@ -543,7 +529,7 @@ public class ClassQueries extends Query {
 							// from the user.
 							for(Campaign.Role defaultRole : defaultRoles) {
 								try {
-									instance.getJdbcTemplate().update(
+									getJdbcTemplate().update(
 											SQL_DELETE_USER_FROM_CAMPAIGN,
 											new Object[] { username, campaignId, defaultRole.toString() });
 								}
@@ -574,13 +560,13 @@ public class ClassQueries extends Query {
 					
 					try {
 						
-						if(! UserClassQueries.userBelongsToClass(classId, username)) {
+						if(! userClassQueries.userBelongsToClass(classId, username)) {
 							
 							if(LOGGER.isDebugEnabled()) {
 								LOGGER.debug("The user did not exist in the class so the user is being added before any updates are attemped.");
 							}
 							
-							instance.getJdbcTemplate().update(SQL_INSERT_USER_CLASS, new Object[] { username, classId, role.toString() } );
+							getJdbcTemplate().update(SQL_INSERT_USER_CLASS, new Object[] { username, classId, role.toString() } );
 							addDefaultRoles = true;
 						}
 						
@@ -593,7 +579,7 @@ public class ClassQueries extends Query {
 							// Get the user's current role.
 							Clazz.Role originalRole = null;
 							try {
-								originalRole = UserClassQueries.getUserClassRole(classId, username);
+								originalRole = userClassQueries.getUserClassRole(classId, username);
 							}
 							catch(DataAccessException e) {
 								transactionManager.rollback(status);
@@ -610,7 +596,7 @@ public class ClassQueries extends Query {
 								
 								// Update their role to the new role.
 								try {
-									if(instance.getJdbcTemplate().update(SQL_UPDATE_USER_CLASS, new Object[] { role.toString(), username, classId }) > 0) {
+									if(getJdbcTemplate().update(SQL_UPDATE_USER_CLASS, new Object[] { role.toString(), username, classId }) > 0) {
 										warningMessages.add("The user '" + username + 
 												"' was already associated with the class '" + classId + 
 												"'. Their role has been updated from '" + originalRole +
@@ -630,7 +616,7 @@ public class ClassQueries extends Query {
 									// campaign in this class.
 									int numClasses;
 									try {
-										numClasses = UserCampaignClassQueries.getNumberOfClassesThroughWhichUserIsAssociatedWithCampaign(username, campaignId);
+										numClasses = userCampaignClassQueries.getNumberOfClassesThroughWhichUserIsAssociatedWithCampaign(username, campaignId);
 									}
 									catch(DataAccessException e) {
 										transactionManager.rollback(status);
@@ -649,7 +635,7 @@ public class ClassQueries extends Query {
 										// campaign.
 										List<Campaign.Role> defaultRoles;
 										try {
-											defaultRoles = CampaignClassQueries.getDefaultCampaignRolesForCampaignClass(campaignId, classId, originalRole);
+											defaultRoles = campaignClassQueries.getDefaultCampaignRolesForCampaignClass(campaignId, classId, originalRole);
 										}
 										catch(DataAccessException e) {
 											transactionManager.rollback(status);
@@ -658,7 +644,7 @@ public class ClassQueries extends Query {
 										
 										for(Campaign.Role defaultRole : defaultRoles) {
 											try {
-												instance.getJdbcTemplate().update(
+												getJdbcTemplate().update(
 														SQL_DELETE_USER_FROM_CAMPAIGN,
 														new Object[] { username, campaignId, defaultRole.toString() });
 											}
@@ -698,7 +684,7 @@ public class ClassQueries extends Query {
 						for(String campaignId : campaignIds) {
 							List<Campaign.Role> defaultRoles;
 							try {
-								defaultRoles = CampaignClassQueries.getDefaultCampaignRolesForCampaignClass(campaignId, classId, role);
+								defaultRoles = campaignClassQueries.getDefaultCampaignRolesForCampaignClass(campaignId, classId, role);
 							}
 							catch(DataAccessException e) {
 								transactionManager.rollback(status);
@@ -717,9 +703,9 @@ public class ClassQueries extends Query {
 									// the campaign via another class or the 
 									// user may have not been in any class
 									// at all.
-									if(! UserCampaignQueries.getUserCampaignRoles(username, campaignId).contains(defaultRole)) {
+									if(! userCampaignQueries.getUserCampaignRoles(username, campaignId).contains(defaultRole)) {
 									
-										instance.getJdbcTemplate().update(SQL_INSERT_USER_CAMPAIGN, params);
+										getJdbcTemplate().update(SQL_INSERT_USER_CAMPAIGN, params);
 									} 
 									else {
 										
@@ -759,23 +745,22 @@ public class ClassQueries extends Query {
 		}
 	}
 	
-	/**
-	 * Deletes a class.
-	 * 
-	 * @param classId The unique identifier for the class to be deleted.
+	/* (non-Javadoc)
+	 * @see org.ohmage.query.impl.IClassQueries#deleteClass(java.lang.String)
 	 */
-	public static void deleteClass(String classId) throws DataAccessException {
+	@Override
+	public void deleteClass(String classId) throws DataAccessException {
 		// Create the transaction.
 		DefaultTransactionDefinition def = new DefaultTransactionDefinition();
 		def.setName("Deleting a new class.");
 		
 		try {
 			// Begin the transaction.
-			PlatformTransactionManager transactionManager = new DataSourceTransactionManager(instance.getDataSource());
+			PlatformTransactionManager transactionManager = new DataSourceTransactionManager(getDataSource());
 			TransactionStatus status = transactionManager.getTransaction(def);
 			
 			try {
-				instance.getJdbcTemplate().update(SQL_DELETE_CLASS, new Object[] { classId });
+				getJdbcTemplate().update(SQL_DELETE_CLASS, new Object[] { classId });
 			}
 			catch(org.springframework.dao.DataAccessException e) {
 				transactionManager.rollback(status);

@@ -208,10 +208,10 @@ public class AuditReadRequest extends UserRequest {
 		
 		try {
 			LOGGER.info("Verifying the user is an admin.");
-			UserServices.verifyUserIsAdmin(getUser().getUsername());
+			UserServices.instance().verifyUserIsAdmin(getUser().getUsername());
 			
 			LOGGER.info("Gathering the audit information.");
-			results = AuditServices.getAuditInformation(requestType, uri, client, deviceId, responseType, errorCode, startDate, endDate);
+			results = AuditServices.instance().getAuditInformation(requestType, uri, client, deviceId, responseType, errorCode, startDate, endDate);
 		}
 		catch(ServiceException e) {
 			e.failRequest(this);

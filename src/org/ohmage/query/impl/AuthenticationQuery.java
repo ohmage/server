@@ -10,6 +10,7 @@ import jbcrypt.BCrypt;
 import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.domain.User;
 import org.ohmage.exception.DataAccessException;
+import org.ohmage.query.IAuthenticationQuery;
 import org.ohmage.request.UserRequest;
 import org.springframework.jdbc.core.RowMapper;
 
@@ -18,7 +19,7 @@ import org.springframework.jdbc.core.RowMapper;
  * 
  * @author John Jenkins
  */
-public final class AuthenticationQuery extends Query{
+public final class AuthenticationQuery extends Query implements IAuthenticationQuery{
 	// Gets the user's hashed password from the database.
 	private static final String SQL_GET_PASSWORD = 
 		"SELECT password " +
@@ -91,18 +92,11 @@ public final class AuthenticationQuery extends Query{
 		instance = this;
 	}
 	
-	/**
-	 * Gathers the information about the user that is attempting to be 
-	 * authenticated.
-	 * 
-	 * @param userRequest The request that contains the specific information
-	 * 					  about the user.
-	 * 
-	 * @return A UserInformation object that gives specific login information
-	 * 		   about the user, or null if the user isn't found or the password
-	 * 		   isn't correct.
+	/* (non-Javadoc)
+	 * @see org.ohmage.query.impl.IAuthenticationQuery#execute(org.ohmage.request.UserRequest)
 	 */
-	public static UserInformation execute(UserRequest userRequest) throws DataAccessException {
+	@Override
+	public UserInformation execute(UserRequest userRequest) throws DataAccessException {
 		User user = userRequest.getUser();
 		String hashedPassword;
 		

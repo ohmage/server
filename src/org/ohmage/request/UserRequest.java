@@ -442,7 +442,7 @@ public abstract class UserRequest extends Request {
 		try {
 			// Validate that the username and password are valid.
 			LOGGER.info("Authenticating the user.");
-			return AuthenticationService.authenticate(
+			return AuthenticationService.instance().authenticate(
 					this, 
 					AllowNewAccount.NEW_ACCOUNT_ALLOWED.equals(newAccountsAllowed));
 		}

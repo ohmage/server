@@ -85,13 +85,13 @@ public class DocumentDeletionRequest extends UserRequest {
 		
 		try {
 			LOGGER.info("Verifying that the document exists.");
-			DocumentServices.ensureDocumentExistence(documentId);
+			DocumentServices.instance().ensureDocumentExistence(documentId);
 			
 			LOGGER.info("Verifying that the requesting user can delete this document.");
-			UserDocumentServices.userCanDeleteDocument(getUser().getUsername(), documentId);
+			UserDocumentServices.instance().userCanDeleteDocument(getUser().getUsername(), documentId);
 			
 			LOGGER.info("Deleting the document.");
-			DocumentServices.deleteDocument(documentId);
+			DocumentServices.instance().deleteDocument(documentId);
 		}
 		catch(ServiceException e) {
 			e.failRequest(this);

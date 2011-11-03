@@ -53,7 +53,7 @@ public class VizSurveyResponseCountRequest extends VisualizationRequest {
 		
 		try {
 			LOGGER.info("Verifying the user is able to read survey responses about other users.");
-			UserCampaignServices.requesterCanViewUsersSurveyResponses(getCampaignId(), getUser().getUsername());
+			UserCampaignServices.instance().requesterCanViewUsersSurveyResponses(getCampaignId(), getUser().getUsername());
 			
 			LOGGER.info("Making the request to the visualization server.");
 			setImage(VisualizationServices.sendVisualizationRequest(REQUEST_PATH, getUser().getToken(), 
