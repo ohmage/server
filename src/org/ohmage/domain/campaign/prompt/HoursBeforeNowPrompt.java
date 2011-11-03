@@ -1,6 +1,5 @@
 package org.ohmage.domain.campaign.prompt;
 
-import org.ohmage.domain.campaign.Response.NoResponse;
 import org.ohmage.domain.campaign.response.HoursBeforeNowPromptResponse;
 
 /**
@@ -73,38 +72,33 @@ public class HoursBeforeNowPrompt extends BoundedPrompt {
 	 * 								 set, this is the iteration of that 
 	 * 								 repeatable set on which the response to
 	 * 								 this prompt was made.
-	 * 
-	 * @throws IllegalArgumentException Thrown if this prompt is part of a
-	 * 									repeatable set but the repeatable set
-	 * 									iteration value is null, if the
-	 * 									repeatable set iteration value is 
-	 * 									negative, or if the value is not a 
-	 * 									valid response value for this prompt.
 	 */
 	@Override
 	public HoursBeforeNowPromptResponse createResponse(final Object response, 
 			final Integer repeatableSetIteration) {
 		
-		Object validatedResponse = validateValue(response);
-		if(validatedResponse instanceof NoResponse) {
-			return new HoursBeforeNowPromptResponse(
-					this, 
-					(NoResponse) validatedResponse, 
-					repeatableSetIteration, 
-					null,
-					false
-				);
+		if((repeatableSetIteration == null) && (getParent() != null)) {
+			throw new IllegalArgumentException("The repeatable set iteration is null, but this prompt is part of a repeatable set.");
 		}
-		else if(validatedResponse instanceof Long) {
+		else if((repeatableSetIteration != null) && (repeatableSetIteration < 0)) {
+			throw new IllegalArgumentException("The repeatable set iteration value is negative.");
+		}
+		
+		try {
 			return new HoursBeforeNowPromptResponse(
 					this, 
 					null, 
 					repeatableSetIteration, 
-					(Long) validatedResponse,
-					false
+					validateValue(response)
 				);
 		}
-			
-		throw new IllegalArgumentException("The response was not a valid response.");
+		catch(NoResponseException e) {
+			return new HoursBeforeNowPromptResponse(
+					this, 
+					e.getNoResponse(), 
+					repeatableSetIteration, 
+					null
+				);
+		}
 	}
 }

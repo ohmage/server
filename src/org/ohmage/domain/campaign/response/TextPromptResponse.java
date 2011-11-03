@@ -28,16 +28,13 @@ public class TextPromptResponse extends PromptResponse {
 	 * 
 	 * @param text The response from the user.
 	 * 
-	 * @param validate Whether or not to validate the response.
-	 * 
 	 * @throws IllegalArgumentException Thrown if any of the parameters are 
 	 * 									invalid or if 'validate' is "true" and
 	 * 									the response value is invalid.
 	 */
 	public TextPromptResponse(
 			final TextPrompt prompt, final NoResponse noResponse, 
-			final Integer repeatableSetIteration, final String text,
-			final boolean validate) {
+			final Integer repeatableSetIteration, final String text) {
 		
 		super(prompt, noResponse, repeatableSetIteration);
 		
@@ -48,9 +45,6 @@ public class TextPromptResponse extends PromptResponse {
 			throw new IllegalArgumentException("Both text and no response were given.");
 		}
 		
-		if(validate) {
-			prompt.validateValue(text);
-		}
 		this.text = text;
 	}
 	
@@ -69,14 +63,14 @@ public class TextPromptResponse extends PromptResponse {
 	 * @return The text.
 	 */
 	@Override
-	public String getResponseValue() {
-		String noResponseString = super.getResponseValue();
+	public Object getResponseValue() {
+		Object noResponseObject = super.getResponseValue();
 		
-		if(noResponseString == null) {
+		if(noResponseObject == null) {
 			return text;
 		}
 		else {
-			return noResponseString;
+			return noResponseObject;
 		}
 	}
 

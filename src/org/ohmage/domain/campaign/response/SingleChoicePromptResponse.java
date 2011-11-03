@@ -28,16 +28,13 @@ public class SingleChoicePromptResponse extends PromptResponse {
 	 * 
 	 * @param choice The key for the choice from the user.
 	 * 
-	 * @param validate Whether or not to validate the response.
-	 * 
 	 * @throws IllegalArgumentException Thrown if any of the parameters are 
 	 * 									invalid or if 'validate' is "true" and
 	 * 									the response value is invalid.
 	 */
 	public SingleChoicePromptResponse(
 			final SingleChoicePrompt prompt, final NoResponse noResponse, 
-			final Integer repeatableSetIteration, final Integer choiceKey,
-			final boolean validate) {
+			final Integer repeatableSetIteration, final Integer choiceKey) {
 		
 		super(prompt, noResponse, repeatableSetIteration);
 		
@@ -48,9 +45,6 @@ public class SingleChoicePromptResponse extends PromptResponse {
 			throw new IllegalArgumentException("Both choice and no response were given.");
 		}
 		
-		if(validate) {
-			prompt.validateValue(choiceKey);
-		}
 		this.choice = choiceKey;
 	}
 	
@@ -69,14 +63,15 @@ public class SingleChoicePromptResponse extends PromptResponse {
 	 * @return The choice.
 	 */
 	@Override
-	public String getResponseValue() {
-		String noResponseString = super.getResponseValue();
+	public Object getResponseValue() {
+		Object noResponseObject = super.getResponseValue();
 		
-		if(noResponseString == null) {
-			return getText();
+		if(noResponseObject == null) {
+			//return getText();
+			return choice;
 		}
 		else {
-			return noResponseString;
+			return noResponseObject;
 		}
 	}
 

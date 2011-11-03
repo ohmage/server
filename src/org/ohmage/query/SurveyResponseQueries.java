@@ -641,8 +641,8 @@ public class SurveyResponseQueries extends Query {
 								catch(org.springframework.dao.DataAccessException e) {
 									throw new SQLException(
 											"Error executing SQL '" + SQL_GET_PROMPT_RESPONSES + 
-											"' with parameter: " + rs.getLong("id"),
-										e);
+												"' with parameter: " + rs.getLong("id"),
+											e);
 								}
 								
 								return currResult;
@@ -664,7 +664,8 @@ public class SurveyResponseQueries extends Query {
 		}
 		catch(org.springframework.dao.DataAccessException e) {
 			throw new DataAccessException(
-					"Error executing SQL '" + SQL_GET_SURVEY_RESPONSE + 
+					"Error executing SQL '" + SQL_GET_SURVEY_RESPONSES + 
+						StringUtils.generateStatementPList(surveyResponseIds.size()) +
 						"' with parameter: " + surveyResponseIds,
 					e);
 		}

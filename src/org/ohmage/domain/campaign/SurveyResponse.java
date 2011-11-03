@@ -5,8 +5,10 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.SimpleTimeZone;
 import java.util.TimeZone;
 
@@ -314,10 +316,6 @@ public class SurveyResponse {
 		 * @see ColumnKey#CONTEXT_TIMESTAMP
 		 */
 		CONTEXT_TIMEZONE ("urn:ohmage:context:timezone"),
-		/**
-		 * The survey-wide timestamp converted to UTC key.
-		 */
-		CONTEXT_UTC_TIMESTAMP ("urn:ohmage:context:utc_timestamp"),
 		/**
 		 * The key for the survey's entire launch context.
 		 * 
@@ -1087,6 +1085,16 @@ public class SurveyResponse {
 	}
 	
 	/**
+	 * Returns a set of all of the prompt IDs for all of the responses in this
+	 * survey response.
+	 * 
+	 * @return A set of the prompt IDs.
+	 */
+	public Set<String> getPromptIds() {
+		return getPromptIds(responses.values());
+	}
+	
+	/**
 	 * Creates a JSONObject that represents this survey response object based
 	 * on the given flags.
 	 * 
@@ -1127,6 +1135,16 @@ public class SurveyResponse {
 	 *  
 	 * @param withResponses Whether or not to include the prompt responses.
 	 * 
+	 * @param arrayInsteadOfObject Valid only if 'withResponses' is true, this
+	 * 							   will determine how the responses are output,
+	 * 							   either as a JSONObject where the keys are 
+	 * 							   the prompt IDs and their value is another 
+	 * 							   JSONObject that describes the prompt and the
+	 * 							   user's response or as a JSONArray of 
+	 * 							   JSONObjects that describe the prompt and the
+	 * 							   user's response. If false, the former will
+	 * 							   happen; if true, the latter will happen.
+	 * 
 	 * @return A JSONObject that represents this object or null if there was an
 	 * 		   error.
 	 */
@@ -1140,7 +1158,8 @@ public class SurveyResponse {
 			final boolean withSurveyTitle, final boolean withSurveyDescription,
 			final boolean withSurveyLaunchContext, 
 			final boolean surveyLaunchContextLong, 
-			final boolean withResponses, final boolean withId) {
+			final boolean withResponses, final boolean arrayInsteadOfObject, 
+			final boolean withId) {
 		
 		try {
 			JSONObject result = new JSONObject();
@@ -1193,12 +1212,23 @@ public class SurveyResponse {
 			if(withResponses) {
 				List<Integer> indices = new ArrayList<Integer>(responses.keySet());
 				Collections.sort(indices);
-
-				JSONArray responses = new JSONArray();
-				for(Integer index : indices) {
-					responses.put(this.responses.get(index).toJson());
+				
+				if(arrayInsteadOfObject) {
+					JSONArray responses = new JSONArray();
+					for(Integer index : indices) {
+						responses.put(this.responses.get(index).toJson(true));
+					}
+					result.put(JSON_KEY_RESPONSES, responses);
 				}
-				result.put(JSON_KEY_RESPONSES, responses);
+				else {
+					JSONObject responses = new JSONObject();
+					for(Integer index : indices) {
+						Response response = this.responses.get(index);
+						
+						responses.put(response.getId(), response.toJson(false));
+					}
+					result.put(JSON_KEY_RESPONSES, responses);
+				}
 			}
 			
 			if(withId) {
@@ -1505,6 +1535,33 @@ public class SurveyResponse {
 				throw new ErrorCodeException(ErrorCode.SURVEY_INVALID_RESPONSES, "One of the response array objects for a repeatable set is not a JSONArray.", e);
 			}
 		}
+		return result;
+	}
+	
+	/**
+	 * Returns a set of all of the prompt IDs for all of the responses in this
+	 * survey response.
+	 * 
+	 * @param responses A collection of responses.
+	 * 
+	 * @return A set of the prompt IDs.
+	 */
+	private Set<String> getPromptIds(final Collection<Response> responses) {
+		Set<String> result = new HashSet<String>();
+		
+		for(Response response : responses) {
+			if(response instanceof PromptResponse) {
+				result.add(response.getId());
+			}
+			else if(response instanceof RepeatableSetResponse) {
+				for(Map<Integer, Response> responseGroup :
+					((RepeatableSetResponse) response).getResponseGroups().values()) {
+					
+					result.addAll(getPromptIds(responseGroup.values()));
+				}
+			}
+		}
+		
 		return result;
 	}
 }

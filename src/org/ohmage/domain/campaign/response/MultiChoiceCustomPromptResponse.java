@@ -2,6 +2,7 @@ package org.ohmage.domain.campaign.response;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 import org.ohmage.domain.campaign.PromptResponse;
@@ -30,9 +31,8 @@ public class MultiChoiceCustomPromptResponse extends PromptResponse {
 	 * 								 repeatable set on which this response was
 	 * 								 made.
 	 * 
-	 * @param choices The response from the user.
-	 * 
-	 * @param validate Whether or not to validate the response.
+	 * @param choices A collection of keys that the user used to respond. This
+	 * 				  may be null if a NoResponse object is given.
 	 * 
 	 * @throws IllegalArgumentException Thrown if any of the parameters are 
 	 * 									invalid or if 'validate' is "true" and
@@ -41,8 +41,7 @@ public class MultiChoiceCustomPromptResponse extends PromptResponse {
 	public MultiChoiceCustomPromptResponse(
 			final MultiChoiceCustomPrompt prompt, final NoResponse noResponse, 
 			final Integer repeatableSetIteration, 
-			final Collection<String> choices,
-			final boolean validate) {
+			final Collection<String> choices) {
 		
 		super(prompt, noResponse, repeatableSetIteration);
 		
@@ -53,9 +52,6 @@ public class MultiChoiceCustomPromptResponse extends PromptResponse {
 			throw new IllegalArgumentException("Both hours and no response were given.");
 		}
 		
-		if(validate) {
-			prompt.validateValue(choices);
-		}
 		this.choices = new ArrayList<String>(choices);
 	}
 	
@@ -64,8 +60,8 @@ public class MultiChoiceCustomPromptResponse extends PromptResponse {
 	 * 
 	 * @return The choices from the user.
 	 */
-	public List<String> getChoices() {
-		return choices;
+	public Collection<String> getChoices() {
+		return Collections.unmodifiableCollection(choices);
 	}
 
 	/**
@@ -74,14 +70,19 @@ public class MultiChoiceCustomPromptResponse extends PromptResponse {
 	 * @return The choices as a String object.
 	 */
 	@Override
-	public String getResponseValue() {
-		String noResponseString = super.getResponseValue();
+	public Object getResponseValue() {
+		Object noResponseObject = super.getResponseValue();
 		
-		if(noResponseString == null) {
-			return choices.toString();
+		if(noResponseObject == null) {
+			//return getChoices();
+			Collection<Integer> result = new ArrayList<Integer>(choices.size()); 
+			for(String choice : choices) {
+				result.add(((MultiChoiceCustomPrompt) getPrompt()).getChoiceKey(choice));
+			}
+			return result;
 		}
 		else {
-			return noResponseString;
+			return noResponseObject;
 		}		
 	}
 

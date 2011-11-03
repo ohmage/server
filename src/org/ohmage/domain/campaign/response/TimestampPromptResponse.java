@@ -31,16 +31,13 @@ public class TimestampPromptResponse extends PromptResponse {
 	 * 
 	 * @param timestamp The timestamp from the user.
 	 * 
-	 * @param validate Whether or not to validate the response.
-	 * 
 	 * @throws IllegalArgumentException Thrown if any of the parameters are 
 	 * 									invalid or if 'validate' is "true" and
 	 * 									the response value is invalid.
 	 */
 	public TimestampPromptResponse(
 			final TimestampPrompt prompt, final NoResponse noResponse, 
-			final Integer repeatableSetIteration, final Date timestamp,
-			final boolean validate) {
+			final Integer repeatableSetIteration, final Date timestamp) {
 		
 		super(prompt, noResponse, repeatableSetIteration);
 		
@@ -51,9 +48,6 @@ public class TimestampPromptResponse extends PromptResponse {
 			throw new IllegalArgumentException("Both timestamp and no response were given.");
 		}
 		
-		if(validate) {
-			prompt.validateValue(timestamp);
-		}
 		this.timestamp = timestamp;
 	}
 	
@@ -72,14 +66,14 @@ public class TimestampPromptResponse extends PromptResponse {
 	 * @return The timestamp value as an ISO 8601 formatted date.
 	 */
 	@Override
-	public String getResponseValue() {
-		String noResponseString = super.getResponseValue();
+	public Object getResponseValue() {
+		Object noResponseObject = super.getResponseValue();
 		
-		if(noResponseString == null) {
+		if(noResponseObject == null) {
 			return TimeUtils.getIso8601DateTimeString(timestamp);
 		}
 		else {
-			return noResponseString;
+			return noResponseObject;
 		}
 	}
 

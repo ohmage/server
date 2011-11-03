@@ -134,15 +134,19 @@ public class RepeatableSetResponse extends Response {
 	 * Returns a JSONObject that represents the values of the responses in this
 	 * repeatable set as well as the repeatable set itself.
 	 * 
+	 * @param withId Whether or not to include the prompt's ID in the result.
+	 * 
 	 * @return A JSONObject representing this repeatable set and all of the
 	 * 		   prompt responses contained within it.
 	 */
 	@Override
-	public JSONObject toJson() {
+	public JSONObject toJson(final boolean withId) {
 		try {
 			JSONObject result = new JSONObject();
 			
-			result.put(REPEATABLE_SET_ID, repeatableSet.getId());
+			if(withId) {
+				result.put(REPEATABLE_SET_ID, repeatableSet.getId());
+			}
 			// TODO: This is always true. This needs to be removed.
 			result.put(SKIPPED, true);
 			
@@ -161,12 +165,21 @@ public class RepeatableSetResponse extends Response {
 					List<Integer> indices = new ArrayList<Integer>(iterationResponses.keySet());
 					Collections.sort(indices);
 					
-					JSONArray iterationResponse = new JSONArray();
-					for(Integer index : indices) {
-						iterationResponse.put(iterationResponses.get(index).toJson());
+					if(withId) {
+						JSONArray iterationResponse = new JSONArray();
+						for(Integer index : indices) {
+							iterationResponse.put(iterationResponses.get(index).toJson(true));
+						}
+						repeatableSetResponses.put(iterationResponse);
 					}
-					
-					repeatableSetResponses.put(iterationResponse);
+					else {
+						JSONObject iterationResponse = new JSONObject();
+						for(Integer index : indices) {
+							Response response = iterationResponses.get(index);
+							iterationResponse.put(response.getId(), response.toJson(false));
+						}
+						repeatableSetResponses.put(iterationResponse);
+					}
 				}
 				result.put(RESPONSES, repeatableSetResponses);
 			}

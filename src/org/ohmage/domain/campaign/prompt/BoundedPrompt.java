@@ -137,18 +137,20 @@ public abstract class BoundedPrompt extends Prompt {
 	}
 
 	/**
-	 * Validates that a given value is valid and, if so, converts it into an
-	 * appropriate object.
+	 * Validates that a given value is valid and, if so, converts it into a 
+	 * Long value.
 	 * 
 	 * @param value The value to be validated.
 	 * 
-	 * @return A Long value if it is a valid response or a {@link NoResponse}
-	 * 		   object value if it is a valid {@link NoResponse} value.
+	 * @return A Long object that represents the value.
 	 * 
 	 * @throws IllegalArgumentException Thrown if the value is invalid.
+	 * 
+	 * @throws NoResponseException Thrown if the value is or represents a
+	 * 							   NoResponse object.
 	 */
 	@Override
-	public Object validateValue(final Object value) {
+	public Long validateValue(final Object value) throws NoResponseException {
 		long longValue;
 		
 		// If it's already a NoResponse value, then return make sure that if it
@@ -158,7 +160,7 @@ public abstract class BoundedPrompt extends Prompt {
 				throw new IllegalArgumentException("The prompt was skipped, but it is not skippable.");
 			}
 			
-			return value;
+			throw new NoResponseException((NoResponse) value);
 		}
 		// If it's already a number, first ensure that it is an integer and not
 		// a floating point number.
@@ -183,7 +185,7 @@ public abstract class BoundedPrompt extends Prompt {
 			String stringValue = (String) value;
 			
 			try {
-				return NoResponse.valueOf(stringValue);
+				throw new NoResponseException(NoResponse.valueOf(stringValue));
 			}
 			catch(IllegalArgumentException iae) {
 				try {

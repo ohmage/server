@@ -15,7 +15,7 @@ import org.ohmage.domain.campaign.response.SingleChoicePromptResponse;
 public class SingleChoicePrompt extends ChoicePrompt {
 	private static final String JSON_KEY_DEFAULT = "default";
 	
-	private final String defaultValue;
+	private final Integer defaultKey;
 	
 	/**
 	 * Creates a new single-choice prompt.
@@ -48,7 +48,7 @@ public class SingleChoicePrompt extends ChoicePrompt {
 	 * 
 	 * @param choices The static choices as defined in the XML.
 	 * 
-	 * @param defaultValue The default value for this prompt. This is optional
+	 * @param defaultKey The default value for this prompt. This is optional
 	 * 					   and may be null if one doesn't exist.
 	 * 
 	 * @param index This prompt's index in its container's list of survey 
@@ -69,38 +69,58 @@ public class SingleChoicePrompt extends ChoicePrompt {
 				skippable, skipLabel, displayType, displayLabel, 
 				choices, Type.SINGLE_CHOICE, index);
 		
+		Integer tDefaultKey = null;
 		if(defaultValue != null) {
-			if(! getChoices().values().contains(defaultValue)) {
-				throw new IllegalArgumentException(
-						"The default value is not a valid choice.");
+			Map<Integer, LabelValuePair> currChoices = getChoices();
+			boolean found = false;
+			
+			for(Integer choiceKey : currChoices.keySet()) {
+				if(currChoices.get(choiceKey).getLabel().equals(defaultValue)) {
+					tDefaultKey = choiceKey;
+					found = true;
+					break;
+				}
+			}
+			
+			if(! found) {
+				throw new IllegalArgumentException("The default value is not a valid choice.");
 			}
 		}
-		this.defaultValue = defaultValue;
+		defaultKey = tDefaultKey;
 	}
 	
 	/**
-	 * Returns the default value if one was given; otherwise, null is returned.
+	 * Returns the default label if one was given; otherwise, null is returned.
 	 * 
-	 * @return The default value if one was given; otherwise, null is returned.
+	 * @return The default label if one was given; otherwise, null is returned.
 	 */
-	public String getDefaultValue() {
-		return defaultValue;
+	public String getDefaultLabel() {
+		if(defaultKey == null) {
+			return null;
+		}
+		
+		return getChoices().get(defaultKey).getLabel();
 	}
 
 	/**
-	 * Validates that an Object is a valid response value for this prompt. This
-	 * includes a {@link NoResponse} value as either a {@link NoResponse} 
-	 * object or as a string representing one or a String object representing a
-	 * response from the user.
+	 * Validates that an Object is a valid response value. This must be one of
+	 * the following:<br />
+	 * <li>A {@link NoResponse} object.</li>
+	 * <li>A String representing a {@link NoResponse} value.</li>
+	 * <li>An Integer key value.</li>
+	 * <li>A String representing a key value.</li>
 	 * 
 	 * @param value The value to be validated.
 	 * 
-	 * @return A {@link NoResponse} object or an Integer.
+	 * @return An Integer representing the key.
 	 * 
 	 * @throws IllegalArgumentException Thrown if the value is not valid.
+	 * 
+	 * @throws NoResponseException Thrown if the value was a NoResponse object 
+	 * 							   or a String representing a NoResponse value.
 	 */
 	@Override
-	public Object validateValue(final Object value) {
+	public Integer validateValue(final Object value) throws NoResponseException {
 		Integer keyValue;
 		
 		// If it's already a NoResponse value, then return make sure that if it
@@ -110,38 +130,30 @@ public class SingleChoicePrompt extends ChoicePrompt {
 				throw new IllegalArgumentException("The prompt was skipped, but it is not skippable.");
 			}
 			
-			return value;
+			throw new NoResponseException((NoResponse) value);
+		}
+		else if(value instanceof Integer) {
+			keyValue = (Integer) value;
 		}
 		else if(value instanceof String) {
 			try {
-				return NoResponse.valueOf((String) value);
+				throw new NoResponseException(NoResponse.valueOf((String) value));
 			}
 			catch(IllegalArgumentException notNoResponse) {
 				try {
 					keyValue = Integer.decode((String) value);
 				}
 				catch(NumberFormatException notChoiceKey) {
-					Map<Integer, LabelValuePair> choices = getChoices();
-					
-					for(Integer key : choices.keySet()) {
-						if(choices.get(key).getLabel().equals((String) value)) {
-							return key;
-						}
-					}
-					
-					throw new IllegalArgumentException("The value was not a valid response value for this prompt.");
+					throw new IllegalArgumentException("The value was not a valid response value for this prompt.", notChoiceKey);
 				}
 			}
-		}
-		else if(value instanceof Integer) {
-			keyValue = (Integer) value;
 		}
 		else {
 			throw new IllegalArgumentException("The value is not decodable as a reponse value.");
 		}
 
 		if(! getChoices().keySet().contains(keyValue)) {
-			throw new IllegalArgumentException("The value is not a value choice: " + keyValue);
+			throw new IllegalArgumentException("The value is not a value choice.");
 		}
 		
 		return keyValue;
@@ -175,27 +187,22 @@ public class SingleChoicePrompt extends ChoicePrompt {
 			throw new IllegalArgumentException("The repeatable set iteration value is negative.");
 		}
 		
-		Object validatedResponse = validateValue(response);
-		if(validatedResponse instanceof NoResponse) {
-			return new SingleChoicePromptResponse(
-					this, 
-					(NoResponse) validatedResponse, 
-					repeatableSetIteration, 
-					null,
-					false
-				);
-		}
-		else if(validatedResponse instanceof Integer) {
+		try {
 			return new SingleChoicePromptResponse(
 					this, 
 					null, 
 					repeatableSetIteration, 
-					(Integer) validatedResponse,
-					false
+					validateValue(response)
 				);
 		}
-			
-		throw new IllegalArgumentException("The response was not a valid response.");
+		catch(NoResponseException e) {
+			return new SingleChoicePromptResponse(
+					this, 
+					e.getNoResponse(), 
+					repeatableSetIteration, 
+					null
+				);
+		}
 	}
 	
 	/**
@@ -214,7 +221,7 @@ public class SingleChoicePrompt extends ChoicePrompt {
 				return null;
 			}
 			
-			result.put(JSON_KEY_DEFAULT, defaultValue);
+			result.put(JSON_KEY_DEFAULT, getDefaultLabel());
 			
 			return result;
 		}
@@ -234,7 +241,7 @@ public class SingleChoicePrompt extends ChoicePrompt {
 		final int prime = 31;
 		int result = super.hashCode();
 		result = prime * result
-				+ ((defaultValue == null) ? 0 : defaultValue.hashCode());
+				+ ((defaultKey == null) ? 0 : defaultKey.hashCode());
 		return result;
 	}
 
@@ -255,10 +262,10 @@ public class SingleChoicePrompt extends ChoicePrompt {
 		if (getClass() != obj.getClass())
 			return false;
 		SingleChoicePrompt other = (SingleChoicePrompt) obj;
-		if (defaultValue == null) {
-			if (other.defaultValue != null)
+		if (defaultKey == null) {
+			if (other.defaultKey != null)
 				return false;
-		} else if (!defaultValue.equals(other.defaultValue))
+		} else if (!defaultKey.equals(other.defaultKey))
 			return false;
 		return true;
 	}

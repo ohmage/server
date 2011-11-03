@@ -1,7 +1,15 @@
 package org.ohmage.domain.campaign;
 
+import java.util.Map;
+
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.ohmage.domain.campaign.Prompt.LabelValuePair;
+import org.ohmage.domain.campaign.prompt.ChoicePrompt;
+import org.ohmage.domain.campaign.prompt.CustomChoicePrompt;
+import org.ohmage.domain.campaign.prompt.RemoteActivityPrompt;
+import org.ohmage.domain.campaign.response.RemoteActivityPromptResponse;
 
 /**
  * Base class for all prompt responses.
@@ -87,12 +95,53 @@ public abstract class PromptResponse extends Response {
 	 * @return A JSONObject that represents this object.
 	 */
 	@Override
-	public JSONObject toJson() {
+	public JSONObject toJson(final boolean withId) {
 		try {
 			JSONObject result = new JSONObject();
 			
-			result.put(JSON_KEY_PROMPT_ID, prompt.getId());
-			result.put(JSON_KEY_RESPONSE, getResponseValue());
+			if(withId) {
+				result.put(JSON_KEY_PROMPT_ID, prompt.getId());
+				result.put(JSON_KEY_RESPONSE, getResponseValue());
+			}
+			else {
+				result.put("prompt_text", prompt.getText());
+				result.put("prompt_type", prompt.getType().toString());
+				result.put("prompt_display_type", prompt.getDisplayType().toString());
+				result.put("prompt_index", prompt.getIndex());
+				result.put("prompt_unit", prompt.getUnit());
+				
+				if(prompt instanceof ChoicePrompt) {
+					Map<Integer, LabelValuePair> choices;
+					
+					if(prompt instanceof CustomChoicePrompt) {
+						choices = ((CustomChoicePrompt) prompt).getAllChoices();
+					}
+					else {
+						choices = ((ChoicePrompt) prompt).getChoices();
+					}
+					
+					JSONObject glossary = new JSONObject();
+					for(Integer index : choices.keySet()) {
+						glossary.put(index.toString(), choices.get(index).toJson());
+					}
+					result.put("prompt_choice_glossary", glossary);
+				}
+				
+				if(this instanceof RemoteActivityPromptResponse &&
+						(! wasNotDisplayed()) && (! wasSkipped())) {
+					JSONArray gameResults = (JSONArray) getResponseValue();
+					double numResults = gameResults.length();
+					
+					double total = 0;
+					for(int i = 0; i < numResults; i++) {
+						total += gameResults.getJSONObject(i).getDouble(RemoteActivityPrompt.JSON_KEY_SCORE);
+					}
+					result.put("prompt_response", total / numResults);
+				}
+				else {
+					result.put("prompt_response", getResponseValue());
+				}
+			}
 			
 			return result;
 		}
@@ -106,8 +155,6 @@ public abstract class PromptResponse extends Response {
 	 */
 	@Override
 	public String getId() {
-		// FIXME: This function should be renamed as prompt responses have
-		// unique identifiers as well.
 		return prompt.getId();
 	}
 	

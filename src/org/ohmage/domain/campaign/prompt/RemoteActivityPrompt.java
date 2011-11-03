@@ -213,7 +213,7 @@ public class RemoteActivityPrompt extends Prompt {
 	 * @throws IllegalArgumentException Thrown if the value is invalid.
 	 */
 	@Override
-	public Object validateValue(final Object value) {
+	public JSONArray validateValue(final Object value) throws NoResponseException {
 		JSONArray valueJson;
 		
 		// If it's already a NoResponse value, then return make sure that if it
@@ -223,7 +223,7 @@ public class RemoteActivityPrompt extends Prompt {
 				throw new IllegalArgumentException("The prompt was skipped, but it is not skippable.");
 			}
 			
-			return value;
+			throw new NoResponseException((NoResponse) value);
 		}
 		// If it's already a JSONObject value, then set that to be validated.
 		else if(value instanceof JSONArray) {
@@ -236,7 +236,7 @@ public class RemoteActivityPrompt extends Prompt {
 			String valueString = (String) value;
 			
 			try {
-				return NoResponse.valueOf(valueString);
+				throw new NoResponseException(NoResponse.valueOf(valueString));
 			}
 			catch(IllegalArgumentException iae) {
 				try {
@@ -309,27 +309,22 @@ public class RemoteActivityPrompt extends Prompt {
 			throw new IllegalArgumentException("The repeatable set iteration value is negative.");
 		}
 		
-		Object validatedResponse = validateValue(response);
-		if(validatedResponse instanceof NoResponse) {
-			return new RemoteActivityPromptResponse(
-					this, 
-					(NoResponse) validatedResponse, 
-					repeatableSetIteration, 
-					null,
-					false
-				);
-		}
-		else if(validatedResponse instanceof JSONArray) {
+		try {
 			return new RemoteActivityPromptResponse(
 					this, 
 					null, 
 					repeatableSetIteration, 
-					(JSONArray) validatedResponse,
-					false
+					validateValue(response)
 				);
 		}
-			
-		throw new IllegalArgumentException("The response was not a valid response.");
+		catch(NoResponseException e) {
+			return new RemoteActivityPromptResponse(
+					this, 
+					e.getNoResponse(), 
+					repeatableSetIteration, 
+					null
+				);
+		}
 	}
 	
 	/**

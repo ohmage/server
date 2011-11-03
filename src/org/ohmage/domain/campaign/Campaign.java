@@ -2619,14 +2619,14 @@ public class Campaign {
 	 */
 	private static Map<String, LabelValuePair> getKeyValueLabelTrios(
 			final String containerId, final Nodes properties) {
-		
-		if(properties.size() == 0) {
+
+		int numProperties = properties.size();
+		if(numProperties == 0) {
 			return Collections.emptyMap();
 		}
+
+		Map<String, LabelValuePair> result = new HashMap<String, LabelValuePair>(numProperties);
 		
-		Map<String, LabelValuePair> result = new HashMap<String, LabelValuePair>();
-		
-		int numProperties = properties.size();
 		for(int i = 0; i < numProperties; i++) {
 			Node propertyNode = properties.get(i);
 			

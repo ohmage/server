@@ -3,7 +3,9 @@ package org.ohmage.domain.campaign.response;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
+import org.ohmage.domain.campaign.Prompt.LabelValuePair;
 import org.ohmage.domain.campaign.PromptResponse;
 import org.ohmage.domain.campaign.prompt.MultiChoicePrompt;
 
@@ -32,8 +34,6 @@ public class MultiChoicePromptResponse extends PromptResponse {
 	 * 
 	 * @param choices The response keys from the user.
 	 * 
-	 * @param validate Whether or not to validate the response.
-	 * 
 	 * @throws IllegalArgumentException Thrown if any of the parameters are 
 	 * 									invalid or if 'validate' is "true" and
 	 * 									the response value is invalid.
@@ -41,8 +41,7 @@ public class MultiChoicePromptResponse extends PromptResponse {
 	public MultiChoicePromptResponse(
 			final MultiChoicePrompt prompt, final NoResponse noResponse, 
 			final Integer repeatableSetIteration, 
-			final Collection<Integer> choices,
-			final boolean validate) {
+			final Collection<Integer> choices) {
 		
 		super(prompt, noResponse, repeatableSetIteration);
 		
@@ -53,9 +52,6 @@ public class MultiChoicePromptResponse extends PromptResponse {
 			throw new IllegalArgumentException("Both hours and no response were given.");
 		}
 		
-		if(validate) {
-			prompt.validateValue(choices);
-		}
 		this.choices = new ArrayList<Integer>(choices);
 	}
 	
@@ -67,8 +63,9 @@ public class MultiChoicePromptResponse extends PromptResponse {
 	public List<String> getChoices() {
 		List<String> result = new ArrayList<String>(choices.size());
 		
-		for(Integer key : choices) {
-			result.add(((MultiChoicePrompt) getPrompt()).getChoices().get(key).getLabel());
+		Map<Integer, LabelValuePair> choices = ((MultiChoicePrompt) getPrompt()).getChoices();
+		for(Integer key : this.choices) {
+			result.add(choices.get(key).getLabel());
 		}
 		
 		return result;
@@ -80,14 +77,15 @@ public class MultiChoicePromptResponse extends PromptResponse {
 	 * @return The choices as a String object.
 	 */
 	@Override
-	public String getResponseValue() {
-		String noResponseString = super.getResponseValue();
+	public Object getResponseValue() {
+		Object noResponseObject = super.getResponseValue();
 		
-		if(noResponseString == null) {
-			return choices.toString();
+		if(noResponseObject == null) {
+			//return getChoices();
+			return choices;
 		}
 		else {
-			return noResponseString;
+			return noResponseObject;
 		}		
 	}
 

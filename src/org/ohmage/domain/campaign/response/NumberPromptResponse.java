@@ -28,16 +28,13 @@ public class NumberPromptResponse extends PromptResponse {
 	 * 
 	 * @param number The response from the user.
 	 * 
-	 * @param validate Whether or not to validate the response.
-	 * 
 	 * @throws IllegalArgumentException Thrown if any of the parameters are 
 	 * 									invalid or if 'validate' is "true" and
 	 * 									the response value is invalid.
 	 */
 	public NumberPromptResponse(
 			final NumberPrompt prompt, final NoResponse noResponse, 
-			final Integer repeatableSetIteration, final Long number,
-			final boolean validate) {
+			final Integer repeatableSetIteration, final Long number) {
 		
 		super(prompt, noResponse, repeatableSetIteration);
 		
@@ -48,9 +45,6 @@ public class NumberPromptResponse extends PromptResponse {
 			throw new IllegalArgumentException("Both number and no response were given.");
 		}
 		
-		if(validate) {
-			prompt.validateValue(number);
-		}
 		this.number = number;
 	}
 	
@@ -69,14 +63,14 @@ public class NumberPromptResponse extends PromptResponse {
 	 * @return A String representing the number.
 	 */
 	@Override
-	public String getResponseValue() {
-		String noResponseString = super.getResponseValue();
+	public Object getResponseValue() {
+		Object noResponseObject = super.getResponseValue();
 		
-		if(noResponseString == null) {
-			return number.toString();
+		if(noResponseObject == null) {
+			return number;
 		}
 		else {
-			return noResponseString;
+			return noResponseObject;
 		}
 	}
 

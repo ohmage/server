@@ -98,7 +98,7 @@ public class PhotoPrompt extends Prompt {
 	 * 		   the photo's UUID.
 	 */
 	@Override
-	public Object validateValue(final Object value) {
+	public UUID validateValue(final Object value) throws NoResponseException {
 		// If it's already a NoResponse value, then return make sure that if it
 		// was skipped that it as skippable.
 		if(value instanceof NoResponse) {
@@ -106,7 +106,7 @@ public class PhotoPrompt extends Prompt {
 				throw new IllegalArgumentException("The prompt was skipped, but it is not skippable.");
 			}
 			
-			return value;
+			throw new NoResponseException((NoResponse) value);
 		}
 		// If it is already a UUID value, then return it.
 		else if(value instanceof UUID) {
@@ -118,7 +118,7 @@ public class PhotoPrompt extends Prompt {
 			String valueString = (String) value;
 			
 			try {
-				return NoResponse.valueOf(valueString);
+				throw new NoResponseException(NoResponse.valueOf(valueString));
 			}
 			catch(IllegalArgumentException notNoResponse) {
 				try {
@@ -162,29 +162,24 @@ public class PhotoPrompt extends Prompt {
 			throw new IllegalArgumentException("The repeatable set iteration value is negative.");
 		}
 		
-		Object validatedResponse = validateValue(response);
-		if(validatedResponse instanceof NoResponse) {
-			return new PhotoPromptResponse(
-					this, 
-					(NoResponse) validatedResponse, 
-					repeatableSetIteration, 
-					null, 
-					null,
-					false
-				);
-		}
-		else if(validatedResponse instanceof UUID) {
+		try {
 			return new PhotoPromptResponse(
 					this, 
 					null, 
 					repeatableSetIteration, 
-					(UUID) validatedResponse,
-					null,
-					false
+					validateValue(response),
+					null
 				);
 		}
-			
-		throw new IllegalArgumentException("The response was not a valid response.");
+		catch(NoResponseException e) {
+			return new PhotoPromptResponse(
+					this, 
+					e.getNoResponse(), 
+					repeatableSetIteration, 
+					null,
+					null
+				);
+		}
 	}
 	
 	/**

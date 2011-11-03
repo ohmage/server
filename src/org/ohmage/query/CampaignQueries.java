@@ -445,7 +445,9 @@ public final class CampaignQueries extends Query {
 	 * @param campaignId The unique identifier for the campaign..
 	 * @throws DataAccessException If an error occurs running the SQL.
 	 */
-	public static Campaign findCampaignConfiguration(final String campaignId) throws DataAccessException {
+	public static Campaign findCampaignConfiguration(final String campaignId) 
+			throws DataAccessException {
+		
 		try {
 			return instance.getJdbcTemplate().queryForObject(
 					SQL_GET_CAMPAIGN_INFORMATION, 
@@ -454,16 +456,23 @@ public final class CampaignQueries extends Query {
 						@Override
 						public Campaign mapRow(ResultSet rs, int rowNum) 
 								throws SQLException {
-							
-						return new Campaign(
-								rs.getString("description"),
-								Campaign.RunningState.getValue(
-										rs.getString("running_state")),
-								Campaign.PrivacyState.getValue(
-										rs.getString("privacy_state")),
-								rs.getTimestamp("creation_timestamp"),
-								rs.getString("xml")
-							);
+						
+							try {
+								return new Campaign(
+										rs.getString("description"),
+										Campaign.RunningState.getValue(
+												rs.getString("running_state")),
+										Campaign.PrivacyState.getValue(
+												rs.getString("privacy_state")),
+										rs.getTimestamp("creation_timestamp"),
+										rs.getString("xml")
+								);
+							}
+							catch(IllegalArgumentException e) {
+								throw new SQLException(
+										"The XML is corrupt.", 
+										e);
+							}
 						}
 					}
 				);

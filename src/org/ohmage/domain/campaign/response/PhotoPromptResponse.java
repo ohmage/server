@@ -35,8 +35,6 @@ public class PhotoPromptResponse extends PromptResponse {
 	 * 
 	 * @param photo A File object that points to the photo on disk.
 	 * 
-	 * @param validate Whether or not to validate the response.
-	 * 
 	 * @throws IllegalArgumentException Thrown if any of the parameters are 
 	 * 									invalid or if 'validate' is "true" and
 	 * 									the response value is invalid.
@@ -44,8 +42,7 @@ public class PhotoPromptResponse extends PromptResponse {
 	public PhotoPromptResponse(
 			final PhotoPrompt prompt, final NoResponse noResponse, 
 			final Integer repeatableSetIteration, 
-			final UUID uuid, final File photo,
-			final boolean validate) {
+			final UUID uuid, final File photo) {
 		
 		super(prompt, noResponse, repeatableSetIteration);
 		
@@ -54,10 +51,6 @@ public class PhotoPromptResponse extends PromptResponse {
 		}
 		else if((uuid != null) && (noResponse != null)) {
 			throw new IllegalArgumentException("Both UUID and no response were given.");
-		}
-		
-		if(validate) {
-			prompt.validateValue(uuid);
 		}
 		
 		this.uuid = uuid;
@@ -97,14 +90,14 @@ public class PhotoPromptResponse extends PromptResponse {
 	 * @return The photo's UUID.
 	 */
 	@Override
-	public String getResponseValue() {
-		String noResponseString = super.getResponseValue();
+	public Object getResponseValue() {
+		Object noResponseObject = super.getResponseValue();
 		
-		if(noResponseString == null) {
-			return uuid.toString();
+		if(noResponseObject == null) {
+			return uuid;
 		}
 		else {
-			return noResponseString;
+			return noResponseObject;
 		}
 	}
 

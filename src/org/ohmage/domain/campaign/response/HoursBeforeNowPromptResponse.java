@@ -28,16 +28,13 @@ public class HoursBeforeNowPromptResponse extends PromptResponse {
 	 * 
 	 * @param hours The response from the user.
 	 * 
-	 * @param validate Whether or not to validate the response.
-	 * 
 	 * @throws IllegalArgumentException Thrown if any of the parameters are 
 	 * 									invalid or if 'validate' is "true" and
 	 * 									the response value is invalid.
 	 */
 	public HoursBeforeNowPromptResponse(
 			final HoursBeforeNowPrompt prompt, final NoResponse noResponse, 
-			final Integer repeatableSetIteration, final Long hours,
-			final boolean validate) {
+			final Integer repeatableSetIteration, final Long hours) {
 		
 		super(prompt, noResponse, repeatableSetIteration);
 		
@@ -50,9 +47,6 @@ public class HoursBeforeNowPromptResponse extends PromptResponse {
 					"Both hours and no response were given.");
 		}
 		
-		if(validate) {
-			prompt.validateValue(hours);
-		}
 		this.hours = hours;
 	}
 	
@@ -71,14 +65,14 @@ public class HoursBeforeNowPromptResponse extends PromptResponse {
 	 * @return A String representing the hours.
 	 */
 	@Override
-	public String getResponseValue() {
-		String noResponseString = super.getResponseValue();
+	public Object getResponseValue() {
+		Object noResponseObject = super.getResponseValue();
 		
-		if(noResponseString == null) {
-			return Long.toString(hours);
+		if(noResponseObject == null) {
+			return hours;
 		}
 		else {
-			return noResponseString;
+			return noResponseObject;
 		}
 	}
 

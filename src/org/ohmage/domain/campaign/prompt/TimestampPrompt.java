@@ -73,7 +73,7 @@ public class TimestampPrompt extends Prompt {
 	 * @throws IllegalArgumentException Thrown if the value is invalid.
 	 */
 	@Override
-	public Object validateValue(final Object value) {
+	public Date validateValue(final Object value) throws NoResponseException {
 		// If it's already a NoResponse value, then return make sure that if it
 		// was skipped that it as skippable.
 		if(value instanceof NoResponse) {
@@ -81,11 +81,11 @@ public class TimestampPrompt extends Prompt {
 				throw new IllegalArgumentException("The prompt was skipped, but it is not skippable.");
 			}
 			
-			return value;
+			throw new NoResponseException((NoResponse) value);
 		}
 		// If it's already a date, return it.
 		else if(value instanceof Date) {
-			return value;
+			return (Date) value;
 		}
 		// If it's a Calendar, convert it to a Date and return it.
 		else if(value instanceof Calendar) {
@@ -96,7 +96,7 @@ public class TimestampPrompt extends Prompt {
 			Date result = null;
 			
 			try {
-				return NoResponse.valueOf((String) value);
+				throw new NoResponseException(NoResponse.valueOf((String) value));
 			}
 			catch(IllegalArgumentException iae) {
 				result = StringUtils.decodeDateTime((String) value);
@@ -137,7 +137,6 @@ public class TimestampPrompt extends Prompt {
 	public TimestampPromptResponse createResponse(final Object response, 
 			final Integer repeatableSetIteration) {
 		
-		
 		if((repeatableSetIteration == null) && (getParent() != null)) {
 			throw new IllegalArgumentException("The repeatable set iteration is null, but this prompt is part of a repeatable set.");
 		}
@@ -145,26 +144,21 @@ public class TimestampPrompt extends Prompt {
 			throw new IllegalArgumentException("The repeatable set iteration value is negative.");
 		}
 		
-		Object validatedResponse = validateValue(response);
-		if(validatedResponse instanceof NoResponse) {
-			return new TimestampPromptResponse(
-					this, 
-					(NoResponse) validatedResponse, 
-					repeatableSetIteration, 
-					null,
-					false
-				);
-		}
-		else if(validatedResponse instanceof Date) {
+		try {
 			return new TimestampPromptResponse(
 					this, 
 					null, 
 					repeatableSetIteration, 
-					(Date) validatedResponse,
-					false
+					validateValue(response)
 				);
 		}
-			
-		throw new IllegalArgumentException("The response was not a valid response.");
+		catch(NoResponseException e) {
+			return new TimestampPromptResponse(
+					this, 
+					e.getNoResponse(), 
+					repeatableSetIteration, 
+					null
+				);
+		}
 	}
 }

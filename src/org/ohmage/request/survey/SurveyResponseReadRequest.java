@@ -214,6 +214,22 @@ public final class SurveyResponseReadRequest extends UserRequest {
 	 * @see org.ohmage.domain.Campaign.SurveyResponse.OutputFormat#JSON_ROWS JSON_ROWS
 	 */
 	public static final String JSON_KEY_NUM_SURVEYS = "number_of_surveys";
+	/**
+	 * The JSON key in the metadata for 
+	 * {@link org.ohmage.domain.Campaign.SurveyResponse.OutputFormat#JSON_ROWS JSON_ROWS}
+	 * representing the number of unique prompts in the results. 
+	 * 
+	 * @see org.ohmage.domain.Campaign.SurveyResponse.OutputFormat#JSON_ROWS JSON_ROWS
+	 */
+	public static final String JSON_KEY_NUM_PROMPTS = "number_of_prompts";
+	/**
+	 * The JSON key in the metadata for 
+	 * {@link org.ohmage.domain.Campaign.SurveyResponse.OutputFormat#JSON_ROWS JSON_ROWS}
+	 * representing the keys in the data portion of the response. 
+	 * 
+	 * @see org.ohmage.domain.Campaign.SurveyResponse.OutputFormat#JSON_ROWS JSON_ROWS
+	 */
+	public static final String JSON_KEY_ITEMS = "items";
 	
 	public static final String URN_SPECIAL_ALL = "urn:ohmage:special:all";
 	public static final Collection<String> URN_SPECIAL_ALL_LIST;
@@ -678,16 +694,19 @@ public final class SurveyResponseReadRequest extends UserRequest {
 					result.put(JSON_KEY_RESULT, RESULT_SUCCESS);
 					
 					Set<String> uniqueSurveyIds = new HashSet<String>();
+					Set<String> uniquePromptIds = new HashSet<String>();
+					Set<String> keys = new HashSet<String>();
 					JSONArray results = new JSONArray();
 					for(SurveyResponse surveyResponse : surveyResponseList) {
 						uniqueSurveyIds.add(surveyResponse.getSurvey().getId());
+						uniquePromptIds.addAll(surveyResponse.getPromptIds());
 						
 						JSONObject currResult = surveyResponse.toJson(
 								allColumns || columns.contains(ColumnKey.USER_ID),
 								allColumns || false,
 								allColumns || columns.contains(ColumnKey.CONTEXT_CLIENT),
 								allColumns || columns.contains(ColumnKey.SURVEY_PRIVACY_STATE),
-								allColumns || columns.contains(ColumnKey.CONTEXT_UTC_TIMESTAMP),
+								allColumns || columns.contains(ColumnKey.CONTEXT_TIMESTAMP),
 								allColumns || false,
 								allColumns || columns.contains(ColumnKey.CONTEXT_TIMEZONE),
 								allColumns || columns.contains(ColumnKey.CONTEXT_LOCATION_STATUS),
@@ -698,6 +717,7 @@ public final class SurveyResponseReadRequest extends UserRequest {
 								allColumns || columns.contains(ColumnKey.CONTEXT_LAUNCH_CONTEXT_LONG) || columns.contains(ColumnKey.CONTEXT_LAUNCH_CONTEXT_SHORT),
 								columns.contains(ColumnKey.CONTEXT_LAUNCH_CONTEXT_LONG),
 								allColumns || columns.contains(ColumnKey.PROMPT_RESPONSE),
+								false,
 								((returnId == null) ? false : returnId)
 							);
 						
@@ -790,21 +810,25 @@ public final class SurveyResponseReadRequest extends UserRequest {
 								currResult.put(Location.JSON_KEY_TIMESTAMP, TimeUtils.getIso8601DateTimeString(location.getTimestamp()));
 							}
 						}
-							
+						
+						Iterator<?> currResultIter = currResult.keys();
+						while(currResultIter.hasNext()) {
+							keys.add((String) currResultIter.next());
+						}
 						results.put(currResult);
 					}
 					
 					if((collapse != null) && collapse) {
-						int count = results.length();
-						Set<String> collapsedSet = new HashSet<String>(count);
+						int numResults = results.length();
+						Set<String> collapsedSet = new HashSet<String>(numResults);
 						
-						for(int i = 0; i < count; i++) {
+						for(int i = 0; i < numResults; i++) {
 							// This shouldn't work because JSONObject can 
 							// output identical objects in different manners.
 							if(! collapsedSet.add(results.getJSONObject(i).toString())) {
 								results.remove(i);
 								i--;
-								count--;
+								numResults--;
 							}
 						}
 					}
@@ -815,6 +839,8 @@ public final class SurveyResponseReadRequest extends UserRequest {
 						JSONObject metadata = new JSONObject();
 						
 						metadata.put(JSON_KEY_NUM_SURVEYS, uniqueSurveyIds.size());
+						metadata.put(JSON_KEY_NUM_PROMPTS, uniquePromptIds.size());
+						metadata.put(JSON_KEY_ITEMS, keys);
 						
 						result.put(JSON_KEY_METADATA, metadata);
 					}
@@ -892,10 +918,10 @@ public final class SurveyResponseReadRequest extends UserRequest {
 						values.put(JSON_KEY_VALUES, privacyStates);
 						result.put(ColumnKey.SURVEY_PRIVACY_STATE.toString(), values);
 					}
-					if(allColumns || columns.contains(ColumnKey.CONTEXT_UTC_TIMESTAMP)) {
+					if(allColumns || columns.contains(ColumnKey.CONTEXT_TIMESTAMP)) {
 						JSONObject values = new JSONObject();
 						values.put(JSON_KEY_VALUES, timestamps);
-						result.put(ColumnKey.CONTEXT_UTC_TIMESTAMP.toString(), values);
+						result.put(ColumnKey.CONTEXT_TIMESTAMP.toString(), values);
 					}
 					if(allColumns || columns.contains(ColumnKey.CONTEXT_TIMEZONE)) {
 						JSONObject values = new JSONObject();
@@ -1233,7 +1259,7 @@ public final class SurveyResponseReadRequest extends UserRequest {
 				if(allColumns || columns.contains(ColumnKey.SURVEY_PRIVACY_STATE)) {
 					privacyStates.put(surveyResponse.getPrivacyState().toString());
 				}
-				if(allColumns || columns.contains(ColumnKey.CONTEXT_UTC_TIMESTAMP)) {
+				if(allColumns || columns.contains(ColumnKey.CONTEXT_TIMESTAMP)) {
 					timestamps.put(TimeUtils.getIso8601DateTimeString(surveyResponse.getDate()));
 				}
 				if(allColumns || columns.contains(ColumnKey.CONTEXT_TIMEZONE)) {
@@ -1303,7 +1329,7 @@ public final class SurveyResponseReadRequest extends UserRequest {
 					for(String promptId : prompts.keySet()) {
 						JSONArray values = prompts.get(promptId).getJSONArray(JSON_KEY_VALUES);
 						if(promptId.equals(response.getId())) {
-							String responseValue = response.getResponseValue();
+							Object responseValue = response.getResponseValue();
 							
 							if(OutputFormat.CSV.equals(outputFormat)) {
 								responseValue = "\"" + responseValue + "\"";

@@ -1,5 +1,8 @@
 package org.ohmage.domain.campaign.prompt;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 
 import org.json.JSONException;
@@ -16,7 +19,7 @@ import org.ohmage.domain.campaign.response.SingleChoiceCustomPromptResponse;
 public class SingleChoiceCustomPrompt extends CustomChoicePrompt {
 	private static final String JSON_KEY_DEFAULT = "default";
 	
-	private final String defaultValue;
+	private final Integer defaultKey;
 	
 	/**
 	 * Creates a new single-choice prompt with custom values.
@@ -73,13 +76,24 @@ public class SingleChoiceCustomPrompt extends CustomChoicePrompt {
 				skippable, skipLabel, displayType, displayLabel, 
 				choices, customChoices, Type.SINGLE_CHOICE_CUSTOM, index);
 		
+		Integer tDefaultKey = null;
 		if(defaultValue != null) {
-			if(! getAllChoices().values().contains(defaultValue)) {
-				throw new IllegalArgumentException(
-						"The default value is not a valid choice.");
+			Map<Integer, LabelValuePair> currChoices = getAllChoices();
+			boolean found = false;
+			
+			for(Integer choiceKey : currChoices.keySet()) {
+				if(currChoices.get(choiceKey).getLabel().equals(defaultValue)) {
+					tDefaultKey = choiceKey;
+					found = true;
+					break;
+				}
+			}
+			
+			if(! found) {
+				throw new IllegalArgumentException("The default value is not a valid choice.");
 			}
 		}
-		this.defaultValue = defaultValue;
+		defaultKey = tDefaultKey;
 	}
 	
 	/**
@@ -88,14 +102,16 @@ public class SingleChoiceCustomPrompt extends CustomChoicePrompt {
 	 * @return The default value if one was given; otherwise, null is returned.
 	 */
 	public String getDefaultValue() {
-		return defaultValue;
+		return getAllChoices().get(defaultKey).getLabel();
 	}
 
 	/**
-	 * Validates that an Object is a valid response value for this prompt. This
-	 * includes a {@link NoResponse} value as either a {@link NoResponse} 
-	 * object or as a string representing one or a String object representing a
-	 * response from the user.
+	 * Validates that an Object is a valid response value. This must be one of
+	 * the following:<br />
+	 * <li>A {@link NoResponse} object.</li>
+	 * <li>A String representing a {@link NoResponse} value.</li>
+	 * <li>An Integer key value.</li>
+	 * <li>A String representing a key value.</li>
 	 * 
 	 * @param value The value to be validated.
 	 * 
@@ -104,48 +120,37 @@ public class SingleChoiceCustomPrompt extends CustomChoicePrompt {
 	 * @throws IllegalArgumentException Thrown if the value is not valid.
 	 */
 	@Override
-	public Object validateValue(Object value) {
-		Integer choiceValue;
-		
-		// If it's already a NoResponse value, then return make sure that if it
-		// was skipped that it as skippable.
+	public String validateValue(final Object value) throws NoResponseException {
+		// If it's already a NoResponse value, then make sure that if it
+		// was skipped that it is skippable.
 		if(value instanceof NoResponse) {
 			if(NoResponse.SKIPPED.equals(value) && (! skippable())) {
 				throw new IllegalArgumentException("The prompt was skipped, but it is not skippable.");
 			}
 			
-			return value;
+			throw new NoResponseException((NoResponse) value);
 		}
 		else if(value instanceof String) {
 			try {
-				return NoResponse.valueOf((String) value);
+				throw new NoResponseException(NoResponse.valueOf((String) value));
 			}
 			catch(IllegalArgumentException notNoResponse) {
-				try {
-					choiceValue = Integer.decode((String) value);
+				Map<Integer, LabelValuePair> choices = getAllChoices();
+				
+				if(! choices.values().contains(value)) {
+					// If it doesn't exist, add it and return its key.
+					List<Integer> keys = new ArrayList<Integer>(choices.keySet());
+					Collections.sort(keys);
+					int key = keys.get(keys.size() - 1) + 1;
+					addChoice(key, (String) value, null);
 				}
-				catch(NumberFormatException notChoiceKey) {
-					Map<Integer, LabelValuePair> choices = getAllChoices();
-					
-					for(Integer key : choices.keySet()) {
-						if(choices.get(key).getLabel().equals((String) value)) {
-							return key;
-						}
-					}
-					
-					throw new IllegalArgumentException("The value was not a valid response value for this prompt.");
-				}
+				
+				return (String) value;
 			}
 		}
 		else {
 			throw new IllegalArgumentException("The value is not decodable as a reponse value.");
 		}
-
-		if(! getAllChoices().keySet().contains(choiceValue)) {
-			throw new IllegalArgumentException("The value is not a valid key: " + choiceValue);
-		}
-		
-		return choiceValue;
 	}
 	
 	/**
@@ -176,27 +181,22 @@ public class SingleChoiceCustomPrompt extends CustomChoicePrompt {
 			throw new IllegalArgumentException("The repeatable set iteration value is negative.");
 		}
 		
-		Object validatedResponse = validateValue(response);
-		if(validatedResponse instanceof NoResponse) {
-			return new SingleChoiceCustomPromptResponse(
-					this, 
-					(NoResponse) validatedResponse, 
-					repeatableSetIteration, 
-					null,
-					false
-				);
-		}
-		else if(validatedResponse instanceof Integer) {
+		try {
 			return new SingleChoiceCustomPromptResponse(
 					this, 
 					null, 
 					repeatableSetIteration, 
-					(Integer) validatedResponse,
-					false
+					validateValue(response)
 				);
 		}
-			
-		throw new IllegalArgumentException("The response was not a valid response.");
+		catch(NoResponseException e) {
+			return new SingleChoiceCustomPromptResponse(
+					this, 
+					e.getNoResponse(), 
+					repeatableSetIteration, 
+					null
+				);
+		}
 	}
 	
 	/**
@@ -215,7 +215,7 @@ public class SingleChoiceCustomPrompt extends CustomChoicePrompt {
 				return null;
 			}
 			
-			result.put(JSON_KEY_DEFAULT, defaultValue);
+			result.put(JSON_KEY_DEFAULT, defaultKey);
 			
 			return result;
 		}
@@ -235,7 +235,7 @@ public class SingleChoiceCustomPrompt extends CustomChoicePrompt {
 		final int prime = 31;
 		int result = super.hashCode();
 		result = prime * result
-				+ ((defaultValue == null) ? 0 : defaultValue.hashCode());
+				+ ((defaultKey == null) ? 0 : defaultKey.hashCode());
 		return result;
 	}
 
@@ -256,10 +256,10 @@ public class SingleChoiceCustomPrompt extends CustomChoicePrompt {
 		if (getClass() != obj.getClass())
 			return false;
 		SingleChoiceCustomPrompt other = (SingleChoiceCustomPrompt) obj;
-		if (defaultValue == null) {
-			if (other.defaultValue != null)
+		if (defaultKey == null) {
+			if (other.defaultKey != null)
 				return false;
-		} else if (!defaultValue.equals(other.defaultValue))
+		} else if (!defaultKey.equals(other.defaultKey))
 			return false;
 		return true;
 	}

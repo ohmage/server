@@ -1,10 +1,9 @@
 package org.ohmage.domain.campaign.prompt;
 
+import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -22,7 +21,7 @@ import org.ohmage.util.StringUtils;
 public class MultiChoicePrompt extends ChoicePrompt {
 	private static final String JSON_KEY_DEFAULT = "default";
 	
-	private final Collection<String> defaultValues;
+	private final Collection<Integer> defaultValues;
 	
 	/**
 	 * Creates a new multiple-choice prompt.
@@ -76,34 +75,54 @@ public class MultiChoicePrompt extends ChoicePrompt {
 				skippable, skipLabel, displayType, displayLabel, 
 				choices, Type.MULTI_CHOICE, index);
 		
+		Collection<Integer> tDefaultKeys = new ArrayList<Integer>(0);
 		if(defaultValues != null) {
-			Collection<LabelValuePair> allValues = getChoices().values();
+			tDefaultKeys = new HashSet<Integer>(defaultValues.size());
+			Map<Integer, LabelValuePair> currChoices = getChoices();
 			
-			Set<String> tempDefaultValues = new HashSet<String>(defaultValues);
-			tempDefaultValues.removeAll(allValues);
-			if(tempDefaultValues.size() != 0) {
-				throw new IllegalArgumentException(
-						"The following default values are not valid choices: " + 
-						tempDefaultValues);
+			for(String defaultValue : defaultValues) {
+				boolean found = false;
+				
+				for(Integer choiceKey : currChoices.keySet()) {
+					if(currChoices.get(choiceKey).getLabel().equals(defaultValue)) {
+						tDefaultKeys.add(choiceKey);
+						found = true;
+						break;
+					}
+				}
+				
+				if(! found) {
+					throw new IllegalArgumentException("The default value is not a valid choice.");
+				}
 			}
 		}
-		this.defaultValues = defaultValues;
+		this.defaultValues = tDefaultKeys;
 	}
 	
 	/**
-	 * Returns the default values if they exist or null if they do not.
+	 * Returns the default values.
 	 * 
-	 * @return The default values if they exist or null if they do not.
+	 * @return The default values, which may be empty.
 	 */
 	public final Collection<String> getDefaultValues() {
-		return Collections.unmodifiableCollection(defaultValues);
+		Map<Integer, LabelValuePair> choices = getChoices();
+		Collection<String> result = new ArrayList<String>(defaultValues.size());
+		
+		for(Integer key : defaultValues) {
+			result.add(choices.get(key).getLabel());
+		}
+		
+		return result;
 	}
 
 	/**
-	 * Validates that an Object is a valid response value for this prompt. This
-	 * includes a {@link NoResponse} value as either a {@link NoResponse} 
-	 * object or as a string representing one, a Collection object of String
-	 * objects, or a comma-separated String object with or without braces.
+	 * Validates that an Object is a valid response value. This must be one of
+	 * the following:<br />
+	 * <li>A {@link NoResponse} object.</li>
+	 * <li>A String representing a {@link NoResponse} value.</li>
+	 * <li>An Integer key value.</li>
+	 * <li>A Collection of Integer key values.</li>
+	 * <li>A JSONArray 
 	 * 
 	 * @param value The value to be validated.
 	 * 
@@ -112,7 +131,7 @@ public class MultiChoicePrompt extends ChoicePrompt {
 	 * @throws IllegalArgumentException Thrown if the value is not valid.
 	 */
 	@Override
-	public Object validateValue(Object value) {
+	public Collection<Integer> validateValue(final Object value) throws NoResponseException {
 		Collection<Integer> collectionValue = null;
 		Map<Integer, LabelValuePair> choices = getChoices();
 		
@@ -123,10 +142,15 @@ public class MultiChoicePrompt extends ChoicePrompt {
 				throw new IllegalArgumentException("The prompt was skipped, but it is not skippable.");
 			}
 			
-			return value;
+			throw new NoResponseException((NoResponse) value);
+		}
+		// If it's already an integer, add it as the only result item.
+		else if(value instanceof Integer) {
+			collectionValue = new ArrayList<Integer>(1);
+			collectionValue.add((Integer) value);
 		}
 		// If it's already a collection, first ensure that all of the elements
-		// are strings.
+		// are integers.
 		else if(value instanceof Collection<?>) {
 			Collection<?> values = (Collection<?>) value;
 			collectionValue = new HashSet<Integer>(values.size());
@@ -135,16 +159,8 @@ public class MultiChoicePrompt extends ChoicePrompt {
 				if(currResponse instanceof Integer) {
 					collectionValue.add((Integer) currResponse);
 				}
-				else if(currResponse instanceof String) {
-					for(Integer key : choices.keySet()) {
-						if(choices.get(key).getLabel().equals(currResponse)) {
-							collectionValue.add(key);
-							break;
-						}
-					}
-				}
 				else {
-					throw new IllegalArgumentException("One of the values in the collection was not a String value.");
+					throw new IllegalArgumentException("The value was a collection, but not all of the items were integers.");
 				}
 			}
 		}
@@ -154,7 +170,7 @@ public class MultiChoicePrompt extends ChoicePrompt {
 			String valueString = (String) value;
 			
 			try {
-				return NoResponse.valueOf(valueString);
+				throw new NoResponseException(NoResponse.valueOf(valueString));
 			}
 			catch(IllegalArgumentException notNoResponse) {
 				collectionValue = new HashSet<Integer>();
@@ -168,14 +184,7 @@ public class MultiChoicePrompt extends ChoicePrompt {
 							collectionValue.add(responses.getInt(i));
 						}
 						catch(JSONException notKey) {
-							String responseLabel = responses.getString(i);
-							
-							try {
-								collectionValue.add(getChoiceKey(responseLabel));
-							}
-							catch(IllegalArgumentException e) {
-								throw new IllegalArgumentException("The choice was not a valid response for this prompt.");
-							}
+							throw new IllegalArgumentException("The value was a JSONArray, but not all fo the elements were integers.", notKey);
 						}
 					}
 				}
@@ -191,19 +200,7 @@ public class MultiChoicePrompt extends ChoicePrompt {
 								collectionValue.add(Integer.decode(currResponse));
 							}
 							catch(NumberFormatException notKey) {
-								boolean found = false;
-								
-								for(Integer key : choices.keySet()) {
-									if(choices.get(key).getLabel().equals(currResponse)) {
-										collectionValue.add(key);
-										found = true;
-										break;
-									}
-								}
-								
-								if(! found) {
-									throw new IllegalArgumentException("One of the values in the collection was not a String value.");
-								}
+								throw new IllegalArgumentException("The value was a comma-separated list, but not all of the elemtns were integers.", notKey);
 							}
 						}
 					}
@@ -240,7 +237,6 @@ public class MultiChoicePrompt extends ChoicePrompt {
 	 * 									negative, or if the value is not a 
 	 * 									valid response value for this prompt.
 	 */
-	@SuppressWarnings("unchecked")
 	@Override
 	public MultiChoicePromptResponse createResponse(final Object response, 
 			final Integer repeatableSetIteration) {
@@ -252,27 +248,22 @@ public class MultiChoicePrompt extends ChoicePrompt {
 			throw new IllegalArgumentException("The repeatable set iteration value is negative.");
 		}
 		
-		Object validatedResponse = validateValue(response);
-		if(validatedResponse instanceof NoResponse) {
-			return new MultiChoicePromptResponse(
-					this, 
-					(NoResponse) validatedResponse, 
-					repeatableSetIteration, 
-					null,
-					false
-				);
-		}
-		else if(validatedResponse instanceof Collection<?>) {
+		try {
 			return new MultiChoicePromptResponse(
 					this, 
 					null, 
 					repeatableSetIteration, 
-					(Collection<Integer>) validatedResponse,
-					false
+					validateValue(response)
 				);
 		}
-			
-		throw new IllegalArgumentException("The response was not a valid response.");
+		catch(NoResponseException e) {
+			return new MultiChoicePromptResponse(
+					this, 
+					e.getNoResponse(), 
+					repeatableSetIteration, 
+					null
+				);
+		}
 	}
 	
 	/**

@@ -9,7 +9,7 @@ import org.ohmage.domain.campaign.prompt.SingleChoiceCustomPrompt;
  * @author John Jenkins
  */
 public class SingleChoiceCustomPromptResponse extends PromptResponse {
-	private final Integer choice;
+	private final String choice;
 
 	/**
 	 * Creates a response for a single choice prompt with custom choices. 
@@ -28,16 +28,13 @@ public class SingleChoiceCustomPromptResponse extends PromptResponse {
 	 * 
 	 * @param choice The key for the choice from the user.
 	 * 
-	 * @param validate Whether or not to validate the response.
-	 * 
 	 * @throws IllegalArgumentException Thrown if any of the parameters are 
 	 * 									invalid or if 'validate' is "true" and
 	 * 									the response value is invalid.
 	 */
 	public SingleChoiceCustomPromptResponse(
 			final SingleChoiceCustomPrompt prompt, final NoResponse noResponse,
-			final Integer repeatableSetIteration, final Integer choice,
-			final boolean validate) {
+			final Integer repeatableSetIteration, final String choice) {
 		
 		super(prompt, noResponse, repeatableSetIteration);
 		
@@ -48,9 +45,6 @@ public class SingleChoiceCustomPromptResponse extends PromptResponse {
 			throw new IllegalArgumentException("Both choice and no response were given.");
 		}
 		
-		if(validate) {
-			prompt.validateValue(choice);
-		}
 		this.choice = choice;
 	}
 	
@@ -60,7 +54,7 @@ public class SingleChoiceCustomPromptResponse extends PromptResponse {
 	 * @return The choice from the user.
 	 */
 	public String getText() {
-		return ((SingleChoiceCustomPrompt) getPrompt()).getAllChoices().get(choice).getLabel();
+		return choice;
 	}
 
 	/**
@@ -69,14 +63,15 @@ public class SingleChoiceCustomPromptResponse extends PromptResponse {
 	 * @return The choice as a string.
 	 */
 	@Override
-	public String getResponseValue() {
-		String noResponseString = super.getResponseValue();
+	public Object getResponseValue() {
+		Object noResponseObject = super.getResponseValue();
 		
-		if(noResponseString == null) {
-			return getText();
+		if(noResponseObject == null) {
+			//return choice;
+			return ((SingleChoiceCustomPrompt) getPrompt()).getChoiceKey(choice);
 		}
 		else {
-			return noResponseString;
+			return noResponseObject;
 		}
 	}
 

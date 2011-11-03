@@ -60,13 +60,11 @@ public abstract class Response {
 	}
 	
 	/**
-	 * Returns a String representation of the prompt response's value or, if
-	 * there was no response, a string representing why.
+	 * Returns an object representing the user's response.
 	 * 
-	 * @return A String representation of the prompt response's value or, if
-	 * 		   there was no response, a string representing why.
+	 * @return An object representing the user's response.
 	 */
-	public String getResponseValue() {
+	public Object getResponseValue() {
 		if(wasSkipped()) {
 			return NoResponse.SKIPPED.toString();
 		}
@@ -83,7 +81,7 @@ public abstract class Response {
 	 * 
 	 * @return A JSONObject representing this response.
 	 */
-	public abstract JSONObject toJson();
+	public abstract JSONObject toJson(final boolean withId);
 	
 	/**
 	 * Retrieves the ID of the survey item to which this response pertains.

@@ -1,5 +1,8 @@
 package org.ohmage.domain.campaign.prompt;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+import org.ohmage.domain.campaign.Prompt;
 import org.ohmage.domain.campaign.Response.NoResponse;
 import org.ohmage.domain.campaign.response.TextPromptResponse;
 
@@ -8,7 +11,22 @@ import org.ohmage.domain.campaign.response.TextPromptResponse;
  * 
  * @author John Jenkins
  */
-public class TextPrompt extends BoundedPrompt {
+public class TextPrompt extends Prompt {
+	private static final String JSON_KEY_LOWER_BOUND = "min";
+	private static final String JSON_KEY_UPPER_BOUND = "max";
+	
+	/**
+	 * The campaign configuration property key for the lower bound.
+	 */
+	public static final String XML_KEY_MIN = "min";
+	/**
+	 * The campaign configuration property key for the upper bound.
+	 */
+	public static final String XML_KEY_MAX = "max";
+	
+	private final long min;
+	private final long max;
+	
 	/**
 	 * Creates a new text prompt.
 	 * 
@@ -57,7 +75,10 @@ public class TextPrompt extends BoundedPrompt {
 		
 		super(id, condition, unit, text, abbreviatedText, explanationText,
 				skippable, skipLabel, displayType, displayLabel, 
-				min, max, null, Type.TEXT, index);
+				Type.TEXT, index);
+		
+		this.min = min;
+		this.max = max;
 	}
 
 	/**
@@ -72,7 +93,7 @@ public class TextPrompt extends BoundedPrompt {
 	 * @throws IllegalArgumentException Thrown if the value is invalid.
 	 */
 	@Override
-	public Object validateValue(final Object value) {
+	public String validateValue(final Object value) throws NoResponseException {
 		String valueString;
 		
 		// If it's already a NoResponse value, then return make sure that if it
@@ -82,7 +103,7 @@ public class TextPrompt extends BoundedPrompt {
 				throw new IllegalArgumentException("The prompt was skipped, but it is not skippable.");
 			}
 			
-			return value;
+			throw new NoResponseException((NoResponse) value);
 		}
 		// If it is a string, parse it to check if it's a NoResponse value and,
 		// if not, parse it as a string.
@@ -90,7 +111,7 @@ public class TextPrompt extends BoundedPrompt {
 			valueString = (String) value;
 			
 			try {
-				return NoResponse.valueOf(valueString);
+				throw new NoResponseException(NoResponse.valueOf(valueString));
 			}
 			catch(IllegalArgumentException iae) {
 				// It must be the response.
@@ -111,6 +132,24 @@ public class TextPrompt extends BoundedPrompt {
 		}
 		
 		return valueString;
+	}
+	
+	/**
+	 * Returns the lower bound for a response to this prompt.
+	 * 
+	 * @return The lower bound for a response to this prompt.
+	 */
+	public long getMin() {
+		return min;
+	}
+	
+	/**
+	 * Returns the upper bound for a response to this prompt.
+	 * 
+	 * @return The upper bound for a response to this prompt.
+	 */
+	public long getMax() {
+		return max;
 	}
 	
 	/**
@@ -141,26 +180,87 @@ public class TextPrompt extends BoundedPrompt {
 			throw new IllegalArgumentException("The repeatable set iteration value is negative.");
 		}
 		
-		Object validatedResponse = validateValue(response);
-		if(validatedResponse instanceof NoResponse) {
-			return new TextPromptResponse(
-					this, 
-					(NoResponse) validatedResponse, 
-					repeatableSetIteration, 
-					null,
-					false
-				);
-		}
-		else if(validatedResponse instanceof String) {
+		try {
 			return new TextPromptResponse(
 					this, 
 					null, 
 					repeatableSetIteration, 
-					(String) validatedResponse,
-					false
+					validateValue(response)
 				);
 		}
+		catch(NoResponseException e) {
+			return new TextPromptResponse(
+					this, 
+					e.getNoResponse(), 
+					repeatableSetIteration, 
+					null
+				);
+		}
+	}
+	
+	/**
+	 * Creates a JSONObject that represents this bounded prompt.
+	 * 
+	 * @return A JSONObject that represents this bounded prompt.
+	 */
+	@Override
+	public JSONObject toJson() {
+		try {
+			JSONObject result = super.toJson();
 			
-		throw new IllegalArgumentException("The response was not a valid response.");
+			if(result == null) {
+				// FIXME: Ignore the exception thrown, allowing it to 
+				// propagate.
+				return null;
+			}
+			
+			result.put(JSON_KEY_LOWER_BOUND, min);
+			result.put(JSON_KEY_UPPER_BOUND, max);
+			
+			return result;
+		}
+		catch(JSONException e) {
+			// FIXME: Throw an exception.
+			return null;
+		}
+	}
+
+	/**
+	 * Returns a hash code representing this prompt.
+	 * 
+	 * @return A hash code representing this prompt.
+	 */
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = super.hashCode();
+		result = prime * result + (int) (max ^ (max >>> 32));
+		result = prime * result + (int) (min ^ (min >>> 32));
+		return result;
+	}
+
+	/**
+	 * Determines if this bounded prompt and another object are logically 
+	 * equal.
+	 * 
+	 * @param obj The other object.
+	 * 
+	 * @return True if the object is logically equivalent to this bounded 
+	 * 		   prompt; false, otherwise.
+	 */
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (!super.equals(obj))
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		TextPrompt other = (TextPrompt) obj;
+		if (max != other.max)
+			return false;
+		if (min != other.min)
+			return false;
+		return true;
 	}
 }

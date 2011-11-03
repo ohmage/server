@@ -1,6 +1,5 @@
 package org.ohmage.domain.campaign.prompt;
 
-import org.ohmage.domain.campaign.Response.NoResponse;
 import org.ohmage.domain.campaign.response.NumberPromptResponse;
 
 /**
@@ -92,26 +91,21 @@ public class NumberPrompt extends BoundedPrompt {
 			throw new IllegalArgumentException("The repeatable set iteration value is negative.");
 		}
 		
-		Object validatedResponse = validateValue(response);
-		if(validatedResponse instanceof NoResponse) {
-			return new NumberPromptResponse(
-					this, 
-					(NoResponse) validatedResponse, 
-					repeatableSetIteration, 
-					null,
-					false
-				);
-		}
-		else if(validatedResponse instanceof Long) {
+		try {
 			return new NumberPromptResponse(
 					this, 
 					null, 
 					repeatableSetIteration, 
-					(Long) validatedResponse,
-					false
+					validateValue(response)
 				);
 		}
-			
-		throw new IllegalArgumentException("The response was not a valid response.");
+		catch(NoResponseException e) {
+			return new NumberPromptResponse(
+					this, 
+					e.getNoResponse(), 
+					repeatableSetIteration, 
+					null
+				);
+		}
 	}
 }

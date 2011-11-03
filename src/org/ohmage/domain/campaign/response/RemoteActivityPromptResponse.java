@@ -30,16 +30,13 @@ public class RemoteActivityPromptResponse extends PromptResponse {
 	 * @param result The response from the user that should be a JSONArray of
 	 * 				 JSONObjects.
 	 * 
-	 * @param validate Whether or not to validate the response.
-	 * 
 	 * @throws IllegalArgumentException Thrown if any of the parameters are 
 	 * 									invalid or if 'validate' is "true" and
 	 * 									the response value is invalid.
 	 */
 	public RemoteActivityPromptResponse(
 			final RemoteActivityPrompt prompt, final NoResponse noResponse, 
-			final Integer repeatableSetIteration, final JSONArray result,
-			final boolean validate) {
+			final Integer repeatableSetIteration, final JSONArray result) {
 		
 		super(prompt, noResponse, repeatableSetIteration);
 		
@@ -50,9 +47,6 @@ public class RemoteActivityPromptResponse extends PromptResponse {
 			throw new IllegalArgumentException("Both result and no response were given.");
 		}
 
-		if(validate) {
-			prompt.validateValue(result);
-		}
 		this.result = result;
 	}
 	
@@ -71,14 +65,14 @@ public class RemoteActivityPromptResponse extends PromptResponse {
 	 * @return The remote activity's result as a String.
 	 */
 	@Override
-	public String getResponseValue() {
-		String noResponseString = super.getResponseValue();
+	public Object getResponseValue() {
+		Object noResponseObject = super.getResponseValue();
 		
-		if(noResponseString == null) {
-			return result.toString();
+		if(noResponseObject == null) {
+			return result;
 		}
 		else {
-			return noResponseString;
+			return noResponseObject;
 		}
 	}
 

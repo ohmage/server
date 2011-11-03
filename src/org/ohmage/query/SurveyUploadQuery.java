@@ -203,7 +203,7 @@ public class SurveyUploadQuery extends AbstractUploadQuery {
 								ps.setString(6, surveyUpload.getLocationStatus().toString());
 								ps.setString(7, locationString);
 								ps.setString(8, surveyUpload.getSurvey().getId());
-								ps.setString(9, surveyUpload.toJson(false, false, false, false, true, true, true, true, true, true, false, false, true, true, true, false).toString());
+								ps.setString(9, surveyUpload.toJson(false, false, false, false, true, true, true, true, true, true, false, false, true, true, true, true, false).toString());
 								ps.setString(10, client);
 								ps.setTimestamp(11, new Timestamp(System.currentTimeMillis()));
 								ps.setString(12, surveyUpload.getLaunchContext().toJson(true).toString());
@@ -703,7 +703,7 @@ public class SurveyUploadQuery extends AbstractUploadQuery {
 						}
 						ps.setString(4, promptResponse.getPrompt().getType().toString());
 						ps.setString(5, promptResponse.getPrompt().getId());
-						ps.setString(6, promptResponse.getResponseValue());
+						ps.setString(6, promptResponse.getResponseValue().toString());
 						
 						return ps;
 					}
@@ -712,7 +712,7 @@ public class SurveyUploadQuery extends AbstractUploadQuery {
 			
 			if(promptResponse instanceof PhotoPromptResponse) {
 				// Grab the associated image and save it
-				String imageId = promptResponse.getResponseValue();
+				String imageId = promptResponse.getResponseValue().toString();
 				BufferedImage imageContents = bufferedImageMap.get(imageId);
 				
 				if(! JsonInputKeys.PROMPT_SKIPPED.equals(imageId) && ! JsonInputKeys.PROMPT_NOT_DISPLAYED.equals(imageId)) {
