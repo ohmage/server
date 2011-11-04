@@ -307,7 +307,7 @@ public class AuditQueries extends Query implements IAuditQueries {
 			return getJdbcTemplate().query(SQL_GET_AUDIT_IDS, new SingleColumnRowMapper<Long>());
 		}
 		catch(org.springframework.dao.DataAccessException e) {
-			throw new DataAccessException("Error executing SQL '" + SQL_GET_AUDIT_IDS_WITH_TYPE + "'", e);
+			throw new DataAccessException("Error executing SQL '" + SQL_GET_AUDIT_IDS + "'", e);
 		}
 	}
 	
