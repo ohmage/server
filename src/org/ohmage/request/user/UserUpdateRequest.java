@@ -94,7 +94,6 @@ import org.ohmage.validator.UserValidators;
  * * If a user does not already have a personal information entry in the 
  * database, then all of these entries must be present in order to create a new
  * one.<br />
- * <br />
  * + These are not required to create a new personal information entry in the
  * database; however, if one does not exist, then adding this fields requires
  * that the ones marked with "*" must be present to create the entry.<br />

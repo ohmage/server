@@ -204,7 +204,8 @@ public class VisualizationServices {
 					// unknown error response.
 					if(errorContentArray.length == 2) {
 						throw new ServiceException(
-								ErrorCode.VISUALIZATION_GENERAL_ERROR, 
+								ErrorCode.VISUALIZATION_GENERAL_ERROR,
+								"There was an error. Please, try again later.",
 								"The server returned the HTTP error code '" + 
 									httpUrlConnection.getResponseCode() + 
 									"' with the error '" + 

@@ -14,6 +14,7 @@ import org.ohmage.domain.campaign.response.TextPromptResponse;
 public class TextPrompt extends Prompt {
 	private static final String JSON_KEY_LOWER_BOUND = "min";
 	private static final String JSON_KEY_UPPER_BOUND = "max";
+	private static final String JSON_KEY_DEFAULT = "default";
 	
 	/**
 	 * The campaign configuration property key for the lower bound.
@@ -26,6 +27,8 @@ public class TextPrompt extends Prompt {
 	
 	private final long min;
 	private final long max;
+	
+	private final String defaultValue;
 	
 	/**
 	 * Creates a new text prompt.
@@ -71,7 +74,8 @@ public class TextPrompt extends Prompt {
 			final String abbreviatedText, final String explanationText,
 			final boolean skippable, final String skipLabel,
 			final DisplayType displayType, final String displayLabel,
-			final long min, final long max, final int index) {
+			final long min, final long max, final String defaultValue,
+			final int index) {
 		
 		super(id, condition, unit, text, abbreviatedText, explanationText,
 				skippable, skipLabel, displayType, displayLabel, 
@@ -79,6 +83,7 @@ public class TextPrompt extends Prompt {
 		
 		this.min = min;
 		this.max = max;
+		this.defaultValue = defaultValue;
 	}
 
 	/**
@@ -153,6 +158,15 @@ public class TextPrompt extends Prompt {
 	}
 	
 	/**
+	 * Returns the default value for a response to this prompt.
+	 * 
+	 * @return The default value for a response to this prompt.
+	 */
+	public String getDefault() {
+		return defaultValue;
+	}
+	
+	/**
 	 * Creates a response to this prompt based on a response value.
 	 * 
 	 * @param response The response from the user as an Object.
@@ -216,6 +230,7 @@ public class TextPrompt extends Prompt {
 			
 			result.put(JSON_KEY_LOWER_BOUND, min);
 			result.put(JSON_KEY_UPPER_BOUND, max);
+			result.put(JSON_KEY_DEFAULT, defaultValue);
 			
 			return result;
 		}
@@ -236,6 +251,7 @@ public class TextPrompt extends Prompt {
 		int result = super.hashCode();
 		result = prime * result + (int) (max ^ (max >>> 32));
 		result = prime * result + (int) (min ^ (min >>> 32));
+		result = prime * result + defaultValue.hashCode();
 		return result;
 	}
 
@@ -260,6 +276,8 @@ public class TextPrompt extends Prompt {
 		if (max != other.max)
 			return false;
 		if (min != other.min)
+			return false;
+		if (! defaultValue.equals(other.defaultValue))
 			return false;
 		return true;
 	}

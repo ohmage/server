@@ -9,6 +9,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 
 import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.domain.campaign.Campaign;
@@ -94,7 +95,9 @@ public final class SurveyResponseServices {
 		for(SurveyResponse surveyResponse : surveyResponses) {
 			for(Response promptResponse : surveyResponse.getResponses().values()) {
 				if(promptResponse instanceof PhotoPromptResponse) {
-					if(! images.containsKey(promptResponse.getResponseValue())) {
+					Object responseValue = promptResponse.getResponseValue();
+					if((responseValue instanceof UUID) && 
+							(! images.containsKey(responseValue.toString()))) {
 						throw new ServiceException(
 								ErrorCode.SURVEY_INVALID_RESPONSES, 
 								"An image key was found that was not present in the survey payload.");

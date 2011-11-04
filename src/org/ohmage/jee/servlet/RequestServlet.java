@@ -30,7 +30,7 @@ import org.ohmage.service.AuditServices;
 // size of a multipart/form-data POST which doesn't differentiate between the
 // different parameters. Therefore, there is no way through this call to limit
 // individual file uploads via POST.
-@MultipartConfig(location="/tmp/", maxFileSize=1024*1024*5, maxRequestSize=1024*1024*5*5, fileSizeThreshold=1024*1024*5*5 + 1)
+@MultipartConfig(location="/opt/aw/as/temp/", maxFileSize=1024*1024*5, maxRequestSize=1024*1024*5*5, fileSizeThreshold=1024*1024*5*5 + 1)
 public class RequestServlet extends HttpServlet {
 	private static final Logger LOGGER = Logger.getLogger(RequestServlet.class);
 	

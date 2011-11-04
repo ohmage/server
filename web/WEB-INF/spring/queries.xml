@@ -23,12 +23,6 @@
     </constructor-arg>
   </bean>
   
-  <bean class="org.ohmage.query.CampaignQueries">
-    <constructor-arg>
-      <ref bean="dataSource" />
-    </constructor-arg>
-  </bean>
-  
   <bean class="org.ohmage.query.CampaignDocumentQueries">
     <constructor-arg>
       <ref bean="dataSource" />
@@ -41,19 +35,25 @@
     </constructor-arg>
   </bean>
   
+  <bean class="org.ohmage.query.CampaignQueries">
+    <constructor-arg>
+      <ref bean="dataSource" />
+    </constructor-arg>
+  </bean>
+  
   <bean class="org.ohmage.query.CampaignSurveyResponseQueries">
     <constructor-arg>
       <ref bean="dataSource" />
     </constructor-arg>
   </bean>
 
-  <bean class="org.ohmage.query.ClassQueries">
+  <bean class="org.ohmage.query.ClassDocumentQueries">
     <constructor-arg>
       <ref bean="dataSource" />
     </constructor-arg>
   </bean>
 
-  <bean class="org.ohmage.query.ClassDocumentQueries">
+  <bean class="org.ohmage.query.ClassQueries">
     <constructor-arg>
       <ref bean="dataSource" />
     </constructor-arg>
@@ -71,13 +71,13 @@
     </constructor-arg>
   </bean>
   
-  <bean class="org.ohmage.query.SurveyResponseQueries">
+  <bean class="org.ohmage.query.SurveyResponseImageQueries">
     <constructor-arg>
       <ref bean="dataSource" />
     </constructor-arg>
   </bean>
   
-  <bean class="org.ohmage.query.SurveyResponseImageQueries">
+  <bean class="org.ohmage.query.SurveyResponseQueries">
     <constructor-arg>
       <ref bean="dataSource" />
     </constructor-arg>
@@ -95,19 +95,13 @@
     </constructor-arg>
   </bean>
   
-  <bean class="org.ohmage.query.UserCampaignQueries">
-    <constructor-arg>
-      <ref bean="dataSource" />
-    </constructor-arg>
-  </bean>
-  
   <bean class="org.ohmage.query.UserCampaignDocumentQueries">
     <constructor-arg>
       <ref bean="dataSource" />
     </constructor-arg>
   </bean>
-
-  <bean class="org.ohmage.query.UserClassQueries">
+  
+  <bean class="org.ohmage.query.UserCampaignQueries">
     <constructor-arg>
       <ref bean="dataSource" />
     </constructor-arg>
@@ -118,8 +112,8 @@
       <ref bean="dataSource" />
     </constructor-arg>
   </bean>
-  
-  <bean class="org.ohmage.query.UserQueries">
+
+  <bean class="org.ohmage.query.UserClassQueries">
     <constructor-arg>
       <ref bean="dataSource" />
     </constructor-arg>
@@ -138,6 +132,12 @@
   </bean>
   
   <bean class="org.ohmage.query.UserMobilityQueries">
+    <constructor-arg>
+      <ref bean="dataSource" />
+    </constructor-arg>
+  </bean>
+  
+  <bean class="org.ohmage.query.UserQueries">
     <constructor-arg>
       <ref bean="dataSource" />
     </constructor-arg>

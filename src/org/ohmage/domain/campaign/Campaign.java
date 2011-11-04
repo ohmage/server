@@ -3544,15 +3544,9 @@ public class Campaign {
 					e);
 		}
 		
-		if(defaultValue != null) {
-			throw new IllegalArgumentException(
-					"Default values aren't allowed for remote activity prompts: " +
-						id);
-		}
-		
 		return new TextPrompt(id, condition, unit, text, 
 				abbreviatedText, explanationText, skippable, skipLabel, 
-				displayType, displayLabel, min, max, index);
+				displayType, displayLabel, min, max, defaultValue, index);
 	}
 	
 	/**

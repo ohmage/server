@@ -23,7 +23,7 @@
     <include name="commons-io-1.3.2.jar"/>
     <include name="commons-fileupload-1.2.2.jar"/>
     <include name="commons-pool-1.5.4.jar"/>
-    <include name="json-dot-org-2010-01-05.jar"/>
+    <include name="json.org-2011-11-03.jar"/>
     <include name="gson-1.7.1.jar"/>
     <include name="jbcrypt-0.3.jar"/>
     <include name="xom-1.2.6.jar"/>
@@ -52,7 +52,7 @@
     <include name="commons-fileupload-1.2.2.jar"/>
     <include name="commons-pool-1.5.4.jar"/>
     <include name="jstl-1.2.jar"/>
-    <include name="json-dot-org-2010-01-05.jar"/>
+    <include name="json.org-2011-11-03.jar"/>
     <include name="gson-1.7.1.jar"/>
     <include name="jbcrypt-0.3.jar"/>
     <include name="xom-1.2.6.jar"/>
@@ -199,7 +199,7 @@
     </war>
   </target>
 
-  <target name="dist-no_ssl" depends="javac" description="Compiles Java files and creates WAR.">
+  <target name="dist-no_ssl" depends="test, javac" description="Compiles Java files and creates WAR.">
     <mkdir dir="${dist}"/>
     <echo message="Warning: Bundling of dependencies will not work if jars are organized in subdirs in component repository."/>
     <exec executable="git" outputproperty="git.revision" failifexecutionfails="true">

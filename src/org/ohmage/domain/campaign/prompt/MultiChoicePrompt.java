@@ -164,6 +164,21 @@ public class MultiChoicePrompt extends ChoicePrompt {
 				}
 			}
 		}
+		// If it's a JSONArray, parse it and get the items.
+		else if(value instanceof JSONArray) {
+			JSONArray responses = (JSONArray) value;
+			int numResponses = responses.length();
+			collectionValue = new HashSet<Integer>(numResponses);
+			
+			for(int i = 0; i < numResponses; i++) {
+				try {
+					collectionValue.add(responses.getInt(i));
+				}
+				catch(JSONException notKey) {
+					throw new IllegalArgumentException("The value was a JSONArray, but not all of the elements were integers.", notKey);
+				}
+			}
+		}
 		// If it's a sting, parse it to check if it's a NoResponse value and,
 		// if not, parse it and generate a list of values.
 		else if(value instanceof String) {
@@ -208,7 +223,7 @@ public class MultiChoicePrompt extends ChoicePrompt {
 			}
 		}
 		else {
-			throw new IllegalArgumentException("The value is not decodable as a reponse value.");
+			throw new IllegalArgumentException("The value is not decodable as a reponse value: " + value.toString());
 		}
 		
 		for(Integer key : collectionValue) {

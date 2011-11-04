@@ -87,7 +87,7 @@ import org.ohmage.validator.SurveyResponseValidators;
  *     <td>A comma-separated list of the columns to retrieve responses for
  *         or the value {@value #_URN_SPECIAL_ALL}. If {@value #_URN_SPECIAL_ALL}
  *         is not used, the only allowed values are: 
- *         {@value #URN_CONTEXT_CLIENT},
+ *         {@value org.ohmage.domain.campaign.SurveyResponse.ColumnKey#URN_CONTEXT_CLIENT},
  *         {@value #URN_CONTEXT_TIMESTAMP},
  *         {@value #URN_CONTEXT_TIMEZONE},
  *         {@value #URN_CONTEXT_UTC_TIMESTAMP},
@@ -192,44 +192,51 @@ public final class SurveyResponseReadRequest extends UserRequest {
 	/**
 	 * The, optional, additional JSON key associated with a prompt responses in
 	 * the 
-	 * {@link org.ohmage.domain.Campaign.SurveyResponse.OutputFormat#JSON_COLUMNS JSON_COLUMNS} 
+	 * {@link org.ohmage.domain.campaign.SurveyResponse.OutputFormat#JSON_COLUMNS JSON_COLUMNS} 
 	 * format representing additional information about the prompt's responses.
 	 * 
-	 * @see org.ohmage.domain.Campaign.SurveyResponse.OutputFormat#JSON_COLUMNS JSON_COLUMNS
+	 * @see org.ohmage.domain.campaign.SurveyResponse.OutputFormat#JSON_COLUMNS
 	 */
 	public static final String JSON_KEY_CONTEXT = "context";
 	/**
 	 * The JSON key associated with a prompt responses in the 
-	 * {@link org.ohmage.domain.Campaign.SurveyResponse.OutputFormat#JSON_COLUMNS JSON_COLUMNS} 
+	 * {@link org.ohmage.domain.campaign.SurveyResponse.OutputFormat#JSON_COLUMNS JSON_COLUMNS} 
 	 * format representing the values for the prompt response.
 	 * 
-	 * @see org.ohmage.domain.Campaign.SurveyResponse.OutputFormat#JSON_COLUMNS JSON_COLUMNS
+	 * @see org.ohmage.domain.campaign.SurveyResponse.OutputFormat#JSON_COLUMNS
 	 */
 	public static final String JSON_KEY_VALUES = "values";
 	/**
 	 * The JSON key in the metadata for 
-	 * {@link org.ohmage.domain.Campaign.SurveyResponse.OutputFormat#JSON_ROWS JSON_ROWS}
+	 * {@link org.ohmage.domain.campaign.SurveyResponse.OutputFormat#JSON_ROWS JSON_ROWS}
 	 * representing the number of unique surveys in the results. 
 	 * 
-	 * @see org.ohmage.domain.Campaign.SurveyResponse.OutputFormat#JSON_ROWS JSON_ROWS
+	 * @see org.ohmage.domain.campaign.SurveyResponse.OutputFormat#JSON_ROWS
 	 */
 	public static final String JSON_KEY_NUM_SURVEYS = "number_of_surveys";
 	/**
 	 * The JSON key in the metadata for 
-	 * {@link org.ohmage.domain.Campaign.SurveyResponse.OutputFormat#JSON_ROWS JSON_ROWS}
+	 * {@link org.ohmage.domain.campaign.SurveyResponse.OutputFormat#JSON_ROWS JSON_ROWS}
 	 * representing the number of unique prompts in the results. 
 	 * 
-	 * @see org.ohmage.domain.Campaign.SurveyResponse.OutputFormat#JSON_ROWS JSON_ROWS
+	 * @see org.ohmage.domain.campaign.SurveyResponse.OutputFormat#JSON_ROWS
 	 */
 	public static final String JSON_KEY_NUM_PROMPTS = "number_of_prompts";
 	/**
 	 * The JSON key in the metadata for 
-	 * {@link org.ohmage.domain.Campaign.SurveyResponse.OutputFormat#JSON_ROWS JSON_ROWS}
-	 * representing the keys in the data portion of the response. 
+	 * {@link org.ohmage.domain.campaign.SurveyResponse.OutputFormat#JSON_ROWS JSON_ROWS}
+	 * output representing the keys in the data portion of the response. 
 	 * 
-	 * @see org.ohmage.domain.Campaign.SurveyResponse.OutputFormat#JSON_ROWS JSON_ROWS
+	 * @see org.ohmage.domain.campaign.SurveyResponse.OutputFormat#JSON_ROWS
 	 */
 	public static final String JSON_KEY_ITEMS = "items";
+	/**
+	 * The JSON key associated with every record if the input parameter
+	 * {@link org.ohmage.request.InputKeys#COLLAPSE collapse} is true.
+	 * 
+	 * @see org.ohmage.request.InputKeys#COLLAPSE
+	 */
+	public static final String JSON_KEY_COUNT = "count";
 	
 	public static final String URN_SPECIAL_ALL = "urn:ohmage:special:all";
 	public static final Collection<String> URN_SPECIAL_ALL_LIST;
@@ -687,15 +694,17 @@ public final class SurveyResponseReadRequest extends UserRequest {
 			try {
 				boolean allColumns = columns.equals(URN_SPECIAL_ALL_LIST);
 			
+				// TODO: I am fairly confident that these two branches can be
+				// merged further and subsequently cleaned up, but I don't have
+				// the time to tackle it right now.
 				if(OutputFormat.JSON_ROWS.equals(outputFormat)) {
 					httpResponse.setContentType("text/html");
 					
 					JSONObject result = new JSONObject();
 					result.put(JSON_KEY_RESULT, RESULT_SUCCESS);
 					
-					Set<String> uniqueSurveyIds = new HashSet<String>();
-					Set<String> uniquePromptIds = new HashSet<String>();
-					Set<String> keys = new HashSet<String>();
+					List<String> uniqueSurveyIds = new LinkedList<String>();
+					List<String> uniquePromptIds = new LinkedList<String>();
 					JSONArray results = new JSONArray();
 					for(SurveyResponse surveyResponse : surveyResponseList) {
 						uniqueSurveyIds.add(surveyResponse.getSurvey().getId());
@@ -811,25 +820,28 @@ public final class SurveyResponseReadRequest extends UserRequest {
 							}
 						}
 						
-						Iterator<?> currResultIter = currResult.keys();
-						while(currResultIter.hasNext()) {
-							keys.add((String) currResultIter.next());
-						}
 						results.put(currResult);
 					}
 					
 					if((collapse != null) && collapse) {
 						int numResults = results.length();
-						Set<String> collapsedSet = new HashSet<String>(numResults);
+						Map<JSONObject, Integer> collapsedMap = 
+							new HashMap<JSONObject, Integer>(numResults);
 						
 						for(int i = 0; i < numResults; i++) {
-							// This shouldn't work because JSONObject can 
-							// output identical objects in different manners.
-							if(! collapsedSet.add(results.getJSONObject(i).toString())) {
+							JSONObject currResult = results.getJSONObject(i);
+							Integer prevCount = collapsedMap.put(currResult, 1);
+							if(prevCount != null) {
+								collapsedMap.put(currResult, prevCount + 1);
 								results.remove(i);
 								i--;
 								numResults--;
 							}
+						}
+						
+						for(int i = 0; i < numResults; i++) {
+							JSONObject currResult = results.getJSONObject(i);
+							currResult.put(JSON_KEY_COUNT, collapsedMap.get(currResult));
 						}
 					}
 					result.put(JSON_KEY_DATA, results);
@@ -840,7 +852,37 @@ public final class SurveyResponseReadRequest extends UserRequest {
 						
 						metadata.put(JSON_KEY_NUM_SURVEYS, uniqueSurveyIds.size());
 						metadata.put(JSON_KEY_NUM_PROMPTS, uniquePromptIds.size());
-						metadata.put(JSON_KEY_ITEMS, keys);
+						
+						Collection<String> columnsResult = 
+							new HashSet<String>(columns.size());
+						
+						// If it contains the special 'all' value, add them 
+						// all.
+						if(columns.contains(URN_SPECIAL_ALL)) {
+							ColumnKey[] values = SurveyResponse.ColumnKey.values();
+							for(int i = 0; i < values.length; i++) {
+								columnsResult.add(values[i].toString());
+							}
+						}
+						// Otherwise, add cycle through them 
+						else {
+							for(ColumnKey columnKey : columns) {
+								columnsResult.add(columnKey.toString());
+							}
+						}
+						
+						// Check if prompt responses were requested, and, if 
+						// so, add them to the list of columns.
+						if(columns.contains(SurveyResponse.ColumnKey.PROMPT_RESPONSE) ||
+								columns.contains(URN_SPECIAL_ALL)) {
+							
+							for(String promptId : uniquePromptIds) {
+								columnsResult.add(ColumnKey.URN_PROMPT_ID_PREFIX + promptId);
+							}
+						}
+						
+						// Add it to the metadata result.
+						metadata.put(JSON_KEY_ITEMS, columnsResult);
 						
 						result.put(JSON_KEY_METADATA, metadata);
 					}
@@ -873,7 +915,7 @@ public final class SurveyResponseReadRequest extends UserRequest {
 
 					Map<String, Survey> surveys = new HashMap<String, Survey>();
 					Map<String, JSONObject> prompts = new HashMap<String, JSONObject>();
-
+					
 					for(SurveyResponse surveyResponse : surveyResponseList) {
 						Survey survey = surveyResponse.getSurvey();
 						
@@ -899,6 +941,7 @@ public final class SurveyResponseReadRequest extends UserRequest {
 								launchContexts
 							);
 					}
+					int promptCount = numResponses;
 					
 					// Add all of the applicable output stuff.
 					JSONObject result = new JSONObject();
@@ -999,7 +1042,16 @@ public final class SurveyResponseReadRequest extends UserRequest {
 						}
 						int keyLength = keys.length();
 						
-						Set<String> uniqueRow = new HashSet<String>();
+						JSONArray values = new JSONArray();
+						for(int i = 0; i < numResponses; i++) {
+							values.put(1);
+						}
+						JSONObject valueObject = new JSONObject();
+						valueObject.put(JSON_KEY_VALUES, values);
+						result.put("urn:ohmage:context:count", valueObject);
+						keys.put("urn:ohmage:context:count");
+						
+						Map<String, Integer> valueToIndexMap = new HashMap<String, Integer>();
 						for(int i = 0; i < numResponses; i++) {
 							StringBuilder currResultBuilder = new StringBuilder();
 							
@@ -1011,13 +1063,20 @@ public final class SurveyResponseReadRequest extends UserRequest {
 								}
 							}
 							
-							if(! uniqueRow.add(currResultBuilder.toString())) {
-								for(int j = 0; j < keyLength; j++) {
+							String currResultString = currResultBuilder.toString();
+							if(valueToIndexMap.containsKey(currResultString)) {
+								int count = result.getJSONObject("urn:ohmage:context:count").getJSONArray(JSON_KEY_VALUES).getInt(valueToIndexMap.get(currResultString)) + 1;
+								result.getJSONObject("urn:ohmage:context:count").getJSONArray(JSON_KEY_VALUES).put(valueToIndexMap.get(currResultString).intValue(), count);
+								
+								for(int j = 0; j < keyLength + 1; j++) {
 									result.getJSONObject(keys.getString(j)).getJSONArray(JSON_KEY_VALUES).remove(i);
 								}
 
 								i--;
 								numResponses--;
+							}
+							else {
+								valueToIndexMap.put(currResultString, i);
 							}
 						}
 					}
@@ -1026,9 +1085,9 @@ public final class SurveyResponseReadRequest extends UserRequest {
 					if((suppressMetadata == null) || (! suppressMetadata)) {
 						metadata = new JSONObject();
 						
-						metadata.put("campaign_urn", campaignId);
-						metadata.put("number_of_prompts", prompts.size());
-						metadata.put("number_of_surveys", surveys.size());
+						metadata.put(InputKeys.CAMPAIGN_URN, campaignId);
+						metadata.put(JSON_KEY_NUM_SURVEYS, surveyResponseList.size());
+						metadata.put(JSON_KEY_NUM_PROMPTS, promptCount);
 					}
 					
 					if(OutputFormat.JSON_COLUMNS.equals(outputFormat)) {
@@ -1038,7 +1097,12 @@ public final class SurveyResponseReadRequest extends UserRequest {
 						resultJson.put(JSON_KEY_RESULT, RESULT_SUCCESS);
 						
 						if((suppressMetadata == null) || (! suppressMetadata)) {
-							metadata.put("items", result.keys());
+							JSONArray itemsJson = new JSONArray();
+							Iterator<?> keys = result.keys();
+							while(keys.hasNext()) {
+								itemsJson.put(keys.next());
+							}
+							metadata.put("items", itemsJson);
 							resultJson.put(JSON_KEY_METADATA, metadata);
 						}
 						

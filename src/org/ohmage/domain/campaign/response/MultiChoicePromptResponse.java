@@ -52,7 +52,12 @@ public class MultiChoicePromptResponse extends PromptResponse {
 			throw new IllegalArgumentException("Both hours and no response were given.");
 		}
 		
-		this.choices = new ArrayList<Integer>(choices);
+		if(choices == null) {
+			this.choices = new ArrayList<Integer>(0);
+		}
+		else {
+			this.choices = new ArrayList<Integer>(choices);
+		}
 	}
 	
 	/**

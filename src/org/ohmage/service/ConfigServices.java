@@ -70,7 +70,7 @@ public class ConfigServices {
 		}
 		
 		SurveyResponse.PrivacyState[] surveyResponsePrivacyStates =
-			SurveyResponse.PrivacyState.getPrivacyStates();
+			SurveyResponse.PrivacyState.values();
 		
 		boolean defaultCampaignCreationPrivilege;
 		try {

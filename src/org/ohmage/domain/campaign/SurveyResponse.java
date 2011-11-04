@@ -18,6 +18,7 @@ import org.json.JSONObject;
 import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.domain.Location;
 import org.ohmage.domain.campaign.Response.NoResponse;
+import org.ohmage.domain.campaign.prompt.CustomChoicePrompt;
 import org.ohmage.exception.ErrorCodeException;
 import org.ohmage.util.StringUtils;
 import org.ohmage.util.TimeUtils;
@@ -111,15 +112,6 @@ public class SurveyResponse {
 		 */
 		public static PrivacyState getValue(final String privacyState) {
 			return valueOf(privacyState.toUpperCase());
-		}
-		
-		/**
-		 * Returns all of the privacy states that are being used.
-		 * 
-		 * @return A list of privacy states.
-		 */
-		public static PrivacyState[] getPrivacyStates() {
-			return new PrivacyState[] { PRIVATE, SHARED };
 		}
 		
 		/**
@@ -310,6 +302,13 @@ public class SurveyResponse {
 		 * @see ColumnKey#CONTEXT_TIMEZONE
 		 */
 		CONTEXT_TIMESTAMP ("urn:ohmage:context:timestamp"),
+		/**
+		 * The survey's location's timestamp key where the time is adjusted to
+		 * UTC.
+		 * 
+		 * @see ColumnKey#CONTEXT_LOCATION_STATUS
+		 */
+		CONTEXT_LOCATION_UTC_TIMESTAMP ("urn:ohmage:context:utc_timestamp"),
 		/**
 		 * The survey-wide timezone key.
 		 * 
@@ -1381,6 +1380,7 @@ public class SurveyResponse {
 					for(SurveyItem surveyItem : surveyItems.values()) {
 						if(surveyItem.getId().equals(promptId)) {
 							prompt = (Prompt) surveyItem;
+							break;
 						}
 					}
 					if(prompt == null) {
@@ -1475,6 +1475,34 @@ public class SurveyResponse {
 		}
 		catch(JSONException e) {
 			throw new ErrorCodeException(ErrorCode.SURVEY_INVALID_RESPONSES, "The response value was missing.", e);
+		}
+		
+		// FIXME:
+		// This is the shim layer that allows custom choice prompts to still
+		// upload a key and lookup table instead of just the raw values.
+		if(prompt instanceof CustomChoicePrompt) {
+			try {
+				Map<String, Integer> choicesMap = new HashMap<String, Integer>();
+				JSONArray choices = response.getJSONArray("custom_choices");
+				int numChoices = choices.length();
+				
+				for(int i = 0; i < numChoices; i++) {
+					JSONObject currChoice = choices.getJSONObject(i);
+					choicesMap.put(currChoice.getString("choice_value"), currChoice.getInt("choice_id"));
+				}
+				
+				JSONArray responsesJson = new JSONArray(responseObject);
+				int numResponses = responsesJson.length();
+				Collection<Integer> responses = new ArrayList<Integer>(numResponses);
+				for(int i = 0; i < numResponses; i++) {
+					responses.add(choicesMap.get((String) responsesJson.get(i)));
+				}
+				
+				responseObject = responses;
+			}
+			catch(JSONException e) {
+				throw new ErrorCodeException(ErrorCode.SURVEY_INVALID_RESPONSES, "The dictionary for the custom choice prompt was missing or malformed: " + prompt.getId());
+			}
 		}
 		
 		try {

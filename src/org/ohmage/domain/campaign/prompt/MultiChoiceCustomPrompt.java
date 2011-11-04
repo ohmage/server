@@ -155,6 +155,21 @@ public class MultiChoiceCustomPrompt extends CustomChoicePrompt {
 				}
 			}
 		}
+		// If it's a JSONArray, parse it and get the items.
+		else if(value instanceof JSONArray) {
+			JSONArray responses = (JSONArray) value;
+			int numResponses = responses.length();
+			collectionValue = new HashSet<String>(numResponses);
+			
+			for(int i = 0; i < numResponses; i++) {
+				try {
+					collectionValue.add(responses.getString(i));
+				}
+				catch(JSONException notKey) {
+					throw new IllegalArgumentException("The value was a JSONArray, but not all of the elements were strings.", notKey);
+				}
+			}
+		}
 		// If it's a sting, parse it to check if it's a NoResponse value and,
 		// if not, parse it and generate a list of values.
 		else if(value instanceof String) {
