@@ -229,10 +229,10 @@ public class SurveyResponseFunctionReadRequest extends UserRequest {
 		
 		try {
 			LOGGER.info("Verifying that the campaign exists.");
-			CampaignServices.checkCampaignExistence(campaignId, true);
+			CampaignServices.instance().checkCampaignExistence(campaignId, true);
 			
 			LOGGER.info("Verifying that the user is allowed to read the requested survey responses.");
-			UserCampaignServices.requesterCanViewUsersSurveyResponses(
+			UserCampaignServices.instance().requesterCanViewUsersSurveyResponses(
 					campaignId, 
 					getUser().getUsername(), 
 					(ownersUsername == null) ?
@@ -242,10 +242,10 @@ public class SurveyResponseFunctionReadRequest extends UserRequest {
 			// TODO: Only supervisors can specify an user.
 			
 			LOGGER.info("Gathering the campaign.");
-			Campaign campaign = CampaignServices.findCampaignConfiguration(campaignId);
+			Campaign campaign = CampaignServices.instance().findCampaignConfiguration(campaignId);
 			
 			LOGGER.info("Gathering the survey response information.");
-			surveyResponses = SurveyResponseServices.readSurveyResponseInformation(
+			surveyResponses = SurveyResponseServices.instance().readSurveyResponseInformation(
 					campaign, 
 					ownersUsername, 
 					null, 

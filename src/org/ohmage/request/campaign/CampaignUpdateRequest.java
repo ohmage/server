@@ -213,17 +213,17 @@ public class CampaignUpdateRequest extends UserRequest {
 		
 		try {
 			LOGGER.info("Verfiying that the campaign exists and that the user belongs.");
-			UserCampaignServices.campaignExistsAndUserBelongs(campaignId, getUser().getUsername());
+			UserCampaignServices.instance().campaignExistsAndUserBelongs(campaignId, getUser().getUsername());
 			
 			LOGGER.info("Verifying that the user is allowed to update the campaign.");
-			UserCampaignServices.verifyUserCanUpdateCampaign(getUser().getUsername(), campaignId);
+			UserCampaignServices.instance().verifyUserCanUpdateCampaign(getUser().getUsername(), campaignId);
 			
 			if(xml != null) {
 				LOGGER.info("Verifying that the user is allowed to update the campaign.");
-				UserCampaignServices.verifyUserCanUpdateCampaignXml(getUser().getUsername(), campaignId);
+				UserCampaignServices.instance().verifyUserCanUpdateCampaignXml(getUser().getUsername(), campaignId);
 				
 				LOGGER.info("Verifying that the ID and name for the XML haven't changed.");
-				CampaignServices.verifyTheNewXmlIdAndNameAreTheSameAsTheCurrentIdAndName(campaignId, xml);
+				CampaignServices.instance().verifyTheNewXmlIdAndNameAreTheSameAsTheCurrentIdAndName(campaignId, xml);
 			}
 			
 			if((classesToAdd != null) && (classesToRemove != null)) {
@@ -237,27 +237,27 @@ public class CampaignUpdateRequest extends UserRequest {
 			
 			if(classesToAdd != null) {
 				LOGGER.info("Verifying that all of the classes to add exist and that the user belongs.");
-				UserClassServices.classesExistAndUserBelongs(classesToAdd, getUser().getUsername());
+				UserClassServices.instance().classesExistAndUserBelongs(classesToAdd, getUser().getUsername());
 			}
 			
 			if(classesToRemove != null) {
 				LOGGER.info("Verifying that all of the classes to remove exist and that the user belongs.");
-				UserClassServices.classesExistAndUserBelongs(classesToRemove, getUser().getUsername());
+				UserClassServices.instance().classesExistAndUserBelongs(classesToRemove, getUser().getUsername());
 				
 				LOGGER.info("Verifying that not all of the classes are being disassociated from the campaign.");
-				CampaignClassServices.verifyNotDisassocitingAllClassesFromCampaign(campaignId, classesToRemove, classesToAdd);
+				CampaignClassServices.instance().verifyNotDisassocitingAllClassesFromCampaign(campaignId, classesToRemove, classesToAdd);
 			}
 			
 			if(usersAndRolesToAdd != null) {
 				LOGGER.info("Verifying that all of the users to add exist.");
-				UserServices.verifyUsersExist(usersAndRolesToAdd.keySet(), true);
+				UserServices.instance().verifyUsersExist(usersAndRolesToAdd.keySet(), true);
 				
 				LOGGER.info("Verifying that the user is allowed to give the permissions they are trying to give.");
 				Set<Campaign.Role> roles = new HashSet<Campaign.Role>();
 				for(Set<Campaign.Role> currRoles : usersAndRolesToAdd.values()) {
 					roles.addAll(currRoles);
 				}
-				UserCampaignServices.verifyUserCanGrantOrRevokeRoles(getUser().getUsername(), campaignId, roles);
+				UserCampaignServices.instance().verifyUserCanGrantOrRevokeRoles(getUser().getUsername(), campaignId, roles);
 			}
 			
 			if(usersAndRolesToRemove != null) {
@@ -266,11 +266,11 @@ public class CampaignUpdateRequest extends UserRequest {
 				for(Set<Campaign.Role> currRoles : usersAndRolesToRemove.values()) {
 					roles.addAll(currRoles);
 				}
-				UserCampaignServices.verifyUserCanGrantOrRevokeRoles(getUser().getUsername(), campaignId, roles);
+				UserCampaignServices.instance().verifyUserCanGrantOrRevokeRoles(getUser().getUsername(), campaignId, roles);
 			}
 			
 			LOGGER.info("Updating the campaign.");
-			CampaignServices.updateCampaign(campaignId, xml, description, runningState, privacyState, classesToAdd, classesToRemove, usersAndRolesToAdd, usersAndRolesToRemove);
+			CampaignServices.instance().updateCampaign(campaignId, xml, description, runningState, privacyState, classesToAdd, classesToRemove, usersAndRolesToAdd, usersAndRolesToRemove);
 		}
 		catch(ServiceException e) {
 			e.failRequest(this);

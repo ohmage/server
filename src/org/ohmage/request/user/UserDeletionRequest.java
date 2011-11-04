@@ -88,13 +88,13 @@ public class UserDeletionRequest extends UserRequest {
 		
 		try {
 			LOGGER.info("Verifying that the user is an admin.");
-			UserServices.verifyUserIsAdmin(getUser().getUsername());
+			UserServices.instance().verifyUserIsAdmin(getUser().getUsername());
 			
 			LOGGER.info("Verifying that the users in the list exist.");
-			UserServices.verifyUsersExist(usernames, true);
+			UserServices.instance().verifyUsersExist(usernames, true);
 			
 			LOGGER.info("Deleteing the user(s).");
-			UserServices.deleteUser(usernames);
+			UserServices.instance().deleteUser(usernames);
 		}
 		catch(ServiceException e) {
 			e.failRequest(this);

@@ -76,7 +76,7 @@ public final class AuditReporter {
 			// Use the service to aggregate the results.
 			List<Audit> audits;
 			try {
-				audits = AuditServices.getAuditInformation(
+				audits = AuditServices.instance().getAuditInformation(
 						null, 
 						null, 
 						null, 

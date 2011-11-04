@@ -101,10 +101,10 @@ public class VizTwoDDensityRequest extends VisualizationRequest {
 		
 		try {
 			LOGGER.info("Verifying that the first prompt ID exists in the campaign's XML");
-			CampaignServices.ensurePromptExistsInCampaign(getCampaignId(), promptId);
+			CampaignServices.instance().ensurePromptExistsInCampaign(getCampaignId(), promptId);
 			
 			LOGGER.info("Verifying that the second prompt ID exists in the campaign's XML");
-			CampaignServices.ensurePromptExistsInCampaign(getCampaignId(), prompt2Id);
+			CampaignServices.instance().ensurePromptExistsInCampaign(getCampaignId(), prompt2Id);
 			
 			Map<String, String> parameters = getVisualizationParameters();
 			parameters.put(VisualizationServices.PARAMETER_KEY_PROMPT_ID, promptId);

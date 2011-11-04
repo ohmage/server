@@ -187,7 +187,7 @@ public class RequestServlet extends HttpServlet {
 				}
 				
 				// Create the audit report.
-				AuditServices.createAudit(requestType, uri, client, deviceId, responseString, parameterMap, extras, receivedTimestamp, respondTimestamp);
+				AuditServices.instance().createAudit(requestType, uri, client, deviceId, responseString, parameterMap, extras, receivedTimestamp, respondTimestamp);
 			}
 			catch(IllegalArgumentException e) {
 				LOGGER.error("Error while auditing the request.", e);

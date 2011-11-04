@@ -301,28 +301,28 @@ public class CampaignReadRequest extends UserRequest {
 		try {
 			if(campaignIds != null) {
 				LOGGER.info("Verifying that all of the campaigns exist and that the user belongs to them in some capacity.");
-				UserCampaignServices.campaignsExistAndUserBelongs(campaignIds, getUser().getUsername());
+				UserCampaignServices.instance().campaignsExistAndUserBelongs(campaignIds, getUser().getUsername());
 			}
 			
 			if(OutputFormat.SHORT.equals(outputFormat) || OutputFormat.LONG.equals(outputFormat)) {
 				if(classIds != null) {
 					LOGGER.info("Verifying that all of the classes exist and that the user belongs to them in some capacity.");
-					UserClassServices.classesExistAndUserBelongs(classIds, getUser().getUsername());
+					UserClassServices.instance().classesExistAndUserBelongs(classIds, getUser().getUsername());
 				}
 				
 				LOGGER.info("Generating the list of campaign IDs based on the parameters.");
-				Set<String> resultCampaignIds = UserCampaignServices.getCampaignsForUser(getUser().getUsername(), 
+				Set<String> resultCampaignIds = UserCampaignServices.instance().getCampaignsForUser(getUser().getUsername(), 
 						campaignIds, classIds, startDate, endDate, privacyState, runningState, role);
 				
 				LOGGER.info("Gathering the information about the campaigns.");
-				shortOrLongResult = UserCampaignServices.getCampaignAndUserRolesForCampaigns(getUser().getUsername(), resultCampaignIds, OutputFormat.LONG.equals(outputFormat));
+				shortOrLongResult = UserCampaignServices.instance().getCampaignAndUserRolesForCampaigns(getUser().getUsername(), resultCampaignIds, OutputFormat.LONG.equals(outputFormat));
 			}
 			else if(OutputFormat.XML.equals(outputFormat)) {
 				LOGGER.info("Gathering the XML for the campaign.");
-				xmlResult = CampaignServices.getCampaignXml(campaignIds.get(0));
+				xmlResult = CampaignServices.instance().getCampaignXml(campaignIds.get(0));
 				
 				LOGGER.info("Gathering the name of the campaign.");
-				campaignNameResult = CampaignServices.getCampaignName(campaignIds.get(0));
+				campaignNameResult = CampaignServices.instance().getCampaignName(campaignIds.get(0));
 			}
 		}
 		catch(ServiceException e) {

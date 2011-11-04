@@ -142,33 +142,33 @@ public class DocumentReadRequest extends UserRequest {
 		try {
 			if(campaignIds != null) {
 				LOGGER.info("Verifying that the campaigns in the campaign list exist and that the user belongs.");
-				UserCampaignServices.campaignsExistAndUserBelongs(campaignIds, getUser().getUsername());
+				UserCampaignServices.instance().campaignsExistAndUserBelongs(campaignIds, getUser().getUsername());
 			}
 			
 			if(classIds != null) {
 				LOGGER.info("Verifying that the classes in the class list exist and that the user belongs.");
-				UserClassServices.classesExistAndUserBelongs(classIds, getUser().getUsername());
+				UserClassServices.instance().classesExistAndUserBelongs(classIds, getUser().getUsername());
 			}
 			
 			Set<String> documentIds = new HashSet<String>();
 			
 			if(personalDocuments) {
 				LOGGER.info("Gathering information about the documents that are specific to this user.");
-				documentIds.addAll(UserDocumentServices.getDocumentsSpecificToUser(getUser().getUsername())); 
+				documentIds.addAll(UserDocumentServices.instance().getDocumentsSpecificToUser(getUser().getUsername())); 
 			}
 			
 			if(campaignIds != null) {
 				LOGGER.info("Gathering information about the documents that are visible to this user in the parameterized campaigns.");
-				documentIds.addAll(UserCampaignDocumentServices.getVisibleDocumentsSpecificToCampaigns(getUser().getUsername(), campaignIds));
+				documentIds.addAll(UserCampaignDocumentServices.instance().getVisibleDocumentsSpecificToCampaigns(getUser().getUsername(), campaignIds));
 			}
 		
 			if(classIds != null) {
 				LOGGER.info("Gathering information about the documents that are visible to this user in the parameterized classes.");
-				documentIds.addAll(UserClassDocumentServices.getVisibleDocumentsSpecificToClasses(getUser().getUsername(), classIds));
+				documentIds.addAll(UserClassDocumentServices.instance().getVisibleDocumentsSpecificToClasses(getUser().getUsername(), classIds));
 			}
 			
 			LOGGER.info("Gathering the specific information about each of the documents.");
-			result = UserDocumentServices.getDocumentInformationForDocumentsWithUser(getUser().getUsername(), documentIds);
+			result = UserDocumentServices.instance().getDocumentInformationForDocumentsWithUser(getUser().getUsername(), documentIds);
 		}
 		catch(ServiceException e) {
 			e.failRequest(this);

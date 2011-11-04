@@ -8,7 +8,8 @@ import java.net.URL;
 import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.exception.DataAccessException;
 import org.ohmage.exception.ServiceException;
-import org.ohmage.query.ImageQueries;
+import org.ohmage.query.IImageQueries;
+import org.ohmage.query.impl.ImageQueries;
 import org.ohmage.validator.ImageValidators.ImageSize;
 
 /**
@@ -20,10 +21,37 @@ import org.ohmage.validator.ImageValidators.ImageSize;
  * @author John Jenkins
  */
 public final class ImageServices {
+	private static ImageServices instance;
+	private IImageQueries imageQueries;
+	
 	/**
-	 * Default constructor. Private so that it cannot be instantiated.
+	 * Default constructor. Privately instantiated via dependency injection
+	 * (reflection).
+	 * 
+	 * @throws IllegalStateException if an instance of this class already
+	 * exists
+	 * 
+	 * @throws IllegalArgumentException if iImageQueries is null
 	 */
-	private ImageServices() {}
+	private ImageServices(IImageQueries iImageQueries) {
+		if(instance != null) {
+			throw new IllegalStateException("An instance of this class already exists.");
+		}
+
+		if(iImageQueries == null) {
+			throw new IllegalArgumentException("An instance of IImageQueries is required.");
+		}
+		
+		imageQueries = iImageQueries;
+		instance = this;
+	}
+	
+	/**
+	 * @return  Returns the singleton instance of this class.
+	 */
+	public static ImageServices instance() {
+		return instance;
+	}
 	
 	/**
 	 * Checks if an image exists or not and compares that to whether or not it
@@ -37,11 +65,10 @@ public final class ImageServices {
 	 * 							should or does exist and it should not, or if
 	 * 							there is an error.
 	 */
-	public static void verifyImageExistance(final String imageId, 
-			final boolean shouldExist) throws ServiceException {
+	public void verifyImageExistance(final String imageId, final boolean shouldExist) throws ServiceException {
 		
 		try {
-			Boolean imageExists = ImageQueries.getImageExists(imageId);
+			Boolean imageExists = imageQueries.getImageExists(imageId);
 			
 			if(imageExists && (! shouldExist)) {
 				throw new ServiceException(
@@ -73,11 +100,10 @@ public final class ImageServices {
 	 * 							malformed, or there is an error connecting to
 	 * 							them.
 	 */
-	public static InputStream getImage(final String imageId, 
-			final ImageSize size) throws ServiceException {
+	public InputStream getImage(final String imageId, final ImageSize size) throws ServiceException {
 		
 		try {
-			String imageUrl = ImageQueries.getImageUrl(imageId);
+			String imageUrl = imageQueries.getImageUrl(imageId);
 			
 			if(ImageSize.SMALL.equals(size)) {
 				int imageUrlLength = imageUrl.length();

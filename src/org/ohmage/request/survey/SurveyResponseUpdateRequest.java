@@ -136,10 +136,10 @@ public class SurveyResponseUpdateRequest extends UserRequest {
 		
 		try {
 			LOGGER.info("Verifying that the user is allowed to update the survey response.");
-			UserSurveyResponseServices.verifyUserCanUpdateOrDeleteSurveyResponse(this.getUser().getUsername(), this.surveyResponseId);
+			UserSurveyResponseServices.instance().verifyUserCanUpdateOrDeleteSurveyResponse(this.getUser().getUsername(), this.surveyResponseId);
 			
 			LOGGER.info("Updating the survey response.");
-			SurveyResponseServices.updateSurveyResponsePrivacyState(this.surveyResponseId, this.privacyState);
+			SurveyResponseServices.instance().updateSurveyResponsePrivacyState(this.surveyResponseId, this.privacyState);
 		}
 		catch(ServiceException e) {
 			e.failRequest(this);

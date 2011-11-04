@@ -8,10 +8,10 @@ import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.domain.Document;
 import org.ohmage.exception.DataAccessException;
 import org.ohmage.exception.ServiceException;
-import org.ohmage.query.CampaignDocumentQueries;
-import org.ohmage.query.ClassDocumentQueries;
-import org.ohmage.query.DocumentQueries;
-import org.ohmage.query.UserDocumentQueries;
+import org.ohmage.query.ICampaignDocumentQueries;
+import org.ohmage.query.IClassDocumentQueries;
+import org.ohmage.query.IDocumentQueries;
+import org.ohmage.query.IUserDocumentQueries;
 import org.ohmage.request.Request;
 
 /**
@@ -19,12 +19,58 @@ import org.ohmage.request.Request;
  * user-document relationships.
  * 
  * @author John Jenkins
+ * @author Joshua Selsky
  */
 public class UserDocumentServices {
+	private static UserDocumentServices instance;
+	
+	private ICampaignDocumentQueries campaignDocumentQueries;
+	private IClassDocumentQueries classDocumentQueries;
+	private IDocumentQueries documentQueries;
+	private IUserDocumentQueries userDocumentQueries;
+	
 	/**
-	 * Default constructor. Private so that it cannot be instantiated.
+	 * Default constructor. Privately instantiated via dependency injection
+	 * (reflection).
+	 * 
+	 * @throws IllegalStateException if an instance of this class already
+	 * exists
+	 * 
+	 * @throws IllegalArgumentException if iCampaignDocumentQueries or 
+	 * iClassDocumentQueries or iDocumentQueries or iUserDocumentQueries is 
+	 * null
 	 */
-	private UserDocumentServices() {}
+	private UserDocumentServices(ICampaignDocumentQueries iCampaignDocumentQueries,
+			IDocumentQueries iDocumentQueries, IClassDocumentQueries iClassDocumentQueries, 
+			IUserDocumentQueries iUserDocumentQueries) {
+				
+		if(iCampaignDocumentQueries == null) {
+			throw new IllegalArgumentException("An instance of ICampaignDocumentQueries is required.");
+		}
+		if(iDocumentQueries == null) {
+			throw new IllegalArgumentException("An instance of IDocumentQueries is required.");
+		}
+		if(iClassDocumentQueries == null) {
+			throw new IllegalArgumentException("An instance of IClassDocumentQueries is required.");
+		}
+		if(iUserDocumentQueries == null) {
+			throw new IllegalArgumentException("An instance of IUserDocumentQueries is required.");
+		}
+
+		campaignDocumentQueries = iCampaignDocumentQueries;
+		documentQueries = iDocumentQueries;
+		classDocumentQueries = iClassDocumentQueries;
+		userDocumentQueries = iUserDocumentQueries;
+		
+		instance = this;
+	}
+	
+	/**
+	 * @return  Returns the singleton instance of this class.
+	 */
+	public static UserDocumentServices instance() {
+		return instance;
+	}
 	
 	/**
 	 * Retrieves the ID for all documents directly associated with the user.
@@ -35,11 +81,9 @@ public class UserDocumentServices {
 	 * 
 	 * @throws ServiceException Thrown if there is an error.
 	 */
-	public static List<String> getDocumentsSpecificToUser(
-			final String username) throws ServiceException {
-		
+	public List<String> getDocumentsSpecificToUser(final String username) throws ServiceException {
 		try {
-			return UserDocumentQueries.getVisibleDocumentsSpecificToUser(username);
+			return userDocumentQueries.getVisibleDocumentsSpecificToUser(username);
 		}
 		catch(DataAccessException e) {
 			throw new ServiceException(e);
@@ -57,11 +101,11 @@ public class UserDocumentServices {
 	 * @throws ServiceException Thrown if the user cannot read this document or
 	 * 							if there is an error.
 	 */
-	public static void userCanReadDocument(final String username, 
+	public void userCanReadDocument(final String username, 
 			final String documentId) throws ServiceException {
 		
 		try {
-			List<Document.Role> roles = UserDocumentQueries.getDocumentRolesForDocumentForUser(username, documentId);
+			List<Document.Role> roles = userDocumentQueries.getDocumentRolesForDocumentForUser(username, documentId);
 			
 			// To read a document, it simply has to be visible to the user in
 			// some capacity.
@@ -87,10 +131,10 @@ public class UserDocumentServices {
 	 * @throws ServiceException Thrown if the user cannot modify this document
 	 * 							or if there is an error.
 	 */
-	public static void userCanModifyDocument(final String username, 
+	public void userCanModifyDocument(final String username, 
 			final String documentId) throws ServiceException {
 		try {
-			List<Document.Role> roles = UserDocumentQueries.getDocumentRolesForDocumentForUser(username, documentId);
+			List<Document.Role> roles = userDocumentQueries.getDocumentRolesForDocumentForUser(username, documentId);
 			
 			// To modify a document, the user must be a writer or owner or a
 			// supervisor in any of the campaigns to which the document is 
@@ -98,8 +142,8 @@ public class UserDocumentServices {
 			// document is associated.
 			if((! roles.contains(Document.Role.OWNER)) && 
 			   (! roles.contains(Document.Role.WRITER)) &&
-			   (! UserCampaignDocumentServices.getUserIsSupervisorInAnyCampaignAssociatedWithDocument(username, documentId)) &&
-			   (! UserClassDocumentServices.getUserIsPrivilegedInAnyClassAssociatedWithDocument(username, documentId))) {
+			   (! UserCampaignDocumentServices.instance().getUserIsSupervisorInAnyCampaignAssociatedWithDocument(username, documentId)) &&
+			   (! UserClassDocumentServices.instance().getUserIsPrivilegedInAnyClassAssociatedWithDocument(username, documentId))) {
 				throw new ServiceException(
 						ErrorCode.DOCUMENT_INSUFFICIENT_PERMISSIONS, 
 						"The user does not have sufficient permissions to modify the document.");
@@ -121,19 +165,19 @@ public class UserDocumentServices {
 	 * @throws ServiceException Thrown if the user cannot modify this document
 	 * 							or if there is an error.
 	 */
-	public static void userCanDeleteDocument(final String username, 
+	public void userCanDeleteDocument(final String username, 
 			final String documentId) throws ServiceException {
 		
 		try {
-			List<Document.Role> roles = UserDocumentQueries.getDocumentRolesForDocumentForUser(username, documentId);
+			List<Document.Role> roles = userDocumentQueries.getDocumentRolesForDocumentForUser(username, documentId);
 			
 			// To modify a document, the user must be a writer or owner or a
 			// supervisor in any of the campaigns to which the document is 
 			// associated or privileged in any of the classes to which the 
 			// document is associated.
 			if((! roles.contains(Document.Role.OWNER)) &&
-			   (! UserCampaignDocumentServices.getUserIsSupervisorInAnyCampaignAssociatedWithDocument(username, documentId)) &&
-			   (! UserClassDocumentServices.getUserIsPrivilegedInAnyClassAssociatedWithDocument(username, documentId))) {
+			   (! UserCampaignDocumentServices.instance().getUserIsSupervisorInAnyCampaignAssociatedWithDocument(username, documentId)) &&
+			   (! UserClassDocumentServices.instance().getUserIsPrivilegedInAnyClassAssociatedWithDocument(username, documentId))) {
 				throw new ServiceException(
 						ErrorCode.DOCUMENT_INSUFFICIENT_PERMISSIONS, 
 						"The user does not have sufficient permissions to delete the document.");
@@ -158,7 +202,7 @@ public class UserDocumentServices {
 	 * @throws ServiceException Thrown if the role is not high enough to
 	 * 							disassociate the user and document.
 	 */
-	public static void ensureRoleHighEnoughToDisassociateOtherUserFromDocument(
+	public void ensureRoleHighEnoughToDisassociateOtherUserFromDocument(
 			final Document.Role role, final String username, 
 			final String documentId) throws ServiceException {
 		
@@ -190,7 +234,7 @@ public class UserDocumentServices {
 	 * @throws ServiceException Thrown if the role is not high enough to
 	 * 							disassociate a user and document.
 	 */
-	public static void ensureRoleHighEnoughToDisassociateDocumentFromOtherUsers(
+	public void ensureRoleHighEnoughToDisassociateDocumentFromOtherUsers(
 			final Document.Role role, final Collection<String> usernames, 
 			final String documentId) throws ServiceException {
 		
@@ -216,12 +260,12 @@ public class UserDocumentServices {
 	 * 
 	 * @throws ServiceException Thrown if there is an error.
 	 */
-	public static Document.Role getHighestDocumentRoleForUserForDocument(
+	public Document.Role getHighestDocumentRoleForUserForDocument(
 			final String username, final String documentId) 
 			throws ServiceException {
 		
 		try {
-			List<Document.Role> roles = UserDocumentQueries.getDocumentRolesForDocumentForUser(username, documentId);
+			List<Document.Role> roles = userDocumentQueries.getDocumentRolesForDocumentForUser(username, documentId);
 			
 			if(roles.contains(Document.Role.OWNER)) {
 				return Document.Role.OWNER;
@@ -257,24 +301,24 @@ public class UserDocumentServices {
 	 * 
 	 * @throws ServiceException Thrown if there is an error.
 	 */
-	public static Document getDocumentInformationForDocumentWithUser(
+	public Document getDocumentInformationForDocumentWithUser(
 			final String username, final String documentId) 
 			throws ServiceException {
 		
 		try {
 			// Get the document's basic information.
-			Document result = DocumentQueries.getDocumentInformation(documentId);
+			Document result = documentQueries.getDocumentInformation(documentId);
 			
 			// Get the user's specific role.
-			Document.Role userRole = UserDocumentQueries.getDocumentRoleForDocumentSpecificToUser(username, documentId);
+			Document.Role userRole = userDocumentQueries.getDocumentRoleForDocumentSpecificToUser(username, documentId);
 			if(userRole != null) {
 				result.setUserRole(userRole);
 			}
 			
 			// For all of the campaigns associated with the document, get their
 			// role.
-			for(String campaignId : CampaignDocumentQueries.getCampaignsAssociatedWithDocument(documentId)) {
-				Document.Role campaignRole = CampaignDocumentQueries.getCampaignDocumentRole(campaignId, documentId);
+			for(String campaignId : campaignDocumentQueries.getCampaignsAssociatedWithDocument(documentId)) {
+				Document.Role campaignRole = campaignDocumentQueries.getCampaignDocumentRole(campaignId, documentId);
 				if(campaignRole != null) {
 					result.addCampaignRole(campaignId, campaignRole);
 				}
@@ -282,8 +326,8 @@ public class UserDocumentServices {
 			
 			// For all of the classes associated with the document, get their
 			// role.
-			for(String classId : ClassDocumentQueries.getClassesAssociatedWithDocument(documentId)) {
-				Document.Role classRole = ClassDocumentQueries.getClassDocumentRole(classId, documentId);
+			for(String classId : classDocumentQueries.getClassesAssociatedWithDocument(documentId)) {
+				Document.Role classRole = classDocumentQueries.getClassDocumentRole(classId, documentId);
 				if(classRole != null) {
 					result.addClassRole(classId, classRole);
 				}
@@ -313,7 +357,7 @@ public class UserDocumentServices {
 	 * 
 	 * @see #getDocumentInformationForDocumentWithUser(Request, String, String)
 	 */
-	public static List<Document> getDocumentInformationForDocumentsWithUser(
+	public List<Document> getDocumentInformationForDocumentsWithUser(
 			final String username, final Collection<String> documentIds) 
 			throws ServiceException {
 		

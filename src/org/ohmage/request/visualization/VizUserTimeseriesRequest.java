@@ -78,13 +78,13 @@ public class VizUserTimeseriesRequest extends VisualizationRequest {
 		
 		try {
 			LOGGER.info("Verifying that the prompt ID exists in the campaign's XML");
-			CampaignServices.ensurePromptExistsInCampaign(getCampaignId(), promptId);
+			CampaignServices.instance().ensurePromptExistsInCampaign(getCampaignId(), promptId);
 			
 			LOGGER.info("Verifying that the user exists.");
-			UserServices.checkUserExistance(username, true);
+			UserServices.instance().checkUserExistance(username, true);
 			
 			LOGGER.info("Verifying that the requester has permissions to view another user's data.");
-			UserCampaignServices.requesterCanViewUsersSurveyResponses(getCampaignId(), getUser().getUsername(), username);
+			UserCampaignServices.instance().requesterCanViewUsersSurveyResponses(getCampaignId(), getUser().getUsername(), username);
 			
 			Map<String, String> parameters = getVisualizationParameters();
 			parameters.put(VisualizationServices.PARAMETER_KEY_PROMPT_ID, promptId);

@@ -14,11 +14,11 @@ import org.ohmage.domain.UserPersonal;
 import org.ohmage.domain.campaign.Campaign;
 import org.ohmage.exception.DataAccessException;
 import org.ohmage.exception.ServiceException;
-import org.ohmage.query.CampaignClassQueries;
-import org.ohmage.query.CampaignQueries;
-import org.ohmage.query.CampaignSurveyResponseQueries;
-import org.ohmage.query.UserCampaignQueries;
-import org.ohmage.query.UserQueries;
+import org.ohmage.query.ICampaignClassQueries;
+import org.ohmage.query.ICampaignQueries;
+import org.ohmage.query.ICampaignSurveyResponseQueries;
+import org.ohmage.query.IUserCampaignQueries;
+import org.ohmage.query.IUserQueries;
 import org.ohmage.util.StringUtils;
 
 /**
@@ -28,10 +28,66 @@ import org.ohmage.util.StringUtils;
  * @author Joshua Selsky
  */
 public class UserCampaignServices {
+	private static UserCampaignServices instance;
+	
+	private ICampaignQueries campaignQueries;
+	private ICampaignClassQueries campaignClassQueries;
+	private IUserCampaignQueries userCampaignQueries;
+	private IUserQueries userQueries;
+	private ICampaignSurveyResponseQueries campaignSurveyResponseQueries;
+	
 	/**
-	 * Default constructor. Private so that it cannot be instantiated.
+	 * Default constructor. Privately instantiated via dependency injection
+	 * (reflection).
+	 * 
+	 * @throws IllegalStateException if an instance of this class already
+	 * exists
+	 * 
+	 * @throws IllegalArgumentException if iCampaignClassQueries or 
+	 * iCampaignQueries or iUserCampaignQueries or iUserCampaignQueries or 
+	 * iCampaignSurveyResponseQueries is null
 	 */
-	private UserCampaignServices() {}
+	private UserCampaignServices(ICampaignClassQueries iCampaignClassQueries, 
+			                     ICampaignQueries iCampaignQueries,
+			                     IUserCampaignQueries iUserCampaignQueries,
+			                     IUserQueries iUserQueries,
+			                     ICampaignSurveyResponseQueries iCampaignSurveyResponseQueries) {
+		if(instance != null) {
+			throw new IllegalStateException("An instance of this class already exists.");
+		}
+
+		if(iCampaignClassQueries == null) {
+			throw new IllegalArgumentException("An instance of ICampaignClassQueries is required.");
+		}
+		if(iCampaignQueries == null) {
+			throw new IllegalArgumentException("An instance of ICampaignQueries is required.");
+		}
+		if(iUserCampaignQueries == null) {
+			throw new IllegalArgumentException("An instance of IUserCampaignQueries is required.");
+		}
+		if(iUserQueries == null) {
+			throw new IllegalArgumentException("An instance of IUserQueries is required.");
+		}
+		if(iCampaignSurveyResponseQueries == null) {
+			throw new IllegalArgumentException("An instance of ICampaignSurveyResponseQueries is required.");
+		}
+
+		
+		campaignClassQueries = iCampaignClassQueries;
+		campaignQueries = iCampaignQueries;
+		userCampaignQueries = iUserCampaignQueries;
+		userQueries = iUserQueries;
+		campaignSurveyResponseQueries = iCampaignSurveyResponseQueries;
+		
+		instance = this;
+	}
+	
+	/**
+	 * @return  Returns the singleton instance of this class.
+	 */
+	public static UserCampaignServices instance() {
+		return instance;
+	}
 	
 	/**
 	 * Ensures that a campaign exists and that a user belongs to the campaign
@@ -46,13 +102,13 @@ public class UserCampaignServices {
 	 * 							doesn't belong to the campaign, or if there is
 	 * 							an error.
 	 */
-	public static void campaignExistsAndUserBelongs(final String campaignId, 
+	public void campaignExistsAndUserBelongs(final String campaignId, 
 			final String username) throws ServiceException {
 		
-		CampaignServices.checkCampaignExistence(campaignId, true);
+		CampaignServices.instance().checkCampaignExistence(campaignId, true);
 		
 		try {
-			if(! UserCampaignQueries.userBelongsToCampaign(username, campaignId)) {
+			if(! userCampaignQueries.userBelongsToCampaign(username, campaignId)) {
 				throw new ServiceException(
 						ErrorCode.CAMPAIGN_INSUFFICIENT_PERMISSIONS, 
 						"The user does not belong to the campaign: " + 
@@ -77,7 +133,7 @@ public class UserCampaignServices {
 	 * 							the user doesn't belong to any of the 
 	 * 							campaigns, or if there is an error. 
 	 */
-	public static void campaignsExistAndUserBelongs(
+	public void campaignsExistAndUserBelongs(
 			final List<String> campaignIds, final String username) 
 			throws ServiceException {
 		
@@ -97,12 +153,12 @@ public class UserCampaignServices {
 	 * @throws ServiceException Thrown if the user is not allowed to upload 
 	 * 							survey responses or if there is an error.
 	 */
-	public static void verifyUserCanUploadSurveyResponses( 
+	public void verifyUserCanUploadSurveyResponses( 
 			final String username, final String campaignId) 
 			throws ServiceException {
 		
 		try {
-			if(! UserCampaignQueries.getUserCampaignRoles(username, campaignId).contains(Campaign.Role.PARTICIPANT)) {
+			if(! userCampaignQueries.getUserCampaignRoles(username, campaignId).contains(Campaign.Role.PARTICIPANT)) {
 				throw new ServiceException(
 						ErrorCode.SURVEY_INSUFFICIENT_PERMISSIONS, 
 						"The user is not a participant in the campaign and, therefore, cannot upload responses.");
@@ -125,12 +181,12 @@ public class UserCampaignServices {
 	 * 							personal information about all of the users in
 	 * 							the class or if there is an error.
 	 */
-	public static void verifyUserCanReadUsersInfoInCampaign(
+	public void verifyUserCanReadUsersInfoInCampaign(
 			final String username, final String campaignId) 
 			throws ServiceException  {
 		
 		try {
-			if(! UserCampaignQueries.getUserCampaignRoles(username, campaignId).contains(Campaign.Role.SUPERVISOR)) {
+			if(! userCampaignQueries.getUserCampaignRoles(username, campaignId).contains(Campaign.Role.SUPERVISOR)) {
 				throw new ServiceException(
 						ErrorCode.CAMPAIGN_INSUFFICIENT_PERMISSIONS, 
 						"The user is not allowed to read the personal information of the users in the following campaign: " + 
@@ -154,7 +210,7 @@ public class UserCampaignServices {
 	 * 							personal information of the users in one of the
 	 * 							classes or if there is an error.
 	 */
-	public static void verifyUserCanReadUsersInfoInCampaigns(
+	public void verifyUserCanReadUsersInfoInCampaigns(
 			final String username, final Collection<String> campaignIds) 
 			throws ServiceException {
 		
@@ -173,11 +229,11 @@ public class UserCampaignServices {
 	 * @throws ServiceException Thrown if the user is not allowed to update 
 	 * 							this campaign or if there is an error.
 	 */
-	public static void verifyUserCanUpdateCampaign(final String username, 
+	public void verifyUserCanUpdateCampaign(final String username, 
 			final String campaignId) throws ServiceException {
 		
 		try {
-			List<Campaign.Role> roles = UserCampaignQueries.getUserCampaignRoles(username, campaignId);
+			List<Campaign.Role> roles = userCampaignQueries.getUserCampaignRoles(username, campaignId);
 			
 			if(roles.contains(Campaign.Role.SUPERVISOR) ||
 			   roles.contains(Campaign.Role.AUTHOR)) {
@@ -205,16 +261,16 @@ public class UserCampaignServices {
 	 * 							campaign but responses exist, or if there is an
 	 * 							error.
 	 */
-	public static void verifyUserCanUpdateCampaignXml(
+	public void verifyUserCanUpdateCampaignXml(
 			final String username, final String campaignId) 
 			throws ServiceException {
 		
 		try {
-			List<Campaign.Role> roles = UserCampaignQueries.getUserCampaignRoles(username, campaignId);
+			List<Campaign.Role> roles = userCampaignQueries.getUserCampaignRoles(username, campaignId);
 			
 			if(roles.contains(Campaign.Role.SUPERVISOR) ||
 			   roles.contains(Campaign.Role.AUTHOR)) {
-				if(CampaignSurveyResponseQueries.getNumberOfSurveyResponsesForCampaign(campaignId) == 0) {
+				if(campaignSurveyResponseQueries.getNumberOfSurveyResponsesForCampaign(campaignId) == 0) {
 					return;
 				}
 				
@@ -246,12 +302,12 @@ public class UserCampaignServices {
 	 * @throws ServiceException Thrown if the user is not allowed to grant or
 	 * 							revoke some role or if there is an error.
 	 */
-	public static void verifyUserCanGrantOrRevokeRoles(final String username, 
+	public void verifyUserCanGrantOrRevokeRoles(final String username, 
 			final String campaignId, final Collection<Campaign.Role> roles) 
 			throws ServiceException {
 		
 		try {
-			List<Campaign.Role> usersRoles = UserCampaignQueries.getUserCampaignRoles(username, campaignId);
+			List<Campaign.Role> usersRoles = userCampaignQueries.getUserCampaignRoles(username, campaignId);
 			
 			if(usersRoles.contains(Campaign.Role.SUPERVISOR)) {
 				return;
@@ -293,18 +349,18 @@ public class UserCampaignServices {
 	 * 							permissions to delete the campaign or if there
 	 * 							is an error.
 	 */
-	public static void userCanDeleteCampaign(final String username, 
+	public void userCanDeleteCampaign(final String username, 
 			final String campaignId) throws ServiceException {
 		
 		try {
-			List<Campaign.Role> roles = UserCampaignQueries.getUserCampaignRoles(username, campaignId);
+			List<Campaign.Role> roles = userCampaignQueries.getUserCampaignRoles(username, campaignId);
 			
 			if(roles.contains(Campaign.Role.SUPERVISOR)) {
 				return;
 			}
 			
 			if(roles.contains(Campaign.Role.AUTHOR)) {
-				long numberOfResponses = CampaignSurveyResponseQueries.getNumberOfSurveyResponsesForCampaign(campaignId);
+				long numberOfResponses = campaignSurveyResponseQueries.getNumberOfSurveyResponsesForCampaign(campaignId);
 				
 				if(numberOfResponses == 0) {
 					return;
@@ -336,11 +392,11 @@ public class UserCampaignServices {
 	 * 
 	 * @throws ServiceException Thrown if there is an error.
 	 */
-	public static List<String> getUsersInCampaign(final String campaignId) 
+	public List<String> getUsersInCampaign(final String campaignId) 
 			throws ServiceException {
 		
 		try {
-			return UserCampaignQueries.getUsersInCampaign(campaignId);
+			return userCampaignQueries.getUsersInCampaign(campaignId);
 		}
 		catch(DataAccessException e) {
 			throw new ServiceException(e);
@@ -357,7 +413,7 @@ public class UserCampaignServices {
 	 * 
 	 * @throws ServiceException Thrown if there is an error.
 	 */
-	public static Set<String> getUsersInCampaigns(
+	public Set<String> getUsersInCampaigns(
 			final Collection<String> campaignIds) throws ServiceException {
 		
 		Set<String> usernames = new HashSet<String>();
@@ -377,7 +433,7 @@ public class UserCampaignServices {
 	 * 
 	 * @throws ServiceException Thrown if there is an error.
 	 */
-	public static Map<String, UserPersonal> getPersonalInfoForUsersInCampaigns(
+	public Map<String, UserPersonal> getPersonalInfoForUsersInCampaigns(
 			final Collection<String> campaignIds) throws ServiceException {
 		
 		try {
@@ -385,7 +441,7 @@ public class UserCampaignServices {
 			Collection<String> usernames = getUsersInCampaigns(campaignIds);
 			
 			for(String username : usernames) {
-				result.put(username, UserQueries.getPersonalInfoForUser(username));
+				result.put(username, userQueries.getPersonalInfoForUser(username));
 			}
 			
 			return result;
@@ -422,7 +478,7 @@ public class UserCampaignServices {
 	 * @throws ServiceException Thrown if none of the rules are true or there 
 	 * 							is an error.
 	 */
-	public static void requesterCanViewUsersSurveyResponses(
+	public void requesterCanViewUsersSurveyResponses(
 			final String campaignId, final String requesterUsername, 
 			final String... userUsernames) throws ServiceException {
 		try {
@@ -438,7 +494,7 @@ public class UserCampaignServices {
 			}
 			
 			List<Campaign.Role> requesterRoles = 
-				UserCampaignQueries.getUserCampaignRoles(requesterUsername, campaignId);
+				userCampaignQueries.getUserCampaignRoles(requesterUsername, campaignId);
 			
 			// If the requester's role list contains supervisor, return.
 			if(requesterRoles.contains(Campaign.Role.SUPERVISOR)) {
@@ -452,7 +508,7 @@ public class UserCampaignServices {
 			
 			// If the requester's role list contains analyst,
 			if(requesterRoles.contains(Campaign.Role.ANALYST)) {
-				Campaign.PrivacyState privacyState = CampaignQueries.getCampaignPrivacyState(campaignId);
+				Campaign.PrivacyState privacyState = campaignQueries.getCampaignPrivacyState(campaignId);
 				
 				if((privacyState != null) && 
 				   (Campaign.PrivacyState.SHARED.equals(privacyState))) {
@@ -530,7 +586,7 @@ public class UserCampaignServices {
 	 * 
 	 * @throws ServiceException Thrown if there is an error.
 	 */
-	public static Set<String> getCampaignsForUser(final String username, 
+	public Set<String> getCampaignsForUser(final String username, 
 			final Collection<String> campaignIds, 
 			final Collection<String> classIds,
 			final Date startDate, final Date endDate, 
@@ -544,7 +600,7 @@ public class UserCampaignServices {
 			if(campaignIds == null) {
 				// Initializes the list with all of the campaign IDs for the 
 				// requesting user.
-				desiredCampaignIds.addAll(UserCampaignQueries.getCampaignIdsAndNameForUser(username).keySet());
+				desiredCampaignIds.addAll(userCampaignQueries.getCampaignIdsAndNameForUser(username).keySet());
 			}
 			else {
 				// Initializes the list with the campaign IDs in the query.
@@ -559,7 +615,7 @@ public class UserCampaignServices {
 				// Get all of the campaigns associated with all of the classes in
 				// the list.
 				for(String classId : classIds) {
-					desiredCampaignIds.retainAll(CampaignClassQueries.getCampaignsAssociatedWithClass(classId));
+					desiredCampaignIds.retainAll(campaignClassQueries.getCampaignsAssociatedWithClass(classId));
 				}
 				
 				if(desiredCampaignIds.size() == 0) {
@@ -570,7 +626,7 @@ public class UserCampaignServices {
 			if(startDate != null) {
 				// Get all of the campaigns whose creation timestamp is greater
 				// than or equal to the start date.
-				desiredCampaignIds.retainAll(CampaignQueries.getCampaignsOnOrAfterDate(startDate));
+				desiredCampaignIds.retainAll(campaignQueries.getCampaignsOnOrAfterDate(startDate));
 				
 				if(desiredCampaignIds.size() == 0) {
 					return Collections.emptySet();
@@ -580,7 +636,7 @@ public class UserCampaignServices {
 			if(endDate != null) {
 				// Get all of the campaigns whose creation timestamp is less than
 				// or equal to the end date.
-				desiredCampaignIds.retainAll(CampaignQueries.getCampaignsOnOrBeforeDate(endDate));
+				desiredCampaignIds.retainAll(campaignQueries.getCampaignsOnOrBeforeDate(endDate));
 				
 				if(desiredCampaignIds.size() == 0) {
 					return Collections.emptySet();
@@ -589,7 +645,7 @@ public class UserCampaignServices {
 			
 			if(privacyState != null) {
 				// Get all of the campaigns with a privacy state of 'privacyState'.
-				desiredCampaignIds.retainAll(CampaignQueries.getCampaignsWithPrivacyState(privacyState));
+				desiredCampaignIds.retainAll(campaignQueries.getCampaignsWithPrivacyState(privacyState));
 				
 				if(desiredCampaignIds.size() == 0) {
 					return Collections.emptySet();
@@ -598,7 +654,7 @@ public class UserCampaignServices {
 			
 			if(runningState != null) {
 				// Get all of the campaigns with a running state of 'runningState'.
-				desiredCampaignIds.retainAll(CampaignQueries.getCampaignsWithRunningState(runningState));
+				desiredCampaignIds.retainAll(campaignQueries.getCampaignsWithRunningState(runningState));
 				
 				if(desiredCampaignIds.size() == 0) {
 					return Collections.emptySet();
@@ -607,7 +663,7 @@ public class UserCampaignServices {
 			
 			if(role != null) {
 				// Get all of the campaigns where the user's role is 'role'.
-				desiredCampaignIds.retainAll(UserCampaignQueries.getCampaignIdsForUserWithRole(username, role));
+				desiredCampaignIds.retainAll(userCampaignQueries.getCampaignIdsForUserWithRole(username, role));
 				
 				if(desiredCampaignIds.size() == 0) {
 					return Collections.emptySet();
@@ -645,7 +701,7 @@ public class UserCampaignServices {
 	 * 
 	 * @throws ServiceException Thrown if there is an error.
 	 */
-	public static Map<Campaign, List<Campaign.Role>> getCampaignAndUserRolesForCampaigns(
+	public Map<Campaign, List<Campaign.Role>> getCampaignAndUserRolesForCampaigns(
 			final String username, final Collection<String> campaignIds, 
 			final boolean withExtras) throws ServiceException {
 		
@@ -654,21 +710,21 @@ public class UserCampaignServices {
 			
 			for(String campaignId : campaignIds) {
 				// Create the Campaign object with the campaign's ID.
-				Campaign campaign = CampaignQueries.getCampaignInformation(campaignId);
+				Campaign campaign = campaignQueries.getCampaignInformation(campaignId);
 				
 				// Get the user's roles.
-				List<Campaign.Role> roles = UserCampaignQueries.getUserCampaignRoles(username, campaignId);
+				List<Campaign.Role> roles = userCampaignQueries.getUserCampaignRoles(username, campaignId);
 				
 				// If we are supposed to get the extra information as well.
 				if(withExtras) {
 					// Add the classes that are associated with the campaign.
-					campaign.addClasses(CampaignClassQueries.getClassesAssociatedWithCampaign(campaignId));
+					campaign.addClasses(campaignClassQueries.getClassesAssociatedWithCampaign(campaignId));
 					
 					// Add the list of roles and all of the users with those
 					// roles.
-					List<String> campaignUsernames = UserCampaignQueries.getUsersInCampaign(campaignId);
+					List<String> campaignUsernames = userCampaignQueries.getUsersInCampaign(campaignId);
 					for(String campaignUsername : campaignUsernames) {
-						List<Campaign.Role> userRoles = UserCampaignQueries.getUserCampaignRoles(campaignUsername, campaignId);
+						List<Campaign.Role> userRoles = userCampaignQueries.getUserCampaignRoles(campaignUsername, campaignId);
 						
 						for(Campaign.Role userRole : userRoles) {
 							campaign.addUser(campaignUsername, userRole);
@@ -700,11 +756,11 @@ public class UserCampaignServices {
 	 * 							read the users of a campaign and their roles or
 	 * 							if there is an error.
 	 */
-	public static void verifyUserCanReadUsersInCampaign(final String username,
+	public void verifyUserCanReadUsersInCampaign(final String username,
 			final String campaignId) throws ServiceException {
 		
 		try {
-			List<Campaign.Role> roles = UserCampaignQueries.getUserCampaignRoles(username, campaignId);
+			List<Campaign.Role> roles = userCampaignQueries.getUserCampaignRoles(username, campaignId);
 			
 			if(roles.contains(Campaign.Role.SUPERVISOR) || 
 					roles.contains(Campaign.Role.AUTHOR)) {
@@ -734,7 +790,7 @@ public class UserCampaignServices {
 	 * 							list of users in one of the campaigns or if 
 	 * 							there is an error.
 	 */
-	public static void verifyUserCanReadUsersInCampaigns(final String username,
+	public void verifyUserCanReadUsersInCampaigns(final String username,
 			final Collection<String> campaignIds) throws ServiceException {
 		
 		for(String campaignId : campaignIds) {
@@ -755,12 +811,12 @@ public class UserCampaignServices {
 	 * 							permissions to read the list of classes for a
 	 * 							campaign.
 	 */
-	public static void verifyUserCanReadClassesAssociatedWithCampaign(
+	public void verifyUserCanReadClassesAssociatedWithCampaign(
 			final String username, final String campaignId) 
 			throws ServiceException {
 		
 		try {
-			List<Campaign.Role> roles = UserCampaignQueries.getUserCampaignRoles(username, campaignId);
+			List<Campaign.Role> roles = userCampaignQueries.getUserCampaignRoles(username, campaignId);
 			
 			if(roles.contains(Campaign.Role.SUPERVISOR) || 
 					roles.contains(Campaign.Role.AUTHOR)) {
@@ -790,7 +846,7 @@ public class UserCampaignServices {
 	 * 							permissions to read the list of classes for any
 	 * 							of the campaigns.
 	 */
-	public static void verifyUserCanReadClassesAssociatedWithCampaigns(
+	public void verifyUserCanReadClassesAssociatedWithCampaigns(
 			final String username, final Collection<String> campaignIds) 
 			throws ServiceException {
 		
@@ -810,7 +866,7 @@ public class UserCampaignServices {
 	 * @throws IllegalArgumentException if the request is null; if the 
 	 * campaignId is empty or null; or if the usernameList is null.
 	 */
-	public static void verifyUsersExistInCampaign(final String campaignId, 
+	public void verifyUsersExistInCampaign(final String campaignId, 
 			final Collection<String> usernameList) throws ServiceException {
 		
 		// check for logical errors
@@ -821,7 +877,7 @@ public class UserCampaignServices {
 		// check each username in usernameList
 		try {
 			for(String username : usernameList) {
-				if(! UserCampaignQueries.userBelongsToCampaign(username, campaignId)) {
+				if(! userCampaignQueries.userBelongsToCampaign(username, campaignId)) {
 					StringBuilder sb = new StringBuilder();
 					sb.append("User in usernameList does not belong to campaign. Username: ");
 					sb.append(username);

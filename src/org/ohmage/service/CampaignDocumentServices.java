@@ -7,19 +7,48 @@ import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.domain.Document;
 import org.ohmage.exception.DataAccessException;
 import org.ohmage.exception.ServiceException;
-import org.ohmage.query.CampaignDocumentQueries;
+import org.ohmage.query.ICampaignDocumentQueries;
 
 /**
  * This class contains the services that pertain to campaign-document 
  * associations.
  * 
  * @author John Jenkins
+ * @author Joshua Selsky
  */
 public class CampaignDocumentServices {
+	private static CampaignDocumentServices instance;
+	private ICampaignDocumentQueries campaignDocumentQueries;
+	
 	/**
-	 * Default constructor. Private so that it cannot be instantiated.
+	 * Default constructor. Privately instantiated via dependency injection
+	 * (reflection).
+	 * 
+	 * @throws IllegalStateException if an instance of this class already
+	 * exists
+	 * 
+	 * @throws IllegalArgumentException if iCampaignDocumentQueries is null
 	 */
-	private CampaignDocumentServices() {}
+	private CampaignDocumentServices(ICampaignDocumentQueries iCampaignDocumentQueries) {
+		if(instance != null) {
+			throw new IllegalStateException("An instance of this class already exists.");
+		}
+
+		if(iCampaignDocumentQueries == null) {
+			throw new IllegalArgumentException("An instance of ICampaignDocumentQueries is required.");
+		}
+		
+		campaignDocumentQueries = iCampaignDocumentQueries;
+		
+		instance = this;
+	}
+	
+	/**
+	 * @return  Returns the singleton instance of this class.
+	 */
+	public static CampaignDocumentServices instance() {
+		return instance;
+	}
 	
 	/**
 	 * Retrieves a List of campaign IDs that are associated with a document.
@@ -30,11 +59,11 @@ public class CampaignDocumentServices {
 	 * 
 	 * @throws ServiceException Thrown if there is an error.
 	 */
-	public static List<String> getCampaignsAssociatedWithDocument(
+	public List<String> getCampaignsAssociatedWithDocument(
 			final String documentId) throws ServiceException {
 		
 		try {
-			return CampaignDocumentQueries.getCampaignsAssociatedWithDocument(documentId);
+			return campaignDocumentQueries.getCampaignsAssociatedWithDocument(documentId);
 		}
 		catch(DataAccessException e) {
 			throw new ServiceException(e);
@@ -53,12 +82,12 @@ public class CampaignDocumentServices {
 	 * 
 	 * @throws ServiceException Thrown if there is an error.
 	 */
-	public static Document.Role getDocumentRoleForCampaign(
+	public Document.Role getDocumentRoleForCampaign(
 			final String campaignId, final String documentId) 
 			throws ServiceException {
 		
 		try {
-			return CampaignDocumentQueries.getCampaignDocumentRole(campaignId, documentId);
+			return campaignDocumentQueries.getCampaignDocumentRole(campaignId, documentId);
 		}
 		catch(DataAccessException e) {
 			throw new ServiceException(e);
@@ -79,7 +108,7 @@ public class CampaignDocumentServices {
 	 * @throws ServiceException Thrown if the role is not high enough to
 	 * 							disassociate the campaign and document.
 	 */
-	public static void ensureRoleHighEnoughToDisassociateDocumentFromCampaign(
+	public void ensureRoleHighEnoughToDisassociateDocumentFromCampaign(
 			final Document.Role role, final String campaignId, 
 			final String documentId) throws ServiceException {
 		
@@ -111,7 +140,7 @@ public class CampaignDocumentServices {
 	 * @throws ServiceException Thrown if the role is not high enough to
 	 * 							disassociate a campaign and document.
 	 */
-	public static void ensureRoleHighEnoughToDisassociateDocumentFromCampaigns(
+	public void ensureRoleHighEnoughToDisassociateDocumentFromCampaigns(
 			final Document.Role role, final Collection<String> campaignIds, 
 			final String documentId) throws ServiceException {
 		

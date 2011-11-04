@@ -552,7 +552,7 @@ public final class SurveyResponseReadRequest extends UserRequest {
 			// belong to the campaign but still want to see their data. This
 			// should only check that the campaign exists.
 			LOGGER.info("Verifying that requester belongs to the campaign specified by campaign ID.");
-		    UserCampaignServices.campaignExistsAndUserBelongs(campaignId, this.getUser().getUsername());
+		    UserCampaignServices.instance().campaignExistsAndUserBelongs(campaignId, this.getUser().getUsername());
 		    
 		    
 		    // We have removed this ACL check because it causes participants
@@ -567,20 +567,20 @@ public final class SurveyResponseReadRequest extends UserRequest {
 		    // longer belongs to the campaign.
 		    if(! usernames.equals(URN_SPECIAL_ALL_LIST)) {
 		    	LOGGER.info("Checking the user list to make sure all of the users belong to the campaign ID.");
-		    	UserCampaignServices.verifyUsersExistInCampaign(campaignId, usernames);
+		    	UserCampaignServices.instance().verifyUsersExistInCampaign(campaignId, usernames);
 		    }
 		    
 		    LOGGER.info("Retrieving campaign configuration.");
-			Campaign configuration = CampaignServices.findCampaignConfiguration(campaignId);
+			Campaign configuration = CampaignServices.instance().findCampaignConfiguration(campaignId);
 			
 			if((promptIds != null) && (! promptIds.isEmpty()) && (! URN_SPECIAL_ALL_LIST.equals(promptIds))) {
 				LOGGER.info("Verifying that the prompt ids in the query belong to the campaign.");
-				SurveyResponseReadServices.verifyPromptIdsBelongToConfiguration(promptIds, configuration);
+				SurveyResponseReadServices.instance().verifyPromptIdsBelongToConfiguration(promptIds, configuration);
 			}
 			
 			if((surveyIds != null) && (! surveyIds.isEmpty()) && (! URN_SPECIAL_ALL_LIST.equals(surveyIds))) {
 				LOGGER.info("Verifying that the survey ids in the query belong to the campaign.");
-				SurveyResponseReadServices.verifySurveyIdsBelongToConfiguration(surveyIds, configuration);
+				SurveyResponseReadServices.instance().verifySurveyIdsBelongToConfiguration(surveyIds, configuration);
 			}
 		    
 			LOGGER.info("Dispatching to the data layer.");
@@ -588,7 +588,7 @@ public final class SurveyResponseReadRequest extends UserRequest {
 			
 			if(URN_SPECIAL_ALL_LIST.equals(usernames)) {
 				surveyResponseList.addAll(
-						SurveyResponseServices.readSurveyResponseInformation(
+						SurveyResponseServices.instance().readSurveyResponseInformation(
 								configuration, null, null, 
 								startDate, endDate, privacyState, 
 								(URN_SPECIAL_ALL_LIST.equals(surveyIds)) ? null : surveyIds, 
@@ -600,7 +600,7 @@ public final class SurveyResponseReadRequest extends UserRequest {
 			else {
 				for(String username : usernames) {
 					surveyResponseList.addAll(
-							SurveyResponseServices.readSurveyResponseInformation(
+							SurveyResponseServices.instance().readSurveyResponseInformation(
 									configuration, username, null, 
 									startDate, endDate, privacyState, 
 									(URN_SPECIAL_ALL_LIST.equals(surveyIds)) ? null : surveyIds, 
@@ -614,7 +614,7 @@ public final class SurveyResponseReadRequest extends UserRequest {
 			LOGGER.info("Found " + surveyResponseList.size() + " results");
 			
 			LOGGER.info("Filtering survey response results according to our privacy rules and the requester's role.");
-			SurveyResponseReadServices.performPrivacyFilter(this.getUser().getUsername(), campaignId, surveyResponseList);
+			SurveyResponseReadServices.instance().performPrivacyFilter(this.getUser().getUsername(), campaignId, surveyResponseList);
 			
 			LOGGER.info("Found " + surveyResponseList.size() + " results after filtering.");
 			

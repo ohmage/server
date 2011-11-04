@@ -159,13 +159,13 @@ public class ClassUpdateRequest extends UserRequest {
 		
 		try {
 			LOGGER.info("Checking that the class exists.");
-			ClassServices.checkClassExistence(classId, true);
+			ClassServices.instance().checkClassExistence(classId, true);
 			
 			LOGGER.info("Checking that the user is privileged in the class or is an admin.");
-			UserClassServices.userIsAdminOrPrivileged(classId, getUser().getUsername());
+			UserClassServices.instance().userIsAdminOrPrivileged(classId, getUser().getUsername());
 			
 			LOGGER.info("Updating the class.");
-			ClassServices.updateClass(classId, className, classDescription, usersToAdd, usersToRemove);
+			ClassServices.instance().updateClass(classId, className, classDescription, usersToAdd, usersToRemove);
 		}
 		catch(ServiceException e) {
 			e.failRequest(this);

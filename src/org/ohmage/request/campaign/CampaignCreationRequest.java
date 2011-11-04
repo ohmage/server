@@ -167,19 +167,19 @@ public class CampaignCreationRequest extends UserRequest {
 		
 		try {
 			// Get the campaign's URN and name from the XML.
-			CampaignMetadata campaignInfo = CampaignServices.getCampaignMetadataFromXml(xml);
+			CampaignMetadata campaignInfo = CampaignServices.instance().getCampaignMetadataFromXml(xml);
 			
 			LOGGER.info("Verifying that the campaign doesn't already exist.");
-			CampaignServices.checkCampaignExistence(campaignInfo.getCampaignId(), false);
+			CampaignServices.instance().checkCampaignExistence(campaignInfo.getCampaignId(), false);
 			
 			LOGGER.info("Verifying that the user is allowed to create campaigns.");
-			UserServices.verifyUserCanCreateCampaigns(getUser().getUsername());
+			UserServices.instance().verifyUserCanCreateCampaigns(getUser().getUsername());
 			
 			LOGGER.info("Verifying that all of the classes and that the user is enrolled in call of the classes.");
-			UserClassServices.classesExistAndUserBelongs(classIds, getUser().getUsername());
+			UserClassServices.instance().classesExistAndUserBelongs(classIds, getUser().getUsername());
 			
 			LOGGER.info("Creating the campaign.");
-			CampaignServices.createCampaign(campaignInfo.getCampaignId(), campaignInfo.getCampaignName(), 
+			CampaignServices.instance().createCampaign(campaignInfo.getCampaignId(), campaignInfo.getCampaignName(), 
 					xml, description, campaignInfo.getIconUrl(), campaignInfo.getAuthoredBy(), runningState, privacyState, classIds, getUser().getUsername());
 		}
 		catch(ServiceException e) {

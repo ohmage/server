@@ -163,13 +163,13 @@ public class UserCreationRequest extends UserRequest {
 		
 		try {
 			LOGGER.info("Verifying that the requesting user is an admin.");
-			UserServices.verifyUserIsAdmin(getUser().getUsername());
+			UserServices.instance().verifyUserIsAdmin(getUser().getUsername());
 			
 			LOGGER.info("Verifying that a user with the username doesn't already exist.");
-			UserServices.checkUserExistance(newUsername, false);
+			UserServices.instance().checkUserExistance(newUsername, false);
 			
 			LOGGER.info("Creating the user.");
-			UserServices.createUser(newUsername, newPassword, newIsAdmin, newIsEnabled, newIsNewAccount, newCampaignCreationPrivilege);
+			UserServices.instance().createUser(newUsername, newPassword, newIsAdmin, newIsEnabled, newIsNewAccount, newCampaignCreationPrivilege);
 		}
 		catch(ServiceException e) {
 			e.failRequest(this);

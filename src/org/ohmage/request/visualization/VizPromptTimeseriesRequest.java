@@ -87,7 +87,7 @@ private static final Logger LOGGER = Logger.getLogger(VizPromptTimeseriesRequest
 		
 		try {
 			LOGGER.info("Verifying that the prompt ID exists in the campaign's XML");
-			CampaignServices.ensurePromptExistsInCampaign(getCampaignId(), promptId);
+			CampaignServices.instance().ensurePromptExistsInCampaign(getCampaignId(), promptId);
 			
 			Map<String, String> parameters = getVisualizationParameters();
 			parameters.put(VisualizationServices.PARAMETER_KEY_PROMPT_ID, promptId);

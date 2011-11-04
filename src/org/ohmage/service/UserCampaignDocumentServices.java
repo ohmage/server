@@ -10,8 +10,8 @@ import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.domain.campaign.Campaign;
 import org.ohmage.exception.DataAccessException;
 import org.ohmage.exception.ServiceException;
-import org.ohmage.query.UserCampaignDocumentQueries;
-import org.ohmage.query.UserCampaignQueries;
+import org.ohmage.query.IUserCampaignDocumentQueries;
+import org.ohmage.query.IUserCampaignQueries;
 
 /**
  * This class contains the services for user-campaign-document relationships.
@@ -19,10 +19,44 @@ import org.ohmage.query.UserCampaignQueries;
  * @author John Jenkins
  */
 public class UserCampaignDocumentServices {
+	private static UserCampaignDocumentServices instance;
+	private IUserCampaignQueries userCampaignQueries;
+	private IUserCampaignDocumentQueries userCampaignDocumentQueries;
+		
 	/**
-	 * Default constructor. Private so that it cannot be instantiated.
+	 * Default constructor. Privately instantiated via dependency injection
+	 * (reflection).
+	 * 
+	 * @throws IllegalStateException if an instance of this class already
+	 * exists
+	 * 
+	 * @throws IllegalArgumentException if iUserCampaignQueries or 
+	 * iUserCampaignDocumentQueries is null.
 	 */
-	private UserCampaignDocumentServices() {}
+	private UserCampaignDocumentServices(IUserCampaignQueries iUserCampaignQueries, IUserCampaignDocumentQueries iUserCampaignDocumentQueries) {
+		if(instance != null) {
+			throw new IllegalStateException("An instance of this class already exists.");
+		}
+
+		if(iUserCampaignQueries == null) {
+			throw new IllegalArgumentException("An instance of IUserCampaignQueries is required.");
+		}
+		if(iUserCampaignDocumentQueries == null) {
+			throw new IllegalArgumentException("An instance of IUserCampaignDocumentQueries is required.");
+		}
+		
+		userCampaignQueries = iUserCampaignQueries;
+		userCampaignDocumentQueries = iUserCampaignDocumentQueries;
+		
+		instance = this;
+	}
+	
+	/**
+	 * @return  Returns the singleton instance of this class.
+	 */
+	public static UserCampaignDocumentServices instance() {
+		return instance;
+	}
 	
 	/**
 	 * Verifies that a user can associate documents with a campaign. The only 
@@ -37,12 +71,12 @@ public class UserCampaignDocumentServices {
 	 * 							not allowed to associate documents with this
 	 * 							campaign.
 	 */
-	public static void userCanAssociateDocumentsWithCampaign(
+	public void userCanAssociateDocumentsWithCampaign(
 			final String username, final String campaignId) 
 			throws ServiceException {
 		
 		try {
-			List<Campaign.Role> roles = UserCampaignQueries.getUserCampaignRoles(username, campaignId);
+			List<Campaign.Role> roles = userCampaignQueries.getUserCampaignRoles(username, campaignId);
 			
 			if(roles.size() == 0) {
 				throw new ServiceException(ErrorCode.DOCUMENT_INSUFFICIENT_PERMISSIONS, "The user is not a member of the following campaign and, therefore, cannot associate documents with it: " + campaignId);
@@ -66,12 +100,12 @@ public class UserCampaignDocumentServices {
 	 * 							not allowed to disassociate documents from this
 	 * 							campaign.
 	 */
-	public static void userCanDisassociateDocumentsFromCampaign(
+	public void userCanDisassociateDocumentsFromCampaign(
 			final String username, final String campaignId) 
 			throws ServiceException {
 		
 		try {
-			List<Campaign.Role> roles = UserCampaignQueries.getUserCampaignRoles(username, campaignId);
+			List<Campaign.Role> roles = userCampaignQueries.getUserCampaignRoles(username, campaignId);
 			
 			if(roles.size() == 0) {
 				throw new ServiceException(
@@ -99,7 +133,7 @@ public class UserCampaignDocumentServices {
 	 * 							not allowed to associate documents with any of
 	 * 							the campaigns.
 	 */
-	public static void userCanAssociateDocumentsWithCampaigns(
+	public void userCanAssociateDocumentsWithCampaigns(
 			final String username, final Collection<String> campaignIds) 
 			throws ServiceException {
 		
@@ -122,7 +156,7 @@ public class UserCampaignDocumentServices {
 	 * 							not allowed to disassociate documents with any
 	 * 							of the campaigns.
 	 */
-	public static void userCanDisassociateDocumentsFromCampaigns(
+	public void userCanDisassociateDocumentsFromCampaigns(
 			final String username, final Collection<String> campaignIds) 
 			throws ServiceException {
 		
@@ -143,12 +177,12 @@ public class UserCampaignDocumentServices {
 	 * 
 	 * @throws ServiceException Thrown if there is an error.
 	 */
-	public static List<String> getVisibleDocumentsSpecificToCampaign(
+	public List<String> getVisibleDocumentsSpecificToCampaign(
 			final String username, final String campaignId) 
 			throws ServiceException {
 		
 		try {
-			return UserCampaignDocumentQueries.getVisibleDocumentsToUserInCampaign(username, campaignId);
+			return userCampaignDocumentQueries.getVisibleDocumentsToUserInCampaign(username, campaignId);
 		}
 		catch(DataAccessException e) {
 			throw new ServiceException(e);
@@ -168,7 +202,7 @@ public class UserCampaignDocumentServices {
 	 * 
 	 * @throws ServiceException Thrown if there is an error.
 	 */
-	public static List<String> getVisibleDocumentsSpecificToCampaigns(
+	public List<String> getVisibleDocumentsSpecificToCampaigns(
 			final String username, final Collection<String> campaignIds) 
 			throws ServiceException {
 		
@@ -192,12 +226,12 @@ public class UserCampaignDocumentServices {
 	 * 
 	 * @throws ServiceException Thrown if there is an error.
 	 */
-	public static boolean getUserIsSupervisorInAnyCampaignAssociatedWithDocument(
+	public boolean getUserIsSupervisorInAnyCampaignAssociatedWithDocument(
 			final String username, final String documentId) 
 			throws ServiceException {
 		
 		try {
-			return UserCampaignDocumentQueries.getUserIsSupervisorInAnyCampaignAssociatedWithDocument(username, documentId);
+			return userCampaignDocumentQueries.getUserIsSupervisorInAnyCampaignAssociatedWithDocument(username, documentId);
 		}
 		catch(DataAccessException e) {
 			throw new ServiceException(e);

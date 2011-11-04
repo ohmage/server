@@ -88,7 +88,7 @@ public class UserChangePasswordRequest extends UserRequest {
 		
 		try {
 			LOGGER.info("Updating the user's password.");
-			UserServices.updatePassword(getUser().getUsername(), newPassword);
+			UserServices.instance().updatePassword(getUser().getUsername(), newPassword);
 		}
 		catch(ServiceException e) {
 			e.failRequest(this);

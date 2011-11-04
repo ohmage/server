@@ -233,30 +233,30 @@ public class SurveyUploadRequest extends UserRequest {
 		
 		try {
 			LOGGER.info("Verifying that the user is a participant in the campaign.");
-			UserCampaignServices.verifyUserCanUploadSurveyResponses(getUser().getUsername(), campaignUrn);
+			UserCampaignServices.instance().verifyUserCanUploadSurveyResponses(getUser().getUsername(), campaignUrn);
 			
 			LOGGER.info("Verifying that the campaign is running.");
-			CampaignServices.verifyCampaignIsRunning(campaignUrn);
+			CampaignServices.instance().verifyCampaignIsRunning(campaignUrn);
 			
 			LOGGER.info("Verifying that the uploaded survey responses aren't out of date.");
-			CampaignServices.verifyCampaignIsUpToDate(campaignUrn, campaignCreationTimestamp);
+			CampaignServices.instance().verifyCampaignIsUpToDate(campaignUrn, campaignCreationTimestamp);
 			
 			LOGGER.info("Generating the campaign object.");
-			Campaign campaign = CampaignServices.findCampaignConfiguration(campaignUrn);
+			Campaign campaign = CampaignServices.instance().findCampaignConfiguration(campaignUrn);
 			
 			LOGGER.info("Verifying the uploaded data against the campaign.");
 			List<SurveyResponse> surveyResponses = 
-				CampaignServices.getSurveyResponses(
+				CampaignServices.instance().getSurveyResponses(
 						getUser().getUsername(), 
 						getClient(),
 						campaign, 
 						jsonData);
 
 			LOGGER.info("Validating that all photo prompt responses have their corresponding images attached.");
-			SurveyResponseServices.verifyImagesExistForPhotoPromptResponses(surveyResponses, imageContentsMap);
+			SurveyResponseServices.instance().verifyImagesExistForPhotoPromptResponses(surveyResponses, imageContentsMap);
 			
 			LOGGER.info("Inserting the data into the database.");
-			List<Integer> duplicateIndexList = SurveyResponseServices.createSurveyResponses(getUser().getUsername(), getClient(), campaignUrn, surveyResponses, imageContentsMap);
+			List<Integer> duplicateIndexList = SurveyResponseServices.instance().createSurveyResponses(getUser().getUsername(), getClient(), campaignUrn, surveyResponses, imageContentsMap);
 
 			LOGGER.info("Found " + duplicateIndexList.size() + " duplicate survey uploads");
 		}

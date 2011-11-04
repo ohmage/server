@@ -6,7 +6,7 @@ import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.domain.Document;
 import org.ohmage.exception.DataAccessException;
 import org.ohmage.exception.ServiceException;
-import org.ohmage.query.ClassDocumentQueries;
+import org.ohmage.query.IClassDocumentQueries;
 
 /**
  * This class is responsible for all operations that pertain to class-document
@@ -15,10 +15,36 @@ import org.ohmage.query.ClassDocumentQueries;
  * @author John Jenkins
  */
 public class ClassDocumentServices {
+	private static ClassDocumentServices instance; 
+	private IClassDocumentQueries classDocumentQueries;
+	
 	/**
 	 * Default constructor. Private so that it cannot be instantiated.
+	 * 
+	 * @throws IllegalStateException  if an instance of this class already
+	 * exists
+	 * 
+	 * @throws IllegalArgumentException  if iClassDocumentQueries is null 
 	 */
-	private ClassDocumentServices() {}
+	private ClassDocumentServices(IClassDocumentQueries iClassDocumentQueries) {
+		if(instance != null) {
+			throw new IllegalStateException("An instance of this class already exists.");
+		}
+		
+		if(iClassDocumentQueries == null) {
+			throw new IllegalArgumentException("An instance of IClassDocumentQueries is required.");
+		}
+		
+		classDocumentQueries = iClassDocumentQueries;
+		instance = this;
+	}
+	
+	/**
+	 * @return  Returns the singleton instance of this class.
+	 */
+	public static ClassDocumentServices instance() {
+		return instance;
+	}
 	
 	/**
 	 * Returns the document role for a given document with a given class.
@@ -34,11 +60,11 @@ public class ClassDocumentServices {
 	 * 
 	 * @throws ServiceException Thrown if there is an error.
 	 */
-	public static Document.Role getDocumentRoleForClass(final String classId, 
+	public Document.Role getDocumentRoleForClass(final String classId, 
 			final String documentId) throws ServiceException {
 		
 		try {
-			return ClassDocumentQueries.getClassDocumentRole(classId, documentId);
+			return classDocumentQueries.getClassDocumentRole(classId, documentId);
 		}
 		catch(DataAccessException e) {
 			throw new ServiceException(e);
@@ -59,7 +85,7 @@ public class ClassDocumentServices {
 	 * @throws ServiceException Thrown if the role is not high enough to
 	 * 							disassociate a class and document.
 	 */
-	public static void ensureRoleHighEnoughToDisassociateDocumentFromClass(
+	public void ensureRoleHighEnoughToDisassociateDocumentFromClass(
 			final Document.Role role, final String classId, 
 			final String documentId) throws ServiceException {
 		
@@ -91,7 +117,7 @@ public class ClassDocumentServices {
 	 * @throws ServiceException Thrown if the role is not high enough to
 	 * 							disassociate the class and document.
 	 */
-	public static void ensureRoleHighEnoughToDisassociateDocumentFromClasses(
+	public void ensureRoleHighEnoughToDisassociateDocumentFromClasses(
 			final Document.Role role, final Collection<String> classIds, 
 			final String documentId) throws ServiceException {
 		

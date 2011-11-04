@@ -104,11 +104,11 @@ public class ClassReadRequest extends UserRequest {
 			// Check that each of the classes in the list exist and that the 
 			// requester is a member of each class.
 			LOGGER.info("Checking that all of the classes in the class list exist.");
-			UserClassServices.classesExistAndUserBelongs(classIds, getUser().getUsername());
+			UserClassServices.instance().classesExistAndUserBelongs(classIds, getUser().getUsername());
 			
 			// Get the information about the classes.
 			LOGGER.info("Gathering the information about the classes in the list.");
-			List<Clazz> informationAboutClasses = ClassServices.getClassesInformation(classIds, getUser().getUsername());
+			List<Clazz> informationAboutClasses = ClassServices.instance().getClassesInformation(classIds, getUser().getUsername());
 			
 			// Populate our result JSONObject with class information.
 			LOGGER.info("Creating the result JSONObject with the information about the classes.");

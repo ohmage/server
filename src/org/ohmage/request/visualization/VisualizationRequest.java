@@ -143,7 +143,7 @@ public abstract class VisualizationRequest extends UserRequest {
 		
 		try {
 			LOGGER.info("Verifying that the campaign exists and that the requesting user belongs to the campaign.");
-			UserCampaignServices.campaignExistsAndUserBelongs(campaignId, getUser().getUsername());
+			UserCampaignServices.instance().campaignExistsAndUserBelongs(campaignId, getUser().getUsername());
 		}
 		catch(ServiceException e) {
 			e.failRequest(this);

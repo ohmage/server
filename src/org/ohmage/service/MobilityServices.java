@@ -9,7 +9,7 @@ import org.ohmage.domain.MobilityPoint.LocationStatus;
 import org.ohmage.domain.MobilityPoint.Mode;
 import org.ohmage.exception.DataAccessException;
 import org.ohmage.exception.ServiceException;
-import org.ohmage.query.UserMobilityQueries;
+import org.ohmage.query.IUserMobilityQueries;
 
 import edu.ucla.cens.mobilityclassifier.Classification;
 import edu.ucla.cens.mobilityclassifier.MobilityClassifier;
@@ -20,10 +20,37 @@ import edu.ucla.cens.mobilityclassifier.MobilityClassifier;
  * @author John Jenkins
  */
 public final class MobilityServices {
+	private static MobilityServices instance;
+	private IUserMobilityQueries userMobilityQueries;
+	
 	/**
-	 * Default constructor. Private so that it cannot be instantiated.
+	 * Default constructor. Privately instantiated via dependency injection
+	 * (reflection).
+	 * 
+	 * @throws IllegalStateException if an instance of this class already
+	 * exists
+	 * 
+	 * @throws IllegalArgumentException if iUserMobilityQueries is null
 	 */
-	private MobilityServices() {}
+	private MobilityServices(IUserMobilityQueries iUserMobilityQueries) {
+		if(instance != null) {
+			throw new IllegalStateException("An instance of this class already exists.");
+		}
+		
+		if(iUserMobilityQueries == null) {
+			throw new IllegalArgumentException("An instance of IUserMobilityQueries is required.");
+		}
+		
+		userMobilityQueries = iUserMobilityQueries;
+		instance = this;
+	}
+	
+	/**
+	 * @return  Returns the singleton instance of this class.
+	 */
+	public static MobilityServices instance() {
+		return instance;
+	}
 	
 	/**
 	 * Adds the Mobility point to the database.
@@ -33,7 +60,7 @@ public final class MobilityServices {
 	 * 
 	 * @throws ServiceException Thrown if there is an error.
 	 */
-	public static void createMobilityPoint(final String username, 
+	public void createMobilityPoint(final String username, 
 			final String client, final List<MobilityPoint> mobilityPoints) 
 			throws ServiceException {
 		
@@ -46,7 +73,7 @@ public final class MobilityServices {
 		
 		try {
 			for(MobilityPoint mobilityPoint : mobilityPoints) {
-				UserMobilityQueries.createMobilityPoint(username, client, mobilityPoint);
+				userMobilityQueries.createMobilityPoint(username, client, mobilityPoint);
 			}
 		}
 		catch(DataAccessException e) {
@@ -63,8 +90,7 @@ public final class MobilityServices {
 	 * @throws ServiceException Thrown if there is an error with the 
 	 * 							classification service.
 	 */
-	public static void classifyData(final List<MobilityPoint> mobilityPoints) 
-			throws ServiceException {
+	public void classifyData(final List<MobilityPoint> mobilityPoints) throws ServiceException {
 		
 		// If the list is empty, just exit.
 		if(mobilityPoints == null) {
@@ -156,7 +182,7 @@ public final class MobilityServices {
 	 * 
 	 * @throws ServiceException Thrown if there is an error.
 	 */
-	public static List<MobilityPoint> retrieveMobilityData(
+	public List<MobilityPoint> retrieveMobilityData(
 			final String username, final String client, 
 			final Date startDate, final Date endDate, 
 			final MobilityPoint.PrivacyState privacyState,
@@ -172,50 +198,50 @@ public final class MobilityServices {
 			// intersection; otherwise, try and get the IDs from the one that
 			// isn't null if either are non-null.
 			if((startDate != null) && (endDate != null)) {
-				mobilityIds = UserMobilityQueries.getIdsCreatedBetweenDates(username, startDate, endDate);
+				mobilityIds = userMobilityQueries.getIdsCreatedBetweenDates(username, startDate, endDate);
 			}
 			else {
 				if(startDate != null) {
-					mobilityIds = UserMobilityQueries.getIdsCreatedAfterDate(username, startDate);
+					mobilityIds = userMobilityQueries.getIdsCreatedAfterDate(username, startDate);
 				}
 				else if(endDate != null) {
-					mobilityIds = UserMobilityQueries.getIdsCreatedBeforeDate(username, endDate);
+					mobilityIds = userMobilityQueries.getIdsCreatedBeforeDate(username, endDate);
 				}
 			}
 			
 			if(client != null) {
 				if(mobilityIds == null) {
-					mobilityIds = UserMobilityQueries.getIdsForClient(username, client);
+					mobilityIds = userMobilityQueries.getIdsForClient(username, client);
 				}
 				else {
-					mobilityIds.retainAll(UserMobilityQueries.getIdsForClient(username, client));
+					mobilityIds.retainAll(userMobilityQueries.getIdsForClient(username, client));
 				}
 			}
 			
 			if(privacyState != null) {
 				if(mobilityIds == null) {
-					mobilityIds = UserMobilityQueries.getIdsWithPrivacyState(username, privacyState);
+					mobilityIds = userMobilityQueries.getIdsWithPrivacyState(username, privacyState);
 				}
 				else {
-					mobilityIds.retainAll(UserMobilityQueries.getIdsWithPrivacyState(username, privacyState));
+					mobilityIds.retainAll(userMobilityQueries.getIdsWithPrivacyState(username, privacyState));
 				}
 			}
 			
 			if(locationStatus != null) {
 				if(mobilityIds == null) {
-					mobilityIds = UserMobilityQueries.getIdsWithLocationStatus(username, locationStatus);
+					mobilityIds = userMobilityQueries.getIdsWithLocationStatus(username, locationStatus);
 				}
 				else {
-					mobilityIds.retainAll(UserMobilityQueries.getIdsWithLocationStatus(username, locationStatus));
+					mobilityIds.retainAll(userMobilityQueries.getIdsWithLocationStatus(username, locationStatus));
 				}
 			}
 			
 			if(mode != null) {
 				if(mobilityIds == null) {
-					mobilityIds = UserMobilityQueries.getIdsWithMode(username, mode);
+					mobilityIds = userMobilityQueries.getIdsWithMode(username, mode);
 				}
 				else {
-					mobilityIds.retainAll(UserMobilityQueries.getIdsWithMode(username, mode));
+					mobilityIds.retainAll(userMobilityQueries.getIdsWithMode(username, mode));
 				}
 			}
 			
@@ -223,7 +249,7 @@ public final class MobilityServices {
 				return Collections.emptyList();
 			}
 			else {
-				return UserMobilityQueries.getMobilityInformationFromIds(mobilityIds);
+				return userMobilityQueries.getMobilityInformationFromIds(mobilityIds);
 			}
 		}
 		catch(DataAccessException e) {
