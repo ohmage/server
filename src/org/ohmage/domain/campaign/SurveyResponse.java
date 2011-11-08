@@ -164,12 +164,18 @@ public class SurveyResponse {
 			}
 			
 			try {
-				JSONArray jsonActiveTriggers = launchContext.getJSONArray(JSON_KEY_ACTIVE_TRIGGERS);
-				int triggersLength = jsonActiveTriggers.length();
-				activeTriggers = new ArrayList<String>(triggersLength);
 				
-				for(int i = 0; i < triggersLength; i++) {
-					activeTriggers.add(jsonActiveTriggers.getString(i));
+				JSONArray jsonActiveTriggers = launchContext.optJSONArray(JSON_KEY_ACTIVE_TRIGGERS);
+				if(jsonActiveTriggers != null) {
+					int triggersLength = jsonActiveTriggers.length();
+					activeTriggers = new ArrayList<String>(triggersLength);
+					
+					for(int i = 0; i < triggersLength; i++) {
+						activeTriggers.add(jsonActiveTriggers.getString(i));
+					}
+				}
+				else {
+					activeTriggers = null;
 				}
 			}
 			catch(JSONException e) {
@@ -190,12 +196,14 @@ public class SurveyResponse {
 			if(launchTime == null) {
 				throw new IllegalArgumentException("The date cannot be null.");
 			}
-			else if(activeTriggers == null) {
-				throw new IllegalArgumentException("The collection of trigger IDs cannot be null");
-			}
 			
 			this.launchTime = launchTime;
-			this.activeTriggers = new ArrayList<String>(activeTriggers);
+			if(activeTriggers != null) {
+				this.activeTriggers = new ArrayList<String>(activeTriggers);
+			} 
+			else {
+				this.activeTriggers = null;
+			}
 		}
 		
 		/**
