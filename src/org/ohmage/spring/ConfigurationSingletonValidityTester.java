@@ -125,7 +125,8 @@ public class ConfigurationSingletonValidityTester implements PriorityOrdered, Ap
 				Method m = tmp.getClass().getDeclaredMethod("instance");
 				
 				// Invoke the static instance() method with no arguments.
-				// If nothing is returned, the class is missing from the XML config 
+				// If nothing is returned, the class is missing from the XML
+				// config (i.e., no singleton exists in the application context 
 				if(m.invoke(null, noArgs) == null) {
 					throw new IllegalStateException("Invalid singleton configuration. No instance exists in the ApplicationContext"
 						+ " for class " + className);
