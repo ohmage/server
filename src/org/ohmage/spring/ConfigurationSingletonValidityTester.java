@@ -33,6 +33,7 @@ public class ConfigurationSingletonValidityTester implements PriorityOrdered, Ap
 	private Logger logger = Logger.getLogger(ConfigurationSingletonValidityTester.class);
 	private List<String> classNames;
 	private List<String> classesToIgnore;
+	private String[] packageDirectoryNames;
 	
 	/**
 	 * Default constructor.
@@ -74,6 +75,7 @@ public class ConfigurationSingletonValidityTester implements PriorityOrdered, Ap
 		}
 		
 		this.classesToIgnore = classesToIgnore;
+		this.packageDirectoryNames = packageDirectoryNames;
 	}
 	
 	/**
@@ -97,23 +99,27 @@ public class ConfigurationSingletonValidityTester implements PriorityOrdered, Ap
 			try {
 				String javaStyleClassName = className.substring(0, className.length() - 6).replace('/', '.');
 				
-				//logger.info("class name " + javaStyleClassName);
-				
 				// Ignore inner classes
 				if(javaStyleClassName.contains("$")) {
-					logger.info("Skipping inner class " + javaStyleClassName);
+					if(logger.isDebugEnabled()) {
+						logger.debug("Skipping inner class " + javaStyleClassName);
+					}
 					continue;
 				}
 				
 				// Ignore classes that are ignorable
 				if(classesToIgnore != null && classesToIgnore.contains(javaStyleClassName)) {
-					logger.info("Ignoring " + javaStyleClassName);
+					if(logger.isDebugEnabled()) {
+						logger.debug("Ignoring " + javaStyleClassName);
+					}
 					continue;
 				}
 				
 				Class<?> clazz = Class.forName(javaStyleClassName);
 				
-				logger.info("Sanity check for the existence of " + clazz + " in the ApplicationContext");
+				if(logger.isDebugEnabled()) {
+					logger.debug("Sanity check for the existence of " + clazz + " in the ApplicationContext");
+				}
 				
 				tmp = applicationContext.getBean(clazz);
 				Method m = tmp.getClass().getDeclaredMethod("instance");
@@ -141,6 +147,8 @@ public class ConfigurationSingletonValidityTester implements PriorityOrdered, Ap
 				throw new IllegalStateException("Exception thrown when invoking instance() on class: " + className, e.getCause());
 			}
 		}
+		
+		logger.info("Done with singleton instantion check for the following packages: " + Arrays.toString(packageDirectoryNames));
 	}
 	
 	/**
