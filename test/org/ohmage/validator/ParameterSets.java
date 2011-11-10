@@ -60,6 +60,8 @@ public class ParameterSets {
 	
 	private static final Map<Date, String> dateToString = new HashMap<Date, String>();
 	private static final Map<Date, String> dateTimeToString = new HashMap<Date, String>();
+	private static final Collection<String> invalidDates = new LinkedList<String>();
+	private static final Collection<String> invalidDateTimes = new LinkedList<String>();
 
 	private ParameterSets() {}
 	
@@ -323,6 +325,24 @@ public class ParameterSets {
 	 */
 	public static Map<Date, String> getDateTimeToString() {
 		return Collections.unmodifiableMap(dateTimeToString);
+	}
+	
+	/**
+	 * Returns a collection of invalid date strings.
+	 * 
+	 * @return A collection of invalid date strings.
+	 */
+	public static Collection<String> getInvalidDates() {
+		return Collections.unmodifiableCollection(invalidDates);
+	}
+	
+	/**
+	 * Returns a collection of invalid date-time strings.
+	 * 
+	 * @return A collection of invalid date-time strings.
+	 */
+	public static Collection<String> getInvalidDateTimes() {
+		return Collections.unmodifiableCollection(invalidDateTimes);
 	}
 	
 	/**
@@ -1174,70 +1194,56 @@ public class ParameterSets {
 		dateToString.put(new Date(currCalendar.getTimeInMillis()), "1970-01-01");
 		dateTimeToString.put(new Date(currCalendar.getTimeInMillis()), "1970-01-01 00:00:00");
 
-		// Test where the month is one greater which causes the year to roll  
-		// over.
-		currCalendar.setTimeInMillis(epochCalendar.getTimeInMillis());
-		currCalendar.set(Calendar.YEAR, 1971);
-		dateToString.put(new Date(currCalendar.getTimeInMillis()), "1970-13-01");
-		dateTimeToString.put(new Date(currCalendar.getTimeInMillis()), "1970-13-01 00:00:00");
+		invalidDates.add("1970-13-01");
+		invalidDateTimes.add("1970-13-01 00:00:00");
 
-		// Test where the day is one greater which causes the month to roll 
-		// over.
-		currCalendar.setTimeInMillis(epochCalendar.getTimeInMillis());
-		currCalendar.set(Calendar.MONTH, 1);
-		dateToString.put(new Date(currCalendar.getTimeInMillis()), "1970-01-32");
-		dateTimeToString.put(new Date(currCalendar.getTimeInMillis()), "1970-01-32 00:00:00");
+		invalidDates.add("1970-01-32");
+		invalidDateTimes.add("1970-01-32 00:00:00");
 
-		// Test where the month and day are both one greater which causes the 
-		// year and month to roll over.
-		currCalendar.setTimeInMillis(epochCalendar.getTimeInMillis());
-		currCalendar.set(Calendar.YEAR, 1971);
-		currCalendar.set(Calendar.MONTH, 1);
-		dateToString.put(new Date(currCalendar.getTimeInMillis()), "1970-13-32");
-		dateTimeToString.put(new Date(currCalendar.getTimeInMillis()), "1970-13-32 00:00:00");
-		
-		// Test where the hour is greater and causes the day to roll over.
-		currCalendar.setTimeInMillis(epochCalendar.getTimeInMillis());
-		currCalendar.set(Calendar.DAY_OF_MONTH, 2);
-		dateTimeToString.put(new Date(currCalendar.getTimeInMillis()), "1970-01-01 24:00:00");
+		invalidDates.add("1970-13-32");
+		invalidDateTimes.add("1970-13-32 00:00:00");
 
-		// Test where the month, day, and hour are all one greater which causes 
-		// the year, month, and day to roll over.
-		currCalendar.setTimeInMillis(epochCalendar.getTimeInMillis());
-		currCalendar.set(Calendar.YEAR, 1971);
-		currCalendar.set(Calendar.MONTH, 1);
-		currCalendar.set(Calendar.DAY_OF_MONTH, 2);
-		dateTimeToString.put(new Date(currCalendar.getTimeInMillis()), "1970-13-32 24:00:00");
-		
-		// Test where the minute is greater and causes the hour to roll over.
-		currCalendar.setTimeInMillis(epochCalendar.getTimeInMillis());
-		currCalendar.set(Calendar.HOUR_OF_DAY, 1);
-		dateTimeToString.put(new Date(currCalendar.getTimeInMillis()), "1970-01-01 00:60:00");
+		// FIXME:
+		// The problem with testing the times is that the validators will first
+		// attempt to validate the date as a date-time. If that fails, it will
+		// fall back to a date only value which will ignore the rest of the 
+		// string, i.e. the time component, and will let it succeed.
+		//
+		// One fix is to add the ones with valid dates but invalid times to the
+		// dateTimeToString map and always set the date to be 1970-01-01
+		// 00:00:00. Then, add the ones with invalid dates to the  
+		// invalidDateTimes collection. 
+		// 
+		// Another solution is to be even more restrictive and leave these as
+		// they are but add a pattern matcher to the StringUtils to prevent
+		// dates that contain more than they are supposed to from passing 
+		// validation. First, the string is matched against a date-time 
+		// pattern. If it matches, a date-time is attempted to be decoded or
+		// null is returned. If it doesn't match, it is matched against a date
+		// pattern. If it matches, a date is attempted to be decoded or null is
+		// returned.
+		//
+		// I originally created the SimpleDateFormatters as lenient because I
+		// thought we were going for a "be lenient in what you expect and 
+		// strict in what you return" philosophy. We would do our best to try 
+		// and decode whatever you gave us into something meaningful if we 
+		// could. I understand that this may cause some confusion on the 
+		// client's end if they are sending us some really weird data, but the
+		// old addage, "garbage in, garbage out" comes to mind. Either way, let
+		// me know what you decide, and I will make it work.
+		/*
+		invalidDateTimes.add("1970-01-01 24:00:00");
 
-		// Test where the month, day, hour, and minute are all one greater 
-		// which causes the year, month, day, and hour to roll over.
-		currCalendar.setTimeInMillis(epochCalendar.getTimeInMillis());
-		currCalendar.set(Calendar.YEAR, 1971);
-		currCalendar.set(Calendar.MONTH, 1);
-		currCalendar.set(Calendar.DAY_OF_MONTH, 2);
-		currCalendar.set(Calendar.HOUR_OF_DAY, 1);
-		dateTimeToString.put(new Date(currCalendar.getTimeInMillis()), "1970-13-32 24:60:00");
-		
-		// Test where the second is greater and causes the minute to roll over.
-		currCalendar.setTimeInMillis(epochCalendar.getTimeInMillis());
-		currCalendar.set(Calendar.MINUTE, 1);
-		dateTimeToString.put(new Date(currCalendar.getTimeInMillis()), "1970-01-01 00:00:60");
+		invalidDateTimes.add("1970-13-32 24:00:00");
 
-		// Test where the month, day, hour, minute, and second are all one  
-		// greater which causes the year, month, day, hour, and minute to roll
-		// over.
-		currCalendar.setTimeInMillis(epochCalendar.getTimeInMillis());
-		currCalendar.set(Calendar.YEAR, 1971);
-		currCalendar.set(Calendar.MONTH, 1);
-		currCalendar.set(Calendar.DAY_OF_MONTH, 2);
-		currCalendar.set(Calendar.HOUR_OF_DAY, 1);
-		currCalendar.set(Calendar.MINUTE, 1);
-		dateTimeToString.put(new Date(currCalendar.getTimeInMillis()), "1970-13-32 24:60:60");
+		invalidDateTimes.add("1970-01-01 00:60:00");
+
+		invalidDateTimes.add("1970-13-32 24:60:00");
+
+		invalidDateTimes.add("1970-01-01 00:00:60");
+
+		invalidDateTimes.add("1970-13-32 24:60:60");
+		*/
 		
 		System.out.println("Valid dates generated:");
 		for(String dates : dateToString.values()) {
