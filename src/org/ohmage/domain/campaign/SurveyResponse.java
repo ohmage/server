@@ -133,7 +133,7 @@ public class SurveyResponse {
 		private static final String JSON_KEY_LAUNCH_TIME = "launch_time";
 		private static final String JSON_KEY_ACTIVE_TRIGGERS = "active_triggers";
 		
-		private final Date launchTime;
+		private final String launchTime;
 		private final List<String> activeTriggers;
 		
 		/**
@@ -153,10 +153,10 @@ public class SurveyResponse {
 			}
 			
 			try {
-				launchTime = StringUtils.decodeDateTime(launchContext.getString(JSON_KEY_LAUNCH_TIME));
+				launchTime = launchContext.getString(JSON_KEY_LAUNCH_TIME);
 				
-				if(launchTime == null) {
-					throw new ErrorCodeException(ErrorCode.SURVEY_INVALID_LAUNCH_CONTEXT, "The launch time is missing in the launch context.");
+				if(! StringUtils.isValidTime(launchTime)) {
+					throw new ErrorCodeException(ErrorCode.SURVEY_INVALID_LAUNCH_CONTEXT, "The launch time is missing or incorrect in the launch context.");
 				}
 			}
 			catch(JSONException e) {
@@ -186,15 +186,15 @@ public class SurveyResponse {
 		/**
 		 * Creates a new LaunchContext.
 		 * 
-		 * @param launchTime The date and time that the survey was launched.
+		 * @param launchTime The time that the survey was launched.
 		 * 
-		 * @param activeTriggers A, possibly empty, list of trigger IDs that 
+		 * @param activeTriggers A possibly null list of trigger IDs that 
 		 * 						 were active when the survey was launched. 
 		 */
-		public LaunchContext(final Date launchTime, 
+		public LaunchContext(final String launchTime, 
 				final Collection<String> activeTriggers) {
 			if(launchTime == null) {
-				throw new IllegalArgumentException("The date cannot be null.");
+				throw new IllegalArgumentException("The launch time cannot be null.");
 			}
 			
 			this.launchTime = launchTime;
@@ -211,8 +211,8 @@ public class SurveyResponse {
 		 * 
 		 * @return A new Date object that represents this launch time.
 		 */
-		public final Date getLaunchTime() {
-			return new Date(launchTime.getTime());
+		public final String getLaunchTime() {
+			return launchTime;
 		}
 		
 		/**
@@ -238,7 +238,7 @@ public class SurveyResponse {
 			try {
 				JSONObject result = new JSONObject();
 				
-				result.put(JSON_KEY_LAUNCH_TIME, TimeUtils.getIso8601DateTimeString(launchTime));
+				result.put(JSON_KEY_LAUNCH_TIME, launchTime);
 				
 				if(longVersion) {
 					result.put(JSON_KEY_ACTIVE_TRIGGERS, activeTriggers);
