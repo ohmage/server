@@ -35,6 +35,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.ohmage.annotator.Annotator;
+import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.domain.Clazz;
 import org.ohmage.domain.Document;
 import org.ohmage.domain.MobilityPoint;
@@ -2698,11 +2699,13 @@ public class OhmageApi {
 	 * 									JSON and indicates failure, but the 
 	 * 									error code and error text are missing.
 	 * 
+	 * @throws ApiException Thrown if the error code is unknown.
+	 * 
 	 * @throws RequestErrorException Thrown if the response is valid ohmage 
 	 * 								 JSON and indicates failure.
 	 */
 	private void checkFailure(final byte[] response) 
-			throws RequestErrorException {
+			throws ApiException, RequestErrorException {
 		
 		JSONObject jsonResponse;
 		try {
@@ -2723,7 +2726,16 @@ public class OhmageApi {
 					JSONObject error = jsonResponse.getJSONArray(
 							Request.JSON_KEY_ERRORS).getJSONObject(0);
 					
-					String errorCode = error.getString(Annotator.JSON_KEY_CODE);
+					String errorCodeString = 
+						error.getString(Annotator.JSON_KEY_CODE);
+					ErrorCode errorCode;
+					try {
+						errorCode = ErrorCode.getValue(errorCodeString);
+					}
+					catch(IllegalArgumentException e) {
+						throw new ApiException("The error code was unknown.", e);
+					}
+					
 					String errorText = error.getString(Annotator.JSON_KEY_TEXT);
 					
 					throw new RequestErrorException(errorCode, errorText);
@@ -2761,13 +2773,15 @@ public class OhmageApi {
 	 * 									decoded into JSON or if there is no
 	 * 									such key with the responded JSON.
 	 * 
+	 * @throws ApiException Thrown if the error code is unknown.
+	 * 
 	 * @throws RequestErrorException Thrown if the server returned a valid JSON
 	 * 								 response, but the request failed.
 	 * 
 	 * @see #makeRequest(URL, Map, boolean)
 	 */
 	private String processJsonResponse(final byte[] response, 
-			final String jsonKey) throws RequestErrorException {
+			final String jsonKey) throws ApiException, RequestErrorException {
 		
 		JSONObject jsonResponse;
 		try {
@@ -2811,7 +2825,16 @@ public class OhmageApi {
 				JSONObject error = jsonResponse.getJSONArray(
 						Request.JSON_KEY_ERRORS).getJSONObject(0);
 				
-				String errorCode = error.getString(Annotator.JSON_KEY_CODE);
+				String errorCodeString = 
+					error.getString(Annotator.JSON_KEY_CODE);
+				ErrorCode errorCode;
+				try {
+					errorCode = ErrorCode.getValue(errorCodeString);
+				}
+				catch(IllegalArgumentException e) {
+					throw new ApiException("The error code was unknown.", e);
+				}
+				
 				String errorText = error.getString(Annotator.JSON_KEY_TEXT);
 				
 				throw new RequestErrorException(errorCode, errorText);

@@ -11,9 +11,9 @@ import org.ohmage.annotator.Annotator;
 import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.exception.ValidationException;
 import org.ohmage.jee.servlet.RequestServlet.RequestType;
+import org.ohmage.test.ParameterSets;
 import org.ohmage.validator.AuditValidators;
 import org.ohmage.validator.AuditValidators.ResponseType;
-import org.ohmage.validator.ParameterSets;
 
 /**
  * Tests the audit validators.

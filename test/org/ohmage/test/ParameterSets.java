@@ -1,4 +1,4 @@
-package org.ohmage.validator;
+package org.ohmage.test;
 
 import java.util.Calendar;
 import java.util.Collection;

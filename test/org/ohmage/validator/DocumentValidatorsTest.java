@@ -8,6 +8,7 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.ohmage.domain.Document;
 import org.ohmage.exception.ValidationException;
+import org.ohmage.test.ParameterSets;
 
 /**
  * Tests the document validators.

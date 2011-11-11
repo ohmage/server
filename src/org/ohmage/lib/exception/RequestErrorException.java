@@ -1,19 +1,21 @@
 package org.ohmage.lib.exception;
 
+import org.ohmage.annotator.Annotator.ErrorCode;
+
 public class RequestErrorException extends ApiException {
 	private static final long serialVersionUID = 1L;
 	
-	private final String errorCode;
+	private final ErrorCode errorCode;
 	private final String errorText;
 	
-	public RequestErrorException(String errorCode, String errorText) {
+	public RequestErrorException(final ErrorCode errorCode, String errorText) {
 		super("The request returned an error.");
 		
 		this.errorCode = errorCode;
 		this.errorText = errorText;
 	}
 	
-	public String getErrorCode() {
+	public ErrorCode getErrorCode() {
 		return errorCode;
 	}
 	
@@ -23,6 +25,6 @@ public class RequestErrorException extends ApiException {
 	
 	@Override
 	public String toString() {
-		return getErrorText();
+		return getErrorCode().toString() + ": " + getErrorText();
 	}
 }

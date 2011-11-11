@@ -13,116 +13,98 @@ import org.ohmage.test.Controller;
  */
 public class AuthenticationApiTest {
 	private final OhmageApi api;
-	private final String username;
-	private final String password;
 	
 	/**
 	 * Creates a tester for the authentication APIs.
 	 * 
 	 * @param api The ohmage API object that should already be setup with a
 	 * 			  connection to a server.
-	 * 
-	 * @param username The username of the user to test.
-	 * 
-	 * @param password The password of the user to test.
 	 */
-	public AuthenticationApiTest(final OhmageApi api, 
-			final String username, final String password) {
-		
+	public AuthenticationApiTest(final OhmageApi api) {
 		this.api = api;
-		this.username = username;
-		this.password = password;
 	}
 	
 	/**
 	 * Tests all of the possible authentication protocols.
 	 * 
-	 * @throws ApiException Thrown if one of the tests fail or if there is a 
-	 * 						bug in the library.
+	 * @param username The username of the user to test.
+	 * 
+	 * @param password The password of the user to test.
+	 * 
+	 * @throws ApiException Thrown if there is a bug in the library.
+	 * 
+	 * @throws IllegalStateException Thrown if the test fails.
 	 */
-	public void test() throws ApiException {
-		testAuthentication();
-		testAuthToken();
+	public void test(final String username, final String password) 
+			throws ApiException {
+		
+		testAuthentication(username, password);
+		testAuthToken(username, password);
 	}
 	
 	/**
 	 * Tests the different possibilities for getting an user's hashed password.
 	 * 
-	 * @throws ApiException Thrown if an incorrect error code is returned or
-	 * 						there is a bug in the library.
+	 * @throws ApiException Thrown if there is a bug in the library.
+	 * 
+	 * @throws IllegalStateException Thrown if the test fails.
 	 */
-	private void testAuthentication() throws ApiException {
+	private void testAuthentication(
+			final String username, final String password) 
+			throws ApiException {
 
-		// Test no username.
+		// No username.
 		try {
-			api.getHashedPassword(null, null, null);
+			api.getHashedPassword(null, password, Controller.CLIENT);
+			throw new IllegalStateException("Failed: No username.");
 		}
 		catch(RequestErrorException e) {
 			if(! ErrorCode.AUTHENTICATION_FAILED.equals(e.getErrorCode())) {
-				System.out.println("Failed: Auth: No username.");
-				System.out.println("This should have been error code '" + ErrorCode.AUTHENTICATION_FAILED + "'.");
-				throw e;
+				throw new IllegalStateException("Failed: No username: " + ErrorCode.AUTHENTICATION_FAILED, e);
 			}
 		}
 		
-		// Test an invalid username.
+		// Invalid username.
 		try {
-			api.getHashedPassword("blah", null, null);
+			api.getHashedPassword("blah", password, Controller.CLIENT);
+			throw new IllegalStateException("Failed: Invalid username.");
 		}
 		catch(RequestErrorException e) {
 			if(! ErrorCode.AUTHENTICATION_FAILED.equals(e.getErrorCode())) {
-				System.out.println("Failed: Auth: Invalid username.");
-				System.out.println("This should have been error code '" + ErrorCode.AUTHENTICATION_FAILED + "'.");
-				throw e;
+				throw new IllegalStateException("Failed: Invalid username: " + ErrorCode.AUTHENTICATION_FAILED, e);
 			}
 		}
 		
-		// Test no password.
+		// No password.
 		try {
-			api.getHashedPassword(username, null, null);
+			api.getHashedPassword(username, null, Controller.CLIENT);
+			throw new IllegalStateException("Failed: No password.");
 		}
 		catch(RequestErrorException e) {
 			if(! ErrorCode.AUTHENTICATION_FAILED.equals(e.getErrorCode())) {
-				System.out.println("Failed: Auth: No password.");
-				System.out.println("This should have been error code '" + ErrorCode.AUTHENTICATION_FAILED + "'.");
-				throw e;
+				throw new IllegalStateException("Failed: No password: " + ErrorCode.AUTHENTICATION_FAILED, e);
 			}
 		}
 		
-		// Test no client with invalid password.
-		try {
-			api.getHashedPassword(username, "blah", null);
-		}
-		catch(RequestErrorException e) {
-			if(! ErrorCode.SERVER_INVALID_CLIENT.equals(e.getErrorCode())) {
-				System.out.println("Failed: Auth: No client with invalid password.");
-				System.out.println("This should have been error code '" + ErrorCode.AUTHENTICATION_FAILED + "'.");
-				throw e;
-			}
-		}
-		
-		// Test invalid password.
+		// Invalid password.
 		try {
 			api.getHashedPassword(username, "blah", Controller.CLIENT);
+			throw new IllegalStateException("Failed: Invalid password.");
 		}
 		catch(RequestErrorException e) {
-			// Note: This feels like it should be an invalid password, but
 			if(! ErrorCode.AUTHENTICATION_FAILED.equals(e.getErrorCode())) {
-				System.out.println("Failed: Auth: Invalid password.");
-				System.out.println("This should have been error code '" + ErrorCode.AUTHENTICATION_FAILED + "'.");
-				throw e;
+				throw new IllegalStateException("Failed: Invalid password: " + ErrorCode.AUTHENTICATION_FAILED, e);
 			}
 		}
 		
-		// Test no client with valid password.
+		// No client.
 		try {
 			api.getHashedPassword(username, password, null);
+			throw new IllegalStateException("Failed: No client.");
 		}
 		catch(RequestErrorException e) {
 			if(! ErrorCode.SERVER_INVALID_CLIENT.equals(e.getErrorCode())) {
-				System.out.println("Failed: Auth: No client with valid password.");
-				System.out.println("This should have been error code '" + ErrorCode.AUTHENTICATION_FAILED + "'.");
-				throw e;
+				throw new IllegalStateException("Failed: No client: " + ErrorCode.SERVER_INVALID_CLIENT, e);
 			}
 		}
 		
@@ -131,87 +113,77 @@ public class AuthenticationApiTest {
 			api.getHashedPassword(username, password, Controller.CLIENT);
 		}
 		catch(RequestErrorException e) {
-			System.out.println("This should not have been an error.");
-			throw e;
+			throw new IllegalStateException("Failed: Valid request.", e);
 		}
 	}
 	
 	/**
 	 * Tests the different possibilities for getting an authentication token.
 	 * 
+	 * @param username The username of the user to test.
+	 * 
+	 * @param password The password of the user to test.
+	 * 
 	 * @throws ApiException Thrown if an incorrect error code is returned or
 	 * 						there is a bug in the library.
+	 * 
+	 * @throws IllegalStateException Thrown if the test fails.
 	 */
-	private void testAuthToken() throws ApiException {
-		// Test no username.
+	private void testAuthToken(final String username, final String password) 
+			throws ApiException {
+		
+		// No username.
 		try {
-			api.getAuthenticationToken(null, null, null);
+			api.getAuthenticationToken(null, password, Controller.CLIENT);
+			throw new IllegalStateException("Failed: No username.");
 		}
 		catch(RequestErrorException e) {
 			if(! ErrorCode.AUTHENTICATION_FAILED.equals(e.getErrorCode())) {
-				System.out.println("Failed: AuthToken: No username.");
-				System.out.println("This should have been error code '" + ErrorCode.AUTHENTICATION_FAILED + "'.");
-				throw e;
+				throw new IllegalStateException("Failed: No username: " + ErrorCode.AUTHENTICATION_FAILED, e);
 			}
 		}
 		
-		// Test an invalid username.
+		// Invalid username.
 		try {
-			api.getAuthenticationToken("blah", null, null);
+			api.getAuthenticationToken("blah", password, Controller.CLIENT);
+			throw new IllegalStateException("Failed: Invalid username.");
 		}
 		catch(RequestErrorException e) {
 			if(! ErrorCode.AUTHENTICATION_FAILED.equals(e.getErrorCode())) {
-				System.out.println("Failed: AuthToken: Invalid username.");
-				System.out.println("This should have been error code '" + ErrorCode.AUTHENTICATION_FAILED + "'.");
-				throw e;
+				throw new IllegalStateException("Failed: Invalid username: " + ErrorCode.AUTHENTICATION_FAILED, e);
 			}
 		}
 
-		// Test no password
+		// No password
 		try {
-			api.getAuthenticationToken(username, null, null);
+			api.getAuthenticationToken(username, null, Controller.CLIENT);
+			throw new IllegalStateException("Failed: No password.");
 		}
 		catch(RequestErrorException e) {
 			if(! ErrorCode.AUTHENTICATION_FAILED.equals(e.getErrorCode())) {
-				System.out.println("Failed: AuthToken: No password.");
-				System.out.println("This should have been error code '" + ErrorCode.AUTHENTICATION_FAILED + "'.");
-				throw e;
+				throw new IllegalStateException("Failed: No password: " + ErrorCode.AUTHENTICATION_FAILED, e);
 			}
 		}
 
-		// Test no client with invalid password
-		try {
-			api.getAuthenticationToken(username, "blah", null);
-		}
-		catch(RequestErrorException e) {
-			if(! ErrorCode.SERVER_INVALID_CLIENT.equals(e.getErrorCode())) {
-				System.out.println("Failed: AuthToken: Invalid password.");
-				System.out.println("This should have been error code '" + ErrorCode.AUTHENTICATION_FAILED + "'.");
-				throw e;
-			}
-		}
-
-		// Test invalid password
+		// Invalid password
 		try {
 			api.getAuthenticationToken(username, "blah", Controller.CLIENT);
+			throw new IllegalStateException("Failed: Invalid password.");
 		}
 		catch(RequestErrorException e) {
 			if(! ErrorCode.AUTHENTICATION_FAILED.equals(e.getErrorCode())) {
-				System.out.println("Failed: AuthToken: Invalid password.");
-				System.out.println("This should have been error code '" + ErrorCode.AUTHENTICATION_FAILED + "'.");
-				throw e;
+				throw new IllegalStateException("Failed: Invalid password: " + ErrorCode.AUTHENTICATION_FAILED, e);
 			}
 		}
 
-		// Test no client with valid password.
+		// No client.
 		try {
 			api.getAuthenticationToken(username, password, null);
+			throw new IllegalStateException("Failed: No client.");
 		}
 		catch(RequestErrorException e) {
 			if(! ErrorCode.SERVER_INVALID_CLIENT.equals(e.getErrorCode())) {
-				System.out.println("Failed: AuthToken: No client.");
-				System.out.println("This should have been error code '" + ErrorCode.AUTHENTICATION_FAILED + "'.");
-				throw e;
+				throw new IllegalStateException("Failed: No client: " + ErrorCode.AUTHENTICATION_FAILED, e);
 			}
 		}
 
@@ -220,8 +192,7 @@ public class AuthenticationApiTest {
 			api.getAuthenticationToken(username, password, Controller.CLIENT);
 		}
 		catch(RequestErrorException e) {
-			System.out.println("This should not have been an error.");
-			throw e;
+			throw new IllegalStateException("Failed: Valid request.", e);
 		}
 	}
 }

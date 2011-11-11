@@ -4,6 +4,7 @@ import junit.framework.Test;
 import junit.framework.TestSuite;
 
 import org.apache.log4j.BasicConfigurator;
+import org.ohmage.test.ParameterSets;
 
 /**
  * This class contains the test suite that tests all of the classes in the 

@@ -69,7 +69,7 @@ public class AuthRequest extends UserRequest {
 	 */
 	@Override
 	public void respond(HttpServletRequest httpRequest, HttpServletResponse httpResponse) {
-		LOGGER.info("Responding to hte authentication request.");
+		LOGGER.info("Responding to the authentication request.");
 		
 		respond(httpRequest, httpResponse, KEY_HASHED_PASSWORD, (getUser() == null) ? null : getUser().getPassword());
 	}

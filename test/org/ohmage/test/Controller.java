@@ -5,6 +5,8 @@ import java.util.Date;
 import org.ohmage.lib.OhmageApi;
 import org.ohmage.lib.exception.ApiException;
 import org.ohmage.test.auth.AuthenticationApiTest;
+import org.ohmage.test.clazz.ClassApiTest;
+import org.ohmage.test.config.ConfigApiTest;
 import org.ohmage.test.user.UserApiTests;
 
 /**
@@ -25,7 +27,8 @@ public class Controller {
 	private Controller() {}
 	
 	/**
-	 * Initializes the server connection and runs the tests.
+	 * Creates the server connection and runs the tests. Each test is 
+	 * responsible for its own tear up and tear down. It will then 
 	 * 
 	 * @param args The arguments as defined in {@link #printUsage()}.
 	 */
@@ -34,61 +37,55 @@ public class Controller {
 		if(api == null) {
 			return;
 		}
+		
+		ParameterSets.init();
 
 		long start = (new Date()).getTime();
 		
-		// TODO: We will want some sort of cascading cleanup here.
 		try {
-			// Begin by testing authentication with the admin information and then
-			// testing authentication tokens.
-			AuthenticationApiTest authTest = new AuthenticationApiTest(api, adminUsername, adminPassword);
-			authTest.test();
-		}
-		catch(ApiException e) {
-			// There is nothing to cleanup, we output the exception and quit.
-			e.printStackTrace();
-			return;
-		}
+			// Test the configuration API.
+			ConfigApiTest configTest = new ConfigApiTest(api);
+			configTest.test();
+			
+			// Test authentication with the admin information.
+			AuthenticationApiTest authTest = new AuthenticationApiTest(api);
+			authTest.test(adminUsername, adminPassword);
 		
-		// Now that we know they work, get the hashed password and an 
-		// authentication token for the rest of the tests to use.
-		//String hashedPassword = api.getHashedPassword(adminUsername, adminPassword, CLIENT);
-		String authToken = api.getAuthenticationToken(adminUsername, adminPassword, CLIENT);
-		
-		// Now, start testing the users and end with some users left in the
-		// database.
-		try {
+			// Now that we know they work, get the hashed password and an 
+			// authentication token for the rest of the tests to use.
+			//String hashedPassword = api.getHashedPassword(adminUsername, adminPassword, CLIENT);
+			String authToken = api.getAuthenticationToken(adminUsername, adminPassword, CLIENT);
+			
+			// Now, start testing the user APIs.
 			UserApiTests userTest = new UserApiTests(api, authToken);
-			userTest.test();
+			userTest.test(authToken);
+			
+			// Now, test the classes.
+			ClassApiTest classTest = new ClassApiTest(api, authToken);
+			
+			// Next, begin testing the documents. Create some, share some, 
+			// delete some.
+			
+			// Test Mobility. Create points, and test the readability and 
+			// writability of certain users.
+			
+			// Test the campaigns. Create some, connect them to classes, test 
+			// the readability and writability of users.
+			
+			// Finally, test the survey responses. Create some, change privacy
+			// states, test readability and writability.
+			
+			// Note: UserApiTests cannot test user/stats/read until there are 
+			// Mobility points and survey responses for the current user.
+			
+			// Note: UserApiTests cannot test user/read until some user(s) has
+			// been assigned to classes and campaigns.
 		}
 		catch(ApiException e) {
-			// There is nothing to cleanup, we output the exception and quit.
+			// If any of the tests throw this, we are in a bad way.
 			e.printStackTrace();
 			return;
 		}
-		
-		// Now, test the classes. Again, leave some with different assortments
-		// of users with different assortments of permissions.
-		
-		// Next, begin testing the documents. Create some, share some, delete
-		// some.
-		
-		// Test Mobility. Create points, and test the readability and 
-		// writability of certain users.
-		
-		// Test the campaigns. Create some, connect them to classes, test the
-		// readability and writability of users.
-		
-		// Finally, test the survey responses. Create some, change privacy
-		// states, test readability and writability.
-		
-		// Note: UserApiTests cannot test user/stats/read until there are 
-		// Mobility points and survey responses for the current user.
-		
-		// Note: UserApiTests cannot test user/read until some user(s) has been
-		// assigned to classes and campaigns.
-		
-		// Cleanup.
 		
 		long end = (new Date()).getTime();
 		
@@ -184,11 +181,12 @@ public class Controller {
 	 * Prints the application's usage to the standard output.
 	 */
 	private static void printUsage() {
-		System.out.println("Parameters: <serer domain> (-u || --username) <admin username> (-p || --password) <admin password> [(-o || --port) <port>] [(-s || --secure)]");
+		System.out.println("Parameters: (-d | --domain) <server domain> (-u | --username) <admin username> (-p | --password) <admin password> [(-o | --port) <port>] [(-s | --secure)]");
+		System.out.println("\t-d --domain   The server's domain.");
 		System.out.println("\t-u --username The username of an admin user.");
 		System.out.println("\t-p --password The plain-text password of that admin user.");
-		System.out.println("\t-p --port  Use this port instead of the standard HTTP or HTTPS port.");
-		System.out.println("\t-s --secure Use a secure connection (HTTPS); otherwise, HTTP is used.");
+		System.out.println("\t-p --port     Use this port instead of the standard HTTP or HTTPS port.");
+		System.out.println("\t-s --secure   Use a secure connection (HTTPS); otherwise, HTTP is used.");
 	}
 	
 	/**

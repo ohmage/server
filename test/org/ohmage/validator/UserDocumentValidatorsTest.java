@@ -5,6 +5,7 @@ import junit.framework.TestCase;
 import org.junit.Assert;
 import org.junit.Test;
 import org.ohmage.exception.ValidationException;
+import org.ohmage.test.ParameterSets;
 
 /**
  * Tests the user, document validators.

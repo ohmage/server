@@ -11,6 +11,7 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.ohmage.domain.campaign.Campaign;
 import org.ohmage.exception.ValidationException;
+import org.ohmage.test.ParameterSets;
 
 /**
  * Tests the campaign validators.

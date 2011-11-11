@@ -21,7 +21,6 @@ import org.ohmage.test.Controller;
  */
 public class UserApiTests {
 	private final OhmageApi api;
-	private final String authenticationToken;
 	
 	// This keeps track of the user whose information we are testing.
 	private String username;
@@ -29,35 +28,43 @@ public class UserApiTests {
 	
 	/**
 	 * Creates a new API tester. It tests creation and deletion with a single
-	 * user to ensure that its tests can create and cleanup after themselves.
+	 * user to ensure that its tests can create users as needed and cleanup 
+	 * after themselves.
 	 * 
 	 * @param api The ohmage API connection that is already setup.
 	 * 
-	 * @param authenticationToken The user's authentication token.
+	 * @param adminAuthToken An administrators authentication token to use when
+	 * 						 creating and deleting users for testing.
+	 * 
+	 * @throws ApiException There is an unexpected error.
+	 * 
+	 * @throws IllegalStateException One of the tests failed.
 	 */
-	public UserApiTests(final OhmageApi api, final String authenticationToken) 
+	public UserApiTests(final OhmageApi api, final String adminAuthToken) 
 			throws ApiException {
 		
 		this.api = api;
-		this.authenticationToken = authenticationToken;
 		
 		username = null;
 		password = null;
 		
-		testUserCreation();
-		testUserDeletion();
+		testUserCreation(adminAuthToken);
+		testUserDeletion(adminAuthToken);
 	}
 	
 	/**
 	 * Tests all parameters and then begins creating, editing, and deleting
 	 * usernames.
 	 * 
+	 * @param adminAuthToken An administrators authentication token to use when
+	 * 						 creating and deleting users for testing.
+	 * 
 	 * @throws ApiException Thrown if there is a library error which should
 	 * 						never happen.
 	 */
-	public void test() throws ApiException{
+	public void test(final String adminAuthToken) throws ApiException {
 		try {
-			api.createUser(authenticationToken, Controller.CLIENT, 
+			api.createUser(adminAuthToken, Controller.CLIENT, 
 					username, password, null, true, null, null);
 
 			// Test change password.
@@ -67,206 +74,210 @@ public class UserApiTests {
 			// Cleanup
 			Collection<String> usernames = new ArrayList<String>(1);
 			usernames.add(username);
-			api.deleteUser(authenticationToken, Controller.CLIENT, usernames);
+			api.deleteUser(adminAuthToken, Controller.CLIENT, usernames);
 		}
 		
 		try {
-			api.createUser(authenticationToken, Controller.CLIENT, 
+			api.createUser(adminAuthToken, Controller.CLIENT, 
 					username, password, null, null, null, null);
 
 			// Test update and read.
-			testUserUpdateAndPersonalRead();
+			testUserUpdateAndPersonalRead(adminAuthToken);
 		}
 		finally {
 			// Cleanup
 			Collection<String> usernames = new ArrayList<String>(1);
 			usernames.add(username);
-			api.deleteUser(authenticationToken, Controller.CLIENT, usernames);
+			api.deleteUser(adminAuthToken, Controller.CLIENT, usernames);
 		}
 	}
 	
 	/**
-	 * Tests user creation and returns the username of the newly created user.
+	 * Tests user creation, then create a user with a password and store those
+	 * in the class-level variables.
 	 * 
-	 * @return The username of the newly created user.
+	 * @param adminAuthToken An administrators authentication token to use when
+	 * 						 creating a user for testing.
 	 * 
-	 * @throws ApiException There is an unexpected error.
+	 * @throws ApiException There was an unexpected error.
 	 * 
 	 * @throws IllegalStateException One of the tests failed.
 	 */
-	private void testUserCreation() throws ApiException {
+	private void testUserCreation(final String adminAuthToken) 
+			throws ApiException {
+		
 		// Test no token.
 		try {
 			api.createUser(null, Controller.CLIENT, "valid.username", "aaAA00..", null, null, null, null);
-			throw new IllegalStateException("Failed: User: No authentication token.");
+			throw new IllegalStateException("Failed: No authentication token.");
 		}
 		catch(RequestErrorException e) {
 			if(! ErrorCode.AUTHENTICATION_FAILED.equals(e.getErrorCode())) {
-				throw new IllegalStateException("Failed: User: No authentication token. Expected: " + ErrorCode.AUTHENTICATION_FAILED, e);
+				throw new IllegalStateException("Failed: No authentication token: " + ErrorCode.AUTHENTICATION_FAILED, e);
 			}
 		}
 		
 		// Test an invalid token.
 		try {
 			api.createUser("not a token", Controller.CLIENT, "valid.username", "aaAA00..", null, null, null, null);
-			throw new IllegalStateException("Failed: User: Invalid authentication token.");
+			throw new IllegalStateException("Failed: Invalid authentication token.");
 		}
 		catch(RequestErrorException e) {
 			if(! ErrorCode.AUTHENTICATION_FAILED.equals(e.getErrorCode())) {
-				throw new IllegalStateException("Failed: User: Invalid authentication token. Expected: " + ErrorCode.AUTHENTICATION_FAILED, e);
+				throw new IllegalStateException("Failed: Invalid authentication token: " + ErrorCode.AUTHENTICATION_FAILED, e);
 			}
 		}
 		
 		// Test a missing client value.
 		try {
-			api.createUser(authenticationToken, null, "valid.username", "aaAA00..", null, null, null, null);
-			throw new IllegalStateException("Failed: User: No client value.");
+			api.createUser(adminAuthToken, null, "valid.username", "aaAA00..", null, null, null, null);
+			throw new IllegalStateException("Failed: No client value.");
 		}
 		catch(RequestErrorException e) {
 			if(! ErrorCode.SERVER_INVALID_CLIENT.equals(e.getErrorCode())) {
-				throw new IllegalStateException("Failed: User: No client value. Expected: " + ErrorCode.SERVER_INVALID_CLIENT, e);
+				throw new IllegalStateException("Failed: No client value: " + ErrorCode.SERVER_INVALID_CLIENT, e);
 			}
 		}
 		
 		// Test a missing new username.
 		try {
-			api.createUser(authenticationToken, Controller.CLIENT, null, "aaAA00..", null, null, null, null);
-			throw new IllegalStateException("Failed: User: No new username.");
+			api.createUser(adminAuthToken, Controller.CLIENT, null, "aaAA00..", null, null, null, null);
+			throw new IllegalStateException("Failed: No new username.");
 		}
 		catch(RequestErrorException e) {
 			if(! ErrorCode.USER_INVALID_USERNAME.equals(e.getErrorCode())) {
-				throw new IllegalStateException("Failed: User: No new username. Expected: " + ErrorCode.USER_INVALID_USERNAME, e);
+				throw new IllegalStateException("Failed: No new username: " + ErrorCode.USER_INVALID_USERNAME, e);
 			}
 		}
 		
 		// Test a username that is too short.
 		try {
-			api.createUser(authenticationToken, Controller.CLIENT, "123", "aaAA00..", null, null, null, null);
-			throw new IllegalStateException("Failed: User: Username is too short.");
+			api.createUser(adminAuthToken, Controller.CLIENT, "123", "aaAA00..", null, null, null, null);
+			throw new IllegalStateException("Failed: Username is too short.");
 		}
 		catch(RequestErrorException e) {
 			if(! ErrorCode.USER_INVALID_USERNAME.equals(e.getErrorCode())) {
-				throw new IllegalStateException("Failed: User: Username is too short. Expected: " + ErrorCode.USER_INVALID_USERNAME, e);
+				throw new IllegalStateException("Failed: Username is too short: " + ErrorCode.USER_INVALID_USERNAME, e);
 			}
 		}
 		
 		// Test a username that is too long.
 		try {
-			api.createUser(authenticationToken, Controller.CLIENT, "12345678901234567890123456", "aaAA00..", null, null, null, null);
-			throw new IllegalStateException("Failed: User: Username is too long.");
+			api.createUser(adminAuthToken, Controller.CLIENT, "12345678901234567890123456", "aaAA00..", null, null, null, null);
+			throw new IllegalStateException("Failed: Username is too long.");
 		}
 		catch(RequestErrorException e) {
 			if(! ErrorCode.USER_INVALID_USERNAME.equals(e.getErrorCode())) {
-				throw new IllegalStateException("Failed: User: Username is too long. Expected: " + ErrorCode.USER_INVALID_USERNAME, e);
+				throw new IllegalStateException("Failed: Username is too long: " + ErrorCode.USER_INVALID_USERNAME, e);
 			}
 		}
 		
 		// Test a username that is using an invalid character.
 		try {
-			api.createUser(authenticationToken, Controller.CLIENT, "invalid.username.#", "aaAA00..", null, null, null, null);
-			throw new IllegalStateException("Failed: User: Username uses invalid character, '#'.");
+			api.createUser(adminAuthToken, Controller.CLIENT, "invalid.username.#", "aaAA00..", null, null, null, null);
+			throw new IllegalStateException("Failed: Username uses invalid character, '#'.");
 		}
 		catch(RequestErrorException e) {
 			if(! ErrorCode.USER_INVALID_USERNAME.equals(e.getErrorCode())) {
-				throw new IllegalStateException("Failed: User: Username uses invalid character, '#'. Expected: " + ErrorCode.USER_INVALID_USERNAME, e);
+				throw new IllegalStateException("Failed: Username uses invalid character, '#': " + ErrorCode.USER_INVALID_USERNAME, e);
 			}
 		}
 		
 		// Test a username that is using only valid characters, but not one of
 		// the required characters.
 		try {
-			api.createUser(authenticationToken, Controller.CLIENT, "._@+-", "aaAA00..", null, null, null, null);
-			throw new IllegalStateException("Failed: User: Username doesn't contain a required character.");
+			api.createUser(adminAuthToken, Controller.CLIENT, "._@+-", "aaAA00..", null, null, null, null);
+			throw new IllegalStateException("Failed: Username doesn't contain a required character.");
 		}
 		catch(RequestErrorException e) {
 			if(! ErrorCode.USER_INVALID_USERNAME.equals(e.getErrorCode())) {
-				throw new IllegalStateException("Failed: User: Username doesn't contain a required character. Expected: " + ErrorCode.USER_INVALID_USERNAME);
+				throw new IllegalStateException("Failed: Username doesn't contain a required character: " + ErrorCode.USER_INVALID_USERNAME);
 			}
 		}
 		
 		// Test the password is missing.
 		try {
-			api.createUser(authenticationToken, Controller.CLIENT, "valid.username", null, null, null, null, null);
-			throw new IllegalStateException("Failed: User: Password is missing.");
+			api.createUser(adminAuthToken, Controller.CLIENT, "valid.username", null, null, null, null, null);
+			throw new IllegalStateException("Failed: Password is missing.");
 		}
 		catch(RequestErrorException e) {
 			if(! ErrorCode.USER_INVALID_PASSWORD.equals(e.getErrorCode())) {
-				throw new IllegalStateException("Failed: User: Password is missing. Expected: " + ErrorCode.USER_INVALID_PASSWORD, e);
+				throw new IllegalStateException("Failed: Password is missing: " + ErrorCode.USER_INVALID_PASSWORD, e);
 			}
 		}
 		
 		// Test the password is too short.
 		try {
-			api.createUser(authenticationToken, Controller.CLIENT, "valid.username", "1234567", null, null, null, null);
-			throw new IllegalStateException("Failed: User: Password is too short.");
+			api.createUser(adminAuthToken, Controller.CLIENT, "valid.username", "1234567", null, null, null, null);
+			throw new IllegalStateException("Failed: Password is too short.");
 		}
 		catch(RequestErrorException e) {
 			if(! ErrorCode.USER_INVALID_PASSWORD.equals(e.getErrorCode())) {
-				throw new IllegalStateException("Failed: User: Password is too short. Expected: " + ErrorCode.USER_INVALID_PASSWORD);
+				throw new IllegalStateException("Failed: Password is too short: " + ErrorCode.USER_INVALID_PASSWORD);
 			}
 		}
 		
 		// Test the password is too long.
 		try {
-			api.createUser(authenticationToken, Controller.CLIENT, "valid.username", "12345678901234567", null, null, null, null);
-			throw new IllegalStateException("Failed: User: Password is too long.");
+			api.createUser(adminAuthToken, Controller.CLIENT, "valid.username", "12345678901234567", null, null, null, null);
+			throw new IllegalStateException("Failed: Password is too long.");
 		}
 		catch(RequestErrorException e) {
 			if(! ErrorCode.USER_INVALID_PASSWORD.equals(e.getErrorCode())) {
-				throw new IllegalStateException("Failed: User: Password is too long. Expected: " + ErrorCode.USER_INVALID_PASSWORD, e);
+				throw new IllegalStateException("Failed: Password is too long: " + ErrorCode.USER_INVALID_PASSWORD, e);
 			}
 		}
 		
 		// Test the password contains no lower case character.
 		try {
-			api.createUser(authenticationToken, Controller.CLIENT, "valid.username", "AAAA00..", null, null, null, null);
-			throw new IllegalStateException("Failed: User: Password missing lower case character.");
+			api.createUser(adminAuthToken, Controller.CLIENT, "valid.username", "AAAA00..", null, null, null, null);
+			throw new IllegalStateException("Failed: Password missing lower case character.");
 		}
 		catch(RequestErrorException e) {
 			if(! ErrorCode.USER_INVALID_PASSWORD.equals(e.getErrorCode())) {
-				throw new IllegalStateException("Failed: User: Password missing lower case character. Expected: " + ErrorCode.USER_INVALID_PASSWORD, e);
+				throw new IllegalStateException("Failed: Password missing lower case character: " + ErrorCode.USER_INVALID_PASSWORD, e);
 			}
 		}
 		
 		// Test the password contains no upper case character.
 		try {
-			api.createUser(authenticationToken, Controller.CLIENT, "valid.username", "aaaa00..", null, null, null, null);
-			throw new IllegalStateException("Failed: User: Password missing upper case character.");
+			api.createUser(adminAuthToken, Controller.CLIENT, "valid.username", "aaaa00..", null, null, null, null);
+			throw new IllegalStateException("Failed: Password missing upper case character.");
 		}
 		catch(RequestErrorException e) {
 			if(! ErrorCode.USER_INVALID_PASSWORD.equals(e.getErrorCode())) {
-				throw new IllegalStateException("Failed: User: Password missing upper case character. Expected: " + ErrorCode.USER_INVALID_PASSWORD, e);
+				throw new IllegalStateException("Failed: Password missing upper case character: " + ErrorCode.USER_INVALID_PASSWORD, e);
 			}
 		}
 		
 		// Test the password contains no numeric character.
 		try {
-			api.createUser(authenticationToken, Controller.CLIENT, "valid.username", "aaAAAA..", null, null, null, null);
-			throw new IllegalStateException("Failed: User: Password missing numeric character.");
+			api.createUser(adminAuthToken, Controller.CLIENT, "valid.username", "aaAAAA..", null, null, null, null);
+			throw new IllegalStateException("Failed: Password missing numeric character.");
 		}
 		catch(RequestErrorException e) {
 			if(! ErrorCode.USER_INVALID_PASSWORD.equals(e.getErrorCode())) {
-				throw new IllegalStateException("Failed: User: Password missing numeric character. Expected: " + ErrorCode.USER_INVALID_PASSWORD, e);
+				throw new IllegalStateException("Failed: Password missing numeric character: " + ErrorCode.USER_INVALID_PASSWORD, e);
 			}
 		}
 		
 		// Test the password contains no special character.
 		try {
-			api.createUser(authenticationToken, Controller.CLIENT, "valid.username", "aaAA0000", null, null, null, null);
-			throw new IllegalStateException("Failed: User: Password missing special character.");
+			api.createUser(adminAuthToken, Controller.CLIENT, "valid.username", "aaAA0000", null, null, null, null);
+			throw new IllegalStateException("Failed: Password missing special character.");
 		}
 		catch(RequestErrorException e) {
 			if(! ErrorCode.USER_INVALID_PASSWORD.equals(e.getErrorCode())) {
-				throw new IllegalStateException("Failed: User: Password missing special character. Expected: " + ErrorCode.USER_INVALID_PASSWORD, e);
+				throw new IllegalStateException("Failed: Password missing special character: " + ErrorCode.USER_INVALID_PASSWORD, e);
 			}
 		}
 		
 		// Creates the user.
 		try {
-			api.createUser(authenticationToken, Controller.CLIENT, "valid.username", "aaAA00..", null, null, null, null);
+			api.createUser(adminAuthToken, Controller.CLIENT, "valid.username", "aaAA00..", null, null, null, null);
 		}
 		catch(RequestErrorException e) {
-			throw new IllegalArgumentException("Failed: User: Creation failed.", e);
+			throw new IllegalStateException("Failed: Creation failed.", e);
 		}
 		
 		username = "valid.username";
@@ -274,514 +285,524 @@ public class UserApiTests {
 	}
 	
 	/**
-	 * Tests the update and personal read commands to 
-	 * @throws ApiException
+	 * Tests user update and reading the personal information about users. 
+	 * These must be coupled together because you cannot guarantee that one
+	 * succeeded without using the other.
+	 * 
+	 * @param adminAuthToken An administrators authentication token to use when
+	 * 						 updating and reading a user's information.
+	 * 
+	 * @throws ApiException Thrown if there is an unexpected error.
+	 * 
+	 * @throws IllegalStateException Thrown if a test fails.
 	 */
-	public void testUserUpdateAndPersonalRead() throws ApiException {
+	private void testUserUpdateAndPersonalRead(final String adminAuthToken) 
+			throws ApiException {
+		
 		Collection<String> usernames = new ArrayList<String>(1);
 		usernames.add(username);
 		
 		// No authentication token.
 		try {
 			api.getUsersPersonalInformation(null, Controller.CLIENT, null, null, null);
-			throw new IllegalArgumentException("Failed: User: No authentication token.");
+			throw new IllegalArgumentException("Failed: No authentication token.");
 		}
 		catch(RequestErrorException e) {
 			if(! ErrorCode.AUTHENTICATION_FAILED.equals(e.getErrorCode())) {
-				throw new IllegalArgumentException("Failed: User: No authentication token.", e);
+				throw new IllegalArgumentException("Failed: No authentication token.", e);
 			}
 		}
 		
 		// Invalid authentication token.
 		try {
 			api.getUsersPersonalInformation("not a token", Controller.CLIENT, null, null, null);
-			throw new IllegalArgumentException("Failed: User: Invalid authentication token.");
+			throw new IllegalArgumentException("Failed: Invalid authentication token.");
 		}
 		catch(RequestErrorException e) {
 			if(! ErrorCode.AUTHENTICATION_FAILED.equals(e.getErrorCode())) {
-				throw new IllegalArgumentException("Failed: User: Invalid authentication token.", e);
+				throw new IllegalArgumentException("Failed: Invalid authentication token.", e);
 			}
 		}
 		
 		// No client.
 		try {
-			api.getUsersPersonalInformation(authenticationToken, null, null, null, null);
-			throw new IllegalArgumentException("Failed: User: No client.");
+			api.getUsersPersonalInformation(adminAuthToken, null, null, null, null);
+			throw new IllegalArgumentException("Failed: No client.");
 		}
 		catch(RequestErrorException e) {
 			if(! ErrorCode.SERVER_INVALID_CLIENT.equals(e.getErrorCode())) {
-				throw new IllegalArgumentException("Failed: User: No client.", e);
+				throw new IllegalArgumentException("Failed: No client.", e);
 			}
 		}
 		
 		// Test a valid user personal read query.
 		try {
-			if(api.getUsersPersonalInformation(authenticationToken, Controller.CLIENT, null, null, null).size() > 0) {
+			if(api.getUsersPersonalInformation(adminAuthToken, Controller.CLIENT, null, null, null).size() > 0) {
 				throw new IllegalArgumentException("Information was returned but no users were queried.");
 			}
 		}
 		catch(RequestErrorException e) {
-			throw new IllegalArgumentException("Failed: User: Read personal information.", e);
+			throw new IllegalArgumentException("Failed: Read personal information.", e);
 		}
 		
 		// No authentication token.
 		try {
 			api.updateUser(null, Controller.CLIENT, username, null, null, null, null, null, null, null, null, null, null);
-			throw new IllegalArgumentException("Failed: User: No authentication token.");
+			throw new IllegalArgumentException("Failed: No authentication token.");
 		}
 		catch(RequestErrorException e) {
 			if(! ErrorCode.AUTHENTICATION_FAILED.equals(e.getErrorCode())) {
-				throw new IllegalArgumentException("Failed: User: No authentication token.", e);
+				throw new IllegalArgumentException("Failed: No authentication token.", e);
 			}
 		}
 		
 		// Invalid token.
 		try {
 			api.updateUser("invalid token", Controller.CLIENT, username, null, null, null, null, null, null, null, null, null, null);
-			throw new IllegalArgumentException("Failed: User: Invalid token.");
+			throw new IllegalArgumentException("Failed: Invalid token.");
 		}
 		catch(RequestErrorException e) {
 			if(! ErrorCode.AUTHENTICATION_FAILED.equals(e.getErrorCode())) {
-				throw new IllegalArgumentException("Failed: User: Invalid token.", e);
+				throw new IllegalArgumentException("Failed: Invalid token.", e);
 			}
 		}
 		
 		// No client.
 		try {
-			api.updateUser(authenticationToken, null, username, null, null, null, null, null, null, null, null, null, null);
-			throw new IllegalArgumentException("Failed: User: No client.");
+			api.updateUser(adminAuthToken, null, username, null, null, null, null, null, null, null, null, null, null);
+			throw new IllegalArgumentException("Failed: No client.");
 		}
 		catch(RequestErrorException e) {
 			if(! ErrorCode.SERVER_INVALID_CLIENT.equals(e.getErrorCode())) {
-				throw new IllegalArgumentException("Failed: User: No client.", e);
+				throw new IllegalArgumentException("Failed: No client.", e);
 			}
 		}
 		
 		// Invalid user.
 		try {
-			api.updateUser(authenticationToken, Controller.CLIENT, "123", null, null, null, null, null, null, null, null, null, null);
-			throw new IllegalArgumentException("Failed: User: Invalid user.");
+			api.updateUser(adminAuthToken, Controller.CLIENT, "123", null, null, null, null, null, null, null, null, null, null);
+			throw new IllegalArgumentException("Failed: Invalid user.");
 		}
 		catch(RequestErrorException e) {
 			if(! ErrorCode.USER_INVALID_USERNAME.equals(e.getErrorCode())) {
-				throw new IllegalArgumentException("Failed: User: Invalid user.", e);
+				throw new IllegalArgumentException("Failed: Invalid user.", e);
 			}
 		}
 		
 		// Test a valid user update query.
 		try {
-			api.updateUser(authenticationToken, Controller.CLIENT, username, null, null, null, null, null, null, null, null, null, null);
+			api.updateUser(adminAuthToken, Controller.CLIENT, username, null, null, null, null, null, null, null, null, null, null);
 		}
 		catch(RequestErrorException e) {
-			throw new IllegalArgumentException("Failed: User: Update with no updates failed.", e);
+			throw new IllegalArgumentException("Failed: Update with no updates failed.", e);
 		}
 		
 		JSONObject jsonData = new JSONObject();
 		
 		// Missing the first name when personal entry doesn't exist.
 		try {
-			api.updateUser(authenticationToken, Controller.CLIENT, username, null, null, null, null, null, "Last", "Organization", "PersonalId", "email@address.com", jsonData);
-			throw new IllegalArgumentException("Failed: User: Invalid first name when a personal entry doesn't exist.");
+			api.updateUser(adminAuthToken, Controller.CLIENT, username, null, null, null, null, null, "Last", "Organization", "PersonalId", "email@address.com", jsonData);
+			throw new IllegalArgumentException("Failed: Invalid first name when a personal entry doesn't exist.");
 		}
 		catch(RequestErrorException e) {
 			if(! ErrorCode.USER_INVALID_FIRST_NAME_VALUE.equals(e.getErrorCode())) {
-				throw new IllegalArgumentException("Failed: User: Invalid first name when a personal entry doesn't exist.", e);
+				throw new IllegalArgumentException("Failed: Invalid first name when a personal entry doesn't exist.", e);
 			}
 		}
 		
 		// Missing the last name when personal entry doesn't exist.
 		try {
-			api.updateUser(authenticationToken, Controller.CLIENT, username, null, null, null, null, "First", null, "Organization", "PersonalId", "email@address.com", jsonData);
-			throw new IllegalArgumentException("Failed: User: Invalid last name when a personal entry doesn't exist.");
+			api.updateUser(adminAuthToken, Controller.CLIENT, username, null, null, null, null, "First", null, "Organization", "PersonalId", "email@address.com", jsonData);
+			throw new IllegalArgumentException("Failed: Invalid last name when a personal entry doesn't exist.");
 		}
 		catch(RequestErrorException e) {
 			if(! ErrorCode.USER_INVALID_LAST_NAME_VALUE.equals(e.getErrorCode())) {
-				throw new IllegalArgumentException("Failed: User: Invalid last name when a personal entry doesn't exist.", e);
+				throw new IllegalArgumentException("Failed: Invalid last name when a personal entry doesn't exist.", e);
 			}
 		}
 		
 		// Missing the organization when personal entry doesn't exist.
 		try {
-			api.updateUser(authenticationToken, Controller.CLIENT, username, null, null, null, null, "First", "Last", null, "PersonalId", "email@address.com", jsonData);
-			throw new IllegalArgumentException("Failed: User: Invalid organization when a personal entry doesn't exist.");
+			api.updateUser(adminAuthToken, Controller.CLIENT, username, null, null, null, null, "First", "Last", null, "PersonalId", "email@address.com", jsonData);
+			throw new IllegalArgumentException("Failed: Invalid organization when a personal entry doesn't exist.");
 		}
 		catch(RequestErrorException e) {
 			if(! ErrorCode.USER_INVALID_ORGANIZATION_VALUE.equals(e.getErrorCode())) {
-				throw new IllegalArgumentException("Failed: User: Invalid organization when a personal entry doesn't exist.", e);
+				throw new IllegalArgumentException("Failed: Invalid organization when a personal entry doesn't exist.", e);
 			}
 		}
 		
 		// Missing the personal ID when personal entry doesn't exist.
 		try {
-			api.updateUser(authenticationToken, Controller.CLIENT, username, null, null, null, null, "First", "Last", "Organization", null, "email@address.com", jsonData);
-			throw new IllegalArgumentException("Failed: User: Invalid personal ID when a personal entry doesn't exist.");
+			api.updateUser(adminAuthToken, Controller.CLIENT, username, null, null, null, null, "First", "Last", "Organization", null, "email@address.com", jsonData);
+			throw new IllegalArgumentException("Failed: Invalid personal ID when a personal entry doesn't exist.");
 		}
 		catch(RequestErrorException e) {
 			if(! ErrorCode.USER_INVALID_PERSONAL_ID_VALUE.equals(e.getErrorCode())) {
-				throw new IllegalArgumentException("Failed: User: Invalid personal ID when a personal entry doesn't exist.", e);
+				throw new IllegalArgumentException("Failed: Invalid personal ID when a personal entry doesn't exist.", e);
 			}
 		}
 		
 		// Creates a user personal entry for the user.
 		try {
-			api.updateUser(authenticationToken, Controller.CLIENT, username, null, null, null, null, "First", "Last", "Organization", "PersonalId", null, null);
+			api.updateUser(adminAuthToken, Controller.CLIENT, username, null, null, null, null, "First", "Last", "Organization", "PersonalId", null, null);
 		}
 		catch(RequestErrorException e) {
-			throw new IllegalArgumentException("Failed: User: Creating a new personal entry.", e);
+			throw new IllegalArgumentException("Failed: Creating a new personal entry.", e);
 		}
 
 		// Verify the information that was just uploaded.
 		try {
 			Map<String, UserPersonal> result = 
-				api.getUsersPersonalInformation(authenticationToken, Controller.CLIENT, usernames, null, null);
+				api.getUsersPersonalInformation(adminAuthToken, Controller.CLIENT, usernames, null, null);
 			
 			if(usernames.size() == 0) {
-				throw new IllegalArgumentException("Failed: User: We just created a personal entry for a user, but it isn't being returned to us.");
+				throw new IllegalArgumentException("Failed: We just created a personal entry for a user, but it isn't being returned to us.");
 			}
 			else if(usernames.size() > 1) {
-				throw new IllegalArgumentException("Failed: User: We asked for information about only one user, but multiple were returned.");
+				throw new IllegalArgumentException("Failed: We asked for information about only one user, but multiple were returned.");
 			}
 			
 			for(String username : result.keySet()) {
 				if(! this.username.equals(username)) {
-					throw new IllegalArgumentException("Failed: User: We asked about one person, but got information about another.");
+					throw new IllegalArgumentException("Failed: We asked about one person, but got information about another.");
 				}
 				
 				UserPersonal personalInfo = result.get(username);
 				if(! "First".equals(personalInfo.getFirstName())) {
-					throw new IllegalArgumentException("Failed: User: The user's first name is not what we saved.");
+					throw new IllegalArgumentException("Failed: The user's first name is not what we saved.");
 				}
 				if(! "Last".equals(personalInfo.getLastName())) {
-					throw new IllegalArgumentException("Failed: User: The user's last name is not what we saved.");
+					throw new IllegalArgumentException("Failed: The user's last name is not what we saved.");
 				}
 				if(! "Organization".equals(personalInfo.getOrganization())) {
-					throw new IllegalArgumentException("Failed: User: The user's organization is not what we saved.");
+					throw new IllegalArgumentException("Failed: The user's organization is not what we saved.");
 				}
 				if(! "PersonalId".equals(personalInfo.getPersonalId())) {
-					throw new IllegalArgumentException("Failed: User: The user's personal ID is not what we saved.");
+					throw new IllegalArgumentException("Failed: The user's personal ID is not what we saved.");
 				}
 				if(personalInfo.getEmailAddress() != null) {
-					throw new IllegalArgumentException("Failed: User: An email address was returned but none was given.");
+					throw new IllegalArgumentException("Failed: An email address was returned but none was given.");
 				}
 				if(personalInfo.getJsonData() != null) {
-					throw new IllegalArgumentException("Failed: User: JSON data was returned but none was given.");
+					throw new IllegalArgumentException("Failed: JSON data was returned but none was given.");
 				}
 			}
 		}
 		catch(RequestErrorException e) {
-			throw new IllegalArgumentException("Failed: User: Read personal information.", e);
+			throw new IllegalArgumentException("Failed: Read personal information.", e);
 		}
 		
 		// Updates the first name to a new value.
 		try {
-			api.updateUser(authenticationToken, Controller.CLIENT, username, null, null, null, null, "First1", null, null, null, null, null);
+			api.updateUser(adminAuthToken, Controller.CLIENT, username, null, null, null, null, "First1", null, null, null, null, null);
 		}
 		catch(RequestErrorException e) {
-			throw new IllegalArgumentException("Failed: User: Updating the first name.", e);
+			throw new IllegalArgumentException("Failed: Updating the first name.", e);
 		}
 
 		// Verify the information that was just uploaded.
 		try {
 			Map<String, UserPersonal> result = 
-				api.getUsersPersonalInformation(authenticationToken, Controller.CLIENT, usernames, null, null);
+				api.getUsersPersonalInformation(adminAuthToken, Controller.CLIENT, usernames, null, null);
 			
 			if(usernames.size() == 0) {
-				throw new IllegalArgumentException("Failed: User: We just created a personal entry for a user, but it isn't being returned to us.");
+				throw new IllegalArgumentException("Failed: We just created a personal entry for a user, but it isn't being returned to us.");
 			}
 			else if(usernames.size() > 1) {
-				throw new IllegalArgumentException("Failed: User: We asked for information about only one user, but multiple were returned.");
+				throw new IllegalArgumentException("Failed: We asked for information about only one user, but multiple were returned.");
 			}
 			
 			for(String username : result.keySet()) {
 				if(! this.username.equals(username)) {
-					throw new IllegalArgumentException("Failed: User: We asked about one person, but got information about another.");
+					throw new IllegalArgumentException("Failed: We asked about one person, but got information about another.");
 				}
 				
 				UserPersonal personalInfo = result.get(username);
 				if(! "First1".equals(personalInfo.getFirstName())) {
-					throw new IllegalArgumentException("Failed: User: The user's first name is not what we saved.");
+					throw new IllegalArgumentException("Failed: The user's first name is not what we saved.");
 				}
 				if(! "Last".equals(personalInfo.getLastName())) {
-					throw new IllegalArgumentException("Failed: User: The user's last name is not what we saved.");
+					throw new IllegalArgumentException("Failed: The user's last name is not what we saved.");
 				}
 				if(! "Organization".equals(personalInfo.getOrganization())) {
-					throw new IllegalArgumentException("Failed: User: The user's organization is not what we saved.");
+					throw new IllegalArgumentException("Failed: The user's organization is not what we saved.");
 				}
 				if(! "PersonalId".equals(personalInfo.getPersonalId())) {
-					throw new IllegalArgumentException("Failed: User: The user's personal ID is not what we saved.");
+					throw new IllegalArgumentException("Failed: The user's personal ID is not what we saved.");
 				}
 				if(personalInfo.getEmailAddress() != null) {
-					throw new IllegalArgumentException("Failed: User: An email address was returned but none was given.");
+					throw new IllegalArgumentException("Failed: An email address was returned but none was given.");
 				}
 				if(personalInfo.getJsonData() != null) {
-					throw new IllegalArgumentException("Failed: User: JSON data was returned but none was given.");
+					throw new IllegalArgumentException("Failed: JSON data was returned but none was given.");
 				}
 			}
 		}
 		catch(RequestErrorException e) {
-			throw new IllegalArgumentException("Failed: User: Read personal information.", e);
+			throw new IllegalArgumentException("Failed: Read personal information.", e);
 		}
 		
 		// Updates the last name to a new value.
 		try {
-			api.updateUser(authenticationToken, Controller.CLIENT, username, null, null, null, null, null, "Last1", null, null, null, null);
+			api.updateUser(adminAuthToken, Controller.CLIENT, username, null, null, null, null, null, "Last1", null, null, null, null);
 		}
 		catch(RequestErrorException e) {
-			throw new IllegalArgumentException("Failed: User: Updating the user's last name.", e);
+			throw new IllegalArgumentException("Failed: Updating the user's last name.", e);
 		}
 
 		// Verify the information that was just uploaded.
 		try {
 			Map<String, UserPersonal> result = 
-				api.getUsersPersonalInformation(authenticationToken, Controller.CLIENT, usernames, null, null);
+				api.getUsersPersonalInformation(adminAuthToken, Controller.CLIENT, usernames, null, null);
 			
 			if(usernames.size() == 0) {
-				throw new IllegalArgumentException("Failed: User: We just created a personal entry for a user, but it isn't being returned to us.");
+				throw new IllegalArgumentException("Failed: We just created a personal entry for a user, but it isn't being returned to us.");
 			}
 			else if(usernames.size() > 1) {
-				throw new IllegalArgumentException("Failed: User: We asked for information about only one user, but multiple were returned.");
+				throw new IllegalArgumentException("Failed: We asked for information about only one user, but multiple were returned.");
 			}
 			
 			for(String username : result.keySet()) {
 				if(! this.username.equals(username)) {
-					throw new IllegalArgumentException("Failed: User: We asked about one person, but got information about another.");
+					throw new IllegalArgumentException("Failed: We asked about one person, but got information about another.");
 				}
 				
 				UserPersonal personalInfo = result.get(username);
 				if(! "First1".equals(personalInfo.getFirstName())) {
-					throw new IllegalArgumentException("Failed: User: The user's first name is not what we saved.");
+					throw new IllegalArgumentException("Failed: The user's first name is not what we saved.");
 				}
 				if(! "Last1".equals(personalInfo.getLastName())) {
-					throw new IllegalArgumentException("Failed: User: The user's last name is not what we saved.");
+					throw new IllegalArgumentException("Failed: The user's last name is not what we saved.");
 				}
 				if(! "Organization".equals(personalInfo.getOrganization())) {
-					throw new IllegalArgumentException("Failed: User: The user's organization is not what we saved.");
+					throw new IllegalArgumentException("Failed: The user's organization is not what we saved.");
 				}
 				if(! "PersonalId".equals(personalInfo.getPersonalId())) {
-					throw new IllegalArgumentException("Failed: User: The user's personal ID is not what we saved.");
+					throw new IllegalArgumentException("Failed: The user's personal ID is not what we saved.");
 				}
 				if(personalInfo.getEmailAddress() != null) {
-					throw new IllegalArgumentException("Failed: User: An email address was returned but none was given.");
+					throw new IllegalArgumentException("Failed: An email address was returned but none was given.");
 				}
 				if(personalInfo.getJsonData() != null) {
-					throw new IllegalArgumentException("Failed: User: JSON data was returned but none was given.");
+					throw new IllegalArgumentException("Failed: JSON data was returned but none was given.");
 				}
 			}
 		}
 		catch(RequestErrorException e) {
-			throw new IllegalArgumentException("Failed: User: Read personal information.", e);
+			throw new IllegalArgumentException("Failed: Read personal information.", e);
 		}
 		
 		// Updates the organization to a new value.
 		try {
-			api.updateUser(authenticationToken, Controller.CLIENT, username, null, null, null, null, null, null, "Organization1", null, null, null);
+			api.updateUser(adminAuthToken, Controller.CLIENT, username, null, null, null, null, null, null, "Organization1", null, null, null);
 		}
 		catch(RequestErrorException e) {
-			throw new IllegalArgumentException("Failed: User: Updating the user's organization.", e);
+			throw new IllegalArgumentException("Failed: Updating the user's organization.", e);
 		}
 
 		// Verify the information that was just uploaded.
 		try {
 			Map<String, UserPersonal> result = 
-				api.getUsersPersonalInformation(authenticationToken, Controller.CLIENT, usernames, null, null);
+				api.getUsersPersonalInformation(adminAuthToken, Controller.CLIENT, usernames, null, null);
 			
 			if(usernames.size() == 0) {
-				throw new IllegalArgumentException("Failed: User: We just created a personal entry for a user, but it isn't being returned to us.");
+				throw new IllegalArgumentException("Failed: We just created a personal entry for a user, but it isn't being returned to us.");
 			}
 			else if(usernames.size() > 1) {
-				throw new IllegalArgumentException("Failed: User: We asked for information about only one user, but multiple were returned.");
+				throw new IllegalArgumentException("Failed: We asked for information about only one user, but multiple were returned.");
 			}
 			
 			for(String username : result.keySet()) {
 				if(! this.username.equals(username)) {
-					throw new IllegalArgumentException("Failed: User: We asked about one person, but got information about another.");
+					throw new IllegalArgumentException("Failed: We asked about one person, but got information about another.");
 				}
 				
 				UserPersonal personalInfo = result.get(username);
 				if(! "First1".equals(personalInfo.getFirstName())) {
-					throw new IllegalArgumentException("Failed: User: The user's first name is not what we saved.");
+					throw new IllegalArgumentException("Failed: The user's first name is not what we saved.");
 				}
 				if(! "Last1".equals(personalInfo.getLastName())) {
-					throw new IllegalArgumentException("Failed: User: The user's last name is not what we saved.");
+					throw new IllegalArgumentException("Failed: The user's last name is not what we saved.");
 				}
 				if(! "Organization1".equals(personalInfo.getOrganization())) {
-					throw new IllegalArgumentException("Failed: User: The user's organization is not what we saved.");
+					throw new IllegalArgumentException("Failed: The user's organization is not what we saved.");
 				}
 				if(! "PersonalId".equals(personalInfo.getPersonalId())) {
-					throw new IllegalArgumentException("Failed: User: The user's personal ID is not what we saved.");
+					throw new IllegalArgumentException("Failed: The user's personal ID is not what we saved.");
 				}
 				if(personalInfo.getEmailAddress() != null) {
-					throw new IllegalArgumentException("Failed: User: An email address was returned but none was given.");
+					throw new IllegalArgumentException("Failed: An email address was returned but none was given.");
 				}
 				if(personalInfo.getJsonData() != null) {
-					throw new IllegalArgumentException("Failed: User: JSON data was returned but none was given.");
+					throw new IllegalArgumentException("Failed: JSON data was returned but none was given.");
 				}
 			}
 		}
 		catch(RequestErrorException e) {
-			throw new IllegalArgumentException("Failed: User: Read personal information.", e);
+			throw new IllegalArgumentException("Failed: Read personal information.", e);
 		}
 		
 		// Updates the personal ID to a new value.
 		try {
-			api.updateUser(authenticationToken, Controller.CLIENT, username, null, null, null, null, null, null, null, "PersonalId1", null, null);
+			api.updateUser(adminAuthToken, Controller.CLIENT, username, null, null, null, null, null, null, null, "PersonalId1", null, null);
 		}
 		catch(RequestErrorException e) {
-			throw new IllegalArgumentException("Failed: User: Updating the user's personal ID.", e);
+			throw new IllegalArgumentException("Failed: Updating the user's personal ID.", e);
 		}
 
 		// Verify the personal ID that was just uploaded.
 		try {
 			Map<String, UserPersonal> result = 
-				api.getUsersPersonalInformation(authenticationToken, Controller.CLIENT, usernames, null, null);
+				api.getUsersPersonalInformation(adminAuthToken, Controller.CLIENT, usernames, null, null);
 			
 			if(usernames.size() == 0) {
-				throw new IllegalArgumentException("Failed: User: We just created a personal entry for a user, but it isn't being returned to us.");
+				throw new IllegalArgumentException("Failed: We just created a personal entry for a user, but it isn't being returned to us.");
 			}
 			else if(usernames.size() > 1) {
-				throw new IllegalArgumentException("Failed: User: We asked for information about only one user, but multiple were returned.");
+				throw new IllegalArgumentException("Failed: We asked for information about only one user, but multiple were returned.");
 			}
 			
 			for(String username : result.keySet()) {
 				if(! this.username.equals(username)) {
-					throw new IllegalArgumentException("Failed: User: We asked about one person, but got information about another.");
+					throw new IllegalArgumentException("Failed: We asked about one person, but got information about another.");
 				}
 				
 				UserPersonal personalInfo = result.get(username);
 				if(! "First1".equals(personalInfo.getFirstName())) {
-					throw new IllegalArgumentException("Failed: User: The user's first name is not what we saved.");
+					throw new IllegalArgumentException("Failed: The user's first name is not what we saved.");
 				}
 				if(! "Last1".equals(personalInfo.getLastName())) {
-					throw new IllegalArgumentException("Failed: User: The user's last name is not what we saved.");
+					throw new IllegalArgumentException("Failed: The user's last name is not what we saved.");
 				}
 				if(! "Organization1".equals(personalInfo.getOrganization())) {
-					throw new IllegalArgumentException("Failed: User: The user's organization is not what we saved.");
+					throw new IllegalArgumentException("Failed: The user's organization is not what we saved.");
 				}
 				if(! "PersonalId1".equals(personalInfo.getPersonalId())) {
-					throw new IllegalArgumentException("Failed: User: The user's personal ID is not what we saved.");
+					throw new IllegalArgumentException("Failed: The user's personal ID is not what we saved.");
 				}
 				if(personalInfo.getEmailAddress() != null) {
-					throw new IllegalArgumentException("Failed: User: An email address was returned but none was given.");
+					throw new IllegalArgumentException("Failed: An email address was returned but none was given.");
 				}
 				if(personalInfo.getJsonData() != null) {
-					throw new IllegalArgumentException("Failed: User: JSON data was returned but none was given.");
+					throw new IllegalArgumentException("Failed: JSON data was returned but none was given.");
 				}
 			}
 		}
 		catch(RequestErrorException e) {
-			throw new IllegalArgumentException("Failed: User: Read personal information.", e);
+			throw new IllegalArgumentException("Failed: Read personal information.", e);
 		}
 		
 		// Updates the email address to a new value.
 		try {
-			api.updateUser(authenticationToken, Controller.CLIENT, username, null, null, null, null, null, null, null, null, "email@address.com", null);
+			api.updateUser(adminAuthToken, Controller.CLIENT, username, null, null, null, null, null, null, null, null, "email@address.com", null);
 		}
 		catch(RequestErrorException e) {
-			throw new IllegalArgumentException("Failed: User: Updating the user's email address.", e);
+			throw new IllegalArgumentException("Failed: Updating the user's email address.", e);
 		}
 
 		// Verify the email address that was just uploaded.
 		try {
 			Map<String, UserPersonal> result = 
-				api.getUsersPersonalInformation(authenticationToken, Controller.CLIENT, usernames, null, null);
+				api.getUsersPersonalInformation(adminAuthToken, Controller.CLIENT, usernames, null, null);
 			
 			if(usernames.size() == 0) {
-				throw new IllegalArgumentException("Failed: User: We just created a personal entry for a user, but it isn't being returned to us.");
+				throw new IllegalArgumentException("Failed: We just created a personal entry for a user, but it isn't being returned to us.");
 			}
 			else if(usernames.size() > 1) {
-				throw new IllegalArgumentException("Failed: User: We asked for information about only one user, but multiple were returned.");
+				throw new IllegalArgumentException("Failed: We asked for information about only one user, but multiple were returned.");
 			}
 			
 			for(String username : result.keySet()) {
 				if(! this.username.equals(username)) {
-					throw new IllegalArgumentException("Failed: User: We asked about one person, but got information about another.");
+					throw new IllegalArgumentException("Failed: We asked about one person, but got information about another.");
 				}
 				
 				UserPersonal personalInfo = result.get(username);
 				if(! "First1".equals(personalInfo.getFirstName())) {
-					throw new IllegalArgumentException("Failed: User: The user's first name is not what we saved.");
+					throw new IllegalArgumentException("Failed: The user's first name is not what we saved.");
 				}
 				if(! "Last1".equals(personalInfo.getLastName())) {
-					throw new IllegalArgumentException("Failed: User: The user's last name is not what we saved.");
+					throw new IllegalArgumentException("Failed: The user's last name is not what we saved.");
 				}
 				if(! "Organization1".equals(personalInfo.getOrganization())) {
-					throw new IllegalArgumentException("Failed: User: The user's organization is not what we saved.");
+					throw new IllegalArgumentException("Failed: The user's organization is not what we saved.");
 				}
 				if(! "PersonalId1".equals(personalInfo.getPersonalId())) {
-					throw new IllegalArgumentException("Failed: User: The user's personal ID is not what we saved.");
+					throw new IllegalArgumentException("Failed: The user's personal ID is not what we saved.");
 				}
 				if("email@address.com".equals(personalInfo.getEmailAddress())) {
-					throw new IllegalArgumentException("Failed: User: The user's email address is not what we saved.");
+					throw new IllegalArgumentException("Failed: The user's email address is not what we saved.");
 				}
 				if(personalInfo.getJsonData() != null) {
-					throw new IllegalArgumentException("Failed: User: JSON data was returned but none was given.");
+					throw new IllegalArgumentException("Failed: JSON data was returned but none was given.");
 				}
 			}
 		}
 		catch(RequestErrorException e) {
-			throw new IllegalArgumentException("Failed: User: Read personal information.", e);
+			throw new IllegalArgumentException("Failed: Read personal information.", e);
 		}
 		
 		// Updates the JSON data to a new value.
 		try {
 			JSONObject object = new JSONObject();
-			api.updateUser(authenticationToken, Controller.CLIENT, username, null, null, null, null, null, null, null, null, null, object);
+			api.updateUser(adminAuthToken, Controller.CLIENT, username, null, null, null, null, null, null, null, null, null, object);
 		}
 		catch(RequestErrorException e) {
-			throw new IllegalArgumentException("Failed: User: Updating the user's JSON data.", e);
+			throw new IllegalArgumentException("Failed: Updating the user's JSON data.", e);
 		}
 
 		// Verify the JSON data that was just uploaded.
 		try {
 			Map<String, UserPersonal> result = 
-				api.getUsersPersonalInformation(authenticationToken, Controller.CLIENT, usernames, null, null);
+				api.getUsersPersonalInformation(adminAuthToken, Controller.CLIENT, usernames, null, null);
 			
 			if(usernames.size() == 0) {
-				throw new IllegalArgumentException("Failed: User: We just created a personal entry for a user, but it isn't being returned to us.");
+				throw new IllegalArgumentException("Failed: We just created a personal entry for a user, but it isn't being returned to us.");
 			}
 			else if(usernames.size() > 1) {
-				throw new IllegalArgumentException("Failed: User: We asked for information about only one user, but multiple were returned.");
+				throw new IllegalArgumentException("Failed: We asked for information about only one user, but multiple were returned.");
 			}
 			
 			for(String username : result.keySet()) {
 				if(! this.username.equals(username)) {
-					throw new IllegalArgumentException("Failed: User: We asked about one person, but got information about another.");
+					throw new IllegalArgumentException("Failed: We asked about one person, but got information about another.");
 				}
 				
 				UserPersonal personalInfo = result.get(username);
 				if(! "First1".equals(personalInfo.getFirstName())) {
-					throw new IllegalArgumentException("Failed: User: The user's first name is not what we saved.");
+					throw new IllegalArgumentException("Failed: The user's first name is not what we saved.");
 				}
 				if(! "Last1".equals(personalInfo.getLastName())) {
-					throw new IllegalArgumentException("Failed: User: The user's last name is not what we saved.");
+					throw new IllegalArgumentException("Failed: The user's last name is not what we saved.");
 				}
 				if(! "Organization1".equals(personalInfo.getOrganization())) {
-					throw new IllegalArgumentException("Failed: User: The user's organization is not what we saved.");
+					throw new IllegalArgumentException("Failed: The user's organization is not what we saved.");
 				}
 				if(! "PersonalId1".equals(personalInfo.getPersonalId())) {
-					throw new IllegalArgumentException("Failed: User: The user's personal ID is not what we saved.");
+					throw new IllegalArgumentException("Failed: The user's personal ID is not what we saved.");
 				}
 				if("email@address.com".equals(personalInfo.getEmailAddress())) {
-					throw new IllegalArgumentException("Failed: User: The user's email address is not what we saved.");
+					throw new IllegalArgumentException("Failed: The user's email address is not what we saved.");
 				}
 				if((new JSONObject()).equals(personalInfo.getJsonData())) {
-					throw new IllegalArgumentException("Failed: User: The user's JSON data is not what we saved..");
+					throw new IllegalArgumentException("Failed: The user's JSON data is not what we saved..");
 				}
 			}
 		}
 		catch(RequestErrorException e) {
-			throw new IllegalArgumentException("Failed: User: Read personal information.", e);
+			throw new IllegalArgumentException("Failed: Read personal information.", e);
 		}
 		
 		// Attempts to get an authentication token which should fail because
 		// their account is disabled and they need to change their password.
 		try {
 			api.getAuthenticationToken(username, password, Controller.CLIENT);
-			throw new IllegalArgumentException("Failed: User: Account is disabled and password needs to be changed.");
+			throw new IllegalArgumentException("Failed: Account is disabled and password needs to be changed.");
 		}
 		catch(RequestErrorException e) {
 			if(! ErrorCode.AUTHENTICATION_FAILED.equals(e.getErrorCode())) {
-				throw new IllegalArgumentException("Failed: User: Account is disabled and password needs to be changed.", e);
+				throw new IllegalArgumentException("Failed: Account is disabled and password needs to be changed.", e);
 			}
 		}
 		
@@ -789,31 +810,31 @@ public class UserApiTests {
 		// is still disabled.
 		try {
 			api.changePassword(username, password, Controller.CLIENT, "ccCC22!!");
-			throw new IllegalArgumentException("Failed: User: The user shouldn't be able to change their password because their account is disabled.");
+			throw new IllegalArgumentException("Failed: The user shouldn't be able to change their password because their account is disabled.");
 		}
 		catch(RequestErrorException e) {
 			if(! ErrorCode.AUTHENTICATION_FAILED.equals(e.getErrorCode())) {
-				throw new IllegalArgumentException("Failed: User: The user shouldn't be able to change their password because their account is disabled.", e);
+				throw new IllegalArgumentException("Failed: The user shouldn't be able to change their password because their account is disabled.", e);
 			}
 		}
 		
 		// Enables the account.
 		try {
-			api.updateUser(authenticationToken, Controller.CLIENT, username, null, true, null, null, null, null, null, null, null, null);
+			api.updateUser(adminAuthToken, Controller.CLIENT, username, null, true, null, null, null, null, null, null, null, null);
 		}
 		catch(RequestErrorException e) {
-			throw new IllegalArgumentException("Failed: User: Enabling the account.", e);
+			throw new IllegalArgumentException("Failed: Enabling the account.", e);
 		}
 		
 		// Attempts to get an authentication token which should still fail
 		// because the password needs to be changed.
 		try {
 			api.getAuthenticationToken(username, password, Controller.CLIENT);
-			throw new IllegalArgumentException("Failed: User: Password needs to be changed.");
+			throw new IllegalArgumentException("Failed: Password needs to be changed.");
 		}
 		catch(RequestErrorException e) {
 			if(! ErrorCode.AUTHENTICATION_FAILED.equals(e.getErrorCode())) {
-				throw new IllegalArgumentException("Failed: User: Password needs to be changed.", e);
+				throw new IllegalArgumentException("Failed: Password needs to be changed.", e);
 			}
 		}
 		
@@ -824,7 +845,7 @@ public class UserApiTests {
 			password = "ccCC22!!";
 		}
 		catch(RequestErrorException e) {
-			throw new IllegalArgumentException("Failed: User: The use should.", e);
+			throw new IllegalArgumentException("Failed: The use should.", e);
 		}
 		
 		// Attempt to get a token which should work because the account has 
@@ -834,39 +855,39 @@ public class UserApiTests {
 			newUserAuthToken = api.getAuthenticationToken(username, password, Controller.CLIENT);
 		}
 		catch(RequestErrorException e) {
-			throw new IllegalArgumentException("Failed: User: The user changed their password and should now be allowed to get a token.");
+			throw new IllegalArgumentException("Failed: The user changed their password and should now be allowed to get a token.");
 		}
 		
 		// No token.
 		try {
 			api.getUserInformation(null, Controller.CLIENT);
-			throw new IllegalArgumentException("Failed: User: No token.");
+			throw new IllegalArgumentException("Failed: No token.");
 		}
 		catch(RequestErrorException e) {
 			if(! ErrorCode.AUTHENTICATION_FAILED.equals(e.getErrorCode())) {
-				throw new IllegalArgumentException("Failed: User: No token.", e);
+				throw new IllegalArgumentException("Failed: No token.", e);
 			}
 		}
 		
 		// Invalid token.
 		try {
 			api.getUserInformation("invalid token", Controller.CLIENT);
-			throw new IllegalArgumentException("Failed: User: Invalid token.");
+			throw new IllegalArgumentException("Failed: Invalid token.");
 		}
 		catch(RequestErrorException e) {
 			if(! ErrorCode.AUTHENTICATION_FAILED.equals(e.getErrorCode())) {
-				throw new IllegalArgumentException("Failed: User: Invalid token.", e);
+				throw new IllegalArgumentException("Failed: Invalid token.", e);
 			}
 		}
 		
 		// No client.
 		try {
 			api.getUserInformation(newUserAuthToken, null);
-			throw new IllegalArgumentException("Failed: User: No client.");
+			throw new IllegalArgumentException("Failed: No client.");
 		}
 		catch(RequestErrorException e) {
 			if(! ErrorCode.SERVER_INVALID_CLIENT.equals(e.getErrorCode())) {
-				throw new IllegalArgumentException("Failed: User: No client.", e);
+				throw new IllegalArgumentException("Failed: No client.", e);
 			}
 		}
 
@@ -879,19 +900,19 @@ public class UserApiTests {
 			if(config.getDefaultCampaignCreationPrivilege() != 
 				userInformation.getCampaignCreationPrivilege()) {
 				
-				throw new IllegalArgumentException("Failed: User: The campaign creation privilege was not the default which is what it was created as.");
+				throw new IllegalArgumentException("Failed: The campaign creation privilege was not the default which is what it was created as.");
 			}
 		}
 		catch(RequestErrorException e) {
-			throw new IllegalArgumentException("Failed: User: Read user information.");
+			throw new IllegalArgumentException("Failed: Read user information.");
 		}
 		
 		// Updates the campaign creation privilege for the user.
 		try {
-			api.updateUser(authenticationToken, Controller.CLIENT, username, null, null, null, ! config.getDefaultCampaignCreationPrivilege(), null, null, null, null, null, null);
+			api.updateUser(adminAuthToken, Controller.CLIENT, username, null, null, null, ! config.getDefaultCampaignCreationPrivilege(), null, null, null, null, null, null);
 		}
 		catch(RequestErrorException e) {
-			throw new IllegalArgumentException("Failed: User: Updating the user's JSON data.", e);
+			throw new IllegalArgumentException("Failed: Updating the user's JSON data.", e);
 		}
 		
 		// Ensure that the campaign creation privilege is the opposite of the
@@ -902,11 +923,11 @@ public class UserApiTests {
 			if(config.getDefaultCampaignCreationPrivilege() == 
 				userInformation.getCampaignCreationPrivilege()) {
 				
-				throw new IllegalArgumentException("Failed: User: The campaign creation privilege was not switched as we just attempted to do.");
+				throw new IllegalArgumentException("Failed: The campaign creation privilege was not switched as we just attempted to do.");
 			}
 		}
 		catch(RequestErrorException e) {
-			throw new IllegalArgumentException("Failed: User: Read user information.");
+			throw new IllegalArgumentException("Failed: Read user information.");
 		}
 		
 		// Have a non-admin user attempt to create a new user.
@@ -915,21 +936,21 @@ public class UserApiTests {
 			
 			Collection<String> invalidUsers = new ArrayList<String>(1);
 			invalidUsers.add("valid.username1");
-			api.deleteUser(authenticationToken, Controller.CLIENT, invalidUsers);
-			throw new IllegalArgumentException("Failed: User: Non-admin user creating another user.");
+			api.deleteUser(adminAuthToken, Controller.CLIENT, invalidUsers);
+			throw new IllegalArgumentException("Failed: Non-admin user creating another user.");
 		}
 		catch(RequestErrorException e) {
 			if(! ErrorCode.USER_INSUFFICIENT_PERMISSIONS.equals(e.getErrorCode())) {
-				throw new IllegalArgumentException("Failed: User: Non-admin user creating another user.");
+				throw new IllegalArgumentException("Failed: Non-admin user creating another user.");
 			}
 		}
 		
 		// Updates the admin status for the user making them an admin.
 		try {
-			api.updateUser(authenticationToken, Controller.CLIENT, username, true, null, null, null, null, null, null, null, null, null);
+			api.updateUser(adminAuthToken, Controller.CLIENT, username, true, null, null, null, null, null, null, null, null, null);
 		}
 		catch(RequestErrorException e) {
-			throw new IllegalArgumentException("Failed: User: Updating the user's JSON data.", e);
+			throw new IllegalArgumentException("Failed: Updating the user's JSON data.", e);
 		}
 		
 		// This should succeed as long as they are now an admin.
@@ -938,62 +959,63 @@ public class UserApiTests {
 			
 			Collection<String> invalidUsers = new ArrayList<String>(1);
 			invalidUsers.add("valid.username1");
-			api.deleteUser(authenticationToken, Controller.CLIENT, invalidUsers);
+			api.deleteUser(adminAuthToken, Controller.CLIENT, invalidUsers);
 		}
 		catch(RequestErrorException e) {
-			throw new IllegalArgumentException("Failed: User: User creating another user after admin status was granted.");
+			throw new IllegalArgumentException("Failed: User creating another user after admin status was granted.");
 		}
 	}
 	
 	/**
-	 * Tests the password change API and changes the user's password.
+	 * Tests the password change API, changes the user's password, and updates
+	 * the class-level variables.
 	 * 
 	 * @throws ApiException There was an unexpected error.
 	 * 
 	 * @throws IllegalStateException One of the tests failed.
 	 */
-	public void testPasswordChange() throws ApiException {
+	private void testPasswordChange() throws ApiException {
 		// Username is missing.
 		try {
 			api.changePassword(null, password, Controller.CLIENT, "bbBB11,,");
-			throw new IllegalStateException("Failed: User: Username is missing.");
+			throw new IllegalStateException("Failed: Username is missing.");
 		}
 		catch(RequestErrorException e) {
 			if(! ErrorCode.AUTHENTICATION_FAILED.equals(e.getErrorCode())) {
-				throw new IllegalStateException("Failed: User: Username is missing. Expected: " + ErrorCode.AUTHENTICATION_FAILED, e);
+				throw new IllegalStateException("Failed: Username is missing: " + ErrorCode.AUTHENTICATION_FAILED, e);
 			}
 		}
 
 		// Username is too short.
 		try {
 			api.changePassword("123", password, Controller.CLIENT, "bbBB11,,");
-			throw new IllegalStateException("Failed: User: Username is too short.");
+			throw new IllegalStateException("Failed: Username is too short.");
 		}
 		catch(RequestErrorException e) {
 			if(! ErrorCode.AUTHENTICATION_FAILED.equals(e.getErrorCode())) {
-				throw new IllegalStateException("Failed: User: Username is too short. Expected: " + ErrorCode.USER_INVALID_USERNAME, e);
+				throw new IllegalStateException("Failed: Username is too short: " + ErrorCode.USER_INVALID_USERNAME, e);
 			}
 		}
 		
 		// Username is too long.
 		try {
 			api.changePassword("12345678901234567890123456", password, Controller.CLIENT, "bbBB11,,");
-			throw new IllegalStateException("Failed: User: Username is too long.");
+			throw new IllegalStateException("Failed: Username is too long.");
 		}
 		catch(RequestErrorException e) {
 			if(! ErrorCode.AUTHENTICATION_FAILED.equals(e.getErrorCode())) {
-				throw new IllegalStateException("Failed: User: Username is too long. Expected: " + ErrorCode.USER_INVALID_USERNAME, e);
+				throw new IllegalStateException("Failed: Username is too long: " + ErrorCode.USER_INVALID_USERNAME, e);
 			}
 		}
 		
 		// Username uses an invalid character.
 		try {
 			api.changePassword("invalid.username.#", password, Controller.CLIENT, "bbBB11,,");
-			throw new IllegalStateException("Failed: User: Username users invalid character, '#'.");
+			throw new IllegalStateException("Failed: Username users invalid character, '#'.");
 		}
 		catch(RequestErrorException e) {
 			if(! ErrorCode.AUTHENTICATION_FAILED.equals(e.getErrorCode())) {
-				throw new IllegalStateException("Failed: User: Username users invalid character, '#'. Expected: " + ErrorCode.USER_INVALID_USERNAME, e);
+				throw new IllegalStateException("Failed: Username users invalid character, '#': " + ErrorCode.USER_INVALID_USERNAME, e);
 			}
 		}
 		
@@ -1001,176 +1023,176 @@ public class UserApiTests {
 		// ones.
 		try {
 			api.changePassword("._@+-", password, Controller.CLIENT, "bbBB11,,");
-			throw new IllegalStateException("Failed: User: Username contains valid characters, but none of the required ones.");
+			throw new IllegalStateException("Failed: Username contains valid characters, but none of the required ones.");
 		}
 		catch(RequestErrorException e) {
 			if(! ErrorCode.AUTHENTICATION_FAILED.equals(e.getErrorCode())) {
-				throw new IllegalStateException("Failed: User: Username contains valid characters, but none of the required ones. Expected: " + ErrorCode.USER_INVALID_USERNAME, e);
+				throw new IllegalStateException("Failed: Username contains valid characters, but none of the required ones: " + ErrorCode.USER_INVALID_USERNAME, e);
 			}
 		}
 
 		// Password is missing.
 		try {
 			api.changePassword(username, null, Controller.CLIENT, "bbBB11,,");
-			throw new IllegalStateException("Failed: User: Password missing.");
+			throw new IllegalStateException("Failed: Password missing.");
 		}
 		catch(RequestErrorException e) {
 			if(! ErrorCode.AUTHENTICATION_FAILED.equals(e.getErrorCode())) {
-				throw new IllegalStateException("Failed: User: Password missing. Expected: " + ErrorCode.USER_INVALID_PASSWORD, e);
+				throw new IllegalStateException("Failed: Password missing: " + ErrorCode.USER_INVALID_PASSWORD, e);
 			}
 		}
 
 		// Password is too short.
 		try {
 			api.changePassword(username, "1234567", Controller.CLIENT, "bbBB11,,");
-			throw new IllegalStateException("Failed: User: Password too short.");
+			throw new IllegalStateException("Failed: Password too short.");
 		}
 		catch(RequestErrorException e) {
 			if(! ErrorCode.AUTHENTICATION_FAILED.equals(e.getErrorCode())) {
-				throw new IllegalStateException("Failed: User: Password too short. Expected: " + ErrorCode.USER_INVALID_PASSWORD, e);
+				throw new IllegalStateException("Failed: Password too short: " + ErrorCode.USER_INVALID_PASSWORD, e);
 			}
 		}
 
 		// Password is too long.
 		try {
 			api.changePassword(username, "12345678901234567", Controller.CLIENT, "bbBB11,,");
-			throw new IllegalStateException("Failed: User: Password too long.");
+			throw new IllegalStateException("Failed: Password too long.");
 		}
 		catch(RequestErrorException e) {
 			if(! ErrorCode.AUTHENTICATION_FAILED.equals(e.getErrorCode())) {
-				throw new IllegalStateException("Failed: User: Password too long. Expected: " + ErrorCode.USER_INVALID_PASSWORD, e);
+				throw new IllegalStateException("Failed: Password too long: " + ErrorCode.USER_INVALID_PASSWORD, e);
 			}
 		}
 
 		// Password is missing lower case character
 		try {
 			api.changePassword(username, "BBBB11,,", Controller.CLIENT, "bbBB11,,");
-			throw new IllegalStateException("Failed: User: Password missing lower case character.");
+			throw new IllegalStateException("Failed: Password missing lower case character.");
 		}
 		catch(RequestErrorException e) {
 			if(! ErrorCode.AUTHENTICATION_FAILED.equals(e.getErrorCode())) {
-				throw new IllegalStateException("Failed: User: Password missing lower case character. Expected: " + ErrorCode.USER_INVALID_PASSWORD, e);
+				throw new IllegalStateException("Failed: Password missing lower case character: " + ErrorCode.USER_INVALID_PASSWORD, e);
 			}
 		}
 
 		// Password is missing upper case character.
 		try {
 			api.changePassword(username, "bbbb11,,", Controller.CLIENT, "bbBB11,,");
-			throw new IllegalStateException("Failed: User: Password missing upper case character.");
+			throw new IllegalStateException("Failed: Password missing upper case character.");
 		}
 		catch(RequestErrorException e) {
 			if(! ErrorCode.AUTHENTICATION_FAILED.equals(e.getErrorCode())) {
-				throw new IllegalStateException("Failed: User: Password missing upper case character. Expected: " + ErrorCode.USER_INVALID_PASSWORD, e);
+				throw new IllegalStateException("Failed: Password missing upper case character: " + ErrorCode.USER_INVALID_PASSWORD, e);
 			}
 		}
 
 		// Password is missing numeric character.
 		try {
 			api.changePassword(username, "bbBBBB,,", Controller.CLIENT, "bbBB11,,");
-			throw new IllegalStateException("Failed: User: Password missing numeric character.");
+			throw new IllegalStateException("Failed: Password missing numeric character.");
 		}
 		catch(RequestErrorException e) {
 			if(! ErrorCode.AUTHENTICATION_FAILED.equals(e.getErrorCode())) {
-				throw new IllegalStateException("Failed: User: Password missing numeric character. Expected: " + ErrorCode.USER_INVALID_PASSWORD, e);
+				throw new IllegalStateException("Failed: Password missing numeric character: " + ErrorCode.USER_INVALID_PASSWORD, e);
 			}
 		}
 
 		// Password is missing special character.
 		try {
 			api.changePassword(username, "bbBB1111", Controller.CLIENT, "bbBB11,,");
-			throw new IllegalStateException("Failed: User: Password missing special character.");
+			throw new IllegalStateException("Failed: Password missing special character.");
 		}
 		catch(RequestErrorException e) {
 			if(! ErrorCode.AUTHENTICATION_FAILED.equals(e.getErrorCode())) {
-				throw new IllegalStateException("Failed: User: Password missing special character. Expected: " + ErrorCode.USER_INVALID_PASSWORD, e);
+				throw new IllegalStateException("Failed: Password missing special character: " + ErrorCode.USER_INVALID_PASSWORD, e);
 			}
 		}
 
 		// Client is missing.
 		try {
 			api.changePassword(username, "bbBB11,,", null, "bbBB11,,");
-			throw new IllegalStateException("Failed: User: Password missing special character.");
+			throw new IllegalStateException("Failed: Password missing special character.");
 		}
 		catch(RequestErrorException e) {
 			if(! ErrorCode.SERVER_INVALID_CLIENT.equals(e.getErrorCode())) {
-				throw new IllegalStateException("Failed: User: Password missing special character. Expected: " + ErrorCode.SERVER_INVALID_CLIENT, e);
+				throw new IllegalStateException("Failed: Password missing special character: " + ErrorCode.SERVER_INVALID_CLIENT, e);
 			}
 		}
 
 		// New password is missing.
 		try {
 			api.changePassword(username, password, Controller.CLIENT, null);
-			throw new IllegalStateException("Failed: User: New password missing.");
+			throw new IllegalStateException("Failed: New password missing.");
 		}
 		catch(RequestErrorException e) {
 			if(! ErrorCode.USER_INVALID_PASSWORD.equals(e.getErrorCode())) {
-				throw new IllegalStateException("Failed: User: New password missing. Expected: " + ErrorCode.USER_INVALID_PASSWORD, e);
+				throw new IllegalStateException("Failed: New password missing: " + ErrorCode.USER_INVALID_PASSWORD, e);
 			}
 		}
 
 		// New password is too short.
 		try {
 			api.changePassword(username, password, Controller.CLIENT, "1234567");
-			throw new IllegalStateException("Failed: User: New password too short.");
+			throw new IllegalStateException("Failed: New password too short.");
 		}
 		catch(RequestErrorException e) {
 			if(! ErrorCode.USER_INVALID_PASSWORD.equals(e.getErrorCode())) {
-				throw new IllegalStateException("Failed: User: New password too short. Expected: " + ErrorCode.USER_INVALID_PASSWORD, e);
+				throw new IllegalStateException("Failed: New password too short: " + ErrorCode.USER_INVALID_PASSWORD, e);
 			}
 		}
 
 		// New password is too long.
 		try {
 			api.changePassword(username, password, Controller.CLIENT, "12345678901234567");
-			throw new IllegalStateException("Failed: User: New password too long.");
+			throw new IllegalStateException("Failed: New password too long.");
 		}
 		catch(RequestErrorException e) {
 			if(! ErrorCode.USER_INVALID_PASSWORD.equals(e.getErrorCode())) {
-				throw new IllegalStateException("Failed: User: New password too long. Expected: " + ErrorCode.USER_INVALID_PASSWORD, e);
+				throw new IllegalStateException("Failed: New password too long: " + ErrorCode.USER_INVALID_PASSWORD, e);
 			}
 		}
 
 		// New password is missing lower case character
 		try {
 			api.changePassword(username, password, Controller.CLIENT, "BBBB11,,");
-			throw new IllegalStateException("Failed: User: New password missing lower case character.");
+			throw new IllegalStateException("Failed: New password missing lower case character.");
 		}
 		catch(RequestErrorException e) {
 			if(! ErrorCode.USER_INVALID_PASSWORD.equals(e.getErrorCode())) {
-				throw new IllegalStateException("Failed: User: New password missing lower case character. Expected: " + ErrorCode.USER_INVALID_PASSWORD, e);
+				throw new IllegalStateException("Failed: New password missing lower case character: " + ErrorCode.USER_INVALID_PASSWORD, e);
 			}
 		}
 
 		// New password is missing upper case character.
 		try {
 			api.changePassword(username, password, Controller.CLIENT, "bbbb11,,");
-			throw new IllegalStateException("Failed: User: New password missing upper case character.");
+			throw new IllegalStateException("Failed: New password missing upper case character.");
 		}
 		catch(RequestErrorException e) {
 			if(! ErrorCode.USER_INVALID_PASSWORD.equals(e.getErrorCode())) {
-				throw new IllegalStateException("Failed: User: New password missing upper case character. Expected: " + ErrorCode.USER_INVALID_PASSWORD, e);
+				throw new IllegalStateException("Failed: New password missing upper case character: " + ErrorCode.USER_INVALID_PASSWORD, e);
 			}
 		}
 
 		// New password is missing numeric character.
 		try {
 			api.changePassword(username, password, Controller.CLIENT, "bbBBBB,,");
-			throw new IllegalStateException("Failed: User: New password missing numeric character.");
+			throw new IllegalStateException("Failed: New password missing numeric character.");
 		}
 		catch(RequestErrorException e) {
 			if(! ErrorCode.USER_INVALID_PASSWORD.equals(e.getErrorCode())) {
-				throw new IllegalStateException("Failed: User: New password missing numeric character. Expected: " + ErrorCode.USER_INVALID_PASSWORD, e);
+				throw new IllegalStateException("Failed: New password missing numeric character: " + ErrorCode.USER_INVALID_PASSWORD, e);
 			}
 		}
 
 		// New password is missing special character.
 		try {
 			api.changePassword(username, password, Controller.CLIENT, "bbBB1111");
-			throw new IllegalStateException("Failed: User: New password missing special character.");
+			throw new IllegalStateException("Failed: New password missing special character.");
 		}
 		catch(RequestErrorException e) {
 			if(! ErrorCode.USER_INVALID_PASSWORD.equals(e.getErrorCode())) {
-				throw new IllegalStateException("Failed: User: New password missing special character. Expected: " + ErrorCode.USER_INVALID_PASSWORD, e);
+				throw new IllegalStateException("Failed: New password missing special character: " + ErrorCode.USER_INVALID_PASSWORD, e);
 			}
 		}
 		
@@ -1186,66 +1208,72 @@ public class UserApiTests {
 	}
 	
 	/**
-	 * Tests the delete functionality and then deletes the test user.
+	 * Tests user deletion and then deletes the user based on the class-level
+	 * variables.
+	 * 
+	 * @param adminAuthToken An administrators authentication token to use when
+	 * 						 creating and deleting users for testing.
 	 * 
 	 * @throws ApiException There was an unexpected error.
 	 * 
 	 * @throws IllegalStateException One of the tests failed.
 	 */
-	public void testUserDeletion() throws ApiException {
+	private void testUserDeletion(final String adminAuthToken) 
+			throws ApiException {
+		
 		Collection<String> usernames = new ArrayList<String>(1);
 		usernames.add(username);
 		
 		// Token is null.
 		try {
 			api.deleteUser(null, Controller.CLIENT, usernames);
-			throw new IllegalStateException("Failed: User: The authentication token was null.");
+			throw new IllegalStateException("Failed: The authentication token was null.");
 		}
 		catch(RequestErrorException e) {
 			if(! ErrorCode.AUTHENTICATION_FAILED.equals(e.getErrorCode())) {
-				throw new IllegalArgumentException("Failed: User: The authentication token was null.", e);
+				throw new IllegalArgumentException("Failed: The authentication token was null.", e);
 			}
 		}
 		
 		// Token is invalid.
 		try {
 			api.deleteUser("Invalid token", Controller.CLIENT, usernames);
-			throw new IllegalStateException("Failed: User: The authentication token was invalid.");
+			throw new IllegalStateException("Failed: The authentication token was invalid.");
 		}
 		catch(RequestErrorException e) {
 			if(! ErrorCode.AUTHENTICATION_FAILED.equals(e.getErrorCode())) {
-				throw new IllegalArgumentException("Failed: User: The authentication token was invalid.", e);
+				throw new IllegalArgumentException("Failed: The authentication token was invalid.", e);
 			}
 		}
 		
 		// Client is null.
 		try {
-			api.deleteUser(authenticationToken, null, usernames);
-			throw new IllegalStateException("Failed: User: The client was null.");
+			api.deleteUser(adminAuthToken, null, usernames);
+			throw new IllegalStateException("Failed: The client was null.");
 		}
 		catch(RequestErrorException e) {
 			if(! ErrorCode.SERVER_INVALID_CLIENT.equals(e.getErrorCode())) {
-				throw new IllegalArgumentException("Failed: User: The client was null.", e);
+				throw new IllegalArgumentException("Failed: The client was null.", e);
 			}
 		}
 		
 		// Username list is null.
 		try {
-			api.deleteUser(authenticationToken, Controller.CLIENT, null);
-			throw new IllegalStateException("Failed: User: The username list was null.");
+			api.deleteUser(adminAuthToken, Controller.CLIENT, null);
+			throw new IllegalStateException("Failed: The username list was null.");
 		}
 		catch(RequestErrorException e) {
 			if(! ErrorCode.USER_INVALID_USERNAME.equals(e.getErrorCode())) {
-				throw new IllegalArgumentException("Failed: User: The usernmae list was null.", e);
+				throw new IllegalArgumentException("Failed: The usernmae list was null.", e);
 			}
 		}
 		
 		// Deleting the user.
 		try {
-			api.deleteUser(authenticationToken, Controller.CLIENT, usernames);
+			api.deleteUser(adminAuthToken, Controller.CLIENT, usernames);
 		}
 		catch(ApiException e) {
-			throw new IllegalArgumentException("Failed: User: Deleting the user.", e);
+			throw new IllegalArgumentException("Failed: Deleting the user.", e);
 		}
 	}
 }

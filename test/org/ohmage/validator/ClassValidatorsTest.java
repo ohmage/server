@@ -6,6 +6,7 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.ohmage.domain.Clazz;
 import org.ohmage.exception.ValidationException;
+import org.ohmage.test.ParameterSets;
 
 /**
  * Tests the class validators.
