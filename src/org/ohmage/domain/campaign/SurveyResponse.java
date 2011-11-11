@@ -20,6 +20,8 @@ import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.domain.Location;
 import org.ohmage.domain.campaign.Response.NoResponse;
 import org.ohmage.domain.campaign.prompt.CustomChoicePrompt;
+import org.ohmage.domain.campaign.prompt.MultiChoiceCustomPrompt;
+import org.ohmage.domain.campaign.prompt.SingleChoiceCustomPrompt;
 import org.ohmage.exception.ErrorCodeException;
 import org.ohmage.util.StringUtils;
 import org.ohmage.util.TimeUtils;
@@ -1492,23 +1494,35 @@ public class SurveyResponse {
 		// upload a key and lookup table instead of just the raw values.
 		if(prompt instanceof CustomChoicePrompt) {
 			try {
-				Map<String, Integer> choicesMap = new HashMap<String, Integer>();
+				
+				Map<Integer, String> choicesMap = new HashMap<Integer, String>();
 				JSONArray choices = response.getJSONArray("custom_choices");
+								
 				int numChoices = choices.length();
 				
 				for(int i = 0; i < numChoices; i++) {
 					JSONObject currChoice = choices.getJSONObject(i);
-					choicesMap.put(currChoice.getString("choice_value"), currChoice.getInt("choice_id"));
+					choicesMap.put(currChoice.getInt("choice_id"), currChoice.getString("choice_value"));
 				}
-				
-				JSONArray responsesJson = new JSONArray(responseObject);
-				int numResponses = responsesJson.length();
-				Collection<Integer> responses = new ArrayList<Integer>(numResponses);
-				for(int i = 0; i < numResponses; i++) {
-					responses.add(choicesMap.get((String) responsesJson.get(i)));
+
+				if(prompt instanceof MultiChoiceCustomPrompt) {
+					JSONArray responsesJson = (JSONArray) responseObject;
+					
+					int numResponses = responsesJson.length();
+					Collection<String> responses = new ArrayList<String>(numResponses);
+					
+					for(int i = 0; i < numResponses; i++) {
+						LOGGER.info(choicesMap.get(responsesJson.get(i)));
+						responses.add(choicesMap.get(responsesJson.get(i)));
+					}
+					
+					responseObject = responses;
 				}
-				
-				responseObject = responses;
+				else if(prompt instanceof SingleChoiceCustomPrompt) {
+					
+					Integer singleChoiceResponse = (Integer) responseObject;
+					responseObject = choicesMap.get(singleChoiceResponse);
+				}
 			}
 			catch(JSONException e) {
 				throw new ErrorCodeException(ErrorCode.SURVEY_INVALID_RESPONSES, "The dictionary for the custom choice prompt was missing or malformed: " + prompt.getId());
