@@ -16,6 +16,7 @@ import org.ohmage.request.InputKeys;
 import org.ohmage.request.UserRequest;
 import org.ohmage.service.ClassServices;
 import org.ohmage.service.UserClassServices;
+import org.ohmage.service.UserServices;
 import org.ohmage.validator.ClassValidators;
 import org.ohmage.validator.UserClassValidators;
 import org.ohmage.validator.UserValidators;
@@ -157,12 +158,16 @@ public class ClassUpdateRequest extends UserRequest {
 			return;
 		}
 		
-		try {
+		try {	
+			LOGGER.info("Checking that the user is privileged in the class or is an admin.");
+			UserClassServices.instance().userIsAdminOrPrivileged(classId, getUser().getUsername());
+			
 			LOGGER.info("Checking that the class exists.");
 			ClassServices.instance().checkClassExistence(classId, true);
 			
-			LOGGER.info("Checking that the user is privileged in the class or is an admin.");
-			UserClassServices.instance().userIsAdminOrPrivileged(classId, getUser().getUsername());
+			if((usersToAdd != null) && (usersToAdd.size() != 0)) {
+				UserServices.instance().verifyUsersExist(usersToAdd.keySet(), true);
+			}
 			
 			LOGGER.info("Updating the class.");
 			ClassServices.instance().updateClass(classId, className, classDescription, usersToAdd, usersToRemove);
