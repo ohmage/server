@@ -723,8 +723,8 @@ public final class SurveyResponseReadRequest extends UserRequest {
 								allColumns || columns.contains(ColumnKey.SURVEY_ID),
 								allColumns || columns.contains(ColumnKey.SURVEY_TITLE),
 								allColumns || columns.contains(ColumnKey.SURVEY_DESCRIPTION),
-								allColumns || columns.contains(ColumnKey.CONTEXT_LAUNCH_CONTEXT_LONG) || columns.contains(ColumnKey.CONTEXT_LAUNCH_CONTEXT_SHORT),
-								columns.contains(ColumnKey.CONTEXT_LAUNCH_CONTEXT_LONG),
+								allColumns || columns.contains(ColumnKey.CONTEXT_LAUNCH_CONTEXT_SHORT),
+								allColumns || columns.contains(ColumnKey.CONTEXT_LAUNCH_CONTEXT_LONG),
 								allColumns || columns.contains(ColumnKey.PROMPT_RESPONSE),
 								false,
 								((returnId == null) ? false : returnId)
@@ -813,10 +813,10 @@ public final class SurveyResponseReadRequest extends UserRequest {
 							Location location = surveyResponse.getLocation();
 							
 							if(location == null) {
-								currResult.put(Location.JSON_KEY_TIMESTAMP, "null");
+								currResult.put(Location.JSON_KEY_OUTPUT_TIMESTAMP, "null");
 							}
 							else {
-								currResult.put(Location.JSON_KEY_TIMESTAMP, TimeUtils.getIso8601DateTimeString(location.getTimestamp()));
+								currResult.put(Location.JSON_KEY_OUTPUT_TIMESTAMP, TimeUtils.getIso8601DateTimeString(location.getTimestamp()));
 							}
 						}
 						

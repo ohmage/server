@@ -47,6 +47,11 @@ public class SurveyResponse {
 	private static final String JSON_KEY_SURVEY_NAME = "survey_title";
 	private static final String JSON_KEY_SURVEY_DESCRIPTION = "survey_description";
 	private static final String JSON_KEY_SURVEY_LAUNCH_CONTEXT = "survey_launch_context";
+	// TODO - I added the short and long keys because that's how the 
+	// original spec worked and the Android app was breaking with only 
+	// survey_launch_context. We can revisit for 2.9. -Josh
+	private static final String JSON_KEY_SURVEY_LAUNCH_CONTEXT_SHORT = "launch_context_short";
+	private static final String JSON_KEY_SURVEY_LAUNCH_CONTEXT_LONG = "launch_context_long";
 	private static final String JSON_KEY_RESPONSES = "responses";
 	private static final String JSON_KEY_PRIVACY_STATE = "privacy_state";
 	
@@ -1148,8 +1153,8 @@ public class SurveyResponse {
 			final boolean withLocationStatus, final boolean withLocation, 
 			final boolean withSurveyId, 
 			final boolean withSurveyTitle, final boolean withSurveyDescription,
-			final boolean withSurveyLaunchContext, 
-			final boolean surveyLaunchContextLong, 
+			final boolean withLaunchContextShort, 
+			final boolean withLaunchContextLong, 
 			final boolean withResponses, final boolean arrayInsteadOfObject, 
 			final boolean withId) {
 		
@@ -1159,9 +1164,11 @@ public class SurveyResponse {
 			if(withUsername) {
 				result.put(JSON_KEY_USERNAME, username);
 			}
+			
 			if(withCampaignId) {
 				result.put(JSON_KEY_CAMPAIGN_ID, campaignId);
 			}
+			
 			if(withClient) {
 				result.put(JSON_KEY_CLIENT, client);
 			}
@@ -1173,9 +1180,11 @@ public class SurveyResponse {
 			if(withDate) {
 				result.put(JSON_KEY_DATE, TimeUtils.getIso8601DateTimeString(date));
 			}
+			
 			if(withTime) {
 				result.put(JSON_KEY_TIME, time);
 			}
+			
 			if(withTimezone) {
 				result.put(JSON_KEY_TIMEZONE, timezone.getID());
 			}
@@ -1183,6 +1192,7 @@ public class SurveyResponse {
 			if(withLocationStatus) {
 				result.put(JSON_KEY_LOCATION_STATUS, locationStatus.toString());
 			}
+			
 			if(withLocation && (location != null)) {
 				result.put(JSON_KEY_LOCATION, location.toJson(false));
 			}
@@ -1190,15 +1200,21 @@ public class SurveyResponse {
 			if(withSurveyId && (survey != null)) {
 				result.put(JSON_KEY_SURVEY_ID, survey.getId());
 			}
+			
 			if(withSurveyTitle && (survey != null)) {
 				result.put(JSON_KEY_SURVEY_NAME, survey.getTitle());
 			}
+			
 			if(withSurveyDescription && (survey != null)) {
 				result.put(JSON_KEY_SURVEY_DESCRIPTION, survey.getDescription());
 			}
 			
-			if(withSurveyLaunchContext) {
-				result.put(JSON_KEY_SURVEY_LAUNCH_CONTEXT, launchContext.toJson(surveyLaunchContextLong));
+			if(withLaunchContextShort) {
+				result.put(JSON_KEY_SURVEY_LAUNCH_CONTEXT_SHORT, launchContext.toJson(false));
+			}
+			
+			if(withLaunchContextLong) {
+				result.put(JSON_KEY_SURVEY_LAUNCH_CONTEXT_LONG, launchContext.toJson(true));
 			}
 			
 			if(withResponses) {
@@ -1230,6 +1246,7 @@ public class SurveyResponse {
 			return result;
 		}
 		catch(JSONException e) {
+			LOGGER.warn("Could not generate JSON from a survey response", e);
 			return null;
 		}
 	}
