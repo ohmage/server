@@ -149,7 +149,7 @@ public abstract class WorkflowException extends Exception {
 	public WorkflowException(final ErrorCode errorCode,
 			final String errorText, final Throwable cause) {
 		
-		super(cause);
+		super(errorText, cause);
 		
 		annotator = new Annotator(errorCode, errorText);
 	}
