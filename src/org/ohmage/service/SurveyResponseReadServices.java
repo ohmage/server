@@ -201,6 +201,7 @@ public final class SurveyResponseReadServices {
 					}
 					// If the survey response is not shared,
 					/*
+					 * FIXME:
 					 * I don't believe this is ever acceptable, so I am 
 					 * commenting it out for now.
 					else {
