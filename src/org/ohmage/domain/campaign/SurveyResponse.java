@@ -1500,6 +1500,8 @@ public class SurveyResponse {
 								
 				int numChoices = choices.length();
 				
+				// FIXME: need to check for redundant choice_id
+								
 				for(int i = 0; i < numChoices; i++) {
 					JSONObject currChoice = choices.getJSONObject(i);
 					choicesMap.put(currChoice.getInt("choice_id"), currChoice.getString("choice_value"));
