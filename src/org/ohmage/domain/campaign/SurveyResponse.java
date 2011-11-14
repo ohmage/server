@@ -145,6 +145,11 @@ public class SurveyResponse {
 		private static final String JSON_KEY_ACTIVE_TRIGGERS = "active_triggers";
 		
 		private final Date launchTime;
+		// TODO: I was hoping to avoid keeping and JSON in the system and only
+		// using it as a serialization format. However, this is never 
+		// referenced in the code and decoding the JSON only to recode it again
+		// introduces some unnecessary overhead, so for now it doesn't really
+		// matter.
 		private final JSONArray activeTriggers;
 		
 		/**
@@ -1155,6 +1160,11 @@ public class SurveyResponse {
 			final boolean withLocationStatus, final boolean withLocation, 
 			final boolean withSurveyId, 
 			final boolean withSurveyTitle, final boolean withSurveyDescription,
+			// TODO: This could lead to unpredictable output if a user put true
+			// for both of these. Can we switch it back to whether or not the
+			// launch context should be output as one parameter and if the 
+			// output should be short instead of long (or visa versa) for the
+			// other parameter?
 			final boolean withLaunchContextShort, 
 			final boolean withLaunchContextLong, 
 			final boolean withResponses, final boolean arrayInsteadOfObject, 

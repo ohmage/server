@@ -1,6 +1,7 @@
 package org.ohmage.service;
 
 import java.util.Collection;
+import java.util.LinkedList;
 import java.util.List;
 
 import org.ohmage.annotator.Annotator.ErrorCode;
@@ -144,15 +145,15 @@ public final class SurveyResponseReadServices {
 	 * 
 	 * @param user The requester's username.
 	 * 
-	 * @param campaignId The campaign URN for the
+	 * @param campaignId The campaign's unique identifier to which all of the
+	 * 					 survey responses belong.
 	 *  
-	 * @param surveyResponseList
-	 *  
-	 * @param privacyState
+	 * @param surveyResponseList The collection of survey responses to filter.
 	 * 
 	 * @return A filtered list of survey response results.
 	 */
-	public void performPrivacyFilter(final String username, 
+	public void performPrivacyFilter(
+			final String username, 
 			final String campaignId,
 			final Collection<SurveyResponse> surveyResponseList) 
 			throws ServiceException {
@@ -177,18 +178,19 @@ public final class SurveyResponseReadServices {
 				Campaign.PrivacyState privacyState = 
 					campaignQueries.getCampaignPrivacyState(campaignId);
 				
+				Collection<SurveyResponse> responsesToRemove = new LinkedList<SurveyResponse>();
 				for(SurveyResponse currentResult : surveyResponseList) {
 					// If they own it, it's ok.
 					if(currentResult.getUsername().equals(username)) {
 						continue;
 					}
 					
-					// If it isn't shared,
-					if(! SurveyResponse.PrivacyState.SHARED.equals(
+					// If the survey response is shared,
+					if(SurveyResponse.PrivacyState.SHARED.equals(
 							currentResult.getPrivacyState())) {
 						
-						// If the campaign is shared and the user is an author or
-						// analyst, it's ok.
+						// If the campaign is shared and the user is an author
+						// or an analyst, it's ok.
 						if(Campaign.PrivacyState.SHARED.equals(privacyState) &&
 								(userRoles.contains(Campaign.Role.AUTHOR) ||
 										userRoles.contains(Campaign.Role.ANALYST))
@@ -197,7 +199,11 @@ public final class SurveyResponseReadServices {
 							continue;
 						}
 					}
-					// If it is shared,
+					// If the survey response is not shared,
+					/*
+					 * FIXME:
+					 * I don't believe this is ever acceptable, so I am 
+					 * commenting it out for now.
 					else {
 						// If the user is an author or analyst, it's ok.
 						if(userRoles.contains(Campaign.Role.AUTHOR) ||
@@ -206,11 +212,14 @@ public final class SurveyResponseReadServices {
 							continue;
 						}
 					}
+					*/
 					
 					// If none of the above rules apply, it will fall to this and
 					// remove the survey response.
-					surveyResponseList.remove(currentResult);
+					responsesToRemove.add(currentResult);
 				}
+				
+				surveyResponseList.removeAll(responsesToRemove);
 			}
 		}
 		catch(DataAccessException e) {

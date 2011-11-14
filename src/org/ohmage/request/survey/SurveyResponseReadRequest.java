@@ -269,6 +269,7 @@ public final class SurveyResponseReadRequest extends UserRequest {
 	private final Boolean returnId;
 	private final Boolean suppressMetadata;
 	
+	private Campaign campaign;
 	private List<SurveyResponse> surveyResponseList;
 	
 	/**
@@ -571,16 +572,16 @@ public final class SurveyResponseReadRequest extends UserRequest {
 		    }
 		    
 		    LOGGER.info("Retrieving campaign configuration.");
-			Campaign configuration = CampaignServices.instance().findCampaignConfiguration(campaignId);
+			campaign = CampaignServices.instance().findCampaignConfiguration(campaignId);
 			
 			if((promptIds != null) && (! promptIds.isEmpty()) && (! URN_SPECIAL_ALL_LIST.equals(promptIds))) {
 				LOGGER.info("Verifying that the prompt ids in the query belong to the campaign.");
-				SurveyResponseReadServices.instance().verifyPromptIdsBelongToConfiguration(promptIds, configuration);
+				SurveyResponseReadServices.instance().verifyPromptIdsBelongToConfiguration(promptIds, campaign);
 			}
 			
 			if((surveyIds != null) && (! surveyIds.isEmpty()) && (! URN_SPECIAL_ALL_LIST.equals(surveyIds))) {
 				LOGGER.info("Verifying that the survey ids in the query belong to the campaign.");
-				SurveyResponseReadServices.instance().verifySurveyIdsBelongToConfiguration(surveyIds, configuration);
+				SurveyResponseReadServices.instance().verifySurveyIdsBelongToConfiguration(surveyIds, campaign);
 			}
 		    
 			LOGGER.info("Dispatching to the data layer.");
@@ -589,7 +590,7 @@ public final class SurveyResponseReadRequest extends UserRequest {
 			if(URN_SPECIAL_ALL_LIST.equals(usernames)) {
 				surveyResponseList.addAll(
 						SurveyResponseServices.instance().readSurveyResponseInformation(
-								configuration, null, null, 
+								campaign, null, null, 
 								startDate, endDate, privacyState, 
 								(URN_SPECIAL_ALL_LIST.equals(surveyIds)) ? null : surveyIds, 
 								(URN_SPECIAL_ALL_LIST.equals(promptIds)) ? null : promptIds, 
@@ -601,7 +602,7 @@ public final class SurveyResponseReadRequest extends UserRequest {
 				for(String username : usernames) {
 					surveyResponseList.addAll(
 							SurveyResponseServices.instance().readSurveyResponseInformation(
-									configuration, username, null, 
+									campaign, username, null, 
 									startDate, endDate, privacyState, 
 									(URN_SPECIAL_ALL_LIST.equals(surveyIds)) ? null : surveyIds, 
 									(URN_SPECIAL_ALL_LIST.equals(promptIds)) ? null : promptIds, 
@@ -916,13 +917,39 @@ public final class SurveyResponseReadRequest extends UserRequest {
 					Map<String, Survey> surveys = new HashMap<String, Survey>();
 					Map<String, JSONObject> prompts = new HashMap<String, JSONObject>();
 					
-					for(SurveyResponse surveyResponse : surveyResponseList) {
-						Survey survey = surveyResponse.getSurvey();
-						
-						if(! surveys.containsKey(survey.getId())) {
-							surveys.put(survey.getId(), survey);
+					if(surveyResponseList.isEmpty()) {
+						if(this.surveyIds != null) {
+							Map<String, Survey> campaignSurveys = campaign.getSurveys();
+							if(this.surveyIds.equals(URN_SPECIAL_ALL_LIST)) {
+								for(Survey currSurvey : campaignSurveys.values()) {
+									populatePrompts(currSurvey.getSurveyItems(), prompts);
+								}
+							}
+							else {
+								for(String surveyId : this.surveyIds) {
+									populatePrompts(campaignSurveys.get(surveyId).getSurveyItems(), prompts);
+								}
+							}
+						}
+						else if(promptIds != null) {
+							int currNumPrompts = 0;
+							Map<Integer, SurveyItem> tempPromptMap = new HashMap<Integer, SurveyItem>(promptIds.size());
+							for(String promptId : promptIds) {
+								tempPromptMap.put(currNumPrompts, campaign.getPrompt(campaign.getSurveyIdForPromptId(promptId), promptId));
+							}
 							
-							populatePrompts(survey.getSurveyItems(), prompts);
+							populatePrompts(tempPromptMap, prompts);
+						}
+					}
+					else {
+						for(SurveyResponse surveyResponse : surveyResponseList) {
+							Survey survey = surveyResponse.getSurvey();
+							
+							if(! surveys.containsKey(survey.getId())) {
+								surveys.put(survey.getId(), survey);
+								
+								populatePrompts(survey.getSurveyItems(), prompts);
+							}
 						}
 					}
 					
@@ -1042,13 +1069,13 @@ public final class SurveyResponseReadRequest extends UserRequest {
 						}
 						int keyLength = keys.length();
 						
-						JSONArray values = new JSONArray();
+						JSONArray counts = new JSONArray();
 						for(int i = 0; i < numResponses; i++) {
-							values.put(1);
+							counts.put(1);
 						}
-						JSONObject valueObject = new JSONObject();
-						valueObject.put(JSON_KEY_VALUES, values);
-						result.put("urn:ohmage:context:count", valueObject);
+						JSONObject countObject = new JSONObject();
+						countObject.put(JSON_KEY_VALUES, counts);
+						result.put("urn:ohmage:context:count", countObject);
 						keys.put("urn:ohmage:context:count");
 						
 						Map<String, Integer> valueToIndexMap = new HashMap<String, Integer>();

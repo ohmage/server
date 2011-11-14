@@ -434,7 +434,16 @@ public class RemoteActivityPrompt extends Prompt {
 	 * @return True if the value is valid; false, otherwise.
 	 */
 	private boolean validatePackage(final String packagee) {
-		if(! packagee.contains(".")) {
+		if(packagee == null) {
+			return false;
+		}
+		else if(! packagee.contains(".")) {
+			return false;
+		}
+		else if(packagee.startsWith(".")) {
+			return false;
+		}
+		else if(packagee.endsWith(".")) {
 			return false;
 		}
 		
@@ -449,7 +458,10 @@ public class RemoteActivityPrompt extends Prompt {
 	 * @return True if the value is valid; false, otherwise.
 	 */
 	private boolean validateActivity(final String activity) {
-		if(! activity.contains(".")) {
+		if(activity == null) {
+			return false;
+		}
+		else if(! activity.contains(".")) {
 			return false;
 		}
 		
@@ -464,8 +476,10 @@ public class RemoteActivityPrompt extends Prompt {
 	 * @return True if the value is valid; false, otherwise.
 	 */
 	private boolean validateAction(final String action) {
-		// There are no restrictions on the naming of Actions so, for now,
-		// there is no validation of this data.
+		if(action == null) {
+			return false;
+		}
+		
 		return true;
 	}
 	

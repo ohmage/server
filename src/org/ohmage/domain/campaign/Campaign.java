@@ -1059,8 +1059,8 @@ public class Campaign {
 	 * 
 	 * @return A Prompt object representing the prompt.
 	 * 
-	 * @throws NullPointerException Thrown if the survey ID or repeatable set
-	 * 								ID are null.
+	 * @throws NullPointerException Thrown if the survey ID or the prompt ID 
+	 * 								are null.
 	 * 
 	 * @throws IllegalArgumentException Thrown if the survey doesn't exist in
 	 * 									this configuration.
