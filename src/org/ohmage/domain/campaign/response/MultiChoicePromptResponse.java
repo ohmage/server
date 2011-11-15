@@ -86,7 +86,6 @@ public class MultiChoicePromptResponse extends PromptResponse {
 		Object noResponseObject = super.getResponseValue();
 		
 		if(noResponseObject == null) {
-			//return getChoices();
 			return choices;
 		}
 		else {

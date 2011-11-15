@@ -139,6 +139,7 @@ public abstract class PromptResponse extends Response {
 					result.put("prompt_response", total / numResults);
 				}
 				else {
+					// FIXME: This returns the string values, but it needs to be converted into the key values.
 					result.put("prompt_response", getResponseValue());
 				}
 			}

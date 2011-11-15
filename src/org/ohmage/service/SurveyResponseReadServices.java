@@ -189,30 +189,21 @@ public final class SurveyResponseReadServices {
 					if(SurveyResponse.PrivacyState.SHARED.equals(
 							currentResult.getPrivacyState())) {
 						
+						// Authors can always view shared data
+						// regardless of the state of the campaign
+						if(userRoles.contains(Campaign.Role.AUTHOR)) {
+							continue;
+						}
+						
 						// If the campaign is shared and the user is an author
 						// or an analyst, it's ok.
 						if(Campaign.PrivacyState.SHARED.equals(privacyState) &&
-								(userRoles.contains(Campaign.Role.AUTHOR) ||
-										userRoles.contains(Campaign.Role.ANALYST))
-								) {
+								userRoles.contains(Campaign.Role.ANALYST))
+							{
 							
 							continue;
 						}
 					}
-					// If the survey response is not shared,
-					/*
-					 * FIXME:
-					 * I don't believe this is ever acceptable, so I am 
-					 * commenting it out for now.
-					else {
-						// If the user is an author or analyst, it's ok.
-						if(userRoles.contains(Campaign.Role.AUTHOR) ||
-								userRoles.contains(Campaign.Role.ANALYST)) {
-							
-							continue;
-						}
-					}
-					*/
 					
 					// If none of the above rules apply, it will fall to this and
 					// remove the survey response.

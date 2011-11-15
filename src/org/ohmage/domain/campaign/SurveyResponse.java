@@ -145,7 +145,7 @@ public class SurveyResponse {
 		private static final String JSON_KEY_ACTIVE_TRIGGERS = "active_triggers";
 		
 		private final Date launchTime;
-		// TODO: I was hoping to avoid keeping and JSON in the system and only
+		// TODO: I was hoping to avoid keeping JSON in the system and only
 		// using it as a serialization format. However, this is never 
 		// referenced in the code and decoding the JSON only to recode it again
 		// introduces some unnecessary overhead, so for now it doesn't really
