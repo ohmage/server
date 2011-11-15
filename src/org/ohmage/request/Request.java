@@ -104,7 +104,7 @@ public abstract class Request {
 	 * @param httpRequest An HttpServletRequest that was used to create this 
 	 * 					  request. This may be null if no such request exists.
 	 */
-	protected Request(HttpServletRequest httpRequest) {
+	protected Request(final HttpServletRequest httpRequest) {
 		annotator = new Annotator();
 		failed = false;
 		
@@ -402,7 +402,7 @@ public abstract class Request {
 		}
 		catch(IOException e) {
 			LOGGER.error("The uploaded content was not GZIP content.", e);
-			setFailed(ErrorCode.SYSTEM_GENERAL_ERROR, "Not a gzip file.");
+			setFailed(ErrorCode.SYSTEM_GENERAL_ERROR, "Not GZIP content.");
 			return Collections.emptyMap();
 		}
 		
@@ -437,8 +437,7 @@ public abstract class Request {
 			}
 		}
 		
-		// Create the resulting object so that, unless we fail, we will never
-		// return null.
+		// Create the resulting object so that we will never return null.
 		Map<String, String[]> parameterMap = new HashMap<String, String[]>();
 		
 		// If the parameters string is not empty, parse it for the parameters.
@@ -468,7 +467,7 @@ public abstract class Request {
 				}
 				
 				// The key is the first part of the pair.
-				String key = splitPair[0];
+				String key = StringUtils.urlDecode(splitPair[0]);
 				
 				// The first or next value for the key is the second part of 
 				// the pair.
