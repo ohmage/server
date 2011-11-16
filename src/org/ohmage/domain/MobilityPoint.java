@@ -426,26 +426,31 @@ public class MobilityPoint {
 			try {
 				JSONObject wifiDataJson = sensorData.getJSONObject(JSON_KEY_WIFI_DATA);
 				
-				// Get the timestamp.
-				String timestamp;
-				try {
-					timestamp = wifiDataJson.getString(JSON_KEY_WIFI_DATA_TIMESTAMP);
+				if(wifiDataJson.length() == 0) {
+					wifiData = null;
 				}
-				catch(JSONException e) {
-					throw new ErrorCodeException(ErrorCode.SERVER_INVALID_TIMESTAMP, "The timestamp is missing.", e);
+				else {
+					// Get the timestamp.
+					String timestamp;
+					try {
+						timestamp = wifiDataJson.getString(JSON_KEY_WIFI_DATA_TIMESTAMP);
+					}
+					catch(JSONException e) {
+						throw new ErrorCodeException(ErrorCode.SERVER_INVALID_TIMESTAMP, "The timestamp is missing.", e);
+					}
+					
+					// Get the scan.
+					JSONArray scan;
+					try {
+						scan = wifiDataJson.getJSONArray(JSON_KEY_WIFI_DATA_SCAN);
+					}
+					catch(JSONException e) {
+						throw new ErrorCodeException(ErrorCode.MOBILITY_INVALID_WIFI_DATA, "The scan is missing.", e);
+					}
+					
+					// Set the WifiData.
+					wifiData = new WifiData(timestamp, scan);
 				}
-				
-				// Get the scan.
-				JSONArray scan;
-				try {
-					scan = wifiDataJson.getJSONArray(JSON_KEY_WIFI_DATA_SCAN);
-				}
-				catch(JSONException e) {
-					throw new ErrorCodeException(ErrorCode.MOBILITY_INVALID_WIFI_DATA, "The scan is missing.", e);
-				}
-				
-				// Set the WifiData.
-				wifiData = new WifiData(timestamp, scan);
 			}
 			catch(JSONException e) {
 				throw new ErrorCodeException(ErrorCode.MOBILITY_INVALID_WIFI_DATA, "The WiFi data is missing or invalid.", e);
@@ -477,9 +482,6 @@ public class MobilityPoint {
 			}
 			else if(accelData == null) {
 				throw new IllegalArgumentException("The accelerometer data cannot be null.");
-			}
-			else if(wifiData == null) {
-				throw new IllegalArgumentException("The WiFi data cannot be null.");
 			}
 
 			this.mode = mode;
@@ -518,7 +520,8 @@ public class MobilityPoint {
 		/**
 		 * Returns the WifiData from this record.
 		 * 
-		 * @return The record's WifiData.
+		 * @return The record's WifiData. This may be null if the record did
+		 * 		   not include this information.
 		 */
 		public final WifiData getWifiData() {
 			return wifiData;
@@ -554,7 +557,12 @@ public class MobilityPoint {
 					result.put(JSON_KEY_SPEED, speed);
 				}
 				
-				result.put(JSON_KEY_WIFI_DATA, wifiData.toJson());
+				if(wifiData == null) {
+					result.put(JSON_KEY_WIFI_DATA, new JSONObject());
+				}
+				else {
+					result.put(JSON_KEY_WIFI_DATA, wifiData.toJson());
+				}
 				
 				JSONArray accelArray = new JSONArray();
 				for(AccelData accelRecord : accelData) {

@@ -1160,11 +1160,6 @@ public class SurveyResponse {
 			final boolean withLocationStatus, final boolean withLocation, 
 			final boolean withSurveyId, 
 			final boolean withSurveyTitle, final boolean withSurveyDescription,
-			// TODO: This could lead to unpredictable output if a user put true
-			// for both of these. Can we switch it back to whether or not the
-			// launch context should be output as one parameter and if the 
-			// output should be short instead of long (or visa versa) for the
-			// other parameter?
 			final boolean withLaunchContextShort, 
 			final boolean withLaunchContextLong, 
 			final boolean withResponses, final boolean arrayInsteadOfObject, 
