@@ -104,10 +104,10 @@ public abstract class Request {
 	 * @param httpRequest An HttpServletRequest that was used to create this 
 	 * 					  request. This may be null if no such request exists.
 	 */
-	protected Request(HttpServletRequest httpRequest) {
+	protected Request(final HttpServletRequest httpRequest) {
 		annotator = new Annotator();
 		failed = false;
-		
+
 		parameters = getParameters(httpRequest);
 	}
 	
@@ -366,15 +366,33 @@ public abstract class Request {
 			return Collections.emptyMap();
 		}
 		
+		Map<String, String[]> result = null;
 		Enumeration<String> contentEncodingHeaders = httpRequest.getHeaders(KEY_CONTENT_ENCODING);
 		
+		// FIXME: We need to validate the size of the request and the size of
+		// each parameter based on what is configured in the RequestServlet. If
+		// we don't, Tomcat will do weird things like silently ignore it, and
+		// return an empty map for the parameter map. Then, the user will get
+		// an error pertaining to some missing parameter when, in fact, the 
+		// issue is that another parameter or the whole parameter map are too
+		// large.
+		
+		// Look for a GZIP content encoding header.
 		while(contentEncodingHeaders.hasMoreElements()) {
+			// If one is found, gunzip the request.
 			if(VALUE_GZIP.equals(contentEncodingHeaders.nextElement())) {
-				return gunzipRequest(httpRequest);
+				result = gunzipRequest(httpRequest);
+				break;
 			}
 		}
 		
-		return httpRequest.getParameterMap();
+		// If the parameter map has not yet been decoded, use the container's
+		// parameter map retrieval.
+		if(result == null) {
+			result = httpRequest.getParameterMap();
+		}
+		
+		return result;
 	}
 	
 	/**
@@ -402,7 +420,7 @@ public abstract class Request {
 		}
 		catch(IOException e) {
 			LOGGER.error("The uploaded content was not GZIP content.", e);
-			setFailed(ErrorCode.SYSTEM_GENERAL_ERROR, "Not a gzip file.");
+			setFailed(ErrorCode.SYSTEM_GENERAL_ERROR, "Not GZIP content.");
 			return Collections.emptyMap();
 		}
 		
@@ -437,8 +455,7 @@ public abstract class Request {
 			}
 		}
 		
-		// Create the resulting object so that, unless we fail, we will never
-		// return null.
+		// Create the resulting object so that we will never return null.
 		Map<String, String[]> parameterMap = new HashMap<String, String[]>();
 		
 		// If the parameters string is not empty, parse it for the parameters.
@@ -468,7 +485,7 @@ public abstract class Request {
 				}
 				
 				// The key is the first part of the pair.
-				String key = splitPair[0];
+				String key = StringUtils.urlDecode(splitPair[0]);
 				
 				// The first or next value for the key is the second part of 
 				// the pair.

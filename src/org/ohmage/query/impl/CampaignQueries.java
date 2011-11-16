@@ -19,13 +19,10 @@ import org.ohmage.domain.Clazz;
 import org.ohmage.domain.campaign.Campaign;
 import org.ohmage.domain.campaign.Survey;
 import org.ohmage.exception.DataAccessException;
-
-import org.ohmage.util.TimeUtils;
-
 import org.ohmage.query.ICampaignQueries;
 import org.ohmage.query.IUserCampaignClassQueries;
 import org.ohmage.query.IUserClassQueries;
-
+import org.ohmage.util.TimeUtils;
 import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.SingleColumnRowMapper;
