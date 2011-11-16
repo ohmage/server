@@ -237,33 +237,6 @@ public final class StringUtils {
 	}
 	
 	/**
-	 * Validates a String representing a military time. The date must adhere to 
-	 * the format {@value #FORMAT_MILITARY_TIME}
-	 * 
-	 * @param time The time as a String that is to be validated
-	 * 
-	 * @return Returns false if the time is null, whitespace only, or doesn't
-	 * 		   follow one the format patterns. Otherwise, returns true.
-	 */
-	public static boolean isValidTime(String time) {
-		if(isEmptyOrWhitespaceOnly(time)) {
-			return false;
-		}
-		
-		try {
-			SimpleDateFormat simpleDateFormat = new SimpleDateFormat(FORMAT_MILITARY_TIME);
-			simpleDateFormat.setLenient(false);
-			simpleDateFormat.parse(time);
-			
-			return true;
-		}
-		catch(ParseException americanException) {
-			return false;
-		}
-	}
-
-	
-	/**
 	 * Decodes a String value into its boolean representation. If it is not a 
 	 * valid boolean value, null is returned. This should be used anywhere 
 	 * boolean values are being decoded from Strings.
