@@ -213,15 +213,30 @@ public class MultiChoiceCustomPrompt extends CustomChoicePrompt {
 		
 		Map<Integer, LabelValuePair> choices = getAllChoices();
 		
-		List<Integer> keys = new ArrayList<Integer>(choices.keySet());
-		Collections.sort(keys);
-		int nextKey = keys.get(keys.size() - 1) + 1;
+		// Custom choice types are not required to 
+		// have any pre-configured choices
 		
-		Collection<LabelValuePair> values = choices.values();
-		
-		for(String labelValue : collectionValue) {
-			if(! values.contains(labelValue)) {
-				addChoice(nextKey++, labelValue, null);
+		if(choices.isEmpty()) {
+			
+			int nextKey = 0;
+			
+			for(String labelValue : collectionValue) {
+				addChoice(nextKey, labelValue, null);
+				nextKey++;
+			}
+			
+		}
+		else {
+			List<Integer> keys = new ArrayList<Integer>(choices.keySet());
+			Collections.sort(keys);
+			int nextKey = keys.get(keys.size() - 1) + 1;
+			
+			Collection<LabelValuePair> values = choices.values();
+			
+			for(String labelValue : collectionValue) {
+				if(! values.contains(labelValue)) {
+					addChoice(nextKey++, labelValue, null);
+				}
 			}
 		}
 		
