@@ -40,8 +40,6 @@ public final class StringUtils {
 	 */
 	public static final int NUM_URN_SEGMENTS = 3;
 	private static final Pattern URN_PATTERN = Pattern.compile("[a-z0-9_]+");
-
-	private static final String FORMAT_MILITARY_TIME = "HH:mm";
 	
 	private static final String FORMAT_AMERICAN_DATE = "MM/dd/yyyy";
 	private static final String FORMAT_ISO_8601_DATE = "yyyy-MM-dd";
