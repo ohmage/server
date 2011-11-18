@@ -1502,17 +1502,20 @@ public class SurveyResponse {
 				
 				Map<Integer, String> choicesMap = new HashMap<Integer, String>();
 				JSONArray choices = response.getJSONArray("custom_choices");
-								
+				Set<Integer> keySet = new HashSet<Integer>();
 				int numChoices = choices.length();
-				
-				// FIXME: need to check for redundant choice_id
 								
 				for(int i = 0; i < numChoices; i++) {
 					JSONObject currChoice = choices.getJSONObject(i);
+					keySet.add(currChoice.getInt("choice_id"));
 					choicesMap.put(currChoice.getInt("choice_id"), currChoice.getString("choice_value"));
 				}
-
-				if(prompt instanceof MultiChoiceCustomPrompt) {
+				
+				if(keySet.size() != choicesMap.size()) {
+					throw new ErrorCodeException(ErrorCode.SURVEY_INVALID_RESPONSES, "Found a duplicate choice_id in the dictionary for the custom choice prompt " + prompt.getId());
+				}
+				
+				if(prompt instanceof MultiChoiceCustomPrompt && responseObject instanceof JSONArray) {
 					JSONArray responsesJson = (JSONArray) responseObject;
 					
 					int numResponses = responsesJson.length();
@@ -1525,14 +1528,14 @@ public class SurveyResponse {
 					
 					responseObject = responses;
 				}
-				else if(prompt instanceof SingleChoiceCustomPrompt) {
+				else if(prompt instanceof SingleChoiceCustomPrompt && responseObject instanceof Integer) {
 					
 					Integer singleChoiceResponse = (Integer) responseObject;
 					responseObject = choicesMap.get(singleChoiceResponse);
 				}
 			}
 			catch(JSONException e) {
-				throw new ErrorCodeException(ErrorCode.SURVEY_INVALID_RESPONSES, "The dictionary for the custom choice prompt was missing or malformed: " + prompt.getId());
+				throw new ErrorCodeException(ErrorCode.SURVEY_INVALID_RESPONSES, "The dictionary was missing or malformed for the custom choice prompt " + prompt.getId());
 			}
 		}
 		
