@@ -163,7 +163,7 @@ public class MobilityUploadRequest extends UserRequest {
 			}
 			catch(ValidationException e) {
 				e.failRequest(this);
-				LOGGER.info(e.toString());
+				e.logException(LOGGER);
 			}
 		}
 		

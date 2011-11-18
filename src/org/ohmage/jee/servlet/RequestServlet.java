@@ -333,7 +333,7 @@ public class RequestServlet extends HttpServlet {
 	 */
 	protected void processRequest(HttpServletRequest httpRequest, HttpServletResponse httpResponse) {
 		Request request = RequestBuilder.buildRequest(httpRequest);
-		
+
 		if(! request.isFailed()) {
 			request.service();
 		}

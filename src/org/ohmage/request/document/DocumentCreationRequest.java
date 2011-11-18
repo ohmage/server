@@ -121,60 +121,62 @@ public class DocumentCreationRequest extends UserRequest {
 		Map<String, Document.Role> tempCampaignRoleList = null;
 		Map<String, Document.Role> tempClassRoleList = null;
 		
-		try {
-			tempDocument = getMultipartValue(httpRequest, InputKeys.DOCUMENT);
-			if(tempDocument == null) {
-				setFailed(ErrorCode.DOCUMENT_INVALID_CONTENTS, "The document's contents are missing: " + InputKeys.DOCUMENT);
-				throw new ValidationException("The document's contents were missing.");
+		if(! isFailed()) {
+			try {
+				tempDocument = getMultipartValue(httpRequest, InputKeys.DOCUMENT);
+				if(tempDocument == null) {
+					setFailed(ErrorCode.DOCUMENT_INVALID_CONTENTS, "The document's contents are missing: " + InputKeys.DOCUMENT);
+					throw new ValidationException("The document's contents were missing.");
+				}
+				
+				tempName = DocumentValidators.validateName(httpRequest.getParameter(InputKeys.DOCUMENT_NAME));
+				if(tempName == null) {
+					setFailed(ErrorCode.DOCUMENT_INVALID_NAME, "The document's name is missing: " + InputKeys.DOCUMENT_NAME);
+					throw new ValidationException("The document's name is missing: " + InputKeys.DOCUMENT_NAME);
+				}
+				else if(httpRequest.getParameterValues(InputKeys.DOCUMENT_NAME).length > 1) {
+					setFailed(ErrorCode.DOCUMENT_INVALID_NAME, "Multiple document names were found.");
+					throw new ValidationException("The document's name is missing.");
+				}
+				
+				tempPrivacyState = DocumentValidators.validatePrivacyState(httpRequest.getParameter(InputKeys.PRIVACY_STATE));
+				if(tempPrivacyState == null) {
+					setFailed(ErrorCode.DOCUMENT_INVALID_PRIVACY_STATE, "The document's privacy state is missing: " + InputKeys.PRIVACY_STATE);
+					throw new ValidationException("The document's privacy state is missing: " + InputKeys.PRIVACY_STATE);
+				}
+				else if(httpRequest.getParameterValues(InputKeys.PRIVACY_STATE).length > 1) {
+					setFailed(ErrorCode.DOCUMENT_INVALID_PRIVACY_STATE, "Multiple privacy state parameters were found.");
+					throw new ValidationException("Multiple privacy state parameters were found.");
+				}
+				
+				tempCampaignRoleList = CampaignDocumentValidators.validateCampaignIdAndDocumentRoleList(httpRequest.getParameter(InputKeys.DOCUMENT_CAMPAIGN_ROLE_LIST));
+				if((tempCampaignRoleList != null) && (httpRequest.getParameterValues(InputKeys.DOCUMENT_CAMPAIGN_ROLE_LIST).length > 1)) {
+					setFailed(ErrorCode.DOCUMENT_INVALID_ID, "Multiple document, campaign role lists were found.");
+					throw new ValidationException("Multiple document, campaign role lists were found.");
+				}
+				
+				tempClassRoleList = ClassDocumentValidators.validateClassIdAndDocumentRoleList(httpRequest.getParameter(InputKeys.DOCUMENT_CLASS_ROLE_LIST));
+				if((tempClassRoleList != null) && (httpRequest.getParameterValues(InputKeys.DOCUMENT_CLASS_ROLE_LIST).length > 1)) {
+					setFailed(ErrorCode.DOCUMENT_INVALID_ID, "Multiple document, class role lists were found.");
+					throw new ValidationException("Multiple document, class role lists were found.");
+				}
+				
+				if(((tempCampaignRoleList == null) || (tempCampaignRoleList.size() == 0)) &&
+				   ((tempClassRoleList == null) || (tempClassRoleList.size() == 0))) {
+					setFailed(ErrorCode.DOCUMENT_MISSING_CAMPAIGN_AND_CLASS_ROLE_LISTS, "You must provide an initial campaign-role and/or class-role list.");
+					throw new ValidationException("You must provide an initial campaign-role and/or class-role list.");
+				}
+				
+				tempDescription = DocumentValidators.validateDescription(httpRequest.getParameter(InputKeys.DESCRIPTION));
+				if((tempDescription != null) && (httpRequest.getParameterValues(InputKeys.DESCRIPTION).length > 1)) {
+					setFailed(ErrorCode.DOCUMENT_INVALID_DESCRIPTION, "Multiple document description parameters were found.");
+					throw new ValidationException("Multiple document description parameters were found.");
+				}
 			}
-			
-			tempName = DocumentValidators.validateName(httpRequest.getParameter(InputKeys.DOCUMENT_NAME));
-			if(tempName == null) {
-				setFailed(ErrorCode.DOCUMENT_INVALID_NAME, "The document's name is missing: " + InputKeys.DOCUMENT_NAME);
-				throw new ValidationException("The document's name is missing: " + InputKeys.DOCUMENT_NAME);
+			catch(ValidationException e) {
+				e.failRequest(this);
+				LOGGER.info(e.toString());
 			}
-			else if(httpRequest.getParameterValues(InputKeys.DOCUMENT_NAME).length > 1) {
-				setFailed(ErrorCode.DOCUMENT_INVALID_NAME, "Multiple document names were found.");
-				throw new ValidationException("The document's name is missing.");
-			}
-			
-			tempPrivacyState = DocumentValidators.validatePrivacyState(httpRequest.getParameter(InputKeys.PRIVACY_STATE));
-			if(tempPrivacyState == null) {
-				setFailed(ErrorCode.DOCUMENT_INVALID_PRIVACY_STATE, "The document's privacy state is missing: " + InputKeys.PRIVACY_STATE);
-				throw new ValidationException("The document's privacy state is missing: " + InputKeys.PRIVACY_STATE);
-			}
-			else if(httpRequest.getParameterValues(InputKeys.PRIVACY_STATE).length > 1) {
-				setFailed(ErrorCode.DOCUMENT_INVALID_PRIVACY_STATE, "Multiple privacy state parameters were found.");
-				throw new ValidationException("Multiple privacy state parameters were found.");
-			}
-			
-			tempCampaignRoleList = CampaignDocumentValidators.validateCampaignIdAndDocumentRoleList(httpRequest.getParameter(InputKeys.DOCUMENT_CAMPAIGN_ROLE_LIST));
-			if((tempCampaignRoleList != null) && (httpRequest.getParameterValues(InputKeys.DOCUMENT_CAMPAIGN_ROLE_LIST).length > 1)) {
-				setFailed(ErrorCode.DOCUMENT_INVALID_ID, "Multiple document, campaign role lists were found.");
-				throw new ValidationException("Multiple document, campaign role lists were found.");
-			}
-			
-			tempClassRoleList = ClassDocumentValidators.validateClassIdAndDocumentRoleList(httpRequest.getParameter(InputKeys.DOCUMENT_CLASS_ROLE_LIST));
-			if((tempClassRoleList != null) && (httpRequest.getParameterValues(InputKeys.DOCUMENT_CLASS_ROLE_LIST).length > 1)) {
-				setFailed(ErrorCode.DOCUMENT_INVALID_ID, "Multiple document, class role lists were found.");
-				throw new ValidationException("Multiple document, class role lists were found.");
-			}
-			
-			if(((tempCampaignRoleList == null) || (tempCampaignRoleList.size() == 0)) &&
-			   ((tempClassRoleList == null) || (tempClassRoleList.size() == 0))) {
-				setFailed(ErrorCode.DOCUMENT_MISSING_CAMPAIGN_AND_CLASS_ROLE_LISTS, "You must provide an initial campaign-role and/or class-role list.");
-				throw new ValidationException("You must provide an initial campaign-role and/or class-role list.");
-			}
-			
-			tempDescription = DocumentValidators.validateDescription(httpRequest.getParameter(InputKeys.DESCRIPTION));
-			if((tempDescription != null) && (httpRequest.getParameterValues(InputKeys.DESCRIPTION).length > 1)) {
-				setFailed(ErrorCode.DOCUMENT_INVALID_DESCRIPTION, "Multiple document description parameters were found.");
-				throw new ValidationException("Multiple document description parameters were found.");
-			}
-		}
-		catch(ValidationException e) {
-			e.failRequest(this);
-			LOGGER.info(e.toString());
 		}
 		
 		document = tempDocument;

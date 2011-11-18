@@ -1,5 +1,6 @@
 package org.ohmage.validator;
 
+import java.util.Collection;
 import java.util.Date;
 import java.util.Map;
 
@@ -11,9 +12,7 @@ import org.ohmage.annotator.Annotator;
 import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.exception.ValidationException;
 import org.ohmage.jee.servlet.RequestServlet.RequestType;
-import org.ohmage.validator.AuditValidators;
 import org.ohmage.validator.AuditValidators.ResponseType;
-import org.ohmage.validator.ParameterSets;
 
 /**
  * Tests the audit validators.
@@ -211,6 +210,28 @@ public class AuditValidatorsTest extends TestCase {
 			for(Date date : dateTimeToString.keySet()) {
 				Assert.assertEquals(date, AuditValidators.validateStartDate(dateTimeToString.get(date)));
 			}
+
+			Collection<String> invalidDates = ParameterSets.getInvalidDates();
+			for(String invalidDate : invalidDates) {
+				try {
+					AuditValidators.validateStartDate(invalidDate);
+					fail("The start date was not a valid date: " + invalidDate);
+				}
+				catch(ValidationException e) {
+					// Passed.
+				}
+			}
+
+			Collection<String> invalidDateTimes = ParameterSets.getInvalidDateTimes();
+			for(String invalidDateTime : invalidDateTimes) {
+				try {
+					AuditValidators.validateStartDate(invalidDateTime);
+					fail("The start date-time was not a valid date-time: " + invalidDateTime);
+				}
+				catch(ValidationException e) {
+					// Passed.
+				}
+			}
 		}
 		catch(ValidationException e) {
 			fail("A validation exception was thrown: " + e.getMessage());
@@ -229,7 +250,7 @@ public class AuditValidatorsTest extends TestCase {
 			
 			try {
 				AuditValidators.validateEndDate("Invalid value.");
-				fail("The start date was an invalid value.");
+				fail("The end date was an invalid value.");
 			}
 			catch(ValidationException e) { 
 				// Passed.
@@ -243,7 +264,29 @@ public class AuditValidatorsTest extends TestCase {
 			Map<Date, String> dateTimeToString = ParameterSets.getDateTimeToString();
 			for(Date date : dateTimeToString.keySet()) {
 				Assert.assertEquals(date, AuditValidators.validateEndDate(dateTimeToString.get(date)));
-			}			
+			}
+
+			Collection<String> invalidDates = ParameterSets.getInvalidDates();
+			for(String invalidDate : invalidDates) {
+				try {
+					AuditValidators.validateEndDate(invalidDate);
+					fail("The end date was not a valid date: " + invalidDate);
+				}
+				catch(ValidationException e) {
+					// Passed.
+				}
+			}
+
+			Collection<String> invalidDateTimes = ParameterSets.getInvalidDateTimes();
+			for(String invalidDateTime : invalidDateTimes) {
+				try {
+					AuditValidators.validateEndDate(invalidDateTime);
+					fail("The end date-time was not a valid date-time: " + invalidDateTime);
+				}
+				catch(ValidationException e) {
+					// Passed.
+				}
+			}
 		}
 		catch(ValidationException e) {
 			fail("A validation exception was thrown: " + e.getMessage());

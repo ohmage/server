@@ -67,8 +67,7 @@ public class SingleChoiceCustomPromptResponse extends PromptResponse {
 		Object noResponseObject = super.getResponseValue();
 		
 		if(noResponseObject == null) {
-			//return choice;
-			return ((SingleChoiceCustomPrompt) getPrompt()).getChoiceKey(choice);
+			return choice;
 		}
 		else {
 			return noResponseObject;

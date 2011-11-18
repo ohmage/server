@@ -12,6 +12,7 @@ import java.util.Set;
 import java.util.SimpleTimeZone;
 import java.util.TimeZone;
 
+import org.apache.log4j.Logger;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -19,6 +20,8 @@ import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.domain.Location;
 import org.ohmage.domain.campaign.Response.NoResponse;
 import org.ohmage.domain.campaign.prompt.CustomChoicePrompt;
+import org.ohmage.domain.campaign.prompt.MultiChoiceCustomPrompt;
+import org.ohmage.domain.campaign.prompt.SingleChoiceCustomPrompt;
 import org.ohmage.exception.ErrorCodeException;
 import org.ohmage.util.StringUtils;
 import org.ohmage.util.TimeUtils;
@@ -29,8 +32,11 @@ import org.ohmage.util.TimeUtils;
  * the individual prompt responses.
  * 
  * @author John Jenkins
+ * @author Joshua Selsky
  */
 public class SurveyResponse {
+	private static Logger LOGGER = Logger.getLogger(SurveyResponse.class);
+	
 	private static final String JSON_KEY_USERNAME = "user";
 	private static final String JSON_KEY_CAMPAIGN_ID = "campaign_id";
 	private static final String JSON_KEY_CLIENT = "client";
@@ -43,6 +49,11 @@ public class SurveyResponse {
 	private static final String JSON_KEY_SURVEY_NAME = "survey_title";
 	private static final String JSON_KEY_SURVEY_DESCRIPTION = "survey_description";
 	private static final String JSON_KEY_SURVEY_LAUNCH_CONTEXT = "survey_launch_context";
+	// TODO - I added the short and long keys because that's how the 
+	// original spec worked and the Android app was breaking with only 
+	// survey_launch_context. We can revisit for 2.9. -Josh
+	private static final String JSON_KEY_SURVEY_LAUNCH_CONTEXT_SHORT = "launch_context_short";
+	private static final String JSON_KEY_SURVEY_LAUNCH_CONTEXT_LONG = "launch_context_long";
 	private static final String JSON_KEY_RESPONSES = "responses";
 	private static final String JSON_KEY_PRIVACY_STATE = "privacy_state";
 	
@@ -133,8 +144,13 @@ public class SurveyResponse {
 		private static final String JSON_KEY_LAUNCH_TIME = "launch_time";
 		private static final String JSON_KEY_ACTIVE_TRIGGERS = "active_triggers";
 		
-		private final String launchTime;
-		private final List<String> activeTriggers;
+		private final Date launchTime;
+		// TODO: I was hoping to avoid keeping JSON in the system and only
+		// using it as a serialization format. However, this is never 
+		// referenced in the code and decoding the JSON only to recode it again
+		// introduces some unnecessary overhead, so for now it doesn't really
+		// matter.
+		private final JSONArray activeTriggers;
 		
 		/**
 		 * Creates a LaunchContext object from a JSONObject.
@@ -142,10 +158,9 @@ public class SurveyResponse {
 		 * @param launchContext A JSONObject that contains the launch context
 		 * 						information.
 		 * 
-		 * @throws ErrorCodeException Thrown if the launchContext is null, if 
-		 * 							  any of the keys are missing from the 
-		 * 							  launchContext, or if any of the values 
-		 * 							  for those keys are invalid.
+		 * @throws ErrorCodeException Thrown if the launchContext is null or if
+		 *                            the launchContext is missing any required
+		 *                            keys (launch_time and active_triggers)
 		 */
 		private LaunchContext(final JSONObject launchContext) throws ErrorCodeException {
 			if(launchContext == null) {
@@ -153,33 +168,17 @@ public class SurveyResponse {
 			}
 			
 			try {
-				launchTime = launchContext.getString(JSON_KEY_LAUNCH_TIME);
-				
-				if(! StringUtils.isValidTime(launchTime)) {
-					throw new ErrorCodeException(ErrorCode.SURVEY_INVALID_LAUNCH_CONTEXT, "The launch time is missing or incorrect in the launch context.");
-				}
+				launchTime = StringUtils.decodeDateTime(launchContext.getString(JSON_KEY_LAUNCH_TIME));
 			}
 			catch(JSONException e) {
-				throw new ErrorCodeException(ErrorCode.SURVEY_INVALID_LAUNCH_CONTEXT, "The launch time is missing in the launch context.");
+				throw new ErrorCodeException(ErrorCode.SURVEY_INVALID_LAUNCH_CONTEXT, "launch_time is missing or incorrect in the survey_launch_context.");
 			}
 			
 			try {
-				
-				JSONArray jsonActiveTriggers = launchContext.optJSONArray(JSON_KEY_ACTIVE_TRIGGERS);
-				if(jsonActiveTriggers != null) {
-					int triggersLength = jsonActiveTriggers.length();
-					activeTriggers = new ArrayList<String>(triggersLength);
-					
-					for(int i = 0; i < triggersLength; i++) {
-						activeTriggers.add(jsonActiveTriggers.getString(i));
-					}
-				}
-				else {
-					activeTriggers = null;
-				}
+				activeTriggers = launchContext.getJSONArray(JSON_KEY_ACTIVE_TRIGGERS);
 			}
 			catch(JSONException e) {
-				throw new ErrorCodeException(ErrorCode.SURVEY_INVALID_LAUNCH_CONTEXT, "The active triggers list is missing in the launch context.");
+				throw new ErrorCodeException(ErrorCode.SURVEY_INVALID_LAUNCH_CONTEXT, "active_triggers array is missing from survey_launch_context.");
 			}
 		}
 		
@@ -191,19 +190,16 @@ public class SurveyResponse {
 		 * @param activeTriggers A possibly null list of trigger IDs that 
 		 * 						 were active when the survey was launched. 
 		 */
-		public LaunchContext(final String launchTime, 
-				final Collection<String> activeTriggers) {
+		public LaunchContext(final Date launchTime, final JSONArray activeTriggers) {
 			if(launchTime == null) {
 				throw new IllegalArgumentException("The launch time cannot be null.");
 			}
+			if(activeTriggers == null) {
+				throw new IllegalArgumentException("The activeTriggers array cannot be null.");
+			}
 			
 			this.launchTime = launchTime;
-			if(activeTriggers != null) {
-				this.activeTriggers = new ArrayList<String>(activeTriggers);
-			} 
-			else {
-				this.activeTriggers = null;
-			}
+			this.activeTriggers = activeTriggers;
 		}
 		
 		/**
@@ -211,7 +207,7 @@ public class SurveyResponse {
 		 * 
 		 * @return A new Date object that represents this launch time.
 		 */
-		public final String getLaunchTime() {
+		public final Date getLaunchTime() {
 			return launchTime;
 		}
 		
@@ -220,8 +216,8 @@ public class SurveyResponse {
 		 * 
 		 * @return A new List object that contains all of the active triggers.
 		 */
-		public final List<String> getActiveTriggers() {
-			return new ArrayList<String>(activeTriggers);
+		public final JSONArray getActiveTriggers() {
+			return activeTriggers;
 		}
 		
 		/**
@@ -238,7 +234,7 @@ public class SurveyResponse {
 			try {
 				JSONObject result = new JSONObject();
 				
-				result.put(JSON_KEY_LAUNCH_TIME, launchTime);
+				result.put(JSON_KEY_LAUNCH_TIME, TimeUtils.getIso8601DateTimeString(launchTime));
 				
 				if(longVersion) {
 					result.put(JSON_KEY_ACTIVE_TRIGGERS, activeTriggers);
@@ -247,6 +243,7 @@ public class SurveyResponse {
 				return result;
 			}
 			catch(JSONException e) {
+				LOGGER.warn("Could not create JSON from launch context", e);
 				return null;
 			}
 		}
@@ -1163,8 +1160,8 @@ public class SurveyResponse {
 			final boolean withLocationStatus, final boolean withLocation, 
 			final boolean withSurveyId, 
 			final boolean withSurveyTitle, final boolean withSurveyDescription,
-			final boolean withSurveyLaunchContext, 
-			final boolean surveyLaunchContextLong, 
+			final boolean withLaunchContextShort, 
+			final boolean withLaunchContextLong, 
 			final boolean withResponses, final boolean arrayInsteadOfObject, 
 			final boolean withId) {
 		
@@ -1174,9 +1171,11 @@ public class SurveyResponse {
 			if(withUsername) {
 				result.put(JSON_KEY_USERNAME, username);
 			}
+			
 			if(withCampaignId) {
 				result.put(JSON_KEY_CAMPAIGN_ID, campaignId);
 			}
+			
 			if(withClient) {
 				result.put(JSON_KEY_CLIENT, client);
 			}
@@ -1188,9 +1187,11 @@ public class SurveyResponse {
 			if(withDate) {
 				result.put(JSON_KEY_DATE, TimeUtils.getIso8601DateTimeString(date));
 			}
+			
 			if(withTime) {
 				result.put(JSON_KEY_TIME, time);
 			}
+			
 			if(withTimezone) {
 				result.put(JSON_KEY_TIMEZONE, timezone.getID());
 			}
@@ -1198,6 +1199,7 @@ public class SurveyResponse {
 			if(withLocationStatus) {
 				result.put(JSON_KEY_LOCATION_STATUS, locationStatus.toString());
 			}
+			
 			if(withLocation && (location != null)) {
 				result.put(JSON_KEY_LOCATION, location.toJson(false));
 			}
@@ -1205,15 +1207,21 @@ public class SurveyResponse {
 			if(withSurveyId && (survey != null)) {
 				result.put(JSON_KEY_SURVEY_ID, survey.getId());
 			}
+			
 			if(withSurveyTitle && (survey != null)) {
 				result.put(JSON_KEY_SURVEY_NAME, survey.getTitle());
 			}
+			
 			if(withSurveyDescription && (survey != null)) {
 				result.put(JSON_KEY_SURVEY_DESCRIPTION, survey.getDescription());
 			}
 			
-			if(withSurveyLaunchContext) {
-				result.put(JSON_KEY_SURVEY_LAUNCH_CONTEXT, launchContext.toJson(surveyLaunchContextLong));
+			if(withLaunchContextShort) {
+				result.put(JSON_KEY_SURVEY_LAUNCH_CONTEXT_SHORT, launchContext.toJson(false));
+			}
+			
+			if(withLaunchContextLong) {
+				result.put(JSON_KEY_SURVEY_LAUNCH_CONTEXT_LONG, launchContext.toJson(true));
 			}
 			
 			if(withResponses) {
@@ -1245,6 +1253,7 @@ public class SurveyResponse {
 			return result;
 		}
 		catch(JSONException e) {
+			LOGGER.warn("Could not generate JSON from a survey response", e);
 			return null;
 		}
 	}
@@ -1490,26 +1499,43 @@ public class SurveyResponse {
 		// upload a key and lookup table instead of just the raw values.
 		if(prompt instanceof CustomChoicePrompt) {
 			try {
-				Map<String, Integer> choicesMap = new HashMap<String, Integer>();
-				JSONArray choices = response.getJSONArray("custom_choices");
-				int numChoices = choices.length();
 				
+				Map<Integer, String> choicesMap = new HashMap<Integer, String>();
+				JSONArray choices = response.getJSONArray("custom_choices");
+				Set<Integer> keySet = new HashSet<Integer>();
+				int numChoices = choices.length();
+								
 				for(int i = 0; i < numChoices; i++) {
 					JSONObject currChoice = choices.getJSONObject(i);
-					choicesMap.put(currChoice.getString("choice_value"), currChoice.getInt("choice_id"));
+					keySet.add(currChoice.getInt("choice_id"));
+					choicesMap.put(currChoice.getInt("choice_id"), currChoice.getString("choice_value"));
 				}
 				
-				JSONArray responsesJson = new JSONArray(responseObject);
-				int numResponses = responsesJson.length();
-				Collection<Integer> responses = new ArrayList<Integer>(numResponses);
-				for(int i = 0; i < numResponses; i++) {
-					responses.add(choicesMap.get((String) responsesJson.get(i)));
+				if(keySet.size() != choicesMap.size()) {
+					throw new ErrorCodeException(ErrorCode.SURVEY_INVALID_RESPONSES, "Found a duplicate choice_id in the dictionary for the custom choice prompt " + prompt.getId());
 				}
 				
-				responseObject = responses;
+				if(prompt instanceof MultiChoiceCustomPrompt && responseObject instanceof JSONArray) {
+					JSONArray responsesJson = (JSONArray) responseObject;
+					
+					int numResponses = responsesJson.length();
+					Collection<String> responses = new ArrayList<String>(numResponses);
+					
+					for(int i = 0; i < numResponses; i++) {
+						LOGGER.info(choicesMap.get(responsesJson.get(i)));
+						responses.add(choicesMap.get(responsesJson.get(i)));
+					}
+					
+					responseObject = responses;
+				}
+				else if(prompt instanceof SingleChoiceCustomPrompt && responseObject instanceof Integer) {
+					
+					Integer singleChoiceResponse = (Integer) responseObject;
+					responseObject = choicesMap.get(singleChoiceResponse);
+				}
 			}
 			catch(JSONException e) {
-				throw new ErrorCodeException(ErrorCode.SURVEY_INVALID_RESPONSES, "The dictionary for the custom choice prompt was missing or malformed: " + prompt.getId());
+				throw new ErrorCodeException(ErrorCode.SURVEY_INVALID_RESPONSES, "The dictionary was missing or malformed for the custom choice prompt " + prompt.getId());
 			}
 		}
 		

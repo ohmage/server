@@ -28,6 +28,7 @@ public class Annotator {
 	 */
 	public static enum ErrorCode {
 		SYSTEM_GENERAL_ERROR ("0100"),
+		SYSTEM_REQUEST_TOO_LARGE ("0101"),
 
 		AUTHENTICATION_FAILED ("0200"),
 		AUTHENTICATION_ACCOUNT_DISABLED ("0201"),
