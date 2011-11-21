@@ -98,7 +98,7 @@ public class TextPrompt extends Prompt {
 	 * @throws IllegalArgumentException Thrown if the value is invalid.
 	 */
 	@Override
-	public String validateValue(final Object value) throws NoResponseException {
+	public Object validateValue(final Object value) {
 		String valueString;
 		
 		// If it's already a NoResponse value, then return make sure that if it
@@ -108,7 +108,7 @@ public class TextPrompt extends Prompt {
 				throw new IllegalArgumentException("The prompt was skipped, but it is not skippable.");
 			}
 			
-			throw new NoResponseException((NoResponse) value);
+			return value;
 		}
 		// If it is a string, parse it to check if it's a NoResponse value and,
 		// if not, parse it as a string.
@@ -116,7 +116,7 @@ public class TextPrompt extends Prompt {
 			valueString = (String) value;
 			
 			try {
-				throw new NoResponseException(NoResponse.valueOf(valueString));
+				return NoResponse.valueOf(valueString);
 			}
 			catch(IllegalArgumentException iae) {
 				// It must be the response.
@@ -194,21 +194,25 @@ public class TextPrompt extends Prompt {
 			throw new IllegalArgumentException("The repeatable set iteration value is negative.");
 		}
 		
-		try {
+		Object responseObject = validateValue(response);
+		if(responseObject instanceof NoResponse) {
+			return new TextPromptResponse(
+					this, 
+					(NoResponse) responseObject, 
+					repeatableSetIteration, 
+					null
+				);
+		}
+		else if(responseObject instanceof String) {
 			return new TextPromptResponse(
 					this, 
 					null, 
 					repeatableSetIteration, 
-					validateValue(response)
+					(String) responseObject
 				);
 		}
-		catch(NoResponseException e) {
-			return new TextPromptResponse(
-					this, 
-					e.getNoResponse(), 
-					repeatableSetIteration, 
-					null
-				);
+		else {
+			throw new IllegalStateException("The validation no longer returns the expected object type.");
 		}
 	}
 	

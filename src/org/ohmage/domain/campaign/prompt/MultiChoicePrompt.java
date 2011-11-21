@@ -131,7 +131,7 @@ public class MultiChoicePrompt extends ChoicePrompt {
 	 * @throws IllegalArgumentException Thrown if the value is not valid.
 	 */
 	@Override
-	public Collection<Integer> validateValue(final Object value) throws NoResponseException {
+	public Object validateValue(final Object value) {
 		Collection<Integer> collectionValue = null;
 		Map<Integer, LabelValuePair> choices = getChoices();
 		
@@ -142,7 +142,7 @@ public class MultiChoicePrompt extends ChoicePrompt {
 				throw new IllegalArgumentException("The prompt was skipped, but it is not skippable.");
 			}
 			
-			throw new NoResponseException((NoResponse) value);
+			return value;
 		}
 		// If it's already an integer, add it as the only result item.
 		else if(value instanceof Integer) {
@@ -185,7 +185,7 @@ public class MultiChoicePrompt extends ChoicePrompt {
 			String valueString = (String) value;
 			
 			try {
-				throw new NoResponseException(NoResponse.valueOf(valueString));
+				return NoResponse.valueOf(valueString);
 			}
 			catch(IllegalArgumentException notNoResponse) {
 				collectionValue = new HashSet<Integer>();
@@ -263,21 +263,25 @@ public class MultiChoicePrompt extends ChoicePrompt {
 			throw new IllegalArgumentException("The repeatable set iteration value is negative.");
 		}
 		
-		try {
+		Object responseObject = validateValue(response);
+		if(responseObject instanceof NoResponse) {
+			return new MultiChoicePromptResponse(
+					this, 
+					(NoResponse) responseObject, 
+					repeatableSetIteration, 
+					null
+				);
+		}
+		else if(responseObject instanceof Collection<?>) {
 			return new MultiChoicePromptResponse(
 					this, 
 					null, 
 					repeatableSetIteration, 
-					validateValue(response)
+					(Collection<Integer>) responseObject
 				);
 		}
-		catch(NoResponseException e) {
-			return new MultiChoicePromptResponse(
-					this, 
-					e.getNoResponse(), 
-					repeatableSetIteration, 
-					null
-				);
+		else {
+			throw new IllegalStateException("The validation no longer returns the expected object type.");
 		}
 	}
 	

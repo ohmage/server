@@ -73,7 +73,7 @@ public class TimestampPrompt extends Prompt {
 	 * @throws IllegalArgumentException Thrown if the value is invalid.
 	 */
 	@Override
-	public Date validateValue(final Object value) throws NoResponseException {
+	public Object validateValue(final Object value) {
 		// If it's already a NoResponse value, then return make sure that if it
 		// was skipped that it as skippable.
 		if(value instanceof NoResponse) {
@@ -81,7 +81,7 @@ public class TimestampPrompt extends Prompt {
 				throw new IllegalArgumentException("The prompt was skipped, but it is not skippable.");
 			}
 			
-			throw new NoResponseException((NoResponse) value);
+			return value;
 		}
 		// If it's already a date, return it.
 		else if(value instanceof Date) {
@@ -96,7 +96,7 @@ public class TimestampPrompt extends Prompt {
 			Date result = null;
 			
 			try {
-				throw new NoResponseException(NoResponse.valueOf((String) value));
+				return NoResponse.valueOf((String) value);
 			}
 			catch(IllegalArgumentException iae) {
 				result = StringUtils.decodeDateTime((String) value);
@@ -144,21 +144,25 @@ public class TimestampPrompt extends Prompt {
 			throw new IllegalArgumentException("The repeatable set iteration value is negative.");
 		}
 		
-		try {
+		Object responseObject = validateValue(response);
+		if(responseObject instanceof NoResponse) {
+			return new TimestampPromptResponse(
+					this, 
+					(NoResponse) responseObject, 
+					repeatableSetIteration, 
+					null
+				);
+		}
+		else if(responseObject instanceof Date) {
 			return new TimestampPromptResponse(
 					this, 
 					null, 
 					repeatableSetIteration, 
-					validateValue(response)
+					(Date) responseObject
 				);
 		}
-		catch(NoResponseException e) {
-			return new TimestampPromptResponse(
-					this, 
-					e.getNoResponse(), 
-					repeatableSetIteration, 
-					null
-				);
+		else {
+			throw new IllegalStateException("The validation no longer returns the expected object type.");
 		}
 	}
 }

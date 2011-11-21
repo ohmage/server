@@ -535,15 +535,8 @@ public abstract class Prompt extends SurveyItem {
 	}
 	
 	/**
-	 * Validates that some Object is a valid response value for this prompt. If
-	 * so, an Object of the type that the implementing prompt expects is 
-	 * returned; otherwise, null is returned.<br />
-	 * <br />
-	 * For example, the NumberPrompt may receive a Number, an Integer, a Long,
-	 * or a Short and will convert any of those into a Long and return it. It
-	 * may also take a String, which it will attempt to convert into a Long 
-	 * value and return it. If it is unable to convert the value into its
-	 * appropriate type, in this instance a Long object, it will return null.
+	 * Validates that a given value is a valid response value for the given 
+	 * prompt type or that it is a {@link NoResponse} value.
 	 * 
 	 * @param value The value to be validated.
 	 * 
@@ -553,41 +546,5 @@ public abstract class Prompt extends SurveyItem {
 	 * @throws IllegalArgumentException Thrown if the value is not valid for
 	 * 									the prompt.
 	 */
-	protected abstract Object validateValue(final Object value) throws NoResponseException;
-	
-	/**
-	 * This exception should only be thrown from a Prompt class or subclass in 
-	 * the event that validation of a value results in a NoResponse object.
-	 * 
-	 * @author John Jenkins
-	 */
-	protected final class NoResponseException extends Exception {
-		private static final long serialVersionUID = 1L;
-		
-		private NoResponse noResponse;
-		
-		/**
-		 * Creates the exception with a NoResponse object.
-		 * 
-		 * @param noResponse The NoResponse object for this exception.
-		 * 
-		 * @throws IllegalArgumentException The NoResponse object is null.
-		 */
-		public NoResponseException(final NoResponse noResponse) {
-			if(noResponse == null) {
-				throw new IllegalArgumentException("The NoResponse object is null.");
-			}
-			
-			this.noResponse = noResponse;
-		}
-		
-		/**
-		 * Returns the NoResponse object with which this exception was created.
-		 * 
-		 * @return The NoResponse object with which this exception was created.
-		 */
-		public NoResponse getNoResponse() {
-			return noResponse;
-		}
-	}
+	protected abstract Object validateValue(final Object value);
 }

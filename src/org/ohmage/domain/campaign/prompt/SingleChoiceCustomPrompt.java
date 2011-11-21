@@ -120,7 +120,7 @@ public class SingleChoiceCustomPrompt extends CustomChoicePrompt {
 	 * @throws IllegalArgumentException Thrown if the value is not valid.
 	 */
 	@Override
-	public String validateValue(final Object value) throws NoResponseException {
+	public Object validateValue(final Object value) {
 		// If it's already a NoResponse value, then make sure that if it
 		// was skipped that it is skippable.
 		if(value instanceof NoResponse) {
@@ -128,11 +128,11 @@ public class SingleChoiceCustomPrompt extends CustomChoicePrompt {
 				throw new IllegalArgumentException("The prompt was skipped, but it is not skippable.");
 			}
 			
-			throw new NoResponseException((NoResponse) value);
+			return value;
 		}
 		else if(value instanceof String) {
 			try {
-				throw new NoResponseException(NoResponse.valueOf((String) value));
+				return NoResponse.valueOf((String) value);
 			}
 			catch(IllegalArgumentException notNoResponse) {
 				Map<Integer, LabelValuePair> choices = getAllChoices();
@@ -185,21 +185,25 @@ public class SingleChoiceCustomPrompt extends CustomChoicePrompt {
 			throw new IllegalArgumentException("The repeatable set iteration value is negative.");
 		}
 		
-		try {
+		Object responseObject = validateValue(response);
+		if(responseObject instanceof NoResponse) {
+			return new SingleChoiceCustomPromptResponse(
+					this, 
+					(NoResponse) responseObject, 
+					repeatableSetIteration, 
+					null
+				);
+		}
+		else if(responseObject instanceof String) {
 			return new SingleChoiceCustomPromptResponse(
 					this, 
 					null, 
 					repeatableSetIteration, 
-					validateValue(response)
+					(String) responseObject
 				);
 		}
-		catch(NoResponseException e) {
-			return new SingleChoiceCustomPromptResponse(
-					this, 
-					e.getNoResponse(), 
-					repeatableSetIteration, 
-					null
-				);
+		else {
+			throw new IllegalStateException("The validation no longer returns the expected object type.");
 		}
 	}
 	

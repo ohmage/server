@@ -24,6 +24,23 @@ public abstract class Response {
 		 */
 		NOT_DISPLAYED;
 		
+		/**
+		 * Checks if a value is a NoResponse value.
+		 * 
+		 * @param value The value to check.
+		 * 
+		 * @return True if it is a NoResponse value; false, otherwise.
+		 */
+		public static boolean isNoResponse(final String value) {
+			try {
+				NoResponse.valueOf(value);
+				return true;
+			}
+			catch(IllegalArgumentException e) {
+				return false;
+			}
+		}
+		
 		@Override
 		public String toString() {
 			return name();

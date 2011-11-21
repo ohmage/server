@@ -112,15 +112,12 @@ public class SingleChoicePrompt extends ChoicePrompt {
 	 * 
 	 * @param value The value to be validated.
 	 * 
-	 * @return An Integer representing the key.
+	 * @return An Integer or NoResponse object.
 	 * 
 	 * @throws IllegalArgumentException Thrown if the value is not valid.
-	 * 
-	 * @throws NoResponseException Thrown if the value was a NoResponse object 
-	 * 							   or a String representing a NoResponse value.
 	 */
 	@Override
-	public Integer validateValue(final Object value) throws NoResponseException {
+	public Object validateValue(final Object value) {
 		Integer keyValue;
 		
 		// If it's already a NoResponse value, then return make sure that if it
@@ -130,14 +127,14 @@ public class SingleChoicePrompt extends ChoicePrompt {
 				throw new IllegalArgumentException("The prompt was skipped, but it is not skippable.");
 			}
 			
-			throw new NoResponseException((NoResponse) value);
+			return value;
 		}
 		else if(value instanceof Integer) {
 			keyValue = (Integer) value;
 		}
 		else if(value instanceof String) {
 			try {
-				throw new NoResponseException(NoResponse.valueOf((String) value));
+				return NoResponse.valueOf((String) value);
 			}
 			catch(IllegalArgumentException notNoResponse) {
 				try {
@@ -187,21 +184,25 @@ public class SingleChoicePrompt extends ChoicePrompt {
 			throw new IllegalArgumentException("The repeatable set iteration value is negative.");
 		}
 		
-		try {
+		Object responseObject = validateValue(response);
+		if(responseObject instanceof NoResponse) {
+			return new SingleChoicePromptResponse(
+					this, 
+					(NoResponse) responseObject, 
+					repeatableSetIteration, 
+					null
+				);
+		}
+		else if(responseObject instanceof Integer) {
 			return new SingleChoicePromptResponse(
 					this, 
 					null, 
 					repeatableSetIteration, 
-					validateValue(response)
+					(Integer) responseObject
 				);
 		}
-		catch(NoResponseException e) {
-			return new SingleChoicePromptResponse(
-					this, 
-					e.getNoResponse(), 
-					repeatableSetIteration, 
-					null
-				);
+		else {
+			throw new IllegalStateException("The validation no longer returns the expected object type.");
 		}
 	}
 	

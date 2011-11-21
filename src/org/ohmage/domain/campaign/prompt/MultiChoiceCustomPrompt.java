@@ -123,12 +123,9 @@ public class MultiChoiceCustomPrompt extends CustomChoicePrompt {
 	 * @return A collection of label values.
 	 * 
 	 * @throws IllegalArgumentException Thrown if the value is not valid.
-	 * 
-	 * @throws NoResponseException Thrown if the value is or represents a
-	 * 							   NoResponse object.
 	 */
 	@Override
-	public Collection<String> validateValue(final Object value) throws NoResponseException {
+	public Object validateValue(final Object value) {
 		Collection<String> collectionValue = null;
 		
 		// If it's already a NoResponse value, then make sure that if it
@@ -138,7 +135,7 @@ public class MultiChoiceCustomPrompt extends CustomChoicePrompt {
 				throw new IllegalArgumentException("The prompt was skipped, but it is not skippable.");
 			}
 			
-			throw new NoResponseException((NoResponse) value);
+			return value;
 		}
 		// If it's already a collection, first ensure that all of the elements
 		// are strings.
@@ -176,7 +173,7 @@ public class MultiChoiceCustomPrompt extends CustomChoicePrompt {
 			String valueString = (String) value;
 			
 			try {
-				throw new NoResponseException(NoResponse.valueOf(valueString));
+				return NoResponse.valueOf(valueString);
 			}
 			catch(IllegalArgumentException notNoResponse) {
 				try {
@@ -271,21 +268,25 @@ public class MultiChoiceCustomPrompt extends CustomChoicePrompt {
 			throw new IllegalArgumentException("The repeatable set iteration value is negative.");
 		}
 		
-		try {
+		Object responseObject = validateValue(response);
+		if(responseObject instanceof NoResponse) {
+			return new MultiChoiceCustomPromptResponse(
+					this, 
+					(NoResponse) responseObject, 
+					repeatableSetIteration, 
+					null
+				);
+		}
+		else if(responseObject instanceof Collection<?>) {
 			return new MultiChoiceCustomPromptResponse(
 					this, 
 					null, 
 					repeatableSetIteration, 
-					validateValue(response)
+					(Collection<String>) responseObject
 				);
 		}
-		catch(NoResponseException e) {
-			return new MultiChoiceCustomPromptResponse(
-					this, 
-					e.getNoResponse(), 
-					repeatableSetIteration, 
-					null
-				);
+		else {
+			throw new IllegalStateException("The validation no longer returns the expected object type.");
 		}
 	}
 	

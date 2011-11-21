@@ -39,6 +39,7 @@ public class RepeatableSetResponse extends Response {
 	 */
 	public RepeatableSetResponse(final RepeatableSet repeatableSet, 
 			final NoResponse noResponse) {
+		
 		super(noResponse);
 		
 		if(repeatableSet == null) {

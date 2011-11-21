@@ -1,5 +1,6 @@
 package org.ohmage.domain.campaign.prompt;
 
+import org.ohmage.domain.campaign.Response.NoResponse;
 import org.ohmage.domain.campaign.response.HoursBeforeNowPromptResponse;
 
 /**
@@ -84,21 +85,25 @@ public class HoursBeforeNowPrompt extends BoundedPrompt {
 			throw new IllegalArgumentException("The repeatable set iteration value is negative.");
 		}
 		
-		try {
+		Object responseObject = validateValue(response);
+		if(responseObject instanceof NoResponse) {
+			return new HoursBeforeNowPromptResponse(
+					this, 
+					(NoResponse) responseObject, 
+					repeatableSetIteration, 
+					null
+				);
+		}
+		else if(responseObject instanceof Long) {
 			return new HoursBeforeNowPromptResponse(
 					this, 
 					null, 
 					repeatableSetIteration, 
-					validateValue(response)
+					(Long) responseObject
 				);
 		}
-		catch(NoResponseException e) {
-			return new HoursBeforeNowPromptResponse(
-					this, 
-					e.getNoResponse(), 
-					repeatableSetIteration, 
-					null
-				);
+		else {
+			throw new IllegalStateException("The validation no longer returns the expected object type.");
 		}
 	}
 }
