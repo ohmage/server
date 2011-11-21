@@ -431,7 +431,8 @@ public final class CampaignQueries extends Query implements ICampaignQueries {
 							}
 							catch(IllegalArgumentException e) {
 								throw new SQLException(
-										"The XML is corrupt.", 
+										"The XML is corrupt: " + 
+											e.getMessage(), 
 										e);
 							}
 						}

@@ -203,7 +203,7 @@ public final class CampaignValidators {
 		catch(IllegalArgumentException e) {
 			throw new ValidationException(
 					ErrorCode.CAMPAIGN_INVALID_XML, 
-					"The XML was invalid.", 
+						e.getMessage(), 
 					e);
 		}
 		
