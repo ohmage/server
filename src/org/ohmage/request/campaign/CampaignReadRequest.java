@@ -266,7 +266,7 @@ public class CampaignReadRequest extends UserRequest {
 		}
 		catch(ValidationException e) {
 			e.failRequest(this);
-			LOGGER.info(e.toString());
+			e.logException(LOGGER);
 		}
 		
 		outputFormat = tOutputFormat;

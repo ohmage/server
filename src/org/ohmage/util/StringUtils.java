@@ -40,14 +40,13 @@ public final class StringUtils {
 	 */
 	public static final int NUM_URN_SEGMENTS = 3;
 	private static final Pattern URN_PATTERN = Pattern.compile("[a-z0-9_]+");
-
-	private static final String FORMAT_MILITARY_TIME = "HH:mm";
 	
 	private static final String FORMAT_AMERICAN_DATE = "MM/dd/yyyy";
 	private static final String FORMAT_ISO_8601_DATE = "yyyy-MM-dd";
 	
 	private static final String FORMAT_AMERICAN_DATE_TIME = "M/d/yyyy h:m:s a";
 	private static final String FORMAT_ISO_8601_DATE_TIME = "yyyy-M-d H:m:s";
+	private static final String FORMAT_ISO_8601_DATE_TIME_WITH_T = "yyyy-M-d'T'H:m:s";
 	
 	private static final Pattern EMAIL_PATTERN = 
 		Pattern.compile("^([_A-Za-z0-9-]+)(\\.[_A-Za-z0-9-]+)*@[A-Za-z0-9]+(\\.[A-Za-z0-9]+)*(\\.[A-Za-z]{2,})$");
@@ -237,33 +236,6 @@ public final class StringUtils {
 	}
 	
 	/**
-	 * Validates a String representing a military time. The date must adhere to 
-	 * the format {@value #FORMAT_MILITARY_TIME}
-	 * 
-	 * @param time The time as a String that is to be validated
-	 * 
-	 * @return Returns false if the time is null, whitespace only, or doesn't
-	 * 		   follow one the format patterns. Otherwise, returns true.
-	 */
-	public static boolean isValidTime(String time) {
-		if(isEmptyOrWhitespaceOnly(time)) {
-			return false;
-		}
-		
-		try {
-			SimpleDateFormat simpleDateFormat = new SimpleDateFormat(FORMAT_MILITARY_TIME);
-			simpleDateFormat.setLenient(false);
-			simpleDateFormat.parse(time);
-			
-			return true;
-		}
-		catch(ParseException americanException) {
-			return false;
-		}
-	}
-
-	
-	/**
 	 * Decodes a String value into its boolean representation. If it is not a 
 	 * valid boolean value, null is returned. This should be used anywhere 
 	 * boolean values are being decoded from Strings.
@@ -384,7 +356,16 @@ public final class StringUtils {
 				return simpleDateFormat.parse(dateTime);
 			}
 			catch(ParseException iso8601Exception) {
-				return null;
+				
+				try {
+					SimpleDateFormat simpleDateFormat = new SimpleDateFormat(FORMAT_ISO_8601_DATE_TIME_WITH_T);
+					simpleDateFormat.setLenient(false);
+					
+					return simpleDateFormat.parse(dateTime);
+				}
+				catch(ParseException iso8601WithTException) {
+					return null;
+				}
 			}
 		}
 	}
