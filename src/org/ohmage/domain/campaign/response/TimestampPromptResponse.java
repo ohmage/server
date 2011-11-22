@@ -17,7 +17,7 @@ public class TimestampPromptResponse extends PromptResponse {
 	/**
 	 * Creates a new timestamp prompt response.
 	 * 
-	 * @param prompt The HoursBeforeNowPrompt used to generate this response.
+	 * @param prompt The TimestampPrompt used to generate this response.
 	 * 
 	 * @param noResponse A 
 	 * 					 {@link org.ohmage.domain.campaign.Response.NoResponse}

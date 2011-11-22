@@ -1059,8 +1059,8 @@ public class Campaign {
 	 * 
 	 * @return A Prompt object representing the prompt.
 	 * 
-	 * @throws NullPointerException Thrown if the survey ID or repeatable set
-	 * 								ID are null.
+	 * @throws NullPointerException Thrown if the survey ID or the prompt ID 
+	 * 								are null.
 	 * 
 	 * @throws IllegalArgumentException Thrown if the survey doesn't exist in
 	 * 									this configuration.
@@ -2686,7 +2686,7 @@ public class Campaign {
 			
 			if(result.put(key, new LabelValuePair(label, value)) != null) {
 				throw new IllegalArgumentException(
-						"Multiple properties with the same key were found: " + containerId);
+						"Multiple properties with the same key were found for the container with id: " + containerId);
 			}
 		}
 		
@@ -3594,7 +3594,7 @@ public class Campaign {
 		
 		if(defaultValue != null) {
 			throw new IllegalArgumentException(
-					"Default values aren't allowed for remote activity prompts: " +
+					"Default values aren't allowed for timestamp prompts. The offending prompt id is: " +
 						id);
 		}
 		

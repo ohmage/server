@@ -79,12 +79,7 @@ public class MultiChoiceCustomPromptResponse extends PromptResponse {
 		Object noResponseObject = super.getResponseValue();
 		
 		if(noResponseObject == null) {
-			//return getChoices();
-			Collection<Integer> result = new ArrayList<Integer>(choices.size()); 
-			for(String choice : choices) {
-				result.add(((MultiChoiceCustomPrompt) getPrompt()).getChoiceKey(choice));
-			}
-			return result;
+			return getChoices();
 		}
 		else {
 			return noResponseObject;

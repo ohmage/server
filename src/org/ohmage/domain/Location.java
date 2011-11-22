@@ -24,6 +24,7 @@ public class Location {
 	private static final String JSON_KEY_ACCURACY_SHORT = "ac";
 	public static final String JSON_KEY_PROVIDER = "provider";
 	private static final String JSON_KEY_PROVIDER_SHORT = "pr";
+	public static final String JSON_KEY_OUTPUT_TIMESTAMP = "location_timestamp"; 
 	public static final String JSON_KEY_TIMESTAMP = "timestamp";
 	private static final String JSON_KEY_TIMESTAMP_SHORT = "ts";
 	

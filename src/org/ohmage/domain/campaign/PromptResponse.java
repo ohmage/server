@@ -1,5 +1,6 @@
 package org.ohmage.domain.campaign;
 
+import java.util.Collection;
 import java.util.Map;
 
 import org.json.JSONArray;
@@ -8,8 +9,12 @@ import org.json.JSONObject;
 import org.ohmage.domain.campaign.Prompt.LabelValuePair;
 import org.ohmage.domain.campaign.prompt.ChoicePrompt;
 import org.ohmage.domain.campaign.prompt.CustomChoicePrompt;
+import org.ohmage.domain.campaign.prompt.MultiChoiceCustomPrompt;
 import org.ohmage.domain.campaign.prompt.RemoteActivityPrompt;
+import org.ohmage.domain.campaign.prompt.SingleChoiceCustomPrompt;
+import org.ohmage.domain.campaign.response.MultiChoiceCustomPromptResponse;
 import org.ohmage.domain.campaign.response.RemoteActivityPromptResponse;
+import org.ohmage.domain.campaign.response.SingleChoiceCustomPromptResponse;
 
 /**
  * Base class for all prompt responses.
@@ -101,6 +106,7 @@ public abstract class PromptResponse extends Response {
 			
 			if(withId) {
 				result.put(JSON_KEY_PROMPT_ID, prompt.getId());
+				
 				result.put(JSON_KEY_RESPONSE, getResponseValue());
 			}
 			else {
@@ -137,6 +143,38 @@ public abstract class PromptResponse extends Response {
 						total += gameResults.getJSONObject(i).getDouble(RemoteActivityPrompt.JSON_KEY_SCORE);
 					}
 					result.put("prompt_response", total / numResults);
+				}
+				// FIXME: This is the shim for version 2.8 where the literal 
+				// value for custom prompts are replaced by their key, and a 
+				// dictionary is returned.
+				else if(this instanceof SingleChoiceCustomPromptResponse &&
+						(! wasNotDisplayed()) && (! wasSkipped())) {
+
+					result.put(
+							"prompt_response", 
+							((SingleChoiceCustomPrompt) getPrompt()).
+								getChoiceKey((String) getResponseValue()));
+				}
+				else if(this instanceof MultiChoiceCustomPromptResponse &&
+						(! wasNotDisplayed()) && (! wasSkipped())) {
+					
+					Collection<?> responseValues = 
+						(Collection<?>) this.getResponseValue();
+					
+					Map<Integer, LabelValuePair> allChoices = 
+						((MultiChoiceCustomPrompt) getPrompt()).getAllChoices();
+					
+					JSONArray responseArray = new JSONArray();
+					for(Object responseValue : responseValues) {
+						for(Integer key : allChoices.keySet()) {
+							if(((String) responseValue).equals(allChoices.get(key).getLabel())) {
+								responseArray.put(key);
+								break;
+							}
+						}
+					}
+					
+					result.put("prompt_response", responseArray);
 				}
 				else {
 					result.put("prompt_response", getResponseValue());
