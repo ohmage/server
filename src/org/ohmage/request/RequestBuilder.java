@@ -17,6 +17,7 @@ import org.ohmage.request.clazz.ClassDeletionRequest;
 import org.ohmage.request.clazz.ClassReadRequest;
 import org.ohmage.request.clazz.ClassRosterReadRequest;
 import org.ohmage.request.clazz.ClassRosterUpdateRequest;
+import org.ohmage.request.clazz.ClassSearchRequest;
 import org.ohmage.request.clazz.ClassUpdateRequest;
 import org.ohmage.request.document.DocumentCreationRequest;
 import org.ohmage.request.document.DocumentDeletionRequest;
@@ -156,6 +157,7 @@ public final class RequestBuilder {
 	public static final String API_CLASS_CREATE = API_ROOT + "/class/create";
 	public static final String API_CLASS_READ = API_ROOT + "/class/read";
 	public static final String API_CLASS_ROSTER_READ = API_ROOT + "/class/roster/read";
+	public static final String API_CLASS_SEARCH = API_ROOT + "/class/search";
 	public static final String API_CLASS_UPDATE = API_ROOT + "/class/update";
 	public static final String API_CLASS_ROSTER_UPDATE = API_ROOT + "/class/roster/update";
 	public static final String API_CLASS_DELETE = API_ROOT + "/class/delete";
@@ -256,6 +258,9 @@ public final class RequestBuilder {
 		}
 		else if(API_CLASS_ROSTER_READ.equals(requestUri)) {
 			return new ClassRosterReadRequest(httpRequest);
+		}
+		else if(API_CLASS_SEARCH.equals(requestUri)) {
+			return new ClassSearchRequest(httpRequest);
 		}
 		else if(API_CLASS_UPDATE.equals(requestUri)) {
 			return new ClassUpdateRequest(httpRequest);

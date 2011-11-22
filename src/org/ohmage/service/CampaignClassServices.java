@@ -2,6 +2,7 @@ package org.ohmage.service;
 
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import org.ohmage.annotator.Annotator.ErrorCode;
@@ -78,6 +79,27 @@ public class CampaignClassServices {
 						ErrorCode.CAMPAIGN_INSUFFICIENT_PERMISSIONS, 
 						"The user is not allowed to disassociate all classes from the campaign.");
 			}
+		}
+		catch(DataAccessException e) {
+			throw new ServiceException(e);
+		}
+	}
+	
+	/**
+	 * Returns the list of campaign IDs associated with a given class.
+	 * 
+	 * @param classId The class' unique identifier.
+	 * 
+	 * @return The list of campaign IDs.
+	 * 
+	 * @throws ServiceException Thrown if there is an error.
+	 */
+	public List<String> getCampaignIdsForClass(
+			final String classId)
+			throws ServiceException {
+		
+		try {
+			return campaignClassQueries.getCampaignsAssociatedWithClass(classId);
 		}
 		catch(DataAccessException e) {
 			throw new ServiceException(e);

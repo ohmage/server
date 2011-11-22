@@ -271,6 +271,30 @@ public final class UserClassServices {
 	}
 	
 	/**
+	 * Returns a user's role in a given class.
+	 * 
+	 * @param classId The class' unique identifier.
+	 * 
+	 * @param username The user's username.
+	 * 
+	 * @return The user's role in the class.
+	 * 
+	 * @throws ServiceException Thrown if there is an error.
+	 */
+	public Clazz.Role getUserRoleInClass(
+			final String classId,
+			final String username)
+			throws ServiceException {
+		
+		try {
+			return userClassQueries.getUserClassRole(classId, username);
+		}
+		catch(DataAccessException e) {
+			throw new ServiceException(e);
+		}
+	}
+	
+	/**
 	 * Retrieves the ID of all of the classes to which the user belongs. If a
 	 * role is given, the result will only contain the classes in which the
 	 * user has the given role.

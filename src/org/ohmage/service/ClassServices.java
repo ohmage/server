@@ -3,8 +3,10 @@ package org.ohmage.service;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.domain.Clazz;
@@ -143,14 +145,178 @@ public final class ClassServices {
 	}
 	
 	/**
-	 * Retrieves the information about all of the classes in the class  
-	 * identifier list.
+	 * Returns the unique identifier for each class in the system.
+	 * 
+	 * @return The unique identifier for each class in the system.
+	 * 
+	 * @throws ServiceException Thrown if there is an error.
+	 */
+	public List<String> getAllClassIds() throws ServiceException {
+		try {
+			return classQueries.getAllClassIds();
+		}
+		catch(DataAccessException e) {
+			throw new ServiceException(e);
+		}
+	}
+	
+	/**
+	 * Retrieves all of the valid class IDs that contain the parameterized
+	 * partial class ID.
+	 * 
+	 * @param partialClassId The partial class ID.
+	 * 
+	 * @return The list of matching class IDs.
+	 * 
+	 * @throws ServiceException Thrown if there is an error.
+	 */
+	public List<String> getClassIdsFromPartialClassId(
+			final String partialClassId) 
+			throws ServiceException {
+		
+		try {
+			return classQueries.getClassIdsFromPartialId(partialClassId);
+		}
+		catch(DataAccessException e) {
+			throw new ServiceException(e);
+		}
+	}
+	
+	/**
+	 * Retrieves all of the valid class IDs that contain the parameterized
+	 * partial class name.
+	 * 
+	 * @param partialClassName The partial class name.
+	 * 
+	 * @return The list of matching class IDs.
+	 * 
+	 * @throws ServiceException Thrown if there is an error.
+	 */
+	public List<String> getClassIdsFromPartialClassName(
+			final String partialClassName) 
+			throws ServiceException {
+		
+		try {
+			return classQueries.getClassIdsFromPartialName(partialClassName);
+		}
+		catch(DataAccessException e) {
+			throw new ServiceException(e);
+		}
+	}
+	
+	/**
+	 * Retrieves all of the valid class IDs that contain the parameterized
+	 * partial class description.
+	 * 
+	 * @param partialClassDescription The partial class description.
+	 * 
+	 * @return The list of matching class IDs.
+	 * 
+	 * @throws ServiceException Thrown if there is an error.
+	 */
+	public List<String> getClassIdsFromPartialClassDescription(
+			final String partialClassDescription) 
+			throws ServiceException {
+		
+		try {
+			return classQueries.getClassIdsFromPartialDescription(partialClassDescription);
+		}
+		catch(DataAccessException e) {
+			throw new ServiceException(e);
+		}
+	}
+	
+	/**
+	 * Searches for all class IDs that match the given parameters. The 
+	 * base-case is all class IDs. For each parameter, the result is trimmed to
+	 * only those classes that match the parameter.<br />
+	 * <br />
+	 * For example, if all classes in the system were:
+	 * <li>urn:class:one, Class One Name, Class one description.</li>
+	 * <li>urn:class:one, Class Two Name, Class two description.</li>
+	 * If this call had no parameters, then both URN IDs would be returned. If
+	 * the ID parameter was "urn:" and the name parameter was "One", then only
+	 * the first URN ID, "urn:class:one" would be returned. If the ID parameter
+	 * was "urn:" and the name parameter was "one", then an empty set would be
+	 * returned because the "o" in "one" was not capitalized. Finally, if only
+	 * the name parameter was given and it was "One", then exactly one result
+	 * would be returned, "urn:class:one".
+	 *  
+	 * @param partialClassId A partial class ID to compare with all other class
+	 * 						 IDs and limit the results to only those that 
+	 * 						 contain this value.
+	 * 
+	 * @param partialClassName A partial class name to compare with all other
+	 * 						   class names and limit the results to only those
+	 * 						   that contain this value.
+	 * 
+	 * @param partialClassDescription A partial class description to compare
+	 * 								  with all other class descriptions and 
+	 * 								  limit the results to only those that
+	 * 								  contain this value.
+	 * 
+	 * @return A, possibly empty but never null, set of class IDs.
+	 * 
+	 * @throws ServiceException Thrown if there is an error.
+	 */
+	public Set<String> classIdSearch(
+			final String partialClassId,
+			final String partialClassName,
+			final String partialClassDescription)
+			throws ServiceException {
+		
+		try {
+			if(
+				(partialClassId == null) &&
+				(partialClassName == null) &&
+				(partialClassDescription == null)
+				) {	
+					return new HashSet<String>(classQueries.getAllClassIds()); 
+			}
+			
+			Set<String> result = null;
+			
+			if(partialClassId != null) {
+				result = new HashSet<String>(
+						classQueries.getClassIdsFromPartialId(partialClassId));
+			}
+			
+			if(partialClassName != null) {
+				List<String> classIds = 
+					classQueries.getClassIdsFromPartialName(partialClassName);
+				
+				if(result == null) {
+					result = new HashSet<String>(classIds);
+				}
+				else {
+					result.retainAll(classIds);
+				}
+			}
+			
+			if(partialClassDescription != null) {
+				List<String> classIds =
+					classQueries.getClassIdsFromPartialDescription(partialClassDescription);
+				
+				if(result == null) {
+					result = new HashSet<String>(classIds);
+				}
+				else {
+					result.retainAll(classIds);
+				}
+			}
+			
+			return result;
+		}
+		catch(DataAccessException e) {
+			throw new ServiceException(e);
+		}
+	}
+	
+	/**
+	 * Retrieves the information about all of the classes in the class ID list.
 	 * 
 	 * @param classIds A List of class identifiers to use to aggregate the
 	 * 				   information.
-	 * 
-	 * @param requester The username of the user that is requesting this 
-	 * 					information.
 	 * 
 	 * @return Returns a List of ClassInformation objects that contain the
 	 * 		   information about the class. This may be an empty list, but it
@@ -159,11 +325,11 @@ public final class ClassServices {
 	 * @throws ServiceException Thrown if there is an error.
 	 */
 	public List<Clazz> getClassesInformation(
-			final Collection<String> classIds, final String requester) 
+			final Collection<String> classIds) 
 			throws ServiceException {
 		
 		try {
-			return classQueries.getClassesInformation(classIds, requester);
+			return classQueries.getClassesInformation(classIds);
 		}
 		catch(DataAccessException e) {
 			throw new ServiceException(e);

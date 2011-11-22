@@ -15,10 +15,6 @@
  ******************************************************************************/
 package org.ohmage.domain;
 
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
-
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.ohmage.util.StringUtils;
@@ -32,7 +28,6 @@ public class Clazz {
 	private static final String JSON_KEY_ID = "id";
 	private static final String JSON_KEY_NAME = "name";
 	private static final String JSON_KEY_DESCRIPTION = "description";
-	private static final String JSON_KEY_USERS = "users";
 	
 	private final String id;
 	private final String name;
@@ -70,7 +65,6 @@ public class Clazz {
 			return name().toLowerCase();
 		}
 	}
-	private final Map<String, Role> userRole;
 	
 	/**
 	 * Creates a new class information object that contains the class' name
@@ -96,8 +90,6 @@ public class Clazz {
 		this.id = id;
 		this.name = name;
 		this.description = description;
-		
-		userRole = new HashMap<String, Role>();
 	}
 	
 	/**
@@ -136,27 +128,6 @@ public class Clazz {
 			// The description is optional.
 		}
 		description = tDescription;
-		
-		try {
-			JSONObject userRolesJson = information.getJSONObject(JSON_KEY_USERS);
-			userRole = new HashMap<String, Role>(userRolesJson.length());
-			
-			Iterator<?> keys = userRolesJson.keys();
-			while(keys.hasNext()) {
-				String username = (String) keys.next();
-				
-				Role role = null;
-				String roleString = userRolesJson.getString(username);
-				if(! StringUtils.isEmptyOrWhitespaceOnly(roleString)) {
-					role = Role.getValue(roleString);
-				}
-				
-				userRole.put(username, role);
-			}
-		}
-		catch(JSONException e) {
-			throw new IllegalArgumentException("The information is missing the class' name.", e);
-		}
 	}
 	
 	/**
@@ -187,24 +158,6 @@ public class Clazz {
 	}
 	
 	/**
-	 * Adds a user with a role or updates the user's existing role.
-	 * 
-	 * @param username The user's username.
-	 * 
-	 * @param role The user's class role.
-	 * 
-	 * @throws IllegalArgumentException Thrown if the username or role are 
-	 * 									null.
-	 */
-	public void addUser(final String username, final Role role) {
-		if(StringUtils.isEmptyOrWhitespaceOnly(username)) {
-			throw new IllegalArgumentException("The username is null or whitespace only.");
-		}
-		
-		userRole.put(username, role);
-	}
-	
-	/**
 	 * Returns this class object as a JSONObject with the URN as an optional
 	 * inclusion.
 	 * 
@@ -213,33 +166,19 @@ public class Clazz {
 	 * @return Returns a JSONObject with the classes as a JSONObject where the
 	 * 		   keys are the users and their values are their class roles.
 	 * 
-	 * @throws IllegalStateException Thrown if generating the object caused an 
-	 * 								 error.
+	 * @throws JSONException Thrown if generating the object caused an error.
 	 */
-	public JSONObject toJson(boolean withId) {
-		try {
-			JSONObject result = new JSONObject();
-			
-			if(withId) {
-				result.put(JSON_KEY_ID, id);
-			}
-			result.put(JSON_KEY_NAME, name);
-			
-			//result.put(JSON_KEY_DESCRIPTION, ((description == null) ? "" : description));
-			result.put(JSON_KEY_DESCRIPTION, description);
-			
-			JSONObject users = new JSONObject();
-			for(String username : userRole.keySet()) {
-				Role role = (Role) userRole.get(username);
-				
-				users.put(username, ((role == null) ? "" : role));
-			}
-			result.put(JSON_KEY_USERS, users);
-			
-			return result;
+	public JSONObject toJson(boolean withId) throws JSONException {
+		JSONObject result = new JSONObject();
+		
+		if(withId) {
+			result.put(JSON_KEY_ID, id);
 		}
-		catch(JSONException e) {
-			throw new IllegalStateException("There was an error building the JSON.", e);
-		}
+		result.put(JSON_KEY_NAME, name);
+		
+		//result.put(JSON_KEY_DESCRIPTION, ((description == null) ? "" : description));
+		result.put(JSON_KEY_DESCRIPTION, description);
+		
+		return result;
 	}
 }

@@ -21,6 +21,7 @@ import org.ohmage.query.IUserCampaignClassQueries;
 import org.ohmage.query.IUserCampaignQueries;
 import org.ohmage.query.IUserClassQueries;
 import org.springframework.jdbc.core.RowMapper;
+import org.springframework.jdbc.core.SingleColumnRowMapper;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionException;
@@ -54,16 +55,38 @@ public class ClassQueries extends Query implements IClassQueries {
 			"FROM class " +
 			"WHERE urn = ?" +
 		")";
+	
+	// Returns all class IDs in the system.
+	private static final String SQL_GET_ALL_CLASS_IDS =
+		"SELECT urn " +
+		"FROM class";
+	
+	// Returns the class IDs that contain the paritial class ID. Be sure to add
+	// the "%" around the given value.
+	private static final String SQL_GET_LIKE_CLASS_ID =
+		"SELECT urn " +
+		"FROM class " +
+		"WHERE urn LIKE ?";
+	
+	// Returns the class IDs that contain the paritial class name. Be sure to 
+	// add the "%" around the given value.
+	private static final String SQL_GET_LIKE_CLASS_NAME =
+		"SELECT urn " +
+		"FROM class " +
+		"WHERE name LIKE ?";
+	
+	// Returns the class IDs that contain the paritial class description. Be 
+	// sure to add the "%" around the given value.
+	private static final String SQL_GET_LIKE_CLASS_DESCRIPTION =
+		"SELECT urn " +
+		"FROM class " +
+		"WHERE description LIKE ?";
 
-	// Returns the class' information and the a user's role in that class.
-	private static final String SQL_GET_CLASS_INFO_AND_USER_ROLE = 
-		"SELECT c.urn, c.name, c.description, ucr.role " +
-		"FROM user u, class c, user_class uc, user_class_role ucr " +
-		"WHERE c.urn = ? " +
-		"AND c.id = uc.class_id " +
-		"AND uc.user_id = u.id " +
-		"AND u.username = ? " +
-		"AND uc.user_class_role_id = ucr.id ";
+	// Returns the class' information.
+	private static final String SQL_GET_CLASS_INFO = 
+		"SELECT urn, name, description " +
+		"FROM class " +
+		"WHERE urn = ?";
 
 	// Gets all of the users and their class role for a single class.
 	private static final String SQL_GET_USERS_AND_CLASS_ROLES = 
@@ -188,30 +211,6 @@ public class ClassQueries extends Query implements IClassQueries {
 		")";
 	
 	/**
-	 * Inner class for gathering a class' information and the role of the user
-	 * that is aggregating this information.
-	 * 
-	 * @author John Jenkins
-	 */
-	private static final class ClassInformationAndUserRole {
-		private final Clazz classInformation;
-		private final Clazz.Role role;
-		
-		/**
-		 * Convenience constructor.
-		 * 
-		 * @param classInformation A ClassInformation object that contains all
-		 * 						   the information for a class.
-		 * 
-		 * @param role The role of the requesting user in this class.
-		 */
-		private ClassInformationAndUserRole(Clazz classInformation, Clazz.Role role) {
-			this.classInformation = classInformation;
-			this.role = role;
-		}
-	}
-	
-	/**
 	 * Inner class for aggregating a username and class role for a class.
 	 * 
 	 * @author John Jenkins
@@ -332,62 +331,135 @@ public class ClassQueries extends Query implements IClassQueries {
 			throw new DataAccessException("Error executing SQL '" + SQL_EXISTS_CLASS + "' with parameters: " + classId, e);
 		}
 	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.ohmage.query.IClassQueries#getAllClassIds()
+	 */
+	@Override
+	public List<String> getAllClassIds() throws DataAccessException {
+		
+		try {
+			return getJdbcTemplate().query(
+					SQL_GET_ALL_CLASS_IDS, 
+					new SingleColumnRowMapper<String>());
+		}
+		catch(org.springframework.dao.DataAccessException e) {
+			throw new DataAccessException(
+					"Error executing SQL '" + 
+						SQL_GET_ALL_CLASS_IDS, 
+					e);
+		}
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.ohmage.query.IClassQueries#getClassIdsFromPartial(java.lang.String)
+	 */
+	@Override
+	public List<String> getClassIdsFromPartialId(String partialId)
+			throws DataAccessException {
+
+		try {
+			return getJdbcTemplate().query(
+					SQL_GET_LIKE_CLASS_ID, 
+					new Object[] { "%" + partialId + "%" }, 
+					new SingleColumnRowMapper<String>());
+		}
+		catch(org.springframework.dao.DataAccessException e) {
+			throw new DataAccessException(
+					"Error executing SQL '" + 
+						SQL_GET_LIKE_CLASS_ID + 
+						"' with parameter: " + 
+						"%" + partialId + "%", 
+					e);
+		}
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.ohmage.query.IClassQueries#getClassIdsFromPartialName(java.lang.String)
+	 */
+	@Override
+	public List<String> getClassIdsFromPartialName(String partialName)
+			throws DataAccessException {
+
+		try {
+			return getJdbcTemplate().query(
+					SQL_GET_LIKE_CLASS_NAME, 
+					new Object[] { "%" + partialName + "%" }, 
+					new SingleColumnRowMapper<String>());
+		}
+		catch(org.springframework.dao.DataAccessException e) {
+			throw new DataAccessException(
+					"Error executing SQL '" + 
+						SQL_GET_LIKE_CLASS_ID + 
+						"' with parameter: " + 
+						"%" + partialName + "%", 
+					e);
+		}
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.ohmage.query.IClassQueries#getClassIdsFromPartialDescription(java.lang.String)
+	 */
+	@Override
+	public List<String> getClassIdsFromPartialDescription(
+			String partialDescription) 
+			throws DataAccessException {
+
+		try {
+			return getJdbcTemplate().query(
+					SQL_GET_LIKE_CLASS_DESCRIPTION, 
+					new Object[] { "%" + partialDescription + "%" }, 
+					new SingleColumnRowMapper<String>());
+		}
+		catch(org.springframework.dao.DataAccessException e) {
+			throw new DataAccessException(
+					"Error executing SQL '" + 
+						SQL_GET_LIKE_CLASS_ID + 
+						"' with parameter: " + 
+						"%" + partialDescription + "%", 
+					e);
+		}
+	}
 	
 	/* (non-Javadoc)
 	 * @see org.ohmage.query.impl.IClassQueries#getClassesInformation(java.util.Collection, java.lang.String)
 	 */
 	@Override
-	public List<Clazz> getClassesInformation(Collection<String> classIds, String requester) throws DataAccessException {
-		List<Clazz> result = new LinkedList<Clazz>();
-		
-		for(String classId : classIds) {
-			// Get the class' information and the user's role in the class.
-			Clazz.Role userRole;
-			Clazz classInformation;
-			try {
-				ClassInformationAndUserRole classInformationAndUserRole = getJdbcTemplate().queryForObject(
-						SQL_GET_CLASS_INFO_AND_USER_ROLE, 
-						new Object[] { classId, requester }, 
-						new RowMapper<ClassInformationAndUserRole>() {
-							@Override
-							public ClassInformationAndUserRole mapRow(ResultSet rs, int row) throws SQLException {
-								ClassInformationAndUserRole result = new ClassInformationAndUserRole(
-										new Clazz(
+	public List<Clazz> getClassesInformation(Collection<String> classIds) throws DataAccessException {
+		try {
+			List<Clazz> result = new LinkedList<Clazz>();
+			
+			for(String classId : classIds) {
+				result.add(
+						getJdbcTemplate().queryForObject(
+								SQL_GET_CLASS_INFO,
+								new Object[] { classId }, 
+								new RowMapper<Clazz>() {
+									@Override
+									public Clazz mapRow(
+											ResultSet rs, 
+											int row) 
+											throws SQLException {
+										
+										return new Clazz(
 												rs.getString("urn"),
 												rs.getString("name"),
-												rs.getString("description")),
-												Clazz.Role.getValue(rs.getString("role")
-										)
-								);
-								return result;
-							}
-						}
-				);
-				
-				classInformation = classInformationAndUserRole.classInformation;
-				userRole = classInformationAndUserRole.role;
-			}
-			catch(org.springframework.dao.DataAccessException e){
-				throw new DataAccessException("Error executing SQL_EXISTS_CLASS '" + SQL_GET_CLASS_INFO_AND_USER_ROLE + "' with parameters: " + 
-						classId + ", " + requester, e);
+												rs.getString("description"));
+									}
+								}
+							)
+					);
 			}
 			
-			boolean includeUserRoles = Clazz.Role.PRIVILEGED.equals(userRole);
-			
-			// Get all the users in this class and their class role.
-			List<UserAndClassRole> usersAndRole = getUserRolePairs(classId);
-			
-			// For each of the users add them to the current classes 
-			// information object.
-			for(UserAndClassRole userInformation : usersAndRole) {
-				classInformation.addUser(userInformation.username, ((includeUserRoles) ? userInformation.role : null));
-			}
-			
-			// Add the class information to the list to be returned.
-			result.add(classInformation);
+			return result;
 		}
-		
-		return result;
+		catch(org.springframework.dao.DataAccessException e) {
+			throw new DataAccessException(e);
+		}
 	}
 	
 	/* (non-Javadoc)

@@ -49,9 +49,10 @@ import org.ohmage.validator.ClassValidators;
  */
 public class ClassReadRequest extends UserRequest {
 	private static final Logger LOGGER = Logger.getLogger(ClassReadRequest.class);
+	private static final String JSON_KEY_USERS = "users";
 	
 	private final Collection<String> classIds;
-	private final JSONObject result;
+	private final Map<Clazz, Map<String, Clazz.Role>> result;
 	
 	/**
 	 * Builds this request based on the information in the HTTP request.
@@ -85,7 +86,7 @@ public class ClassReadRequest extends UserRequest {
 		}
 		
 		classIds = tempClassIds;
-		result = new JSONObject();
+		result = new HashMap<Clazz, Map<String, Clazz.Role>>();
 	}
 
 	/**
@@ -108,24 +109,45 @@ public class ClassReadRequest extends UserRequest {
 			
 			// Get the information about the classes.
 			LOGGER.info("Gathering the information about the classes in the list.");
-			List<Clazz> informationAboutClasses = ClassServices.instance().getClassesInformation(classIds, getUser().getUsername());
+			List<Clazz> informationAboutClasses = ClassServices.instance().getClassesInformation(classIds);
 			
-			// Populate our result JSONObject with class information.
-			LOGGER.info("Creating the result JSONObject with the information about the classes.");
-			try {
-				for(Clazz classInformation : informationAboutClasses) {
-					result.put(classInformation.getId(), classInformation.toJson(false));
+			if(informationAboutClasses.size() > 0) {
+				LOGGER.info("Classes found: " + informationAboutClasses.size());
+				
+				for(Clazz clazz : informationAboutClasses) {
+					String classId = clazz.getId();
+					
+					LOGGER.info("Gathering the requesting user's role in the class.");
+					boolean isPrivileged = 
+						Clazz.Role.PRIVILEGED.equals(
+								UserClassServices.instance().getUserRoleInClass(
+										classId, 
+										getUser().getUsername()
+									)
+							);
+					
+					List<String> usernames = 
+						UserClassServices.instance().getUsersInClass(classId);
+					
+					Map<String, Clazz.Role> usernamesAndRespectiveRole =
+						new HashMap<String, Clazz.Role>(usernames.size());
+					
+					for(String username : usernames) {
+						if(isPrivileged) {
+							usernamesAndRespectiveRole.put(
+									username, 
+									UserClassServices.instance().getUserRoleInClass(
+											classId, 
+											username)
+										);
+						}
+						else {
+							usernamesAndRespectiveRole.put(username, null);
+						}
+					}
+					
+					result.put(clazz, usernamesAndRespectiveRole);
 				}
-			}
-			catch(IllegalStateException e) {
-				LOGGER.error("Error creating the class' information.", e);
-				setFailed();
-				throw new ServiceException(e);
-			}
-			catch(JSONException e) {
-				LOGGER.error("Error adding a class' information to the result object.", e);
-				setFailed();
-				throw new ServiceException(e);
 			}
 		}
 		catch(ServiceException e) {
@@ -141,7 +163,38 @@ public class ClassReadRequest extends UserRequest {
 	public void respond(HttpServletRequest httpRequest, HttpServletResponse httpResponse) {
 		LOGGER.info("Writing the result to the user.");
 		
-		respond(httpRequest, httpResponse, result);
+		// Populate our result JSONObject with class information.
+		LOGGER.info("Creating the result JSONObject with the information about the classes.");
+		JSONObject jsonResult = new JSONObject();
+		try {
+			for(Clazz clazz : result.keySet()) {
+				// Retrieve the username to class role map.
+				Map<String, Clazz.Role> userRole = result.get(clazz);
+				
+				// Create the JSON for the class.
+				JSONObject jsonClass = clazz.toJson(false);
+				
+				// Generate the user to class role JSON and add it to the class
+				// JSON.
+				JSONObject users = new JSONObject();
+				for(String username : userRole.keySet()) {
+					Clazz.Role role = userRole.get(username);
+					
+					users.put(username, ((role == null) ? "" : role));
+				}
+				jsonClass.put(JSON_KEY_USERS, users);
+				
+				// Add the class JSON to the result JSON with an index of the
+				// class' ID.
+				jsonResult.put(clazz.getId(), jsonClass);
+			}
+		}
+		catch(JSONException e) {
+			LOGGER.error("Error adding a class' information to the result object.", e);
+			setFailed();
+		}
+		
+		respond(httpRequest, httpResponse, jsonResult);
 	}
 	
 	/**
