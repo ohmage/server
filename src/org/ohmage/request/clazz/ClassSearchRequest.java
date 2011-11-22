@@ -24,8 +24,44 @@ import org.ohmage.service.UserClassServices;
 import org.ohmage.service.UserServices;
 
 /**
- * Searches through the list of classes to find the ones that match the given
- * criteria.
+ * <p>Gathers all classes and then searches through them removing those that do
+ * not match the search criteria. A missing or empty string for a parameter 
+ * means that it will not be used to filter the list. If no parameters are 
+ * given, information about ever class in the system will be returned.</p>
+ * <p>The requester must be an admin.</p>
+ * <table border="1">
+ *   <tr>
+ *     <td>Parameter Name</td>
+ *     <td>Description</td>
+ *     <td>Required</td>
+ *   </tr>
+ *   <tr>
+ *     <td>{@value org.ohmage.request.InputKeys#CLIENT}</td>
+ *     <td>A string describing the client that is making this request.</td>
+ *     <td>true</td>
+ *   </tr>
+ *   <tr>
+ *     <td>{@value org.ohmage.request.InputKeys#CLASS_URN}</td>
+ *     <td>A string to search for within the URN of every class and only return
+ *       information about those that contain this string and that match the 
+ *       rest of the parameters.</td>
+ *     <td>false</td>
+ *   </tr>
+ *   <tr>
+ *     <td>{@value org.ohmage.request.InputKeys#CLASS_NAME}</td>
+ *     <td>A string to search for within the name of every class and only  
+ *       return information about those that contain this string and that match  
+ *       the rest of the parameters.</td>
+ *     <td>false</td>
+ *   </tr>
+ *   <tr>
+ *     <td>{@value org.ohmage.request.InputKeys#DESCRIPTION}</td>
+ *     <td>A string to search for within the description of every class and 
+ *       only return information about those that contain this string and that  
+ *       match the rest of the parameters.</td>
+ *     <td>false</td>
+ *   </tr>
+ * </table>
  * 
  * @author John Jenkins
  */
