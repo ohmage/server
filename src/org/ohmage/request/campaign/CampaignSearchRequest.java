@@ -22,6 +22,84 @@ import org.ohmage.service.UserCampaignServices;
 import org.ohmage.service.UserServices;
 import org.ohmage.validator.CampaignValidators;
 
+/**
+ * <p>Gathers all campaigns and then searches through them removing those that 
+ * do not match the search criteria. A missing or empty string for a parameter 
+ * means that it will not be used to filter the list. If no parameters are 
+ * given, information about every campaign in the system will be returned.</p>
+ * <p>The requester must be an admin.</p>
+ * <table border="1">
+ *   <tr>
+ *     <td>Parameter Name</td>
+ *     <td>Description</td>
+ *     <td>Required</td>
+ *   </tr>
+ *   <tr>
+ *     <td>{@value org.ohmage.request.InputKeys#CLIENT}</td>
+ *     <td>A string describing the client that is making this request.</td>
+ *     <td>true</td>
+ *   </tr>
+ *   <tr>
+ *     <td>{@value org.ohmage.request.InputKeys#CAMPAIGN_URN}</td>
+ *     <td>Part or all of a campaign ID that will limit the results to only 
+ *       those campaigns that contain this value in their ID.</td>
+ *     <td>true</td>
+ *   </tr>
+ *   <tr>
+ *     <td>{@value org.ohmage.request.InputKeys#CAMPAIGN_NAME}</td>
+ *     <td>Part or all of a campaign name that will limit the results to only 
+ *       those campaigns that contain this value in their name.</td>
+ *     <td>true</td>
+ *   </tr>
+ *   <tr>
+ *     <td>{@value org.ohmage.request.InputKeys#DESCRIPTION}</td>
+ *     <td>Part or all of a campaign description that will limit the results to 
+ *       only those campaigns that contain this value in their description.
+ *       </td>
+ *     <td>true</td>
+ *   </tr>
+ *   <tr>
+ *     <td>{@value org.ohmage.request.InputKeys#XML}</td>
+ *     <td>Part or all of a campaign XML that will limit the results to only 
+ *       those campaigns that contain this value in their XML. Unlike the XML 
+ *       in campaign creation and update, this should not be an attached file
+ *       and should instead be a parameter like all of the other parameters.
+ *       </td>
+ *     <td>true</td>
+ *   </tr>
+ *   <tr>
+ *     <td>{@value org.ohmage.request.InputKeys#CAMPAIGN_AUTHORED_BY}</td>
+ *     <td>Part or all of a campaign's authored by value that will limit the  
+ *       result to only those campaigns that contain this value in their 
+ *       authored by value.</td>
+ *     <td>true</td>
+ *   </tr>
+ *   <tr>
+ *     <td>{@value org.ohmage.request.InputKeys#START_DATE}</td>
+ *     <td>Limits the results to only those that took place on or after this
+ *       date.</td>
+ *     <td>true</td>
+ *   </tr>
+ *   <tr>
+ *     <td>{@value org.ohmage.request.InputKeys#END_DATE}</td>
+ *     <td>Limits the results to only those that took place on or before this
+ *       date.</td>
+ *     <td>true</td>
+ *   </tr>
+ *   <tr>
+ *     <td>{@value org.ohmage.request.InputKeys#PRIVACY_STATE}</td>
+ *     <td>Limits the results to only those that have this privacy state.</td>
+ *     <td>true</td>
+ *   </tr>
+ *   <tr>
+ *     <td>{@value org.ohmage.request.InputKeys#RUNNING_STATE}</td>
+ *     <td>Limits the results to only those that have this running state.</td>
+ *     <td>true</td>
+ *   </tr>
+ * </table>
+ * 
+ * @author John Jenkins
+ */
 public class CampaignSearchRequest extends UserRequest {
 	private static final Logger LOGGER = Logger.getLogger(CampaignSearchRequest.class);
 

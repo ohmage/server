@@ -27,7 +27,7 @@ import org.ohmage.service.UserServices;
  * <p>Gathers all classes and then searches through them removing those that do
  * not match the search criteria. A missing or empty string for a parameter 
  * means that it will not be used to filter the list. If no parameters are 
- * given, information about ever class in the system will be returned.</p>
+ * given, information about every class in the system will be returned.</p>
  * <p>The requester must be an admin.</p>
  * <table border="1">
  *   <tr>
