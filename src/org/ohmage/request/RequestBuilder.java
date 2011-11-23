@@ -11,6 +11,7 @@ import org.ohmage.request.auth.AuthTokenRequest;
 import org.ohmage.request.campaign.CampaignCreationRequest;
 import org.ohmage.request.campaign.CampaignDeletionRequest;
 import org.ohmage.request.campaign.CampaignReadRequest;
+import org.ohmage.request.campaign.CampaignSearchRequest;
 import org.ohmage.request.campaign.CampaignUpdateRequest;
 import org.ohmage.request.clazz.ClassCreationRequest;
 import org.ohmage.request.clazz.ClassDeletionRequest;
@@ -150,6 +151,7 @@ public final class RequestBuilder {
 	// Campaign
 	public static final String API_CAMPAIGN_CREATE = API_ROOT + "/campaign/create";
 	public static final String API_CAMPAIGN_READ = API_ROOT + "/campaign/read";
+	public static final String API_CAMPAIGN_SEARCH = API_ROOT + "/campaign/search";
 	public static final String API_CAMPAIGN_UPDATE = API_ROOT + "/campaign/update";
 	public static final String API_CAMPAIGN_DELETE = API_ROOT + "/campaign/delete";
 	
@@ -242,6 +244,9 @@ public final class RequestBuilder {
 		}
 		else if(API_CAMPAIGN_READ.equals(requestUri)) {
 			return new CampaignReadRequest(httpRequest);
+		}
+		else if(API_CAMPAIGN_SEARCH.equals(requestUri)) {
+			return new CampaignSearchRequest(httpRequest);
 		}
 		else if(API_CAMPAIGN_UPDATE.equals(requestUri)) {
 			return new CampaignUpdateRequest(httpRequest);
@@ -388,12 +393,14 @@ public final class RequestBuilder {
 				// Campaign
 				API_CAMPAIGN_CREATE.equals(uri) ||
 				API_CAMPAIGN_READ.equals(uri) ||
+				API_CAMPAIGN_SEARCH.equals(uri) ||
 				API_CAMPAIGN_UPDATE.equals(uri) ||
 				API_CAMPAIGN_DELETE.equals(uri) ||
 				// Class
 				API_CLASS_CREATE.equals(uri) ||
 				API_CLASS_READ.equals(uri) ||
 				API_CLASS_ROSTER_READ.equals(uri) ||
+				API_CLASS_SEARCH.equals(uri) ||
 				API_CLASS_UPDATE.equals(uri) ||
 				API_CLASS_ROSTER_UPDATE.equals(uri) ||
 				API_CLASS_DELETE.equals(uri) ||

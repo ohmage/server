@@ -266,14 +266,6 @@ public final class ClassServices {
 			throws ServiceException {
 		
 		try {
-			if(
-				(partialClassId == null) &&
-				(partialClassName == null) &&
-				(partialClassDescription == null)
-				) {	
-					return new HashSet<String>(classQueries.getAllClassIds()); 
-			}
-			
 			Set<String> result = null;
 			
 			if(partialClassId != null) {
@@ -303,6 +295,11 @@ public final class ClassServices {
 				else {
 					result.retainAll(classIds);
 				}
+			}
+			
+			// If all of the parameters were null.
+			if(result == null) {
+				result = new HashSet<String>(classQueries.getAllClassIds());
 			}
 			
 			return result;

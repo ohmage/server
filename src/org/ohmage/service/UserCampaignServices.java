@@ -744,6 +744,62 @@ public class UserCampaignServices {
 	}
 	
 	/**
+	 * Retrieves the information about a campaign.
+	 * 
+	 * @param campaignId The campaign's unqiue identifier.
+	 * 
+	 * @param withClasses Whether or not to populate the campaign with its list
+	 * 					  of classes.
+	 * 
+	 * @param withUsers Whether or not to populate the campaign with its list 
+	 * 					of users and their respective roles.
+	 * 
+	 * @return The campaign object with the specified information.
+	 * 
+	 * @throws ServiceException Thrown if there is an error.
+	 */
+	public Campaign getCampaignInformation(
+			final String campaignId,
+			final boolean withClasses,
+			final boolean withUsers)
+			throws ServiceException {
+		
+		try {
+			Campaign result = campaignQueries.findCampaignConfiguration(campaignId);
+
+			if(withClasses) {
+				result.addClasses(
+						campaignClassQueries.getClassesAssociatedWithCampaign(
+								campaignId
+							)
+					);
+			}
+			
+			if(withUsers) {
+				List<String> campaignUsernames = 
+					userCampaignQueries.getUsersInCampaign(campaignId);
+				
+				for(String campaignUsername : campaignUsernames) {
+					List<Campaign.Role> userRoles = 
+						userCampaignQueries.getUserCampaignRoles(
+								campaignUsername, 
+								campaignId
+							);
+					
+					for(Campaign.Role userRole : userRoles) {
+						result.addUser(campaignUsername, userRole);
+					}
+				}
+			}
+			
+			return result;
+		}
+		catch(DataAccessException e) {
+			throw new ServiceException(e);
+		}
+	}
+	
+	/**
 	 * Verifies that some user is allowed to read the list of users in a 
 	 * campaign.
 	 * 

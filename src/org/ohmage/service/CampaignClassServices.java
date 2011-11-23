@@ -105,4 +105,25 @@ public class CampaignClassServices {
 			throw new ServiceException(e);
 		}
 	}
+	
+	/**
+	 * Returns the list of class IDs associated with a given campaign.
+	 * 
+	 * @param campaignId The campaign's unique identifier.
+	 * 
+	 * @return The list of class IDs.
+	 * 
+	 * @throws ServiceException Thrown if there is an error.
+	 */
+	public List<String> getClassIdsForCampaign(
+			final String campaignId)
+			throws ServiceException {
+		
+		try {
+			return campaignClassQueries.getClassesAssociatedWithCampaign(campaignId);
+		}
+		catch(DataAccessException e) {
+			throw new ServiceException(e);
+		}
+	}
 }

@@ -11,37 +11,33 @@ import org.ohmage.domain.campaign.Campaign;
 import org.ohmage.exception.DataAccessException;
 
 public interface ICampaignQueries {
-
-	// Retrieves the campaign roles for a user based on the default roles for
-	// a campaign-class association.
-	public static final String SQL_GET_USER_DEFAULT_ROLES = "SELECT ur.role "
-			+ "FROM user u, campaign ca, class cl, campaign_class cc, user_role ur, user_class uc, campaign_class_default_role ccdr "
-			+ "WHERE u.username = ? " + "AND ca.urn = ? " + "AND cl.urn = ? "
-			+ "AND ca.id = cc.campaign_id " + "AND cl.id = cc.class_id "
-			+ "AND cc.id = ccdr.campaign_class_id " + "AND u.id = uc.user_id "
-			+ "AND cl.id = uc.class_id "
-			+ "AND uc.user_class_role_id = ccdr.user_class_role_id "
-			+ "AND ccdr.user_role_id = ur.id";
-
 	/**
 	 * Creates a new campaign.
 	 * 
-	 * @param campaignId The new campaign's unique identifier.
+	 * @param campaignId
+	 *            The new campaign's unique identifier.
 	 * 
-	 * @param name The new campaign's name.
+	 * @param name
+	 *            The new campaign's name.
 	 * 
-	 * @param xml The XML defining the new campaign.
+	 * @param xml
+	 *            The XML defining the new campaign.
 	 * 
-	 * @param description An optional description for the campaign.
+	 * @param description
+	 *            An optional description for the campaign.
 	 * 
-	 * @param runningState The initial running state for the campaign.
+	 * @param runningState
+	 *            The initial running state for the campaign.
 	 * 
-	 * @param privacyState The initial privacy state for the campaign.
+	 * @param privacyState
+	 *            The initial privacy state for the campaign.
 	 * 
-	 * @param classIds A List of classes with which this campaign should be 
-	 * 				   associated.
+	 * @param classIds
+	 *            A List of classes with which this campaign should be
+	 *            associated.
 	 * 
-	 * @param creatorUsername The username of the creator of this campaign.
+	 * @param creatorUsername
+	 *            The username of the creator of this campaign.
 	 */
 	void createCampaign(String campaignId, String name, String xml,
 			String description, String iconUrl, String authoredBy,
@@ -53,8 +49,9 @@ public interface ICampaignQueries {
 	 * Returns whether or not a campaign with the unique campaign identifier
 	 * 'campaignId' exists.
 	 * 
-	 * @param campaignId The unique identifier for the campaign whose existence
-	 * 					 is in question.
+	 * @param campaignId
+	 *            The unique identifier for the campaign whose existence is in
+	 *            question.
 	 * 
 	 * @return Returns true if the campaign exists; false, otherwise.
 	 */
@@ -63,172 +60,285 @@ public interface ICampaignQueries {
 	/**
 	 * Retrieves a campaign's name.
 	 * 
-	 * @param campaignId The unique identifier for the campaign.
+	 * @param campaignId
+	 *            The unique identifier for the campaign.
 	 * 
 	 * @return If the campaign exists, its name is returned. Otherwise, null is
-	 * 		   returned.
+	 *         returned.
 	 */
 	String getName(String campaignId) throws DataAccessException;
 
 	/**
 	 * Finds the configuration for the provided campaign id.
 	 * 
-	 * @param campaignId The unique identifier for the campaign..
-	 * @throws DataAccessException If an error occurs running the SQL.
+	 * @param campaignId
+	 *            The unique identifier for the campaign..
+	 * @throws DataAccessException
+	 *             If an error occurs running the SQL.
 	 */
-	Campaign findCampaignConfiguration(String campaignId) throws DataAccessException;
+	Campaign findCampaignConfiguration(String campaignId)
+			throws DataAccessException;
 
 	/**
 	 * Retrieves a campaign's description.
 	 * 
-	 * @param campaignId The unique identifier for the campaign.
+	 * @param campaignId
+	 *            The unique identifier for the campaign.
 	 * 
-	 * @return If the campaign exists, its description is returned. Otherwise, 
-	 * 		   null is returned.
+	 * @return If the campaign exists, its description is returned. Otherwise,
+	 *         null is returned.
 	 */
 	String getDescription(String campaignId) throws DataAccessException;
 
 	/**
 	 * Retrieves the campaign's privacy state.
 	 * 
-	 * @param campaignId A campaign's unique identifier.
+	 * @param campaignId
+	 *            A campaign's unique identifier.
 	 * 
 	 * @return If the campaign exists, its PrivacyState enum is returned;
-	 * 		   otherwise, null is returned.
+	 *         otherwise, null is returned.
 	 */
-	Campaign.PrivacyState getCampaignPrivacyState(String campaignId) throws DataAccessException;
+	Campaign.PrivacyState getCampaignPrivacyState(String campaignId)
+			throws DataAccessException;
 
 	/**
 	 * Retrieves the campaign's running state.
 	 * 
-	 * @param campaignId A campaign's unique identifier.
+	 * @param campaignId
+	 *            A campaign's unique identifier.
 	 * 
 	 * @return If the campaign exists, its running state String is returned;
-	 * 		   otherwise, null is returned.
+	 *         otherwise, null is returned.
 	 */
-	Campaign.RunningState getCampaignRunningState(String campaignId) throws DataAccessException;
+	Campaign.RunningState getCampaignRunningState(String campaignId)
+			throws DataAccessException;
 
 	/**
 	 * Retrieves a campaign's XML.
 	 * 
-	 * @param campaignId The unique identifier for the campaign.
+	 * @param campaignId
+	 *            The unique identifier for the campaign.
 	 * 
 	 * @return If the campaign exists, its XML is returned. Otherwise, null is
-	 * 		   returned.
+	 *         returned.
 	 */
 	String getXml(String campaignId) throws DataAccessException;
 
 	/**
 	 * Retrieves a campaign's icon's URL.
 	 * 
-	 * @param campaignId The unique identifier for the campaign.
+	 * @param campaignId
+	 *            The unique identifier for the campaign.
 	 * 
-	 * @return If the campaign exists, its icon URL is returned. Otherwise, 
-	 * 		   null is returned.
+	 * @return If the campaign exists, its icon URL is returned. Otherwise, null
+	 *         is returned.
 	 */
 	String getIconUrl(String campaignId) throws DataAccessException;
 
 	/**
 	 * Retrieves a campaign's creation timestamp.
 	 * 
-	 * @param campaignId The unique identifier for the campaign.
+	 * @param campaignId
+	 *            The unique identifier for the campaign.
 	 * 
-	 * @return If the campaign exists, its timestamp is returned; otherwise, 
-	 * 		   null is returned.
+	 * @return If the campaign exists, its timestamp is returned; otherwise,
+	 *         null is returned.
 	 */
-	Timestamp getCreationTimestamp(String campaignId) throws DataAccessException;
+	Timestamp getCreationTimestamp(String campaignId)
+			throws DataAccessException;
 
 	/**
 	 * Creates a new CampaignInformation object based on the information about
 	 * some campaign.
-	 *  
-	 * @param campaignId The campaign's unique identifier.
+	 * 
+	 * @param campaignId
+	 *            The campaign's unique identifier.
 	 * 
 	 * @return A CampaignInformation object with the required information about
-	 * 		   a campaign or null if no such campaign exists.
+	 *         a campaign or null if no such campaign exists.
 	 * 
-	 * @throws DataAccessException Thrown if there is an error.
+	 * @throws DataAccessException
+	 *             Thrown if there is an error.
 	 */
-	Campaign getCampaignInformation(final String campaignId) throws DataAccessException;
+	Campaign getCampaignInformation(final String campaignId)
+			throws DataAccessException;
+
+	/**
+	 * Retrieves the unique identifier for all of the campaigns in the system.
+	 * 
+	 * @return A list of unique campaign identifiers for all of the campaigns in
+	 *         the system.
+	 * 
+	 * @throws DataAccessException
+	 *             Thrown if there is an error.
+	 */
+	List<String> getAllCampaignIds() throws DataAccessException;
+
+	/**
+	 * Retrieves the IDs for all campaigns whose ID contains the partial ID.
+	 * 
+	 * @param partialCampaignId
+	 *            The partial campaign ID.
+	 * 
+	 * @return The campaign IDs.
+	 * 
+	 * @throws DataAccessException
+	 *             Thrown if there is an error.
+	 */
+	List<String> getCampaignsFromPartialId(final String partialCampaignId)
+			throws DataAccessException;
+
+	/**
+	 * Retrieves the IDs for all campaigns whose name contains the partial name.
+	 * 
+	 * @param partialCampaignName
+	 *            The partial campaign Name.
+	 * 
+	 * @return The campaign IDs.
+	 * 
+	 * @throws DataAccessException
+	 *             Thrown if there is an error.
+	 */
+	List<String> getCampaignsFromPartialName(final String partialCampaignName)
+			throws DataAccessException;
+
+	/**
+	 * Retrieves the IDs for all campaigns whose description contains the
+	 * partial description.
+	 * 
+	 * @param partialCampaignDescription
+	 *            The partial campaign description.
+	 * 
+	 * @return The campaign IDs.
+	 * 
+	 * @throws DataAccessException
+	 *             Thrown if there is an error.
+	 */
+	List<String> getCampaignsFromPartialDescription(
+			final String partialDescription) throws DataAccessException;
+
+	/**
+	 * Retrieves the IDs for all campaigns whose XML contains the partial XML.
+	 * 
+	 * @param partialCampaignXml
+	 *            The partial campaign XML.
+	 * 
+	 * @return The campaign IDs.
+	 * 
+	 * @throws DataAccessException
+	 *             Thrown if there is an error.
+	 */
+	List<String> getCampaignsFromPartialXml(final String partialXml)
+			throws DataAccessException;
+
+	/**
+	 * Retrieves the IDs for all campaigns whose authored by value contains the
+	 * partial authored by value.
+	 * 
+	 * @param partialCampaignId
+	 *            The partial authored by value.
+	 * 
+	 * @return The campaign IDs.
+	 * 
+	 * @throws DataAccessException
+	 *             Thrown if there is an error.
+	 */
+	List<String> getCampaignsFromPartialAuthoredBy(
+			final String partialAuthoredBy) throws DataAccessException;
 
 	/**
 	 * Retrieves the IDs for all campaigns whose creation timestamp was on or
 	 * after some date.
 	 * 
-	 * @param date The date as a Calendar.
+	 * @param date
+	 *            The date as a Calendar.
 	 * 
 	 * @return A List of campaign IDs. This will never be null.
 	 */
-	List<String> getCampaignsOnOrAfterDate(Date date) throws DataAccessException;
+	List<String> getCampaignsOnOrAfterDate(Date date)
+			throws DataAccessException;
 
 	/**
 	 * Retrieves the IDs for all campaigns whose creation timestamp was on or
 	 * before some date.
 	 * 
-	 * @param date The date as a Calendar.
+	 * @param date
+	 *            The date as a Calendar.
 	 * 
 	 * @return A List of campaign IDs. This will never be null.
 	 */
-	List<String> getCampaignsOnOrBeforeDate(Date date) throws DataAccessException;
+	List<String> getCampaignsOnOrBeforeDate(Date date)
+			throws DataAccessException;
 
 	/**
 	 * Returns a list of campaign IDs for all of the campaigns with a specified
 	 * privacy state.
 	 * 
-	 * @param privacyState The privacy state in question.
+	 * @param privacyState
+	 *            The privacy state in question.
 	 * 
-	 * @return Returns a list of campaign IDs whose is privacy state is 
-	 * 		   'privacyState'.
+	 * @return Returns a list of campaign IDs whose is privacy state is
+	 *         'privacyState'.
 	 */
-	List<String> getCampaignsWithPrivacyState(Campaign.PrivacyState privacyState) throws DataAccessException;
+	List<String> getCampaignsWithPrivacyState(Campaign.PrivacyState privacyState)
+			throws DataAccessException;
 
 	/**
 	 * Returns a list of campaign IDs for all of the campaigns with a specified
 	 * running state.
 	 * 
-	 * @param runningState The running state in question.
+	 * @param runningState
+	 *            The running state in question.
 	 * 
-	 * @return Returns a list of campaign IDs whose is running state is 
-	 * 		   'runningState'.
+	 * @return Returns a list of campaign IDs whose is running state is
+	 *         'runningState'.
 	 */
-	List<String> getCampaignsWithRunningState(Campaign.RunningState runningState) throws DataAccessException;
+	List<String> getCampaignsWithRunningState(Campaign.RunningState runningState)
+			throws DataAccessException;
 
 	/**
-	 * Updates a campaign. The 'request' and 'campaignId' are required; 
-	 * however, the remaining parameters may be null indicating that they 
-	 * should not be updated.
+	 * Updates a campaign. The 'request' and 'campaignId' are required; however,
+	 * the remaining parameters may be null indicating that they should not be
+	 * updated.
 	 * 
-	 * @param request The Request that is performing this service.
-	 *  
-	 * @param campaignId The campaign's unique identifier.
+	 * @param request
+	 *            The Request that is performing this service.
 	 * 
-	 * @param xml The new XML for the campaign or null if the XML should not be
-	 * 			  updated.
+	 * @param campaignId
+	 *            The campaign's unique identifier.
 	 * 
-	 * @param description The new description for the campaign or null if the
-	 * 					  description should not be updated.
+	 * @param xml
+	 *            The new XML for the campaign or null if the XML should not be
+	 *            updated.
 	 * 
-	 * @param runningState The new running state for the campaign or null if 
-	 * 					   the running state should not be updated.
+	 * @param description
+	 *            The new description for the campaign or null if the
+	 *            description should not be updated.
 	 * 
-	 * @param privacyState The new privacy state for the campaign or null if 
-	 * 					   the privacy state should not be updated.
+	 * @param runningState
+	 *            The new running state for the campaign or null if the running
+	 *            state should not be updated.
 	 * 
-	 * @param classesToAdd The collection of classes to associate with the
-	 * 					   campaign.
+	 * @param privacyState
+	 *            The new privacy state for the campaign or null if the privacy
+	 *            state should not be updated.
 	 * 
-	 * @param classesToRemove The collection of classes to disassociate from
-	 * 						  the campaign.
+	 * @param classesToAdd
+	 *            The collection of classes to associate with the campaign.
 	 * 
-	 * @param usersAndRolesToAdd A map of usernames to a list of roles that the
-	 * 							 users should be granted in the campaign or 
-	 * 							 null if no users should be granted any new 
-	 * 							 roles.
+	 * @param classesToRemove
+	 *            The collection of classes to disassociate from the campaign.
 	 * 
-	 * @param usersAndRolesToRemove A map of usernames to a list of roles that
-	 * 								should be revoked from the user in the
-	 * 								campaign or null if no users should have 
-	 * 								any of their roles revoked.
+	 * @param usersAndRolesToAdd
+	 *            A map of usernames to a list of roles that the users should be
+	 *            granted in the campaign or null if no users should be granted
+	 *            any new roles.
+	 * 
+	 * @param usersAndRolesToRemove
+	 *            A map of usernames to a list of roles that should be revoked
+	 *            from the user in the campaign or null if no users should have
+	 *            any of their roles revoked.
 	 */
 	void updateCampaign(String campaignId, String xml, String description,
 			Campaign.RunningState runningState,
@@ -242,7 +352,8 @@ public interface ICampaignQueries {
 	/**
 	 * Deletes a campaign.
 	 * 
-	 * @param campaignId The unique identifier of the campaign to be deleted.
+	 * @param campaignId
+	 *            The unique identifier of the campaign to be deleted.
 	 */
 	void deleteCampaign(String campaignId) throws DataAccessException;
 

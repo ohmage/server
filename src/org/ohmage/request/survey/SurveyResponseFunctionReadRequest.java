@@ -242,7 +242,7 @@ public class SurveyResponseFunctionReadRequest extends UserRequest {
 			// TODO: Only supervisors can specify an user.
 			
 			LOGGER.info("Gathering the campaign.");
-			Campaign campaign = CampaignServices.instance().findCampaignConfiguration(campaignId);
+			Campaign campaign = CampaignServices.instance().getCampaign(campaignId);
 			
 			LOGGER.info("Gathering the survey response information.");
 			surveyResponses = SurveyResponseServices.instance().readSurveyResponseInformation(

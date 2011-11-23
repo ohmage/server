@@ -50,6 +50,8 @@ public final class InputKeys {
 	// Campaign Constants
 	public static final String CAMPAIGN_URN = "campaign_urn";
 	public static final String CAMPAIGN_URN_LIST = "campaign_urn_list";
+	public static final String CAMPAIGN_NAME = "campaign_name";
+	public static final String CAMPAIGN_AUTHORED_BY = "authored_by";
 	public static final String CAMPAIGN_ROLE_LIST_ADD = "campaign_role_list_add";
 	public static final String CAMPAIGN_LIST_REMOVE = "campaign_list_remove";
 	public static final String XML = "xml";

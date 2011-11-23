@@ -82,7 +82,7 @@ public class ClassSearchRequest extends UserRequest {
 	 * 					  parameters to and metadata for this request.
 	 */
 	public ClassSearchRequest(final HttpServletRequest httpRequest) {
-		super(httpRequest, TokenLocation.PARAMETER);
+		super(httpRequest, TokenLocation.EITHER);
 		
 		String tClassId = null;
 		String tClassName = null;
@@ -194,21 +194,26 @@ public class ClassSearchRequest extends UserRequest {
 	 */
 	@Override
 	public void respond(HttpServletRequest httpRequest, HttpServletResponse httpResponse) {
-		JSONObject result = new JSONObject();
+		LOGGER.info("Responding to a class search request.");
+		JSONObject result = null;
 		
-		try {
-			for(Clazz clazz : classToUsernamesMap.keySet()) {
-				JSONObject classJson = clazz.toJson(false);
-				
-				classJson.put("usernames", classToUsernamesMap.get(clazz));
-				classJson.put("campaign_ids", classToCampaignIdsMap.get(clazz));
-				
-				result.put(clazz.getId(), classJson);
+		if(! isFailed()) {
+			result = new JSONObject();
+			
+			try {
+				for(Clazz clazz : classToUsernamesMap.keySet()) {
+					JSONObject classJson = clazz.toJson(false);
+					
+					classJson.put("usernames", classToUsernamesMap.get(clazz));
+					classJson.put("campaign_ids", classToCampaignIdsMap.get(clazz));
+					
+					result.put(clazz.getId(), classJson);
+				}
 			}
-		}
-		catch(JSONException e) {
-			LOGGER.error("There was an error building the result.", e);
-			setFailed();
+			catch(JSONException e) {
+				LOGGER.error("There was an error building the result.", e);
+				setFailed();
+			}
 		}
 		
 		super.respond(httpRequest, httpResponse, result);

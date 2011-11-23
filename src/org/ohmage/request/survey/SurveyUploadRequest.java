@@ -242,7 +242,7 @@ public class SurveyUploadRequest extends UserRequest {
 			CampaignServices.instance().verifyCampaignIsUpToDate(campaignUrn, campaignCreationTimestamp);
 			
 			LOGGER.info("Generating the campaign object.");
-			Campaign campaign = CampaignServices.instance().findCampaignConfiguration(campaignUrn);
+			Campaign campaign = CampaignServices.instance().getCampaign(campaignUrn);
 			
 			LOGGER.info("Verifying the uploaded data against the campaign.");
 			List<SurveyResponse> surveyResponses = 

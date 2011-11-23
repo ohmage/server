@@ -5,6 +5,7 @@ import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -542,7 +543,7 @@ public class CampaignServices {
 	 * @return a Campaign instance created from the XML for the campaign.
 	 * @throws ServiceException If an error occurred in the data layer.
 	 */
-	public Campaign findCampaignConfiguration(final String campaignId)
+	public Campaign getCampaign(final String campaignId)
 			throws ServiceException {
 		
 		try {
@@ -550,6 +551,160 @@ public class CampaignServices {
 		}
 		catch(DataAccessException e) {
 				throw new ServiceException(e);
+		}
+	}
+	
+	/**
+	 * Begins with all of the campaigns that exist in the system and then 
+	 * removes those that don't match the parameterized criteria. If a  
+	 * parameter is null, it is ignored. Therefore, if all parameters are null,
+	 * then all campaign IDs are returned.
+	 * 
+	 * @param partialCampaignId Only return campaigns whose ID contains this
+	 * 							value.
+	 * 
+	 * @param partialCampaignName Only return campaigns whose name contains 
+	 * 							  this value.
+	 * 
+	 * @param partialDescription Only return campaigns whose description 
+	 * 							 contains this value.
+	 * 
+	 * @param partialXml Only return campaigns whose XML contains this value.
+	 * 
+	 * @param partialAuthoredBy Only return campaigns whose authored by value
+	 * 							contains this value.
+	 * 
+	 * @param startDate Only return campaigns that were created on or after 
+	 * 					this date.
+	 * 
+	 * @param endDate Only return campaigns that were created on or before this
+	 * 				  date.
+	 * 
+	 * @param privacyState Only return campaigns with this privacy state.
+	 * 
+	 * @param runningState Only return campaigns with this running state.
+	 * 
+	 * @return The set of campaign IDs.
+	 * 
+	 * @throws ServiceException There was an error.
+	 */
+	public Set<String> campaignIdSearch(
+			final String partialCampaignId,
+			final String partialCampaignName,
+			final String partialDescription,
+			final String partialXml,
+			final String partialAuthoredBy,
+			final Date startDate,
+			final Date endDate,
+			final Campaign.PrivacyState privacyState,
+			final Campaign.RunningState runningState) 
+			throws ServiceException {
+		
+		try {
+			Set<String> result = null;
+			
+			if(partialCampaignId != null) {
+				result = new HashSet<String>(
+						campaignQueries.getCampaignsFromPartialId(
+								partialCampaignId));
+			}
+			
+			if(partialCampaignName != null) {
+				List<String> campaignIds =
+					campaignQueries.getCampaignsFromPartialName(
+							partialCampaignName);
+				
+				if(result == null) {
+					result = new HashSet<String>(campaignIds);
+				}
+				else {
+					result.retainAll(campaignIds);
+				}
+			}
+			
+			if(partialDescription != null) {
+				List<String> campaignIds =
+					campaignQueries.getCampaignsFromPartialDescription(
+							partialDescription);
+				
+				if(result == null) {
+					result = new HashSet<String>(campaignIds);
+				}
+				else {
+					result.retainAll(campaignIds);
+				}
+			}
+			
+			if(partialAuthoredBy != null) {
+				List<String> campaignIds =
+					campaignQueries.getCampaignsFromPartialAuthoredBy(
+							partialAuthoredBy);
+				
+				if(result == null) {
+					result = new HashSet<String>(campaignIds);
+				}
+				else {
+					result.retainAll(campaignIds);
+				}
+			}
+			
+			if(startDate != null) {
+				List<String> campaignIds = 
+					campaignQueries.getCampaignsOnOrAfterDate(startDate);
+				
+				if(result == null) {
+					result = new HashSet<String>(campaignIds);
+				}
+				else {
+					result.retainAll(campaignIds);
+				}
+			}
+			
+			if(endDate != null) {
+				List<String> campaignIds = 
+					campaignQueries.getCampaignsOnOrBeforeDate(endDate);
+				
+				if(result == null) {
+					result = new HashSet<String>(campaignIds);
+				}
+				else {
+					result.retainAll(campaignIds);
+				}
+			}
+			
+			if(privacyState != null) {
+				List<String> campaignIds =
+					campaignQueries.getCampaignsWithPrivacyState(privacyState);
+				
+				if(result == null) {
+					result = new HashSet<String>(campaignIds);
+				}
+				else {
+					result.retainAll(campaignIds);
+				}
+			}
+			
+			if(runningState != null) {
+				List<String> campaignIds =
+					campaignQueries.getCampaignsWithRunningState(runningState);
+				
+				if(result == null) {
+					result = new HashSet<String>(campaignIds);
+				}
+				else {
+					result.retainAll(campaignIds);
+				}
+			}
+			
+			if(result == null) {
+				result = new HashSet<String>(
+						campaignQueries.getAllCampaignIds());
+			}
+			
+			return result;
+		}
+		catch(DataAccessException e) {
+			throw new ServiceException(e);
 		}
 	}
 	
