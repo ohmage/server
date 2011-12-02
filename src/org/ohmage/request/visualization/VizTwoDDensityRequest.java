@@ -42,7 +42,7 @@ import org.ohmage.validator.CampaignValidators;
 public class VizTwoDDensityRequest extends VisualizationRequest {
 	private static final Logger LOGGER = Logger.getLogger(VizTwoDDensityRequest.class);
 	
-	private static final String REQUEST_PATH = "biplot";
+	private static final String REQUEST_PATH = "biplot/png";
 	
 	private final String promptId;
 	private final String prompt2Id;

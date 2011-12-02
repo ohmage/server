@@ -42,7 +42,7 @@ import org.ohmage.validator.CampaignValidators;
 public class VizScatterPlotRequest extends VisualizationRequest {
 	private static final Logger LOGGER = Logger.getLogger(VizScatterPlotRequest.class);
 	
-	private static final String REQUEST_PATH = "scatterplot";
+	private static final String REQUEST_PATH = "scatterplot/png";
 	
 	private final String promptId;
 	private final String prompt2Id;
