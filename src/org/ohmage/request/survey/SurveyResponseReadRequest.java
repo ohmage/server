@@ -572,7 +572,7 @@ public final class SurveyResponseReadRequest extends UserRequest {
 		    }
 		    
 		    LOGGER.info("Retrieving campaign configuration.");
-			campaign = CampaignServices.instance().findCampaignConfiguration(campaignId);
+			campaign = CampaignServices.instance().getCampaign(campaignId);
 			
 			if((promptIds != null) && (! promptIds.isEmpty()) && (! URN_SPECIAL_ALL_LIST.equals(promptIds))) {
 				LOGGER.info("Verifying that the prompt ids in the query belong to the campaign.");
@@ -1429,7 +1429,7 @@ public final class SurveyResponseReadRequest extends UserRequest {
 							values.put(responseValue);
 						}
 						else {
-							values.put("null");
+							values.put(JSONObject.NULL);
 						}
 					}
 				}
