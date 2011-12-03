@@ -1097,7 +1097,7 @@ public class SurveyResponse {
 	 * 
 	 * @throws  IllegalArgumentException if promptIds is null or empty.
 	 */
-	public final void filterPromptResponseByPromptId(Collection<String> promptIds) {
+	public final void filterPromptResponseByPromptIds(Collection<String> promptIds) {
 		if(promptIds == null || promptIds.isEmpty()) {
 			throw new IllegalArgumentException("a list of prompt ids is required");
 		}

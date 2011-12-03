@@ -338,7 +338,7 @@ public final class SurveyResponseServices {
 				// responses need to be pruned out of the SurveyResponse 
 				if(promptIds != null) {
 					for(SurveyResponse surveyResponse : surveyResponses) {
-						surveyResponse.filterPromptResponseByPromptId(promptIds);
+						surveyResponse.filterPromptResponseByPromptIds(promptIds);
 					}
 				}
 				
