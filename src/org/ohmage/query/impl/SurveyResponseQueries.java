@@ -422,6 +422,9 @@ public class SurveyResponseQueries extends Query implements ISurveyResponseQueri
 								throw new SQLException("The prompt response value from the database is not a valid response value for this prompt.", e);
 							}
 							
+							// TODO: instead of returning null here we should
+							// just wrap the query() call in response.addPromptResponse()
+							
 							return null;
 						}
 					}

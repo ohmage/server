@@ -6,6 +6,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -1085,6 +1086,34 @@ public class SurveyResponse {
 				responses.put(index, rsResponse);
 			}
 			rsResponse.addResponse(promptResponse.getRepeatableSetIteration(), index, promptResponse);
+		}
+	}
+	
+	/**
+	 * Removes the any prompt responses that do not belong to the provided 
+	 * collection of prompt ids from this survey response.
+	 * 
+	 * @param promptIds  A collection of prompt ids belonging to some campaign. 
+	 * 
+	 * @throws  IllegalArgumentException if promptIds is null or empty.
+	 */
+	public final void filterPromptResponseByPromptId(Collection<String> promptIds) {
+		if(promptIds == null || promptIds.isEmpty()) {
+			throw new IllegalArgumentException("a list of prompt ids is required");
+		}
+		
+		if(responses != null) {
+			Iterator<Integer> responsesKeySetIterator = responses.keySet().iterator();
+			while(responsesKeySetIterator.hasNext()) {
+				Response response = responses.get(responsesKeySetIterator.next());
+				
+				if(! promptIds.contains(response.getId())) {
+					responsesKeySetIterator.remove();
+				}
+			}
+		} 
+		else {
+			LOGGER.warn("attempt to filter prompt responses out of a SurveyResponse that has no prompt responses.");
 		}
 	}
 	
