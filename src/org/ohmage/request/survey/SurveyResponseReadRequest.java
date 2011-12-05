@@ -613,7 +613,7 @@ public final class SurveyResponseReadRequest extends UserRequest {
 			}
 			
 			LOGGER.info("Found " + surveyResponseList.size() + " results");
-			
+						
 			LOGGER.info("Filtering survey response results according to our privacy rules and the requester's role.");
 			SurveyResponseReadServices.instance().performPrivacyFilter(this.getUser().getUsername(), campaignId, surveyResponseList);
 			
@@ -913,8 +913,6 @@ public final class SurveyResponseReadRequest extends UserRequest {
 					JSONArray surveyTitles = new JSONArray();
 					JSONArray surveyDescriptions = new JSONArray();
 					JSONArray launchContexts = new JSONArray();
-
-					Map<String, Survey> surveys = new HashMap<String, Survey>();
 					Map<String, JSONObject> prompts = new HashMap<String, JSONObject>();
 					
 					if(surveyResponseList.isEmpty()) {
@@ -936,19 +934,33 @@ public final class SurveyResponseReadRequest extends UserRequest {
 							Map<Integer, SurveyItem> tempPromptMap = new HashMap<Integer, SurveyItem>(promptIds.size());
 							for(String promptId : promptIds) {
 								tempPromptMap.put(currNumPrompts, campaign.getPrompt(campaign.getSurveyIdForPromptId(promptId), promptId));
+								currNumPrompts++;
 							}
 							
 							populatePrompts(tempPromptMap, prompts);
 						}
 					}
 					else {
+						Set<String> unqiueSurveyIds = new HashSet<String>();
+						Set<String> uniquePromptIds = new HashSet<String>();
 						for(SurveyResponse surveyResponse : surveyResponseList) {
-							Survey survey = surveyResponse.getSurvey();
+							String surveyId = surveyResponse.getSurvey().getId();
 							
-							if(! surveys.containsKey(survey.getId())) {
-								surveys.put(survey.getId(), survey);
+							if(! unqiueSurveyIds.contains(surveyId)) {
+								unqiueSurveyIds.add(surveyId);
 								
-								populatePrompts(survey.getSurveyItems(), prompts);
+								int currNumPrompts = 0;
+								Set<String> promptIds = surveyResponse.getPromptIds();
+								Map<Integer, SurveyItem> tempPrompts =
+									new HashMap<Integer, SurveyItem>(promptIds.size());
+								for(String promptId : promptIds) {
+									if(! uniquePromptIds.contains(promptId)) {
+										tempPrompts.put(currNumPrompts, campaign.getPrompt(surveyId, promptId));
+										currNumPrompts++;
+									}
+								}
+								
+								populatePrompts(tempPrompts, prompts);
 							}
 						}
 					}
@@ -958,7 +970,7 @@ public final class SurveyResponseReadRequest extends UserRequest {
 						numResponses += processResponses(allColumns, 
 								surveyResponse, 
 								surveyResponse.getResponses(), 
-								surveys, prompts, 
+								prompts, 
 								usernames, clients, privacyStates, 
 								timestamps, timezones, 
 								locationStatuses, locationLongitude, 
@@ -1322,7 +1334,7 @@ public final class SurveyResponseReadRequest extends UserRequest {
 	private int processResponses(final boolean allColumns, 
 			final SurveyResponse surveyResponse,
 			final Map<Integer, Response> responses, 
-			Map<String, Survey> surveys, Map<String, JSONObject> prompts,
+			Map<String, JSONObject> prompts,
 			JSONArray usernames, JSONArray clients, JSONArray privacyStates,
 			JSONArray timestamps, JSONArray timezones,
 			JSONArray locationStatuses, JSONArray locationLongitude,
@@ -1335,88 +1347,89 @@ public final class SurveyResponseReadRequest extends UserRequest {
 		List<Integer> indices = new ArrayList<Integer>(responses.keySet());
 		Collections.sort(indices);
 		
+		if(allColumns || columns.contains(ColumnKey.USER_ID)) {
+			usernames.put(surveyResponse.getUsername());
+		}
+		if(allColumns || columns.contains(ColumnKey.CONTEXT_CLIENT)) {
+			clients.put(surveyResponse.getClient());
+		}
+		if(allColumns || columns.contains(ColumnKey.SURVEY_PRIVACY_STATE)) {
+			privacyStates.put(surveyResponse.getPrivacyState().toString());
+		}
+		if(allColumns || columns.contains(ColumnKey.CONTEXT_TIMESTAMP)) {
+			timestamps.put(TimeUtils.getIso8601DateTimeString(surveyResponse.getDate()));
+		}
+		if(allColumns || columns.contains(ColumnKey.CONTEXT_TIMEZONE)) {
+			timezones.put(surveyResponse.getTimezone().getID());
+		}
+		if(allColumns || columns.contains(ColumnKey.CONTEXT_LOCATION_STATUS)) {
+			locationStatuses.put(surveyResponse.getLocationStatus().toString());
+		}
+		if(allColumns || columns.contains(ColumnKey.CONTEXT_LOCATION_LONGITUDE)) {
+			Location location = surveyResponse.getLocation();
+			if(location == null) {
+				locationLongitude.put("");
+			}
+			else {
+				locationLongitude.put(location.getLongitude());
+			}
+		}
+		if(allColumns || columns.contains(ColumnKey.CONTEXT_LOCATION_LATITUDE)) {
+			Location location = surveyResponse.getLocation();
+			if(location == null) {
+				locationLatitude.put("");
+			}
+			else {
+				locationLatitude.put(location.getLatitude());
+			}
+		}
+		if(allColumns || columns.contains(ColumnKey.CONTEXT_LOCATION_TIMESTAMP)) {
+			Location location = surveyResponse.getLocation();
+			if(location == null) {
+				locationTimestamp.put("");
+			}
+			else {
+				locationTimestamp.put(TimeUtils.getIso8601DateTimeString(location.getTimestamp()));
+			}
+		}
+		if(allColumns || columns.contains(ColumnKey.CONTEXT_LOCATION_ACCURACY)) {
+			Location location = surveyResponse.getLocation();
+			if(location == null) {
+				locationAccuracy.put("");
+			}
+			else {
+				locationAccuracy.put(location.getAccuracy());
+			}
+		}
+		if(allColumns || columns.contains(ColumnKey.CONTEXT_LOCATION_PROVIDER)) {
+			Location location = surveyResponse.getLocation();
+			if(location == null) {
+				locationProvider.put("");
+			}
+			else {
+				locationProvider.put(location.getProvider());
+			}
+		}
+		if(allColumns || columns.contains(ColumnKey.SURVEY_ID)) {
+			surveyIds.put(surveyResponse.getSurvey().getId());
+		}
+		if(allColumns || columns.contains(ColumnKey.SURVEY_TITLE)) {
+			surveyTitles.put(surveyResponse.getSurvey().getTitle());
+		}
+		if(allColumns || columns.contains(ColumnKey.SURVEY_DESCRIPTION)) {
+			surveyDescriptions.put(surveyResponse.getSurvey().getDescription());
+		}
+		if(allColumns || columns.contains(ColumnKey.CONTEXT_LAUNCH_CONTEXT_LONG) || columns.contains(ColumnKey.CONTEXT_LAUNCH_CONTEXT_SHORT)) {
+			launchContexts.put(surveyResponse.getLaunchContext().toJson(allColumns || columns.contains(ColumnKey.CONTEXT_LAUNCH_CONTEXT_LONG)));
+		}
+		
 		int numResponses = 0;
 		for(Integer index : indices) {
-			Response response = responses.get(index);
-			if(response instanceof PromptResponse) {
-				numResponses++;
+			if(allColumns || columns.contains(ColumnKey.PROMPT_RESPONSE)) {
+				Response response = responses.get(index);
+				if(response instanceof PromptResponse) {
+					numResponses++;
 				
-				if(allColumns || columns.contains(ColumnKey.USER_ID)) {
-					usernames.put(surveyResponse.getUsername());
-				}
-				if(allColumns || columns.contains(ColumnKey.CONTEXT_CLIENT)) {
-					clients.put(surveyResponse.getClient());
-				}
-				if(allColumns || columns.contains(ColumnKey.SURVEY_PRIVACY_STATE)) {
-					privacyStates.put(surveyResponse.getPrivacyState().toString());
-				}
-				if(allColumns || columns.contains(ColumnKey.CONTEXT_TIMESTAMP)) {
-					timestamps.put(TimeUtils.getIso8601DateTimeString(surveyResponse.getDate()));
-				}
-				if(allColumns || columns.contains(ColumnKey.CONTEXT_TIMEZONE)) {
-					timezones.put(surveyResponse.getTimezone().getID());
-				}
-				if(allColumns || columns.contains(ColumnKey.CONTEXT_LOCATION_STATUS)) {
-					locationStatuses.put(surveyResponse.getLocationStatus().toString());
-				}
-				if(allColumns || columns.contains(ColumnKey.CONTEXT_LOCATION_LONGITUDE)) {
-					Location location = surveyResponse.getLocation();
-					if(location == null) {
-						locationLongitude.put("");
-					}
-					else {
-						locationLongitude.put(location.getLongitude());
-					}
-				}
-				if(allColumns || columns.contains(ColumnKey.CONTEXT_LOCATION_LATITUDE)) {
-					Location location = surveyResponse.getLocation();
-					if(location == null) {
-						locationLatitude.put("");
-					}
-					else {
-						locationLatitude.put(location.getLatitude());
-					}
-				}
-				if(allColumns || columns.contains(ColumnKey.CONTEXT_LOCATION_TIMESTAMP)) {
-					Location location = surveyResponse.getLocation();
-					if(location == null) {
-						locationTimestamp.put("");
-					}
-					else {
-						locationTimestamp.put(TimeUtils.getIso8601DateTimeString(location.getTimestamp()));
-					}
-				}
-				if(allColumns || columns.contains(ColumnKey.CONTEXT_LOCATION_ACCURACY)) {
-					Location location = surveyResponse.getLocation();
-					if(location == null) {
-						locationAccuracy.put("");
-					}
-					else {
-						locationAccuracy.put(location.getAccuracy());
-					}
-				}
-				if(allColumns || columns.contains(ColumnKey.CONTEXT_LOCATION_PROVIDER)) {
-					Location location = surveyResponse.getLocation();
-					if(location == null) {
-						locationProvider.put("");
-					}
-					else {
-						locationProvider.put(location.getProvider());
-					}
-				}
-				if(allColumns || columns.contains(ColumnKey.SURVEY_ID)) {
-					surveyIds.put(surveyResponse.getSurvey().getId());
-				}
-				if(allColumns || columns.contains(ColumnKey.SURVEY_TITLE)) {
-					surveyTitles.put(surveyResponse.getSurvey().getTitle());
-				}
-				if(allColumns || columns.contains(ColumnKey.SURVEY_DESCRIPTION)) {
-					surveyDescriptions.put(surveyResponse.getSurvey().getDescription());
-				}
-				if(allColumns || columns.contains(ColumnKey.CONTEXT_LAUNCH_CONTEXT_LONG) || columns.contains(ColumnKey.CONTEXT_LAUNCH_CONTEXT_SHORT)) {
-					launchContexts.put(surveyResponse.getLaunchContext().toJson(allColumns || columns.contains(ColumnKey.CONTEXT_LAUNCH_CONTEXT_LONG)));
-				}
-				if(allColumns || columns.contains(ColumnKey.PROMPT_RESPONSE)) {
 					for(String promptId : prompts.keySet()) {
 						JSONArray values = prompts.get(promptId).getJSONArray(JSON_KEY_VALUES);
 						if(promptId.equals(response.getId())) {
@@ -1429,34 +1442,34 @@ public final class SurveyResponseReadRequest extends UserRequest {
 							values.put(responseValue);
 						}
 						else {
-							values.put(JSONObject.NULL);
+							//values.put(JSONObject.NULL);
 						}
 					}
 				}
-			}
-			else if(response instanceof RepeatableSetResponse) {
-				RepeatableSetResponse repeatableSetResponse =
-					(RepeatableSetResponse) response;
-				
-				Map<Integer, Map<Integer, Response>> repeatableSetResponses =
-					repeatableSetResponse.getResponseGroups();
-				
-				List<Integer> rsIterations = 
-					new ArrayList<Integer>(repeatableSetResponses.keySet());
-				
-				for(Integer rsIndex : rsIterations) {
-					numResponses += processResponses(allColumns, 
-							surveyResponse,
-							repeatableSetResponses.get(rsIndex), 
-							surveys, prompts, 
-							usernames, clients, privacyStates, 
-							timestamps, timezones, 
-							locationStatuses, locationLongitude,
-							locationLatitude, locationTimestamp,
-							locationAccuracy, locationProvider,
-							surveyIds, surveyTitles, surveyDescriptions, 
-							launchContexts
-						);
+				else if(response instanceof RepeatableSetResponse) {
+					RepeatableSetResponse repeatableSetResponse =
+						(RepeatableSetResponse) response;
+					
+					Map<Integer, Map<Integer, Response>> repeatableSetResponses =
+						repeatableSetResponse.getResponseGroups();
+					
+					List<Integer> rsIterations = 
+						new ArrayList<Integer>(repeatableSetResponses.keySet());
+					
+					for(Integer rsIndex : rsIterations) {
+						numResponses += processResponses(allColumns, 
+								surveyResponse,
+								repeatableSetResponses.get(rsIndex), 
+								prompts, 
+								usernames, clients, privacyStates, 
+								timestamps, timezones, 
+								locationStatuses, locationLongitude,
+								locationLatitude, locationTimestamp,
+								locationAccuracy, locationProvider,
+								surveyIds, surveyTitles, surveyDescriptions, 
+								launchContexts
+							);
+					}
 				}
 			}
 		}
