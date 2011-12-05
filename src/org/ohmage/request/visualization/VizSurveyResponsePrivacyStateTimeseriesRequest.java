@@ -21,7 +21,7 @@ import org.ohmage.service.VisualizationServices;
 public class VizSurveyResponsePrivacyStateTimeseriesRequest extends VisualizationRequest {
 	private static final Logger LOGGER = Logger.getLogger(VizSurveyResponsePrivacyStateTimeseriesRequest.class);
 	
-	private static final String REQUEST_PATH = "sharedtimeplot";
+	private static final String REQUEST_PATH = "sharedtimeplot/png";
 	
 	/**
 	 * Creates a survey response privacy state timeseries request.

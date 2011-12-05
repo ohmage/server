@@ -19,7 +19,7 @@ import org.ohmage.service.VisualizationServices;
 public class VizSurveyResponseCountRequest extends VisualizationRequest {
 	private static final Logger LOGGER = Logger.getLogger(VizSurveyResponseCountRequest.class);
 	
-	private static final String REQUEST_PATH = "responseplot";
+	private static final String REQUEST_PATH = "responseplot/png";
 	
 	/**
 	 * Creates a new request from the 'httpRequest' that contains the 

@@ -37,7 +37,7 @@ import org.ohmage.validator.CampaignValidators;
 public class VizPromptTimeseriesRequest extends VisualizationRequest {
 private static final Logger LOGGER = Logger.getLogger(VizPromptTimeseriesRequest.class);
 	
-	private static final String REQUEST_PATH = "timeplot";
+	private static final String REQUEST_PATH = "timeplot/png";
 	
 	private final String promptId;
 	

@@ -19,7 +19,7 @@ import org.ohmage.validator.UserValidators;
 public class VizUserTimeseriesRequest extends VisualizationRequest {
 	private static final Logger LOGGER = Logger.getLogger(VizUserTimeseriesRequest.class);
 	
-	private static final String REQUEST_PATH = "userplot";
+	private static final String REQUEST_PATH = "userplot/png";
 	
 	private final String promptId;
 	private final String username;

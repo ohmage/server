@@ -1,0 +1,1 @@
+update preference set p_value = 'http://rdev1.mobilizingcs.org/R/call/Mobilize/' where p_key = 'visualization_server_address';

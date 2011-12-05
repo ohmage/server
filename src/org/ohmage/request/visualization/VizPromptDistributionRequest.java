@@ -37,7 +37,7 @@ import org.ohmage.validator.CampaignValidators;
 public class VizPromptDistributionRequest extends VisualizationRequest {
 	private static final Logger LOGGER = Logger.getLogger(VizPromptDistributionRequest.class);
 	
-	private static final String REQUEST_PATH = "distributionplot";
+	private static final String REQUEST_PATH = "distributionplot/png";
 	
 	private final String promptId;
 	

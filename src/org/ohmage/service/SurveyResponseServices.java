@@ -1,6 +1,7 @@
 package org.ohmage.service;
 
 import java.awt.image.BufferedImage;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
@@ -22,6 +23,7 @@ import org.ohmage.query.IImageQueries;
 import org.ohmage.query.ISurveyResponseImageQueries;
 import org.ohmage.query.ISurveyResponseQueries;
 import org.ohmage.query.ISurveyUploadQuery;
+import org.ohmage.request.survey.SurveyResponseReadRequest;
 
 /**
  * This class is responsible for creating, reading, updating, and deleting 
@@ -287,6 +289,7 @@ public final class SurveyResponseServices {
 			// Trim from the list all survey responses without certain prompt
 			// IDs.
 			if(promptIds != null) {
+				
 				Set<Long> promptIdIds = new HashSet<Long>();
 				for(String promptId : promptIds) {
 					promptIdIds.addAll(surveyResponseQueries.retrieveSurveyResponseIdsWithPromptId(campaignId, promptId));
@@ -326,7 +329,22 @@ public final class SurveyResponseServices {
 				return Collections.emptyList();
 			}
 			else {
-				return surveyResponseQueries.retrieveSurveyResponseFromIds(campaign, surveyResponseIds);
+				
+				List<SurveyResponse> surveyResponses = surveyResponseQueries.retrieveSurveyResponseFromIds(campaign, surveyResponseIds);
+				
+				// This is a bit of a hack, but it avoids having to generate
+				// John's dreaded dynamic SQL. :)
+				
+				// If the surveyResponses contain prompt responses for prompt 
+				// ids not present in the query to our API, those prompt 
+				// responses need to be pruned out of the SurveyResponse 
+				if(promptIds != null && ! (promptIds.size() == 1 && new ArrayList<String>(promptIds).get(0).equals(SurveyResponseReadRequest.URN_SPECIAL_ALL))) {
+					for(SurveyResponse surveyResponse : surveyResponses) {
+						surveyResponse.filterPromptResponseByPromptIds(promptIds);
+					}
+				}
+				
+				return surveyResponses;
 			}
 		}
 		catch(DataAccessException e) {

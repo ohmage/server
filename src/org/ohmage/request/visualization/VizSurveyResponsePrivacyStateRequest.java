@@ -21,7 +21,7 @@ import org.ohmage.service.VisualizationServices;
 public class VizSurveyResponsePrivacyStateRequest extends VisualizationRequest {
 	private static final Logger LOGGER = Logger.getLogger(VizSurveyResponsePrivacyStateRequest.class);
 	
-	private static final String REQUEST_PATH = "sharedplot";
+	private static final String REQUEST_PATH = "sharedplot/png";
 	
 	/**
 	 * Creates a survey response privacy state visualization request.
