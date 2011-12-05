@@ -3017,7 +3017,7 @@ public class Campaign {
 			final String defaultValue,
 			final Map<String, LabelValuePair> properties, final int index) {
 		
-		int min;
+		long min;
 		try {
 			LabelValuePair minVlp = 
 				properties.get(NumberPrompt.XML_KEY_MIN);
@@ -3029,7 +3029,7 @@ public class Campaign {
 							"' property: " +
 							id);
 			}
-			min = Integer.decode(minVlp.getLabel());
+			min = Long.decode(minVlp.getLabel());
 		}
 		catch(IllegalArgumentException e) {
 			throw new IllegalArgumentException(
@@ -3040,7 +3040,7 @@ public class Campaign {
 					e);
 		}
 		
-		int max;
+		long max;
 		try {
 			LabelValuePair maxVlp = 
 				properties.get(NumberPrompt.XML_KEY_MAX);
@@ -3052,7 +3052,7 @@ public class Campaign {
 							"' property: " +
 							id);
 			}
-			max = Integer.decode(maxVlp.getLabel());
+			max = Long.decode(maxVlp.getLabel());
 		}
 		catch(IllegalArgumentException e) {
 			throw new IllegalArgumentException(

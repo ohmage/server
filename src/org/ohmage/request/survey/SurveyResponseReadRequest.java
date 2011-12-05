@@ -1429,7 +1429,7 @@ public final class SurveyResponseReadRequest extends UserRequest {
 							values.put(responseValue);
 						}
 						else {
-							values.put("null");
+							values.put(JSONObject.NULL);
 						}
 					}
 				}
