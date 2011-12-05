@@ -1,332 +1,280 @@
 package org.ohmage.domain;
 
-import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
-import org.apache.log4j.Logger;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.ohmage.domain.campaign.Campaign;
 
 /**
- * This class is responsible for collecting and displaying the information 
- * about a user. This includes their campaign creation privilege, the campaigns
- * and classes to which they belong, and the union of their roles in those
- * campaigns and classes. 
+ * All of the information about a user in the system.
  * 
  * @author John Jenkins
  */
 public class UserInformation {
-	private static final Logger LOGGER = Logger.getLogger(UserInformation.class);
-	
 	private static final String JSON_KEY_PERMISSIONS = "permissions";
+	private static final String JSON_KEY_PERMISSIONS_ADMIN = "admin";
+	private static final String JSON_KEY_PERMISSIONS_ENABLED = "enabled";
+	private static final String JSON_KEY_PERMISSIONS_NEW_ACCOUNT = "new_account";
 	private static final String JSON_KEY_PERMISSIONS_CAMPAIGN_CREATION = "can_create_campaigns";
 	
 	private static final String JSON_KEY_CAMPAIGNS = "campaigns";
-	private static final String JSON_KEY_CAMPAIGN_ROLES = "campaign_roles";
-	
 	private static final String JSON_KEY_CLASSES = "classes";
-	private static final String JSON_KEY_CLASS_ROLES = "class_roles";
 	
+	private static final String JSON_KEY_PERSONAL_INFO = "personal";
+	
+	private final boolean isAdmin;
+	private final boolean isEnabled;
+	private final boolean isNewAccount;
 	private final boolean campaignCreationPrivilege;
 	
-	private final Map<String, String> campaigns;
-	private final Set<Campaign.Role> campaignRoles;
+	private final Map<String, Set<Campaign.Role>> campaigns;
+	private final Map<String, Clazz.Role> classes;
 	
-	private final Map<String, String> classes;
-	private final Set<Clazz.Role> classRoles;
+	private final UserPersonal personalInfo;
 	
 	/**
-	 * Creates a new user information object with a default campaign creation
-	 * privilege, no campaigns or campaign roles, and no classes or class 
-	 * roles.
+	 * Creates a new information object for this user.
+	 * 
+	 * @param isAdmin Whether or not the user is an admin.
+	 * 
+	 * @param isEnabled Whether or not the user's account is enabled.
+	 * 
+	 * @param isNewAccount Whether or not the account is new.
 	 * 
 	 * @param campaignCreationPrivilege Whether or not the user is allowed to
 	 * 									create new campaigns.
+	 * 
+	 * @param campaigns The map of campaign IDs to a set of the user's roles in
+	 * 					those campaigns.
+	 * 
+	 * @param classes The map of class IDs to the user's role in that class.
+	 * 
+	 * @param personalInfo The personal information about the user or null if
+	 * 					   the user doesn't have a personal information record.
+	 * 
+	 * @throws IllegalArgumentException The campaign and/or class parameter is
+	 * 									null.
 	 */
-	public UserInformation(boolean campaignCreationPrivilege) {
+	public UserInformation(
+			final boolean isAdmin,
+			final boolean isEnabled,
+			final boolean isNewAccount,
+			final boolean campaignCreationPrivilege,
+			final Map<String, Set<Campaign.Role>> campaigns,
+			final Map<String, Clazz.Role> classes,
+			final UserPersonal personalInfo) {
+		
+		if(campaigns == null) {
+			throw new IllegalArgumentException(
+					"The campaign ID-role map is null.");
+		}
+		else if(classes == null) {
+			throw new IllegalArgumentException(
+					"The class ID-role map is null.");
+		}
+		
+		this.isAdmin = isAdmin;
+		this.isEnabled = isEnabled;
+		this.isNewAccount = isNewAccount;
 		this.campaignCreationPrivilege = campaignCreationPrivilege;
 		
-		campaigns = new HashMap<String, String>();
-		campaignRoles = new HashSet<Campaign.Role>();
+		this.campaigns = new HashMap<String, Set<Campaign.Role>>(campaigns);
+		this.classes = new HashMap<String, Clazz.Role>(classes);
 		
-		classes = new HashMap<String, String>();
-		classRoles = new HashSet<Clazz.Role>();
+		this.personalInfo = personalInfo;
 	}
 	
 	/**
-	 * Creates a UserInformation object from the information.
+	 * Deserializes a JSONObject that is information about a user.
 	 * 
-	 * @param information The information used to create this object.
+	 * @param userInfo The user's information as a JSONObject.
 	 * 
-	 * @throws IllegalArgumentException Thrown if information object is null or
-	 * 									malformed.
+	 * @throws IllegalArgumentException Thrown if a required field is missing.
 	 */
-	public UserInformation(final JSONObject information) {
-		if(information == null) {
-			throw new IllegalArgumentException("The information is null.");
-		}
-		
-		JSONObject permissions;
+	public UserInformation(final JSONObject userInfo) {
+		JSONObject permissionsJson;
 		try {
-			permissions = information.getJSONObject(JSON_KEY_PERMISSIONS);
+			permissionsJson = userInfo.getJSONObject(JSON_KEY_PERMISSIONS);
 		}
 		catch(JSONException e) {
-			throw new IllegalArgumentException("The permissions JSON is missing.", e);
+			throw new IllegalArgumentException(
+					"The JSON information is missing the permissions key.",
+					e);
 		}
 		
 		try {
-			campaignCreationPrivilege = permissions.getBoolean(JSON_KEY_PERMISSIONS_CAMPAIGN_CREATION); 
+			isAdmin = permissionsJson.getBoolean(JSON_KEY_PERMISSIONS_ADMIN);
 		}
 		catch(JSONException e) {
-			throw new IllegalArgumentException("The campaign creation permission is missing from the list of permissions.", e);
+			throw new IllegalArgumentException(
+					"The permissions are missing the admin value.",
+					e);
 		}
 		
 		try {
-			JSONObject campaignsJson = information.getJSONObject(JSON_KEY_CAMPAIGNS);
-			
-			campaigns = new HashMap<String, String>(campaignsJson.length());
-			
-			Iterator<?> keys = campaignsJson.keys();
-			while(keys.hasNext()) {
-				String key = (String) keys.next();
-				
-				campaigns.put(key, campaignsJson.getString(key));
-			}	
+			isEnabled = 
+				permissionsJson.getBoolean(JSON_KEY_PERMISSIONS_ENABLED);
 		}
 		catch(JSONException e) {
-			throw new IllegalArgumentException("The campaigns JSON is missing or malformed.", e);
+			throw new IllegalArgumentException(
+					"The permissions are missing the enabled value.",
+					e);
 		}
 		
 		try {
-			JSONArray campaignRolesJson = information.getJSONArray(JSON_KEY_CAMPAIGN_ROLES);
-			int numRoles = campaignRolesJson.length();
-
-			campaignRoles = new HashSet<Campaign.Role>(numRoles);
+			isNewAccount = 
+				permissionsJson.getBoolean(JSON_KEY_PERMISSIONS_NEW_ACCOUNT);
+		}
+		catch(JSONException e) {
+			throw new IllegalArgumentException(
+					"The permissions are missing the new account value.",
+					e);
+		}
+		
+		try {
+			campaignCreationPrivilege = 
+				permissionsJson.getBoolean(
+						JSON_KEY_PERMISSIONS_CAMPAIGN_CREATION);
+		}
+		catch(JSONException e) {
+			throw new IllegalArgumentException(
+					"The permissions are missing the campaign creation value.",
+					e);
+		}
+		
+		JSONObject campaignsJson;
+		try {
+			campaignsJson = userInfo.getJSONObject(JSON_KEY_CAMPAIGNS);
+		}
+		catch(JSONException e) {
+			throw new IllegalArgumentException(
+					"The campaigns list is missing.",
+					e);
+		}
+		
+		campaigns = 
+			new HashMap<String, Set<Campaign.Role>>(campaignsJson.length());
+		Iterator<?> campaignIds = campaignsJson.keys();
+		while(campaignIds.hasNext()) {
+			String campaignId = (String) campaignIds.next();
 			
+			JSONArray rolesJson;
+			try {
+				rolesJson = campaignsJson.getJSONArray(campaignId);
+			}
+			catch(JSONException e) {
+				throw new IllegalArgumentException(
+						"The campaign list has changed while being read.",
+						e);
+			}
+			
+			int numRoles = rolesJson.length();
+			Set<Campaign.Role> roles = new HashSet<Campaign.Role>(numRoles);
 			for(int i = 0; i < numRoles; i++) {
-				campaignRoles.add(Campaign.Role.getValue(campaignRolesJson.getString(i)));
+				try {
+					roles.add(
+							Campaign.Role.getValue(
+									rolesJson.getString(i)));
+				}
+				catch(JSONException e) {
+					throw new IllegalArgumentException(
+							"The campaign list has changed while being read.",
+							e);
+				}
+				catch(IllegalArgumentException e) {
+					throw new IllegalArgumentException(
+							"The campaign role is unknown.",
+							e);
+				}
 			}
-		}
-		catch(JSONException e) {
-			throw new IllegalArgumentException("The campaign roles JSON is missing.", e);
-		}
-		catch(IllegalArgumentException e) {
-			throw new IllegalArgumentException("The campaign roles JSON contains an unknown role.", e);
+			
+			campaigns.put(campaignId, roles);
 		}
 		
+		JSONObject classesJson;
 		try {
-			JSONObject classesJson = information.getJSONObject(JSON_KEY_CLASSES);
+			classesJson = userInfo.getJSONObject(JSON_KEY_CLASSES);
+		}
+		catch(JSONException e) {
+			throw new IllegalArgumentException(
+					"The class list is missing.",
+					e);
+		}
+		
+		classes = new HashMap<String, Clazz.Role>(classesJson.length());
+		Iterator<?> classIds = classesJson.keys();
+		while(classIds.hasNext()) {
+			String classId = (String) classIds.next();
 			
-			classes = new HashMap<String, String>(classesJson.length());
-			
-			Iterator<?> keys = classesJson.keys();
-			while(keys.hasNext()) {
-				String key = (String) keys.next();
-				
-				classes.put(key, classesJson.getString(key));
+			Clazz.Role role;
+			try {
+				role = Clazz.Role.getValue(classesJson.getString(classId));
 			}
-		}
-		catch(JSONException e) {
-			throw new IllegalArgumentException("The classes JSON is missing or malformed.", e);
-		}
-		
-		try {
-			JSONArray classRolesJson = information.getJSONArray(JSON_KEY_CLASS_ROLES);
-			int numRoles = classRolesJson.length();
-			
-			classRoles = new HashSet<Clazz.Role>(numRoles);
-			
-			for(int i = 0; i < numRoles; i++) {
-				classRoles.add(Clazz.Role.getValue(classRolesJson.getString(i)));
+			catch(JSONException e) {
+				throw new IllegalArgumentException(
+						"The class list has changed while being read.",
+						e);
 			}
-		}
-		catch(JSONException e) {
-			throw new IllegalArgumentException("The class roles JSON is missing.", e);
-		}
-		catch(IllegalArgumentException e) {
-			throw new IllegalArgumentException("The class roles JSON contains an unknown role.", e);
-		}
-	}
-	
-	/**
-	 * Returns whether or not the user is allowed to create campaigns.
-	 * 
-	 * @return Whether or not the user is allowed to create campaigns.
-	 */
-	public boolean getCampaignCreationPrivilege() {
-		return campaignCreationPrivilege;
-	}
-	
-	/**
-	 * Adds a new campaign to the list of campaigns.
-	 * 
-	 * @param campaignId The campaign's unique identifier.
-	 * 
-	 * @param campaignName The campaign's name.
-	 */
-	public void addCampaign(String campaignId, String campaignName) {
-		if(campaignId == null) {
-			throw new NullPointerException("The campaign ID is null.");
-		}
-		else if(campaignName == null) {
-			throw new NullPointerException("The campaign name is null.");
+			catch(IllegalArgumentException e) {
+				throw new IllegalArgumentException(
+						"The class role is unknown.",
+						e);
+			}
+			
+			classes.put(classId, role);
 		}
 		
-		campaigns.put(campaignId, campaignName);
-	}
-	
-	/**
-	 * Adds a Map of campaign ID to campaign names associations to the current
-	 * Map.
-	 * 
-	 * @param campaigns A Map of campaign IDs to campaign names to be added to
-	 * 					the current Map.
-	 */
-	public void addCampaigns(Map<String, String> campaigns) {
-		if(campaigns == null) {
-			throw new NullPointerException("The campaign ID to name map is null.");
-		}
-		
-		this.campaigns.putAll(campaigns);
-	}
-	
-	/**
-	 * Returns an unmodifiable map of all of the campaigns associated with the 
-	 * user.
-	 * 
-	 * @return An unmodifiable map of all of the campaigns associated with a
-	 * 		   user.
-	 */
-	public Map<String, String> getCampaigns() {
-		return Collections.unmodifiableMap(campaigns);
-	}
-	
-	/**
-	 * Adds a new campaign role.
-	 * 
-	 * @param campaignRole A campaign role to be added to be added to the list.
-	 */
-	public void addCampaignRole(Campaign.Role campaignRole) {
-		if(campaignRole == null) {
-			throw new NullPointerException("The campaign role is null.");
-		}
-		
-		campaignRoles.add(campaignRole);
-	}
-	
-	/**
-	 * Adds a Collection of campaign roles to the current list of campaign 
-	 * roles.
-	 * 
-	 * @param campaignRoles A Collection of campaign roles to be added to the
-	 * 						list.
-	 */
-	public void addCampaignRoles(Collection<Campaign.Role> campaignRoles) {
-		if(campaignRoles == null) {
-			throw new NullPointerException("The collection of campaign roles is null.");
-		}
-		
-		this.campaignRoles.addAll(campaignRoles);
-	}
-	
-	/**
-	 * Adds a class ID and a class name association to the current Map.
-	 * 
-	 * @param classId The class' unique identifier.
-	 * 
-	 * @param className The class' name.
-	 */
-	public void addClass(String classId, String className) {
-		if(classId == null) {
-			throw new NullPointerException("The class ID is null.");
-		}
-		else if(className == null) {
-			throw new NullPointerException("The class name is null.");
-		}
-
-		classes.put(classId, className);
-	}
-	
-	/**
-	 * Adds a Map of class ID to class name associations to the current Map.
-	 * 
-	 * @param classes A Collection of class roles to be added to the list.
-	 */
-	public void addClasses(Map<String, String> classes) {
-		if(classes == null) {
-			throw new NullPointerException("The class ID to name map is null.");
-		}
-
-		this.classes.putAll(classes);
-	}
-	
-	/**
-	 * Returns an unmodifiable map of the classes associated with the user.
-	 * 
-	 * @return An unmodifiable map of the classes associated with the user.
-	 */
-	public Map<String, String> getClasses() {
-		return Collections.unmodifiableMap(classes);
-	}
-	
-	/**
-	 * Adds a new class role to the list of class roles.
-	 * 
-	 * @param classRole The class role to be added.
-	 */
-	public void addClassRole(Clazz.Role classRole) {
-		if(classRole == null) {
-			throw new NullPointerException("The class role is null.");
-		}
-		
-		classRoles.add(classRole);
-	}
-	
-	/**
-	 * Adds a Collection of class roles to the current list of class roles.
-	 * 
-	 * @param classRoles A Collection of class roles to add to the current list
-	 * 					 of class roles.
-	 */
-	public void addClassRoles(Collection<Clazz.Role> classRoles) {
-		if(classRoles == null) {
-			throw new NullPointerException("The collection of class roles is null.");
-		}
-
-		this.classRoles.addAll(classRoles);
-	}
-	
-	/**
-	 * Creates a JSONObject representation of this instance of this class.
-	 * 
-	 * @return A JSONObject representation of this object.
-	 */
-	public JSONObject toJsonObject() {
+		UserPersonal tPersonalInfo;
 		try {
-			JSONObject result = new JSONObject();
-			
-			JSONObject permissions = new JSONObject();
-			permissions.put(JSON_KEY_PERMISSIONS_CAMPAIGN_CREATION, campaignCreationPrivilege);
-			result.put(JSON_KEY_PERMISSIONS, permissions);
-			
-			result.put(JSON_KEY_CAMPAIGNS, campaigns);
-			result.put(JSON_KEY_CAMPAIGN_ROLES, campaignRoles);
-			
-			result.put(JSON_KEY_CLASSES, classes);
-			result.put(JSON_KEY_CLASS_ROLES, classRoles);
-			
-			return result;
+			tPersonalInfo = 
+				new UserPersonal(
+						userInfo.getJSONObject(
+								JSON_KEY_PERSONAL_INFO));
 		}
 		catch(JSONException e) {
-			LOGGER.error("There was an error building the JSONObject.", e);
-			return null;
+			tPersonalInfo = null;
 		}
+		personalInfo = tPersonalInfo;
+	}
+	
+	/**
+	 * Serializes the user's information object.
+	 * 
+	 * @return A JSONObject representing this user information.
+	 * 
+	 * @throws JSONException Thrown if there is a problem building the JSON.
+	 */
+	public JSONObject toJson() throws JSONException {
+		JSONObject result = new JSONObject();
+		
+		JSONObject permissionsJson = new JSONObject();
+		permissionsJson.put(
+				JSON_KEY_PERMISSIONS_ADMIN, 
+				isAdmin);
+		permissionsJson.put(
+				JSON_KEY_PERMISSIONS_ENABLED, 
+				isEnabled);
+		permissionsJson.put(
+				JSON_KEY_PERMISSIONS_NEW_ACCOUNT, 
+				isNewAccount);
+		permissionsJson.put(
+				JSON_KEY_PERMISSIONS_CAMPAIGN_CREATION, 
+				campaignCreationPrivilege);
+		result.put(JSON_KEY_PERMISSIONS, permissionsJson);
+		
+		result.put(JSON_KEY_CAMPAIGNS, campaigns);
+		result.put(JSON_KEY_CLASSES, classes);
+		
+		if(personalInfo != null) {
+			result.put(JSON_KEY_PERSONAL_INFO, personalInfo.toJsonObject());
+		}
+		
+		return result;
 	}
 }

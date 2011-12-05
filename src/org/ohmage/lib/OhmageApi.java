@@ -40,7 +40,7 @@ import org.ohmage.domain.Clazz;
 import org.ohmage.domain.Document;
 import org.ohmage.domain.MobilityPoint;
 import org.ohmage.domain.ServerConfig;
-import org.ohmage.domain.UserInformation;
+import org.ohmage.domain.UserSummary;
 import org.ohmage.domain.UserPersonal;
 import org.ohmage.domain.campaign.Campaign;
 import org.ohmage.domain.campaign.SurveyResponse;
@@ -2288,13 +2288,13 @@ public class OhmageApi {
 	 * 
 	 * @param client The client value.
 	 * 
-	 * @return A UserInformation object about this user.
+	 * @return A UserSummary object about this user.
 	 * 
 	 * @throws ApiException Thrown if there is a library error.
 	 * 
 	 * @throws RequestErrorException Thrown if the server returns an error.
 	 */
-	public UserInformation getUserInformation(final String authenticationToken,
+	public UserSummary getUserInformation(final String authenticationToken,
 			final String client) throws ApiException, RequestErrorException {
 		
 		Map<String, Object> parameters = new HashMap<String, Object>();
@@ -2332,7 +2332,7 @@ public class OhmageApi {
 		}
 
 		try {
-			return new UserInformation(response.getJSONObject((String) response.keys().next()));
+			return new UserSummary(response.getJSONObject((String) response.keys().next()));
 		} 
 		catch(JSONException e) {
 			throw new ApiException("The user's information was not well-formed JSON.", e);

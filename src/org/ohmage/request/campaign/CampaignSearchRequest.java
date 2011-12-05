@@ -43,20 +43,20 @@ import org.ohmage.validator.CampaignValidators;
  *     <td>{@value org.ohmage.request.InputKeys#CAMPAIGN_URN}</td>
  *     <td>Part or all of a campaign ID that will limit the results to only 
  *       those campaigns that contain this value in their ID.</td>
- *     <td>true</td>
+ *     <td>false</td>
  *   </tr>
  *   <tr>
  *     <td>{@value org.ohmage.request.InputKeys#CAMPAIGN_NAME}</td>
  *     <td>Part or all of a campaign name that will limit the results to only 
  *       those campaigns that contain this value in their name.</td>
- *     <td>true</td>
+ *     <td>false</td>
  *   </tr>
  *   <tr>
  *     <td>{@value org.ohmage.request.InputKeys#DESCRIPTION}</td>
  *     <td>Part or all of a campaign description that will limit the results to 
  *       only those campaigns that contain this value in their description.
  *       </td>
- *     <td>true</td>
+ *     <td>false</td>
  *   </tr>
  *   <tr>
  *     <td>{@value org.ohmage.request.InputKeys#XML}</td>
@@ -65,36 +65,36 @@ import org.ohmage.validator.CampaignValidators;
  *       in campaign creation and update, this should not be an attached file
  *       and should instead be a parameter like all of the other parameters.
  *       </td>
- *     <td>true</td>
+ *     <td>false</td>
  *   </tr>
  *   <tr>
  *     <td>{@value org.ohmage.request.InputKeys#CAMPAIGN_AUTHORED_BY}</td>
  *     <td>Part or all of a campaign's authored by value that will limit the  
  *       result to only those campaigns that contain this value in their 
  *       authored by value.</td>
- *     <td>true</td>
+ *     <td>false</td>
  *   </tr>
  *   <tr>
  *     <td>{@value org.ohmage.request.InputKeys#START_DATE}</td>
  *     <td>Limits the results to only those that took place on or after this
  *       date.</td>
- *     <td>true</td>
+ *     <td>false</td>
  *   </tr>
  *   <tr>
  *     <td>{@value org.ohmage.request.InputKeys#END_DATE}</td>
  *     <td>Limits the results to only those that took place on or before this
  *       date.</td>
- *     <td>true</td>
+ *     <td>false</td>
  *   </tr>
  *   <tr>
  *     <td>{@value org.ohmage.request.InputKeys#PRIVACY_STATE}</td>
  *     <td>Limits the results to only those that have this privacy state.</td>
- *     <td>true</td>
+ *     <td>false</td>
  *   </tr>
  *   <tr>
  *     <td>{@value org.ohmage.request.InputKeys#RUNNING_STATE}</td>
  *     <td>Limits the results to only those that have this running state.</td>
- *     <td>true</td>
+ *     <td>false</td>
  *   </tr>
  * </table>
  * 

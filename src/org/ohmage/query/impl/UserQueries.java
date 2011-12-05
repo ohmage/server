@@ -3,6 +3,7 @@ package org.ohmage.query.impl;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Collection;
+import java.util.List;
 
 import javax.sql.DataSource;
 
@@ -14,6 +15,7 @@ import org.ohmage.exception.CacheMissException;
 import org.ohmage.exception.DataAccessException;
 import org.ohmage.query.IUserQueries;
 import org.springframework.jdbc.core.RowMapper;
+import org.springframework.jdbc.core.SingleColumnRowMapper;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionException;
@@ -38,15 +40,26 @@ public class UserQueries extends Query implements IUserQueries {
 			"WHERE username = ?" +
 		")";
 	
-	// Returns a boolean representing whether a user is an admin or not. If the
-	// user doesn't exist, false is returned.
+	// Returns a single, boolean row if the user exists which explains if the
+	// user is an admin or not.
 	private static final String SQL_EXISTS_USER_IS_ADMIN = 
-		"SELECT EXISTS(" +
-			"SELECT username " +
-			"FROM user " +
-			"WHERE username = ? " +
-			"AND admin = true" +
-		")";
+		"SELECT admin " +
+		"FROM user " +
+		"WHERE username = ?";
+	
+	// Returns a single, boolean row if the user exists which explains if the
+	// user's account is enabled.
+	private static final String SQL_EXISTS_USER_IS_ENABLED = 
+		"SELECT enabled " +
+		"FROM user " +
+		"WHERE username = ?";
+	
+	// Returns a single, boolean row if the user exists which explains if the
+	// user's account is new.
+	private static final String SQL_EXISTS_USER_IS_NEW_ACCOUNT = 
+		"SELECT new_account " +
+		"FROM user " +
+		"WHERE username = ?";
 	
 	// Returns a boolean representing whether a user can create campaigns or 
 	// not. If the user doesn't exist, false is returned.
@@ -70,6 +83,71 @@ public class UserQueries extends Query implements IUserQueries {
 				"WHERE username = ?" +
 			")" +
 		")";
+	
+	private static final String SQL_GET_ALL_USERNAMES =
+		"SELECT username " +
+		"FROM user";
+	
+	private static final String SQL_GET_USERNAMES_LIKE_USERNAME =
+		"SELECT username " +
+		"FROM user " +
+		"WHERE username LIKE ?";
+	
+	private static final String SQL_GET_USERNAMES_WITH_ADMIN_VALUE =
+		"SELECT username " +
+		"FROM user " +
+		"WHERE admin = ?";
+	
+	private static final String SQL_GET_USERNAMES_WITH_ENABLED_VALUE =
+		"SELECT username " +
+		"FROM user " +
+		"WHERE enabled = ?";
+	
+	private static final String SQL_GET_USERNAMES_WITH_NEW_ACCOUNT_VALUE =
+		"SELECT username " +
+		"FROM user " +
+		"WHERE new_account = ?";
+	
+	private static final String SQL_GET_USERNAMES_WITH_CAMPAIGN_CREATION_PRIVILEGE =
+		"SELECT username " +
+		"FROM user " +
+		"WHERE campaign_creation_privilege = ?";
+	
+	private static final String SQL_GET_USERNAMES_LIKE_FIRST_NAME =
+		"SELECT username " +
+		"FROM user, user_personal " +
+		"WHERE user.id = user_id " +
+		"AND first_name LIKE ?";
+	
+	private static final String SQL_GET_USERNAMES_LIKE_LAST_NAME =
+		"SELECT username " +
+		"FROM user, user_personal " +
+		"WHERE user.id = user_id " +
+		"AND last_name LIKE ?";
+	
+	private static final String SQL_GET_USERNAMES_LIKE_ORGANIZATION =
+		"SELECT username " +
+		"FROM user, user_personal " +
+		"WHERE user.id = user_id " +
+		"AND organization LIKE ?";
+	
+	private static final String SQL_GET_USERNAMES_LIKE_PERSONAL_ID =
+		"SELECT username " +
+		"FROM user, user_personal " +
+		"WHERE user.id = user_id " +
+		"AND personal_id LIKE ?";
+	
+	private static final String SQL_GET_USERNAMES_LIKE_EMAIL_ADDRESS =
+		"SELECT username " +
+		"FROM user, user_personal " +
+		"WHERE user.id = user_id " +
+		"AND email_address LIKE ?";
+	
+	private static final String SQL_GET_USERNAMES_LIKE_JSON_DATA =
+		"SELECT username " +
+		"FROM user, user_personal " +
+		"WHERE user.id = user_id " +
+		"AND json_data LIKE ?";
 	
 	// Retrieves the personal information about a user.
 	private static final String SQL_GET_USER_PERSONAL =
@@ -319,6 +397,44 @@ public class UserQueries extends Query implements IUserQueries {
 			throw new DataAccessException("Error executing the following SQL '" + SQL_EXISTS_USER_IS_ADMIN + "' with parameter: " + username, e);
 		}
 	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.ohmage.query.IUserQueries#userIsEnabled(java.lang.String)
+	 */
+	@Override
+	public Boolean userIsEnabled(String username) throws DataAccessException {
+		try {
+			return getJdbcTemplate().queryForObject(
+					SQL_EXISTS_USER_IS_ENABLED, 
+					new String[] { username }, 
+					Boolean.class
+					);
+		}
+		catch(org.springframework.dao.DataAccessException e) {
+			throw new DataAccessException("Error executing the following SQL '" + SQL_EXISTS_USER_IS_ENABLED + "' with parameter: " + username, e);
+		}
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.ohmage.query.IUserQueries#userHasNewAccount(java.lang.String)
+	 */
+	@Override
+	public Boolean userHasNewAccount(String username)
+			throws DataAccessException {
+		
+		try {
+			return getJdbcTemplate().queryForObject(
+					SQL_EXISTS_USER_IS_NEW_ACCOUNT, 
+					new String[] { username }, 
+					Boolean.class
+					);
+		}
+		catch(org.springframework.dao.DataAccessException e) {
+			throw new DataAccessException("Error executing the following SQL '" + SQL_EXISTS_USER_IS_NEW_ACCOUNT + "' with parameter: " + username, e);
+		}
+	}
 	
 	/**
 	 * Gets whether or not the user is allowed to create campaigns.
@@ -366,6 +482,301 @@ public class UserQueries extends Query implements IUserQueries {
 		catch(org.springframework.dao.DataAccessException e) {
 			LOGGER.error("Error executing the following SQL '" + SQL_EXISTS_USER_PERSONAL + "' with parameter: " + username, e);
 			throw new DataAccessException("Error executing the following SQL '" + SQL_EXISTS_USER_PERSONAL + "' with parameter: " + username, e);
+		}
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.ohmage.query.IUserQueries#getAllUsernames()
+	 */
+	@Override
+	public List<String> getAllUsernames() throws DataAccessException {
+		try {
+			return getJdbcTemplate().query(
+					SQL_GET_ALL_USERNAMES,
+					new SingleColumnRowMapper<String>()
+				);
+		}
+		catch(org.springframework.dao.DataAccessException e) {
+			throw new DataAccessException(
+					"Error executing SQL '" +
+						SQL_GET_ALL_USERNAMES,
+					e);
+		}
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.ohmage.query.IUserQueries#getUsernamesFromPartialUsername(java.lang.String)
+	 */
+	@Override
+	public List<String> getUsernamesFromPartialUsername(String username)
+			throws DataAccessException {
+
+		try {
+			return getJdbcTemplate().query(
+					SQL_GET_USERNAMES_LIKE_USERNAME, 
+					new Object[] { "%" + username + "%" }, 
+					new SingleColumnRowMapper<String>()
+				);
+		}
+		catch(org.springframework.dao.DataAccessException e) {
+			throw new DataAccessException(
+					"Error executing SQL '" +
+						SQL_GET_USERNAMES_LIKE_USERNAME +
+						"' with parameter: " +
+						"%" + username + "%",
+					e);
+		}
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.ohmage.query.IUserQueries#getUsernamesWithAdminValue(java.lang.Boolean)
+	 */
+	@Override
+	public List<String> getUsernamesWithAdminValue(Boolean admin)
+			throws DataAccessException {
+
+		try {
+			return getJdbcTemplate().query(
+					SQL_GET_USERNAMES_WITH_ADMIN_VALUE, 
+					new Object[] { admin }, 
+					new SingleColumnRowMapper<String>()
+				);
+		}
+		catch(org.springframework.dao.DataAccessException e) {
+			throw new DataAccessException(
+					"Error executing SQL '" +
+						SQL_GET_USERNAMES_WITH_ADMIN_VALUE +
+						"' with parameter: " +
+						admin,
+					e);
+		}
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.ohmage.query.IUserQueries#getUsernamesWithEnabledValue(java.lang.Boolean)
+	 */
+	@Override
+	public List<String> getUsernamesWithEnabledValue(Boolean enabled)
+			throws DataAccessException {
+
+		try {
+			return getJdbcTemplate().query(
+					SQL_GET_USERNAMES_WITH_ENABLED_VALUE, 
+					new Object[] { enabled }, 
+					new SingleColumnRowMapper<String>()
+				);
+		}
+		catch(org.springframework.dao.DataAccessException e) {
+			throw new DataAccessException(
+					"Error executing SQL '" +
+						SQL_GET_USERNAMES_WITH_ENABLED_VALUE +
+						"' with parameter: " +
+						enabled,
+					e);
+		}
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.ohmage.query.IUserQueries#getUsernamesWithNewAccountValue(java.lang.Boolean)
+	 */
+	@Override
+	public List<String> getUsernamesWithNewAccountValue(Boolean newAccount)
+			throws DataAccessException {
+
+		try {
+			return getJdbcTemplate().query(
+					SQL_GET_USERNAMES_WITH_NEW_ACCOUNT_VALUE, 
+					new Object[] { "%" + newAccount + "%" }, 
+					new SingleColumnRowMapper<String>()
+				);
+		}
+		catch(org.springframework.dao.DataAccessException e) {
+			throw new DataAccessException(
+					"Error executing SQL '" +
+						SQL_GET_USERNAMES_WITH_NEW_ACCOUNT_VALUE +
+						"' with parameter: " +
+						newAccount,
+					e);
+		}
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.ohmage.query.IUserQueries#getUsernamesWithCampaignCreationPrivilege(java.lang.Boolean)
+	 */
+	@Override
+	public List<String> getUsernamesWithCampaignCreationPrivilege(
+			Boolean campaignCreationPrivilege) throws DataAccessException {
+
+		try {
+			return getJdbcTemplate().query(
+					SQL_GET_USERNAMES_WITH_CAMPAIGN_CREATION_PRIVILEGE, 
+					new Object[] { "%" + campaignCreationPrivilege + "%" }, 
+					new SingleColumnRowMapper<String>()
+				);
+		}
+		catch(org.springframework.dao.DataAccessException e) {
+			throw new DataAccessException(
+					"Error executing SQL '" +
+						SQL_GET_USERNAMES_WITH_CAMPAIGN_CREATION_PRIVILEGE +
+						"' with parameter: " +
+						campaignCreationPrivilege,
+					e);
+		}
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.ohmage.query.IUserQueries#getUsernamesFromPartialFirstName(java.lang.String)
+	 */
+	@Override
+	public List<String> getUsernamesFromPartialFirstName(String partialFirstName)
+			throws DataAccessException {
+
+		try {
+			return getJdbcTemplate().query(
+					SQL_GET_USERNAMES_LIKE_FIRST_NAME, 
+					new Object[] { "%" + partialFirstName + "%" }, 
+					new SingleColumnRowMapper<String>()
+				);
+		}
+		catch(org.springframework.dao.DataAccessException e) {
+			throw new DataAccessException(
+					"Error executing SQL '" +
+						SQL_GET_USERNAMES_LIKE_FIRST_NAME +
+						"' with parameter: " +
+						"%" + partialFirstName + "%",
+					e);
+		}
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.ohmage.query.IUserQueries#getUsernamesFromPartialLastName(java.lang.String)
+	 */
+	@Override
+	public List<String> getUsernamesFromPartialLastName(String partialLastName)
+			throws DataAccessException {
+
+		try {
+			return getJdbcTemplate().query(
+					SQL_GET_USERNAMES_LIKE_LAST_NAME, 
+					new Object[] { "%" + partialLastName + "%" }, 
+					new SingleColumnRowMapper<String>()
+				);
+		}
+		catch(org.springframework.dao.DataAccessException e) {
+			throw new DataAccessException(
+					"Error executing SQL '" +
+						SQL_GET_USERNAMES_LIKE_LAST_NAME +
+						"' with parameter: " +
+						"%" + partialLastName + "%",
+					e);
+		}
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.ohmage.query.IUserQueries#getUsernamesFromPartialOrganization(java.lang.String)
+	 */
+	@Override
+	public List<String> getUsernamesFromPartialOrganization(
+			String partialOrganization) throws DataAccessException {
+
+		try {
+			return getJdbcTemplate().query(
+					SQL_GET_USERNAMES_LIKE_ORGANIZATION, 
+					new Object[] { "%" + partialOrganization + "%" }, 
+					new SingleColumnRowMapper<String>()
+				);
+		}
+		catch(org.springframework.dao.DataAccessException e) {
+			throw new DataAccessException(
+					"Error executing SQL '" +
+						SQL_GET_USERNAMES_LIKE_ORGANIZATION +
+						"' with parameter: " +
+						"%" + partialOrganization + "%",
+					e);
+		}
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.ohmage.query.IUserQueries#getUsernamesFromPartialPersonalId(java.lang.String)
+	 */
+	@Override
+	public List<String> getUsernamesFromPartialPersonalId(
+			String partialPersonalId) throws DataAccessException {
+
+		try {
+			return getJdbcTemplate().query(
+					SQL_GET_USERNAMES_LIKE_PERSONAL_ID, 
+					new Object[] { "%" + partialPersonalId + "%" }, 
+					new SingleColumnRowMapper<String>()
+				);
+		}
+		catch(org.springframework.dao.DataAccessException e) {
+			throw new DataAccessException(
+					"Error executing SQL '" +
+						SQL_GET_USERNAMES_LIKE_PERSONAL_ID +
+						"' with parameter: " +
+						"%" + partialPersonalId + "%",
+					e);
+		}
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.ohmage.query.IUserQueries#getUsernamesFromPartialEmailAddress(java.lang.String)
+	 */
+	@Override
+	public List<String> getUsernamesFromPartialEmailAddress(
+			String partialEmailAddress) throws DataAccessException {
+
+		try {
+			return getJdbcTemplate().query(
+					SQL_GET_USERNAMES_LIKE_EMAIL_ADDRESS, 
+					new Object[] { "%" + partialEmailAddress + "%" }, 
+					new SingleColumnRowMapper<String>()
+				);
+		}
+		catch(org.springframework.dao.DataAccessException e) {
+			throw new DataAccessException(
+					"Error executing SQL '" +
+						SQL_GET_USERNAMES_LIKE_EMAIL_ADDRESS +
+						"' with parameter: " +
+						"%" + partialEmailAddress + "%",
+					e);
+		}
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.ohmage.query.IUserQueries#getUsernamesFromPartialJsonData(java.lang.String)
+	 */
+	@Override
+	public List<String> getUsernamesFromPartialJsonData(String partialJsonData)
+			throws DataAccessException {
+		
+		try {
+			return getJdbcTemplate().query(
+					SQL_GET_USERNAMES_LIKE_JSON_DATA, 
+					new Object[] { "%" + partialJsonData + "%" }, 
+					new SingleColumnRowMapper<String>()
+				);
+		}
+		catch(org.springframework.dao.DataAccessException e) {
+			throw new DataAccessException(
+					"Error executing SQL '" +
+						SQL_GET_USERNAMES_LIKE_JSON_DATA +
+						"' with parameter: " +
+						"%" + partialJsonData + "%",
+					e);
 		}
 	}
 	

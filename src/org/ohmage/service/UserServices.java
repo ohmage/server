@@ -2,6 +2,8 @@ package org.ohmage.service;
 
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -11,6 +13,7 @@ import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.domain.Clazz;
 import org.ohmage.domain.UserInformation;
 import org.ohmage.domain.UserPersonal;
+import org.ohmage.domain.UserSummary;
 import org.ohmage.domain.campaign.Campaign;
 import org.ohmage.exception.DataAccessException;
 import org.ohmage.exception.ServiceException;
@@ -313,22 +316,312 @@ public final class UserServices {
 	}
 	
 	/**
-	 * Gathers the personal information about a user.
+	 * Searches through all of the usernames in the system and removes those 
+	 * that don't match a given parameter. If a parameter is null, it is 
+	 * ignored. Therefore, if all parameters are null, all usernames in the
+	 * system are returned.
 	 * 
-	 * @param username The username of the user whose information is being
+	 * @param partialUsername Limits the results to only those usernames that
+	 * 						  contain this value.
+	 * 
+	 * @param admin Limits the results to only those usernames that belong to
+	 * 				users whose admin value matches this one.
+	 * 
+	 * @param enabled Limits the results to only those usernames that belong to
+	 * 				  users whose enabled value matches this one.
+	 * 
+	 * @param newAccount Limits the results to only those usernames that belong
+	 * 					 to users whose new account value matches this one.
+	 * 
+	 * @param campaignCreationPrivilege Limits the results to only those 
+	 * 									usernames that belong to users whose	
+	 * 									campaign creation privilege matches 
+	 * 									this one.
+	 * 
+	 * @param partialFirstName Limits the results to only those usernames that
+	 * 						   belong to users that have personal information
+	 * 						   and their first name contains this value.
+	 * 
+	 * @param partialLastName Limits the results to only those usernames that
+	 * 						  belong to users that have personal information 
+	 * 						  and their last name contains this value.
+	 * 
+	 * @param partialOrganization Limits the results to only those usernames
+	 * 							  that belong to users that have personal 
+	 * 							  information and their organization value 
+	 * 							  contains this value.
+	 * 
+	 * @param partialPersonalId Limits the results to only those usernames that
+	 * 							belong to users that have personal information
+	 * 							and their personal ID contains this value.
+	 * 
+	 * @param partialEmailAddress Limits the results to only those usernames
+	 * 							  that belong to users that have personal
+	 * 							  information, have an email address, and that
+	 * 							  email address contains this value.
+	 * 
+	 * @param partialJsonData Limits the results to only those usernames that
+	 * 						  belong to users that have personal information,
+	 * 						  have JSON data, and that JSON data contains this
+	 * 						  value.
+	 * 
+	 * @return The, possibly empty but never null, set of usernames.
+	 * 
+	 * @throws ServiceException Thrown if there is an error.
+	 */
+	public Set<String> userSearch(
+			final String partialUsername,
+			final Boolean admin,
+			final Boolean enabled,
+			final Boolean newAccount,
+			final Boolean campaignCreationPrivilege,
+			final String partialFirstName,
+			final String partialLastName,
+			final String partialOrganization,
+			final String partialPersonalId,
+			final String partialEmailAddress,
+			final String partialJsonData)
+			throws ServiceException {
+		
+		try {
+			Set<String> result = null;
+			
+			if(partialUsername != null) {
+				result = 
+					new HashSet<String>(
+							userQueries.getUsernamesFromPartialUsername(
+									partialUsername));
+			}
+			
+			if(admin != null) {
+				List<String> usernames = 
+					userQueries.getUsernamesWithAdminValue(admin);
+				
+				if(result == null) {
+					result = new HashSet<String>(usernames);
+				}
+				else {
+					result.retainAll(usernames);
+				}
+			}
+			
+			if(enabled != null) {
+				List<String> usernames = 
+					userQueries.getUsernamesWithEnabledValue(enabled);
+				
+				if(result == null) {
+					result = new HashSet<String>(usernames);
+				}
+				else {
+					result.retainAll(usernames);
+				}
+			}
+			
+			if(newAccount != null) {
+				List<String> usernames = 
+					userQueries.getUsernamesWithNewAccountValue(newAccount);
+				
+				if(result == null) {
+					result = new HashSet<String>(usernames);
+				}
+				else {
+					result.retainAll(usernames);
+				}
+			}
+			
+			if(campaignCreationPrivilege != null) {
+				List<String> usernames = 
+					userQueries.getUsernamesWithCampaignCreationPrivilege(
+							campaignCreationPrivilege);
+				
+				if(result == null) {
+					result = new HashSet<String>(usernames);
+				}
+				else {
+					result.retainAll(usernames);
+				}
+			}
+			
+			if(partialFirstName != null) {
+				List<String> usernames = 
+					userQueries.getUsernamesFromPartialFirstName(
+							partialFirstName);
+				
+				if(result == null) {
+					result = new HashSet<String>(usernames);
+				}
+				else {
+					result.retainAll(usernames);
+				}
+			}
+			
+			if(partialLastName != null) {
+				List<String> usernames = 
+					userQueries.getUsernamesFromPartialLastName(
+							partialLastName);
+				
+				if(result == null) {
+					result = new HashSet<String>(usernames);
+				}
+				else {
+					result.retainAll(usernames);
+				}
+			}
+			
+			if(partialOrganization != null) {
+				List<String> usernames = 
+					userQueries.getUsernamesFromPartialOrganization(
+							partialOrganization);
+				
+				if(result == null) {
+					result = new HashSet<String>(usernames);
+				}
+				else {
+					result.retainAll(usernames);
+				}
+			}
+			
+			if(partialPersonalId != null) {
+				List<String> usernames = 
+					userQueries.getUsernamesFromPartialPersonalId(
+							partialPersonalId);
+				
+				if(result == null) {
+					result = new HashSet<String>(usernames);
+				}
+				else {
+					result.retainAll(usernames);
+				}
+			}
+			
+			if(partialEmailAddress != null) {
+				List<String> usernames = 
+					userQueries.getUsernamesFromPartialEmailAddress(
+							partialEmailAddress);
+				
+				if(result == null) {
+					result = new HashSet<String>(usernames);
+				}
+				else {
+					result.retainAll(usernames);
+				}
+			}
+			
+			if(partialJsonData != null) {
+				List<String> usernames = 
+					userQueries.getUsernamesFromPartialJsonData(
+							partialJsonData);
+				
+				if(result == null) {
+					result = new HashSet<String>(usernames);
+				}
+				else {
+					result.retainAll(usernames);
+				}
+			}
+			
+			if(result == null) {
+				result = new HashSet<String>(userQueries.getAllUsernames());
+			}
+			
+			return result;
+		}
+		catch(DataAccessException e) {
+			throw new ServiceException(e);
+		}
+	}
+	
+	/**
+	 * Gathers all of the information about a user.
+	 * 
+	 * @param username The username of the user about which to gather the
+	 * 				   information.
+	 * 
+	 * @return The UserInformation object with the information about the user.
+	 * 
+	 * @throws ServiceException There was an error.
+	 */
+	public UserInformation getUserInformation(final String username) 
+			throws ServiceException{
+		
+		try {
+			Boolean admin = userQueries.userIsAdmin(username);
+			if(admin == null) {
+				throw new ServiceException("The user doesn't exist.");
+			}
+			
+			Boolean enabled = userQueries.userIsEnabled(username);
+			if(enabled == null) {
+				throw new ServiceException("The user doesn't exist.");
+			}
+			
+			Boolean newAccount = userQueries.userHasNewAccount(username);
+			if(newAccount == null) {
+				throw new ServiceException("The user doesn't exist.");
+			}
+			
+			Boolean campaignCreationPrivilege = 
+				userQueries.userCanCreateCampaigns(username);
+			if(campaignCreationPrivilege == null) {
+				throw new ServiceException("The user doesn't exist.");
+			}
+			
+			Map<String, Set<Campaign.Role>> campaigns = 
+				new HashMap<String, Set<Campaign.Role>>();
+			Collection<String> campaignIds = 
+				userCampaignQueries.
+					getCampaignIdsAndNameForUser(username).
+						keySet();
+			for(String campaignId : campaignIds) {
+				Set<Campaign.Role> roles =
+					new HashSet<Campaign.Role>(
+							userCampaignQueries.getUserCampaignRoles(
+									username, campaignId));
+				
+				campaigns.put(campaignId, roles);
+			}
+			
+			Map<String, Clazz.Role> classes =
+				new HashMap<String, Clazz.Role>();
+			Collection<String> classIds =
+				userClassQueries.getClassIdsAndNameForUser(username).keySet();
+			for(String classId : classIds) {
+				classes.put(
+						classId, 
+						userClassQueries.getUserClassRole(classId, username));
+			}
+			
+			return new UserInformation(
+					admin, 
+					enabled, 
+					newAccount, 
+					campaignCreationPrivilege,
+					campaigns,
+					classes,
+					userQueries.getPersonalInfoForUser(username));
+		}
+		catch(DataAccessException e) {
+			throw new ServiceException(e);
+		}
+	}
+	
+	/**
+	 * Gathers the summary about a user.
+	 * 
+	 * @param username The username of the user whose summary is being 
 	 * 				   requested.
 	 * 
-	 * @return Returns a UserInformation object that contains the necessary
+	 * @return Returns a UserSummary object that contains the necessary
 	 * 		   information about a user.
 	 * 
 	 * @throws ServiceException Thrown if there is an error.
 	 */
-	public UserInformation gatherUserInformation(final String username)
+	public UserSummary getUserSummary(final String username)
 			throws ServiceException {
 		
 		try {
 			// Get campaign creation privilege.
-			UserInformation userInformation = new UserInformation(userQueries.userCanCreateCampaigns(username));
+			UserSummary userInformation = new UserSummary(userQueries.userCanCreateCampaigns(username));
 			
 			// Get the campaigns and their names for the requester.
 			Map<String, String> campaigns = userCampaignQueries.getCampaignIdsAndNameForUser(username);

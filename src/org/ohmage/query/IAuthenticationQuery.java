@@ -18,7 +18,7 @@ public interface IAuthenticationQuery {
 	 * @param userRequest The request that contains the specific information
 	 * 					  about the user.
 	 * 
-	 * @return A UserInformation object that gives specific login information
+	 * @return A UserSummary object that gives specific login information
 	 * 		   about the user, or null if the user isn't found or the password
 	 * 		   isn't correct.
 	 */

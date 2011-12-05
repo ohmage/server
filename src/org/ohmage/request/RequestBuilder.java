@@ -39,6 +39,7 @@ import org.ohmage.request.user.UserCreationRequest;
 import org.ohmage.request.user.UserDeletionRequest;
 import org.ohmage.request.user.UserInfoReadRequest;
 import org.ohmage.request.user.UserReadRequest;
+import org.ohmage.request.user.UserSearchRequest;
 import org.ohmage.request.user.UserStatsReadRequest;
 import org.ohmage.request.user.UserUpdateRequest;
 import org.ohmage.request.visualization.VizPromptDistributionRequest;
@@ -194,6 +195,7 @@ public final class RequestBuilder {
 	public static final String API_USER_READ = API_ROOT + "/user/read";
 	public static final String API_USER_INFO_READ = API_ROOT + "/user_info/read";
 	public static final String API_USER_STATS_READ = API_ROOT + "/user_stats/read";
+	public static final String API_USER_SEARCH = API_ROOT + "/user/search";
 	public static final String API_USER_UPDATE = API_ROOT + "/user/update";
 	public static final String API_USER_CHANGE_PASSWORD = API_ROOT + "/user/change_password";
 	public static final String API_USER_DELETE = API_ROOT + "/user/delete";
@@ -335,6 +337,9 @@ public final class RequestBuilder {
 		else if(API_USER_STATS_READ.equals(requestUri)) {
 			return new UserStatsReadRequest(httpRequest);
 		}
+		else if(API_USER_SEARCH.equals(requestUri)) {
+			return new UserSearchRequest(httpRequest);
+		}
 		else if(API_USER_UPDATE.equals(requestUri)) {
 			return new UserUpdateRequest(httpRequest);
 		}
@@ -427,6 +432,7 @@ public final class RequestBuilder {
 				API_USER_READ.equals(uri) ||
 				API_USER_INFO_READ.equals(uri) ||
 				API_USER_STATS_READ.equals(uri) ||
+				API_USER_SEARCH.equals(uri) ||
 				API_USER_UPDATE.equals(uri) ||
 				API_USER_CHANGE_PASSWORD.equals(uri) ||
 				API_USER_DELETE.equals(uri) ||

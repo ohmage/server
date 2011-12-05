@@ -7,7 +7,7 @@ import java.util.Map;
 import org.json.JSONObject;
 import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.domain.ServerConfig;
-import org.ohmage.domain.UserInformation;
+import org.ohmage.domain.UserSummary;
 import org.ohmage.domain.UserPersonal;
 import org.ohmage.lib.OhmageApi;
 import org.ohmage.lib.exception.ApiException;
@@ -895,7 +895,7 @@ public class UserApiTests {
 		
 		// Check that the campaign creation privilege is the default.
 		try {
-			UserInformation userInformation = api.getUserInformation(newUserAuthToken, Controller.CLIENT);
+			UserSummary userInformation = api.getUserInformation(newUserAuthToken, Controller.CLIENT);
 			
 			if(config.getDefaultCampaignCreationPrivilege() != 
 				userInformation.getCampaignCreationPrivilege()) {
@@ -918,7 +918,7 @@ public class UserApiTests {
 		// Ensure that the campaign creation privilege is the opposite of the
 		// default now.
 		try {
-			UserInformation userInformation = api.getUserInformation(newUserAuthToken, Controller.CLIENT);
+			UserSummary userInformation = api.getUserInformation(newUserAuthToken, Controller.CLIENT);
 			
 			if(config.getDefaultCampaignCreationPrivilege() == 
 				userInformation.getCampaignCreationPrivilege()) {

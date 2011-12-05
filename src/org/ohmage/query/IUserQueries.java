@@ -1,6 +1,7 @@
 package org.ohmage.query;
 
 import java.util.Collection;
+import java.util.List;
 
 import org.ohmage.domain.UserPersonal;
 import org.ohmage.exception.DataAccessException;
@@ -42,7 +43,7 @@ public interface IUserQueries {
 	/**
 	 * Gets whether or not the user is an admin.
 	 * 
-	 * @param username The username to check.
+	 * @param username The user's username.
 	 * 
 	 * @return Whether or not they are an admin.
 	 * 
@@ -50,6 +51,30 @@ public interface IUserQueries {
 	 * 							   query.
 	 */
 	Boolean userIsAdmin(String username) throws DataAccessException;
+
+	/**
+	 * Gets whether or not the user's account is enabled.
+	 * 
+	 * @param username The user's username.
+	 * 
+	 * @return Whether or not the user's account is enabled.
+	 * 
+	 * @throws DataAccessException Thrown if there is a problem running the
+	 * 							   query.
+	 */
+	Boolean userIsEnabled(String username) throws DataAccessException;
+
+	/**
+	 * Gets whether or not the user has a new account.
+	 * 
+	 * @param username The user's username.
+	 * 
+	 * @return Whether or not the user's account is new.
+	 * 
+	 * @throws DataAccessException Thrown if there is a problem running the
+	 * 							   query.
+	 */
+	Boolean userHasNewAccount(String username) throws DataAccessException;
 
 	/**
 	 * Gets whether or not the user is allowed to create campaigns.
@@ -74,6 +99,161 @@ public interface IUserQueries {
 	 * @throws DataAccessException Thrown if there is an error.
 	 */
 	Boolean userHasPersonalInfo(String username) throws DataAccessException;
+	
+	/**
+	 * Retrieves all of the usernames in the system.
+	 * 
+	 * @return The list of usernames.
+	 * 
+	 * @throws DataAccessException Thrown if there is an error.
+	 */
+	List<String> getAllUsernames() throws DataAccessException;
+	
+	/**
+	 * Retrieves all of the usernames that contain the parameterized username.
+	 * 
+	 * @param username The partial username.
+	 * 
+	 * @return The list of usernames.
+	 * 
+	 * @throws DataAccessException Thrown if there is an error.
+	 */
+	List<String> getUsernamesFromPartialUsername(String username) 
+			throws DataAccessException;
+	
+	/**
+	 * Retrieves the usernames of all of the users whose admin value matches
+	 * the given one.
+	 * 
+	 * @param admin The admin value.
+	 * 
+	 * @return The list of usernames.
+	 * 
+	 * @throws DataAccessException Thrown if there is an error.
+	 */
+	List<String> getUsernamesWithAdminValue(Boolean admin)
+			throws DataAccessException;
+	
+	/**
+	 * Retrieves the usernames of all of the users whose enabled value matches
+	 * the given one.
+	 * 
+	 * @param enabled The enabled value.
+	 * 
+	 * @return The list of usernames.
+	 * 
+	 * @throws DataAccessException Thrown if there is an error.
+	 */
+	List<String> getUsernamesWithEnabledValue(Boolean enabled)
+			throws DataAccessException;
+	
+	/**
+	 * Retrieves the usernames of all of the users whose new account value
+	 * matches the given one.
+	 * 
+	 * @param newAccount The new account value.
+	 * 
+	 * @return The list of usernames.
+	 * 
+	 * @throws DataAccessException Thrown if there is an error.
+	 */
+	List<String> getUsernamesWithNewAccountValue(Boolean newAccount)
+			throws DataAccessException;
+	
+	/**
+	 * Retrieves the usernames of all of the users whose campaign creation
+	 * privileges matches the given one.
+	 * 
+	 * @param campaignCreationPrivilege The campaign creation privilege.
+	 * 
+	 * @return The list of usernames.
+	 * 
+	 * @throws DataAccessException Thrown if there is an error.
+	 */
+	List<String> getUsernamesWithCampaignCreationPrivilege(
+			Boolean campaignCreationPrivilege)
+			throws DataAccessException;
+	
+	/**
+	 * Retrieves the usernames of all of the users that have personal 
+	 * information and whose first name value contains the given one.
+	 * 
+	 * @param partialFirstName The partial first name value to match.
+	 * 
+	 * @return The list of usernames.
+	 * 
+	 * @throws DataAccessException Thrown if there is an error.
+	 */
+	List<String> getUsernamesFromPartialFirstName(String partialFirstName)
+			throws DataAccessException;
+	
+	/**
+	 * Retrieves the usernames of all of the users that have personal 
+	 * information and whose last name value contains the given one.
+	 * 
+	 * @param partialLastName The partial last name value to match.
+	 * 
+	 * @return The list of usernames.
+	 * 
+	 * @throws DataAccessException Thrown if there is an error.
+	 */
+	List<String> getUsernamesFromPartialLastName(String partialLastName)
+			throws DataAccessException;
+	
+	/**
+	 * Retrieves the usernames of all of the users that have personal 
+	 * information and whose organization value contains the given one.
+	 * 
+	 * @param partialOrganization The partial organization value to match.
+	 * 
+	 * @return The list of usernames.
+	 * 
+	 * @throws DataAccessException Thrown if there is an error.
+	 */
+	List<String> getUsernamesFromPartialOrganization(
+			String partialOrganization)
+			throws DataAccessException;
+	
+	/**
+	 * Retrieves the usernames of all of the users that have personal 
+	 * information and whose personal ID value contains the given one.
+	 * 
+	 * @param partialPersonalId The partial personal ID value to match.
+	 * 
+	 * @return The list of usernames.
+	 * 
+	 * @throws DataAccessException Thrown if there is an error.
+	 */
+	List<String> getUsernamesFromPartialPersonalId(String partialPersonalId)
+			throws DataAccessException;
+	
+	/**
+	 * Retrieves the usernames of all of the users that have personal  
+	 * information, have an email address, and whose email address contains the
+	 * given one.
+	 * 
+	 * @param partialEmailAddress The partial email address to match.
+	 * 
+	 * @return The list of usernames.
+	 * 
+	 * @throws DataAccessException Thrown if there is an error.
+	 */
+	List<String> getUsernamesFromPartialEmailAddress(
+			String partialEmailAddress)
+			throws DataAccessException;
+	
+	/**
+	 * Retrieves the usernames of all of the users that have personal  
+	 * information, have JSON data, and whose JSON data contains the given one.
+	 * 
+	 * @param partialJsonData The partial JSON data to match.
+	 * 
+	 * @return The list of usernames.
+	 * 
+	 * @throws DataAccessException Thrown if there is an error.
+	 */
+	List<String> getUsernamesFromPartialJsonData(String partialJsonData)
+			throws DataAccessException;
 
 	/**
 	 * Retrieves the personal information for a user or null if the user 

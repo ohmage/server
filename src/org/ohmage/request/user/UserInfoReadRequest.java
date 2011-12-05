@@ -6,7 +6,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.log4j.Logger;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.ohmage.domain.UserInformation;
+import org.ohmage.domain.UserSummary;
 import org.ohmage.exception.ServiceException;
 import org.ohmage.request.UserRequest;
 import org.ohmage.service.UserServices;
@@ -33,7 +33,7 @@ import org.ohmage.service.UserServices;
 public class UserInfoReadRequest extends UserRequest {
 	private static final Logger LOGGER = Logger.getLogger(UserInfoReadRequest.class);
 	
-	private UserInformation result;
+	private UserSummary result;
 	
 	/**
 	 * Creates a new user info read request.
@@ -62,7 +62,7 @@ public class UserInfoReadRequest extends UserRequest {
 		
 		try {
 			LOGGER.info("Gathering the information about the requesting user.");
-			result = UserServices.instance().gatherUserInformation(getUser().getUsername());
+			result = UserServices.instance().getUserSummary(getUser().getUsername());
 		}
 		catch(ServiceException e) {
 			e.failRequest(this);
