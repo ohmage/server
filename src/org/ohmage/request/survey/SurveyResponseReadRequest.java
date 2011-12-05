@@ -1429,22 +1429,15 @@ public final class SurveyResponseReadRequest extends UserRequest {
 				Response response = responses.get(index);
 				if(response instanceof PromptResponse) {
 					numResponses++;
-				
-					for(String promptId : prompts.keySet()) {
-						JSONArray values = prompts.get(promptId).getJSONArray(JSON_KEY_VALUES);
-						if(promptId.equals(response.getId())) {
-							Object responseValue = response.getResponseValue();
-							
-							if(OutputFormat.CSV.equals(outputFormat)) {
-								responseValue = "\"" + responseValue + "\"";
-							}
-							
-							values.put(responseValue);
-						}
-						else {
-							//values.put(JSONObject.NULL);
-						}
+					JSONArray values =
+						prompts.get(response.getId()).getJSONArray(JSON_KEY_VALUES);
+					
+					Object responseValue = response.getResponseValue();
+					if(OutputFormat.CSV.equals(outputFormat)) {
+						responseValue = "\"" + responseValue + "\"";
 					}
+					
+					values.put(responseValue);
 				}
 				else if(response instanceof RepeatableSetResponse) {
 					RepeatableSetResponse repeatableSetResponse =
