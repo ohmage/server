@@ -2867,16 +2867,21 @@ public class Campaign {
 			choices.put(keyInt, properties.get(key));
 		}
 		
-		List<String> defaultValues = null;
+		List<Integer> defaultValues = null;
 		if((defaultValue != null) && (! "".equals(defaultValue))) {
 			String[] values = defaultValue.split(InputKeys.LIST_ITEM_SEPARATOR);
 			
-			defaultValues = new ArrayList<String>(values.length);
+			defaultValues = new ArrayList<Integer>(values.length);
 			for(int i = 0; i < values.length; i++) {
 				String currValue = values[i];
 				
 				if(! "".equals(currValue)) {
-					defaultValues.add(currValue);
+					try {
+						defaultValues.add(Integer.decode(currValue));
+					}
+					catch(NumberFormatException e) {
+						throw new IllegalArgumentException("One of the default values was not an integer.");
+					}
 				}
 			}
 		}
@@ -2954,16 +2959,21 @@ public class Campaign {
 			choices.put(keyInt, properties.get(key));
 		}
 		
-		List<String> defaultValues = null;
+		List<Integer> defaultValues = null;
 		if((defaultValue != null) && (! "".equals(defaultValue))) {
 			String[] values = defaultValue.split(InputKeys.LIST_ITEM_SEPARATOR);
 			
-			defaultValues = new ArrayList<String>(values.length);
+			defaultValues = new ArrayList<Integer>(values.length);
 			for(int i = 0; i < values.length; i++) {
 				String currValue = values[i];
 				
 				if(! "".equals(currValue)) {
-					defaultValues.add(currValue);
+					try {
+						defaultValues.add(Integer.decode(currValue));
+					}
+					catch(NumberFormatException e) {
+						throw new IllegalArgumentException("One of the default values was not an integer.");
+					}
 				}
 			}
 		}
@@ -3376,9 +3386,19 @@ public class Campaign {
 			choices.put(keyInt, properties.get(key));
 		}
 		
+		Integer defaultKey = null;
+		if(defaultValue != null) {
+			try {
+				defaultKey = Integer.decode(defaultValue);
+			}
+			catch(NumberFormatException e) {
+				throw new IllegalArgumentException("The default key is not an integer.");
+			}
+		}
+		
 		return new SingleChoicePrompt(id, condition, unit, text, 
 				abbreviatedText, explanationText, skippable, skipLabel, 
-				displayType, displayLabel, choices, defaultValue, index);
+				displayType, displayLabel, choices, defaultKey, index);
 	}
 	
 	/**
@@ -3449,10 +3469,20 @@ public class Campaign {
 			choices.put(keyInt, properties.get(key));
 		}
 		
+		Integer defaultKey = null;
+		if(defaultValue != null) {
+			try {
+				defaultKey = Integer.decode(defaultValue);
+			}
+			catch(NumberFormatException e) {
+				throw new IllegalArgumentException("The default key is not an integer.");
+			}
+		}
+		
 		return new SingleChoiceCustomPrompt(id, condition, unit, text, 
 				abbreviatedText, explanationText, skippable, skipLabel, 
 				displayType, displayLabel, choices, 
-				new HashMap<Integer, LabelValuePair>(), defaultValue, index);
+				new HashMap<Integer, LabelValuePair>(), defaultKey, index);
 	}
 	
 	/**

@@ -48,8 +48,7 @@ public class SingleChoicePrompt extends ChoicePrompt {
 	 * 
 	 * @param choices The static choices as defined in the XML.
 	 * 
-	 * @param defaultKey The default value for this prompt. This is optional
-	 * 					   and may be null if one doesn't exist.
+	 * @param defaultKey The key of the default label.
 	 * 
 	 * @param index This prompt's index in its container's list of survey 
 	 * 				items.
@@ -63,30 +62,17 @@ public class SingleChoicePrompt extends ChoicePrompt {
 			final boolean skippable, final String skipLabel,
 			final DisplayType displayType, final String displayLabel,
 			final Map<Integer, LabelValuePair> choices, 
-			final String defaultValue, final int index) {
+			final Integer defaultKey, final int index) {
 
 		super(id, condition, unit, text, abbreviatedText, explanationText,
 				skippable, skipLabel, displayType, displayLabel, 
 				choices, Type.SINGLE_CHOICE, index);
 		
-		Integer tDefaultKey = null;
-		if(defaultValue != null) {
-			Map<Integer, LabelValuePair> currChoices = getChoices();
-			boolean found = false;
-			
-			for(Integer choiceKey : currChoices.keySet()) {
-				if(currChoices.get(choiceKey).getLabel().equals(defaultValue)) {
-					tDefaultKey = choiceKey;
-					found = true;
-					break;
-				}
-			}
-			
-			if(! found) {
-				throw new IllegalArgumentException("The default value is not a valid choice.");
-			}
+		if((defaultKey != null) &&
+				(! getChoices().containsKey(defaultKey))) {
+			throw new IllegalArgumentException("The default key does not exist.");
 		}
-		defaultKey = tDefaultKey;
+		this.defaultKey = defaultKey;
 	}
 	
 	/**

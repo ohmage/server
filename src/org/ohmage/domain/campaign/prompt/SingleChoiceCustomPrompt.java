@@ -54,8 +54,7 @@ public class SingleChoiceCustomPrompt extends CustomChoicePrompt {
 	 * 
 	 * @param customChoices Custom choices created by the user.
 	 * 
-	 * @param defaultValue The default value for this prompt. This is optional
-	 * 					   and may be null if one doesn't exist.
+	 * @param defaultKey The key of the default label.
 	 * 
 	 * @param index This prompt's index in its container's list of survey 
 	 * 				items.
@@ -70,30 +69,17 @@ public class SingleChoiceCustomPrompt extends CustomChoicePrompt {
 			final DisplayType displayType, final String displayLabel,
 			final Map<Integer, LabelValuePair> choices,
 			final Map<Integer, LabelValuePair> customChoices,
-			final String defaultValue, final int index) {
+			final Integer defaultKey, final int index) {
 		
 		super(id, condition, unit, text, abbreviatedText, explanationText,
 				skippable, skipLabel, displayType, displayLabel, 
 				choices, customChoices, Type.SINGLE_CHOICE_CUSTOM, index);
 		
-		Integer tDefaultKey = null;
-		if(defaultValue != null) {
-			Map<Integer, LabelValuePair> currChoices = getAllChoices();
-			boolean found = false;
-			
-			for(Integer choiceKey : currChoices.keySet()) {
-				if(currChoices.get(choiceKey).getLabel().equals(defaultValue)) {
-					tDefaultKey = choiceKey;
-					found = true;
-					break;
-				}
-			}
-			
-			if(! found) {
-				throw new IllegalArgumentException("The default value is not a valid choice.");
-			}
+		if((defaultKey != null) &&
+				(! getAllChoices().containsKey(defaultKey))) {
+			throw new IllegalArgumentException("The default key does not exist.");
 		}
-		defaultKey = tDefaultKey;
+		this.defaultKey = defaultKey;
 	}
 	
 	/**

@@ -21,7 +21,7 @@ import org.ohmage.util.StringUtils;
 public class MultiChoicePrompt extends ChoicePrompt {
 	private static final String JSON_KEY_DEFAULT = "default";
 	
-	private final Collection<Integer> defaultValues;
+	private final Collection<Integer> defaultKeys;
 	
 	/**
 	 * Creates a new multiple-choice prompt.
@@ -54,8 +54,7 @@ public class MultiChoicePrompt extends ChoicePrompt {
 	 * 
 	 * @param choices The static choices as defined in the XML.
 	 * 
-	 * @param defaultValues The default value for this prompt. This is optional
-	 * 						and may be null if one doesn't exist.
+	 * @param defaultKeys The default keys for this prompt.
 	 * 
 	 * @param index This prompt's index in its container's list of survey 
 	 * 				items.
@@ -69,34 +68,21 @@ public class MultiChoicePrompt extends ChoicePrompt {
 			final boolean skippable, final String skipLabel,
 			final DisplayType displayType, final String displayLabel,
 			final Map<Integer, LabelValuePair> choices, 
-			final Collection<String> defaultValues, final int index) {
+			final Collection<Integer> defaultKeys, final int index) {
 		
 		super(id, condition, unit, text, abbreviatedText, explanationText,
 				skippable, skipLabel, displayType, displayLabel, 
 				choices, Type.MULTI_CHOICE, index);
 		
-		Collection<Integer> tDefaultKeys = new ArrayList<Integer>(0);
-		if(defaultValues != null) {
-			tDefaultKeys = new HashSet<Integer>(defaultValues.size());
-			Map<Integer, LabelValuePair> currChoices = getChoices();
-			
-			for(String defaultValue : defaultValues) {
-				boolean found = false;
-				
-				for(Integer choiceKey : currChoices.keySet()) {
-					if(currChoices.get(choiceKey).getLabel().equals(defaultValue)) {
-						tDefaultKeys.add(choiceKey);
-						found = true;
-						break;
-					}
-				}
-				
-				if(! found) {
-					throw new IllegalArgumentException("The default value is not a valid choice.");
+		if(defaultKeys != null) {
+			Collection<Integer> availableKeys = getChoices().keySet();
+			for(Integer defaultKey : defaultKeys) {
+				if(! availableKeys.contains(defaultKey)) {
+					throw new IllegalArgumentException("The default key does not exist.");
 				}
 			}
 		}
-		this.defaultValues = tDefaultKeys;
+		this.defaultKeys = defaultKeys;
 	}
 	
 	/**
@@ -106,9 +92,9 @@ public class MultiChoicePrompt extends ChoicePrompt {
 	 */
 	public final Collection<String> getDefaultValues() {
 		Map<Integer, LabelValuePair> choices = getChoices();
-		Collection<String> result = new ArrayList<String>(defaultValues.size());
+		Collection<String> result = new ArrayList<String>(defaultKeys.size());
 		
-		for(Integer key : defaultValues) {
+		for(Integer key : defaultKeys) {
 			result.add(choices.get(key).getLabel());
 		}
 		
@@ -297,7 +283,7 @@ public class MultiChoicePrompt extends ChoicePrompt {
 				return null;
 			}
 			
-			result.put(JSON_KEY_DEFAULT, new JSONArray(defaultValues));
+			result.put(JSON_KEY_DEFAULT, new JSONArray(defaultKeys));
 			
 			return result;
 		}
@@ -317,7 +303,7 @@ public class MultiChoicePrompt extends ChoicePrompt {
 		final int prime = 31;
 		int result = super.hashCode();
 		result = prime * result
-				+ ((defaultValues == null) ? 0 : defaultValues.hashCode());
+				+ ((defaultKeys == null) ? 0 : defaultKeys.hashCode());
 		return result;
 	}
 
@@ -338,10 +324,10 @@ public class MultiChoicePrompt extends ChoicePrompt {
 		if (getClass() != obj.getClass())
 			return false;
 		MultiChoicePrompt other = (MultiChoicePrompt) obj;
-		if (defaultValues == null) {
-			if (other.defaultValues != null)
+		if (defaultKeys == null) {
+			if (other.defaultKeys != null)
 				return false;
-		} else if (!defaultValues.equals(other.defaultValues))
+		} else if (!defaultKeys.equals(other.defaultKeys))
 			return false;
 		return true;
 	}
