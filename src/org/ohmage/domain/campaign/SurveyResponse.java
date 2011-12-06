@@ -309,12 +309,13 @@ public class SurveyResponse {
 		 */
 		CONTEXT_TIMESTAMP ("urn:ohmage:context:timestamp"),
 		/**
-		 * The survey's location's timestamp key where the time is adjusted to
-		 * UTC.
-		 * 
-		 * @see ColumnKey#CONTEXT_LOCATION_STATUS
+		 * The survey-wide timestamp key where the time is adjusted to UTC.
 		 */
 		CONTEXT_LOCATION_UTC_TIMESTAMP ("urn:ohmage:context:utc_timestamp"),
+		/**
+		 * The survey-wide timestamp key in milliseconds.
+		 */
+		CONTEXT_EPOCH_MILLIS ("urn:ohmage:context:epoch_millis"),
 		/**
 		 * The survey-wide timezone key.
 		 * 
