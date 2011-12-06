@@ -16,6 +16,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TimeZone;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -46,6 +47,7 @@ import org.ohmage.service.CampaignServices;
 import org.ohmage.service.SurveyResponseReadServices;
 import org.ohmage.service.SurveyResponseServices;
 import org.ohmage.service.UserCampaignServices;
+import org.ohmage.util.DateUtils;
 import org.ohmage.util.TimeUtils;
 import org.ohmage.validator.CampaignValidators;
 import org.ohmage.validator.SurveyResponseValidators;
@@ -731,23 +733,25 @@ public final class SurveyResponseReadRequest extends UserRequest {
 								((returnId == null) ? false : returnId)
 							);
 						
+						if(allColumns || columns.contains(ColumnKey.CONTEXT_LOCATION_UTC_TIMESTAMP)) {
+							currResult.put(
+									ColumnKey.CONTEXT_LOCATION_UTC_TIMESTAMP.toString(),
+									DateUtils.timestampStringToUtc(
+											TimeUtils.getIso8601DateTimeString(
+													new Date(surveyResponse.getTime())), 
+											TimeZone.getDefault().getID()));
+						}
 						if(allColumns || columns.contains(ColumnKey.CONTEXT_LOCATION_ACCURACY)) {
 							Location location = surveyResponse.getLocation();
 							
 							if(location == null) {
-								currResult.put(Location.JSON_KEY_ACCURACY, "null");
+								currResult.put(Location.JSON_KEY_ACCURACY, JSONObject.NULL);
 							}
 							else {
 								double accuracy = location.getAccuracy();
 								
-								if(accuracy == Double.POSITIVE_INFINITY) {
-									currResult.put(Location.JSON_KEY_ACCURACY, "Infinity");
-								}
-								else if(accuracy == Double.NEGATIVE_INFINITY) {
-									currResult.put(Location.JSON_KEY_ACCURACY, "-Infinity");
-								}
-								else if(accuracy == Double.NaN) {
-									currResult.put(Location.JSON_KEY_ACCURACY, "NaN");
+								if(Double.isInfinite(accuracy) || Double.isNaN(accuracy)) {
+									currResult.put(Location.JSON_KEY_ACCURACY, JSONObject.NULL);
 								}
 								else {
 									currResult.put(Location.JSON_KEY_ACCURACY, accuracy);
@@ -758,19 +762,13 @@ public final class SurveyResponseReadRequest extends UserRequest {
 							Location location = surveyResponse.getLocation();
 							
 							if(location == null) {
-								currResult.put(Location.JSON_KEY_LATITUDE, "null");
+								currResult.put(Location.JSON_KEY_LATITUDE, JSONObject.NULL);
 							}
 							else {
 								double latitude = location.getLatitude();
 								
-								if(latitude == Double.POSITIVE_INFINITY) {
-									currResult.put(Location.JSON_KEY_LATITUDE, "Infinity");
-								}
-								else if(latitude == Double.NEGATIVE_INFINITY) {
-									currResult.put(Location.JSON_KEY_LATITUDE, "-Infinity");
-								}
-								else if(latitude == Double.NaN) {
-									currResult.put(Location.JSON_KEY_LATITUDE, "NaN");
+								if(Double.isInfinite(latitude) || Double.isNaN(latitude)) {
+									currResult.put(Location.JSON_KEY_LATITUDE, JSONObject.NULL);
 								}
 								else {
 									currResult.put(Location.JSON_KEY_LATITUDE, latitude);
@@ -781,19 +779,13 @@ public final class SurveyResponseReadRequest extends UserRequest {
 							Location location = surveyResponse.getLocation();
 							
 							if(location == null) {
-								currResult.put(Location.JSON_KEY_LONGITUDE, "null");
+								currResult.put(Location.JSON_KEY_LONGITUDE, JSONObject.NULL);
 							}
 							else {
 								double longitude = location.getLongitude();
 								
-								if(longitude == Double.POSITIVE_INFINITY) {
-									currResult.put(Location.JSON_KEY_LONGITUDE, "Infinity");
-								}
-								else if(longitude == Double.NEGATIVE_INFINITY) {
-									currResult.put(Location.JSON_KEY_LONGITUDE, "-Infinity");
-								}
-								else if(longitude == Double.NaN) {
-									currResult.put(Location.JSON_KEY_LONGITUDE, "NaN");
+								if(Double.isInfinite(longitude) || Double.isNaN(longitude)) {
+									currResult.put(Location.JSON_KEY_LONGITUDE, JSONObject.NULL);
 								}
 								else {
 									currResult.put(Location.JSON_KEY_LONGITUDE, longitude);
@@ -804,7 +796,7 @@ public final class SurveyResponseReadRequest extends UserRequest {
 							Location location = surveyResponse.getLocation();
 							
 							if(location == null) {
-								currResult.put(Location.JSON_KEY_PROVIDER, "null");
+								currResult.put(Location.JSON_KEY_PROVIDER, JSONObject.NULL);
 							}
 							else {
 								currResult.put(Location.JSON_KEY_PROVIDER, location.getProvider());
@@ -814,7 +806,7 @@ public final class SurveyResponseReadRequest extends UserRequest {
 							Location location = surveyResponse.getLocation();
 							
 							if(location == null) {
-								currResult.put(Location.JSON_KEY_OUTPUT_TIMESTAMP, "null");
+								currResult.put(Location.JSON_KEY_OUTPUT_TIMESTAMP, JSONObject.NULL);
 							}
 							else {
 								currResult.put(Location.JSON_KEY_OUTPUT_TIMESTAMP, TimeUtils.getIso8601DateTimeString(location.getTimestamp()));
@@ -902,6 +894,7 @@ public final class SurveyResponseReadRequest extends UserRequest {
 					JSONArray clients = new JSONArray();
 					JSONArray privacyStates = new JSONArray();
 					JSONArray timestamps = new JSONArray();
+					JSONArray utcTimestamps = new JSONArray();
 					JSONArray timezones = new JSONArray();
 					JSONArray locationStatuses = new JSONArray();
 					JSONArray locationLongitude = new JSONArray();
@@ -972,7 +965,7 @@ public final class SurveyResponseReadRequest extends UserRequest {
 								surveyResponse.getResponses(), 
 								prompts, 
 								usernames, clients, privacyStates, 
-								timestamps, timezones, 
+								timestamps, utcTimestamps, timezones, 
 								locationStatuses, locationLongitude, 
 								locationLatitude, locationTimestamp, 
 								locationAccuracy, locationProvider,
@@ -1004,6 +997,11 @@ public final class SurveyResponseReadRequest extends UserRequest {
 						JSONObject values = new JSONObject();
 						values.put(JSON_KEY_VALUES, timestamps);
 						result.put(ColumnKey.CONTEXT_TIMESTAMP.toString(), values);
+					}
+					if(allColumns || columns.contains(ColumnKey.CONTEXT_LOCATION_UTC_TIMESTAMP)) {
+						JSONObject values = new JSONObject();
+						values.put(JSON_KEY_VALUES, utcTimestamps);
+						result.put(ColumnKey.CONTEXT_LOCATION_UTC_TIMESTAMP.toString(), values);
 					}
 					if(allColumns || columns.contains(ColumnKey.CONTEXT_TIMEZONE)) {
 						JSONObject values = new JSONObject();
@@ -1336,7 +1334,7 @@ public final class SurveyResponseReadRequest extends UserRequest {
 			final Map<Integer, Response> responses, 
 			Map<String, JSONObject> prompts,
 			JSONArray usernames, JSONArray clients, JSONArray privacyStates,
-			JSONArray timestamps, JSONArray timezones,
+			JSONArray timestamps, JSONArray utcTimestamps, JSONArray timezones,
 			JSONArray locationStatuses, JSONArray locationLongitude,
 			JSONArray locationLatitude, JSONArray locationTimestamp,
 			JSONArray locationAccuracy, JSONArray locationProvider,
@@ -1359,6 +1357,13 @@ public final class SurveyResponseReadRequest extends UserRequest {
 		if(allColumns || columns.contains(ColumnKey.CONTEXT_TIMESTAMP)) {
 			timestamps.put(TimeUtils.getIso8601DateTimeString(surveyResponse.getDate()));
 		}
+		if(allColumns || columns.contains(ColumnKey.CONTEXT_LOCATION_UTC_TIMESTAMP)) {
+			utcTimestamps.put(
+					DateUtils.timestampStringToUtc(
+							TimeUtils.getIso8601DateTimeString(
+									new Date(surveyResponse.getTime())), 
+							TimeZone.getDefault().getID()));
+		}
 		if(allColumns || columns.contains(ColumnKey.CONTEXT_TIMEZONE)) {
 			timezones.put(surveyResponse.getTimezone().getID());
 		}
@@ -1368,7 +1373,7 @@ public final class SurveyResponseReadRequest extends UserRequest {
 		if(allColumns || columns.contains(ColumnKey.CONTEXT_LOCATION_LONGITUDE)) {
 			Location location = surveyResponse.getLocation();
 			if(location == null) {
-				locationLongitude.put("");
+				locationLongitude.put(JSONObject.NULL);
 			}
 			else {
 				locationLongitude.put(location.getLongitude());
@@ -1377,7 +1382,7 @@ public final class SurveyResponseReadRequest extends UserRequest {
 		if(allColumns || columns.contains(ColumnKey.CONTEXT_LOCATION_LATITUDE)) {
 			Location location = surveyResponse.getLocation();
 			if(location == null) {
-				locationLatitude.put("");
+				locationLatitude.put(JSONObject.NULL);
 			}
 			else {
 				locationLatitude.put(location.getLatitude());
@@ -1386,7 +1391,7 @@ public final class SurveyResponseReadRequest extends UserRequest {
 		if(allColumns || columns.contains(ColumnKey.CONTEXT_LOCATION_TIMESTAMP)) {
 			Location location = surveyResponse.getLocation();
 			if(location == null) {
-				locationTimestamp.put("");
+				locationTimestamp.put(JSONObject.NULL);
 			}
 			else {
 				locationTimestamp.put(TimeUtils.getIso8601DateTimeString(location.getTimestamp()));
@@ -1395,7 +1400,7 @@ public final class SurveyResponseReadRequest extends UserRequest {
 		if(allColumns || columns.contains(ColumnKey.CONTEXT_LOCATION_ACCURACY)) {
 			Location location = surveyResponse.getLocation();
 			if(location == null) {
-				locationAccuracy.put("");
+				locationAccuracy.put(JSONObject.NULL);
 			}
 			else {
 				locationAccuracy.put(location.getAccuracy());
@@ -1404,7 +1409,7 @@ public final class SurveyResponseReadRequest extends UserRequest {
 		if(allColumns || columns.contains(ColumnKey.CONTEXT_LOCATION_PROVIDER)) {
 			Location location = surveyResponse.getLocation();
 			if(location == null) {
-				locationProvider.put("");
+				locationProvider.put(JSONObject.NULL);
 			}
 			else {
 				locationProvider.put(location.getProvider());
@@ -1455,7 +1460,7 @@ public final class SurveyResponseReadRequest extends UserRequest {
 								repeatableSetResponses.get(rsIndex), 
 								prompts, 
 								usernames, clients, privacyStates, 
-								timestamps, timezones, 
+								timestamps, utcTimestamps, timezones, 
 								locationStatuses, locationLongitude,
 								locationLatitude, locationTimestamp,
 								locationAccuracy, locationProvider,
