@@ -32,6 +32,12 @@ import org.ohmage.validator.UserValidators;
  *     <td>The user's new plaintext password.</td>
  *     <td>true</td>
  *   </tr>
+ *   <tr>
+ *     <td>{@value org.ohmage.request.InputKeys#USERNAME}</td>
+ *     <td>The username of the user whose password you are attempting to 
+ *       change.</td>
+ *     <td>false</td>
+ *   </tr>
  * </table>
  * 
  * @author John Jenkins
@@ -40,6 +46,7 @@ public class UserChangePasswordRequest extends UserRequest {
 	private static final Logger LOGGER = Logger.getLogger(UserChangePasswordRequest.class);
 	
 	private final String newPassword;
+	private final String username;
 	
 	/**
 	 * Creates a password change request.
@@ -51,19 +58,45 @@ public class UserChangePasswordRequest extends UserRequest {
 		super(httpRequest, true);
 		
 		String tNewPassword = null;
+		String tUsername = null;
 		
 		if(! isFailed()) {
 			LOGGER.info("Creating a user change password request.");
 			
+			String[] t;
 			try {
-				tNewPassword = UserValidators.validatePlaintextPassword(httpRequest.getParameter(InputKeys.NEW_PASSWORD));
-				if(tNewPassword == null) {
-					setFailed(ErrorCode.USER_INVALID_PASSWORD, "The new password is missing: " + InputKeys.NEW_PASSWORD);
-					throw new ValidationException("The new password is missing: " + InputKeys.NEW_PASSWORD);
+				t = httpRequest.getParameterValues(InputKeys.NEW_PASSWORD);
+				if(t.length == 0) {
+					throw new ValidationException(
+							ErrorCode.USER_INVALID_PASSWORD, 
+							"The new password is missing: " + 
+								InputKeys.NEW_PASSWORD);
 				}
-				else if(httpRequest.getParameterValues(InputKeys.NEW_PASSWORD).length > 1) {
-					setFailed(ErrorCode.USER_INVALID_PASSWORD, "Multiple new password parameters were given.");
-					throw new ValidationException("Multiple new password parameters were given.");
+				if(t.length > 1) {
+					throw new ValidationException(
+							ErrorCode.USER_INVALID_PASSWORD, 
+							"Multiple new password parameters were given.");
+				}
+				else {
+					tNewPassword = UserValidators.validatePlaintextPassword(t[0]);
+
+					if(tNewPassword == null) {
+						throw new ValidationException(
+								ErrorCode.USER_INVALID_PASSWORD, 
+								"The new password is missing: " + 
+									InputKeys.NEW_PASSWORD);
+					}
+				}
+				
+				t = httpRequest.getParameterValues(InputKeys.USERNAME);
+				if(t.length > 1) {
+					throw new ValidationException(
+							ErrorCode.USER_INVALID_USERNAME,
+							"Multiple usernames were given: " +
+								InputKeys.USERNAME);
+				}
+				else if(t.length == 1) {
+					tUsername = UserValidators.validateUsername(t[0]);
 				}
 			}
 			catch(ValidationException e) {
@@ -73,6 +106,7 @@ public class UserChangePasswordRequest extends UserRequest {
 		}
 		
 		newPassword = tNewPassword;
+		username = tUsername;
 	}
 
 	/**
@@ -87,8 +121,19 @@ public class UserChangePasswordRequest extends UserRequest {
 		}
 		
 		try {
+			if((username != null) && (! username.equals(getUser().getUsername()))) {
+				LOGGER.info("The requester is attempting to change another user's password: " + username);
+				LOGGER.info("Verfying that the requesting user is an admin.");
+				UserServices.instance().verifyUserIsAdmin(getUser().getUsername());
+			}
+			
 			LOGGER.info("Updating the user's password.");
-			UserServices.instance().updatePassword(getUser().getUsername(), newPassword);
+			if(username == null) {
+				UserServices.instance().updatePassword(getUser().getUsername(), newPassword);
+			}
+			else {
+				UserServices.instance().updatePassword(username, newPassword);
+			}
 		}
 		catch(ServiceException e) {
 			e.failRequest(this);
