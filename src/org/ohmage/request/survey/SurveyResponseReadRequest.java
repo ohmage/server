@@ -936,6 +936,7 @@ public final class SurveyResponseReadRequest extends UserRequest {
 					else {
 						Set<String> unqiueSurveyIds = new HashSet<String>();
 						Set<String> uniquePromptIds = new HashSet<String>();
+						
 						for(SurveyResponse surveyResponse : surveyResponseList) {
 							String surveyId = surveyResponse.getSurvey().getId();
 							
@@ -1342,9 +1343,7 @@ public final class SurveyResponseReadRequest extends UserRequest {
 			JSONArray surveyDescriptions, JSONArray launchContexts) 
 			throws JSONException {
 
-		List<Integer> indices = new ArrayList<Integer>(responses.keySet());
-		Collections.sort(indices);
-		
+		// Add each of the response-wide pieces of information.
 		if(allColumns || columns.contains(ColumnKey.USER_ID)) {
 			usernames.put(surveyResponse.getUsername());
 		}
@@ -1429,46 +1428,84 @@ public final class SurveyResponseReadRequest extends UserRequest {
 		}
 		
 		int numResponses = 0;
+		
+		// Create a map of which prompts were given a response in this 
+		// iteration.
+		Set<String> promptIdsWithResponse = new HashSet<String>();
+		
+		// Get the indicies of each response in the list of responses and then
+		// sort them to ensure that we process each response in the correct 
+		// numeric order.
+		List<Integer> indices = new ArrayList<Integer>(responses.keySet());
+		Collections.sort(indices);
+		
+		// Now, add each of the responses.
 		for(Integer index : indices) {
-			if(allColumns || columns.contains(ColumnKey.PROMPT_RESPONSE)) {
-				Response response = responses.get(index);
-				if(response instanceof PromptResponse) {
-					numResponses++;
+			Response response = responses.get(index);
+			
+			// If the response is a prompt response, add its appropriate 
+			// columns.
+			if(response instanceof PromptResponse) {
+				numResponses++;
+				
+				if(allColumns || columns.contains(ColumnKey.PROMPT_RESPONSE)) {
+					String responseId = response.getId();
+					promptIdsWithResponse.add(responseId);
+					
 					JSONArray values =
-						prompts.get(response.getId()).getJSONArray(JSON_KEY_VALUES);
+						prompts.get(responseId).getJSONArray(JSON_KEY_VALUES);
 					
 					Object responseValue = response.getResponseValue();
 					if(OutputFormat.CSV.equals(outputFormat)) {
 						responseValue = "\"" + responseValue + "\"";
 					}
-					
+				
 					values.put(responseValue);
 				}
-				else if(response instanceof RepeatableSetResponse) {
-					RepeatableSetResponse repeatableSetResponse =
-						(RepeatableSetResponse) response;
-					
-					Map<Integer, Map<Integer, Response>> repeatableSetResponses =
-						repeatableSetResponse.getResponseGroups();
-					
-					List<Integer> rsIterations = 
-						new ArrayList<Integer>(repeatableSetResponses.keySet());
-					
-					for(Integer rsIndex : rsIterations) {
-						numResponses += processResponses(allColumns, 
-								surveyResponse,
-								repeatableSetResponses.get(rsIndex), 
-								prompts, 
-								usernames, clients, privacyStates, 
-								timestamps, utcTimestamps, timezones, 
-								locationStatuses, locationLongitude,
-								locationLatitude, locationTimestamp,
-								locationAccuracy, locationProvider,
-								surveyIds, surveyTitles, surveyDescriptions, 
-								launchContexts
-							);
-					}
+			}
+			// FIXME
+			// If the response is a repeatable set response, I am not sure what
+			// to do and this is broken.
+			else if(response instanceof RepeatableSetResponse) {
+				/*
+				RepeatableSetResponse repeatableSetResponse =
+					(RepeatableSetResponse) response;
+				
+				Map<Integer, Map<Integer, Response>> repeatableSetResponses =
+					repeatableSetResponse.getResponseGroups();
+				
+				List<Integer> rsIterations = 
+					new ArrayList<Integer>(repeatableSetResponses.keySet());
+				
+				for(Integer rsIndex : rsIterations) {
+					numResponses += processResponses(allColumns, 
+							surveyResponse,
+							repeatableSetResponses.get(rsIndex), 
+							prompts, 
+							usernames, clients, privacyStates, 
+							timestamps, utcTimestamps, timezones, 
+							locationStatuses, locationLongitude,
+							locationLatitude, locationTimestamp,
+							locationAccuracy, locationProvider,
+							surveyIds, surveyTitles, surveyDescriptions, 
+							launchContexts
+						);
 				}
+				*/
+			}
+		}
+		
+		// Finally, get all of the prompts that didn't receive a value in this
+		// iteration and add them to the list.
+		if(allColumns || columns.contains(ColumnKey.PROMPT_RESPONSE)) {
+			Set<String> promptIdsWithoutResponse = 
+				new HashSet<String>(prompts.keySet());
+			promptIdsWithoutResponse.removeAll(promptIdsWithResponse);
+			for(String currPromptId : promptIdsWithoutResponse) {
+				prompts
+					.get(currPromptId)
+					.getJSONArray(JSON_KEY_VALUES)
+					.put(JSONObject.NULL);
 			}
 		}
 		
