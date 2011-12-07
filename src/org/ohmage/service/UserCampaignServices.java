@@ -482,15 +482,18 @@ public class UserCampaignServices {
 			final String campaignId, final String requesterUsername, 
 			final String... userUsernames) throws ServiceException {
 		try {
-			// If the requester is the same as all of the users in question.
-			boolean otherUsers = false;
-			for(String username : userUsernames) {
-				if(! requesterUsername.equals(username)) {
-					otherUsers = true;
+			// If the requester is asking about other users.
+			if(userUsernames.length != 0) {
+				// If the requester is the same as all of the users in question.
+				boolean otherUsers = false;
+				for(String username : userUsernames) {
+					if(! requesterUsername.equals(username)) {
+						otherUsers = true;
+					}
 				}
-			}
-			if(! otherUsers) {
-				return;
+				if(! otherUsers) {
+					return;
+				}
 			}
 			
 			List<Campaign.Role> requesterRoles = 
