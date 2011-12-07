@@ -472,9 +472,8 @@ public class SurveyResponse {
 	 * 
 	 * @author John Jenkins
 	 */
-	public static enum Function { 
-		COMPLETED_SURVEYS, 
-		STATS;
+	public static enum Function {
+		PRIVACY_STATE;
 		
 		/**
 		 * Generates the Function enum for the key.
@@ -494,6 +493,41 @@ public class SurveyResponse {
 		 * Returns this Function as a human-readable value.
 		 * 
 		 * @return This Function as a human-readable value.
+		 */
+		@Override
+		public String toString() {
+			return name().toLowerCase();
+		}
+	}
+	
+	/**
+	 * The items to use to further subdivide the results of the privacy state
+	 * function in survey_response/read.
+	 * 
+	 * @author John Jenkins
+	 */
+	public static enum FunctionPrivacyStateItem {
+		SURVEY,
+		DATE;
+		
+		/**
+		 * Generates the privacy state item for the key.
+		 * 
+		 * @param key The privacy state item as a key.
+		 * 
+		 * @return The privacy state item.
+		 * 
+		 * @throws IllegalArgumentException The key could not be decoded to a
+		 * 									privacy state item.
+		 */
+		public static FunctionPrivacyStateItem getValue(final String key) {
+			return valueOf(key.toUpperCase());
+		}
+		
+		/**
+		 * Returns this privacy state item as a human-readable value.
+		 * 
+		 * @return This privacy state item as a human-readable value.
 		 */
 		@Override
 		public String toString() {

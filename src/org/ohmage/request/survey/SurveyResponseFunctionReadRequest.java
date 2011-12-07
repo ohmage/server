@@ -1,8 +1,9 @@
 package org.ohmage.request.survey;
 
+import java.util.Collection;
 import java.util.Collections;
-import java.util.Date;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
@@ -14,10 +15,11 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.ohmage.annotator.Annotator.ErrorCode;
-import org.ohmage.domain.Location;
 import org.ohmage.domain.campaign.Campaign;
 import org.ohmage.domain.campaign.SurveyResponse;
 import org.ohmage.domain.campaign.SurveyResponse.Function;
+import org.ohmage.domain.campaign.SurveyResponse.FunctionPrivacyStateItem;
+import org.ohmage.domain.campaign.SurveyResponse.PrivacyState;
 import org.ohmage.exception.ServiceException;
 import org.ohmage.exception.ValidationException;
 import org.ohmage.request.InputKeys;
@@ -25,10 +27,8 @@ import org.ohmage.request.UserRequest;
 import org.ohmage.service.CampaignServices;
 import org.ohmage.service.SurveyResponseServices;
 import org.ohmage.service.UserCampaignServices;
-import org.ohmage.util.TimeUtils;
 import org.ohmage.validator.CampaignValidators;
 import org.ohmage.validator.SurveyResponseValidators;
-import org.ohmage.validator.UserValidators;
 
 /**
  * <p>Gathers information about survey responses based on the given function
@@ -59,26 +59,17 @@ import org.ohmage.validator.UserValidators;
  *     <td>{@value org.ohmage.request.InputKeys#SURVEY_FUNCTION_ID}</td>
  *     <td>A survey function ID that dictates the type of information that will
  *       be returned. Must be one of 
- *       {@link org.ohmage.validator.SurveyResponseValidators.Function}.</td>
+ *       {@link org.ohmage.domain.campaign.SurveyResponse.Function}.</td>
  *     <td>true</td>
  *   </tr>
  *   <tr>
- *     <td>{@value org.ohmage.request.InputKeys#START_DATE}</td>
- *     <td>The date where all survey responses analyzed must be on or after 
- *       this date.</td>
+ *     <td>{@value org.ohmage.request.InputKeys#SURVEY_FUNCTION_PRIVACY_STATE_GROUP_ITEM_LIST}</td>
+ *     <td>The list of items to use to further split the results. This should
+ *       be a list of 
+ *       {@link org.ohmage.domain.campaign.SurveyResponse.FunctionPrivacyStateItem} 
+ *       values divided by
+ *       {@link org.ohmage.request.InputKeys#LIST_ITEM_SEPARATOR LIST_ITEM_SEPARATOR}s.</td>
  *     <td>true</td>
- *   </tr>
- *   <tr>
- *     <td>{@value org.ohmage.request.InputKeys#END_DATE}</td>
- *     <td>The date where all survey responses analyzed must be on or before
- *       this date.</td>
- *     <td>true</td>
- *   </tr>
- *   <tr>
- *     <td>{@value org.ohmage.request.InputKeys#SURVEY_RESPONSE_OWNER}</td>
- *     <td>This will limit the survey responses being analyzed to only include
- *       those from this user.</td>
- *     <td>false</td>
  *   </tr>
  * </table>
  * 
@@ -87,17 +78,11 @@ import org.ohmage.validator.UserValidators;
 public class SurveyResponseFunctionReadRequest extends UserRequest {
 	private static final Logger LOGGER = Logger.getLogger(SurveyResponseFunctionReadRequest.class);
 	
-	private static final String JSON_KEY_VALUE = "value";
-	private static final String JSON_KEY_TIMESTAMP = "timestamp";
-	private static final String JSON_KEY_TIMEZONE = "timezone";
-	private static final String JSON_KEY_LOCATION_STATUS = "location_status";
-	private static final String JSON_KEY_LOCATION = "location";
+	private static final long MILLIS_PER_DAY = 24 * 60 * 60 * 1000;
 	
 	private final String campaignId;
 	private final Function functionId;
-	private final Date startDate;
-	private final Date endDate;
-	private final String ownersUsername;
+	private final Collection<FunctionPrivacyStateItem> privacyStateGroupItems;
 	
 	private List<SurveyResponse> surveyResponses;
 	
@@ -113,10 +98,8 @@ public class SurveyResponseFunctionReadRequest extends UserRequest {
 		LOGGER.info("Creating a survey response function read request.");
 		
 		String tCampaignId = null;
-		Date tStartDate = null;
-		Date tEndDate = null;
-		String tOwnersUsername = null;
 		Function tFunctionId = null;
+		Collection<FunctionPrivacyStateItem> tPrivacyStateGroupItems = null;
 		
 		if(! isFailed()) {
 			try {
@@ -156,62 +139,32 @@ public class SurveyResponseFunctionReadRequest extends UserRequest {
 					throw new ValidationException("Multiple survey function IDs were given: " + InputKeys.SURVEY_FUNCTION_ID);
 				}
 				
-				String[] startDates = getParameterValues(InputKeys.START_DATE);
-				if(startDates.length == 0) {
-					setFailed(ErrorCode.SERVER_INVALID_DATE, "The required start date is missing: " + InputKeys.START_DATE);
-					throw new ValidationException("The required start date is missing: " + InputKeys.START_DATE);
+				String[] t;
+				t = getParameterValues(InputKeys.SURVEY_FUNCTION_PRIVACY_STATE_GROUP_ITEM_LIST);
+				if(t.length > 1) {
+					throw new ValidationException(
+							ErrorCode.SURVEY_FUNCTION_INVALID_PRIVACY_STATE_GROUP_ITEM,
+							"Multiple privacy state group item lists were given: " +
+								InputKeys.SURVEY_FUNCTION_PRIVACY_STATE_GROUP_ITEM_LIST);
 				}
-				else if(startDates.length == 1) {
-					tStartDate = SurveyResponseValidators.validateStartDate(startDates[0]);
-					
-					if(tStartDate == null) {
-						setFailed(ErrorCode.SERVER_INVALID_DATE, "The required start date is missing: " + InputKeys.START_DATE);
-						throw new ValidationException("The required start date is missing: " + InputKeys.START_DATE);
-					}
+				else if(t.length == 1) {
+					tPrivacyStateGroupItems = 
+						SurveyResponseValidators.validatePrivacyStateGroupList(
+								t[0]);
 				}
-				else {
-					setFailed(ErrorCode.SERVER_INVALID_DATE, "Mutliple start dates were found: " + InputKeys.START_DATE);
-					throw new ValidationException("Mutliple start dates were found: " + InputKeys.START_DATE);
-				}
-				
-				String[] endDates = getParameterValues(InputKeys.END_DATE);
-				if(endDates.length == 0) {
-					setFailed(ErrorCode.SERVER_INVALID_DATE, "The required end date is missing: " + InputKeys.END_DATE);
-					throw new ValidationException("The required end date is missing: " + InputKeys.END_DATE);
-				}
-				else if(endDates.length == 1) {
-					tEndDate = SurveyResponseValidators.validateEndDate(endDates[0]);
-					
-					if(tEndDate == null) {
-						setFailed(ErrorCode.SERVER_INVALID_DATE, "The required end date is missing: " + InputKeys.END_DATE);
-						throw new ValidationException("The required end date is missing: " + InputKeys.END_DATE);
-					}
-				}
-				else {
-					setFailed(ErrorCode.SERVER_INVALID_DATE, "Mutliple end dates were found: " + InputKeys.END_DATE);
-					throw new ValidationException("Mutliple end dates were found: " + InputKeys.END_DATE);
-				}
-				
-				String[] usernames = getParameterValues(InputKeys.SURVEY_RESPONSE_OWNER);
-				if(usernames.length == 1) {
-					tOwnersUsername = UserValidators.validateUsername(usernames[0]);
-				}
-				else if(usernames.length > 1) {
-					setFailed(ErrorCode.USER_INVALID_USERNAME, "Multiple owner usernames were found: " + InputKeys.SURVEY_RESPONSE_OWNER);
-					throw new ValidationException("Multiple owner usernames were found: " + InputKeys.SURVEY_RESPONSE_OWNER);
+				if(tPrivacyStateGroupItems == null) {
+					tPrivacyStateGroupItems = Collections.emptyList();
 				}
 			}
 			catch(ValidationException e) {
 				e.failRequest(this);
-				LOGGER.info(e.toString());
+				e.logException(LOGGER);
 			}
 		}
 		
 		campaignId = tCampaignId;
-		startDate = tStartDate;
-		endDate = tEndDate;
-		ownersUsername = tOwnersUsername;
 		functionId = tFunctionId;
+		privacyStateGroupItems = tPrivacyStateGroupItems;
 		
 		surveyResponses = Collections.emptyList();
 	}
@@ -231,15 +184,8 @@ public class SurveyResponseFunctionReadRequest extends UserRequest {
 			LOGGER.info("Verifying that the campaign exists.");
 			CampaignServices.instance().checkCampaignExistence(campaignId, true);
 			
-			LOGGER.info("Verifying that the user is allowed to read the requested survey responses.");
-			UserCampaignServices.instance().requesterCanViewUsersSurveyResponses(
-					campaignId, 
-					getUser().getUsername(), 
-					(ownersUsername == null) ?
-						getUser().getUsername() :
-						ownersUsername);
-			
-			// TODO: Only supervisors can specify an user.
+			LOGGER.info("Verifying that the user is allowed to view the requested data.");
+			UserCampaignServices.instance().requesterCanViewUsersSurveyResponses(campaignId, getUser().getUsername());
 			
 			LOGGER.info("Gathering the campaign.");
 			Campaign campaign = CampaignServices.instance().getCampaign(campaignId);
@@ -247,10 +193,10 @@ public class SurveyResponseFunctionReadRequest extends UserRequest {
 			LOGGER.info("Gathering the survey response information.");
 			surveyResponses = SurveyResponseServices.instance().readSurveyResponseInformation(
 					campaign, 
-					ownersUsername, 
 					null, 
-					startDate, 
-					endDate, 
+					null, 
+					null, 
+					null, 
 					null, 
 					null, 
 					null, 
@@ -273,63 +219,246 @@ public class SurveyResponseFunctionReadRequest extends UserRequest {
 			super.respond(httpRequest, httpResponse, null);
 			return;
 		}
+
+		switch(functionId) {
+		case PRIVACY_STATE:
+			functionResponsePrivacyState(httpRequest, httpResponse);
+			break;
+		}
+	}
+	
+	/**
+	 * This responds to a "privacy state" function request.
+	 * 
+	 * @param httpRequest The HttpServletRequest
+	 * 
+	 * @param httpResponse The HttpServletResponse
+	 */
+	private void functionResponsePrivacyState(
+			final HttpServletRequest httpRequest,
+			final HttpServletResponse httpResponse) {
+
+		// This maps each of the privacy states to a collection of collections
+		// of survey responses. The inner collection is all of the survey 
+		// responses that have the same parameters as specified by the 
+		// 'privacyStateGroupItems'. The outer collection is the aggregation of
+		// all of those inner collections associated with this privacy state.
+		// For example, if the 'privacyStateGroupItems' is empty, then the 
+		// outer collection would contain exactly one inner collection which
+		// would be all survey responses with the privacy state for the key.
+		// If the 'privacyStateGroupItems' contains a 'date' item, then for 
+		// each key the outer collection is a collection of all of the survey
+		// responses with the same privacy state and each inner collection is 
+		// all of the survey responses with the same date. If a 'survey ID' 
+		// item was also given, then each of the inner collections would be
+		// those survey responses that share the same date and survey ID.
+		Map<PrivacyState, Collection<Collection<SurveyResponse>>> privacyStateBucket =
+				new HashMap<PrivacyState, Collection<Collection<SurveyResponse>>>(
+						PrivacyState.values().length);
+		
+		// Cycle through all of the survey responses and populate their initial
+		// buckets.
+		for(SurveyResponse surveyResponse : surveyResponses) {
+			// Get this response's privacy state.
+			PrivacyState privacyState = 
+					surveyResponse.getPrivacyState();
+			
+			// Get the outer collection if it exists.
+			Collection<Collection<SurveyResponse>> outerCollection =
+					privacyStateBucket.get(privacyState);
+			
+			// If it doesn't exist, create and add it.
+			if(outerCollection == null) {
+				outerCollection = new LinkedList<Collection<SurveyResponse>>();
+				privacyStateBucket.put(privacyState, outerCollection);
+			}
+			
+			// The outer collection should have exactly zero or one inner 
+			// collections. If it has zero, create the one.
+			Collection<SurveyResponse> innerCollection;
+			if(outerCollection.size() == 0) {
+				innerCollection = new LinkedList<SurveyResponse>();
+				outerCollection.add(innerCollection);
+			}
+			// If it already has one then it should have exactly one and we
+			// retrieve that one.
+			else {
+				innerCollection = outerCollection.iterator().next();
+			}
+			
+			// Add the survey response to the inner collection.
+			innerCollection.add(surveyResponse);
+		}
+		
+		if(privacyStateGroupItems.contains(FunctionPrivacyStateItem.DATE)) {
+			LOGGER.info("Subdividing buckets by date.");
+			subdivideDate(privacyStateBucket);
+		}
+
+		if(privacyStateGroupItems.contains(FunctionPrivacyStateItem.SURVEY)) {
+			LOGGER.info("Subdividing buckets by survey ID.");
+			subdivideSurveyId(privacyStateBucket);
+		}
 		
 		try {
-			switch(functionId) {
-			// Returns metadata information about each of the survey responses.
-			case COMPLETED_SURVEYS:
-				JSONArray completedSurveysResult = new JSONArray();
+			// Create the resulting JSONObject and populate it.
+			JSONObject result = new JSONObject();
+			for(PrivacyState privacyState : privacyStateBucket.keySet()) {
+				Collection<Collection<SurveyResponse>> currPrivacyStateBucket =
+						privacyStateBucket.get(privacyState);
 				
-				for(SurveyResponse surveyResponse : surveyResponses) {
-					JSONObject currResult = new JSONObject();
+				// Create the array of buckets for this privacy state.
+				JSONArray jsonBuckets = new JSONArray();
+				
+				// Cycle through each of the buckets of collections, create a 
+				// JSONObject representing that bucket, and add it to the array for
+				// this privacy state.
+				for(Collection<SurveyResponse> currBucket : currPrivacyStateBucket) {
+					JSONObject jsonBucket = new JSONObject();
 					
-					currResult.put(JSON_KEY_VALUE, surveyResponse.getSurvey().getId());
-					currResult.put(JSON_KEY_TIMESTAMP, TimeUtils.getIso8601DateTimeString(surveyResponse.getDate()));
-					currResult.put(JSON_KEY_TIMEZONE, surveyResponse.getTimezone().getID());
-					currResult.put(JSON_KEY_LOCATION_STATUS, surveyResponse.getLocationStatus().toString().toLowerCase());
-					Location location = surveyResponse.getLocation();
-					if(location == null) {
-						currResult.put(JSON_KEY_LOCATION, new JSONObject());
-					}
-					else {
-						currResult.put(JSON_KEY_LOCATION, location.toJson(false));
+					jsonBucket.put("count", currBucket.size());
+					
+					if(privacyStateGroupItems.contains(FunctionPrivacyStateItem.DATE)) {
+						long time = currBucket.iterator().next().getTime();
+						jsonBucket.put(
+								"date", 
+								time - (time % MILLIS_PER_DAY));
 					}
 					
-					completedSurveysResult.put(currResult);
+					if(privacyStateGroupItems.contains(FunctionPrivacyStateItem.SURVEY)) {
+						jsonBucket.put(
+								"survey_id", 
+								currBucket.iterator().next().getSurvey().getId());
+					}
+					
+					jsonBuckets.put(jsonBucket);
 				}
 				
-				super.respond(httpRequest, httpResponse, JSON_KEY_DATA, completedSurveysResult);
-				break;
-				
-			// Returns aggregated statistics about the survey responses.
-			case STATS:
-				JSONObject statsResult = new JSONObject();
-				
-				Map<SurveyResponse.PrivacyState, Integer> privacyStates = new HashMap<SurveyResponse.PrivacyState, Integer>();
-				for(SurveyResponse surveyResponse : surveyResponses) {
-					SurveyResponse.PrivacyState privacyState = surveyResponse.getPrivacyState();
-					
-					Integer count = privacyStates.get(privacyState);
-					if(count == null) {
-						privacyStates.put(privacyState, 1);
-					}
-					else {
-						privacyStates.put(privacyState, count + 1);
-					}
-				}
-				
-				for(SurveyResponse.PrivacyState privacyState : privacyStates.keySet()) {
-					statsResult.put(privacyState.toString(), privacyStates.get(privacyState));
-				}
-				
-				respond(httpRequest, httpResponse, statsResult);
-				break;
+				result.put(privacyState.toString(), jsonBuckets);
 			}
+			
+			super.respond(httpRequest, httpResponse, result);
 		}
 		catch(JSONException e) {
-			LOGGER.error("Error building response JSON.", e);
+			LOGGER.error("There was a problem creating the response.", e);
 			setFailed();
 			super.respond(httpRequest, httpResponse, null);
+		}
+	}
+	
+	/**
+	 * Subdivides the privacy state buckets into those that occurred on the 
+	 * same date.
+	 * 
+	 * @param privacyStateBucket The map of privacy state to buckets of
+	 * 							 collections of survey responses.
+	 */
+	private void subdivideDate(
+			Map<PrivacyState, Collection<Collection<SurveyResponse>>> privacyStateBucket) {
+		
+		// For each of the privacy state buckets,
+		for(PrivacyState privacyState : privacyStateBucket.keySet()) {
+			// Get the current privacy state bucket.
+			Collection<Collection<SurveyResponse>> currPrivacyStateBucket =
+					privacyStateBucket.get(privacyState);
+			
+			// Create a new, empty privacy state bucket.
+			Collection<Collection<SurveyResponse>> newPrivacyStateBucket =
+					new LinkedList<Collection<SurveyResponse>>();
+			
+			// Subdivide each of the outer buckets by removing their inner 
+			// buckets and replacing them with their subdivided counterparts.
+			for(Collection<SurveyResponse> currBucket : currPrivacyStateBucket) {
+				// Subdivide the inner collections.
+				Map<Long, Collection<SurveyResponse>> newInnerBuckets =
+						new HashMap<Long, Collection<SurveyResponse>>();
+				
+				// For all of the survey responses in this inner bucket, get
+				// their survey ID and re-bucket them.
+				for(SurveyResponse surveyResponse : currBucket) {
+					// Get the date that this record was created.
+					long date = surveyResponse.getTime() / MILLIS_PER_DAY;
+					
+					// Get the other responses on this date.
+					Collection<SurveyResponse> currResponses = 
+							newInnerBuckets.get(date);
+					
+					// If no other responses exist for this date, create
+					// the list.
+					if(currResponses == null) {
+						currResponses = new LinkedList<SurveyResponse>();
+						newInnerBuckets.put(date, currResponses);
+					}
+					
+					// Add this response to the given date.
+					currResponses.add(surveyResponse);
+				}
+				
+				// Add the inner buckets to the collection of outer buckets.
+				for(Long date : newInnerBuckets.keySet()) {
+					newPrivacyStateBucket.add(newInnerBuckets.get(date));
+				}
+			}
+			
+			privacyStateBucket.put(privacyState, newPrivacyStateBucket);
+		}
+	}
+	
+	/**
+	 * Subdivides the privacy state buckets into those survey responses whose
+	 * corresponding survey has the same ID.
+	 * 
+	 * @param privacyStateBucket The map of privacy state to buckets of
+	 * 							 collections of survey responses.
+	 */
+	private void subdivideSurveyId(
+			Map<PrivacyState, Collection<Collection<SurveyResponse>>> privacyStateBucket) {
+		
+		// For each of the privacy state buckets,
+		for(PrivacyState privacyState : privacyStateBucket.keySet()) {
+			// Get the current privacy state bucket.
+			Collection<Collection<SurveyResponse>> currPrivacyStateBucket =
+					privacyStateBucket.get(privacyState);
+			
+			// Create a new, empty privacy state bucket.
+			Collection<Collection<SurveyResponse>> newPrivacyStateBucket =
+					new LinkedList<Collection<SurveyResponse>>();
+			
+			// Subdivide each of the outer buckets by removing their inner 
+			// buckets and replacing them with their subdivided counterparts.
+			for(Collection<SurveyResponse> currBucket : currPrivacyStateBucket) {
+				// Subdivide the inner collections.
+				Map<String, Collection<SurveyResponse>> newInnerBuckets =
+						new HashMap<String, Collection<SurveyResponse>>();
+				
+				// For all of the survey responses in this inner bucket, get
+				// their survey ID and re-bucket them.
+				for(SurveyResponse surveyResponse : currBucket) {
+					// Get the date that this record was created.
+					String surveyId = surveyResponse.getSurvey().getId();
+					
+					// Get the other responses on this date.
+					Collection<SurveyResponse> currResponses = 
+							newInnerBuckets.get(surveyId);
+					
+					// If no other responses exist for this date, create
+					// the list.
+					if(currResponses == null) {
+						currResponses = new LinkedList<SurveyResponse>();
+						newInnerBuckets.put(surveyId, currResponses);
+					}
+					
+					// Add this response to the given date.
+					currResponses.add(surveyResponse);
+				}
+				
+				// Add the inner buckets to the collection of outer buckets.
+				for(String surveyId : newInnerBuckets.keySet()) {
+					newPrivacyStateBucket.add(newInnerBuckets.get(surveyId));
+				}
+			}
+			
+			privacyStateBucket.put(privacyState, newPrivacyStateBucket);
 		}
 	}
 }

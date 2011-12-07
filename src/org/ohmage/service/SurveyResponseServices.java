@@ -157,7 +157,7 @@ public final class SurveyResponseServices {
 	}
 	
 	/**
-	 * Generates a list of SurveyResponseInformation objects where each object
+	 * Generates a list of SurveyResponse objects where each object
 	 * represents an individual survey response and the list is the result of
 	 * the optional parameters below. The campaign ID is required because the
 	 * largest scale on which survey responses can be queried is by campaign.

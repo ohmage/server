@@ -1,6 +1,7 @@
 package org.ohmage.validator;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
@@ -10,6 +11,7 @@ import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.domain.campaign.SurveyResponse;
 import org.ohmage.domain.campaign.SurveyResponse.ColumnKey;
 import org.ohmage.domain.campaign.SurveyResponse.Function;
+import org.ohmage.domain.campaign.SurveyResponse.FunctionPrivacyStateItem;
 import org.ohmage.domain.campaign.SurveyResponse.OutputFormat;
 import org.ohmage.domain.campaign.SurveyResponse.SortParameter;
 import org.ohmage.exception.ValidationException;
@@ -354,6 +356,51 @@ public final class SurveyResponseValidators {
 					"The survey response function ID is unknown: " + 
 						function);
 		}
+	}
+	
+	/**
+	 * Validates a list of privacy state grouping items.
+	 * 
+	 * @param list The list of grouping items as a string.
+	 * 
+	 * @return The decoded set of grouping items.
+	 * 
+	 * @throws ValidationException Thrown if one of the items in the list 
+	 * 							   wasn't decodable.
+	 */
+	public static Set<FunctionPrivacyStateItem> validatePrivacyStateGroupList(
+			final String list)
+			throws ValidationException {
+		
+		if(StringUtils.isEmptyOrWhitespaceOnly(list)) {
+			return Collections.emptySet();
+		}
+		
+		String[] listArray = list.split(InputKeys.LIST_ITEM_SEPARATOR);
+		int numItems = listArray.length;
+		
+		Set<FunctionPrivacyStateItem> result = 
+			new HashSet<FunctionPrivacyStateItem>(numItems);
+		
+		for(int i = 0; i < listArray.length; i++) {
+			String item = listArray[i];
+			
+			if((item != null) && 
+					(! StringUtils.isEmptyOrWhitespaceOnly(item))) {
+				
+				try {
+					result.add(FunctionPrivacyStateItem.getValue(item));
+				}
+				catch(IllegalArgumentException e) {
+					throw new ValidationException(
+							ErrorCode.SURVEY_FUNCTION_INVALID_PRIVACY_STATE_GROUP_ITEM,
+							"The function grouping item is unknown.",
+							e);
+				}
+			}
+		}
+		
+		return result;
 	}
 	
 	/**

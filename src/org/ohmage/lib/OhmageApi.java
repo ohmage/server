@@ -40,8 +40,8 @@ import org.ohmage.domain.Clazz;
 import org.ohmage.domain.Document;
 import org.ohmage.domain.MobilityPoint;
 import org.ohmage.domain.ServerConfig;
-import org.ohmage.domain.UserSummary;
 import org.ohmage.domain.UserPersonal;
+import org.ohmage.domain.UserSummary;
 import org.ohmage.domain.campaign.Campaign;
 import org.ohmage.domain.campaign.SurveyResponse;
 import org.ohmage.exception.ErrorCodeException;
@@ -1976,7 +1976,8 @@ public class OhmageApi {
 	 * @throws ApiException Thrown if there is a library error.
 	 * 
 	 * @throws RequestErrorException Thrown if the server returns an error.
-	 */
+	 * 
+	 * FIXME: This has been changed.
 	public Map<SurveyResponse.PrivacyState, Integer> getSurveyResponsePrivacyStateCounts(
 			final String username, final String hashedPassword, 
 			final String authenticationToken, final String client,
@@ -2041,7 +2042,7 @@ public class OhmageApi {
 		}
 		
 		return result;
-	}
+	}*/
 	
 	/**
 	 * Updates a survey response.
