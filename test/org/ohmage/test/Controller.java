@@ -62,6 +62,7 @@ public class Controller {
 			
 			// Now, test the classes.
 			ClassApiTest classTest = new ClassApiTest(api, authToken);
+			classTest.test(authToken);
 			
 			// Next, begin testing the documents. Create some, share some, 
 			// delete some.
