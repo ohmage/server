@@ -69,7 +69,7 @@ public class ClassSearchRequest extends UserRequest {
 	private static final Logger LOGGER = Logger.getLogger(ClassSearchRequest.class);
 	
 	private static final String JSON_KEY_USERNAMES = "usernames";
-	private static final String JSON_KEY_CLASSES = "classes";
+	private static final String JSON_KEY_CAMPAIGNS = "campaigns";
 	
 	private final String classId;
 	private final String className;
@@ -207,8 +207,8 @@ public class ClassSearchRequest extends UserRequest {
 				for(Clazz clazz : classToUsernamesMap.keySet()) {
 					JSONObject classJson = clazz.toJson(false);
 					
-					classJson.put("usernames", classToUsernamesMap.get(clazz));
-					classJson.put("campaigns", classToCampaignIdsMap.get(clazz));
+					classJson.put(JSON_KEY_USERNAMES, classToUsernamesMap.get(clazz));
+					classJson.put(JSON_KEY_CAMPAIGNS, classToCampaignIdsMap.get(clazz));
 					
 					result.put(clazz.getId(), classJson);
 				}
