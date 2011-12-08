@@ -68,6 +68,9 @@ import org.ohmage.service.UserServices;
 public class ClassSearchRequest extends UserRequest {
 	private static final Logger LOGGER = Logger.getLogger(ClassSearchRequest.class);
 	
+	private static final String JSON_KEY_USERNAMES = "usernames";
+	private static final String JSON_KEY_CLASSES = "classes";
+	
 	private final String classId;
 	private final String className;
 	private final String classDescription;
@@ -205,7 +208,7 @@ public class ClassSearchRequest extends UserRequest {
 					JSONObject classJson = clazz.toJson(false);
 					
 					classJson.put("usernames", classToUsernamesMap.get(clazz));
-					classJson.put("campaign_ids", classToCampaignIdsMap.get(clazz));
+					classJson.put("campaigns", classToCampaignIdsMap.get(clazz));
 					
 					result.put(clazz.getId(), classJson);
 				}
