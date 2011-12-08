@@ -65,7 +65,7 @@ public class UserChangePasswordRequest extends UserRequest {
 			
 			String[] t;
 			try {
-				t = httpRequest.getParameterValues(InputKeys.NEW_PASSWORD);
+				t = getParameterValues(InputKeys.NEW_PASSWORD);
 				if(t.length == 0) {
 					throw new ValidationException(
 							ErrorCode.USER_INVALID_PASSWORD, 
@@ -88,7 +88,7 @@ public class UserChangePasswordRequest extends UserRequest {
 					}
 				}
 				
-				t = httpRequest.getParameterValues(InputKeys.USERNAME);
+				t = getParameterValues(InputKeys.USERNAME);
 				if(t.length > 1) {
 					throw new ValidationException(
 							ErrorCode.USER_INVALID_USERNAME,
