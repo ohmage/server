@@ -1342,7 +1342,7 @@ public class Campaign {
 			}
 		}
 		
-		throw new IllegalArgumentException("The prompt doesn't exist.");
+		throw new IllegalArgumentException("The prompt doesn't exist: " + promptId);
 	}
 	
 	/**
@@ -1364,7 +1364,7 @@ public class Campaign {
 			}
 		}
 		
-		throw new IllegalArgumentException("The prompt doesn't exist.");
+		throw new IllegalArgumentException("The prompt doesn't exist: " + promptId);
 	}
 
 	/**

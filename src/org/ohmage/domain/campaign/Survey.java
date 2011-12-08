@@ -318,8 +318,10 @@ public class Survey {
 				if(repeatableSet.getId().equals(surveyItemId)) {
 					return repeatableSet;
 				}
-				else if(repeatableSet.getPrompt(surveyItemId) != null) {
-					return prompt;
+				
+				SurveyItem surveyItem = repeatableSet.getSurveyItem(surveyItemId);
+				if(surveyItem != null) {
+					return surveyItem;
 				}
 			}
 		}

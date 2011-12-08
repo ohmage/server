@@ -678,6 +678,11 @@ public final class SurveyResponseReadRequest extends UserRequest {
 	public void respond(HttpServletRequest httpRequest, HttpServletResponse httpResponse) {
 		LOGGER.info("Responding to the survey response read request.");
 		
+		if(isFailed()) {
+			super.respond(httpRequest, httpResponse, null);
+			return;
+		}
+		
 		// Create a writer for the HTTP response object.
 		Writer writer = null;
 		try {
@@ -924,14 +929,21 @@ public final class SurveyResponseReadRequest extends UserRequest {
 							}
 						}
 						else if(promptIds != null) {
-							int currNumPrompts = 0;
-							Map<Integer, SurveyItem> tempPromptMap = new HashMap<Integer, SurveyItem>(promptIds.size());
-							for(String promptId : promptIds) {
-								tempPromptMap.put(currNumPrompts, campaign.getPrompt(campaign.getSurveyIdForPromptId(promptId), promptId));
-								currNumPrompts++;
+							if(this.promptIds.equals(URN_SPECIAL_ALL_LIST)) {
+								for(Survey currSurvey : campaign.getSurveys().values()) {
+									populatePrompts(currSurvey.getSurveyItems(), prompts);
+								}
 							}
-							
-							populatePrompts(tempPromptMap, prompts);
+							else {
+								int currNumPrompts = 0;
+								Map<Integer, SurveyItem> tempPromptMap = new HashMap<Integer, SurveyItem>(promptIds.size());
+								for(String promptId : promptIds) {
+									tempPromptMap.put(currNumPrompts, campaign.getPrompt(campaign.getSurveyIdForPromptId(promptId), promptId));
+									currNumPrompts++;
+								}
+								
+								populatePrompts(tempPromptMap, prompts);
+							}
 						}
 					}
 					else {
