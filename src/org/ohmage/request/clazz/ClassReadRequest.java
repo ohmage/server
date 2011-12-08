@@ -20,6 +20,7 @@ import org.ohmage.request.InputKeys;
 import org.ohmage.request.UserRequest;
 import org.ohmage.service.ClassServices;
 import org.ohmage.service.UserClassServices;
+import org.ohmage.service.UserServices;
 import org.ohmage.validator.ClassValidators;
 
 /**
@@ -52,6 +53,7 @@ public class ClassReadRequest extends UserRequest {
 	private static final String JSON_KEY_USERS = "users";
 	
 	private final Collection<String> classIds;
+	
 	private final Map<Clazz, Map<String, Clazz.Role>> result;
 	
 	/**
@@ -104,8 +106,15 @@ public class ClassReadRequest extends UserRequest {
 		try {
 			// Check that each of the classes in the list exist and that the 
 			// requester is a member of each class.
-			LOGGER.info("Checking that all of the classes in the class list exist.");
-			UserClassServices.instance().classesExistAndUserBelongs(classIds, getUser().getUsername());
+			try {
+				LOGGER.info("Checking if the user is an admin.");
+				UserServices.instance().verifyUserIsAdmin(getUser().getUsername());
+			}
+			catch(ServiceException userNotAdmin) {
+				LOGGER.info("The user is not an admin.", userNotAdmin);
+				LOGGER.info("Checking that all of the classes in the class list exist.");
+				UserClassServices.instance().classesExistAndUserBelongs(classIds, getUser().getUsername());
+			}
 			
 			// Get the information about the classes.
 			LOGGER.info("Gathering the information about the classes in the list.");
