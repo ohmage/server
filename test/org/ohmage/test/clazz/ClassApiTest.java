@@ -427,6 +427,8 @@ public class ClassApiTest {
 			throw new IllegalArgumentException("The class description doesn't match(" + classDescription + "):" + classInformation.getId());
 		}
 		
+		// FIXME: Incomplete. We still need to add the user/role add/remove
+		// tests.
 	}
 	
 	/**
