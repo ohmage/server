@@ -100,9 +100,14 @@ public final class MobilityServices {
 		// Create a new classifier.
 		MobilityClassifier classifier = new MobilityClassifier();
 		
-		
 		// For each of the Mobility points,
 		for(MobilityPoint mobilityPoint : mobilityPoints) {
+			// If the data point is of type error, don't attempt to classify 
+			// it.
+			if(mobilityPoint.getMode().equals(Mode.ERROR)) {
+				continue;
+			}
+			
 			// If the SubType is sensor data,
 			if(MobilityPoint.SubType.SENSOR_DATA.equals(mobilityPoint.getSubType())) {
 				// Classify the data.
@@ -192,7 +197,7 @@ public final class MobilityServices {
 		try {
 			// Create the IDs list and set it to null. Once we find a non-null
 			// parameter, we will set the list to that parameter's value.
-			List<Long> mobilityIds = null;
+			List<String> mobilityIds = null;
 			
 			// If both start and end date are non-null, get the IDs from their
 			// intersection; otherwise, try and get the IDs from the one that

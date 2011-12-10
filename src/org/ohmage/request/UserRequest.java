@@ -1,6 +1,6 @@
 package org.ohmage.request;
 
-import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -458,7 +458,7 @@ public abstract class UserRequest extends Request {
 	 */
 	@Override
 	public Map<String, String[]> getAuditInformation() {
-		return Collections.emptyMap();
+		return new HashMap<String, String[]>();
 	}
 	
 	/**************************************************************************

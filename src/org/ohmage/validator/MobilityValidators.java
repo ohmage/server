@@ -1,5 +1,6 @@
 package org.ohmage.validator;
 
+import java.util.Collection;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
@@ -7,6 +8,7 @@ import java.util.List;
 import org.apache.log4j.Logger;
 import org.json.JSONArray;
 import org.json.JSONException;
+import org.json.JSONObject;
 import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.domain.MobilityPoint;
 import org.ohmage.exception.ErrorCodeException;
@@ -29,23 +31,34 @@ public final class MobilityValidators {
 	
 	/**
 	 * Validates Mobility data in the format of a JSONArray of JSONObjects 
-	 * where each JSONObject is a Mobility data point.
+	 * where each JSONObject is a Mobility data point. It returns the decoded
+	 * Mobility points and adds the invalid Mobility points and their 
+	 * respective ID (if retrievable) to the parameterized lists.
 	 * 
 	 * @param data The data to be validated. The expected value is a JSONArray
 	 * 			   of JSONObjects where each JSONObject is a Mobility data
 	 * 			   point.
 	 * 
+	 * @param invalidPointIds The IDs from their respective JSON objects where
+	 * 						  the entire point contained some error(s).
+	 * 
+	 * @param invalidPoint The JSONObject for each point that contained 
+	 * 					   some error. There may or may not be a 
+	 * 					   corresponding ID in the 'invalidPointIds' list
+	 * 					   depending on whether the ID was retrievable or
+	 * 					   not.
+	 * 
 	 * @return Returns null if the data is null or whitespace only; otherwise,
-	 * 		   a list of MobilityInformation objects is returned.
+	 * 		   a list of MobilityPoint objects is returned.
 	 * 
 	 * @throws ValidationException Thrown if the data is not null, not
-	 * 							   whitespace only, and the data String is not
-	 * 							   a JSONArray of JSONObjects or any of the 
-	 * 							   JSONObjects cannot become a 
-	 * 							   MobilityInformation object.
+	 * 							   whitespace only, and the data String cannot
+	 * 							   be decoded into JSON.
 	 */
 	public static List<MobilityPoint> validateDataAsJsonArray(
-			final String data) throws ValidationException {
+			final String data, 
+			Collection<JSONObject> invalidPoint) 
+			throws ValidationException {
 		
 		LOGGER.info("Validating a JSONArray of data points.");
 		
@@ -58,7 +71,18 @@ public final class MobilityValidators {
 			
 			List<MobilityPoint> result = new LinkedList<MobilityPoint>();
 			for(int i = 0; i < jsonArray.length(); i++) {
-				result.add(new MobilityPoint(jsonArray.getJSONObject(i), MobilityPoint.PrivacyState.PRIVATE));
+				JSONObject mobilityPointJson = jsonArray.getJSONObject(i);
+				
+				try {
+					result.add(
+							new MobilityPoint(
+									mobilityPointJson, 
+									MobilityPoint.PrivacyState.PRIVATE));
+				}
+				catch(ErrorCodeException invalidPointException) {
+					LOGGER.warn("Invalid point.", invalidPointException);
+					invalidPoint.add(mobilityPointJson);
+				}
 			}
 			
 			return result;
@@ -68,9 +92,6 @@ public final class MobilityValidators {
 					ErrorCode.SERVER_INVALID_JSON, 
 					"The JSONArray containing the data is malformed.", 
 					e);
-		}
-		catch(ErrorCodeException e) {
-			throw new ValidationException(e);
 		}
 	}
 	

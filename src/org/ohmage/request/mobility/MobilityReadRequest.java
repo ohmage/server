@@ -112,13 +112,10 @@ public class MobilityReadRequest extends UserRequest {
 			startDate.set(Calendar.SECOND, 0);
 			startDate.set(Calendar.MINUTE, 0);
 			startDate.set(Calendar.HOUR_OF_DAY, 0);
+			
 			Calendar endDate = new GregorianCalendar();
 			endDate.setTimeInMillis(startDate.getTimeInMillis());
 			endDate.add(Calendar.DAY_OF_YEAR, 1);
-			
-			LOGGER.debug("Actual date: " + TimeUtils.getIso8601DateTimeString(date));
-			LOGGER.debug("Start date: " + TimeUtils.getIso8601DateTimeString(new Date(startDate.getTimeInMillis())));
-			LOGGER.debug("End date: " + TimeUtils.getIso8601DateTimeString(new Date(endDate.getTimeInMillis())));
 			
 			result = MobilityServices.instance().retrieveMobilityData(
 					getUser().getUsername(), 

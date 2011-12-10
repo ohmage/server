@@ -1,11 +1,15 @@
 package org.ohmage.request.mobility;
 
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.log4j.Logger;
+import org.json.JSONArray;
+import org.json.JSONObject;
 import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.domain.MobilityPoint;
 import org.ohmage.exception.ServiceException;
@@ -130,8 +134,12 @@ import org.ohmage.validator.MobilityValidators;
  */
 public class MobilityUploadRequest extends UserRequest {
 	private static final Logger LOGGER = Logger.getLogger(MobilityUploadRequest.class);
+
+	private static final String AUDIT_KEY = "invalid_mobility_points";
+	private static final String JSON_KEY_ACCEPTED_IDS = "accepted_ids";
 	
 	private final List<MobilityPoint> data;
+	private final List<JSONObject> invalidMobilityPoints;
 	
 	/**
 	 * Creates a Mobility upload request.
@@ -145,6 +153,7 @@ public class MobilityUploadRequest extends UserRequest {
 		LOGGER.info("Creating a Mobility upload request.");
 		
 		List<MobilityPoint> tData = null;
+		invalidMobilityPoints = new LinkedList<JSONObject>();
 		
 		if(! isFailed()) {
 			try {
@@ -158,7 +167,7 @@ public class MobilityUploadRequest extends UserRequest {
 					throw new ValidationException("Multiple data parameters were given: " + ErrorCode.MOBILITY_INVALID_DATA);
 				}
 				else {
-					tData = MobilityValidators.validateDataAsJsonArray(dataArray[0]);
+					tData = MobilityValidators.validateDataAsJsonArray(dataArray[0], invalidMobilityPoints);
 				}
 			}
 			catch(ValidationException e) {
@@ -202,6 +211,34 @@ public class MobilityUploadRequest extends UserRequest {
 	public void respond(HttpServletRequest httpRequest, HttpServletResponse httpResponse) {
 		LOGGER.info("Responding to the Mobility upload request.");
 		
-		super.respond(httpRequest, httpResponse, null);
+		if(isFailed()) {
+			super.respond(httpRequest, httpResponse, null);
+		}
+		else {
+			JSONArray acceptedIds = new JSONArray();
+			for(MobilityPoint mobilityPoint : data) {
+				acceptedIds.put(mobilityPoint.getId().toString());
+			}
+			
+			super.respond(httpRequest, httpResponse, JSON_KEY_ACCEPTED_IDS, acceptedIds);
+		}
+	}
+	
+	/**
+	 * Adds to the parent's audit information map the invalid Mobility points.
+	 */
+	@Override
+	public Map<String, String[]> getAuditInformation() {
+		Map<String, String[]> result = super.getAuditInformation();
+		
+		String[] invalidPointsArray = new String[invalidMobilityPoints.size()];
+		int numPointsAdded = 0;
+		for(JSONObject invalidPoint : invalidMobilityPoints) {
+			invalidPointsArray[numPointsAdded] = invalidPoint.toString();
+			numPointsAdded++;
+		}
+		result.put(AUDIT_KEY, invalidPointsArray);
+		
+		return result;
 	}
 }
