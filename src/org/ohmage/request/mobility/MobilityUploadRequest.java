@@ -135,7 +135,8 @@ import org.ohmage.validator.MobilityValidators;
 public class MobilityUploadRequest extends UserRequest {
 	private static final Logger LOGGER = Logger.getLogger(MobilityUploadRequest.class);
 
-	private static final String AUDIT_KEY = "invalid_mobility_points";
+	private static final String AUDIT_KEY_VALID_POINT_IDS = "accepted_point_id";
+	private static final String AUDIT_KEY_INVALID_POINTS = "invalid_mobility_point";
 	private static final String JSON_KEY_ACCEPTED_IDS = "accepted_ids";
 	
 	private final List<MobilityPoint> data;
@@ -231,13 +232,21 @@ public class MobilityUploadRequest extends UserRequest {
 	public Map<String, String[]> getAuditInformation() {
 		Map<String, String[]> result = super.getAuditInformation();
 		
+		String[] validPointIds = new String[data.size()];
+		int numIdsAdded = 0;
+		for(MobilityPoint mobilityPoint : data) {
+			validPointIds[numIdsAdded] = mobilityPoint.getId().toString();
+			numIdsAdded++;
+		}
+		result.put(AUDIT_KEY_VALID_POINT_IDS, validPointIds);
+		
 		String[] invalidPointsArray = new String[invalidMobilityPoints.size()];
 		int numPointsAdded = 0;
 		for(JSONObject invalidPoint : invalidMobilityPoints) {
 			invalidPointsArray[numPointsAdded] = invalidPoint.toString();
 			numPointsAdded++;
 		}
-		result.put(AUDIT_KEY, invalidPointsArray);
+		result.put(AUDIT_KEY_INVALID_POINTS, invalidPointsArray);
 		
 		return result;
 	}
