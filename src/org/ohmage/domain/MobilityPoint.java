@@ -394,14 +394,26 @@ public class MobilityPoint {
 		 */
 		private SensorData(JSONObject sensorData) throws ErrorCodeException {
 			// Get the mode.
+			String modeString;
 			try {
-				mode = Mode.valueOf(sensorData.getString(JSON_KEY_MODE).toUpperCase());
+				modeString = sensorData.getString(JSON_KEY_MODE);
 			}
 			catch(JSONException e) {
-				throw new ErrorCodeException(ErrorCode.MOBILITY_INVALID_MODE, "The mode is missing.", e);
+				throw new ErrorCodeException(
+						ErrorCode.MOBILITY_INVALID_MODE, 
+						"The mode is missing in the sensor data: " + 
+								JSON_KEY_MODE, 
+						e);
+			}
+			
+			try {
+				mode = Mode.valueOf(modeString);
 			}
 			catch(IllegalArgumentException e) {
-				throw new ErrorCodeException(ErrorCode.MOBILITY_INVALID_MODE, "The mode is not a known mode.", e);
+				throw new ErrorCodeException(
+						ErrorCode.MOBILITY_INVALID_MODE, 
+						"The mode is not a known mode: " + modeString, 
+						e);
 			}
 			
 			// Get the speed.
@@ -1036,13 +1048,13 @@ public class MobilityPoint {
 		// Based on the subtype, get the mode or sensor data.
 		switch(subType) {
 		case MODE_ONLY:
-			Mode tMode;
+			String modeString;
 			try {
-				tMode = Mode.valueOf(mobilityPoint.getString(JSON_KEY_MODE).toUpperCase());
+				modeString = mobilityPoint.getString(JSON_KEY_MODE);
 			}
 			catch(JSONException outerException) {
 				try {
-					tMode = Mode.valueOf(mobilityPoint.getString(JSON_KEY_MODE_SHORT).toUpperCase());
+					modeString = mobilityPoint.getString(JSON_KEY_MODE_SHORT);
 				}
 				catch(JSONException innerException) {
 					throw new ErrorCodeException(
@@ -1054,9 +1066,18 @@ public class MobilityPoint {
 							innerException);
 				}
 			}
-			catch(IllegalArgumentException e) {
-				throw new ErrorCodeException(ErrorCode.MOBILITY_INVALID_MODE, "The mode is unknown.", e);
+
+			Mode tMode;
+			try {
+				tMode = Mode.valueOf(modeString.toUpperCase());
 			}
+			catch(IllegalArgumentException e) {
+				throw new ErrorCodeException(
+						ErrorCode.MOBILITY_INVALID_MODE, 
+						"The mode is unknown: " + modeString, 
+						e);
+			}
+
 			mode = tMode;
 			sensorData = null;
 			break;
