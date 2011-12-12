@@ -591,7 +591,7 @@ public class UserQueries extends Query implements IUserQueries {
 		try {
 			return getJdbcTemplate().query(
 					SQL_GET_USERNAMES_WITH_NEW_ACCOUNT_VALUE, 
-					new Object[] { "%" + newAccount + "%" }, 
+					new Object[] { newAccount }, 
 					new SingleColumnRowMapper<String>()
 				);
 		}
@@ -616,7 +616,7 @@ public class UserQueries extends Query implements IUserQueries {
 		try {
 			return getJdbcTemplate().query(
 					SQL_GET_USERNAMES_WITH_CAMPAIGN_CREATION_PRIVILEGE, 
-					new Object[] { "%" + campaignCreationPrivilege + "%" }, 
+					new Object[] { campaignCreationPrivilege }, 
 					new SingleColumnRowMapper<String>()
 				);
 		}
