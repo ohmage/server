@@ -257,10 +257,10 @@ CREATE TABLE survey_response_privacy_state (
 -- --------------------------------------------------------------------
 CREATE TABLE survey_response (
   id int unsigned NOT NULL auto_increment,
+  uuid CHAR(36) NOT NULL UNIQUE,
   user_id int unsigned NOT NULL,
   campaign_id int unsigned NOT NULL,
   client tinytext NOT NULL,
-  msg_timestamp datetime NOT NULL,
   epoch_millis bigint unsigned NOT NULL, 
   phone_timezone varchar(32) NOT NULL,
   survey_id varchar(250) NOT NULL,    -- a survey id as defined in a campaign at the XPath //surveyId
@@ -274,7 +274,6 @@ CREATE TABLE survey_response (
   PRIMARY KEY (id),
   INDEX (user_id, campaign_id),
   INDEX (user_id, upload_timestamp),
-  UNIQUE (campaign_id, user_id, survey_id, epoch_millis), -- handle duplicate survey uploads
   CONSTRAINT FOREIGN KEY (user_id) REFERENCES user (id) ON DELETE CASCADE ON UPDATE CASCADE,    
   CONSTRAINT FOREIGN KEY (campaign_id) REFERENCES campaign (id) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT FOREIGN KEY (privacy_state_id) REFERENCES survey_response_privacy_state (id) ON DELETE CASCADE ON UPDATE CASCADE
@@ -337,6 +336,7 @@ CREATE TABLE mobility_privacy_state (
 -- --------------------------------------------------------------------
 CREATE TABLE mobility (
   id int unsigned NOT NULL auto_increment,
+  uuid CHAR(36) NOT NULL UNIQUE,
   user_id int unsigned NOT NULL,
   client tinytext NOT NULL,
   msg_timestamp datetime NOT NULL,
@@ -349,8 +349,7 @@ CREATE TABLE mobility (
   audit_timestamp timestamp default current_timestamp on update current_timestamp,
   privacy_state_id int unsigned NOT NULL,
   PRIMARY KEY (id),
-  INDEX (user_id, msg_timestamp),
-  UNIQUE (user_id, epoch_millis), -- enforce no-duplicates rule at the table level
+  INDEX (uuid),
   CONSTRAINT FOREIGN KEY (user_id) REFERENCES user (id) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT FOREIGN KEY (privacy_state_id) REFERENCES mobility_privacy_state (id) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;

@@ -13,3 +13,8 @@ ALTER TABLE survey_response DROP COLUMN msg_timestamp;
 ALTER TABLE survey_response ADD COLUMN uuid CHAR(36) NOT NULL;
 UPDATE survey_response SET uuid=UUID() WHERE uuid='';
 ALTER TABLE survey_response ADD CONSTRAINT UNIQUE (uuid);
+
+-- We probably want to drop the pre-existing constraints for Mobility and 
+-- survey responses, but try as I might I couldn't find any documentation on
+-- how to do it. ALTER TABLE's DROP CONSTRAINT appears to not be implemented in
+-- MySQL 5.1.

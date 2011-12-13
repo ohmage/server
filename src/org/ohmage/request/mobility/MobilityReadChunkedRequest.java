@@ -213,7 +213,7 @@ public class MobilityReadChunkedRequest extends UserRequest {
 						}
 						
 						// Figure out if this is the earliest or latest point.
-						Date date = chunkPoint.getDate();
+						Date date = new Date(chunkPoint.getTime());
 						if(date.before(earliestPoint)) {
 							earliestPoint = date;
 							earliestTimeZone = chunkPoint.getTimezone();

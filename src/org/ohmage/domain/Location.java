@@ -1,13 +1,11 @@
 package org.ohmage.domain;
 
-import java.util.Date;
+import java.util.TimeZone;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.exception.ErrorCodeException;
-import org.ohmage.util.StringUtils;
-import org.ohmage.util.TimeUtils;
 
 /**
  * This class contains all of the information associated with a location
@@ -24,15 +22,18 @@ public class Location {
 	private static final String JSON_KEY_ACCURACY_SHORT = "ac";
 	public static final String JSON_KEY_PROVIDER = "provider";
 	private static final String JSON_KEY_PROVIDER_SHORT = "pr";
-	public static final String JSON_KEY_OUTPUT_TIMESTAMP = "location_timestamp"; 
-	public static final String JSON_KEY_TIMESTAMP = "timestamp";
-	private static final String JSON_KEY_TIMESTAMP_SHORT = "ts";
+	public static final String JSON_KEY_TIME = "time";
+	private static final String JSON_KEY_TIME_SHORT = "t";
+	public static final String JSON_KEY_TIME_ZONE = "timezone";
+	private static final String JSON_KEY_TIME_ZONE_SHORT = "tz";
+	//public static final String JSON_KEY_OUTPUT_TIMESTAMP = "location_timestamp";
 	
 	private final Double latitude;
 	private final Double longitude;
 	private final Double accuracy;
 	private final String provider;
-	private final Date timestamp;
+	private final Long time;
+	private final TimeZone timeZone;
 	
 	/**
 	 * Creates a new Location object.
@@ -102,22 +103,33 @@ public class Location {
 		}
 		provider = tProvider;
 		
-		Date tTimestamp;
+		Long tTime;
 		try {
-			tTimestamp = StringUtils.decodeDateTime(locationData.getString(JSON_KEY_TIMESTAMP));
+			tTime = locationData.getLong(JSON_KEY_TIME);
 		}
 		catch(JSONException noRegular) {
 			try {
-				tTimestamp = StringUtils.decodeDateTime(locationData.getString(JSON_KEY_TIMESTAMP_SHORT));
+				tTime = locationData.getLong(JSON_KEY_TIME_SHORT);
 			}
 			catch(JSONException noShort) {
 				throw new ErrorCodeException(ErrorCode.SERVER_INVALID_TIMESTAMP, "The timestamp is missing.", noShort);
 			}
 		}
-		if(tTimestamp == null) {
-			throw new ErrorCodeException(ErrorCode.SERVER_INVALID_TIMESTAMP, "The timestamp is invalid.");
+		time = tTime;
+		
+		TimeZone tTimeZone;
+		try {
+			tTimeZone = TimeZone.getTimeZone(locationData.getString(JSON_KEY_TIME_ZONE));
 		}
-		timestamp = tTimestamp;
+		catch(JSONException noRegular) {
+			try {
+				tTimeZone = TimeZone.getTimeZone(locationData.getString(JSON_KEY_TIME_ZONE_SHORT));
+			}
+			catch(JSONException noShort) {
+				throw new ErrorCodeException(ErrorCode.SERVER_INVALID_TIMEZONE, "The time zone is missing.", noShort);
+			}
+		}
+		timeZone = tTimeZone;
 	}
 	
 	/**
@@ -138,20 +150,21 @@ public class Location {
 	 */
 	public Location(final double latitude, final double longitude, 
 			final double accuracy, final String provider, 
-			final Date timestamp) {
+			final long time, final TimeZone timeZone) {
 		
 		if(provider == null) {
 			throw new IllegalArgumentException("The provider cannot be null.");
 		}
-		else if(timestamp == null) {
-			throw new IllegalArgumentException("The timestamp cannot be null.");
+		else if(timeZone == null) {
+			throw new IllegalArgumentException("The time zone cannot be null.");
 		}
 		
 		this.latitude = latitude;
 		this.longitude = longitude;
 		this.accuracy = accuracy;
 		this.provider = provider;
-		this.timestamp = timestamp;
+		this.time = time;
+		this.timeZone = timeZone;
 	}
 
 	/**
@@ -191,12 +204,21 @@ public class Location {
 	}
 
 	/**
-	 * Returns the timestamp for when this information was gathered.
+	 * Returns the time for when this information was gathered.
 	 * 
-	 * @return The timestamp for when this information was gathered.
+	 * @return The time for when this information was gathered.
 	 */
-	public final Date getTimestamp() {
-		return timestamp;
+	public final Long getTime() {
+		return time;
+	}
+	
+	/**
+	 * Returns the time zone for when this information was gathered.
+	 * 
+	 * @return The time zone for when this information was gathered.
+	 */
+	public final TimeZone getTimeZone() {
+		return timeZone;
 	}
 	
 	/**
@@ -216,7 +238,8 @@ public class Location {
 			result.put(((abbreviated) ? JSON_KEY_LONGITUDE_SHORT : JSON_KEY_LONGITUDE), longitude);
 			result.put(((abbreviated) ? JSON_KEY_ACCURACY_SHORT : JSON_KEY_ACCURACY), accuracy);
 			result.put(((abbreviated) ? JSON_KEY_PROVIDER_SHORT : JSON_KEY_PROVIDER), provider);
-			result.put(((abbreviated) ? JSON_KEY_TIMESTAMP_SHORT : JSON_KEY_TIMESTAMP), TimeUtils.getIso8601DateTimeString(timestamp));
+			result.put(((abbreviated) ? JSON_KEY_TIME_SHORT : JSON_KEY_TIME), time);
+			result.put(((abbreviated) ? JSON_KEY_TIME_ZONE_SHORT : JSON_KEY_TIME_ZONE), timeZone.getID());
 			
 			return result;
 		}
@@ -241,7 +264,9 @@ public class Location {
 		result = prime * result
 				+ ((provider == null) ? 0 : provider.hashCode());
 		result = prime * result
-				+ ((timestamp == null) ? 0 : timestamp.hashCode());
+				+ ((time == null) ? 0 : time.hashCode());
+		result = prime * result
+				+ ((timeZone == null) ? 0 : timeZone.hashCode());
 		return result;
 	}
 
@@ -277,10 +302,15 @@ public class Location {
 				return false;
 		} else if (!provider.equals(other.provider))
 			return false;
-		if (timestamp == null) {
-			if (other.timestamp != null)
+		if (time == null) {
+			if (other.time != null)
 				return false;
-		} else if (!timestamp.equals(other.timestamp))
+		} else if (!time.equals(other.time))
+			return false;
+		if (timeZone == null) {
+			if (other.timeZone != null)
+				return false;
+		} else if (!timeZone.equals(other.timeZone))
 			return false;
 		return true;
 	}

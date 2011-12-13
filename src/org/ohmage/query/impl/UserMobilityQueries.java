@@ -141,7 +141,7 @@ public final class UserMobilityQueries extends AbstractUploadQuery implements IU
 	// point from a given database ID.
 	private static final String SQL_GET_MOBILITY_DATA_FROM_ID =
 		"SELECT m.uuid, u.username, m.client, " +
-			"m.msg_timestamp, m.epoch_millis, m.upload_timestamp, " +
+			"m.epoch_millis, m.upload_timestamp, " +
 			"m.phone_timezone, m.location_status, m.location, " +
 			"m.mode, mps.privacy_state, " +
 			"me.sensor_data, me.features, me.classifier_version " +
@@ -154,7 +154,7 @@ public final class UserMobilityQueries extends AbstractUploadQuery implements IU
 	
 	private static final String SQL_GET_MOBILITY_DATA_FROM_IDS =
 		"SELECT m.uuid, u.username, m.client, " +
-			"m.msg_timestamp, m.epoch_millis, m.upload_timestamp, " +
+			"m.epoch_millis, m.upload_timestamp, " +
 			"m.phone_timezone, m.location_status, m.location, " +
 			"m.mode, mps.privacy_state, " +
 			"me.sensor_data, me.features, me.classifier_version " +
@@ -185,7 +185,7 @@ public final class UserMobilityQueries extends AbstractUploadQuery implements IU
 	
 	// Inserts a mode-only entry into the database.
 	private static final String SQL_INSERT =
-		"INSERT INTO mobility(uuid, user_id, client, msg_timestamp, epoch_millis, phone_timezone, location_status, location, mode, upload_timestamp, privacy_state_id) " +
+		"INSERT INTO mobility(uuid, user_id, client, epoch_millis, phone_timezone, location_status, location, mode, upload_timestamp, privacy_state_id) " +
 		"VALUES (" +
 			"?," +
 			"(" +		// user_id
@@ -194,7 +194,6 @@ public final class UserMobilityQueries extends AbstractUploadQuery implements IU
 				"WHERE username = ?" +
 			"), " +
 			"?, " +		// client
-			"?, " +		// msg_timestamp
 			"?, " +		// epoch_millis
 			"?, " +		// phone_timezone
 			"?, " +		// location_status
@@ -261,17 +260,16 @@ public final class UserMobilityQueries extends AbstractUploadQuery implements IU
 							ps.setString(2, username);
 							ps.setString(3, client);
 							
-							ps.setTimestamp(4, new Timestamp(mobilityPoint.getDate().getTime()));
-							ps.setLong(5, mobilityPoint.getTime());
-							ps.setString(6, mobilityPoint.getTimezone().getID());
+							ps.setLong(4, mobilityPoint.getTime());
+							ps.setString(5, mobilityPoint.getTimezone().getID());
 							
-							ps.setString(7, mobilityPoint.getLocationStatus().toString().toLowerCase());
+							ps.setString(6, mobilityPoint.getLocationStatus().toString().toLowerCase());
 							Location location = mobilityPoint.getLocation();
-							ps.setString(8, ((location == null) ? null : location.toJson(false).toString()));
+							ps.setString(7, ((location == null) ? null : location.toJson(false).toString()));
 							
-							ps.setString(9, mobilityPoint.getMode().toString().toLowerCase());
+							ps.setString(8, mobilityPoint.getMode().toString().toLowerCase());
 							
-							ps.setString(10, mobilityPoint.getPrivacyState().toString());
+							ps.setString(9, mobilityPoint.getPrivacyState().toString());
 							
 							return ps;
 						}
@@ -314,7 +312,6 @@ public final class UserMobilityQueries extends AbstractUploadQuery implements IU
 								mobilityPoint.getId().toString() + ", " +
 								username + ", " +
 								client + ", " +
-								TimeUtils.getIso8601DateTimeString(mobilityPoint.getDate()) + ", " +
 								mobilityPoint.getTime() + ", " +
 								mobilityPoint.getTimezone().getID() + ", " +
 								mobilityPoint.getLocationStatus().toString().toLowerCase() + ", " +
@@ -330,7 +327,6 @@ public final class UserMobilityQueries extends AbstractUploadQuery implements IU
 							mobilityPoint.getId().toString() + ", " +
 							username + ", " +
 							client + ", " +
-							TimeUtils.getIso8601DateTimeString(mobilityPoint.getDate()) + ", " +
 							mobilityPoint.getTime() + ", " +
 							mobilityPoint.getTimezone().getID() + ", " +
 							mobilityPoint.getLocationStatus().toString().toLowerCase() + ", " +
@@ -613,7 +609,6 @@ public final class UserMobilityQueries extends AbstractUploadQuery implements IU
 								
 								return new MobilityPoint(
 										UUID.fromString(rs.getString("uuid")),
-										rs.getTimestamp("msg_timestamp"),
 										rs.getLong("epoch_millis"),
 										TimeZone.getTimeZone(rs.getString("phone_timezone")),
 										LocationStatus.valueOf(rs.getString("location_status").toUpperCase()),
@@ -694,7 +689,6 @@ public final class UserMobilityQueries extends AbstractUploadQuery implements IU
 								
 								return new MobilityPoint(
 										UUID.fromString(rs.getString("uuid")),
-										rs.getTimestamp("msg_timestamp"),
 										rs.getLong("epoch_millis"),
 										TimeZone.getTimeZone(rs.getString("phone_timezone")),
 										LocationStatus.valueOf(rs.getString("location_status").toUpperCase()),
