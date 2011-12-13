@@ -6,6 +6,7 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 
 import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.domain.campaign.SurveyResponse;
@@ -97,8 +98,7 @@ public final class SurveyResponseValidators {
 	 * @throws ValidationException Thrown if the survey ID is not null, not
 	 * 							   whitespace only, and not valid.
 	 */
-	// TODO: Rename to validateSurveyResponseId
-	public static Long validateSurveyResponseId(final String surveyId) 
+	public static UUID validateSurveyResponseId(final String surveyId) 
 			throws ValidationException {
 		
 		if(StringUtils.isEmptyOrWhitespaceOnly(surveyId)) {
@@ -108,9 +108,9 @@ public final class SurveyResponseValidators {
 		// Right now, this is simply the database ID, so as long as it is a
 		// long we should be fine.
 		try {
-			return Long.decode(surveyId);
+			return UUID.fromString(surveyId);
 		}
-		catch(NumberFormatException e) {
+		catch(IllegalArgumentException e) {
 			throw new ValidationException(
 					ErrorCode.SURVEY_INVALID_SURVEY_ID, 
 					"Invalid survey ID given: " + surveyId);

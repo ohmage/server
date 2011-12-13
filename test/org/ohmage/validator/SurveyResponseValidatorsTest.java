@@ -7,6 +7,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 
 import junit.framework.TestCase;
 
@@ -92,7 +93,8 @@ public class SurveyResponseValidatorsTest extends TestCase {
 			}
 			
 			// This may be any long value as it is simply a database ID.
-			Assert.assertEquals(new Long(0), SurveyResponseValidators.validateSurveyResponseId("0"));
+			UUID uuid = UUID.randomUUID();
+			Assert.assertEquals(uuid, SurveyResponseValidators.validateSurveyResponseId(uuid.toString()));
 		}
 		catch(ValidationException e) {
 			fail("A validation exception was thrown: " + e.getMessage());

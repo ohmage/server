@@ -1,5 +1,7 @@
 package org.ohmage.request.survey;
 
+import java.util.UUID;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -46,7 +48,7 @@ import org.ohmage.validator.SurveyResponseValidators;
 public class SurveyResponseDeleteRequest extends UserRequest {
 	private static final Logger LOGGER = Logger.getLogger(SurveyResponseDeleteRequest.class);
 	
-	private final Long surveyResponseId;
+	private final UUID surveyResponseId;
 	
 	/**
 	 * Creates a survey response delete request.
@@ -59,7 +61,7 @@ public class SurveyResponseDeleteRequest extends UserRequest {
 		
 		LOGGER.info("Creating a survey response delete request.");
 		
-		Long tSurveyResponseId = null;
+		UUID tSurveyResponseId = null;
 		
 		if(! isFailed()) {
 			try {

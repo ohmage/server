@@ -1,5 +1,7 @@
 package org.ohmage.query.impl;
 
+import java.util.UUID;
+
 import javax.sql.DataSource;
 
 import org.ohmage.exception.DataAccessException;
@@ -43,7 +45,7 @@ public class CampaignSurveyResponseQueries extends Query implements ICampaignSur
 	private static final String SQL_GET_CAMPAIGN_ID_FROM_SURVEY_RESPONSE_ID =
 		"SELECT c.urn " +
 		"FROM campaign c, survey_response sr " +
-		"WHERE sr.id = ? " +
+		"WHERE sr.uuid = ? " +
 		"AND sr.campaign_id = c.id";
 	
 	/**
@@ -82,11 +84,11 @@ public class CampaignSurveyResponseQueries extends Query implements ICampaignSur
 	/* (non-Javadoc)
 	 * @see org.ohmage.query.impl.ICampaignSurveyResponseQueries#getCampaignIdFromSurveyId(java.lang.Long)
 	 */
-	public String getCampaignIdFromSurveyId(Long surveyResponseId) throws DataAccessException {
+	public String getCampaignIdFromSurveyId(UUID surveyResponseId) throws DataAccessException {
 		try {
 			return getJdbcTemplate().queryForObject(
 					SQL_GET_CAMPAIGN_ID_FROM_SURVEY_RESPONSE_ID,
-					new Object[] { surveyResponseId },
+					new Object[] { surveyResponseId.toString() },
 					String.class);
 		}
 		catch(org.springframework.dao.IncorrectResultSizeDataAccessException e) {

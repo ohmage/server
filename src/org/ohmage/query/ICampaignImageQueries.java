@@ -1,6 +1,7 @@
 package org.ohmage.query;
 
 import java.util.List;
+import java.util.UUID;
 
 import org.ohmage.domain.campaign.SurveyResponse;
 import org.ohmage.exception.DataAccessException;
@@ -18,7 +19,7 @@ public interface ICampaignImageQueries {
 	 * 
 	 * @throws DataAccessException Thrown if there is an error.
 	 */
-	List<String> getCampaignIdsForImageId(String imageId)
+	List<String> getCampaignIdsForImageId(UUID imageId)
 			throws DataAccessException;
 
 	/**
@@ -37,6 +38,6 @@ public interface ICampaignImageQueries {
 	 * @throws DataAccessException Thrown if there is an error.
 	 */
 	SurveyResponse.PrivacyState getImagePrivacyStateInCampaign(
-			String campaignId, String imageId) throws DataAccessException;
+			String campaignId, UUID imageId) throws DataAccessException;
 
 }

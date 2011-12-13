@@ -1,6 +1,7 @@
 package org.ohmage.query;
 
 import java.sql.Timestamp;
+import java.util.UUID;
 
 import org.ohmage.exception.DataAccessException;
 
@@ -16,7 +17,7 @@ public interface IUserSurveyResponseQueries {
 	 * 
 	 * @throws DataAccessException Thrown if there is an error.
 	 */
-	String getSurveyResponseOwner(Long surveyResponseId)
+	String getSurveyResponseOwner(UUID surveyResponseId)
 			throws DataAccessException;
 
 	/**

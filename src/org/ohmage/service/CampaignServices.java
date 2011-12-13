@@ -738,7 +738,7 @@ public class CampaignServices {
 			List<SurveyResponse> result = new ArrayList<SurveyResponse>(jsonSurveyResponses.size());
 			
 			for(JSONObject jsonResponse : jsonSurveyResponses) {
-				result.add(new SurveyResponse(-1, username, campaign.getId(), client, campaign, jsonResponse));
+				result.add(new SurveyResponse(username, campaign.getId(), client, campaign, jsonResponse));
 			}
 			
 			return result;

@@ -220,7 +220,7 @@ public final class SurveyResponseServices {
 		
 		try {
 			// Populate the list with all of the survey response IDs.
-			List<Long> surveyResponseIds = null;
+			List<UUID> surveyResponseIds = null;
 			
 			// Trim from the list all survey responses not made by a specified
 			// user.
@@ -273,13 +273,13 @@ public final class SurveyResponseServices {
 			// Trim from the list all survey responses without certain survey
 			// IDs.
 			if(surveyIds != null) {
-				Set<Long> surveyIdIds = new HashSet<Long>();
+				Set<UUID> surveyIdIds = new HashSet<UUID>();
 				for(String surveyId : surveyIds) {
 					surveyIdIds.addAll(surveyResponseQueries.retrieveSurveyResponseIdsWithSurveyId(campaignId, surveyId));
 				}
 				
 				if(surveyResponseIds == null) {
-					surveyResponseIds = new LinkedList<Long>(surveyIdIds);
+					surveyResponseIds = new LinkedList<UUID>(surveyIdIds);
 				}
 				else {
 					surveyResponseIds.retainAll(surveyIdIds);
@@ -290,13 +290,13 @@ public final class SurveyResponseServices {
 			// IDs.
 			if(promptIds != null) {
 				
-				Set<Long> promptIdIds = new HashSet<Long>();
+				Set<UUID> promptIdIds = new HashSet<UUID>();
 				for(String promptId : promptIds) {
 					promptIdIds.addAll(surveyResponseQueries.retrieveSurveyResponseIdsWithPromptId(campaignId, promptId));
 				}
 				
 				if(surveyResponseIds == null) {
-					surveyResponseIds = new LinkedList<Long>(promptIdIds);
+					surveyResponseIds = new LinkedList<UUID>(promptIdIds);
 				}
 				else {
 					surveyResponseIds.retainAll(promptIdIds);
@@ -315,7 +315,7 @@ public final class SurveyResponseServices {
 			}
 			
 			if(surveyResponseIds == null) {
-				List<Long> allIds = 
+				List<UUID> allIds = 
 					surveyResponseQueries.retrieveSurveyResponseIdsFromCampaign(campaignId);
 				
 				if(allIds.size() == 0) {
@@ -330,7 +330,10 @@ public final class SurveyResponseServices {
 			}
 			else {
 				
-				List<SurveyResponse> surveyResponses = surveyResponseQueries.retrieveSurveyResponseFromIds(campaign, surveyResponseIds);
+				List<SurveyResponse> surveyResponses = new ArrayList<SurveyResponse>(surveyResponseIds.size());
+				for(UUID surveyResponseId : surveyResponseIds) {
+					surveyResponses.add(surveyResponseQueries.retrieveSurveyResponseFromId(campaign, surveyResponseId));
+				}
 				
 				// This is a bit of a hack, but it avoids having to generate
 				// John's dreaded dynamic SQL. :)
@@ -360,7 +363,7 @@ public final class SurveyResponseServices {
 	 * @throws ServiceException  If an error occurs.
 	 */
 	public void updateSurveyResponsePrivacyState(
-			final Long surveyResponseId, 
+			final UUID surveyResponseId, 
 			final SurveyResponse.PrivacyState privacyState) 
 			throws ServiceException {
 		
@@ -380,11 +383,11 @@ public final class SurveyResponseServices {
 	 * 
 	 * @throws ServiceException Thrown if there is an error.
 	 */
-	public void deleteSurveyResponse(final Long surveyResponseId) 
+	public void deleteSurveyResponse(final UUID surveyResponseId) 
 			throws ServiceException {
 		
 		try {
-			List<String> imageIds = surveyResponseImageQueries.getImageIdsFromSurveyResponse(surveyResponseId);
+			List<UUID> imageIds = surveyResponseImageQueries.getImageIdsFromSurveyResponse(surveyResponseId);
 
 			// TODO:
 			// Here we are deleting the images then deleting the survey 
@@ -402,7 +405,7 @@ public final class SurveyResponseServices {
 			// survey response was deleted. If the user is trying to delete an
 			// image, this will give them the chance to delete it even if 
 			// another image and/or the survey response are causing a problem.
-			for(String imageId : imageIds) {
+			for(UUID imageId : imageIds) {
 				imageQueries.deleteImage(imageId);
 			}
 			

@@ -1,6 +1,7 @@
 package org.ohmage.service;
 
 import java.util.List;
+import java.util.UUID;
 
 import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.domain.campaign.Campaign;
@@ -85,7 +86,7 @@ public final class UserImageServices {
 	 * 							or if there is an error.
 	 */
 	public void verifyPhotoPromptResponseExistsForUserAndImage(
-			final String username, final String imageId) 
+			final String username, final UUID imageId) 
 			throws ServiceException {
 		
 		try {
@@ -111,7 +112,7 @@ public final class UserImageServices {
 	 * 							permissions to read the image.
 	 */
 	public void verifyUserCanReadImage(final String requesterUsername, 
-			final String imageId) throws ServiceException {
+			final UUID imageId) throws ServiceException {
 		
 		try {
 			// If it is their own image, they can read it.

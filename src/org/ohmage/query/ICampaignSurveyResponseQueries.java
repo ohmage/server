@@ -1,5 +1,7 @@
 package org.ohmage.query;
 
+import java.util.UUID;
+
 import org.ohmage.exception.DataAccessException;
 
 public interface ICampaignSurveyResponseQueries {
@@ -41,7 +43,7 @@ public interface ICampaignSurveyResponseQueries {
 	 *
 	 * @throws DataAccessException Thrown if there is an error.
 	 */
-	String getCampaignIdFromSurveyId(Long surveyResponseId)
+	String getCampaignIdFromSurveyId(UUID surveyResponseId)
 			throws DataAccessException;
 
 }

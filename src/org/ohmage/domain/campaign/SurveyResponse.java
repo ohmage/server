@@ -12,6 +12,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.SimpleTimeZone;
 import java.util.TimeZone;
+import java.util.UUID;
 
 import org.apache.log4j.Logger;
 import org.json.JSONArray;
@@ -20,9 +21,6 @@ import org.json.JSONObject;
 import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.domain.Location;
 import org.ohmage.domain.campaign.Response.NoResponse;
-import org.ohmage.domain.campaign.prompt.CustomChoicePrompt;
-import org.ohmage.domain.campaign.prompt.MultiChoiceCustomPrompt;
-import org.ohmage.domain.campaign.prompt.SingleChoiceCustomPrompt;
 import org.ohmage.exception.ErrorCodeException;
 import org.ohmage.util.StringUtils;
 import org.ohmage.util.TimeUtils;
@@ -41,7 +39,6 @@ public class SurveyResponse {
 	private static final String JSON_KEY_USERNAME = "user";
 	private static final String JSON_KEY_CAMPAIGN_ID = "campaign_id";
 	private static final String JSON_KEY_CLIENT = "client";
-	private static final String JSON_KEY_DATE = "timestamp";
 	private static final String JSON_KEY_TIME = "time";
 	private static final String JSON_KEY_TIMEZONE = "timezone";
 	private static final String JSON_KEY_LOCATION_STATUS = "location_status";
@@ -69,7 +66,6 @@ public class SurveyResponse {
 	private final String campaignId;
 	private final String client;
 	
-	private final Date date;
 	private final long time;
 	private final TimeZone timezone;
 	
@@ -97,7 +93,7 @@ public class SurveyResponse {
 	private final Location location;
 	
 	private final Survey survey;
-	private final long surveyResponseId;
+	private final UUID surveyResponseId;
 	private final Map<Integer, Response> responses;
 	
 	/**
@@ -302,12 +298,6 @@ public class SurveyResponse {
 		 * The request-wide client key.
 		 */
 		CONTEXT_CLIENT ("urn:ohmage:context:client"),
-		/**
-		 * The survey-wide timestamp key.
-		 * 
-		 * @see ColumnKey#CONTEXT_TIMEZONE
-		 */
-		CONTEXT_TIMESTAMP ("urn:ohmage:context:timestamp"),
 		/**
 		 * The survey-wide timestamp key where the time is adjusted to UTC.
 		 */
@@ -655,6 +645,8 @@ public class SurveyResponse {
 	 * 
 	 * @param survey The Survey to which this survey response belongs.
 	 * 
+	 * @param surveyResponseId The survey response's unique identifier.
+	 * 
 	 * @param username The username of the user that created this survey 
 	 * 				   response.
 	 * 
@@ -686,9 +678,9 @@ public class SurveyResponse {
 	 * @throws IllegalArgumentException Thrown if any of the information
 	 * 									provided is missing or invalid.
 	 */
-	public SurveyResponse(final Survey survey, final long surveyResponseId,
+	public SurveyResponse(final Survey survey, final UUID surveyResponseId,
 			final String username, final String campaignId, final String client,
-			final Date date, final long time, final TimeZone timezone, 
+			final long time, final TimeZone timezone, 
 			final JSONObject launchContext, 
 			final String locationStatus, final JSONObject location,
 			final PrivacyState privacyState) 
@@ -705,9 +697,6 @@ public class SurveyResponse {
 		}
 		else if(StringUtils.isEmptyOrWhitespaceOnly(client)) {
 			throw new IllegalArgumentException("The client cannot be null or whitespace only.");
-		}
-		else if(date == null) {
-			throw new IllegalArgumentException("The date cannot be null.");
 		}
 		else if(timezone == null) {
 			throw new IllegalArgumentException("The timezone cannot be null.");
@@ -726,7 +715,6 @@ public class SurveyResponse {
 		this.campaignId = campaignId;
 		this.client = client;
 		
-		this.date = date;
 		this.time = time;
 		this.timezone = timezone;
 		
@@ -756,6 +744,8 @@ public class SurveyResponse {
 	 * Creates a new SurveyResponse object.
 	 * 
 	 * @param survey The Survey to which this survey response belongs.
+	 * 
+	 * @param surveyResponseId The survey response's unique identifier.
 	 * 
 	 * @param username The user's that is generating this survey response's
 	 * 				   username.
@@ -787,9 +777,9 @@ public class SurveyResponse {
 	 * @throws IllegalArgumentException Thrown if any of the required 
 	 * 									parameters are null.
 	 */
-	public SurveyResponse(final Survey survey, final long surveyResponseId,
+	public SurveyResponse(final Survey survey, final UUID surveyResponseId,
 			final String username, final String campaignId, final String client,
-			final Date date, final long time, final TimeZone timezone, 
+			final long time, final TimeZone timezone, 
 			final LaunchContext launchContext, 
 			final LocationStatus locationStatus, final Location location,
 			final PrivacyState privacyState, 
@@ -807,9 +797,6 @@ public class SurveyResponse {
 		}
 		else if(StringUtils.isEmptyOrWhitespaceOnly(client)) {
 			throw new IllegalArgumentException("The client cannot be null or whitespace only.");
-		}
-		else if(date == null) {
-			throw new IllegalArgumentException("The date cannot be null.");
 		}
 		else if(timezone == null) {
 			throw new IllegalArgumentException("The timezone cannot be null.");
@@ -832,7 +819,6 @@ public class SurveyResponse {
 		this.campaignId = campaignId;
 		this.client = client;
 		
-		this.date = date;
 		this.time = time;
 		this.timezone = timezone;
 		
@@ -869,7 +855,7 @@ public class SurveyResponse {
 	 * @throws ErrorCodeException Thrown if the JSONObject could not be decoded
 	 * 							  as a survey response.
 	 */
-	public SurveyResponse(final long surveyResponseId,
+	public SurveyResponse(
 			final String username, final String campaignId,
 			final String client, final Campaign campaign,
 			final JSONObject response) throws ErrorCodeException {
@@ -884,20 +870,23 @@ public class SurveyResponse {
 			throw new ErrorCodeException(ErrorCode.SERVER_INVALID_CLIENT, "The client value is invalid.");
 		}
 		
-		this.surveyResponseId = surveyResponseId;
 		this.username = username;
 		this.campaignId = campaignId;
 		this.client = client;
 		
+		String surveyResponseIdString;
 		try {
-			date = StringUtils.decodeDateTime(response.getString(JSON_KEY_DATE));
-			
-			if(date == null) {
-				throw new ErrorCodeException(ErrorCode.SERVER_INVALID_DATE, "The date was not a valid date.");
-			}
+			surveyResponseIdString = response.getString(JSON_KEY_SURVEY_RESPONSE_ID);
 		}
 		catch(JSONException e) {
-			throw new ErrorCodeException(ErrorCode.SERVER_INVALID_DATE, "The date is missing.", e);
+			throw new ErrorCodeException(ErrorCode.SURVEY_INVALID_SURVEY_ID, "The survey ID is missing: " + JSON_KEY_SURVEY_RESPONSE_ID, e);
+		}
+		
+		try {
+			surveyResponseId = UUID.fromString(surveyResponseIdString);
+		}
+		catch(IllegalArgumentException e) {
+			throw new ErrorCodeException(ErrorCode.SURVEY_INVALID_SURVEY_ID, "The survey ID is not a valid UUID: " + surveyResponseIdString, e);
 		}
 		
 		try {
@@ -972,7 +961,7 @@ public class SurveyResponse {
 	 * 
 	 * @return The survey response's unique identifier.
 	 */
-	public final long getSurveyResponseId() {
+	public final UUID getSurveyResponseId() {
 		return surveyResponseId;
 	}
 
@@ -1002,18 +991,6 @@ public class SurveyResponse {
 	 */
 	public final String getClient() {
 		return client;
-	}
-
-	/**
-	 * Returns a copy of the date object representing when this survey response
-	 * was generated. This should be correlated with {@link #getTimezone()}.
-	 * 
-	 * @return A copy of the date object.
-	 * 
-	 * @see #getTimezone()
-	 */
-	public final Date getDate() {
-		return new Date(date.getTime());
 	}
 
 	/**
@@ -1219,7 +1196,7 @@ public class SurveyResponse {
 	public final JSONObject toJson(final boolean withUsername, 
 			final boolean withCampaignId, final boolean withClient, 
 			final boolean withPrivacyState, 
-			final boolean withDate, final boolean withTime, 
+			final boolean withTime, 
 			final boolean withTimezone, 
 			final boolean withLocationStatus, final boolean withLocation, 
 			final boolean withSurveyId, 
@@ -1246,10 +1223,6 @@ public class SurveyResponse {
 			
 			if(withPrivacyState) {
 				result.put(JSON_KEY_PRIVACY_STATE, privacyState.toString());
-			}
-			
-			if(withDate) {
-				result.put(JSON_KEY_DATE, TimeUtils.getIso8601DateTimeString(date));
 			}
 			
 			if(withTime) {
@@ -1311,7 +1284,7 @@ public class SurveyResponse {
 			}
 			
 			if(withId) {
-				result.put(JSON_KEY_SURVEY_RESPONSE_ID, surveyResponseId);
+				result.put(JSON_KEY_SURVEY_RESPONSE_ID, surveyResponseId.toString());
 			}
 			
 			return result;
@@ -1334,7 +1307,6 @@ public class SurveyResponse {
 		result = prime * result
 				+ ((campaignId == null) ? 0 : campaignId.hashCode());
 		result = prime * result + ((client == null) ? 0 : client.hashCode());
-		result = prime * result + ((date == null) ? 0 : date.hashCode());
 		result = prime * result
 				+ ((launchContext == null) ? 0 : launchContext.hashCode());
 		result = prime * result
@@ -1346,8 +1318,6 @@ public class SurveyResponse {
 		result = prime * result
 				+ ((responses == null) ? 0 : responses.hashCode());
 		result = prime * result + ((survey == null) ? 0 : survey.hashCode());
-		result = prime * result
-				+ (int) (surveyResponseId ^ (surveyResponseId >>> 32));
 		result = prime * result + (int) (time ^ (time >>> 32));
 		result = prime * result
 				+ ((username == null) ? 0 : username.hashCode());
@@ -1380,11 +1350,6 @@ public class SurveyResponse {
 			if (other.client != null)
 				return false;
 		} else if (!client.equals(other.client))
-			return false;
-		if (date == null) {
-			if (other.date != null)
-				return false;
-		} else if (!date.equals(other.date))
 			return false;
 		if (launchContext == null) {
 			if (other.launchContext != null)
@@ -1550,61 +1515,11 @@ public class SurveyResponse {
 			final JSONObject response, final Integer repeatableSetIteration) 
 			throws ErrorCodeException {
 		
-		Object responseObject;
 		try {
-			responseObject = response.get(JSON_KEY_PROMPT_VALUE);
+			return prompt.createResponse(response.get(JSON_KEY_PROMPT_VALUE), repeatableSetIteration);
 		}
 		catch(JSONException e) {
 			throw new ErrorCodeException(ErrorCode.SURVEY_INVALID_RESPONSES, "The response value was missing.", e);
-		}
-		
-		// FIXME:
-		// This is the shim layer that allows custom choice prompts to still
-		// upload a key and lookup table instead of just the raw values.
-		if(prompt instanceof CustomChoicePrompt) {
-			try {
-				
-				Map<Integer, String> choicesMap = new HashMap<Integer, String>();
-				JSONArray choices = response.getJSONArray("custom_choices");
-				Set<Integer> keySet = new HashSet<Integer>();
-				int numChoices = choices.length();
-								
-				for(int i = 0; i < numChoices; i++) {
-					JSONObject currChoice = choices.getJSONObject(i);
-					keySet.add(currChoice.getInt("choice_id"));
-					choicesMap.put(currChoice.getInt("choice_id"), currChoice.getString("choice_value"));
-				}
-				
-				if(keySet.size() != choicesMap.size()) {
-					throw new ErrorCodeException(ErrorCode.SURVEY_INVALID_RESPONSES, "Found a duplicate choice_id in the dictionary for the custom choice prompt " + prompt.getId());
-				}
-				
-				if(prompt instanceof MultiChoiceCustomPrompt && responseObject instanceof JSONArray) {
-					JSONArray responsesJson = (JSONArray) responseObject;
-					
-					int numResponses = responsesJson.length();
-					Collection<String> responses = new ArrayList<String>(numResponses);
-					
-					for(int i = 0; i < numResponses; i++) {
-						LOGGER.info(choicesMap.get(responsesJson.get(i)));
-						responses.add(choicesMap.get(responsesJson.get(i)));
-					}
-					
-					responseObject = responses;
-				}
-				else if(prompt instanceof SingleChoiceCustomPrompt && responseObject instanceof Integer) {
-					
-					Integer singleChoiceResponse = (Integer) responseObject;
-					responseObject = choicesMap.get(singleChoiceResponse);
-				}
-			}
-			catch(JSONException e) {
-				throw new ErrorCodeException(ErrorCode.SURVEY_INVALID_RESPONSES, "The dictionary was missing or malformed for the custom choice prompt " + prompt.getId());
-			}
-		}
-		
-		try {
-			return prompt.createResponse(responseObject, repeatableSetIteration);
 		}
 		catch(IllegalArgumentException e) {
 			throw new ErrorCodeException(ErrorCode.SURVEY_INVALID_RESPONSES, "The response value was invalid.", e);

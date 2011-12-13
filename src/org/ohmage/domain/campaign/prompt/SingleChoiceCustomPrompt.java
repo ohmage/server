@@ -139,7 +139,7 @@ public class SingleChoiceCustomPrompt extends CustomChoicePrompt {
 			}
 		}
 		else {
-			throw new IllegalArgumentException("The value is not decodable as a reponse value.");
+			throw new IllegalArgumentException("The value is not decodable as a reponse value: " + value);
 		}
 	}
 	

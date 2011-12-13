@@ -1,5 +1,7 @@
 package org.ohmage.request.survey;
 
+import java.util.UUID;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -52,7 +54,7 @@ import org.ohmage.validator.SurveyResponseValidators;
 public class SurveyResponseUpdateRequest extends UserRequest {
 	private static final Logger LOGGER = Logger.getLogger(SurveyResponseUpdateRequest.class);
 	
-	private final Long surveyResponseId;
+	private final UUID surveyResponseId;
 	private final SurveyResponse.PrivacyState privacyState;
 	
 	/**
@@ -66,7 +68,7 @@ public class SurveyResponseUpdateRequest extends UserRequest {
 		
 		LOGGER.info("Creating a survey response update request.");
 		
-		Long tSurveyResponseId = null;
+		UUID tSurveyResponseId = null;
 		SurveyResponse.PrivacyState tPrivacyState = null;
 		
 		if(! isFailed()) {

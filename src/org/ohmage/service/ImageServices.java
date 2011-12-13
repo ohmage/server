@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.UUID;
 
 import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.exception.DataAccessException;
@@ -65,7 +66,7 @@ public final class ImageServices {
 	 * 							should or does exist and it should not, or if
 	 * 							there is an error.
 	 */
-	public void verifyImageExistance(final String imageId, final boolean shouldExist) throws ServiceException {
+	public void verifyImageExistance(final UUID imageId, final boolean shouldExist) throws ServiceException {
 		
 		try {
 			Boolean imageExists = imageQueries.getImageExists(imageId);
@@ -100,7 +101,7 @@ public final class ImageServices {
 	 * 							malformed, or there is an error connecting to
 	 * 							them.
 	 */
-	public InputStream getImage(final String imageId, final ImageSize size) throws ServiceException {
+	public InputStream getImage(final UUID imageId, final ImageSize size) throws ServiceException {
 		
 		try {
 			String imageUrl = imageQueries.getImageUrl(imageId);

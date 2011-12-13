@@ -1,6 +1,7 @@
 package org.ohmage.query;
 
 import java.util.List;
+import java.util.UUID;
 
 import org.ohmage.exception.DataAccessException;
 
@@ -15,7 +16,7 @@ public interface ISurveyResponseImageQueries {
 	 * 
 	 * @throws DataAccessException Thrown if there is an error.
 	 */
-	List<String> getImageIdsFromSurveyResponse(Long surveyResponseId)
+	List<UUID> getImageIdsFromSurveyResponse(UUID surveyResponseId)
 			throws DataAccessException;
 
 }

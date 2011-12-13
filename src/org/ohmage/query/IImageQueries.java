@@ -1,5 +1,7 @@
 package org.ohmage.query;
 
+import java.util.UUID;
+
 import org.ohmage.exception.DataAccessException;
 
 public interface IImageQueries {
@@ -13,7 +15,7 @@ public interface IImageQueries {
 	 * 
 	 * @throws DataAccessException Thrown if there is an error.
 	 */
-	Boolean getImageExists(String imageId) throws DataAccessException;
+	Boolean getImageExists(UUID imageId) throws DataAccessException;
 
 	/**
 	 * Retrieves the URL for the image if the image exists. If the image does
@@ -26,7 +28,7 @@ public interface IImageQueries {
 	 * 
 	 * @throws DataAccessException Thrown if there is an error.
 	 */
-	String getImageUrl(String imageId) throws DataAccessException;
+	String getImageUrl(UUID imageId) throws DataAccessException;
 
 	/**
 	 * Deletes an image reference from the database and, if successful, deletes
@@ -36,6 +38,6 @@ public interface IImageQueries {
 	 * 
 	 * @throws DataAccessException Thrown if there is an error.
 	 */
-	void deleteImage(String imageId) throws DataAccessException;
+	void deleteImage(UUID imageId) throws DataAccessException;
 
 }

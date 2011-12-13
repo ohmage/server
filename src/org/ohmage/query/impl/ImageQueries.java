@@ -3,6 +3,7 @@ package org.ohmage.query.impl;
 import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.UUID;
 
 import javax.sql.DataSource;
 
@@ -64,9 +65,9 @@ public final class ImageQueries extends Query implements IImageQueries {
 	/* (non-Javadoc)
 	 * @see org.ohmage.query.impl.IImageQueries#getImageExists(java.lang.String)
 	 */
-	public Boolean getImageExists(String imageId) throws DataAccessException {
+	public Boolean getImageExists(UUID imageId) throws DataAccessException {
 		try {
-			return getJdbcTemplate().queryForObject(SQL_EXISTS_IMAGE, new Object[] { imageId }, Boolean.class);
+			return getJdbcTemplate().queryForObject(SQL_EXISTS_IMAGE, new Object[] { imageId.toString() }, Boolean.class);
 		}
 		catch(org.springframework.dao.DataAccessException e) {
 			throw new DataAccessException("Error executing SQL '" + SQL_EXISTS_IMAGE + "' with parameter: " + imageId, e);
@@ -76,9 +77,9 @@ public final class ImageQueries extends Query implements IImageQueries {
 	/* (non-Javadoc)
 	 * @see org.ohmage.query.impl.IImageQueries#getImageUrl(java.lang.String)
 	 */
-	public String getImageUrl(String imageId) throws DataAccessException {
+	public String getImageUrl(UUID imageId) throws DataAccessException {
 		try {
-			return getJdbcTemplate().queryForObject(SQL_GET_IMAGE_URL, new Object[] { imageId }, String.class);
+			return getJdbcTemplate().queryForObject(SQL_GET_IMAGE_URL, new Object[] { imageId.toString() }, String.class);
 		}
 		catch(org.springframework.dao.IncorrectResultSizeDataAccessException e) {
 			if(e.getActualSize() > 1) {
@@ -95,7 +96,7 @@ public final class ImageQueries extends Query implements IImageQueries {
 	/* (non-Javadoc)
 	 * @see org.ohmage.query.impl.IImageQueries#deleteImage(java.lang.String)
 	 */
-	public void deleteImage(String imageId) throws DataAccessException {
+	public void deleteImage(UUID imageId) throws DataAccessException {
 		// Create the transaction.
 		DefaultTransactionDefinition def = new DefaultTransactionDefinition();
 		def.setName("Deleting an image.");
@@ -110,7 +111,7 @@ public final class ImageQueries extends Query implements IImageQueries {
 			try {
 				getJdbcTemplate().update(
 						SQL_DELETE_IMAGE,
-						new Object[] { imageId });
+						new Object[] { imageId.toString() });
 			}
 			catch(org.springframework.dao.DataAccessException e) {
 				transactionManager.rollback(status);
@@ -136,7 +137,7 @@ public final class ImageQueries extends Query implements IImageQueries {
 				LOGGER.warn("The URL was malformed, but we are deleting the image anyway.", e);
 			}
 			catch(SecurityException e) {
-				LOGGER.warn("The system would not allow us to delete the image.", e);
+				LOGGER.error("The system would not allow us to delete the image.", e);
 			}
 
 			// Commit the transaction.

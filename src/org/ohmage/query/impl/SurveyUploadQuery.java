@@ -34,7 +34,6 @@ import org.ohmage.exception.CacheMissException;
 import org.ohmage.exception.DataAccessException;
 import org.ohmage.query.ISurveyUploadQuery;
 import org.ohmage.request.JsonInputKeys;
-import org.ohmage.util.TimeUtils;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.jdbc.core.PreparedStatementCreator;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
@@ -80,9 +79,9 @@ public class SurveyUploadQuery extends AbstractUploadQuery implements ISurveyUpl
 	
 	private static final String SQL_INSERT_SURVEY_RESPONSE =
 		"INSERT into survey_response " +
-		"SET user_id = (SELECT id from user where username = ?), " +
+		"SET uuid = ?, " +
+		"user_id = (SELECT id from user where username = ?), " +
 		"campaign_id = (SELECT id from campaign where urn = ?), " +
-		"msg_timestamp = ?, " +
 		"epoch_millis = ?, " +
 		"phone_timezone = ?, " +
 		"location_status = ?, " +
@@ -191,15 +190,15 @@ public class SurveyUploadQuery extends AbstractUploadQuery implements ISurveyUpl
 									locationString = location.toJson(false).toString();
 								}
 								
-								ps.setString(1, username);
-								ps.setString(2, campaignUrn);
-								ps.setString(3, TimeUtils.getIso8601DateTimeString(surveyUpload.getDate()));
+								ps.setString(1, surveyUpload.getSurveyResponseId().toString());
+								ps.setString(2, username);
+								ps.setString(3, campaignUrn);
 								ps.setLong(4, surveyUpload.getTime());
 								ps.setString(5, surveyUpload.getTimezone().getID());
 								ps.setString(6, surveyUpload.getLocationStatus().toString());
 								ps.setString(7, locationString);
 								ps.setString(8, surveyUpload.getSurvey().getId());
-								ps.setString(9, surveyUpload.toJson(false, false, false, false, true, true, true, true, true, true, false, false, true, true, true, true, false).toString());
+								ps.setString(9, surveyUpload.toJson(false, false, false, false, true, true, true, true, true, false, false, true, true, true, true, false).toString());
 								ps.setString(10, client);
 								ps.setTimestamp(11, new Timestamp(System.currentTimeMillis()));
 								ps.setString(12, surveyUpload.getLaunchContext().toJson(true).toString());

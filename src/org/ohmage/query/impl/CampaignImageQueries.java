@@ -1,6 +1,7 @@
 package org.ohmage.query.impl;
 
 import java.util.List;
+import java.util.UUID;
 
 import javax.sql.DataSource;
 
@@ -51,11 +52,11 @@ public final class CampaignImageQueries extends Query implements ICampaignImageQ
 	/* (non-Javadoc)
 	 * @see org.ohmage.query.impl.ICampaignImageQueries#getCampaignIdsForImageId(java.lang.String)
 	 */
-	public List<String> getCampaignIdsForImageId(String imageId) throws DataAccessException {
+	public List<String> getCampaignIdsForImageId(UUID imageId) throws DataAccessException {
 		try {
 			return getJdbcTemplate().query(
 					SQL_GET_CAMPAIGN_IDS_FOR_IMAGE, 
-					new Object[] { imageId }, 
+					new Object[] { imageId.toString() }, 
 					new SingleColumnRowMapper<String>());
 		}
 		catch(org.springframework.dao.DataAccessException e) {
@@ -66,11 +67,11 @@ public final class CampaignImageQueries extends Query implements ICampaignImageQ
 	/* (non-Javadoc)
 	 * @see org.ohmage.query.impl.ICampaignImageQueries#getImagePrivacyStateInCampaign(java.lang.String, java.lang.String)
 	 */
-	public SurveyResponse.PrivacyState getImagePrivacyStateInCampaign(String campaignId, String imageId) throws DataAccessException {
+	public SurveyResponse.PrivacyState getImagePrivacyStateInCampaign(String campaignId, UUID imageId) throws DataAccessException {
 		try {
 			return SurveyResponse.PrivacyState.getValue(getJdbcTemplate().queryForObject(
 					SQL_GET_IMAGE_PRIVACY_STATE_IN_CAMPAIGN, 
-					new Object[] { campaignId, imageId }, 
+					new Object[] { campaignId, imageId.toString() }, 
 					String.class));
 		}
 		catch(org.springframework.dao.IncorrectResultSizeDataAccessException e) {

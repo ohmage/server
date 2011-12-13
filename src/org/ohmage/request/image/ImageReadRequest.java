@@ -7,6 +7,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
+import java.util.UUID;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -64,7 +65,7 @@ public class ImageReadRequest extends UserRequest {
 
 	private static final long MILLIS_IN_A_SECOND = 1000;
 	
-	private final String imageId;
+	private final UUID imageId;
 	private final ImageSize size;
 	
 	private InputStream imageStream;
@@ -80,7 +81,7 @@ public class ImageReadRequest extends UserRequest {
 		
 		LOGGER.info("Creating an image read request.");
 		
-		String tImageId = null;
+		UUID tImageId = null;
 		ImageSize tSize = null;
 		
 		if(! isFailed()) {

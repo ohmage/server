@@ -723,7 +723,6 @@ public final class SurveyResponseReadRequest extends UserRequest {
 								allColumns || false,
 								allColumns || columns.contains(ColumnKey.CONTEXT_CLIENT),
 								allColumns || columns.contains(ColumnKey.SURVEY_PRIVACY_STATE),
-								allColumns || columns.contains(ColumnKey.CONTEXT_TIMESTAMP),
 								allColumns || columns.contains(ColumnKey.CONTEXT_EPOCH_MILLIS),
 								allColumns || columns.contains(ColumnKey.CONTEXT_TIMEZONE),
 								allColumns || columns.contains(ColumnKey.CONTEXT_LOCATION_STATUS),
@@ -898,7 +897,6 @@ public final class SurveyResponseReadRequest extends UserRequest {
 					JSONArray usernames = new JSONArray();
 					JSONArray clients = new JSONArray();
 					JSONArray privacyStates = new JSONArray();
-					JSONArray timestamps = new JSONArray();
 					JSONArray utcTimestamps = new JSONArray();
 					JSONArray epochMillisTimestamps = new JSONArray();
 					JSONArray timezones = new JSONArray();
@@ -979,7 +977,7 @@ public final class SurveyResponseReadRequest extends UserRequest {
 								surveyResponse.getResponses(), 
 								prompts, 
 								usernames, clients, privacyStates, 
-								timestamps, utcTimestamps, 
+								utcTimestamps, 
 								epochMillisTimestamps, timezones, 
 								locationStatuses, locationLongitude, 
 								locationLatitude, locationTimestamp, 
@@ -1007,11 +1005,6 @@ public final class SurveyResponseReadRequest extends UserRequest {
 						JSONObject values = new JSONObject();
 						values.put(JSON_KEY_VALUES, privacyStates);
 						result.put(ColumnKey.SURVEY_PRIVACY_STATE.toString(), values);
-					}
-					if(allColumns || columns.contains(ColumnKey.CONTEXT_TIMESTAMP)) {
-						JSONObject values = new JSONObject();
-						values.put(JSON_KEY_VALUES, timestamps);
-						result.put(ColumnKey.CONTEXT_TIMESTAMP.toString(), values);
 					}
 					if(allColumns || columns.contains(ColumnKey.CONTEXT_LOCATION_UTC_TIMESTAMP)) {
 						JSONObject values = new JSONObject();
@@ -1229,7 +1222,11 @@ public final class SurveyResponseReadRequest extends UserRequest {
 						
 						for(int i = 0; i < numResponses; i++) {
 							for(int j = 0; j < keyLength; j++) {
-								resultBuilder.append(result.getJSONObject(keys.getString(j)).getJSONArray(JSON_KEY_VALUES).get(i));
+								resultBuilder.append(
+										result
+											.getJSONObject(keys.getString(j))
+											.getJSONArray(JSON_KEY_VALUES)
+											.get(i));
 								
 								if((j + 1) != keyLength) {
 									resultBuilder.append(',');
@@ -1354,7 +1351,7 @@ public final class SurveyResponseReadRequest extends UserRequest {
 			final Map<Integer, Response> responses, 
 			Map<String, JSONObject> prompts,
 			JSONArray usernames, JSONArray clients, JSONArray privacyStates,
-			JSONArray timestamps, JSONArray utcTimestamps, 
+			JSONArray utcTimestamps, 
 			JSONArray epochMillisTimestamps, JSONArray timezones,
 			JSONArray locationStatuses, JSONArray locationLongitude,
 			JSONArray locationLatitude, JSONArray locationTimestamp,
@@ -1372,9 +1369,6 @@ public final class SurveyResponseReadRequest extends UserRequest {
 		}
 		if(allColumns || columns.contains(ColumnKey.SURVEY_PRIVACY_STATE)) {
 			privacyStates.put(surveyResponse.getPrivacyState().toString());
-		}
-		if(allColumns || columns.contains(ColumnKey.CONTEXT_TIMESTAMP)) {
-			timestamps.put(TimeUtils.getIso8601DateTimeString(surveyResponse.getDate()));
 		}
 		if(allColumns || columns.contains(ColumnKey.CONTEXT_LOCATION_UTC_TIMESTAMP)) {
 			utcTimestamps.put(

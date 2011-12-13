@@ -1,6 +1,5 @@
 package org.ohmage.domain.campaign;
 
-import java.util.Collection;
 import java.util.Map;
 
 import org.json.JSONArray;
@@ -9,12 +8,8 @@ import org.json.JSONObject;
 import org.ohmage.domain.campaign.Prompt.LabelValuePair;
 import org.ohmage.domain.campaign.prompt.ChoicePrompt;
 import org.ohmage.domain.campaign.prompt.CustomChoicePrompt;
-import org.ohmage.domain.campaign.prompt.MultiChoiceCustomPrompt;
 import org.ohmage.domain.campaign.prompt.RemoteActivityPrompt;
-import org.ohmage.domain.campaign.prompt.SingleChoiceCustomPrompt;
-import org.ohmage.domain.campaign.response.MultiChoiceCustomPromptResponse;
 import org.ohmage.domain.campaign.response.RemoteActivityPromptResponse;
-import org.ohmage.domain.campaign.response.SingleChoiceCustomPromptResponse;
 
 /**
  * Base class for all prompt responses.
@@ -116,21 +111,21 @@ public abstract class PromptResponse extends Response {
 				result.put("prompt_index", prompt.getIndex());
 				result.put("prompt_unit", prompt.getUnit());
 				
-				if(prompt instanceof ChoicePrompt) {
-					Map<Integer, LabelValuePair> choices;
+				if((prompt instanceof ChoicePrompt) && 
+						(! (prompt instanceof CustomChoicePrompt))) {
 					
-					if(prompt instanceof CustomChoicePrompt) {
-						choices = ((CustomChoicePrompt) prompt).getAllChoices();
-					}
-					else {
-						choices = ((ChoicePrompt) prompt).getChoices();
+					ChoicePrompt choicePrompt = (ChoicePrompt) prompt;
+					Map<Integer, LabelValuePair> choices = 
+							choicePrompt.getChoices();
+					
+					JSONObject choiceGlossary = new JSONObject();
+					for(Integer choiceKey : choices.keySet()) {
+						choiceGlossary.put(
+								choiceKey.toString(), 
+								choices.get(choiceKey).toJson());
 					}
 					
-					JSONObject glossary = new JSONObject();
-					for(Integer index : choices.keySet()) {
-						glossary.put(index.toString(), choices.get(index).toJson());
-					}
-					result.put("prompt_choice_glossary", glossary);
+					result.put("prompt_choice_glossary", choiceGlossary);
 				}
 				
 				if(this instanceof RemoteActivityPromptResponse &&
@@ -143,38 +138,6 @@ public abstract class PromptResponse extends Response {
 						total += gameResults.getJSONObject(i).getDouble(RemoteActivityPrompt.JSON_KEY_SCORE);
 					}
 					result.put("prompt_response", total / numResults);
-				}
-				// FIXME: This is the shim for version 2.8 where the literal 
-				// value for custom prompts are replaced by their key, and a 
-				// dictionary is returned.
-				else if(this instanceof SingleChoiceCustomPromptResponse &&
-						(! wasNotDisplayed()) && (! wasSkipped())) {
-
-					result.put(
-							"prompt_response", 
-							((SingleChoiceCustomPrompt) getPrompt()).
-								getChoiceKey((String) getResponseValue()));
-				}
-				else if(this instanceof MultiChoiceCustomPromptResponse &&
-						(! wasNotDisplayed()) && (! wasSkipped())) {
-					
-					Collection<?> responseValues = 
-						(Collection<?>) this.getResponseValue();
-					
-					Map<Integer, LabelValuePair> allChoices = 
-						((MultiChoiceCustomPrompt) getPrompt()).getAllChoices();
-					
-					JSONArray responseArray = new JSONArray();
-					for(Object responseValue : responseValues) {
-						for(Integer key : allChoices.keySet()) {
-							if(((String) responseValue).equals(allChoices.get(key).getLabel())) {
-								responseArray.put(key);
-								break;
-							}
-						}
-					}
-					
-					result.put("prompt_response", responseArray);
 				}
 				else {
 					result.put("prompt_response", getResponseValue());

@@ -1,5 +1,7 @@
 package org.ohmage.query;
 
+import java.util.UUID;
+
 import org.ohmage.exception.DataAccessException;
 
 public interface IUserImageQueries {
@@ -17,7 +19,7 @@ public interface IUserImageQueries {
 	 * 
 	 * @throws DataAccessException Thrown if there is an error.
 	 */
-	Boolean responseExistsForUserWithImage(String username, String imageId)
+	Boolean responseExistsForUserWithImage(String username, UUID imageId)
 			throws DataAccessException;
 
 	/**
@@ -30,6 +32,6 @@ public interface IUserImageQueries {
 	 * 
 	 * @throws DataAccessException Thrown if there is an error.
 	 */
-	String getImageOwner(String imageId) throws DataAccessException;
+	String getImageOwner(UUID imageId) throws DataAccessException;
 
 }

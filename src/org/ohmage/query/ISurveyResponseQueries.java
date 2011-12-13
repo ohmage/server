@@ -3,6 +3,7 @@ package org.ohmage.query;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
+import java.util.UUID;
 
 import org.ohmage.domain.campaign.Campaign;
 import org.ohmage.domain.campaign.SurveyResponse;
@@ -21,7 +22,7 @@ public interface ISurveyResponseQueries {
 	 * 
 	 * @throws DataAccessException Thrown if there is an error.
 	 */
-	List<Long> retrieveSurveyResponseIdsFromCampaign(final String campaignId)
+	List<UUID> retrieveSurveyResponseIdsFromCampaign(final String campaignId)
 			throws DataAccessException;
 
 	/**
@@ -37,7 +38,7 @@ public interface ISurveyResponseQueries {
 	 * 
 	 * @throws DataAccessException Thrown if there is an error.
 	 */
-	List<Long> retrieveSurveyResponseIdsFromUser(final String campaignId,
+	List<UUID> retrieveSurveyResponseIdsFromUser(final String campaignId,
 			final String username) throws DataAccessException;
 
 	/**
@@ -53,7 +54,7 @@ public interface ISurveyResponseQueries {
 	 * 
 	 * @throws DataAccessException Thrown if there is an error.
 	 */
-	List<Long> retrieveSurveyResponseIdsWithClient(final String campaignId,
+	List<UUID> retrieveSurveyResponseIdsWithClient(final String campaignId,
 			final String client) throws DataAccessException;
 
 	/**
@@ -69,7 +70,7 @@ public interface ISurveyResponseQueries {
 	 * 
 	 * @throws DataAccessException Thrown if there is an error.
 	 */
-	List<Long> retrieveSurveyResponseIdsAfterDate(final String campaignId,
+	List<UUID> retrieveSurveyResponseIdsAfterDate(final String campaignId,
 			final Date startDate) throws DataAccessException;
 
 	/**
@@ -85,7 +86,7 @@ public interface ISurveyResponseQueries {
 	 * 
 	 * @throws DataAccessException Thrown if there is an error.
 	 */
-	List<Long> retrieveSurveyResponseIdsBeforeDate(final String campaignId,
+	List<UUID> retrieveSurveyResponseIdsBeforeDate(final String campaignId,
 			final Date endDate) throws DataAccessException;
 
 	/**
@@ -101,7 +102,7 @@ public interface ISurveyResponseQueries {
 	 * 
 	 * @throws DataAccessException Thrown if there is an error.
 	 */
-	List<Long> retrieveSurveyResponseIdsWithPrivacyState(
+	List<UUID> retrieveSurveyResponseIdsWithPrivacyState(
 			final String campaignId,
 			final SurveyResponse.PrivacyState privacyState)
 			throws DataAccessException;
@@ -119,7 +120,7 @@ public interface ISurveyResponseQueries {
 	 * 
 	 * @throws DataAccessException Thrown if there is an error.
 	 */
-	List<Long> retrieveSurveyResponseIdsWithSurveyId(final String campaignId,
+	List<UUID> retrieveSurveyResponseIdsWithSurveyId(final String campaignId,
 			final String surveyId) throws DataAccessException;
 
 	/**
@@ -135,7 +136,7 @@ public interface ISurveyResponseQueries {
 	 * 
 	 * @throws DataAccessException Thrown if there is an error.
 	 */
-	List<Long> retrieveSurveyResponseIdsWithPromptId(final String campaignId,
+	List<UUID> retrieveSurveyResponseIdsWithPromptId(final String campaignId,
 			final String promptId) throws DataAccessException;
 
 	/**
@@ -151,7 +152,7 @@ public interface ISurveyResponseQueries {
 	 * 
 	 * @throws DataAccessException Thrown if there is an error.
 	 */
-	List<Long> retrieveSurveyResponseIdsWithPromptType(final String campaignId,
+	List<UUID> retrieveSurveyResponseIdsWithPromptType(final String campaignId,
 			final String promptType) throws DataAccessException;
 
 	/**
@@ -171,7 +172,7 @@ public interface ISurveyResponseQueries {
 	 * 							   constructor.
 	 */
 	SurveyResponse retrieveSurveyResponseFromId(final Campaign campaign,
-			final Long surveyResponseId) throws DataAccessException;
+			final UUID surveyResponseId) throws DataAccessException;
 
 	/**
 	 * Retrieves the information about a list of survey responses including all
@@ -188,7 +189,7 @@ public interface ISurveyResponseQueries {
 	 * @throws DataAccessException Thrown if there is an error.
 	 */
 	List<SurveyResponse> retrieveSurveyResponseFromIds(final Campaign campaign,
-			final Collection<Long> surveyResponseIds)
+			final Collection<UUID> surveyResponseIds)
 			throws DataAccessException;
 
 	/**
@@ -199,7 +200,7 @@ public interface ISurveyResponseQueries {
 	 * 
 	 * @throws DataAccessException Thrown if there is an error.
 	 */
-	void updateSurveyResponsePrivacyState(Long surveyResponseId,
+	void updateSurveyResponsePrivacyState(UUID surveyResponseId,
 			SurveyResponse.PrivacyState newPrivacyState)
 			throws DataAccessException;
 
@@ -210,6 +211,6 @@ public interface ISurveyResponseQueries {
 	 * 
 	 * @throws DataAccessException Thrown if there is an error.
 	 */
-	void deleteSurveyResponse(Long surveyResponseId) throws DataAccessException;
+	void deleteSurveyResponse(UUID surveyResponseId) throws DataAccessException;
 
 }

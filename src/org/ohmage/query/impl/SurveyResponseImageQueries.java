@@ -1,12 +1,15 @@
 package org.ohmage.query.impl;
 
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.List;
+import java.util.UUID;
 
 import javax.sql.DataSource;
 
 import org.ohmage.exception.DataAccessException;
 import org.ohmage.query.ISurveyResponseImageQueries;
-import org.springframework.jdbc.core.SingleColumnRowMapper;
+import org.springframework.jdbc.core.RowMapper;
 
 /**
  * This class is responsible for creating, reading, updating, and deleting 
@@ -34,12 +37,25 @@ public class SurveyResponseImageQueries extends Query implements ISurveyResponse
 	/* (non-Javadoc)
 	 * @see org.ohmage.query.impl.ISurveyResponseImageQueries#getImageIdsFromSurveyResponse(java.lang.Long)
 	 */
-	public List<String> getImageIdsFromSurveyResponse(Long surveyResponseId) throws DataAccessException {
+	public List<UUID> getImageIdsFromSurveyResponse(UUID surveyResponseId) throws DataAccessException {
 		try {
 			return getJdbcTemplate().query(
 					SQL_GET_IMAGE_IDS_FROM_SURVEY_RESPONSE,
-					new Object[] { surveyResponseId },
-					new SingleColumnRowMapper<String>());
+					new Object[] { surveyResponseId.toString() },
+					new RowMapper<UUID>() {
+						@Override
+						public UUID mapRow(ResultSet rs, int rowNum)
+								throws SQLException {
+							
+							try {
+								return UUID.fromString(
+										rs.getString("response"));
+							}
+							catch(IllegalArgumentException e) {
+								throw new SQLException("The response value is not a valid UUID.", e);
+							}
+						}
+					});
 		}
 		catch(org.springframework.dao.DataAccessException e) {
 			throw new DataAccessException("Error executing SQL '" + SQL_GET_IMAGE_IDS_FROM_SURVEY_RESPONSE + "' with parameter: " + surveyResponseId, e);

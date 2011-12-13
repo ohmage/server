@@ -2,6 +2,7 @@ package org.ohmage.service;
 
 import java.sql.Timestamp;
 import java.util.Calendar;
+import java.util.UUID;
 
 import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.domain.campaign.Campaign;
@@ -91,7 +92,7 @@ public class UserSurveyResponseServices {
 	 * 							the survey response.
 	 */
 	public void verifyUserCanUpdateOrDeleteSurveyResponse(
-			final String requesterUsername, final Long surveyResponseId) 
+			final String requesterUsername, final UUID surveyResponseId) 
 			throws ServiceException {
 		
 		try {

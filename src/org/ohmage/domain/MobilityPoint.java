@@ -407,7 +407,7 @@ public class MobilityPoint {
 			}
 			
 			try {
-				mode = Mode.valueOf(modeString);
+				mode = Mode.valueOf(modeString.toUpperCase());
 			}
 			catch(IllegalArgumentException e) {
 				throw new ErrorCodeException(

@@ -8,6 +8,7 @@ import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.TimeZone;
+import java.util.UUID;
 
 import javax.sql.DataSource;
 
@@ -30,7 +31,7 @@ public final class UserSurveyResponseQueries extends Query implements IUserSurve
 	private static final String SQL_GET_SURVEY_RESPONSE_OWNER =
 		"SELECT u.username " +
 		"FROM user u, survey_response sr " +
-		"WHERE sr.id = ? " +
+		"WHERE sr.uuid = ? " +
 		"AND sr.user_id = u.id";
 	
 	// Retrieves all of the survey responses for a user that are visible to a
@@ -124,11 +125,11 @@ public final class UserSurveyResponseQueries extends Query implements IUserSurve
 	 * 
 	 * @throws DataAccessException Thrown if there is an error.
 	 */
-	public String getSurveyResponseOwner(Long surveyResponseId) throws DataAccessException {
+	public String getSurveyResponseOwner(UUID surveyResponseId) throws DataAccessException {
 		try {
 			return getJdbcTemplate().queryForObject(
 					SQL_GET_SURVEY_RESPONSE_OWNER,
-					new Object[] { surveyResponseId },
+					new Object[] { surveyResponseId.toString() },
 					String.class);
 		}
 		catch(org.springframework.dao.IncorrectResultSizeDataAccessException e) {

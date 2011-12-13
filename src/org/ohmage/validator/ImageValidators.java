@@ -3,6 +3,7 @@ package org.ohmage.validator;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.util.UUID;
 
 import javax.imageio.ImageIO;
 
@@ -44,7 +45,7 @@ public final class ImageValidators {
 	 * @throws ValidationException Thrown if the image ID is not null, not
 	 * 							   whitespace only, and not a valid image ID.
 	 */
-	public static String validateId(final String imageId) 
+	public static UUID validateId(final String imageId) 
 			throws ValidationException {
 		
 		LOGGER.info("Validating an image ID.");
@@ -53,10 +54,10 @@ public final class ImageValidators {
 			return null;
 		}
 		
-		if(StringUtils.isValidUuid(imageId.trim())) {
-			return imageId.trim();
+		try {
+			return UUID.fromString(imageId);
 		}
-		else {
+		catch(IllegalArgumentException e) {
 			throw new ValidationException(
 					ErrorCode.IMAGE_INVALID_ID, 
 					"The image ID is not a valid image ID: " + imageId);

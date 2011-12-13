@@ -1,5 +1,7 @@
 package org.ohmage.query.impl;
 
+import java.util.UUID;
+
 import javax.sql.DataSource;
 
 import org.ohmage.exception.DataAccessException;
@@ -54,9 +56,9 @@ public final class UserImageQueries extends Query implements IUserImageQueries {
 	 * 
 	 * @throws DataAccessException Thrown if there is an error.
 	 */
-	public Boolean responseExistsForUserWithImage(String username, String imageId) throws DataAccessException {
+	public Boolean responseExistsForUserWithImage(String username, UUID imageId) throws DataAccessException {
 		try {
-			return getJdbcTemplate().queryForObject(SQL_EXISTS_IMAGE_FOR_USER_IN_RESPONSE, new Object[] { username, imageId }, Boolean.class);
+			return getJdbcTemplate().queryForObject(SQL_EXISTS_IMAGE_FOR_USER_IN_RESPONSE, new Object[] { username, imageId.toString() }, Boolean.class);
 		}
 		catch(org.springframework.dao.DataAccessException e) {
 			throw new DataAccessException("Error executing SQL '" + SQL_EXISTS_IMAGE_FOR_USER_IN_RESPONSE + "' with parameters: " + 
@@ -74,9 +76,9 @@ public final class UserImageQueries extends Query implements IUserImageQueries {
 	 * 
 	 * @throws DataAccessException Thrown if there is an error.
 	 */
-	public String getImageOwner(String imageId) throws DataAccessException {
+	public String getImageOwner(UUID imageId) throws DataAccessException {
 		try {
-			return getJdbcTemplate().queryForObject(SQL_GET_IMAGE_OWNER, new Object[] { imageId }, String.class);
+			return getJdbcTemplate().queryForObject(SQL_GET_IMAGE_OWNER, new Object[] { imageId.toString() }, String.class);
 		}
 		catch(org.springframework.dao.IncorrectResultSizeDataAccessException e) {
 			if(e.getActualSize() > 1) {
