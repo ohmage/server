@@ -124,6 +124,7 @@ public class RequestServlet extends HttpServlet {
 				// We remove any uploaded to data to avoid storing personal or
 				// sensitive data in the audit table.
 				parameterMap.remove(InputKeys.DATA);
+				parameterMap.remove(InputKeys.SURVEYS);
 				
 				// Go through the parameters and remove all values that are
 				// greater than 64kB because the database will reject it.
