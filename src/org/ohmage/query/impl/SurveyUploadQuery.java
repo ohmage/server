@@ -546,7 +546,11 @@ public class SurveyUploadQuery extends AbstractUploadQuery implements ISurveyUpl
 				// value.
 				long currDirectoryName;
 				try {
-					currDirectoryName = Long.decode(newDirectory.getName());
+					String dirName = newDirectory.getName();
+					while(dirName.startsWith("0")) {
+						dirName = dirName.substring(1);
+					}
+					currDirectoryName = Long.decode(dirName);
 				}
 				catch(NumberFormatException e) {
 					if(newDirectory.getAbsolutePath().equals(absoluteRootDirectory)) {
