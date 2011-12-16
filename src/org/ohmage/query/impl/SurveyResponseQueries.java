@@ -547,11 +547,19 @@ public class SurveyResponseQueries extends Query implements ISurveyResponseQueri
 		try {
 			final Map<String, Class<?>> typeMapping = new HashMap<String, Class<?>>();
 			typeMapping.put("tinyint", Integer.class);
+
+			String[] surveyResponseIdsString = new String[surveyResponseIds.size()];
+			int numIdsConverted = 0;
+			for(UUID surveyResponseId : surveyResponseIds) {
+				surveyResponseIdsString[numIdsConverted] = 
+						surveyResponseId.toString();
+				numIdsConverted++;
+			}
 			
 			final List<SurveyResponse> result = 
 				getJdbcTemplate().query(
 					SQL_GET_SURVEY_RESPONSES + StringUtils.generateStatementPList(surveyResponseIds.size()),
-					surveyResponseIds.toArray(),
+					surveyResponseIdsString,
 					new RowMapper<SurveyResponse>() {
 						@Override
 						public SurveyResponse mapRow(ResultSet rs, int rowNum) throws SQLException {
