@@ -21,3 +21,11 @@ ALTER TABLE survey_response ADD CONSTRAINT UNIQUE (uuid);
 -- survey responses, but try as I might I couldn't find any documentation on
 -- how to do it. ALTER TABLE's DROP CONSTRAINT appears to not be implemented in
 -- MySQL 5.1.
+
+-- Note: The data will be corrupt. There was a change to the way location,
+-- survey response, launch context, and Mobility data was stored involving the
+-- timestamp, time, and timezone. The timestamp was dropped from each of these
+-- and the time and timezone added if one or both did not previously exist. In
+-- order to update the database, each of these objects will need to be removed
+-- from the database, updated with a script, and reinserted back into the
+-- database. 
