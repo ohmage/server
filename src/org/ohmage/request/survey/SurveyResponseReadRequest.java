@@ -737,9 +737,15 @@ public final class SurveyResponseReadRequest extends UserRequest {
 								((returnId == null) ? false : returnId)
 							);
 						
-						if(allColumns || columns.contains(ColumnKey.CONTEXT_LOCATION_UTC_TIMESTAMP)) {
+						if(allColumns || columns.contains(ColumnKey.CONTEXT_TIMESTAMP)) {
 							currResult.put(
-									ColumnKey.CONTEXT_LOCATION_UTC_TIMESTAMP.toString(),
+									ColumnKey.CONTEXT_TIMESTAMP.toString(), 
+									TimeUtils.getIso8601DateTimeString(
+											new Date(surveyResponse.getTime())));
+						}
+						if(allColumns || columns.contains(ColumnKey.CONTEXT_UTC_TIMESTAMP)) {
+							currResult.put(
+									ColumnKey.CONTEXT_UTC_TIMESTAMP.toString(),
 									DateUtils.timestampStringToUtc(
 											TimeUtils.getIso8601DateTimeString(
 													new Date(surveyResponse.getTime())), 
@@ -907,6 +913,7 @@ public final class SurveyResponseReadRequest extends UserRequest {
 					JSONArray usernames = new JSONArray();
 					JSONArray clients = new JSONArray();
 					JSONArray privacyStates = new JSONArray();
+					JSONArray timestamps = new JSONArray();
 					JSONArray utcTimestamps = new JSONArray();
 					JSONArray epochMillisTimestamps = new JSONArray();
 					JSONArray timezones = new JSONArray();
@@ -988,7 +995,7 @@ public final class SurveyResponseReadRequest extends UserRequest {
 								surveyResponse.getResponses(), 
 								prompts, 
 								usernames, clients, privacyStates, 
-								utcTimestamps, 
+								timestamps, utcTimestamps, 
 								epochMillisTimestamps, timezones, 
 								locationStatuses, locationLongitude, 
 								locationLatitude, locationTimestamp, 
@@ -1018,10 +1025,15 @@ public final class SurveyResponseReadRequest extends UserRequest {
 						values.put(JSON_KEY_VALUES, privacyStates);
 						result.put(ColumnKey.SURVEY_PRIVACY_STATE.toString(), values);
 					}
-					if(allColumns || columns.contains(ColumnKey.CONTEXT_LOCATION_UTC_TIMESTAMP)) {
+					if(allColumns || columns.contains(ColumnKey.CONTEXT_TIMESTAMP)) {
+						JSONObject values = new JSONObject();
+						values.put(JSON_KEY_VALUES, timestamps);
+						result.put(ColumnKey.CONTEXT_TIMESTAMP.toString(), values);
+					}
+					if(allColumns || columns.contains(ColumnKey.CONTEXT_UTC_TIMESTAMP)) {
 						JSONObject values = new JSONObject();
 						values.put(JSON_KEY_VALUES, utcTimestamps);
-						result.put(ColumnKey.CONTEXT_LOCATION_UTC_TIMESTAMP.toString(), values);
+						result.put(ColumnKey.CONTEXT_UTC_TIMESTAMP.toString(), values);
 					}
 					if(allColumns || columns.contains(ColumnKey.CONTEXT_EPOCH_MILLIS)) {
 						JSONObject values = new JSONObject();
@@ -1344,6 +1356,11 @@ public final class SurveyResponseReadRequest extends UserRequest {
 	 * 
 	 * @param timestamps The timestamps JSONArray.
 	 * 
+	 * @param utcTimestamps The timestamps JSONArray where the timestamps are
+	 * 						converted to UTC.
+	 * 
+	 * @param epochMillisTimestamps The epoch millis JSONArray.
+	 * 
 	 * @param timezones The timezones JSONArray.
 	 * 
 	 * @param locationStatuses The location statuses JSONArray.
@@ -1368,7 +1385,7 @@ public final class SurveyResponseReadRequest extends UserRequest {
 			final Map<Integer, Response> responses, 
 			Map<String, JSONObject> prompts,
 			JSONArray usernames, JSONArray clients, JSONArray privacyStates,
-			JSONArray utcTimestamps, 
+			JSONArray timestamps, JSONArray utcTimestamps, 
 			JSONArray epochMillisTimestamps, JSONArray timezones,
 			JSONArray locationStatuses, JSONArray locationLongitude,
 			JSONArray locationLatitude, JSONArray locationTime,
@@ -1388,7 +1405,13 @@ public final class SurveyResponseReadRequest extends UserRequest {
 		if(allColumns || columns.contains(ColumnKey.SURVEY_PRIVACY_STATE)) {
 			privacyStates.put(surveyResponse.getPrivacyState().toString());
 		}
-		if(allColumns || columns.contains(ColumnKey.CONTEXT_LOCATION_UTC_TIMESTAMP)) {
+		if(allColumns || columns.contains(ColumnKey.CONTEXT_TIMESTAMP)) {
+			timestamps.put(
+					TimeUtils.getIso8601DateTimeString(
+							new Date(
+									surveyResponse.getTime())));
+		}
+		if(allColumns || columns.contains(ColumnKey.CONTEXT_UTC_TIMESTAMP)) {
 			utcTimestamps.put(
 					DateUtils.timestampStringToUtc(
 							TimeUtils.getIso8601DateTimeString(

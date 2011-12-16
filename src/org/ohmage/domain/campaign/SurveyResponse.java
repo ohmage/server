@@ -330,9 +330,13 @@ public class SurveyResponse {
 		 */
 		CONTEXT_CLIENT ("urn:ohmage:context:client"),
 		/**
+		 * The survey-wide timestamp key.
+		 */
+		CONTEXT_TIMESTAMP ("urn:ohmage:context:timestamp"),
+		/**
 		 * The survey-wide timestamp key where the time is adjusted to UTC.
 		 */
-		CONTEXT_LOCATION_UTC_TIMESTAMP ("urn:ohmage:context:utc_timestamp"),
+		CONTEXT_UTC_TIMESTAMP ("urn:ohmage:context:utc_timestamp"),
 		/**
 		 * The survey-wide timestamp key in milliseconds.
 		 */
