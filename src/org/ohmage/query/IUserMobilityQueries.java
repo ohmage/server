@@ -1,6 +1,5 @@
 package org.ohmage.query;
 
-import java.sql.Timestamp;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
@@ -223,7 +222,7 @@ public interface IUserMobilityQueries {
 	 * 		   Mobility upload from a user took place. If no Mobility data was
 	 * 		   ever uploaded, null is returned.
 	 */
-	Timestamp getLastUploadForUser(String username) throws DataAccessException;
+	Date getLastUploadForUser(String username) throws DataAccessException;
 
 	/**
 	 * Returns the percentage of non-null location values that were uploaded in
