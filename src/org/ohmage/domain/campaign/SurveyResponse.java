@@ -267,7 +267,7 @@ public class SurveyResponse {
 				JSONObject result = new JSONObject();
 				
 				result.put(JSON_KEY_LAUNCH_TIME, time);
-				result.put(JSON_KEY_TIMEZONE, timezone);
+				result.put(JSON_KEY_TIMEZONE, timezone.getID());
 				
 				if(longVersion) {
 					result.put(JSON_KEY_ACTIVE_TRIGGERS, activeTriggers);
