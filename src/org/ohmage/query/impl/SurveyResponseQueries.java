@@ -122,7 +122,10 @@ public class SurveyResponseQueries extends Query implements ISurveyResponseQueri
 	
 	// Retrieves all of the information about a single survey response.
 	private static final String SQL_GET_SURVEY_RESPONSE = 
-		"SELECT u.username, c.urn, sr.uuid, sr.client, sr.epoch_millis, sr.phone_timezone, sr.survey_id, sr.launch_context, sr.location_status, sr.location, srps.privacy_state " +
+		"SELECT u.username, c.urn, sr.uuid, sr.client, " +
+				"sr.epoch_millis, sr.phone_timezone, " +
+				"sr.survey_id, sr.launch_context, " +
+				"sr.location_status, sr.location, srps.privacy_state " +
 		"FROM user u, campaign c, survey_response sr, survey_response_privacy_state srps " +
 		"WHERE sr.uuid = ? " +
 		"AND u.id = sr.user_id " +

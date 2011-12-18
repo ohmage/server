@@ -739,13 +739,13 @@ public final class SurveyResponseReadRequest extends UserRequest {
 						
 						if(allColumns || columns.contains(ColumnKey.CONTEXT_TIMESTAMP)) {
 							currResult.put(
-									ColumnKey.CONTEXT_TIMESTAMP.toString(), 
+									"timestamp", 
 									TimeUtils.getIso8601DateTimeString(
 											new Date(surveyResponse.getTime())));
 						}
 						if(allColumns || columns.contains(ColumnKey.CONTEXT_UTC_TIMESTAMP)) {
 							currResult.put(
-									ColumnKey.CONTEXT_UTC_TIMESTAMP.toString(),
+									"utc_timestamp",
 									DateUtils.timestampStringToUtc(
 											TimeUtils.getIso8601DateTimeString(
 													new Date(surveyResponse.getTime())), 
