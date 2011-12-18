@@ -175,8 +175,6 @@ public class Clazz {
 			result.put(JSON_KEY_ID, id);
 		}
 		result.put(JSON_KEY_NAME, name);
-		
-		//result.put(JSON_KEY_DESCRIPTION, ((description == null) ? "" : description));
 		result.put(JSON_KEY_DESCRIPTION, description);
 		
 		return result;

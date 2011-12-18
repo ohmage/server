@@ -1,7 +1,7 @@
 package org.ohmage.service;
 
-import java.sql.Timestamp;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 import java.util.Set;
 
@@ -144,7 +144,7 @@ public class UserMobilityServices {
 			throws ServiceException {
 		
 		try {
-			Timestamp lastMobilityUpload = userMobilityQueries.getLastUploadForUser(username);
+			Date lastMobilityUpload = userMobilityQueries.getLastUploadForUser(username);
 			if(lastMobilityUpload == null) {
 				return null;
 			}

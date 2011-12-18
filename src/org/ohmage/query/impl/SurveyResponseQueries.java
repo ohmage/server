@@ -122,7 +122,10 @@ public class SurveyResponseQueries extends Query implements ISurveyResponseQueri
 	
 	// Retrieves all of the information about a single survey response.
 	private static final String SQL_GET_SURVEY_RESPONSE = 
-		"SELECT u.username, c.urn, sr.uuid, sr.client, sr.epoch_millis, sr.phone_timezone, sr.survey_id, sr.launch_context, sr.location_status, sr.location, srps.privacy_state " +
+		"SELECT u.username, c.urn, sr.uuid, sr.client, " +
+				"sr.epoch_millis, sr.phone_timezone, " +
+				"sr.survey_id, sr.launch_context, " +
+				"sr.location_status, sr.location, srps.privacy_state " +
 		"FROM user u, campaign c, survey_response sr, survey_response_privacy_state srps " +
 		"WHERE sr.uuid = ? " +
 		"AND u.id = sr.user_id " +
@@ -547,11 +550,19 @@ public class SurveyResponseQueries extends Query implements ISurveyResponseQueri
 		try {
 			final Map<String, Class<?>> typeMapping = new HashMap<String, Class<?>>();
 			typeMapping.put("tinyint", Integer.class);
+
+			String[] surveyResponseIdsString = new String[surveyResponseIds.size()];
+			int numIdsConverted = 0;
+			for(UUID surveyResponseId : surveyResponseIds) {
+				surveyResponseIdsString[numIdsConverted] = 
+						surveyResponseId.toString();
+				numIdsConverted++;
+			}
 			
 			final List<SurveyResponse> result = 
 				getJdbcTemplate().query(
 					SQL_GET_SURVEY_RESPONSES + StringUtils.generateStatementPList(surveyResponseIds.size()),
-					surveyResponseIds.toArray(),
+					surveyResponseIdsString,
 					new RowMapper<SurveyResponse>() {
 						@Override
 						public SurveyResponse mapRow(ResultSet rs, int rowNum) throws SQLException {

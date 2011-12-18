@@ -93,6 +93,8 @@ public class SurveyUploadRequest extends UserRequest {
 	private List<JSONObject> jsonData;
 	private final Map<String, BufferedImage> imageContentsMap;
 	
+	private Collection<UUID> surveyResponseIds;
+	
 	/**
 	 * Creates a new image upload request.
 	 * 
@@ -218,6 +220,8 @@ public class SurveyUploadRequest extends UserRequest {
 		this.campaignCreationTimestamp = tCampaignCreationTimestamp;
 		this.jsonData = tJsonData;
 		this.imageContentsMap = tImageContentsMap;
+		
+		surveyResponseIds = null;
 	}
 
 	/**
@@ -251,6 +255,11 @@ public class SurveyUploadRequest extends UserRequest {
 						getClient(),
 						campaign, 
 						jsonData);
+			
+			surveyResponseIds = new ArrayList<UUID>(surveyResponses.size());
+			for(SurveyResponse surveyResponse : surveyResponses) {
+				surveyResponseIds.add(surveyResponse.getSurveyResponseId());
+			}
 
 			LOGGER.info("Validating that all photo prompt responses have their corresponding images attached.");
 			SurveyResponseServices.instance().verifyImagesExistForPhotoPromptResponses(surveyResponses, imageContentsMap);
@@ -275,5 +284,34 @@ public class SurveyUploadRequest extends UserRequest {
 		LOGGER.info("Responding to the survey upload request.");
 		
 		super.respond(httpRequest, httpResponse, null);
+	}
+	
+	/**
+	 * If the upload was successful, this records the UUIDs of the successfully
+	 * uploaded survey responses to the audit's extras table.
+	 * 
+	 * @return The parents audit information with the successfully uploaded
+	 * 		   survey responses if the request was successful.
+	 */
+	@Override
+	public Map<String, String[]> getAuditInformation() {
+		Map<String, String[]> result = super.getAuditInformation();
+		
+		if((! isFailed()) && (surveyResponseIds != null)) {
+			int numSurveyResponseIdsAdded = 0;
+			String[] surveyResponseIdsArray = 
+					new String[surveyResponseIds.size()];
+			
+			for(UUID surveyResponseId : surveyResponseIds) {
+				surveyResponseIdsArray[numSurveyResponseIdsAdded] =
+						surveyResponseId.toString();
+			}
+			
+			result.put(
+					"successfully_uploaded_survey_response_ids", 
+					surveyResponseIdsArray);
+		}
+		
+		return result;
 	}
 }

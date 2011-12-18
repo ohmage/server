@@ -322,7 +322,12 @@ public final class SurveyResponseServices {
 					return Collections.emptyList();
 				}
 				else {
-					return surveyResponseQueries.retrieveSurveyResponseFromIds(campaign, allIds);
+					List<SurveyResponse> surveyResponses = new ArrayList<SurveyResponse>(allIds.size());
+					for(UUID surveyResponseId : allIds) {
+						surveyResponses.add(surveyResponseQueries.retrieveSurveyResponseFromId(campaign, surveyResponseId));
+					}
+					
+					return surveyResponses;
 				}
 			}
 			else if(surveyResponseIds.size() == 0) {

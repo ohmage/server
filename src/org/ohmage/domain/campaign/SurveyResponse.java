@@ -3,7 +3,6 @@ package org.ohmage.domain.campaign;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -23,7 +22,6 @@ import org.ohmage.domain.Location;
 import org.ohmage.domain.campaign.Response.NoResponse;
 import org.ohmage.exception.ErrorCodeException;
 import org.ohmage.util.StringUtils;
-import org.ohmage.util.TimeUtils;
 
 /**
  * This class is responsible for converting an uploaded or database-stored copy
@@ -139,9 +137,11 @@ public class SurveyResponse {
 	 */
 	public static final class LaunchContext {
 		private static final String JSON_KEY_LAUNCH_TIME = "launch_time";
+		private static final String JSON_KEY_LAUNCH_TIMEZONE = "launch_timezone";
 		private static final String JSON_KEY_ACTIVE_TRIGGERS = "active_triggers";
 		
-		private final Date launchTime;
+		private final long time;
+		private final TimeZone timezone;
 		// TODO: I was hoping to avoid keeping JSON in the system and only
 		// using it as a serialization format. However, this is never 
 		// referenced in the code and decoding the JSON only to recode it again
@@ -165,17 +165,36 @@ public class SurveyResponse {
 			}
 			
 			try {
-				launchTime = StringUtils.decodeDateTime(launchContext.getString(JSON_KEY_LAUNCH_TIME));
+				time = launchContext.getLong(JSON_KEY_LAUNCH_TIME);
 			}
 			catch(JSONException e) {
-				throw new ErrorCodeException(ErrorCode.SURVEY_INVALID_LAUNCH_CONTEXT, "launch_time is missing or incorrect in the survey_launch_context.");
+				throw new ErrorCodeException(
+						ErrorCode.SURVEY_INVALID_LAUNCH_CONTEXT, 
+						"The launch time is missing from the survey launch context: " + 
+								JSON_KEY_LAUNCH_TIME, 
+						e);
+			}
+			
+			try {
+				timezone = TimeZone.getTimeZone(launchContext.getString(JSON_KEY_LAUNCH_TIMEZONE));
+			}
+			catch(JSONException e) {
+				throw new ErrorCodeException(
+						ErrorCode.SURVEY_INVALID_LAUNCH_CONTEXT, 
+						"The launch timezone is missing from the survey launch context: " +
+								JSON_KEY_LAUNCH_TIMEZONE,
+						e);
 			}
 			
 			try {
 				activeTriggers = launchContext.getJSONArray(JSON_KEY_ACTIVE_TRIGGERS);
 			}
 			catch(JSONException e) {
-				throw new ErrorCodeException(ErrorCode.SURVEY_INVALID_LAUNCH_CONTEXT, "active_triggers array is missing from survey_launch_context.");
+				throw new ErrorCodeException(
+						ErrorCode.SURVEY_INVALID_LAUNCH_CONTEXT, 
+						"The active triggers list is missing from the survey launch context: " +
+								JSON_KEY_ACTIVE_TRIGGERS, 
+						e);
 			}
 		}
 		
@@ -187,31 +206,47 @@ public class SurveyResponse {
 		 * @param activeTriggers A possibly null list of trigger IDs that 
 		 * 						 were active when the survey was launched. 
 		 */
-		public LaunchContext(final Date launchTime, final JSONArray activeTriggers) {
-			if(launchTime == null) {
-				throw new IllegalArgumentException("The launch time cannot be null.");
+		public LaunchContext(
+				final long launchTime, 
+				final TimeZone launchTimezone,
+				final JSONArray activeTriggers) {
+			
+			if(launchTimezone == null) {
+				throw new IllegalArgumentException("The launch timezone cannot be null.");
 			}
 			if(activeTriggers == null) {
 				throw new IllegalArgumentException("The activeTriggers array cannot be null.");
 			}
 			
-			this.launchTime = launchTime;
+			this.time = launchTime;
+			this.timezone = launchTimezone;
 			this.activeTriggers = activeTriggers;
 		}
 		
 		/**
-		 * Returns a new Date object that represents this launch time.
+		 * Returns the epoch milliseconds that represents this launch time.
 		 * 
-		 * @return A new Date object that represents this launch time.
+		 * @return The epoch milliseconds that represents this launch time.
 		 */
-		public final Date getLaunchTime() {
-			return launchTime;
+		public final long getLaunchTime() {
+			return time;
 		}
 		
 		/**
-		 * Returns a new List object that contains all of the active triggers.
+		 * Returns the timezone of the device at this launch time.
 		 * 
-		 * @return A new List object that contains all of the active triggers.
+		 * @return The timezone of the device at this launch time.
+		 */
+		public final TimeZone getTimeZone() {
+			return timezone;
+		}
+		
+		/**
+		 * Returns a new JSONArray object that contains all of the active 
+		 * triggers.
+		 * 
+		 * @return A new JSONArray object that contains all of the active 
+		 * 		   triggers.
 		 */
 		public final JSONArray getActiveTriggers() {
 			return activeTriggers;
@@ -231,7 +266,8 @@ public class SurveyResponse {
 			try {
 				JSONObject result = new JSONObject();
 				
-				result.put(JSON_KEY_LAUNCH_TIME, TimeUtils.getIso8601DateTimeString(launchTime));
+				result.put(JSON_KEY_LAUNCH_TIME, time);
+				result.put(JSON_KEY_TIMEZONE, timezone.getID());
 				
 				if(longVersion) {
 					result.put(JSON_KEY_ACTIVE_TRIGGERS, activeTriggers);
@@ -245,8 +281,8 @@ public class SurveyResponse {
 			}
 		}
 
-		/**
-		 * Generates a hash code for this launch context.
+		/* (non-Javadoc)
+		 * @see java.lang.Object#hashCode()
 		 */
 		@Override
 		public int hashCode() {
@@ -255,14 +291,12 @@ public class SurveyResponse {
 			result = prime
 					* result
 					+ ((activeTriggers == null) ? 0 : activeTriggers.hashCode());
-			result = prime * result
-					+ ((launchTime == null) ? 0 : launchTime.hashCode());
+			result = prime * result + (int) (time ^ (time >>> 32));
 			return result;
 		}
 
-		/**
-		 * Compares this launch context to another object and returns true only
-		 * if both objects are logically the same.
+		/* (non-Javadoc)
+		 * @see java.lang.Object#equals(java.lang.Object)
 		 */
 		@Override
 		public boolean equals(Object obj) {
@@ -278,10 +312,7 @@ public class SurveyResponse {
 					return false;
 			} else if (!activeTriggers.equals(other.activeTriggers))
 				return false;
-			if (launchTime == null) {
-				if (other.launchTime != null)
-					return false;
-			} else if (!launchTime.equals(other.launchTime))
+			if (time != other.time)
 				return false;
 			return true;
 		}
@@ -299,9 +330,13 @@ public class SurveyResponse {
 		 */
 		CONTEXT_CLIENT ("urn:ohmage:context:client"),
 		/**
+		 * The survey-wide timestamp key.
+		 */
+		CONTEXT_TIMESTAMP ("urn:ohmage:context:timestamp"),
+		/**
 		 * The survey-wide timestamp key where the time is adjusted to UTC.
 		 */
-		CONTEXT_LOCATION_UTC_TIMESTAMP ("urn:ohmage:context:utc_timestamp"),
+		CONTEXT_UTC_TIMESTAMP ("urn:ohmage:context:utc_timestamp"),
 		/**
 		 * The survey-wide timestamp key in milliseconds.
 		 */
@@ -347,11 +382,17 @@ public class SurveyResponse {
 		 */
 		CONTEXT_LOCATION_LONGITUDE ("urn:ohmage:context:location:longitude"),
 		/**
-		 * The survey's location's timestamp key.
+		 * The survey's location's time key.
 		 * 
 		 * @see ColumnKey#CONTEXT_LOCATION_STATUS
 		 */
 		CONTEXT_LOCATION_TIMESTAMP ("urn:ohmage:context:location:timestamp"),
+		/**
+		 * The survey's location's time zone key.
+		 * 
+		 * @see ColumnKey#CONTEXT_LOCATION_STATUS
+		 */
+		CONTEXT_LOCATION_TIMEZONE ("urn:ohmage:context:location:timezone"),
 		/**
 		 * The survey's location's accuracy key.
 		 * 

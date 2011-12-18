@@ -68,7 +68,7 @@ public class SurveyUploadQuery extends AbstractUploadQuery implements ISurveyUpl
 	private static final class DirectoryFilter implements FilenameFilter {
 		/**
 		 * Returns true iff the filename is appropriate for the regular
-		 * expression.
+		 * expression. 
 		 */
 		public boolean accept(File f, String name) {
 			return IMAGE_DIRECTORY_PATTERN.matcher(name).matches();

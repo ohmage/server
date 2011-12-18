@@ -4,7 +4,6 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Timestamp;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.Collections;
@@ -73,7 +72,7 @@ public final class UserMobilityQueries extends AbstractUploadQuery implements IU
 		"FROM user u, mobility m " +
 		"WHERE u.username = ? " +
 		"AND u.id = m.user_id " +
-		"AND m.msg_timestamp >= ?";
+		"AND m.epoch_millis >= ?";
 	
 	// Retrieves the ID for all of the Mobility points that belong to a user 
 	// and were created on or before a specified date.
@@ -82,15 +81,15 @@ public final class UserMobilityQueries extends AbstractUploadQuery implements IU
 		"FROM user u, mobility m " +
 		"WHERE u.username = ? " +
 		"AND u.id = m.user_id " +
-		"AND m.msg_timestamp <= ?";
+		"AND m.epoch_millis <= ?";
 	
 	private static final String SQL_GET_IDS_CREATE_BETWEEN_DATES =
 		"SELECT m.uuid " +
 		"FROM user u, mobility m " +
 		"WHERE u.username = ? " +
 		"AND u.id = m.user_id " +
-		"AND m.msg_timestamp >= ? " +
-		"AND m.msg_timestamp <= ?";
+		"AND m.epoch_millis >= ? " +
+		"AND m.epoch_millis <= ?";
 	
 	// Retrieves the ID for all of the Mobility points that belong to a user 
 	// and were uploaded on or after a specified date.
@@ -141,7 +140,7 @@ public final class UserMobilityQueries extends AbstractUploadQuery implements IU
 	// point from a given database ID.
 	private static final String SQL_GET_MOBILITY_DATA_FROM_ID =
 		"SELECT m.uuid, u.username, m.client, " +
-			"m.msg_timestamp, m.epoch_millis, m.upload_timestamp, " +
+			"m.epoch_millis, m.upload_timestamp, " +
 			"m.phone_timezone, m.location_status, m.location, " +
 			"m.mode, mps.privacy_state, " +
 			"me.sensor_data, me.features, me.classifier_version " +
@@ -154,7 +153,7 @@ public final class UserMobilityQueries extends AbstractUploadQuery implements IU
 	
 	private static final String SQL_GET_MOBILITY_DATA_FROM_IDS =
 		"SELECT m.uuid, u.username, m.client, " +
-			"m.msg_timestamp, m.epoch_millis, m.upload_timestamp, " +
+			"m.epoch_millis, m.upload_timestamp, " +
 			"m.phone_timezone, m.location_status, m.location, " +
 			"m.mode, mps.privacy_state, " +
 			"me.sensor_data, me.features, me.classifier_version " +
@@ -172,7 +171,7 @@ public final class UserMobilityQueries extends AbstractUploadQuery implements IU
 	// IDs.
 	private static final String SQL_GET_MOBILITY_DATA_FOR_USER =
 		"SELECT m.uuid, u.username, m.client, " +
-			"m.msg_timestamp, m.epoch_millis, m.upload_timestamp, " +
+			"m.epoch_millis, m.upload_timestamp, " +
 			"m.phone_timezone, m.location_status, m.location, " +
 			"m.mode, mps.privacy_state, " +
 			"me.sensor_data, me.features, me.classifier_version " +
@@ -185,7 +184,7 @@ public final class UserMobilityQueries extends AbstractUploadQuery implements IU
 	
 	// Inserts a mode-only entry into the database.
 	private static final String SQL_INSERT =
-		"INSERT INTO mobility(uuid, user_id, client, msg_timestamp, epoch_millis, phone_timezone, location_status, location, mode, upload_timestamp, privacy_state_id) " +
+		"INSERT INTO mobility(uuid, user_id, client, epoch_millis, phone_timezone, location_status, location, mode, upload_timestamp, privacy_state_id) " +
 		"VALUES (" +
 			"?," +
 			"(" +		// user_id
@@ -194,7 +193,6 @@ public final class UserMobilityQueries extends AbstractUploadQuery implements IU
 				"WHERE username = ?" +
 			"), " +
 			"?, " +		// client
-			"?, " +		// msg_timestamp
 			"?, " +		// epoch_millis
 			"?, " +		// phone_timezone
 			"?, " +		// location_status
@@ -261,17 +259,16 @@ public final class UserMobilityQueries extends AbstractUploadQuery implements IU
 							ps.setString(2, username);
 							ps.setString(3, client);
 							
-							ps.setTimestamp(4, new Timestamp(mobilityPoint.getDate().getTime()));
-							ps.setLong(5, mobilityPoint.getTime());
-							ps.setString(6, mobilityPoint.getTimezone().getID());
+							ps.setLong(4, mobilityPoint.getTime());
+							ps.setString(5, mobilityPoint.getTimezone().getID());
 							
-							ps.setString(7, mobilityPoint.getLocationStatus().toString().toLowerCase());
+							ps.setString(6, mobilityPoint.getLocationStatus().toString().toLowerCase());
 							Location location = mobilityPoint.getLocation();
-							ps.setString(8, ((location == null) ? null : location.toJson(false).toString()));
+							ps.setString(7, ((location == null) ? null : location.toJson(false).toString()));
 							
-							ps.setString(9, mobilityPoint.getMode().toString().toLowerCase());
+							ps.setString(8, mobilityPoint.getMode().toString().toLowerCase());
 							
-							ps.setString(10, mobilityPoint.getPrivacyState().toString());
+							ps.setString(9, mobilityPoint.getPrivacyState().toString());
 							
 							return ps;
 						}
@@ -314,7 +311,6 @@ public final class UserMobilityQueries extends AbstractUploadQuery implements IU
 								mobilityPoint.getId().toString() + ", " +
 								username + ", " +
 								client + ", " +
-								TimeUtils.getIso8601DateTimeString(mobilityPoint.getDate()) + ", " +
 								mobilityPoint.getTime() + ", " +
 								mobilityPoint.getTimezone().getID() + ", " +
 								mobilityPoint.getLocationStatus().toString().toLowerCase() + ", " +
@@ -330,7 +326,6 @@ public final class UserMobilityQueries extends AbstractUploadQuery implements IU
 							mobilityPoint.getId().toString() + ", " +
 							username + ", " +
 							client + ", " +
-							TimeUtils.getIso8601DateTimeString(mobilityPoint.getDate()) + ", " +
 							mobilityPoint.getTime() + ", " +
 							mobilityPoint.getTimezone().getID() + ", " +
 							mobilityPoint.getLocationStatus().toString().toLowerCase() + ", " +
@@ -405,7 +400,7 @@ public final class UserMobilityQueries extends AbstractUploadQuery implements IU
 		try {
 			return getJdbcTemplate().query(
 					SQL_GET_IDS_CREATED_AFTER_DATE,
-					new Object[] { username, TimeUtils.getIso8601DateString(startDate) },
+					new Object[] { username, startDate.getTime() },
 					new SingleColumnRowMapper<String>());
 		}
 		catch(org.springframework.dao.DataAccessException e) {
@@ -414,7 +409,7 @@ public final class UserMobilityQueries extends AbstractUploadQuery implements IU
 							SQL_GET_IDS_CREATED_AFTER_DATE + 
 						"' with parameters: " + 
 							username + ", " +
-							TimeUtils.getIso8601DateString(startDate),
+							startDate.getTime(),
 					e);
 		}
 	}
@@ -427,7 +422,7 @@ public final class UserMobilityQueries extends AbstractUploadQuery implements IU
 		try {
 			return getJdbcTemplate().query(
 					SQL_GET_IDS_CREATED_BEFORE_DATE,
-					new Object[] { username, TimeUtils.getIso8601DateString(endDate) },
+					new Object[] { username, endDate.getTime() },
 					new SingleColumnRowMapper<String>());
 		}
 		catch(org.springframework.dao.DataAccessException e) {
@@ -436,7 +431,7 @@ public final class UserMobilityQueries extends AbstractUploadQuery implements IU
 							SQL_GET_IDS_CREATED_BEFORE_DATE + 
 						"' with parameters: " + 
 							username + ", " +
-							TimeUtils.getIso8601DateString(endDate),
+							endDate.getTime(),
 					e);
 		}
 	}
@@ -449,7 +444,7 @@ public final class UserMobilityQueries extends AbstractUploadQuery implements IU
 		try {
 			return getJdbcTemplate().query(
 					SQL_GET_IDS_CREATE_BETWEEN_DATES,
-					new Object[] { username, TimeUtils.getIso8601DateString(startDate), TimeUtils.getIso8601DateString(endDate) },
+					new Object[] { username, startDate.getTime(), endDate.getTime() },
 					new SingleColumnRowMapper<String>());
 		}
 		catch(org.springframework.dao.DataAccessException e) {
@@ -458,7 +453,8 @@ public final class UserMobilityQueries extends AbstractUploadQuery implements IU
 							SQL_GET_IDS_CREATED_BEFORE_DATE + 
 						"' with parameters: " + 
 							username + ", " +
-							TimeUtils.getIso8601DateString(endDate),
+							startDate.getTime() + ", " +
+							endDate.getTime(),
 					e);
 		}
 	}
@@ -613,7 +609,6 @@ public final class UserMobilityQueries extends AbstractUploadQuery implements IU
 								
 								return new MobilityPoint(
 										UUID.fromString(rs.getString("uuid")),
-										rs.getTimestamp("msg_timestamp"),
 										rs.getLong("epoch_millis"),
 										TimeZone.getTimeZone(rs.getString("phone_timezone")),
 										LocationStatus.valueOf(rs.getString("location_status").toUpperCase()),
@@ -694,7 +689,6 @@ public final class UserMobilityQueries extends AbstractUploadQuery implements IU
 								
 								return new MobilityPoint(
 										UUID.fromString(rs.getString("uuid")),
-										rs.getTimestamp("msg_timestamp"),
 										rs.getLong("epoch_millis"),
 										TimeZone.getTimeZone(rs.getString("phone_timezone")),
 										LocationStatus.valueOf(rs.getString("location_status").toUpperCase()),
@@ -737,38 +731,22 @@ public final class UserMobilityQueries extends AbstractUploadQuery implements IU
 	 * 		   Mobility upload from a user took place. If no Mobility data was
 	 * 		   ever uploaded, null is returned.
 	 */
-	public Timestamp getLastUploadForUser(String username) throws DataAccessException {
+	public Date getLastUploadForUser(String username) throws DataAccessException {
 		try {
-			List<Timestamp> timestamps = getJdbcTemplate().query(
+			List<Long> timestamps = getJdbcTemplate().query(
 					SQL_GET_MOBILITY_DATA_FOR_USER, 
 					new Object[] { username }, 
-					new RowMapper<Timestamp>() {
+					new RowMapper<Long>() {
 						@Override
-						public Timestamp mapRow(ResultSet rs, int rowNum) throws SQLException {
-							// First, create a TimeZone object with the time 
-							// zone from the database.
-							TimeZone timezone = TimeZone.getDefault();
-							String timezoneString = rs.getString("phone_timezone");
-							if(timezoneString != null) {
-								timezone = TimeZone.getTimeZone(timezoneString);
-							}
-							
-							// Next, create a Calendar object and updated it 
-							// with the time zone.
-							Calendar calendar = Calendar.getInstance();
-							calendar.setTimeZone(timezone);
-							
-							// Finally, grab the time from the database and
-							// update it with the time zone stored in the
-							// database.
-							return rs.getTimestamp("msg_timestamp", calendar);
+						public Long mapRow(ResultSet rs, int rowNum) throws SQLException {
+							return rs.getLong("epoch_millis");
 						}
 					}
 				);
 			
 			if(timestamps.size() > 0) {
 				Collections.sort(timestamps);
-				return timestamps.get(timestamps.size() - 1);
+				return new Date(timestamps.get(timestamps.size() - 1));
 			}
 			else {
 				return null;
@@ -802,7 +780,7 @@ public final class UserMobilityQueries extends AbstractUploadQuery implements IU
 			// Get a time stamp from 'hours' ago.
 			Calendar dayAgo = Calendar.getInstance();
 			dayAgo.add(Calendar.HOUR_OF_DAY, -hours);
-			final Timestamp dayAgoTimestamp = new Timestamp(dayAgo.getTimeInMillis());
+			final long dayAgoMillis = dayAgo.getTimeInMillis();
 			
 			final List<String> nonNullLocations = new LinkedList<String>();
 			final List<String> allLocations = new LinkedList<String>();
@@ -813,26 +791,9 @@ public final class UserMobilityQueries extends AbstractUploadQuery implements IU
 					new RowMapper<Object>() {
 						@Override
 						public Object mapRow(ResultSet rs, int rowNum) throws SQLException {
-							// First, create a TimeZone object with the time 
-							// zone from the database.
-							TimeZone timezone = TimeZone.getDefault();
-							String timezoneString = rs.getString("phone_timezone");
-							if(timezoneString != null) {
-								timezone = TimeZone.getTimeZone(timezoneString);
-							}
+							long currPointMillis = rs.getLong("epoch_millis");
 							
-							// Next, create a Calendar object and updated it 
-							// with the time zone.
-							Calendar calendar = Calendar.getInstance();
-							calendar.setTimeZone(timezone);
-							
-							// Now, generate a timestamp with the accurate
-							// date and time.
-							Timestamp generatedTimestamp = rs.getTimestamp("msg_timestamp", calendar);
-							
-							// If it was uploaded within the last 'hours' it is
-							// valid.
-							if(! generatedTimestamp.before(dayAgoTimestamp)) {
+							if(currPointMillis >= dayAgoMillis) {
 								String location = rs.getString("location");
 								if(location != null) {
 									nonNullLocations.add(location);

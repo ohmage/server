@@ -27,8 +27,6 @@ import edu.ucla.cens.mobilityclassifier.Sample;
  */
 public class MobilityPoint {
 	public static final String JSON_KEY_ID = "id";
-	private static final String JSON_KEY_DATE = "date";
-	private static final String JSON_KEY_DATE_SHORT = "ts";
 	private static final String JSON_KEY_TIME = "time";
 	private static final String JSON_KEY_TIME_SHORT = "t";
 	private static final String JSON_KEY_TIMEZONE = "timezone";
@@ -48,7 +46,6 @@ public class MobilityPoint {
 	private static final String JSON_KEY_DATA = "data";
 	
 	private final UUID id;
-	private final Date date;
 	private final long time;
 	private final TimeZone timezone;
 	
@@ -942,25 +939,6 @@ public class MobilityPoint {
 			throw new ErrorCodeException(ErrorCode.MOBILITY_INVALID_ID, "The Mobility point's ID is not a valid UUID.", e);
 		}
 		
-		// Get the date.
-		Date tDate;
-		try {
-			tDate = StringUtils.decodeDateTime(mobilityPoint.getString(JSON_KEY_DATE));
-			
-			if(tDate == null) {
-				throw new ErrorCodeException(ErrorCode.SERVER_INVALID_TIMESTAMP, "The date is invalid.");
-			}
-		}
-		catch(JSONException outerException) {
-			try {
-				tDate = StringUtils.decodeDateTime(mobilityPoint.getString(JSON_KEY_DATE_SHORT));
-			}
-			catch(JSONException innerException) {
-				throw new ErrorCodeException(ErrorCode.SERVER_INVALID_TIMESTAMP, "The date is missing.", innerException);
-			}
-		}
-		date = tDate;
-		
 		// Get the time.
 		long tTime;
 		try {
@@ -1115,8 +1093,6 @@ public class MobilityPoint {
 	 * 
 	 * @param id The Mobility point's universally unique identifier.
 	 * 
-	 * @param date The date this Mobility point was created.
-	 * 
 	 * @param time The milliseconds since the epoch at which time this point
 	 * 			   was created.
 	 * 
@@ -1148,7 +1124,7 @@ public class MobilityPoint {
 	 * 									parameters are missing or if any of the
 	 * 									parameters are invalid.
 	 */
-	public MobilityPoint(UUID id, Date date, Long time, TimeZone timezone,
+	public MobilityPoint(UUID id, Long time, TimeZone timezone,
 			LocationStatus locationStatus, JSONObject location, 
 			Mode mode, PrivacyState privacyState, 
 			JSONObject sensorData, JSONObject features, String classifierVersion) throws ErrorCodeException {
@@ -1158,13 +1134,6 @@ public class MobilityPoint {
 		}
 		else {
 			this.id = id;
-		}
-		
-		if(date == null) {
-			throw new IllegalArgumentException("The date cannot be null.");
-		}
-		else {
-			this.date = date;
 		}
 		
 		if(time == null) {
@@ -1228,8 +1197,6 @@ public class MobilityPoint {
 	 * 
 	 * @param id The Mobility point's universally unique identifier.
 	 * 
-	 * @param date The date and time that this reading was taken.
-	 * 
 	 * @param time The milliseconds since epoch that this reading was made.
 	 * 
 	 * @param timezone The time zone of the device that is making this reading.
@@ -1247,7 +1214,7 @@ public class MobilityPoint {
 	 * @throws IllegalArgumentException Thrown if any of the required 
 	 * 									parameters are missing.
 	 */
-	public MobilityPoint(UUID id, Date date, Long time, TimeZone timezone,
+	public MobilityPoint(UUID id, Long time, TimeZone timezone,
 			LocationStatus locationStatus, Location location, 
 			Mode mode, SensorData sensorData) {
 		
@@ -1256,13 +1223,6 @@ public class MobilityPoint {
 		}
 		else {
 			this.id = id;
-		}
-		
-		if(date == null) {
-			throw new IllegalArgumentException("The date cannot be null.");
-		}
-		else {
-			this.date = date;
 		}
 		
 		if(time == null) {
@@ -1326,15 +1286,6 @@ public class MobilityPoint {
 	 */
 	public final UUID getId() {
 		return id;
-	}
-
-	/**
-	 * Returns the date and time this Mobility point was created.
-	 * 
-	 * @return The date and time this Mobility point was created.
-	 */
-	public final Date getDate() {
-		return date;
 	}
 
 	/**
@@ -1517,7 +1468,6 @@ public class MobilityPoint {
 			JSONObject result = new JSONObject();
 			
 			result.put(JSON_KEY_ID, id.toString());
-			result.put(((abbreviated) ? JSON_KEY_DATE_SHORT : JSON_KEY_DATE), TimeUtils.getIso8601DateTimeString(date));
 			result.put(((abbreviated) ? JSON_KEY_TIMEZONE_SHORT : JSON_KEY_TIMEZONE), timezone.getID());
 			result.put(((abbreviated) ? JSON_KEY_TIME_SHORT : JSON_KEY_TIME), time);
 			
