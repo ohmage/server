@@ -1,6 +1,7 @@
 package org.ohmage.test.clazz;
 
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map;
 
@@ -429,6 +430,55 @@ public class ClassApiTest {
 		
 		// FIXME: Incomplete. We still need to add the user/role add/remove
 		// tests.
+		Map<String, Clazz.Role> usernamesAndTheirRole = 
+				new HashMap<String, Clazz.Role>();
+		try {
+			// Create the users to test with.
+			String privilegedUsername = "test.privileged";
+			api.createUser(
+					adminAuthToken, 
+					Controller.CLIENT, 
+					privilegedUsername, 
+					"Test.password1", 
+					false, 
+					true, 
+					false, 
+					false);
+			usernamesAndTheirRole.put(
+					privilegedUsername, 
+					Clazz.Role.PRIVILEGED);
+			
+			String restrictedUsername = "test.restricted";
+			api.createUser(
+					adminAuthToken, 
+					Controller.CLIENT, 
+					restrictedUsername, 
+					"Test.password1", 
+					false, 
+					true, 
+					false, 
+					false);
+			usernamesAndTheirRole.put(
+					restrictedUsername, 
+					Clazz.Role.RESTRICTED);
+			
+			/*
+			try {
+				api.updateClass(adminAuthToken, Controller.CLIENT, classId, null, null, usernamesAndTheirRole, null);
+			}
+			catch(RequestErrorException e) {
+				throw new IllegalArgumentException("Failed: Valid class update.", e);
+			}
+			*/
+			
+		}
+		finally {
+			// Delete the users that were using for testing.
+			api.deleteUser(
+					adminAuthToken, 
+					Controller.CLIENT, 
+					usernamesAndTheirRole.keySet());
+		}
 	}
 	
 	/**
