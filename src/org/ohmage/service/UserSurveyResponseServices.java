@@ -1,7 +1,6 @@
 package org.ohmage.service;
 
-import java.sql.Timestamp;
-import java.util.Calendar;
+import java.util.Date;
 import java.util.UUID;
 
 import org.ohmage.annotator.Annotator.ErrorCode;
@@ -137,12 +136,12 @@ public class UserSurveyResponseServices {
 			throws ServiceException {
 		
 		try {
-			Timestamp lastUpload = userSurveyResponseQueries.getLastUploadForUser(requestersUsername, usersUsername);
+			Long lastUpload = userSurveyResponseQueries.getLastUploadForUser(requestersUsername, usersUsername);
 			if(lastUpload == null) {
 				return Double.MAX_VALUE;
 			}
 			else {
-				long differenceInMillis = Calendar.getInstance().getTimeInMillis() - lastUpload.getTime();
+				long differenceInMillis = (new Date()).getTime() - lastUpload;
 				
 				return new Double(differenceInMillis) / new Double(MILLIS_IN_A_HOUR);
 			}

@@ -1,6 +1,5 @@
 package org.ohmage.query;
 
-import java.sql.Timestamp;
 import java.util.UUID;
 
 import org.ohmage.exception.DataAccessException;
@@ -32,7 +31,7 @@ public interface IUserSurveyResponseQueries {
 	 * @return A Time stamp of the last update whose time zone is set to the 
 	 * 		   same one as reported by the uploader.
 	 */
-	Timestamp getLastUploadForUser(String requestersUsername,
+	Long getLastUploadForUser(String requestersUsername,
 			String usersUsername) throws DataAccessException;
 
 	/**

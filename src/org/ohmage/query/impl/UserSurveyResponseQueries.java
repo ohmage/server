@@ -7,7 +7,6 @@ import java.util.Calendar;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.TimeZone;
 import java.util.UUID;
 
 import javax.sql.DataSource;
@@ -37,7 +36,7 @@ public final class UserSurveyResponseQueries extends Query implements IUserSurve
 	// Retrieves all of the survey responses for a user that are visible to a
 	// requesting user.
 	private static final String SQL_GET_SURVEY_RESPONSES_FOR_USER_FOR_REQUESTER = 
-		"SELECT c.urn, sr.client, sr.epoch_millis, sr.msg_timestamp, sr.phone_timezone, sr.upload_timestamp, " +
+		"SELECT c.urn, sr.client, sr.epoch_millis, sr.phone_timezone, sr.upload_timestamp, " +
 			"sr.survey_id, pr.prompt_id, pr.prompt_type, pr.repeatable_set_id, pr.repeatable_set_iteration, pr.response, " +
 			"sr.launch_context, sr.location_status, sr.location, srps.privacy_state, " +
 			"pr.audit_timestamp as prompt_audit_timestamp, sr.audit_timestamp as survey_audit_timestamp " +
@@ -145,52 +144,37 @@ public final class UserSurveyResponseQueries extends Query implements IUserSurve
 	}
 	
 	/**
-	 * Retrieves the time stamp of the time that the last uploaded survey was 
-	 * taken aligned to the time zone on the phone.
+	 * Retrieves the milliseconds since epoch of the time that the most recent 
+	 * survey was completed.
 	 *  
 	 * @param requestersUsername The username of the user that is requesting
 	 * 							 this information.
 	 * 
 	 * @param usersUsername The username of the user to which the data belongs.
 	 * 
-	 * @return A Time stamp of the last update whose time zone is set to the 
-	 * 		   same one as reported by the uploader.
+	 * @return A Long representing the milliseconds since epoch when the most 
+	 * 		   recently completed survey was completed or null if the user has
+	 * 		   not yet uploaded any surveys.
 	 */
-	public Timestamp getLastUploadForUser(String requestersUsername, String usersUsername) throws DataAccessException {
+	public Long getLastUploadForUser(String requestersUsername, String usersUsername) throws DataAccessException {
 		try {
-			List<Timestamp> timestamps = getJdbcTemplate().query(
+			List<Long> epochMillis = getJdbcTemplate().query(
 					SQL_GET_SURVEY_RESPONSES_FOR_USER_FOR_REQUESTER,
 					new Object[] { usersUsername, requestersUsername },
-					new RowMapper<Timestamp> () {
+					new RowMapper<Long> () {
 						@Override
-						public Timestamp mapRow(ResultSet rs, int rowNum) throws SQLException {
-							// First, create a TimeZone object with the time 
-							// zone from the database.
-							TimeZone timezone = TimeZone.getDefault();
-							String timezoneString = rs.getString("phone_timezone");
-							if(timezoneString != null) {
-								timezone = TimeZone.getTimeZone(timezoneString);
-							}
-							
-							// Next, create a Calendar object and updated it 
-							// with the time zone.
-							Calendar calendar = Calendar.getInstance();
-							calendar.setTimeZone(timezone);
-							
-							// Finally, grab the time from the database and
-							// update it with the time zone stored in the
-							// database.
-							return rs.getTimestamp("msg_timestamp", calendar);
+						public Long mapRow(ResultSet rs, int rowNum) throws SQLException {
+							return rs.getLong("epoch_millis");
 						}
 					}
 				);
 			
-			if(timestamps.size() == 0) {
+			if(epochMillis.size() == 0) {
 				return null;
 			}
 			else {
-				Collections.sort(timestamps);
-				return timestamps.get(timestamps.size() - 1);
+				Collections.sort(epochMillis);
+				return epochMillis.get(epochMillis.size() - 1);
 			}
 		}
 		catch(org.springframework.dao.DataAccessException e) {

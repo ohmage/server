@@ -21,7 +21,6 @@ import org.ohmage.exception.DataAccessException;
 import org.ohmage.exception.ErrorCodeException;
 import org.ohmage.query.ISurveyResponseQueries;
 import org.ohmage.util.StringUtils;
-import org.ohmage.util.TimeUtils;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.transaction.PlatformTransactionManager;
@@ -70,7 +69,7 @@ public class SurveyResponseQueries extends Query implements ISurveyResponseQueri
 		"FROM campaign c, survey_response sr " +
 		"WHERE c.urn = ? " +
 		"AND c.id = sr.campaign_id " +
-		"AND sr.msg_timestamp >= ?";
+		"AND sr.epoch_millis >= ?";
 	
 	// Retrieves the survey response ID for all of the survey responses made on 
 	// or before some date in a given campaign.
@@ -79,7 +78,7 @@ public class SurveyResponseQueries extends Query implements ISurveyResponseQueri
 		"FROM campaign c, survey_response sr " +
 		"WHERE c.urn = ? " +
 		"AND c.id = sr.campaign_id " +
-		"AND sr.msg_timestamp <= ?";
+		"AND sr.epoch_millis <= ?";
 	
 	// Retrieves the survey response ID for all of the survey responses with a
 	// given privacy state in a given campaign.
@@ -269,7 +268,7 @@ public class SurveyResponseQueries extends Query implements ISurveyResponseQueri
 		try {
 			return getJdbcTemplate().query(
 					SQL_GET_IDS_AFTER_DATE, 
-					new Object[] { campaignId, TimeUtils.getIso8601DateString(startDate) }, 
+					new Object[] { campaignId, startDate.getTime() }, 
 					new RowMapper<UUID>() {
 						@Override
 						public UUID mapRow(
@@ -287,7 +286,7 @@ public class SurveyResponseQueries extends Query implements ISurveyResponseQueri
 							SQL_GET_IDS_AFTER_DATE + 
 						"' with parameters: " + 
 							campaignId + ", " + 
-							TimeUtils.getIso8601DateString(startDate),
+							startDate.getTime(),
 					e);
 		}
 	}
@@ -299,7 +298,7 @@ public class SurveyResponseQueries extends Query implements ISurveyResponseQueri
 		try {
 			return getJdbcTemplate().query(
 					SQL_GET_IDS_BEFORE_DATE, 
-					new Object[] { campaignId, TimeUtils.getIso8601DateString(endDate) }, 
+					new Object[] { campaignId, endDate.getTime() }, 
 					new RowMapper<UUID>() {
 						@Override
 						public UUID mapRow(
@@ -317,7 +316,7 @@ public class SurveyResponseQueries extends Query implements ISurveyResponseQueri
 							SQL_GET_IDS_BEFORE_DATE + 
 						"' with parameters: " + 
 							campaignId + ", " + 
-							TimeUtils.getIso8601DateString(endDate),
+							endDate.getTime(),
 					e);
 		}
 	}
