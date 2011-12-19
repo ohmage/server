@@ -521,42 +521,48 @@ public class MobilityPoint {
 			try {
 				JSONObject wifiDataJson = sensorData.getJSONObject(JSON_KEY_WIFI_DATA);
 				
-				// Get the timestamp.
-				String timestamp;
-				try {
-					timestamp = wifiDataJson.getString(JSON_KEY_WIFI_DATA_TIMESTAMP);
+				// If the object is missing, 
+				if(wifiDataJson.length() == 0) {
+					tWifiData = null;
 				}
-				catch(JSONException e) {
-					if(Mode.ERROR.equals(mode)) {
-						timestamp = null;
+				else {
+					// Get the timestamp.
+					String timestamp;
+					try {
+						timestamp = wifiDataJson.getString(JSON_KEY_WIFI_DATA_TIMESTAMP);
 					}
-					else {
-						throw new ErrorCodeException(
-								ErrorCode.SERVER_INVALID_TIMESTAMP, 
-								"The timestamp is missing.", 
-								e);
+					catch(JSONException e) {
+						if(Mode.ERROR.equals(mode)) {
+							timestamp = null;
+						}
+						else {
+							throw new ErrorCodeException(
+									ErrorCode.SERVER_INVALID_TIMESTAMP, 
+									"The timestamp is missing.", 
+									e);
+						}
 					}
+					
+					// Get the scan.
+					JSONArray scan;
+					try {
+						scan = wifiDataJson.getJSONArray(JSON_KEY_WIFI_DATA_SCAN);
+					}
+					catch(JSONException e) {
+						if(Mode.ERROR.equals(mode)) {
+							scan = null;
+						}
+						else {
+							throw new ErrorCodeException(
+									ErrorCode.MOBILITY_INVALID_WIFI_DATA, 
+									"The scan is missing.", 
+									e);
+						}
+					}
+					
+					// Set the WifiData.
+					tWifiData = new WifiData(timestamp, scan, mode);
 				}
-				
-				// Get the scan.
-				JSONArray scan;
-				try {
-					scan = wifiDataJson.getJSONArray(JSON_KEY_WIFI_DATA_SCAN);
-				}
-				catch(JSONException e) {
-					if(Mode.ERROR.equals(mode)) {
-						scan = null;
-					}
-					else {
-						throw new ErrorCodeException(
-								ErrorCode.MOBILITY_INVALID_WIFI_DATA, 
-								"The scan is missing.", 
-								e);
-					}
-				}
-				
-				// Set the WifiData.
-				tWifiData = new WifiData(timestamp, scan, mode);
 			}
 			catch(JSONException e) {
 				if(Mode.ERROR.equals(mode)) {
@@ -673,7 +679,7 @@ public class MobilityPoint {
 				}
 				
 				if(wifiData == null) {
-					// Don't put it in the JSON.
+					result.put(JSON_KEY_WIFI_DATA, new JSONObject());
 				}
 				else {
 					result.put(JSON_KEY_WIFI_DATA, wifiData.toJson());
