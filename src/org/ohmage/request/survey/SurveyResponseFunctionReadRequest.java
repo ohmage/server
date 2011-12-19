@@ -1,5 +1,6 @@
 package org.ohmage.request.survey;
 
+import java.util.Calendar;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -77,8 +78,6 @@ import org.ohmage.validator.SurveyResponseValidators;
  */
 public class SurveyResponseFunctionReadRequest extends UserRequest {
 	private static final Logger LOGGER = Logger.getLogger(SurveyResponseFunctionReadRequest.class);
-	
-	private static final long MILLIS_PER_DAY = 24 * 60 * 60 * 1000;
 	
 	private final String campaignId;
 	private final Function functionId;
@@ -319,10 +318,28 @@ public class SurveyResponseFunctionReadRequest extends UserRequest {
 					jsonBucket.put("count", currBucket.size());
 					
 					if(privacyStateGroupItems.contains(FunctionPrivacyStateItem.DATE)) {
-						long time = currBucket.iterator().next().getTime();
-						jsonBucket.put(
-								"date", 
-								time - (time % MILLIS_PER_DAY));
+						// Get a representative survey response.
+						SurveyResponse surveyResponse = 
+								currBucket.iterator().next();
+						
+						// Create a calendar with the timezone from the 
+						// response and set its time based on the epoch 
+						// milliseconds.
+						Calendar timezoneAdjustedCalendar =
+								Calendar.getInstance(surveyResponse.getTimezone());
+						timezoneAdjustedCalendar.setTimeInMillis(
+								surveyResponse.getTime());
+
+						// Create the date string to represent this date based on
+						// the creator's timezone at the time they took it.
+						String dateString = 
+								timezoneAdjustedCalendar.get(Calendar.YEAR) + 
+								"-" +
+								(timezoneAdjustedCalendar.get(Calendar.MONTH) + 1) +
+								"-" +
+								timezoneAdjustedCalendar.get(Calendar.DAY_OF_MONTH);
+						
+						jsonBucket.put("date", dateString);
 					}
 					
 					if(privacyStateGroupItems.contains(FunctionPrivacyStateItem.SURVEY)) {
@@ -370,24 +387,37 @@ public class SurveyResponseFunctionReadRequest extends UserRequest {
 			// buckets and replacing them with their subdivided counterparts.
 			for(Collection<SurveyResponse> currBucket : currPrivacyStateBucket) {
 				// Subdivide the inner collections.
-				Map<Long, Collection<SurveyResponse>> newInnerBuckets =
-						new HashMap<Long, Collection<SurveyResponse>>();
+				Map<String, Collection<SurveyResponse>> newInnerBuckets =
+						new HashMap<String, Collection<SurveyResponse>>();
 				
 				// For all of the survey responses in this inner bucket, get
 				// their survey ID and re-bucket them.
 				for(SurveyResponse surveyResponse : currBucket) {
-					// Get the date that this record was created.
-					long date = surveyResponse.getTime() / MILLIS_PER_DAY;
+					// Create a calendar with the timezone from the response 
+					// and set its time based on the epoch milliseconds.
+					Calendar timezoneAdjustedCalendar =
+							Calendar.getInstance(surveyResponse.getTimezone());
+					timezoneAdjustedCalendar.setTimeInMillis(
+							surveyResponse.getTime());
+					
+					// Create the date string to represent this date based on
+					// the creator's timezone at the time they took it.
+					String dateString = 
+							timezoneAdjustedCalendar.get(Calendar.YEAR) + 
+							"-" +
+							timezoneAdjustedCalendar.get(Calendar.MONTH) +
+							"-" +
+							timezoneAdjustedCalendar.get(Calendar.DAY_OF_MONTH);
 					
 					// Get the other responses on this date.
 					Collection<SurveyResponse> currResponses = 
-							newInnerBuckets.get(date);
+							newInnerBuckets.get(dateString);
 					
 					// If no other responses exist for this date, create
 					// the list.
 					if(currResponses == null) {
 						currResponses = new LinkedList<SurveyResponse>();
-						newInnerBuckets.put(date, currResponses);
+						newInnerBuckets.put(dateString, currResponses);
 					}
 					
 					// Add this response to the given date.
@@ -395,7 +425,7 @@ public class SurveyResponseFunctionReadRequest extends UserRequest {
 				}
 				
 				// Add the inner buckets to the collection of outer buckets.
-				for(Long date : newInnerBuckets.keySet()) {
+				for(String date : newInnerBuckets.keySet()) {
 					newPrivacyStateBucket.add(newInnerBuckets.get(date));
 				}
 			}
