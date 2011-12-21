@@ -305,6 +305,7 @@ public class SurveyUploadRequest extends UserRequest {
 			for(UUID surveyResponseId : surveyResponseIds) {
 				surveyResponseIdsArray[numSurveyResponseIdsAdded] =
 						surveyResponseId.toString();
+				numSurveyResponseIdsAdded++;
 			}
 			
 			result.put(
