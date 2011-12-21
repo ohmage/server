@@ -27,6 +27,8 @@ import edu.ucla.cens.mobilityclassifier.Sample;
  */
 public class MobilityPoint {
 	public static final String JSON_KEY_ID = "id";
+	private static final String JSON_KEY_TIMESTAMP = "timestamp";
+	private static final String JSON_KEY_TIMESTAMP_SHORT = "ts";
 	private static final String JSON_KEY_TIME = "time";
 	private static final String JSON_KEY_TIME_SHORT = "t";
 	private static final String JSON_KEY_TIMEZONE = "timezone";
@@ -113,6 +115,8 @@ public class MobilityPoint {
 		
 		private static final String JSON_KEY_WIFI_DATA = "wifi_data";
 		private static final String JSON_KEY_WIFI_DATA_TIMESTAMP = "timestamp";
+		private static final String JSON_KEY_WIFI_DATA_TIME = "time";
+		private static final String JSON_KEY_WIFI_DATA_TIMEZONE = "timezone";
 		private static final String JSON_KEY_WIFI_DATA_SCAN = "scan";
 		
 		private final Mode mode;
@@ -203,15 +207,20 @@ public class MobilityPoint {
 			private static final String JSON_KEY_SSID = "ssid";
 			private static final String JSON_KEY_STRENGTH = "strength";
 			
-			private final Date timestamp;
+			//private final Date timestamp;
+			private final Long time;
+			private final TimeZone timezone;
 			private final Map<String, Double> scan;
 			
 			/**
 			 * Creates a WifiData point with a timestamp and all of the scan
 			 * information.
 			 * 
-			 * @param timestamp A String representing the date and time that 
-			 * 					this record was made.
+			 * @param time The milliseconds since epoch at which time this
+			 * 			   record was made.
+			 * 
+			 * @param timezone The timezone of the device when this record was
+			 * 				   made.
 			 * 
 			 * @param scan The data collected from all of the WiFi points in 
 			 * 			   range of the scan.
@@ -219,24 +228,35 @@ public class MobilityPoint {
 			 * @throws MobilityException Thrown if either of the parameters are
 			 * 							 null or invalid values.
 			 */
-			private WifiData(String timestamp, JSONArray scan, Mode mode) throws ErrorCodeException {
+			private WifiData(Long time, TimeZone timezone, JSONArray scan, Mode mode) throws ErrorCodeException {
 				// Validate the timestamp value.
-				if(timestamp == null) {
+				if(time == null) {
 					if(Mode.ERROR.equals(mode)) {
-						this.timestamp = null;
+						this.time = null;
 					}
 					else {
 						throw new ErrorCodeException(
 								ErrorCode.SERVER_INVALID_TIMESTAMP, 
-								"The timestamp is missing.");
+								"The time is missing for a WiFiData record.");
 					}
 				}
-				else if((this.timestamp = StringUtils.decodeDate(timestamp)) == null) {
-					if(! Mode.ERROR.equals(mode)) {
+				else {
+					this.time = time;
+				}
+				
+				// Validate the timezone value.
+				if(timezone == null) {
+					if(Mode.ERROR.equals(mode)) {
+						this.timezone = null;
+					}
+					else {
 						throw new ErrorCodeException(
 								ErrorCode.SERVER_INVALID_TIMESTAMP, 
-								"The timestamp is invalid.");
+								"The time is missing for a WiFiData record.");
 					}
+				}
+				else {
+					this.timezone = timezone;
 				}
 				
 				// Validate the scan value.
@@ -312,28 +332,22 @@ public class MobilityPoint {
 			 * @throws IllegalArgumentException Thrown if the timestamp or 
 			 * 									scans map are null.
 			 */
-			public WifiData(final Date timestamp, 
+			public WifiData(final Long time, final TimeZone timezone,
 					final Map<String, Double> scans) {
 				
-				if(timestamp == null) {
+				if(time == null) {
 					throw new IllegalArgumentException("The timestamp cannot be null.");
+				}
+				if(timezone == null) {
+					throw new IllegalArgumentException("The timezone cannot be null.");
 				}
 				else if(scans == null) {
 					throw new IllegalArgumentException("The map of scans cannot be null.");
 				}
 				
-				this.timestamp = timestamp;
+				this.time = time;
+				this.timezone = timezone;
 				this.scan = scans;
-			}
-
-			/**
-			 * Returns the timestamp representing when this scan was performed.
-			 * 
-			 * @return The timestamp representing when this scan was performed.
-			 * 		   This may be null if the mode of this point is ERROR.
-			 */
-			public final Date getTimestamp() {
-				return timestamp;
 			}
 
 			/**
@@ -357,7 +371,9 @@ public class MobilityPoint {
 				try {
 					JSONObject result = new JSONObject();
 					
-					result.put(JSON_KEY_WIFI_DATA_TIMESTAMP, TimeUtils.getIso8601DateTimeString(timestamp));
+					result.put(JSON_KEY_WIFI_DATA_TIMESTAMP, TimeUtils.convertDateToCalendar(new Date(time)));
+					result.put(JSON_KEY_WIFI_DATA_TIME, time);
+					result.put(JSON_KEY_WIFI_DATA_TIMEZONE, timezone.getID());
 					
 					if(scan != null) {
 						JSONArray scanJson = new JSONArray();
@@ -526,20 +542,50 @@ public class MobilityPoint {
 					tWifiData = null;
 				}
 				else {
-					// Get the timestamp.
-					String timestamp;
+					// Get the time and timezone.
+					Long time;
+					TimeZone timezone;
 					try {
-						timestamp = wifiDataJson.getString(JSON_KEY_WIFI_DATA_TIMESTAMP);
-					}
-					catch(JSONException e) {
-						if(Mode.ERROR.equals(mode)) {
-							timestamp = null;
+						time = wifiDataJson.getLong(JSON_KEY_WIFI_DATA_TIME);
+						
+						try {
+							timezone = 
+									TimeZone.getTimeZone(
+											wifiDataJson.getString(
+													JSON_KEY_WIFI_DATA_TIMEZONE));
 						}
-						else {
-							throw new ErrorCodeException(
-									ErrorCode.SERVER_INVALID_TIMESTAMP, 
-									"The timestamp is missing.", 
-									e);
+						catch(JSONException noTimezone) {
+							if(Mode.ERROR.equals(mode)) {
+								timezone = null;
+							}
+							else {
+								throw new ErrorCodeException(
+										ErrorCode.SERVER_INVALID_TIMEZONE, 
+										"The timezone is missing.", 
+										noTimezone);
+							}
+						}
+					}
+					catch(JSONException noTime) {
+						try {
+							String timestamp = 
+									wifiDataJson.getString(
+											JSON_KEY_WIFI_DATA_TIMESTAMP);
+							
+							time = StringUtils.decodeDateTime(timestamp).getTime();
+							timezone = TimeZone.getDefault();
+						}
+						catch(JSONException noTimestamp) {						
+							if(Mode.ERROR.equals(mode)) {
+								time = null;
+								timezone = null;
+							}
+							else {
+								throw new ErrorCodeException(
+										ErrorCode.SERVER_INVALID_TIMESTAMP, 
+										"The timestamp is missing.", 
+										noTimestamp);
+							}
 						}
 					}
 					
@@ -561,7 +607,7 @@ public class MobilityPoint {
 					}
 					
 					// Set the WifiData.
-					tWifiData = new WifiData(timestamp, scan, mode);
+					tWifiData = new WifiData(time, timezone, scan, mode);
 				}
 			}
 			catch(JSONException e) {
@@ -1474,6 +1520,7 @@ public class MobilityPoint {
 			JSONObject result = new JSONObject();
 			
 			result.put(JSON_KEY_ID, id.toString());
+			result.put(((abbreviated) ? JSON_KEY_TIMESTAMP_SHORT : JSON_KEY_TIMESTAMP), TimeUtils.convertDateToCalendar(new Date(time)));
 			result.put(((abbreviated) ? JSON_KEY_TIMEZONE_SHORT : JSON_KEY_TIMEZONE), timezone.getID());
 			result.put(((abbreviated) ? JSON_KEY_TIME_SHORT : JSON_KEY_TIME), time);
 			
