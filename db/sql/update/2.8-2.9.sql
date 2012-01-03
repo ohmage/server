@@ -1,5 +1,5 @@
 -- Update the R server.
-UPDATE preference SET p_value = 'http://rdev1.mobilizingcs.org/R/call/Mobilize/' WHERE p_key = 'visualization_server_address';
+UPDATE preference SET p_value = 'http://rdev.mobilizingcs.org/R/call/Mobilize/' WHERE p_key = 'visualization_server_address';
 
 -- Alter the Mobility table by droping the timestamp.
 ALTER TABLE mobility DROP COLUMN msg_timestamp;
