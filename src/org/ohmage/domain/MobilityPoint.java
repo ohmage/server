@@ -1520,7 +1520,7 @@ public class MobilityPoint {
 			JSONObject result = new JSONObject();
 			
 			result.put(JSON_KEY_ID, id.toString());
-			result.put(((abbreviated) ? JSON_KEY_TIMESTAMP_SHORT : JSON_KEY_TIMESTAMP), TimeUtils.convertDateToCalendar(new Date(time)));
+			result.put(((abbreviated) ? JSON_KEY_TIMESTAMP_SHORT : JSON_KEY_TIMESTAMP), TimeUtils.getIso8601DateTimeString(new Date(time)));
 			result.put(((abbreviated) ? JSON_KEY_TIMEZONE_SHORT : JSON_KEY_TIMEZONE), timezone.getID());
 			result.put(((abbreviated) ? JSON_KEY_TIME_SHORT : JSON_KEY_TIME), time);
 			
