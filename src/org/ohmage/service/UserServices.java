@@ -620,28 +620,36 @@ public final class UserServices {
 			throws ServiceException {
 		
 		try {
-			// Get campaign creation privilege.
-			UserSummary userInformation = new UserSummary(userQueries.userCanCreateCampaigns(username));
-			
 			// Get the campaigns and their names for the requester.
 			Map<String, String> campaigns = userCampaignQueries.getCampaignIdsAndNameForUser(username);
-			userInformation.addCampaigns(campaigns);
-			
+						
 			// Get the requester's campaign roles for each of the campaigns.
+			Set<Campaign.Role> campaignRoles = new HashSet<Campaign.Role>();
 			for(String campaignId : campaigns.keySet()) {
-				userInformation.addCampaignRoles(userCampaignQueries.getUserCampaignRoles(username, campaignId));
+				campaignRoles.addAll(
+						userCampaignQueries.getUserCampaignRoles(
+								username, 
+								campaignId));
 			}
-			
+
 			// Get the classes and their names for the requester.
 			Map<String, String> classes = userClassQueries.getClassIdsAndNameForUser(username);
-			userInformation.addClasses(classes);
 			
 			// Get the requester's class roles for each of the classes.
+			Set<Clazz.Role> classRoles = new HashSet<Clazz.Role>();
 			for(String classId : classes.keySet()) {
-				userInformation.addClassRole(userClassQueries.getUserClassRole(classId, username));
+				classRoles.add(
+						userClassQueries.getUserClassRole(classId, username));
 			}
 			
-			return userInformation;
+			// Get campaign creation privilege.
+			return new UserSummary(
+					userQueries.userIsAdmin(username), 
+					userQueries.userCanCreateCampaigns(username),
+					campaigns,
+					campaignRoles,
+					classes,
+					classRoles);
 		}
 		catch(DataAccessException e) {
 			throw new ServiceException(e);
