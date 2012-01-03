@@ -7,6 +7,7 @@ import javax.servlet.http.HttpServletRequest;
 import org.apache.log4j.Logger;
 import org.ohmage.request.audit.AuditReadRequest;
 import org.ohmage.request.auth.AuthRequest;
+import org.ohmage.request.auth.AuthTokenLogoutRequest;
 import org.ohmage.request.auth.AuthTokenRequest;
 import org.ohmage.request.campaign.CampaignCreationRequest;
 import org.ohmage.request.campaign.CampaignDeletionRequest;
@@ -148,6 +149,7 @@ public final class RequestBuilder {
 	// Authentication
 	public static final String API_USER_AUTH = API_ROOT + "/user/auth";
 	public static final String API_USER_AUTH_TOKEN = API_ROOT + "/user/auth_token";
+	public static final String API_USER_LOGOUT = API_ROOT + "/user/logout";
 	
 	// Campaign
 	public static final String API_CAMPAIGN_CREATE = API_ROOT + "/campaign/create";
@@ -235,6 +237,9 @@ public final class RequestBuilder {
 		}
 		else if(API_USER_AUTH_TOKEN.equals(requestUri)) {
 			return new AuthTokenRequest(httpRequest);
+		}
+		else if(API_USER_LOGOUT.equals(requestUri)) {
+			return new AuthTokenLogoutRequest(httpRequest);
 		}
 		// Audit
 		else if(API_AUDIT_READ.equals(requestUri)) {
@@ -393,6 +398,7 @@ public final class RequestBuilder {
 				// Authentication
 				API_USER_AUTH.equals(uri) ||
 				API_USER_AUTH_TOKEN.equals(uri) ||
+				API_USER_LOGOUT.equals(uri) ||
 				// Audit
 				API_AUDIT_READ.equals(uri) ||
 				// Campaign

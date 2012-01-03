@@ -124,6 +124,27 @@ public final class UserBin extends TimerTask implements DisposableBean {
 	}
 	
 	/**
+	 * Removes a user from the user bin.
+	 * 
+	 * @param authToken The authentication token to remove from the user bin.
+	 */
+	public static synchronized void expireUser(String authToken) {
+		if(! initialized) {
+			new UserBin();
+		}
+		
+		if(authToken == null) {
+			throw new IllegalArgumentException("The token cannot be null.");
+		}
+		
+		if(LOGGER.isDebugEnabled()) {
+			LOGGER.debug("Removing user from bin.");
+		}
+		
+		USERS.remove(authToken);
+	}
+	
+	/**
 	 * Returns the User bound to the provided Id or null if Id does not exist in the bin. 
 	 */
 	public static synchronized User getUser(String id) {
