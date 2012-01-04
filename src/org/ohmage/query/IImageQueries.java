@@ -32,7 +32,7 @@ public interface IImageQueries {
 
 	/**
 	 * Deletes an image reference from the database and, if successful, deletes
-	 * the images off of the file system.
+	 * the image off of the file system.
 	 * 
 	 * @param imageId The image's unique identifier.
 	 * 
@@ -40,4 +40,22 @@ public interface IImageQueries {
 	 */
 	void deleteImage(UUID imageId) throws DataAccessException;
 
+	/**
+	 * Deletes the image off of the hard disk only. This means that a reference
+	 * to the image may still exist in the database.<br />
+	 * <br />
+	 * This bugs me, but the only use case for this function is when we are 
+	 * doing cascading deletes in the DB via user or campaign deletion, and we
+	 * know that the references should have already been deleted. It would be
+	 * wasteful to double check that the references were deleted; however, if
+	 * this was used improperly, it could easily put us in a state where images
+	 * were deleted but their references still existed. Use this with caution
+	 * and only when you know the reference no longer exists. Otherwise, use
+	 * {@link #deleteImage(UUID)}.
+	 * 
+	 * @param imageUrl A link to the image's URL.
+	 * 
+	 * @see #deleteImage(UUID)
+	 */
+	public void deleteImageDiskOnly(String imageUrl) throws DataAccessException;
 }

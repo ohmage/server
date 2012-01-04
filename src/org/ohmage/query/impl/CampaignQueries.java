@@ -12,7 +12,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.UUID;
 
 import javax.sql.DataSource;
 
@@ -1093,6 +1092,11 @@ public final class CampaignQueries extends Query implements ICampaignQueries {
 	 * @see org.ohmage.query.impl.ICampaignQueries#deleteCampaign(java.lang.String)
 	 */
 	public void deleteCampaign(String campaignId) throws DataAccessException {
+		// First, retrieve the path information for all of the images 
+		// associated with this campaign.
+		Collection<String> imageUrls =
+				campaignImageQueries.getImageUrlsFromCampaign(campaignId);
+		
 		// Create the transaction.
 		DefaultTransactionDefinition def = new DefaultTransactionDefinition();
 		def.setName("Deleting a campaign.");
@@ -1101,12 +1105,6 @@ public final class CampaignQueries extends Query implements ICampaignQueries {
 			// Begin the transaction.
 			PlatformTransactionManager transactionManager = new DataSourceTransactionManager(getDataSource());
 			TransactionStatus status = transactionManager.getTransaction(def);
-			
-			Collection<UUID> imageIds =
-					campaignImageQueries.getImageIdsFromCampaign(campaignId);
-			for(UUID imageId : imageIds) {
-				imageQueries.deleteImage(imageId);
-			}
 			
 			try {
 				getJdbcTemplate().update(SQL_DELETE_CAMPAIGN, campaignId);
@@ -1127,6 +1125,12 @@ public final class CampaignQueries extends Query implements ICampaignQueries {
 		}
 		catch(TransactionException e) {
 			throw new DataAccessException("Error while attempting to rollback the transaction.", e);
+		}
+		
+		// If the transaction succeeded, delete all of the images from the 
+		// disk.
+		for(String imageUrl : imageUrls) {
+			imageQueries.deleteImageDiskOnly(imageUrl);
 		}
 	}
 	

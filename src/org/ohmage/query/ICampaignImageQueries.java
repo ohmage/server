@@ -56,4 +56,19 @@ public interface ICampaignImageQueries {
 	Collection<UUID> getImageIdsFromCampaign(String campaignId)
 			throws DataAccessException;
 
+	/**
+	 * Returns the URL for every image that belongs to a survey response from a
+	 * given campaign. There may be image responses that don't have references
+	 * in the database, such as prompts that were skipped or not displayed or
+	 * images that have since been purged but their survey responses remain,
+	 * and these are ignored.
+	 * 
+	 * @param campaignId The campaign's unique identifier.
+	 * 
+	 * @return The collection of URLs.
+	 * 
+	 * @throws DataAccessException Thrown if there is an error.
+	 */
+	Collection<String> getImageUrlsFromCampaign(String campaignId)
+			throws DataAccessException;
 }

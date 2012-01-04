@@ -123,23 +123,7 @@ public final class ImageQueries extends Query implements IImageQueries {
 			}
 			
 			if(imageUrl != null) {
-				try {
-					// Delete the original image.
-					if((new File((new URL(imageUrl)).getFile())).delete()) {
-						LOGGER.warn("The image no longer existed.");
-					}
-					
-					// Delete the scaled image.
-					if((new File((new URL(imageUrl + IMAGE_SCALED_EXTENSION)).getFile())).delete()) {
-						LOGGER.warn("The scaled image no longer existed.");
-					}
-				}
-				catch(MalformedURLException e) {
-					LOGGER.warn("The URL was malformed, but we are deleting the image anyway.", e);
-				}
-				catch(SecurityException e) {
-					LOGGER.error("The system would not allow us to delete the image.", e);
-				}
+				deleteImageDiskOnly(imageUrl);
 			}
 
 			// Commit the transaction.
@@ -153,6 +137,30 @@ public final class ImageQueries extends Query implements IImageQueries {
 		}
 		catch(TransactionException e) {
 			throw new DataAccessException("Error while attempting to rollback the transaction.", e);
+		}
+	}
+	
+	/*
+	 * (non-Javadoc)
+	 * @see org.ohmage.query.IImageQueries#deleteImageViaUrl(java.lang.String)
+	 */
+	public void deleteImageDiskOnly(String imageUrl) throws DataAccessException {
+		try {
+			// Delete the original image.
+			if((new File((new URL(imageUrl)).getFile())).delete()) {
+				LOGGER.warn("The image no longer existed.");
+			}
+			
+			// Delete the scaled image.
+			if((new File((new URL(imageUrl + IMAGE_SCALED_EXTENSION)).getFile())).delete()) {
+				LOGGER.warn("The scaled image no longer existed.");
+			}
+		}
+		catch(MalformedURLException e) {
+			LOGGER.warn("The URL was malformed, but we are deleting the image anyway.", e);
+		}
+		catch(SecurityException e) {
+			LOGGER.error("The system would not allow us to delete the image.", e);
 		}
 	}
 }

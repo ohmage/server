@@ -45,8 +45,21 @@ public final class CampaignImageQueries extends Query implements ICampaignImageQ
 		"AND sr.campaign_id = c.id " +
 		"AND sr.privacy_state_id = srps.id";
 	
-	private static final String SQL_GET_URLS_FOR_ALL_IMAGE_RESPONSES_FOR_CAMPAIGN =
+	// Retrieves the ID for all images that belong to a response that belongs
+	// to a given campaign.
+	private static final String SQL_GET_IDS_FOR_ALL_IMAGE_RESPONSES_FOR_CAMPAIGN =
 		"SELECT ubr.uuid " +
+		"FROM campaign c, survey_response sr, prompt_response pr, url_based_resource ubr " +
+		"WHERE c.urn = ? " +
+		"AND c.id = sr.campaign_id " +
+		"AND sr.id = pr.survey_response_id " +
+		"AND pr.prompt_type = 'photo' " +
+		"AND pr.response = ubr.uuid";
+	
+	// Retrieves the URL for all images that belong to a response that belongs
+	// to a given campaign.
+	private static final String SQL_GET_URLS_FOR_ALL_IMAGE_RESPONSES_FOR_CAMPAIGN =
+		"SELECT ubr.url " +
 		"FROM campaign c, survey_response sr, prompt_response pr, url_based_resource ubr " +
 		"WHERE c.urn = ? " +
 		"AND c.id = sr.campaign_id " +
@@ -111,7 +124,7 @@ public final class CampaignImageQueries extends Query implements ICampaignImageQ
 		
 		try {
 			return getJdbcTemplate().query(
-					SQL_GET_URLS_FOR_ALL_IMAGE_RESPONSES_FOR_CAMPAIGN, 
+					SQL_GET_IDS_FOR_ALL_IMAGE_RESPONSES_FOR_CAMPAIGN, 
 					new Object[] { campaignId }, 
 					new ResultSetExtractor<Collection<UUID>>() {
 						
@@ -152,6 +165,31 @@ public final class CampaignImageQueries extends Query implements ICampaignImageQ
 						
 					}
 				);
+			
+		}
+		catch(org.springframework.dao.DataAccessException e) {
+			throw new DataAccessException(
+					"Error executing SQL '" + 
+						SQL_GET_IDS_FOR_ALL_IMAGE_RESPONSES_FOR_CAMPAIGN + 
+						"' with parameter: " + 
+						campaignId, 
+					e);
+		}
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.ohmage.query.ICampaignImageQueries#getImageUrlsFromCampaign(java.lang.String)
+	 */
+	@Override
+	public Collection<String> getImageUrlsFromCampaign(String campaignId)
+			throws DataAccessException {
+		
+		try {
+			return getJdbcTemplate().query(
+					SQL_GET_URLS_FOR_ALL_IMAGE_RESPONSES_FOR_CAMPAIGN, 
+					new Object[] { campaignId }, 
+					new SingleColumnRowMapper<String>());
 			
 		}
 		catch(org.springframework.dao.DataAccessException e) {
