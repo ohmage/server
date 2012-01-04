@@ -49,6 +49,8 @@ import edu.ucla.cens.mobilityclassifier.MobilityClassifier;
  * @author John Jenkins
  */
 public final class UserMobilityQueries extends AbstractUploadQuery implements IUserMobilityQueries {
+	private static final String WILDCARD_FOR_SQL = "__WILDCARD__";
+	
 	// Retrieves the ID for all of the Mobility points that belong to a user.
 	private static final String SQL_GET_IDS_FOR_USER = 
 		"SELECT m.uuid " +
@@ -136,21 +138,8 @@ public final class UserMobilityQueries extends AbstractUploadQuery implements IU
 		"AND u.id = m.user_id " +
 		"AND m.mode = ?";
 
-	// Retrieves all of the information pertaining to a single Mobility data 
-	// point from a given database ID.
-	private static final String SQL_GET_MOBILITY_DATA_FROM_ID =
-		"SELECT m.uuid, u.username, m.client, " +
-			"m.epoch_millis, m.upload_timestamp, " +
-			"m.phone_timezone, m.location_status, m.location, " +
-			"m.mode, mps.privacy_state, " +
-			"me.sensor_data, me.features, me.classifier_version " +
-		"FROM user u, mobility_privacy_state mps, " +
-			"mobility m LEFT JOIN mobility_extended me " +
-			"ON m.id = me.mobility_id " +
-		"WHERE m.uuid = ? " +
-		"AND u.id = m.user_id " +
-		"AND mps.id = m.privacy_state_id";
-	
+	// Retrieves all of the information pertaining to all Mobility data points 
+	// from a collection of given database IDs.
 	private static final String SQL_GET_MOBILITY_DATA_FROM_IDS =
 		"SELECT m.uuid, u.username, m.client, " +
 			"m.epoch_millis, m.upload_timestamp, " +
@@ -162,7 +151,9 @@ public final class UserMobilityQueries extends AbstractUploadQuery implements IU
 			"ON m.id = me.mobility_id " +
 		"WHERE u.id = m.user_id " +
 		"AND mps.id = m.privacy_state_id " +
-		"AND m.uuid IN ";
+		"AND m.uuid IN " +
+			WILDCARD_FOR_SQL + " " +
+		"ORDER BY m.epoch_millis";
 	
 	// Retrieves all of the information pertaining to a single Mobility data 
 	// point for a given username. This will return alot of data and should be
@@ -569,101 +560,19 @@ public final class UserMobilityQueries extends AbstractUploadQuery implements IU
 		}
 	}
 	
-	/**
-	 * Retrieves a MobilityInformation object representing the Mobility data
-	 * point whose database ID is 'id' or null if no such database ID exists.
-	 * 
-	 * @param id The Mobility data point's database ID.
-	 * 
-	 * @return A MobilityInformation object representing this Mobility data
-	 * 		   point or null if no such point exists.
-	 * 
-	 * @throws DataAccessException Thrown if there is an error.
+	/*
+	 * (non-Javadoc)
+	 * @see org.ohmage.query.IUserMobilityQueries#getMobilityInformationFromIds(java.util.Collection)
 	 */
-	public MobilityPoint getMobilityInformationFromId(String id) throws DataAccessException {
+	public List<MobilityPoint> getMobilityInformationFromIds(Collection<String> ids) throws DataAccessException {		
 		try {
-			return getJdbcTemplate().queryForObject(
-					SQL_GET_MOBILITY_DATA_FROM_ID,
-					new Object[] { id },
-					new RowMapper<MobilityPoint>() {
-						@Override
-						public MobilityPoint mapRow(ResultSet rs, int rowNum) throws SQLException {
-							try {
-								JSONObject location = null;
-								String locationString = rs.getString("location");
-								if(locationString != null) {
-									location = new JSONObject(locationString);
-								}
-								
-								JSONObject sensorData = null;
-								String sensorDataString = rs.getString("sensor_data");
-								if(sensorDataString != null) {
-									sensorData = new JSONObject(sensorDataString);
-								}
-								
-								JSONObject features = null;
-								String featuresString = rs.getString("features");
-								if(featuresString != null) {
-									features = new JSONObject(featuresString);
-								}
-								
-								return new MobilityPoint(
-										UUID.fromString(rs.getString("uuid")),
-										rs.getLong("epoch_millis"),
-										TimeZone.getTimeZone(rs.getString("phone_timezone")),
-										LocationStatus.valueOf(rs.getString("location_status").toUpperCase()),
-										location,
-										Mode.valueOf(rs.getString("mode").toUpperCase()),
-										MobilityPoint.PrivacyState.getValue(rs.getString("privacy_state")),
-										sensorData,
-										features,
-										rs.getString("classifier_version"));
-							}
-							catch(JSONException e) {
-								throw new SQLException("Error building a JSONObject.", e);
-							}
-							catch(ErrorCodeException e) {
-								throw new SQLException("Error building the MobilityInformation object. This suggests malformed data in the database.", e);
-							}
-							catch(IllegalArgumentException e) {
-								throw new SQLException("Error building the MobilityInformation object. This suggests malformed data in the database.", e);
-							}
-						}
-					}
-				);
-		}
-		catch(org.springframework.dao.IncorrectResultSizeDataAccessException e) {
-			if(e.getActualSize() > 1) {
-				throw new DataAccessException("Multiple Mobility data points have the same database ID.", e);
-			}
+			String sql = 
+					SQL_GET_MOBILITY_DATA_FROM_IDS.replace(
+							WILDCARD_FOR_SQL, 
+							StringUtils.generateStatementPList(ids.size()));
 			
-			return null;
-		}
-		catch(org.springframework.dao.DataAccessException e) {
-			throw new DataAccessException(
-					"Error executing SQL '" +
-							SQL_GET_MOBILITY_DATA_FROM_ID + 
-						"' with parameter: " + 
-							id,
-					e);
-		}
-	}
-	
-	/**
-	 * Gathers the MobilityInformation for all of the IDs in the collection.
-	 * 
-	 * @param ids A collection of database IDs for Mobility points.
-	 * 
-	 * @return A, possibly empty but never null, list of MobilityInformation 
-	 * 		   objects where each object should correspond to an ID in the 
-	 * 		   'ids' list.
-	 *  
-	 * @throws DataAccessException Thrown if there is an error.
-	 */
-	public List<MobilityPoint> getMobilityInformationFromIds(Collection<String> ids) throws DataAccessException {
-		try {
 			return getJdbcTemplate().query(
-					SQL_GET_MOBILITY_DATA_FROM_IDS + StringUtils.generateStatementPList(ids.size()),
+					sql,
 					ids.toArray(),
 					new RowMapper<MobilityPoint>() {
 						@Override

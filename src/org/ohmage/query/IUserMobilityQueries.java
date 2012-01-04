@@ -186,20 +186,6 @@ public interface IUserMobilityQueries {
 			throws DataAccessException;
 
 	/**
-	 * Retrieves the Mobility information for the Mobility points whose UUID is
-	 * 'id' or null if no such database ID exists.
-	 * 
-	 * @param id The Mobility data point's UUID.
-	 * 
-	 * @return A MobilityPoint object representing this Mobility data point or
-	 * 		   null if no such point exists.
-	 * 
-	 * @throws DataAccessException Thrown if there is an error.
-	 */
-	MobilityPoint getMobilityInformationFromId(String id)
-			throws DataAccessException;
-
-	/**
 	 * Gathers the Mobility information for all of the UUIDs in the collection.
 	 * 
 	 * @param ids A collection of UUIDs for Mobility points.
