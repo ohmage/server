@@ -1,5 +1,6 @@
 package org.ohmage.query;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
 
@@ -39,5 +40,20 @@ public interface ICampaignImageQueries {
 	 */
 	SurveyResponse.PrivacyState getImagePrivacyStateInCampaign(
 			String campaignId, UUID imageId) throws DataAccessException;
+	
+	/**
+	 * Returns the unique identifier for every image that was uploaded as a 
+	 * response to any survey in a campaign.
+	 * 
+	 * @param campaignId The campaign's unique identifier.
+	 * 
+	 * @return A collection of unique identifiers pertaining to all of the 
+	 * 		   images associated with all of the survey responses from a
+	 * 		   campaign.
+	 * 
+	 * @throws DataAccessException Thrown if there is an error.
+	 */
+	Collection<UUID> getImageIdsFromCampaign(String campaignId)
+			throws DataAccessException;
 
 }

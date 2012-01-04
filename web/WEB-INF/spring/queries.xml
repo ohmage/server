@@ -33,6 +33,12 @@
     <constructor-arg index="2">
       <ref bean="userClassQueries" />
     </constructor-arg>
+    <constructor-arg index="3">
+      <ref bean="campaignImageQueries" />
+    </constructor-arg>
+    <constructor-arg index="4">
+      <ref bean="imageQueries" />
+    </constructor-arg>
   </bean>
   
   <bean name="campaignDocumentQueries" class="org.ohmage.query.impl.CampaignDocumentQueries">

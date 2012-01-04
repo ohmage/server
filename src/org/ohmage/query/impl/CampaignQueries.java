@@ -12,6 +12,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 
 import javax.sql.DataSource;
 
@@ -19,7 +20,9 @@ import org.ohmage.domain.Clazz;
 import org.ohmage.domain.campaign.Campaign;
 import org.ohmage.domain.campaign.Survey;
 import org.ohmage.exception.DataAccessException;
+import org.ohmage.query.ICampaignImageQueries;
 import org.ohmage.query.ICampaignQueries;
+import org.ohmage.query.IImageQueries;
 import org.ohmage.query.IUserCampaignClassQueries;
 import org.ohmage.query.IUserClassQueries;
 import org.ohmage.util.TimeUtils;
@@ -44,6 +47,8 @@ import org.springframework.transaction.support.DefaultTransactionDefinition;
  * @author Joshua Selsky
  */
 public final class CampaignQueries extends Query implements ICampaignQueries {
+	private ICampaignImageQueries campaignImageQueries;
+	private IImageQueries imageQueries;
 	private IUserCampaignClassQueries userCampaignClassQueries;
 	private IUserClassQueries userClassQueries;
 	
@@ -339,7 +344,13 @@ public final class CampaignQueries extends Query implements ICampaignQueries {
 	 * 
 	 * @param dataSource A DataSource object to use when querying the database.
 	 */
-	private CampaignQueries(DataSource dataSource, IUserCampaignClassQueries iUserCampaignClassQueries, IUserClassQueries iUserClassQueries) {
+	private CampaignQueries(
+			DataSource dataSource, 
+			IUserCampaignClassQueries iUserCampaignClassQueries, 
+			IUserClassQueries iUserClassQueries,
+			ICampaignImageQueries iCampaignImageQueries,
+			IImageQueries iImageQueries) {
+		
 		super(dataSource);
 		
 		if(iUserCampaignClassQueries == null) {
@@ -350,8 +361,18 @@ public final class CampaignQueries extends Query implements ICampaignQueries {
 			throw new IllegalArgumentException("An instance of IUserClassQueries is a required argument.");
 		}
 		
+		if(iCampaignImageQueries == null) {
+			throw new IllegalArgumentException("An instance of ICampaignImageQueries is a required argument.");
+		}
+		
+		if(iImageQueries == null) {
+			throw new IllegalArgumentException("An instance of IImageQueries is a required argument.");
+		}
+		
 		userCampaignClassQueries = iUserCampaignClassQueries; 
 		userClassQueries = iUserClassQueries;
+		campaignImageQueries = iCampaignImageQueries;
+		imageQueries = iImageQueries;
 	}
 	
 	/* (non-Javadoc)
@@ -1080,6 +1101,12 @@ public final class CampaignQueries extends Query implements ICampaignQueries {
 			// Begin the transaction.
 			PlatformTransactionManager transactionManager = new DataSourceTransactionManager(getDataSource());
 			TransactionStatus status = transactionManager.getTransaction(def);
+			
+			Collection<UUID> imageIds =
+					campaignImageQueries.getImageIdsFromCampaign(campaignId);
+			for(UUID imageId : imageIds) {
+				imageQueries.deleteImage(imageId);
+			}
 			
 			try {
 				getJdbcTemplate().update(SQL_DELETE_CAMPAIGN, campaignId);

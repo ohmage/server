@@ -122,22 +122,24 @@ public final class ImageQueries extends Query implements IImageQueries {
 						e);
 			}
 			
-			try {
-				// Delete the original image.
-				if((new File((new URL(imageUrl)).getFile())).delete()) {
-					LOGGER.warn("The image no longer existed.");
+			if(imageUrl != null) {
+				try {
+					// Delete the original image.
+					if((new File((new URL(imageUrl)).getFile())).delete()) {
+						LOGGER.warn("The image no longer existed.");
+					}
+					
+					// Delete the scaled image.
+					if((new File((new URL(imageUrl + IMAGE_SCALED_EXTENSION)).getFile())).delete()) {
+						LOGGER.warn("The scaled image no longer existed.");
+					}
 				}
-				
-				// Delete the scaled image.
-				if((new File((new URL(imageUrl + IMAGE_SCALED_EXTENSION)).getFile())).delete()) {
-					LOGGER.warn("The scaled image no longer existed.");
+				catch(MalformedURLException e) {
+					LOGGER.warn("The URL was malformed, but we are deleting the image anyway.", e);
 				}
-			}
-			catch(MalformedURLException e) {
-				LOGGER.warn("The URL was malformed, but we are deleting the image anyway.", e);
-			}
-			catch(SecurityException e) {
-				LOGGER.error("The system would not allow us to delete the image.", e);
+				catch(SecurityException e) {
+					LOGGER.error("The system would not allow us to delete the image.", e);
+				}
 			}
 
 			// Commit the transaction.
