@@ -29,7 +29,7 @@ public interface ICampaignSurveyResponseQueries {
 	 * 
 	 * @throws DataAccessException Thrown if there is an error.
 	 */
-	long getNumberOfPromptResposnesForCampaign(String campaignId)
+	long getNumberOfPromptResponsesForCampaign(String campaignId)
 			throws DataAccessException;
 
 	/**

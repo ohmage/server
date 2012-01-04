@@ -72,7 +72,7 @@ public class CampaignSurveyResponseQueries extends Query implements ICampaignSur
 	/* (non-Javadoc)
 	 * @see org.ohmage.query.impl.ICampaignSurveyResponseQueries#getNumberOfPromptResposnesForCampaign(java.lang.String)
 	 */
-	public long getNumberOfPromptResposnesForCampaign(String campaignId) throws DataAccessException {
+	public long getNumberOfPromptResponsesForCampaign(String campaignId) throws DataAccessException {
 		try {
 			return getJdbcTemplate().queryForLong(SQL_COUNT_PROMPT_RESPONSES, campaignId);
 		}
