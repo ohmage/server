@@ -30,6 +30,12 @@
     <constructor-arg>
       <ref bean="campaignQueries" />
     </constructor-arg>
+    <constructor-arg>
+      <ref bean="campaignImageQueries" />
+    </constructor-arg>
+    <constructor-arg>
+      <ref bean="imageQueries" />
+    </constructor-arg>
   </bean>
 
   <bean class="org.ohmage.service.ClassDocumentServices">

@@ -144,7 +144,7 @@ public final class ImageQueries extends Query implements IImageQueries {
 	 * (non-Javadoc)
 	 * @see org.ohmage.query.IImageQueries#deleteImageViaUrl(java.lang.String)
 	 */
-	public void deleteImageDiskOnly(String imageUrl) throws DataAccessException {
+	public void deleteImageDiskOnly(String imageUrl) {
 		try {
 			// Delete the original image.
 			if((new File((new URL(imageUrl)).getFile())).delete()) {

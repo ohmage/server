@@ -57,5 +57,5 @@ public interface IImageQueries {
 	 * 
 	 * @see #deleteImage(UUID)
 	 */
-	public void deleteImageDiskOnly(String imageUrl) throws DataAccessException;
+	public void deleteImageDiskOnly(String imageUrl) ;
 }

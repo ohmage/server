@@ -26,7 +26,9 @@ import org.ohmage.domain.campaign.SurveyResponse;
 import org.ohmage.exception.DataAccessException;
 import org.ohmage.exception.ErrorCodeException;
 import org.ohmage.exception.ServiceException;
+import org.ohmage.query.ICampaignImageQueries;
 import org.ohmage.query.ICampaignQueries;
+import org.ohmage.query.IImageQueries;
 
 /**
  * This class contains the services that pertain to campaigns.
@@ -37,6 +39,8 @@ import org.ohmage.query.ICampaignQueries;
 public class CampaignServices {
 	private static CampaignServices instance;
 	private ICampaignQueries campaignQueries;
+	private ICampaignImageQueries campaignImageQueries;
+	private IImageQueries imageQueries;
 	
 	private static final String PATH_CAMPAIGN_URN = "/campaign/campaignUrn";
 	private static final String PATH_CAMPAIGN_NAME = "/campaign/campaignName";
@@ -52,15 +56,26 @@ public class CampaignServices {
 	 * 
 	 * @throws IllegalArgumentException if iCampaignQueries is null
 	 */
-	private CampaignServices(ICampaignQueries iCampaignQueries) {
+	private CampaignServices(ICampaignQueries iCampaignQueries,
+			ICampaignImageQueries iCampaignImageQueries,
+			IImageQueries iImageQueries) {
+		
 		if(instance != null) {
 			throw new IllegalStateException("An instance of this class already exists.");
 		}
 		if(iCampaignQueries == null) {
 			throw new IllegalArgumentException("An instance of ICampaignQueries is required.");
 		}
+		if(iCampaignImageQueries == null) {
+			throw new IllegalArgumentException("An instance of ICampaignImageQueries is a required argument.");
+		}
+		if(iImageQueries == null) {
+			throw new IllegalArgumentException("An instance of IImageQueries is a required argument.");
+		}
 		
 		campaignQueries = iCampaignQueries;
+		campaignImageQueries = iCampaignImageQueries;
+		imageQueries = iImageQueries;
 		
 		instance = this;
 	}
@@ -804,7 +819,7 @@ public class CampaignServices {
 	}
 		
 	/**
-	 * Deletes a campaign.
+	 * Deletes a campaign and everything associated with it.
 	 * 
 	 * @param campaignId The unique identifier for the campaign.
 	 * 
@@ -812,12 +827,28 @@ public class CampaignServices {
 	 */
 	public void deleteCampaign(final String campaignId) 
 			throws ServiceException {
+		// First, retrieve the path information for all of the images 
+		// associated with this campaign.
+		Collection<String> imageUrls;
+		try {
+			imageUrls =
+				campaignImageQueries.getImageUrlsFromCampaign(campaignId);
+		}
+		catch(DataAccessException e) {
+			throw new ServiceException(e);
+		}
 		
 		try {
 			campaignQueries.deleteCampaign(campaignId);
 		}
 		catch(DataAccessException e) {
 			throw new ServiceException(e);
+		}
+		
+		// If the transaction succeeded, delete all of the images from the 
+		// disk.
+		for(String imageUrl : imageUrls) {
+			imageQueries.deleteImageDiskOnly(imageUrl);
 		}
 	}
 }

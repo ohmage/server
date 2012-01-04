@@ -19,9 +19,7 @@ import org.ohmage.domain.Clazz;
 import org.ohmage.domain.campaign.Campaign;
 import org.ohmage.domain.campaign.Survey;
 import org.ohmage.exception.DataAccessException;
-import org.ohmage.query.ICampaignImageQueries;
 import org.ohmage.query.ICampaignQueries;
-import org.ohmage.query.IImageQueries;
 import org.ohmage.query.IUserCampaignClassQueries;
 import org.ohmage.query.IUserClassQueries;
 import org.ohmage.util.TimeUtils;
@@ -46,8 +44,6 @@ import org.springframework.transaction.support.DefaultTransactionDefinition;
  * @author Joshua Selsky
  */
 public final class CampaignQueries extends Query implements ICampaignQueries {
-	private ICampaignImageQueries campaignImageQueries;
-	private IImageQueries imageQueries;
 	private IUserCampaignClassQueries userCampaignClassQueries;
 	private IUserClassQueries userClassQueries;
 	
@@ -346,9 +342,7 @@ public final class CampaignQueries extends Query implements ICampaignQueries {
 	private CampaignQueries(
 			DataSource dataSource, 
 			IUserCampaignClassQueries iUserCampaignClassQueries, 
-			IUserClassQueries iUserClassQueries,
-			ICampaignImageQueries iCampaignImageQueries,
-			IImageQueries iImageQueries) {
+			IUserClassQueries iUserClassQueries) {
 		
 		super(dataSource);
 		
@@ -360,18 +354,8 @@ public final class CampaignQueries extends Query implements ICampaignQueries {
 			throw new IllegalArgumentException("An instance of IUserClassQueries is a required argument.");
 		}
 		
-		if(iCampaignImageQueries == null) {
-			throw new IllegalArgumentException("An instance of ICampaignImageQueries is a required argument.");
-		}
-		
-		if(iImageQueries == null) {
-			throw new IllegalArgumentException("An instance of IImageQueries is a required argument.");
-		}
-		
 		userCampaignClassQueries = iUserCampaignClassQueries; 
 		userClassQueries = iUserClassQueries;
-		campaignImageQueries = iCampaignImageQueries;
-		imageQueries = iImageQueries;
 	}
 	
 	/* (non-Javadoc)
@@ -1092,11 +1076,6 @@ public final class CampaignQueries extends Query implements ICampaignQueries {
 	 * @see org.ohmage.query.impl.ICampaignQueries#deleteCampaign(java.lang.String)
 	 */
 	public void deleteCampaign(String campaignId) throws DataAccessException {
-		// First, retrieve the path information for all of the images 
-		// associated with this campaign.
-		Collection<String> imageUrls =
-				campaignImageQueries.getImageUrlsFromCampaign(campaignId);
-		
 		// Create the transaction.
 		DefaultTransactionDefinition def = new DefaultTransactionDefinition();
 		def.setName("Deleting a campaign.");
@@ -1125,12 +1104,6 @@ public final class CampaignQueries extends Query implements ICampaignQueries {
 		}
 		catch(TransactionException e) {
 			throw new DataAccessException("Error while attempting to rollback the transaction.", e);
-		}
-		
-		// If the transaction succeeded, delete all of the images from the 
-		// disk.
-		for(String imageUrl : imageUrls) {
-			imageQueries.deleteImageDiskOnly(imageUrl);
 		}
 	}
 	
