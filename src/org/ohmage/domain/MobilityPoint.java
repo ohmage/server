@@ -371,7 +371,7 @@ public class MobilityPoint {
 				try {
 					JSONObject result = new JSONObject();
 					
-					result.put(JSON_KEY_WIFI_DATA_TIMESTAMP, TimeUtils.convertDateToCalendar(new Date(time)));
+					result.put(JSON_KEY_WIFI_DATA_TIMESTAMP, TimeUtils.getIso8601DateTimeString(new Date(time)));
 					result.put(JSON_KEY_WIFI_DATA_TIME, time);
 					result.put(JSON_KEY_WIFI_DATA_TIMEZONE, timezone.getID());
 					

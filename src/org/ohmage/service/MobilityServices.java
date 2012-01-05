@@ -7,6 +7,7 @@ import java.util.List;
 import org.ohmage.domain.MobilityPoint;
 import org.ohmage.domain.MobilityPoint.LocationStatus;
 import org.ohmage.domain.MobilityPoint.Mode;
+import org.ohmage.domain.MobilityPoint.SensorData;
 import org.ohmage.exception.DataAccessException;
 import org.ohmage.exception.ServiceException;
 import org.ohmage.query.IUserMobilityQueries;
@@ -100,6 +101,10 @@ public final class MobilityServices {
 		// Create a new classifier.
 		MobilityClassifier classifier = new MobilityClassifier();
 		
+		// Create place holders for the previous data.
+		String previousSensorData = null;
+		String previousWifiMode = null;
+		
 		// For each of the Mobility points,
 		for(MobilityPoint mobilityPoint : mobilityPoints) {
 			// If the data point is of type error, don't attempt to classify 
@@ -110,9 +115,20 @@ public final class MobilityServices {
 			
 			// If the SubType is sensor data,
 			if(MobilityPoint.SubType.SENSOR_DATA.equals(mobilityPoint.getSubType())) {
+				SensorData currSensorData = mobilityPoint.getSensorData();
+				
 				// Classify the data.
 				Classification classification =
-					classifier.classify(mobilityPoint.getSamples(), mobilityPoint.getSensorData().getSpeed());
+					classifier.classify(
+							mobilityPoint.getSamples(),
+							currSensorData.getSpeed(),
+							currSensorData.getWifiData().toJson().toString(),
+							previousSensorData,
+							previousWifiMode);
+				
+				// Update the place holders for the previous data.
+				previousSensorData = currSensorData.getWifiData().toJson().toString();
+				previousWifiMode = classification.getWifiMode();
 				
 				// If the classification generated some results, pull them out
 				// and store them in the Mobility point.
@@ -120,8 +136,7 @@ public final class MobilityServices {
 					try {
 						mobilityPoint.setClassifierData(
 								classification.getFft(), 
-								classification.getVariance(), 
-								//classification.getN95Fft(), 
+								classification.getVariance(),
 								classification.getVariance(), 
 								classification.getAverage(), 
 								MobilityPoint.Mode.valueOf(classification.getMode().toUpperCase()));
