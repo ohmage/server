@@ -1,11 +1,13 @@
 package org.ohmage.query.impl;
 
+import java.util.Collection;
 import java.util.UUID;
 
 import javax.sql.DataSource;
 
 import org.ohmage.exception.DataAccessException;
 import org.ohmage.query.IUserImageQueries;
+import org.springframework.jdbc.core.SingleColumnRowMapper;
 
 /**
  * This class is responsible for the functionality to create, read, update, and
@@ -33,6 +35,17 @@ public final class UserImageQueries extends Query implements IUserImageQueries {
 		"FROM user u, url_based_resource ubr " +
 		"WHERE ubr.uuid = ? " +
 		"AND ubr.user_id = u.id";
+	
+	// Retrieves the URL for each image associated with a user across all 
+	// survey responses for all campaigns.
+	private static final String SQL_GET_URLS_FOR_ALL_IMAGE_RESPONSES_FOR_USER =
+		"SELECT ubr.url " +
+		"FROM user u, survey_response sr, prompt_response pr, url_based_resource ubr " +
+		"WHERE u.username = ? " +
+		"AND u.id = sr.user_id " +
+		"AND sr.id = pr.survey_response_id " +
+		"AND pr.prompt_type = 'photo' " +
+		"AND pr.response = ubr.uuid";
 	
 	/**
 	 * Creates this object.
@@ -89,6 +102,31 @@ public final class UserImageQueries extends Query implements IUserImageQueries {
 		}
 		catch(org.springframework.dao.DataAccessException e) {
 			throw new DataAccessException("Error executing SQL '" + SQL_GET_IMAGE_OWNER + "' with parameter: " + imageId, e);
+		}
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.ohmage.query.IUserImageQueries#getImageUrlsFromUsername(java.lang.String)
+	 */
+	@Override
+	public Collection<String> getImageUrlsFromUsername(String username)
+			throws DataAccessException {
+		
+		try {
+			return getJdbcTemplate().query(
+					SQL_GET_URLS_FOR_ALL_IMAGE_RESPONSES_FOR_USER, 
+					new Object[] { username }, 
+					new SingleColumnRowMapper<String>());
+			
+		}
+		catch(org.springframework.dao.DataAccessException e) {
+			throw new DataAccessException(
+					"Error executing SQL '" + 
+						SQL_GET_URLS_FOR_ALL_IMAGE_RESPONSES_FOR_USER + 
+						"' with parameter: " + 
+						username, 
+					e);
 		}
 	}
 }

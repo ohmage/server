@@ -1,5 +1,6 @@
 package org.ohmage.query;
 
+import java.util.Collection;
 import java.util.UUID;
 
 import org.ohmage.exception.DataAccessException;
@@ -34,4 +35,15 @@ public interface IUserImageQueries {
 	 */
 	String getImageOwner(UUID imageId) throws DataAccessException;
 
+	/**
+	 * Retrieves the URL of all images that are associated with a given user.
+	 * 
+	 * @param username The user's username.
+	 * 
+	 * @return A collection of URLs as Strings.
+	 * 
+	 * @throws DataAccessException Thrown if there is an error.
+	 */
+	Collection<String> getImageUrlsFromUsername(String username)
+			throws DataAccessException;
 }

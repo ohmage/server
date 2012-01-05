@@ -17,8 +17,10 @@ import org.ohmage.domain.UserSummary;
 import org.ohmage.domain.campaign.Campaign;
 import org.ohmage.exception.DataAccessException;
 import org.ohmage.exception.ServiceException;
+import org.ohmage.query.IImageQueries;
 import org.ohmage.query.IUserCampaignQueries;
 import org.ohmage.query.IUserClassQueries;
+import org.ohmage.query.IUserImageQueries;
 import org.ohmage.query.IUserQueries;
 
 /**
@@ -32,6 +34,8 @@ public final class UserServices {
 	private IUserQueries userQueries;
 	private IUserCampaignQueries userCampaignQueries;
 	private IUserClassQueries userClassQueries;
+	private IUserImageQueries userImageQueries;
+	private IImageQueries imageQueries;
 	
 	/**
 	 * Default constructor. Privately instantiated via dependency injection
@@ -44,7 +48,8 @@ public final class UserServices {
 	 * or iUserCampaignQueries is null
 	 */
 	private UserServices(IUserQueries iUserQueries, 
-			IUserCampaignQueries iUserCampaignQueries, IUserClassQueries iUserClassQueries) {
+			IUserCampaignQueries iUserCampaignQueries, IUserClassQueries iUserClassQueries,
+			IUserImageQueries iUserImageQueries, IImageQueries iImageQueries) {
 		
 		if(instance != null) {
 			throw new IllegalStateException("An instance of this class already exists.");
@@ -59,10 +64,18 @@ public final class UserServices {
 		if(iUserClassQueries == null) {
 			throw new IllegalArgumentException("An instance of IUserClassQueries is required.");
 		}
+		if(iUserImageQueries == null) {
+			throw new IllegalArgumentException("An instance of IUserImageQueries is required.");
+		}
+		if(iImageQueries == null) {
+			throw new IllegalArgumentException("An instance of IIimageQueries is required.");
+		}
 		
 		userQueries = iUserQueries;
 		userCampaignQueries = iUserCampaignQueries;
 		userClassQueries = iUserClassQueries;
+		userImageQueries = iUserImageQueries;
+		imageQueries = iImageQueries;
 		
 		instance = this;		
 	}
@@ -760,12 +773,30 @@ public final class UserServices {
 	 */
 	public void deleteUser(final Collection<String> usernames) 
 			throws ServiceException {
-		
+		// First, retrieve the path information for all of the images 
+		// associated with each user.
+		Collection<String> imageUrls = new HashSet<String>();
+		try {
+			for(String username : usernames) {
+				imageUrls.addAll(
+					userImageQueries.getImageUrlsFromUsername(username));
+			}
+		}
+		catch(DataAccessException e) {
+			throw new ServiceException(e);
+		}
+				
 		try {
 			userQueries.deleteUsers(usernames);
 		}
 		catch(DataAccessException e) {
 			throw new ServiceException(e);
+		}
+		
+		// If the transaction succeeded, delete all of the images from the 
+		// disk.
+		for(String imageUrl : imageUrls) {
+			imageQueries.deleteImageDiskOnly(imageUrl);
 		}
 	}
 }

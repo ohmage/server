@@ -189,6 +189,12 @@
     <constructor-arg>
       <ref bean="userClassQueries" />
     </constructor-arg>
+    <constructor-arg>
+      <ref bean="userImageQueries" />
+    </constructor-arg>
+    <constructor-arg>
+      <ref bean="imageQueries" />
+    </constructor-arg>
   </bean>
 
   <bean class="org.ohmage.service.UserSurveyResponseServices">
