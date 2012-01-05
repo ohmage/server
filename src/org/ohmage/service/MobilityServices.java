@@ -8,6 +8,7 @@ import org.ohmage.domain.MobilityPoint;
 import org.ohmage.domain.MobilityPoint.LocationStatus;
 import org.ohmage.domain.MobilityPoint.Mode;
 import org.ohmage.domain.MobilityPoint.SensorData;
+import org.ohmage.domain.MobilityPoint.SensorData.WifiData;
 import org.ohmage.exception.DataAccessException;
 import org.ohmage.exception.ServiceException;
 import org.ohmage.query.IUserMobilityQueries;
@@ -117,17 +118,26 @@ public final class MobilityServices {
 			if(MobilityPoint.SubType.SENSOR_DATA.equals(mobilityPoint.getSubType())) {
 				SensorData currSensorData = mobilityPoint.getSensorData();
 				
+				WifiData wifiData = currSensorData.getWifiData();
+				String wifiDataString;
+				if(wifiData == null) {
+					wifiDataString = null;
+				}
+				else {
+					wifiDataString = wifiData.toJson().toString(); 
+				}
+				
 				// Classify the data.
 				Classification classification =
 					classifier.classify(
 							mobilityPoint.getSamples(),
 							currSensorData.getSpeed(),
-							currSensorData.getWifiData().toJson().toString(),
+							wifiDataString,
 							previousSensorData,
 							previousWifiMode);
 				
 				// Update the place holders for the previous data.
-				previousSensorData = currSensorData.getWifiData().toJson().toString();
+				previousSensorData = wifiDataString;
 				previousWifiMode = classification.getWifiMode();
 				
 				// If the classification generated some results, pull them out
