@@ -49,8 +49,6 @@ import edu.ucla.cens.mobilityclassifier.MobilityClassifier;
  * @author John Jenkins
  */
 public final class UserMobilityQueries extends AbstractUploadQuery implements IUserMobilityQueries {
-	private static final String WILDCARD_FOR_SQL = "__WILDCARD__";
-	
 	// Retrieves the ID for all of the Mobility points that belong to a user.
 	private static final String SQL_GET_IDS_FOR_USER = 
 		"SELECT m.uuid " +
@@ -151,9 +149,7 @@ public final class UserMobilityQueries extends AbstractUploadQuery implements IU
 			"ON m.id = me.mobility_id " +
 		"WHERE u.id = m.user_id " +
 		"AND mps.id = m.privacy_state_id " +
-		"AND m.uuid IN " +
-			WILDCARD_FOR_SQL + " " +
-		"ORDER BY m.epoch_millis";
+		"AND m.uuid IN ";
 	
 	// Retrieves all of the information pertaining to a single Mobility data 
 	// point for a given username. This will return alot of data and should be
@@ -564,13 +560,16 @@ public final class UserMobilityQueries extends AbstractUploadQuery implements IU
 	 * (non-Javadoc)
 	 * @see org.ohmage.query.IUserMobilityQueries#getMobilityInformationFromIds(java.util.Collection)
 	 */
-	public List<MobilityPoint> getMobilityInformationFromIds(Collection<String> ids) throws DataAccessException {		
+	public List<MobilityPoint> getMobilityInformationFromIds(
+			Collection<String> ids) 
+			throws DataAccessException {
+
+		String sql =
+				SQL_GET_MOBILITY_DATA_FROM_IDS + 
+				StringUtils.generateStatementPList(ids.size()) + 
+				" ORDER BY m.epoch_millis";
+		
 		try {
-			String sql = 
-					SQL_GET_MOBILITY_DATA_FROM_IDS.replace(
-							WILDCARD_FOR_SQL, 
-							StringUtils.generateStatementPList(ids.size()));
-			
 			return getJdbcTemplate().query(
 					sql,
 					ids.toArray(),
@@ -624,7 +623,7 @@ public final class UserMobilityQueries extends AbstractUploadQuery implements IU
 		catch(org.springframework.dao.DataAccessException e) {
 			throw new DataAccessException(
 					"Error executing SQL '" +
-							SQL_GET_MOBILITY_DATA_FROM_IDS + 
+							sql + 
 						"' with parameter: " + 
 							ids,
 					e);
