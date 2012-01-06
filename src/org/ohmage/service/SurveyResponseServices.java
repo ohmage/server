@@ -1,15 +1,10 @@
 package org.ohmage.service;
 
 import java.awt.image.BufferedImage;
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Date;
-import java.util.HashSet;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.UUID;
 
 import org.ohmage.annotator.Annotator.ErrorCode;
@@ -23,7 +18,6 @@ import org.ohmage.query.IImageQueries;
 import org.ohmage.query.ISurveyResponseImageQueries;
 import org.ohmage.query.ISurveyResponseQueries;
 import org.ohmage.query.ISurveyUploadQuery;
-import org.ohmage.request.survey.SurveyResponseReadRequest;
 
 /**
  * This class is responsible for creating, reading, updating, and deleting 
@@ -208,7 +202,7 @@ public final class SurveyResponseServices {
 	 * @throws ServiceException Thrown if there is an error.
 	 */
 	public List<SurveyResponse> readSurveyResponseInformation(
-			final Campaign campaign, final String username, 
+			final Campaign campaign, final Collection<String> usernames, 
 			final String client, 
 			final Date startDate, final Date endDate, 
 			final SurveyResponse.PrivacyState privacyState, 
@@ -216,6 +210,22 @@ public final class SurveyResponseServices {
 			final Collection<String> promptIds, 
 			final String promptType) throws ServiceException {
 		
+		try {
+			return surveyResponseQueries.retrieveSurveyResponseDynamically(
+					campaign, 
+					usernames, 
+					startDate, 
+					endDate, 
+					privacyState, 
+					surveyIds, 
+					promptIds, 
+					promptType);
+		}
+		catch(DataAccessException e) {
+			throw new ServiceException(e);
+		}
+		
+		/*
 		String campaignId = campaign.getId();
 		
 		try {
@@ -334,7 +344,6 @@ public final class SurveyResponseServices {
 				return Collections.emptyList();
 			}
 			else {
-				
 				List<SurveyResponse> surveyResponses = new ArrayList<SurveyResponse>(surveyResponseIds.size());
 				for(UUID surveyResponseId : surveyResponseIds) {
 					surveyResponses.add(surveyResponseQueries.retrieveSurveyResponseFromId(campaign, surveyResponseId));
@@ -358,6 +367,7 @@ public final class SurveyResponseServices {
 		catch(DataAccessException e) {
 			throw new ServiceException(e);
 		}
+		*/
 	}
 	
 	/**

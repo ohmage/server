@@ -5,7 +5,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
-import java.util.List;
 import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
@@ -83,7 +82,7 @@ public class SurveyResponseFunctionReadRequest extends UserRequest {
 	private final Function functionId;
 	private final Collection<FunctionPrivacyStateItem> privacyStateGroupItems;
 	
-	private List<SurveyResponse> surveyResponses;
+	private Collection<SurveyResponse> surveyResponses;
 	
 	/**
 	 * Creates a new survey response function read request.

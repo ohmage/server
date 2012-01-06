@@ -5,6 +5,7 @@ import java.sql.SQLException;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.TimeZone;
@@ -17,6 +18,7 @@ import org.json.JSONObject;
 import org.ohmage.domain.campaign.Campaign;
 import org.ohmage.domain.campaign.Prompt;
 import org.ohmage.domain.campaign.SurveyResponse;
+import org.ohmage.domain.campaign.SurveyResponse.PrivacyState;
 import org.ohmage.exception.DataAccessException;
 import org.ohmage.exception.ErrorCodeException;
 import org.ohmage.query.ISurveyResponseQueries;
@@ -143,6 +145,35 @@ public class SurveyResponseQueries extends Query implements ISurveyResponseQueri
 		"AND srps.id = sr.privacy_state_id " +
 		"AND sr.uuid in ";
 	
+	private static final String SQL_GET_SURVEY_RESPONSES_DYNAMICALLY=
+		"SELECT u.username, c.urn, sr.id, sr.uuid, sr.client, " +
+			"sr.epoch_millis, sr.phone_timezone, " +
+			"sr.survey_id, sr.launch_context, " +
+			"sr.location_status, sr.location, srps.privacy_state " +
+		"FROM user u, campaign c, survey_response sr, survey_response_privacy_state srps " +
+		"WHERE c.urn = ? " +
+		"AND c.id = sr.campaign_id " +
+		"AND u.id = sr.user_id " +
+		"AND srps.id = sr.privacy_state_id";
+
+	private static final String SQL_WHERE_USERNAMES =
+		" AND u.username IN ";
+
+	private static final String SQL_WHERE_ON_OR_AFTER =
+		" AND sr.epoch_millis >= ?";
+
+	private static final String SQL_WHERE_ON_OR_BEFORE =
+		" AND sr.epoch_millis <= ?";
+
+	private static final String SQL_WHERE_PRIVACY_STATE =
+		" AND srps.privacy_state = ?";
+
+	private static final String SQL_WHERE_SURVEY_IDS =
+		" AND sr.survey_id IN ";
+
+	private static final String SQL_WHERE_PROMPT_TYPE =
+		" AND pr.prompt_type = ?";
+
 	// Retrieves all of the information about all prompt responses that pertain
 	// to a single survey response.
 	private static final String SQL_GET_PROMPT_RESPONSES = 
@@ -150,6 +181,15 @@ public class SurveyResponseQueries extends Query implements ISurveyResponseQueri
 		"FROM survey_response sr, prompt_response pr " +
 		"WHERE pr.survey_response_id = sr.id " +
 		"AND sr.uuid = ?";
+	
+	// Retrieves all of the information about all prompt responses that pertain
+	// to a single survey response.
+	private static final String SQL_GET_PROMPT_RESPONSES_WITH_ID = 
+		"SELECT pr.prompt_id, pr.prompt_type, pr.repeatable_set_id, pr.repeatable_set_iteration, pr.response " +
+		"FROM survey_response sr, prompt_response pr " +
+		"WHERE pr.survey_response_id = sr.id " +
+		"AND sr.uuid = ? " +
+		"AND pr.prompt_id in ";
 	
 	// Updates a survey response's privacy state.
 	private static final String SQL_UPDATE_SURVEY_RESPONSE_PRIVACY_STATE = 
@@ -594,7 +634,7 @@ public class SurveyResponseQueries extends Query implements ISurveyResponseQueri
 								try {
 									getJdbcTemplate().query(
 											SQL_GET_PROMPT_RESPONSES,
-											new Object[] { rs.getLong("id") },
+											new Object[] { rs.getString("uuid") },
 											new RowMapper<Object>() {
 												@Override
 												public Object mapRow(ResultSet rs, int rowNum) throws SQLException {
@@ -653,6 +693,189 @@ public class SurveyResponseQueries extends Query implements ISurveyResponseQueri
 					"Error executing SQL '" + SQL_GET_SURVEY_RESPONSES + 
 						StringUtils.generateStatementPList(surveyResponseIds.size()) +
 						"' with parameter: " + surveyResponseIds,
+					e);
+		}
+	}
+	
+	/* (non-Javadoc)
+	 * @see org.ohmage.query.ISurveyResponseQueries#retrieveSurveyResponseDynamically(org.ohmage.domain.campaign.Campaign, java.util.Collection, java.util.Date, java.util.Date, org.ohmage.domain.campaign.SurveyResponse.PrivacyState, java.util.Collection, java.lang.String)
+	 */
+	@Override
+	public List<SurveyResponse> retrieveSurveyResponseDynamically(
+			final Campaign campaign,
+			final Collection<String> usernames, 
+			final Date startDate,
+			final Date endDate, 
+			final PrivacyState privacyState,
+			final Collection<String> surveyIds,
+			final Collection<String> promptIds,
+			final String promptType) 
+			throws DataAccessException {
+		
+		// Begin with the default SQL string.
+		StringBuilder sql = 
+				new StringBuilder(SQL_GET_SURVEY_RESPONSES_DYNAMICALLY);
+		
+		// Begin with only the campaign's ID.
+		List<Object> parameters = new LinkedList<Object>();
+		parameters.add(campaign.getId());
+		
+		// Check all of the criteria and if any are non-null add their SQL and
+		// append the parameters.
+		if((usernames != null) && (usernames.size() > 0)) {
+			sql.append(SQL_WHERE_USERNAMES);
+			sql.append(StringUtils.generateStatementPList(usernames.size()));
+			parameters.addAll(usernames);
+		}
+		if(startDate != null) {
+			sql.append(SQL_WHERE_ON_OR_AFTER);
+			parameters.add(startDate.getTime());
+		}
+		if(endDate != null) {
+			sql.append(SQL_WHERE_ON_OR_BEFORE);
+			parameters.add(endDate.getTime());
+		}
+		if(privacyState != null) {
+			sql.append(SQL_WHERE_PRIVACY_STATE);
+			parameters.add(privacyState.toString());
+		}
+		if((surveyIds != null) && (surveyIds.size() > 0)) {
+			sql.append(SQL_WHERE_SURVEY_IDS);
+			sql.append(StringUtils.generateStatementPList(surveyIds.size()));
+			parameters.addAll(surveyIds);
+		}
+		if(promptType != null) {
+			sql.append(SQL_WHERE_PROMPT_TYPE);
+			parameters.add(promptType);
+		}
+		
+		try {
+			final Map<String, Class<?>> typeMapping = new HashMap<String, Class<?>>();
+			typeMapping.put("tinyint", Integer.class);
+			
+			final List<SurveyResponse> result =
+					getJdbcTemplate().query(
+						sql.toString(),
+						parameters.toArray(),
+						new RowMapper<SurveyResponse>() {
+							@Override
+							public SurveyResponse mapRow(ResultSet rs, int rowNum) throws SQLException {
+								try {
+									JSONObject locationJson = null;
+									String locationString = rs.getString("location");
+									if(locationString != null) {
+										locationJson = new JSONObject(locationString);
+									}
+									
+									// Create an object for this survey response.
+									final SurveyResponse currResult = 
+										new SurveyResponse(
+											campaign.getSurveys().get(rs.getString("survey_id")),
+											UUID.fromString(rs.getString("uuid")),
+											rs.getString("username"),
+											rs.getString("urn"),
+											rs.getString("client"),
+											rs.getLong("epoch_millis"),
+											TimeZone.getTimeZone(rs.getString("phone_timezone")),
+											new JSONObject(rs.getString("launch_context")),
+											rs.getString("location_status"),
+											locationJson,
+											SurveyResponse.PrivacyState.getValue(rs.getString("privacy_state")));
+									
+									final String surveyId = currResult.getSurvey().getId();
+									
+									// Build the prompt SQL and its 
+									// corresponding array of parameters.
+									String promptSql;
+									Object[] parameters;
+									if((promptIds == null) || (promptIds.size() == 0)) {
+										promptSql = SQL_GET_PROMPT_RESPONSES;
+										parameters = new String[1];
+										parameters[0] = currResult.getSurveyResponseId().toString();
+									}
+									else {
+										promptSql = 
+												SQL_GET_PROMPT_RESPONSES_WITH_ID +
+												StringUtils.generateStatementPList(promptIds.size());
+										List<String> newPromptIds = new LinkedList<String>(promptIds);
+										newPromptIds.add(0, currResult.getSurveyResponseId().toString());
+										parameters = newPromptIds.toArray();
+									}
+									
+									// Retrieve all of the prompt responses for the
+									// current survey response.
+									try {
+										getJdbcTemplate().query(
+												promptSql,
+												parameters,
+												new RowMapper<Object>() {
+													@Override
+													public Object mapRow(ResultSet rs, int rowNum) throws SQLException {
+														try {
+															// Retrieve the prompt
+															// from the 
+															// configuration.
+															Prompt prompt = 
+																campaign.getPrompt(
+																		surveyId,
+																		rs.getString("prompt_id")
+																	);
+															
+															currResult.addPromptResponse(
+																	prompt.createResponse(
+																			rs.getString("response"), 
+																			(Integer) rs.getObject("repeatable_set_iteration", typeMapping)
+																		)
+																);
+														}
+														catch(IllegalArgumentException e) {
+															throw new SQLException("The prompt response value from the database is not a valid response value for this prompt.", e);
+														}
+														
+														return null;
+													}
+												}
+											);
+									}
+									catch(org.springframework.dao.DataAccessException e) {
+										throw new SQLException(
+												"Error executing SQL '" + 
+													SQL_GET_PROMPT_RESPONSES + 
+													"' with parameter: " + 
+													surveyId,
+												e);
+									}
+									
+									return currResult;
+								}
+								catch(JSONException e) {
+									throw new SQLException("Error creating a JSONObject.", e);
+								}
+								catch(ErrorCodeException e) {
+									throw new SQLException("Error creating the survey response information object.", e);
+								}
+								catch(IllegalArgumentException e) {
+									throw new SQLException("Error creating the survey response information object.", e);
+								}
+							}
+						}
+					);
+				
+			return result;
+		}
+		catch(org.springframework.dao.DataAccessException e) {
+			throw new DataAccessException(
+					"Error executing SQL '" + SQL_GET_SURVEY_RESPONSES + 
+						sql.toString() +
+						"' with parameters: " + 
+						campaign.getId() + " (campaign ID), " +
+						usernames + " (usernames), " +
+						startDate + " (start date), " +
+						endDate + " (end date), " +
+						privacyState + " (privacy state), " + 
+						surveyIds + " (survey IDs), " +
+						promptIds + " (prompt IDs), " +
+						promptType + " (prompt type)",
 					e);
 		}
 	}

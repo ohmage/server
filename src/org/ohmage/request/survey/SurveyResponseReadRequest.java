@@ -587,32 +587,18 @@ public final class SurveyResponseReadRequest extends UserRequest {
 			}
 		    
 			LOGGER.info("Dispatching to the data layer.");
-			surveyResponseList = new LinkedList<SurveyResponse>();
-			
-			if(URN_SPECIAL_ALL_LIST.equals(usernames)) {
-				surveyResponseList.addAll(
-						SurveyResponseServices.instance().readSurveyResponseInformation(
-								campaign, null, null, 
-								startDate, endDate, privacyState, 
-								(URN_SPECIAL_ALL_LIST.equals(surveyIds)) ? null : surveyIds, 
-								(URN_SPECIAL_ALL_LIST.equals(promptIds)) ? null : promptIds, 
-								null
-							)
-					);
-			}
-			else {
-				for(String username : usernames) {
-					surveyResponseList.addAll(
-							SurveyResponseServices.instance().readSurveyResponseInformation(
-									campaign, username, null, 
-									startDate, endDate, privacyState, 
-									(URN_SPECIAL_ALL_LIST.equals(surveyIds)) ? null : surveyIds, 
-									(URN_SPECIAL_ALL_LIST.equals(promptIds)) ? null : promptIds, 
-									null
-								)
+			surveyResponseList = 
+					SurveyResponseServices.instance().readSurveyResponseInformation(
+							campaign, 
+							(URN_SPECIAL_ALL_LIST.equals(usernames) ? null : usernames), 
+							null, 
+							startDate, 
+							endDate, 
+							privacyState, 
+							(URN_SPECIAL_ALL_LIST.equals(surveyIds)) ? null : surveyIds, 
+							(URN_SPECIAL_ALL_LIST.equals(promptIds)) ? null : promptIds, 
+							null
 						);
-				}
-			}
 			
 			LOGGER.info("Found " + surveyResponseList.size() + " results");
 						

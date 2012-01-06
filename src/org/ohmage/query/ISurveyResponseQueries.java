@@ -191,6 +191,52 @@ public interface ISurveyResponseQueries {
 	List<SurveyResponse> retrieveSurveyResponseFromIds(final Campaign campaign,
 			final Collection<UUID> surveyResponseIds)
 			throws DataAccessException;
+	
+	/**
+	 * Retrieves the information about survey responses that match the given
+	 * criteria. The criteria is based on the parameters. All parameters are
+	 * optional except the campaign, and a null parameter is the equivalent to
+	 * an omitted parameter. If all parameters are null, except the campaign,
+	 * then all of the information about all of the survey responses will be
+	 * returned for that campaign.
+	 * 
+	 * @param campaign The campaign to which the survey responses must belong.
+	 * 
+	 * @param usernames Limits the results to only those submitted by any one 
+	 * 					of the users in the list.
+	 * 
+	 * @param startDate Limits the results to only those survey responses that
+	 * 					occurred on or after this date.
+	 * 
+	 * @param endDate Limits the results to only those survey responses that
+	 * 				  occurred on or before this date.
+	 * 
+	 * @param privacyState Limits the results to only those survey responses
+	 * 					   with this privacy state.
+	 * 
+	 * @param surveyIds Limits the results to only those survey responses that 
+	 * 					were derived from a survey in this collection.
+	 * 
+	 * @param promptIds Limits the results to only those survey responses that 
+	 * 					were derived from a prompt in this collection.
+	 * 
+	 * @param promptType Limits the results to only those survey responses that
+	 * 					 are of the given prompt type.
+	 * 
+	 * @return A list of SurveyResponse objects where each object 
+	 * 		   represents a survey response that matched the given criteria.
+	 *  
+	 * @throws DataAccessException Thrown if there is an error. 
+	 */
+	List<SurveyResponse> retrieveSurveyResponseDynamically(
+			final Campaign campaign,
+			final Collection<String> usernames,
+			final Date startDate,
+			final Date endDate,
+			final SurveyResponse.PrivacyState privacyState,
+			final Collection<String> surveyIds,
+			final Collection<String> promptIds,
+			final String promptType) throws DataAccessException;
 
 	/**
 	 * Updates the privacy state on a survey response.
