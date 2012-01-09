@@ -407,25 +407,24 @@ public class MobilityPoint {
 		 */
 		private SensorData(JSONObject sensorData) throws ErrorCodeException {
 			// Get the mode.
-			String modeString;
 			try {
-				modeString = sensorData.getString(JSON_KEY_MODE);
+				String modeString = sensorData.getString(JSON_KEY_MODE);
+				
+				try {
+					mode = Mode.valueOf(modeString.toUpperCase());
+				}
+				catch(IllegalArgumentException e) {
+					throw new ErrorCodeException(
+							ErrorCode.MOBILITY_INVALID_MODE, 
+							"The mode is not a known mode: " + modeString, 
+							e);
+				}
 			}
 			catch(JSONException e) {
 				throw new ErrorCodeException(
 						ErrorCode.MOBILITY_INVALID_MODE, 
 						"The mode is missing in the sensor data: " + 
 								JSON_KEY_MODE, 
-						e);
-			}
-			
-			try {
-				mode = Mode.valueOf(modeString.toUpperCase());
-			}
-			catch(IllegalArgumentException e) {
-				throw new ErrorCodeException(
-						ErrorCode.MOBILITY_INVALID_MODE, 
-						"The mode is not a known mode: " + modeString, 
 						e);
 			}
 			
@@ -623,39 +622,6 @@ public class MobilityPoint {
 			}
 			wifiData = tWifiData;
 		}
-		
-		/**
-		 * Creates a new SensorData object that represents the information 
-		 * collected by Mobility when a Mobility point was generated.
-		 * 
-		 * @param mode The mode calculated based on this information.
-		 * 
-		 * @param speed The speed of the device when this point was made.
-		 * 
-		 * @param accelData The accelerometer information collected during this
-		 * 					reading.
-		 * 
-		 * @param wifiData The WiFi information collected when this point was
-		 * 				   made.
-		 * 
-		 * @throws IllegalArgumentException Thrown if the mode, accelerometer
-		 * 									data, or WiFi data are null.
-		 */
-		public SensorData(final Mode mode, final double speed, 
-				final List<AccelData> accelData, final WifiData wifiData) {
-			
-			if(mode == null) {
-				throw new IllegalArgumentException("The mode cannot be null.");
-			}
-			else if(accelData == null) {
-				throw new IllegalArgumentException("The accelerometer data cannot be null.");
-			}
-
-			this.mode = mode;
-			this.speed = speed;
-			this.accelData = accelData;
-			this.wifiData = wifiData;
-		}
 
 		/**
 		 * Returns the Mode for this record.
@@ -804,16 +770,23 @@ public class MobilityPoint {
 		 * 
 		 * @throws MobilityException Thrown if the mode is missing or unknown.
 		 */
-		private ClassifierData(JSONObject classifierData) throws ErrorCodeException{
+		private ClassifierData(Mode mode, JSONObject classifierData) throws ErrorCodeException {
+			Mode tMode;
 			try {
-				mode = Mode.valueOf(classifierData.getString(JSON_KEY_MODE).toUpperCase());
+				tMode = Mode.valueOf(classifierData.getString(JSON_KEY_MODE).toUpperCase());
 			}
 			catch(JSONException e) {
-				throw new ErrorCodeException(ErrorCode.MOBILITY_INVALID_MODE, "The mode is missing.", e);
+				if(Mode.ERROR.equals(mode)) {
+					tMode = null;
+				}
+				else {
+					throw new ErrorCodeException(ErrorCode.MOBILITY_INVALID_MODE, "The mode is missing.", e);
+				}
 			}
 			catch(IllegalArgumentException e) {
 				throw new ErrorCodeException(ErrorCode.MOBILITY_INVALID_MODE, "The mode is unknown.", e);
 			}
+			this.mode = tMode;
 			
 			List<Double> tFft = null;
 			try {
@@ -882,6 +855,7 @@ public class MobilityPoint {
 		private ClassifierData(List<Double> fft, Double variance,
 				Double n95Variance,
 				Double average, Mode mode) {
+			
 			if(mode == null) {
 				throw new IllegalArgumentException("The mode cannot be null.");
 			}
@@ -949,13 +923,16 @@ public class MobilityPoint {
 			try {
 				JSONObject result = new JSONObject();
 				
+				if(mode != null) {
+					result.put(JSON_KEY_MODE, mode.name().toLowerCase());
+				}
+				
 				result.put(JSON_KEY_FFT, fft);
 				result.put(JSON_KEY_VARIANCE, variance);
 				
 				result.put(JSON_KEY_N95_VARIANCE, n95Variance);
 				
 				result.put(JSON_KEY_AVERAGE, average);
-				result.put(JSON_KEY_MODE, mode.name().toLowerCase());
 				
 				return result;
 			}
@@ -1240,7 +1217,7 @@ public class MobilityPoint {
 			subType = SubType.SENSOR_DATA;
 			
 			this.sensorData = new SensorData(sensorData);
-			this.classifierData = new ClassifierData(features);
+			this.classifierData = new ClassifierData(this.mode, features);
 		}
 	}
 	
