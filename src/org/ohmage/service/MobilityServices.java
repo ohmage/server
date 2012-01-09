@@ -1,6 +1,5 @@
 package org.ohmage.service;
 
-import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
@@ -189,8 +188,6 @@ public final class MobilityServices {
 	 * @param username The username of the user whose points are being queried.
 	 * 				   Required.
 	 * 
-	 * @param client A client value that uploaded the point. Optional.
-	 * 
 	 * @param startDate A date to which all returned points must be on or 
 	 * 					after. Optional.
 	 * 
@@ -213,74 +210,20 @@ public final class MobilityServices {
 	 * @throws ServiceException Thrown if there is an error.
 	 */
 	public List<MobilityPoint> retrieveMobilityData(
-			final String username, final String client, 
+			final String username,  
 			final Date startDate, final Date endDate, 
 			final MobilityPoint.PrivacyState privacyState,
 			final LocationStatus locationStatus, final Mode mode) 
 			throws ServiceException {
 		
 		try {
-			// Create the IDs list and set it to null. Once we find a non-null
-			// parameter, we will set the list to that parameter's value.
-			List<String> mobilityIds = null;
-			
-			// If both start and end date are non-null, get the IDs from their
-			// intersection; otherwise, try and get the IDs from the one that
-			// isn't null if either are non-null.
-			if((startDate != null) && (endDate != null)) {
-				mobilityIds = userMobilityQueries.getIdsCreatedBetweenDates(username, startDate, endDate);
-			}
-			else {
-				if(startDate != null) {
-					mobilityIds = userMobilityQueries.getIdsCreatedAfterDate(username, startDate);
-				}
-				else if(endDate != null) {
-					mobilityIds = userMobilityQueries.getIdsCreatedBeforeDate(username, endDate);
-				}
-			}
-			
-			if(client != null) {
-				if(mobilityIds == null) {
-					mobilityIds = userMobilityQueries.getIdsForClient(username, client);
-				}
-				else {
-					mobilityIds.retainAll(userMobilityQueries.getIdsForClient(username, client));
-				}
-			}
-			
-			if(privacyState != null) {
-				if(mobilityIds == null) {
-					mobilityIds = userMobilityQueries.getIdsWithPrivacyState(username, privacyState);
-				}
-				else {
-					mobilityIds.retainAll(userMobilityQueries.getIdsWithPrivacyState(username, privacyState));
-				}
-			}
-			
-			if(locationStatus != null) {
-				if(mobilityIds == null) {
-					mobilityIds = userMobilityQueries.getIdsWithLocationStatus(username, locationStatus);
-				}
-				else {
-					mobilityIds.retainAll(userMobilityQueries.getIdsWithLocationStatus(username, locationStatus));
-				}
-			}
-			
-			if(mode != null) {
-				if(mobilityIds == null) {
-					mobilityIds = userMobilityQueries.getIdsWithMode(username, mode);
-				}
-				else {
-					mobilityIds.retainAll(userMobilityQueries.getIdsWithMode(username, mode));
-				}
-			}
-			
-			if((mobilityIds == null) || (mobilityIds.size() == 0)) {
-				return Collections.emptyList();
-			}
-			else {
-				return userMobilityQueries.getMobilityInformationFromIds(mobilityIds);
-			}
+			return userMobilityQueries.getMobilityInformation(
+					username, 
+					startDate, 
+					endDate, 
+					privacyState, 
+					locationStatus, 
+					mode);
 		}
 		catch(DataAccessException e) {
 			throw new ServiceException(e);

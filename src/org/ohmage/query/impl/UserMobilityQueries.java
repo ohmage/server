@@ -21,6 +21,7 @@ import org.ohmage.domain.Location;
 import org.ohmage.domain.MobilityPoint;
 import org.ohmage.domain.MobilityPoint.LocationStatus;
 import org.ohmage.domain.MobilityPoint.Mode;
+import org.ohmage.domain.MobilityPoint.PrivacyState;
 import org.ohmage.domain.MobilityPoint.SubType;
 import org.ohmage.exception.DataAccessException;
 import org.ohmage.exception.ErrorCodeException;
@@ -150,6 +151,50 @@ public final class UserMobilityQueries extends AbstractUploadQuery implements IU
 		"WHERE u.id = m.user_id " +
 		"AND mps.id = m.privacy_state_id " +
 		"AND m.uuid IN ";
+	
+	// Retrieves all of the columns necessary to construct a Mobility point
+	// and requires only a username.
+	private static final String SQL_GET_MOBILITY_DATA =
+		"SELECT m.uuid, u.username, m.client, " +
+			"m.epoch_millis, m.upload_timestamp, " +
+			"m.phone_timezone, m.location_status, m.location, " +
+			"m.mode, mps.privacy_state, " +
+			"me.sensor_data, me.features, me.classifier_version " +
+		"FROM user u, mobility_privacy_state mps, " +
+			"mobility m LEFT JOIN mobility_extended me " +
+			"ON m.id = me.mobility_id " +
+		"WHERE u.username = ? " +
+		"AND u.id = m.user_id " +
+		"AND mps.id = m.privacy_state_id";
+	
+	// Adds a WHERE clause limiting the results to only those on or after a 
+	// date represented by the number of milliseconds since the epoch.
+	private static final String SQL_WHERE_ON_OR_AFTER_DATE =
+		" AND m.epoch_millis >= ?";
+	
+	// Adds a WHERE clause limiting the results to only those on or before a 
+	// date represented by the number of milliseconds since the epoch.
+	private static final String SQL_WHERE_ON_OR_BEFORE_DATE =
+		" AND m.epoch_millis <= ?";
+	
+	// Adds a WHERE clause limiting the results to only those with the given
+	// privacy state.
+	private static final String SQL_WHERE_PRIVACY_STATE =
+		" AND m.privacy_state = ?";
+	
+	// Adds a WHERE clause limiting the results to only those with the given 
+	// location status.
+	private static final String SQL_WHERE_LOCATION_STATUS =
+		" AND m.location_status = ?";
+	
+	// Adds a WHERE clause limiting the results to only those with the given
+	// mode.
+	private static final String SQL_WHERE_MODE =
+		" AND m.mode = ?";
+	
+	// Adds an ordering to the results based on their date.
+	private static final String SQL_ORDER_BY_DATE =
+		" ORDER BY epoch_millis";
 	
 	// Retrieves all of the information pertaining to a single Mobility data 
 	// point for a given username. This will return alot of data and should be
@@ -626,6 +671,108 @@ public final class UserMobilityQueries extends AbstractUploadQuery implements IU
 							sql + 
 						"' with parameter: " + 
 							ids,
+					e);
+		}
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.ohmage.query.IUserMobilityQueries#getMobilityInformation(java.lang.String, java.util.Date, java.util.Date, org.ohmage.domain.MobilityPoint.PrivacyState, org.ohmage.domain.MobilityPoint.LocationStatus, org.ohmage.domain.MobilityPoint.Mode)
+	 */
+	@Override
+	public List<MobilityPoint> getMobilityInformation(
+			final String username,
+			final Date startDate, 
+			final Date endDate, 
+			final PrivacyState privacyState,
+			final LocationStatus locationStatus, 
+			final Mode mode)
+			throws DataAccessException {
+
+		StringBuilder sqlBuilder = new StringBuilder(SQL_GET_MOBILITY_DATA);
+		List<Object> parameters = new LinkedList<Object>();
+		parameters.add(username);
+		
+		if(startDate != null) {
+			sqlBuilder.append(SQL_WHERE_ON_OR_AFTER_DATE);
+			parameters.add(startDate.getTime());
+		}
+		if(endDate != null) {
+			sqlBuilder.append(SQL_WHERE_ON_OR_BEFORE_DATE);
+			parameters.add(endDate.getTime());
+		}
+		if(privacyState != null) {
+			sqlBuilder.append(SQL_WHERE_PRIVACY_STATE);
+			parameters.add(privacyState.toString());
+		}
+		if(locationStatus != null) {
+			sqlBuilder.append(SQL_WHERE_LOCATION_STATUS);
+			parameters.add(locationStatus.toString());
+		}
+		if(mode != null) {
+			sqlBuilder.append(SQL_WHERE_MODE);
+			parameters.add(mode.toString().toLowerCase());
+		}
+		
+		sqlBuilder.append(SQL_ORDER_BY_DATE);
+		
+		try {
+			return getJdbcTemplate().query(
+					sqlBuilder.toString(),
+					parameters.toArray(),
+					new RowMapper<MobilityPoint>() {
+						@Override
+						public MobilityPoint mapRow(ResultSet rs, int rowNum) throws SQLException {
+							try {
+								JSONObject location = null;
+								String locationString = rs.getString("location");
+								if(locationString != null) {
+									location = new JSONObject(locationString);
+								}
+								
+								JSONObject sensorData = null;
+								String sensorDataString = rs.getString("sensor_data");
+								if(sensorDataString != null) {
+									sensorData = new JSONObject(sensorDataString);
+								}
+								
+								JSONObject features = null;
+								String featuresString = rs.getString("features");
+								if(featuresString != null) {
+									features = new JSONObject(featuresString);
+								}
+								
+								return new MobilityPoint(
+										UUID.fromString(rs.getString("uuid")),
+										rs.getLong("epoch_millis"),
+										TimeZone.getTimeZone(rs.getString("phone_timezone")),
+										LocationStatus.valueOf(rs.getString("location_status").toUpperCase()),
+										location,
+										Mode.valueOf(rs.getString("mode").toUpperCase()),
+										MobilityPoint.PrivacyState.getValue(rs.getString("privacy_state")),
+										sensorData,
+										features,
+										rs.getString("classifier_version"));
+							}
+							catch(JSONException e) {
+								throw new SQLException("Error building a JSONObject.", e);
+							}
+							catch(ErrorCodeException e) {
+								throw new SQLException("Error building the MobilityInformation object. This suggests malformed data in the database.", e);
+							}
+							catch(IllegalArgumentException e) {
+								throw new SQLException("Error building the MobilityInformation object. This suggests malformed data in the database.", e);
+							}
+						}
+					}
+				);
+		}
+		catch(org.springframework.dao.DataAccessException e) {
+			throw new DataAccessException(
+					"Error executing SQL '" +
+							sqlBuilder.toString() + 
+						"' with parameters: " + 
+							parameters,
 					e);
 		}
 	}

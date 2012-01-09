@@ -198,6 +198,41 @@ public interface IUserMobilityQueries {
 	 */
 	List<MobilityPoint> getMobilityInformationFromIds(Collection<String> ids)
 			throws DataAccessException;
+	
+	/**
+	 * Gathers the Mobility information for all of the points that match the
+	 * given criteria. The username is required as only one user's information
+	 * may be queried at a time. The other parameters are optional and will be
+	 * ignored if they are null. Otherwise, they will limit the results to only
+	 * those that match the give criteria.
+	 * 
+	 * @param username The user's username.
+	 * 
+	 * @param startDate Limits the results to only those on or after this date.
+	 * 
+	 * @param endDate Limits the results to only those on or before this date.
+	 * 
+	 * @param privacyState Limits the results to only those with the given
+	 * 					   privacy state.
+	 * 
+	 * @param locationStatus Limits the results to only those with the given
+	 * 						 location status.
+	 * 
+	 * @param mode Limits the results to only those with the given mode.
+	 * 
+	 * @return A, possibly empty but never null, list of Mobility points that
+	 * 		   satisfied the parameters.
+	 * 
+	 * @throws DataAccessException Thrown if there is an error.
+	 */
+	List<MobilityPoint> getMobilityInformation(
+			final String username,
+			final Date startDate,
+			final Date endDate,
+			final MobilityPoint.PrivacyState privacyState,
+			final LocationStatus locationStatus,
+			final Mode mode) 
+			throws DataAccessException;
 
 	/**
 	 * Retrieves the timestamp of last Mobility upload from a user.

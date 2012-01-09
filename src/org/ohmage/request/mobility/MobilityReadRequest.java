@@ -118,8 +118,7 @@ public class MobilityReadRequest extends UserRequest {
 			endDate.add(Calendar.DAY_OF_YEAR, 1);
 			
 			result = MobilityServices.instance().retrieveMobilityData(
-					getUser().getUsername(), 
-					null, 
+					getUser().getUsername(),
 					new Date(startDate.getTimeInMillis()), 
 					new Date(endDate.getTimeInMillis()), 
 					null, 
