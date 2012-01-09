@@ -713,7 +713,7 @@ public class SurveyResponseQueries extends Query implements ISurveyResponseQueri
 			throws DataAccessException {
 		
 		// Begin with the default SQL string.
-		StringBuilder sql = 
+		StringBuilder sqlBuilder = 
 				new StringBuilder(SQL_GET_SURVEY_RESPONSES_DYNAMICALLY);
 		
 		// Begin with only the campaign's ID.
@@ -723,39 +723,37 @@ public class SurveyResponseQueries extends Query implements ISurveyResponseQueri
 		// Check all of the criteria and if any are non-null add their SQL and
 		// append the parameters.
 		if((usernames != null) && (usernames.size() > 0)) {
-			sql.append(SQL_WHERE_USERNAMES);
-			sql.append(StringUtils.generateStatementPList(usernames.size()));
+			sqlBuilder.append(SQL_WHERE_USERNAMES);
+			sqlBuilder.append(StringUtils.generateStatementPList(usernames.size()));
 			parameters.addAll(usernames);
 		}
 		if(startDate != null) {
-			sql.append(SQL_WHERE_ON_OR_AFTER);
+			sqlBuilder.append(SQL_WHERE_ON_OR_AFTER);
 			parameters.add(startDate.getTime());
 		}
 		if(endDate != null) {
-			sql.append(SQL_WHERE_ON_OR_BEFORE);
+			sqlBuilder.append(SQL_WHERE_ON_OR_BEFORE);
 			parameters.add(endDate.getTime());
 		}
 		if(privacyState != null) {
-			sql.append(SQL_WHERE_PRIVACY_STATE);
+			sqlBuilder.append(SQL_WHERE_PRIVACY_STATE);
 			parameters.add(privacyState.toString());
 		}
 		if((surveyIds != null) && (surveyIds.size() > 0)) {
-			sql.append(SQL_WHERE_SURVEY_IDS);
-			sql.append(StringUtils.generateStatementPList(surveyIds.size()));
+			sqlBuilder.append(SQL_WHERE_SURVEY_IDS);
+			sqlBuilder.append(StringUtils.generateStatementPList(surveyIds.size()));
 			parameters.addAll(surveyIds);
 		}
 		if(promptType != null) {
-			sql.append(SQL_WHERE_PROMPT_TYPE);
+			sqlBuilder.append(SQL_WHERE_PROMPT_TYPE);
 			parameters.add(promptType);
 		}
 		
+		final List<SurveyResponse> result;
 		try {
-			final Map<String, Class<?>> typeMapping = new HashMap<String, Class<?>>();
-			typeMapping.put("tinyint", Integer.class);
-			
-			final List<SurveyResponse> result =
+			result =
 					getJdbcTemplate().query(
-						sql.toString(),
+						sqlBuilder.toString(),
 						parameters.toArray(),
 						new RowMapper<SurveyResponse>() {
 							@Override
@@ -782,70 +780,6 @@ public class SurveyResponseQueries extends Query implements ISurveyResponseQueri
 											locationJson,
 											SurveyResponse.PrivacyState.getValue(rs.getString("privacy_state")));
 									
-									final String surveyId = currResult.getSurvey().getId();
-									
-									// Build the prompt SQL and its 
-									// corresponding array of parameters.
-									String promptSql;
-									Object[] parameters;
-									if((promptIds == null) || (promptIds.size() == 0)) {
-										promptSql = SQL_GET_PROMPT_RESPONSES;
-										parameters = new String[1];
-										parameters[0] = currResult.getSurveyResponseId().toString();
-									}
-									else {
-										promptSql = 
-												SQL_GET_PROMPT_RESPONSES_WITH_ID +
-												StringUtils.generateStatementPList(promptIds.size());
-										List<String> newPromptIds = new LinkedList<String>(promptIds);
-										newPromptIds.add(0, currResult.getSurveyResponseId().toString());
-										parameters = newPromptIds.toArray();
-									}
-									
-									// Retrieve all of the prompt responses for the
-									// current survey response.
-									try {
-										getJdbcTemplate().query(
-												promptSql,
-												parameters,
-												new RowMapper<Object>() {
-													@Override
-													public Object mapRow(ResultSet rs, int rowNum) throws SQLException {
-														try {
-															// Retrieve the prompt
-															// from the 
-															// configuration.
-															Prompt prompt = 
-																campaign.getPrompt(
-																		surveyId,
-																		rs.getString("prompt_id")
-																	);
-															
-															currResult.addPromptResponse(
-																	prompt.createResponse(
-																			rs.getString("response"), 
-																			(Integer) rs.getObject("repeatable_set_iteration", typeMapping)
-																		)
-																);
-														}
-														catch(IllegalArgumentException e) {
-															throw new SQLException("The prompt response value from the database is not a valid response value for this prompt.", e);
-														}
-														
-														return null;
-													}
-												}
-											);
-									}
-									catch(org.springframework.dao.DataAccessException e) {
-										throw new SQLException(
-												"Error executing SQL '" + 
-													SQL_GET_PROMPT_RESPONSES + 
-													"' with parameter: " + 
-													surveyId,
-												e);
-									}
-									
 									return currResult;
 								}
 								catch(JSONException e) {
@@ -860,13 +794,12 @@ public class SurveyResponseQueries extends Query implements ISurveyResponseQueri
 							}
 						}
 					);
-				
-			return result;
+
 		}
 		catch(org.springframework.dao.DataAccessException e) {
 			throw new DataAccessException(
 					"Error executing SQL '" + SQL_GET_SURVEY_RESPONSES + 
-						sql.toString() +
+						sqlBuilder.toString() +
 						"' with parameters: " + 
 						campaign.getId() + " (campaign ID), " +
 						usernames + " (usernames), " +
@@ -874,10 +807,81 @@ public class SurveyResponseQueries extends Query implements ISurveyResponseQueri
 						endDate + " (end date), " +
 						privacyState + " (privacy state), " + 
 						surveyIds + " (survey IDs), " +
-						promptIds + " (prompt IDs), " +
 						promptType + " (prompt type)",
 					e);
 		}
+		
+		final Map<String, Class<?>> typeMapping = new HashMap<String, Class<?>>();
+		typeMapping.put("tinyint", Integer.class);
+		
+		for(final SurveyResponse surveyResponse : result) {
+			final String surveyId = surveyResponse.getSurvey().getId();
+			
+			// Build the prompt SQL and its 
+			// corresponding array of parameters.
+			String promptSql;
+			List<Object> promptParameters = new LinkedList<Object>();
+			if((promptIds == null) || (promptIds.size() == 0)) {
+				promptSql = SQL_GET_PROMPT_RESPONSES;
+				promptParameters.add(
+						surveyResponse.getSurveyResponseId().toString());
+			}
+			else {
+				promptSql = 
+						SQL_GET_PROMPT_RESPONSES_WITH_ID +
+						StringUtils.generateStatementPList(promptIds.size());
+				promptParameters.add(surveyResponse.getSurveyResponseId().toString());
+				promptParameters.addAll(promptIds);
+			}
+			
+			// Retrieve all of the prompt responses for the
+			// current survey response.
+			try {
+				getJdbcTemplate().query(
+						promptSql,
+						promptParameters.toArray(),
+						new RowMapper<Object>() {
+							@Override
+							public Object mapRow(ResultSet rs, int rowNum) throws SQLException {
+								try {
+									// Retrieve the prompt
+									// from the 
+									// configuration.
+									Prompt prompt = 
+										campaign.getPrompt(
+												surveyId,
+												rs.getString("prompt_id")
+											);
+									
+									surveyResponse.addPromptResponse(
+											prompt.createResponse(
+													rs.getString("response"),
+													(Integer) rs.getObject(
+															"repeatable_set_iteration", 
+															typeMapping)
+												)
+										);
+								}
+								catch(IllegalArgumentException e) {
+									throw new SQLException("The prompt response value from the database is not a valid response value for this prompt.", e);
+								}
+								
+								return null;
+							}
+						}
+					);
+			}
+			catch(org.springframework.dao.DataAccessException e) {
+				throw new DataAccessException(
+						"Error executing SQL '" + 
+							promptSql + 
+							"' with parameter(s): " + 
+							promptParameters,
+						e);
+			}
+		}
+				
+		return result;
 	}
 	
 	/* (non-Javadoc)
