@@ -339,7 +339,6 @@ CREATE TABLE mobility (
   uuid CHAR(36) NOT NULL UNIQUE,
   user_id int unsigned NOT NULL,
   client tinytext NOT NULL,
-  msg_timestamp datetime NOT NULL,
   epoch_millis bigint unsigned NOT NULL,
   phone_timezone varchar(32) NOT NULL,
   location_status tinytext NOT NULL,
