@@ -17,6 +17,7 @@ package org.ohmage.domain.campaign;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -88,6 +89,8 @@ public class Survey {
 	 * The map of survey item IDs its actual SurveyItem object.
 	 */
 	private final Map<Integer, SurveyItem> surveyItems;
+	private final Map<String, Prompt> prompts;
+	private final Map<String, RepeatableSet> repeatableSets;
 	
 	/**
 	 * Creates a new survey.
@@ -160,8 +163,18 @@ public class Survey {
 		this.editSummary = editSummary;
 		this.summaryText = summaryText;
 		this.anytime = anytime;
-		// FIXME: Deep copy.
-		this.surveyItems = surveyItems;
+
+		this.surveyItems = new HashMap<Integer, SurveyItem>(surveyItems);
+		prompts = new HashMap<String, Prompt>();
+		repeatableSets = new HashMap<String, RepeatableSet>();
+		for(SurveyItem surveyItem : surveyItems.values()) {
+			if(surveyItem instanceof Prompt) {
+				prompts.put(surveyItem.getId(), (Prompt) surveyItem);
+			}
+			else if(surveyItem instanceof RepeatableSet) {
+				repeatableSets.put(surveyItem.getId(), (RepeatableSet) surveyItem);
+			}
+		}
 	}
 	
 	/**
@@ -345,6 +358,31 @@ public class Survey {
 		}
 		
 		return null;
+	}
+	
+	/**
+	 * Retrieves the prompt with the given prompt ID if it exists as a prompt
+	 * or within a repeatable set. Otherwise, null is returned.
+	 * 
+	 * @param promptId The prompt's unique identifier.
+	 * 
+	 * @return The requested Prompt or null.
+	 */
+	public Prompt getPrompt(final String promptId) {
+		// Retrieve it from the list of prompts.
+		Prompt result = prompts.get(promptId);
+		
+		// If it didn't exist in the prompts, attempt to retrieve it from the 
+		// repeatable sets.
+		if(result == null) {
+			for(RepeatableSet repeatableSet : repeatableSets.values()) {
+				if((result = repeatableSet.getPrompt(promptId)) != null) {
+					break;
+				}
+			}
+		}
+		
+		return result;
 	}
 	
 	/**

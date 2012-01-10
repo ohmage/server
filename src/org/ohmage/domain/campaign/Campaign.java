@@ -1078,24 +1078,7 @@ public class Campaign {
 			throw new IllegalArgumentException("The survey ID is unknown.");
 		}
 		
-		Map<Integer, SurveyItem> prompts = survey.getSurveyItems();
-		for(SurveyItem prompt : prompts.values()) {
-			if(prompt instanceof Prompt) {
-				Prompt currPrompt = (Prompt) prompt;
-				
-				if(promptId.equals(currPrompt.getId())) {
-					return currPrompt;
-				}
-			}
-			if(prompt instanceof RepeatableSet) {
-				Prompt currPrompt = ((RepeatableSet) prompt).getPrompt(promptId);
-				if(currPrompt != null) {
-					return currPrompt;
-				}
-			}
-		}
-        
-        return null;
+		return survey.getPrompt(promptId);
 	}
 	
 	/**
