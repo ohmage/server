@@ -236,7 +236,8 @@ public interface ISurveyResponseQueries {
 			final SurveyResponse.PrivacyState privacyState,
 			final Collection<String> surveyIds,
 			final Collection<String> promptIds,
-			final String promptType) throws DataAccessException;
+			final String promptType) 
+			throws DataAccessException;
 
 	/**
 	 * Updates the privacy state on a survey response.
