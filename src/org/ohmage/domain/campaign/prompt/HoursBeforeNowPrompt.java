@@ -6,6 +6,10 @@ import org.ohmage.domain.campaign.response.HoursBeforeNowPromptResponse;
  * This class represents hours-before-now prompts.
  * 
  * @author John Jenkins
+ * 
+ * @deprecated This should no longer be used in favor of a numeric or 
+ * time-based representation. For the 3.0 release, this should no longer be
+ * present.
  */
 public class HoursBeforeNowPrompt extends BoundedPrompt {
 	/**
