@@ -197,28 +197,16 @@ public class VisualizationServices {
 						errorByteStream.write(chunk, 0, amountRead);
 					}
 					
-					// Trim the first line.
-					String[] errorContentArray = errorByteStream.toString().split("\n", 2);
-					
-					// If we didn't end up with two lines, then this is an 
-					// unknown error response.
-					if(errorContentArray.length == 2) {
-						throw new ServiceException(
-								ErrorCode.VISUALIZATION_GENERAL_ERROR,
-								"There was an error. Please, try again later.",
-								"The server returned the HTTP error code '" + 
-									httpUrlConnection.getResponseCode() + 
-									"' with the error '" + 
-									errorContentArray[1].trim() + 
-									"': " + 
-									urlString);
-					}
-					else {
-						throw new ServiceException(
-								ErrorCode.VISUALIZATION_GENERAL_ERROR, 
-								"The server returned a non-200 response: " + 
-									urlString);
-					}
+					// Echo the error.
+					throw new ServiceException(
+							ErrorCode.VISUALIZATION_GENERAL_ERROR,
+							"There was an error. Please, try again later.",
+							"The server returned the HTTP error code '" + 
+								httpUrlConnection.getResponseCode() + 
+								"' with the error '" + 
+								errorByteStream.toString() + 
+								"': " + 
+								urlString);
 				}
 			}
 			
