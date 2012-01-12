@@ -271,6 +271,9 @@ public final class SurveyResponseReadRequest extends UserRequest {
 	private final Boolean returnId;
 	private final Boolean suppressMetadata;
 	
+	private final long rowsToSkip;
+	private final long rowsToAnalyze;
+	
 	private Campaign campaign;
 	private List<SurveyResponse> surveyResponseList;
 	
@@ -302,6 +305,9 @@ public final class SurveyResponseReadRequest extends UserRequest {
 		Boolean tPrettyPrint = null;
 		Boolean tReturnId = null;
 		Boolean tSuppressMetadata = null;
+		
+		long tRowsToSkip = SurveyResponse.DEFAULT_NUM_ROWS_TO_SKIP;
+		long tRowsToAnalyze = SurveyResponse.DEFAULT_NUM_ROWS_TO_ANALYZE;
 		
 		if(! isFailed()) {
 		
@@ -510,6 +516,24 @@ public final class SurveyResponseReadRequest extends UserRequest {
 				else if(t.length == 1) {
 					tSuppressMetadata = SurveyResponseValidators.validateSuppressMetadata(t[0]);
 				}
+				
+				// Rows to skip
+				t = getParameterValues(InputKeys.SURVEY_ROWS_TO_SKIP);
+				if(t.length > 1) {
+					throw new ValidationException(ErrorCode.SURVEY_INVALID_ROWS_TO_SKIP, "Multiple values were given for the number of rows to skip: " + InputKeys.SURVEY_ROWS_TO_SKIP);
+				}
+				else if(t.length == 1) {
+					tRowsToSkip = SurveyResponseValidators.validateRowsToSkip(t[0]);
+				}
+				
+				// Rows to analyze
+				t = getParameterValues(InputKeys.SURVEY_ROWS_TO_ANALYZE);
+				if(t.length > 1) {
+					throw new ValidationException(ErrorCode.SURVEY_INVALID_ROWS_TO_ANALYZE, "Multiple values were given for the number of rows to analyze: " + InputKeys.SURVEY_ROWS_TO_ANALYZE);
+				}
+				else if(t.length == 1) {
+					tRowsToAnalyze = SurveyResponseValidators.validateRowsToAnalyze(t[0]);
+				}
 			}
 			catch (ValidationException e) {
 				e.failRequest(this);
@@ -536,6 +560,9 @@ public final class SurveyResponseReadRequest extends UserRequest {
 		prettyPrint = tPrettyPrint;
 		returnId = tReturnId;
 		suppressMetadata = tSuppressMetadata;
+		
+		rowsToSkip = tRowsToSkip;
+		rowsToAnalyze = tRowsToAnalyze;
 	}
 	
 	/**
@@ -597,7 +624,9 @@ public final class SurveyResponseReadRequest extends UserRequest {
 							privacyState, 
 							(URN_SPECIAL_ALL_LIST.equals(surveyIds)) ? null : surveyIds, 
 							(URN_SPECIAL_ALL_LIST.equals(promptIds)) ? null : promptIds, 
-							null
+							null,
+							rowsToSkip,
+							rowsToAnalyze
 						);
 			
 			LOGGER.info("Found " + surveyResponseList.size() + " results");

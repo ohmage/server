@@ -2,7 +2,9 @@ package org.ohmage.query.impl;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -23,6 +25,7 @@ import org.ohmage.exception.DataAccessException;
 import org.ohmage.exception.ErrorCodeException;
 import org.ohmage.query.ISurveyResponseQueries;
 import org.ohmage.util.StringUtils;
+import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.transaction.PlatformTransactionManager;
@@ -154,12 +157,16 @@ public class SurveyResponseQueries extends Query implements ISurveyResponseQueri
 		"SELECT u.username, c.urn, sr.id, sr.uuid, sr.client, " +
 			"sr.epoch_millis, sr.phone_timezone, " +
 			"sr.survey_id, sr.launch_context, " +
-			"sr.location_status, sr.location, srps.privacy_state " +
-		"FROM user u, campaign c, survey_response sr, survey_response_privacy_state srps " +
+			"sr.location_status, sr.location, srps.privacy_state, " +
+			"pr.prompt_id, pr.response, pr.repeatable_set_iteration " +
+		"FROM user u, campaign c, " +
+			"survey_response sr, survey_response_privacy_state srps, " +
+			"prompt_response pr " +
 		"WHERE c.urn = ? " +
 		"AND c.id = sr.campaign_id " +
 		"AND u.id = sr.user_id " +
-		"AND srps.id = sr.privacy_state_id";
+		"AND srps.id = sr.privacy_state_id " +
+		"AND pr.survey_response_id = sr.id";
 
 	private static final String SQL_WHERE_USERNAMES =
 		" AND u.username IN ";
@@ -175,9 +182,15 @@ public class SurveyResponseQueries extends Query implements ISurveyResponseQueri
 
 	private static final String SQL_WHERE_SURVEY_IDS =
 		" AND sr.survey_id IN ";
+	
+	private static final String SQL_WHERE_PROMPT_IDS =
+		" AND pr.prompt_id IN ";
 
 	private static final String SQL_WHERE_PROMPT_TYPE =
 		" AND pr.prompt_type = ?";
+	
+	private static final String SQL_ORDER_BY =
+		" ORDER BY sr.upload_timestamp";
 
 	// Retrieves all of the information about all prompt responses that pertain
 	// to a single survey response.
@@ -186,15 +199,6 @@ public class SurveyResponseQueries extends Query implements ISurveyResponseQueri
 		"FROM survey_response sr, prompt_response pr " +
 		"WHERE pr.survey_response_id = sr.id " +
 		"AND sr.uuid = ?";
-	
-	// Retrieves all of the information about all prompt responses that pertain
-	// to a single survey response.
-	private static final String SQL_GET_PROMPT_RESPONSES_WITH_ID = 
-		"SELECT pr.prompt_id, pr.prompt_type, pr.repeatable_set_id, pr.repeatable_set_iteration, pr.response " +
-		"FROM survey_response sr, prompt_response pr " +
-		"WHERE pr.survey_response_id = sr.id " +
-		"AND sr.uuid = ? " +
-		"AND pr.prompt_id in ";
 	
 	// Updates a survey response's privacy state.
 	private static final String SQL_UPDATE_SURVEY_RESPONSE_PRIVACY_STATE = 
@@ -755,7 +759,9 @@ public class SurveyResponseQueries extends Query implements ISurveyResponseQueri
 			final PrivacyState privacyState,
 			final Collection<String> surveyIds,
 			final Collection<String> promptIds,
-			final String promptType) 
+			final String promptType,
+			final long rowsToSkip,
+			final long rowsToAnalyze) 
 			throws DataAccessException {
 		
 		// Begin with the default SQL string.
@@ -785,25 +791,93 @@ public class SurveyResponseQueries extends Query implements ISurveyResponseQueri
 			sqlBuilder.append(SQL_WHERE_PRIVACY_STATE);
 			parameters.add(privacyState.toString());
 		}
-		if((surveyIds != null) && (surveyIds.size() > 0)) {
+		if(surveyIds != null) {
+			if(surveyIds.size() > 0) {
+				return Collections.emptyList();
+			}
+			
 			sqlBuilder.append(SQL_WHERE_SURVEY_IDS);
 			sqlBuilder.append(StringUtils.generateStatementPList(surveyIds.size()));
 			parameters.addAll(surveyIds);
+		}
+		if(promptIds != null) {
+			if(promptIds.size() > 0) {
+				return Collections.emptyList();
+			}
+			sqlBuilder.append(SQL_WHERE_PROMPT_IDS);
+			sqlBuilder.append(StringUtils.generateStatementPList(promptIds.size()));
+			parameters.addAll(promptIds);
 		}
 		if(promptType != null) {
 			sqlBuilder.append(SQL_WHERE_PROMPT_TYPE);
 			parameters.add(promptType);
 		}
 		
-		final List<SurveyResponse> result;
+		// Finally, add some ordering to facilitate consistent results in the
+		// paging system.
+		sqlBuilder.append(SQL_ORDER_BY);
+		
+		System.out.println(sqlBuilder.toString());
+		for(Object parameter : parameters) {
+			System.out.println(parameter);
+		}
+
+		// This is necessary to map tiny integers in SQL to Java's integer.
+		final Map<String, Class<?>> typeMapping = new HashMap<String, Class<?>>();
+		typeMapping.put("tinyint", Integer.class);
+		
 		try {
-			result =
-					getJdbcTemplate().query(
-						sqlBuilder.toString(),
-						parameters.toArray(),
-						new RowMapper<SurveyResponse>() {
-							@Override
-							public SurveyResponse mapRow(ResultSet rs, int rowNum) throws SQLException {
+			return getJdbcTemplate().query(
+				sqlBuilder.toString(),
+				parameters.toArray(),
+				new ResultSetExtractor<List<SurveyResponse>>() {
+					/**
+					 * First, it skips a set of rows based on the parameterized
+					 * number of rows to skip. Then, it aggregates the 
+					 * information from the number of desired rows.
+					 * 
+					 * There is an implicit assumption that the rows are 
+					 * ordered in some consistent manner between requests.
+					 * Otherwise, the results being skipped this time might not
+					 * be the same that were skipped / returned last time.
+					 */
+					@Override
+					public List<SurveyResponse> extractData(ResultSet rs)
+							throws SQLException,
+							org.springframework.dao.DataAccessException {
+						
+						// First, skip the rows to be skipped.
+						int rowsSkipped = 0;
+						while((rowsSkipped < rowsToSkip) && rs.next()) {
+							rowsSkipped++;
+						}
+						
+						// If we bailed out because there were no more rows to
+						// process, return an empty list.
+						if(rs.isAfterLast()) {
+							return Collections.emptyList();
+						}
+						
+						// Create a result map that will maintain which 
+						// SurveyResponse objects have already been built to
+						// keep from building them again and to, instead, 
+						// combine subsequent prompt responses into their
+						// appropriate survey response.
+						Map<String, SurveyResponse> result =
+								new HashMap<String, SurveyResponse>();
+						
+						// Cycle through the rows until the maximum number of
+						// rows has been processed or there are no more rows to
+						// process.
+						int rowsAnalyzed = 0;
+						while((rowsAnalyzed < rowsToAnalyze) && rs.next()) {
+							// Retrieve the survey response if it has already
+							// been created.
+							SurveyResponse surveyResponse = result.get(rs.getString("uuid"));
+							
+							// If the survey response has not yet been created,
+							// create it and add it to the map.
+							if(surveyResponse == null) {
 								try {
 									JSONObject locationJson = null;
 									String locationString = rs.getString("location");
@@ -811,9 +885,7 @@ public class SurveyResponseQueries extends Query implements ISurveyResponseQueri
 										locationJson = new JSONObject(locationString);
 									}
 									
-									// Create an object for this survey response.
-									final SurveyResponse currResult = 
-										new SurveyResponse(
+									surveyResponse = new SurveyResponse(
 											campaign.getSurveys().get(rs.getString("survey_id")),
 											UUID.fromString(rs.getString("uuid")),
 											rs.getString("username"),
@@ -826,7 +898,9 @@ public class SurveyResponseQueries extends Query implements ISurveyResponseQueri
 											locationJson,
 											SurveyResponse.PrivacyState.getValue(rs.getString("privacy_state")));
 									
-									return currResult;
+									result.put(
+											surveyResponse.getSurveyResponseId().toString(), 
+											surveyResponse);
 								}
 								catch(JSONException e) {
 									throw new SQLException("Error creating a JSONObject.", e);
@@ -838,13 +912,44 @@ public class SurveyResponseQueries extends Query implements ISurveyResponseQueri
 									throw new SQLException("Error creating the survey response information object.", e);
 								}
 							}
+							
+							// Now, process this prompt response.
+							try {
+								// Retrieve the corresponding prompt 
+								// information from the campaign.
+								Prompt prompt = 
+									campaign.getPrompt(
+											surveyResponse.getSurvey().getId(),
+											rs.getString("prompt_id")
+										);
+								
+								// Generate the prompt response and add it to
+								// the survey response.
+								surveyResponse.addPromptResponse(
+										prompt.createResponse(
+												rs.getString("response"),
+												(Integer) rs.getObject(
+														"repeatable_set_iteration", 
+														typeMapping)
+											)
+									);
+							}
+							catch(IllegalArgumentException e) {
+								throw new SQLException("The prompt response value from the database is not a valid response value for this prompt.", e);
+							}
+							
+							rowsAnalyzed++;
 						}
-					);
-
+						
+						// Finally, return only the survey responses as a list.
+						return new ArrayList<SurveyResponse>(result.values());
+					}
+				}
+			);
 		}
 		catch(org.springframework.dao.DataAccessException e) {
 			throw new DataAccessException(
-					"Error executing SQL '" + SQL_GET_SURVEY_RESPONSES + 
+					"Error executing SQL '" +  
 						sqlBuilder.toString() +
 						"' with parameters: " + 
 						campaign.getId() + " (campaign ID), " +
@@ -853,81 +958,10 @@ public class SurveyResponseQueries extends Query implements ISurveyResponseQueri
 						endDate + " (end date), " +
 						privacyState + " (privacy state), " + 
 						surveyIds + " (survey IDs), " +
+						promptIds + " (prompt IDs), " +
 						promptType + " (prompt type)",
 					e);
 		}
-		
-		final Map<String, Class<?>> typeMapping = new HashMap<String, Class<?>>();
-		typeMapping.put("tinyint", Integer.class);
-		
-		for(final SurveyResponse surveyResponse : result) {
-			final String surveyId = surveyResponse.getSurvey().getId();
-			
-			// Build the prompt SQL and its 
-			// corresponding array of parameters.
-			String promptSql;
-			List<Object> promptParameters = new LinkedList<Object>();
-			if((promptIds == null) || (promptIds.size() == 0)) {
-				promptSql = SQL_GET_PROMPT_RESPONSES;
-				promptParameters.add(
-						surveyResponse.getSurveyResponseId().toString());
-			}
-			else {
-				promptSql = 
-						SQL_GET_PROMPT_RESPONSES_WITH_ID +
-						StringUtils.generateStatementPList(promptIds.size());
-				promptParameters.add(surveyResponse.getSurveyResponseId().toString());
-				promptParameters.addAll(promptIds);
-			}
-			
-			// Retrieve all of the prompt responses for the
-			// current survey response.
-			try {
-				getJdbcTemplate().query(
-						promptSql,
-						promptParameters.toArray(),
-						new RowMapper<Object>() {
-							@Override
-							public Object mapRow(ResultSet rs, int rowNum) throws SQLException {
-								try {
-									// Retrieve the prompt
-									// from the 
-									// configuration.
-									Prompt prompt = 
-										campaign.getPrompt(
-												surveyId,
-												rs.getString("prompt_id")
-											);
-									
-									surveyResponse.addPromptResponse(
-											prompt.createResponse(
-													rs.getString("response"),
-													(Integer) rs.getObject(
-															"repeatable_set_iteration", 
-															typeMapping)
-												)
-										);
-								}
-								catch(IllegalArgumentException e) {
-									throw new SQLException("The prompt response value from the database is not a valid response value for this prompt.", e);
-								}
-								
-								return null;
-							}
-						}
-					);
-			}
-			catch(org.springframework.dao.DataAccessException e) {
-				throw new DataAccessException(
-						"Error executing SQL '" + 
-							promptSql + 
-							"' with parameter(s): " + 
-							promptParameters,
-						e);
-			}
-		}
-				
-		return result;
 	}
 	
 	/* (non-Javadoc)

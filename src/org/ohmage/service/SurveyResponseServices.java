@@ -214,6 +214,12 @@ public final class SurveyResponseServices {
 	 * @param promptType A prompt type that limits all responses to those of
 	 * 					 exactly this prompt type. Optional.
 	 * 
+	 * @param rowsToSkip The number of rows to skip once the result has been
+	 * 					 aggregated from the server.
+	 * 
+	 * @param rowsToAnalyze The number of rows to analyze once the rows to skip
+	 * 						have been skipped.
+	 * 
 	 * @return Returns a, possibly empty but never null, list of survey 
 	 * 		   responses that match the given criteria.
 	 * 
@@ -226,7 +232,9 @@ public final class SurveyResponseServices {
 			final SurveyResponse.PrivacyState privacyState, 
 			final Collection<String> surveyIds, 
 			final Collection<String> promptIds, 
-			final String promptType) throws ServiceException {
+			final String promptType,
+			final long rowsToSkip,
+			final long rowsToAnalyze) throws ServiceException {
 		
 		try {
 			return surveyResponseQueries.retrieveSurveyResponseDynamically(
@@ -237,155 +245,13 @@ public final class SurveyResponseServices {
 					privacyState, 
 					surveyIds, 
 					promptIds, 
-					promptType);
+					promptType,
+					rowsToSkip,
+					rowsToAnalyze);
 		}
 		catch(DataAccessException e) {
 			throw new ServiceException(e);
 		}
-		
-		/*
-		String campaignId = campaign.getId();
-		
-		try {
-			// Populate the list with all of the survey response IDs.
-			List<UUID> surveyResponseIds = null;
-			
-			// Trim from the list all survey responses not made by a specified
-			// user.
-			if(username != null) {
-				surveyResponseIds = surveyResponseQueries.retrieveSurveyResponseIdsFromUser(campaignId, username);
-			}
-			
-			// Trim from the list all survey responses not made by a specified
-			// client
-			if(client != null) {
-				if(surveyResponseIds == null) {
-					surveyResponseIds = surveyResponseQueries.retrieveSurveyResponseIdsWithClient(campaignId, client);
-				}
-				else {
-					surveyResponseIds.retainAll(surveyResponseQueries.retrieveSurveyResponseIdsWithClient(campaignId, client));
-				}
-			}
-			
-			// Trim from the list all survey responses made before some date.
-			if(startDate != null) {
-				if(surveyResponseIds == null) {
-					surveyResponseIds = surveyResponseQueries.retrieveSurveyResponseIdsAfterDate(campaignId, startDate);
-				}
-				else {
-					surveyResponseIds.retainAll(surveyResponseQueries.retrieveSurveyResponseIdsAfterDate(campaignId, startDate));
-				}
-			}
-			
-			// Trim from the list all survey responses made after some date.
-			if(endDate != null) {
-				if(surveyResponseIds == null) {
-					surveyResponseIds = surveyResponseQueries.retrieveSurveyResponseIdsBeforeDate(campaignId, endDate);
-				}
-				else {
-					surveyResponseIds.retainAll(surveyResponseQueries.retrieveSurveyResponseIdsBeforeDate(campaignId, endDate));
-				}
-			}
-			
-			// Trim from the list all survey responses without a specified 
-			// privacy state.
-			if(privacyState != null) {
-				if(surveyResponseIds == null) {
-					surveyResponseIds = surveyResponseQueries.retrieveSurveyResponseIdsWithPrivacyState(campaignId, privacyState);
-				}
-				else {
-					surveyResponseIds.retainAll(surveyResponseQueries.retrieveSurveyResponseIdsWithPrivacyState(campaignId, privacyState));
-				}
-			}
-			
-			// Trim from the list all survey responses without certain survey
-			// IDs.
-			if(surveyIds != null) {
-				Set<UUID> surveyIdIds = new HashSet<UUID>();
-				for(String surveyId : surveyIds) {
-					surveyIdIds.addAll(surveyResponseQueries.retrieveSurveyResponseIdsWithSurveyId(campaignId, surveyId));
-				}
-				
-				if(surveyResponseIds == null) {
-					surveyResponseIds = new LinkedList<UUID>(surveyIdIds);
-				}
-				else {
-					surveyResponseIds.retainAll(surveyIdIds);
-				}
-			}
-			
-			// Trim from the list all survey responses without certain prompt
-			// IDs.
-			if(promptIds != null) {
-				
-				Set<UUID> promptIdIds = new HashSet<UUID>();
-				for(String promptId : promptIds) {
-					promptIdIds.addAll(surveyResponseQueries.retrieveSurveyResponseIdsWithPromptId(campaignId, promptId));
-				}
-				
-				if(surveyResponseIds == null) {
-					surveyResponseIds = new LinkedList<UUID>(promptIdIds);
-				}
-				else {
-					surveyResponseIds.retainAll(promptIdIds);
-				}
-			}
-			
-			// Trim from the list all survey responses without a certain prompt
-			// type.
-			if(promptType != null) {
-				if(surveyResponseIds == null) {
-					surveyResponseIds = surveyResponseQueries.retrieveSurveyResponseIdsWithPromptType(campaignId, promptType);
-				}
-				else {
-					surveyResponseIds.retainAll(surveyResponseQueries.retrieveSurveyResponseIdsWithPromptType(campaignId, promptType));
-				}
-			}
-			
-			if(surveyResponseIds == null) {
-				List<UUID> allIds = 
-					surveyResponseQueries.retrieveSurveyResponseIdsFromCampaign(campaignId);
-				
-				if(allIds.size() == 0) {
-					return Collections.emptyList();
-				}
-				else {
-					List<SurveyResponse> surveyResponses = new ArrayList<SurveyResponse>(allIds.size());
-					for(UUID surveyResponseId : allIds) {
-						surveyResponses.add(surveyResponseQueries.retrieveSurveyResponseFromId(campaign, surveyResponseId));
-					}
-					
-					return surveyResponses;
-				}
-			}
-			else if(surveyResponseIds.size() == 0) {
-				return Collections.emptyList();
-			}
-			else {
-				List<SurveyResponse> surveyResponses = new ArrayList<SurveyResponse>(surveyResponseIds.size());
-				for(UUID surveyResponseId : surveyResponseIds) {
-					surveyResponses.add(surveyResponseQueries.retrieveSurveyResponseFromId(campaign, surveyResponseId));
-				}
-				
-				// This is a bit of a hack, but it avoids having to generate
-				// John's dreaded dynamic SQL. :)
-				
-				// If the surveyResponses contain prompt responses for prompt 
-				// ids not present in the query to our API, those prompt 
-				// responses need to be pruned out of the SurveyResponse 
-				if(promptIds != null && ! (promptIds.size() == 1 && new ArrayList<String>(promptIds).get(0).equals(SurveyResponseReadRequest.URN_SPECIAL_ALL))) {
-					for(SurveyResponse surveyResponse : surveyResponses) {
-						surveyResponse.filterPromptResponseByPromptIds(promptIds);
-					}
-				}
-				
-				return surveyResponses;
-			}
-		}
-		catch(DataAccessException e) {
-			throw new ServiceException(e);
-		}
-		*/
 	}
 	
 	/**

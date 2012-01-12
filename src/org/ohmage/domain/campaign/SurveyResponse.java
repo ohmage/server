@@ -60,6 +60,9 @@ public class SurveyResponse {
 	
 	private static final String JSON_KEY_PROMPT_VALUE = "value";
 	
+	public static final long DEFAULT_NUM_ROWS_TO_SKIP = 0;
+	public static final long DEFAULT_NUM_ROWS_TO_ANALYZE = Long.MAX_VALUE;
+	
 	private final String username;
 	private final String campaignId;
 	private final String client;

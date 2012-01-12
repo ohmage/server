@@ -537,7 +537,65 @@ public final class SurveyResponseValidators {
 				ErrorCode.SURVEY_INVALID_COLLAPSE_VALUE, 
 				"The collapse value is invalid: ");
 	}
+	
+	/**
+	 * Validates the number of rows to skip when processing the number of
+	 * survey responses.
+	 * 
+	 * @param rowsToSkip The value to be validated.
+	 * 
+	 * @return The number of rows to skip as given by the user or the default
+	 * 		   value {@link SurveyResponse#DEFAULT_NUM_ROWS_TO_SKIP}.
+	 * 
+	 * @throws ValidationException Thrown if the value cannot be parsed.
+	 */
+	public static long validateRowsToSkip(final String rowsToSkip)
+			throws ValidationException {
+		
+		if(StringUtils.isEmptyOrWhitespaceOnly(rowsToSkip)) {
+			return SurveyResponse.DEFAULT_NUM_ROWS_TO_SKIP;
+		}
+		
+		try {
+			return Long.decode(rowsToSkip);
+		}
+		catch(NumberFormatException e) {
+			throw new ValidationException(
+					ErrorCode.SURVEY_INVALID_ROWS_TO_SKIP,
+					"The number of rows to skip was not a number.",
+					e);
+		}
+	}
 
+	/**
+	 * Validates the number of rows to analyze when processing survey 
+	 * responses.
+	 * 
+	 * @param rowsToAnalyze The value to be validated.
+	 * 
+	 * @return The number of rows to analyze as given by the user or the 
+	 * 		   default value 
+	 * 		   {@link SurveyResponse#DEFAULT_NUM_ROWS_TO_ANALYZE}.
+	 * 
+	 * @throws ValidationException Thrown if the value cannot be parsed.
+	 */
+	public static long validateRowsToAnalyze(final String rowsToAnalyze)
+			throws ValidationException {
+		
+		if(StringUtils.isEmptyOrWhitespaceOnly(rowsToAnalyze)) {
+			return SurveyResponse.DEFAULT_NUM_ROWS_TO_ANALYZE;
+		}
+		
+		try {
+			return Long.decode(rowsToAnalyze);
+		}
+		catch(NumberFormatException e) {
+			throw new ValidationException(
+					ErrorCode.SURVEY_INVALID_ROWS_TO_ANALYZE,
+					"The number of rows to analyze was not a number.",
+					e);
+		}
+	}
 
 	/**
 	 * Utility for validating optional booleans where booleans must adhere to
