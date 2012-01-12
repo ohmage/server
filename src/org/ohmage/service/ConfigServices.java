@@ -1,5 +1,7 @@
 package org.ohmage.service;
 
+import java.util.List;
+
 import org.ohmage.cache.PreferenceCache;
 import org.ohmage.domain.ServerConfig;
 import org.ohmage.domain.campaign.SurveyResponse;
@@ -69,8 +71,8 @@ public class ConfigServices {
 			throw new ServiceException("The survey response privacy state is not a valid survey response privacy state.");
 		}
 		
-		SurveyResponse.PrivacyState[] surveyResponsePrivacyStates =
-			SurveyResponse.PrivacyState.values();
+		List<SurveyResponse.PrivacyState> surveyResponsePrivacyStates =
+				SurveyResponseServices.instance().getSurveyResponsePrivacyStates();
 		
 		boolean defaultCampaignCreationPrivilege;
 		try {

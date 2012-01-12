@@ -38,6 +38,11 @@ import org.springframework.transaction.support.DefaultTransactionDefinition;
  * @author Joshua Selsky
  */
 public class SurveyResponseQueries extends Query implements ISurveyResponseQueries {
+	// Retrieves all of the survey response privacy states.
+	private static final String SQL_GET_SURVEY_RESPONSE_PRIVACY_STATES =
+		"SELECT privacy_state " +
+		"FROM survey_response_privacy_state";
+	
 	// Retrieves the ID for all survey responses in a campaign.
 	private static final String SQL_GET_IDS_FOR_CAMPAIGN =
 		"SELECT sr.uuid " +
@@ -210,6 +215,47 @@ public class SurveyResponseQueries extends Query implements ISurveyResponseQueri
 	 */
 	private SurveyResponseQueries(DataSource dataSource) {
 		super(dataSource);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.ohmage.query.ISurveyResponseQueries#retrieveSurveyResponsePrivacyStates()
+	 */
+	@Override
+	public List<PrivacyState> retrieveSurveyResponsePrivacyStates()
+			throws DataAccessException {
+		try {
+			return getJdbcTemplate().query(
+					SQL_GET_SURVEY_RESPONSE_PRIVACY_STATES,
+					new RowMapper<SurveyResponse.PrivacyState>() {
+						/**
+						 * Reads the survey response privacy states, converts
+						 * them into a SurveyResponse.PrivacyState object, and
+						 * returns it.
+						 */
+						@Override
+						public PrivacyState mapRow(ResultSet rs, int rowNum)
+								throws SQLException {
+							
+							try {
+								return SurveyResponse.PrivacyState.getValue(
+										rs.getString("privacy_state"));
+							}
+							catch(IllegalArgumentException e) {
+								throw new SQLException(
+										"The privacy state was unknown.",
+										e);
+							}
+						}					
+					});
+		}
+		catch(org.springframework.dao.DataAccessException e) {
+			throw new DataAccessException(
+					"Error executing SQL '" + 
+						SQL_GET_SURVEY_RESPONSE_PRIVACY_STATES +
+						"'.",
+					e);
+		}
 	}
 	
 	/* (non-Javadoc)
