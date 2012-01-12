@@ -920,6 +920,11 @@ public final class SurveyResponseReadRequest extends UserRequest {
 					// the resulting JSON with information about all of the
 					// prompts even though they don't have any responses 
 					// associated with them.
+					// FIXME: This shouldn't be conditional on the number of
+					// responses found. We should create headers for all of the
+					// requested prompt IDs (either via the list of survey IDs
+					// or the list of prompt IDs) or none of the prompt IDs if
+					// prompts aren't requested.
 					if(surveyResponseList.isEmpty()) {
 						// If the user-supplied list of survey IDs is present,
 						if(this.surveyIds != null) {
@@ -1284,8 +1289,7 @@ public final class SurveyResponseReadRequest extends UserRequest {
 										promptId, 
 										prompts
 											.get(promptId)
-											.get(JSON_KEY_CONTEXT)
-											.toString());
+											.get(JSON_KEY_CONTEXT));
 								
 								resultBuilder
 									.append('#')
