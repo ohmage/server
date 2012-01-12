@@ -916,29 +916,49 @@ public final class SurveyResponseReadRequest extends UserRequest {
 					JSONArray launchContexts = new JSONArray();
 					Map<String, JSONObject> prompts = new HashMap<String, JSONObject>();
 					
+					// If the results are empty, then we still want to populate
+					// the resulting JSON with information about all of the
+					// prompts even though they don't have any responses 
+					// associated with them.
 					if(surveyResponseList.isEmpty()) {
+						// If the user-supplied list of survey IDs is present,
 						if(this.surveyIds != null) {
 							Map<String, Survey> campaignSurveys = campaign.getSurveys();
+							// If the user asked for all surveys for this
+							// campaign, then populate the prompt information
+							// with all of the data about all of the prompts in
+							// all of the surveys in this campaign.
 							if(this.surveyIds.equals(URN_SPECIAL_ALL_LIST)) {
 								for(Survey currSurvey : campaignSurveys.values()) {
 									populatePrompts(currSurvey.getSurveyItems(), prompts);
 								}
 							}
+							// Otherwise, populate the prompt information only
+							// with the data about the requested surveys.
 							else {
 								for(String surveyId : this.surveyIds) {
 									populatePrompts(campaignSurveys.get(surveyId).getSurveyItems(), prompts);
 								}
 							}
 						}
+						// If the user-supplied list of prompt IDs is present,
 						else if(promptIds != null) {
+							// If the user asked for all prompts for this
+							// campaign, then populate the prompt information
+							// with all of the data about all of the prompts in
+							// this campaign.
 							if(this.promptIds.equals(URN_SPECIAL_ALL_LIST)) {
 								for(Survey currSurvey : campaign.getSurveys().values()) {
 									populatePrompts(currSurvey.getSurveyItems(), prompts);
 								}
 							}
+							// Otherwise, populate the prompt information with
+							// the data about only the requested prompts.
 							else {
 								int currNumPrompts = 0;
-								Map<Integer, SurveyItem> tempPromptMap = new HashMap<Integer, SurveyItem>(promptIds.size());
+								Map<Integer, SurveyItem> tempPromptMap = 
+										new HashMap<Integer, SurveyItem>(promptIds.size());
+								
 								for(String promptId : promptIds) {
 									tempPromptMap.put(currNumPrompts, campaign.getPrompt(campaign.getSurveyIdForPromptId(promptId), promptId));
 									currNumPrompts++;
@@ -948,20 +968,41 @@ public final class SurveyResponseReadRequest extends UserRequest {
 							}
 						}
 					}
+					// If the results are non-empty, we need to populate the
+					// prompt information only for those prompts to which the
+					// user queried about.
 					else {
 						Set<String> unqiueSurveyIds = new HashSet<String>();
 						Set<String> uniquePromptIds = new HashSet<String>();
 						
+						// For each of the survey responses in the result,
 						for(SurveyResponse surveyResponse : surveyResponseList) {
 							String surveyId = surveyResponse.getSurvey().getId();
 							
+							// If the survey with which this survey response is
+							// associated has not yet been processed, process
+							// it.
 							if(! unqiueSurveyIds.contains(surveyId)) {
+								// Add to the list of surveys that have been
+								// processed so that no subsequent survey
+								// responses that are associated with this 
+								// survey cause it to be processed again.
 								unqiueSurveyIds.add(surveyId);
 								
+								// Keep track of the unique number of prompts
+								// that we process.
 								int currNumPrompts = 0;
+								// Get all of the unique prompt IDs for this
+								// survey response.
 								Set<String> promptIds = surveyResponse.getPromptIds();
+								// Create a a temporary map of Integers to
+								// Prompt objects.
 								Map<Integer, SurveyItem> tempPrompts =
 									new HashMap<Integer, SurveyItem>(promptIds.size());
+								
+								// Retrieve all of the unique prompts that have
+								// not yet been processed and add them to the 
+								// map.
 								for(String promptId : promptIds) {
 									if(! uniquePromptIds.contains(promptId)) {
 										tempPrompts.put(currNumPrompts, campaign.getPrompt(surveyId, promptId));
@@ -969,14 +1010,20 @@ public final class SurveyResponseReadRequest extends UserRequest {
 									}
 								}
 								
+								// Populate the prompts JSON with the 
+								// information about all of the distinct 
+								// prompts from this survey response.
 								populatePrompts(tempPrompts, prompts);
 							}
 						}
 					}
 					
-					int numResponses = 0;
+					// Process each of the survey responses and keep track of
+					// the number of prompt responses.
+					int numSurveyResponses = surveyResponseList.size();
+					int numPromptResponses = 0;
 					for(SurveyResponse surveyResponse : surveyResponseList) {
-						numResponses += processResponses(allColumns, 
+						numPromptResponses += processResponses(allColumns, 
 								surveyResponse, 
 								surveyResponse.getResponses(), 
 								prompts, 
@@ -991,11 +1038,12 @@ public final class SurveyResponseReadRequest extends UserRequest {
 								launchContexts
 							);
 					}
-					int promptCount = numResponses;
 					
 					// Add all of the applicable output stuff.
 					JSONObject result = new JSONObject();
 					
+					// For each of the requested columns, add their respective
+					// data to the result.
 					if(allColumns || columns.contains(ColumnKey.USER_ID)) {
 						JSONObject values = new JSONObject();
 						values.put(JSON_KEY_VALUES, usernames);
@@ -1099,7 +1147,20 @@ public final class SurveyResponseReadRequest extends UserRequest {
 						}
 					}
 					
+					// If the user requested to collapse the results, create a 
+					// new column called count and set the initial value for
+					// every existing row to 1. Then, create a map of string
+					// representations of data to their original row. Cycle
+					// through the indices creating a string by concatenating 
+					// the value at the given index for each column and  
+					// checking the map if the string already exists. If it  
+					// does not exist, add the string value and have it point  
+					// to the current index. If it does exist, go to that 
+					// column, increase the count, and delete this row by
+					// deleting whatever is at the current index in every  
+					// column.
 					if((collapse != null) && collapse) {
+						// Get the key for each row.
 						JSONArray keys = new JSONArray();
 						Iterator<?> keysIter = result.keys();
 						while(keysIter.hasNext()) {
@@ -1107,8 +1168,10 @@ public final class SurveyResponseReadRequest extends UserRequest {
 						}
 						int keyLength = keys.length();
 						
+						// Create a new "count" column and initialize every
+						// count to 1.
 						JSONArray counts = new JSONArray();
-						for(int i = 0; i < numResponses; i++) {
+						for(int i = 0; i < numSurveyResponses; i++) {
 							counts.put(1);
 						}
 						JSONObject countObject = new JSONObject();
@@ -1116,8 +1179,10 @@ public final class SurveyResponseReadRequest extends UserRequest {
 						result.put("urn:ohmage:context:count", countObject);
 						keys.put("urn:ohmage:context:count");
 						
+						// Cycle through the responses.
 						Map<String, Integer> valueToIndexMap = new HashMap<String, Integer>();
-						for(int i = 0; i < numResponses; i++) {
+						for(int i = 0; i < numSurveyResponses; i++) {
+							// Build the string.
 							StringBuilder currResultBuilder = new StringBuilder();
 							
 							for(int j = 0; j < keyLength; j++) {
@@ -1128,7 +1193,11 @@ public final class SurveyResponseReadRequest extends UserRequest {
 								}
 							}
 							
+							// Check if the string exists.
 							String currResultString = currResultBuilder.toString();
+							// If so, go to that index in every column 
+							// including the count and delete it, effectively
+							// deleting that row.
 							if(valueToIndexMap.containsKey(currResultString)) {
 								int count = result.getJSONObject("urn:ohmage:context:count").getJSONArray(JSON_KEY_VALUES).getInt(valueToIndexMap.get(currResultString)) + 1;
 								result.getJSONObject("urn:ohmage:context:count").getJSONArray(JSON_KEY_VALUES).put(valueToIndexMap.get(currResultString).intValue(), count);
@@ -1138,21 +1207,23 @@ public final class SurveyResponseReadRequest extends UserRequest {
 								}
 
 								i--;
-								numResponses--;
+								numSurveyResponses--;
 							}
+							// If not, add it to the map.
 							else {
 								valueToIndexMap.put(currResultString, i);
 							}
 						}
 					}
 					
+					// If metadata is not suppressed, create it.
 					JSONObject metadata = null;
 					if((suppressMetadata == null) || (! suppressMetadata)) {
 						metadata = new JSONObject();
 						
 						metadata.put(InputKeys.CAMPAIGN_URN, campaignId);
 						metadata.put(JSON_KEY_NUM_SURVEYS, surveyResponseList.size());
-						metadata.put(JSON_KEY_NUM_PROMPTS, promptCount);
+						metadata.put(JSON_KEY_NUM_PROMPTS, numPromptResponses);
 					}
 					
 					if(OutputFormat.JSON_COLUMNS.equals(outputFormat)) {
@@ -1180,12 +1251,18 @@ public final class SurveyResponseReadRequest extends UserRequest {
 							resultString = resultJson.toString();
 						}
 					}
+					// For CSV output,
 					else if(OutputFormat.CSV.equals(outputFormat)) {
+						// Mark it as an attachment.
 						httpResponse.setContentType("text/csv");
-						httpResponse.setHeader("Content-Disposition", "attachment; filename=SurveyResponses.csv");
+						httpResponse.setHeader(
+								"Content-Disposition", 
+								"attachment; filename=SurveyResponses.csv");
 
 						StringBuilder resultBuilder = new StringBuilder();
 						
+						// If the metadata is not suppressed, add it to the
+						// output builder.
 						if((suppressMetadata == null) || (! suppressMetadata)) {
 							metadata.put(JSON_KEY_RESULT, RESULT_SUCCESS);
 							
@@ -1194,22 +1271,34 @@ public final class SurveyResponseReadRequest extends UserRequest {
 							resultBuilder.append("## end metadata\n");
 						}
 						
-						// Prompt contexts.
+						// Add the prompt contexts to the output builder if 
+						// prompts were desired.
 						if(allColumns || columns.contains(ColumnKey.PROMPT_RESPONSE)) {
 							resultBuilder.append("## begin prompt contexts\n");
 							for(String promptId : prompts.keySet()) {
 								JSONObject promptJson = new JSONObject();
 								
-								promptJson.put(promptId, prompts.get(promptId).get(JSON_KEY_CONTEXT).toString());
+								// Use the already-generated JSON from each of
+								// the prompts.
+								promptJson.put(
+										promptId, 
+										prompts
+											.get(promptId)
+											.get(JSON_KEY_CONTEXT)
+											.toString());
 								
-								resultBuilder.append('#').append(promptJson.toString()).append('\n');
+								resultBuilder
+									.append('#')
+									.append(promptJson.toString())
+									.append('\n');
 							}
 							resultBuilder.append("## end prompt contexts\n");
 						}
 						
-						// Data.
+						// Begin the data section of the CSV.
 						resultBuilder.append("## begin data\n");
 
+						// We need to get all of the column header names.
 						JSONArray keys = new JSONArray();
 						Iterator<?> keysIter = result.keys();
 						while(keysIter.hasNext()) {
@@ -1217,6 +1306,7 @@ public final class SurveyResponseReadRequest extends UserRequest {
 						}
 						int keyLength = keys.length();
 						
+						// Create a comma-separated list of the header names.
 						resultBuilder.append('#');
 						for(int i = 0; i < keyLength; i++) {
 							String header = keys.getString(i);
@@ -1235,13 +1325,21 @@ public final class SurveyResponseReadRequest extends UserRequest {
 						}
 						resultBuilder.append('\n');
 						
-						for(int i = 0; i < numResponses; i++) {
+						// For each of the responses, 
+						for(int i = 0; i < numSurveyResponses; i++) {
 							for(int j = 0; j < keyLength; j++) {
-								resultBuilder.append(
+								Object currResult = 
 										result
 											.getJSONObject(keys.getString(j))
 											.getJSONArray(JSON_KEY_VALUES)
-											.get(i));
+											.get(i);
+								
+								if(JSONObject.NULL.equals(currResult)) {
+									resultBuilder.append("");
+								}
+								else {
+									resultBuilder.append(currResult);
+								}
 								
 								if((j + 1) != keyLength) {
 									resultBuilder.append(',');
@@ -1381,7 +1479,7 @@ public final class SurveyResponseReadRequest extends UserRequest {
 			JSONArray surveyDescriptions, JSONArray launchContexts) 
 			throws JSONException {
 
-		// Add each of the response-wide pieces of information.
+		// Add each of the survey response-wide pieces of information.
 		if(allColumns || columns.contains(ColumnKey.USER_ID)) {
 			usernames.put(surveyResponse.getUsername());
 		}
@@ -1486,7 +1584,7 @@ public final class SurveyResponseReadRequest extends UserRequest {
 		// iteration.
 		Set<String> promptIdsWithResponse = new HashSet<String>();
 		
-		// Get the indicies of each response in the list of responses and then
+		// Get the indices of each response in the list of responses and then
 		// sort them to ensure that we process each response in the correct 
 		// numeric order.
 		List<Integer> indices = new ArrayList<Integer>(responses.keySet());
@@ -1517,8 +1615,17 @@ public final class SurveyResponseReadRequest extends UserRequest {
 				}
 			}
 			// FIXME
-			// If the response is a repeatable set response, I am not sure what
-			// to do and this is broken.
+			// The problem is that we need to recurse, but if we have already
+			// added all of the survey response stuff then we don't want to
+			// add that again. If I remember correctly, we need to create new
+			// columns with headers that are like, "prompt1name1", 
+			// "prompt1name2", etc. where we append the iteration number after
+			// the prompt name. The problem is that before this function is 
+			// called we called a generic header creator for each prompt. This
+			// prompt would have had a header that was created but only the 
+			// one. We need to duplicate that header, JSONObject.NULL-out all 
+			// of the previous responses, and give it a new header with the
+			// iteration number.
 			else if(response instanceof RepeatableSetResponse) {
 				/*
 				RepeatableSetResponse repeatableSetResponse =
@@ -1536,9 +1643,10 @@ public final class SurveyResponseReadRequest extends UserRequest {
 							repeatableSetResponses.get(rsIndex), 
 							prompts, 
 							usernames, clients, privacyStates, 
-							timestamps, utcTimestamps, timezones, 
+							timestamps, utcTimestamps, 
+							epochMillisTimestamps, timezones, 
 							locationStatuses, locationLongitude,
-							locationLatitude, locationTimestamp,
+							locationLatitude, locationTime, locationTimeZone,
 							locationAccuracy, locationProvider,
 							surveyIds, surveyTitles, surveyDescriptions, 
 							launchContexts
@@ -1549,7 +1657,7 @@ public final class SurveyResponseReadRequest extends UserRequest {
 		}
 		
 		// Finally, get all of the prompts that didn't receive a value in this
-		// iteration and add them to the list.
+		// iteration and give them a value of JSONObject.NULL.
 		if(allColumns || columns.contains(ColumnKey.PROMPT_RESPONSE)) {
 			Set<String> promptIdsWithoutResponse = 
 				new HashSet<String>(prompts.keySet());
