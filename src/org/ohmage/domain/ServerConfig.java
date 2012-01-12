@@ -1,5 +1,8 @@
 package org.ohmage.domain;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -46,7 +49,7 @@ public class ServerConfig {
 	private final String appBuild;
 	private final boolean defaultCampaignCreationPrivilege;
 	private final SurveyResponse.PrivacyState defaultSurveyResponsePrivacyState;
-	private final SurveyResponse.PrivacyState[] surveyResponsePrivacyStates;
+	private final List<SurveyResponse.PrivacyState> surveyResponsePrivacyStates;
 	
 	/**
 	 * Creates a new server configuration.
@@ -61,8 +64,8 @@ public class ServerConfig {
 	 * 											privacy state for newly 
 	 * 											uploaded survey responses.
 	 * 
-	 * @param surveyResponsePrivacyStates An array of all of the survey 
-	 * 									  response privacy states.
+	 * @param surveyResponsePrivacyStates A list of all of the survey response
+	 * 									  privacy states.
 	 * 
 	 * @throws IllegalArgumentException Thrown if any of the values are invalid
 	 * 									or null.
@@ -70,7 +73,7 @@ public class ServerConfig {
 	public ServerConfig(final String appName, final String appVersion,
 			final String appBuild, 
 			final SurveyResponse.PrivacyState defaultSurveyResponsePrivacyState,
-			final SurveyResponse.PrivacyState[] surveyResponsePrivacyStates,
+			final List<SurveyResponse.PrivacyState> surveyResponsePrivacyStates,
 			final boolean defaultCampaignCreationPrivilege) {
 		
 		if(StringUtils.isEmptyOrWhitespaceOnly(appName)) {
@@ -96,10 +99,7 @@ public class ServerConfig {
 		this.defaultSurveyResponsePrivacyState = defaultSurveyResponsePrivacyState;
 		
 		this.surveyResponsePrivacyStates = 
-			new SurveyResponse.PrivacyState[surveyResponsePrivacyStates.length];
-		for(int i = 0; i < surveyResponsePrivacyStates.length; i++) {
-			this.surveyResponsePrivacyStates[i] = surveyResponsePrivacyStates[i];
-		}
+			new ArrayList<SurveyResponse.PrivacyState>(surveyResponsePrivacyStates);
 	}
 	
 	/**
@@ -167,13 +167,14 @@ public class ServerConfig {
 			
 			int numPrivacyStates = surveyResponsePrivacyStatesJson.length();
 			surveyResponsePrivacyStates = 
-				new SurveyResponse.PrivacyState[numPrivacyStates];
+				new ArrayList<SurveyResponse.PrivacyState>(numPrivacyStates);
 			
 			for(int i = 0; i < numPrivacyStates; i++) {
-				surveyResponsePrivacyStates[i] = 
-					SurveyResponse.PrivacyState.getValue(
-							surveyResponsePrivacyStatesJson.getString(i)
-						);
+				surveyResponsePrivacyStates.add( 
+						SurveyResponse.PrivacyState.getValue(
+								surveyResponsePrivacyStatesJson.getString(i)
+						)
+				);
 			}
 		}
 		catch(JSONException e) {
@@ -232,15 +233,8 @@ public class ServerConfig {
 	 * 
 	 * @return An array of all of the survey response privacy states.
 	 */
-	public final SurveyResponse.PrivacyState[] getSurveyResponsePrivacyStates() {
-		SurveyResponse.PrivacyState[] result = 
-			new SurveyResponse.PrivacyState[surveyResponsePrivacyStates.length];
-		
-		for(int i = 0; i < surveyResponsePrivacyStates.length; i++) {
-			result[i] = surveyResponsePrivacyStates[i];
-		}
-		
-		return result;
+	public final List<SurveyResponse.PrivacyState> getSurveyResponsePrivacyStates() {
+		return new ArrayList<SurveyResponse.PrivacyState>(surveyResponsePrivacyStates);
 	}
 	
 	/**

@@ -120,6 +120,24 @@ public final class SurveyResponseServices {
 	}
 	
 	/**
+	 * Retrieves all of the survey response privacy states.
+	 * 
+	 * @return A list of the survey response privacy states.
+	 * 
+	 * @throws ServiceException Thrown if there is an error.
+	 */
+	public List<SurveyResponse.PrivacyState> getSurveyResponsePrivacyStates() 
+			throws ServiceException {
+		
+		try {
+			return surveyResponseQueries.retrieveSurveyResponsePrivacyStates();
+		}
+		catch(DataAccessException e) {
+			throw new ServiceException(e);
+		}
+	}
+	
+	/**
 	 * Verifies that, for all photo prompt responses, a corresponding image
 	 * exists in the list of images.
 	 * 

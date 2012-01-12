@@ -10,6 +10,15 @@ import org.ohmage.domain.campaign.SurveyResponse;
 import org.ohmage.exception.DataAccessException;
 
 public interface ISurveyResponseQueries {
+	/**
+	 * Returns the survey response privacy states.
+	 * 
+	 * @return A list of all of the survey response privacy states.
+	 * 
+	 * @throws DataAccessException Thrown if there is an error.
+	 */
+	List<SurveyResponse.PrivacyState> retrieveSurveyResponsePrivacyStates()
+			throws DataAccessException;
 
 	/**
 	 * Retrieves the survey response ID for all of the survey responses made in
