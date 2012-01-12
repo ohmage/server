@@ -1328,11 +1328,18 @@ public final class SurveyResponseReadRequest extends UserRequest {
 						// For each of the responses, 
 						for(int i = 0; i < numSurveyResponses; i++) {
 							for(int j = 0; j < keyLength; j++) {
-								resultBuilder.append(
+								Object currResult = 
 										result
 											.getJSONObject(keys.getString(j))
 											.getJSONArray(JSON_KEY_VALUES)
-											.get(i));
+											.get(i);
+								
+								if(JSONObject.NULL.equals(currResult)) {
+									resultBuilder.append("");
+								}
+								else {
+									resultBuilder.append(currResult);
+								}
 								
 								if((j + 1) != keyLength) {
 									resultBuilder.append(',');
