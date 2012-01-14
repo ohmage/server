@@ -29,16 +29,24 @@ import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.domain.Location;
 import org.ohmage.domain.campaign.Campaign;
 import org.ohmage.domain.campaign.Prompt;
+import org.ohmage.domain.campaign.Prompt.LabelValuePair;
 import org.ohmage.domain.campaign.PromptResponse;
 import org.ohmage.domain.campaign.RepeatableSet;
 import org.ohmage.domain.campaign.RepeatableSetResponse;
 import org.ohmage.domain.campaign.Response;
+import org.ohmage.domain.campaign.Response.NoResponse;
 import org.ohmage.domain.campaign.Survey;
 import org.ohmage.domain.campaign.SurveyItem;
 import org.ohmage.domain.campaign.SurveyResponse;
 import org.ohmage.domain.campaign.SurveyResponse.ColumnKey;
 import org.ohmage.domain.campaign.SurveyResponse.OutputFormat;
 import org.ohmage.domain.campaign.SurveyResponse.SortParameter;
+import org.ohmage.domain.campaign.prompt.ChoicePrompt;
+import org.ohmage.domain.campaign.prompt.CustomChoicePrompt;
+import org.ohmage.domain.campaign.response.MultiChoiceCustomPromptResponse;
+import org.ohmage.domain.campaign.response.MultiChoicePromptResponse;
+import org.ohmage.domain.campaign.response.SingleChoiceCustomPromptResponse;
+import org.ohmage.domain.campaign.response.SingleChoicePromptResponse;
 import org.ohmage.exception.ServiceException;
 import org.ohmage.exception.ValidationException;
 import org.ohmage.request.InputKeys;
@@ -949,6 +957,11 @@ public final class SurveyResponseReadRequest extends UserRequest {
 					// the resulting JSON with information about all of the
 					// prompts even though they don't have any responses 
 					// associated with them.
+					// FIXME: This shouldn't be conditional on the number of
+					// responses found. We should create headers for all of the
+					// requested prompt IDs (either via the list of survey IDs
+					// or the list of prompt IDs) or none of the prompt IDs if
+					// prompts aren't requested.
 					if(surveyResponseList.isEmpty()) {
 						// If the user-supplied list of survey IDs is present,
 						if(this.surveyIds != null) {
@@ -1070,110 +1083,138 @@ public final class SurveyResponseReadRequest extends UserRequest {
 					
 					// Add all of the applicable output stuff.
 					JSONObject result = new JSONObject();
+					JSONArray keysOrdered = new JSONArray();
 					
 					// For each of the requested columns, add their respective
-					// data to the result.
-					if(allColumns || columns.contains(ColumnKey.USER_ID)) {
-						JSONObject values = new JSONObject();
-						values.put(JSON_KEY_VALUES, usernames);
-						result.put(ColumnKey.USER_ID.toString(), values);
-					}
-					if(allColumns || columns.contains(ColumnKey.CONTEXT_CLIENT)) {
-						JSONObject values = new JSONObject();
-						values.put(JSON_KEY_VALUES, clients);
-						result.put(ColumnKey.CONTEXT_CLIENT.toString(), values);
-					}
-					if(allColumns || columns.contains(ColumnKey.SURVEY_PRIVACY_STATE)) {
-						JSONObject values = new JSONObject();
-						values.put(JSON_KEY_VALUES, privacyStates);
-						result.put(ColumnKey.SURVEY_PRIVACY_STATE.toString(), values);
-					}
-					if(allColumns || columns.contains(ColumnKey.CONTEXT_TIMESTAMP)) {
-						JSONObject values = new JSONObject();
-						values.put(JSON_KEY_VALUES, timestamps);
-						result.put(ColumnKey.CONTEXT_TIMESTAMP.toString(), values);
-					}
-					if(allColumns || columns.contains(ColumnKey.CONTEXT_UTC_TIMESTAMP)) {
-						JSONObject values = new JSONObject();
-						values.put(JSON_KEY_VALUES, utcTimestamps);
-						result.put(ColumnKey.CONTEXT_UTC_TIMESTAMP.toString(), values);
-					}
-					if(allColumns || columns.contains(ColumnKey.CONTEXT_EPOCH_MILLIS)) {
-						JSONObject values = new JSONObject();
-						values.put(JSON_KEY_VALUES, epochMillisTimestamps);
-						result.put(ColumnKey.CONTEXT_EPOCH_MILLIS.toString(), values);
-					}
-					if(allColumns || columns.contains(ColumnKey.CONTEXT_TIMEZONE)) {
-						JSONObject values = new JSONObject();
-						values.put(JSON_KEY_VALUES, timezones);
-						result.put(ColumnKey.CONTEXT_TIMEZONE.toString(), values);
-					}
-					if(allColumns || columns.contains(ColumnKey.CONTEXT_LOCATION_STATUS)) {
-						JSONObject values = new JSONObject();
-						values.put(JSON_KEY_VALUES, locationStatuses);
-						result.put(ColumnKey.CONTEXT_LOCATION_STATUS.toString(), values);
-					}
-					if(allColumns || columns.contains(ColumnKey.CONTEXT_LOCATION_LONGITUDE)) {
-						JSONObject values = new JSONObject();
-						values.put(JSON_KEY_VALUES, locationLongitude);
-						result.put(ColumnKey.CONTEXT_LOCATION_LONGITUDE.toString(), values);
-					}
-					if(allColumns || columns.contains(ColumnKey.CONTEXT_LOCATION_LATITUDE)) {
-						JSONObject values = new JSONObject();
-						values.put(JSON_KEY_VALUES, locationLatitude);
-						result.put(ColumnKey.CONTEXT_LOCATION_LATITUDE.toString(), values);
-					}
-					if(allColumns || columns.contains(ColumnKey.CONTEXT_LOCATION_TIMESTAMP)) {
-						JSONObject timeValues = new JSONObject();
-						timeValues.put(JSON_KEY_VALUES, locationTimestamp);
-						result.put(ColumnKey.CONTEXT_LOCATION_TIMESTAMP.toString(), timeValues);
-					}
-					if(allColumns || columns.contains(ColumnKey.CONTEXT_LOCATION_TIMEZONE)) {
-						JSONObject timeZoneValues = new JSONObject();
-						timeZoneValues.put(JSON_KEY_VALUES, locationTimeZone);
-						result.put(ColumnKey.CONTEXT_LOCATION_TIMEZONE.toString(), timeZoneValues);
-					}
-					if(allColumns || columns.contains(ColumnKey.CONTEXT_LOCATION_ACCURACY)) {
-						JSONObject values = new JSONObject();
-						values.put(JSON_KEY_VALUES, locationAccuracy);
-						result.put(ColumnKey.CONTEXT_LOCATION_ACCURACY.toString(), values);
-					}
-					if(allColumns || columns.contains(ColumnKey.CONTEXT_LOCATION_PROVIDER)) {
-						JSONObject values = new JSONObject();
-						values.put(JSON_KEY_VALUES, locationProvider);
-						result.put(ColumnKey.CONTEXT_LOCATION_PROVIDER.toString(), values);
-					}
+					// data to the result in a specific order per Hongsuda's
+					// request.
 					if(allColumns || columns.contains(ColumnKey.SURVEY_ID)) {
 						JSONObject values = new JSONObject();
 						values.put(JSON_KEY_VALUES, surveyIds);
 						result.put(ColumnKey.SURVEY_ID.toString(), values);
+						keysOrdered.put(ColumnKey.SURVEY_ID.toString());
 					}
 					if(allColumns || columns.contains(ColumnKey.SURVEY_TITLE)) {
 						JSONObject values = new JSONObject();
 						values.put(JSON_KEY_VALUES, surveyTitles);
 						result.put(ColumnKey.SURVEY_TITLE.toString(), values);
+						keysOrdered.put(ColumnKey.SURVEY_TITLE.toString());
 					}
 					if(allColumns || columns.contains(ColumnKey.SURVEY_DESCRIPTION)) {
 						JSONObject values = new JSONObject();
 						values.put(JSON_KEY_VALUES, surveyDescriptions);
 						result.put(ColumnKey.SURVEY_DESCRIPTION.toString(), values);
+						keysOrdered.put(ColumnKey.SURVEY_DESCRIPTION.toString());
+					}
+					if(allColumns || columns.contains(ColumnKey.USER_ID)) {
+						JSONObject values = new JSONObject();
+						values.put(JSON_KEY_VALUES, usernames);
+						result.put(ColumnKey.USER_ID.toString(), values);
+						keysOrdered.put(ColumnKey.USER_ID.toString());
+					}
+					if(allColumns || columns.contains(ColumnKey.CONTEXT_CLIENT)) {
+						JSONObject values = new JSONObject();
+						values.put(JSON_KEY_VALUES, clients);
+						result.put(ColumnKey.CONTEXT_CLIENT.toString(), values);
+						keysOrdered.put(ColumnKey.CONTEXT_CLIENT.toString());
+					}
+					if(allColumns || columns.contains(ColumnKey.CONTEXT_UTC_TIMESTAMP)) {
+						JSONObject values = new JSONObject();
+						values.put(JSON_KEY_VALUES, utcTimestamps);
+						result.put(ColumnKey.CONTEXT_UTC_TIMESTAMP.toString(), values);
+						keysOrdered.put(ColumnKey.CONTEXT_UTC_TIMESTAMP.toString());
+					}
+					if(allColumns || columns.contains(ColumnKey.CONTEXT_EPOCH_MILLIS)) {
+						JSONObject values = new JSONObject();
+						values.put(JSON_KEY_VALUES, epochMillisTimestamps);
+						result.put(ColumnKey.CONTEXT_EPOCH_MILLIS.toString(), values);
+						keysOrdered.put(ColumnKey.CONTEXT_EPOCH_MILLIS.toString());
+					}
+					if(allColumns || columns.contains(ColumnKey.CONTEXT_TIMESTAMP)) {
+						JSONObject values = new JSONObject();
+						values.put(JSON_KEY_VALUES, timestamps);
+						result.put(ColumnKey.CONTEXT_TIMESTAMP.toString(), values);
+						keysOrdered.put(ColumnKey.CONTEXT_TIMESTAMP.toString());
+					}
+					if(allColumns || columns.contains(ColumnKey.CONTEXT_TIMEZONE)) {
+						JSONObject values = new JSONObject();
+						values.put(JSON_KEY_VALUES, timezones);
+						result.put(ColumnKey.CONTEXT_TIMEZONE.toString(), values);
+						keysOrdered.put(ColumnKey.CONTEXT_TIMEZONE.toString());
+					}
+					if(allColumns || columns.contains(ColumnKey.PROMPT_RESPONSE)) {
+						List<String> unorderedList = new LinkedList<String>();
+						for(String promptId : prompts.keySet()) {
+							result.put(
+									SurveyResponse.ColumnKey.URN_PROMPT_ID_PREFIX + promptId, 
+									prompts.get(promptId));
+							unorderedList.add(SurveyResponse.ColumnKey.URN_PROMPT_ID_PREFIX + promptId);
+						}
+						Collections.sort(unorderedList);
+						
+						for(String columnId : unorderedList) {
+							keysOrdered.put(columnId);
+						}
+					}
+					if(allColumns || columns.contains(ColumnKey.CONTEXT_LOCATION_STATUS)) {
+						JSONObject values = new JSONObject();
+						values.put(JSON_KEY_VALUES, locationStatuses);
+						result.put(ColumnKey.CONTEXT_LOCATION_STATUS.toString(), values);
+						keysOrdered.put(ColumnKey.CONTEXT_LOCATION_STATUS.toString());
+					}
+					if(allColumns || columns.contains(ColumnKey.CONTEXT_LOCATION_LATITUDE)) {
+						JSONObject values = new JSONObject();
+						values.put(JSON_KEY_VALUES, locationLatitude);
+						result.put(ColumnKey.CONTEXT_LOCATION_LATITUDE.toString(), values);
+						keysOrdered.put(ColumnKey.CONTEXT_LOCATION_LATITUDE.toString());
+					}
+					if(allColumns || columns.contains(ColumnKey.CONTEXT_LOCATION_LONGITUDE)) {
+						JSONObject values = new JSONObject();
+						values.put(JSON_KEY_VALUES, locationLongitude);
+						result.put(ColumnKey.CONTEXT_LOCATION_LONGITUDE.toString(), values);
+						keysOrdered.put(ColumnKey.CONTEXT_LOCATION_LONGITUDE.toString());
+					}
+					if(allColumns || columns.contains(ColumnKey.CONTEXT_LOCATION_PROVIDER)) {
+						JSONObject values = new JSONObject();
+						values.put(JSON_KEY_VALUES, locationProvider);
+						result.put(ColumnKey.CONTEXT_LOCATION_PROVIDER.toString(), values);
+						keysOrdered.put(ColumnKey.CONTEXT_LOCATION_PROVIDER.toString());
+					}
+					if(allColumns || columns.contains(ColumnKey.CONTEXT_LOCATION_TIMESTAMP)) {
+						JSONObject timeValues = new JSONObject();
+						timeValues.put(JSON_KEY_VALUES, locationTimestamp);
+						result.put(ColumnKey.CONTEXT_LOCATION_TIMESTAMP.toString(), timeValues);
+						keysOrdered.put(ColumnKey.CONTEXT_LOCATION_TIMESTAMP.toString());
+					}
+					if(allColumns || columns.contains(ColumnKey.CONTEXT_LOCATION_TIMEZONE)) {
+						JSONObject timeZoneValues = new JSONObject();
+						timeZoneValues.put(JSON_KEY_VALUES, locationTimeZone);
+						result.put(ColumnKey.CONTEXT_LOCATION_TIMEZONE.toString(), timeZoneValues);
+						keysOrdered.put(ColumnKey.CONTEXT_LOCATION_TIMEZONE.toString());
+					}
+					if(allColumns || columns.contains(ColumnKey.CONTEXT_LOCATION_ACCURACY)) {
+						JSONObject values = new JSONObject();
+						values.put(JSON_KEY_VALUES, locationAccuracy);
+						result.put(ColumnKey.CONTEXT_LOCATION_ACCURACY.toString(), values);
+						keysOrdered.put(ColumnKey.CONTEXT_LOCATION_ACCURACY.toString());
+					}
+					if(allColumns || columns.contains(ColumnKey.SURVEY_PRIVACY_STATE)) {
+						JSONObject values = new JSONObject();
+						values.put(JSON_KEY_VALUES, privacyStates);
+						result.put(ColumnKey.SURVEY_PRIVACY_STATE.toString(), values);
+						keysOrdered.put(ColumnKey.SURVEY_PRIVACY_STATE.toString());
 					}
 					if(allColumns || columns.contains(ColumnKey.CONTEXT_LAUNCH_CONTEXT_LONG)) {
 						JSONObject values = new JSONObject();
 						values.put(JSON_KEY_VALUES, launchContexts);
 						result.put(ColumnKey.CONTEXT_LAUNCH_CONTEXT_LONG.toString(), values);
+						keysOrdered.put(ColumnKey.CONTEXT_LAUNCH_CONTEXT_LONG.toString());
 					}
 					if(columns.contains(ColumnKey.CONTEXT_LAUNCH_CONTEXT_SHORT)) {
 						JSONObject values = new JSONObject();
 						values.put(JSON_KEY_VALUES, launchContexts);
 						result.put(ColumnKey.CONTEXT_LAUNCH_CONTEXT_SHORT.toString(), values);
-					}
-					if(allColumns || columns.contains(ColumnKey.PROMPT_RESPONSE)) {
-						for(String promptId : prompts.keySet()) {
-							result.put(
-									SurveyResponse.ColumnKey.URN_PROMPT_ID_PREFIX + promptId, 
-									prompts.get(promptId));
-						}
+						keysOrdered.put(ColumnKey.CONTEXT_LAUNCH_CONTEXT_SHORT.toString());
 					}
 					
 					// If the user requested to collapse the results, create a 
@@ -1261,6 +1302,28 @@ public final class SurveyResponseReadRequest extends UserRequest {
 						JSONObject resultJson = new JSONObject();
 						resultJson.put(JSON_KEY_RESULT, RESULT_SUCCESS);
 						
+						int numHeaders = keysOrdered.length();
+						for(int i = 0; i < numHeaders; i++) {
+							String header = keysOrdered.getString(i);
+							
+							if(header.endsWith(":value") ||
+								header.endsWith(":key")) {
+
+								result.remove(header);
+								keysOrdered.remove(i);
+								i--;
+								numHeaders--;
+							}
+							else if(header.endsWith(":label")) {
+								String prunedHeader = header.substring(0, header.length() - 6);
+
+								result.put(prunedHeader, result.get(header));
+								result.remove(header);
+								
+								keysOrdered.put(i, prunedHeader);
+							}
+						}
+						
 						if((suppressMetadata == null) || (! suppressMetadata)) {
 							JSONArray itemsJson = new JSONArray();
 							Iterator<?> keys = result.keys();
@@ -1313,8 +1376,7 @@ public final class SurveyResponseReadRequest extends UserRequest {
 										promptId, 
 										prompts
 											.get(promptId)
-											.get(JSON_KEY_CONTEXT)
-											.toString());
+											.get(JSON_KEY_CONTEXT));
 								
 								resultBuilder
 									.append('#')
@@ -1327,18 +1389,13 @@ public final class SurveyResponseReadRequest extends UserRequest {
 						// Begin the data section of the CSV.
 						resultBuilder.append("## begin data\n");
 
-						// We need to get all of the column header names.
-						JSONArray keys = new JSONArray();
-						Iterator<?> keysIter = result.keys();
-						while(keysIter.hasNext()) {
-							keys.put(keysIter.next());
-						}
-						int keyLength = keys.length();
+						// Get the number of keys.
+						int keyLength = keysOrdered.length();
 						
 						// Create a comma-separated list of the header names.
 						resultBuilder.append('#');
 						for(int i = 0; i < keyLength; i++) {
-							String header = keys.getString(i);
+							String header = keysOrdered.getString(i);
 							if(header.startsWith("urn:ohmage:")) {
 								header = header.substring(11);
 								
@@ -1359,7 +1416,7 @@ public final class SurveyResponseReadRequest extends UserRequest {
 							for(int j = 0; j < keyLength; j++) {
 								Object currResult = 
 										result
-											.getJSONObject(keys.getString(j))
+											.getJSONObject(keysOrdered.getString(j))
 											.getJSONArray(JSON_KEY_VALUES)
 											.get(i);
 								
@@ -1385,6 +1442,10 @@ public final class SurveyResponseReadRequest extends UserRequest {
 				}
 			}
 			catch(JSONException e) {
+				LOGGER.error(e.toString(), e);
+				setFailed();
+			}
+			catch(IllegalStateException e) {
 				LOGGER.error(e.toString(), e);
 				setFailed();
 			}
@@ -1431,13 +1492,34 @@ public final class SurveyResponseReadRequest extends UserRequest {
 		for(SurveyItem surveyItem : surveyItems.values()) {
 	
 			if(surveyItem instanceof Prompt) {
-				Prompt prompt = (Prompt) surveyItem;
+				if(surveyItem instanceof ChoicePrompt) {
+					ChoicePrompt prompt = (ChoicePrompt) surveyItem;
+
+					JSONObject promptJsonKey = new JSONObject();
+					promptJsonKey.put(JSON_KEY_CONTEXT, prompt.toJson());
+					promptJsonKey.put(JSON_KEY_VALUES, new JSONArray());
+					
+					JSONObject promptJsonLabel = new JSONObject();
+					promptJsonLabel.put(JSON_KEY_CONTEXT, prompt.toJson());
+					promptJsonLabel.put(JSON_KEY_VALUES, new JSONArray());
+					
+					JSONObject promptJsonValue = new JSONObject();
+					promptJsonValue.put(JSON_KEY_CONTEXT, prompt.toJson());
+					promptJsonValue.put(JSON_KEY_VALUES, new JSONArray());
 				
-				JSONObject promptJson = new JSONObject();
-				promptJson.put(JSON_KEY_CONTEXT, prompt.toJson());
-				promptJson.put(JSON_KEY_VALUES, new JSONArray());
-				
-				prompts.put(prompt.getId(), promptJson);
+					prompts.put(prompt.getId() + ":key", promptJsonKey);
+					prompts.put(prompt.getId() + ":value", promptJsonLabel);
+					prompts.put(prompt.getId() + ":label", promptJsonValue);
+				}
+				else {
+					Prompt prompt = (Prompt) surveyItem;
+					
+					JSONObject promptJson = new JSONObject();
+					promptJson.put(JSON_KEY_CONTEXT, prompt.toJson());
+					promptJson.put(JSON_KEY_VALUES, new JSONArray());
+					
+					prompts.put(prompt.getId(), promptJson);
+				}
 			}
 			else if(surveyItem instanceof RepeatableSet) {
 				RepeatableSet repeatableSet = (RepeatableSet) surveyItem;
@@ -1629,18 +1711,183 @@ public final class SurveyResponseReadRequest extends UserRequest {
 				numResponses++;
 				
 				if(allColumns || columns.contains(ColumnKey.PROMPT_RESPONSE)) {
+					PromptResponse promptResponse = (PromptResponse) response;
+					
+					Prompt prompt = promptResponse.getPrompt();
 					String responseId = response.getId();
-					promptIdsWithResponse.add(responseId);
 					
-					JSONArray values =
-						prompts.get(responseId).getJSONArray(JSON_KEY_VALUES);
-					
-					Object responseValue = response.getResponseValue();
-					if(OutputFormat.CSV.equals(outputFormat)) {
-						responseValue = "\"" + responseValue + "\"";
+					// If it's a ChoicePrompt response, populate all three  
+					// columns, <id>:key, <id>:label, and <id>:value.
+					if(prompt instanceof ChoicePrompt) {
+						// Get the response object.
+						Object responseObject = response.getResponseValue();
+						
+						// If the response was not really a response, e.g.
+						// skipped, not displayed, etc., put a JSONObject.NULL
+						// object in for the key and value and put a quoted
+						// string-representation of the non-response.
+						if(responseObject instanceof NoResponse) {
+							JSONArray keys =
+									prompts.get(responseId + ":key")
+										.getJSONArray(JSON_KEY_VALUES);
+							keys.put(JSONObject.NULL);
+							
+							JSONArray labels =
+									prompts.get(responseId + ":label")
+										.getJSONArray(JSON_KEY_VALUES);
+							labels.put("\"" + responseObject + "\"");
+							
+							JSONArray values =
+									prompts.get(responseId + ":value")
+										.getJSONArray(JSON_KEY_VALUES);
+							values.put(JSONObject.NULL);
+						}
+						// Otherwise, get the key, label, and, potentially,
+						// value and populate their corresponding columns.
+						else {
+							Object key;
+							Object label;
+							Object value;
+							
+							ChoicePrompt choicePrompt = 
+									(ChoicePrompt) promptResponse.getPrompt();
+							
+							Map<Integer, LabelValuePair> choices;
+							if(prompt instanceof CustomChoicePrompt) {
+								choices = 
+										((CustomChoicePrompt) choicePrompt)
+											.getAllChoices();
+							}
+							else {
+								choices = choicePrompt.getChoices();
+							}
+							
+							if(response instanceof SingleChoicePromptResponse) {
+								key = (Integer) responseObject;
+								
+								LabelValuePair lvp = choices.get(key);
+								label = lvp.getLabel();
+								value = lvp.getValue();
+							}
+							else if(response instanceof SingleChoiceCustomPromptResponse) {
+								label = (String) responseObject;
+								
+								key = choicePrompt.getChoiceKey((String) label);
+								value = choices.get(key).getValue();
+							}
+							else if(response instanceof MultiChoicePromptResponse) {
+								@SuppressWarnings("unchecked")
+								List<Integer> keys = (List<Integer>) responseObject;
+								
+								List<Object> labels = new ArrayList<Object>(keys.size());
+								List<Object> values = new ArrayList<Object>(keys.size());
+								for(Integer currKey : keys) {
+									LabelValuePair lvp = choices.get(currKey);
+									
+									labels.add(lvp.getLabel());
+									
+									Number currValue = lvp.getValue();
+									if(currValue == null) {
+										values.add("");
+									}
+									else {
+										values.add(currValue);
+									}
+								}
+								
+								key = new JSONArray(keys);
+								label = labels;
+								value = values;
+							}
+							else if(response instanceof MultiChoiceCustomPromptResponse) {
+								@SuppressWarnings("unchecked")
+								Collection<String> labels = (Collection<String>) responseObject;
+								
+								List<Object> keys = new ArrayList<Object>(labels.size());
+								List<Object> values = new ArrayList<Object>(labels.size());
+								for(String currLabel : labels) {
+									Integer currKey = choicePrompt.getChoiceKey(currLabel);
+									keys.add(currKey);
+									
+									Number currValue = choices.get(currKey).getValue();
+									if(currValue == null) {
+										values.add("");
+									}
+									else {
+										values.add(currValue);
+									}
+								}
+								
+								key = keys;
+								label = labels;
+								value = values;
+							}
+							else {
+								throw new IllegalStateException("There exists a choice prompt that is not a (single/multi) [custom] choice.");
+							}
+						
+							promptIdsWithResponse.add(responseId + ":key");
+							JSONArray keys =
+									prompts.get(responseId + ":key")
+										.getJSONArray(JSON_KEY_VALUES);
+							
+							if(OutputFormat.CSV.equals(outputFormat)) {
+								keys.put("\"" + key + "\"");
+							}
+							else {
+								keys.put(key);
+							}
+							
+							promptIdsWithResponse.add(responseId + ":label");
+							JSONArray labels =
+									prompts.get(responseId + ":label")
+										.getJSONArray(JSON_KEY_VALUES);
+							
+							if(OutputFormat.CSV.equals(outputFormat)) {
+								labels.put("\"" + label + "\"");
+							}
+							else {
+								labels.put(label);
+							}
+							
+							promptIdsWithResponse.add(responseId + ":value");
+							JSONArray values =
+									prompts.get(responseId + ":value")
+										.getJSONArray(JSON_KEY_VALUES);
+							if(value == null) {
+								values.put("");
+							}
+							else {
+								if(OutputFormat.CSV.equals(outputFormat)) {
+									values.put("\"" + value + "\"");
+								}
+								else {
+									values.put(value);
+								}
+							}
+						}
+
+						// Finally, indicate that these prompts were given
+						// values so that the others may be populated with
+						// JSONObject.NULLs.
+						promptIdsWithResponse.add(responseId + ":key");
+						promptIdsWithResponse.add(responseId + ":label");
+						promptIdsWithResponse.add(responseId + ":value");
 					}
-				
-					values.put(responseValue);
+					// Otherwise, only populate the value.
+					else {
+						promptIdsWithResponse.add(responseId);
+						
+						JSONArray values =
+								prompts.get(responseId).getJSONArray(JSON_KEY_VALUES);
+						
+						Object responseValue = response.getResponseValue();
+						if(OutputFormat.CSV.equals(outputFormat)) {
+							responseValue = "\"" + responseValue + "\"";
+						}
+					
+						values.put(responseValue);
+					}
 				}
 			}
 			// FIXME
