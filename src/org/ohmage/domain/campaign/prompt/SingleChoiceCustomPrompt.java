@@ -123,11 +123,19 @@ public class SingleChoiceCustomPrompt extends CustomChoicePrompt {
 			catch(IllegalArgumentException notNoResponse) {
 				Map<Integer, LabelValuePair> choices = getAllChoices();
 				
-				if(choices.isEmpty()) {
-					addChoice(0, (String) value, null);
-				} 
-				else {
-					if(! choices.values().contains(value)) {
+				boolean exists = false;
+				for(LabelValuePair vlp : choices.values()) {
+					if(vlp.getLabel().equals(value)) {
+						exists = true;
+						break;
+					}
+				}
+				
+				if(! exists) {
+					if(choices.isEmpty()) {
+						addChoice(0, (String) value, null);
+					} 
+					else {
 						List<Integer> keys = new ArrayList<Integer>(choices.keySet());
 						Collections.sort(keys);
 						int key = keys.get(keys.size() - 1) + 1;

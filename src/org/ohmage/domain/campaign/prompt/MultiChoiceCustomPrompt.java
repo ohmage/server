@@ -219,7 +219,15 @@ public class MultiChoiceCustomPrompt extends CustomChoicePrompt {
 			Collection<LabelValuePair> values = choices.values();
 			
 			for(String labelValue : collectionValue) {
-				if(! values.contains(labelValue)) {
+				boolean exists = false;
+				for(LabelValuePair lvp : values) {
+					if(lvp.getLabel().equals(labelValue)) {
+						exists = true;
+						break;
+					}
+				}
+				
+				if(! exists) {
 					addChoice(nextKey++, labelValue, null);
 				}
 			}
