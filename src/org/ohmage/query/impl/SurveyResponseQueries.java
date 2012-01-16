@@ -756,7 +756,7 @@ public class SurveyResponseQueries extends Query implements ISurveyResponseQueri
 			final Collection<String> usernames, 
 			final Date startDate,
 			final Date endDate, 
-			final PrivacyState privacyState,
+			final SurveyResponse.PrivacyState privacyState,
 			final Collection<String> surveyIds,
 			final Collection<String> promptIds,
 			final String promptType,
@@ -792,7 +792,7 @@ public class SurveyResponseQueries extends Query implements ISurveyResponseQueri
 			parameters.add(privacyState.toString());
 		}
 		if(surveyIds != null) {
-			if(surveyIds.size() > 0) {
+			if(surveyIds.size() == 0) {
 				return Collections.emptyList();
 			}
 			
@@ -801,7 +801,7 @@ public class SurveyResponseQueries extends Query implements ISurveyResponseQueri
 			parameters.addAll(surveyIds);
 		}
 		if(promptIds != null) {
-			if(promptIds.size() > 0) {
+			if(promptIds.size() == 0) {
 				return Collections.emptyList();
 			}
 			sqlBuilder.append(SQL_WHERE_PROMPT_IDS);
