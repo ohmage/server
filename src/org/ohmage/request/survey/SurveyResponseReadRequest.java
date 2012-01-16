@@ -1463,7 +1463,9 @@ public final class SurveyResponseReadRequest extends UserRequest {
 		for(SurveyItem surveyItem : surveyItems.values()) {
 	
 			if(surveyItem instanceof Prompt) {
-				if(surveyItem instanceof ChoicePrompt) {
+				if((surveyItem instanceof ChoicePrompt) && 
+						(OutputFormat.CSV.equals(outputFormat))) {
+					
 					ChoicePrompt prompt = (ChoicePrompt) surveyItem;
 
 					JSONObject promptJsonKey = new JSONObject();
@@ -1689,7 +1691,9 @@ public final class SurveyResponseReadRequest extends UserRequest {
 					
 					// If it's a ChoicePrompt response, populate all three  
 					// columns, <id>:key, <id>:label, and <id>:value.
-					if(prompt instanceof ChoicePrompt) {
+					if((prompt instanceof ChoicePrompt) && 
+							(OutputFormat.CSV.equals(outputFormat))) {
+						
 						// Get the response object.
 						Object responseObject = response.getResponseValue();
 						
@@ -1801,25 +1805,13 @@ public final class SurveyResponseReadRequest extends UserRequest {
 							JSONArray keys =
 									prompts.get(responseId + ":key")
 										.getJSONArray(JSON_KEY_VALUES);
-							
-							if(OutputFormat.CSV.equals(outputFormat)) {
-								keys.put("\"" + key + "\"");
-							}
-							else {
-								keys.put(key);
-							}
+							keys.put("\"" + key + "\"");
 							
 							promptIdsWithResponse.add(responseId + ":label");
 							JSONArray labels =
 									prompts.get(responseId + ":label")
 										.getJSONArray(JSON_KEY_VALUES);
-							
-							if(OutputFormat.CSV.equals(outputFormat)) {
-								labels.put("\"" + label + "\"");
-							}
-							else {
-								labels.put(label);
-							}
+							labels.put("\"" + label + "\"");
 							
 							promptIdsWithResponse.add(responseId + ":value");
 							JSONArray values =
@@ -1829,12 +1821,7 @@ public final class SurveyResponseReadRequest extends UserRequest {
 								values.put("");
 							}
 							else {
-								if(OutputFormat.CSV.equals(outputFormat)) {
-									values.put("\"" + value + "\"");
-								}
-								else {
-									values.put(value);
-								}
+								values.put("\"" + value + "\"");
 							}
 						}
 
