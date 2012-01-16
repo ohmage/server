@@ -84,7 +84,10 @@ public final class SurveyResponseReadServices {
 		}
 		
 		for(String promptId : promptIdList) {
-			if(configuration.getSurveyIdForPromptId(promptId) == null) {
+			try {
+				configuration.getSurveyIdForPromptId(promptId);
+			}
+			catch(IllegalArgumentException e) {
 				StringBuilder sb = new StringBuilder();
 				sb.append("The configuration for campaign ");
 				sb.append(configuration.getId());
