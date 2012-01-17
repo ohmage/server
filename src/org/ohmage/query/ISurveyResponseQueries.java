@@ -232,11 +232,13 @@ public interface ISurveyResponseQueries {
 	 * @param promptType Limits the results to only those survey responses that
 	 * 					 are of the given prompt type.
 	 * 
-	 * @param rowsToSkip The number of rows to skip once the result has been
-	 * 					 aggregated from the server.
+	 * @param surveyResponsesToSkip The number of survey responses to skip once
+	 * 								the result has been aggregated from the 
+	 * 								server.
 	 * 
-	 * @param rowsToAnalyze The number of rows to analyze once the rows to skip
-	 * 						have been skipped.
+	 * @param surveyResponsesToProcess The number of survey responses to 
+	 * 								   analyze once the survey responses to 
+	 * 								   skip have been skipped.
 	 * 
 	 * @return A list of SurveyResponse objects where each object 
 	 * 		   represents a survey response that matched the given criteria.
@@ -252,8 +254,8 @@ public interface ISurveyResponseQueries {
 			final Collection<String> surveyIds,
 			final Collection<String> promptIds,
 			final String promptType,
-			final long rowsToSkip,
-			final long rowsToAnalyze) 
+			final long surveyResponsesToSkip,
+			final long surveyResponsesToProcess) 
 			throws DataAccessException;
 
 	/**

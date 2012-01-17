@@ -1,0 +1,452 @@
+<html>
+	<head>
+		<title>Easy Post Through Browser</title>
+	</head>
+	<body>
+	    <h2>Configuration APIs</h2>
+	    <h3>Configuration:</h3>
+        <form action="/app/config/read" method="post">
+            <input type="submit" value="Submit" />
+        </form>
+        
+        <h2>Authentication APIs</h2>
+		<h3>Token:</h3>
+        <form action="/app/user/auth_token" method="post">
+            Username: <input type="text" name="user" /><br />
+            Password: <input type="text" name="password" /><br />
+            Client: <input type="text" name="client" value="testWeb" /><br />
+            <input type="submit" value="Submit" />
+        </form>
+        
+        <h3>Logout:</h3>
+        <form action="/app/user/logout" method="post">
+            Client: <input type="text" name="client" value="testWeb" /><br />
+            <input type="submit" value="Submit" />
+        </form>
+        
+        <h3>Change Password:</h3>
+        <form action="/app/user/change_password" method="post">
+            Username: <input type="text" name="user" /><br />
+            Password: <input type="text" name="password" /><br />
+            New Password: <input type="text" name="new_password" /><br />
+            Client: <input type="text" name="client" value="testWeb" /><br />
+            * Username of user whose password to change: <input type="text" name="username" /><br />
+            <input type="submit" value="Submit" />
+        </form>
+        
+        <h2>Audit APIs</h2>
+        <h3>Audit Read:</h3>
+        <form action="/app/audit/read" method="post">
+            Client: <input type="text" name="client" value="testWeb" /><br />
+            * Token: <input type="text" name="auth_token" /><br />
+            * Request Type: <input type="text" name="request_type" /><br />
+            * URI: <input type="text" name="uri" /><br />
+            * Client: <input type="text" name="client_value" /><br />
+            * Device ID: <input type="text" name="device_id_value" /><br />
+            * Response Type: <input type="text" name="response_type" /><br />
+            * ErrorCode: <input type="text" name="error_code" /><br />
+            * Start Date: <input type="text" name="start_date" /><br />
+            * End Date: <input type="text" name="end_date" /><br />
+            <input type="submit" value="Submit" />
+        </form>
+        
+        <h2>User APIs</h2>
+        <h3>Create User:</h3>
+        <form action="/app/user/create" method="post">
+            Token: <input type="text" name="auth_token" /><br />
+            Username: <input type="text" name="username" /><br />
+            Password: <input type="text" name="password" /><br />
+            Client: <input type="text" name="client" value="testWeb" /><br />
+            Admin: <input type="text" name="admin" /><br />
+            Enabled: <input type="text" name="enabled" /><br />
+            * New Account: <input type="text" name="new_account" /><br />
+            * Campaign Creation Privilege: <input type="text" name="campaign_creation_privilege" /><br />
+            <input type="submit" value="Submit" />
+        </form>
+        
+        <h3>User Read:</h3>
+        <form action="/app/user/read" method="post">
+            Client: <input type="text" name="client" value="testWeb" /><br />
+            * Campaign ID List: <input type="text" name="campaign_urn_list" /><br />
+            * Class ID List: <input type="text" name="class_urn_list" /><br />
+            <input type="submit" value="Submit" />
+        </form>
+        
+        <h3>User Info Read:</h3>
+        <form action="/app/user_info/read" method="post">
+            Client: <input type="text" name="client" value="testWeb" /><br />
+            <input type="submit" value="Submit" />
+        </form>
+        
+        <h3>User Stats:</h3>
+        <form action="/app/user_stats/read" method="post">
+            Campaign ID: <input type="text" name="campaign_urn" /><br />
+            Username: <input type="text" name="username" /><br />
+            Client: <input type="text" name="client" value="testWeb" /><br />
+            <input type="submit" value="Submit" />
+        </form>
+        
+        <h3>User Update:</h3>
+        <form action="/app/user/update" method="post">
+            Token: <input type="text" name="auth_token" /><br />
+            Username: <input type="text" name="username" /><br />
+            * Admin: <input type="text" name="admin" /><br />
+            * Enabled: <input type="text" name="enabled" /><br />
+            * New Account: <input type="text" name="new_account" /><br />
+            * Campaign Creation Privilege: <input type="text" name="campaign_creation_privilege" /><br />
+            * First Name: <input type="text" name="first_name" /><br />
+            * Last Name: <input type="text" name="last_name" /><br />
+            * Organization: <input type="text" name="organization" /><br />
+            * Personal ID: <input type="text" name="personal_id" /><br />
+            * Email Address: <input type="text" name="email_address" /><br />
+            * JSON Data: <input type="text" name="json_data" /><br />
+            Client: <input type="text" name="client" value="testWeb" /><br />
+            <input type="submit" value="Submit" />
+        </form>
+        
+        <h3>Delete User:</h3>
+        <form action="/app/user/delete" method="post">
+            Token: <input type="text" name="auth_token" /><br />
+            User List: <input type="text" name="user_list" /><br />
+            Client: <input type="text" name="client" value="testWeb" /><br />
+            <input type="submit" value="Submit" />
+        </form>
+		
+		<h2>Campaign APIs</h2>
+		<h3>Campaign Create:</h3>
+        <form action="/app/campaign/create" enctype="multipart/form-data" method="post">
+            Token: <input type="text" name="auth_token" /><br />
+            Running State: <input type="text" name="running_state" /><br />
+            Privacy State: <input type="text" name="privacy_state" /><br />
+            Class ID List: <input type="text" name="class_urn_list" /><br />
+            XML: <input type="file" name="xml" /><br />
+            Client: <input type="text" name="client" value="testWeb" /><br />
+            * Description: <input type="text" name="description" /><br />
+            <input type="submit" value="Submit" />
+        </form>
+
+		<h3>Campaign Read:</h3>
+		<form action="/app/campaign/read" method="post">
+			Output Format: <input type="text" name="output_format" /><br />
+			Client: <input type="text" name="client" value="testWeb" /><br />
+			* Campaign URN List: <input type="text" name="campaign_urn_list" /><br />
+			* Class URN List: <input type="text" name="class_urn_list" /><br />
+			* Start Date: <input type="text" name="start_date" /><br />
+			* End Date: <input type="text" name="end_date" /><br />
+			* Privacy State: <input type="text" name="privacy_state" /><br />
+			* Running State: <input type="text" name="running_state" /><br />
+			* Campaign Role: <input type="text" name="user_role" /><br />
+			<input type="submit" value="Submit" />
+		</form>
+		
+		<h3>Campaign Update:</h3>
+        <form action="/app/campaign/update" enctype="multipart/form-data" method="post">
+            Token: <input type="text" name="auth_token" /><br />
+            Campaign ID: <input type="text" name="campaign_urn" /><br />
+            Client: <input type="text" name="client" value="testWeb" /><br />
+            * New Running State: <input type="text" name="running_state" /><br />
+            * New Privacy State: <input type="text" name="privacy_state" /><br />
+            * Class ID List: <input type="text" name="class_urn_list" /><br />
+            * XML: <input type="file" name="xml" /><br />
+            * Description: <input type="text" name="description" /><br />
+            * User-Role List Add: <input type="text" name="user_role_list_add" /><br />
+            * User-Role List Remove: <input type="text" name="user_role_list_remove" /><br />
+            <input type="submit" value="Submit" />
+        </form>
+        
+        <h3>Campaign Delete:</h3>
+        <form action="/app/campaign/delete" method="post">
+            Token: <input type="text" name="auth_token" /><br />
+            Campaign ID: <input type="text" name="campaign_urn" /><br />
+            Client: <input type="text" name="client" value="testWeb" /><br />
+            <input type="submit" value="Submit" />
+        </form>
+        
+        <h2>Class APIs</h2>
+        <h3>Create Class:</h3>
+        <form action="/app/class/create" method="post">
+            Token: <input type="text" name="auth_token" /><br />
+            Class ID: <input type="text" name="class_urn" /><br />
+            Class Name: <input type="text" name="class_name" /><br />
+            Client: <input type="text" name="client" value="testWeb" /><br />
+            * Description: <input type="text" name="description" /><br />
+            <input type="submit" value="Submit" />
+        </form>
+
+		<h3>Class Read:</h3>
+        <form action="/app/class/read" method="post">
+            Class List: <input type="text" name="class_urn_list" /><br />
+            Client: <input type="text" name="client" value="testWeb" /><br />
+            <input type="submit" value="Submit" />
+        </form>
+        
+        <h3>Class Roster Read:</h3>
+        <form action="/app/class/roster/read" method="post">
+            Class List: <input type="text" name="class_urn_list" /><br />
+            Client: <input type="text" name="client" value="testWeb" /><br />
+            <input type="submit" value="Submit" />
+        </form>
+		
+		<h3>Class Update:</h3>
+        <form action="/app/class/update" method="post">
+            Token: <input type="text" name="auth_token" /><br />
+            Class ID: <input type="text" name="class_urn" /><br />
+            Client: <input type="text" name="client" value="testWeb" /><br />
+            * New Name: <input type="text" name="class_name" /><br />
+            * New Description: <input type="text" name="description" /><br />
+            * User List Add: <input type="text" name="user_role_list_add" /><br />
+            * Privileged User List Add: <input type="text" name="privileged_user_list_add" /><br />
+            * User List Remove: <input type="text" name="user_list_remove" /><br />
+            <input type="submit" value="Submit" />
+        </form>
+        
+        <h3>Class Roster Update:</h3>
+        <form action="/app/class/roster/update" enctype="multipart/form-data" method="post">
+            Token: <input type="text" name="auth_token" /><br />
+            Roster: <input type="file" name="roster" /><br />
+            Client: <input type="text" name="client" value="testWeb" /><br />
+            <input type="submit" value="Submit" />
+        </form>
+        
+        <h3>Delete Class:</h3>
+        <form action="/app/class/delete" method="post">
+            Token: <input type="text" name="auth_token" /><br />
+            Class ID: <input type="text" name="class_urn" /><br />
+            Client: <input type="text" name="client" value="testWeb" /><br />
+            <input type="submit" value="Submit" />
+        </form>
+		
+		<h2>Document APIs</h2>
+		<h3>Document Creation:</h3>
+        <form action="/app/document/create" enctype="multipart/form-data" method="post">
+            Token: <input type="text" name="auth_token" /><br />
+            Name: <input type="text" name="document_name" /><br />
+            Privacy State: <input type="text" name="privacy_state" /><br />
+            Document: <input type="file" name="document" /><br />
+            Client: <input type="text" name="client" value="testWeb" /><br />
+            + Campaign-Role List: <input type="text" name="document_campaign_role_list" /><br />
+            + Class-Role List: <input type="text" name="document_class_role_list" /><br />
+            * Description: <input type="text" name="description" /><br />
+            <input type="submit" value="Submit" />
+        </form>
+
+        <h3>Document Read:</h3>
+        <form action="/app/document/read" method="post">
+            Personal Documents: <input type="text" name="personal_documents" /><br />
+            Client: <input type="text" name="client" value="testWeb" /><br />
+            * Campaign ID List: <input type="text" name="campaign_urn_list" /><br />
+            * Class ID List: <input type="text" name="class_urn_list" /><br />
+            <input type="submit" value="Submit" />
+        </form>
+
+        <h3>Document Read Contents:</h3>
+        <form action="/app/document/read/contents" method="post">
+            Document ID: <input type="text" name="document_id" /><br />
+            Client: <input type="text" name="client" value="testWeb" /><br />
+            <input type="submit" value="Submit" />
+        </form>
+        
+        <h3>Document Update:</h3>
+        <form action="/app/document/update" enctype="multipart/form-data" method="post">
+            Token: <input type="text" name="auth_token" /><br />
+            Document ID: <input type="text" name="document_id" /><br />
+            Client: <input type="text" name="client" value="testWeb" /><br />
+            * New Name: <input type="text" name="document_name" /><br />
+            * New Privacy State: <input type="text" name="privacy_state" /><br />
+            * New Contents: <input type="file" name="document" /><br />
+            * New Description: <input type="text" name="description" /><br />
+            * Campaign-Role List Add: <input type="text" name="campaign_role_list_add" /><br />
+            * Campaign List Remove: <input type="text" name="campaign_list_remove" /><br />
+            * Class-Role List Add: <input type="text" name="class_role_list_add" /><br />
+            * Class List Remove: <input type="text" name="class_list_remove" /><br />
+            * User-Role List Add: <input type="text" name="user_role_list_add" /><br />
+            * User List Remove: <input type="text" name="user_list_remove" /><br />
+            <input type="submit" value="Submit" />
+        </form>
+        
+        <h3>Document Delete:</h3>
+        <form action="/app/document/delete" method="post">
+            Token: <input type="text" name="auth_token" /><br />
+            Document ID: <input type="text" name="document_id" /><br />
+            Client: <input type="text" name="client" value="testWeb" /><br />
+            <input type="submit" value="Submit" />
+        </form>
+		
+		<h2>Survey Response APIs</h2>
+		<h3>Survey Response Read:</h3>
+		<form action="/app/survey_response/read" method="post">
+			Campaign ID: <input type="text" name="campaign_urn" /><br />
+			Column List: <input type="text" name="column_list" /><br />
+			Output Format: <input type="text" name="output_format" /><br />
+			User List: <input type="text" name="user_list" /><br />
+			Client: <input type="text" name="client" value="testWeb" /><br />
+			+ Survey ID List: <input type="text" name="survey_id_list" /><br />
+			+ Prompt ID List: <input type="text" name="prompt_id_list" /><br />
+			* Privacy State: <input type="text" name="privacy_state" /><br />
+			* Suppress Metadata: <input type="text" name="suppress_metadata" /><br />
+			* Start Date: <input type="text" name="start_date" /><br />
+			* End Date: <input type="text" name="end_date" /><br />
+			* Sort Order: <input type="text" name="sort_order" /><br />
+			* Pretty Print: <input type="text" name="pretty_print" /><br />
+			* Return ID: <input type="text" name="return_id" /><br />
+			<input type="submit" value="Submit" />
+		</form>
+		
+		<h3>Survey Response Update:</h3>
+        <form action="/app/survey_response/update" method="post">
+            Token: <input type="text" name="auth_token" /><br />
+            Campaign ID: <input type="text" name="campaign_urn" /><br />
+            Survey Key: <input type="text" name="survey_key" /><br />
+            Privacy State: <input type="text" name="privacy_state" /><br />
+            Client: <input type="text" name="client" value="testWeb" /><br />
+            <input type="submit" value="Submit" />
+        </form>
+        
+        <h3>Image Read:</h3>
+        <form action="/app/image/read" method="post">
+            Image ID: <input type="text" name="id" /><br />
+            Client: <input type="text" name="client" value="testWeb" /><br />
+            * Size: <input type="text" name="size" /><br />
+            <input type="submit" value="Submit" />
+        </form>
+
+		<h3>Survey Function Read:</h3>
+		<form action="/app/survey_response/function/read" method="post">
+			Campaign ID: <input type="text" name="campaign_urn" /><br />
+			Function ID: <input type="text" name="id" /><br />
+			Client: <input type="text" name="client" value="testWeb" /><br />
+			* Privacy State Items: <input type="text" name="privacy_state_item_list" /><br />
+			<input type="submit" value="Submit" />
+		</form>
+		
+		<h3>Survey Response Delete</h3>
+        <form action="/app/survey_response/delete" method="post">
+            gToken: <input type="text" name="auth_token" /><br />
+            Survey Response ID: <input type="text" name="survey_id" /><br />
+            Client: <input type="text" name="client" value="testWeb" /><br />
+            <input type="submit" value="Submit" />
+        </form>
+
+        <h2>Mobility APIs</h2>
+		<h3>Mobility Read:</h3>
+		<form action="/app/mobility/read" method="post">
+			Date: <input type="text" name="date" /><br />
+			Client: <input type="text" name="client" value="testWeb" /><br />
+			<input type="submit" value="Submit" />
+		</form>
+
+		<h3>Mobility Chunked Read:</h3>
+		<form action="/app/mobility/read/chunked" method="post">
+			User: <input type="text" name="user" /><br />
+			Start Date: <input type="text" name="start_date" /><br />
+			End Date: <input type="text" name="end_date" /><br />
+			Client: <input type="text" name="client" value="testWeb" /><br />
+			<input type="submit" value="Submit" />
+		</form>
+		
+		<h2>Visualization APIs</h2>
+		<h3>Survey Response Count Visualization:</h3>
+        <form action="/app/viz/survey_response_count/read" method="post">
+            Width: <input type="text" name="width" /><br />
+            Height: <input type="text" name="height" /><br />
+            Campaign ID: <input type="text" name="campaign_urn" /><br />
+            Start Date: <input type="text" name="start_date" /><br />
+            End Date: <input type="text" name="end_date" /><br />
+            Privacy State: <input type="text" name="privacy_state" /><br />
+            Client: <input type="text" name="client" value="testWeb" /><br />
+            <input type="submit" value="Submit" />
+        </form>
+        
+        <h3>Survey Responses Privacy State Visualization:</h3>
+        <form action="/app/viz/survey_responses_privacy_state/read" method="post">
+            Width: <input type="text" name="width" /><br />
+            Height: <input type="text" name="height" /><br />
+            Campaign ID: <input type="text" name="campaign_urn" /><br />
+            Start Date: <input type="text" name="start_date" /><br />
+            End Date: <input type="text" name="end_date" /><br />
+            Privacy State: <input type="text" name="privacy_state" /><br />
+            Client: <input type="text" name="client" value="testWeb" /><br />
+            <input type="submit" value="Submit" />
+        </form>
+        
+        <h3>Survey Responses Privacy State Over Time Visualization:</h3>
+        <form action="/app/viz/survey_responses_privacy_state_time/read" method="post">
+            Width: <input type="text" name="width" /><br />
+            Height: <input type="text" name="height" /><br />
+            Campaign ID: <input type="text" name="campaign_urn" /><br />
+            Start Date: <input type="text" name="start_date" /><br />
+            End Date: <input type="text" name="end_date" /><br />
+            Privacy State: <input type="text" name="privacy_state" /><br />
+            Client: <input type="text" name="client" value="testWeb" /><br />
+            <input type="submit" value="Submit" />
+        </form>
+        
+        <h3>User Timeseries Visualization:</h3>
+        <form action="/app/viz/user_timeseries/read" method="post">
+            Width: <input type="text" name="width" /><br />
+            Height: <input type="text" name="height" /><br />
+            Campaign ID: <input type="text" name="campaign_urn" /><br />
+            Start Date: <input type="text" name="start_date" /><br />
+            End Date: <input type="text" name="end_date" /><br />
+            Privacy State: <input type="text" name="privacy_state" /><br />
+            Client: <input type="text" name="client" value="testWeb" /><br />
+            Prompt ID: <input type="text" name="prompt_id" /><br />
+            User: <input type="text" name="user" /><br />
+            <input type="submit" value="Submit" />
+        </form>
+        
+        <h3>Prompt Timeseries Visualization:</h3>
+        <form action="/app/viz/prompt_timeseries/read" method="post">
+            Width: <input type="text" name="width" /><br />
+            Height: <input type="text" name="height" /><br />
+            Campaign ID: <input type="text" name="campaign_urn" /><br />
+            Start Date: <input type="text" name="start_date" /><br />
+            End Date: <input type="text" name="end_date" /><br />
+            Privacy State: <input type="text" name="privacy_state" /><br />
+            Client: <input type="text" name="client" value="testWeb" /><br />
+            Prompt ID: <input type="text" name="prompt_id" /><br />
+            <input type="submit" value="Submit" />
+        </form>
+        
+        <h3>Prompt Distribution Visualization:</h3>
+        <form action="/app/viz/prompt_distribution/read" method="post">
+            Width: <input type="text" name="width" /><br />
+            Height: <input type="text" name="height" /><br />
+            Campaign ID: <input type="text" name="campaign_urn" /><br />
+            Start Date: <input type="text" name="start_date" /><br />
+            End Date: <input type="text" name="end_date" /><br />
+            Privacy State: <input type="text" name="privacy_state" /><br />
+            Client: <input type="text" name="client" value="testWeb" /><br />
+            Prompt ID: <input type="text" name="prompt_id" /><br />
+            <input type="submit" value="Submit" />
+        </form>
+        
+        <h3>Scatter Plot Visualization:</h3>
+        <form action="/app/viz/scatter_plot/read" method="post">
+            Width: <input type="text" name="width" /><br />
+            Height: <input type="text" name="height" /><br />
+            Campaign ID: <input type="text" name="campaign_urn" /><br />
+            Start Date: <input type="text" name="start_date" /><br />
+            End Date: <input type="text" name="end_date" /><br />
+            Privacy State: <input type="text" name="privacy_state" /><br />
+            Client: <input type="text" name="client" value="testWeb" /><br />
+            Prompt ID: <input type="text" name="prompt_id" /><br />
+            Prompt2 ID: <input type="text" name="prompt2_id" /><br />
+            <input type="submit" value="Submit" />
+        </form>
+        
+        <h3>2D Density Visualization:</h3>
+        <form action="/app/viz/2d_density/read" method="post">
+            Width: <input type="text" name="width" /><br />
+            Height: <input type="text" name="height" /><br />
+            Campaign ID: <input type="text" name="campaign_urn" /><br />
+            Start Date: <input type="text" name="start_date" /><br />
+            End Date: <input type="text" name="end_date" /><br />
+            Privacy State: <input type="text" name="privacy_state" /><br />
+            Client: <input type="text" name="client" value="testWeb" /><br />
+            Prompt ID: <input type="text" name="prompt_id" /><br />
+            Prompt2 ID: <input type="text" name="prompt2_id" /><br />
+            <input type="submit" value="Submit" />
+        </form>
+	</body>
+</html>

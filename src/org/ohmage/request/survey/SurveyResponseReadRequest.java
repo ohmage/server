@@ -279,8 +279,8 @@ public final class SurveyResponseReadRequest extends UserRequest {
 	private final Boolean returnId;
 	private final Boolean suppressMetadata;
 	
-	private final long rowsToSkip;
-	private final long rowsToAnalyze;
+	private final long surveyResponsesToSkip;
+	private final long surveyResponsesToProcess;
 	
 	private Campaign campaign;
 	private List<SurveyResponse> surveyResponseList;
@@ -314,8 +314,8 @@ public final class SurveyResponseReadRequest extends UserRequest {
 		Boolean tReturnId = null;
 		Boolean tSuppressMetadata = null;
 		
-		long tRowsToSkip = SurveyResponse.DEFAULT_NUM_ROWS_TO_SKIP;
-		long tRowsToAnalyze = SurveyResponse.DEFAULT_NUM_ROWS_TO_ANALYZE;
+		long tSurveyResponsesToSkip = SurveyResponse.DEFAULT_NUM_SURVEY_RESPONSES_TO_SKIP;
+		long tSurveyResponsesToProcess = SurveyResponse.DEFAULT_NUM_SURVEY_RESPONSES_TO_PROCESS;
 		
 		if(! isFailed()) {
 		
@@ -525,22 +525,22 @@ public final class SurveyResponseReadRequest extends UserRequest {
 					tSuppressMetadata = SurveyResponseValidators.validateSuppressMetadata(t[0]);
 				}
 				
-				// Rows to skip
-				t = getParameterValues(InputKeys.SURVEY_ROWS_TO_SKIP);
+				// Number of survey responses to skip.
+				t = getParameterValues(InputKeys.SURVEY_RESPONSES_TO_SKIP);
 				if(t.length > 1) {
-					throw new ValidationException(ErrorCode.SURVEY_INVALID_ROWS_TO_SKIP, "Multiple values were given for the number of rows to skip: " + InputKeys.SURVEY_ROWS_TO_SKIP);
+					throw new ValidationException(ErrorCode.SURVEY_INVALID_SURVEY_RESPONSES_TO_SKIP, "Multiple values were given for the number of survey responses to skip: " + InputKeys.SURVEY_RESPONSES_TO_SKIP);
 				}
 				else if(t.length == 1) {
-					tRowsToSkip = SurveyResponseValidators.validateRowsToSkip(t[0]);
+					tSurveyResponsesToSkip = SurveyResponseValidators.validateNumSurveyResponsesToSkip(t[0]);
 				}
 				
-				// Rows to analyze
-				t = getParameterValues(InputKeys.SURVEY_ROWS_TO_ANALYZE);
+				// Number of survey responses to process.
+				t = getParameterValues(InputKeys.SURVEY_RESPONSES_TO_PROCESS);
 				if(t.length > 1) {
-					throw new ValidationException(ErrorCode.SURVEY_INVALID_ROWS_TO_ANALYZE, "Multiple values were given for the number of rows to analyze: " + InputKeys.SURVEY_ROWS_TO_ANALYZE);
+					throw new ValidationException(ErrorCode.SURVEY_INVALID_SURVEY_RESPONSES_TO_PROCESS, "Multiple values were given for the number of survey responses to process: " + InputKeys.SURVEY_RESPONSES_TO_PROCESS);
 				}
 				else if(t.length == 1) {
-					tRowsToAnalyze = SurveyResponseValidators.validateRowsToAnalyze(t[0]);
+					tSurveyResponsesToProcess = SurveyResponseValidators.validateNumSurveyResponsesToProcess(t[0]);
 				}
 			}
 			catch (ValidationException e) {
@@ -569,8 +569,8 @@ public final class SurveyResponseReadRequest extends UserRequest {
 		returnId = tReturnId;
 		suppressMetadata = tSuppressMetadata;
 		
-		rowsToSkip = tRowsToSkip;
-		rowsToAnalyze = tRowsToAnalyze;
+		surveyResponsesToSkip = tSurveyResponsesToSkip;
+		surveyResponsesToProcess = tSurveyResponsesToProcess;
 	}
 	
 	/**
@@ -633,8 +633,8 @@ public final class SurveyResponseReadRequest extends UserRequest {
 							(URN_SPECIAL_ALL_LIST.equals(surveyIds)) ? null : surveyIds, 
 							(URN_SPECIAL_ALL_LIST.equals(promptIds)) ? null : promptIds, 
 							null,
-							rowsToSkip,
-							rowsToAnalyze
+							surveyResponsesToSkip,
+							surveyResponsesToProcess
 						);
 			
 			LOGGER.info("Found " + surveyResponseList.size() + " results");

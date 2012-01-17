@@ -759,8 +759,8 @@ public class SurveyResponseQueries extends Query implements ISurveyResponseQueri
 			final Collection<String> surveyIds,
 			final Collection<String> promptIds,
 			final String promptType,
-			final long rowsToSkip,
-			final long rowsToAnalyze) 
+			final long surveyResponsesToSkip,
+			final long surveyResponsesToProcess) 
 			throws DataAccessException {
 		
 		// Begin with the default SQL string.
@@ -856,7 +856,7 @@ public class SurveyResponseQueries extends Query implements ISurveyResponseQueri
 						int surveyResponsesSkipped = 0;
 						// Continue while there are more survey responses to
 						// skip.
-						while(surveyResponsesSkipped < rowsToSkip) {
+						while(surveyResponsesSkipped < surveyResponsesToSkip) {
 							// Get the ID for the survey response we are 
 							// skipping.
 							String surveyResponseId = rs.getString("uuid");
@@ -883,7 +883,7 @@ public class SurveyResponseQueries extends Query implements ISurveyResponseQueri
 						// rows has been processed or there are no more rows to
 						// process.
 						int surveyResponsesProcessed = 0;
-						while(surveyResponsesProcessed < rowsToAnalyze) {
+						while(surveyResponsesProcessed < surveyResponsesToProcess) {
 							// We have not yet processed this survey response,
 							// so we need to process it and then continue
 							// processing this and all of its survey responses.

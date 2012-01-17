@@ -539,60 +539,58 @@ public final class SurveyResponseValidators {
 	}
 	
 	/**
-	 * Validates the number of rows to skip when processing the number of
-	 * survey responses.
+	 * Validates the number of survey responses to skip.
 	 * 
-	 * @param rowsToSkip The value to be validated.
+	 * @param surveyResponsesToSkip The value to be validated.
 	 * 
 	 * @return The number of rows to skip as given by the user or the default
-	 * 		   value {@link SurveyResponse#DEFAULT_NUM_ROWS_TO_SKIP}.
+	 * 		   value {@link SurveyResponse#DEFAULT_NUM_SURVEY_RESPONSES_TO_SKIP}.
 	 * 
 	 * @throws ValidationException Thrown if the value cannot be parsed.
 	 */
-	public static long validateRowsToSkip(final String rowsToSkip)
+	public static long validateNumSurveyResponsesToSkip(final String surveyResponsesToSkip)
 			throws ValidationException {
 		
-		if(StringUtils.isEmptyOrWhitespaceOnly(rowsToSkip)) {
-			return SurveyResponse.DEFAULT_NUM_ROWS_TO_SKIP;
+		if(StringUtils.isEmptyOrWhitespaceOnly(surveyResponsesToSkip)) {
+			return SurveyResponse.DEFAULT_NUM_SURVEY_RESPONSES_TO_SKIP;
 		}
 		
 		try {
-			return Long.decode(rowsToSkip);
+			return Long.decode(surveyResponsesToSkip);
 		}
 		catch(NumberFormatException e) {
 			throw new ValidationException(
-					ErrorCode.SURVEY_INVALID_ROWS_TO_SKIP,
-					"The number of rows to skip was not a number.",
+					ErrorCode.SURVEY_INVALID_SURVEY_RESPONSES_TO_SKIP,
+					"The number of survey responses to skip was not a number.",
 					e);
 		}
 	}
 
 	/**
-	 * Validates the number of rows to analyze when processing survey 
-	 * responses.
+	 * Validates the number of survey responses to process.
 	 * 
-	 * @param rowsToAnalyze The value to be validated.
+	 * @param surveyResponsesToProcess The value to be validated.
 	 * 
 	 * @return The number of rows to analyze as given by the user or the 
 	 * 		   default value 
-	 * 		   {@link SurveyResponse#DEFAULT_NUM_ROWS_TO_ANALYZE}.
+	 * 		   {@link SurveyResponse#DEFAULT_NUM_SURVEY_RESPONSES_TO_PROCESS}.
 	 * 
 	 * @throws ValidationException Thrown if the value cannot be parsed.
 	 */
-	public static long validateRowsToAnalyze(final String rowsToAnalyze)
+	public static long validateNumSurveyResponsesToProcess(final String surveyResponsesToProcess)
 			throws ValidationException {
 		
-		if(StringUtils.isEmptyOrWhitespaceOnly(rowsToAnalyze)) {
-			return SurveyResponse.DEFAULT_NUM_ROWS_TO_ANALYZE;
+		if(StringUtils.isEmptyOrWhitespaceOnly(surveyResponsesToProcess)) {
+			return SurveyResponse.DEFAULT_NUM_SURVEY_RESPONSES_TO_PROCESS;
 		}
 		
 		try {
-			return Long.decode(rowsToAnalyze);
+			return Long.decode(surveyResponsesToProcess);
 		}
 		catch(NumberFormatException e) {
 			throw new ValidationException(
-					ErrorCode.SURVEY_INVALID_ROWS_TO_ANALYZE,
-					"The number of rows to analyze was not a number.",
+					ErrorCode.SURVEY_INVALID_SURVEY_RESPONSES_TO_PROCESS,
+					"The number of survey responses to process was not a number.",
 					e);
 		}
 	}

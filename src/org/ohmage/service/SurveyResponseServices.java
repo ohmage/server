@@ -214,11 +214,13 @@ public final class SurveyResponseServices {
 	 * @param promptType A prompt type that limits all responses to those of
 	 * 					 exactly this prompt type. Optional.
 	 * 
-	 * @param rowsToSkip The number of rows to skip once the result has been
-	 * 					 aggregated from the server.
+	 * @param surveyResponsesToSkip The number of survey responses to skip once
+	 * 								the result has been aggregated from the 
+	 * 								server.
 	 * 
-	 * @param rowsToAnalyze The number of rows to analyze once the rows to skip
-	 * 						have been skipped.
+	 * @param surveyResponsesToProcess The number of survey responses to 
+	 * 								   analyze once the survey responses to 
+	 * 								   skip have been skipped.
 	 * 
 	 * @return Returns a, possibly empty but never null, list of survey 
 	 * 		   responses that match the given criteria.
@@ -233,8 +235,9 @@ public final class SurveyResponseServices {
 			final Collection<String> surveyIds, 
 			final Collection<String> promptIds, 
 			final String promptType,
-			final long rowsToSkip,
-			final long rowsToAnalyze) throws ServiceException {
+			final long surveyResponsesToSkip,
+			final long surveyResponsesToProcess) 
+			throws ServiceException {
 		
 		try {
 			return surveyResponseQueries.retrieveSurveyResponseDynamically(
@@ -246,8 +249,8 @@ public final class SurveyResponseServices {
 					surveyIds, 
 					promptIds, 
 					promptType,
-					rowsToSkip,
-					rowsToAnalyze);
+					surveyResponsesToSkip,
+					surveyResponsesToProcess);
 		}
 		catch(DataAccessException e) {
 			throw new ServiceException(e);
