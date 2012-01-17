@@ -2035,9 +2035,53 @@ public class Campaign {
 		int numSurveys = surveys.size();
 		List<Survey> result = new ArrayList<Survey>(numSurveys);
 		
+		List<String> surveyItemIds = new LinkedList<String>();
+		
 		for(int i = 0; i < numSurveys; i++) {
 			Node survey = surveys.get(i);
-			result.add(processSurvey(survey));
+			Survey currSurvey = processSurvey(survey);
+			
+			surveyItemIds.addAll( 
+					getSurveyItemIds(currSurvey.getSurveyItems().values()));
+			
+			result.add(currSurvey);
+		}
+		
+		Set<String> surveyItemIdsSet = new HashSet<String>();
+		for(String surveyItemId : surveyItemIds) {
+			if(! surveyItemIdsSet.add(surveyItemId)) {
+				throw new IllegalArgumentException("Multiple survey items have the same unique identifier: " + surveyItemId);
+			}
+		}
+		
+		return result;
+	}
+	
+	/**
+	 * Retrieves the identifiers for all of the survey items in the parameter.
+	 * The identifiers may not be unique if the campaign has not yet been 
+	 * validated.
+	 *  
+	 * @param items The survey items and, if containing repeatable sets,  
+	 *				sub-items whose identifiers are desired.
+	 * 
+	 * @return A list of, possibly not unique, survey item IDs.
+	 */
+	private static List<String> getSurveyItemIds(
+			final Collection<SurveyItem> items) {
+		
+		List<String> result = new LinkedList<String>();
+		
+		for(SurveyItem surveyItem : items) {
+			result.add(surveyItem.getId());
+			
+			if(surveyItem instanceof RepeatableSet) {
+				result.addAll(
+						getSurveyItemIds(
+								((RepeatableSet) surveyItem)
+									.getSurveyItems()
+									.values()));
+			}
 		}
 		
 		return result;
