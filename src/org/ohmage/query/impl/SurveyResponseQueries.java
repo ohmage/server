@@ -2,7 +2,6 @@ package org.ohmage.query.impl;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
@@ -190,7 +189,7 @@ public class SurveyResponseQueries extends Query implements ISurveyResponseQueri
 		" AND pr.prompt_type = ?";
 	
 	private static final String SQL_ORDER_BY =
-		" ORDER BY sr.upload_timestamp";
+		" ORDER BY sr.upload_timestamp, sr.uuid";
 
 	// Retrieves all of the information about all prompt responses that pertain
 	// to a single survey response.
@@ -846,46 +845,60 @@ public class SurveyResponseQueries extends Query implements ISurveyResponseQueri
 							throws SQLException,
 							org.springframework.dao.DataAccessException {
 						
-						// First, skip the rows to be skipped.
-						int rowsSkipped = 0;
-						while((rowsSkipped < rowsToSkip) && rs.next()) {
-							rowsSkipped++;
-						}
-						
-						// If we bailed out because there were no more rows to
-						// process, return an empty list.
-						if(rs.isAfterLast()) {
+						// If the result set is empty, we can simply return an
+						// empty list.
+						if(! rs.next()) {
 							return Collections.emptyList();
 						}
 						
-						// Create a result map that will maintain which 
-						// SurveyResponse objects have already been built to
-						// keep from building them again and to, instead, 
-						// combine subsequent prompt responses into their
-						// appropriate survey response.
-						Map<String, SurveyResponse> result =
-								new HashMap<String, SurveyResponse>();
+						// Keep track of the number of survey responses we have
+						// skipped.
+						int surveyResponsesSkipped = 0;
+						// Continue while there are more survey responses to
+						// skip.
+						while(surveyResponsesSkipped < rowsToSkip) {
+							// Get the ID for the survey response we are 
+							// skipping.
+							String surveyResponseId = rs.getString("uuid");
+							surveyResponsesSkipped++;
+							
+							// Continue to skip rows as long as there are rows
+							// to skip and those rows have the same survey
+							// response ID.
+							while(surveyResponseId.equals(rs.getString("uuid"))) {
+								// We were skipping the last survey response,
+								// therefore, there are no survey responses to
+								// return and we can return an empty list.
+								if(! rs.next()) {
+									return Collections.emptyList();
+								}
+							}
+						}
+						
+						// Create a list of the results.
+						List<SurveyResponse> result =
+								new LinkedList<SurveyResponse>();
 						
 						// Cycle through the rows until the maximum number of
 						// rows has been processed or there are no more rows to
 						// process.
-						int rowsAnalyzed = 0;
-						while((rowsAnalyzed < rowsToAnalyze) && rs.next()) {
-							// Retrieve the survey response if it has already
-							// been created.
-							SurveyResponse surveyResponse = result.get(rs.getString("uuid"));
+						int surveyResponsesProcessed = 0;
+						while(surveyResponsesProcessed < rowsToAnalyze) {
+							// We have not yet processed this survey response,
+							// so we need to process it and then continue
+							// processing this and all of its survey responses.
 							
-							// If the survey response has not yet been created,
-							// create it and add it to the map.
-							if(surveyResponse == null) {
-								try {
-									JSONObject locationJson = null;
-									String locationString = rs.getString("location");
-									if(locationString != null) {
-										locationJson = new JSONObject(locationString);
-									}
-									
-									surveyResponse = new SurveyResponse(
+							// First, create the survey response object.
+							SurveyResponse surveyResponse;
+							try {
+								JSONObject locationJson = null;
+								String locationString = rs.getString("location");
+								if(locationString != null) {
+									locationJson = new JSONObject(locationString);
+								}
+								
+								surveyResponse =
+									new SurveyResponse(
 											campaign.getSurveys().get(rs.getString("survey_id")),
 											UUID.fromString(rs.getString("uuid")),
 											rs.getString("username"),
@@ -897,52 +910,74 @@ public class SurveyResponseQueries extends Query implements ISurveyResponseQueri
 											rs.getString("location_status"),
 											locationJson,
 											SurveyResponse.PrivacyState.getValue(rs.getString("privacy_state")));
-									
-									result.put(
-											surveyResponse.getSurveyResponseId().toString(), 
-											surveyResponse);
-								}
-								catch(JSONException e) {
-									throw new SQLException("Error creating a JSONObject.", e);
-								}
-								catch(ErrorCodeException e) {
-									throw new SQLException("Error creating the survey response information object.", e);
-								}
-								catch(IllegalArgumentException e) {
-									throw new SQLException("Error creating the survey response information object.", e);
-								}
 							}
-							
-							// Now, process this prompt response.
-							try {
-								// Retrieve the corresponding prompt 
-								// information from the campaign.
-								Prompt prompt = 
-									campaign.getPrompt(
-											surveyResponse.getSurvey().getId(),
-											rs.getString("prompt_id")
-										);
-								
-								// Generate the prompt response and add it to
-								// the survey response.
-								surveyResponse.addPromptResponse(
-										prompt.createResponse(
-												rs.getString("response"),
-												(Integer) rs.getObject(
-														"repeatable_set_iteration", 
-														typeMapping)
-											)
-									);
+							catch(JSONException e) {
+								throw new SQLException("Error creating a JSONObject.", e);
+							}
+							catch(ErrorCodeException e) {
+								throw new SQLException("Error creating the survey response information object.", e);
 							}
 							catch(IllegalArgumentException e) {
-								throw new SQLException("The prompt response value from the database is not a valid response value for this prompt.", e);
+								throw new SQLException("Error creating the survey response information object.", e);
 							}
 							
-							rowsAnalyzed++;
+							// Add the current survey response to the result
+							// list and increase the number of survey responses
+							// processed.
+							result.add(surveyResponse);
+							surveyResponsesProcessed++;
+							
+							// Get a string representation of the survey
+							// response's unique identifier.
+							String surveyResponseId =
+									surveyResponse.getSurveyResponseId().toString();
+							
+							// Now, process this prompt response and all 
+							// subsequent prompt responses.
+							do {
+								try {
+									// Retrieve the corresponding prompt 
+									// information from the campaign.
+									Prompt prompt = 
+										campaign.getPrompt(
+												surveyResponse.getSurvey().getId(),
+												rs.getString("prompt_id")
+											);
+									
+									// Generate the prompt response and add it to
+									// the survey response.
+									surveyResponse.addPromptResponse(
+											prompt.createResponse(
+													rs.getString("response"),
+													(Integer) rs.getObject(
+															"repeatable_set_iteration", 
+															typeMapping)
+												)
+										);
+								}
+								catch(IllegalArgumentException e) {
+									throw new SQLException("The prompt response value from the database is not a valid response value for this prompt.", e);
+								}
+							} while(
+									// Get the next prompt response unless we
+									// just read the last prompt response in
+									// the result,
+									rs.next() && 
+									// and continue as long as that prompt 
+									// response pertains to this survey 
+									// response.
+									surveyResponseId.equals(rs.getString("uuid")));
+									
+							// If we exited the loop because we passed the last
+							// record, break out of the survey response 
+							// processing loop.
+							if(rs.isAfterLast()) {
+								break;
+							}
 						}
 						
 						// Finally, return only the survey responses as a list.
-						return new ArrayList<SurveyResponse>(result.values());
+						return result;
 					}
 				}
 			);
