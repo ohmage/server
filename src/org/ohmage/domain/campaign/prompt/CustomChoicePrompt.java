@@ -4,6 +4,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -15,6 +16,12 @@ import org.json.JSONObject;
  * @author John Jenkins
  */
 public abstract class CustomChoicePrompt extends ChoicePrompt {
+	/**
+	 * The key to use when exporting this to JSON to indicate the list of 
+	 * labels that were predefined for this prompt.
+	 */
+	public static final String JSON_KEY_FIXED_CHOICES = "fixed_choices";
+	
 	private final Map<Integer, LabelValuePair> customChoices;
 	
 	/**
@@ -232,6 +239,12 @@ public abstract class CustomChoicePrompt extends ChoicePrompt {
 				choiceGlossary.put(key.toString(), customChoices.get(key).toJson());
 			}
 			result.put(JSON_KEY_CHOICE_GLOSSARY, choiceGlossary);
+			
+			JSONArray labels = new JSONArray();
+			for(LabelValuePair lvp : getChoices().values()) {
+				labels.put(lvp.getLabel());
+			}
+			result.put(JSON_KEY_FIXED_CHOICES, labels);
 			
 			return result;
 		}
