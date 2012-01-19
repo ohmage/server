@@ -189,7 +189,7 @@ public class SurveyResponseQueries extends Query implements ISurveyResponseQueri
 		" AND pr.prompt_type = ?";
 	
 	private static final String SQL_ORDER_BY =
-		" ORDER BY sr.upload_timestamp, sr.uuid";
+		" ORDER BY sr.epoch_millis, sr.uuid";
 
 	// Retrieves all of the information about all prompt responses that pertain
 	// to a single survey response.
