@@ -1,5 +1,6 @@
 package org.ohmage.query;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -41,6 +42,20 @@ public interface IUserCampaignQueries {
 	 * @return A possibly empty List of roles for this user in this campaign.
 	 */
 	List<Campaign.Role> getUserCampaignRoles(String username, String campaignId)
+			throws DataAccessException;
+	
+	/**
+	 * Returns a map of usernames to a set of campaign roles for all of the 
+	 * users in a campaign.
+	 * 
+	 * @param campaignId The campaign's unique identifier.
+	 * 
+	 * @return A map of usernames to a set of campaign roles.
+	 * 
+	 * @throws DataAccessException Thrown if there is an error.
+	 */
+	Map<String, Collection<Campaign.Role>> getUsersAndRolesForCampaign(
+			String campaignId) 
 			throws DataAccessException;
 
 	/**

@@ -2,18 +2,20 @@ package org.ohmage.query.impl;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
 import javax.sql.DataSource;
 
 import org.ohmage.domain.campaign.Campaign;
+import org.ohmage.domain.campaign.Campaign.Role;
 import org.ohmage.exception.DataAccessException;
 import org.ohmage.query.IUserCampaignQueries;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.SingleColumnRowMapper;
-
 
 /**
  * This class contains all of the functionality for reading and writing 
@@ -51,6 +53,16 @@ public final class UserCampaignQueries extends Query implements IUserCampaignQue
 		"AND c.urn = ? " +
 		"AND c.id = urc.campaign_id " +
 		"AND urc.user_role_id = ur.id";
+	
+	// Retrieves all of the users for a campaign and all of their associated
+	// roles.
+	private static final String SQL_GET_USERS_AND_CAMPAIGN_ROLES = 
+			"SELECT u.username, ur.role " +
+			"FROM user u, campaign c, user_role ur, user_role_campaign urc " +
+			"WHERE c.urn = ? " +
+			"AND c.id = urc.campaign_id " +
+			"AND u.id = urc.user_id " +
+			"AND ur.id = urc.user_role_id";
 
 	// Retrieves the ID and name for all of the campaign to which the user is
 	// associated.
@@ -143,6 +155,58 @@ public final class UserCampaignQueries extends Query implements IUserCampaignQue
 		catch(org.springframework.dao.DataAccessException e) {
 			throw new DataAccessException("Error executing SQL '" + SQL_GET_USER_CAMPAIGN_ROLES + "' with parameters: " + 
 					username + ", " + campaignId, e);
+		}
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.ohmage.query.IUserCampaignQueries#getUsersAndRolesForCampaign(java.lang.String)
+	 */
+	@Override
+	public Map<String, Collection<Role>> getUsersAndRolesForCampaign(
+			final String campaignId)
+			throws DataAccessException {
+		
+		try {
+			final Map<String, Collection<Campaign.Role>> result =
+					new HashMap<String, Collection<Campaign.Role>>();
+			
+			getJdbcTemplate().query(
+					SQL_GET_USERS_AND_CAMPAIGN_ROLES,
+					new Object[] { campaignId },
+					new RowMapper<Object>() {
+						/**
+						 * Adds the user's role to the map.
+						 */
+						@Override
+						public Object mapRow(ResultSet rs, int rowNum)
+								throws SQLException {
+							
+							String username = rs.getString("username");
+							Collection<Campaign.Role> roles = result.get(username);
+							
+							if(roles == null) {
+								roles = new HashSet<Campaign.Role>();
+								result.put(username, roles);
+							}
+							
+							roles.add(
+									Campaign.Role.getValue(
+											rs.getString("role")));
+							
+							return null;
+						}
+					});
+			
+			return result;
+		}
+		catch(org.springframework.dao.DataAccessException e) {
+			throw new DataAccessException(
+					"Error executing SQL '" + 
+							SQL_GET_USERS_AND_CAMPAIGN_ROLES + 
+						"' with parameters: " + 
+							campaignId, 
+					e);
 		}
 	}
 	

@@ -298,7 +298,7 @@ public class Campaign {
 			return name().toLowerCase();
 		}
 	}
-	private final Map<String, List<Role>> userRoles;
+	private final Map<String, Collection<Role>> userRoles;
 
 	/**
 	 * The output formats for reading campaigns.
@@ -401,7 +401,7 @@ public class Campaign {
 		
 		this.surveyMap = surveyMap; // TODO deep copy?
 		
-		userRoles = new HashMap<String, List<Role>>();
+		userRoles = new HashMap<String, Collection<Role>>();
 		classes = new LinkedList<String>();
 	}
 	
@@ -460,7 +460,7 @@ public class Campaign {
 			throw new IllegalArgumentException("The creation timestamp is missing.", e);
 		}
 		
-		Map<String, List<Role>> tUserRoles = new HashMap<String, List<Role>>();
+		Map<String, Collection<Role>> tUserRoles = new HashMap<String, Collection<Role>>();
 		try {
 			JSONObject roles = information.getJSONObject(JSON_KEY_ROLES);
 			
@@ -473,7 +473,7 @@ public class Campaign {
 				for(int i = 0; i < numUsernames; i++) {
 					String username = usernames.getString(i);
 					
-					List<Role> currUserRoles = tUserRoles.get(username);
+					Collection<Role> currUserRoles = tUserRoles.get(username);
 					if(currUserRoles == null) {
 						currUserRoles = new LinkedList<Role>();
 						tUserRoles.put(username, currUserRoles);
@@ -706,7 +706,7 @@ public class Campaign {
 		
 		this.xml = xml;
 		
-		userRoles = new HashMap<String, List<Role>>();
+		userRoles = new HashMap<String, Collection<Role>>();
 		classes = new LinkedList<String>();
 	}
 	
@@ -844,12 +844,26 @@ public class Campaign {
 			throw new NullPointerException("The role is null.");
 		}
 		
-		List<Role> roles = userRoles.get(username);
+		Collection<Role> roles = userRoles.get(username);
 		if(roles == null) {
 			roles = new LinkedList<Role>();
 			userRoles.put(username, roles);
 		}
 		roles.add(role);
+	}
+	
+	/**
+	 * Adds the map of usernames to their respective roles to the internal map.
+	 * 
+	 * @param usersAndRoles A map of usernames to a collection of their roles
+	 * 						in this campaign.
+	 */
+	public void addUsers(final Map<String, Collection<Role>> usersAndRoles) {
+		if(usersAndRoles == null) {
+			return;
+		}
+		
+		userRoles.putAll(usersAndRoles);
 	}
 	
 	/**

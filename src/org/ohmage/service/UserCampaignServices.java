@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.log4j.Logger;
 import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.domain.UserPersonal;
 import org.ohmage.domain.campaign.Campaign;
@@ -712,27 +713,26 @@ public class UserCampaignServices {
 			Map<Campaign, List<Campaign.Role>> result = new HashMap<Campaign, List<Campaign.Role>>();
 			
 			for(String campaignId : campaignIds) {
+				LOGGER.info("Gathering the campaign information");
+				
 				// Create the Campaign object with the campaign's ID.
 				Campaign campaign = campaignQueries.getCampaignInformation(campaignId);
+				
+				LOGGER.info("Gathering the roles.");
 				
 				// Get the user's roles.
 				List<Campaign.Role> roles = userCampaignQueries.getUserCampaignRoles(username, campaignId);
 				
 				// If we are supposed to get the extra information as well.
 				if(withExtras) {
+					
+					LOGGER.debug("Gathering the classes.");
+					
 					// Add the classes that are associated with the campaign.
 					campaign.addClasses(campaignClassQueries.getClassesAssociatedWithCampaign(campaignId));
 					
-					// Add the list of roles and all of the users with those
-					// roles.
-					List<String> campaignUsernames = userCampaignQueries.getUsersInCampaign(campaignId);
-					for(String campaignUsername : campaignUsernames) {
-						List<Campaign.Role> userRoles = userCampaignQueries.getUserCampaignRoles(campaignUsername, campaignId);
-						
-						for(Campaign.Role userRole : userRoles) {
-							campaign.addUser(campaignUsername, userRole);
-						}
-					}
+					// Add the users and their roles to the campaign.
+					campaign.addUsers(userCampaignQueries.getUsersAndRolesForCampaign(campaignId));
 				}
 
 				// Add the user's roles.
@@ -745,6 +745,8 @@ public class UserCampaignServices {
 			throw new ServiceException(e);
 		}
 	}
+	
+	private static final Logger LOGGER = Logger.getLogger(UserCampaignServices.class);
 	
 	/**
 	 * Retrieves the information about a campaign.
