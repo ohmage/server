@@ -252,6 +252,10 @@ CREATE TABLE survey_response_privacy_state (
   UNIQUE (privacy_state)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
+-- Creates an index on prompt responses for the first 36 characters, the size 
+-- of a UUID.
+CREATE INDEX response_image ON prompt_response (response(36));
+
 -- --------------------------------------------------------------------
 -- Stores survey responses for a user in a campaign 
 -- --------------------------------------------------------------------
