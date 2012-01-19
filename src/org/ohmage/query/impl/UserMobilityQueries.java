@@ -196,24 +196,6 @@ public final class UserMobilityQueries extends AbstractUploadQuery implements IU
 	private static final String SQL_ORDER_BY_DATE =
 		" ORDER BY epoch_millis";
 	
-	// Retrieves all of the information pertaining to a single Mobility data 
-	// point for a given username. This will return alot of data and should be
-	// used with caution. Instead, it is recommended that a list of ID's be
-	// aggregated and 'SQL_GET_MOBILITY_DATA_FROM_ID' be run on each of those
-	// IDs.
-	private static final String SQL_GET_MOBILITY_DATA_FOR_USER =
-		"SELECT m.uuid, u.username, m.client, " +
-			"m.epoch_millis, m.upload_timestamp, " +
-			"m.phone_timezone, m.location_status, m.location, " +
-			"m.mode, mps.privacy_state, " +
-			"me.sensor_data, me.features, me.classifier_version " +
-		"FROM user u, mobility_privacy_state mps, " +
-			"mobility m LEFT JOIN mobility_extended me " +
-			"ON m.id = me.mobility_id " +
-		"WHERE u.username = ? " +
-		"AND u.id = m.user_id " +
-		"AND mps.id = m.privacy_state_id";
-	
 	// Inserts a mode-only entry into the database.
 	private static final String SQL_INSERT =
 		"INSERT INTO mobility(uuid, user_id, client, epoch_millis, phone_timezone, location_status, location, mode, upload_timestamp, privacy_state_id) " +
@@ -789,7 +771,7 @@ public final class UserMobilityQueries extends AbstractUploadQuery implements IU
 	public Date getLastUploadForUser(String username) throws DataAccessException {
 		try {
 			List<Long> timestamps = getJdbcTemplate().query(
-					SQL_GET_MOBILITY_DATA_FOR_USER, 
+					SQL_GET_MOBILITY_DATA, 
 					new Object[] { username }, 
 					new RowMapper<Long>() {
 						@Override
@@ -810,7 +792,7 @@ public final class UserMobilityQueries extends AbstractUploadQuery implements IU
 		catch(org.springframework.dao.DataAccessException e) {
 			throw new DataAccessException(
 					"Error while executing '" + 
-							SQL_GET_MOBILITY_DATA_FOR_USER + 
+							SQL_GET_MOBILITY_DATA + 
 						"' with parameters: " + 
 							username, 
 					e);
@@ -841,7 +823,7 @@ public final class UserMobilityQueries extends AbstractUploadQuery implements IU
 			final List<String> allLocations = new LinkedList<String>();
 			
 			getJdbcTemplate().query(
-					SQL_GET_MOBILITY_DATA_FOR_USER, 
+					SQL_GET_MOBILITY_DATA, 
 					new Object[] { username }, 
 					new RowMapper<Object>() {
 						@Override
@@ -871,7 +853,7 @@ public final class UserMobilityQueries extends AbstractUploadQuery implements IU
 		catch(org.springframework.dao.DataAccessException e) {
 			throw new DataAccessException(
 					"Error while executing '" + 
-							SQL_GET_MOBILITY_DATA_FOR_USER + 
+							SQL_GET_MOBILITY_DATA + 
 						"' with parameters: " + 
 							username, 
 					e);
