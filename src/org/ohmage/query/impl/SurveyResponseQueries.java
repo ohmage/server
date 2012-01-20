@@ -815,11 +815,6 @@ public class SurveyResponseQueries extends Query implements ISurveyResponseQueri
 		// Finally, add some ordering to facilitate consistent results in the
 		// paging system.
 		sqlBuilder.append(SQL_ORDER_BY);
-		
-		System.out.println(sqlBuilder.toString());
-		for(Object parameter : parameters) {
-			System.out.println(parameter);
-		}
 
 		// This is necessary to map tiny integers in SQL to Java's integer.
 		final Map<String, Class<?>> typeMapping = new HashMap<String, Class<?>>();
