@@ -1361,39 +1361,38 @@ public final class SurveyResponseReadRequest extends UserRequest {
 							resultBuilder.append("## begin metadata\n");
 							resultBuilder.append('#').append(metadata.toString().replace(',', ';')).append('\n');
 							resultBuilder.append("## end metadata\n");
-						}
 						
-						// Add the prompt contexts to the output builder if 
-						// prompts were desired.
-						if(allColumns || columns.contains(ColumnKey.PROMPT_RESPONSE)) {
-							resultBuilder.append("## begin prompt contexts\n");
-							for(String promptId : prompts.keySet()) {
-								JSONObject promptJson = new JSONObject();
-								
-								// Use the already-generated JSON from each of
-								// the prompts.
-								promptJson.put(
-										promptId, 
-										prompts
-											.get(promptId)
-											.get(JSON_KEY_CONTEXT));
-								
-								resultBuilder
-									.append('#')
-									.append(promptJson.toString())
-									.append('\n');
+							// Add the prompt contexts to the output builder if 
+							// prompts were desired.
+							if(allColumns || columns.contains(ColumnKey.PROMPT_RESPONSE)) {
+								resultBuilder.append("## begin prompt contexts\n");
+								for(String promptId : prompts.keySet()) {
+									JSONObject promptJson = new JSONObject();
+									
+									// Use the already-generated JSON from each of
+									// the prompts.
+									promptJson.put(
+											promptId, 
+											prompts
+												.get(promptId)
+												.get(JSON_KEY_CONTEXT));
+									
+									resultBuilder
+										.append('#')
+										.append(promptJson.toString())
+										.append('\n');
+								}
+								resultBuilder.append("## end prompt contexts\n");
 							}
-							resultBuilder.append("## end prompt contexts\n");
+							
+							// Begin the data section of the CSV.
+							resultBuilder.append("## begin data\n");
 						}
-						
-						// Begin the data section of the CSV.
-						resultBuilder.append("## begin data\n");
 
 						// Get the number of keys.
 						int keyLength = keysOrdered.length();
 						
 						// Create a comma-separated list of the header names.
-						resultBuilder.append('#');
 						for(int i = 0; i < keyLength; i++) {
 							String header = keysOrdered.getString(i);
 							if(header.startsWith("urn:ohmage:")) {
@@ -1435,7 +1434,9 @@ public final class SurveyResponseReadRequest extends UserRequest {
 							resultBuilder.append('\n');
 						}
 						
-						resultBuilder.append("## end data");
+						if((suppressMetadata == null) || (! suppressMetadata)) {
+							resultBuilder.append("## end data");
+						}
 						
 						resultString = resultBuilder.toString();
 					}
