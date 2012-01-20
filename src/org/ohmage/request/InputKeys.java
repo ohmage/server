@@ -42,6 +42,9 @@ public final class InputKeys {
 	// Mobility Extras
 	public static final String SUBTYPE = "subtype";
 	
+	// Mobility Constants
+	public static final String MOBILITY_CHUNK_DURATION_MINUTES = "chunk_mins";
+	
 	// Temporal Constants
 	public static final String DATE = "date";
 	public static final String START_DATE = "start_date";

@@ -1,11 +1,11 @@
 package org.ohmage.request.mobility;
 
-import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
-import java.util.ListIterator;
 import java.util.Map;
 import java.util.TimeZone;
 
@@ -53,6 +53,12 @@ import org.ohmage.validator.MobilityValidators;
  *     <td>The latest date for which the data is desired.</td>
  *     <td>true</td>
  *   </tr>
+ *   <tr>
+ *     <td>{@value org.ohmage.request.InputKeys#MOBILITY_CHUNK_DURATION_MINUTES}</td>
+ *     <td>The number of minutes which defines the size of the buckets in
+ *       minutes.</td>
+ *     <td>true</td>
+ *   </tr>
  * </table> 
  * 
  * @author John Jenkins
@@ -67,12 +73,16 @@ public class MobilityReadChunkedRequest extends UserRequest {
 	private static final String JSON_KEY_LOCATION_STATUS = "ls";
 	private static final String JSON_KEY_LOCATION = "l";
 	
-	private static final int POINTS_PER_CHUNK = 10;
+	//private static final int POINTS_PER_CHUNK = 10;
+	// 10 minutes
+	private static final long DEFAULT_MILLIS_PER_CHUNK = 1000 * 60 * 10;
+	
 	// 10 days
 	private static final long MAX_MILLIS_BETWEEN_START_AND_END_DATES = 1000 * 60 * 60 * 24 * 10; 
 	
 	private final Date startDate;
 	private final Date endDate;
+	private final long millisPerChunk;
 	
 	private List<MobilityPoint> result;
 	
@@ -88,59 +98,101 @@ public class MobilityReadChunkedRequest extends UserRequest {
 		
 		Date tStartDate = null;
 		Date tEndDate = null;
+		Long tMillisPerChunk = DEFAULT_MILLIS_PER_CHUNK;
 		
 		if(! isFailed()) {
 			try {
-				String[] startDates = getParameterValues(InputKeys.START_DATE);
-				if(startDates.length == 0) {
-					setFailed(ErrorCode.SERVER_INVALID_DATE, "The start date is missing: " + InputKeys.START_DATE);
-					throw new ValidationException("The start date is missing: " + InputKeys.START_DATE);
+				String[] t;
+				
+				// Get the start date.
+				t = getParameterValues(InputKeys.START_DATE);
+				if(t.length == 0) {
+					throw new ValidationException(
+							ErrorCode.SERVER_INVALID_DATE, 
+							"The start date is missing: " + 
+									InputKeys.START_DATE);
 				}
-				else if(startDates.length == 1) {
-					tStartDate = MobilityValidators.validateDate(startDates[0]);
+				else if(t.length == 1) {
+					tStartDate = MobilityValidators.validateDate(t[0]);
 					
 					if(tStartDate == null) {
-						setFailed(ErrorCode.SERVER_INVALID_DATE, "The start date is missing: " + InputKeys.START_DATE);
-						throw new ValidationException("The start date is missing: " + InputKeys.START_DATE);
+						throw new ValidationException(
+								ErrorCode.SERVER_INVALID_DATE, 
+								"The start date is missing: " + 
+										InputKeys.START_DATE);
 					}
 				}
 				else {
-					setFailed(ErrorCode.SERVER_INVALID_DATE, "Multiple start dates were given: " + InputKeys.START_DATE);
-					throw new ValidationException("Multiple start dates were given: " + InputKeys.START_DATE);
+					throw new ValidationException(
+							ErrorCode.SERVER_INVALID_DATE, 
+							"Multiple start dates were given: " + 
+									InputKeys.START_DATE);
 				}
 				
-				String[] endDates = getParameterValues(InputKeys.END_DATE);
-				if(endDates.length == 0) {
-					setFailed(ErrorCode.SERVER_INVALID_DATE, "The end date is missing: " + InputKeys.END_DATE);
-					throw new ValidationException("The end date is missing: " + InputKeys.END_DATE);
+				// Get the end date.
+				t = getParameterValues(InputKeys.END_DATE);
+				if(t.length == 0) {
+					throw new ValidationException(
+							ErrorCode.SERVER_INVALID_DATE, 
+							"The end date is missing: " + 
+									InputKeys.END_DATE);
 				}
-				else if(endDates.length == 1) {
-					tEndDate = MobilityValidators.validateDate(endDates[0]);
+				else if(t.length == 1) {
+					tEndDate = MobilityValidators.validateDate(t[0]);
 					
 					if(tEndDate == null) {
-						setFailed(ErrorCode.SERVER_INVALID_DATE, "The end date is missing: " + InputKeys.END_DATE);
-						throw new ValidationException("The end date is missing: " + InputKeys.END_DATE);
+						throw new ValidationException(
+								ErrorCode.SERVER_INVALID_DATE, 
+								"The end date is missing: " + 
+										InputKeys.END_DATE);
 					}
 				}
 				else {
-					setFailed(ErrorCode.SERVER_INVALID_DATE, "Multiple end dates were given: " + InputKeys.END_DATE);
-					throw new ValidationException("Multiple end dates were given: " + InputKeys.END_DATE);
+					throw new ValidationException(
+							ErrorCode.SERVER_INVALID_DATE, 
+							"Multiple end dates were given: " + 
+									InputKeys.END_DATE);
 				}
 				
-				Date latestDate = new Date(tStartDate.getTime() + MAX_MILLIS_BETWEEN_START_AND_END_DATES);
+				// Ensure that the duration between the start and end dates
+				// doesn't exceed our maximum.
+				Date latestDate = 
+						new Date(
+								tStartDate.getTime() + 
+								MAX_MILLIS_BETWEEN_START_AND_END_DATES);
 				if(tEndDate.after(latestDate)) {
-					setFailed(ErrorCode.SERVER_INVALID_DATE, "The maximum time range between the start and end dates is 10 days.");
-					throw new ValidationException("The maximum time range between the start and end dates is 10 days.");
+					throw new ValidationException(
+							ErrorCode.SERVER_INVALID_DATE, 
+							"The maximum time range between the start and end dates is 10 days.");
+				}
+				
+				// Get the duration frequency.
+				t = getParameterValues(
+						InputKeys.MOBILITY_CHUNK_DURATION_MINUTES);
+				if(t.length > 1) {
+					throw new ValidationException(
+							ErrorCode.MOBILITY_INVALID_CHUNK_DURATION, 
+							"Multiple chunk durations were given: " + 
+									InputKeys.MOBILITY_CHUNK_DURATION_MINUTES);
+				}
+				else if(t.length == 1) {
+					tMillisPerChunk = 
+							MobilityValidators.validateChunkDuration(t[0]);
+					
+					if(tMillisPerChunk == null) {
+						tMillisPerChunk = DEFAULT_MILLIS_PER_CHUNK;
+					}
 				}
 			}
 			catch(ValidationException e) {
 				e.failRequest(this);
-				LOGGER.info(e.toString());
+				e.logException(LOGGER);
 			}
 		}
 		
 		startDate = tStartDate;
 		endDate = tEndDate;
+		millisPerChunk = tMillisPerChunk;
 		
 		result = Collections.emptyList();
 	}
@@ -157,6 +209,7 @@ public class MobilityReadChunkedRequest extends UserRequest {
 		}
 		
 		try {
+			LOGGER.info("Gathering the data.");
 			result = MobilityServices.instance().retrieveMobilityData(
 					getUser().getUsername(), 
 					startDate, 
@@ -178,69 +231,85 @@ public class MobilityReadChunkedRequest extends UserRequest {
 	public void respond(HttpServletRequest httpRequest, HttpServletResponse httpResponse) {
 		LOGGER.info("Responding to the Mobility read chunked request.");
 		
-		JSONArray resultJson = new JSONArray();
+		Map<Long, List<MobilityPoint>> millisToPointMap =
+				new HashMap<Long, List<MobilityPoint>>();
 		
-		List<MobilityPoint> chunk = new ArrayList<MobilityPoint>(POINTS_PER_CHUNK);
-		ListIterator<MobilityPoint> resultIter = result.listIterator();
-		while(resultIter.hasNext()) {
-			MobilityPoint mobilityPoint = resultIter.next();
-			chunk.add(mobilityPoint);
-			if((chunk.size() == POINTS_PER_CHUNK) || (! resultIter.hasNext())) {
-				try {
-					// Process chunk.
-					JSONObject chunkJson = new JSONObject();
-					
-					// Create the variables that will hold the results.
-					Map<String, Integer> modeCount = new HashMap<String, Integer>();
-					Date earliestPoint = new Date(Long.MAX_VALUE);
-					Date latestPoint = new Date(0);
-					TimeZone earliestTimeZone = null;
-					LocationStatus earliestLocationStatus = null;
-					Location earliestLocation = null;
-					
-					// Cycle through each of the points in the chunk and gather
-					// the appropriate information about each.
-					for(MobilityPoint chunkPoint : chunk) {
-						// Increase the count for this point's mode.
-						String modeString = chunkPoint.getMode().toString().toLowerCase();
-						Integer count = modeCount.get(modeString);
-						if(count == null) {
-							modeCount.put(modeString, 1);
-						}
-						else {
-							modeCount.put(modeString, count + 1);
-						}
+		// Bucket the items perserving order in the bucket.
+		for(MobilityPoint mobilityPoint : result) {
+			long time = mobilityPoint.getTime();
+			
+			// Get this point's bucket.
+			time = (time / millisPerChunk) * millisPerChunk;
+			
+			List<MobilityPoint> bucket = millisToPointMap.get(time);
+			
+			if(bucket == null) {
+				bucket = new LinkedList<MobilityPoint>();
+				millisToPointMap.put(time, bucket);
+			}
+			
+			bucket.add(mobilityPoint);
+		}
+
+		JSONArray outputArray = new JSONArray();
+		
+		// Process the buckets.
+		try {
+			for(Long time : millisToPointMap.keySet()) {
+				Map<String, Integer> modeCountMap =
+						new HashMap<String, Integer>();
+				String timestamp = null;
+				TimeZone timezone = null;
+				LocationStatus locationStatus = null;
+				Location location = null;
+				
+				for(MobilityPoint mobilityPoint : millisToPointMap.get(time)) {
+					// The first point sets the information.
+					if(timestamp == null) {
+						timezone = mobilityPoint.getTimezone();
 						
-						// Figure out if this is the earliest or latest point.
-						Date date = new Date(chunkPoint.getTime());
-						if(date.before(earliestPoint)) {
-							earliestPoint = date;
-							earliestTimeZone = chunkPoint.getTimezone();
-							earliestLocationStatus = chunkPoint.getLocationStatus();
-							earliestLocation = chunkPoint.getLocation();
-						}
-						if(date.after(latestPoint)) {
-							latestPoint = date;
-						}
+						Calendar calendar = Calendar.getInstance(timezone);
+						calendar.setTimeInMillis(mobilityPoint.getTime());
+						timestamp = 
+								TimeUtils.getIso8601DateTimeString(
+										calendar.getTime()); 
+						
+						locationStatus = mobilityPoint.getLocationStatus();
+						location = mobilityPoint.getLocation();
 					}
-					chunkJson.put(JSON_KEY_MODE_COUNT, modeCount);
-					chunkJson.put(JSON_KEY_DURATION, latestPoint.getTime() - earliestPoint.getTime());
-					chunkJson.put(JSON_KEY_TIMESTAMP, TimeUtils.getIso8601DateTimeString(earliestPoint));
-					chunkJson.put(JSON_KEY_TIMEZONE, earliestTimeZone.getID());
-					chunkJson.put(JSON_KEY_LOCATION_STATUS, earliestLocationStatus.toString().toLowerCase());
-					chunkJson.put(JSON_KEY_LOCATION, ((earliestLocation == null) ? null : earliestLocation.toJson(true).toString()));
 					
-					resultJson.put(chunkJson);
+					// For all points, get the mode.
+					String mode = mobilityPoint.getMode().toString().toLowerCase();
+					Integer count = modeCountMap.get(mode);
+					
+					if(count == null) {
+						modeCountMap.put(mode, 1);
+					}
+					else {
+						modeCountMap.put(mode, count + 1);
+					}
 				}
-				catch(JSONException e) {
-					LOGGER.error("Error building resulting JSONObject.");
-					setFailed();
-					break;
-				}
-				chunk.clear();
+				
+				JSONObject currResult = new JSONObject();
+				currResult.put(JSON_KEY_MODE_COUNT, modeCountMap);
+				currResult.put(JSON_KEY_DURATION, millisPerChunk);
+				currResult.put(JSON_KEY_TIMESTAMP, timestamp);
+				currResult.put(JSON_KEY_TIMEZONE, timezone.getID());
+				currResult.put(
+						JSON_KEY_LOCATION_STATUS, 
+						locationStatus.toString().toLowerCase());
+				currResult.put(
+						JSON_KEY_LOCATION, 
+						((location == null) ? null : location.toJson(true)));
+				
+				outputArray.put(currResult);
 			}
 		}
+		catch(JSONException e) {
+			LOGGER.error("Error building the response." , e);
+			setFailed();
+		}
 		
-		super.respond(httpRequest, httpResponse, JSON_KEY_DATA, resultJson);
+		super.respond(httpRequest, httpResponse, JSON_KEY_DATA, outputArray);
 	}
 }

@@ -25,6 +25,14 @@ public final class MobilityValidators {
 	private static final Logger LOGGER = Logger.getLogger(MobilityValidators.class);
 	
 	/**
+	 * The multiplier used to convert the time given by the user into a valid
+	 * milliseconds value.<br />
+	 * <br />
+	 * Current value: Minutes
+	 */
+	public static final long CHUNK_DURATION_MULTIPLIER = 1000 * 60; 
+	
+	/**
 	 * Default constructor. Private so that it cannot be instantiated.
 	 */
 	private MobilityValidators() {}
@@ -127,6 +135,46 @@ public final class MobilityValidators {
 		}
 		else {
 			return result;
+		}
+	}
+	
+	/**
+	 * Validates that the duration is a valid number and that it is not too 
+	 * large. The largeness restriction is based on the multiplier used to
+	 * convert this value to its internal milliseconds representation.
+	 * 
+	 * @param duration The duration to be validated.
+	 * 
+	 * @return The duration as a long value or null if the duration was null or
+	 * 		   an empty string.
+	 * 
+	 * @throws ValidationException Thrown if there is an error.
+	 */
+	public static Long validateChunkDuration(final String duration)
+			throws ValidationException {
+		
+		LOGGER.info("Validating the chunk duration.");
+		
+		if(StringUtils.isEmptyOrWhitespaceOnly(duration)) {
+			return null;
+		}
+		
+		try {
+			Long longDuration = Long.decode(duration);
+			
+			if(longDuration > (Long.MAX_VALUE / CHUNK_DURATION_MULTIPLIER)) {
+				throw new ValidationException(
+						ErrorCode.MOBILITY_INVALID_CHUNK_DURATION,
+						"The chunk duration is too great. It can be at most " +
+								(Long.MAX_VALUE / CHUNK_DURATION_MULTIPLIER));
+			}
+			
+			return longDuration * CHUNK_DURATION_MULTIPLIER;
+		}
+		catch(NumberFormatException e) {
+			throw new ValidationException(
+					ErrorCode.MOBILITY_INVALID_CHUNK_DURATION,
+					"The chunk duration is invalid: " + duration);
 		}
 	}
 }
