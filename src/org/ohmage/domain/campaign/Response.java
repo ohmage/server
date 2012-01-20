@@ -66,10 +66,10 @@ public abstract class Response {
 	 */
 	public Object getResponseValue() {
 		if(wasSkipped()) {
-			return NoResponse.SKIPPED.toString();
+			return NoResponse.SKIPPED;
 		}
 		else if(wasNotDisplayed()) {
-			return NoResponse.NOT_DISPLAYED.toString();
+			return NoResponse.NOT_DISPLAYED;
 		}
 		else {
 			return null;
