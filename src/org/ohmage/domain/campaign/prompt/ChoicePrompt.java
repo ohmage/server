@@ -21,6 +21,7 @@ public abstract class ChoicePrompt extends Prompt {
 	public static final String JSON_KEY_CHOICE_GLOSSARY = "choice_glossary";
 	
 	private final Map<Integer, LabelValuePair> choices;
+	private final boolean hasValues;
 
 	/**
 	 * Creates a new choice prompt.
@@ -76,6 +77,15 @@ public abstract class ChoicePrompt extends Prompt {
 				type, index);
 		
 		this.choices = new HashMap<Integer, LabelValuePair>(choices);
+		
+		boolean tHasValues = false;
+		for(LabelValuePair lvp : choices.values()) {
+			if(lvp.getValue() != null) {
+				tHasValues = true;
+				break;
+			}
+		}
+		hasValues = tHasValues;
 	}
 	
 	/**
@@ -107,6 +117,10 @@ public abstract class ChoicePrompt extends Prompt {
 		}
 		
 		throw new IllegalArgumentException("No such key for label: " + label);
+	}
+	
+	public boolean hasValues() {
+		return hasValues;
 	}
 	
 	/**

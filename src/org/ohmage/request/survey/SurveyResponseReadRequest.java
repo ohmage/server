@@ -1476,13 +1476,16 @@ public final class SurveyResponseReadRequest extends UserRequest {
 					promptJsonLabel.put(JSON_KEY_CONTEXT, prompt.toJson());
 					promptJsonLabel.put(JSON_KEY_VALUES, new JSONArray());
 					
-					JSONObject promptJsonValue = new JSONObject();
-					promptJsonValue.put(JSON_KEY_CONTEXT, prompt.toJson());
-					promptJsonValue.put(JSON_KEY_VALUES, new JSONArray());
-				
 					prompts.put(prompt.getId() + ":key", promptJsonKey);
-					prompts.put(prompt.getId() + ":value", promptJsonLabel);
-					prompts.put(prompt.getId() + ":label", promptJsonValue);
+					prompts.put(prompt.getId() + ":label", promptJsonLabel);
+					
+					if(prompt.hasValues()) {
+						JSONObject promptJsonValue = new JSONObject();
+						promptJsonValue.put(JSON_KEY_CONTEXT, prompt.toJson());
+						promptJsonValue.put(JSON_KEY_VALUES, new JSONArray());
+
+						prompts.put(prompt.getId() + ":value", promptJsonValue);
+					}
 				}
 				else {
 					Prompt prompt = (Prompt) surveyItem;
@@ -1712,10 +1715,12 @@ public final class SurveyResponseReadRequest extends UserRequest {
 										.getJSONArray(JSON_KEY_VALUES);
 							labels.put("\"" + responseObject + "\"");
 							
-							JSONArray values =
-									prompts.get(responseId + ":value")
-										.getJSONArray(JSON_KEY_VALUES);
-							values.put(JSONObject.NULL);
+							if(((ChoicePrompt) prompt).hasValues()) {
+								JSONArray values =
+										prompts.get(responseId + ":value")
+											.getJSONArray(JSON_KEY_VALUES);
+								values.put(JSONObject.NULL);
+							}
 						}
 						// Otherwise, get the key, label, and, potentially,
 						// value and populate their corresponding columns.
@@ -1813,15 +1818,17 @@ public final class SurveyResponseReadRequest extends UserRequest {
 										.getJSONArray(JSON_KEY_VALUES);
 							labels.put("\"" + label + "\"");
 							
-							promptIdsWithResponse.add(responseId + ":value");
-							JSONArray values =
-									prompts.get(responseId + ":value")
-										.getJSONArray(JSON_KEY_VALUES);
-							if(value == null) {
-								values.put("");
-							}
-							else {
-								values.put("\"" + value + "\"");
+							if(choicePrompt.hasValues()) {
+								promptIdsWithResponse.add(responseId + ":value");
+								JSONArray values =
+										prompts.get(responseId + ":value")
+											.getJSONArray(JSON_KEY_VALUES);
+								if(value == null) {
+									values.put("");
+								}
+								else {
+									values.put("\"" + value + "\"");
+								}
 							}
 						}
 
