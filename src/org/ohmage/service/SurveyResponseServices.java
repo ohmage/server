@@ -5,6 +5,7 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 import org.ohmage.annotator.Annotator.ErrorCode;
@@ -260,17 +261,17 @@ public final class SurveyResponseServices {
 	/**
 	 * Updates the privacy state on a survey.
 	 * 
-	 * @param surveyResponseId  The key for the survey to update.
+	 * @param surveyResponseIds  The key for the survey responses to update.
 	 * @param privacyState  The new privacy state value.
 	 * @throws ServiceException  If an error occurs.
 	 */
-	public void updateSurveyResponsePrivacyState(
-			final UUID surveyResponseId, 
+	public void updateSurveyResponsesPrivacyState(
+			final Set<UUID> surveyResponseIds, 
 			final SurveyResponse.PrivacyState privacyState) 
 			throws ServiceException {
 		
 		try {
-			surveyResponseQueries.updateSurveyResponsePrivacyState(surveyResponseId, privacyState);
+			surveyResponseQueries.updateSurveyResponsesPrivacyState(surveyResponseIds, privacyState);
 		} 
 		catch(DataAccessException e) {
 			throw new ServiceException(e);

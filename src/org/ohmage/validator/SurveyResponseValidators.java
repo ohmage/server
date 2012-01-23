@@ -116,6 +116,42 @@ public final class SurveyResponseValidators {
 					"Invalid survey ID given: " + surveyId);
 		}
 	}
+
+	/**
+	 * Validates that a list of survey response IDs are valid survey response
+	 * IDs.
+	 * 
+	 * @param surveyResponseIds The list of survey response IDs as a string to 
+	 * 							be validated.
+	 * 
+	 * @return A set of survey response IDs.
+	 * 
+	 * @throws ValidationException The survey response ID list was not null, 
+	 * 							   not whitespace only, and one or more of the
+	 * 							   IDs was not valid.
+	 */
+	public static Set<UUID> validateSurveyResponseIds(
+			final String surveyResponseIds) 
+			throws ValidationException {
+		
+		if(StringUtils.isEmptyOrWhitespaceOnly(surveyResponseIds)) {
+			return null;
+		}
+		
+		String[] surveyResponseIdsArray = 
+				surveyResponseIds.split(InputKeys.LIST_ITEM_SEPARATOR);
+		Set<UUID> result = new HashSet<UUID>(surveyResponseIdsArray.length);
+		
+		for(int i = 0; i < surveyResponseIdsArray.length; i++) {
+			UUID currId = validateSurveyResponseId(surveyResponseIdsArray[i]);
+			
+			if(currId != null) {
+				result.add(currId);
+			}
+		}
+		
+		return result;
+	}
 	
 	/**
 	 * Validates that a privacy state is a valid survey response privacy state.

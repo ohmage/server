@@ -1,5 +1,7 @@
 package org.ohmage.request.survey;
 
+import java.util.HashSet;
+import java.util.Set;
 import java.util.UUID;
 
 import javax.servlet.http.HttpServletRequest;
@@ -37,9 +39,22 @@ import org.ohmage.validator.SurveyResponseValidators;
  *     <td>true</td>
  *   </tr>
  *   <tr>
- *     <td>{@value org.ohmage.request.InputKeys#SURVEY_ID}</td>
- *     <td>The survey response's unique identifier.</td>
- *     <td>true</td>
+ *     <td>{@value org.ohmage.request.InputKeys#SURVEY_KEY}</td>
+ *     <td>The survey response's unique identifier.<br />
+ *       <br />
+ *       This is deprecated in favor of
+ *       {@value org.ohmage.request.InputKeys#SURVEY_ID_LIST}</td>
+ *     <td>Either this or 
+ *       {@value org.ohmage.request.InputKeys#SURVEY_RESPONSE_ID_LIST} but not
+ *       both, but this is deprecated and 
+ *       {@value org.ohmage.request.InputKeys#SURVEY_RESPONSE_ID_LIST} should
+ *       be favored.</td>
+ *   </tr>
+ *   <tr>
+ *     <td>{@value org.ohmage.request.InputKeys#SURVEY_RESPONSE_ID_LIST}</td>
+ *     <td>A list of survey responses' unique identifier.</td>
+ *     <td>Either this or {@value org.ohmage.request.InputKeys#SURVEY_ID} but
+ *       not both.</td>
  *   </tr>
  *   <tr>
  *     <td>{@value org.ohmage.request.InputKeys#PRIVACY_STATE}</td>
@@ -54,7 +69,7 @@ import org.ohmage.validator.SurveyResponseValidators;
 public class SurveyResponseUpdateRequest extends UserRequest {
 	private static final Logger LOGGER = Logger.getLogger(SurveyResponseUpdateRequest.class);
 	
-	private final UUID surveyResponseId;
+	private final Set<UUID> surveyResponseIds;
 	private final SurveyResponse.PrivacyState privacyState;
 	
 	/**
@@ -68,7 +83,7 @@ public class SurveyResponseUpdateRequest extends UserRequest {
 		
 		LOGGER.info("Creating a survey response update request.");
 		
-		UUID tSurveyResponseId = null;
+		Set<UUID> tSurveyResponseIds = null;
 		SurveyResponse.PrivacyState tPrivacyState = null;
 		
 		if(! isFailed()) {
@@ -80,22 +95,65 @@ public class SurveyResponseUpdateRequest extends UserRequest {
 				
 				LOGGER.info("Validating survey_id parameter.");
 				String[] surveyIds = getParameterValues(InputKeys.SURVEY_KEY);
-				if(surveyIds.length == 0) {
-					setFailed(ErrorCode.SURVEY_INVALID_SURVEY_KEY_VALUE, "Missing the required survey key: " + InputKeys.SURVEY_KEY);
-					throw new ValidationException("Missing the required survey ID: " + InputKeys.SURVEY_KEY);
+				if(surveyIds.length > 1) {
+					throw new ValidationException(
+							ErrorCode.SURVEY_INVALID_SURVEY_KEY_VALUE, 
+							"Multiple survey ID parameters were given: " +
+									InputKeys.SURVEY_KEY);
 				}
-				else if(surveyIds.length > 1) {
-					setFailed(ErrorCode.SURVEY_INVALID_SURVEY_KEY_VALUE, "Multiple survey key parameters were given.");
-					throw new ValidationException("Multiple survey ID parameters were given.");
-				}
-				else {
-					tSurveyResponseId = SurveyResponseValidators.validateSurveyResponseId(surveyIds[0]);
+				else if(surveyIds.length == 1) {
+					tSurveyResponseIds = new HashSet<UUID>(1);
+					UUID tSurveyResponseId =
+							SurveyResponseValidators.validateSurveyResponseId(
+									surveyIds[0]);
 					
 					if(tSurveyResponseId == null) {
-						setFailed(ErrorCode.SURVEY_INVALID_SURVEY_KEY_VALUE, "Missing the required survey key: " + InputKeys.SURVEY_KEY);
-						throw new ValidationException("Missing the required survey key: " + InputKeys.SURVEY_KEY);
+						throw new ValidationException(
+								ErrorCode.SURVEY_INVALID_SURVEY_KEY_VALUE, 
+								"Missing the required survey key: " + 
+										InputKeys.SURVEY_KEY);
+					}
+					else {
+						tSurveyResponseIds.add(tSurveyResponseId);
 					}
 				}
+				
+				surveyIds = getParameterValues(InputKeys.SURVEY_RESPONSE_ID_LIST);
+				if(surveyIds.length > 1) {
+					throw new ValidationException(
+							ErrorCode.SURVEY_INVALID_SURVEY_ID,
+							"Multiple survey ID lists were given: " +
+									InputKeys.SURVEY_RESPONSE_ID_LIST);
+				}
+				else if(surveyIds.length == 1) {
+					// FIXME: Remove this when the survey key parameter is
+					// removed.
+					if(tSurveyResponseIds != null) {
+						throw new ValidationException(
+								ErrorCode.SURVEY_INVALID_SURVEY_ID,
+								"Conflicting parameters were given, " +
+										InputKeys.SURVEY_KEY +
+									" and " +
+										InputKeys.SURVEY_RESPONSE_ID_LIST +
+									". Please use " +
+										InputKeys.SURVEY_RESPONSE_ID_LIST + 
+									" as " +
+										InputKeys.SURVEY_KEY +
+									" is deprecated.");
+					}
+					
+					tSurveyResponseIds =
+							SurveyResponseValidators.validateSurveyResponseIds(
+									surveyIds[0]);
+				}
+				
+				if(tSurveyResponseIds == null) {
+					throw new ValidationException(
+							ErrorCode.SURVEY_INVALID_SURVEY_ID,
+							"A parameter was missing: " +
+									InputKeys.SURVEY_RESPONSE_ID_LIST);
+				}
+				
 				LOGGER.info("Validating privacy_state parameter.");
 				String[] privacyStates = getParameterValues(InputKeys.PRIVACY_STATE);
 				if(privacyStates.length == 0) {
@@ -117,11 +175,11 @@ public class SurveyResponseUpdateRequest extends UserRequest {
 			}
 			catch(ValidationException e) {
 				e.failRequest(this);
-				LOGGER.info(e.toString());
+				e.logException(LOGGER);
 			}
 		}
 		
-		surveyResponseId = tSurveyResponseId;
+		surveyResponseIds = tSurveyResponseIds;
 		privacyState = tPrivacyState;
 	}
 
@@ -138,10 +196,18 @@ public class SurveyResponseUpdateRequest extends UserRequest {
 		
 		try {
 			LOGGER.info("Verifying that the user is allowed to update the survey response.");
-			UserSurveyResponseServices.instance().verifyUserCanUpdateOrDeleteSurveyResponse(this.getUser().getUsername(), this.surveyResponseId);
+			for(UUID surveyResponseId : surveyResponseIds) {
+				UserSurveyResponseServices
+					.instance()
+						.verifyUserCanUpdateOrDeleteSurveyResponse(
+								this.getUser().getUsername(), 
+								surveyResponseId);
+			}
 			
 			LOGGER.info("Updating the survey response.");
-			SurveyResponseServices.instance().updateSurveyResponsePrivacyState(this.surveyResponseId, this.privacyState);
+			SurveyResponseServices.instance().updateSurveyResponsesPrivacyState(
+					this.surveyResponseIds, 
+					this.privacyState);
 		}
 		catch(ServiceException e) {
 			e.failRequest(this);

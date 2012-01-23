@@ -73,7 +73,14 @@ public final class InputKeys {
 	// Survey Constants
 	public static final String SURVEY_ID = "survey_id";
 	public static final String SURVEY_ID_LIST = "survey_id_list";
-	public static final String SURVEY_FUNCTION_ID = "id"; // This should probably be more descriptive.
+	public static final String SURVEY_RESPONSE_ID_LIST = "survey_response_id_list";
+	/**
+	 * FIXME: This should be more descriptive.
+	 */
+	public static final String SURVEY_FUNCTION_ID = "id";
+	/**
+	 * @deprecated We should use survey ID consistently.
+	 */
 	public static final String SURVEY_KEY = "survey_key";
 	public static final String SURVEY_RESPONSE_OWNER = "owner";
 	public static final String SURVEYS = "surveys";

@@ -2,6 +2,7 @@ package org.ohmage.query.impl;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
@@ -9,6 +10,7 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.TimeZone;
 import java.util.UUID;
 
@@ -200,10 +202,10 @@ public class SurveyResponseQueries extends Query implements ISurveyResponseQueri
 		"AND sr.uuid = ?";
 	
 	// Updates a survey response's privacy state.
-	private static final String SQL_UPDATE_SURVEY_RESPONSE_PRIVACY_STATE = 
+	private static final String SQL_UPDATE_SURVEY_RESPONSES_PRIVACY_STATE = 
 		"UPDATE survey_response " +
 		"SET privacy_state_id = (SELECT id FROM survey_response_privacy_state WHERE privacy_state = ?) " +
-		"WHERE uuid = ?";
+		"WHERE uuid in ";
 	
 	// Deletes a survey response and subsequently all prompt response 
 	// references.
@@ -997,10 +999,22 @@ public class SurveyResponseQueries extends Query implements ISurveyResponseQueri
 	/* (non-Javadoc)
 	 * @see org.ohmage.query.impl.ISurveyResponseQueries#updateSurveyResponsePrivacyState(java.lang.Long, org.ohmage.domain.campaign.SurveyResponse.PrivacyState)
 	 */
-	public void updateSurveyResponsePrivacyState(
-			final UUID surveyResponseId, 
+	public void updateSurveyResponsesPrivacyState(
+			final Set<UUID> surveyResponseIds, 
 			final SurveyResponse.PrivacyState newPrivacyState)
 			throws DataAccessException {
+		
+		StringBuilder sqlBuilder = 
+				new StringBuilder(SQL_UPDATE_SURVEY_RESPONSES_PRIVACY_STATE);
+		sqlBuilder.append(
+				StringUtils.generateStatementPList(surveyResponseIds.size()));
+
+		List<Object> parameters = 
+				new ArrayList<Object>(surveyResponseIds.size() + 1);
+		parameters.add(newPrivacyState.toString());
+		for(UUID surveyResponseId : surveyResponseIds) {
+			parameters.add(surveyResponseId.toString());
+		}
 		
 		// Create the transaction.
 		DefaultTransactionDefinition def = new DefaultTransactionDefinition();
@@ -1012,21 +1026,20 @@ public class SurveyResponseQueries extends Query implements ISurveyResponseQueri
 					new DataSourceTransactionManager(getDataSource());
 			TransactionStatus status = transactionManager.getTransaction(def);
 			
+			System.out.println("Executing SQL '" + sqlBuilder.toString() + "' with parameters: " + parameters.toArray());
+			
 			try {
 				getJdbcTemplate().update(
-						SQL_UPDATE_SURVEY_RESPONSE_PRIVACY_STATE, 
-						new Object[] { 
-								newPrivacyState.toString(), 
-								surveyResponseId.toString() });
+						sqlBuilder.toString(), 
+						parameters.toArray());
 			}
 			catch(org.springframework.dao.DataAccessException e) {
 				transactionManager.rollback(status);
 				throw new DataAccessException(
 						"Error executing SQL '" + 
-								SQL_UPDATE_SURVEY_RESPONSE_PRIVACY_STATE + 
-								"' with parameters: " + 
-								newPrivacyState + ", " + 
-								surveyResponseId, 
+								sqlBuilder.toString() + 
+							"' with parameters: " + 
+								parameters.toArray(), 
 						e);
 			}
 			

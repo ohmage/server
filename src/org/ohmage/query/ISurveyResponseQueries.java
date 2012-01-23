@@ -3,6 +3,7 @@ package org.ohmage.query;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 import org.ohmage.domain.campaign.Campaign;
@@ -261,12 +262,12 @@ public interface ISurveyResponseQueries {
 	/**
 	 * Updates the privacy state on a survey response.
 	 * 
-	 * @param surveyResponseId The survey response's unique identifier.
+	 * @param surveyResponseIds The survey responses' unique identifier.
 	 * @param privacyState The survey's new privacy state
 	 * 
 	 * @throws DataAccessException Thrown if there is an error.
 	 */
-	void updateSurveyResponsePrivacyState(UUID surveyResponseId,
+	void updateSurveyResponsesPrivacyState(Set<UUID> surveyResponseIds,
 			SurveyResponse.PrivacyState newPrivacyState)
 			throws DataAccessException;
 
