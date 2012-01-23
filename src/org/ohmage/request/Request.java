@@ -23,6 +23,8 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.Part;
 
 import org.apache.log4j.Logger;
+import org.apache.tomcat.util.http.fileupload.FileUploadBase.FileSizeLimitExceededException;
+import org.apache.tomcat.util.http.fileupload.FileUploadBase.SizeLimitExceededException;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -361,21 +363,49 @@ public abstract class Request {
 	 * @throws IllegalStateException Thrown if there is a problem connecting to
 	 * 								 or reading from the request.
 	 */
-	private Map<String, String[]> getParameters(HttpServletRequest httpRequest) {
+	private Map<String, String[]> getParameters(
+			final HttpServletRequest httpRequest) {
+		
 		if(httpRequest == null) {
 			return Collections.emptyMap();
 		}
 		
-		Map<String, String[]> result = null;
-		Enumeration<String> contentEncodingHeaders = httpRequest.getHeaders(KEY_CONTENT_ENCODING);
+		// This is a hack to validate whether or not the size limits have been
+		// exceeded. If this isn't done and the parameters violate the size
+		// limits, Tomcat will silently fail by returning an empty parameter
+		// map even if all parameters are valid except one. It will not throw
+		// an exception or give any indication that something has failed.
+		try {
+			httpRequest.getParts();
+		}
+		catch(ServletException e) {
+			// This simply means that it is not a multipart/form-post request.
+		} catch (IllegalStateException e) {
+			String errorText;
+			
+			Throwable cause = e.getCause();
+			if(cause instanceof FileSizeLimitExceededException) {
+				errorText = 
+						((FileSizeLimitExceededException) cause).getMessage();
+			}
+			else if(cause instanceof SizeLimitExceededException) {
+				errorText = ((SizeLimitExceededException) cause).getMessage();
+			}
+			else {
+				errorText = 
+						"A parameter and/or the entire request is too large.";
+			}
+			
+			setFailed(ErrorCode.SYSTEM_REQUEST_TOO_LARGE, errorText);
+		} catch (IOException e) {
+			setFailed(
+					ErrorCode.SYSTEM_GENERAL_ERROR, 
+					"Error reading the request's parameters.");
+		}
 		
-		// FIXME: We need to validate the size of the request and the size of
-		// each parameter based on what is configured in the RequestServlet. If
-		// we don't, Tomcat will do weird things like silently ignore it, and
-		// return an empty map for the parameter map. Then, the user will get
-		// an error pertaining to some missing parameter when, in fact, the 
-		// issue is that another parameter or the whole parameter map are too
-		// large.
+		Map<String, String[]> result = null;
+		Enumeration<String> contentEncodingHeaders = 
+				httpRequest.getHeaders(KEY_CONTENT_ENCODING);
 		
 		// Look for a GZIP content encoding header.
 		while(contentEncodingHeaders.hasMoreElements()) {
@@ -416,7 +446,9 @@ public abstract class Request {
 		// Retrieve the InputStream for the GZIP'd content of the request.
 		InputStream inputStream;
 		try {
-			inputStream = new BufferedInputStream(new GZIPInputStream(httpRequest.getInputStream()));
+			inputStream = 
+					new BufferedInputStream(
+							new GZIPInputStream(httpRequest.getInputStream()));
 		}
 		catch(IOException e) {
 			LOGGER.error("The uploaded content was not GZIP content.", e);
@@ -441,17 +473,19 @@ public abstract class Request {
 			parameterString = builder.toString();
 		}
 		catch(IOException e) {
-			throw new IllegalStateException("There was an error while reading from the request's input stream.", e);
+			throw new IllegalStateException(
+					"There was an error while reading from the request's input stream.", 
+					e);
 		}
 		finally {
 			try {
-				if(inputStream != null) {
-					inputStream.close();
-					inputStream = null;
-				}
+				inputStream.close();
+				inputStream = null;
 			}
 			catch(IOException e) {
-				throw new IllegalStateException("And error occurred while closing the input stream.", e);
+				throw new IllegalStateException(
+						"An error occurred while closing the input stream.", 
+						e);
 			}
 		}
 		
@@ -478,10 +512,18 @@ public abstract class Request {
 				// If there isn't exactly one key to one value, then there is a
 				// problem, and we need to abort.
 				if(splitPair.length <= 1) {
-					throw new IllegalArgumentException("One of the parameter's 'pairs' did not contain a '" + PARAMETER_VALUE_SEPARATOR + "': " + keyValuePair);
+					throw new IllegalArgumentException(
+							"One of the parameter's 'pairs' did not contain a '" + 
+									PARAMETER_VALUE_SEPARATOR + 
+									"': " + 
+									keyValuePair);
 				}
 				else if(splitPair.length > 2) {
-					throw new IllegalArgumentException("One of the parameter's 'pairs' contained multiple '" + PARAMETER_VALUE_SEPARATOR + "'s: " + keyValuePair);
+					throw new IllegalArgumentException(
+							"One of the parameter's 'pairs' contained multiple '" + 
+									PARAMETER_VALUE_SEPARATOR + 
+									"'s: " + 
+									keyValuePair);
 				}
 				
 				// The key is the first part of the pair.
