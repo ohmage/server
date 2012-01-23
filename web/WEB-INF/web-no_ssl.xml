@@ -26,17 +26,6 @@
     <filter-name>Utf8RequestEncodingFilter</filter-name>
     <url-pattern>/*</url-pattern>
   </filter-mapping>
-  
-  <!-- Servlets.  Note that url-patterns are matched against initial (or re-dispatched) requests, not a request possibly modified
-       by filters.  -->
-  <servlet>
-    <servlet-name>RequestServlet</servlet-name>
-    <servlet-class>org.ohmage.jee.servlet.RequestServlet</servlet-class>
-  </servlet>
-  <servlet-mapping>
-    <servlet-name>RequestServlet</servlet-name>
-    <url-pattern>/*</url-pattern>
-  </servlet-mapping>
 
   <!--  The default Tomcat Servlet used to locate and serve static content -->
   <servlet>
@@ -56,6 +45,17 @@
   <servlet-mapping>
     <servlet-name>default</servlet-name>
     <url-pattern>*.html</url-pattern>
+  </servlet-mapping>
+  
+  <!-- Servlets.  Note that url-patterns are matched against initial (or re-dispatched) requests, not a request possibly modified
+       by filters. -->
+  <servlet>
+    <servlet-name>RequestServlet</servlet-name>
+    <servlet-class>org.ohmage.jee.servlet.RequestServlet</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>RequestServlet</servlet-name>
+    <url-pattern>/</url-pattern>
   </servlet-mapping>
   
   <!-- For ohmage 2.x and up, the server app is effectively headless. There is probably a better way to return headers only.
