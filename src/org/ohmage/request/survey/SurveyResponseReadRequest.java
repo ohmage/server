@@ -95,36 +95,17 @@ import org.ohmage.validator.SurveyResponseValidators;
  *   <tr>
  *     <td>{@value org.ohmage.request.InputKeys#COLUMN_LIST}</td>
  *     <td>A comma-separated list of the columns to retrieve responses for
- *         or the value {@value #_URN_SPECIAL_ALL}. If {@value #_URN_SPECIAL_ALL}
- *         is not used, the only allowed values are: 
- *         {@value org.ohmage.domain.campaign.SurveyResponse.ColumnKey#URN_CONTEXT_CLIENT},
- *         {@value #URN_CONTEXT_TIMESTAMP},
- *         {@value #URN_CONTEXT_TIMEZONE},
- *         {@value #URN_CONTEXT_UTC_TIMESTAMP},
- *         {@value #URN_CONTEXT_LAUNCH_CONTEXT_LONG},
- *         {@value #URN_CONTEXT_LAUNCH_CONTEXT_SHORT},
- *         {@value #URN_CONTEXT_LOCATION_STATUS},
- *         {@value #URN_CONTEXT_LOCATION_LONGITUDE},
- *         {@value #URN_CONTEXT_LOCATION_LATITUDE},
- *         {@value #URN_CONTEXT_LOCATION_TIMESTAMP},
- *         {@value #URN_CONTEXT_LOCATION_ACCURACY},
- *         {@value #URN_CONTEXT_LOCATION_PROVIDER},
- *         {@value #URN_USER_ID},
- *         {@value #URN_SURVEY_ID},
- *         {@value #URN_SURVEY_TITLE},
- *         {@value #URN_SURVEY_DESCRIPTION},
- *         {@value #URN_SURVEY_PRIVACY_STATE},
- *         {@value #URN_REPEATABLE_SET_ID},
- *         {@value #URN_REPEATABLE_SET_ITERATION},
- *         {@value #URN_PROMPT_RESPONSE}
+ *         or the value {@value #URN_SPECIAL_ALL}. If 
+ *         {@value #URN_SPECIAL_ALL} is not used, the only allowed values must
+ *         be from {@link org.ohmage.domain.campaign.SurveyResponse.ColumnKey}.
  *         </td>
  *     <td>true</td>
  *   </tr>
  *   <tr>
  *     <td>{@value org.ohmage.request.InputKeys#OUTPUT_FORMAT}</td>
  *     <td>The desired output format of the results. Must be one of 
- *     {@value #_OUTPUT_FORMAT_JSON_ROWS}, {@value #_OUTPUT_FORMAT_JSON_COLUMNS},
- *     or, {@value #_OUTPUT_FORMAT_CSV}</td>
+ *     {@value #OUTPUT_FORMAT_JSON_ROWS}, {@value #OUTPUT_FORMAT_JSON_COLUMNS},
+ *     or, {@value #OUTPUT_FORMAT_CSV}</td>
  *     <td>true</td>
  *   </tr>   
  *   <tr>
@@ -175,7 +156,10 @@ import org.ohmage.validator.SurveyResponseValidators;
  *     <td>{@value org.ohmage.request.InputKeys#RETURN_ID}</td>
  *     <td>For {@value #_OUTPUT_FORMAT_JSON_ROWS} output, whether to return
  *     the id on each result. The web front-end uses the id value to perform
- *     updates.</td>
+ *     updates.<br />
+ *     <br />
+ *     Deprecated: Instead, users should now use the survey response ID key.
+ *     </td>
  *     <td>false</td>
  *   </tr>
  *   <tr>
@@ -757,7 +741,10 @@ public final class SurveyResponseReadRequest extends UserRequest {
 								allColumns || columns.contains(ColumnKey.CONTEXT_LAUNCH_CONTEXT_LONG),
 								allColumns || columns.contains(ColumnKey.PROMPT_RESPONSE),
 								false,
-								((returnId == null) ? false : returnId)
+								(((returnId == null) ? false : returnId) ||
+								 allColumns ||
+								 columns.contains(ColumnKey.SURVEY_RESPONSE_ID)
+								)
 							);
 						
 						if(allColumns || columns.contains(ColumnKey.CONTEXT_TIMESTAMP)) {
@@ -951,6 +938,7 @@ public final class SurveyResponseReadRequest extends UserRequest {
 					JSONArray surveyTitles = new JSONArray();
 					JSONArray surveyDescriptions = new JSONArray();
 					JSONArray launchContexts = new JSONArray();
+					JSONArray surveyResponseIds = new JSONArray();
 					Map<String, JSONObject> prompts = new HashMap<String, JSONObject>();
 					
 					// If the results are empty, then we still want to populate
@@ -1077,7 +1065,7 @@ public final class SurveyResponseReadRequest extends UserRequest {
 								locationTimeZone,
 								locationAccuracy, locationProvider,
 								surveyIds, surveyTitles, surveyDescriptions, 
-								launchContexts
+								launchContexts, surveyResponseIds
 							);
 					}
 					
@@ -1215,6 +1203,12 @@ public final class SurveyResponseReadRequest extends UserRequest {
 						values.put(JSON_KEY_VALUES, launchContexts);
 						result.put(ColumnKey.CONTEXT_LAUNCH_CONTEXT_SHORT.toString(), values);
 						keysOrdered.put(ColumnKey.CONTEXT_LAUNCH_CONTEXT_SHORT.toString());
+					}
+					if(allColumns || columns.contains(ColumnKey.SURVEY_RESPONSE_ID)) {
+						JSONObject values = new JSONObject();
+						values.put(JSON_KEY_VALUES, surveyResponseIds);
+						result.put(ColumnKey.SURVEY_RESPONSE_ID.toString(), values);
+						keysOrdered.put(ColumnKey.SURVEY_RESPONSE_ID.toString());
 					}
 					
 					// If the user requested to collapse the results, create a 
@@ -1590,7 +1584,8 @@ public final class SurveyResponseReadRequest extends UserRequest {
 			JSONArray locationTimeZone,
 			JSONArray locationAccuracy, JSONArray locationProvider,
 			JSONArray surveyIds, JSONArray surveyTitles, 
-			JSONArray surveyDescriptions, JSONArray launchContexts) 
+			JSONArray surveyDescriptions, JSONArray launchContexts,
+			JSONArray surveyResponseIds) 
 			throws JSONException {
 
 		// Add each of the survey response-wide pieces of information.
@@ -1690,6 +1685,9 @@ public final class SurveyResponseReadRequest extends UserRequest {
 		}
 		if(allColumns || columns.contains(ColumnKey.CONTEXT_LAUNCH_CONTEXT_LONG) || columns.contains(ColumnKey.CONTEXT_LAUNCH_CONTEXT_SHORT)) {
 			launchContexts.put(surveyResponse.getLaunchContext().toJson(allColumns || columns.contains(ColumnKey.CONTEXT_LAUNCH_CONTEXT_LONG)));
+		}
+		if(allColumns || columns.contains(ColumnKey.SURVEY_RESPONSE_ID)) {
+			surveyResponseIds.put(surveyResponse.getSurveyResponseId().toString());
 		}
 		
 		int numResponses = 0;

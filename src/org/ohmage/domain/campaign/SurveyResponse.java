@@ -441,6 +441,11 @@ public class SurveyResponse {
 		 */
 		REPEATABLE_SET_ITERATION ("urn:ohmage:repeatable_set:iteration"),
 		/**
+		 * The key used to indicate that the survey response's unique 
+		 * identifier is desired.
+		 */
+		SURVEY_RESPONSE_ID ("urn:ohmage:survey_response:id"),
+		/**
 		 * The key used to indicate if responses are desired; however, the 
 		 * response from the server will include either only the prompts' ID
 		 * in the case of {@link OutputFormat#JSON_ROWS} and 
