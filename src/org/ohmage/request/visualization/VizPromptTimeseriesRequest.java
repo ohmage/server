@@ -12,6 +12,7 @@ import org.ohmage.request.InputKeys;
 import org.ohmage.service.CampaignServices;
 import org.ohmage.service.VisualizationServices;
 import org.ohmage.validator.CampaignValidators;
+import org.ohmage.validator.VisualizationValidators;
 
 /**
  * <p>A request for a graph of the number of answers for each possible answer
@@ -40,6 +41,7 @@ private static final Logger LOGGER = Logger.getLogger(VizPromptTimeseriesRequest
 	private static final String REQUEST_PATH = "timeplot/png";
 	
 	private final String promptId;
+	private final Integer aggregate;
 	
 	/**
 	 * Creates a prompt timeseries visualization request.
@@ -52,20 +54,36 @@ private static final Logger LOGGER = Logger.getLogger(VizPromptTimeseriesRequest
 		LOGGER.info("Creating a prompt timeseries request.");
 		
 		String tPromptId = null;
+		Integer tAggregate = null;
 		
 		try {
+			String[] t;
+		
 			tPromptId = CampaignValidators.validatePromptId(httpRequest.getParameter(InputKeys.PROMPT_ID));
 			if(tPromptId == null) {
-				setFailed(ErrorCode.SURVEY_INVALID_PROMPT_ID, "Missing the parameter: " + InputKeys.PROMPT_ID);
-				throw new ValidationException("Missing the parameter: " + InputKeys.PROMPT_ID);
+				throw new ValidationException(
+						ErrorCode.SURVEY_INVALID_PROMPT_ID, 
+						"Missing the parameter: " + InputKeys.PROMPT_ID);
+			}
+			
+			t = getParameterValues(InputKeys.VISUALIZATION_AGGREGATE);
+			if(t.length > 1) {
+				throw new ValidationException(
+						ErrorCode.VISUALIZATION_INVALID_AGGREGATE_VALUE,
+						"Multiple values given for the same parameter: " +
+								InputKeys.VISUALIZATION_AGGREGATE);
+			}
+			else if(t.length == 1) {
+				tAggregate = VisualizationValidators.validateAggregate(t[0]);
 			}
 		}
 		catch(ValidationException e) {
 			e.failRequest(this);
-			LOGGER.info(e.toString());
+			e.logException(LOGGER);
 		}
 		
 		promptId = tPromptId;
+		aggregate = tAggregate;
 	}
 	
 	/**
@@ -91,6 +109,12 @@ private static final Logger LOGGER = Logger.getLogger(VizPromptTimeseriesRequest
 			
 			Map<String, String> parameters = getVisualizationParameters();
 			parameters.put(VisualizationServices.PARAMETER_KEY_PROMPT_ID, promptId);
+			
+			if(aggregate != null) {
+				parameters.put(
+						VisualizationServices.PARAMETER_KEY_AGGREGATE, 
+						aggregate.toString());
+			}
 			
 			LOGGER.info("Making the request to the visualization server.");
 			setImage(VisualizationServices.sendVisualizationRequest(REQUEST_PATH, getUser().getToken(), 

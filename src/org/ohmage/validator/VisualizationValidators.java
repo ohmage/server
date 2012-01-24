@@ -196,4 +196,41 @@ public class VisualizationValidators {
 					"Only a date is allowed, not time: " + endDate);
 		}
 	}
+	
+	/**
+	 * Validates that an aggregate value is a valid integer and returns it.
+	 * 
+	 * @param aggregate The value to be decoded and validated.
+	 * 
+	 * @return The aggregate value as an Integer or null if it was null or
+	 * 		   whitespace only.
+	 * 
+	 * @throws ValidationException Thrown if the value was invalid.
+	 */
+	public static Integer validateAggregate(
+			final String aggregate) 
+			throws ValidationException {
+		
+		if(StringUtils.isEmptyOrWhitespaceOnly(aggregate)) {
+			return null;
+		}
+		
+		try {
+			Integer aggregateInt = Integer.decode(aggregate);
+			
+			if(aggregateInt <= 0) {
+				throw new ValidationException(
+						ErrorCode.VISUALIZATION_INVALID_AGGREGATE_VALUE,
+						"The aggregate value cannot be negative or zero.");
+			}
+			
+			return aggregateInt;
+		}
+		catch(NumberFormatException e) {
+			throw new ValidationException(
+					ErrorCode.VISUALIZATION_INVALID_AGGREGATE_VALUE,
+					"The aggregate value was not a valid number or was too large: " +
+							aggregate);
+		}
+	}
 }

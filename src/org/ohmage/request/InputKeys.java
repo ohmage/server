@@ -152,6 +152,7 @@ public final class InputKeys {
 	// Visualization Constants
 	public static final String VISUALIZATION_WIDTH = "width";
 	public static final String VISUALIZATION_HEIGHT = "height";
+	public static final String VISUALIZATION_AGGREGATE = "aggregate";
 
 	// Audit Constants
 	public static final String AUDIT_REQUEST_TYPE = "request_type";

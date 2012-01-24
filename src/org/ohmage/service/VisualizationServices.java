@@ -75,6 +75,12 @@ public class VisualizationServices {
 	public static final String PARAMETER_KEY_USERNAME = "user_id";
 	
 	/**
+	 * The parameter to tell the visualization server over how many days to
+	 * aggregate the data.
+	 */
+	public static final String PARAMETER_KEY_AGGREGATE = "aggregate";
+	
+	/**
 	 * Default constructor. Made private so that it cannot be instantiated.
 	 */
 	private VisualizationServices() {}
