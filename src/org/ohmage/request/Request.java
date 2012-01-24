@@ -398,9 +398,16 @@ public abstract class Request {
 			
 			setFailed(ErrorCode.SYSTEM_REQUEST_TOO_LARGE, errorText);
 		} catch (IOException e) {
+			// This appears to happen when it is a POST request but there 
+			// aren't any attached files; however, nothing has actually failed.
+			// Given that this is simply a check to see if the size limit has
+			// been exceeded and not to actually retrieve or validate any data,
+			// this is being allowed to pass through.
+			/*
 			setFailed(
 					ErrorCode.SYSTEM_GENERAL_ERROR, 
 					"Error reading the request's parameters.");
+			*/
 		}
 		
 		Map<String, String[]> result = null;
