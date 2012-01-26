@@ -12,6 +12,7 @@ import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.domain.campaign.Campaign;
 import org.ohmage.domain.campaign.Response;
 import org.ohmage.domain.campaign.SurveyResponse;
+import org.ohmage.domain.campaign.SurveyResponse.ColumnKey;
 import org.ohmage.domain.campaign.response.PhotoPromptResponse;
 import org.ohmage.exception.DataAccessException;
 import org.ohmage.exception.ServiceException;
@@ -190,11 +191,12 @@ public final class SurveyResponseServices {
 	 *  
 	 * @param campaignId The campaign's unique identifier. Required.
 	 * 
+	 * @param username The username of the user that is making this request.
+	 * 				   This is used by the ACLs to limit who sees what. 
+	 * 				   Required.
+	 * 
 	 * @param usernames A user's username to which the results must only 
 	 * 				   pertain. Optional.
-	 * 
-	 * @param client A client value to limit the results to only those uploaded
-	 * 				 by this client. Optional.
 	 * 
 	 * @param startDate A date which limits the responses to those generated 
 	 * 					on or after. Optional.
@@ -215,6 +217,10 @@ public final class SurveyResponseServices {
 	 * @param promptType A prompt type that limits all responses to those of
 	 * 					 exactly this prompt type. Optional.
 	 * 
+	 * @param columns Aggregates the data based on the column keys. If this is
+	 * 				  null, no aggregation is performed. If the list is empty,
+	 * 				  an empty list is returned.
+	 * 
 	 * @param surveyResponsesToSkip The number of survey responses to skip once
 	 * 								the result has been aggregated from the 
 	 * 								server.
@@ -229,20 +235,23 @@ public final class SurveyResponseServices {
 	 * @throws ServiceException Thrown if there is an error.
 	 */
 	public List<SurveyResponse> readSurveyResponseInformation(
-			final Campaign campaign, final Collection<String> usernames, 
-			final String client, 
+			final Campaign campaign,
+			final String username,
+			final Collection<String> usernames,
 			final Date startDate, final Date endDate, 
 			final SurveyResponse.PrivacyState privacyState, 
 			final Collection<String> surveyIds, 
 			final Collection<String> promptIds, 
 			final String promptType,
+			Collection<ColumnKey> columns, 
 			final long surveyResponsesToSkip,
 			final long surveyResponsesToProcess) 
 			throws ServiceException {
 		
 		try {
-			return surveyResponseQueries.retrieveSurveyResponseDynamically(
+			return surveyResponseQueries.retrieveSurveyResponses(
 					campaign, 
+					username,
 					usernames, 
 					startDate, 
 					endDate, 
@@ -250,8 +259,72 @@ public final class SurveyResponseServices {
 					surveyIds, 
 					promptIds, 
 					promptType,
+					columns,
 					surveyResponsesToSkip,
 					surveyResponsesToProcess);
+		}
+		catch(DataAccessException e) {
+			throw new ServiceException(e);
+		}
+	}
+	
+	/**
+	 * Returns the number of survey responses that match the given criteria.
+	 * 
+	 * @param campaign The campaign to which the survey responses must belong.
+	 * 
+	 * @param username The username of the user that is making this request.
+	 * 				   This is used by the ACLs to limit who sees what.
+	 * 
+	 * @param usernames Limits the results to only those submitted by any one 
+	 * 					of the users in the list.
+	 * 
+	 * @param startDate Limits the results to only those survey responses that
+	 * 					occurred on or after this date.
+	 * 
+	 * @param endDate Limits the results to only those survey responses that
+	 * 				  occurred on or before this date.
+	 * 
+	 * @param privacyState Limits the results to only those survey responses
+	 * 					   with this privacy state.
+	 * 
+	 * @param surveyIds Limits the results to only those survey responses that 
+	 * 					were derived from a survey in this collection.
+	 * 
+	 * @param promptIds Limits the results to only those survey responses that 
+	 * 					were derived from a prompt in this collection.
+	 * 
+	 * @param promptType Limits the results to only those survey responses that
+	 * 					 are of the given prompt type.
+	 * 
+	 * @return A long representing the number of survey responses that match
+	 * 		   the criteria.
+	 * 
+	 * @throws ServiceException Thrown if there is an error.
+	 */
+	public long retrieveSurveyResponseCount(
+			final Campaign campaign,
+			final String username,
+			final Collection<String> usernames, 
+			final Date startDate,
+			final Date endDate, 
+			final SurveyResponse.PrivacyState privacyState,
+			final Collection<String> surveyIds,
+			final Collection<String> promptIds,
+			final String promptType)
+			throws ServiceException {
+		
+		try {
+			return surveyResponseQueries.retrieveSurveyResponseCount(
+					campaign, 
+					username, 
+					usernames, 
+					startDate, 
+					endDate, 
+					privacyState, 
+					surveyIds, 
+					promptIds, 
+					promptType);
 		}
 		catch(DataAccessException e) {
 			throw new ServiceException(e);

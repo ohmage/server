@@ -191,13 +191,14 @@ public class SurveyResponseFunctionReadRequest extends UserRequest {
 			LOGGER.info("Gathering the survey response information.");
 			surveyResponses = SurveyResponseServices.instance().readSurveyResponseInformation(
 					campaign, 
+					getUser().getUsername(),
 					null, 
 					null, 
 					null, 
 					null, 
 					null, 
 					null, 
-					null, 
+					null,
 					null,
 					SurveyResponse.DEFAULT_NUM_SURVEY_RESPONSES_TO_SKIP,
 					SurveyResponse.DEFAULT_NUM_SURVEY_RESPONSES_TO_PROCESS);

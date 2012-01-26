@@ -198,7 +198,7 @@ public class SurveyUploadQuery extends AbstractUploadQuery implements ISurveyUpl
 								ps.setString(6, surveyUpload.getLocationStatus().toString());
 								ps.setString(7, locationString);
 								ps.setString(8, surveyUpload.getSurvey().getId());
-								ps.setString(9, surveyUpload.toJson(false, false, false, false, true, true, true, true, true, false, false, true, true, true, true, false).toString());
+								ps.setString(9, surveyUpload.toJson(false, false, false, false, true, true, true, true, true, false, false, true, true, true, true, false, false).toString());
 								ps.setString(10, client);
 								ps.setTimestamp(11, new Timestamp(System.currentTimeMillis()));
 								ps.setString(12, surveyUpload.getLaunchContext().toJson(true).toString());

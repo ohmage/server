@@ -141,7 +141,8 @@ public final class SurveyResponseReadServices {
 	 * <ul>
 	 * <li>Owners of responses can view their data anytime.</li>
 	 * <li>Supervisors can view any user's data anytime.</li>
-	 * <li>Authors can view shared responses if the campaign is private.</li> 
+	 * <li>Authors can view shared responses.</li>
+	 * <li>Analysts can view shared responses if the campaign is shared.</li> 
 	 * </ul> 
 	 * 
 	 * <p>This method assumes that the user's role has already been checked

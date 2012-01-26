@@ -21,6 +21,7 @@ import org.json.JSONObject;
 import org.ohmage.domain.campaign.Campaign;
 import org.ohmage.domain.campaign.Prompt;
 import org.ohmage.domain.campaign.SurveyResponse;
+import org.ohmage.domain.campaign.SurveyResponse.ColumnKey;
 import org.ohmage.domain.campaign.SurveyResponse.PrivacyState;
 import org.ohmage.exception.DataAccessException;
 import org.ohmage.exception.ErrorCodeException;
@@ -47,159 +48,301 @@ public class SurveyResponseQueries extends Query implements ISurveyResponseQueri
 		"SELECT privacy_state " +
 		"FROM survey_response_privacy_state";
 	
-	// Retrieves the ID for all survey responses in a campaign.
-	private static final String SQL_GET_IDS_FOR_CAMPAIGN =
-		"SELECT sr.uuid " +
-		"FROM campaign c, survey_response sr " +
-		"WHERE c.urn = ? " +
-		"AND c.id = sr.campaign_id";
-	
-	// Retrieves the survey response ID for all of the survey responses made by
-	// a given user in a given campaign.
-	private static final String SQL_GET_IDS_FOR_USER = 
-		"SELECT sr.uuid " +
-		"FROM user u, campaign c, survey_response sr " +
-		"WHERE u.username = ? " +
-		"AND u.id = sr.user_id " +
-		"AND c.urn = ? " +
-		"AND c.id = sr.campaign_id";
-	
-	// Retrieves the survey response ID for all of the survey responses made by
-	// a given client in a given campaign.
-	private static final String SQL_GET_IDS_WITH_CLIENT = 
-		"SELECT sr.uuid " +
-		"FROM campaign c, survey_response sr " +
-		"WHERE c.urn = ? " +
-		"AND c.id = sr.campaign_id " +
-		"AND sr.client = ?";
-	
-	// Retrieves the survey response ID for all of the survey responses made on 
-	// or after some date in a given campaign.
-	private static final String SQL_GET_IDS_AFTER_DATE =
-		"SELECT sr.uuid " +
-		"FROM campaign c, survey_response sr " +
-		"WHERE c.urn = ? " +
-		"AND c.id = sr.campaign_id " +
-		"AND sr.epoch_millis >= ?";
-	
-	// Retrieves the survey response ID for all of the survey responses made on 
-	// or before some date in a given campaign.
-	private static final String SQL_GET_IDS_BEFORE_DATE =
-		"SELECT sr.uuid " +
-		"FROM campaign c, survey_response sr " +
-		"WHERE c.urn = ? " +
-		"AND c.id = sr.campaign_id " +
-		"AND sr.epoch_millis <= ?";
-	
-	// Retrieves the survey response ID for all of the survey responses with a
-	// given privacy state in a given campaign.
-	private static final String SQL_GET_IDS_WITH_PRIVACY_STATE = 
-		"SELECT sr.uuid " +
-		"FROM campaign c, survey_response sr, survey_response_privacy_state srps " +
-		"WHERE c.urn = ? " +
-		"AND c.id = sr.campaign_id " +
-		"AND srps.privacy_state = ? " +
-		"AND srps.id = sr.privacy_state_id";
-	
-	// Retrieves the survey response ID for all of the survey responses with a
-	// given survey ID in a given campaign.
-	private static final String SQL_GET_IDS_WITH_SURVEY_ID = 
-		"SELECT sr.uuid " +
-		"FROM campaign c, survey_response sr " +
-		"WHERE c.urn = ? " +
-		"AND c.id = sr.campaign_id " +
-		"AND sr.survey_id = ?";
-	
-	// Retrieves the survey response ID for all of the survey responses with a
-	// given prompt ID in a given campaign.
-	private static final String SQL_GET_IDS_WITH_PROMPT_ID = 
-		"SELECT sr.uuid " +
-		"FROM campaign c, survey_response sr, prompt_response pr " +
-		"WHERE c.urn = ? " +
-		"AND c.id = sr.campaign_id " +
-		"AND pr.prompt_id = ? " +
-		"AND sr.id = pr.survey_response_id";
-	
-	// Retrieves the survey response ID for all of the survey responses with a
-	// given prompt type in a given campaign.
-	private static final String SQL_GET_IDS_WITH_PROMPT_TYPE = 
-		"SELECT sr.uuid " +
-		"FROM campaign c, survey_response sr, prompt_response pr " +
-		"WHERE c.urn = ? " +
-		"AND c.id = sr.campaign_id " +
-		"AND pr.prompt_type = ? " +
-		"AND sr.id = pr.survey_response_id";
-	
-	// Retrieves all of the information about a single survey response.
-	private static final String SQL_GET_SURVEY_RESPONSE = 
-		"SELECT u.username, c.urn, sr.uuid, sr.client, " +
-				"sr.epoch_millis, sr.phone_timezone, " +
-				"sr.survey_id, sr.launch_context, " +
-				"sr.location_status, sr.location, srps.privacy_state " +
-		"FROM user u, campaign c, survey_response sr, survey_response_privacy_state srps " +
-		"WHERE sr.uuid = ? " +
-		"AND u.id = sr.user_id " +
-		"AND c.id = sr.campaign_id " +
-		"AND srps.id = sr.privacy_state_id";
-	
-	// Retrieves all of the information about a single survey response.
-	private static final String SQL_GET_SURVEY_RESPONSES = 
-		"SELECT u.username, c.urn, sr.id, sr.uuid, sr.client, " +
-			"sr.epoch_millis, sr.phone_timezone, " +
-			"sr.survey_id, sr.launch_context, " +
-			"sr.location_status, sr.location, srps.privacy_state " +
-		"FROM user u, campaign c, survey_response sr, survey_response_privacy_state srps " +
-		"WHERE u.id = sr.user_id " +
-		"AND c.id = sr.campaign_id " +
-		"AND srps.id = sr.privacy_state_id " +
-		"AND sr.uuid in ";
-	
-	private static final String SQL_GET_SURVEY_RESPONSES_DYNAMICALLY=
-		"SELECT u.username, c.urn, sr.id, sr.uuid, sr.client, " +
+	/**
+	 * Retrieves all of the necessary information for survey responses. It 
+	 * should almost certainly be used with the {@link #SQL_WHERE_ACL} in order
+	 * to ensure that a user cannot see more than they are privileged to see.
+	 * However, this may not be used in the case of administrators when they
+	 * need to see all data regardless of role.<br />
+	 * <br />
+	 * Note: This should never use a GROUP BY clause as you will lose the count
+	 * for the columns that were aggregated together. If you need to group the
+	 * results, use {@link #SQL_GET_SURVEY_RESPONSES_AGGREGATED}, instead.
+	 * 
+	 * @see #SQL_WHERE_ACL
+	 * @see #SQL_WHERE_USERNAMES
+	 * @see #SQL_WHERE_ON_OR_AFTER
+	 * @see #SQL_WHERE_ON_OR_BEFORE
+	 * @see #SQL_WHERE_PRIVACY_STATE
+	 * @see #SQL_WHERE_SURVEY_IDS
+	 * @see #SQL_WHERE_PROMPT_IDS
+	 * @see #SQL_WHERE_PROMPT_TYPE
+	 * 
+	 * @see #SQL_ORDER_BY
+	 */
+	private static final String SQL_GET_SURVEY_RESPONSES_INDIVIDUAL =
+		// Retrieve all of the columns necessary to build a SurveyResponse
+		// object.
+		"SELECT u.username, c.urn, " +
+			"sr.id, sr.uuid, sr.client, " +
 			"sr.epoch_millis, sr.phone_timezone, " +
 			"sr.survey_id, sr.launch_context, " +
 			"sr.location_status, sr.location, srps.privacy_state, " +
 			"pr.prompt_id, pr.response, pr.repeatable_set_iteration " +
+		// Include as few tables as possible and use sub-queries when possible.
 		"FROM user u, campaign c, " +
 			"survey_response sr, survey_response_privacy_state srps, " +
 			"prompt_response pr " +
+		// Begin with exactly one campaign.
 		"WHERE c.urn = ? " +
+		// Retrieve only the survey response associated with that campaign.
 		"AND c.id = sr.campaign_id " +
+		// Link the user to the survey response.
 		"AND u.id = sr.user_id " +
+		// Link the privacy state to the survey response.
 		"AND srps.id = sr.privacy_state_id " +
+		// Link the prompt responses to the survey response.
+		// Note: This means that multiple rows may have the same survey 
+		// response information but have unique prompt response information.
 		"AND pr.survey_response_id = sr.id";
-
+	
+	/**
+	 * Retrieves all of the necessary information for survey responses. It also
+	 * returns a count meaning that this should be used in conjunction with a
+	 * WHERE clause. If it is not used with a WHERE clause, then exactly one
+	 * row will be returned which will contain the count for all of the survey
+	 * responses that matched the criteria as well as all of the information
+	 * about one, random survey response. The count is based on the number of
+	 * survey responses returned and should be used when aggregating survey
+	 * responses at the granularity of survey responses. It should almost 
+	 * certainly be used with the {@link #SQL_WHERE_ACL} in order to ensure 
+	 * that a user cannot see more than they are privileged to see. However, 
+	 * this may not be used in the case of administrators when they need to see
+	 * all data regardless of role.
+	 * 
+	 * @see #SQL_WHERE_ACL
+	 * @see #SQL_WHERE_USERNAMES
+	 * @see #SQL_WHERE_ON_OR_AFTER
+	 * @see #SQL_WHERE_ON_OR_BEFORE
+	 * @see #SQL_WHERE_PRIVACY_STATE
+	 * @see #SQL_WHERE_SURVEY_IDS
+	 * @see #SQL_WHERE_PROMPT_IDS
+	 * @see #SQL_WHERE_PROMPT_TYPE
+	 * 
+	 * @see #SQL_ORDER_BY
+	 */
+	private static final String SQL_GET_SURVEY_RESPONSES_AGGREGATED_SURVEY =
+		// Retrieve all of the columns necessary to build a SurveyResponse
+		// object.
+		"SELECT COUNT(DISTINCT(sr.uuid)) as count, " +
+			"u.username, c.urn, " +
+			"sr.id, sr.uuid, sr.client, " +
+			"sr.epoch_millis, sr.phone_timezone, " +
+			"sr.survey_id, sr.launch_context, " +
+			"sr.location_status, sr.location, srps.privacy_state, " +
+			"pr.prompt_id, pr.response, pr.repeatable_set_iteration " +
+		// Include as few tables as possible and use sub-queries when possible.
+		"FROM user u, campaign c, " +
+			"survey_response sr, survey_response_privacy_state srps, " +
+			"prompt_response pr " +
+		// Begin with exactly one campaign.
+		"WHERE c.urn = ? " +
+		// Retrieve only the survey response associated with that campaign.
+		"AND c.id = sr.campaign_id " +
+		// Link the user to the survey response.
+		"AND u.id = sr.user_id " +
+		// Link the privacy state to the survey response.
+		"AND srps.id = sr.privacy_state_id " +
+		// Link the prompt responses to the survey response.
+		// Note: This means that multiple rows may have the same survey 
+		// response information but have unique prompt response information.
+		"AND pr.survey_response_id = sr.id";
+	
+	/**
+	 * Retrieves all of the necessary information for survey responses. It also
+	 * returns a count meaning that this should be used in conjunction with a
+	 * WHERE clause. If it is not used with a WHERE clause, then exactly one
+	 * row will be returned which will contain the count for all of the survey
+	 * responses that matched the criteria as well as all of the information
+	 * about one, random survey response. The count is based on the number of
+	 * prompt responses returned and should be used when aggregating survey 
+	 * responses at the granularity of prompt responses. It should almost 
+	 * certainly be used with the {@link #SQL_WHERE_ACL} in order to ensure 
+	 * that a user cannot see more than they are privileged to see. However, 
+	 * this may not be used in the case of administrators when they need to see
+	 * all data regardless of role.
+	 * 
+	 * @see #SQL_WHERE_ACL
+	 * @see #SQL_WHERE_USERNAMES
+	 * @see #SQL_WHERE_ON_OR_AFTER
+	 * @see #SQL_WHERE_ON_OR_BEFORE
+	 * @see #SQL_WHERE_PRIVACY_STATE
+	 * @see #SQL_WHERE_SURVEY_IDS
+	 * @see #SQL_WHERE_PROMPT_IDS
+	 * @see #SQL_WHERE_PROMPT_TYPE
+	 * 
+	 * @see #SQL_ORDER_BY
+	 */
+	private static final String SQL_GET_SURVEY_RESPONSES_AGGREGATED_PROMPT =
+		// Retrieve all of the columns necessary to build a SurveyResponse
+		// object.
+		"SELECT COUNT(sr.uuid) as count, " +
+			"u.username, c.urn, " +
+			"sr.id, sr.uuid, sr.client, " +
+			"sr.epoch_millis, sr.phone_timezone, " +
+			"sr.survey_id, sr.launch_context, " +
+			"sr.location_status, sr.location, srps.privacy_state, " +
+			"pr.prompt_id, pr.response, pr.repeatable_set_iteration " +
+		// Include as few tables as possible and use sub-queries when possible.
+		"FROM user u, campaign c, " +
+			"survey_response sr, survey_response_privacy_state srps, " +
+			"prompt_response pr " +
+		// Begin with exactly one campaign.
+		"WHERE c.urn = ? " +
+		// Retrieve only the survey response associated with that campaign.
+		"AND c.id = sr.campaign_id " +
+		// Link the user to the survey response.
+		"AND u.id = sr.user_id " +
+		// Link the privacy state to the survey response.
+		"AND srps.id = sr.privacy_state_id " +
+		// Link the prompt responses to the survey response.
+		// Note: This means that multiple rows may have the same survey 
+		// response information but have unique prompt response information.
+		"AND pr.survey_response_id = sr.id";
+	
+	/**
+	 * This is the WHERE clause that must be included when using either
+	 * {@link #SQL_GET_SURVEY_RESPONSES_INDIVIDUAL} or
+	 * {@link #SQL_GET_SURVEY_RESPONSES_AGGREGATED}. This includes the 
+	 * directives for SQL to properly align the tables and then incorporate the
+	 * ACL. Without this section, one will get all of the information about all
+	 * of the survey responses in all of the campaigns. No one should ever 
+	 * query this much information at once. Even admins should break it down by
+	 * campaign at the most course grained level.
+	 * 
+	 * Note: Maybe we should move the linking aspect of this WHERE clause to 
+	 * the two SELECT/FROM clauses and leave the ACL rules as an optional 
+	 * addition. This may be necessary for admins that can circumvent the ACLs.
+	 */
+	private static final String SQL_WHERE_ACL =
+		// ACL Rules
+		" AND EXISTS (" +
+			// Get the requesting user's information.
+			"SELECT ru.id " +
+			"FROM user ru " +
+			"WHERE ru.username = ? " +
+			"AND (" +
+				// If it is their own,
+				"(u.id = ru.id) " +
+				"OR " +
+				// If they are a supervisor,
+				"EXISTS (" +
+					"SELECT ur.role " +
+					"FROM user_role ur, user_role_campaign urc " +
+					"WHERE ru.id = urc.user_id " +
+					"AND c.id = urc.campaign_id " +
+					"AND ur.id = urc.user_role_id " +
+					"AND ur.role = '" + Campaign.Role.SUPERVISOR.toString() + "'" +
+				") " +
+				"OR " +
+				// If they are an author and the survey response is shared,
+				"EXISTS (" +
+					"SELECT ur.role " +
+					"FROM user_role ur, user_role_campaign urc " +
+					"WHERE ru.id = urc.user_id " +
+					"AND c.id = urc.campaign_id " +
+					"AND ur.id = urc.user_role_id " +
+					"AND ur.role = '" + Campaign.Role.AUTHOR.toString() + "' " +
+					"AND srps.privacy_state = '" + SurveyResponse.PrivacyState.SHARED.toString() + "'" +
+				") " +
+				"OR " +
+				// If they are an analyst, the survey response is shared, and the
+				// campaign is shared.
+				"EXISTS (" +
+					"SELECT ur.role " +
+					"FROM user_role ur, user_role_campaign urc, campaign_privacy_state cps " +
+					"WHERE ru.id = urc.user_id " +
+					"AND c.id = urc.campaign_id " +
+					"AND ur.id = urc.user_role_id " +
+					"AND ur.role = '" + Campaign.Role.ANALYST.toString() + "' " +
+					"AND srps.privacy_state = '" + SurveyResponse.PrivacyState.SHARED.toString() + "' " +
+					"AND c.privacy_state_id = cps.id " +
+					"AND cps.privacy_state = '" + Campaign.PrivacyState.SHARED + "'" +
+				")" +
+			")" +
+		")";
+	
+	/**
+	 * Limit the responses to only these usernames. This SQL is incomplete and
+	 * ends with "IN ". The user will need to fill in a parenthetical of "?"s
+	 * and supply an equal number of usernames to the parameters list.
+	 * 
+	 * @see #SQL_GET_SURVEY_RESPONSES
+	 */
 	private static final String SQL_WHERE_USERNAMES =
 		" AND u.username IN ";
 
+	/**
+	 * Limit the responses to only those on or after a date. This is expected
+	 * to be a long value representing the number of milliseconds since the 
+	 * epoch.
+	 * 
+	 * @see #SQL_GET_SURVEY_RESPONSES
+	 */
 	private static final String SQL_WHERE_ON_OR_AFTER =
 		" AND sr.epoch_millis >= ?";
 
+	/**
+	 * Limit the responses to only those on or before a date. This is expected
+	 * to be a long vlaue representing the number of milliseconds since the
+	 * epoch.
+	 * 
+	 * @see #SQL_GET_SURVEY_RESPONSES
+	 */
 	private static final String SQL_WHERE_ON_OR_BEFORE =
 		" AND sr.epoch_millis <= ?";
 
+	/**
+	 * Limit the responses to only those with this privacy state. This should
+	 * be a lower-case string representing a valid survey response privacy 
+	 * state.
+	 * 
+	 * @see #SQL_GET_SURVEY_RESPONSES
+	 */
 	private static final String SQL_WHERE_PRIVACY_STATE =
 		" AND srps.privacy_state = ?";
 
+	/**
+	 * Limit the responses to only those from a list of survey IDs. This SQL is
+	 * incomplete and ends with "IN ". The user will need to fill in a
+	 * parenthetical of "?"s and supply an equal number of valid survey IDs to
+	 * the parameters list.
+	 * 
+	 * @see #SQL_GET_SURVEY_RESPONSES 
+	 */
 	private static final String SQL_WHERE_SURVEY_IDS =
 		" AND sr.survey_id IN ";
 	
+	/**
+	 * Limit the responses to only those from a list of prompt IDs. This SQL is
+	 * incomplete and ends with "IN ". The user will need to fill in a 
+	 * parenthetical of "?"s and supply an equal number of valid prompt IDs to
+	 * the parameters list.
+	 * 
+	 * @see #SQL_GET_SURVEY_RESPONSES
+	 */
 	private static final String SQL_WHERE_PROMPT_IDS =
 		" AND pr.prompt_id IN ";
 
+	/**
+	 * Limit the responses to only those with a given prompt type. This should
+	 * be the lower-case representation of a known prompt type.
+	 * 
+	 * @see #SQL_GET_SURVEY_RESPONSES
+	 */
 	private static final String SQL_WHERE_PROMPT_TYPE =
 		" AND pr.prompt_type = ?";
 	
+	/**
+	 * Order the results first by the number of milliseconds since the epoch at
+	 * which time the survey was taken and then, if there is a collision, by
+	 * UUID. This guarantees that all prompt responses for a given survey 
+	 * response will be grouped together.
+	 * 
+	 * @see #SQL_GET_SURVEY_RESPONSES
+	 */
 	private static final String SQL_ORDER_BY =
 		" ORDER BY sr.epoch_millis DESC, sr.uuid";
-
-	// Retrieves all of the information about all prompt responses that pertain
-	// to a single survey response.
-	private static final String SQL_GET_PROMPT_RESPONSES = 
-		"SELECT pr.prompt_id, pr.prompt_type, pr.repeatable_set_id, pr.repeatable_set_iteration, pr.response " +
-		"FROM survey_response sr, prompt_response pr " +
-		"WHERE pr.survey_response_id = sr.id " +
-		"AND sr.uuid = ?";
 	
 	// Updates a survey response's privacy state.
 	private static final String SQL_UPDATE_SURVEY_RESPONSES_PRIVACY_STATE = 
@@ -264,496 +407,12 @@ public class SurveyResponseQueries extends Query implements ISurveyResponseQueri
 	}
 	
 	/* (non-Javadoc)
-	 * @see org.ohmage.query.impl.ISurveyResponseQueries#retrieveSurveyResponseIdsFromCampaign(java.lang.String)
-	 */
-	public List<UUID> retrieveSurveyResponseIdsFromCampaign(final String campaignId) throws DataAccessException {
-		try {
-			return getJdbcTemplate().query(
-					SQL_GET_IDS_FOR_CAMPAIGN, 
-					new Object[] { campaignId }, 
-					new RowMapper<UUID>() {
-						@Override
-						public UUID mapRow(
-								ResultSet rs, 
-								int rowNum) 
-								throws SQLException {
-							
-							return UUID.fromString(rs.getString("uuid"));
-						}
-					});
-		}
-		catch(org.springframework.dao.DataAccessException e) {
-			throw new DataAccessException(
-					"Error executing SQL '" + 
-							SQL_GET_IDS_FOR_CAMPAIGN + 
-						"' with parameter: " + 
-							campaignId,
-					e);
-		}
-	}
-	
-	/* (non-Javadoc)
-	 * @see org.ohmage.query.impl.ISurveyResponseQueries#retrieveSurveyResponseIdsFromUser(java.lang.String, java.lang.String)
-	 */
-	public List<UUID> retrieveSurveyResponseIdsFromUser(final String campaignId, final String username) throws DataAccessException {
-		try {
-			return getJdbcTemplate().query(
-					SQL_GET_IDS_FOR_USER, 
-					new Object[] { username, campaignId }, 
-					new RowMapper<UUID>() {
-						@Override
-						public UUID mapRow(
-								ResultSet rs, 
-								int rowNum) 
-								throws SQLException {
-							
-							return UUID.fromString(rs.getString("uuid"));
-						}
-					});
-		}
-		catch(org.springframework.dao.DataAccessException e) {
-			throw new DataAccessException(
-					"Error executing SQL '" + 
-							SQL_GET_IDS_FOR_USER + 
-						"' with parameters: " + 
-							username + ", " + 
-							campaignId,
-					e);
-		}
-	}
-	
-	/* (non-Javadoc)
-	 * @see org.ohmage.query.impl.ISurveyResponseQueries#retrieveSurveyResponseIdsWithClient(java.lang.String, java.lang.String)
-	 */
-	public List<UUID> retrieveSurveyResponseIdsWithClient(final String campaignId, final String client) throws DataAccessException {
-		try {
-			return getJdbcTemplate().query(
-					SQL_GET_IDS_WITH_CLIENT, 
-					new Object[] { campaignId, client }, 
-					new RowMapper<UUID>() {
-						@Override
-						public UUID mapRow(
-								ResultSet rs, 
-								int rowNum) 
-								throws SQLException {
-							
-							return UUID.fromString(rs.getString("uuid"));
-						}
-					});
-		}
-		catch(org.springframework.dao.DataAccessException e) {
-			throw new DataAccessException(
-					"Error executing SQL '" + 
-							SQL_GET_IDS_FOR_USER + 
-						"' with parameters: " + 
-							campaignId + ", " + 
-							client,
-					e);
-		}
-	}
-
-	/* (non-Javadoc)
-	 * @see org.ohmage.query.impl.ISurveyResponseQueries#retrieveSurveyResponseIdsAfterDate(java.lang.String, java.util.Date)
-	 */
-	public List<UUID> retrieveSurveyResponseIdsAfterDate(final String campaignId, final Date startDate) throws DataAccessException {
-		try {
-			return getJdbcTemplate().query(
-					SQL_GET_IDS_AFTER_DATE, 
-					new Object[] { campaignId, startDate.getTime() }, 
-					new RowMapper<UUID>() {
-						@Override
-						public UUID mapRow(
-								ResultSet rs, 
-								int rowNum) 
-								throws SQLException {
-							
-							return UUID.fromString(rs.getString("uuid"));
-						}
-					});
-		}
-		catch(org.springframework.dao.DataAccessException e) {
-			throw new DataAccessException(
-					"Error executing SQL '" + 
-							SQL_GET_IDS_AFTER_DATE + 
-						"' with parameters: " + 
-							campaignId + ", " + 
-							startDate.getTime(),
-					e);
-		}
-	}
-	
-	/* (non-Javadoc)
-	 * @see org.ohmage.query.impl.ISurveyResponseQueries#retrieveSurveyResponseIdsBeforeDate(java.lang.String, java.util.Date)
-	 */
-	public List<UUID> retrieveSurveyResponseIdsBeforeDate(final String campaignId, final Date endDate) throws DataAccessException {
-		try {
-			return getJdbcTemplate().query(
-					SQL_GET_IDS_BEFORE_DATE, 
-					new Object[] { campaignId, endDate.getTime() }, 
-					new RowMapper<UUID>() {
-						@Override
-						public UUID mapRow(
-								ResultSet rs, 
-								int rowNum) 
-								throws SQLException {
-							
-							return UUID.fromString(rs.getString("uuid"));
-						}
-					});
-		}
-		catch(org.springframework.dao.DataAccessException e) {
-			throw new DataAccessException(
-					"Error executing SQL '" + 
-							SQL_GET_IDS_BEFORE_DATE + 
-						"' with parameters: " + 
-							campaignId + ", " + 
-							endDate.getTime(),
-					e);
-		}
-	}
-	
-	/* (non-Javadoc)
-	 * @see org.ohmage.query.impl.ISurveyResponseQueries#retrieveSurveyResponseIdsWithPrivacyState(java.lang.String, org.ohmage.domain.campaign.SurveyResponse.PrivacyState)
-	 */
-	public List<UUID> retrieveSurveyResponseIdsWithPrivacyState(final String campaignId, 
-			final SurveyResponse.PrivacyState privacyState) throws DataAccessException {
-		try {
-			return getJdbcTemplate().query(
-					SQL_GET_IDS_WITH_PRIVACY_STATE, 
-					new Object[] { campaignId, privacyState.toString() }, 
-					new RowMapper<UUID>() {
-						@Override
-						public UUID mapRow(
-								ResultSet rs, 
-								int rowNum) 
-								throws SQLException {
-							
-							return UUID.fromString(rs.getString("uuid"));
-						}
-					});
-		}
-		catch(org.springframework.dao.DataAccessException e) {
-			throw new DataAccessException(
-					"Error executing SQL '" + 
-							SQL_GET_IDS_WITH_PRIVACY_STATE + 
-						"' with parameters: " + 
-							campaignId + ", " + 
-							privacyState,
-					e);
-		}
-	}
-	
-	/* (non-Javadoc)
-	 * @see org.ohmage.query.impl.ISurveyResponseQueries#retrieveSurveyResponseIdsWithSurveyId(java.lang.String, java.lang.String)
-	 */
-	public List<UUID> retrieveSurveyResponseIdsWithSurveyId(final String campaignId, final String surveyId) throws DataAccessException {
-		try {
-			return getJdbcTemplate().query(
-					SQL_GET_IDS_WITH_SURVEY_ID, 
-					new Object[] { campaignId, surveyId }, 
-					new RowMapper<UUID>() {
-						@Override
-						public UUID mapRow(
-								ResultSet rs, 
-								int rowNum) 
-								throws SQLException {
-							
-							return UUID.fromString(rs.getString("uuid"));
-						}
-					});
-		}
-		catch(org.springframework.dao.DataAccessException e) {
-			throw new DataAccessException(
-					"Error executing SQL '" +  
-							SQL_GET_IDS_WITH_SURVEY_ID + 
-						"' with parameters: " + 
-							campaignId + ", " + 
-							surveyId,
-					e);
-		}
-	}
-	
-	/* (non-Javadoc)
-	 * @see org.ohmage.query.impl.ISurveyResponseQueries#retrieveSurveyResponseIdsWithPromptId(java.lang.String, java.lang.String)
-	 */
-	public List<UUID> retrieveSurveyResponseIdsWithPromptId(final String campaignId, final String promptId) throws DataAccessException {
-		try {
-			return getJdbcTemplate().query(
-					SQL_GET_IDS_WITH_PROMPT_ID, 
-					new Object[] { campaignId, promptId }, 
-					new RowMapper<UUID>() {
-						@Override
-						public UUID mapRow(
-								ResultSet rs, 
-								int rowNum) 
-								throws SQLException {
-							
-							return UUID.fromString(rs.getString("uuid"));
-						}
-					});
-		}
-		catch(org.springframework.dao.DataAccessException e) {
-			throw new DataAccessException(
-					"Error executing SQL '" + 
-							SQL_GET_IDS_WITH_PROMPT_ID + 
-						"' with parameters: " + 
-							campaignId + ", " + 
-							promptId,
-					e);
-		}
-	}
-	
-	/* (non-Javadoc)
-	 * @see org.ohmage.query.impl.ISurveyResponseQueries#retrieveSurveyResponseIdsWithPromptType(java.lang.String, java.lang.String)
-	 */
-	public List<UUID> retrieveSurveyResponseIdsWithPromptType(final String campaignId, final String promptType) throws DataAccessException {
-		try {
-			return getJdbcTemplate().query(
-					SQL_GET_IDS_WITH_PROMPT_TYPE, 
-					new Object[] { campaignId, promptType }, 
-					new RowMapper<UUID>() {
-						@Override
-						public UUID mapRow(
-								ResultSet rs, 
-								int rowNum) 
-								throws SQLException {
-							
-							return UUID.fromString(rs.getString("uuid"));
-						}
-					});
-		}
-		catch(org.springframework.dao.DataAccessException e) {
-			throw new DataAccessException(
-					"Error executing SQL '" + 
-							SQL_GET_IDS_WITH_PROMPT_TYPE + 
-						"' with parameters: " + 
-							campaignId + ", " + 
-							promptType,
-					e);
-		}
-	}
-	
-	/* (non-Javadoc)
-	 * @see org.ohmage.query.impl.ISurveyResponseQueries#retrieveSurveyResponseFromId(org.ohmage.domain.campaign.Campaign, java.lang.Long)
-	 */
-	public SurveyResponse retrieveSurveyResponseFromId(
-			final Campaign campaign,
-			final UUID surveyResponseId) 
-			throws DataAccessException {
-		
-		try {
-			// Create the survey response information object from the database.
-			final SurveyResponse result = getJdbcTemplate().queryForObject(
-					SQL_GET_SURVEY_RESPONSE,
-					new Object[] { surveyResponseId.toString() },
-					new RowMapper<SurveyResponse>() {
-						@Override
-						public SurveyResponse mapRow(ResultSet rs, int rowNum) throws SQLException {
-							try {
-								JSONObject locationJson = null;
-								String locationString = rs.getString("location");
-								if(locationString != null) {
-									locationJson = new JSONObject(locationString);
-								}
-								
-								return new SurveyResponse(
-										campaign.getSurveys().get(rs.getString("survey_id")),
-										UUID.fromString(rs.getString("uuid")),
-										rs.getString("username"),
-										rs.getString("urn"),
-										rs.getString("client"),
-										rs.getLong("epoch_millis"),
-										TimeZone.getTimeZone(rs.getString("phone_timezone")),
-										new JSONObject(rs.getString("launch_context")),
-										rs.getString("location_status"),
-										locationJson,
-										SurveyResponse.PrivacyState.getValue(rs.getString("privacy_state")));
-							}
-							catch(JSONException e) {
-								throw new SQLException("Error creating a JSONObject.", e);
-							}
-							catch(ErrorCodeException e) {
-								throw new SQLException("Error creating the survey response information object.", e);
-							}
-							catch(IllegalArgumentException e) {
-								throw new SQLException("Error creating the survey response information object.", e);
-							}
-						}
-					}
-				);
-			
-			final String surveyId = result.getSurvey().getId();
-			
-			final Map<String, Class<?>> typeMapping = new HashMap<String, Class<?>>();
-			typeMapping.put("tinyint", Integer.class);
-			
-			// Retrieve all of the prompt responses for the survey response and
-			// add them to the survey response information object.
-			getJdbcTemplate().query(
-					SQL_GET_PROMPT_RESPONSES,
-					new Object[] { surveyResponseId.toString() },
-					new RowMapper<Object>() {
-						@Override
-						public Object mapRow(ResultSet rs, int rowNum) throws SQLException {
-							try {
-								Prompt prompt = campaign.getPrompt(surveyId, rs.getString("prompt_id"));
-								result.addPromptResponse(prompt.createResponse(rs.getString("response"), (Integer) rs.getObject("repeatable_set_iteration", typeMapping)));
-							}
-							catch(IllegalArgumentException e) {
-								throw new SQLException("The prompt response value from the database is not a valid response value for this prompt.", e);
-							}
-							
-							// TODO: instead of returning null here we should
-							// just wrap the query() call in response.addPromptResponse()
-							
-							return null;
-						}
-					}
-				);
-			
-			return result;
-		}
-		catch(org.springframework.dao.IncorrectResultSizeDataAccessException e) {
-			if(e.getActualSize() > 1) {
-				throw new DataAccessException(
-						"Multiple survey response's have the same database ID.", 
-						e);
-			}
-			
-			return null;
-		}
-		catch(org.springframework.dao.DataAccessException e) {
-			throw new DataAccessException(
-					"Error executing SQL '" + SQL_GET_SURVEY_RESPONSE + 
-						"' with parameter: " + surveyResponseId,
-					e);
-		}
-	}
-	
-	/* (non-Javadoc)
-	 * @see org.ohmage.query.impl.ISurveyResponseQueries#retrieveSurveyResponseFromIds(org.ohmage.domain.campaign.Campaign, java.util.Collection)
-	 */
-	public List<SurveyResponse> retrieveSurveyResponseFromIds(
-			final Campaign campaign,
-			final Collection<UUID> surveyResponseIds) throws DataAccessException {
-		
-		try {
-			final Map<String, Class<?>> typeMapping = new HashMap<String, Class<?>>();
-			typeMapping.put("tinyint", Integer.class);
-
-			String[] surveyResponseIdsString = new String[surveyResponseIds.size()];
-			int numIdsConverted = 0;
-			for(UUID surveyResponseId : surveyResponseIds) {
-				surveyResponseIdsString[numIdsConverted] = 
-						surveyResponseId.toString();
-				numIdsConverted++;
-			}
-			
-			final List<SurveyResponse> result = 
-				getJdbcTemplate().query(
-					SQL_GET_SURVEY_RESPONSES + StringUtils.generateStatementPList(surveyResponseIds.size()),
-					surveyResponseIdsString,
-					new RowMapper<SurveyResponse>() {
-						@Override
-						public SurveyResponse mapRow(ResultSet rs, int rowNum) throws SQLException {
-							try {
-								JSONObject locationJson = null;
-								String locationString = rs.getString("location");
-								if(locationString != null) {
-									locationJson = new JSONObject(locationString);
-								}
-								
-								// Create an object for this survey response.
-								final SurveyResponse currResult = 
-									new SurveyResponse(
-										campaign.getSurveys().get(rs.getString("survey_id")),
-										UUID.fromString(rs.getString("uuid")),
-										rs.getString("username"),
-										rs.getString("urn"),
-										rs.getString("client"),
-										rs.getLong("epoch_millis"),
-										TimeZone.getTimeZone(rs.getString("phone_timezone")),
-										new JSONObject(rs.getString("launch_context")),
-										rs.getString("location_status"),
-										locationJson,
-										SurveyResponse.PrivacyState.getValue(rs.getString("privacy_state")));
-								
-								final String surveyId = currResult.getSurvey().getId();
-								
-								// Retrieve all of the prompt responses for the
-								// current survey response.
-								try {
-									getJdbcTemplate().query(
-											SQL_GET_PROMPT_RESPONSES,
-											new Object[] { rs.getString("uuid") },
-											new RowMapper<Object>() {
-												@Override
-												public Object mapRow(ResultSet rs, int rowNum) throws SQLException {
-													try {
-														// Retrieve the prompt
-														// from the 
-														// configuration.
-														Prompt prompt = 
-															campaign.getPrompt(
-																	surveyId,
-																	rs.getString("prompt_id")
-																);
-														
-														currResult.addPromptResponse(
-																prompt.createResponse(
-																		rs.getString("response"), 
-																		(Integer) rs.getObject("repeatable_set_iteration", typeMapping)
-																	)
-															);
-													}
-													catch(IllegalArgumentException e) {
-														throw new SQLException("The prompt response value from the database is not a valid response value for this prompt.", e);
-													}
-													
-													return null;
-												}
-											}
-										);
-								}
-								catch(org.springframework.dao.DataAccessException e) {
-									throw new SQLException(
-											"Error executing SQL '" + SQL_GET_PROMPT_RESPONSES + 
-												"' with parameter: " + rs.getLong("id"),
-											e);
-								}
-								
-								return currResult;
-							}
-							catch(JSONException e) {
-								throw new SQLException("Error creating a JSONObject.", e);
-							}
-							catch(ErrorCodeException e) {
-								throw new SQLException("Error creating the survey response information object.", e);
-							}
-							catch(IllegalArgumentException e) {
-								throw new SQLException("Error creating the survey response information object.", e);
-							}
-						}
-					}
-				);
-			
-			return result;
-		}
-		catch(org.springframework.dao.DataAccessException e) {
-			throw new DataAccessException(
-					"Error executing SQL '" + SQL_GET_SURVEY_RESPONSES + 
-						StringUtils.generateStatementPList(surveyResponseIds.size()) +
-						"' with parameter: " + surveyResponseIds,
-					e);
-		}
-	}
-	
-	/* (non-Javadoc)
 	 * @see org.ohmage.query.ISurveyResponseQueries#retrieveSurveyResponseDynamically(org.ohmage.domain.campaign.Campaign, java.util.Collection, java.util.Date, java.util.Date, org.ohmage.domain.campaign.SurveyResponse.PrivacyState, java.util.Collection, java.lang.String)
 	 */
 	@Override
-	public List<SurveyResponse> retrieveSurveyResponseDynamically(
+	public List<SurveyResponse> retrieveSurveyResponses(
 			final Campaign campaign,
+			final String username,
 			final Collection<String> usernames, 
 			final Date startDate,
 			final Date endDate, 
@@ -761,62 +420,33 @@ public class SurveyResponseQueries extends Query implements ISurveyResponseQueri
 			final Collection<String> surveyIds,
 			final Collection<String> promptIds,
 			final String promptType,
+			final Collection<ColumnKey> columns, 
 			final long surveyResponsesToSkip,
 			final long surveyResponsesToProcess) 
 			throws DataAccessException {
 		
-		// Begin with the default SQL string.
-		StringBuilder sqlBuilder = 
-				new StringBuilder(SQL_GET_SURVEY_RESPONSES_DYNAMICALLY);
-		
-		// Begin with only the campaign's ID.
-		List<Object> parameters = new LinkedList<Object>();
-		parameters.add(campaign.getId());
-		
-		// Check all of the criteria and if any are non-null add their SQL and
-		// append the parameters.
-		if((usernames != null) && (usernames.size() > 0)) {
-			sqlBuilder.append(SQL_WHERE_USERNAMES);
-			sqlBuilder.append(StringUtils.generateStatementPList(usernames.size()));
-			parameters.addAll(usernames);
-		}
-		if(startDate != null) {
-			sqlBuilder.append(SQL_WHERE_ON_OR_AFTER);
-			parameters.add(startDate.getTime());
-		}
-		if(endDate != null) {
-			sqlBuilder.append(SQL_WHERE_ON_OR_BEFORE);
-			parameters.add(endDate.getTime());
-		}
-		if(privacyState != null) {
-			sqlBuilder.append(SQL_WHERE_PRIVACY_STATE);
-			parameters.add(privacyState.toString());
-		}
-		if(surveyIds != null) {
-			if(surveyIds.size() == 0) {
-				return Collections.emptyList();
-			}
+		if(
+			((surveyIds != null) && (surveyIds.size() == 0)) ||
+			((promptIds != null) && (promptIds.size() == 0)) ||
+			((columns != null) && (columns.size() == 0))) {
 			
-			sqlBuilder.append(SQL_WHERE_SURVEY_IDS);
-			sqlBuilder.append(StringUtils.generateStatementPList(surveyIds.size()));
-			parameters.addAll(surveyIds);
-		}
-		if(promptIds != null) {
-			if(promptIds.size() == 0) {
-				return Collections.emptyList();
-			}
-			sqlBuilder.append(SQL_WHERE_PROMPT_IDS);
-			sqlBuilder.append(StringUtils.generateStatementPList(promptIds.size()));
-			parameters.addAll(promptIds);
-		}
-		if(promptType != null) {
-			sqlBuilder.append(SQL_WHERE_PROMPT_TYPE);
-			parameters.add(promptType);
+			return Collections.emptyList();
 		}
 		
-		// Finally, add some ordering to facilitate consistent results in the
-		// paging system.
-		sqlBuilder.append(SQL_ORDER_BY);
+		List<Object> parameters = new LinkedList<Object>();
+		String sql = buildSqlAndParameters(
+				campaign,
+				username,
+				usernames, 
+				startDate,
+				endDate, 
+				privacyState,
+				surveyIds,
+				promptIds,
+				promptType,
+				columns,
+				false,
+				parameters);
 
 		// This is necessary to map tiny integers in SQL to Java's integer.
 		final Map<String, Class<?>> typeMapping = new HashMap<String, Class<?>>();
@@ -824,18 +454,26 @@ public class SurveyResponseQueries extends Query implements ISurveyResponseQueri
 		
 		try {
 			return getJdbcTemplate().query(
-				sqlBuilder.toString(),
+				sql,
 				parameters.toArray(),
 				new ResultSetExtractor<List<SurveyResponse>>() {
 					/**
 					 * First, it skips a set of rows based on the parameterized
-					 * number of rows to skip. Then, it aggregates the 
-					 * information from the number of desired rows.
+					 * number of survey responses to skip. Then, it aggregates  
+					 * the information from the number of desired survey 
+					 * responses.
 					 * 
-					 * There is an implicit assumption that the rows are 
-					 * ordered in some consistent manner between requests.
-					 * Otherwise, the results being skipped this time might not
-					 * be the same that were skipped / returned last time.
+					 * There must be some ordering on the results in order for
+					 * subsequent results to skip / process the same rows. The
+					 * agreed upon ordering is by time taken time stamp. 
+					 * Therefore, if a user were viewing results as they were
+					 * being generated and/or uploaded, it could be that
+					 * subsequent calls return the same result as a previous
+					 * call. This is analogous to viewing a page of feed data
+					 * and going to the next page and seeing some feed items
+					 * that you just saw on the previous page. It was decided
+					 * that this is a common and acceptable way to view live
+					 * data.
 					 */
 					@Override
 					public List<SurveyResponse> extractData(ResultSet rs)
@@ -907,6 +545,11 @@ public class SurveyResponseQueries extends Query implements ISurveyResponseQueri
 											rs.getString("location_status"),
 											locationJson,
 											SurveyResponse.PrivacyState.getValue(rs.getString("privacy_state")));
+								
+								if(columns != null) {
+									surveyResponse.setCount(
+											rs.getLong("count"));
+								}
 							}
 							catch(JSONException e) {
 								throw new SQLException("Error creating a JSONObject.", e);
@@ -982,7 +625,73 @@ public class SurveyResponseQueries extends Query implements ISurveyResponseQueri
 		catch(org.springframework.dao.DataAccessException e) {
 			throw new DataAccessException(
 					"Error executing SQL '" +  
-						sqlBuilder.toString() +
+						sql +
+						"' with parameters: " + 
+						campaign.getId() + " (campaign ID), " +
+						usernames + " (usernames), " +
+						startDate + " (start date), " +
+						endDate + " (end date), " +
+						privacyState + " (privacy state), " + 
+						surveyIds + " (survey IDs), " +
+						promptIds + " (prompt IDs), " +
+						promptType + " (prompt type)",
+					e);
+		}
+	}
+	
+	/*
+	 * (non-Javadoc)
+	 * @see org.ohmage.query.ISurveyResponseQueries#retrieveSurveyResponseCount(org.ohmage.domain.campaign.Campaign, java.lang.String, java.util.Collection, java.util.Date, java.util.Date, org.ohmage.domain.campaign.SurveyResponse.PrivacyState, java.util.Collection, java.util.Collection, java.lang.String)
+	 */
+	public long retrieveSurveyResponseCount(
+			final Campaign campaign,
+			final String username,
+			final Collection<String> usernames, 
+			final Date startDate,
+			final Date endDate, 
+			final SurveyResponse.PrivacyState privacyState,
+			final Collection<String> surveyIds,
+			final Collection<String> promptIds,
+			final String promptType)
+			throws DataAccessException {
+		
+		List<Object> parameters = new LinkedList<Object>();
+		String sql = buildSqlAndParameters(
+				campaign,
+				username,
+				usernames, 
+				startDate,
+				endDate, 
+				privacyState,
+				surveyIds,
+				promptIds,
+				promptType,
+				null,
+				true,
+				parameters);
+		
+		try {
+			return getJdbcTemplate().queryForObject(
+					sql, 
+					parameters.toArray(), 
+					new RowMapper<Long>() {
+						/**
+						 * Returns the count. The expectation is that this 
+						 * should return exactly one row with any number of
+						 * columns, but one of the columns should be the count.
+						 */
+						@Override
+						public Long mapRow(ResultSet rs, int rowNum)
+								throws SQLException {
+							
+							return rs.getLong("count");
+						}
+					});
+		}
+		catch(org.springframework.dao.DataAccessException e) {
+			throw new DataAccessException(
+					"Error executing SQL '" +  
+						sql +
 						"' with parameters: " + 
 						campaign.getId() + " (campaign ID), " +
 						usernames + " (usernames), " +
@@ -1101,5 +810,223 @@ public class SurveyResponseQueries extends Query implements ISurveyResponseQueri
 		catch(TransactionException e) {
 			throw new DataAccessException("Error while attempting to rollback the transaction.", e);
 		}
+	}
+	
+	/**
+	 * Builds the SQL for the survey response SELECT and generates a parameter
+	 * list that corresponds to that SQL. The parameter list is returned and
+	 * the SQL is set as the final parameter.
+	 * 
+	 * @param campaign The campaign to which the survey responses must belong.
+	 * 
+	 * @param username The username of the user that is making this request.
+	 * 				   This is used by the ACLs to limit who sees what.
+	 * 
+	 * @param usernames Limits the results to only those submitted by any one 
+	 * 					of the users in the list.
+	 * 
+	 * @param startDate Limits the results to only those survey responses that
+	 * 					occurred on or after this date.
+	 * 
+	 * @param endDate Limits the results to only those survey responses that
+	 * 				  occurred on or before this date.
+	 * 
+	 * @param privacyState Limits the results to only those survey responses
+	 * 					   with this privacy state.
+	 * 
+	 * @param surveyIds Limits the results to only those survey responses that 
+	 * 					were derived from a survey in this collection.
+	 * 
+	 * @param promptIds Limits the results to only those survey responses that 
+	 * 					were derived from a prompt in this collection.
+	 * 
+	 * @param promptType Limits the results to only those survey responses that
+	 * 					 are of the given prompt type.
+	 * 
+	 * @param columns Aggregates the data based on the column keys. If this is
+	 * 				  null, no aggregation is performed. If the list is empty,
+	 * 				  an empty list is returned.
+	 * 
+	 * @param parameters This is a list created by the caller to be populated
+	 * 					 with the parameters aggregated while generating this
+	 * 					 SQL.
+	 * 
+	 * @return The list of parameters that corresponds with the generated SQL.
+	 */
+	private String buildSqlAndParameters(
+			final Campaign campaign,
+			final String username,
+			final Collection<String> usernames, 
+			final Date startDate,
+			final Date endDate, 
+			final SurveyResponse.PrivacyState privacyState,
+			final Collection<String> surveyIds,
+			final Collection<String> promptIds,
+			final String promptType,
+			final Collection<ColumnKey> columns,
+			final boolean forCount,
+			final Collection<Object> parameters) {
+		
+		// Begin with the SQL string which gets all results or the one that
+		// aggregates results.
+		StringBuilder sqlBuilder = 
+				new StringBuilder(SQL_WHERE_ACL);
+		
+		// Begin with the campaign's ID and the requester's username.
+		parameters.add(campaign.getId());
+		parameters.add(username);
+		
+		// Check all of the criteria and if any are non-null add their SQL and
+		// append the parameters.
+		if((usernames != null) && (usernames.size() > 0)) {
+			sqlBuilder.append(SQL_WHERE_USERNAMES);
+			sqlBuilder.append(StringUtils.generateStatementPList(usernames.size()));
+			parameters.addAll(usernames);
+		}
+		if(startDate != null) {
+			sqlBuilder.append(SQL_WHERE_ON_OR_AFTER);
+			parameters.add(startDate.getTime());
+		}
+		if(endDate != null) {
+			sqlBuilder.append(SQL_WHERE_ON_OR_BEFORE);
+			parameters.add(endDate.getTime());
+		}
+		if(privacyState != null) {
+			sqlBuilder.append(SQL_WHERE_PRIVACY_STATE);
+			parameters.add(privacyState.toString());
+		}
+		if(surveyIds != null) {
+			sqlBuilder.append(SQL_WHERE_SURVEY_IDS);
+			sqlBuilder.append(StringUtils.generateStatementPList(surveyIds.size()));
+			parameters.addAll(surveyIds);
+		}
+		if(promptIds != null) {
+			sqlBuilder.append(SQL_WHERE_PROMPT_IDS);
+			sqlBuilder.append(StringUtils.generateStatementPList(promptIds.size()));
+			parameters.addAll(promptIds);
+		}
+		if(promptType != null) {
+			sqlBuilder.append(SQL_WHERE_PROMPT_TYPE);
+			parameters.add(promptType);
+		}
+		
+		// Now, collapse the columns if columns is non-null.
+		boolean individual = true;
+		boolean onSurveyResponse = true;
+		if((columns != null) && (! forCount)) {
+			individual = false;
+			sqlBuilder.append(" GROUP BY ");
+			
+			boolean firstPass = true;
+			for(ColumnKey columnKey : columns) {
+				if(firstPass) {
+					firstPass = false;
+				}
+				else {
+					sqlBuilder.append(", ");
+				}
+				
+				switch(columnKey) {
+				case CONTEXT_CLIENT:
+					sqlBuilder.append("sr.client");
+					break;
+					
+				case CONTEXT_TIMESTAMP:
+				case CONTEXT_UTC_TIMESTAMP:
+					sqlBuilder.append("(sr.epoch_millis / 1000)");
+					break;
+					
+				case CONTEXT_EPOCH_MILLIS:
+					sqlBuilder.append("sr.epoch_millis");
+					break;
+					
+				case CONTEXT_TIMEZONE:
+					sqlBuilder.append("sr.phone_timezone");
+					break;
+					
+				case CONTEXT_LAUNCH_CONTEXT_LONG:
+				case CONTEXT_LAUNCH_CONTEXT_SHORT:
+					sqlBuilder.append("sr.launch_context");
+					break;
+					
+				case CONTEXT_LOCATION_STATUS:
+					sqlBuilder.append("sr.location_status");
+					break;
+					
+				case USER_ID:
+					sqlBuilder.append("u.username");
+					break;
+					
+				case SURVEY_ID:
+					sqlBuilder.append("sr.survey_id");
+					break;
+					
+				case SURVEY_RESPONSE_ID:
+					sqlBuilder.append("sr.uuid");
+					break;
+					
+				case SURVEY_PRIVACY_STATE:
+					sqlBuilder.append("srps.privacy_state");
+					break;
+					
+				case REPEATABLE_SET_ID:
+					onSurveyResponse = false;
+					sqlBuilder.append("pr.repeatable_set_id");
+					break;
+					
+				case REPEATABLE_SET_ITERATION:
+					onSurveyResponse = false;
+					sqlBuilder.append("pr.repeatable_set_iteration");
+					break;
+					
+				case PROMPT_RESPONSE:
+					onSurveyResponse = false;
+					sqlBuilder.append("pr.response");
+					break;
+					
+				// This is inaccurate and will only work if the entire 
+				// JSONObject is the same. We cannot do this without JSONObject
+				// dissection in SQL.
+				case CONTEXT_LOCATION_LATITUDE:
+				case CONTEXT_LOCATION_LONGITUDE:
+				case CONTEXT_LOCATION_TIMESTAMP:
+				case CONTEXT_LOCATION_TIMEZONE:
+				case CONTEXT_LOCATION_ACCURACY:
+				case CONTEXT_LOCATION_PROVIDER:
+					sqlBuilder.append("sr.location");
+					break;
+					
+				// This cannot be done without XML manipulation in the SQL. 
+				// Instead, we shouldn't dump the XML in the database and 
+				// should explode it into its own series of columns and, if
+				// necessary, additional tables.
+				case SURVEY_TITLE:
+					
+				case SURVEY_DESCRIPTION:
+					
+				default:
+					int length = sqlBuilder.length();
+					sqlBuilder.delete(length - 2, length);
+				}
+			}
+		}
+		// Now, go back and insert the correct SELECT clause based on if we are
+		// grouping or not and, if so, if we are doing it at the survey level
+		// or the prompt level.
+		if(individual && (! forCount)) { 
+			sqlBuilder.insert(0, SQL_GET_SURVEY_RESPONSES_INDIVIDUAL);
+		}
+		else if(onSurveyResponse || forCount) {
+			sqlBuilder.insert(0, SQL_GET_SURVEY_RESPONSES_AGGREGATED_SURVEY);
+		}
+		else {
+			sqlBuilder.insert(0, SQL_GET_SURVEY_RESPONSES_AGGREGATED_PROMPT);
+		}
+		
+		// Finally, add some ordering to facilitate consistent results in the
+		// paging system.
+		sqlBuilder.append(SQL_ORDER_BY);
+		
+		return sqlBuilder.toString();
 	}
 }

@@ -1488,7 +1488,7 @@ public class OhmageApi {
 			
 			JSONObject responseJson = response.toJson(false, false, false, 
 					false, true, true, true, true, true, false, false, 
-					true, true, true, true, false);
+					true, true, true, true, false, false);
 			if(responseJson == null) {
 				throw new ApiException("One of the survey responses could not be converted to JSON.");
 			}
