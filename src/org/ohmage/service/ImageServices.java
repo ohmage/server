@@ -135,4 +135,25 @@ public final class ImageServices {
 			throw new ServiceException("The URL could not be read.", e);
 		}
 	}
+	
+	/**
+	 * Retrieves the URL of an image.
+	 * 
+	 * @param imageId The image's unique identifier.
+	 * 
+	 * @return A URL to the image.
+	 * 
+	 * @throws ServiceException Thrown if there is an error.
+	 */
+	public URL getImageUrl(final UUID imageId) throws ServiceException {
+		try {
+			return new URL(imageQueries.getImageUrl(imageId));
+		}
+		catch(DataAccessException e) {
+			throw new ServiceException(e);
+		}
+		catch (MalformedURLException e) {
+			throw new ServiceException(e);
+		}
+	}
 }

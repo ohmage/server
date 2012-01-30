@@ -2,11 +2,13 @@ package org.ohmage.request.image;
 
 import java.io.BufferedWriter;
 import java.io.DataOutputStream;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
+import java.net.URISyntaxException;
 import java.util.UUID;
 
 import javax.servlet.http.HttpServletRequest;
@@ -69,6 +71,7 @@ public class ImageReadRequest extends UserRequest {
 	private final ImageSize size;
 	
 	private InputStream imageStream;
+	private long imageSize;
 	
 	/**
 	 * Creates a new image read request.
@@ -132,8 +135,20 @@ public class ImageReadRequest extends UserRequest {
 			LOGGER.info("Verifying that the user can read the image.");
 			UserImageServices.instance().verifyUserCanReadImage(getUser().getUsername(), imageId);
 			
-			LOGGER.info("Retreiving the image.");
+			LOGGER.info("Retrieving the image.");
 			imageStream = ImageServices.instance().getImage(imageId, size);
+			
+			try {
+				LOGGER.info("Retrieving the image's size.");
+				imageSize = 
+						(new File(
+								ImageServices.instance().getImageUrl(
+										imageId).toURI())
+						).length();
+			} 
+			catch(URISyntaxException e) {
+				throw new ServiceException(e);
+			}
 		}
 		catch(ServiceException e) {
 			e.failRequest(this);
@@ -150,11 +165,9 @@ public class ImageReadRequest extends UserRequest {
 		LOGGER.info("Writing image read response.");
 		
 		// Creates the writer that will write the response, success or fail.
-		Writer writer;
 		OutputStream os;
 		try {
-			os = getOutputStream(httpRequest, httpResponse);
-			writer = new BufferedWriter(new OutputStreamWriter(os));
+			os = httpResponse.getOutputStream();
 		}
 		catch(IOException e) {
 			LOGGER.error("Unable to create writer object. Aborting.", e);
@@ -174,12 +187,17 @@ public class ImageReadRequest extends UserRequest {
 				// be.
 				httpResponse.setContentType("image/png");
 				httpResponse.setHeader("Content-Disposition", "filename=image");
-
+				httpResponse.setHeader("Content-Length", String.valueOf(imageSize));
+				
 				// If available, set the token.
 				if(getUser() != null) {
 					final String token = getUser().getToken(); 
 					if(token != null) {
-						CookieUtils.setCookieValue(httpResponse, InputKeys.AUTH_TOKEN, token, (int) (UserBin.getTokenRemainingLifetimeInMillis(token) / MILLIS_IN_A_SECOND));
+						CookieUtils.setCookieValue(
+								httpResponse, 
+								InputKeys.AUTH_TOKEN, 
+								token, 
+								(int) (UserBin.getTokenRemainingLifetimeInMillis(token) / MILLIS_IN_A_SECOND));
 					}
 				}
 				
@@ -188,13 +206,9 @@ public class ImageReadRequest extends UserRequest {
 				
 				// Read the file in chunks and write it to the output stream.
 				byte[] bytes = new byte[CHUNK_SIZE];
-				int read = 0;
-				int currRead = imageStream.read(bytes);
-				while(currRead != -1) {
+				int currRead;
+				while((currRead = imageStream.read(bytes)) != -1) {
 					dos.write(bytes, 0, currRead);
-					read += currRead;
-					
-					currRead = imageStream.read(bytes);
 				}
 				
 				// Close the image's InputStream.
@@ -223,6 +237,7 @@ public class ImageReadRequest extends UserRequest {
 		// FIXME: This should probably check if it's a GET and send a 404.
 		if(isFailed()) {
 			httpResponse.setContentType("text/html");
+			Writer writer = new BufferedWriter(new OutputStreamWriter(os));
 			
 			// Write the error response.
 			try {
@@ -238,7 +253,7 @@ public class ImageReadRequest extends UserRequest {
 				writer.close();
 			}
 			catch(IOException e) {
-				LOGGER.error("Unable to flush or close the writer.", e);
+				LOGGER.warn("Unable to flush or close the writer.", e);
 			}
 		}
 	}
