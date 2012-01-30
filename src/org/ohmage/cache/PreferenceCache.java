@@ -58,14 +58,20 @@ public final class PreferenceCache extends KeyValueCache {
 	// Properties-specific information.
 	public static final String KEY_PROPERTIES_FILE = "properties_file";
 	
+	// Allows privileged users in a class to view the Mobility information 
+	// about everyone else in the class.
+	public static final String 
+			KEY_PRIVILEGED_USER_IN_CLASS_CAN_VIEW_MOBILITY_FOR_EVERYONE_IN_CLASS = 
+			"privileged_user_in_class_can_view_others_mobility";
+	
+	// Visualization-specific information.
+	public static final String KEY_VISUALIZATION_SERVER = "visualization_server_address";
+	
 	// Build-specific information.
 	public static final String KEY_APPLICATION_NAME = "application_name";
 	public static final String KEY_APPLICATION_VERSION = "application_version";
 	public static final String KEY_APPLICATION_BUILD = "application_build";
 	public static final String KEY_SSL_ENABLED = "ssl_enabled";
-	
-	// Visualization-specific information.
-	public static final String KEY_VISUALIZATION_SERVER = "visualization_server_address";
 	
 	// The reference to one's self to return to requesters.
 	private static PreferenceCache instance;
