@@ -71,7 +71,7 @@ public final class UserClassQueries extends Query implements IUserClassQueries {
 		"AND u.id = uc.user_id " +
 		"AND ucr.id = uc.user_class_role_id " +
 		"AND c.id = uc.class_id " +
-		"AND c.id in ";
+		"AND c.urn in ";
 	
 	// Retrieves the ID and name of all of the classes to which a user belongs.
 	private static final String SQL_GET_CLASS_ID_AND_NAMES_FOR_USER =
