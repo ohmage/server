@@ -132,11 +132,9 @@ public class DocumentReadContentsRequest extends UserRequest {
 		LOGGER.info("Writing read document contents response.");
 		
 		// Creates the writer that will write the response, success or fail.
-		Writer writer;
 		OutputStream os;
 		try {
 			os = getOutputStream(httpRequest, httpResponse);
-			writer = new BufferedWriter(new OutputStreamWriter(os));
 		}
 		catch(IOException e) {
 			LOGGER.error("Unable to create writer object. Aborting.", e);
@@ -168,13 +166,9 @@ public class DocumentReadContentsRequest extends UserRequest {
 				
 				// Read the file in chunks and write it to the output stream.
 				byte[] bytes = new byte[CHUNK_SIZE];
-				int read = 0;
-				int currRead = contentsStream.read(bytes);
-				while(currRead != -1) {
+				int currRead;
+				while((currRead = contentsStream.read(bytes)) != -1) {
 					dos.write(bytes, 0, currRead);
-					read += currRead;
-					
-					currRead = contentsStream.read(bytes);
 				}
 				
 				// Close the document's InputStream.
@@ -202,6 +196,7 @@ public class DocumentReadContentsRequest extends UserRequest {
 		// If the request ever failed, write an error message.
 		if(isFailed()) {
 			httpResponse.setContentType("text/html");
+			Writer writer = new BufferedWriter(new OutputStreamWriter(os));
 			
 			// Write the error response.
 			try {
