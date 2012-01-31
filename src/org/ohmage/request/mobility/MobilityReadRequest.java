@@ -12,14 +12,20 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.log4j.Logger;
 import org.json.JSONArray;
 import org.ohmage.annotator.Annotator.ErrorCode;
+import org.ohmage.cache.PreferenceCache;
 import org.ohmage.domain.MobilityPoint;
+import org.ohmage.exception.CacheMissException;
 import org.ohmage.exception.ServiceException;
 import org.ohmage.exception.ValidationException;
 import org.ohmage.request.InputKeys;
 import org.ohmage.request.UserRequest;
 import org.ohmage.service.MobilityServices;
+import org.ohmage.service.UserClassServices;
+import org.ohmage.service.UserServices;
+import org.ohmage.util.StringUtils;
 import org.ohmage.util.TimeUtils;
 import org.ohmage.validator.MobilityValidators;
+import org.ohmage.validator.UserValidators;
 
 /**
  * Reads the Mobility information about a user during a single day.<br />
@@ -40,6 +46,12 @@ import org.ohmage.validator.MobilityValidators;
  *     <td>The date for which the data is desired.</td>
  *     <td>true</td>
  *   </tr>
+ *   <tr>
+ *     <td>{@value org.ohmage.request.InputKeys#USERNAME}</td>
+ *     <td>The username of the user for whom the data is desired. If omitted,
+ *       the requesting user is used.</td>
+ *     <td>false</td>
+ *   </tr>
  * </table>
  * 
  * @author John Jenkins
@@ -48,6 +60,7 @@ public class MobilityReadRequest extends UserRequest {
 	private static final Logger LOGGER = Logger.getLogger(MobilityReadRequest.class);
 	
 	private final Date date;
+	private final String username;
 	
 	private List<MobilityPoint> result;
 	
@@ -63,34 +76,54 @@ public class MobilityReadRequest extends UserRequest {
 		LOGGER.info("Creating a Mobility read request.");
 		
 		Date tDate = null;
+		String tUsername = null;
 		
 		if(! isFailed()) {
 			try {
-				String[] dates = getParameterValues(InputKeys.DATE);
-				if(dates.length == 0) {
-					setFailed(ErrorCode.SERVER_INVALID_DATE, "The date value is missing: " + InputKeys.DATE);
-					throw new ValidationException("The date value is missing: " + InputKeys.DATE);
+				String[] t;
+				
+				t = getParameterValues(InputKeys.DATE);
+				if(t.length == 0) {
+					throw new ValidationException(
+							ErrorCode.SERVER_INVALID_DATE, 
+							"The date value is missing: " + InputKeys.DATE);
 				}
-				else if(dates.length == 1) {
-					tDate = MobilityValidators.validateDate(dates[0]);
+				else if(t.length == 1) {
+					tDate = MobilityValidators.validateDate(t[0]);
 					
 					if(tDate == null) {
-						setFailed(ErrorCode.SERVER_INVALID_DATE, "The date value is missing: " + InputKeys.DATE);
-						throw new ValidationException("The date value is missing: " + InputKeys.DATE);
+						throw new ValidationException(
+								ErrorCode.SERVER_INVALID_DATE, 
+								"The date value is missing: " + 
+										InputKeys.DATE);
 					}
 				}
 				else {
-					setFailed(ErrorCode.SERVER_INVALID_DATE, "Multiple date values were given: " + InputKeys.DATE);
-					throw new ValidationException("Multiple date values were given: " + InputKeys.DATE);
+					throw new ValidationException(
+							ErrorCode.SERVER_INVALID_DATE, 
+							"Multiple date values were given: " + 
+									InputKeys.DATE);
+				}
+				
+				t = getParameterValues(InputKeys.USERNAME);
+				if(t.length > 1) {
+					throw new ValidationException(
+							ErrorCode.USER_INVALID_USERNAME, 
+							"Multiple usernames to query were given: " + 
+									InputKeys.USERNAME);
+				}
+				else if(t.length == 1) {
+					tUsername = UserValidators.validateUsername(t[0]);
 				}
 			}
 			catch(ValidationException e) {
 				e.failRequest(this);
-				LOGGER.info(e.toString());
+				e.logException(LOGGER);
 			}
 		}
 		
 		date = tDate;
+		username = tUsername;
 		
 		result = Collections.emptyList();
 	}
@@ -107,6 +140,40 @@ public class MobilityReadRequest extends UserRequest {
 		}
 		
 		try {
+			if((username != null) && (! username.equals(getUser().getUsername()))) {
+				boolean isPlausible;
+				try {
+					isPlausible = 
+							StringUtils.decodeBoolean(
+									PreferenceCache.instance().lookup(
+											PreferenceCache.KEY_PRIVILEGED_USER_IN_CLASS_CAN_VIEW_MOBILITY_FOR_EVERYONE_IN_CLASS));
+				}
+				catch(CacheMissException e) {
+					throw new ServiceException(e);
+				}
+				
+				try {
+					UserServices.instance().verifyUserIsAdmin(
+							getUser().getUsername());
+				}
+				catch(ServiceException notAdmin) {
+					if(isPlausible) {
+						UserClassServices
+							.instance()
+							.userIsPrivilegedInAnotherUserClass(
+									getUser().getUsername(), 
+									username);
+					}
+					else {
+						throw new ServiceException(
+								ErrorCode.MOBILITY_INSUFFICIENT_PERMISSIONS,
+								"A user is not allowed to query Mobility information about another user.");
+					}
+				}
+				
+				UserServices.instance().checkUserExistance(username, true);
+			}
+			
 			Calendar startDate = TimeUtils.convertDateToCalendar(date);
 			startDate.set(Calendar.MILLISECOND, 0);
 			startDate.set(Calendar.SECOND, 0);
@@ -118,7 +185,7 @@ public class MobilityReadRequest extends UserRequest {
 			endDate.add(Calendar.DAY_OF_YEAR, 1);
 			
 			result = MobilityServices.instance().retrieveMobilityData(
-					getUser().getUsername(),
+					(username == null) ? getUser().getUsername() : username,
 					new Date(startDate.getTimeInMillis()), 
 					new Date(endDate.getTimeInMillis()), 
 					null, 

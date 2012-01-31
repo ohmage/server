@@ -2,9 +2,12 @@ package org.ohmage.query.impl;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import javax.sql.DataSource;
 
@@ -12,6 +15,7 @@ import org.apache.log4j.Logger;
 import org.ohmage.domain.Clazz;
 import org.ohmage.exception.DataAccessException;
 import org.ohmage.query.IUserClassQueries;
+import org.ohmage.util.StringUtils;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.SingleColumnRowMapper;
 
@@ -56,6 +60,18 @@ public final class UserClassQueries extends Query implements IUserClassQueries {
 		"AND u.id = uc.user_id " +
 		"AND c.id = uc.class_id " +
 		"AND uc.user_class_role_id = ucr.id";
+	
+	// Retrieves the class roles for some user in a list of classes. The user
+	// of this SQL, but append a comma-separated parenthetical with the number
+	// of supplied classes.
+	private static final String SQL_GET_DISTINCT_USER_ROLES =
+		"SELECT DISTINCT(ucr.role) " +
+		"FROM user u, class c, user_class uc, user_class_role ucr " +
+		"WHERE u.username = ? " +
+		"AND u.id = uc.user_id " +
+		"AND ucr.id = uc.user_class_role_id " +
+		"AND c.id = uc.class_id " +
+		"AND c.id in ";
 	
 	// Retrieves the ID and name of all of the classes to which a user belongs.
 	private static final String SQL_GET_CLASS_ID_AND_NAMES_FOR_USER =
@@ -143,6 +159,63 @@ public final class UserClassQueries extends Query implements IUserClassQueries {
 		}
 		catch(org.springframework.dao.DataAccessException e) {
 			throw new DataAccessException("Error executing SQL '" + SQL_GET_USER_ROLE + "' with parameters: " + username + ", " + classId, e);
+		}
+	}
+	
+	/*
+	 * (non-Javadoc)
+	 * @see org.ohmage.query.IUserClassQueries#getUserClassRoles(java.lang.String, java.util.Set)
+	 */
+	public Set<Clazz.Role> getUserClassRoles(
+			final String username, 
+			final Set<String> classIds) 
+			throws DataAccessException {
+		
+		String sql = 
+				SQL_GET_DISTINCT_USER_ROLES + 
+				StringUtils.generateStatementPList(classIds.size());
+		
+		List<Object> parameters = 
+				new ArrayList<Object>(classIds.size() + 1);
+		parameters.add(username);
+		parameters.addAll(classIds);
+		
+		try {
+			return new HashSet<Clazz.Role>(
+					getJdbcTemplate().query(
+						sql, 
+						parameters.toArray(), 
+						new RowMapper<Clazz.Role>() {
+							/**
+							 * Converts the class role string to a class Role 
+							 * object.
+							 */
+							@Override
+							public Clazz.Role mapRow(ResultSet rs, int rowNum)
+									throws SQLException {
+								
+								try {
+									return Clazz.Role.getValue(
+											rs.getString("role"));
+								}
+								catch(IllegalArgumentException e) {
+									throw new SQLException(
+											"Unknown role in the database.", 
+											e);
+								}
+							}
+					
+						}
+					)
+				);
+		}
+		catch(org.springframework.dao.DataAccessException e) {
+			throw new DataAccessException(
+					"Error executing SQL '" + 
+							sql + 
+						"' with parameters: " + 
+							parameters.toString(),
+					e);
 		}
 	}
 	

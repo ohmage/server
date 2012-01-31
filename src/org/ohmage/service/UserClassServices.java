@@ -231,6 +231,39 @@ public final class UserClassServices {
 	}
 	
 	/**
+	 * Verifies that a requesting user is privileged in any of another user's
+	 * classes.
+	 * 
+	 * @param requesterUsername The requesting user's username.
+	 * 
+	 * @param otherUsername The other user's username.
+	 * 
+	 * @throws ServiceException Thrown if the requesting user is not privileged
+	 * 							in any class to which the other user belongs.
+	 */
+	public void userIsPrivilegedInAnotherUserClass(
+			final String requesterUsername,
+			final String otherUsername)
+			throws ServiceException {
+		
+		try {
+			Set<String> classIds = this.getClassesForUser(otherUsername, null);
+			if(! userClassQueries.getUserClassRoles(
+					requesterUsername, 
+					classIds)
+					.contains(Clazz.Role.PRIVILEGED)) {
+				
+				throw new ServiceException(
+						ErrorCode.USER_INSUFFICIENT_PERMISSIONS, 
+						"The requesting user is not privileged in any class to which the other user belongs.");
+			}
+		}
+		catch(DataAccessException e) {
+			throw new ServiceException(e);
+		}
+	}
+	
+	/**
 	 * Retrieves a List of all the users in the class.
 	 * 
 	 * @param classId The unique identifier for the class.
@@ -311,21 +344,16 @@ public final class UserClassServices {
 			final Clazz.Role role) throws ServiceException {
 		
 		try {
-			Set<String> allClasses = 
-				userClassQueries.getClassIdsAndNameForUser(username).keySet();
-			
 			if(role == null) {
-				return allClasses;
+				return userClassQueries.getClassIdsAndNameForUser(username).keySet();
 			}
 			else {
-				allClasses.retainAll(
+				return new HashSet<String>(
 						userClassQueries.getClassIdsForUserWithRole(
 								username, 
 								role
 							)
 					);
-				
-				return allClasses;
 			}
 		}
 		catch(DataAccessException e) {

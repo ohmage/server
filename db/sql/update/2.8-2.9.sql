@@ -17,6 +17,12 @@ ALTER TABLE survey_response ADD COLUMN uuid CHAR(36) NOT NULL;
 UPDATE survey_response SET uuid=UUID() WHERE uuid='';
 ALTER TABLE survey_response ADD CONSTRAINT UNIQUE (uuid);
 
+-- Update the preference table to add the new preference indicating whether or
+-- not a privileged user in a class can view the Mobility data for everyone 
+-- else in that class.
+INSERT INTO preference VALUES 
+    ('privileged_user_in_class_can_view_others_mobility', 'true');
+
 -- We probably want to drop the pre-existing constraints for Mobility and 
 -- survey responses, but try as I might I couldn't find any documentation on
 -- how to do it. ALTER TABLE's DROP CONSTRAINT appears to not be implemented in

@@ -2,6 +2,7 @@ package org.ohmage.query;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.ohmage.domain.Clazz;
 import org.ohmage.exception.DataAccessException;
@@ -41,6 +42,22 @@ public interface IUserClassQueries {
 	 * 		   the class in which case null is returned.
 	 */
 	Clazz.Role getUserClassRole(String classId, String username)
+			throws DataAccessException;
+	
+	/**
+	 * Returns the list of roles for a user in a set of classes.
+	 * 
+	 * @param username The user's username.
+	 * 
+	 * @param classIds A set of class IDs.
+	 * 
+	 * @return The set of the class roles for the user in the classes.
+	 * 
+	 * @throws DataAccessException Thrown if there is an error.
+	 */
+	public Set<Clazz.Role> getUserClassRoles(
+			final String username, 
+			final Set<String> classIds) 
 			throws DataAccessException;
 
 	/**
