@@ -176,7 +176,21 @@ public class VisualizationServices {
 		
 		// Add all of the non-required, request-specific parameters.
 		for(String key : parameters.keySet()) {
-			urlBuilder.append("&").append(key).append("='").append(parameters.get(key)).append("'");
+			urlBuilder.append('&');
+			
+			if(PARAMETER_KEY_AGGREGATE.equals(key)) {
+				urlBuilder
+					.append(key)
+					.append('=')
+					.append(parameters.get(key));
+			}
+			else {
+				urlBuilder
+					.append(key)
+					.append("='")
+					.append(parameters.get(key))
+					.append("'");
+			}
 		}
 		
 		// Generate the URL String.
