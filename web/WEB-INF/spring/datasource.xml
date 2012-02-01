@@ -15,7 +15,7 @@
     <property name="initialSize" value="3"/>
     <!-- <property name="maxActive" value="20"/> the default is 8, which should be enough for the initial release. -->
     <!-- the following properties configure the connection pool for handling the freshness of the connections it returns -->
-    <property name="maxActive" value="1000"/>
+    <property name="maxActive" value="500"/>
     <property name="validationQuery" value="SELECT 1" />
     <property name="testWhileIdle" value="true" />
     <property name="timeBetweenEvictionRunsMillis" value="3600000" />
