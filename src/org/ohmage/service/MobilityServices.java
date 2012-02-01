@@ -1,5 +1,6 @@
 package org.ohmage.service;
 
+import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 
@@ -224,6 +225,36 @@ public final class MobilityServices {
 					privacyState, 
 					locationStatus, 
 					mode);
+		}
+		catch(DataAccessException e) {
+			throw new ServiceException(e);
+		}
+	}
+	
+	/**
+	 * Retrieves all of the dates on which the user has created a Mobility 
+	 * point within the date range.
+	 * 
+	 * @param startDate The earliest date to check if the user has any Mobility
+	 * 					points.
+	 * 
+	 * @param endDate The latest date to check if the user has any Mobility
+	 * 				  points.
+	 * 
+	 * @param username The user's username.
+	 * 
+	 * @return A collection of all of the dates.
+	 * 
+	 * @throws ServiceException Thrown if there is an error.
+	 */
+	public Collection<Date> getDates(
+			final Date startDate,
+			final Date endDate,
+			final String username) 
+			throws ServiceException {
+		
+		try {
+			return userMobilityQueries.getDates(startDate, endDate, username);
 		}
 		catch(DataAccessException e) {
 			throw new ServiceException(e);

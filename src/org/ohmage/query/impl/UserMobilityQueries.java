@@ -4,12 +4,15 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 import java.util.TimeZone;
 import java.util.UUID;
 
@@ -29,6 +32,7 @@ import org.ohmage.query.IUserMobilityQueries;
 import org.ohmage.util.StringUtils;
 import org.ohmage.util.TimeUtils;
 import org.springframework.jdbc.core.PreparedStatementCreator;
+import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.SingleColumnRowMapper;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
@@ -50,6 +54,8 @@ import edu.ucla.cens.mobilityclassifier.MobilityClassifier;
  * @author John Jenkins
  */
 public final class UserMobilityQueries extends AbstractUploadQuery implements IUserMobilityQueries {
+	private static final long MILLIS_PER_DAY = 1000 * 60 * 60 * 24;
+	
 	// Retrieves the ID for all of the Mobility points that belong to a user.
 	private static final String SQL_GET_IDS_FOR_USER = 
 		"SELECT m.uuid " +
@@ -196,6 +202,17 @@ public final class UserMobilityQueries extends AbstractUploadQuery implements IU
 	private static final String SQL_ORDER_BY_DATE =
 		" ORDER BY epoch_millis";
 	
+	// Retrieves the epoch millisecond values for all of the mobility points 
+	// for a user within the date ranges.
+	private static final String SQL_GET_MIN_MAX_MILLIS_FOR_USER_WITHIN_RANGE_GROUPED_BY_TIME_AND_TIMEZONE =
+		"SELECT MIN(m.epoch_millis) as min, MAX(m.epoch_millis) as max, m.phone_timezone " +
+		"FROM user u, mobility m " +
+		"WHERE u.username = ? " +
+		"AND u.id = m.user_id " +
+		"AND epoch_millis >= ? " +
+		"AND epoch_millis <= ? " +
+		"GROUP BY (m.epoch_millis DIV " + MILLIS_PER_DAY + "), m.phone_timezone";
+
 	// Inserts a mode-only entry into the database.
 	private static final String SQL_INSERT =
 		"INSERT INTO mobility(uuid, user_id, client, epoch_millis, phone_timezone, location_status, location, mode, upload_timestamp, privacy_state_id) " +
@@ -753,6 +770,89 @@ public final class UserMobilityQueries extends AbstractUploadQuery implements IU
 			throw new DataAccessException(
 					"Error executing SQL '" +
 							sqlBuilder.toString() + 
+						"' with parameters: " + 
+							parameters,
+					e);
+		}
+	}
+	
+	/*
+	 * (non-Javadoc)
+	 * @see org.ohmage.query.IUserMobilityQueries#getDates(java.util.Date, java.util.Date, java.lang.String)
+	 */
+	public Set<Date> getDates(
+			final Date startDate,
+			final Date endDate,
+			final String username)
+			throws DataAccessException {
+		
+
+		List<Object> parameters = new ArrayList<Object>(3);
+		parameters.add(username);
+		parameters.add(startDate.getTime());
+		parameters.add(endDate.getTime());
+		
+		try {
+			return getJdbcTemplate().query(
+					SQL_GET_MIN_MAX_MILLIS_FOR_USER_WITHIN_RANGE_GROUPED_BY_TIME_AND_TIMEZONE, 
+					parameters.toArray(),
+					new ResultSetExtractor<Set<Date>>() {
+						/**
+						 * Gathers the applicable dates based on their time 
+						 * zone.
+						 */
+						@Override
+						public Set<Date> extractData(ResultSet rs)
+								throws SQLException,
+								org.springframework.dao.DataAccessException {
+							
+							Set<Date> result = new HashSet<Date>();
+							
+							while(rs.next()) {
+								Calendar userCalendar = 
+										Calendar.getInstance(
+												TimeZone.getTimeZone(
+														rs.getString(
+																"phone_timezone")));
+								Calendar serverCalendar = 
+										Calendar.getInstance();
+								
+								serverCalendar.setTimeInMillis(0);
+								userCalendar.setTimeInMillis(rs.getLong("min"));
+								serverCalendar.set(
+										Calendar.YEAR, 
+										userCalendar.get(Calendar.YEAR));
+								serverCalendar.set(
+										Calendar.MONTH, 
+										userCalendar.get(Calendar.MONTH));
+								serverCalendar.set(
+										Calendar.DAY_OF_MONTH, 
+										userCalendar.get(Calendar.DAY_OF_MONTH));
+								result.add(serverCalendar.getTime());
+
+								serverCalendar.setTimeInMillis(0);
+								userCalendar.setTimeInMillis(rs.getLong("max"));
+								serverCalendar.set(
+										Calendar.YEAR, 
+										userCalendar.get(Calendar.YEAR));
+								serverCalendar.set(
+										Calendar.MONTH, 
+										userCalendar.get(Calendar.MONTH));
+								serverCalendar.set(
+										Calendar.DAY_OF_MONTH, 
+										userCalendar.get(Calendar.DAY_OF_MONTH));
+								result.add(serverCalendar.getTime());
+							}
+							
+							return result;
+						}
+					}
+				);
+		}
+		catch(org.springframework.dao.DataAccessException e) {
+			throw new DataAccessException(
+					"Error executing SQL '" +
+							SQL_GET_MIN_MAX_MILLIS_FOR_USER_WITHIN_RANGE_GROUPED_BY_TIME_AND_TIMEZONE + 
 						"' with parameters: " + 
 							parameters,
 					e);

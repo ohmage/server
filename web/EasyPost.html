@@ -330,9 +330,19 @@
         </form>
 
         <h2>Mobility APIs</h2>
-		<h3>Mobility Read:</h3>
+        <h3>Mobility Dates Read:</h3>
+        <form action="/app/mobility/dates/read" method="post">
+            Start Date: <input type="text" name="start_date" /><br />
+            End Date: <input type="text" name="end_date" /><br />
+            Username: <input type="text" name="username" /><br />
+            Client: <input type="text" name="client" value="testWeb" /><br />
+            <input type="submit" value="Submit" />
+        </form>
+		
+        <h3>Mobility Read:</h3>
 		<form action="/app/mobility/read" method="post">
 			Date: <input type="text" name="date" /><br />
+			Username: <input type="text" name="username" /><br />
 			Client: <input type="text" name="client" value="testWeb" /><br />
 			<input type="submit" value="Submit" />
 		</form>

@@ -3,11 +3,13 @@ package org.ohmage.query;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
 
 import org.ohmage.domain.MobilityPoint;
 import org.ohmage.domain.MobilityPoint.LocationStatus;
 import org.ohmage.domain.MobilityPoint.Mode;
 import org.ohmage.exception.DataAccessException;
+import org.ohmage.exception.ServiceException;
 
 public interface IUserMobilityQueries {
 
@@ -232,6 +234,28 @@ public interface IUserMobilityQueries {
 			final MobilityPoint.PrivacyState privacyState,
 			final LocationStatus locationStatus,
 			final Mode mode) 
+			throws DataAccessException;
+	
+	/**
+	 * Retrieves all of the dates on which the user has created a Mobility 
+	 * point within the date range.
+	 * 
+	 * @param startDate The earliest date to check if the user has any Mobility
+	 * 					points.
+	 * 
+	 * @param endDate The latest date to check if the user has any Mobility
+	 * 				  points.
+	 * 
+	 * @param username The user's username.
+	 * 
+	 * @return A list of all of the dates.
+	 * 
+	 * @throws ServiceException Thrown if there is an error.
+	 */
+	public Set<Date> getDates(
+			final Date startDate,
+			final Date endDate,
+			final String username)
 			throws DataAccessException;
 
 	/**
