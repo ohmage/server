@@ -23,6 +23,7 @@ import org.ohmage.request.InputKeys;
 import org.ohmage.request.UserRequest;
 import org.ohmage.service.ImageServices;
 import org.ohmage.service.UserImageServices;
+import org.ohmage.service.UserServices;
 import org.ohmage.util.CookieUtils;
 import org.ohmage.validator.ImageValidators;
 import org.ohmage.validator.ImageValidators.ImageSize;
@@ -132,8 +133,14 @@ public class ImageReadRequest extends UserRequest {
 			LOGGER.info("Verifying that the image exists.");
 			ImageServices.instance().verifyImageExistance(imageId, true);
 			
-			LOGGER.info("Verifying that the user can read the image.");
-			UserImageServices.instance().verifyUserCanReadImage(getUser().getUsername(), imageId);
+			try {
+				LOGGER.info("Checking if the user is an admin.");
+				UserServices.instance().verifyUserIsAdmin(getUser().getUsername());
+			}
+			catch(ServiceException e) {
+				LOGGER.info("Verifying that the user can read the image.");
+				UserImageServices.instance().verifyUserCanReadImage(getUser().getUsername(), imageId);
+			}
 			
 			LOGGER.info("Retrieving the image.");
 			imageStream = ImageServices.instance().getImage(imageId, size);

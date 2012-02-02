@@ -132,9 +132,24 @@ public class UserReadRequest extends UserRequest {
 		}
 		
 		try {
+			boolean isAdmin;
+			try {
+				LOGGER.info("Checking if the user is an admin.");
+				UserServices.instance().verifyUserIsAdmin(getUser().getUsername());
+				
+				LOGGER.info("The user is an admin.");
+				isAdmin = true;
+			}
+			catch(ServiceException e) {
+				LOGGER.info("The user is not an admin.");
+				isAdmin = false;
+			}
+			
 			if(usernames != null) {
-				LOGGER.info("Verifying that the requester may read the information about the users in the list.");
-				UserServices.instance().verifyUserCanReadUsersPersonalInfo(getUser().getUsername(), usernames);
+				if(! isAdmin) {
+					LOGGER.info("Verifying that the requester may read the information about the users in the list.");
+					UserServices.instance().verifyUserCanReadUsersPersonalInfo(getUser().getUsername(), usernames);
+				}
 				
 				LOGGER.info("Gathering the information about the users.");
 				result.putAll(UserServices.instance().gatherPersonalInformation(usernames));
@@ -144,8 +159,10 @@ public class UserReadRequest extends UserRequest {
 				LOGGER.info("Verifying that all of the campaigns in the list exist.");
 				CampaignServices.instance().checkCampaignsExistence(campaignIds, true);
 				
-				LOGGER.info("Verifying that the requester may read the information about the users in the campaigns.");
-				UserCampaignServices.instance().verifyUserCanReadUsersInfoInCampaigns(getUser().getUsername(), campaignIds);
+				if(! isAdmin) {
+					LOGGER.info("Verifying that the requester may read the information about the users in the campaigns.");
+					UserCampaignServices.instance().verifyUserCanReadUsersInfoInCampaigns(getUser().getUsername(), campaignIds);
+				}
 				
 				LOGGER.info("Gathering the information about the users in the campaigns.");
 				result.putAll(UserCampaignServices.instance().getPersonalInfoForUsersInCampaigns(campaignIds));
@@ -155,8 +172,10 @@ public class UserReadRequest extends UserRequest {
 				LOGGER.info("Verifying that all of the classes in the list exist.");
 				ClassServices.instance().checkClassesExistence(classIds, true);
 				
-				LOGGER.info("Verifying that the requester is privileged in all of the classes.");
-				UserClassServices.instance().userHasRoleInClasses(getUser().getUsername(), classIds, Clazz.Role.PRIVILEGED);
+				if(! isAdmin) {
+					LOGGER.info("Verifying that the requester is privileged in all of the classes.");
+					UserClassServices.instance().userHasRoleInClasses(getUser().getUsername(), classIds, Clazz.Role.PRIVILEGED);
+				}
 				
 				LOGGER.info("Gathering the information about the users in the classes.");
 				result.putAll(UserClassServices.instance().getPersonalInfoForUsersInClasses(classIds));

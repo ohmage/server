@@ -29,8 +29,10 @@ import org.ohmage.exception.ValidationException;
 import org.ohmage.request.InputKeys;
 import org.ohmage.request.UserRequest;
 import org.ohmage.service.CampaignServices;
+import org.ohmage.service.ClassServices;
 import org.ohmage.service.UserCampaignServices;
 import org.ohmage.service.UserClassServices;
+import org.ohmage.service.UserServices;
 import org.ohmage.util.CookieUtils;
 import org.ohmage.validator.CampaignValidators;
 import org.ohmage.validator.ClassValidators;
@@ -299,30 +301,71 @@ public class CampaignReadRequest extends UserRequest {
 		}
 		
 		try {
+			boolean isAdmin;
+			try {
+				LOGGER.info("Checking if the user is an admin.");
+				UserServices.instance().verifyUserIsAdmin(getUser().getUsername());
+				
+				LOGGER.info("The user is an admin.");
+				isAdmin = true;
+			}
+			catch(ServiceException e) {
+				LOGGER.info("The user is not an admin.");
+				isAdmin = false;
+			}
+			
 			if(campaignIds != null) {
-				LOGGER.info("Verifying that all of the campaigns exist and that the user belongs to them in some capacity.");
-				UserCampaignServices.instance().campaignsExistAndUserBelongs(campaignIds, getUser().getUsername());
+				if(isAdmin) {
+					LOGGER.info("Verifying that the campaigns exist.");
+					CampaignServices.instance().checkCampaignsExistence(campaignIds, true);
+				}
+				else {
+					LOGGER.info("Verifying that the campaigns exist and that the user belongs to each campaign in some capacity.");
+					UserCampaignServices.instance().campaignsExistAndUserBelongs(campaignIds, getUser().getUsername());
+				}
 			}
 			
 			if(OutputFormat.SHORT.equals(outputFormat) || OutputFormat.LONG.equals(outputFormat)) {
 				if(classIds != null) {
-					LOGGER.info("Verifying that all of the classes exist and that the user belongs to them in some capacity.");
-					UserClassServices.instance().classesExistAndUserBelongs(classIds, getUser().getUsername());
+					if(isAdmin) {
+						LOGGER.info("Verifying that the classes exist.");
+						ClassServices.instance().checkClassesExistence(classIds, true);
+					}
+					else {
+						LOGGER.info("Verifying that all of the classes exist and that the user belongs to them in some capacity.");
+						UserClassServices.instance().classesExistAndUserBelongs(classIds, getUser().getUsername());
+					}
 				}
 				
 				LOGGER.info("Generating the list of campaign IDs based on the parameters.");
-				Set<String> resultCampaignIds = UserCampaignServices.instance().getCampaignsForUser(getUser().getUsername(), 
-						campaignIds, classIds, startDate, endDate, privacyState, runningState, role);
+				Set<String> resultCampaignIds = 
+						UserCampaignServices.instance().getCampaignsForUser(
+								getUser().getUsername(), 
+								campaignIds, 
+								classIds, 
+								startDate, 
+								endDate, 
+								privacyState, 
+								runningState, 
+								role);
 				
 				LOGGER.info("Gathering the information about the campaigns.");
-				shortOrLongResult = UserCampaignServices.instance().getCampaignAndUserRolesForCampaigns(getUser().getUsername(), resultCampaignIds, OutputFormat.LONG.equals(outputFormat));
+				shortOrLongResult = 
+						UserCampaignServices.instance().getCampaignAndUserRolesForCampaigns(
+								getUser().getUsername(),
+								resultCampaignIds,
+								OutputFormat.LONG.equals(outputFormat));
 			}
 			else if(OutputFormat.XML.equals(outputFormat)) {
 				LOGGER.info("Gathering the XML for the campaign.");
-				xmlResult = CampaignServices.instance().getCampaignXml(campaignIds.get(0));
+				xmlResult = 
+						CampaignServices
+							.instance().getCampaignXml(campaignIds.get(0));
 				
 				LOGGER.info("Gathering the name of the campaign.");
-				campaignNameResult = CampaignServices.instance().getCampaignName(campaignIds.get(0));
+				campaignNameResult = 
+						CampaignServices
+							.instance().getCampaignName(campaignIds.get(0));
 			}
 		}
 		catch(ServiceException e) {

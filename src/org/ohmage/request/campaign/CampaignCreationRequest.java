@@ -15,6 +15,7 @@ import org.ohmage.request.InputKeys;
 import org.ohmage.request.UserRequest;
 import org.ohmage.service.CampaignServices;
 import org.ohmage.service.CampaignServices.CampaignMetadata;
+import org.ohmage.service.ClassServices;
 import org.ohmage.service.UserClassServices;
 import org.ohmage.service.UserServices;
 import org.ohmage.validator.CampaignValidators;
@@ -166,21 +167,48 @@ public class CampaignCreationRequest extends UserRequest {
 		}
 		
 		try {
-			// Get the campaign's URN and name from the XML.
+			boolean isAdmin;
+			try {
+				LOGGER.info("Checking if the user is an admin.");
+				UserServices.instance().verifyUserIsAdmin(getUser().getUsername());
+				
+				LOGGER.info("The user is an admin.");
+				isAdmin = true;
+			}
+			catch(ServiceException e) {
+				LOGGER.info("The user is not an admin.");
+				isAdmin = false;
+
+				LOGGER.info("Verifying that the user is allowed to create campaigns.");
+				UserServices.instance().verifyUserCanCreateCampaigns(getUser().getUsername());
+			}
+			
+			LOGGER.info("Verifying that the classes exist.");
+			ClassServices.instance().checkClassesExistence(classIds, true);
+			
+			if(! isAdmin) {
+				LOGGER.info("Verifying that the user is enrolled in call of the classes.");
+				UserClassServices.instance().userBelongsToClasses(getUser().getUsername(), classIds);
+			}
+			
+			LOGGER.info("Gathering the information from the XML.");
 			CampaignMetadata campaignInfo = CampaignServices.instance().getCampaignMetadataFromXml(xml);
 			
 			LOGGER.info("Verifying that the campaign doesn't already exist.");
 			CampaignServices.instance().checkCampaignExistence(campaignInfo.getCampaignId(), false);
 			
-			LOGGER.info("Verifying that the user is allowed to create campaigns.");
-			UserServices.instance().verifyUserCanCreateCampaigns(getUser().getUsername());
-			
-			LOGGER.info("Verifying that all of the classes and that the user is enrolled in call of the classes.");
-			UserClassServices.instance().classesExistAndUserBelongs(classIds, getUser().getUsername());
-			
 			LOGGER.info("Creating the campaign.");
-			CampaignServices.instance().createCampaign(campaignInfo.getCampaignId(), campaignInfo.getCampaignName(), 
-					xml, description, campaignInfo.getIconUrl(), campaignInfo.getAuthoredBy(), runningState, privacyState, classIds, getUser().getUsername());
+			CampaignServices.instance().createCampaign(
+					campaignInfo.getCampaignId(), 
+					campaignInfo.getCampaignName(), 
+					xml, 
+					description, 
+					campaignInfo.getIconUrl(), 
+					campaignInfo.getAuthoredBy(), 
+					runningState, 
+					privacyState, 
+					classIds, 
+					getUser().getUsername());
 		}
 		catch(ServiceException e) {
 			e.failRequest(this);

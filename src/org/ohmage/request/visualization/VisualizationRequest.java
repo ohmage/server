@@ -20,7 +20,7 @@ import org.ohmage.exception.ServiceException;
 import org.ohmage.exception.ValidationException;
 import org.ohmage.request.InputKeys;
 import org.ohmage.request.UserRequest;
-import org.ohmage.service.UserCampaignServices;
+import org.ohmage.service.CampaignServices;
 import org.ohmage.service.VisualizationServices;
 import org.ohmage.util.CookieUtils;
 import org.ohmage.util.TimeUtils;
@@ -142,8 +142,8 @@ public abstract class VisualizationRequest extends UserRequest {
 		LOGGER.info("Servicing a visualization request.");
 		
 		try {
-			LOGGER.info("Verifying that the campaign exists and that the requesting user belongs to the campaign.");
-			UserCampaignServices.instance().campaignExistsAndUserBelongs(campaignId, getUser().getUsername());
+			LOGGER.info("Verifying that the campaign exists.");
+			CampaignServices.instance().checkCampaignExistence(campaignId, true);
 		}
 		catch(ServiceException e) {
 			e.failRequest(this);

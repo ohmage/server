@@ -20,6 +20,7 @@ import org.ohmage.request.InputKeys;
 import org.ohmage.request.UserRequest;
 import org.ohmage.service.DocumentServices;
 import org.ohmage.service.UserDocumentServices;
+import org.ohmage.service.UserServices;
 import org.ohmage.util.CookieUtils;
 import org.ohmage.validator.DocumentValidators;
 
@@ -105,8 +106,15 @@ public class DocumentReadContentsRequest extends UserRequest {
 			LOGGER.info("Verifying that the document exists.");
 			DocumentServices.instance().ensureDocumentExistence(documentId);
 			
-			LOGGER.info("Verifying that the requesting user can read the contents of this document.");
-			UserDocumentServices.instance().userCanReadDocument(getUser().getUsername(), documentId);
+			try {
+				LOGGER.info("Checking if the user is an admin.");
+				UserServices.instance().verifyUserIsAdmin(getUser().getUsername());
+			}
+			catch(ServiceException e) {
+				LOGGER.info("The user is not an admin.");
+				LOGGER.info("Verifying that the requesting user can read the contents of this document.");
+				UserDocumentServices.instance().userCanReadDocument(getUser().getUsername(), documentId);
+			}
 			
 			LOGGER.info("Retrieving the document's name.");
 			documentName = DocumentServices.instance().getDocumentName(documentId);

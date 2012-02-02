@@ -18,11 +18,14 @@ import org.ohmage.exception.ServiceException;
 import org.ohmage.exception.ValidationException;
 import org.ohmage.request.InputKeys;
 import org.ohmage.request.UserRequest;
+import org.ohmage.service.CampaignServices;
+import org.ohmage.service.ClassServices;
 import org.ohmage.service.UserCampaignDocumentServices;
 import org.ohmage.service.UserCampaignServices;
 import org.ohmage.service.UserClassDocumentServices;
 import org.ohmage.service.UserClassServices;
 import org.ohmage.service.UserDocumentServices;
+import org.ohmage.service.UserServices;
 import org.ohmage.validator.CampaignValidators;
 import org.ohmage.validator.ClassValidators;
 import org.ohmage.validator.DocumentValidators;
@@ -140,14 +143,39 @@ public class DocumentReadRequest extends UserRequest {
 		}
 		
 		try {
+			boolean isAdmin;
+			try {
+				LOGGER.info("Checking if the user is an admin.");
+				UserServices.instance().verifyUserIsAdmin(getUser().getUsername());
+				
+				LOGGER.info("The user is an admin.");
+				isAdmin = true;
+			}
+			catch(ServiceException e) {
+				LOGGER.info("The user is not an admin.");
+				isAdmin = false;
+			}
+			
 			if(campaignIds != null) {
-				LOGGER.info("Verifying that the campaigns in the campaign list exist and that the user belongs.");
-				UserCampaignServices.instance().campaignsExistAndUserBelongs(campaignIds, getUser().getUsername());
+				if(isAdmin) {
+					LOGGER.info("Verifying that the campaigns exist.");
+					CampaignServices.instance().checkCampaignsExistence(campaignIds, true);
+				}
+				else {
+					LOGGER.info("Verifying that the campaigns in the campaign list exist and that the user belongs.");
+					UserCampaignServices.instance().campaignsExistAndUserBelongs(campaignIds, getUser().getUsername());
+				}
 			}
 			
 			if(classIds != null) {
-				LOGGER.info("Verifying that the classes in the class list exist and that the user belongs.");
-				UserClassServices.instance().classesExistAndUserBelongs(classIds, getUser().getUsername());
+				if(isAdmin) {
+					LOGGER.info("Verifying that the classes exist.");
+					ClassServices.instance().checkClassesExistence(classIds, true);
+				}
+				else {
+					LOGGER.info("Verifying that the classes in the class list exist and that the user belongs.");
+					UserClassServices.instance().classesExistAndUserBelongs(classIds, getUser().getUsername());
+				}
 			}
 			
 			Set<String> documentIds = new HashSet<String>();

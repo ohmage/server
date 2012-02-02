@@ -19,6 +19,7 @@ import org.ohmage.service.ClassServices;
 import org.ohmage.service.DocumentServices;
 import org.ohmage.service.UserCampaignDocumentServices;
 import org.ohmage.service.UserClassDocumentServices;
+import org.ohmage.service.UserServices;
 import org.ohmage.validator.CampaignDocumentValidators;
 import org.ohmage.validator.ClassDocumentValidators;
 import org.ohmage.validator.DocumentValidators;
@@ -199,28 +200,64 @@ public class DocumentCreationRequest extends UserRequest {
 		}
 		
 		try {
+			boolean isAdmin;
+			try {
+				LOGGER.info("Checking if the user is an admin.");
+				UserServices.instance().verifyUserIsAdmin(getUser().getUsername());
+				
+				LOGGER.info("The user is an admin.");
+				isAdmin = true;
+			}
+			catch(ServiceException e) {
+				LOGGER.info("The user is not an admin.");
+				isAdmin = false;
+			}
+			
 			if(campaignRoleMap != null) {
-				List<String> campaignIds = new ArrayList<String>(campaignRoleMap.keySet());
+				List<String> campaignIds = 
+						new ArrayList<String>(campaignRoleMap.keySet());
 				
 				LOGGER.info("Verifying that the campaigns in the campaign-role list exist.");
-				CampaignServices.instance().checkCampaignsExistence(campaignIds, true);
+				CampaignServices.instance().checkCampaignsExistence(
+						campaignIds, 
+						true);
 				
-				LOGGER.info("Verifying that the user can associate documents with the campaigns in the campaign-role list.");
-				UserCampaignDocumentServices.instance().userCanAssociateDocumentsWithCampaigns(getUser().getUsername(), campaignIds);
+				if(! isAdmin) {
+					LOGGER.info("Verifying that the user can associate documents with the campaigns in the campaign-role list.");
+					UserCampaignDocumentServices
+						.instance()
+							.userCanAssociateDocumentsWithCampaigns(
+									getUser().getUsername(), 
+									campaignIds);
+				}
 			}
 			
 			if(classRoleMap != null) {
-				List<String> classIds = new ArrayList<String>(classRoleMap.keySet());
+				List<String> classIds = 
+						new ArrayList<String>(classRoleMap.keySet());
 				
 				LOGGER.info("Verifying that the classes in the class-role list exist.");
 				ClassServices.instance().checkClassesExistence(classIds, true);
 				
-				LOGGER.info("Verifying that the user can associate documents with the classes in the class-role list.");
-				UserClassDocumentServices.instance().userCanAssociateDocumentsWithClasses(getUser().getUsername(), classIds);
+				if(! isAdmin) {
+					LOGGER.info("Verifying that the user can associate documents with the classes in the class-role list.");
+					UserClassDocumentServices
+						.instance()
+							.userCanAssociateDocumentsWithClasses(
+									getUser().getUsername(), 
+									classIds);
+				}
 			}
 			
 			LOGGER.info("Creating the document.");
-			documentId = DocumentServices.instance().createDocument(document, name, description, privacyState, campaignRoleMap, classRoleMap, getUser().getUsername());
+			documentId = DocumentServices.instance().createDocument(
+					document, 
+					name, 
+					description, 
+					privacyState, 
+					campaignRoleMap, 
+					classRoleMap, 
+					getUser().getUsername());
 		}
 		catch(ServiceException e) {
 			e.failRequest(this);

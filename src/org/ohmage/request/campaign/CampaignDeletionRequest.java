@@ -11,6 +11,7 @@ import org.ohmage.request.InputKeys;
 import org.ohmage.request.UserRequest;
 import org.ohmage.service.CampaignServices;
 import org.ohmage.service.UserCampaignServices;
+import org.ohmage.service.UserServices;
 import org.ohmage.validator.CampaignValidators;
 
 /**
@@ -81,8 +82,14 @@ public class CampaignDeletionRequest extends UserRequest {
 			LOGGER.info("Verifying that the campaign exists.");
 			CampaignServices.instance().checkCampaignExistence(campaignId, true);
 			
-			LOGGER.info("Verifying that the requesting user is allowed to delete the campaign.");
-			UserCampaignServices.instance().userCanDeleteCampaign(getUser().getUsername(), campaignId);
+			try {
+				LOGGER.info("Checking if the user is an admin.");
+				UserServices.instance().verifyUserIsAdmin(getUser().getUsername());
+			}
+			catch(ServiceException e) {
+				LOGGER.info("Verifying that the requesting user is allowed to delete the campaign.");
+				UserCampaignServices.instance().userCanDeleteCampaign(getUser().getUsername(), campaignId);
+			}
 			
 			LOGGER.info("Deleting the campaign.");
 			CampaignServices.instance().deleteCampaign(campaignId);

@@ -18,7 +18,7 @@ public interface IUserClassQueries {
 	 * 
 	 * @return Whether or not the user belongs to the class.
 	 */
-	Boolean userBelongsToClass(String classId, String username)
+	boolean userBelongsToClass(String classId, String username)
 			throws DataAccessException;
 
 	/**

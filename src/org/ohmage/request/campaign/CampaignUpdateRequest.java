@@ -16,6 +16,7 @@ import org.ohmage.request.InputKeys;
 import org.ohmage.request.UserRequest;
 import org.ohmage.service.CampaignClassServices;
 import org.ohmage.service.CampaignServices;
+import org.ohmage.service.ClassServices;
 import org.ohmage.service.UserCampaignServices;
 import org.ohmage.service.UserClassServices;
 import org.ohmage.service.UserServices;
@@ -212,11 +213,32 @@ public class CampaignUpdateRequest extends UserRequest {
 		}
 		
 		try {
-			LOGGER.info("Verfiying that the campaign exists and that the user belongs.");
-			UserCampaignServices.instance().campaignExistsAndUserBelongs(campaignId, getUser().getUsername());
+			boolean isAdmin;
+			try {
+				LOGGER.info("Checking if the user is an admin.");
+				UserServices.instance().verifyUserIsAdmin(getUser().getUsername());
+				
+				LOGGER.info("The user is an admin.");
+				isAdmin = true;
+			}
+			catch(ServiceException e) {
+				LOGGER.info("The user is not an admin.");
+				isAdmin = false;
+			}
 			
-			LOGGER.info("Verifying that the user is allowed to update the campaign.");
-			UserCampaignServices.instance().verifyUserCanUpdateCampaign(getUser().getUsername(), campaignId);
+			if(isAdmin) {
+				LOGGER.info("Verifying that the campaign exists.");
+				CampaignServices.instance().checkCampaignExistence(campaignId, true);
+			}
+			else {
+				LOGGER.info("Verfiying that the campaign exists and that the user belongs.");
+				UserCampaignServices.instance().campaignExistsAndUserBelongs(campaignId, getUser().getUsername());
+			}
+			
+			if(! isAdmin) {
+				LOGGER.info("Verifying that the user is allowed to update the campaign.");
+				UserCampaignServices.instance().verifyUserCanUpdateCampaign(getUser().getUsername(), campaignId);
+			}
 			
 			if(xml != null) {
 				LOGGER.info("Verifying that the user is allowed to update the campaign.");
@@ -236,13 +258,25 @@ public class CampaignUpdateRequest extends UserRequest {
 			}
 			
 			if(classesToAdd != null) {
-				LOGGER.info("Verifying that all of the classes to add exist and that the user belongs.");
-				UserClassServices.instance().classesExistAndUserBelongs(classesToAdd, getUser().getUsername());
+				if(isAdmin) {
+					LOGGER.info("Verifying that all of the classes to add exist.");
+					ClassServices.instance().checkClassesExistence(classesToAdd, true);
+				}
+				else {
+					LOGGER.info("Verifying that all of the classes to add exist and that the user belongs.");
+					UserClassServices.instance().classesExistAndUserBelongs(classesToAdd, getUser().getUsername());
+				}
 			}
 			
 			if(classesToRemove != null) {
-				LOGGER.info("Verifying that all of the classes to remove exist and that the user belongs.");
-				UserClassServices.instance().classesExistAndUserBelongs(classesToRemove, getUser().getUsername());
+				if(isAdmin) {
+					LOGGER.info("Verifying that all of the classes to remove exist.");
+					ClassServices.instance().checkClassesExistence(classesToRemove, true);
+				}
+				else {
+					LOGGER.info("Verifying that all of the classes to remove exist and that the user belongs.");
+					UserClassServices.instance().classesExistAndUserBelongs(classesToRemove, getUser().getUsername());
+				}
 				
 				LOGGER.info("Verifying that not all of the classes are being disassociated from the campaign.");
 				CampaignClassServices.instance().verifyNotDisassocitingAllClassesFromCampaign(campaignId, classesToRemove, classesToAdd);
@@ -252,15 +286,17 @@ public class CampaignUpdateRequest extends UserRequest {
 				LOGGER.info("Verifying that all of the users to add exist.");
 				UserServices.instance().verifyUsersExist(usersAndRolesToAdd.keySet(), true);
 				
-				LOGGER.info("Verifying that the user is allowed to give the permissions they are trying to give.");
-				Set<Campaign.Role> roles = new HashSet<Campaign.Role>();
-				for(Set<Campaign.Role> currRoles : usersAndRolesToAdd.values()) {
-					roles.addAll(currRoles);
+				if(! isAdmin) {
+					LOGGER.info("Verifying that the user is allowed to give the permissions they are trying to give.");
+					Set<Campaign.Role> roles = new HashSet<Campaign.Role>();
+					for(Set<Campaign.Role> currRoles : usersAndRolesToAdd.values()) {
+						roles.addAll(currRoles);
+					}
+					UserCampaignServices.instance().verifyUserCanGrantOrRevokeRoles(getUser().getUsername(), campaignId, roles);
 				}
-				UserCampaignServices.instance().verifyUserCanGrantOrRevokeRoles(getUser().getUsername(), campaignId, roles);
 			}
 			
-			if(usersAndRolesToRemove != null) {
+			if((usersAndRolesToRemove != null) && (! isAdmin)) {
 				LOGGER.info("Verifying that the user is allowed to revoke permissions that they are trying to revoke access.");
 				Set<Campaign.Role> roles = new HashSet<Campaign.Role>();
 				for(Set<Campaign.Role> currRoles : usersAndRolesToRemove.values()) {
@@ -270,7 +306,16 @@ public class CampaignUpdateRequest extends UserRequest {
 			}
 			
 			LOGGER.info("Updating the campaign.");
-			CampaignServices.instance().updateCampaign(campaignId, xml, description, runningState, privacyState, classesToAdd, classesToRemove, usersAndRolesToAdd, usersAndRolesToRemove);
+			CampaignServices.instance().updateCampaign(
+					campaignId, 
+					xml, 
+					description, 
+					runningState, 
+					privacyState, 
+					classesToAdd, 
+					classesToRemove, 
+					usersAndRolesToAdd, 
+					usersAndRolesToRemove);
 		}
 		catch(ServiceException e) {
 			e.failRequest(this);

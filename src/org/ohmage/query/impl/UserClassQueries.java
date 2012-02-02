@@ -109,7 +109,7 @@ public final class UserClassQueries extends Query implements IUserClassQueries {
 	 * 
 	 * @return Whether or not the user belongs to the class.
 	 */
-	public Boolean userBelongsToClass(String classId, String username) throws DataAccessException {
+	public boolean userBelongsToClass(String classId, String username) throws DataAccessException {
 		try {
 			return (Boolean) getJdbcTemplate().queryForObject(SQL_EXISTS_USER_CLASS, new Object[] { username, classId }, Boolean.class);
 		}

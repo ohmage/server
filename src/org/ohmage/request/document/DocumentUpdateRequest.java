@@ -279,72 +279,106 @@ public class DocumentUpdateRequest extends UserRequest {
 			LOGGER.info("Verifying that the document exists.");
 			DocumentServices.instance().ensureDocumentExistence(documentId);
 			
-			LOGGER.info("Verifying that the user can modify the document.");
-			UserDocumentServices.instance().userCanModifyDocument(getUser().getUsername(), documentId);
-			
-			LOGGER.info("Getting the user's highest role for the document.");
-			Document.Role highestRole = UserDocumentServices.instance().getHighestDocumentRoleForUserForDocument(getUser().getUsername(), documentId);
+			boolean isAdmin;
+			Document.Role highestRole = null;
+			try {
+				LOGGER.info("Checking if the user is an admin.");
+				UserServices.instance().verifyUserIsAdmin(getUser().getUsername());
+				
+				LOGGER.info("The user is an admin.");
+				isAdmin = true;
+			}
+			catch(ServiceException e) {
+				LOGGER.info("The user is not an admin.");
+				isAdmin = false;
+
+				LOGGER.info("Verifying that the user can modify the document.");
+				UserDocumentServices.instance().userCanModifyDocument(getUser().getUsername(), documentId);
+				
+				LOGGER.info("Getting the user's highest role for the document.");
+				highestRole = UserDocumentServices.instance().getHighestDocumentRoleForUserForDocument(getUser().getUsername(), documentId);
+			}
 			
 			if(campaignAndRolesToAdd != null) {
 				LOGGER.info("Verifying that the campaigns in the campaign-role list exist.");
 				CampaignServices.instance().checkCampaignsExistence(campaignAndRolesToAdd.keySet(), true);
 				
-				LOGGER.info("Verifying that the user can associate the document with the campaigns in the campaign-role list.");
-				UserCampaignDocumentServices.instance().userCanAssociateDocumentsWithCampaigns(getUser().getUsername(), campaignAndRolesToAdd.keySet());
+				if(! isAdmin) {
+					LOGGER.info("Verifying that the user can associate the document with the campaigns in the campaign-role list.");
+					UserCampaignDocumentServices.instance().userCanAssociateDocumentsWithCampaigns(getUser().getUsername(), campaignAndRolesToAdd.keySet());
 				
-				LOGGER.info("Verifying that the user is not attempting to give more permissions to a campaign than they have.");
-				DocumentServices.instance().ensureRoleNotLessThanRoles(highestRole, campaignAndRolesToAdd.values());
+					LOGGER.info("Verifying that the user is not attempting to give more permissions to a campaign than they have.");
+					DocumentServices.instance().ensureRoleNotLessThanRoles(highestRole, campaignAndRolesToAdd.values());
+				}
 			}
 			
 			if(campaignsToRemove != null) {
 				LOGGER.info("Verifying that the campaigns in the campaign list exist.");
 				CampaignServices.instance().checkCampaignsExistence(campaignsToRemove, true);
 				
-				LOGGER.info("Verifying that the user has enough permissions in the campaigns to disassociate them from the document.");
-				UserCampaignDocumentServices.instance().userCanDisassociateDocumentsFromCampaigns(getUser().getUsername(), campaignsToRemove);
+				if(! isAdmin) {
+					LOGGER.info("Verifying that the user has enough permissions in the campaigns to disassociate them from the document.");
+					UserCampaignDocumentServices.instance().userCanDisassociateDocumentsFromCampaigns(getUser().getUsername(), campaignsToRemove);
 				
-				LOGGER.info("Verifying that the user is not attempting to revoke more permissions from campaigns than they have.");
-				CampaignDocumentServices.instance().ensureRoleHighEnoughToDisassociateDocumentFromCampaigns(highestRole, campaignsToRemove, documentId);
+					LOGGER.info("Verifying that the user is not attempting to revoke more permissions from campaigns than they have.");
+					CampaignDocumentServices.instance().ensureRoleHighEnoughToDisassociateDocumentFromCampaigns(highestRole, campaignsToRemove, documentId);
+				}
 			}
 			
 			if(classAndRolesToAdd != null) {
 				LOGGER.info("Verifying that the classes in the class-role list exist.");
 				ClassServices.instance().checkClassesExistence(classAndRolesToAdd.keySet(), true);
 				
-				LOGGER.info("Verifying that the user can associate the document with the classes in the class-role list.");
-				UserClassDocumentServices.instance().userCanAssociateDocumentsWithClasses(getUser().getUsername(), classAndRolesToAdd.keySet());
-				
-				LOGGER.info("Verifying that the user is not attempting to give more permissions to a class than they have.");
-				DocumentServices.instance().ensureRoleNotLessThanRoles(highestRole, classAndRolesToAdd.values());
+				if(! isAdmin) {
+					LOGGER.info("Verifying that the user can associate the document with the classes in the class-role list.");
+					UserClassDocumentServices.instance().userCanAssociateDocumentsWithClasses(getUser().getUsername(), classAndRolesToAdd.keySet());
+					
+					LOGGER.info("Verifying that the user is not attempting to give more permissions to a class than they have.");
+					DocumentServices.instance().ensureRoleNotLessThanRoles(highestRole, classAndRolesToAdd.values());
+				}
 			}
 			
 			if(classesToRemove != null) {
 				LOGGER.info("Verifying that the classes in the class list exist.");
 				ClassServices.instance().checkClassesExistence(classesToRemove, true);
 				
-				LOGGER.info("Verifying that the user has enough permissions in the classes to disassociate them from the document.");
-				UserClassDocumentServices.instance().userCanDisassociateDocumentsWithClasses(getUser().getUsername(), classesToRemove);
+				if(! isAdmin) {
+					LOGGER.info("Verifying that the user has enough permissions in the classes to disassociate them from the document.");
+					UserClassDocumentServices.instance().userCanDisassociateDocumentsWithClasses(getUser().getUsername(), classesToRemove);
 				
-				LOGGER.info("Verifying that the user is not attempting to revoke more permissions from classes than they have.");
-				ClassDocumentServices.instance().ensureRoleHighEnoughToDisassociateDocumentFromClasses(highestRole, classesToRemove, documentId);
+					LOGGER.info("Verifying that the user is not attempting to revoke more permissions from classes than they have.");
+					ClassDocumentServices.instance().ensureRoleHighEnoughToDisassociateDocumentFromClasses(highestRole, classesToRemove, documentId);
+				}
 			}
 			
 			if(userAndRolesToAdd != null) {
 				LOGGER.info("Verifying that the users in the user-role list exist.");
 				UserServices.instance().verifyUsersExist(userAndRolesToAdd.keySet(), true);
 				
-				LOGGER.info("Verifying that the user is not attempting to give more permissions to a user than they have.");
-				DocumentServices.instance().ensureRoleNotLessThanRoles(highestRole, userAndRolesToAdd.values());
+				if(! isAdmin) {
+					LOGGER.info("Verifying that the user is not attempting to give more permissions to a user than they have.");
+					DocumentServices.instance().ensureRoleNotLessThanRoles(highestRole, userAndRolesToAdd.values());
+				}
 			}
 			
-			if(usersToRemove != null) {
+			if((usersToRemove != null) && (! isAdmin)) {
 				LOGGER.info("Verifying that the user is not attempting to revoke more permissions from users than they have.");
 				UserDocumentServices.instance().ensureRoleHighEnoughToDisassociateDocumentFromOtherUsers(highestRole, usersToRemove, documentId);
 			}
 			
 			LOGGER.info("Updating the document.");
-			DocumentServices.instance().updateDocument(documentId, newContents, newName, newDescription, newPrivacyState, 
-					campaignAndRolesToAdd, campaignsToRemove, classAndRolesToAdd, classesToRemove, userAndRolesToAdd, usersToRemove);
+			DocumentServices.instance().updateDocument(
+					documentId, 
+					newContents, 
+					newName, 
+					newDescription, 
+					newPrivacyState, 
+					campaignAndRolesToAdd, 
+					campaignsToRemove, 
+					classAndRolesToAdd, 
+					classesToRemove, 
+					userAndRolesToAdd, 
+					usersToRemove);
 		}
 		catch(ServiceException e) {
 			e.failRequest(this);

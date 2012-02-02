@@ -12,6 +12,7 @@ import org.ohmage.exception.ValidationException;
 import org.ohmage.request.InputKeys;
 import org.ohmage.request.UserRequest;
 import org.ohmage.service.SurveyResponseServices;
+import org.ohmage.service.UserServices;
 import org.ohmage.service.UserSurveyResponseServices;
 import org.ohmage.validator.SurveyResponseValidators;
 
@@ -104,8 +105,14 @@ public class SurveyResponseDeleteRequest extends UserRequest {
 		}
 		
 		try {
-			LOGGER.info("Verifying that the user is allowed to delete the survey response.");
-			UserSurveyResponseServices.instance().verifyUserCanUpdateOrDeleteSurveyResponse(getUser().getUsername(), surveyResponseId);
+			try {
+				LOGGER.info("Checking if the user is an admin.");
+				UserServices.instance().verifyUserIsAdmin(getUser().getUsername());
+			}
+			catch(ServiceException e) {
+				LOGGER.info("Verifying that the user is allowed to delete the survey response.");
+				UserSurveyResponseServices.instance().verifyUserCanUpdateOrDeleteSurveyResponse(getUser().getUsername(), surveyResponseId);
+			}
 			
 			LOGGER.info("Deleting the survey response.");
 			SurveyResponseServices.instance().deleteSurveyResponse(surveyResponseId);

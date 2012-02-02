@@ -62,6 +62,36 @@ public final class UserClassServices {
 	}
 	
 	/**
+	 * Verifies that the user belongs to all of the classes in the list.
+	 * 
+	 * @param username The user's username.
+	 * 
+	 * @param classIds The collection of class IDs.
+	 * 
+	 * @throws ServiceException Thrown if there is an error or if the user does
+	 * 							not belong to the class.
+	 */
+	public void userBelongsToClasses(
+			final String username,
+			final Collection<String> classIds)
+			throws ServiceException {
+
+		try {
+			for(String classId : classIds) {
+				if(! userClassQueries.userBelongsToClass(classId, username)) {
+					throw new ServiceException(
+							ErrorCode.CLASS_INSUFFICIENT_PERMISSIONS,
+							"The user does not belong to the class: " + 
+								classId);
+				}
+			}
+		}
+		catch(DataAccessException e) {
+			throw new ServiceException(e);
+		}
+	}
+	
+	/**
 	 * Ensures that the class exists and that the user belongs to the class in
 	 * some capacity.
 	 * 
