@@ -2666,6 +2666,7 @@ public class Campaign {
 			return Collections.emptyMap();
 		}
 
+		Set<String> labelSet = new HashSet<String>();
 		Map<String, LabelValuePair> result = new HashMap<String, LabelValuePair>(numProperties);
 		
 		for(int i = 0; i < numProperties; i++) {
@@ -2728,6 +2729,11 @@ public class Campaign {
 			if(result.put(key, new LabelValuePair(label, value)) != null) {
 				throw new IllegalArgumentException(
 						"Multiple properties with the same key were found for the container with id: " + containerId);
+			}
+			if(! labelSet.add(label)) {
+				throw new IllegalArgumentException(
+						"Multiple properties have the same label: " + 
+								containerId);
 			}
 		}
 		
