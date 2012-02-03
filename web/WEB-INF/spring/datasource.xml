@@ -13,10 +13,10 @@
     <property name="defaultAutoCommit" value="false"/>
     
     <!-- connection pool props -->
-    <property name="initialSize" value="50"/>
+    <property name="initialSize" value="8"/>
     <!-- <property name="maxActive" value="20"/> the default is 8, which should be enough for the initial release. -->
     <!-- the following properties configure the connection pool for handling the freshness of the connections it returns -->
-    <property name="maxActive" value="150"/>
+    <property name="maxActive" value="8"/>
     <property name="validationQuery" value="SELECT 1" />
     <property name="testWhileIdle" value="true" />
     <property name="timeBetweenEvictionRunsMillis" value="3600000" />
