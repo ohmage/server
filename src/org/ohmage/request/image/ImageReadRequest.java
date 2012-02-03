@@ -8,7 +8,9 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
+import java.net.MalformedURLException;
 import java.net.URISyntaxException;
+import java.net.URL;
 import java.util.UUID;
 
 import javax.servlet.http.HttpServletRequest;
@@ -147,11 +149,18 @@ public class ImageReadRequest extends UserRequest {
 			
 			try {
 				LOGGER.info("Retrieving the image's size.");
-				imageSize = 
-						(new File(
-								ImageServices.instance().getImageUrl(
-										imageId).toURI())
-						).length();
+				URL imageUrl = ImageServices.instance().getImageUrl(imageId);
+				if(ImageSize.SMALL.equals(size)) {
+					try {
+						imageUrl = new URL(imageUrl.toString() + "-s");
+					} 
+					catch (MalformedURLException e) {
+						throw new ServiceException(
+								"The image's URL is corrupt.");
+					}
+				}
+				
+				imageSize =(new File(imageUrl.toURI())).length();
 			} 
 			catch(URISyntaxException e) {
 				throw new ServiceException(e);
