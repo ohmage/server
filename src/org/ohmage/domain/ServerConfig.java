@@ -43,6 +43,10 @@ public class ServerConfig {
 	 * campaign creation privilege.
 	 */
 	public static final String JSON_KEY_DEFAULT_CAMPAIGN_CREATION_PRIVILEGE = "default_campaign_creation_privilege";
+	/**
+	 * Whether or not Mobility is enabled on this server.
+	 */
+	public static final String JSON_KEY_MOBILITY_ENABLED = "mobility_enabled";
 	
 	private final String appName;
 	private final String appVersion;
@@ -50,6 +54,7 @@ public class ServerConfig {
 	private final boolean defaultCampaignCreationPrivilege;
 	private final SurveyResponse.PrivacyState defaultSurveyResponsePrivacyState;
 	private final List<SurveyResponse.PrivacyState> surveyResponsePrivacyStates;
+	private final boolean mobilityEnabled;
 	
 	/**
 	 * Creates a new server configuration.
@@ -70,11 +75,14 @@ public class ServerConfig {
 	 * @throws IllegalArgumentException Thrown if any of the values are invalid
 	 * 									or null.
 	 */
-	public ServerConfig(final String appName, final String appVersion,
+	public ServerConfig(
+			final String appName, 
+			final String appVersion,
 			final String appBuild, 
 			final SurveyResponse.PrivacyState defaultSurveyResponsePrivacyState,
 			final List<SurveyResponse.PrivacyState> surveyResponsePrivacyStates,
-			final boolean defaultCampaignCreationPrivilege) {
+			final boolean defaultCampaignCreationPrivilege,
+			final boolean mobilityEnabled) {
 		
 		if(StringUtils.isEmptyOrWhitespaceOnly(appName)) {
 			throw new IllegalArgumentException("The application name is null or whitespace only.");
@@ -100,6 +108,8 @@ public class ServerConfig {
 		
 		this.surveyResponsePrivacyStates = 
 			new ArrayList<SurveyResponse.PrivacyState>(surveyResponsePrivacyStates);
+		
+		this.mobilityEnabled = mobilityEnabled;
 	}
 	
 	/**
@@ -180,6 +190,14 @@ public class ServerConfig {
 		catch(JSONException e) {
 			throw new IllegalArgumentException("The application name was missing from the JSON.", e);
 		}
+		
+		try {
+			mobilityEnabled = 
+					serverConfigAsJson.getBoolean(JSON_KEY_MOBILITY_ENABLED);
+		}
+		catch(JSONException e) {
+			throw new IllegalArgumentException("Whether or not Mobility is enabled is missing.", e);
+		}
 	}
 	
 	/**
@@ -255,6 +273,7 @@ public class ServerConfig {
 			result.put(JSON_KEY_DEFAULT_CAMPAIGN_CREATION_PRIVILEGE, defaultCampaignCreationPrivilege);
 			result.put(JSON_KEY_DEFAULT_SURVEY_RESPONSE_PRIVACY_STATE, defaultSurveyResponsePrivacyState);
 			result.put(JSON_KEY_SURVEY_RESPONSE_PRIVACY_STATES, new JSONArray(surveyResponsePrivacyStates));
+			result.put(JSON_KEY_MOBILITY_ENABLED, mobilityEnabled);
 			
 			return result;
 		}
