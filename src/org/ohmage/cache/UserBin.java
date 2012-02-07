@@ -25,7 +25,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.log4j.Logger;
 import org.ohmage.domain.User;
-import org.springframework.beans.factory.DisposableBean;
+import org.ohmage.exception.DomainException;
 
 /**
  * User storage. User objects are mapped to unique ids. Avoids dependencies on JEE session management. The lifetime param set on 
@@ -153,7 +153,12 @@ public final class UserBin extends TimerTask implements DisposableBean {
 			User u = ut.user;
 			if(null != u) {
 				ut.time = System.currentTimeMillis(); // refresh the time 
-				return new User(u);
+				try {
+					return new User(u);
+				} catch (DomainException e) {
+					LOGGER.error("Error duplicating the user.", e);
+					return null;
+				}
 			}
 		}
 		return null;

@@ -7,7 +7,6 @@ import javax.sql.DataSource;
 import org.ohmage.domain.Document;
 import org.ohmage.exception.DataAccessException;
 import org.ohmage.query.IClassDocumentQueries;
-import org.springframework.jdbc.core.SingleColumnRowMapper;
 
 /**
  * This class contains the functionality for creating, reading, updating, and 

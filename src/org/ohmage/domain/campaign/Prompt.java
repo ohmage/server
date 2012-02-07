@@ -18,6 +18,7 @@ package org.ohmage.domain.campaign;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.ohmage.domain.campaign.Response.NoResponse;
+import org.ohmage.exception.DomainException;
 import org.ohmage.util.StringUtils;
 
 /**
@@ -134,12 +135,17 @@ public abstract class Prompt extends SurveyItem {
 		 * 
 		 * @param value The value.
 		 * 
-		 * @throws IllegalArgumentException Thrown if the 'label' is null or
-		 * 									whitespace only.
+		 * @throws DomainException Thrown if the 'label' is null or whitespace
+		 * 						   only.
 		 */
-		public LabelValuePair(final String label, final Number value) {
+		public LabelValuePair(
+				final String label, 
+				final Number value) 
+				throws DomainException {
+			
 			if(StringUtils.isEmptyOrWhitespaceOnly(label)) {
-				throw new IllegalArgumentException("The label is null or whitespace only.");
+				throw new DomainException(
+						"The label is null or whitespace only.");
 			}
 			
 			this.label = label;
@@ -168,20 +174,16 @@ public abstract class Prompt extends SurveyItem {
 		 * Returns a JSONObject that represents this label-value pair.
 		 * 
 		 * @return A JSONObject that represents this label-value pair.
+		 * 
+		 * @throws JSONException There was a problem creating the JSONObject.
 		 */
-		public JSONObject toJson() {
-			try {
-				JSONObject result = new JSONObject();
-				
-				result.put(JSON_KEY_LABEL, label);
-				result.put(JSON_KEY_VALUE, value);
-				
-				return result;
-			}
-			catch(JSONException e) {
-				// FIXME: Throw an exception.
-				return null;
-			}
+		public JSONObject toJson() throws JSONException {
+			JSONObject result = new JSONObject();
+			
+			result.put(JSON_KEY_LABEL, label);
+			result.put(JSON_KEY_VALUE, value);
+			
+			return result;
 		}
 
 		/**
@@ -258,25 +260,35 @@ public abstract class Prompt extends SurveyItem {
 	 * @throws IllegalArgumentException Thrown if any of the required 
 	 * 									parameters are missing or invalid. 
 	 */
-	public Prompt(final String id, final String condition, final String unit,
-			final String text, final String abbreviatedText, final String explanationText,
-			final boolean skippable, final String skipLabel,
-			final DisplayType displayType, final String displayLabel,
-			final Type type, final int index) {
+	public Prompt(
+			final String id, 
+			final String condition, 
+			final String unit,
+			final String text, 
+			final String abbreviatedText, 
+			final String explanationText,
+			final boolean skippable, 
+			final String skipLabel,
+			final DisplayType displayType, 
+			final String displayLabel,
+			final Type type, 
+			final int index) 
+			throws DomainException {
 		
 		super(id, condition, index);
 		
 		if(StringUtils.isEmptyOrWhitespaceOnly(text)) {
-			throw new IllegalArgumentException("The text cannot be null.");
+			throw new DomainException("The text cannot be null.");
 		}
 		if(skippable && StringUtils.isEmptyOrWhitespaceOnly(skipLabel)) {
-			throw new IllegalArgumentException("The prompt is skippable, but the skip label is null.");
+			throw new DomainException(
+					"The prompt is skippable, but the skip label is null.");
 		}
 		if(displayType == null) {
-			throw new IllegalArgumentException("The display type cannot be null.");
+			throw new DomainException("The display type cannot be null.");
 		}
 		if(StringUtils.isEmptyOrWhitespaceOnly(displayLabel)) {
-			throw new IllegalArgumentException("The display label cannot be null.");
+			throw new DomainException("The display label cannot be null.");
 		}
 		
 		this.unit = unit;
@@ -408,33 +420,29 @@ public abstract class Prompt extends SurveyItem {
 	 * 
 	 * @return A JSONObject representing this prompt or null if there is an
 	 * 		   error.
+	 * 
+	 * @throws JSONException There was a problem creating the JSONObject.
 	 */
 	@Override
-	public JSONObject toJson() {
-		try {
-			JSONObject result = super.toJson();
-			
-			if(result == null) {
-				// FIXME: Ignore the exception and let it propagate.
-				return null;
-			}
-			
-			result.put(JSON_KEY_UNIT, unit);
-			result.put(JSON_KEY_TEXT, text);
-			result.put(JSON_KEY_ABBREVIATED_TEXT, abbreviatedText);
-			result.put(JSON_KEY_EXPLANATION_TEXT, explanationText);
-			result.put(JSON_KEY_SKIPPABLE, skippable);
-			result.put(JSON_KEY_SKIP_LABEL, skipLabel);
-			result.put(JSON_KEY_PROMPT_TYPE, type.toString());
-			result.put(JSON_KEY_DISPLAY_TYPE, displayType.toString());
-			result.put(JSON_KEY_DISPLAY_LABEL, displayLabel);
-			
-			return result;
-		}
-		catch(JSONException e) {
-			// FIXME: Throw an exception.
+	public JSONObject toJson() throws JSONException {
+		JSONObject result = super.toJson();
+		
+		if(result == null) {
+			// FIXME: Ignore the exception and let it propagate.
 			return null;
 		}
+		
+		result.put(JSON_KEY_UNIT, unit);
+		result.put(JSON_KEY_TEXT, text);
+		result.put(JSON_KEY_ABBREVIATED_TEXT, abbreviatedText);
+		result.put(JSON_KEY_EXPLANATION_TEXT, explanationText);
+		result.put(JSON_KEY_SKIPPABLE, skippable);
+		result.put(JSON_KEY_SKIP_LABEL, skipLabel);
+		result.put(JSON_KEY_PROMPT_TYPE, type.toString());
+		result.put(JSON_KEY_DISPLAY_TYPE, displayType.toString());
+		result.put(JSON_KEY_DISPLAY_LABEL, displayLabel);
+		
+		return result;
 	}
 	
 	/**
@@ -553,14 +561,14 @@ public abstract class Prompt extends SurveyItem {
 	 * @throws IllegalArgumentException Thrown if the value is not valid for
 	 * 									the prompt.
 	 */
-	protected abstract Object validateValue(final Object value) throws NoResponseException;
+	protected abstract Object validateValue(final Object value) /*throws NoResponseException*/;
 	
 	/**
 	 * This exception should only be thrown from a Prompt class or subclass in 
 	 * the event that validation of a value results in a NoResponse object.
 	 * 
 	 * @author John Jenkins
-	 */
+	 *
 	protected final class NoResponseException extends Exception {
 		private static final long serialVersionUID = 1L;
 		
@@ -571,11 +579,14 @@ public abstract class Prompt extends SurveyItem {
 		 * 
 		 * @param noResponse The NoResponse object for this exception.
 		 * 
-		 * @throws IllegalArgumentException The NoResponse object is null.
-		 */
-		public NoResponseException(final NoResponse noResponse) {
+		 * @throws DomainException The NoResponse object is null.
+		 *
+		public NoResponseException(
+				final NoResponse noResponse) 
+				throws DomainException {
+			
 			if(noResponse == null) {
-				throw new IllegalArgumentException("The NoResponse object is null.");
+				throw new DomainException("The NoResponse object is null.");
 			}
 			
 			this.noResponse = noResponse;
@@ -585,9 +596,10 @@ public abstract class Prompt extends SurveyItem {
 		 * Returns the NoResponse object with which this exception was created.
 		 * 
 		 * @return The NoResponse object with which this exception was created.
-		 */
+		 *
 		public NoResponse getNoResponse() {
 			return noResponse;
 		}
 	}
+	*/
 }

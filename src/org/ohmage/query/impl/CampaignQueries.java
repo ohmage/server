@@ -14,6 +14,7 @@ import java.util.Map;
 import java.util.Set;
 
 import javax.sql.DataSource;
+import javax.swing.tree.RowMapper;
 
 import org.ohmage.domain.Clazz;
 import org.ohmage.domain.campaign.Campaign;
@@ -23,14 +24,6 @@ import org.ohmage.query.ICampaignQueries;
 import org.ohmage.query.IUserCampaignClassQueries;
 import org.ohmage.query.IUserClassQueries;
 import org.ohmage.util.TimeUtils;
-import org.springframework.dao.IncorrectResultSizeDataAccessException;
-import org.springframework.jdbc.core.RowMapper;
-import org.springframework.jdbc.core.SingleColumnRowMapper;
-import org.springframework.jdbc.datasource.DataSourceTransactionManager;
-import org.springframework.transaction.PlatformTransactionManager;
-import org.springframework.transaction.TransactionException;
-import org.springframework.transaction.TransactionStatus;
-import org.springframework.transaction.support.DefaultTransactionDefinition;
 
 /**
  * This class contains all of the functionality for creating, reading, 

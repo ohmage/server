@@ -7,6 +7,7 @@ import java.util.List;
 import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.domain.Document;
 import org.ohmage.exception.DataAccessException;
+import org.ohmage.exception.DomainException;
 import org.ohmage.exception.ServiceException;
 import org.ohmage.query.ICampaignDocumentQueries;
 import org.ohmage.query.IClassDocumentQueries;
@@ -336,6 +337,9 @@ public class UserDocumentServices {
 			return result;
 		}
 		catch(DataAccessException e) {
+			throw new ServiceException(e);
+		} 
+		catch(DomainException e) {
 			throw new ServiceException(e);
 		}
 	}

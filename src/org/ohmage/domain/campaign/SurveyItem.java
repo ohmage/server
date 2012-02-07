@@ -2,6 +2,7 @@ package org.ohmage.domain.campaign;
 
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.ohmage.exception.DomainException;
 
 /**
  * This class corresponds to all objects that present information to or sample
@@ -105,11 +106,16 @@ public abstract class SurveyItem {
 	 * 
 	 * @param index The index of the survey item in its list of survey items.
 	 * 
-	 * @throws NullPointerException Thrown if the ID or condition are null.
+	 * @throws DomainException Thrown if the ID is null.
 	 */
-	public SurveyItem(final String id, final String condition, final int index) {
+	public SurveyItem(
+			final String id, 
+			final String condition, 
+			final int index) 
+			throws DomainException {
+		
 		if(id == null) {
-			throw new NullPointerException("The ID is null.");
+			throw new DomainException("The ID is null.");
 		}
 		
 		this.id = id;
@@ -158,21 +164,17 @@ public abstract class SurveyItem {
 	 * Generates a JSONObject that represents this survey item.
 	 * 
 	 * @return A JSONObject representing this survey item.
+	 * 
+	 * @throws JSONException There was a problem creating the JSONObject.
 	 */
-	public JSONObject toJson() {
-		try {
-			JSONObject result = new JSONObject();
-			
-			result.put(JSON_KEY_ID, id);
-			result.put(JSON_KEY_CONDITION, condition);
-			result.put(JSON_KEY_INDEX, index);
-			
-			return result;
-		}
-		catch(JSONException e) {
-			// FIXME: This should throw an exception.
-			return null;
-		}
+	public JSONObject toJson() throws JSONException {
+		JSONObject result = new JSONObject();
+		
+		result.put(JSON_KEY_ID, id);
+		result.put(JSON_KEY_CONDITION, condition);
+		result.put(JSON_KEY_INDEX, index);
+		
+		return result;
 	}
 	
 	/**

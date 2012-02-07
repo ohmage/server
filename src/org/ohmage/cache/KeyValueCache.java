@@ -23,11 +23,10 @@ import java.util.Map;
 import java.util.Set;
 
 import javax.sql.DataSource;
+import javax.swing.tree.RowMapper;
 
 import org.apache.log4j.Logger;
 import org.ohmage.exception.CacheMissException;
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.core.RowMapper;
 
 /**
  * The abstract cache class for key-Value pairs.

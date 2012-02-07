@@ -24,6 +24,7 @@ import java.util.Map;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.ohmage.exception.DomainException;
 import org.ohmage.util.StringUtils;
 
 /**
@@ -121,37 +122,46 @@ public class Survey {
 	 * @param surveyItems A map of the survey item's unique identifier to their
 	 * 					  actual SurveyItem object.
 	 * 
-	 * @throws IllegalArgumentException Thrown if any of the values are null or
-	 * 									obviously invalid such as a string 
-	 * 									being only whitespace or the map of
-	 * 									survey items being empty. Also, thrown
-	 * 									if 'showSummary' is true, but 
-	 * 									'editSummary' is null and/or 
-	 * 									'summaryText' is null or whitespace 
-	 * 									only.
+	 * @throws DomainException Thrown if any of the values are null or 
+	 * 						   obviously invalid such as a string being only 
+	 * 						   whitespace or the map of survey items being 
+	 * 						   empty. Also, thrown if 'showSummary' is true, 
+	 * 						   but 'editSummary' is null and/or 'summaryText' 
+	 * 						   is null or whitespace only.
 	 */
-	public Survey(final String id, final String title, final String description,
-			final String introText, final String submitText,
-			final boolean showSummary, final Boolean editSummary, final String summaryText,
-			final boolean anytime, final Map<Integer, SurveyItem> surveyItems) {
+	public Survey(
+			final String id, 
+			final String title, 
+			final String description,
+			final String introText, 
+			final String submitText,
+			final boolean showSummary, 
+			final Boolean editSummary, 
+			final String summaryText,
+			final boolean anytime, 
+			final Map<Integer, SurveyItem> surveyItems) 
+			throws DomainException {
 		
 		if(StringUtils.isEmptyOrWhitespaceOnly(id)) {
-			throw new IllegalArgumentException("The ID cannot be null.");
+			throw new DomainException("The ID cannot be null.");
 		}
 		if(StringUtils.isEmptyOrWhitespaceOnly(title)) {
-			throw new IllegalArgumentException("The title cannot be null.");
+			throw new DomainException("The title cannot be null.");
 		}
 		if(StringUtils.isEmptyOrWhitespaceOnly(submitText)) {
-			throw new IllegalArgumentException("The submit text cannot be null.");
+			throw new DomainException("The submit text cannot be null.");
 		}
 		if(showSummary && (editSummary == null)) {
-			throw new IllegalArgumentException("Edit summary cannot be null if show summary is true.");
+			throw new DomainException(
+					"Edit summary cannot be null if show summary is true.");
 		}
 		if(showSummary && StringUtils.isEmptyOrWhitespaceOnly(summaryText)) {
-			throw new IllegalArgumentException("The summary text cannot be null if show summary is true.");
+			throw new DomainException(
+					"The summary text cannot be null if show summary is true.");
 		}
 		if((surveyItems == null) || (surveyItems.size() == 0)) {
-			throw new IllegalArgumentException("The surveyItems list cannot be null or empty.");
+			throw new DomainException(
+					"The surveyItems list cannot be null or empty.");
 		}
 		
 		this.id = id;
@@ -313,11 +323,14 @@ public class Survey {
 	 * 
 	 * @return The SurveyItem object representing the desired survey item.
 	 * 
-	 * @throws IllegalArgumentException Thrown if the survey item ID is null.
+	 * @throws DomainException Thrown if the survey item ID is null.
 	 */
-	public SurveyItem getSurveyItem(final String surveyItemId) {
+	public SurveyItem getSurveyItem(
+			final String surveyItemId) 
+			throws DomainException {
+		
 		if(StringUtils.isEmptyOrWhitespaceOnly(surveyItemId)) {
-			throw new IllegalArgumentException("The survey item ID is null.");
+			throw new DomainException("The survey item ID is null.");
 		}
 		
 		for(SurveyItem prompt : surveyItems.values()) {
@@ -332,7 +345,8 @@ public class Survey {
 					return repeatableSet;
 				}
 				
-				SurveyItem surveyItem = repeatableSet.getSurveyItem(surveyItemId);
+				SurveyItem surveyItem = 
+						repeatableSet.getSurveyItem(surveyItemId);
 				if(surveyItem != null) {
 					return surveyItem;
 				}
@@ -415,70 +429,74 @@ public class Survey {
 	 * 
 	 * @return A JSONObject that represents this survey based on the 
 	 * 		   parameters.
+	 * 
+	 * @throws JSONException There was a problem creating the JSONObject.
 	 */
-	public JSONObject toJson(final boolean withId, final boolean withTitle,
-			final boolean withDescription, final boolean withIntroText,
-			final boolean withSubmitText, final boolean withShowSummary,
-			final boolean withEditSummary, final boolean withSummaryText,
-			final boolean withAnytime, final boolean withSurveyItems) {
-		try {
-			JSONObject result = new JSONObject();
-			
-			if(withId) {
-				result.put(JSON_KEY_ID, id);
-			}
-
-			if(withTitle) {
-				result.put(JSON_KEY_TITLE, title);
-			}
-
-			if(withDescription) {
-				result.put(JSON_KEY_DESCRIPTION, description);
-			}
-
-			if(withIntroText) {
-				result.put(JSON_KEY_INTRO_TEXT, introText);
-			}
-
-			if(withSubmitText) {
-				result.put(JSON_KEY_SUBMIT_TEXT, submitText);
-			}
-
-			if(withShowSummary) {
-				result.put(JSON_KEY_SHOW_SUMMARY, showSummary);
-			}
-
-			if(withEditSummary) {
-				result.put(JSON_KEY_EDIT_SUMMARY, editSummary);
-			}
-
-			if(withSummaryText) {
-				result.put(JSON_KEY_SUMMARY_TEXT, summaryText);
-			}
-
-			if(withAnytime) {
-				result.put(JSON_KEY_ANYTIME, anytime);
-			}
-
-			if(withSurveyItems) {
-				JSONArray surveyItemsArray = new JSONArray();
-				
-				List<Integer> indices = new ArrayList<Integer>(surveyItems.keySet());
-				Collections.sort(indices);
-				
-				for(Integer index : indices) {
-					surveyItemsArray.put(surveyItems.get(index).toJson());
-				}
-				
-				result.put(JSON_KEY_PROMPTS, surveyItemsArray);
-			}
-			
-			return result;
+	public JSONObject toJson(
+			final boolean withId, 
+			final boolean withTitle,
+			final boolean withDescription, 
+			final boolean withIntroText,
+			final boolean withSubmitText, 
+			final boolean withShowSummary,
+			final boolean withEditSummary, 
+			final boolean withSummaryText,
+			final boolean withAnytime, 
+			final boolean withSurveyItems) 
+			throws JSONException {
+		
+		JSONObject result = new JSONObject();
+		
+		if(withId) {
+			result.put(JSON_KEY_ID, id);
 		}
-		catch(JSONException e) {
-			// FIXME: This should throw an exception.
-			return null;
+
+		if(withTitle) {
+			result.put(JSON_KEY_TITLE, title);
 		}
+
+		if(withDescription) {
+			result.put(JSON_KEY_DESCRIPTION, description);
+		}
+
+		if(withIntroText) {
+			result.put(JSON_KEY_INTRO_TEXT, introText);
+		}
+
+		if(withSubmitText) {
+			result.put(JSON_KEY_SUBMIT_TEXT, submitText);
+		}
+
+		if(withShowSummary) {
+			result.put(JSON_KEY_SHOW_SUMMARY, showSummary);
+		}
+
+		if(withEditSummary) {
+			result.put(JSON_KEY_EDIT_SUMMARY, editSummary);
+		}
+
+		if(withSummaryText) {
+			result.put(JSON_KEY_SUMMARY_TEXT, summaryText);
+		}
+
+		if(withAnytime) {
+			result.put(JSON_KEY_ANYTIME, anytime);
+		}
+
+		if(withSurveyItems) {
+			JSONArray surveyItemsArray = new JSONArray();
+			
+			List<Integer> indices = new ArrayList<Integer>(surveyItems.keySet());
+			Collections.sort(indices);
+			
+			for(Integer index : indices) {
+				surveyItemsArray.put(surveyItems.get(index).toJson());
+			}
+			
+			result.put(JSON_KEY_PROMPTS, surveyItemsArray);
+		}
+		
+		return result;
 	}
 
 	/**

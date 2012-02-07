@@ -11,7 +11,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.domain.MobilityPoint;
-import org.ohmage.exception.ErrorCodeException;
+import org.ohmage.exception.DomainException;
 import org.ohmage.exception.ValidationException;
 import org.ohmage.util.StringUtils;
 
@@ -87,7 +87,7 @@ public final class MobilityValidators {
 									mobilityPointJson, 
 									MobilityPoint.PrivacyState.PRIVATE));
 				}
-				catch(ErrorCodeException invalidPointException) {
+				catch(DomainException invalidPointException) {
 					LOGGER.warn("Invalid point.", invalidPointException);
 					invalidPoint.add(mobilityPointJson);
 				}

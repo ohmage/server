@@ -10,23 +10,18 @@ import java.util.List;
 import java.util.Map;
 
 import javax.sql.DataSource;
+import javax.swing.tree.RowMapper;
 
 import org.apache.log4j.Logger;
 import org.ohmage.domain.Clazz;
 import org.ohmage.domain.campaign.Campaign;
 import org.ohmage.exception.DataAccessException;
+import org.ohmage.exception.DomainException;
 import org.ohmage.query.ICampaignClassQueries;
 import org.ohmage.query.IClassQueries;
 import org.ohmage.query.IUserCampaignClassQueries;
 import org.ohmage.query.IUserCampaignQueries;
 import org.ohmage.query.IUserClassQueries;
-import org.springframework.jdbc.core.RowMapper;
-import org.springframework.jdbc.core.SingleColumnRowMapper;
-import org.springframework.jdbc.datasource.DataSourceTransactionManager;
-import org.springframework.transaction.PlatformTransactionManager;
-import org.springframework.transaction.TransactionException;
-import org.springframework.transaction.TransactionStatus;
-import org.springframework.transaction.support.DefaultTransactionDefinition;
 
 /**
  * This class contains all of the functionality for creating, reading, 
@@ -433,7 +428,7 @@ public class ClassQueries extends Query implements IClassQueries {
 		try {
 			List<Clazz> result = new LinkedList<Clazz>();
 			
-			for(String classId : classIds) {
+			for(final String classId : classIds) {
 				result.add(
 						getJdbcTemplate().queryForObject(
 								SQL_GET_CLASS_INFO,
@@ -445,10 +440,16 @@ public class ClassQueries extends Query implements IClassQueries {
 											int row) 
 											throws SQLException {
 										
-										return new Clazz(
-												rs.getString("urn"),
-												rs.getString("name"),
-												rs.getString("description"));
+										try {
+											return new Clazz(
+													rs.getString("urn"),
+													rs.getString("name"),
+													rs.getString("description"));
+										}
+										catch(DomainException e) {
+											throw new SQLException(
+													"There is a malformed class in the database: " + classId);
+										}
 									}
 								}
 							)

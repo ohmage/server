@@ -17,6 +17,8 @@ package org.ohmage.domain;
 
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.ohmage.annotator.Annotator.ErrorCode;
+import org.ohmage.exception.DomainException;
 import org.ohmage.util.StringUtils;
 
 /**
@@ -76,15 +78,21 @@ public class Clazz {
 	 * 
 	 * @param description The description of this class. This may be null.
 	 * 
-	 * @throws IllegalArgumentException Thrown if id or name are null or 
-	 * 									whitespace only.
+	 * @throws DomainException Thrown if id or name are null or whitespace 
+	 * 						   only.
 	 */
-	public Clazz(String id, String name, String description) {
+	public Clazz(String id, String name, String description) 
+			throws DomainException {
+		
 		if(StringUtils.isEmptyOrWhitespaceOnly(id)) {
-			throw new IllegalArgumentException("Class ID cannot be null or whitespace only.");
+			throw new DomainException(
+					ErrorCode.CLASS_INVALID_ID,
+					"Class ID cannot be null or whitespace only.");
 		}
 		if(StringUtils.isEmptyOrWhitespaceOnly(name)) {
-			throw new IllegalArgumentException("Class name cannot be null or whitespace only.");
+			throw new DomainException(
+					ErrorCode.CLASS_INVALID_NAME,
+					"Class name cannot be null or whitespace only.");
 		}
 		
 		this.id = id;
@@ -100,15 +108,18 @@ public class Clazz {
 	 * @param information A JSONObject containing the information about the
 	 * 					  Clazz.
 	 * 
-	 * @throws IllegalArgumentException Thrown if any of the parameters are
-	 * 									invalid.
+	 * @throws DomainException Thrown if any of the parameters are invalid.
 	 */
-	public Clazz(final String id, final JSONObject information) {
+	public Clazz(final String id, final JSONObject information) 
+			throws DomainException {
+		
 		if(StringUtils.isEmptyOrWhitespaceOnly(id)) {
-			throw new IllegalArgumentException("The ID cannot be null or whitespace only.");
+			throw new DomainException(
+					ErrorCode.CLASS_INVALID_ID,
+					"The ID cannot be null or whitespace only.");
 		}
 		else if(information == null) {
-			throw new IllegalArgumentException("The information is null.");
+			throw new DomainException("The information is null.");
 		}
 		
 		this.id = id;
@@ -117,7 +128,10 @@ public class Clazz {
 			name = information.getString(JSON_KEY_NAME);
 		}
 		catch(JSONException e) {
-			throw new IllegalArgumentException("The information is missing the class' name.", e);
+			throw new DomainException(
+					ErrorCode.CLASS_INVALID_NAME,
+					"The information is missing the class' name.",
+					e);
 		}
 		
 		String tDescription = null;

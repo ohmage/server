@@ -1,5 +1,6 @@
 package org.ohmage.domain.campaign;
 
+import org.json.JSONException;
 import org.json.JSONObject;
 
 /**
@@ -80,8 +81,12 @@ public abstract class Response {
 	 * Converts this response into a JSONObject.
 	 * 
 	 * @return A JSONObject representing this response.
+	 * 
+	 * @throws JSONException There was a problem creating the JSONObject.
 	 */
-	public abstract JSONObject toJson(final boolean withId);
+	public abstract JSONObject toJson(
+			final boolean withId) 
+			throws JSONException;
 	
 	/**
 	 * Retrieves the ID of the survey item to which this response pertains.

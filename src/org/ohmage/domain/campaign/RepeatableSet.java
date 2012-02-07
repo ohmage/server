@@ -24,6 +24,7 @@ import java.util.Map;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.ohmage.exception.DomainException;
 import org.ohmage.util.StringUtils;
 
 /**
@@ -84,31 +85,34 @@ public class RepeatableSet extends SurveyItem {
 	 * @throws IllegalArgumentException Thrown if any of the parameters are
 	 * 									invalid.
 	 */
-	public RepeatableSet(final String id, final String condition,
+	public RepeatableSet(
+			final String id, 
+			final String condition,
 			final String terminationQuestion, 
 			final String terminationTrueLabel, 
 			final String terminationFalseLabel,
 			final boolean terminationSkipEnabled, 
 			final String terminationSkipLabel,
 			final Map<Integer, SurveyItem> surveyItems,
-			final int index) {
+			final int index) 
+			throws DomainException {
 		
 		super(id, condition, index);
 		
 		if(StringUtils.isEmptyOrWhitespaceOnly(terminationQuestion)) {
-			throw new IllegalArgumentException("The termination question cannot be null.");
+			throw new DomainException("The termination question cannot be null.");
 		}
 		if(StringUtils.isEmptyOrWhitespaceOnly(terminationTrueLabel)) {
-			throw new IllegalArgumentException("The termination true label cannot be null.");
+			throw new DomainException("The termination true label cannot be null.");
 		}
 		if(StringUtils.isEmptyOrWhitespaceOnly(terminationFalseLabel)) {
-			throw new IllegalArgumentException("The termination false label cannot be null.");
+			throw new DomainException("The termination false label cannot be null.");
 		}
 		if(terminationSkipEnabled && StringUtils.isEmptyOrWhitespaceOnly(terminationSkipLabel)) {
-			throw new IllegalArgumentException("The termination skip is enabled but the label is null.");
+			throw new DomainException("The termination skip is enabled but the label is null.");
 		}
 		if((surveyItems == null) || (surveyItems.size() == 0)) {
-			throw new IllegalArgumentException("The prompt list cannot be null or empty.");
+			throw new DomainException("The prompt list cannot be null or empty.");
 		}
 		
 		this.terminationQuestion = terminationQuestion;
@@ -282,38 +286,34 @@ public class RepeatableSet extends SurveyItem {
 	 * 
 	 * @return A JSONObject representing this repeatable set and it survey 
 	 * 		   items or null if there is an error.
+	 * 
+	 * @throws JSONException There was an error creating the JSONObject.
 	 */
 	@Override
-	public JSONObject toJson() {
-		try {
-			JSONObject result = super.toJson();
-			
-			if(result == null) {
-				// FIXME: Ignore the exception and let it propagate.
-				return null;
-			}
-			
-			result.put(JSON_KEY_TERMINATION_QUESTION, terminationQuestion);
-			result.put(JSON_KEY_TERMINATION_TRUE_LABEL, terminationTrueLabel);
-			result.put(JSON_KEY_TERMINATION_FALSE_LABEL, terminationFalseLabel);
-			result.put(JSON_KEY_TERMINATION_SKIP_ENABLED, terminationSkipEnabled);
-			result.put(JSON_KEY_TERMINATION_SKIP_LABEL, terminationSkipLabel);
-			
-			List<Integer> indices = new ArrayList<Integer>(surveyItems.keySet());
-			Collections.sort(indices);
-			
-			JSONArray surveyItemsJson = new JSONArray();
-			for(Integer index : indices) {
-				surveyItemsJson.put(surveyItems.get(index).toJson());
-			}
-			result.put(JSON_KEY_PROMPTS, surveyItemsJson);
-			
-			return result;
-		}
-		catch(JSONException e) {
-			// FIXME: Throw an exception.
+	public JSONObject toJson() throws JSONException {
+		JSONObject result = super.toJson();
+		
+		if(result == null) {
+			// FIXME: Ignore the exception and let it propagate.
 			return null;
 		}
+		
+		result.put(JSON_KEY_TERMINATION_QUESTION, terminationQuestion);
+		result.put(JSON_KEY_TERMINATION_TRUE_LABEL, terminationTrueLabel);
+		result.put(JSON_KEY_TERMINATION_FALSE_LABEL, terminationFalseLabel);
+		result.put(JSON_KEY_TERMINATION_SKIP_ENABLED, terminationSkipEnabled);
+		result.put(JSON_KEY_TERMINATION_SKIP_LABEL, terminationSkipLabel);
+		
+		List<Integer> indices = new ArrayList<Integer>(surveyItems.keySet());
+		Collections.sort(indices);
+		
+		JSONArray surveyItemsJson = new JSONArray();
+		for(Integer index : indices) {
+			surveyItemsJson.put(surveyItems.get(index).toJson());
+		}
+		result.put(JSON_KEY_PROMPTS, surveyItemsJson);
+		
+		return result;
 	}
 
 	/**

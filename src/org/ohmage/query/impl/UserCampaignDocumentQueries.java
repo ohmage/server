@@ -8,7 +8,6 @@ import org.ohmage.domain.Document;
 import org.ohmage.domain.campaign.Campaign;
 import org.ohmage.exception.DataAccessException;
 import org.ohmage.query.IUserCampaignDocumentQueries;
-import org.springframework.jdbc.core.SingleColumnRowMapper;
 
 /**
  * This class contains all of the functionality for reading and writing 

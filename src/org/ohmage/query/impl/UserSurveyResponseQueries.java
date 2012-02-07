@@ -10,12 +10,12 @@ import java.util.List;
 import java.util.UUID;
 
 import javax.sql.DataSource;
+import javax.swing.tree.RowMapper;
 
 import org.ohmage.domain.campaign.Campaign;
 import org.ohmage.domain.campaign.SurveyResponse;
 import org.ohmage.exception.DataAccessException;
 import org.ohmage.query.IUserSurveyResponseQueries;
-import org.springframework.jdbc.core.RowMapper;
 
 /**
  * This class contains all of the functionality for creating, reading, 

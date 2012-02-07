@@ -22,6 +22,7 @@ import javax.imageio.ImageIO;
 import javax.sql.DataSource;
 
 import org.apache.log4j.Logger;
+import org.json.JSONException;
 import org.ohmage.cache.PreferenceCache;
 import org.ohmage.domain.Location;
 import org.ohmage.domain.campaign.PromptResponse;
@@ -34,15 +35,6 @@ import org.ohmage.exception.CacheMissException;
 import org.ohmage.exception.DataAccessException;
 import org.ohmage.query.ISurveyUploadQuery;
 import org.ohmage.request.JsonInputKeys;
-import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.jdbc.core.PreparedStatementCreator;
-import org.springframework.jdbc.datasource.DataSourceTransactionManager;
-import org.springframework.jdbc.support.GeneratedKeyHolder;
-import org.springframework.jdbc.support.KeyHolder;
-import org.springframework.transaction.PlatformTransactionManager;
-import org.springframework.transaction.TransactionException;
-import org.springframework.transaction.TransactionStatus;
-import org.springframework.transaction.support.DefaultTransactionDefinition;
 
 /**
  * Persists a survey upload (potentially containing many surveys) into the db.
@@ -187,7 +179,13 @@ public class SurveyUploadQuery extends AbstractUploadQuery implements ISurveyUpl
 								String locationString = null;
 								Location location = surveyUpload.getLocation();
 								if(location != null) {
-									locationString = location.toJson(false).toString();
+									try {
+										locationString = 
+												location.toJson(false).toString();
+									}
+									catch(JSONException e) {
+										throw new SQLException(e);
+									}
 								}
 								
 								ps.setString(1, surveyUpload.getSurveyResponseId().toString());

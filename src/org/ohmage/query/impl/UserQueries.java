@@ -6,6 +6,7 @@ import java.util.Collection;
 import java.util.List;
 
 import javax.sql.DataSource;
+import javax.swing.tree.RowMapper;
 
 import org.apache.log4j.Logger;
 import org.json.JSONObject;
@@ -14,13 +15,6 @@ import org.ohmage.domain.UserPersonal;
 import org.ohmage.exception.CacheMissException;
 import org.ohmage.exception.DataAccessException;
 import org.ohmage.query.IUserQueries;
-import org.springframework.jdbc.core.RowMapper;
-import org.springframework.jdbc.core.SingleColumnRowMapper;
-import org.springframework.jdbc.datasource.DataSourceTransactionManager;
-import org.springframework.transaction.PlatformTransactionManager;
-import org.springframework.transaction.TransactionException;
-import org.springframework.transaction.TransactionStatus;
-import org.springframework.transaction.support.DefaultTransactionDefinition;
 
 
 /**

@@ -4,12 +4,14 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 
+import org.json.JSONException;
 import org.ohmage.domain.MobilityPoint;
 import org.ohmage.domain.MobilityPoint.LocationStatus;
 import org.ohmage.domain.MobilityPoint.Mode;
 import org.ohmage.domain.MobilityPoint.SensorData;
 import org.ohmage.domain.MobilityPoint.SensorData.WifiData;
 import org.ohmage.exception.DataAccessException;
+import org.ohmage.exception.DomainException;
 import org.ohmage.exception.ServiceException;
 import org.ohmage.query.IUserMobilityQueries;
 
@@ -124,17 +126,27 @@ public final class MobilityServices {
 					wifiDataString = null;
 				}
 				else {
-					wifiDataString = wifiData.toJson().toString(); 
+					try {
+						wifiDataString = wifiData.toJson().toString();
+					}
+					catch(JSONException e) {
+						throw new ServiceException(e);
+					} 
 				}
 				
 				// Classify the data.
-				Classification classification =
-					classifier.classify(
+				Classification classification;
+				try {
+					classification = classifier.classify(
 							mobilityPoint.getSamples(),
 							currSensorData.getSpeed(),
 							wifiDataString,
 							previousSensorData,
 							previousWifiMode);
+				} 
+				catch(DomainException e) {
+					throw new ServiceException(e);
+				}
 				
 				// Update the place holders for the previous data.
 				previousSensorData = wifiDataString;
@@ -151,7 +163,7 @@ public final class MobilityServices {
 								classification.getAverage(), 
 								MobilityPoint.Mode.valueOf(classification.getMode().toUpperCase()));
 					}
-					catch(IllegalArgumentException e) {
+					catch(DomainException e) {
 						throw new ServiceException(
 								"There was a problem reading the classification's information.", 
 								e);
@@ -163,7 +175,7 @@ public final class MobilityServices {
 					try {
 						mobilityPoint.setClassifierModeOnly(MobilityPoint.Mode.valueOf(classification.getMode().toUpperCase()));
 					}
-					catch(IllegalArgumentException e) {
+					catch(DomainException e) {
 						throw new ServiceException(
 								"There was a problem reading the classification's mode.", 
 								e);

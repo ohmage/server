@@ -5,12 +5,11 @@ import java.sql.SQLException;
 import java.util.List;
 
 import javax.sql.DataSource;
+import javax.swing.tree.RowMapper;
 
 import org.ohmage.domain.Document;
 import org.ohmage.exception.DataAccessException;
 import org.ohmage.query.ICampaignDocumentQueries;
-import org.springframework.jdbc.core.RowMapper;
-import org.springframework.jdbc.core.SingleColumnRowMapper;
 
 /**
  * This class contains the functionality for creating, reading, updating, and 

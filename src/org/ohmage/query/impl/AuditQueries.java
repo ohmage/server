@@ -12,26 +12,18 @@ import java.util.List;
 import java.util.Map;
 
 import javax.sql.DataSource;
+import javax.swing.tree.RowMapper;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.domain.Audit;
 import org.ohmage.exception.DataAccessException;
+import org.ohmage.exception.DomainException;
 import org.ohmage.jee.servlet.RequestServlet;
 import org.ohmage.jee.servlet.RequestServlet.RequestType;
 import org.ohmage.query.IAuditQueries;
 import org.ohmage.validator.AuditValidators.ResponseType;
-import org.springframework.jdbc.core.PreparedStatementCreator;
-import org.springframework.jdbc.core.RowMapper;
-import org.springframework.jdbc.core.SingleColumnRowMapper;
-import org.springframework.jdbc.datasource.DataSourceTransactionManager;
-import org.springframework.jdbc.support.GeneratedKeyHolder;
-import org.springframework.jdbc.support.KeyHolder;
-import org.springframework.transaction.PlatformTransactionManager;
-import org.springframework.transaction.TransactionException;
-import org.springframework.transaction.TransactionStatus;
-import org.springframework.transaction.support.DefaultTransactionDefinition;
 
 /**
  * This class is responsible for creating and reading request audits.
@@ -443,7 +435,10 @@ public class AuditQueries extends Query implements IAuditQueries {
 	 * @see org.ohmage.query.IAuditQueries#readAuditInformation(java.util.List)
 	 */
 	@Override
-	public List<Audit> readAuditInformation(final List<Long> auditIds) throws DataAccessException {
+	public List<Audit> readAuditInformation(
+			final List<Long> auditIds) 
+			throws DataAccessException {
+		
 		if(auditIds == null) {
 			return new LinkedList<Audit>();
 		}
@@ -457,10 +452,18 @@ public class AuditQueries extends Query implements IAuditQueries {
 						new Object[] { auditId },
 						new RowMapper<Audit>() {
 							@Override
-							public Audit mapRow(ResultSet rs, int rowNum) throws SQLException {
+							public Audit mapRow(
+									final ResultSet rs, 
+									final int rowNum) 
+									throws SQLException {
+								
 								RequestType requestType;
 								try {
-									requestType = RequestType.valueOf(rs.getString("request_type").toUpperCase());
+									requestType = 
+											RequestType.valueOf(
+													rs.getString(
+															"request_type")
+															.toUpperCase());
 								}
 								catch(IllegalArgumentException e) {
 									requestType = RequestType.UNKNOWN;
@@ -468,7 +471,9 @@ public class AuditQueries extends Query implements IAuditQueries {
 								
 								JSONObject response;
 								try {
-									response = new JSONObject(rs.getString("response"));
+									response = 
+											new JSONObject(
+													rs.getString("response"));
 								}
 								catch(JSONException e) {
 									response = new JSONObject();
@@ -506,17 +511,38 @@ public class AuditQueries extends Query implements IAuditQueries {
 							new Object[] { auditId }, 
 							new RowMapper<KeyValuePair>() {
 								@Override
-								public KeyValuePair mapRow(ResultSet rs, int rowNum) throws SQLException {
-									return new KeyValuePair(rs.getString("param_key"), rs.getString("param_value"));
+								public KeyValuePair mapRow(
+										final ResultSet rs, 
+										final int rowNum) 
+										throws SQLException {
+									
+									return new KeyValuePair(
+											rs.getString("param_key"), 
+											rs.getString("param_value"));
 								}
 							}
 					);
 					for(KeyValuePair parameter : parameters) {
-						auditInformation.addParameter(parameter.key, parameter.value);
+						try {
+							auditInformation
+								.addParameter(
+										parameter.key, 
+										parameter.value);
+						}
+						catch(DomainException e) {
+							throw new DataAccessException(
+									"The audit parameters table has a corrupt record.",
+									e);
+						}
 					}
 				}
 				catch(org.springframework.dao.DataAccessException e) {
-					throw new DataAccessException("Error executing SQL '" + SQL_GET_AUDIT_PARAMETERS + "' with parameter: " + auditId, e);
+					throw new DataAccessException(
+							"Error executing SQL '" + 
+								SQL_GET_AUDIT_PARAMETERS + 
+								"' with parameter: " + 
+								auditId, 
+							e);
 				}
 				
 				// Add all of the extras.
@@ -526,28 +552,51 @@ public class AuditQueries extends Query implements IAuditQueries {
 							new Object[] { auditId }, 
 							new RowMapper<KeyValuePair>() {
 								@Override
-								public KeyValuePair mapRow(ResultSet rs, int rowNum) throws SQLException {
-									return new KeyValuePair(rs.getString("extra_key"), rs.getString("extra_value"));
+								public KeyValuePair mapRow(
+										final ResultSet rs, 
+										final int rowNum) 
+										throws SQLException {
+									return new KeyValuePair(
+											rs.getString("extra_key"), 
+											rs.getString("extra_value"));
 								}
 							}
 					);
 					for(KeyValuePair extra : extras) {
-						auditInformation.addExtra(extra.key, extra.value);
+						try {
+							auditInformation.addExtra(extra.key, extra.value);
+						}
+						catch(DomainException e) {
+							throw new DataAccessException(
+									"The audit extras table has a corrupt record.",
+									e);
+						}
 					}
 				}
 				catch(org.springframework.dao.DataAccessException e) {
-					throw new DataAccessException("Error executing SQL '" + SQL_GET_AUDIT_EXTRAS + "' with parameter: " + auditId, e);
+					throw new DataAccessException(
+							"Error executing SQL '" + 
+								SQL_GET_AUDIT_EXTRAS + 
+								"' with parameter: " + 
+								auditId,
+							e);
 				}
 				
 				// Add the audit information to the result.
 				result.add(auditInformation);
 			}
 			catch(org.springframework.dao.IncorrectResultSizeDataAccessException e) {
-				throw new DataAccessException("The audit ID does not exist: " + auditId, e);
+				throw new DataAccessException(
+						"The audit ID does not exist: " + auditId, 
+						e);
 			}
 			catch(org.springframework.dao.DataAccessException e) {
-				throw new DataAccessException("Error executing SQL '" + SQL_GET_AUDIT_INFORMATION_FROM_ID + "' with parameter: " + 
-						auditId, e);
+				throw new DataAccessException(
+						"Error executing SQL '" + 
+							SQL_GET_AUDIT_INFORMATION_FROM_ID + 
+							"' with parameter: " + 
+							auditId,
+						e);
 			}
 		}
 		

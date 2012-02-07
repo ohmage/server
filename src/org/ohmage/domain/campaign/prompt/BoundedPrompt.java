@@ -8,6 +8,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.ohmage.domain.campaign.Prompt;
 import org.ohmage.domain.campaign.Response.NoResponse;
+import org.ohmage.exception.DomainException;
 
 /**
  * This class represents prompts with numeric bounds. This includes but is not
@@ -78,16 +79,26 @@ public abstract class BoundedPrompt extends Prompt {
 	 * @param index This prompt's index in its container's list of survey 
 	 * 				items.
 	 * 
-	 * @throws IllegalArgumentException Thrown if any of the required 
-	 * 									parameters are missing or invalid. 
+	 * @throws DomainException Thrown if any of the required parameters are 
+	 * 						   missing or invalid. 
 	 */
-	public BoundedPrompt(final String id, final String condition, 
-			final String unit, final String text, 
-			final String abbreviatedText, final String explanationText,
-			final boolean skippable, final String skipLabel,
-			final DisplayType displayType, final String displayLabel,
-			final long min, final long max, final Long defaultValue,
-			final Type type, final int index) {
+	public BoundedPrompt(
+			final String id, 
+			final String condition, 
+			final String unit, 
+			final String text, 
+			final String abbreviatedText, 
+			final String explanationText,
+			final boolean skippable, 
+			final String skipLabel,
+			final DisplayType displayType, 
+			final String displayLabel,
+			final long min, 
+			final long max, 
+			final Long defaultValue,
+			final Type type, 
+			final int index) 
+			throws DomainException {
 		
 		super(id, condition, unit, text, abbreviatedText, explanationText,
 				skippable, skipLabel, displayType, displayLabel, 
@@ -98,11 +109,11 @@ public abstract class BoundedPrompt extends Prompt {
 		
 		if(defaultValue != null) {
 			if(defaultValue < min) {
-				throw new IllegalArgumentException(
+				throw new DomainException(
 						"The default value is less than the minimum value.");
 			}
 			else if(defaultValue > max) {
-				throw new IllegalArgumentException(
+				throw new DomainException(
 						"The default value is greater than hte maximum value.");
 			}
 		}
@@ -144,13 +155,13 @@ public abstract class BoundedPrompt extends Prompt {
 	 * 
 	 * @return A Long object that represents the value.
 	 * 
-	 * @throws IllegalArgumentException Thrown if the value is invalid.
+	 * @throws DomainException Thrown if the value is invalid.
 	 * 
 	 * @throws NoResponseException Thrown if the value is or represents a
 	 * 							   NoResponse object.
 	 */
 	@Override
-	public Long validateValue(final Object value) throws NoResponseException {
+	public Object validateValue(final Object value) throws DomainException {
 		long longValue;
 		
 		// If it's already a NoResponse value, then return make sure that if it
@@ -160,7 +171,8 @@ public abstract class BoundedPrompt extends Prompt {
 				throw new IllegalArgumentException("The prompt was skipped, but it is not skippable.");
 			}
 			
-			throw new NoResponseException((NoResponse) value);
+			//throw new NoResponseException((NoResponse) value);
+			return value;
 		}
 		// If it's already a number, first ensure that it is an integer and not
 		// a floating point number.
