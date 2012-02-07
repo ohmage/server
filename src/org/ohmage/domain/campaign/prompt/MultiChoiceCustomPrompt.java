@@ -12,6 +12,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.ohmage.domain.campaign.Response.NoResponse;
 import org.ohmage.domain.campaign.response.MultiChoiceCustomPromptResponse;
+import org.ohmage.exception.DomainException;
 import org.ohmage.util.StringUtils;
 
 /**
@@ -63,17 +64,25 @@ public class MultiChoiceCustomPrompt extends CustomChoicePrompt {
 	 * @param index This prompt's index in its container's list of survey 
 	 * 				items.
 	 * 
-	 * @throws IllegalArgumentException Thrown if any of the required 
-	 * 									parameters are missing or invalid. 
+	 * @throws DomainException Thrown if any of the required parameters are 
+	 * 						   missing or invalid. 
 	 */
-	public MultiChoiceCustomPrompt(final String id, final String condition, 
-			final String unit, final String text, 
-			final String abbreviatedText, final String explanationText,
-			final boolean skippable, final String skipLabel,
-			final DisplayType displayType, final String displayLabel,
+	public MultiChoiceCustomPrompt(
+			final String id, 
+			final String condition, 
+			final String unit, 
+			final String text, 
+			final String abbreviatedText, 
+			final String explanationText,
+			final boolean skippable, 
+			final String skipLabel,
+			final DisplayType displayType, 
+			final String displayLabel,
 			final Map<Integer, LabelValuePair> choices,
 			final Map<Integer, LabelValuePair> customChoices,
-			final Collection<Integer> defaultKeys, final int index) {
+			final Collection<Integer> defaultKeys, 
+			final int index) 
+			throws DomainException {
 		
 		super(id, condition, unit, text, abbreviatedText, explanationText,
 				skippable, skipLabel, displayType, displayLabel, 
@@ -84,7 +93,8 @@ public class MultiChoiceCustomPrompt extends CustomChoicePrompt {
 			Collection<Integer> availableKeys = getChoices().keySet();
 			for(Integer defaultKey : defaultKeys) {
 				if(! availableKeys.contains(defaultKey)) {
-					throw new IllegalArgumentException("The default key does not exist.");
+					throw new DomainException(
+							"The default key does not exist.");
 				}
 			}
 		}
@@ -107,23 +117,25 @@ public class MultiChoiceCustomPrompt extends CustomChoicePrompt {
 	 * 
 	 * @return A collection of label values.
 	 * 
-	 * @throws IllegalArgumentException Thrown if the value is not valid.
-	 * 
-	 * @throws NoResponseException Thrown if the value is or represents a
-	 * 							   NoResponse object.
+	 * @throws DomainException Thrown if the value is not valid.
 	 */
 	@Override
-	public Collection<String> validateValue(final Object value) throws NoResponseException {
+	public Object validateValue(
+			final Object value) 
+			throws DomainException {
+		
 		Collection<String> collectionValue = null;
 		
 		// If it's already a NoResponse value, then make sure that if it
 		// was skipped that it is skippable.
 		if(value instanceof NoResponse) {
 			if(NoResponse.SKIPPED.equals(value) && (! skippable())) {
-				throw new IllegalArgumentException("The prompt was skipped, but it is not skippable.");
+				throw new DomainException(
+						"The prompt was skipped, but it is not skippable.");
 			}
 			
-			throw new NoResponseException((NoResponse) value);
+			//throw new NoResponseException((NoResponse) value);
+			return value;
 		}
 		// If it's already a collection, first ensure that all of the elements
 		// are strings.
@@ -136,7 +148,8 @@ public class MultiChoiceCustomPrompt extends CustomChoicePrompt {
 					collectionValue.add((String) currResponse);
 				}
 				else {
-					throw new IllegalArgumentException("An object in the list was not a valid label value.");
+					throw new DomainException(
+						"An object in the list was not a valid label value.");
 				}
 			}
 		}
@@ -151,7 +164,9 @@ public class MultiChoiceCustomPrompt extends CustomChoicePrompt {
 					collectionValue.add(responses.getString(i));
 				}
 				catch(JSONException notKey) {
-					throw new IllegalArgumentException("The value was a JSONArray, but not all of the elements were strings.", notKey);
+					throw new DomainException(
+						"The value was a JSONArray, but not all of the elements were strings.", 
+						notKey);
 				}
 			}
 		}
@@ -161,7 +176,7 @@ public class MultiChoiceCustomPrompt extends CustomChoicePrompt {
 			String valueString = (String) value;
 			
 			try {
-				throw new NoResponseException(NoResponse.valueOf(valueString));
+				return NoResponse.valueOf(valueString);
 			}
 			catch(IllegalArgumentException notNoResponse) {
 				try {
@@ -174,7 +189,8 @@ public class MultiChoiceCustomPrompt extends CustomChoicePrompt {
 							collectionValue.add(responses.getString(i));
 						}
 						catch(JSONException notString) {
-							throw new IllegalArgumentException("One of the items in the list was not decodable as a string value.");
+							throw new DomainException(
+								"One of the items in the list was not decodable as a string value.");
 						}
 					}
 				}
@@ -193,43 +209,41 @@ public class MultiChoiceCustomPrompt extends CustomChoicePrompt {
 			}
 		}
 		else {
-			throw new IllegalArgumentException("The value is not decodable as a reponse value.");
+			throw new DomainException(
+					"The value is not decodable as a reponse value.");
 		}
 		
 		Map<Integer, LabelValuePair> choices = getAllChoices();
 		
-		// Custom choice types are not required to 
-		// have any pre-configured choices
-		
+		// If there are no default choices, set the next key to zero.
+		int nextKey;
 		if(choices.isEmpty()) {
-			
-			int nextKey = 0;
-			
-			for(String labelValue : collectionValue) {
-				addChoice(nextKey, labelValue, null);
-				nextKey++;
-			}
-			
+			nextKey = 0;
 		}
+		// Otherwise, set the next key to the current maximum key plus one.
 		else {
 			List<Integer> keys = new ArrayList<Integer>(choices.keySet());
 			Collections.sort(keys);
-			int nextKey = keys.get(keys.size() - 1) + 1;
-			
-			Collection<LabelValuePair> values = choices.values();
-			
-			for(String labelValue : collectionValue) {
-				boolean exists = false;
-				for(LabelValuePair lvp : values) {
-					if(lvp.getLabel().equals(labelValue)) {
-						exists = true;
-						break;
-					}
+			nextKey = keys.get(keys.size() - 1) + 1;
+		}
+		
+		// Now, get the known choices from the list.
+		Collection<LabelValuePair> values = choices.values();
+		
+		// Cycle through the decoded labels and, if one of those labels isn't 
+		// found, add it to the collection.
+		for(String labelValue : collectionValue) {
+			boolean exists = false;
+			for(LabelValuePair lvp : values) {
+				if(lvp.getLabel().equals(labelValue)) {
+					exists = true;
+					break;
 				}
-				
-				if(! exists) {
-					addChoice(nextKey++, labelValue, null);
-				}
+			}
+			
+			if(! exists) {
+				addChoice(nextKey++, labelValue, null);
+				values.add(new LabelValuePair(labelValue, null));
 			}
 		}
 		
@@ -246,66 +260,38 @@ public class MultiChoiceCustomPrompt extends CustomChoicePrompt {
 	 * 								 repeatable set on which the response to
 	 * 								 this prompt was made.
 	 * 
-	 * @throws IllegalArgumentException Thrown if this prompt is part of a
-	 * 									repeatable set but the repeatable set
-	 * 									iteration value is null, if the
-	 * 									repeatable set iteration value is 
-	 * 									negative, or if the value is not a 
-	 * 									valid response value for this prompt.
+	 * @throws DomainException Thrown if this prompt is part of a repeatable 
+	 * 						   set but the repeatable set iteration value is 
+	 * 						   null, if the repeatable set iteration value is 
+	 * 						   negative, or if the value is not a valid 
+	 * 						   response value for this prompt.
 	 */
 	@Override
-	public MultiChoiceCustomPromptResponse createResponse(final Object response, 
-			final Integer repeatableSetIteration) {
+	public MultiChoiceCustomPromptResponse createResponse(
+			final Integer repeatableSetIteration,
+			final Object response) 
+			throws DomainException {
 		
-		if((repeatableSetIteration == null) && (getParent() != null)) {
-			throw new IllegalArgumentException("The repeatable set iteration is null, but this prompt is part of a repeatable set.");
-		}
-		else if((repeatableSetIteration != null) && (repeatableSetIteration < 0)) {
-			throw new IllegalArgumentException("The repeatable set iteration value is negative.");
-		}
-		
-		try {
-			return new MultiChoiceCustomPromptResponse(
-					this, 
-					null, 
-					repeatableSetIteration, 
-					validateValue(response)
-				);
-		}
-		catch(NoResponseException e) {
-			return new MultiChoiceCustomPromptResponse(
-					this, 
-					e.getNoResponse(), 
-					repeatableSetIteration, 
-					null
-				);
-		}
+		return new MultiChoiceCustomPromptResponse(
+				this,
+				repeatableSetIteration,
+				response);
 	}
 	
 	/**
 	 * Creates a JSONObject that represents this multi-choice custom prompt.
 	 * 
 	 * @return A JSONObject that represents this multi-choice custom prompt.
+	 * 
+	 * @throws JSONException There was a problem creating the JSONObject.
 	 */
 	@Override
-	public JSONObject toJson() {
-		try {
-			JSONObject result = super.toJson();
-			
-			if(result == null) {
-				// FIXME: Ignore the exception thrown, allowing it to 
-				// propagate.
-				return null;
-			}
-			
-			result.put(JSON_KEY_DEFAULT, new JSONArray(defaultKeys));
-			
-			return result;
-		}
-		catch(JSONException e) {
-			// FIXME: Throw an exception.
-			return null;
-		}
+	public JSONObject toJson() throws JSONException {
+		JSONObject result = super.toJson();
+		
+		result.put(JSON_KEY_DEFAULT, new JSONArray(defaultKeys));
+		
+		return result;
 	}
 
 	/**

@@ -1732,7 +1732,9 @@ public class SurveyResponse {
 			throws DomainException {
 		
 		try {
-			return prompt.createResponse(response.get(JSON_KEY_PROMPT_VALUE), repeatableSetIteration);
+			return prompt.createResponse(
+					repeatableSetIteration, 
+					response.get(JSON_KEY_PROMPT_VALUE));
 		}
 		catch(JSONException e) {
 			throw new DomainException(
@@ -1740,7 +1742,7 @@ public class SurveyResponse {
 					"The response value was missing.", 
 					e);
 		}
-		catch(IllegalArgumentException e) {
+		catch(DomainException e) {
 			throw new DomainException(
 					ErrorCode.SURVEY_INVALID_RESPONSES, 
 					"The response value was invalid.", 

@@ -6,6 +6,7 @@ import org.json.JSONObject;
 import org.ohmage.domain.campaign.Prompt;
 import org.ohmage.domain.campaign.Response.NoResponse;
 import org.ohmage.domain.campaign.response.RemoteActivityPromptResponse;
+import org.ohmage.exception.DomainException;
 
 /**
  * This class represents a remote Activity prompt.
@@ -91,36 +92,49 @@ public class RemoteActivityPrompt extends Prompt {
 	 * @param index This prompt's index in its container's list of survey 
 	 * 				items.
 	 * 
-	 * @throws IllegalArgumentException Thrown if any of the required 
-	 * 									parameters are missing or invalid. 
+	 * @throws DomainException Thrown if any of the required parameters are 
+	 * 						   missing or invalid. 
 	 */
-	public RemoteActivityPrompt(final String id, final String condition, 
-			final String unit, final String text, 
-			final String abbreviatedText, final String explanationText,
-			final boolean skippable, final String skipLabel,
-			final DisplayType displayType, final String displayLabel,
-			final String packagee, final String activity, final String action,
-			final boolean autolaunch, final int retries, final int minRuns,
-			final String input, final int index) {
+	public RemoteActivityPrompt(
+			final String id, 
+			final String condition, 
+			final String unit, 
+			final String text, 
+			final String abbreviatedText, 
+			final String explanationText,
+			final boolean skippable, 
+			final String skipLabel,
+			final DisplayType displayType, 
+			final String displayLabel,
+			final String packagee, 
+			final String activity, 
+			final String action,
+			final boolean autolaunch, 
+			final int retries, 
+			final int minRuns,
+			final String input, 
+			final int index) 
+			throws DomainException {
 		
 		super(id, condition, unit, text, abbreviatedText, explanationText,
 				skippable, skipLabel, displayType, displayLabel, 
 				Type.REMOTE_ACTIVITY, index);
 		
 		if(! validatePackage(packagee)) {
-			throw new IllegalArgumentException("The package value is invalid.");
+			throw new DomainException("The package value is invalid.");
 		}
 		else if(! validateActivity(activity)) {
-			throw new IllegalArgumentException("The activity value is invalid.");
+			throw new DomainException("The activity value is invalid.");
 		}
 		else if(! validateAction(action)) {
-			throw new IllegalArgumentException("The action value is invalid.");
+			throw new DomainException("The action value is invalid.");
 		}
 		else if(validateRetriesAndMinRuns(retries, minRuns)) {
-			throw new IllegalArgumentException("The minimum number of runs is greater than the number of allowed runs.");
+			throw new DomainException(
+					"The minimum number of runs is greater than the number of allowed runs.");
 		}
 		else if((input != null) && (! validateInput(input))) {
-			throw new IllegalArgumentException("The input is too long.");
+			throw new DomainException("The input is too long.");
 		}
 		
 		this.packagee = packagee;
@@ -210,20 +224,21 @@ public class RemoteActivityPrompt extends Prompt {
 	 * 		   {@link NoResponse} object value if it is a valid 
 	 * 		   {@link NoResponse} value.
 	 * 
-	 * @throws IllegalArgumentException Thrown if the value is invalid.
+	 * @throws DomainException Thrown if the value is invalid.
 	 */
 	@Override
-	public JSONArray validateValue(final Object value) throws NoResponseException {
+	public Object validateValue(final Object value) throws DomainException {
 		JSONArray valueJson;
 		
 		// If it's already a NoResponse value, then return make sure that if it
 		// was skipped that it as skippable.
 		if(value instanceof NoResponse) {
 			if(NoResponse.SKIPPED.equals(value) && (! skippable())) {
-				throw new IllegalArgumentException("The prompt was skipped, but it is not skippable.");
+				throw new DomainException(
+						"The prompt was skipped, but it is not skippable.");
 			}
 			
-			throw new NoResponseException((NoResponse) value);
+			return value;
 		}
 		// If it's already a JSONObject value, then set that to be validated.
 		else if(value instanceof JSONArray) {
@@ -236,20 +251,22 @@ public class RemoteActivityPrompt extends Prompt {
 			String valueString = (String) value;
 			
 			try {
-				throw new NoResponseException(NoResponse.valueOf(valueString));
+				return NoResponse.valueOf(valueString);
 			}
 			catch(IllegalArgumentException iae) {
 				try {
 					valueJson = new JSONArray((String) valueString);
 				}
 				catch(JSONException e) {
-					throw new IllegalArgumentException("The string value could not be decoded as a NoResponse or JSONObject object.");
+					throw new DomainException(
+							"The string value could not be decoded as a NoResponse or JSONObject object.");
 				}
 			}
 		}
 		// Finally, if its type is unknown, throw an exception.
 		else {
-			throw new IllegalArgumentException("The value is not decodable as a response value.");
+			throw new DomainException(
+					"The value is not decodable as a response value.");
 		}
 		
 		int numResponses = valueJson.length();
@@ -259,7 +276,7 @@ public class RemoteActivityPrompt extends Prompt {
 				currResponse = valueJson.getJSONObject(i);
 			}
 			catch(JSONException e) {
-				throw new IllegalArgumentException(
+				throw new DomainException(
 						"The item at index '" +
 							i +
 							"' isn't a valid JSONObject.",
@@ -270,7 +287,7 @@ public class RemoteActivityPrompt extends Prompt {
 				currResponse.getDouble(JSON_KEY_SCORE);
 			}
 			catch(JSONException e) {
-				throw new IllegalArgumentException(
+				throw new DomainException(
 						"The JSON response value must contain the key '" +
 							JSON_KEY_SCORE +
 							"' which must be a numeric value.",
@@ -291,72 +308,44 @@ public class RemoteActivityPrompt extends Prompt {
 	 * 								 repeatable set on which the response to
 	 * 								 this prompt was made.
 	 * 
-	 * @throws IllegalArgumentException Thrown if this prompt is part of a
-	 * 									repeatable set but the repeatable set
-	 * 									iteration value is null, if the
-	 * 									repeatable set iteration value is 
-	 * 									negative, or if the value is not a 
-	 * 									valid response value for this prompt.
+	 * @throws DomainException Thrown if this prompt is part of a repeatable 
+	 * 						   set but the repeatable set iteration value is 
+	 * 						   null, if the repeatable set iteration value is 
+	 * 						   negative, or if the value is not a valid 
+	 * 						   response value for this prompt.
 	 */
 	@Override
-	public RemoteActivityPromptResponse createResponse(final Object response, 
-			final Integer repeatableSetIteration) {
+	public RemoteActivityPromptResponse createResponse(
+			final Integer repeatableSetIteration,
+			final Object response) 
+			throws DomainException {
 		
-		if((repeatableSetIteration == null) && (getParent() != null)) {
-			throw new IllegalArgumentException("The repeatable set iteration is null, but this prompt is part of a repeatable set.");
-		}
-		else if((repeatableSetIteration != null) && (repeatableSetIteration < 0)) {
-			throw new IllegalArgumentException("The repeatable set iteration value is negative.");
-		}
-		
-		try {
-			return new RemoteActivityPromptResponse(
-					this, 
-					null, 
-					repeatableSetIteration, 
-					validateValue(response)
-				);
-		}
-		catch(NoResponseException e) {
-			return new RemoteActivityPromptResponse(
-					this, 
-					e.getNoResponse(), 
-					repeatableSetIteration, 
-					null
-				);
-		}
+		return new RemoteActivityPromptResponse(
+				this,
+				repeatableSetIteration,
+				response);
 	}
 	
 	/**
 	 * Creates a JSONObject that represents this remote Activity prompt.
 	 * 
 	 * @return A JSONObject that represents this remote Activity prompt.
+	 * 
+	 * @throws JSONException There was a problem creating the JSONObject.
 	 */
 	@Override
-	public JSONObject toJson() {
-		try {
-			JSONObject result = super.toJson();
-			
-			if(result == null) {
-				// FIXME: Ignore the exception thrown, allowing it to 
-				// propagate.
-				return null;
-			}
-			
-			result.put(JSON_KEY_PACKAGE, packagee);
-			result.put(JSON_KEY_ACTIVITY, activity);
-			result.put(JSON_KEY_ACTION, action);
-			result.put(JSON_KEY_AUTOLAUNCH, autolaunch);
-			result.put(JSON_KEY_RETRIES, retries);
-			result.put(JSON_KEY_MIN_RUNS, minRuns);
-			result.put(JSON_KEY_INPUT, input);
-			
-			return result;
-		}
-		catch(JSONException e) {
-			// FIXME: Throw an exception.
-			return null;
-		}
+	public JSONObject toJson() throws JSONException {
+		JSONObject result = super.toJson();
+		
+		result.put(JSON_KEY_PACKAGE, packagee);
+		result.put(JSON_KEY_ACTIVITY, activity);
+		result.put(JSON_KEY_ACTION, action);
+		result.put(JSON_KEY_AUTOLAUNCH, autolaunch);
+		result.put(JSON_KEY_RETRIES, retries);
+		result.put(JSON_KEY_MIN_RUNS, minRuns);
+		result.put(JSON_KEY_INPUT, input);
+		
+		return result;
 	}
 	
 	/**

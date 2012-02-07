@@ -2,14 +2,18 @@ package org.ohmage.domain.campaign.response;
 
 import org.ohmage.domain.campaign.PromptResponse;
 import org.ohmage.domain.campaign.prompt.HoursBeforeNowPrompt;
+import org.ohmage.exception.DomainException;
 
 /**
  * A hours-before-now prompt response.
  * 
  * @author John Jenkins
+ * 
+ * @deprecated The HoursBeforeNowPrompt is deprecated, so its response must be
+ * deprecated as well.
  */
 public class HoursBeforeNowPromptResponse extends PromptResponse {
-	private final Long hours;
+	//private final Long hours;
 	
 	/**
 	 * Creates a hours-before-now prompt response.
@@ -33,11 +37,13 @@ public class HoursBeforeNowPromptResponse extends PromptResponse {
 	 * 									the response value is invalid.
 	 */
 	public HoursBeforeNowPromptResponse(
-			final HoursBeforeNowPrompt prompt, final NoResponse noResponse, 
-			final Integer repeatableSetIteration, final Long hours) {
+			final HoursBeforeNowPrompt prompt, 
+			final Integer repeatableSetIteration,
+			final Object response) 
+			throws DomainException {
 		
-		super(prompt, noResponse, repeatableSetIteration);
-		
+		super(prompt, repeatableSetIteration, response);
+		/*
 		if((hours == null) && (noResponse == null)) {
 			throw new IllegalArgumentException(
 					"Both hours and no response were null.");
@@ -46,24 +52,33 @@ public class HoursBeforeNowPromptResponse extends PromptResponse {
 			throw new IllegalArgumentException(
 					"Both hours and no response were given.");
 		}
-		
-		this.hours = hours;
+		*/
+		//this.hours = hours;
 	}
 	
 	/**
 	 * Returns the hours response from the user.
 	 * 
 	 * @return The hours response from the user. 
+	 * 
+	 * @throws DomainException The prompt does not have a response.
 	 */
-	public Long getHours() {
-		return hours;
+	public Long getHours() throws DomainException {
+		if(wasNotDisplayed()) {
+			throw new DomainException("The prompt was not displayed.");
+		}
+		else if(wasSkipped()) {
+			throw new DomainException("The prompt was skipped.");
+		}
+		
+		return (Long) this.getResponse();
 	}
 	
 	/**
 	 * Returns the hours as a string.
 	 * 
 	 * @return A String representing the hours.
-	 */
+	 *
 	@Override
 	public Object getResponseValue() {
 		Object noResponseObject = super.getResponseValue();
@@ -74,20 +89,20 @@ public class HoursBeforeNowPromptResponse extends PromptResponse {
 		else {
 			return noResponseObject;
 		}
-	}
+	}*/
 
 	/**
 	 * Generates a hash code for this response.
 	 * 
 	 * @return A hash code for this prompt response.
-	 */
+	 *
 	@Override
 	public int hashCode() {
 		final int prime = 31;
 		int result = super.hashCode();
 		result = prime * result + ((hours == null) ? 0 : hours.hashCode());
 		return result;
-	}
+	}*/
 
 	/**
 	 * Determines if this prompt response is logically equivalent to another
@@ -97,7 +112,7 @@ public class HoursBeforeNowPromptResponse extends PromptResponse {
 	 * 
 	 * @return True if this response is logically equivalent to the other 
 	 * 		   object; false, otherwise.
-	 */
+	 *
 	@Override
 	public boolean equals(Object obj) {
 		if (this == obj)
@@ -113,5 +128,5 @@ public class HoursBeforeNowPromptResponse extends PromptResponse {
 		} else if (!hours.equals(other.hours))
 			return false;
 		return true;
-	}
+	}*/
 }

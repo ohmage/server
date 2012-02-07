@@ -153,12 +153,10 @@ public abstract class BoundedPrompt extends Prompt {
 	 * 
 	 * @param value The value to be validated.
 	 * 
-	 * @return A Long object that represents the value.
+	 * @return A Long object that represents the value or a NoResponse object
+	 * 		   that represents why the prompt doesn't have a response.
 	 * 
 	 * @throws DomainException Thrown if the value is invalid.
-	 * 
-	 * @throws NoResponseException Thrown if the value is or represents a
-	 * 							   NoResponse object.
 	 */
 	@Override
 	public Object validateValue(final Object value) throws DomainException {
@@ -168,7 +166,8 @@ public abstract class BoundedPrompt extends Prompt {
 		// was skipped that it as skippable.
 		if(value instanceof NoResponse) {
 			if(NoResponse.SKIPPED.equals(value) && (! skippable())) {
-				throw new IllegalArgumentException("The prompt was skipped, but it is not skippable.");
+				throw new DomainException(
+						"The prompt was skipped, but it is not skippable.");
 			}
 			
 			//throw new NoResponseException((NoResponse) value);
@@ -187,7 +186,7 @@ public abstract class BoundedPrompt extends Prompt {
 				longValue = ((Number) value).longValue();
 			}
 			else {
-				throw new IllegalArgumentException("Only whole number are allowed.");
+				throw new DomainException("Only whole numbers are allowed.");
 			}
 		}
 		// If it is a string, parse it to check if it's a NoResponse value and,
@@ -197,28 +196,34 @@ public abstract class BoundedPrompt extends Prompt {
 			String stringValue = (String) value;
 			
 			try {
-				throw new NoResponseException(NoResponse.valueOf(stringValue));
+				//throw new NoResponseException(NoResponse.valueOf(stringValue));
+				return NoResponse.valueOf(stringValue);
 			}
 			catch(IllegalArgumentException iae) {
 				try {
 					longValue = Long.decode(stringValue);
 				}
 				catch(NumberFormatException nfe) {
-					throw new IllegalArgumentException("The value is not a valid number.");
+					throw new DomainException(
+							"The value is not a valid number.",
+							nfe);
 				}
 			}
 		}
 		// Finally, if its type is unknown, throw an exception.
 		else {
-			throw new IllegalArgumentException("The value is not decodable as a response value.");
+			throw new DomainException(
+					"The value is not decodable as a response value.");
 		}
 		
 		// Now that we have a Long value, verify that it is within bounds.
 		if(longValue < min) {
-			throw new IllegalArgumentException("The value is less than the lower bound.");
+			throw new DomainException(
+					"The value is less than the lower bound.");
 		}
 		else if(longValue > max) {
-			throw new IllegalArgumentException("The value is greater than the lower bound.");
+			throw new DomainException(
+					"The value is greater than the lower bound.");
 		}
 		
 		return longValue;
@@ -228,28 +233,18 @@ public abstract class BoundedPrompt extends Prompt {
 	 * Creates a JSONObject that represents this bounded prompt.
 	 * 
 	 * @return A JSONObject that represents this bounded prompt.
+	 * 
+	 * @throws JSONException There was a problem creating the JSONObject.
 	 */
 	@Override
-	public JSONObject toJson() {
-		try {
-			JSONObject result = super.toJson();
-			
-			if(result == null) {
-				// FIXME: Ignore the exception thrown, allowing it to 
-				// propagate.
-				return null;
-			}
-			
-			result.put(JSON_KEY_LOWER_BOUND, min);
-			result.put(JSON_KEY_UPPER_BOUND, max);
-			result.put(JSON_KEY_DEFAULT, defaultValue);
-			
-			return result;
-		}
-		catch(JSONException e) {
-			// FIXME: Throw an exception.
-			return null;
-		}
+	public JSONObject toJson() throws JSONException {
+		JSONObject result = super.toJson();
+		
+		result.put(JSON_KEY_LOWER_BOUND, min);
+		result.put(JSON_KEY_UPPER_BOUND, max);
+		result.put(JSON_KEY_DEFAULT, defaultValue);
+		
+		return result;
 	}
 
 	/**

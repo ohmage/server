@@ -42,6 +42,7 @@ public class RepeatableSetResponse extends Response {
 			final RepeatableSet repeatableSet, 
 			final NoResponse noResponse) 
 			throws DomainException {
+		
 		super(noResponse);
 		
 		if(repeatableSet == null) {

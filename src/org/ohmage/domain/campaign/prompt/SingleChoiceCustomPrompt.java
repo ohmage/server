@@ -9,6 +9,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.ohmage.domain.campaign.Response.NoResponse;
 import org.ohmage.domain.campaign.response.SingleChoiceCustomPromptResponse;
+import org.ohmage.exception.DomainException;
 
 /**
  * This class represents a single choice prompt with custom choices from the
@@ -59,17 +60,25 @@ public class SingleChoiceCustomPrompt extends CustomChoicePrompt {
 	 * @param index This prompt's index in its container's list of survey 
 	 * 				items.
 	 * 
-	 * @throws IllegalArgumentException Thrown if any of the required 
-	 * 									parameters are missing or invalid. 
+	 * @throws DomainException Thrown if any of the required parameters are 
+	 * 						   missing or invalid. 
 	 */
-	public SingleChoiceCustomPrompt(final String id, final String condition, 
-			final String unit, final String text, 
-			final String abbreviatedText, final String explanationText,
-			final boolean skippable, final String skipLabel,
-			final DisplayType displayType, final String displayLabel,
+	public SingleChoiceCustomPrompt(
+			final String id, 
+			final String condition, 
+			final String unit, 
+			final String text, 
+			final String abbreviatedText, 
+			final String explanationText,
+			final boolean skippable, 
+			final String skipLabel,
+			final DisplayType displayType, 
+			final String displayLabel,
 			final Map<Integer, LabelValuePair> choices,
 			final Map<Integer, LabelValuePair> customChoices,
-			final Integer defaultKey, final int index) {
+			final Integer defaultKey, 
+			final int index) 
+			throws DomainException {
 		
 		super(id, condition, unit, text, abbreviatedText, explanationText,
 				skippable, skipLabel, displayType, displayLabel, 
@@ -77,7 +86,7 @@ public class SingleChoiceCustomPrompt extends CustomChoicePrompt {
 		
 		if((defaultKey != null) &&
 				(! getAllChoices().containsKey(defaultKey))) {
-			throw new IllegalArgumentException("The default key does not exist.");
+			throw new DomainException("The default key does not exist.");
 		}
 		this.defaultKey = defaultKey;
 	}
@@ -95,30 +104,30 @@ public class SingleChoiceCustomPrompt extends CustomChoicePrompt {
 	 * Validates that an Object is a valid response value. This must be one of
 	 * the following:<br />
 	 * <li>A {@link NoResponse} object.</li>
+	 * <li>A String representing a label value.</li>
 	 * <li>A String representing a {@link NoResponse} value.</li>
-	 * <li>An Integer key value.</li>
-	 * <li>A String representing a key value.</li>
 	 * 
 	 * @param value The value to be validated.
 	 * 
 	 * @return A {@link NoResponse} object or an Integer.
 	 * 
-	 * @throws IllegalArgumentException Thrown if the value is not valid.
+	 * @throws DomainException Thrown if the value is not valid.
 	 */
 	@Override
-	public String validateValue(final Object value) throws NoResponseException {
+	public Object validateValue(final Object value) throws DomainException {
 		// If it's already a NoResponse value, then make sure that if it
 		// was skipped that it is skippable.
 		if(value instanceof NoResponse) {
 			if(NoResponse.SKIPPED.equals(value) && (! skippable())) {
-				throw new IllegalArgumentException("The prompt was skipped, but it is not skippable.");
+				throw new DomainException(
+						"The prompt was skipped, but it is not skippable.");
 			}
 			
-			throw new NoResponseException((NoResponse) value);
+			return value;
 		}
 		else if(value instanceof String) {
 			try {
-				throw new NoResponseException(NoResponse.valueOf((String) value));
+				return NoResponse.valueOf((String) value);
 			}
 			catch(IllegalArgumentException notNoResponse) {
 				Map<Integer, LabelValuePair> choices = getAllChoices();
@@ -136,7 +145,8 @@ public class SingleChoiceCustomPrompt extends CustomChoicePrompt {
 						addChoice(0, (String) value, null);
 					} 
 					else {
-						List<Integer> keys = new ArrayList<Integer>(choices.keySet());
+						List<Integer> keys = 
+								new ArrayList<Integer>(choices.keySet());
 						Collections.sort(keys);
 						int key = keys.get(keys.size() - 1) + 1;
 						addChoice(key, (String) value, null);
@@ -147,7 +157,8 @@ public class SingleChoiceCustomPrompt extends CustomChoicePrompt {
 			}
 		}
 		else {
-			throw new IllegalArgumentException("The value is not decodable as a reponse value: " + value);
+			throw new DomainException(
+					"The value is not decodable as a reponse value: " + value);
 		}
 	}
 	
@@ -161,66 +172,38 @@ public class SingleChoiceCustomPrompt extends CustomChoicePrompt {
 	 * 								 repeatable set on which the response to
 	 * 								 this prompt was made.
 	 * 
-	 * @throws IllegalArgumentException Thrown if this prompt is part of a
-	 * 									repeatable set but the repeatable set
-	 * 									iteration value is null, if the
-	 * 									repeatable set iteration value is 
-	 * 									negative, or if the value is not a 
-	 * 									valid response value for this prompt.
+	 * @throws DomainException Thrown if this prompt is part of a repeatable 
+	 * 						   set but the repeatable set iteration value is 
+	 * 						   null, if the repeatable set iteration value is 
+	 * 						   negative, or if the value is not a valid 
+	 * 						   response value for this prompt.
 	 */
 	@Override
-	public SingleChoiceCustomPromptResponse createResponse(final Object response, 
-			final Integer repeatableSetIteration) {
+	public SingleChoiceCustomPromptResponse createResponse(
+			final Integer repeatableSetIteration,
+			final Object response) 
+			throws DomainException {
 		
-		if((repeatableSetIteration == null) && (getParent() != null)) {
-			throw new IllegalArgumentException("The repeatable set iteration is null, but this prompt is part of a repeatable set.");
-		}
-		else if((repeatableSetIteration != null) && (repeatableSetIteration < 0)) {
-			throw new IllegalArgumentException("The repeatable set iteration value is negative.");
-		}
-		
-		try {
-			return new SingleChoiceCustomPromptResponse(
-					this, 
-					null, 
-					repeatableSetIteration, 
-					validateValue(response)
-				);
-		}
-		catch(NoResponseException e) {
-			return new SingleChoiceCustomPromptResponse(
-					this, 
-					e.getNoResponse(), 
-					repeatableSetIteration, 
-					null
-				);
-		}
+		return new SingleChoiceCustomPromptResponse(
+				this,
+				repeatableSetIteration,
+				response);
 	}
 	
 	/**
 	 * Creates a JSONObject that represents this single-choice custom prompt.
 	 * 
 	 * @return A JSONObject that represents this single-choice custom prompt.
+	 * 
+	 * @throws JSONException There was a problem creating the JSONObject.
 	 */
 	@Override
-	public JSONObject toJson() {
-		try {
-			JSONObject result = super.toJson();
-			
-			if(result == null) {
-				// FIXME: Ignore the exception thrown, allowing it to 
-				// propagate.
-				return null;
-			}
-			
-			result.put(JSON_KEY_DEFAULT, defaultKey);
-			
-			return result;
-		}
-		catch(JSONException e) {
-			// FIXME: Throw an exception.
-			return null;
-		}
+	public JSONObject toJson() throws JSONException {
+		JSONObject result = super.toJson();
+		
+		result.put(JSON_KEY_DEFAULT, defaultKey);
+		
+		return result;
 	}
 
 	/**

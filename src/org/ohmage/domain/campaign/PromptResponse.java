@@ -49,21 +49,30 @@ public abstract class PromptResponse extends Response {
 	 */
 	public PromptResponse(
 			final Prompt prompt, 
-			final NoResponse noResponse,
-			final Integer repeatableSetIteration) 
+			final Integer repeatableSetIteration,
+			final Object response) 
 			throws DomainException {
 		
-		super(noResponse);
+		super(prompt.validateValue(response));
 		
-		if(prompt == null) {
-			throw new DomainException("The prompt is null.");
-		}
-		else if((repeatableSetIteration == null) && 
+		if(
+				(repeatableSetIteration == null) && 
 				(prompt.getParent() != null)) {
+			
 			throw new DomainException(
 					"The repeatable set iteration is null, but this prompt is part of a repeatable set.");
 		}
-		else if((repeatableSetIteration != null) && (repeatableSetIteration < 0)) {
+		else if(
+				(repeatableSetIteration != null) &&
+				(prompt.getParent() == null)) {
+			
+			throw new DomainException(
+					"The repeatable set iteration is not null, but this prompt is not part of a repeatable set.");
+		}
+		else if(
+				(repeatableSetIteration != null) && 
+				(repeatableSetIteration < 0)) {
+			
 			throw new DomainException(
 					"The repeatable set iteration value is negative.");
 		}
@@ -109,7 +118,7 @@ public abstract class PromptResponse extends Response {
 		if(withId) {
 			result.put(JSON_KEY_PROMPT_ID, prompt.getId());
 			
-			result.put(JSON_KEY_RESPONSE, getResponseValue());
+			result.put(JSON_KEY_RESPONSE, getResponse());
 		}
 		else {
 			result.put("prompt_text", prompt.getText());
@@ -137,7 +146,7 @@ public abstract class PromptResponse extends Response {
 			
 			if(this instanceof RemoteActivityPromptResponse &&
 					(! wasNotDisplayed()) && (! wasSkipped())) {
-				JSONArray gameResults = (JSONArray) getResponseValue();
+				JSONArray gameResults = (JSONArray) getResponse();
 				double numResults = gameResults.length();
 				
 				double total = 0;
@@ -147,7 +156,7 @@ public abstract class PromptResponse extends Response {
 				result.put("prompt_response", total / numResults);
 			}
 			else {
-				result.put("prompt_response", getResponseValue());
+				result.put("prompt_response", getResponse());
 			}
 		}
 		

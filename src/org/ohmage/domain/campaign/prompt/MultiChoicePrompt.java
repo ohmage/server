@@ -10,6 +10,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.ohmage.domain.campaign.Response.NoResponse;
 import org.ohmage.domain.campaign.response.MultiChoicePromptResponse;
+import org.ohmage.exception.DomainException;
 import org.ohmage.util.StringUtils;
 
 /**
@@ -59,16 +60,24 @@ public class MultiChoicePrompt extends ChoicePrompt {
 	 * @param index This prompt's index in its container's list of survey 
 	 * 				items.
 	 * 
-	 * @throws IllegalArgumentException Thrown if any of the required 
-	 * 									parameters are missing or invalid. 
+	 * @throws DomainException Thrown if any of the required parameters are 
+	 * 						   missing or invalid. 
 	 */
-	public MultiChoicePrompt(final String id, final String condition, 
-			final String unit, final String text, 
-			final String abbreviatedText, final String explanationText,
-			final boolean skippable, final String skipLabel,
-			final DisplayType displayType, final String displayLabel,
+	public MultiChoicePrompt(
+			final String id, 
+			final String condition, 
+			final String unit, 
+			final String text, 
+			final String abbreviatedText, 
+			final String explanationText,
+			final boolean skippable, 
+			final String skipLabel,
+			final DisplayType displayType, 
+			final String displayLabel,
 			final Map<Integer, LabelValuePair> choices, 
-			final Collection<Integer> defaultKeys, final int index) {
+			final Collection<Integer> defaultKeys, 
+			final int index) 
+			throws DomainException {
 		
 		super(id, condition, unit, text, abbreviatedText, explanationText,
 				skippable, skipLabel, displayType, displayLabel, 
@@ -78,7 +87,8 @@ public class MultiChoicePrompt extends ChoicePrompt {
 			Collection<Integer> availableKeys = getChoices().keySet();
 			for(Integer defaultKey : defaultKeys) {
 				if(! availableKeys.contains(defaultKey)) {
-					throw new IllegalArgumentException("The default key does not exist.");
+					throw new DomainException(
+							"The default key does not exist.");
 				}
 			}
 		}
@@ -92,7 +102,8 @@ public class MultiChoicePrompt extends ChoicePrompt {
 	 */
 	public final Collection<String> getDefaultValues() {
 		Map<Integer, LabelValuePair> choices = getChoices();
-		Collection<String> result = new ArrayList<String>(defaultKeys.size());
+		Collection<String> result = 
+				new ArrayList<String>(defaultKeys.size());
 		
 		for(Integer key : defaultKeys) {
 			result.add(choices.get(key).getLabel());
@@ -105,19 +116,20 @@ public class MultiChoicePrompt extends ChoicePrompt {
 	 * Validates that an Object is a valid response value. This must be one of
 	 * the following:<br />
 	 * <li>A {@link NoResponse} object.</li>
-	 * <li>A String representing a {@link NoResponse} value.</li>
 	 * <li>An Integer key value.</li>
 	 * <li>A Collection of Integer key values.</li>
-	 * <li>A JSONArray 
+	 * <li>A JSONArray of key values.</li>
+	 * <li>A String representing a {@link NoResponse} value.</li>
+	 * <li>A String representing a comma-separated list of keys.</li>
 	 * 
 	 * @param value The value to be validated.
 	 * 
 	 * @return A {@link NoResponse} object or a Collection of Integers.
 	 * 
-	 * @throws IllegalArgumentException Thrown if the value is not valid.
+	 * @throws DomainException Thrown if the value is not valid.
 	 */
 	@Override
-	public Collection<Integer> validateValue(final Object value) throws NoResponseException {
+	public Object validateValue(final Object value) throws DomainException {
 		Collection<Integer> collectionValue = null;
 		Map<Integer, LabelValuePair> choices = getChoices();
 		
@@ -125,10 +137,11 @@ public class MultiChoicePrompt extends ChoicePrompt {
 		// was skipped that it as skippable.
 		if(value instanceof NoResponse) {
 			if(NoResponse.SKIPPED.equals(value) && (! skippable())) {
-				throw new IllegalArgumentException("The prompt was skipped, but it is not skippable.");
+				throw new DomainException(
+						"The prompt was skipped, but it is not skippable.");
 			}
 			
-			throw new NoResponseException((NoResponse) value);
+			return value;
 		}
 		// If it's already an integer, add it as the only result item.
 		else if(value instanceof Integer) {
@@ -146,7 +159,8 @@ public class MultiChoicePrompt extends ChoicePrompt {
 					collectionValue.add((Integer) currResponse);
 				}
 				else {
-					throw new IllegalArgumentException("The value was a collection, but not all of the items were integers.");
+					throw new DomainException(
+							"The value was a collection, but not all of the items were integers.");
 				}
 			}
 		}
@@ -161,7 +175,9 @@ public class MultiChoicePrompt extends ChoicePrompt {
 					collectionValue.add(responses.getInt(i));
 				}
 				catch(JSONException notKey) {
-					throw new IllegalArgumentException("The value was a JSONArray, but not all of the elements were integers.", notKey);
+					throw new DomainException(
+							"The value was a JSONArray, but not all of the elements were integers.", 
+							notKey);
 				}
 			}
 		}
@@ -171,7 +187,7 @@ public class MultiChoicePrompt extends ChoicePrompt {
 			String valueString = (String) value;
 			
 			try {
-				throw new NoResponseException(NoResponse.valueOf(valueString));
+				return NoResponse.valueOf(valueString);
 			}
 			catch(IllegalArgumentException notNoResponse) {
 				collectionValue = new HashSet<Integer>();
@@ -185,7 +201,9 @@ public class MultiChoicePrompt extends ChoicePrompt {
 							collectionValue.add(responses.getInt(i));
 						}
 						catch(JSONException notKey) {
-							throw new IllegalArgumentException("The value was a JSONArray, but not all fo the elements were integers.", notKey);
+							throw new DomainException(
+									"The value was a JSONArray, but not all fo the elements were integers.", 
+									notKey);
 						}
 					}
 				}
@@ -201,7 +219,9 @@ public class MultiChoicePrompt extends ChoicePrompt {
 								collectionValue.add(Integer.decode(currResponse));
 							}
 							catch(NumberFormatException notKey) {
-								throw new IllegalArgumentException("The value was a comma-separated list, but not all of the elemtns were integers.", notKey);
+								throw new DomainException(
+										"The value was a comma-separated list, but not all of the elemtns were integers.", 
+										notKey);
 							}
 						}
 					}
@@ -209,12 +229,15 @@ public class MultiChoicePrompt extends ChoicePrompt {
 			}
 		}
 		else {
-			throw new IllegalArgumentException("The value is not decodable as a reponse value: " + value.toString());
+			throw new DomainException(
+					"The value is not decodable as a reponse value: " + 
+						value.toString());
 		}
 		
 		for(Integer key : collectionValue) {
 			if(! choices.containsKey(key)) {
-				throw new IllegalArgumentException("A key was given that isn't a known choice.");
+				throw new DomainException(
+						"A key was given that isn't a known choice.");
 			}
 		}
 		
@@ -231,66 +254,38 @@ public class MultiChoicePrompt extends ChoicePrompt {
 	 * 								 repeatable set on which the response to
 	 * 								 this prompt was made.
 	 * 
-	 * @throws IllegalArgumentException Thrown if this prompt is part of a
-	 * 									repeatable set but the repeatable set
-	 * 									iteration value is null, if the
-	 * 									repeatable set iteration value is 
-	 * 									negative, or if the value is not a 
-	 * 									valid response value for this prompt.
+	 * @throws DomainException Thrown if this prompt is part of a repeatable 
+	 * 						   set but the repeatable set iteration value is 
+	 * 						   null, if the repeatable set iteration value is 
+	 * 						   negative, or if the value is not a valid 
+	 * 						   response value for this prompt.
 	 */
 	@Override
-	public MultiChoicePromptResponse createResponse(final Object response, 
-			final Integer repeatableSetIteration) {
+	public MultiChoicePromptResponse createResponse(
+			final Integer repeatableSetIteration,
+			final Object response) 
+			throws DomainException {
 		
-		if((repeatableSetIteration == null) && (getParent() != null)) {
-			throw new IllegalArgumentException("The repeatable set iteration is null, but this prompt is part of a repeatable set.");
-		}
-		else if((repeatableSetIteration != null) && (repeatableSetIteration < 0)) {
-			throw new IllegalArgumentException("The repeatable set iteration value is negative.");
-		}
-		
-		try {
-			return new MultiChoicePromptResponse(
-					this, 
-					null, 
-					repeatableSetIteration, 
-					validateValue(response)
-				);
-		}
-		catch(NoResponseException e) {
-			return new MultiChoicePromptResponse(
-					this, 
-					e.getNoResponse(), 
-					repeatableSetIteration, 
-					null
-				);
-		}
+		return new MultiChoicePromptResponse(
+				this,
+				repeatableSetIteration,
+				response);
 	}
 	
 	/**
 	 * Creates a JSONObject that represents this multi-choice prompt.
 	 * 
 	 * @return A JSONObject that represents this multi-choice prompt.
+	 * 
+	 * @throws JSONException There was a problem creating a JSONObject.
 	 */
 	@Override
-	public JSONObject toJson() {
-		try {
-			JSONObject result = super.toJson();
-			
-			if(result == null) {
-				// FIXME: Ignore the exception thrown, allowing it to 
-				// propagate.
-				return null;
-			}
-			
-			result.put(JSON_KEY_DEFAULT, new JSONArray(defaultKeys));
-			
-			return result;
-		}
-		catch(JSONException e) {
-			// FIXME: Throw an exception.
-			return null;
-		}
+	public JSONObject toJson() throws JSONException {
+		JSONObject result = super.toJson();
+		
+		result.put(JSON_KEY_DEFAULT, new JSONArray(defaultKeys));
+		
+		return result;
 	}
 
 	/**

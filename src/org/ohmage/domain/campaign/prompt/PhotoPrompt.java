@@ -7,6 +7,7 @@ import org.json.JSONObject;
 import org.ohmage.domain.campaign.Prompt;
 import org.ohmage.domain.campaign.Response.NoResponse;
 import org.ohmage.domain.campaign.response.PhotoPromptResponse;
+import org.ohmage.exception.DomainException;
 
 /**
  * This class represents a photo prompt.
@@ -58,22 +59,30 @@ public class PhotoPrompt extends Prompt {
 	 * @param index This prompt's index in its container's list of survey 
 	 * 				items.
 	 * 
-	 * @throws IllegalArgumentException Thrown if the vertical resolution is
-	 * 									negative.
+	 * @throws DomainException Thrown if the vertical resolution is negative.
 	 */
-	public PhotoPrompt(final String id, final String condition, 
-			final String unit, final String text, 
-			final String abbreviatedText, final String explanationText,
-			final boolean skippable, final String skipLabel,
-			final DisplayType displayType, final String displayLabel,
-			final int verticalResolution, final int index) {
+	public PhotoPrompt(
+			final String id, 
+			final String condition, 
+			final String unit, 
+			final String text, 
+			final String abbreviatedText, 
+			final String explanationText,
+			final boolean skippable, 
+			final String skipLabel,
+			final DisplayType displayType, 
+			final String displayLabel,
+			final int verticalResolution, 
+			final int index) 
+			throws DomainException {
 		
 		super(id, condition, unit, text, abbreviatedText, explanationText,
 				skippable, skipLabel, displayType, displayLabel, 
 				Type.PHOTO, index);
 		
 		if(verticalResolution < 0) {
-			throw new IllegalArgumentException("The vertical resolution cannot be negative.");
+			throw new DomainException(
+					"The vertical resolution cannot be negative.");
 		}
 		
 		this.verticalResolution = verticalResolution;
@@ -96,21 +105,24 @@ public class PhotoPrompt extends Prompt {
 	 * @return A {@link NoResponse} value if a {@link NoResponse} object or no
 	 * 		   response string value were given or a UUID value representing 
 	 * 		   the photo's UUID.
+	 * 
+	 * @throws DomainException The value was not decodable as a response value.
 	 */
 	@Override
-	public UUID validateValue(final Object value) throws NoResponseException {
+	public Object validateValue(final Object value) throws DomainException {
 		// If it's already a NoResponse value, then return make sure that if it
 		// was skipped that it as skippable.
 		if(value instanceof NoResponse) {
 			if(NoResponse.SKIPPED.equals(value) && (! skippable())) {
-				throw new IllegalArgumentException("The prompt was skipped, but it is not skippable.");
+				throw new DomainException(
+						"The prompt was skipped, but it is not skippable.");
 			}
 			
-			throw new NoResponseException((NoResponse) value);
+			return value;
 		}
 		// If it is already a UUID value, then return it.
 		else if(value instanceof UUID) {
-			return (UUID) value;
+			return value;
 		}
 		// If it is a String value then attempt to decode it into a NoResponse
 		// value or a UUID value.
@@ -118,19 +130,21 @@ public class PhotoPrompt extends Prompt {
 			String valueString = (String) value;
 			
 			try {
-				throw new NoResponseException(NoResponse.valueOf(valueString));
+				return NoResponse.valueOf(valueString);
 			}
 			catch(IllegalArgumentException notNoResponse) {
 				try {
 					return UUID.fromString(valueString);
 				}
 				catch(IllegalArgumentException notUuid) {
-					throw new IllegalArgumentException("The string response value was not decodable into a UUID.");
+					throw new DomainException(
+							"The string response value was not decodable into a UUID.");
 				}
 			}
 		}
 		else {
-			throw new IllegalArgumentException("The value is not decodable as a reponse value.");
+			throw new DomainException(
+					"The value is not decodable as a reponse value.");
 		}
 	}
 	
@@ -144,68 +158,38 @@ public class PhotoPrompt extends Prompt {
 	 * 								 repeatable set on which the response to
 	 * 								 this prompt was made.
 	 * 
-	 * @throws IllegalArgumentException Thrown if this prompt is part of a
-	 * 									repeatable set but the repeatable set
-	 * 									iteration value is null, if the
-	 * 									repeatable set iteration value is 
-	 * 									negative, or if the value is not a 
-	 * 									valid response value for this prompt.
+	 * @throws DomainException Thrown if this prompt is part of a repeatable 
+	 * 						   set but the repeatable set iteration value is 
+	 * 						   null, if the repeatable set iteration value is 
+	 * 						   negative, or if the value is not a valid 
+	 * 						   response value for this prompt.
 	 */
 	@Override
-	public PhotoPromptResponse createResponse(final Object response, 
-			final Integer repeatableSetIteration) {
+	public PhotoPromptResponse createResponse(
+			final Integer repeatableSetIteration,
+			final Object response) 
+			throws DomainException {
 		
-		if((repeatableSetIteration == null) && (getParent() != null)) {
-			throw new IllegalArgumentException("The repeatable set iteration is null, but this prompt is part of a repeatable set.");
-		}
-		else if((repeatableSetIteration != null) && (repeatableSetIteration < 0)) {
-			throw new IllegalArgumentException("The repeatable set iteration value is negative.");
-		}
-		
-		try {
-			return new PhotoPromptResponse(
-					this, 
-					null, 
-					repeatableSetIteration, 
-					validateValue(response),
-					null
-				);
-		}
-		catch(NoResponseException e) {
-			return new PhotoPromptResponse(
-					this, 
-					e.getNoResponse(), 
-					repeatableSetIteration, 
-					null,
-					null
-				);
-		}
+		return new PhotoPromptResponse(
+				this,
+				repeatableSetIteration,
+				response);
 	}
 	
 	/**
 	 * Creates a JSONObject that represents this photo prompt.
 	 * 
 	 * @return A JSONObject that represents this photo prompt.
+	 * 
+	 * @throws JSONException There was a problem creating the JSONObject.
 	 */
 	@Override
-	public JSONObject toJson() {
-		try {
-			JSONObject result = super.toJson();
-			
-			if(result == null) {
-				// FIXME: Ignore the exception thrown, allowing it to 
-				// propagate.
-				return null;
-			}
-			
-			result.put(JSON_KEY_VERTICAL_RESOLUTION, verticalResolution);
-			
-			return result;
-		}
-		catch(JSONException e) {
-			// FIXME: Throw an exception.
-			return null;
-		}
+	public JSONObject toJson() throws JSONException {
+		JSONObject result = super.toJson();
+		
+		result.put(JSON_KEY_VERTICAL_RESOLUTION, verticalResolution);
+		
+		return result;
 	}
 
 	/**

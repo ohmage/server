@@ -5,6 +5,7 @@ import org.json.JSONObject;
 import org.ohmage.domain.campaign.Prompt;
 import org.ohmage.domain.campaign.Response.NoResponse;
 import org.ohmage.domain.campaign.response.TextPromptResponse;
+import org.ohmage.exception.DomainException;
 
 /**
  * This class represents a text prompt.
@@ -66,16 +67,25 @@ public class TextPrompt extends Prompt {
 	 * @param index This prompt's index in its container's list of survey 
 	 * 				items.
 	 * 
-	 * @throws IllegalArgumentException Thrown if any of the required 
-	 * 									parameters are missing or invalid. 
+	 * @throws DomainException Thrown if any of the required parameters are 
+	 * 						   missing or invalid. 
 	 */
-	public TextPrompt(final String id, final String condition, 
-			final String unit, final String text, 
-			final String abbreviatedText, final String explanationText,
-			final boolean skippable, final String skipLabel,
-			final DisplayType displayType, final String displayLabel,
-			final long min, final long max, final String defaultValue,
-			final int index) {
+	public TextPrompt(
+			final String id, 
+			final String condition, 
+			final String unit, 
+			final String text, 
+			final String abbreviatedText, 
+			final String explanationText,
+			final boolean skippable, 
+			final String skipLabel,
+			final DisplayType displayType, 
+			final String displayLabel,
+			final long min, 
+			final long max, 
+			final String defaultValue,
+			final int index) 
+			throws DomainException {
 		
 		super(id, condition, unit, text, abbreviatedText, explanationText,
 				skippable, skipLabel, displayType, displayLabel, 
@@ -95,20 +105,21 @@ public class TextPrompt extends Prompt {
 	 * @return A String value if it is a valid response or a {@link NoResponse}
 	 * 		   object value if it is a valid {@link NoResponse} value.
 	 * 
-	 * @throws IllegalArgumentException Thrown if the value is invalid.
+	 * @throws DomainException Thrown if the value is invalid.
 	 */
 	@Override
-	public String validateValue(final Object value) throws NoResponseException {
+	public Object validateValue(final Object value) throws DomainException {
 		String valueString;
 		
 		// If it's already a NoResponse value, then return make sure that if it
 		// was skipped that it as skippable.
 		if(value instanceof NoResponse) {
 			if(NoResponse.SKIPPED.equals(value) && (! skippable())) {
-				throw new IllegalArgumentException("The prompt was skipped, but it is not skippable.");
+				throw new DomainException(
+						"The prompt was skipped, but it is not skippable.");
 			}
 			
-			throw new NoResponseException((NoResponse) value);
+			return value;
 		}
 		// If it is a string, parse it to check if it's a NoResponse value and,
 		// if not, parse it as a string.
@@ -116,7 +127,7 @@ public class TextPrompt extends Prompt {
 			valueString = (String) value;
 			
 			try {
-				throw new NoResponseException(NoResponse.valueOf(valueString));
+				return NoResponse.valueOf(valueString);
 			}
 			catch(IllegalArgumentException iae) {
 				// It must be the response.
@@ -124,16 +135,17 @@ public class TextPrompt extends Prompt {
 		}
 		// Finally, if its type is unknown, throw an exception.
 		else {
-			throw new IllegalArgumentException("The value is not decodable as a response value.");
+			throw new DomainException(
+					"The value is not decodable as a response value.");
 		}
 		
 		// Ensure that the length falls within the bounds.
 		long length = ((String) value).length();
 		if(length < getMin()) {
-			throw new IllegalArgumentException("The value is too short.");
+			throw new DomainException("The value is too short.");
 		}
 		else if(length > getMax()) {
-			throw new IllegalArgumentException("The value is too long.");
+			throw new DomainException("The value is too long.");
 		}
 		
 		return valueString;
@@ -176,68 +188,40 @@ public class TextPrompt extends Prompt {
 	 * 								 repeatable set on which the response to
 	 * 								 this prompt was made.
 	 * 
-	 * @throws IllegalArgumentException Thrown if this prompt is part of a
-	 * 									repeatable set but the repeatable set
-	 * 									iteration value is null, if the
-	 * 									repeatable set iteration value is 
-	 * 									negative, or if the value is not a 
-	 * 									valid response value for this prompt.
+	 * @throws DomainException Thrown if this prompt is part of a repeatable 
+	 * 						   set but the repeatable set iteration value is 
+	 * 						   null, if the repeatable set iteration value is 
+	 * 						   negative, or if the value is not a valid 
+	 * 						   response value for this prompt.
 	 */
 	@Override
-	public TextPromptResponse createResponse(final Object response, 
-			final Integer repeatableSetIteration) {
+	public TextPromptResponse createResponse(
+			final Integer repeatableSetIteration,
+			final Object response) 
+			throws DomainException {
 		
-		if((repeatableSetIteration == null) && (getParent() != null)) {
-			throw new IllegalArgumentException("The repeatable set iteration is null, but this prompt is part of a repeatable set.");
-		}
-		else if((repeatableSetIteration != null) && (repeatableSetIteration < 0)) {
-			throw new IllegalArgumentException("The repeatable set iteration value is negative.");
-		}
-		
-		try {
-			return new TextPromptResponse(
-					this, 
-					null, 
-					repeatableSetIteration, 
-					validateValue(response)
-				);
-		}
-		catch(NoResponseException e) {
-			return new TextPromptResponse(
-					this, 
-					e.getNoResponse(), 
-					repeatableSetIteration, 
-					null
-				);
-		}
+		return new TextPromptResponse(
+				this,
+				repeatableSetIteration,
+				response);
 	}
 	
 	/**
 	 * Creates a JSONObject that represents this bounded prompt.
 	 * 
 	 * @return A JSONObject that represents this bounded prompt.
+	 * 
+	 * @throws JSONException There was a problem creating the JSONObject.
 	 */
 	@Override
-	public JSONObject toJson() {
-		try {
-			JSONObject result = super.toJson();
-			
-			if(result == null) {
-				// FIXME: Ignore the exception thrown, allowing it to 
-				// propagate.
-				return null;
-			}
-			
-			result.put(JSON_KEY_LOWER_BOUND, min);
-			result.put(JSON_KEY_UPPER_BOUND, max);
-			result.put(JSON_KEY_DEFAULT, defaultValue);
-			
-			return result;
-		}
-		catch(JSONException e) {
-			// FIXME: Throw an exception.
-			return null;
-		}
+	public JSONObject toJson() throws JSONException {
+		JSONObject result = super.toJson();
+		
+		result.put(JSON_KEY_LOWER_BOUND, min);
+		result.put(JSON_KEY_UPPER_BOUND, max);
+		result.put(JSON_KEY_DEFAULT, defaultValue);
+		
+		return result;
 	}
 
 	/**

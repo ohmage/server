@@ -257,8 +257,8 @@ public abstract class Prompt extends SurveyItem {
 	 * @param index This prompt's index in its container's list of survey 
 	 * 				items.
 	 * 
-	 * @throws IllegalArgumentException Thrown if any of the required 
-	 * 									parameters are missing or invalid. 
+	 * @throws DomainException Thrown if any of the required parameters are 
+	 * 						   missing or invalid. 
 	 */
 	public Prompt(
 			final String id, 
@@ -427,11 +427,6 @@ public abstract class Prompt extends SurveyItem {
 	public JSONObject toJson() throws JSONException {
 		JSONObject result = super.toJson();
 		
-		if(result == null) {
-			// FIXME: Ignore the exception and let it propagate.
-			return null;
-		}
-		
 		result.put(JSON_KEY_UNIT, unit);
 		result.put(JSON_KEY_TEXT, text);
 		result.put(JSON_KEY_ABBREVIATED_TEXT, abbreviatedText);
@@ -457,10 +452,12 @@ public abstract class Prompt extends SurveyItem {
 	 * 
 	 * @return A PromptResponse object representing a response to this prompt.
 	 * 
-	 * @throws IllegalArgumentException Thrown if the value is not valid for 
-	 * 									the prompt.
+	 * @throws DomainException Thrown if the value is not valid for the prompt.
 	 */
-	public abstract PromptResponse createResponse(final Object value, final Integer repeatableSetIteration);
+	public abstract PromptResponse createResponse(
+			final Integer repeatableSetIteration, 
+			final Object value)
+			throws DomainException;
 
 	/**
 	 * Returns a hash code value for this prompt.
@@ -558,10 +555,14 @@ public abstract class Prompt extends SurveyItem {
 	 * @return The type-appropriate object for the implementing prompt or a
 	 * 		   {@link NoResponse} object.
 	 * 
-	 * @throws IllegalArgumentException Thrown if the value is not valid for
-	 * 									the prompt.
+	 * @throws DomainException The value is not a type-appropriate object for
+	 * 						   the corresponding prompt, a NoResponse object,
+	 * 						   or a String that can be decoded as either of 
+	 * 						   those two.
 	 */
-	protected abstract Object validateValue(final Object value) /*throws NoResponseException*/;
+	protected abstract Object validateValue(
+			final Object value) 
+			throws DomainException;
 	
 	/**
 	 * This exception should only be thrown from a Prompt class or subclass in 
