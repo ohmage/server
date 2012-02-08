@@ -6,6 +6,7 @@ import java.util.List;
 
 import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.domain.Document;
+import org.ohmage.domain.Document.Role;
 import org.ohmage.exception.DataAccessException;
 import org.ohmage.exception.ServiceException;
 import org.ohmage.query.ICampaignDocumentQueries;
@@ -330,6 +331,19 @@ public class UserDocumentServices {
 				Document.Role classRole = classDocumentQueries.getClassDocumentRole(classId, documentId);
 				if(classRole != null) {
 					result.addClassRole(classId, classRole);
+				}
+			}
+			
+			// If they are a supervisor in any campaign associated with this
+			// document or privileged in any class associated with this 
+			// document,
+			if(UserCampaignDocumentServices.instance().getUserIsSupervisorInAnyCampaignAssociatedWithDocument(username, documentId) ||
+			   UserClassDocumentServices.instance().getUserIsPrivilegedInAnyClassAssociatedWithDocument(username, documentId)) {
+				
+				// And if the current maximum role is a reader or none,
+				if(Role.WRITER.compare(result.getMaxRole()) == -1) {
+					// Automatically increase their privileges to writer.
+					result.setMaxRole(Role.WRITER);
 				}
 			}
 			

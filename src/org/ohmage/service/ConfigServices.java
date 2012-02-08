@@ -7,6 +7,7 @@ import org.ohmage.domain.ServerConfig;
 import org.ohmage.domain.campaign.SurveyResponse;
 import org.ohmage.exception.CacheMissException;
 import org.ohmage.exception.ServiceException;
+import org.ohmage.util.StringUtils;
 
 /**
  * This class contains the services that pertain to the server's configuration.
@@ -88,9 +89,20 @@ public class ConfigServices {
 			throw new ServiceException("The default campaign creation privilege was not a valid boolean.", e);
 		}
 		
+		boolean mobilityEnabled;
+		try {
+			mobilityEnabled = 
+					StringUtils.decodeBoolean(
+							PreferenceCache.instance().lookup(
+									PreferenceCache.KEY_MOBILITY_ENABLED));
+		}
+		catch(CacheMissException e) {
+			throw new ServiceException("Whether or not Mobility is enabled is missing from the database.", e);
+		}
+		
 		return new ServerConfig(appName, appVersion, appBuild,
 				defaultSurveyResponsePrivacyState, surveyResponsePrivacyStates,
-				defaultCampaignCreationPrivilege
+				defaultCampaignCreationPrivilege, mobilityEnabled
 			);
 	}
 }

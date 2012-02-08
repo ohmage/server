@@ -67,6 +67,9 @@ public final class PreferenceCache extends KeyValueCache {
 	// Visualization-specific information.
 	public static final String KEY_VISUALIZATION_SERVER = "visualization_server_address";
 	
+	// Whether or not Mobility is enabled.
+	public static final String KEY_MOBILITY_ENABLED = "mobility_enabled";
+	
 	// Build-specific information.
 	public static final String KEY_APPLICATION_NAME = "application_name";
 	public static final String KEY_APPLICATION_VERSION = "application_version";

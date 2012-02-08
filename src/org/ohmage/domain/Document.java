@@ -42,6 +42,7 @@ public class Document {
 	private static final String JSON_KEY_USER_ROLE = "user_role";
 	private static final String JSON_KEY_CAMPAIGN_ROLE = "campaign_role";
 	private static final String JSON_KEY_CLASS_ROLE = "class_role";
+	private static final String JSON_KEY_MAX_ROLE = "user_max_role";
 	
 	private final String documentId;
 	private final String name;
@@ -154,6 +155,7 @@ public class Document {
 			return name().toLowerCase();
 		}
 	}
+	private Role maxRole;
 	private Role userRole;
 	private final Map<String, Role> campaignAndRole;
 	private final Map<String, Role> classAndRole;
@@ -208,7 +210,8 @@ public class Document {
 		this.creationDate = creationDate;
 		this.size = size;
 		this.creator = creator;
-
+		
+		maxRole = null;
 		campaignAndRole = new HashMap<String, Role>();
 		classAndRole = new HashMap<String, Role>();
 	}
@@ -334,6 +337,16 @@ public class Document {
 			// parameter. Also, why do we not have the user's role on output?
 			//throw new IllegalArgumentException("The role is unknown.", e);
 		}
+		
+		try {
+			maxRole = Role.getValue(documentInfo.getString(JSON_KEY_MAX_ROLE));
+		}
+		catch(JSONException e) {
+			throw new IllegalArgumentException("The maximum role for the user is missing.", e);
+		}
+		catch(IllegalArgumentException e) {
+			throw new IllegalArgumentException("The user's maximum role is unknown.", e);
+		}
 	}
 	
 	/**
@@ -421,6 +434,13 @@ public class Document {
 		}
 		
 		userRole = documentRole;
+		
+		if(maxRole == null) {
+			maxRole = documentRole;
+		}
+		else if(maxRole.compare(documentRole) == 1) {
+			maxRole = documentRole;
+		}
 	}
 	
 	/**
@@ -453,6 +473,13 @@ public class Document {
 		}
 		else if(role == null) {
 			throw new NullPointerException("The role is null.");
+		}
+
+		if(maxRole == null) {
+			maxRole = role;
+		}
+		else if(maxRole.compare(role) == 1) {
+			maxRole = role;
 		}
 		
 		return campaignAndRole.put(campaignId, role);
@@ -491,6 +518,13 @@ public class Document {
 		else if(role == null) {
 			throw new NullPointerException("The role is null.");
 		}
+
+		if(maxRole == null) {
+			maxRole = role;
+		}
+		else if(maxRole.compare(role) == 1) {
+			maxRole = role;
+		}
 		
 		return classAndRole.put(classId, role);
 	}
@@ -502,6 +536,40 @@ public class Document {
 	 */
 	public Map<String, Role> getClassAndTheirRoles() {
 		return classAndRole;
+	}
+	
+	/**
+	 * Directly overrides the maximum role for this document. This should only
+	 * be used in instances where the maximum role needs to be overriden and
+	 * before any other user/campaign/class associations will be performed 
+	 * because those associations will refresh the maximum role with their role
+	 * if the new role is higher than this one.
+	 * 
+	 * @param maxRole The new maximum role for this document.
+	 * 
+	 * @return The old maximum role for this document. This may be null if no
+	 * 		   maximum role has been set and no user/campaign/class 
+	 * 		   associations have been made.
+	 */
+	public Role setMaxRole(final Role maxRole) {
+		Role tempRole = this.maxRole;
+		
+		this.maxRole = maxRole;
+		
+		return tempRole;
+	}
+	
+	/**
+	 * Returns the maximum role for this user based on the personal, campaign,
+	 * and class roles that have already been associated with it. This may be
+	 * higher than any of those roles if it has been directly overridden 
+	 * through {@link #setMaxRole(Role)}.
+	 * 
+	 * @return The maximum role associated with or given to this document or
+	 * 		   null if no such association has yet been made.
+	 */
+	public Role getMaxRole() {
+		return maxRole;
 	}
 	
 	/**
@@ -525,6 +593,7 @@ public class Document {
 			result.put(JSON_KEY_USER_ROLE, ((userRole == null) ? "" : userRole));
 			result.put(JSON_KEY_CAMPAIGN_ROLE, new JSONObject(campaignAndRole));
 			result.put(JSON_KEY_CLASS_ROLE, new JSONObject(classAndRole));
+			result.put(JSON_KEY_MAX_ROLE, maxRole.toString());
 			
 			return result;
 		}
