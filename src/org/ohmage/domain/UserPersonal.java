@@ -3,6 +3,7 @@ package org.ohmage.domain;
 import org.apache.log4j.Logger;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.ohmage.exception.DomainException;
 import org.ohmage.util.StringUtils;
 
 /**
@@ -43,7 +44,14 @@ public class UserPersonal {
 	 * 
 	 * @param jsonData Additional information about the user in a JSON format.
 	 */
-	public UserPersonal(String firstName, String lastName, String organization, String personalId, String emailAddress, String jsonData) {
+	public UserPersonal(
+			final String firstName, 
+			final String lastName, 
+			final String organization, 
+			final String personalId, 
+			final String emailAddress, 
+			final String jsonData) {
+		
 		this.firstName = firstName;
 		this.lastName = lastName;
 		this.organization = organization;
@@ -56,7 +64,9 @@ public class UserPersonal {
 				tJsonData = new JSONObject(jsonData);
 			}
 			catch(JSONException e) {
-				LOGGER.error("Error converting a String that is supposed to represent a JSONObject into a JSONObject.", e);
+				LOGGER.error(
+						"Error converting a String that is supposed to represent a JSONObject into a JSONObject.", 
+						e);
 			}
 		}
 		this.jsonData = tJsonData;
@@ -78,7 +88,14 @@ public class UserPersonal {
 	 * 
 	 * @param jsonData Additional information about the user as a JSONObject.
 	 */
-	public UserPersonal(String firstName, String lastName, String organization, String personalId, String emailAddress, JSONObject jsonData) {
+	public UserPersonal(
+			final String firstName, 
+			final String lastName, 
+			final String organization, 
+			final String personalId, 
+			final String emailAddress, 
+			final JSONObject jsonData) {
+		
 		this.firstName = firstName;
 		this.lastName = lastName;
 		this.organization = organization;
@@ -93,40 +110,41 @@ public class UserPersonal {
 	 * 
 	 * @param information The JSONObject with the user's personal information.
 	 * 
-	 * @throws IllegalArgumentException Thrown if the information JSONObject
-	 * 									object is invalid.
+	 * @throws DomainException Thrown if the information JSONObject object is 
+	 * 						   invalid.
 	 */
-	public UserPersonal(final JSONObject information) {
+	public UserPersonal(final JSONObject information) throws DomainException {
+		
 		if(information == null) {
-			throw new IllegalArgumentException("The information is null.");
+			throw new DomainException("The information is null.");
 		}
 		
 		try {
 			firstName = information.getString(KEY_FIRST_NAME);
 		}
 		catch(JSONException e) {
-			throw new IllegalArgumentException("The first name is missing: " + KEY_FIRST_NAME);
+			throw new DomainException("The first name is missing: " + KEY_FIRST_NAME);
 		}
 		
 		try {
 			lastName = information.getString(KEY_LAST_NAME);
 		}
 		catch(JSONException e) {
-			throw new IllegalArgumentException("The last name is missing: " + KEY_LAST_NAME);
+			throw new DomainException("The last name is missing: " + KEY_LAST_NAME);
 		}
 		
 		try {
 			organization = information.getString(KEY_ORGANIZATION);
 		}
 		catch(JSONException e) {
-			throw new IllegalArgumentException("The organization is missing: " + KEY_ORGANIZATION);
+			throw new DomainException("The organization is missing: " + KEY_ORGANIZATION);
 		}
 		
 		try {
 			personalId = information.getString(KEY_PERSONAL_ID);
 		}
 		catch(JSONException e) {
-			throw new IllegalArgumentException("The personal ID is missing: " + KEY_PERSONAL_ID);
+			throw new DomainException("The personal ID is missing: " + KEY_PERSONAL_ID);
 		}
 		
 		String tEmailAddress = null;
@@ -223,23 +241,19 @@ public class UserPersonal {
 	 * to null will be missing an entry in this object.
 	 * 
 	 * @return A JSONObject that represents this object.
+	 * 
+	 * @throws JSONException There was an error creating the JSONObject.
 	 */
-	public JSONObject toJsonObject() {
-		try {
-			JSONObject result = new JSONObject();
-			
-			result.put(KEY_FIRST_NAME, firstName);
-			result.put(KEY_LAST_NAME, lastName);
-			result.put(KEY_ORGANIZATION, organization);
-			result.put(KEY_PERSONAL_ID, personalId);
-			result.put(KEY_EMAIL_ADDRESS, emailAddress);
-			result.put(KEY_JSON_DATA, jsonData);
-			
-			return result;
-		}
-		catch(JSONException e) {
-			LOGGER.error("There was a problem building the JSONObject.", e);
-			return null;
-		}
+	public JSONObject toJsonObject() throws JSONException {
+		JSONObject result = new JSONObject();
+		
+		result.put(KEY_FIRST_NAME, firstName);
+		result.put(KEY_LAST_NAME, lastName);
+		result.put(KEY_ORGANIZATION, organization);
+		result.put(KEY_PERSONAL_ID, personalId);
+		result.put(KEY_EMAIL_ADDRESS, emailAddress);
+		result.put(KEY_JSON_DATA, jsonData);
+		
+		return result;
 	}
 }

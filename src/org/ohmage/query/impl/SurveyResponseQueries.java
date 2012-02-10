@@ -24,7 +24,7 @@ import org.ohmage.domain.campaign.SurveyResponse;
 import org.ohmage.domain.campaign.SurveyResponse.ColumnKey;
 import org.ohmage.domain.campaign.SurveyResponse.PrivacyState;
 import org.ohmage.exception.DataAccessException;
-import org.ohmage.exception.ErrorCodeException;
+import org.ohmage.exception.DomainException;
 import org.ohmage.query.ISurveyResponseQueries;
 import org.ohmage.util.StringUtils;
 import org.springframework.jdbc.core.ResultSetExtractor;
@@ -554,10 +554,7 @@ public class SurveyResponseQueries extends Query implements ISurveyResponseQueri
 							catch(JSONException e) {
 								throw new SQLException("Error creating a JSONObject.", e);
 							}
-							catch(ErrorCodeException e) {
-								throw new SQLException("Error creating the survey response information object.", e);
-							}
-							catch(IllegalArgumentException e) {
+							catch(DomainException e) {
 								throw new SQLException("Error creating the survey response information object.", e);
 							}
 							
@@ -588,15 +585,17 @@ public class SurveyResponseQueries extends Query implements ISurveyResponseQueri
 									// the survey response.
 									surveyResponse.addPromptResponse(
 											prompt.createResponse(
-													rs.getString("response"),
 													(Integer) rs.getObject(
 															"repeatable_set_iteration", 
-															typeMapping)
+															typeMapping),
+													rs.getString("response")
 												)
 										);
 								}
-								catch(IllegalArgumentException e) {
-									throw new SQLException("The prompt response value from the database is not a valid response value for this prompt.", e);
+								catch(DomainException e) {
+									throw new SQLException(
+											"The prompt response value from the database is not a valid response value for this prompt.", 
+											e);
 								}
 							} while(
 									// Get the next prompt response unless we

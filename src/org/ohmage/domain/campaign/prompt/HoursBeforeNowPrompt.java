@@ -1,6 +1,7 @@
 package org.ohmage.domain.campaign.prompt;
 
 import org.ohmage.domain.campaign.response.HoursBeforeNowPromptResponse;
+import org.ohmage.exception.DomainException;
 
 /**
  * This class represents hours-before-now prompts.
@@ -51,16 +52,25 @@ public class HoursBeforeNowPrompt extends BoundedPrompt {
 	 * @param index This prompt's index in its container's list of survey 
 	 * 				items.
 	 * 
-	 * @throws IllegalArgumentException Thrown if any of the required 
-	 * 									parameters are missing or invalid. 
+	 * @throws DomainException Thrown if any of the required parameters are 
+	 * 						   missing or invalid. 
 	 */
-	public HoursBeforeNowPrompt(final String id, final String condition, 
-			final String unit, final String text, 
-			final String abbreviatedText, final String explanationText,
-			final boolean skippable, final String skipLabel,
-			final DisplayType displayType, final String displayLabel,
-			final long min, final long max, final Long defaultValue, 
-			final int index) {
+	public HoursBeforeNowPrompt(
+			final String id, 
+			final String condition, 
+			final String unit, 
+			final String text, 
+			final String abbreviatedText, 
+			final String explanationText,
+			final boolean skippable, 
+			final String skipLabel,
+			final DisplayType displayType, 
+			final String displayLabel,
+			final long min, 
+			final long max, 
+			final Long defaultValue, 
+			final int index) 
+			throws DomainException {
 		
 		super(id, condition, unit, text, abbreviatedText, explanationText,
 				skippable, skipLabel, displayType, displayLabel, 
@@ -78,31 +88,14 @@ public class HoursBeforeNowPrompt extends BoundedPrompt {
 	 * 								 this prompt was made.
 	 */
 	@Override
-	public HoursBeforeNowPromptResponse createResponse(final Object response, 
-			final Integer repeatableSetIteration) {
+	public HoursBeforeNowPromptResponse createResponse( 
+			final Integer repeatableSetIteration,
+			final Object response) 
+			throws DomainException {
 		
-		if((repeatableSetIteration == null) && (getParent() != null)) {
-			throw new IllegalArgumentException("The repeatable set iteration is null, but this prompt is part of a repeatable set.");
-		}
-		else if((repeatableSetIteration != null) && (repeatableSetIteration < 0)) {
-			throw new IllegalArgumentException("The repeatable set iteration value is negative.");
-		}
-		
-		try {
-			return new HoursBeforeNowPromptResponse(
-					this, 
-					null, 
-					repeatableSetIteration, 
-					validateValue(response)
-				);
-		}
-		catch(NoResponseException e) {
-			return new HoursBeforeNowPromptResponse(
-					this, 
-					e.getNoResponse(), 
-					repeatableSetIteration, 
-					null
-				);
-		}
+		return new HoursBeforeNowPromptResponse(
+				this, 
+				repeatableSetIteration, 
+				response);
 	}
 }

@@ -58,6 +58,7 @@ import org.ohmage.domain.campaign.prompt.SingleChoiceCustomPrompt;
 import org.ohmage.domain.campaign.prompt.SingleChoicePrompt;
 import org.ohmage.domain.campaign.prompt.TextPrompt;
 import org.ohmage.domain.campaign.prompt.TimestampPrompt;
+import org.ohmage.exception.DomainException;
 import org.ohmage.request.InputKeys;
 import org.ohmage.util.StringUtils;
 import org.ohmage.util.TimeUtils;
@@ -359,29 +360,40 @@ public class Campaign {
 	 * @param surveyMap The map of survey unique identifiers to survey objects.
 	 * 
 	 * @param xml This configuration as an XML file.
+	 * 
+	 * @throws DomainException One of the parameters is invalid.
 	 */
-	public Campaign(String id, String name, String description, 
-			URL serverUrl, URL iconUrl, String authoredBy, 
-			RunningState runningState, PrivacyState privacyState, 
-			Date creationTimestamp, Map<String, Survey> surveyMap, String xml) {
+	public Campaign(
+			final String id, 
+			final String name, 
+			final String description, 
+			final URL serverUrl, 
+			final URL iconUrl, 
+			final String authoredBy, 
+			final RunningState runningState, 
+			final PrivacyState privacyState, 
+			final Date creationTimestamp, 
+			final Map<String, Survey> surveyMap, 
+			final String xml) 
+			throws DomainException {
 
 		if(StringUtils.isEmptyOrWhitespaceOnly(id)) {
-			throw new IllegalArgumentException("The ID cannot be null.");
+			throw new DomainException("The ID cannot be null.");
 		}
 		if(StringUtils.isEmptyOrWhitespaceOnly(name)) {
-			throw new IllegalArgumentException("The name cannot be null or whitespace only.");
+			throw new DomainException("The name cannot be null or whitespace only.");
 		}
 		if(runningState == null) {
-			throw new IllegalArgumentException("The running state cannot be null.");
+			throw new DomainException("The running state cannot be null.");
 		}
 		if(privacyState == null) {
-			throw new IllegalArgumentException("The privacy state cannot be null.");
+			throw new DomainException("The privacy state cannot be null.");
 		}
 		if(creationTimestamp == null) {
-			throw new IllegalArgumentException("The creation timestamp cannot be null.");
+			throw new DomainException("The creation timestamp cannot be null.");
 		}
 		if(null == surveyMap) {
-			throw new IllegalArgumentException("The survey map cannot be null or empty only.");
+			throw new DomainException("The survey map cannot be null or empty only.");
 		}
 		
 		this.id = id;
@@ -411,13 +423,19 @@ public class Campaign {
 	 * @param id The campaign's identifier.
 	 * 
 	 * @param information The information about the campaign.
+	 * 
+	 * @throws DomainException One of the parameters is invalid.
 	 */
-	public Campaign(final String id, final JSONObject information) {
+	public Campaign(
+			final String id, 
+			final JSONObject information) 
+			throws DomainException {
+		
 		if(StringUtils.isEmptyOrWhitespaceOnly(id)) {
-			throw new IllegalArgumentException("The ID is null or whitespace only.");
+			throw new DomainException("The ID is null or whitespace only.");
 		}
 		else if(information == null) {
-			throw new IllegalArgumentException("The information is null.");
+			throw new DomainException("The information is null.");
 		}
 		
 		String tDescription = null;
@@ -433,31 +451,31 @@ public class Campaign {
 			runningState = RunningState.getValue(information.getString(JSON_KEY_RUNNING_STATE));
 		}
 		catch(JSONException e) {
-			throw new IllegalArgumentException("The running state is missing.", e);
+			throw new DomainException("The running state is missing.", e);
 		}
 		catch(IllegalArgumentException e) {
-			throw new IllegalArgumentException("The running state is invalid.", e);
+			throw new DomainException("The running state is invalid.", e);
 		}
 
 		try {
 			privacyState = PrivacyState.getValue(information.getString(JSON_KEY_PRIVACY_STATE));
 		}
 		catch(JSONException e) {
-			throw new IllegalArgumentException("The privacy state is missing.", e);
+			throw new DomainException("The privacy state is missing.", e);
 		}
 		catch(IllegalArgumentException e) {
-			throw new IllegalArgumentException("The privacy state is invalid.", e);
+			throw new DomainException("The privacy state is invalid.", e);
 		}
 		
 		try {
 			creationTimestamp = StringUtils.decodeDateTime(information.getString(JSON_KEY_CREATION_TIMESTAMP));
 			
 			if(creationTimestamp == null) {
-				throw new IllegalArgumentException("The creation timestamp is invalid.");
+				throw new DomainException("The creation timestamp is invalid.");
 			}
 		}
 		catch(JSONException e) {
-			throw new IllegalArgumentException("The creation timestamp is missing.", e);
+			throw new DomainException("The creation timestamp is missing.", e);
 		}
 		
 		Map<String, Collection<Role>> tUserRoles = new HashMap<String, Collection<Role>>();
@@ -486,7 +504,7 @@ public class Campaign {
 			// The user-role map is optional.
 		}
 		catch(IllegalArgumentException e) {
-			throw new IllegalArgumentException("Unknown role.", e);
+			throw new DomainException("Unknown role.", e);
 		}
 		userRoles = tUserRoles;
 		
@@ -522,16 +540,16 @@ public class Campaign {
 			catch(IOException e) {
 				// This should only be thrown if it can't read the 'xml', but
 				// given that it is already in memory this should never happen.
-				throw new IllegalStateException("XML was unreadable.", e);
+				throw new DomainException("XML was unreadable.", e);
 			}
 			catch(XMLException e) {
-				throw new IllegalStateException("No usable XML parser could be found.", e);
+				throw new DomainException("No usable XML parser could be found.", e);
 			}
 			catch(ValidityException e) {
-				throw new IllegalArgumentException("The XML is invalid.", e);
+				throw new DomainException("The XML is invalid.", e);
 			}
 			catch(ParsingException e) {
-				throw new IllegalArgumentException("The XML is not well formed.", e);
+				throw new DomainException("The XML is not well formed.", e);
 			}
 			
 			Element root = document.getRootElement();
@@ -542,21 +560,21 @@ public class Campaign {
 			try {
 				tServerUrl = getServerUrl(root);
 			}
-			catch(IllegalArgumentException e) {
+			catch(DomainException e) {
 				// The server URL is optional, so we don't care.
 			}
 			
 			try {
 				tIconUrl = getIconUrl(root);
 			}
-			catch(IllegalArgumentException e) {
+			catch(DomainException e) {
 				// The icon URL is optional, so we don't care.
 			}
 			
 			try {
 				tAuthoredBy = getAuthoredBy(root);
 			}
-			catch(IllegalArgumentException e) {
+			catch(DomainException e) {
 				// The icon URL is optional, so we don't care.
 			}
 			
@@ -570,7 +588,7 @@ public class Campaign {
 				tName = information.getString(JSON_KEY_NAME);
 			}
 			catch(JSONException e) {
-				throw new IllegalArgumentException("The campaign's name was missing from the JSON.", e);
+				throw new DomainException("The campaign's name was missing from the JSON.", e);
 			}
 			
 			try {
@@ -580,7 +598,7 @@ public class Campaign {
 				// The server URL is optional.
 			}
 			catch(MalformedURLException e) {
-				throw new IllegalArgumentException("The server URL is not a valid URL.", e);
+				throw new DomainException("The server URL is not a valid URL.", e);
 			}
 			
 			try {
@@ -590,7 +608,7 @@ public class Campaign {
 				// The icon URL is optional.
 			}
 			catch(MalformedURLException e) {
-				throw new IllegalArgumentException("The icon URL is not a valid URL.", e);
+				throw new DomainException("The icon URL is not a valid URL.", e);
 			}
 			
 			try {
@@ -625,23 +643,27 @@ public class Campaign {
 	 * 
 	 * @param xml The configuration defining XML.
 	 * 
-	 * @throws IllegalArgumentException Thrown if the XML is invalid.
+	 * @throws DomainException If any of the parameters are invalid.
 	 */
-	public Campaign(final String description,
-			final RunningState runningState, final PrivacyState privacyState, 
-			final Date creationTimestamp, final String xml) {
+	public Campaign(
+			final String description,
+			final RunningState runningState, 
+			final PrivacyState privacyState, 
+			final Date creationTimestamp, 
+			final String xml) 
+			throws DomainException {
 		
 		if(runningState == null) {
-			throw new NullPointerException("The running state is null.");
+			throw new DomainException("The running state is null.");
 		}
 		else if(privacyState == null) {
-			throw new NullPointerException("The privacy state is null.");
+			throw new DomainException("The privacy state is null.");
 		}
 		else if(creationTimestamp == null) {
-			throw new NullPointerException("The creation timestamp is null.");
+			throw new DomainException("The creation timestamp is null.");
 		}
 		else if(xml == null) {
-			throw new NullPointerException("The XML is null.");
+			throw new DomainException("The XML is null.");
 		}
 		
 		Document document;
@@ -651,16 +673,16 @@ public class Campaign {
 		catch(IOException e) {
 			// This should only be thrown if it can't read the 'xml', but
 			// given that it is already in memory this should never happen.
-			throw new IllegalStateException("XML was unreadable.", e);
+			throw new DomainException("XML was unreadable.", e);
 		}
 		catch(XMLException e) {
-			throw new IllegalStateException("No usable XML parser could be found.", e);
+			throw new DomainException("No usable XML parser could be found.", e);
 		}
 		catch(ValidityException e) {
-			throw new IllegalArgumentException("The XML is invalid.", e);
+			throw new DomainException("The XML is invalid.", e);
 		}
 		catch(ParsingException e) {
-			throw new IllegalArgumentException("The XML is not well formed.", e);
+			throw new DomainException("The XML is not well formed.", e);
 		}
 		
 		Element root = document.getRootElement();
@@ -673,7 +695,7 @@ public class Campaign {
 		try {
 			tServerUrl = getServerUrl(root);
 		}
-		catch(IllegalArgumentException e) {
+		catch(DomainException e) {
 			// The server URL is optional, so we don't care.
 		}
 		serverUrl = tServerUrl;
@@ -682,7 +704,7 @@ public class Campaign {
 		try {
 			tIconUrl = getIconUrl(root);
 		}
-		catch(IllegalArgumentException e) {
+		catch(DomainException e) {
 			// The icon URL is optional, so we don't care.
 		}
 		iconUrl = tIconUrl;
@@ -691,7 +713,7 @@ public class Campaign {
 		try {
 			tAuthoredBy = getAuthoredBy(root);
 		}
-		catch(IllegalArgumentException e) {
+		catch(DomainException e) {
 			// The icon URL is optional, so we don't care.
 		}
 		authoredBy = tAuthoredBy;
@@ -708,33 +730,6 @@ public class Campaign {
 		
 		userRoles = new HashMap<String, Collection<Role>>();
 		classes = new LinkedList<String>();
-	}
-	
-	/**
-	 * Copy constructor.
-	 * 
-	 * @param configuration A configuration of which this will be a copy.
-	 */
-	public Campaign(Campaign configuration) {
-		this.id = configuration.id;
-		this.name = configuration.name;
-		this.description = configuration.description;
-		
-		this.serverUrl = configuration.serverUrl;
-		this.iconUrl = configuration.iconUrl;
-		this.authoredBy = configuration.authoredBy;
-		
-		this.runningState = configuration.runningState;
-		this.privacyState = configuration.privacyState;
-		
-		this.creationTimestamp = new Date(configuration.creationTimestamp.getTime());
-		
-		this.xml = configuration.xml;
-		
-		this.surveyMap = configuration.surveyMap; // FIXME: Deep copy.
-		
-		this.userRoles = configuration.userRoles; // FIXME: Deep copy.
-		this.classes = new ArrayList<String>(configuration.classes);
 	}
 
 	/**
@@ -834,14 +829,18 @@ public class Campaign {
 	 * 
 	 * @param role The user's configuration role.
 	 * 
-	 * @throws NullPointerException Thrown if the username or role is null.
+	 * @throws DomainException Thrown if the username or role is null.
 	 */
-	public void addUser(final String username, final Role role) {
+	public void addUser(
+			final String username, 
+			final Role role) 
+			throws DomainException {
+		
 		if(username == null) {
-			throw new NullPointerException("The username is null.");
+			throw new DomainException("The username is null.");
 		}
 		else if(role == null) {
-			throw new NullPointerException("The role is null.");
+			throw new DomainException("The role is null.");
 		}
 		
 		Collection<Role> roles = userRoles.get(username);
@@ -940,11 +939,14 @@ public class Campaign {
 	 * 
 	 * @param classIds The collection of class IDs to add.
 	 * 
-	 * @throws IllegalArgumentException Thrown if the class ID list is null.
+	 * @throws DomainException Thrown if the class ID list is null.
 	 */
-	public void addClasses(final Collection<String> classIds) {
+	public void addClasses(
+			final Collection<String> classIds) 
+			throws DomainException {
+		
 		if(classIds == null) {
-			throw new IllegalArgumentException("The class ID list is null.");
+			throw new DomainException("The class ID list is null.");
 		}
 		
 		classes.addAll(classIds);
@@ -966,11 +968,14 @@ public class Campaign {
 	 * 
 	 * @return Whether or not a survey with the given ID exists.
 	 * 
-	 * @throws NullPointerException Thrown if the survey ID is null.
+	 * @throws DomainException Thrown if the survey ID is null.
 	 */
-	public boolean surveyIdExists(String surveyId) {
+	public boolean surveyIdExists(
+			final String surveyId) 
+			throws DomainException {
+		
 		if(surveyId == null) {
-			throw new NullPointerException("The survey ID is null.");
+			throw new DomainException("The survey ID is null.");
 		}
 		
 		return surveyMap.containsKey(surveyId);
@@ -983,11 +988,14 @@ public class Campaign {
 	 * 
 	 * @return The survey's title.
 	 * 
-	 * @throws NullPointerException Thrown if the survey ID is null.
+	 * @throws DomainException Thrown if the survey ID is null.
 	 */
-	public String getSurveyTitleFor(String surveyId) {
+	public String getSurveyTitleFor(
+			final String surveyId) 
+			throws DomainException {
+		
 		if(surveyId == null) {
-			throw new NullPointerException("The survey ID is null.");
+			throw new DomainException("The survey ID is null.");
 		}
 		
 		if(surveyIdExists(surveyId)) {
@@ -1003,9 +1011,12 @@ public class Campaign {
 	 * 
 	 * @return The survey's description.
 	 * 
-	 * @throws NullPointerException Thrown if the survey ID is null.
+	 * @throws DomainException Thrown if the survey ID is null.
 	 */
-	public String getSurveyDescriptionFor(String surveyId) {
+	public String getSurveyDescriptionFor(
+			final String surveyId) 
+			throws DomainException 
+			{
 		if(surveyId == null) {
 			throw new NullPointerException("The survey ID is null.");
 		}
@@ -1026,23 +1037,25 @@ public class Campaign {
 	 * 
 	 * @return The RepeatableSet object from the survey.
 	 * 
-	 * @throws NullPointerException Thrown if the survey ID or repeatable set
-	 * 								ID are null.
-	 * 
-	 * @throws IllegalArgumentException Thrown if the survey doesn't exist in
-	 * 									this configuration.
+	 * @throws DomainException Thrown if the survey ID or repeatable set ID are
+	 * 						   null or if the survey doesn't exist in this 
+	 * 						   configuration.
 	 */
-	public RepeatableSet getRepeatableSet(String surveyId, String repeatableSetId) {
+	public RepeatableSet getRepeatableSet(
+			final String surveyId, 
+			final String repeatableSetId) 
+			throws DomainException {
+		
 		if(surveyId == null) {
-			throw new NullPointerException("The survey ID is null.");
+			throw new DomainException("The survey ID is null.");
 		}
 		else if(repeatableSetId == null) {
-			throw new NullPointerException("The repeatable set ID is null.");
+			throw new DomainException("The repeatable set ID is null.");
 		}
 		
 		Survey survey = surveyMap.get(surveyId);
 		if(survey == null) {
-			throw new IllegalArgumentException("The survey ID is unknown.");
+			throw new DomainException("The survey ID is unknown.");
 		}
 		
 		Map<Integer, SurveyItem> prompts = survey.getSurveyItems();
@@ -1073,23 +1086,25 @@ public class Campaign {
 	 * 
 	 * @return A Prompt object representing the prompt.
 	 * 
-	 * @throws NullPointerException Thrown if the survey ID or the prompt ID 
-	 * 								are null.
-	 * 
-	 * @throws IllegalArgumentException Thrown if the survey doesn't exist in
-	 * 									this configuration.
+	 * @throws DomainException Thrown if the survey ID or the prompt ID are  
+	 * 						   null or if the survey doesn't exist in this
+	 * 						   campaign.
 	 */
-	public Prompt getPrompt(String surveyId, String promptId) {
+	public Prompt getPrompt(
+			final String surveyId, 
+			final String promptId) 
+			throws DomainException {
+		
 		if(surveyId == null) {
-			throw new NullPointerException("The survey ID is null.");
+			throw new DomainException("The survey ID is null.");
 		}
 		else if(promptId == null) {
-			throw new NullPointerException("The prompt ID is null.");
+			throw new DomainException("The prompt ID is null.");
 		}
 		
 		Survey survey = surveyMap.get(surveyId);
 		if(survey == null) {
-			throw new IllegalArgumentException("The survey ID is unknown.");
+			throw new DomainException("The survey ID is unknown.");
 		}
 		
 		return survey.getPrompt(promptId);
@@ -1104,17 +1119,20 @@ public class Campaign {
 	 * 
 	 * @return Whether or not the prompt may be skipped.
 	 * 
-	 * @throws NullPointerException Thrown if the survey ID or repeatable set
-	 * 								ID are null.
-	 * 
-	 * @throws IllegalArgumentException Thrown if the survey doesn't exist in
-	 * 									this configuration or if the prompt 
-	 * 									doesn't exist in that survey.
+	 * @throws DomainException Thrown if the survey ID or repeatable set ID are
+	 * 						   null or if the survey doesn't exist in this 
+	 * 						   campaign or if the prompt doesn't exist in that 
+	 * 						   survey.
 	 */
-	public boolean isPromptSkippable(String surveyId, String promptId) {
+	public boolean isPromptSkippable(
+			final String surveyId, 
+			final String promptId) 
+			throws DomainException {
+		
 		Prompt prompt = getPrompt(surveyId, promptId);
 		if(prompt == null) {
-			throw new IllegalArgumentException("No prompt with the given ID: " + promptId);
+			throw new DomainException(
+					"No prompt with the given ID: " + promptId);
 		}
 		else {
 			return prompt.skippable();
@@ -1130,13 +1148,15 @@ public class Campaign {
 	 * 
 	 * @return Whether or not the prompt exists in the survey.
 	 * 
-	 * @throws NullPointerException Thrown if the survey ID or repeatable set
-	 * 								ID are null.
-	 * 
-	 * @throws IllegalArgumentException Thrown if the survey doesn't exist in
-	 * 									this configuration.
+	 * @throws DomainException Thrown if the survey ID or repeatable set ID are
+	 * 						   null or if the survey doesn't exist in this 
+	 * 						   configuration.
 	 */
-	public boolean promptExists(String surveyId, String promptId) {
+	public boolean promptExists(
+			final String surveyId, 
+			final String promptId) 
+			throws DomainException {
+		
 		return getPrompt(surveyId, promptId) != null;
 	}
 
@@ -1149,19 +1169,21 @@ public class Campaign {
 	 * 
 	 * @return The prompt's type.
 	 * 
-	 * @throws NullPointerException Thrown if the survey ID or repeatable set
-	 * 								ID are null.
+	 * @throws DomainException Thrown if the survey ID or repeatable set ID are
+	 * 						   null or if the survey doesn't exist in this 
+	 * 						   configuration or if the prompt doesn't exist in
+	 * 						   that survey.
 	 * 
-	 * @throws IllegalArgumentException Thrown if the survey doesn't exist in
-	 * 									this configuration or if the prompt 
-	 * 									doesn't exist in that survey.
-	 * 
-	 * @see org.ohmage.domain.campaign.Prompt.Type
+	 * @see org.ohmage.domain.campaign.Prompt.Type Prompt.Type
 	 */
-	public Type getPromptType(String surveyId, String promptId) {
+	public Type getPromptType(
+			final String surveyId, 
+			final String promptId) 
+			throws DomainException {
+		
 		Prompt prompt = getPrompt(surveyId, promptId);
 		if(prompt == null) {
-			throw new IllegalArgumentException("No prompt with the given ID: " + promptId);
+			throw new DomainException("No prompt with the given ID: " + promptId);
 		}
 		else {
 			return prompt.getType();
@@ -1177,24 +1199,26 @@ public class Campaign {
 	 * 
 	 * @return Whether or not the prompt is in a repeatable set.
 	 * 
-	 * @throws NullPointerException Thrown if the survey ID or repeatable set
-	 * 								ID are null.
-	 * 
-	 * @throws IllegalArgumentException Thrown if the survey doesn't exist in
-	 * 									this configuration or if the prompt 
-	 * 									doesn't exist in that survey.
+	 * @throws DomainException Thrown if the survey ID or repeatable set ID are
+	 * 						   null or if the survey doesn't exist in this 
+	 * 						   configuration or if the prompt doesn't exist in
+	 * 						   that survey.
 	 */
-	public boolean isPromptInRepeatableSet(String surveyId, String promptId) {
+	public boolean isPromptInRepeatableSet(
+			final String surveyId, 
+			final String promptId) 
+			throws DomainException {
+		
 		if(surveyId == null) {
-			throw new NullPointerException("The survey ID is null.");
+			throw new DomainException("The survey ID is null.");
 		}
 		else if(promptId == null) {
-			throw new NullPointerException("The prompt ID is null.");
+			throw new DomainException("The prompt ID is null.");
 		}
 		
 		Survey survey = surveyMap.get(surveyId);
 		if(survey == null) {
-			throw new IllegalArgumentException("The survey ID is unknown.");
+			throw new DomainException("The survey ID is unknown.");
 		}
 		
 		Map<Integer, SurveyItem> prompts = survey.getSurveyItems();
@@ -1218,25 +1242,27 @@ public class Campaign {
 	 * 
 	 * @return Whether or not the prompt contains single choice values.
 	 * 
-	 * @throws NullPointerException Thrown if the prompt ID is null.
-	 * 
-	 * @throws IllegalArgumentException Thrown if the prompt ID is not known.
+	 * @throws DomainException Thrown if the prompt ID is null or if the prompt
+	 * 						   ID is not known.
 	 */
-	public boolean promptContainsSingleChoiceValues(String promptId) {
+	public boolean promptContainsSingleChoiceValues(
+			final String promptId) 
+			throws DomainException {
+		
 		if(promptId == null) {
-			throw new NullPointerException("The prompt ID is null.");
+			throw new DomainException("The prompt ID is null.");
 		}
 		
 		Survey survey = getSurveyForPromptId(promptId);
 		if(survey == null) {
-			throw new IllegalArgumentException("Unknown prompt ID: " + promptId);
+			throw new DomainException("Unknown prompt ID: " + promptId);
 		}
 		
 		SurveyItem abstractPrompt = survey.getSurveyItem(promptId);
 		if(abstractPrompt == null) {
 			// This is impossible given that we just got the survey ID from 
 			// this prompt ID.
-			throw new IllegalArgumentException("The prompt ID has changed.");
+			throw new DomainException("The prompt ID has changed.");
 		}
 		
 		if(abstractPrompt instanceof Prompt) {
@@ -1259,18 +1285,21 @@ public class Campaign {
 	 * 
 	 * @return The number of prompts in some survey.
 	 * 
-	 * @throws NullPointerException Thrown if the survey ID is null.
-	 * 
-	 * @throws IllegalArgumentException Thrown if the survey ID is unknown.
+	 * @throws DomainException Thrown if the survey ID is null or if the survey
+	 * 						   ID is unknown.
 	 */
-	public int getNumberOfPromptsInSurvey(String surveyId) {
+	public int getNumberOfPromptsInSurvey(
+			final String surveyId) 
+			throws DomainException {
+		
 		if(surveyId == null) {
-			throw new NullPointerException("The survey ID is null.");
+			throw new DomainException("The survey ID is null.");
 		}
 		
 		Survey survey = surveyMap.get(surveyId);
 		if(survey == null) {
-			throw new IllegalArgumentException("There is no survey with the ID: " + surveyId);
+			throw new DomainException(
+					"There is no survey with the ID: " + surveyId);
 		}
 		
 		return survey.getNumPrompts();
@@ -1286,24 +1315,26 @@ public class Campaign {
 	 * 
 	 * @return The number of prompts in the repeatable set.
 	 * 
-	 * @throws NullPointerException Thrown if the survey ID or repeatable set
-	 * 								ID is null.
-	 * 
-	 * @throws IllegalArgumentException Thrown if the survey ID or prompt ID 
-	 * 									are unknown or if the repeatable set ID
-	 * 									doesn't refer to a repeatable set.
+	 * @throws DomainException Thrown if the survey ID or repeatable set ID is 
+	 * 						   null or if the survey ID or prompt ID are 
+	 * 						   unknown or if the repeatable set ID doesn't 
+	 * 						   refer to a repeatable set.
 	 */
-	public int numberOfPromptsInRepeatableSet(String surveyId, String repeatableSetId) {
+	public int numberOfPromptsInRepeatableSet(
+			final String surveyId, 
+			final String repeatableSetId) 
+			throws DomainException {
+		
 		if(surveyId == null) {
-			throw new NullPointerException("The survey ID is null.");
+			throw new DomainException("The survey ID is null.");
 		}
 		else if(repeatableSetId == null) {
-			throw new NullPointerException("The repeatable set ID is null.");
+			throw new DomainException("The repeatable set ID is null.");
 		}
 		
 		Survey survey = surveyMap.get(surveyId);
 		if(survey == null) {
-			throw new IllegalArgumentException("There is no survey with the ID: " + surveyId);
+			throw new DomainException("There is no survey with the ID: " + surveyId);
 		}
 		
 		SurveyItem prompt = survey.getSurveyItems().get(repeatableSetId);
@@ -1313,10 +1344,10 @@ public class Campaign {
 			return repeatableSet.getNumPrompts();
 		}
 		else if(prompt == null) {
-			throw new IllegalArgumentException("There is no prompt with the ID: " + repeatableSetId);
+			throw new DomainException("There is no prompt with the ID: " + repeatableSetId);
 		}
 		else {
-			throw new IllegalArgumentException("The prompt is not a repeatable set: " + repeatableSetId);
+			throw new DomainException("The prompt is not a repeatable set: " + repeatableSetId);
 		}
 	}
 	
@@ -1328,18 +1359,19 @@ public class Campaign {
 	 * @return The configuration-unique identifier for the survey to which the 
 	 * 		   prompt belongs.
 	 * 
-	 * @throws NullPointerException Thrown if the prompt ID is null.
-	 * 
-	 * @throws IllegalArgumentException Thrown if the prompt ID is unknown.
+	 * @throws DomainException Thrown if the prompt ID is null or unknown.
 	 */
-	public String getSurveyIdForPromptId(String promptId) {
+	public String getSurveyIdForPromptId(
+			final String promptId) 
+			throws DomainException {
+		
 		for(Survey survey : surveyMap.values()) {
 			if(survey.getSurveyItem(promptId) != null) {
 				return survey.getId();
 			}
 		}
 		
-		throw new IllegalArgumentException("The prompt doesn't exist: " + promptId);
+		throw new DomainException("The prompt doesn't exist: " + promptId);
 	}
 	
 	/**
@@ -1350,18 +1382,19 @@ public class Campaign {
 	 * @return The configuration-unique identifier for the survey to which the 
 	 * 		   prompt belongs.
 	 * 
-	 * @throws NullPointerException Thrown if the prompt ID is null.
-	 * 
-	 * @throws IllegalArgumentException Thrown if the prompt ID is unknown.
+	 * @throws DomainException Thrown if the prompt ID is null or unknown.
 	 */
-	public Survey getSurveyForPromptId(String promptId) {
+	public Survey getSurveyForPromptId(
+			final String promptId) 
+			throws DomainException {
+		
 		for(Survey survey : surveyMap.values()) {
 			if(survey.getSurveyItem(promptId) != null) {
 				return survey;
 			}
 		}
 		
-		throw new IllegalArgumentException("The prompt doesn't exist: " + promptId);
+		throw new DomainException("The prompt doesn't exist: " + promptId);
 	}
 
 	/**
@@ -1373,17 +1406,20 @@ public class Campaign {
 	 * 
 	 * @return The prompt text for the prompt in the survey.
 	 * 
-	 * @throws NullPointerException Thrown if the survey ID or repeatable set
-	 * 								ID are null.
-	 * 
-	 * @throws IllegalArgumentException Thrown if the survey doesn't exist in
-	 * 									this configuration or if the prompt 
-	 * 									doesn't exist in that survey.
+	 * @throws DomainException Thrown if the survey ID or repeatable set ID are
+	 * 						   null or if the survey doesn't exist in this 
+	 * 						   configuration or if the prompt doesn't exist in 
+	 * 						   that survey.
 	 */
-	public String getPromptTextFor(String surveyId, String promptId) {
+	public String getPromptTextFor(
+			final String surveyId, 
+			final String promptId) 
+			throws DomainException {
+		
 		Prompt prompt = getPrompt(surveyId, promptId);
 		if(prompt == null) {
-			throw new IllegalArgumentException("No prompt with the given ID: " + promptId);
+			throw new DomainException(
+					"No prompt with the given ID: " + promptId);
 		}
 		else {
 			return prompt.getText();
@@ -1399,17 +1435,20 @@ public class Campaign {
 	 * 
 	 * @return The display type for the prompt in the survey.
 	 * 
-	 * @throws NullPointerException Thrown if the survey ID or repeatable set
-	 * 								ID are null.
-	 * 
-	 * @throws IllegalArgumentException Thrown if the survey doesn't exist in
-	 * 									this configuration or if the prompt 
-	 * 									doesn't exist in that survey.
+	 * @throws DomainException Thrown if the survey ID or repeatable set ID are
+	 * 						   null or if the survey doesn't exist in this 
+	 * 						   configuration or if the prompt doesn't exist in 
+	 * 						   that survey.
 	 */
-	public DisplayType getDisplayTypeFor(String surveyId, String promptId) {
+	public DisplayType getDisplayTypeFor(
+			final String surveyId, 
+			final String promptId) 
+			throws DomainException {
+		
 		Prompt prompt = getPrompt(surveyId, promptId);
 		if(prompt == null) {
-			throw new IllegalArgumentException("No prompt with the given ID: " + promptId);
+			throw new DomainException(
+					"No prompt with the given ID: " + promptId);
 		}
 		else {
 			return prompt.getDisplayType();
@@ -1425,17 +1464,20 @@ public class Campaign {
 	 * 
 	 * @return The display type for the prompt in the survey.
 	 * 
-	 * @throws NullPointerException Thrown if the survey ID or repeatable set
-	 * 								ID are null.
-	 * 
-	 * @throws IllegalArgumentException Thrown if the survey doesn't exist in
-	 * 									this configuration or if the prompt 
-	 * 									doesn't exist in that survey.
+	 * @throws DomainException Thrown if the survey ID or repeatable set ID are
+	 * 						   null or if the survey doesn't exist in this 
+	 * 						   configuration or if the prompt doesn't exist in 
+	 * 						   that survey.
 	 */
-	public String getDisplayLabelFor(String surveyId, String promptId) {
+	public String getDisplayLabelFor(
+			final String surveyId, 
+			final String promptId) 
+			throws DomainException {
+		
 		Prompt prompt = getPrompt(surveyId, promptId);
 		if(prompt == null) {
-			throw new IllegalArgumentException("No prompt with the given ID: " + promptId);
+			throw new DomainException(
+					"No prompt with the given ID: " + promptId);
 		}
 		else {
 			return prompt.getDisplayLabel();
@@ -1453,19 +1495,22 @@ public class Campaign {
 	 * 
 	 * @return The choice's value.
 	 * 
-	 * @throws NullPointerException Thrown if the survey ID or prompt ID are 
-	 * 								null.
-	 * 
-	 * @throws IllegalArgumentException Thrown if the survey doesn't exist in
-	 * 									this configuration or if the prompt 
-	 * 									doesn't exist in that survey or isn't a
-	 * 									ChoicePrompt or if the label is 
-	 * 									unknown.
+	 * @throws DomainException Thrown if the survey ID or prompt ID are null or
+	 * 						   if the survey doesn't exist in this 
+	 * 						   configuration or if the prompt doesn't exist in 
+	 * 						   that survey or isn't a ChoicePrompt or if the 
+	 * 						   label is unknown.
 	 */
-	public String getValueForChoiceKey(String surveyId, String promptId, String key) {
+	public String getValueForChoiceKey(
+			final String surveyId, 
+			final String promptId, 
+			final String key) 
+			throws DomainException {
+		
 		Prompt prompt = getPrompt(surveyId, promptId);
 		if(prompt == null) {
-			throw new IllegalArgumentException("No prompt with the given ID: " + promptId);
+			throw new DomainException(
+					"No prompt with the given ID: " + promptId);
 		}
 		else {
 			return getChoiceValueFrom(prompt, key);
@@ -1481,11 +1526,13 @@ public class Campaign {
 	 * 
 	 * @return The value associated with that response label. This may be null.
 	 * 	
-	 * @throws IllegalArgumentException Thrown if the Prompt isn't a 
-	 * 									ChoicePrompt or the label isn't know 
-	 * 									for the prompt.
+	 * @throws DomainException Thrown if the Prompt isn't a ChoicePrompt or the
+	 * 						   label isn't know for the prompt.
 	 */
-	private String getChoiceValueFrom(Prompt prompt, String label) {
+	private String getChoiceValueFrom(
+			final Prompt prompt, 
+			final String label) 
+			throws DomainException {
 		Map<Integer, LabelValuePair> choices;
 		if(prompt instanceof CustomChoicePrompt) {
 			choices = ((CustomChoicePrompt) prompt).getAllChoices();
@@ -1494,7 +1541,7 @@ public class Campaign {
 			choices = ((ChoicePrompt) prompt).getChoices();
 		}
 		else {
-			throw new IllegalArgumentException("The prompt isn't a choice prompt.");
+			throw new DomainException("The prompt isn't a choice prompt.");
 		}
 		
 		for(LabelValuePair valueLabelPair : choices.values()) {
@@ -1503,7 +1550,7 @@ public class Campaign {
 			}
 		}
 		
-		throw new IllegalArgumentException("The label is not known.");
+		throw new DomainException("The label is not known.");
 	}
 
 	/**
@@ -1517,19 +1564,22 @@ public class Campaign {
 	 * 
 	 * @return The choice's label.
 	 * 
-	 * @throws NullPointerException Thrown if the survey ID or repeatable set
-	 * 								ID are null.
-	 * 
-	 * @throws IllegalArgumentException Thrown if the survey doesn't exist in
-	 * 									this configuration or if the prompt 
-	 * 									doesn't exist in that survey or isn't a
-	 * 									ChoicePrompt or if the label is 
-	 * 									unknown.
+	 * @throws DomainException Thrown if the survey ID or repeatable set ID are
+	 * 						   null or if the survey doesn't exist in this 
+	 * 						   configuration or if the prompt doesn't exist in 
+	 * 						   that survey or isn't a ChoicePrompt or if the 
+	 * 						   label is unknown.
 	 */
-	public String getLabelForChoiceKey(String surveyId, String promptId, String key) {
+	public String getLabelForChoiceKey(
+			final String surveyId, 
+			final String promptId, 
+			final String key) 
+			throws DomainException {
+		
 		Prompt prompt = getPrompt(surveyId, promptId);
 		if(prompt == null) {
-			throw new IllegalArgumentException("No prompt with the given ID: " + promptId);
+			throw new DomainException(
+					"No prompt with the given ID: " + promptId);
 		}
 		else {
 			return getChoiceLabelFrom(prompt, key);
@@ -1576,12 +1626,15 @@ public class Campaign {
 	 * 
 	 * @return The choice's label value.
 	 * 
-	 * @throws IllegalArgumentException Thrown if the prompt isn't a choice 
-	 * 									prompt, the 'key' isn't a number, or 
-	 * 									the key is not a valid choice for the
-	 * 									prompt.
+	 * @throws DomainException Thrown if the prompt isn't a choice prompt, the 
+	 * 						   'key' isn't a number, or the key is not a valid
+	 * 						   choice for the prompt.
 	 */
-	private String getChoiceLabelFrom(Prompt prompt, String key) {
+	private String getChoiceLabelFrom(
+			final Prompt prompt, 
+			final String key) 
+			throws DomainException {
+		
 		Map<Integer, LabelValuePair> choices;
 		if(prompt instanceof CustomChoicePrompt) {
 			choices = ((CustomChoicePrompt) prompt).getAllChoices();
@@ -1590,7 +1643,7 @@ public class Campaign {
 			choices = ((ChoicePrompt) prompt).getChoices();
 		}
 		else {
-			throw new IllegalArgumentException("The prompt isn't a choice prompt.");
+			throw new DomainException("The prompt isn't a choice prompt.");
 		}
 		
 		Integer keyInt;
@@ -1598,12 +1651,12 @@ public class Campaign {
 			keyInt = Integer.decode(key);
 		}
 		catch(NumberFormatException e) {
-			throw new IllegalArgumentException("The key is not a number.", e);
+			throw new DomainException("The key is not a number.", e);
 		}
 		
 		LabelValuePair vlp = choices.get(keyInt);
 		if(vlp == null) {
-			throw new IllegalArgumentException("The key is unknown.");
+			throw new DomainException("The key is unknown.");
 		}
 		else {
 			return vlp.getLabel();
@@ -1619,18 +1672,21 @@ public class Campaign {
 	 * 
 	 * @return The mapping of choice keys to their value/label pairs.
 	 * 
-	 * @throws NullPointerException Thrown if the survey ID or prompt ID are
-	 * 								null.
-	 * 
-	 * @throws IllegalArgumentException Thrown if the survey doesn't exist in
-	 * 									this configuration or if the prompt 
-	 * 									doesn't exist in that survey or if that
-	 * 									prompt isn't a ChoicePrompt.
+	 * @throws DomainException Thrown if the survey ID or prompt ID are null or
+	 * 						   if the survey doesn't exist in this 
+	 * 						   configuration or if the prompt doesn't exist in
+	 * 						   that survey or if that prompt isn't a 
+	 * 						   ChoicePrompt.
 	 */
-	public Map<Integer, LabelValuePair> getChoiceGlossaryFor(String surveyId, String promptId) {
+	public Map<Integer, LabelValuePair> getChoiceGlossaryFor(
+			final String surveyId, 
+			final String promptId) 
+			throws DomainException {
+		
 		Prompt prompt = getPrompt(surveyId, promptId);
 		if(prompt == null) {
-			throw new IllegalArgumentException("No prompt with the given ID: " + promptId);
+			throw new DomainException(
+					"No prompt with the given ID: " + promptId);
 		}
 		else {
 			if(prompt instanceof CustomChoicePrompt) {
@@ -1640,7 +1696,8 @@ public class Campaign {
 				return ((ChoicePrompt) prompt).getChoices();
 			}
 			else {
-				throw new IllegalArgumentException("The prompt is not a choice prompt.");
+				throw new DomainException(
+						"The prompt is not a choice prompt.");
 			}
 		}
 	}
@@ -1654,17 +1711,20 @@ public class Campaign {
 	 * 
 	 * @return The mapping of choice keys to their value/label pairs.
 	 * 
-	 * @throws NullPointerException Thrown if the survey ID or prompt ID are
-	 * 								null.
-	 * 
-	 * @throws IllegalArgumentException Thrown if the survey doesn't exist in
-	 * 									this configuration or if the prompt 
-	 * 									doesn't exist in that survey.
+	 * @throws DomainException Thrown if the survey ID or prompt ID are null or
+	 * 						   if the survey doesn't exist in this 
+	 * 						   configuration or if the prompt doesn't exist in 
+	 * 						   that survey.
 	 */
-	public String getUnitFor(String surveyId, String promptId) {
+	public String getUnitFor(
+			final String surveyId, 
+			final String promptId) 
+			throws DomainException {
+		
 		Prompt prompt = getPrompt(surveyId, promptId);
 		if(prompt == null) {
-			throw new IllegalArgumentException("No prompt with the given ID: " + promptId);
+			throw new DomainException(
+					"No prompt with the given ID: " + promptId);
 		}
 		else {
 			return prompt.getUnit().trim();
@@ -1695,84 +1755,88 @@ public class Campaign {
 	 * 
 	 * @param withXml Whether or not to include the XML.
 	 * 
-	 * @return A JSONObject that represents this campaign or null if there was
-	 * 		   an error.
+	 * @return A JSONObject that represents this campaign.
+	 * 
+	 * @throws JSONException Thrown if there is an error creating the 
+	 * 						 JSONObject.
 	 */
-	public JSONObject toJson(final boolean withId, final boolean withClasses,
-			final boolean withRoles, final boolean withParticipants,
-			final boolean withAnalysts, final boolean withAuthors,
-			final boolean withSupervisors, final boolean withXml,
-			final boolean withSurveys) {
-		try {
-			JSONObject result = new JSONObject();
-			
-			if(withId) {
-				result.put(JSON_KEY_ID, id);
-			}
-			result.put(JSON_KEY_NAME, name);
-			result.put(JSON_KEY_DESCRIPTION, (description == null) ? "" : description);
-			result.put(JSON_KEY_SERVER_URL, serverUrl);
-			result.put(JSON_KEY_ICON_URL, iconUrl);
-			result.put(JSON_KEY_AUTHORED_BY, authoredBy);
-			result.put(JSON_KEY_RUNNING_STATE, runningState.name().toLowerCase());
-			result.put(JSON_KEY_PRIVACY_STATE, privacyState.name().toLowerCase());
-			result.put(JSON_KEY_CREATION_TIMESTAMP, TimeUtils.getIso8601DateTimeString(creationTimestamp));
-			
-			if(withClasses) {
-				result.put(JSON_KEY_CLASSES, classes);
-			}
-			
-			if(withRoles) {
-				JSONObject roles = new JSONObject();
-				
-				if(withParticipants) {
-					roles.put(JSON_KEY_PARTICIPANT, getParticipants());
-				}
-				if(withAnalysts) {
-					roles.put(JSON_KEY_ANALYST, getAnalysts());
-				}
-				if(withAuthors) {
-					roles.put(JSON_KEY_AUTHOR, getAuthors());
-				}
-				if(withSupervisors) {
-					roles.put(JSON_KEY_SUPERVISOR, getSupervisors());
-				}
-				
-				result.put(JSON_KEY_ROLES, roles);
-			}
-			
-			if(withXml) {
-				result.put(JSON_KEY_XML, xml);
-			}
-			
-			if(withSurveys) {
-				JSONArray surveysArray = new JSONArray();
-				
-				for(Survey survey : surveyMap.values()) {
-					surveysArray.put( 
-							survey.toJson(
-									true,	// ID
-									true,	// Title
-									true,	// Description
-									true,	// Intro Text
-									true,	// Submit Text
-									true,	// Show Summary
-									true,	// Edit Summary
-									true,	// Summary Text
-									true,	// Anytime
-									true	// Prompts
-								)
-						);
-				}
-				
-				result.put(JSON_KEY_SURVEYS, surveysArray);
-			}
-			
-			return result;
+	public JSONObject toJson(
+			final boolean withId, 
+			final boolean withClasses,
+			final boolean withRoles, 
+			final boolean withParticipants,
+			final boolean withAnalysts, 
+			final boolean withAuthors,
+			final boolean withSupervisors, 
+			final boolean withXml,
+			final boolean withSurveys) 
+			throws JSONException {
+		
+		JSONObject result = new JSONObject();
+		
+		if(withId) {
+			result.put(JSON_KEY_ID, id);
 		}
-		catch(JSONException e) {
-			return null;
+		result.put(JSON_KEY_NAME, name);
+		result.put(JSON_KEY_DESCRIPTION, (description == null) ? "" : description);
+		result.put(JSON_KEY_SERVER_URL, serverUrl);
+		result.put(JSON_KEY_ICON_URL, iconUrl);
+		result.put(JSON_KEY_AUTHORED_BY, authoredBy);
+		result.put(JSON_KEY_RUNNING_STATE, runningState.name().toLowerCase());
+		result.put(JSON_KEY_PRIVACY_STATE, privacyState.name().toLowerCase());
+		result.put(JSON_KEY_CREATION_TIMESTAMP, TimeUtils.getIso8601DateTimeString(creationTimestamp));
+		
+		if(withClasses) {
+			result.put(JSON_KEY_CLASSES, classes);
 		}
+		
+		if(withRoles) {
+			JSONObject roles = new JSONObject();
+			
+			if(withParticipants) {
+				roles.put(JSON_KEY_PARTICIPANT, getParticipants());
+			}
+			if(withAnalysts) {
+				roles.put(JSON_KEY_ANALYST, getAnalysts());
+			}
+			if(withAuthors) {
+				roles.put(JSON_KEY_AUTHOR, getAuthors());
+			}
+			if(withSupervisors) {
+				roles.put(JSON_KEY_SUPERVISOR, getSupervisors());
+			}
+			
+			result.put(JSON_KEY_ROLES, roles);
+		}
+		
+		if(withXml) {
+			result.put(JSON_KEY_XML, xml);
+		}
+		
+		if(withSurveys) {
+			JSONArray surveysArray = new JSONArray();
+			
+			for(Survey survey : surveyMap.values()) {
+				surveysArray.put( 
+						survey.toJson(
+								true,	// ID
+								true,	// Title
+								true,	// Description
+								true,	// Intro Text
+								true,	// Submit Text
+								true,	// Show Summary
+								true,	// Edit Summary
+								true,	// Summary Text
+								true,	// Anytime
+								true	// Prompts
+							)
+					);
+			}
+			
+			result.put(JSON_KEY_SURVEYS, surveysArray);
+		}
+		
+		return result;
 	}
 	
 	/**
@@ -1782,9 +1846,9 @@ public class Campaign {
 	 * 
 	 * @param xml The XML as a String.
 	 * 
-	 * @throws IllegalArgumentException Thrown if the XML is not valid.
+	 * @throws DomainException Thrown if the XML is not valid.
 	 */
-	public static void validateXml(final String xml) {
+	public static void validateXml(final String xml) throws DomainException {
 		Document document;
 		try {
 			document = (new Builder()).build(new StringReader(xml));
@@ -1792,16 +1856,16 @@ public class Campaign {
 		catch(IOException e) {
 			// This should only be thrown if it can't read the 'xml', but
 			// given that it is already in memory this should never happen.
-			throw new IllegalStateException("XML was unreadable.", e);
+			throw new DomainException("XML was unreadable.", e);
 		}
 		catch(XMLException e) {
-			throw new IllegalStateException("No usable XML parser could be found.", e);
+			throw new DomainException("No usable XML parser could be found.", e);
 		}
 		catch(ValidityException e) {
-			throw new IllegalArgumentException("The XML is invalid.", e);
+			throw new DomainException("The XML is invalid.", e);
 		}
 		catch(ParsingException e) {
-			throw new IllegalArgumentException("The XML is not well formed.", e);
+			throw new DomainException("The XML is not well formed.", e);
 		}
 		
 		Element root = document.getRootElement();
@@ -1812,21 +1876,21 @@ public class Campaign {
 		try {
 			getServerUrl(root);
 		}
-		catch(IllegalArgumentException e) {
+		catch(DomainException e) {
 			// The server URL is optional, so we don't care.
 		}
 		
 		try {
 			getIconUrl(root);
 		}
-		catch(IllegalArgumentException e) {
+		catch(DomainException e) {
 			// The icon URL is optional, so we don't care.
 		}
 		
 		try {
 			getAuthoredBy(root);
 		}
-		catch(IllegalArgumentException e) {
+		catch(DomainException e) {
 			// The icon URL is optional, so we don't care.
 		}
 		
@@ -1842,15 +1906,16 @@ public class Campaign {
 	 * 
 	 * @return The campaign's identifier.
 	 * 
-	 * @throws IllegalArgumentException Thrown if the URN fails validation.
+	 * @throws DomainException The ID is missing, there are multiple IDs, or 
+	 * 						   the ID fails validation.
 	 */
-	private static String getId(final Node root) {
+	private static String getId(final Node root) throws DomainException {
 		Nodes ids = root.query(XML_ID);
 		if(ids.size() == 0) {
-			throw new IllegalArgumentException("The campaign ID is missing.");
+			throw new DomainException("The campaign ID is missing.");
 		}
 		else if(ids.size() > 1) {
-			throw new IllegalArgumentException("Multiple campaign IDs were found.");
+			throw new DomainException("Multiple campaign IDs were found.");
 		}
 		else {
 			String urn = ids.get(0).getValue().trim();
@@ -1858,7 +1923,7 @@ public class Campaign {
 				return urn;
 			}
 			else {
-				throw new IllegalArgumentException("The campaign ID is not valid.");
+				throw new DomainException("The campaign ID is not valid.");
 			}
 		}
 	}
@@ -1871,21 +1936,22 @@ public class Campaign {
 	 * 
 	 * @return The campaign's name.
 	 * 
-	 * @throws IllegalArgumentException Thrown if the name fails validation.
+	 * @throws DomainException The name is missing, there are multiple names,
+	 * 						   or the name fails validation.
 	 */
-	private static String getName(final Node root) {
+	private static String getName(final Node root) throws DomainException {
 		Nodes names = root.query(XML_NAME);
 		if(names.size() == 0) {
-			throw new IllegalArgumentException("The campaign name is missing.");
+			throw new DomainException("The campaign name is missing.");
 		}
 		else if(names.size() > 1) {
-			throw new IllegalArgumentException("Multiple campaign names were found.");
+			throw new DomainException("Multiple campaign names were found.");
 		}
 		else {
 			String name = names.get(0).getValue().trim();
 			
 			if(StringUtils.isEmptyOrWhitespaceOnly(name)) {
-				throw new IllegalArgumentException("The name tag exists but the value is empty.");
+				throw new DomainException("The name tag exists but the value is empty.");
 			}
 			else {
 				return name;
@@ -1900,17 +1966,16 @@ public class Campaign {
 	 * 
 	 * @return The campaign's server's URL.
 	 * 
-	 * @throws IllegalArgumentException Thrown if the server URL is missing,
-	 * 									there are multiple of them, or it is 
-	 * 									not a valid URL.
+	 * @throws DomainException Thrown if the server URL is missing, there are 
+	 * 						   multiple of them, or it is not a valid URL.
 	 */
-	private static URL getServerUrl(final Node root) {
+	private static URL getServerUrl(final Node root) throws DomainException {
 		Nodes serverUrls = root.query(XML_SERVER_URL);
 		if(serverUrls.size() == 0) {
-			throw new IllegalArgumentException("The server URL is missing.");
+			throw new DomainException("The server URL is missing.");
 		}
 		else if(serverUrls.size() > 1) {
-			throw new IllegalArgumentException("Multiple server URLs were found.");
+			throw new DomainException("Multiple server URLs were found.");
 		}
 		else {
 			String serverUrlString = serverUrls.get(0).getValue().trim();
@@ -1919,7 +1984,7 @@ public class Campaign {
 				return new URL(serverUrlString);
 			}
 			catch(MalformedURLException e) {
-				throw new IllegalArgumentException("The server URL is not a valid URL.");
+				throw new DomainException("The server URL is not a valid URL.");
 			}
 		}
 	}
@@ -1931,17 +1996,16 @@ public class Campaign {
 	 * 
 	 * @return The campaign's icon URL.
 	 * 
-	 * @throws IllegalArgumentException Thrown if the icon URL is missing, 
-	 * 									there are multiple of them, or it is 
-	 * 									not a valid URL.
+	 * @throws DomainException Thrown if the icon URL is missing, there are 
+	 * 						   multiple of them, or it is not a valid URL.
 	 */
-	private static URL getIconUrl(final Node root) {
+	private static URL getIconUrl(final Node root) throws DomainException {
 		Nodes iconUrls = root.query(XML_ICON_URL);
 		if(iconUrls.size() == 0) {
-			throw new IllegalArgumentException("The icon URL is missing.");
+			throw new DomainException("The icon URL is missing.");
 		}
 		else if(iconUrls.size() > 1) {
-			throw new IllegalArgumentException("Multiple icon URLs were found.");
+			throw new DomainException("Multiple icon URLs were found.");
 		}
 		else {
 			String serverUrlString = iconUrls.get(0).getValue().trim();
@@ -1950,7 +2014,7 @@ public class Campaign {
 				return new URL(serverUrlString);
 			}
 			catch(MalformedURLException e) {
-				throw new IllegalArgumentException("The icon URL is not a valid URL.");
+				throw new DomainException("The icon URL is not a valid URL.");
 			}
 		}
 	}
@@ -1962,16 +2026,19 @@ public class Campaign {
 	 * 
 	 * @return The campaign's authored by value.
 	 * 
-	 * @throws IllegalArgumentException Thrown if the authored by value is  
-	 * 									missing, or there are multiple of them.
+	 * @throws DomainException Thrown if the authored by value is missing, or 
+	 * 						   there are multiple of them.
 	 */
-	private static String getAuthoredBy(final Node root) {
+	private static String getAuthoredBy(
+			final Node root) 
+			throws DomainException {
+		
 		Nodes authoredBy = root.query(XML_AUTHORED_BY);
 		if(authoredBy.size() == 0) {
-			throw new IllegalArgumentException("The authored by value is missing.");
+			throw new DomainException("The authored by value is missing.");
 		}
 		else if(authoredBy.size() > 1) {
-			throw new IllegalArgumentException("Multiple authored by values were found.");
+			throw new DomainException("Multiple authored by values were found.");
 		}
 		else {
 			return authoredBy.get(0).getValue().trim();
@@ -1986,17 +2053,19 @@ public class Campaign {
 	 * 
 	 * @return A map of survey IDs to their Survey object.
 	 * 
-	 * @throws IllegalArgumentException Thrown if the surveys value is missing
-	 * 									or there are multiple of them or if
-	 * 									there are no surveys.
+	 * @throws DomainException Thrown if the surveys value is missing or there
+	 * 						   are multiple of them or if there are no surveys.
 	 */
-	private static Map<String, Survey> getSurveys(final Node root) {
+	private static Map<String, Survey> getSurveys(
+			final Node root) 
+			throws DomainException {
+		
 		Nodes surveysNodes = root.query(XML_SURVEYS);
 		if(surveysNodes.size() == 0) {
-			throw new IllegalArgumentException("The surveys value is missing.");
+			throw new DomainException("The surveys value is missing.");
 		}
 		else if(surveysNodes.size() > 1) {
-			throw new IllegalArgumentException("Multiple surveys values were found.");
+			throw new DomainException("Multiple surveys values were found.");
 		}
 		Node surveysNode = surveysNodes.get(0);
 		
@@ -2005,13 +2074,15 @@ public class Campaign {
 		
 		int numSurveys = surveys.size();
 		if(numSurveys == 0) {
-			throw new IllegalArgumentException("No surveys were found.");
+			throw new DomainException("No surveys were found.");
 		}
 		
 		Map<String, Survey> result = new HashMap<String, Survey>(numSurveys);
 		for(Survey survey : surveys) {
 			if(result.put(survey.getId(), survey) != null) {
-				throw new IllegalArgumentException("Mutiple surveys have the same unique identifier: " + survey.getId());
+				throw new DomainException(
+						"Mutiple surveys have the same unique identifier: " + 
+							survey.getId());
 			}
 		}
 		
@@ -2025,10 +2096,11 @@ public class Campaign {
 	 * 
 	 * @return A list of Survey objects for each survey in the XML.
 	 * 
-	 * @throws IllegalArgumentException Thrown if one of the surveys is 
-	 * 									malformed.
+	 * @throws DomainException Thrown if one of the surveys is malformed.
 	 */
-	private static List<Survey> processSurveys(final Nodes surveys) {
+	private static List<Survey> processSurveys(
+			final Nodes surveys) 
+			throws DomainException {
 		int numSurveys = surveys.size();
 		List<Survey> result = new ArrayList<Survey>(numSurveys);
 		
@@ -2047,7 +2119,9 @@ public class Campaign {
 		Set<String> surveyItemIdsSet = new HashSet<String>();
 		for(String surveyItemId : surveyItemIds) {
 			if(! surveyItemIdsSet.add(surveyItemId)) {
-				throw new IllegalArgumentException("Multiple survey items have the same unique identifier: " + surveyItemId);
+				throw new DomainException(
+						"Multiple survey items have the same unique identifier: " + 
+							surveyItemId);
 			}
 		}
 		
@@ -2091,31 +2165,39 @@ public class Campaign {
 	 * 
 	 * @return A Survey object representing this survey Node from the XML.
 	 * 
-	 * @throws IllegalArgumentException Thrown if the survey is invalid.
+	 * @throws DomainException Thrown if the survey is invalid.
 	 */
-	private static Survey processSurvey(final Node survey) {
+	private static Survey processSurvey(
+			final Node survey) 
+			throws DomainException {
+		
 		Nodes ids = survey.query(XML_SURVEY_ID);
 		if(ids.size() == 0) {
-			throw new IllegalArgumentException("The survey ID is missing.");
+			throw new DomainException("The survey ID is missing.");
 		}
 		else if(ids.size() > 1) {
-			throw new IllegalArgumentException("Multiple survey IDs were found for the same survey.");
+			throw new DomainException(
+					"Multiple survey IDs were found for the same survey.");
 		}
 		String id = ids.get(0).getValue().trim();
 		
 		Nodes titles = survey.query(XML_SURVEY_TITLE);
 		if(titles.size() == 0) {
-			throw new IllegalArgumentException("The survey title is missing: " + id);
+			throw new DomainException("The survey title is missing: " + id);
 		}
 		else if(titles.size() > 1) {
-			throw new IllegalArgumentException("Multiple survey titles were found for the same survey: " + id);
+			throw new DomainException(
+					"Multiple survey titles were found for the same survey: " +
+						id);
 		}
 		String title = titles.get(0).getValue().trim();
 		
 		String description = null;
 		Nodes descriptions = survey.query(XML_SURVEY_DESCRIPTION);
 		if(descriptions.size() > 1) {
-			throw new IllegalArgumentException("Multiple survey descriptions were found for the same survey: " + id);
+			throw new DomainException(
+					"Multiple survey descriptions were found for the same survey: " + 
+						id);
 		}
 		else if(descriptions.size() == 1) {
 			description = descriptions.get(0).getValue().trim();
@@ -2124,7 +2206,9 @@ public class Campaign {
 		String introText = null;
 		Nodes introTexts = survey.query(XML_SURVEY_INTRO_TEXT);
 		if(introTexts.size() > 1) {
-			throw new IllegalArgumentException("Multiple survey intro texts were found for the same survey: " + id);
+			throw new DomainException(
+					"Multiple survey intro texts were found for the same survey: " + 
+						id);
 		}
 		else if(introTexts.size() == 1) {
 			introText = introTexts.get(0).getValue().trim();
@@ -2132,42 +2216,54 @@ public class Campaign {
 		
 		Nodes submitTexts = survey.query(XML_SURVEY_SUBMIT_TEXT);
 		if(submitTexts.size() == 0) {
-			throw new IllegalArgumentException("The survey submit text is missing.");
+			throw new DomainException("The survey submit text is missing.");
 		}
 		else if(submitTexts.size() > 1) {
-			throw new IllegalArgumentException("Multiple survey submit texts were found for the same survey: " + id);
+			throw new DomainException(
+					"Multiple survey submit texts were found for the same survey: " + 
+						id);
 		}
 		String submitText = submitTexts.get(0).getValue().trim();
 		
 		Nodes showSummarys = survey.query(XML_SURVEY_SHOW_SUMMARY);
 		if(showSummarys.size() == 0) {
-			throw new IllegalArgumentException("The survey show summary is missing.");
+			throw new DomainException("The survey show summary is missing.");
 		}
 		else if(showSummarys.size() > 1) {
-			throw new IllegalArgumentException("Multiple survey show summarys were found for the same survey: " + id);
+			throw new DomainException(
+					"Multiple survey show summarys were found for the same survey: " + 
+						id);
 		}
 		Boolean showSummary = StringUtils.decodeBoolean(showSummarys.get(0).getValue().trim());
 		if(showSummary == null) {
-			throw new IllegalArgumentException("The show summary value is not a valid boolean value: " + id);
+			throw new DomainException(
+					"The show summary value is not a valid boolean value: " + 
+						id);
 		}
 		
 		Boolean editSummary = null;
 		Nodes editSummarys = survey.query(XML_SURVEY_EDIT_SUMMARY);
 		if(editSummarys.size() > 1) {
-			throw new IllegalArgumentException("Multiple survey edit summarys were found for the same survey: " + id);
+			throw new DomainException(
+					"Multiple survey edit summarys were found for the same survey: " + 
+						id);
 		}
 		else if(editSummarys.size() == 1) {
 			editSummary = StringUtils.decodeBoolean(editSummarys.get(0).getValue().trim());
 			
 			if(editSummary == null) {
-				throw new IllegalArgumentException("The edit summary value is not a valid boolean value: " + id);
+				throw new DomainException(
+						"The edit summary value is not a valid boolean value: " + 
+							id);
 			}
 		}
 		
 		String summaryText = null;
 		Nodes summaryTexts = survey.query(XML_SURVEY_SUMMARY_TEXT);
 		if(summaryTexts.size() > 1) {
-			throw new IllegalArgumentException("Multiple survey summary texts were found for the same survey: " + id);
+			throw new DomainException(
+					"Multiple survey summary texts were found for the same survey: " + 
+						id);
 		}
 		else if(summaryTexts.size() == 1) {
 			summaryText = summaryTexts.get(0).getValue();
@@ -2175,22 +2271,28 @@ public class Campaign {
 		
 		Nodes anytimes = survey.query(XML_SURVEY_ANYTIME);
 		if(anytimes.size() == 0) {
-			throw new IllegalArgumentException("The survey anytime value is missing: " + id);
+			throw new DomainException(
+					"The survey anytime value is missing: " + id);
 		}
 		else if(anytimes.size() > 1) {
-			throw new IllegalArgumentException("Multiple survey anytime values were found for the same survey: " + id);
+			throw new DomainException(
+					"Multiple survey anytime values were found for the same survey: " + 
+						id);
 		}
 		Boolean anytime = StringUtils.decodeBoolean(anytimes.get(0).getValue().trim());
 		if(anytime == null) {
-			throw new IllegalArgumentException("The anytime value is not a valid boolean value: " + id);
+			throw new DomainException(
+					"The anytime value is not a valid boolean value: " + id);
 		}
 		
 		Nodes contentLists = survey.query(XML_SURVEY_CONTENT_LIST);
 		if(contentLists.size() == 0) {
-			throw new IllegalArgumentException("The survey content list is missing: " + id);
+			throw new DomainException(
+					"The survey content list is missing: " + id);
 		}
 		else if(contentLists.size() > 1) {
-			throw new IllegalArgumentException("Multiple survey content lists were found: " + id);
+			throw new DomainException(
+					"Multiple survey content lists were found: " + id);
 		}
 		Node contentList = contentLists.get(0);
 		List<SurveyItem> promptsList = processContentList(id, contentList.query(XML_CONTENT_LIST_ITEMS));
@@ -2202,7 +2304,9 @@ public class Campaign {
 				prompts.put(prompt.getIndex(), prompt);
 			}
 			else {
-				throw new IllegalArgumentException("Multiple prompts have the same unqiue identifier in a group of survey items: " + prompt.getId());
+				throw new DomainException(
+						"Multiple prompts have the same unqiue identifier in a group of survey items: " + 
+							prompt.getId());
 			}
 		}
 		
@@ -2221,11 +2325,13 @@ public class Campaign {
 	 * 
 	 * @return A list of AbstractPrompts that were generated from the XML.
 	 * 
-	 * @throws IllegalArgumentException Thrown if one of the content list items 
-	 * 									is malformed.
+	 * @throws DomainException Thrown if one of the content list items is 
+	 * 						   malformed.
 	 */
-	private static List<SurveyItem> processContentList(final String surveyId,
-			final Nodes contentListItems) {
+	private static List<SurveyItem> processContentList(
+			final String surveyId,
+			final Nodes contentListItems) 
+			throws DomainException {
 		
 		int numItems = contentListItems.size();
 		List<SurveyItem> result = new ArrayList<SurveyItem>(numItems);
@@ -2237,7 +2343,10 @@ public class Campaign {
 						((Element) contentListItems.get(i)).getLocalName());
 			}
 			catch(IllegalArgumentException e) {
-				throw new IllegalStateException("There were unknown content list items found: " + surveyId, e);
+				throw new DomainException(
+						"There were unknown content list items found: " + 
+							surveyId, 
+						e);
 			}
 				
 			switch(contentListItem) {
@@ -2254,7 +2363,11 @@ public class Campaign {
 				break;
 				
 			default:
-				throw new IllegalStateException("There are new content list items but no matching processor for survey '" + surveyId + "': " + contentListItem);
+				throw new DomainException(
+						"There are new content list items but no matching processor for survey '" + 
+							surveyId + 
+							"': " + 
+							contentListItem);
 			}
 		}
 		
@@ -2272,23 +2385,31 @@ public class Campaign {
 	 * @param index The index of this message in its list of survey items.
 	 * 
 	 * @return A Message object representing the message defined in the XML.
+	 * 
+	 * @throws DomainException The message was malformed.
 	 */
-	private static Message processMessage(final String containerId,
-			final Node message, final int index) {
+	private static Message processMessage(
+			final String containerId,
+			final Node message, 
+			final int index) 
+			throws DomainException {
 		
 		Nodes ids = message.query(XML_MESSAGE_ID);
 		if(ids.size() == 0) {
-			throw new IllegalArgumentException("The message ID is missing: " + containerId);
+			throw new DomainException(
+					"The message ID is missing: " + containerId);
 		}
 		else if(ids.size() > 1) {
-			throw new IllegalArgumentException("Multiple message IDs were found: " + containerId);
+			throw new DomainException(
+					"Multiple message IDs were found: " + containerId);
 		}
 		String id = ids.get(0).getValue().trim();
 		
 		String condition = null;
 		Nodes conditions = message.query(XML_MESSAGE_CONDITION);
 		if(conditions.size() > 1) {
-			throw new IllegalArgumentException("Multiple message conditions were found: " + id);
+			throw new DomainException(
+					"Multiple message conditions were found: " + id);
 		}
 		else if(conditions.size() == 1) {
 			condition = conditions.get(0).getValue().trim();
@@ -2296,10 +2417,12 @@ public class Campaign {
 		
 		Nodes texts = message.query(XML_MESSAGE_TEXT);
 		if(texts.size() == 0) {
-			throw new IllegalArgumentException("The message text is missing: " + id);
+			throw new DomainException(
+					"The message text is missing: " + id);
 		}
 		else if(texts.size() > 1) {
-			throw new IllegalArgumentException("Multiple message texts were found: " + id);
+			throw new DomainException(
+					"Multiple message texts were found: " + id);
 		}
 		String text = texts.get(0).getValue().trim();
 		
@@ -2321,26 +2444,32 @@ public class Campaign {
 	 * @return A RepeatableSet object that represents the repeatable set 
 	 * 		   defined in the XML.
 	 * 
-	 * @throws IllegalArgumentException Thrown if the repeatable set is 
-	 * 									malformed or if any of the prompts in
-	 * 									the repeatable set are malformed.
+	 * @throws DomainException Thrown if the repeatable set is malformed or if 
+	 * 						   any of the prompts in the repeatable set are 
+	 * 						   malformed.
 	 */
-	private static RepeatableSet processRepeatableSet(final String containerId,
-			final Node repeatableSet, final int index) {
+	private static RepeatableSet processRepeatableSet(
+			final String containerId,
+			final Node repeatableSet, 
+			final int index) 
+			throws DomainException {
 		
 		Nodes ids = repeatableSet.query(XML_REPEATABLE_SET_ID);
 		if(ids.size() == 0) {
-			throw new IllegalArgumentException("The repeatable set ID is missing: " + containerId);
+			throw new DomainException(
+					"The repeatable set ID is missing: " + containerId);
 		}
 		else if(ids.size() > 1) {
-			throw new IllegalArgumentException("Multiple repeatable set IDs were found: " + containerId);
+			throw new DomainException(
+					"Multiple repeatable set IDs were found: " + containerId);
 		}
 		String id = ids.get(0).getValue().trim();
 		
 		String condition = null;
 		Nodes conditions = repeatableSet.query(XML_REPEATABLE_SET_CONDITION);
 		if(conditions.size() > 1) {
-			throw new IllegalArgumentException("Multiple repeatable set conditions were found: " + id);
+			throw new DomainException(
+					"Multiple repeatable set conditions were found: " + id);
 		}
 		else if(conditions.size() == 1) {
 			condition = conditions.get(0).getValue().trim();
@@ -2349,54 +2478,74 @@ public class Campaign {
 		Nodes teminationQuestions =
 			repeatableSet.query(XML_REPEATABLE_SET_TERMINATION_QUESTION);
 		if(teminationQuestions.size() == 0) {
-			throw new IllegalArgumentException("The repeatable set termination question is missing: " + id);
+			throw new DomainException(
+					"The repeatable set termination question is missing: " + 
+						id);
 		}
 		else if(teminationQuestions.size() > 1) {
-			throw new IllegalArgumentException("Multiple repeatable set termination questions were found: " + id);
+			throw new DomainException(
+					"Multiple repeatable set termination questions were found: " + 
+						id);
 		}
 		String terminationQuestion = teminationQuestions.get(0).getValue().trim();
 		
 		Nodes terminationTrueLabels =
 			repeatableSet.query(XML_REPEATABLE_SET_TERMINATION_TRUE_LABEL);
 		if(terminationTrueLabels.size() == 0) {
-			throw new IllegalArgumentException("The repeatable set termination true label is missing: " + id);
+			throw new DomainException(
+					"The repeatable set termination true label is missing: " + 
+						id);
 		}
 		else if(terminationTrueLabels.size() > 1) {
-			throw new IllegalArgumentException("Multiple repeatable set termination true labels were found: " + id);
+			throw new DomainException(
+					"Multiple repeatable set termination true labels were found: " + 
+						id);
 		}
 		String terminationTrueLabel = terminationTrueLabels.get(0).getValue().trim();
 		
 		Nodes terminationFalseLabels =
 			repeatableSet.query(XML_REPEATABLE_SET_TERMINATION_FALSE_LABEL);
 		if(terminationFalseLabels.size() == 0) {
-			throw new IllegalArgumentException("The repeatable set termination false label is missing: " + id);
+			throw new DomainException(
+					"The repeatable set termination false label is missing: " +
+						id);
 		}
 		else if(terminationFalseLabels.size() > 1) {
-			throw new IllegalArgumentException("Multiple repeatable set termination false labels were found: " + id);
+			throw new DomainException(
+					"Multiple repeatable set termination false labels were found: " + 
+						id);
 		}
 		String terminationFalseLabel = terminationFalseLabels.get(0).getValue().trim();
 		
 		Nodes terminationSkipEnableds =
 			repeatableSet.query(XML_REPEATABLE_SET_TERMINATION_SKIP_ENABLED);
 		if(terminationSkipEnableds.size() == 0) {
-			throw new IllegalArgumentException("The repeatable set termination skip enabled value is missing: " + id);
+			throw new DomainException(
+					"The repeatable set termination skip enabled value is missing: " + 
+						id);
 		}
 		else if(terminationSkipEnableds.size() > 1) {
-			throw new IllegalArgumentException("Multiple repeatable set termination skip enabled value were found: " + id);
+			throw new DomainException(
+					"Multiple repeatable set termination skip enabled value were found: " + 
+						id);
 		}
 		Boolean terminationSkipEnabled = 
 			StringUtils.decodeBoolean(
 					terminationSkipEnableds.get(0).getValue().trim()
 				);
 		if(terminationSkipEnabled == null) {
-			throw new IllegalArgumentException("The termination skip enabled value is not a valid boolean value: " + id);
+			throw new DomainException(
+					"The termination skip enabled value is not a valid boolean value: " + 
+						id);
 		}
 		
 		String terminationSkipLabel = null;
 		Nodes terminationSkipLabels = 
 			repeatableSet.query(XML_REPEATABLE_SET_TERMINATION_SKIP_LABEL);
 		if(terminationSkipLabels.size() > 1) {
-			throw new IllegalArgumentException("Multiple repeatable set termination skip labels were found: " + id);
+			throw new DomainException(
+					"Multiple repeatable set termination skip labels were found: " + 
+						id);
 		}
 		else if(terminationSkipLabels.size() == 1) {
 			terminationSkipLabel = terminationSkipLabels.get(0).getValue().trim();
@@ -2404,16 +2553,21 @@ public class Campaign {
 		
 		Nodes promptsNodes = repeatableSet.query(XML_REPEATABLE_SET_PROMPTS);
 		if(promptsNodes.size() == 0) {
-			throw new IllegalArgumentException("The repeatable set doesn't contain a prompts group: " + id);
+			throw new DomainException(
+					"The repeatable set doesn't contain a prompts group: " + 
+						id);
 		}
 		if(promptsNodes.size() > 1) {
-			throw new IllegalArgumentException("The repeatable set contains multiple prompts groups: " + id);
+			throw new DomainException(
+					"The repeatable set contains multiple prompts groups: " + 
+						id);
 		}
 		
 		Nodes promptNodes = promptsNodes.get(0).query(XML_CONTENT_LIST_ITEMS);
 		List<SurveyItem> promptGroup = processContentList(id, promptNodes);
 		if(promptGroup.size() == 0) {
-			throw new IllegalArgumentException("The repeatable set doesn't contain any prompts: " + id);
+			throw new DomainException(
+					"The repeatable set doesn't contain any prompts: " + id);
 		}
 		
 		Map<Integer, SurveyItem> promptMap = 
@@ -2424,13 +2578,17 @@ public class Campaign {
 				// This is where repeatable sets prevent sub repeatable sets.
 				// To allow this restriction, remove this if statement.
 				if(currPrompt instanceof RepeatableSet) {
-					throw new IllegalArgumentException("Repeatable sets may not contain repeatable sets: " + id);
+					throw new DomainException(
+							"Repeatable sets may not contain repeatable sets: " + 
+								id);
 				}
 
 				promptMap.put(currPrompt.getIndex(), currPrompt);
 			}
 			else {
-				throw new IllegalArgumentException("A repeatable set has multiple prompts with the same unique identifier: " + currPrompt.getId());
+				throw new DomainException(
+						"A repeatable set has multiple prompts with the same unique identifier: " + 
+							currPrompt.getId());
 			}
 		}
 		
@@ -2454,22 +2612,28 @@ public class Campaign {
 	 * 
 	 * @throws IllegalArgumentException Thrown if the prompt is malformed.
 	 */
-	private static Prompt processPrompt(final String containerId, 
-			final Node prompt, final int index) {
+	private static Prompt processPrompt(
+			final String containerId, 
+			final Node prompt, 
+			final int index) 
+			throws DomainException {
 		
 		Nodes ids = prompt.query(XML_PROMPT_ID);
 		if(ids.size() == 0) {
-			throw new IllegalArgumentException("The prompt ID is missing: " + containerId);
+			throw new DomainException(
+					"The prompt ID is missing: " + containerId);
 		}
 		else if(ids.size() > 1) {
-			throw new IllegalArgumentException("Multiple prompt IDs were found: " + containerId);
+			throw new DomainException(
+					"Multiple prompt IDs were found: " + containerId);
 		}
 		String id = ids.get(0).getValue().trim();
 		
 		String condition = null;
 		Nodes conditions = prompt.query(XML_PROMPT_CONDITION);
 		if(conditions.size() > 1) {
-			throw new IllegalArgumentException("Multiple prompt conditions were found: " + id);
+			throw new DomainException(
+					"Multiple prompt conditions were found: " + id);
 		}
 		else if(conditions.size() == 1) {
 			condition = conditions.get(0).getValue().trim();
@@ -2478,7 +2642,8 @@ public class Campaign {
 		String unit = null;
 		Nodes units = prompt.query(XML_PROMPT_UNIT);
 		if(units.size() > 1) {
-			throw new IllegalArgumentException("Multiple prompt units were found: " + id);
+			throw new DomainException(
+					"Multiple prompt units were found: " + id);
 		}
 		else if(units.size() == 1) {
 			unit = units.get(0).getValue().trim();
@@ -2486,17 +2651,20 @@ public class Campaign {
 		
 		Nodes texts = prompt.query(XML_PROMPT_TEXT);
 		if(texts.size() == 0) {
-			throw new IllegalArgumentException("The prompt text is missing: " + id);
+			throw new DomainException(
+					"The prompt text is missing: " + id);
 		}
 		else if(texts.size() > 1) {
-			throw new IllegalArgumentException("Multiple prompt texts were found: " + id);
+			throw new DomainException(
+					"Multiple prompt texts were found: " + id);
 		}
 		String text = texts.get(0).getValue().trim();
 		
 		String abbreviatedText = null;
 		Nodes abbreviatedTexts = prompt.query(XML_PROMPT_ABBREVIATED_TEXT);
 		if(abbreviatedTexts.size() > 1) {
-			throw new IllegalArgumentException("Multiple prompt abbreviated texts were found: " + id);
+			throw new DomainException(
+					"Multiple prompt abbreviated texts were found: " + id);
 		}
 		else if(abbreviatedTexts.size() == 1) {
 			abbreviatedText = abbreviatedTexts.get(0).getValue().trim();
@@ -2505,7 +2673,8 @@ public class Campaign {
 		String explanationText = null;
 		Nodes explanationTexts = prompt.query(XML_PROMPT_EXPLANATION_TEXT);
 		if(explanationTexts.size() > 1) {
-			throw new IllegalArgumentException("Multiple prompt explanation texts were found: " + id);
+			throw new DomainException(
+					"Multiple prompt explanation texts were found: " + id);
 		}
 		else if(explanationTexts.size() == 1) {
 			explanationText = explanationTexts.get(0).getValue().trim();
@@ -2513,20 +2682,25 @@ public class Campaign {
 		
 		Nodes skippables = prompt.query(XML_PROMPT_SKIPPABLE);
 		if(skippables.size() == 0) {
-			throw new IllegalArgumentException("The prompt skippable is missing: " + id);
+			throw new DomainException(
+					"The prompt skippable is missing: " + id);
 		}
 		else if(skippables.size() > 1) {
-			throw new IllegalArgumentException("Multiple prompt skippable values were found: " + id);
+			throw new DomainException(
+					"Multiple prompt skippable values were found: " + id);
 		}
 		Boolean skippable = StringUtils.decodeBoolean(skippables.get(0).getValue());
 		if(skippable == null) {
-			throw new IllegalArgumentException("The prompt skippable value was not a valid boolean value: " + id);
+			throw new DomainException(
+					"The prompt skippable value was not a valid boolean value: " + 
+						id);
 		}
 		
 		String skipLabel = null;
 		Nodes skipLabels = prompt.query(XML_PROMPT_SKIP_LABEL);
 		if(skipLabels.size() > 1) {
-			throw new IllegalArgumentException("Multiple prompt skip labels were found: " + id);
+			throw new DomainException(
+					"Multiple prompt skip labels were found: " + id);
 		}
 		else if(skipLabels.size() == 1) {
 			skipLabel = skipLabels.get(0).getValue().trim();
@@ -2534,32 +2708,39 @@ public class Campaign {
 		
 		Nodes displayTypes = prompt.query(XML_PROMPT_DISPLAY_TYPE);
 		if(displayTypes.size() == 0) {
-			throw new IllegalArgumentException("The prompt display type is missing: " + id);
+			throw new DomainException(
+					"The prompt display type is missing: " + id);
 		}
 		else if(displayTypes.size() > 1) {
-			throw new IllegalArgumentException("Multiple prompt display types were found: " + id);
+			throw new DomainException(
+					"Multiple prompt display types were found: " + id);
 		}
 		DisplayType displayType;
 		try {
 			displayType = DisplayType.valueOf(displayTypes.get(0).getValue().trim().toUpperCase());
 		}
 		catch(IllegalArgumentException e) {
-			throw new IllegalArgumentException("The display type is unknown: " + id, e);
+			throw new DomainException(
+					"The display type is unknown: " + id, 
+					e);
 		}
 		
 		Nodes displayLabels = prompt.query(XML_PROMPT_DISPLAY_LABEL);
 		if(displayLabels.size() == 0) {
-			throw new IllegalArgumentException("The prompt display label is missing: " + id);
+			throw new DomainException(
+					"The prompt display label is missing: " + id);
 		}
 		else if(displayLabels.size() > 1) {
-			throw new IllegalArgumentException("Multiple prompt display labels were found: " + id);
+			throw new DomainException(
+					"Multiple prompt display labels were found: " + id);
 		}
 		String displayLabel = displayLabels.get(0).getValue().trim();
 		
 		String defaultValue = null;
 		Nodes defaultValues = prompt.query(XML_PROMPT_DEFAULT);
 		if(defaultValues.size() > 1) {
-			throw new IllegalArgumentException("Multiple default values were found: " + id);
+			throw new DomainException(
+					"Multiple default values were found: " + id);
 		}
 		else if(defaultValues.size() == 1) {
 			defaultValue = defaultValues.get(0).getValue().trim();
@@ -2567,23 +2748,25 @@ public class Campaign {
 		
 		Nodes promptTypes = prompt.query(XML_PROMPT_TYPE);
 		if(promptTypes.size() == 0) {
-			throw new IllegalArgumentException("The prompt type is invalid: " + id);
+			throw new DomainException("The prompt type is invalid: " + id);
 		}
 		else if(promptTypes.size() > 1) {
-			throw new IllegalArgumentException("Multiple prompt types were found: " + id);
+			throw new DomainException(
+					"Multiple prompt types were found: " + id);
 		}
 		Prompt.Type type;
 		try {
 			type = Prompt.Type.valueOf(promptTypes.get(0).getValue().toUpperCase());
 		}
 		catch(IllegalArgumentException e) {
-			throw new IllegalArgumentException("The prompt type is unknown: " + id);
+			throw new DomainException("The prompt type is unknown: " + id);
 		}
 		
 		Map<String, LabelValuePair> properties;
 		Nodes propertiesNodes = prompt.query(XML_PROMPT_PROPERTIES);
 		if(propertiesNodes.size() > 1) {
-			throw new IllegalArgumentException("Multiple properties groups found: " + id);
+			throw new DomainException(
+					"Multiple properties groups found: " + id);
 		}
 		else if(propertiesNodes.size() == 1) {
 			properties = getKeyValueLabelTrios(id, propertiesNodes.get(0).query(XML_PROMPT_PROPERTY));
@@ -2656,10 +2839,12 @@ public class Campaign {
 	 * 
 	 * @return A mapping of property keys to their label/value pairs.
 	 * 
-	 * @throws IllegalArgumentException Thrown if a property is invalid.
+	 * @throws DomainException Thrown if a property is invalid.
 	 */
 	private static Map<String, LabelValuePair> getKeyValueLabelTrios(
-			final String containerId, final Nodes properties) {
+			final String containerId, 
+			final Nodes properties) 
+			throws DomainException {
 
 		int numProperties = properties.size();
 		if(numProperties == 0) {
@@ -2674,26 +2859,31 @@ public class Campaign {
 			
 			Nodes keys = propertyNode.query(XML_PROPERTY_KEY);
 			if(keys.size() == 0) {
-				throw new IllegalArgumentException("The property key is missing: " + containerId);
+				throw new DomainException(
+						"The property key is missing: " + containerId);
 			}
 			else if(keys.size() > 1) {
-				throw new IllegalArgumentException("Multiple property keys were found: " + containerId);
+				throw new DomainException(
+						"Multiple property keys were found: " + containerId);
 			}
 			String key = keys.get(0).getValue().trim();
 			
 			Nodes labels = propertyNode.query(XML_PROPERTY_LABEL);
 			if(labels.size() == 0) {
-				throw new IllegalArgumentException("The property label is missing: " + containerId);
+				throw new DomainException(
+						"The property label is missing: " + containerId);
 			}
 			else if(labels.size() > 1) {
-				throw new IllegalArgumentException("Multiple property labels were found: " + containerId);
+				throw new DomainException(
+						"Multiple property labels were found: " + containerId);
 			}
 			String label = labels.get(0).getValue().trim();
 			
 			Number value = null;
 			Nodes values = propertyNode.query(XML_PROPERTY_VALUE);
 			if(values.size() > 1) {
-				throw new IllegalArgumentException("Multiple property values found: " + containerId);
+				throw new DomainException(
+						"Multiple property values found: " + containerId);
 			}
 			else if(values.size() == 1) {
 				String valueString = values.get(0).getValue().trim();
@@ -2717,8 +2907,9 @@ public class Campaign {
 									value = Double.parseDouble(valueString);
 								}
 								catch(NumberFormatException notDouble) {
-									throw new IllegalArgumentException(
-											"The property value is not a numeric value: " + containerId);
+									throw new DomainException(
+											"The property value is not a numeric value: " + 
+												containerId);
 								}
 							}
 						}
@@ -2727,13 +2918,14 @@ public class Campaign {
 			}
 			
 			if(result.put(key, new LabelValuePair(label, value)) != null) {
-				throw new IllegalArgumentException(
-						"Multiple properties with the same key were found for the container with id: " + containerId);
+				throw new DomainException(
+						"Multiple properties with the same key were found for the container with id: " + 
+							containerId);
 			}
 			if(! labelSet.add(label)) {
-				throw new IllegalArgumentException(
+				throw new DomainException(
 						"Multiple properties have the same label: " + 
-								containerId);
+							containerId);
 			}
 		}
 		
@@ -2772,17 +2964,24 @@ public class Campaign {
 	 * 
 	 * @return A HoursBeforeNowPrompt object.
 	 * 
-	 * @throws IllegalArgumentException Thrown if the required properties are
-	 * 									missing or if any of the parameters are
-	 * 									invalid.
+	 * @throws DomainException Thrown if the required properties are missing or
+	 * 						   if any of the parameters are invalid.
 	 */
-	private static HoursBeforeNowPrompt processHoursBeforeNow(final String id,
-			final String condition, final String unit, final String text,
-			final String abbreviatedText, final String explanationText, 
-			final boolean skippable, final String skipLabel,
-			final DisplayType displayType, final String displayLabel,
+	private static HoursBeforeNowPrompt processHoursBeforeNow(
+			final String id,
+			final String condition, 
+			final String unit, 
+			final String text,
+			final String abbreviatedText, 
+			final String explanationText, 
+			final boolean skippable, 
+			final String skipLabel,
+			final DisplayType displayType, 
+			final String displayLabel,
 			final String defaultValue,
-			final Map<String, LabelValuePair> properties, final int index) {
+			final Map<String, LabelValuePair> properties, 
+			final int index) 
+			throws DomainException {
 		
 		int min;
 		try {
@@ -2790,7 +2989,7 @@ public class Campaign {
 				properties.get(HoursBeforeNowPrompt.XML_KEY_MIN);
 			
 			if(minVlp == null) {
-				throw new IllegalArgumentException(
+				throw new DomainException(
 						"Missing the '" +
 							HoursBeforeNowPrompt.XML_KEY_MIN +
 							"' property: " +
@@ -2798,8 +2997,8 @@ public class Campaign {
 			}
 			min = Integer.decode(minVlp.getLabel());
 		}
-		catch(IllegalArgumentException e) {
-			throw new IllegalArgumentException(
+		catch(NumberFormatException e) {
+			throw new DomainException(
 					"The '" +
 						HoursBeforeNowPrompt.XML_KEY_MIN +
 						"' property is not an integer: " +
@@ -2813,7 +3012,7 @@ public class Campaign {
 				properties.get(HoursBeforeNowPrompt.XML_KEY_MAX);
 			
 			if(maxVlp == null) {
-				throw new IllegalArgumentException(
+				throw new DomainException(
 						"Missing the '" +
 							HoursBeforeNowPrompt.XML_KEY_MAX +
 							"' property: " +
@@ -2821,8 +3020,8 @@ public class Campaign {
 			}
 			max = Integer.decode(maxVlp.getLabel());
 		}
-		catch(IllegalArgumentException e) {
-			throw new IllegalArgumentException(
+		catch(NumberFormatException e) {
+			throw new DomainException(
 					"The '" +
 						HoursBeforeNowPrompt.XML_KEY_MAX +
 						"' property is not an integer: " +
@@ -2837,7 +3036,7 @@ public class Campaign {
 			}
 		}
 		catch(NumberFormatException e) {
-			throw new IllegalArgumentException(
+			throw new DomainException(
 					"The default value is not a valid integer: " +
 						id);
 		}
@@ -2878,17 +3077,24 @@ public class Campaign {
 	 * 
 	 * @return A MultiChoicePrompt object.
 	 * 
-	 * @throws IllegalArgumentException Thrown if the required properties are
-	 * 									missing or if any of the parameters are
-	 * 									invalid.
+	 * @throws DomainException Thrown if the required properties are missing or
+	 * 						   if any of the parameters are invalid.
 	 */
-	private static MultiChoicePrompt processMultiChoice(final String id,
-			final String condition, final String unit, final String text,
-			final String abbreviatedText, final String explanationText, 
-			final boolean skippable, final String skipLabel,
-			final DisplayType displayType, final String displayLabel,
+	private static MultiChoicePrompt processMultiChoice(
+			final String id,
+			final String condition, 
+			final String unit, 
+			final String text,
+			final String abbreviatedText, 
+			final String explanationText, 
+			final boolean skippable, 
+			final String skipLabel,
+			final DisplayType displayType, 
+			final String displayLabel,
 			final String defaultValue,
-			final Map<String, LabelValuePair> properties, final int index) {
+			final Map<String, LabelValuePair> properties, 
+			final int index) 
+			throws DomainException {
 		
 		Map<Integer, LabelValuePair> choices = 
 			new HashMap<Integer, LabelValuePair>(properties.size());
@@ -2899,13 +3105,13 @@ public class Campaign {
 				keyInt = Integer.decode(key);
 				
 				if(keyInt < 0) {
-					throw new IllegalArgumentException(
+					throw new DomainException(
 							"The key value cannot be negative: " +
 								id);
 				}
 			}
 			catch(NumberFormatException e) {
-				throw new IllegalArgumentException(
+				throw new DomainException(
 						"The key is not a valid integer: " +
 							id, 
 						e);
@@ -2927,7 +3133,8 @@ public class Campaign {
 						defaultValues.add(Integer.decode(currValue));
 					}
 					catch(NumberFormatException e) {
-						throw new IllegalArgumentException("One of the default values was not an integer.");
+						throw new DomainException(
+							"One of the default values was not an integer.");
 					}
 				}
 			}
@@ -2970,17 +3177,24 @@ public class Campaign {
 	 * 
 	 * @return A MultiChoiceCustomPrompt object.
 	 * 
-	 * @throws IllegalArgumentException Thrown if the required properties are
-	 * 									missing or if any of the parameters are
-	 * 									invalid.
+	 * @throws DomainException Thrown if the required properties are missing or 
+	 * 						   if any of the parameters are invalid.
 	 */
-	private static MultiChoiceCustomPrompt processMultiChoiceCustom(final String id,
-			final String condition, final String unit, final String text,
-			final String abbreviatedText, final String explanationText, 
-			final boolean skippable, final String skipLabel,
-			final DisplayType displayType, final String displayLabel,
+	private static MultiChoiceCustomPrompt processMultiChoiceCustom(
+			final String id,
+			final String condition, 
+			final String unit, 
+			final String text,
+			final String abbreviatedText, 
+			final String explanationText, 
+			final boolean skippable, 
+			final String skipLabel,
+			final DisplayType displayType, 
+			final String displayLabel,
 			final String defaultValue,
-			final Map<String, LabelValuePair> properties, final int index) {
+			final Map<String, LabelValuePair> properties, 
+			final int index) 
+			throws DomainException {
 		
 		Map<Integer, LabelValuePair> choices = 
 			new HashMap<Integer, LabelValuePair>(properties.size());
@@ -2991,13 +3205,13 @@ public class Campaign {
 				keyInt = Integer.decode(key);
 				
 				if(keyInt < 0) {
-					throw new IllegalArgumentException(
+					throw new DomainException(
 							"The key value cannot be negative: " +
 								id);
 				}
 			}
 			catch(NumberFormatException e) {
-				throw new IllegalArgumentException(
+				throw new DomainException(
 						"The key is not a valid integer: " +
 							id, 
 						e);
@@ -3019,7 +3233,8 @@ public class Campaign {
 						defaultValues.add(Integer.decode(currValue));
 					}
 					catch(NumberFormatException e) {
-						throw new IllegalArgumentException("One of the default values was not an integer.");
+						throw new DomainException(
+							"One of the default values was not an integer.");
 					}
 				}
 			}
@@ -3062,17 +3277,24 @@ public class Campaign {
 	 * 
 	 * @return A NumberPrompt object.
 	 * 
-	 * @throws IllegalArgumentException Thrown if the required properties are
-	 * 									missing or if any of the parameters are
-	 * 									invalid.
+	 * @throws DomainException Thrown if the required properties are missing or
+	 * 						   if any of the parameters are invalid.
 	 */
-	private static NumberPrompt processNumber(final String id,
-			final String condition, final String unit, final String text,
-			final String abbreviatedText, final String explanationText, 
-			final boolean skippable, final String skipLabel,
-			final DisplayType displayType, final String displayLabel,
+	private static NumberPrompt processNumber(
+			final String id,
+			final String condition, 
+			final String unit, 
+			final String text,
+			final String abbreviatedText, 
+			final String explanationText, 
+			final boolean skippable, 
+			final String skipLabel,
+			final DisplayType displayType, 
+			final String displayLabel,
 			final String defaultValue,
-			final Map<String, LabelValuePair> properties, final int index) {
+			final Map<String, LabelValuePair> properties, 
+			final int index) 
+			throws DomainException {
 		
 		long min;
 		try {
@@ -3080,7 +3302,7 @@ public class Campaign {
 				properties.get(NumberPrompt.XML_KEY_MIN);
 			
 			if(minVlp == null) {
-				throw new IllegalArgumentException(
+				throw new DomainException(
 						"Missing the '" +
 							NumberPrompt.XML_KEY_MIN +
 							"' property: " +
@@ -3088,8 +3310,8 @@ public class Campaign {
 			}
 			min = Long.decode(minVlp.getLabel());
 		}
-		catch(IllegalArgumentException e) {
-			throw new IllegalArgumentException(
+		catch(NumberFormatException e) {
+			throw new DomainException(
 					"The '" +
 						NumberPrompt.XML_KEY_MIN +
 						"' property is not an integer: " +
@@ -3103,7 +3325,7 @@ public class Campaign {
 				properties.get(NumberPrompt.XML_KEY_MAX);
 			
 			if(maxVlp == null) {
-				throw new IllegalArgumentException(
+				throw new DomainException(
 						"Missing the '" +
 							NumberPrompt.XML_KEY_MAX +
 							"' property: " +
@@ -3111,8 +3333,8 @@ public class Campaign {
 			}
 			max = Long.decode(maxVlp.getLabel());
 		}
-		catch(IllegalArgumentException e) {
-			throw new IllegalArgumentException(
+		catch(NumberFormatException e) {
+			throw new DomainException(
 					"The '" +
 						NumberPrompt.XML_KEY_MAX +
 						"' property is not an integer: " +
@@ -3127,7 +3349,7 @@ public class Campaign {
 			}
 		}
 		catch(NumberFormatException e) {
-			throw new IllegalArgumentException(
+			throw new DomainException(
 					"The default value is not a valid integer: " +
 						id);
 		}
@@ -3168,17 +3390,24 @@ public class Campaign {
 	 * 
 	 * @return A PhotoPrompt object.
 	 * 
-	 * @throws IllegalArgumentException Thrown if the required properties are
-	 * 									missing or if any of the parameters are
-	 * 									invalid.
+	 * @throws DomainException Thrown if the required properties are missing or
+	 * 						   if any of the parameters are invalid.
 	 */
-	private static PhotoPrompt processPhoto(final String id,
-			final String condition, final String unit, final String text,
-			final String abbreviatedText, final String explanationText, 
-			final boolean skippable, final String skipLabel,
-			final DisplayType displayType, final String displayLabel,
+	private static PhotoPrompt processPhoto(
+			final String id,
+			final String condition, 
+			final String unit, 
+			final String text,
+			final String abbreviatedText, 
+			final String explanationText, 
+			final boolean skippable, 
+			final String skipLabel,
+			final DisplayType displayType, 
+			final String displayLabel,
 			final String defaultValue,
-			final Map<String, LabelValuePair> properties, final int index) {
+			final Map<String, LabelValuePair> properties, 
+			final int index) 
+			throws DomainException {
 		
 		int verticalResolution;
 		try {
@@ -3186,16 +3415,17 @@ public class Campaign {
 				properties.get(PhotoPrompt.XML_KEY_VERTICAL_RESOLUTION);
 			
 			if(verticalResolutionVlp == null) {
-				throw new IllegalArgumentException(
+				throw new DomainException(
 						"Missing the '" +
 							PhotoPrompt.XML_KEY_VERTICAL_RESOLUTION +
 							"' property: " +
 							id);
 			}
-			verticalResolution = Integer.decode(verticalResolutionVlp.getLabel());
+			verticalResolution = 
+					Integer.decode(verticalResolutionVlp.getLabel());
 		}
-		catch(IllegalArgumentException e) {
-			throw new IllegalArgumentException(
+		catch(NumberFormatException e) {
+			throw new DomainException(
 					"The '" +
 						PhotoPrompt.XML_KEY_VERTICAL_RESOLUTION +
 						"' property is not an integer: " +
@@ -3204,7 +3434,7 @@ public class Campaign {
 		}
 		
 		if(defaultValue != null) {
-			throw new IllegalArgumentException(
+			throw new DomainException(
 					"Default values are not allowed for photo prompts: " +
 						id);
 		}
@@ -3246,21 +3476,29 @@ public class Campaign {
 	 * 
 	 * @return A RemoteActivityPrompt object.
 	 * 
-	 * @throws IllegalArgumentException Thrown if the required properties are
-	 * 									missing or if any of the parameters are
-	 * 									invalid.
+	 * @throws DomainException Thrown if the required properties are missing or
+	 * 						   if any of the parameters are invalid.
 	 */
-	private static RemoteActivityPrompt processRemoteActivity(final String id,
-			final String condition, final String unit, final String text,
-			final String abbreviatedText, final String explanationText, 
-			final boolean skippable, final String skipLabel,
-			final DisplayType displayType, final String displayLabel,
+	private static RemoteActivityPrompt processRemoteActivity(
+			final String id,
+			final String condition, 
+			final String unit, 
+			final String text,
+			final String abbreviatedText, 
+			final String explanationText, 
+			final boolean skippable, 
+			final String skipLabel,
+			final DisplayType displayType, 
+			final String displayLabel,
 			final String defaultValue,
-			final Map<String, LabelValuePair> properties, final int index) {
+			final Map<String, LabelValuePair> properties, 
+			final int index) 
+			throws DomainException {
 
-		LabelValuePair packageVlp = properties.get(RemoteActivityPrompt.XML_KEY_PACKAGE);
+		LabelValuePair packageVlp = 
+				properties.get(RemoteActivityPrompt.XML_KEY_PACKAGE);
 		if(packageVlp == null) {
-			throw new IllegalArgumentException(
+			throw new DomainException(
 					"Missing the '" + 
 						RemoteActivityPrompt.XML_KEY_PACKAGE + 
 						"' property: " +
@@ -3268,9 +3506,10 @@ public class Campaign {
 		}
 		String packagee = packageVlp.getLabel();
 		
-		LabelValuePair activityVlp = properties.get(RemoteActivityPrompt.XML_KEY_ACTIVITY);
+		LabelValuePair activityVlp = 
+				properties.get(RemoteActivityPrompt.XML_KEY_ACTIVITY);
 		if(activityVlp == null) {
-			throw new IllegalArgumentException(
+			throw new DomainException(
 					"Missing the '" + 
 						RemoteActivityPrompt.XML_KEY_ACTIVITY + 
 						"' property: " +
@@ -3278,9 +3517,10 @@ public class Campaign {
 		}
 		String activity = activityVlp.getLabel();
 		
-		LabelValuePair actionVlp = properties.get(RemoteActivityPrompt.XML_KEY_ACTION);
+		LabelValuePair actionVlp = 
+				properties.get(RemoteActivityPrompt.XML_KEY_ACTION);
 		if(actionVlp == null) {
-			throw new IllegalArgumentException(
+			throw new DomainException(
 					"Missing the '" + 
 						RemoteActivityPrompt.XML_KEY_ACTION + 
 						"' property: " +
@@ -3288,17 +3528,19 @@ public class Campaign {
 		}
 		String action = actionVlp.getLabel();
 		
-		LabelValuePair autolaunchVlp = properties.get(RemoteActivityPrompt.XML_KEY_AUTOLAUNCH);
+		LabelValuePair autolaunchVlp = 
+				properties.get(RemoteActivityPrompt.XML_KEY_AUTOLAUNCH);
 		if(autolaunchVlp == null) {
-			throw new IllegalArgumentException(
+			throw new DomainException(
 					"Missing the '" + 
 						RemoteActivityPrompt.XML_KEY_ACTION + 
 						"' property: " +
 						id);
 		}
-		Boolean autolaunch = StringUtils.decodeBoolean(autolaunchVlp.getLabel());
+		Boolean autolaunch = 
+				StringUtils.decodeBoolean(autolaunchVlp.getLabel());
 		if(autolaunch == null) {
-			throw new IllegalArgumentException(
+			throw new DomainException(
 					"The property '" + 
 						RemoteActivityPrompt.XML_KEY_AUTOLAUNCH + 
 						"' is not a valid boolean: " +
@@ -3307,9 +3549,10 @@ public class Campaign {
 		
 		int retries;
 		try {
-			LabelValuePair retriesVlp = properties.get(RemoteActivityPrompt.XML_KEY_RETRIES);
+			LabelValuePair retriesVlp = 
+					properties.get(RemoteActivityPrompt.XML_KEY_RETRIES);
 			if(retriesVlp == null) {
-				throw new IllegalArgumentException(
+				throw new DomainException(
 						"Missing the '" + 
 							RemoteActivityPrompt.XML_KEY_RETRIES + 
 							"' property: " +
@@ -3317,8 +3560,8 @@ public class Campaign {
 			}
 			retries = Integer.decode(retriesVlp.getLabel());
 		}
-		catch(IllegalArgumentException e) {
-			throw new IllegalArgumentException(
+		catch(NumberFormatException e) {
+			throw new DomainException(
 					"The '" +
 						RemoteActivityPrompt.XML_KEY_RETRIES +
 						"' property is not an integer: " +
@@ -3328,9 +3571,10 @@ public class Campaign {
 		
 		int minRuns;
 		try {
-			LabelValuePair minRunsVlp = properties.get(RemoteActivityPrompt.XML_KEY_MIN_RUNS);
+			LabelValuePair minRunsVlp = 
+					properties.get(RemoteActivityPrompt.XML_KEY_MIN_RUNS);
 			if(minRunsVlp == null) {
-				throw new IllegalArgumentException(
+				throw new DomainException(
 						"Missing the '" + 
 							RemoteActivityPrompt.XML_KEY_MIN_RUNS + 
 							"' property: " +
@@ -3338,8 +3582,8 @@ public class Campaign {
 			}
 			minRuns = Integer.decode(minRunsVlp.getLabel());
 		}
-		catch(IllegalArgumentException e) {
-			throw new IllegalArgumentException(
+		catch(NumberFormatException e) {
+			throw new DomainException(
 					"The '" +
 						RemoteActivityPrompt.XML_KEY_MIN_RUNS +
 						"' property is not an integer: " +
@@ -3354,7 +3598,7 @@ public class Campaign {
 		}
 		
 		if(defaultValue != null) {
-			throw new IllegalArgumentException(
+			throw new DomainException(
 					"Default values aren't allowed for remote activity prompts: " +
 					id);
 		}
@@ -3397,17 +3641,24 @@ public class Campaign {
 	 * 
 	 * @return A SingleChoicePrompt object.
 	 * 
-	 * @throws IllegalArgumentException Thrown if the required properties are
-	 * 									missing or if any of the parameters are
-	 * 									invalid.
+	 * @throws DomainException Thrown if the required properties are missing or
+	 * 						   if any of the parameters are invalid.
 	 */
-	private static SingleChoicePrompt processSingleChoice(final String id,
-			final String condition, final String unit, final String text,
-			final String abbreviatedText, final String explanationText, 
-			final boolean skippable, final String skipLabel,
-			final DisplayType displayType, final String displayLabel,
+	private static SingleChoicePrompt processSingleChoice(
+			final String id,
+			final String condition, 
+			final String unit, 
+			final String text,
+			final String abbreviatedText, 
+			final String explanationText, 
+			final boolean skippable, 
+			final String skipLabel,
+			final DisplayType displayType, 
+			final String displayLabel,
 			final String defaultValue,
-			final Map<String, LabelValuePair> properties, final int index) {
+			final Map<String, LabelValuePair> properties, 
+			final int index) 
+			throws DomainException {
 		
 		Map<Integer, LabelValuePair> choices = 
 			new HashMap<Integer, LabelValuePair>(properties.size());
@@ -3418,13 +3669,13 @@ public class Campaign {
 				keyInt = Integer.decode(key);
 				
 				if(keyInt < 0) {
-					throw new IllegalArgumentException(
+					throw new DomainException(
 							"The key value cannot be negative: " +
 								id);
 				}
 			}
 			catch(NumberFormatException e) {
-				throw new IllegalArgumentException(
+				throw new DomainException(
 						"The key is not a valid integer: " +
 							id, 
 						e);
@@ -3439,7 +3690,7 @@ public class Campaign {
 				defaultKey = Integer.decode(defaultValue);
 			}
 			catch(NumberFormatException e) {
-				throw new IllegalArgumentException("The default key is not an integer.");
+				throw new DomainException("The default key is not an integer.");
 			}
 		}
 		
@@ -3480,17 +3731,24 @@ public class Campaign {
 	 * 
 	 * @return A SingleChoiceCustomPrompt object.
 	 * 
-	 * @throws IllegalArgumentException Thrown if the required properties are
-	 * 									missing or if any of the parameters are
-	 * 									invalid.
+	 * @throws DomainException Thrown if the required properties are missing or
+	 * 						   if any of the parameters are invalid.
 	 */
-	private static SingleChoiceCustomPrompt processSingleChoiceCustom(final String id,
-			final String condition, final String unit, final String text,
-			final String abbreviatedText, final String explanationText, 
-			final boolean skippable, final String skipLabel,
-			final DisplayType displayType, final String displayLabel,
+	private static SingleChoiceCustomPrompt processSingleChoiceCustom(
+			final String id,
+			final String condition, 
+			final String unit, 
+			final String text,
+			final String abbreviatedText, 
+			final String explanationText, 
+			final boolean skippable, 
+			final String skipLabel,
+			final DisplayType displayType, 
+			final String displayLabel,
 			final String defaultValue,
-			final Map<String, LabelValuePair> properties, final int index) {
+			final Map<String, LabelValuePair> properties, 
+			final int index) 
+			throws DomainException {
 		
 		Map<Integer, LabelValuePair> choices = 
 			new HashMap<Integer, LabelValuePair>(properties.size());
@@ -3501,13 +3759,13 @@ public class Campaign {
 				keyInt = Integer.decode(key);
 				
 				if(keyInt < 0) {
-					throw new IllegalArgumentException(
+					throw new DomainException(
 							"The key value cannot be negative: " +
 								id);
 				}
 			}
 			catch(NumberFormatException e) {
-				throw new IllegalArgumentException(
+				throw new DomainException(
 						"The key is not a valid integer: " +
 							id, 
 						e);
@@ -3522,7 +3780,7 @@ public class Campaign {
 				defaultKey = Integer.decode(defaultValue);
 			}
 			catch(NumberFormatException e) {
-				throw new IllegalArgumentException("The default key is not an integer.");
+				throw new DomainException("The default key is not an integer.");
 			}
 		}
 		
@@ -3563,17 +3821,24 @@ public class Campaign {
 	 * 
 	 * @return A TextPrompt object.
 	 * 
-	 * @throws IllegalArgumentException Thrown if the required properties are
-	 * 									missing or if any of the parameters are
-	 * 									invalid.
+	 * @throws DomainException Thrown if the required properties are missing or
+	 * 						   if any of the parameters are invalid.
 	 */
-	private static TextPrompt processText(final String id,
-			final String condition, final String unit, final String text,
-			final String abbreviatedText, final String explanationText, 
-			final boolean skippable, final String skipLabel,
-			final DisplayType displayType, final String displayLabel,
+	private static TextPrompt processText(
+			final String id,
+			final String condition, 
+			final String unit, 
+			final String text,
+			final String abbreviatedText, 
+			final String explanationText, 
+			final boolean skippable, 
+			final String skipLabel,
+			final DisplayType displayType, 
+			final String displayLabel,
 			final String defaultValue,
-			final Map<String, LabelValuePair> properties, final int index) {
+			final Map<String, LabelValuePair> properties, 
+			final int index) 
+			throws DomainException {
 		
 		int min;
 		try {
@@ -3581,7 +3846,7 @@ public class Campaign {
 				properties.get(NumberPrompt.XML_KEY_MIN);
 			
 			if(minVlp == null) {
-				throw new IllegalArgumentException(
+				throw new DomainException(
 						"Missing the '" +
 							NumberPrompt.XML_KEY_MIN +
 							"' property: " +
@@ -3589,8 +3854,8 @@ public class Campaign {
 			}
 			min = Integer.decode(minVlp.getLabel());
 		}
-		catch(IllegalArgumentException e) {
-			throw new IllegalArgumentException(
+		catch(NumberFormatException e) {
+			throw new DomainException(
 					"The '" +
 						NumberPrompt.XML_KEY_MIN +
 						"' property is not an integer: " +
@@ -3604,7 +3869,7 @@ public class Campaign {
 				properties.get(NumberPrompt.XML_KEY_MAX);
 			
 			if(maxVlp == null) {
-				throw new IllegalArgumentException(
+				throw new DomainException(
 						"Missing the '" +
 							NumberPrompt.XML_KEY_MAX +
 							"' property: " +
@@ -3612,8 +3877,8 @@ public class Campaign {
 			}
 			max = Integer.decode(maxVlp.getLabel());
 		}
-		catch(IllegalArgumentException e) {
-			throw new IllegalArgumentException(
+		catch(NumberFormatException e) {
+			throw new DomainException(
 					"The '" +
 						NumberPrompt.XML_KEY_MAX +
 						"' property is not an integer: " +
@@ -3657,20 +3922,27 @@ public class Campaign {
 	 * 
 	 * @return A TextPrompt object.
 	 * 
-	 * @throws IllegalArgumentException Thrown if the required properties are
-	 * 									missing or if any of the parameters are
-	 * 									invalid.
+	 * @throws DomainException Thrown if the required properties are missing or
+	 * 						   if any of the parameters are invalid.
 	 */
-	private static TimestampPrompt processTimestamp(final String id,
-			final String condition, final String unit, final String text,
-			final String abbreviatedText, final String explanationText, 
-			final boolean skippable, final String skipLabel,
-			final DisplayType displayType, final String displayLabel,
+	private static TimestampPrompt processTimestamp(
+			final String id,
+			final String condition, 
+			final String unit, 
+			final String text,
+			final String abbreviatedText, 
+			final String explanationText, 
+			final boolean skippable, 
+			final String skipLabel,
+			final DisplayType displayType, 
+			final String displayLabel,
 			final String defaultValue,
-			final Map<String, LabelValuePair> properties, final int index) {
+			final Map<String, LabelValuePair> properties, 
+			final int index) 
+			throws DomainException {
 		
 		if(defaultValue != null) {
-			throw new IllegalArgumentException(
+			throw new DomainException(
 					"Default values aren't allowed for timestamp prompts. The offending prompt id is: " +
 						id);
 		}

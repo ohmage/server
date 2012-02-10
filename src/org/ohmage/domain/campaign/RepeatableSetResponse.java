@@ -9,6 +9,7 @@ import java.util.Map;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.ohmage.exception.DomainException;
 
 /**
  * This class represents a response for a repeatable set. This includes all of
@@ -35,14 +36,17 @@ public class RepeatableSetResponse extends Response {
 	 * @param noResponse If the repeatable set has no responses, this will give
 	 * 					 the reason why.
 	 * 
-	 * @throws IllegalArgumentException Thrown if the repeatable set is null.
+	 * @throws DomainException Thrown if the repeatable set is null.
 	 */
-	public RepeatableSetResponse(final RepeatableSet repeatableSet, 
-			final NoResponse noResponse) {
+	public RepeatableSetResponse(
+			final RepeatableSet repeatableSet, 
+			final NoResponse noResponse) 
+			throws DomainException {
+		
 		super(noResponse);
 		
 		if(repeatableSet == null) {
-			throw new IllegalArgumentException("The repeatable set is null.");
+			throw new DomainException("The repeatable set is null.");
 		}
 		this.repeatableSet = repeatableSet;
 		
@@ -67,15 +71,20 @@ public class RepeatableSetResponse extends Response {
 	 * 
 	 * @param responses A map of response indices to their response.
 	 * 
-	 * @throws IllegalArgumentException Thrown if there already exists a map of
-	 * 									responses for that iteration.
+	 * @throws DomainException Thrown if there already exists a map of 
+	 * 						   responses for that iteration.
 	 */
-	public void addResponseGroup(final int iteration, final Map<Integer, Response> responses) {
+	public void addResponseGroup(
+			final int iteration, 
+			final Map<Integer, Response> responses) 
+			throws DomainException {
+		
 		if(this.responses.containsKey(iteration)) {
-			throw new IllegalArgumentException("There is already a list of responses for that iteration.");
+			throw new DomainException(
+					"There is already a list of responses for that iteration.");
 		}
 		else if(responses == null) {
-			throw new IllegalArgumentException("The responses map is null.");
+			throw new DomainException("The responses map is null.");
 		}
 		
 		this.responses.put(iteration, new HashMap<Integer, Response>(responses));
@@ -91,15 +100,17 @@ public class RepeatableSetResponse extends Response {
 	 * 
 	 * @param response The response.
 	 * 
-	 * @throws IllegalArgumentException Thrown if the response is null or if a
-	 * 									response already exists for the  
-	 * 									iteration and index. 
+	 * @throws DomainException Thrown if the response is null or if a response
+	 * 						   already exists for the iteration and index. 
 	 */
-	public void addResponse(final int iteration, final int index, 
-			final Response response) {
+	public void addResponse(
+			final int iteration, 
+			final int index, 
+			final Response response) 
+			throws DomainException {
 		
 		if(response == null) {
-			throw new IllegalArgumentException("The response is null.");
+			throw new DomainException("The response is null.");
 		}
 		
 		Map<Integer, Response> iterationResponses = responses.get(iteration);
@@ -111,7 +122,8 @@ public class RepeatableSetResponse extends Response {
 		}
 		else {
 			if(iterationResponses.containsKey(index)) {
-				throw new IllegalArgumentException("A response already existed for that index in that iteration.");
+				throw new DomainException(
+						"A response already existed for that index in that iteration.");
 			}
 			else {
 				iterationResponses.put(index, response);
@@ -138,57 +150,54 @@ public class RepeatableSetResponse extends Response {
 	 * 
 	 * @return A JSONObject representing this repeatable set and all of the
 	 * 		   prompt responses contained within it.
+	 * 
+	 * @throws JSONException There was a problem creating the JSONObject.
 	 */
 	@Override
-	public JSONObject toJson(final boolean withId) {
-		try {
-			JSONObject result = new JSONObject();
-			
-			if(withId) {
-				result.put(REPEATABLE_SET_ID, repeatableSet.getId());
-			}
-			// TODO: This is always true. This needs to be removed.
-			result.put(SKIPPED, true);
-			
-			if(wasNotDisplayed()) {
-				result.put(NOT_DISPLAYED, true);
-			}
-			else {
-				result.put(NOT_DISPLAYED, false);
+	public JSONObject toJson(final boolean withId) throws JSONException {
+		JSONObject result = new JSONObject();
+		
+		if(withId) {
+			result.put(REPEATABLE_SET_ID, repeatableSet.getId());
+		}
+		// TODO: This is always true. This needs to be removed.
+		result.put(SKIPPED, true);
+		
+		if(wasNotDisplayed()) {
+			result.put(NOT_DISPLAYED, true);
+		}
+		else {
+			result.put(NOT_DISPLAYED, false);
 
-				List<Integer> iterations = new ArrayList<Integer>(responses.keySet());
-				Collections.sort(iterations);
+			List<Integer> iterations = new ArrayList<Integer>(responses.keySet());
+			Collections.sort(iterations);
 
-				JSONArray repeatableSetResponses = new JSONArray();
-				for(Integer iteration : iterations) {
-					Map<Integer, Response> iterationResponses = responses.get(iteration);
-					List<Integer> indices = new ArrayList<Integer>(iterationResponses.keySet());
-					Collections.sort(indices);
-					
-					if(withId) {
-						JSONArray iterationResponse = new JSONArray();
-						for(Integer index : indices) {
-							iterationResponse.put(iterationResponses.get(index).toJson(true));
-						}
-						repeatableSetResponses.put(iterationResponse);
+			JSONArray repeatableSetResponses = new JSONArray();
+			for(Integer iteration : iterations) {
+				Map<Integer, Response> iterationResponses = responses.get(iteration);
+				List<Integer> indices = new ArrayList<Integer>(iterationResponses.keySet());
+				Collections.sort(indices);
+				
+				if(withId) {
+					JSONArray iterationResponse = new JSONArray();
+					for(Integer index : indices) {
+						iterationResponse.put(iterationResponses.get(index).toJson(true));
 					}
-					else {
-						JSONObject iterationResponse = new JSONObject();
-						for(Integer index : indices) {
-							Response response = iterationResponses.get(index);
-							iterationResponse.put(response.getId(), response.toJson(false));
-						}
-						repeatableSetResponses.put(iterationResponse);
-					}
+					repeatableSetResponses.put(iterationResponse);
 				}
-				result.put(RESPONSES, repeatableSetResponses);
+				else {
+					JSONObject iterationResponse = new JSONObject();
+					for(Integer index : indices) {
+						Response response = iterationResponses.get(index);
+						iterationResponse.put(response.getId(), response.toJson(false));
+					}
+					repeatableSetResponses.put(iterationResponse);
+				}
 			}
-			
-			return result;
+			result.put(RESPONSES, repeatableSetResponses);
 		}
-		catch(JSONException e) {
-			return null;
-		}
+		
+		return result;
 	}
 
 	/**

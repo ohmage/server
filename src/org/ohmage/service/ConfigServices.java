@@ -6,6 +6,7 @@ import org.ohmage.cache.PreferenceCache;
 import org.ohmage.domain.ServerConfig;
 import org.ohmage.domain.campaign.SurveyResponse;
 import org.ohmage.exception.CacheMissException;
+import org.ohmage.exception.DomainException;
 import org.ohmage.exception.ServiceException;
 import org.ohmage.util.StringUtils;
 
@@ -100,9 +101,14 @@ public class ConfigServices {
 			throw new ServiceException("Whether or not Mobility is enabled is missing from the database.", e);
 		}
 		
-		return new ServerConfig(appName, appVersion, appBuild,
-				defaultSurveyResponsePrivacyState, surveyResponsePrivacyStates,
-				defaultCampaignCreationPrivilege, mobilityEnabled
-			);
+		try {
+			return new ServerConfig(appName, appVersion, appBuild,
+					defaultSurveyResponsePrivacyState, surveyResponsePrivacyStates,
+					defaultCampaignCreationPrivilege, mobilityEnabled
+				);
+		} 
+		catch(DomainException e) {
+			throw new ServiceException(e);
+		}
 	}
 }

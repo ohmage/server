@@ -22,12 +22,13 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.ohmage.domain.Location;
 import org.ohmage.domain.MobilityPoint;
+import org.ohmage.domain.MobilityPoint.ClassifierData;
 import org.ohmage.domain.MobilityPoint.LocationStatus;
 import org.ohmage.domain.MobilityPoint.Mode;
 import org.ohmage.domain.MobilityPoint.PrivacyState;
 import org.ohmage.domain.MobilityPoint.SubType;
 import org.ohmage.exception.DataAccessException;
-import org.ohmage.exception.ErrorCodeException;
+import org.ohmage.exception.DomainException;
 import org.ohmage.query.IUserMobilityQueries;
 import org.ohmage.util.StringUtils;
 import org.ohmage.util.TimeUtils;
@@ -267,8 +268,11 @@ public final class UserMobilityQueries extends AbstractUploadQuery implements IU
 	 * 
 	 * @throws DataAccessException Thrown if there is an error.
 	 */
-	public void createMobilityPoint(final String username, final String client,
-			final MobilityPoint mobilityPoint) throws DataAccessException {
+	public void createMobilityPoint(
+			final String username, 
+			final String client,
+			final MobilityPoint mobilityPoint) 
+			throws DataAccessException {
 		
 		// Create the transaction.
 		DefaultTransactionDefinition def = new DefaultTransactionDefinition();
@@ -278,6 +282,14 @@ public final class UserMobilityQueries extends AbstractUploadQuery implements IU
 			// Begin the transaction.
 			PlatformTransactionManager transactionManager = new DataSourceTransactionManager(getDataSource());
 			TransactionStatus status = transactionManager.getTransaction(def);
+			
+			JSONObject location;
+			try {
+				location = mobilityPoint.getLocation().toJson(false);
+			}
+			catch(JSONException e) {
+				throw new DataAccessException(e);
+			}
 
 			try {
 				KeyHolder mobilityPointDatabaseKeyHolder = new GeneratedKeyHolder();
@@ -294,8 +306,15 @@ public final class UserMobilityQueries extends AbstractUploadQuery implements IU
 							ps.setString(5, mobilityPoint.getTimezone().getID());
 							
 							ps.setString(6, mobilityPoint.getLocationStatus().toString().toLowerCase());
-							Location location = mobilityPoint.getLocation();
-							ps.setString(7, ((location == null) ? null : location.toJson(false).toString()));
+							try {
+								Location location = mobilityPoint.getLocation();
+								ps.setString(7, ((location == null) ? null : location.toJson(false).toString()));
+							} 
+							catch(JSONException e) {
+								throw new SQLException(
+										"Could not create a JSONObject for the location.",
+										e);
+							}
 							
 							ps.setString(8, mobilityPoint.getMode().toString().toLowerCase());
 							
@@ -309,12 +328,36 @@ public final class UserMobilityQueries extends AbstractUploadQuery implements IU
 				
 				// If it's an extended entry, add the sensor data.
 				if(SubType.SENSOR_DATA.equals(mobilityPoint.getSubType())) {
+					JSONObject sensorData;
+					try {
+						sensorData = mobilityPoint.getSensorData().toJson();
+					}
+					catch(JSONException e) {
+						throw new DataAccessException(e);
+					}
+					
+					JSONObject classifierData;
+					try {
+						ClassifierData tClassifierData = 
+								mobilityPoint.getClassifierData();
+						
+						if(tClassifierData == null) {
+							classifierData = null;
+						}
+						else {
+							classifierData = tClassifierData.toJson();
+						}
+					}
+					catch(JSONException e) {
+						throw new DataAccessException(e);
+					}
+					
 					try {
 						getJdbcTemplate().update(
 								SQL_INSERT_EXTENDED,
 								mobilityPointDatabaseKeyHolder.getKey().longValue(),
-								mobilityPoint.getSensorData().toJson().toString(),
-								((mobilityPoint.getClassifierData() == null) ? (new JSONObject()).toString() : mobilityPoint.getClassifierData().toJson().toString()),
+								sensorData.toString(),
+								(classifierData == null) ? (new JSONObject()).toString() : classifierData.toString(),
 								MobilityClassifier.getVersion());
 					}
 					catch(org.springframework.dao.DataAccessException e) {
@@ -323,8 +366,8 @@ public final class UserMobilityQueries extends AbstractUploadQuery implements IU
 										SQL_INSERT_EXTENDED + 
 									"' with parameters: " +
 										mobilityPointDatabaseKeyHolder.getKey().longValue() + ", " +
-										mobilityPoint.getSensorData().toJson().toString() + ", " +
-										((mobilityPoint.getClassifierData() == null) ? new JSONObject() : mobilityPoint.getClassifierData().toJson().toString()) + ", " +
+										sensorData.toString() + ", " +
+										((classifierData == null) ? (new JSONObject()).toString() : classifierData.toString()) + ", " +
 										MobilityClassifier.getVersion(),
 								e);
 					}
@@ -345,7 +388,7 @@ public final class UserMobilityQueries extends AbstractUploadQuery implements IU
 								mobilityPoint.getTime() + ", " +
 								mobilityPoint.getTimezone().getID() + ", " +
 								mobilityPoint.getLocationStatus().toString().toLowerCase() + ", " +
-								((mobilityPoint.getLocation() == null) ? "null" : mobilityPoint.getLocation().toJson(false).toString()) + ", " +
+								((mobilityPoint.getLocation() == null) ? "null" : location.toString()) + ", " +
 								mobilityPoint.getMode().toString().toLowerCase() + ", " +
 								mobilityPoint.getPrivacyState(),
 							e);
@@ -360,7 +403,7 @@ public final class UserMobilityQueries extends AbstractUploadQuery implements IU
 							mobilityPoint.getTime() + ", " +
 							mobilityPoint.getTimezone().getID() + ", " +
 							mobilityPoint.getLocationStatus().toString().toLowerCase() + ", " +
-							((mobilityPoint.getLocation() == null) ? "null" : mobilityPoint.getLocation().toJson(false).toString()) + ", " +
+							((mobilityPoint.getLocation() == null) ? "null" : location.toString()) + ", " +
 							mobilityPoint.getMode().toString().toLowerCase() + ", " +
 							mobilityPoint.getPrivacyState(),
 						e);
@@ -654,7 +697,7 @@ public final class UserMobilityQueries extends AbstractUploadQuery implements IU
 							catch(JSONException e) {
 								throw new SQLException("Error building a JSONObject.", e);
 							}
-							catch(ErrorCodeException e) {
+							catch(DomainException e) {
 								throw new SQLException("Error building the MobilityInformation object. This suggests malformed data in the database.", e);
 							}
 							catch(IllegalArgumentException e) {
@@ -756,7 +799,7 @@ public final class UserMobilityQueries extends AbstractUploadQuery implements IU
 							catch(JSONException e) {
 								throw new SQLException("Error building a JSONObject.", e);
 							}
-							catch(ErrorCodeException e) {
+							catch(DomainException e) {
 								throw new SQLException("Error building the MobilityInformation object. This suggests malformed data in the database.", e);
 							}
 							catch(IllegalArgumentException e) {

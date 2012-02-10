@@ -15,6 +15,7 @@ import org.apache.log4j.Logger;
 import org.ohmage.domain.Clazz;
 import org.ohmage.domain.campaign.Campaign;
 import org.ohmage.exception.DataAccessException;
+import org.ohmage.exception.DomainException;
 import org.ohmage.query.ICampaignClassQueries;
 import org.ohmage.query.IClassQueries;
 import org.ohmage.query.IUserCampaignClassQueries;
@@ -433,7 +434,7 @@ public class ClassQueries extends Query implements IClassQueries {
 		try {
 			List<Clazz> result = new LinkedList<Clazz>();
 			
-			for(String classId : classIds) {
+			for(final String classId : classIds) {
 				result.add(
 						getJdbcTemplate().queryForObject(
 								SQL_GET_CLASS_INFO,
@@ -445,10 +446,16 @@ public class ClassQueries extends Query implements IClassQueries {
 											int row) 
 											throws SQLException {
 										
-										return new Clazz(
-												rs.getString("urn"),
-												rs.getString("name"),
-												rs.getString("description"));
+										try {
+											return new Clazz(
+													rs.getString("urn"),
+													rs.getString("name"),
+													rs.getString("description"));
+										}
+										catch(DomainException e) {
+											throw new SQLException(
+													"There is a malformed class in the database: " + classId);
+										}
 									}
 								}
 							)

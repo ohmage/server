@@ -2,6 +2,7 @@ package org.ohmage.domain.campaign.response;
 
 import org.ohmage.domain.campaign.PromptResponse;
 import org.ohmage.domain.campaign.prompt.NumberPrompt;
+import org.ohmage.exception.DomainException;
 
 /**
  * A number prompt response.
@@ -9,7 +10,7 @@ import org.ohmage.domain.campaign.prompt.NumberPrompt;
  * @author John Jenkins
  */
 public class NumberPromptResponse extends PromptResponse {
-	private final Long number;
+	//private final Long number;
 	
 	/**
 	 * Creates a number prompt response.
@@ -28,16 +29,16 @@ public class NumberPromptResponse extends PromptResponse {
 	 * 
 	 * @param number The response from the user.
 	 * 
-	 * @throws IllegalArgumentException Thrown if any of the parameters are 
-	 * 									invalid or if 'validate' is "true" and
-	 * 									the response value is invalid.
+	 * @throws DomainException Thrown if any of the parameters are invalid.
 	 */
 	public NumberPromptResponse(
-			final NumberPrompt prompt, final NoResponse noResponse, 
-			final Integer repeatableSetIteration, final Long number) {
+			final NumberPrompt prompt,
+			final Integer repeatableSetIteration, 
+			final Object response) 
+			throws DomainException {
 		
-		super(prompt, noResponse, repeatableSetIteration);
-		
+		super(prompt, repeatableSetIteration, response);
+		/*
 		if((number == null) && (noResponse == null)) {
 			throw new IllegalArgumentException("Both number and no response cannot be null.");
 		}
@@ -46,22 +47,32 @@ public class NumberPromptResponse extends PromptResponse {
 		}
 		
 		this.number = number;
+		*/
 	}
 	
 	/**
 	 * Returns the number response from the user.
 	 * 
 	 * @return The number response from the user.
+	 * 
+	 * @throws DomainException The prompt does not have a response.
 	 */
-	public Long getNumber() {
-		return number;
+	public Long getNumber() throws DomainException {
+		if(wasNotDisplayed()) {
+			throw new DomainException("The prompt was not displayed.");
+		}
+		else if(wasSkipped()) {
+			throw new DomainException("The prompt was skipped.");
+		}
+		
+		return (Long) getResponse();
 	}
 	
 	/**
 	 * Returns the number as a string.
 	 * 
 	 * @return A String representing the number.
-	 */
+	 *
 	@Override
 	public Object getResponseValue() {
 		Object noResponseObject = super.getResponseValue();
@@ -72,20 +83,20 @@ public class NumberPromptResponse extends PromptResponse {
 		else {
 			return noResponseObject;
 		}
-	}
+	}*/
 
 	/**
 	 * Generates a hash code for this response.
 	 * 
 	 * @return A hash code for this prompt response.
-	 */
+	 *
 	@Override
 	public int hashCode() {
 		final int prime = 31;
 		int result = super.hashCode();
 		result = prime * result + ((number == null) ? 0 : number.hashCode());
 		return result;
-	}
+	}*/
 
 	/**
 	 * Determines if this prompt response is logically equivalent to another
@@ -95,7 +106,7 @@ public class NumberPromptResponse extends PromptResponse {
 	 * 
 	 * @return True if this response is logically equivalent to the other 
 	 * 		   object; false, otherwise.
-	 */
+	 *
 	@Override
 	public boolean equals(Object obj) {
 		if (this == obj)
@@ -111,5 +122,5 @@ public class NumberPromptResponse extends PromptResponse {
 		} else if (!number.equals(other.number))
 			return false;
 		return true;
-	}
+	}*/
 }

@@ -11,6 +11,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.log4j.Logger;
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.cache.PreferenceCache;
 import org.ohmage.domain.MobilityPoint;
@@ -208,7 +209,15 @@ public class MobilityReadRequest extends UserRequest {
 		JSONArray resultJson = new JSONArray();
 		
 		for(MobilityPoint mobilityPoint : result) {
-			resultJson.put(mobilityPoint.toJson(true, false));
+			try {
+				resultJson.put(mobilityPoint.toJson(true, false));
+			}
+			catch(JSONException e) {
+				LOGGER.error("Error creating the JSONObject.", e);
+				setFailed();
+				resultJson = null;
+				break;
+			}
 		}
 			
 		respond(httpRequest, httpResponse, JSON_KEY_DATA, resultJson);

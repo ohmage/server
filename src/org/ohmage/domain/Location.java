@@ -5,7 +5,7 @@ import java.util.TimeZone;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.ohmage.annotator.Annotator.ErrorCode;
-import org.ohmage.exception.ErrorCodeException;
+import org.ohmage.exception.DomainException;
 
 /**
  * This class contains all of the information associated with a location
@@ -41,12 +41,12 @@ public class Location {
 	 * @param locationData A JSONObject representing all of the data for a
 	 * 					   Location object.
 	 * 
-	 * @throws LocationException Thrown if the location data is null, isn't
-	 * 							 a valid JSONObject, doesn't contain all of
-	 * 							 the required information, or any of the 
-	 * 							 information is invalid for its type.
+	 * @throws DomainException Thrown if the location data is null, isn't
+	 * 						   a valid JSONObject, doesn't contain all of
+	 * 						   the required information, or any of the 
+	 * 						   information is invalid for its type.
 	 */
-	public Location(JSONObject locationData) throws ErrorCodeException {
+	public Location(JSONObject locationData) throws DomainException {
 		double tLatitude;
 		try {
 			tLatitude = locationData.getDouble(JSON_KEY_LATITUDE);
@@ -56,7 +56,10 @@ public class Location {
 				tLatitude = locationData.getDouble(JSON_KEY_LATITUDE_SHORT);
 			}
 			catch(JSONException noShort) {
-				throw new ErrorCodeException(ErrorCode.SERVER_INVALID_LOCATION, "The latitude is missing or invalid.", noShort);
+				throw new DomainException(
+						ErrorCode.SERVER_INVALID_LOCATION, 
+						"The latitude is missing or invalid.", 
+						noShort);
 			}
 		}
 		latitude = tLatitude;
@@ -70,7 +73,10 @@ public class Location {
 				tLongitude = locationData.getDouble(JSON_KEY_LONGITUDE_SHORT);
 			}
 			catch(JSONException noShort) {
-				throw new ErrorCodeException(ErrorCode.SERVER_INVALID_LOCATION, "The longitude is missing or invalid.", noShort);
+				throw new DomainException(
+						ErrorCode.SERVER_INVALID_LOCATION, 
+						"The longitude is missing or invalid.", 
+						noShort);
 			}
 		}
 		longitude = tLongitude;
@@ -84,7 +90,10 @@ public class Location {
 				tAccuracy = locationData.getDouble(JSON_KEY_ACCURACY_SHORT);
 			}
 			catch(JSONException noShort) {
-				throw new ErrorCodeException(ErrorCode.SERVER_INVALID_LOCATION, "The accuracy is missing or invalid.", noShort);
+				throw new DomainException(
+						ErrorCode.SERVER_INVALID_LOCATION, 
+						"The accuracy is missing or invalid.", 
+						noShort);
 			}
 		}
 		accuracy = tAccuracy;
@@ -98,7 +107,10 @@ public class Location {
 				tProvider = locationData.getString(JSON_KEY_PROVIDER_SHORT);
 			}
 			catch(JSONException noShort) {
-				throw new ErrorCodeException(ErrorCode.SERVER_INVALID_LOCATION, "The provider is missing.", noShort);
+				throw new DomainException(
+						ErrorCode.SERVER_INVALID_LOCATION, 
+						"The provider is missing.", 
+						noShort);
 			}
 		}
 		provider = tProvider;
@@ -112,7 +124,10 @@ public class Location {
 				tTime = locationData.getLong(JSON_KEY_TIME_SHORT);
 			}
 			catch(JSONException noShort) {
-				throw new ErrorCodeException(ErrorCode.SERVER_INVALID_TIMESTAMP, "The timestamp is missing.", noShort);
+				throw new DomainException(
+						ErrorCode.SERVER_INVALID_TIMESTAMP, 
+						"The timestamp is missing.", 
+						noShort);
 			}
 		}
 		time = tTime;
@@ -126,7 +141,10 @@ public class Location {
 				tTimeZone = TimeZone.getTimeZone(locationData.getString(JSON_KEY_TIME_ZONE_SHORT));
 			}
 			catch(JSONException noShort) {
-				throw new ErrorCodeException(ErrorCode.SERVER_INVALID_TIMEZONE, "The time zone is missing.", noShort);
+				throw new DomainException(
+						ErrorCode.SERVER_INVALID_TIMEZONE, 
+						"The time zone is missing.", 
+						noShort);
 			}
 		}
 		timeZone = tTimeZone;
@@ -145,18 +163,26 @@ public class Location {
 	 * 
 	 * @param timestamp A timestamp of when this reading was made.
 	 * 
-	 * @throws IllegalArgumentException Thrown if the provider or date are
-	 * 									null.
+	 * @throws DomainException Thrown if the provider or time zone are null.
 	 */
-	public Location(final double latitude, final double longitude, 
-			final double accuracy, final String provider, 
-			final long time, final TimeZone timeZone) {
+	public Location(
+			final double latitude, 
+			final double longitude, 
+			final double accuracy, 
+			final String provider, 
+			final long time, 
+			final TimeZone timeZone) 
+			throws DomainException {
 		
 		if(provider == null) {
-			throw new IllegalArgumentException("The provider cannot be null.");
+			throw new DomainException(
+					ErrorCode.SERVER_INVALID_LOCATION, 
+					"The provider cannot be null.");
 		}
 		else if(timeZone == null) {
-			throw new IllegalArgumentException("The time zone cannot be null.");
+			throw new DomainException(
+					ErrorCode.SERVER_INVALID_LOCATION,
+					"The time zone cannot be null.");
 		}
 		
 		this.latitude = latitude;
@@ -227,25 +253,23 @@ public class Location {
 	 * @param abbreviated Whether or not the keys should use their 
 	 * 					  abbreviated version.
 	 * 
-	 * @return Returns a JSONObject that represents this object or null if
-	 * 		   there is an error building the JSONObject.
+	 * @return Returns a JSONObject that represents this object.
+	 * 
+	 * @throws JSONException There was an error building the JSONObject.
 	 */
-	public final JSONObject toJson(final boolean abbreviated) {
-		try {
-			JSONObject result = new JSONObject();
-			
-			result.put(((abbreviated) ? JSON_KEY_LATITUDE_SHORT : JSON_KEY_LATITUDE), latitude);
-			result.put(((abbreviated) ? JSON_KEY_LONGITUDE_SHORT : JSON_KEY_LONGITUDE), longitude);
-			result.put(((abbreviated) ? JSON_KEY_ACCURACY_SHORT : JSON_KEY_ACCURACY), accuracy);
-			result.put(((abbreviated) ? JSON_KEY_PROVIDER_SHORT : JSON_KEY_PROVIDER), provider);
-			result.put(((abbreviated) ? JSON_KEY_TIME_SHORT : JSON_KEY_TIME), time);
-			result.put(((abbreviated) ? JSON_KEY_TIME_ZONE_SHORT : JSON_KEY_TIME_ZONE), timeZone.getID());
-			
-			return result;
-		}
-		catch(JSONException e) {
-			return null;
-		}
+	public final JSONObject toJson(final boolean abbreviated) 
+			throws JSONException {
+		
+		JSONObject result = new JSONObject();
+		
+		result.put(((abbreviated) ? JSON_KEY_LATITUDE_SHORT : JSON_KEY_LATITUDE), latitude);
+		result.put(((abbreviated) ? JSON_KEY_LONGITUDE_SHORT : JSON_KEY_LONGITUDE), longitude);
+		result.put(((abbreviated) ? JSON_KEY_ACCURACY_SHORT : JSON_KEY_ACCURACY), accuracy);
+		result.put(((abbreviated) ? JSON_KEY_PROVIDER_SHORT : JSON_KEY_PROVIDER), provider);
+		result.put(((abbreviated) ? JSON_KEY_TIME_SHORT : JSON_KEY_TIME), time);
+		result.put(((abbreviated) ? JSON_KEY_TIME_ZONE_SHORT : JSON_KEY_TIME_ZONE), timeZone.getID());
+		
+		return result;
 	}
 
 	/**

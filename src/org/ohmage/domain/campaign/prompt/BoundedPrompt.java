@@ -8,6 +8,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.ohmage.domain.campaign.Prompt;
 import org.ohmage.domain.campaign.Response.NoResponse;
+import org.ohmage.exception.DomainException;
 
 /**
  * This class represents prompts with numeric bounds. This includes but is not
@@ -78,16 +79,26 @@ public abstract class BoundedPrompt extends Prompt {
 	 * @param index This prompt's index in its container's list of survey 
 	 * 				items.
 	 * 
-	 * @throws IllegalArgumentException Thrown if any of the required 
-	 * 									parameters are missing or invalid. 
+	 * @throws DomainException Thrown if any of the required parameters are 
+	 * 						   missing or invalid. 
 	 */
-	public BoundedPrompt(final String id, final String condition, 
-			final String unit, final String text, 
-			final String abbreviatedText, final String explanationText,
-			final boolean skippable, final String skipLabel,
-			final DisplayType displayType, final String displayLabel,
-			final long min, final long max, final Long defaultValue,
-			final Type type, final int index) {
+	public BoundedPrompt(
+			final String id, 
+			final String condition, 
+			final String unit, 
+			final String text, 
+			final String abbreviatedText, 
+			final String explanationText,
+			final boolean skippable, 
+			final String skipLabel,
+			final DisplayType displayType, 
+			final String displayLabel,
+			final long min, 
+			final long max, 
+			final Long defaultValue,
+			final Type type, 
+			final int index) 
+			throws DomainException {
 		
 		super(id, condition, unit, text, abbreviatedText, explanationText,
 				skippable, skipLabel, displayType, displayLabel, 
@@ -98,11 +109,11 @@ public abstract class BoundedPrompt extends Prompt {
 		
 		if(defaultValue != null) {
 			if(defaultValue < min) {
-				throw new IllegalArgumentException(
+				throw new DomainException(
 						"The default value is less than the minimum value.");
 			}
 			else if(defaultValue > max) {
-				throw new IllegalArgumentException(
+				throw new DomainException(
 						"The default value is greater than hte maximum value.");
 			}
 		}
@@ -137,30 +148,43 @@ public abstract class BoundedPrompt extends Prompt {
 	}
 
 	/**
-	 * Validates that a given value is valid and, if so, converts it into a 
-	 * Long value.
+	 * Validates that a given value is valid and, if so, converts it into an 
+	 * appropriate object.
 	 * 
-	 * @param value The value to be validated.
+	 * @param value The value to be validated. This must be one of the  
+	 * 				following:<br />
+	 * 				<ul>
+	 * 				<li>{@link NoResponse}</li>
+	 * 				<li>{@link AtomicInteger}</li>
+	 * 				<li>{@link AtomicLong}</li>
+	 * 				<li>{@link BigInteger}</li>
+	 * 				<li>{@link Integer}</li>
+	 * 				<li>{@link Long}</li>
+	 * 				<li>{@link Short}</li>
+	 * 				<li>{@link String} that represents:</li>
+	 * 				  <ul>
+	 * 				    <li>{@link NoResponse}</li>
+	 * 				    <li>A whole number.</li>
+	 * 				  <ul>
+	 * 				</ul>
 	 * 
-	 * @return A Long object that represents the value.
+	 * @return A {@link Long} object or a {@link NoResponse} object.
 	 * 
-	 * @throws IllegalArgumentException Thrown if the value is invalid.
-	 * 
-	 * @throws NoResponseException Thrown if the value is or represents a
-	 * 							   NoResponse object.
+	 * @throws DomainException The value is invalid.
 	 */
 	@Override
-	public Long validateValue(final Object value) throws NoResponseException {
+	public Object validateValue(final Object value) throws DomainException {
 		long longValue;
 		
 		// If it's already a NoResponse value, then return make sure that if it
 		// was skipped that it as skippable.
 		if(value instanceof NoResponse) {
 			if(NoResponse.SKIPPED.equals(value) && (! skippable())) {
-				throw new IllegalArgumentException("The prompt was skipped, but it is not skippable.");
+				throw new DomainException(
+						"The prompt was skipped, but it is not skippable.");
 			}
 			
-			throw new NoResponseException((NoResponse) value);
+			return value;
 		}
 		// If it's already a number, first ensure that it is an integer and not
 		// a floating point number.
@@ -175,7 +199,7 @@ public abstract class BoundedPrompt extends Prompt {
 				longValue = ((Number) value).longValue();
 			}
 			else {
-				throw new IllegalArgumentException("Only whole number are allowed.");
+				throw new DomainException("Only whole numbers are allowed.");
 			}
 		}
 		// If it is a string, parse it to check if it's a NoResponse value and,
@@ -185,28 +209,34 @@ public abstract class BoundedPrompt extends Prompt {
 			String stringValue = (String) value;
 			
 			try {
-				throw new NoResponseException(NoResponse.valueOf(stringValue));
+				//throw new NoResponseException(NoResponse.valueOf(stringValue));
+				return NoResponse.valueOf(stringValue);
 			}
 			catch(IllegalArgumentException iae) {
 				try {
 					longValue = Long.decode(stringValue);
 				}
 				catch(NumberFormatException nfe) {
-					throw new IllegalArgumentException("The value is not a valid number.");
+					throw new DomainException(
+							"The value is not a valid number.",
+							nfe);
 				}
 			}
 		}
 		// Finally, if its type is unknown, throw an exception.
 		else {
-			throw new IllegalArgumentException("The value is not decodable as a response value.");
+			throw new DomainException(
+					"The value is not decodable as a response value.");
 		}
 		
 		// Now that we have a Long value, verify that it is within bounds.
 		if(longValue < min) {
-			throw new IllegalArgumentException("The value is less than the lower bound.");
+			throw new DomainException(
+					"The value is less than the lower bound.");
 		}
 		else if(longValue > max) {
-			throw new IllegalArgumentException("The value is greater than the lower bound.");
+			throw new DomainException(
+					"The value is greater than the lower bound.");
 		}
 		
 		return longValue;
@@ -216,28 +246,18 @@ public abstract class BoundedPrompt extends Prompt {
 	 * Creates a JSONObject that represents this bounded prompt.
 	 * 
 	 * @return A JSONObject that represents this bounded prompt.
+	 * 
+	 * @throws JSONException There was a problem creating the JSONObject.
 	 */
 	@Override
-	public JSONObject toJson() {
-		try {
-			JSONObject result = super.toJson();
-			
-			if(result == null) {
-				// FIXME: Ignore the exception thrown, allowing it to 
-				// propagate.
-				return null;
-			}
-			
-			result.put(JSON_KEY_LOWER_BOUND, min);
-			result.put(JSON_KEY_UPPER_BOUND, max);
-			result.put(JSON_KEY_DEFAULT, defaultValue);
-			
-			return result;
-		}
-		catch(JSONException e) {
-			// FIXME: Throw an exception.
-			return null;
-		}
+	public JSONObject toJson() throws JSONException {
+		JSONObject result = super.toJson();
+		
+		result.put(JSON_KEY_LOWER_BOUND, min);
+		result.put(JSON_KEY_UPPER_BOUND, max);
+		result.put(JSON_KEY_DEFAULT, defaultValue);
+		
+		return result;
 	}
 
 	/**

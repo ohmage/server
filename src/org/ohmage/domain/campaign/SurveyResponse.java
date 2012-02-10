@@ -20,7 +20,7 @@ import org.json.JSONObject;
 import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.domain.Location;
 import org.ohmage.domain.campaign.Response.NoResponse;
-import org.ohmage.exception.ErrorCodeException;
+import org.ohmage.exception.DomainException;
 import org.ohmage.util.StringUtils;
 
 /**
@@ -162,20 +162,25 @@ public class SurveyResponse {
 		 * @param launchContext A JSONObject that contains the launch context
 		 * 						information.
 		 * 
-		 * @throws ErrorCodeException Thrown if the launchContext is null or if
-		 *                            the launchContext is missing any required
-		 *                            keys (launch_time and active_triggers)
+		 * @throws DomainException Thrown if the launchContext is null or if 
+		 * 						   the launchContext is missing any required
+		 * 						   keys (launch_time and active_triggers)
 		 */
-		private LaunchContext(final JSONObject launchContext) throws ErrorCodeException {
+		private LaunchContext(
+				final JSONObject launchContext) 
+				throws DomainException {
+			
 			if(launchContext == null) {
-				throw new ErrorCodeException(ErrorCode.SURVEY_INVALID_LAUNCH_CONTEXT, "The launch context cannot be null.");
+				throw new DomainException(
+						ErrorCode.SURVEY_INVALID_LAUNCH_CONTEXT, 
+						"The launch context cannot be null.");
 			}
 			
 			try {
 				time = launchContext.getLong(JSON_KEY_LAUNCH_TIME);
 			}
 			catch(JSONException e) {
-				throw new ErrorCodeException(
+				throw new DomainException(
 						ErrorCode.SURVEY_INVALID_LAUNCH_CONTEXT, 
 						"The launch time is missing from the survey launch context: " + 
 								JSON_KEY_LAUNCH_TIME, 
@@ -186,7 +191,7 @@ public class SurveyResponse {
 				timezone = TimeZone.getTimeZone(launchContext.getString(JSON_KEY_LAUNCH_TIMEZONE));
 			}
 			catch(JSONException e) {
-				throw new ErrorCodeException(
+				throw new DomainException(
 						ErrorCode.SURVEY_INVALID_LAUNCH_CONTEXT, 
 						"The launch timezone is missing from the survey launch context: " +
 								JSON_KEY_LAUNCH_TIMEZONE,
@@ -197,7 +202,7 @@ public class SurveyResponse {
 				activeTriggers = launchContext.getJSONArray(JSON_KEY_ACTIVE_TRIGGERS);
 			}
 			catch(JSONException e) {
-				throw new ErrorCodeException(
+				throw new DomainException(
 						ErrorCode.SURVEY_INVALID_LAUNCH_CONTEXT, 
 						"The active triggers list is missing from the survey launch context: " +
 								JSON_KEY_ACTIVE_TRIGGERS, 
@@ -212,17 +217,22 @@ public class SurveyResponse {
 		 * 
 		 * @param activeTriggers A possibly null list of trigger IDs that 
 		 * 						 were active when the survey was launched. 
+		 * 
+		 * @throws DomainException The time zone or active triggers was null.
 		 */
 		public LaunchContext(
 				final long launchTime, 
 				final TimeZone launchTimezone,
-				final JSONArray activeTriggers) {
+				final JSONArray activeTriggers) 
+				throws DomainException {
 			
 			if(launchTimezone == null) {
-				throw new IllegalArgumentException("The launch timezone cannot be null.");
+				throw new DomainException(
+						"The launch timezone cannot be null.");
 			}
 			if(activeTriggers == null) {
-				throw new IllegalArgumentException("The activeTriggers array cannot be null.");
+				throw new DomainException(
+						"The activeTriggers array cannot be null.");
 			}
 			
 			this.time = launchTime;
@@ -268,24 +278,23 @@ public class SurveyResponse {
 		 * 
 		 * @return A JSONObject that represents this object or null if there 
 		 * 		   was an error.
+		 * 
+		 * @throws JSONException There was a problem creating the JSONObject.
 		 */
-		public final JSONObject toJson(final boolean longVersion) {
-			try {
-				JSONObject result = new JSONObject();
-				
-				result.put(JSON_KEY_LAUNCH_TIME, time);
-				result.put(JSON_KEY_LAUNCH_TIMEZONE, timezone.getID());
-				
-				if(longVersion) {
-					result.put(JSON_KEY_ACTIVE_TRIGGERS, activeTriggers);
-				}
-				
-				return result;
+		public final JSONObject toJson(
+				final boolean longVersion) 
+				throws JSONException {
+			
+			JSONObject result = new JSONObject();
+			
+			result.put(JSON_KEY_LAUNCH_TIME, time);
+			result.put(JSON_KEY_LAUNCH_TIMEZONE, timezone.getID());
+			
+			if(longVersion) {
+				result.put(JSON_KEY_ACTIVE_TRIGGERS, activeTriggers);
 			}
-			catch(JSONException e) {
-				LOGGER.warn("Could not create JSON from launch context", e);
-				return null;
-			}
+			
+			return result;
 		}
 
 		/* (non-Javadoc)
@@ -725,43 +734,49 @@ public class SurveyResponse {
 	 * @param location The location information. This may be null if it  
 	 * 				   correlates with the location status.
 	 * 
-	 * @throws ErrorCodeException Thrown if any of the information provided is
-	 * 							  missing or invalid.
-	 * 
-	 * @throws IllegalArgumentException Thrown if any of the information
-	 * 									provided is missing or invalid.
+	 * @throws DomainException Thrown if any of the information provided is 
+	 * 						   missing or invalid.
 	 */
-	public SurveyResponse(final Survey survey, final UUID surveyResponseId,
-			final String username, final String campaignId, final String client,
-			final long time, final TimeZone timezone, 
+	public SurveyResponse(
+			final Survey survey, 
+			final UUID surveyResponseId,
+			final String username, 
+			final String campaignId, 
+			final String client,
+			final long time, 
+			final TimeZone timezone, 
 			final JSONObject launchContext, 
-			final String locationStatus, final JSONObject location,
+			final String locationStatus, 
+			final JSONObject location,
 			final PrivacyState privacyState) 
-			throws ErrorCodeException {
+			throws DomainException {
 
 		if(survey == null) {
-			throw new IllegalArgumentException("The survey cannot be null.");
+			throw new DomainException("The survey cannot be null.");
 		}
 		if(StringUtils.isEmptyOrWhitespaceOnly(username)) {
-			throw new IllegalArgumentException("The username cannot be null or whitespace only.");
+			throw new DomainException(
+					"The username cannot be null or whitespace only.");
 		}
 		else if(StringUtils.isEmptyOrWhitespaceOnly(campaignId)) {
-			throw new IllegalArgumentException("The campaign ID cannot be null or whitespace only.");
+			throw new DomainException(
+					"The campaign ID cannot be null or whitespace only.");
 		}
 		else if(StringUtils.isEmptyOrWhitespaceOnly(client)) {
-			throw new IllegalArgumentException("The client cannot be null or whitespace only.");
+			throw new DomainException(
+					"The client cannot be null or whitespace only.");
 		}
 		else if(timezone == null) {
-			throw new IllegalArgumentException("The timezone cannot be null.");
+			throw new DomainException("The timezone cannot be null.");
 		}
 		else if(launchContext == null) {
-			throw new IllegalArgumentException("The launch context cannot be null.");
+			throw new DomainException("The launch context cannot be null.");
 		}
 		else if(locationStatus == null) {
-			throw new IllegalArgumentException("The location status cannot be null.");
+			throw new DomainException("The location status cannot be null.");
 		}
 		else if(privacyState == null) {
-			throw new IllegalArgumentException("The privacy state cannot be null.");
+			throw new DomainException("The privacy state cannot be null.");
 		}
 		
 		this.username = username;
@@ -778,10 +793,11 @@ public class SurveyResponse {
 		this.launchContext = new LaunchContext(launchContext);
 		
 		try {
-			this.locationStatus = LocationStatus.valueOf(locationStatus.toUpperCase());
+			this.locationStatus = 
+					LocationStatus.valueOf(locationStatus.toUpperCase());
 		}
 		catch(IllegalArgumentException e) {
-			throw new IllegalArgumentException("Unknown location status.", e);
+			throw new DomainException("Unknown location status.", e);
 		}
 		if(location != null) {
 			this.location = new Location(location);
@@ -827,45 +843,55 @@ public class SurveyResponse {
 	 * 
 	 * @param privacyState The privacy state of this survey response.
 	 * 
-	 * @throws IllegalArgumentException Thrown if any of the required 
-	 * 									parameters are null.
+	 * @throws DomainException Thrown if any of the required parameters are 
+	 * 						   null.
 	 */
-	public SurveyResponse(final Survey survey, final UUID surveyResponseId,
-			final String username, final String campaignId, final String client,
-			final long time, final TimeZone timezone, 
+	public SurveyResponse(
+			final Survey survey, 
+			final UUID surveyResponseId,
+			final String username, 
+			final String campaignId, 
+			final String client,
+			final long time, 
+			final TimeZone timezone, 
 			final LaunchContext launchContext, 
-			final LocationStatus locationStatus, final Location location,
+			final LocationStatus locationStatus, 
+			final Location location,
 			final PrivacyState privacyState, 
 			final Map<Integer, Response> responses) 
-			throws ErrorCodeException {
+			throws DomainException {
 
 		if(survey == null) {
-			throw new IllegalArgumentException("The survey cannot be null.");
+			throw new DomainException("The survey cannot be null.");
 		}
 		if(StringUtils.isEmptyOrWhitespaceOnly(username)) {
-			throw new IllegalArgumentException("The username cannot be null or whitespace only.");
+			throw new DomainException(
+					"The username cannot be null or whitespace only.");
 		}
 		else if(StringUtils.isEmptyOrWhitespaceOnly(campaignId)) {
-			throw new IllegalArgumentException("The campaign ID cannot be null or whitespace only.");
+			throw new DomainException(
+					"The campaign ID cannot be null or whitespace only.");
 		}
 		else if(StringUtils.isEmptyOrWhitespaceOnly(client)) {
-			throw new IllegalArgumentException("The client cannot be null or whitespace only.");
+			throw new DomainException(
+					"The client cannot be null or whitespace only.");
 		}
 		else if(timezone == null) {
-			throw new IllegalArgumentException("The timezone cannot be null.");
+			throw new DomainException("The timezone cannot be null.");
 		}
 		else if(launchContext == null) {
-			throw new IllegalArgumentException("The launch context cannot be null.");
+			throw new DomainException("The launch context cannot be null.");
 		}
 		else if(locationStatus == null) {
-			throw new IllegalArgumentException("The location status cannot be null.");
+			throw new DomainException("The location status cannot be null.");
 		}
 		else if((! LocationStatus.UNAVAILABLE.equals(locationStatus)) && 
 				(location == null)) {
-			throw new IllegalArgumentException("THe location status is not unavailable, but the location status is null.");
+			throw new DomainException(
+					"The location status is not unavailable, but the location status is null.");
 		}
 		else if(privacyState == null) {
-			throw new IllegalArgumentException("The privacy state cannot be null.");
+			throw new DomainException("The privacy state cannot be null.");
 		}
 		
 		this.username = username;
@@ -884,7 +910,8 @@ public class SurveyResponse {
 		this.locationStatus = locationStatus;
 		if((! LocationStatus.UNAVAILABLE.equals(locationStatus)) && 
 				(location == null)) {
-			throw new IllegalArgumentException("The location cannot be null unless the location status is unavailable.");
+			throw new DomainException(
+					"The location cannot be null unless the location status is unavailable.");
 		}
 		this.location = location;
 		
@@ -905,22 +932,31 @@ public class SurveyResponse {
 	 * 
 	 * @param response The survey response as a JSONObject.
 	 * 
-	 * @throws ErrorCodeException Thrown if the JSONObject could not be decoded
+	 * @throws DomainException Thrown if the JSONObject could not be decoded
 	 * 							  as a survey response.
 	 */
 	public SurveyResponse(
-			final String username, final String campaignId,
-			final String client, final Campaign campaign,
-			final JSONObject response) throws ErrorCodeException {
+			final String username, 
+			final String campaignId,
+			final String client, 
+			final Campaign campaign,
+			final JSONObject response) 
+			throws DomainException {
 		
 		if(StringUtils.isEmptyOrWhitespaceOnly(username)) {
-			throw new ErrorCodeException(ErrorCode.USER_INVALID_USERNAME, "The username is invalid.");
+			throw new DomainException(
+					ErrorCode.USER_INVALID_USERNAME, 
+					"The username is invalid.");
 		}
 		else if(StringUtils.isEmptyOrWhitespaceOnly(campaignId)) {
-			throw new ErrorCodeException(ErrorCode.CAMPAIGN_INVALID_ID, "The campaign ID is invalid.");
+			throw new DomainException(
+					ErrorCode.CAMPAIGN_INVALID_ID, 
+					"The campaign ID is invalid.");
 		}
 		else if(StringUtils.isEmptyOrWhitespaceOnly(client)) {
-			throw new ErrorCodeException(ErrorCode.SERVER_INVALID_CLIENT, "The client value is invalid.");
+			throw new DomainException(
+					ErrorCode.SERVER_INVALID_CLIENT, 
+					"The client value is invalid.");
 		}
 		
 		this.username = username;
@@ -932,28 +968,41 @@ public class SurveyResponse {
 			surveyResponseIdString = response.getString(JSON_KEY_SURVEY_RESPONSE_ID);
 		}
 		catch(JSONException e) {
-			throw new ErrorCodeException(ErrorCode.SURVEY_INVALID_SURVEY_ID, "The survey ID is missing: " + JSON_KEY_SURVEY_RESPONSE_ID, e);
+			throw new DomainException(
+					ErrorCode.SURVEY_INVALID_SURVEY_ID, 
+					"The survey ID is missing: " + JSON_KEY_SURVEY_RESPONSE_ID,
+					e);
 		}
 		
 		try {
 			surveyResponseId = UUID.fromString(surveyResponseIdString);
 		}
 		catch(IllegalArgumentException e) {
-			throw new ErrorCodeException(ErrorCode.SURVEY_INVALID_SURVEY_ID, "The survey ID is not a valid UUID: " + surveyResponseIdString, e);
+			throw new DomainException(
+					ErrorCode.SURVEY_INVALID_SURVEY_ID, 
+					"The survey ID is not a valid UUID: " + 
+						surveyResponseIdString, 
+					e);
 		}
 		
 		try {
 			time = response.getLong(JSON_KEY_TIME);
 		}
 		catch(JSONException e) {
-			throw new ErrorCodeException(ErrorCode.SERVER_INVALID_TIME, "The time is missing.", e);
+			throw new DomainException(
+					ErrorCode.SERVER_INVALID_TIME, 
+					"The time is missing.", 
+					e);
 		}
 		
 		try {
 			timezone = TimeZone.getTimeZone(response.getString(JSON_KEY_TIMEZONE));
 		}
 		catch(JSONException e) {
-			throw new ErrorCodeException(ErrorCode.SERVER_INVALID_TIMEZONE, "The timezone is missing.", e);
+			throw new DomainException(
+					ErrorCode.SERVER_INVALID_TIMEZONE, 
+					"The timezone is missing.", 
+					e);
 		}
 		
 		String surveyId;
@@ -961,29 +1010,43 @@ public class SurveyResponse {
 			surveyId = response.getString(JSON_KEY_SURVEY_ID);
 		}
 		catch(JSONException e) {
-			throw new ErrorCodeException(ErrorCode.SURVEY_INVALID_SURVEY_ID, "The survey ID is missing.", e);
+			throw new DomainException(
+					ErrorCode.SURVEY_INVALID_SURVEY_ID, 
+					"The survey ID is missing.", 
+					e);
 		}
 		
 		survey = campaign.getSurveys().get(surveyId);
 		if(survey == null) {
-			throw new ErrorCodeException(ErrorCode.SURVEY_INVALID_SURVEY_ID, "The survey ID doesn't refer to any known surveys in the campaign.");
+			throw new DomainException(
+					ErrorCode.SURVEY_INVALID_SURVEY_ID, 
+					"The survey ID doesn't refer to any known surveys in the campaign.");
 		}
 		
 		try {
 			launchContext = new LaunchContext(response.getJSONObject(JSON_KEY_SURVEY_LAUNCH_CONTEXT));
 		}
 		catch(JSONException e) {
-			throw new ErrorCodeException(ErrorCode.SURVEY_INVALID_LAUNCH_CONTEXT, "The launch context is missing.", e);
+			throw new DomainException(
+					ErrorCode.SURVEY_INVALID_LAUNCH_CONTEXT, 
+					"The launch context is missing.", 
+					e);
 		}
 		
 		try {
 			locationStatus = LocationStatus.valueOf(response.getString(JSON_KEY_LOCATION_STATUS).toUpperCase());
 		}
 		catch(JSONException e) {
-			throw new ErrorCodeException(ErrorCode.SERVER_INVALID_LOCATION_STATUS, "The location status is missing.", e);
+			throw new DomainException(
+					ErrorCode.SERVER_INVALID_LOCATION_STATUS, 
+					"The location status is missing.", 
+					e);
 		}
 		catch(IllegalArgumentException e) {
-			throw new ErrorCodeException(ErrorCode.SERVER_INVALID_LOCATION_STATUS, "The location status is unknown.", e);
+			throw new DomainException(
+					ErrorCode.SERVER_INVALID_LOCATION_STATUS, 
+					"The location status is unknown.", 
+					e);
 		}
 		
 		Location tLocation = null;
@@ -992,7 +1055,10 @@ public class SurveyResponse {
 		}
 		catch(JSONException e) {
 			if(!LocationStatus.UNAVAILABLE.equals(locationStatus)) {
-				throw new ErrorCodeException(ErrorCode.SERVER_INVALID_LOCATION, "The location is missing.", e);
+				throw new DomainException(
+						ErrorCode.SERVER_INVALID_LOCATION, 
+						"The location is missing.", 
+						e);
 			}
 		}
 		location = tLocation;
@@ -1004,9 +1070,16 @@ public class SurveyResponse {
 			responses = response.getJSONArray(JSON_KEY_RESPONSES);
 		}
 		catch(JSONException e) {
-			throw new ErrorCodeException(ErrorCode.SURVEY_INVALID_RESPONSES, "There weren't any responses for the survey.", e);
+			throw new DomainException(
+					ErrorCode.SURVEY_INVALID_RESPONSES, 
+					"There weren't any responses for the survey.", 
+					e);
 		}
-		this.responses = processResponses(campaign.getSurveys().get(surveyId).getSurveyItems(), responses, null);
+		this.responses = 
+				processResponses(
+						campaign.getSurveys().get(surveyId).getSurveyItems(), 
+						responses, 
+						null);
 	}
 	
 	/**
@@ -1129,28 +1202,38 @@ public class SurveyResponse {
 	 * 
 	 * @param promptResponse The prompt response.
 	 * 
-	 * @throws IllegalArgumentException Thrown if the prompt response is null.
+	 * @throws DomainException Thrown if the prompt response is null.
 	 */
-	public final void addPromptResponse(final PromptResponse promptResponse) {
+	public final void addPromptResponse(
+			final PromptResponse promptResponse) 
+			throws DomainException {
+		
 		if(promptResponse == null) {
-			throw new IllegalArgumentException("The prompt response is null.");
+			throw new DomainException("The prompt response is null.");
 		}
 		
 		RepeatableSet parent = promptResponse.getPrompt().getParent();
 		if(parent == null) {
-			responses.put(promptResponse.getPrompt().getIndex(), promptResponse);
+			responses.put(
+					promptResponse.getPrompt().getIndex(), 
+					promptResponse);
 		}
 		else {
 			// FIXME: This assumes repeatable sets cannot contain repeatable
 			// sets. This needs to be fixed if we ever allow it.
 			int index = parent.getIndex();
 			
-			RepeatableSetResponse rsResponse = (RepeatableSetResponse) responses.get(index);
+			RepeatableSetResponse rsResponse = 
+					(RepeatableSetResponse) responses.get(index);
+			
 			if(rsResponse == null) {
 				rsResponse = new RepeatableSetResponse(parent, null);
 				responses.put(index, rsResponse);
 			}
-			rsResponse.addResponse(promptResponse.getRepeatableSetIteration(), index, promptResponse);
+			rsResponse.addResponse(
+					promptResponse.getRepeatableSetIteration(), 
+					index, 
+					promptResponse);
 		}
 	}
 	
@@ -1160,11 +1243,14 @@ public class SurveyResponse {
 	 * 
 	 * @param promptIds  A collection of prompt ids belonging to some campaign. 
 	 * 
-	 * @throws  IllegalArgumentException if promptIds is null or empty.
+	 * @throws DomainException if promptIds is null or empty.
 	 */
-	public final void filterPromptResponseByPromptIds(Collection<String> promptIds) {
+	public final void filterPromptResponseByPromptIds(
+			final Collection<String> promptIds) 
+			throws DomainException {
+		
 		if(promptIds == null || promptIds.isEmpty()) {
-			throw new IllegalArgumentException("a list of prompt ids is required");
+			throw new DomainException("a list of prompt ids is required");
 		}
 		
 		if(responses != null) {
@@ -1207,10 +1293,12 @@ public class SurveyResponse {
 	 * 
 	 * @param count The number of survey responses that match some subset of
 	 * 				the information provided by this survey response.
+	 * 
+	 * @throws DomainException If the count is not positive.
 	 */
-	public void setCount(final long count) {
+	public void setCount(final long count) throws DomainException {
 		if(count < 1) {
-			throw new IllegalArgumentException("The count must be positive.");
+			throw new DomainException("The count must be positive.");
 		}
 		
 		this.count = count;
@@ -1290,112 +1378,114 @@ public class SurveyResponse {
 	 * 
 	 * @return A JSONObject that represents this object or null if there was an
 	 * 		   error.
+	 * 
+	 * @throws JSONException There was a problem creating the JSONObject.
 	 */
-	public final JSONObject toJson(final boolean withUsername, 
-			final boolean withCampaignId, final boolean withClient, 
+	public final JSONObject toJson(
+			final boolean withUsername, 
+			final boolean withCampaignId, 
+			final boolean withClient, 
 			final boolean withPrivacyState, 
 			final boolean withTime, 
 			final boolean withTimezone, 
-			final boolean withLocationStatus, final boolean withLocation, 
+			final boolean withLocationStatus, 
+			final boolean withLocation, 
 			final boolean withSurveyId, 
-			final boolean withSurveyTitle, final boolean withSurveyDescription,
+			final boolean withSurveyTitle, 
+			final boolean withSurveyDescription,
 			final boolean withLaunchContextShort, 
 			final boolean withLaunchContextLong, 
-			final boolean withResponses, final boolean arrayInsteadOfObject, 
+			final boolean withResponses, 
+			final boolean arrayInsteadOfObject, 
 			final boolean withId,
-			final boolean withCount) {
+			final boolean withCount) 
+			throws JSONException {
 		
-		try {
-			JSONObject result = new JSONObject();
-			
-			if(withUsername) {
-				result.put(JSON_KEY_USERNAME, username);
-			}
-			
-			if(withCampaignId) {
-				result.put(JSON_KEY_CAMPAIGN_ID, campaignId);
-			}
-			
-			if(withClient) {
-				result.put(JSON_KEY_CLIENT, client);
-			}
-			
-			if(withPrivacyState) {
-				result.put(JSON_KEY_PRIVACY_STATE, privacyState.toString());
-			}
-			
-			if(withTime) {
-				result.put(JSON_KEY_TIME, time);
-			}
-			
-			if(withTimezone) {
-				result.put(JSON_KEY_TIMEZONE, timezone.getID());
-			}
-			
-			if(withLocationStatus) {
-				result.put(JSON_KEY_LOCATION_STATUS, locationStatus.toString());
-			}
-			
-			if(withLocation && (location != null)) {
-				result.put(JSON_KEY_LOCATION, location.toJson(false));
-			}
-			
-			if(withSurveyId && (survey != null)) {
-				result.put(JSON_KEY_SURVEY_ID, survey.getId());
-			}
-			
-			if(withSurveyTitle && (survey != null)) {
-				result.put(JSON_KEY_SURVEY_NAME, survey.getTitle());
-			}
-			
-			if(withSurveyDescription && (survey != null)) {
-				result.put(JSON_KEY_SURVEY_DESCRIPTION, survey.getDescription());
-			}
-			
-			if(withLaunchContextShort) {
-				result.put(JSON_KEY_SURVEY_LAUNCH_CONTEXT_SHORT, launchContext.toJson(false));
-			}
-			
-			if(withLaunchContextLong) {
-				result.put(JSON_KEY_SURVEY_LAUNCH_CONTEXT_LONG, launchContext.toJson(true));
-			}
-			
-			if(withResponses) {
-				List<Integer> indices = new ArrayList<Integer>(responses.keySet());
-				Collections.sort(indices);
-				
-				if(arrayInsteadOfObject) {
-					JSONArray responses = new JSONArray();
-					for(Integer index : indices) {
-						responses.put(this.responses.get(index).toJson(true));
-					}
-					result.put(JSON_KEY_RESPONSES, responses);
-				}
-				else {
-					JSONObject responses = new JSONObject();
-					for(Integer index : indices) {
-						Response response = this.responses.get(index);
-						
-						responses.put(response.getId(), response.toJson(false));
-					}
-					result.put(JSON_KEY_RESPONSES, responses);
-				}
-			}
-			
-			if(withId) {
-				result.put(JSON_KEY_SURVEY_RESPONSE_ID, surveyResponseId.toString());
-			}
-			
-			if(withCount) {
-				result.put(JSON_KEY_COUNT, count);
-			}
-			
-			return result;
+		JSONObject result = new JSONObject();
+		
+		if(withUsername) {
+			result.put(JSON_KEY_USERNAME, username);
 		}
-		catch(JSONException e) {
-			LOGGER.warn("Could not generate JSON from a survey response", e);
-			return null;
+		
+		if(withCampaignId) {
+			result.put(JSON_KEY_CAMPAIGN_ID, campaignId);
 		}
+		
+		if(withClient) {
+			result.put(JSON_KEY_CLIENT, client);
+		}
+		
+		if(withPrivacyState) {
+			result.put(JSON_KEY_PRIVACY_STATE, privacyState.toString());
+		}
+		
+		if(withTime) {
+			result.put(JSON_KEY_TIME, time);
+		}
+		
+		if(withTimezone) {
+			result.put(JSON_KEY_TIMEZONE, timezone.getID());
+		}
+		
+		if(withLocationStatus) {
+			result.put(JSON_KEY_LOCATION_STATUS, locationStatus.toString());
+		}
+		
+		if(withLocation && (location != null)) {
+			result.put(JSON_KEY_LOCATION, location.toJson(false));
+		}
+		
+		if(withSurveyId && (survey != null)) {
+			result.put(JSON_KEY_SURVEY_ID, survey.getId());
+		}
+		
+		if(withSurveyTitle && (survey != null)) {
+			result.put(JSON_KEY_SURVEY_NAME, survey.getTitle());
+		}
+		
+		if(withSurveyDescription && (survey != null)) {
+			result.put(JSON_KEY_SURVEY_DESCRIPTION, survey.getDescription());
+		}
+		
+		if(withLaunchContextShort) {
+			result.put(JSON_KEY_SURVEY_LAUNCH_CONTEXT_SHORT, launchContext.toJson(false));
+		}
+		
+		if(withLaunchContextLong) {
+			result.put(JSON_KEY_SURVEY_LAUNCH_CONTEXT_LONG, launchContext.toJson(true));
+		}
+		
+		if(withResponses) {
+			List<Integer> indices = new ArrayList<Integer>(responses.keySet());
+			Collections.sort(indices);
+			
+			if(arrayInsteadOfObject) {
+				JSONArray responses = new JSONArray();
+				for(Integer index : indices) {
+					responses.put(this.responses.get(index).toJson(true));
+				}
+				result.put(JSON_KEY_RESPONSES, responses);
+			}
+			else {
+				JSONObject responses = new JSONObject();
+				for(Integer index : indices) {
+					Response response = this.responses.get(index);
+					
+					responses.put(response.getId(), response.toJson(false));
+				}
+				result.put(JSON_KEY_RESPONSES, responses);
+			}
+		}
+		
+		if(withId) {
+			result.put(JSON_KEY_SURVEY_RESPONSE_ID, surveyResponseId.toString());
+		}
+		
+		if(withCount) {
+			result.put(JSON_KEY_COUNT, count);
+		}
+		
+		return result;
 	}
 	
 	/**
@@ -1507,17 +1597,19 @@ public class SurveyResponse {
 	 * 
 	 * @return A map of a response's index to its Response object.
 	 * 
-	 * @throws ErrorCodeException Thrown if any of the responses are invalid
-	 * 							  either syntactically or as compared to the
-	 * 							  survey objects.
+	 * @throws DomainException Thrown if any of the responses are invalid 
+	 * 						   either syntactically or as compared to the
+	 * 						   survey objects.
 	 */
 	private Map<Integer, Response> processResponses(
 			final Map<Integer, SurveyItem> surveyItems, 
-			final JSONArray currArray, final Integer repeatableSetIteration) 
-			throws ErrorCodeException {
+			final JSONArray currArray, 
+			final Integer repeatableSetIteration) 
+			throws DomainException {
 		
 		int numResponses = currArray.length();
-		Map<Integer, Response> results = new HashMap<Integer, Response>(numResponses);
+		Map<Integer, Response> results = 
+				new HashMap<Integer, Response>(numResponses);
 		
 		for(int i = 0; i < numResponses; i++) {
 			try {
@@ -1533,7 +1625,9 @@ public class SurveyResponse {
 						}
 					}
 					if(prompt == null) {
-						throw new ErrorCodeException(ErrorCode.SURVEY_INVALID_RESPONSES, "The prompt ID is unknown: " + promptId);
+						throw new DomainException(
+								ErrorCode.SURVEY_INVALID_RESPONSES, 
+								"The prompt ID is unknown: " + promptId);
 					}
 					
 					results.put(
@@ -1553,7 +1647,10 @@ public class SurveyResponse {
 							}
 						}
 						if(repeatableSet == null) {
-							throw new ErrorCodeException(ErrorCode.SURVEY_INVALID_RESPONSES, "The repeatable set ID is unknown: " + repeatableSetId);
+							throw new DomainException(
+									ErrorCode.SURVEY_INVALID_RESPONSES, 
+									"The repeatable set ID is unknown: " + 
+										repeatableSetId);
 						}
 						
 						results.put(
@@ -1563,15 +1660,22 @@ public class SurveyResponse {
 										currResponse));
 					}
 					catch(JSONException notRepeatableSet) {
-						throw new ErrorCodeException(ErrorCode.SURVEY_INVALID_RESPONSES, "The response wasn't a prompt response or repeatable set.");
+						throw new DomainException(
+								ErrorCode.SURVEY_INVALID_RESPONSES, 
+								"The response wasn't a prompt response or repeatable set.");
 					}
 				}
 				catch(ClassCastException e) {
-					throw new ErrorCodeException(ErrorCode.SURVEY_INVALID_RESPONSES, "The response and XML disagree on the type of a survey item.", e);
+					throw new DomainException(
+							ErrorCode.SURVEY_INVALID_RESPONSES, 
+							"The response and XML disagree on the type of a survey item.", 
+							e);
 				}
 			}
 			catch(JSONException e) {
-				throw new ErrorCodeException(ErrorCode.SURVEY_INVALID_RESPONSES, "A response was not valid JSON.");
+				throw new DomainException(
+						ErrorCode.SURVEY_INVALID_RESPONSES, 
+						"A response was not valid JSON.");
 			}
 		}
 		
@@ -1588,7 +1692,10 @@ public class SurveyResponse {
 				}
 				
 				if(! found) {
-					throw new ErrorCodeException(ErrorCode.SURVEY_INVALID_RESPONSES, "The response is missing a response for the prompt: " + surveyItemId);
+					throw new DomainException(
+							ErrorCode.SURVEY_INVALID_RESPONSES, 
+							"The response is missing a response for the prompt: " + 
+								surveyItemId);
 				}
 			}
 		}
@@ -1611,21 +1718,31 @@ public class SurveyResponse {
 	 * @return A PromptResponse generated by the 'prompt' based on the value in 
 	 * 		   the 'response'.
 	 * 
-	 * @throws ErrorCodeException Thrown if the JSONObject is invalid for
-	 * 							  getting a response value.
+	 * @throws DomainException Thrown if the JSONObject is invalid for getting 
+	 * 						   a response value.
 	 */
-	private PromptResponse processPromptResponse(final Prompt prompt,
-			final JSONObject response, final Integer repeatableSetIteration) 
-			throws ErrorCodeException {
+	private PromptResponse processPromptResponse(
+			final Prompt prompt,
+			final JSONObject response, 
+			final Integer repeatableSetIteration) 
+			throws DomainException {
 		
 		try {
-			return prompt.createResponse(response.get(JSON_KEY_PROMPT_VALUE), repeatableSetIteration);
+			return prompt.createResponse(
+					repeatableSetIteration, 
+					response.get(JSON_KEY_PROMPT_VALUE));
 		}
 		catch(JSONException e) {
-			throw new ErrorCodeException(ErrorCode.SURVEY_INVALID_RESPONSES, "The response value was missing.", e);
+			throw new DomainException(
+					ErrorCode.SURVEY_INVALID_RESPONSES, 
+					"The response value was missing.", 
+					e);
 		}
-		catch(IllegalArgumentException e) {
-			throw new ErrorCodeException(ErrorCode.SURVEY_INVALID_RESPONSES, "The response value was invalid.", e);
+		catch(DomainException e) {
+			throw new DomainException(
+					ErrorCode.SURVEY_INVALID_RESPONSES, 
+					"The response value was invalid.", 
+					e);
 		}
 	}
 	
@@ -1640,20 +1757,26 @@ public class SurveyResponse {
 	 * @return A RepeatableSetResponse object that represents the responses
 	 * 		   to this repeatable set gathered from the JSONObject.
 	 *   
-	 * @throws ErrorCodeException Thrown if the repeatable set JSONObject is
-	 * 							  malformed.
+	 * @throws DomainException Thrown if the repeatable set JSONObject is
+	 * 						   malformed.
 	 */
 	private RepeatableSetResponse processRepeatableSet(
-			final RepeatableSet repeatableSet, final JSONObject response) 
-			throws ErrorCodeException {
+			final RepeatableSet repeatableSet, 
+			final JSONObject response) 
+			throws DomainException {
 		
 		try {
 			if(response.getBoolean(RepeatableSetResponse.NOT_DISPLAYED)) {
-				return new RepeatableSetResponse(repeatableSet, NoResponse.NOT_DISPLAYED);
+				return new RepeatableSetResponse(
+						repeatableSet, 
+						NoResponse.NOT_DISPLAYED);
 			}
 		}
 		catch(JSONException e) {
-			throw new ErrorCodeException(ErrorCode.SURVEY_INVALID_RESPONSES, "The not displayed value is missing.", e);
+			throw new DomainException(
+					ErrorCode.SURVEY_INVALID_RESPONSES, 
+					"The not displayed value is missing.", 
+					e);
 		}
 		RepeatableSetResponse result = new RepeatableSetResponse(repeatableSet, null);
 		
@@ -1661,7 +1784,10 @@ public class SurveyResponse {
 		try {
 			responses = response.getJSONArray(JSON_KEY_RESPONSES);
 		} catch (JSONException e) {
-			throw new ErrorCodeException(ErrorCode.SURVEY_INVALID_RESPONSES, "The responses array for the repeatable set are missing.", e);
+			throw new DomainException(
+					ErrorCode.SURVEY_INVALID_RESPONSES, 
+					"The responses array for the repeatable set are missing.", 
+					e);
 		}
 		
 		int numIterations = responses.length();
@@ -1676,7 +1802,10 @@ public class SurveyResponse {
 							)
 					);
 			} catch (JSONException e) {
-				throw new ErrorCodeException(ErrorCode.SURVEY_INVALID_RESPONSES, "One of the response array objects for a repeatable set is not a JSONArray.", e);
+				throw new DomainException(
+						ErrorCode.SURVEY_INVALID_RESPONSES, 
+						"One of the response array objects for a repeatable set is not a JSONArray.", 
+						e);
 			}
 		}
 		return result;

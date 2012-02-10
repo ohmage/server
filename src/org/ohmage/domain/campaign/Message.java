@@ -2,6 +2,7 @@ package org.ohmage.domain.campaign;
 
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.ohmage.exception.DomainException;
 import org.ohmage.util.StringUtils;
 
 public final class Message extends SurveyItem {
@@ -24,15 +25,20 @@ public final class Message extends SurveyItem {
 	 * 
 	 * @param text The text to display to the user.
 	 * 
-	 * @throws IllegalArgumentException Thrown if the text is null or 
-	 * 									whitespace only.
+	 * @throws DomainException Thrown if the text is null or whitespace only.
 	 */
-	public Message(final String id, final String condition, final int index,
-			final String text) {
+	public Message(
+			final String id, 
+			final String condition, 
+			final int index,
+			final String text) 
+			throws DomainException {
+		
 		super(id, condition, index);
 		
 		if(StringUtils.isEmptyOrWhitespaceOnly(text)) {
-			throw new IllegalArgumentException("The text cannot be null or whitespace only.");
+			throw new DomainException(
+					"The text cannot be null or whitespace only.");
 		}
 		
 		this.text = text;
@@ -73,26 +79,22 @@ public final class Message extends SurveyItem {
 	 * Creates a JSONObject that represents this message.
 	 * 
 	 * @return A JSONObject that represents this message.
+	 * 
+	 * @throws JSONException There was a problem creating the JSONObject.
 	 */
 	@Override
-	public JSONObject toJson() {
-		try {
-			JSONObject result = super.toJson();
-			
-			if(result == null) {
-				// FIXME: This should ignore what the parent does and let the
-				// exception propogate.
-				return null;
-			}
-			
-			result.put(JSON_KEY_TEXT, text);
-			
-			return result;
-		}
-		catch(JSONException e) {
-			// FIXME: This should throw an exception.
+	public JSONObject toJson() throws JSONException {
+		JSONObject result = super.toJson();
+		
+		if(result == null) {
+			// FIXME: This should ignore what the parent does and let the
+			// exception propogate.
 			return null;
 		}
+		
+		result.put(JSON_KEY_TEXT, text);
+		
+		return result;
 	}
 
 	/**

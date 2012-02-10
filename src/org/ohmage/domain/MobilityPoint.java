@@ -14,7 +14,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.domain.MobilityPoint.SensorData.AccelData;
-import org.ohmage.exception.ErrorCodeException;
+import org.ohmage.exception.DomainException;
 import org.ohmage.util.StringUtils;
 import org.ohmage.util.TimeUtils;
 
@@ -178,22 +178,21 @@ public class MobilityPoint {
 			/**
 			 * Creates a JSONObject from the information in this object.
 			 * 
-			 * @return Returns a JSONObject representing this object unless 
-			 * 		   there is an error in which case null is returned.
+			 * @return Returns a JSONObject representing this object.
+			 * 
+			 * @throws JSONException There was an error building the 
+			 * 						 JSONObject.
 			 */
-			public final JSONObject toJson() {
-				try {
-					JSONObject result = new JSONObject();
-					
-					result.put(JSON_KEY_ACCEL_DATA_X, x);
-					result.put(JSON_KEY_ACCEL_DATA_Y, y);
-					result.put(JSON_KEY_ACCEL_DATA_Z, z);
-					
-					return result;
-				}
-				catch(JSONException e) {
-					return null;
-				}
+			public final JSONObject toJson() 
+					throws JSONException {
+				
+				JSONObject result = new JSONObject();
+				
+				result.put(JSON_KEY_ACCEL_DATA_X, x);
+				result.put(JSON_KEY_ACCEL_DATA_Y, y);
+				result.put(JSON_KEY_ACCEL_DATA_Z, z);
+				
+				return result;
 			}
 		}
 		private final List<AccelData> accelData;
@@ -225,17 +224,23 @@ public class MobilityPoint {
 			 * @param scan The data collected from all of the WiFi points in 
 			 * 			   range of the scan.
 			 * 
-			 * @throws MobilityException Thrown if either of the parameters are
-			 * 							 null or invalid values.
+			 * @throws DomainException Thrown if either of the parameters are
+			 * 						   null or invalid values.
 			 */
-			private WifiData(Long time, TimeZone timezone, JSONArray scan, Mode mode) throws ErrorCodeException {
+			private WifiData(
+					final Long time, 
+					final TimeZone timezone, 
+					final JSONArray scan, 
+					final Mode mode) 
+					throws DomainException {
+				
 				// Validate the timestamp value.
 				if(time == null) {
 					if(Mode.ERROR.equals(mode)) {
 						this.time = null;
 					}
 					else {
-						throw new ErrorCodeException(
+						throw new DomainException(
 								ErrorCode.SERVER_INVALID_TIMESTAMP, 
 								"The time is missing for a WiFiData record.");
 					}
@@ -250,7 +255,7 @@ public class MobilityPoint {
 						this.timezone = null;
 					}
 					else {
-						throw new ErrorCodeException(
+						throw new DomainException(
 								ErrorCode.SERVER_INVALID_TIMESTAMP, 
 								"The time is missing for a WiFiData record.");
 					}
@@ -284,7 +289,7 @@ public class MobilityPoint {
 									continue;
 								}
 								else {
-									throw new ErrorCodeException(
+									throw new DomainException(
 											ErrorCode.MOBILITY_INVALID_WIFI_DATA, 
 											"The SSID is missing.", 
 											e);
@@ -301,7 +306,7 @@ public class MobilityPoint {
 									strength = null;
 								}
 								else {
-									throw new ErrorCodeException(
+									throw new DomainException(
 											ErrorCode.MOBILITY_INVALID_WIFI_DATA, 
 											"The strength is missing or invalid.", 
 											e);
@@ -312,7 +317,7 @@ public class MobilityPoint {
 							this.scan.put(ssid, strength);
 						}
 						catch(JSONException e) {
-							throw new IllegalArgumentException(
+							throw new DomainException(
 									"The object changed while we were reading it.", 
 									e);
 						}
@@ -364,34 +369,33 @@ public class MobilityPoint {
 			 * Creates a JSONObject that represents the information in this
 			 * object.
 			 * 
-			 * @return Returns a JSONObject that represents this object or null
-			 * 		   if there is an error.
+			 * @return Returns a JSONObject that represents this object.
+			 * 
+			 * @throws JSONException There was an error building the 
+			 * 						 JSONObject.
 			 */
-			public final JSONObject toJson() {
-				try {
-					JSONObject result = new JSONObject();
-					
-					result.put(JSON_KEY_WIFI_DATA_TIMESTAMP, TimeUtils.getIso8601DateTimeString(new Date(time)));
-					result.put(JSON_KEY_WIFI_DATA_TIME, time);
-					result.put(JSON_KEY_WIFI_DATA_TIMEZONE, timezone.getID());
-					
-					if(scan != null) {
-						JSONArray scanJson = new JSONArray();
-						for(String ssid : scan.keySet()) {
-							JSONObject currScan = new JSONObject();
-							currScan.put(JSON_KEY_SSID, ssid);
-							currScan.put(JSON_KEY_STRENGTH, scan.get(ssid));
-							
-							scanJson.put(currScan);
-						}
-						result.put(JSON_KEY_WIFI_DATA_SCAN, scanJson);
+			public final JSONObject toJson() 
+					throws JSONException {
+				
+				JSONObject result = new JSONObject();
+				
+				result.put(JSON_KEY_WIFI_DATA_TIMESTAMP, TimeUtils.getIso8601DateTimeString(new Date(time)));
+				result.put(JSON_KEY_WIFI_DATA_TIME, time);
+				result.put(JSON_KEY_WIFI_DATA_TIMEZONE, timezone.getID());
+				
+				if(scan != null) {
+					JSONArray scanJson = new JSONArray();
+					for(String ssid : scan.keySet()) {
+						JSONObject currScan = new JSONObject();
+						currScan.put(JSON_KEY_SSID, ssid);
+						currScan.put(JSON_KEY_STRENGTH, scan.get(ssid));
+						
+						scanJson.put(currScan);
 					}
-					
-					return result;
+					result.put(JSON_KEY_WIFI_DATA_SCAN, scanJson);
 				}
-				catch(JSONException e) {
-					return null;
-				}
+				
+				return result;
 			}
 		}
 		private final WifiData wifiData;
@@ -401,11 +405,11 @@ public class MobilityPoint {
 		 * 
 		 * @param sensorData The sensor data as a JSONObject.
 		 * 
-		 * @throws MobilityException Thrown if the sensor data is null, not 
-		 * 							 valid sensor data, or missing some 
-		 * 							 component.
+		 * @throws DomainException Thrown if the sensor data is null, not 
+		 * 						   valid sensor data, or missing some 
+		 * 						   component.
 		 */
-		private SensorData(JSONObject sensorData) throws ErrorCodeException {
+		private SensorData(JSONObject sensorData) throws DomainException {
 			// Get the mode.
 			try {
 				String modeString = sensorData.getString(JSON_KEY_MODE);
@@ -414,14 +418,14 @@ public class MobilityPoint {
 					mode = Mode.valueOf(modeString.toUpperCase());
 				}
 				catch(IllegalArgumentException e) {
-					throw new ErrorCodeException(
+					throw new DomainException(
 							ErrorCode.MOBILITY_INVALID_MODE, 
 							"The mode is not a known mode: " + modeString, 
 							e);
 				}
 			}
 			catch(JSONException e) {
-				throw new ErrorCodeException(
+				throw new DomainException(
 						ErrorCode.MOBILITY_INVALID_MODE, 
 						"The mode is missing in the sensor data: " + 
 								JSON_KEY_MODE, 
@@ -438,7 +442,7 @@ public class MobilityPoint {
 					tSpeed = null;
 				}
 				else {
-					throw new ErrorCodeException(
+					throw new DomainException(
 							ErrorCode.MOBILITY_INVALID_SPEED, 
 							"The speed is missing or invalid.", 
 							e);
@@ -469,7 +473,7 @@ public class MobilityPoint {
 								x = null;
 							}
 							else {
-								throw new ErrorCodeException(
+								throw new DomainException(
 										ErrorCode.MOBILITY_INVALID_ACCELEROMETER_DATA, 
 										"The 'x' point was missing or invalid.", 
 										e);
@@ -486,7 +490,7 @@ public class MobilityPoint {
 								y = null;
 							}
 							else {
-								throw new ErrorCodeException(
+								throw new DomainException(
 										ErrorCode.MOBILITY_INVALID_ACCELEROMETER_DATA, 
 										"The 'y' point was missing or invalid.", 
 										e);
@@ -503,7 +507,7 @@ public class MobilityPoint {
 								z = null;
 							}
 							else {
-								throw new ErrorCodeException(
+								throw new DomainException(
 										ErrorCode.MOBILITY_INVALID_ACCELEROMETER_DATA, 
 										"The 'z' point was missing or invalid.", 
 										e);
@@ -514,7 +518,10 @@ public class MobilityPoint {
 						tAccelData.add(new AccelData(x, y, z));
 					}
 					catch(JSONException e) {
-						throw new ErrorCodeException(ErrorCode.MOBILITY_INVALID_ACCELEROMETER_DATA, "An accelerometer data point is not a JSONObject.", e);
+						throw new DomainException(
+								ErrorCode.MOBILITY_INVALID_ACCELEROMETER_DATA, 
+								"An accelerometer data point is not a JSONObject.", 
+								e);
 					}
 				}
 			}
@@ -523,7 +530,7 @@ public class MobilityPoint {
 					tAccelData = null;
 				}
 				else {
-					throw new ErrorCodeException(
+					throw new DomainException(
 							ErrorCode.MOBILITY_INVALID_ACCELEROMETER_DATA, 
 							"The accelerometer data is missing or invalid.", 
 							e);
@@ -558,7 +565,7 @@ public class MobilityPoint {
 								timezone = null;
 							}
 							else {
-								throw new ErrorCodeException(
+								throw new DomainException(
 										ErrorCode.SERVER_INVALID_TIMEZONE, 
 										"The timezone is missing.", 
 										noTimezone);
@@ -580,7 +587,7 @@ public class MobilityPoint {
 								timezone = null;
 							}
 							else {
-								throw new ErrorCodeException(
+								throw new DomainException(
 										ErrorCode.SERVER_INVALID_TIMESTAMP, 
 										"The timestamp is missing.", 
 										noTimestamp);
@@ -598,7 +605,7 @@ public class MobilityPoint {
 							scan = null;
 						}
 						else {
-							throw new ErrorCodeException(
+							throw new DomainException(
 									ErrorCode.MOBILITY_INVALID_WIFI_DATA, 
 									"The scan is missing.", 
 									e);
@@ -614,7 +621,7 @@ public class MobilityPoint {
 					tWifiData = null;
 				}
 				else {
-					throw new ErrorCodeException(
+					throw new DomainException(
 							ErrorCode.MOBILITY_INVALID_WIFI_DATA, 
 							"The WiFi data is missing or invalid.", 
 							e);
@@ -663,57 +670,54 @@ public class MobilityPoint {
 		/**
 		 * Creates a JSONObject that represents the information in this object.
 		 * 
-		 * @return Returns a JSONObject that represents this object or null if
-		 * 		   there is an error.
+		 * @return Returns a JSONObject that represents this object.
+		 * 
+		 * @throws JSONException There was an error building the JSONObject.
 		 */
-		public final JSONObject toJson() {
-			try {
-				JSONObject result = new JSONObject();
-				
-				result.put(JSON_KEY_MODE, mode.name().toLowerCase());
-				
-				if(speed == null) {
-					// Don't put it in the JSON.
-				}
-				else if(speed.isInfinite()) {
-					if(Double.POSITIVE_INFINITY == speed.doubleValue()) {
-						result.put(JSON_KEY_SPEED, "Infinity");
-					}
-					else {
-						result.put(JSON_KEY_SPEED, "-Infinity");
-					}
-				}
-				else if(speed.isNaN()) {
-					result.put(JSON_KEY_SPEED, "NaN");
-				}
-				else {
-					result.put(JSON_KEY_SPEED, speed);
-				}
-				
-				if(wifiData == null) {
-					result.put(JSON_KEY_WIFI_DATA, new JSONObject());
-				}
-				else {
-					result.put(JSON_KEY_WIFI_DATA, wifiData.toJson());
-				}
-				
-				if(accelData == null) {
-					// Don't put it in the JSON.
-				}
-				else {
-					JSONArray accelArray = new JSONArray();
-					for(AccelData accelRecord : accelData) {
-						accelArray.put(accelRecord.toJson());
-					}
-					result.put(JSON_KEY_ACCEL_DATA, accelArray);
-				}
-				
-				return result;
+		public final JSONObject toJson() 
+				throws JSONException {
+			
+			JSONObject result = new JSONObject();
+			
+			result.put(JSON_KEY_MODE, mode.name().toLowerCase());
+			
+			if(speed == null) {
+				// Don't put it in the JSON.
 			}
-			catch(JSONException e) {
-				System.out.println("Failed to create the JSON." + e.toString());
-				return null;
+			else if(speed.isInfinite()) {
+				if(Double.POSITIVE_INFINITY == speed.doubleValue()) {
+					result.put(JSON_KEY_SPEED, "Infinity");
+				}
+				else {
+					result.put(JSON_KEY_SPEED, "-Infinity");
+				}
 			}
+			else if(speed.isNaN()) {
+				result.put(JSON_KEY_SPEED, "NaN");
+			}
+			else {
+				result.put(JSON_KEY_SPEED, speed);
+			}
+			
+			if(wifiData == null) {
+				result.put(JSON_KEY_WIFI_DATA, new JSONObject());
+			}
+			else {
+				result.put(JSON_KEY_WIFI_DATA, wifiData.toJson());
+			}
+			
+			if(accelData == null) {
+				// Don't put it in the JSON.
+			}
+			else {
+				JSONArray accelArray = new JSONArray();
+				for(AccelData accelRecord : accelData) {
+					accelArray.put(accelRecord.toJson());
+				}
+				result.put(JSON_KEY_ACCEL_DATA, accelArray);
+			}
+			
+			return result;
 		}
 	}
 	private final SensorData sensorData;
@@ -749,10 +753,12 @@ public class MobilityPoint {
 		 * Creates a ClassifierData object that only contains a mode.
 		 * 
 		 * @param mode The Mode from the server-side classifier.
+		 * 
+		 * @throws DomainException The mode is null.
 		 */
-		private ClassifierData(Mode mode) {
+		private ClassifierData(Mode mode) throws DomainException {
 			if(mode == null) {
-				throw new IllegalArgumentException("The mode cannot be null.");
+				throw new DomainException("The mode cannot be null.");
 			}
 			
 			this.fft = null;
@@ -764,13 +770,20 @@ public class MobilityPoint {
 		
 		/**
 		 * Creates a ClassifierData object that contains all of the applicable
-		 * keys from the JSONObject. The only required key is the mode.
+		 * keys from the JSONObject.
+		 * 
+		 * @param mode The mode of the Mobility point as retrieved before the
+		 * 			   classifier information was retrieved.
 		 * 
 		 * @param classifierData The classifier data as a JSONObject.
 		 * 
-		 * @throws MobilityException Thrown if the mode is missing or unknown.
+		 * @throws DomainException Thrown if the mode is missing or unknown.
 		 */
-		private ClassifierData(Mode mode, JSONObject classifierData) throws ErrorCodeException {
+		private ClassifierData(
+				final Mode mode, 
+				final JSONObject classifierData) 
+				throws DomainException {
+			
 			Mode tMode;
 			try {
 				tMode = Mode.valueOf(classifierData.getString(JSON_KEY_MODE).toUpperCase());
@@ -780,11 +793,17 @@ public class MobilityPoint {
 					tMode = null;
 				}
 				else {
-					throw new ErrorCodeException(ErrorCode.MOBILITY_INVALID_MODE, "The mode is missing.", e);
+					throw new DomainException(
+							ErrorCode.MOBILITY_INVALID_MODE, 
+							"The mode is missing.", 
+							e);
 				}
 			}
 			catch(IllegalArgumentException e) {
-				throw new ErrorCodeException(ErrorCode.MOBILITY_INVALID_MODE, "The mode is unknown.", e);
+				throw new DomainException(
+						ErrorCode.MOBILITY_INVALID_MODE, 
+						"The mode is unknown.", 
+						e);
 			}
 			this.mode = tMode;
 			
@@ -849,15 +868,18 @@ public class MobilityPoint {
 		 * 
 		 * @param mode The Mode calculated by the server's classifier.
 		 * 
-		 * @throws IllegalArgumentException Thrown if any of the values are 
-		 * 									null.
+		 * @throws DomainException The mode is null.
 		 */
-		private ClassifierData(List<Double> fft, Double variance,
-				Double n95Variance,
-				Double average, Mode mode) {
+		private ClassifierData(
+				final List<Double> fft, 
+				final Double variance,
+				final Double n95Variance,
+				final Double average, 
+				final Mode mode) 
+				throws DomainException{
 			
 			if(mode == null) {
-				throw new IllegalArgumentException("The mode cannot be null.");
+				throw new DomainException("The mode cannot be null.");
 			}
 			
 			this.fft = fft;
@@ -916,56 +938,61 @@ public class MobilityPoint {
 		 * Creates a JSONObject that represents the information contained in 
 		 * this object.
 		 * 
-		 * @return A JSONObject representing this object or null if there is an
-		 * 		   error.
+		 * @return A JSONObject representing this object.
+		 * 
+		 * @throws JSONException There was an error building the JSONObject.
 		 */
-		public final JSONObject toJson() {
-			try {
-				JSONObject result = new JSONObject();
-				
-				if(mode != null) {
-					result.put(JSON_KEY_MODE, mode.name().toLowerCase());
-				}
-				
-				result.put(JSON_KEY_FFT, fft);
-				result.put(JSON_KEY_VARIANCE, variance);
-				
-				result.put(JSON_KEY_N95_VARIANCE, n95Variance);
-				
-				result.put(JSON_KEY_AVERAGE, average);
-				
-				return result;
+		public final JSONObject toJson() throws JSONException {
+			JSONObject result = new JSONObject();
+			
+			if(mode != null) {
+				result.put(JSON_KEY_MODE, mode.name().toLowerCase());
 			}
-			catch(JSONException e) {
-				System.out.println("Failed to create the JSON." + e.toString());
-				return null;
-			}
+			
+			result.put(JSON_KEY_FFT, fft);
+			result.put(JSON_KEY_VARIANCE, variance);
+			
+			result.put(JSON_KEY_N95_VARIANCE, n95Variance);
+			
+			result.put(JSON_KEY_AVERAGE, average);
+			
+			return result;
 		}
 	}
 	private ClassifierData classifierData;
 	
 	/**
-	 * Creates a Mobility object that represents all of the 
-	 * information in the parameterized Mobility data point.
+	 * Creates a Mobility object that represents all of the information in the 
+	 * parameterized Mobility data point.
 	 * 
 	 * @param mobilityPoint A JSONObject that contains all of the required
 	 * 						information for a Mobility data point.
 	 * 
-	 * @throws MobilityException Thrown if Mobility point is null, invalid, or
-	 * 							 contains insufficient information to build 
-	 * 							 this object.
+	 * @param privacyState The privacy state of the Mobility point.
+	 * 
+	 * @throws DomainException Thrown if Mobility point is null, invalid, or
+	 * 						   contains insufficient information to build 
+	 * 						   this object.
 	 */
-	public MobilityPoint(JSONObject mobilityPoint, PrivacyState privacyState) 
-			throws ErrorCodeException {
+	public MobilityPoint(
+			final JSONObject mobilityPoint, 
+			final PrivacyState privacyState) 
+			throws DomainException {
 		
 		try {
 			id = UUID.fromString(mobilityPoint.getString(JSON_KEY_ID));
 		}
 		catch(JSONException e) {
-			throw new ErrorCodeException(ErrorCode.MOBILITY_INVALID_ID, "The Mobility point's ID is missing.", e);
+			throw new DomainException(
+					ErrorCode.MOBILITY_INVALID_ID, 
+					"The Mobility point's ID is missing.", 
+					e);
 		}
 		catch(IllegalArgumentException e) {
-			throw new ErrorCodeException(ErrorCode.MOBILITY_INVALID_ID, "The Mobility point's ID is not a valid UUID.", e);
+			throw new DomainException(
+					ErrorCode.MOBILITY_INVALID_ID, 
+					"The Mobility point's ID is not a valid UUID.", 
+					e);
 		}
 		
 		// Get the time.
@@ -978,7 +1005,10 @@ public class MobilityPoint {
 				tTime = mobilityPoint.getLong(JSON_KEY_TIME_SHORT);
 			}
 			catch(JSONException innerException) {
-				throw new ErrorCodeException(ErrorCode.SERVER_INVALID_TIME, "The time is missing.", innerException);
+				throw new DomainException(
+						ErrorCode.SERVER_INVALID_TIME, 
+						"The time is missing.", 
+						innerException);
 			}
 		}
 		time = tTime;
@@ -995,7 +1025,10 @@ public class MobilityPoint {
 				tTimezone = TimeZone.getTimeZone(mobilityPoint.getString(JSON_KEY_TIMEZONE_SHORT));
 			}
 			catch(JSONException innerException) {
-				throw new ErrorCodeException(ErrorCode.SERVER_INVALID_TIMEZONE, "The timezone is missing.", innerException);
+				throw new DomainException(
+						ErrorCode.SERVER_INVALID_TIMEZONE, 
+						"The timezone is missing.", 
+						innerException);
 			}
 		}
 		timezone = tTimezone;
@@ -1010,11 +1043,16 @@ public class MobilityPoint {
 				tLocationStatus = LocationStatus.valueOf(mobilityPoint.getString(JSON_KEY_LOCATION_STATUS_SHORT).toUpperCase());
 			}
 			catch(JSONException innerException) {
-				throw new ErrorCodeException(ErrorCode.SERVER_INVALID_LOCATION_STATUS, "The location status is missing.", innerException);
+				throw new DomainException(
+						ErrorCode.SERVER_INVALID_LOCATION_STATUS, 
+						"The location status is missing.", innerException);
 			}
 		}
 		catch(IllegalArgumentException e) {
-			throw new ErrorCodeException(ErrorCode.SERVER_INVALID_LOCATION_STATUS, "The location status is unknown.", e);
+			throw new DomainException(
+					ErrorCode.SERVER_INVALID_LOCATION_STATUS, 
+					"The location status is unknown.", 
+					e);
 		}
 		locationStatus = tLocationStatus;
 		
@@ -1035,7 +1073,10 @@ public class MobilityPoint {
 					tLocation = null;
 				}
 				else {
-					throw new ErrorCodeException(ErrorCode.SERVER_INVALID_LOCATION, "The location is missing.", innerException);
+					throw new DomainException(
+							ErrorCode.SERVER_INVALID_LOCATION, 
+							"The location is missing.", 
+							innerException);
 				}
 			}
 		}
@@ -1046,10 +1087,16 @@ public class MobilityPoint {
 			subType = SubType.valueOf(mobilityPoint.getString(JSON_KEY_SUBTYPE).toUpperCase());
 		}
 		catch(JSONException e) {
-			throw new ErrorCodeException(ErrorCode.MOBILITY_INVALID_SUBTYPE, "The subtype is missing.", e);
+			throw new DomainException(
+					ErrorCode.MOBILITY_INVALID_SUBTYPE, 
+					"The subtype is missing.", 
+					e);
 		}
 		catch(IllegalArgumentException e) {
-			throw new ErrorCodeException(ErrorCode.MOBILITY_INVALID_SUBTYPE, "The subtype is an unknown type.", e);
+			throw new DomainException(
+					ErrorCode.MOBILITY_INVALID_SUBTYPE, 
+					"The subtype is an unknown type.", 
+					e);
 		}
 		
 		// Based on the subtype, get the mode or sensor data.
@@ -1064,7 +1111,7 @@ public class MobilityPoint {
 					modeString = mobilityPoint.getString(JSON_KEY_MODE_SHORT);
 				}
 				catch(JSONException innerException) {
-					throw new ErrorCodeException(
+					throw new DomainException(
 							ErrorCode.MOBILITY_INVALID_MODE, 
 							"The subtype is '" + 
 								SubType.MODE_ONLY.toString().toLowerCase() + 
@@ -1079,7 +1126,7 @@ public class MobilityPoint {
 				tMode = Mode.valueOf(modeString.toUpperCase());
 			}
 			catch(IllegalArgumentException e) {
-				throw new ErrorCodeException(
+				throw new DomainException(
 						ErrorCode.MOBILITY_INVALID_MODE, 
 						"The mode is unknown: " + modeString, 
 						e);
@@ -1095,7 +1142,7 @@ public class MobilityPoint {
 				mode = sensorData.mode;
 			}
 			catch(JSONException e) {
-				throw new ErrorCodeException(
+				throw new DomainException(
 						ErrorCode.SERVER_INVALID_JSON, 
 						"The subtype is '" + SubType.SENSOR_DATA.toString().toLowerCase() + "', but the required key is missing: " + JSON_KEY_DATA,
 						e);
@@ -1149,38 +1196,45 @@ public class MobilityPoint {
 	 * @throws MobilityException Thrown if any of the required parameters are	
 	 * 							 missing or any of the parameters are invalid.
 	 * 
-	 * @throws IllegalArgumentExcpetion Thrown if any of the required 
-	 * 									parameters are missing or if any of the
-	 * 									parameters are invalid.
+	 * @throws DomainException Thrown if any of the required parameters are 
+	 * 						   missing or if any of the parameters are invalid.
 	 */
-	public MobilityPoint(UUID id, Long time, TimeZone timezone,
-			LocationStatus locationStatus, JSONObject location, 
-			Mode mode, PrivacyState privacyState, 
-			JSONObject sensorData, JSONObject features, String classifierVersion) throws ErrorCodeException {
+	public MobilityPoint(
+			final UUID id, 
+			final Long time, 
+			final TimeZone timezone,
+			final LocationStatus locationStatus, 
+			final JSONObject location, 
+			final Mode mode, 
+			final PrivacyState privacyState, 
+			final JSONObject sensorData, 
+			final JSONObject features, 
+			final String classifierVersion) 
+			throws DomainException {
 		
 		if(id == null) {
-			throw new IllegalArgumentException("The ID cannot be null.");
+			throw new DomainException("The ID cannot be null.");
 		}
 		else {
 			this.id = id;
 		}
 		
 		if(time == null) {
-			throw new IllegalArgumentException("The time cannot be null.");
+			throw new DomainException("The time cannot be null.");
 		}
 		else {
 			this.time = time;
 		}
 		
 		if(timezone == null) {
-			throw new IllegalArgumentException("The timezone cannot be null.");
+			throw new DomainException("The timezone cannot be null.");
 		}
 		else {
 			this.timezone = timezone;
 		}
 		
 		if(locationStatus == null) {
-			throw new IllegalArgumentException("The location status cannot be null.");
+			throw new DomainException("The location status cannot be null.");
 		}
 		else {
 			this.locationStatus = locationStatus;
@@ -1194,14 +1248,14 @@ public class MobilityPoint {
 		}
 		
 		if(mode == null) {
-			throw new IllegalArgumentException("The mode cannot be null.");
+			throw new DomainException("The mode cannot be null.");
 		}
 		else {
 			this.mode = mode;
 		}
 		
 		if(privacyState == null) {
-			throw new IllegalArgumentException("The privacy state cannot be null.");
+			throw new DomainException("The privacy state cannot be null.");
 		}
 		else {
 			this.privacyState = privacyState;
@@ -1240,36 +1294,42 @@ public class MobilityPoint {
 	 * @param sensorData The sensor data that was taken to generate the mode.
 	 * 					 This may be null if this data is not being captured.
 	 * 
-	 * @throws IllegalArgumentException Thrown if any of the required 
+	 * @throws DomainException Thrown if any of the required 
 	 * 									parameters are missing.
 	 */
-	public MobilityPoint(UUID id, Long time, TimeZone timezone,
-			LocationStatus locationStatus, Location location, 
-			Mode mode, SensorData sensorData) {
+	public MobilityPoint(
+			final UUID id, 
+			final Long time, 
+			final TimeZone timezone,
+			final LocationStatus locationStatus, 
+			final Location location, 
+			final Mode mode, 
+			final SensorData sensorData) 
+			throws DomainException {
 		
 		if(id == null) {
-			throw new IllegalArgumentException("The ID cannot be null.");
+			throw new DomainException("The ID cannot be null.");
 		}
 		else {
 			this.id = id;
 		}
 		
 		if(time == null) {
-			throw new IllegalArgumentException("The time cannot be null.");
+			throw new DomainException("The time cannot be null.");
 		}
 		else {
 			this.time = time;
 		}
 		
 		if(timezone == null) {
-			throw new IllegalArgumentException("The timezone cannot be null.");
+			throw new DomainException("The timezone cannot be null.");
 		}
 		else {
 			this.timezone = timezone;
 		}
 		
 		if(locationStatus == null) {
-			throw new IllegalArgumentException("The location status cannot be null.");
+			throw new DomainException("The location status cannot be null.");
 		}
 		else {
 			this.locationStatus = locationStatus;
@@ -1277,7 +1337,7 @@ public class MobilityPoint {
 		
 		if((! LocationStatus.UNAVAILABLE.equals(locationStatus)) &&
 				(location == null)) {
-			throw new IllegalArgumentException(
+			throw new DomainException(
 					"The location cannot be null if the location status is not '" + 
 					LocationStatus.UNAVAILABLE.toString().toLowerCase() + "'.");
 		}
@@ -1286,7 +1346,7 @@ public class MobilityPoint {
 		}
 		
 		if(mode == null) {
-			throw new IllegalArgumentException("The mode cannot be null.");
+			throw new DomainException("The mode cannot be null.");
 		}
 		else {
 			this.mode = mode;
@@ -1410,19 +1470,26 @@ public class MobilityPoint {
 	}
 	
 	/**
-	 * Returns the list of Samples from this Mobility point if it is of type
-	 * {@link SubType#SENSOR_DATA}; otherwise, null is returned.
+	 * Returns the list of Samples from this Mobility point. This is only valid
+	 * to call if the sub-type of this point is {@link SubType#SENSOR_DATA} and
+	 * the mode is not {@link Mode#ERROR}.
 	 * 
-	 * @return A list of Samples from this Mobility point if it is of type
-	 * 		   {@link SubType#SENSOR_DATA} and its mode is not ERROR, which may
-	 * 		   be empty but will never be null; otherwise, null is returned.
+	 * @return A list of Samples from this Mobility point.
+	 * 
+	 * @throws DomainException The sub-type of this point is not 
+	 * 						   {@link SubType#SENSOR_DATA} or the mode is
+	 * 						   {@link Mode#ERROR}.
 	 */
-	public final List<Sample> getSamples() {
+	public final List<Sample> getSamples() throws DomainException {
 		if(! SubType.SENSOR_DATA.equals(subType)) {
-			return null;
+			throw new DomainException(
+					"There are no samples for Mobility points that are not of the subtype " + 
+					SubType.SENSOR_DATA.toString());
 		}
 		if(Mode.ERROR.equals(mode)) {
-			return null;
+			throw new DomainException(
+					"There are no samples for Mobility points that are of the mode " + 
+					Mode.ERROR.toString());
 		}
 		
 		List<Sample> result = new ArrayList<Sample>(sensorData.accelData.size());
@@ -1450,14 +1517,18 @@ public class MobilityPoint {
 	 * 
 	 * @param mode The Mode calculated by the server's classifier.
 	 * 
-	 * @throws IllegalArgumentException Thrown if any of the values are 
-	 * 									null.
+	 * @throws DomainException Thrown if any of the values are null.
 	 */
-	public final void setClassifierData(List<Double> fft, Double variance,
-			Double n95Variance,
-			Double average, Mode mode) {
+	public final void setClassifierData(
+			final List<Double> fft,
+			final Double variance,
+			final Double n95Variance,
+			final Double average, 
+			final Mode mode) 
+			throws DomainException {
 			
-		classifierData = new ClassifierData(fft, variance, n95Variance, average, mode);
+		classifierData = 
+				new ClassifierData(fft, variance, n95Variance, average, mode);
 	}
 	
 	/**
@@ -1465,8 +1536,10 @@ public class MobilityPoint {
 	 * but it only sets the mode.
 	 * 
 	 * @param mode The mode that the classifier generated.
+	 * 
+	 * @throws DomainException The mode is null.
 	 */
-	public final void setClassifierModeOnly(Mode mode) {
+	public final void setClassifierModeOnly(Mode mode) throws DomainException {
 		classifierData = new ClassifierData(mode);
 	}
 	
@@ -1491,42 +1564,43 @@ public class MobilityPoint {
 	 * 				   whatever the subtype defines.
 	 * 
 	 * @return A JSONObject that represents this Mobility point.
+	 * 
+	 * @throws JSONException There was an error creating this JSONObject.
 	 */
-	public final JSONObject toJson(final boolean abbreviated, final boolean withData) {
-		try {
-			JSONObject result = new JSONObject();
+	public final JSONObject toJson(
+			final boolean abbreviated, 
+			final boolean withData) 
+			throws JSONException {
+		
+		JSONObject result = new JSONObject();
+		
+		result.put(JSON_KEY_ID, id.toString());
+		result.put(((abbreviated) ? JSON_KEY_TIMESTAMP_SHORT : JSON_KEY_TIMESTAMP), TimeUtils.getIso8601DateTimeString(new Date(time)));
+		result.put(((abbreviated) ? JSON_KEY_TIMEZONE_SHORT : JSON_KEY_TIMEZONE), timezone.getID());
+		result.put(((abbreviated) ? JSON_KEY_TIME_SHORT : JSON_KEY_TIME), time);
+		
+		result.put(((abbreviated) ? JSON_KEY_LOCATION_STATUS_SHORT : JSON_KEY_LOCATION_STATUS), locationStatus.toString().toLowerCase());
+		if(location != null) {
+			result.put(((abbreviated) ? JSON_KEY_LOCATION_SHORT : JSON_KEY_LOCATION), location.toJson(abbreviated));
+		}
+		
+		if(withData) {
+			// Subtype
+			result.put(JSON_KEY_SUBTYPE, subType.toString().toLowerCase());
 			
-			result.put(JSON_KEY_ID, id.toString());
-			result.put(((abbreviated) ? JSON_KEY_TIMESTAMP_SHORT : JSON_KEY_TIMESTAMP), TimeUtils.getIso8601DateTimeString(new Date(time)));
-			result.put(((abbreviated) ? JSON_KEY_TIMEZONE_SHORT : JSON_KEY_TIMEZONE), timezone.getID());
-			result.put(((abbreviated) ? JSON_KEY_TIME_SHORT : JSON_KEY_TIME), time);
-			
-			result.put(((abbreviated) ? JSON_KEY_LOCATION_STATUS_SHORT : JSON_KEY_LOCATION_STATUS), locationStatus.toString().toLowerCase());
-			if(location != null) {
-				result.put(((abbreviated) ? JSON_KEY_LOCATION_SHORT : JSON_KEY_LOCATION), location.toJson(abbreviated));
-			}
-			
-			if(withData) {
-				// Subtype
-				result.put(JSON_KEY_SUBTYPE, subType.toString().toLowerCase());
-				
-				// If subtype is mode-only, then just the mode.
-				if(SubType.MODE_ONLY.equals(subType)) {
-					result.put(((abbreviated) ? JSON_KEY_MODE_SHORT : JSON_KEY_MODE), mode.toString().toLowerCase());
-				}
-				// If subtype is sensor-data, then a data object.
-				else if(SubType.SENSOR_DATA.equals(subType)) {
-					result.put(JSON_KEY_DATA, sensorData.toJson());
-				}
-			}
-			else {
+			// If subtype is mode-only, then just the mode.
+			if(SubType.MODE_ONLY.equals(subType)) {
 				result.put(((abbreviated) ? JSON_KEY_MODE_SHORT : JSON_KEY_MODE), mode.toString().toLowerCase());
 			}
-			
-			return result;
+			// If subtype is sensor-data, then a data object.
+			else if(SubType.SENSOR_DATA.equals(subType)) {
+				result.put(JSON_KEY_DATA, sensorData.toJson());
+			}
 		}
-		catch(JSONException e) {
-			return null;
+		else {
+			result.put(((abbreviated) ? JSON_KEY_MODE_SHORT : JSON_KEY_MODE), mode.toString().toLowerCase());
 		}
+		
+		return result;
 	}
 }

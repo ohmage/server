@@ -7,6 +7,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.ohmage.domain.campaign.SurveyResponse;
+import org.ohmage.exception.DomainException;
 import org.ohmage.util.StringUtils;
 
 /**
@@ -72,8 +73,7 @@ public class ServerConfig {
 	 * @param surveyResponsePrivacyStates A list of all of the survey response
 	 * 									  privacy states.
 	 * 
-	 * @throws IllegalArgumentException Thrown if any of the values are invalid
-	 * 									or null.
+	 * @throws DomainException Thrown if any of the values are invalid or null.
 	 */
 	public ServerConfig(
 			final String appName, 
@@ -82,22 +82,28 @@ public class ServerConfig {
 			final SurveyResponse.PrivacyState defaultSurveyResponsePrivacyState,
 			final List<SurveyResponse.PrivacyState> surveyResponsePrivacyStates,
 			final boolean defaultCampaignCreationPrivilege,
-			final boolean mobilityEnabled) {
+			final boolean mobilityEnabled) 
+			throws DomainException {
 		
 		if(StringUtils.isEmptyOrWhitespaceOnly(appName)) {
-			throw new IllegalArgumentException("The application name is null or whitespace only.");
+			throw new DomainException(
+					"The application name is null or whitespace only.");
 		}
 		else if(StringUtils.isEmptyOrWhitespaceOnly(appVersion)) {
-			throw new IllegalArgumentException("The application version is null or whitespace only.");
+			throw new DomainException(
+					"The application version is null or whitespace only.");
 		}
 		else if(StringUtils.isEmptyOrWhitespaceOnly(appBuild)) {
-			throw new IllegalArgumentException("The application build is null or whitespace only.");
+			throw new DomainException(
+					"The application build is null or whitespace only.");
 		}
 		else if(defaultSurveyResponsePrivacyState == null) {
-			throw new IllegalArgumentException("The default survey response privacy state is null.");
+			throw new DomainException(
+					"The default survey response privacy state is null.");
 		}
 		else if(surveyResponsePrivacyStates == null) {
-			throw new IllegalArgumentException("The list of default survey response privacy states is null.");
+			throw new DomainException(
+					"The list of default survey response privacy states is null.");
 		}
 		
 		this.appName = appName;
@@ -115,36 +121,46 @@ public class ServerConfig {
 	/**
 	 * Creates a new server configuration from a JSONObject.
 	 * 
-	 * @param serverConfigAsJson The information about the server as 
+	 * @param serverConfigAsJson The information about the server as a
 	 * 							 JSONObject.
 	 * 
-	 * @throws IllegalArgumentException Thrown if the JSONObject is null or if
-	 * 									it is missing any of the required keys.
+	 * @throws DomainException Thrown if the JSONObject is null or if it is 
+	 * 						   missing any of the required keys.
 	 */
-	public ServerConfig(final JSONObject serverConfigAsJson) {
+	public ServerConfig(
+			final JSONObject serverConfigAsJson) 
+			throws DomainException {
+		
 		if(serverConfigAsJson == null) {
-			throw new IllegalArgumentException("The server configuration JSON is null.");
+			throw new DomainException(
+					"The server configuration JSON is null.");
 		}
 		
 		try {
 			appName = serverConfigAsJson.getString(JSON_KEY_APPLICATION_NAME);
 		}
 		catch(JSONException e) {
-			throw new IllegalArgumentException("The application name was missing from the JSON.", e);
+			throw new DomainException(
+					"The application name was missing from the JSON.", 
+					e);
 		}
 		
 		try {
 			appVersion = serverConfigAsJson.getString(JSON_KEY_APPLICATION_VERSION);
 		}
 		catch(JSONException e) {
-			throw new IllegalArgumentException("The application version was missing from the JSON.", e);
+			throw new DomainException(
+					"The application version was missing from the JSON.", 
+					e);
 		}
 		
 		try {
 			appBuild = serverConfigAsJson.getString(JSON_KEY_APPLICATION_BUILD);
 		}
 		catch(JSONException e) {
-			throw new IllegalArgumentException("The application name was missing from the JSON.", e);
+			throw new DomainException(
+					"The application name was missing from the JSON.", 
+					e);
 		}
 		
 		try {
@@ -152,10 +168,14 @@ public class ServerConfig {
 				Boolean.valueOf(serverConfigAsJson.getString(JSON_KEY_DEFAULT_CAMPAIGN_CREATION_PRIVILEGE));
 		}
 		catch(JSONException e) {
-			throw new IllegalArgumentException("The default campaign creation privilege was missing from the JSON.", e);
+			throw new DomainException(
+					"The default campaign creation privilege was missing from the JSON.", 
+					e);
 		}
 		catch(IllegalArgumentException e) {
-			throw new IllegalArgumentException("The default campaign creation privilege is not a valid boolean value.", e);
+			throw new DomainException(
+					"The default campaign creation privilege is not a valid boolean value.", 
+					e);
 		}
 		
 		try {
@@ -165,10 +185,14 @@ public class ServerConfig {
 					);
 		}
 		catch(JSONException e) {
-			throw new IllegalArgumentException("The application name was missing from the JSON.", e);
+			throw new DomainException(
+					"The application name was missing from the JSON.", 
+					e);
 		}
 		catch(IllegalArgumentException e) {
-			throw new IllegalArgumentException("The default survey response privacy state is not a known survey response privacy state.", e);
+			throw new DomainException(
+					"The default survey response privacy state is not a known survey response privacy state.", 
+					e);
 		}
 		
 		try {
@@ -188,7 +212,7 @@ public class ServerConfig {
 			}
 		}
 		catch(JSONException e) {
-			throw new IllegalArgumentException("The application name was missing from the JSON.", e);
+			throw new DomainException("The application name was missing from the JSON.", e);
 		}
 		
 		try {
@@ -260,25 +284,20 @@ public class ServerConfig {
 	 * 
 	 * @return This server configuration as a JSONObject.
 	 * 
-	 * @throws IllegalStateException Thrown if there is an error building the
-	 * 								 JSONObject.
+	 * @throws JSONException Thrown if there is an error building the 
+	 * 						 JSONObject.
 	 */
-	public JSONObject toJson() {
-		try {
-			JSONObject result = new JSONObject();
-			
-			result.put(JSON_KEY_APPLICATION_NAME, appName);
-			result.put(JSON_KEY_APPLICATION_VERSION, appVersion);
-			result.put(JSON_KEY_APPLICATION_BUILD, appBuild);
-			result.put(JSON_KEY_DEFAULT_CAMPAIGN_CREATION_PRIVILEGE, defaultCampaignCreationPrivilege);
-			result.put(JSON_KEY_DEFAULT_SURVEY_RESPONSE_PRIVACY_STATE, defaultSurveyResponsePrivacyState);
-			result.put(JSON_KEY_SURVEY_RESPONSE_PRIVACY_STATES, new JSONArray(surveyResponsePrivacyStates));
-			result.put(JSON_KEY_MOBILITY_ENABLED, mobilityEnabled);
-			
-			return result;
-		}
-		catch(JSONException e) {
-			throw new IllegalStateException("There was an error creating the JSONObject.", e);
-		}
+	public JSONObject toJson() throws JSONException {
+		JSONObject result = new JSONObject();
+		
+		result.put(JSON_KEY_APPLICATION_NAME, appName);
+		result.put(JSON_KEY_APPLICATION_VERSION, appVersion);
+		result.put(JSON_KEY_APPLICATION_BUILD, appBuild);
+		result.put(JSON_KEY_DEFAULT_CAMPAIGN_CREATION_PRIVILEGE, defaultCampaignCreationPrivilege);
+		result.put(JSON_KEY_DEFAULT_SURVEY_RESPONSE_PRIVACY_STATE, defaultSurveyResponsePrivacyState);
+		result.put(JSON_KEY_SURVEY_RESPONSE_PRIVACY_STATES, new JSONArray(surveyResponsePrivacyStates));
+		result.put(JSON_KEY_MOBILITY_ENABLED, mobilityEnabled);
+		
+		return result;
 	}
 }

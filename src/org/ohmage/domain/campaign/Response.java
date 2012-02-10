@@ -1,5 +1,6 @@
 package org.ohmage.domain.campaign;
 
+import org.json.JSONException;
 import org.json.JSONObject;
 
 /**
@@ -29,7 +30,13 @@ public abstract class Response {
 			return name();
 		}
 	}
-	private final NoResponse noResponse;
+	
+	/**
+	 * The Object representing this response. This could be a type-specific 
+	 * response based on the survey or a NoResponse object if no response was
+	 * given.
+	 */
+	private final Object response;
 	
 	/**
 	 * Creates a new Response object.
@@ -37,8 +44,8 @@ public abstract class Response {
 	 * @param noResponse The reason there is no response value or null if there
 	 * 					 was a response value.
 	 */
-	public Response(final NoResponse noResponse) {
-		this.noResponse = noResponse;
+	public Response(final Object response) {
+		this.response = response;
 	}
 	
 	/**
@@ -47,7 +54,7 @@ public abstract class Response {
 	 * @return Whether or not this prompt was skipped.
 	 */
 	public boolean wasSkipped() {
-		return NoResponse.SKIPPED.equals(noResponse);
+		return NoResponse.SKIPPED.equals(response);
 	}
 	
 	/**
@@ -56,7 +63,7 @@ public abstract class Response {
 	 * @return Whether or not this prompt was not displayed.
 	 */
 	public boolean wasNotDisplayed() {
-		return NoResponse.NOT_DISPLAYED.equals(noResponse);
+		return NoResponse.NOT_DISPLAYED.equals(response);
 	}
 	
 	/**
@@ -64,24 +71,20 @@ public abstract class Response {
 	 * 
 	 * @return An object representing the user's response.
 	 */
-	public Object getResponseValue() {
-		if(wasSkipped()) {
-			return NoResponse.SKIPPED;
-		}
-		else if(wasNotDisplayed()) {
-			return NoResponse.NOT_DISPLAYED;
-		}
-		else {
-			return null;
-		}
+	public Object getResponse() {
+		return response;
 	}
 
 	/**
 	 * Converts this response into a JSONObject.
 	 * 
 	 * @return A JSONObject representing this response.
+	 * 
+	 * @throws JSONException There was a problem creating the JSONObject.
 	 */
-	public abstract JSONObject toJson(final boolean withId);
+	public abstract JSONObject toJson(
+			final boolean withId) 
+			throws JSONException;
 	
 	/**
 	 * Retrieves the ID of the survey item to which this response pertains.
@@ -101,7 +104,7 @@ public abstract class Response {
 		final int prime = 31;
 		int result = 1;
 		result = prime * result
-				+ ((noResponse == null) ? 0 : noResponse.hashCode());
+				+ ((response == null) ? 0 : response.hashCode());
 		return result;
 	}
 
@@ -122,7 +125,7 @@ public abstract class Response {
 		if (getClass() != obj.getClass())
 			return false;
 		Response other = (Response) obj;
-		if (noResponse != other.noResponse)
+		if (response != other.response)
 			return false;
 		return true;
 	}

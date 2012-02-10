@@ -26,6 +26,7 @@ import org.ohmage.cache.PreferenceCache;
 import org.ohmage.domain.Document;
 import org.ohmage.exception.CacheMissException;
 import org.ohmage.exception.DataAccessException;
+import org.ohmage.exception.DomainException;
 import org.ohmage.query.IDocumentQueries;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
@@ -499,7 +500,10 @@ public class DocumentQueries extends Query implements IDocumentQueries {
 	/* (non-Javadoc)
 	 * @see org.ohmage.query.impl.IDocumentQueries#getDocumentInformation(java.lang.String)
 	 */
-	public Document getDocumentInformation(String documentId) throws DataAccessException {
+	public Document getDocumentInformation(
+			final String documentId) 
+			throws DataAccessException {
+		
 		try {
 			return getJdbcTemplate().queryForObject(
 				SQL_GET_DOCUMENT_INFO, 
@@ -507,15 +511,23 @@ public class DocumentQueries extends Query implements IDocumentQueries {
 				new RowMapper<Document>() {
 					@Override
 					public Document mapRow(ResultSet rs, int rowNum) throws SQLException {
-						return new Document(
-								rs.getString("uuid"),
-								rs.getString("name"),
-								rs.getString("description"),
-								Document.PrivacyState.getValue(rs.getString("privacy_state")),
-								rs.getTimestamp("last_modified_timestamp"),
-								rs.getTimestamp("creation_timestamp"),
-								rs.getInt("size"),
-								rs.getString("username"));
+						try {
+							return new Document(
+									rs.getString("uuid"),
+									rs.getString("name"),
+									rs.getString("description"),
+									Document.PrivacyState.getValue(rs.getString("privacy_state")),
+									rs.getTimestamp("last_modified_timestamp"),
+									rs.getTimestamp("creation_timestamp"),
+									rs.getInt("size"),
+									rs.getString("username"));
+						}
+						catch(DomainException e) {
+							throw new SQLException(
+									"A value in the database is invalid: " + 
+										documentId, 
+									e);
+						}
 					}
 				}
 			);
@@ -528,11 +540,20 @@ public class DocumentQueries extends Query implements IDocumentQueries {
 	/* (non-Javadoc)
 	 * @see org.ohmage.query.impl.IDocumentQueries#updateDocument(java.lang.String, byte[], java.lang.String, java.lang.String, org.ohmage.domain.Document.PrivacyState, java.util.Map, java.util.List, java.util.Map, java.util.Collection, java.util.Map, java.util.Collection)
 	 */
-	public void updateDocument(String documentId, byte[] contents, String name, String description, 
-			Document.PrivacyState privacyState,
-			Map<String, Document.Role> campaignAndRolesToAdd, List<String> campaignsToRemove, 
-			Map<String, Document.Role> classAndRolesToAdd, Collection<String> classesToRemove, 
-			Map<String, Document.Role> userAndRolesToAdd, Collection<String> usersToRemove) throws DataAccessException {
+	public void updateDocument(
+			final String documentId, 
+			final byte[] contents, 
+			final String name, 
+			final String description, 
+			final Document.PrivacyState privacyState,
+			final Map<String, Document.Role> campaignAndRolesToAdd, 
+			final List<String> campaignsToRemove, 
+			final Map<String, Document.Role> classAndRolesToAdd, 
+			final Collection<String> classesToRemove, 
+			final Map<String, Document.Role> userAndRolesToAdd, 
+			final Collection<String> usersToRemove) 
+			throws DataAccessException {
+		
 		// Begin transaction
 		DefaultTransactionDefinition def = new DefaultTransactionDefinition();
 		def.setName("Document update.");

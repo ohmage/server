@@ -23,6 +23,8 @@ import java.util.Map;
 
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.ohmage.annotator.Annotator.ErrorCode;
+import org.ohmage.exception.DomainException;
 import org.ohmage.util.StringUtils;
 import org.ohmage.util.TimeUtils;
 
@@ -54,7 +56,8 @@ public class Document {
 	
 	/**
 	 * Known document privacy states.
-	 * @author  John Jenkins
+	 * 
+	 * @author John Jenkins
 	 */
 	public static enum PrivacyState {
 		PRIVATE,
@@ -177,29 +180,49 @@ public class Document {
 	 * 
 	 * @param privacyState The current privacy state of the document.
 	 * 
-	 * @throws IllegalArgumentException Thrown if any of the parameters are
-	 * 									null and/or invalid.
+	 * @throws DomainException Thrown if any of the parameters are null or 
+	 * 						   invalid.
 	 */
-	public Document(String documentId, String name, String description,
-			PrivacyState privacyState, Date lastModified, Date creationDate, 
-			int size, String creator) {
+	public Document(
+			final String documentId, 
+			final String name, 
+			final String description,
+			final PrivacyState privacyState, 
+			final Date lastModified, 
+			final Date creationDate, 
+			final int size, 
+			final String creator)
+			throws DomainException {
+		
 		if(StringUtils.isEmptyOrWhitespaceOnly(documentId)) {
-			throw new IllegalArgumentException("The document's ID cannot be null or whitespace only.");
+			throw new DomainException(
+					ErrorCode.DOCUMENT_INVALID_ID,
+					"The document's ID cannot be null or whitespace only.");
 		}
 		else if(StringUtils.isEmptyOrWhitespaceOnly(name)) {
-			throw new IllegalArgumentException("The document's name cannot be null or whitespace only.");
+			throw new DomainException(
+					ErrorCode.DOCUMENT_INVALID_NAME,
+					"The document's name cannot be null or whitespace only.");
 		}
 		else if(privacyState == null) {
-			throw new IllegalArgumentException("The document's privacy state cannot be null.");
+			throw new DomainException(
+					ErrorCode.DOCUMENT_INVALID_PRIVACY_STATE,
+					"The document's privacy state cannot be null.");
 		}
 		else if(lastModified == null) {
-			throw new IllegalArgumentException("The document's last modified value cannot be null.");
+			throw new DomainException(
+					ErrorCode.SERVER_INVALID_DATE,
+					"The document's last modified value cannot be null.");
 		}
 		else if(creationDate == null) {
-			throw new IllegalArgumentException("The document's creation date cannot be null.");
+			throw new DomainException(
+					ErrorCode.SERVER_INVALID_DATE,
+					"The document's creation date cannot be null.");
 		}
 		else if(size < 0) {
-			throw new IllegalArgumentException("The document's size cannot be negative.");
+			throw new DomainException(
+					ErrorCode.DOCUMENT_INVALID_CONTENTS,
+					"The document's size cannot be negative.");
 		}
 		
 		this.documentId = documentId;
@@ -223,15 +246,23 @@ public class Document {
 	 * 
 	 * @param documentInfo The document's information as a JSONObject.
 	 * 
-	 * @throws IllegalArgumentException Thrown if one of the parameters is
-	 * 									invalid.
+	 * @throws DomainException Thrown if one of the parameters is null or 
+	 * 						   invalid.
 	 */
-	public Document(final String documentId, JSONObject documentInfo) {
+	public Document(
+			final String documentId, 
+			final JSONObject documentInfo)
+			throws DomainException {
+		
 		if(StringUtils.isEmptyOrWhitespaceOnly(documentId)) {
-			throw new IllegalArgumentException("The document ID is null.");
+			throw new DomainException(
+					ErrorCode.DOCUMENT_INVALID_ID,
+					"The document ID is null.");
 		}
 		else if(documentInfo == null) {
-			throw new IllegalArgumentException("The document information is null.");
+			throw new DomainException(
+					ErrorCode.DOCUMENT_INVALID_ID,
+					"The document information is null.");
 		}
 		
 		this.documentId = documentId;
@@ -240,7 +271,10 @@ public class Document {
 			name = documentInfo.getString(JSON_KEY_NAME);
 		}
 		catch(JSONException e) {
-			throw new IllegalArgumentException("The JSONObject is missing the name value.", e);
+			throw new DomainException(
+					ErrorCode.DOCUMENT_INVALID_NAME,
+					"The JSONObject is missing the name value.",
+					e);
 		}
 		
 		String tDescription = null;
@@ -256,38 +290,55 @@ public class Document {
 			privacyState = PrivacyState.getValue(documentInfo.getString(JSON_KEY_PRIVACY_STATE));
 		}
 		catch(JSONException e) {
-			throw new IllegalArgumentException("The JSONObject is missing the privacy state value.", e);
+			throw new DomainException(
+					ErrorCode.DOCUMENT_INVALID_PRIVACY_STATE,
+					"The JSONObject is missing the privacy state value.", 
+					e);
 		}
 		catch(IllegalArgumentException e) {
-			throw new IllegalArgumentException("The privacy state is an unknown privacy state.", e);
+			throw new DomainException(
+					ErrorCode.DOCUMENT_INVALID_PRIVACY_STATE,
+					"The privacy state is an unknown privacy state.",
+					e);
 		}
 		
 		try {
 			lastModified = StringUtils.decodeDateTime(documentInfo.getString(JSON_KEY_LAST_MODIFIED));
 		}
 		catch(JSONException e) {
-			throw new IllegalArgumentException("The JSONObject is missing the last modified value.", e);
+			throw new DomainException(
+					ErrorCode.SERVER_INVALID_DATE,
+					"The JSONObject is missing the last modified value.", 
+					e);
 		}
 		
 		try {
 			creationDate = StringUtils.decodeDateTime(documentInfo.getString(JSON_KEY_CREATION_DATE));
 		}
 		catch(JSONException e) {
-			throw new IllegalArgumentException("The JSONObject is missing the creation date value.", e);
+			throw new DomainException(
+					ErrorCode.SERVER_INVALID_DATE,
+					"The JSONObject is missing the creation date value.", 
+					e);
 		}
 		
 		try {
 			size = documentInfo.getInt(JSON_KEY_SIZE);
 		}
 		catch(JSONException e) {
-			throw new IllegalArgumentException("The JSONObject is missing the size value.", e);
+			throw new DomainException(
+					ErrorCode.DOCUMENT_INVALID_CONTENTS,
+					"The JSONObject is missing the size value.", 
+					e);
 		}
 		
 		try {
 			creator = documentInfo.getString(JSON_KEY_CREATOR);
 		}
 		catch(JSONException e) {
-			throw new IllegalArgumentException("The JSONObject is missing the creator value.", e);
+			throw new DomainException(
+					"The JSONObject is missing the creator value.", 
+					e);
 		}
 		
 		try {
@@ -301,10 +352,14 @@ public class Document {
 			}
 		}
 		catch(JSONException e) {
-			throw new IllegalArgumentException("The JSONObject is missing the campaign and role value.", e);
+			throw new DomainException(
+					"The JSONObject is missing the campaign and role value.",
+					e);
 		}
 		catch(IllegalArgumentException e) {
-			throw new IllegalArgumentException("The role is unknown.", e);
+			throw new DomainException(
+					"The role is unknown.", 
+					e);
 		}
 		
 		try {
@@ -318,10 +373,14 @@ public class Document {
 			}
 		}
 		catch(JSONException e) {
-			throw new IllegalArgumentException("The JSONObject is missing the class and role value.", e);
+			throw new DomainException(
+					"The JSONObject is missing the class and role value.", 
+					e);
 		}
 		catch(IllegalArgumentException e) {
-			throw new IllegalArgumentException("The role is unknown.", e);
+			throw new DomainException(
+					"The role is unknown.", 
+					e);
 		}
 		
 		try {
@@ -426,11 +485,15 @@ public class Document {
 	 * 
 	 * @param documentRole The role for the user that owns this object.
 	 * 
-	 * @throws NullPointerException Thrown if the role is null.
+	 * @throws DomainException Thrown if the role is null.
 	 */
-	public void setUserRole(Role documentRole) {
+	public void setUserRole(Role documentRole) 
+			throws DomainException {
+		
 		if(documentRole == null) {
-			throw new NullPointerException("The role is null.");
+			throw new DomainException(
+					ErrorCode.DOCUMENT_INVALID_ROLE,
+					"The role is null.");
 		}
 		
 		userRole = documentRole;
@@ -465,14 +528,20 @@ public class Document {
 	 * 
 	 * @return Returns the old role if one existed; otherwise, null.
 	 * 
-	 * @throws NullPointerException Thrown if the campaign ID or role are null.
+	 * @throws DomainException Thrown if the campaign ID or role are null.
 	 */
-	public Role addCampaignRole(String campaignId, Role role) {
+	public Role addCampaignRole(String campaignId, Role role) 
+			throws DomainException {
+		
 		if(campaignId == null) {
-			throw new NullPointerException("The campaign ID is null.");
+			throw new DomainException(
+					ErrorCode.CAMPAIGN_INVALID_ID,
+					"The campaign ID is null.");
 		}
 		else if(role == null) {
-			throw new NullPointerException("The role is null.");
+			throw new DomainException(
+					ErrorCode.CAMPAIGN_INVALID_ROLE,
+					"The role is null.");
 		}
 
 		if(maxRole == null) {
@@ -509,14 +578,20 @@ public class Document {
 	 * 
 	 * @return The old document role for this class for this user.
 	 * 
-	 * @throws NullPointerException Thrown if the class ID or role are null.
+	 * @throws DomainException Thrown if the class ID or role are null.
 	 */
-	public Role addClassRole(String classId, Role role) {
+	public Role addClassRole(String classId, Role role) 
+			throws DomainException {
+		
 		if(classId == null) {
-			throw new NullPointerException("The class ID is null.");
+			throw new DomainException(
+					ErrorCode.CLASS_INVALID_ID,
+					"The class ID is null.");
 		}
 		else if(role == null) {
-			throw new NullPointerException("The role is null.");
+			throw new DomainException(
+					ErrorCode.CLASS_INVALID_ROLE,
+					"The role is null.");
 		}
 
 		if(maxRole == null) {
@@ -575,31 +650,30 @@ public class Document {
 	/**
 	 * Creates a JSONObject representing this document's information.
 	 * 
-	 * @return A JSONObject representing this document's information or returns
-	 * 		   null if there was an error building the JSONObject.
+	 * @return A JSONObject representing this document's information.
+	 * 
+	 * @throws JSONException Thrown if there was an error building the 
+	 * 						   JSONObject.
 	 */
-	public JSONObject toJsonObject() {
-		try {
-			JSONObject result = new JSONObject();
-			
-			result.put(JSON_KEY_NAME, name);
-			result.put(JSON_KEY_DESCRIPTION, ((description ==  null) ? "" : description));
-			result.put(JSON_KEY_PRIVACY_STATE, privacyState);
-			result.put(JSON_KEY_LAST_MODIFIED, TimeUtils.getIso8601DateTimeString(lastModified));
-			result.put(JSON_KEY_CREATION_DATE, TimeUtils.getIso8601DateTimeString(creationDate));
-			result.put(JSON_KEY_SIZE, size);
-			result.put(JSON_KEY_CREATOR, creator);
-			
-			result.put(JSON_KEY_USER_ROLE, ((userRole == null) ? "" : userRole));
-			result.put(JSON_KEY_CAMPAIGN_ROLE, new JSONObject(campaignAndRole));
-			result.put(JSON_KEY_CLASS_ROLE, new JSONObject(classAndRole));
-			result.put(JSON_KEY_MAX_ROLE, maxRole.toString());
-			
-			return result;
-		}
-		catch(JSONException e) {
-			return null;
-		}
+	public JSONObject toJsonObject() 
+			throws JSONException {
+
+		JSONObject result = new JSONObject();
+		
+		result.put(JSON_KEY_NAME, name);
+		result.put(JSON_KEY_DESCRIPTION, ((description ==  null) ? "" : description));
+		result.put(JSON_KEY_PRIVACY_STATE, privacyState);
+		result.put(JSON_KEY_LAST_MODIFIED, TimeUtils.getIso8601DateTimeString(lastModified));
+		result.put(JSON_KEY_CREATION_DATE, TimeUtils.getIso8601DateTimeString(creationDate));
+		result.put(JSON_KEY_SIZE, size);
+		result.put(JSON_KEY_CREATOR, creator);
+		
+		result.put(JSON_KEY_USER_ROLE, ((userRole == null) ? "" : userRole));
+		result.put(JSON_KEY_CAMPAIGN_ROLE, new JSONObject(campaignAndRole));
+		result.put(JSON_KEY_CLASS_ROLE, new JSONObject(classAndRole));
+		result.put(JSON_KEY_MAX_ROLE, maxRole.toString());
+		
+		return result;
 	}
 
 	/**

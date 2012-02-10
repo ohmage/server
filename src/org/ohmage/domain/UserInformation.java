@@ -10,6 +10,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.ohmage.domain.campaign.Campaign;
+import org.ohmage.exception.DomainException;
 
 /**
  * All of the information about a user in the system.
@@ -58,8 +59,7 @@ public class UserInformation {
 	 * @param personalInfo The personal information about the user or null if
 	 * 					   the user doesn't have a personal information record.
 	 * 
-	 * @throws IllegalArgumentException The campaign and/or class parameter is
-	 * 									null.
+	 * @throws DomainException The campaign and/or class parameter is null.
 	 */
 	public UserInformation(
 			final boolean isAdmin,
@@ -68,14 +68,15 @@ public class UserInformation {
 			final boolean campaignCreationPrivilege,
 			final Map<String, Set<Campaign.Role>> campaigns,
 			final Map<String, Clazz.Role> classes,
-			final UserPersonal personalInfo) {
+			final UserPersonal personalInfo) 
+			throws DomainException {
 		
 		if(campaigns == null) {
-			throw new IllegalArgumentException(
+			throw new DomainException(
 					"The campaign ID-role map is null.");
 		}
 		else if(classes == null) {
-			throw new IllegalArgumentException(
+			throw new DomainException(
 					"The class ID-role map is null.");
 		}
 		
@@ -95,15 +96,15 @@ public class UserInformation {
 	 * 
 	 * @param userInfo The user's information as a JSONObject.
 	 * 
-	 * @throws IllegalArgumentException Thrown if a required field is missing.
+	 * @throws DomainException Thrown if a required field is missing.
 	 */
-	public UserInformation(final JSONObject userInfo) {
+	public UserInformation(final JSONObject userInfo) throws DomainException {
 		JSONObject permissionsJson;
 		try {
 			permissionsJson = userInfo.getJSONObject(JSON_KEY_PERMISSIONS);
 		}
 		catch(JSONException e) {
-			throw new IllegalArgumentException(
+			throw new DomainException(
 					"The JSON information is missing the permissions key.",
 					e);
 		}
@@ -112,7 +113,7 @@ public class UserInformation {
 			isAdmin = permissionsJson.getBoolean(JSON_KEY_PERMISSIONS_ADMIN);
 		}
 		catch(JSONException e) {
-			throw new IllegalArgumentException(
+			throw new DomainException(
 					"The permissions are missing the admin value.",
 					e);
 		}
@@ -122,7 +123,7 @@ public class UserInformation {
 				permissionsJson.getBoolean(JSON_KEY_PERMISSIONS_ENABLED);
 		}
 		catch(JSONException e) {
-			throw new IllegalArgumentException(
+			throw new DomainException(
 					"The permissions are missing the enabled value.",
 					e);
 		}
@@ -132,7 +133,7 @@ public class UserInformation {
 				permissionsJson.getBoolean(JSON_KEY_PERMISSIONS_NEW_ACCOUNT);
 		}
 		catch(JSONException e) {
-			throw new IllegalArgumentException(
+			throw new DomainException(
 					"The permissions are missing the new account value.",
 					e);
 		}
@@ -143,7 +144,7 @@ public class UserInformation {
 						JSON_KEY_PERMISSIONS_CAMPAIGN_CREATION);
 		}
 		catch(JSONException e) {
-			throw new IllegalArgumentException(
+			throw new DomainException(
 					"The permissions are missing the campaign creation value.",
 					e);
 		}
@@ -153,7 +154,7 @@ public class UserInformation {
 			campaignsJson = userInfo.getJSONObject(JSON_KEY_CAMPAIGNS);
 		}
 		catch(JSONException e) {
-			throw new IllegalArgumentException(
+			throw new DomainException(
 					"The campaigns list is missing.",
 					e);
 		}
@@ -169,7 +170,7 @@ public class UserInformation {
 				rolesJson = campaignsJson.getJSONArray(campaignId);
 			}
 			catch(JSONException e) {
-				throw new IllegalArgumentException(
+				throw new DomainException(
 						"The campaign list has changed while being read.",
 						e);
 			}
@@ -183,12 +184,12 @@ public class UserInformation {
 									rolesJson.getString(i)));
 				}
 				catch(JSONException e) {
-					throw new IllegalArgumentException(
+					throw new DomainException(
 							"The campaign list has changed while being read.",
 							e);
 				}
 				catch(IllegalArgumentException e) {
-					throw new IllegalArgumentException(
+					throw new DomainException(
 							"The campaign role is unknown.",
 							e);
 				}
@@ -202,7 +203,7 @@ public class UserInformation {
 			classesJson = userInfo.getJSONObject(JSON_KEY_CLASSES);
 		}
 		catch(JSONException e) {
-			throw new IllegalArgumentException(
+			throw new DomainException(
 					"The class list is missing.",
 					e);
 		}
@@ -217,12 +218,12 @@ public class UserInformation {
 				role = Clazz.Role.getValue(classesJson.getString(classId));
 			}
 			catch(JSONException e) {
-				throw new IllegalArgumentException(
+				throw new DomainException(
 						"The class list has changed while being read.",
 						e);
 			}
 			catch(IllegalArgumentException e) {
-				throw new IllegalArgumentException(
+				throw new DomainException(
 						"The class role is unknown.",
 						e);
 			}

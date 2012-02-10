@@ -15,6 +15,7 @@
  ******************************************************************************/
 package org.ohmage.domain;
 
+import org.ohmage.exception.DomainException;
 import org.ohmage.util.StringUtils;
 
 /**
@@ -46,15 +47,22 @@ public class User {
 	 * @param hashPassword Whether or not the password should be hashed before
 	 * 					   being used.
 	 * 
-	 * @throws IllegalArgumentException Thrown if the username or password are
-	 * 									null or whitespace only.
+	 * @throws DomainException Thrown if the username or password are null or 
+	 * 						   whitespace only.
 	 */
-	public User(String username, String password, boolean hashPassword) {
+	public User(
+			final String username, 
+			final String password, 
+			final boolean hashPassword) 
+			throws DomainException {
+		
 		if(StringUtils.isEmptyOrWhitespaceOnly(username)) {
-			throw new IllegalArgumentException("The username cannot be null or whitespace only.");
+			throw new DomainException(
+					"The username cannot be null or whitespace only.");
 		}
 		else if(StringUtils.isEmptyOrWhitespaceOnly(password)) {
-			throw new IllegalArgumentException("The password cannot be null or whitespace only.");
+			throw new DomainException(
+					"The password cannot be null or whitespace only.");
 		}
 		
 		this.username = username;
@@ -70,10 +78,12 @@ public class User {
 	 * Copy constructor. Performs a deep copy in the sense that Strings are
 	 * immutable, so, while this new object will point to the same String  
 	 * objects as the old User object did, they cannot change.
+	 * 
+	 * @throws DomainException The user is null.
 	 */
-	public User(User user) {
+	public User(final User user) throws DomainException{
 		if(null == user) {
-			throw new IllegalArgumentException("Cannot copy a null object.");
+			throw new DomainException("Cannot copy a null object.");
 		}
 		
 		username = user.username;
@@ -163,7 +173,7 @@ public class User {
 	 */
 	@Override
 	public String toString() {
-		return "User [username=" + username + ", _password=omitted"
+		return "User [username=" + username + ", password=omitted"
 				+ ", loggedIn=" + loggedIn + "]";
 	}
 

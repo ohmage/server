@@ -9,6 +9,7 @@ import org.ohmage.domain.campaign.Campaign;
 import org.ohmage.domain.campaign.Campaign.Role;
 import org.ohmage.domain.campaign.SurveyResponse;
 import org.ohmage.exception.DataAccessException;
+import org.ohmage.exception.DomainException;
 import org.ohmage.exception.ServiceException;
 import org.ohmage.query.ICampaignQueries;
 import org.ohmage.query.IUserCampaignQueries;
@@ -87,7 +88,7 @@ public final class SurveyResponseReadServices {
 			try {
 				configuration.getSurveyIdForPromptId(promptId);
 			}
-			catch(IllegalArgumentException e) {
+			catch(DomainException e) {
 				StringBuilder sb = new StringBuilder();
 				sb.append("The configuration for campaign ");
 				sb.append(configuration.getId());
@@ -123,14 +124,19 @@ public final class SurveyResponseReadServices {
 		}
 		
 		for(String surveyId : surveyIdList) {
-			if(! configuration.surveyIdExists(surveyId)) {
-				StringBuilder sb = new StringBuilder();
-				sb.append("The configuration for campaign ");
-				sb.append(configuration.getId());
-				sb.append(" did not contain the survey id ");
-				sb.append(surveyId);
-				String msg = sb.toString();
-				throw new ServiceException(ErrorCode.SURVEY_INVALID_SURVEY_ID, msg);
+			try {
+				if(! configuration.surveyIdExists(surveyId)) {
+					StringBuilder sb = new StringBuilder();
+					sb.append("The configuration for campaign ");
+					sb.append(configuration.getId());
+					sb.append(" did not contain the survey id ");
+					sb.append(surveyId);
+					String msg = sb.toString();
+					throw new ServiceException(ErrorCode.SURVEY_INVALID_SURVEY_ID, msg);
+				}
+			} 
+			catch(DomainException e) {
+				throw new ServiceException("The surveyId was null.", e);
 			}
 		}
 	}

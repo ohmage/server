@@ -19,7 +19,6 @@ import org.ohmage.util.StringUtils;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.SingleColumnRowMapper;
 
-
 /**
  * This class contains all of the functionality for creating, reading, 
  * updating, and deleting user-class relationships. While it may read 

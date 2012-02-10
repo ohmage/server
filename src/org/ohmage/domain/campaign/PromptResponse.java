@@ -10,6 +10,7 @@ import org.ohmage.domain.campaign.prompt.ChoicePrompt;
 import org.ohmage.domain.campaign.prompt.CustomChoicePrompt;
 import org.ohmage.domain.campaign.prompt.RemoteActivityPrompt;
 import org.ohmage.domain.campaign.response.RemoteActivityPromptResponse;
+import org.ohmage.exception.DomainException;
 
 /**
  * Base class for all prompt responses.
@@ -44,22 +45,36 @@ public abstract class PromptResponse extends Response {
 	 * 								 repeatable set on which this response was
 	 * 								 made.
 	 * 
-	 * @throws IllegalArgumentException Thrown if the prompt is null.
+	 * @throws DomainException Thrown if the prompt is null.
 	 */
-	public PromptResponse(final Prompt prompt, final NoResponse noResponse,
-			final Integer repeatableSetIteration) {
+	public PromptResponse(
+			final Prompt prompt, 
+			final Integer repeatableSetIteration,
+			final Object response) 
+			throws DomainException {
 		
-		super(noResponse);
+		super(prompt.validateValue(response));
 		
-		if(prompt == null) {
-			throw new IllegalArgumentException("The prompt is null.");
-		}
-		else if((repeatableSetIteration == null) && 
+		if(
+				(repeatableSetIteration == null) && 
 				(prompt.getParent() != null)) {
-			throw new IllegalArgumentException("The repeatable set iteration is null, but this prompt is part of a repeatable set.");
+			
+			throw new DomainException(
+					"The repeatable set iteration is null, but this prompt is part of a repeatable set.");
 		}
-		else if((repeatableSetIteration != null) && (repeatableSetIteration < 0)) {
-			throw new IllegalArgumentException("The repeatable set iteration value is negative.");
+		else if(
+				(repeatableSetIteration != null) &&
+				(prompt.getParent() == null)) {
+			
+			throw new DomainException(
+					"The repeatable set iteration is not null, but this prompt is not part of a repeatable set.");
+		}
+		else if(
+				(repeatableSetIteration != null) && 
+				(repeatableSetIteration < 0)) {
+			
+			throw new DomainException(
+					"The repeatable set iteration value is negative.");
 		}
 		
 		this.prompt = prompt;
@@ -93,62 +108,59 @@ public abstract class PromptResponse extends Response {
 	 * Creates a JSONObject that represents this object.
 	 * 
 	 * @return A JSONObject that represents this object.
+	 * 
+	 * @throws JSONException There was a problem creating the JSONObject.
 	 */
 	@Override
-	public JSONObject toJson(final boolean withId) {
-		try {
-			JSONObject result = new JSONObject();
+	public JSONObject toJson(final boolean withId) throws JSONException {
+		JSONObject result = new JSONObject();
+		
+		if(withId) {
+			result.put(JSON_KEY_PROMPT_ID, prompt.getId());
 			
-			if(withId) {
-				result.put(JSON_KEY_PROMPT_ID, prompt.getId());
+			result.put(JSON_KEY_RESPONSE, getResponse());
+		}
+		else {
+			result.put("prompt_text", prompt.getText());
+			result.put("prompt_type", prompt.getType().toString());
+			result.put("prompt_display_type", prompt.getDisplayType().toString());
+			result.put("prompt_index", prompt.getIndex());
+			result.put("prompt_unit", prompt.getUnit());
+			
+			if((prompt instanceof ChoicePrompt) && 
+					(! (prompt instanceof CustomChoicePrompt))) {
 				
-				result.put(JSON_KEY_RESPONSE, getResponseValue());
+				ChoicePrompt choicePrompt = (ChoicePrompt) prompt;
+				Map<Integer, LabelValuePair> choices = 
+						choicePrompt.getChoices();
+				
+				JSONObject choiceGlossary = new JSONObject();
+				for(Integer choiceKey : choices.keySet()) {
+					choiceGlossary.put(
+							choiceKey.toString(), 
+							choices.get(choiceKey).toJson());
+				}
+				
+				result.put("prompt_choice_glossary", choiceGlossary);
+			}
+			
+			if(this instanceof RemoteActivityPromptResponse &&
+					(! wasNotDisplayed()) && (! wasSkipped())) {
+				JSONArray gameResults = (JSONArray) getResponse();
+				double numResults = gameResults.length();
+				
+				double total = 0;
+				for(int i = 0; i < numResults; i++) {
+					total += gameResults.getJSONObject(i).getDouble(RemoteActivityPrompt.JSON_KEY_SCORE);
+				}
+				result.put("prompt_response", total / numResults);
 			}
 			else {
-				result.put("prompt_text", prompt.getText());
-				result.put("prompt_type", prompt.getType().toString());
-				result.put("prompt_display_type", prompt.getDisplayType().toString());
-				result.put("prompt_index", prompt.getIndex());
-				result.put("prompt_unit", prompt.getUnit());
-				
-				if((prompt instanceof ChoicePrompt) && 
-						(! (prompt instanceof CustomChoicePrompt))) {
-					
-					ChoicePrompt choicePrompt = (ChoicePrompt) prompt;
-					Map<Integer, LabelValuePair> choices = 
-							choicePrompt.getChoices();
-					
-					JSONObject choiceGlossary = new JSONObject();
-					for(Integer choiceKey : choices.keySet()) {
-						choiceGlossary.put(
-								choiceKey.toString(), 
-								choices.get(choiceKey).toJson());
-					}
-					
-					result.put("prompt_choice_glossary", choiceGlossary);
-				}
-				
-				if(this instanceof RemoteActivityPromptResponse &&
-						(! wasNotDisplayed()) && (! wasSkipped())) {
-					JSONArray gameResults = (JSONArray) getResponseValue();
-					double numResults = gameResults.length();
-					
-					double total = 0;
-					for(int i = 0; i < numResults; i++) {
-						total += gameResults.getJSONObject(i).getDouble(RemoteActivityPrompt.JSON_KEY_SCORE);
-					}
-					result.put("prompt_response", total / numResults);
-				}
-				else {
-					result.put("prompt_response", getResponseValue());
-				}
+				result.put("prompt_response", getResponse());
 			}
-			
-			return result;
 		}
-		catch(JSONException e) {
-			return null;
-		}
+		
+		return result;
 	}
 	
 	/**

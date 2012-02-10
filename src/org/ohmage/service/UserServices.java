@@ -16,6 +16,7 @@ import org.ohmage.domain.UserPersonal;
 import org.ohmage.domain.UserSummary;
 import org.ohmage.domain.campaign.Campaign;
 import org.ohmage.exception.DataAccessException;
+import org.ohmage.exception.DomainException;
 import org.ohmage.exception.ServiceException;
 import org.ohmage.query.IImageQueries;
 import org.ohmage.query.IUserCampaignQueries;
@@ -604,14 +605,19 @@ public final class UserServices {
 						userClassQueries.getUserClassRole(classId, username));
 			}
 			
-			return new UserInformation(
-					admin, 
-					enabled, 
-					newAccount, 
-					campaignCreationPrivilege,
-					campaigns,
-					classes,
-					userQueries.getPersonalInfoForUser(username));
+			try {
+				return new UserInformation(
+						admin, 
+						enabled, 
+						newAccount, 
+						campaignCreationPrivilege,
+						campaigns,
+						classes,
+						userQueries.getPersonalInfoForUser(username));
+			} 
+			catch(DomainException e) {
+				throw new ServiceException(e);
+			}
 		}
 		catch(DataAccessException e) {
 			throw new ServiceException(e);
@@ -656,13 +662,18 @@ public final class UserServices {
 			}
 			
 			// Get campaign creation privilege.
-			return new UserSummary(
-					userQueries.userIsAdmin(username), 
-					userQueries.userCanCreateCampaigns(username),
-					campaigns,
-					campaignRoles,
-					classes,
-					classRoles);
+			try {
+				return new UserSummary(
+						userQueries.userIsAdmin(username), 
+						userQueries.userCanCreateCampaigns(username),
+						campaigns,
+						campaignRoles,
+						classes,
+						classRoles);
+			} 
+			catch(DomainException e) {
+				throw new ServiceException(e);
+			}
 		}
 		catch(DataAccessException e) {
 			throw new ServiceException(e);

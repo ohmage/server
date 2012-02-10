@@ -44,7 +44,7 @@ import org.ohmage.domain.UserPersonal;
 import org.ohmage.domain.UserSummary;
 import org.ohmage.domain.campaign.Campaign;
 import org.ohmage.domain.campaign.SurveyResponse;
-import org.ohmage.exception.ErrorCodeException;
+import org.ohmage.exception.DomainException;
 import org.ohmage.lib.exception.ApiException;
 import org.ohmage.lib.exception.RequestErrorException;
 import org.ohmage.request.InputKeys;
@@ -163,7 +163,7 @@ public class OhmageApi {
 		catch(JSONException e) {
 			throw new ApiException("The response was not proper JSON.", e);
 		}
-		catch(IllegalArgumentException e) {
+		catch(DomainException e) {
 			throw new ApiException(
 					"The response is missing a required key.", e);
 		}
@@ -457,9 +457,17 @@ public class OhmageApi {
 			String campaignId = (String) keys.next();
 			
 			try {
-				result.put(campaignId, new Campaign(campaignId, resultJson.getJSONObject(campaignId)));
-			} catch (JSONException e) {
+				result.put(
+						campaignId, 
+						new Campaign(
+								campaignId, 
+								resultJson.getJSONObject(campaignId)));
+			} 
+			catch(JSONException e) {
 				throw new ApiException("The campaign information was not valid JSON.", e);
+			}
+			catch(DomainException e) {
+				throw new ApiException("The campaign was malformed.", e);
 			}
 		}
 		
@@ -715,6 +723,9 @@ public class OhmageApi {
 			} 
 			catch(JSONException e) {
 				throw new ApiException("The class information is not valid JSON.", e);
+			} 
+			catch (DomainException e) {
+				throw new ApiException("The class information is not valid.", e);
 			}
 		}
 		
@@ -1083,6 +1094,9 @@ public class OhmageApi {
 			catch(JSONException e) {
 				throw new ApiException("The document was not proper JSON: " + documentId, e);
 			}
+			catch(DomainException e) {
+				throw new ApiException("The response is missing some information.", e);
+			}
 		}
 		
 		return result;
@@ -1324,9 +1338,12 @@ public class OhmageApi {
 				continue;
 			}
 			
-			JSONObject pointJson = point.toJson(false, true);
-			if(pointJson == null) {
-				throw new ApiException("One of the Mobility points could not be converted to JSON.");
+			JSONObject pointJson;
+			try {
+				pointJson = point.toJson(false, true);
+			}
+			catch(JSONException e) {
+				throw new ApiException("One of the Mobility points could not be converted to JSON.", e);
 			}
 			
 			dataArray.put(pointJson);
@@ -1430,7 +1447,7 @@ public class OhmageApi {
 			try {
 				results.add(new MobilityPoint(currResult, MobilityPoint.PrivacyState.PRIVATE));
 			}
-			catch(ErrorCodeException e) {
+			catch(DomainException e) {
 				throw new ApiException("The server returned an malformed MobilityInformation object.", e);
 			}
 		}
@@ -1486,9 +1503,17 @@ public class OhmageApi {
 				continue;
 			}
 			
-			JSONObject responseJson = response.toJson(false, false, false, 
-					false, true, true, true, true, true, false, false, 
-					true, true, true, true, false, false);
+			JSONObject responseJson;
+			try {
+				responseJson = response.toJson(false, false, false, 
+						false, true, true, true, true, true, false, false, 
+						true, true, true, true, false, false);
+				
+			}
+			catch(JSONException e) {
+				throw new ApiException("There was a problem building the JSON.", e);
+			}
+			
 			if(responseJson == null) {
 				throw new ApiException("One of the survey responses could not be converted to JSON.");
 			}
@@ -2271,7 +2296,12 @@ public class OhmageApi {
 					result.put(username, null);
 				}
 				else {
-					result.put(username, new UserPersonal(information));
+					try {
+						result.put(username, new UserPersonal(information));
+					}
+					catch(DomainException e) {
+						throw new ApiException("The response is missing some information.", e);
+					}
 				}
 			} 
 			catch(JSONException e) {
@@ -2338,7 +2368,7 @@ public class OhmageApi {
 		catch(JSONException e) {
 			throw new ApiException("The user's information was not well-formed JSON.", e);
 		}
-		catch(IllegalArgumentException e) {
+		catch(DomainException e) {
 			throw new ApiException("The user's information is missing some information.", e);
 		}
 	}

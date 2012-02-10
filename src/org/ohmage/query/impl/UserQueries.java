@@ -22,7 +22,6 @@ import org.springframework.transaction.TransactionException;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.DefaultTransactionDefinition;
 
-
 /**
  * This class contains all of the functionality for creating, reading, 
  * updating, and deleting users. While it may read information pertaining to

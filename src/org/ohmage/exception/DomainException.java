@@ -3,13 +3,49 @@ package org.ohmage.exception;
 import org.ohmage.annotator.Annotator.ErrorCode;
 
 /**
- * This Exception class defines exceptions that contain error codes and 
- * corresponding error text as defined by the ohmage system.
+ * Namespace-style exception for exception that can be thrown within a domain
+ * object.
  * 
  * @author John Jenkins
  */
-public class ErrorCodeException extends WorkflowException {
+public class DomainException extends WorkflowException {
 	private static final long serialVersionUID = 1L;
+	
+	/**
+	 * Creates a new exception with only a message.
+	 * 
+	 * @param message A String explaining why this exception is being thrown.
+	 */
+	public DomainException(
+			final String message) {
+		super(message);
+	}
+	
+	/**
+	 * Creates a new exception with a message as to why it's being thrown and 
+	 * another Throwable that may have caused this exception to be thrown.
+	 * 
+	 * @param message A String describing why this exception is being thrown.
+	 * 
+	 * @param cause A Throwable that was caught and is associated with why this
+	 * 				exception is being thrown.
+	 */
+	public DomainException(
+			final String message, 
+			final Throwable cause) {
+		super(message, cause);
+	}
+	
+	/**
+	 * Creates a new exception from a previously thrown Throwable.
+	 *  
+	 * @param cause A Throwable that was caught and is associated with why this
+	 * 				exception is being thrown.
+	 */
+	public DomainException(
+			final Throwable cause) {
+		super(cause);
+	}
 	
 	/**
 	 * Creates a new exception with an error code and error text.
@@ -18,7 +54,8 @@ public class ErrorCodeException extends WorkflowException {
 	 * 
 	 * @param errorText The error text.
 	 */
-	public ErrorCodeException(final ErrorCode errorCode, 
+	public DomainException(
+			final ErrorCode errorCode, 
 			final String errorText) {
 		
 		super(errorCode, errorText);
@@ -34,8 +71,10 @@ public class ErrorCodeException extends WorkflowException {
 	 * 
 	 * @param message The message for the server log.
 	 */
-	public ErrorCodeException(final ErrorCode errorCode,
-			final String errorText, final String message) {
+	public DomainException(
+			final ErrorCode errorCode,
+			final String errorText, 
+			final String message) {
 		
 		super(errorCode, errorText, message);
 	}
@@ -53,8 +92,10 @@ public class ErrorCodeException extends WorkflowException {
 	 * 
 	 * @param cause The Throwable that caused this exception.
 	 */
-	public ErrorCodeException(final ErrorCode errorCode, 
-			final String errorText, final String message, 
+	public DomainException(
+			final ErrorCode errorCode, 
+			final String errorText, 
+			final String message, 
 			final Throwable cause) {
 		
 		super(errorCode, errorText, message, cause);
@@ -70,8 +111,10 @@ public class ErrorCodeException extends WorkflowException {
 	 * 
 	 * @param cause The Throwable that caused this exception.
 	 */
-	public ErrorCodeException(final ErrorCode errorCode,
-			final String errorText, final Throwable cause) {
+	public DomainException(
+			final ErrorCode errorCode,
+			final String errorText, 
+			final Throwable cause) {
 		
 		super(errorCode, errorText, cause);
 	}

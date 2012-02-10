@@ -7,6 +7,7 @@ import java.util.Map;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.ohmage.domain.campaign.Prompt;
+import org.ohmage.exception.DomainException;
 
 /**
  * This class represents prompts that have a set of choices.
@@ -61,16 +62,24 @@ public abstract class ChoicePrompt extends Prompt {
 	 * @param index This prompt's index in its container's list of survey 
 	 * 				items.
 	 * 
-	 * @throws IllegalArgumentException Thrown if any of the required 
-	 * 									parameters are missing or invalid. 
+	 * @throws DomainException Thrown if any of the required parameters are 
+	 * 						   missing or invalid. 
 	 */
-	public ChoicePrompt(final String id, final String condition, 
-			final String unit, final String text, 
-			final String abbreviatedText, final String explanationText,
-			final boolean skippable, final String skipLabel,
-			final DisplayType displayType, final String displayLabel,
-			final Map<Integer, LabelValuePair> choices, final Type type,
-			final int index) {
+	public ChoicePrompt(
+			final String id, 
+			final String condition, 
+			final String unit, 
+			final String text, 
+			final String abbreviatedText, 
+			final String explanationText,
+			final boolean skippable, 
+			final String skipLabel,
+			final DisplayType displayType, 
+			final String displayLabel,
+			final Map<Integer, LabelValuePair> choices, 
+			final Type type,
+			final int index) 
+			throws DomainException {
 
 		super(id, condition, unit, text, abbreviatedText, explanationText,
 				skippable, skipLabel, displayType, displayLabel, 
@@ -105,10 +114,9 @@ public abstract class ChoicePrompt extends Prompt {
 	 * 
 	 * @return The key value.
 	 * 
-	 * @throws IllegalArgumentException If no such key for the given label 
-	 * 									exists.
+	 * @throws DomainException If no such key for the given label exists.
 	 */
-	public Integer getChoiceKey(final String label) {
+	public Integer getChoiceKey(final String label) throws DomainException {
 		Map<Integer, LabelValuePair> choices = getChoices();
 		for(Integer key : choices.keySet()) {
 			if(choices.get(key).getLabel().equals(label)) {
@@ -116,9 +124,14 @@ public abstract class ChoicePrompt extends Prompt {
 			}
 		}
 		
-		throw new IllegalArgumentException("No such key for label: " + label);
+		throw new DomainException("No such key for label: " + label);
 	}
 	
+	/**
+	 * Returns whether any of the choices have values associated with them.
+	 * 
+	 * @return Whether any of the choices have values associated with them.
+	 */
 	public boolean hasValues() {
 		return hasValues;
 	}
@@ -127,29 +140,20 @@ public abstract class ChoicePrompt extends Prompt {
 	 * Creates a JSONObject that represents this choice prompt.
 	 * 
 	 * @return A JSONObject that represents this choice prompt.
+	 * 
+	 * @throws JSONException There was a problem creating the JSONObject.
 	 */
 	@Override
-	public JSONObject toJson() {
-		try {
-			JSONObject result = super.toJson();
-			
-			if(result == null) {
-				// FIXME: Ignore the exception thrown, allowing it to 
-				// propagate.
-				return null;
-			}
-			
-			JSONObject choiceGlossary = new JSONObject();
-			for(Integer key : choices.keySet()) {
-				choiceGlossary.put(key.toString(), choices.get(key).toJson());
-			}
-			result.put(JSON_KEY_CHOICE_GLOSSARY, choiceGlossary);
-			
-			return result;
+	public JSONObject toJson() throws JSONException {
+		JSONObject result = super.toJson();
+		
+		JSONObject choiceGlossary = new JSONObject();
+		for(Integer key : choices.keySet()) {
+			choiceGlossary.put(key.toString(), choices.get(key).toJson());
 		}
-		catch(JSONException e) {
-			return null;
-		}
+		result.put(JSON_KEY_CHOICE_GLOSSARY, choiceGlossary);
+		
+		return result;
 	}
 
 	/**

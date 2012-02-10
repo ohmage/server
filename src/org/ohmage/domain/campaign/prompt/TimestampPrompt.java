@@ -6,6 +6,7 @@ import java.util.Date;
 import org.ohmage.domain.campaign.Prompt;
 import org.ohmage.domain.campaign.Response.NoResponse;
 import org.ohmage.domain.campaign.response.TimestampPromptResponse;
+import org.ohmage.exception.DomainException;
 import org.ohmage.util.StringUtils;
 
 /**
@@ -46,15 +47,22 @@ public class TimestampPrompt extends Prompt {
 	 * @param index This prompt's index in its container's list of survey 
 	 * 				items.
 	 * 
-	 * @throws IllegalArgumentException Thrown if any of the required 
-	 * 									parameters are missing or invalid. 
+	 * @throws DomainException Thrown if any of the required parameters are 
+	 * 						   missing or invalid. 
 	 */
-	public TimestampPrompt(final String id, final String condition, 
-			final String unit, final String text, 
-			final String abbreviatedText, final String explanationText,
-			final boolean skippable, final String skipLabel,
-			final DisplayType displayType, final String displayLabel,
-			final int index) {
+	public TimestampPrompt(
+			final String id, 
+			final String condition, 
+			final String unit, 
+			final String text, 
+			final String abbreviatedText, 
+			final String explanationText,
+			final boolean skippable, 
+			final String skipLabel,
+			final DisplayType displayType, 
+			final String displayLabel,
+			final int index) 
+			throws DomainException {
 		
 		super(id, condition, unit, text, abbreviatedText, explanationText,
 				skippable, skipLabel, displayType, displayLabel, 
@@ -65,27 +73,39 @@ public class TimestampPrompt extends Prompt {
 	 * Validates that a given value is valid and, if so, converts it into an
 	 * appropriate object.
 	 * 
-	 * @param value The value to be validated.
+	 * @param value The value to be validated. This must be one of the  
+	 * 				following:<br />
+	 * 				<ul>
+	 * 				<li>{@link NoResponse}</li>
+	 * 				<li>{@link Date}</li>
+	 * 				<li>{@link Calendar}</li>
+	 * 				<li>{@link String} that represents:</li>
+	 * 				  <ul>
+	 * 				    <li>{@link NoResponse}</li>
+	 * 				    <li>ISO 8601 formatted date with or without the time.
+	 * 				      </li>
+	 * 				  <ul>
+	 * 				</ul>
 	 * 
-	 * @return A String value if it is a valid response or a {@link NoResponse}
-	 * 		   object value if it is a valid {@link NoResponse} value.
+	 * @return A Date object or a {@link NoResponse} object.
 	 * 
-	 * @throws IllegalArgumentException Thrown if the value is invalid.
+	 * @throws DomainException The value is invalid.
 	 */
 	@Override
-	public Date validateValue(final Object value) throws NoResponseException {
+	public Object validateValue(final Object value) throws DomainException {
 		// If it's already a NoResponse value, then return make sure that if it
 		// was skipped that it as skippable.
 		if(value instanceof NoResponse) {
 			if(NoResponse.SKIPPED.equals(value) && (! skippable())) {
-				throw new IllegalArgumentException("The prompt was skipped, but it is not skippable.");
+				throw new DomainException(
+						"The prompt was skipped, but it is not skippable.");
 			}
 			
-			throw new NoResponseException((NoResponse) value);
+			return value;
 		}
 		// If it's already a date, return it.
 		else if(value instanceof Date) {
-			return (Date) value;
+			return value;
 		}
 		// If it's a Calendar, convert it to a Date and return it.
 		else if(value instanceof Calendar) {
@@ -96,7 +116,7 @@ public class TimestampPrompt extends Prompt {
 			Date result = null;
 			
 			try {
-				throw new NoResponseException(NoResponse.valueOf((String) value));
+				return NoResponse.valueOf((String) value);
 			}
 			catch(IllegalArgumentException iae) {
 				result = StringUtils.decodeDateTime((String) value);
@@ -109,11 +129,13 @@ public class TimestampPrompt extends Prompt {
 					return result;
 				}
 			
-				throw new IllegalArgumentException("The string value could not be converted to a date.");
+				throw new DomainException(
+						"The string value could not be converted to a date.");
 			}
 		}
 		
-		throw new IllegalArgumentException("The value could not be converted to a valid Date.");
+		throw new DomainException(
+				"The value could not be converted to a valid Date.");
 	}
 	
 	/**
@@ -126,39 +148,21 @@ public class TimestampPrompt extends Prompt {
 	 * 								 repeatable set on which the response to
 	 * 								 this prompt was made.
 	 * 
-	 * @throws IllegalArgumentException Thrown if this prompt is part of a
-	 * 									repeatable set but the repeatable set
-	 * 									iteration value is null, if the
-	 * 									repeatable set iteration value is 
-	 * 									negative, or if the value is not a 
-	 * 									valid response value for this prompt.
+	 * @throws DomainException Thrown if this prompt is part of a repeatable 
+	 * 						   set but the repeatable set iteration value is 
+	 * 						   null, if the repeatable set iteration value is 
+	 * 						   negative, or if the value is not a valid 
+	 * 						   response value for this prompt.
 	 */
 	@Override
-	public TimestampPromptResponse createResponse(final Object response, 
-			final Integer repeatableSetIteration) {
+	public TimestampPromptResponse createResponse(
+			final Integer repeatableSetIteration,
+			final Object response) 
+			throws DomainException {
 		
-		if((repeatableSetIteration == null) && (getParent() != null)) {
-			throw new IllegalArgumentException("The repeatable set iteration is null, but this prompt is part of a repeatable set.");
-		}
-		else if((repeatableSetIteration != null) && (repeatableSetIteration < 0)) {
-			throw new IllegalArgumentException("The repeatable set iteration value is negative.");
-		}
-		
-		try {
-			return new TimestampPromptResponse(
-					this, 
-					null, 
-					repeatableSetIteration, 
-					validateValue(response)
-				);
-		}
-		catch(NoResponseException e) {
-			return new TimestampPromptResponse(
-					this, 
-					e.getNoResponse(), 
-					repeatableSetIteration, 
-					null
-				);
-		}
+		return new TimestampPromptResponse(
+				this,
+				repeatableSetIteration,
+				response);
 	}
 }

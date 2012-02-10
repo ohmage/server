@@ -7,6 +7,7 @@ import java.util.Map;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.ohmage.exception.DomainException;
 
 /**
  * This class represents prompts that have a set of choices that are defined by
@@ -65,17 +66,25 @@ public abstract class CustomChoicePrompt extends ChoicePrompt {
 	 * @param index This prompt's index in its container's list of survey 
 	 * 				items.
 	 * 
-	 * @throws IllegalArgumentException Thrown if any of the required 
-	 * 									parameters are missing or invalid. 
+	 * @throws DomainException Thrown if any of the required parameters are 
+	 * 						   missing or invalid. 
 	 */
-	public CustomChoicePrompt(final String id, final String condition, 
-			final String unit, final String text, 
-			final String abbreviatedText, final String explanationText,
-			final boolean skippable, final String skipLabel,
-			final DisplayType displayType, final String displayLabel,
+	public CustomChoicePrompt(
+			final String id, 
+			final String condition, 
+			final String unit, 
+			final String text, 
+			final String abbreviatedText, 
+			final String explanationText,
+			final boolean skippable, 
+			final String skipLabel,
+			final DisplayType displayType, 
+			final String displayLabel,
 			final Map<Integer, LabelValuePair> choices,
 			final Map<Integer, LabelValuePair> customChoices, 
-			final Type type, final int index) {
+			final Type type, 
+			final int index) 
+			throws DomainException {
 		
 		super(id, condition, unit, text, abbreviatedText, explanationText,
 				skippable, skipLabel, displayType, displayLabel, 
@@ -100,7 +109,8 @@ public abstract class CustomChoicePrompt extends ChoicePrompt {
 	 * @return An unmodifiable map of all of the choices, static and custom.
 	 */
 	public Map<Integer, LabelValuePair> getAllChoices() {
-		Map<Integer, LabelValuePair> combinedMap = new HashMap<Integer, LabelValuePair>(customChoices);
+		Map<Integer, LabelValuePair> combinedMap = 
+				new HashMap<Integer, LabelValuePair>(customChoices);
 		combinedMap.putAll(getChoices());
 		
 		return Collections.unmodifiableMap(combinedMap);
@@ -115,12 +125,15 @@ public abstract class CustomChoicePrompt extends ChoicePrompt {
 	 * 
 	 * @param value The choice's value. Optional.
 	 * 
-	 * @throws IllegalArgumentException Thrown if the 'key' or label are 
-	 * 									invalid or the 'key' already exists for
-	 * 									a static or custom choice.
+	 * @throws DomainException Thrown if the 'key' or label are invalid or the 
+	 * 						   'key' already exists for a static or custom 
+	 * 						   choice.
 	 */
-	public void addChoice(final Integer key, final String label, 
-			final Number value) {
+	public void addChoice(
+			final Integer key, 
+			final String label, 
+			final Number value) 
+			throws DomainException {
 		
 		addChoice(key, new LabelValuePair(label, value));
 	}
@@ -132,24 +145,28 @@ public abstract class CustomChoicePrompt extends ChoicePrompt {
 	 * 
 	 * @param labelValuePair The choice's label-value pair. Required.
 	 * 
-	 * @throws IllegalArgumentException Thrown if the 'key' or label-value pair
-	 * 									are invalid or if such a choice already
-	 * 									exist with the given 'key'.
+	 * @throws DomainException Thrown if the 'key' or label-value pair are 
+	 * 						   invalid or if such a choice already exist with 
+	 * 						   the given 'key'.
 	 */
-	public void addChoice(final Integer key, 
-			final LabelValuePair labelValuePair) {
+	public void addChoice(
+			final Integer key, 
+			final LabelValuePair labelValuePair) 
+			throws DomainException {
 		
 		if(key == null) {
-			throw new IllegalArgumentException("The key cannot be null.");
+			throw new DomainException("The key cannot be null.");
 		}
 		else if(key < 0) {
-			throw new IllegalArgumentException("The key cannot be negative.");
+			throw new DomainException("The key cannot be negative.");
 		}
 		else if(getChoices().containsKey(key)) {
-			throw new IllegalArgumentException("The key already exists as a static choice.");
+			throw new DomainException(
+					"The key already exists as a static choice.");
 		}
 		else if(customChoices.containsKey(key)) {
-			throw new IllegalArgumentException("The key already exists as a custom choice.");
+			throw new DomainException(
+					"The key already exists as a custom choice.");
 		}
 		
 		customChoices.put(key, labelValuePair);
@@ -162,10 +179,9 @@ public abstract class CustomChoicePrompt extends ChoicePrompt {
 	 * 
 	 * @return The key value.
 	 * 
-	 * @throws IllegalArgumentException If no such key for the given label 
-	 * 									exists.
+	 * @throws DomainException If no such key for the given label exists.
 	 */
-	public Integer getChoiceKey(final String label) {
+	public Integer getChoiceKey(final String label) throws DomainException {
 		Map<Integer, LabelValuePair> choices = getAllChoices();
 		for(Integer key : choices.keySet()) {
 			if(choices.get(key).getLabel().equals(label)) {
@@ -173,7 +189,7 @@ public abstract class CustomChoicePrompt extends ChoicePrompt {
 			}
 		}
 		
-		throw new IllegalArgumentException("No such key for label: " + label);
+		throw new DomainException("No such key for label: " + label);
 	}
 	
 	/**
@@ -183,12 +199,12 @@ public abstract class CustomChoicePrompt extends ChoicePrompt {
 	 * 
 	 * @return The key's label.
 	 * 
-	 * @throws IllegalArgumentException If there is no such key.
+	 * @throws DomainException If there is no such key.
 	 */
-	public String getChoiceLabel(final Integer key) {
+	public String getChoiceLabel(final Integer key) throws DomainException {
 		LabelValuePair lvp = getAllChoices().get(key);
 		if(lvp == null) {
-			throw new IllegalArgumentException("The key is unknown.");
+			throw new DomainException("The key is unknown.");
 		}
 		else {
 			return lvp.getLabel();
@@ -200,19 +216,19 @@ public abstract class CustomChoicePrompt extends ChoicePrompt {
 	 * 
 	 * @param key The key of the custom choice to remove.
 	 * 
-	 * @throws IllegalArgumentException Thrown if the key is invalid or belongs
-	 * 									to a static choice and not a custom 
-	 * 									one.
+	 * @throws DomainException Thrown if the key is invalid or belongs to a 
+	 * 						   static choice and not a custom one.
 	 */
-	public void removeChoice(final Integer key) {
+	public void removeChoice(final Integer key) throws DomainException {
 		if(key == null) {
-			throw new IllegalArgumentException("The key cannot be null.");
+			throw new DomainException("The key cannot be null.");
 		}
 		else if(key < 0) {
-			throw new IllegalArgumentException("The key cannot be negative.");
+			throw new DomainException("The key cannot be negative.");
 		}
 		else if(getChoices().containsKey(key)) {
-			throw new IllegalArgumentException("The key is from a static choice which cannot be removed.");
+			throw new DomainException(
+					"The key is from a static choice which cannot be removed.");
 		}
 		
 		customChoices.remove(key);
@@ -222,35 +238,27 @@ public abstract class CustomChoicePrompt extends ChoicePrompt {
 	 * Creates a JSONObject that represents this custom choice prompt.
 	 * 
 	 * @return A JSONObject that represents this custom choice prompt.
+	 * 
+	 * @throws JSONException There was a problem creating the JSONObject.
 	 */
 	@Override
-	public JSONObject toJson() {
-		try {
-			JSONObject result = super.toJson();
-			
-			if(result == null) {
-				// FIXME: Ignore the exception thrown, allowing it to 
-				// propagate.
-				return null;
-			}
-			
-			JSONObject choiceGlossary = result.getJSONObject(JSON_KEY_CHOICE_GLOSSARY);
-			for(Integer key : customChoices.keySet()) {
-				choiceGlossary.put(key.toString(), customChoices.get(key).toJson());
-			}
-			result.put(JSON_KEY_CHOICE_GLOSSARY, choiceGlossary);
-			
-			JSONArray labels = new JSONArray();
-			for(LabelValuePair lvp : getChoices().values()) {
-				labels.put(lvp.getLabel());
-			}
-			result.put(JSON_KEY_FIXED_CHOICES, labels);
-			
-			return result;
+	public JSONObject toJson() throws JSONException {
+		JSONObject result = super.toJson();
+		
+		JSONObject choiceGlossary = 
+				result.getJSONObject(JSON_KEY_CHOICE_GLOSSARY);
+		for(Integer key : customChoices.keySet()) {
+			choiceGlossary.put(key.toString(), customChoices.get(key).toJson());
 		}
-		catch(JSONException e) {
-			return null;
+		result.put(JSON_KEY_CHOICE_GLOSSARY, choiceGlossary);
+		
+		JSONArray labels = new JSONArray();
+		for(LabelValuePair lvp : getChoices().values()) {
+			labels.put(lvp.getLabel());
 		}
+		result.put(JSON_KEY_FIXED_CHOICES, labels);
+		
+		return result;
 	}
 
 	/**

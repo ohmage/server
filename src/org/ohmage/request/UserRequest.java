@@ -13,6 +13,7 @@ import org.json.JSONObject;
 import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.cache.UserBin;
 import org.ohmage.domain.User;
+import org.ohmage.exception.DomainException;
 import org.ohmage.exception.ServiceException;
 import org.ohmage.exception.ValidationException;
 import org.ohmage.service.AuthenticationService;
@@ -92,7 +93,7 @@ public abstract class UserRequest extends Request {
 				try {
 					tUser = new User(usernames[0], passwords[0], hashPassword);
 				}
-				catch(IllegalArgumentException e) {
+				catch(DomainException e) {
 					LOGGER.info("The username and/or password are invalid.");
 					setFailed(ErrorCode.AUTHENTICATION_FAILED, "The username and/or password are invalid.");
 				}
@@ -308,7 +309,7 @@ public abstract class UserRequest extends Request {
 				try {
 					tUser = new User(usernames[0], passwords[0], hashPassword);
 				}
-				catch(IllegalArgumentException e) {
+				catch(DomainException e) {
 					LOGGER.info("The username and/or password are invalid.");
 					setFailed(ErrorCode.AUTHENTICATION_FAILED, "The username and/or password are invalid.");
 				}

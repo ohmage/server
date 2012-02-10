@@ -7,11 +7,11 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
-import org.apache.log4j.Logger;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.ohmage.domain.campaign.Campaign;
+import org.ohmage.exception.DomainException;
 
 /**
  * This class is responsible for collecting and displaying the information 
@@ -22,8 +22,6 @@ import org.ohmage.domain.campaign.Campaign;
  * @author John Jenkins
  */
 public class UserSummary {
-	private static final Logger LOGGER = Logger.getLogger(UserSummary.class);
-	
 	private static final String JSON_KEY_PERMISSIONS = "permissions";
 	private static final String JSON_KEY_PERMISSIONS_ADMIN = "is_admin";
 	private static final String JSON_KEY_PERMISSIONS_CAMPAIGN_CREATION = "can_create_campaigns";
@@ -66,6 +64,8 @@ public class UserSummary {
 	 * 
 	 * @param classRoles A set of all of the class roles for the user across 
 	 * 					 all of their classes.
+	 * 
+	 * @throws DomainException The campaigns, classes, or role lists is empty.
 	 */
 	public UserSummary(
 			boolean isAdmin,
@@ -73,19 +73,24 @@ public class UserSummary {
 			final Map<String, String> campaigns,
 			final Set<Campaign.Role> campaignRoles,
 			final Map<String, String> classes,
-			final Set<Clazz.Role> classRoles) {
+			final Set<Clazz.Role> classRoles) 
+			throws DomainException {
 		
 		if(campaigns == null) {
-			throw new IllegalArgumentException("The map of campaigns to their names cannot be null.");
+			throw new DomainException(
+					"The map of campaigns to their names cannot be null.");
 		}
 		if(campaignRoles == null) {
-			throw new IllegalArgumentException("The set of campaign roles for a user cannot be empty.");
+			throw new DomainException(
+					"The set of campaign roles for a user cannot be empty.");
 		}
 		if(classes == null) {
-			throw new IllegalArgumentException("The map of classes to their names cannot be null.");
+			throw new DomainException(
+					"The map of classes to their names cannot be null.");
 		}
 		if(classRoles == null) {
-			throw new IllegalArgumentException("The set of class roles for a user cannot be empty.");
+			throw new DomainException(
+					"The set of class roles for a user cannot be empty.");
 		}
 		
 		this.isAdmin = isAdmin;
@@ -103,12 +108,12 @@ public class UserSummary {
 	 * 
 	 * @param information The information used to create this object.
 	 * 
-	 * @throws IllegalArgumentException Thrown if information object is null or
-	 * 									malformed.
+	 * @throws DomainException Thrown if information object is null or 
+	 * 						   malformed.
 	 */
-	public UserSummary(final JSONObject information) {
+	public UserSummary(final JSONObject information) throws DomainException {
 		if(information == null) {
-			throw new IllegalArgumentException("The information is null.");
+			throw new DomainException("The information is null.");
 		}
 		
 		JSONObject permissions;
@@ -116,21 +121,21 @@ public class UserSummary {
 			permissions = information.getJSONObject(JSON_KEY_PERMISSIONS);
 		}
 		catch(JSONException e) {
-			throw new IllegalArgumentException("The permissions JSON is missing.", e);
+			throw new DomainException("The permissions JSON is missing.", e);
 		}
 		
 		try {
 			isAdmin = permissions.getBoolean(JSON_KEY_PERMISSIONS_ADMIN);
 		}
 		catch(JSONException e) {
-			throw new IllegalArgumentException("The 'is admin' permission is missing from the list of permissions.", e);
+			throw new DomainException("The 'is admin' permission is missing from the list of permissions.", e);
 		}
 		
 		try {
 			campaignCreationPrivilege = permissions.getBoolean(JSON_KEY_PERMISSIONS_CAMPAIGN_CREATION); 
 		}
 		catch(JSONException e) {
-			throw new IllegalArgumentException("The campaign creation permission is missing from the list of permissions.", e);
+			throw new DomainException("The campaign creation permission is missing from the list of permissions.", e);
 		}
 		
 		try {
@@ -146,7 +151,7 @@ public class UserSummary {
 			}	
 		}
 		catch(JSONException e) {
-			throw new IllegalArgumentException("The campaigns JSON is missing or malformed.", e);
+			throw new DomainException("The campaigns JSON is missing or malformed.", e);
 		}
 		
 		try {
@@ -160,10 +165,10 @@ public class UserSummary {
 			}
 		}
 		catch(JSONException e) {
-			throw new IllegalArgumentException("The campaign roles JSON is missing.", e);
+			throw new DomainException("The campaign roles JSON is missing.", e);
 		}
 		catch(IllegalArgumentException e) {
-			throw new IllegalArgumentException("The campaign roles JSON contains an unknown role.", e);
+			throw new DomainException("The campaign roles JSON contains an unknown role.", e);
 		}
 		
 		try {
@@ -179,7 +184,7 @@ public class UserSummary {
 			}
 		}
 		catch(JSONException e) {
-			throw new IllegalArgumentException("The classes JSON is missing or malformed.", e);
+			throw new DomainException("The classes JSON is missing or malformed.", e);
 		}
 		
 		try {
@@ -193,10 +198,10 @@ public class UserSummary {
 			}
 		}
 		catch(JSONException e) {
-			throw new IllegalArgumentException("The class roles JSON is missing.", e);
+			throw new DomainException("The class roles JSON is missing.", e);
 		}
 		catch(IllegalArgumentException e) {
-			throw new IllegalArgumentException("The class roles JSON contains an unknown role.", e);
+			throw new DomainException("The class roles JSON contains an unknown role.", e);
 		}
 	}
 	
@@ -265,26 +270,20 @@ public class UserSummary {
 	 * 
 	 * @return A JSONObject representation of this object.
 	 */
-	public JSONObject toJsonObject() {
-		try {
-			JSONObject result = new JSONObject();
-			
-			JSONObject permissions = new JSONObject();
-			permissions.put(JSON_KEY_PERMISSIONS_ADMIN, isAdmin);
-			permissions.put(JSON_KEY_PERMISSIONS_CAMPAIGN_CREATION, campaignCreationPrivilege);
-			result.put(JSON_KEY_PERMISSIONS, permissions);
-			
-			result.put(JSON_KEY_CAMPAIGNS, campaigns);
-			result.put(JSON_KEY_CAMPAIGN_ROLES, campaignRoles);
-			
-			result.put(JSON_KEY_CLASSES, classes);
-			result.put(JSON_KEY_CLASS_ROLES, classRoles);
-			
-			return result;
-		}
-		catch(JSONException e) {
-			LOGGER.error("There was an error building the JSONObject.", e);
-			return null;
-		}
+	public JSONObject toJsonObject() throws JSONException {
+		JSONObject result = new JSONObject();
+		
+		JSONObject permissions = new JSONObject();
+		permissions.put(JSON_KEY_PERMISSIONS_ADMIN, isAdmin);
+		permissions.put(JSON_KEY_PERMISSIONS_CAMPAIGN_CREATION, campaignCreationPrivilege);
+		result.put(JSON_KEY_PERMISSIONS, permissions);
+		
+		result.put(JSON_KEY_CAMPAIGNS, campaigns);
+		result.put(JSON_KEY_CAMPAIGN_ROLES, campaignRoles);
+		
+		result.put(JSON_KEY_CLASSES, classes);
+		result.put(JSON_KEY_CLASS_ROLES, classRoles);
+		
+		return result;
 	}
 }

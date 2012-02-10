@@ -22,6 +22,7 @@ import javax.imageio.ImageIO;
 import javax.sql.DataSource;
 
 import org.apache.log4j.Logger;
+import org.json.JSONException;
 import org.ohmage.cache.PreferenceCache;
 import org.ohmage.domain.Location;
 import org.ohmage.domain.campaign.PromptResponse;
@@ -187,7 +188,13 @@ public class SurveyUploadQuery extends AbstractUploadQuery implements ISurveyUpl
 								String locationString = null;
 								Location location = surveyUpload.getLocation();
 								if(location != null) {
-									locationString = location.toJson(false).toString();
+									try {
+										locationString = 
+												location.toJson(false).toString();
+									}
+									catch(JSONException e) {
+										throw new SQLException(e);
+									}
 								}
 								
 								ps.setString(1, surveyUpload.getSurveyResponseId().toString());
@@ -198,15 +205,30 @@ public class SurveyUploadQuery extends AbstractUploadQuery implements ISurveyUpl
 								ps.setString(6, surveyUpload.getLocationStatus().toString());
 								ps.setString(7, locationString);
 								ps.setString(8, surveyUpload.getSurvey().getId());
-								ps.setString(9, surveyUpload.toJson(false, false, false, false, true, true, true, true, true, false, false, true, true, true, true, false, false).toString());
+								try {
+									ps.setString(9, surveyUpload.toJson(false, false, false, false, true, true, true, true, true, false, false, true, true, true, true, false, false).toString());
+								}
+								catch(JSONException e) {
+									throw new SQLException(
+											"Couldn't create the JSON.",
+											e);
+								}
 								ps.setString(10, client);
 								ps.setTimestamp(11, new Timestamp(System.currentTimeMillis()));
-								ps.setString(12, surveyUpload.getLaunchContext().toJson(true).toString());
+								try {
+									ps.setString(12, surveyUpload.getLaunchContext().toJson(true).toString());
+								}
+								catch(JSONException e) {
+									throw new SQLException(
+											"Couldn't create the JSON.",
+											e);
+								}
 								try {
 									ps.setString(13, PreferenceCache.instance().lookup(PreferenceCache.KEY_DEFAULT_SURVEY_RESPONSE_SHARING_STATE));
 								} catch (CacheMissException e) {
-									LOGGER.error("Error reading from the cache.", e);
-									throw new SQLException(e);
+									throw new SQLException(
+											"Error reading from the cache.", 
+											e);
 								}
 								return ps;
 							}
@@ -707,7 +729,7 @@ public class SurveyUploadQuery extends AbstractUploadQuery implements ISurveyUpl
 						}
 						ps.setString(4, promptResponse.getPrompt().getType().toString());
 						ps.setString(5, promptResponse.getPrompt().getId());
-						ps.setString(6, promptResponse.getResponseValue().toString());
+						ps.setString(6, promptResponse.getResponse().toString());
 						
 						return ps;
 					}
@@ -716,7 +738,7 @@ public class SurveyUploadQuery extends AbstractUploadQuery implements ISurveyUpl
 			
 			if(promptResponse instanceof PhotoPromptResponse) {
 				// Grab the associated image and save it
-				String imageId = promptResponse.getResponseValue().toString();
+				String imageId = promptResponse.getResponse().toString();
 				BufferedImage imageContents = bufferedImageMap.get(imageId);
 				
 				if(! JsonInputKeys.PROMPT_SKIPPED.equals(imageId) && ! JsonInputKeys.PROMPT_NOT_DISPLAYED.equals(imageId)) {

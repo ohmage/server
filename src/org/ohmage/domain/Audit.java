@@ -11,6 +11,7 @@ import java.util.Map;
 import org.apache.log4j.Logger;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.ohmage.exception.DomainException;
 import org.ohmage.jee.servlet.RequestServlet;
 
 /**
@@ -101,10 +102,14 @@ public class Audit {
 	 * 			  key are allowed.
 	 * 
 	 * @param value A new or another value for this key.
+	 * 
+	 * @throws DomainException The parameter's key was null.
 	 */
-	public void addParameter(String key, String value) {
+	public void addParameter(String key, String value) 
+			throws DomainException {
+		
 		if(key == null) {
-			throw new IllegalArgumentException("The key cannot be null.");
+			throw new DomainException("The key cannot be null.");
 		}
 		
 		List<String> values = parameters.get(key);
@@ -141,10 +146,14 @@ public class Audit {
 	 * 			  allowed.
 	 * 
 	 * @param value A new or another value for this key.
+	 * 
+	 * @throws DomainException The key was null.
 	 */
-	public void addExtra(String key, String value) {
+	public void addExtra(String key, String value) 
+			throws DomainException {
+		
 		if(key == null) {
-			throw new IllegalArgumentException("The key cannot be null.");
+			throw new DomainException("The key cannot be null.");
 		}
 		
 		List<String> values = extras.get(key);
