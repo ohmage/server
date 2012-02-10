@@ -37,7 +37,10 @@ import org.springframework.beans.factory.DisposableBean;
 public final class UserBin extends TimerTask implements DisposableBean {
 	private static final Logger LOGGER = Logger.getLogger(UserBin.class);
 	
-	private static final int LIFETIME = 1800000;
+	/**
+	 * This is the length of an authentication token.
+	 */
+	public static final int LIFETIME = 1800000;
 	private static final int EXECUTION_PERIOD = 60000;
 	
 	/**

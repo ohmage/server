@@ -18,6 +18,7 @@ package org.ohmage.service;
 import java.util.List;
 
 import org.ohmage.cache.PreferenceCache;
+import org.ohmage.cache.UserBin;
 import org.ohmage.domain.ServerConfig;
 import org.ohmage.domain.campaign.SurveyResponse;
 import org.ohmage.exception.CacheMissException;
@@ -119,7 +120,8 @@ public class ConfigServices {
 		try {
 			return new ServerConfig(appName, appVersion, appBuild,
 					defaultSurveyResponsePrivacyState, surveyResponsePrivacyStates,
-					defaultCampaignCreationPrivilege, mobilityEnabled
+					defaultCampaignCreationPrivilege, mobilityEnabled,
+					UserBin.LIFETIME
 				);
 		} 
 		catch(DomainException e) {

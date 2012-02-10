@@ -63,6 +63,10 @@ public class ServerConfig {
 	 * Whether or not Mobility is enabled on this server.
 	 */
 	public static final String JSON_KEY_MOBILITY_ENABLED = "mobility_enabled";
+	/**
+	 * The length of time for which an authentication token lives.
+	 */
+	public static final String JSON_KEY_AUTH_TOKEN_LIFETIME = "auth_token_lifetime";
 	
 	private final String appName;
 	private final String appVersion;
@@ -71,6 +75,7 @@ public class ServerConfig {
 	private final SurveyResponse.PrivacyState defaultSurveyResponsePrivacyState;
 	private final List<SurveyResponse.PrivacyState> surveyResponsePrivacyStates;
 	private final boolean mobilityEnabled;
+	private final long authTokenLifetime;
 	
 	/**
 	 * Creates a new server configuration.
@@ -97,7 +102,8 @@ public class ServerConfig {
 			final SurveyResponse.PrivacyState defaultSurveyResponsePrivacyState,
 			final List<SurveyResponse.PrivacyState> surveyResponsePrivacyStates,
 			final boolean defaultCampaignCreationPrivilege,
-			final boolean mobilityEnabled) 
+			final boolean mobilityEnabled,
+			final long authTokenLifetime) 
 			throws DomainException {
 		
 		if(StringUtils.isEmptyOrWhitespaceOnly(appName)) {
@@ -131,6 +137,7 @@ public class ServerConfig {
 			new ArrayList<SurveyResponse.PrivacyState>(surveyResponsePrivacyStates);
 		
 		this.mobilityEnabled = mobilityEnabled;
+		this.authTokenLifetime = authTokenLifetime;
 	}
 	
 	/**
@@ -235,7 +242,19 @@ public class ServerConfig {
 					serverConfigAsJson.getBoolean(JSON_KEY_MOBILITY_ENABLED);
 		}
 		catch(JSONException e) {
-			throw new IllegalArgumentException("Whether or not Mobility is enabled is missing.", e);
+			throw new DomainException(
+					"Whether or not Mobility is enabled is missing.", 
+					e);
+		}
+		
+		try {
+			authTokenLifetime = 
+					serverConfigAsJson.getLong(JSON_KEY_AUTH_TOKEN_LIFETIME);
+		}
+		catch(JSONException e) {
+			throw new DomainException(
+					"The authentication token's lifetime is missing.",
+					e);
 		}
 	}
 	
@@ -312,6 +331,7 @@ public class ServerConfig {
 		result.put(JSON_KEY_DEFAULT_SURVEY_RESPONSE_PRIVACY_STATE, defaultSurveyResponsePrivacyState);
 		result.put(JSON_KEY_SURVEY_RESPONSE_PRIVACY_STATES, new JSONArray(surveyResponsePrivacyStates));
 		result.put(JSON_KEY_MOBILITY_ENABLED, mobilityEnabled);
+		result.put(JSON_KEY_AUTH_TOKEN_LIFETIME, authTokenLifetime);
 		
 		return result;
 	}
