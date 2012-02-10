@@ -2,7 +2,7 @@
 <project name="webapp-ohmage" basedir="." default="dist-all">
   <property file="build.properties"/>
   <property name="component.repository" location="${user.home}/.component-repository"/>
-  <property name="app_name" value="Mobilize"/>
+  <property name="app_name" value="ohmage"/>
   <property name="app_version" value="2.9"/>
   <property name="src" location="src"/>
   <property name="test" location="test"/>
