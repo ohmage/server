@@ -6,10 +6,10 @@ import java.util.List;
 import java.util.UUID;
 
 import javax.sql.DataSource;
-import javax.swing.tree.RowMapper;
 
 import org.ohmage.exception.DataAccessException;
 import org.ohmage.query.ISurveyResponseImageQueries;
+import org.springframework.jdbc.core.RowMapper;
 
 /**
  * This class is responsible for creating, reading, updating, and deleting 

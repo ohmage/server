@@ -17,7 +17,6 @@ import java.util.TimeZone;
 import java.util.UUID;
 
 import javax.sql.DataSource;
-import javax.swing.tree.RowMapper;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -32,6 +31,17 @@ import org.ohmage.exception.DomainException;
 import org.ohmage.query.IUserMobilityQueries;
 import org.ohmage.util.StringUtils;
 import org.ohmage.util.TimeUtils;
+import org.springframework.jdbc.core.PreparedStatementCreator;
+import org.springframework.jdbc.core.ResultSetExtractor;
+import org.springframework.jdbc.core.RowMapper;
+import org.springframework.jdbc.core.SingleColumnRowMapper;
+import org.springframework.jdbc.datasource.DataSourceTransactionManager;
+import org.springframework.jdbc.support.GeneratedKeyHolder;
+import org.springframework.jdbc.support.KeyHolder;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionException;
+import org.springframework.transaction.TransactionStatus;
+import org.springframework.transaction.support.DefaultTransactionDefinition;
 
 import edu.ucla.cens.mobilityclassifier.MobilityClassifier;
 

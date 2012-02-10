@@ -98,15 +98,24 @@ public class PhotoPrompt extends Prompt {
 	}
 
 	/**
-	 * Validates that the given value is valid for this prompt.
+	 * Validates that a given value is valid and, if so, converts it into an
+	 * appropriate object.
 	 * 
-	 * @param value The value to be validated.
+	 * @param value The value to be validated. This must be one of the  
+	 * 				following:<br />
+	 * 				<ul>
+	 * 				<li>{@link NoResponse}</li>
+	 * 				<li>{@link UUID}</li>
+	 * 				<li>{@link String} that represents:</li>
+	 * 				  <ul>
+	 * 				    <li>{@link NoResponse}</li>
+	 * 				    <li>{@link UUID}</li>
+	 * 				  <ul>
+	 * 				</ul>
 	 * 
-	 * @return A {@link NoResponse} value if a {@link NoResponse} object or no
-	 * 		   response string value were given or a UUID value representing 
-	 * 		   the photo's UUID.
+	 * @return A {@link UUID} object or a {@link NoResponse} object.
 	 * 
-	 * @throws DomainException The value was not decodable as a response value.
+	 * @throws DomainException The value is invalid.
 	 */
 	@Override
 	public Object validateValue(final Object value) throws DomainException {

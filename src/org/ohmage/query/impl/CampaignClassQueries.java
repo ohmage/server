@@ -5,12 +5,13 @@ import java.sql.SQLException;
 import java.util.List;
 
 import javax.sql.DataSource;
-import javax.swing.tree.RowMapper;
 
 import org.ohmage.domain.Clazz;
 import org.ohmage.domain.campaign.Campaign;
 import org.ohmage.exception.DataAccessException;
 import org.ohmage.query.ICampaignClassQueries;
+import org.springframework.jdbc.core.RowMapper;
+import org.springframework.jdbc.core.SingleColumnRowMapper;
 
 /**
  * This class contains all of the functionality for reading and writing 

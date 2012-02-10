@@ -13,6 +13,7 @@ import org.json.JSONObject;
 import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.domain.campaign.Campaign;
 import org.ohmage.domain.campaign.Campaign.OutputFormat;
+import org.ohmage.exception.DomainException;
 import org.ohmage.exception.ValidationException;
 import org.ohmage.request.InputKeys;
 import org.ohmage.util.StringUtils;
@@ -200,7 +201,7 @@ public final class CampaignValidators {
 		try {
 			Campaign.validateXml(xml);
 		}
-		catch(IllegalArgumentException e) {
+		catch(DomainException e) {
 			throw new ValidationException(
 					ErrorCode.CAMPAIGN_INVALID_XML, 
 					e.getMessage(), 

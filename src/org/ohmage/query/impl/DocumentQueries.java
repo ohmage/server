@@ -20,7 +20,6 @@ import java.util.concurrent.locks.ReentrantLock;
 import java.util.regex.Pattern;
 
 import javax.sql.DataSource;
-import javax.swing.tree.RowMapper;
 
 import org.apache.log4j.Logger;
 import org.ohmage.cache.PreferenceCache;
@@ -29,6 +28,12 @@ import org.ohmage.exception.CacheMissException;
 import org.ohmage.exception.DataAccessException;
 import org.ohmage.exception.DomainException;
 import org.ohmage.query.IDocumentQueries;
+import org.springframework.jdbc.core.RowMapper;
+import org.springframework.jdbc.datasource.DataSourceTransactionManager;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionException;
+import org.springframework.transaction.TransactionStatus;
+import org.springframework.transaction.support.DefaultTransactionDefinition;
 
 /**
  * This class contains all of the functionality for creating, reading, 

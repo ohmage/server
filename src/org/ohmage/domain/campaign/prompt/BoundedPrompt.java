@@ -148,15 +148,29 @@ public abstract class BoundedPrompt extends Prompt {
 	}
 
 	/**
-	 * Validates that a given value is valid and, if so, converts it into a 
-	 * Long value.
+	 * Validates that a given value is valid and, if so, converts it into an 
+	 * appropriate object.
 	 * 
-	 * @param value The value to be validated.
+	 * @param value The value to be validated. This must be one of the  
+	 * 				following:<br />
+	 * 				<ul>
+	 * 				<li>{@link NoResponse}</li>
+	 * 				<li>{@link AtomicInteger}</li>
+	 * 				<li>{@link AtomicLong}</li>
+	 * 				<li>{@link BigInteger}</li>
+	 * 				<li>{@link Integer}</li>
+	 * 				<li>{@link Long}</li>
+	 * 				<li>{@link Short}</li>
+	 * 				<li>{@link String} that represents:</li>
+	 * 				  <ul>
+	 * 				    <li>{@link NoResponse}</li>
+	 * 				    <li>A whole number.</li>
+	 * 				  <ul>
+	 * 				</ul>
 	 * 
-	 * @return A Long object that represents the value or a NoResponse object
-	 * 		   that represents why the prompt doesn't have a response.
+	 * @return A {@link Long} object or a {@link NoResponse} object.
 	 * 
-	 * @throws DomainException Thrown if the value is invalid.
+	 * @throws DomainException The value is invalid.
 	 */
 	@Override
 	public Object validateValue(final Object value) throws DomainException {
@@ -170,7 +184,6 @@ public abstract class BoundedPrompt extends Prompt {
 						"The prompt was skipped, but it is not skippable.");
 			}
 			
-			//throw new NoResponseException((NoResponse) value);
 			return value;
 		}
 		// If it's already a number, first ensure that it is an integer and not

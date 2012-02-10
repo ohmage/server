@@ -101,17 +101,23 @@ public class SingleChoiceCustomPrompt extends CustomChoicePrompt {
 	}
 
 	/**
-	 * Validates that an Object is a valid response value. This must be one of
-	 * the following:<br />
-	 * <li>A {@link NoResponse} object.</li>
-	 * <li>A String representing a label value.</li>
-	 * <li>A String representing a {@link NoResponse} value.</li>
+	 * Validates that a given value is valid and, if so, converts it into an
+	 * appropriate object.
 	 * 
-	 * @param value The value to be validated.
+	 * @param value The value to be validated. This must be one of the  
+	 * 				following:<br />
+	 * 				<ul>
+	 * 				<li>{@link NoResponse}</li>
+	 * 				<li>{@link String} that represents:</li>
+	 * 				  <ul>
+	 * 				    <li>{@link NoResponse}</li>
+	 * 				    <li>The label of the item the user chose.</li>
+	 * 				  <ul>
+	 * 				</ul>
 	 * 
-	 * @return A {@link NoResponse} object or an Integer.
+	 * @return A String representing a label or a {@link NoResponse} object.
 	 * 
-	 * @throws DomainException Thrown if the value is not valid.
+	 * @throws DomainException The value is invalid.
 	 */
 	@Override
 	public Object validateValue(final Object value) throws DomainException {

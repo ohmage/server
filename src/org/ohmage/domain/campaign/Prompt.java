@@ -563,44 +563,4 @@ public abstract class Prompt extends SurveyItem {
 	protected abstract Object validateValue(
 			final Object value) 
 			throws DomainException;
-	
-	/**
-	 * This exception should only be thrown from a Prompt class or subclass in 
-	 * the event that validation of a value results in a NoResponse object.
-	 * 
-	 * @author John Jenkins
-	 *
-	protected final class NoResponseException extends Exception {
-		private static final long serialVersionUID = 1L;
-		
-		private NoResponse noResponse;
-		
-		/**
-		 * Creates the exception with a NoResponse object.
-		 * 
-		 * @param noResponse The NoResponse object for this exception.
-		 * 
-		 * @throws DomainException The NoResponse object is null.
-		 *
-		public NoResponseException(
-				final NoResponse noResponse) 
-				throws DomainException {
-			
-			if(noResponse == null) {
-				throw new DomainException("The NoResponse object is null.");
-			}
-			
-			this.noResponse = noResponse;
-		}
-		
-		/**
-		 * Returns the NoResponse object with which this exception was created.
-		 * 
-		 * @return The NoResponse object with which this exception was created.
-		 *
-		public NoResponse getNoResponse() {
-			return noResponse;
-		}
-	}
-	*/
 }

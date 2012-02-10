@@ -457,9 +457,17 @@ public class OhmageApi {
 			String campaignId = (String) keys.next();
 			
 			try {
-				result.put(campaignId, new Campaign(campaignId, resultJson.getJSONObject(campaignId)));
-			} catch (JSONException e) {
+				result.put(
+						campaignId, 
+						new Campaign(
+								campaignId, 
+								resultJson.getJSONObject(campaignId)));
+			} 
+			catch(JSONException e) {
 				throw new ApiException("The campaign information was not valid JSON.", e);
+			}
+			catch(DomainException e) {
+				throw new ApiException("The campaign was malformed.", e);
 			}
 		}
 		
@@ -1495,9 +1503,17 @@ public class OhmageApi {
 				continue;
 			}
 			
-			JSONObject responseJson = response.toJson(false, false, false, 
-					false, true, true, true, true, true, false, false, 
-					true, true, true, true, false, false);
+			JSONObject responseJson;
+			try {
+				responseJson = response.toJson(false, false, false, 
+						false, true, true, true, true, true, false, false, 
+						true, true, true, true, false, false);
+				
+			}
+			catch(JSONException e) {
+				throw new ApiException("There was a problem building the JSON.", e);
+			}
+			
 			if(responseJson == null) {
 				throw new ApiException("One of the survey responses could not be converted to JSON.");
 			}

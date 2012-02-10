@@ -7,6 +7,7 @@ import javax.sql.DataSource;
 
 import org.ohmage.exception.DataAccessException;
 import org.ohmage.query.IUserImageQueries;
+import org.springframework.jdbc.core.SingleColumnRowMapper;
 
 /**
  * This class is responsible for the functionality to create, read, update, and

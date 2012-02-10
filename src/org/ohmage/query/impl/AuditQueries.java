@@ -12,7 +12,6 @@ import java.util.List;
 import java.util.Map;
 
 import javax.sql.DataSource;
-import javax.swing.tree.RowMapper;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -24,6 +23,16 @@ import org.ohmage.jee.servlet.RequestServlet;
 import org.ohmage.jee.servlet.RequestServlet.RequestType;
 import org.ohmage.query.IAuditQueries;
 import org.ohmage.validator.AuditValidators.ResponseType;
+import org.springframework.jdbc.core.PreparedStatementCreator;
+import org.springframework.jdbc.core.RowMapper;
+import org.springframework.jdbc.core.SingleColumnRowMapper;
+import org.springframework.jdbc.datasource.DataSourceTransactionManager;
+import org.springframework.jdbc.support.GeneratedKeyHolder;
+import org.springframework.jdbc.support.KeyHolder;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionException;
+import org.springframework.transaction.TransactionStatus;
+import org.springframework.transaction.support.DefaultTransactionDefinition;
 
 /**
  * This class is responsible for creating and reading request audits.

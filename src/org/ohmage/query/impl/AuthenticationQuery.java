@@ -4,7 +4,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 
 import javax.sql.DataSource;
-import javax.swing.tree.RowMapper;
 
 import jbcrypt.BCrypt;
 
@@ -13,6 +12,7 @@ import org.ohmage.domain.User;
 import org.ohmage.exception.DataAccessException;
 import org.ohmage.query.IAuthenticationQuery;
 import org.ohmage.request.UserRequest;
+import org.springframework.jdbc.core.RowMapper;
 
 /**
  * Gathers the login information about the user in the request.

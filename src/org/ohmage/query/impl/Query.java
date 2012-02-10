@@ -3,6 +3,7 @@ package org.ohmage.query.impl;
 import javax.sql.DataSource;
 
 import org.ohmage.exception.DataAccessException;
+import org.springframework.jdbc.core.JdbcTemplate;
 
 /**
  * The superclass for all Queries, this class contains the DataSource with which 

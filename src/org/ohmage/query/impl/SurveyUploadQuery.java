@@ -35,6 +35,15 @@ import org.ohmage.exception.CacheMissException;
 import org.ohmage.exception.DataAccessException;
 import org.ohmage.query.ISurveyUploadQuery;
 import org.ohmage.request.JsonInputKeys;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.jdbc.core.PreparedStatementCreator;
+import org.springframework.jdbc.datasource.DataSourceTransactionManager;
+import org.springframework.jdbc.support.GeneratedKeyHolder;
+import org.springframework.jdbc.support.KeyHolder;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionException;
+import org.springframework.transaction.TransactionStatus;
+import org.springframework.transaction.support.DefaultTransactionDefinition;
 
 /**
  * Persists a survey upload (potentially containing many surveys) into the db.
@@ -196,15 +205,30 @@ public class SurveyUploadQuery extends AbstractUploadQuery implements ISurveyUpl
 								ps.setString(6, surveyUpload.getLocationStatus().toString());
 								ps.setString(7, locationString);
 								ps.setString(8, surveyUpload.getSurvey().getId());
-								ps.setString(9, surveyUpload.toJson(false, false, false, false, true, true, true, true, true, false, false, true, true, true, true, false, false).toString());
+								try {
+									ps.setString(9, surveyUpload.toJson(false, false, false, false, true, true, true, true, true, false, false, true, true, true, true, false, false).toString());
+								}
+								catch(JSONException e) {
+									throw new SQLException(
+											"Couldn't create the JSON.",
+											e);
+								}
 								ps.setString(10, client);
 								ps.setTimestamp(11, new Timestamp(System.currentTimeMillis()));
-								ps.setString(12, surveyUpload.getLaunchContext().toJson(true).toString());
+								try {
+									ps.setString(12, surveyUpload.getLaunchContext().toJson(true).toString());
+								}
+								catch(JSONException e) {
+									throw new SQLException(
+											"Couldn't create the JSON.",
+											e);
+								}
 								try {
 									ps.setString(13, PreferenceCache.instance().lookup(PreferenceCache.KEY_DEFAULT_SURVEY_RESPONSE_SHARING_STATE));
 								} catch (CacheMissException e) {
-									LOGGER.error("Error reading from the cache.", e);
-									throw new SQLException(e);
+									throw new SQLException(
+											"Error reading from the cache.", 
+											e);
 								}
 								return ps;
 							}
@@ -705,7 +729,7 @@ public class SurveyUploadQuery extends AbstractUploadQuery implements ISurveyUpl
 						}
 						ps.setString(4, promptResponse.getPrompt().getType().toString());
 						ps.setString(5, promptResponse.getPrompt().getId());
-						ps.setString(6, promptResponse.getResponseValue().toString());
+						ps.setString(6, promptResponse.getResponse().toString());
 						
 						return ps;
 					}
@@ -714,7 +738,7 @@ public class SurveyUploadQuery extends AbstractUploadQuery implements ISurveyUpl
 			
 			if(promptResponse instanceof PhotoPromptResponse) {
 				// Grab the associated image and save it
-				String imageId = promptResponse.getResponseValue().toString();
+				String imageId = promptResponse.getResponse().toString();
 				BufferedImage imageContents = bufferedImageMap.get(imageId);
 				
 				if(! JsonInputKeys.PROMPT_SKIPPED.equals(imageId) && ! JsonInputKeys.PROMPT_NOT_DISPLAYED.equals(imageId)) {

@@ -14,6 +14,7 @@ import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.domain.UserPersonal;
 import org.ohmage.domain.campaign.Campaign;
 import org.ohmage.exception.DataAccessException;
+import org.ohmage.exception.DomainException;
 import org.ohmage.exception.ServiceException;
 import org.ohmage.query.ICampaignClassQueries;
 import org.ohmage.query.ICampaignQueries;
@@ -729,7 +730,14 @@ public class UserCampaignServices {
 					LOGGER.debug("Gathering the classes.");
 					
 					// Add the classes that are associated with the campaign.
-					campaign.addClasses(campaignClassQueries.getClassesAssociatedWithCampaign(campaignId));
+					try {
+						campaign.addClasses(campaignClassQueries.getClassesAssociatedWithCampaign(campaignId));
+					} 
+					catch(DomainException e) {
+						throw new ServiceException(
+								"There was a problem adding a class.",
+								e);
+					}
 					
 					// Add the users and their roles to the campaign.
 					campaign.addUsers(userCampaignQueries.getUsersAndRolesForCampaign(campaignId));
@@ -773,11 +781,18 @@ public class UserCampaignServices {
 			Campaign result = campaignQueries.findCampaignConfiguration(campaignId);
 
 			if(withClasses) {
-				result.addClasses(
-						campaignClassQueries.getClassesAssociatedWithCampaign(
-								campaignId
-							)
-					);
+				try {
+					result.addClasses(
+							campaignClassQueries.getClassesAssociatedWithCampaign(
+									campaignId
+								)
+						);
+				}
+				catch(DomainException e) {
+					throw new ServiceException(
+							"There was a problem adding a class.",
+							e);
+				}
 			}
 			
 			if(withUsers) {
@@ -792,7 +807,14 @@ public class UserCampaignServices {
 							);
 					
 					for(Campaign.Role userRole : userRoles) {
-						result.addUser(campaignUsername, userRole);
+						try {
+							result.addUser(campaignUsername, userRole);
+						}
+						catch(DomainException e) {
+							throw new ServiceException(
+									"There was a problem adding a user.",
+									e);
+						}
 					}
 				}
 			}

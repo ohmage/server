@@ -158,7 +158,7 @@ public final class SurveyResponseServices {
 		for(SurveyResponse surveyResponse : surveyResponses) {
 			for(Response promptResponse : surveyResponse.getResponses().values()) {
 				if(promptResponse instanceof PhotoPromptResponse) {
-					Object responseValue = promptResponse.getResponseValue();
+					Object responseValue = promptResponse.getResponse();
 					if((responseValue instanceof UUID) && 
 							(! images.containsKey(responseValue.toString()))) {
 						throw new ServiceException(

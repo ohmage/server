@@ -47,6 +47,7 @@ import org.ohmage.domain.campaign.response.MultiChoiceCustomPromptResponse;
 import org.ohmage.domain.campaign.response.MultiChoicePromptResponse;
 import org.ohmage.domain.campaign.response.SingleChoiceCustomPromptResponse;
 import org.ohmage.domain.campaign.response.SingleChoicePromptResponse;
+import org.ohmage.exception.DomainException;
 import org.ohmage.exception.ServiceException;
 import org.ohmage.exception.ValidationException;
 import org.ohmage.request.InputKeys;
@@ -981,7 +982,24 @@ public final class SurveyResponseReadRequest extends UserRequest {
 										new HashMap<Integer, SurveyItem>(promptIds.size());
 								
 								for(String promptId : promptIds) {
-									tempPromptMap.put(currNumPrompts, campaign.getPrompt(campaign.getSurveyIdForPromptId(promptId), promptId));
+									try {
+										tempPromptMap.put(
+												currNumPrompts, 
+												campaign.getPrompt(
+														campaign.getSurveyIdForPromptId(
+																promptId), 
+														promptId));
+									}
+									catch(DomainException e) {
+										LOGGER.error(
+												"A prompt ID that should have already been validated, appears to no longer exist.",
+												e);
+										setFailed();
+										super.respond(
+												httpRequest, 
+												httpResponse, 
+												null);
+									}
 									currNumPrompts++;
 								}
 								
@@ -995,20 +1013,29 @@ public final class SurveyResponseReadRequest extends UserRequest {
 					int numSurveyResponses = surveyResponseList.size();
 					int numPromptResponses = 0;
 					for(SurveyResponse surveyResponse : surveyResponseList) {
-						numPromptResponses += processResponses(allColumns, 
-								surveyResponse, 
-								surveyResponse.getResponses(), 
-								prompts, 
-								usernames, clients, privacyStates, 
-								timestamps, utcTimestamps, 
-								epochMillisTimestamps, timezones, 
-								locationStatuses, locationLongitude, 
-								locationLatitude, locationTimestamp, 
-								locationTimeZone,
-								locationAccuracy, locationProvider,
-								surveyIds, surveyTitles, surveyDescriptions, 
-								launchContexts, surveyResponseIds, counts
-							);
+						try {
+							numPromptResponses += processResponses(allColumns, 
+									surveyResponse, 
+									surveyResponse.getResponses(), 
+									prompts, 
+									usernames, clients, privacyStates, 
+									timestamps, utcTimestamps, 
+									epochMillisTimestamps, timezones, 
+									locationStatuses, locationLongitude, 
+									locationLatitude, locationTimestamp, 
+									locationTimeZone,
+									locationAccuracy, locationProvider,
+									surveyIds, surveyTitles, surveyDescriptions, 
+									launchContexts, surveyResponseIds, counts
+								);
+						} 
+						catch(DomainException e) {
+							LOGGER.error(
+									"There was a problem aggregating the responses.",
+									e);
+							setFailed();
+							super.respond(httpRequest, httpResponse, null);
+						}
 					}
 					
 					// Add all of the applicable output stuff.
@@ -1458,6 +1485,8 @@ public final class SurveyResponseReadRequest extends UserRequest {
 	 * 
 	 * @throws JSONException Thrown if there is an error populating any of the
 	 * 						 JSONArrays.
+	 * 
+	 * @throws DomainException There was a problem aggregating the data.
 	 */
 	private int processResponses(final boolean allColumns, 
 			final SurveyResponse surveyResponse,
@@ -1473,7 +1502,7 @@ public final class SurveyResponseReadRequest extends UserRequest {
 			JSONArray surveyIds, JSONArray surveyTitles, 
 			JSONArray surveyDescriptions, JSONArray launchContexts,
 			JSONArray surveyResponseIds, JSONArray counts) 
-			throws JSONException {
+			throws JSONException, DomainException {
 
 		// Add each of the survey response-wide pieces of information.
 		if(allColumns || columns.contains(ColumnKey.USER_ID)) {
@@ -1613,7 +1642,7 @@ public final class SurveyResponseReadRequest extends UserRequest {
 							(OutputFormat.CSV.equals(outputFormat))) {
 						
 						// Get the response object.
-						Object responseObject = response.getResponseValue();
+						Object responseObject = response.getResponse();
 						
 						// If the response was not really a response, e.g.
 						// skipped, not displayed, etc., put a JSONObject.NULL
@@ -1761,7 +1790,7 @@ public final class SurveyResponseReadRequest extends UserRequest {
 						JSONArray values =
 								prompts.get(responseId).getJSONArray(JSON_KEY_VALUES);
 						
-						Object responseValue = response.getResponseValue();
+						Object responseValue = response.getResponse();
 						if(OutputFormat.CSV.equals(outputFormat)) {
 							responseValue = "\"" + responseValue + "\"";
 						}

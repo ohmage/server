@@ -113,20 +113,38 @@ public class MultiChoicePrompt extends ChoicePrompt {
 	}
 
 	/**
-	 * Validates that an Object is a valid response value. This must be one of
-	 * the following:<br />
-	 * <li>A {@link NoResponse} object.</li>
-	 * <li>An Integer key value.</li>
-	 * <li>A Collection of Integer key values.</li>
-	 * <li>A JSONArray of key values.</li>
-	 * <li>A String representing a {@link NoResponse} value.</li>
-	 * <li>A String representing a comma-separated list of keys.</li>
+	 * Validates that a given value is valid and, if so, converts it into an
+	 * appropriate object.
 	 * 
-	 * @param value The value to be validated.
+	 * @param value The value to be validated. This must be one of the  
+	 * 				following:<br />
+	 * 				<ul>
+	 * 				<li>{@link NoResponse}</li>
+	 * 				<li>{@link Integer}. This will be converted into a list of
+	 * 				  one items that contains this integer. The {@link Integer}
+	 * 				  should be the key of the item that the user chose.</li>
+	 * 				<li>A {@link Collection} of {@link Integer}s where each
+	 * 				  {@link Integer} is a key to a unique item the user chose.
+	 * 				  </li>
+	 * 				<li>A {@link JSONArray} of {@link Integer}s where each
+	 * 				  {@link Integer} is a key to a unique item the user chose.
+	 * 				  </li>
+	 * 				<li>{@link String} that represents:</li>
+	 * 				  <ul>
+	 * 				    <li>{@link NoResponse}</li>
+	 * 				    <li>A {@link JSONArray} of {@link Integer}s where each
+	 * 				      {@link Integer} is a key to a unique item the user 
+	 * 				      chose.</li>
+	 * 				    <li>A comma-separated list of {@link Integer}s where 
+	 * 				      each {@link Integer} is a key to a unique item the 
+	 * 				      user chose.</li>
+	 * 				  <ul>
+	 * 				</ul>
 	 * 
-	 * @return A {@link NoResponse} object or a Collection of Integers.
+	 * @return A {@link Collection} of {@link Integer}s or a {@link NoResponse}
+	 * 		   object.
 	 * 
-	 * @throws DomainException Thrown if the value is not valid.
+	 * @throws DomainException The value is invalid.
 	 */
 	@Override
 	public Object validateValue(final Object value) throws DomainException {

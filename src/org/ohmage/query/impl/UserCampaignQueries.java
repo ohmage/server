@@ -9,12 +9,13 @@ import java.util.List;
 import java.util.Map;
 
 import javax.sql.DataSource;
-import javax.swing.tree.RowMapper;
 
 import org.ohmage.domain.campaign.Campaign;
 import org.ohmage.domain.campaign.Campaign.Role;
 import org.ohmage.exception.DataAccessException;
 import org.ohmage.query.IUserCampaignQueries;
+import org.springframework.jdbc.core.RowMapper;
+import org.springframework.jdbc.core.SingleColumnRowMapper;
 
 /**
  * This class contains all of the functionality for reading and writing 

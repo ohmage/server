@@ -26,6 +26,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.apache.log4j.Logger;
 import org.ohmage.domain.User;
 import org.ohmage.exception.DomainException;
+import org.springframework.beans.factory.DisposableBean;
 
 /**
  * User storage. User objects are mapped to unique ids. Avoids dependencies on JEE session management. The lifetime param set on 

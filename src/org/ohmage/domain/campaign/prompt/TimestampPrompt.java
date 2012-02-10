@@ -73,12 +73,23 @@ public class TimestampPrompt extends Prompt {
 	 * Validates that a given value is valid and, if so, converts it into an
 	 * appropriate object.
 	 * 
-	 * @param value The value to be validated.
+	 * @param value The value to be validated. This must be one of the  
+	 * 				following:<br />
+	 * 				<ul>
+	 * 				<li>{@link NoResponse}</li>
+	 * 				<li>{@link Date}</li>
+	 * 				<li>{@link Calendar}</li>
+	 * 				<li>{@link String} that represents:</li>
+	 * 				  <ul>
+	 * 				    <li>{@link NoResponse}</li>
+	 * 				    <li>ISO 8601 formatted date with or without the time.
+	 * 				      </li>
+	 * 				  <ul>
+	 * 				</ul>
 	 * 
-	 * @return A String value if it is a valid response or a {@link NoResponse}
-	 * 		   object value if it is a valid {@link NoResponse} value.
+	 * @return A Date object or a {@link NoResponse} object.
 	 * 
-	 * @throws DomainException Thrown if the value is invalid.
+	 * @throws DomainException The value is invalid.
 	 */
 	@Override
 	public Object validateValue(final Object value) throws DomainException {

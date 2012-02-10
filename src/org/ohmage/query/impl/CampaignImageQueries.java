@@ -12,6 +12,8 @@ import javax.sql.DataSource;
 import org.ohmage.domain.campaign.SurveyResponse;
 import org.ohmage.exception.DataAccessException;
 import org.ohmage.query.ICampaignImageQueries;
+import org.springframework.jdbc.core.ResultSetExtractor;
+import org.springframework.jdbc.core.SingleColumnRowMapper;
 
 /**
  * This class is responsible for all queries pertaining to image-campaign 

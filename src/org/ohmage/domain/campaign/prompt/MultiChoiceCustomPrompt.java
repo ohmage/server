@@ -111,13 +111,38 @@ public class MultiChoiceCustomPrompt extends CustomChoicePrompt {
 	}
 
 	/**
-	 * Validates that some value is a valid response for this prompt.
+	 * Validates that a given value is valid and, if so, converts it into an
+	 * appropriate object.
 	 * 
-	 * @param value The value to be validated.
+	 * @param value The value to be validated. This must be one of the  
+	 * 				following:<br />
+	 * 				<ul>
+	 * 				<li>{@link NoResponse}</li>
+	 * 				<li>{@link Integer}. This will be converted into a list of
+	 * 				  one items that contains this integer. The {@link Integer}
+	 * 				  should be the key of the item that the user chose.</li>
+	 * 				<li>A {@link Collection} of {@link String}s where each
+	 * 				  {@link String} is the label for a unique item the user 
+	 * 				  chose.</li>
+	 * 				<li>A {@link JSONArray} of {@link String}s where each
+	 * 				  {@link String} is the label for a unique item the user 
+	 * 				  chose.</li>
+	 * 				<li>{@link String} that represents:</li>
+	 * 				  <ul>
+	 * 				    <li>{@link NoResponse}</li>
+	 * 				    <li>A {@link JSONArray} of {@link String}s where each
+	 * 				      {@link String} is the label for a unique item the  
+	 * 				      user chose.</li>
+	 * 				    <li>A comma-separated list of {@link String}s where 
+	 * 				      each {@link String} is the label for a unique item  
+	 * 				      the user chose.</li>
+	 * 				  <ul>
+	 * 				</ul>
 	 * 
-	 * @return A collection of label values.
+	 * @return A {@link Collection} of {@link String}s or a {@link NoResponse}
+	 * 		   object.
 	 * 
-	 * @throws DomainException Thrown if the value is not valid.
+	 * @throws DomainException The value is invalid.
 	 */
 	@Override
 	public Object validateValue(

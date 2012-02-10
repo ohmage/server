@@ -10,14 +10,14 @@ import java.util.Map;
 import java.util.Set;
 
 import javax.sql.DataSource;
-import javax.swing.tree.RowMapper;
 
 import org.apache.log4j.Logger;
 import org.ohmage.domain.Clazz;
 import org.ohmage.exception.DataAccessException;
 import org.ohmage.query.IUserClassQueries;
 import org.ohmage.util.StringUtils;
-
+import org.springframework.jdbc.core.RowMapper;
+import org.springframework.jdbc.core.SingleColumnRowMapper;
 
 /**
  * This class contains all of the functionality for creating, reading, 

@@ -1,6 +1,5 @@
 package org.ohmage.query.impl;
 
-
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.sql.ResultSet;
@@ -14,16 +13,24 @@ import java.util.Map;
 import java.util.Set;
 
 import javax.sql.DataSource;
-import javax.swing.tree.RowMapper;
 
 import org.ohmage.domain.Clazz;
 import org.ohmage.domain.campaign.Campaign;
 import org.ohmage.domain.campaign.Survey;
 import org.ohmage.exception.DataAccessException;
+import org.ohmage.exception.DomainException;
 import org.ohmage.query.ICampaignQueries;
 import org.ohmage.query.IUserCampaignClassQueries;
 import org.ohmage.query.IUserClassQueries;
 import org.ohmage.util.TimeUtils;
+import org.springframework.dao.IncorrectResultSizeDataAccessException;
+import org.springframework.jdbc.core.RowMapper;
+import org.springframework.jdbc.core.SingleColumnRowMapper;
+import org.springframework.jdbc.datasource.DataSourceTransactionManager;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionException;
+import org.springframework.transaction.TransactionStatus;
+import org.springframework.transaction.support.DefaultTransactionDefinition;
 
 /**
  * This class contains all of the functionality for creating, reading, 
@@ -477,7 +484,7 @@ public final class CampaignQueries extends Query implements ICampaignQueries {
 										rs.getString("xml")
 								);
 							}
-							catch(IllegalArgumentException e) {
+							catch(DomainException e) {
 								throw new SQLException(
 										"The XML is corrupt.", 
 										e);
@@ -635,18 +642,25 @@ public final class CampaignQueries extends Query implements ICampaignQueries {
 								}
 							}
 							
-							return new Campaign(
-									campaignId,
-									rs.getString("name"),
-									rs.getString("description"),
-									null,
-									iconUrl,
-									rs.getString("authored_by"),
-									Campaign.RunningState.valueOf(rs.getString("running_state").toUpperCase()),
-									Campaign.PrivacyState.valueOf(rs.getString("privacy_state").toUpperCase()),
-									rs.getTimestamp("creation_timestamp"),
-									new HashMap<String, Survey>(0),
-									rs.getString("xml"));
+							try {
+								return new Campaign(
+										campaignId,
+										rs.getString("name"),
+										rs.getString("description"),
+										null,
+										iconUrl,
+										rs.getString("authored_by"),
+										Campaign.RunningState.valueOf(rs.getString("running_state").toUpperCase()),
+										Campaign.PrivacyState.valueOf(rs.getString("privacy_state").toUpperCase()),
+										rs.getTimestamp("creation_timestamp"),
+										new HashMap<String, Survey>(0),
+										rs.getString("xml"));
+							} 
+							catch(DomainException e) {
+								throw new SQLException(
+										"There was a problem creating the campaign.",
+										e);
+							}
 						}
 					});
 		}
