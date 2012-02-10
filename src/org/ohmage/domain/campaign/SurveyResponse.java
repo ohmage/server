@@ -21,7 +21,6 @@ import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.domain.Location;
 import org.ohmage.domain.campaign.Response.NoResponse;
 import org.ohmage.exception.DomainException;
-import org.ohmage.exception.ErrorCodeException;
 import org.ohmage.util.StringUtils;
 
 /**
@@ -735,9 +734,6 @@ public class SurveyResponse {
 	 * @param location The location information. This may be null if it  
 	 * 				   correlates with the location status.
 	 * 
-	 * @throws ErrorCodeException Thrown if any of the information provided is
-	 * 							  missing or invalid.
-	 * 
 	 * @throws DomainException Thrown if any of the information provided is 
 	 * 						   missing or invalid.
 	 */
@@ -936,7 +932,7 @@ public class SurveyResponse {
 	 * 
 	 * @param response The survey response as a JSONObject.
 	 * 
-	 * @throws ErrorCodeException Thrown if the JSONObject could not be decoded
+	 * @throws DomainException Thrown if the JSONObject could not be decoded
 	 * 							  as a survey response.
 	 */
 	public SurveyResponse(
@@ -1761,8 +1757,8 @@ public class SurveyResponse {
 	 * @return A RepeatableSetResponse object that represents the responses
 	 * 		   to this repeatable set gathered from the JSONObject.
 	 *   
-	 * @throws ErrorCodeException Thrown if the repeatable set JSONObject is
-	 * 							  malformed.
+	 * @throws DomainException Thrown if the repeatable set JSONObject is
+	 * 						   malformed.
 	 */
 	private RepeatableSetResponse processRepeatableSet(
 			final RepeatableSet repeatableSet, 
