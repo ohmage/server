@@ -267,7 +267,7 @@ public final class CampaignQueries extends Query implements ICampaignQueries {
 	// Updates the campaign's XML.
 	private static final String SQL_UPDATE_XML =
 		"UPDATE campaign " +
-		"SET xml = ? " +
+		"SET xml = ?, creation_timestamp = now() " +
 		"WHERE urn = ?";
 	
 	// Updates a campaign's description.
