@@ -1,21 +1,10 @@
-The ohmage server project. All server source code and database configuration files live in this repo.
+This is the ohmage server project developed at CENS (http://research.cens.ucla.edu/ http://ohmage.org).
 
-To deploy the server application itself do the following:
+ohmage is a platform for creating, capturing and visualizing configurable mobile phone data streams.
 
-1) Build the server with ant.
-    "ant clean dist"
-    
-2) Stop the server if it is currently running.
-    "/opt/aw/as/bin/asd.sh stop"
+ohmage server is the reference DSU (data storage unit) for Open mHealth. (http://openmhealth.org/)
 
-3) Destroy the existing server app if it exists.
-    "rm -fv /opt/aw/as/webapps/app.war"
-    "rm -rfv /opt/aw/as/webapps/app/"
+For more details or questions, you can check out our wiki or contact selsky@cens.ucla.edu.
 
-4) Copy the newly built WAR file from the dist directory into the webapps directory.
-    "cp dist/<WAR file> /opt/aw/as/webapps/app.war"
-    
-5) Start the server.
-    "/opt/aw/as/bin/asd.sh start"
 
-Please send questions to selsky@cens.ucla.edu.
+
