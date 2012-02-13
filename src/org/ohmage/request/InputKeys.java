@@ -85,8 +85,6 @@ public final class InputKeys {
 	public static final String SURVEY_RESPONSE_OWNER = "owner";
 	public static final String SURVEYS = "surveys";
 	public static final String SURVEY_FUNCTION_PRIVACY_STATE_GROUP_ITEM_LIST = "privacy_state_item_list";
-	public static final String SURVEY_RESPONSES_TO_SKIP = "num_survey_responses_to_skip";
-	public static final String SURVEY_RESPONSES_TO_PROCESS = "num_survey_responses_to_process";
 	
 	// Prompt Constants
 	public static final String PROMPT_ID = "prompt_id";

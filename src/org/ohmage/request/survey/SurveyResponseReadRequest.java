@@ -534,18 +534,18 @@ public final class SurveyResponseReadRequest extends UserRequest {
 				}
 				
 				// Number of survey responses to skip.
-				t = getParameterValues(InputKeys.SURVEY_RESPONSES_TO_SKIP);
+				t = getParameterValues(InputKeys.NUM_TO_SKIP);
 				if(t.length > 1) {
-					throw new ValidationException(ErrorCode.SURVEY_INVALID_SURVEY_RESPONSES_TO_SKIP, "Multiple values were given for the number of survey responses to skip: " + InputKeys.SURVEY_RESPONSES_TO_SKIP);
+					throw new ValidationException(ErrorCode.SURVEY_INVALID_SURVEY_RESPONSES_TO_SKIP, "Multiple values were given for the number of survey responses to skip: " + InputKeys.NUM_TO_SKIP);
 				}
 				else if(t.length == 1) {
 					tSurveyResponsesToSkip = SurveyResponseValidators.validateNumSurveyResponsesToSkip(t[0]);
 				}
 				
 				// Number of survey responses to process.
-				t = getParameterValues(InputKeys.SURVEY_RESPONSES_TO_PROCESS);
+				t = getParameterValues(InputKeys.NUM_TO_RETURN);
 				if(t.length > 1) {
-					throw new ValidationException(ErrorCode.SURVEY_INVALID_SURVEY_RESPONSES_TO_PROCESS, "Multiple values were given for the number of survey responses to process: " + InputKeys.SURVEY_RESPONSES_TO_PROCESS);
+					throw new ValidationException(ErrorCode.SURVEY_INVALID_SURVEY_RESPONSES_TO_PROCESS, "Multiple values were given for the number of survey responses to process: " + InputKeys.NUM_TO_RETURN);
 				}
 				else if(t.length == 1) {
 					tSurveyResponsesToProcess = SurveyResponseValidators.validateNumSurveyResponsesToProcess(t[0]);
