@@ -138,6 +138,8 @@ public final class InputKeys {
 	
 	// Shared Constants
 	public static final String DESCRIPTION = "description";
+	public static final String NUM_TO_SKIP = "num_to_skip";
+	public static final String NUM_TO_RETURN = "num_to_return";
 	
 	// Document Constants
 	public static final String DOCUMENT = "document";

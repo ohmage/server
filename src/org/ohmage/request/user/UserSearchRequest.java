@@ -15,9 +15,9 @@
  ******************************************************************************/
 package org.ohmage.request.user;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -26,12 +26,14 @@ import org.apache.log4j.Logger;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.ohmage.annotator.Annotator.ErrorCode;
+import org.ohmage.domain.User;
 import org.ohmage.domain.UserInformation;
 import org.ohmage.exception.ServiceException;
 import org.ohmage.exception.ValidationException;
 import org.ohmage.request.InputKeys;
 import org.ohmage.request.UserRequest;
 import org.ohmage.service.UserServices;
+import org.ohmage.util.StringUtils;
 import org.ohmage.validator.UserValidators;
 
 /**
@@ -118,6 +120,18 @@ import org.ohmage.validator.UserValidators;
  *       and their JSON data contains this value.</td>
  *     <td>false</td>
  *   </tr>
+ *   <tr>
+ *     <td>{@value org.ohmage.request.InputKeys#NUM_TO_SKIP}</td>
+ *     <td>The number of users to skip before processing to facilitate paging.
+ *       </td>
+ *     <td>false</td>
+ *   </tr>
+ *   <tr>
+ *     <td>{@value org.ohmage.request.InputKeys#NUM_TO_RETURN}</td>
+ *     <td>The number of users to return after skipping to facilitate paging.
+ *       </td>
+ *     <td>false</td>
+ *   </tr>
  * </table>
  * 
  * @author John Jenkins
@@ -136,6 +150,9 @@ public class UserSearchRequest extends UserRequest {
 	private final String personalId;
 	private final String emailAddress;
 	private final String jsonData;
+	
+	private final int numToSkip;
+	private final int numToReturn;
 	
 	private final Map<String, UserInformation> userInformation;
 	
@@ -160,6 +177,9 @@ public class UserSearchRequest extends UserRequest {
 		String tEmailAddress = null;
 		String tJsonData = null;
 		
+		int tNumToSkip = 0;
+		int tNumToReturn = User.MAX_NUM_TO_RETURN;
+		
 		if(! isFailed()) {
 			LOGGER.info("Creating a user search request.");
 			
@@ -173,7 +193,12 @@ public class UserSearchRequest extends UserRequest {
 								InputKeys.USERNAME);
 				}
 				else if(t.length == 1) {
-					tUsername = t[0];
+					if(StringUtils.isEmptyOrWhitespaceOnly(t[0])) {
+						tUsername = null;
+					}
+					else {
+						tUsername = t[0];
+					}
 				}
 				
 				t = getParameterValues(InputKeys.USER_ADMIN);
@@ -229,7 +254,12 @@ public class UserSearchRequest extends UserRequest {
 								InputKeys.FIRST_NAME);
 				}
 				else if(t.length == 1) {
-					tFirstName = t[0];
+					if(StringUtils.isEmptyOrWhitespaceOnly(t[0])) {
+						tFirstName = null;
+					}
+					else {
+						tFirstName = t[0];
+					}
 				}
 				
 				t = getParameterValues(InputKeys.LAST_NAME);
@@ -240,7 +270,12 @@ public class UserSearchRequest extends UserRequest {
 								InputKeys.LAST_NAME);
 				}
 				else if(t.length == 1) {
-					tLastName = t[0];
+					if(StringUtils.isEmptyOrWhitespaceOnly(t[0])) {
+						tLastName = null;
+					}
+					else {
+						tLastName = t[0];
+					}
 				}
 				
 				t = getParameterValues(InputKeys.ORGANIZATION);
@@ -251,7 +286,12 @@ public class UserSearchRequest extends UserRequest {
 								InputKeys.ORGANIZATION);
 				}
 				else if(t.length == 1) {
-					tOrganization = t[0];
+					if(StringUtils.isEmptyOrWhitespaceOnly(t[0])) {
+						tOrganization = null;
+					}
+					else {
+						tOrganization = t[0];
+					}
 				}
 				
 				t = getParameterValues(InputKeys.PERSONAL_ID);
@@ -262,7 +302,12 @@ public class UserSearchRequest extends UserRequest {
 								InputKeys.PERSONAL_ID);
 				}
 				else if(t.length == 1) {
-					tPersonalId = t[0];
+					if(StringUtils.isEmptyOrWhitespaceOnly(t[0])) {
+						tPersonalId = null;
+					}
+					else {
+						tPersonalId = t[0];
+					}
 				}
 				
 				t = getParameterValues(InputKeys.EMAIL_ADDRESS);
@@ -273,7 +318,12 @@ public class UserSearchRequest extends UserRequest {
 								InputKeys.EMAIL_ADDRESS);
 				}
 				else if(t.length == 1) {
-					tEmailAddress = t[0];
+					if(StringUtils.isEmptyOrWhitespaceOnly(t[0])) {
+						tEmailAddress = null;
+					}
+					else {
+						tEmailAddress = t[0];
+					}
 				}
 				
 				t = getParameterValues(InputKeys.USER_JSON_DATA);
@@ -284,7 +334,34 @@ public class UserSearchRequest extends UserRequest {
 								InputKeys.USER_JSON_DATA);
 				}
 				else if(t.length == 1) {
-					tJsonData = t[0];
+					if(StringUtils.isEmptyOrWhitespaceOnly(t[0])) {
+						tJsonData = null;
+					}
+					else {
+						tJsonData = t[0];
+					}
+				}
+				
+				t = getParameterValues(InputKeys.NUM_TO_SKIP);
+				if(t.length > 1) {
+					throw new ValidationException(
+							ErrorCode.SERVER_INVALID_NUM_TO_SKIP,
+							"Multiple number to skip parameters were given: " + 
+								InputKeys.NUM_TO_SKIP);
+				}
+				else if(t.length == 1) {
+					tNumToSkip = UserValidators.validateNumToSkip(t[0]);
+				}
+				
+				t = getParameterValues(InputKeys.NUM_TO_RETURN);
+				if(t.length > 1) {
+					throw new ValidationException(
+							ErrorCode.SERVER_INVALID_NUM_TO_RETURN,
+							"Multiple number to return parameters were given: " +
+								InputKeys.NUM_TO_RETURN);
+				}
+				else if(t.length == 1) {
+					tNumToReturn = UserValidators.validateNumToReturn(t[0]);
 				}
 			}
 			catch(ValidationException e) {
@@ -304,6 +381,9 @@ public class UserSearchRequest extends UserRequest {
 		personalId = tPersonalId;
 		emailAddress = tEmailAddress;
 		jsonData = tJsonData;
+		
+		numToSkip = tNumToSkip;
+		numToReturn = tNumToReturn;
 		
 		userInformation = new HashMap<String, UserInformation>();
 	}
@@ -325,7 +405,7 @@ public class UserSearchRequest extends UserRequest {
 			UserServices.instance().verifyUserIsAdmin(getUser().getUsername());
 			
 			LOGGER.info("Searching for the users that satisfy the parameters.");
-			Set<String> usernames = 
+			Collection<String> usernames = 
 				UserServices.instance().userSearch(
 						username, 
 						admin, 
@@ -337,9 +417,12 @@ public class UserSearchRequest extends UserRequest {
 						organization, 
 						personalId, 
 						emailAddress, 
-						jsonData);
+						jsonData,
+						numToSkip,
+						numToReturn);
 			
 			// Get the user's information.
+			LOGGER.info("Collecting information about each of the users.");
 			for(String username : usernames) {
 				userInformation.put(
 						username,

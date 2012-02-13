@@ -15,7 +15,9 @@
  ******************************************************************************/
 package org.ohmage.service;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -398,7 +400,7 @@ public final class UserServices {
 	 * 
 	 * @throws ServiceException Thrown if there is an error.
 	 */
-	public Set<String> userSearch(
+	public Collection<String> userSearch(
 			final String partialUsername,
 			final Boolean admin,
 			final Boolean enabled,
@@ -409,7 +411,9 @@ public final class UserServices {
 			final String partialOrganization,
 			final String partialPersonalId,
 			final String partialEmailAddress,
-			final String partialJsonData)
+			final String partialJsonData,
+			final int numToSkip,
+			final int numToReturn)
 			throws ServiceException {
 		
 		try {
@@ -553,7 +557,15 @@ public final class UserServices {
 				result = new HashSet<String>(userQueries.getAllUsernames());
 			}
 			
-			return result;
+			List<String> sortedResult = new ArrayList<String>(result);
+			Collections.sort(sortedResult);
+			int size = sortedResult.size();
+
+			int lastIndex = numToSkip + numToReturn;
+			return new ArrayList<String>(
+					sortedResult.subList(
+							numToSkip, 
+							(lastIndex > size) ? size : lastIndex));
 		}
 		catch(DataAccessException e) {
 			throw new ServiceException(e);

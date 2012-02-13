@@ -29,6 +29,11 @@ import org.ohmage.util.StringUtils;
  * @author John Jenkins
  */
 public class User {
+	/**
+	 * The maximum number of users to return in user read.
+	 */
+	public static final int MAX_NUM_TO_RETURN = Integer.MAX_VALUE;
+	
 	private final String username;
 	private String password;
 	private boolean hashPassword;
