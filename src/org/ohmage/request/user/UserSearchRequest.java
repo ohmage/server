@@ -15,6 +15,7 @@
  ******************************************************************************/
 package org.ohmage.request.user;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
@@ -155,6 +156,7 @@ public class UserSearchRequest extends UserRequest {
 	private final int numToReturn;
 	
 	private final Map<String, UserInformation> userInformation;
+	private int totalNumResults;
 	
 	/**
 	 * Builds this request based on the information in the HTTP request.
@@ -405,8 +407,8 @@ public class UserSearchRequest extends UserRequest {
 			UserServices.instance().verifyUserIsAdmin(getUser().getUsername());
 			
 			LOGGER.info("Searching for the users that satisfy the parameters.");
-			Collection<String> usernames = 
-				UserServices.instance().userSearch(
+			Collection<String> usernames = new ArrayList<String>();
+			totalNumResults = UserServices.instance().userSearch(
 						username, 
 						admin, 
 						enabled, 
@@ -419,7 +421,8 @@ public class UserSearchRequest extends UserRequest {
 						emailAddress, 
 						jsonData,
 						numToSkip,
-						numToReturn);
+						numToReturn,
+						usernames);
 			
 			// Get the user's information.
 			LOGGER.info("Collecting information about each of the users.");
@@ -450,6 +453,10 @@ public class UserSearchRequest extends UserRequest {
 			result = new JSONObject();
 			
 			try {
+				JSONObject metadata = new JSONObject();
+				metadata.put(JSON_KEY_TOTAL_NUM_RESULTS, totalNumResults);
+				result.put(JSON_KEY_METADATA, metadata);
+				
 				for(String username : userInformation.keySet()) {
 					result.put(
 							username, 

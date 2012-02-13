@@ -79,11 +79,23 @@ public abstract class Request {
 	 */
 	public static final String JSON_KEY_DATA = "data";
 	/**
+	 * The metadata associated with the response.
+	 */
+	public static final String JSON_KEY_METADATA = "metadata";
+	/**
 	 * The key to use when responding with a JSONOBject where the request has
 	 * failed. The value associated with this key is the error code and error
 	 * text describing why this request failed.
 	 */
 	public static final String JSON_KEY_ERRORS = "errors";
+
+	/**
+	 * The JSON key for the metadata that describes how many total results 
+	 * exist that match the criteria as opposed to the number being
+	 * returned, which may be different due to paging or aggregation.
+	 */
+	public static final String JSON_KEY_TOTAL_NUM_RESULTS = 
+			"total_num_results";
 	
 	/**
 	 * A hard-coded JSONObject which represents a successful result.

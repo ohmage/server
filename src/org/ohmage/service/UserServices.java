@@ -396,11 +396,14 @@ public final class UserServices {
 	 * 						  have JSON data, and that JSON data contains this
 	 * 						  value.
 	 * 
-	 * @return The, possibly empty but never null, set of usernames.
+	 * @param results The list of usernames that matches the results. This list
+	 * 				  is not emptied and the results are added to it.
+	 * 
+	 * @return The number of usernames that matched the given criteria.
 	 * 
 	 * @throws ServiceException Thrown if there is an error.
 	 */
-	public Collection<String> userSearch(
+	public int userSearch(
 			final String partialUsername,
 			final Boolean admin,
 			final Boolean enabled,
@@ -413,7 +416,8 @@ public final class UserServices {
 			final String partialEmailAddress,
 			final String partialJsonData,
 			final int numToSkip,
-			final int numToReturn)
+			final int numToReturn,
+			final Collection<String> results)
 			throws ServiceException {
 		
 		try {
@@ -562,10 +566,12 @@ public final class UserServices {
 			int size = sortedResult.size();
 
 			int lastIndex = numToSkip + numToReturn;
-			return new ArrayList<String>(
+			results.addAll(
 					sortedResult.subList(
 							numToSkip, 
 							(lastIndex > size) ? size : lastIndex));
+			
+			return size;
 		}
 		catch(DataAccessException e) {
 			throw new ServiceException(e);

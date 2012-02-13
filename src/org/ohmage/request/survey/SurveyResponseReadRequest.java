@@ -196,10 +196,6 @@ public final class SurveyResponseReadRequest extends UserRequest {
 	private static final Logger LOGGER = Logger.getLogger(SurveyResponseReadRequest.class);
 	
 	/**
-	 * The JSON key for the metadata associated with a response read request.
-	 */
-	public static final String JSON_KEY_METADATA = "metadata";
-	/**
 	 * The, optional, additional JSON key associated with a prompt responses in
 	 * the 
 	 * {@link org.ohmage.domain.campaign.SurveyResponse.OutputFormat#JSON_COLUMNS JSON_COLUMNS} 
@@ -247,13 +243,6 @@ public final class SurveyResponseReadRequest extends UserRequest {
 	 * @see org.ohmage.request.InputKeys#COLLAPSE
 	 */
 	public static final String JSON_KEY_COUNT = "count";
-	/**
-	 * The JSON key for the metadata that describes how many total survey 
-	 * responses exist that match the criteria as opposed to the number being
-	 * returned, which may be different due to paging or aggregation.
-	 */
-	public static final String JSON_KEY_TOTAL_NUM_SURVEY_RESPONSES = 
-			"total_num_survey_responses";
 	
 	public static final String URN_SPECIAL_ALL = "urn:ohmage:special:all";
 	public static final Collection<String> URN_SPECIAL_ALL_LIST;
@@ -913,7 +902,7 @@ public final class SurveyResponseReadRequest extends UserRequest {
 						
 						// Add the total count to the metadata.
 						metadata.put(
-								JSON_KEY_TOTAL_NUM_SURVEY_RESPONSES, 
+								JSON_KEY_TOTAL_NUM_RESULTS, 
 								surveyResponseCount);
 						
 						result.put(JSON_KEY_METADATA, metadata);
@@ -1212,7 +1201,7 @@ public final class SurveyResponseReadRequest extends UserRequest {
 						
 						// Add the total count to the metadata.
 						metadata.put(
-								JSON_KEY_TOTAL_NUM_SURVEY_RESPONSES, 
+								JSON_KEY_TOTAL_NUM_RESULTS, 
 								surveyResponseCount);
 					}
 					
