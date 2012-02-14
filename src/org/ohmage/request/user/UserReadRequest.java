@@ -267,6 +267,10 @@ public class UserReadRequest extends UserRequest {
 				if(toIndex >= numResults) {
 					toIndex = numResults;
 				}
+				// Rollover check.
+				else if(toIndex < 0) {
+					toIndex = numResults;
+				}
 				
 				Collection<String> resultUsernames = result.keySet();
 				
@@ -292,11 +296,11 @@ public class UserReadRequest extends UserRequest {
 	 */
 	@Override
 	public void respond(HttpServletRequest httpRequest, HttpServletResponse httpResponse) {
+		JSONObject metadata = new JSONObject();
 		JSONObject jsonResult = new JSONObject();
+		
 		try {
-			JSONObject metadata = new JSONObject();
 			metadata.put(JSON_KEY_TOTAL_NUM_RESULTS, numResults);
-			jsonResult.put(JSON_KEY_METADATA, metadata);
 			
 			for(String username : result.keySet()) {
 				UserPersonal personalInfo = result.get(username);
@@ -313,6 +317,6 @@ public class UserReadRequest extends UserRequest {
 			LOGGER.error("There was an error building the respons object.");
 			setFailed();
 		}
-		super.respond(httpRequest, httpResponse, jsonResult);
+		super.respond(httpRequest, httpResponse, metadata, jsonResult);
 	}
 }

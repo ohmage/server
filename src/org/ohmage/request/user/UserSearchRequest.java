@@ -447,15 +447,16 @@ public class UserSearchRequest extends UserRequest {
 			HttpServletResponse httpResponse) {
 		
 		LOGGER.info("Responding to a user search request.");
+		
+		JSONObject metadata = null;
 		JSONObject result = null;
 		
 		if(! isFailed()) {
+			metadata = new JSONObject();
 			result = new JSONObject();
 			
 			try {
-				JSONObject metadata = new JSONObject();
 				metadata.put(JSON_KEY_TOTAL_NUM_RESULTS, totalNumResults);
-				result.put(JSON_KEY_METADATA, metadata);
 				
 				for(String username : userInformation.keySet()) {
 					result.put(
@@ -469,6 +470,6 @@ public class UserSearchRequest extends UserRequest {
 			}
 		}
 		
-		super.respond(httpRequest, httpResponse, result);
+		super.respond(httpRequest, httpResponse, metadata, result);
 	}
 }

@@ -24,6 +24,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.log4j.Logger;
 import org.apache.log4j.NDC;
+import org.json.JSONException;
 import org.json.JSONObject;
 import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.cache.UserBin;
@@ -502,6 +503,39 @@ public abstract class UserRequest extends Request {
 		
 		return token;
 	}
+
+	/**
+	 * Generates the success/fail response for the user with an additional key-
+	 * value pair. It also adds a Set-Cookie header in the response for the 
+	 * authentication / session token if one exists.
+	 * 
+	 * @param httpRequest The HTTP request that began this exchange.
+	 * 
+	 * @param httpResponse The HTTP response back to the requester.
+	 * 
+	 * @param key The second to key to include when the request succeeds. The
+	 * 			  first will be {@link Request#JSON_KEY_RESULT}.
+	 * 
+	 * @param value The value to assign to the second key.
+	 */
+	protected void respond(
+			final HttpServletRequest httpRequest, 
+			final HttpServletResponse httpResponse, 
+			final String key, 
+			final Object value) {
+		
+		JSONObject response = new JSONObject();
+		
+		try {
+			response.put(key, value);
+		}
+		catch(JSONException e) {
+			LOGGER.error("Error building response object.", e);
+			setFailed();
+		}
+		
+		respond(httpRequest, httpResponse, response);
+	}
 	
 	/**
 	 * Generates the response for the user based the 'jsonResponse'. It also
@@ -513,41 +547,57 @@ public abstract class UserRequest extends Request {
 	 * @param httpResponse The HTTP response back to the requester.
 	 * 
 	 * @param jsonResponse A JSONObject representing what should be sent as the
-	 * 					   data to the requester.
+	 * 					   {@link Request#JSON_KEY_DATA} to the requester.
 	 */
-	protected void respond(HttpServletRequest httpRequest, HttpServletResponse httpResponse, JSONObject jsonResponse) {
-		if(user != null) {
-			final String token = user.getToken(); 
-			if(token != null) {
-				CookieUtils.setCookieValue(httpResponse, InputKeys.AUTH_TOKEN, token, (int) (UserBin.getTokenRemainingLifetimeInMillis(token) / MILLIS_IN_A_SECOND));
-			}
-		}
+	protected void respond(
+			final HttpServletRequest httpRequest, 
+			final HttpServletResponse httpResponse, 
+			final JSONObject jsonResponse) {
 		
-		super.respond(httpRequest, httpResponse, jsonResponse);
+		respond(httpRequest, httpResponse, (JSONObject) null, jsonResponse);
 	}
 	
 	/**
-	 * Generates the success/fail response for the user with an additional key-
-	 * value pair. It also adds a Set-Cookie header in the response for the 
-	 * authentication / session token if one exists.
+	 * Generates the response for the user that contains metadata and the 
+	 * actual data to return to the user.
 	 * 
-	 * @param httpRequest The HTTP request that began this exchange.
+	 * @param httpRequest The HTTP request that began this request.
 	 * 
 	 * @param httpResponse The HTTP response back to the requester.
 	 * 
-	 * @param key The second to key to include when the request succeeds.
+	 * @param metadata The metadata to include in the response with the key
+	 * 				   {@link Request#JSON_KEY_METADATA}.
 	 * 
-	 * @param value The value to assign to the second key.
+	 * @param data The data to include in the response with the key
+	 * 			   {@link Request#JSON_KEY_DATA}.
 	 */
-	protected void respond(HttpServletRequest httpRequest, HttpServletResponse httpResponse, String key, Object value) {
+	protected void respond(
+			final HttpServletRequest httpRequest, 
+			final HttpServletResponse httpResponse, 
+			final JSONObject metadata, 
+			final JSONObject data) {
+		
 		if(user != null) {
 			final String token = user.getToken(); 
 			if(token != null) {
-				CookieUtils.setCookieValue(httpResponse, InputKeys.AUTH_TOKEN, token, (int) (UserBin.getTokenRemainingLifetimeInMillis(token) / MILLIS_IN_A_SECOND));
+				CookieUtils.setCookieValue(
+						httpResponse, 
+						InputKeys.AUTH_TOKEN, 
+						token, 
+						(int) (UserBin.getTokenRemainingLifetimeInMillis(token) / MILLIS_IN_A_SECOND));
 			}
 		}
 		
-		super.respond(httpRequest, httpResponse, key, value);
+		JSONObject response = new JSONObject();
+		try {
+			response.put(JSON_KEY_METADATA, metadata);
+			response.put(JSON_KEY_DATA, data);
+		}
+		catch(JSONException e) {
+			LOGGER.error("There was an error building the response.", e);
+			setFailed();
+		}
+		super.respond(httpRequest, httpResponse, response);
 	}
 	/**************************************************************************
 	 *  End JEE Requirements

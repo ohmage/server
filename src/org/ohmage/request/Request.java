@@ -289,7 +289,12 @@ public abstract class Request {
 	/**
 	 * Writes the response that is a JSONObject. This is a helper function for
 	 * when {@link #respond(HttpServletRequest, HttpServletResponse)} is called
-	 * given that most responses are in some sort of JSON format. 
+	 * given that most responses are in some sort of JSON format. The response
+	 * is modified only add a "success" message and then is sent, unless the
+	 * request fails in which case a failure message is sent instead of the
+	 * response. This means that the key {@link #JSON_KEY_RESULT} is added to
+	 * this JSONObject and any previous value associated with that key is 
+	 * removed.
 	 *  
 	 * @param httpRequest The initial HTTP request that we are processing.
 	 * 
@@ -298,33 +303,22 @@ public abstract class Request {
 	 * @param jsonResponse An already-constructed JSONObject that contains the
 	 * 					   'data' portion of the object.
 	 */
-	protected void respond(HttpServletRequest httpRequest, HttpServletResponse httpResponse, JSONObject jsonResponse) {
-		respond(httpRequest, httpResponse, JSON_KEY_DATA, jsonResponse);
-	}
-	
-	/**
-	 * Writes the response that is a JSONObject. This is a helper function for
-	 * when {@link #respond(HttpServletRequest, HttpServletResponse)} is called
-	 * given that most responses are in some sort of JSON format. This creates
-	 * a success/fail JSON response where, when the result is success, it will
-	 * also include a second key-value pair which are the parameters to this
-	 * function.
-	 *  
-	 * @param httpRequest The initial HTTP request that we are processing.
-	 * 
-	 * @param httpResponse The response for this HTTP request.
-	 * 
-	 * @param key The key to include along with {@link #JSON_KEY_RESULT}.
-	 * 
-	 * @param value The value to assign with the 'key'.
-	 */
-	protected void respond(HttpServletRequest httpRequest, HttpServletResponse httpResponse, String key, Object value) {
+	protected void respond(
+			final HttpServletRequest httpRequest, 
+			final HttpServletResponse httpResponse, 
+			final JSONObject response) {
+		
 		// Create a writer for the HTTP response object.
 		Writer writer = null;
 		String responseText = "";
 		
 		try {
-			writer = new BufferedWriter(new OutputStreamWriter(getOutputStream(httpRequest, httpResponse)));
+			writer = 
+					new BufferedWriter(
+							new OutputStreamWriter(
+									getOutputStream(
+											httpRequest, 
+											httpResponse)));
 			
 			// Sets the HTTP headers to disable caching.
 			expireResponse(httpResponse);
@@ -334,12 +328,9 @@ public abstract class Request {
 			// JSON response.
 			if(! failed) {
 				try {
-					JSONObject result = new JSONObject();
+					response.put(JSON_KEY_RESULT, RESULT_SUCCESS);
 					
-					result.put(JSON_KEY_RESULT, RESULT_SUCCESS);
-					result.put(key, value);
-					
-					responseText = result.toString();
+					responseText = response.toString();
 				}
 				catch(JSONException e) {
 					// If anything fails, echo it in the logs and set the request

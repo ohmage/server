@@ -23,6 +23,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.log4j.Logger;
 import org.json.JSONException;
+import org.json.JSONObject;
 import org.ohmage.domain.ServerConfig;
 import org.ohmage.exception.ServiceException;
 import org.ohmage.service.ConfigServices;
@@ -81,10 +82,12 @@ public class ConfigReadRequest extends Request {
 		LOGGER.info("Writing configuration read response.");
 		
 		try {
+			JSONObject response = new JSONObject();
+			response.put(JSON_KEY_DATA, (result == null) ? null : result.toJson());
 			respond(
 					httpRequest, 
-					httpResponse, 
-					(result == null) ? null : result.toJson());
+					httpResponse,
+					response);
 		}
 		catch(JSONException e) {
 			LOGGER.error("Error building the JSONObject.", e);
