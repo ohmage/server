@@ -15,7 +15,10 @@
  ******************************************************************************/
 package org.ohmage.request.user;
 
+
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -29,6 +32,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.domain.Clazz;
+import org.ohmage.domain.User;
 import org.ohmage.domain.UserPersonal;
 import org.ohmage.exception.ServiceException;
 import org.ohmage.exception.ValidationException;
@@ -46,7 +50,8 @@ import org.ohmage.validator.UserValidators;
 /**
  * <p>Reads the information about all of the users in all of the campaigns and
  * classes in the lists. The requester must be a supervisor in all of the
- * campaigns and privileged in all of the classes.</p>
+ * campaigns and privileged in all of the classes. Internally, the results are
+ * sorted by username, which is important for those doing paging.</p>
  * <table border="1">
  *   <tr>
  *     <td>Parameter Name</td>
@@ -70,6 +75,18 @@ import org.ohmage.validator.UserValidators;
  *       {@value org.ohmage.request.InputKeys#LIST_ITEM_SEPARATOR}s</td>
  *     <td>false</td>
  *   </tr>
+ *   <tr>
+ *     <td>{@value org.ohmage.request.InputKeys#NUM_TO_SKIP}</td>
+ *     <td>The number of users to skip before processing to facilitate paging.
+ *       </td>
+ *     <td>false</td>
+ *   </tr>
+ *   <tr>
+ *     <td>{@value org.ohmage.request.InputKeys#NUM_TO_RETURN}</td>
+ *     <td>The number of users to return after skipping to facilitate paging.
+ *       </td>
+ *     <td>false</td>
+ *   </tr>
  * </table>
  * 
  * @author John Jenkins
@@ -81,7 +98,11 @@ public class UserReadRequest extends UserRequest {
 	private final List<String> campaignIds;
 	private final Collection<String> classIds; 
 	
+	private final int numToSkip;
+	private final int numToReturn;
+	
 	private Map<String, UserPersonal> result;
+	private int numResults;
 	
 	/**
 	 * Creates a new user read request.
@@ -95,6 +116,9 @@ public class UserReadRequest extends UserRequest {
 		List<String> tCampaignIds = null;
 		Set<String> tClassIds = null;
 		
+		int tNumToSkip = 0;
+		int tNumToReturn = User.MAX_NUM_TO_RETURN;
+		
 		if(! isFailed()) {
 			LOGGER.info("Creating a user read request.");
 		
@@ -103,8 +127,10 @@ public class UserReadRequest extends UserRequest {
 				
 				t = getParameterValues(InputKeys.USER_LIST);
 				if(t.length > 1) {
-					setFailed(ErrorCode.USER_INVALID_USERNAME, "Multiple username lists parameters were found: " + InputKeys.USER_LIST);
-					throw new ValidationException("Multiple username lists parameters were found: " + InputKeys.USER_LIST);
+					throw new ValidationException(
+							ErrorCode.USER_INVALID_USERNAME, 
+							"Multiple username lists parameters were found: " + 
+									InputKeys.USER_LIST);
 				}
 				else if(t.length == 1) {
 					tUsernames = UserValidators.validateUsernames(t[0]);
@@ -121,6 +147,28 @@ public class UserReadRequest extends UserRequest {
 					setFailed(ErrorCode.CLASS_INVALID_ID, "Multiple class ID list parameters were found.");
 					throw new ValidationException("Multiple class ID list parameters were found.");
 				}
+				
+				t = getParameterValues(InputKeys.NUM_TO_SKIP);
+				if(t.length > 1) {
+					throw new ValidationException(
+							ErrorCode.SERVER_INVALID_NUM_TO_SKIP,
+							"Multiple number to skip parameters were given: " + 
+								InputKeys.NUM_TO_SKIP);
+				}
+				else if(t.length == 1) {
+					tNumToSkip = UserValidators.validateNumToSkip(t[0]);
+				}
+				
+				t = getParameterValues(InputKeys.NUM_TO_RETURN);
+				if(t.length > 1) {
+					throw new ValidationException(
+							ErrorCode.SERVER_INVALID_NUM_TO_RETURN,
+							"Multiple number to return parameters were given: " +
+								InputKeys.NUM_TO_RETURN);
+				}
+				else if(t.length == 1) {
+					tNumToReturn = UserValidators.validateNumToReturn(t[0]);
+				}
 			}
 			catch(ValidationException e) {
 				e.failRequest(this);
@@ -131,6 +179,9 @@ public class UserReadRequest extends UserRequest {
 		usernames = tUsernames;
 		campaignIds = tCampaignIds;
 		classIds = tClassIds;
+		
+		numToSkip = tNumToSkip;
+		numToReturn = tNumToReturn;
 		
 		result = new HashMap<String, UserPersonal>();
 	}
@@ -195,6 +246,39 @@ public class UserReadRequest extends UserRequest {
 				LOGGER.info("Gathering the information about the users in the classes.");
 				result.putAll(UserClassServices.instance().getPersonalInfoForUsersInClasses(classIds));
 			}
+			
+			numResults = result.size();
+			int fromIndex = numToSkip;
+			int toIndex = numToSkip + numToReturn;
+			// If the user is requesting more than or exactly the results, do 
+			// nothing.
+			if((fromIndex == 0) && (toIndex >= numResults)) {
+				// Do nothing.
+			}
+			// If we are skipping more items than there are results, just set
+			// the result to an emtpy map.
+			if(numToSkip >= numResults) {
+				result = Collections.emptyMap();
+			}
+			// Otherwise, we need to truncate the map.
+			else {
+				// If the user is asking for more results than exist, trim the
+				// toIndex down to the end of the map.
+				if(toIndex >= numResults) {
+					toIndex = numResults;
+				}
+				
+				Collection<String> resultUsernames = result.keySet();
+				
+				// Now, get the list of usernames and sort them.
+				List<String> sortedUsernames = 
+						new ArrayList<String>(resultUsernames);
+				Collections.sort(sortedUsernames);
+				
+				// Finally, remove the unnecessary results.
+				resultUsernames.retainAll(
+						sortedUsernames.subList(fromIndex, toIndex));
+			}
 		}
 		catch(ServiceException e) {
 			e.failRequest(this);
@@ -210,6 +294,10 @@ public class UserReadRequest extends UserRequest {
 	public void respond(HttpServletRequest httpRequest, HttpServletResponse httpResponse) {
 		JSONObject jsonResult = new JSONObject();
 		try {
+			JSONObject metadata = new JSONObject();
+			metadata.put(JSON_KEY_TOTAL_NUM_RESULTS, numResults);
+			jsonResult.put(JSON_KEY_METADATA, metadata);
+			
 			for(String username : result.keySet()) {
 				UserPersonal personalInfo = result.get(username);
 				
