@@ -15,9 +15,13 @@
  ******************************************************************************/
 package org.ohmage.domain.campaign.prompt;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -105,6 +109,18 @@ public abstract class CustomChoicePrompt extends ChoicePrompt {
 				skippable, skipLabel, displayType, displayLabel, 
 				choices, type, index);
 		
+		Set<String> labels = new HashSet<String>();
+		Collection<LabelValuePair> currChoices = 
+				new ArrayList<LabelValuePair>(choices.values());
+		currChoices.addAll(customChoices.values());
+		
+		for(LabelValuePair lvp : currChoices) {
+			if(! labels.add(lvp.getLabel())) {
+				throw new DomainException(
+						"Multiple choices have the same label for the prompt: " + 
+							id);
+			}
+		}
 		this.customChoices = new HashMap<Integer, LabelValuePair>(customChoices);
 	}
 	
