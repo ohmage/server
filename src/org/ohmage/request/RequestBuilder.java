@@ -159,6 +159,9 @@ public final class RequestBuilder {
 	
 	public static final String API_ROOT = "/app";
 	
+	// Annotation
+	public static final String API_ANNOTATION_SURVEY_RESPONSE_CREATE = API_ROOT + "/annotation/survey_response/create";
+	
 	// Audit
 	public static final String API_AUDIT_READ = API_ROOT + "/audit/read";
 	
@@ -208,7 +211,7 @@ public final class RequestBuilder {
 	public static final String API_SURVEY_RESPONSE_READ = API_ROOT + "/survey_response/read";
 	public static final String API_SURVEY_RESPONSE_UPDATE = API_ROOT + "/survey_response/update";
 	public static final String API_SURVEY_RESPONSE_FUNCTION_READ = API_ROOT + "/survey_response/function/read";
-
+	
 	// User
 	public static final String API_USER_CREATE = API_ROOT + "/user/create";
 	public static final String API_USER_READ = API_ROOT + "/user/read";

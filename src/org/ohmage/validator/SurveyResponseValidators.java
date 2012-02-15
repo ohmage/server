@@ -104,7 +104,7 @@ public final class SurveyResponseValidators {
 	}
 	
 	/**
-	 * Validates that a survey database ID is a valid survey database ID.
+	 * Validates that the provided survey response id is a valid UUID.
 	 * 
 	 * @param surveyId A survey ID as a string to be validated.
 	 * 
@@ -120,8 +120,7 @@ public final class SurveyResponseValidators {
 			return null;
 		}
 		
-		// Right now, this is simply the database ID, so as long as it is a
-		// long we should be fine.
+		// Surveys are only referenceable from the outside world using their UUIDs.
 		try {
 			return UUID.fromString(surveyId);
 		}
