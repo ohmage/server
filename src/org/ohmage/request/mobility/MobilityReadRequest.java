@@ -68,6 +68,14 @@ import org.ohmage.validator.UserValidators;
  *       the requesting user is used.</td>
  *     <td>false</td>
  *   </tr>
+ *   <tr>
+ *     <td>{@value org.ohmage.request.InputKeys#MOBILITY_INCLUDE_SENSOR_DATA}
+ *       </td>
+ *     <td>A boolean flag indicating whether or not to include sensor data with
+ *       each point. This includes things like the accelerometer data and the
+ *       WiFi scan results.</td>
+ *     <td>false</td>
+ *   </tr>
  * </table>
  * 
  * @author John Jenkins
@@ -77,6 +85,7 @@ public class MobilityReadRequest extends UserRequest {
 	
 	private final Date date;
 	private final String username;
+	private final boolean withSensorData;
 	
 	private List<MobilityPoint> result;
 	
@@ -93,6 +102,7 @@ public class MobilityReadRequest extends UserRequest {
 		
 		Date tDate = null;
 		String tUsername = null;
+		boolean tWithSensorData = false;
 		
 		if(! isFailed()) {
 			try {
@@ -131,6 +141,17 @@ public class MobilityReadRequest extends UserRequest {
 				else if(t.length == 1) {
 					tUsername = UserValidators.validateUsername(t[0]);
 				}
+				
+				t = getParameterValues(InputKeys.MOBILITY_INCLUDE_SENSOR_DATA);
+				if(t.length > 1) {
+					throw new ValidationException(
+							ErrorCode.MOBILITY_INVALID_INCLUDE_SENSOR_DATA_VALUE, 
+							"Multiple \"include sensor data\" values to query were given: " + 
+									InputKeys.MOBILITY_INCLUDE_SENSOR_DATA);
+				}
+				else if(t.length == 1) {
+					tWithSensorData = MobilityValidators.validateIncludeSensorDataValue(t[0]);
+				}
 			}
 			catch(ValidationException e) {
 				e.failRequest(this);
@@ -140,6 +161,7 @@ public class MobilityReadRequest extends UserRequest {
 		
 		date = tDate;
 		username = tUsername;
+		withSensorData = tWithSensorData;
 		
 		result = Collections.emptyList();
 	}
@@ -225,7 +247,7 @@ public class MobilityReadRequest extends UserRequest {
 		
 		for(MobilityPoint mobilityPoint : result) {
 			try {
-				resultJson.put(mobilityPoint.toJson(true, false));
+				resultJson.put(mobilityPoint.toJson(true, withSensorData));
 			}
 			catch(JSONException e) {
 				LOGGER.error("Error creating the JSONObject.", e);

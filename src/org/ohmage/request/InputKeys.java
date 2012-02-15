@@ -41,6 +41,7 @@ public final class InputKeys {
 	
 	// Mobility Extras
 	public static final String SUBTYPE = "subtype";
+	public static final String MOBILITY_INCLUDE_SENSOR_DATA = "include_sensor_data";
 	
 	// Mobility Constants
 	public static final String MOBILITY_CHUNK_DURATION_MINUTES = "chunk_mins";

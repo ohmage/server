@@ -192,4 +192,35 @@ public final class MobilityValidators {
 					"The chunk duration is invalid: " + duration);
 		}
 	}
+	
+	/**
+	 * Validates that a value representing a boolean indicating if we should or
+	 * should not return sensor data along with the other information 
+	 * representing a Mobility point.
+	 * 
+	 * @param value The value to be validated.
+	 * 
+	 * @return The boolean representation of the value.
+	 * 
+	 * @throws ValidationException Thrown if the value could not be decoded as
+	 * 							   a valid boolean.
+	 */
+	public static boolean validateIncludeSensorDataValue(
+			final String value)
+			throws ValidationException {
+		
+		if(StringUtils.isEmptyOrWhitespaceOnly(value)) {
+			return false;
+		}
+		
+		Boolean result = StringUtils.decodeBoolean(value);
+		if(result == null) {
+			throw new ValidationException(
+					ErrorCode.MOBILITY_INVALID_INCLUDE_SENSOR_DATA_VALUE,
+					"The \"include sensor data\" value was not a valid boolean: " +
+							value);
+		}
+		
+		return result;
+	}
 }

@@ -345,7 +345,7 @@ public final class UserMobilityQueries extends AbstractUploadQuery implements IU
 				if(SubType.SENSOR_DATA.equals(mobilityPoint.getSubType())) {
 					JSONObject sensorData;
 					try {
-						sensorData = mobilityPoint.getSensorData().toJson();
+						sensorData = mobilityPoint.getSensorData().toJson(false);
 					}
 					catch(JSONException e) {
 						throw new DataAccessException(e);
