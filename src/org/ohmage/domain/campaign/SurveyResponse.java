@@ -1010,6 +1010,12 @@ public class SurveyResponse {
 					e);
 		}
 		
+		// FIXME This will default to UTC if the timezone is unknown to the
+		// TimeZone class. It's safe because we will never see an invalid 
+		// timezone in our db for survey responses, but clients will not
+		// be alerted to the fact that they may be uploading timezones that
+		// we can't interpret. Possible solution: add warning messages to 
+		// our JSON output.
 		try {
 			timezone = TimeZone.getTimeZone(response.getString(JSON_KEY_TIMEZONE));
 		}
