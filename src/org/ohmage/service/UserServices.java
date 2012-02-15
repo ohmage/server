@@ -28,6 +28,7 @@ import jbcrypt.BCrypt;
 
 import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.domain.Clazz;
+import org.ohmage.domain.User;
 import org.ohmage.domain.UserInformation;
 import org.ohmage.domain.UserPersonal;
 import org.ohmage.domain.UserSummary;
@@ -131,7 +132,7 @@ public final class UserServices {
 			throws ServiceException {
 		
 		try {
-			String hashedPassword = BCrypt.hashpw(password, BCrypt.gensalt(13));
+			String hashedPassword = BCrypt.hashpw(password, BCrypt.gensalt(User.BCRYPT_COMPLEXITY));
 			
 			userQueries.createUser(username, hashedPassword, admin, enabled, newAccount, campaignCreationPrivilege);
 		}
