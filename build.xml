@@ -232,7 +232,7 @@
         <include name="org/ohmage/config/**" />
       	<include name="org/ohmage/util/StringUtils.class" />
       </fileset>
-      <zipfileset src="${library}/json-dot-org-2010-01-05.jar" excludes="META-INF/*" />
+      <zipfileset src="${library}/json.org-2011-11-03.jar" excludes="META-INF/*" />
       <zipfileset src="${library}/log4j-1.2.16.jar" excludes="META-INF/*" />
       <zipfileset src="${library}/xom-1.2.6.jar" excludes="META-INF/*" />
       <zipfileset src="${library}/xercesImpl-2.11.0.jar" excludes="META-INF/*" />
@@ -258,7 +258,7 @@
         <include name="docs/**" />
       </fileset>
       <zipfileset src="${library}/xom-1.2.6.jar" excludes="META-INF/*" />
-  	  <zipfileset src="${library}/json-dot-org-2010-01-05.jar" excludes="META-INF/*" />
+  	  <zipfileset src="${library}/json.org-2011-11-03.jar" excludes="META-INF/*" />
   	  <zipfileset src="${library}/httpcore-4.1.2.jar" excludes="META-INF/*" />
   	  <zipfileset src="${library}/httpclient-4.1.2.jar" excludes="META-INF/*" />
   	  <zipfileset src="${library}/httpmime-4.1.2.jar" excludes="META-INF/*" />
