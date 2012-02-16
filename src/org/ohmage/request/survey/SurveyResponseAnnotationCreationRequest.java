@@ -15,8 +15,8 @@
  ******************************************************************************/
 package org.ohmage.request.survey;
 
-import java.util.Arrays;
 import java.util.Map;
+import java.util.Set;
 import java.util.TimeZone;
 import java.util.UUID;
 
@@ -25,9 +25,12 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.log4j.Logger;
 import org.ohmage.annotator.Annotator.ErrorCode;
+import org.ohmage.exception.ServiceException;
 import org.ohmage.exception.ValidationException;
 import org.ohmage.request.InputKeys;
 import org.ohmage.request.UserRequest;
+import org.ohmage.service.UserAnnotationServices;
+import org.ohmage.service.UserCampaignServices;
 import org.ohmage.util.StringUtils;
 import org.ohmage.validator.SurveyResponseValidators;
 
@@ -80,10 +83,10 @@ public class SurveyResponseAnnotationCreationRequest extends UserRequest {
 	
 	private final UUID surveyId;
 	private final Long time;
-	private final String timezone;
+	private final TimeZone timezone;
 	private final String annotationText;
 	
-	private final UUID annotationIdToReturn; 
+	private UUID annotationIdToReturn; 
 	
 	/**
 	 * Creates a new survey annotation creation request.
@@ -98,7 +101,7 @@ public class SurveyResponseAnnotationCreationRequest extends UserRequest {
 		
 		UUID tSurveyId = null;
 		Long tTime = Long.MIN_VALUE;
-		String tTimezone = null;
+		TimeZone tTimezone = null;
 		String tAnnotationText = null;
 				
 		if(! isFailed()) {
@@ -144,30 +147,14 @@ public class SurveyResponseAnnotationCreationRequest extends UserRequest {
 					throw new ValidationException("timezone is missing or there is more than one value");
 				} else {
 					
-					// FIXME This is too strict in that it will reject
-					// JavaScript timezone offsets such as:
-					//
-					//  var d = new Date();
-					//  d.getTimezoneOffset() / 60; 
-					//
-					// ... where the last line will return 8 and then the 
-					// JS programmer has to create a String like "GMT-8".
-					// This issue with JavaScript was surfaced by the MWF team.
-					//
-					// See also the SurveyResponse constructor which deals
-					// with timezones inconsistent with the following code, but
-					// is also flawed.
-					//
-					// There is another wrinkle here because MySQL can be 
-					// configured to use the OSes timezone in
-					// /usr/share/zoneinfo or it can be configured with
-					// timezones that are supplied with its own distro.
-					if(! Arrays.asList(TimeZone.getAvailableIDs()).contains(t[0])) {
-						setFailed(ErrorCode.ANNOTATION_INVALID_TIMEZONE, "The timezone is unknown.");
-						throw new ValidationException("The timezone is unknown.");
-					}
-					
-					tTimezone = t[0];
+					// FIXME This will default to UTC if the timezone is unknown to the
+					// TimeZone class. It's safe because we will never see an invalid 
+					// timezone in our db for survey responses, but clients will not
+					// be alerted to the fact that they may be uploading timezones that
+					// we can't interpret. Possible solution: add warning messages to 
+					// our JSON output. Also, Joda Time has a DateTimeZone class that 
+					// can be used in lieu of the default JDK TimeZone class.
+					tTimezone = TimeZone.getTimeZone(t[0]);
 				}
 				
 				// Validate the annotation text
@@ -213,44 +200,24 @@ public class SurveyResponseAnnotationCreationRequest extends UserRequest {
 			return;
 		}
 		
-//		try {
-//			LOGGER.info("Verifying that the user is a participant in the campaign.");
-//			UserCampaignServices.instance().verifyUserCanUploadSurveyResponses(getUser().getUsername(), campaignUrn);
-//			
-//			LOGGER.info("Verifying that the campaign is running.");
-//			CampaignServices.instance().verifyCampaignIsRunning(campaignUrn);
-//			
-//			LOGGER.info("Verifying that the uploaded survey responses aren't out of date.");
-//			CampaignServices.instance().verifyCampaignIsUpToDate(campaignUrn, campaignCreationTimestamp);
-//			
-//			LOGGER.info("Generating the campaign object.");
-//			Campaign campaign = CampaignServices.instance().getCampaign(campaignUrn);
-//			
-//			LOGGER.info("Verifying the uploaded data against the campaign.");
-//			List<SurveyResponse> surveyResponses = 
-//				CampaignServices.instance().getSurveyResponses(
-//						getUser().getUsername(), 
-//						getClient(),
-//						campaign, 
-//						jsonData);
-//			
-//			surveyResponseIds = new ArrayList<UUID>(surveyResponses.size());
-//			for(SurveyResponse surveyResponse : surveyResponses) {
-//				surveyResponseIds.add(surveyResponse.getSurveyResponseId());
-//			}
-//
-//			LOGGER.info("Validating that all photo prompt responses have their corresponding images attached.");
-//			SurveyResponseServices.instance().verifyImagesExistForPhotoPromptResponses(surveyResponses, imageContentsMap);
-//			
-//			LOGGER.info("Inserting the data into the database.");
-//			List<Integer> duplicateIndexList = SurveyResponseServices.instance().createSurveyResponses(getUser().getUsername(), getClient(), campaignUrn, surveyResponses, imageContentsMap);
-//
-//			LOGGER.info("Found " + duplicateIndexList.size() + " duplicate survey uploads");
-//		}
-//		catch(ServiceException e) {
-//			e.failRequest(this);
-//			e.logException(LOGGER);
-//		}
+		try {
+			
+			Set<String> campaignIds = UserCampaignServices.instance().getCampaignsForUser(getUser().getUsername(), null, null, null, null, null, null, null);
+			
+			if(campaignIds.isEmpty()) {
+				throw new ServiceException("The user does not belong to any campaigns.");
+			}
+			
+			LOGGER.info("Verifying that the logged in user can create a survey response annotation");
+			UserAnnotationServices.instance().userCanCreateSurveyResponseAnnotation(getUser().getUsername(), campaignIds, surveyId);
+			
+			annotationIdToReturn = UserAnnotationServices.instance().createSurveyResponseAnnotation(getClient(), this.time, this.timezone, this.annotationText, this.surveyId);
+			
+		}
+		catch(ServiceException e) {
+			e.failRequest(this);
+			e.logException(LOGGER);
+		}
 	}
 
 	/**
@@ -260,6 +227,8 @@ public class SurveyResponseAnnotationCreationRequest extends UserRequest {
 	@Override
 	public void respond(HttpServletRequest httpRequest, HttpServletResponse httpResponse) {
 		LOGGER.info("Responding to the survey upload request.");
+		
+		// TODO return the annotation UUID
 		
 		super.respond(httpRequest, httpResponse, null);
 	}

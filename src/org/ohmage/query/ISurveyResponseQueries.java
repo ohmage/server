@@ -28,6 +28,17 @@ import org.ohmage.exception.DataAccessException;
 
 public interface ISurveyResponseQueries {
 	/**
+	 * Retrieves the campaign id (URN) for the provided survey id. 
+	 * 
+	 * @param uuid -- the id of the survey response
+	 * @return the campaign id, if one exists for the provided id
+	 * 
+	 * @throws DataAccessException if there is an error
+	 */
+	String getCampaignIdForSurveyResponseId(UUID uuid) 
+			throws DataAccessException;
+	
+	/**
 	 * Returns the survey response privacy states.
 	 * 
 	 * @return A list of all of the survey response privacy states.

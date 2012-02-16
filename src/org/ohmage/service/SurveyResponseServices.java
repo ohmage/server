@@ -406,4 +406,15 @@ public final class SurveyResponseServices {
 			throw new ServiceException(e);
 		}
 	}
+	
+	
+	public String getCampaignForSurveyResponseId(UUID surveyResponseId) 
+			throws ServiceException {
+		try {
+			return surveyResponseQueries.getCampaignIdForSurveyResponseId(surveyResponseId);
+		}
+		catch(DataAccessException e) {
+			throw new ServiceException(e);
+		}
+	}
 }

@@ -46,6 +46,7 @@ import org.ohmage.request.mobility.MobilityDatesReadRequest;
 import org.ohmage.request.mobility.MobilityReadChunkedRequest;
 import org.ohmage.request.mobility.MobilityReadRequest;
 import org.ohmage.request.mobility.MobilityUploadRequest;
+import org.ohmage.request.survey.SurveyResponseAnnotationCreationRequest;
 import org.ohmage.request.survey.SurveyResponseDeleteRequest;
 import org.ohmage.request.survey.SurveyResponseFunctionReadRequest;
 import org.ohmage.request.survey.SurveyResponseReadRequest;
@@ -260,6 +261,10 @@ public final class RequestBuilder {
 		}
 		else if(API_USER_LOGOUT.equals(requestUri)) {
 			return new AuthTokenLogoutRequest(httpRequest);
+		}
+		// Annotation
+		else if(API_ANNOTATION_SURVEY_RESPONSE_CREATE.equals(requestUri)) {
+			return new SurveyResponseAnnotationCreationRequest(httpRequest);
 		}
 		// Audit
 		else if(API_AUDIT_READ.equals(requestUri)) {
