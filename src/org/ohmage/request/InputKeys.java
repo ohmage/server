@@ -41,7 +41,7 @@ public final class InputKeys {
 	
 	// Mobility Extras
 	public static final String SUBTYPE = "subtype";
-	public static final String MOBILITY_INCLUDE_SENSOR_DATA = "include_sensor_data";
+	public static final String MOBILITY_WITH_SENSOR_DATA = "with_sensor_data";
 	
 	// Mobility Constants
 	public static final String MOBILITY_CHUNK_DURATION_MINUTES = "chunk_mins";
@@ -70,6 +70,7 @@ public final class InputKeys {
 	public static final String CLASS_LIST_REMOVE = "class_list_remove";
 	public static final String CLASS_NAME = "class_name";
 	public static final String ROSTER = "roster";
+	public static final String CLASS_WITH_USER_LIST = "with_user_list";
 	
 	// Survey Constants
 	public static final String SURVEY_ID = "survey_id";

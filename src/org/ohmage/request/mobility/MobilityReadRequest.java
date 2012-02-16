@@ -69,7 +69,7 @@ import org.ohmage.validator.UserValidators;
  *     <td>false</td>
  *   </tr>
  *   <tr>
- *     <td>{@value org.ohmage.request.InputKeys#MOBILITY_INCLUDE_SENSOR_DATA}
+ *     <td>{@value org.ohmage.request.InputKeys#MOBILITY_WITH_SENSOR_DATA}
  *       </td>
  *     <td>A boolean flag indicating whether or not to include sensor data with
  *       each point. This includes things like the accelerometer data and the
@@ -142,12 +142,12 @@ public class MobilityReadRequest extends UserRequest {
 					tUsername = UserValidators.validateUsername(t[0]);
 				}
 				
-				t = getParameterValues(InputKeys.MOBILITY_INCLUDE_SENSOR_DATA);
+				t = getParameterValues(InputKeys.MOBILITY_WITH_SENSOR_DATA);
 				if(t.length > 1) {
 					throw new ValidationException(
 							ErrorCode.MOBILITY_INVALID_INCLUDE_SENSOR_DATA_VALUE, 
 							"Multiple \"include sensor data\" values to query were given: " + 
-									InputKeys.MOBILITY_INCLUDE_SENSOR_DATA);
+									InputKeys.MOBILITY_WITH_SENSOR_DATA);
 				}
 				else if(t.length == 1) {
 					tWithSensorData = MobilityValidators.validateIncludeSensorDataValue(t[0]);
