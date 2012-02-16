@@ -268,7 +268,8 @@ public class MultiChoiceCustomPrompt extends CustomChoicePrompt {
 		}
 		
 		// Now, get the known choices from the list.
-		Collection<LabelValuePair> values = choices.values();
+		Collection<LabelValuePair> values = 
+				new ArrayList<LabelValuePair>(choices.values());
 		
 		// Cycle through the decoded labels and, if one of those labels isn't 
 		// found, add it to the collection.

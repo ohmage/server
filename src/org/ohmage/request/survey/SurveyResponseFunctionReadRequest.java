@@ -215,8 +215,8 @@ public class SurveyResponseFunctionReadRequest extends UserRequest {
 					null, 
 					null,
 					null,
-					SurveyResponse.DEFAULT_NUM_SURVEY_RESPONSES_TO_SKIP,
-					SurveyResponse.DEFAULT_NUM_SURVEY_RESPONSES_TO_PROCESS);
+					0,
+					Long.MAX_VALUE);
 		}
 		catch(ServiceException e) {
 			e.failRequest(this);

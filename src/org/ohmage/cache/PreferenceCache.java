@@ -70,6 +70,11 @@ public final class PreferenceCache extends KeyValueCache {
 	// Whether or not Mobility is enabled.
 	public static final String KEY_MOBILITY_ENABLED = "mobility_enabled";
 	
+	// The maximum number of survey responses a user may query in a single 
+	// request.
+	public static final String KEY_MAX_SURVEY_RESPONSE_PAGE_SIZE = 
+			"max_survey_response_page_size";
+	
 	// Build-specific information.
 	public static final String KEY_APPLICATION_NAME = "application_name";
 	public static final String KEY_APPLICATION_VERSION = "application_version";

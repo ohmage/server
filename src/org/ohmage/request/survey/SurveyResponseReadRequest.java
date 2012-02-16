@@ -41,6 +41,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.ohmage.annotator.Annotator.ErrorCode;
+import org.ohmage.cache.PreferenceCache;
 import org.ohmage.domain.Location;
 import org.ohmage.domain.campaign.Campaign;
 import org.ohmage.domain.campaign.Prompt;
@@ -62,6 +63,7 @@ import org.ohmage.domain.campaign.response.MultiChoiceCustomPromptResponse;
 import org.ohmage.domain.campaign.response.MultiChoicePromptResponse;
 import org.ohmage.domain.campaign.response.SingleChoiceCustomPromptResponse;
 import org.ohmage.domain.campaign.response.SingleChoicePromptResponse;
+import org.ohmage.exception.CacheMissException;
 import org.ohmage.exception.DomainException;
 import org.ohmage.exception.ServiceException;
 import org.ohmage.exception.ValidationException;
@@ -311,8 +313,26 @@ public final class SurveyResponseReadRequest extends UserRequest {
 		Boolean tReturnId = null;
 		Boolean tSuppressMetadata = null;
 		
-		long tSurveyResponsesToSkip = SurveyResponse.DEFAULT_NUM_SURVEY_RESPONSES_TO_SKIP;
-		long tSurveyResponsesToProcess = SurveyResponse.DEFAULT_NUM_SURVEY_RESPONSES_TO_PROCESS;
+		long tSurveyResponsesToSkip = 0;
+		long tSurveyResponsesToProcess = -1;
+		try {
+			tSurveyResponsesToProcess = 
+					Long.decode(
+							PreferenceCache.instance().lookup(
+									PreferenceCache.KEY_MAX_SURVEY_RESPONSE_PAGE_SIZE));
+			
+			if(tSurveyResponsesToProcess == -1) {
+				tSurveyResponsesToProcess = Long.MAX_VALUE;
+			}
+		}
+		catch(CacheMissException e) {
+			LOGGER.error("The cache is missing the max page size.", e);
+			setFailed();
+		}
+		catch(NumberFormatException e) {
+			LOGGER.error("The max page size is not a number.", e);
+			setFailed();
+		}
 		
 		if(! isFailed()) {
 		
@@ -525,7 +545,7 @@ public final class SurveyResponseReadRequest extends UserRequest {
 				// Number of survey responses to skip.
 				t = getParameterValues(InputKeys.NUM_TO_SKIP);
 				if(t.length > 1) {
-					throw new ValidationException(ErrorCode.SURVEY_INVALID_SURVEY_RESPONSES_TO_SKIP, "Multiple values were given for the number of survey responses to skip: " + InputKeys.NUM_TO_SKIP);
+					throw new ValidationException(ErrorCode.SERVER_INVALID_NUM_TO_SKIP, "Multiple values were given for the number of survey responses to skip: " + InputKeys.NUM_TO_SKIP);
 				}
 				else if(t.length == 1) {
 					tSurveyResponsesToSkip = SurveyResponseValidators.validateNumSurveyResponsesToSkip(t[0]);
@@ -534,10 +554,10 @@ public final class SurveyResponseReadRequest extends UserRequest {
 				// Number of survey responses to process.
 				t = getParameterValues(InputKeys.NUM_TO_RETURN);
 				if(t.length > 1) {
-					throw new ValidationException(ErrorCode.SURVEY_INVALID_SURVEY_RESPONSES_TO_PROCESS, "Multiple values were given for the number of survey responses to process: " + InputKeys.NUM_TO_RETURN);
+					throw new ValidationException(ErrorCode.SERVER_INVALID_NUM_TO_RETURN, "Multiple values were given for the number of survey responses to process: " + InputKeys.NUM_TO_RETURN);
 				}
 				else if(t.length == 1) {
-					tSurveyResponsesToProcess = SurveyResponseValidators.validateNumSurveyResponsesToProcess(t[0]);
+					tSurveyResponsesToProcess = SurveyResponseValidators.validateNumSurveyResponsesToProcess(t[0], tSurveyResponsesToProcess);
 				}
 			}
 			catch (ValidationException e) {

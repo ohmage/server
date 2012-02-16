@@ -595,23 +595,33 @@ public final class SurveyResponseValidators {
 	 * @param surveyResponsesToSkip The value to be validated.
 	 * 
 	 * @return The number of rows to skip as given by the user or the default
-	 * 		   value {@link SurveyResponse#DEFAULT_NUM_SURVEY_RESPONSES_TO_SKIP}.
+	 * 		   value 0.
 	 * 
-	 * @throws ValidationException Thrown if the value cannot be parsed.
+	 * @throws ValidationException Thrown if the value cannot be parsed or is
+	 * 							   negative.
 	 */
 	public static long validateNumSurveyResponsesToSkip(final String surveyResponsesToSkip)
 			throws ValidationException {
 		
 		if(StringUtils.isEmptyOrWhitespaceOnly(surveyResponsesToSkip)) {
-			return SurveyResponse.DEFAULT_NUM_SURVEY_RESPONSES_TO_SKIP;
+			return 0;
 		}
 		
 		try {
-			return Long.decode(surveyResponsesToSkip);
+			long value = Long.decode(surveyResponsesToSkip);
+			
+			if(value < 0) {
+				throw new ValidationException(
+						ErrorCode.SERVER_INVALID_NUM_TO_SKIP,
+						"The number of survy responses cannot be negative: " + 
+								value);
+			}
+			
+			return value;
 		}
 		catch(NumberFormatException e) {
 			throw new ValidationException(
-					ErrorCode.SURVEY_INVALID_SURVEY_RESPONSES_TO_SKIP,
+					ErrorCode.SERVER_INVALID_NUM_TO_SKIP,
 					"The number of survey responses to skip was not a number.",
 					e);
 		}
@@ -622,25 +632,37 @@ public final class SurveyResponseValidators {
 	 * 
 	 * @param surveyResponsesToProcess The value to be validated.
 	 * 
+	 * @param limit The maximum allowed value.
+	 * 
 	 * @return The number of rows to analyze as given by the user or the 
-	 * 		   default value 
-	 * 		   {@link SurveyResponse#DEFAULT_NUM_SURVEY_RESPONSES_TO_PROCESS}.
+	 * 		   default value which is the parameterized limit.
 	 * 
 	 * @throws ValidationException Thrown if the value cannot be parsed.
 	 */
-	public static long validateNumSurveyResponsesToProcess(final String surveyResponsesToProcess)
+	public static long validateNumSurveyResponsesToProcess(
+			final String surveyResponsesToProcess,
+			final long limit)
 			throws ValidationException {
 		
 		if(StringUtils.isEmptyOrWhitespaceOnly(surveyResponsesToProcess)) {
-			return SurveyResponse.DEFAULT_NUM_SURVEY_RESPONSES_TO_PROCESS;
+			return limit;
 		}
 		
 		try {
-			return Long.decode(surveyResponsesToProcess);
+			long value = Long.decode(surveyResponsesToProcess);
+			
+			if(value > limit) {
+				throw new ValidationException(
+						ErrorCode.SERVER_INVALID_NUM_TO_RETURN,
+						"The number of survey responses to process was larger than the limit: " +
+								limit);
+			}
+			
+			return value;
 		}
 		catch(NumberFormatException e) {
 			throw new ValidationException(
-					ErrorCode.SURVEY_INVALID_SURVEY_RESPONSES_TO_PROCESS,
+					ErrorCode.SERVER_INVALID_NUM_TO_RETURN,
 					"The number of survey responses to process was not a number.",
 					e);
 		}
