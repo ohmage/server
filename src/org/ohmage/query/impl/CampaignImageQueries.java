@@ -15,6 +15,8 @@
  ******************************************************************************/
 package org.ohmage.query.impl;
 
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Collection;
@@ -28,6 +30,7 @@ import org.ohmage.domain.campaign.SurveyResponse;
 import org.ohmage.exception.DataAccessException;
 import org.ohmage.query.ICampaignImageQueries;
 import org.springframework.jdbc.core.ResultSetExtractor;
+import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.SingleColumnRowMapper;
 
 /**
@@ -197,14 +200,31 @@ public final class CampaignImageQueries extends Query implements ICampaignImageQ
 	 * @see org.ohmage.query.ICampaignImageQueries#getImageUrlsFromCampaign(java.lang.String)
 	 */
 	@Override
-	public Collection<String> getImageUrlsFromCampaign(String campaignId)
+	public Collection<URL> getImageUrlsFromCampaign(String campaignId)
 			throws DataAccessException {
 		
 		try {
 			return getJdbcTemplate().query(
 					SQL_GET_URLS_FOR_ALL_IMAGE_RESPONSES_FOR_CAMPAIGN, 
 					new Object[] { campaignId }, 
-					new SingleColumnRowMapper<String>());
+					new RowMapper<URL>() {
+						/**
+						 * Converts the URL string to a URL object.
+						 */
+						@Override
+						public URL mapRow(ResultSet rs, int rowNum)
+								throws SQLException {
+							
+							try {
+								return new URL(rs.getString("url"));
+							}
+							catch(MalformedURLException e) {
+								throw new SQLException(
+									"The URL in the database is malformed: " +
+										rs.getString("url"));
+							}
+						}
+					});
 			
 		}
 		catch(org.springframework.dao.DataAccessException e) {

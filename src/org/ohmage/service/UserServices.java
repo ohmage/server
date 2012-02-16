@@ -15,6 +15,7 @@
  ******************************************************************************/
 package org.ohmage.service;
 
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -831,7 +832,7 @@ public final class UserServices {
 			throws ServiceException {
 		// First, retrieve the path information for all of the images 
 		// associated with each user.
-		Collection<String> imageUrls = new HashSet<String>();
+		Collection<URL> imageUrls = new HashSet<URL>();
 		try {
 			for(String username : usernames) {
 				imageUrls.addAll(
@@ -851,7 +852,7 @@ public final class UserServices {
 		
 		// If the transaction succeeded, delete all of the images from the 
 		// disk.
-		for(String imageUrl : imageUrls) {
+		for(URL imageUrl : imageUrls) {
 			imageQueries.deleteImageDiskOnly(imageUrl);
 		}
 	}

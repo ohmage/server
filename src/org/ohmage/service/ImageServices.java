@@ -15,14 +15,14 @@
  ******************************************************************************/
 package org.ohmage.service;
 
-import java.io.IOException;
-import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.UUID;
 
 import org.ohmage.annotator.Annotator.ErrorCode;
+import org.ohmage.domain.Image;
 import org.ohmage.exception.DataAccessException;
+import org.ohmage.exception.DomainException;
 import org.ohmage.exception.ServiceException;
 import org.ohmage.query.IImageQueries;
 import org.ohmage.query.impl.ImageQueries;
@@ -110,35 +110,49 @@ public final class ImageServices {
 	 * @param size An ImageSize indicating if the smaller version of the image
 	 * 			   is desired.
 	 * 
-	 * @return Returns an InputStream hooked up to this image.
+	 * @return An image object representing the image.
 	 * 
 	 * @throws ServiceException Thrown if there is an error, the URL is 
 	 * 							malformed, or there is an error connecting to
 	 * 							them.
 	 */
-	public InputStream getImage(final UUID imageId, final ImageSize size) throws ServiceException {
+	public Image getImage(
+			final UUID imageId, 
+			final ImageSize size) 
+			throws ServiceException {
 		
 		try {
-			String imageUrl = imageQueries.getImageUrl(imageId);
+			URL imageUrl = imageQueries.getImageUrl(imageId);
+			if(imageUrl == null) {
+				return null;
+			}
 			
 			if(ImageSize.SMALL.equals(size)) {
-				int imageUrlLength = imageUrl.length();
+				String imageUrlString = imageUrl.toString();
+				int imageUrlLength = imageUrlString.length();
+				
 				// If it is saved in the old format with the extension, then 
 				// we need to place the scaled extension before the file
 				// extension.
-				if((imageUrlLength >= 4) && (imageUrl.charAt(imageUrlLength - 4) == '.')) {
-					imageUrl = imageUrl.substring(0, imageUrlLength - 4) + 
+				if((imageUrlLength >= 4) && 
+						(imageUrlString.charAt(imageUrlLength - 4) == '.')) {
+					
+					imageUrlString = 
+							imageUrlString.substring(0, imageUrlLength - 4) + 
 							ImageQueries.IMAGE_SCALED_EXTENSION + 
-							imageUrl.substring(imageUrlLength - 4, imageUrlLength);
+							imageUrlString.substring(
+									imageUrlLength - 4, imageUrlLength);
 				}
 				// If it is saved in the new format without the extension, then
 				// we only need to attach the extension to the end of the URL.
 				else {
-					imageUrl += ImageQueries.IMAGE_SCALED_EXTENSION;
+					imageUrlString += ImageQueries.IMAGE_SCALED_EXTENSION;
 				}
+				
+				imageUrl = new URL(imageUrlString);
 			}
 			
-			return (new URL(imageUrl)).openConnection().getInputStream();
+			return new Image(imageUrl);
 		}
 		catch(DataAccessException e) {
 			throw new ServiceException(e);
@@ -146,8 +160,10 @@ public final class ImageServices {
 		catch(MalformedURLException e) {
 			throw new ServiceException("The stored URL invalid.", e);
 		}
-		catch(IOException e) {
-			throw new ServiceException("The URL could not be read.", e);
+		catch(DomainException e) {
+			throw new ServiceException(
+					"There was a problem creating the image object.", 
+					e);
 		}
 	}
 	
@@ -162,12 +178,9 @@ public final class ImageServices {
 	 */
 	public URL getImageUrl(final UUID imageId) throws ServiceException {
 		try {
-			return new URL(imageQueries.getImageUrl(imageId));
+			return imageQueries.getImageUrl(imageId);
 		}
 		catch(DataAccessException e) {
-			throw new ServiceException(e);
-		}
-		catch (MalformedURLException e) {
 			throw new ServiceException(e);
 		}
 	}

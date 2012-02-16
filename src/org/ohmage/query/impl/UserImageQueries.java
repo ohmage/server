@@ -15,6 +15,10 @@
  ******************************************************************************/
 package org.ohmage.query.impl;
 
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.Collection;
 import java.util.UUID;
 
@@ -22,7 +26,7 @@ import javax.sql.DataSource;
 
 import org.ohmage.exception.DataAccessException;
 import org.ohmage.query.IUserImageQueries;
-import org.springframework.jdbc.core.SingleColumnRowMapper;
+import org.springframework.jdbc.core.RowMapper;
 
 /**
  * This class is responsible for the functionality to create, read, update, and
@@ -125,14 +129,31 @@ public final class UserImageQueries extends Query implements IUserImageQueries {
 	 * @see org.ohmage.query.IUserImageQueries#getImageUrlsFromUsername(java.lang.String)
 	 */
 	@Override
-	public Collection<String> getImageUrlsFromUsername(String username)
+	public Collection<URL> getImageUrlsFromUsername(String username)
 			throws DataAccessException {
 		
 		try {
 			return getJdbcTemplate().query(
 					SQL_GET_URLS_FOR_ALL_IMAGE_RESPONSES_FOR_USER, 
 					new Object[] { username }, 
-					new SingleColumnRowMapper<String>());
+					new RowMapper<URL>() {
+						/**
+						 * Converts the URL string to a URL object.
+						 */
+						@Override
+						public URL mapRow(ResultSet rs, int rowNum)
+								throws SQLException {
+							
+							try {
+								return new URL(rs.getString("url"));
+							}
+							catch(MalformedURLException e) {
+								throw new SQLException(
+									"The URL in the database is malformed: " +
+										rs.getString("url"));
+							}
+						}
+					});
 			
 		}
 		catch(org.springframework.dao.DataAccessException e) {
