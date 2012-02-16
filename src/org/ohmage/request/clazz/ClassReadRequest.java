@@ -59,6 +59,12 @@ import org.ohmage.validator.ClassValidators;
  *       {@value org.ohmage.request.InputKeys#LIST_ITEM_SEPARATOR}</td>
  *     <td>true</td>
  *   </tr>
+ *   <tr>
+ *     <td>{@value org.ohmage.request.InputKeys#CLASS_WITH_USER_LIST}</td>
+ *     <td>A boolean value indicating if the class user list should be returned 
+ *       or not. The default is true.</td>
+ *     <td>true</td>
+ *   </tr>
  * </table>
  * 
  * @author John Jenkins
@@ -68,6 +74,7 @@ public class ClassReadRequest extends UserRequest {
 	private static final String JSON_KEY_USERS = "users";
 	
 	private final Collection<String> classIds;
+	private final boolean withUserList;
 	
 	private final Map<Clazz, Map<String, Clazz.Role>> result;
 	
@@ -80,29 +87,61 @@ public class ClassReadRequest extends UserRequest {
 	public ClassReadRequest(HttpServletRequest httpRequest) {
 		super(httpRequest, TokenLocation.EITHER);
 		
-		Set<String> tempClassIds = null;
+		Set<String> tClassIds = null;
+		boolean tWithUserList = false;
 		
 		if(! isFailed()) {
 			LOGGER.info("Creating a new class read request.");
 			
 			try {
-				tempClassIds = ClassValidators.validateClassIdList(httpRequest.getParameter(InputKeys.CLASS_URN_LIST));
-				if(tempClassIds == null) {
-					setFailed(ErrorCode.CLASS_INVALID_ID, "Missing required class ID list: " + InputKeys.CLASS_URN_LIST);
-					throw new ValidationException("Missing required class ID list: " + InputKeys.CLASS_URN_LIST);
+				String[] t;
+				
+				t = httpRequest.getParameterValues(InputKeys.CLASS_URN_LIST);
+				if(t.length > 1) {
+					throw new ValidationException(
+							ErrorCode.CLASS_INVALID_ID,
+							"Multiple class ID lists were found: " +
+								InputKeys.CLASS_URN_LIST);
 				}
-				else if(httpRequest.getParameterValues(InputKeys.CLASS_URN_LIST).length > 1) {
-					setFailed(ErrorCode.CLASS_INVALID_ID, "Multiple class ID lists were found.");
-					throw new ValidationException("Multiple class ID lists were found.");
+				else if(t.length == 0) {
+					throw new ValidationException(
+							ErrorCode.CLASS_INVALID_ID, 
+							"Missing required class ID list: " + 
+								InputKeys.CLASS_URN_LIST);
+				}
+				else {
+					tClassIds = ClassValidators.validateClassIdList(t[0]);
+					
+					if(tClassIds == null) {
+						throw new ValidationException(
+								ErrorCode.CLASS_INVALID_ID, 
+								"Missing required class ID list: " + 
+									InputKeys.CLASS_URN_LIST);
+					}
+				}
+				
+				t = httpRequest.getParameterValues(
+						InputKeys.CLASS_WITH_USER_LIST);
+				if(t.length > 1) {
+					throw new ValidationException(
+							ErrorCode.CLASS_INVALID_WITH_USER_LIST_VALUE,
+							"Multiple \"with user list\" parameters were given: " +
+								InputKeys.CLASS_WITH_USER_LIST);
+				}
+				else if(t.length == 1) {
+					tWithUserList = 
+							ClassValidators.validateWithUserListValue(t[0]);
 				}
 			}
 			catch(ValidationException e) {
 				e.failRequest(this);
-				LOGGER.info(e.toString());
+				e.logException(LOGGER);
 			}
 		}
 		
-		classIds = tempClassIds;
+		classIds = tClassIds;
+		withUserList = tWithUserList;
+		
 		result = new HashMap<Clazz, Map<String, Clazz.Role>>();
 	}
 
@@ -124,6 +163,9 @@ public class ClassReadRequest extends UserRequest {
 			try {
 				LOGGER.info("Checking if the user is an admin.");
 				UserServices.instance().verifyUserIsAdmin(getUser().getUsername());
+				
+				LOGGER.info("Verifying that the classes exist.");
+				ClassServices.instance().checkClassesExistence(classIds, true);
 			}
 			catch(ServiceException userNotAdmin) {
 				LOGGER.info("The user is not an admin.", userNotAdmin);
@@ -134,13 +176,18 @@ public class ClassReadRequest extends UserRequest {
 			// Get the information about the classes.
 			LOGGER.info("Gathering the information about the classes in the list.");
 			List<Clazz> informationAboutClasses = ClassServices.instance().getClassesInformation(classIds);
+			LOGGER.info("Classes found: " + informationAboutClasses.size());
 			
-			if(informationAboutClasses.size() > 0) {
-				LOGGER.info("Classes found: " + informationAboutClasses.size());
+			// FIXME: This functionality should be moved into a service that
+			// solves this specific problem but does so by calling other, more
+			// reusable functions.
+			for(Clazz clazz : informationAboutClasses) {
+				String classId = clazz.getId();
 				
-				for(Clazz clazz : informationAboutClasses) {
-					String classId = clazz.getId();
-					
+				Map<String, Clazz.Role> usernamesAndRespectiveRole =
+						new HashMap<String, Clazz.Role>();
+				
+				if(withUserList) {
 					LOGGER.info("Gathering the requesting user's role in the class.");
 					boolean isPrivileged = 
 						Clazz.Role.PRIVILEGED.equals(
@@ -150,11 +197,12 @@ public class ClassReadRequest extends UserRequest {
 									)
 							);
 					
+					// FIXME: It would be more efficient to call a function 
+					// that returns a map of usernames to class roles and then
+					// omit the role if necessary than do it this way. Avoid
+					// calling the database in a loop whenever possible.
 					List<String> usernames = 
 						UserClassServices.instance().getUsersInClass(classId);
-					
-					Map<String, Clazz.Role> usernamesAndRespectiveRole =
-						new HashMap<String, Clazz.Role>(usernames.size());
 					
 					for(String username : usernames) {
 						if(isPrivileged) {
@@ -169,9 +217,12 @@ public class ClassReadRequest extends UserRequest {
 							usernamesAndRespectiveRole.put(username, null);
 						}
 					}
-					
-					result.put(clazz, usernamesAndRespectiveRole);
 				}
+				
+				result.put(clazz, usernamesAndRespectiveRole);
+			}
+			if((informationAboutClasses.size() > 0) && (withUserList)) {
+				
 			}
 		}
 		catch(ServiceException e) {
@@ -192,21 +243,23 @@ public class ClassReadRequest extends UserRequest {
 		JSONObject jsonResult = new JSONObject();
 		try {
 			for(Clazz clazz : result.keySet()) {
-				// Retrieve the username to class role map.
-				Map<String, Clazz.Role> userRole = result.get(clazz);
-				
 				// Create the JSON for the class.
 				JSONObject jsonClass = clazz.toJson(false);
 				
-				// Generate the user to class role JSON and add it to the class
-				// JSON.
-				JSONObject users = new JSONObject();
-				for(String username : userRole.keySet()) {
-					Clazz.Role role = userRole.get(username);
+				if(withUserList) {
+					// Retrieve the username to class role map.
+					Map<String, Clazz.Role> userRole = result.get(clazz);
 					
-					users.put(username, ((role == null) ? "" : role));
+					// Generate the user to class role JSON and add it to the 
+					// class JSON.
+					JSONObject users = new JSONObject();
+					for(String username : userRole.keySet()) {
+						Clazz.Role role = userRole.get(username);
+						
+						users.put(username, ((role == null) ? "" : role));
+					}
+					jsonClass.put(JSON_KEY_USERS, users);
 				}
-				jsonClass.put(JSON_KEY_USERS, users);
 				
 				// Add the class JSON to the result JSON with an index of the
 				// class' ID.

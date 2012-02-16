@@ -323,4 +323,33 @@ public final class ClassValidators {
 		
 		return result;
 	}
+	
+	/**
+	 * Validates that a "with user list" value is a valid boolean and returns 
+	 * it. If it is null or whitespace-only, the default, true, is returned.
+	 * 
+	 * @param value The boolean value to validate.
+	 * 
+	 * @return A boolean generated from this value.
+	 * 
+	 * @throws ValidationException The value could not be decoded.
+	 */
+	public static boolean validateWithUserListValue(
+			final String value)
+			throws ValidationException {
+		
+		if(StringUtils.isEmptyOrWhitespaceOnly(value)) {
+			return true;
+		}
+		
+		Boolean result = StringUtils.decodeBoolean(value);
+		if(result == null) {
+			throw new ValidationException(
+					ErrorCode.CLASS_INVALID_WITH_USER_LIST_VALUE,
+					"The \"with user list\" value is not a valid boolean: " +
+						value);
+		}
+		
+		return result;
+	}
 }
