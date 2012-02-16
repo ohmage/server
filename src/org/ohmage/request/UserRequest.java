@@ -524,6 +524,17 @@ public abstract class UserRequest extends Request {
 			final String key, 
 			final Object value) {
 		
+		if(user != null) {
+			final String token = user.getToken(); 
+			if(token != null) {
+				CookieUtils.setCookieValue(
+						httpResponse, 
+						InputKeys.AUTH_TOKEN, 
+						token, 
+						(int) (UserBin.getTokenRemainingLifetimeInMillis(token) / MILLIS_IN_A_SECOND));
+			}
+		}
+		
 		JSONObject response = new JSONObject();
 		
 		try {
@@ -534,7 +545,7 @@ public abstract class UserRequest extends Request {
 			setFailed();
 		}
 		
-		respond(httpRequest, httpResponse, response);
+		super.respond(httpRequest, httpResponse, response);
 	}
 	
 	/**
