@@ -201,7 +201,6 @@ public class SurveyResponseAnnotationCreationRequest extends UserRequest {
 		}
 		
 		try {
-			
 			Set<String> campaignIds = UserCampaignServices.instance().getCampaignsForUser(getUser().getUsername(), null, null, null, null, null, null, null);
 			
 			if(campaignIds.isEmpty()) {
@@ -211,6 +210,7 @@ public class SurveyResponseAnnotationCreationRequest extends UserRequest {
 			LOGGER.info("Verifying that the logged in user can create a survey response annotation");
 			UserAnnotationServices.instance().userCanCreateSurveyResponseAnnotation(getUser().getUsername(), campaignIds, surveyId);
 			
+			LOGGER.info("Persisting the survey response annotation.");
 			annotationIdToReturn = UserAnnotationServices.instance().createSurveyResponseAnnotation(getClient(), this.time, this.timezone, this.annotationText, this.surveyId);
 			
 		}
@@ -221,15 +221,12 @@ public class SurveyResponseAnnotationCreationRequest extends UserRequest {
 	}
 
 	/**
-	 * Responds to the image upload request with success or a failure message
+	 * Responds to the this request with success or a failure message
 	 * that contains a failure code and failure text.
 	 */
 	@Override
 	public void respond(HttpServletRequest httpRequest, HttpServletResponse httpResponse) {
-		LOGGER.info("Responding to the survey upload request.");
-		
-		// TODO return the annotation UUID
-		
-		super.respond(httpRequest, httpResponse, null);
+		LOGGER.info("Responding to the survey response annotation creation request.");
+		super.respond(httpRequest, httpResponse, "annotation_id", annotationIdToReturn);
 	}
 }

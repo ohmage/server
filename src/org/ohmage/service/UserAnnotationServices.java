@@ -94,7 +94,7 @@ public final class UserAnnotationServices {
 		}
 		
 		if(! campaignIds.contains(campaignUrn)) {
-			throw new ServiceException("A user attempted to update a survey response for a campaign he or she is not a member of.");
+			throw new ServiceException(ErrorCode.CAMPAIGN_INSUFFICIENT_PERMISSIONS, "A user attempted to update a survey response for a campaign he or she is not a member of.");
 		}
 		
 		// Create a temporary single-item list in order to use
