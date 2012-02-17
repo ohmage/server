@@ -21,6 +21,7 @@ import java.util.concurrent.atomic.AtomicLong;
 
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.ohmage.config.grammar.custom.ConditionValuePair;
 import org.ohmage.domain.campaign.Prompt;
 import org.ohmage.domain.campaign.Response.NoResponse;
 import org.ohmage.exception.DomainException;
@@ -160,6 +161,48 @@ public abstract class BoundedPrompt extends Prompt {
 	 */
 	public Long getDefault() {
 		return defaultValue;
+	}
+	
+	/**
+	 * Verifies that the value of the condition is not outside the bounds of
+	 * the prompt.
+	 * 
+	 * @param pair The condition-value pair to validate.
+	 * 
+	 * @throws DomainException The value was not a number or was outside the
+	 * 						   predefined bounds.
+	 */
+	@Override
+	public void validateConditionValuePair(
+			final ConditionValuePair pair)
+			throws DomainException {
+		
+		try {
+			long value = Long.decode(pair.getValue());
+			
+			if(value < min) {
+				throw new DomainException(
+						"The value of the condition is less than the minimum allowed value (" + 
+							min +
+							"): " +
+							pair.getValue());
+			}
+			else if(value > max) {
+				throw new DomainException(
+						"The value of the condition is greater than the maximum allowed value (" + 
+							max +
+							"): " +
+							pair.getValue());
+			}
+		}
+		catch(NumberFormatException e) {
+			if(! checkNoResponseConditionValuePair(pair)) {
+				throw new DomainException(
+						"The value of the condition is not a number: " + 
+							pair.getValue(),
+						e);
+			}
+		}
 	}
 
 	/**

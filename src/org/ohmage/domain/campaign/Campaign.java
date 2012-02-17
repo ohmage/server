@@ -43,6 +43,9 @@ import nu.xom.XMLException;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.ohmage.config.grammar.custom.ConditionParseException;
+import org.ohmage.config.grammar.custom.ConditionValidator;
+import org.ohmage.config.grammar.custom.ConditionValuePair;
 import org.ohmage.domain.campaign.Prompt.DisplayType;
 import org.ohmage.domain.campaign.Prompt.LabelValuePair;
 import org.ohmage.domain.campaign.Prompt.Type;
@@ -2101,6 +2104,7 @@ public class Campaign {
 	private static List<Survey> processSurveys(
 			final Nodes surveys) 
 			throws DomainException {
+		
 		int numSurveys = surveys.size();
 		List<Survey> result = new ArrayList<Survey>(numSurveys);
 		
@@ -2120,8 +2124,8 @@ public class Campaign {
 		for(String surveyItemId : surveyItemIds) {
 			if(! surveyItemIdsSet.add(surveyItemId)) {
 				throw new DomainException(
-						"Multiple survey items have the same unique identifier: " + 
-							surveyItemId);
+					"Multiple survey items have the same unique identifier: " + 
+						surveyItemId);
 			}
 		}
 		
@@ -2351,15 +2355,28 @@ public class Campaign {
 				
 			switch(contentListItem) {
 			case MESSAGE:
-				result.add(processMessage(surveyId, contentListItems.get(i), i));
+				result.add(
+						processMessage(
+								surveyId, 
+								contentListItems.get(i), 
+								i));
 				break;
 				
 			case REPEATABLE_SET:
-				result.add(processRepeatableSet(surveyId, contentListItems.get(i), i));
+				result.add(
+						processRepeatableSet(
+								surveyId, 
+								contentListItems.get(i), 
+								i));
 				break;
 				
 			case PROMPT:
-				result.add(processPrompt(surveyId, contentListItems.get(i), i));
+				result.add(
+						processPrompt(
+								surveyId, 
+								contentListItems.get(i), 
+								i,
+								result));
 				break;
 				
 			default:
@@ -2615,7 +2632,8 @@ public class Campaign {
 	private static Prompt processPrompt(
 			final String containerId, 
 			final Node prompt, 
-			final int index) 
+			final int index,
+			final List<SurveyItem> alreadyProcessedItemsInSurveyItemGroup) 
 			throws DomainException {
 		
 		Nodes ids = prompt.query(XML_PROMPT_ID);
@@ -2637,6 +2655,56 @@ public class Campaign {
 		}
 		else if(conditions.size() == 1) {
 			condition = conditions.get(0).getValue().trim();
+			
+			Map<String, List<ConditionValuePair>> promptIdAndConditionValues;
+			try {
+				promptIdAndConditionValues = 
+						ConditionValidator.validate(condition);
+			}
+			catch(ConditionParseException e) {
+				throw new DomainException(e.getMessage(), e);
+			}
+			
+			for(String promptId : promptIdAndConditionValues.keySet()) {
+				// Validate that the prompt exists and comes before this 
+				// prompt. This can only, and must, be true if we have already 
+				// validated it.
+				Prompt conditionPrompt = null;
+				for(SurveyItem surveyItem : alreadyProcessedItemsInSurveyItemGroup) {
+					if(surveyItem.getId().equals(promptId)) {
+						if(surveyItem instanceof Prompt) {
+							conditionPrompt = (Prompt) surveyItem;
+							break;
+						}
+						else {
+							throw new DomainException(
+								"Only prompts values may be part of a condition.");
+						}
+					}
+				}
+				
+				if(conditionPrompt == null) {
+					throw new DomainException(
+							"The prompt is unknown: " + promptId);
+				}
+				
+				// Validate all of the condition-valid pairs for the prompt.
+				for(ConditionValuePair pair : promptIdAndConditionValues.get(promptId)) {
+					try {
+						conditionPrompt.validateConditionValuePair(pair);
+					}
+					catch(DomainException e) {
+						throw new DomainException(
+								"The condition was invalid for the prompt '" +
+									id +
+									"' in the prompt group '" +
+									containerId +
+									"': " +
+									e.getMessage(),
+								e);
+					}
+				}
+			}
 		}
 		
 		String unit = null;

@@ -6,12 +6,12 @@ package org.ohmage.config.grammar.syntaxtree;
 
 /**
  * Grammar production:
- * f0 -> <TEXT>
+ * f0 -> ( conjunction() sentence() sentence_prime() )?
  */
-public class id implements Node {
-   public NodeToken f0;
+public class sentence_prime implements Node {
+   public NodeOptional f0;
 
-   public id(NodeToken n0) {
+   public sentence_prime(NodeOptional n0) {
       f0 = n0;
    }
 

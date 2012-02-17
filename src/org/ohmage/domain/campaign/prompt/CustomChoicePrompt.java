@@ -26,6 +26,7 @@ import java.util.Set;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.ohmage.config.grammar.custom.ConditionValuePair;
 import org.ohmage.exception.DomainException;
 
 /**
@@ -263,6 +264,22 @@ public abstract class CustomChoicePrompt extends ChoicePrompt {
 		}
 		
 		customChoices.remove(key);
+	}
+	
+	/**
+	 * Conditions are not allowed for custom choice prompts.
+	 * 
+	 * @param pair The pair to validate.
+	 * 
+	 * @throws DomainException Always thrown because conditions are not allowed
+	 * 						   for custom choice prompts.
+	 */
+	@Override
+	public void validateConditionValuePair(
+			final ConditionValuePair pair)
+			throws DomainException {
+		
+		throw new DomainException("Conditions are not allowed for custom choice prompts.");
 	}
 	
 	/**

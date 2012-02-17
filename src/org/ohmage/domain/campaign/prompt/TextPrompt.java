@@ -17,6 +17,7 @@ package org.ohmage.domain.campaign.prompt;
 
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.ohmage.config.grammar.custom.ConditionValuePair;
 import org.ohmage.domain.campaign.Prompt;
 import org.ohmage.domain.campaign.Response.NoResponse;
 import org.ohmage.domain.campaign.response.TextPromptResponse;
@@ -109,6 +110,22 @@ public class TextPrompt extends Prompt {
 		this.min = min;
 		this.max = max;
 		this.defaultValue = defaultValue;
+	}
+	
+	/**
+	 * Conditions are not allowed for text prompts.
+	 * 
+	 * @param pair The pair to validate.
+	 * 
+	 * @throws DomainException Always thrown because conditions are not allowed
+	 * 						   for text prompts.
+	 */
+	@Override
+	public void validateConditionValuePair(
+			final ConditionValuePair pair)
+			throws DomainException {
+		
+		throw new DomainException("Conditions are not allowed for text prompts.");
 	}
 
 	/**

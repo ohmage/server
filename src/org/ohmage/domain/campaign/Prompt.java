@@ -17,6 +17,7 @@ package org.ohmage.domain.campaign;
 
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.ohmage.config.grammar.custom.ConditionValuePair;
 import org.ohmage.domain.campaign.Response.NoResponse;
 import org.ohmage.exception.DomainException;
 import org.ohmage.util.StringUtils;
@@ -441,6 +442,45 @@ public abstract class Prompt extends SurveyItem {
 	}
 	
 	/**
+	 * Validates that a condition-value pair are valid for the given prompt.
+	 * All implementing prompts should call their super validateCondition() 
+	 * which will handle cases when the prompt is skipped or not displayed.
+	 * 
+	 * @param pair The condition-value pair to validate.
+	 * 
+	 * @throws DomainException The value was not applicable for the prompt or
+	 * 						   was invalid for some constraint on the prompt.
+	 */
+	public abstract void validateConditionValuePair(
+			final ConditionValuePair pair)
+			throws DomainException;
+	
+	/**
+	 * Validates that some Object is a valid response value for this prompt. If
+	 * so, an Object of the type that the implementing prompt expects is 
+	 * returned; otherwise, null is returned.<br />
+	 * <br />
+	 * For example, the NumberPrompt may receive a Number, an Integer, a Long,
+	 * or a Short and will convert any of those into a Long and return it. It
+	 * may also take a String, which it will attempt to convert into a Long 
+	 * value and return it. If it is unable to convert the value into its
+	 * appropriate type, in this instance a Long object, it will return null.
+	 * 
+	 * @param value The value to be validated.
+	 * 
+	 * @return The type-appropriate object for the implementing prompt or a
+	 * 		   {@link NoResponse} object.
+	 * 
+	 * @throws DomainException The value is not a type-appropriate object for
+	 * 						   the corresponding prompt, a NoResponse object,
+	 * 						   or a String that can be decoded as either of 
+	 * 						   those two.
+	 */
+	public abstract Object validateValue(
+			final Object value) 
+			throws DomainException;
+	
+	/**
 	 * Creates a PromptResponse for this prompt based on some given value.
 	 * 
 	 * @param value The value on which to base the PromptResponse.
@@ -540,27 +580,49 @@ public abstract class Prompt extends SurveyItem {
 	}
 	
 	/**
-	 * Validates that some Object is a valid response value for this prompt. If
-	 * so, an Object of the type that the implementing prompt expects is 
-	 * returned; otherwise, null is returned.<br />
-	 * <br />
-	 * For example, the NumberPrompt may receive a Number, an Integer, a Long,
-	 * or a Short and will convert any of those into a Long and return it. It
-	 * may also take a String, which it will attempt to convert into a Long 
-	 * value and return it. If it is unable to convert the value into its
-	 * appropriate type, in this instance a Long object, it will return null.
+	 * Checks if the value of the pair is a {@link NoResponse} value and, if 
+	 * so, verifies that that is a valid value for this prompt. If it is a
+	 * {@link NoResponse} value, then true will be returned or an exception 
+	 * will be thrown indicating that it wasn't valid for this prompt. If it is
+	 * not a {@link NoResponse} value, false is returned.
 	 * 
-	 * @param value The value to be validated.
+	 * @param pair The condition-value pair to check.
 	 * 
-	 * @return The type-appropriate object for the implementing prompt or a
-	 * 		   {@link NoResponse} object.
+	 * @return True if this is a {@link NoResponse} value; false, otherwise.
 	 * 
-	 * @throws DomainException The value is not a type-appropriate object for
-	 * 						   the corresponding prompt, a NoResponse object,
-	 * 						   or a String that can be decoded as either of 
-	 * 						   those two.
+	 * @throws DomainException The value of the pair was a {@link NoResponse}
+	 * 						   value and isn't valid for this prompt.
 	 */
-	protected abstract Object validateValue(
-			final Object value) 
-			throws DomainException;
+	protected final boolean checkNoResponseConditionValuePair(
+			final ConditionValuePair pair)
+			throws DomainException {
+		
+		try {
+			NoResponse noResponse = NoResponse.valueOf(pair.getValue());
+			
+			switch(noResponse) {
+			case SKIPPED:
+				if(skippable()) {
+					return true;
+				}
+				else {
+					throw new DomainException(
+							"The response '" + 
+								getId() +
+								"' cannot be skipped, so the condition is invalid.");
+				}
+			
+			case NOT_DISPLAYED:
+				return true;
+				
+			default:
+				throw new DomainException("Unknown 'no response' value.");
+			}
+				
+		}
+		// It is not a NoResponse value.
+		catch(IllegalArgumentException e) {
+			return false;
+		}
+	}
 }

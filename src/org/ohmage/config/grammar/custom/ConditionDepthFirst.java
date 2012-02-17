@@ -19,10 +19,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import org.ohmage.config.grammar.syntaxtree.Condition;
-import org.ohmage.config.grammar.syntaxtree.Id;
 import org.ohmage.config.grammar.syntaxtree.NodeToken;
-import org.ohmage.config.grammar.syntaxtree.Value;
+import org.ohmage.config.grammar.syntaxtree.condition;
+import org.ohmage.config.grammar.syntaxtree.id;
+import org.ohmage.config.grammar.syntaxtree.value;
 import org.ohmage.config.grammar.visitor.GJVoidDepthFirst;
 
 /**
@@ -42,7 +42,7 @@ public class ConditionDepthFirst<A> extends GJVoidDepthFirst<A> {
      * map must be a non-null Map<String, List<String>>.
      */
     @Override
-    public void visit(Id n, A map) {
+    public void visit(id n, A map) {
     	
     	// Lazy null check only occurs on the Id node because if it is non-null here, it will be non-null throughout the rest
     	// of the visitor process
@@ -70,7 +70,7 @@ public class ConditionDepthFirst<A> extends GJVoidDepthFirst<A> {
      *       | "<="
      *       | ">="
      */
-    public void visit(Condition n, A map) {
+    public void visit(condition n, A map) {
         String tokenImage = (((NodeToken) n.f0.choice).tokenImage); // ugly cast, but it's the only way to get the Value
         ConditionValuePair pair = new ConditionValuePair();
         pair.setCondition(tokenImage);
@@ -86,7 +86,7 @@ public class ConditionDepthFirst<A> extends GJVoidDepthFirst<A> {
      * the parse) from the provided map.
      * argu must be a non-null Map. 
      */
-    public void visit(Value n, A map) {
+    public void visit(value n, A map) {
     	@SuppressWarnings("unchecked")
 		List<ConditionValuePair> valueList = ((Map<String, List<ConditionValuePair>>) map).get(currentId);
     	currentPair.setValue(n.f0.tokenImage);

@@ -23,7 +23,7 @@ import java.util.Map;
 
 import org.ohmage.config.grammar.parser.ConditionParser;
 import org.ohmage.config.grammar.parser.ParseException;
-import org.ohmage.config.grammar.syntaxtree.Start;
+import org.ohmage.config.grammar.syntaxtree.start;
 
 /**
  * A validator for conditions that relies on classes generated from JavaCC and JTB to parse and retrieve data from condition
@@ -59,7 +59,7 @@ public final class ConditionValidator {
 	 */
 	@SuppressWarnings("static-access")
 	public static Map<String, List<ConditionValuePair>> validate(String conditionSentence) {
-		Start s = null;
+		start s = null;
 		
 		try {
 			
