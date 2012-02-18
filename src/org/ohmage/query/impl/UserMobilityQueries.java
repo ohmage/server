@@ -298,9 +298,12 @@ public final class UserMobilityQueries extends AbstractUploadQuery implements IU
 			PlatformTransactionManager transactionManager = new DataSourceTransactionManager(getDataSource());
 			TransactionStatus status = transactionManager.getTransaction(def);
 			
-			JSONObject location;
+			JSONObject location = null;
 			try {
-				location = mobilityPoint.getLocation().toJson(false);
+				Location tLocation = mobilityPoint.getLocation();
+				if(tLocation != null) {
+					location = tLocation.toJson(false);	
+				}
 			}
 			catch(JSONException e) {
 				throw new DataAccessException(e);
@@ -403,7 +406,7 @@ public final class UserMobilityQueries extends AbstractUploadQuery implements IU
 								mobilityPoint.getTime() + ", " +
 								mobilityPoint.getTimezone().getID() + ", " +
 								mobilityPoint.getLocationStatus().toString().toLowerCase() + ", " +
-								((mobilityPoint.getLocation() == null) ? "null" : location.toString()) + ", " +
+								((location == null) ? "null" : location.toString()) + ", " +
 								mobilityPoint.getMode().toString().toLowerCase() + ", " +
 								mobilityPoint.getPrivacyState(),
 							e);
@@ -418,7 +421,7 @@ public final class UserMobilityQueries extends AbstractUploadQuery implements IU
 							mobilityPoint.getTime() + ", " +
 							mobilityPoint.getTimezone().getID() + ", " +
 							mobilityPoint.getLocationStatus().toString().toLowerCase() + ", " +
-							((mobilityPoint.getLocation() == null) ? "null" : location.toString()) + ", " +
+							((location == null) ? "null" : location.toString()) + ", " +
 							mobilityPoint.getMode().toString().toLowerCase() + ", " +
 							mobilityPoint.getPrivacyState(),
 						e);
