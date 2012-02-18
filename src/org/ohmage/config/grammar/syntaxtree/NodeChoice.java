@@ -8,29 +8,33 @@ package org.ohmage.config.grammar.syntaxtree;
  * Represents a grammar choice, e.g. ( A | B )
  */
 public class NodeChoice implements Node {
-   public NodeChoice(Node node) {
-      this(node, -1);
-   }
+	/**
+	 * Static-random serialVersionUID.
+	 */
+	private static final long serialVersionUID = 8812512551814083922L;
+	public NodeChoice(Node node) {
+		this(node, -1);
+	}
 
-   public NodeChoice(Node node, int whichChoice) {
-      choice = node;
-      which = whichChoice;
-   }
+	public NodeChoice(Node node, int whichChoice) {
+		choice = node;
+		which = whichChoice;
+	}
 
-   public void accept(org.ohmage.config.grammar.visitor.Visitor v) {
-      choice.accept(v);
-   }
-   public <R,A> R accept(org.ohmage.config.grammar.visitor.GJVisitor<R,A> v, A argu) {
-      return choice.accept(v,argu);
-   }
-   public <R> R accept(org.ohmage.config.grammar.visitor.GJNoArguVisitor<R> v) {
-      return choice.accept(v);
-   }
-   public <A> void accept(org.ohmage.config.grammar.visitor.GJVoidVisitor<A> v, A argu) {
-      choice.accept(v,argu);
-   }
+	public void accept(org.ohmage.config.grammar.visitor.Visitor v) {
+		choice.accept(v);
+	}
+	public <R,A> R accept(org.ohmage.config.grammar.visitor.GJVisitor<R,A> v, A argu) {
+		return choice.accept(v,argu);
+	}
+	public <R> R accept(org.ohmage.config.grammar.visitor.GJNoArguVisitor<R> v) {
+		return choice.accept(v);
+	}
+	public <A> void accept(org.ohmage.config.grammar.visitor.GJVoidVisitor<A> v, A argu) {
+		choice.accept(v,argu);
+	}
 
-   public Node choice;
-   public int which;
+	public Node choice;
+	public int which;
 }
 

@@ -23,10 +23,10 @@ import java.util.Map;
 
 import org.ohmage.config.grammar.parser.ConditionParser;
 import org.ohmage.config.grammar.parser.ParseException;
-import org.ohmage.config.grammar.syntaxtree.start;
+import org.ohmage.config.grammar.syntaxtree.Start;
 
 /**
- * A validator for conditions that relies on classes generated from JavaCC and JTB to parse and retrieve data from condition
+ * A validator for conditions that relies on classes generated from JavaCC and JTB to parse and retrieve data from Condition
  * sentences.  
  * 
  * @author selsky
@@ -42,7 +42,7 @@ public final class ConditionValidator {
 	}
 	
 	/**
-	 * For command line use for testing. Provide the condition to be validated as the first argument. The condition must be a
+	 * For command line use for testing. Provide the Condition to be validated as the first argument. The Condition must be a
 	 * double-quoted string.
 	 */
 	public static void main(String args[]) throws IOException, ConditionParseException {
@@ -55,11 +55,11 @@ public final class ConditionValidator {
 	 * 
 	 * @param conditionSentence
 	 * @return Map of Id-Value list pairs for each Id-operation-Value in the provided Sentence
-	 * @throws ConditionParseException if the Sentence does not conform to our grammar (see spec/condition-grammar.jj) 
+	 * @throws ConditionParseException if the Sentence does not conform to our grammar (see spec/Condition-grammar.jj) 
 	 */
 	@SuppressWarnings("static-access")
 	public static Map<String, List<ConditionValuePair>> validate(String conditionSentence) {
-		start s = null;
+		Start s = null;
 		
 		try {
 			
@@ -85,10 +85,10 @@ public final class ConditionValidator {
 			
 		} catch (ParseException pe) {
 			
-			throw new ConditionParseException("Condition parse failed for condition Sentence: " + conditionSentence, pe);
+			throw new ConditionParseException("Condition parse failed for Condition Sentence: " + conditionSentence, pe);
 		}
 		catch(Throwable e) {
-			throw new ConditionParseException("The condition sentence is not well-formed: " + conditionSentence, e);
+			throw new ConditionParseException("The Condition Sentence is not well-formed: " + conditionSentence, e);
 		}
 	}
 }

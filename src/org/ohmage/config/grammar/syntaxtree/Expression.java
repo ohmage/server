@@ -5,28 +5,26 @@
 package org.ohmage.config.grammar.syntaxtree;
 
 /**
- * Represents an grammar optional node, e.g. ( A )? or [ A ]
+ * Grammar production:
+ * f0 -> Id()
+ * f1 -> Condition()
+ * f2 -> Value()
  */
-public class NodeOptional implements Node {
+public class Expression implements Node {
 	/**
 	 * Static-random serialVersionUID.
 	 */
-	private static final long serialVersionUID = 5462577210633094140L;
+	private static final long serialVersionUID = -4885544267338638803L;
+	public Id f0;
+	public Condition f1;
+	public Value f2;
 
-	public NodeOptional() {
-		node = null;
+	public Expression(Id n0, Condition n1, Value n2) {
+		f0 = n0;
+		f1 = n1;
+		f2 = n2;
 	}
 
-	public NodeOptional(Node n) {
-		addNode(n);
-	}
-
-	public void addNode(Node n)  {
-		if ( node != null)                // Oh oh!
-			throw new Error("Attempt to set optional node twice");
-
-		node = n;
-	}
 	public void accept(org.ohmage.config.grammar.visitor.Visitor v) {
 		v.visit(this);
 	}
@@ -39,8 +37,5 @@ public class NodeOptional implements Node {
 	public <A> void accept(org.ohmage.config.grammar.visitor.GJVoidVisitor<A> v, A argu) {
 		v.visit(this,argu);
 	}
-	public boolean present()   { return node != null; }
-
-	public Node node;
 }
 

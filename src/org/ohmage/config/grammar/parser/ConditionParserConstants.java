@@ -8,32 +8,32 @@ package org.ohmage.config.grammar.parser;
  */
 public interface ConditionParserConstants {
 
-  /** End of File. */
-  int EOF = 0;
-  /** RegularExpression Id. */
-  int TEXT = 15;
+	/** End of File. */
+	int EOF = 0;
+	/** RegularExpression Id. */
+	int TEXT = 15;
 
-  /** Lexical state. */
-  int DEFAULT = 0;
+	/** Lexical state. */
+	int DEFAULT = 0;
 
-  /** Literal token values. */
-  String[] tokenImage = {
-    "<EOF>",
-    "\"(\"",
-    "\")\"",
-    "\"==\"",
-    "\"!=\"",
-    "\"<\"",
-    "\">\"",
-    "\"<=\"",
-    "\">=\"",
-    "\"and\"",
-    "\"or\"",
-    "\" \"",
-    "\"\\t\"",
-    "\"\\n\"",
-    "\"\\r\"",
-    "<TEXT>",
-  };
+	/** Literal token values. */
+	String[] tokenImage = {
+			"<EOF>",
+			"\"(\"",
+			"\")\"",
+			"\"==\"",
+			"\"!=\"",
+			"\"<\"",
+			"\">\"",
+			"\"<=\"",
+			"\">=\"",
+			"\"and\"",
+			"\"or\"",
+			"\" \"",
+			"\"\\t\"",
+			"\"\\n\"",
+			"\"\\r\"",
+			"<TEXT>",
+	};
 
 }

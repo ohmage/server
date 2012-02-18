@@ -9,14 +9,14 @@ package org.ohmage.config.grammar.syntaxtree;
  * implement.
  */
 public interface NodeListInterface extends Node {
-   public void addNode(Node n);
-   public Node elementAt(int i);
-   public java.util.Enumeration<Node> elements();
-   public int size();
+	public void addNode(Node n);
+	public Node elementAt(int i);
+	public java.util.Enumeration<Node> elements();
+	public int size();
 
-   public void accept(org.ohmage.config.grammar.visitor.Visitor v);
-   public <R,A> R accept(org.ohmage.config.grammar.visitor.GJVisitor<R,A> v, A argu);
-   public <R> R accept(org.ohmage.config.grammar.visitor.GJNoArguVisitor<R> v);
-   public <A> void accept(org.ohmage.config.grammar.visitor.GJVoidVisitor<A> v, A argu);
+	public void accept(org.ohmage.config.grammar.visitor.Visitor v);
+	public <R,A> R accept(org.ohmage.config.grammar.visitor.GJVisitor<R,A> v, A argu);
+	public <R> R accept(org.ohmage.config.grammar.visitor.GJNoArguVisitor<R> v);
+	public <A> void accept(org.ohmage.config.grammar.visitor.GJVoidVisitor<A> v, A argu);
 }
 

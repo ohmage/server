@@ -6,34 +6,38 @@ package org.ohmage.config.grammar.syntaxtree;
 
 /**
  * Grammar production:
- * f0 -> sentence()
+ * f0 -> Sentence()
  * f1 -> <EOF>
  */
-public class start implements Node {
-   public sentence f0;
-   public NodeToken f1;
+public class Start implements Node {
+	/**
+	 * Static-random serialVersionUID.
+	 */
+	private static final long serialVersionUID = -6370391498765800382L;
+	public Sentence f0;
+	public NodeToken f1;
 
-   public start(sentence n0, NodeToken n1) {
-      f0 = n0;
-      f1 = n1;
-   }
+	public Start(Sentence n0, NodeToken n1) {
+		f0 = n0;
+		f1 = n1;
+	}
 
-   public start(sentence n0) {
-      f0 = n0;
-      f1 = new NodeToken("");
-   }
+	public Start(Sentence n0) {
+		f0 = n0;
+		f1 = new NodeToken("");
+	}
 
-   public void accept(org.ohmage.config.grammar.visitor.Visitor v) {
-      v.visit(this);
-   }
-   public <R,A> R accept(org.ohmage.config.grammar.visitor.GJVisitor<R,A> v, A argu) {
-      return v.visit(this,argu);
-   }
-   public <R> R accept(org.ohmage.config.grammar.visitor.GJNoArguVisitor<R> v) {
-      return v.visit(this);
-   }
-   public <A> void accept(org.ohmage.config.grammar.visitor.GJVoidVisitor<A> v, A argu) {
-      v.visit(this,argu);
-   }
+	public void accept(org.ohmage.config.grammar.visitor.Visitor v) {
+		v.visit(this);
+	}
+	public <R,A> R accept(org.ohmage.config.grammar.visitor.GJVisitor<R,A> v, A argu) {
+		return v.visit(this,argu);
+	}
+	public <R> R accept(org.ohmage.config.grammar.visitor.GJNoArguVisitor<R> v) {
+		return v.visit(this);
+	}
+	public <A> void accept(org.ohmage.config.grammar.visitor.GJVoidVisitor<A> v, A argu) {
+		v.visit(this,argu);
+	}
 }
 

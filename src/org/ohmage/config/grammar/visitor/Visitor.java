@@ -3,8 +3,19 @@
 //
 
 package org.ohmage.config.grammar.visitor;
-import org.ohmage.config.grammar.syntaxtree.*;
-import java.util.*;
+import org.ohmage.config.grammar.syntaxtree.NodeList;
+import org.ohmage.config.grammar.syntaxtree.NodeListOptional;
+import org.ohmage.config.grammar.syntaxtree.NodeOptional;
+import org.ohmage.config.grammar.syntaxtree.NodeSequence;
+import org.ohmage.config.grammar.syntaxtree.NodeToken;
+import org.ohmage.config.grammar.syntaxtree.Condition;
+import org.ohmage.config.grammar.syntaxtree.Conjunction;
+import org.ohmage.config.grammar.syntaxtree.Expression;
+import org.ohmage.config.grammar.syntaxtree.Id;
+import org.ohmage.config.grammar.syntaxtree.Sentence;
+import org.ohmage.config.grammar.syntaxtree.SentencePrime;
+import org.ohmage.config.grammar.syntaxtree.Start;
+import org.ohmage.config.grammar.syntaxtree.Value;
 
 /**
  * All void visitors must implement this interface.
@@ -12,69 +23,69 @@ import java.util.*;
 
 public interface Visitor {
 
-   //
-   // void Auto class visitors
-   //
+	//
+	// void Auto class visitors
+	//
 
-   public void visit(NodeList n);
-   public void visit(NodeListOptional n);
-   public void visit(NodeOptional n);
-   public void visit(NodeSequence n);
-   public void visit(NodeToken n);
+	public void visit(NodeList n);
+	public void visit(NodeListOptional n);
+	public void visit(NodeOptional n);
+	public void visit(NodeSequence n);
+	public void visit(NodeToken n);
 
-   //
-   // User-generated visitor methods below
-   //
+	//
+	// User-generated visitor methods below
+	//
 
-   /**
-    * f0 -> sentence()
-    * f1 -> <EOF>
-    */
-   public void visit(start n);
+	/**
+	 * f0 -> Sentence()
+	 * f1 -> <EOF>
+	 */
+	public void visit(Start n);
 
-   /**
-    * f0 -> expr() sentence_prime()
-    *       | "(" sentence() ")" sentence_prime()
-    */
-   public void visit(sentence n);
+	/**
+	 * f0 -> Expression() SentencePrime()
+	 *       | "(" Sentence() ")" SentencePrime()
+	 */
+	public void visit(Sentence n);
 
-   /**
-    * f0 -> ( conjunction() sentence() sentence_prime() )?
-    */
-   public void visit(sentence_prime n);
+	/**
+	 * f0 -> ( Conjunction() Sentence() SentencePrime() )?
+	 */
+	public void visit(SentencePrime n);
 
-   /**
-    * f0 -> id()
-    * f1 -> condition()
-    * f2 -> value()
-    */
-   public void visit(expr n);
+	/**
+	 * f0 -> Id()
+	 * f1 -> Condition()
+	 * f2 -> Value()
+	 */
+	public void visit(Expression n);
 
-   /**
-    * f0 -> <TEXT>
-    */
-   public void visit(id n);
+	/**
+	 * f0 -> <TEXT>
+	 */
+	public void visit(Id n);
 
-   /**
-    * f0 -> "=="
-    *       | "!="
-    *       | "<"
-    *       | ">"
-    *       | "<="
-    *       | ">="
-    */
-   public void visit(condition n);
+	/**
+	 * f0 -> "=="
+	 *       | "!="
+	 *       | "<"
+	 *       | ">"
+	 *       | "<="
+	 *       | ">="
+	 */
+	public void visit(Condition n);
 
-   /**
-    * f0 -> <TEXT>
-    */
-   public void visit(value n);
+	/**
+	 * f0 -> <TEXT>
+	 */
+	public void visit(Value n);
 
-   /**
-    * f0 -> "and"
-    *       | "or"
-    */
-   public void visit(conjunction n);
+	/**
+	 * f0 -> "and"
+	 *       | "or"
+	 */
+	public void visit(Conjunction n);
 
 }
 

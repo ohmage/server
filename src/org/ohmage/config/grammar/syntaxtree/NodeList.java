@@ -4,41 +4,47 @@
 
 package org.ohmage.config.grammar.syntaxtree;
 
-import java.util.*;
+import java.util.Enumeration;
+import java.util.Vector;
 
 /**
  * Represents a grammar list, e.g. ( A )+
  */
 public class NodeList implements NodeListInterface {
-   public NodeList() {
-      nodes = new Vector<Node>();
-   }
+	/**
+	 * Static-random serialVersionUID.
+	 */
+	private static final long serialVersionUID = -6729043994182356652L;
 
-   public NodeList(Node firstNode) {
-      nodes = new Vector<Node>();
-      addNode(firstNode);
-   }
+	public NodeList() {
+		nodes = new Vector<Node>();
+	}
 
-   public void addNode(Node n) {
-      nodes.addElement(n);
-   }
+	public NodeList(Node firstNode) {
+		nodes = new Vector<Node>();
+		addNode(firstNode);
+	}
 
-   public Enumeration<Node> elements() { return nodes.elements(); }
-   public Node elementAt(int i)  { return nodes.elementAt(i); }
-   public int size()             { return nodes.size(); }
-   public void accept(org.ohmage.config.grammar.visitor.Visitor v) {
-      v.visit(this);
-   }
-   public <R,A> R accept(org.ohmage.config.grammar.visitor.GJVisitor<R,A> v, A argu) {
-      return v.visit(this,argu);
-   }
-   public <R> R accept(org.ohmage.config.grammar.visitor.GJNoArguVisitor<R> v) {
-      return v.visit(this);
-   }
-   public <A> void accept(org.ohmage.config.grammar.visitor.GJVoidVisitor<A> v, A argu) {
-      v.visit(this,argu);
-   }
+	public void addNode(Node n) {
+		nodes.addElement(n);
+	}
 
-   public Vector<Node> nodes;
+	public Enumeration<Node> elements() { return nodes.elements(); }
+	public Node elementAt(int i)  { return nodes.elementAt(i); }
+	public int size()             { return nodes.size(); }
+	public void accept(org.ohmage.config.grammar.visitor.Visitor v) {
+		v.visit(this);
+	}
+	public <R,A> R accept(org.ohmage.config.grammar.visitor.GJVisitor<R,A> v, A argu) {
+		return v.visit(this,argu);
+	}
+	public <R> R accept(org.ohmage.config.grammar.visitor.GJNoArguVisitor<R> v) {
+		return v.visit(this);
+	}
+	public <A> void accept(org.ohmage.config.grammar.visitor.GJVoidVisitor<A> v, A argu) {
+		v.visit(this,argu);
+	}
+
+	public Vector<Node> nodes;
 }
 
