@@ -2,7 +2,9 @@ package org.ohmage.domain.campaign.prompt;
 
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -73,6 +75,17 @@ public abstract class CustomChoicePrompt extends ChoicePrompt {
 		super(id, condition, unit, text, abbreviatedText, explanationText,
 				skippable, skipLabel, displayType, displayLabel, 
 				choices, type, index);
+		
+		Set<String> labels = new HashSet<String>();
+		for(LabelValuePair lvp : choices.values()) {
+			if(! labels.add(lvp.getLabel())) {
+				throw new IllegalArgumentException(
+						"Two choices have the same label for prompt '" +
+							id +
+							"': " +
+							lvp.getLabel());
+			}
+		}
 		
 		this.customChoices = new HashMap<Integer, LabelValuePair>(customChoices);
 	}
