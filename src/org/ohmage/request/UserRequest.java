@@ -81,13 +81,13 @@ public abstract class UserRequest extends Request {
 		
 		// If it is missing, fail the request.
 		if(usernames.length == 0) {
-			LOGGER.info("The username is missing from the request.");
-			setFailed(ErrorCode.AUTHENTICATION_FAILED, "Missing username.");
+			LOGGER.info("The user is missing from the request.");
+			setFailed(ErrorCode.AUTHENTICATION_FAILED, "Missing user.");
 		}
 		// If there is more than one, fail the request.
 		else if(usernames.length > 1) {
-			LOGGER.info("More than one username was given.");
-			setFailed(ErrorCode.AUTHENTICATION_FAILED, "More than one username was given.");
+			LOGGER.info("More than one user was given.");
+			setFailed(ErrorCode.AUTHENTICATION_FAILED, "More than one user was given.");
 		}
 		else {
 			// If exactly one username is found, attempt to retrieve all 
@@ -110,8 +110,8 @@ public abstract class UserRequest extends Request {
 					tUser = new User(usernames[0], passwords[0], hashPassword);
 				}
 				catch(DomainException e) {
-					LOGGER.info("The username and/or password are invalid.");
-					setFailed(ErrorCode.AUTHENTICATION_FAILED, "The username and/or password are invalid.");
+					LOGGER.info("The user and/or password are invalid.");
+					setFailed(ErrorCode.AUTHENTICATION_FAILED, "The user and/or password are invalid.");
 				}
 			}
 		}
@@ -303,8 +303,8 @@ public abstract class UserRequest extends Request {
 		}
 		// If there is more than one, fail the request.
 		else if(usernames.length > 1) {
-			LOGGER.info("More than one username was given.");
-			setFailed(ErrorCode.AUTHENTICATION_FAILED, "More than one username was given.");
+			LOGGER.info("More than one user was given.");
+			setFailed(ErrorCode.AUTHENTICATION_FAILED, "More than one user was given.");
 		}
 		else {
 			// If exactly one username is found, attempt to retrieve all 
@@ -326,8 +326,8 @@ public abstract class UserRequest extends Request {
 					tUser = new User(usernames[0], passwords[0], hashPassword);
 				}
 				catch(DomainException e) {
-					LOGGER.info("The username and/or password are invalid.");
-					setFailed(ErrorCode.AUTHENTICATION_FAILED, "The username and/or password are invalid.");
+					LOGGER.info("The user and/or password are invalid.");
+					setFailed(ErrorCode.AUTHENTICATION_FAILED, "The user and/or password are invalid.");
 				}
 			}
 		}
@@ -343,8 +343,8 @@ public abstract class UserRequest extends Request {
 				// authentication token cannot be retrieved from another 
 				// location, fail the request.
 				if((cookies.size() == 0) && (! tokenLocation.equals(TokenLocation.EITHER))) {
-					LOGGER.info("Either a username and password or an authentication token are required.");
-					setFailed(ErrorCode.AUTHENTICATION_FAILED, "Either a username and password or an authentication token are required.");
+					LOGGER.info("Either a user and password or an authentication token are required.");
+					setFailed(ErrorCode.AUTHENTICATION_FAILED, "Either a user and password or an authentication token are required.");
 				}
 				else if(cookies.size() == 1) {
 					// Attempt to retrieve the user.
@@ -373,8 +373,8 @@ public abstract class UserRequest extends Request {
 				String[] tokens = getParameterValues(InputKeys.AUTH_TOKEN);
 				
 				if(tokens.length == 0) {
-					LOGGER.info("Either a username and password or an authentication token are required.");
-					setFailed(ErrorCode.AUTHENTICATION_FAILED, "Either a username and password or an authentication token are required.");
+					LOGGER.info("Either a user and password or an authentication token are required.");
+					setFailed(ErrorCode.AUTHENTICATION_FAILED, "Either a user and password or an authentication token are required.");
 				}
 				else if(tokens.length == 1) {
 					// Attempt to retrieve the user.
