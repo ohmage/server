@@ -685,6 +685,8 @@ public final class SurveyResponseReadRequest extends UserRequest {
 		
 		surveyResponsesToSkip = tSurveyResponsesToSkip;
 		surveyResponsesToProcess = tSurveyResponsesToProcess;
+		
+		surveyResponseList = new ArrayList<SurveyResponse>();
 	}
 	
 	/**
@@ -751,65 +753,6 @@ public final class SurveyResponseReadRequest extends UserRequest {
 						" results after filtering and paging a total of " + 
 						surveyResponseCount + 
 						" applicable responses.");
-			
-			/*
-			LOGGER.info("Getting the count for the total number of survey responses that match the criteria.");
-			surveyResponseCount =
-					SurveyResponseServices.instance().retrieveSurveyResponseCount(
-							campaign, 
-							getUser().getUsername(), 
-							(URN_SPECIAL_ALL_LIST.equals(usernames) ? null : usernames), 
-							startDate, 
-							endDate, 
-							privacyState, 
-							(URN_SPECIAL_ALL_LIST.equals(surveyIds)) ? null : surveyIds, 
-							(URN_SPECIAL_ALL_LIST.equals(promptIds)) ? null : promptIds, 
-							null);
-			LOGGER.info("Found " + surveyResponseCount + " total responses.");
-			
-			if(sortOrder != null) {
-				LOGGER.info("Sorting the results.");
-				Collections.sort(
-						surveyResponseList, 
-						new Comparator<SurveyResponse>() {
-							@Override
-							public int compare(
-									SurveyResponse o1,
-									SurveyResponse o2) {
-								
-								for(SortParameter sortParameter : sortOrder) {
-									switch(sortParameter) {
-									
-									case SURVEY:
-										if(! o1.getSurvey().equals(o2.getSurvey())) {
-											return o1.getSurvey().getId().compareTo(o2.getSurvey().getId());
-										}
-										break;
-										
-									case TIMESTAMP:
-										if(o1.getTime() != o2.getTime()) {
-											if((o1.getTime() - o2.getTime()) < 0) {
-												return -1;
-											}
-											else {
-												return 1;
-											}
-										}
-										break;
-										
-									case USER:
-										if(! o1.getUsername().equals(o2.getUsername())) {
-											return o1.getUsername().compareTo(o2.getUsername());
-										}
-										break;
-									}
-								}
-								return 0;
-							}
-						}
-					);
-			}
-			*/
 		}
 		catch(ServiceException e) {
 			e.failRequest(this);

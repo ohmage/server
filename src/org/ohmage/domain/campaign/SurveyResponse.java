@@ -684,7 +684,7 @@ public class SurveyResponse {
 	public static enum SortParameter {
 		SURVEY ("survey_id"),
 		TIMESTAMP ("epoch_millis"),
-		USER ("user_id");
+		USER ("username");
 		
 		// The string used to represent the columns on which to order.
 		private String sqlColumn;

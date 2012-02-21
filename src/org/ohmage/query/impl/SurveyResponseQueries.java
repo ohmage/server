@@ -690,73 +690,6 @@ public class SurveyResponseQueries extends Query implements ISurveyResponseQueri
 		}
 	}
 	
-	/*
-	 * (non-Javadoc)
-	 * @see org.ohmage.query.ISurveyResponseQueries#retrieveSurveyResponseCount(org.ohmage.domain.campaign.Campaign, java.lang.String, java.util.Collection, java.util.Date, java.util.Date, org.ohmage.domain.campaign.SurveyResponse.PrivacyState, java.util.Collection, java.util.Collection, java.lang.String)
-	 */
-	public long retrieveSurveyResponseCount(
-			final Campaign campaign,
-			final String username,
-			final Collection<String> usernames, 
-			final Date startDate,
-			final Date endDate, 
-			final SurveyResponse.PrivacyState privacyState,
-			final Collection<String> surveyIds,
-			final Collection<String> promptIds,
-			final String promptType)
-			throws DataAccessException {
-		
-		List<Object> parameters = new LinkedList<Object>();
-		String sql = buildSqlAndParameters(
-				campaign,
-				username,
-				usernames, 
-				startDate,
-				endDate, 
-				privacyState,
-				surveyIds,
-				promptIds,
-				promptType,
-				null, 
-				null, // Sort Order
-				true,
-				parameters);
-		
-		try {
-			return getJdbcTemplate().queryForObject(
-					sql, 
-					parameters.toArray(), 
-					new RowMapper<Long>() {
-						/**
-						 * Returns the count. The expectation is that this 
-						 * should return exactly one row with any number of
-						 * columns, but one of the columns should be the count.
-						 */
-						@Override
-						public Long mapRow(ResultSet rs, int rowNum)
-								throws SQLException {
-							
-							return rs.getLong("count");
-						}
-					});
-		}
-		catch(org.springframework.dao.DataAccessException e) {
-			throw new DataAccessException(
-					"Error executing SQL '" +  
-						sql +
-						"' with parameters: " + 
-						campaign.getId() + " (campaign ID), " +
-						usernames + " (usernames), " +
-						startDate + " (start date), " +
-						endDate + " (end date), " +
-						privacyState + " (privacy state), " + 
-						surveyIds + " (survey IDs), " +
-						promptIds + " (prompt IDs), " +
-						promptType + " (prompt type)",
-					e);
-		}
-	}
-	
 	/* (non-Javadoc)
 	 * @see org.ohmage.query.impl.ISurveyResponseQueries#updateSurveyResponsePrivacyState(java.lang.Long, org.ohmage.domain.campaign.SurveyResponse.PrivacyState)
 	 */
@@ -1078,9 +1011,25 @@ public class SurveyResponseQueries extends Query implements ISurveyResponseQueri
 		
 		// Finally, add some ordering to facilitate consistent results in the
 		// paging system.
-		sqlBuilder.append(" ORDER BY");
+		sqlBuilder.append(" ORDER BY ");
+		boolean firstPass = true;
 		for(SortParameter sortParameter : sortOrder) {
-			sqlBuilder.append(" ").append(sortParameter.getSqlColumn());
+			if(firstPass) {
+				firstPass = false;
+			}
+			else {
+				sqlBuilder.append(", ");
+			}
+			
+			sqlBuilder.append(sortParameter.getSqlColumn());
+		}
+		// We must always include the UUID in the order to guarantee that all
+		// survey responses are grouped together.
+		if(firstPass) {
+			sqlBuilder.append("uuid");
+		}
+		else {
+			sqlBuilder.append(", uuid");
 		}
 		
 		return sqlBuilder.toString();
