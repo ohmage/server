@@ -333,11 +333,12 @@ public final class SurveyResponseValidators {
 	 * 							   multiple times, or if all of the known sort
 	 * 							   order values weren't given.
 	 */
-	public static List<SortParameter> validateSortOrder(final String sortOrder)
+	public static List<SortParameter> validateSortOrder(
+			final String sortOrder)
 			throws ValidationException {
 		
 		if(StringUtils.isEmptyOrWhitespaceOnly(sortOrder)) {
-			return null;
+			return SurveyResponseReadRequest.DEFAULT_SORT_ORDER;
 		}
 		
 		List<SortParameter> result = new ArrayList<SortParameter>(3);

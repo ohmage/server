@@ -682,9 +682,22 @@ public class SurveyResponse {
 	 * @author John Jenkins
 	 */
 	public static enum SortParameter {
-		SURVEY,
-		TIMESTAMP,
-		USER;
+		SURVEY ("survey_id"),
+		TIMESTAMP ("epoch_millis"),
+		USER ("user_id");
+		
+		// The string used to represent the columns on which to order.
+		private String sqlColumn;
+		
+		/**
+		 * Creates a sort parameter with a String representing the SQL 
+		 * column(s) to use to order the result.
+		 * 
+		 * @param sqlColumn The SQL string to use to order this column.
+		 */
+		private SortParameter(final String sqlColumn) {
+			this.sqlColumn = sqlColumn;
+		}
 		
 		/**
 		 * Converts a string value into its appropriate SortParameter object or
@@ -700,6 +713,17 @@ public class SurveyResponse {
 		 */
 		public static SortParameter getValue(final String value) {
 			return SortParameter.valueOf(value.toUpperCase());
+		}
+		
+		/**
+		 * A String representing the SQL to use to order the column(s).
+		 * 
+		 * @return A String representing the SQL to use to order the column(s)
+		 * 		   without the "ORDER BY" text. This is only the column('s)
+		 * 		   name. 
+		 */
+		public String getSqlColumn() {
+			return sqlColumn;
 		}
 		
 		/**

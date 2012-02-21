@@ -28,6 +28,7 @@ import org.ohmage.domain.campaign.Campaign;
 import org.ohmage.domain.campaign.Response;
 import org.ohmage.domain.campaign.SurveyResponse;
 import org.ohmage.domain.campaign.SurveyResponse.ColumnKey;
+import org.ohmage.domain.campaign.SurveyResponse.SortParameter;
 import org.ohmage.domain.campaign.response.PhotoPromptResponse;
 import org.ohmage.exception.DataAccessException;
 import org.ohmage.exception.ServiceException;
@@ -249,7 +250,7 @@ public final class SurveyResponseServices {
 	 * 
 	 * @throws ServiceException Thrown if there is an error.
 	 */
-	public List<SurveyResponse> readSurveyResponseInformation(
+	public int readSurveyResponseInformation(
 			final Campaign campaign,
 			final String username,
 			final Collection<String> usernames,
@@ -258,9 +259,11 @@ public final class SurveyResponseServices {
 			final Collection<String> surveyIds, 
 			final Collection<String> promptIds, 
 			final String promptType,
-			Collection<ColumnKey> columns, 
+			final Collection<ColumnKey> columns, 
+			final List<SortParameter> sortOrder,
 			final long surveyResponsesToSkip,
-			final long surveyResponsesToProcess) 
+			final long surveyResponsesToProcess,
+			List<SurveyResponse> result) 
 			throws ServiceException {
 		
 		try {
@@ -275,8 +278,10 @@ public final class SurveyResponseServices {
 					promptIds, 
 					promptType,
 					columns,
+					sortOrder,
 					surveyResponsesToSkip,
-					surveyResponsesToProcess);
+					surveyResponsesToProcess,
+					result);
 		}
 		catch(DataAccessException e) {
 			throw new ServiceException(e);

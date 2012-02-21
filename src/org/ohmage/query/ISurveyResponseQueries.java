@@ -24,6 +24,7 @@ import java.util.UUID;
 import org.ohmage.domain.campaign.Campaign;
 import org.ohmage.domain.campaign.SurveyResponse;
 import org.ohmage.domain.campaign.SurveyResponse.ColumnKey;
+import org.ohmage.domain.campaign.SurveyResponse.SortParameter;
 import org.ohmage.exception.DataAccessException;
 
 public interface ISurveyResponseQueries {
@@ -88,7 +89,7 @@ public interface ISurveyResponseQueries {
 	 *  
 	 * @throws DataAccessException Thrown if there is an error. 
 	 */
-	List<SurveyResponse> retrieveSurveyResponses(
+	int retrieveSurveyResponses(
 			final Campaign campaign,
 			final String username,
 			final Collection<String> usernames,
@@ -99,8 +100,10 @@ public interface ISurveyResponseQueries {
 			final Collection<String> promptIds,
 			final String promptType,
 			final Collection<ColumnKey> columns, 
+			final List<SortParameter> sortOrder,
 			final long surveyResponsesToSkip,
-			final long surveyResponsesToProcess) 
+			final long surveyResponsesToProcess,
+			List<SurveyResponse> result) 
 			throws DataAccessException;
 	
 	/**
