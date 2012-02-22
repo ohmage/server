@@ -507,6 +507,7 @@ public class SurveyResponseQueries extends Query implements ISurveyResponseQueri
 						// If the result set is empty, we can simply return an
 						// empty list.
 						if(! rs.next()) {
+							totalCount.add(0);
 							return Collections.emptyList();
 						}
 						
