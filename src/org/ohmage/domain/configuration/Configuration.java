@@ -338,7 +338,7 @@ public class Configuration {
 	
 	private String getChoiceLabelFrom(Prompt prompt, String key) {
 		Map<String, PromptProperty> props = prompt.getProperties();
-		String value = null;
+		String value = key;
 		if((null != props) && (props.containsKey(key))) {
 			return props.get(key).getLabel();
 		}

@@ -1117,6 +1117,9 @@ public final class SurveyResponseReadServices {
 							} 
 							else {
 								builder.append(null != valueLabel.getLabel() ? valueLabel.getLabel().replace(",","") : "null");
+								if(configuration.promptContainsSingleChoiceValues(promptId)) {
+									builder.append(",null");
+								}
 							}
 						} 
 						else {
