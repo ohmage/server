@@ -752,7 +752,7 @@ public class SurveyUploadQuery extends AbstractUploadQuery implements ISurveyUpl
 							ps.setString(6, TimeUtils.getIso8601DateTimeString((Date) response));
 						}
 						else {
-							ps.setString(5, response.toString());
+							ps.setString(6, response.toString());
 						}
 						
 						return ps;
