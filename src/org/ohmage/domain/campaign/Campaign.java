@@ -30,6 +30,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import nu.xom.Builder;
 import nu.xom.Document;
@@ -2615,6 +2617,11 @@ public class Campaign {
 				promptMap, index);
 	}
 	
+	// FIXME: Hackalicious. This is a hot-fix so that concurrency won't break 
+	// condition parsing. We need to fix the condition parser to not be static
+	// as soon as possible!
+	private static final Lock parserLock = new ReentrantLock();
+	
 	/**
 	 * Creates a Prompt object based on the XML prompt Node.
 	 * 
@@ -2658,11 +2665,15 @@ public class Campaign {
 			
 			Map<String, List<ConditionValuePair>> promptIdAndConditionValues;
 			try {
+				parserLock.lock();
 				promptIdAndConditionValues = 
 						ConditionValidator.validate(condition);
 			}
 			catch(ConditionParseException e) {
 				throw new DomainException(e.getMessage(), e);
+			}
+			finally {
+				parserLock.unlock();
 			}
 			
 			for(String promptId : promptIdAndConditionValues.keySet()) {
