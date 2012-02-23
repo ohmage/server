@@ -96,7 +96,7 @@ public class ClassReadRequest extends UserRequest {
 			try {
 				String[] t;
 				
-				t = httpRequest.getParameterValues(InputKeys.CLASS_URN_LIST);
+				t = getParameterValues(InputKeys.CLASS_URN_LIST);
 				if(t.length > 1) {
 					throw new ValidationException(
 							ErrorCode.CLASS_INVALID_ID,
@@ -120,8 +120,7 @@ public class ClassReadRequest extends UserRequest {
 					}
 				}
 				
-				t = httpRequest.getParameterValues(
-						InputKeys.CLASS_WITH_USER_LIST);
+				t = getParameterValues(InputKeys.CLASS_WITH_USER_LIST);
 				if(t.length > 1) {
 					throw new ValidationException(
 							ErrorCode.CLASS_INVALID_WITH_USER_LIST_VALUE,
