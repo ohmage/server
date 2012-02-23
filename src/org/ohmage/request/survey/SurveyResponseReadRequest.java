@@ -248,14 +248,9 @@ public final class SurveyResponseReadRequest extends UserRequest {
 	
 	public static final String URN_SPECIAL_ALL = "urn:ohmage:special:all";
 	public static final Collection<String> URN_SPECIAL_ALL_LIST;
-	public static final List<SortParameter> DEFAULT_SORT_ORDER;
 	static {
 		URN_SPECIAL_ALL_LIST = new HashSet<String>();
 		URN_SPECIAL_ALL_LIST.add(URN_SPECIAL_ALL);
-		
-		List<SortParameter> tmpSortOrder = new ArrayList<SortParameter>();
-		tmpSortOrder.add(SortParameter.TIMESTAMP);
-		DEFAULT_SORT_ORDER = Collections.unmodifiableList(tmpSortOrder);
 	}
 
 	private static final int MAX_NUMBER_OF_USERS = 10;
@@ -309,7 +304,7 @@ public final class SurveyResponseReadRequest extends UserRequest {
 		Date tStartDate = null;
 		Date tEndDate = null;
 		
-		List<SortParameter> tSortOrder = DEFAULT_SORT_ORDER;
+		List<SortParameter> tSortOrder = null;
 		
 		SurveyResponse.PrivacyState tPrivacyState = null;
 

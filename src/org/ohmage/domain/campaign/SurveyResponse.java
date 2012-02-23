@@ -687,7 +687,7 @@ public class SurveyResponse {
 		USER ("username");
 		
 		// The string used to represent the columns on which to order.
-		private String sqlColumn;
+		private final String sqlColumn;
 		
 		/**
 		 * Creates a sort parameter with a String representing the SQL 

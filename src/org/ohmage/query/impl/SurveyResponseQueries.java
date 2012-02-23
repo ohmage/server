@@ -1012,25 +1012,30 @@ public class SurveyResponseQueries extends Query implements ISurveyResponseQueri
 		
 		// Finally, add some ordering to facilitate consistent results in the
 		// paging system.
-		sqlBuilder.append(" ORDER BY ");
-		boolean firstPass = true;
-		for(SortParameter sortParameter : sortOrder) {
-			if(firstPass) {
-				firstPass = false;
-			}
-			else {
-				sqlBuilder.append(", ");
-			}
-			
-			sqlBuilder.append(sortParameter.getSqlColumn());
-		}
-		// We must always include the UUID in the order to guarantee that all
-		// survey responses are grouped together.
-		if(firstPass) {
-			sqlBuilder.append("uuid");
+		if(sortOrder == null) {
+			sqlBuilder.append(" ORDER BY epoch_millis DESC, uuid");
 		}
 		else {
-			sqlBuilder.append(", uuid");
+			sqlBuilder.append(" ORDER BY ");
+			boolean firstPass = true;
+			for(SortParameter sortParameter : sortOrder) {
+				if(firstPass) {
+					firstPass = false;
+				}
+				else {
+					sqlBuilder.append(", ");
+				}
+				
+				sqlBuilder.append(sortParameter.getSqlColumn());
+			}
+			// We must always include the UUID in the order to guarantee that 
+			// all survey responses are grouped together.
+			if(firstPass) {
+				sqlBuilder.append("uuid");
+			}
+			else {
+				sqlBuilder.append(", uuid");
+			}
 		}
 		
 		return sqlBuilder.toString();

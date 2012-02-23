@@ -331,7 +331,7 @@ public class SurveyResponseValidatorsTest extends TestCase {
 	public void testValidateSortOrder() {
 		try {
 			for(String emptyValue : ParameterSets.getEmptyValues()) {
-				Assert.assertEquals(SurveyResponseValidators.validateSortOrder(emptyValue), SurveyResponseReadRequest.DEFAULT_SORT_ORDER);
+				Assert.assertNull(SurveyResponseValidators.validateSortOrder(emptyValue));
 			}
 			
 			try {

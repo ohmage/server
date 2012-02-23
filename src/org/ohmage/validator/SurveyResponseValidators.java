@@ -338,7 +338,7 @@ public final class SurveyResponseValidators {
 			throws ValidationException {
 		
 		if(StringUtils.isEmptyOrWhitespaceOnly(sortOrder)) {
-			return SurveyResponseReadRequest.DEFAULT_SORT_ORDER;
+			return null;
 		}
 		
 		List<SortParameter> result = new ArrayList<SortParameter>(3);
