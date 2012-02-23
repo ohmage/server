@@ -1901,9 +1901,6 @@ public class Campaign {
 			if(StringUtils.isEmptyOrWhitespaceOnly(name)) {
 				throw new DomainException("The name tag exists but the value is empty.");
 			}
-			else if(! VALID_CHARACTERS_PATTERN.matcher(name).matches()) {
-				throw new DomainException("The name contains illegal characters.");
-			}
 			else {
 				return name;
 			}
