@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
@@ -832,18 +833,30 @@ public final class SurveyResponseReadRequest extends UserRequest {
 							);
 						
 						if(allColumns || columns.contains(ColumnKey.CONTEXT_TIMESTAMP)) {
+							Calendar tmpCalendar = 
+									Calendar.getInstance(
+											surveyResponse.getTimezone());
+							tmpCalendar.setTimeInMillis(
+									surveyResponse.getTime());
+							
 							currResult.put(
 									"timestamp", 
 									TimeUtils.getIso8601DateTimeString(
-											new Date(surveyResponse.getTime())));
+											tmpCalendar.getTime()));
 						}
 						if(allColumns || columns.contains(ColumnKey.CONTEXT_UTC_TIMESTAMP)) {
+							Calendar tmpCalendar = 
+									Calendar.getInstance(
+											surveyResponse.getTimezone());
+							tmpCalendar.setTimeInMillis(
+									surveyResponse.getTime());
+							
 							currResult.put(
 									"utc_timestamp",
 									DateUtils.timestampStringToUtc(
 											TimeUtils.getIso8601DateTimeString(
-													new Date(surveyResponse.getTime())), 
-											TimeZone.getDefault().getID()));
+													tmpCalendar.getTime()), 
+												surveyResponse.getTimezone().getID()));
 						}
 						if(allColumns || columns.contains(ColumnKey.CONTEXT_LOCATION_ACCURACY)) {
 							Location location = surveyResponse.getLocation();
@@ -910,20 +923,20 @@ public final class SurveyResponseReadRequest extends UserRequest {
 							Location location = surveyResponse.getLocation();
 							
 							if(location == null) {
-								currResult.put(Location.JSON_KEY_TIME, JSONObject.NULL);
+								currResult.put("location_timestamp", JSONObject.NULL);
 							}
 							else {
-								currResult.put(Location.JSON_KEY_TIME, location.getTime());
+								currResult.put("location_timestamp", location.getTime());
 							}
 						}
 						if(allColumns || columns.contains(ColumnKey.CONTEXT_LOCATION_TIMESTAMP)) {
 							Location location = surveyResponse.getLocation();
 							
 							if(location == null) {
-								currResult.put(Location.JSON_KEY_TIME_ZONE, JSONObject.NULL);
+								currResult.put("location_timezone", JSONObject.NULL);
 							}
 							else {
-								currResult.put(Location.JSON_KEY_TIME_ZONE, location.getTimeZone().getID());
+								currResult.put("location_timezone", location.getTimeZone().getID());
 							}
 						}
 						
