@@ -29,6 +29,7 @@ import org.ohmage.exception.ServiceException;
 import org.ohmage.exception.ValidationException;
 import org.ohmage.request.InputKeys;
 import org.ohmage.request.UserRequest;
+import org.ohmage.service.PromptResponseServices;
 import org.ohmage.service.UserAnnotationServices;
 import org.ohmage.service.UserCampaignServices;
 import org.ohmage.util.StringUtils;
@@ -58,6 +59,23 @@ import org.ohmage.validator.SurveyResponseValidators;
  *     <td>true</td>
  *   </tr>
  *   <tr>
+ *     <td>{@value org.ohmage.request.InputKeys#PROMPT_ID}</td>
+ *     <td>A String representing a prompt id present in the survey referenced 
+ *     by the survey id above.</td>
+ *     <td>true</td>
+ *   </tr>
+ *   <tr>
+ *     <td>{@value org.ohmage.request.InputKeys#REPEATABLE_SET_ID}</td>
+ *     <td>An optional String representing a repeatable set id present in the  
+ *     survey referenced by the survey id above.</td>
+ *     <td>true</td>
+ *   </tr>
+ *   <tr>
+ *     <td>{@value org.ohmage.request.InputKeys#REPEATABLE_SET_ITERATION}</td>
+ *     <td>An optional integer indicating the iteration of the repeatable set.</td>
+ *     <td>true</td>
+ *   </tr>      
+ *   <tr>
  *     <td>{@value org.ohmage.request.InputKeys#TIME}</td>
  *     <td>A long value representing the milliseconds since the UNIX epoch at
  *     which this annotation was created.</td>
@@ -78,10 +96,13 @@ import org.ohmage.validator.SurveyResponseValidators;
  * 
  * @author Joshua Selsky
  */
-public class SurveyResponseAnnotationCreationRequest extends UserRequest {
-	private static final Logger LOGGER = Logger.getLogger(SurveyResponseAnnotationCreationRequest.class);
+public class PromptResponseAnnotationCreationRequest extends UserRequest {
+	private static final Logger LOGGER = Logger.getLogger(PromptResponseAnnotationCreationRequest.class);
 	
 	private final UUID surveyId;
+	private final String promptId;
+	private final String repeatableSetId;
+	private final Integer repeatableSetIteration;
 	private final Long time;
 	private final TimeZone timezone;
 	private final String annotationText;
@@ -94,12 +115,15 @@ public class SurveyResponseAnnotationCreationRequest extends UserRequest {
 	 * @param httpRequest The HttpServletRequest with the parameters for this
 	 * 					  request.
 	 */
-	public SurveyResponseAnnotationCreationRequest(HttpServletRequest httpRequest) {
+	public PromptResponseAnnotationCreationRequest(HttpServletRequest httpRequest) {
 		super(httpRequest, TokenLocation.PARAMETER);
 		
 		LOGGER.info("Creating a survey annotation creation request.");
 		
 		UUID tSurveyId = null;
+		String tPromptId = null;
+		String tRepeatableSetId = null;
+		Integer tRepeatableSetIteration = null;
 		Long tTime = Long.MIN_VALUE;
 		TimeZone tTimezone = null;
 		String tAnnotationText = null;
@@ -113,13 +137,94 @@ public class SurveyResponseAnnotationCreationRequest extends UserRequest {
 				if(t == null || t.length != 1) {
 					setFailed(ErrorCode.SURVEY_INVALID_SURVEY_ID, "survey_id is missing or there is more than one.");
 					throw new ValidationException("survey_id is missing or there is more than one.");
-				} else {
+				} 
+				else {
 					tSurveyId = SurveyResponseValidators.validateSurveyResponseId(t[0]);
 					
 					if(tSurveyId == null) {
 						setFailed(ErrorCode.SURVEY_INVALID_SURVEY_ID, "The survey ID is invalid.");
 						throw new ValidationException("The survey ID is invalid.");
 					}
+				}
+
+				// Validate the prompt ID
+				t = parameters.get(InputKeys.PROMPT_ID);
+				if(t == null || t.length != 1) {
+					setFailed(ErrorCode.SURVEY_INVALID_PROMPT_ID, "prompt_id is missing or there is more than one.");
+					throw new ValidationException("prompt_id is missing or there is more than one.");
+				}
+				else {
+					
+					if(StringUtils.isEmptyOrWhitespaceOnly(t[0])) {
+						setFailed(ErrorCode.SURVEY_INVALID_PROMPT_ID, "The prompt ID is invalid.");
+						throw new ValidationException("The prompt ID is invalid.");
+					}
+					
+					// Just grab the only item in the set
+					tPromptId = t[0];
+				}
+
+				// Validate the optional repeatable set ID
+				t = parameters.get(InputKeys.REPEATABLE_SET_ID);
+				if(t != null) {
+					
+					if(t.length != 1) {
+						setFailed(ErrorCode.SURVEY_INVALID_REPEATABLE_SET_ID, "there is more than one repeatable set ID.");
+						throw new ValidationException("there is more than one repeatable set ID.");
+					}
+					
+					if(StringUtils.isEmptyOrWhitespaceOnly(t[0])) {
+						setFailed(ErrorCode.SURVEY_INVALID_REPEATABLE_SET_ID, "The repeatable set ID is invalid.");
+						throw new ValidationException("The repeatable set ID is invalid.");
+					}
+					
+					tRepeatableSetId = t[0];
+					
+				} else {
+					
+					tRepeatableSetId = null;
+					
+				}
+	
+				// Validate the optional repeatable set iteration
+				// If a repeatable set id is present, an iteration is required and vice versa
+				t = parameters.get(InputKeys.REPEATABLE_SET_ITERATION);
+				if(t != null) {
+					
+					if(tRepeatableSetId == null) {
+						setFailed(ErrorCode.SURVEY_INVALID_REPEATABLE_SET_ITERATION, "repeatable set iteration does not make sense without a repeatable set id");
+						throw new ValidationException("repeatable set iteration does not make sense without a repeatable set id");
+					}
+					
+					if(t.length != 1) {
+						setFailed(ErrorCode.SURVEY_INVALID_REPEATABLE_SET_ITERATION, "there is more than one repeatable set iteration.");
+						throw new ValidationException("there is more than one repeatable set iteration.");
+					}
+					
+					if(StringUtils.isEmptyOrWhitespaceOnly(t[0]) ) {
+						setFailed(ErrorCode.SURVEY_INVALID_REPEATABLE_SET_ITERATION, "The repeatable set iteration is invalid.");
+						throw new ValidationException("The repeatable set iteration is invalid.");
+					}
+					
+					try {
+					
+						tRepeatableSetIteration = Integer.parseInt(t[0]);
+					}
+					catch (NumberFormatException e) {
+						setFailed(ErrorCode.SURVEY_INVALID_REPEATABLE_SET_ITERATION, "The repeatable set iteration is invalid.");
+						throw new ValidationException("The repeatable set iteration is invalid.");
+					}
+					
+				} 
+				else if(t == null && tRepeatableSetId != null) {
+					
+					setFailed(ErrorCode.SURVEY_INVALID_REPEATABLE_SET_ITERATION, "repeatable set id does not make sense without a repeatable set iteration");
+					
+					throw new ValidationException("repeatable set id does not make sense without a repeatable set iteration");
+				}
+				else {
+					
+					tRepeatableSetIteration = null;
 				}
 				
 				// Validate the time
@@ -128,7 +233,8 @@ public class SurveyResponseAnnotationCreationRequest extends UserRequest {
 				if(t == null || t.length != 1) {
 					setFailed(ErrorCode.ANNOTATION_INVALID_TIME, "time is missing or there is more than one value");
 					throw new ValidationException("time is missing or there is more than one value");
-				} else {
+				} 
+				else {
 					
 					try {
 						tTime = Long.valueOf(t[0]);
@@ -145,7 +251,8 @@ public class SurveyResponseAnnotationCreationRequest extends UserRequest {
 				if(t == null || t.length != 1) {
 					setFailed(ErrorCode.ANNOTATION_INVALID_TIMEZONE, "timezone is missing or there is more than one value");
 					throw new ValidationException("timezone is missing or there is more than one value");
-				} else {
+				}
+				else {
 					
 					// FIXME This will default to UTC if the timezone is unknown to the
 					// TimeZone class. It's safe because we will never see an invalid 
@@ -163,7 +270,8 @@ public class SurveyResponseAnnotationCreationRequest extends UserRequest {
 				if(t == null || t.length != 1) {
 					setFailed(ErrorCode.ANNOTATION_INVALID_ANNOTATION, "annotation is missing or there is more than one value");
 					throw new ValidationException("annotation is missing or there is more than one value");
-				} else {
+				}
+				else {
 					
 					if(StringUtils.isEmptyOrWhitespaceOnly(t[0])) {
 						setFailed(ErrorCode.ANNOTATION_INVALID_ANNOTATION, "The annotation is empty.");
@@ -182,11 +290,14 @@ public class SurveyResponseAnnotationCreationRequest extends UserRequest {
 		}
 		
 		this.surveyId = tSurveyId;
+		this.promptId = tPromptId;
+		this.repeatableSetId = tRepeatableSetId;
+		this.repeatableSetIteration = tRepeatableSetIteration;
 		this.time = tTime;
 		this.timezone = tTimezone;
 		this.annotationText = tAnnotationText;
 		
-		annotationIdToReturn = null;
+		this.annotationIdToReturn = null;
 	}
 
 	/**
@@ -207,11 +318,22 @@ public class SurveyResponseAnnotationCreationRequest extends UserRequest {
 				throw new ServiceException("The user does not belong to any campaigns.");
 			}
 			
-			LOGGER.info("Verifying that the logged in user can create a survey response annotation");
+			LOGGER.info("Verifying that the logged in user can create a prompt response annotation");
+			// By default, if a user can create a survey response annotation,
+			// he or she can create a prompt response annotation.
 			UserAnnotationServices.instance().userCanCreateSurveyResponseAnnotation(getUser().getUsername(), campaignIds, surveyId);
 			
+			
+			LOGGER.info("Verifying that the provided input parameters reference an actual prompt response");
+			int promptResponseId = PromptResponseServices.instance().findPromptResponseIdFor(surveyId, promptId, repeatableSetId, repeatableSetIteration);
+			
 			LOGGER.info("Persisting the survey response annotation.");
-			annotationIdToReturn = UserAnnotationServices.instance().createSurveyResponseAnnotation(getClient(), this.time, this.timezone, this.annotationText, this.surveyId);
+			annotationIdToReturn = UserAnnotationServices.instance()
+				.createPromptResponseAnnotation(getClient(), 
+						                        this.time,
+						                        this.timezone,
+						                        this.annotationText,
+						                        promptResponseId);
 			
 		}
 		catch(ServiceException e) {

@@ -49,7 +49,12 @@ public class AnnotationQueries extends Query implements IAnnotationQueries {
 	private static final String SQL_INSERT_SURVEY_RESPONSE_ANNOTATION =
 		"INSERT into survey_response_annotation " +
 		"(survey_response_id, annotation_id) " +
-		"VALUES ((SELECT id from survey_response where uuid = ?), ?)"; 
+		"VALUES ((SELECT id from survey_response where uuid = ?), ?)";
+	
+	private static final String SQL_INSERT_PROMPT_RESPONSE_ANNOTATION =
+		"INSERT into prompt_response_annotation " +
+		"(prompt_response_id, annotation_id) " +
+		"VALUES (?, ?)";
 
 	
 	/**
@@ -69,7 +74,7 @@ public class AnnotationQueries extends Query implements IAnnotationQueries {
 		
 		// Create the transaction.
 		DefaultTransactionDefinition def = new DefaultTransactionDefinition();
-		def.setName("Creating a new survey response annoatation.");
+		def.setName("Creating a new survey response annotation.");
 		
 		try {
 			// Begin the transaction.
@@ -141,4 +146,88 @@ public class AnnotationQueries extends Query implements IAnnotationQueries {
 			throw new DataAccessException("Error while attempting to rollback the transaction.", e);
 		}
 	}
+	
+	@Override
+	public void createPromptResponseAnnotation(final UUID annotationUuid, final String client, final Long time,
+		final TimeZone timezone, final String annotationText, Integer promptResponseId)
+			throws DataAccessException {
+		
+		// Create the transaction.
+		DefaultTransactionDefinition def = new DefaultTransactionDefinition();
+		def.setName("Creating a new prompt response annotation.");
+		
+		try {
+			// Begin the transaction.
+			PlatformTransactionManager transactionManager = new DataSourceTransactionManager(getDataSource());
+			TransactionStatus status = transactionManager.getTransaction(def);
+			
+			final KeyHolder annotationIdKeyHolder = new GeneratedKeyHolder();
+			
+			try {
+				
+				// FIXME -- move this to it's own method
+				
+				// Insert the annotation
+				getJdbcTemplate().update(
+					new PreparedStatementCreator() {
+						public PreparedStatement createPreparedStatement(Connection connection) throws SQLException {
+							PreparedStatement ps = connection.prepareStatement(SQL_INSERT_ANNOTATION, new String[] {"id"});
+							ps.setString(1, annotationUuid.toString());
+							ps.setLong(2, time);
+							ps.setString(3, timezone.getID());
+							ps.setString(4, client);
+							ps.setString(5, annotationText);
+							return ps;
+						}
+					},
+					annotationIdKeyHolder
+				);
+				
+				
+			} catch(org.springframework.dao.DataAccessException e) {
+				
+				transactionManager.rollback(status);
+				throw new DataAccessException(
+						"Error while executing SQL '" + SQL_INSERT_ANNOTATION + "' with parameters: " +
+							annotationUuid + ", " + 
+						    time + ", " + 
+							timezone.getID() + ", " + 
+							client + ", " + 
+							((annotationText.length() > 25) ? annotationText.substring(0, 25) + "..." : annotationText),
+						e);
+			}
+			
+			
+			try {
+				
+				// Insert the link between survey_response and annotation
+				getJdbcTemplate().update(
+					SQL_INSERT_PROMPT_RESPONSE_ANNOTATION, promptResponseId, annotationIdKeyHolder.getKey().longValue()
+				);
+				
+			} catch(org.springframework.dao.DataAccessException e) {
+				
+				transactionManager.rollback(status);
+				throw new DataAccessException(
+						"Error while executing SQL '" + SQL_INSERT_PROMPT_RESPONSE_ANNOTATION + "' with parameters: " +
+						    promptResponseId + ", " + 
+						    annotationIdKeyHolder.getKey().longValue(),
+						e);
+			}
+			
+			// Commit the transaction.
+			try {
+				transactionManager.commit(status);
+			}
+			catch(TransactionException e) {
+				transactionManager.rollback(status);
+				throw new DataAccessException("Error while committing the transaction.", e);
+			}
+
+		}
+		catch(TransactionException e) {
+			throw new DataAccessException("Error while attempting to rollback the transaction.", e);
+		}
+	}
+
 }

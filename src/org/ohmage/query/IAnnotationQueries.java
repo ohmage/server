@@ -29,12 +29,13 @@ public interface IAnnotationQueries {
 	/**
 	 * Creates a survey response annotation.
 	 * 
-	 * @param annotationUuid  -- the id used to uniquely identify the annotation
-	 * @param client          -- the software client making the request
-	 * @param time            -- the milliseconds since the UNIX epoch
-	 * @param timezone        -- the timezone of the system making the request
-	 * @param annotationText  -- the annotation text
-	 * @param surveyId        -- the UUID of the survey response
+	 * @param annotationUuid the id used to uniquely identify the annotation
+	 * @param client the software client making the request
+	 * @param time the milliseconds since the UNIX epoch
+	 * @param timezone the timezone of the system making the request
+	 * @param annotationText the annotation text
+	 * @param surveyId the UUID of the survey response
+	 * 
 	 * @throws DataAccessException if an error occurs
 	 */
 	void createSurveyResponseAnnotation(
@@ -45,5 +46,26 @@ public interface IAnnotationQueries {
 		String annotationText,
 		UUID surveyId
 	) throws DataAccessException;
-	
+
+	/**
+	 * Creates a prompt response annotation.
+	 * 
+	 * @param annotationUuid the id used to uniquely identify the annotation
+	 * @param client the software client making the request
+	 * @param time the milliseconds since the UNIX epoch
+	 * @param timezone the timezone of the system making the request
+	 * @param annotationText the annotation text
+	 * @param promptResponseId the id of the prompt response to which the
+	 * annotation should be attached
+	 * 
+	 * @throws DataAccessException if an error occurs
+	 */
+	void createPromptResponseAnnotation(
+		UUID annotationUuid,
+		String client,
+		Long time,
+		TimeZone timezone,
+		String annotationText,
+		Integer promptResponseId
+	) throws DataAccessException;
 }

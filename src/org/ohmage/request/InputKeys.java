@@ -95,6 +95,8 @@ public final class InputKeys {
 	public static final String PROMPT2_ID = "prompt2_id";
 	public static final String PROMPT_ID_LIST = "prompt_id_list";
 	public static final String IMAGE_ID = "id";
+	public static final String REPEATABLE_SET_ID = "repeatable_set_id";
+	public static final String REPEATABLE_SET_ITERATION = "repeatable_set_iteration";
 	
 	// Image Constants
 	public static final String IMAGE_OWNER = "owner";

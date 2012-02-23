@@ -65,9 +65,9 @@ public final class UserAnnotationServices {
 	 * the survey response. Only supervisors in campaigns can annotate 
 	 * survey responses. 
 	 * 
-	 * @param username         -- the user attempting to create an annotation
-	 * @param campaignIds      -- the campaigns the user belongs to
-	 * @param surveyResponseId -- the survey response id to annotate
+	 * @param username the user attempting to create an annotation
+	 * @param campaignIds the campaigns the user belongs to
+	 * @param surveyResponseId the survey response id to annotate
 	 * @return true if the user can create the annotation; false otherwise.
 	 * @throws ServiceException if there was a problem dispatching to the data
 	 *                          layer
@@ -105,6 +105,14 @@ public final class UserAnnotationServices {
 		// Get the roles for this user in the campaign
 		Map<Campaign, List<Campaign.Role>> campaignRoleMap = UserCampaignServices.instance().getCampaignAndUserRolesForCampaigns(username, ll, false);
 		
+		// Bad! Somehow this user exists in a campaign without a role
+		if(campaignRoleMap.isEmpty()) {
+			LOGGER.warn("A user is attempting to create a survey response annotation for campaign " + campaignUrn + ", but the user has no role in the campaign.");
+			throw new ServiceException(
+					ErrorCode.CAMPAIGN_INSUFFICIENT_PERMISSIONS, 
+					"The logged-in user does not have the permissions to create a survey response annotation.");
+		}
+		
 		// Just grab the only List in the Map
 		List<Campaign.Role> roleList = campaignRoleMap.get(campaignRoleMap.keySet().iterator().next());
 		
@@ -119,10 +127,11 @@ public final class UserAnnotationServices {
 	 * Dispatches to the data layer to create an annotation on a survey
 	 * response.
 	 * 
-	 * @param client            -- the ubiquitous client parameter
-	 * @param time              -- the annotation time (epoch milllis) 
-	 * @param timezone          -- the annotation timezone
-	 * @param annotationText    -- the annotation text
+	 * @param client the ubiquitous client parameter
+	 * @param time the annotation time (epoch milllis) 
+	 * @param timezone the annotation timezone
+	 * @param annotationText the annotation text
+	 * @param surveyId  the unique survey identifier
 	 * @return the UUID representing the key for the annotation
 	 * @throws ServiceException if an error occurs
 	 */
@@ -137,4 +146,29 @@ public final class UserAnnotationServices {
 			throw new ServiceException(e);
 		}
 	}
+	
+	/**
+	 * Dispatches to the data layer to create an annotation on a survey
+	 * response.
+	 * 
+	 * @param client the ubiquitous client parameter
+	 * @param time the annotation time (epoch milllis) 
+	 * @param timezone the annotation timezone
+	 * @param annotationText the annotation text
+	 * @param promptResponseId the unique prompt response identifier
+ 	 * @return the UUID representing the key for the annotation
+	 * @throws ServiceException if an error occurs
+	 */
+	public UUID createPromptResponseAnnotation(String client, Long time, TimeZone timezone, String annotationText, Integer promptResponseId) 
+			throws ServiceException {
+		try {
+			UUID annotationId = UUID.randomUUID();
+			annotationQueries.createPromptResponseAnnotation(annotationId, client, time, timezone, annotationText, promptResponseId);
+			return annotationId;
+		}
+		catch(DataAccessException e) {
+			throw new ServiceException(e);
+		}
+	}
+
 }
