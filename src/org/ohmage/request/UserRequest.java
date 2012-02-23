@@ -475,7 +475,15 @@ public abstract class UserRequest extends Request {
 	 */
 	@Override
 	public Map<String, String[]> getAuditInformation() {
-		return new HashMap<String, String[]>();
+		Map<String, String[]> result = new HashMap<String, String[]>();
+		
+		if(! isFailed()) {
+			String[] userArray = new String[1];
+			userArray[0] = getUser().getUsername();
+			result.put(InputKeys.USER, userArray);
+		}
+		
+		return result;
 	}
 	
 	/**************************************************************************
