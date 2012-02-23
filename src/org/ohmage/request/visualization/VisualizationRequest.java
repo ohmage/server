@@ -101,8 +101,8 @@ public abstract class VisualizationRequest extends UserRequest {
 		super(httpRequest, TokenLocation.EITHER);
 		
 		String tCampaignId = null;
-		Integer tWidth = null;
-		Integer tHeight = null;
+		Integer tWidth = 0;
+		Integer tHeight = 0;
 		Date tStartDate = null;
 		Date tEndDate = null;
 		SurveyResponse.PrivacyState tPrivacyState = null;

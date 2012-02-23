@@ -15,6 +15,7 @@
  ******************************************************************************/
 package org.ohmage.query;
 
+import java.net.URL;
 import java.util.Collection;
 import java.util.UUID;
 
@@ -59,6 +60,6 @@ public interface IUserImageQueries {
 	 * 
 	 * @throws DataAccessException Thrown if there is an error.
 	 */
-	Collection<String> getImageUrlsFromUsername(String username)
+	Collection<URL> getImageUrlsFromUsername(String username)
 			throws DataAccessException;
 }

@@ -15,6 +15,7 @@
  ******************************************************************************/
 package org.ohmage.query;
 
+import java.net.URL;
 import java.util.UUID;
 
 import org.ohmage.exception.DataAccessException;
@@ -43,7 +44,7 @@ public interface IImageQueries {
 	 * 
 	 * @throws DataAccessException Thrown if there is an error.
 	 */
-	String getImageUrl(UUID imageId) throws DataAccessException;
+	URL getImageUrl(UUID imageId) throws DataAccessException;
 
 	/**
 	 * Deletes an image reference from the database and, if successful, deletes
@@ -68,9 +69,9 @@ public interface IImageQueries {
 	 * and only when you know the reference no longer exists. Otherwise, use
 	 * {@link #deleteImage(UUID)}.
 	 * 
-	 * @param imageUrl A link to the image's URL.
+	 * @param imageUrl The image's URL.
 	 * 
 	 * @see #deleteImage(UUID)
 	 */
-	public void deleteImageDiskOnly(String imageUrl) ;
+	public void deleteImageDiskOnly(URL imageUrl) ;
 }

@@ -15,6 +15,7 @@
  ******************************************************************************/
 package org.ohmage.service;
 
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -28,6 +29,7 @@ import jbcrypt.BCrypt;
 
 import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.domain.Clazz;
+import org.ohmage.domain.User;
 import org.ohmage.domain.UserInformation;
 import org.ohmage.domain.UserPersonal;
 import org.ohmage.domain.UserSummary;
@@ -131,7 +133,7 @@ public final class UserServices {
 			throws ServiceException {
 		
 		try {
-			String hashedPassword = BCrypt.hashpw(password, BCrypt.gensalt(13));
+			String hashedPassword = BCrypt.hashpw(password, BCrypt.gensalt(User.BCRYPT_COMPLEXITY));
 			
 			userQueries.createUser(username, hashedPassword, admin, enabled, newAccount, campaignCreationPrivilege);
 		}
@@ -564,12 +566,23 @@ public final class UserServices {
 			List<String> sortedResult = new ArrayList<String>(result);
 			Collections.sort(sortedResult);
 			int size = sortedResult.size();
-
+			
 			int lastIndex = numToSkip + numToReturn;
-			results.addAll(
-					sortedResult.subList(
-							numToSkip, 
-							(lastIndex > size) ? size : lastIndex));
+			// Rollover check.
+			if(lastIndex < 0) {
+				lastIndex = Integer.MAX_VALUE;
+			}
+			// If the number of usernames to skip is less than the size, then
+			// we can prune the results, but it if is greater than or equal to
+			// the size, then we will "skip" all of the results and add 
+			// nothing, so we shouldn't waste our time creating a sublist to
+			// add that will inevitably be empty.
+			if(numToSkip < size) {
+				results.addAll(
+						sortedResult.subList(
+								numToSkip, 
+								(lastIndex > size) ? size : lastIndex));
+			}
 			
 			return size;
 		}
@@ -819,7 +832,7 @@ public final class UserServices {
 			throws ServiceException {
 		// First, retrieve the path information for all of the images 
 		// associated with each user.
-		Collection<String> imageUrls = new HashSet<String>();
+		Collection<URL> imageUrls = new HashSet<URL>();
 		try {
 			for(String username : usernames) {
 				imageUrls.addAll(
@@ -839,7 +852,7 @@ public final class UserServices {
 		
 		// If the transaction succeeded, delete all of the images from the 
 		// disk.
-		for(String imageUrl : imageUrls) {
+		for(URL imageUrl : imageUrls) {
 			imageQueries.deleteImageDiskOnly(imageUrl);
 		}
 	}

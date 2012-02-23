@@ -20,6 +20,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
@@ -97,7 +98,7 @@ public class SurveyResponseFunctionReadRequest extends UserRequest {
 	private final Function functionId;
 	private final Collection<FunctionPrivacyStateItem> privacyStateGroupItems;
 	
-	private Collection<SurveyResponse> surveyResponses;
+	private List<SurveyResponse> surveyResponses;
 	
 	/**
 	 * Creates a new survey response function read request.
@@ -204,7 +205,7 @@ public class SurveyResponseFunctionReadRequest extends UserRequest {
 			Campaign campaign = CampaignServices.instance().getCampaign(campaignId);
 			
 			LOGGER.info("Gathering the survey response information.");
-			surveyResponses = SurveyResponseServices.instance().readSurveyResponseInformation(
+			SurveyResponseServices.instance().readSurveyResponseInformation(
 					campaign, 
 					getUser().getUsername(),
 					null, 
@@ -215,8 +216,10 @@ public class SurveyResponseFunctionReadRequest extends UserRequest {
 					null, 
 					null,
 					null,
-					SurveyResponse.DEFAULT_NUM_SURVEY_RESPONSES_TO_SKIP,
-					SurveyResponse.DEFAULT_NUM_SURVEY_RESPONSES_TO_PROCESS);
+					null,
+					0,
+					Long.MAX_VALUE,
+					surveyResponses);
 		}
 		catch(ServiceException e) {
 			e.failRequest(this);

@@ -28,6 +28,7 @@ import org.ohmage.domain.campaign.Campaign;
 import org.ohmage.domain.campaign.Response;
 import org.ohmage.domain.campaign.SurveyResponse;
 import org.ohmage.domain.campaign.SurveyResponse.ColumnKey;
+import org.ohmage.domain.campaign.SurveyResponse.SortParameter;
 import org.ohmage.domain.campaign.response.PhotoPromptResponse;
 import org.ohmage.exception.DataAccessException;
 import org.ohmage.exception.ServiceException;
@@ -236,6 +237,8 @@ public final class SurveyResponseServices {
 	 * 				  null, no aggregation is performed. If the list is empty,
 	 * 				  an empty list is returned.
 	 * 
+	 * @param sortOrder The order in which to sort the responses.
+	 * 
 	 * @param surveyResponsesToSkip The number of survey responses to skip once
 	 * 								the result has been aggregated from the 
 	 * 								server.
@@ -244,12 +247,17 @@ public final class SurveyResponseServices {
 	 * 								   analyze once the survey responses to 
 	 * 								   skip have been skipped.
 	 * 
-	 * @return Returns a, possibly empty but never null, list of survey 
-	 * 		   responses that match the given criteria.
+	 * @param result A list of SurveyResponse objects, probably empty, to add
+	 * 				 the results of this query to.
+	 * 
+	 * @return The total number of results that matched the given criteria, not
+	 * 		   the number that were added to result. In order to get that 
+	 * 		   number, simply subtract 'result's length after this to call to
+	 * 		   its length before this call.
 	 * 
 	 * @throws ServiceException Thrown if there is an error.
 	 */
-	public List<SurveyResponse> readSurveyResponseInformation(
+	public int readSurveyResponseInformation(
 			final Campaign campaign,
 			final String username,
 			final Collection<String> usernames,
@@ -258,9 +266,11 @@ public final class SurveyResponseServices {
 			final Collection<String> surveyIds, 
 			final Collection<String> promptIds, 
 			final String promptType,
-			Collection<ColumnKey> columns, 
+			final Collection<ColumnKey> columns, 
+			final List<SortParameter> sortOrder,
 			final long surveyResponsesToSkip,
-			final long surveyResponsesToProcess) 
+			final long surveyResponsesToProcess,
+			List<SurveyResponse> result) 
 			throws ServiceException {
 		
 		try {
@@ -275,71 +285,10 @@ public final class SurveyResponseServices {
 					promptIds, 
 					promptType,
 					columns,
+					sortOrder,
 					surveyResponsesToSkip,
-					surveyResponsesToProcess);
-		}
-		catch(DataAccessException e) {
-			throw new ServiceException(e);
-		}
-	}
-	
-	/**
-	 * Returns the number of survey responses that match the given criteria.
-	 * 
-	 * @param campaign The campaign to which the survey responses must belong.
-	 * 
-	 * @param username The username of the user that is making this request.
-	 * 				   This is used by the ACLs to limit who sees what.
-	 * 
-	 * @param usernames Limits the results to only those submitted by any one 
-	 * 					of the users in the list.
-	 * 
-	 * @param startDate Limits the results to only those survey responses that
-	 * 					occurred on or after this date.
-	 * 
-	 * @param endDate Limits the results to only those survey responses that
-	 * 				  occurred on or before this date.
-	 * 
-	 * @param privacyState Limits the results to only those survey responses
-	 * 					   with this privacy state.
-	 * 
-	 * @param surveyIds Limits the results to only those survey responses that 
-	 * 					were derived from a survey in this collection.
-	 * 
-	 * @param promptIds Limits the results to only those survey responses that 
-	 * 					were derived from a prompt in this collection.
-	 * 
-	 * @param promptType Limits the results to only those survey responses that
-	 * 					 are of the given prompt type.
-	 * 
-	 * @return A long representing the number of survey responses that match
-	 * 		   the criteria.
-	 * 
-	 * @throws ServiceException Thrown if there is an error.
-	 */
-	public long retrieveSurveyResponseCount(
-			final Campaign campaign,
-			final String username,
-			final Collection<String> usernames, 
-			final Date startDate,
-			final Date endDate, 
-			final SurveyResponse.PrivacyState privacyState,
-			final Collection<String> surveyIds,
-			final Collection<String> promptIds,
-			final String promptType)
-			throws ServiceException {
-		
-		try {
-			return surveyResponseQueries.retrieveSurveyResponseCount(
-					campaign, 
-					username, 
-					usernames, 
-					startDate, 
-					endDate, 
-					privacyState, 
-					surveyIds, 
-					promptIds, 
-					promptType);
+					surveyResponsesToProcess,
+					result);
 		}
 		catch(DataAccessException e) {
 			throw new ServiceException(e);

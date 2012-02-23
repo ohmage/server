@@ -3,6 +3,11 @@
 -- little memory overhead.
 CREATE INDEX response_image ON prompt_response (response(36));
 
+-- Add the preference defining the number of survey responses. The default is
+-- -1 which represents "no limit".
+INSERT INTO preference(p_key, p_value) VALUES 
+    ('max_survey_response_page_size', '-1');
+
 -- --------------------------------------------------------------------
 -- Annotations (text blobs) for different system entities.
 -- --------------------------------------------------------------------
@@ -63,3 +68,5 @@ CREATE TABLE annotation_annotation (
   CONSTRAINT FOREIGN KEY (root_annotation_id) REFERENCES annotation (id) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT FOREIGN KEY (annotation_id) REFERENCES annotation (id) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+

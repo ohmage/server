@@ -142,7 +142,7 @@ public final class MobilityServices {
 				}
 				else {
 					try {
-						wifiDataString = wifiData.toJson().toString();
+						wifiDataString = wifiData.toJson(false).toString();
 					}
 					catch(JSONException e) {
 						throw new ServiceException(e);

@@ -54,6 +54,7 @@ public class MobilityPoint {
 	private static final String JSON_KEY_LOCATION_SHORT = "l";
 
 	public static final String JSON_KEY_SUBTYPE = "subtype";
+	public static final String JSON_KEY_SUBTYPE_SHORT = "st";
 	
 	// Mode-only
 	private static final String JSON_KEY_MODE = "mode";
@@ -120,19 +121,28 @@ public class MobilityPoint {
 	 * @author John Jenkins
 	 */
 	public static final class SensorData {
-		private static final String JSON_KEY_MODE = "mode";
+		private static final String JSON_KEY_SENSOR_DATA_MODE = "mode";
+		private static final String JSON_KEY_SENSOR_DATA_MODE_SHORT = "m";
+		
 		private static final String JSON_KEY_SPEED = "speed";
+		private static final String JSON_KEY_SPEED_SHORT = "sp";
 		
 		private static final String JSON_KEY_ACCEL_DATA = "accel_data";
+		private static final String JSON_KEY_ACCEL_DATA_SHORT = "ad";
 		private static final String JSON_KEY_ACCEL_DATA_X = "x";
 		private static final String JSON_KEY_ACCEL_DATA_Y = "y";
 		private static final String JSON_KEY_ACCEL_DATA_Z = "z";
 		
 		private static final String JSON_KEY_WIFI_DATA = "wifi_data";
+		private static final String JSON_KEY_WIFI_DATA_SHORT = "wd";
 		private static final String JSON_KEY_WIFI_DATA_TIMESTAMP = "timestamp";
+		private static final String JSON_KEY_WIFI_DATA_TIMESTAMP_SHORT = "ts";
 		private static final String JSON_KEY_WIFI_DATA_TIME = "time";
+		private static final String JSON_KEY_WIFI_DATA_TIME_SHORT = "t";
 		private static final String JSON_KEY_WIFI_DATA_TIMEZONE = "timezone";
+		private static final String JSON_KEY_WIFI_DATA_TIMEZONE_SHORT = "tz";
 		private static final String JSON_KEY_WIFI_DATA_SCAN = "scan";
+		private static final String JSON_KEY_WIFI_DATA_SCAN_SHORT = "sc";
 		
 		private final Mode mode;
 		private final Double speed;
@@ -219,7 +229,9 @@ public class MobilityPoint {
 		 */
 		public static final class WifiData {
 			private static final String JSON_KEY_SSID = "ssid";
+			private static final String JSON_KEY_SSID_SHORT = "ss";
 			private static final String JSON_KEY_STRENGTH = "strength";
+			private static final String JSON_KEY_STRENGTH_SHORT = "st";
 			
 			//private final Date timestamp;
 			private final Long time;
@@ -299,32 +311,47 @@ public class MobilityPoint {
 							try {
 								ssid = jsonObject.getString(JSON_KEY_SSID);
 							}
-							catch(JSONException e) {
-								if(Mode.ERROR.equals(mode)) {
-									continue;
+							catch(JSONException notLong) {
+								try {
+									ssid = jsonObject.getString(
+											JSON_KEY_SSID_SHORT);
 								}
-								else {
-									throw new DomainException(
+								catch(JSONException notShort) {
+									if(Mode.ERROR.equals(mode)) {
+										continue;
+									}
+									else {
+										throw new DomainException(
 											ErrorCode.MOBILITY_INVALID_WIFI_DATA, 
 											"The SSID is missing.", 
-											e);
+											notShort);
+									}
 								}
 							}
 							
 							// Get the strength.
 							Double strength;
 							try {
-								strength = jsonObject.getDouble(JSON_KEY_STRENGTH);
+								strength = 
+										jsonObject.getDouble(
+												JSON_KEY_STRENGTH);
 							}
-							catch(JSONException e) {
-								if(Mode.ERROR.equals(mode)) {
-									strength = null;
+							catch(JSONException notLong) {
+								try {
+									strength = 
+											jsonObject.getDouble(
+													JSON_KEY_STRENGTH_SHORT);
 								}
-								else {
-									throw new DomainException(
+								catch(JSONException notShort) {
+									if(Mode.ERROR.equals(mode)) {
+										strength = null;
+									}
+									else {
+										throw new DomainException(
 											ErrorCode.MOBILITY_INVALID_WIFI_DATA, 
 											"The strength is missing or invalid.", 
-											e);
+											notShort);
+									}
 								}
 							}
 							
@@ -349,20 +376,26 @@ public class MobilityPoint {
 			 * 
 			 * @param scans A map of WiFi device IDs to their signal strength.
 			 * 
-			 * @throws IllegalArgumentException Thrown if the timestamp or 
-			 * 									scans map are null.
+			 * @throws DomainException Thrown if the timestamp or scans map are
+			 * 						   null.
 			 */
-			public WifiData(final Long time, final TimeZone timezone,
-					final Map<String, Double> scans) {
+			public WifiData(
+					final Long time, 
+					final TimeZone timezone,
+					final Map<String, Double> scans) 
+					throws DomainException {
 				
 				if(time == null) {
-					throw new IllegalArgumentException("The timestamp cannot be null.");
+					throw new DomainException(
+							"The timestamp cannot be null.");
 				}
 				if(timezone == null) {
-					throw new IllegalArgumentException("The timezone cannot be null.");
+					throw new DomainException(
+							"The timezone cannot be null.");
 				}
 				else if(scans == null) {
-					throw new IllegalArgumentException("The map of scans cannot be null.");
+					throw new DomainException(
+							"The map of scans cannot be null.");
 				}
 				
 				this.time = time;
@@ -389,25 +422,64 @@ public class MobilityPoint {
 			 * @throws JSONException There was an error building the 
 			 * 						 JSONObject.
 			 */
-			public final JSONObject toJson() 
+			public final JSONObject toJson(
+					final boolean abbreviated) 
 					throws JSONException {
-				
+
 				JSONObject result = new JSONObject();
 				
-				result.put(JSON_KEY_WIFI_DATA_TIMESTAMP, TimeUtils.getIso8601DateTimeString(new Date(time)));
-				result.put(JSON_KEY_WIFI_DATA_TIME, time);
-				result.put(JSON_KEY_WIFI_DATA_TIMEZONE, timezone.getID());
+				/*
+				if(time != null) {
+					result.put(
+							(abbreviated) ? 
+									JSON_KEY_WIFI_DATA_TIMESTAMP_SHORT :
+									JSON_KEY_WIFI_DATA_TIMESTAMP, 
+							TimeUtils.getIso8601DateTimeString(
+									new Date(time)));
+				}
+				*/
+
+				if(time != null) {
+				result.put(
+						(abbreviated) ?
+								JSON_KEY_WIFI_DATA_TIME_SHORT :
+								JSON_KEY_WIFI_DATA_TIME, 
+						time);
+				}
+				
+				if(timezone != null) {
+					result.put(
+							(abbreviated) ?
+									JSON_KEY_WIFI_DATA_TIMEZONE_SHORT :
+									JSON_KEY_WIFI_DATA_TIMEZONE, 
+							timezone.getID());
+				}
 				
 				if(scan != null) {
 					JSONArray scanJson = new JSONArray();
+					
 					for(String ssid : scan.keySet()) {
 						JSONObject currScan = new JSONObject();
-						currScan.put(JSON_KEY_SSID, ssid);
-						currScan.put(JSON_KEY_STRENGTH, scan.get(ssid));
 						
+						currScan.put(
+								(abbreviated) ?
+										JSON_KEY_SSID_SHORT :
+										JSON_KEY_SSID, 
+								ssid);
+						
+						currScan.put(
+								(abbreviated) ?
+										JSON_KEY_STRENGTH_SHORT :
+										JSON_KEY_STRENGTH, 
+								scan.get(ssid));
+
 						scanJson.put(currScan);
 					}
-					result.put(JSON_KEY_WIFI_DATA_SCAN, scanJson);
+					result.put(
+							(abbreviated) ?
+									JSON_KEY_WIFI_DATA_SCAN_SHORT :
+									JSON_KEY_WIFI_DATA_SCAN, 
+							scanJson);
 				}
 				
 				return result;
@@ -425,25 +497,34 @@ public class MobilityPoint {
 		 * 						   component.
 		 */
 		private SensorData(JSONObject sensorData) throws DomainException {
-			// Get the mode.
+			// Get the mode string.
+			String modeString;
 			try {
-				String modeString = sensorData.getString(JSON_KEY_MODE);
-				
+				modeString = sensorData.getString(JSON_KEY_SENSOR_DATA_MODE);
+			}
+			catch(JSONException notLong) {
 				try {
-					mode = Mode.valueOf(modeString.toUpperCase());
+					modeString = 
+							sensorData.getString(
+									JSON_KEY_SENSOR_DATA_MODE_SHORT);
 				}
-				catch(IllegalArgumentException e) {
+				catch(JSONException notShort) {
 					throw new DomainException(
 							ErrorCode.MOBILITY_INVALID_MODE, 
-							"The mode is not a known mode: " + modeString, 
-							e);
+							"The mode is missing in the sensor data: " + 
+									JSON_KEY_SENSOR_DATA_MODE, 
+							notShort);
 				}
 			}
-			catch(JSONException e) {
+			
+			// Convert the mode string into a valid Mode.
+			try {
+				mode = Mode.valueOf(modeString.toUpperCase());
+			}
+			catch(IllegalArgumentException e) {
 				throw new DomainException(
 						ErrorCode.MOBILITY_INVALID_MODE, 
-						"The mode is missing in the sensor data: " + 
-								JSON_KEY_MODE, 
+						"The mode is not a known mode: " + modeString, 
 						e);
 			}
 			
@@ -452,23 +533,49 @@ public class MobilityPoint {
 			try {
 				tSpeed = sensorData.getDouble(JSON_KEY_SPEED);
 			}
-			catch(JSONException e) {
-				if(Mode.ERROR.equals(mode)) {
-					tSpeed = null;
+			catch(JSONException notLong) {
+				try {
+					tSpeed = sensorData.getDouble(JSON_KEY_SPEED_SHORT);
 				}
-				else {
-					throw new DomainException(
-							ErrorCode.MOBILITY_INVALID_SPEED, 
-							"The speed is missing or invalid.", 
-							e);
+				catch(JSONException notShort) {
+					if(Mode.ERROR.equals(mode)) {
+						tSpeed = null;
+					}
+					else {
+						throw new DomainException(
+								ErrorCode.MOBILITY_INVALID_SPEED, 
+								"The speed is missing or invalid.", 
+								notShort);
+					}
 				}
 			}
 			speed = tSpeed;
-			
+
 			// Get the accelerometer data.
-			List<AccelData> tAccelData;
+			List<AccelData> tAccelData = null;
+			JSONArray accelDataJson = null;
 			try {
-				JSONArray accelDataJson = sensorData.getJSONArray(JSON_KEY_ACCEL_DATA);
+				accelDataJson = sensorData.getJSONArray(JSON_KEY_ACCEL_DATA);
+			}
+			catch(JSONException notLong) {
+				try {
+					accelDataJson = 
+							sensorData.getJSONArray(JSON_KEY_ACCEL_DATA_SHORT);
+				}
+				catch(JSONException notShort) {
+					if(Mode.ERROR.equals(mode)) {
+						tAccelData = null;
+					}
+					else {
+						throw new DomainException(
+								ErrorCode.MOBILITY_INVALID_ACCELEROMETER_DATA, 
+								"The accelerometer data is missing or invalid.", 
+								notShort);
+					}
+				}
+			}
+			
+			if(accelDataJson != null) {
 				int numAccelDataPoints = accelDataJson.length();
 				
 				// Create the resulting list and cycle through the 
@@ -476,7 +583,8 @@ public class MobilityPoint {
 				tAccelData = new ArrayList<AccelData>(numAccelDataPoints);
 				for(int i = 0; i < numAccelDataPoints; i++) {
 					try {
-						JSONObject accelDataPointJson = accelDataJson.getJSONObject(i);
+						JSONObject accelDataPointJson = 
+								accelDataJson.getJSONObject(i);
 						
 						// Get the x-acceleration.
 						Double x;
@@ -540,107 +648,140 @@ public class MobilityPoint {
 					}
 				}
 			}
-			catch(JSONException e) {
-				if(Mode.ERROR.equals(mode)) {
-					tAccelData = null;
-				}
-				else {
-					throw new DomainException(
-							ErrorCode.MOBILITY_INVALID_ACCELEROMETER_DATA, 
-							"The accelerometer data is missing or invalid.", 
-							e);
-				}
-			}
 			accelData = tAccelData;
 			
 			// Get the WiFi data.
-			WifiData tWifiData;
+			WifiData tWifiData = null;
+			JSONObject wifiDataJson = null;
 			try {
-				JSONObject wifiDataJson = sensorData.getJSONObject(JSON_KEY_WIFI_DATA);
-				
-				// If the object is missing, 
-				if(wifiDataJson.length() == 0) {
-					tWifiData = null;
+				wifiDataJson = sensorData.getJSONObject(JSON_KEY_WIFI_DATA);
+			}
+			catch(JSONException notLong) {
+				try {
+					wifiDataJson = 
+							sensorData.getJSONObject(JSON_KEY_WIFI_DATA_SHORT);
 				}
-				else {
-					// Get the time and timezone.
-					Long time;
-					TimeZone timezone;
+				catch(JSONException notShort) {
+					if(Mode.ERROR.equals(mode)) {
+						tWifiData = null;
+					}
+					else {
+						throw new DomainException(
+								ErrorCode.MOBILITY_INVALID_WIFI_DATA, 
+								"The WiFi data is missing or invalid.", 
+								notShort);
+					}
+				}
+			}
+			
+			// If the WiFi data was found.
+			if(wifiDataJson != null) {
+				// Get the time and timezone.
+				Long time;
+				boolean timeFound = true;
+				try {
+					time = wifiDataJson.getLong(JSON_KEY_WIFI_DATA_TIME);
+				}
+				catch(JSONException noLongTime) {
 					try {
-						time = wifiDataJson.getLong(JSON_KEY_WIFI_DATA_TIME);
-						
-						try {
-							timezone = 
-									TimeZone.getTimeZone(
-											wifiDataJson.getString(
-													JSON_KEY_WIFI_DATA_TIMEZONE));
-						}
-						catch(JSONException noTimezone) {
-							if(Mode.ERROR.equals(mode)) {
-								timezone = null;
-							}
-							else {
-								throw new DomainException(
-										ErrorCode.SERVER_INVALID_TIMEZONE, 
-										"The timezone is missing.", 
-										noTimezone);
-							}
-						}
+						time = wifiDataJson.getLong(
+								JSON_KEY_WIFI_DATA_TIME_SHORT);
 					}
 					catch(JSONException noTime) {
+						timeFound = false;
+						String timestamp = null;
 						try {
-							String timestamp = 
+							timestamp = 
 									wifiDataJson.getString(
 											JSON_KEY_WIFI_DATA_TIMESTAMP);
-							
-							time = StringUtils.decodeDateTime(timestamp).getTime();
-							timezone = TimeZone.getDefault();
 						}
-						catch(JSONException noTimestamp) {						
+						catch(JSONException noLongTimestamp) {	
+							try {
+								timestamp =
+										wifiDataJson.getString(
+												JSON_KEY_WIFI_DATA_TIMESTAMP_SHORT);
+							}
+							catch(JSONException noShortTimestamp) {
+								if(Mode.ERROR.equals(mode)) {
+									time = null;
+								}
+								else {
+									throw new DomainException(
+											ErrorCode.SERVER_INVALID_TIME, 
+											"The time is missing.", 
+											noShortTimestamp);
+								}
+							}
+						}
+
+						Date date = StringUtils.decodeDateTime(timestamp);
+						if(date == null) {
 							if(Mode.ERROR.equals(mode)) {
 								time = null;
-								timezone = null;
 							}
 							else {
 								throw new DomainException(
-										ErrorCode.SERVER_INVALID_TIMESTAMP, 
-										"The timestamp is missing.", 
-										noTimestamp);
+										ErrorCode.SERVER_INVALID_TIMESTAMP,
+										"The timestamp could not be decoded: " +
+											sensorData.toString());
 							}
 						}
+						else {
+							time = date.getTime();
+						}
 					}
-					
-					// Get the scan.
-					JSONArray scan;
+				}
+				
+				TimeZone timezone;
+				try {
+					timezone = 
+							TimeZone.getTimeZone(
+									wifiDataJson.getString(
+											JSON_KEY_WIFI_DATA_TIMEZONE));
+				}
+				catch(JSONException noLongTimezone) {
 					try {
-						scan = wifiDataJson.getJSONArray(JSON_KEY_WIFI_DATA_SCAN);
+						timezone =
+								TimeZone.getTimeZone(
+										wifiDataJson.getString(
+												JSON_KEY_WIFI_DATA_TIMEZONE_SHORT));
 					}
-					catch(JSONException e) {
+					catch(JSONException noShortTimezone) {
 						if(Mode.ERROR.equals(mode)) {
-							scan = null;
+							timezone = null;
+						}
+						else if(! timeFound) {
+							timezone = TimeZone.getDefault();
 						}
 						else {
 							throw new DomainException(
-									ErrorCode.MOBILITY_INVALID_WIFI_DATA, 
-									"The scan is missing.", 
-									e);
+									ErrorCode.SERVER_INVALID_TIMEZONE, 
+									"The timezone is missing.", 
+									noShortTimezone);
 						}
 					}
+				}
+				
+				// Get the scan.
+				JSONArray scan;
+				try {
+					scan = wifiDataJson.getJSONArray(JSON_KEY_WIFI_DATA_SCAN);
+				}
+				catch(JSONException e) {
+					if(Mode.ERROR.equals(mode)) {
+						scan = null;
+					}
+					else {
+						throw new DomainException(
+								ErrorCode.MOBILITY_INVALID_WIFI_DATA, 
+								"The scan is missing.", 
+								e);
+					}
+				}
 					
-					// Set the WifiData.
-					tWifiData = new WifiData(time, timezone, scan, mode);
-				}
-			}
-			catch(JSONException e) {
-				if(Mode.ERROR.equals(mode)) {
-					tWifiData = null;
-				}
-				else {
-					throw new DomainException(
-							ErrorCode.MOBILITY_INVALID_WIFI_DATA, 
-							"The WiFi data is missing or invalid.", 
-							e);
-				}
+					
+				// Set the WifiData.
+				tWifiData = new WifiData(time, timezone, scan, mode);
 			}
 			wifiData = tWifiData;
 		}
@@ -689,36 +830,65 @@ public class MobilityPoint {
 		 * 
 		 * @throws JSONException There was an error building the JSONObject.
 		 */
-		public final JSONObject toJson() 
+		public final JSONObject toJson(
+				final boolean abbreviated) 
 				throws JSONException {
 			
 			JSONObject result = new JSONObject();
 			
-			result.put(JSON_KEY_MODE, mode.name().toLowerCase());
+			result.put(
+					(abbreviated) ?
+							JSON_KEY_SENSOR_DATA_MODE_SHORT :
+							JSON_KEY_SENSOR_DATA_MODE, 
+							mode.name().toLowerCase());
 			
 			if(speed == null) {
 				// Don't put it in the JSON.
 			}
 			else if(speed.isInfinite()) {
 				if(Double.POSITIVE_INFINITY == speed.doubleValue()) {
-					result.put(JSON_KEY_SPEED, "Infinity");
+					result.put(
+							(abbreviated) ?
+									JSON_KEY_SPEED_SHORT :
+									JSON_KEY_SPEED, 
+							"Infinity");
 				}
 				else {
-					result.put(JSON_KEY_SPEED, "-Infinity");
+					result.put(
+							(abbreviated) ?
+									JSON_KEY_SPEED_SHORT :
+									JSON_KEY_SPEED, 
+							"-Infinity");
 				}
 			}
 			else if(speed.isNaN()) {
-				result.put(JSON_KEY_SPEED, "NaN");
+				result.put(
+						(abbreviated) ?
+								JSON_KEY_SPEED_SHORT :
+								JSON_KEY_SPEED, 
+						"NaN");
 			}
 			else {
-				result.put(JSON_KEY_SPEED, speed);
+				result.put(
+						(abbreviated) ?
+								JSON_KEY_SPEED_SHORT :
+								JSON_KEY_SPEED, 
+						speed);
 			}
 			
 			if(wifiData == null) {
-				result.put(JSON_KEY_WIFI_DATA, new JSONObject());
+				result.put(
+						(abbreviated) ?
+								JSON_KEY_WIFI_DATA_SHORT :
+								JSON_KEY_WIFI_DATA,
+						new JSONObject());
 			}
 			else {
-				result.put(JSON_KEY_WIFI_DATA, wifiData.toJson());
+				result.put(
+						(abbreviated) ?
+								JSON_KEY_WIFI_DATA_SHORT :
+								JSON_KEY_WIFI_DATA,
+						wifiData.toJson(abbreviated));
 			}
 			
 			if(accelData == null) {
@@ -729,7 +899,11 @@ public class MobilityPoint {
 				for(AccelData accelRecord : accelData) {
 					accelArray.put(accelRecord.toJson());
 				}
-				result.put(JSON_KEY_ACCEL_DATA, accelArray);
+				result.put(
+						(abbreviated) ?
+								JSON_KEY_ACCEL_DATA_SHORT :
+								JSON_KEY_ACCEL_DATA, 
+						accelArray);
 			}
 			
 			return result;
@@ -1098,14 +1272,28 @@ public class MobilityPoint {
 		location = tLocation;
 		
 		// Get the subtype.
+		String subTypeString;
 		try {
-			subType = SubType.valueOf(mobilityPoint.getString(JSON_KEY_SUBTYPE).toUpperCase());
+			subTypeString = 
+					mobilityPoint.getString(JSON_KEY_SUBTYPE).toUpperCase();
 		}
-		catch(JSONException e) {
-			throw new DomainException(
-					ErrorCode.MOBILITY_INVALID_SUBTYPE, 
-					"The subtype is missing.", 
-					e);
+		catch(JSONException notLong) {
+			try {
+				subTypeString = 
+						mobilityPoint
+							.getString(JSON_KEY_SUBTYPE_SHORT)
+							.toUpperCase();
+			}
+			catch(JSONException notShort) {
+				throw new DomainException(
+						ErrorCode.MOBILITY_INVALID_SUBTYPE, 
+						"The subtype is missing.", 
+						notShort);
+			}
+		}
+		
+		try {
+			subType = SubType.valueOf(subTypeString);
 		}
 		catch(IllegalArgumentException e) {
 			throw new DomainException(
@@ -1599,9 +1787,11 @@ public class MobilityPoint {
 			result.put(((abbreviated) ? JSON_KEY_LOCATION_SHORT : JSON_KEY_LOCATION), location.toJson(abbreviated));
 		}
 		
+		result.put(((abbreviated) ? JSON_KEY_MODE_SHORT : JSON_KEY_MODE), mode.toString().toLowerCase());
+		
 		if(withData) {
 			// Subtype
-			result.put(JSON_KEY_SUBTYPE, subType.toString().toLowerCase());
+			result.put(((abbreviated) ? JSON_KEY_SUBTYPE_SHORT : JSON_KEY_SUBTYPE), subType.toString().toLowerCase());
 			
 			// If subtype is mode-only, then just the mode.
 			if(SubType.MODE_ONLY.equals(subType)) {
@@ -1609,11 +1799,8 @@ public class MobilityPoint {
 			}
 			// If subtype is sensor-data, then a data object.
 			else if(SubType.SENSOR_DATA.equals(subType)) {
-				result.put(JSON_KEY_DATA, sensorData.toJson());
+				result.put(JSON_KEY_DATA, sensorData.toJson(abbreviated));
 			}
-		}
-		else {
-			result.put(((abbreviated) ? JSON_KEY_MODE_SHORT : JSON_KEY_MODE), mode.toString().toLowerCase());
 		}
 		
 		return result;

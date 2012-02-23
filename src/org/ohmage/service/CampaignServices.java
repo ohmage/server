@@ -17,6 +17,7 @@ package org.ohmage.service;
 
 import java.io.IOException;
 import java.io.StringReader;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
@@ -844,7 +845,7 @@ public class CampaignServices {
 			throws ServiceException {
 		// First, retrieve the path information for all of the images 
 		// associated with this campaign.
-		Collection<String> imageUrls;
+		Collection<URL> imageUrls;
 		try {
 			imageUrls =
 				campaignImageQueries.getImageUrlsFromCampaign(campaignId);
@@ -862,7 +863,7 @@ public class CampaignServices {
 		
 		// If the transaction succeeded, delete all of the images from the 
 		// disk.
-		for(String imageUrl : imageUrls) {
+		for(URL imageUrl : imageUrls) {
 			imageQueries.deleteImageDiskOnly(imageUrl);
 		}
 	}

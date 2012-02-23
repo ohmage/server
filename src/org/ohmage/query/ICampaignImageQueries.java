@@ -15,6 +15,7 @@
  ******************************************************************************/
 package org.ohmage.query;
 
+import java.net.URL;
 import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
@@ -84,6 +85,6 @@ public interface ICampaignImageQueries {
 	 * 
 	 * @throws DataAccessException Thrown if there is an error.
 	 */
-	Collection<String> getImageUrlsFromCampaign(String campaignId)
+	Collection<URL> getImageUrlsFromCampaign(String campaignId)
 			throws DataAccessException;
 }

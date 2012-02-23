@@ -16,7 +16,7 @@
 package org.ohmage.config.grammar.custom;
 
 /**
- * Associates a condition (an operator value) with a value.
+ * Associates a Condition (an operator Value) with a Value.
  * 
  * @author selsky
  */
@@ -42,7 +42,7 @@ public class ConditionValuePair {
 	
 	@Override
 	public String toString() {
-		return "ConditionValuePair [condition=" + condition + ", value="
+		return "ConditionValuePair [Condition=" + condition + ", Value="
 				+ value + "]";
 	}
 }

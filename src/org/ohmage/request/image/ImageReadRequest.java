@@ -17,15 +17,11 @@ package org.ohmage.request.image;
 
 import java.io.BufferedWriter;
 import java.io.DataOutputStream;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
-import java.net.MalformedURLException;
-import java.net.URISyntaxException;
-import java.net.URL;
 import java.util.UUID;
 
 import javax.servlet.http.HttpServletRequest;
@@ -34,6 +30,8 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.log4j.Logger;
 import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.cache.UserBin;
+import org.ohmage.domain.Image;
+import org.ohmage.exception.DomainException;
 import org.ohmage.exception.ServiceException;
 import org.ohmage.exception.ValidationException;
 import org.ohmage.request.InputKeys;
@@ -88,8 +86,7 @@ public class ImageReadRequest extends UserRequest {
 	private final UUID imageId;
 	private final ImageSize size;
 	
-	private InputStream imageStream;
-	private long imageSize;
+	private Image image;
 	
 	/**
 	 * Creates a new image read request.
@@ -132,7 +129,7 @@ public class ImageReadRequest extends UserRequest {
 		imageId = tImageId;
 		size = tSize;
 		
-		imageStream = null;
+		image = null;
 	}
 	
 	/**
@@ -160,26 +157,7 @@ public class ImageReadRequest extends UserRequest {
 			}
 			
 			LOGGER.info("Retrieving the image.");
-			imageStream = ImageServices.instance().getImage(imageId, size);
-			
-			try {
-				LOGGER.info("Retrieving the image's size.");
-				URL imageUrl = ImageServices.instance().getImageUrl(imageId);
-				if(ImageSize.SMALL.equals(size)) {
-					try {
-						imageUrl = new URL(imageUrl.toString() + "-s");
-					} 
-					catch (MalformedURLException e) {
-						throw new ServiceException(
-								"The image's URL is corrupt.");
-					}
-				}
-				
-				imageSize =(new File(imageUrl.toURI())).length();
-			} 
-			catch(URISyntaxException e) {
-				throw new ServiceException(e);
-			}
+			image = ImageServices.instance().getImage(imageId, size);
 		}
 		catch(ServiceException e) {
 			e.failRequest(this);
@@ -218,7 +196,7 @@ public class ImageReadRequest extends UserRequest {
 				// be.
 				httpResponse.setContentType("image/png");
 				httpResponse.setHeader("Content-Disposition", "filename=image");
-				httpResponse.setHeader("Content-Length", String.valueOf(imageSize));
+				httpResponse.setHeader("Content-Length", new Long(image.getSize()).toString());
 				
 				// If available, set the token.
 				if(getUser() != null) {
@@ -236,6 +214,7 @@ public class ImageReadRequest extends UserRequest {
 				DataOutputStream dos = new DataOutputStream(os);
 				
 				// Read the file in chunks and write it to the output stream.
+				InputStream imageStream = image.openStream();
 				byte[] bytes = new byte[CHUNK_SIZE];
 				int currRead;
 				while((currRead = imageStream.read(bytes)) != -1) {
@@ -254,6 +233,11 @@ public class ImageReadRequest extends UserRequest {
 				// the data output stream.
 				os.flush();
 				os.close();
+			}
+			catch(DomainException e) {
+				LOGGER.error(
+						"There was a problem connecting to the image.", 
+						e);
 			}
 			// If the error occurred while reading from the input stream or
 			// writing to the output stream, abort the whole operation and

@@ -24,6 +24,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.log4j.Logger;
 import org.apache.log4j.NDC;
+import org.json.JSONException;
 import org.json.JSONObject;
 import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.cache.UserBin;
@@ -80,13 +81,13 @@ public abstract class UserRequest extends Request {
 		
 		// If it is missing, fail the request.
 		if(usernames.length == 0) {
-			LOGGER.info("The username is missing from the request.");
-			setFailed(ErrorCode.AUTHENTICATION_FAILED, "Missing username.");
+			LOGGER.info("The user is missing from the request.");
+			setFailed(ErrorCode.AUTHENTICATION_FAILED, "Missing user.");
 		}
 		// If there is more than one, fail the request.
 		else if(usernames.length > 1) {
-			LOGGER.info("More than one username was given.");
-			setFailed(ErrorCode.AUTHENTICATION_FAILED, "More than one username was given.");
+			LOGGER.info("More than one user was given.");
+			setFailed(ErrorCode.AUTHENTICATION_FAILED, "More than one user was given.");
 		}
 		else {
 			// If exactly one username is found, attempt to retrieve all 
@@ -109,8 +110,8 @@ public abstract class UserRequest extends Request {
 					tUser = new User(usernames[0], passwords[0], hashPassword);
 				}
 				catch(DomainException e) {
-					LOGGER.info("The username and/or password are invalid.");
-					setFailed(ErrorCode.AUTHENTICATION_FAILED, "The username and/or password are invalid.");
+					LOGGER.info("The user and/or password are invalid.");
+					setFailed(ErrorCode.AUTHENTICATION_FAILED, "The user and/or password are invalid.");
 				}
 			}
 		}
@@ -302,8 +303,8 @@ public abstract class UserRequest extends Request {
 		}
 		// If there is more than one, fail the request.
 		else if(usernames.length > 1) {
-			LOGGER.info("More than one username was given.");
-			setFailed(ErrorCode.AUTHENTICATION_FAILED, "More than one username was given.");
+			LOGGER.info("More than one user was given.");
+			setFailed(ErrorCode.AUTHENTICATION_FAILED, "More than one user was given.");
 		}
 		else {
 			// If exactly one username is found, attempt to retrieve all 
@@ -325,8 +326,8 @@ public abstract class UserRequest extends Request {
 					tUser = new User(usernames[0], passwords[0], hashPassword);
 				}
 				catch(DomainException e) {
-					LOGGER.info("The username and/or password are invalid.");
-					setFailed(ErrorCode.AUTHENTICATION_FAILED, "The username and/or password are invalid.");
+					LOGGER.info("The user and/or password are invalid.");
+					setFailed(ErrorCode.AUTHENTICATION_FAILED, "The user and/or password are invalid.");
 				}
 			}
 		}
@@ -342,8 +343,8 @@ public abstract class UserRequest extends Request {
 				// authentication token cannot be retrieved from another 
 				// location, fail the request.
 				if((cookies.size() == 0) && (! tokenLocation.equals(TokenLocation.EITHER))) {
-					LOGGER.info("Either a username and password or an authentication token are required.");
-					setFailed(ErrorCode.AUTHENTICATION_FAILED, "Either a username and password or an authentication token are required.");
+					LOGGER.info("Either a user and password or an authentication token are required.");
+					setFailed(ErrorCode.AUTHENTICATION_FAILED, "Either a user and password or an authentication token are required.");
 				}
 				else if(cookies.size() == 1) {
 					// Attempt to retrieve the user.
@@ -372,8 +373,8 @@ public abstract class UserRequest extends Request {
 				String[] tokens = getParameterValues(InputKeys.AUTH_TOKEN);
 				
 				if(tokens.length == 0) {
-					LOGGER.info("Either a username and password or an authentication token are required.");
-					setFailed(ErrorCode.AUTHENTICATION_FAILED, "Either a username and password or an authentication token are required.");
+					LOGGER.info("Either a user and password or an authentication token are required.");
+					setFailed(ErrorCode.AUTHENTICATION_FAILED, "Either a user and password or an authentication token are required.");
 				}
 				else if(tokens.length == 1) {
 					// Attempt to retrieve the user.
@@ -502,6 +503,50 @@ public abstract class UserRequest extends Request {
 		
 		return token;
 	}
+
+	/**
+	 * Generates the success/fail response for the user with an additional key-
+	 * value pair. It also adds a Set-Cookie header in the response for the 
+	 * authentication / session token if one exists.
+	 * 
+	 * @param httpRequest The HTTP request that began this exchange.
+	 * 
+	 * @param httpResponse The HTTP response back to the requester.
+	 * 
+	 * @param key The second to key to include when the request succeeds. The
+	 * 			  first will be {@link Request#JSON_KEY_RESULT}.
+	 * 
+	 * @param value The value to assign to the second key.
+	 */
+	protected void respond(
+			final HttpServletRequest httpRequest, 
+			final HttpServletResponse httpResponse, 
+			final String key, 
+			final Object value) {
+		
+		if(user != null) {
+			final String token = user.getToken(); 
+			if(token != null) {
+				CookieUtils.setCookieValue(
+						httpResponse, 
+						InputKeys.AUTH_TOKEN, 
+						token, 
+						(int) (UserBin.getTokenRemainingLifetimeInMillis(token) / MILLIS_IN_A_SECOND));
+			}
+		}
+		
+		JSONObject response = new JSONObject();
+		
+		try {
+			response.put(key, value);
+		}
+		catch(JSONException e) {
+			LOGGER.error("Error building response object.", e);
+			setFailed();
+		}
+		
+		super.respond(httpRequest, httpResponse, response);
+	}
 	
 	/**
 	 * Generates the response for the user based the 'jsonResponse'. It also
@@ -513,41 +558,57 @@ public abstract class UserRequest extends Request {
 	 * @param httpResponse The HTTP response back to the requester.
 	 * 
 	 * @param jsonResponse A JSONObject representing what should be sent as the
-	 * 					   data to the requester.
+	 * 					   {@link Request#JSON_KEY_DATA} to the requester.
 	 */
-	protected void respond(HttpServletRequest httpRequest, HttpServletResponse httpResponse, JSONObject jsonResponse) {
-		if(user != null) {
-			final String token = user.getToken(); 
-			if(token != null) {
-				CookieUtils.setCookieValue(httpResponse, InputKeys.AUTH_TOKEN, token, (int) (UserBin.getTokenRemainingLifetimeInMillis(token) / MILLIS_IN_A_SECOND));
-			}
-		}
+	protected void respond(
+			final HttpServletRequest httpRequest, 
+			final HttpServletResponse httpResponse, 
+			final JSONObject jsonResponse) {
 		
-		super.respond(httpRequest, httpResponse, jsonResponse);
+		respond(httpRequest, httpResponse, (JSONObject) null, jsonResponse);
 	}
 	
 	/**
-	 * Generates the success/fail response for the user with an additional key-
-	 * value pair. It also adds a Set-Cookie header in the response for the 
-	 * authentication / session token if one exists.
+	 * Generates the response for the user that contains metadata and the 
+	 * actual data to return to the user.
 	 * 
-	 * @param httpRequest The HTTP request that began this exchange.
+	 * @param httpRequest The HTTP request that began this request.
 	 * 
 	 * @param httpResponse The HTTP response back to the requester.
 	 * 
-	 * @param key The second to key to include when the request succeeds.
+	 * @param metadata The metadata to include in the response with the key
+	 * 				   {@link Request#JSON_KEY_METADATA}.
 	 * 
-	 * @param value The value to assign to the second key.
+	 * @param data The data to include in the response with the key
+	 * 			   {@link Request#JSON_KEY_DATA}.
 	 */
-	protected void respond(HttpServletRequest httpRequest, HttpServletResponse httpResponse, String key, Object value) {
+	protected void respond(
+			final HttpServletRequest httpRequest, 
+			final HttpServletResponse httpResponse, 
+			final JSONObject metadata, 
+			final JSONObject data) {
+		
 		if(user != null) {
 			final String token = user.getToken(); 
 			if(token != null) {
-				CookieUtils.setCookieValue(httpResponse, InputKeys.AUTH_TOKEN, token, (int) (UserBin.getTokenRemainingLifetimeInMillis(token) / MILLIS_IN_A_SECOND));
+				CookieUtils.setCookieValue(
+						httpResponse, 
+						InputKeys.AUTH_TOKEN, 
+						token, 
+						(int) (UserBin.getTokenRemainingLifetimeInMillis(token) / MILLIS_IN_A_SECOND));
 			}
 		}
 		
-		super.respond(httpRequest, httpResponse, key, value);
+		JSONObject response = new JSONObject();
+		try {
+			response.put(JSON_KEY_METADATA, metadata);
+			response.put(JSON_KEY_DATA, data);
+		}
+		catch(JSONException e) {
+			LOGGER.error("There was an error building the response.", e);
+			setFailed();
+		}
+		super.respond(httpRequest, httpResponse, response);
 	}
 	/**************************************************************************
 	 *  End JEE Requirements

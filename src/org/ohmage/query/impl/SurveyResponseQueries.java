@@ -38,6 +38,7 @@ import org.ohmage.domain.campaign.Prompt;
 import org.ohmage.domain.campaign.SurveyResponse;
 import org.ohmage.domain.campaign.SurveyResponse.ColumnKey;
 import org.ohmage.domain.campaign.SurveyResponse.PrivacyState;
+import org.ohmage.domain.campaign.SurveyResponse.SortParameter;
 import org.ohmage.exception.DataAccessException;
 import org.ohmage.exception.DomainException;
 import org.ohmage.query.ISurveyResponseQueries;
@@ -361,9 +362,10 @@ public class SurveyResponseQueries extends Query implements ISurveyResponseQueri
 	 * response will be grouped together.
 	 * 
 	 * @see #SQL_GET_SURVEY_RESPONSES
-	 */
+	 *
 	private static final String SQL_ORDER_BY =
 		" ORDER BY sr.epoch_millis DESC, sr.uuid";
+	*/
 	
 	// Updates a survey response's privacy state.
 	private static final String SQL_UPDATE_SURVEY_RESPONSES_PRIVACY_STATE = 
@@ -447,7 +449,7 @@ public class SurveyResponseQueries extends Query implements ISurveyResponseQueri
 	 * @see org.ohmage.query.ISurveyResponseQueries#retrieveSurveyResponseDynamically(org.ohmage.domain.campaign.Campaign, java.util.Collection, java.util.Date, java.util.Date, org.ohmage.domain.campaign.SurveyResponse.PrivacyState, java.util.Collection, java.lang.String)
 	 */
 	@Override
-	public List<SurveyResponse> retrieveSurveyResponses(
+	public int retrieveSurveyResponses(
 			final Campaign campaign,
 			final String username,
 			final Collection<String> usernames, 
@@ -457,9 +459,11 @@ public class SurveyResponseQueries extends Query implements ISurveyResponseQueri
 			final Collection<String> surveyIds,
 			final Collection<String> promptIds,
 			final String promptType,
-			final Collection<ColumnKey> columns, 
+			final Collection<ColumnKey> columns,
+			final List<SortParameter> sortOrder,
 			final long surveyResponsesToSkip,
-			final long surveyResponsesToProcess) 
+			final long surveyResponsesToProcess,
+			List<SurveyResponse> result)
 			throws DataAccessException {
 		
 		if(
@@ -467,7 +471,7 @@ public class SurveyResponseQueries extends Query implements ISurveyResponseQueri
 			((promptIds != null) && (promptIds.size() == 0)) ||
 			((columns != null) && (columns.size() == 0))) {
 			
-			return Collections.emptyList();
+			return 0;
 		}
 		
 		List<Object> parameters = new LinkedList<Object>();
@@ -482,6 +486,7 @@ public class SurveyResponseQueries extends Query implements ISurveyResponseQueri
 				promptIds,
 				promptType,
 				columns,
+				sortOrder,
 				false,
 				parameters);
 
@@ -489,8 +494,12 @@ public class SurveyResponseQueries extends Query implements ISurveyResponseQueri
 		final Map<String, Class<?>> typeMapping = new HashMap<String, Class<?>>();
 		typeMapping.put("tinyint", Integer.class);
 		
+		// This is a silly, hacky way to get the total count, but it is the 
+		// only real way I have found thus far.
+		final Collection<Integer> totalCount = new ArrayList<Integer>(1);
+		
 		try {
-			return getJdbcTemplate().query(
+			result.addAll(getJdbcTemplate().query(
 				sql,
 				parameters.toArray(),
 				new ResultSetExtractor<List<SurveyResponse>>() {
@@ -520,6 +529,7 @@ public class SurveyResponseQueries extends Query implements ISurveyResponseQueri
 						// If the result set is empty, we can simply return an
 						// empty list.
 						if(! rs.next()) {
+							totalCount.add(0);
 							return Collections.emptyList();
 						}
 						
@@ -542,6 +552,7 @@ public class SurveyResponseQueries extends Query implements ISurveyResponseQueri
 								// therefore, there are no survey responses to
 								// return and we can return an empty list.
 								if(! rs.next()) {
+									totalCount.add(surveyResponsesSkipped);
 									return Collections.emptyList();
 								}
 							}
@@ -652,77 +663,38 @@ public class SurveyResponseQueries extends Query implements ISurveyResponseQueri
 							}
 						}
 						
+						// Now, if we are after the last row, we need to set 
+						// the total count to be the total number skipped plus
+						// the total number processed.
+						if(rs.isAfterLast()) {
+							totalCount.add(
+									surveyResponsesSkipped + 
+									surveyResponsesProcessed);
+						}
+						else {
+							int otherIds = 1;
+							String id = rs.getString("uuid");
+							
+							while(rs.next()) {
+								if(! rs.getString("uuid").equals(id)) {
+									otherIds++;
+									id = rs.getString("uuid");
+								}
+							}
+							
+							totalCount.add(
+									surveyResponsesSkipped + 
+									surveyResponsesProcessed +
+									otherIds);
+						}
+						
 						// Finally, return only the survey responses as a list.
 						return result;
 					}
 				}
-			);
-		}
-		catch(org.springframework.dao.DataAccessException e) {
-			throw new DataAccessException(
-					"Error executing SQL '" +  
-						sql +
-						"' with parameters: " + 
-						campaign.getId() + " (campaign ID), " +
-						usernames + " (usernames), " +
-						startDate + " (start date), " +
-						endDate + " (end date), " +
-						privacyState + " (privacy state), " + 
-						surveyIds + " (survey IDs), " +
-						promptIds + " (prompt IDs), " +
-						promptType + " (prompt type)",
-					e);
-		}
-	}
-	
-	/*
-	 * (non-Javadoc)
-	 * @see org.ohmage.query.ISurveyResponseQueries#retrieveSurveyResponseCount(org.ohmage.domain.campaign.Campaign, java.lang.String, java.util.Collection, java.util.Date, java.util.Date, org.ohmage.domain.campaign.SurveyResponse.PrivacyState, java.util.Collection, java.util.Collection, java.lang.String)
-	 */
-	public long retrieveSurveyResponseCount(
-			final Campaign campaign,
-			final String username,
-			final Collection<String> usernames, 
-			final Date startDate,
-			final Date endDate, 
-			final SurveyResponse.PrivacyState privacyState,
-			final Collection<String> surveyIds,
-			final Collection<String> promptIds,
-			final String promptType)
-			throws DataAccessException {
-		
-		List<Object> parameters = new LinkedList<Object>();
-		String sql = buildSqlAndParameters(
-				campaign,
-				username,
-				usernames, 
-				startDate,
-				endDate, 
-				privacyState,
-				surveyIds,
-				promptIds,
-				promptType,
-				null,
-				true,
-				parameters);
-		
-		try {
-			return getJdbcTemplate().queryForObject(
-					sql, 
-					parameters.toArray(), 
-					new RowMapper<Long>() {
-						/**
-						 * Returns the count. The expectation is that this 
-						 * should return exactly one row with any number of
-						 * columns, but one of the columns should be the count.
-						 */
-						@Override
-						public Long mapRow(ResultSet rs, int rowNum)
-								throws SQLException {
-							
-							return rs.getLong("count");
-						}
-					});
+			));
+			
+			return totalCount.iterator().next();
 		}
 		catch(org.springframework.dao.DataAccessException e) {
 			throw new DataAccessException(
@@ -900,6 +872,7 @@ public class SurveyResponseQueries extends Query implements ISurveyResponseQueri
 			final Collection<String> promptIds,
 			final String promptType,
 			final Collection<ColumnKey> columns,
+			final List<SortParameter> sortOrder,
 			final boolean forCount,
 			final Collection<Object> parameters) {
 		
@@ -1061,7 +1034,26 @@ public class SurveyResponseQueries extends Query implements ISurveyResponseQueri
 		
 		// Finally, add some ordering to facilitate consistent results in the
 		// paging system.
-		sqlBuilder.append(SQL_ORDER_BY);
+		sqlBuilder.append(" ORDER BY ");
+		boolean firstPass = true;
+		for(SortParameter sortParameter : sortOrder) {
+			if(firstPass) {
+				firstPass = false;
+			}
+			else {
+				sqlBuilder.append(", ");
+			}
+			
+			sqlBuilder.append(sortParameter.getSqlColumn());
+		}
+		// We must always include the UUID in the order to guarantee that all
+		// survey responses are grouped together.
+		if(firstPass) {
+			sqlBuilder.append("uuid");
+		}
+		else {
+			sqlBuilder.append(", uuid");
+		}
 		
 		return sqlBuilder.toString();
 	}

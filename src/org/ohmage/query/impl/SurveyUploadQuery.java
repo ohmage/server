@@ -29,6 +29,7 @@ import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
@@ -50,6 +51,7 @@ import org.ohmage.exception.CacheMissException;
 import org.ohmage.exception.DataAccessException;
 import org.ohmage.query.ISurveyUploadQuery;
 import org.ohmage.request.JsonInputKeys;
+import org.ohmage.util.TimeUtils;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.jdbc.core.PreparedStatementCreator;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
@@ -744,7 +746,14 @@ public class SurveyUploadQuery extends AbstractUploadQuery implements ISurveyUpl
 						}
 						ps.setString(4, promptResponse.getPrompt().getType().toString());
 						ps.setString(5, promptResponse.getPrompt().getId());
-						ps.setString(6, promptResponse.getResponse().toString());
+						
+						Object response = promptResponse.getResponse();
+						if(response instanceof Date) {
+							ps.setString(6, TimeUtils.getIso8601DateTimeString((Date) response));
+						}
+						else {
+							ps.setString(6, response.toString());
+						}
 						
 						return ps;
 					}

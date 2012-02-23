@@ -77,9 +77,6 @@ public class SurveyResponse {
 	
 	private static final String JSON_KEY_COUNT = "count";
 	
-	public static final long DEFAULT_NUM_SURVEY_RESPONSES_TO_SKIP = 0;
-	public static final long DEFAULT_NUM_SURVEY_RESPONSES_TO_PROCESS = Long.MAX_VALUE;
-	
 	private final String username;
 	private final String campaignId;
 	private final String client;
@@ -685,9 +682,22 @@ public class SurveyResponse {
 	 * @author John Jenkins
 	 */
 	public static enum SortParameter {
-		SURVEY,
-		TIMESTAMP,
-		USER;
+		SURVEY ("survey_id"),
+		TIMESTAMP ("epoch_millis"),
+		USER ("username");
+		
+		// The string used to represent the columns on which to order.
+		private String sqlColumn;
+		
+		/**
+		 * Creates a sort parameter with a String representing the SQL 
+		 * column(s) to use to order the result.
+		 * 
+		 * @param sqlColumn The SQL string to use to order this column.
+		 */
+		private SortParameter(final String sqlColumn) {
+			this.sqlColumn = sqlColumn;
+		}
 		
 		/**
 		 * Converts a string value into its appropriate SortParameter object or
@@ -703,6 +713,17 @@ public class SurveyResponse {
 		 */
 		public static SortParameter getValue(final String value) {
 			return SortParameter.valueOf(value.toUpperCase());
+		}
+		
+		/**
+		 * A String representing the SQL to use to order the column(s).
+		 * 
+		 * @return A String representing the SQL to use to order the column(s)
+		 * 		   without the "ORDER BY" text. This is only the column('s)
+		 * 		   name. 
+		 */
+		public String getSqlColumn() {
+			return sqlColumn;
 		}
 		
 		/**

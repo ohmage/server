@@ -19,14 +19,14 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import org.ohmage.config.grammar.syntaxtree.NodeToken;
 import org.ohmage.config.grammar.syntaxtree.Condition;
 import org.ohmage.config.grammar.syntaxtree.Id;
-import org.ohmage.config.grammar.syntaxtree.NodeToken;
 import org.ohmage.config.grammar.syntaxtree.Value;
 import org.ohmage.config.grammar.visitor.GJVoidDepthFirst;
 
 /**
- * Simple visitor for adding condition ids and their associated values to a Map.
+ * Simple visitor for adding Condition ids and their associated values to a Map.
  * 
  * @author selsky
  * @param <A> must be a Map<String, List<String>>

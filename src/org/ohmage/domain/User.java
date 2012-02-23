@@ -34,6 +34,11 @@ public class User {
 	 */
 	public static final int MAX_NUM_TO_RETURN = Integer.MAX_VALUE;
 	
+	/**
+	 * The complexity of BCrypt hashes for generating hashed passwords.
+	 */
+	public static final int BCRYPT_COMPLEXITY = 12;
+	
 	private final String username;
 	private String password;
 	private boolean hashPassword;

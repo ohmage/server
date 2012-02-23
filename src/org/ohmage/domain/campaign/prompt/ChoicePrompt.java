@@ -17,10 +17,13 @@ package org.ohmage.domain.campaign.prompt;
 
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.ohmage.config.grammar.custom.ConditionValuePair;
 import org.ohmage.domain.campaign.Prompt;
 import org.ohmage.exception.DomainException;
 
@@ -100,6 +103,14 @@ public abstract class ChoicePrompt extends Prompt {
 				skippable, skipLabel, displayType, displayLabel, 
 				type, index);
 		
+		Set<String> labels = new HashSet<String>();
+		for(LabelValuePair lvp : choices.values()) {
+			if(! labels.add(lvp.getLabel())) {
+				throw new DomainException(
+						"Multiple choices have the same label for the prompt: " + 
+							id);
+			}
+		}
 		this.choices = new HashMap<Integer, LabelValuePair>(choices);
 		
 		boolean tHasValues = false;
@@ -149,6 +160,39 @@ public abstract class ChoicePrompt extends Prompt {
 	 */
 	public boolean hasValues() {
 		return hasValues;
+	}
+	
+	/**
+	 * Validates that a given condition-value pair's value is a valid key for
+	 * this prompt.
+	 * 
+	 * @param pair The condition-value pair to validate.
+	 * 
+	 * @throws DomainException The value of the condition-value pair is not 
+	 * 						   valid.
+	 */
+	@Override
+	public void validateConditionValuePair(
+			final ConditionValuePair pair)
+			throws DomainException {
+		
+		try {
+			int key = Integer.decode(pair.getValue());
+			
+			if(! choices.containsKey(key)) {
+				throw new DomainException(
+						"The value for a condition is not a valid key for this choice prompt: " +
+							key);
+			}
+		}
+		catch(NumberFormatException e) {
+			if(! checkNoResponseConditionValuePair(pair)) {
+				throw new DomainException(
+						"The value of the condition is not a number: " + 
+							pair.getValue(),
+						e);
+			}
+		}
 	}
 	
 	/**

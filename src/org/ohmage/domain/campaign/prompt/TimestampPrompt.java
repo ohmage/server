@@ -18,6 +18,7 @@ package org.ohmage.domain.campaign.prompt;
 import java.util.Calendar;
 import java.util.Date;
 
+import org.ohmage.config.grammar.custom.ConditionValuePair;
 import org.ohmage.domain.campaign.Prompt;
 import org.ohmage.domain.campaign.Response.NoResponse;
 import org.ohmage.domain.campaign.response.TimestampPromptResponse;
@@ -82,6 +83,22 @@ public class TimestampPrompt extends Prompt {
 		super(id, condition, unit, text, abbreviatedText, explanationText,
 				skippable, skipLabel, displayType, displayLabel, 
 				Type.TIMESTAMP, index);
+	}
+	
+	/**
+	 * Conditions are not allowed for timestamp prompts.
+	 * 
+	 * @param pair The pair to validate.
+	 * 
+	 * @throws DomainException Always thrown because conditions are not allowed
+	 * 						   for timestamp prompts.
+	 */
+	@Override
+	public void validateConditionValuePair(
+			final ConditionValuePair pair)
+			throws DomainException {
+		
+		throw new DomainException("Conditions are not allowed for timestamp prompts.");
 	}
 	
 	/**

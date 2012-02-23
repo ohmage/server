@@ -67,8 +67,11 @@
         <h3>User Read:</h3>
         <form action="/app/user/read" method="post">
             Client: <input type="text" name="client" value="testWeb" /><br />
+            * User List: <input type="text" name="user_list" /><br />
             * Campaign ID List: <input type="text" name="campaign_urn_list" /><br />
             * Class ID List: <input type="text" name="class_urn_list" /><br />
+            * Number to Skip: <input type="text" name="num_to_skip" /><br />
+            * Number to Return: <input type="text" name="num_to_return" /><br />
             <input type="submit" value="Submit" />
         </form>
         
@@ -196,6 +199,7 @@
         <form action="/app/class/read" method="post">
             Class List: <input type="text" name="class_urn_list" /><br />
             Client: <input type="text" name="client" value="testWeb" /><br />
+            * With User List <input type="text" name="with_user_list" /><br />
             <input type="submit" value="Submit" />
         </form>
         
@@ -309,8 +313,8 @@
 			* Pretty Print: <input type="text" name="pretty_print" /><br />
 			* Return ID: <input type="text" name="return_id" /><br />
 			* Collapse: <input type="text" name="collapse" /><br />
-			* Num Responses to Skip: <input type="text" name="num_survey_responses_to_skip" /><br />
-			* Num Responses to Process: <input type="text" name="num_survey_responses_to_process" /><br />
+			* Num Responses to Skip: <input type="text" name="num_to_skip" /><br />
+			* Num Responses to Process: <input type="text" name="num_to_return" /><br />
 			<input type="submit" value="Submit" />
 		</form>
 		
@@ -361,8 +365,9 @@
         <h3>Mobility Read:</h3>
 		<form action="/app/mobility/read" method="post">
 			Date: <input type="text" name="date" /><br />
-			Username: <input type="text" name="username" /><br />
 			Client: <input type="text" name="client" value="testWeb" /><br />
+            * Username: <input type="text" name="username" /><br />
+            * With Sensor Data: <input type="text" name="with_sensor_data" /><br />
 			<input type="submit" value="Submit" />
 		</form>
 

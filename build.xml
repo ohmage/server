@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <project name="webapp-ohmage" basedir="." default="dist-all">
   <property file="build.properties"/>
-  <property name="component.repository" location="${user.home}/.component-repository"/>
+  <property name="library" location="lib"/>
   <property name="app_name" value="ohmage"/>
   <property name="app_version" value="2.10"/>
   <property name="src" location="src"/>
@@ -11,7 +11,7 @@
   <property name="build" location="build"/>
   <property name="dist"  location="dist"/>
 
-  <fileset id="compile-dependencies" dir="${component.repository}">
+  <fileset id="compile-dependencies" dir="${library}">
     <include name="log4j-1.2.16.jar"/>
     <include name="servlet-api-3.0.jar"/>
     <include name="org.springframework.beans-3.0.5.RELEASE.jar" />
@@ -35,7 +35,7 @@
   	<include name="tomcat-coyote.jar"/>
   </fileset>
 
-  <fileset id="run-dependencies" dir="${component.repository}">
+  <fileset id="run-dependencies" dir="${library}">
     <include name="log4j-1.2.16.jar"/>
     <include name="org.springframework.asm-3.0.5.RELEASE.jar" />
     <include name="org.springframework.beans-3.0.5.RELEASE.jar" />
@@ -45,13 +45,12 @@
     <include name="org.springframework.jdbc-3.0.5.RELEASE.jar" />
     <include name="org.springframework.transaction-3.0.5.RELEASE.jar" />
     <include name="org.springframework.web-3.0.5.RELEASE.jar" />
-    <include name="commons-logging-1.1.1.jar"/>
     <include name="mysql-connector-java-5.1.10-bin.jar"/>
+    <include name="commons-logging-1.1.1.jar"/>
     <include name="commons-dbcp-1.2.2.jar"/>
     <include name="commons-io-1.3.2.jar"/>
     <include name="commons-fileupload-1.2.2.jar"/>
     <include name="commons-pool-1.5.4.jar"/>
-    <include name="jstl-1.2.jar"/>
     <include name="json.org-2011-11-03.jar"/>
     <include name="jbcrypt-0.3.jar"/>
     <include name="xom-1.2.6.jar"/>
@@ -67,13 +66,8 @@
   </path>
   
   <taskdef uri="antlib:org.sonar.ant" resource="org/sonar/ant/antlib.xml">
-    <classpath path="{component.repository}/sonar-ant-task-1.1.jar" /> 
+    <classpath path="${library}/sonar-ant-task-1.1.jar" /> 
   </taskdef>
-
-  <target name="help-properties" description="Shows what properties you may want to override on the command line.">
-    <echo message="-Dcomponent.repository=&lt;path&gt;  Where to search for dependencies/versioned components during build [${component.repository}]."/>
-    <echo message="-Dversion=&lt;version&gt;  Version string to use for output [${app_version}]."/>
-  </target>
 
   <target name="clean" description="Removes output directories (e.g. build and dist).">
     <delete dir="${build}"/>
@@ -117,7 +111,8 @@
   	  <include name="org/ohmage/domain/**" />
   	  <include name="org/ohmage/lib/**" />
   	  <include name="org/ohmage/util/**" />
-  	  <include name="org/ohmage/exception/ErrorCodeException.java" />
+      <include name="org/ohmage/exception/WorkflowException.java" />
+      <include name="org/ohmage/exception/DomainException.java" />
       <exclude name="org/ohmage/domain/Audit.java" />
   	  <classpath refid="compile-classpath"/>
   	</javac>
@@ -143,7 +138,8 @@
         <include name="org/ohmage/lib/**" />
         <include name="org/ohmage/util/**" />
       	<include name="org/ohmage/annotator/**" />
-        <include name="org/ohmage/exception/ErrorCodeException.java" />
+        <include name="org/ohmage/exception/WorkflowException.java" />
+        <include name="org/ohmage/exception/DomainException.java" />
       	<exclude name="org/ohmage/domain/Audit.java" />
       </fileset>
       <classpath refid="compile-classpath"/>
@@ -166,7 +162,6 @@
 
   <target name="dist" depends="test, javac" description="Compiles Java files and creates WAR.">
     <mkdir dir="${dist}"/>
-    <echo message="Warning: Bundling of dependencies will not work if jars are organized in subdirs in component repository."/>
     <exec executable="git" outputproperty="git.revision" failifexecutionfails="true">
       <arg value="log"/>
       <arg value="--pretty=format:%h"/>
@@ -199,7 +194,6 @@
 
   <target name="dist-no_ssl" depends="test, javac" description="Compiles Java files and creates WAR.">
     <mkdir dir="${dist}"/>
-    <echo message="Warning: Bundling of dependencies will not work if jars are organized in subdirs in component repository."/>
     <exec executable="git" outputproperty="git.revision" failifexecutionfails="true">
       <arg value="log"/>
       <arg value="--pretty=format:%h"/>
@@ -233,16 +227,15 @@
   <target name="dist-validator" depends="javac-validator" 
   	    description="Compiles Java files and creates an executable jar file with the dependencies embedded.">
     <mkdir dir="${dist}"/>
-    <echo message="Warning: Bundling of dependencies will not work if jars are organized in subdirs in component repository."/>
     <jar destfile="${dist}/${app_name}-${app_version}-validator.jar">
       <fileset dir="${build}/classes">
         <include name="org/ohmage/config/**" />
       	<include name="org/ohmage/util/StringUtils.class" />
       </fileset>
-      <zipfileset src="${component.repository}/json-dot-org-2010-01-05.jar" excludes="META-INF/*" />
-      <zipfileset src="${component.repository}/log4j-1.2.16.jar" excludes="META-INF/*" />
-      <zipfileset src="${component.repository}/xom-1.2.6.jar" excludes="META-INF/*" />
-      <zipfileset src="${component.repository}/xercesImpl-2.11.0.jar" excludes="META-INF/*" />
+      <zipfileset src="${library}/json.org-2011-11-03.jar" excludes="META-INF/*" />
+      <zipfileset src="${library}/log4j-1.2.16.jar" excludes="META-INF/*" />
+      <zipfileset src="${library}/xom-1.2.6.jar" excludes="META-INF/*" />
+      <zipfileset src="${library}/xercesImpl-2.11.0.jar" excludes="META-INF/*" />
       <manifest>
         <attribute name="Main-Class" value="org.ohmage.config.xml.CampaignValidator" />
       </manifest>
@@ -252,24 +245,24 @@
   <target name="dist-library" depends="javac-library, javadoc-library"
         description="Compiles java files to create the library JAR.">
     <mkdir dir="${dist}"/>
-    <echo message="Warning: Bundling of dependencies will not work if jars are organized in subdirs in component repository."/>
     <jar destfile="${dist}/ohmage-${app_version}-api.jar">
       <fileset dir="${build}/classes">
       	<include name="org/ohmage/domain/**" />
   	    <include name="org/ohmage/lib/**" />
       	<include name="org/ohmage/util/**" />
-      	<include name="org/ohmage/exception/ErrorCodeException.class" />
+        <include name="org/ohmage/exception/WorkflowException.java" />
+        <include name="org/ohmage/exception/DomainException.java" />
         <exclude name="org/ohmage/domain/Audit.java" />
   	  </fileset>
       <fileset dir="${build}">
         <include name="docs/**" />
       </fileset>
-      <zipfileset src="${component.repository}/xom-1.2.6.jar" excludes="META-INF/*" />
-  	  <zipfileset src="${component.repository}/json-dot-org-2010-01-05.jar" excludes="META-INF/*" />
-  	  <zipfileset src="${component.repository}/httpcore-4.1.2.jar" excludes="META-INF/*" />
-  	  <zipfileset src="${component.repository}/httpclient-4.1.2.jar" excludes="META-INF/*" />
-  	  <zipfileset src="${component.repository}/httpmime-4.1.2.jar" excludes="META-INF/*" />
-      <zipfileset src="${component.repository}/commons-logging-1.1.1.jar" excludes="META-INF/*" />
+      <zipfileset src="${library}/xom-1.2.6.jar" excludes="META-INF/*" />
+  	  <zipfileset src="${library}/json.org-2011-11-03.jar" excludes="META-INF/*" />
+  	  <zipfileset src="${library}/httpcore-4.1.2.jar" excludes="META-INF/*" />
+  	  <zipfileset src="${library}/httpclient-4.1.2.jar" excludes="META-INF/*" />
+  	  <zipfileset src="${library}/httpmime-4.1.2.jar" excludes="META-INF/*" />
+      <zipfileset src="${library}/commons-logging-1.1.1.jar" excludes="META-INF/*" />
     </jar>
   </target>
 
@@ -281,13 +274,9 @@
 
   <target name="dist-all" depends="dist,dist-docs" description="Creates full distribution (WAR and docs)."/>
   <target name="dist-all-no_ssl" depends="dist-no_ssl,dist-docs" description="Creates full distribution (WAR and docs)."/>
-
-  <target name="release" depends="dist" description="Releases the distribution by copying it to the component repository..">
-    <copy file="${dist}/${ant.project.name}-${app_version}.war" todir="${component.repository}/."/>
-  </target>
   
   <target name="sonar">
-    <sonar:sonar workDir="${user.home}/tmp" key="org.ohmage:example" version="2.5" xmlns:sonar="antlib:org.sonar.ant">
+    <sonar:sonar workDir="${user.home}/tmp" key="org.ohmage:example" version="${app_version}" xmlns:sonar="antlib:org.sonar.ant">
       <sources>
         <path location="${src}" />
       </sources>

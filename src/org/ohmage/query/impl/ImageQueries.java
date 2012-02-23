@@ -92,9 +92,13 @@ public final class ImageQueries extends Query implements IImageQueries {
 	/* (non-Javadoc)
 	 * @see org.ohmage.query.impl.IImageQueries#getImageUrl(java.lang.String)
 	 */
-	public String getImageUrl(UUID imageId) throws DataAccessException {
+	public URL getImageUrl(UUID imageId) throws DataAccessException {
 		try {
-			return getJdbcTemplate().queryForObject(SQL_GET_IMAGE_URL, new Object[] { imageId.toString() }, String.class);
+			return new URL(
+					getJdbcTemplate().queryForObject(
+							SQL_GET_IMAGE_URL, 
+							new Object[] { imageId.toString() }, 
+							String.class));
 		}
 		catch(org.springframework.dao.IncorrectResultSizeDataAccessException e) {
 			if(e.getActualSize() > 1) {
@@ -105,6 +109,9 @@ public final class ImageQueries extends Query implements IImageQueries {
 		}
 		catch(org.springframework.dao.DataAccessException e) {
 			throw new DataAccessException("Error executing SQL '" + SQL_GET_IMAGE_URL + "' with parameter: " + imageId, e);
+		}
+		catch(MalformedURLException e) {
+			throw new DataAccessException("The URL was not a valid URL.", e);
 		}
 	}
 	
@@ -121,7 +128,7 @@ public final class ImageQueries extends Query implements IImageQueries {
 			PlatformTransactionManager transactionManager = new DataSourceTransactionManager(getDataSource());
 			TransactionStatus status = transactionManager.getTransaction(def);
 			
-			String imageUrl = getImageUrl(imageId);
+			URL imageUrl = getImageUrl(imageId);
 			
 			try {
 				getJdbcTemplate().update(
@@ -157,12 +164,12 @@ public final class ImageQueries extends Query implements IImageQueries {
 	
 	/*
 	 * (non-Javadoc)
-	 * @see org.ohmage.query.IImageQueries#deleteImageViaUrl(java.lang.String)
+	 * @see org.ohmage.query.IImageQueries#deleteImageDiskOnly(java.net.URL)
 	 */
-	public void deleteImageDiskOnly(String imageUrl) {
+	public void deleteImageDiskOnly(URL imageUrl) {
 		try {
 			// Delete the original image.
-			if((new File((new URL(imageUrl)).getFile())).delete()) {
+			if((new File(imageUrl.getFile())).delete()) {
 				LOGGER.warn("The image no longer existed.");
 			}
 			
