@@ -32,6 +32,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.regex.Pattern;
 
 import nu.xom.Builder;
 import nu.xom.Document;
@@ -146,6 +147,9 @@ public class Campaign {
 	private static final String JSON_KEY_AUTHOR = "author";
 	private static final String JSON_KEY_ANALYST = "analyst";
 	private static final String JSON_KEY_PARTICIPANT = "participant";
+	
+	private static final Pattern VALID_CHARACTERS_PATTERN = 
+			Pattern.compile("[a-zA-Z0-9_]+");
 	
 	/**
 	 * The configuration's unique identifier.
@@ -561,29 +565,11 @@ public class Campaign {
 			
 			tId = getId(root);
 			tName = getName(root);
+
+			tServerUrl = getServerUrl(root);
+			tIconUrl = getIconUrl(root);
+			tAuthoredBy = getAuthoredBy(root);
 			
-			try {
-				tServerUrl = getServerUrl(root);
-			}
-			catch(DomainException e) {
-				// The server URL is optional, so we don't care.
-			}
-			
-			try {
-				tIconUrl = getIconUrl(root);
-			}
-			catch(DomainException e) {
-				// The icon URL is optional, so we don't care.
-			}
-			
-			try {
-				tAuthoredBy = getAuthoredBy(root);
-			}
-			catch(DomainException e) {
-				// The icon URL is optional, so we don't care.
-			}
-			
-			// Process all of the surveys.
 			tSurveyMap = getSurveys(root);
 		}
 		catch(JSONException noXml) {
@@ -696,32 +682,9 @@ public class Campaign {
 		name = getName(root);
 		this.description = description;
 		
-		URL tServerUrl = null;
-		try {
-			tServerUrl = getServerUrl(root);
-		}
-		catch(DomainException e) {
-			// The server URL is optional, so we don't care.
-		}
-		serverUrl = tServerUrl;
-		
-		URL tIconUrl = null;
-		try {
-			tIconUrl = getIconUrl(root);
-		}
-		catch(DomainException e) {
-			// The icon URL is optional, so we don't care.
-		}
-		iconUrl = tIconUrl;
-		
-		String tAuthoredBy = null;
-		try {
-			tAuthoredBy = getAuthoredBy(root);
-		}
-		catch(DomainException e) {
-			// The icon URL is optional, so we don't care.
-		}
-		authoredBy = tAuthoredBy;
+		serverUrl = getServerUrl(root);
+		iconUrl = getIconUrl(root);
+		authoredBy = getAuthoredBy(root);
 		
 		// Process all of the surveys.
 		surveyMap = getSurveys(root);
@@ -735,6 +698,45 @@ public class Campaign {
 		
 		userRoles = new HashMap<String, Collection<Role>>();
 		classes = new LinkedList<String>();
+	}
+	
+	/**
+	 * Validates that some XML contains all required components of an ohmage
+	 * XML document and that all values, even optional ones that are given, are
+	 * valid values.
+	 * 
+	 * @param xml The XML as a String.
+	 * 
+	 * @throws DomainException Thrown if the XML is not valid.
+	 */
+	public static void validateXml(final String xml) throws DomainException {
+		Document document;
+		try {
+			document = (new Builder()).build(new StringReader(xml));
+		} 
+		catch(IOException e) {
+			// This should only be thrown if it can't read the 'xml', but
+			// given that it is already in memory this should never happen.
+			throw new DomainException("XML was unreadable.", e);
+		}
+		catch(XMLException e) {
+			throw new DomainException("No usable XML parser could be found.", e);
+		}
+		catch(ValidityException e) {
+			throw new DomainException("The XML is invalid.", e);
+		}
+		catch(ParsingException e) {
+			throw new DomainException("The XML is not well formed.", e);
+		}
+		
+		Element root = document.getRootElement();
+		
+		getId(root);
+		getName(root);
+		getServerUrl(root);
+		getIconUrl(root);
+		getAuthoredBy(root);
+		getSurveys(root);
 	}
 
 	/**
@@ -1592,83 +1594,6 @@ public class Campaign {
 	}
 	
 	/**
-	 * Generates a hash code value for this campaign.
-	 */
-	@Override
-	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = prime * result + ((id == null) ? 0 : id.hashCode());
-		return result;
-	}
-
-	/**
-	 * Determines if this Campaign object is equal to a separate object.
-	 */
-	@Override
-	public boolean equals(Object obj) {
-		if (this == obj)
-			return true;
-		if (obj == null)
-			return false;
-		if (getClass() != obj.getClass())
-			return false;
-		Campaign other = (Campaign) obj;
-		if (id == null) {
-			if (other.id != null)
-				return false;
-		} else if (!id.equals(other.id))
-			return false;
-		return true;
-	}
-
-	/**
-	 * Returns the label from some prompt response key.
-	 * 
-	 * @param prompt A ChoicePrompt prompt.
-	 * 
-	 * @param key A choice key valid for the ChoicePrompt.
-	 * 
-	 * @return The choice's label value.
-	 * 
-	 * @throws DomainException Thrown if the prompt isn't a choice prompt, the 
-	 * 						   'key' isn't a number, or the key is not a valid
-	 * 						   choice for the prompt.
-	 */
-	private String getChoiceLabelFrom(
-			final Prompt prompt, 
-			final String key) 
-			throws DomainException {
-		
-		Map<Integer, LabelValuePair> choices;
-		if(prompt instanceof CustomChoicePrompt) {
-			choices = ((CustomChoicePrompt) prompt).getAllChoices();
-		}
-		else if(prompt instanceof ChoicePrompt) {
-			choices = ((ChoicePrompt) prompt).getChoices();
-		}
-		else {
-			throw new DomainException("The prompt isn't a choice prompt.");
-		}
-		
-		Integer keyInt;
-		try {
-			keyInt = Integer.decode(key);
-		}
-		catch(NumberFormatException e) {
-			throw new DomainException("The key is not a number.", e);
-		}
-		
-		LabelValuePair vlp = choices.get(keyInt);
-		if(vlp == null) {
-			throw new DomainException("The key is unknown.");
-		}
-		else {
-			return vlp.getLabel();
-		}
-	}
-	
-	/**
 	 * Returns the mapping of choice keys to their value/label pairs.
 	 * 
 	 * @param surveyId The survey's configuration-unique identifier.
@@ -1845,62 +1770,80 @@ public class Campaign {
 	}
 	
 	/**
-	 * Validates that some XML contains all required components of an ohmage
-	 * XML document and that all values, even optional ones that are given, are
-	 * valid values.
-	 * 
-	 * @param xml The XML as a String.
-	 * 
-	 * @throws DomainException Thrown if the XML is not valid.
+	 * Generates a hash code value for this campaign.
 	 */
-	public static void validateXml(final String xml) throws DomainException {
-		Document document;
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((id == null) ? 0 : id.hashCode());
+		return result;
+	}
+
+	/**
+	 * Determines if this Campaign object is equal to a separate object.
+	 */
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		Campaign other = (Campaign) obj;
+		if (id == null) {
+			if (other.id != null)
+				return false;
+		} else if (!id.equals(other.id))
+			return false;
+		return true;
+	}
+
+	/**
+	 * Returns the label from some prompt response key.
+	 * 
+	 * @param prompt A ChoicePrompt prompt.
+	 * 
+	 * @param key A choice key valid for the ChoicePrompt.
+	 * 
+	 * @return The choice's label value.
+	 * 
+	 * @throws DomainException Thrown if the prompt isn't a choice prompt, the 
+	 * 						   'key' isn't a number, or the key is not a valid
+	 * 						   choice for the prompt.
+	 */
+	private String getChoiceLabelFrom(
+			final Prompt prompt, 
+			final String key) 
+			throws DomainException {
+		
+		Map<Integer, LabelValuePair> choices;
+		if(prompt instanceof CustomChoicePrompt) {
+			choices = ((CustomChoicePrompt) prompt).getAllChoices();
+		}
+		else if(prompt instanceof ChoicePrompt) {
+			choices = ((ChoicePrompt) prompt).getChoices();
+		}
+		else {
+			throw new DomainException("The prompt isn't a choice prompt.");
+		}
+		
+		Integer keyInt;
 		try {
-			document = (new Builder()).build(new StringReader(xml));
-		} 
-		catch(IOException e) {
-			// This should only be thrown if it can't read the 'xml', but
-			// given that it is already in memory this should never happen.
-			throw new DomainException("XML was unreadable.", e);
+			keyInt = Integer.decode(key);
 		}
-		catch(XMLException e) {
-			throw new DomainException("No usable XML parser could be found.", e);
-		}
-		catch(ValidityException e) {
-			throw new DomainException("The XML is invalid.", e);
-		}
-		catch(ParsingException e) {
-			throw new DomainException("The XML is not well formed.", e);
+		catch(NumberFormatException e) {
+			throw new DomainException("The key is not a number.", e);
 		}
 		
-		Element root = document.getRootElement();
-		
-		getId(root);
-		getName(root);
-		
-		try {
-			getServerUrl(root);
+		LabelValuePair vlp = choices.get(keyInt);
+		if(vlp == null) {
+			throw new DomainException("The key is unknown.");
 		}
-		catch(DomainException e) {
-			// The server URL is optional, so we don't care.
+		else {
+			return vlp.getLabel();
 		}
-		
-		try {
-			getIconUrl(root);
-		}
-		catch(DomainException e) {
-			// The icon URL is optional, so we don't care.
-		}
-		
-		try {
-			getAuthoredBy(root);
-		}
-		catch(DomainException e) {
-			// The icon URL is optional, so we don't care.
-		}
-		
-		// Process all of the surveys.
-		getSurveys(root);
 	}
 	
 	/**
@@ -1958,6 +1901,9 @@ public class Campaign {
 			if(StringUtils.isEmptyOrWhitespaceOnly(name)) {
 				throw new DomainException("The name tag exists but the value is empty.");
 			}
+			else if(! VALID_CHARACTERS_PATTERN.matcher(name).matches()) {
+				throw new DomainException("The name contains illegal characters.");
+			}
 			else {
 				return name;
 			}
@@ -1969,20 +1915,17 @@ public class Campaign {
 	 * 
 	 * @param root The root of the XML being validated.
 	 * 
-	 * @return The campaign's server's URL.
+	 * @return The campaign's server's URL or null if one wasn't present.
 	 * 
 	 * @throws DomainException Thrown if the server URL is missing, there are 
 	 * 						   multiple of them, or it is not a valid URL.
 	 */
 	private static URL getServerUrl(final Node root) throws DomainException {
 		Nodes serverUrls = root.query(XML_SERVER_URL);
-		if(serverUrls.size() == 0) {
-			throw new DomainException("The server URL is missing.");
-		}
-		else if(serverUrls.size() > 1) {
+		if(serverUrls.size() > 1) {
 			throw new DomainException("Multiple server URLs were found.");
 		}
-		else {
+		else if(serverUrls.size() == 1) {
 			String serverUrlString = serverUrls.get(0).getValue().trim();
 			
 			try {
@@ -1992,6 +1935,8 @@ public class Campaign {
 				throw new DomainException("The server URL is not a valid URL.");
 			}
 		}
+		
+		return null;
 	}
 	
 	/**
@@ -1999,20 +1944,17 @@ public class Campaign {
 	 * 
 	 * @param root The root of the XML being validated.
 	 * 
-	 * @return The campaign's icon URL.
+	 * @return The campaign's icon URL or null if one wasn't present.
 	 * 
 	 * @throws DomainException Thrown if the icon URL is missing, there are 
 	 * 						   multiple of them, or it is not a valid URL.
 	 */
 	private static URL getIconUrl(final Node root) throws DomainException {
 		Nodes iconUrls = root.query(XML_ICON_URL);
-		if(iconUrls.size() == 0) {
-			throw new DomainException("The icon URL is missing.");
-		}
-		else if(iconUrls.size() > 1) {
+		if(iconUrls.size() > 1) {
 			throw new DomainException("Multiple icon URLs were found.");
 		}
-		else {
+		else if(iconUrls.size() == 1) {
 			String serverUrlString = iconUrls.get(0).getValue().trim();
 			
 			try {
@@ -2022,6 +1964,8 @@ public class Campaign {
 				throw new DomainException("The icon URL is not a valid URL.");
 			}
 		}
+		
+		return null;
 	}
 	
 	/**
@@ -2029,7 +1973,7 @@ public class Campaign {
 	 * 
 	 * @param root The root of the XML being validated.
 	 * 
-	 * @return The campaign's authored by value.
+	 * @return The campaign's authored by value or null if one wasn't present.
 	 * 
 	 * @throws DomainException Thrown if the authored by value is missing, or 
 	 * 						   there are multiple of them.
@@ -2039,15 +1983,20 @@ public class Campaign {
 			throws DomainException {
 		
 		Nodes authoredBy = root.query(XML_AUTHORED_BY);
-		if(authoredBy.size() == 0) {
-			throw new DomainException("The authored by value is missing.");
-		}
-		else if(authoredBy.size() > 1) {
+		if(authoredBy.size() > 1) {
 			throw new DomainException("Multiple authored by values were found.");
 		}
-		else {
-			return authoredBy.get(0).getValue().trim();
+		else if(authoredBy.size() == 1) {
+			String authoredByString = authoredBy.get(0).getValue().trim();
+			
+			if(authoredByString.length() == 0) {
+				throw new DomainException("The authored by value cannot be only whitespace.");
+			}
+			
+			return authoredByString;
 		}
+		
+		return null;
 	}
 	
 	/**
@@ -2186,6 +2135,13 @@ public class Campaign {
 					"Multiple survey IDs were found for the same survey.");
 		}
 		String id = ids.get(0).getValue().trim();
+		if(id.length() == 0) {
+			throw new DomainException(
+					"The survey's ID cannot be only whitespace.");
+		}
+		else if(! VALID_CHARACTERS_PATTERN.matcher(id).matches()) {
+			throw new DomainException("The survey's ID contains illegal characters: " + id);
+		}
 		
 		Nodes titles = survey.query(XML_SURVEY_TITLE);
 		if(titles.size() == 0) {
@@ -2197,6 +2153,11 @@ public class Campaign {
 						id);
 		}
 		String title = titles.get(0).getValue().trim();
+		if(title.length() == 0) {
+			throw new DomainException(
+					"The title cannot be only whitespace: " +
+						id);
+		}
 		
 		String description = null;
 		Nodes descriptions = survey.query(XML_SURVEY_DESCRIPTION);
@@ -2207,6 +2168,12 @@ public class Campaign {
 		}
 		else if(descriptions.size() == 1) {
 			description = descriptions.get(0).getValue().trim();
+			
+			if(description.length() == 0) {
+				throw new DomainException(
+						"The survey's description cannot be only whitespace: " +
+							id);
+			}
 		}
 		
 		String introText = null;
@@ -2218,6 +2185,12 @@ public class Campaign {
 		}
 		else if(introTexts.size() == 1) {
 			introText = introTexts.get(0).getValue().trim();
+			
+			if(introText.length() == 0) {
+				throw new DomainException(
+						"The survey's intro text cannot be only whitespace: " +
+							id);
+			}
 		}
 		
 		Nodes submitTexts = survey.query(XML_SURVEY_SUBMIT_TEXT);
@@ -2230,6 +2203,11 @@ public class Campaign {
 						id);
 		}
 		String submitText = submitTexts.get(0).getValue().trim();
+		if(submitText.length() == 0) {
+			throw new DomainException(
+					"The survey's submit text cannot be only whitespace: " +
+						id);
+		}
 		
 		Nodes showSummarys = survey.query(XML_SURVEY_SHOW_SUMMARY);
 		if(showSummarys.size() == 0) {
@@ -2249,7 +2227,12 @@ public class Campaign {
 		
 		Boolean editSummary = null;
 		Nodes editSummarys = survey.query(XML_SURVEY_EDIT_SUMMARY);
-		if(editSummarys.size() > 1) {
+		if((editSummarys.size() == 0) && (showSummary)) {
+			throw new DomainException(
+					"The edit summary is required if the show summary is true: " +
+						id);
+		}
+		else if(editSummarys.size() > 1) {
 			throw new DomainException(
 					"Multiple survey edit summarys were found for the same survey: " + 
 						id);
@@ -2273,6 +2256,12 @@ public class Campaign {
 		}
 		else if(summaryTexts.size() == 1) {
 			summaryText = summaryTexts.get(0).getValue();
+			
+			if(summaryText.length() == 0) {
+				throw new DomainException(
+						"The campaign's summary text cannot be only whitespace: " +
+							id);
+			}
 		}
 		
 		Nodes anytimes = survey.query(XML_SURVEY_ANYTIME);
@@ -2361,7 +2350,8 @@ public class Campaign {
 						processMessage(
 								surveyId, 
 								contentListItems.get(i), 
-								i));
+								i,
+								result));
 				break;
 				
 			case REPEATABLE_SET:
@@ -2369,7 +2359,8 @@ public class Campaign {
 						processRepeatableSet(
 								surveyId, 
 								contentListItems.get(i), 
-								i));
+								i,
+								result));
 				break;
 				
 			case PROMPT:
@@ -2410,7 +2401,8 @@ public class Campaign {
 	private static Message processMessage(
 			final String containerId,
 			final Node message, 
-			final int index) 
+			final int index,
+			final List<SurveyItem> alreadyProcessedItemsInSurveyItemGroup) 
 			throws DomainException {
 		
 		Nodes ids = message.query(XML_MESSAGE_ID);
@@ -2423,6 +2415,15 @@ public class Campaign {
 					"Multiple message IDs were found: " + containerId);
 		}
 		String id = ids.get(0).getValue().trim();
+		if(id.length() == 0) {
+			throw new DomainException(
+					"The message's ID cannot be only whitespace in the survey item container: " +
+						containerId);
+		}
+		if(! VALID_CHARACTERS_PATTERN.matcher(id).matches()) {
+			throw new DomainException(
+					"The message's ID contains illegal characters: " + id);
+		}
 		
 		String condition = null;
 		Nodes conditions = message.query(XML_MESSAGE_CONDITION);
@@ -2432,6 +2433,12 @@ public class Campaign {
 		}
 		else if(conditions.size() == 1) {
 			condition = conditions.get(0).getValue().trim();
+			
+			condition = validateCondition(
+					condition, 
+					id, 
+					containerId, 
+					alreadyProcessedItemsInSurveyItemGroup);
 		}
 		
 		Nodes texts = message.query(XML_MESSAGE_TEXT);
@@ -2444,6 +2451,11 @@ public class Campaign {
 					"Multiple message texts were found: " + id);
 		}
 		String text = texts.get(0).getValue().trim();
+		if(text.length() == 0) {
+			throw new DomainException(
+					"The text cannot be only whitespace: " +
+						id);
+		}
 		
 		return new Message(id, condition, index, text);
 	}
@@ -2470,7 +2482,8 @@ public class Campaign {
 	private static RepeatableSet processRepeatableSet(
 			final String containerId,
 			final Node repeatableSet, 
-			final int index) 
+			final int index,
+			final List<SurveyItem> alreadyProcessedItemsInSurveyItemGroup) 
 			throws DomainException {
 		
 		Nodes ids = repeatableSet.query(XML_REPEATABLE_SET_ID);
@@ -2483,6 +2496,16 @@ public class Campaign {
 					"Multiple repeatable set IDs were found: " + containerId);
 		}
 		String id = ids.get(0).getValue().trim();
+		if(id.length() == 0) {
+			throw new DomainException(
+					"The repeatable set's ID cannot be only whitespace in the survey item container: " +
+						containerId);
+		}
+		if(! VALID_CHARACTERS_PATTERN.matcher(id).matches()) {
+			throw new DomainException(
+					"The repeatable set's ID contains illegal characters: " + 
+						id);
+		}
 		
 		String condition = null;
 		Nodes conditions = repeatableSet.query(XML_REPEATABLE_SET_CONDITION);
@@ -2492,6 +2515,12 @@ public class Campaign {
 		}
 		else if(conditions.size() == 1) {
 			condition = conditions.get(0).getValue().trim();
+
+			condition = validateCondition(
+					condition, 
+					id, 
+					containerId, 
+					alreadyProcessedItemsInSurveyItemGroup);
 		}
 		
 		Nodes teminationQuestions =
@@ -2507,6 +2536,11 @@ public class Campaign {
 						id);
 		}
 		String terminationQuestion = teminationQuestions.get(0).getValue().trim();
+		if(terminationQuestion.length() == 0) {
+			throw new DomainException(
+					"The termination question cannot be only whitespace: " +
+						id);
+		}
 		
 		Nodes terminationTrueLabels =
 			repeatableSet.query(XML_REPEATABLE_SET_TERMINATION_TRUE_LABEL);
@@ -2521,6 +2555,11 @@ public class Campaign {
 						id);
 		}
 		String terminationTrueLabel = terminationTrueLabels.get(0).getValue().trim();
+		if(terminationTrueLabel.length() == 0) {
+			throw new DomainException(
+					"The termination true label cannot be only whitespace: " +
+						id);
+		}
 		
 		Nodes terminationFalseLabels =
 			repeatableSet.query(XML_REPEATABLE_SET_TERMINATION_FALSE_LABEL);
@@ -2535,6 +2574,11 @@ public class Campaign {
 						id);
 		}
 		String terminationFalseLabel = terminationFalseLabels.get(0).getValue().trim();
+		if(terminationFalseLabel.length() == 0) {
+			throw new DomainException(
+					"The termination false label cannot be only whitespace: " +
+						id);
+		}
 		
 		Nodes terminationSkipEnableds =
 			repeatableSet.query(XML_REPEATABLE_SET_TERMINATION_SKIP_ENABLED);
@@ -2561,13 +2605,24 @@ public class Campaign {
 		String terminationSkipLabel = null;
 		Nodes terminationSkipLabels = 
 			repeatableSet.query(XML_REPEATABLE_SET_TERMINATION_SKIP_LABEL);
-		if(terminationSkipLabels.size() > 1) {
+		if((terminationSkipLabels.size() == 0) && (terminationSkipEnabled)) {
+			throw new DomainException(
+					"A termination skip label is required if the termination skip is enabled: " +
+						id);
+		}
+		else if(terminationSkipLabels.size() > 1) {
 			throw new DomainException(
 					"Multiple repeatable set termination skip labels were found: " + 
 						id);
 		}
 		else if(terminationSkipLabels.size() == 1) {
 			terminationSkipLabel = terminationSkipLabels.get(0).getValue().trim();
+			
+			if(terminationSkipLabel.length() == 0) {
+				throw new DomainException(
+						"The termination skip label cannot be only whitespace: " +
+							id);
+			}
 		}
 		
 		Nodes promptsNodes = repeatableSet.query(XML_REPEATABLE_SET_PROMPTS);
@@ -2653,6 +2708,16 @@ public class Campaign {
 					"Multiple prompt IDs were found: " + containerId);
 		}
 		String id = ids.get(0).getValue().trim();
+		if(id.length() == 0) {
+			throw new DomainException(
+					"The prompt's ID cannot be only whitespace in the survey item container: " +
+						containerId);
+		}
+		if(! VALID_CHARACTERS_PATTERN.matcher(id).matches()) {
+			throw new DomainException(
+					"The prompt's ID contains illegal characters: " + 
+						id);
+		}
 		
 		String condition = null;
 		Nodes conditions = prompt.query(XML_PROMPT_CONDITION);
@@ -2663,59 +2728,11 @@ public class Campaign {
 		else if(conditions.size() == 1) {
 			condition = conditions.get(0).getValue().trim();
 			
-			Map<String, List<ConditionValuePair>> promptIdAndConditionValues;
-			try {
-				parserLock.lock();
-				promptIdAndConditionValues = 
-						ConditionValidator.validate(condition);
-			}
-			catch(ConditionParseException e) {
-				throw new DomainException(e.getMessage(), e);
-			}
-			finally {
-				parserLock.unlock();
-			}
-			
-			for(String promptId : promptIdAndConditionValues.keySet()) {
-				// Validate that the prompt exists and comes before this 
-				// prompt. This can only, and must, be true if we have already 
-				// validated it.
-				Prompt conditionPrompt = null;
-				for(SurveyItem surveyItem : alreadyProcessedItemsInSurveyItemGroup) {
-					if(surveyItem.getId().equals(promptId)) {
-						if(surveyItem instanceof Prompt) {
-							conditionPrompt = (Prompt) surveyItem;
-							break;
-						}
-						else {
-							throw new DomainException(
-								"Only prompts values may be part of a condition.");
-						}
-					}
-				}
-				
-				if(conditionPrompt == null) {
-					throw new DomainException(
-							"The prompt is unknown: " + promptId);
-				}
-				
-				// Validate all of the condition-valid pairs for the prompt.
-				for(ConditionValuePair pair : promptIdAndConditionValues.get(promptId)) {
-					try {
-						conditionPrompt.validateConditionValuePair(pair);
-					}
-					catch(DomainException e) {
-						throw new DomainException(
-								"The condition was invalid for the prompt '" +
-									id +
-									"' in the prompt group '" +
-									containerId +
-									"': " +
-									e.getMessage(),
-								e);
-					}
-				}
-			}
+			condition = validateCondition(
+					condition, 
+					id, 
+					containerId, 
+					alreadyProcessedItemsInSurveyItemGroup);
 		}
 		
 		String unit = null;
@@ -2726,6 +2743,12 @@ public class Campaign {
 		}
 		else if(units.size() == 1) {
 			unit = units.get(0).getValue().trim();
+			
+			if(! VALID_CHARACTERS_PATTERN.matcher(unit).matches()) {
+				throw new DomainException(
+						"The prompts's ID contains illegal characters: " + 
+							id);
+			}
 		}
 		
 		Nodes texts = prompt.query(XML_PROMPT_TEXT);
@@ -2738,6 +2761,10 @@ public class Campaign {
 					"Multiple prompt texts were found: " + id);
 		}
 		String text = texts.get(0).getValue().trim();
+		if(text.length() == 0) {
+			throw new DomainException(
+					"The prompt's text cannot be whitespace only: " + id);
+		}
 		
 		String abbreviatedText = null;
 		Nodes abbreviatedTexts = prompt.query(XML_PROMPT_ABBREVIATED_TEXT);
@@ -2747,6 +2774,12 @@ public class Campaign {
 		}
 		else if(abbreviatedTexts.size() == 1) {
 			abbreviatedText = abbreviatedTexts.get(0).getValue().trim();
+			
+			if(abbreviatedText.length() == 0) {
+				throw new DomainException(
+						"The prompt's abbreviated text cannot be whitespace only: " + 
+							id);
+			}
 		}
 		
 		String explanationText = null;
@@ -2757,6 +2790,12 @@ public class Campaign {
 		}
 		else if(explanationTexts.size() == 1) {
 			explanationText = explanationTexts.get(0).getValue().trim();
+			
+			if(explanationText.length() == 0) {
+				throw new DomainException(
+						"The prompt's explanation text cannot be whitespace only: " + 
+							id);
+			}
 		}
 		
 		Nodes skippables = prompt.query(XML_PROMPT_SKIPPABLE);
@@ -2777,12 +2816,23 @@ public class Campaign {
 		
 		String skipLabel = null;
 		Nodes skipLabels = prompt.query(XML_PROMPT_SKIP_LABEL);
+		if((skipLabels.size() == 0) && (skippable)) {
+			throw new DomainException(
+					"The skip label cannot be null if the prompt is skippable: " +
+						id);
+		}
 		if(skipLabels.size() > 1) {
 			throw new DomainException(
 					"Multiple prompt skip labels were found: " + id);
 		}
 		else if(skipLabels.size() == 1) {
 			skipLabel = skipLabels.get(0).getValue().trim();
+			
+			if(skipLabel.length() == 0) {
+				throw new DomainException(
+						"The prompt's skip label cannot be whitespace only: " +
+							id);
+			}
 		}
 		
 		Nodes displayTypes = prompt.query(XML_PROMPT_DISPLAY_TYPE);
@@ -2814,6 +2864,11 @@ public class Campaign {
 					"Multiple prompt display labels were found: " + id);
 		}
 		String displayLabel = displayLabels.get(0).getValue().trim();
+		if(displayLabel.length() == 0) {
+			throw new DomainException(
+					"The prompt's display label cannot be whitespace only: " +
+						id);
+		}
 		
 		String defaultValue = null;
 		Nodes defaultValues = prompt.query(XML_PROMPT_DEFAULT);
@@ -2911,6 +2966,94 @@ public class Campaign {
 	}
 	
 	/**
+	 * Validates a condition string to ensure that it is well formed, that each
+	 * of the prompts in the condition exist before this prompt and in this
+	 * survey item container and are allowed to be referenced in a condition,
+	 * and that the value associated with that prompt is both applicable and
+	 * within the bounds of that instance of that prompt.
+	 * 
+	 * @param condition The condition string to be validated.
+	 * 
+	 * @param surveyItemId The ID of the survey item that owns this condition.
+	 * 
+	 * @param surveyItemContainerId The ID of the survey item that owns the
+	 * 								survey item that owns this condition.
+	 * 
+	 * @param alreadyProcessedItemsInSurveyItemGroup The list of prompts that
+	 * 												 have already been 
+	 * 												 processed in the order 
+	 * 												 that they were processed.
+	 * 
+	 * @return The condition, validated.
+	 * 
+	 * @throws DomainException Thrown if the condition is invalid for any 
+	 * 						   reason.
+	 */
+	private static String validateCondition(
+			final String condition,
+			final String surveyItemId,
+			final String surveyItemContainerId,
+			final List<SurveyItem> alreadyProcessedItemsInSurveyItemGroup) 
+			throws DomainException {
+		
+		Map<String, List<ConditionValuePair>> promptIdAndConditionValues;
+		try {
+			parserLock.lock();
+			promptIdAndConditionValues = 
+					ConditionValidator.validate(condition);
+		}
+		catch(ConditionParseException e) {
+			throw new DomainException(e.getMessage(), e);
+		}
+		finally {
+			parserLock.unlock();
+		}
+		
+		for(String promptId : promptIdAndConditionValues.keySet()) {
+			// Validate that the prompt exists and comes before this prompt. 
+			// This can only, and must, be true if we have already validated 
+			// it.
+			Prompt conditionPrompt = null;
+			for(SurveyItem surveyItem : alreadyProcessedItemsInSurveyItemGroup) {
+				if(surveyItem.getId().equals(promptId)) {
+					if(surveyItem instanceof Prompt) {
+						conditionPrompt = (Prompt) surveyItem;
+						break;
+					}
+					else {
+						throw new DomainException(
+							"Only prompts values may be part of a condition.");
+					}
+				}
+			}
+			
+			if(conditionPrompt == null) {
+				throw new DomainException(
+						"The prompt is unknown: " + promptId);
+			}
+			
+			// Validate all of the condition-valid pairs for the prompt.
+			for(ConditionValuePair pair : promptIdAndConditionValues.get(promptId)) {
+				try {
+					conditionPrompt.validateConditionValuePair(pair);
+				}
+				catch(DomainException e) {
+					throw new DomainException(
+							"The condition was invalid for the prompt '" +
+								surveyItemId +
+								"' in the prompt group '" +
+								surveyItemContainerId +
+								"': " +
+								e.getMessage(),
+							e);
+				}
+			}
+		}
+		
+		return condition;
+	}
+	
+	/**
 	 * Process the property Nodes from the XML and creates a mapping of all of
 	 * the keys to label/value pairs.
 	 * 
@@ -2945,6 +3088,11 @@ public class Campaign {
 						"Multiple property keys were found: " + containerId);
 			}
 			String key = keys.get(0).getValue().trim();
+			if(key.length() == 0) {
+				throw new DomainException(
+						"The property key cannot be whitespace only: " +
+							containerId);
+			}
 			
 			Nodes labels = propertyNode.query(XML_PROPERTY_LABEL);
 			if(labels.size() == 0) {
