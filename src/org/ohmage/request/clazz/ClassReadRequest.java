@@ -88,7 +88,7 @@ public class ClassReadRequest extends UserRequest {
 		super(httpRequest, TokenLocation.EITHER);
 		
 		Set<String> tClassIds = null;
-		boolean tWithUserList = false;
+		boolean tWithUserList = true;
 		
 		if(! isFailed()) {
 			LOGGER.info("Creating a new class read request.");
@@ -157,17 +157,21 @@ public class ClassReadRequest extends UserRequest {
 		}
 		
 		try {
+			boolean isAdmin;
 			// Check that each of the classes in the list exist and that the 
 			// requester is a member of each class.
 			try {
 				LOGGER.info("Checking if the user is an admin.");
 				UserServices.instance().verifyUserIsAdmin(getUser().getUsername());
+				isAdmin = true;
 				
 				LOGGER.info("Verifying that the classes exist.");
 				ClassServices.instance().checkClassesExistence(classIds, true);
 			}
 			catch(ServiceException userNotAdmin) {
 				LOGGER.info("The user is not an admin.", userNotAdmin);
+				isAdmin = false;
+				
 				LOGGER.info("Checking that all of the classes in the class list exist.");
 				UserClassServices.instance().classesExistAndUserBelongs(classIds, getUser().getUsername());
 			}
@@ -204,7 +208,7 @@ public class ClassReadRequest extends UserRequest {
 						UserClassServices.instance().getUsersInClass(classId);
 					
 					for(String username : usernames) {
-						if(isPrivileged) {
+						if(isPrivileged || isAdmin) {
 							usernamesAndRespectiveRole.put(
 									username, 
 									UserClassServices.instance().getUserRoleInClass(
