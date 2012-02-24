@@ -35,7 +35,7 @@ import org.ohmage.util.StringUtils;
 import org.ohmage.validator.SurveyResponseValidators;
 
 /**
- * <p>Stores a survey and its associated images (if any are present in the payload)</p>
+ * <p>Annotates a survey response.</p>
  * <table border="1">
  *   <tr>
  *     <td>Parameter Name</td>

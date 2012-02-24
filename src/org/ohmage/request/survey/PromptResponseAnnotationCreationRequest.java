@@ -36,7 +36,7 @@ import org.ohmage.util.StringUtils;
 import org.ohmage.validator.SurveyResponseValidators;
 
 /**
- * <p>Stores a survey and its associated images (if any are present in the payload)</p>
+ * <p>Annotates a prompt response.</p>
  * <table border="1">
  *   <tr>
  *     <td>Parameter Name</td>
@@ -110,7 +110,7 @@ public class PromptResponseAnnotationCreationRequest extends UserRequest {
 	private UUID annotationIdToReturn; 
 	
 	/**
-	 * Creates a new survey annotation creation request.
+	 * Creates a new prompt annotation creation request.
 	 * 
 	 * @param httpRequest The HttpServletRequest with the parameters for this
 	 * 					  request.
@@ -118,7 +118,7 @@ public class PromptResponseAnnotationCreationRequest extends UserRequest {
 	public PromptResponseAnnotationCreationRequest(HttpServletRequest httpRequest) {
 		super(httpRequest, TokenLocation.PARAMETER);
 		
-		LOGGER.info("Creating a survey annotation creation request.");
+		LOGGER.info("Creating a prompt annotation creation request.");
 		
 		UUID tSurveyId = null;
 		String tPromptId = null;
@@ -305,7 +305,7 @@ public class PromptResponseAnnotationCreationRequest extends UserRequest {
 	 */
 	@Override
 	public void service() {
-		LOGGER.info("Servicing a survey annotation creation request.");
+		LOGGER.info("Servicing a prompt annotation creation request.");
 		
 		if(! authenticate(AllowNewAccount.NEW_ACCOUNT_DISALLOWED)) {
 			return;

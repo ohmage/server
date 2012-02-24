@@ -19,21 +19,24 @@ import java.util.UUID;
 
 import javax.sql.DataSource;
 
+import org.apache.log4j.Logger;
 import org.ohmage.exception.DataAccessException;
 import org.ohmage.query.IPromptResponseQueries;
+import org.springframework.dao.IncorrectResultSizeDataAccessException;
 
 /**
- * This class is responsible for creating, reading, updating, and deleting
- * prompt responses.
+ * Queries against prompt responses.
  * 
  * @author Joshua Selsky
  */
 public class PromptResponseQueries extends Query implements IPromptResponseQueries {
+	private static final Logger LOGGER = Logger.getLogger(PromptResponseQueries.class); 
 	
 	private static final String SQL_GET_PROMPT_RESPONSE_ID =
 	    "SELECT pr.id " +
 	    "FROM survey_response sr, prompt_response pr " +
 	    "WHERE sr.uuid = ? " +
+	    "AND sr.id = pr.survey_response_id " +
 	    "AND pr.prompt_id = ?";
 
 	private static final String SQL_GET_PROMPT_RESPONSE_ID_WHERE_REPEATABLE_SET =
@@ -69,10 +72,39 @@ public class PromptResponseQueries extends Query implements IPromptResponseQueri
 				return getJdbcTemplate().queryForInt(sql.toString(), new Object[] {surveyResponseId.toString(), promptId});
 			}
 		}
-		
+		catch(IncorrectResultSizeDataAccessException e) {
+			int numberReturned = e.getActualSize();
+			
+			if(numberReturned == 0) {
+				if(repeatableSetId != null && repeatableSetIteration != null) { 
+					LOGGER.warn("Attempt to annotate a prompt response that doesn't exist with survey_id=" + surveyResponseId.toString() + ", prompt_id=" + promptId);
+				}
+				else {
+					LOGGER.warn("Attempt to annotate a prompt response that doesn't exist with survey_id=" + surveyResponseId.toString() + ", prompt_id=" + promptId + 
+						", repeatable_set_id=" + repeatableSetId + ", repeatable_set_iteration=" + repeatableSetIteration);
+				}
+				
+				// Just throw the general exception in case someone attempted
+				// to annotate a prompt response that was just deleted or
+				// someone is hacking around
+				
+				throw new DataAccessException("Error executing SQL '" +sql.toString() + "'.", e);
+			} 
+			else { // more than one row returned; logical error
+				
+				if(repeatableSetId != null && repeatableSetIteration != null) { 
+					LOGGER.warn("Attempt to annotate a multiple prompt responses with survey_id=" + surveyResponseId.toString() + ", prompt_id=" + promptId);
+				}
+				else {
+					LOGGER.warn("Attempt to annotate a multiple prompt responses with survey_id=" + surveyResponseId.toString() + ", prompt_id=" + promptId + 
+						", repeatable_set_id=" + repeatableSetId + ", repeatable_set_iteration=" + repeatableSetIteration);
+				}
+				
+				throw new DataAccessException("Error executing SQL '" +sql.toString() + "'.", e);
+			}
+		}
 		catch(org.springframework.dao.DataAccessException e) {
-			throw new DataAccessException(
-				"Error executing SQL '" +sql.toString() + "'.", e);
+			throw new DataAccessException("Error executing SQL '" +sql.toString() + "'.", e);
 		}
 	}
 }
