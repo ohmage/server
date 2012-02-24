@@ -15,9 +15,11 @@
  ******************************************************************************/
 package org.ohmage.query;
 
+import java.util.List;
 import java.util.TimeZone;
 import java.util.UUID;
 
+import org.ohmage.domain.Annotation;
 import org.ohmage.exception.DataAccessException;
 
 /**
@@ -47,6 +49,16 @@ public interface IAnnotationQueries {
 		UUID surveyId
 	) throws DataAccessException;
 
+	/**
+	 * Retrieves annotations for the provided survey id.
+	 * 
+	 * @param surveyId the survey id
+	 * @return a list of annotations bound to the survey
+	 * @throws DataAccessException if an error occurs
+	 */
+	List<Annotation> readSurveyResponseAnnotations(UUID surveyId) throws DataAccessException;
+	
+	
 	/**
 	 * Creates a prompt response annotation.
 	 * 

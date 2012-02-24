@@ -15,27 +15,30 @@
  ******************************************************************************/
 package org.ohmage.request.survey;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.TimeZone;
 import java.util.UUID;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.log4j.Logger;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.ohmage.annotator.Annotator.ErrorCode;
+import org.ohmage.domain.Annotation;
 import org.ohmage.exception.ServiceException;
 import org.ohmage.exception.ValidationException;
 import org.ohmage.request.InputKeys;
 import org.ohmage.request.UserRequest;
 import org.ohmage.service.UserAnnotationServices;
 import org.ohmage.service.UserCampaignServices;
-import org.ohmage.util.StringUtils;
 import org.ohmage.validator.SurveyResponseValidators;
 
 /**
- * <p>Annotates a survey response.</p>
+ * <p>Reads the annotations for a survey response.</p>
  * <table border="1">
  *   <tr>
  *     <td>Parameter Name</td>
@@ -57,36 +60,16 @@ import org.ohmage.validator.SurveyResponseValidators;
  *     <td>An id (a UUID) indicating which survey to annotate.</td>
  *     <td>true</td>
  *   </tr>
- *   <tr>
- *     <td>{@value org.ohmage.request.InputKeys#TIME}</td>
- *     <td>A long value representing the milliseconds since the UNIX epoch at
- *     which this annotation was created.</td>
- *     <td>true</td>
- *   </tr>
- *   <tr>
- *     <td>{@value org.ohmage.request.InputKeys#TIMEZONE}</td>
- *     <td>A String timezone identifier representing the timezone at which the
- *     annotation was created.</td>
- *     <td>true</td>
- *   </tr>
- *   <tr>
- *     <td>{@value org.ohmage.request.InputKeys#ANNOTATION}</td>
- *     <td>The annoatation text.</td>
- *     <td>true</td>
- *   </tr>         
  * </table>
  * 
  * @author Joshua Selsky
  */
-public class SurveyResponseAnnotationCreationRequest extends UserRequest {
-	private static final Logger LOGGER = Logger.getLogger(SurveyResponseAnnotationCreationRequest.class);
+public class SurveyResponseAnnotationReadRequest extends UserRequest {
+	private static final Logger LOGGER = Logger.getLogger(SurveyResponseAnnotationReadRequest.class);
 	
 	private final UUID surveyId;
-	private final Long time;
-	private final TimeZone timezone;
-	private final String annotationText;
 	
-	private UUID annotationIdToReturn; 
+	private List<Annotation> annotationsToReturn;
 	
 	/**
 	 * Creates a new survey annotation creation request.
@@ -94,15 +77,12 @@ public class SurveyResponseAnnotationCreationRequest extends UserRequest {
 	 * @param httpRequest The HttpServletRequest with the parameters for this
 	 * 					  request.
 	 */
-	public SurveyResponseAnnotationCreationRequest(HttpServletRequest httpRequest) {
+	public SurveyResponseAnnotationReadRequest(HttpServletRequest httpRequest) {
 		super(httpRequest, TokenLocation.PARAMETER);
 		
-		LOGGER.info("Creating a survey annotation creation request.");
+		LOGGER.info("Creating a survey annotation read request.");
 		
 		UUID tSurveyId = null;
-		Long tTime = Long.MIN_VALUE;
-		TimeZone tTimezone = null;
-		String tAnnotationText = null;
 				
 		if(! isFailed()) {
 			try {
@@ -122,58 +102,6 @@ public class SurveyResponseAnnotationCreationRequest extends UserRequest {
 					}
 				}
 				
-				// Validate the time
-				t = parameters.get(InputKeys.TIME);
-				
-				if(t == null || t.length != 1) {
-					setFailed(ErrorCode.ANNOTATION_INVALID_TIME, "time is missing or there is more than one value");
-					throw new ValidationException("time is missing or there is more than one value");
-				} else {
-					
-					try {
-						tTime = Long.valueOf(t[0]);
-					}
-					catch(NumberFormatException e) {
-						setFailed(ErrorCode.ANNOTATION_INVALID_TIME, "The time is invalid.");
-						throw new ValidationException("The time is invalid.");
-					}	
-				}
-				
-				// Validate the timezone
-				t = parameters.get(InputKeys.TIMEZONE);
-				
-				if(t == null || t.length != 1) {
-					setFailed(ErrorCode.ANNOTATION_INVALID_TIMEZONE, "timezone is missing or there is more than one value");
-					throw new ValidationException("timezone is missing or there is more than one value");
-				} else {
-					
-					// FIXME This will default to UTC if the timezone is unknown to the
-					// TimeZone class. It's safe because we will never see an invalid 
-					// timezone in our db for survey responses, but clients will not
-					// be alerted to the fact that they may be uploading timezones that
-					// we can't interpret. Possible solution: add warning messages to 
-					// our JSON output. Also, Joda Time has a DateTimeZone class that 
-					// can be used in lieu of the default JDK TimeZone class.
-					tTimezone = TimeZone.getTimeZone(t[0]);
-				}
-				
-				// Validate the annotation text
-				t = parameters.get(InputKeys.ANNOTATION_TEXT);
-				
-				if(t == null || t.length != 1) {
-					setFailed(ErrorCode.ANNOTATION_INVALID_ANNOTATION, "annotation is missing or there is more than one value");
-					throw new ValidationException("annotation is missing or there is more than one value");
-				} else {
-					
-					if(StringUtils.isEmptyOrWhitespaceOnly(t[0])) {
-						setFailed(ErrorCode.ANNOTATION_INVALID_ANNOTATION, "The annotation is empty.");
-						throw new ValidationException("The annotation is empty.");
-					}	
-					
-					tAnnotationText = t[0];
-				}
-
-				
 			}
 			catch(ValidationException e) {
 				e.failRequest(this);
@@ -182,11 +110,6 @@ public class SurveyResponseAnnotationCreationRequest extends UserRequest {
 		}
 		
 		this.surveyId = tSurveyId;
-		this.time = tTime;
-		this.timezone = tTimezone;
-		this.annotationText = tAnnotationText;
-		
-		annotationIdToReturn = null;
 	}
 
 	/**
@@ -207,11 +130,11 @@ public class SurveyResponseAnnotationCreationRequest extends UserRequest {
 				throw new ServiceException("The user does not belong to any campaigns.");
 			}
 			
-			LOGGER.info("Verifying that the logged in user can create a survey response annotation");
+			LOGGER.info("Verifying that the logged in user can read survey response annotations.");
 			UserAnnotationServices.instance().userCanAccessSurveyResponseAnnotation(getUser().getUsername(), campaignIds, surveyId);
 			
-			LOGGER.info("Persisting the survey response annotation.");
-			annotationIdToReturn = UserAnnotationServices.instance().createSurveyResponseAnnotation(getClient(), this.time, this.timezone, this.annotationText, this.surveyId);
+			LOGGER.info("Reading survey response annotations.");
+			annotationsToReturn = UserAnnotationServices.instance().readSurveyResponseAnnotations(this.surveyId);
 			
 		}
 		catch(ServiceException e) {
@@ -226,7 +149,35 @@ public class SurveyResponseAnnotationCreationRequest extends UserRequest {
 	 */
 	@Override
 	public void respond(HttpServletRequest httpRequest, HttpServletResponse httpResponse) {
-		LOGGER.info("Responding to the survey response annotation creation request.");
-		super.respond(httpRequest, httpResponse, "annotation_id", annotationIdToReturn);
+		LOGGER.info("Responding to the survey response annotation read request.");
+		
+		if(isFailed()) {
+			super.respond(httpRequest, httpResponse, null);
+			return;
+		}
+		
+		try {
+			JSONObject result = new JSONObject();
+			JSONArray data = new JSONArray();
+			
+			for(Annotation annotation : annotationsToReturn) {
+				JSONObject bucket = new JSONObject();
+				bucket.put("text", annotation.getText());
+				bucket.put("time", annotation.getEpochMillis());
+				bucket.put("timezone", annotation.getTimezone().getID());
+				data.put(new JSONObject().put(annotation.getId().toString(), bucket));
+			}
+			
+			result.put("data", data);
+			super.respond(httpRequest, httpResponse, result);
+		}	
+		catch(JSONException e) {
+			LOGGER.error("There was a problem creating the response.", e);
+			setFailed();
+			super.respond(httpRequest, httpResponse, null);
+		}
+
+		
+		
 	}
 }

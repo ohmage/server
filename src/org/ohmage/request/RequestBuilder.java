@@ -48,6 +48,7 @@ import org.ohmage.request.mobility.MobilityReadRequest;
 import org.ohmage.request.mobility.MobilityUploadRequest;
 import org.ohmage.request.survey.PromptResponseAnnotationCreationRequest;
 import org.ohmage.request.survey.SurveyResponseAnnotationCreationRequest;
+import org.ohmage.request.survey.SurveyResponseAnnotationReadRequest;
 import org.ohmage.request.survey.SurveyResponseDeleteRequest;
 import org.ohmage.request.survey.SurveyResponseFunctionReadRequest;
 import org.ohmage.request.survey.SurveyResponseReadRequest;
@@ -163,6 +164,7 @@ public final class RequestBuilder {
 	
 	// Annotation
 	public static final String API_ANNOTATION_SURVEY_RESPONSE_CREATE = API_ROOT + "/annotation/survey_response/create";
+	public static final String API_ANNOTATION_SURVEY_RESPONSE_READ = API_ROOT + "/annotation/survey_response/read";
 	public static final String API_ANNOTATION_PROMPT_RESPONSE_CREATE = API_ROOT + "/annotation/prompt_response/create";
 	
 	// Audit
@@ -267,6 +269,9 @@ public final class RequestBuilder {
 		// Annotation
 		else if(API_ANNOTATION_SURVEY_RESPONSE_CREATE.equals(requestUri)) {
 			return new SurveyResponseAnnotationCreationRequest(httpRequest);
+		}
+		else if(API_ANNOTATION_SURVEY_RESPONSE_READ.equals(requestUri)) {
+			return new SurveyResponseAnnotationReadRequest(httpRequest);
 		}
 		else if(API_ANNOTATION_PROMPT_RESPONSE_CREATE.equals(requestUri)) {
 			return new PromptResponseAnnotationCreationRequest(httpRequest);

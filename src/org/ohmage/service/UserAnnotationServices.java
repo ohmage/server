@@ -24,6 +24,7 @@ import java.util.UUID;
 
 import org.apache.log4j.Logger;
 import org.ohmage.annotator.Annotator.ErrorCode;
+import org.ohmage.domain.Annotation;
 import org.ohmage.domain.campaign.Campaign;
 import org.ohmage.exception.DataAccessException;
 import org.ohmage.exception.ServiceException;
@@ -73,7 +74,7 @@ public final class UserAnnotationServices {
 	 *                          layer
 	 * @throws IllegalArgumentException if the input parameters are malformed  
 	 */	
-	public void userCanCreateSurveyResponseAnnotation(final String username, final Collection<String> campaignIds, final UUID surveyResponseId)
+	public void userCanAccessSurveyResponseAnnotation(final String username, final Collection<String> campaignIds, final UUID surveyResponseId)
 		throws ServiceException {
 		
 		if(StringUtils.isEmptyOrWhitespaceOnly(username)) {
@@ -141,6 +142,22 @@ public final class UserAnnotationServices {
 			UUID annotationId = UUID.randomUUID();
 			annotationQueries.createSurveyResponseAnnotation(annotationId, client, time, timezone, annotationText, surveyId);
 			return annotationId;
+		}
+		catch(DataAccessException e) {
+			throw new ServiceException(e);
+		}
+	}
+
+	/**
+	 * Reads annotations for a particular survey response.
+	 * 
+	 * @param surveyId the survey to read annotations from
+	 * @return returns a list of annotations that are attached to the provided 
+	 * survey id
+	 */
+	public List<Annotation> readSurveyResponseAnnotations(UUID surveyId) throws ServiceException {
+		try {
+			return annotationQueries.readSurveyResponseAnnotations(surveyId);
 		}
 		catch(DataAccessException e) {
 			throw new ServiceException(e);

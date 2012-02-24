@@ -17,15 +17,20 @@ package org.ohmage.query.impl;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.List;
 import java.util.TimeZone;
 import java.util.UUID;
 
 import javax.sql.DataSource;
 
+import org.ohmage.domain.Annotation;
 import org.ohmage.exception.DataAccessException;
+import org.ohmage.exception.DomainException;
 import org.ohmage.query.IAnnotationQueries;
 import org.springframework.jdbc.core.PreparedStatementCreator;
+import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
@@ -55,7 +60,13 @@ public class AnnotationQueries extends Query implements IAnnotationQueries {
 		"INSERT into prompt_response_annotation " +
 		"(prompt_response_id, annotation_id) " +
 		"VALUES (?, ?)";
-
+	
+	private static final String SQL_READ_SURVEY_RESPONSE_ANNOTATION = 
+		"SELECT a.uuid, a.annotation, a.epoch_millis, a.timezone " +
+		"FROM survey_response sr, survey_response_annotation sra, annotation a " +
+		"WHERE sr.uuid = ? " +
+		"AND sr.id = sra.survey_response_id " +
+		"AND sra.annotation_id = a.id";
 	
 	/**
 	 * Creates this object via dependency injection (reflection).
@@ -101,7 +112,8 @@ public class AnnotationQueries extends Query implements IAnnotationQueries {
 				);
 				
 				
-			} catch(org.springframework.dao.DataAccessException e) {
+			} 
+			catch(org.springframework.dao.DataAccessException e) {
 				
 				transactionManager.rollback(status);
 				throw new DataAccessException(
@@ -122,7 +134,8 @@ public class AnnotationQueries extends Query implements IAnnotationQueries {
 					SQL_INSERT_SURVEY_RESPONSE_ANNOTATION, surveyId.toString(), annotationIdKeyHolder.getKey().longValue()
 				);
 				
-			} catch(org.springframework.dao.DataAccessException e) {
+			} 
+			catch(org.springframework.dao.DataAccessException e) {
 				
 				transactionManager.rollback(status);
 				throw new DataAccessException(
@@ -144,6 +157,33 @@ public class AnnotationQueries extends Query implements IAnnotationQueries {
 		}
 		catch(TransactionException e) {
 			throw new DataAccessException("Error while attempting to rollback the transaction.", e);
+		}
+	}
+	
+	@Override
+	public List<Annotation> readSurveyResponseAnnotations(final UUID surveyId) throws DataAccessException {
+		try {
+			return getJdbcTemplate().query(SQL_READ_SURVEY_RESPONSE_ANNOTATION, new Object[] {surveyId.toString() }, 
+				new RowMapper<Annotation>() {
+					public Annotation mapRow(ResultSet rs, int rowNum) throws SQLException {
+						try {
+							return new Annotation(
+								rs.getString(1),
+								rs.getString(2),
+								rs.getLong(3),
+								rs.getString(4)
+							);
+						}
+						catch(DomainException e) {
+							throw new SQLException("Error creating an annotation object.", e);
+						}
+					}
+				}
+			);
+		}
+		catch(org.springframework.dao.DataAccessException e) {
+			throw new DataAccessException("An error occurred when running the following SQL: '" 
+				+ SQL_READ_SURVEY_RESPONSE_ANNOTATION + " with the parameter " + surveyId, e);
 		}
 	}
 	
@@ -184,7 +224,8 @@ public class AnnotationQueries extends Query implements IAnnotationQueries {
 				);
 				
 				
-			} catch(org.springframework.dao.DataAccessException e) {
+			}
+			catch(org.springframework.dao.DataAccessException e) {
 				
 				transactionManager.rollback(status);
 				throw new DataAccessException(
@@ -205,7 +246,8 @@ public class AnnotationQueries extends Query implements IAnnotationQueries {
 					SQL_INSERT_PROMPT_RESPONSE_ANNOTATION, promptResponseId, annotationIdKeyHolder.getKey().longValue()
 				);
 				
-			} catch(org.springframework.dao.DataAccessException e) {
+			}
+			catch(org.springframework.dao.DataAccessException e) {
 				
 				transactionManager.rollback(status);
 				throw new DataAccessException(

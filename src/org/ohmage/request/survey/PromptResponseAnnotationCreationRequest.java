@@ -321,7 +321,7 @@ public class PromptResponseAnnotationCreationRequest extends UserRequest {
 			LOGGER.info("Verifying that the logged in user can create a prompt response annotation");
 			// By default, if a user can create a survey response annotation,
 			// he or she can create a prompt response annotation.
-			UserAnnotationServices.instance().userCanCreateSurveyResponseAnnotation(getUser().getUsername(), campaignIds, surveyId);
+			UserAnnotationServices.instance().userCanAccessSurveyResponseAnnotation(getUser().getUsername(), campaignIds, surveyId);
 			
 			
 			LOGGER.info("Verifying that the provided input parameters reference an actual prompt response");
