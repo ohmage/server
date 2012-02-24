@@ -151,6 +151,11 @@ public class Campaign {
 	private static final Pattern VALID_CHARACTERS_PATTERN = 
 			Pattern.compile("[a-zA-Z0-9_]+");
 	
+	private static final int MAX_ID_LENGTH = 255;
+	private static final int MAX_NAME_LENGTH = 255;
+	private static final int MAX_SERVER_URL_LENGTH = 255;
+	private static final int MAX_ICON_URL_LENGTH = 255;
+	
 	/**
 	 * The configuration's unique identifier.
 	 */
@@ -1867,11 +1872,18 @@ public class Campaign {
 		}
 		else {
 			String urn = ids.get(0).getValue().trim();
-			if(StringUtils.isValidUrn(urn)) {
-				return urn;
+			
+			if(! StringUtils.isValidUrn(urn)) {
+				throw new DomainException("The campaign ID is not valid.");
+			}
+			else if(urn.length() > MAX_ID_LENGTH) {
+				throw new DomainException(
+						"The campaign's ID cannot be longer than " +
+							MAX_ID_LENGTH +
+							" characters.");
 			}
 			else {
-				throw new DomainException("The campaign ID is not valid.");
+				return urn;
 			}
 		}
 	}
@@ -1901,6 +1913,12 @@ public class Campaign {
 			if(StringUtils.isEmptyOrWhitespaceOnly(name)) {
 				throw new DomainException("The name tag exists but the value is empty.");
 			}
+			else if(name.length() > MAX_NAME_LENGTH) {
+				throw new DomainException(
+						"The name cannot be longer than " +
+							MAX_NAME_LENGTH +
+							" characters.");
+			}
 			else {
 				return name;
 			}
@@ -1926,7 +1944,16 @@ public class Campaign {
 			String serverUrlString = serverUrls.get(0).getValue().trim();
 			
 			try {
-				return new URL(serverUrlString);
+				URL result = new URL(serverUrlString);
+				
+				if(serverUrlString.length() > MAX_SERVER_URL_LENGTH) {
+					throw new DomainException(
+							"The server URL cannot be longer than " +
+								MAX_SERVER_URL_LENGTH +
+								" characters.");
+				}
+				
+				return result;
 			}
 			catch(MalformedURLException e) {
 				throw new DomainException("The server URL is not a valid URL.");
@@ -1952,10 +1979,19 @@ public class Campaign {
 			throw new DomainException("Multiple icon URLs were found.");
 		}
 		else if(iconUrls.size() == 1) {
-			String serverUrlString = iconUrls.get(0).getValue().trim();
+			String iconUrlString = iconUrls.get(0).getValue().trim();
 			
 			try {
-				return new URL(serverUrlString);
+				URL result = new URL(iconUrlString);
+				
+				if(iconUrlString.length() > MAX_ICON_URL_LENGTH) {
+					throw new DomainException(
+							"The server URL cannot be longer than " +
+								MAX_ICON_URL_LENGTH +
+								" characters.");
+				}
+				
+				return result;
 			}
 			catch(MalformedURLException e) {
 				throw new DomainException("The icon URL is not a valid URL.");
