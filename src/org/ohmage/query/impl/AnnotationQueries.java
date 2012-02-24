@@ -90,10 +90,9 @@ public class AnnotationQueries extends Query implements IAnnotationQueries {
 	private AnnotationQueries(DataSource dataSource) {
 		super(dataSource);
 	}
-
 	
 	@Override
-	public void createSurveyResponseAnnotation(final UUID annotationUuid,
+	public void createSurveyResponseAnnotation(final UUID annotationId,
 		final String client, final Long time, final TimeZone timezone, final String annotationText, final UUID surveyId)
 			throws DataAccessException {
 		
@@ -105,34 +104,17 @@ public class AnnotationQueries extends Query implements IAnnotationQueries {
 			// Begin the transaction.
 			PlatformTransactionManager transactionManager = new DataSourceTransactionManager(getDataSource());
 			TransactionStatus status = transactionManager.getTransaction(def);
-			
-			final KeyHolder annotationIdKeyHolder = new GeneratedKeyHolder();
-			
+			long id = 0;
+				
 			try {
-				// Insert the annotation
-				getJdbcTemplate().update(
-					new PreparedStatementCreator() {
-						public PreparedStatement createPreparedStatement(Connection connection) throws SQLException {
-							PreparedStatement ps = connection.prepareStatement(SQL_INSERT_ANNOTATION, new String[] {"id"});
-							ps.setString(1, annotationUuid.toString());
-							ps.setLong(2, time);
-							ps.setString(3, timezone.getID());
-							ps.setString(4, client);
-							ps.setString(5, annotationText);
-							return ps;
-						}
-					},
-					annotationIdKeyHolder
-				);
-				
-				
-			} 
+				id = insertAnnotation(annotationId, time, timezone, client, annotationText);
+			}
 			catch(org.springframework.dao.DataAccessException e) {
 				
 				transactionManager.rollback(status);
 				throw new DataAccessException(
 						"Error while executing SQL '" + SQL_INSERT_ANNOTATION + "' with parameters: " +
-							annotationUuid + ", " + 
+							annotationId + ", " + 
 						    time + ", " + 
 							timezone.getID() + ", " + 
 							client + ", " + 
@@ -140,13 +122,9 @@ public class AnnotationQueries extends Query implements IAnnotationQueries {
 						e);
 			}
 			
-			
 			try {
-				
-				// Insert the link between survey_response and annotation
-				getJdbcTemplate().update(
-					SQL_INSERT_SURVEY_RESPONSE_ANNOTATION, surveyId.toString(), annotationIdKeyHolder.getKey().longValue()
-				);
+				// Insert the link between the survey_response and its annotation
+				getJdbcTemplate().update(SQL_INSERT_SURVEY_RESPONSE_ANNOTATION, surveyId.toString(), id);
 				
 			} 
 			catch(org.springframework.dao.DataAccessException e) {
@@ -155,7 +133,7 @@ public class AnnotationQueries extends Query implements IAnnotationQueries {
 				throw new DataAccessException(
 						"Error while executing SQL '" + SQL_INSERT_SURVEY_RESPONSE_ANNOTATION + "' with parameters: " +
 						    surveyId.toString() + ", " + 
-						    annotationIdKeyHolder.getKey().longValue(),
+						    id,
 						e);
 			}
 			
@@ -202,7 +180,7 @@ public class AnnotationQueries extends Query implements IAnnotationQueries {
 	}
 	
 	@Override
-	public void createPromptResponseAnnotation(final UUID annotationUuid, final String client, final Long time,
+	public void createPromptResponseAnnotation(final UUID annotationId, final String client, final Long time,
 		final TimeZone timezone, final String annotationText, Integer promptResponseId)
 			throws DataAccessException {
 		
@@ -214,51 +192,26 @@ public class AnnotationQueries extends Query implements IAnnotationQueries {
 			// Begin the transaction.
 			PlatformTransactionManager transactionManager = new DataSourceTransactionManager(getDataSource());
 			TransactionStatus status = transactionManager.getTransaction(def);
-			
-			final KeyHolder annotationIdKeyHolder = new GeneratedKeyHolder();
+			long id = 0;
 			
 			try {
-				
-				// FIXME -- move this to it's own method
-				
-				// Insert the annotation
-				getJdbcTemplate().update(
-					new PreparedStatementCreator() {
-						public PreparedStatement createPreparedStatement(Connection connection) throws SQLException {
-							PreparedStatement ps = connection.prepareStatement(SQL_INSERT_ANNOTATION, new String[] {"id"});
-							ps.setString(1, annotationUuid.toString());
-							ps.setLong(2, time);
-							ps.setString(3, timezone.getID());
-							ps.setString(4, client);
-							ps.setString(5, annotationText);
-							return ps;
-						}
-					},
-					annotationIdKeyHolder
-				);
-				
-				
+				id = insertAnnotation(annotationId, time, timezone, client, annotationText);
 			}
 			catch(org.springframework.dao.DataAccessException e) {
 				
 				transactionManager.rollback(status);
 				throw new DataAccessException(
 						"Error while executing SQL '" + SQL_INSERT_ANNOTATION + "' with parameters: " +
-							annotationUuid + ", " + 
+							annotationId + ", " + 
 						    time + ", " + 
 							timezone.getID() + ", " + 
 							client + ", " + 
 							((annotationText.length() > 25) ? annotationText.substring(0, 25) + "..." : annotationText),
 						e);
 			}
-			
-			
 			try {
-				
-				// Insert the link between survey_response and annotation
-				getJdbcTemplate().update(
-					SQL_INSERT_PROMPT_RESPONSE_ANNOTATION, promptResponseId, annotationIdKeyHolder.getKey().longValue()
-				);
+				// Insert the link between the prompt_response and its annotation
+				getJdbcTemplate().update(SQL_INSERT_PROMPT_RESPONSE_ANNOTATION, promptResponseId, id);
 				
 			}
 			catch(org.springframework.dao.DataAccessException e) {
@@ -267,7 +220,7 @@ public class AnnotationQueries extends Query implements IAnnotationQueries {
 				throw new DataAccessException(
 						"Error while executing SQL '" + SQL_INSERT_PROMPT_RESPONSE_ANNOTATION + "' with parameters: " +
 						    promptResponseId + ", " + 
-						    annotationIdKeyHolder.getKey().longValue(),
+						    id,
 						e);
 			}
 			
@@ -325,5 +278,41 @@ public class AnnotationQueries extends Query implements IAnnotationQueries {
 			throw new DataAccessException("An error occurred when running the following SQL: '" 
 				+ sql.toString() + " with the parameters " + args, e);
 		}
+	}
+	
+	/**
+	 * Helper method to insert an annotation and allow the other methods in
+	 * this class to do the work of linking the annotation to the appropriate
+	 * entity.
+	 * 
+	 * @param annotationId a UUID to uniquely identify this annotation
+	 * @param time the epoch millis at which the annotation was created
+	 * @param timezone the timezone in which the annotation was created
+	 * @param client the software client that generated the annotation request
+	 * @param text the annotation text
+	 * @return the primary key of the newly created annotation
+	 * @throws org.springframework.dao.DataAccessException if an error occurs
+	 */
+	private long insertAnnotation(final UUID annotationId, final Long time, final TimeZone timezone, final String client, final String annotationText)
+			throws org.springframework.dao.DataAccessException {
+		
+		final KeyHolder annotationIdKeyHolder = new GeneratedKeyHolder();
+		
+		getJdbcTemplate().update(
+			new PreparedStatementCreator() {
+				public PreparedStatement createPreparedStatement(Connection connection) throws SQLException {
+					PreparedStatement ps = connection.prepareStatement(SQL_INSERT_ANNOTATION, new String[] {"id"});
+					ps.setString(1, annotationId.toString());
+					ps.setLong(2, time);
+					ps.setString(3, timezone.getID());
+					ps.setString(4, client);
+					ps.setString(5, annotationText);
+					return ps;
+				}
+			},
+			annotationIdKeyHolder
+		);
+		
+		return annotationIdKeyHolder.getKey().longValue();
 	}
 }
