@@ -2779,7 +2779,7 @@ public class Campaign {
 			
 			if(! VALID_CHARACTERS_PATTERN.matcher(unit).matches()) {
 				throw new DomainException(
-						"The prompts's ID contains illegal characters: " + 
+						"The prompt's unit contains illegal characters: " + 
 							id);
 			}
 		}
