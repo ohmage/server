@@ -83,4 +83,10 @@ public class Annotation {
 	public TimeZone getTimezone() {
 		return timezone;
 	}
+
+	@Override
+	public String toString() {
+		return "Annotation [id=" + id + ", text=" + text + ", epochMillis="
+				+ epochMillis + ", timezone=" + timezone + "]";
+	}
 }

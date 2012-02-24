@@ -158,26 +158,21 @@ public class SurveyResponseAnnotationReadRequest extends UserRequest {
 		
 		try {
 			JSONObject result = new JSONObject();
-			JSONArray data = new JSONArray();
-			
+						
 			for(Annotation annotation : annotationsToReturn) {
 				JSONObject bucket = new JSONObject();
 				bucket.put("text", annotation.getText());
 				bucket.put("time", annotation.getEpochMillis());
 				bucket.put("timezone", annotation.getTimezone().getID());
-				data.put(new JSONObject().put(annotation.getId().toString(), bucket));
+				result.put(annotation.getId().toString(), bucket);	
 			}
 			
-			result.put("data", data);
 			super.respond(httpRequest, httpResponse, result);
 		}	
 		catch(JSONException e) {
 			LOGGER.error("There was a problem creating the response.", e);
 			setFailed();
 			super.respond(httpRequest, httpResponse, null);
-		}
-
-		
-		
+		}		
 	}
 }
