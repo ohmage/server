@@ -3,7 +3,8 @@
        xsi:schemaLocation=
          "http://www.springframework.org/schema/beans
           http://www.springframework.org/schema/beans/spring-beans-3.0.xsd">
-  
+
+
   <bean class="org.ohmage.service.AuditServices">
     <constructor-arg>
       <ref bean="auditQueries" />
@@ -69,6 +70,12 @@
       <ref bean="userMobilityQueries" />
     </constructor-arg>
   </bean>
+
+  <bean class="org.ohmage.service.PromptResponseServices">
+    <constructor-arg>
+      <ref bean="promptResponseQueries" />
+    </constructor-arg>
+  </bean>
   
   <bean class="org.ohmage.service.SurveyResponseReadServices">
     <constructor-arg>
@@ -91,6 +98,12 @@
     </constructor-arg>
     <constructor-arg>
       <ref bean="surveyResponseImageQueries" />
+    </constructor-arg>
+  </bean>
+
+  <bean class="org.ohmage.service.UserAnnotationServices">
+    <constructor-arg>
+      <ref bean="annotationQueries" />
     </constructor-arg>
   </bean>
 

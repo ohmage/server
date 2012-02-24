@@ -59,6 +59,12 @@ import org.springframework.transaction.support.DefaultTransactionDefinition;
  * @author Joshua Selsky
  */
 public class SurveyResponseQueries extends Query implements ISurveyResponseQueries {
+	
+	private static final String SQL_GET_CAMPAIGN_URN_FOR_SURVEY_ID =
+	    "SELECT urn " +
+	    "FROM campaign, survey_response " +
+	    "WHERE campaign_id = campaign.id and survey_response.uuid = ?";
+	
 	// Retrieves all of the survey response privacy states.
 	private static final String SQL_GET_SURVEY_RESPONSE_PRIVACY_STATES =
 		"SELECT privacy_state " +
@@ -381,7 +387,23 @@ public class SurveyResponseQueries extends Query implements ISurveyResponseQueri
 	private SurveyResponseQueries(DataSource dataSource) {
 		super(dataSource);
 	}
-
+	
+	/*
+	 * (non-Javadoc)
+	 * @see org.ohmage.query.ISurveyResponseQueries#getCampaignIdForSurveyResponseId()
+	 */
+	@Override
+	public String getCampaignIdForSurveyResponseId(UUID uuid) 
+			throws DataAccessException {
+		try {
+			return getJdbcTemplate().queryForObject(SQL_GET_CAMPAIGN_URN_FOR_SURVEY_ID, String.class, uuid.toString());
+		}
+		catch(org.springframework.dao.DataAccessException e) {
+			throw new DataAccessException(
+				"Error executing SQL '" + SQL_GET_CAMPAIGN_URN_FOR_SURVEY_ID + "'.", e);
+		}
+	}
+	
 	/*
 	 * (non-Javadoc)
 	 * @see org.ohmage.query.ISurveyResponseQueries#retrieveSurveyResponsePrivacyStates()

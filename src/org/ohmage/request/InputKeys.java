@@ -50,6 +50,8 @@ public final class InputKeys {
 	public static final String DATE = "date";
 	public static final String START_DATE = "start_date";
 	public static final String END_DATE = "end_date";
+	public static final String TIME = "time";
+	public static final String TIMEZONE = "timezone";
 	
 	// Campaign Constants
 	public static final String CAMPAIGN_URN = "campaign_urn";
@@ -93,6 +95,8 @@ public final class InputKeys {
 	public static final String PROMPT2_ID = "prompt2_id";
 	public static final String PROMPT_ID_LIST = "prompt_id_list";
 	public static final String IMAGE_ID = "id";
+	public static final String REPEATABLE_SET_ID = "repeatable_set_id";
+	public static final String REPEATABLE_SET_ITERATION = "repeatable_set_iteration";
 	
 	// Image Constants
 	public static final String IMAGE_OWNER = "owner";
@@ -165,6 +169,9 @@ public final class InputKeys {
 	public static final String AUDIT_ERROR_CODE = "error_code";
 	public static final String AUDIT_START_DATE = "start_date";
 	public static final String AUDIT_END_DATE = "end_date";
+	
+	// Annotation Constants
+	public static final String ANNOTATION_TEXT = "annotation";
 	
 	// Separator Constants
 	public static final String LIST_ITEM_SEPARATOR = ",";

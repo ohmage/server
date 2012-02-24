@@ -6,6 +6,12 @@
          "http://www.springframework.org/schema/beans 
           http://www.springframework.org/schema/beans/spring-beans-3.0.xsd">
 
+  <bean name="annotationQueries" class="org.ohmage.query.impl.AnnotationQueries">
+    <constructor-arg>
+      <ref bean="dataSource" />
+    </constructor-arg>
+  </bean>
+
   <bean name="auditQueries" class="org.ohmage.query.impl.AuditQueries">
     <constructor-arg>
       <ref bean="dataSource" />
@@ -85,6 +91,12 @@
   </bean>
   
   <bean name="imageQueries" class="org.ohmage.query.impl.ImageQueries">
+    <constructor-arg>
+      <ref bean="dataSource" />
+    </constructor-arg>
+  </bean>
+
+  <bean name="promptResponseQueries" class="org.ohmage.query.impl.PromptResponseQueries">
     <constructor-arg>
       <ref bean="dataSource" />
     </constructor-arg>
