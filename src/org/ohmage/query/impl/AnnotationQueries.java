@@ -19,6 +19,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.TimeZone;
 import java.util.UUID;
@@ -67,6 +68,19 @@ public class AnnotationQueries extends Query implements IAnnotationQueries {
 		"WHERE sr.uuid = ? " +
 		"AND sr.id = sra.survey_response_id " +
 		"AND sra.annotation_id = a.id";
+
+	private static final String SQL_READ_PROMPT_RESPONSE_ANNOTATION = 
+		"SELECT a.uuid, a.annotation, a.epoch_millis, a.timezone " +
+		"FROM prompt_response pr, survey_response sr, prompt_response_annotation pra, annotation a " +
+		"WHERE sr.uuid = ? " +
+		"AND pr.survey_response_id = sr.id " +
+		"AND pr.prompt_id = ? " +
+		"AND pr.id = pra.prompt_response_id " +
+		"AND pra.annotation_id = a.id";
+	
+	private static final String AND_REPEATABLE_SET =
+		" AND repeatable_set_id = ? " +
+		"AND repeatable_set_iteration = ?";
 	
 	/**
 	 * Creates this object via dependency injection (reflection).
@@ -271,5 +285,45 @@ public class AnnotationQueries extends Query implements IAnnotationQueries {
 			throw new DataAccessException("Error while attempting to rollback the transaction.", e);
 		}
 	}
-
+	
+	@Override
+	public List<Annotation> readPromptResponseAnnotations(final UUID surveyId, final String promptId, final String repeatableSetId,
+		final Integer repeatableSetIteration)
+			throws DataAccessException {
+		
+		StringBuilder sql = new StringBuilder(SQL_READ_PROMPT_RESPONSE_ANNOTATION);
+		List<Object> args = new ArrayList<Object>();
+		args.add(surveyId.toString());
+		args.add(promptId);
+		
+		if(repeatableSetId != null && repeatableSetIteration != null) {
+			sql.append(AND_REPEATABLE_SET);
+			args.add(repeatableSetId);
+			args.add(repeatableSetIteration);
+		}
+		
+		try {			
+			return getJdbcTemplate().query(sql.toString(), args.toArray(), 
+				new RowMapper<Annotation>() {
+					public Annotation mapRow(ResultSet rs, int rowNum) throws SQLException {
+						try {
+							return new Annotation(
+								rs.getString(1),
+								rs.getString(2),
+								rs.getLong(3),
+								rs.getString(4)
+							);
+						}
+						catch(DomainException e) {
+							throw new SQLException("Error creating an annotation object.", e);
+						}
+					}
+				}
+			);
+		}
+		catch(org.springframework.dao.DataAccessException e) {
+			throw new DataAccessException("An error occurred when running the following SQL: '" 
+				+ sql.toString() + " with the parameters " + args, e);
+		}
+	}
 }

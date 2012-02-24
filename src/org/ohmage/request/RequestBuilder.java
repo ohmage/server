@@ -47,6 +47,7 @@ import org.ohmage.request.mobility.MobilityReadChunkedRequest;
 import org.ohmage.request.mobility.MobilityReadRequest;
 import org.ohmage.request.mobility.MobilityUploadRequest;
 import org.ohmage.request.survey.PromptResponseAnnotationCreationRequest;
+import org.ohmage.request.survey.PromptResponseAnnotationReadRequest;
 import org.ohmage.request.survey.SurveyResponseAnnotationCreationRequest;
 import org.ohmage.request.survey.SurveyResponseAnnotationReadRequest;
 import org.ohmage.request.survey.SurveyResponseDeleteRequest;
@@ -163,9 +164,10 @@ public final class RequestBuilder {
 	public static final String API_ROOT = "/app";
 	
 	// Annotation
+	public static final String API_ANNOTATION_PROMPT_RESPONSE_CREATE = API_ROOT + "/annotation/prompt_response/create";
+	public static final String API_ANNOTATION_PROMPT_RESPONSE_READ = API_ROOT + "/annotation/prompt_response/read";
 	public static final String API_ANNOTATION_SURVEY_RESPONSE_CREATE = API_ROOT + "/annotation/survey_response/create";
 	public static final String API_ANNOTATION_SURVEY_RESPONSE_READ = API_ROOT + "/annotation/survey_response/read";
-	public static final String API_ANNOTATION_PROMPT_RESPONSE_CREATE = API_ROOT + "/annotation/prompt_response/create";
 	
 	// Audit
 	public static final String API_AUDIT_READ = API_ROOT + "/audit/read";
@@ -267,15 +269,19 @@ public final class RequestBuilder {
 			return new AuthTokenLogoutRequest(httpRequest);
 		}
 		// Annotation
+		else if(API_ANNOTATION_PROMPT_RESPONSE_CREATE.equals(requestUri)) {
+			return new PromptResponseAnnotationCreationRequest(httpRequest);
+		}
+		else if(API_ANNOTATION_PROMPT_RESPONSE_READ.equals(requestUri)) {
+			return new PromptResponseAnnotationReadRequest(httpRequest);
+		}
 		else if(API_ANNOTATION_SURVEY_RESPONSE_CREATE.equals(requestUri)) {
 			return new SurveyResponseAnnotationCreationRequest(httpRequest);
 		}
 		else if(API_ANNOTATION_SURVEY_RESPONSE_READ.equals(requestUri)) {
 			return new SurveyResponseAnnotationReadRequest(httpRequest);
 		}
-		else if(API_ANNOTATION_PROMPT_RESPONSE_CREATE.equals(requestUri)) {
-			return new PromptResponseAnnotationCreationRequest(httpRequest);
-		}		
+				
 		// Audit
 		else if(API_AUDIT_READ.equals(requestUri)) {
 			return new AuditReadRequest(httpRequest);
@@ -433,6 +439,11 @@ public final class RequestBuilder {
 		if(
 				// Config
 				API_CONFIG_READ.equals(uri) ||
+				// Annotation
+				API_ANNOTATION_PROMPT_RESPONSE_CREATE.equals(uri) ||
+				API_ANNOTATION_PROMPT_RESPONSE_READ.equals(uri) ||
+				API_ANNOTATION_SURVEY_RESPONSE_CREATE.equals(uri) ||
+				API_ANNOTATION_SURVEY_RESPONSE_READ.equals(uri) ||
 				// Authentication
 				API_USER_AUTH.equals(uri) ||
 				API_USER_AUTH_TOKEN.equals(uri) ||

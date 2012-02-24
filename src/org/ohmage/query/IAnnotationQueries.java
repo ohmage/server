@@ -58,7 +58,6 @@ public interface IAnnotationQueries {
 	 */
 	List<Annotation> readSurveyResponseAnnotations(UUID surveyId) throws DataAccessException;
 	
-	
 	/**
 	 * Creates a prompt response annotation.
 	 * 
@@ -79,5 +78,19 @@ public interface IAnnotationQueries {
 		TimeZone timezone,
 		String annotationText,
 		Integer promptResponseId
+	) throws DataAccessException;
+	
+	/**
+	 * Retrieves annotations for the provided prompt response information.
+	 * 
+	 * @param surveyId the survey id
+	 * @return a list of annotations bound to the survey
+	 * @throws DataAccessException if an error occurs
+	 */
+	List<Annotation> readPromptResponseAnnotations(
+		UUID surveyId,
+		String promptId,
+		String repeatableSetId,
+		Integer repeatableSetIteration
 	) throws DataAccessException;
 }

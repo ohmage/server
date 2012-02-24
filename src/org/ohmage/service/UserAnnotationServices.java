@@ -187,5 +187,21 @@ public final class UserAnnotationServices {
 			throw new ServiceException(e);
 		}
 	}
-
+	
+	/**
+	 * Reads annotations for a particular survey response.
+	 * 
+	 * @param surveyId the survey to read annotations from
+	 * @return returns a list of annotations that are attached to the provided 
+	 * survey id
+	 */
+	public List<Annotation> readPromptResponseAnnotations(UUID surveyId, String promptId, String repeatableSetId, Integer repeatableSetIteration) 
+		throws ServiceException {
+		try {
+			return annotationQueries.readPromptResponseAnnotations(surveyId, promptId, repeatableSetId, repeatableSetIteration);
+		}
+		catch(DataAccessException e) {
+			throw new ServiceException(e);
+		}
+	}
 }
