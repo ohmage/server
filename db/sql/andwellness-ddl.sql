@@ -284,7 +284,7 @@ CREATE TABLE survey_response (
 -- the entire survey response and each prompt response in for a survey
 -- are stored.
 -- --------------------------------------------------------------------
-CREATE TABLE prompt_response_test (
+CREATE TABLE prompt_response (
   id int unsigned NOT NULL auto_increment,
   survey_response_id int unsigned NOT NULL,
   prompt_id varchar(250) NOT NULL,  -- a prompt id as defined in a configuration at the XPath //promptId
