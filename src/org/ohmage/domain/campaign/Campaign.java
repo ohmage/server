@@ -2777,9 +2777,9 @@ public class Campaign {
 		else if(units.size() == 1) {
 			unit = units.get(0).getValue().trim();
 			
-			if(! VALID_CHARACTERS_PATTERN.matcher(unit).matches()) {
+			if(unit.length() == 0) {
 				throw new DomainException(
-						"The prompt's unit contains illegal characters: " + 
+						"The prompt's unit cannot be only whitespace: " +
 							id);
 			}
 		}
