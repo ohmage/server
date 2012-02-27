@@ -208,6 +208,7 @@ public class SurveyResponseFunctionReadRequest extends UserRequest {
 			SurveyResponseServices.instance().readSurveyResponseInformation(
 					campaign, 
 					getUser().getUsername(),
+					null,
 					null, 
 					null, 
 					null, 

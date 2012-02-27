@@ -62,6 +62,10 @@ public interface ISurveyResponseQueries {
 	 * @param username The username of the user that is making this request.
 	 * 				   This is used by the ACLs to limit who sees what.
 	 * 
+	 * @param surveyResponseIds A set of survey response unique identifiers 
+	 * 							limiting the results to only those survey
+	 * 							responses whose IDs are in this list.
+	 * 
 	 * @param usernames Limits the results to only those submitted by any one 
 	 * 					of the users in the list.
 	 * 
@@ -110,6 +114,7 @@ public interface ISurveyResponseQueries {
 	int retrieveSurveyResponses(
 			final Campaign campaign,
 			final String username,
+			final Set<UUID> surveyResponseIds,
 			final Collection<String> usernames,
 			final Date startDate,
 			final Date endDate,

@@ -285,6 +285,15 @@ public class SurveyResponseQueries extends Query implements ISurveyResponseQueri
 		")";
 	
 	/**
+	 * Limit the responses to only these survey response IDs. This SQL is
+	 * incomplete and ends with "IN ". The user will need to fill in a 
+	 * parenthetical of "?"s and supply an equal number of survey response IDs
+	 * to the parameter list. 
+	 */
+	private static final String SQL_WHERE_SURVEY_RESPONSE_IDS =
+		" AND sr.uuid IN ";
+	
+	/**
 	 * Limit the responses to only these usernames. This SQL is incomplete and
 	 * ends with "IN ". The user will need to fill in a parenthetical of "?"s
 	 * and supply an equal number of usernames to the parameters list.
@@ -452,6 +461,7 @@ public class SurveyResponseQueries extends Query implements ISurveyResponseQueri
 	public int retrieveSurveyResponses(
 			final Campaign campaign,
 			final String username,
+			final Set<UUID> surveyResponseIds,
 			final Collection<String> usernames, 
 			final Date startDate,
 			final Date endDate, 
@@ -478,6 +488,7 @@ public class SurveyResponseQueries extends Query implements ISurveyResponseQueri
 		String sql = buildSqlAndParameters(
 				campaign,
 				username,
+				surveyResponseIds,
 				usernames, 
 				startDate,
 				endDate, 
@@ -487,7 +498,6 @@ public class SurveyResponseQueries extends Query implements ISurveyResponseQueri
 				promptType,
 				columns,
 				sortOrder,
-				false,
 				parameters);
 
 		// This is necessary to map tiny integers in SQL to Java's integer.
@@ -864,6 +874,7 @@ public class SurveyResponseQueries extends Query implements ISurveyResponseQueri
 	private String buildSqlAndParameters(
 			final Campaign campaign,
 			final String username,
+			final Set<UUID> surveyResponseIds,
 			final Collection<String> usernames, 
 			final Date startDate,
 			final Date endDate, 
@@ -873,7 +884,6 @@ public class SurveyResponseQueries extends Query implements ISurveyResponseQueri
 			final String promptType,
 			final Collection<ColumnKey> columns,
 			final List<SortParameter> sortOrder,
-			final boolean forCount,
 			final Collection<Object> parameters) {
 		
 		// Begin with the SQL string which gets all results or the one that
@@ -887,6 +897,16 @@ public class SurveyResponseQueries extends Query implements ISurveyResponseQueri
 		
 		// Check all of the criteria and if any are non-null add their SQL and
 		// append the parameters.
+		if(surveyResponseIds != null) {
+			sqlBuilder.append(SQL_WHERE_SURVEY_RESPONSE_IDS);
+			sqlBuilder.append(
+					StringUtils.generateStatementPList(
+							surveyResponseIds.size()));
+			
+			for(UUID surveyResponseId : surveyResponseIds) {
+				parameters.add(surveyResponseId.toString());
+			}
+		}
 		if((usernames != null) && (usernames.size() > 0)) {
 			sqlBuilder.append(SQL_WHERE_USERNAMES);
 			sqlBuilder.append(StringUtils.generateStatementPList(usernames.size()));
@@ -920,10 +940,8 @@ public class SurveyResponseQueries extends Query implements ISurveyResponseQueri
 		}
 		
 		// Now, collapse the columns if columns is non-null.
-		boolean individual = true;
 		boolean onSurveyResponse = true;
-		if((columns != null) && (! forCount)) {
-			individual = false;
+		if(columns != null) {
 			sqlBuilder.append(" GROUP BY ");
 			
 			boolean firstPass = true;
@@ -1022,10 +1040,10 @@ public class SurveyResponseQueries extends Query implements ISurveyResponseQueri
 		// Now, go back and insert the correct SELECT clause based on if we are
 		// grouping or not and, if so, if we are doing it at the survey level
 		// or the prompt level.
-		if(individual && (! forCount)) { 
+		if(columns == null) { 
 			sqlBuilder.insert(0, SQL_GET_SURVEY_RESPONSES_INDIVIDUAL);
 		}
-		else if(onSurveyResponse || forCount) {
+		else if(onSurveyResponse) {
 			sqlBuilder.insert(0, SQL_GET_SURVEY_RESPONSES_AGGREGATED_SURVEY);
 		}
 		else {

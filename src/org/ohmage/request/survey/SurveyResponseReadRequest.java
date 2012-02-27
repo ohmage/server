@@ -32,6 +32,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TimeZone;
+import java.util.UUID;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -190,6 +191,12 @@ import org.ohmage.validator.SurveyResponseValidators;
  *     <td>Filters the results by uniqueness.</td>
  *     <td>false</td>
  *   </tr>
+ *   <tr>
+ *     <td>{@value org.ohmage.request.InputKeys#SURVEY_RESPONSE_ID_LIST}</td>
+ *     <td>Filters the results to only those whose UUID is in the given list.
+ *       </td>
+ *     <td>false</td>
+ *   </tr>
  * </table>
  * 
  * @author Joshua Selsky
@@ -264,6 +271,8 @@ public final class SurveyResponseReadRequest extends UserRequest {
 
 	private final Collection<String> surveyIds;
 	private final Collection<String> promptIds;
+	
+	private final Set<UUID> surveyResponseIds;
 
 	private final Date startDate;
 	private final Date endDate;
@@ -300,6 +309,8 @@ public final class SurveyResponseReadRequest extends UserRequest {
 
 		Set<String> tSurveyIds = null;
 		Set<String> tPromptIds = null;
+		
+		Set<UUID> tSurveyResponseIds = null;
 		
 		Date tStartDate = null;
 		Date tEndDate = null;
@@ -518,6 +529,19 @@ public final class SurveyResponseReadRequest extends UserRequest {
 								") must be given.");
 				}
 				
+				t = getParameterValues(InputKeys.SURVEY_RESPONSE_ID_LIST);
+				if(t.length > 1) {
+					throw new ValidationException(
+							ErrorCode.SURVEY_INVALID_SURVEY_ID,
+							"Multiple survey response ID lists were given: " +
+								InputKeys.SURVEY_RESPONSE_ID_LIST);
+				}
+				else if(t.length == 1) {
+					tSurveyResponseIds = 
+							SurveyResponseValidators.validateSurveyResponseIds(
+									t[0]);
+				}
+				
 				// Start Date
 				t = getParameterValues(InputKeys.START_DATE);
 				if(t.length > 1) {
@@ -666,6 +690,8 @@ public final class SurveyResponseReadRequest extends UserRequest {
 		
 		surveyIds = tSurveyIds;
 		promptIds = tPromptIds;
+		
+		surveyResponseIds = tSurveyResponseIds;
 
 		startDate = tStartDate;
 		endDate = tEndDate;
@@ -729,6 +755,7 @@ public final class SurveyResponseReadRequest extends UserRequest {
 					SurveyResponseServices.instance().readSurveyResponseInformation(
 							campaign,
 							getUser().getUsername(),
+							surveyResponseIds,
 							(URN_SPECIAL_ALL_LIST.equals(usernames) ? null : usernames), 
 							startDate, 
 							endDate, 

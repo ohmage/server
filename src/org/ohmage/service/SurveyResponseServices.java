@@ -211,6 +211,10 @@ public final class SurveyResponseServices {
 	 * 				   This is used by the ACLs to limit who sees what. 
 	 * 				   Required.
 	 * 
+	 * @param surveyResponseIds A set of survey response unique identifiers 
+	 * 							limiting the results to only those survey
+	 * 							responses whose IDs are in this list. Optional.
+	 * 
 	 * @param usernames A user's username to which the results must only 
 	 * 				   pertain. Optional.
 	 * 
@@ -260,6 +264,7 @@ public final class SurveyResponseServices {
 	public int readSurveyResponseInformation(
 			final Campaign campaign,
 			final String username,
+			final Set<UUID> surveyResponseIds,
 			final Collection<String> usernames,
 			final Date startDate, final Date endDate, 
 			final SurveyResponse.PrivacyState privacyState, 
@@ -277,6 +282,7 @@ public final class SurveyResponseServices {
 			return surveyResponseQueries.retrieveSurveyResponses(
 					campaign, 
 					username,
+					surveyResponseIds,
 					usernames, 
 					startDate, 
 					endDate, 
