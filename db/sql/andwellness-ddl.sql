@@ -252,10 +252,6 @@ CREATE TABLE survey_response_privacy_state (
   UNIQUE (privacy_state)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
--- Creates an index on prompt responses for the first 36 characters, the size 
--- of a UUID.
-CREATE INDEX response_image ON prompt_response (response(36));
-
 -- --------------------------------------------------------------------
 -- Stores survey responses for a user in a campaign 
 -- --------------------------------------------------------------------
@@ -288,7 +284,7 @@ CREATE TABLE survey_response (
 -- the entire survey response and each prompt response in for a survey
 -- are stored.
 -- --------------------------------------------------------------------
-CREATE TABLE prompt_response (
+CREATE TABLE prompt_response_test (
   id int unsigned NOT NULL auto_increment,
   survey_response_id int unsigned NOT NULL,
   prompt_id varchar(250) NOT NULL,  -- a prompt id as defined in a configuration at the XPath //promptId
@@ -300,7 +296,7 @@ CREATE TABLE prompt_response (
   PRIMARY KEY (id),
   INDEX (survey_response_id),
   INDEX (prompt_id),
-  -- uniqueness of survey uploads is handled by the survey_response table
+  INDEX response_image (response(36)),
   
   CONSTRAINT FOREIGN KEY (survey_response_id) REFERENCES survey_response (id) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
