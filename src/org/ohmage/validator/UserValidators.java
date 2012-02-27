@@ -726,7 +726,7 @@ public final class UserValidators {
 	 * 
 	 * @param value The value to be validated.
 	 * 
-	 * @return A number between 0 and the {@link User#MAX_NUM_TO_RETURN}.
+	 * @return A number between 0 and {@link User#MAX_NUM_TO_RETURN}.
 	 * 
 	 * @throws ValidationException The number was not valid.
 	 */

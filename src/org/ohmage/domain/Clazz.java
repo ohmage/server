@@ -27,6 +27,11 @@ import org.ohmage.util.StringUtils;
  * @author John Jenkins
  */
 public class Clazz {
+	/**
+	 * The maximum number of classes to return in class read.
+	 */
+	public static final int MAX_NUM_TO_RETURN = Integer.MAX_VALUE;
+	
 	private static final String JSON_KEY_ID = "id";
 	private static final String JSON_KEY_NAME = "name";
 	private static final String JSON_KEY_DESCRIPTION = "description";

@@ -23,6 +23,7 @@ import java.util.Set;
 import org.apache.log4j.Logger;
 import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.domain.Clazz;
+import org.ohmage.domain.User;
 import org.ohmage.exception.ValidationException;
 import org.ohmage.request.InputKeys;
 import org.ohmage.util.StringUtils;
@@ -351,5 +352,88 @@ public final class ClassValidators {
 		}
 		
 		return result;
+	}
+
+	/**
+	 * Validates that the number of classes to skip is a non-negative number.
+	 * 
+	 * @param value The value to validate.
+	 *  
+	 * @return The validated number of classes to skip.
+	 * 
+	 * @throws ValidationException There was a problem decoding the number or 
+	 * 							   it was an invalid number.
+	 */
+	public static int validateNumToSkip(
+			final String value) 
+			throws ValidationException {
+		
+		if(StringUtils.isEmptyOrWhitespaceOnly(value)) {
+			return 0;
+		}
+		
+		try {
+			int numToSkip = Integer.decode(value);
+			
+			if(numToSkip < 0) {
+				throw new ValidationException(
+						ErrorCode.SERVER_INVALID_NUM_TO_SKIP,
+						"The number of classes to skip is negative: " +
+							value);
+			}
+			
+			return numToSkip;
+		}
+		catch(NumberFormatException e) {
+			throw new ValidationException(
+					ErrorCode.SERVER_INVALID_NUM_TO_SKIP,
+					"The number of classes to skip is not a number: " +
+							value);
+		}
+	}
+	
+	/**
+	 * Validates that a number of classes to return is a non-negative number
+	 * less than or equal to the maximum allowed number of classes to return.
+	 * 
+	 * @param value The value to be validated.
+	 * 
+	 * @return A number between 0 and {@link Clazz#MAX_NUM_TO_RETURN}.
+	 * 
+	 * @throws ValidationException The number was not valid.
+	 */
+	public static int validateNumToReturn(final String value) 
+			throws ValidationException {
+		
+		LOGGER.info("Validating that a number of users to return is valid.");
+		
+		if(StringUtils.isEmptyOrWhitespaceOnly(value)) {
+			return Clazz.MAX_NUM_TO_RETURN;
+		}
+		
+		try {
+			int numToSkip = Integer.decode(value);
+			
+			if(numToSkip < 0) {
+				throw new ValidationException(
+						ErrorCode.SERVER_INVALID_NUM_TO_RETURN,
+						"The number of classes to return cannot be negative: " +
+								value);
+			}
+			else if(numToSkip > User.MAX_NUM_TO_RETURN) {
+				throw new ValidationException(
+						ErrorCode.SERVER_INVALID_NUM_TO_RETURN,
+						"The number of classes to return is greater than the max allowed: " +
+							Clazz.MAX_NUM_TO_RETURN);
+			}
+			
+			return numToSkip;
+		}
+		catch(NumberFormatException e) {
+			throw new ValidationException(
+					ErrorCode.SERVER_INVALID_NUM_TO_RETURN,
+					"The number of classes to return is not a number: " +
+							value);
+		}
 	}
 }

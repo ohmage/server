@@ -15,11 +15,12 @@
  ******************************************************************************/
 package org.ohmage.request.clazz;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -32,11 +33,13 @@ import org.ohmage.domain.Clazz;
 import org.ohmage.exception.ServiceException;
 import org.ohmage.exception.ValidationException;
 import org.ohmage.request.InputKeys;
+import org.ohmage.request.Request;
 import org.ohmage.request.UserRequest;
 import org.ohmage.service.CampaignClassServices;
 import org.ohmage.service.ClassServices;
 import org.ohmage.service.UserClassServices;
 import org.ohmage.service.UserServices;
+import org.ohmage.validator.ClassValidators;
 
 /**
  * <p>Gathers all classes and then searches through them removing those that do
@@ -76,6 +79,18 @@ import org.ohmage.service.UserServices;
  *       match the rest of the parameters.</td>
  *     <td>false</td>
  *   </tr>
+ *   <tr>
+ *     <td>{@value org.ohmage.request.InputKeys#NUM_TO_SKIP}</td>
+ *     <td>The number of classes to skip before processing to facilitate 
+ *       paging.</td>
+ *     <td>false</td>
+ *   </tr>
+ *   <tr>
+ *     <td>{@value org.ohmage.request.InputKeys#NUM_TO_RETURN}</td>
+ *     <td>The number of classes to return after skipping to facilitate paging.
+ *       </td>
+ *     <td>false</td>
+ *   </tr>
  * </table>
  * 
  * @author John Jenkins
@@ -90,8 +105,12 @@ public class ClassSearchRequest extends UserRequest {
 	private final String className;
 	private final String classDescription;
 	
+	private final int numToSkip;
+	private final int numToReturn;
+	
 	private final Map<Clazz, Collection<String>> classToUsernamesMap;
 	private final Map<Clazz, Collection<String>> classToCampaignIdsMap;
+	private int totalNumResults;
 	
 	/**
 	 * Builds this request based on the information in the HTTP request.
@@ -105,6 +124,9 @@ public class ClassSearchRequest extends UserRequest {
 		String tClassId = null;
 		String tClassName = null;
 		String tClassDescription = null;
+		
+		int tNumToSkip = 0;
+		int tNumToReturn = Clazz.MAX_NUM_TO_RETURN;
 		
 		if(! isFailed()) {
 			LOGGER.info("Creating a class search request.");
@@ -143,6 +165,28 @@ public class ClassSearchRequest extends UserRequest {
 				else if(t.length == 1) {
 					tClassDescription = t[0];
 				}
+				
+				t = getParameterValues(InputKeys.NUM_TO_SKIP);
+				if(t.length > 1) {
+					throw new ValidationException(
+							ErrorCode.SERVER_INVALID_NUM_TO_SKIP,
+							"Multiple number to skip parameters were given: " + 
+								InputKeys.NUM_TO_SKIP);
+				}
+				else if(t.length == 1) {
+					tNumToSkip = ClassValidators.validateNumToSkip(t[0]);
+				}
+				
+				t = getParameterValues(InputKeys.NUM_TO_RETURN);
+				if(t.length > 1) {
+					throw new ValidationException(
+							ErrorCode.SERVER_INVALID_NUM_TO_RETURN,
+							"Multiple number to return parameters were given: " +
+								InputKeys.NUM_TO_RETURN);
+				}
+				else if(t.length == 1) {
+					tNumToReturn = ClassValidators.validateNumToReturn(t[0]);
+				}
 			}
 			catch(ValidationException e) {
 				e.failRequest(this);
@@ -154,8 +198,12 @@ public class ClassSearchRequest extends UserRequest {
 		className = tClassName;
 		classDescription = tClassDescription;
 		
+		numToSkip = tNumToSkip;
+		numToReturn = tNumToReturn;
+		
 		classToUsernamesMap = new HashMap<Clazz, Collection<String>>();
 		classToCampaignIdsMap = new HashMap<Clazz, Collection<String>>();
+		totalNumResults = 0;
 	}
 
 	/*
@@ -175,9 +223,25 @@ public class ClassSearchRequest extends UserRequest {
 			UserServices.instance().verifyUserIsAdmin(getUser().getUsername());
 			
 			LOGGER.info("Searching for the classes that satisfy the parameters.");
-			Set<String> classIds = 
+			Collection<String> classIds = 
 				ClassServices.instance().
 					classIdSearch(classId, className, classDescription);
+			totalNumResults = classIds.size();
+			
+			if(numToSkip >= classIds.size()) {
+				classIds.clear();
+			}
+			else if(numToReturn >= 0) {
+				List<String> sortedClassIds = new ArrayList<String>(classIds);
+				Collections.sort(sortedClassIds);
+				
+				int lastIndex = numToSkip + numToReturn;
+				if(lastIndex > totalNumResults) {
+					lastIndex = totalNumResults;
+				}
+				
+				classIds = sortedClassIds.subList(numToSkip, lastIndex);
+			}
 			
 			LOGGER.info("Gathering the detailed information about the classes.");
 			List<Clazz> classes =
@@ -214,11 +278,17 @@ public class ClassSearchRequest extends UserRequest {
 	public void respond(HttpServletRequest httpRequest, HttpServletResponse httpResponse) {
 		LOGGER.info("Responding to a class search request.");
 		JSONObject result = null;
+		JSONObject metadata = null;
 		
 		if(! isFailed()) {
+			metadata = new JSONObject();
 			result = new JSONObject();
 			
 			try {
+				metadata.put(
+						Request.JSON_KEY_TOTAL_NUM_RESULTS, 
+						totalNumResults);
+				
 				for(Clazz clazz : classToUsernamesMap.keySet()) {
 					JSONObject classJson = clazz.toJson(false);
 					
@@ -234,6 +304,6 @@ public class ClassSearchRequest extends UserRequest {
 			}
 		}
 		
-		super.respond(httpRequest, httpResponse, result);
+		super.respond(httpRequest, httpResponse, metadata, result);
 	}
 }
