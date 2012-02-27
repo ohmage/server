@@ -1,7 +1,7 @@
--- MySQL DDL statements for the AndWellness database
+-- MySQL DDL statements for the ohmage database
 
-CREATE DATABASE andwellness CHARACTER SET utf8 COLLATE utf8_general_ci;
-USE andwellness;
+CREATE DATABASE ohmage CHARACTER SET utf8 COLLATE utf8_general_ci;
+USE ohmage;
 
 -- --------------------------------------------------------------------
 -- A lookup table for the types of HTTP requests. 
