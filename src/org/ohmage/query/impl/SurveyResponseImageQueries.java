@@ -22,6 +22,7 @@ import java.util.UUID;
 
 import javax.sql.DataSource;
 
+import org.ohmage.domain.campaign.Response.NoResponse;
 import org.ohmage.exception.DataAccessException;
 import org.ohmage.query.ISurveyResponseImageQueries;
 import org.springframework.jdbc.core.RowMapper;
@@ -62,12 +63,20 @@ public class SurveyResponseImageQueries extends Query implements ISurveyResponse
 						public UUID mapRow(ResultSet rs, int rowNum)
 								throws SQLException {
 							
+							String response = rs.getString("response");
 							try {
-								return UUID.fromString(
-										rs.getString("response"));
+								return UUID.fromString(response);
 							}
-							catch(IllegalArgumentException e) {
-								throw new SQLException("The response value is not a valid UUID.", e);
+							catch(IllegalArgumentException notUuid) {
+								try {
+									NoResponse.valueOf(response.toUpperCase());
+									return null;
+								}
+								catch(IllegalArgumentException notNoResponse) {
+									throw new SQLException(
+											"The response value is not a valid UUID.", 
+											notNoResponse);
+								}
 							}
 						}
 					});

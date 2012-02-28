@@ -662,16 +662,20 @@ public class MobilityPoint {
 							sensorData.getJSONObject(JSON_KEY_WIFI_DATA_SHORT);
 				}
 				catch(JSONException notShort) {
-					if(Mode.ERROR.equals(mode)) {
-						tWifiData = null;
-					}
-					else {
-						throw new DomainException(
-								ErrorCode.MOBILITY_INVALID_WIFI_DATA, 
-								"The WiFi data is missing or invalid.", 
-								notShort);
-					}
+					// If we didn't receive any WiFi data, then the device was
+					// not able to generate any data. This is perfectly 
+					// acceptable in our current system.
 				}
+			}
+			
+			// It was decided that if a Mobility point was created and Mobility 
+			// failed to communicate with WifiGpsLocationService, then it would
+			// instead return an empty JSONObject. The server was under the
+			// assumption that if such an event occurred the key-value pair 
+			// would simply be omitted altogether. This fixes that assumption
+			// be resetting the JSONObject to null.
+			if(wifiDataJson.length() == 0) {
+				wifiDataJson = null;
 			}
 			
 			// If the WiFi data was found.

@@ -103,23 +103,23 @@ public abstract class ChoicePrompt extends Prompt {
 				skippable, skipLabel, displayType, displayLabel, 
 				type, index);
 		
+
+		boolean tHasValues = false;
 		Set<String> labels = new HashSet<String>();
 		for(LabelValuePair lvp : choices.values()) {
 			if(! labels.add(lvp.getLabel())) {
 				throw new DomainException(
-						"Multiple choices have the same label for the prompt: " + 
-							id);
+						"Two choices have the same label for prompt '" +
+								id +
+								"': " +
+								lvp.getLabel());
+			}
+			
+			if(lvp.getValue() != null) {
+				tHasValues = true;
 			}
 		}
 		this.choices = new HashMap<Integer, LabelValuePair>(choices);
-		
-		boolean tHasValues = false;
-		for(LabelValuePair lvp : choices.values()) {
-			if(lvp.getValue() != null) {
-				tHasValues = true;
-				break;
-			}
-		}
 		hasValues = tHasValues;
 	}
 	
