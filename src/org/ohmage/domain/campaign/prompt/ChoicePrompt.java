@@ -114,10 +114,18 @@ public abstract class ChoicePrompt extends Prompt {
 		this.choices = new HashMap<Integer, LabelValuePair>(choices);
 		
 		boolean tHasValues = false;
+		Set<String> labels = new HashSet<String>();
 		for(LabelValuePair lvp : choices.values()) {
+			if(! labels.add(lvp.getLabel())) {
+				throw new IllegalArgumentException(
+						"Two choices have the same label for prompt '" +
+							id +
+							"': " +
+							lvp.getLabel());
+			}
+			
 			if(lvp.getValue() != null) {
 				tHasValues = true;
-				break;
 			}
 		}
 		hasValues = tHasValues;

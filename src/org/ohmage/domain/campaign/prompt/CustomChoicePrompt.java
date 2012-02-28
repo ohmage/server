@@ -117,8 +117,10 @@ public abstract class CustomChoicePrompt extends ChoicePrompt {
 		for(LabelValuePair lvp : currChoices) {
 			if(! labels.add(lvp.getLabel())) {
 				throw new DomainException(
-						"Multiple choices have the same label for the prompt: " + 
-							id);
+						"Two choices have the same label for prompt '" +
+								id +
+								"': " +
+								lvp.getLabel());
 			}
 		}
 		this.customChoices = new HashMap<Integer, LabelValuePair>(customChoices);

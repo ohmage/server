@@ -346,7 +346,9 @@ public final class SurveyResponseServices {
 			// image, this will give them the chance to delete it even if 
 			// another image and/or the survey response are causing a problem.
 			for(UUID imageId : imageIds) {
-				imageQueries.deleteImage(imageId);
+				if(imageId != null) {
+					imageQueries.deleteImage(imageId);
+				}
 			}
 			
 			surveyResponseQueries.deleteSurveyResponse(surveyResponseId);
