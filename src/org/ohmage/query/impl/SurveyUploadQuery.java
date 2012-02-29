@@ -38,6 +38,7 @@ import javax.imageio.ImageIO;
 import javax.sql.DataSource;
 
 import org.apache.log4j.Logger;
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.ohmage.cache.PreferenceCache;
 import org.ohmage.domain.Location;
@@ -46,6 +47,7 @@ import org.ohmage.domain.campaign.RepeatableSet;
 import org.ohmage.domain.campaign.RepeatableSetResponse;
 import org.ohmage.domain.campaign.Response;
 import org.ohmage.domain.campaign.SurveyResponse;
+import org.ohmage.domain.campaign.response.MultiChoiceCustomPromptResponse;
 import org.ohmage.domain.campaign.response.PhotoPromptResponse;
 import org.ohmage.exception.CacheMissException;
 import org.ohmage.exception.DataAccessException;
@@ -750,6 +752,15 @@ public class SurveyUploadQuery extends AbstractUploadQuery implements ISurveyUpl
 						Object response = promptResponse.getResponse();
 						if(response instanceof Date) {
 							ps.setString(6, TimeUtils.getIso8601DateTimeString((Date) response));
+						}
+						else if((promptResponse instanceof MultiChoiceCustomPromptResponse) && (response instanceof Collection)) {
+							JSONArray json = new JSONArray();
+							
+							for(Object currResponse : (Collection<?>) response) {
+								json.put(currResponse);
+							}
+							
+							ps.setString(6, json.toString());
 						}
 						else {
 							ps.setString(6, response.toString());
