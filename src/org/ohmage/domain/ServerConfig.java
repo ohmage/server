@@ -67,6 +67,14 @@ public class ServerConfig {
 	 * The length of time for which an authentication token lives.
 	 */
 	public static final String JSON_KEY_AUTH_TOKEN_LIFETIME = "auth_token_lifetime";
+	/**
+	 * The maximum size of the request.
+	 */
+	public static final String JSON_KEY_MAXIMUM_REQUEST_SIZE = "maximum_request_size";
+	/**
+	 * The maximum size of a single parameter.
+	 */
+	public static final String JSON_KEY_MAXIMUM_PARAMETER_SIZE = "maximum_parameter_size";
 	
 	private final String appName;
 	private final String appVersion;
@@ -76,6 +84,8 @@ public class ServerConfig {
 	private final List<SurveyResponse.PrivacyState> surveyResponsePrivacyStates;
 	private final boolean mobilityEnabled;
 	private final long authTokenLifetime;
+	private final long maxRequestSize;
+	private final long maxParamSize;
 	
 	/**
 	 * Creates a new server configuration.
@@ -103,7 +113,9 @@ public class ServerConfig {
 			final List<SurveyResponse.PrivacyState> surveyResponsePrivacyStates,
 			final boolean defaultCampaignCreationPrivilege,
 			final boolean mobilityEnabled,
-			final long authTokenLifetime) 
+			final long authTokenLifetime,
+			final long maximumRequestSize,
+			final long maximumParameterSize) 
 			throws DomainException {
 		
 		if(StringUtils.isEmptyOrWhitespaceOnly(appName)) {
@@ -138,6 +150,9 @@ public class ServerConfig {
 		
 		this.mobilityEnabled = mobilityEnabled;
 		this.authTokenLifetime = authTokenLifetime;
+		
+		maxRequestSize = maximumRequestSize;
+		maxParamSize = maximumParameterSize;
 	}
 	
 	/**
@@ -256,6 +271,26 @@ public class ServerConfig {
 					"The authentication token's lifetime is missing.",
 					e);
 		}
+		
+		try {
+			maxRequestSize = 
+					serverConfigAsJson.getLong(JSON_KEY_MAXIMUM_REQUEST_SIZE);
+		}
+		catch(JSONException e) {
+			throw new DomainException(
+					"The maximum request size is missing.",
+					e);
+		}
+		
+		try {
+			maxParamSize = 
+					serverConfigAsJson.getLong(JSON_KEY_MAXIMUM_PARAMETER_SIZE);
+		}
+		catch(JSONException e) {
+			throw new DomainException(
+					"The maximum parameter size is missing.",
+					e);
+		}
 	}
 	
 	/**
@@ -314,6 +349,43 @@ public class ServerConfig {
 	}
 	
 	/**
+	 * Returns whether or not Mobility is enabled.
+	 * 
+	 * @return Whether or not mobility is enabled.
+	 */
+	public final boolean getMobilityEnabled() {
+		return mobilityEnabled;
+	}
+	
+	/**
+	 * Returns the maximum lifetime of a token in milliseconds unless 
+	 * refreshed.
+	 * 
+	 * @return The maximum lifetime of a token in milliseconds.
+	 */
+	public final long getAuthTokenLifetime() {
+		return authTokenLifetime;
+	}
+	
+	/**
+	 * Returns the maximum allowed size of a request in bytes.
+	 * 
+	 * @return The maximum allowed size of a request in bytes.
+	 */
+	public final long getMaximumRequestSize() {
+		return maxRequestSize;
+	}
+	
+	/**
+	 * Returns the maximum allowed size of a single parameter in bytes.
+	 * 
+	 * @return The maximum allowed size of a single parameter in bytes.
+	 */
+	public final long getMaximumParameterSize() {
+		return maxParamSize;
+	}
+	
+	/**
 	 * Returns this server configuration as a JSONObject.
 	 * 
 	 * @return This server configuration as a JSONObject.
@@ -332,6 +404,8 @@ public class ServerConfig {
 		result.put(JSON_KEY_SURVEY_RESPONSE_PRIVACY_STATES, new JSONArray(surveyResponsePrivacyStates));
 		result.put(JSON_KEY_MOBILITY_ENABLED, mobilityEnabled);
 		result.put(JSON_KEY_AUTH_TOKEN_LIFETIME, authTokenLifetime);
+		result.put(JSON_KEY_MAXIMUM_REQUEST_SIZE, maxRequestSize);
+		result.put(JSON_KEY_MAXIMUM_PARAMETER_SIZE, maxParamSize);
 		
 		return result;
 	}

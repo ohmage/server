@@ -121,7 +121,7 @@ public class ConfigServices {
 			return new ServerConfig(appName, appVersion, appBuild,
 					defaultSurveyResponsePrivacyState, surveyResponsePrivacyStates,
 					defaultCampaignCreationPrivilege, mobilityEnabled,
-					UserBin.LIFETIME
+					UserBin.LIFETIME, 1024*1024*5*5, 1024*1024*5
 				);
 		} 
 		catch(DomainException e) {
