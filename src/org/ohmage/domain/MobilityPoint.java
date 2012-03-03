@@ -16,11 +16,8 @@
 package org.ohmage.domain;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.TimeZone;
 import java.util.UUID;
 
@@ -33,7 +30,9 @@ import org.ohmage.exception.DomainException;
 import org.ohmage.util.StringUtils;
 import org.ohmage.util.TimeUtils;
 
+import edu.ucla.cens.mobilityclassifier.AccessPoint;
 import edu.ucla.cens.mobilityclassifier.Sample;
+import edu.ucla.cens.mobilityclassifier.WifiScan;
 
 /**
  * This class is responsible for individual Mobility data points.
@@ -234,9 +233,10 @@ public class MobilityPoint {
 			private static final String JSON_KEY_STRENGTH_SHORT = "st";
 			
 			//private final Date timestamp;
-			private final Long time;
+			// private final Long time;
 			private final TimeZone timezone;
-			private final Map<String, Double> scan;
+			// private final Map<String, Double> scan;
+			private final WifiScan wifiScan;
 			
 			/**
 			 * Creates a WifiData point with a timestamp and all of the scan
@@ -261,19 +261,18 @@ public class MobilityPoint {
 					final Mode mode) 
 					throws DomainException {
 				
+				Long tTime = null;
+				
 				// Validate the timestamp value.
 				if(time == null) {
-					if(Mode.ERROR.equals(mode)) {
-						this.time = null;
-					}
-					else {
+					if(! Mode.ERROR.equals(mode)) {
 						throw new DomainException(
 								ErrorCode.SERVER_INVALID_TIMESTAMP, 
 								"The time is missing for a WiFiData record.");
 					}
 				}
 				else {
-					this.time = time;
+					tTime = time;
 				}
 				
 				// Validate the timezone value.
@@ -293,12 +292,13 @@ public class MobilityPoint {
 				
 				// Validate the scan value.
 				if(scan == null) {
-					this.scan = null;
+					this.wifiScan = null;
 				}
 				else {
 					// Create the local scan map.
-					this.scan = new HashMap<String, Double>();
-	
+					// this.scan = new HashMap<String, Double>();
+					List<AccessPoint> accessPoints = new ArrayList<AccessPoint>();
+					
 					// For each of the entries in the array, parse out the
 					// necessary information.
 					int numScans = scan.length();
@@ -356,7 +356,7 @@ public class MobilityPoint {
 							}
 							
 							// Add them to the map.
-							this.scan.put(ssid, strength);
+							accessPoints.add(new AccessPoint(ssid, strength));
 						}
 						catch(JSONException e) {
 							throw new DomainException(
@@ -364,6 +364,8 @@ public class MobilityPoint {
 									e);
 						}
 					}
+					
+					this.wifiScan = new WifiScan(tTime, accessPoints);
 				}
 			}
 			
@@ -380,27 +382,21 @@ public class MobilityPoint {
 			 * 						   null.
 			 */
 			public WifiData(
-					final Long time, 
 					final TimeZone timezone,
-					final Map<String, Double> scans) 
+					final WifiScan wifiScan) 
 					throws DomainException {
 				
-				if(time == null) {
-					throw new DomainException(
-							"The timestamp cannot be null.");
-				}
 				if(timezone == null) {
 					throw new DomainException(
 							"The timezone cannot be null.");
 				}
-				else if(scans == null) {
+				else if(wifiScan == null) {
 					throw new DomainException(
-							"The map of scans cannot be null.");
+							"The wifi scan cannot be null.");
 				}
 				
-				this.time = time;
 				this.timezone = timezone;
-				this.scan = scans;
+				this.wifiScan = wifiScan;
 			}
 
 			/**
@@ -409,8 +405,8 @@ public class MobilityPoint {
 			 * @return An immutable copy of the scan. This may be null if the 
 			 * 		   mode of this point is ERROR.
 			 */
-			public final Map<String, Double> getScan() {
-				return Collections.unmodifiableMap(scan);
+			public final WifiScan getScan() {
+				return wifiScan;
 			}
 			
 			/**
@@ -439,12 +435,12 @@ public class MobilityPoint {
 				}
 				*/
 
-				if(time != null) {
-				result.put(
+				if(wifiScan != null) {
+					result.put(
 						(abbreviated) ?
 								JSON_KEY_WIFI_DATA_TIME_SHORT :
 								JSON_KEY_WIFI_DATA_TIME, 
-						time);
+						wifiScan.getTime());
 				}
 				
 				if(timezone != null) {
@@ -455,23 +451,24 @@ public class MobilityPoint {
 							timezone.getID());
 				}
 				
-				if(scan != null) {
+				if(wifiScan != null) {
 					JSONArray scanJson = new JSONArray();
+					List<AccessPoint> accessPoints = wifiScan.getAccessPoints();
 					
-					for(String ssid : scan.keySet()) {
+					for(AccessPoint accessPoint : accessPoints) {
 						JSONObject currScan = new JSONObject();
 						
 						currScan.put(
 								(abbreviated) ?
 										JSON_KEY_SSID_SHORT :
 										JSON_KEY_SSID, 
-								ssid);
+								accessPoint.getSsid());
 						
 						currScan.put(
 								(abbreviated) ?
 										JSON_KEY_STRENGTH_SHORT :
 										JSON_KEY_STRENGTH, 
-								scan.get(ssid));
+								accessPoint.getStrength());
 
 						scanJson.put(currScan);
 					}
