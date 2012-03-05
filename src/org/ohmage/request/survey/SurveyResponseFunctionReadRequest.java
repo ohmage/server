@@ -15,6 +15,7 @@
  ******************************************************************************/
 package org.ohmage.request.survey;
 
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.Collections;
@@ -205,6 +206,7 @@ public class SurveyResponseFunctionReadRequest extends UserRequest {
 			Campaign campaign = CampaignServices.instance().getCampaign(campaignId);
 			
 			LOGGER.info("Gathering the survey response information.");
+			surveyResponses = new ArrayList<SurveyResponse>();
 			SurveyResponseServices.instance().readSurveyResponseInformation(
 					campaign, 
 					getUser().getUsername(),
