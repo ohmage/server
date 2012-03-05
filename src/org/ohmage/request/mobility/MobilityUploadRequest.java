@@ -15,6 +15,7 @@
  ******************************************************************************/
 package org.ohmage.request.mobility;
 
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -207,6 +208,9 @@ public class MobilityUploadRequest extends UserRequest {
 		}
 		
 		try {
+			LOGGER.info("Sorting the points before running the classifier.");
+			Collections.sort(data);
+			
 			LOGGER.info("Running the server-side classifier.");
 			MobilityServices.instance().classifyData(data);
 			
