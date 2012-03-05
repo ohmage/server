@@ -40,7 +40,7 @@ import edu.ucla.cens.mobilityclassifier.Sample;
  * 
  * @author John Jenkins
  */
-public class MobilityPoint {
+public class MobilityPoint implements Comparable<MobilityPoint> {
 	public static final String JSON_KEY_ID = "id";
 	private static final String JSON_KEY_TIMESTAMP = "timestamp";
 	private static final String JSON_KEY_TIMESTAMP_SHORT = "ts";
@@ -1808,5 +1808,27 @@ public class MobilityPoint {
 		}
 		
 		return result;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see java.lang.Comparable#compareTo(java.lang.Object)
+	 */
+	@Override
+	public int compareTo(MobilityPoint point) {
+		// Null items will always be pushed to the end of the list. 
+		if(point == null) {
+			return -1;
+		}
+
+		if(time > point.time) {
+			return 1;
+		}
+		else if(time < point.time) {
+			return -1;
+		}
+		else {
+			return 0;
+		}
 	}
 }
