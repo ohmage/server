@@ -15,9 +15,11 @@
  ******************************************************************************/
 package org.ohmage.request.survey;
 
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -87,6 +89,18 @@ import org.ohmage.validator.SurveyResponseValidators;
  *       {@link org.ohmage.request.InputKeys#LIST_ITEM_SEPARATOR LIST_ITEM_SEPARATOR}s.</td>
  *     <td>true</td>
  *   </tr>
+ *   <tr>
+ *     <td>{@value org.ohmage.request.InputKeys#START_DATE}</td>
+ *     <td>The start date to use for results between dates.
+ *         Required if end date is present.</td>
+ *     <td>false</td>
+ *   </tr>
+ *   <tr>
+ *     <td>{@value org.ohmage.request.InputKeys#END_DATE}</td>
+ *     <td>The end date to use for results between dates.
+ *         Required if start date is present.</td>
+ *     <td>false</td>
+ *   </tr>
  * </table>
  * 
  * @author John Jenkins
@@ -97,6 +111,9 @@ public class SurveyResponseFunctionReadRequest extends UserRequest {
 	private final String campaignId;
 	private final Function functionId;
 	private final Collection<FunctionPrivacyStateItem> privacyStateGroupItems;
+
+	private final Date startDate;
+	private final Date endDate;
 	
 	private List<SurveyResponse> surveyResponses;
 	
@@ -114,6 +131,9 @@ public class SurveyResponseFunctionReadRequest extends UserRequest {
 		String tCampaignId = null;
 		Function tFunctionId = null;
 		Collection<FunctionPrivacyStateItem> tPrivacyStateGroupItems = null;
+		
+		Date tStartDate = null;
+		Date tEndDate = null;
 		
 		if(! isFailed()) {
 			try {
@@ -169,6 +189,31 @@ public class SurveyResponseFunctionReadRequest extends UserRequest {
 				if(tPrivacyStateGroupItems == null) {
 					tPrivacyStateGroupItems = Collections.emptyList();
 				}
+				
+				// Start Date
+				t = getParameterValues(InputKeys.START_DATE);
+				if(t.length > 1) {
+					throw new ValidationException(
+							ErrorCode.SERVER_INVALID_DATE, 
+							"Multiple start dates were given: " + 
+								InputKeys.START_DATE);
+				}
+				else if(t.length == 1) {
+					tStartDate = 
+							SurveyResponseValidators.validateStartDate(t[0]);
+				}
+				
+				// End Date
+				t = getParameterValues(InputKeys.END_DATE);
+				if(t.length > 1) {
+					throw new ValidationException(
+							ErrorCode.SERVER_INVALID_DATE, 
+							"Multiple end dates were given: " + 
+								InputKeys.END_DATE);
+				}
+				else if(t.length == 1) {
+					tEndDate = SurveyResponseValidators.validateEndDate(t[0]);
+				}
 			}
 			catch(ValidationException e) {
 				e.failRequest(this);
@@ -179,6 +224,9 @@ public class SurveyResponseFunctionReadRequest extends UserRequest {
 		campaignId = tCampaignId;
 		functionId = tFunctionId;
 		privacyStateGroupItems = tPrivacyStateGroupItems;
+		
+		startDate = tStartDate;
+		endDate = tEndDate;
 		
 		surveyResponses = Collections.emptyList();
 	}
@@ -205,13 +253,14 @@ public class SurveyResponseFunctionReadRequest extends UserRequest {
 			Campaign campaign = CampaignServices.instance().getCampaign(campaignId);
 			
 			LOGGER.info("Gathering the survey response information.");
+			surveyResponses = new ArrayList<SurveyResponse>();
 			SurveyResponseServices.instance().readSurveyResponseInformation(
 					campaign, 
 					getUser().getUsername(),
 					null,
 					null, 
-					null, 
-					null, 
+					startDate, 
+					endDate, 
 					null, 
 					null, 
 					null, 

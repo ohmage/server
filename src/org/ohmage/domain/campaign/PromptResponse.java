@@ -163,12 +163,20 @@ public abstract class PromptResponse extends Response {
 					(! wasNotDisplayed()) && (! wasSkipped())) {
 				JSONArray gameResults = (JSONArray) getResponse();
 				double numResults = gameResults.length();
+
+				if(numResults != 0) {
+					double total = 0;
+					for(int i = 0; i < numResults; i++) {
+						total += 
+								gameResults.getJSONObject(i).getDouble(
+										RemoteActivityPrompt.JSON_KEY_SCORE);
+					}
 				
-				double total = 0;
-				for(int i = 0; i < numResults; i++) {
-					total += gameResults.getJSONObject(i).getDouble(RemoteActivityPrompt.JSON_KEY_SCORE);
+					result.put("prompt_response", total / numResults);
 				}
-				result.put("prompt_response", total / numResults);
+				else {
+					result.put("prompt_response", "Activity Not Performed");
+				}
 			}
 			else {
 				result.put("prompt_response", getResponse());
