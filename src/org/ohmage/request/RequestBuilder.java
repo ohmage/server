@@ -44,6 +44,7 @@ import org.ohmage.request.document.DocumentUpdateRequest;
 import org.ohmage.request.image.ImageReadRequest;
 import org.ohmage.request.mobility.MobilityDatesReadRequest;
 import org.ohmage.request.mobility.MobilityReadChunkedRequest;
+import org.ohmage.request.mobility.MobilityReadCsvRequest;
 import org.ohmage.request.mobility.MobilityReadRequest;
 import org.ohmage.request.mobility.MobilityUploadRequest;
 import org.ohmage.request.survey.PromptResponseAnnotationCreationRequest;
@@ -211,6 +212,7 @@ public final class RequestBuilder {
 	public static final String API_MOBILITY_READ = API_ROOT + "/mobility/read";
 	public static final String API_MOBILITY_READ_CHUNKED = API_ROOT + "/mobility/read/chunked";
 	public static final String API_MOBILITY_DATES_READ = API_ROOT + "/mobility/dates/read";
+	public static final String API_MOBILITY_READ_CSV = API_ROOT + "/mobility/read/csv";
 	
 	// Survey
 	public static final String API_SURVEY_UPLOAD = API_ROOT + "/survey/upload";
@@ -357,6 +359,9 @@ public final class RequestBuilder {
 		else if(API_MOBILITY_DATES_READ.equals(requestUri)) {
 			return new MobilityDatesReadRequest(httpRequest);
 		}
+		else if(API_MOBILITY_READ_CSV.equals(requestUri)) {
+			return new MobilityReadCsvRequest(httpRequest);
+		}
 		//Survey
 		else if(API_SURVEY_UPLOAD.equals(requestUri)) {
 			return new SurveyUploadRequest(httpRequest);
@@ -477,6 +482,7 @@ public final class RequestBuilder {
 				API_MOBILITY_READ.equals(uri) ||
 				API_MOBILITY_READ_CHUNKED.equals(uri) ||
 				API_MOBILITY_DATES_READ.equals(uri) ||
+				API_MOBILITY_READ_CSV.equals(uri) ||
 				// Survey
 				API_SURVEY_UPLOAD.equals(uri) ||
 				API_SURVEY_RESPONSE_READ.equals(uri) ||

@@ -42,6 +42,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.ohmage.cache.PreferenceCache;
 import org.ohmage.domain.Location;
+import org.ohmage.domain.Location.LocationColumnKey;
 import org.ohmage.domain.campaign.PromptResponse;
 import org.ohmage.domain.campaign.RepeatableSet;
 import org.ohmage.domain.campaign.RepeatableSetResponse;
@@ -51,6 +52,7 @@ import org.ohmage.domain.campaign.response.MultiChoiceCustomPromptResponse;
 import org.ohmage.domain.campaign.response.PhotoPromptResponse;
 import org.ohmage.exception.CacheMissException;
 import org.ohmage.exception.DataAccessException;
+import org.ohmage.exception.DomainException;
 import org.ohmage.query.ISurveyUploadQuery;
 import org.ohmage.request.JsonInputKeys;
 import org.ohmage.util.TimeUtils;
@@ -209,9 +211,12 @@ public class SurveyUploadQuery extends AbstractUploadQuery implements ISurveyUpl
 								if(location != null) {
 									try {
 										locationString = 
-												location.toJson(false).toString();
+												location.toJson(false, LocationColumnKey.ALL_COLUMNS).toString();
 									}
 									catch(JSONException e) {
+										throw new SQLException(e);
+									}
+									catch(DomainException e) {
 										throw new SQLException(e);
 									}
 								}
@@ -228,6 +233,11 @@ public class SurveyUploadQuery extends AbstractUploadQuery implements ISurveyUpl
 									ps.setString(9, surveyUpload.toJson(false, false, false, false, true, true, true, true, true, false, false, true, true, true, true, false, false).toString());
 								}
 								catch(JSONException e) {
+									throw new SQLException(
+											"Couldn't create the JSON.",
+											e);
+								}
+								catch(DomainException e) {
 									throw new SQLException(
 											"Couldn't create the JSON.",
 											e);

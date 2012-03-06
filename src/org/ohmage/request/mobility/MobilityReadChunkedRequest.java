@@ -34,7 +34,9 @@ import org.json.JSONObject;
 import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.domain.Location;
 import org.ohmage.domain.MobilityPoint;
+import org.ohmage.domain.Location.LocationColumnKey;
 import org.ohmage.domain.MobilityPoint.LocationStatus;
+import org.ohmage.exception.DomainException;
 import org.ohmage.exception.ServiceException;
 import org.ohmage.exception.ValidationException;
 import org.ohmage.request.InputKeys;
@@ -313,9 +315,15 @@ public class MobilityReadChunkedRequest extends UserRequest {
 				currResult.put(
 						JSON_KEY_LOCATION_STATUS, 
 						locationStatus.toString().toLowerCase());
-				currResult.put(
-						JSON_KEY_LOCATION, 
-						((location == null) ? null : location.toJson(true)));
+				try {
+					currResult.put(
+							JSON_KEY_LOCATION, 
+							((location == null) ? null : location.toJson(true, LocationColumnKey.ALL_COLUMNS)));
+				} 
+				catch(DomainException e) {
+					LOGGER.error("Error creating the JSON.", e);
+					setFailed();
+				}
 				
 				outputArray.put(currResult);
 			}

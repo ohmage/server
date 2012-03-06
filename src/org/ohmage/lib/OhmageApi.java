@@ -54,6 +54,7 @@ import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.domain.Clazz;
 import org.ohmage.domain.Document;
 import org.ohmage.domain.MobilityPoint;
+import org.ohmage.domain.MobilityPoint.MobilityColumnKey;
 import org.ohmage.domain.ServerConfig;
 import org.ohmage.domain.UserPersonal;
 import org.ohmage.domain.UserSummary;
@@ -1355,9 +1356,12 @@ public class OhmageApi {
 			
 			JSONObject pointJson;
 			try {
-				pointJson = point.toJson(false, true);
+				pointJson = point.toJson(false, MobilityColumnKey.ALL_COLUMNS);
 			}
 			catch(JSONException e) {
+				throw new ApiException("One of the Mobility points could not be converted to JSON.", e);
+			}
+			catch(DomainException e) {
 				throw new ApiException("One of the Mobility points could not be converted to JSON.", e);
 			}
 			
@@ -1453,7 +1457,7 @@ public class OhmageApi {
 			// not included in the response. We add it here for the 
 			// constructor's benefit.
 			try {
-				currResult.put(MobilityPoint.JSON_KEY_SUBTYPE, MobilityPoint.SubType.MODE_ONLY);
+				currResult.put(MobilityColumnKey.SUB_TYPE.toString(false), MobilityPoint.SubType.MODE_ONLY);
 			}
 			catch(JSONException e) {
 				throw new ApiException("Error adding the subtype to the response.", e);
@@ -1526,6 +1530,9 @@ public class OhmageApi {
 				
 			}
 			catch(JSONException e) {
+				throw new ApiException("There was a problem building the JSON.", e);
+			}
+			catch(DomainException e) {
 				throw new ApiException("There was a problem building the JSON.", e);
 			}
 			

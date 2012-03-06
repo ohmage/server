@@ -34,6 +34,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.domain.Location;
+import org.ohmage.domain.Location.LocationColumnKey;
 import org.ohmage.domain.campaign.Response.NoResponse;
 import org.ohmage.exception.DomainException;
 import org.ohmage.util.StringUtils;
@@ -1441,7 +1442,7 @@ public class SurveyResponse {
 			final boolean arrayInsteadOfObject, 
 			final boolean withId,
 			final boolean withCount) 
-			throws JSONException {
+			throws JSONException, DomainException {
 		
 		JSONObject result = new JSONObject();
 		
@@ -1474,7 +1475,7 @@ public class SurveyResponse {
 		}
 		
 		if(withLocation && (location != null)) {
-			result.put(JSON_KEY_LOCATION, location.toJson(false));
+			result.put(JSON_KEY_LOCATION, location.toJson(false, LocationColumnKey.ALL_COLUMNS));
 		}
 		
 		if(withSurveyId && (survey != null)) {

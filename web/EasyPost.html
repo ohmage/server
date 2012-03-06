@@ -373,15 +373,26 @@
             Client: <input type="text" name="client" value="testWeb" /><br />
             <input type="submit" value="Submit" />
         </form>
-		
+        
         <h3>Mobility Read:</h3>
-		<form action="/app/mobility/read" method="post">
-			Date: <input type="text" name="date" /><br />
-			Client: <input type="text" name="client" value="testWeb" /><br />
+        <form action="/app/mobility/read" method="post">
+            Date: <input type="text" name="date" /><br />
+            Client: <input type="text" name="client" value="testWeb" /><br />
             * Username: <input type="text" name="username" /><br />
-            * With Sensor Data: <input type="text" name="with_sensor_data" /><br />
-			<input type="submit" value="Submit" />
-		</form>
+            + With Sensor Data: <input type="text" name="with_sensor_data" /><br />
+            + Columns: <input type="text" name="column_list" /><br />
+            <input type="submit" value="Submit" />
+        </form>
+        
+        <h3>Mobility Read CSV:</h3>
+        <form action="/app/mobility/read/csv" method="post">
+            Client: <input type="text" name="client" value="testWeb" /><br />
+            * Start Date: <input type="text" name="start_date" /><br />
+            * End Date: <input type="text" name="end_date" /><br />
+            * Username: <input type="text" name="username" /><br />
+            * Columns: <input type="text" name="column_list" /><br />
+            <input type="submit" value="Submit" />
+        </form>
 
 		<h3>Mobility Chunked Read:</h3>
 		<form action="/app/mobility/read/chunked" method="post">

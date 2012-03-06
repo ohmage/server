@@ -17,17 +17,22 @@ package org.ohmage.validator;
 
 import java.util.Collection;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.log4j.Logger;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.ohmage.annotator.Annotator.ErrorCode;
+import org.ohmage.domain.ColumnKey;
 import org.ohmage.domain.MobilityPoint;
+import org.ohmage.domain.MobilityPoint.MobilityColumnKey;
 import org.ohmage.exception.DomainException;
 import org.ohmage.exception.ValidationException;
+import org.ohmage.request.InputKeys;
 import org.ohmage.util.StringUtils;
 
 /**
@@ -219,6 +224,67 @@ public final class MobilityValidators {
 					ErrorCode.MOBILITY_INVALID_INCLUDE_SENSOR_DATA_VALUE,
 					"The \"include sensor data\" value was not a valid boolean: " +
 							value);
+		}
+		
+		return result;
+	}
+	
+	/**
+	 * Validates that a string representing column keys contains only valid 
+	 * column keys and then converts them into their actual value.
+	 * 
+	 * @param value The string to be decoded.
+	 * 
+	 * @return A list of column keys.
+	 * 
+	 * @throws ValidationException
+	 */
+	public static List<ColumnKey> validateColumns(
+			final String value,
+			final boolean allowDuplicates)
+			throws ValidationException {
+		
+		if(StringUtils.isEmptyOrWhitespaceOnly(value)) {
+			return MobilityColumnKey.ALL_COLUMNS;
+		}
+		
+		Map<ColumnKey, String> duplicates = new HashMap<ColumnKey, String>();
+		List<ColumnKey> result = new LinkedList<ColumnKey>();
+		String[] columns = value.split(InputKeys.LIST_ITEM_SEPARATOR);
+		for(String column : columns) {
+			if(StringUtils.isEmptyOrWhitespaceOnly(column)) {
+				continue;
+			}
+			
+			try {
+				List<ColumnKey> validatedColumns =
+						MobilityPoint.validateKeyString(column);
+				
+				if(! allowDuplicates) {
+					String duplicate;
+					for(ColumnKey currColumn : validatedColumns) {
+						if((duplicate = duplicates.put(currColumn, column)) != null) {
+							throw new ValidationException(
+									ErrorCode.MOBILITY_INVALID_COLUMN_LIST,
+									"The same column '" +
+										currColumn.toString() +
+										"' is being requested by two column values: '" +
+										duplicate + 
+										"' and '" +
+										column +
+										"'");
+						}
+					}
+				}
+				
+				result.addAll(validatedColumns);
+			}
+			catch(DomainException e) {
+				throw new ValidationException(
+						ErrorCode.MOBILITY_INVALID_COLUMN_LIST,
+						"The column is unknown: " + column,
+						e);
+			}
 		}
 		
 		return result;

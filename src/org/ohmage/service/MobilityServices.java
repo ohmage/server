@@ -23,7 +23,6 @@ import org.ohmage.domain.MobilityPoint;
 import org.ohmage.domain.MobilityPoint.LocationStatus;
 import org.ohmage.domain.MobilityPoint.Mode;
 import org.ohmage.domain.MobilityPoint.SensorData;
-import org.ohmage.domain.MobilityPoint.SensorData.WifiData;
 import org.ohmage.exception.DataAccessException;
 import org.ohmage.exception.DomainException;
 import org.ohmage.exception.ServiceException;
@@ -31,6 +30,8 @@ import org.ohmage.query.IUserMobilityQueries;
 
 import edu.ucla.cens.mobilityclassifier.Classification;
 import edu.ucla.cens.mobilityclassifier.MobilityClassifier;
+import edu.ucla.cens.mobilityclassifier.Sample;
+import edu.ucla.cens.mobilityclassifier.WifiScan;
 
 /**
  * This class is responsible for all services pertaining to Mobility points.
@@ -108,7 +109,9 @@ public final class MobilityServices {
 	 * @throws ServiceException Thrown if there is an error with the 
 	 * 							classification service.
 	 */
-	public void classifyData(final List<MobilityPoint> mobilityPoints) throws ServiceException {
+	public void classifyData(
+			final List<MobilityPoint> mobilityPoints) 
+					throws ServiceException {
 		
 		// If the list is empty, just exit.
 		if(mobilityPoints == null) {
@@ -119,7 +122,7 @@ public final class MobilityServices {
 		MobilityClassifier classifier = new MobilityClassifier();
 		
 		// Create place holders for the previous data.
-		WifiData previousWifiData = null;
+		WifiScan previousWifiScan = null;
 		String previousWifiMode = null;
 		
 		// For each of the Mobility points,
@@ -133,25 +136,43 @@ public final class MobilityServices {
 			// If the SubType is sensor data,
 			if(MobilityPoint.SubType.SENSOR_DATA.equals(mobilityPoint.getSubType())) {
 				SensorData currSensorData = mobilityPoint.getSensorData();
-				WifiData wifiData = currSensorData.getWifiData();
 				
-				// Classify the data.
-				Classification classification;
-				
+				List<Sample> samples;
 				try {
-					classification = classifier.classify(
-							mobilityPoint.getSamples(),
-							currSensorData.getSpeed(),
-							wifiData == null ? null : wifiData.getScan(),
-							previousWifiData == null ? null : previousWifiData.getScan(),
-							previousWifiMode);
-				} 
+					samples = mobilityPoint.getSamples();
+				}
 				catch(DomainException e) {
-					throw new ServiceException(e);
+					throw new ServiceException(
+							"There was a problem retrieving the samples.",
+							e);
 				}
 				
+				WifiScan wifiScan;
+				if(mobilityPoint.getSensorData().getWifiData() == null) {
+					wifiScan = null;
+				}
+				else {
+					try {
+						wifiScan = mobilityPoint.getWifiScan();
+					} 
+					catch(DomainException e) {
+						throw new ServiceException(
+								"The Mobility point does not contain WiFi data.",
+								e);
+					}
+				}
+				
+				// Classify the data.
+				Classification classification =
+						classifier.classify(
+								samples,
+								currSensorData.getSpeed(),
+								wifiScan,
+								previousWifiScan,
+								previousWifiMode);
+				
 				// Update the place holders for the previous data.
-				previousWifiData = wifiData;
+				previousWifiScan = wifiScan;
 				previousWifiMode = classification.getWifiMode();
 				
 				// If the classification generated some results, pull them out

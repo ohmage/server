@@ -831,7 +831,8 @@ public final class SurveyResponseReadRequest extends UserRequest {
 						uniqueSurveyIds.add(surveyResponse.getSurvey().getId());
 						uniquePromptIds.addAll(surveyResponse.getPromptIds());
 						
-						JSONObject currResult = surveyResponse.toJson(
+						JSONObject currResult;
+						currResult = surveyResponse.toJson(
 								allColumns || columns.contains(ColumnKey.USER_ID),
 								allColumns || false,
 								allColumns || columns.contains(ColumnKey.CONTEXT_CLIENT),
@@ -884,16 +885,16 @@ public final class SurveyResponseReadRequest extends UserRequest {
 							Location location = surveyResponse.getLocation();
 							
 							if(location == null) {
-								currResult.put(Location.JSON_KEY_ACCURACY, JSONObject.NULL);
+								currResult.put(Location.LocationColumnKey.ACCURACY.toString(false), JSONObject.NULL);
 							}
 							else {
 								double accuracy = location.getAccuracy();
 								
 								if(Double.isInfinite(accuracy) || Double.isNaN(accuracy)) {
-									currResult.put(Location.JSON_KEY_ACCURACY, JSONObject.NULL);
+									currResult.put(Location.LocationColumnKey.ACCURACY.toString(false), JSONObject.NULL);
 								}
 								else {
-									currResult.put(Location.JSON_KEY_ACCURACY, accuracy);
+									currResult.put(Location.LocationColumnKey.ACCURACY.toString(false), accuracy);
 								}
 							}
 						}
@@ -901,16 +902,16 @@ public final class SurveyResponseReadRequest extends UserRequest {
 							Location location = surveyResponse.getLocation();
 							
 							if(location == null) {
-								currResult.put(Location.JSON_KEY_LATITUDE, JSONObject.NULL);
+								currResult.put(Location.LocationColumnKey.LATITUDE.toString(false), JSONObject.NULL);
 							}
 							else {
 								double latitude = location.getLatitude();
 								
 								if(Double.isInfinite(latitude) || Double.isNaN(latitude)) {
-									currResult.put(Location.JSON_KEY_LATITUDE, JSONObject.NULL);
+									currResult.put(Location.LocationColumnKey.LATITUDE.toString(false), JSONObject.NULL);
 								}
 								else {
-									currResult.put(Location.JSON_KEY_LATITUDE, latitude);
+									currResult.put(Location.LocationColumnKey.LATITUDE.toString(false), latitude);
 								}
 							}
 						}
@@ -918,16 +919,16 @@ public final class SurveyResponseReadRequest extends UserRequest {
 							Location location = surveyResponse.getLocation();
 							
 							if(location == null) {
-								currResult.put(Location.JSON_KEY_LONGITUDE, JSONObject.NULL);
+								currResult.put(Location.LocationColumnKey.LONGITUDE.toString(false), JSONObject.NULL);
 							}
 							else {
 								double longitude = location.getLongitude();
 								
 								if(Double.isInfinite(longitude) || Double.isNaN(longitude)) {
-									currResult.put(Location.JSON_KEY_LONGITUDE, JSONObject.NULL);
+									currResult.put(Location.LocationColumnKey.LONGITUDE.toString(false), JSONObject.NULL);
 								}
 								else {
-									currResult.put(Location.JSON_KEY_LONGITUDE, longitude);
+									currResult.put(Location.LocationColumnKey.LONGITUDE.toString(false), longitude);
 								}
 							}
 						}
@@ -935,10 +936,10 @@ public final class SurveyResponseReadRequest extends UserRequest {
 							Location location = surveyResponse.getLocation();
 							
 							if(location == null) {
-								currResult.put(Location.JSON_KEY_PROVIDER, JSONObject.NULL);
+								currResult.put(Location.LocationColumnKey.PROVIDER.toString(false), JSONObject.NULL);
 							}
 							else {
-								currResult.put(Location.JSON_KEY_PROVIDER, location.getProvider());
+								currResult.put(Location.LocationColumnKey.PROVIDER.toString(false), location.getProvider());
 							}
 						}
 						if(allColumns || columns.contains(ColumnKey.CONTEXT_LOCATION_TIMESTAMP)) {
@@ -1460,6 +1461,10 @@ public final class SurveyResponseReadRequest extends UserRequest {
 				setFailed();
 			}
 			catch(IllegalStateException e) {
+				LOGGER.error(e.toString(), e);
+				setFailed();
+			}
+			catch(DomainException e) {
 				LOGGER.error(e.toString(), e);
 				setFailed();
 			}

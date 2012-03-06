@@ -36,11 +36,13 @@ import javax.sql.DataSource;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.ohmage.domain.Location;
+import org.ohmage.domain.Location.LocationColumnKey;
 import org.ohmage.domain.MobilityPoint;
 import org.ohmage.domain.MobilityPoint.ClassifierData;
 import org.ohmage.domain.MobilityPoint.LocationStatus;
 import org.ohmage.domain.MobilityPoint.Mode;
 import org.ohmage.domain.MobilityPoint.PrivacyState;
+import org.ohmage.domain.MobilityPoint.SensorData.SensorDataColumnKey;
 import org.ohmage.domain.MobilityPoint.SubType;
 import org.ohmage.exception.DataAccessException;
 import org.ohmage.exception.DomainException;
@@ -302,7 +304,15 @@ public final class UserMobilityQueries extends AbstractUploadQuery implements IU
 			try {
 				Location tLocation = mobilityPoint.getLocation();
 				if(tLocation != null) {
-					location = tLocation.toJson(false);	
+					try {
+						location = 
+								tLocation.toJson(
+										false, 
+										LocationColumnKey.ALL_COLUMNS);
+					}
+					catch(DomainException e) {
+						throw new DataAccessException(e);
+					}
 				}
 			}
 			catch(JSONException e) {
@@ -326,9 +336,14 @@ public final class UserMobilityQueries extends AbstractUploadQuery implements IU
 							ps.setString(6, mobilityPoint.getLocationStatus().toString().toLowerCase());
 							try {
 								Location location = mobilityPoint.getLocation();
-								ps.setString(7, ((location == null) ? null : location.toJson(false).toString()));
+								ps.setString(7, ((location == null) ? null : location.toJson(false, LocationColumnKey.ALL_COLUMNS).toString()));
 							} 
 							catch(JSONException e) {
+								throw new SQLException(
+										"Could not create a JSONObject for the location.",
+										e);
+							}
+							catch(DomainException e) {
 								throw new SQLException(
 										"Could not create a JSONObject for the location.",
 										e);
@@ -348,9 +363,12 @@ public final class UserMobilityQueries extends AbstractUploadQuery implements IU
 				if(SubType.SENSOR_DATA.equals(mobilityPoint.getSubType())) {
 					JSONObject sensorData;
 					try {
-						sensorData = mobilityPoint.getSensorData().toJson(false);
+						sensorData = mobilityPoint.getSensorData().toJson(false, SensorDataColumnKey.ALL_COLUMNS);
 					}
 					catch(JSONException e) {
+						throw new DataAccessException(e);
+					}
+					catch(DomainException e) {
 						throw new DataAccessException(e);
 					}
 					

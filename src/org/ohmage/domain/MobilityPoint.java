@@ -16,8 +16,14 @@
 package org.ohmage.domain;
 
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.TimeZone;
 import java.util.UUID;
 
@@ -25,7 +31,11 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.ohmage.annotator.Annotator.ErrorCode;
+import org.ohmage.domain.Location.LocationColumnKey;
 import org.ohmage.domain.MobilityPoint.SensorData.AccelData;
+import org.ohmage.domain.MobilityPoint.SensorData.AccelData.AccelDataColumnKey;
+import org.ohmage.domain.MobilityPoint.SensorData.SensorDataColumnKey;
+import org.ohmage.domain.MobilityPoint.SensorData.WifiData.WifiDataColumnKey;
 import org.ohmage.exception.DomainException;
 import org.ohmage.util.StringUtils;
 import org.ohmage.util.TimeUtils;
@@ -40,28 +50,164 @@ import edu.ucla.cens.mobilityclassifier.WifiScan;
  * @author John Jenkins
  */
 public class MobilityPoint implements Comparable<MobilityPoint> {
-	public static final String JSON_KEY_ID = "id";
-	private static final String JSON_KEY_TIMESTAMP = "timestamp";
-	private static final String JSON_KEY_TIMESTAMP_SHORT = "ts";
-	private static final String JSON_KEY_TIME = "time";
-	private static final String JSON_KEY_TIME_SHORT = "t";
-	private static final String JSON_KEY_TIMEZONE = "timezone";
-	private static final String JSON_KEY_TIMEZONE_SHORT = "tz";
-	private static final String JSON_KEY_LOCATION_STATUS = "location_status";
-	private static final String JSON_KEY_LOCATION_STATUS_SHORT = "ls";
-	private static final String JSON_KEY_LOCATION = "location";
-	private static final String JSON_KEY_LOCATION_SHORT = "l";
+	/**
+	 * Column names for Mobility information.
+	 * 
+	 * @author John Jenkins
+	 */
+	public enum MobilityColumnKey implements ColumnKey {
+		/**
+		 * The unique identifier for the Mobility point.
+		 */
+		ID ("id", "id"),
+		/**
+		 * The time at which the Mobility point was generated.
+		 */
+		TIME ("time", "t"),
+		/**
+		 * The time stamp of the Mobility point.
+		 */
+		TIMESTAMP ("timestamp", "ts"),
+		/**
+		 * The time zone of the device.
+		 */
+		TIMEZONE ("timezone", "tz"),
+		/**
+		 * The location of the device.
+		 */
+		LOCATION ("location", "l"),
+		/**
+		 * The sub-type of the Mobility point.
+		 */
+		SUB_TYPE ("subtype", "st"),
+		/**
+		 * The sensor data.
+		 */
+		SENSOR_DATA ("sensor_data", "data"),
+		/**
+		 * The mode of the Mobility point.
+		 */
+		MODE ("mode", "m");
+		
+		/**
+		 * The string that may be optionally be placed before a key to better
+		 * namespace it.
+		 */
+		public static final String NAMESPACE = "mobility";
+		
+		/**
+		 * A pre-built, unmodifiable list that contains all of the 
+		 * LocationColumnKey keys.
+		 */
+		public static final List<ColumnKey> ALL_COLUMNS;
+		static {
+			List<ColumnKey> keys = new ArrayList<ColumnKey>();
+			
+			keys.add(ID);
+			keys.add(MODE);
+			keys.add(TIME);
+			keys.add(TIMESTAMP);
+			keys.add(TIMEZONE);
+			keys.add(SUB_TYPE);
+			keys.addAll(LocationColumnKey.ALL_COLUMNS);
+			keys.addAll(SensorDataColumnKey.ALL_COLUMNS);
+				
+			ALL_COLUMNS = Collections.unmodifiableList(keys);
+		}
+		
+		private final String key;
+		private final String abbreviatedKey;
+		
+		/**
+		 * Creates a MobilityColumnKey object with the human-readable and
+		 * abbreviated versions of the key.
+		 * 
+		 * @param key The long, human-readable name for this key.
+		 * 
+		 * @param abbreviatedKey A short abbreviation for this key.
+		 */
+		private MobilityColumnKey(
+				final String key, 
+				final String abbreviatedKey) {
+			
+			this.key = key;
+			this.abbreviatedKey = abbreviatedKey;
+		}
+		
+		/**
+		 * Converts this key to a string with the {@link #NAMESPACE} before it.
+		 * 
+		 * @return The {@link #NAMESPACE} and 
+		 * 		   {@link ColumnKey#NAMESPACE_DIVIDOR} followed by this key's 
+		 * 		   value.
+		 */
+		@Override
+		public String toString() {
+			return NAMESPACE + NAMESPACE_DIVIDOR + key;
+		}
+		
+		/**
+		 * Returns this key as a human-readable or abbreviated string.
+		 * 
+		 * @param abbreviated Whether or not to return an abbreviated version
+		 * 					  of this key.
+		 * 
+		 * @return This key as a human-readable or abbreviated string.
+		 */
+		public String toString(final boolean abbreviated) {
+			return (abbreviated) ? abbreviatedKey : key;
+		}
+		
+		/**
+		 * Converts a string, either the human-readable version or the 
+		 * abbreviated version, to its MobilityColumnKey object.
+		 *  
+		 * @param value The string value to convert.
+		 * 
+		 * @return The MobilityColumnKey that represents this object.
+		 * 
+		 * @throws IllegalArgumentException The string could not be converted 
+		 * 									into a MobilityColumnKey object.
+		 */
+		public static List<ColumnKey> valueOfString(final String value) {
+			if(value == null) {
+				throw new IllegalArgumentException("The value is null.");
+			}
+			
+			String sanitizedValue = value.trim().toLowerCase();
+			if(NAMESPACE.equals(sanitizedValue)) {
+				return ALL_COLUMNS;
+			}
+			
+			if(sanitizedValue.startsWith(NAMESPACE + NAMESPACE_DIVIDOR)) {
+				sanitizedValue = 
+						value.substring(
+								NAMESPACE.length() +
+								NAMESPACE_DIVIDOR.length());
+			}
+			
+			for(MobilityColumnKey currKey : values()) {
+				if(currKey.key.equals(sanitizedValue) ||
+						currKey.abbreviatedKey.equals(sanitizedValue)) {
 
-	public static final String JSON_KEY_SUBTYPE = "subtype";
-	public static final String JSON_KEY_SUBTYPE_SHORT = "st";
-	
-	// Mode-only
-	private static final String JSON_KEY_MODE = "mode";
-	private static final String JSON_KEY_MODE_SHORT = "m";
-	
-	// Sensor data
-	private static final String JSON_KEY_DATA = "data";
-	
+					if(LOCATION.equals(currKey)) {
+						return LocationColumnKey.ALL_COLUMNS;
+					}
+					else if(SENSOR_DATA.equals(currKey)) {
+						return SensorDataColumnKey.ALL_COLUMNS;
+					}
+					else {
+						List<ColumnKey> result = new ArrayList<ColumnKey>(1);
+						result.add(currKey);
+						return result;
+					}
+				}
+			}
+			
+			throw new IllegalArgumentException("Unknown column key.");
+		}
+	}
+
 	private final UUID id;
 	private final long time;
 	private final TimeZone timezone;
@@ -120,28 +266,173 @@ public class MobilityPoint implements Comparable<MobilityPoint> {
 	 * @author John Jenkins
 	 */
 	public static final class SensorData {
-		private static final String JSON_KEY_SENSOR_DATA_MODE = "mode";
-		private static final String JSON_KEY_SENSOR_DATA_MODE_SHORT = "m";
-		
-		private static final String JSON_KEY_SPEED = "speed";
-		private static final String JSON_KEY_SPEED_SHORT = "sp";
-		
-		private static final String JSON_KEY_ACCEL_DATA = "accel_data";
-		private static final String JSON_KEY_ACCEL_DATA_SHORT = "ad";
-		private static final String JSON_KEY_ACCEL_DATA_X = "x";
-		private static final String JSON_KEY_ACCEL_DATA_Y = "y";
-		private static final String JSON_KEY_ACCEL_DATA_Z = "z";
-		
-		private static final String JSON_KEY_WIFI_DATA = "wifi_data";
-		private static final String JSON_KEY_WIFI_DATA_SHORT = "wd";
-		private static final String JSON_KEY_WIFI_DATA_TIMESTAMP = "timestamp";
-		private static final String JSON_KEY_WIFI_DATA_TIMESTAMP_SHORT = "ts";
-		private static final String JSON_KEY_WIFI_DATA_TIME = "time";
-		private static final String JSON_KEY_WIFI_DATA_TIME_SHORT = "t";
-		private static final String JSON_KEY_WIFI_DATA_TIMEZONE = "timezone";
-		private static final String JSON_KEY_WIFI_DATA_TIMEZONE_SHORT = "tz";
-		private static final String JSON_KEY_WIFI_DATA_SCAN = "scan";
-		private static final String JSON_KEY_WIFI_DATA_SCAN_SHORT = "sc";
+		/**
+		 * Column names for sensor data information.
+		 * 
+		 * @author John Jenkins
+		 */
+		public enum SensorDataColumnKey implements ColumnKey {
+			/**
+			 * The speed from this sensor data information.
+			 */
+			SPEED ("speed", "sp"),
+			/**
+			 * 
+			 */
+			ACCELEROMETER_DATA ("accel_data", "ad"),
+			/**
+			 * 
+			 */
+			WIFI_DATA ("wifi_data", "wd");
+			
+			/**
+			 * The string that may be optionally be placed before a key to 
+			 * better namespace it.
+			 */
+			public static final String NAMESPACE = "sensor";
+			
+			/**
+			 * A pre-built, unmodifiable list that contains all of the 
+			 * LocationColumnKey keys.
+			 */
+			public static final List<ColumnKey> ALL_COLUMNS;
+			static {
+				List<ColumnKey> keys = new ArrayList<ColumnKey>();
+				keys.add(SPEED);
+				keys.addAll(AccelDataColumnKey.ALL_COLUMNS);
+				keys.addAll(WifiDataColumnKey.ALL_COLUMNS);
+				
+				ALL_COLUMNS = Collections.unmodifiableList(keys);
+			}
+
+			private final String key;
+			private final String abbreviatedKey;
+			
+			/**
+			 * Creates a SensorDataColumnKey object with the human-readable and
+			 * abbreviated versions of the key.
+			 * 
+			 * @param key The long, human-readable name for this key.
+			 * 
+			 * @param abbreviatedKey A short abbreviation for this key.
+			 */
+			private SensorDataColumnKey(
+					final String key, 
+					final String abbreviatedKey) {
+				
+				this.key = key;
+				this.abbreviatedKey = abbreviatedKey;
+			}
+			
+			/**
+			 * Converts this key to a string with the {@link #NAMESPACE} before it.
+			 * 
+			 * @return The {@link #NAMESPACE} and 
+			 * 		   {@link ColumnKey#NAMESPACE_DIVIDOR} followed by this key's 
+			 * 		   value.
+			 */
+			@Override
+			public String toString() {
+				return NAMESPACE + NAMESPACE_DIVIDOR + key;
+			}
+			
+			/**
+			 * Returns this key as a human-readable or abbreviated string.
+			 * 
+			 * @param abbreviated Whether or not to return an abbreviated 
+			 * 					  version of this key.
+			 * 
+			 * @return This key as a human-readable or abbreviated string.
+			 */
+			public String toString(final boolean abbreviated) {
+				return (abbreviated) ? abbreviatedKey : key;
+			}
+			
+			/**
+			 * Converts a string, either the human-readable version or the 
+			 * abbreviated version, to its MobilityColumnKey object.
+			 *  
+			 * @param value The string value to convert.
+			 * 
+			 * @return The ColumnKey that represents this object.
+			 * 
+			 * @throws IllegalArgumentException The string could not be 
+			 * 									converted into a 
+			 * 									SensorDataColumnKey object or 
+			 * 									any of the inner-class objects.
+			 */
+			public static List<ColumnKey> valueOfString(final String value) {
+				if(value == null) {
+					throw new IllegalArgumentException("The value is null.");
+				}
+				
+				String sanitizedValue = value.trim().toLowerCase();
+				if(NAMESPACE.equals(sanitizedValue)) {
+					return ALL_COLUMNS;
+				}
+				
+				if(sanitizedValue.startsWith(NAMESPACE + NAMESPACE_DIVIDOR)) {
+					sanitizedValue = 
+							value.substring(
+									NAMESPACE.length() +
+									NAMESPACE_DIVIDOR.length());
+				}
+
+				for(SensorDataColumnKey currKey : values()) {
+					if(currKey.key.equals(sanitizedValue) ||
+							currKey.abbreviatedKey.equals(sanitizedValue)) {
+						
+						if(ACCELEROMETER_DATA.equals(currKey)) {
+							return AccelDataColumnKey.ALL_COLUMNS;
+						}
+						else if(WIFI_DATA.equals(currKey)) {
+							return WifiDataColumnKey.ALL_COLUMNS;
+						}
+						else {
+							List<ColumnKey> result = new ArrayList<ColumnKey>(1);
+							result.add(currKey);
+							return result;
+						}
+					}
+				}
+				
+				throw new IllegalArgumentException("Unknown column key.");
+			}
+			
+			/**
+			 * Checks if a collection of column keys contains any of the
+			 * keys in this enum or any of the enums that belong to a 
+			 * SensorData object.
+			 * 
+			 * @param columns The collection of columns.
+			 * 
+			 * @return True if the collection contains any of these column
+			 * 		   keys; false, otherwise.
+			 */
+			public static boolean containsSensorDataColumnKey(
+					final Collection<ColumnKey> columns) {
+				
+				for(SensorDataColumnKey currKey : values()) {
+					if(columns.contains(currKey)) {
+						return true;
+					}
+				}
+				
+				for(AccelDataColumnKey currKey : AccelDataColumnKey.values()) {
+					if(columns.contains(currKey)) {
+						return true;
+					}
+				}
+				
+				for(WifiDataColumnKey currKey : WifiDataColumnKey.values()) {
+					if(columns.contains(currKey)) {
+						return true;
+					}
+				}
+				
+				return false;
+			}
+		}
 		
 		private final Mode mode;
 		private final Double speed;
@@ -153,9 +444,236 @@ public class MobilityPoint implements Comparable<MobilityPoint> {
 		 * @author John Jenkins
 		 */
 		public static final class AccelData {
+			/**
+			 * Column names for accelerometer data information.
+			 * 
+			 * @author John Jenkins
+			 */
+			public enum AccelDataColumnKey implements ColumnKey {
+				/**
+				 * The 'x'-component of this accelerometer reading.
+				 */
+				X ("x", "x"),
+				/**
+				 * The 'y'-component of this accelerometer reading.
+				 */
+				Y ("y", "y"),
+				/**
+				 * The 'z'-component of this accelerometer reading.
+				 */
+				Z ("z", "z");
+				
+				/**
+				 * The string that may be optionally be placed before a key to 
+				 * better "namespace" it.
+				 */
+				public static final String NAMESPACE = "accel";
+				
+				/**
+				 * A pre-built, unmodifiable list that contains all of the 
+				 * LocationColumnKey keys.
+				 */
+				public static final List<ColumnKey> ALL_COLUMNS;
+				static {
+					List<ColumnKey> keys = new LinkedList<ColumnKey>();
+					
+					keys.add(X);
+					keys.add(Y);
+					keys.add(Z);
+					
+					ALL_COLUMNS = Collections.unmodifiableList(keys);
+				}
+				
+				private final String key;
+				private final String abbreviatedKey;
+				
+				/**
+				 * Creates an AccelDataColumnKey object with the human-readable
+				 * and abbreviated versions of the key.
+				 * 
+				 * @param key The long, human-readable name for this key.
+				 * 
+				 * @param abbreviatedKey A short abbreviation for this key.
+				 */
+				private AccelDataColumnKey(
+						final String key, 
+						final String abbreviatedKey) {
+					
+					this.key = key;
+					this.abbreviatedKey = abbreviatedKey;
+				}
+				
+				/**
+				 * Converts this key to a string with the {@link #NAMESPACE} 
+				 * before it.
+				 * 
+				 * @return The {@link #NAMESPACE} and 
+				 * 		   {@link ColumnKey#NAMESPACE_DIVIDOR} followed by this
+				 * 		   key's value.
+				 */
+				@Override
+				public String toString() {
+					return NAMESPACE + NAMESPACE_DIVIDOR + key;
+				}
+				
+				/**
+				 * Returns this key as a human-readable or abbreviated string.
+				 * 
+				 * @param abbreviated Whether or not to return an abbreviated 
+				 * 					  version of this key.
+				 * 
+				 * @return This key as a human-readable or abbreviated string.
+				 */
+				public String toString(final boolean abbreviated) {
+					return (abbreviated) ? abbreviatedKey : key;
+				}
+				
+				/**
+				 * Converts a string, either the human-readable version or the 
+				 * abbreviated version, to its AccelDataColumnKey object.
+				 *  
+				 * @param value The string value to convert.
+				 * 
+				 * @return The AccelDataColumnKey that represents this object.
+				 * 
+				 * @throws IllegalArgumentException The string could not be 
+				 * 									converted into a 
+				 * 									AccelDataColumnKey object.
+				 */
+				public static List<ColumnKey> valueOfString(
+						final String value) {
+					
+					if(value == null) {
+						throw new IllegalArgumentException(
+								"The value is null.");
+					}
+					
+					String sanitizedValue = value.trim().toLowerCase();
+					if(NAMESPACE.equals(sanitizedValue)) {
+						return ALL_COLUMNS;
+					}
+					
+					if(sanitizedValue.startsWith(NAMESPACE + NAMESPACE_DIVIDOR)) {
+						sanitizedValue = 
+								value.substring(
+										NAMESPACE.length() +
+										NAMESPACE_DIVIDOR.length());
+					}
+					
+					for(AccelDataColumnKey currKey : values()) {
+						if(currKey.key.equals(sanitizedValue) ||
+								currKey.abbreviatedKey.equals(sanitizedValue)) {
+							
+							List<ColumnKey> result = 
+									new ArrayList<ColumnKey>(1);
+							result.add(currKey);
+							return result;
+						}
+					}
+					
+					throw new IllegalArgumentException("Unknown column key.");
+				}
+				
+				/**
+				 * Checks if a collection of column keys contains any of the
+				 * keys in this enum.
+				 * 
+				 * @param columns The collection of columns.
+				 * 
+				 * @return True if the collection contains any of these column
+				 * 		   keys; false, otherwise.
+				 */
+				public static boolean containsWifiDataColumnKey(
+						final Collection<ColumnKey> columns) {
+					
+					for(AccelDataColumnKey currKey : values()) {
+						if(columns.contains(currKey)) {
+							return true;
+						}
+					}
+					
+					return false;
+				}
+			}
+			
 			private final Double x;
 			private final Double y;
 			private final Double z;
+			
+			/**
+			 * Processes an acceleration data point into an AccelData object.
+			 * 
+			 * @param accelData The JSON data point to process.
+			 * 
+			 * @param mode The pre-processed mode. This is needed, because if 
+			 * 			   it is {@link Mode#ERROR} then any of the values may 
+			 * 			   be missing or invalid.
+			 * 
+			 * @throws DomainException Thrown if the JSON is invalid and the
+			 * 						   mode is not {@link Mode#ERROR}.
+			 */
+			private AccelData(
+					final JSONObject accelData, 
+					final Mode mode) 
+					throws DomainException {
+				
+				// Get the x-acceleration.
+				Double tX = null;
+				try {
+					tX = accelData.getDouble(
+							AccelDataColumnKey.X.toString(false));
+				}
+				catch(JSONException e) {
+					if(Mode.ERROR.equals(mode)) {
+						tX = null;
+					}
+					else {
+						throw new DomainException(
+								ErrorCode.MOBILITY_INVALID_ACCELEROMETER_DATA, 
+								"The 'x' point was missing or invalid.", 
+								e);
+					}
+				}
+				x = tX;
+				
+				// Get the y-acceleration.
+				Double tY = null;
+				try {
+					tY = accelData.getDouble(
+							AccelDataColumnKey.Y.toString(false));
+				}
+				catch(JSONException e) {
+					if(Mode.ERROR.equals(mode)) {
+						tY = null;
+					}
+					else {
+						throw new DomainException(
+								ErrorCode.MOBILITY_INVALID_ACCELEROMETER_DATA, 
+								"The 'y' point was missing or invalid.", 
+								e);
+					}
+				}
+				y = tY;
+				
+				// Get the z-acceleration.
+				Double tZ = null;
+				try {
+					tZ = accelData.getDouble(
+							AccelDataColumnKey.Z.toString(false));
+				}
+				catch(JSONException e) {
+					if(Mode.ERROR.equals(mode)) {
+						tZ = null;
+					}
+					else {
+						throw new DomainException(
+								ErrorCode.MOBILITY_INVALID_ACCELEROMETER_DATA, 
+								"The 'z' point was missing or invalid.", 
+								e);
+					}
+				}
+				z = tZ;
+			}
 			
 			/**
 			 * Creates a tri-axle acceleration data point.
@@ -200,23 +718,120 @@ public class MobilityPoint implements Comparable<MobilityPoint> {
 			}
 			
 			/**
-			 * Creates a JSONObject from the information in this object.
+			 * Creates a JSONObject that represents the accelerometer data with
+			 * only the information whose column value is present.
 			 * 
-			 * @return Returns a JSONObject representing this object.
+			 * @param columns A collection of columns dictating which variables
+			 * 				  should be included in the resulting object. If 
+			 * 				  this is empty, an empty JSONObject will be 
+			 * 				  returned. This cannot be null and if all columns 
+			 * 				  are desired, a quick fix is to use
+			 * 				  {@link AccelDataColumnKey#ALL_COLUMNS}.
+			 * 
+			 * @return Returns a JSONObject that represents this object with 
+			 * 		   only the requested columns.
 			 * 
 			 * @throws JSONException There was an error building the 
 			 * 						 JSONObject.
+			 * 
+			 * @throws DomainException The columns collection was null.
 			 */
-			public final JSONObject toJson() 
-					throws JSONException {
+			public final JSONObject toJson(
+					final Collection<ColumnKey> columns) 
+					throws JSONException, DomainException {
+				
+				if(columns == null) {
+					throw new DomainException(
+							"The columns list cannot be null.");
+				}
 				
 				JSONObject result = new JSONObject();
 				
-				result.put(JSON_KEY_ACCEL_DATA_X, x);
-				result.put(JSON_KEY_ACCEL_DATA_Y, y);
-				result.put(JSON_KEY_ACCEL_DATA_Z, z);
+				if(columns.contains(AccelDataColumnKey.X)) {
+					result.put(AccelDataColumnKey.X.toString(false), x);
+				}
+
+				if(columns.contains(AccelDataColumnKey.Y)) {
+					result.put(AccelDataColumnKey.Y.toString(false), y);
+				}
+
+				if(columns.contains(AccelDataColumnKey.Z)) {
+					result.put(AccelDataColumnKey.Z.toString(false), z);
+				}
 				
 				return result;
+			}
+			
+			/**
+			 * Populates the appropriate indices in the 'result' with values 
+			 * based on the 'columns'. For example, if the first two columns 
+			 * were not AccelData columns, they would be skipped. If the third 
+			 * column was the accelerometer data's x value, the third index in 
+			 * the 'result' would be populated with this accelerometer data's x
+			 * value, which is a collection of doubles.
+			 * 
+			 * @param columns All of the columns in the 'result' list to 
+			 * 				  populate. This will skip all of those columns 
+			 * 				  that are not AccelDataColumnKey columns.
+			 * 
+			 * @param result The result list whose values will be updated based
+			 * 				 on the 'columns'.
+			 * 
+			 * @throws DomainException The columns or result list was null or 
+			 * 						   had differing lengths.
+			 */
+			public final void toCsvRow(
+					final List<ColumnKey> columns,
+					final List<Object> result) 
+					throws DomainException {
+				
+				if(columns == null) {
+					throw new DomainException(
+							"The list of columns cannot be null.");
+				}
+				else if(result == null) {
+					throw new DomainException(
+							"The list of results cannot be null.");
+				}
+				else if(columns.size() != result.size()) {
+					throw new DomainException(
+							"The columns list and the result list were different lengths.");
+				}
+				
+				int index;
+				
+				if((index = columns.indexOf(AccelDataColumnKey.X)) != -1) {
+					@SuppressWarnings("unchecked")
+					Collection<Double> currList =
+							(Collection<Double>) result.get(index);
+					if(currList == null) {
+						currList = new LinkedList<Double>();
+						result.set(index, currList);
+					}
+					currList.add(x);
+				}
+
+				if((index = columns.indexOf(AccelDataColumnKey.Y)) != -1) {
+					@SuppressWarnings("unchecked")
+					Collection<Double> currList = 
+							(Collection<Double>) result.get(index);
+					if(currList == null) {
+						currList = new LinkedList<Double>();
+						result.set(index, currList);
+					}
+					currList.add(y);
+				}
+
+				if((index = columns.indexOf(AccelDataColumnKey.Z)) != -1) {
+					@SuppressWarnings("unchecked")
+					Collection<Double> currList = 
+							(Collection<Double>) result.get(index);
+					if(currList == null) {
+						currList = new LinkedList<Double>();
+						result.set(index, currList);
+					}
+					currList.add(y);
+				}
 			}
 		}
 		private final List<AccelData> accelData;
@@ -227,16 +842,185 @@ public class MobilityPoint implements Comparable<MobilityPoint> {
 		 * @author John Jenkins
 		 */
 		public static final class WifiData {
-			private static final String JSON_KEY_SSID = "ssid";
-			private static final String JSON_KEY_SSID_SHORT = "ss";
-			private static final String JSON_KEY_STRENGTH = "strength";
-			private static final String JSON_KEY_STRENGTH_SHORT = "st";
+			/**
+			 * Column names for WiFi data information.
+			 * 
+			 * @author John Jenkins
+			 */
+			public enum WifiDataColumnKey implements ColumnKey {
+				/**
+				 * The time this WiFi data was collected.
+				 */
+				TIME ("time", "t"),
+				/**
+				 * An ISO-8601 time stamp.
+				 */
+				TIMESTAMP ("timestamp", "ts"),
+				/**
+				 * The timezone of the device.
+				 */
+				TIMEZONE ("timezone", "tz"),
+				/**
+				 * The scan information.
+				 */
+				SCAN ("scan", "sc"),
+				/**
+				 * The SSID of a device read.
+				 */
+				SSID ("ssid", "ss"),
+				/**
+				 * The strength of the reading from the device.
+				 */
+				STRENGTH ("strength", "st");
+				
+				/**
+				 * The string that may be optionally be placed before a key to 
+				 * better namespace it.
+				 */
+				public static final String NAMESPACE = "wifi";
+				
+				/**
+				 * A pre-built, unmodifiable list that contains all of the 
+				 * LocationColumnKey keys.
+				 */
+				public static final List<ColumnKey> ALL_COLUMNS;
+				static {
+					List<ColumnKey> keys = new ArrayList<ColumnKey>();
+					
+					keys.add(TIME);
+					keys.add(TIMESTAMP);
+					keys.add(TIMEZONE);
+					keys.add(SSID);
+					keys.add(STRENGTH);
+					
+					ALL_COLUMNS = Collections.unmodifiableList(keys);
+				}				
+				
+				private final String key;
+				private final String abbreviatedKey;
+				
+				/**
+				 * Creates an AccelDataColumnKey object with the human-readable
+				 * and abbreviated versions of the key.
+				 * 
+				 * @param key The long, human-readable name for this key.
+				 * 
+				 * @param abbreviatedKey A short abbreviation for this key.
+				 */
+				private WifiDataColumnKey(
+						final String key, 
+						final String abbreviatedKey) {
+					
+					this.key = key;
+					this.abbreviatedKey = abbreviatedKey;
+				}
+				
+				/**
+				 * Converts this key to a string with the {@link #NAMESPACE} 
+				 * before it.
+				 * 
+				 * @return The {@link #NAMESPACE} and 
+				 * 		   {@link ColumnKey#NAMESPACE_DIVIDOR} followed by this
+				 * 		   key's value.
+				 */
+				@Override
+				public String toString() {
+					return NAMESPACE + NAMESPACE_DIVIDOR + key;
+				}
+				
+				/**
+				 * Returns this key as a human-readable or abbreviated string.
+				 * 
+				 * @param abbreviated Whether or not to return an abbreviated 
+				 * 					  version of this key.
+				 * 
+				 * @return This key as a human-readable or abbreviated string.
+				 */
+				public String toString(final boolean abbreviated) {
+					return (abbreviated) ? abbreviatedKey : key;
+				}
+				
+				/**
+				 * Converts a string, either the human-readable version or the 
+				 * abbreviated version, to its WifiDataColumnKey object.
+				 *  
+				 * @param value The string value to convert.
+				 * 
+				 * @return The WifiDataColumnKey that represents this object.
+				 * 
+				 * @throws IllegalArgumentException The string could not be 
+				 * 									converted into a 
+				 * 									WifiDataColumnKey object.
+				 */
+				public static List<ColumnKey> valueOfString(
+						final String value) {
+					
+					if(value == null) {
+						throw new IllegalArgumentException(
+								"The value is null.");
+					}
+					
+					String sanitizedValue = value.trim().toLowerCase();
+					if(NAMESPACE.equals(sanitizedValue)) {
+						return ALL_COLUMNS;
+					}
+					
+					if(sanitizedValue.startsWith(NAMESPACE + NAMESPACE_DIVIDOR)) {
+						sanitizedValue = 
+								value.substring(
+										NAMESPACE.length() +
+										NAMESPACE_DIVIDOR.length());
+					}
+					
+					for(WifiDataColumnKey currKey : values()) {
+						if(currKey.key.equals(sanitizedValue) ||
+								currKey.abbreviatedKey.equals(sanitizedValue)) {
+							
+							if(SCAN.equals(currKey)) {
+								List<ColumnKey> result = 
+										new ArrayList<ColumnKey>(2);
+								result.add(SSID);
+								result.add(STRENGTH);
+								return result;
+							}
+							else {
+								List<ColumnKey> result = 
+										new ArrayList<ColumnKey>(1);
+								result.add(currKey);
+								return result;
+							}
+						}
+					}
+					
+					throw new IllegalArgumentException("Unknown column key.");
+				}
+				
+				/**
+				 * Checks if a collection of column keys contains any of the
+				 * keys in this enum.
+				 * 
+				 * @param columns The collection of columns.
+				 * 
+				 * @return True if the collection contains any of these column
+				 * 		   keys; false, otherwise.
+				 */
+				public static boolean containsWifiDataColumnKey(
+						final Collection<ColumnKey> columns) {
+					
+					for(WifiDataColumnKey currKey : values()) {
+						if(columns.contains(currKey)) {
+							return true;
+						}
+					}
+					
+					return false;
+				}
+			}
 			
-			//private final Date timestamp;
-			// private final Long time;
+			private final Long time;
 			private final TimeZone timezone;
-			// private final Map<String, Double> scan;
-			private final WifiScan wifiScan;
+			private final Map<String, Double> scan;
+			//private final WifiScan wifiScan;
 			
 			/**
 			 * Creates a WifiData point with a timestamp and all of the scan
@@ -254,50 +1038,132 @@ public class MobilityPoint implements Comparable<MobilityPoint> {
 			 * @throws DomainException Thrown if either of the parameters are
 			 * 						   null or invalid values.
 			 */
-			private WifiData(
-					final Long time, 
-					final TimeZone timezone, 
-					final JSONArray scan, 
+			private WifiData( 
+					final JSONObject wifiData, 
 					final Mode mode) 
 					throws DomainException {
 				
+				// Get the time and timezone.
 				Long tTime = null;
-				
-				// Validate the timestamp value.
-				if(time == null) {
-					if(! Mode.ERROR.equals(mode)) {
-						throw new DomainException(
-								ErrorCode.SERVER_INVALID_TIMESTAMP, 
-								"The time is missing for a WiFiData record.");
+				boolean timeFound = true;
+				try {
+					tTime = wifiData.getLong(
+							WifiDataColumnKey.TIME.toString(false));
+				}
+				catch(JSONException noLongTime) {
+					try {
+						tTime = wifiData.getLong(
+								WifiDataColumnKey.TIME.toString(true));
+					}
+					catch(JSONException noTime) {
+						timeFound = false;
+						String timestamp = null;
+						try {
+							timestamp = 
+								wifiData.getString(
+									WifiDataColumnKey.TIMESTAMP.toString(
+										false));
+						}
+						catch(JSONException noLongTimestamp) {	
+							try {
+								timestamp = 
+									wifiData.getString(
+										WifiDataColumnKey.TIMESTAMP.toString(
+											true));
+							}
+							catch(JSONException noShortTimestamp) {
+								if(Mode.ERROR.equals(mode)) {
+									tTime = null;
+								}
+								else {
+									throw new DomainException(
+											ErrorCode.SERVER_INVALID_TIME, 
+											"The time is missing.", 
+											noShortTimestamp);
+								}
+							}
+						}
+
+						Date date = StringUtils.decodeDateTime(timestamp);
+						if(date == null) {
+							if(Mode.ERROR.equals(mode)) {
+								tTime = null;
+							}
+							else {
+								throw new DomainException(
+										ErrorCode.SERVER_INVALID_TIMESTAMP,
+										"The timestamp could not be decoded: " +
+											timestamp);
+							}
+						}
+						else {
+							tTime = date.getTime();
+						}
 					}
 				}
-				else {
-					tTime = time;
-				}
+				time = tTime;
 				
-				// Validate the timezone value.
-				if(timezone == null) {
+				TimeZone tTimezone;
+				try {
+					tTimezone = 
+							TimeZone.getTimeZone(
+									wifiData.getString(
+											WifiDataColumnKey.TIMEZONE.toString(
+													false)));
+				}
+				catch(JSONException noLongTimezone) {
+					try {
+						tTimezone =
+								TimeZone.getTimeZone(
+										wifiData.getString(
+												WifiDataColumnKey.TIMEZONE.toString(
+														true)));
+					}
+					catch(JSONException noShortTimezone) {
+						if(Mode.ERROR.equals(mode)) {
+							tTimezone = null;
+						}
+						else if(! timeFound) {
+							tTimezone = TimeZone.getDefault();
+						}
+						else {
+							throw new DomainException(
+									ErrorCode.SERVER_INVALID_TIMEZONE, 
+									"The timezone is missing: " +
+										WifiDataColumnKey.TIMEZONE.toString(
+											false), 
+									noShortTimezone);
+						}
+					}
+				}
+				timezone = tTimezone;
+				
+				// Get the scan.
+				JSONArray scan;
+				try {
+					scan = wifiData.getJSONArray(
+							WifiDataColumnKey.SCAN.toString(false));
+				}
+				catch(JSONException e) {
 					if(Mode.ERROR.equals(mode)) {
-						this.timezone = null;
+						scan = null;
 					}
 					else {
 						throw new DomainException(
-								ErrorCode.SERVER_INVALID_TIMESTAMP, 
-								"The time is missing for a WiFiData record.");
+								ErrorCode.MOBILITY_INVALID_WIFI_DATA, 
+								"The scan is missing.", 
+								e);
 					}
-				}
-				else {
-					this.timezone = timezone;
 				}
 				
 				// Validate the scan value.
 				if(scan == null) {
-					this.wifiScan = null;
+					this.scan = null;
 				}
 				else {
 					// Create the local scan map.
-					// this.scan = new HashMap<String, Double>();
-					List<AccessPoint> accessPoints = new ArrayList<AccessPoint>();
+					this.scan = new HashMap<String, Double>();
+					//List<AccessPoint> accessPoints = new ArrayList<AccessPoint>();
 					
 					// For each of the entries in the array, parse out the
 					// necessary information.
@@ -309,12 +1175,15 @@ public class MobilityPoint implements Comparable<MobilityPoint> {
 							// Get the SSID.
 							String ssid;
 							try {
-								ssid = jsonObject.getString(JSON_KEY_SSID);
+								ssid = jsonObject.getString(
+										WifiDataColumnKey.SSID.toString(
+												false));
 							}
 							catch(JSONException notLong) {
 								try {
 									ssid = jsonObject.getString(
-											JSON_KEY_SSID_SHORT);
+											WifiDataColumnKey.SSID.toString(
+													true));
 								}
 								catch(JSONException notShort) {
 									if(Mode.ERROR.equals(mode)) {
@@ -334,13 +1203,15 @@ public class MobilityPoint implements Comparable<MobilityPoint> {
 							try {
 								strength = 
 										jsonObject.getDouble(
-												JSON_KEY_STRENGTH);
+												WifiDataColumnKey.STRENGTH.toString(
+														false));
 							}
 							catch(JSONException notLong) {
 								try {
 									strength = 
 											jsonObject.getDouble(
-													JSON_KEY_STRENGTH_SHORT);
+													WifiDataColumnKey.STRENGTH.toString(
+															true));
 								}
 								catch(JSONException notShort) {
 									if(Mode.ERROR.equals(mode)) {
@@ -356,7 +1227,8 @@ public class MobilityPoint implements Comparable<MobilityPoint> {
 							}
 							
 							// Add them to the map.
-							accessPoints.add(new AccessPoint(ssid, strength));
+							//accessPoints.add(new AccessPoint(ssid, strength));
+							this.scan.put(ssid, strength);
 						}
 						catch(JSONException e) {
 							throw new DomainException(
@@ -364,8 +1236,7 @@ public class MobilityPoint implements Comparable<MobilityPoint> {
 									e);
 						}
 					}
-					
-					this.wifiScan = new WifiScan(tTime, accessPoints);
+					//this.wifiScan = new WifiScan(tTime, accessPoints);
 				}
 			}
 			
@@ -373,113 +1244,247 @@ public class MobilityPoint implements Comparable<MobilityPoint> {
 			 * Creates a WiFiData object that contains a timestamp of when the
 			 * record was made and the map of WiFi device IDs to their signal
 			 * strength.
+			 * 
+			 * @param time The time in milliseconds since the epoch when this
+			 * 			   occurred.
 			 *  
 			 * @param timestamp The date and time that this record was made.
 			 * 
-			 * @param scans A map of WiFi device IDs to their signal strength.
+			 * @param scan A map of WiFi device IDs to their signal strength.
 			 * 
 			 * @throws DomainException Thrown if the timestamp or scans map are
 			 * 						   null.
 			 */
 			public WifiData(
+					final long time,
 					final TimeZone timezone,
-					final WifiScan wifiScan) 
+					final Map<String, Double> scan)
 					throws DomainException {
 				
 				if(timezone == null) {
 					throw new DomainException(
 							"The timezone cannot be null.");
 				}
-				else if(wifiScan == null) {
+				else if(scan == null) {
 					throw new DomainException(
-							"The wifi scan cannot be null.");
+							"The WiFi scan cannot be null.");
 				}
 				
+				this.time = time;
 				this.timezone = timezone;
-				this.wifiScan = wifiScan;
-			}
-
-			/**
-			 * Returns an immutable copy of the scan.
-			 * 
-			 * @return An immutable copy of the scan. This may be null if the 
-			 * 		   mode of this point is ERROR.
-			 */
-			public final WifiScan getScan() {
-				return wifiScan;
+				this.scan = new HashMap<String, Double>(scan);
 			}
 			
 			/**
-			 * Creates a JSONObject that represents the information in this
-			 * object.
+			 * Creates a JSONObject that represents the WiFi scan data with 
+			 * only the information whose column value is present.
 			 * 
-			 * @return Returns a JSONObject that represents this object.
+			 * @param columns A collection of columns dictating which variables
+			 * 				  should be included in the resulting object. If 
+			 * 				  this is empty, an empty JSONObject will be 
+			 * 				  returned. This cannot be null and if all columns 
+			 * 				  are desired, a quick fix is to use
+			 * 				  {@link WifiDataColumnKey#ALL_COLUMNS}.
+			 * 
+			 * @return Returns a JSONObject that represents this object with 
+			 * 		   only the requested columns.
 			 * 
 			 * @throws JSONException There was an error building the 
 			 * 						 JSONObject.
+			 * 
+			 * @throws DomainException The columns collection was null.
 			 */
 			public final JSONObject toJson(
-					final boolean abbreviated) 
-					throws JSONException {
+					final boolean abbreviated,
+					final Collection<ColumnKey> columns) 
+					throws JSONException, DomainException {
+				
+				if(columns == null) {
+					throw new DomainException(
+							"The columns list cannot be null.");
+				}
 
 				JSONObject result = new JSONObject();
 				
-				/*
-				if(time != null) {
+				if(columns.contains(WifiDataColumnKey.TIME)) {
 					result.put(
-							(abbreviated) ? 
-									JSON_KEY_WIFI_DATA_TIMESTAMP_SHORT :
-									JSON_KEY_WIFI_DATA_TIMESTAMP, 
+							WifiDataColumnKey.TIME.toString(abbreviated), 
+							time);
+				}
+					
+				if(columns.contains(WifiDataColumnKey.TIMESTAMP)) {
+					Calendar calendar = Calendar.getInstance(timezone);
+					calendar.setTimeInMillis(time);
+					result.put(
+							WifiDataColumnKey.TIMESTAMP.toString(
+									abbreviated), 
 							TimeUtils.getIso8601DateTimeString(
-									new Date(time)));
+									calendar.getTime()));
 				}
-				*/
-
-				if(wifiScan != null) {
+					
+				if(columns.contains(WifiDataColumnKey.TIMEZONE)) {
 					result.put(
-						(abbreviated) ?
-								JSON_KEY_WIFI_DATA_TIME_SHORT :
-								JSON_KEY_WIFI_DATA_TIME, 
-						wifiScan.getTime());
-				}
-				
-				if(timezone != null) {
-					result.put(
-							(abbreviated) ?
-									JSON_KEY_WIFI_DATA_TIMEZONE_SHORT :
-									JSON_KEY_WIFI_DATA_TIMEZONE, 
+							WifiDataColumnKey.TIMEZONE.toString(
+									abbreviated),
 							timezone.getID());
 				}
 				
-				if(wifiScan != null) {
-					JSONArray scanJson = new JSONArray();
-					List<AccessPoint> accessPoints = wifiScan.getAccessPoints();
+				if(columns.contains(WifiDataColumnKey.SCAN) ||
+						(columns.contains(WifiDataColumnKey.SSID) &&
+						 columns.contains(WifiDataColumnKey.STRENGTH))) {
 					
-					for(AccessPoint accessPoint : accessPoints) {
-						JSONObject currScan = new JSONObject();
+					if(scan != null) {
+						JSONArray scans = new JSONArray();
+						for(String ssid : scan.keySet()) {
+							JSONObject currScan = new JSONObject();
+							
+							currScan.put(
+									WifiDataColumnKey.SSID.toString(
+											abbreviated),
+									ssid);
+							currScan.put(
+									WifiDataColumnKey.STRENGTH.toString(
+											abbreviated),
+									scan.get(ssid));
+							
+							scans.put(currScan);
+						}
 						
-						currScan.put(
-								(abbreviated) ?
-										JSON_KEY_SSID_SHORT :
-										JSON_KEY_SSID, 
-								accessPoint.getSsid());
-						
-						currScan.put(
-								(abbreviated) ?
-										JSON_KEY_STRENGTH_SHORT :
-										JSON_KEY_STRENGTH, 
-								accessPoint.getStrength());
-
-						scanJson.put(currScan);
+						result.put(
+								WifiDataColumnKey.SCAN.toString(
+										abbreviated), 
+								scans);
 					}
-					result.put(
-							(abbreviated) ?
-									JSON_KEY_WIFI_DATA_SCAN_SHORT :
-									JSON_KEY_WIFI_DATA_SCAN, 
-							scanJson);
+				}
+				else if(columns.contains(WifiDataColumnKey.SSID)) {
+					if(scan != null) {
+						JSONArray scans = new JSONArray();
+						for(String ssid : scan.keySet()) {
+							JSONObject currScan = new JSONObject();
+							
+							currScan.put(
+									WifiDataColumnKey.STRENGTH.toString(
+											abbreviated),
+									scan.get(ssid));
+							
+							scans.put(currScan);
+						}
+						
+						result.put(
+								WifiDataColumnKey.SCAN.toString(
+										abbreviated), 
+								scans);
+					}
+				}
+				else if(columns.contains(WifiDataColumnKey.STRENGTH)) {
+					if(scan != null) {
+						JSONArray scans = new JSONArray();
+						for(String ssid : scan.keySet()) {
+							JSONObject currScan = new JSONObject();
+							
+							currScan.put(
+									WifiDataColumnKey.SSID.toString(
+											abbreviated),
+									ssid);
+							
+							scans.put(currScan);
+						}
+						
+						result.put(
+								WifiDataColumnKey.SCAN.toString(
+										abbreviated), 
+								scans);
+					}
+				}
+
+				return result;
+			}
+			
+			/**
+			 * Populates the appropriate indices in the 'result' with values 
+			 * based on the 'columns'. For example, if the first two columns 
+			 * were not WifiData columns, they would be skipped. If the third 
+			 * column was the WiFi data's time, the third index in the 'result' 
+			 * would be populated with this WiFi data's time value.
+			 * 
+			 * @param columns All of the columns in the 'result' list to 
+			 * 				  populate. This will skip all of those columns 
+			 * 				  that are not WifiDataColumnKey columns.
+			 * 
+			 * @param result The result list whose values will be updated based
+			 * 				 on the 'columns'.
+			 * 
+			 * @throws DomainException The columns or result list was null or 
+			 * 						   had differing lengths.
+			 */
+			public final void toCsvRow(
+					final List<ColumnKey> columns,
+					final List<Object> result) 
+					throws DomainException {
+				
+				if(columns == null) {
+					throw new DomainException(
+							"The list of columns cannot be null.");
+				}
+				else if(result == null) {
+					throw new DomainException(
+							"The list of results cannot be null.");
+				}
+				else if(columns.size() != result.size()) {
+					throw new DomainException(
+							"The columns list and the result list were different lengths.");
 				}
 				
-				return result;
+				int index;
+				
+				if((index = columns.indexOf(WifiDataColumnKey.TIME)) != -1) {
+					result.set(index, time);
+				}
+					
+				if((index = columns.indexOf(WifiDataColumnKey.TIMESTAMP)) != -1) {
+					Calendar calendar = Calendar.getInstance(timezone);
+					calendar.setTimeInMillis(time);
+					result.set(
+							index, 
+							TimeUtils.getIso8601DateTimeString(
+									calendar.getTime()));
+				}
+					
+				if((index = columns.indexOf(WifiDataColumnKey.TIMEZONE)) != -1) {
+					result.set(index, timezone.getID());
+				}
+				
+				// If SCAN is present, we ignore it as it should have been, for
+				// CSV output at least, broken down into SSID and STRENGTH.
+
+				if(scan != null) {
+					int ssidIndex = columns.indexOf(WifiDataColumnKey.SSID);
+					Collection<String> ssids = 
+							new ArrayList<String>(scan.size());
+					
+					int strengthIndex = 
+							columns.indexOf(WifiDataColumnKey.STRENGTH);
+					Collection<Double> strengths =
+							new ArrayList<Double>(scan.size());
+					
+					for(String ssid : scan.keySet()) {
+						if(ssidIndex != -1) {
+							ssids.add(ssid);
+						}
+						
+						if(strengthIndex != -1) {
+							strengths.add(scan.get(ssid));
+						}
+					}
+					
+					if(ssidIndex != -1) {
+						result.set(ssidIndex, ssids);
+					}
+					
+					if(strengthIndex != -1) {
+						result.set(strengthIndex, strengths);
+					}
+				}
 			}
 		}
 		private final WifiData wifiData;
@@ -497,19 +1502,21 @@ public class MobilityPoint implements Comparable<MobilityPoint> {
 			// Get the mode string.
 			String modeString;
 			try {
-				modeString = sensorData.getString(JSON_KEY_SENSOR_DATA_MODE);
+				modeString = 
+						sensorData.getString(
+								MobilityColumnKey.MODE.toString(false));
 			}
 			catch(JSONException notLong) {
 				try {
 					modeString = 
 							sensorData.getString(
-									JSON_KEY_SENSOR_DATA_MODE_SHORT);
+									MobilityColumnKey.MODE.toString(true));
 				}
 				catch(JSONException notShort) {
 					throw new DomainException(
 							ErrorCode.MOBILITY_INVALID_MODE, 
 							"The mode is missing in the sensor data: " + 
-									JSON_KEY_SENSOR_DATA_MODE, 
+									MobilityColumnKey.MODE.toString(false), 
 							notShort);
 				}
 			}
@@ -528,11 +1535,15 @@ public class MobilityPoint implements Comparable<MobilityPoint> {
 			// Get the speed.
 			Double tSpeed;
 			try {
-				tSpeed = sensorData.getDouble(JSON_KEY_SPEED);
+				tSpeed = 
+						sensorData.getDouble(
+								SensorDataColumnKey.SPEED.toString(false));
 			}
 			catch(JSONException notLong) {
 				try {
-					tSpeed = sensorData.getDouble(JSON_KEY_SPEED_SHORT);
+					tSpeed = 
+							sensorData.getDouble(
+									SensorDataColumnKey.SPEED.toString(true));
 				}
 				catch(JSONException notShort) {
 					if(Mode.ERROR.equals(mode)) {
@@ -541,7 +1552,8 @@ public class MobilityPoint implements Comparable<MobilityPoint> {
 					else {
 						throw new DomainException(
 								ErrorCode.MOBILITY_INVALID_SPEED, 
-								"The speed is missing or invalid.", 
+								"The speed is missing or invalid: " +
+									SensorDataColumnKey.SPEED.toString(false), 
 								notShort);
 					}
 				}
@@ -552,12 +1564,17 @@ public class MobilityPoint implements Comparable<MobilityPoint> {
 			List<AccelData> tAccelData = null;
 			JSONArray accelDataJson = null;
 			try {
-				accelDataJson = sensorData.getJSONArray(JSON_KEY_ACCEL_DATA);
+				accelDataJson = 
+						sensorData.getJSONArray(
+								SensorDataColumnKey.ACCELEROMETER_DATA.toString(
+										false));
 			}
 			catch(JSONException notLong) {
 				try {
 					accelDataJson = 
-							sensorData.getJSONArray(JSON_KEY_ACCEL_DATA_SHORT);
+							sensorData.getJSONArray(
+									SensorDataColumnKey.ACCELEROMETER_DATA.toString(
+											true));
 				}
 				catch(JSONException notShort) {
 					if(Mode.ERROR.equals(mode)) {
@@ -566,7 +1583,9 @@ public class MobilityPoint implements Comparable<MobilityPoint> {
 					else {
 						throw new DomainException(
 								ErrorCode.MOBILITY_INVALID_ACCELEROMETER_DATA, 
-								"The accelerometer data is missing or invalid.", 
+								"The accelerometer data is missing or invalid: " +
+									SensorDataColumnKey.ACCELEROMETER_DATA.toString(
+										false), 
 								notShort);
 					}
 				}
@@ -580,62 +1599,10 @@ public class MobilityPoint implements Comparable<MobilityPoint> {
 				tAccelData = new ArrayList<AccelData>(numAccelDataPoints);
 				for(int i = 0; i < numAccelDataPoints; i++) {
 					try {
-						JSONObject accelDataPointJson = 
-								accelDataJson.getJSONObject(i);
-						
-						// Get the x-acceleration.
-						Double x;
-						try {
-							x = accelDataPointJson.getDouble(JSON_KEY_ACCEL_DATA_X);
-						}
-						catch(JSONException e) {
-							if(Mode.ERROR.equals(mode)) {
-								x = null;
-							}
-							else {
-								throw new DomainException(
-										ErrorCode.MOBILITY_INVALID_ACCELEROMETER_DATA, 
-										"The 'x' point was missing or invalid.", 
-										e);
-							}
-						}
-						
-						// Get the y-acceleration.
-						Double y;
-						try {
-							y = accelDataPointJson.getDouble(JSON_KEY_ACCEL_DATA_Y);
-						}
-						catch(JSONException e) {
-							if(Mode.ERROR.equals(mode)) {
-								y = null;
-							}
-							else {
-								throw new DomainException(
-										ErrorCode.MOBILITY_INVALID_ACCELEROMETER_DATA, 
-										"The 'y' point was missing or invalid.", 
-										e);
-							}
-						}
-						
-						// Get the z-acceleration.
-						Double z;
-						try {
-							z = accelDataPointJson.getDouble(JSON_KEY_ACCEL_DATA_Z);
-						}
-						catch(JSONException e) {
-							if(Mode.ERROR.equals(mode)) {
-								z = null;
-							}
-							else {
-								throw new DomainException(
-										ErrorCode.MOBILITY_INVALID_ACCELEROMETER_DATA, 
-										"The 'z' point was missing or invalid.", 
-										e);
-							}
-						}
-						
-						// Add a new point.
-						tAccelData.add(new AccelData(x, y, z));
+						tAccelData.add(
+								new AccelData(
+										accelDataJson.getJSONObject(i), 
+										mode));
 					}
 					catch(JSONException e) {
 						throw new DomainException(
@@ -651,138 +1618,38 @@ public class MobilityPoint implements Comparable<MobilityPoint> {
 			WifiData tWifiData = null;
 			JSONObject wifiDataJson = null;
 			try {
-				wifiDataJson = sensorData.getJSONObject(JSON_KEY_WIFI_DATA);
+				wifiDataJson = 
+						sensorData.getJSONObject(
+								SensorDataColumnKey.WIFI_DATA.toString(
+										false));
 			}
 			catch(JSONException notLong) {
 				try {
 					wifiDataJson = 
-							sensorData.getJSONObject(JSON_KEY_WIFI_DATA_SHORT);
+							sensorData.getJSONObject(
+									SensorDataColumnKey.WIFI_DATA.toString(
+											true));
 				}
 				catch(JSONException notShort) {
-					// If we didn't receive any WiFi data, then the device was
-					// not able to generate any data. This is perfectly 
-					// acceptable in our current system.
-				}
-			}
-			
-			// It was decided that if a Mobility point was created and Mobility 
-			// failed to communicate with WifiGpsLocationService, then it would
-			// instead return an empty JSONObject. The server was under the
-			// assumption that if such an event occurred the key-value pair 
-			// would simply be omitted altogether. This fixes that assumption
-			// be resetting the JSONObject to null.
-			if(wifiDataJson.length() == 0) {
-				wifiDataJson = null;
-			}
-			
-			// If the WiFi data was found.
-			if(wifiDataJson != null) {
-				// Get the time and timezone.
-				Long time;
-				boolean timeFound = true;
-				try {
-					time = wifiDataJson.getLong(JSON_KEY_WIFI_DATA_TIME);
-				}
-				catch(JSONException noLongTime) {
-					try {
-						time = wifiDataJson.getLong(
-								JSON_KEY_WIFI_DATA_TIME_SHORT);
-					}
-					catch(JSONException noTime) {
-						timeFound = false;
-						String timestamp = null;
-						try {
-							timestamp = 
-									wifiDataJson.getString(
-											JSON_KEY_WIFI_DATA_TIMESTAMP);
-						}
-						catch(JSONException noLongTimestamp) {	
-							try {
-								timestamp =
-										wifiDataJson.getString(
-												JSON_KEY_WIFI_DATA_TIMESTAMP_SHORT);
-							}
-							catch(JSONException noShortTimestamp) {
-								if(Mode.ERROR.equals(mode)) {
-									time = null;
-								}
-								else {
-									throw new DomainException(
-											ErrorCode.SERVER_INVALID_TIME, 
-											"The time is missing.", 
-											noShortTimestamp);
-								}
-							}
-						}
-
-						Date date = StringUtils.decodeDateTime(timestamp);
-						if(date == null) {
-							if(Mode.ERROR.equals(mode)) {
-								time = null;
-							}
-							else {
-								throw new DomainException(
-										ErrorCode.SERVER_INVALID_TIMESTAMP,
-										"The timestamp could not be decoded: " +
-											sensorData.toString());
-							}
-						}
-						else {
-							time = date.getTime();
-						}
-					}
-				}
-				
-				TimeZone timezone;
-				try {
-					timezone = 
-							TimeZone.getTimeZone(
-									wifiDataJson.getString(
-											JSON_KEY_WIFI_DATA_TIMEZONE));
-				}
-				catch(JSONException noLongTimezone) {
-					try {
-						timezone =
-								TimeZone.getTimeZone(
-										wifiDataJson.getString(
-												JSON_KEY_WIFI_DATA_TIMEZONE_SHORT));
-					}
-					catch(JSONException noShortTimezone) {
-						if(Mode.ERROR.equals(mode)) {
-							timezone = null;
-						}
-						else if(! timeFound) {
-							timezone = TimeZone.getDefault();
-						}
-						else {
-							throw new DomainException(
-									ErrorCode.SERVER_INVALID_TIMEZONE, 
-									"The timezone is missing.", 
-									noShortTimezone);
-						}
-					}
-				}
-				
-				// Get the scan.
-				JSONArray scan;
-				try {
-					scan = wifiDataJson.getJSONArray(JSON_KEY_WIFI_DATA_SCAN);
-				}
-				catch(JSONException e) {
 					if(Mode.ERROR.equals(mode)) {
-						scan = null;
+						tWifiData = null;
 					}
 					else {
 						throw new DomainException(
 								ErrorCode.MOBILITY_INVALID_WIFI_DATA, 
-								"The scan is missing.", 
-								e);
+								"The WiFi data is missing or invalid: " +
+									SensorDataColumnKey.WIFI_DATA.toString(
+										false), 
+								notShort);
 					}
 				}
-					
-					
-				// Set the WifiData.
-				tWifiData = new WifiData(time, timezone, scan, mode);
+			}
+			
+			// If the WiFi data was found and contained at least one key, 
+			// create a WifiData object. The one key refers to where Mobility
+			// heard nothing from WifiGpsLocationService.
+			if((wifiDataJson != null) && (wifiDataJson.length() > 0)) {
+				tWifiData = new WifiData(wifiDataJson, mode);
 			}
 			wifiData = tWifiData;
 		}
@@ -825,89 +1692,159 @@ public class MobilityPoint implements Comparable<MobilityPoint> {
 		}
 		
 		/**
-		 * Creates a JSONObject that represents the information in this object.
+		 * Creates a JSONObject that represents the sensor data with only the 
+		 * information whose column value is present or any of the columns that
+		 * belong to objects owned by this sensor data.
 		 * 
-		 * @return Returns a JSONObject that represents this object.
+		 * @param columns A collection of columns dictating which variables
+		 * 				  should be included in the resulting object. If 
+		 * 				  this is empty, a JSONObject with the mode only will  
+		 * 				  be returned. This cannot be null and if all columns 
+		 * 				  are desired, a quick fix is to use
+		 * 				  {@link SensorDataColumnKey#ALL_COLUMNS}.
 		 * 
-		 * @throws JSONException There was an error building the JSONObject.
+		 * @return Returns a JSONObject that represents this object with 
+		 * 		   only the requested columns.
+		 * 
+		 * @throws JSONException There was an error building the 
+		 * 						 JSONObject.
+		 * 
+		 * @throws DomainException The columns collection was null.
 		 */
 		public final JSONObject toJson(
-				final boolean abbreviated) 
-				throws JSONException {
+				final boolean abbreviated,
+				final Collection<ColumnKey> columns) 
+				throws JSONException, DomainException {
+			
+			if(columns == null) {
+				throw new DomainException("The list of columns cannot be null.");
+			}
 			
 			JSONObject result = new JSONObject();
 			
 			result.put(
-					(abbreviated) ?
-							JSON_KEY_SENSOR_DATA_MODE_SHORT :
-							JSON_KEY_SENSOR_DATA_MODE, 
-							mode.name().toLowerCase());
+					MobilityColumnKey.MODE.toString(abbreviated),
+					mode.name().toLowerCase());
 			
-			if(speed == null) {
-				// Don't put it in the JSON.
-			}
-			else if(speed.isInfinite()) {
-				if(Double.POSITIVE_INFINITY == speed.doubleValue()) {
+			if(columns.contains(SensorDataColumnKey.SPEED)) {
+				if(speed == null) {
+					// Don't put it in the JSON.
+				}
+				else if(speed.isInfinite()) {
+					if(Double.POSITIVE_INFINITY == speed.doubleValue()) {
+						result.put(
+								SensorDataColumnKey.SPEED.toString(
+										abbreviated),
+								"Infinity");
+					}
+					else {
+						result.put(
+								SensorDataColumnKey.SPEED.toString(
+										abbreviated),
+								"-Infinity");
+					}
+				}
+				else if(speed.isNaN()) {
 					result.put(
-							(abbreviated) ?
-									JSON_KEY_SPEED_SHORT :
-									JSON_KEY_SPEED, 
-							"Infinity");
+							SensorDataColumnKey.SPEED.toString(abbreviated),
+							"NaN");
 				}
 				else {
 					result.put(
-							(abbreviated) ?
-									JSON_KEY_SPEED_SHORT :
-									JSON_KEY_SPEED, 
-							"-Infinity");
+							SensorDataColumnKey.SPEED.toString(abbreviated), 
+							speed);
 				}
 			}
-			else if(speed.isNaN()) {
-				result.put(
-						(abbreviated) ?
-								JSON_KEY_SPEED_SHORT :
-								JSON_KEY_SPEED, 
-						"NaN");
-			}
-			else {
-				result.put(
-						(abbreviated) ?
-								JSON_KEY_SPEED_SHORT :
-								JSON_KEY_SPEED, 
-						speed);
-			}
 			
-			if(wifiData == null) {
-				result.put(
-						(abbreviated) ?
-								JSON_KEY_WIFI_DATA_SHORT :
-								JSON_KEY_WIFI_DATA,
-						new JSONObject());
-			}
-			else {
-				result.put(
-						(abbreviated) ?
-								JSON_KEY_WIFI_DATA_SHORT :
-								JSON_KEY_WIFI_DATA,
-						wifiData.toJson(abbreviated));
-			}
-			
-			if(accelData == null) {
-				// Don't put it in the JSON.
-			}
-			else {
-				JSONArray accelArray = new JSONArray();
-				for(AccelData accelRecord : accelData) {
-					accelArray.put(accelRecord.toJson());
+			if(columns.contains(SensorDataColumnKey.ACCELEROMETER_DATA) ||
+					AccelDataColumnKey.containsWifiDataColumnKey(columns)) {
+
+				if(accelData == null) {
+					// Don't put it in the JSON.
 				}
-				result.put(
-						(abbreviated) ?
-								JSON_KEY_ACCEL_DATA_SHORT :
-								JSON_KEY_ACCEL_DATA, 
-						accelArray);
+				else {
+					JSONArray accelArray = new JSONArray();
+					for(AccelData accelRecord : accelData) {
+						accelArray.put(accelRecord.toJson(columns));
+					}
+					result.put(
+							SensorDataColumnKey.ACCELEROMETER_DATA.toString(
+									abbreviated),
+							accelArray);
+				}
+			}
+			
+			if(columns.contains(SensorDataColumnKey.WIFI_DATA) ||
+					WifiDataColumnKey.containsWifiDataColumnKey(columns)) {
+				
+				if(wifiData == null) {
+					result.put(
+							SensorDataColumnKey.WIFI_DATA.toString(
+									abbreviated),
+							new JSONObject());
+				}
+				else {
+					result.put(
+							SensorDataColumnKey.WIFI_DATA.toString(
+									abbreviated),
+							wifiData.toJson(abbreviated, columns));
+				}
 			}
 			
 			return result;
+		}
+		
+		/**
+		 * Populates the appropriate indices in the 'result' with values based 
+		 * on the 'columns'. For example, if the first two columns were not 
+		 * sensor data columns, they would be skipped. If the third column was 
+		 * the sensor data's speed, the third index in the 'result' would be 
+		 * populated with this sensor data's speed value.
+		 * 
+		 * @param columns All of the columns in the 'result' list to populate. 
+		 * 				  This will skip all of those columns that are not 
+		 * 				  SensorDataColumnKey columns or columns belonging to
+		 * 				  the inner classes of SensorData.
+		 * 
+		 * @param result The result list whose values will be updated based on
+		 * 				 the 'columns'.
+		 * 
+		 * @throws DomainException The columns or result list was null or had 
+		 * 						   differing lengths.
+		 */
+		public final void toCsvRow(
+				final List<ColumnKey> columns,
+				final List<Object> result) 
+				throws DomainException {
+			
+			if(columns == null) {
+				throw new DomainException(
+						"The list of columns cannot be null.");
+			}
+			else if(result == null) {
+				throw new DomainException(
+						"The list of results cannot be null.");
+			}
+			else if(columns.size() != result.size()) {
+				throw new DomainException(
+						"The columns list and the result list were different lengths.");
+			}
+			
+			int index;
+			
+			if((index = columns.indexOf(SensorDataColumnKey.SPEED)) != -1) {
+				result.set(index, speed);
+			}
+			
+			if(accelData != null) {
+				for(AccelData currAccelData : accelData) {
+					currAccelData.toCsvRow(columns, result);
+				}
+			}
+			
+			if(wifiData != null) {
+				wifiData.toCsvRow(columns, result);
+			}
 		}
 	}
 	private final SensorData sensorData;
@@ -1169,35 +2106,45 @@ public class MobilityPoint implements Comparable<MobilityPoint> {
 			final PrivacyState privacyState) 
 			throws DomainException {
 		
+		String idString;
 		try {
-			id = UUID.fromString(mobilityPoint.getString(JSON_KEY_ID));
+			idString = 
+					mobilityPoint.getString(
+							MobilityColumnKey.ID.toString(false));
 		}
 		catch(JSONException e) {
 			throw new DomainException(
 					ErrorCode.MOBILITY_INVALID_ID, 
-					"The Mobility point's ID is missing.", 
+					"The Mobility point's ID is missing: " +
+							MobilityColumnKey.ID.toString(false), 
 					e);
+		}
+		try {
+			id = UUID.fromString(idString);
 		}
 		catch(IllegalArgumentException e) {
 			throw new DomainException(
 					ErrorCode.MOBILITY_INVALID_ID, 
-					"The Mobility point's ID is not a valid UUID.", 
+					"The Mobility point's ID is not a valid UUID: " + idString, 
 					e);
 		}
 		
 		// Get the time.
 		long tTime;
 		try {
-			tTime = mobilityPoint.getLong(JSON_KEY_TIME);
+			tTime = mobilityPoint.getLong(
+							MobilityColumnKey.TIME.toString(false));
 		}
 		catch(JSONException outerException) {
 			try {
-				tTime = mobilityPoint.getLong(JSON_KEY_TIME_SHORT);
+				tTime = mobilityPoint.getLong(
+								MobilityColumnKey.TIME.toString(true));
 			}
 			catch(JSONException innerException) {
 				throw new DomainException(
 						ErrorCode.SERVER_INVALID_TIME, 
-						"The time is missing.", 
+						"The time is missing: " + 
+								MobilityColumnKey.TIME.toString(false), 
 						innerException);
 			}
 		}
@@ -1208,52 +2155,80 @@ public class MobilityPoint implements Comparable<MobilityPoint> {
 		// to GMT.
 		TimeZone tTimezone;
 		try {
-			tTimezone = TimeZone.getTimeZone(mobilityPoint.getString(JSON_KEY_TIMEZONE));
+			tTimezone = 
+					TimeZone.getTimeZone(
+							mobilityPoint.getString(
+									MobilityColumnKey.TIMEZONE.toString(
+											false)));
 		}
 		catch(JSONException outerException) {
 			try {
-				tTimezone = TimeZone.getTimeZone(mobilityPoint.getString(JSON_KEY_TIMEZONE_SHORT));
+				tTimezone = 
+						TimeZone.getTimeZone(
+								mobilityPoint.getString(
+										MobilityColumnKey.TIMEZONE.toString(
+												true)));
 			}
 			catch(JSONException innerException) {
 				throw new DomainException(
 						ErrorCode.SERVER_INVALID_TIMEZONE, 
-						"The timezone is missing.", 
+						"The timezone is missing: " + 
+								MobilityColumnKey.TIMEZONE.toString(
+										false), 
 						innerException);
 			}
 		}
 		timezone = tTimezone;
 		
 		// Get the location status.
-		LocationStatus tLocationStatus;
+		String locationStatusString;
 		try {
-			tLocationStatus = LocationStatus.valueOf(mobilityPoint.getString(JSON_KEY_LOCATION_STATUS).toUpperCase());
+			locationStatusString = 
+					mobilityPoint.getString(
+							LocationColumnKey.STATUS.toString(false)
+					).toUpperCase();
 		}
 		catch(JSONException outerException) {
 			try {
-				tLocationStatus = LocationStatus.valueOf(mobilityPoint.getString(JSON_KEY_LOCATION_STATUS_SHORT).toUpperCase());
+				locationStatusString =
+						mobilityPoint.getString(
+								LocationColumnKey.STATUS.toString(true)
+						).toUpperCase();
 			}
 			catch(JSONException innerException) {
 				throw new DomainException(
 						ErrorCode.SERVER_INVALID_LOCATION_STATUS, 
-						"The location status is missing.", innerException);
+						"The location status is missing: " +
+								LocationColumnKey.STATUS.toString(false), 
+						innerException);
 			}
+		}
+		try {
+			locationStatus = LocationStatus.valueOf(locationStatusString);
 		}
 		catch(IllegalArgumentException e) {
 			throw new DomainException(
 					ErrorCode.SERVER_INVALID_LOCATION_STATUS, 
-					"The location status is unknown.", 
+					"The location status is unknown: " + locationStatusString, 
 					e);
 		}
-		locationStatus = tLocationStatus;
 		
 		// Get the location.
 		Location tLocation;
 		try {
-			tLocation = new Location(mobilityPoint.getJSONObject(JSON_KEY_LOCATION));
+			tLocation = 
+					new Location(
+							mobilityPoint.getJSONObject(
+									MobilityColumnKey.LOCATION.toString(
+											false)));
 		}
 		catch(JSONException outerException) {
 			try {
-				tLocation = new Location(mobilityPoint.getJSONObject(JSON_KEY_LOCATION_SHORT));
+				tLocation = 
+						new Location(
+								mobilityPoint.getJSONObject(
+										MobilityColumnKey.LOCATION.toString(
+												true)));
 			}
 			catch(JSONException innerException) {
 				// If there was no location information in the JSONObject, 
@@ -1265,7 +2240,9 @@ public class MobilityPoint implements Comparable<MobilityPoint> {
 				else {
 					throw new DomainException(
 							ErrorCode.SERVER_INVALID_LOCATION, 
-							"The location is missing.", 
+							"The location is missing: " +
+									MobilityColumnKey.LOCATION.toString(
+											false), 
 							innerException);
 				}
 			}
@@ -1276,19 +2253,23 @@ public class MobilityPoint implements Comparable<MobilityPoint> {
 		String subTypeString;
 		try {
 			subTypeString = 
-					mobilityPoint.getString(JSON_KEY_SUBTYPE).toUpperCase();
+					mobilityPoint.getString(
+							MobilityColumnKey.SUB_TYPE.toString(false)
+					).toUpperCase();
 		}
 		catch(JSONException notLong) {
 			try {
 				subTypeString = 
 						mobilityPoint
-							.getString(JSON_KEY_SUBTYPE_SHORT)
-							.toUpperCase();
+							.getString(
+									MobilityColumnKey.SUB_TYPE.toString(true)
+							).toUpperCase();
 			}
 			catch(JSONException notShort) {
 				throw new DomainException(
 						ErrorCode.MOBILITY_INVALID_SUBTYPE, 
-						"The subtype is missing.", 
+						"The subtype is missing: " +
+								MobilityColumnKey.SUB_TYPE.toString(false), 
 						notShort);
 			}
 		}
@@ -1308,19 +2289,23 @@ public class MobilityPoint implements Comparable<MobilityPoint> {
 		case MODE_ONLY:
 			String modeString;
 			try {
-				modeString = mobilityPoint.getString(JSON_KEY_MODE);
+				modeString = 
+						mobilityPoint.getString(
+								MobilityColumnKey.MODE.toString(false));
 			}
 			catch(JSONException outerException) {
 				try {
-					modeString = mobilityPoint.getString(JSON_KEY_MODE_SHORT);
+					modeString = 
+							mobilityPoint.getString(
+									MobilityColumnKey.MODE.toString(true));
 				}
 				catch(JSONException innerException) {
 					throw new DomainException(
 							ErrorCode.MOBILITY_INVALID_MODE, 
 							"The subtype is '" + 
 								SubType.MODE_ONLY.toString().toLowerCase() + 
-								"', but the required key is missing: " + 
-								JSON_KEY_MODE, 
+								"', but the required key is missing: " +
+								MobilityColumnKey.MODE.toString(false), 
 							innerException);
 				}
 			}
@@ -1342,13 +2327,21 @@ public class MobilityPoint implements Comparable<MobilityPoint> {
 			
 		case SENSOR_DATA:
 			try {
-				sensorData = new SensorData(mobilityPoint.getJSONObject(JSON_KEY_DATA));
+				sensorData = 
+						new SensorData(
+								mobilityPoint.getJSONObject(
+										MobilityColumnKey.SENSOR_DATA.toString(
+												true)));
 				mode = sensorData.mode;
 			}
 			catch(JSONException e) {
 				throw new DomainException(
 						ErrorCode.SERVER_INVALID_JSON, 
-						"The subtype is '" + SubType.SENSOR_DATA.toString().toLowerCase() + "', but the required key is missing: " + JSON_KEY_DATA,
+						"The subtype is '" + 
+							SubType.SENSOR_DATA.toString().toLowerCase() + 
+							"', but the required key is missing: " + 
+							MobilityColumnKey.SENSOR_DATA.toString(
+									true),
 						e);
 			}
 			break;
@@ -1706,6 +2699,42 @@ public class MobilityPoint implements Comparable<MobilityPoint> {
 		}
 		return result;
 	}
+
+	/**
+	 * Returns the WiFi scan from this data point if applicable. It is 
+	 * applicable only if this point is {@link SubType#SENSOR_DATA} and the 
+	 * mode is not {@link Mode#ERROR}.
+	 * 
+	 * @return The WifiScan from this data point.
+	 * 
+	 * @throws DomainException This call is not valid for this point.
+	 */
+	public final WifiScan getWifiScan() throws DomainException {
+		if(! SubType.SENSOR_DATA.equals(subType)) {
+			throw new DomainException(
+					"There is no WiFi scan for Mobility points that are not of the subtype " + 
+						SubType.SENSOR_DATA.toString());
+		}
+		if(Mode.ERROR.equals(mode)) {
+			throw new DomainException(
+					"There is now WiFi scan for Mobility points that are of the mode " + 
+						Mode.ERROR.toString());
+		}
+		if(sensorData.wifiData == null) {
+			throw new DomainException(
+					"There was no WiFi data generated for this point.");
+		}
+
+		Map<String, Double> scan = sensorData.wifiData.scan;
+		List<AccessPoint> accessPoints = 
+				new ArrayList<AccessPoint>(scan.size());
+		
+		for(String ssid : scan.keySet()) {
+			accessPoints.add(new AccessPoint(ssid, scan.get(ssid)));
+		}
+		
+		return new WifiScan(time, accessPoints);
+	}
 	
 	/**
 	 * Sets this Mobility point's classifier data from the server's classifier.
@@ -1772,39 +2801,205 @@ public class MobilityPoint implements Comparable<MobilityPoint> {
 	 * @throws JSONException There was an error creating this JSONObject.
 	 */
 	public final JSONObject toJson(
-			final boolean abbreviated, 
-			final boolean withData) 
-			throws JSONException {
+			final boolean abbreviated,
+			final Collection<ColumnKey> columns)
+			throws JSONException, DomainException {
+		
+		if(columns == null) {
+			throw new DomainException("The list of columns cannot be null.");
+		}
 		
 		JSONObject result = new JSONObject();
 		
-		result.put(JSON_KEY_ID, id.toString());
-		result.put(((abbreviated) ? JSON_KEY_TIMESTAMP_SHORT : JSON_KEY_TIMESTAMP), TimeUtils.getIso8601DateTimeString(new Date(time)));
-		result.put(((abbreviated) ? JSON_KEY_TIMEZONE_SHORT : JSON_KEY_TIMEZONE), timezone.getID());
-		result.put(((abbreviated) ? JSON_KEY_TIME_SHORT : JSON_KEY_TIME), time);
-		
-		result.put(((abbreviated) ? JSON_KEY_LOCATION_STATUS_SHORT : JSON_KEY_LOCATION_STATUS), locationStatus.toString().toLowerCase());
-		if(location != null) {
-			result.put(((abbreviated) ? JSON_KEY_LOCATION_SHORT : JSON_KEY_LOCATION), location.toJson(abbreviated));
+		if(columns.contains(MobilityColumnKey.ID)) {
+			result.put(MobilityColumnKey.ID.toString(abbreviated), id);
 		}
 		
-		result.put(((abbreviated) ? JSON_KEY_MODE_SHORT : JSON_KEY_MODE), mode.toString().toLowerCase());
-		
-		if(withData) {
-			// Subtype
-			result.put(((abbreviated) ? JSON_KEY_SUBTYPE_SHORT : JSON_KEY_SUBTYPE), subType.toString().toLowerCase());
+		if(columns.contains(MobilityColumnKey.MODE)) {
+			result.put(
+					MobilityColumnKey.MODE.toString(abbreviated), 
+					mode.toString().toLowerCase());
+		}
+	
+		if(columns.contains(MobilityColumnKey.TIME)) {
+			result.put(MobilityColumnKey.TIME.toString(abbreviated), time);
+		}
+	
+		if(columns.contains(MobilityColumnKey.TIMESTAMP)) {
+			Calendar calendar = Calendar.getInstance(timezone);
+			calendar.setTimeInMillis(time);
 			
-			// If subtype is mode-only, then just the mode.
-			if(SubType.MODE_ONLY.equals(subType)) {
-				result.put(((abbreviated) ? JSON_KEY_MODE_SHORT : JSON_KEY_MODE), mode.toString().toLowerCase());
+			result.put(
+					MobilityColumnKey.TIMESTAMP.toString(abbreviated), 
+					TimeUtils.getIso8601DateTimeString(calendar.getTime()));
+		}
+
+		if(columns.contains(MobilityColumnKey.TIMEZONE)) {
+			result.put(
+					MobilityColumnKey.TIMEZONE.toString(abbreviated), 
+					timezone.getID());
+		}
+
+		if(columns.contains(MobilityColumnKey.SUB_TYPE)) {
+			result.put(
+					MobilityColumnKey.SUB_TYPE.toString(abbreviated), 
+					subType.toString().toLowerCase());
+		}
+		
+		if(columns.contains(LocationColumnKey.STATUS)) {
+			result.put(
+					LocationColumnKey.STATUS.toString(abbreviated), 
+					locationStatus.toString().toLowerCase());
+		}
+
+		if(columns.contains(MobilityColumnKey.LOCATION) ||
+				LocationColumnKey.containsLocationColumnKey(columns)) {
+			if(location != null) {
+				result.put(
+						MobilityColumnKey.LOCATION.toString(abbreviated), 
+						location.toJson(abbreviated, columns));
 			}
-			// If subtype is sensor-data, then a data object.
-			else if(SubType.SENSOR_DATA.equals(subType)) {
-				result.put(JSON_KEY_DATA, sensorData.toJson(abbreviated));
-			}
+		}
+
+		if(SubType.SENSOR_DATA.equals(subType) &&
+				(columns.contains(MobilityColumnKey.SENSOR_DATA) ||
+				SensorDataColumnKey.containsSensorDataColumnKey(columns))) {
+			
+			result.put(
+					MobilityColumnKey.SENSOR_DATA.toString(abbreviated), 
+					sensorData.toJson(abbreviated, columns));
 		}
 		
 		return result;
+	}
+	
+	/**
+	 * Populates the indices in 'result' with a value referenced by 'columns'.
+	 * For example, if the third value in 'columns' is Mobility's time column
+	 * key, the third value in the result list will be set to this Mobility
+	 * point's time. This means that the result list must already be populated
+	 * with exactly as many values as exist in 'columns'.
+	 *
+	 * @param columns The columns to populate in the result list.
+	 * 
+	 * @param result The result list whose values will be overridden by their
+	 * 				 values in this Mobility point in their respective  
+	 * 				 indices.
+	 * 
+	 * @throws DomainException The columns or result list was null or weren't
+	 * 						   the same length.
+	 */
+	public final void toCsvRow(
+			final List<ColumnKey> columns, 
+			final List<Object> result)
+			throws DomainException {
+		
+		if(columns == null) {
+			throw new DomainException(
+					"The list of columns cannot be null.");
+		}
+		else if(result == null) {
+			throw new DomainException(
+					"The list of results cannot be null.");
+		}
+		else if(columns.size() != result.size()) {
+			throw new DomainException(
+					"The columns list and the result list were different lengths.");
+		}
+		
+		int index;
+		
+		if((index = columns.indexOf(MobilityColumnKey.ID)) != -1) {
+			result.set(index, id);
+		}
+		
+		if((index = columns.indexOf(MobilityColumnKey.MODE)) != -1) {
+			result.set(index, mode.toString().toLowerCase());
+		}
+		
+		if((index = columns.indexOf(MobilityColumnKey.TIME)) != -1) {
+			result.set(index, time);
+		}
+		
+		if((index = columns.indexOf(MobilityColumnKey.TIMESTAMP)) != -1) {
+			Calendar calendar = Calendar.getInstance(timezone);
+			calendar.setTimeInMillis(time);
+			
+			result.set(
+					index, 
+					TimeUtils.getIso8601DateTimeString(calendar.getTime()));
+		}
+		
+		if((index = columns.indexOf(MobilityColumnKey.TIMEZONE)) != -1) {
+			result.set(index, timezone.getID());
+		}
+		
+		if((index = columns.indexOf(MobilityColumnKey.SUB_TYPE)) != -1) {
+			result.set(index, subType.toString().toLowerCase());
+		}
+		
+		if((index = columns.indexOf(LocationColumnKey.STATUS)) != -1) {
+			result.set(index, locationStatus.toString().toLowerCase());
+		}
+		
+		if(columns.contains(MobilityColumnKey.LOCATION) ||
+				LocationColumnKey.containsLocationColumnKey(columns)) {
+			
+			if(location != null) {
+				location.toCsvRow(columns, result);
+			}
+		}
+		
+		if(SubType.SENSOR_DATA.equals(subType) &&
+				(columns.contains(MobilityColumnKey.SENSOR_DATA) ||
+				SensorDataColumnKey.containsSensorDataColumnKey(columns))) {
+			
+			sensorData.toCsvRow(columns, result);
+		}
+	}
+	
+	/**
+	 * Validates a string that represents some key related to Mobility, this
+	 * could be a Mobility key, a Location key, or any of Mobility inner class
+	 * keys, and converts it to the appropriate key.
+	 * 
+	 * @param key The key string to be validated.
+	 * 
+	 * @return A ColumnKey representing the appropriate key.
+	 * 
+	 * @throws DomainException The key was null or could not be decoded.
+	 */
+	public static List<ColumnKey> validateKeyString(
+			final String key) 
+			throws DomainException {
+		
+		if(key == null) {
+			throw new DomainException("The key cannot be null.");
+		}
+		
+		try {
+			if(key.startsWith(MobilityColumnKey.NAMESPACE)) {
+				return MobilityColumnKey.valueOfString(key);
+			}
+			else if(key.startsWith(LocationColumnKey.NAMESPACE)) {
+				return LocationColumnKey.valueOfString(key);
+			}
+			else if(key.startsWith(SensorDataColumnKey.NAMESPACE)) {
+				return SensorDataColumnKey.valueOfString(key);
+			}
+			else if(key.startsWith(AccelDataColumnKey.NAMESPACE)) {
+				return AccelDataColumnKey.valueOfString(key);
+			}
+			else if(key.startsWith(WifiDataColumnKey.NAMESPACE)) {
+				return WifiDataColumnKey.valueOfString(key);
+			}
+			else {
+				throw new DomainException("The key is unknown: " + key);
+			}
+		}
+		catch(IllegalArgumentException e) {
+			throw new DomainException("The key is unknown: " + key, e);
+		}
 	}
 
 	/*

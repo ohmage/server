@@ -15,7 +15,9 @@
  ******************************************************************************/
 package org.ohmage.request.mobility;
 
+import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.GregorianCalendar;
@@ -29,8 +31,12 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.cache.PreferenceCache;
+import org.ohmage.domain.ColumnKey;
+import org.ohmage.domain.Location.LocationColumnKey;
 import org.ohmage.domain.MobilityPoint;
+import org.ohmage.domain.MobilityPoint.MobilityColumnKey;
 import org.ohmage.exception.CacheMissException;
+import org.ohmage.exception.DomainException;
 import org.ohmage.exception.ServiceException;
 import org.ohmage.exception.ValidationException;
 import org.ohmage.request.InputKeys;
@@ -76,6 +82,14 @@ import org.ohmage.validator.UserValidators;
  *       WiFi scan results.</td>
  *     <td>false</td>
  *   </tr>
+ *   <tr>
+ *     <td>{@value org.ohmage.request.InputKeys#COLUMN_LIST}
+ *       </td>
+ *     <td>A list of the columns to return data. The order in this list will be
+ *       reflected in the resulting list. If omitted, the result will be all of
+ *       the columns available.</td>
+ *     <td>false</td>
+ *   </tr>
  * </table>
  * 
  * @author John Jenkins
@@ -83,9 +97,30 @@ import org.ohmage.validator.UserValidators;
 public class MobilityReadRequest extends UserRequest {
 	private static final Logger LOGGER = Logger.getLogger(MobilityReadRequest.class);
 	
+	private static final Collection<ColumnKey> DEFAULT_COLUMNS;
+	static {
+		Collection<ColumnKey> columnKeys = new ArrayList<ColumnKey>();
+		
+		columnKeys.add(MobilityColumnKey.ID);
+		columnKeys.add(MobilityColumnKey.MODE);
+		columnKeys.add(MobilityColumnKey.TIME);
+		columnKeys.add(MobilityColumnKey.TIMEZONE);
+		columnKeys.add(MobilityColumnKey.TIMESTAMP);
+		
+		columnKeys.add(LocationColumnKey.STATUS);
+		columnKeys.add(LocationColumnKey.LATITUDE);
+		columnKeys.add(LocationColumnKey.LONGITUDE);
+		columnKeys.add(LocationColumnKey.PROVIDER);
+		columnKeys.add(LocationColumnKey.ACCURACY);
+		columnKeys.add(LocationColumnKey.TIME);
+		columnKeys.add(LocationColumnKey.TIMEZONE);
+		
+		DEFAULT_COLUMNS = Collections.unmodifiableCollection(columnKeys);
+	}
+	
 	private final Date date;
 	private final String username;
-	private final boolean withSensorData;
+	private final Collection<ColumnKey> columns;
 	
 	private List<MobilityPoint> result;
 	
@@ -102,7 +137,7 @@ public class MobilityReadRequest extends UserRequest {
 		
 		Date tDate = null;
 		String tUsername = null;
-		boolean tWithSensorData = false;
+		Collection<ColumnKey> tColumns = DEFAULT_COLUMNS;
 		
 		if(! isFailed()) {
 			try {
@@ -150,7 +185,36 @@ public class MobilityReadRequest extends UserRequest {
 									InputKeys.MOBILITY_WITH_SENSOR_DATA);
 				}
 				else if(t.length == 1) {
-					tWithSensorData = MobilityValidators.validateIncludeSensorDataValue(t[0]);
+					if(MobilityValidators.validateIncludeSensorDataValue(t[0])) {
+						tColumns = MobilityColumnKey.ALL_COLUMNS;
+					}
+				}
+				
+				t = getParameterValues(InputKeys.COLUMN_LIST);
+				if(t.length > 1) {
+					throw new ValidationException(
+							ErrorCode.MOBILITY_INVALID_COLUMN_LIST,
+							"Multiple column lists were given: " +
+									InputKeys.COLUMN_LIST);
+				}
+				else if(t.length == 1) {
+					if(! StringUtils.isEmptyOrWhitespaceOnly(t[0])) {
+						if(! tColumns.equals(DEFAULT_COLUMNS)) {
+							throw new ValidationException(
+									ErrorCode.MOBILITY_INVALID_COLUMN_LIST,
+									"Both '" +
+										InputKeys.MOBILITY_WITH_SENSOR_DATA +
+										"' and '" +
+										InputKeys.COLUMN_LIST +
+										"' were present. Only one may be present.");
+						}
+						else {
+							tColumns = 
+									MobilityValidators.validateColumns(
+											t[0],
+											true);
+						}
+					}
 				}
 			}
 			catch(ValidationException e) {
@@ -161,7 +225,7 @@ public class MobilityReadRequest extends UserRequest {
 		
 		date = tDate;
 		username = tUsername;
-		withSensorData = tWithSensorData;
+		columns = tColumns;
 		
 		result = Collections.emptyList();
 	}
@@ -247,9 +311,15 @@ public class MobilityReadRequest extends UserRequest {
 		
 		for(MobilityPoint mobilityPoint : result) {
 			try {
-				resultJson.put(mobilityPoint.toJson(true, withSensorData));
+				resultJson.put(mobilityPoint.toJson(true, columns));
 			}
 			catch(JSONException e) {
+				LOGGER.error("Error creating the JSONObject.", e);
+				setFailed();
+				resultJson = null;
+				break;
+			}
+			catch(DomainException e) {
 				LOGGER.error("Error creating the JSONObject.", e);
 				setFailed();
 				resultJson = null;
