@@ -304,6 +304,10 @@ public final class UserServices {
 	 * 					   user's personal information entry in the database
 	 * 					   should one not exist.
 	 * 
+	 * @return A sanitized UserPersonal object to avoid the database exceptions
+	 * 		   that were being thrown when a user's personal information was 
+	 *  	   being updated with its current value.
+	 * 
 	 * @throws ServiceException Thrown if the 'personalInfo' object is not null
 	 * 							nor is it empty, there is not a personal
 	 * 							information entry for this user in the 
@@ -313,7 +317,7 @@ public final class UserServices {
 	 * 							database. Also, it is thrown if there is an 
 	 * 							error. 
 	 */
-	public void verifyUserHasOrCanCreatePersonalInfo(
+	public UserPersonal validateUserPersonalInfo(
 			final String username, final UserPersonal personalInfo) 
 			throws ServiceException {
 		
@@ -340,12 +344,57 @@ public final class UserServices {
 								ErrorCode.USER_INVALID_PERSONAL_ID_VALUE, 
 								"The user doesn't have personal information yet, and a personal ID is necessary to create one.");
 					}
+					
+					return personalInfo;
+				}
+				else {
+					String firstName;
+					String lastName;
+					String organization;
+					String personalId;
+					
+					UserPersonal info =
+							userQueries.getPersonalInfoForUser(username);
+					
+					if(info.getFirstName().equals(personalInfo.getFirstName())) {
+						firstName = null;
+					}
+					else {
+						firstName = personalInfo.getFirstName();
+					}
+					
+					if(info.getLastName().equals(personalInfo.getLastName())) {
+						lastName = null;
+					}
+					else {
+						lastName = personalInfo.getLastName();
+					}
+					
+					if(info.getOrganization().equals(personalInfo.getOrganization())) {
+						organization = null;
+					}
+					else {
+						organization = personalInfo.getOrganization();
+					}
+					
+					if(info.getPersonalId().equals(personalInfo.getPersonalId())) {
+						personalId = null;
+					}
+					else {
+						personalId = personalInfo.getPersonalId();
+					}
+					
+					return new UserPersonal(
+							firstName, lastName, organization, personalId, 
+							personalInfo.getEmailAddress(), personalInfo.getJsonData());
 				}
 			}
 			catch(DataAccessException e) {
 				throw new ServiceException(e);
 			}
 		}
+		
+		return personalInfo;
 	}
 	
 	/**

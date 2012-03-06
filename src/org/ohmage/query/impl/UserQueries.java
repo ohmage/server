@@ -181,7 +181,7 @@ public class UserQueries extends Query implements IUserQueries {
 	private static final String SQL_INSERT_USER_PERSONAL =
 		"INSERT INTO user_personal(user_id, first_name, last_name, organization, personal_id) " +
 		"VALUES ((" +
-			"SELECT Id " +
+			"SELECT id " +
 			"FROM user " +
 			"WHERE username = ?" +
 		"),?,?,?,?)";
