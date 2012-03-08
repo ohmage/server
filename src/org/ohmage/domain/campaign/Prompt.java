@@ -598,7 +598,7 @@ public abstract class Prompt extends SurveyItem {
 			throws DomainException {
 		
 		try {
-			NoResponse noResponse = NoResponse.valueOf(pair.getValue());
+			NoResponse noResponse = NoResponse.valueOf(pair.getValue().toUpperCase());
 			
 			switch(noResponse) {
 			case SKIPPED:
