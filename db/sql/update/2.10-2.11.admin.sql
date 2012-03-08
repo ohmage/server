@@ -1,18 +1,15 @@
--- BEFORE RUNNING THIS SCRIPT:
--- These operations must all be run by a user that has enough permissions to
--- create new users and grant them permissions on tables.
--- 1) Give the user 'andwellness' full permissions on the database 'ohmage', 
---    which doesn't yet exist.
---      GRANT ALL PRIVILEGES ON ohmage.* TO 'andwellness'@'localhost';
---
--- 2) Create a user call 'ohmage';
---      CREATE USER 'ohmage'@'localhost' IDENTIFIED BY '&!sickly';
---
--- 3) Give 'ohmage' all permissions on the still non-existant table.
---      GRANT ALL PRIVILEGES ON ohmage.* TO 'ohmage'@'localhost';
+-- This script needs to be run by a database administrator.
 
--- Renames the database to ohmage.
+-- Create the 'ohmage' database.
 CREATE DATABASE ohmage;
+
+-- Create the 'ohmage' user.
+CREATE USER 'ohmage'@'localhost' IDENTIFIED BY '&!sickly';
+
+-- Give the new 'ohmage' user all permissions on the 'ohmage' database.
+GRANT ALL PRIVILEGES ON ohmage.* TO 'ohmage'@'localhost';
+
+-- Move the tables in the old database to the new database.
 RENAME TABLE 
     andwellness.annotation TO ohmage.annotation,
     andwellness.annotation_annotation TO ohmage.annotation_annotation,
@@ -52,8 +49,5 @@ RENAME TABLE
     andwellness.user_role_campaign TO ohmage.user_role_campaign;
 DROP DATABASE andwellness;
 
--- AFTER RUNNING THIS SCRIPT:
--- These operations must be run by a user that has enough permissions to drop
--- existing users.
--- 1) Remove the user 'andwellness'.
---      DROP USER 'andwellness'@'localhost';
+-- Delete the old 'andwellness' user.
+DROP USER 'andwellness'@'localhost';
