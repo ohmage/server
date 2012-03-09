@@ -19,9 +19,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.log4j.Logger;
-import org.json.JSONObject;
 import org.ohmage.annotator.Annotator.ErrorCode;
-import org.ohmage.domain.UserPersonal;
 import org.ohmage.exception.ServiceException;
 import org.ohmage.exception.ValidationException;
 import org.ohmage.request.InputKeys;
@@ -47,6 +45,11 @@ import org.ohmage.validator.UserValidators;
  *     <td>{@value org.ohmage.request.InputKeys#USERNAME}</td>
  *     <td>The username of the user to update.</td>
  *     <td>true</td>
+ *   </tr>
+ *   <tr>
+ *     <td>{@value org.ohmage.request.InputKeys#EMAIL_ADDRESS}</td>
+ *     <td>The user's email address.</td>
+ *     <td>false+</td>
  *   </tr>
  *   <tr>
  *     <td>{@value org.ohmage.request.InputKeys#USER_ADMIN}</td>
@@ -90,20 +93,6 @@ import org.ohmage.validator.UserValidators;
  *     <td>The personal identifier for the user.</td>
  *     <td>false*</td>
  *   </tr>
- *   <tr>
- *     <td>{@value org.ohmage.request.InputKeys#EMAIL_ADDRESS}</td>
- *     <td>The user's email address.</td>
- *     <td>false+</td>
- *   </tr>
- *   <tr>
- *     <td>{@value org.ohmage.request.InputKeys#USER_JSON_DATA}</td>
- *     <td>Additional data for the user as a JSONObject. Note: Uploading a new
- *       JSONObject will erase the old one; therefore, if you want to add or
- *       remove some information from the JSONObject, you should first query
- *       for the current JSONObject, update that object, and send it back 
- *       through this API.</td>
- *     <td>false+</td>
- *   </tr>
  * </table>
  * <br />
  * * If a user does not already have a personal information entry in the 
@@ -119,13 +108,18 @@ public class UserUpdateRequest extends UserRequest {
 	private static final Logger LOGGER = Logger.getLogger(UserUpdateRequest.class);
 	
 	private final String username;
+	private final String emailAddress;
 	
 	private final Boolean admin;
 	private final Boolean enabled;
 	private final Boolean newAccount;
 	private final Boolean campaignCreationPrivilege;
 	
-	private final UserPersonal personalInfo;
+	//private final UserPersonal personalInfo;
+	private final String firstName;
+	private final String lastName;
+	private final String organization;
+	private final String personalId;
 	
 	/**
 	 * Creates a new user update request.
@@ -139,6 +133,7 @@ public class UserUpdateRequest extends UserRequest {
 		LOGGER.info("Creating a user update request.");
 		
 		String tUsername = null;
+		String tEmailAddress = null;
 		
 		Boolean tAdmin = null;
 		Boolean tEnabled = null;
@@ -149,8 +144,6 @@ public class UserUpdateRequest extends UserRequest {
 		String tLastName = null;
 		String tOrganization = null;
 		String tPersonalId = null;
-		String tEmailAddress = null;
-		JSONObject tJsonData = null;
 		
 		try {
 			tUsername = UserValidators.validateUsername(httpRequest.getParameter(InputKeys.USERNAME));
@@ -161,6 +154,12 @@ public class UserUpdateRequest extends UserRequest {
 			else if(httpRequest.getParameterValues(InputKeys.USERNAME).length > 1) {
 				setFailed(ErrorCode.USER_INVALID_USERNAME, "Multiple username parameters were given.");
 				throw new ValidationException("Multiple username parameters were given.");
+			}
+			
+			tEmailAddress = UserValidators.validateEmailAddress(httpRequest.getParameter(InputKeys.EMAIL_ADDRESS));
+			if((tEmailAddress != null) && (httpRequest.getParameterValues(InputKeys.EMAIL_ADDRESS).length > 1)) {
+				setFailed(ErrorCode.USER_INVALID_EMAIL_ADDRESS, "Multiple email address parameters were given.");
+				throw new ValidationException("Multiple email address parameters were given.");
 			}
 			
 			tAdmin = UserValidators.validateAdminValue(httpRequest.getParameter(InputKeys.USER_ADMIN));
@@ -210,18 +209,6 @@ public class UserUpdateRequest extends UserRequest {
 				setFailed(ErrorCode.USER_INVALID_PERSONAL_ID_VALUE, "Multiple personal ID parameters were given.");
 				throw new ValidationException("Multiple personal ID parameters were given.");
 			}
-			
-			tEmailAddress = UserValidators.validateEmailAddress(httpRequest.getParameter(InputKeys.EMAIL_ADDRESS));
-			if((tEmailAddress != null) && (httpRequest.getParameterValues(InputKeys.EMAIL_ADDRESS).length > 1)) {
-				setFailed(ErrorCode.USER_INVALID_EMAIL_ADDRESS, "Multiple email address parameters were given.");
-				throw new ValidationException("Multiple email address parameters were given.");
-			}
-			
-			tJsonData = UserValidators.validateJsonData(httpRequest.getParameter(InputKeys.USER_JSON_DATA));
-			if((tJsonData != null) && (httpRequest.getParameterValues(InputKeys.USER_JSON_DATA).length > 1)) {
-				setFailed(ErrorCode.USER_INVALID_JSON_DATA, "Multiple JSON data parameters were given.");
-				throw new ValidationException("Multiple JSON data parameters were given.");
-			}
 		}
 		catch(ValidationException e) {
 			e.failRequest(this);
@@ -229,13 +216,18 @@ public class UserUpdateRequest extends UserRequest {
 		}
 		
 		username = tUsername;
+		emailAddress = tEmailAddress;
 		
 		admin = tAdmin;
 		enabled = tEnabled;
 		newAccount = tNewAccount;
 		campaignCreationPrivilege = tCampaignCreationPrivilege;
 		
-		personalInfo = new UserPersonal(tFirstName, tLastName, tOrganization, tPersonalId, tEmailAddress, tJsonData);
+		//personalInfo = new UserPersonal(tFirstName, tLastName, tOrganization, tPersonalId, tEmailAddress, tJsonData);
+		firstName = tFirstName;
+		lastName = tLastName;
+		organization = tOrganization;
+		personalId = tPersonalId;
 	}
 
 	/**
@@ -257,10 +249,25 @@ public class UserUpdateRequest extends UserRequest {
 			UserServices.instance().checkUserExistance(username, true);
 			
 			LOGGER.info("Verify that either the user to be updated already has a personal record or that enough information was provided to create a new one.");
-			UserServices.instance().verifyUserHasOrCanCreatePersonalInfo(username, personalInfo);
+			UserServices.instance().verifyUserHasOrCanCreatePersonalInfo(
+					username,
+					firstName,
+					lastName,
+					organization,
+					personalId);
 			
 			LOGGER.info("Updating the user.");
-			UserServices.instance().updateUser(username, admin, enabled, newAccount, campaignCreationPrivilege, personalInfo);
+			UserServices.instance().updateUser(
+					username, 
+					emailAddress,
+					admin, 
+					enabled, 
+					newAccount, 
+					campaignCreationPrivilege,
+					firstName,
+					lastName,
+					organization,
+					emailAddress);
 		}
 		catch(ServiceException e) {
 			e.failRequest(this);

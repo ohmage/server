@@ -28,9 +28,11 @@ import javax.sql.DataSource;
 
 import org.apache.log4j.Logger;
 import org.ohmage.domain.Clazz;
+import org.ohmage.domain.Clazz.Role;
 import org.ohmage.exception.DataAccessException;
 import org.ohmage.query.IUserClassQueries;
 import org.ohmage.util.StringUtils;
+import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.SingleColumnRowMapper;
 
@@ -104,6 +106,16 @@ public final class UserClassQueries extends Query implements IUserClassQueries {
 		"AND c.id = uc.class_id " +
 		"AND uc.user_class_role_id = ucr.id " +
 		"AND ucr.role = ?";
+	
+	// Retrieves all of the classes and their respective role for a user. Each 
+	// rows is a unique class-role combination.
+	private static final String SQL_GET_CLASSES_AND_ROLE_FOR_USER =
+			"SELECT c.urn, ucr.role " +
+			"FROM user u, class c, user_class uc, user_class_role ucr " +
+			"WHERE u.username = ? " +
+			"AND u.id = uc.user_id " +
+			"AND uc.class_id = c.id " +
+			"AND uc.user_class_role_id = ucr.id";
 	
 	/**
 	 * Creates this object.
@@ -229,6 +241,63 @@ public final class UserClassQueries extends Query implements IUserClassQueries {
 							sql + 
 						"' with parameters: " + 
 							parameters.toString(),
+					e);
+		}
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.ohmage.query.IUserClassQueries#getClassAndRoleForUser(java.lang.String)
+	 */
+	@Override
+	public Map<String, Clazz.Role> getClassAndRoleForUser(
+			final String username)
+			throws DataAccessException {
+		
+		try {
+			return getJdbcTemplate().query(
+					SQL_GET_CLASSES_AND_ROLE_FOR_USER,
+					new Object[] { username },
+					new ResultSetExtractor<Map<String, Clazz.Role>>() {
+						/**
+						 * Extracts the data creating the class ID to class 
+						 * role map.
+						 */
+						@Override
+						public Map<String, Role> extractData(
+								final ResultSet rs)
+								throws SQLException,
+								org.springframework.dao.DataAccessException {
+							
+							Map<String, Clazz.Role> result =
+									new HashMap<String, Clazz.Role>();
+							
+							while(rs.next()) {
+								Clazz.Role role;
+								try {
+									role = Clazz.Role.getValue(
+											rs.getString("role"));
+								}
+								catch(IllegalArgumentException e) {
+									throw new SQLException(
+											"The role is not a valid role.",
+											e);
+								}
+								
+								result.put(rs.getString("urn"), role);
+							}
+							
+							return result;
+						}
+					}
+			);
+		}
+		catch(org.springframework.dao.DataAccessException e) {
+			throw new DataAccessException(
+					"Error executing SQL '" + 
+						SQL_GET_CLASSES_AND_ROLE_FOR_USER
+						+ "' with parameter: " + 
+						username, 
 					e);
 		}
 	}

@@ -18,17 +18,26 @@ package org.ohmage.query.impl;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 
 import javax.sql.DataSource;
 
 import org.apache.log4j.Logger;
-import org.json.JSONObject;
 import org.ohmage.cache.PreferenceCache;
-import org.ohmage.domain.UserPersonal;
+import org.ohmage.domain.Clazz;
+import org.ohmage.domain.UserInformation;
+import org.ohmage.domain.UserInformation.UserPersonal;
+import org.ohmage.domain.campaign.Campaign;
 import org.ohmage.exception.CacheMissException;
 import org.ohmage.exception.DataAccessException;
+import org.ohmage.exception.DomainException;
 import org.ohmage.query.IUserQueries;
+import org.ohmage.query.impl.QueryResult.QueryResultBuilder;
+import org.ohmage.util.StringUtils;
+import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.SingleColumnRowMapper;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
@@ -153,26 +162,19 @@ public class UserQueries extends Query implements IUserQueries {
 	
 	private static final String SQL_GET_USERNAMES_LIKE_EMAIL_ADDRESS =
 		"SELECT username " +
-		"FROM user, user_personal " +
-		"WHERE user.id = user_id " +
-		"AND email_address LIKE ?";
-	
-	private static final String SQL_GET_USERNAMES_LIKE_JSON_DATA =
-		"SELECT username " +
-		"FROM user, user_personal " +
-		"WHERE user.id = user_id " +
-		"AND json_data LIKE ?";
+		"FROM user " +
+		"WHERE email_address LIKE ?";
 	
 	// Retrieves the personal information about a user.
 	private static final String SQL_GET_USER_PERSONAL =
-		"SELECT up.first_name, up.last_name, up.organization, up.personal_id, up.email_address, up.json_data " +
+		"SELECT up.first_name, up.last_name, up.organization, up.personal_id " +
 		"FROM user u, user_personal up " +
 		"WHERE u.username = ? " +
 		"AND u.id = up.user_id";
 	
 	// Inserts a new user.
 	private static final String SQL_INSERT_USER = 
-		"INSERT INTO user(username, password, admin, enabled, new_account, campaign_creation_privilege) " +
+		"INSERT INTO user(username, email_address, password, admin, enabled, new_account, campaign_creation_privilege) " +
 		"VALUES (?,?,?,?,?,?)";
 	
 	// Inserts a new personal information record for a user. Note: this doesn't
@@ -181,7 +183,7 @@ public class UserQueries extends Query implements IUserQueries {
 	private static final String SQL_INSERT_USER_PERSONAL =
 		"INSERT INTO user_personal(user_id, first_name, last_name, organization, personal_id) " +
 		"VALUES ((" +
-			"SELECT Id " +
+			"SELECT id " +
 			"FROM user " +
 			"WHERE username = ?" +
 		"),?,?,?,?)";
@@ -258,23 +260,9 @@ public class UserQueries extends Query implements IUserQueries {
 	
 	// Updates a user's email address in their personal information record.
 	private static final String SQL_UPDATE_EMAIL_ADDRESS = 
-		"UPDATE user_personal " +
+		"UPDATE user " +
 		"SET email_address = ? " +
-		"WHERE user_id = (" +
-			"SELECT Id " +
-			"FROM user " +
-			"WHERE username = ?" +
-		")";
-	
-	// Updates a user's json_data in their personal information record.
-	private static final String SQL_UPDATE_JSON_DATA = 
-		"UPDATE user_personal " +
-		"SET json_data = ? " +
-		"WHERE user_id = (" +
-			"SELECT Id " +
-			"FROM user " +
-			"WHERE username = ?" +
-		")";
+		"WHERE username = ?";
 	
 	// Deletes the user.
 	private static final String SQL_DELETE_USER = 
@@ -286,28 +274,15 @@ public class UserQueries extends Query implements IUserQueries {
 	 * 
 	 * @param dataSource The DataSource to use to query the database.
 	 */
-	private UserQueries(DataSource dataSource) {
+	private UserQueries(final DataSource dataSource) {
 		super(dataSource);
 	}
 	
-	/**
-	 * Creates a new user.
-	 * 
-	 * @param username The username for the new user.
-	 * 
-	 * @param password The hashed password for the new user.
-	 * 
-	 * @param admin Whether or not the user should initially be an admin.
-	 * 
-	 * @param enabled Whether or not the user should initially be enabled.
-	 * 
-	 * @param newAccount Whether or not the new user must change their password
-	 * 					 before using any other APIs.
-	 * 
-	 * @param campaignCreationPrivilege Whether or not the new user is allowed
-	 * 									to create campaigns.
+	/*
+	 * (non-Javadoc)
+	 * @see org.ohmage.query.IUserQueries#createUser(java.lang.String, java.lang.String, java.lang.String, java.lang.Boolean, java.lang.Boolean, java.lang.Boolean, java.lang.Boolean)
 	 */
-	public void createUser(String username, String hashedPassword, Boolean admin, Boolean enabled, Boolean newAccount, Boolean campaignCreationPrivilege) 
+	public void createUser(String username, String hashedPassword, String emailAddress, Boolean admin, Boolean enabled, Boolean newAccount, Boolean campaignCreationPrivilege) 
 		throws DataAccessException {
 		
 		Boolean tAdmin = admin;
@@ -346,12 +321,12 @@ public class UserQueries extends Query implements IUserQueries {
 			
 			// Insert the new user.
 			try {
-				getJdbcTemplate().update(SQL_INSERT_USER, new Object[] { username, hashedPassword, tAdmin, tEnabled, tNewAccount, tCampaignCreationPrivilege });
+				getJdbcTemplate().update(SQL_INSERT_USER, new Object[] { username, emailAddress, hashedPassword, tAdmin, tEnabled, tNewAccount, tCampaignCreationPrivilege });
 			}
 			catch(org.springframework.dao.DataAccessException e) {
 				transactionManager.rollback(status);
 				throw new DataAccessException("Error while executing SQL '" + SQL_INSERT_USER + "' with parameters: " +
-						username + ", " + hashedPassword + ", " + tAdmin + ", " + tEnabled + ", " + tNewAccount + ", " + tCampaignCreationPrivilege, e);
+						username + ", " + emailAddress + ", " + hashedPassword + ", " + tAdmin + ", " + tEnabled + ", " + tNewAccount + ", " + tCampaignCreationPrivilege, e);
 			}
 			
 			// Commit the transaction.
@@ -768,31 +743,6 @@ public class UserQueries extends Query implements IUserQueries {
 					e);
 		}
 	}
-
-	/*
-	 * (non-Javadoc)
-	 * @see org.ohmage.query.IUserQueries#getUsernamesFromPartialJsonData(java.lang.String)
-	 */
-	@Override
-	public List<String> getUsernamesFromPartialJsonData(String partialJsonData)
-			throws DataAccessException {
-		
-		try {
-			return getJdbcTemplate().query(
-					SQL_GET_USERNAMES_LIKE_JSON_DATA, 
-					new Object[] { "%" + partialJsonData + "%" }, 
-					new SingleColumnRowMapper<String>()
-				);
-		}
-		catch(org.springframework.dao.DataAccessException e) {
-			throw new DataAccessException(
-					"Error executing SQL '" +
-						SQL_GET_USERNAMES_LIKE_JSON_DATA +
-						"' with parameter: " +
-						"%" + partialJsonData + "%",
-					e);
-		}
-	}
 	
 	/**
 	 * Retrieves the personal information for a user or null if the user 
@@ -814,14 +764,23 @@ public class UserQueries extends Query implements IUserQueries {
 					new Object[] { username }, 
 					new RowMapper<UserPersonal>() {
 						@Override
-						public UserPersonal mapRow(ResultSet rs, int rowNum) throws SQLException {
-							return new UserPersonal(
-									rs.getString("first_name"),
-									rs.getString("last_name"),
-									rs.getString("organization"),
-									rs.getString("personal_id"),
-									rs.getString("email_address"),
-									rs.getString("json_data"));
+						public UserPersonal mapRow(
+								final ResultSet rs, 
+								final int rowNum) 
+								throws SQLException {
+							
+							try {
+								return new UserPersonal(
+										rs.getString("first_name"),
+										rs.getString("last_name"),
+										rs.getString("organization"),
+										rs.getString("personal_id"));
+							} 
+							catch(DomainException e) {
+								throw new SQLException(
+										"Error creating the user's personal information.",
+										e);
+							}
 						}
 					});
 		}
@@ -837,39 +796,382 @@ public class UserQueries extends Query implements IUserQueries {
 		}
 	}
 	
-	/**
-	 * Updates a user's account information.
-	 * 
-	 * @param request The Request that is performing this service.
-	 * 
-	 * @param username The username of the user whose information is to be
-	 * 				   updated.
-	 * 
-	 * @param admin Whether or not the user should be an admin. A null value
-	 * 			    indicates that this field should not be updated.
-	 * 
-	 * @param enabled Whether or not the user's account should be enabled. A
-	 * 				  null value indicates that this field should not be
-	 * 				  updated.
-	 * 
-	 * @param newAccount Whether or not the user should be required to change
-	 * 					 their password. A null value indicates that this field
-	 * 					 should not be updated.
-	 * 
-	 * @param campaignCreationPrivilege Whether or not the user should be 
-	 * 									allowed to create campaigns. A null
-	 * 									value indicates that this field should
-	 * 									not be updated.
-	 * 
-	 * @param personalInfo Personal information about a user. If this is null,
-	 * 					   none of the user's personal information will be
-	 * 					   updated. If it is not null, all non-null values 
-	 * 					   inside this object will be used to update the user's
-	 * 					   personal information database record; all null 
-	 * 					   values will be ignored.
+	/*
+	 * (non-Javadoc)
+	 * @see org.ohmage.query.IUserQueries#getUserInformation(java.util.Collection, java.lang.String, java.lang.String, java.lang.Boolean, java.lang.Boolean, java.lang.Boolean, java.lang.Boolean, java.lang.String, java.lang.String, java.lang.String, java.lang.String, boolean, long, long)
 	 */
-	public void updateUser(String username, Boolean admin, Boolean enabled, Boolean newAccount, Boolean campaignCreationPrivilege, UserPersonal personalInfo) 
-		throws DataAccessException {
+	public QueryResult<UserInformation> getUserInformation(
+			final Collection<String> usernames,
+			final String likeUsername,
+			final String emailAddress,
+			final Boolean admin,
+			final Boolean enabled,
+			final Boolean newAccount,
+			final Boolean canCreateCampaigns,
+			final String firstName,
+			final String lastName,
+			final String organization,
+			final String personalId,
+			final boolean like,
+			final long numToSkip,
+			final long numToReturn)
+			throws DataAccessException {
+		
+		// The initial SELECT selects everything.
+		StringBuilder sql = 
+				new StringBuilder(
+						"SELECT u.username, " +
+							"u.email_address, " +
+							"u.admin, " +
+							"u.enabled, " +
+							"u.new_account, " +
+							"u.campaign_creation_privilege, " +
+							"up.first_name, " +
+							"up.last_name, " +
+							"up.organization, " +
+							"up.personal_id " +
+						"FROM user u " +
+						"LEFT JOIN user_personal up ON " +
+							"u.id = up.user_id");
+		
+		// The initial parameter list doesn't have any items.
+		Collection<Object> parameters = new LinkedList<Object>();
+		
+		// The initial WHERE clause with a flag to indicate if any components
+		// of the WHERE clause had been added.
+		boolean whereClauseNeeded = false;
+		StringBuilder whereClause = new StringBuilder(" WHERE");
+		
+		// If the list of usernames is present, add a WHERE clause component
+		// that limits the results to only those users whose exact username is
+		// in the list.
+		if(usernames != null) {
+			whereClause
+				.append((whereClauseNeeded) ? " AND " : " ")
+				.append("u.username IN ")
+				.append(StringUtils.generateStatementPList(usernames.size()));
+			
+			parameters.addAll(usernames);
+			
+			whereClauseNeeded = true;
+		}
+		
+		// If the "like username" value is present, add a WHERE clause 
+		// component that limits the results to only those users whose username
+		// is LIKE this string.
+		if(likeUsername != null) {
+			whereClause
+				.append((whereClauseNeeded) ? " AND " : " ")
+				.append("u.username LIKE ?");
+			
+			parameters.add("%" + likeUsername + "%");
+			
+			whereClauseNeeded = true;
+		}
+		
+		// If "emailAddress" is present, add a WHERE clause component that  
+		// limits the results to only those whose email address either contains  
+		// or exactly matches this value based on the 'like' parameter.
+		if(emailAddress != null) {
+			whereClause
+				.append((whereClauseNeeded) ? " AND " : " ")
+				.append("up.email_address ")
+				.append((like) ? " LIKE ?" : " = ?");
+			
+			if(like) {
+				parameters.add("%" + emailAddress + "%");
+			}
+			else {
+				parameters.add(emailAddress);
+			}
+			
+			whereClauseNeeded = true;
+		}
+		
+		// If "admin" is present, add a WHERE clause component that limits the
+		// results to only those whose admin boolean is the same as this 
+		// boolean.
+		if(admin != null) {
+			whereClause
+				.append((whereClauseNeeded) ? " AND " : " ")
+				.append("u.admin = ?");
+			
+			parameters.add(admin);
+			
+			whereClauseNeeded = true;
+		}
+		
+		// If "enabled" is present, add a WHERE clause component that limits 
+		// the results to only those whose enabled value is the same as this
+		// boolean
+		if(enabled != null) {
+			whereClause
+				.append((whereClauseNeeded) ? " AND " : " ")
+				.append("u.enabled = ?");
+			
+			parameters.add(enabled);
+			
+			whereClauseNeeded = true;
+		}
+		
+		// If "newAccount" is present, add a WHERE clause component that limits
+		// the results to only those whose new account status is the same as
+		// this boolean.
+		if(newAccount != null) {
+			whereClause
+				.append((whereClauseNeeded) ? " AND " : " ")
+				.append("u.new_account = ?");
+			
+			parameters.add(newAccount);
+			
+			whereClauseNeeded = true;
+		}
+		
+		// If "canCreateCampaigns" is present, add a WHERE clause component 
+		// that limits the results to only those whose campaign creation
+		// privilege is the same as this boolean.
+		if(canCreateCampaigns != null) {
+			whereClause
+				.append((whereClauseNeeded) ? " AND " : " ")
+				.append("u.campaign_creation_privilege = ?");
+			
+			parameters.add(canCreateCampaigns);
+			
+			whereClauseNeeded = true;
+		}
+		
+		// If "firstName" is present, add a WHERE clause component that limits
+		// the results to only those whose first name either contains or 
+		// exactly matches this value based on the 'like' parameter.
+		if(firstName != null) {
+			whereClause
+				.append((whereClauseNeeded) ? " AND " : " ")
+				.append("up.first_name ")
+				.append((like) ? " LIKE ?" : " = ?");
+			
+			if(like) {
+				parameters.add("%" + firstName + "%");
+			}
+			else {
+				parameters.add(firstName);
+			}
+			
+			whereClauseNeeded = true;
+		}
+		
+		// If "lastName" is present, add a WHERE clause component that limits
+		// the results to only those whose last name either contains or exactly
+		// matches this value based on the 'like' parameter.
+		if(lastName != null) {
+			whereClause
+				.append((whereClauseNeeded) ? " AND " : " ")
+				.append("up.last_name ")
+				.append((like) ? " LIKE ?" : " = ?");
+			
+			if(like) {
+				parameters.add("%" + lastName + "%");
+			}
+			else {
+				parameters.add(lastName);
+			}
+			
+			whereClauseNeeded = true;
+		}
+		
+		// If "organization" is present, add a WHERE clause component that 
+		// limits the results to only those whose organization either contains 
+		// or exactly matches this value based on the 'like' parameter.
+		if(organization != null) {
+			whereClause
+				.append((whereClauseNeeded) ? " AND " : " ")
+				.append("up.organization ")
+				.append((like) ? " LIKE ?" : " = ?");
+			
+			if(like) {
+				parameters.add("%" + organization + "%");
+			}
+			else {
+				parameters.add(organization);
+			}
+			
+			whereClauseNeeded = true;
+		}
+		
+		// If "personalId" is present, add a WHERE clause component that limits 
+		// the results to only those whose personal ID either contains or 
+		// exactly matches this value based on the 'like' parameter.
+		if(personalId != null) {
+			whereClause
+				.append((whereClauseNeeded) ? " AND " : " ")
+				.append("up.personal_id ")
+				.append((like) ? " LIKE ?" : " = ?");
+			
+			if(like) {
+				parameters.add("%" + personalId + "%");
+			}
+			else {
+				parameters.add(personalId);
+			}
+			
+			whereClauseNeeded = true;
+		}
+		
+		// Finally, add the WHERE clause to the SQL if any components were 
+		// added.
+		if(whereClauseNeeded) {
+			sql.append(whereClause);
+		}
+		
+		// Always order the results by username to facilitate paging.
+		sql.append(" ORDER BY u.username");
+		
+		// Returns the results as queried by the database.
+		try {
+			return getJdbcTemplate().query(
+					sql.toString(), 
+					parameters.toArray(),
+					new ResultSetExtractor<QueryResult<UserInformation>>() {
+						/**
+						 * Extracts the data into the results and then returns
+						 * the total number of results found.
+						 */
+						@Override
+						public QueryResult<UserInformation> extractData(
+								final ResultSet rs)
+								throws SQLException,
+								org.springframework.dao.DataAccessException {
+							
+							try {
+								QueryResultBuilder<UserInformation> builder =
+										new QueryResultBuilder<UserInformation>();
+								
+								int numSkipped = 0;
+								while(numSkipped++ < numToSkip) {
+									if(rs.next()) {
+										builder.increaseTotalNumResults();
+									}
+									else {
+										return builder.getQueryResult();
+									}
+								}
+								
+								long numReturned = 0;
+								while(numReturned++ < numToReturn) {
+									if(rs.next()) {
+										builder.addResult(mapRow(rs));
+									}
+									else {
+										return builder.getQueryResult();
+									}
+								}
+								
+								while(rs.next()) {
+									builder.increaseTotalNumResults();
+								}
+								
+								return builder.getQueryResult();
+							}
+							catch(DomainException e) {
+								throw new org.springframework.dao.DataIntegrityViolationException(
+										"There was an error building the result.",
+										e);
+							}
+						}
+						
+						/**
+						 * Creates a new UserInformation object from the 
+						 * user information.
+						 */
+						private UserInformation mapRow(
+								final ResultSet rs)
+								throws SQLException {
+							
+							String username = rs.getString("username");
+							String emailAddress = 
+									rs.getString("email_address");
+							
+							boolean admin = rs.getBoolean("admin");
+							boolean enabled = rs.getBoolean("enabled");
+							boolean newAccount = rs.getBoolean("new_account");
+							boolean canCreateCampaigns =
+									rs.getBoolean(
+											"campaign_creation_privilege");
+							
+							String firstName = rs.getString("first_name");
+							String lastName = rs.getString("last_name");
+							String organization = rs.getString("organization");
+							String personalId = rs.getString("personal_id");
+							
+							UserPersonal personalInfo = null;
+							if((firstName != null) &&
+									(lastName != null) &&
+									(organization != null) &&
+									(personalId != null)) {
+								
+								try {
+									personalInfo = new UserPersonal(
+											firstName,
+											lastName,
+											organization,
+											personalId);
+								} 
+								catch(DomainException e) {
+									throw new SQLException(
+											"Error creating the user's personal information.",
+											e);
+								}
+							}
+							
+							try {
+								return new UserInformation(
+										username,
+										emailAddress,
+										admin,
+										enabled,
+										newAccount,
+										canCreateCampaigns,
+										Collections.
+											<String, Set<Campaign.Role>>
+												emptyMap(),
+										Collections.
+											<String, Clazz.Role>
+												emptyMap(),
+										personalInfo);
+							}
+							catch(DomainException e) {
+								throw new SQLException(
+										"Error creating the user's information.",
+										e);
+							}
+						}
+					}
+			);
+		}
+		catch(org.springframework.dao.DataAccessException e) {
+			throw new DataAccessException(
+					"Error executing the following SQL '" + 
+						sql.toString() + 
+						"' with parameter(s): " + 
+						parameters);
+		}
+	}
+	
+	/*
+	 * (non-Javadoc)
+	 * @see org.ohmage.query.IUserQueries#updateUser(java.lang.String, java.lang.String, java.lang.Boolean, java.lang.Boolean, java.lang.Boolean, java.lang.Boolean, java.lang.String, java.lang.String, java.lang.String, java.lang.String)
+	 */
+	public void updateUser(
+			final String username, 
+			final String emailAddress,
+			final Boolean admin, 
+			final Boolean enabled, 
+			final Boolean newAccount, 
+			final Boolean campaignCreationPrivilege,
+			final String firstName,
+			final String lastName,
+			final String organization,
+			final String personalId) 
+			throws DataAccessException {
 		
 		// Create the transaction.
 		DefaultTransactionDefinition def = new DefaultTransactionDefinition();
@@ -879,6 +1181,17 @@ public class UserQueries extends Query implements IUserQueries {
 			// Begin the transaction.
 			PlatformTransactionManager transactionManager = new DataSourceTransactionManager(getDataSource());
 			TransactionStatus status = transactionManager.getTransaction(def);
+			
+			if(emailAddress != null) {
+				try {
+					getJdbcTemplate().update(SQL_UPDATE_EMAIL_ADDRESS, emailAddress, username);
+				}
+				catch(org.springframework.dao.DataAccessException e) {
+					transactionManager.rollback(status);
+					throw new DataAccessException("Error executing the following SQL '" + SQL_UPDATE_EMAIL_ADDRESS + "' with parameters: " + 
+							emailAddress + ", " + username, e);
+				}
+			}
 			
 			// Update the admin value if it's not null.
 			if(admin != null) {
@@ -928,123 +1241,71 @@ public class UserQueries extends Query implements IUserQueries {
 				}
 			}
 			
-			// Update the personal information if it's not null.
-			if((personalInfo != null) && (! personalInfo.isEmpty())) {
-				// Figure out if the user already has a personal information
-				// entry.
-				Boolean userHasPersonalInfo = false;
+			if(userHasPersonalInfo(username)) {
+				if(firstName != null) {
+					try {
+						getJdbcTemplate().update(SQL_UPDATE_FIRST_NAME, firstName, username);
+					}
+					catch(org.springframework.dao.DataAccessException e) {
+						transactionManager.rollback(status);
+						throw new DataAccessException("Error executing SQL '" + SQL_UPDATE_FIRST_NAME + "' with parameters: " +
+								firstName + ", " + username, e);
+					}
+				}
+				
+				if(lastName != null) {
+					try {
+						getJdbcTemplate().update(SQL_UPDATE_LAST_NAME, lastName, username);
+					}
+					catch(org.springframework.dao.DataAccessException e) {
+						transactionManager.rollback(status);
+						throw new DataAccessException("Error executing SQL '" + SQL_UPDATE_LAST_NAME + "' with parameters: " +
+								lastName + ", " + username, e);
+					}
+				}
+				
+				if(organization != null) {
+					try {
+						getJdbcTemplate().update(SQL_UPDATE_ORGANIZATION, organization, username);
+					}
+					catch(org.springframework.dao.DataAccessException e) {
+						transactionManager.rollback(status);
+						throw new DataAccessException("Error executing SQL '" + SQL_UPDATE_ORGANIZATION + "' with parameters: " +
+								organization + ", " + username, e);
+					}
+				}
+				
+				if(personalId != null) {
+					try {
+						getJdbcTemplate().update(SQL_UPDATE_PERSONAL_ID, personalId, username);
+					}
+					catch(org.springframework.dao.DataAccessException e) {
+						transactionManager.rollback(status);
+						throw new DataAccessException("Error executing SQL '" + SQL_UPDATE_PERSONAL_ID + "' with parameters: " +
+								personalId + ", " + username, e);
+					}
+				}
+			}
+			else {
 				try {
-					userHasPersonalInfo = userHasPersonalInfo(username);
+					getJdbcTemplate().update(
+							SQL_INSERT_USER_PERSONAL, 
+							username, 
+							firstName, 
+							lastName, 
+							organization, 
+							personalId);
 				}
-				catch(DataAccessException e) {
+				catch(org.springframework.dao.DataAccessException e) {
 					transactionManager.rollback(status);
-					throw e;
-				}
-				
-				// If the user already has a personal information entry,
-				// update it.
-				if(userHasPersonalInfo) {
-					// Update the first name if it's not null.
-					String firstName = personalInfo.getFirstName();
-					if(firstName != null) {
-						try {
-							getJdbcTemplate().update(SQL_UPDATE_FIRST_NAME, firstName, username);
-						}
-						catch(org.springframework.dao.DataAccessException e) {
-							transactionManager.rollback(status);
-							throw new DataAccessException("Error executing SQL '" + SQL_UPDATE_FIRST_NAME + "' with parameters: " +
-									firstName + ", " + username, e);
-						}
-					}
-					
-					// Update the last name if it's not null.
-					String lastName = personalInfo.getLastName();
-					if(lastName != null) {
-						try {
-							getJdbcTemplate().update(SQL_UPDATE_LAST_NAME, lastName, username);
-						}
-						catch(org.springframework.dao.DataAccessException e) {
-							transactionManager.rollback(status);
-							throw new DataAccessException("Error executing SQL '" + SQL_UPDATE_LAST_NAME + "' with parameters: " +
-									lastName + ", " + username, e);
-						}
-					}
-					
-					// Update the organization if it's not null.
-					String organization = personalInfo.getOrganization();
-					if(organization != null) {
-						try {
-							getJdbcTemplate().update(SQL_UPDATE_ORGANIZATION, organization, username);
-						}
-						catch(org.springframework.dao.DataAccessException e) {
-							transactionManager.rollback(status);
-							throw new DataAccessException("Error executing SQL '" + SQL_UPDATE_ORGANIZATION + "' with parameters: " +
-									organization + ", " + username, e);
-						}
-					}
-					
-					// Update the personal ID if it's not null.
-					String personalId = personalInfo.getPersonalId();
-					if(personalId != null) {
-						try {
-							getJdbcTemplate().update(SQL_UPDATE_PERSONAL_ID, personalId, username);
-						}
-						catch(org.springframework.dao.DataAccessException e) {
-							transactionManager.rollback(status);
-							throw new DataAccessException("Error executing SQL '" + SQL_UPDATE_PERSONAL_ID + "' with parameters: " +
-									personalId + ", " + username, e);
-						}
-					}
-				}
-				// If the user does not have a personal information entry,
-				// create a new one.
-				else {
-					try {
-						getJdbcTemplate().update(
-								SQL_INSERT_USER_PERSONAL, 
-								username, 
-								personalInfo.getFirstName(), 
-								personalInfo.getLastName(), 
-								personalInfo.getOrganization(), 
-								personalInfo.getPersonalId());
-					}
-					catch(org.springframework.dao.DataAccessException e) {
-						transactionManager.rollback(status);
-						throw new DataAccessException(
-								"Error executing SQL '" + SQL_INSERT_USER_PERSONAL + "' with parameters: " +
-									username + ", " + 
-									personalInfo.getFirstName() + ", " + 
-									personalInfo.getLastName() + ", " + 
-									personalInfo.getOrganization() + ", " + 
-									personalInfo.getPersonalId(), 
-								e);
-					}
-				}
-				
-				// Update the user's email address if it's not null.
-				String emailAddress = personalInfo.getEmailAddress();
-				if(emailAddress != null) {
-					try {
-						getJdbcTemplate().update(SQL_UPDATE_EMAIL_ADDRESS, emailAddress, username);
-					}
-					catch(org.springframework.dao.DataAccessException e) {
-						transactionManager.rollback(status);
-						throw new DataAccessException("Error executing the following SQL '" + SQL_UPDATE_EMAIL_ADDRESS + "' with parameters: " + 
-								emailAddress + ", " + username, e);
-					}
-				}
-				
-				// Update the user's JSON data if it's not null.
-				JSONObject jsonData = personalInfo.getJsonData();
-				if(jsonData != null) {
-					try {
-						getJdbcTemplate().update(SQL_UPDATE_JSON_DATA, jsonData.toString(), username);
-					}
-					catch(org.springframework.dao.DataAccessException e) {
-						transactionManager.rollback(status);
-						throw new DataAccessException("Error executing the following SQL '" + SQL_UPDATE_JSON_DATA + "' with parameters: " + 
-								jsonData.toString() + ", " + username, e);
-					}
+					throw new DataAccessException(
+							"Error executing SQL '" + SQL_INSERT_USER_PERSONAL + "' with parameters: " +
+								username + ", " + 
+								firstName + ", " + 
+								lastName + ", " + 
+								organization + ", " + 
+								personalId, 
+							e);
 				}
 			}
 			

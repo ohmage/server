@@ -18,17 +18,20 @@ package org.ohmage.query;
 import java.util.Collection;
 import java.util.List;
 
-import org.ohmage.domain.UserPersonal;
+import org.ohmage.domain.UserInformation;
+import org.ohmage.domain.UserInformation.UserPersonal;
 import org.ohmage.exception.DataAccessException;
+import org.ohmage.query.impl.QueryResult;
 
 public interface IUserQueries {
-
 	/**
 	 * Creates a new user.
 	 * 
 	 * @param username The username for the new user.
 	 * 
-	 * @param password The hashed password for the new user.
+	 * @param hashedPassword The hashed password for the new user.
+	 * 
+	 * @param emailAddress The user's email address, which may be null.
 	 * 
 	 * @param admin Whether or not the user should initially be an admin.
 	 * 
@@ -40,9 +43,15 @@ public interface IUserQueries {
 	 * @param campaignCreationPrivilege Whether or not the new user is allowed
 	 * 									to create campaigns.
 	 */
-	void createUser(String username, String hashedPassword, Boolean admin,
-			Boolean enabled, Boolean newAccount,
-			Boolean campaignCreationPrivilege) throws DataAccessException;
+	void createUser(
+			final String username, 
+			final String hashedPassword, 
+			final String emailAddress,
+			final Boolean admin,
+			final Boolean enabled, 
+			final Boolean newAccount,
+			final Boolean campaignCreationPrivilege) 
+			throws DataAccessException;
 
 	/**
 	 * Returns whether or not a user exists.
@@ -134,6 +143,21 @@ public interface IUserQueries {
 	 * @throws DataAccessException Thrown if there is an error.
 	 */
 	List<String> getUsernamesFromPartialUsername(String username) 
+			throws DataAccessException;
+	
+	/**
+	 * Retrieves the usernames of all of the users that have personal  
+	 * information, have an email address, and whose email address contains the
+	 * given one.
+	 * 
+	 * @param partialEmailAddress The partial email address to match.
+	 * 
+	 * @return The list of usernames.
+	 * 
+	 * @throws DataAccessException Thrown if there is an error.
+	 */
+	List<String> getUsernamesFromPartialEmailAddress(
+			String partialEmailAddress)
 			throws DataAccessException;
 	
 	/**
@@ -241,34 +265,6 @@ public interface IUserQueries {
 	 */
 	List<String> getUsernamesFromPartialPersonalId(String partialPersonalId)
 			throws DataAccessException;
-	
-	/**
-	 * Retrieves the usernames of all of the users that have personal  
-	 * information, have an email address, and whose email address contains the
-	 * given one.
-	 * 
-	 * @param partialEmailAddress The partial email address to match.
-	 * 
-	 * @return The list of usernames.
-	 * 
-	 * @throws DataAccessException Thrown if there is an error.
-	 */
-	List<String> getUsernamesFromPartialEmailAddress(
-			String partialEmailAddress)
-			throws DataAccessException;
-	
-	/**
-	 * Retrieves the usernames of all of the users that have personal  
-	 * information, have JSON data, and whose JSON data contains the given one.
-	 * 
-	 * @param partialJsonData The partial JSON data to match.
-	 * 
-	 * @return The list of usernames.
-	 * 
-	 * @throws DataAccessException Thrown if there is an error.
-	 */
-	List<String> getUsernamesFromPartialJsonData(String partialJsonData)
-			throws DataAccessException;
 
 	/**
 	 * Retrieves the personal information for a user or null if the user 
@@ -285,14 +281,91 @@ public interface IUserQueries {
 	 */
 	UserPersonal getPersonalInfoForUser(String username)
 			throws DataAccessException;
+	
+	/**
+	 * Gathers the information about a person including the classes and 
+	 * campaigns to which they belong. Any of the Object parameters may be 
+	 * null.
+	 * 
+	 * @param usernames Limits the results to only those whose username is in
+	 * 					this list.
+	 * 
+	 * @param likeUsername Limits the results to only those whose username is
+	 * 					   like this username. The 'like' parameter has no
+	 * 					   effect on this parameter.
+	 * 					
+	 * @param emailAddress Limits the results to only those accounts that have
+	 * 					   an email address and where that email address 
+	 * 					   matches or is like this value, see 'like'.
+	 * 
+	 * @param admin Limits the results to only those accounts whose admin value
+	 * 				matches this value.
+	 * 
+	 * @param enabled Limits the results to only those accounts whose enabled
+	 * 				  value matches this value.
+	 * 
+	 * @param newAccount Limits the results to only those accounts whose new
+	 * 					 account value matches this value.
+	 * 
+	 * @param canCreateCampaigns Limits the results to only those accounts 
+	 * 							 whose new account status matches this value.
+	 * 							 
+	 * @param firstName Limits the results to only those accounts that have
+	 * 					personal information and whose first name matches or is
+	 * 					like this value, see 'like'.
+	 * 
+	 * @param lastName Limits the results to only those accounts that have 
+	 * 				   personal information and whose last name matches or is
+	 * 				   like this value, see 'like'.
+	 * 
+	 * @param organization Limits the results to only those accounts that have
+	 * 					   personal information and whose organization value
+	 * 					   matches or is like this value, see 'like'.
+	 * 
+	 * @param personalId Limits the results to only those accounts that have a
+	 * 					 personal ID and where that personal ID matches or is
+	 * 					 like this value, see 'like'.
+	 * 
+	 * @param like Switches the SQL to use LIKE instead of a direct matching. 
+	 * 			   This only applies to the parameters that mention it.
+	 * 
+	 * @param numToSkip The number of results to skip. The results are sorted
+	 * 					alphabetically by username.
+	 * 
+	 * @param numToReturn The number of results to return. The results are 
+	 * 					  sorted alphabetically by username.
+	 * 
+	 * @return A QueryResult object containing the users' information and the
+	 * 		   total number of results.
+	 * 
+	 * @throws DataAccessException There was an error aggregating the 
+	 * 							   information.
+	 */
+	public QueryResult<UserInformation> getUserInformation(
+			final Collection<String> usernames,
+			final String likeUsername,
+			final String emailAddress,
+			final Boolean admin,
+			final Boolean enabled,
+			final Boolean newAccount,
+			final Boolean canCreateCampaigns,
+			final String firstName,
+			final String lastName,
+			final String organization,
+			final String personalId,
+			final boolean like,
+			final long numToSkip,
+			final long numToReturn)
+			throws DataAccessException;
 
 	/**
 	 * Updates a user's account information.
 	 * 
-	 * @param request The Request that is performing this service.
-	 * 
 	 * @param username The username of the user whose information is to be
 	 * 				   updated.
+	 * 
+	 * @param emailAddress The user's new email address. A null value indicates
+	 * 					   that this value should not be updated.
 	 * 
 	 * @param admin Whether or not the user should be an admin. A null value
 	 * 			    indicates that this field should not be updated.
@@ -310,16 +383,30 @@ public interface IUserQueries {
 	 * 									value indicates that this field should
 	 * 									not be updated.
 	 * 
-	 * @param personalInfo Personal information about a user. If this is null,
-	 * 					   none of the user's personal information will be
-	 * 					   updated. If it is not null, all non-null values 
-	 * 					   inside this object will be used to update the user's
-	 * 					   personal information database record; all null 
-	 * 					   values will be ignored.
+	 * @param firstName The user's new first name. A null value indicates that
+	 * 					this field should not be updated.
+	 * 
+	 * @param lastName The users's last name. A null value indicates that this
+	 * 				   field should not be updated.
+	 * 
+	 * @param organization The user's new organization. A null value indicates
+	 * 					   that this field should not be updated.
+	 * 
+	 * @param personalId The user's new personal ID. A null value indicates 
+	 * 					 that this field should not be updated.
 	 */
-	void updateUser(String username, Boolean admin, Boolean enabled,
-			Boolean newAccount, Boolean campaignCreationPrivilege,
-			UserPersonal personalInfo) throws DataAccessException;
+	void updateUser(
+			final String username, 
+			final String emailAddress,
+			final Boolean admin, 
+			final Boolean enabled,
+			final Boolean newAccount, 
+			final Boolean campaignCreationPrivilege,
+			final String firstName,
+			final String lastName,
+			final String organization,
+			final String personalId) 
+			throws DataAccessException;
 
 	/**
 	 * Updates a user's password.
@@ -337,5 +424,4 @@ public interface IUserQueries {
 	 * @param usernames A Collection of usernames for the users to delete.
 	 */
 	void deleteUsers(Collection<String> usernames) throws DataAccessException;
-
 }

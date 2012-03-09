@@ -56,7 +56,7 @@ import org.ohmage.domain.Document;
 import org.ohmage.domain.MobilityPoint;
 import org.ohmage.domain.MobilityPoint.MobilityColumnKey;
 import org.ohmage.domain.ServerConfig;
-import org.ohmage.domain.UserPersonal;
+import org.ohmage.domain.UserInformation.UserPersonal;
 import org.ohmage.domain.UserSummary;
 import org.ohmage.domain.campaign.Campaign;
 import org.ohmage.domain.campaign.SurveyResponse;

@@ -24,7 +24,7 @@ import java.util.Set;
 
 import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.domain.Clazz;
-import org.ohmage.domain.UserPersonal;
+import org.ohmage.domain.UserInformation.UserPersonal;
 import org.ohmage.exception.DataAccessException;
 import org.ohmage.exception.ServiceException;
 import org.ohmage.query.IUserClassQueries;

@@ -74,6 +74,20 @@ public interface IUserClassQueries {
 			final String username, 
 			final Set<String> classIds) 
 			throws DataAccessException;
+	
+	/**
+	 * Returns a Map of all classes and the user's respective role in that 
+	 * class for all classes to which the user is associated.
+	 * 
+	 * @param username The user's username.
+	 * 
+	 * @return A map of class ID to the user's respective role.
+	 * 
+	 * @throws DataAccessException There was an error.
+	 */
+	public Map<String, Clazz.Role> getClassAndRoleForUser(
+			final String username)
+			throws DataAccessException;
 
 	/**
 	 * Returns the set of all class IDs and their names with which a user is

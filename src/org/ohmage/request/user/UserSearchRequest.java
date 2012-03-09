@@ -17,8 +17,6 @@ package org.ohmage.request.user;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -141,6 +139,7 @@ public class UserSearchRequest extends UserRequest {
 	private static final Logger LOGGER = Logger.getLogger(UserSearchRequest.class);
 	
 	private final String username;
+	private final String emailAddress;
 	private final Boolean admin;
 	private final Boolean enabled;
 	private final Boolean newAccount;
@@ -149,14 +148,12 @@ public class UserSearchRequest extends UserRequest {
 	private final String lastName;
 	private final String organization;
 	private final String personalId;
-	private final String emailAddress;
-	private final String jsonData;
 	
 	private final int numToSkip;
 	private final int numToReturn;
 	
-	private final Map<String, UserInformation> userInformation;
-	private int totalNumResults;
+	private final Collection<UserInformation> userInformation;
+	private long totalNumResults;
 	
 	/**
 	 * Builds this request based on the information in the HTTP request.
@@ -168,6 +165,7 @@ public class UserSearchRequest extends UserRequest {
 		super(httpRequest, TokenLocation.EITHER);
 		
 		String tUsername = null;
+		String tEmailAddress = null;
 		Boolean tAdmin = null;
 		Boolean tEnabled = null;
 		Boolean tNewAccount = null;
@@ -176,8 +174,6 @@ public class UserSearchRequest extends UserRequest {
 		String tLastName = null;
 		String tOrganization = null;
 		String tPersonalId = null;
-		String tEmailAddress = null;
-		String tJsonData = null;
 		
 		int tNumToSkip = 0;
 		int tNumToReturn = User.MAX_NUM_TO_RETURN;
@@ -200,6 +196,22 @@ public class UserSearchRequest extends UserRequest {
 					}
 					else {
 						tUsername = t[0];
+					}
+				}
+				
+				t = getParameterValues(InputKeys.EMAIL_ADDRESS);
+				if(t.length > 1) {
+					throw new ValidationException(
+							ErrorCode.USER_INVALID_EMAIL_ADDRESS,
+							"Multiple email address values were given: " +
+								InputKeys.EMAIL_ADDRESS);
+				}
+				else if(t.length == 1) {
+					if(StringUtils.isEmptyOrWhitespaceOnly(t[0])) {
+						tEmailAddress = null;
+					}
+					else {
+						tEmailAddress = t[0];
 					}
 				}
 				
@@ -312,38 +324,6 @@ public class UserSearchRequest extends UserRequest {
 					}
 				}
 				
-				t = getParameterValues(InputKeys.EMAIL_ADDRESS);
-				if(t.length > 1) {
-					throw new ValidationException(
-							ErrorCode.USER_INVALID_EMAIL_ADDRESS,
-							"Multiple email address values were given: " +
-								InputKeys.EMAIL_ADDRESS);
-				}
-				else if(t.length == 1) {
-					if(StringUtils.isEmptyOrWhitespaceOnly(t[0])) {
-						tEmailAddress = null;
-					}
-					else {
-						tEmailAddress = t[0];
-					}
-				}
-				
-				t = getParameterValues(InputKeys.USER_JSON_DATA);
-				if(t.length > 1) {
-					throw new ValidationException(
-							ErrorCode.USER_INVALID_JSON_DATA,
-							"Multiple JSON data values were given: " +
-								InputKeys.USER_JSON_DATA);
-				}
-				else if(t.length == 1) {
-					if(StringUtils.isEmptyOrWhitespaceOnly(t[0])) {
-						tJsonData = null;
-					}
-					else {
-						tJsonData = t[0];
-					}
-				}
-				
 				t = getParameterValues(InputKeys.NUM_TO_SKIP);
 				if(t.length > 1) {
 					throw new ValidationException(
@@ -373,6 +353,7 @@ public class UserSearchRequest extends UserRequest {
 		}
 		
 		username = tUsername;
+		emailAddress = tEmailAddress;
 		admin = tAdmin;
 		enabled = tEnabled;
 		newAccount = tNewAccount;
@@ -381,13 +362,11 @@ public class UserSearchRequest extends UserRequest {
 		lastName = tLastName;
 		organization = tOrganization;
 		personalId = tPersonalId;
-		emailAddress = tEmailAddress;
-		jsonData = tJsonData;
 		
 		numToSkip = tNumToSkip;
 		numToReturn = tNumToReturn;
 		
-		userInformation = new HashMap<String, UserInformation>();
+		userInformation = new ArrayList<UserInformation>();
 	}
 
 	/*
@@ -407,9 +386,9 @@ public class UserSearchRequest extends UserRequest {
 			UserServices.instance().verifyUserIsAdmin(getUser().getUsername());
 			
 			LOGGER.info("Searching for the users that satisfy the parameters.");
-			Collection<String> usernames = new ArrayList<String>();
 			totalNumResults = UserServices.instance().userSearch(
 						username, 
+						emailAddress,
 						admin, 
 						enabled, 
 						newAccount, 
@@ -418,19 +397,9 @@ public class UserSearchRequest extends UserRequest {
 						lastName, 
 						organization, 
 						personalId, 
-						emailAddress, 
-						jsonData,
 						numToSkip,
 						numToReturn,
-						usernames);
-			
-			// Get the user's information.
-			LOGGER.info("Collecting information about each of the users.");
-			for(String username : usernames) {
-				userInformation.put(
-						username,
-						UserServices.instance().getUserInformation(username));
-			}
+						userInformation);
 		}
 		catch(ServiceException e) {
 			e.failRequest(this);
@@ -458,10 +427,10 @@ public class UserSearchRequest extends UserRequest {
 			try {
 				metadata.put(JSON_KEY_TOTAL_NUM_RESULTS, totalNumResults);
 				
-				for(String username : userInformation.keySet()) {
+				for(UserInformation userInfo : userInformation) {
 					result.put(
-							username, 
-							userInformation.get(username).toJson());
+							userInfo.getUsername(), 
+							userInfo.toJson());
 				}
 			}
 			catch(JSONException e) {

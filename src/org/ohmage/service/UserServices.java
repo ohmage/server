@@ -16,9 +16,7 @@
 package org.ohmage.service;
 
 import java.net.URL;
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -31,7 +29,7 @@ import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.domain.Clazz;
 import org.ohmage.domain.User;
 import org.ohmage.domain.UserInformation;
-import org.ohmage.domain.UserPersonal;
+import org.ohmage.domain.UserInformation.UserPersonal;
 import org.ohmage.domain.UserSummary;
 import org.ohmage.domain.campaign.Campaign;
 import org.ohmage.exception.DataAccessException;
@@ -42,6 +40,7 @@ import org.ohmage.query.IUserCampaignQueries;
 import org.ohmage.query.IUserClassQueries;
 import org.ohmage.query.IUserImageQueries;
 import org.ohmage.query.IUserQueries;
+import org.ohmage.query.impl.QueryResult;
 
 /**
  * This class contains the services for users.
@@ -115,6 +114,8 @@ public final class UserServices {
 	 * 
 	 * @param password The password for the new user.
 	 * 
+	 * @param emailAddress The user's email address or null.
+	 * 
 	 * @param admin Whether or not the user should initially be an admin.
 	 * 
 	 * @param enabled Whether or not the user should initially be enabled.
@@ -127,15 +128,20 @@ public final class UserServices {
 	 * 
 	 * @throws ServiceException Thrown if there is an error.
 	 */
-	public void createUser(final String username, final String password, 
-			final Boolean admin, final Boolean enabled, 
-			final Boolean newAccount, final Boolean campaignCreationPrivilege)
+	public void createUser(
+			final String username, 
+			final String password, 
+			final String emailAddress,
+			final Boolean admin, 
+			final Boolean enabled, 
+			final Boolean newAccount, 
+			final Boolean campaignCreationPrivilege)
 			throws ServiceException {
 		
 		try {
 			String hashedPassword = BCrypt.hashpw(password, BCrypt.gensalt(User.BCRYPT_COMPLEXITY));
 			
-			userQueries.createUser(username, hashedPassword, admin, enabled, newAccount, campaignCreationPrivilege);
+			userQueries.createUser(username, hashedPassword, emailAddress, admin, enabled, newAccount, campaignCreationPrivilege);
 		}
 		catch(DataAccessException e) {
 			throw new ServiceException(e);
@@ -292,70 +298,186 @@ public final class UserServices {
 	}
 
 	/**
-	 * Verifies that if the 'personalInfo' is not null nor empty, that either
-	 * there already exists a personal information entry for some user or that
-	 * there is sufficient information in the 'personalInfo' object to create a
-	 * new entry.
+	 * Verifies that if the user already has personal information in which it 
+	 * is acceptable to update any combination of the pieces or that they 
+	 * supplied all necessary pieces to update the information.
 	 * 
 	 * @param username The username of the user whose personal information is
 	 * 				   being queried.
 	 * 
-	 * @param personalInfo The personal information to use to populate the 
-	 * 					   user's personal information entry in the database
-	 * 					   should one not exist.
+	 * @param firstName The new first name of the user or null if the first 
+	 * 					name is not being updated.
 	 * 
-	 * @throws ServiceException Thrown if the 'personalInfo' object is not null
-	 * 							nor is it empty, there is not a personal
-	 * 							information entry for this user in the 
-	 * 							database, and there is some required field 
-	 * 							missing in the 'personalInfo' object to create
-	 * 							a new personal information entry in the
-	 * 							database. Also, it is thrown if there is an 
-	 * 							error. 
+	 * @param lastName The new last name of the user or null if the last name 
+	 * 				   is not being updated.
+	 * 
+	 * @param organization The new organization of the user or null if the
+	 * 					   organization is not being updated.
+	 * 
+	 * @param personalId The new personal ID of the user or null if the 
+	 * 					 personal ID is not being updated.
+	 * 
+	 * @throws ServiceException The user doesn't have personal information in
+	 * 							the system and is attempting to update some 
+	 * 							fields but not all of them. If the user doesn't
+	 * 							have personal information already, they must
+	 * 							create a new one with all of the information. 
+	 * 							Or there was an error.
 	 */
 	public void verifyUserHasOrCanCreatePersonalInfo(
-			final String username, final UserPersonal personalInfo) 
+			final String username, 
+			final String firstName,
+			final String lastName,
+			final String organization,
+			final String personalId) 
 			throws ServiceException {
 		
-		if((personalInfo != null) && (! personalInfo.isEmpty())) {
-			try {
-				if(! userQueries.userHasPersonalInfo(username)) {
-					if(personalInfo.getFirstName() == null) {
-						throw new ServiceException(
-								ErrorCode.USER_INVALID_FIRST_NAME_VALUE, 
-								"The user doesn't have personal information yet, and a first name is necessary to create one.");
-					}
-					else if(personalInfo.getLastName() == null) {
-						throw new ServiceException(
-								ErrorCode.USER_INVALID_LAST_NAME_VALUE, 
-								"The user doesn't have personal information yet, and a last name is necessary to create one.");
-					}
-					else if(personalInfo.getOrganization() == null) {
-						throw new ServiceException(
-								ErrorCode.USER_INVALID_ORGANIZATION_VALUE, 
-								"The user doesn't have personal information yet, and an organization is necessary to create one.");
-					}
-					else if(personalInfo.getPersonalId() == null) {
-						throw new ServiceException(
-								ErrorCode.USER_INVALID_PERSONAL_ID_VALUE, 
-								"The user doesn't have personal information yet, and a personal ID is necessary to create one.");
-					}
-				}
+		// If the user already has personal information, then they are allowed
+		// to edit it as they wish.
+		try {
+			if(userQueries.userHasPersonalInfo(username)) {
+				return;
 			}
-			catch(DataAccessException e) {
-				throw new ServiceException(e);
-			}
+		}
+		catch(DataAccessException e) {
+			throw new ServiceException(e);
+		}
+		
+		// If they are all null and the user isn't trying to update the 
+		// personal information, then that is fine.
+		if((firstName == null) &&
+				(lastName == null) &&
+				(organization == null) &&
+				(personalId == null)) {
+			
+			return;
+		}
+		
+		if(firstName == null) {
+			throw new ServiceException(
+					ErrorCode.USER_INVALID_FIRST_NAME_VALUE, 
+					"The user doesn't have personal information yet, and a first name is necessary to create one.");
+		}
+		else if(lastName == null) {
+			throw new ServiceException(
+					ErrorCode.USER_INVALID_LAST_NAME_VALUE, 
+					"The user doesn't have personal information yet, and a last name is necessary to create one.");
+		}
+		else if(organization == null) {
+			throw new ServiceException(
+					ErrorCode.USER_INVALID_ORGANIZATION_VALUE, 
+					"The user doesn't have personal information yet, and an organization is necessary to create one.");
+		}
+		else if(personalId == null) {
+			throw new ServiceException(
+					ErrorCode.USER_INVALID_PERSONAL_ID_VALUE, 
+					"The user doesn't have personal information yet, and a personal ID is necessary to create one.");
 		}
 	}
 	
 	/**
-	 * Searches through all of the usernames in the system and removes those 
-	 * that don't match a given parameter. If a parameter is null, it is 
-	 * ignored. Therefore, if all parameters are null, all usernames in the
-	 * system are returned.
+	 * Searches through all of the users in the system and returns those that
+	 * match the criteria. All Object parameters are optional; by passing a 
+	 * null value, it will be omitted from the search. 
 	 * 
-	 * @param partialUsername Limits the results to only those usernames that
-	 * 						  contain this value.
+	 * @param usernames Limits the results to only those whose username is in
+	 * 					this list.
+	 * 
+	 * @param emailAddress Limits the results to only those users whose email
+	 * 					   address matches this value.
+	 * 
+	 * @param admin Limits the results to only those users whose admin value
+	 * 				matches this value.
+	 * 
+	 * @param enabled Limits the results to only those user whose enabled value
+	 * 				  matches this value.
+	 * 
+	 * @param newAccount Limits the results to only those users whose new 
+	 * 					 account value matches this value.
+	 * 
+	 * @param campaignCreationPrivilege Limits the results to only those 
+	 * 									users whose campaign creation privilege
+	 * 									matches this value.
+	 * 
+	 * @param firstName Limits the results to only those that have personal 
+	 * 					information and their first name equals this value.
+	 * 
+	 * @param partialLastName Limits the results to only those users that have 
+	 * 						  personal information and their last name matches 
+	 * 						  this value.
+	 * 
+	 * @param partialOrganization Limits the results to only those users that 
+	 * 							  have personal information and their 
+	 * 							  organization value matches this value.
+	 * 
+	 * @param partialPersonalId Limits the results to only those users that 
+	 * 							have personal information and their personal ID
+	 * 							matches this value.
+	 * 
+	 * @param numToSkip The number of results to skip.
+	 * 
+	 * @param numToReturn The number of results to return.
+	 * 
+	 * @param results The user information for the users that matched the
+	 * 				  criteria.
+	 * 
+	 * @return The number of usernames that matched the given criteria.
+	 * 
+	 * @throws ServiceException Thrown if there is an error.
+	 */
+	public long getUserInformation(
+			final Collection<String> usernames,
+			final String emailAddress,
+			final Boolean admin,
+			final Boolean enabled,
+			final Boolean newAccount,
+			final Boolean canCreateCampaigns,
+			final String firstName,
+			final String lastName,
+			final String organization,
+			final String personalId,
+			final long numToSkip,
+			final long numToReturn,
+			final List<UserInformation> results) 
+			throws ServiceException {
+		
+		try {
+			QueryResult<UserInformation> result =
+					userQueries.getUserInformation(
+							usernames, 
+							null, 
+							emailAddress, 
+							admin, 
+							enabled, 
+							newAccount, 
+							canCreateCampaigns, 
+							firstName, 
+							lastName, 
+							organization, 
+							personalId, 
+							false, 
+							numToSkip, 
+							numToReturn);
+			
+			results.addAll(result.getResults());
+			
+			return result.getTotalNumResults();
+		}
+		catch(DataAccessException e) {
+			throw new ServiceException(e);
+		}
+	}
+	
+	/**
+	 * Searches through all of the users in the system and returns those that
+	 * match the criteria. All Object parameters are optional; by passing a 
+	 * null value, it will be omitted from the search. 
+	 * 
+	 * @param partialUsername Limits the results to only those users whose 
+	 * 						  username contain this value.
+	 * 
+	 * @param partialEmailAddress Limits the results to only those users whose
+	 * 							  email address contains this value.
 	 * 
 	 * @param admin Limits the results to only those usernames that belong to
 	 * 				users whose admin value matches this one.
@@ -388,25 +510,21 @@ public final class UserServices {
 	 * 							belong to users that have personal information
 	 * 							and their personal ID contains this value.
 	 * 
-	 * @param partialEmailAddress Limits the results to only those usernames
-	 * 							  that belong to users that have personal
-	 * 							  information, have an email address, and that
-	 * 							  email address contains this value.
+	 * @param numToSkip The number of results to skip.
 	 * 
-	 * @param partialJsonData Limits the results to only those usernames that
-	 * 						  belong to users that have personal information,
-	 * 						  have JSON data, and that JSON data contains this
-	 * 						  value.
+	 * @param numToReturn The number of results to return.
 	 * 
-	 * @param results The list of usernames that matches the results. This list
-	 * 				  is not emptied and the results are added to it.
+	 * @param results The user information for the users that matched the
+	 * 				  criteria. This cannot be null and will be populated with
+	 * 				  the results.
 	 * 
 	 * @return The number of usernames that matched the given criteria.
 	 * 
 	 * @throws ServiceException Thrown if there is an error.
 	 */
-	public int userSearch(
+	public long userSearch(
 			final String partialUsername,
+			final String partialEmailAddress,
 			final Boolean admin,
 			final Boolean enabled,
 			final Boolean newAccount,
@@ -415,255 +533,47 @@ public final class UserServices {
 			final String partialLastName,
 			final String partialOrganization,
 			final String partialPersonalId,
-			final String partialEmailAddress,
-			final String partialJsonData,
 			final int numToSkip,
 			final int numToReturn,
-			final Collection<String> results)
+			final Collection<UserInformation> results)
 			throws ServiceException {
 		
 		try {
-			Set<String> result = null;
-			
-			if(partialUsername != null) {
-				result = 
-					new HashSet<String>(
-							userQueries.getUsernamesFromPartialUsername(
-									partialUsername));
-			}
-			
-			if(admin != null) {
-				List<String> usernames = 
-					userQueries.getUsernamesWithAdminValue(admin);
-				
-				if(result == null) {
-					result = new HashSet<String>(usernames);
-				}
-				else {
-					result.retainAll(usernames);
-				}
-			}
-			
-			if(enabled != null) {
-				List<String> usernames = 
-					userQueries.getUsernamesWithEnabledValue(enabled);
-				
-				if(result == null) {
-					result = new HashSet<String>(usernames);
-				}
-				else {
-					result.retainAll(usernames);
-				}
-			}
-			
-			if(newAccount != null) {
-				List<String> usernames = 
-					userQueries.getUsernamesWithNewAccountValue(newAccount);
-				
-				if(result == null) {
-					result = new HashSet<String>(usernames);
-				}
-				else {
-					result.retainAll(usernames);
-				}
-			}
-			
-			if(campaignCreationPrivilege != null) {
-				List<String> usernames = 
-					userQueries.getUsernamesWithCampaignCreationPrivilege(
-							campaignCreationPrivilege);
-				
-				if(result == null) {
-					result = new HashSet<String>(usernames);
-				}
-				else {
-					result.retainAll(usernames);
-				}
-			}
-			
-			if(partialFirstName != null) {
-				List<String> usernames = 
-					userQueries.getUsernamesFromPartialFirstName(
-							partialFirstName);
-				
-				if(result == null) {
-					result = new HashSet<String>(usernames);
-				}
-				else {
-					result.retainAll(usernames);
-				}
-			}
-			
-			if(partialLastName != null) {
-				List<String> usernames = 
-					userQueries.getUsernamesFromPartialLastName(
-							partialLastName);
-				
-				if(result == null) {
-					result = new HashSet<String>(usernames);
-				}
-				else {
-					result.retainAll(usernames);
-				}
-			}
-			
-			if(partialOrganization != null) {
-				List<String> usernames = 
-					userQueries.getUsernamesFromPartialOrganization(
-							partialOrganization);
-				
-				if(result == null) {
-					result = new HashSet<String>(usernames);
-				}
-				else {
-					result.retainAll(usernames);
-				}
-			}
-			
-			if(partialPersonalId != null) {
-				List<String> usernames = 
-					userQueries.getUsernamesFromPartialPersonalId(
-							partialPersonalId);
-				
-				if(result == null) {
-					result = new HashSet<String>(usernames);
-				}
-				else {
-					result.retainAll(usernames);
-				}
-			}
-			
-			if(partialEmailAddress != null) {
-				List<String> usernames = 
-					userQueries.getUsernamesFromPartialEmailAddress(
-							partialEmailAddress);
-				
-				if(result == null) {
-					result = new HashSet<String>(usernames);
-				}
-				else {
-					result.retainAll(usernames);
-				}
-			}
-			
-			if(partialJsonData != null) {
-				List<String> usernames = 
-					userQueries.getUsernamesFromPartialJsonData(
-							partialJsonData);
-				
-				if(result == null) {
-					result = new HashSet<String>(usernames);
-				}
-				else {
-					result.retainAll(usernames);
-				}
-			}
-			
-			if(result == null) {
-				result = new HashSet<String>(userQueries.getAllUsernames());
-			}
-			
-			List<String> sortedResult = new ArrayList<String>(result);
-			Collections.sort(sortedResult);
-			int size = sortedResult.size();
-			
-			int lastIndex = numToSkip + numToReturn;
-			// Rollover check.
-			if(lastIndex < 0) {
-				lastIndex = Integer.MAX_VALUE;
-			}
-			// If the number of usernames to skip is less than the size, then
-			// we can prune the results, but it if is greater than or equal to
-			// the size, then we will "skip" all of the results and add 
-			// nothing, so we shouldn't waste our time creating a sublist to
-			// add that will inevitably be empty.
-			if(numToSkip < size) {
-				results.addAll(
-						sortedResult.subList(
-								numToSkip, 
-								(lastIndex > size) ? size : lastIndex));
-			}
-			
-			return size;
-		}
-		catch(DataAccessException e) {
-			throw new ServiceException(e);
-		}
-	}
-	
-	/**
-	 * Gathers all of the information about a user.
-	 * 
-	 * @param username The username of the user about which to gather the
-	 * 				   information.
-	 * 
-	 * @return The UserInformation object with the information about the user.
-	 * 
-	 * @throws ServiceException There was an error.
-	 */
-	public UserInformation getUserInformation(final String username) 
-			throws ServiceException{
-		
-		try {
-			Boolean admin = userQueries.userIsAdmin(username);
-			if(admin == null) {
-				throw new ServiceException("The user doesn't exist.");
-			}
-			
-			Boolean enabled = userQueries.userIsEnabled(username);
-			if(enabled == null) {
-				throw new ServiceException("The user doesn't exist.");
-			}
-			
-			Boolean newAccount = userQueries.userHasNewAccount(username);
-			if(newAccount == null) {
-				throw new ServiceException("The user doesn't exist.");
-			}
-			
-			Boolean campaignCreationPrivilege = 
-				userQueries.userCanCreateCampaigns(username);
-			if(campaignCreationPrivilege == null) {
-				throw new ServiceException("The user doesn't exist.");
-			}
-			
-			Map<String, Set<Campaign.Role>> campaigns = 
-				new HashMap<String, Set<Campaign.Role>>();
-			Collection<String> campaignIds = 
-				userCampaignQueries.
-					getCampaignIdsAndNameForUser(username).
-						keySet();
-			for(String campaignId : campaignIds) {
-				Set<Campaign.Role> roles =
-					new HashSet<Campaign.Role>(
-							userCampaignQueries.getUserCampaignRoles(
-									username, campaignId));
-				
-				campaigns.put(campaignId, roles);
-			}
-			
-			Map<String, Clazz.Role> classes =
-				new HashMap<String, Clazz.Role>();
-			Collection<String> classIds =
-				userClassQueries.getClassIdsAndNameForUser(username).keySet();
-			for(String classId : classIds) {
-				classes.put(
-						classId, 
-						userClassQueries.getUserClassRole(classId, username));
-			}
+			QueryResult<UserInformation> result =
+					userQueries.getUserInformation(
+							null, 
+							partialUsername, 
+							partialEmailAddress, 
+							admin, 
+							enabled, 
+							newAccount, 
+							campaignCreationPrivilege, 
+							partialFirstName, 
+							partialLastName, 
+							partialOrganization, 
+							partialPersonalId, 
+							true, 
+							numToSkip, 
+							numToReturn);
 			
 			try {
-				return new UserInformation(
-						admin, 
-						enabled, 
-						newAccount, 
-						campaignCreationPrivilege,
-						campaigns,
-						classes,
-						userQueries.getPersonalInfoForUser(username));
-			} 
+				for(UserInformation currResult : result.getResults()) {
+					currResult.addCampaigns(
+							userCampaignQueries.getCampaignAndRolesForUser(
+									currResult.getUsername()));
+				
+					currResult.addClasses(
+							userClassQueries.getClassAndRoleForUser(
+									currResult.getUsername()));
+				}
+			}
 			catch(DomainException e) {
 				throw new ServiceException(e);
 			}
+			
+			results.addAll(result.getResults());
+
+			return result.getTotalNumResults();
 		}
 		catch(DataAccessException e) {
 			throw new ServiceException(e);
@@ -760,6 +670,9 @@ public final class UserServices {
 	 * @param username The username of the user whose information is to be
 	 * 				   updated.
 	 * 
+	 * @param emailAddress The new email address for the user. A null value 
+	 * 					   indicates that this field should not be updated.
+	 * 
 	 * @param admin Whether or not the user should be an admin. A null value
 	 * 			    indicates that this field should not be updated.
 	 * 
@@ -776,22 +689,45 @@ public final class UserServices {
 	 * 									Value indicates that this field should
 	 * 									not be updated.
 	 * 
-	 * @param personalInfo Personal information about a user. If this is null,
-	 * 					   none of the user's personal information will be
-	 * 					   updated. If it is not null, all non-null values 
-	 * 					   inside this object will be used to update the user's
-	 * 					   personal information database record; all null 
-	 * 					   values will be ignored.
+	 * @param firstName The user's new first name. A null value indicates that
+	 * 					this field should not be updated.
+	 * 
+	 * @param lastName The users's last name. A null value indicates that this
+	 * 				   field should not be updated.
+	 * 
+	 * @param organization The user's new organization. A null value indicates
+	 * 					   that this field should not be updated.
+	 * 
+	 * @param personalId The user's new personal ID. A null value indicates 
+	 * 					 that this field should not be updated.
 	 * 
 	 * @throws ServiceException Thrown if there is an error.
 	 */
-	public void updateUser(final String username, final Boolean admin, 
-			final Boolean enabled, final Boolean newAccount, 
+	public void updateUser(
+			final String username, 
+			final String emailAddress,
+			final Boolean admin, 
+			final Boolean enabled, 
+			final Boolean newAccount, 
 			final Boolean campaignCreationPrivilege, 
-			final UserPersonal personalInfo) throws ServiceException {
+			final String firstName,
+			final String lastName,
+			final String organization,
+			final String personalId) 
+			throws ServiceException {
 		
 		try {
-			userQueries.updateUser(username, admin, enabled, newAccount, campaignCreationPrivilege, personalInfo);
+			userQueries.updateUser(
+					username, 
+					emailAddress,
+					admin, 
+					enabled, 
+					newAccount, 
+					campaignCreationPrivilege,
+					firstName,
+					lastName,
+					organization,
+					personalId);
 		}
 		catch(DataAccessException e) {
 			throw new ServiceException(e);

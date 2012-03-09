@@ -184,7 +184,7 @@ public class UserCreationRequest extends UserRequest {
 			UserServices.instance().checkUserExistance(newUsername, false);
 			
 			LOGGER.info("Creating the user.");
-			UserServices.instance().createUser(newUsername, newPassword, newIsAdmin, newIsEnabled, newIsNewAccount, newCampaignCreationPrivilege);
+			UserServices.instance().createUser(newUsername, null, newPassword, newIsAdmin, newIsEnabled, newIsNewAccount, newCampaignCreationPrivilege);
 		}
 		catch(ServiceException e) {
 			e.failRequest(this);

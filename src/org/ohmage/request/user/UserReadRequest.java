@@ -18,10 +18,7 @@ package org.ohmage.request.user;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import javax.servlet.http.HttpServletRequest;
@@ -33,7 +30,8 @@ import org.json.JSONObject;
 import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.domain.Clazz;
 import org.ohmage.domain.User;
-import org.ohmage.domain.UserPersonal;
+import org.ohmage.domain.UserInformation;
+import org.ohmage.domain.UserInformation.UserPersonal;
 import org.ohmage.exception.ServiceException;
 import org.ohmage.exception.ValidationException;
 import org.ohmage.request.InputKeys;
@@ -101,8 +99,8 @@ public class UserReadRequest extends UserRequest {
 	private final int numToSkip;
 	private final int numToReturn;
 	
-	private Map<String, UserPersonal> result;
-	private int numResults;
+	private List<UserInformation> results;
+	private long numResults;
 	
 	/**
 	 * Creates a new user read request.
@@ -183,7 +181,7 @@ public class UserReadRequest extends UserRequest {
 		numToSkip = tNumToSkip;
 		numToReturn = tNumToReturn;
 		
-		result = new HashMap<String, UserPersonal>();
+		results = new ArrayList<UserInformation>();
 	}
 
 	/**
@@ -211,14 +209,18 @@ public class UserReadRequest extends UserRequest {
 				isAdmin = false;
 			}
 			
-			if(usernames != null) {
+			ArrayList<String> allUsernames;
+			
+			if(usernames == null) {
+				allUsernames = new ArrayList<String>();
+			}
+			else {
 				if(! isAdmin) {
 					LOGGER.info("Verifying that the requester may read the information about the users in the list.");
 					UserServices.instance().verifyUserCanReadUsersPersonalInfo(getUser().getUsername(), usernames);
 				}
-				
-				LOGGER.info("Gathering the information about the users.");
-				result.putAll(UserServices.instance().gatherPersonalInformation(usernames));
+
+				allUsernames = new ArrayList<String>(usernames);
 			}
 			
 			if(campaignIds != null) {
@@ -230,8 +232,10 @@ public class UserReadRequest extends UserRequest {
 					UserCampaignServices.instance().verifyUserCanReadUsersInfoInCampaigns(getUser().getUsername(), campaignIds);
 				}
 				
-				LOGGER.info("Gathering the information about the users in the campaigns.");
-				result.putAll(UserCampaignServices.instance().getPersonalInfoForUsersInCampaigns(campaignIds));
+				LOGGER.info("Gathering all of the users in all of the campaigns.");
+				allUsernames.addAll(
+						UserCampaignServices.instance().getUsersInCampaigns(
+								campaignIds));
 			}
 			
 			if(classIds != null) {
@@ -243,46 +247,26 @@ public class UserReadRequest extends UserRequest {
 					UserClassServices.instance().userHasRoleInClasses(getUser().getUsername(), classIds, Clazz.Role.PRIVILEGED);
 				}
 				
-				LOGGER.info("Gathering the information about the users in the classes.");
-				result.putAll(UserClassServices.instance().getPersonalInfoForUsersInClasses(classIds));
+				LOGGER.info("Gathering all of the users in all of the classes.");
+				allUsernames.addAll(
+						UserClassServices.instance().getUsersInClasses(
+								classIds));
 			}
 			
-			numResults = result.size();
-			int fromIndex = numToSkip;
-			int toIndex = numToSkip + numToReturn;
-			// If the user is requesting more than or exactly the results, do 
-			// nothing.
-			if((fromIndex == 0) && (toIndex >= numResults)) {
-				// Do nothing.
-			}
-			// If we are skipping more items than there are results, just set
-			// the result to an emtpy map.
-			if(numToSkip >= numResults) {
-				result = Collections.emptyMap();
-			}
-			// Otherwise, we need to truncate the map.
-			else {
-				// If the user is asking for more results than exist, trim the
-				// toIndex down to the end of the map.
-				if(toIndex >= numResults) {
-					toIndex = numResults;
-				}
-				// Rollover check.
-				else if(toIndex < 0) {
-					toIndex = numResults;
-				}
-				
-				Collection<String> resultUsernames = result.keySet();
-				
-				// Now, get the list of usernames and sort them.
-				List<String> sortedUsernames = 
-						new ArrayList<String>(resultUsernames);
-				Collections.sort(sortedUsernames);
-				
-				// Finally, remove the unnecessary results.
-				resultUsernames.retainAll(
-						sortedUsernames.subList(fromIndex, toIndex));
-			}
+			numResults = UserServices.instance().getUserInformation(
+					usernames, 
+					null, 
+					null, 
+					null, 
+					null, 
+					null, 
+					null, 
+					null, 
+					null, 
+					null, 
+					numToSkip, 
+					numToReturn, 
+					results);
 		}
 		catch(ServiceException e) {
 			e.failRequest(this);
@@ -302,14 +286,19 @@ public class UserReadRequest extends UserRequest {
 		try {
 			metadata.put(JSON_KEY_TOTAL_NUM_RESULTS, numResults);
 			
-			for(String username : result.keySet()) {
-				UserPersonal personalInfo = result.get(username);
+			for(UserInformation userInformation : results) {
+				UserPersonal personalInformation = 
+						userInformation.getPersonalInfo();
 				
-				if(personalInfo == null) {
-					jsonResult.put(username, new JSONObject());
+				if(personalInformation == null) {
+					jsonResult.put(
+							userInformation.getUsername(), 
+							new JSONObject());
 				}
 				else {
-					jsonResult.put(username, personalInfo.toJsonObject());
+					jsonResult.put(
+							userInformation.getUsername(), 
+							personalInformation.toJsonObject());
 				}
 			}
 		}

@@ -22,7 +22,7 @@ import java.util.Map;
 import org.json.JSONObject;
 import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.domain.ServerConfig;
-import org.ohmage.domain.UserPersonal;
+import org.ohmage.domain.UserInformation.UserPersonal;
 import org.ohmage.domain.UserSummary;
 import org.ohmage.lib.OhmageApi;
 import org.ohmage.lib.exception.ApiException;
@@ -496,12 +496,6 @@ public class UserApiTests {
 				if(! "PersonalId".equals(personalInfo.getPersonalId())) {
 					throw new IllegalArgumentException("Failed: The user's personal ID is not what we saved.");
 				}
-				if(personalInfo.getEmailAddress() != null) {
-					throw new IllegalArgumentException("Failed: An email address was returned but none was given.");
-				}
-				if(personalInfo.getJsonData() != null) {
-					throw new IllegalArgumentException("Failed: JSON data was returned but none was given.");
-				}
 			}
 		}
 		catch(RequestErrorException e) {
@@ -545,12 +539,6 @@ public class UserApiTests {
 				}
 				if(! "PersonalId".equals(personalInfo.getPersonalId())) {
 					throw new IllegalArgumentException("Failed: The user's personal ID is not what we saved.");
-				}
-				if(personalInfo.getEmailAddress() != null) {
-					throw new IllegalArgumentException("Failed: An email address was returned but none was given.");
-				}
-				if(personalInfo.getJsonData() != null) {
-					throw new IllegalArgumentException("Failed: JSON data was returned but none was given.");
 				}
 			}
 		}
@@ -596,12 +584,6 @@ public class UserApiTests {
 				if(! "PersonalId".equals(personalInfo.getPersonalId())) {
 					throw new IllegalArgumentException("Failed: The user's personal ID is not what we saved.");
 				}
-				if(personalInfo.getEmailAddress() != null) {
-					throw new IllegalArgumentException("Failed: An email address was returned but none was given.");
-				}
-				if(personalInfo.getJsonData() != null) {
-					throw new IllegalArgumentException("Failed: JSON data was returned but none was given.");
-				}
 			}
 		}
 		catch(RequestErrorException e) {
@@ -646,12 +628,6 @@ public class UserApiTests {
 				if(! "PersonalId".equals(personalInfo.getPersonalId())) {
 					throw new IllegalArgumentException("Failed: The user's personal ID is not what we saved.");
 				}
-				if(personalInfo.getEmailAddress() != null) {
-					throw new IllegalArgumentException("Failed: An email address was returned but none was given.");
-				}
-				if(personalInfo.getJsonData() != null) {
-					throw new IllegalArgumentException("Failed: JSON data was returned but none was given.");
-				}
 			}
 		}
 		catch(RequestErrorException e) {
@@ -695,113 +671,6 @@ public class UserApiTests {
 				}
 				if(! "PersonalId1".equals(personalInfo.getPersonalId())) {
 					throw new IllegalArgumentException("Failed: The user's personal ID is not what we saved.");
-				}
-				if(personalInfo.getEmailAddress() != null) {
-					throw new IllegalArgumentException("Failed: An email address was returned but none was given.");
-				}
-				if(personalInfo.getJsonData() != null) {
-					throw new IllegalArgumentException("Failed: JSON data was returned but none was given.");
-				}
-			}
-		}
-		catch(RequestErrorException e) {
-			throw new IllegalArgumentException("Failed: Read personal information.", e);
-		}
-		
-		// Updates the email address to a new value.
-		try {
-			api.updateUser(adminAuthToken, Controller.CLIENT, username, null, null, null, null, null, null, null, null, "email@address.com", null);
-		}
-		catch(RequestErrorException e) {
-			throw new IllegalArgumentException("Failed: Updating the user's email address.", e);
-		}
-
-		// Verify the email address that was just uploaded.
-		try {
-			Map<String, UserPersonal> result = 
-				api.getUsersPersonalInformation(adminAuthToken, Controller.CLIENT, usernames, null, null);
-			
-			if(usernames.size() == 0) {
-				throw new IllegalArgumentException("Failed: We just created a personal entry for a user, but it isn't being returned to us.");
-			}
-			else if(usernames.size() > 1) {
-				throw new IllegalArgumentException("Failed: We asked for information about only one user, but multiple were returned.");
-			}
-			
-			for(String username : result.keySet()) {
-				if(! this.username.equals(username)) {
-					throw new IllegalArgumentException("Failed: We asked about one person, but got information about another.");
-				}
-				
-				UserPersonal personalInfo = result.get(username);
-				if(! "First1".equals(personalInfo.getFirstName())) {
-					throw new IllegalArgumentException("Failed: The user's first name is not what we saved.");
-				}
-				if(! "Last1".equals(personalInfo.getLastName())) {
-					throw new IllegalArgumentException("Failed: The user's last name is not what we saved.");
-				}
-				if(! "Organization1".equals(personalInfo.getOrganization())) {
-					throw new IllegalArgumentException("Failed: The user's organization is not what we saved.");
-				}
-				if(! "PersonalId1".equals(personalInfo.getPersonalId())) {
-					throw new IllegalArgumentException("Failed: The user's personal ID is not what we saved.");
-				}
-				if("email@address.com".equals(personalInfo.getEmailAddress())) {
-					throw new IllegalArgumentException("Failed: The user's email address is not what we saved.");
-				}
-				if(personalInfo.getJsonData() != null) {
-					throw new IllegalArgumentException("Failed: JSON data was returned but none was given.");
-				}
-			}
-		}
-		catch(RequestErrorException e) {
-			throw new IllegalArgumentException("Failed: Read personal information.", e);
-		}
-		
-		// Updates the JSON data to a new value.
-		try {
-			JSONObject object = new JSONObject();
-			api.updateUser(adminAuthToken, Controller.CLIENT, username, null, null, null, null, null, null, null, null, null, object);
-		}
-		catch(RequestErrorException e) {
-			throw new IllegalArgumentException("Failed: Updating the user's JSON data.", e);
-		}
-
-		// Verify the JSON data that was just uploaded.
-		try {
-			Map<String, UserPersonal> result = 
-				api.getUsersPersonalInformation(adminAuthToken, Controller.CLIENT, usernames, null, null);
-			
-			if(usernames.size() == 0) {
-				throw new IllegalArgumentException("Failed: We just created a personal entry for a user, but it isn't being returned to us.");
-			}
-			else if(usernames.size() > 1) {
-				throw new IllegalArgumentException("Failed: We asked for information about only one user, but multiple were returned.");
-			}
-			
-			for(String username : result.keySet()) {
-				if(! this.username.equals(username)) {
-					throw new IllegalArgumentException("Failed: We asked about one person, but got information about another.");
-				}
-				
-				UserPersonal personalInfo = result.get(username);
-				if(! "First1".equals(personalInfo.getFirstName())) {
-					throw new IllegalArgumentException("Failed: The user's first name is not what we saved.");
-				}
-				if(! "Last1".equals(personalInfo.getLastName())) {
-					throw new IllegalArgumentException("Failed: The user's last name is not what we saved.");
-				}
-				if(! "Organization1".equals(personalInfo.getOrganization())) {
-					throw new IllegalArgumentException("Failed: The user's organization is not what we saved.");
-				}
-				if(! "PersonalId1".equals(personalInfo.getPersonalId())) {
-					throw new IllegalArgumentException("Failed: The user's personal ID is not what we saved.");
-				}
-				if("email@address.com".equals(personalInfo.getEmailAddress())) {
-					throw new IllegalArgumentException("Failed: The user's email address is not what we saved.");
-				}
-				if((new JSONObject()).equals(personalInfo.getJsonData())) {
-					throw new IllegalArgumentException("Failed: The user's JSON data is not what we saved..");
 				}
 			}
 		}

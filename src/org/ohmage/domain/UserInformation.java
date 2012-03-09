@@ -16,12 +16,9 @@
 package org.ohmage.domain;
 
 import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.ohmage.domain.campaign.Campaign;
@@ -33,16 +30,284 @@ import org.ohmage.exception.DomainException;
  * @author John Jenkins
  */
 public class UserInformation {
-	private static final String JSON_KEY_PERMISSIONS = "permissions";
-	private static final String JSON_KEY_PERMISSIONS_ADMIN = "admin";
-	private static final String JSON_KEY_PERMISSIONS_ENABLED = "enabled";
-	private static final String JSON_KEY_PERMISSIONS_NEW_ACCOUNT = "new_account";
-	private static final String JSON_KEY_PERMISSIONS_CAMPAIGN_CREATION = "can_create_campaigns";
+	/**
+	 * The keys for a user.
+	 * 
+	 * @author John Jenkins
+	 */
+	private static enum UserColumnKey implements ColumnKey {
+		USERNAME ("username"),
+		EMAIL_ADDRESS ("email_address"),
+		PERMISSIONS ("permissions"),
+		CAMPAIGNS ("campaigns"),
+		CLASSES ("classes"),
+		PERSONAL ("personal");
+		
+		private final String key;
+		
+		/**
+		 * Initializes the key enum with its key value.
+		 * 
+		 * @param key The key's value.
+		 */
+		private UserColumnKey(final String key) {
+			this.key = key;
+		}
+		
+		/**
+		 * Returns the key's value.
+		 * 
+		 * @return The key's value.
+		 */
+		@Override
+		public String toString() {
+			return key;
+		}
+	}
 	
-	private static final String JSON_KEY_CAMPAIGNS = "campaigns";
-	private static final String JSON_KEY_CLASSES = "classes";
+	/**
+	 * The permissions key for a user.
+	 * 
+	 * @author John Jenkins
+	 */
+	private static enum UserPermissionColumnKey implements ColumnKey {
+		ADMIN ("admin"),
+		ENABLED ("enabled"),
+		NEW_ACCOUNT ("new_account"),
+		CAN_CREATE_CAMPAIGNS ("can_create_campaigns");
+		
+		private final String key;
+		
+		/**
+		 * Initializes the key enum with its key value.
+		 * 
+		 * @param key The key's value.
+		 */
+		private UserPermissionColumnKey(final String key) {
+			this.key = key;
+		}
+		
+		/**
+		 * Returns the key's value.
+		 * 
+		 * @return The key's value.
+		 */
+		@Override 
+		public String toString() {
+			return key;
+		}
+	}
 	
-	private static final String JSON_KEY_PERSONAL_INFO = "personal";
+	/**
+	 * This class encapsulates a user's information.
+	 * 
+	 * @author John Jenkins
+	 */
+	public static class UserPersonal {
+		/**
+		 * The personal keys for a user.
+		 * 
+		 * @author John Jenkins
+		 */
+		private static enum UserPersonalColumnKey implements ColumnKey {
+			FIRST_NAME ("first_name"),
+			LAST_NAME ("last_name"),
+			ORGANIZATION ("organization"),
+			PERSONAL_ID ("personal_id");
+			
+			private final String key;
+			
+			/**
+			 * Initializes the key enum with its key value.
+			 * 
+			 * @param key The key's value.
+			 */
+			private UserPersonalColumnKey(final String key) {
+				this.key = key;
+			}
+			
+			/**
+			 * Returns the key's value.
+			 * 
+			 * @return The key's value.
+			 */
+			@Override 
+			public String toString() {
+				return key;
+			}
+		}
+		
+		private final String firstName;
+		private final String lastName;
+		private final String organization;
+		private final String personalId;
+		
+		/**
+		 * Creates a new object with the specified personal information about the 
+		 * user. Any data can be null.
+		 * 
+		 * @param firstName The first name of the user.
+		 * 
+		 * @param lastName The last name of the user.
+		 * 
+		 * @param organization The organization for the user.
+		 * 
+		 * @param personalId The personal identifier for the user.
+		 * 
+		 * @throws DomainException One of the values is null or only 
+		 * 						   whitespace.
+		 */
+		public UserPersonal(
+				final String firstName, 
+				final String lastName, 
+				final String organization, 
+				final String personalId) 
+				throws DomainException {
+			
+			if(firstName == null) {
+				throw new DomainException("The first name is null.");
+			}
+			if(lastName == null) {
+				throw new DomainException("The last name is null.");
+			}
+			if(organization == null) {
+				throw new DomainException("The organization is null.");
+			}
+			if(personalId == null) {
+				throw new DomainException("The personal ID is null.");
+			}
+			
+			this.firstName = firstName;
+			this.lastName = lastName;
+			this.organization = organization;
+			this.personalId = personalId;
+		}
+		
+		/**
+		 * Creates an UserPersonal object. 
+		 * 
+		 * @param information The JSONObject with the user's personal 
+		 * 					  information.
+		 * 
+		 * @throws DomainException The information JSONObject object is 
+		 * 						   invalid.
+		 */
+		public UserPersonal(
+				final JSONObject information) 
+				throws DomainException {
+			
+			if(information == null) {
+				throw new DomainException("The information is null.");
+			}
+			
+			try {
+				firstName = 
+						information.getString(
+								UserPersonalColumnKey.FIRST_NAME.toString());
+			}
+			catch(JSONException e) {
+				throw new DomainException(
+						"The first name is missing: " + 
+							UserPersonalColumnKey.FIRST_NAME.toString());
+			}
+			
+			try {
+				lastName = 
+						information.getString(
+								UserPersonalColumnKey.LAST_NAME.toString());
+			}
+			catch(JSONException e) {
+				throw new DomainException(
+						"The last name is missing: " + 
+							UserPersonalColumnKey.LAST_NAME.toString());
+			}
+			
+			try {
+				organization = 
+						information.getString(
+								UserPersonalColumnKey.ORGANIZATION.toString());
+			}
+			catch(JSONException e) {
+				throw new DomainException(
+						"The organization is missing: " + 
+							UserPersonalColumnKey.ORGANIZATION.toString());
+			}
+			
+			try {
+				personalId = 
+						information.getString(
+								UserPersonalColumnKey.PERSONAL_ID.toString());
+			}
+			catch(JSONException e) {
+				throw new DomainException(
+						"The personal ID is missing: " + 
+							UserPersonalColumnKey.PERSONAL_ID.toString());
+			}
+		}
+		
+		/**
+		 * Returns the user's first name or null if one doesn't exist.
+		 * 
+		 * @return the firstName
+		 */
+		public final String getFirstName() {
+			return firstName;
+		}
+
+		/**
+		 * Returns the user's last name or null if one doesn't exist.
+		 * 
+		 * @return the lastName
+		 */
+		public final String getLastName() {
+			return lastName;
+		}
+
+		/**
+		 * Returns the user's organization or null if one doesn't exist.
+		 * 
+		 * @return the organization
+		 */
+		public final String getOrganization() {
+			return organization;
+		}
+
+		/**
+		 * Returns the user's personal ID or null if one doesn't exist.
+		 * 
+		 * @return the personalId
+		 */
+		public final String getPersonalId() {
+			return personalId;
+		}
+
+		/**
+		 * Creates a JSONObject that represents this user. Any fields that were set
+		 * to null will be missing an entry in this object.
+		 * 
+		 * @return A JSONObject that represents this object.
+		 * 
+		 * @throws JSONException There was an error creating the JSONObject.
+		 */
+		public JSONObject toJsonObject() throws JSONException {
+			JSONObject result = new JSONObject();
+			
+			result.put(UserPersonalColumnKey.FIRST_NAME.toString(), firstName);
+			result.put(UserPersonalColumnKey.LAST_NAME.toString(), lastName);
+			result.put(
+					UserPersonalColumnKey.ORGANIZATION.toString(), 
+					organization);
+			result.put(
+					UserPersonalColumnKey.PERSONAL_ID.toString(), 
+					personalId);
+			
+			return result;
+		}
+	}
+	private final UserPersonal personalInfo;
+	
+	private final String username;
+	private final String emailAddress;
 	
 	private final boolean isAdmin;
 	private final boolean isEnabled;
@@ -52,10 +317,12 @@ public class UserInformation {
 	private final Map<String, Set<Campaign.Role>> campaigns;
 	private final Map<String, Clazz.Role> classes;
 	
-	private final UserPersonal personalInfo;
-	
 	/**
 	 * Creates a new information object for this user.
+	 * 
+	 * @param username The user's username.
+	 * 
+	 * @param emailAddress The user's email address.
 	 * 
 	 * @param isAdmin Whether or not the user is an admin.
 	 * 
@@ -77,6 +344,8 @@ public class UserInformation {
 	 * @throws DomainException The campaign and/or class parameter is null.
 	 */
 	public UserInformation(
+			final String username,
+			final String emailAddress,
 			final boolean isAdmin,
 			final boolean isEnabled,
 			final boolean isNewAccount,
@@ -85,6 +354,11 @@ public class UserInformation {
 			final Map<String, Clazz.Role> classes,
 			final UserPersonal personalInfo) 
 			throws DomainException {
+		
+		if(username == null) {
+			throw new DomainException(
+					"The username is null");
+		}
 		
 		if(campaigns == null) {
 			throw new DomainException(
@@ -95,6 +369,8 @@ public class UserInformation {
 					"The class ID-role map is null.");
 		}
 		
+		this.username = username;
+		this.emailAddress = emailAddress;
 		this.isAdmin = isAdmin;
 		this.isEnabled = isEnabled;
 		this.isNewAccount = isNewAccount;
@@ -107,156 +383,129 @@ public class UserInformation {
 	}
 	
 	/**
-	 * Deserializes a JSONObject that is information about a user.
+	 * Adds a campaign, if it doesn't already exist, and a set of roles for the
+	 * user.
 	 * 
-	 * @param userInfo The user's information as a JSONObject.
+	 * @param campaignId The campaign's unique identifier.
 	 * 
-	 * @throws DomainException Thrown if a required field is missing.
+	 * @param roles The user's roles in that campaign. This cannot be empty.
+	 * 
+	 * @throws DomainException The campaign ID or list of roles was null or the
+	 * 						   list of roles was empty.
 	 */
-	public UserInformation(final JSONObject userInfo) throws DomainException {
-		JSONObject permissionsJson;
-		try {
-			permissionsJson = userInfo.getJSONObject(JSON_KEY_PERMISSIONS);
-		}
-		catch(JSONException e) {
-			throw new DomainException(
-					"The JSON information is missing the permissions key.",
-					e);
+	public void addCampaign(
+			final String campaignId, 
+			final Set<Campaign.Role> roles) 
+			throws DomainException {
+		
+		if(campaignId == null) {
+			throw new DomainException("The campaign ID is null.");
 		}
 		
-		try {
-			isAdmin = permissionsJson.getBoolean(JSON_KEY_PERMISSIONS_ADMIN);
+		if(roles == null) {
+			throw new DomainException("The list of roles is null.");
 		}
-		catch(JSONException e) {
-			throw new DomainException(
-					"The permissions are missing the admin value.",
-					e);
+		else if(roles.size() == 0) {
+			throw new DomainException("The list of roles is empty.");
 		}
 		
-		try {
-			isEnabled = 
-				permissionsJson.getBoolean(JSON_KEY_PERMISSIONS_ENABLED);
-		}
-		catch(JSONException e) {
-			throw new DomainException(
-					"The permissions are missing the enabled value.",
-					e);
-		}
+		Set<Campaign.Role> oldRoles = campaigns.get(campaignId);
 		
-		try {
-			isNewAccount = 
-				permissionsJson.getBoolean(JSON_KEY_PERMISSIONS_NEW_ACCOUNT);
-		}
-		catch(JSONException e) {
-			throw new DomainException(
-					"The permissions are missing the new account value.",
-					e);
-		}
-		
-		try {
-			campaignCreationPrivilege = 
-				permissionsJson.getBoolean(
-						JSON_KEY_PERMISSIONS_CAMPAIGN_CREATION);
-		}
-		catch(JSONException e) {
-			throw new DomainException(
-					"The permissions are missing the campaign creation value.",
-					e);
-		}
-		
-		JSONObject campaignsJson;
-		try {
-			campaignsJson = userInfo.getJSONObject(JSON_KEY_CAMPAIGNS);
-		}
-		catch(JSONException e) {
-			throw new DomainException(
-					"The campaigns list is missing.",
-					e);
-		}
-		
-		campaigns = 
-			new HashMap<String, Set<Campaign.Role>>(campaignsJson.length());
-		Iterator<?> campaignIds = campaignsJson.keys();
-		while(campaignIds.hasNext()) {
-			String campaignId = (String) campaignIds.next();
-			
-			JSONArray rolesJson;
-			try {
-				rolesJson = campaignsJson.getJSONArray(campaignId);
-			}
-			catch(JSONException e) {
-				throw new DomainException(
-						"The campaign list has changed while being read.",
-						e);
-			}
-			
-			int numRoles = rolesJson.length();
-			Set<Campaign.Role> roles = new HashSet<Campaign.Role>(numRoles);
-			for(int i = 0; i < numRoles; i++) {
-				try {
-					roles.add(
-							Campaign.Role.getValue(
-									rolesJson.getString(i)));
-				}
-				catch(JSONException e) {
-					throw new DomainException(
-							"The campaign list has changed while being read.",
-							e);
-				}
-				catch(IllegalArgumentException e) {
-					throw new DomainException(
-							"The campaign role is unknown.",
-							e);
-				}
-			}
-			
+		if(oldRoles == null) {
 			campaigns.put(campaignId, roles);
 		}
-		
-		JSONObject classesJson;
-		try {
-			classesJson = userInfo.getJSONObject(JSON_KEY_CLASSES);
+		else {
+			oldRoles.addAll(roles);
 		}
-		catch(JSONException e) {
-			throw new DomainException(
-					"The class list is missing.",
-					e);
-		}
+	}
+	
+	/**
+	 * Adds a set of campaigns and the user's respective roles. The map cannot 
+	 * be null, but it may be empty. None of the sets of roles may be null or 
+	 * empty.
+	 * 
+	 * @param campaigns The map of campaign IDs to their roles for this user.
+	 * 
+	 * @throws DomainException The map was null or one of the lists of roles 
+	 * 						   was null or empty.
+	 */
+	public void addCampaigns(
+			final Map<String, Set<Campaign.Role>> campaigns)
+			throws DomainException {
 		
-		classes = new HashMap<String, Clazz.Role>(classesJson.length());
-		Iterator<?> classIds = classesJson.keys();
-		while(classIds.hasNext()) {
-			String classId = (String) classIds.next();
-			
-			Clazz.Role role;
-			try {
-				role = Clazz.Role.getValue(classesJson.getString(classId));
-			}
-			catch(JSONException e) {
-				throw new DomainException(
-						"The class list has changed while being read.",
-						e);
-			}
-			catch(IllegalArgumentException e) {
-				throw new DomainException(
-						"The class role is unknown.",
-						e);
-			}
-			
-			classes.put(classId, role);
+		if(campaigns == null) {
+			throw new DomainException("The campaigns map is null.");
 		}
 		
-		UserPersonal tPersonalInfo;
-		try {
-			tPersonalInfo = 
-				new UserPersonal(
-						userInfo.getJSONObject(
-								JSON_KEY_PERSONAL_INFO));
+		for(String campaignId : campaigns.keySet()) {
+			addCampaign(campaignId, campaigns.get(campaignId));
 		}
-		catch(JSONException e) {
-			tPersonalInfo = null;
+	}
+	
+	/**
+	 * Adds a class, if it doesn't already exist, and a role for the user. If a
+	 * role already existed for this user in this class, it is overwritten.
+	 * 
+	 * @param classId The class' unique identifier.
+	 * 
+	 * @param role The users role in the class.
+	 * 
+	 * @throws DomainException The class ID or role were null.
+	 */
+	public void addClass(
+			final String classId, 
+			final Clazz.Role role)
+			throws DomainException {
+		
+		if(classId == null) {
+			throw new DomainException("The class ID is null.");
 		}
-		personalInfo = tPersonalInfo;
+		
+		if(role == null) {
+			throw new DomainException("The role is null.");
+		}
+		
+		classes.put(classId, role);
+	}
+	
+	/**
+	 * Adds a set of classes and the user's respective role. The map cannot be
+	 * null but may be empty. The role associated with each class cannot be 
+	 * null.
+	 * 
+	 * @param classes The map of class IDs to the user's respective role.
+	 * 
+	 * @throws DomainException The map was null or one of the roles was null.
+	 */
+	public void addClasses(
+			final Map<String, Clazz.Role> classes)
+			throws DomainException {
+		
+		if(classes == null) {
+			throw new DomainException("The classes map is null.");
+		}
+		
+		for(String classId : classes.keySet()) {
+			addClass(classId, classes.get(classId));
+		}
+	}
+	
+	/**
+	 * Returns the user's username.
+	 * 
+	 * @return The user's username.
+	 */
+	public String getUsername() {
+		return username;
+	}
+	
+	/**
+	 * Returns the personal information about the user.
+	 * 
+	 * @return The personal information about the user.
+	 */
+	public UserPersonal getPersonalInfo() {
+		return personalInfo;
 	}
 	
 	/**
@@ -269,26 +518,32 @@ public class UserInformation {
 	public JSONObject toJson() throws JSONException {
 		JSONObject result = new JSONObject();
 		
+		result.put(UserColumnKey.USERNAME.toString(), username);
+		
+		result.put(UserColumnKey.EMAIL_ADDRESS.toString(), emailAddress);
+		
 		JSONObject permissionsJson = new JSONObject();
 		permissionsJson.put(
-				JSON_KEY_PERMISSIONS_ADMIN, 
+				UserPermissionColumnKey.ADMIN.toString(), 
 				isAdmin);
 		permissionsJson.put(
-				JSON_KEY_PERMISSIONS_ENABLED, 
+				UserPermissionColumnKey.ENABLED.toString(), 
 				isEnabled);
 		permissionsJson.put(
-				JSON_KEY_PERMISSIONS_NEW_ACCOUNT, 
+				UserPermissionColumnKey.NEW_ACCOUNT.toString(), 
 				isNewAccount);
 		permissionsJson.put(
-				JSON_KEY_PERMISSIONS_CAMPAIGN_CREATION, 
+				UserPermissionColumnKey.CAN_CREATE_CAMPAIGNS.toString(), 
 				campaignCreationPrivilege);
-		result.put(JSON_KEY_PERMISSIONS, permissionsJson);
+		result.put(UserColumnKey.PERMISSIONS.toString(), permissionsJson);
 		
-		result.put(JSON_KEY_CAMPAIGNS, campaigns);
-		result.put(JSON_KEY_CLASSES, classes);
+		result.put(UserColumnKey.CAMPAIGNS.toString(), campaigns);
+		result.put(UserColumnKey.CLASSES.toString(), classes);
 		
 		if(personalInfo != null) {
-			result.put(JSON_KEY_PERSONAL_INFO, personalInfo.toJsonObject());
+			result.put(
+					UserColumnKey.PERSONAL.toString(), 
+					personalInfo.toJsonObject());
 		}
 		
 		return result;

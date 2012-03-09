@@ -22,6 +22,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import javax.sql.DataSource;
 
@@ -29,6 +30,7 @@ import org.ohmage.domain.campaign.Campaign;
 import org.ohmage.domain.campaign.Campaign.Role;
 import org.ohmage.exception.DataAccessException;
 import org.ohmage.query.IUserCampaignQueries;
+import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.SingleColumnRowMapper;
 
@@ -69,6 +71,16 @@ public final class UserCampaignQueries extends Query implements IUserCampaignQue
 		"AND c.id = urc.campaign_id " +
 		"AND urc.user_role_id = ur.id";
 	
+	// Retrieves all of the campaigns and respective roles for a user. Each row
+	// is a unique campaign-role combination.
+	private static final String SQL_GET_CAMPAIGNS_AND_ROLES_FOR_USER =
+			"SELECT c.urn, ur.role " +
+			"FROM user u, campaign c, user_role ur, user_role_campaign urc " +
+			"WHERE u.username = ? " +
+			"AND u.id = urc.user_id " +
+			"AND urc.campaign_id = c.id " +
+			"AND urc.user_role_id = ur.id";
+	
 	// Retrieves all of the users for a campaign and all of their associated
 	// roles.
 	private static final String SQL_GET_USERS_AND_CAMPAIGN_ROLES = 
@@ -104,7 +116,7 @@ public final class UserCampaignQueries extends Query implements IUserCampaignQue
 	 * 
 	 * @param dataSource A DataSource object to use when querying the database.
 	 */
-	private UserCampaignQueries(DataSource dataSource) {
+	private UserCampaignQueries(final DataSource dataSource) {
 		super(dataSource);
 	}
 	
@@ -170,6 +182,68 @@ public final class UserCampaignQueries extends Query implements IUserCampaignQue
 		catch(org.springframework.dao.DataAccessException e) {
 			throw new DataAccessException("Error executing SQL '" + SQL_GET_USER_CAMPAIGN_ROLES + "' with parameters: " + 
 					username + ", " + campaignId, e);
+		}
+	}
+	
+	/*
+	 * (non-Javadoc)
+	 * @see org.ohmage.query.IUserCampaignQueries#getUserCampaignRoles(java.lang.String)
+	 */
+	public Map<String, Set<Campaign.Role>> getCampaignAndRolesForUser(
+			final String username)
+			throws DataAccessException {
+		
+		try {
+			return getJdbcTemplate().query(
+					SQL_GET_CAMPAIGNS_AND_ROLES_FOR_USER,
+					new Object[] { username },
+					new ResultSetExtractor<Map<String, Set<Campaign.Role>>>() {
+						/**
+						 * Extracts the data combining the roles into the same
+						 * set. 
+						 */
+						@Override
+						public Map<String, Set<Role>> extractData(
+								final ResultSet rs)
+								throws SQLException,
+								org.springframework.dao.DataAccessException {
+							
+							Map<String, Set<Campaign.Role>> result =
+									new HashMap<String, Set<Campaign.Role>>();
+							
+							while(rs.next()) {
+								Set<Campaign.Role> roles =
+										result.get(rs.getString("urn"));
+								
+								if(roles == null) {
+									roles = new HashSet<Campaign.Role>();
+									result.put(rs.getString("urn"), roles);
+								}
+								
+								try {
+									roles.add(
+											Campaign.Role.getValue(
+													rs.getString("role")));
+								}
+								catch(IllegalArgumentException e) {
+									throw new SQLException(
+											"The role is not a valid role.",
+											e);
+								}
+							}
+							
+							return result;
+						}
+					}
+				);
+		}
+		catch(org.springframework.dao.DataAccessException e) {
+			throw new DataAccessException(
+					"Error executing SQL '" + 
+						SQL_GET_CAMPAIGNS_AND_ROLES_FOR_USER
+						+ "' with parameter: " + 
+						username, 
+					e);
 		}
 	}
 
