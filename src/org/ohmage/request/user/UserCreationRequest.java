@@ -53,25 +53,25 @@ import org.ohmage.validator.UserValidators;
  *   <tr>
  *     <td>{@value org.ohmage.request.InputKeys#USER_ADMIN}</td>
  *     <td>Whether or not the new user should be an admin.</td>
- *     <td>true</td>
+ *     <td>false</td>
  *   </tr>
  *   <tr>
  *     <td>{@value org.ohmage.request.InputKeys#USER_ENABLED}</td>
  *     <td>Whether or not the new user's account should be enabled.</td>
- *     <td>true</td>
+ *     <td>false</td>
  *   </tr>
  *   <tr>
  *     <td>{@value org.ohmage.request.InputKeys#NEW_ACCOUNT}</td>
  *     <td>Whether or not the user must change their password before using any
  *       other APIs. The default value is "true".</td>
- *     <td>true</td>
+ *     <td>false</td>
  *   </tr>
  *   <tr>
  *     <td>{@value org.ohmage.request.InputKeys#CAMPAIGN_CREATION_PRIVILEGE}</td>
  *     <td>Whether or not the new user is allowed to create campaigns. The 
  *       default value is based on the current system and can be discovered
  *       through the /config/read API.</td>
- *     <td>true</td>
+ *     <td>false</td>
  *   </tr>
  * </table>
  * 
