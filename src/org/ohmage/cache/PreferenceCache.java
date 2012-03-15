@@ -16,8 +16,8 @@
 package org.ohmage.cache;
 
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.Properties;
 
 import javax.sql.DataSource;
@@ -34,8 +34,9 @@ public final class PreferenceCache extends KeyValueCache {
 	private static final String SQL_KEY_KEY = "p_key";
 	private static final String SQL_VALUE_KEY = "p_value";
 	
-	private static final String SQL_GET_KEYS_AND_VALUES = "SELECT " + SQL_KEY_KEY + ", " + SQL_VALUE_KEY + " " +
-														  "FROM preference";
+	private static final String SQL_GET_KEYS_AND_VALUES = 
+			"SELECT " + SQL_KEY_KEY + ", " + SQL_VALUE_KEY + " " +
+			"FROM preference";
 	
 	// When we are requesting a cache in the Spring files, we use this
 	// to reference which key we want.
@@ -55,9 +56,6 @@ public final class PreferenceCache extends KeyValueCache {
 	// Image-specific information.
 	public static final String KEY_IMAGE_DIRECTORY = "image_directory";
 	
-	// Properties-specific information.
-	public static final String KEY_PROPERTIES_FILE = "properties_file";
-	
 	// Allows privileged users in a class to view the Mobility information 
 	// about everyone else in the class.
 	public static final String 
@@ -76,10 +74,10 @@ public final class PreferenceCache extends KeyValueCache {
 			"max_survey_response_page_size";
 	
 	// Build-specific information.
-	public static final String KEY_APPLICATION_NAME = "application_name";
-	public static final String KEY_APPLICATION_VERSION = "application_version";
-	public static final String KEY_APPLICATION_BUILD = "application_build";
-	public static final String KEY_SSL_ENABLED = "ssl_enabled";
+	public static final String KEY_APPLICATION_NAME = "application.name";
+	public static final String KEY_APPLICATION_VERSION = "application.version";
+	public static final String KEY_APPLICATION_BUILD = "application.build";
+	public static final String KEY_SSL_ENABLED = "ssl.enabled";
 	
 	public static final String KEY_RECAPTCHA_KEY = "recaptcha_key";
 	
@@ -99,16 +97,21 @@ public final class PreferenceCache extends KeyValueCache {
 		instance = this;
 		
 		try {
-			InputStream in = new FileInputStream(lookup(PreferenceCache.KEY_PROPERTIES_FILE));
 			properties = new Properties();
-			properties.load(in);
-			in.close();
-		}
-		catch(CacheMissException e) {
-			throw new IllegalStateException("Unknown value for 'known' key '" + PreferenceCache.KEY_PROPERTIES_FILE + "'. Is the cache database missing a key-value pair?", e);
-		}
+			properties.load(
+					new FileInputStream(
+							System.getProperty("webapp.root") + 
+							"/WEB-INF/properties/system.properties"));
+		} 
+		catch(FileNotFoundException e) {
+			throw new IllegalStateException(
+					"The system properties file is missing.", 
+					e);
+		} 
 		catch(IOException e) {
-			throw new IllegalStateException("Missing the properties file that should have been built with the WAR file.", e);
+			throw new IllegalStateException(
+					"Could not read the system properties file.", 
+					e);
 		}
 	}
 	

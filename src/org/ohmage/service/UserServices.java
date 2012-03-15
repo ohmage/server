@@ -151,10 +151,14 @@ public final class UserServices {
 							"/WEB-INF/properties/mail.smtp.properties"));
 		} 
 		catch(FileNotFoundException e) {
-			throw new IllegalStateException("The JavaMail properties file is missing.", e);
+			throw new IllegalStateException(
+					"The JavaMail properties file is missing.", 
+					e);
 		} 
 		catch(IOException e) {
-			throw new IllegalStateException("Error reading the JavaMail properties file.", e);
+			throw new IllegalStateException(
+					"Error reading the JavaMail properties file.", 
+					e);
 		}
 		smtpSession = Session.getDefaultInstance(sessionProperties);
 	}

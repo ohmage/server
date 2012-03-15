@@ -29,3 +29,7 @@ CREATE TABLE user_registration(
     -- Link the user table.
     CONSTRAINT user_id FOREIGN KEY (user_id) REFERENCES user (id) ON UPDATE CASCADE ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+-- This is being self-referenced now and doesn't need to be a preference in the
+-- database.
+DELETE FROM preference WHERE p_key='properties_file';

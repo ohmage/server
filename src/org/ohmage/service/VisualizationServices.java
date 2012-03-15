@@ -178,7 +178,7 @@ public class VisualizationServices {
 		catch(CacheMissException e) {
 			throw new ServiceException(
 					"Cache doesn't know about 'known' key: " + 
-						PreferenceCache.KEY_PROPERTIES_FILE, 
+						PreferenceCache.KEY_SSL_ENABLED, 
 					e);
 		}
 		
