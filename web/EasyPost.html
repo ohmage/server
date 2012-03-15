@@ -51,6 +51,27 @@
         </form>
         
         <h2>User APIs</h2>
+        <h3>Self Registration:</h3>
+        <form action="/app/user/register" method="post">
+            Username: <input type="text" name="username" /><br />
+            Password: <input type="text" name="password" /><br />
+            Email Address: <input type="text" name="email_address" /><br />
+            Client: <input type="text" name="client" value="testWeb" /><br />
+            <br />
+            <script type="text/javascript"
+                    src="http://www.google.com/recaptcha/api/challenge?k=<public_key>">
+            </script>
+            <noscript>
+                <iframe src="http://www.google.com/recaptcha/api/noscript?k=<public_key>"
+                        height="300" width="500" frameborder="0"></iframe><br>
+                <textarea name="recaptcha_challenge_field" rows="3" cols="40">
+                </textarea>
+                <input type="hidden" name="recaptcha_response_field"
+                       value="manual_challenge">
+            </noscript><br />
+            <input type="submit" value="Submit" />
+        </form>
+    
         <h3>Create User:</h3>
         <form action="/app/user/create" method="post">
             Token: <input type="text" name="auth_token" /><br />

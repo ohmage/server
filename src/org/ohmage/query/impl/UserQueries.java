@@ -19,13 +19,13 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
 import javax.sql.DataSource;
 
-import org.apache.log4j.Logger;
 import org.ohmage.cache.PreferenceCache;
 import org.ohmage.domain.Clazz;
 import org.ohmage.domain.UserInformation;
@@ -107,6 +107,14 @@ public class UserQueries extends Query implements IUserQueries {
 			")" +
 		")";
 	
+	// Returns a boolean representing whether or not a registration ID exists.
+	private static final String SQL_EXISTS_REGISTRATION_ID =
+		"SELECT EXISTS(" +
+			"SELECT id " +
+			"FROM user_registration " +
+			"WHERE registration_id = ?" +
+		")";
+	
 	private static final String SQL_GET_ALL_USERNAMES =
 		"SELECT username " +
 		"FROM user";
@@ -172,10 +180,24 @@ public class UserQueries extends Query implements IUserQueries {
 		"WHERE u.username = ? " +
 		"AND u.id = up.user_id";
 	
+	// Returns the milliseconds since epoch at which time this registration was
+	// made.
+	private static final String SQL_GET_REGISTRATION_REQUEST_TIME =
+		"SELECT request_timestamp " +
+		"FROM user_registration " +
+		"WHERE registration_id = ?";
+	
+	// Returns the milliseconds since epoch at which time this registration was
+	// accepted.
+	private static final String SQL_GET_REGISTRATION_ACCEPTED_TIME =
+		"SELECT accepted_timestamp " +
+		"FROM user_registration " +
+		"WHERE registration_id = ?";
+	
 	// Inserts a new user.
 	private static final String SQL_INSERT_USER = 
-		"INSERT INTO user(username, email_address, password, admin, enabled, new_account, campaign_creation_privilege) " +
-		"VALUES (?,?,?,?,?,?)";
+		"INSERT INTO user(username, password, email_address, admin, enabled, new_account, campaign_creation_privilege) " +
+		"VALUES (?,?,?,?,?,?,?)";
 	
 	// Inserts a new personal information record for a user. Note: this doesn't
 	// insert the email address or JSON data; to add these, update the record
@@ -187,6 +209,32 @@ public class UserQueries extends Query implements IUserQueries {
 			"FROM user " +
 			"WHERE username = ?" +
 		"),?,?,?,?)";
+	
+	// Inserts a new registration for a user.
+	private static final String SQL_INSERT_REGISTRATION =
+		"INSERT INTO user_registration(user_id, registration_id, request_timestamp) " +
+		"VALUES ((SELECT id FROM user WHERE username = ?), ?, ?)";
+	
+	// Inserts a single user into a single class with a given role.
+	private static final String SQL_INSERT_USER_CLASS =
+		"INSERT INTO user_class(user_id, class_id, user_class_role_id) " +
+		"VALUES (" +
+			"(" +
+				"SELECT id " +
+				"FROM user " +
+				"WHERE username = ?" +
+			")," +
+			"(" +
+				"SELECT id " +
+				"FROM class " +
+				"WHERE urn = ?" +
+			")," +
+			"(" +
+				"SELECT id " +
+				"FROM user_class_role " +
+				"WHERE role = ?" +
+			")" +
+		")";
 	
 	// Updates the user's password.
 	private static final String SQL_UPDATE_PASSWORD = 
@@ -264,6 +312,19 @@ public class UserQueries extends Query implements IUserQueries {
 		"SET email_address = ? " +
 		"WHERE username = ?";
 	
+	// Uses a registration ID to update a user's enabled status.
+	private static final String SQL_UPDATE_ENABLED_FROM_REGISTRATION_ID =
+		"UPDATE user u, user_registration ur " +
+		"SET u.enabled = ? " +
+		"WHERE u.id = ur.user_id " +
+		"AND ur.registration_id = ?";
+	
+	// Updates the accepted timestamp of the registration.
+	private static final String SQL_UPDATE_ACCEPTED_TIMESTAMP =
+		"UPDATE user_registration " +
+		"SET accepted_timestamp = ? " +
+		"WHERE registration_id = ?";
+	
 	// Deletes the user.
 	private static final String SQL_DELETE_USER = 
 		"DELETE FROM user " +
@@ -282,8 +343,15 @@ public class UserQueries extends Query implements IUserQueries {
 	 * (non-Javadoc)
 	 * @see org.ohmage.query.IUserQueries#createUser(java.lang.String, java.lang.String, java.lang.String, java.lang.Boolean, java.lang.Boolean, java.lang.Boolean, java.lang.Boolean)
 	 */
-	public void createUser(String username, String hashedPassword, String emailAddress, Boolean admin, Boolean enabled, Boolean newAccount, Boolean campaignCreationPrivilege) 
-		throws DataAccessException {
+	public void createUser(
+			final String username, 
+			final String hashedPassword, 
+			final String emailAddress, 
+			final Boolean admin, 
+			final Boolean enabled, 
+			final Boolean newAccount, 
+			final Boolean campaignCreationPrivilege) 
+			throws DataAccessException {
 		
 		Boolean tAdmin = admin;
 		if(tAdmin == null) {
@@ -321,12 +389,157 @@ public class UserQueries extends Query implements IUserQueries {
 			
 			// Insert the new user.
 			try {
-				getJdbcTemplate().update(SQL_INSERT_USER, new Object[] { username, emailAddress, hashedPassword, tAdmin, tEnabled, tNewAccount, tCampaignCreationPrivilege });
+				getJdbcTemplate().update(SQL_INSERT_USER, new Object[] { username, hashedPassword, emailAddress, tAdmin, tEnabled, tNewAccount, tCampaignCreationPrivilege });
 			}
 			catch(org.springframework.dao.DataAccessException e) {
 				transactionManager.rollback(status);
 				throw new DataAccessException("Error while executing SQL '" + SQL_INSERT_USER + "' with parameters: " +
-						username + ", " + emailAddress + ", " + hashedPassword + ", " + tAdmin + ", " + tEnabled + ", " + tNewAccount + ", " + tCampaignCreationPrivilege, e);
+						username + ", " + hashedPassword + ", " + emailAddress + ", " + tAdmin + ", " + tEnabled + ", " + tNewAccount + ", " + tCampaignCreationPrivilege, e);
+			}
+			
+			// Commit the transaction.
+			try {
+				transactionManager.commit(status);
+			}
+			catch(TransactionException e) {
+				transactionManager.rollback(status);
+				throw new DataAccessException("Error while committing the transaction.", e);
+			}
+		}
+		catch(TransactionException e) {
+			throw new DataAccessException("Error while attempting to rollback the transaction.", e);
+		}
+	}
+	
+	/*
+	 * (non-Javadoc)
+	 * @see org.ohmage.query.IUserQueries#createUserRegistration(java.lang.String, java.lang.String, java.lang.String, java.lang.String)
+	 */
+	public void createUserRegistration(
+			final String username,
+			final String hashedPassword,
+			final String emailAddress,
+			final String registrationId)
+			throws DataAccessException {
+		
+		// Get the public class.
+		String publicClassId;
+		try {
+			publicClassId = 
+					PreferenceCache.instance().lookup(
+							PreferenceCache.KEY_PUBLIC_CLASS_ID);
+		}
+		catch(CacheMissException e) {
+			throw new DataAccessException(
+					"The public class is not configured");
+		}
+		
+		Boolean defaultCampaignCreationPrivilege;
+		try {
+			String privilegeString =
+					PreferenceCache.instance().lookup(
+							PreferenceCache.KEY_DEFAULT_CAN_CREATE_PRIVILIEGE);
+			
+			if(privilegeString == null) {
+				throw new DataAccessException(
+						"The default campaign creation privilege is missing.");
+			}
+			
+			defaultCampaignCreationPrivilege = 
+					StringUtils.decodeBoolean(privilegeString);
+			
+			if(defaultCampaignCreationPrivilege == null) {
+				throw new DataAccessException(
+						"The default campaign creation privilege is not a valid boolean.");
+			}
+		}
+		catch(CacheMissException e) {
+			throw new DataAccessException("Cache doesn't know about 'known' value: " + PreferenceCache.KEY_DEFAULT_CAN_CREATE_PRIVILIEGE, e);
+		}
+		
+		// Create the transaction.
+		DefaultTransactionDefinition def = new DefaultTransactionDefinition();
+		def.setName("Creating a user registration request.");
+		
+		try {
+			// Begin the transaction.
+			PlatformTransactionManager transactionManager = 
+					new DataSourceTransactionManager(getDataSource());
+			TransactionStatus status = transactionManager.getTransaction(def);
+			
+			// Insert the new user.
+			try {
+				getJdbcTemplate().update(
+						SQL_INSERT_USER, 
+						new Object[] { 
+								username, 
+								hashedPassword, 
+								emailAddress, 
+								false, 
+								false, 
+								false, 
+								defaultCampaignCreationPrivilege
+							}
+					);
+			}
+			catch(org.springframework.dao.DataAccessException e) {
+				transactionManager.rollback(status);
+				throw new DataAccessException(
+						"Error while executing SQL '" + 
+							SQL_INSERT_USER + 
+							"' with parameters: " +
+							username + ", " + 
+							emailAddress + ", " + 
+							hashedPassword + ", " + 
+							false + ", " + 
+							false + ", " + 
+							false + ", " + 
+							"null", 
+						e);
+			}
+			
+			// Insert the new user into the class.
+			try {
+				getJdbcTemplate().update(
+						SQL_INSERT_USER_CLASS, 
+						new Object[] { 
+								username, 
+								publicClassId, 
+								Clazz.Role.RESTRICTED.toString() });
+			}
+			catch(org.springframework.dao.DataAccessException e) {
+				transactionManager.rollback(status);
+				throw new DataAccessException(
+						"Error while executing SQL '" + 
+							SQL_INSERT_USER_CLASS + 
+							"' with parameters: " +
+							username + ", " + 
+							publicClassId + ", " + 
+							Clazz.Role.RESTRICTED.toString(), 
+						e);
+			}
+			
+			// Insert the user's registration information into the 
+			try {
+				getJdbcTemplate().update(
+						SQL_INSERT_REGISTRATION,
+						new Object[] { 
+								username, 
+								registrationId, 
+								(new Date()).getTime() 
+							}
+					);
+			}
+			catch(org.springframework.dao.DataAccessException e) {
+				transactionManager.rollback(status);
+				throw new DataAccessException(
+						"Error while executing SQL '" + 
+							SQL_INSERT_REGISTRATION + 
+							"' with parameters: " +
+							username + ", " +
+							registrationId + ", " +
+							(new Date()).getTime(), 
+						e);
 			}
 			
 			// Commit the transaction.
@@ -448,17 +661,9 @@ public class UserQueries extends Query implements IUserQueries {
 		}
 	}
 	
-	private static final Logger LOGGER = Logger.getLogger(UserQueries.class);
-	
-	/**
-	 * Checks if a user has a personal information entry in the database.
-	 *  
-	 * @param username The username of the user.
-	 * 
-	 * @return Returns true if the user has a personal information entry; 
-	 * 		   returns false otherwise.
-	 * 
-	 * @throws DataAccessException Thrown if there is an error.
+	/*
+	 * (non-Javadoc)
+	 * @see org.ohmage.query.IUserQueries#userHasPersonalInfo(java.lang.String)
 	 */
 	public Boolean userHasPersonalInfo(String username) throws DataAccessException {
 		try {
@@ -469,8 +674,31 @@ public class UserQueries extends Query implements IUserQueries {
 					);
 		}
 		catch(org.springframework.dao.DataAccessException e) {
-			LOGGER.error("Error executing the following SQL '" + SQL_EXISTS_USER_PERSONAL + "' with parameter: " + username, e);
 			throw new DataAccessException("Error executing the following SQL '" + SQL_EXISTS_USER_PERSONAL + "' with parameter: " + username, e);
+		}
+	}
+	
+	/*
+	 * (non-Javadoc)
+	 * @see org.ohmage.query.IUserQueries#registrationIdExists(java.lang.String)
+	 */
+	public boolean registrationIdExists(
+			final String registrationId)
+			throws DataAccessException {
+		
+		try {
+			return getJdbcTemplate().queryForObject(
+					SQL_EXISTS_REGISTRATION_ID,
+					new Object[] { registrationId },
+					Boolean.class);
+		}
+		catch(org.springframework.dao.DataAccessException e) {
+			throw new DataAccessException(
+					"Error executing SQL '" +
+						SQL_EXISTS_REGISTRATION_ID +
+						"' with parameter: " +
+						registrationId,
+					e);
 		}
 	}
 
@@ -793,6 +1021,80 @@ public class UserQueries extends Query implements IUserQueries {
 		}
 		catch(org.springframework.dao.DataAccessException e) {
 			throw new DataAccessException("Error executing the following SQL '" + SQL_GET_USER_PERSONAL + "' with parameter: " + username, e);
+		}
+	}
+	
+	/*
+	 * (non-Javadoc)
+	 * @see org.ohmage.query.IUserQueries#getRegistrationRequestedDate(java.lang.String)
+	 */
+	public Date getRegistrationRequestedDate(
+			final String registrationId)
+			throws DataAccessException {
+		
+		try {
+			return new Date(
+					getJdbcTemplate().queryForLong(
+							SQL_GET_REGISTRATION_REQUEST_TIME,
+							new Object[] { registrationId }));
+		}
+		catch(org.springframework.dao.IncorrectResultSizeDataAccessException e) {
+			if(e.getActualSize() == 0) {
+				return null;
+			}
+			else {
+				throw new DataAccessException(
+						"Multiple results were returned for the request timestamp.");
+			}
+		}
+		catch(org.springframework.dao.DataAccessException e) {
+			throw new DataAccessException(
+					"Error executing SQL '" +
+						SQL_GET_REGISTRATION_REQUEST_TIME +
+						"' with parameter: " +
+						registrationId,
+					e);
+		}
+	}
+	
+	/*
+	 * (non-Javadoc)
+	 * @see org.ohmage.query.IUserQueries#getRegistrationAcceptedDate(java.lang.String)
+	 */
+	public Date getRegistrationAcceptedDate(
+			final String registrationId)
+			throws DataAccessException {
+		
+		try {
+			Long acceptedLong = 
+					getJdbcTemplate().queryForLong(
+							SQL_GET_REGISTRATION_ACCEPTED_TIME,
+							new Object[] { registrationId });
+			
+			// This is what SQL returns when it is SQL NULL.
+			if(acceptedLong == 0) {
+				return null;
+			}
+			else {
+				return new Date(acceptedLong);
+			}
+		}
+		catch(org.springframework.dao.IncorrectResultSizeDataAccessException e) {
+			if(e.getActualSize() == 0) {
+				return null;
+			}
+			else {
+				throw new DataAccessException(
+						"Multiple results were returned for the accepted timestamp.");
+			}
+		}
+		catch(org.springframework.dao.DataAccessException e) {
+			throw new DataAccessException(
+					"Error executing SQL '" +
+						SQL_GET_REGISTRATION_ACCEPTED_TIME +
+						"' with parameter: " +
+						registrationId,
+					e);
 		}
 	}
 	
@@ -1358,6 +1660,74 @@ public class UserQueries extends Query implements IUserQueries {
 				transactionManager.rollback(status);
 				throw new DataAccessException("Error executing the following SQL '" + SQL_UPDATE_NEW_ACCOUNT + "' with parameters: " + 
 						false + ", " + username, e);
+			}
+			
+			// Commit the transaction.
+			try {
+				transactionManager.commit(status);
+			}
+			catch(TransactionException e) {
+				transactionManager.rollback(status);
+				throw new DataAccessException("Error while committing the transaction.", e);
+			}
+		}
+		catch(TransactionException e) {
+			throw new DataAccessException("Error while attempting to rollback the transaction.", e);
+		}
+	}
+	
+	/*
+	 * (non-Javadoc)
+	 * @see org.ohmage.query.IUserQueries#activateUser(java.lang.String)
+	 */
+	public void activateUser(
+			final String registrationId) 
+			throws DataAccessException {
+		
+		// Create the transaction.
+		DefaultTransactionDefinition def = new DefaultTransactionDefinition();
+		def.setName("Activating a user's account.");
+			
+		try {
+			// Begin the transaction.
+			PlatformTransactionManager transactionManager = new DataSourceTransactionManager(getDataSource());
+			TransactionStatus status = transactionManager.getTransaction(def);
+			
+			// Make the account not disabled.
+			try {
+				getJdbcTemplate().update(
+						SQL_UPDATE_ENABLED_FROM_REGISTRATION_ID, 
+						new Object[] { true, registrationId });
+			}
+			catch(org.springframework.dao.DataAccessException e) {
+				transactionManager.rollback(status);
+				throw new DataAccessException(
+						"Error executing the following SQL '" + 
+							SQL_UPDATE_ENABLED_FROM_REGISTRATION_ID + 
+							"' with parameters: " + 
+							true + ", " + 
+							registrationId, 
+						e);
+			}
+			
+			// Update the accepted timestamp in the registration table.
+			try {
+				getJdbcTemplate().update(
+						SQL_UPDATE_ACCEPTED_TIMESTAMP,
+						new Object[] { 
+								(new Date()).getTime(), 
+								registrationId 
+							}
+					);
+			}
+			catch(org.springframework.dao.DataAccessException e) {
+				transactionManager.rollback(status);
+				throw new DataAccessException(
+						"Error executing the following SQL '" + 
+							SQL_UPDATE_ENABLED_FROM_REGISTRATION_ID + 
+							"' with parameter: " +
+							registrationId, 
+						e);
 			}
 			
 			// Commit the transaction.

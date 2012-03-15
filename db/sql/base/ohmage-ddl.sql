@@ -153,6 +153,7 @@ CREATE TABLE user (
   enabled bit NOT NULL,
   new_account bit NOT NULL,
   campaign_creation_privilege bit NOT NULL,
+  email_address varchar(320),
   admin bit NOT NULL,
   PRIMARY KEY (id),
   UNIQUE (username)
@@ -169,12 +170,32 @@ CREATE TABLE user_personal (
   last_name varchar(255) NOT NULL,
   organization varchar(255) NOT NULL,
   personal_id varchar(255) NOT NULL,  -- this is e.g., the Mobilize student's student id
-  email_address varchar(320),
-  json_data text,
   PRIMARY KEY (id),
   UNIQUE (user_id),
   UNIQUE (first_name, last_name, organization, personal_id), 
   CONSTRAINT FOREIGN KEY (user_id) REFERENCES user (id) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+-- --------------------------------------------------------------------
+-- Create the table responsible for user registration.
+-- --------------------------------------------------------------------
+CREATE TABLE user_registration(
+    -- A unique key for each request.
+    id int unsigned NOT NULL auto_increment,
+    -- A reference to the user.
+    user_id int unsigned NOT NULL,
+    -- The registration ID.
+    registration_id VARCHAR(128) NOT NULL,
+    -- The time at which the registration request was made.
+    request_timestamp BIGINT UNSIGNED NOT NULL,
+    -- The time at which the registration was accepted.
+    accepted_timestamp BIGINT UNSIGNED DEFAULT NULL,
+    -- The ID is the primary key.
+    PRIMARY KEY (id),
+    -- Guarantees that multiple requests for the same user cannot exist.
+    UNIQUE (user_id),
+    -- Link the user table.
+    CONSTRAINT user_id FOREIGN KEY (user_id) REFERENCES user (id) ON UPDATE CASCADE ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- --------------------------------------------------------------------

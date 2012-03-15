@@ -16,6 +16,7 @@
 package org.ohmage.query;
 
 import java.util.Collection;
+import java.util.Date;
 import java.util.List;
 
 import org.ohmage.domain.UserInformation;
@@ -51,6 +52,26 @@ public interface IUserQueries {
 			final Boolean enabled, 
 			final Boolean newAccount,
 			final Boolean campaignCreationPrivilege) 
+			throws DataAccessException;
+	
+	/**
+	 * Creates a user registration by first creating the user, second adding 
+	 * them to the public class, and finally by storing their registration
+	 * information in the registration table.
+	 * 
+	 * @param username The new user's username.
+	 * 
+	 * @param hashedPassword The new user's hashed password.
+	 * 
+	 * @param emailAddress The new user's email address.
+	 * 
+	 * @throws DataAccessException There was an error.
+	 */
+	public void createUserRegistration(
+			final String username,
+			final String hashedPassword,
+			final String emailAddress,
+			final String registrationId)
 			throws DataAccessException;
 
 	/**
@@ -123,6 +144,19 @@ public interface IUserQueries {
 	 * @throws DataAccessException Thrown if there is an error.
 	 */
 	Boolean userHasPersonalInfo(String username) throws DataAccessException;
+	
+	/**
+	 * Verifies that a registration exists with the given ID.
+	 * 
+	 * @param registrationId The registration ID.
+	 * 
+	 * @return True if it does exist; false, otherwise.
+	 * 
+	 * @throws DataAccessException There was an error executing the SQL.
+	 */
+	public boolean registrationIdExists(
+			final String registrationId)
+			throws DataAccessException;
 	
 	/**
 	 * Retrieves all of the usernames in the system.
@@ -283,6 +317,35 @@ public interface IUserQueries {
 			throws DataAccessException;
 	
 	/**
+	 * Returns the date and time when the user generated the registration.
+	 * 
+	 * @param registrationId The registration's unique identifier.
+	 * 
+	 * @return The date and time at which the user generated the registration 
+	 * 		   or null indicating that no such registration exists.
+	 * 
+	 * @throws DataAccessException There was an error.
+	 */
+	public Date getRegistrationRequestedDate(
+			final String registrationId)
+			throws DataAccessException;
+	
+	/**
+	 * Returns the date and time when the user accepted the registration.
+	 * 
+	 * @param registrationId The registration's unique identifier.
+	 * 
+	 * @return The date and time at which the user accepted the registration or
+	 * 		   null indicating that either the user has not yet accepted the
+	 * 		   registration or that no registration with that ID exists.
+	 * 
+	 * @throws DataAccessException There was an error.
+	 */
+	public Date getRegistrationAcceptedDate(
+			final String registrationId)
+			throws DataAccessException;
+	
+	/**
 	 * Gathers the information about a person including the classes and 
 	 * campaigns to which they belong. Any of the Object parameters may be 
 	 * null.
@@ -416,6 +479,18 @@ public interface IUserQueries {
 	 * @param hashedPassword The new, hashed password for the user.
 	 */
 	void updateUserPassword(String username, String hashedPassword)
+			throws DataAccessException;
+	
+	/**
+	 * Activates a user's account by updating the enabled status to true and
+	 * updates the registration table's entry.
+	 * 
+	 * @param registrationId The registration's unique identifier.
+	 * 
+	 * @throws DataAccessException There was an error.
+	 */
+	public void activateUser(
+			final String registrationId) 
 			throws DataAccessException;
 
 	/**

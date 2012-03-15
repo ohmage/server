@@ -81,6 +81,10 @@ public final class PreferenceCache extends KeyValueCache {
 	public static final String KEY_APPLICATION_BUILD = "application_build";
 	public static final String KEY_SSL_ENABLED = "ssl_enabled";
 	
+	public static final String KEY_RECAPTCHA_KEY = "recaptcha_key";
+	
+	public static final String KEY_PUBLIC_CLASS_ID = "public_class_id";
+	
 	// The reference to one's self to return to requesters.
 	private static PreferenceCache instance;
 	

@@ -119,4 +119,20 @@ public interface IUserClassQueries {
 	List<String> getClassIdsForUserWithRole(final String username,
 			final Clazz.Role role) throws DataAccessException;
 
+	/**
+	 * Adds a given user to a given class with a given role.
+	 * 
+	 * @param username The user's username.
+	 * 
+	 * @param classId The class' ID.
+	 * 
+	 * @param classRole The class role for the user.
+	 * 
+	 * @throws DataAccessException There was an error.
+	 */
+	public void addUserToClassWithRole(
+			final String username,
+			final String classId,
+			final Clazz.Role classRole)
+			throws DataAccessException;
 }

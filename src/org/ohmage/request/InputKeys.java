@@ -122,7 +122,8 @@ public final class InputKeys {
 	public static final String ORGANIZATION = "organization";
 	public static final String PERSONAL_ID = "personal_id";
 	public static final String EMAIL_ADDRESS = "email_address";
-	public static final String USER_JSON_DATA = "json_data"; 
+	public static final String USER_JSON_DATA = "json_data";
+	public static final String USER_REGISTRATION_ID = "registration_id";
 	
 	// State Constants
 	public static final String PRIVACY_STATE = "privacy_state";
@@ -144,6 +145,8 @@ public final class InputKeys {
 	public static final String DESCRIPTION = "description";
 	public static final String NUM_TO_SKIP = "num_to_skip";
 	public static final String NUM_TO_RETURN = "num_to_return";
+	public static final String CAPTCHA_CHALLENGE = "recaptcha_challenge_field";
+	public static final String CAPTCHA_RESPONSE = "recaptcha_response_field";
 	
 	// Document Constants
 	public static final String DOCUMENT = "document";

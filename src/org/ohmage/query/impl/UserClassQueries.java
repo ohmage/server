@@ -35,6 +35,11 @@ import org.ohmage.util.StringUtils;
 import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.SingleColumnRowMapper;
+import org.springframework.jdbc.datasource.DataSourceTransactionManager;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionException;
+import org.springframework.transaction.TransactionStatus;
+import org.springframework.transaction.support.DefaultTransactionDefinition;
 
 /**
  * This class contains all of the functionality for creating, reading, 
@@ -116,6 +121,27 @@ public final class UserClassQueries extends Query implements IUserClassQueries {
 			"AND u.id = uc.user_id " +
 			"AND uc.class_id = c.id " +
 			"AND uc.user_class_role_id = ucr.id";
+	
+	// Inserts a single user into a single class with a given role.
+	private static final String SQL_INSERT_USER_CLASS =
+			"INSERT INTO user_class(user_id, class_id, user_class_role_id) " +
+			"VALUES (" +
+				"(" +
+					"SELECT id " +
+					"FROM user " +
+					"WHERE username = ?" +
+				")," +
+				"(" +
+					"SELECT id " +
+					"FROM class " +
+					"WHERE urn = ?" +
+				")," +
+				"(" +
+					"SELECT id " +
+					"FROM user_class_role " +
+					"WHERE role = ?" +
+				")" +
+			")";
 	
 	/**
 	 * Creates this object.
@@ -368,6 +394,65 @@ public final class UserClassQueries extends Query implements IUserClassQueries {
 						username + 
 						", " + 
 						role.toString(), 
+					e);
+		}
+	}
+	
+	/*
+	 * (non-Javadoc)
+	 * @see org.ohmage.query.IUserClassQueries#addUserToClassWithRole(java.lang.String, java.lang.String, org.ohmage.domain.Clazz.Role)
+	 */
+	public void addUserToClassWithRole(
+			final String username,
+			final String classId,
+			final Clazz.Role classRole)
+			throws DataAccessException {
+		
+		// Create the transaction.
+		DefaultTransactionDefinition def = new DefaultTransactionDefinition();
+		def.setName("Adding a user to a class.");
+		
+		try {
+			// Begin the transaction.
+			PlatformTransactionManager transactionManager = 
+					new DataSourceTransactionManager(getDataSource());
+			TransactionStatus status = transactionManager.getTransaction(def);
+			
+			// Insert the new user.
+			try {
+				getJdbcTemplate().update(
+						SQL_INSERT_USER_CLASS, 
+						new Object[] { 
+								username, 
+								classId, 
+								classRole.toString() });
+			}
+			catch(org.springframework.dao.DataAccessException e) {
+				transactionManager.rollback(status);
+				throw new DataAccessException(
+						"Error while executing SQL '" + 
+							SQL_INSERT_USER_CLASS + 
+							"' with parameters: " +
+							username + ", " + 
+							classId + ", " + 
+							classRole.toString(), 
+						e);
+			}
+			
+			// Commit the transaction.
+			try {
+				transactionManager.commit(status);
+			}
+			catch(TransactionException e) {
+				transactionManager.rollback(status);
+				throw new DataAccessException(
+						"Error while committing the transaction.", 
+						e);
+			}
+		}
+		catch(TransactionException e) {
+			throw new DataAccessException(
+					"Error while attempting to rollback the transaction.", 
 					e);
 		}
 	}

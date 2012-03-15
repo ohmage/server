@@ -33,6 +33,8 @@
   	<include name="httpmime-4.1.2.jar"/>
   	<include name="junit-4.10.jar"/>
   	<include name="tomcat-coyote.jar"/>
+    <include name="recaptcha4j-0.0.7.jar"/>
+    <include name="mail.jar"/>
   </fileset>
 
   <fileset id="run-dependencies" dir="${library}">
@@ -55,6 +57,8 @@
     <include name="jbcrypt-0.3.jar"/>
     <include name="xom-1.2.6.jar"/>
     <include name="mobility-classifier-1.2.9.jar"/>
+    <include name="recaptcha4j-0.0.7.jar"/>
+    <include name="mail.jar"/>
   </fileset>
 
   <path id="compile-classpath">

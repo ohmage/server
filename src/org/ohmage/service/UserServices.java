@@ -15,23 +15,43 @@
  ******************************************************************************/
 package org.ohmage.service;
 
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.net.URL;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.Collection;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.Set;
+import java.util.UUID;
+
+import javax.mail.AuthenticationFailedException;
+import javax.mail.Message;
+import javax.mail.MessagingException;
+import javax.mail.NoSuchProviderException;
+import javax.mail.Session;
+import javax.mail.internet.InternetAddress;
+import javax.mail.internet.MimeMessage;
 
 import jbcrypt.BCrypt;
+import net.tanesha.recaptcha.ReCaptchaImpl;
+import net.tanesha.recaptcha.ReCaptchaResponse;
 
 import org.ohmage.annotator.Annotator.ErrorCode;
+import org.ohmage.cache.PreferenceCache;
 import org.ohmage.domain.Clazz;
 import org.ohmage.domain.User;
 import org.ohmage.domain.UserInformation;
 import org.ohmage.domain.UserInformation.UserPersonal;
 import org.ohmage.domain.UserSummary;
 import org.ohmage.domain.campaign.Campaign;
+import org.ohmage.exception.CacheMissException;
 import org.ohmage.exception.DataAccessException;
 import org.ohmage.exception.DomainException;
 import org.ohmage.exception.ServiceException;
@@ -41,6 +61,9 @@ import org.ohmage.query.IUserClassQueries;
 import org.ohmage.query.IUserImageQueries;
 import org.ohmage.query.IUserQueries;
 import org.ohmage.query.impl.QueryResult;
+import org.ohmage.util.StringUtils;
+
+import com.sun.mail.smtp.SMTPTransport;
 
 /**
  * This class contains the services for users.
@@ -48,7 +71,30 @@ import org.ohmage.query.impl.QueryResult;
  * @author John Jenkins
  */
 public final class UserServices {
+	private static final String MAIL_PROTOCOL = "smtp";
+	private static final String MAIL_PROPERTY_HOST = 
+			"mail." + MAIL_PROTOCOL + ".host";
+	private static final String MAIL_PROPERTY_AUTH =
+			"mail." + MAIL_PROTOCOL + ".auth";
+	private static final String MAIL_PROPERTY_USERNAME = 
+			"mail." + MAIL_PROTOCOL + ".username";
+	private static final String MAIL_PROPERTY_PASSWORD =
+			"mail." + MAIL_PROTOCOL + ".password";
+	private static final String MAIL_PROPERTY_REGISTRATION_ADDRESS_FROM =
+			"mail.registration.address.from";
+	private static final String MAIL_PROPERTY_REGISTRATION_SUBJECT =
+			"mail.registration.subject";
+	private static final String MAIL_PROPERTY_REGISTRATION_TEXT =
+			"mail.registration.text";
+	
+	private static final String MAIL_REGISTRATION_TEXT_TOS = "<_TOS_>";
+	private static final String MAIL_REGISTRATION_TEXT_REGISTRATION_ID =
+			"<_REGISTRATION_ID_>";
+	
+	private static final long REGISTRATION_DURATION = 1000 * 60 * 60 * 4;
+	
 	private static UserServices instance;
+	private static Session smtpSession;
 	
 	private IUserQueries userQueries;
 	private IUserCampaignQueries userCampaignQueries;
@@ -73,6 +119,7 @@ public final class UserServices {
 		if(instance != null) {
 			throw new IllegalStateException("An instance of this class already exists.");
 		}
+		instance = this;
 		
 		if(iUserQueries == null) {
 			throw new IllegalArgumentException("An instance of IUserQueries is required.");
@@ -96,7 +143,20 @@ public final class UserServices {
 		userImageQueries = iUserImageQueries;
 		imageQueries = iImageQueries;
 		
-		instance = this;		
+		Properties sessionProperties = new Properties();
+		try {
+			sessionProperties.load(
+					new FileInputStream(
+							System.getProperty("webapp.root") + 
+							"/WEB-INF/properties/mail.smtp.properties"));
+		} 
+		catch(FileNotFoundException e) {
+			throw new IllegalStateException("The JavaMail properties file is missing.", e);
+		} 
+		catch(IOException e) {
+			throw new IllegalStateException("Error reading the JavaMail properties file.", e);
+		}
+		smtpSession = Session.getDefaultInstance(sessionProperties);
 	}
 	
 	/**
@@ -145,6 +205,184 @@ public final class UserServices {
 		}
 		catch(DataAccessException e) {
 			throw new ServiceException(e);
+		}
+	}
+	
+	/**
+	 * Registers the user in the system by first creating the user whose 
+	 * account is disabled. It then creates an entry in the registration cache
+	 * with the key for the user to activate their account. Finally, it sends 
+	 * an email to the user with a link that includes the activation key.
+	 * 
+	 * @param username The username of the new user.
+	 * 
+	 * @param password The plain-text password for the new user.
+	 * 
+	 * @param emailAddress The email address for the user.
+	 * 
+	 * @throws ServiceException There was a configuration issue with the mail
+	 * 							server or if there was an issue in the Query
+	 * 							layer.
+	 */
+	public void createUserRegistration(
+			final String username,
+			final String password,
+			final String emailAddress) 
+			throws ServiceException {
+		
+		try {
+			// Generate a random registration ID from the username and some 
+			// random bits.
+			MessageDigest digest = MessageDigest.getInstance("SHA-512");
+			digest.update(username.getBytes());
+			digest.update(UUID.randomUUID().toString().getBytes());
+			byte[] digestBytes = digest.digest();
+			
+			StringBuffer buffer = new StringBuffer();
+	        for(int i = 0; i < digestBytes.length; i++) {
+	        	buffer.append(
+	        			Integer.toString(
+	        					(digestBytes[i] & 0xff) + 0x100, 16)
+	        						.substring(1));
+	        }
+			String registrationId = buffer.toString();
+			
+			// Hash the password.
+			String hashedPassword = 
+					BCrypt.hashpw(
+							password, 
+							BCrypt.gensalt(User.BCRYPT_COMPLEXITY));
+			
+			// Create the user in the database with all of its connections.
+			userQueries.createUserRegistration(
+					username, 
+					hashedPassword, 
+					emailAddress, 
+					registrationId.toString());
+			
+			// Send an email to the user to confirm their email.
+			try {
+				SMTPTransport transport = 
+						(SMTPTransport) smtpSession.getTransport(
+								MAIL_PROTOCOL);
+
+				Boolean auth = 
+						StringUtils.decodeBoolean(
+								smtpSession.getProperty(MAIL_PROPERTY_AUTH));
+				if((auth != null) && auth) {
+					transport.connect(
+							smtpSession.getProperty(MAIL_PROPERTY_HOST), 
+							smtpSession.getProperty(MAIL_PROPERTY_USERNAME), 
+							smtpSession.getProperty(MAIL_PROPERTY_PASSWORD));
+				}
+				else {
+					transport.connect();
+				}
+				
+				MimeMessage message = new MimeMessage(smtpSession);
+				
+				// Add the recipient.
+				message.setRecipient(
+						Message.RecipientType.TO, 
+						new InternetAddress(emailAddress));
+				
+				// Add the sender.
+				message.setFrom(
+						new InternetAddress(
+								smtpSession.getProperty(
+										MAIL_PROPERTY_REGISTRATION_ADDRESS_FROM)));
+				
+				// Set the subject.
+				message.setSubject(
+						smtpSession.getProperty(
+								MAIL_PROPERTY_REGISTRATION_SUBJECT));
+				
+				String registrationText =
+						smtpSession.getProperty(
+								MAIL_PROPERTY_REGISTRATION_TEXT);
+				
+				registrationText =
+						registrationText.replace(
+								MAIL_REGISTRATION_TEXT_TOS, 
+								"Terms of Service");
+				
+				registrationText =
+						registrationText.replace(
+								MAIL_REGISTRATION_TEXT_REGISTRATION_ID, 
+								registrationId.toString());
+				
+				message.setText(registrationText);
+				
+				transport.sendMessage(message, message.getAllRecipients());
+			}
+			catch(NoSuchProviderException e) {
+				throw new ServiceException(
+						"There is no provider for SMTP. " +
+							"This means the library has changed as it has built-in support for SMTP.",
+						e);
+			}
+			catch(AuthenticationFailedException e) {
+				throw new ServiceException(
+						"The mail credentials were incorrect.",
+						e);
+			}
+			catch(MessagingException e) {
+				throw new ServiceException(
+						"There was an error while connecting to the mail server or sending the message.",
+						e);
+			}
+			catch(IllegalStateException e) {
+				throw new ServiceException(
+						"The transport is already connected, which should never be the case.",
+						e);
+			}
+		}
+		catch(NoSuchAlgorithmException e) {
+			throw new ServiceException("The hashing algorithm is unknown.", e);
+		}
+		catch(DataAccessException e) {
+			throw new ServiceException(e);
+		} 
+	}
+	
+	/**
+	 * Verifies that the given captcha information is valid.
+	 * 
+	 * @param remoteAddr The address of the remote host.
+	 * 
+	 * @param challenge The challenge value.
+	 * 
+	 * @param response The response value.
+	 * 
+	 * @throws ServiceException Thrown if the private key is missing or if the
+	 * 							response is invalid.
+	 */
+	public void verifyCaptcha(
+			final String remoteAddr,
+			final String challenge,
+			final String response)
+			throws ServiceException {
+		
+		ReCaptchaImpl reCaptcha = new ReCaptchaImpl();
+		try {
+			reCaptcha.setPrivateKey(
+					PreferenceCache.instance().lookup(
+							PreferenceCache.KEY_RECAPTCHA_KEY));
+		}
+		catch(CacheMissException e) {
+			throw new ServiceException(
+					"The ReCaptcha key is missing from the preferences: " +
+						PreferenceCache.KEY_RECAPTCHA_KEY,
+					e);
+		}
+		
+		ReCaptchaResponse reCaptchaResponse = 
+				reCaptcha.checkAnswer(remoteAddr, challenge, response);
+		
+		if(! reCaptchaResponse.isValid()) {
+			throw new ServiceException(
+					ErrorCode.SERVER_INVALID_CAPTCHA,
+					"The reCaptcha response was invalid.");
 		}
 	}
 	
@@ -245,6 +483,45 @@ public final class UserServices {
 				throw new ServiceException(
 						ErrorCode.CAMPAIGN_INSUFFICIENT_PERMISSIONS, 
 						"The user does not have permission to create new campaigns.");
+			}
+		}
+		catch(DataAccessException e) {
+			throw new ServiceException(e);
+		}
+	}
+	
+	/**
+	 * Validates that a registration ID still exists, hasn't been used, and 
+	 * hasn't expired.
+	 * 
+	 * @param registrationId The registration's unique identifier.
+	 * 
+	 * @throws ServiceException The registration doesn't exist or is invalid or
+	 * 							there was an error.
+	 */
+	public void validateRegistrationId(
+			final String registrationId) 
+			throws ServiceException {
+		
+		try {
+			if(! userQueries.registrationIdExists(registrationId)) {
+				throw new ServiceException(
+						ErrorCode.USER_INVALID_REGISTRATION_ID,
+						"No such registration ID exists.");
+			}
+			
+			if(userQueries.getRegistrationAcceptedDate(registrationId) != null) {
+				throw new ServiceException(
+						ErrorCode.USER_INVALID_REGISTRATION_ID,
+						"This registration ID has already been used to activate an account.");
+			}
+			
+			long earliestTime = (new Date()).getTime() - REGISTRATION_DURATION;
+			
+			if(userQueries.getRegistrationRequestedDate(registrationId).getTime() < earliestTime) {
+				throw new ServiceException(
+						ErrorCode.USER_INVALID_REGISTRATION_ID,
+						"The registration ID has expired.");
 			}
 		}
 		catch(DataAccessException e) {
@@ -751,6 +1028,26 @@ public final class UserServices {
 			String hashedPassword = BCrypt.hashpw(plaintextPassword, BCrypt.gensalt(13));
 			
 			userQueries.updateUserPassword(username, hashedPassword);
+		}
+		catch(DataAccessException e) {
+			throw new ServiceException(e);
+		}
+	}
+
+	/**
+	 * Activates a user's account by updating the enabled status to true and
+	 * updates the registration table's entry.
+	 * 
+	 * @param registrationId The registration's unique identifier.
+	 * 
+	 * @throws DataAccessException There was an error.
+	 */
+	public void activateUser(
+			final String registrationId)
+			throws ServiceException {
+		
+		try {
+			userQueries.activateUser(registrationId);
 		}
 		catch(DataAccessException e) {
 			throw new ServiceException(e);

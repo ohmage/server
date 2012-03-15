@@ -56,11 +56,13 @@ import org.ohmage.request.survey.SurveyResponseFunctionReadRequest;
 import org.ohmage.request.survey.SurveyResponseReadRequest;
 import org.ohmage.request.survey.SurveyResponseUpdateRequest;
 import org.ohmage.request.survey.SurveyUploadRequest;
+import org.ohmage.request.user.UserActivationRequest;
 import org.ohmage.request.user.UserChangePasswordRequest;
 import org.ohmage.request.user.UserCreationRequest;
 import org.ohmage.request.user.UserDeletionRequest;
 import org.ohmage.request.user.UserInfoReadRequest;
 import org.ohmage.request.user.UserReadRequest;
+import org.ohmage.request.user.UserRegistrationRequest;
 import org.ohmage.request.user.UserSearchRequest;
 import org.ohmage.request.user.UserStatsReadRequest;
 import org.ohmage.request.user.UserUpdateRequest;
@@ -223,6 +225,8 @@ public final class RequestBuilder {
 	
 	// User
 	public static final String API_USER_CREATE = API_ROOT + "/user/create";
+	public static final String API_USER_REGISTER = API_ROOT + "/user/register";
+	public static final String API_USER_ACTIVATE = API_ROOT + "/user/activate";
 	public static final String API_USER_READ = API_ROOT + "/user/read";
 	public static final String API_USER_INFO_READ = API_ROOT + "/user_info/read";
 	public static final String API_USER_STATS_READ = API_ROOT + "/user_stats/read";
@@ -382,6 +386,12 @@ public final class RequestBuilder {
 		else if(API_USER_CREATE.equals(requestUri)) {
 			return new UserCreationRequest(httpRequest);
 		}
+		else if(API_USER_REGISTER.equals(requestUri)) {
+			return new UserRegistrationRequest(httpRequest);
+		}
+		else if(API_USER_ACTIVATE.equals(requestUri)) {
+			return new UserActivationRequest(httpRequest);
+		}
 		else if(API_USER_READ.equals(requestUri)) {
 			return new UserReadRequest(httpRequest);
 		}
@@ -491,6 +501,8 @@ public final class RequestBuilder {
 				API_SURVEY_RESPONSE_FUNCTION_READ.equals(uri) ||
 				// User
 				API_USER_CREATE.equals(uri) ||
+				API_USER_REGISTER.equals(uri) ||
+				API_USER_ACTIVATE.equals(uri) ||
 				API_USER_READ.equals(uri) ||
 				API_USER_INFO_READ.equals(uri) ||
 				API_USER_STATS_READ.equals(uri) ||
