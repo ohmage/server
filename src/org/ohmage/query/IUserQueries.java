@@ -457,6 +457,9 @@ public interface IUserQueries {
 	 * 
 	 * @param personalId The user's new personal ID. A null value indicates 
 	 * 					 that this field should not be updated.
+	 * 
+	 * @param deletePersonalInfo Whether or not to delete the user's personal
+	 * 							 information.
 	 */
 	void updateUser(
 			final String username, 
@@ -468,7 +471,8 @@ public interface IUserQueries {
 			final String firstName,
 			final String lastName,
 			final String organization,
-			final String personalId) 
+			final String personalId,
+			final boolean deletePersonalInfo) 
 			throws DataAccessException;
 
 	/**

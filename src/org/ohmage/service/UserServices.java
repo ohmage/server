@@ -982,6 +982,9 @@ public final class UserServices {
 	 * @param personalId The user's new personal ID. A null value indicates 
 	 * 					 that this field should not be updated.
 	 * 
+	 * @param deletePersonalInfo Whether or not to delete the user's personal
+	 * 							 information.
+	 * 
 	 * @throws ServiceException Thrown if there is an error.
 	 */
 	public void updateUser(
@@ -994,7 +997,8 @@ public final class UserServices {
 			final String firstName,
 			final String lastName,
 			final String organization,
-			final String personalId) 
+			final String personalId,
+			final boolean deletePersonalInfo) 
 			throws ServiceException {
 		
 		try {
@@ -1008,7 +1012,8 @@ public final class UserServices {
 					firstName,
 					lastName,
 					organization,
-					personalId);
+					personalId,
+					deletePersonalInfo);
 		}
 		catch(DataAccessException e) {
 			throw new ServiceException(e);

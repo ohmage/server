@@ -330,6 +330,13 @@ public class UserQueries extends Query implements IUserQueries {
 		"DELETE FROM user " +
 		"WHERE username = ?";
 	
+	// Deletes a user's personal information.
+	private static final String SQL_DELETE_USER_PERSONAL = 
+		"DELETE user_personal " +
+		"FROM user, user_personal " +
+		"WHERE user.id = user_personal.user_id " +
+		"AND user.username = ?";
+	
 	/**
 	 * Creates this object.
 	 * 
@@ -1472,7 +1479,8 @@ public class UserQueries extends Query implements IUserQueries {
 			final String firstName,
 			final String lastName,
 			final String organization,
-			final String personalId) 
+			final String personalId,
+			final boolean deletePersonalInfo) 
 			throws DataAccessException {
 		
 		// Create the transaction.
@@ -1543,71 +1551,80 @@ public class UserQueries extends Query implements IUserQueries {
 				}
 			}
 			
-			if(userHasPersonalInfo(username)) {
-				if(firstName != null) {
-					try {
-						getJdbcTemplate().update(SQL_UPDATE_FIRST_NAME, firstName, username);
-					}
-					catch(org.springframework.dao.DataAccessException e) {
-						transactionManager.rollback(status);
-						throw new DataAccessException("Error executing SQL '" + SQL_UPDATE_FIRST_NAME + "' with parameters: " +
-								firstName + ", " + username, e);
-					}
-				}
-				
-				if(lastName != null) {
-					try {
-						getJdbcTemplate().update(SQL_UPDATE_LAST_NAME, lastName, username);
-					}
-					catch(org.springframework.dao.DataAccessException e) {
-						transactionManager.rollback(status);
-						throw new DataAccessException("Error executing SQL '" + SQL_UPDATE_LAST_NAME + "' with parameters: " +
-								lastName + ", " + username, e);
-					}
-				}
-				
-				if(organization != null) {
-					try {
-						getJdbcTemplate().update(SQL_UPDATE_ORGANIZATION, organization, username);
-					}
-					catch(org.springframework.dao.DataAccessException e) {
-						transactionManager.rollback(status);
-						throw new DataAccessException("Error executing SQL '" + SQL_UPDATE_ORGANIZATION + "' with parameters: " +
-								organization + ", " + username, e);
-					}
-				}
-				
-				if(personalId != null) {
-					try {
-						getJdbcTemplate().update(SQL_UPDATE_PERSONAL_ID, personalId, username);
-					}
-					catch(org.springframework.dao.DataAccessException e) {
-						transactionManager.rollback(status);
-						throw new DataAccessException("Error executing SQL '" + SQL_UPDATE_PERSONAL_ID + "' with parameters: " +
-								personalId + ", " + username, e);
-					}
-				}
+			// If we are deleting the user's personal information, then we 
+			// won't add new or update existing personal information.
+			if(deletePersonalInfo) {
+				getJdbcTemplate().update(
+						SQL_DELETE_USER_PERSONAL, 
+						new Object[] { username });
 			}
 			else {
-				try {
-					getJdbcTemplate().update(
-							SQL_INSERT_USER_PERSONAL, 
-							username, 
-							firstName, 
-							lastName, 
-							organization, 
-							personalId);
+				if(userHasPersonalInfo(username)) {
+					if(firstName != null) {
+						try {
+							getJdbcTemplate().update(SQL_UPDATE_FIRST_NAME, firstName, username);
+						}
+						catch(org.springframework.dao.DataAccessException e) {
+							transactionManager.rollback(status);
+							throw new DataAccessException("Error executing SQL '" + SQL_UPDATE_FIRST_NAME + "' with parameters: " +
+									firstName + ", " + username, e);
+						}
+					}
+					
+					if(lastName != null) {
+						try {
+							getJdbcTemplate().update(SQL_UPDATE_LAST_NAME, lastName, username);
+						}
+						catch(org.springframework.dao.DataAccessException e) {
+							transactionManager.rollback(status);
+							throw new DataAccessException("Error executing SQL '" + SQL_UPDATE_LAST_NAME + "' with parameters: " +
+									lastName + ", " + username, e);
+						}
+					}
+					
+					if(organization != null) {
+						try {
+							getJdbcTemplate().update(SQL_UPDATE_ORGANIZATION, organization, username);
+						}
+						catch(org.springframework.dao.DataAccessException e) {
+							transactionManager.rollback(status);
+							throw new DataAccessException("Error executing SQL '" + SQL_UPDATE_ORGANIZATION + "' with parameters: " +
+									organization + ", " + username, e);
+						}
+					}
+					
+					if(personalId != null) {
+						try {
+							getJdbcTemplate().update(SQL_UPDATE_PERSONAL_ID, personalId, username);
+						}
+						catch(org.springframework.dao.DataAccessException e) {
+							transactionManager.rollback(status);
+							throw new DataAccessException("Error executing SQL '" + SQL_UPDATE_PERSONAL_ID + "' with parameters: " +
+									personalId + ", " + username, e);
+						}
+					}
 				}
-				catch(org.springframework.dao.DataAccessException e) {
-					transactionManager.rollback(status);
-					throw new DataAccessException(
-							"Error executing SQL '" + SQL_INSERT_USER_PERSONAL + "' with parameters: " +
-								username + ", " + 
-								firstName + ", " + 
-								lastName + ", " + 
-								organization + ", " + 
-								personalId, 
-							e);
+				else {
+					try {
+						getJdbcTemplate().update(
+								SQL_INSERT_USER_PERSONAL, 
+								username, 
+								firstName, 
+								lastName, 
+								organization, 
+								personalId);
+					}
+					catch(org.springframework.dao.DataAccessException e) {
+						transactionManager.rollback(status);
+						throw new DataAccessException(
+								"Error executing SQL '" + SQL_INSERT_USER_PERSONAL + "' with parameters: " +
+									username + ", " + 
+									firstName + ", " + 
+									lastName + ", " + 
+									organization + ", " + 
+									personalId, 
+								e);
+					}
 				}
 			}
 			

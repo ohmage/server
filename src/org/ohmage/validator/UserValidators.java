@@ -764,4 +764,37 @@ public final class UserValidators {
 							value);
 		}
 	}
+	
+	/**
+	 * Validates that a delete personal info flag is a valid boolean.
+	 * 
+	 * @param value The value to validate.
+	 * 
+	 * @return A valid boolean describing whether or not to delete the user's
+	 * 		   personal personal information. The default is false.
+	 * 
+	 * @throws ValidationException The value was not null nor whitespace only, 
+	 * 							   and it could not be decoded as a boolean.
+	 */
+	public static boolean validateDeletePersonalInfo(
+			final String value) 
+			throws ValidationException {
+		
+		LOGGER.info("Validating a delete personal info value.");
+		
+		if(StringUtils.isEmptyOrWhitespaceOnly(value)) {
+			return false;
+		}
+		
+		Boolean result = StringUtils.decodeBoolean(value);
+		
+		if(result == null) {
+			throw new ValidationException(
+					ErrorCode.USER_INVALID_DELETE_PERSONAL_INFO,
+					"The 'delete personal info' flag was not a valid boolean: " +
+						value);
+		}
+		
+		return result;
+	}
 }

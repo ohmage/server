@@ -93,6 +93,13 @@ import org.ohmage.validator.UserValidators;
  *     <td>The personal identifier for the user.</td>
  *     <td>false*</td>
  *   </tr>
+ *   <tr>
+ *     <td>{@value org.ohmage.request.InputKeys#USER_DELETE_PERSONAL_INFO}</td>
+ *     <td>If true, deletes all of the user's personal information, which 
+ *       includes their first name, last name, organization, and personal ID.
+ *       </td>
+ *     <td>false</td>
+ *   </tr>
  * </table>
  * <br />
  * * If a user does not already have a personal information entry in the 
@@ -115,11 +122,12 @@ public class UserUpdateRequest extends UserRequest {
 	private final Boolean newAccount;
 	private final Boolean campaignCreationPrivilege;
 	
-	//private final UserPersonal personalInfo;
 	private final String firstName;
 	private final String lastName;
 	private final String organization;
 	private final String personalId;
+	
+	private final boolean deletePersonalInfo;
 	
 	/**
 	 * Creates a new user update request.
@@ -144,6 +152,8 @@ public class UserUpdateRequest extends UserRequest {
 		String tLastName = null;
 		String tOrganization = null;
 		String tPersonalId = null;
+		
+		boolean tDeletePersonalInfo = false;
 		
 		try {
 			tUsername = UserValidators.validateUsername(httpRequest.getParameter(InputKeys.USERNAME));
@@ -203,16 +213,22 @@ public class UserUpdateRequest extends UserRequest {
 				setFailed(ErrorCode.USER_INVALID_ORGANIZATION_VALUE, "Multiple organization parameters were given.");
 				throw new ValidationException("Multiple organization parameters were given.");
 			}
-			
+
 			tPersonalId = UserValidators.validatePersonalId(httpRequest.getParameter(InputKeys.PERSONAL_ID));
 			if((tPersonalId != null) && (httpRequest.getParameterValues(InputKeys.PERSONAL_ID).length > 1)) {
 				setFailed(ErrorCode.USER_INVALID_PERSONAL_ID_VALUE, "Multiple personal ID parameters were given.");
 				throw new ValidationException("Multiple personal ID parameters were given.");
 			}
+			
+			tDeletePersonalInfo = UserValidators.validateDeletePersonalInfo(httpRequest.getParameter(InputKeys.USER_DELETE_PERSONAL_INFO));
+			if(httpRequest.getParameterValues(InputKeys.USER_DELETE_PERSONAL_INFO).length > 1) {
+				setFailed(ErrorCode.USER_INVALID_DELETE_PERSONAL_INFO, "Multiple delete personal info parameters were given.");
+				throw new ValidationException("Multiple delete personal info parameters were given.");
+			}
 		}
 		catch(ValidationException e) {
 			e.failRequest(this);
-			LOGGER.info(e.toString());
+			e.logException(LOGGER);
 		}
 		
 		username = tUsername;
@@ -223,11 +239,12 @@ public class UserUpdateRequest extends UserRequest {
 		newAccount = tNewAccount;
 		campaignCreationPrivilege = tCampaignCreationPrivilege;
 		
-		//personalInfo = new UserPersonal(tFirstName, tLastName, tOrganization, tPersonalId, tEmailAddress, tJsonData);
 		firstName = tFirstName;
 		lastName = tLastName;
 		organization = tOrganization;
 		personalId = tPersonalId;
+		
+		deletePersonalInfo = tDeletePersonalInfo;
 	}
 
 	/**
@@ -267,7 +284,8 @@ public class UserUpdateRequest extends UserRequest {
 					firstName,
 					lastName,
 					organization,
-					emailAddress);
+					emailAddress,
+					deletePersonalInfo);
 		}
 		catch(ServiceException e) {
 			e.failRequest(this);

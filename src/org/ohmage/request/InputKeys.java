@@ -124,6 +124,7 @@ public final class InputKeys {
 	public static final String EMAIL_ADDRESS = "email_address";
 	public static final String USER_JSON_DATA = "json_data";
 	public static final String USER_REGISTRATION_ID = "registration_id";
+	public static final String USER_DELETE_PERSONAL_INFO = "delete_personal_info";
 	
 	// State Constants
 	public static final String PRIVACY_STATE = "privacy_state";
