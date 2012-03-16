@@ -16,13 +16,15 @@
 package org.ohmage.service;
 
 import java.io.ByteArrayOutputStream;
+import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.InetAddress;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.net.URLConnection;
+import java.net.URLEncoder;
 import java.net.UnknownHostException;
 import java.util.Map;
 
@@ -95,6 +97,8 @@ public class VisualizationServices {
 	 */
 	public static final String PARAMETER_KEY_AGGREGATE = "aggregate";
 	
+	private static final String ENCODING = "UTF-8";
+	
 	/**
 	 * Default constructor. Made private so that it cannot be instantiated.
 	 */
@@ -138,7 +142,7 @@ public class VisualizationServices {
 			final int height, final Map<String, String> parameters) 
 			throws ServiceException {
 		
-		// Build the request.
+		// Build the request URL.
 		StringBuilder urlBuilder = new StringBuilder();
 		try {
 			String serverUrl = PreferenceCache.instance().lookup(PreferenceCache.KEY_VISUALIZATION_SERVER);
@@ -154,95 +158,146 @@ public class VisualizationServices {
 						PreferenceCache.KEY_VISUALIZATION_SERVER,
 					e);
 		}
-		urlBuilder.append(requestPath).append("?");
-		
-		// Get this machine's hostname.
-		String hostname;
-		try {
-			hostname = InetAddress.getLocalHost().getHostName();
-		}
-		catch(UnknownHostException e) {
-			throw new ServiceException(
-					"The sky is falling! Oh, and our own hostname is unknown.",
-					e);
-		}
-		
-		// Get the protocol string based on SSL being enabled.
-		String httpString = "http";
-		try {
-			String sslEnabled = PreferenceCache.instance().lookup(PreferenceCache.KEY_SSL_ENABLED);
-			if((sslEnabled != null) && (sslEnabled.equals("true"))) {
-				httpString = "https";
-			}
-		}
-		catch(CacheMissException e) {
-			throw new ServiceException(
-					"Cache doesn't know about 'known' key: " + 
-						PreferenceCache.KEY_SSL_ENABLED, 
-					e);
-		}
-		
-		// Add the required parameters.
-		urlBuilder.append(PARAMETER_KEY_TOKEN).append("='").append(userToken).append("'");
-		urlBuilder.append("&").append(PARAMETER_KEY_SERVER).append("='").append(httpString).append("://").append(hostname).append(APPLICATION_PATH).append("'");
-		urlBuilder.append("&").append(PARAMETER_KEY_CAMPAIGN_ID).append("='").append(campaignId).append("'");
-		urlBuilder.append("&").append(PARAMETER_KEY_WIDTH).append("=").append(width);
-		urlBuilder.append("&").append(PARAMETER_KEY_HEIGHT).append("=").append(height);
-		
-		// Add all of the non-required, request-specific parameters.
-		for(String key : parameters.keySet()) {
-			urlBuilder.append('&');
-			
-			if(PARAMETER_KEY_AGGREGATE.equals(key)) {
-				urlBuilder
-					.append(key)
-					.append('=')
-					.append(parameters.get(key));
-			}
-			else {
-				urlBuilder
-					.append(key)
-					.append("='")
-					.append(parameters.get(key))
-					.append("'");
-			}
-		}
+		urlBuilder.append(requestPath);
 		
 		// Generate the URL String.
 		String urlString = urlBuilder.toString();
 		
+		// Build this server's URL.
+		StringBuilder parameterBuilder = new StringBuilder();
+		try {
+			parameterBuilder
+				.append(URLEncoder.encode(PARAMETER_KEY_TOKEN, ENCODING))
+				.append("='")
+				.append(URLEncoder.encode(userToken, ENCODING))
+				.append("'");
+	
+			// Build this server's URL.
+			parameterBuilder.append("&")
+				.append(URLEncoder.encode(PARAMETER_KEY_SERVER, ENCODING))
+				.append("='");
+			
+			// Get the protocol string based on SSL being enabled.
+			try {
+				String sslEnabled = 
+						PreferenceCache.instance().lookup(
+								PreferenceCache.KEY_SSL_ENABLED);
+				if((sslEnabled != null) && (sslEnabled.equals("true"))) {
+					parameterBuilder.append("https");
+				}
+				else {
+					parameterBuilder.append("http");
+				}
+			}
+			catch(CacheMissException e) {
+				throw new ServiceException(
+						"Cache doesn't know about 'known' key: " + 
+							PreferenceCache.KEY_SSL_ENABLED, 
+						e);
+			}
+			parameterBuilder.append(URLEncoder.encode("://", ENCODING));
+			
+			// Get this machine's hostname.
+			try {
+				parameterBuilder.append(
+						URLEncoder.encode(
+								InetAddress.getLocalHost().getHostName(), 
+								ENCODING));
+			}
+			catch(UnknownHostException e) {
+				throw new ServiceException(
+						"The sky is falling! Oh, and our own hostname is unknown.",
+						e);
+			}
+			parameterBuilder
+				.append(URLEncoder.encode(APPLICATION_PATH, ENCODING))
+				.append("'");
+			
+			// Add the required parameters.
+			parameterBuilder.append("&")
+				.append(URLEncoder.encode(PARAMETER_KEY_CAMPAIGN_ID, ENCODING))
+				.append("='")
+				.append(URLEncoder.encode(campaignId, ENCODING))
+				.append("'");
+			
+			parameterBuilder.append("&")
+				.append(URLEncoder.encode(PARAMETER_KEY_WIDTH, ENCODING))
+				.append("=")
+				.append(width);
+			
+			parameterBuilder.append("&")
+				.append(URLEncoder.encode(PARAMETER_KEY_HEIGHT, ENCODING))
+				.append("=")
+				.append(height);
+			
+			// Add all of the non-required, request-specific parameters.
+			for(String key : parameters.keySet()) {
+				urlBuilder.append('&');
+				
+				if(PARAMETER_KEY_AGGREGATE.equals(key)) {
+					urlBuilder
+						.append(URLEncoder.encode(key, ENCODING))
+						.append('=')
+						.append(parameters.get(key));
+				}
+				else {
+					urlBuilder
+						.append(URLEncoder.encode(key, ENCODING))
+						.append("='")
+						.append(URLEncoder.encode(parameters.get(key), ENCODING))
+						.append("'");
+				}
+			}
+		}
+		catch(UnsupportedEncodingException e) {
+			throw new ServiceException(
+					"UTF-8 encoding is unknown.",
+					e);
+		}
+		
 		try {
 			// Connect to the visualization server.
 			URL url = new URL(urlString);
-			URLConnection urlConnection = url.openConnection();
+			HttpURLConnection urlConnection = 
+					(HttpURLConnection) url.openConnection();
 			
-			// Check that the response code was 200.
-			if(urlConnection instanceof HttpURLConnection) {
-				HttpURLConnection httpUrlConnection = (HttpURLConnection) urlConnection;
-
-				// If a non-200 response was returned, get the text from the 
-				// response.
-				if(httpUrlConnection.getResponseCode() != 200) {
-					// Get the error text.
-					ByteArrayOutputStream errorByteStream = new ByteArrayOutputStream();
-					InputStream errorStream = httpUrlConnection.getErrorStream();
-					byte[] chunk = new byte[4096];
-					int amountRead;
-					while((amountRead = errorStream.read(chunk)) != -1) {
-						errorByteStream.write(chunk, 0, amountRead);
-					}
-					
-					// Echo the error.
-					throw new ServiceException(
-							ErrorCode.VISUALIZATION_GENERAL_ERROR,
-							"There was an error. Please, try again later.",
-							"The server returned the HTTP error code '" + 
-								httpUrlConnection.getResponseCode() + 
-								"' with the error '" + 
-								errorByteStream.toString() + 
-								"': " + 
-								urlString);
+			urlConnection.setDoOutput(true);
+			urlConnection.setDoInput(true);
+			urlConnection.setInstanceFollowRedirects(true);
+			urlConnection.setRequestMethod("POST");
+			urlConnection.setRequestProperty(
+					"Content-Length", 
+					Integer.toString(parameterBuilder.length()));
+			
+			DataOutputStream output = 
+					new DataOutputStream(urlConnection.getOutputStream());
+			output.writeBytes(parameterBuilder.toString());
+			output.flush();
+			output.close();
+			
+			// If a non-200 response was returned, get the text from the 
+			// response.
+			if(urlConnection.getResponseCode() != 200) {
+				// Get the error text.
+				ByteArrayOutputStream errorByteStream = new ByteArrayOutputStream();
+				InputStream errorStream = urlConnection.getErrorStream();
+				byte[] chunk = new byte[4096];
+				int amountRead;
+				while((amountRead = errorStream.read(chunk)) != -1) {
+					errorByteStream.write(chunk, 0, amountRead);
 				}
+				errorStream.close();
+				
+				// Echo the error.
+				throw new ServiceException(
+						ErrorCode.VISUALIZATION_GENERAL_ERROR,
+						"There was an error. Please, try again later.",
+						"The server returned the HTTP error code '" + 
+							urlConnection.getResponseCode() + 
+							"' with the error '" + 
+							errorByteStream.toString() + 
+							"': " + 
+							urlString);
 			}
 			
 			// Build the response.
@@ -255,6 +310,7 @@ public class VisualizationServices {
 			while((amountRead = reader.read(chunk)) != -1) {
 				byteArrayStream.write(chunk, 0, amountRead);
 			}
+			reader.close();
 			
 			return byteArrayStream.toByteArray();
 		}
