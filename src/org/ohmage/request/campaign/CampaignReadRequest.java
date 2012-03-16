@@ -144,7 +144,7 @@ import org.ohmage.validator.ClassValidators;
  *     <td>false</td>
  *   </tr>
  *   <tr>
- *     <td>{@value org.ohmage.request.InputKeys#END_DATE}</td>
+ *     <td>{@value org.ohmage.request.InputKeys#RUNNING_STATE}</td>
  *     <td>This will remove all campaigns from the result whose running state
  *       is not this running state.</td>
  *     <td>false</td>

@@ -122,6 +122,57 @@ public final class CampaignQueries extends Query implements ICampaignQueries {
 		"AND c.running_state_id = crs.id " +
 		"AND c.privacy_state_id = cps.id";
 	
+	private static final String SQL_GET_CAMPAIGN_INFORMATION_WITH_PARAMS =
+		"SELECT ca.name, ca.description, " +
+			"ca.icon_url, ca.authored_by, " +
+			"crs.running_state, cps.privacy_state, " +
+			"ca.creation_timestamp, " +
+			"ca.xml " +
+		"FROM " +
+			"campaign ca, " +
+				"campaign_running_state crs, campaign_privacy_state cps, " +
+			"class cl, campaign_class cc " +
+		"WHERE ca.id = urc.campaign_id " +
+		"AND ur.id = urc.user_role_id " +
+		"AND cl.id = cc.class_id " +
+		"AND ca.id = cc.campaign_id " +
+		"AND ca.running_state_id = crs.id " +
+		"AND ca.privacy_state_id = cps.id";
+	
+	public List<Campaign> getCampaignInformation(
+			final String username,
+			final Collection<String> campaignIds,
+			final Collection<String> classIds,
+			final Date startDate,
+			final Date endDate,
+			final Campaign.PrivacyState privacyState,
+			final Campaign.RunningState runningState,
+			final Campaign.Role role)
+			throws DataAccessException {
+		
+		try {
+			// We always need to SELECT the same information, because it is all
+			// required to build a Campaign.
+			StringBuilder builder = 
+					new StringBuilder(
+							"SELECT c.name, c.description, " +
+									"c.icon_url, c.authored_by, " +
+									"crs.running_state, cps.privacy_state, " +
+									"c.creation_timestamp, " +
+									"c.xml ");
+			
+			
+		}
+		catch(org.springframework.dao.DataAccessException e) {
+			throw new DataAccessException(e);
+		}
+		
+		
+		
+		
+		return null;
+	}
+	
 	// Returns the unique identifier for all of the campaigns in the system.
 	private static final String SQL_GET_ALL_IDS =
 		"SELECT urn " +
