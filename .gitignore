@@ -3,6 +3,6 @@ dist
 .classpath
 .project
 bin
-web/META-INF/system.properties
+web/WEB-INF/properties/system.properties
 .sonar
 thirdparty
