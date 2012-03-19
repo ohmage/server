@@ -21,8 +21,10 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -37,8 +39,11 @@ import org.ohmage.exception.DomainException;
 import org.ohmage.query.ICampaignQueries;
 import org.ohmage.query.IUserCampaignClassQueries;
 import org.ohmage.query.IUserClassQueries;
+import org.ohmage.query.impl.QueryResult.QueryResultBuilder;
+import org.ohmage.util.StringUtils;
 import org.ohmage.util.TimeUtils;
 import org.springframework.dao.IncorrectResultSizeDataAccessException;
+import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.SingleColumnRowMapper;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
@@ -121,58 +126,7 @@ public final class CampaignQueries extends Query implements ICampaignQueries {
 		"WHERE c.urn = ? " +
 		"AND c.running_state_id = crs.id " +
 		"AND c.privacy_state_id = cps.id";
-	
-	private static final String SQL_GET_CAMPAIGN_INFORMATION_WITH_PARAMS =
-		"SELECT ca.name, ca.description, " +
-			"ca.icon_url, ca.authored_by, " +
-			"crs.running_state, cps.privacy_state, " +
-			"ca.creation_timestamp, " +
-			"ca.xml " +
-		"FROM " +
-			"campaign ca, " +
-				"campaign_running_state crs, campaign_privacy_state cps, " +
-			"class cl, campaign_class cc " +
-		"WHERE ca.id = urc.campaign_id " +
-		"AND ur.id = urc.user_role_id " +
-		"AND cl.id = cc.class_id " +
-		"AND ca.id = cc.campaign_id " +
-		"AND ca.running_state_id = crs.id " +
-		"AND ca.privacy_state_id = cps.id";
-	
-	public List<Campaign> getCampaignInformation(
-			final String username,
-			final Collection<String> campaignIds,
-			final Collection<String> classIds,
-			final Date startDate,
-			final Date endDate,
-			final Campaign.PrivacyState privacyState,
-			final Campaign.RunningState runningState,
-			final Campaign.Role role)
-			throws DataAccessException {
-		
-		try {
-			// We always need to SELECT the same information, because it is all
-			// required to build a Campaign.
-			StringBuilder builder = 
-					new StringBuilder(
-							"SELECT c.name, c.description, " +
-									"c.icon_url, c.authored_by, " +
-									"crs.running_state, cps.privacy_state, " +
-									"c.creation_timestamp, " +
-									"c.xml ");
-			
-			
-		}
-		catch(org.springframework.dao.DataAccessException e) {
-			throw new DataAccessException(e);
-		}
-		
-		
-		
-		
-		return null;
-	}
-	
+
 	// Returns the unique identifier for all of the campaigns in the system.
 	private static final String SQL_GET_ALL_IDS =
 		"SELECT urn " +
@@ -251,7 +205,7 @@ public final class CampaignQueries extends Query implements ICampaignQueries {
 	
 	// Retrieves the campaign roles for a user based on the default roles for
 	// a campaign-class association.
-	public static final String SQL_GET_USER_DEFAULT_ROLES = "SELECT ur.role "
+	private static final String SQL_GET_USER_DEFAULT_ROLES = "SELECT ur.role "
 			+ "FROM user u, campaign ca, class cl, campaign_class cc, user_role ur, user_class uc, campaign_class_default_role ccdr "
 			+ "WHERE u.username = ? " + "AND ca.urn = ? " + "AND cl.urn = ? "
 			+ "AND ca.id = cc.campaign_id " + "AND cl.id = cc.class_id "
@@ -507,6 +461,206 @@ public final class CampaignQueries extends Query implements ICampaignQueries {
 		}
 	}
 	
+	/*
+	 * (non-Javadoc)
+	 * @see org.ohmage.query.ICampaignQueries#getAllCampaignIds()
+	 */
+	@Override
+	public List<String> getAllCampaignIds() throws DataAccessException {
+		try {
+			return getJdbcTemplate().query(
+					SQL_GET_ALL_IDS,
+					new SingleColumnRowMapper<String>());
+		}
+		catch(org.springframework.dao.DataAccessException e) {
+			throw new DataAccessException(
+					"Error executing SQL '" +
+						SQL_GET_ALL_IDS + 
+						"'.",
+					e);
+		}
+	}
+	
+	/*
+	 * (non-Javadoc)
+	 * @see org.ohmage.query.ICampaignQueries#getCampaignsFromPartialId(java.lang.String)
+	 */
+	@Override
+	public List<String> getCampaignsFromPartialId(String partialCampaignId)
+			throws DataAccessException {
+
+		try {
+			return getJdbcTemplate().query(
+					SQL_GET_LIKE_ID, 
+					new Object[] { "%" + partialCampaignId + "%" }, 
+					new SingleColumnRowMapper<String>());
+		}
+		catch(org.springframework.dao.DataAccessException e) {
+			throw new DataAccessException(
+					"Error executing SQL '" +
+						SQL_GET_LIKE_ID + 
+						"' with parameter: " +
+						"%" + partialCampaignId + "%",
+					e);
+		}
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.ohmage.query.ICampaignQueries#getCampaignsFromPartialName(java.lang.String)
+	 */
+	@Override
+	public List<String> getCampaignsFromPartialName(String partialCampaignName)
+			throws DataAccessException {
+
+		try {
+			return getJdbcTemplate().query(
+					SQL_GET_LIKE_NAME, 
+					new Object[] { "%" + partialCampaignName + "%" }, 
+					new SingleColumnRowMapper<String>());
+		}
+		catch(org.springframework.dao.DataAccessException e) {
+			throw new DataAccessException(
+					"Error executing SQL '" +
+						SQL_GET_LIKE_NAME + 
+						"' with parameter: " +
+						"%" + partialCampaignName + "%",
+					e);
+		}
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.ohmage.query.ICampaignQueries#getCampaignsFromPartialDescription(java.lang.String)
+	 */
+	@Override
+	public List<String> getCampaignsFromPartialDescription(
+			String partialDescription) throws DataAccessException {
+
+		try {
+			return getJdbcTemplate().query(
+					SQL_GET_LIKE_DESCRIPTION, 
+					new Object[] { "%" + partialDescription + "%" }, 
+					new SingleColumnRowMapper<String>());
+		}
+		catch(org.springframework.dao.DataAccessException e) {
+			throw new DataAccessException(
+					"Error executing SQL '" +
+						SQL_GET_LIKE_DESCRIPTION + 
+						"' with parameter: " +
+						"%" + partialDescription + "%",
+					e);
+		}
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.ohmage.query.ICampaignQueries#getCampaignsFromPartialXml(java.lang.String)
+	 */
+	@Override
+	public List<String> getCampaignsFromPartialXml(String partialXml)
+			throws DataAccessException {
+		
+		try {
+			return getJdbcTemplate().query(
+					SQL_GET_LIKE_XML, 
+					new Object[] { "%" + partialXml + "%" }, 
+					new SingleColumnRowMapper<String>());
+		}
+		catch(org.springframework.dao.DataAccessException e) {
+			throw new DataAccessException(
+					"Error executing SQL '" +
+						SQL_GET_LIKE_XML + 
+						"' with parameter: " +
+						"%" + partialXml + "%",
+					e);
+		}
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.ohmage.query.ICampaignQueries#getCampaignsFromPartialAuthoredBy(java.lang.String)
+	 */
+	@Override
+	public List<String> getCampaignsFromPartialAuthoredBy(
+			String partialAuthoredBy) throws DataAccessException {
+
+		try {
+			return getJdbcTemplate().query(
+					SQL_GET_LIKE_AUTHORED_BY, 
+					new Object[] { "%" + partialAuthoredBy + "%" }, 
+					new SingleColumnRowMapper<String>());
+		}
+		catch(org.springframework.dao.DataAccessException e) {
+			throw new DataAccessException(
+					"Error executing SQL '" +
+						SQL_GET_LIKE_AUTHORED_BY + 
+						"' with parameter: " +
+						"%" + partialAuthoredBy + "%",
+					e);
+		}
+	}
+	
+	/* (non-Javadoc)
+	 * @see org.ohmage.query.impl.ICampaignQueries#getCampaignsOnOrAfterDate(java.util.Calendar)
+	 */
+	public List<String> getCampaignsOnOrAfterDate(Date date) throws DataAccessException {
+		try {
+			return getJdbcTemplate().query(
+					SQL_GET_CAMPAIGNS_ON_OR_AFTER_DATE,
+					new Object[] { TimeUtils.getIso8601DateTimeString(date) },
+					new SingleColumnRowMapper<String>());
+		}
+		catch(org.springframework.dao.DataAccessException e) {
+			throw new DataAccessException("Error executing SQL '" + SQL_GET_CAMPAIGNS_ON_OR_AFTER_DATE + "' with parameter: " + TimeUtils.getIso8601DateTimeString(date), e);
+		}
+	}
+	
+	/* (non-Javadoc)
+	 * @see org.ohmage.query.impl.ICampaignQueries#getCampaignsOnOrBeforeDate(java.util.Calendar)
+	 */
+	public List<String> getCampaignsOnOrBeforeDate(Date date) throws DataAccessException {
+		try {
+			return getJdbcTemplate().query(
+					SQL_GET_CAMPAIGNS_ON_OR_BEFORE_DATE,
+					new Object[] { TimeUtils.getIso8601DateTimeString(date) },
+					new SingleColumnRowMapper<String>());
+		}
+		catch(org.springframework.dao.DataAccessException e) {
+			throw new DataAccessException("Error executing SQL '" + SQL_GET_CAMPAIGNS_ON_OR_BEFORE_DATE + "' with parameter: " + TimeUtils.getIso8601DateTimeString(date), e);
+		}
+	}
+	
+	/* (non-Javadoc)
+	 * @see org.ohmage.query.impl.ICampaignQueries#getCampaignsWithPrivacyState(org.ohmage.domain.campaign.Campaign.PrivacyState)
+	 */
+	public List<String> getCampaignsWithPrivacyState(Campaign.PrivacyState privacyState) throws DataAccessException {
+		try {
+			return getJdbcTemplate().query(
+					SQL_GET_CAMPAIGNS_WITH_PRIVACY_STATE,
+					new Object[] { privacyState.toString() },
+					new SingleColumnRowMapper<String>());
+		}
+		catch(org.springframework.dao.DataAccessException e) {
+			throw new DataAccessException("Error executing SQL '" + SQL_GET_CAMPAIGNS_WITH_PRIVACY_STATE + "' with parameter: " + privacyState, e);
+		}
+	}
+	
+	/* (non-Javadoc)
+	 * @see org.ohmage.query.impl.ICampaignQueries#getCampaignsWithRunningState(org.ohmage.domain.campaign.Campaign.RunningState)
+	 */
+	public List<String> getCampaignsWithRunningState(Campaign.RunningState runningState) throws DataAccessException {
+		try {
+			return getJdbcTemplate().query(
+					SQL_GET_CAMPAIGNS_WITH_RUNNING_STATE,
+					new Object[] { runningState.toString() },
+					new SingleColumnRowMapper<String>());
+		}
+		catch(org.springframework.dao.DataAccessException e) {
+			throw new DataAccessException("Error executing SQL '" + SQL_GET_CAMPAIGNS_WITH_RUNNING_STATE + "' with parameter: " + runningState, e);
+		}
+	}
+	
 	/* (non-Javadoc)
 	 * @see org.ohmage.query.impl.ICampaignQueries#getName(java.lang.String)
 	 */
@@ -748,201 +902,193 @@ public final class CampaignQueries extends Query implements ICampaignQueries {
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.ohmage.query.ICampaignQueries#getAllCampaignIds()
+	 * @see org.ohmage.query.ICampaignQueries#getCampaignInformation(java.lang.String, java.util.Collection, java.util.Collection, java.util.Date, java.util.Date, org.ohmage.domain.campaign.Campaign.PrivacyState, org.ohmage.domain.campaign.Campaign.RunningState, org.ohmage.domain.campaign.Campaign.Role)
 	 */
-	@Override
-	public List<String> getAllCampaignIds() throws DataAccessException {
-		try {
-			return getJdbcTemplate().query(
-					SQL_GET_ALL_IDS,
-					new SingleColumnRowMapper<String>());
-		}
-		catch(org.springframework.dao.DataAccessException e) {
-			throw new DataAccessException(
-					"Error executing SQL '" +
-						SQL_GET_ALL_IDS + 
-						"'.",
-					e);
-		}
-	}
-	
-	/*
-	 * (non-Javadoc)
-	 * @see org.ohmage.query.ICampaignQueries#getCampaignsFromPartialId(java.lang.String)
-	 */
-	@Override
-	public List<String> getCampaignsFromPartialId(String partialCampaignId)
-			throws DataAccessException {
-
-		try {
-			return getJdbcTemplate().query(
-					SQL_GET_LIKE_ID, 
-					new Object[] { "%" + partialCampaignId + "%" }, 
-					new SingleColumnRowMapper<String>());
-		}
-		catch(org.springframework.dao.DataAccessException e) {
-			throw new DataAccessException(
-					"Error executing SQL '" +
-						SQL_GET_LIKE_ID + 
-						"' with parameter: " +
-						"%" + partialCampaignId + "%",
-					e);
-		}
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * @see org.ohmage.query.ICampaignQueries#getCampaignsFromPartialName(java.lang.String)
-	 */
-	@Override
-	public List<String> getCampaignsFromPartialName(String partialCampaignName)
-			throws DataAccessException {
-
-		try {
-			return getJdbcTemplate().query(
-					SQL_GET_LIKE_NAME, 
-					new Object[] { "%" + partialCampaignName + "%" }, 
-					new SingleColumnRowMapper<String>());
-		}
-		catch(org.springframework.dao.DataAccessException e) {
-			throw new DataAccessException(
-					"Error executing SQL '" +
-						SQL_GET_LIKE_NAME + 
-						"' with parameter: " +
-						"%" + partialCampaignName + "%",
-					e);
-		}
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * @see org.ohmage.query.ICampaignQueries#getCampaignsFromPartialDescription(java.lang.String)
-	 */
-	@Override
-	public List<String> getCampaignsFromPartialDescription(
-			String partialDescription) throws DataAccessException {
-
-		try {
-			return getJdbcTemplate().query(
-					SQL_GET_LIKE_DESCRIPTION, 
-					new Object[] { "%" + partialDescription + "%" }, 
-					new SingleColumnRowMapper<String>());
-		}
-		catch(org.springframework.dao.DataAccessException e) {
-			throw new DataAccessException(
-					"Error executing SQL '" +
-						SQL_GET_LIKE_DESCRIPTION + 
-						"' with parameter: " +
-						"%" + partialDescription + "%",
-					e);
-		}
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * @see org.ohmage.query.ICampaignQueries#getCampaignsFromPartialXml(java.lang.String)
-	 */
-	@Override
-	public List<String> getCampaignsFromPartialXml(String partialXml)
+	public QueryResult<Campaign> getCampaignInformation(
+			final String username,
+			final Collection<String> campaignIds,
+			final Collection<String> classIds,
+			final Date startDate,
+			final Date endDate,
+			final Campaign.PrivacyState privacyState,
+			final Campaign.RunningState runningState,
+			final Campaign.Role role)
 			throws DataAccessException {
 		
 		try {
+			// Begin with a common set of elements to select, and the tables to
+			// which those elements belong.
+			StringBuilder builder = 
+					new StringBuilder(
+							"SELECT ca.urn, ca.name, ca.description, " +
+								"ca.icon_url, ca.authored_by, " +
+								"crs.running_state, cps.privacy_state, " +
+								"ca.creation_timestamp, " +
+								"ca.xml " +
+							"FROM " +
+								"user u, " +
+								"campaign ca, " +
+									"campaign_running_state crs, " +
+									"campaign_privacy_state cps " +
+							"WHERE u.username = ? " +
+							"AND ca.running_state_id = crs.id " +
+							"AND ca.privacy_state_id = cps.id " +
+							// ACL
+							"AND (" +
+								"(u.admin = true)" +
+								" OR " +
+								"EXISTS (" +
+									"SELECT id " +
+									"FROM user_role_campaign urc " +
+									"WHERE u.id = urc.user_id " +
+									"AND ca.id = urc.campaign_id" +
+								")" +
+							")");
+			
+			
+			List<Object> parameters = new LinkedList<Object>();
+			parameters.add(username);
+			
+			if(campaignIds != null) {
+				if(campaignIds.size() == 0) {
+					return new QueryResult<Campaign>(
+							0, 
+							Collections.<Campaign>emptyList());
+				}
+				
+				builder
+					.append(" AND ca.urn IN ")
+					.append(StringUtils.generateStatementPList(
+							campaignIds.size()));
+				
+				parameters.addAll(campaignIds);
+			}
+			
+			if(classIds != null) {
+				if(classIds.size() == 0) {
+					return new QueryResult<Campaign>(
+							0, 
+							Collections.<Campaign>emptyList());
+				}
+				
+				builder.append(
+						" AND (" +
+							"ca.id IN (" +
+								"SELECT cc.campaign_id " +
+								"FROM campaign_class cc " +
+								"WHERE cc.class_id IN (" +
+									"SELECT cl.id " +
+									"FROM class cl " +
+									"WHERE cl.urn IN " +
+									StringUtils.generateStatementPList(
+											classIds.size()) +
+								")" +
+							")" +
+						")"
+					);
+				
+				parameters.addAll(classIds);
+			}
+			
+			if(startDate != null) {
+				builder.append(" AND creation_timestamp >= ?");
+				
+				parameters.add(TimeUtils.getIso8601DateTimeString(startDate));
+			}
+			
+			if(endDate != null) {
+				builder.append(" AND creation_timestamp <= ?");
+				
+				parameters.add(TimeUtils.getIso8601DateTimeString(endDate));
+			}
+			
+			if(runningState != null) {
+				builder.append(" AND crs.running_state = ?");
+				
+				parameters.add(runningState.toString());
+			}
+			
+			if(privacyState != null) {
+				builder.append(" AND cps.privacy_state = ?");
+				
+				parameters.add(privacyState.toString());
+			}
+			
+			if(role != null) {
+				builder.append(
+						" AND (" +
+							"ca.id IN (" +
+								"SELECT urc.campaign_id " +
+								"FROM user_role ur, user_role_campaign urc " +
+								"WHERE u.id = urc.user_id " +
+								"AND ur.id = urc.user_role_id " +
+								"AND ur.role = ?" +
+							")" +
+						")"
+					);
+				
+				parameters.add(role.toString());
+			}
+			
 			return getJdbcTemplate().query(
-					SQL_GET_LIKE_XML, 
-					new Object[] { "%" + partialXml + "%" }, 
-					new SingleColumnRowMapper<String>());
+					builder.toString(),
+					parameters.toArray(),
+					new ResultSetExtractor<QueryResult<Campaign>>() {
+						/**
+						 * Counts the total number of results and converts each
+						 * of the actual results into a Campaign object.
+						 */
+						@Override
+						public QueryResult<Campaign> extractData(
+								ResultSet rs)
+								throws SQLException,
+								org.springframework.dao.DataAccessException {
+							
+							try {
+								QueryResultBuilder<Campaign> result = 
+										new QueryResultBuilder<Campaign>();
+								
+								while(rs.next()) {
+									URL iconUrl = null;
+									String iconUrlString =
+											rs.getString("icon_url");
+									if(iconUrlString != null) {
+										try {
+											iconUrl = new URL(iconUrlString);
+										}
+										catch(MalformedURLException e) {
+											throw new SQLException(e);
+										}
+									}
+									
+									result.addResult(
+											new Campaign(
+													rs.getString("urn"),
+													rs.getString("name"),
+													rs.getString("description"),
+													null,
+													iconUrl,
+													rs.getString("authored_by"),
+													Campaign.RunningState.valueOf(rs.getString("running_state").toUpperCase()),
+													Campaign.PrivacyState.valueOf(rs.getString("privacy_state").toUpperCase()),
+													rs.getTimestamp("creation_timestamp"),
+													new HashMap<String, Survey>(0),
+													rs.getString("xml")));
+								}
+							
+								return result.getQueryResult();
+							}
+							catch(DomainException e) {
+								throw new SQLException(e);
+							}
+						}
+					});
+		} 
+		catch(DomainException e) {
+			throw new DataAccessException(e);
 		}
 		catch(org.springframework.dao.DataAccessException e) {
-			throw new DataAccessException(
-					"Error executing SQL '" +
-						SQL_GET_LIKE_XML + 
-						"' with parameter: " +
-						"%" + partialXml + "%",
-					e);
-		}
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * @see org.ohmage.query.ICampaignQueries#getCampaignsFromPartialAuthoredBy(java.lang.String)
-	 */
-	@Override
-	public List<String> getCampaignsFromPartialAuthoredBy(
-			String partialAuthoredBy) throws DataAccessException {
-
-		try {
-			return getJdbcTemplate().query(
-					SQL_GET_LIKE_AUTHORED_BY, 
-					new Object[] { "%" + partialAuthoredBy + "%" }, 
-					new SingleColumnRowMapper<String>());
-		}
-		catch(org.springframework.dao.DataAccessException e) {
-			throw new DataAccessException(
-					"Error executing SQL '" +
-						SQL_GET_LIKE_AUTHORED_BY + 
-						"' with parameter: " +
-						"%" + partialAuthoredBy + "%",
-					e);
-		}
-	}
-	
-	/* (non-Javadoc)
-	 * @see org.ohmage.query.impl.ICampaignQueries#getCampaignsOnOrAfterDate(java.util.Calendar)
-	 */
-	public List<String> getCampaignsOnOrAfterDate(Date date) throws DataAccessException {
-		try {
-			return getJdbcTemplate().query(
-					SQL_GET_CAMPAIGNS_ON_OR_AFTER_DATE,
-					new Object[] { TimeUtils.getIso8601DateTimeString(date) },
-					new SingleColumnRowMapper<String>());
-		}
-		catch(org.springframework.dao.DataAccessException e) {
-			throw new DataAccessException("Error executing SQL '" + SQL_GET_CAMPAIGNS_ON_OR_AFTER_DATE + "' with parameter: " + TimeUtils.getIso8601DateTimeString(date), e);
-		}
-	}
-	
-	/* (non-Javadoc)
-	 * @see org.ohmage.query.impl.ICampaignQueries#getCampaignsOnOrBeforeDate(java.util.Calendar)
-	 */
-	public List<String> getCampaignsOnOrBeforeDate(Date date) throws DataAccessException {
-		try {
-			return getJdbcTemplate().query(
-					SQL_GET_CAMPAIGNS_ON_OR_BEFORE_DATE,
-					new Object[] { TimeUtils.getIso8601DateTimeString(date) },
-					new SingleColumnRowMapper<String>());
-		}
-		catch(org.springframework.dao.DataAccessException e) {
-			throw new DataAccessException("Error executing SQL '" + SQL_GET_CAMPAIGNS_ON_OR_BEFORE_DATE + "' with parameter: " + TimeUtils.getIso8601DateTimeString(date), e);
-		}
-	}
-	
-	/* (non-Javadoc)
-	 * @see org.ohmage.query.impl.ICampaignQueries#getCampaignsWithPrivacyState(org.ohmage.domain.campaign.Campaign.PrivacyState)
-	 */
-	public List<String> getCampaignsWithPrivacyState(Campaign.PrivacyState privacyState) throws DataAccessException {
-		try {
-			return getJdbcTemplate().query(
-					SQL_GET_CAMPAIGNS_WITH_PRIVACY_STATE,
-					new Object[] { privacyState.toString() },
-					new SingleColumnRowMapper<String>());
-		}
-		catch(org.springframework.dao.DataAccessException e) {
-			throw new DataAccessException("Error executing SQL '" + SQL_GET_CAMPAIGNS_WITH_PRIVACY_STATE + "' with parameter: " + privacyState, e);
-		}
-	}
-	
-	/* (non-Javadoc)
-	 * @see org.ohmage.query.impl.ICampaignQueries#getCampaignsWithRunningState(org.ohmage.domain.campaign.Campaign.RunningState)
-	 */
-	public List<String> getCampaignsWithRunningState(Campaign.RunningState runningState) throws DataAccessException {
-		try {
-			return getJdbcTemplate().query(
-					SQL_GET_CAMPAIGNS_WITH_RUNNING_STATE,
-					new Object[] { runningState.toString() },
-					new SingleColumnRowMapper<String>());
-		}
-		catch(org.springframework.dao.DataAccessException e) {
-			throw new DataAccessException("Error executing SQL '" + SQL_GET_CAMPAIGNS_WITH_RUNNING_STATE + "' with parameter: " + runningState, e);
+			throw new DataAccessException(e);
 		}
 	}
 	

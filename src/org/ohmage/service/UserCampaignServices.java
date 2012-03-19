@@ -24,7 +24,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.apache.log4j.Logger;
 import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.domain.UserInformation.UserPersonal;
 import org.ohmage.domain.campaign.Campaign;
@@ -36,6 +35,7 @@ import org.ohmage.query.ICampaignQueries;
 import org.ohmage.query.ICampaignSurveyResponseQueries;
 import org.ohmage.query.IUserCampaignQueries;
 import org.ohmage.query.IUserQueries;
+import org.ohmage.query.impl.QueryResult;
 import org.ohmage.util.StringUtils;
 
 /**
@@ -729,20 +729,14 @@ public class UserCampaignServices {
 			Map<Campaign, List<Campaign.Role>> result = new HashMap<Campaign, List<Campaign.Role>>();
 			
 			for(String campaignId : campaignIds) {
-				LOGGER.info("Gathering the campaign information");
-				
 				// Create the Campaign object with the campaign's ID.
 				Campaign campaign = campaignQueries.getCampaignInformation(campaignId);
-				
-				LOGGER.info("Gathering the roles.");
 				
 				// Get the user's roles.
 				List<Campaign.Role> roles = userCampaignQueries.getUserCampaignRoles(username, campaignId);
 				
 				// If we are supposed to get the extra information as well.
 				if(withExtras) {
-					
-					LOGGER.debug("Gathering the classes.");
 					
 					// Add the classes that are associated with the campaign.
 					try {
@@ -768,8 +762,6 @@ public class UserCampaignServices {
 			throw new ServiceException(e);
 		}
 	}
-	
-	private static final Logger LOGGER = Logger.getLogger(UserCampaignServices.class);
 	
 	/**
 	 * Retrieves the information about a campaign.
@@ -831,6 +823,115 @@ public class UserCampaignServices {
 									e);
 						}
 					}
+				}
+			}
+			
+			return result;
+		}
+		catch(DataAccessException e) {
+			throw new ServiceException(e);
+		}
+	}
+	
+	/**
+	 * Gathers the information about the classes that match the criteria based
+	 * on the user's permissions. If the requesting user is an admin, they will 
+	 * see all campaigns; otherwise, they will only see the campaigns to which
+	 * they belong.
+	 * 
+	 * @param username The requesting user's username. This parameter is 
+	 * 				   required.
+	 * 
+	 * @param campaignIds A list of campaign unique identifiers. This is 
+	 * 					  optional and may be null. It limits the results to 
+	 * 					  only those campaigns to which the user belongs.
+	 * 
+	 * @param classIds A list of class unique identifiers. This is optional and
+	 * 				   may be null. It limits the results to only those 
+	 * 				   campaigns that are associated with any class in this
+	 * 				   list.
+	 * 
+	 * @param startDate A date that limits the results to only those campaigns
+	 * 					that were created on or after this date.
+	 * 
+	 * @param endDate A date that limits the results to only those campaigns 
+	 * 				  that were created on or before this date.
+	 * 
+	 * @param privacyState A campaign privacy state the limits the results to
+	 * 					   only those campaigns that have this privacy state.
+	 * 
+	 * @param runningState A campaign running state that limits the results to
+	 * 					   only those campaigns that have this running state.
+	 * 
+	 * @param role A campaign role which limits the results to only those 
+	 * 			   campaigns where the requesting user has this role in the 
+	 * 			   campaign.
+	 * 
+	 * @param withClasses Whether or not to aggregate all of the classes 
+	 * 					  associated with this campaign.
+	 * 					  
+	 * @param withUsers Whether or not to aggregate all of the users and their
+	 * 					respective roles for this campaign.
+	 * 
+	 * @return A map of Campaign objects to the requesting user's respective
+	 * 		   roles.
+	 * 
+	 * @throws ServiceException There was an error.
+	 */
+	public Map<Campaign, Collection<Campaign.Role>> getCampaignInformation(
+			final String username, 
+			final Collection<String> campaignIds, 
+			final Collection<String> classIds,
+			final Date startDate, final Date endDate, 
+			final Campaign.PrivacyState privacyState, 
+			final Campaign.RunningState runningState, 
+			final Campaign.Role role,
+			final boolean withClasses,
+			final boolean withUsers) 
+			throws ServiceException {
+		
+		try {
+			QueryResult<Campaign> queryResult = 
+					campaignQueries.getCampaignInformation(
+							username, 
+							campaignIds, 
+							classIds, 
+							startDate, 
+							endDate, 
+							privacyState, 
+							runningState, 
+							role);
+			List<Campaign> campaignResults = queryResult.getResults();
+			
+			Map<Campaign, Collection<Campaign.Role>> result =
+					new HashMap<Campaign, Collection<Campaign.Role>>(
+							campaignResults.size());
+			
+			for(Campaign campaign : campaignResults) {
+				result.put(
+						campaign, 
+						userCampaignQueries.getUserCampaignRoles(
+								username, 
+								campaign.getId()));
+				
+				if(withClasses) {
+					try {
+						campaign.addClasses(
+								campaignClassQueries.getClassesAssociatedWithCampaign(
+										campaign.getId()));
+					}
+					catch(DomainException e) {
+						throw new ServiceException(
+								"There was a problem adding the classes.",
+								e);
+					}
+				}
+				
+				if(withUsers) {
+					// Add the users and their roles to the campaign.
+					campaign.addUsers(
+							userCampaignQueries.getUsersAndRolesForCampaign(
+									campaign.getId()));
 				}
 			}
 			

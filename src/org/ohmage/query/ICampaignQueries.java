@@ -24,6 +24,7 @@ import java.util.Set;
 
 import org.ohmage.domain.campaign.Campaign;
 import org.ohmage.exception.DataAccessException;
+import org.ohmage.query.impl.QueryResult;
 
 public interface ICampaignQueries {
 	/**
@@ -310,6 +311,51 @@ public interface ICampaignQueries {
 	 *         'runningState'.
 	 */
 	List<String> getCampaignsWithRunningState(Campaign.RunningState runningState)
+			throws DataAccessException;
+
+	/**
+	 * Returns the query results for all campaigns visible to the user that 
+	 * match the given criteria. The username is required for ACL purposes but
+	 * the rest of the information is optional.
+	 * 
+	 * @param username The requesting user's username.
+	 * 
+	 * @param campaignIds Limits the results to only campaigns whose ID is in
+	 * 					  this collection.
+	 * 
+	 * @param classIds Limits the results to only those campaigns that are 
+	 * 				   associated with a class whose ID is in this list.
+	 * 
+	 * @param startDate Limits the results to only those campaigns that were 
+	 * 					created on or after this date.
+	 * 
+	 * @param endDate Limits the results to only those campaigns that were
+	 * 				  created on or before this date.
+	 *  
+	 * @param privacyState Limits the results to only those campaigns that have
+	 * 					   this privacy state.
+	 * 
+	 * @param runningState Limits the results to only those campaigns that have
+	 * 					   this running state.
+	 * 
+	 * @param role Limits the results to only those campaigns where the 
+	 * 			   requesting user has at least this role in the campaign.
+	 * 
+	 * @return The query results which contain the total number of campaigns 
+	 * 		   that matched this criteria as well as the list of campaigns in
+	 * 		   the current page.
+	 * 
+	 * @throws DataAccessException There was an error.
+	 */
+	public QueryResult<Campaign> getCampaignInformation(
+			final String username,
+			final Collection<String> campaignIds,
+			final Collection<String> classIds,
+			final Date startDate,
+			final Date endDate,
+			final Campaign.PrivacyState privacyState,
+			final Campaign.RunningState runningState,
+			final Campaign.Role role)
 			throws DataAccessException;
 
 	/**

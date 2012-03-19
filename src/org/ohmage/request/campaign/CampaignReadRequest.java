@@ -44,10 +44,7 @@ import org.ohmage.exception.ValidationException;
 import org.ohmage.request.InputKeys;
 import org.ohmage.request.UserRequest;
 import org.ohmage.service.CampaignServices;
-import org.ohmage.service.ClassServices;
 import org.ohmage.service.UserCampaignServices;
-import org.ohmage.service.UserClassServices;
-import org.ohmage.service.UserServices;
 import org.ohmage.util.CookieUtils;
 import org.ohmage.validator.CampaignValidators;
 import org.ohmage.validator.ClassValidators;
@@ -180,7 +177,7 @@ public class CampaignReadRequest extends UserRequest {
 	private final Campaign.Role role;
 	
 	// For short and long reads.
-	private Map<Campaign, List<Campaign.Role>> shortOrLongResult;
+	private Map<Campaign, Collection<Campaign.Role>> shortOrLongResult;
 	
 	// For XML reads.
 	private String xmlResult;
@@ -316,6 +313,7 @@ public class CampaignReadRequest extends UserRequest {
 		}
 		
 		try {
+			/*
 			boolean isAdmin;
 			try {
 				LOGGER.info("Checking if the user is an admin.");
@@ -339,8 +337,9 @@ public class CampaignReadRequest extends UserRequest {
 					UserCampaignServices.instance().campaignsExistAndUserBelongs(campaignIds, getUser().getUsername());
 				}
 			}
-			
+			*/
 			if(OutputFormat.SHORT.equals(outputFormat) || OutputFormat.LONG.equals(outputFormat)) {
+				/*
 				if(classIds != null) {
 					if(isAdmin) {
 						LOGGER.info("Verifying that the classes exist.");
@@ -370,6 +369,22 @@ public class CampaignReadRequest extends UserRequest {
 								getUser().getUsername(),
 								resultCampaignIds,
 								OutputFormat.LONG.equals(outputFormat));
+				 */
+				
+				LOGGER.info("Gathering the information about the campaigns.");
+				shortOrLongResult =
+						UserCampaignServices.instance().getCampaignInformation(
+								getUser().getUsername(), 
+								campaignIds, 
+								classIds, 
+								startDate, 
+								endDate, 
+								privacyState, 
+								runningState, 
+								role, 
+								OutputFormat.LONG.equals(outputFormat), 
+								OutputFormat.LONG.equals(outputFormat));
+				
 			}
 			else if(OutputFormat.XML.equals(outputFormat)) {
 				LOGGER.info("Gathering the XML for the campaign.");
@@ -399,7 +414,12 @@ public class CampaignReadRequest extends UserRequest {
 		// Creates the writer that will write the response, success or fail.
 		Writer writer;
 		try {
-			writer = new BufferedWriter(new OutputStreamWriter(getOutputStream(httpRequest, httpResponse)));
+			writer = 
+					new BufferedWriter(
+							new OutputStreamWriter(
+									getOutputStream(
+											httpRequest, 
+											httpResponse)));
 		}
 		catch(IOException e) {
 			LOGGER.error("Unable to create writer object. Aborting.", e);
@@ -413,7 +433,11 @@ public class CampaignReadRequest extends UserRequest {
 		if(getUser() != null) {
 			final String token = getUser().getToken(); 
 			if(token != null) {
-				CookieUtils.setCookieValue(httpResponse, InputKeys.AUTH_TOKEN, token, (int) (UserBin.getTokenRemainingLifetimeInMillis(token) / MILLIS_IN_A_SECOND));
+				CookieUtils.setCookieValue(
+						httpResponse, 
+						InputKeys.AUTH_TOKEN, 
+						token, 
+						(int) (UserBin.getTokenRemainingLifetimeInMillis(token) / MILLIS_IN_A_SECOND));
 			}
 		}
 		
@@ -456,7 +480,8 @@ public class CampaignReadRequest extends UserRequest {
 						// Get the campaign's ID for the metadata.
 						resultCampaignIds.add(campaign.getId());
 						
-						List<Campaign.Role> roles = shortOrLongResult.get(campaign);
+						Collection<Campaign.Role> roles = 
+								shortOrLongResult.get(campaign);
 						boolean supervisorOrAuthor = 
 							roles.contains(Campaign.Role.SUPERVISOR) || 
 							roles.contains(Campaign.Role.AUTHOR);
