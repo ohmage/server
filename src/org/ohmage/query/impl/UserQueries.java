@@ -35,7 +35,7 @@ import org.ohmage.exception.CacheMissException;
 import org.ohmage.exception.DataAccessException;
 import org.ohmage.exception.DomainException;
 import org.ohmage.query.IUserQueries;
-import org.ohmage.query.impl.QueryResult.QueryResultBuilder;
+import org.ohmage.query.impl.QueryResultsList.QueryResultListBuilder;
 import org.ohmage.util.StringUtils;
 import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.jdbc.core.RowMapper;
@@ -1109,7 +1109,7 @@ public class UserQueries extends Query implements IUserQueries {
 	 * (non-Javadoc)
 	 * @see org.ohmage.query.IUserQueries#getUserInformation(java.util.Collection, java.lang.String, java.lang.String, java.lang.Boolean, java.lang.Boolean, java.lang.Boolean, java.lang.Boolean, java.lang.String, java.lang.String, java.lang.String, java.lang.String, boolean, long, long)
 	 */
-	public QueryResult<UserInformation> getUserInformation(
+	public QueryResultsList<UserInformation> getUserInformation(
 			final Collection<String> usernames,
 			final String likeUsername,
 			final String emailAddress,
@@ -1339,52 +1339,45 @@ public class UserQueries extends Query implements IUserQueries {
 			return getJdbcTemplate().query(
 					sql.toString(), 
 					parameters.toArray(),
-					new ResultSetExtractor<QueryResult<UserInformation>>() {
+					new ResultSetExtractor<QueryResultsList<UserInformation>>() {
 						/**
 						 * Extracts the data into the results and then returns
 						 * the total number of results found.
 						 */
 						@Override
-						public QueryResult<UserInformation> extractData(
+						public QueryResultsList<UserInformation> extractData(
 								final ResultSet rs)
 								throws SQLException,
 								org.springframework.dao.DataAccessException {
 							
-							try {
-								QueryResultBuilder<UserInformation> builder =
-										new QueryResultBuilder<UserInformation>();
-								
-								int numSkipped = 0;
-								while(numSkipped++ < numToSkip) {
-									if(rs.next()) {
-										builder.increaseTotalNumResults();
-									}
-									else {
-										return builder.getQueryResult();
-									}
-								}
-								
-								long numReturned = 0;
-								while(numReturned++ < numToReturn) {
-									if(rs.next()) {
-										builder.addResult(mapRow(rs));
-									}
-									else {
-										return builder.getQueryResult();
-									}
-								}
-								
-								while(rs.next()) {
+							QueryResultListBuilder<UserInformation> builder =
+									new QueryResultListBuilder<UserInformation>();
+							
+							int numSkipped = 0;
+							while(numSkipped++ < numToSkip) {
+								if(rs.next()) {
 									builder.increaseTotalNumResults();
 								}
-								
-								return builder.getQueryResult();
+								else {
+									return builder.getQueryResult();
+								}
 							}
-							catch(DomainException e) {
-								throw new org.springframework.dao.DataIntegrityViolationException(
-										"There was an error building the result.",
-										e);
+							
+							long numReturned = 0;
+							while(numReturned++ < numToReturn) {
+								if(rs.next()) {
+									builder.addResult(mapRow(rs));
+								}
+								else {
+									return builder.getQueryResult();
+								}
 							}
+							
+							while(rs.next()) {
+								builder.increaseTotalNumResults();
+							}
+							
+							return builder.getQueryResult();
 						}
 						
 						/**

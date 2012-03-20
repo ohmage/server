@@ -22,7 +22,7 @@ import java.util.List;
 import org.ohmage.domain.UserInformation;
 import org.ohmage.domain.UserInformation.UserPersonal;
 import org.ohmage.exception.DataAccessException;
-import org.ohmage.query.impl.QueryResult;
+import org.ohmage.query.impl.QueryResultsList;
 
 public interface IUserQueries {
 	/**
@@ -398,13 +398,13 @@ public interface IUserQueries {
 	 * @param numToReturn The number of results to return. The results are 
 	 * 					  sorted alphabetically by username.
 	 * 
-	 * @return A QueryResult object containing the users' information and the
+	 * @return A QueryResultsList object containing the users' information and the
 	 * 		   total number of results.
 	 * 
 	 * @throws DataAccessException There was an error aggregating the 
 	 * 							   information.
 	 */
-	public QueryResult<UserInformation> getUserInformation(
+	public QueryResultsList<UserInformation> getUserInformation(
 			final Collection<String> usernames,
 			final String likeUsername,
 			final String emailAddress,

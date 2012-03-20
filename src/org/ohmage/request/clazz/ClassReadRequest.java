@@ -17,7 +17,6 @@ package org.ohmage.request.clazz;
 
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -34,8 +33,6 @@ import org.ohmage.exception.ValidationException;
 import org.ohmage.request.InputKeys;
 import org.ohmage.request.UserRequest;
 import org.ohmage.service.ClassServices;
-import org.ohmage.service.UserClassServices;
-import org.ohmage.service.UserServices;
 import org.ohmage.validator.ClassValidators;
 
 /**
@@ -157,76 +154,15 @@ public class ClassReadRequest extends UserRequest {
 		}
 		
 		try {
-			boolean isAdmin;
-			// Check that each of the classes in the list exist and that the 
-			// requester is a member of each class.
-			try {
-				LOGGER.info("Checking if the user is an admin.");
-				UserServices.instance().verifyUserIsAdmin(getUser().getUsername());
-				isAdmin = true;
-				
-				LOGGER.info("Verifying that the classes exist.");
-				ClassServices.instance().checkClassesExistence(classIds, true);
-			}
-			catch(ServiceException userNotAdmin) {
-				LOGGER.info("The user is not an admin.", userNotAdmin);
-				isAdmin = false;
-				
-				LOGGER.info("Checking that all of the classes in the class list exist.");
-				UserClassServices.instance().classesExistAndUserBelongs(classIds, getUser().getUsername());
-			}
-			
 			// Get the information about the classes.
 			LOGGER.info("Gathering the information about the classes in the list.");
-			List<Clazz> informationAboutClasses = ClassServices.instance().getClassesInformation(classIds);
-			LOGGER.info("Classes found: " + informationAboutClasses.size());
+			result.putAll(
+					ClassServices.instance().getClassesInformation(
+							getUser().getUsername(),
+							classIds,
+							withUserList));
 			
-			// FIXME: This functionality should be moved into a service that
-			// solves this specific problem but does so by calling other, more
-			// reusable functions.
-			for(Clazz clazz : informationAboutClasses) {
-				String classId = clazz.getId();
-				
-				Map<String, Clazz.Role> usernamesAndRespectiveRole =
-						new HashMap<String, Clazz.Role>();
-				
-				if(withUserList) {
-					LOGGER.info("Gathering the requesting user's role in the class.");
-					boolean isPrivileged = 
-						Clazz.Role.PRIVILEGED.equals(
-								UserClassServices.instance().getUserRoleInClass(
-										classId, 
-										getUser().getUsername()
-									)
-							);
-					
-					// FIXME: It would be more efficient to call a function 
-					// that returns a map of usernames to class roles and then
-					// omit the role if necessary than do it this way. Avoid
-					// calling the database in a loop whenever possible.
-					List<String> usernames = 
-						UserClassServices.instance().getUsersInClass(classId);
-					
-					for(String username : usernames) {
-						if(isPrivileged || isAdmin) {
-							usernamesAndRespectiveRole.put(
-									username, 
-									UserClassServices.instance().getUserRoleInClass(
-											classId, 
-											username)
-										);
-						}
-						else {
-							usernamesAndRespectiveRole.put(username, null);
-						}
-					}
-				}
-				
-				result.put(clazz, usernamesAndRespectiveRole);
-			}
-			if((informationAboutClasses.size() > 0) && (withUserList)) {
-				
-			}
+			LOGGER.info("Classes found: " + result.size());
 		}
 		catch(ServiceException e) {
 			e.failRequest(this);

@@ -20,8 +20,10 @@ import java.util.List;
 import java.util.Map;
 
 import org.ohmage.domain.Clazz;
+import org.ohmage.domain.Clazz.Role;
 import org.ohmage.exception.DataAccessException;
 import org.ohmage.query.impl.ClassQueries.UserAndClassRole;
+import org.ohmage.query.impl.QueryResultsMap;
 
 /**
  * Interface to facilitate mocking concrete implementations for test cases. 
@@ -112,22 +114,27 @@ public interface IClassQueries {
 			throws DataAccessException;
 
 	/**
-	 * Aggregates the information about a class as well as a list of users and
-	 * their roles in the class for a list of classes.
+	 * Aggregates all of the information about all of the classes visible to a
+	 * user and then limits those results to only the ones in the collection of
+	 * class IDs.
 	 * 
-	 * @param classIds The list of class IDs whose information, users, and
-	 * 				   users' roles are desired.
+	 * @param username The requesting user's username. This is required.
 	 * 
-	 * @param requester The username of the user who is making this request.
+	 * @param classIds The collection of class IDs to limit the results. This 
+	 * 				   is optional and may be null.
 	 * 
-	 * @return A List of ClassInformation objects correlating to the 
-	 * 		   parameterized list of class IDs. This may be an empty list, but
-	 * 		   it will never be null.
+	 * @param withUsers Whether or not to include the users and their roles in
+	 * 					the response.
 	 * 
-	 * @throws DataAccessException Thrown if there is an error.
+	 * @return The query result containing the total number of results as well 
+	 * 		   as the results for this page.
+	 * 
+	 * @throws DataAccessException There was an error.
 	 */
-	List<Clazz> getClassesInformation(
-			Collection<String> classIds) 
+	public QueryResultsMap<Clazz, Map<String, Role>> getClassesInformation(
+			final String username,
+			final Collection<String> classIds,
+			final boolean withUsers) 
 			throws DataAccessException;
 
 	/**

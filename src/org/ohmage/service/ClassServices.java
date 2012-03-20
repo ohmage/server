@@ -325,23 +325,31 @@ public final class ClassServices {
 	}
 	
 	/**
-	 * Retrieves the information about all of the classes in the class ID list.
+	 * Retrieves the information about all of the classes visible to the 
+	 * requesting user. The optional parameter 'classIds' will limit the 
+	 * results to only those that match the given criteria.
 	 * 
-	 * @param classIds A List of class identifiers to use to aggregate the
-	 * 				   information.
+	 * @param uername The requesting user's username. This is required.
 	 * 
-	 * @return Returns a List of ClassInformation objects that contain the
-	 * 		   information about the class. This may be an empty list, but it
-	 * 		   will never be null.
+	 * @param classIds A collection of class identifiers limiting the results 
+	 * 				   to only those in that list.
 	 * 
-	 * @throws ServiceException Thrown if there is an error.
+	 * @return A list of Clazz objects.
+	 * 
+	 * @throws ServiceException There was an error.
 	 */
-	public List<Clazz> getClassesInformation(
-			final Collection<String> classIds) 
+	public Map<Clazz, Map<String, Clazz.Role>> getClassesInformation(
+			final String username,
+			final Collection<String> classIds,
+			final boolean withUsers)
 			throws ServiceException {
 		
 		try {
-			return classQueries.getClassesInformation(classIds);
+			return classQueries.getClassesInformation(
+						username, 
+						classIds,
+						withUsers)
+					.getResults();
 		}
 		catch(DataAccessException e) {
 			throw new ServiceException(e);

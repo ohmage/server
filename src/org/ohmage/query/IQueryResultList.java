@@ -11,15 +11,7 @@ import java.util.List;
  *
  * @param <T> The type of object returned from this query.
  */
-public interface IQueryResult<T> {
-	/**
-	 * Returns the total number of results that matched the query outside of 
-	 * paging.
-	 * 
-	 * @return The total number of results that matched the query outside of
-	 * 		   paging. 
-	 */
-	public long getTotalNumResults();
+public interface IQueryResultList<T> extends IQueryResults {
 	/**
 	 * Returns the list of results in the order they were received from the
 	 * database.

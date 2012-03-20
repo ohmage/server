@@ -21,7 +21,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -39,7 +38,7 @@ import org.ohmage.exception.DomainException;
 import org.ohmage.query.ICampaignQueries;
 import org.ohmage.query.IUserCampaignClassQueries;
 import org.ohmage.query.IUserClassQueries;
-import org.ohmage.query.impl.QueryResult.QueryResultBuilder;
+import org.ohmage.query.impl.QueryResultsList.QueryResultListBuilder;
 import org.ohmage.util.StringUtils;
 import org.ohmage.util.TimeUtils;
 import org.springframework.dao.IncorrectResultSizeDataAccessException;
@@ -904,7 +903,7 @@ public final class CampaignQueries extends Query implements ICampaignQueries {
 	 * (non-Javadoc)
 	 * @see org.ohmage.query.ICampaignQueries#getCampaignInformation(java.lang.String, java.util.Collection, java.util.Collection, java.util.Date, java.util.Date, org.ohmage.domain.campaign.Campaign.PrivacyState, org.ohmage.domain.campaign.Campaign.RunningState, org.ohmage.domain.campaign.Campaign.Role)
 	 */
-	public QueryResult<Campaign> getCampaignInformation(
+	public QueryResultsList<Campaign> getCampaignInformation(
 			final String username,
 			final Collection<String> campaignIds,
 			final Collection<String> classIds,
@@ -951,9 +950,8 @@ public final class CampaignQueries extends Query implements ICampaignQueries {
 			
 			if(campaignIds != null) {
 				if(campaignIds.size() == 0) {
-					return new QueryResult<Campaign>(
-							0, 
-							Collections.<Campaign>emptyList());
+					return (new QueryResultListBuilder<Campaign>())
+							.getQueryResult();
 				}
 				
 				builder
@@ -966,9 +964,8 @@ public final class CampaignQueries extends Query implements ICampaignQueries {
 			
 			if(classIds != null) {
 				if(classIds.size() == 0) {
-					return new QueryResult<Campaign>(
-							0, 
-							Collections.<Campaign>emptyList());
+					return (new QueryResultListBuilder<Campaign>())
+							.getQueryResult();
 				}
 				
 				builder.append(
@@ -1033,20 +1030,20 @@ public final class CampaignQueries extends Query implements ICampaignQueries {
 			return getJdbcTemplate().query(
 					builder.toString(),
 					parameters.toArray(),
-					new ResultSetExtractor<QueryResult<Campaign>>() {
+					new ResultSetExtractor<QueryResultsList<Campaign>>() {
 						/**
 						 * Counts the total number of results and converts each
 						 * of the actual results into a Campaign object.
 						 */
 						@Override
-						public QueryResult<Campaign> extractData(
+						public QueryResultsList<Campaign> extractData(
 								ResultSet rs)
 								throws SQLException,
 								org.springframework.dao.DataAccessException {
 							
 							try {
-								QueryResultBuilder<Campaign> result = 
-										new QueryResultBuilder<Campaign>();
+								QueryResultListBuilder<Campaign> result = 
+										new QueryResultListBuilder<Campaign>();
 								
 								while(rs.next()) {
 									URL iconUrl = null;
@@ -1083,9 +1080,6 @@ public final class CampaignQueries extends Query implements ICampaignQueries {
 							}
 						}
 					});
-		} 
-		catch(DomainException e) {
-			throw new DataAccessException(e);
 		}
 		catch(org.springframework.dao.DataAccessException e) {
 			throw new DataAccessException(e);

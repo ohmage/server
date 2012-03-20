@@ -60,7 +60,7 @@ import org.ohmage.query.IUserCampaignQueries;
 import org.ohmage.query.IUserClassQueries;
 import org.ohmage.query.IUserImageQueries;
 import org.ohmage.query.IUserQueries;
-import org.ohmage.query.impl.QueryResult;
+import org.ohmage.query.impl.QueryResultsList;
 import org.ohmage.util.StringUtils;
 
 import com.sun.mail.smtp.SMTPTransport;
@@ -723,7 +723,7 @@ public final class UserServices {
 			throws ServiceException {
 		
 		try {
-			QueryResult<UserInformation> result =
+			QueryResultsList<UserInformation> result =
 					userQueries.getUserInformation(
 							usernames, 
 							null, 
@@ -820,7 +820,7 @@ public final class UserServices {
 			throws ServiceException {
 		
 		try {
-			QueryResult<UserInformation> result =
+			QueryResultsList<UserInformation> result =
 					userQueries.getUserInformation(
 							null, 
 							partialUsername, 

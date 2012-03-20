@@ -24,7 +24,7 @@ import java.util.Set;
 
 import org.ohmage.domain.campaign.Campaign;
 import org.ohmage.exception.DataAccessException;
-import org.ohmage.query.impl.QueryResult;
+import org.ohmage.query.impl.QueryResultsList;
 
 public interface ICampaignQueries {
 	/**
@@ -347,7 +347,7 @@ public interface ICampaignQueries {
 	 * 
 	 * @throws DataAccessException There was an error.
 	 */
-	public QueryResult<Campaign> getCampaignInformation(
+	public QueryResultsList<Campaign> getCampaignInformation(
 			final String username,
 			final Collection<String> campaignIds,
 			final Collection<String> classIds,

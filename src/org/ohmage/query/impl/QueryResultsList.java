@@ -6,7 +6,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 import org.ohmage.exception.DomainException;
-import org.ohmage.query.IQueryResult;
+import org.ohmage.query.IQueryResultList;
 
 /**
  * The results of a query containing the total number of results that matched
@@ -17,26 +17,28 @@ import org.ohmage.query.IQueryResult;
  *
  * @param <T> The type of object returned from the result.
  */
-public class QueryResult<T> implements IQueryResult<T> {
-	private final long totalNumResults;
+public final class QueryResultsList<T> 
+		extends QueryResults 
+		implements IQueryResultList<T> {
+	
 	private final List<T> results;
 	
 	/**
-	 * Creates a QueryResult object.
+	 * Creates a QueryResultsList object.
 	 * 
 	 * @author John Jenkins
 	 *
-	 * @param <T> The type of QueryResult object to build.
+	 * @param <T> The type of QueryResultsList object to build.
 	 */
-	public static class QueryResultBuilder<T> {
-		private long totalNumResults;
+	public static class QueryResultListBuilder<T> extends QueryResultsBuilder {
 		private List<T> results;
 		
 		/**
 		 * Creates a builder with no elements.
 		 */
-		public QueryResultBuilder() {
-			totalNumResults = 0;
+		public QueryResultListBuilder() {
+			super();
+			
 			results = new LinkedList<T>();
 		}
 		
@@ -45,8 +47,9 @@ public class QueryResult<T> implements IQueryResult<T> {
 		 * 
 		 * @param totalNumResults The total number of results.
 		 */
-		public QueryResultBuilder(final long totalNumResults) {
-			this.totalNumResults = totalNumResults;
+		public QueryResultListBuilder(final long totalNumResults) {
+			super(totalNumResults);
+			
 			results = new LinkedList<T>();
 		}
 		
@@ -56,7 +59,7 @@ public class QueryResult<T> implements IQueryResult<T> {
 		 * 
 		 * @param results A preliminary collection of results.
 		 */
-		public QueryResultBuilder(final Collection<T> results) {
+		public QueryResultListBuilder(final Collection<T> results) {
 			if(results == null) {
 				this.results = new LinkedList<T>();
 			}
@@ -64,7 +67,7 @@ public class QueryResult<T> implements IQueryResult<T> {
 				this.results = new LinkedList<T>(results);
 			}
 			
-			totalNumResults = this.results.size();
+			setTotalNumResults(this.results.size());
 		}
 		
 		/**
@@ -76,11 +79,11 @@ public class QueryResult<T> implements IQueryResult<T> {
 		 * 
 		 * @param results A preliminary collection of results
 		 */
-		public QueryResultBuilder(
+		public QueryResultListBuilder(
 				final long totalNumResults,
 				final Collection<T> results) {
 			
-			this.totalNumResults = totalNumResults;
+			super(totalNumResults);
 			
 			if(results == null) {
 				this.results = new LinkedList<T>();
@@ -100,7 +103,7 @@ public class QueryResult<T> implements IQueryResult<T> {
 		 */
 		public void addResult(final T result) {
 			results.add(result);
-			totalNumResults++;
+			increaseTotalNumResults();
 		}
 		
 		/**
@@ -117,72 +120,36 @@ public class QueryResult<T> implements IQueryResult<T> {
 			}
 			
 			this.results.addAll(results);
-			totalNumResults += results.size();
+			increaseTotalNumResults(results.size());
 		}
 		
 		/**
-		 * Returns the current total number of results.
+		 * Creates the QueryResultsList. The list of results is the list that 
+		 * has been aggregated in the builder. The total number of results is 
+		 * the greater of the currently set number of results and the length of
+		 * the list of results. This is because you cannot have a total number 
+		 * of results be less than the actual number of results.
 		 * 
-		 * @return The current total number of results.
+		 * @return A QueryResultsList object.
 		 */
-		public long getTotalNumResults() {
-			return totalNumResults;
-		}
-		
-		/**
-		 * Sets the total number of results.
-		 * 
-		 * @param totalNumResults The total number of results.
-		 */
-		public void setTotalNumResults(final long totalNumResults) {
-			this.totalNumResults = totalNumResults;
-		}
-		
-		/**
-		 * Increments the total number of results by 1.
-		 */
-		public void increaseTotalNumResults() {
-			totalNumResults++;
-		}
-		
-		/**
-		 * Increases the total number of results by the value given.
-		 * 
-		 * @param amountToIncrease The amount to increase the total number of
-		 * 						   results.
-		 */
-		public void increaseTotalNumResults(final long amountToIncrease) {
-			totalNumResults += amountToIncrease;
-		}
-		
-		/**
-		 * Creates the QueryResult. The list of results is the list that has
-		 * been aggregated in the builder. The total number of results is the
-		 * greater of the currently set number of results and the length of the
-		 * list of results. This is because you cannot have a total number of
-		 * results be less than the actual number of results.
-		 * 
-		 * @return A QueryResult object.
-		 * 
-		 * @throws DomainException There was an error creating the QueryResult
-		 * 						   object.
-		 */
-		public QueryResult<T> getQueryResult() throws DomainException {
+		public QueryResultsList<T> getQueryResult() {
 			long actualTotalNumResults;
-			if(totalNumResults < results.size()) {
+			if(getTotalNumResults() < results.size()) {
 				actualTotalNumResults = results.size();
 			}
 			else {
-				actualTotalNumResults = totalNumResults;
+				actualTotalNumResults = getTotalNumResults();
 			}
 			
-			return new QueryResult<T>(actualTotalNumResults, results);
+			return new QueryResultsList<T>(actualTotalNumResults, results);
 		}
 	}
 	
 	/**
-	 * Creates a new QueryResult object with the total number of results and
-	 * the list of results.
+	 * Creates a new QueryResultsList object with the total number of results 
+	 * and the list of results. This is protected, and the class is final.
+	 * Therefore, can only be called by the QueryResultListBuilder. Therefore, 
+	 * it is assumed that the given parameters are valid.
 	 * 
 	 * @param totalNumResults The total number of results from the query.
 	 * 
@@ -192,35 +159,18 @@ public class QueryResult<T> implements IQueryResult<T> {
 	 * 						   of results is less than the length of the list 
 	 * 						   of results.
 	 */
-	public QueryResult(
+	private QueryResultsList(
 			final long totalNumResults,
-			final List<T> results) 
-			throws DomainException {
+			final List<T> results) {
 		
-		if(results == null) {
-			throw new DomainException("The list of results is null.");
-		}
-		else if(totalNumResults < results.size()) {
-			throw new DomainException(
-					"The total number of results is less than the actual number of results.");
-		}
+		super(totalNumResults);
 		
-		this.totalNumResults = totalNumResults;
 		this.results = new ArrayList<T>(results);
-	}
-	
-	/*
-	 * (non-Javadoc)
-	 * @see org.ohmage.query.IQueryResult#getTotalNumResults()
-	 */
-	@Override
-	public long getTotalNumResults() {
-		return totalNumResults;
 	}
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.ohmage.query.IQueryResult#results()
+	 * @see org.ohmage.query.IQueryResultList#results()
 	 */
 	@Override
 	public List<T> getResults() {

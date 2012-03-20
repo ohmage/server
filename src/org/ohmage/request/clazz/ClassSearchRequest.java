@@ -37,7 +37,6 @@ import org.ohmage.request.Request;
 import org.ohmage.request.UserRequest;
 import org.ohmage.service.CampaignClassServices;
 import org.ohmage.service.ClassServices;
-import org.ohmage.service.UserClassServices;
 import org.ohmage.service.UserServices;
 import org.ohmage.validator.ClassValidators;
 
@@ -108,7 +107,7 @@ public class ClassSearchRequest extends UserRequest {
 	private final int numToSkip;
 	private final int numToReturn;
 	
-	private final Map<Clazz, Collection<String>> classToUsernamesMap;
+	private final Map<Clazz, Map<String, Clazz.Role>> classes;
 	private final Map<Clazz, Collection<String>> classToCampaignIdsMap;
 	private int totalNumResults;
 	
@@ -201,7 +200,7 @@ public class ClassSearchRequest extends UserRequest {
 		numToSkip = tNumToSkip;
 		numToReturn = tNumToReturn;
 		
-		classToUsernamesMap = new HashMap<Clazz, Collection<String>>();
+		classes = new HashMap<Clazz, Map<String, Clazz.Role>>();
 		classToCampaignIdsMap = new HashMap<Clazz, Collection<String>>();
 		totalNumResults = 0;
 	}
@@ -244,19 +243,14 @@ public class ClassSearchRequest extends UserRequest {
 			}
 			
 			LOGGER.info("Gathering the detailed information about the classes.");
-			List<Clazz> classes =
-				ClassServices.instance().getClassesInformation(classIds);
-			
-			LOGGER.info("Gathering the usernames for the users in each class.");
-			for(Clazz clazz : classes) {
-				classToUsernamesMap.put(
-						clazz, 
-						UserClassServices.instance().getUsersInClass(clazz.getId())
-					);
-			}
+			classes.putAll(
+				ClassServices.instance().getClassesInformation(
+						getUser().getUsername(), 
+						classIds, 
+						true));
 			
 			LOGGER.info("Gathering the IDs for the campaigns associated with each class.");
-			for(Clazz clazz : classes) {
+			for(Clazz clazz : classes.keySet()) {
 				classToCampaignIdsMap.put(
 						clazz, 
 						CampaignClassServices.instance().getCampaignIdsForClass(
@@ -289,10 +283,10 @@ public class ClassSearchRequest extends UserRequest {
 						Request.JSON_KEY_TOTAL_NUM_RESULTS, 
 						totalNumResults);
 				
-				for(Clazz clazz : classToUsernamesMap.keySet()) {
+				for(Clazz clazz : classes.keySet()) {
 					JSONObject classJson = clazz.toJson(false);
 					
-					classJson.put(JSON_KEY_USERNAMES, classToUsernamesMap.get(clazz));
+					classJson.put(JSON_KEY_USERNAMES, classes.get(clazz).keySet());
 					classJson.put(JSON_KEY_CAMPAIGNS, classToCampaignIdsMap.get(clazz));
 					
 					result.put(clazz.getId(), classJson);

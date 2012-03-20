@@ -20,6 +20,7 @@ import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -36,6 +37,9 @@ import org.ohmage.query.IClassQueries;
 import org.ohmage.query.IUserCampaignClassQueries;
 import org.ohmage.query.IUserCampaignQueries;
 import org.ohmage.query.IUserClassQueries;
+import org.ohmage.query.impl.QueryResultsMap.QueryResultMapBuilder;
+import org.ohmage.util.StringUtils;
+import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.SingleColumnRowMapper;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
@@ -97,12 +101,6 @@ public class ClassQueries extends Query implements IClassQueries {
 		"SELECT urn " +
 		"FROM class " +
 		"WHERE description LIKE ?";
-
-	// Returns the class' information.
-	private static final String SQL_GET_CLASS_INFO = 
-		"SELECT urn, name, description " +
-		"FROM class " +
-		"WHERE urn = ?";
 
 	// Gets all of the users and their class role for a single class.
 	private static final String SQL_GET_USERS_AND_CLASS_ROLES = 
@@ -445,42 +443,162 @@ public class ClassQueries extends Query implements IClassQueries {
 	 * @see org.ohmage.query.impl.IClassQueries#getClassesInformation(java.util.Collection, java.lang.String)
 	 */
 	@Override
-	public List<Clazz> getClassesInformation(Collection<String> classIds) throws DataAccessException {
-		try {
-			List<Clazz> result = new LinkedList<Clazz>();
-			
-			for(final String classId : classIds) {
-				result.add(
-						getJdbcTemplate().queryForObject(
-								SQL_GET_CLASS_INFO,
-								new Object[] { classId }, 
-								new RowMapper<Clazz>() {
-									@Override
-									public Clazz mapRow(
-											ResultSet rs, 
-											int row) 
-											throws SQLException {
-										
-										try {
-											return new Clazz(
-													rs.getString("urn"),
-													rs.getString("name"),
-													rs.getString("description"));
-										}
-										catch(DomainException e) {
-											throw new SQLException(
-													"There is a malformed class in the database: " + classId);
-										}
-									}
-								}
-							)
-					);
+	public QueryResultsMap<Clazz, Map<String, Clazz.Role>> getClassesInformation(
+			final String username,
+			final Collection<String> classIds,
+			final boolean withUsers) 
+			throws DataAccessException {
+		
+		final String userRoleSeparator = ";";
+		final String pairSeparator = ",";
+		
+		StringBuilder sqlBuilder = new StringBuilder();
+		
+		if(withUsers) {
+			sqlBuilder.append(
+					"SELECT c.urn, c.name, c.description, " +
+							"GROUP_CONCAT(" +
+								"DISTINCT " +
+									"u.username, " +
+									"'" + userRoleSeparator + "', " +
+									"ucr.role " +
+								"SEPARATOR '" + pairSeparator + "') " +
+								"AS usernames_and_role " +
+					"FROM class c, user ru, " +
+						"user u, user_class uc, user_class_role ucr " +
+					"WHERE ru.username = ? " +
+					"AND (" +
+						"(ru.admin = true)" +
+						" OR " +
+						"(" +
+							"c.id IN (" +
+								"SELECT uc.class_id " +
+								"FROM user_class uc " +
+								"WHERE ru.id = uc.user_id" +
+							")" +
+						")" +
+					") " +
+					"AND u.id = uc.user_id " +
+					"AND c.id = uc.class_id " +
+					"AND ucr.id = uc.user_class_role_id"
+			);
+		}
+		else {
+			sqlBuilder.append(
+					"SELECT c.urn, c.name, c.description " +
+					"FROM class c, user u " +
+					"WHERE u.username = ? " +
+					"AND (" +
+						"(u.admin = true)" +
+						" OR " +
+						"(" +
+							"c.id IN (" +
+								"SELECT uc.class_id " +
+								"FROM user_class uc " +
+								"WHERE u.id = uc.user_id" +
+							")" +
+						")" +
+					")"
+			);
+		}
+		
+		List<Object> parameters = new LinkedList<Object>();
+		parameters.add(username);
+		
+		if(classIds != null) {
+			if(classIds.size() == 0) {
+				return (new QueryResultMapBuilder<Clazz, Map<String, Clazz.Role>>())
+						.getQueryResult();
 			}
 			
-			return result;
+			sqlBuilder.append(
+					" AND c.urn IN " +
+					StringUtils.generateStatementPList(classIds.size()));
+					
+			parameters.addAll(classIds);
+		}
+		
+		if(withUsers) {
+			sqlBuilder.append(" GROUP BY c.id");
+		}
+		
+		try {
+			return getJdbcTemplate().query(
+					sqlBuilder.toString(), 
+					parameters.toArray(), 
+					new ResultSetExtractor<QueryResultsMap<Clazz, Map<String, Clazz.Role>>>() {
+						/**
+						 * Creates class objects for each of the classes that
+						 * match the results.
+						 */
+						@Override
+						public QueryResultsMap<Clazz, Map<String, Clazz.Role>> extractData(
+								final ResultSet rs)
+								throws SQLException,
+								org.springframework.dao.DataAccessException {
+							
+							QueryResultMapBuilder<Clazz, Map<String, Clazz.Role>> resultBuilder =
+									new QueryResultMapBuilder<Clazz, Map<String, Clazz.Role>>();
+							
+							try {
+								while(rs.next()) {
+									Clazz clazz = 
+											new Clazz(
+												rs.getString("urn"),
+												rs.getString("name"),
+												rs.getString("description"));
+									
+									String usernamesAndRole =
+											rs.getString("usernames_and_role");
+									
+									String[] usernamesAndRoleArray =
+											usernamesAndRole.split(
+													pairSeparator);
+									
+									Map<String, Clazz.Role> usernamesAndRoleMap =
+											new HashMap<String, Clazz.Role>(
+													usernamesAndRoleArray.length);
+									
+									for(String usernameAndRole : usernamesAndRoleArray) {
+										String[] usernameAndRoleArray =
+												usernameAndRole.split(
+														userRoleSeparator);
+										
+										if(usernameAndRoleArray.length != 2) {
+											throw new SQLException(
+													"The query has changed.");
+										}
+										
+										Clazz.Role role = 
+												Clazz.Role.getValue(
+														usernameAndRoleArray[1]);
+										
+										usernamesAndRoleMap.put(
+												usernameAndRoleArray[0],
+												role);
+									}
+									
+									resultBuilder.addResult(
+											clazz, 
+											usernamesAndRoleMap);
+								}
+								
+								return resultBuilder.getQueryResult();
+							}
+							catch(DomainException e) {
+								throw new SQLException(e);
+							}
+						}
+					}
+			);
 		}
 		catch(org.springframework.dao.DataAccessException e) {
-			throw new DataAccessException(e);
+			throw new DataAccessException(
+					"Error executing SQL '" + 
+						sqlBuilder.toString() +
+						"' with parameters: " +
+						parameters,
+					e);
 		}
 	}
 	

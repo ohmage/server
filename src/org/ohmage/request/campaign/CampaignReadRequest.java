@@ -313,64 +313,7 @@ public class CampaignReadRequest extends UserRequest {
 		}
 		
 		try {
-			/*
-			boolean isAdmin;
-			try {
-				LOGGER.info("Checking if the user is an admin.");
-				UserServices.instance().verifyUserIsAdmin(getUser().getUsername());
-				
-				LOGGER.info("The user is an admin.");
-				isAdmin = true;
-			}
-			catch(ServiceException e) {
-				LOGGER.info("The user is not an admin.");
-				isAdmin = false;
-			}
-			
-			if(campaignIds != null) {
-				if(isAdmin) {
-					LOGGER.info("Verifying that the campaigns exist.");
-					CampaignServices.instance().checkCampaignsExistence(campaignIds, true);
-				}
-				else {
-					LOGGER.info("Verifying that the campaigns exist and that the user belongs to each campaign in some capacity.");
-					UserCampaignServices.instance().campaignsExistAndUserBelongs(campaignIds, getUser().getUsername());
-				}
-			}
-			*/
 			if(OutputFormat.SHORT.equals(outputFormat) || OutputFormat.LONG.equals(outputFormat)) {
-				/*
-				if(classIds != null) {
-					if(isAdmin) {
-						LOGGER.info("Verifying that the classes exist.");
-						ClassServices.instance().checkClassesExistence(classIds, true);
-					}
-					else {
-						LOGGER.info("Verifying that all of the classes exist and that the user belongs to them in some capacity.");
-						UserClassServices.instance().classesExistAndUserBelongs(classIds, getUser().getUsername());
-					}
-				}
-				
-				LOGGER.info("Generating the list of campaign IDs based on the parameters.");
-				Set<String> resultCampaignIds = 
-						UserCampaignServices.instance().getCampaignsForUser(
-								getUser().getUsername(), 
-								campaignIds, 
-								classIds, 
-								startDate, 
-								endDate, 
-								privacyState, 
-								runningState, 
-								role);
-				
-				LOGGER.info("Gathering the information about the campaigns.");
-				shortOrLongResult = 
-						UserCampaignServices.instance().getCampaignAndUserRolesForCampaigns(
-								getUser().getUsername(),
-								resultCampaignIds,
-								OutputFormat.LONG.equals(outputFormat));
-				 */
-				
 				LOGGER.info("Gathering the information about the campaigns.");
 				shortOrLongResult =
 						UserCampaignServices.instance().getCampaignInformation(

@@ -35,7 +35,7 @@ import org.ohmage.query.ICampaignQueries;
 import org.ohmage.query.ICampaignSurveyResponseQueries;
 import org.ohmage.query.IUserCampaignQueries;
 import org.ohmage.query.IUserQueries;
-import org.ohmage.query.impl.QueryResult;
+import org.ohmage.query.impl.QueryResultsList;
 import org.ohmage.util.StringUtils;
 
 /**
@@ -891,7 +891,7 @@ public class UserCampaignServices {
 			throws ServiceException {
 		
 		try {
-			QueryResult<Campaign> queryResult = 
+			QueryResultsList<Campaign> queryResult = 
 					campaignQueries.getCampaignInformation(
 							username, 
 							campaignIds, 
