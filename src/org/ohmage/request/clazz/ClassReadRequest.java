@@ -154,7 +154,6 @@ public class ClassReadRequest extends UserRequest {
 		}
 		
 		try {
-			// Get the information about the classes.
 			LOGGER.info("Gathering the information about the classes in the list.");
 			result.putAll(
 					ClassServices.instance().getClassesInformation(

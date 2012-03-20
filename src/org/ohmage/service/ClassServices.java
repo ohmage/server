@@ -28,7 +28,6 @@ import org.ohmage.domain.Clazz;
 import org.ohmage.exception.DataAccessException;
 import org.ohmage.exception.ServiceException;
 import org.ohmage.query.IClassQueries;
-import org.ohmage.query.impl.ClassQueries.UserAndClassRole;
 
 /**
  * This class contains the services that pertain to classes.
@@ -51,10 +50,6 @@ public final class ClassServices {
 	private ClassServices(IClassQueries iClassQueries) {
 		if(instance != null) {
 			throw new IllegalStateException("An instance of this class already exists.");
-		}
-		
-		if(iClassQueries == null) {
-			throw new IllegalArgumentException("An instance of IClassQueries is required.");
 		}
 		
 		classQueries = iClassQueries;
@@ -345,11 +340,31 @@ public final class ClassServices {
 			throws ServiceException {
 		
 		try {
-			return classQueries.getClassesInformation(
-						username, 
-						classIds,
-						withUsers)
-					.getResults();
+			List<Clazz> classes = 
+					classQueries
+						.getClassesInformation(
+								username, 
+								classIds)
+						.getResults();
+			
+			Map<Clazz, Map<String, Clazz.Role>> result =
+					new HashMap<Clazz, Map<String, Clazz.Role>>(
+							classes.size());
+			
+			for(Clazz clazz : classes) {
+				if(withUsers) {
+					result.put(
+							clazz, 
+							classQueries.getUserRolePairs(
+									username, 
+									clazz.getId()));
+				}
+				else {
+					result.put(clazz, null);
+				}
+			}
+			
+			return result;
 		}
 		catch(DataAccessException e) {
 			throw new ServiceException(e);
@@ -368,14 +383,17 @@ public final class ClassServices {
 	 * 
 	 * @throws ServiceException Thrown if there is an error.
 	 */
-	public Map<String, List<UserAndClassRole>> generateClassRoster(
-			final Collection<String> classIds) throws ServiceException {
+	public Map<String, Map<String, Clazz.Role>> generateClassRoster(
+			final String username,
+			final Collection<String> classIds) 
+			throws ServiceException {
 		
 		try {
-			Map<String, List<UserAndClassRole>> result = new HashMap<String, List<UserAndClassRole>>();
+			Map<String, Map<String, Clazz.Role>> result = 
+					new HashMap<String, Map<String, Clazz.Role>>();
 			
 			for(String classId : classIds) {
-				result.put(classId, classQueries.getUserRolePairs(classId));
+				result.put(classId, classQueries.getUserRolePairs(username, classId));
 			}
 			
 			return result;

@@ -21,7 +21,6 @@ import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -31,9 +30,9 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.log4j.Logger;
 import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.cache.UserBin;
+import org.ohmage.domain.Clazz;
 import org.ohmage.exception.ServiceException;
 import org.ohmage.exception.ValidationException;
-import org.ohmage.query.impl.ClassQueries.UserAndClassRole;
 import org.ohmage.request.InputKeys;
 import org.ohmage.request.UserRequest;
 import org.ohmage.service.ClassServices;
@@ -73,7 +72,7 @@ public class ClassRosterReadRequest extends UserRequest {
 	
 	private final Collection<String> classIds;
 	
-	private Map<String, List<UserAndClassRole>> roster;
+	private Map<String, Map<String, Clazz.Role>> roster;
 	
 	/**
 	 * Creates a new class roster read request.
@@ -127,7 +126,7 @@ public class ClassRosterReadRequest extends UserRequest {
 			UserClassServices.instance().userIsAdminOrPrivilegedInAllClasses(getUser().getUsername(), classIds);
 			
 			LOGGER.info("Generating the class roster.");
-			roster = ClassServices.instance().generateClassRoster(classIds);
+			roster = ClassServices.instance().generateClassRoster(getUser().getUsername(), classIds);
 		}
 		catch(ServiceException e) {
 			e.failRequest(this);
@@ -183,10 +182,17 @@ public class ClassRosterReadRequest extends UserRequest {
 			// Build the class roster as a CSV file.
 			StringBuilder resultBuilder = new StringBuilder();
 			for(String classId : roster.keySet()) {
-				List<UserAndClassRole> userAndClassRoles = roster.get(classId);
+				Map<String, Clazz.Role> userAndClassRoles =
+						roster.get(classId);
 				
-				for(UserAndClassRole userAndClassRole : userAndClassRoles) {
-					resultBuilder.append(classId).append(",").append(userAndClassRole.getUsername()).append(",").append(userAndClassRole.getRole()).append("\n");
+				for(String username : userAndClassRoles.keySet()) {
+					resultBuilder
+						.append(classId)
+						.append(",")
+						.append(username)
+						.append(",")
+						.append(userAndClassRoles.get(username).toString())
+						.append("\n");
 				}
 			}
 			

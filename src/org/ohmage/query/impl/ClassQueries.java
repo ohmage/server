@@ -29,6 +29,7 @@ import javax.sql.DataSource;
 
 import org.apache.log4j.Logger;
 import org.ohmage.domain.Clazz;
+import org.ohmage.domain.Clazz.Role;
 import org.ohmage.domain.campaign.Campaign;
 import org.ohmage.exception.DataAccessException;
 import org.ohmage.exception.DomainException;
@@ -37,10 +38,9 @@ import org.ohmage.query.IClassQueries;
 import org.ohmage.query.IUserCampaignClassQueries;
 import org.ohmage.query.IUserCampaignQueries;
 import org.ohmage.query.IUserClassQueries;
-import org.ohmage.query.impl.QueryResultsMap.QueryResultMapBuilder;
+import org.ohmage.query.impl.QueryResultsList.QueryResultListBuilder;
 import org.ohmage.util.StringUtils;
 import org.springframework.jdbc.core.ResultSetExtractor;
-import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.SingleColumnRowMapper;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.transaction.PlatformTransactionManager;
@@ -101,15 +101,6 @@ public class ClassQueries extends Query implements IClassQueries {
 		"SELECT urn " +
 		"FROM class " +
 		"WHERE description LIKE ?";
-
-	// Gets all of the users and their class role for a single class.
-	private static final String SQL_GET_USERS_AND_CLASS_ROLES = 
-		"SELECT u.username, ucr.role " +
-		"FROM user u, user_class uc, user_class_role ucr, class c " +
-		"WHERE u.id = uc.user_id " +
-		"AND c.id = uc.class_id " + 
-		"AND ucr.id = uc.user_class_role_id " +
-		"AND c.urn = ?";
 	
 	// Inserts a new class.
 	private static final String SQL_INSERT_CLASS =
@@ -228,7 +219,7 @@ public class ClassQueries extends Query implements IClassQueries {
 	 * Inner class for aggregating a username and class role for a class.
 	 * 
 	 * @author John Jenkins
-	 */
+	 *
 	public static final class UserAndClassRole {
 		private final String username;
 		private final Clazz.Role role;
@@ -239,7 +230,7 @@ public class ClassQueries extends Query implements IClassQueries {
 		 * @param username The username of a member of a class.
 		 * 
 		 * @param role The user's role in the class.
-		 */
+		 *
 		public UserAndClassRole(String username, Clazz.Role role) {
 			this.username = username;
 			this.role = role;
@@ -249,7 +240,7 @@ public class ClassQueries extends Query implements IClassQueries {
 		 * Returns the user's username.
 		 * 
 		 * @return The user's username.
-		 */
+		 *
 		public String getUsername() {
 			return username;
 		}
@@ -258,11 +249,11 @@ public class ClassQueries extends Query implements IClassQueries {
 		 * Returns the user's class role.
 		 * 
 		 * @return The user's class role.
-		 */
+		 *
 		public Clazz.Role getRole() {
 			return role;
 		}
-	}
+	}*/
 	
 	/**
 	 * Creates this object.
@@ -443,72 +434,34 @@ public class ClassQueries extends Query implements IClassQueries {
 	 * @see org.ohmage.query.impl.IClassQueries#getClassesInformation(java.util.Collection, java.lang.String)
 	 */
 	@Override
-	public QueryResultsMap<Clazz, Map<String, Clazz.Role>> getClassesInformation(
+	public QueryResultsList<Clazz> getClassesInformation(
 			final String username,
-			final Collection<String> classIds,
-			final boolean withUsers) 
+			final Collection<String> classIds) 
 			throws DataAccessException {
 		
-		final String userRoleSeparator = ";";
-		final String pairSeparator = ",";
-		
-		StringBuilder sqlBuilder = new StringBuilder();
-		
-		if(withUsers) {
-			sqlBuilder.append(
-					"SELECT c.urn, c.name, c.description, " +
-							"GROUP_CONCAT(" +
-								"DISTINCT " +
-									"u.username, " +
-									"'" + userRoleSeparator + "', " +
-									"ucr.role " +
-								"SEPARATOR '" + pairSeparator + "') " +
-								"AS usernames_and_role " +
-					"FROM class c, user ru, " +
-						"user u, user_class uc, user_class_role ucr " +
-					"WHERE ru.username = ? " +
-					"AND (" +
-						"(ru.admin = true)" +
-						" OR " +
-						"(" +
-							"c.id IN (" +
-								"SELECT uc.class_id " +
-								"FROM user_class uc " +
-								"WHERE ru.id = uc.user_id" +
+		StringBuilder sqlBuilder = 
+				new StringBuilder(
+						"SELECT c.urn, c.name, c.description " +
+						"FROM class c, user u " +
+						"WHERE u.username = ? " +
+						"AND (" +
+							"(u.admin = true)" +
+							" OR " +
+							"(" +
+								"c.id IN (" +
+									"SELECT uc.class_id " +
+									"FROM user_class uc " +
+									"WHERE u.id = uc.user_id" +
+								")" +
 							")" +
-						")" +
-					") " +
-					"AND u.id = uc.user_id " +
-					"AND c.id = uc.class_id " +
-					"AND ucr.id = uc.user_class_role_id"
-			);
-		}
-		else {
-			sqlBuilder.append(
-					"SELECT c.urn, c.name, c.description " +
-					"FROM class c, user u " +
-					"WHERE u.username = ? " +
-					"AND (" +
-						"(u.admin = true)" +
-						" OR " +
-						"(" +
-							"c.id IN (" +
-								"SELECT uc.class_id " +
-								"FROM user_class uc " +
-								"WHERE u.id = uc.user_id" +
-							")" +
-						")" +
-					")"
-			);
-		}
+						")");
 		
 		List<Object> parameters = new LinkedList<Object>();
 		parameters.add(username);
 		
 		if(classIds != null) {
 			if(classIds.size() == 0) {
-				return (new QueryResultMapBuilder<Clazz, Map<String, Clazz.Role>>())
-						.getQueryResult();
+				return (new QueryResultListBuilder<Clazz>()).getQueryResult();
 			}
 			
 			sqlBuilder.append(
@@ -518,69 +471,31 @@ public class ClassQueries extends Query implements IClassQueries {
 			parameters.addAll(classIds);
 		}
 		
-		if(withUsers) {
-			sqlBuilder.append(" GROUP BY c.id");
-		}
-		
 		try {
 			return getJdbcTemplate().query(
 					sqlBuilder.toString(), 
 					parameters.toArray(), 
-					new ResultSetExtractor<QueryResultsMap<Clazz, Map<String, Clazz.Role>>>() {
+					new ResultSetExtractor<QueryResultsList<Clazz>>() {
 						/**
 						 * Creates class objects for each of the classes that
 						 * match the results.
 						 */
 						@Override
-						public QueryResultsMap<Clazz, Map<String, Clazz.Role>> extractData(
+						public QueryResultsList<Clazz> extractData(
 								final ResultSet rs)
 								throws SQLException,
 								org.springframework.dao.DataAccessException {
 							
-							QueryResultMapBuilder<Clazz, Map<String, Clazz.Role>> resultBuilder =
-									new QueryResultMapBuilder<Clazz, Map<String, Clazz.Role>>();
+							QueryResultListBuilder<Clazz> resultBuilder =
+									new QueryResultListBuilder<Clazz>();
 							
 							try {
 								while(rs.next()) {
-									Clazz clazz = 
+									resultBuilder.addResult(
 											new Clazz(
 												rs.getString("urn"),
 												rs.getString("name"),
-												rs.getString("description"));
-									
-									String usernamesAndRole =
-											rs.getString("usernames_and_role");
-									
-									String[] usernamesAndRoleArray =
-											usernamesAndRole.split(
-													pairSeparator);
-									
-									Map<String, Clazz.Role> usernamesAndRoleMap =
-											new HashMap<String, Clazz.Role>(
-													usernamesAndRoleArray.length);
-									
-									for(String usernameAndRole : usernamesAndRoleArray) {
-										String[] usernameAndRoleArray =
-												usernameAndRole.split(
-														userRoleSeparator);
-										
-										if(usernameAndRoleArray.length != 2) {
-											throw new SQLException(
-													"The query has changed.");
-										}
-										
-										Clazz.Role role = 
-												Clazz.Role.getValue(
-														usernameAndRoleArray[1]);
-										
-										usernamesAndRoleMap.put(
-												usernameAndRoleArray[0],
-												role);
-									}
-									
-									resultBuilder.addResult(
-											clazz, 
-											usernamesAndRoleMap);
+												rs.getString("description")));
 								}
 								
 								return resultBuilder.getQueryResult();
@@ -606,27 +521,88 @@ public class ClassQueries extends Query implements IClassQueries {
 	 * @see org.ohmage.query.impl.IClassQueries#getUserRolePairs(java.lang.String)
 	 */
 	@Override
-	public List<UserAndClassRole> getUserRolePairs(String classId) throws DataAccessException {
+	public Map<String, Clazz.Role> getUserRolePairs(
+			final String username,
+			final String classId) 
+			throws DataAccessException {
+		
+		String sql = 
+				"SELECT u.username, " +
+					"CASE WHEN (" +
+						"SELECT EXISTS (" +
+							"SELECT ru.id " +
+							"FROM user ru, " +
+								"user_class ruc, user_class_role rucr " +
+							"WHERE c.id = ruc.class_id " +
+							"AND ru.username = ? " +
+							"AND ru.id = ruc.user_id " +
+							"AND rucr.id = ruc.user_class_role_id " +
+							"AND rucr.role = '" + 
+								Clazz.Role.PRIVILEGED.toString().toLowerCase() + 
+								"'" +
+						")" +
+					") " +
+					"THEN ucr.role " +
+					"ELSE NULL " +
+					"END " +
+					"AS role " +
+				"FROM user u, user_class uc, user_class_role ucr, class c " +
+				"WHERE c.urn = ? " +
+				"AND c.id = uc.class_id " +
+				"AND u.id = uc.user_id " +
+				"AND ucr.id = uc.user_class_role_id";
+		
 		try {
 			return getJdbcTemplate().query(
-					SQL_GET_USERS_AND_CLASS_ROLES, 
-					new Object[] { classId }, 
-					new RowMapper<UserAndClassRole>() {
+					sql, 
+					new Object[] { username, classId }, 
+					new ResultSetExtractor<Map<String, Clazz.Role>>() {
 						@Override
-						public UserAndClassRole mapRow(ResultSet rs, int row) throws SQLException {
-							return new UserAndClassRole(rs.getString("username"), Clazz.Role.getValue(rs.getString("role")));
+						public Map<String, Role> extractData(
+								final ResultSet rs)
+								throws SQLException,
+								org.springframework.dao.DataAccessException {
+							
+							Map<String, Clazz.Role> result =
+									new HashMap<String, Clazz.Role>();
+							
+							while(rs.next()) {
+								String role = rs.getString("role");
+								
+								if(role == null) {
+									result.put(rs.getString("username"), null);
+								}
+								else {
+									try {
+										result.put(
+												rs.getString("username"), 
+												Clazz.Role.getValue(role));
+									}
+									catch(IllegalArgumentException e) {
+										throw new SQLException(
+												"The role is unknown.",
+												e);
+									}
+								}
+							}
+							
+							return result;
 						}
 					});
 		}
 		catch(org.springframework.dao.DataAccessException e) {
-			throw new DataAccessException("Error executing SQL_EXISTS_CLASS '" + SQL_GET_USERS_AND_CLASS_ROLES + "' with parameter: " + classId, e);
+			throw new DataAccessException(
+					"Error executing SQL_EXISTS_CLASS '" + 
+							sql + 
+							"' with parameter: " + 
+							classId, 
+					e);
 		}
 	}
 	
 	/* (non-Javadoc)
 	 * @see org.ohmage.query.impl.IClassQueries#updateClass(java.lang.String, java.lang.String, java.lang.String, java.util.Map, java.util.Collection)
 	 */
-
 	@Override
 	public List<String> updateClass(String classId, String className, String classDescription, Map<String, Clazz.Role> userAndRolesToAdd, Collection<String> usersToRemove)
 		throws DataAccessException {

@@ -37,9 +37,7 @@ public final class QueryResultsList<T>
 		 * Creates a builder with no elements.
 		 */
 		public QueryResultListBuilder() {
-			super();
-			
-			results = new LinkedList<T>();
+			this(0, null);
 		}
 		
 		/**
@@ -48,9 +46,7 @@ public final class QueryResultsList<T>
 		 * @param totalNumResults The total number of results.
 		 */
 		public QueryResultListBuilder(final long totalNumResults) {
-			super(totalNumResults);
-			
-			results = new LinkedList<T>();
+			this(totalNumResults, null);
 		}
 		
 		/**
@@ -83,14 +79,9 @@ public final class QueryResultsList<T>
 				final long totalNumResults,
 				final Collection<T> results) {
 			
-			super(totalNumResults);
+			this(results);
 			
-			if(results == null) {
-				this.results = new LinkedList<T>();
-			}
-			else {
-				this.results = new LinkedList<T>(results);
-			}
+			setTotalNumResults(totalNumResults);
 		}
 		
 		/**

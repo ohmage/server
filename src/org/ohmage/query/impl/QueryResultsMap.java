@@ -38,9 +38,7 @@ public final class QueryResultsMap<K, V>
 		 * Creates a builder with no elements.
 		 */
 		public QueryResultMapBuilder() {
-			super();
-			
-			results = new HashMap<T, S>();
+			this(0, null);
 		}
 		
 		/**
@@ -49,9 +47,7 @@ public final class QueryResultsMap<K, V>
 		 * @param totalNumResults The initial total number of results.
 		 */
 		public QueryResultMapBuilder(final long totalNumResults) {
-			super(totalNumResults);
-			
-			results = new HashMap<T, S>();
+			this(totalNumResults, null);
 		}
 		
 		/**
@@ -84,14 +80,9 @@ public final class QueryResultsMap<K, V>
 				final long totalNumResults, 
 				final Map<T, S> results) {
 			
-			super(totalNumResults);
+			this(results);
 			
-			if(results == null) {
-				this.results = new HashMap<T, S>();
-			}
-			else {
-				this.results = new HashMap<T, S>(results);
-			}
+			setTotalNumResults(totalNumResults);
 		}
 		
 		/**

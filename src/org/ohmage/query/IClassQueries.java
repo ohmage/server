@@ -20,10 +20,8 @@ import java.util.List;
 import java.util.Map;
 
 import org.ohmage.domain.Clazz;
-import org.ohmage.domain.Clazz.Role;
 import org.ohmage.exception.DataAccessException;
-import org.ohmage.query.impl.ClassQueries.UserAndClassRole;
-import org.ohmage.query.impl.QueryResultsMap;
+import org.ohmage.query.impl.QueryResultsList;
 
 /**
  * Interface to facilitate mocking concrete implementations for test cases. 
@@ -123,31 +121,30 @@ public interface IClassQueries {
 	 * @param classIds The collection of class IDs to limit the results. This 
 	 * 				   is optional and may be null.
 	 * 
-	 * @param withUsers Whether or not to include the users and their roles in
-	 * 					the response.
-	 * 
 	 * @return The query result containing the total number of results as well 
 	 * 		   as the results for this page.
 	 * 
 	 * @throws DataAccessException There was an error.
 	 */
-	public QueryResultsMap<Clazz, Map<String, Role>> getClassesInformation(
+	public QueryResultsList<Clazz> getClassesInformation(
 			final String username,
-			final Collection<String> classIds,
-			final boolean withUsers) 
+			final Collection<String> classIds) 
 			throws DataAccessException;
 
 	/**
-	 * Retrieves a List of UserAndClassRole objects where each object is one of
-	 * the users in the class and their role.
+	 * Retrieves a map of usernames to that user's class role. If the user is
+	 * not an admin nor are they privileged in the class, then the class roles
+	 * will all be null.
 	 * 
 	 * @param classId The unique identifier for a class.
 	 * 
-	 * @return A List of UserAndClassRole objects.
+	 * @return A map of usernames to class role.
 	 * 
-	 * @throws DataAccessException Thrown if there is an error.
+	 * @throws DataAccessException There was an error.
 	 */
-	List<UserAndClassRole> getUserRolePairs(String classId)
+	Map<String, Clazz.Role> getUserRolePairs(
+			final String username, 
+			final String classId)
 			throws DataAccessException;
 
 	/**
