@@ -83,15 +83,37 @@ public interface IDocumentQueries {
 	String getDocumentName(String documentId) throws DataAccessException;
 
 	/**
-	 * Retrieves the information about a document whose ID is 'documentId'.
+	 * Retrieves the information about the documents that match any of the 
+	 * criteria.
 	 * 
-	 * @param documentId The unique document ID for the document whose 
-	 * 					 information is desired.
+	 * @param username This is the username of the requesting user and is 
+	 * 				   required.
+	 * 
+	 * @param personalDocuments If true will include the documents directly 
+	 * 							associated with this user; if false, it will 
+	 * 							not return the documents directly associated 
+	 * 							with the user unless they also happen to be 
+	 * 							associated with any class or campaign to which
+	 * 							the user belongs.
+	 * 
+	 * @param campaignIds A collection of campaign unique identifiers that will
+	 * 					  increase the results to include all documents in all
+	 * 					  of these campaigns.
+	 * 
+	 * @param classIds A collection of class unqiue identifiers that will
+	 * 				   increase the results to include all documents in all of
+	 * 				   these classes.
 	 *  
 	 * @return A DocumentInformation object representing the information about
 	 * 		   this document.
+	 * 
+	 * @throws DataAccessException There was an error.
 	 */
-	Document getDocumentInformation(String documentId)
+	List<Document> getDocumentInformation(
+			final String username,
+			final boolean personalDocuments,
+			final Collection<String> campaignIds,
+			final Collection<String> classIds) 
 			throws DataAccessException;
 
 	/**

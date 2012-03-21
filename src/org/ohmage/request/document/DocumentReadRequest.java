@@ -17,7 +17,6 @@ package org.ohmage.request.document;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -33,14 +32,7 @@ import org.ohmage.exception.ServiceException;
 import org.ohmage.exception.ValidationException;
 import org.ohmage.request.InputKeys;
 import org.ohmage.request.UserRequest;
-import org.ohmage.service.CampaignServices;
-import org.ohmage.service.ClassServices;
-import org.ohmage.service.UserCampaignDocumentServices;
-import org.ohmage.service.UserCampaignServices;
-import org.ohmage.service.UserClassDocumentServices;
-import org.ohmage.service.UserClassServices;
 import org.ohmage.service.UserDocumentServices;
-import org.ohmage.service.UserServices;
 import org.ohmage.validator.CampaignValidators;
 import org.ohmage.validator.ClassValidators;
 import org.ohmage.validator.DocumentValidators;
@@ -158,60 +150,15 @@ public class DocumentReadRequest extends UserRequest {
 		}
 		
 		try {
-			boolean isAdmin;
-			try {
-				LOGGER.info("Checking if the user is an admin.");
-				UserServices.instance().verifyUserIsAdmin(getUser().getUsername());
-				
-				LOGGER.info("The user is an admin.");
-				isAdmin = true;
-			}
-			catch(ServiceException e) {
-				LOGGER.info("The user is not an admin.");
-				isAdmin = false;
-			}
+			LOGGER.info("Gathering the document information.");
+			result = 
+					UserDocumentServices.instance().getDocumentInformation(
+							getUser().getUsername(), 
+							personalDocuments, 
+							campaignIds, 
+							classIds);
 			
-			if(campaignIds != null) {
-				if(isAdmin) {
-					LOGGER.info("Verifying that the campaigns exist.");
-					CampaignServices.instance().checkCampaignsExistence(campaignIds, true);
-				}
-				else {
-					LOGGER.info("Verifying that the campaigns in the campaign list exist and that the user belongs.");
-					UserCampaignServices.instance().campaignsExistAndUserBelongs(campaignIds, getUser().getUsername());
-				}
-			}
-			
-			if(classIds != null) {
-				if(isAdmin) {
-					LOGGER.info("Verifying that the classes exist.");
-					ClassServices.instance().checkClassesExistence(classIds, true);
-				}
-				else {
-					LOGGER.info("Verifying that the classes in the class list exist and that the user belongs.");
-					UserClassServices.instance().classesExistAndUserBelongs(classIds, getUser().getUsername());
-				}
-			}
-			
-			Set<String> documentIds = new HashSet<String>();
-			
-			if(personalDocuments) {
-				LOGGER.info("Gathering information about the documents that are specific to this user.");
-				documentIds.addAll(UserDocumentServices.instance().getDocumentsSpecificToUser(getUser().getUsername())); 
-			}
-			
-			if(campaignIds != null) {
-				LOGGER.info("Gathering information about the documents that are visible to this user in the parameterized campaigns.");
-				documentIds.addAll(UserCampaignDocumentServices.instance().getVisibleDocumentsSpecificToCampaigns(getUser().getUsername(), campaignIds));
-			}
-		
-			if(classIds != null) {
-				LOGGER.info("Gathering information about the documents that are visible to this user in the parameterized classes.");
-				documentIds.addAll(UserClassDocumentServices.instance().getVisibleDocumentsSpecificToClasses(getUser().getUsername(), classIds));
-			}
-			
-			LOGGER.info("Gathering the specific information about each of the documents.");
-			result = UserDocumentServices.instance().getDocumentInformationForDocumentsWithUser(getUser().getUsername(), documentIds);
+			LOGGER.info("Found " + result.size() + " documents.");
 		}
 		catch(ServiceException e) {
 			e.failRequest(this);

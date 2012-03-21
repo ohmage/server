@@ -26,7 +26,9 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -43,6 +45,7 @@ import org.ohmage.exception.CacheMissException;
 import org.ohmage.exception.DataAccessException;
 import org.ohmage.exception.DomainException;
 import org.ohmage.query.IDocumentQueries;
+import org.ohmage.util.StringUtils;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.transaction.PlatformTransactionManager;
@@ -84,14 +87,6 @@ public class DocumentQueries extends Query implements IDocumentQueries {
 		"SELECT name " +
 		"FROM document " +
 		"WHERE uuid = ?";
-	
-	// Gets a document's information.
-	private static final String SQL_GET_DOCUMENT_INFO = 
-		"SELECT d.uuid, d.name, d.description, dps.privacy_state, d.last_modified_timestamp, d.creation_timestamp, d.size, duc.username " +
-		"FROM document d, document_privacy_state dps, document_user_creator duc " +
-		"WHERE d.uuid = ? " +
-		"AND d.privacy_state_id = dps.id " +
-		"AND d.id = duc.document_id";
 	
 	// Inserts the document into the database.
 	private static final String SQL_INSERT_DOCUMENT = 
@@ -515,17 +510,114 @@ public class DocumentQueries extends Query implements IDocumentQueries {
 	/* (non-Javadoc)
 	 * @see org.ohmage.query.impl.IDocumentQueries#getDocumentInformation(java.lang.String)
 	 */
-	public Document getDocumentInformation(
-			final String documentId) 
+	public List<Document> getDocumentInformation(
+			final String username,
+			final boolean personalDocuments,
+			final Collection<String> campaignIds,
+			final Collection<String> classIds) 
 			throws DataAccessException {
 		
+		if(! personalDocuments && (campaignIds == null) && (classIds == null)) {
+			return Collections.emptyList();
+		}
+		
+		StringBuilder sql = 
+			new StringBuilder(
+				"SELECT d.uuid, d.name, d.description, d.size, " +
+					"d.last_modified_timestamp, d.creation_timestamp, " +
+					"dps.privacy_state, duc.username " +
+				"FROM user u, document d, " +
+					"document_privacy_state dps, document_user_creator duc " +
+				"WHERE u.username = ? " +
+				"AND d.privacy_state_id = dps.id " +
+				"AND d.id = duc.document_id " +
+				"AND (");
+		boolean addedSql = false;
+		
+		List<Object> parameters = new LinkedList<Object>();
+		parameters.add(username);
+		
+		if(personalDocuments) {
+			sql.append(
+				"d.id IN (" +
+					"SELECT dur.document_id " +
+					"FROM document_user_role dur " +
+					"WHERE u.id = dur.user_id" +
+				")");
+			
+			addedSql = true;
+		}
+		
+		if(campaignIds != null) {
+			if(campaignIds.size() == 0) {
+				return Collections.emptyList();
+			}
+			
+			if(addedSql) {
+				sql.append(" OR ");
+			}
+			
+			sql.append(
+				"d.id IN (" +
+					"SELECT dcr.document_id " +
+					"FROM campaign c, user_role_campaign urc, " +
+						"document_campaign_role dcr " +
+					"WHERE c.urn IN ")
+				.append(
+					StringUtils.generateStatementPList(
+						campaignIds.size()))
+				.append(
+					"AND c.id = urc.campaign_id " +
+					"AND u.id = urc.user_id " +
+					"AND c.id = dcr.campaign_id" +
+				")");
+			
+			parameters.addAll(campaignIds);
+			
+			addedSql = true;
+		}
+		
+		if(classIds != null) {
+			if(classIds.size() == 0) {
+				return Collections.emptyList();
+			}
+			
+			if(addedSql) {
+				sql.append(" OR ");
+			}
+			
+			sql.append(
+				"d.id IN (" +
+					"SELECT dcr.document_id " +
+					"FROM class c, user_class uc, " +
+						"document_class_role dcr " +
+					"WHERE c.urn IN ")
+				.append(
+					StringUtils.generateStatementPList(classIds.size()))
+				.append(
+					"AND c.id = uc.class_id " +
+					"AND u.id = uc.user_id " +
+					"AND c.id = dcr.class_id" +
+				")");
+			
+			parameters.addAll(classIds);
+			
+			addedSql = true;
+		}
+		
+		sql.append(")");
+		
 		try {
-			return getJdbcTemplate().queryForObject(
-				SQL_GET_DOCUMENT_INFO, 
-				new Object[] { documentId }, 
+			return getJdbcTemplate().query(
+				sql.toString(), 
+				parameters.toArray(), 
 				new RowMapper<Document>() {
 					@Override
-					public Document mapRow(ResultSet rs, int rowNum) throws SQLException {
+					public Document mapRow(
+							final ResultSet rs, 
+							final int rowNum) 
+							throws SQLException {
+						
 						try {
 							return new Document(
 									rs.getString("uuid"),
@@ -539,8 +631,8 @@ public class DocumentQueries extends Query implements IDocumentQueries {
 						}
 						catch(DomainException e) {
 							throw new SQLException(
-									"A value in the database is invalid: " + 
-										documentId, 
+									"A document is broken: " + 
+										rs.getString("uuid"), 
 									e);
 						}
 					}
@@ -548,7 +640,12 @@ public class DocumentQueries extends Query implements IDocumentQueries {
 			);
 		}
 		catch(org.springframework.dao.DataAccessException e) {
-			throw new DataAccessException("Error executing SQL '" + SQL_GET_DOCUMENT_INFO + "' with parameter: " + documentId, e);
+			throw new DataAccessException(
+				"Error executing SQL '" + 
+					sql.toString() + 
+					"' with parameters: " +
+					parameters, 
+				e);
 		}
 	}
 	
