@@ -244,6 +244,9 @@ public class SurveyResponseQueries extends Query implements ISurveyResponseQueri
 			"FROM user ru " +
 			"WHERE ru.username = ? " +
 			"AND (" +
+				// If they are an admin,
+				"(ru.admin = true) " +
+				"OR " +
 				// If it is their own,
 				"(u.id = ru.id) " +
 				"OR " +
@@ -268,8 +271,8 @@ public class SurveyResponseQueries extends Query implements ISurveyResponseQueri
 					"AND srps.privacy_state = '" + SurveyResponse.PrivacyState.SHARED.toString() + "'" +
 				") " +
 				"OR " +
-				// If they are an analyst, the survey response is shared, and the
-				// campaign is shared.
+				// If they are an analyst, the survey response is shared, and 
+				// the campaign is shared.
 				"EXISTS (" +
 					"SELECT ur.role " +
 					"FROM user_role ur, user_role_campaign urc, campaign_privacy_state cps " +
