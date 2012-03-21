@@ -387,6 +387,7 @@ public class UserSearchRequest extends UserRequest {
 			
 			LOGGER.info("Searching for the users that satisfy the parameters.");
 			totalNumResults = UserServices.instance().userSearch(
+						getUser().getUsername(),
 						username, 
 						emailAddress,
 						admin, 

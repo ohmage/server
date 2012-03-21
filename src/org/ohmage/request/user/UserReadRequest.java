@@ -28,7 +28,6 @@ import org.apache.log4j.Logger;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.ohmage.annotator.Annotator.ErrorCode;
-import org.ohmage.domain.Clazz;
 import org.ohmage.domain.User;
 import org.ohmage.domain.UserInformation;
 import org.ohmage.domain.UserInformation.UserPersonal;
@@ -36,10 +35,6 @@ import org.ohmage.exception.ServiceException;
 import org.ohmage.exception.ValidationException;
 import org.ohmage.request.InputKeys;
 import org.ohmage.request.UserRequest;
-import org.ohmage.service.CampaignServices;
-import org.ohmage.service.ClassServices;
-import org.ohmage.service.UserCampaignServices;
-import org.ohmage.service.UserClassServices;
 import org.ohmage.service.UserServices;
 import org.ohmage.validator.CampaignValidators;
 import org.ohmage.validator.ClassValidators;
@@ -196,77 +191,24 @@ public class UserReadRequest extends UserRequest {
 		}
 		
 		try {
-			boolean isAdmin;
-			try {
-				LOGGER.info("Checking if the user is an admin.");
-				UserServices.instance().verifyUserIsAdmin(getUser().getUsername());
-				
-				LOGGER.info("The user is an admin.");
-				isAdmin = true;
-			}
-			catch(ServiceException e) {
-				LOGGER.info("The user is not an admin.");
-				isAdmin = false;
-			}
-			
-			ArrayList<String> allUsernames;
-			
-			if(usernames == null) {
-				allUsernames = new ArrayList<String>();
-			}
-			else {
-				if(! isAdmin) {
-					LOGGER.info("Verifying that the requester may read the information about the users in the list.");
-					UserServices.instance().verifyUserCanReadUsersPersonalInfo(getUser().getUsername(), usernames);
-				}
-
-				allUsernames = new ArrayList<String>(usernames);
-			}
-			
-			if(campaignIds != null) {
-				LOGGER.info("Verifying that all of the campaigns in the list exist.");
-				CampaignServices.instance().checkCampaignsExistence(campaignIds, true);
-				
-				if(! isAdmin) {
-					LOGGER.info("Verifying that the requester may read the information about the users in the campaigns.");
-					UserCampaignServices.instance().verifyUserCanReadUsersInfoInCampaigns(getUser().getUsername(), campaignIds);
-				}
-				
-				LOGGER.info("Gathering all of the users in all of the campaigns.");
-				allUsernames.addAll(
-						UserCampaignServices.instance().getUsersInCampaigns(
-								campaignIds));
-			}
-			
-			if(classIds != null) {
-				LOGGER.info("Verifying that all of the classes in the list exist.");
-				ClassServices.instance().checkClassesExistence(classIds, true);
-				
-				if(! isAdmin) {
-					LOGGER.info("Verifying that the requester is privileged in all of the classes.");
-					UserClassServices.instance().userHasRoleInClasses(getUser().getUsername(), classIds, Clazz.Role.PRIVILEGED);
-				}
-				
-				LOGGER.info("Gathering all of the users in all of the classes.");
-				allUsernames.addAll(
-						UserClassServices.instance().getUsersInClasses(
-								classIds));
-			}
-			
-			numResults = UserServices.instance().getUserInformation(
-					usernames, 
-					null, 
-					null, 
-					null, 
-					null, 
-					null, 
-					null, 
-					null, 
-					null, 
-					null, 
-					numToSkip, 
-					numToReturn, 
-					results);
+			numResults = 
+					UserServices.instance().getUserInformation(
+							getUser().getUsername(),
+							usernames,
+							null,
+							null,
+							null,
+							null,
+							null,
+							null,
+							null,
+							null,
+							null,
+							campaignIds,
+							classIds,
+							numToSkip,
+							numToReturn,
+							results);
 		}
 		catch(ServiceException e) {
 			e.failRequest(this);

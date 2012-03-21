@@ -658,8 +658,11 @@ public final class UserServices {
 	
 	/**
 	 * Searches through all of the users in the system and returns those that
-	 * match the criteria. All Object parameters are optional; by passing a 
-	 * null value, it will be omitted from the search. 
+	 * match the criteria. All Object parameters are optional except
+	 * 'requesterUsername'; by passing a null value, it will be omitted from 
+	 * the search.
+	 * 
+	 * @param requesterUsername The username of the user making this request.
 	 * 
 	 * @param usernames Limits the results to only those whose username is in
 	 * 					this list.
@@ -707,6 +710,7 @@ public final class UserServices {
 	 * @throws ServiceException Thrown if there is an error.
 	 */
 	public long getUserInformation(
+			final String requesterUsername,
 			final Collection<String> usernames,
 			final String emailAddress,
 			final Boolean admin,
@@ -717,6 +721,8 @@ public final class UserServices {
 			final String lastName,
 			final String organization,
 			final String personalId,
+			final Collection<String> campaignIds,
+			final Collection<String> classIds,
 			final long numToSkip,
 			final long numToReturn,
 			final List<UserInformation> results) 
@@ -725,6 +731,7 @@ public final class UserServices {
 		try {
 			QueryResultsList<UserInformation> result =
 					userQueries.getUserInformation(
+							requesterUsername,
 							usernames, 
 							null, 
 							emailAddress, 
@@ -735,7 +742,9 @@ public final class UserServices {
 							firstName, 
 							lastName, 
 							organization, 
-							personalId, 
+							personalId,
+							campaignIds,
+							classIds,
 							false, 
 							numToSkip, 
 							numToReturn);
@@ -751,8 +760,11 @@ public final class UserServices {
 	
 	/**
 	 * Searches through all of the users in the system and returns those that
-	 * match the criteria. All Object parameters are optional; by passing a 
-	 * null value, it will be omitted from the search. 
+	 * match the criteria. All Object parameters are optional except 
+	 * 'requesterUsername'; by passing a null value, it will be omitted from 
+	 * the search. 
+	 * 
+	 * @param requesterUsername The username of the user making this request.
 	 * 
 	 * @param partialUsername Limits the results to only those users whose 
 	 * 						  username contain this value.
@@ -804,6 +816,7 @@ public final class UserServices {
 	 * @throws ServiceException Thrown if there is an error.
 	 */
 	public long userSearch(
+			final String requesterUsername,
 			final String partialUsername,
 			final String partialEmailAddress,
 			final Boolean admin,
@@ -822,6 +835,7 @@ public final class UserServices {
 		try {
 			QueryResultsList<UserInformation> result =
 					userQueries.getUserInformation(
+							requesterUsername,
 							null, 
 							partialUsername, 
 							partialEmailAddress, 
@@ -833,6 +847,8 @@ public final class UserServices {
 							partialLastName, 
 							partialOrganization, 
 							partialPersonalId, 
+							null,
+							null,
 							true, 
 							numToSkip, 
 							numToReturn);

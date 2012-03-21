@@ -348,7 +348,10 @@ public interface IUserQueries {
 	/**
 	 * Gathers the information about a person including the classes and 
 	 * campaigns to which they belong. Any of the Object parameters may be 
-	 * null.
+	 * null except 'requesterUsername'.
+	 * 
+	 * @param requesterUsername The username of the user that is requesting 
+	 * 							this information.
 	 * 
 	 * @param usernames Limits the results to only those whose username is in
 	 * 					this list.
@@ -389,6 +392,12 @@ public interface IUserQueries {
 	 * 					 personal ID and where that personal ID matches or is
 	 * 					 like this value, see 'like'.
 	 * 
+	 * @param campaignIds Limits the results to only those accounts that are in
+	 * 					  any of the campaigns listed.
+	 * 
+	 * @param classIds Limits the results to only those accounts that are in 
+	 * 				   any of the classes listed.
+	 * 
 	 * @param like Switches the SQL to use LIKE instead of a direct matching. 
 	 * 			   This only applies to the parameters that mention it.
 	 * 
@@ -405,6 +414,7 @@ public interface IUserQueries {
 	 * 							   information.
 	 */
 	public QueryResultsList<UserInformation> getUserInformation(
+			final String requesterUsername,
 			final Collection<String> usernames,
 			final String likeUsername,
 			final String emailAddress,
@@ -416,6 +426,8 @@ public interface IUserQueries {
 			final String lastName,
 			final String organization,
 			final String personalId,
+			final Collection<String> campaignIds,
+			final Collection<String> classIds,
 			final boolean like,
 			final long numToSkip,
 			final long numToReturn)

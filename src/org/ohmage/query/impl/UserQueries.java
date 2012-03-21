@@ -1110,6 +1110,7 @@ public class UserQueries extends Query implements IUserQueries {
 	 * @see org.ohmage.query.IUserQueries#getUserInformation(java.util.Collection, java.lang.String, java.lang.String, java.lang.Boolean, java.lang.Boolean, java.lang.Boolean, java.lang.Boolean, java.lang.String, java.lang.String, java.lang.String, java.lang.String, boolean, long, long)
 	 */
 	public QueryResultsList<UserInformation> getUserInformation(
+			final String requesterUsername,
 			final Collection<String> usernames,
 			final String likeUsername,
 			final String emailAddress,
@@ -1121,6 +1122,8 @@ public class UserQueries extends Query implements IUserQueries {
 			final String lastName,
 			final String organization,
 			final String personalId,
+			final Collection<String> campaignIds,
+			final Collection<String> classIds,
 			final boolean like,
 			final long numToSkip,
 			final long numToReturn)
@@ -1140,52 +1143,91 @@ public class UserQueries extends Query implements IUserQueries {
 							"up.organization, " +
 							"up.personal_id " +
 						"FROM user u " +
-						"LEFT JOIN user_personal up ON " +
-							"u.id = up.user_id");
+							"LEFT JOIN user_personal up ON " +
+								"u.id = up.user_id, " +
+							"user ru " +
+						"WHERE ru.username = ? " +
+						// ACL
+						"AND (" +
+								"(ru.admin = true)" +
+							" OR EXISTS(" +
+								// If the requesting user shares a campaign
+								// with the desired user and is a 
+								// supervisor in that campaign.
+								"SELECT ru.id " +
+								"FROM user_role ur, " +
+									"user_role_campaign urc, " +
+									"user_role_campaign rurc " +
+								// The requesting user is associated with a
+								// campaign.
+								"WHERE ru.id = rurc.user_id " +
+								// The requesting user is a supervisor in
+								// that campaign.
+								"AND ur.id = rurc.user_role_id " +
+								"AND ur.role = '" +
+									Campaign.Role.SUPERVISOR.toString() +
+									"' " +
+								// The queried user is also in a campaign.
+								"AND u.id = urc.user_id " +
+								// And that campaign is the same as the one
+								// in which the requesting user is a 
+								// supervisor.
+								"AND urc.campaign_id = rurc.campaign_id" +
+							")" +
+							" OR EXISTS(" +
+								// If the requesting user shares a class 
+								// with the desired user and is privileged
+								// in that class.
+								"SELECT ru.id " +
+								"FROM user_class_role ucr, " +
+									"user_class uc, " +
+									"user_class ruc " +
+								// The requesting user is associated with a
+								// class.
+								"WHERE ru.id = ruc.user_id " +
+								// The requesting user is privileged in 
+								// that class.
+								"AND ucr.id = ruc.user_class_role_id " +
+								"AND ucr.role = '" +
+									Clazz.Role.PRIVILEGED.toString() +
+									"' " +
+								// The queried user is also in a class.
+								"AND u.id = uc.user_id " +
+								// And that class is the same as the one in
+								// which the requesting user is privileged.
+								"AND uc.class_id = ruc.class_id" +
+							")" +
+						")"
+				);
 		
 		// The initial parameter list doesn't have any items.
 		Collection<Object> parameters = new LinkedList<Object>();
-		
-		// The initial WHERE clause with a flag to indicate if any components
-		// of the WHERE clause had been added.
-		boolean whereClauseNeeded = false;
-		StringBuilder whereClause = new StringBuilder(" WHERE");
+		parameters.add(requesterUsername);
 		
 		// If the list of usernames is present, add a WHERE clause component
 		// that limits the results to only those users whose exact username is
 		// in the list.
 		if(usernames != null) {
-			whereClause
-				.append((whereClauseNeeded) ? " AND " : " ")
-				.append("u.username IN ")
+			sql.append(" AND u.username IN ")
 				.append(StringUtils.generateStatementPList(usernames.size()));
 			
 			parameters.addAll(usernames);
-			
-			whereClauseNeeded = true;
 		}
 		
 		// If the "like username" value is present, add a WHERE clause 
 		// component that limits the results to only those users whose username
 		// is LIKE this string.
 		if(likeUsername != null) {
-			whereClause
-				.append((whereClauseNeeded) ? " AND " : " ")
-				.append("u.username LIKE ?");
+			sql.append(" AND u.username LIKE ?");
 			
 			parameters.add("%" + likeUsername + "%");
-			
-			whereClauseNeeded = true;
 		}
 		
 		// If "emailAddress" is present, add a WHERE clause component that  
 		// limits the results to only those whose email address either contains  
 		// or exactly matches this value based on the 'like' parameter.
 		if(emailAddress != null) {
-			whereClause
-				.append((whereClauseNeeded) ? " AND " : " ")
-				.append("up.email_address ")
-				.append((like) ? " LIKE ?" : " = ?");
+			sql.append(" AND up.email_address LIKE ?");
 			
 			if(like) {
 				parameters.add("%" + emailAddress + "%");
@@ -1193,70 +1235,49 @@ public class UserQueries extends Query implements IUserQueries {
 			else {
 				parameters.add(emailAddress);
 			}
-			
-			whereClauseNeeded = true;
 		}
 		
 		// If "admin" is present, add a WHERE clause component that limits the
 		// results to only those whose admin boolean is the same as this 
 		// boolean.
 		if(admin != null) {
-			whereClause
-				.append((whereClauseNeeded) ? " AND " : " ")
-				.append("u.admin = ?");
+			sql.append(" AND u.admin = ?");
 			
 			parameters.add(admin);
-			
-			whereClauseNeeded = true;
 		}
 		
 		// If "enabled" is present, add a WHERE clause component that limits 
 		// the results to only those whose enabled value is the same as this
 		// boolean
 		if(enabled != null) {
-			whereClause
-				.append((whereClauseNeeded) ? " AND " : " ")
-				.append("u.enabled = ?");
+			sql.append(" AND u.enabled = ?");
 			
 			parameters.add(enabled);
-			
-			whereClauseNeeded = true;
 		}
 		
 		// If "newAccount" is present, add a WHERE clause component that limits
 		// the results to only those whose new account status is the same as
 		// this boolean.
 		if(newAccount != null) {
-			whereClause
-				.append((whereClauseNeeded) ? " AND " : " ")
-				.append("u.new_account = ?");
+			sql.append(" AND u.new_account = ?");
 			
 			parameters.add(newAccount);
-			
-			whereClauseNeeded = true;
 		}
 		
 		// If "canCreateCampaigns" is present, add a WHERE clause component 
 		// that limits the results to only those whose campaign creation
 		// privilege is the same as this boolean.
 		if(canCreateCampaigns != null) {
-			whereClause
-				.append((whereClauseNeeded) ? " AND " : " ")
-				.append("u.campaign_creation_privilege = ?");
+			sql.append(" AND u.campaign_creation_privilege = ?");
 			
 			parameters.add(canCreateCampaigns);
-			
-			whereClauseNeeded = true;
 		}
 		
 		// If "firstName" is present, add a WHERE clause component that limits
 		// the results to only those whose first name either contains or 
 		// exactly matches this value based on the 'like' parameter.
 		if(firstName != null) {
-			whereClause
-				.append((whereClauseNeeded) ? " AND " : " ")
-				.append("up.first_name ")
-				.append((like) ? " LIKE ?" : " = ?");
+			sql .append(" AND up.first_name LIKE ?");
 			
 			if(like) {
 				parameters.add("%" + firstName + "%");
@@ -1264,18 +1285,13 @@ public class UserQueries extends Query implements IUserQueries {
 			else {
 				parameters.add(firstName);
 			}
-			
-			whereClauseNeeded = true;
 		}
 		
 		// If "lastName" is present, add a WHERE clause component that limits
 		// the results to only those whose last name either contains or exactly
 		// matches this value based on the 'like' parameter.
 		if(lastName != null) {
-			whereClause
-				.append((whereClauseNeeded) ? " AND " : " ")
-				.append("up.last_name ")
-				.append((like) ? " LIKE ?" : " = ?");
+			sql.append(" AND up.last_name LIKE ?");
 			
 			if(like) {
 				parameters.add("%" + lastName + "%");
@@ -1283,18 +1299,13 @@ public class UserQueries extends Query implements IUserQueries {
 			else {
 				parameters.add(lastName);
 			}
-			
-			whereClauseNeeded = true;
 		}
 		
 		// If "organization" is present, add a WHERE clause component that 
 		// limits the results to only those whose organization either contains 
 		// or exactly matches this value based on the 'like' parameter.
 		if(organization != null) {
-			whereClause
-				.append((whereClauseNeeded) ? " AND " : " ")
-				.append("up.organization ")
-				.append((like) ? " LIKE ?" : " = ?");
+			sql.append(" AND up.organization LIKE ?");
 			
 			if(like) {
 				parameters.add("%" + organization + "%");
@@ -1302,18 +1313,13 @@ public class UserQueries extends Query implements IUserQueries {
 			else {
 				parameters.add(organization);
 			}
-			
-			whereClauseNeeded = true;
 		}
 		
 		// If "personalId" is present, add a WHERE clause component that limits 
 		// the results to only those whose personal ID either contains or 
 		// exactly matches this value based on the 'like' parameter.
 		if(personalId != null) {
-			whereClause
-				.append((whereClauseNeeded) ? " AND " : " ")
-				.append("up.personal_id ")
-				.append((like) ? " LIKE ?" : " = ?");
+			sql.append(" AND up.personal_id LIKE ?");
 			
 			if(like) {
 				parameters.add("%" + personalId + "%");
@@ -1321,14 +1327,48 @@ public class UserQueries extends Query implements IUserQueries {
 			else {
 				parameters.add(personalId);
 			}
-			
-			whereClauseNeeded = true;
 		}
 		
-		// Finally, add the WHERE clause to the SQL if any components were 
-		// added.
-		if(whereClauseNeeded) {
-			sql.append(whereClause);
+		// If a collection of campaign IDs is present, add a WHERE clause 
+		// component that limits the results to only those in any of the  
+		// campaigns.
+		if(campaignIds != null) {
+			if(campaignIds.size() == 0) {
+				return (new QueryResultListBuilder<UserInformation>())
+						.getQueryResult();
+			}
+			
+			sql.append(
+					" AND u.id IN (" +
+						"SELECT urc.user_id " +
+						"FROM campaign c, user_role_campaign urc " +
+						"WHERE c.urn IN " +
+							StringUtils.generateStatementPList(campaignIds.size()) + " " +
+						"AND c.id = urc.campaign_id" +
+					")");
+			
+			parameters.add(campaignIds);
+		}
+		
+		// If a collection of class IDs is present, add a WHERE clause 
+		// component that limits the results to only those in any of the 
+		// classes.
+		if(classIds != null) {
+			if(classIds.size() == 0) {
+				return (new QueryResultListBuilder<UserInformation>())
+						.getQueryResult();
+			}
+			
+			sql.append(
+					" AND u.id IN (" +
+						"SELECT uc.id " +
+						"FROM class c, user_class uc " +
+						"WHERE c.urn IN " +
+							StringUtils.generateStatementPList(classIds.size()) +
+						"AND c.id = uc.class_id" +
+					")");
+			
+			parameters.add(classIds);
 		}
 		
 		// Always order the results by username to facilitate paging.
