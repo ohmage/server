@@ -33,3 +33,10 @@ CREATE TABLE user_registration(
 -- This is being self-referenced now and doesn't need to be a preference in the
 -- database.
 DELETE FROM preference WHERE p_key='properties_file';
+
+-- Add the public and private ReCaptcha keys as well as the flag regarding 
+-- whether or not self-registration is allowed.
+INSERT INTO preference VALUES 
+    ('recaptcha_public_key', ''),
+    ('recaptcha_private_key', ''),
+    ('self_registration_allowed', '');
