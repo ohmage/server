@@ -117,11 +117,33 @@ public class ConfigServices {
 			throw new ServiceException("Whether or not Mobility is enabled is missing from the database.", e);
 		}
 		
+		String recaptchaPublicKey;
+		try {
+			recaptchaPublicKey =
+					PreferenceCache.instance().lookup(
+							PreferenceCache.KEY_RECAPTACH_KEY_PUBLIC);
+		}
+		catch(CacheMissException e) {
+			throw new ServiceException("The ReCaptcha public key is missing from the database.", e);
+		}
+		
+		boolean selfRegistrationAllowed;
+		try {
+			selfRegistrationAllowed =
+					StringUtils.decodeBoolean(
+							PreferenceCache.instance().lookup(
+									PreferenceCache.KEY_ALLOW_SELF_REGISTRATOIN));
+		}
+		catch(CacheMissException e) {
+			throw new ServiceException("Whether or not self registration is allowed is missing from the database.", e);
+		}
+		
 		try {
 			return new ServerConfig(appName, appVersion, appBuild,
 					defaultSurveyResponsePrivacyState, surveyResponsePrivacyStates,
 					defaultCampaignCreationPrivilege, mobilityEnabled,
-					UserBin.LIFETIME, 1024*1024*5*5, 1024*1024*5
+					UserBin.LIFETIME, 1024*1024*5*5, 1024*1024*5, 
+					recaptchaPublicKey, selfRegistrationAllowed
 				);
 		} 
 		catch(DomainException e) {

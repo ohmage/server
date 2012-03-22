@@ -79,7 +79,12 @@ public final class PreferenceCache extends KeyValueCache {
 	public static final String KEY_APPLICATION_BUILD = "application.build";
 	public static final String KEY_SSL_ENABLED = "ssl.enabled";
 	
-	public static final String KEY_RECAPTCHA_KEY = "recaptcha_key";
+	// ReCaptcha keys.
+	public static final String KEY_RECAPTCHA_KEY_PRIVATE = "recaptcha_private_key";
+	public static final String KEY_RECAPTACH_KEY_PUBLIC = "recaptcha_public_key";
+	
+	// Self-registration information.
+	public static final String KEY_ALLOW_SELF_REGISTRATOIN = "self_registration_allowed";
 	
 	public static final String KEY_PUBLIC_CLASS_ID = "public_class_id";
 	

@@ -217,6 +217,8 @@ public class UserRegistrationRequest extends Request {
 		LOGGER.info("Servicing a user registration request.");
 		
 		try {
+			// FIXME: Verify that self-registration is allowed.
+			
 			LOGGER.info("Verifying the captcha information.");
 			UserServices.instance().verifyCaptcha(
 					remoteAddr, 

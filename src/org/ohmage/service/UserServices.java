@@ -371,12 +371,12 @@ public final class UserServices {
 		try {
 			reCaptcha.setPrivateKey(
 					PreferenceCache.instance().lookup(
-							PreferenceCache.KEY_RECAPTCHA_KEY));
+							PreferenceCache.KEY_RECAPTCHA_KEY_PRIVATE));
 		}
 		catch(CacheMissException e) {
 			throw new ServiceException(
 					"The ReCaptcha key is missing from the preferences: " +
-						PreferenceCache.KEY_RECAPTCHA_KEY,
+						PreferenceCache.KEY_RECAPTCHA_KEY_PRIVATE,
 					e);
 		}
 		
