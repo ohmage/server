@@ -35,7 +35,7 @@ public class UserInformation {
 	 * 
 	 * @author John Jenkins
 	 */
-	private static enum UserColumnKey implements ColumnKey {
+	public static enum UserColumnKey implements ColumnKey {
 		USERNAME ("username"),
 		EMAIL_ADDRESS ("email_address"),
 		PERMISSIONS ("permissions"),
@@ -70,7 +70,7 @@ public class UserInformation {
 	 * 
 	 * @author John Jenkins
 	 */
-	private static enum UserPermissionColumnKey implements ColumnKey {
+	public static enum UserPermissionColumnKey implements ColumnKey {
 		ADMIN ("admin"),
 		ENABLED ("enabled"),
 		NEW_ACCOUNT ("new_account"),
@@ -497,6 +497,15 @@ public class UserInformation {
 	 */
 	public String getUsername() {
 		return username;
+	}
+	
+	/**
+	 * Returns the user's email address or null if they don't have one.
+	 * 
+	 * @return The user's email address or null if they don't have one.
+	 */
+	public String getEmailAddress() {
+		return emailAddress;
 	}
 	
 	/**

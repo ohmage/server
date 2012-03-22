@@ -156,62 +156,136 @@ public class UserUpdateRequest extends UserRequest {
 		boolean tDeletePersonalInfo = false;
 		
 		try {
-			tUsername = UserValidators.validateUsername(httpRequest.getParameter(InputKeys.USERNAME));
-			if(tUsername == null) {
-				throw new ValidationException(ErrorCode.USER_INVALID_USERNAME, "The username is missing or not a valid username.");
+			String[] t;
+			
+			t = getParameterValues(InputKeys.USERNAME);
+			if(t.length > 1) {
+				throw new ValidationException(
+					ErrorCode.USER_INVALID_USERNAME, 
+					"Multiple username parameters were given: " +
+						InputKeys.USERNAME);
 			}
-			else if(httpRequest.getParameterValues(InputKeys.USERNAME).length > 1) {
-				throw new ValidationException(ErrorCode.USER_INVALID_USERNAME, "Multiple username parameters were given.");
+			else if(t.length == 1) {
+				tUsername = UserValidators.validateUsername(t[0]);
+			}
+			if((tUsername == null) || (t.length == 0)) {
+				throw new ValidationException(
+					ErrorCode.USER_INVALID_USERNAME, 
+					"The username is missing or not a valid username: " +
+						InputKeys.USERNAME);
 			}
 			
-			tEmailAddress = UserValidators.validateEmailAddress(httpRequest.getParameter(InputKeys.EMAIL_ADDRESS));
-			if((tEmailAddress != null) && (httpRequest.getParameterValues(InputKeys.EMAIL_ADDRESS).length > 1)) {
-				throw new ValidationException(ErrorCode.USER_INVALID_EMAIL_ADDRESS, "Multiple email address parameters were given.");
+			t = getParameterValues(InputKeys.EMAIL_ADDRESS);
+			if(t.length > 1) {
+				throw new ValidationException(
+					ErrorCode.USER_INVALID_EMAIL_ADDRESS, 
+					"Multiple email address parameters were given: " +
+						InputKeys.EMAIL_ADDRESS);
+			}
+			else if(t.length == 1) {
+				tEmailAddress = UserValidators.validateEmailAddress(t[0]);
 			}
 			
-			tAdmin = UserValidators.validateAdminValue(httpRequest.getParameter(InputKeys.USER_ADMIN));
-			if((tAdmin != null) && (httpRequest.getParameterValues(InputKeys.USER_ADMIN).length > 1)) {
-				throw new ValidationException(ErrorCode.USER_INVALID_ADMIN_VALUE, "Multiple admin parameters were given.");
+			t = getParameterValues(InputKeys.USER_ADMIN);
+			if(t.length > 1) {
+				throw new ValidationException(
+					ErrorCode.USER_INVALID_ADMIN_VALUE, 
+					"Multiple admin parameters were given: " +
+						InputKeys.USER_ADMIN);
+			}
+			else if(t.length == 1) {
+				tAdmin = UserValidators.validateAdminValue(t[0]);
 			}
 			
-			tEnabled = UserValidators.validateEnabledValue(httpRequest.getParameter(InputKeys.USER_ENABLED));
-			if((tEnabled != null) && (httpRequest.getParameterValues(InputKeys.USER_ENABLED).length > 1)) {
-				throw new ValidationException(ErrorCode.USER_INVALID_ENABLED_VALUE, "Multiple enabled parameters were given.");
+			t = getParameterValues(InputKeys.USER_ENABLED);
+			if(t.length > 1) {
+				throw new ValidationException(
+					ErrorCode.USER_INVALID_ENABLED_VALUE, 
+					"Multiple enabled parameters were given: " +
+						InputKeys.USER_ENABLED);
+			}
+			else if(t.length == 1) {
+				tEnabled = UserValidators.validateEnabledValue(t[0]);
 			}
 			
-			tNewAccount = UserValidators.validateNewAccountValue(httpRequest.getParameter(InputKeys.NEW_ACCOUNT));
-			if((tNewAccount != null) && (httpRequest.getParameterValues(InputKeys.NEW_ACCOUNT).length > 1)) {
-				throw new ValidationException(ErrorCode.USER_INVALID_NEW_ACCOUNT_VALUE, "Multiple new account parameters were given.");
+			t = getParameterValues(InputKeys.NEW_ACCOUNT);
+			if(t.length > 1) {
+				throw new ValidationException(
+					ErrorCode.USER_INVALID_NEW_ACCOUNT_VALUE, 
+					"Multiple new account parameters were given: " +
+						InputKeys.NEW_ACCOUNT);
+			}
+			else if(t.length == 1) {
+				tNewAccount = UserValidators.validateNewAccountValue(t[0]);
 			}
 			
-			tCampaignCreationPrivilege = UserValidators.validateCampaignCreationPrivilegeValue(httpRequest.getParameter(InputKeys.CAMPAIGN_CREATION_PRIVILEGE));
-			if((tCampaignCreationPrivilege != null) && (httpRequest.getParameterValues(InputKeys.CAMPAIGN_CREATION_PRIVILEGE).length > 1)) {
-				throw new ValidationException(ErrorCode.USER_INVALID_CAMPAIGN_CREATION_PRIVILEGE, "Multiple campaign creation privilege parameters were given.");
+			t = getParameterValues(InputKeys.CAMPAIGN_CREATION_PRIVILEGE);
+			if(t.length > 1) {
+				throw new ValidationException(
+					ErrorCode.USER_INVALID_CAMPAIGN_CREATION_PRIVILEGE, 
+					"Multiple campaign creation privilege parameters were given: " +
+						InputKeys.CAMPAIGN_CREATION_PRIVILEGE);
+			}
+			else if(t.length == 1) {
+				tCampaignCreationPrivilege = 
+					UserValidators.validateCampaignCreationPrivilegeValue(
+						t[0]);
 			}
 			
-			tFirstName = UserValidators.validateFirstName(httpRequest.getParameter(InputKeys.FIRST_NAME));
-			if((tFirstName != null) && (httpRequest.getParameterValues(InputKeys.FIRST_NAME).length > 1)) {
-				throw new ValidationException(ErrorCode.USER_INVALID_FIRST_NAME_VALUE, "Multiple first name parameters were given.");
+			t = getParameterValues(InputKeys.FIRST_NAME);
+			if(t.length > 1) {
+				throw new ValidationException(
+					ErrorCode.USER_INVALID_FIRST_NAME_VALUE, 
+					"Multiple first name parameters were given: " +
+						InputKeys.FIRST_NAME);
+			}
+			else if(t.length == 1) {
+				tFirstName = UserValidators.validateFirstName(t[0]);
 			}
 			
-			tLastName = UserValidators.validateLastName(httpRequest.getParameter(InputKeys.LAST_NAME));
-			if((tLastName != null) && (httpRequest.getParameterValues(InputKeys.LAST_NAME).length > 1)) {
-				throw new ValidationException(ErrorCode.USER_INVALID_LAST_NAME_VALUE, "Multiple last name parameters were given.");
+			t = getParameterValues(InputKeys.LAST_NAME);
+			if(t.length > 1) {
+				throw new ValidationException(
+					ErrorCode.USER_INVALID_LAST_NAME_VALUE, 
+					"Multiple last name parameters were given: " +
+						InputKeys.LAST_NAME);
+			}
+			else if(t.length == 1) {
+				tLastName = UserValidators.validateLastName(t[0]);
 			}
 			
-			tOrganization = UserValidators.validateOrganization(httpRequest.getParameter(InputKeys.ORGANIZATION));
-			if((tOrganization != null) && (httpRequest.getParameterValues(InputKeys.ORGANIZATION).length > 1)) {
-				throw new ValidationException(ErrorCode.USER_INVALID_ORGANIZATION_VALUE, "Multiple organization parameters were given.");
+			t = getParameterValues(InputKeys.ORGANIZATION);
+			if(t.length > 1) {
+				throw new ValidationException(
+					ErrorCode.USER_INVALID_ORGANIZATION_VALUE, 
+					"Multiple organization parameters were given: " +
+						InputKeys.ORGANIZATION);
+			}
+			else if(t.length == 1) {
+				tOrganization = UserValidators.validateOrganization(t[0]);
 			}
 
-			tPersonalId = UserValidators.validatePersonalId(httpRequest.getParameter(InputKeys.PERSONAL_ID));
-			if((tPersonalId != null) && (httpRequest.getParameterValues(InputKeys.PERSONAL_ID).length > 1)) {
-				throw new ValidationException(ErrorCode.USER_INVALID_PERSONAL_ID_VALUE, "Multiple personal ID parameters were given.");
+			t = getParameterValues(InputKeys.PERSONAL_ID);
+			if(t.length > 1) {
+				throw new ValidationException(
+					ErrorCode.USER_INVALID_PERSONAL_ID_VALUE, 
+					"Multiple personal ID parameters were given: " +
+						InputKeys.PERSONAL_ID);
+			}
+			else if(t.length == 1) {
+				tPersonalId = UserValidators.validatePersonalId(t[0]);
 			}
 			
-			tDeletePersonalInfo = UserValidators.validateDeletePersonalInfo(httpRequest.getParameter(InputKeys.USER_DELETE_PERSONAL_INFO));
-			if(httpRequest.getParameterValues(InputKeys.USER_DELETE_PERSONAL_INFO).length > 1) {
-				throw new ValidationException(ErrorCode.USER_INVALID_DELETE_PERSONAL_INFO, "Multiple delete personal info parameters were given.");
+			t = getParameterValues(InputKeys.USER_DELETE_PERSONAL_INFO);
+			if(t.length > 1) {
+				throw new ValidationException(
+					ErrorCode.USER_INVALID_DELETE_PERSONAL_INFO, 
+					"Multiple delete personal info parameters were given: " +
+						InputKeys.USER_DELETE_PERSONAL_INFO);
+			}
+			else if(t.length == 1) {
+				tDeletePersonalInfo = 
+					UserValidators.validateDeletePersonalInfo(t[0]);
 			}
 		}
 		catch(ValidationException e) {
@@ -272,7 +346,7 @@ public class UserUpdateRequest extends UserRequest {
 					firstName,
 					lastName,
 					organization,
-					emailAddress,
+					personalId,
 					deletePersonalInfo);
 		}
 		catch(ServiceException e) {

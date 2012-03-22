@@ -232,16 +232,19 @@ public class UserReadRequest extends UserRequest {
 				UserPersonal personalInformation = 
 						userInformation.getPersonalInfo();
 				
+				JSONObject currResult;
 				if(personalInformation == null) {
-					jsonResult.put(
-							userInformation.getUsername(), 
-							new JSONObject());
+					currResult = new JSONObject();
 				}
 				else {
-					jsonResult.put(
-							userInformation.getUsername(), 
-							personalInformation.toJsonObject());
+					currResult = personalInformation.toJsonObject();
 				}
+				
+				currResult.put(
+					UserInformation.UserColumnKey.EMAIL_ADDRESS.toString(), 
+					userInformation.getEmailAddress());
+				
+				jsonResult.put(userInformation.getUsername(), currResult);
 			}
 		}
 		catch(JSONException e) {
