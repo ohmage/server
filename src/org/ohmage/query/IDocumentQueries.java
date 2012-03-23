@@ -84,7 +84,8 @@ public interface IDocumentQueries {
 
 	/**
 	 * Retrieves the information about the documents that match any of the 
-	 * criteria.
+	 * criteria. If all of the criteria are null, it will return all documents
+	 * visible to the requesting user.
 	 * 
 	 * @param username This is the username of the requesting user and is 
 	 * 				   required.
@@ -94,7 +95,8 @@ public interface IDocumentQueries {
 	 * 							not return the documents directly associated 
 	 * 							with the user unless they also happen to be 
 	 * 							associated with any class or campaign to which
-	 * 							the user belongs.
+	 * 							the user belongs. If null, it will be treated 
+	 * 							as false.
 	 * 
 	 * @param campaignIds A collection of campaign unique identifiers that will
 	 * 					  increase the results to include all documents in all
@@ -111,7 +113,7 @@ public interface IDocumentQueries {
 	 */
 	List<Document> getDocumentInformation(
 			final String username,
-			final boolean personalDocuments,
+			final Boolean personalDocuments,
 			final Collection<String> campaignIds,
 			final Collection<String> classIds) 
 			throws DataAccessException;

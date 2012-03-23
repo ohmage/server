@@ -512,14 +512,10 @@ public class DocumentQueries extends Query implements IDocumentQueries {
 	 */
 	public List<Document> getDocumentInformation(
 			final String username,
-			final boolean personalDocuments,
+			final Boolean personalDocuments,
 			final Collection<String> campaignIds,
 			final Collection<String> classIds) 
 			throws DataAccessException {
-		
-		if(! personalDocuments && (campaignIds == null) && (classIds == null)) {
-			return Collections.emptyList();
-		}
 		
 		StringBuilder sql = 
 			new StringBuilder(
@@ -532,20 +528,57 @@ public class DocumentQueries extends Query implements IDocumentQueries {
 				"AND d.privacy_state_id = dps.id " +
 				"AND d.id = duc.document_id " +
 				"AND (");
-		boolean addedSql = false;
 		
 		List<Object> parameters = new LinkedList<Object>();
 		parameters.add(username);
 		
-		if(personalDocuments) {
+		if(personalDocuments == null) {
+			// If campaignIds and classIds are null, get all of the documents
+			// visible to the user.
+			if((campaignIds == null) && (classIds == null)) {
+				sql.append(
+					"(" +
+						"u.admin = true" +
+					") OR (" +
+						"d.id IN (" +
+							"SELECT dur.document_id " +
+							"FROM document_user_role dur " +
+							"WHERE u.id = dur.user_id" +
+						")" +
+					") OR (" +
+						"d.id IN (" +
+							"SELECT dcr.document_id " +
+							"FROM user_role_campaign urc, " +
+								"document_campaign_role dcr " +
+							"WHERE u.id = urc.user_id " +
+							"AND urc.campaign_id = dcr.campaign_id" +
+						")" +
+					") OR (" +
+						"d.id IN (" +
+							"SELECT dcr.document_id " +
+							"FROM user_class uc, document_class_role dcr " +
+							"WHERE u.id = uc.user_id " +
+							"AND uc.class_id = dcr.class_id" +
+						")" +
+					")"
+				);
+			}
+		}
+		else if(personalDocuments) {
+			// Get all of the personal documents. 
 			sql.append(
 				"d.id IN (" +
 					"SELECT dur.document_id " +
 					"FROM document_user_role dur " +
 					"WHERE u.id = dur.user_id" +
 				")");
-			
-			addedSql = true;
+		}
+		else {
+			// If campaignIds and classIds are null and they are specifically 
+			// asking for not their personal documents, then return nothing.
+			if((campaignIds == null) && (classIds == null)) {
+				return Collections.emptyList();
+			}
 		}
 		
 		if(campaignIds != null) {
@@ -553,12 +586,8 @@ public class DocumentQueries extends Query implements IDocumentQueries {
 				return Collections.emptyList();
 			}
 			
-			if(addedSql) {
-				sql.append(" OR ");
-			}
-			
 			sql.append(
-				"d.id IN (" +
+				" OR d.id IN (" +
 					"SELECT dcr.document_id " +
 					"FROM campaign c, user_role_campaign urc, " +
 						"document_campaign_role dcr " +
@@ -573,8 +602,6 @@ public class DocumentQueries extends Query implements IDocumentQueries {
 				")");
 			
 			parameters.addAll(campaignIds);
-			
-			addedSql = true;
 		}
 		
 		if(classIds != null) {
@@ -582,12 +609,8 @@ public class DocumentQueries extends Query implements IDocumentQueries {
 				return Collections.emptyList();
 			}
 			
-			if(addedSql) {
-				sql.append(" OR ");
-			}
-			
 			sql.append(
-				"d.id IN (" +
+				" OR d.id IN (" +
 					"SELECT dcr.document_id " +
 					"FROM class c, user_class uc, " +
 						"document_class_role dcr " +
@@ -601,8 +624,6 @@ public class DocumentQueries extends Query implements IDocumentQueries {
 				")");
 			
 			parameters.addAll(classIds);
-			
-			addedSql = true;
 		}
 		
 		sql.append(")");

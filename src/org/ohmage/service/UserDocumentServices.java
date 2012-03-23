@@ -301,7 +301,8 @@ public class UserDocumentServices {
 	
 	/**
 	 * Retrieves the information about the documents that match any of the 
-	 * criteria.
+	 * criteria. If all of the criteria are null, it will return all documents
+	 * visible to the requesting user.
 	 * 
 	 * @param requesterUsername This is the username of the requesting user and
 	 * 							is required.
@@ -311,7 +312,8 @@ public class UserDocumentServices {
 	 * 							not return the documents directly associated 
 	 * 							with the user unless they also happen to be 
 	 * 							associated with any class or campaign to which
-	 * 							the user belongs.
+	 * 							the user belongs. If null, it will be treated 
+	 * 							as false.
 	 * 
 	 * @param campaignIds A collection of campaign unique identifiers that will
 	 * 					  increase the results to include all documents in all
@@ -328,7 +330,7 @@ public class UserDocumentServices {
 	 */
 	public List<Document> getDocumentInformation(
 			final String requesterUsername,
-			final boolean personalDocuments,
+			final Boolean personalDocuments,
 			final Collection<String> campaignIds,
 			final Collection<String> classIds)
 			throws ServiceException {
@@ -341,55 +343,53 @@ public class UserDocumentServices {
 					campaignIds, 
 					classIds);
 			
-			try {
-				for(Document document : result) {
-					String documentId = document.getDocumentId();
-					
-					// Get the user's specific role.
-					Document.Role userRole = userDocumentQueries.getDocumentRoleForDocumentSpecificToUser(requesterUsername, documentId);
-					if(userRole != null) {
-						document.setUserRole(userRole);
-					}
-					
-					// For all of the campaigns associated with the document, get their
-					// role.
-					for(String campaignId : campaignDocumentQueries.getCampaignsAssociatedWithDocument(documentId)) {
-						Document.Role campaignRole = campaignDocumentQueries.getCampaignDocumentRole(campaignId, documentId);
-						if(campaignRole != null) {
-							document.addCampaignRole(campaignId, campaignRole);
-						}
-					}
-					
-					// For all of the classes associated with the document, get their
-					// role.
-					for(String classId : classDocumentQueries.getClassesAssociatedWithDocument(documentId)) {
-						Document.Role classRole = classDocumentQueries.getClassDocumentRole(classId, documentId);
-						if(classRole != null) {
-							document.addClassRole(classId, classRole);
-						}
-					}
-					
-					// If they are a supervisor in any campaign associated with this
-					// document or privileged in any class associated with this 
-					// document,
-					if(UserCampaignDocumentServices.instance().getUserIsSupervisorInAnyCampaignAssociatedWithDocument(requesterUsername, documentId) ||
-					   UserClassDocumentServices.instance().getUserIsPrivilegedInAnyClassAssociatedWithDocument(requesterUsername, documentId)) {
-						
-						// And if the current maximum role is a reader or none,
-						if(Document.Role.WRITER.compare(document.getMaxRole()) == -1) {
-							// Automatically increase their privileges to writer.
-							document.setMaxRole(Document.Role.WRITER);
-						}
+			for(Document document : result) {
+				String documentId = document.getDocumentId();
+				
+				// Get the user's specific role.
+				Document.Role userRole = userDocumentQueries.getDocumentRoleForDocumentSpecificToUser(requesterUsername, documentId);
+				if(userRole != null) {
+					document.setUserRole(userRole);
+				}
+				
+				// For all of the campaigns associated with the document, get their
+				// role.
+				for(String campaignId : campaignDocumentQueries.getCampaignsAssociatedWithDocument(documentId)) {
+					Document.Role campaignRole = campaignDocumentQueries.getCampaignDocumentRole(campaignId, documentId);
+					if(campaignRole != null) {
+						document.addCampaignRole(campaignId, campaignRole);
 					}
 				}
-			}
-			catch(DomainException e) {
-				throw new ServiceException(e);
+				
+				// For all of the classes associated with the document, get their
+				// role.
+				for(String classId : classDocumentQueries.getClassesAssociatedWithDocument(documentId)) {
+					Document.Role classRole = classDocumentQueries.getClassDocumentRole(classId, documentId);
+					if(classRole != null) {
+						document.addClassRole(classId, classRole);
+					}
+				}
+				
+				// If they are a supervisor in any campaign associated with this
+				// document or privileged in any class associated with this 
+				// document,
+				if(UserCampaignDocumentServices.instance().getUserIsSupervisorInAnyCampaignAssociatedWithDocument(requesterUsername, documentId) ||
+				   UserClassDocumentServices.instance().getUserIsPrivilegedInAnyClassAssociatedWithDocument(requesterUsername, documentId)) {
+					
+					// And if the current maximum role is a reader or none,
+					if(Document.Role.WRITER.compare(document.getMaxRole()) == -1) {
+						// Automatically increase their privileges to writer.
+						document.setMaxRole(Document.Role.WRITER);
+					}
+				}
 			}
 			
 			return result;
 		}
 		catch(DataAccessException e) {
+			throw new ServiceException(e);
+		}
+		catch(DomainException e) {
 			throw new ServiceException(e);
 		}
 	}

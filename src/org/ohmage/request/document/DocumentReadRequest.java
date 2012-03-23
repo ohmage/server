@@ -54,7 +54,7 @@ import org.ohmage.validator.DocumentValidators;
  *     <td>{@value org.ohmage.request.InputKeys#DOCUMENT_PERSONAL_DOCUMENTS}</td>
  *     <td>Either "true" or "false" representing whether or not documents that
  *       are specific to the requesting user should be returned.</td>
- *     <td>true</td>
+ *     <td>false</td>
  *   </tr>
  *   <tr>
  *     <td>{@value org.ohmage.request.InputKeys#CAMPAIGN_URN_LIST}</td>
@@ -105,11 +105,7 @@ public class DocumentReadRequest extends UserRequest {
 		
 		try {
 			tempPersonalDocuments = DocumentValidators.validatePersonalDocuments(httpRequest.getParameter(InputKeys.DOCUMENT_PERSONAL_DOCUMENTS));
-			if(tempPersonalDocuments == null) {
-				setFailed(ErrorCode.DOCUMENT_INVALID_PERSONAL_DOCUMENTS_VALUE, "Missing required key: " + InputKeys.DOCUMENT_PERSONAL_DOCUMENTS);
-				throw new ValidationException("Missing required key: " + InputKeys.DOCUMENT_PERSONAL_DOCUMENTS);
-			}
-			else if(httpRequest.getParameterValues(InputKeys.DOCUMENT_PERSONAL_DOCUMENTS).length > 1) {
+			if((tempPersonalDocuments != null) && (httpRequest.getParameterValues(InputKeys.DOCUMENT_PERSONAL_DOCUMENTS).length > 1)) {
 				setFailed(ErrorCode.DOCUMENT_INVALID_PERSONAL_DOCUMENTS_VALUE, "Multiple personal documents parameters were given.");
 				throw new ValidationException("Multiple personal documents parameters were given.");
 			}
