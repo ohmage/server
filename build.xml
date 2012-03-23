@@ -10,6 +10,7 @@
   <property name="resources" location="web"/>
   <property name="build" location="build"/>
   <property name="dist"  location="dist"/>
+  <property name="condition" location="condition"/>
 
   <fileset id="compile-dependencies" dir="${library}">
     <include name="log4j-1.2.16.jar"/>
@@ -28,11 +29,11 @@
     <include name="jbcrypt-0.3.jar"/>
     <include name="xom-1.2.6.jar"/>
     <include name="mobility-classifier-1.2.9.jar"/>
-  	<include name="httpcore-4.1.2.jar"/>
-  	<include name="httpclient-4.1.2.jar"/>
-  	<include name="httpmime-4.1.2.jar"/>
-  	<include name="junit-4.10.jar"/>
-  	<include name="tomcat-coyote.jar"/>
+    <include name="httpcore-4.1.2.jar"/>
+    <include name="httpclient-4.1.2.jar"/>
+    <include name="httpmime-4.1.2.jar"/>
+    <include name="junit-4.10.jar"/>
+    <include name="tomcat-coyote.jar"/>
     <include name="recaptcha4j-0.0.7.jar"/>
     <include name="mail.jar"/>
   </fileset>
@@ -76,14 +77,15 @@
   <target name="clean" description="Removes output directories (e.g. build and dist).">
     <delete dir="${build}"/>
     <delete dir="${dist}"/>
+    <delete dir="condition/gen"/>
     <delete file="web/WEB-INF/properties/system.properties"/>
   </target>
 
   <target name="javac" description="Compiles Java files.">
-  	<mkdir dir="${build}/classes"/>
+    <mkdir dir="${build}/classes"/>
     <javac destdir="${build}/classes" source="1.6" target="1.6"
           debug="true" deprecation="true" optimize="true" failonerror="true" 
-    	  encoding="UTF-8">
+          encoding="UTF-8">
       <compilerarg value="-Xlint:unchecked"/>
       <src path="${src}"/>
       <src path="${test}"/>
@@ -91,12 +93,12 @@
       <classpath refid="compile-classpath"/>
     </javac>
   </target>
-	
+    
   <target name="javac-validator" description="Compiles Java files to create the campaign validator.">
     <mkdir dir="${build}/classes"/>
     <javac destdir="${build}/classes" source="1.6" target="1.6"
           debug="true" deprecation="true" optimize="true" failonerror="true" 
-    	  encoding="UTF-8">
+          encoding="UTF-8">
       <compilerarg value="-Xlint:unchecked"/>
       <src path="${src}"/>
       <include name="org/ohmage/config/**" />
@@ -104,22 +106,22 @@
       <classpath refid="compile-classpath"/>
     </javac>
   </target>
-	
+    
   <target name="javac-library" description="Compiles Java files to create the ohmage library.">
     <mkdir dir="${build}/classes"/>
-  	<javac destdir="${build}/classes" source="1.6" target="1.6"
-  	      debug="true" deprecation="true" optimize="true" failonerror="true" 
-  	      encoding="UTF-8" includeantruntime="false">
-  	  <compilerarg value="-Xlint:unchecked"/>
-  	  <src path="${src}"/>
-  	  <include name="org/ohmage/domain/**" />
-  	  <include name="org/ohmage/lib/**" />
-  	  <include name="org/ohmage/util/**" />
+    <javac destdir="${build}/classes" source="1.6" target="1.6"
+          debug="true" deprecation="true" optimize="true" failonerror="true" 
+          encoding="UTF-8" includeantruntime="false">
+      <compilerarg value="-Xlint:unchecked"/>
+      <src path="${src}"/>
+      <include name="org/ohmage/domain/**" />
+      <include name="org/ohmage/lib/**" />
+      <include name="org/ohmage/util/**" />
       <include name="org/ohmage/exception/WorkflowException.java" />
       <include name="org/ohmage/exception/DomainException.java" />
       <exclude name="org/ohmage/domain/Audit.java" />
-  	  <classpath refid="compile-classpath"/>
-  	</javac>
+      <classpath refid="compile-classpath"/>
+    </javac>
   </target>
 
   <target name="javadoc" description="Compiles Javadocs.">
@@ -132,7 +134,7 @@
        <classpath refid="compile-classpath"/>
     </javadoc>
   </target>
-	
+    
   <target name="javadoc-library" description="Compiles Javadocs for the library only.">
     <mkdir dir="${build}/docs"/>
     <javadoc destdir="${build}/docs" private="true" link="http://java.sun.com/javase/6/docs/api/"
@@ -141,27 +143,80 @@
         <include name="org/ohmage/domain/**" />
         <include name="org/ohmage/lib/**" />
         <include name="org/ohmage/util/**" />
-      	<include name="org/ohmage/annotator/**" />
+        <include name="org/ohmage/annotator/**" />
         <include name="org/ohmage/exception/WorkflowException.java" />
         <include name="org/ohmage/exception/DomainException.java" />
-      	<exclude name="org/ohmage/domain/Audit.java" />
+        <exclude name="org/ohmage/domain/Audit.java" />
       </fileset>
       <classpath refid="compile-classpath"/>
     </javadoc>
   </target>
-	
+    
   <path id="classpath.test">
-	<fileset refid="compile-dependencies"/>
+    <fileset refid="compile-dependencies"/>
     <pathelement location="${build}/classes"/>
   </path>
-	
+    
   <target name="test" depends="javac" description="Executes the JUnit tests.">
-  	<junit printsummary="yes" haltonfailure="yes">
-  	  <classpath refid="classpath.test"/>
-  	  <formatter type="plain" usefile="false" />
+    <junit printsummary="yes" haltonfailure="yes">
+      <classpath refid="classpath.test"/>
+      <formatter type="plain" usefile="false" />
 
-  	  <test name="org.ohmage.validator.ValidatorTests"/>
-  	</junit>
+      <test name="org.ohmage.validator.ValidatorTests"/>
+    </junit>
+  </target>
+    
+  <target 
+      name="condition-grammar" 
+      description="Recompiles the condition grammar.">
+    
+    <!-- Make the directory to house the files as generate them. -->
+    <property name="gen" location="${condition}/gen" />
+    <mkdir dir="${gen}" />
+    
+    <!-- Annotate the condition grammar. -->
+    <java fork="true" jar="${library}/jtb132.jar" failonerror="true">
+      <arg value="-p" />
+      <arg value="org.ohmage.config.grammar" />
+      <arg value="-o" />
+      <arg value="${gen}/condition-grammar.jtb" />
+      <arg value="${condition}/condition-grammar.jj" />
+    </java>
+    
+    <!-- Compile the annotated grammar into Java source code. -->
+    <java 
+        classpath="${library}/javacc-5.0.jar" classname="javacc" 
+        failonerror="true">
+        
+      <arg value="-LOOKAHEAD=2" />
+      <arg value="-OUTPUT_DIRECTORY=${gen}" />
+      <arg value="${gen}/condition-grammar.jtb" />
+    </java>
+    
+    <!-- Move the generated files into the 'gen' folder to keep them out of the
+         way but persist them in case they need to be reviewed. -->
+    <move file="syntaxtree" todir="${gen}" />
+    <move file="visitor" todir="${gen}" />
+    
+    <!-- Tell the user what they must do now. -->
+    <property name="grammar" location="${src}/org/ohmage/config/grammar" />
+    <property name="parser" location="${grammar}/parser" />
+    <property name="syntaxtree" location="${grammar}/syntaxtree" />
+    <property name="visitor" location="${grammar}/grammar" />
+    <echo>
+TODO:
+The Java source files have been generated and placed in condition/gen. To have
+them build with the rest of the project, you must move the following objects to
+the following places:
+    - ${gen}/*.java -> ${parser}
+    - ${gen}/syntaxtree/* -> ${syntaxtree}
+    - ${gen}/visitor/* -> ${visitor}
+The reason this wasn't done automatically is because it would overwrite any 
+non-generated, custom code. While we highly discourage editing generated code,
+we want to be safe just in case.
+That said, JavaCC creates very ugly code. It is common for us to edit the code
+by opening it in Eclipse and using Eclipse's aut-correct functionality to clean
+it up and remove the warnings.</echo>
   </target>
 
   <target name="dist" depends="test, javac" description="Compiles Java files and creates WAR.">
@@ -227,14 +282,14 @@
       </zipfileset>
     </war>
   </target>
-	
+    
   <target name="dist-validator" depends="javac-validator" 
-  	    description="Compiles Java files and creates an executable jar file with the dependencies embedded.">
+        description="Compiles Java files and creates an executable jar file with the dependencies embedded.">
     <mkdir dir="${dist}"/>
     <jar destfile="${dist}/${app_name}-${app_version}-validator.jar">
       <fileset dir="${build}/classes">
         <include name="org/ohmage/config/**" />
-      	<include name="org/ohmage/util/StringUtils.class" />
+        <include name="org/ohmage/util/StringUtils.class" />
       </fileset>
       <zipfileset src="${library}/json.org-2011-11-03.jar" excludes="META-INF/*" />
       <zipfileset src="${library}/log4j-1.2.16.jar" excludes="META-INF/*" />
@@ -251,21 +306,21 @@
     <mkdir dir="${dist}"/>
     <jar destfile="${dist}/ohmage-${app_version}-api.jar">
       <fileset dir="${build}/classes">
-      	<include name="org/ohmage/domain/**" />
-  	    <include name="org/ohmage/lib/**" />
-      	<include name="org/ohmage/util/**" />
+        <include name="org/ohmage/domain/**" />
+        <include name="org/ohmage/lib/**" />
+        <include name="org/ohmage/util/**" />
         <include name="org/ohmage/exception/WorkflowException.java" />
         <include name="org/ohmage/exception/DomainException.java" />
         <exclude name="org/ohmage/domain/Audit.java" />
-  	  </fileset>
+      </fileset>
       <fileset dir="${build}">
         <include name="docs/**" />
       </fileset>
       <zipfileset src="${library}/xom-1.2.6.jar" excludes="META-INF/*" />
-  	  <zipfileset src="${library}/json.org-2011-11-03.jar" excludes="META-INF/*" />
-  	  <zipfileset src="${library}/httpcore-4.1.2.jar" excludes="META-INF/*" />
-  	  <zipfileset src="${library}/httpclient-4.1.2.jar" excludes="META-INF/*" />
-  	  <zipfileset src="${library}/httpmime-4.1.2.jar" excludes="META-INF/*" />
+      <zipfileset src="${library}/json.org-2011-11-03.jar" excludes="META-INF/*" />
+      <zipfileset src="${library}/httpcore-4.1.2.jar" excludes="META-INF/*" />
+      <zipfileset src="${library}/httpclient-4.1.2.jar" excludes="META-INF/*" />
+      <zipfileset src="${library}/httpmime-4.1.2.jar" excludes="META-INF/*" />
       <zipfileset src="${library}/commons-logging-1.1.1.jar" excludes="META-INF/*" />
     </jar>
   </target>

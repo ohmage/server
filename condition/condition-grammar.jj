@@ -1,0 +1,36 @@
+PARSER_BEGIN( ConditionParser )
+package org.ohmage.config.grammar.parser;
+public class ConditionParser {
+
+     public static void main(String[] args) {
+        
+        try {
+            new ConditionParser(new java.io.StringReader(args[0])).Start();
+            System.out.println("Syntax is okay");
+        } catch (Throwable e) {
+            // Catching Throwable is ugly but JavaCC throws Error objects!
+            e.printStackTrace();
+        }
+    }
+
+}
+PARSER_END( ConditionParser )
+
+void Start() : {} { Sentence() <EOF> }
+
+void Sentence() : {} { Expression() SentencePrime() | "(" Sentence() ")"  SentencePrime() }
+
+void SentencePrime() : {} { (Conjunction() Sentence() SentencePrime())? }  
+
+void Expression() : {} { Id() Condition() Value() }
+
+void Id() : {} { <TEXT> }
+   
+void Condition() : {} { "==" | "!=" | "<" | ">" | "<=" | ">=" }
+
+void Value() : {} { <TEXT> } 
+                      
+void Conjunction() : {} { "and" | "or" }
+
+SKIP    : { " " | "\t" | "\n" | "\r" }
+TOKEN   : { < TEXT : ( ["a" - "z", "A" - "Z", "0" - "9", "_", "-"] )+ > }
