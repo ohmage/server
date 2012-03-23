@@ -447,7 +447,6 @@ public abstract class Request {
 		// parameter map retrieval.
 		if(result == null) {
 			result = httpRequest.getParameterMap();
-			LOGGER.debug(result);
 		}
 		
 		return result;
