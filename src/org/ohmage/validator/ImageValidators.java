@@ -152,5 +152,12 @@ public final class ImageValidators {
 					"There was an error while reading the image's contents.", 
 					e);
 		}
+		catch(IndexOutOfBoundsException e) {
+			throw new ValidationException(
+					ErrorCode.IMAGE_INVALID_DATA,
+					"There was an error reading the contents of the image. " +
+						"This particular error suggests that the '+'s in the image's BASE64 representation are not being properly URL encoded.",
+					e);
+		}
 	}
 }

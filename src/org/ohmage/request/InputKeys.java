@@ -99,6 +99,7 @@ public final class InputKeys {
 	public static final String REPEATABLE_SET_ITERATION = "repeatable_set_iteration";
 	
 	// Image Constants
+	public static final String IMAGES = "images";
 	public static final String IMAGE_OWNER = "owner";
 	public static final String IMAGE_SIZE = "size";
 	

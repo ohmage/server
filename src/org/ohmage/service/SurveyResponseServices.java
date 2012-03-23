@@ -179,7 +179,7 @@ public final class SurveyResponseServices {
 							(! images.containsKey(responseValue.toString()))) {
 						throw new ServiceException(
 								ErrorCode.SURVEY_INVALID_RESPONSES, 
-								"An image key was found that was not present in the survey payload.");
+								"An image was missing for a photo prompt response: " + responseValue.toString());
 					}
 				}
 			}

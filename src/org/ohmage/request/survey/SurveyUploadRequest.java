@@ -47,6 +47,7 @@ import org.ohmage.service.UserCampaignServices;
 import org.ohmage.validator.CampaignValidators;
 import org.ohmage.validator.DateValidators;
 import org.ohmage.validator.ImageValidators;
+import org.ohmage.validator.SurveyResponseValidators;
 
 /**
  * <p>Stores a survey and its associated images (if any are present in the payload)</p>
@@ -83,16 +84,22 @@ import org.ohmage.validator.ImageValidators;
  *     <td>true</td>
  *   </tr>
  *   <tr>
- *     <td>{@value org.ohmage.request.InputKeys#SURVEY}</td>
+ *     <td>{@value org.ohmage.request.InputKeys#SURVEYS}</td>
  *     <td>The survey data payload for the survey(s) being uploaded.</td>
  *     <td>true</td>
  *   </tr>
  *   <tr>
- *     <td>A UUID linking the binary image data to a UUID that must be present
- *      in the survey data payload. There can be many images attached to a
- *      survey upload.</td>
- *     <td></td>
- *     <td>true, only if the survey data payload contains image prompt responses</td>
+ *     <td>{@value org.ohmage.request.InputKeys#IMAGES}</td>
+ *     <td>A JSON object where the keys are the image IDs and the values are 
+ *       the images' contents BASE64-encoded.</td>
+ *     <td>Either this or the deprecated imageId/imageContents 
+ *       multipart/form-post method must define all images in the payload.</td>
+ *   </tr>
+ *   <tr>
+ *     <td>The image's ID.</td>
+ *     <td>The image's constants.</td>
+ *     <td>One for every image in the payload. This is deprecated in favor of
+ *       the {@value org.ohmage.request.InputKeys#IMAGES} parameter.</td>
  *   </tr>
  * </table>
  * 
@@ -177,6 +184,23 @@ public class SurveyUploadRequest extends UserRequest {
 					}
 				}
 				
+				tImageContentsMap = new HashMap<String, BufferedImage>();
+				t = getParameterValues(InputKeys.IMAGES);
+				if(t.length > 1) {
+					throw new ValidationException(
+						ErrorCode.SURVEY_INVALID_IMAGES_VALUE,
+						"Multiple images parameters were given: " +
+							InputKeys.IMAGES);
+				}
+				else if(t.length == 1) {
+					Map<String, BufferedImage> images = 
+							SurveyResponseValidators.validateImages(t[0]);
+					
+					if(images != null) {
+						tImageContentsMap.putAll(images);
+					}
+				}
+				
 				// Retrieve and validate images
 				List<String> imageIds = new ArrayList<String>();
 				Collection<Part> parts = null;
@@ -194,9 +218,7 @@ public class SurveyUploadRequest extends UserRequest {
 					}
 				}
 				catch(ServletException e) {
-					LOGGER.error("cannot parse parts", e);
-					setFailed();
-					throw new ValidationException(e);
+					LOGGER.info("This is not a multipart/form-post.");
 				}
 				catch(IOException e) {
 					LOGGER.error("cannot parse parts", e);
@@ -211,7 +233,6 @@ public class SurveyUploadRequest extends UserRequest {
 					throw new ValidationException("a duplicate image key was detected in the multi-part upload");
 				}
 
-				tImageContentsMap = new HashMap<String, BufferedImage>();
 				for(String imageId : imageIds) {
 					BufferedImage bufferedImage = ImageValidators.validateImageContents(getMultipartValue(httpRequest, imageId));
 					if(bufferedImage == null) {
@@ -223,7 +244,6 @@ public class SurveyUploadRequest extends UserRequest {
 						LOGGER.debug("succesfully created a BufferedImage for key " + imageId);
 					}
 				}
-				
 			}
 			catch(ValidationException e) {
 				e.failRequest(this);

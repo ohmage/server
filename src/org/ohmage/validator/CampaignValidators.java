@@ -431,8 +431,9 @@ public final class CampaignValidators {
 		}
 		catch(JSONException e) {
 			throw new ValidationException(
-					ErrorCode.SERVER_INVALID_JSON, 
-					"The uploaded JSON was not a JSONArray.", 
+					ErrorCode.SERVER_INVALID_JSON,
+					"The uploaded JSON was not a JSONArray.",
+					"The uploaded JSON was not a JSONArray: " + uploadValue, 
 					e);
 		}
 		int numResponses = surveyResponseJson.length();

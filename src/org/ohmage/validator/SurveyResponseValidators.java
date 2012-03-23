@@ -15,14 +15,22 @@
  ******************************************************************************/
 package org.ohmage.validator;
 
+import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
+import javax.xml.bind.DatatypeConverter;
+
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.domain.campaign.SurveyResponse;
 import org.ohmage.domain.campaign.SurveyResponse.ColumnKey;
@@ -699,5 +707,81 @@ public final class SurveyResponseValidators {
 		}
 		
 		return Boolean.valueOf(booleanString);
+	}
+	
+	/**
+	 * Validates that a "images" value was a valid JSON object whose keys were
+	 * the image IDs (UUIDs) and values were BASE64-encoded images. It then 
+	 * returns the map of the IDs to BufferedImages.
+	 * 
+	 * @param value The value to be validated.
+	 * 
+	 * @return The map of image IDs to BufferedImages.
+	 * 
+	 * @throws ValidationException The value was not valid JSON, an image's ID
+	 * 							   was not a valid UUID, or an image's contents
+	 * 							   was not a valid BASE64-encoded image.
+	 */
+	public static Map<String, BufferedImage> validateImages(
+			final String value) 
+			throws ValidationException {
+		
+		if(StringUtils.isEmptyOrWhitespaceOnly(value)) {
+			return null;
+		}
+		
+		JSONObject imagesJson;
+		try {
+			imagesJson = new JSONObject(value);
+		}
+		catch(JSONException e) {
+			throw new ValidationException(
+				ErrorCode.SURVEY_INVALID_IMAGES_VALUE,
+				"The images parameter was not valid JSON: " + value,
+				e);
+		}
+
+		Map<String, BufferedImage> results = 
+			new HashMap<String, BufferedImage>();
+		
+		Iterator<?> imageIds = imagesJson.keys();
+		int numImageIds = imagesJson.length();
+		for(int i = 0; i < numImageIds; i++) {
+			String imageId = (String) imageIds.next();
+			
+			try {
+				UUID.fromString(imageId);
+			}
+			catch(IllegalArgumentException e) {
+				throw new ValidationException(
+					ErrorCode.SURVEY_INVALID_IMAGES_VALUE,
+					"An image's ID is not a valid UUID: " + imageId,
+					e);
+			}
+			
+			BufferedImage image;
+			try {
+				image = 
+					ImageValidators.validateImageContents(
+						DatatypeConverter.parseBase64Binary(
+							imagesJson.getString(imageId)));
+			}
+			catch(JSONException e) {
+				throw new ValidationException(
+					ErrorCode.SURVEY_INVALID_IMAGES_VALUE,
+					"The image's contents in the JSON was not a string.",
+					e);
+			}
+			catch(IllegalArgumentException e) {
+				throw new ValidationException(
+					ErrorCode.SURVEY_INVALID_IMAGES_VALUE,
+					"The image's contents were not BASE64.",
+					e);
+			}
+			
+			results.put(imageId, image);
+		}
+		
+		return results;
 	}
 }

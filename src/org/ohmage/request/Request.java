@@ -398,7 +398,8 @@ public abstract class Request {
 		}
 		catch(ServletException e) {
 			// This simply means that it is not a multipart/form-post request.
-		} catch (IllegalStateException e) {
+		}
+		catch(IllegalStateException e) {
 			String errorText;
 			
 			Throwable cause = e.getCause();
@@ -415,7 +416,8 @@ public abstract class Request {
 			}
 			
 			setFailed(ErrorCode.SYSTEM_REQUEST_TOO_LARGE, errorText);
-		} catch (IOException e) {
+		} 
+		catch(IOException e) {
 			// This appears to happen when it is a POST request but there 
 			// aren't any attached files; however, nothing has actually failed.
 			// Given that this is simply a check to see if the size limit has
@@ -445,6 +447,7 @@ public abstract class Request {
 		// parameter map retrieval.
 		if(result == null) {
 			result = httpRequest.getParameterMap();
+			LOGGER.debug(result);
 		}
 		
 		return result;
