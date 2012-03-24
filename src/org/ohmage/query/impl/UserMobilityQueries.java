@@ -39,6 +39,7 @@ import org.ohmage.domain.Location;
 import org.ohmage.domain.Location.LocationColumnKey;
 import org.ohmage.domain.MobilityPoint;
 import org.ohmage.domain.MobilityPoint.ClassifierData;
+import org.ohmage.domain.MobilityPoint.ClassifierData.ClassifierDataColumnKey;
 import org.ohmage.domain.MobilityPoint.LocationStatus;
 import org.ohmage.domain.MobilityPoint.Mode;
 import org.ohmage.domain.MobilityPoint.PrivacyState;
@@ -381,10 +382,16 @@ public final class UserMobilityQueries extends AbstractUploadQuery implements IU
 							classifierData = null;
 						}
 						else {
-							classifierData = tClassifierData.toJson();
+							classifierData = 
+									tClassifierData.toJson(
+										false,
+										ClassifierDataColumnKey.ALL_COLUMNS);
 						}
 					}
 					catch(JSONException e) {
+						throw new DataAccessException(e);
+					}
+					catch(DomainException e) {
 						throw new DataAccessException(e);
 					}
 					
