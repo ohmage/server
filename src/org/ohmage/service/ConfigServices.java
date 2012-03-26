@@ -132,7 +132,7 @@ public class ConfigServices {
 			selfRegistrationAllowed =
 					StringUtils.decodeBoolean(
 							PreferenceCache.instance().lookup(
-									PreferenceCache.KEY_ALLOW_SELF_REGISTRATOIN));
+									PreferenceCache.KEY_ALLOW_SELF_REGISTRATION));
 		}
 		catch(CacheMissException e) {
 			throw new ServiceException("Whether or not self registration is allowed is missing from the database.", e);
