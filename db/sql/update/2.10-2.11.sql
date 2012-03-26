@@ -39,7 +39,8 @@ DELETE FROM preference WHERE p_key='properties_file';
 INSERT INTO preference VALUES 
     ('recaptcha_public_key', ''),
     ('recaptcha_private_key', ''),
-    ('self_registration_allowed', 'false');
+    ('self_registration_allowed', 'false'),
+    ('terms_of_service', '');
     
 -- The key in the classifier JSON for Mobility points for the N95 variance has
 -- been changed from "N95Variance" to "n95variance".
