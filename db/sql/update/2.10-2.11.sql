@@ -40,3 +40,7 @@ INSERT INTO preference VALUES
     ('recaptcha_public_key', ''),
     ('recaptcha_private_key', ''),
     ('self_registration_allowed', '');
+    
+-- The key in the classifier JSON for Mobility points for the N95 variance has
+-- been changed from "N95Variance" to "n95variance".
+UPDATE mobility_extended SET features=REPLACE(features, 'N95Variance', 'n95variance');
