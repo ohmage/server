@@ -47,6 +47,7 @@ import org.ohmage.request.mobility.MobilityReadChunkedRequest;
 import org.ohmage.request.mobility.MobilityReadCsvRequest;
 import org.ohmage.request.mobility.MobilityReadRequest;
 import org.ohmage.request.mobility.MobilityUploadRequest;
+import org.ohmage.request.registration.RegistrationReadRequest;
 import org.ohmage.request.survey.PromptResponseAnnotationCreationRequest;
 import org.ohmage.request.survey.PromptResponseAnnotationReadRequest;
 import org.ohmage.request.survey.SurveyResponseAnnotationCreationRequest;
@@ -235,6 +236,9 @@ public final class RequestBuilder {
 	public static final String API_USER_CHANGE_PASSWORD = API_ROOT + "/user/change_password";
 	public static final String API_USER_DELETE = API_ROOT + "/user/delete";
 	
+	// Registration
+	public static final String API_REGISTRATION_READ = API_ROOT + "/registration/read";
+	
 	// Visualization
 	public static final String API_VISUALIZATION = API_ROOT + "/viz";
 	public static final String API_VISUALIZATION_SURVEY_RESPONSE_COUNT = API_VISUALIZATION + "/survey_response_count/read";
@@ -413,6 +417,10 @@ public final class RequestBuilder {
 		else if(API_USER_DELETE.equals(requestUri)) {
 			return new UserDeletionRequest(httpRequest);
 		}
+		// Registration
+		else if(API_REGISTRATION_READ.equals(requestUri)) {
+			return new RegistrationReadRequest(httpRequest);
+		}
 		// Visualization
 		else if(API_VISUALIZATION_SURVEY_RESPONSE_COUNT.equals(requestUri)) {
 			return new VizSurveyResponseCountRequest(httpRequest);
@@ -510,6 +518,8 @@ public final class RequestBuilder {
 				API_USER_UPDATE.equals(uri) ||
 				API_USER_CHANGE_PASSWORD.equals(uri) ||
 				API_USER_DELETE.equals(uri) ||
+				// Registration
+				API_REGISTRATION_READ.equals(uri) ||
 				// Visualization
 				API_VISUALIZATION_SURVEY_RESPONSE_COUNT.equals(uri) ||
 				API_VISUALIZATION_PROMPT_DISTRIBUTION.equals(uri) ||

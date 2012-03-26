@@ -76,10 +76,6 @@ public class ServerConfig {
 	 */
 	public static final String JSON_KEY_MAXIMUM_PARAMETER_SIZE = "maximum_parameter_size";
 	/**
-	 * The public key for ReCaptcha.
-	 */
-	public static final String JSON_KEY_RECAPTCHA_KEY_PUBLIC = "recaptcha_public_key";
-	/**
 	 * Whether or not users are allowed to self-register.
 	 */
 	public static final String JSON_KEY_SELF_REGISTRATION_ALLOWED = "self_registration_allowed";
@@ -94,7 +90,6 @@ public class ServerConfig {
 	private final long authTokenLifetime;
 	private final long maxRequestSize;
 	private final long maxParamSize;
-	private final String recaptchaPublicKey;
 	private final boolean selfRegistrationAllowed;
 	
 	
@@ -127,7 +122,6 @@ public class ServerConfig {
 			final long authTokenLifetime,
 			final long maximumRequestSize,
 			final long maximumParameterSize,
-			final String recaptchaPublicKey,
 			final boolean selfRegistrationAllowed) 
 			throws DomainException {
 		
@@ -151,10 +145,6 @@ public class ServerConfig {
 			throw new DomainException(
 					"The list of default survey response privacy states is null.");
 		}
-		else if(recaptchaPublicKey == null) {
-			throw new DomainException(
-					"The ReCaptcha public key is null.");
-		}
 		
 		this.appName = appName;
 		this.appVersion = appVersion;
@@ -171,7 +161,6 @@ public class ServerConfig {
 		maxRequestSize = maximumRequestSize;
 		maxParamSize = maximumParameterSize;
 		
-		this.recaptchaPublicKey = recaptchaPublicKey;
 		this.selfRegistrationAllowed = selfRegistrationAllowed;
 	}
 	
@@ -313,16 +302,6 @@ public class ServerConfig {
 		}
 		
 		try {
-			recaptchaPublicKey =
-					serverConfigAsJson.getString(JSON_KEY_RECAPTCHA_KEY_PUBLIC);
-		}
-		catch(JSONException e) {
-			throw new DomainException(
-					"The ReCaptcha public key is missing.",
-					e);
-		}
-		
-		try {
 			selfRegistrationAllowed =
 					serverConfigAsJson.getBoolean(JSON_KEY_SELF_REGISTRATION_ALLOWED);
 		}
@@ -426,15 +405,6 @@ public class ServerConfig {
 	}
 	
 	/**
-	 * Returns the public key for ReCaptcha.
-	 * 
-	 * @return The public key for ReCaptcha.
-	 */
-	public final String getRecaptchaPublicKey() {
-		return recaptchaPublicKey;
-	}
-	
-	/**
 	 * Returns whether or not self registration is allowed.
 	 * 
 	 * @return Whether or not self registration is allowed.
@@ -464,7 +434,6 @@ public class ServerConfig {
 		result.put(JSON_KEY_AUTH_TOKEN_LIFETIME, authTokenLifetime);
 		result.put(JSON_KEY_MAXIMUM_REQUEST_SIZE, maxRequestSize);
 		result.put(JSON_KEY_MAXIMUM_PARAMETER_SIZE, maxParamSize);
-		result.put(JSON_KEY_RECAPTCHA_KEY_PUBLIC, recaptchaPublicKey);
 		result.put(JSON_KEY_SELF_REGISTRATION_ALLOWED, selfRegistrationAllowed);
 		
 		return result;

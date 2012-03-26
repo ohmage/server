@@ -15,6 +15,7 @@
         <value>org.ohmage.service.ConfigServices</value>
         <value>org.ohmage.service.VisualizationServices</value>
         <value>org.ohmage.service.UploadValidationServices</value>
+        <value>org.ohmage.service.RegistrationServices</value>
       </list>
     </constructor-arg>
   </bean>

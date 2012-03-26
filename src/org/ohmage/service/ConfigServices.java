@@ -117,16 +117,6 @@ public class ConfigServices {
 			throw new ServiceException("Whether or not Mobility is enabled is missing from the database.", e);
 		}
 		
-		String recaptchaPublicKey;
-		try {
-			recaptchaPublicKey =
-					PreferenceCache.instance().lookup(
-							PreferenceCache.KEY_RECAPTACH_KEY_PUBLIC);
-		}
-		catch(CacheMissException e) {
-			throw new ServiceException("The ReCaptcha public key is missing from the database.", e);
-		}
-		
 		boolean selfRegistrationAllowed;
 		try {
 			selfRegistrationAllowed =
@@ -143,7 +133,7 @@ public class ConfigServices {
 					defaultSurveyResponsePrivacyState, surveyResponsePrivacyStates,
 					defaultCampaignCreationPrivilege, mobilityEnabled,
 					UserBin.LIFETIME, 1024*1024*5*5, 1024*1024*5, 
-					recaptchaPublicKey, selfRegistrationAllowed
+					selfRegistrationAllowed
 				);
 		} 
 		catch(DomainException e) {

@@ -311,6 +311,9 @@ public class RequestServlet extends HttpServlet {
 		else if(RequestBuilder.API_USER_ACTIVATE.equals(httpRequest.getRequestURI())) {
 			processRequest(httpRequest, httpResponse);
 		}
+		else if(RequestBuilder.API_REGISTRATION_READ.equals(httpRequest.getRequestURI())) {
+			processRequest(httpRequest, httpResponse);
+		}
 		else {
 			LOGGER.warn("GET attempted and denied.");
 			try {
