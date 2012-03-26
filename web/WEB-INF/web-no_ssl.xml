@@ -4,6 +4,22 @@
          xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd" version="2.5">
          
   <!--  Filters: executed in the order in which they are defined in this file, but specific to the filter-mappings -->
+
+  <!--
+  	Allow Cross-Origin-Resource-Sharing for everything except authentication
+  -->
+  <filter>
+    <filter-name>OhmageCORSFilter</filter-name>
+    <filter-class>org.ohmage.jee.filter.OhmageCORSFilter</filter-class>
+    <init-param>
+      <param-name>disallowedURIs</param-name>
+      <param-value>/app/user/auth,/app/user/auth_token</param-value>
+    </init-param>
+  </filter>
+  <filter-mapping>
+    <filter-name>OhmageCORSFilter</filter-name>
+    <url-pattern>/*</url-pattern>
+  </filter-mapping> 
   
   <!--  Pushes the session id into the Log4J NDC for each request thread. The NDC is a Stack that is dumped to the log 
         for all Log4J messages.
