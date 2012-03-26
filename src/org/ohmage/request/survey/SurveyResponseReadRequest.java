@@ -858,7 +858,7 @@ public final class SurveyResponseReadRequest extends UserRequest {
 						if(allColumns || columns.contains(ColumnKey.CONTEXT_TIMESTAMP)) {
 							Calendar tmpCalendar = 
 									Calendar.getInstance(
-											surveyResponse.getTimezone());
+											surveyResponse.getTimezone().toTimeZone());
 							tmpCalendar.setTimeInMillis(
 									surveyResponse.getTime());
 							
@@ -870,7 +870,7 @@ public final class SurveyResponseReadRequest extends UserRequest {
 						if(allColumns || columns.contains(ColumnKey.CONTEXT_UTC_TIMESTAMP)) {
 							Calendar tmpCalendar = 
 									Calendar.getInstance(
-											surveyResponse.getTimezone());
+											surveyResponse.getTimezone().toTimeZone());
 							tmpCalendar.setTimeInMillis(
 									surveyResponse.getTime());
 							

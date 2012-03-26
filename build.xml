@@ -37,6 +37,7 @@
     <include name="tomcat-coyote.jar"/>
     <include name="recaptcha4j-0.0.7.jar"/>
     <include name="mail.jar"/>
+  	<include name="joda-time-2.1.jar"/>
   </fileset>
 
   <fileset id="run-dependencies" dir="${library}">
@@ -62,6 +63,7 @@
     <include name="mobility-classifier-1.2.9.jar"/>
     <include name="recaptcha4j-0.0.7.jar"/>
     <include name="mail.jar"/>
+    <include name="joda-time-2.1.jar"/>
   </fileset>
 
   <path id="compile-classpath">

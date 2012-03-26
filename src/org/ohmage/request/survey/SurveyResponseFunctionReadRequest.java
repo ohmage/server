@@ -396,7 +396,7 @@ public class SurveyResponseFunctionReadRequest extends UserRequest {
 						// response and set its time based on the epoch 
 						// milliseconds.
 						Calendar timezoneAdjustedCalendar =
-								Calendar.getInstance(surveyResponse.getTimezone());
+								Calendar.getInstance(surveyResponse.getTimezone().toTimeZone());
 						timezoneAdjustedCalendar.setTimeInMillis(
 								surveyResponse.getTime());
 
@@ -466,7 +466,7 @@ public class SurveyResponseFunctionReadRequest extends UserRequest {
 					// Create a calendar with the timezone from the response 
 					// and set its time based on the epoch milliseconds.
 					Calendar timezoneAdjustedCalendar =
-							Calendar.getInstance(surveyResponse.getTimezone());
+							Calendar.getInstance(surveyResponse.getTimezone().toTimeZone());
 					timezoneAdjustedCalendar.setTimeInMillis(
 							surveyResponse.getTime());
 					

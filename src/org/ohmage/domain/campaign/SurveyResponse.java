@@ -24,11 +24,10 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.SimpleTimeZone;
-import java.util.TimeZone;
 import java.util.UUID;
 
 import org.apache.log4j.Logger;
+import org.joda.time.DateTimeZone;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -83,7 +82,7 @@ public class SurveyResponse {
 	private final String client;
 	
 	private final long time;
-	private final TimeZone timezone;
+	private final DateTimeZone timezone;
 	
 	private long count = 1;
 	
@@ -161,7 +160,7 @@ public class SurveyResponse {
 		private static final String JSON_KEY_ACTIVE_TRIGGERS = "active_triggers";
 		
 		private final long time;
-		private final TimeZone timezone;
+		private final DateTimeZone timezone;
 		// TODO: I was hoping to avoid keeping JSON in the system and only
 		// using it as a serialization format. However, this is never 
 		// referenced in the code and decoding the JSON only to recode it again
@@ -201,13 +200,19 @@ public class SurveyResponse {
 			}
 			
 			try {
-				timezone = TimeZone.getTimeZone(launchContext.getString(JSON_KEY_LAUNCH_TIMEZONE));
+				timezone = DateTimeZone.forID(launchContext.getString(JSON_KEY_LAUNCH_TIMEZONE));
 			}
 			catch(JSONException e) {
 				throw new DomainException(
 						ErrorCode.SURVEY_INVALID_LAUNCH_CONTEXT, 
 						"The launch timezone is missing from the survey launch context: " +
 								JSON_KEY_LAUNCH_TIMEZONE,
+						e);
+			}
+			catch(IllegalArgumentException e) {
+				throw new DomainException(
+						ErrorCode.SURVEY_INVALID_LAUNCH_CONTEXT,
+						"The lauch timezone is unknown.",
 						e);
 			}
 			
@@ -235,7 +240,7 @@ public class SurveyResponse {
 		 */
 		public LaunchContext(
 				final long launchTime, 
-				final TimeZone launchTimezone,
+				final DateTimeZone launchTimezone,
 				final JSONArray activeTriggers) 
 				throws DomainException {
 			
@@ -267,7 +272,7 @@ public class SurveyResponse {
 		 * 
 		 * @return The timezone of the device at this launch time.
 		 */
-		public final TimeZone getTimeZone() {
+		public final DateTimeZone getTimeZone() {
 			return timezone;
 		}
 		
@@ -781,7 +786,7 @@ public class SurveyResponse {
 			final String campaignId, 
 			final String client,
 			final long time, 
-			final TimeZone timezone, 
+			final DateTimeZone timezone, 
 			final JSONObject launchContext, 
 			final String locationStatus, 
 			final JSONObject location,
@@ -890,7 +895,7 @@ public class SurveyResponse {
 			final String campaignId, 
 			final String client,
 			final long time, 
-			final TimeZone timezone, 
+			final DateTimeZone timezone, 
 			final LaunchContext launchContext, 
 			final LocationStatus locationStatus, 
 			final Location location,
@@ -1032,19 +1037,19 @@ public class SurveyResponse {
 					e);
 		}
 		
-		// FIXME This will default to UTC if the timezone is unknown to the
-		// TimeZone class. It's safe because we will never see an invalid 
-		// timezone in our db for survey responses, but clients will not
-		// be alerted to the fact that they may be uploading timezones that
-		// we can't interpret. Possible solution: add warning messages to 
-		// our JSON output.
 		try {
-			timezone = TimeZone.getTimeZone(response.getString(JSON_KEY_TIMEZONE));
+			timezone = DateTimeZone.forID(response.getString(JSON_KEY_TIMEZONE));
 		}
 		catch(JSONException e) {
 			throw new DomainException(
 					ErrorCode.SERVER_INVALID_TIMEZONE, 
-					"The timezone is missing.", 
+					"The time zone is missing.", 
+					e);
+		}
+		catch(IllegalArgumentException e) {
+			throw new DomainException(
+					ErrorCode.SERVER_INVALID_TIMEZONE,
+					"The time zone is unknown.",
 					e);
 		}
 		
@@ -1173,13 +1178,13 @@ public class SurveyResponse {
 	}
 
 	/**
-	 * Returns a copy of the timezone object representing the timezone of the
-	 * device that generated this survey response at the time it was generated.
+	 * Returns the time zone object representing the time zone of the device
+	 * that generated this survey response at the time it was generated.
 	 * 
-	 * @return The phone's timezone.
+	 * @return The phone's time zone.
 	 */
-	public final TimeZone getTimezone() {
-		return new SimpleTimeZone(timezone.getRawOffset(), timezone.getID());
+	public final DateTimeZone getTimezone() {
+		return timezone;
 	}
 
 	/**

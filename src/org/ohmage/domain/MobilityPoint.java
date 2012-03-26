@@ -24,9 +24,9 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.TimeZone;
 import java.util.UUID;
 
+import org.joda.time.DateTimeZone;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -216,7 +216,7 @@ public class MobilityPoint implements Comparable<MobilityPoint> {
 
 	private final UUID id;
 	private final long time;
-	private final TimeZone timezone;
+	private final DateTimeZone timezone;
 	
 	public static enum LocationStatus { VALID, NETWORK, INACCURATE, STALE, UNAVAILABLE };
 	private final LocationStatus locationStatus;
@@ -1024,7 +1024,7 @@ public class MobilityPoint implements Comparable<MobilityPoint> {
 			}
 			
 			private final Long time;
-			private final TimeZone timezone;
+			private final DateTimeZone timezone;
 			private final Map<String, Double> scan;
 			//private final WifiScan wifiScan;
 			
@@ -1109,28 +1109,28 @@ public class MobilityPoint implements Comparable<MobilityPoint> {
 				}
 				time = tTime;
 				
-				TimeZone tTimezone;
+				DateTimeZone tTimezone;
 				try {
-					tTimezone = 
-							TimeZone.getTimeZone(
-									wifiData.getString(
-											WifiDataColumnKey.TIMEZONE.toString(
-													false)));
+					tTimezone =
+							DateTimeZone.forID(
+								wifiData.getString(
+									WifiDataColumnKey.TIMEZONE.toString(
+										false)));
 				}
 				catch(JSONException noLongTimezone) {
 					try {
 						tTimezone =
-								TimeZone.getTimeZone(
-										wifiData.getString(
-												WifiDataColumnKey.TIMEZONE.toString(
-														true)));
+								DateTimeZone.forID(
+									wifiData.getString(
+										WifiDataColumnKey.TIMEZONE.toString(
+											true)));
 					}
 					catch(JSONException noShortTimezone) {
 						if(Mode.ERROR.equals(mode)) {
 							tTimezone = null;
 						}
 						else if(! timeFound) {
-							tTimezone = TimeZone.getDefault();
+							tTimezone = DateTimeZone.getDefault();
 						}
 						else {
 							throw new DomainException(
@@ -1141,6 +1141,12 @@ public class MobilityPoint implements Comparable<MobilityPoint> {
 									noShortTimezone);
 						}
 					}
+				}
+				catch(IllegalArgumentException e) {
+					throw new DomainException(
+						ErrorCode.SERVER_INVALID_TIMEZONE,
+						"The time zone is unknown.",
+						e);
 				}
 				timezone = tTimezone;
 				
@@ -1263,7 +1269,7 @@ public class MobilityPoint implements Comparable<MobilityPoint> {
 			 */
 			public WifiData(
 					final long time,
-					final TimeZone timezone,
+					final DateTimeZone timezone,
 					final Map<String, Double> scan)
 					throws DomainException {
 				
@@ -1319,7 +1325,7 @@ public class MobilityPoint implements Comparable<MobilityPoint> {
 				}
 					
 				if(columns.contains(WifiDataColumnKey.TIMESTAMP)) {
-					Calendar calendar = Calendar.getInstance(timezone);
+					Calendar calendar = Calendar.getInstance(timezone.toTimeZone());
 					calendar.setTimeInMillis(time);
 					result.put(
 							WifiDataColumnKey.TIMESTAMP.toString(
@@ -1448,7 +1454,7 @@ public class MobilityPoint implements Comparable<MobilityPoint> {
 				}
 					
 				if((index = columns.indexOf(WifiDataColumnKey.TIMESTAMP)) != -1) {
-					Calendar calendar = Calendar.getInstance(timezone);
+					Calendar calendar = Calendar.getInstance(timezone.toTimeZone());
 					calendar.setTimeInMillis(time);
 					result.set(
 							index, 
@@ -2470,12 +2476,10 @@ public class MobilityPoint implements Comparable<MobilityPoint> {
 		time = tTime;
 		
 		// Get the timezone.
-		// FIXME: This doesn't validate the timezone and instead just defaults
-		// to GMT.
-		TimeZone tTimezone;
+		DateTimeZone tTimezone;
 		try {
 			tTimezone = 
-					TimeZone.getTimeZone(
+					DateTimeZone.forID(
 							mobilityPoint.getString(
 									MobilityColumnKey.TIMEZONE.toString(
 											false)));
@@ -2483,7 +2487,7 @@ public class MobilityPoint implements Comparable<MobilityPoint> {
 		catch(JSONException outerException) {
 			try {
 				tTimezone = 
-						TimeZone.getTimeZone(
+						DateTimeZone.forID(
 								mobilityPoint.getString(
 										MobilityColumnKey.TIMEZONE.toString(
 												true)));
@@ -2496,6 +2500,12 @@ public class MobilityPoint implements Comparable<MobilityPoint> {
 										false), 
 						innerException);
 			}
+		}
+		catch(IllegalArgumentException e) {
+			throw new DomainException(
+				ErrorCode.SERVER_INVALID_TIMEZONE,
+				"The time zone is unknown.",
+				e);
 		}
 		timezone = tTimezone;
 		
@@ -2740,7 +2750,7 @@ public class MobilityPoint implements Comparable<MobilityPoint> {
 	public MobilityPoint(
 			final UUID id, 
 			final Long time, 
-			final TimeZone timezone,
+			final DateTimeZone timezone,
 			final LocationStatus locationStatus, 
 			final JSONObject location, 
 			final Mode mode, 
@@ -2838,7 +2848,7 @@ public class MobilityPoint implements Comparable<MobilityPoint> {
 	public MobilityPoint(
 			final UUID id, 
 			final Long time, 
-			final TimeZone timezone,
+			final DateTimeZone timezone,
 			final LocationStatus locationStatus, 
 			final Location location, 
 			final Mode mode, 
@@ -2932,7 +2942,7 @@ public class MobilityPoint implements Comparable<MobilityPoint> {
 	 * 
 	 * @return The phone's timezone when this Mobility point was created.
 	 */
-	public final TimeZone getTimezone() {
+	public final DateTimeZone getTimezone() {
 		return timezone;
 	}
 
@@ -3237,7 +3247,7 @@ public class MobilityPoint implements Comparable<MobilityPoint> {
 		}
 	
 		if(columns.contains(MobilityColumnKey.TIMESTAMP)) {
-			Calendar calendar = Calendar.getInstance(timezone);
+			Calendar calendar = Calendar.getInstance(timezone.toTimeZone());
 			calendar.setTimeInMillis(time);
 			
 			result.put(
@@ -3342,7 +3352,7 @@ public class MobilityPoint implements Comparable<MobilityPoint> {
 		}
 		
 		if((index = columns.indexOf(MobilityColumnKey.TIMESTAMP)) != -1) {
-			Calendar calendar = Calendar.getInstance(timezone);
+			Calendar calendar = Calendar.getInstance(timezone.toTimeZone());
 			calendar.setTimeInMillis(time);
 			
 			result.set(

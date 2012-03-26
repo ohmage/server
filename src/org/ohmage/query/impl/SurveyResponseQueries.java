@@ -26,11 +26,11 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.TimeZone;
 import java.util.UUID;
 
 import javax.sql.DataSource;
 
+import org.joda.time.DateTimeZone;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.ohmage.domain.campaign.Campaign;
@@ -601,7 +601,7 @@ public class SurveyResponseQueries extends Query implements ISurveyResponseQueri
 											rs.getString("urn"),
 											rs.getString("client"),
 											rs.getLong("epoch_millis"),
-											TimeZone.getTimeZone(rs.getString("phone_timezone")),
+											DateTimeZone.forID(rs.getString("phone_timezone")),
 											new JSONObject(rs.getString("launch_context")),
 											rs.getString("location_status"),
 											locationJson,
@@ -611,6 +611,9 @@ public class SurveyResponseQueries extends Query implements ISurveyResponseQueri
 									surveyResponse.setCount(
 											rs.getLong("count"));
 								}
+							}
+							catch(IllegalArgumentException e) {
+								throw new SQLException("The TimeZone is unknown.", e);
 							}
 							catch(JSONException e) {
 								throw new SQLException("Error creating a JSONObject.", e);

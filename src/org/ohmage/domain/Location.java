@@ -20,8 +20,8 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.TimeZone;
 
+import org.joda.time.DateTimeZone;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.ohmage.annotator.Annotator.ErrorCode;
@@ -208,7 +208,7 @@ public class Location {
 	private final double accuracy;
 	private final String provider;
 	private final long time;
-	private final TimeZone timeZone;
+	private final DateTimeZone timeZone;
 	
 	/**
 	 * Creates a new Location object.
@@ -243,21 +243,21 @@ public class Location {
 		}
 		time = tTime;
 		
-		TimeZone tTimeZone;
+		DateTimeZone tTimeZone;
 		try {
 			tTimeZone = 
-					TimeZone.getTimeZone(
-							locationData.getString(
-									LocationColumnKey.TIMEZONE.toString(
-											false)));
+					DateTimeZone.forID(
+						locationData.getString(
+							LocationColumnKey.TIMEZONE.toString(
+								false)));
 		}
 		catch(JSONException noRegular) {
 			try {
 				tTimeZone = 
-						TimeZone.getTimeZone(
-								locationData.getString(
-										LocationColumnKey.TIMEZONE.toString(
-												true)));
+						DateTimeZone.forID(
+							locationData.getString(
+								LocationColumnKey.TIMEZONE.toString(
+									true)));
 			}
 			catch(JSONException noShort) {
 				throw new DomainException(
@@ -265,6 +265,12 @@ public class Location {
 						"The time zone is missing.", 
 						noShort);
 			}
+		}
+		catch(IllegalArgumentException e) {
+			throw new DomainException(
+					ErrorCode.SERVER_INVALID_TIMEZONE,
+					"The time zone is unknown.",
+					e);
 		}
 		timeZone = tTimeZone;
 		
@@ -375,7 +381,7 @@ public class Location {
 			final double accuracy, 
 			final String provider, 
 			final long time, 
-			final TimeZone timeZone) 
+			final DateTimeZone timeZone) 
 			throws DomainException {
 		
 		if(provider == null) {
@@ -447,7 +453,7 @@ public class Location {
 	 * 
 	 * @return The time zone for when this information was gathered.
 	 */
-	public final TimeZone getTimeZone() {
+	public final DateTimeZone getTimeZone() {
 		return timeZone;
 	}
 	

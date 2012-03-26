@@ -22,19 +22,19 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.TimeZone;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.log4j.Logger;
+import org.joda.time.DateTimeZone;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.domain.Location;
-import org.ohmage.domain.MobilityPoint;
 import org.ohmage.domain.Location.LocationColumnKey;
+import org.ohmage.domain.MobilityPoint;
 import org.ohmage.domain.MobilityPoint.LocationStatus;
 import org.ohmage.exception.DomainException;
 import org.ohmage.exception.ServiceException;
@@ -276,7 +276,7 @@ public class MobilityReadChunkedRequest extends UserRequest {
 				Map<String, Integer> modeCountMap =
 						new HashMap<String, Integer>();
 				String timestamp = null;
-				TimeZone timezone = null;
+				DateTimeZone timezone = null;
 				LocationStatus locationStatus = null;
 				Location location = null;
 				
@@ -285,7 +285,7 @@ public class MobilityReadChunkedRequest extends UserRequest {
 					if(timestamp == null) {
 						timezone = mobilityPoint.getTimezone();
 						
-						Calendar calendar = Calendar.getInstance(timezone);
+						Calendar calendar = Calendar.getInstance(timezone.toTimeZone());
 						calendar.setTimeInMillis(mobilityPoint.getTime());
 						timestamp = 
 								TimeUtils.getIso8601DateTimeString(

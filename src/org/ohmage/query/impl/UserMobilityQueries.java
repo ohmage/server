@@ -33,6 +33,7 @@ import java.util.UUID;
 
 import javax.sql.DataSource;
 
+import org.joda.time.DateTimeZone;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.ohmage.domain.Location;
@@ -728,7 +729,7 @@ public final class UserMobilityQueries extends AbstractUploadQuery implements IU
 								return new MobilityPoint(
 										UUID.fromString(rs.getString("uuid")),
 										rs.getLong("epoch_millis"),
-										TimeZone.getTimeZone(rs.getString("phone_timezone")),
+										DateTimeZone.forID(rs.getString("phone_timezone")),
 										LocationStatus.valueOf(rs.getString("location_status").toUpperCase()),
 										location,
 										Mode.valueOf(rs.getString("mode").toUpperCase()),
@@ -830,7 +831,7 @@ public final class UserMobilityQueries extends AbstractUploadQuery implements IU
 								return new MobilityPoint(
 										UUID.fromString(rs.getString("uuid")),
 										rs.getLong("epoch_millis"),
-										TimeZone.getTimeZone(rs.getString("phone_timezone")),
+										DateTimeZone.forID(rs.getString("phone_timezone")),
 										LocationStatus.valueOf(rs.getString("location_status").toUpperCase()),
 										location,
 										Mode.valueOf(rs.getString("mode").toUpperCase()),
