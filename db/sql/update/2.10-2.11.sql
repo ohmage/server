@@ -39,4 +39,4 @@ DELETE FROM preference WHERE p_key='properties_file';
 INSERT INTO preference VALUES 
     ('recaptcha_public_key', ''),
     ('recaptcha_private_key', ''),
-    ('self_registration_allowed', '');
+    ('self_registration_allowed', 'false');
