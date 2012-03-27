@@ -964,6 +964,10 @@ public class SurveyResponseQueries extends Query implements ISurveyResponseQueri
 					sqlBuilder.append("sr.client");
 					break;
 					
+				case CONTEXT_DATE:
+					sqlBuilder.append("DATE(CONVERT_TZ(FROM_UNIXTIME(epoch_millis / 1000), 'UTC', phone_timezone))");
+					break;
+					
 				case CONTEXT_TIMESTAMP:
 				case CONTEXT_UTC_TIMESTAMP:
 					sqlBuilder.append("(sr.epoch_millis / 1000)");

@@ -31,7 +31,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.TimeZone;
 import java.util.UUID;
 
 import javax.servlet.http.HttpServletRequest;
@@ -855,6 +854,18 @@ public final class SurveyResponseReadRequest extends UserRequest {
 								((collapse != null) && collapse)
 							);
 						
+						if(allColumns || columns.contains(ColumnKey.CONTEXT_DATE)) {
+							Calendar tmpCalendar = 
+								Calendar.getInstance(
+										surveyResponse.getTimezone().toTimeZone());
+							tmpCalendar.setTimeInMillis(
+									surveyResponse.getTime());
+							
+							currResult.put(
+									"date", 
+									TimeUtils.getIso8601DateTimeString(
+											tmpCalendar.getTime()).subSequence(0, 10));
+						}
 						if(allColumns || columns.contains(ColumnKey.CONTEXT_TIMESTAMP)) {
 							Calendar tmpCalendar = 
 									Calendar.getInstance(
@@ -1026,6 +1037,7 @@ public final class SurveyResponseReadRequest extends UserRequest {
 					JSONArray usernames = new JSONArray();
 					JSONArray clients = new JSONArray();
 					JSONArray privacyStates = new JSONArray();
+					JSONArray dates = new JSONArray();
 					JSONArray timestamps = new JSONArray();
 					JSONArray utcTimestamps = new JSONArray();
 					JSONArray epochMillisTimestamps = new JSONArray();
@@ -1128,7 +1140,7 @@ public final class SurveyResponseReadRequest extends UserRequest {
 									surveyResponse.getResponses(), 
 									prompts, 
 									usernames, clients, privacyStates, 
-									timestamps, utcTimestamps, 
+									dates, timestamps, utcTimestamps, 
 									epochMillisTimestamps, timezones, 
 									locationStatuses, locationLongitude, 
 									locationLatitude, locationTimestamp, 
@@ -1195,6 +1207,12 @@ public final class SurveyResponseReadRequest extends UserRequest {
 						values.put(JSON_KEY_VALUES, epochMillisTimestamps);
 						result.put(ColumnKey.CONTEXT_EPOCH_MILLIS.toString(), values);
 						keysOrdered.put(ColumnKey.CONTEXT_EPOCH_MILLIS.toString());
+					}
+					if(allColumns || columns.contains(ColumnKey.CONTEXT_DATE)) {
+						JSONObject values = new JSONObject();
+						values.put(JSON_KEY_VALUES, timestamps);
+						result.put(ColumnKey.CONTEXT_DATE.toString(), values);
+						keysOrdered.put(ColumnKey.CONTEXT_DATE.toString());
 					}
 					if(allColumns || columns.contains(ColumnKey.CONTEXT_TIMESTAMP)) {
 						JSONObject values = new JSONObject();
@@ -1606,7 +1624,7 @@ public final class SurveyResponseReadRequest extends UserRequest {
 			final Map<Integer, Response> responses, 
 			Map<String, JSONObject> prompts,
 			JSONArray usernames, JSONArray clients, JSONArray privacyStates,
-			JSONArray timestamps, JSONArray utcTimestamps, 
+			JSONArray dates, JSONArray timestamps, JSONArray utcTimestamps, 
 			JSONArray epochMillisTimestamps, JSONArray timezones,
 			JSONArray locationStatuses, JSONArray locationLongitude,
 			JSONArray locationLatitude, JSONArray locationTime,
@@ -1627,18 +1645,40 @@ public final class SurveyResponseReadRequest extends UserRequest {
 		if(allColumns || columns.contains(ColumnKey.SURVEY_PRIVACY_STATE)) {
 			privacyStates.put(surveyResponse.getPrivacyState().toString());
 		}
+		if(allColumns || columns.contains(ColumnKey.CONTEXT_DATE)) {
+			Calendar tmpCalendar = 
+				Calendar.getInstance(
+						surveyResponse.getTimezone().toTimeZone());
+			tmpCalendar.setTimeInMillis(
+					surveyResponse.getTime());
+			
+			dates.put(
+					TimeUtils.getIso8601DateTimeString(
+							tmpCalendar.getTime()).subSequence(0, 10));
+		}
 		if(allColumns || columns.contains(ColumnKey.CONTEXT_TIMESTAMP)) {
+			Calendar tmpCalendar = 
+				Calendar.getInstance(
+						surveyResponse.getTimezone().toTimeZone());
+			tmpCalendar.setTimeInMillis(
+					surveyResponse.getTime());
+			
 			timestamps.put(
 					TimeUtils.getIso8601DateTimeString(
-							new Date(
-									surveyResponse.getTime())));
+							tmpCalendar.getTime()));
 		}
 		if(allColumns || columns.contains(ColumnKey.CONTEXT_UTC_TIMESTAMP)) {
+			Calendar tmpCalendar = 
+				Calendar.getInstance(
+						surveyResponse.getTimezone().toTimeZone());
+			tmpCalendar.setTimeInMillis(
+					surveyResponse.getTime());
+			
 			utcTimestamps.put(
 					DateUtils.timestampStringToUtc(
 							TimeUtils.getIso8601DateTimeString(
-									new Date(surveyResponse.getTime())), 
-							TimeZone.getDefault().getID()));
+									tmpCalendar.getTime()), 
+								surveyResponse.getTimezone().getID()));
 		}
 		if(allColumns || columns.contains(ColumnKey.CONTEXT_EPOCH_MILLIS)) {
 			epochMillisTimestamps.put(surveyResponse.getTime());

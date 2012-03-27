@@ -365,6 +365,8 @@ public class SurveyResponse {
 		CONTEXT_CLIENT ("urn:ohmage:context:client"),
 		/**
 		 * The survey-wide timestamp key.
+		 * 
+		 * @see #CONTEXT_TIMEZONE
 		 */
 		CONTEXT_TIMESTAMP ("urn:ohmage:context:timestamp"),
 		/**
@@ -378,9 +380,15 @@ public class SurveyResponse {
 		/**
 		 * The survey-wide timezone key.
 		 * 
-		 * @see ColumnKey#CONTEXT_TIMESTAMP
+		 * @see #CONTEXT_TIMESTAMP
 		 */
 		CONTEXT_TIMEZONE ("urn:ohmage:context:timezone"),
+		/**
+		 * The survey-wide date key.
+		 * 
+		 * @see #CONTEXT_TIMEZONE
+		 */
+		CONTEXT_DATE ("urn:ohmage:context:date"),
 		/**
 		 * The key for the survey's entire launch context.
 		 * 
