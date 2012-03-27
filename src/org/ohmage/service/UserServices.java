@@ -15,10 +15,9 @@
  ******************************************************************************/
 package org.ohmage.service;
 
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
+import java.net.InetAddress;
 import java.net.URL;
+import java.net.UnknownHostException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Collection;
@@ -61,6 +60,8 @@ import org.ohmage.query.IUserClassQueries;
 import org.ohmage.query.IUserImageQueries;
 import org.ohmage.query.IUserQueries;
 import org.ohmage.query.impl.QueryResultsList;
+import org.ohmage.request.InputKeys;
+import org.ohmage.request.RequestBuilder;
 import org.ohmage.util.StringUtils;
 
 import com.sun.mail.smtp.SMTPTransport;
@@ -74,27 +75,18 @@ public final class UserServices {
 	private static final String MAIL_PROTOCOL = "smtp";
 	private static final String MAIL_PROPERTY_HOST = 
 			"mail." + MAIL_PROTOCOL + ".host";
-	private static final String MAIL_PROPERTY_AUTH =
-			"mail." + MAIL_PROTOCOL + ".auth";
-	private static final String MAIL_PROPERTY_USERNAME = 
-			"mail." + MAIL_PROTOCOL + ".username";
-	private static final String MAIL_PROPERTY_PASSWORD =
-			"mail." + MAIL_PROTOCOL + ".password";
-	private static final String MAIL_PROPERTY_REGISTRATION_ADDRESS_FROM =
-			"mail.registration.address.from";
-	private static final String MAIL_PROPERTY_REGISTRATION_SUBJECT =
-			"mail.registration.subject";
-	private static final String MAIL_PROPERTY_REGISTRATION_TEXT =
-			"mail.registration.text";
+	private static final String MAIL_PROPERTY_PORT =
+			"mail." + MAIL_PROTOCOL + ".port";
+	private static final String MAIL_PROPERTY_SSL_ENABLED =
+			"mail." + MAIL_PROTOCOL + ".ssl.enable";
 	
 	private static final String MAIL_REGISTRATION_TEXT_TOS = "<_TOS_>";
-	private static final String MAIL_REGISTRATION_TEXT_REGISTRATION_ID =
-			"<_REGISTRATION_ID_>";
+	private static final String MAIL_REGISTRATION_TEXT_REGISTRATION_LINK =
+			"<_REGISTRATION_LINK_>";
 	
 	private static final long REGISTRATION_DURATION = 1000 * 60 * 60 * 4;
 	
 	private static UserServices instance;
-	private static Session smtpSession;
 	
 	private IUserQueries userQueries;
 	private IUserCampaignQueries userCampaignQueries;
@@ -142,25 +134,6 @@ public final class UserServices {
 		userClassQueries = iUserClassQueries;
 		userImageQueries = iUserImageQueries;
 		imageQueries = iImageQueries;
-		
-		Properties sessionProperties = new Properties();
-		try {
-			sessionProperties.load(
-					new FileInputStream(
-							System.getProperty("webapp.root") + 
-							"/WEB-INF/properties/mail.smtp.properties"));
-		} 
-		catch(FileNotFoundException e) {
-			throw new IllegalStateException(
-					"The JavaMail properties file is missing.", 
-					e);
-		} 
-		catch(IOException e) {
-			throw new IllegalStateException(
-					"Error reading the JavaMail properties file.", 
-					e);
-		}
-		smtpSession = Session.getDefaultInstance(sessionProperties);
 	}
 	
 	/**
@@ -266,18 +239,91 @@ public final class UserServices {
 			
 			// Send an email to the user to confirm their email.
 			try {
+				Properties sessionProperties = new Properties();
+				
+				String host = null;
+				try {
+					host = PreferenceCache.instance().lookup(
+								PreferenceCache.KEY_MAIL_HOST);
+					
+					sessionProperties.put(MAIL_PROPERTY_HOST, host);
+				}
+				catch(CacheMissException e) {
+					// This is acceptable. It simply tells JavaMail to use the
+					// default.
+				}
+				
+				try {
+					sessionProperties.put(
+							MAIL_PROPERTY_PORT, 
+							PreferenceCache.instance().lookup(
+								PreferenceCache.KEY_MAIL_PORT));
+				}
+				catch(CacheMissException e) {
+					// This is acceptable. It simply tells JavaMail to use the
+					// default.
+				}
+				
+				try {
+					sessionProperties.put(
+							MAIL_PROPERTY_SSL_ENABLED, 
+							PreferenceCache.instance().lookup(
+								PreferenceCache.KEY_MAIL_SSL));
+				}
+				catch(CacheMissException e) {
+					// This is acceptable. It simply tells JavaMail to use the
+					// default.
+				}
+				
+				Session smtpSession = 
+						Session.getDefaultInstance(sessionProperties);
+				
 				SMTPTransport transport = 
 						(SMTPTransport) smtpSession.getTransport(
 								MAIL_PROTOCOL);
 
-				Boolean auth = 
-						StringUtils.decodeBoolean(
-								smtpSession.getProperty(MAIL_PROPERTY_AUTH));
+				Boolean auth = null;
+				try {
+					auth = StringUtils.decodeBoolean(
+							PreferenceCache.instance().lookup(
+								PreferenceCache.KEY_MAIL_AUTH));
+				}
+				catch(CacheMissException e) {
+					// This is acceptable. It simply tells JavaMail to use the
+					// default.
+				}
+				
 				if((auth != null) && auth) {
+					String mailUsername;
+					try {
+						mailUsername = 
+								PreferenceCache.instance().lookup(
+									PreferenceCache.KEY_MAIL_USERNAME);
+					}
+					catch(CacheMissException e) {
+						throw new ServiceException(
+							"The mail property is not in the preference table: " +
+								PreferenceCache.KEY_MAIL_USERNAME,
+							e);
+					}
+					
+					String mailPassword;
+					try {
+						mailPassword = 
+								PreferenceCache.instance().lookup(
+									PreferenceCache.KEY_MAIL_PASSWORD);
+					}
+					catch(CacheMissException e) {
+						throw new ServiceException(
+							"The mail property is not in the preference table: " +
+								PreferenceCache.KEY_MAIL_PASSWORD,
+							e);
+					}
+					
 					transport.connect(
 							smtpSession.getProperty(MAIL_PROPERTY_HOST), 
-							smtpSession.getProperty(MAIL_PROPERTY_USERNAME), 
-							smtpSession.getProperty(MAIL_PROPERTY_PASSWORD));
+							mailUsername, 
+							mailPassword);
 				}
 				else {
 					transport.connect();
@@ -291,29 +337,78 @@ public final class UserServices {
 						new InternetAddress(emailAddress));
 				
 				// Add the sender.
-				message.setFrom(
-						new InternetAddress(
-								smtpSession.getProperty(
-										MAIL_PROPERTY_REGISTRATION_ADDRESS_FROM)));
+				try {
+					message.setFrom(
+							new InternetAddress(
+									PreferenceCache.instance().lookup(
+										PreferenceCache.KEY_MAIL_SENDER)));
+				}
+				catch(CacheMissException e) {
+					throw new ServiceException(
+						"The mail property is not in the preference table: " +
+							PreferenceCache.KEY_MAIL_SENDER,
+						e);
+				}
 				
 				// Set the subject.
-				message.setSubject(
-						smtpSession.getProperty(
-								MAIL_PROPERTY_REGISTRATION_SUBJECT));
+				try {
+					message.setSubject(
+							PreferenceCache.instance().lookup(
+								PreferenceCache.KEY_MAIL_SUBJECT));
+				}
+				catch(CacheMissException e) {
+					throw new ServiceException(
+						"The mail property is not in the preference table: " +
+							PreferenceCache.KEY_MAIL_SUBJECT,
+						e);
+				}
 				
-				String registrationText =
-						smtpSession.getProperty(
-								MAIL_PROPERTY_REGISTRATION_TEXT);
+				String registrationText;
+				try {
+					registrationText = PreferenceCache.instance().lookup(
+						PreferenceCache.KEY_MAIL_TEXT);
+				}
+				catch(CacheMissException e) {
+					throw new ServiceException(
+						"The mail property is not in the preference table: " +
+							PreferenceCache.KEY_MAIL_TEXT,
+						e);
+				}
 				
+				try {
+					registrationText =
+							registrationText.replace(
+									MAIL_REGISTRATION_TEXT_TOS, 
+									PreferenceCache.instance().lookup(
+										PreferenceCache.KEY_TERMS_OF_SERVICE));
+				}
+				catch(CacheMissException e) {
+					throw new ServiceException(
+						"The mail property is not in the preference table: " +
+							PreferenceCache.KEY_TERMS_OF_SERVICE,
+						e);
+				}
+				
+				StringBuilder registrationLink = new StringBuilder("http://");
+				// Get this machine's hostname.
+				try {
+					registrationLink.append(
+							InetAddress.getLocalHost().getHostName());
+				}
+				catch(UnknownHostException e) {
+					throw new ServiceException(
+							"The sky is falling! Oh, and our own hostname is unknown.",
+							e);
+				}
+				registrationLink.append(RequestBuilder.API_USER_ACTIVATE);
+				registrationLink.append('?');
+				registrationLink.append(InputKeys.USER_REGISTRATION_ID);
+				registrationLink.append('=');
+				registrationLink.append(registrationId);
 				registrationText =
 						registrationText.replace(
-								MAIL_REGISTRATION_TEXT_TOS, 
-								"Terms of Service");
-				
-				registrationText =
-						registrationText.replace(
-								MAIL_REGISTRATION_TEXT_REGISTRATION_ID, 
-								registrationId.toString());
+								MAIL_REGISTRATION_TEXT_REGISTRATION_LINK, 
+								registrationLink);
 				
 				message.setText(registrationText);
 				

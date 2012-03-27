@@ -79,15 +79,27 @@ public final class PreferenceCache extends KeyValueCache {
 	public static final String KEY_APPLICATION_BUILD = "application.build";
 	public static final String KEY_SSL_ENABLED = "ssl.enabled";
 	
-	// ReCaptcha keys.
-	public static final String KEY_RECAPTCHA_KEY_PRIVATE = "recaptcha_private_key";
-	public static final String KEY_RECAPTACH_KEY_PUBLIC = "recaptcha_public_key";
-	
 	// Self-registration information.
 	public static final String KEY_ALLOW_SELF_REGISTRATION = "self_registration_allowed";
 	public static final String KEY_TERMS_OF_SERVICE = "terms_of_service";
 	
+	// Key for the public class.
 	public static final String KEY_PUBLIC_CLASS_ID = "public_class_id";
+	
+	// ReCaptcha keys.
+	public static final String KEY_RECAPTCHA_KEY_PRIVATE = "recaptcha_private_key";
+	public static final String KEY_RECAPTACH_KEY_PUBLIC = "recaptcha_public_key";
+	
+	// Mail keys.
+	public static final String KEY_MAIL_HOST = "mail_host";
+	public static final String KEY_MAIL_PORT = "mail_port";
+	public static final String KEY_MAIL_SSL = "mail_ssl_enabled";
+	public static final String KEY_MAIL_AUTH = "mail_use_authentication";
+	public static final String KEY_MAIL_USERNAME = "mail_username";
+	public static final String KEY_MAIL_PASSWORD = "mail_password";
+	public static final String KEY_MAIL_SENDER = "mail_sender_address";
+	public static final String KEY_MAIL_SUBJECT = "mail_subject";
+	public static final String KEY_MAIL_TEXT = "mail_text";
 	
 	// The reference to one's self to return to requesters.
 	private static PreferenceCache instance;

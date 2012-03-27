@@ -396,7 +396,7 @@ CREATE TABLE mobility_extended (
 CREATE TABLE preference (
   p_key varchar(50) NOT NULL,
   p_value varchar(255) NOT NULL,
-  UNIQUE (p_key, p_value)
+  INDEX index_p_key (p_key)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- --------------------------------------------------------------------

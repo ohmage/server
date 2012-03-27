@@ -34,13 +34,21 @@ CREATE TABLE user_registration(
 -- database.
 DELETE FROM preference WHERE p_key='properties_file';
 
--- Add the public and private ReCaptcha keys as well as the flag regarding 
--- whether or not self-registration is allowed.
+-- Need to update the preference table to remove an unnecessary UNIQUE 
+-- constraint.
+DROP INDEX p_key ON preference;
+ALTER TABLE preference ADD INDEX index_p_key (p_key);
+ALTER TABLE preference MODIFY p_value TEXT NOT NULL;
+
+-- Add the new preference information.
 INSERT INTO preference VALUES 
     ('recaptcha_public_key', ''),
     ('recaptcha_private_key', ''),
     ('self_registration_allowed', 'false'),
-    ('terms_of_service', '');
+    ('terms_of_service', ''),
+    ('mail_sender_address', 'no-reply@ohmage.org'),
+    ('mail_subject', 'ohmage: New Account Request'),
+    ('mail_text', 'Registration Activation\n\nThank you for creating an account. To activate your account, follow the link at the end of this message. By following the link you agree to our terms of service.\n\n<_TOS_>\n\n<_REGISTRATION_LINK_>');
     
 -- The key in the classifier JSON for Mobility points for the N95 variance has
 -- been changed from "N95Variance" to "n95variance".
