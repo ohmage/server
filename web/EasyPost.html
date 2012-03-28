@@ -1,16 +1,70 @@
 <html>
-	<head>
-		<title>Easy Post Through Browser</title>
-	</head>
-	<body>
-	    <h2>Configuration APIs</h2>
-	    <h3>Configuration:</h3>
-        <form action="/app/config/read" method="post">
+    <head>
+        <title>Easy Post Through Browser</title>
+        <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+        <script type="text/javascript" src="https://www.google.com/recaptcha/api/js/recaptcha_ajax.js"></script>
+        <script type="text/javascript">
+            function getReCaptchaKey()
+            {
+                try {
+                    $.post("/app/config/read", checkServerConfiguration);
+                }
+                catch(e) {
+                    alert("Couldn't read server configuration: " + e);
+                }
+            }
+           
+            function checkServerConfiguration(data) {
+                var dataObject = eval('(' + data + ')');
+                if(dataObject["data"]["self_registration_allowed"]) {
+                    try {
+                        $.post("/app/registration/read", createReCaptcha);
+                    }
+                    catch(e) {
+                        alert("Couldn't read registration configuration: " + e);
+                    }
+                }
+                else {
+                    alert("Self registration is not allowed.");
+                }
+            }
+           
+            function createReCaptcha(data) {
+                try {
+                    var dataObject = eval('(' + data + ')');
+                    var publicKey = dataObject["data"]["recaptcha_public_key"];
+                    
+                    Recaptcha.create(
+                            publicKey,
+                            "divReCaptcha",
+                            {
+                              theme: "green",
+                              callback: Recaptcha.focus_response_field
+                            }
+                          );
+                    
+                    $("#btnGetReCaptcha").hide();
+                }
+                catch(e) {
+                    alert("Could not add the ReCaptcha to the page: " + e);
+                }
+            }
+        </script>
+    </head>
+    <body>
+        <h2>Configuration APIs</h2>
+        <h3>Server Configuration:</h3>
+        <form id="serverConfiguration" action="/app/config/read" method="post">
+            <input type="submit" value="Submit" />
+        </form>
+        
+        <h3>Registration Configuration:</h3>
+        <form id="registrationConfiguration" action="/app/registration/read" method="post">
             <input type="submit" value="Submit" />
         </form>
         
         <h2>Authentication APIs</h2>
-		<h3>Token:</h3>
+        <h3>Token:</h3>
         <form action="/app/user/auth_token" method="post">
             Username: <input type="text" name="user" /><br />
             Password: <input type="text" name="password" /><br />
@@ -52,23 +106,14 @@
         
         <h2>User APIs</h2>
         <h3>Self Registration:</h3>
-        <form action="/app/user/register" method="post">
+        <form id="frmRegistration" action="/app/user/register" method="post">
             Username: <input type="text" name="username" /><br />
             Password: <input type="text" name="password" /><br />
             Email Address: <input type="text" name="email_address" /><br />
             Client: <input type="text" name="client" value="testWeb" /><br />
-            <br />
-            <script type="text/javascript"
-                    src="http://www.google.com/recaptcha/api/challenge?k=<public_key>">
-            </script>
-            <noscript>
-                <iframe src="http://www.google.com/recaptcha/api/noscript?k=<public_key>"
-                        height="300" width="500" frameborder="0"></iframe><br>
-                <textarea name="recaptcha_challenge_field" rows="3" cols="40">
-                </textarea>
-                <input type="hidden" name="recaptcha_response_field"
-                       value="manual_challenge">
-            </noscript><br />
+            <div id="divReCaptcha">
+                <button id="btnGetReCaptcha" onclick="getReCaptchaKey(); return false;">Get ReCaptcha Image</button><br />
+            </div>
             <input type="submit" value="Submit" />
         </form>
     
@@ -154,9 +199,9 @@
             Client: <input type="text" name="client" value="testWeb" /><br />
             <input type="submit" value="Submit" />
         </form>
-		
-		<h2>Campaign APIs</h2>
-		<h3>Campaign Create:</h3>
+        
+        <h2>Campaign APIs</h2>
+        <h3>Campaign Create:</h3>
         <form action="/app/campaign/create" enctype="multipart/form-data" method="post">
             Token: <input type="text" name="auth_token" /><br />
             Running State: <input type="text" name="running_state" /><br />
@@ -168,21 +213,21 @@
             <input type="submit" value="Submit" />
         </form>
 
-		<h3>Campaign Read:</h3>
-		<form action="/app/campaign/read" method="post">
-			Output Format: <input type="text" name="output_format" /><br />
-			Client: <input type="text" name="client" value="testWeb" /><br />
-			* Campaign URN List: <input type="text" name="campaign_urn_list" /><br />
-			* Class URN List: <input type="text" name="class_urn_list" /><br />
-			* Start Date: <input type="text" name="start_date" /><br />
-			* End Date: <input type="text" name="end_date" /><br />
-			* Privacy State: <input type="text" name="privacy_state" /><br />
-			* Running State: <input type="text" name="running_state" /><br />
-			* Campaign Role: <input type="text" name="user_role" /><br />
-			<input type="submit" value="Submit" />
-		</form>
-		
-		<h3>Campaign Update:</h3>
+        <h3>Campaign Read:</h3>
+        <form action="/app/campaign/read" method="post">
+            Output Format: <input type="text" name="output_format" /><br />
+            Client: <input type="text" name="client" value="testWeb" /><br />
+            * Campaign URN List: <input type="text" name="campaign_urn_list" /><br />
+            * Class URN List: <input type="text" name="class_urn_list" /><br />
+            * Start Date: <input type="text" name="start_date" /><br />
+            * End Date: <input type="text" name="end_date" /><br />
+            * Privacy State: <input type="text" name="privacy_state" /><br />
+            * Running State: <input type="text" name="running_state" /><br />
+            * Campaign Role: <input type="text" name="user_role" /><br />
+            <input type="submit" value="Submit" />
+        </form>
+        
+        <h3>Campaign Update:</h3>
         <form action="/app/campaign/update" enctype="multipart/form-data" method="post">
             Token: <input type="text" name="auth_token" /><br />
             Campaign ID: <input type="text" name="campaign_urn" /><br />
@@ -241,8 +286,8 @@
             Client: <input type="text" name="client" value="testWeb" /><br />
             <input type="submit" value="Submit" />
         </form>
-		
-		<h3>Class Update:</h3>
+        
+        <h3>Class Update:</h3>
         <form action="/app/class/update" method="post">
             Token: <input type="text" name="auth_token" /><br />
             Class ID: <input type="text" name="class_urn" /><br />
@@ -270,9 +315,9 @@
             Client: <input type="text" name="client" value="testWeb" /><br />
             <input type="submit" value="Submit" />
         </form>
-		
-		<h2>Document APIs</h2>
-		<h3>Document Creation:</h3>
+        
+        <h2>Document APIs</h2>
+        <h3>Document Creation:</h3>
         <form action="/app/document/create" enctype="multipart/form-data" method="post">
             Token: <input type="text" name="auth_token" /><br />
             Name: <input type="text" name="document_name" /><br />
@@ -326,32 +371,32 @@
             Client: <input type="text" name="client" value="testWeb" /><br />
             <input type="submit" value="Submit" />
         </form>
-		
-		<h2>Survey Response APIs</h2>
-		<h3>Survey Response Read:</h3>
-		<form action="/app/survey_response/read" method="post">
-			Campaign ID: <input type="text" name="campaign_urn" /><br />
-			Column List: <input type="text" name="column_list" /><br />
-			Output Format: <input type="text" name="output_format" /><br />
-			User List: <input type="text" name="user_list" /><br />
-			Client: <input type="text" name="client" value="testWeb" /><br />
-			+ Survey ID List: <input type="text" name="survey_id_list" /><br />
-			+ Prompt ID List: <input type="text" name="prompt_id_list" /><br />
-			* Privacy State: <input type="text" name="privacy_state" /><br />
-			* Suppress Metadata: <input type="text" name="suppress_metadata" /><br />
-			* Start Date: <input type="text" name="start_date" /><br />
-			* End Date: <input type="text" name="end_date" /><br />
-			* Sort Order: <input type="text" name="sort_order" /><br />
-			* Pretty Print: <input type="text" name="pretty_print" /><br />
-			* Return ID: <input type="text" name="return_id" /><br />
-			* Collapse: <input type="text" name="collapse" /><br />
-			* Survey Response ID List: <input type="text" name="survey_response_id_list" /><br />
-			* Num Responses to Skip: <input type="text" name="num_to_skip" /><br />
-			* Num Responses to Process: <input type="text" name="num_to_return" /><br />
-			<input type="submit" value="Submit" />
-		</form>
-		
-		<h3>Survey Response Update:</h3>
+        
+        <h2>Survey Response APIs</h2>
+        <h3>Survey Response Read:</h3>
+        <form action="/app/survey_response/read" method="post">
+            Campaign ID: <input type="text" name="campaign_urn" /><br />
+            Column List: <input type="text" name="column_list" /><br />
+            Output Format: <input type="text" name="output_format" /><br />
+            User List: <input type="text" name="user_list" /><br />
+            Client: <input type="text" name="client" value="testWeb" /><br />
+            + Survey ID List: <input type="text" name="survey_id_list" /><br />
+            + Prompt ID List: <input type="text" name="prompt_id_list" /><br />
+            * Privacy State: <input type="text" name="privacy_state" /><br />
+            * Suppress Metadata: <input type="text" name="suppress_metadata" /><br />
+            * Start Date: <input type="text" name="start_date" /><br />
+            * End Date: <input type="text" name="end_date" /><br />
+            * Sort Order: <input type="text" name="sort_order" /><br />
+            * Pretty Print: <input type="text" name="pretty_print" /><br />
+            * Return ID: <input type="text" name="return_id" /><br />
+            * Collapse: <input type="text" name="collapse" /><br />
+            * Survey Response ID List: <input type="text" name="survey_response_id_list" /><br />
+            * Num Responses to Skip: <input type="text" name="num_to_skip" /><br />
+            * Num Responses to Process: <input type="text" name="num_to_return" /><br />
+            <input type="submit" value="Submit" />
+        </form>
+        
+        <h3>Survey Response Update:</h3>
         <form action="/app/survey_response/update" method="post">
             Token: <input type="text" name="auth_token" /><br />
             Survey ID List: <input type="text" name="survey_response_id_list" /><br />
@@ -368,16 +413,16 @@
             <input type="submit" value="Submit" />
         </form>
 
-		<h3>Survey Function Read:</h3>
-		<form action="/app/survey_response/function/read" method="post">
-			Campaign ID: <input type="text" name="campaign_urn" /><br />
-			Function ID: <input type="text" name="id" /><br />
-			Client: <input type="text" name="client" value="testWeb" /><br />
-			* Privacy State Items: <input type="text" name="privacy_state_item_list" /><br />
-			<input type="submit" value="Submit" />
-		</form>
-		
-		<h3>Survey Response Delete</h3>
+        <h3>Survey Function Read:</h3>
+        <form action="/app/survey_response/function/read" method="post">
+            Campaign ID: <input type="text" name="campaign_urn" /><br />
+            Function ID: <input type="text" name="id" /><br />
+            Client: <input type="text" name="client" value="testWeb" /><br />
+            * Privacy State Items: <input type="text" name="privacy_state_item_list" /><br />
+            <input type="submit" value="Submit" />
+        </form>
+        
+        <h3>Survey Response Delete</h3>
         <form action="/app/survey_response/delete" method="post">
             gToken: <input type="text" name="auth_token" /><br />
             Survey Response ID: <input type="text" name="survey_id" /><br />
@@ -415,17 +460,17 @@
             <input type="submit" value="Submit" />
         </form>
 
-		<h3>Mobility Chunked Read:</h3>
-		<form action="/app/mobility/read/chunked" method="post">
-			User: <input type="text" name="user" /><br />
-			Start Date: <input type="text" name="start_date" /><br />
-			End Date: <input type="text" name="end_date" /><br />
-			Client: <input type="text" name="client" value="testWeb" /><br />
-			<input type="submit" value="Submit" />
-		</form>
-		
-		<h2>Visualization APIs</h2>
-		<h3>Survey Response Count Visualization:</h3>
+        <h3>Mobility Chunked Read:</h3>
+        <form action="/app/mobility/read/chunked" method="post">
+            User: <input type="text" name="user" /><br />
+            Start Date: <input type="text" name="start_date" /><br />
+            End Date: <input type="text" name="end_date" /><br />
+            Client: <input type="text" name="client" value="testWeb" /><br />
+            <input type="submit" value="Submit" />
+        </form>
+        
+        <h2>Visualization APIs</h2>
+        <h3>Survey Response Count Visualization:</h3>
         <form action="/app/viz/survey_response_count/read" method="post">
             Width: <input type="text" name="width" /><br />
             Height: <input type="text" name="height" /><br />
@@ -531,5 +576,5 @@
             Prompt2 ID: <input type="text" name="prompt2_id" /><br />
             <input type="submit" value="Submit" />
         </form>
-	</body>
+    </body>
 </html>
