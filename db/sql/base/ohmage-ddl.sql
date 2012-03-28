@@ -502,6 +502,8 @@ CREATE TABLE annotation (
   timezone varchar(32) NOT NULL,
   client tinytext NOT NULL, 
   annotation text NOT NULL,
+  last_modified_timestamp timestamp default current_timestamp on update current_timestamp,
+  creation_timestamp datetime NOT NULL,
   PRIMARY KEY (id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
