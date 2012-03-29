@@ -48,15 +48,16 @@ import org.ohmage.request.mobility.MobilityReadCsvRequest;
 import org.ohmage.request.mobility.MobilityReadRequest;
 import org.ohmage.request.mobility.MobilityUploadRequest;
 import org.ohmage.request.registration.RegistrationReadRequest;
-import org.ohmage.request.survey.PromptResponseAnnotationCreationRequest;
-import org.ohmage.request.survey.PromptResponseAnnotationReadRequest;
-import org.ohmage.request.survey.SurveyResponseAnnotationCreationRequest;
-import org.ohmage.request.survey.SurveyResponseAnnotationReadRequest;
 import org.ohmage.request.survey.SurveyResponseDeleteRequest;
 import org.ohmage.request.survey.SurveyResponseFunctionReadRequest;
 import org.ohmage.request.survey.SurveyResponseReadRequest;
 import org.ohmage.request.survey.SurveyResponseUpdateRequest;
 import org.ohmage.request.survey.SurveyUploadRequest;
+import org.ohmage.request.survey.annotation.AnnotationUpdateRequest;
+import org.ohmage.request.survey.annotation.PromptResponseAnnotationCreationRequest;
+import org.ohmage.request.survey.annotation.PromptResponseAnnotationReadRequest;
+import org.ohmage.request.survey.annotation.SurveyResponseAnnotationCreationRequest;
+import org.ohmage.request.survey.annotation.SurveyResponseAnnotationReadRequest;
 import org.ohmage.request.user.UserActivationRequest;
 import org.ohmage.request.user.UserChangePasswordRequest;
 import org.ohmage.request.user.UserCreationRequest;
@@ -172,6 +173,7 @@ public final class RequestBuilder {
 	public static final String API_ANNOTATION_PROMPT_RESPONSE_READ = API_ROOT + "/annotation/prompt_response/read";
 	public static final String API_ANNOTATION_SURVEY_RESPONSE_CREATE = API_ROOT + "/annotation/survey_response/create";
 	public static final String API_ANNOTATION_SURVEY_RESPONSE_READ = API_ROOT + "/annotation/survey_response/read";
+	public static final String API_ANNOTATION_UDPATE = API_ROOT + "/annotation/update";
 	
 	// Audit
 	public static final String API_AUDIT_READ = API_ROOT + "/audit/read";
@@ -291,7 +293,9 @@ public final class RequestBuilder {
 		else if(API_ANNOTATION_SURVEY_RESPONSE_READ.equals(requestUri)) {
 			return new SurveyResponseAnnotationReadRequest(httpRequest);
 		}
-				
+		else if(API_ANNOTATION_UDPATE.equals(requestUri)) {
+			return new AnnotationUpdateRequest(httpRequest);
+		}		
 		// Audit
 		else if(API_AUDIT_READ.equals(requestUri)) {
 			return new AuditReadRequest(httpRequest);

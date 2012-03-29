@@ -498,13 +498,15 @@ CREATE TABLE document_user_creator (
 CREATE TABLE annotation (
   id int unsigned NOT NULL auto_increment,
   uuid CHAR(36) NOT NULL UNIQUE,
+  user_id int unsigned NOT NULL,
   epoch_millis bigint unsigned NOT NULL,
   timezone varchar(32) NOT NULL,
   client tinytext NOT NULL, 
   annotation text NOT NULL,
   last_modified_timestamp timestamp default current_timestamp on update current_timestamp,
   creation_timestamp datetime NOT NULL,
-  PRIMARY KEY (id)
+  PRIMARY KEY (id),
+  CONSTRAINT FOREIGN KEY (user_id) REFERENCES user (id) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- --------------------------------------------------------------------

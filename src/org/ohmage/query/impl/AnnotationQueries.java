@@ -21,11 +21,11 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.TimeZone;
 import java.util.UUID;
 
 import javax.sql.DataSource;
 
+import org.joda.time.DateTimeZone;
 import org.ohmage.domain.Annotation;
 import org.ohmage.exception.DataAccessException;
 import org.ohmage.exception.DomainException;
@@ -49,8 +49,8 @@ public class AnnotationQueries extends Query implements IAnnotationQueries {
 
 	private static final String SQL_INSERT_ANNOTATION =
 		"INSERT into annotation " +
-		"(uuid, epoch_millis, timezone, client, annotation) " +
-		"VALUES (?, ?, ?, ?, ?)";
+		"(uuid, epoch_millis, timezone, client, annotation, creation_timestamp) " +
+		"VALUES (?, ?, ?, ?, ?, now())";
 	
 	private static final String SQL_INSERT_SURVEY_RESPONSE_ANNOTATION =
 		"INSERT into survey_response_annotation " +
@@ -78,9 +78,20 @@ public class AnnotationQueries extends Query implements IAnnotationQueries {
 		"AND pr.id = pra.prompt_response_id " +
 		"AND pra.annotation_id = a.id";
 	
-	private static final String AND_REPEATABLE_SET =
+	private static final String SQL_READ_PROMPT_RESPONSE_ANNOTATION_AND_REPEATABLE_SET =
 		" AND repeatable_set_id = ? " +
 		"AND repeatable_set_iteration = ?";
+	
+	private static final String SQL_ANNOTATION_EXISTS_FOR_USER = 
+		"SELECT EXISTS" +
+		" (SELECT id FROM annotation" +
+		" WHERE user_id = (SELECT id from user WHERE username = ?)" +
+		" AND uuid = ?)";
+
+	private static final String SQL_UPDATE_ANNOTATION = 
+		"UPDATE annotation " +
+		"SET epoch_millis = ?, timezone = ?, client = ?, annotation = ? " +
+		"WHERE uuid = ?";
 	
 	/**
 	 * Creates this object via dependency injection (reflection).
@@ -93,7 +104,7 @@ public class AnnotationQueries extends Query implements IAnnotationQueries {
 	
 	@Override
 	public void createSurveyResponseAnnotation(final UUID annotationId,
-		final String client, final Long time, final TimeZone timezone, final String annotationText, final UUID surveyId)
+		final String client, final Long time, final DateTimeZone timezone, final String annotationText, final UUID surveyId)
 			throws DataAccessException {
 		
 		// Create the transaction.
@@ -181,7 +192,7 @@ public class AnnotationQueries extends Query implements IAnnotationQueries {
 	
 	@Override
 	public void createPromptResponseAnnotation(final UUID annotationId, final String client, final Long time,
-		final TimeZone timezone, final String annotationText, Integer promptResponseId)
+		final DateTimeZone timezone, final String annotationText, Integer promptResponseId)
 			throws DataAccessException {
 		
 		// Create the transaction.
@@ -250,7 +261,7 @@ public class AnnotationQueries extends Query implements IAnnotationQueries {
 		args.add(promptId);
 		
 		if(repeatableSetId != null && repeatableSetIteration != null) {
-			sql.append(AND_REPEATABLE_SET);
+			sql.append(SQL_READ_PROMPT_RESPONSE_ANNOTATION_AND_REPEATABLE_SET);
 			args.add(repeatableSetId);
 			args.add(repeatableSetIteration);
 		}
@@ -280,6 +291,18 @@ public class AnnotationQueries extends Query implements IAnnotationQueries {
 		}
 	}
 	
+	@Override
+	public boolean userOwnsAnnotation(String username, UUID annotationId) 
+			throws DataAccessException {
+		try {
+			return getJdbcTemplate().queryForObject(SQL_ANNOTATION_EXISTS_FOR_USER, new Object[] { username, annotationId.toString() }, Boolean.class);
+		}
+		catch(org.springframework.dao.DataAccessException e) {
+			throw new DataAccessException("Error executing SQL '" + SQL_ANNOTATION_EXISTS_FOR_USER + "' with parameters: " 
+					                      + username + ", " + annotationId, e);
+		}
+	}
+	
 	/**
 	 * Helper method to insert an annotation and allow the other methods in
 	 * this class to do the work of linking the annotation to the appropriate
@@ -293,7 +316,8 @@ public class AnnotationQueries extends Query implements IAnnotationQueries {
 	 * @return the primary key of the newly created annotation
 	 * @throws org.springframework.dao.DataAccessException if an error occurs
 	 */
-	private long insertAnnotation(final UUID annotationId, final Long time, final TimeZone timezone, final String client, final String annotationText)
+	private long insertAnnotation(final UUID annotationId, final Long time, final DateTimeZone timezone, 
+		final String client, final String annotationText)
 			throws org.springframework.dao.DataAccessException {
 		
 		final KeyHolder annotationIdKeyHolder = new GeneratedKeyHolder();
@@ -314,5 +338,48 @@ public class AnnotationQueries extends Query implements IAnnotationQueries {
 		);
 		
 		return annotationIdKeyHolder.getKey().longValue();
+	}
+	
+	@Override
+	public void updateAnnotation(final UUID annotationId, final String annotationText, final String client, 
+		final long time, final DateTimeZone timezone) 
+			throws DataAccessException {
+		
+		// Create the transaction.
+		DefaultTransactionDefinition def = new DefaultTransactionDefinition();
+		def.setName("Updating an annotation.");
+		
+		try {
+			// Begin the transaction.
+			PlatformTransactionManager transactionManager = new DataSourceTransactionManager(getDataSource());
+			TransactionStatus status = transactionManager.getTransaction(def);
+			
+			try {
+				getJdbcTemplate().update(
+					SQL_UPDATE_ANNOTATION, 
+					time, timezone.getID(), client, annotationText, annotationId.toString() 
+				);
+			}
+			catch(org.springframework.dao.DataAccessException e) {
+				
+				transactionManager.rollback(status);
+				throw new DataAccessException(
+					"Error executing SQL '" + SQL_UPDATE_ANNOTATION + "' with parameters: " +  
+						time + ", " + timezone.getID() + ", " + client + ", " + annotationText + ", " + annotationId.toString(), 
+					e);
+			}
+			
+			// Commit the transaction.
+			try {
+				transactionManager.commit(status);
+			}
+			catch(TransactionException e) {
+				transactionManager.rollback(status);
+				throw new DataAccessException("Error while committing the transaction.", e);
+			}
+		}
+		catch(TransactionException e) {
+			throw new DataAccessException("Error while attempting to rollback the transaction.", e);
+		}		
 	}
 }

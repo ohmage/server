@@ -576,5 +576,66 @@
             Prompt2 ID: <input type="text" name="prompt2_id" /><br />
             <input type="submit" value="Submit" />
         </form>
+        
+        <h2>Survey Response Annotation APIs</h2>
+        
+        <h3>Create Survey Response Annotation:</h3>
+        <form action="/app/annotation/survey_response/create" method="post">
+            Auth Token: <input type="text" name="auth_token" /><br />
+            Client: <input type="text" name="client" value="testWeb" /><br />
+            Survey ID: <input type="text" name="survey_id" /><br />
+            Time: <input type="text" name="time" value="0"/><br />
+            Timezone: <input type="text" name="timezone" value="America/Los_Angeles" /><br />
+            Annotation Text: <input type="text" name="annotation" /><br />
+            <input type="submit" value="Submit" />
+        </form>
+
+        <h3>Read Survey Response Annotation:</h3>
+        <form action="/app/annotation/survey_response/read" method="post">
+            Auth Token: <input type="text" name="auth_token" /><br />
+            Client: <input type="text" name="client" value="testWeb" /><br />
+            Survey ID: <input type="text" name="survey_id" /><br />
+            <input type="submit" value="Submit" />
+        </form>
+
+	
+	    <h2>Prompt Response Annotation APIs</h2>
+
+        <h3>Create Prompt Response Annotation:</h3>
+        <form action="/app/annotation/prompt_response/create" method="post">
+            Auth Token: <input type="text" name="auth_token" /><br />
+            Client: <input type="text" name="client" value="testWeb" /><br />
+            Survey ID: <input type="text" name="survey_id" /><br />
+            Prompt ID: <input type="text" name="prompt_id" /><br />
+            * Repeatable Set ID: <input type="text" name="repeatable_set_id" /><br />
+            * Repeatable Set Iteration: <input type="text" name="repeatable_set_iteration" /><br />
+            Time: <input type="text" name="time" value="0"/><br />
+            Timezone: <input type="text" name="timezone" value="America/Los_Angeles" /><br />
+            Annotation Text: <input type="text" name="annotation" /><br />
+            <input type="submit" value="Submit" />
+        </form>
+
+        <h3>Read Prompt Response Annotation:</h3>
+        <form action="/app/annotation/prompt_response/read" method="post">
+            Auth Token: <input type="text" name="auth_token" /><br />
+            Client: <input type="text" name="client" value="testWeb" /><br />
+            Survey ID: <input type="text" name="survey_id" /><br />
+            Prompt ID: <input type="text" name="prompt_id" /><br />
+            * Repeatable Set ID: <input type="text" name="repeatable_set_id" /><br />
+            * Repeatable Set Iteration: <input type="text" name="repeatable_set_iteration" /><br />
+            <input type="submit" value="Submit" />
+        </form>
+		
+		<h2>Update Annotation:</h2>
+        <form action="/app/annotation/update" method="post">
+            Auth Token: <input type="text" name="auth_token" /><br />
+            Client: <input type="text" name="client" value="testWeb" /><br />
+            Annotation ID: <input type="text" name="annotation_id" /><br />
+            Time: <input type="text" name="time" value="0"/><br />
+            Timezone: <input type="text" name="timezone" value="America/Los_Angeles" /><br />
+            Annotation Text: <input type="text" name="annotation" /><br />
+            <input type="submit" value="Submit" />
+        </form>
+		
     </body>
 </html>

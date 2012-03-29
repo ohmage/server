@@ -19,10 +19,10 @@ import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.TimeZone;
 import java.util.UUID;
 
 import org.apache.log4j.Logger;
+import org.joda.time.DateTimeZone;
 import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.domain.Annotation;
 import org.ohmage.domain.campaign.Campaign;
@@ -95,7 +95,7 @@ public final class UserAnnotationServices {
 		}
 		
 		if(! campaignIds.contains(campaignUrn)) {
-			throw new ServiceException(ErrorCode.CAMPAIGN_INSUFFICIENT_PERMISSIONS, "A user attempted to update a survey response for a campaign he or she is not a member of.");
+			throw new ServiceException(ErrorCode.ANNOTATION_INSUFFICIENT_PERMISSIONS, "A user attempted to update a survey response for a campaign he or she is not a member of.");
 		}
 		
 		// Create a temporary single-item list in order to use
@@ -110,7 +110,7 @@ public final class UserAnnotationServices {
 		if(campaignRoleMap.isEmpty()) {
 			LOGGER.warn("A user is attempting to create a survey response annotation for campaign " + campaignUrn + ", but the user has no role in the campaign.");
 			throw new ServiceException(
-					ErrorCode.CAMPAIGN_INSUFFICIENT_PERMISSIONS, 
+					ErrorCode.ANNOTATION_INSUFFICIENT_PERMISSIONS, 
 					"The logged-in user does not have the permissions to create a survey response annotation.");
 		}
 		
@@ -119,7 +119,7 @@ public final class UserAnnotationServices {
 		
 		if(! roleList.contains(Campaign.Role.SUPERVISOR)) {
 			throw new ServiceException(
-					ErrorCode.CAMPAIGN_INSUFFICIENT_PERMISSIONS, 
+					ErrorCode.ANNOTATION_INSUFFICIENT_PERMISSIONS, 
 					"The logged-in user does not have the permissions to create a survey response annotation.");
 		}
 	}
@@ -136,8 +136,9 @@ public final class UserAnnotationServices {
 	 * @return the UUID representing the key for the annotation
 	 * @throws ServiceException if an error occurs
 	 */
-	public UUID createSurveyResponseAnnotation(String client, Long time, TimeZone timezone, String annotationText, UUID surveyId) 
-			throws ServiceException {
+	public UUID createSurveyResponseAnnotation(final String client, final Long time, 
+			final DateTimeZone timezone, final String annotationText, final UUID surveyId) 
+				throws ServiceException {
 		try {
 			UUID annotationId = UUID.randomUUID();
 			annotationQueries.createSurveyResponseAnnotation(annotationId, client, time, timezone, annotationText, surveyId);
@@ -155,7 +156,8 @@ public final class UserAnnotationServices {
 	 * @return returns a list of annotations that are attached to the provided 
 	 * survey id
 	 */
-	public List<Annotation> readSurveyResponseAnnotations(UUID surveyId) throws ServiceException {
+	public List<Annotation> readSurveyResponseAnnotations(final UUID surveyId)
+			throws ServiceException {
 		try {
 			return annotationQueries.readSurveyResponseAnnotations(surveyId);
 		}
@@ -163,9 +165,32 @@ public final class UserAnnotationServices {
 			throw new ServiceException(e);
 		}
 	}
+
+	/**
+	 * Dispatches to the data layer to check whether the user
+	 * is the owner of the annotation. Only supervisors can 
+	 * create annotations and then they are the only users
+	 * (aside from admins) that can read those annotations.
+	 * 
+	 * @param username       The username in question.
+	 * @param annotationId   The annotation in question.
+	 *
+	 * @throws DataAccessException if an error occurs.
+	 */
+	public void verifyUserOwnsAnnotation(final String username, final UUID annotationId) throws ServiceException {
+		try {
+			if(! annotationQueries.userOwnsAnnotation(username, annotationId)) {
+				throw new ServiceException(ErrorCode.ANNOTATION_INSUFFICIENT_PERMISSIONS, 
+				"The logged-in user does not have the permissions to update a survey response annotation.");
+			}
+		}
+		catch(DataAccessException e) {
+			throw new ServiceException(e);
+		}
+	}
 	
 	/**
-	 * Dispatches to the data layer to create an annotation on a survey
+	 * Dispatches to the data layer to create an annotation on a prompt
 	 * response.
 	 * 
 	 * @param client the ubiquitous client parameter
@@ -176,7 +201,8 @@ public final class UserAnnotationServices {
  	 * @return the UUID representing the key for the annotation
 	 * @throws ServiceException if an error occurs
 	 */
-	public UUID createPromptResponseAnnotation(String client, Long time, TimeZone timezone, String annotationText, Integer promptResponseId) 
+	public UUID createPromptResponseAnnotation(final String client, final Long time, final DateTimeZone timezone,
+		final String annotationText, final Integer promptResponseId) 
 			throws ServiceException {
 		try {
 			UUID annotationId = UUID.randomUUID();
@@ -195,10 +221,32 @@ public final class UserAnnotationServices {
 	 * @return returns a list of annotations that are attached to the provided 
 	 * survey id
 	 */
-	public List<Annotation> readPromptResponseAnnotations(UUID surveyId, String promptId, String repeatableSetId, Integer repeatableSetIteration) 
-		throws ServiceException {
+	public List<Annotation> readPromptResponseAnnotations(final UUID surveyId, final String promptId, 
+		final String repeatableSetId, final Integer repeatableSetIteration) 
+			throws ServiceException {
 		try {
 			return annotationQueries.readPromptResponseAnnotations(surveyId, promptId, repeatableSetId, repeatableSetIteration);
+		}
+		catch(DataAccessException e) {
+			throw new ServiceException(e);
+		}
+	}
+	
+	/**
+	 * Updates annotation text and its associated metadata.
+	 * 
+	 * @param annotationId   The id of the annotation to update.
+	 * @param annotationText The updated text.
+	 * @param client         The software client that generated the request. 
+	 * @param time           The milliseconds since the epoch from the client.
+	 * @param timezone       The client timezone.  
+	 * @throws ServiceException  if an error occurs
+	 */
+	public void updateAnnotation(final UUID annotationId, final String annotationText, final String client,
+		final long time, final DateTimeZone timezone) 
+			throws ServiceException {
+		try {
+			annotationQueries.updateAnnotation(annotationId, annotationText, client, time, timezone);
 		}
 		catch(DataAccessException e) {
 			throw new ServiceException(e);

@@ -177,6 +177,7 @@ public final class InputKeys {
 	
 	// Annotation Constants
 	public static final String ANNOTATION_TEXT = "annotation";
+	public static final String ANNOTATION_ID = "annotation_id";
 	
 	// Separator Constants
 	public static final String LIST_ITEM_SEPARATOR = ",";
