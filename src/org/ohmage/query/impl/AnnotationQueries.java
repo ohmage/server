@@ -93,6 +93,9 @@ public class AnnotationQueries extends Query implements IAnnotationQueries {
 		"SET epoch_millis = ?, timezone = ?, client = ?, annotation = ? " +
 		"WHERE uuid = ?";
 	
+	private static final String SQL_DELETE_ANNOTATION =
+		"DELETE from annotation WHERE uuid = ?";
+	
 	/**
 	 * Creates this object via dependency injection (reflection).
 	 * 
@@ -366,6 +369,44 @@ public class AnnotationQueries extends Query implements IAnnotationQueries {
 				throw new DataAccessException(
 					"Error executing SQL '" + SQL_UPDATE_ANNOTATION + "' with parameters: " +  
 						time + ", " + timezone.getID() + ", " + client + ", " + annotationText + ", " + annotationId.toString(), 
+					e);
+			}
+			
+			// Commit the transaction.
+			try {
+				transactionManager.commit(status);
+			}
+			catch(TransactionException e) {
+				transactionManager.rollback(status);
+				throw new DataAccessException("Error while committing the transaction.", e);
+			}
+		}
+		catch(TransactionException e) {
+			throw new DataAccessException("Error while attempting to rollback the transaction.", e);
+		}		
+	}
+	
+	@Override
+	public void deleteAnnotation(final UUID annotationId) throws DataAccessException {
+		// Create the transaction.
+		DefaultTransactionDefinition def = new DefaultTransactionDefinition();
+		def.setName("Deleting an annotation.");
+		
+		try {
+			// Begin the transaction.
+			PlatformTransactionManager transactionManager = new DataSourceTransactionManager(getDataSource());
+			TransactionStatus status = transactionManager.getTransaction(def);
+			
+			try {
+				getJdbcTemplate().update(
+					SQL_DELETE_ANNOTATION, annotationId.toString() 
+				);
+			}
+			catch(org.springframework.dao.DataAccessException e) {
+				
+				transactionManager.rollback(status);
+				throw new DataAccessException(
+					"Error executing SQL '" + SQL_DELETE_ANNOTATION + "' with parameter: " + annotationId.toString(), 
 					e);
 			}
 			

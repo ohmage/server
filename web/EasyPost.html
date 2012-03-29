@@ -590,7 +590,7 @@
             <input type="submit" value="Submit" />
         </form>
 
-        <h3>Read Survey Response Annotation:</h3>
+        <h3>Read Survey Response Annotations:</h3>
         <form action="/app/annotation/survey_response/read" method="post">
             Auth Token: <input type="text" name="auth_token" /><br />
             Client: <input type="text" name="client" value="testWeb" /><br />
@@ -615,7 +615,7 @@
             <input type="submit" value="Submit" />
         </form>
 
-        <h3>Read Prompt Response Annotation:</h3>
+        <h3>Read Prompt Response Annotations:</h3>
         <form action="/app/annotation/prompt_response/read" method="post">
             Auth Token: <input type="text" name="auth_token" /><br />
             Client: <input type="text" name="client" value="testWeb" /><br />
@@ -634,6 +634,14 @@
             Time: <input type="text" name="time" value="0"/><br />
             Timezone: <input type="text" name="timezone" value="America/Los_Angeles" /><br />
             Annotation Text: <input type="text" name="annotation" /><br />
+            <input type="submit" value="Submit" />
+        </form>
+
+		<h2>Delete Annotation:</h2>
+        <form action="/app/annotation/delete" method="post">
+            Auth Token: <input type="text" name="auth_token" /><br />
+            Client: <input type="text" name="client" value="testWeb" /><br />
+            Annotation ID: <input type="text" name="annotation_id" /><br />
             <input type="submit" value="Submit" />
         </form>
 		

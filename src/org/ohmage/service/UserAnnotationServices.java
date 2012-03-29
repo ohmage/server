@@ -252,4 +252,19 @@ public final class UserAnnotationServices {
 			throw new ServiceException(e);
 		}
 	}
+	
+	/**
+	 * Deletes an annotation.
+	 * 
+	 * @param annotationId   The id of the annotation to delete.
+	 * @throws ServiceException  if an error occurs
+	 */
+	public void deleteAnnotation(final UUID annotationId) throws ServiceException {
+		try {
+			annotationQueries.deleteAnnotation(annotationId);
+		}
+		catch(DataAccessException e) {
+			throw new ServiceException(e);
+		}
+	}
 }

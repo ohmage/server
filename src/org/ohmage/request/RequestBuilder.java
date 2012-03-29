@@ -53,6 +53,7 @@ import org.ohmage.request.survey.SurveyResponseFunctionReadRequest;
 import org.ohmage.request.survey.SurveyResponseReadRequest;
 import org.ohmage.request.survey.SurveyResponseUpdateRequest;
 import org.ohmage.request.survey.SurveyUploadRequest;
+import org.ohmage.request.survey.annotation.AnnotationDeleteRequest;
 import org.ohmage.request.survey.annotation.AnnotationUpdateRequest;
 import org.ohmage.request.survey.annotation.PromptResponseAnnotationCreationRequest;
 import org.ohmage.request.survey.annotation.PromptResponseAnnotationReadRequest;
@@ -174,6 +175,7 @@ public final class RequestBuilder {
 	public static final String API_ANNOTATION_SURVEY_RESPONSE_CREATE = API_ROOT + "/annotation/survey_response/create";
 	public static final String API_ANNOTATION_SURVEY_RESPONSE_READ = API_ROOT + "/annotation/survey_response/read";
 	public static final String API_ANNOTATION_UDPATE = API_ROOT + "/annotation/update";
+	public static final String API_ANNOTATION_DELETE = API_ROOT + "/annotation/delete";
 	
 	// Audit
 	public static final String API_AUDIT_READ = API_ROOT + "/audit/read";
@@ -295,6 +297,9 @@ public final class RequestBuilder {
 		}
 		else if(API_ANNOTATION_UDPATE.equals(requestUri)) {
 			return new AnnotationUpdateRequest(httpRequest);
+		}
+		else if(API_ANNOTATION_DELETE.equals(requestUri)) {
+			return new AnnotationDeleteRequest(httpRequest);
 		}		
 		// Audit
 		else if(API_AUDIT_READ.equals(requestUri)) {

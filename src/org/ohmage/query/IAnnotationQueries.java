@@ -122,5 +122,11 @@ public interface IAnnotationQueries {
 	    DateTimeZone timezone
 	) throws DataAccessException;
 	
-	
+	/**
+	 * @param annotationId     The id of the annotation to update.
+	 * @throws DataAccessException if an error occurs
+	 */
+	void deleteAnnotation(
+	    UUID annotationId
+	) throws DataAccessException;
 }
