@@ -18,11 +18,9 @@ package org.ohmage.query.impl;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Set;
 
 import javax.sql.DataSource;
 
@@ -1455,9 +1453,6 @@ public class UserQueries extends Query implements IUserQueries {
 		// Always order the results by username to facilitate paging.
 		sql.append(" ORDER BY u.username");
 		
-		System.out.println(sql.toString());
-		System.out.println(parameters.toString());
-		
 		// Returns the results as queried by the database.
 		try {
 			return getJdbcTemplate().query(
@@ -1556,12 +1551,8 @@ public class UserQueries extends Query implements IUserQueries {
 										enabled,
 										newAccount,
 										canCreateCampaigns,
-										Collections.
-											<String, Set<Campaign.Role>>
-												emptyMap(),
-										Collections.
-											<String, Clazz.Role>
-												emptyMap(),
+										null,
+										null,
 										personalInfo);
 							}
 							catch(DomainException e) {

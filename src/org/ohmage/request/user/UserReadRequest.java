@@ -18,6 +18,7 @@ package org.ohmage.request.user;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
@@ -413,20 +414,22 @@ public class UserReadRequest extends UserRequest {
 			metadata.put(JSON_KEY_TOTAL_NUM_RESULTS, numResults);
 			
 			for(UserInformation userInformation : results) {
+				JSONObject currResult = userInformation.toJson(false, false);
+				
 				UserPersonal personalInformation = 
 						userInformation.getPersonalInfo();
-				
-				JSONObject currResult;
-				if(personalInformation == null) {
-					currResult = new JSONObject();
+				if(personalInformation != null) {
+					JSONObject personalJson = 
+							personalInformation.toJsonObject();
+					
+					@SuppressWarnings("unchecked")
+					Iterator<String> personalJsonIter = personalJson.keys();
+					while(personalJsonIter.hasNext()) {
+						String currKey = personalJsonIter.next();
+						
+						currResult.put(currKey, personalJson.get(currKey));
+					}
 				}
-				else {
-					currResult = personalInformation.toJsonObject();
-				}
-				
-				currResult.put(
-					UserInformation.UserColumnKey.EMAIL_ADDRESS.toString(), 
-					userInformation.getEmailAddress());
 				
 				jsonResult.put(userInformation.getUsername(), currResult);
 			}

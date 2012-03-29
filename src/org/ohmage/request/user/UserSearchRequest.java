@@ -426,7 +426,7 @@ public class UserSearchRequest extends UserRequest {
 				for(UserInformation userInfo : userInformation) {
 					result.put(
 							userInfo.getUsername(), 
-							userInfo.toJson());
+							userInfo.toJson(true, true));
 				}
 			}
 			catch(JSONException e) {
