@@ -195,7 +195,6 @@ public class AnnotationUpdateRequest extends UserRequest {
 		}
 		
 		try {
-			
 			if(! UserServices.instance().isUserAnAdmin(this.getUser().getUsername())) {
 				
 				// TODO discuss with team: should users be able to update 
@@ -221,6 +220,7 @@ public class AnnotationUpdateRequest extends UserRequest {
 	 */
 	@Override
 	public void respond(HttpServletRequest httpRequest, HttpServletResponse httpResponse) {
+		LOGGER.info("Responding to the annotation update request.");
 		super.respond(httpRequest, httpResponse, null);
 	}
 }

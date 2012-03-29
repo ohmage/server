@@ -142,6 +142,7 @@ public class AnnotationDeleteRequest extends UserRequest {
 	 */
 	@Override
 	public void respond(HttpServletRequest httpRequest, HttpServletResponse httpResponse) {
+		LOGGER.info("Responding to the annotation delete request.");
 		super.respond(httpRequest, httpResponse, null);
 	}
 }

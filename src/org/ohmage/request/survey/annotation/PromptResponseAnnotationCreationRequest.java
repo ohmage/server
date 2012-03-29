@@ -32,6 +32,7 @@ import org.ohmage.request.UserRequest;
 import org.ohmage.service.PromptResponseServices;
 import org.ohmage.service.UserAnnotationServices;
 import org.ohmage.service.UserCampaignServices;
+import org.ohmage.service.UserServices;
 import org.ohmage.util.StringUtils;
 import org.ohmage.validator.SurveyResponseValidators;
 
@@ -311,17 +312,20 @@ public class PromptResponseAnnotationCreationRequest extends UserRequest {
 		}
 		
 		try {
-			Set<String> campaignIds = UserCampaignServices.instance().getCampaignsForUser(getUser().getUsername(), null, null, null, null, null, null, null);
 			
-			if(campaignIds.isEmpty()) {
-				throw new ServiceException("The user does not belong to any campaigns.");
+			if(! UserServices.instance().isUserAnAdmin(this.getUser().getUsername())) {
+			
+				Set<String> campaignIds = UserCampaignServices.instance().getCampaignsForUser(getUser().getUsername(), null, null, null, null, null, null, null);
+				
+				if(campaignIds.isEmpty()) {
+					throw new ServiceException("The user does not belong to any campaigns.");
+				}
+				
+				LOGGER.info("Verifying that the logged in user can create a prompt response annotation");
+				// By default, if a user can create a survey response annotation,
+				// he or she can create a prompt response annotation.
+				UserAnnotationServices.instance().userCanAccessSurveyResponseAnnotation(getUser().getUsername(), campaignIds, surveyId);
 			}
-			
-			LOGGER.info("Verifying that the logged in user can create a prompt response annotation");
-			// By default, if a user can create a survey response annotation,
-			// he or she can create a prompt response annotation.
-			UserAnnotationServices.instance().userCanAccessSurveyResponseAnnotation(getUser().getUsername(), campaignIds, surveyId);
-			
 			
 			LOGGER.info("Verifying that the provided input parameters reference an actual prompt response");
 			int promptResponseId = PromptResponseServices.instance().findPromptResponseIdFor(surveyId, promptId, repeatableSetId, repeatableSetIteration);

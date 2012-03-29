@@ -34,6 +34,7 @@ import org.ohmage.request.InputKeys;
 import org.ohmage.request.UserRequest;
 import org.ohmage.service.UserAnnotationServices;
 import org.ohmage.service.UserCampaignServices;
+import org.ohmage.service.UserServices;
 import org.ohmage.validator.SurveyResponseValidators;
 
 /**
@@ -123,14 +124,16 @@ public class SurveyResponseAnnotationReadRequest extends UserRequest {
 		}
 		
 		try {
-			Set<String> campaignIds = UserCampaignServices.instance().getCampaignsForUser(getUser().getUsername(), null, null, null, null, null, null, null);
-			
-			if(campaignIds.isEmpty()) {
-				throw new ServiceException("The user does not belong to any campaigns.");
+			if(! UserServices.instance().isUserAnAdmin(this.getUser().getUsername())) {
+				Set<String> campaignIds = UserCampaignServices.instance().getCampaignsForUser(getUser().getUsername(), null, null, null, null, null, null, null);
+				
+				if(campaignIds.isEmpty()) {
+					throw new ServiceException("The user does not belong to any campaigns.");
+				}
+				
+				LOGGER.info("Verifying that the logged in user can read survey response annotations.");
+				UserAnnotationServices.instance().userCanAccessSurveyResponseAnnotation(getUser().getUsername(), campaignIds, surveyId);
 			}
-			
-			LOGGER.info("Verifying that the logged in user can read survey response annotations.");
-			UserAnnotationServices.instance().userCanAccessSurveyResponseAnnotation(getUser().getUsername(), campaignIds, surveyId);
 			
 			LOGGER.info("Reading survey response annotations.");
 			annotationsToReturn = UserAnnotationServices.instance().readSurveyResponseAnnotations(this.surveyId);
