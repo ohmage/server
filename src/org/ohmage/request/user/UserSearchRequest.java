@@ -59,6 +59,12 @@ import org.ohmage.validator.UserValidators;
  *     <td>false</td>
  *   </tr>
  *   <tr>
+ *     <td>{@value org.ohmage.request.InputKeys#EMAIL_ADDRESS}</td>
+ *     <td>Only return information about users that have personal information
+ *       and their email address contains this value.</td>
+ *     <td>false</td>
+ *   </tr>
+ *   <tr>
  *     <td>{@value org.ohmage.request.InputKeys#USER_ADMIN}</td>
  *     <td>Only return information about users whose admin value matches this
  *       parameter.</td>
@@ -105,18 +111,6 @@ import org.ohmage.validator.UserValidators;
  *     <td>{@value org.ohmage.request.InputKeys#PERSONAL_ID}</td>
  *     <td>Only return information about users that have personal information
  *       and their personal ID contains this value.</td>
- *     <td>false</td>
- *   </tr>
- *   <tr>
- *     <td>{@value org.ohmage.request.InputKeys#EMAIL_ADDRESS}</td>
- *     <td>Only return information about users that have personal information
- *       and their email address contains this value.</td>
- *     <td>false</td>
- *   </tr>
- *   <tr>
- *     <td>{@value org.ohmage.request.InputKeys#USER_JSON_DATA}</td>
- *     <td>Only return information about users that have personal information
- *       and their JSON data contains this value.</td>
  *     <td>false</td>
  *   </tr>
  *   <tr>
@@ -386,12 +380,13 @@ public class UserSearchRequest extends UserRequest {
 			UserServices.instance().verifyUserIsAdmin(getUser().getUsername());
 			
 			LOGGER.info("Searching for the users that satisfy the parameters.");
-			totalNumResults = UserServices.instance().userSearch(
+			totalNumResults = 
+					UserServices.instance().userSearch(
 						getUser().getUsername(),
 						username, 
 						emailAddress,
 						admin, 
-						enabled, 
+						enabled,
 						newAccount, 
 						campaignCreationPrivilege, 
 						firstName, 

@@ -19,7 +19,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Map;
 
-import org.json.JSONObject;
 import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.domain.ServerConfig;
 import org.ohmage.domain.UserInformation.UserPersonal;
@@ -362,7 +361,7 @@ public class UserApiTests {
 		
 		// No authentication token.
 		try {
-			api.updateUser(null, Controller.CLIENT, username, null, null, null, null, null, null, null, null, null, null);
+			api.updateUser(null, Controller.CLIENT, username, null, null, null, null, null, null, null, null, null);
 			throw new IllegalArgumentException("Failed: No authentication token.");
 		}
 		catch(RequestErrorException e) {
@@ -373,7 +372,7 @@ public class UserApiTests {
 		
 		// Invalid token.
 		try {
-			api.updateUser("invalid token", Controller.CLIENT, username, null, null, null, null, null, null, null, null, null, null);
+			api.updateUser("invalid token", Controller.CLIENT, username, null, null, null, null, null, null, null, null, null);
 			throw new IllegalArgumentException("Failed: Invalid token.");
 		}
 		catch(RequestErrorException e) {
@@ -384,7 +383,7 @@ public class UserApiTests {
 		
 		// No client.
 		try {
-			api.updateUser(adminAuthToken, null, username, null, null, null, null, null, null, null, null, null, null);
+			api.updateUser(adminAuthToken, null, username, null, null, null, null, null, null, null, null, null);
 			throw new IllegalArgumentException("Failed: No client.");
 		}
 		catch(RequestErrorException e) {
@@ -395,7 +394,7 @@ public class UserApiTests {
 		
 		// Invalid user.
 		try {
-			api.updateUser(adminAuthToken, Controller.CLIENT, "123", null, null, null, null, null, null, null, null, null, null);
+			api.updateUser(adminAuthToken, Controller.CLIENT, "123", null, null, null, null, null, null, null, null, null);
 			throw new IllegalArgumentException("Failed: Invalid user.");
 		}
 		catch(RequestErrorException e) {
@@ -406,17 +405,15 @@ public class UserApiTests {
 		
 		// Test a valid user update query.
 		try {
-			api.updateUser(adminAuthToken, Controller.CLIENT, username, null, null, null, null, null, null, null, null, null, null);
+			api.updateUser(adminAuthToken, Controller.CLIENT, username, null, null, null, null, null, null, null, null, null);
 		}
 		catch(RequestErrorException e) {
 			throw new IllegalArgumentException("Failed: Update with no updates failed.", e);
 		}
 		
-		JSONObject jsonData = new JSONObject();
-		
 		// Missing the first name when personal entry doesn't exist.
 		try {
-			api.updateUser(adminAuthToken, Controller.CLIENT, username, null, null, null, null, null, "Last", "Organization", "PersonalId", "email@address.com", jsonData);
+			api.updateUser(adminAuthToken, Controller.CLIENT, username, null, null, null, null, null, "Last", "Organization", "PersonalId", "email@address.com");
 			throw new IllegalArgumentException("Failed: Invalid first name when a personal entry doesn't exist.");
 		}
 		catch(RequestErrorException e) {
@@ -427,7 +424,7 @@ public class UserApiTests {
 		
 		// Missing the last name when personal entry doesn't exist.
 		try {
-			api.updateUser(adminAuthToken, Controller.CLIENT, username, null, null, null, null, "First", null, "Organization", "PersonalId", "email@address.com", jsonData);
+			api.updateUser(adminAuthToken, Controller.CLIENT, username, null, null, null, null, "First", null, "Organization", "PersonalId", "email@address.com");
 			throw new IllegalArgumentException("Failed: Invalid last name when a personal entry doesn't exist.");
 		}
 		catch(RequestErrorException e) {
@@ -438,7 +435,7 @@ public class UserApiTests {
 		
 		// Missing the organization when personal entry doesn't exist.
 		try {
-			api.updateUser(adminAuthToken, Controller.CLIENT, username, null, null, null, null, "First", "Last", null, "PersonalId", "email@address.com", jsonData);
+			api.updateUser(adminAuthToken, Controller.CLIENT, username, null, null, null, null, "First", "Last", null, "PersonalId", "email@address.com");
 			throw new IllegalArgumentException("Failed: Invalid organization when a personal entry doesn't exist.");
 		}
 		catch(RequestErrorException e) {
@@ -449,7 +446,7 @@ public class UserApiTests {
 		
 		// Missing the personal ID when personal entry doesn't exist.
 		try {
-			api.updateUser(adminAuthToken, Controller.CLIENT, username, null, null, null, null, "First", "Last", "Organization", null, "email@address.com", jsonData);
+			api.updateUser(adminAuthToken, Controller.CLIENT, username, null, null, null, null, "First", "Last", "Organization", null, "email@address.com");
 			throw new IllegalArgumentException("Failed: Invalid personal ID when a personal entry doesn't exist.");
 		}
 		catch(RequestErrorException e) {
@@ -460,7 +457,7 @@ public class UserApiTests {
 		
 		// Creates a user personal entry for the user.
 		try {
-			api.updateUser(adminAuthToken, Controller.CLIENT, username, null, null, null, null, "First", "Last", "Organization", "PersonalId", null, null);
+			api.updateUser(adminAuthToken, Controller.CLIENT, username, null, null, null, null, "First", "Last", "Organization", "PersonalId", null);
 		}
 		catch(RequestErrorException e) {
 			throw new IllegalArgumentException("Failed: Creating a new personal entry.", e);
@@ -504,7 +501,7 @@ public class UserApiTests {
 		
 		// Updates the first name to a new value.
 		try {
-			api.updateUser(adminAuthToken, Controller.CLIENT, username, null, null, null, null, "First1", null, null, null, null, null);
+			api.updateUser(adminAuthToken, Controller.CLIENT, username, null, null, null, null, "First1", null, null, null, null);
 		}
 		catch(RequestErrorException e) {
 			throw new IllegalArgumentException("Failed: Updating the first name.", e);
@@ -548,7 +545,7 @@ public class UserApiTests {
 		
 		// Updates the last name to a new value.
 		try {
-			api.updateUser(adminAuthToken, Controller.CLIENT, username, null, null, null, null, null, "Last1", null, null, null, null);
+			api.updateUser(adminAuthToken, Controller.CLIENT, username, null, null, null, null, null, "Last1", null, null, null);
 		}
 		catch(RequestErrorException e) {
 			throw new IllegalArgumentException("Failed: Updating the user's last name.", e);
@@ -592,7 +589,7 @@ public class UserApiTests {
 		
 		// Updates the organization to a new value.
 		try {
-			api.updateUser(adminAuthToken, Controller.CLIENT, username, null, null, null, null, null, null, "Organization1", null, null, null);
+			api.updateUser(adminAuthToken, Controller.CLIENT, username, null, null, null, null, null, null, "Organization1", null, null);
 		}
 		catch(RequestErrorException e) {
 			throw new IllegalArgumentException("Failed: Updating the user's organization.", e);
@@ -636,7 +633,7 @@ public class UserApiTests {
 		
 		// Updates the personal ID to a new value.
 		try {
-			api.updateUser(adminAuthToken, Controller.CLIENT, username, null, null, null, null, null, null, null, "PersonalId1", null, null);
+			api.updateUser(adminAuthToken, Controller.CLIENT, username, null, null, null, null, null, null, null, "PersonalId1", null);
 		}
 		catch(RequestErrorException e) {
 			throw new IllegalArgumentException("Failed: Updating the user's personal ID.", e);
@@ -704,7 +701,7 @@ public class UserApiTests {
 		
 		// Enables the account.
 		try {
-			api.updateUser(adminAuthToken, Controller.CLIENT, username, null, true, null, null, null, null, null, null, null, null);
+			api.updateUser(adminAuthToken, Controller.CLIENT, username, null, true, null, null, null, null, null, null, null);
 		}
 		catch(RequestErrorException e) {
 			throw new IllegalArgumentException("Failed: Enabling the account.", e);
@@ -793,7 +790,7 @@ public class UserApiTests {
 		
 		// Updates the campaign creation privilege for the user.
 		try {
-			api.updateUser(adminAuthToken, Controller.CLIENT, username, null, null, null, ! config.getDefaultCampaignCreationPrivilege(), null, null, null, null, null, null);
+			api.updateUser(adminAuthToken, Controller.CLIENT, username, null, null, null, ! config.getDefaultCampaignCreationPrivilege(), null, null, null, null, null);
 		}
 		catch(RequestErrorException e) {
 			throw new IllegalArgumentException("Failed: Updating the user's JSON data.", e);
@@ -831,7 +828,7 @@ public class UserApiTests {
 		
 		// Updates the admin status for the user making them an admin.
 		try {
-			api.updateUser(adminAuthToken, Controller.CLIENT, username, true, null, null, null, null, null, null, null, null, null);
+			api.updateUser(adminAuthToken, Controller.CLIENT, username, true, null, null, null, null, null, null, null, null);
 		}
 		catch(RequestErrorException e) {
 			throw new IllegalArgumentException("Failed: Updating the user's JSON data.", e);

@@ -20,8 +20,6 @@ import java.util.Set;
 import java.util.regex.Pattern;
 
 import org.apache.log4j.Logger;
-import org.json.JSONException;
-import org.json.JSONObject;
 import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.domain.User;
 import org.ohmage.exception.ValidationException;
@@ -212,27 +210,28 @@ public final class UserValidators {
 	 * formed and that each of the usernames follows our conventions. It then
 	 * returns the list of usernames as a List.
 	 * 
-	 * @param usernameList A String representation of a list of usernames where
-	 * 					   the usernames should be separated by
-	 * 					   {@value org.ohmage.request.InputKeys#LIST_ITEM_SEPARATOR}s.
+	 * @param usernames A String representation of a list of usernames where 
+	 * 					the usernames should be separated by
+	 * 					{@value org.ohmage.request.InputKeys#LIST_ITEM_SEPARATOR}s.
 	 * 
 	 * @return Returns a, possibly empty, List of usernames without duplicates.
 	 * 
 	 * @throws ValidationException Thrown if the list is malformed or if any of
 	 * 							   the items in the list is malformed.
 	 */
-	public static Set<String> validateUsernames(final String usernameList) 
+	public static Set<String> validateUsernames(
+			final String usernames) 
 			throws ValidationException {
 		
 		LOGGER.info("Validating that a list of usernames follows our conventions.");
 		
-		if(StringUtils.isEmptyOrWhitespaceOnly(usernameList)) {
+		if(StringUtils.isEmptyOrWhitespaceOnly(usernames)) {
 			return null;
 		}
 		
 		Set<String> result = new HashSet<String>();
 		
-		String[] usernameArray = usernameList.split(InputKeys.LIST_ITEM_SEPARATOR);
+		String[] usernameArray = usernames.split(InputKeys.LIST_ITEM_SEPARATOR);
 		for(int i = 0; i < usernameArray.length; i++) {
 			String username = validateUsername(usernameArray[i].trim());
 			
@@ -246,6 +245,27 @@ public final class UserValidators {
 		}
 		
 		return result;
+	}
+	
+	/**
+	 * There is no real validation that takes place here because the user could
+	 * search for any piece of information. If a user is searching for an 
+	 * illegal character for usernames, we simply remove that string from the
+	 * list.
+	 * 
+	 * @param usernames The space-separated list of search terms.
+	 * 
+	 * @return A sanitized version of the search terms, which may be empty. If
+	 * 		   the given string is null or only whitespace, this will be null.
+	 */
+	public static Set<String> validateUsernameSearch(
+			final String usernames) {
+		
+		if(StringUtils.isEmptyOrWhitespaceOnly(usernames)) {
+			return null;
+		}
+		
+		return StringUtils.decodeSearchString(usernames);
 	}
 	
 	/**
@@ -314,6 +334,57 @@ public final class UserValidators {
 					ErrorCode.USER_INVALID_PASSWORD, 
 					"The hashed password is invalid.");
 		}
+	}
+	
+	/**
+	 * Validates that the email address for a user is a valid email address.
+	 * 
+	 * @param value The String value of the user's email address.
+	 * 
+	 * @return Returns null if the value is null or whitespace only; otherwise,
+	 * 		   it returns the email address.
+	 * 
+	 * @throws ValidationException Thrown if the email address is not a valid
+	 * 							   email address.
+	 */
+	public static String validateEmailAddress(final String value) 
+			throws ValidationException {
+		
+		LOGGER.info("Validating that an email address is valid.");
+		
+		if(StringUtils.isEmptyOrWhitespaceOnly(value)) {
+			return null;
+		}
+		
+		if(StringUtils.isValidEmailAddress(value.trim())) {
+			return value.trim();
+		}
+		else {
+			throw new ValidationException(
+					ErrorCode.USER_INVALID_EMAIL_ADDRESS, 
+					"The email address value for the user is invalid: " + 
+						value);
+		}
+	}
+	
+	/**
+	 * If the value is null or only whitespace, null is returned. Otherwise, it
+	 * tokenizes the search string by whitespace with the exception of quoted
+	 * characters.
+	 * 
+	 * @param value The String value of the user's email address.
+	 * 
+	 * @return Returns null if the value is null or whitespace only; otherwise,
+	 * 		   it returns the set of search tokens.
+	 */
+	public static Set<String> validateEmailAddressSearch(
+			final String value) {
+		
+		if(StringUtils.isEmptyOrWhitespaceOnly(value)) {
+			return null;
+		}
+		
+		return StringUtils.decodeSearchString(value);
 	}
 	
 	/**
@@ -500,6 +571,27 @@ public final class UserValidators {
 	}
 	
 	/**
+	 * If the value is null or only whitespace, null is returned. Otherwise, it
+	 * tokenizes the search string by whitespace with the exception of quoted
+	 * characters whose entire quoted value is returned.
+	 * 
+	 * @param value The search string to be tokenized.
+	 * 
+	 * @return Returns null if the value is null or whitespace only; otherwise,
+	 * 		   it returns the set of search tokens.
+	 */
+	public static Set<String> validateFirstNameSearch(
+			final String value)
+			throws ValidationException {
+		
+		if(StringUtils.isEmptyOrWhitespaceOnly(value)) {
+			return null;
+		}
+		
+		return StringUtils.decodeSearchString(value);
+	}
+	
+	/**
 	 * Validates that the last name value for a user is a valid last name
 	 * value.
 	 * 
@@ -537,6 +629,27 @@ public final class UserValidators {
 		else {
 			return value.trim();
 		}
+	}
+	
+	/**
+	 * If the value is null or only whitespace, null is returned. Otherwise, it
+	 * tokenizes the search string by whitespace with the exception of quoted
+	 * characters whose entire quoted value is returned.
+	 * 
+	 * @param value The search string to be tokenized.
+	 * 
+	 * @return Returns null if the value is null or whitespace only; otherwise,
+	 * 		   it returns the set of search tokens.
+	 */
+	public static Set<String> validateLastNameSearch(
+			final String value)
+			throws ValidationException {
+		
+		if(StringUtils.isEmptyOrWhitespaceOnly(value)) {
+			return null;
+		}
+		
+		return StringUtils.decodeSearchString(value);
 	}
 	
 	/**
@@ -580,6 +693,27 @@ public final class UserValidators {
 	}
 	
 	/**
+	 * If the value is null or only whitespace, null is returned. Otherwise, it
+	 * tokenizes the search string by whitespace with the exception of quoted
+	 * characters whose entire quoted value is returned.
+	 * 
+	 * @param value The search string to be tokenized.
+	 * 
+	 * @return Returns null if the value is null or whitespace only; otherwise,
+	 * 		   it returns the set of search tokens.
+	 */
+	public static Set<String> validateOrganizationSearch(
+			final String value)
+			throws ValidationException {
+		
+		if(StringUtils.isEmptyOrWhitespaceOnly(value)) {
+			return null;
+		}
+		
+		return StringUtils.decodeSearchString(value);
+	}
+	
+	/**
 	 * Validates that the personal ID value for a user is a valid personal ID
 	 * value.
 	 * 
@@ -620,67 +754,24 @@ public final class UserValidators {
 	}
 	
 	/**
-	 * Validates that the email address for a user is a valid email address.
+	 * If the value is null or only whitespace, null is returned. Otherwise, it
+	 * tokenizes the search string by whitespace with the exception of quoted
+	 * characters whose entire quoted value is returned.
 	 * 
-	 * @param value The String value of the user's email address.
+	 * @param value The search string to be tokenized.
 	 * 
 	 * @return Returns null if the value is null or whitespace only; otherwise,
-	 * 		   it returns the email address.
-	 * 
-	 * @throws ValidationException Thrown if the email address is not a valid
-	 * 							   email address.
+	 * 		   it returns the set of search tokens.
 	 */
-	public static String validateEmailAddress(final String value) 
+	public static Set<String> validatePersonalIdSearch(
+			final String value)
 			throws ValidationException {
-		
-		LOGGER.info("Validating that an email address is valid.");
 		
 		if(StringUtils.isEmptyOrWhitespaceOnly(value)) {
 			return null;
 		}
 		
-		if(StringUtils.isValidEmailAddress(value.trim())) {
-			return value.trim();
-		}
-		else {
-			throw new ValidationException(
-					ErrorCode.USER_INVALID_EMAIL_ADDRESS, 
-					"The email address value for the user is invalid: " + 
-						value);
-		}
-	}
-	
-	/**
-	 * Validates that some String is a valid JSONObject, creates a JSONObject
-	 * from the String, and returns it.
-	 * 
-	 * @param value The String representation of the JSONObject.
-	 * 
-	 * @return Returns null if the value is null or whitespace only; otherwise,
-	 * 		   it returns a new JSONObject built from the String.
-	 * 
-	 * @throws ValidationException Thrown if the value is not null, not 
-	 * 							   whitespace only, and not a valid JSONObject.
-	 */
-	public static JSONObject validateJsonData(final String value) 
-			throws ValidationException {
-		
-		LOGGER.info("Validating that the JSON data is valid.");
-		
-		if(StringUtils.isEmptyOrWhitespaceOnly(value)) {
-			return null;
-		}
-		
-		try {
-			return new JSONObject(value.trim());
-		}
-		catch(JSONException e) {
-			throw new ValidationException(
-					ErrorCode.USER_INVALID_JSON_DATA, 
-					"The user's JSON data object is not a valid JSONObject: " +
-						value, 
-					e);
-		}
+		return StringUtils.decodeSearchString(value);
 	}
 	
 	/**

@@ -762,6 +762,9 @@ public final class UserServices {
 	 * @param usernames Limits the results to only those whose username is in
 	 * 					this list.
 	 * 
+	 * @param usernameTokens Limits the results to only those whose username is
+	 * 						 like any of the values in this token.
+	 * 
 	 * @param emailAddress Limits the results to only those users whose email
 	 * 					   address matches this value.
 	 * 
@@ -807,15 +810,16 @@ public final class UserServices {
 	public long getUserInformation(
 			final String requesterUsername,
 			final Collection<String> usernames,
-			final String emailAddress,
+			final Collection<String> usernameTokens,
+			final Collection<String> emailAddressTokens,
 			final Boolean admin,
 			final Boolean enabled,
 			final Boolean newAccount,
 			final Boolean canCreateCampaigns,
-			final String firstName,
-			final String lastName,
-			final String organization,
-			final String personalId,
+			final Collection<String> firstNameTokens,
+			final Collection<String> lastNameTokens,
+			final Collection<String> organizationTokens,
+			final Collection<String> personalIdTokens,
 			final Collection<String> campaignIds,
 			final Collection<String> classIds,
 			final long numToSkip,
@@ -827,20 +831,19 @@ public final class UserServices {
 			QueryResultsList<UserInformation> result =
 					userQueries.getUserInformation(
 							requesterUsername,
-							usernames, 
-							null, 
-							emailAddress, 
+							usernames,
+							usernameTokens, 
+							emailAddressTokens, 
 							admin, 
 							enabled, 
 							newAccount, 
 							canCreateCampaigns, 
-							firstName, 
-							lastName, 
-							organization, 
-							personalId,
+							firstNameTokens, 
+							lastNameTokens, 
+							organizationTokens, 
+							personalIdTokens,
 							campaignIds,
 							classIds,
-							false, 
 							numToSkip, 
 							numToReturn);
 			
@@ -928,23 +931,40 @@ public final class UserServices {
 			throws ServiceException {
 		
 		try {
+			Set<String> usernameTokens = new HashSet<String>();
+			usernameTokens.add(partialUsername);
+			
+			Set<String> emailAddressTokens = new HashSet<String>();
+			emailAddressTokens.add(partialEmailAddress);
+			
+			Set<String> firstNameTokens = new HashSet<String>();
+			firstNameTokens.add(partialFirstName);
+			
+			Set<String> lastNameTokens = new HashSet<String>();
+			firstNameTokens.add(partialLastName);
+			
+			Set<String> organizationTokens = new HashSet<String>();
+			firstNameTokens.add(partialOrganization);
+			
+			Set<String> personalIdTokens = new HashSet<String>();
+			firstNameTokens.add(partialPersonalId);
+			
 			QueryResultsList<UserInformation> result =
 					userQueries.getUserInformation(
 							requesterUsername,
 							null, 
-							partialUsername, 
-							partialEmailAddress, 
+							usernameTokens, 
+							emailAddressTokens, 
 							admin, 
 							enabled, 
 							newAccount, 
 							campaignCreationPrivilege, 
-							partialFirstName, 
-							partialLastName, 
-							partialOrganization, 
-							partialPersonalId, 
+							firstNameTokens, 
+							lastNameTokens, 
+							organizationTokens, 
+							personalIdTokens, 
 							null,
 							null,
-							true, 
 							numToSkip, 
 							numToReturn);
 			

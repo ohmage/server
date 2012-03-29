@@ -85,9 +85,36 @@ import org.ohmage.validator.UserValidators;
  * @author John Jenkins
  */
 public class UserReadRequest extends UserRequest {
-	private static final Logger LOGGER = Logger.getLogger(UserReadRequest.class);
-	
+	private static final Logger LOGGER = 
+			Logger.getLogger(UserReadRequest.class);
+
+	// In 3.x, this parameter would be unnecessary. If you want to query about
+	// a specific user then you should use something like "/user/<username>".
+	// However, this doesn't lend itself to a single server call to query 
+	// information about multiple people. If you want to do that, you would 
+	// need to come back to this call, "/user", with the 'usernameTokens' 
+	// parameter where each username is separated by a space. But, that is the
+	// expected use of the 3.x system. If you want information specifically 
+	// about one user or want to perform an action on a specific user, you 
+	// should use their specific API, but if you want information about 
+	// multiple users then you use its list API variant.
 	private final Collection<String> usernames;
+	private final Collection<String> usernameTokens;
+	private final Collection<String> emailAddressTokens;
+	private final Boolean admin;
+	private final Boolean enabled;
+	private final Boolean newAccount;
+	private final Boolean campaignCreationPrivilege;
+	private final Collection<String> firstNameTokens;
+	private final Collection<String> lastNameTokens;
+	private final Collection<String> organizationTokens;
+	private final Collection<String> personalIdTokens;
+	// These parameters aren't generic / search-able. At this point, you should
+	// know exactly what campaign/class you are curious about and should not be
+	// fishing for those IDs. Going further, these parameters probably 
+	// shouldn't even be here. Instead, you should read the information about
+	// the campaign/class, which will give you the list of users. Then, a user
+	// would come here and get more specific information if needed.
 	private final List<String> campaignIds;
 	private final Collection<String> classIds; 
 	
@@ -104,8 +131,18 @@ public class UserReadRequest extends UserRequest {
 	 */
 	public UserReadRequest(HttpServletRequest httpRequest) {
 		super(httpRequest, TokenLocation.EITHER);
-		
+
 		Collection<String> tUsernames = null;
+		Collection<String> tUsernameTokens = null;
+		Collection<String> tEmailAddressTokens = null;
+		Boolean tAdmin = null;
+		Boolean tEnabled = null;
+		Boolean tNewAccount = null;
+		Boolean tCampaignCreationPrivilege = null;
+		Collection<String> tFirstNameTokens = null;
+		Collection<String> tLastNameTokens = null;
+		Collection<String> tOrganizationTokens = null;
+		Collection<String> tPersonalIdTokens = null;
 		List<String> tCampaignIds = null;
 		Set<String> tClassIds = null;
 		
@@ -128,17 +165,145 @@ public class UserReadRequest extends UserRequest {
 				else if(t.length == 1) {
 					tUsernames = UserValidators.validateUsernames(t[0]);
 				}
-					
-				tCampaignIds = CampaignValidators.validateCampaignIds(httpRequest.getParameter(InputKeys.CAMPAIGN_URN_LIST));
-				if((tCampaignIds != null) && (httpRequest.getParameterValues(InputKeys.CAMPAIGN_URN_LIST).length > 1)) {
-					setFailed(ErrorCode.CAMPAIGN_INVALID_ID, "Multiple campaign ID list parameters were found.");
-					throw new ValidationException("Multiple campaign ID list parameters were found.");
+				
+				t = getParameterValues(InputKeys.USERNAME_SEARCH);
+				if(t.length > 1) {
+					throw new ValidationException(
+							ErrorCode.USER_INVALID_USERNAME,
+							"Multiple usernames were given: " +
+								InputKeys.USERNAME_SEARCH);
+				}
+				else if(t.length == 1) {
+					tUsernameTokens = 
+							UserValidators.validateUsernameSearch(t[0]);
 				}
 				
-				tClassIds = ClassValidators.validateClassIdList(httpRequest.getParameter(InputKeys.CLASS_URN_LIST));
-				if((tClassIds != null) && (httpRequest.getParameterValues(InputKeys.CLASS_URN_LIST).length > 1)) {
-					setFailed(ErrorCode.CLASS_INVALID_ID, "Multiple class ID list parameters were found.");
-					throw new ValidationException("Multiple class ID list parameters were found.");
+				t = getParameterValues(InputKeys.EMAIL_ADDRESS_SEARCH);
+				if(t.length > 1) {
+					throw new ValidationException(
+							ErrorCode.USER_INVALID_EMAIL_ADDRESS,
+							"Multiple email address values were given: " +
+								InputKeys.EMAIL_ADDRESS_SEARCH);
+				}
+				else if(t.length == 1) {
+					tEmailAddressTokens = 
+							UserValidators.validateEmailAddressSearch(t[0]);
+				}
+				
+				t = getParameterValues(InputKeys.USER_ADMIN);
+				if(t.length > 1) {
+					throw new ValidationException(
+							ErrorCode.USER_INVALID_ADMIN_VALUE,
+							"Multiple admin values were given: " +
+								InputKeys.USER_ADMIN);
+				}
+				else if(t.length == 1) {
+					tAdmin = UserValidators.validateAdminValue(t[0]);
+				}
+				
+				t = getParameterValues(InputKeys.USER_ENABLED);
+				if(t.length > 1) {
+					throw new ValidationException(
+							ErrorCode.USER_INVALID_ENABLED_VALUE,
+							"Multiple enabled values were given: " +
+								InputKeys.USER_ENABLED);
+				}
+				else if(t.length == 1) {
+					tEnabled = UserValidators.validateEnabledValue(t[0]);
+				}
+				
+				t = getParameterValues(InputKeys.NEW_ACCOUNT);
+				if(t.length > 1) {
+					throw new ValidationException(
+							ErrorCode.USER_INVALID_NEW_ACCOUNT_VALUE,
+							"Multiple new account values were given: " +
+								InputKeys.NEW_ACCOUNT);
+				}
+				else if(t.length == 1) {
+					tNewAccount = UserValidators.validateNewAccountValue(t[0]);
+				}
+				
+				t = getParameterValues(InputKeys.CAMPAIGN_CREATION_PRIVILEGE);
+				if(t.length > 1) {
+					throw new ValidationException(
+							ErrorCode.USER_INVALID_CAMPAIGN_CREATION_PRIVILEGE,
+							"Multiple campaign creation values values were given: " +
+								InputKeys.CAMPAIGN_CREATION_PRIVILEGE);
+				}
+				else if(t.length == 1) {
+					tCampaignCreationPrivilege = 
+						UserValidators.validateCampaignCreationPrivilegeValue(
+							t[0]);
+				}
+				
+				t = getParameterValues(InputKeys.FIRST_NAME_SEARCH);
+				if(t.length > 1) {
+					throw new ValidationException(
+							ErrorCode.USER_INVALID_FIRST_NAME_VALUE,
+							"Multiple first name values were given: " +
+								InputKeys.FIRST_NAME_SEARCH);
+				}
+				else if(t.length == 1) {
+					tFirstNameTokens = 
+							UserValidators.validateFirstNameSearch(t[0]);
+				}
+				
+				t = getParameterValues(InputKeys.LAST_NAME_SEARCH);
+				if(t.length > 1) {
+					throw new ValidationException(
+							ErrorCode.USER_INVALID_LAST_NAME_VALUE,
+							"Multiple last name values were given: " +
+								InputKeys.LAST_NAME_SEARCH);
+				}
+				else if(t.length == 1) {
+					tLastNameTokens =
+							UserValidators.validateLastNameSearch(t[0]);
+				}
+				
+				t = getParameterValues(InputKeys.ORGANIZATION_SEARCH);
+				if(t.length > 1) {
+					throw new ValidationException(
+							ErrorCode.USER_INVALID_ORGANIZATION_VALUE,
+							"Multiple organizationTokens values were given: " +
+								InputKeys.ORGANIZATION_SEARCH);
+				}
+				else if(t.length == 1) {
+					tOrganizationTokens =
+							UserValidators.validateOrganizationSearch(t[0]);
+				}
+				
+				t = getParameterValues(InputKeys.PERSONAL_ID_SEARCH);
+				if(t.length > 1) {
+					throw new ValidationException(
+							ErrorCode.USER_INVALID_PERSONAL_ID_VALUE,
+							"Multiple personal ID values were given: " +
+								InputKeys.PERSONAL_ID_SEARCH);
+				}
+				else if(t.length == 1) {
+					tPersonalIdTokens =
+							UserValidators.validatePersonalIdSearch(t[0]);
+				}
+				
+				t = getParameterValues(InputKeys.CAMPAIGN_URN_LIST);
+				if(t.length > 1) {
+					throw new ValidationException(
+							ErrorCode.CAMPAIGN_INVALID_ID, 
+							"Multiple campaign ID list parameters were found: " +
+								InputKeys.CAMPAIGN_URN_LIST);
+				}
+				else if(t.length == 1) {
+					tCampaignIds = CampaignValidators.validateCampaignIds(t[0]);
+				}
+				
+				t = getParameterValues(InputKeys.CLASS_URN_LIST);
+				if(t.length > 1) {
+					throw new ValidationException(
+							ErrorCode.CLASS_INVALID_ID, 
+							"Multiple class ID list parameters were found: " +
+								InputKeys.CLASS_URN_LIST);
+				}
+				else if(t.length == 1) {
+					tClassIds = ClassValidators.validateClassIdList(t[0]);
 				}
 				
 				t = getParameterValues(InputKeys.NUM_TO_SKIP);
@@ -169,7 +334,17 @@ public class UserReadRequest extends UserRequest {
 			}
 		}
 		
+		usernameTokens = tUsernameTokens;
 		usernames = tUsernames;
+		emailAddressTokens = tEmailAddressTokens;
+		admin = tAdmin;
+		enabled = tEnabled;
+		newAccount = tNewAccount;
+		campaignCreationPrivilege = tCampaignCreationPrivilege;
+		firstNameTokens = tFirstNameTokens;
+		lastNameTokens = tLastNameTokens;
+		organizationTokens = tOrganizationTokens;
+		personalIdTokens = tPersonalIdTokens;
 		campaignIds = tCampaignIds;
 		classIds = tClassIds;
 		
@@ -191,24 +366,33 @@ public class UserReadRequest extends UserRequest {
 		}
 		
 		try {
+			LOGGER.info("Reading the database.");
 			numResults = 
 					UserServices.instance().getUserInformation(
 							getUser().getUsername(),
 							usernames,
-							null,
-							null,
-							null,
-							null,
-							null,
-							null,
-							null,
-							null,
-							null,
+							usernameTokens,
+							emailAddressTokens,
+							admin,
+							enabled,
+							newAccount,
+							campaignCreationPrivilege,
+							firstNameTokens,
+							lastNameTokens,
+							organizationTokens,
+							personalIdTokens,
 							campaignIds,
 							classIds,
 							numToSkip,
 							numToReturn,
 							results);
+			
+			LOGGER.info(
+					"Returning " + 
+						results.size() + 
+						" results out of a total of " +
+						numResults +
+						" results.");	
 		}
 		catch(ServiceException e) {
 			e.failRequest(this);

@@ -23,8 +23,10 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import java.util.regex.Pattern;
 
@@ -49,7 +51,11 @@ public final class StringUtils {
 	private static final String FORMAT_ISO_8601_DATE_TIME_WITH_T = "yyyy-M-d'T'H:m:s";
 	
 	private static final Pattern EMAIL_PATTERN = 
-		Pattern.compile("^([_A-Za-z0-9-]+)(\\.[_A-Za-z0-9-]+)*@[A-Za-z0-9]+(\\.[A-Za-z0-9]+)*(\\.[A-Za-z]{2,})$");
+		Pattern.compile(
+			"^([_A-Za-z0-9-]+)(\\.[_A-Za-z0-9-]+)*@[A-Za-z0-9]+(\\.[A-Za-z0-9]+)*(\\.[A-Za-z]{2,})$");
+	
+	private static final String SEARCH_REGEX = 
+		"(?x)(\\s(?=([^\"]*\"[^\"]*\")*[^\"]*$) | (?!^\\\\)\")";
 	
 	private static final String DEFAULT_DELIMITER = ",";
 	
@@ -428,6 +434,30 @@ public final class StringUtils {
 		catch(NumberFormatException e) {
 			return null;
 		}
+	}
+	
+	/**
+	 * Takes a string where spaces divide the search terms and quotes can group
+	 * terms to prevent them from being divided. The result is a set of tokens
+	 * to use in search. For example, the string 'I say "hello, world" to
+	 * everyone." will be divided into five tokens, "I", "say", "hello, world",
+	 * "to", and "everyone.".
+	 * 
+	 * @param string The search string to be tokenized.
+	 * 
+	 * @return A set of tokens. If the string is null or only whitespace, it
+	 * 		   will be an empty set.
+	 */
+	public static Set<String> decodeSearchString(final String string) {
+		if(isEmptyOrWhitespaceOnly(string)) {
+			return Collections.emptySet();
+		}
+		
+		Set<String> result = new HashSet<String>();
+		result.addAll(Arrays.asList(string.split(SEARCH_REGEX)));
+		result.remove("");
+		
+		return result;
 	}
 	
 	/**
