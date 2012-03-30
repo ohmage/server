@@ -53,3 +53,10 @@ INSERT INTO preference VALUES
 -- The key in the classifier JSON for Mobility points for the N95 variance has
 -- been changed from "N95Variance" to "n95variance".
 UPDATE mobility_extended SET features=REPLACE(features, 'N95Variance', 'n95variance');
+
+-- Add creation and update time tracking to the annotation table
+ALTER TABLE annotation ADD COLUMN last_modified_timestamp timestamp default current_timestamp on update current_timestamp;
+ALTER TABLE annotation ADD COLUMN creation_timestamp datetime NOT NULL;
+-- Add the annotation owner's user_id for handling delete and update functionality
+ALTER TABLE annotation ADD COLUMN user_id int unsigned NOT NULL;
+ALTER TABLE annotation ADD FOREIGN KEY (user_id) REFERENCES user (id) ON DELETE CASCADE ON UPDATE CASCADE;

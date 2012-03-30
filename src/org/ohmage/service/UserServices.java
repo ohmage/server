@@ -543,8 +543,8 @@ public final class UserServices {
 	/**
 	 * Checks if the user is an admin.
 	 * 
-	 * @return Returns true if the user is an admin; false if not or there is
-	 * 		   an error.
+	 * TODO Any use case that involves an API call which isn't exclusively
+	 * for admins can be migrated to use the isUserAnAdmin() method.
 	 * 
 	 * @throws ServiceException Thrown if there was an error or if the user is
 	 * 							not an admin.
@@ -559,6 +559,24 @@ public final class UserServices {
 						"The user is not an admin."
 					);
 			}
+		}
+		catch(DataAccessException e) {
+			throw new ServiceException(e);
+		}
+	}
+
+	/**
+	 * Checks if the user is an admin.
+	 * 
+	 * @return true if the user has admin privileges, false otherwise
+	 * 
+	 * @throws ServiceException Thrown if there was an error.
+	 */
+	public boolean isUserAnAdmin(final String username) 
+			throws ServiceException {
+		
+		try {
+			return userQueries.userIsAdmin(username);
 		}
 		catch(DataAccessException e) {
 			throw new ServiceException(e);

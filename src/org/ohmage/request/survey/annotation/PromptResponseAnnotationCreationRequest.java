@@ -13,17 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  ******************************************************************************/
-package org.ohmage.request.survey;
+package org.ohmage.request.survey.annotation;
 
 import java.util.Map;
 import java.util.Set;
-import java.util.TimeZone;
 import java.util.UUID;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.log4j.Logger;
+import org.joda.time.DateTimeZone;
 import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.exception.ServiceException;
 import org.ohmage.exception.ValidationException;
@@ -32,6 +32,7 @@ import org.ohmage.request.UserRequest;
 import org.ohmage.service.PromptResponseServices;
 import org.ohmage.service.UserAnnotationServices;
 import org.ohmage.service.UserCampaignServices;
+import org.ohmage.service.UserServices;
 import org.ohmage.util.StringUtils;
 import org.ohmage.validator.SurveyResponseValidators;
 
@@ -104,7 +105,7 @@ public class PromptResponseAnnotationCreationRequest extends UserRequest {
 	private final String repeatableSetId;
 	private final Integer repeatableSetIteration;
 	private final Long time;
-	private final TimeZone timezone;
+	private final DateTimeZone timezone;
 	private final String annotationText;
 	
 	private UUID annotationIdToReturn; 
@@ -125,7 +126,7 @@ public class PromptResponseAnnotationCreationRequest extends UserRequest {
 		String tRepeatableSetId = null;
 		Integer tRepeatableSetIteration = null;
 		Long tTime = Long.MIN_VALUE;
-		TimeZone tTimezone = null;
+		DateTimeZone tTimezone = null;
 		String tAnnotationText = null;
 				
 		if(! isFailed()) {
@@ -254,14 +255,13 @@ public class PromptResponseAnnotationCreationRequest extends UserRequest {
 				}
 				else {
 					
-					// FIXME This will default to UTC if the timezone is unknown to the
-					// TimeZone class. It's safe because we will never see an invalid 
-					// timezone in our db for survey responses, but clients will not
-					// be alerted to the fact that they may be uploading timezones that
-					// we can't interpret. Possible solution: add warning messages to 
-					// our JSON output. Also, Joda Time has a DateTimeZone class that 
-					// can be used in lieu of the default JDK TimeZone class.
-					tTimezone = TimeZone.getTimeZone(t[0]);
+					try {
+						tTimezone = DateTimeZone.forID(t[0]);
+					}
+					catch(IllegalArgumentException unknownTimezone) {
+						setFailed(ErrorCode.ANNOTATION_INVALID_TIMEZONE, "unknown timezone");
+						throw new ValidationException("unknown timezone", unknownTimezone);
+					}
 				}
 				
 				// Validate the annotation text
@@ -312,17 +312,20 @@ public class PromptResponseAnnotationCreationRequest extends UserRequest {
 		}
 		
 		try {
-			Set<String> campaignIds = UserCampaignServices.instance().getCampaignsForUser(getUser().getUsername(), null, null, null, null, null, null, null);
 			
-			if(campaignIds.isEmpty()) {
-				throw new ServiceException("The user does not belong to any campaigns.");
+			if(! UserServices.instance().isUserAnAdmin(this.getUser().getUsername())) {
+			
+				Set<String> campaignIds = UserCampaignServices.instance().getCampaignsForUser(getUser().getUsername(), null, null, null, null, null, null, null);
+				
+				if(campaignIds.isEmpty()) {
+					throw new ServiceException("The user does not belong to any campaigns.");
+				}
+				
+				LOGGER.info("Verifying that the logged in user can create a prompt response annotation");
+				// By default, if a user can create a survey response annotation,
+				// he or she can create a prompt response annotation.
+				UserAnnotationServices.instance().userCanAccessSurveyResponseAnnotation(getUser().getUsername(), campaignIds, surveyId);
 			}
-			
-			LOGGER.info("Verifying that the logged in user can create a prompt response annotation");
-			// By default, if a user can create a survey response annotation,
-			// he or she can create a prompt response annotation.
-			UserAnnotationServices.instance().userCanAccessSurveyResponseAnnotation(getUser().getUsername(), campaignIds, surveyId);
-			
 			
 			LOGGER.info("Verifying that the provided input parameters reference an actual prompt response");
 			int promptResponseId = PromptResponseServices.instance().findPromptResponseIdFor(surveyId, promptId, repeatableSetId, repeatableSetIteration);

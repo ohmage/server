@@ -16,9 +16,9 @@
 package org.ohmage.query;
 
 import java.util.List;
-import java.util.TimeZone;
 import java.util.UUID;
 
+import org.joda.time.DateTimeZone;
 import org.ohmage.domain.Annotation;
 import org.ohmage.exception.DataAccessException;
 
@@ -44,7 +44,7 @@ public interface IAnnotationQueries {
 		UUID annotationUuid,
 		String client,
 		Long time,
-		TimeZone timezone,
+		DateTimeZone timezone,
 		String annotationText,
 		UUID surveyId
 	) throws DataAccessException;
@@ -75,7 +75,7 @@ public interface IAnnotationQueries {
 		UUID annotationUuid,
 		String client,
 		Long time,
-		TimeZone timezone,
+		DateTimeZone timezone,
 		String annotationText,
 		Integer promptResponseId
 	) throws DataAccessException;
@@ -92,5 +92,41 @@ public interface IAnnotationQueries {
 		String promptId,
 		String repeatableSetId,
 		Integer repeatableSetIteration
+	) throws DataAccessException;
+	
+	/**
+	 * @param username      The user who ostensibly owns the annotation.  
+	 * @param annotationId  The id of the annotation.
+	 * @return  true if the user is the owner of the annotation, false
+	 *          otherwise
+	 * @throws DataAccessException if an error occurs
+	 */
+	boolean userOwnsAnnotation(
+		String username,
+		UUID annotationId
+	) throws DataAccessException;
+	
+	/**
+	 * @param annotationId     The id of the annotation to update.
+	 * @param annotationText   The updated annotation text.
+	 * @param client           The updated client.
+	 * @param time             The milliseconds since the epoch.
+	 * @param timezone         The timezone for the above milliseconds value.              
+	 * @throws DataAccessException if an error occurs
+	 */
+	void updateAnnotation(
+	    UUID annotationId,
+	    String annotationText,
+	    String client,
+	    long time,
+	    DateTimeZone timezone
+	) throws DataAccessException;
+	
+	/**
+	 * @param annotationId     The id of the annotation to update.
+	 * @throws DataAccessException if an error occurs
+	 */
+	void deleteAnnotation(
+	    UUID annotationId
 	) throws DataAccessException;
 }

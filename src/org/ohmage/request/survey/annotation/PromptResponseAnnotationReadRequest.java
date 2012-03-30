@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  ******************************************************************************/
-package org.ohmage.request.survey;
+package org.ohmage.request.survey.annotation;
 
 import java.util.List;
 import java.util.Map;
@@ -34,6 +34,7 @@ import org.ohmage.request.InputKeys;
 import org.ohmage.request.UserRequest;
 import org.ohmage.service.UserAnnotationServices;
 import org.ohmage.service.UserCampaignServices;
+import org.ohmage.service.UserServices;
 import org.ohmage.util.StringUtils;
 import org.ohmage.validator.SurveyResponseValidators;
 
@@ -152,11 +153,11 @@ public class PromptResponseAnnotationReadRequest extends UserRequest {
 					}
 					
 					if(StringUtils.isEmptyOrWhitespaceOnly(t[0])) {
-						setFailed(ErrorCode.SURVEY_INVALID_REPEATABLE_SET_ID, "The repeatable set ID is invalid.");
-						throw new ValidationException("The repeatable set ID is invalid.");
+						tRepeatableSetId = null;
 					}
-					
-					tRepeatableSetId = t[0];
+					else {
+						tRepeatableSetId = t[0];
+					}
 					
 				} else {
 					
@@ -169,36 +170,36 @@ public class PromptResponseAnnotationReadRequest extends UserRequest {
 				t = parameters.get(InputKeys.REPEATABLE_SET_ITERATION);
 				if(t != null) {
 					
-					if(tRepeatableSetId == null) {
-						setFailed(ErrorCode.SURVEY_INVALID_REPEATABLE_SET_ITERATION, "repeatable set iteration does not make sense without a repeatable set id");
-						throw new ValidationException("repeatable set iteration does not make sense without a repeatable set id");
-					}
-					
 					if(t.length != 1) {
 						setFailed(ErrorCode.SURVEY_INVALID_REPEATABLE_SET_ITERATION, "there is more than one repeatable set iteration.");
 						throw new ValidationException("there is more than one repeatable set iteration.");
 					}
 					
 					if(StringUtils.isEmptyOrWhitespaceOnly(t[0]) ) {
-						setFailed(ErrorCode.SURVEY_INVALID_REPEATABLE_SET_ITERATION, "The repeatable set iteration is invalid.");
-						throw new ValidationException("The repeatable set iteration is invalid.");
+						tRepeatableSetIteration = null;
+					} 
+					else {
+						
+						if(tRepeatableSetId == null) {
+							setFailed(ErrorCode.SURVEY_INVALID_REPEATABLE_SET_ITERATION, "repeatable set iteration does not make sense without a repeatable set id");
+							throw new ValidationException("repeatable set iteration does not make sense without a repeatable set id");
+						}
+
+						try {
+							
+							tRepeatableSetIteration = Integer.parseInt(t[0]);
+						}
+						catch (NumberFormatException e) {
+							setFailed(ErrorCode.SURVEY_INVALID_REPEATABLE_SET_ITERATION, "The repeatable set iteration is invalid.");
+							throw new ValidationException("The repeatable set iteration is invalid.");
+						}
 					}
 					
-					try {
+				    if(tRepeatableSetIteration == null && tRepeatableSetId != null) {
 					
-						tRepeatableSetIteration = Integer.parseInt(t[0]);
-					}
-					catch (NumberFormatException e) {
-						setFailed(ErrorCode.SURVEY_INVALID_REPEATABLE_SET_ITERATION, "The repeatable set iteration is invalid.");
-						throw new ValidationException("The repeatable set iteration is invalid.");
-					}
-					
-				} 
-				else if(t == null && tRepeatableSetId != null) {
-					
-					setFailed(ErrorCode.SURVEY_INVALID_REPEATABLE_SET_ITERATION, "repeatable set id does not make sense without a repeatable set iteration");
-					
-					throw new ValidationException("repeatable set id does not make sense without a repeatable set iteration");
+						setFailed(ErrorCode.SURVEY_INVALID_REPEATABLE_SET_ITERATION, "repeatable set id does not make sense without a repeatable set iteration");
+						throw new ValidationException("repeatable set id does not make sense without a repeatable set iteration");
+				    }
 				}
 				else {
 					
@@ -230,14 +231,17 @@ public class PromptResponseAnnotationReadRequest extends UserRequest {
 		}
 		
 		try {
-			Set<String> campaignIds = UserCampaignServices.instance().getCampaignsForUser(getUser().getUsername(), null, null, null, null, null, null, null);
 			
-			if(campaignIds.isEmpty()) {
-				throw new ServiceException("The user does not belong to any campaigns.");
+			if(! UserServices.instance().isUserAnAdmin(this.getUser().getUsername())) {
+				Set<String> campaignIds = UserCampaignServices.instance().getCampaignsForUser(getUser().getUsername(), null, null, null, null, null, null, null);
+				
+				if(campaignIds.isEmpty()) {
+					throw new ServiceException("The user does not belong to any campaigns.");
+				}
+				
+				LOGGER.info("Verifying that the logged in user can read prompt response annotations.");
+				UserAnnotationServices.instance().userCanAccessSurveyResponseAnnotation(getUser().getUsername(), campaignIds, surveyId);
 			}
-			
-			LOGGER.info("Verifying that the logged in user can read prompt response annotations.");
-			UserAnnotationServices.instance().userCanAccessSurveyResponseAnnotation(getUser().getUsername(), campaignIds, surveyId);
 			
 			LOGGER.info("Reading prompt response annotations.");
 			annotationsToReturn = UserAnnotationServices.instance().readPromptResponseAnnotations(this.surveyId, this.promptId, this.repeatableSetId, this.repeatableSetIteration);

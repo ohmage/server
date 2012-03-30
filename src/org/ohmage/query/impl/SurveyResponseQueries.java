@@ -759,8 +759,6 @@ public class SurveyResponseQueries extends Query implements ISurveyResponseQueri
 					new DataSourceTransactionManager(getDataSource());
 			TransactionStatus status = transactionManager.getTransaction(def);
 			
-			System.out.println("Executing SQL '" + sqlBuilder.toString() + "' with parameters: " + parameters.toArray());
-			
 			try {
 				getJdbcTemplate().update(
 						sqlBuilder.toString(), 
