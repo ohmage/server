@@ -35,6 +35,7 @@ public class Clazz {
 	private static final String JSON_KEY_ID = "id";
 	private static final String JSON_KEY_NAME = "name";
 	private static final String JSON_KEY_DESCRIPTION = "description";
+	private static final String JSON_KEY_REQUESTER_ROLE = "role";
 	
 	private final String id;
 	private final String name;
@@ -72,6 +73,7 @@ public class Clazz {
 			return name().toLowerCase();
 		}
 	}
+	private final Role requesterRole;
 	
 	/**
 	 * Creates a new class information object that contains the class' name
@@ -83,10 +85,18 @@ public class Clazz {
 	 * 
 	 * @param description The description of this class. This may be null.
 	 * 
+	 * @param requesterRole The requesting user's role in the class. This may 
+	 * 						be null if the requesting user is an admin and 
+	 * 						doesn't have a role in the class.
+	 * 
 	 * @throws DomainException Thrown if id or name are null or whitespace 
 	 * 						   only.
 	 */
-	public Clazz(String id, String name, String description) 
+	public Clazz(
+			final String id, 
+			final String name, 
+			final String description, 
+			final Role requesterRole) 
 			throws DomainException {
 		
 		if(StringUtils.isEmptyOrWhitespaceOnly(id)) {
@@ -103,6 +113,7 @@ public class Clazz {
 		this.id = id;
 		this.name = name;
 		this.description = description;
+		this.requesterRole = requesterRole;
 	}
 	
 	/**
@@ -147,6 +158,26 @@ public class Clazz {
 			// The description is optional.
 		}
 		description = tDescription;
+		
+		Role tRequesterRole = null;
+		try {
+			String tRequesterRoleString = 
+					information.getString(JSON_KEY_REQUESTER_ROLE);
+			
+			try {
+				tRequesterRole = Role.getValue(tRequesterRoleString);
+			}
+			catch(IllegalArgumentException e) {
+				throw new DomainException(
+						ErrorCode.CLASS_INVALID_ROLE,
+						"The requesting user's role is not a valid role: " +
+							tRequesterRoleString);
+			}
+		}
+		catch(JSONException e) {
+			// If an admin is requesting the information, this may be null.
+		}
+		requesterRole = tRequesterRole;
 	}
 	
 	/**
@@ -195,6 +226,7 @@ public class Clazz {
 		}
 		result.put(JSON_KEY_NAME, name);
 		result.put(JSON_KEY_DESCRIPTION, description);
+		result.put(JSON_KEY_REQUESTER_ROLE, requesterRole);
 		
 		return result;
 	}

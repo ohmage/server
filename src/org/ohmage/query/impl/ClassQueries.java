@@ -436,29 +436,45 @@ public class ClassQueries extends Query implements IClassQueries {
 	@Override
 	public QueryResultsList<Clazz> getClassesInformation(
 			final String username,
-			final Collection<String> classIds) 
+			final Collection<String> classIds,
+			final Clazz.Role role) 
 			throws DataAccessException {
 		
+		// Build the default part of the query.
 		StringBuilder sqlBuilder = 
 				new StringBuilder(
-						"SELECT c.urn, c.name, c.description " +
-						"FROM class c, user u " +
-						"WHERE u.username = ? " +
-						"AND (" +
-							"(u.admin = true)" +
-							" OR " +
-							"(" +
-								"c.id IN (" +
-									"SELECT uc.class_id " +
-									"FROM user_class uc " +
-									"WHERE u.id = uc.user_id" +
+						// This is the outer part of the query that will allow
+						// us to attach the user's role on the resulting 
+						// classes.
+						"SELECT r.urn, r.name, r.description, ucr.role " +
+						"FROM (" +
+							// Get the basic information about the class as 
+							// well as the requesting user's ID and the class'
+							// ID.
+							"SELECT u.id AS user_id, c.id AS class_id, " +
+								"c.urn, c.name, c.description " +
+							"FROM class c, user u " +
+							"WHERE u.username = ? " +
+							// ACL.
+							"AND (" +
+								"(u.admin = true)" +
+								" OR " +
+								"(" +
+									"c.id IN (" +
+										"SELECT uc.class_id " +
+										"FROM user_class uc " +
+										"WHERE u.id = uc.user_id" +
+									")" +
 								")" +
-							")" +
-						")");
+							")");
 		
+		// Add the requesting user's username to the parameters as this is 
+		// always required for the ACL.
 		List<Object> parameters = new LinkedList<Object>();
 		parameters.add(username);
 		
+		// If we are going to intentionally limit the results to only a set of
+		// classes, then do so here.
 		if(classIds != null) {
 			if(classIds.size() == 0) {
 				return (new QueryResultListBuilder<Clazz>()).getQueryResult();
@@ -469,6 +485,19 @@ public class ClassQueries extends Query implements IClassQueries {
 					StringUtils.generateStatementPList(classIds.size()));
 					
 			parameters.addAll(classIds);
+		}
+		
+		// Finally, tack on the JOIN that will give us the user's role or limit
+		// the results by the given role if one was given.
+		sqlBuilder.append(
+				") AS r " +
+				"LEFT JOIN (user_class uc, user_class_role ucr) " +
+					"ON r.user_id = uc.user_id " +
+					"AND r.class_id = uc.class_id " +
+					"AND ucr.id = uc.user_class_role_id");
+		if(role != null) {
+			sqlBuilder.append(" WHERE ucr.role = ?");
+			parameters.add(role.toString());
 		}
 		
 		try {
@@ -491,11 +520,27 @@ public class ClassQueries extends Query implements IClassQueries {
 							
 							try {
 								while(rs.next()) {
+									Clazz.Role role = null;
+									String roleString = rs.getString("role");
+									if(roleString != null) {
+										try {
+											role = 
+												Clazz.Role.getValue(roleString);
+										}
+										catch(IllegalArgumentException e) {
+											throw new SQLException(
+													"The class role is unknown: " +
+														roleString,
+													e);
+										}
+									}
+										
 									resultBuilder.addResult(
 											new Clazz(
 												rs.getString("urn"),
 												rs.getString("name"),
-												rs.getString("description")));
+												rs.getString("description"),
+												role));
 								}
 								
 								return resultBuilder.getQueryResult();

@@ -121,6 +121,9 @@ public interface IClassQueries {
 	 * @param classIds The collection of class IDs to limit the results. This 
 	 * 				   is optional and may be null.
 	 * 
+	 * @param role Limits the results to only those classes to which the user
+	 * 			   belongs and have this role.
+	 * 
 	 * @return The query result containing the total number of results as well 
 	 * 		   as the results for this page.
 	 * 
@@ -128,7 +131,8 @@ public interface IClassQueries {
 	 */
 	public QueryResultsList<Clazz> getClassesInformation(
 			final String username,
-			final Collection<String> classIds) 
+			final Collection<String> classIds,
+			final Clazz.Role role) 
 			throws DataAccessException;
 
 	/**

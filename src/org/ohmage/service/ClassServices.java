@@ -329,6 +329,9 @@ public final class ClassServices {
 	 * @param classIds A collection of class identifiers limiting the results 
 	 * 				   to only those in that list.
 	 * 
+	 * @param role Limits the results to only those classes to which the user
+	 * 			   belongs and have this role.
+	 * 
 	 * @return A list of Clazz objects.
 	 * 
 	 * @throws ServiceException There was an error.
@@ -336,6 +339,7 @@ public final class ClassServices {
 	public Map<Clazz, Map<String, Clazz.Role>> getClassesInformation(
 			final String username,
 			final Collection<String> classIds,
+			final Clazz.Role role,
 			final boolean withUsers)
 			throws ServiceException {
 		
@@ -344,7 +348,8 @@ public final class ClassServices {
 					classQueries
 						.getClassesInformation(
 								username, 
-								classIds)
+								classIds,
+								role)
 						.getResults();
 			
 			Map<Clazz, Map<String, Clazz.Role>> result =
