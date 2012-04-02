@@ -332,6 +332,13 @@ public final class ClassServices {
 	 * @param role Limits the results to only those classes to which the user
 	 * 			   belongs and have this role.
 	 * 
+	 * @param classNameTokens Limits the results to only those classes whose 
+	 * 						  name matches one of these tokens.
+	 * 
+	 * @param classDescriptionTokens Limits the results to only those classes
+	 * 								 that have a description and whose 
+	 * 								 description matches one of these tokens. 
+	 * 
 	 * @return A list of Clazz objects.
 	 * 
 	 * @throws ServiceException There was an error.
@@ -339,6 +346,8 @@ public final class ClassServices {
 	public Map<Clazz, Map<String, Clazz.Role>> getClassesInformation(
 			final String username,
 			final Collection<String> classIds,
+			final Collection<String> classNameTokens,
+			final Collection<String> classDescriptionTokens,
 			final Clazz.Role role,
 			final boolean withUsers)
 			throws ServiceException {
@@ -349,6 +358,8 @@ public final class ClassServices {
 						.getClassesInformation(
 								username, 
 								classIds,
+								classNameTokens,
+								classDescriptionTokens,
 								role)
 						.getResults();
 			

@@ -54,7 +54,20 @@ import org.ohmage.validator.ClassValidators;
  *     <td>{@value org.ohmage.request.InputKeys#CLASS_URN_LIST}</td>
  *     <td>A list of classes identifiers (URNs) separated by
  *       {@value org.ohmage.request.InputKeys#LIST_ITEM_SEPARATOR}</td>
- *     <td>true</td>
+ *     <td>false</td>
+ *   </tr>
+ *   <tr>
+ *     <td>{@value org.ohmage.request.InputKeys#CLASS_NAME_SEARCH}</td>
+ *     <td>A space-separated, double-quote-respecting, search term to limit the
+ *       results to only those classes whose name matches this term.</td>
+ *     <td>false</td>
+ *   </tr>
+ *   <tr>
+ *     <td>{@value org.ohmage.request.InputKeys#CLASS_DESCRIPTION_SEARCH}</td>
+ *     <td>A space-separated, double-quote-respecting, search term to limit the
+ *       results to only those classes whose description matches this term.
+ *       </td>
+ *     <td>false</td>
  *   </tr>
  *   <tr>
  *     <td>{@value org.ohmage.request.InputKeys#CLASS_ROLE}</td>
@@ -77,6 +90,8 @@ public class ClassReadRequest extends UserRequest {
 	private static final String JSON_KEY_USERS = "users";
 	
 	private final Collection<String> classIds;
+	private final Collection<String> classNameTokens;
+	private final Collection<String> classDescriptionTokens;
 	private final Clazz.Role role;
 	private final boolean withUserList;
 	
@@ -92,6 +107,8 @@ public class ClassReadRequest extends UserRequest {
 		super(httpRequest, TokenLocation.EITHER);
 		
 		Set<String> tClassIds = null;
+		Set<String> tClassNameTokens = null;
+		Set<String> tClassDescriptionTokens = null;
 		Clazz.Role tRole = null;
 		boolean tWithUserList = true;
 		
@@ -108,21 +125,32 @@ public class ClassReadRequest extends UserRequest {
 							"Multiple class ID lists were found: " +
 								InputKeys.CLASS_URN_LIST);
 				}
-				else if(t.length == 0) {
-					throw new ValidationException(
-							ErrorCode.CLASS_INVALID_ID, 
-							"Missing required class ID list: " + 
-								InputKeys.CLASS_URN_LIST);
-				}
-				else {
+				else if(t.length == 1) {
 					tClassIds = ClassValidators.validateClassIdList(t[0]);
-					
-					if(tClassIds == null) {
-						throw new ValidationException(
-								ErrorCode.CLASS_INVALID_ID, 
-								"Missing required class ID list: " + 
-									InputKeys.CLASS_URN_LIST);
-					}
+				}
+				
+				t = getParameterValues(InputKeys.CLASS_NAME_SEARCH);
+				if(t.length > 1) {
+					throw new ValidationException(
+							ErrorCode.CLASS_INVALID_NAME,
+							"Multiple class name search terms were given: " +
+								InputKeys.CLASS_NAME_SEARCH);
+				}
+				else if(t.length == 1) {
+					tClassNameTokens = 
+							ClassValidators.validateNameSearch(t[0]);
+				}
+				
+				t = getParameterValues(InputKeys.CLASS_DESCRIPTION_SEARCH);
+				if(t.length > 1) {
+					throw new ValidationException(
+							ErrorCode.CLASS_INVALID_DESCRIPTION,
+							"Multiple class description search terms were given: " +
+								InputKeys.DESCRIPTION);
+				}
+				else if(t.length == 1) {
+					tClassDescriptionTokens =
+							ClassValidators.validateDescriptionSearch(t[0]);
 				}
 				
 				t = getParameterValues(InputKeys.CLASS_ROLE);
@@ -155,6 +183,8 @@ public class ClassReadRequest extends UserRequest {
 		}
 		
 		classIds = tClassIds;
+		classNameTokens = tClassNameTokens;
+		classDescriptionTokens = tClassDescriptionTokens;
 		role = tRole;
 		withUserList = tWithUserList;
 		
@@ -179,6 +209,8 @@ public class ClassReadRequest extends UserRequest {
 					ClassServices.instance().getClassesInformation(
 							getUser().getUsername(),
 							classIds,
+							classNameTokens,
+							classDescriptionTokens,
 							role,
 							withUserList));
 			

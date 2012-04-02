@@ -437,6 +437,8 @@ public class ClassQueries extends Query implements IClassQueries {
 	public QueryResultsList<Clazz> getClassesInformation(
 			final String username,
 			final Collection<String> classIds,
+			final Collection<String> classNameTokens,
+			final Collection<String> classDescriptionTokens,
 			final Clazz.Role role) 
 			throws DataAccessException {
 		
@@ -485,6 +487,50 @@ public class ClassQueries extends Query implements IClassQueries {
 					StringUtils.generateStatementPList(classIds.size()));
 					
 			parameters.addAll(classIds);
+		}
+		
+		// If there are name search tokens, add them as a group of ORs.
+		if(classNameTokens != null) {
+			if(classNameTokens.size() == 0) {
+				return (new QueryResultListBuilder<Clazz>()).getQueryResult();
+			}
+			
+			boolean firstPass = true;
+			sqlBuilder.append(" AND (");
+			for(String nameToken : classNameTokens) {
+				if(firstPass) {
+					firstPass = false;
+				}
+				else {
+					sqlBuilder.append(" OR ");
+				}
+				
+				sqlBuilder.append("c.name LIKE ?");
+				parameters.add('%' + nameToken + '%');
+			}
+			sqlBuilder.append(")");
+		}
+		
+		// If there are description search tokens, add them as a group of ORs.
+		if(classDescriptionTokens != null) {
+			if(classDescriptionTokens.size() == 0) {
+				return (new QueryResultListBuilder<Clazz>()).getQueryResult();
+			}
+			
+			boolean firstPass = true;
+			sqlBuilder.append(" AND (");
+			for(String descriptionToken : classDescriptionTokens) {
+				if(firstPass) {
+					firstPass = false;
+				}
+				else {
+					sqlBuilder.append(" OR ");
+				}
+				
+				sqlBuilder.append("c.description LIKE ?");
+				parameters.add('%' + descriptionToken + '%');
+			}
+			sqlBuilder.append(")");
 		}
 		
 		// Finally, tack on the JOIN that will give us the user's role or limit

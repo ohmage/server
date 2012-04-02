@@ -71,6 +71,8 @@ public final class InputKeys {
 	public static final String CLASS_ROLE_LIST_ADD = "class_role_list_add";
 	public static final String CLASS_ROLE_LIST_REMOVE = "class_role_list_remove";
 	public static final String CLASS_NAME = "class_name";
+	public static final String CLASS_NAME_SEARCH = "class_name_search";
+	public static final String CLASS_DESCRIPTION_SEARCH = "class_description_search";
 	public static final String ROSTER = "roster";
 	public static final String CLASS_WITH_USER_LIST = "with_user_list";
 	public static final String CLASS_ROLE = "class_role";

@@ -124,6 +124,13 @@ public interface IClassQueries {
 	 * @param role Limits the results to only those classes to which the user
 	 * 			   belongs and have this role.
 	 * 
+	 * @param classNameTokens Limits the results to only those classes whose 
+	 * 						  name matches one of these tokens.
+	 * 
+	 * @param classDescriptionTokens Limits the results to only those classes
+	 * 								 that have a description and whose 
+	 * 								 description matches one of these tokens.
+	 * 
 	 * @return The query result containing the total number of results as well 
 	 * 		   as the results for this page.
 	 * 
@@ -132,6 +139,8 @@ public interface IClassQueries {
 	public QueryResultsList<Clazz> getClassesInformation(
 			final String username,
 			final Collection<String> classIds,
+			final Collection<String> classNameTokens,
+			final Collection<String> classDescriptionTokens,
 			final Clazz.Role role) 
 			throws DataAccessException;
 
