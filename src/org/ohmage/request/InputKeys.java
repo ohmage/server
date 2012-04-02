@@ -165,6 +165,8 @@ public final class InputKeys {
 	public static final String DOCUMENT_ID = "document_id";
 	public static final String DOCUMENT_ID_LIST = "document_id_list";
 	public static final String DOCUMENT_NAME = "document_name";
+	public static final String DOCUMENT_NAME_SEARCH = "document_name_search";
+	public static final String DOCUMENT_DESCRIPTION_SEARCH = "document_description_search";
 	public static final String DOCUMENT_CAMPAIGN_ROLE_LIST = "document_campaign_role_list";
 	public static final String DOCUMENT_CLASS_ROLE_LIST = "document_class_role_list";
 	public static final String DOCUMENT_USER_ROLE_LIST = "document_user_role_list";

@@ -347,10 +347,12 @@
 
         <h3>Document Read:</h3>
         <form action="/app/document/read" method="post">
-            Personal Documents: <input type="text" name="personal_documents" /><br />
             Client: <input type="text" name="client" value="testWeb" /><br />
+            * Personal Documents: <input type="text" name="personal_documents" /><br />
             * Campaign ID List: <input type="text" name="campaign_urn_list" /><br />
             * Class ID List: <input type="text" name="class_urn_list" /><br />
+            * Name Search: <input type="text" name="document_name_search" /><br />
+            * Description Search: <input type="text" name="document_description_search" /><br />
             <input type="submit" value="Submit" />
         </form>
 

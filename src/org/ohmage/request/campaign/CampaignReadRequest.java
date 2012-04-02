@@ -378,7 +378,7 @@ public class CampaignReadRequest extends UserRequest {
 							"Multiple role parameters were found: " +
 								InputKeys.USER_ROLE);
 				}
-				else {
+				else if(t.length == 1) {
 					tRole = CampaignValidators.validateRole(t[0]);
 				}
 			}

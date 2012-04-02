@@ -74,6 +74,19 @@ import org.ohmage.validator.DocumentValidators;
  *       be returned.</td>
  *     <td>false</td>
  *   </tr>
+ *   <tr>
+ *     <td>{@value org.ohmage.request.InputKeys#DOCUMENT_NAME_SEARCH}</td>
+ *     <td>A space-separated, double-quote-respecting, search term to limit the
+ *       results to only those documents whose name matches this term.</td>
+ *     <td>false</td>
+ *   </tr>
+ *   <tr>
+ *     <td>{@value org.ohmage.request.InputKeys#DOCUMENT_DESCRIPTION_SEARCH}</td>
+ *     <td>A space-separated, double-quote-respecting, search term to limit the
+ *       results to only those documents whose description matches this term.
+ *       </td>
+ *     <td>false</td>
+ *   </tr>
  * </table>
  * 
  * @author John Jenkins
@@ -84,6 +97,8 @@ public class DocumentReadRequest extends UserRequest {
 	private final Boolean personalDocuments;
 	private final List<String> campaignIds;
 	private final Collection<String> classIds;
+	private final Collection<String> nameTokens;
+	private final Collection<String> descriptionTokens;
 	
 	private List<Document> result;
 	
@@ -97,39 +112,87 @@ public class DocumentReadRequest extends UserRequest {
 	public DocumentReadRequest(HttpServletRequest httpRequest) {
 		super(httpRequest, TokenLocation.EITHER);
 		
-		LOGGER.info("Creating a document read request.");
-		
 		Boolean tempPersonalDocuments = null;
 		List<String> tempCampaignIds = null;
 		Set<String> tempClassIds = null;
+		Set<String> tempNameTokens = null;
+		Set<String> tempDescriptionTokens = null;
 		
-		try {
-			tempPersonalDocuments = DocumentValidators.validatePersonalDocuments(httpRequest.getParameter(InputKeys.DOCUMENT_PERSONAL_DOCUMENTS));
-			if((tempPersonalDocuments != null) && (httpRequest.getParameterValues(InputKeys.DOCUMENT_PERSONAL_DOCUMENTS).length > 1)) {
-				setFailed(ErrorCode.DOCUMENT_INVALID_PERSONAL_DOCUMENTS_VALUE, "Multiple personal documents parameters were given.");
-				throw new ValidationException("Multiple personal documents parameters were given.");
-			}
+		if(! isFailed()) {
+			LOGGER.info("Creating a document read request.");
+			String[] t;
 			
-			tempCampaignIds = CampaignValidators.validateCampaignIds(httpRequest.getParameter(InputKeys.CAMPAIGN_URN_LIST));
-			if((tempCampaignIds != null) && (httpRequest.getParameterValues(InputKeys.CAMPAIGN_URN_LIST).length > 1)) {
-				setFailed(ErrorCode.CAMPAIGN_INVALID_ID, "Multiple campaign ID lists were given.");
-				throw new ValidationException("Multiple campaign ID lists were given.");
+			try {
+				t = getParameterValues(InputKeys.DOCUMENT_PERSONAL_DOCUMENTS);
+				if(t.length > 1) {
+					throw new ValidationException(
+						ErrorCode.DOCUMENT_INVALID_PERSONAL_DOCUMENTS_VALUE, 
+						"Multiple personal documents parameters were given: " +
+							InputKeys.DOCUMENT_PERSONAL_DOCUMENTS);
+				}
+				else if(t.length == 1) {
+					tempPersonalDocuments = 
+							DocumentValidators.validatePersonalDocuments(t[0]);
+				}
+				
+				t = getParameterValues(InputKeys.CAMPAIGN_URN_LIST);
+				if(t.length > 1) {
+					throw new ValidationException(
+							ErrorCode.CAMPAIGN_INVALID_ID, 
+							"Multiple campaign ID lists were given: " +
+								InputKeys.CAMPAIGN_URN_LIST);
+				}
+				else if(t.length == 1) {
+					tempCampaignIds = 
+							CampaignValidators.validateCampaignIds(t[0]);
+				}
+				
+				t = getParameterValues(InputKeys.CLASS_URN_LIST);
+				if(t.length > 1) {
+					throw new ValidationException(
+							ErrorCode.CLASS_INVALID_ID, 
+							"Multiple class ID lists were given: " +
+								InputKeys.CLASS_URN_LIST);
+				}
+				else if(t.length == 1) {
+					tempClassIds = ClassValidators.validateClassIdList(t[0]);
+				}
+				
+				t = getParameterValues(InputKeys.DOCUMENT_NAME_SEARCH);
+				if(t.length > 1) {
+					throw new ValidationException(
+							ErrorCode.DOCUMENT_INVALID_NAME,
+							"Multiple name search strings were given: " +
+								InputKeys.DOCUMENT_NAME_SEARCH);
+				}
+				else if(t.length == 1) {
+					tempNameTokens = 
+							DocumentValidators.validateNameSearch(t[0]);
+				}
+				
+				t = getParameterValues(InputKeys.DOCUMENT_DESCRIPTION_SEARCH);
+				if(t.length > 1) {
+					throw new ValidationException(
+							ErrorCode.DOCUMENT_INVALID_DESCRIPTION,
+							"Multiple description search strings were given; " +
+								InputKeys.DOCUMENT_DESCRIPTION_SEARCH);
+				}
+				else if(t.length == 1) {
+					tempDescriptionTokens =
+							DocumentValidators.validateDescriptionSearch(t[0]);
+				}
 			}
-			
-			tempClassIds = ClassValidators.validateClassIdList(httpRequest.getParameter(InputKeys.CLASS_URN_LIST));
-			if((tempClassIds != null) && (httpRequest.getParameterValues(InputKeys.CLASS_URN_LIST).length > 1)) {
-				setFailed(ErrorCode.CLASS_INVALID_ID, "Multiple class ID lists were given.");
-				throw new ValidationException("Multiple class ID lists were given.");
+			catch(ValidationException e) {
+				e.failRequest(this);
+				LOGGER.info(e.toString());
 			}
-		}
-		catch(ValidationException e) {
-			e.failRequest(this);
-			LOGGER.info(e.toString());
 		}
 		
 		personalDocuments = tempPersonalDocuments;
 		campaignIds = tempCampaignIds;
 		classIds = tempClassIds;
+		nameTokens = tempNameTokens;
+		descriptionTokens = tempDescriptionTokens;
 		
 		result = new ArrayList<Document>(0);
 	}
@@ -152,7 +215,9 @@ public class DocumentReadRequest extends UserRequest {
 							getUser().getUsername(), 
 							personalDocuments, 
 							campaignIds, 
-							classIds);
+							classIds,
+							nameTokens,
+							descriptionTokens);
 			
 			LOGGER.info("Found " + result.size() + " documents.");
 		}

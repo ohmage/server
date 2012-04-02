@@ -105,6 +105,14 @@ public interface IDocumentQueries {
 	 * @param classIds A collection of class unqiue identifiers that will
 	 * 				   increase the results to include all documents in all of
 	 * 				   these classes.
+	 * 
+	 * @param nameTokens A collection of tokens that limits the list to only
+	 * 					 those documents whose name contains any of the tokens.
+	 * 
+	 * @param descriptionTokens A collection of tokens that limits the list to
+	 * 							only those documents that have a description
+	 * 							and where that description contains any of 
+	 * 							these tokens.
 	 *  
 	 * @return A DocumentInformation object representing the information about
 	 * 		   this document.
@@ -115,7 +123,9 @@ public interface IDocumentQueries {
 			final String username,
 			final Boolean personalDocuments,
 			final Collection<String> campaignIds,
-			final Collection<String> classIds) 
+			final Collection<String> classIds,
+			final Collection<String> nameTokens,
+			final Collection<String> descriptionTokens) 
 			throws DataAccessException;
 
 	/**
