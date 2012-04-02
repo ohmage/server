@@ -57,6 +57,8 @@ public final class InputKeys {
 	public static final String CAMPAIGN_URN = "campaign_urn";
 	public static final String CAMPAIGN_URN_LIST = "campaign_urn_list";
 	public static final String CAMPAIGN_NAME = "campaign_name";
+	public static final String CAMPAIGN_NAME_SEARCH = "campaign_name_search";
+	public static final String CAMPAIGN_DESCRIPTION_SEARCH = "campaign_description_search";
 	public static final String CAMPAIGN_AUTHORED_BY = "authored_by";
 	public static final String CAMPAIGN_ROLE_LIST_ADD = "campaign_role_list_add";
 	public static final String CAMPAIGN_LIST_REMOVE = "campaign_list_remove";

@@ -129,6 +129,78 @@ public final class CampaignValidators {
 	}
 	
 	/**
+	 * Tokenizes a whitespace-separated, double-quote-respected, search string 
+	 * for a campaign's name.
+	 * 
+	 * @param value The value to tokenize.
+	 * 
+	 * @return The set of tokens.
+	 * 
+	 * @throws ValidationException Never thrown.
+	 */
+	public static Set<String> validateNameSearch(
+			final String value)
+			throws ValidationException {
+		
+		if(StringUtils.isEmptyOrWhitespaceOnly(value)) {
+			return null;
+		}
+		
+		return StringUtils.decodeSearchString(value);
+	}
+
+	/**
+	 * Validates that a campaign description is valid by ensuring that it does
+	 * not contain any profanity.
+	 * 
+	 * @param description The description to validate.
+	 * 
+	 * @return Returns null if the description is null or whitespace only;
+	 * 		   otherwise, it returns the description.
+	 * 
+	 * @throws ValidationException Thrown if the description contains 
+	 * 							   profanity.
+	 */
+	public static String validateDescription(final String description) 
+			throws ValidationException {
+		
+		if(StringUtils.isEmptyOrWhitespaceOnly(description)) {
+			return null;
+		}
+		
+		if(StringUtils.isProfane(description.trim())) {
+			throw new ValidationException(
+					ErrorCode.CAMPAIGN_INVALID_DESCRIPTION, 
+					"The campaign description contains profanity: " + 
+						description);
+		}
+		else {
+			return description.trim();
+		}
+	}
+	
+	/**
+	 * Tokenizes a whitespace-separated, double-quote-respected, search string 
+	 * for a campaign's description.
+	 * 
+	 * @param value The value to tokenize.
+	 * 
+	 * @return The set of tokens.
+	 * 
+	 * @throws ValidationException Never thrown.
+	 */
+	public static Set<String> validateDescriptionSearch(
+			final String value)
+			throws ValidationException {
+		
+		if(StringUtils.isEmptyOrWhitespaceOnly(value)) {
+			return null;
+		}
+		
+		return StringUtils.decodeSearchString(value);
+	}
+	
+	/**
 	 * Checks that a running state is a valid campaign running state. If the 
 	 * running state is null or whitespace only, then null is returned. If it
 	 * isn't a valid running state, a ValidationException is thrown.
@@ -224,36 +296,6 @@ public final class CampaignValidators {
 		}
 		
 		return xml;
-	}
-
-	/**
-	 * Validates that a campaign description is valid by ensuring that it does
-	 * not contain any profanity.
-	 * 
-	 * @param description The description to validate.
-	 * 
-	 * @return Returns null if the description is null or whitespace only;
-	 * 		   otherwise, it returns the description.
-	 * 
-	 * @throws ValidationException Thrown if the description contains 
-	 * 							   profanity.
-	 */
-	public static String validateDescription(final String description) 
-			throws ValidationException {
-		
-		if(StringUtils.isEmptyOrWhitespaceOnly(description)) {
-			return null;
-		}
-		
-		if(StringUtils.isProfane(description.trim())) {
-			throw new ValidationException(
-					ErrorCode.CAMPAIGN_INVALID_DESCRIPTION, 
-					"The campaign description contains profanity: " + 
-						description);
-		}
-		else {
-			return description.trim();
-		}
 	}
 	
 	/**

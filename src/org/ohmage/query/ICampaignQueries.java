@@ -326,6 +326,15 @@ public interface ICampaignQueries {
 	 * @param classIds Limits the results to only those campaigns that are 
 	 * 				   associated with a class whose ID is in this list.
 	 * 
+	 * @param nameTokens A collection of token strings which limit the results
+	 * 					 to only those campaigns whose name contains at least 
+	 * 					 one of the tokens.
+	 * 
+	 * @param descriptionTokens A collection of token strings which limit the
+	 * 							results to only those campaigns that have a 
+	 * 							description and whose description contains at
+	 * 							least one of the tokens.
+	 * 
 	 * @param startDate Limits the results to only those campaigns that were 
 	 * 					created on or after this date.
 	 * 
@@ -351,6 +360,8 @@ public interface ICampaignQueries {
 			final String username,
 			final Collection<String> campaignIds,
 			final Collection<String> classIds,
+			final Collection<String> nameTokens,
+			final Collection<String> descriptionTokens,
 			final Date startDate,
 			final Date endDate,
 			final Campaign.PrivacyState privacyState,
