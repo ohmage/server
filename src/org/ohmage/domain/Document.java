@@ -671,7 +671,12 @@ public class Document {
 		result.put(JSON_KEY_USER_ROLE, ((userRole == null) ? "" : userRole));
 		result.put(JSON_KEY_CAMPAIGN_ROLE, new JSONObject(campaignAndRole));
 		result.put(JSON_KEY_CLASS_ROLE, new JSONObject(classAndRole));
-		result.put(JSON_KEY_MAX_ROLE, maxRole.toString());
+		
+		// If the user is an admin, they may not have any role with the 
+		// document.
+		if(maxRole != null) {
+			result.put(JSON_KEY_MAX_ROLE, maxRole.toString());
+		}
 		
 		return result;
 	}
