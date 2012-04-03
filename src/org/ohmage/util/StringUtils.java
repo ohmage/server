@@ -456,6 +456,7 @@ public final class StringUtils {
 		Set<String> result = new HashSet<String>();
 		result.addAll(Arrays.asList(string.split(SEARCH_REGEX)));
 		result.remove("");
+		result.remove(null);
 		
 		return result;
 	}

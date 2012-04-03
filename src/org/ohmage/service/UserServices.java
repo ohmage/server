@@ -949,23 +949,41 @@ public final class UserServices {
 			throws ServiceException {
 		
 		try {
-			Set<String> usernameTokens = new HashSet<String>();
-			usernameTokens.add(partialUsername);
+			Set<String> usernameTokens = null;
+			if(partialUsername != null) {
+				usernameTokens = new HashSet<String>();
+				usernameTokens.add(partialUsername);
+			}
 			
-			Set<String> emailAddressTokens = new HashSet<String>();
-			emailAddressTokens.add(partialEmailAddress);
+			Set<String> emailAddressTokens = null;
+			if(partialEmailAddress != null) {
+				emailAddressTokens = new HashSet<String>();
+				emailAddressTokens.add(partialEmailAddress);
+			}
 			
-			Set<String> firstNameTokens = new HashSet<String>();
-			firstNameTokens.add(partialFirstName);
+			Set<String> firstNameTokens = null;
+			if(partialFirstName != null) {
+				firstNameTokens = new HashSet<String>();
+				firstNameTokens.add(partialFirstName);
+			}
 			
-			Set<String> lastNameTokens = new HashSet<String>();
-			firstNameTokens.add(partialLastName);
+			Set<String> lastNameTokens = null;
+			if(partialLastName != null) {
+				lastNameTokens = new HashSet<String>();
+				lastNameTokens.add(partialLastName);
+			}
 			
-			Set<String> organizationTokens = new HashSet<String>();
-			firstNameTokens.add(partialOrganization);
+			Set<String> organizationTokens = null;
+			if(partialOrganization != null) {
+				organizationTokens = new HashSet<String>();
+				organizationTokens.add(partialOrganization);
+			}
 			
-			Set<String> personalIdTokens = new HashSet<String>();
-			firstNameTokens.add(partialPersonalId);
+			Set<String> personalIdTokens = null;
+			if(partialPersonalId != null) {
+				personalIdTokens = new HashSet<String>();
+				personalIdTokens.add(partialPersonalId);
+			}
 			
 			QueryResultsList<UserInformation> result =
 					userQueries.getUserInformation(

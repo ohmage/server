@@ -1236,7 +1236,7 @@ public class UserQueries extends Query implements IUserQueries {
 				
 				sql.append("LOWER(u.username) LIKE ?");
 				
-				parameters.add('%' + usernameToken.toLowerCase() + '%');
+				parameters.add('%' + usernameToken + '%');
 			}
 			
 			sql.append(")");
@@ -1262,7 +1262,7 @@ public class UserQueries extends Query implements IUserQueries {
 				
 				sql.append("LOWER(u.email_address) LIKE ?");
 				
-				parameters.add('%' + emailAddressToken.toLowerCase() + '%');
+				parameters.add('%' + emailAddressToken + '%');
 			}
 			
 			sql.append(")");
@@ -1324,7 +1324,7 @@ public class UserQueries extends Query implements IUserQueries {
 				
 				sql.append("LOWER(up.first_name) LIKE ?");
 				
-				parameters.add('%' + firstNameToken.toLowerCase() + '%');
+				parameters.add('%' + firstNameToken + '%');
 			}
 			
 			sql.append(")");
@@ -1350,7 +1350,7 @@ public class UserQueries extends Query implements IUserQueries {
 				
 				sql.append("LOWER(up.last_name) LIKE ?");
 				
-				parameters.add('%' + lastNameToken.toLowerCase() + '%');
+				parameters.add('%' + lastNameToken + '%');
 			}
 			
 			sql.append(")");
@@ -1376,7 +1376,7 @@ public class UserQueries extends Query implements IUserQueries {
 				
 				sql.append("LOWER(up.organization) LIKE ?");
 				
-				parameters.add('%' + organizationToken.toLowerCase() + '%');
+				parameters.add('%' + organizationToken + '%');
 			}
 			
 			sql.append(")");
@@ -1402,7 +1402,7 @@ public class UserQueries extends Query implements IUserQueries {
 				
 				sql.append("LOWER(up.personal_id) LIKE ?");
 				
-				parameters.add('%' + personalIdToken.toLowerCase() + '%');
+				parameters.add('%' + personalIdToken + '%');
 			}
 			
 			sql.append(")");
