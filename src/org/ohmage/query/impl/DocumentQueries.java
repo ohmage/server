@@ -535,6 +535,7 @@ public class DocumentQueries extends Query implements IDocumentQueries {
 		List<Object> parameters = new LinkedList<Object>();
 		parameters.add(username);
 		
+		boolean needOr = false;
 		if(personalDocuments == null) {
 			// If campaignIds and classIds are null, get all of the documents
 			// visible to the user.
@@ -575,6 +576,7 @@ public class DocumentQueries extends Query implements IDocumentQueries {
 					"FROM document_user_role dur " +
 					"WHERE u.id = dur.user_id" +
 				")");
+			needOr = true;
 		}
 		else {
 			// If campaignIds and classIds are null and they are specifically 
@@ -589,8 +591,12 @@ public class DocumentQueries extends Query implements IDocumentQueries {
 				return Collections.emptyList();
 			}
 			
+			if(needOr) {
+				sql.append(" OR ");
+			}
+			
 			sql.append(
-				" OR d.id IN (" +
+				"d.id IN (" +
 					"SELECT dcr.document_id " +
 					"FROM campaign c, user_role_campaign urc, " +
 						"document_campaign_role dcr " +
@@ -603,6 +609,7 @@ public class DocumentQueries extends Query implements IDocumentQueries {
 					"AND u.id = urc.user_id " +
 					"AND c.id = dcr.campaign_id" +
 				")");
+			needOr = true;
 			
 			parameters.addAll(campaignIds);
 		}
@@ -612,8 +619,12 @@ public class DocumentQueries extends Query implements IDocumentQueries {
 				return Collections.emptyList();
 			}
 			
+			if(needOr) {
+				sql.append(" OR ");
+			}
+			
 			sql.append(
-				" OR d.id IN (" +
+				"d.id IN (" +
 					"SELECT dcr.document_id " +
 					"FROM class c, user_class uc, " +
 						"document_class_role dcr " +
